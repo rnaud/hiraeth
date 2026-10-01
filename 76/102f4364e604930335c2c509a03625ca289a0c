@@ -1,0 +1,59 @@
+README.md
+  s_aaae6e4311287b::t_ce403a9a9b763b 13-14,35-37,39-46,48-82,84-88,90-94
+index.html
+  s_aaae6e4311287b::t_8332b56de7f2ba 18-41,49-56,60
+src/bike.js
+  s_aaae6e4311287b::t_e43565fecb5746 61-62,64-69,72-74,79,90-93,98-100,143-144,164-165
+src/bird.js
+  s_aaae6e4311287b::t_5ce1512a08e491 1-238
+src/levels/arzach.js
+  s_aaae6e4311287b::t_a3c4ace2d571ef 1-175
+src/levels/desert.js
+  s_aaae6e4311287b::t_861cca99e90686 4,16-19
+src/levels/edena.js
+  s_aaae6e4311287b::t_64f14b44e947c7 1-165
+src/levels/garage.js
+  s_d4167757533f66::t_7ae95ff690fc6c 1-258
+src/levels/incal.js
+  s_aaae6e4311287b::t_e3ca20b9244086 297,308
+src/levels/index.js
+  s_d4167757533f66::t_c582bf64a469b1 1-48
+src/levels/perdide.js
+  s_aaae6e4311287b::t_ea2c371239c4ee 1-227
+src/main.js
+  s_aaae6e4311287b::t_39f79a15a19be6 5,103-106,114-116,120,146,152,198-223,231-243,245-248,250,268,272-273,280-285,294,302
+src/materials.js
+  s_aaae6e4311287b::t_b1ff30e2eabee8 25,108-111,377-402,440-444,455-458,468,478,480-482,487,513-516,537-540
+src/physics.js
+  s_aaae6e4311287b::t_fa8b2bd55a9014 20,70-95,106-107,109,111-112
+src/player.js
+  s_aaae6e4311287b::t_f43b00f37022e1 121-179,183-185,189,192,205-206,209-211,216-220,224,231-235,237,239-242,244,246,249-260,262,275,277,295,299-302,330-334,339-350,357-359,363,368,374,379-381,384-386,390,395-402,405,407-410,413-420,424-425,427,431-432,434,437-438,442-516,607-608,610,616-619,628-631,633-638
+src/post.js
+  s_aaae6e4311287b::t_9635bf3c8ecae0 318-320,434-451
+src/world.js
+  s_aaae6e4311287b::t_e78dc5b80c4a0d 42-47,60,85-87,89-90,122,137
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "76102f4364e604930335c2c509a03625ca289a0c",
+  "prompts": {},
+  "sessions": {
+    "s_aaae6e4311287b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a3718911-2af0-4cef-b5df-15d14f9e5623",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_d4167757533f66": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "48273525-2b3d-4f06-b755-2ed24b8780e6",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
