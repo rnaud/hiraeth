@@ -2,8 +2,7 @@ import * as THREE from 'three';
 import GUI from 'lil-gui';
 import { sharedUniforms } from './materials.js';
 import { createPost, DEBUG_VIEWS, PRESETS } from './post.js';
-import { createDesert } from './levels/desert.js';
-import { createIncal } from './levels/incal.js';
+import { LEVELS, levelById } from './levels/index.js';
 import { Player, CameraRig } from './player.js';
 import { applyTimeOfDay } from './timeofday.js';
 import { WindStreaks } from './wind.js';
@@ -101,10 +100,10 @@ let wind = null;
 resize();
 
 // ------------------------------------------------------------------ world
-const LEVELS = { desert: createDesert, incal: createIncal };
-const levelId = new URLSearchParams(location.search).get('level') in LEVELS
-  ? new URLSearchParams(location.search).get('level') : 'desert';
-const level = LEVELS[levelId](scene);
+const levelParam = new URLSearchParams(location.search).get('level');
+const meta = levelById(levelParam) ?? LEVELS[0];
+const levelId = meta.id;
+const level = meta.create(scene);
 const terrain = level.ground;
 // Collision against the real level geometry (built before the player / vehicles join the scene).
 const t0 = performance.now();
@@ -112,12 +111,13 @@ const physics = new Physics(scene, level.ground.heightAt ? level.ground : null);
 console.info(`collision: ${physics.triangles.toLocaleString()} triangles in ${(performance.now() - t0).toFixed(0)} ms`);
 level.init?.(physics);
 const player = new Player(physics, {
-  bike: level.features.bike, jetpack: level.features.jetpack,
-  killY: level.killY, spawn: level.spawn, spawnHeading: level.spawnHeading,
+  mount: level.mount, jetpack: level.features.jetpack, climb: level.features.climb ?? true,
+  killY: level.killY, limit: level.limit ?? 1900, spawn: level.spawn, spawnHeading: level.spawnHeading,
+  gravityAt: level.gravityAt, unsafe: level.unsafe,
 });
 player.vehicles.push(...(level.vehicles ?? []));
 scene.add(player.object);
-if (level.features.bike) scene.add(player.bike.object);
+if (player.mount) scene.add(player.mount.object);
 wind = new WindStreaks();
 wind.uniforms.tNormal.value = gbuffer.textures[1];
 wind.uniforms.uRes.value.copy(post.uniforms.uRes.value);
@@ -143,13 +143,13 @@ updateSky();
 // ------------------------------------------------------------------ GUI
 const U = post.uniforms;
 const params = {
-  preset: 'Moebius',
+  preset: level.defaults.preset ?? 'Moebius',
   debug: 0,
   ink: '#2b211f',
 };
 const gui = new GUI({ title: 'Moebius shader' });
 gui.add(params, 'preset', Object.keys(PRESETS)).name('style preset').onChange(applyPreset);
-gui.add({ level: levelId }, 'level', { 'Desert (Sable)': 'desert', "L'Incal — city-shaft": 'incal' })
+gui.add({ level: levelId }, 'level', Object.fromEntries(LEVELS.map((l) => [l.title, l.id])))
   .name('level').onChange((v) => { location.search = '?level=' + v; });
 gui.add(params, 'debug', DEBUG_VIEWS).name('view');
 
@@ -195,6 +195,32 @@ function applyPreset(name) {
 }
 applyPreset(params.preset);
 
+// ------------------------------------------------------------------ level picker
+const picker = document.getElementById('picker');
+picker.querySelector('.cards').innerHTML = LEVELS.map((l, i) => `
+  <a class="card${l.id === levelId ? ' current' : ''}" href="?level=${l.id}">
+    <img src="thumbs/${l.id}.jpg" alt="" onerror="this.style.visibility='hidden'" />
+    <div class="txt">
+      <div class="num">${i + 1}</div>
+      <h2>${l.title}</h2>
+      <div class="src">${l.source}</div>
+      <p>${l.blurb}</p>
+      <div class="moves">${l.moves}</div>
+    </div>
+  </a>`).join('');
+function showPicker(on) {
+  picker.classList.toggle('open', on);
+  if (on) document.exitPointerLock?.();
+}
+showPicker(!levelParam);
+picker.querySelector('.close').addEventListener('click', () => showPicker(false));
+window.addEventListener('keydown', (e) => {
+  if (e.code === 'KeyL') showPicker(!picker.classList.contains('open'));
+  if (e.code === 'Escape' && picker.classList.contains('open') && levelParam) showPicker(false);
+  const n = Number(e.key);
+  if (picker.classList.contains('open') && n >= 1 && n <= LEVELS.length) location.search = '?level=' + LEVELS[n - 1].id;
+});
+
 // ------------------------------------------------------------------ loop
 const timer = new THREE.Timer();
 let frameNo = 0;
@@ -202,20 +228,26 @@ let frameNo = 0;
 const status = document.getElementById('status');
 let lastStatus = '';
 function updateHud() {
-  let hint;
-  if (player.ride?.kind === 'taxi') {
-    hint = 'E get out · W/S throttle · A/D steer · SPACE up · SHIFT down';
-  } else if (level.features.jetpack) {
-    const n = Math.round(player.fuel * 10);
+  const gauge = (v) => { const n = Math.round(v * 10); return `[${'■'.repeat(n)}${'·'.repeat(10 - n)}]`; };
+  const RIDE = {
+    taxi: 'E get out · W/S throttle · A/D steer · SPACE up · SHIFT down',
+    bird: 'E jump off · A/D bank · W dive · S pull up · SPACE flap',
+    bike: 'E dismount · W/S throttle · A/D steer · SHIFT boost',
+    skiff: 'E step off · W/S throttle · A/D steer · SHIFT boost',
+  };
+  const parts = [];
+  if (player.ride) parts.push(RIDE[player.ride.kind] ?? RIDE.bike);
+  else {
+    if (player.climbing) parts.push(`climbing ${gauge(player.stamina)} · SPACE jump off`);
+    else if (player.stamina < 0.99) parts.push(`stamina ${gauge(player.stamina)}`);
+    if (level.features.jetpack) parts.push(`jetpack ${gauge(player.fuel)}`);
     const near = player.nearestVehicle();
-    const taxi = near ? 'E get in the taxi' : 'E hail a taxi';
-    hint = `${taxi} · jetpack [${'■'.repeat(n)}${'·'.repeat(10 - n)}]`;
-  } else {
-    const d = player.bikeDistance();
-    hint = player.riding ? 'E dismount · W/S throttle · A/D steer · SHIFT boost'
-      : d < 6 ? 'E ride the hoverbike' : 'E whistle for the hoverbike';
+    if (near) parts.push(`E ${near.kind === 'taxi' ? 'get in the taxi' : 'ride the ' + (level.mountName ?? near.kind)}`);
+    else if (player.mount) parts.push(`E whistle for the ${level.mountName}`);
+    else if (level.features.taxis) parts.push('E hail a taxi');
+    if (!parts.length) parts.push('push into a wall to climb it');
   }
-  const text = `${atmo.name} · ${hint}`;
+  const text = `${atmo.name} · ${parts.join(' · ')}`;
   if (text !== lastStatus) { status.textContent = text; lastStatus = text; }
 }
 document.getElementById('loading')?.remove();
@@ -233,19 +265,24 @@ function frame() {
   for (const v of player.vehicles) if (v !== player.ride) v.update(dt, null, t);
   player.update(dt, input, rig.yaw);
   rig.follow(player.ride?.heading ?? 0, dt, player.riding);
-  rig.update(player.pos, dt);
+  rig.update(player.pos, dt, player.frame);
 
   // sand: ambient gusts + dust behind the bike
   const pxScale = (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) / window.innerHeight;
-  const b = player.bike;
-  if (level.features.bike && player.riding && Math.abs(b.speed) > 10 && b.grounded && world.wind) {
+  const b = player.mount;
+  if (b && player.ride === b && b.grounded && Math.abs(b.speed) > 10 && world.wind) {
     const [fx, fz] = b.forward;
     for (let i = 0; i < Math.abs(b.speed) / 12; i++)
       wind.emit(b.pos.x - fx * 1.8, b.pos.z - fz * 1.8, b.vel.x * 0.25 - fz * (Math.random() - 0.5) * 6, b.vel.z * 0.25 + fx * (Math.random() - 0.5) * 6);
   }
   wind.update(dt, player.pos, camera, terrain, pxScale, world.wind);
   updateHud();
-  level.update(dt, t);
+  level.update(dt, t, { player, rig });
+  // levels with zones (the Garage) switch ink style as you cross between them
+  if (level.zoneAt) {
+    const zone = level.zoneAt(player.pos);
+    if (zone.preset !== params.preset) { params.preset = zone.preset; applyPreset(zone.preset); }
+  }
 
   sharedUniforms.uTime.value = t;
   U.uTime.value = t;
@@ -254,6 +291,7 @@ function frame() {
   // 1. shadow maps (the wide cascade only refreshes every 3rd frame)
   const lightDir = sharedUniforms.uSunDir.value;
   scene.overrideMaterial = shadowOverride;
+  for (const o of level.noShadow ?? []) o.visible = false;
   nearShadow.update(player.pos, lightDir);
   nearShadow.render(scene);
   if (frameNo++ % 3 === 0 || sky.speed > 0) {
@@ -261,6 +299,7 @@ function frame() {
     farShadow.render(scene);
   }
   scene.overrideMaterial = null;
+  for (const o of level.noShadow ?? []) o.visible = true;
 
   // 2. G-buffer (clearing to 0 marks sky pixels with depth 0)
   camera.updateMatrixWorld();

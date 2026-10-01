@@ -315,7 +315,9 @@ const fragmentShader = /* glsl */ `
       float lit = smoothstep(uToon - 0.01, uToon + 0.01, L);
       // during the sun -> moon hand-over both tones converge, so shadows fade
       vec3 shade = mix(albedo * uShadowTint, albedo * uLightTint, uFlatten);
-      col = mix(shade, albedo * uLightTint, lit);
+      // self-lit surfaces (gHatch.a) keep their colour at night and glow a little
+      float glow = texture(tHatch, uv).a;
+      col = mix(shade, albedo * mix(uLightTint, vec3(1.12), glow), lit);
       col *= 1.0 + uHighlight * smoothstep(0.9, 0.92, L);
 
       // ---- 3. hatching in shadow
@@ -428,6 +430,24 @@ export const PRESETS = {
     uLineWidth: 1.6, uDepthThresh: 0.07, uNormalThresh: 0.3, uAlbedoEdges: 0, uShadowEdges: 0,
     uWobble: 0.0, uBoil: 0, uHatch: 1, uShadeStyle: 1, uHatchSpacing: 7, uHighlight: 0.05, uGrain: 0.04, uClouds: 0.5,
     uFogDensity: 0.0009,
+  },
+  // high-key, bone-white, heavy cast shadows, few lines
+  Arzach: {
+    uLineWidth: 1.8, uDepthThresh: 0.08, uNormalThresh: 0.35, uAlbedoEdges: 0.4, uShadowEdges: 1,
+    uWobble: 1.2, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 4.5, uHighlight: 0, uGrain: 0.12, uClouds: 0.25,
+    uFogDensity: 0.0008,
+  },
+  // Moebius at his cleanest: flat colour, thin lines, light dotting only
+  Edena: {
+    uLineWidth: 1.4, uDepthThresh: 0.07, uNormalThresh: 0.28, uAlbedoEdges: 1, uShadowEdges: 0.4,
+    uWobble: 0.4, uBoil: 0, uHatch: 0.5, uShadeStyle: 1, uHatchSpacing: 8, uHighlight: 0.06, uGrain: 0.05, uClouds: 0.7,
+    uFogDensity: 0.0008,
+  },
+  // twilight swamp: dense hatching, glowing crystals carry the light
+  Perdide: {
+    uLineWidth: 1.9, uDepthThresh: 0.07, uNormalThresh: 0.24, uAlbedoEdges: 1, uShadowEdges: 1,
+    uWobble: 1.0, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 5, uHighlight: 0, uGrain: 0.1, uClouds: 0.5,
+    uFogDensity: 0.0012,
   },
   'Animated ink': {
     uLineWidth: 2.2, uDepthThresh: 0.07, uNormalThresh: 0.2, uAlbedoEdges: 1, uShadowEdges: 1,

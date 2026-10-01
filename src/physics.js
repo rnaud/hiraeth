@@ -17,6 +17,7 @@ const _tri = new THREE.Vector3();
 const _cap = new THREE.Vector3();
 const _dir = new THREE.Vector3();
 const _m = new THREE.Matrix4();
+const _Y = new THREE.Vector3(0, 1, 0);
 
 function isExcluded(obj) {
   for (let o = obj; o; o = o.parent) if (o.userData.noCollide) return true;
@@ -66,6 +67,32 @@ export class Physics {
     return hit ? Math.max(hit.point.y, b) : b;
   }
 
+  /**
+   * First hit along a ray: { distance, point, normal } with the normal facing
+   * back toward the ray origin, or null.
+   */
+  rayHit(origin, dir, far) {
+    if (!this.bvh) return null;
+    _ray.origin.copy(origin);
+    _ray.direction.copy(dir);
+    const hit = this.bvh.raycastFirst(_ray, THREE.DoubleSide, 0, far);
+    if (!hit) return null;
+    const normal = hit.face.normal.clone();
+    if (normal.dot(dir) > 0) normal.negate();
+    return { distance: hit.distance, point: hit.point.clone(), normal };
+  }
+
+  /**
+   * Height of the feet above the ground along an arbitrary "up" (for levels
+   * with changing gravity). Uses the heightfield too when up is +Y.
+   */
+  heightAbove(pos, up, step = 0.6) {
+    if (up.y > 0.999) return pos.y - this.groundAt(pos.x, pos.y + step, pos.z);
+    _cap.copy(pos).addScaledVector(up, step);
+    _dir.copy(up).negate();
+    return this.rayDistance(_cap, _dir, 600) - step;
+  }
+
   /** Distance along a ray to the first hit (or Infinity). */
   rayDistance(origin, dir, far) {
     if (!this.bvh) return Infinity;
@@ -76,13 +103,13 @@ export class Physics {
   }
 
   /**
-   * Push a vertical capsule (from pos.y + bottom to pos.y + top, radius r)
-   * out of the geometry. Modifies pos; returns the push vector (or null).
+   * Push a capsule (from pos + up * bottom to pos + up * top, radius r) out of
+   * the geometry. Modifies pos; returns the push vector (or null).
    */
-  pushCapsule(pos, r, bottom, top, out = new THREE.Vector3()) {
+  pushCapsule(pos, r, bottom, top, out = new THREE.Vector3(), up = _Y) {
     if (!this.bvh) return null;
-    _seg.start.set(pos.x, pos.y + bottom + r, pos.z);
-    _seg.end.set(pos.x, pos.y + top - r, pos.z);
+    _seg.start.copy(pos).addScaledVector(up, bottom + r);
+    _seg.end.copy(pos).addScaledVector(up, top - r);
     const sx = _seg.start.x, sy = _seg.start.y, sz = _seg.start.z;
     _box.makeEmpty().expandByPoint(_seg.start).expandByPoint(_seg.end);
     _box.min.addScalar(-r);

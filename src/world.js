@@ -39,7 +39,12 @@ export function heightFn(x, z) {
 }
 
 export class Terrain {
-  constructor(size = WORLD_SIZE, seg = 560) {
+  /**
+   * @param {object} [o]
+   * @param {(x: number, z: number) => number} [o.height] height function
+   * @param {object} [o.material] makeMaterial options (terrain mode)
+   */
+  constructor({ size = WORLD_SIZE, seg = 560, height = heightFn, material } = {}) {
     this.size = size;
     this.seg = seg;
     this.step = size / seg;
@@ -52,7 +57,7 @@ export class Terrain {
       for (let ix = 0; ix < n; ix++) {
         const x = -half + ix * this.step;
         const z = -half + iz * this.step;
-        const h = heightFn(x, z);
+        const h = height(x, z);
         const i = iz * n + ix;
         this.heights[i] = h;
         pos[i * 3] = x;
@@ -77,8 +82,12 @@ export class Terrain {
 
     this.mesh = new THREE.Mesh(
       geo,
-      makeMaterial({ color: '#efd29b', color2: '#f5e1b6', color3: '#dca57a', mode: MODE_TERRAIN })
+      makeMaterial(material ?? {
+        color: '#efd29b', color2: '#f5e1b6', color3: '#dca57a', mode: MODE_TERRAIN, biomes: true, ripples: true,
+      })
     );
+    // the heightfield has an exact lookup, so it stays out of the mesh collision
+    this.mesh.userData.noCollide = true;
   }
 
   // Exact height of the rendered triangle mesh (matches the index layout above).
@@ -110,7 +119,7 @@ export class Terrain {
 // ------------------------------------------------------------------ helpers
 
 // Deterministic per-position jitter so duplicated seam/cap vertices stay welded.
-function jitter(geo, amount, freq, seed = 0, vertical = 0) {
+export function jitter(geo, amount, freq, seed = 0, vertical = 0) {
   const p = geo.attributes.position;
   for (let i = 0; i < p.count; i++) {
     const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
@@ -125,7 +134,7 @@ function jitter(geo, amount, freq, seed = 0, vertical = 0) {
 }
 
 // Terraced radius profile: each "step" of the mesa shrinks a bit.
-function terrace(geo, height, steps, shrink) {
+export function terrace(geo, height, steps, shrink) {
   const p = geo.attributes.position;
   for (let i = 0; i < p.count; i++) {
     const y = p.getY(i);

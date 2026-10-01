@@ -22,6 +22,7 @@ import { BIOME_GLSL } from './biome.js';
 export const MODE_PLAIN = 0;
 export const MODE_TERRAIN = 1;
 export const MODE_STRATA = 2;
+export const MODE_WATER = 3;
 
 export const sharedUniforms = {
   uSunDir: { value: new THREE.Vector3(0.5, 0.6, 0.3).normalize() },
@@ -104,6 +105,10 @@ const fragmentShader = /* glsl */ `
   uniform float uShadowBias2;
   uniform float uShadowNormalOffset2;
   uniform float uGlyphs;
+  uniform float uBiomes;    // terrain: desert regions decide the ground palette
+  uniform float uRipples;   // terrain: wind ripple marks
+  uniform float uTicks;     // terrain: inked grass ticks
+  uniform float uGlow;      // self-lit (crystals, eggs): ignores shadow, glows at night
   uniform float uClouds;
   uniform float uCloudShadows;
   uniform float uTime;
@@ -369,6 +374,32 @@ const fragmentShader = /* glsl */ `
     return m;
   }
 
+  // Grass: short inked ticks scattered on a jittered grid, leaning with the wind.
+  float grassTicks(vec2 p, vec2 fwp) {
+    float cell = 1.4;
+    vec2 g = p / cell, id = floor(g);
+    vec2 h = hash2(id + 7.7);
+    if (h.x > 0.42) return 0.0;
+    vec2 c = 0.25 + h * 0.5;
+    vec2 dir = normalize(vec2(0.35 + 0.3 * h.y, 1.0));
+    vec2 q = fract(g) - c;
+    float along = clamp(dot(q, dir), -0.13, 0.13);
+    float d = length(q - dir * along) * cell / max(max(fwp.x, fwp.y), 1e-6);   // device px
+    float vis = 1.0 - smoothstep(0.03, 0.08, max(fwp.x, fwp.y) / cell);
+    return inkLine(d, 1.0) * vis;
+  }
+
+  // Water: drifting contour lines of a slow noise field, like inked ripples.
+  float waterLines(vec2 p, float t) {
+    vec2 q = p * 0.045 + vec2(t * 0.03, t * 0.017);
+    float f = vnoise(q) * 0.6 + vnoise(q * 2.3 - t * 0.04) * 0.4;
+    float v = f * 9.0;
+    float fw = fwidth(v);
+    float d = abs(fract(v + 0.5) - 0.5) / max(fw, 1e-6);
+    float broken = smoothstep(0.3, 0.55, vnoise(p * 0.08 + 31.0));
+    return inkLine(d, 1.0) * broken * (1.0 - smoothstep(0.25, 0.5, fw));
+  }
+
   void main() {
     // stroke coordinates + derivatives first, in uniform control flow
     vec3 on = uFlat > 0.5 ? cross(dFdx(vObjPos), dFdy(vObjPos)) : vObjNormal;
@@ -406,9 +437,11 @@ const fragmentShader = /* glsl */ `
     if (uMode == ${MODE_TERRAIN}) {
       // Sand with flat patches of a second tone, rock on steep slopes; the
       // three tones come from the region (golden dunes / rose canyons / salt flats).
-      bw = biomeWeights(vWorldPos.xz);
-      vec3 c1, c2, c3;
-      biomeGround(bw, c1, c2, c3);
+      vec3 c1 = uColor, c2 = uColor2, c3 = uColor3;
+      if (uBiomes > 0.5) {
+        bw = biomeWeights(vWorldPos.xz);
+        biomeGround(bw, c1, c2, c3);
+      }
       float patches = vnoise(vWorldPos.xz * 0.011) * 0.65 + vnoise(vWorldPos.xz * 0.045) * 0.35;
       albedo = patches > 0.6 ? c2 : c1;
       if (slope > 0.42) albedo = c3;
@@ -419,6 +452,10 @@ const fragmentShader = /* glsl */ `
       albedo *= mix(vec3(1.0), vec3(0.945, 0.935, 0.965), b);
     } else if (uMode == ${MODE_STRATA}) {
       albedo = strata(vWorldPos);
+    } else if (uMode == ${MODE_WATER}) {
+      // two flat tones drifting slowly
+      float w = vnoise(vWorldPos.xz * 0.012 + uTime * 0.01);
+      albedo = w > 0.55 ? uColor2 : uColor;
     }
     albedo *= vInstColor;
 
@@ -428,6 +465,7 @@ const fragmentShader = /* glsl */ `
     // Cast shadows clamp the light term below the toon threshold (0.5) but keep
     // some gradation so the post-process can choose single vs cross hatching.
     float L = mix(min(lambert, 0.38), lambert, sh);
+    L = mix(L, 1.0, uGlow);
 
     gAlbedoLight = vec4(albedo, L);
     gNormalDepth = vec4(n, vViewDepth);
@@ -437,12 +475,16 @@ const fragmentShader = /* glsl */ `
     if (uGrid > 0.0) detail = gridLines(gq, gfw, gw);
     if (uGlyphs > 0.0) detail = max(detail, glyphs(glyphUV, glyphFw));
     if (uMode == ${MODE_TERRAIN}) {
-      detail = max(detail, sandRipples(vWorldPos.xz, rippleFw, slope) * (1.0 - bw.y));
+      if (uRipples > 0.5) detail = max(detail, sandRipples(vWorldPos.xz, rippleFw, slope) * (1.0 - bw.y));
       if (bw.y > 0.0 && slope < 0.2) detail = max(detail, mudCracks(vWorldPos.xz, crackFw) * smoothstep(0.3, 0.8, bw.y));
+      if (uTicks > 0.5 && slope < 0.35) detail = max(detail, grassTicks(vWorldPos.xz, fwp) * 0.8);
+    } else if (uMode == ${MODE_WATER}) {
+      detail = max(detail, waterLines(vWorldPos.xz, uTime) * 0.7);
     } else if (uMode == ${MODE_STRATA} && abs(normalize(on).y) < 0.6) {
       detail = max(detail, fissures(vec2(faceX, vObjPos.y), fissFw) * 0.85);
     }
     gHatch.b = detail;
+    gHatch.a = uGlow;
     float dark = clamp((uToon - L) / uToon, 0.0, 1.0);
     if (dark > 0.0 && uHatch > 0.0 && uShadeStyle == 1) {
       gHatch.r = stipple(ce1, fwd, uHatchSpacing * 1.15, dark) * smoothstep(0.02, 0.15, dark);
@@ -468,6 +510,10 @@ const cache = new Map();
  * @param {number} [o.strataSize]
  * @param {number} [o.grid] spacing of drawn grid lines (0 = none)
  * @param {boolean} [o.glyphs] draw alien glyphs in the grid cells
+ * @param {boolean} [o.biomes]  terrain: desert region palettes
+ * @param {boolean} [o.ripples] terrain: wind ripple marks
+ * @param {boolean} [o.ticks]   terrain: inked grass ticks
+ * @param {number}  [o.glow]    0..1 self-lit
  * @param {THREE.Side} [o.side]
  */
 export function makeMaterial(o) {
@@ -488,6 +534,10 @@ export function makeMaterial(o) {
       uStrataSize: { value: o.strataSize ?? 4.0 },
       uGrid: { value: o.grid ?? 0 },
       uGlyphs: { value: o.glyphs ? 1 : 0 },
+      uBiomes: { value: o.biomes ? 1 : 0 },
+      uRipples: { value: o.ripples ? 1 : 0 },
+      uTicks: { value: o.ticks ? 1 : 0 },
+      uGlow: { value: o.glow ?? 0 },
     },
   });
   cache.set(key, mat);

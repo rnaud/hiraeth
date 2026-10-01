@@ -15,6 +15,30 @@
         padding: 8px 12px; pointer-events: none; user-select: none;
       }
       #hud b { letter-spacing: 0.08em; }
+      #picker {
+        position: fixed; inset: 0; z-index: 5000; display: none; overflow: auto;
+        background: rgba(247, 236, 210, 0.94); color: #2b211f;
+        font: 13px/1.45 ui-monospace, Menlo, monospace; padding: 40px 48px;
+      }
+      #picker.open { display: block; }
+      #picker header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 22px; }
+      #picker h1 { font-size: 26px; letter-spacing: 0.12em; margin: 0; }
+      #picker header span { opacity: 0.7; }
+      #picker .close { border: 1.5px solid #2b211f; background: none; font: inherit; padding: 4px 10px; cursor: pointer; }
+      #picker .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 22px; }
+      #picker .card {
+        display: block; color: inherit; text-decoration: none; background: #fbf4e2;
+        border: 2px solid #2b211f; box-shadow: 5px 5px 0 #2b211f; transition: transform 0.12s;
+      }
+      #picker .card:hover { transform: translate(-2px, -2px); box-shadow: 7px 7px 0 #2b211f; }
+      #picker .card.current { outline: 3px solid #d9643a; outline-offset: 3px; }
+      #picker img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-bottom: 2px solid #2b211f; background: #efe3c6; }
+      #picker .txt { padding: 12px 14px 14px; position: relative; }
+      #picker .num { position: absolute; right: 14px; top: 10px; font-size: 22px; opacity: 0.35; }
+      #picker h2 { margin: 0 0 2px; font-size: 17px; letter-spacing: 0.05em; }
+      #picker .src { font-style: italic; opacity: 0.75; margin-bottom: 8px; }
+      #picker p { margin: 0 0 10px; }
+      #picker .moves { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #8a5a3c; }
       #loading {
         position: fixed; inset: 0; display: grid; place-items: center;
         font: 14px ui-monospace, Menlo, monospace; color: #2b211f; background: #f7ecd2;
@@ -22,11 +46,18 @@
     </style>
   </head>
   <body>
-    <div id="loading">sketching the desert…</div>
+    <div id="loading">sketching the world…</div>
+    <div id="picker">
+      <header>
+        <h1>MOEBIUS — choose a world</h1>
+        <span>press 1–6 · L to toggle this screen <button class="close">close ✕</button></span>
+      </header>
+      <div class="cards"></div>
+    </div>
     <div id="hud">
       <b>MOEBIUS PoC</b><br />
       click to capture mouse · WASD move · SHIFT run<br />
-      SPACE jump · hold SPACE in air to glide · wheel zoom · ESC release<br />
+      SPACE jump · hold SPACE in air to glide · push into walls to climb · wheel zoom · ESC release · L levels<br />
       <span id="status"></span>
     </div>
     <script type="module" src="/src/main.js"></script>

@@ -58,17 +58,25 @@ function buildBike() {
   return { root, body, seatAnchor };
 }
 
+export { buildBike };
+
 export class Hoverbike {
-  constructor(physics) {
+  /**
+   * @param {object} [opts]
+   * @param {() => {root, body, seatAnchor}} [opts.build] mesh builder (default: the bike)
+   * @param {number} [opts.floor] never hover below this height (e.g. a water surface)
+   */
+  constructor(physics, opts = {}) {
     this.physics = physics;
     this._push = new THREE.Vector3();
-    this.kind = 'bike';
-    const b = buildBike();
+    this.kind = opts.kind ?? 'bike';
+    this.floor = opts.floor ?? -Infinity;
+    const b = (opts.build ?? buildBike)();
     this.object = b.root;
     this.body = b.body;
     this.seat = b.seatAnchor;
     this.pos = new THREE.Vector3(8, 0, 4);
-    this.pos.y = physics.groundAt(8, 1e4, 4) + HOVER;
+    this.pos.y = this.groundAt(8, 1e4, 4) + HOVER;
     this.vel = new THREE.Vector3();
     this.heading = Math.PI;
     this.speed = 0;
@@ -79,12 +87,17 @@ export class Hoverbike {
     this.grounded = true;
   }
 
+  groundAt(x, fromY, z) {
+    return Math.max(this.physics.groundAt(x, fromY, z), this.floor);
+  }
+
   get forward() {
     return [Math.sin(this.heading), Math.cos(this.heading)];
   }
 
-  summon(x, z, heading) {
-    this.pos.set(x, this.physics.groundAt(x, 1e4, z) + HOVER + 4, z);
+  summon(x, z, heading, near) {
+    const from = near ? near.y + 4 : 1e4;
+    this.pos.set(x, this.groundAt(x, from, z) + HOVER + 4, z);
     this.vel.set(0, 0, 0);
     this.speed = 0;
     this.heading = heading;
@@ -127,8 +140,8 @@ export class Hoverbike {
     // hover spring + gravity
     // hover over whatever is below (terrain, rocks, mesa tops...)
     const probe = this.pos.y - 0.2;
-    const g = this.physics.groundAt(this.pos.x, probe, this.pos.z);
-    const gAhead = this.physics.groundAt(this.pos.x + fx * 2.5, probe, this.pos.z + fz * 2.5);
+    const g = this.groundAt(this.pos.x, probe, this.pos.z);
+    const gAhead = this.groundAt(this.pos.x + fx * 2.5, probe, this.pos.z + fz * 2.5);
     const target = Math.max(g, gAhead - 0.3) + HOVER + Math.sin(this.time * 2.3) * 0.06;
     if (this.pos.y < target + 0.6) {
       this.vel.y += ((target - this.pos.y) * 45 - this.vel.y * 7) * dt;
@@ -148,8 +161,8 @@ export class Hoverbike {
     if (this.physics.pushCapsule(this.pos, RADIUS, -0.35, 1.0, this._push)) this.speed *= 0.6;
 
     // pose: pitch with the ground, bank into turns
-    const hBack = this.physics.groundAt(this.pos.x - fx * 1.5, probe, this.pos.z - fz * 1.5);
-    const hFront = this.physics.groundAt(this.pos.x + fx * 1.5, probe, this.pos.z + fz * 1.5);
+    const hBack = this.groundAt(this.pos.x - fx * 1.5, probe, this.pos.z - fz * 1.5);
+    const hFront = this.groundAt(this.pos.x + fx * 1.5, probe, this.pos.z + fz * 1.5);
     const targetPitch = this.grounded ? -Math.atan2(hFront - hBack, 3) : -this.vel.y * 0.02;
     // the bike's right side is local -x, so leaning right is a positive roll
     const targetBank = THREE.MathUtils.clamp(-this.yawRate * Math.abs(this.speed) * 0.025, -0.55, 0.55);

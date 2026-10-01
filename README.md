@@ -10,8 +10,8 @@ npm run dev     # http://localhost:5173
 
 Controls: click to capture the mouse · WASD move · Shift run · Space jump ·
 hold Space in the air to glide · mouse wheel zoom · Esc releases the mouse.
-**E** whistles for the hoverbike, then mounts or dismounts it. On the bike:
-W/S throttle and brake, A/D steer, Shift boost, Space hop.
+**E** interacts: whistle for the level's mount (or hail a taxi), get on, get
+off. **L** opens the level picker. Each level's controls are listed below.
 
 ## Collision
 
@@ -32,32 +32,66 @@ presets (Moebius / Sable / Animated ink) and debug views of each G-buffer channe
 
 ## Levels
 
-Pick a level from the panel, or use the URL: `?level=desert` (the default)
-or `?level=incal`.
+Opening the page with no `?level=` shows a **level picker**. Press **L** to
+reopen it at any time, or **1–6** while it's open. Each level is a module in
+`src/levels/`, registered in `src/levels/index.js`.
 
-- **Desert (Sable):** open dunes, mesas, three regions, a hoverbike and
-  wind.
-- **L'Incal: the city-shaft** (`src/levels/incal.js`). This is the pit-city
-  from Jodorowsky & Moebius' *L'Incal*:
-  - a 520 m-wide shaft dropping 580 m to an acid lake;
-  - eight levels of terraces with towers: pastel at the top, rusty in the
-    depths;
-  - a striped central spire with rings, bridges and a golden palace on top;
-  - floating landing pads, hanging cables, billboards with glyphs, flying
-    taxis on circular lanes, and a skyline around the rim.
+| # | Level | After | Getting around |
+|---|---|---|---|
+| 1 | **The Desert** (`desert`) | *Sable* (Shedworks) | walk, climb, glide, hoverbike |
+| 2 | **The City-Shaft** (`incal`) | *L'Incal* (Jodorowsky & Moebius) | jetpack, climb, flying taxis |
+| 3 | **Arzach** (`arzach`) | *Arzach* (Moebius) | the flying bird, climb |
+| 4 | **The Airtight Garage** (`garage`) | *Le Garage hermétique* (Moebius) | portals, shifting gravity, jetpack |
+| 5 | **Edena** (`edena`) | *Le Monde d'Edena* (Moebius) | climbing with stamina |
+| 6 | **Perdide** (`perdide`) | *Les Maîtres du temps* (Laloux & Moebius) | hover-skiff, wading, caves |
 
-  The haze thickens and turns greener as you descend. Falling into the
-  acid sends you back to the rim.
+- **The Desert:**
+  - dunes, mesas, giant skeletons and monolith rings;
+  - three regions: golden dunes, rose canyons and salt flats;
+  - wind-blown sand and cloud shadows;
+  - **E** whistles for the hoverbike.
+- **The City-Shaft:**
+  - a 520 m-wide pit, 580 m deep, with eight levels of terraces;
+  - a central spire with rings, bridges and a golden palace on top;
+  - flying taxis, landing pads, cables and an acid lake at the bottom;
+  - **jetpack:** hold Space in the air; you get about 5 s of fuel;
+  - **E** hails a taxi, then gets in. Driving: W/S throttle, A/D steer,
+    Space up, Shift down.
+- **Arzach:**
+  - a bone-white world of needle spires, stone arches, floating ruins and a
+    lone tower;
+  - **E** whistles for the bird. Flying: A/D bank, W dive to gain speed, S
+    pull up, Space flap.
+- **The Airtight Garage:** three zones joined by glowing portals. Each has its
+  own gravity, and the ink style switches when you cross between them:
+  - **Grubert's plateau:** normal gravity, Moebius style;
+  - **the upside-down quarter:** a city hanging under a slab, where gravity
+    pulls you up; Animated ink style;
+  - **the ring:** a cylinder habitat lit through a slit in its roof, where
+    gravity points outward so you walk all the way round; Sable style.
+- **Edena:**
+  - flat colours and thin lines, light stipple only;
+  - giant umbrella trees (climb the trunk and stand on the canopy), step
+    pyramids and white android ruins with glyphs.
+- **Perdide:**
+  - a twilight swamp with inked water;
+  - crystal forests and egg clutches that glow;
+  - carnivorous plants that snap when you get close;
+  - a crystal cave lit from within;
+  - wading into deep water puts you back on dry ground; **E** whistles for
+    the hover-skiff.
 
-  **Jetpack:** hold Space in the air, or keep holding it after a jump, to
-  thrust. You get about 5 s of fuel, which refills on the ground. When it
-  runs out, holding Space glides.
+**Climbing works everywhere:**
+- push into a steep wall to grab it;
+- W/S climb, A/D shuffle sideways, Shift climbs faster, Space jumps off;
+- reaching the top pulls you up over the edge;
+- stamina runs out after about 20 s on the wall.
 
-  **Taxis** (`src/taxi.js`): press E to hail the nearest one. It flies over
-  and waits beside you. Press E again to get in and fly it:
-  - W/S throttle, A/D steer, Space up, Shift down;
-  - E gets out, even mid-air (the jetpack takes over);
-  - the taxi stays parked where you left it.
+**Gravity:**
+- the player moves in a local frame (up, forward, right);
+- the "forward" direction is carried along smoothly as "up" changes, so the
+  controls and camera don't spin;
+- the camera rolls with gravity.
 
 ## How the look is built
 

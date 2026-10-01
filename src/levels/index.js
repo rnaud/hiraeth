@@ -1,0 +1,48 @@
+import { createDesert } from './desert.js';
+import { createIncal } from './incal.js';
+import { createArzach } from './arzach.js';
+import { createGarage } from './garage.js';
+import { createEdena } from './edena.js';
+import { createPerdide } from './perdide.js';
+
+// Level registry: shown in the picker and the panel, loaded with ?level=<id>.
+export const LEVELS = [
+  {
+    id: 'desert', create: createDesert,
+    title: 'The Desert', source: 'after Sable (Shedworks)',
+    blurb: 'Dunes, mesas and giant skeletons across three regions. Whistle for the hoverbike.',
+    moves: 'walk · climb · glide · hoverbike',
+  },
+  {
+    id: 'incal', create: createIncal,
+    title: 'The City-Shaft', source: "L'Incal (Jodorowsky & Moebius, 1980)",
+    blurb: 'A city stacked down a 600 m pit to an acid lake. Jetpack between levels, hail a flying taxi.',
+    moves: 'jetpack · climb · taxis',
+  },
+  {
+    id: 'arzach', create: createArzach,
+    title: 'Arzach', source: 'Arzach (Moebius, 1975)',
+    blurb: 'A silent bone-white world of needle spires, floating ruins and a lone tower. Ride the bird.',
+    moves: 'flying mount · climb',
+  },
+  {
+    id: 'garage', create: createGarage,
+    title: 'The Airtight Garage', source: 'Le Garage hermétique (Moebius, 1976–79)',
+    blurb: "Major Grubert's pocket universe: portals to an upside-down quarter and a ring where gravity points outward.",
+    moves: 'portals · shifting gravity · jetpack',
+  },
+  {
+    id: 'edena', create: createEdena,
+    title: 'Edena', source: "Le Monde d'Edena (Moebius, 1983–2001)",
+    blurb: 'A clean, colourful garden planet: giant umbrella trees, step pyramids and white android ruins to climb.',
+    moves: 'climbing · stamina',
+  },
+  {
+    id: 'perdide', create: createPerdide,
+    title: 'Perdide', source: 'Les Maîtres du temps (Laloux & Moebius, 1982)',
+    blurb: 'A twilight swamp of humming crystal forests, carnivorous plants and glowing eggs. Cross it by skiff.',
+    moves: 'hover-skiff · wading · caves',
+  },
+];
+
+export const levelById = (id) => LEVELS.find((l) => l.id === id);

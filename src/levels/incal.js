@@ -294,7 +294,7 @@ export function createIncal(scene) {
     spawn,
     spawnHeading: -Math.PI / 2,   // facing the pit
     camYaw: Math.PI / 2,
-    features: { bike: false, wind: false, jetpack: true, taxis: true },
+    features: { mount: false, wind: false, jetpack: true, climb: true, taxis: true },
     vehicles,
     // called once the physics exists: spawn the taxis (they collide when driven)
     init(physics) {
@@ -305,7 +305,7 @@ export function createIncal(scene) {
         vehicles.push(taxi);
       }
     },
-    defaults: { hour: 12.5 },
+    defaults: { hour: 12.5, preset: 'Moebius' },
     killY: BOTTOM + 4,
     // haze thickens and turns acid-green as you descend
     atmo(x, z, y = TOP) {
