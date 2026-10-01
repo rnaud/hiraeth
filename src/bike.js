@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { makeMaterial } from './materials.js';
-import { resolveColliders } from './collide.js';
 
 // A Sable-like hoverbike. Controls when riding: W throttle, S brake/reverse,
 // A/D steer, Shift boost, Space hop. It hovers on a spring above the dunes,
@@ -9,7 +8,7 @@ import { resolveColliders } from './collide.js';
 const HOVER = 1.15;
 const MAX = 30;
 const BOOST = 48;
-const RADIUS = 1.3;
+const RADIUS = 0.85;
 const LIMIT = 1900;
 
 function part(geo, color, opts = {}) {
@@ -60,15 +59,16 @@ function buildBike() {
 }
 
 export class Hoverbike {
-  constructor(terrain, colliders) {
-    this.terrain = terrain;
-    this.colliders = colliders;
+  constructor(physics) {
+    this.physics = physics;
+    this._push = new THREE.Vector3();
+    this.kind = 'bike';
     const b = buildBike();
     this.object = b.root;
     this.body = b.body;
     this.seat = b.seatAnchor;
     this.pos = new THREE.Vector3(8, 0, 4);
-    this.pos.y = terrain.heightAt(8, 4) + HOVER;
+    this.pos.y = physics.groundAt(8, 1e4, 4) + HOVER;
     this.vel = new THREE.Vector3();
     this.heading = Math.PI;
     this.speed = 0;
@@ -84,10 +84,16 @@ export class Hoverbike {
   }
 
   summon(x, z, heading) {
-    this.pos.set(x, this.terrain.heightAt(x, z) + HOVER + 4, z);
+    this.pos.set(x, this.physics.groundAt(x, 1e4, z) + HOVER + 4, z);
     this.vel.set(0, 0, 0);
     this.speed = 0;
     this.heading = heading;
+  }
+
+  /** Where the rider sits (world space). */
+  seatTransform(pos, quat) {
+    this.seat.getWorldPosition(pos);
+    this.seat.getWorldQuaternion(quat);
   }
 
   /** @param input key state, or null when nobody rides it */
@@ -119,8 +125,10 @@ export class Hoverbike {
     this.vel.z += (fz * this.speed - this.vel.z) * a;
 
     // hover spring + gravity
-    const g = this.terrain.heightAt(this.pos.x, this.pos.z);
-    const gAhead = this.terrain.heightAt(this.pos.x + fx * 2.5, this.pos.z + fz * 2.5);
+    // hover over whatever is below (terrain, rocks, mesa tops...)
+    const probe = this.pos.y - 0.2;
+    const g = this.physics.groundAt(this.pos.x, probe, this.pos.z);
+    const gAhead = this.physics.groundAt(this.pos.x + fx * 2.5, probe, this.pos.z + fz * 2.5);
     const target = Math.max(g, gAhead - 0.3) + HOVER + Math.sin(this.time * 2.3) * 0.06;
     if (this.pos.y < target + 0.6) {
       this.vel.y += ((target - this.pos.y) * 45 - this.vel.y * 7) * dt;
@@ -137,11 +145,11 @@ export class Hoverbike {
     this.pos.x = THREE.MathUtils.clamp(this.pos.x, -LIMIT, LIMIT);
     this.pos.z = THREE.MathUtils.clamp(this.pos.z, -LIMIT, LIMIT);
 
-    if (resolveColliders(this.pos, RADIUS, this.colliders)) this.speed *= 0.5;
+    if (this.physics.pushCapsule(this.pos, RADIUS, -0.35, 1.0, this._push)) this.speed *= 0.6;
 
     // pose: pitch with the ground, bank into turns
-    const hBack = this.terrain.heightAt(this.pos.x - fx * 1.5, this.pos.z - fz * 1.5);
-    const hFront = this.terrain.heightAt(this.pos.x + fx * 1.5, this.pos.z + fz * 1.5);
+    const hBack = this.physics.groundAt(this.pos.x - fx * 1.5, probe, this.pos.z - fz * 1.5);
+    const hFront = this.physics.groundAt(this.pos.x + fx * 1.5, probe, this.pos.z + fz * 1.5);
     const targetPitch = this.grounded ? -Math.atan2(hFront - hBack, 3) : -this.vel.y * 0.02;
     // the bike's right side is local -x, so leaning right is a positive roll
     const targetBank = THREE.MathUtils.clamp(-this.yawRate * Math.abs(this.speed) * 0.025, -0.55, 0.55);

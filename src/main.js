@@ -7,6 +7,7 @@ import { createIncal } from './levels/incal.js';
 import { Player, CameraRig } from './player.js';
 import { applyTimeOfDay } from './timeofday.js';
 import { WindStreaks } from './wind.js';
+import { Physics } from './physics.js';
 
 // We author every colour as a display value and output it untouched.
 THREE.ColorManagement.enabled = false;
@@ -105,17 +106,23 @@ const levelId = new URLSearchParams(location.search).get('level') in LEVELS
   ? new URLSearchParams(location.search).get('level') : 'desert';
 const level = LEVELS[levelId](scene);
 const terrain = level.ground;
-const player = new Player(terrain, level.colliders, {
+// Collision against the real level geometry (built before the player / vehicles join the scene).
+const t0 = performance.now();
+const physics = new Physics(scene, level.ground.heightAt ? level.ground : null);
+console.info(`collision: ${physics.triangles.toLocaleString()} triangles in ${(performance.now() - t0).toFixed(0)} ms`);
+level.init?.(physics);
+const player = new Player(physics, {
   bike: level.features.bike, jetpack: level.features.jetpack,
   killY: level.killY, spawn: level.spawn, spawnHeading: level.spawnHeading,
 });
+player.vehicles.push(...(level.vehicles ?? []));
 scene.add(player.object);
 if (level.features.bike) scene.add(player.bike.object);
 wind = new WindStreaks();
 wind.uniforms.tNormal.value = gbuffer.textures[1];
 wind.uniforms.uRes.value.copy(post.uniforms.uRes.value);
 wind.uniforms.uInk.value = post.uniforms.uInk.value;
-const rig = new CameraRig(camera, renderer.domElement, terrain);
+const rig = new CameraRig(camera, renderer.domElement, physics);
 rig.yaw = level.camYaw;
 rig.constrain = level.constrainCamera;
 
@@ -196,9 +203,13 @@ const status = document.getElementById('status');
 let lastStatus = '';
 function updateHud() {
   let hint;
-  if (level.features.jetpack) {
+  if (player.ride?.kind === 'taxi') {
+    hint = 'E get out · W/S throttle · A/D steer · SPACE up · SHIFT down';
+  } else if (level.features.jetpack) {
     const n = Math.round(player.fuel * 10);
-    hint = `jetpack [${'■'.repeat(n)}${'·'.repeat(10 - n)}] hold SPACE in the air`;
+    const near = player.nearestVehicle();
+    const taxi = near ? 'E get in the taxi' : 'E hail a taxi';
+    hint = `${taxi} · jetpack [${'■'.repeat(n)}${'·'.repeat(10 - n)}]`;
   } else {
     const d = player.bikeDistance();
     hint = player.riding ? 'E dismount · W/S throttle · A/D steer · SHIFT boost'
@@ -219,8 +230,9 @@ function frame() {
   atmo = level.atmo(player.pos.x, player.pos.z, player.pos.y);
   updateSky();
 
+  for (const v of player.vehicles) if (v !== player.ride) v.update(dt, null, t);
   player.update(dt, input, rig.yaw);
-  rig.follow(player.bike.heading, dt, player.riding);
+  rig.follow(player.ride?.heading ?? 0, dt, player.riding);
   rig.update(player.pos, dt);
 
   // sand: ambient gusts + dust behind the bike
@@ -272,4 +284,4 @@ function frame() {
 requestAnimationFrame(frame);
 
 // handy for debugging from the console
-Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level });
+Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics });

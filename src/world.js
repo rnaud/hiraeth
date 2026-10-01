@@ -153,7 +153,7 @@ function strataMat(rng, size) {
 
 export function buildWorld(scene, terrain) {
   const rng = mulberry32(42);
-  const colliders = []; // { x, z, r }
+  const footprints = []; // { x, z, r }: keeps props from overlapping when placed
   const floaters = [];  // { obj, baseY, phase }
 
   scene.add(terrain.mesh);
@@ -161,7 +161,7 @@ export function buildWorld(scene, terrain) {
   const free = (x, z, r) => {
     if (Math.hypot(x, z) < 40 + r) return false;
     if (Math.max(Math.abs(x), Math.abs(z)) > 1500) return false;
-    for (const c of colliders) if (Math.hypot(c.x - x, c.z - z) < c.r + r + 10) return false;
+    for (const c of footprints) if (Math.hypot(c.x - x, c.z - z) < c.r + r + 10) return false;
     return true;
   };
   // pref(weights) -> acceptance probability, so props cluster by region
@@ -186,7 +186,7 @@ export function buildWorld(scene, terrain) {
     m.position.set(x, base + height / 2 - 2, z);
     m.rotation.y = rng() * Math.PI;
     scene.add(m);
-    colliders.push({ x, z, r: radius * 1.02 });
+    footprints.push({ x, z, r: radius * 1.02 });
   }
 
   // ---------------------------------------------------------- mushroom rocks
@@ -204,7 +204,7 @@ export function buildWorld(scene, terrain) {
     m.position.set(x, terrain.baseAt(x, z, 4 * s) - 1, z);
     m.rotation.set((rng() - 0.5) * 0.12, rng() * Math.PI, (rng() - 0.5) * 0.12);
     scene.add(m);
-    colliders.push({ x, z, r: 4.2 * s });
+    footprints.push({ x, z, r: 4.2 * s });
   }
 
   // ---------------------------------------------------------- arches
@@ -226,8 +226,8 @@ export function buildWorld(scene, terrain) {
     m.rotation.y = rot;
     scene.add(m);
     const ca = Math.cos(rot), sa = Math.sin(rot);
-    colliders.push({ x: x + ca * R, z: z - sa * R, r: tube * 1.35 });
-    colliders.push({ x: x - ca * R, z: z + sa * R, r: tube * 1.35 });
+    footprints.push({ x: x + ca * R, z: z - sa * R, r: tube * 1.35 });
+    footprints.push({ x: x - ca * R, z: z + sa * R, r: tube * 1.35 });
   }
 
   // ---------------------------------------------------------- giant ribcage
@@ -281,7 +281,7 @@ export function buildWorld(scene, terrain) {
     m.position.set(x, terrain.baseAt(x, z, 30 * s) - 1, z);
     m.rotation.y = rot;
     scene.add(m);
-    // colliders along the rib feet
+    // footprints of the rib feet
     const ca = Math.cos(rot), sa = Math.sin(rot);
     for (let i = 0; i < ribs; i++) {
       const t = 0.12 + (i / (ribs - 1)) * 0.76;
@@ -289,7 +289,7 @@ export function buildWorld(scene, terrain) {
       const lx = (t - 0.5) * len - 5 * s;
       for (const side of [-1, 1]) {
         const lz = side * 24 * s * k;
-        colliders.push({ x: x + lx * ca + lz * sa, z: z - lx * sa + lz * ca, r: 2 * s });
+        footprints.push({ x: x + lx * ca + lz * sa, z: z - lx * sa + lz * ca, r: 2 * s });
       }
     }
   }
@@ -313,12 +313,13 @@ export function buildWorld(scene, terrain) {
       m.position.set(px, terrain.baseAt(px, pz, 3) - 1.5, pz);
       m.rotation.set((rng() - 0.5) * 0.25, -a + Math.PI / 2, (rng() - 0.5) * 0.25);
       scene.add(m);
-      colliders.push({ x: px, z: pz, r: 3 });
+      footprints.push({ x: px, z: pz, r: 3 });
     }
     // central altar sphere
     const orb = new THREE.Mesh(new THREE.IcosahedronGeometry(4, 1), makeMaterial({ color: '#58b4a8', flat: true }));
     orb.position.set(x, terrain.heightAt(x, z) + 9, z);
     scene.add(orb);
+    orb.userData.noCollide = true; // bobbing
     floaters.push({ obj: orb, baseY: orb.position.y, phase: rng() * 10, amp: 1.2, spin: 0.3 });
   }
 
@@ -340,6 +341,7 @@ export function buildWorld(scene, terrain) {
     m.position.set(x, y, z);
     m.rotation.y = rng() * Math.PI;
     scene.add(m);
+    m.userData.noCollide = true; // bobbing
     floaters.push({ obj: m, baseY: y, phase: rng() * 10, amp: 3, spin: 0.01 });
   }
 
@@ -360,7 +362,7 @@ export function buildWorld(scene, terrain) {
         m.position.set(px, terrain.baseAt(px, pz, r) - 1, pz);
         m.scale.y = 0.6 + rng() * 0.6;
         scene.add(m);
-        colliders.push({ x: px, z: pz, r });
+        footprints.push({ x: px, z: pz, r });
       } else {
         const h = 40 + rng() * 90;
         const r = 1.5 + rng() * 2.5;
@@ -372,7 +374,7 @@ export function buildWorld(scene, terrain) {
         const m = new THREE.Mesh(mergeGeometries(parts), mats[Math.floor(rng() * mats.length)]);
         m.position.set(px, terrain.baseAt(px, pz, r) - 1, pz);
         scene.add(m);
-        colliders.push({ x: px, z: pz, r: r + 0.5 });
+        footprints.push({ x: px, z: pz, r: r + 0.5 });
       }
     }
   }
@@ -444,8 +446,9 @@ export function buildWorld(scene, terrain) {
       }
     }
     plants.frustumCulled = false;
+    plants.userData.noCollide = true; // walk through the grass
     scene.add(plants);
   }
 
-  return { colliders, floaters };
+  return { floaters };
 }

@@ -5,11 +5,12 @@ import { biomeAtmosphere } from '../biome.js';
 // The original open desert: dunes, mesas, regions, hoverbike and wind.
 export function createDesert(scene) {
   const terrain = new Terrain();
-  const { colliders, floaters } = buildWorld(scene, terrain);
+  const { floaters } = buildWorld(scene, terrain);
+  // the heightfield has an exact lookup, so it stays out of the mesh collision
+  terrain.mesh.userData.noCollide = true;
   return {
     id: 'desert',
     ground: terrain,
-    colliders,
     spawn: new THREE.Vector3(0, terrain.heightAt(0, 0), 0),
     spawnHeading: Math.PI,
     camYaw: 0,

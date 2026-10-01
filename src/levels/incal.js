@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { mulberry32 } from '../noise.js';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
+import { Taxi } from '../taxi.js';
 
 // ---------------------------------------------------------------------------
 // "La Cité-Puits": the city-shaft from Jodorowsky & Moebius' L'Incal.
@@ -19,62 +20,6 @@ const SPIRE_R = 24;
 const SPIRE_RING = 48;
 
 const TAU = Math.PI * 2;
-const angleIn = (a, a0, a1) => {
-  const d = ((a - a0) % TAU + TAU) % TAU;
-  return d <= ((a1 - a0) % TAU + TAU) % TAU || a1 - a0 >= TAU - 1e-6;
-};
-
-// Walkable surfaces at many heights, looked up through a coarse spatial grid.
-class CityGround {
-  constructor(cell = 24) {
-    this.cell = cell;
-    this.grid = new Map();
-  }
-  add(p) {
-    const c = this.cell;
-    for (let ix = Math.floor(p.minX / c); ix <= Math.floor(p.maxX / c); ix++)
-      for (let iz = Math.floor(p.minZ / c); iz <= Math.floor(p.maxZ / c); iz++) {
-        const k = ix * 73856093 ^ iz * 19349663;
-        if (!this.grid.has(k)) this.grid.set(k, []);
-        this.grid.get(k).push(p);
-      }
-  }
-  /** Highest walkable surface at (x, z) whose height is <= y. -Infinity if none. */
-  heightAt(x, z, y = Infinity) {
-    const k = Math.floor(x / this.cell) * 73856093 ^ Math.floor(z / this.cell) * 19349663;
-    const list = this.grid.get(k);
-    let best = -Infinity;
-    if (!list) return best;
-    for (const p of list) if (p.y <= y && p.y > best && p.contains(x, z)) best = p.y;
-    return best;
-  }
-  ring(cx, cz, r0, r1, a0, a1, y) {
-    this.add({
-      y, minX: cx - r1, maxX: cx + r1, minZ: cz - r1, maxZ: cz + r1,
-      contains: (x, z) => {
-        const dx = x - cx, dz = z - cz, d = Math.hypot(dx, dz);
-        return d >= r0 && d <= r1 && angleIn(Math.atan2(dz, dx), a0, a1);
-      },
-    });
-  }
-  disc(cx, cz, r, y) {
-    this.add({
-      y, minX: cx - r, maxX: cx + r, minZ: cz - r, maxZ: cz + r,
-      contains: (x, z) => (x - cx) ** 2 + (z - cz) ** 2 <= r * r,
-    });
-  }
-  // box along direction phi (radians in the xz-plane), half sizes hu (along) / hv (across)
-  box(cx, cz, hu, hv, phi, y) {
-    const c = Math.cos(phi), s = Math.sin(phi), e = hu + hv;
-    this.add({
-      y, minX: cx - e, maxX: cx + e, minZ: cz - e, maxZ: cz + e,
-      contains: (x, z) => {
-        const dx = x - cx, dz = z - cz;
-        return Math.abs(dx * c + dz * s) <= hu && Math.abs(-dx * s + dz * c) <= hv;
-      },
-    });
-  }
-}
 
 // Annular sector slab, top face at y = 0, thickness t (world angle = atan2(z, x)).
 function sectorGeometry(r0, r1, a0, a1, t) {
@@ -94,8 +39,6 @@ const RUST = ['#b8735a', '#8f7f9e', '#a8946a', '#7f9a8f', '#c9a27a'];
 export function createIncal(scene) {
   const rng = mulberry32(1977);
   const pick = (a) => a[Math.floor(rng() * a.length)];
-  const ground = new CityGround();
-  const colliders = [];
   const movers = [];
 
   const strata = (c1, c2, c3, size = 6, extra = {}) =>
@@ -103,7 +46,7 @@ export function createIncal(scene) {
 
   // ---------------------------------------------------------- the shaft wall
   {
-    const h = TOP - BOTTOM + 10;
+    const h = TOP - BOTTOM + 5;   // ends exactly at the rim so you can walk off the edge
     const g = new THREE.CylinderGeometry(R, R, h, 128, 1, true);
     g.translate(0, BOTTOM - 5 + h / 2, 0);
     const wall = new THREE.Mesh(g, makeMaterial({
@@ -111,7 +54,6 @@ export function createIncal(scene) {
       grid: 6, glyphs: true, side: THREE.BackSide,
     }));
     scene.add(wall);
-    colliders.push({ x: 0, z: 0, r: R, inside: true, y0: BOTTOM - 50, y1: TOP - 0.6 });
   }
 
   // ---------------------------------------------------------- the surface around the rim
@@ -121,7 +63,6 @@ export function createIncal(scene) {
     const plain = new THREE.Mesh(g, makeMaterial({ color: '#ecd9b8' }));
     plain.position.y = TOP;
     scene.add(plain);
-    ground.ring(0, 0, R, 2600, 0, TAU, TOP);
     // a low parapet with gaps around the rim
     for (let i = 0; i < 24; i++) {
       if (i % 4 === 0) continue;
@@ -167,8 +108,6 @@ export function createIncal(scene) {
     m.position.set(x, baseY, z);
     m.rotation.y = rng() * TAU;
     scene.add(m);
-    colliders.push({ x, z, r: radius + 0.2, y0: baseY - 1, y1: baseY + y - 0.5 });
-    if (top >= 0.6 || opts.flatTop) ground.disc(x, z, r * 0.95, baseY + y); // walkable roof
     return baseY + y;
   }
 
@@ -189,7 +128,6 @@ export function createIncal(scene) {
         strata(depth < 0.45 ? '#efe0c8' : '#c9b49a', depth < 0.45 ? '#e4c9cf' : '#b4a2a8', '#d8d0e0', 1.6, { flat: true }));
       slab.position.y = y;
       scene.add(slab);
-      ground.ring(0, 0, r0, R, a0, a1, y);
       terraces.push({ y, r0, a0, a1 });
 
       // railing along the inner edge, with openings
@@ -224,7 +162,6 @@ export function createIncal(scene) {
     const g = new THREE.CylinderGeometry(SPIRE_R * 0.8, SPIRE_R, height, 16);
     g.translate(0, BOTTOM + height / 2, 0);
     scene.add(new THREE.Mesh(g, strata('#f3ead8', '#62c3c9', '#e88fa6', 5, { grid: 4, glyphs: true })));
-    colliders.push({ x: 0, z: 0, r: SPIRE_R + 0.5 });
     // golden palace on top
     const palace = mergeGeometries([
       new THREE.SphereGeometry(34, 24, 12, 0, TAU, 0, Math.PI / 2).translate(0, 0, 0),
@@ -239,6 +176,7 @@ export function createIncal(scene) {
       const ring = new THREE.Mesh(new THREE.TorusGeometry(14 - i * 3, 0.6, 6, 40), makeMaterial({ color: '#62c3c9' }));
       ring.position.y = TOP + 120 + 50 + i * 12;
       ring.rotation.x = Math.PI / 2;
+      ring.userData.noCollide = true; // moving
       scene.add(ring);
       movers.push({ obj: ring, update: (t) => { ring.rotation.y = t * (0.3 + i * 0.2); ring.rotation.x = Math.PI / 2 + Math.sin(t * 0.4 + i) * 0.3; } });
     }
@@ -248,7 +186,6 @@ export function createIncal(scene) {
       const ring = new THREE.Mesh(sectorGeometry(SPIRE_R, SPIRE_RING, 0, TAU, 4), strata('#f3ead8', '#e4c9cf', '#a99be0', 1.5, { flat: true }));
       ring.position.y = y;
       scene.add(ring);
-      ground.ring(0, 0, SPIRE_R, SPIRE_RING, 0, TAU, y);
       const level = terraces.filter((t) => t.y === y);
       const nb = 2 + Math.floor(rng() * 2);
       for (let b = 0; b < nb; b++) {
@@ -261,7 +198,6 @@ export function createIncal(scene) {
         m.position.set(Math.cos(phi) * mid, y - 1.25, Math.sin(phi) * mid);
         m.rotation.y = -phi;
         scene.add(m);
-        ground.box(m.position.x, m.position.z, len / 2, 3.5, phi, y);
       }
     });
   }
@@ -278,7 +214,6 @@ export function createIncal(scene) {
     const m = new THREE.Mesh(g, makeMaterial({ color: pick(PASTELS), flat: true, grid: 2 }));
     m.position.set(Math.cos(a) * rad, y, Math.sin(a) * rad);
     scene.add(m);
-    ground.disc(m.position.x, m.position.z, r * 0.95, y);
   }
 
   // ---------------------------------------------------------- cables across the shaft
@@ -319,55 +254,57 @@ export function createIncal(scene) {
   }
 
   // ---------------------------------------------------------- flying traffic
-  const taxiParts = (color) => {
-    const g = mergeGeometries([
-      new THREE.BoxGeometry(1.7, 1.0, 3.4),
-      new THREE.ConeGeometry(0.8, 1.4, 6).rotateX(Math.PI / 2).translate(0, 0, 2.3),
-      new THREE.BoxGeometry(2.8, 0.25, 1.0).translate(0, -0.2, -0.9),
-    ]);
-    const body = new THREE.Mesh(g, makeMaterial({ color, flat: true }));
-    const canopy = new THREE.Mesh(new THREE.SphereGeometry(0.75, 10, 6, 0, TAU, 0, Math.PI / 2), makeMaterial({ color: '#f3ead8' }));
-    canopy.position.set(0, 0.5, 0.3);
-    const grp = new THREE.Group();
-    grp.add(body, canopy);
-    return grp;
-  };
+  // Taxis need the physics (built after the level), so they're created in init().
+  const taxiSpecs = [];
   for (let i = 0; i < 80; i++) {
-    const car = taxiParts(rng() < 0.45 ? '#f2c54b' : pick(PASTELS));
-    const scale = 1.3 + rng() * 1.2;
-    car.scale.setScalar(scale);
-    scene.add(car);
+    const color = rng() < 0.45 ? '#f2c54b' : pick(PASTELS);
+    const scale = 2.0 + rng() * 0.6;
+    let lane;
     if (i < 12) {
       // vertical shuttles between levels
       const a = rng() * TAU, rad = 60 + rng() * 120;
       const y0 = BOTTOM + 40 + rng() * 100, y1 = y0 + 150 + rng() * 300, sp = 0.05 + rng() * 0.08, ph = rng() * 10;
-      movers.push({ obj: car, update: (t) => {
+      lane = (t, taxi) => {
         const k = 0.5 - 0.5 * Math.cos(t * sp + ph);
-        car.position.set(Math.cos(a) * rad, y0 + (y1 - y0) * k, Math.sin(a) * rad);
-        car.rotation.set(0, -a, 0);
-      } });
+        taxi.pos.set(Math.cos(a) * rad, y0 + (y1 - y0) * k, Math.sin(a) * rad);
+        taxi.heading = Math.PI / 2 - a;
+        taxi.bank = 0;
+        taxi.pitch = 0;
+      };
     } else {
       const rad = 60 + rng() * 170, y = BOTTOM + 30 + rng() * (TOP + 80 - BOTTOM);
       const w = (rng() < 0.5 ? -1 : 1) * (6 + rng() * 10) / rad, ph = rng() * TAU, bob = rng() * 10;
-      movers.push({ obj: car, update: (t) => {
+      lane = (t, taxi) => {
         const a = ph + w * t;
-        car.position.set(Math.cos(a) * rad, y + Math.sin(t * 0.7 + bob) * 1.5, Math.sin(a) * rad);
-        // face along the lane, bank into the curve
-        car.rotation.set(0, Math.atan2(-Math.sin(a) * w, Math.cos(a) * w), -Math.sign(w) * 0.2, 'YXZ');
-      } });
+        taxi.pos.set(Math.cos(a) * rad, y + Math.sin(t * 0.7 + bob) * 1.5, Math.sin(a) * rad);
+        taxi.heading = Math.atan2(-Math.sin(a) * w, Math.cos(a) * w); // along the lane
+        taxi.bank = Math.sign(w) * 0.2;                                  // lean into the curve
+        taxi.pitch = 0;
+      };
     }
+    taxiSpecs.push({ color, scale, lane });
   }
+  const vehicles = [];
 
   // ---------------------------------------------------------- level description
   const spawn = new THREE.Vector3(R + 14, TOP, 0);
   return {
     id: 'incal',
-    ground,
-    colliders,
+    ground: { heightAt: () => -Infinity }, // everything walkable is real geometry
     spawn,
     spawnHeading: -Math.PI / 2,   // facing the pit
     camYaw: Math.PI / 2,
-    features: { bike: false, wind: false, jetpack: true },
+    features: { bike: false, wind: false, jetpack: true, taxis: true },
+    vehicles,
+    // called once the physics exists: spawn the taxis (they collide when driven)
+    init(physics) {
+      for (const spec of taxiSpecs) {
+        const taxi = new Taxi(physics, spec.color, spec.scale, spec.lane);
+        taxi.update(0, null, 0);
+        scene.add(taxi.object);
+        vehicles.push(taxi);
+      }
+    },
     defaults: { hour: 12.5 },
     killY: BOTTOM + 4,
     // haze thickens and turns acid-green as you descend

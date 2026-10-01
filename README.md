@@ -12,6 +12,21 @@ Controls: click to capture the mouse · WASD move · Shift run · Space jump ·
 hold Space in the air to glide · mouse wheel zoom · Esc releases the mouse.
 **E** whistles for the hoverbike, then mounts or dismounts it. On the bike:
 W/S throttle and brake, A/D steer, Shift boost, Space hop.
+
+## Collision
+
+`src/physics.js` bakes every static mesh of the level into one world-space
+geometry with a [three-mesh-bvh](https://github.com/gkjohnson/three-mesh-bvh)
+BVH. Moving things, plants and the desert heightfield are flagged
+`userData.noCollide`; the heightfield keeps its own exact lookup.
+- **Characters:**
+  - a downward ground ray lets you step onto anything lower than 0.6 m and
+    stand on rocks, mesa tops, roofs and domes;
+  - a capsule from step height to the head is pushed out of walls and
+    ceilings, and you slide along walls.
+- **Bike and taxis** use the same rays and capsules.
+- **Camera:** a line-of-sight ray pulls it in front of walls, so it never
+  clips inside buildings.
 The panel on the right exposes every shader parameter. It also has style
 presets (Moebius / Sable / Animated ink) and debug views of each G-buffer channel.
 
@@ -38,10 +53,11 @@ or `?level=incal`.
   thrust. You get about 5 s of fuel, which refills on the ground. When it
   runs out, holding Space glides.
 
-  Walkable surfaces at many heights come from `CityGround`: a spatial grid of
-  terrace sectors, discs and bridges answering "highest surface below me".
-  Colliders can be limited to a height range, or keep you inside the shaft
-  wall (`src/collide.js`).
+  **Taxis** (`src/taxi.js`): press E to hail the nearest one. It flies over
+  and waits beside you. Press E again to get in and fly it:
+  - W/S throttle, A/D steer, Space up, Shift down;
+  - E gets out, even mid-air (the jetpack takes over);
+  - the taxi stays parked where you left it.
 
 ## How the look is built
 

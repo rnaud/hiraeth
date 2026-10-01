@@ -1,9 +1,11 @@
 import * as THREE from 'three';
 import { makeMaterial } from './materials.js';
 import { Hoverbike } from './bike.js';
-import { resolveColliders } from './collide.js';
 
-const RADIUS = 0.5;
+const RADIUS = 0.45;
+const STEP = 0.6;    // obstacles lower than this are stepped onto
+const HEIGHT = 2.2;
+const _up = new THREE.Vector3(0, 1, 0);
 const WALK = 9;
 const RUN = 22;
 const GRAVITY = 32;
@@ -120,16 +122,15 @@ function buildCharacter() {
 
 export class Player {
   /**
-   * @param ground  anything with heightAt(x, z, y?) -> highest walkable surface below y
-   * @param opts    { bike, jetpack, killY, spawn: Vector3, spawnHeading }
+   * @param physics  Physics (ground rays + capsule collision against the level)
+   * @param opts     { bike, jetpack, killY, spawn: Vector3, spawnHeading }
    */
-  constructor(terrain, colliders, opts = {}) {
-    this.terrain = terrain;
+  constructor(physics, opts = {}) {
+    this.physics = physics;
     this.opts = { bike: true, jetpack: false, killY: -Infinity, ...opts };
-    this.colliders = colliders;
     this.char = buildCharacter();
     this.object = this.char.root;
-    this.pos = new THREE.Vector3(0, terrain.heightAt(0, 0), 0);
+    this.pos = new THREE.Vector3(0, physics.groundAt(0, 1e4, 0), 0);
     this.vel = new THREE.Vector3();
     this.heading = Math.PI;
     this.onGround = true;
@@ -140,9 +141,12 @@ export class Player {
     // movement itself stays smooth.
     this.stopMotion = true;
     this._animAcc = 0;
+    this._push = new THREE.Vector3();
 
-    this.bike = new Hoverbike(terrain, colliders);
-    this.riding = false;
+    // Vehicles: anything with pos, heading, forward, speed, update(), seatTransform().
+    this.bike = new Hoverbike(physics);
+    this.vehicles = this.opts.bike ? [this.bike] : [];
+    this.ride = null;
 
     this.fuel = 1;
     this.thrusting = false;
@@ -151,7 +155,12 @@ export class Player {
     if (this.opts.spawn) this.respawn();
   }
 
+  get riding() {
+    return !!this.ride;
+  }
+
   respawn() {
+    if (this.ride) this.dismount();
     this.pos.copy(this.opts.spawn);
     this.vel.set(0, 0, 0);
     this.heading = this.opts.spawnHeading ?? Math.PI;
@@ -164,39 +173,64 @@ export class Player {
     return Math.hypot(this.bike.pos.x - this.pos.x, this.bike.pos.z - this.pos.z);
   }
 
-  // E: mount when close, dismount when riding, otherwise whistle the bike over.
-  toggleBike() {
-    const b = this.bike;
-    if (this.riding) {
-      this.riding = false;
-      b.object.parent.add(this.object);
-      const [fx, fz] = b.forward;
-      this.pos.set(b.pos.x - fz * 1.8, 0, b.pos.z + fx * 1.8);
-      this.pos.y = this.terrain.heightAt(this.pos.x, this.pos.z);
-      this.vel.set(b.vel.x * 0.3, 0, b.vel.z * 0.3);
-      this.heading = b.heading;
-      this.onGround = true;
-    } else if (this.bikeDistance() < 6) {
-      this.riding = true;
-      this.gliding = false;
-      b.seat.add(this.object);
-      this.object.position.set(0, 0, 0);
-      this.object.rotation.set(0, 0, 0);
-    } else {
-      // arrives beside the player, facing the same way
-      const fx = Math.sin(this.heading), fz = Math.cos(this.heading);
-      b.summon(this.pos.x + fz * 3 + fx * 2, this.pos.z - fx * 3 + fz * 2, this.heading);
+  /** Nearest vehicle you could board right now. */
+  nearestVehicle() {
+    let best = null, bd = Infinity;
+    for (const v of this.vehicles) {
+      const d = v.pos.distanceTo(this.pos);
+      if (d < bd && d < (v.boardDistance ?? 6)) { best = v; bd = d; }
     }
+    return best;
+  }
+
+  mount(v) {
+    this.ride = v;
+    this.gliding = this.thrusting = false;
+    v.board?.();
+  }
+
+  dismount() {
+    const v = this.ride;
+    this.ride = null;
+    v.leave?.();
+    const [fx, fz] = v.forward;
+    const side = v.exitOffset ?? 1.8;
+    this.pos.set(v.pos.x - fz * side, v.pos.y, v.pos.z + fx * side);
+    const g = this.physics.groundAt(this.pos.x, this.pos.y + 2, this.pos.z);
+    if (this.pos.y - g < 3) this.pos.y = g;
+    this.vel.set(v.vel.x * 0.3, 0, v.vel.z * 0.3);
+    this.heading = v.heading;
+    this.onGround = false;
+    this.object.quaternion.identity();
+  }
+
+  // E: get off; get on a vehicle close by; otherwise whistle the bike or hail a taxi.
+  interact() {
+    if (this.ride) return this.dismount();
+    const near = this.nearestVehicle();
+    if (near) return this.mount(near);
+    if (this.opts.bike) {
+      const fx = Math.sin(this.heading), fz = Math.cos(this.heading);
+      return this.bike.summon(this.pos.x + fz * 3 + fx * 2, this.pos.z - fx * 3 + fz * 2, this.heading);
+    }
+    let best = null, bd = Infinity;
+    for (const v of this.vehicles) {
+      if (!v.hail) continue;
+      const d = v.pos.distanceTo(this.pos);
+      if (d < bd) { best = v; bd = d; }
+    }
+    best?.hail(this.pos, this.heading);
   }
 
   update(dt, input, camYaw) {
     this.time += dt;
-    if (input.KeyE && !this._eHeld && this.opts.bike) this.toggleBike();
+    if (input.KeyE && !this._eHeld) this.interact();
     this._eHeld = !!input.KeyE;
 
-    if (this.riding) {
-      this.bike.update(dt, input);
-      this.pos.copy(this.bike.pos);
+    if (this.ride) {
+      this.ride.update(dt, input, this.time);
+      this.pos.copy(this.ride.pos);
+      this.ride.seatTransform(this.object.position, this.object.quaternion);
       this._animAcc += dt;
       if (!this.stopMotion || this._animAcc >= 1 / 12) {
         this.animateRiding();
@@ -204,7 +238,6 @@ export class Player {
       }
       return;
     }
-    if (this.opts.bike) this.bike.update(dt, null);
 
     const f = (input.KeyW || input.ArrowUp ? 1 : 0) - (input.KeyS || input.ArrowDown ? 1 : 0);
     const s = (input.KeyD || input.ArrowRight ? 1 : 0) - (input.KeyA || input.ArrowLeft ? 1 : 0);
@@ -250,10 +283,17 @@ export class Player {
     this.pos.x = THREE.MathUtils.clamp(this.pos.x, -LIMIT, LIMIT);
     this.pos.z = THREE.MathUtils.clamp(this.pos.z, -LIMIT, LIMIT);
 
-    resolveColliders(this.pos, RADIUS, this.colliders);
+    // Walls and ceilings: a capsule from just above step height to the head.
+    // Anything lower than STEP is stepped onto by the ground ray below.
+    const push = this.physics.pushCapsule(this.pos, RADIUS, STEP, HEIGHT, this._push);
+    if (push) {
+      const n = push.normalize();
+      const vn = this.vel.dot(n);
+      if (vn < 0) this.vel.addScaledVector(n, -vn); // slide along the wall
+    }
 
-    // ground: highest walkable surface at or just below the feet
-    const g = this.terrain.heightAt(this.pos.x, this.pos.z, this.pos.y + 0.6);
+    // Ground: first surface below step height (terrain, rocks, roofs, domes...)
+    const g = this.physics.groundAt(this.pos.x, this.pos.y + STEP, this.pos.z);
     if (this.pos.y < this.opts.killY) this.respawn();
     if (this.pos.y <= g || (this.onGround && this.pos.y - g < 0.8 && this.vel.y <= 0)) {
       this.pos.y = g;
@@ -278,12 +318,12 @@ export class Player {
       this._animAcc = 0;
     }
     this.object.position.copy(this.pos);
-    this.object.rotation.y = this.heading;
+    this.object.quaternion.setFromAxisAngle(_up, this.heading);
   }
 
   animateRiding() {
     const c = this.char;
-    const flow = Math.min(Math.abs(this.bike.speed) / 30, 1.3);
+    const flow = Math.min(Math.abs(this.ride.speed) / 30, 1.3);
     c.legs[0].rotation.set(-1.35, 0, 0.12);
     c.legs[1].rotation.set(-1.35, 0, -0.12);
     c.body.position.y = 0;
@@ -331,9 +371,11 @@ export class Player {
 }
 
 export class CameraRig {
-  constructor(camera, dom, terrain) {
+  constructor(camera, dom, physics) {
     this.camera = camera;
-    this.terrain = terrain;
+    this.physics = physics;
+    this._curDist = 11;
+    this._dir = new THREE.Vector3();
     this.yaw = 0;
     this.pitch = 0.22;
     this.dist = 11;
@@ -374,15 +416,19 @@ export class CameraRig {
     if (this.target.lengthSq() === 0) this.target.copy(playerPos);
     const cp = Math.cos(this.pitch);
     const cam = this.camera.position;
-    cam.set(
-      this.target.x + Math.sin(this.yaw) * cp * dist,
-      this.target.y + 1.8 + Math.sin(this.pitch) * dist,
-      this.target.z + Math.cos(this.yaw) * cp * dist
-    );
-    const g = this.terrain.heightAt(cam.x, cam.z, cam.y + 1.2) + 1.2;
+    this._look.set(this.target.x, this.target.y + 1.8, this.target.z);
+    this._dir.set(Math.sin(this.yaw) * cp, Math.sin(this.pitch), Math.cos(this.yaw) * cp);
+
+    // Line of sight: pull the camera in front of any wall between it and the
+    // player (snap in, ease back out).
+    const hit = this.physics.rayDistance(this._look, this._dir, dist + 0.5);
+    const allowed = Math.max(Math.min(dist, hit - 0.6), 1.5);
+    this._curDist = allowed < this._curDist ? allowed : this._curDist + (allowed - this._curDist) * (1 - Math.exp(-3 * dt));
+    cam.copy(this._look).addScaledVector(this._dir, this._curDist);
+
+    const g = this.physics.groundAt(cam.x, cam.y + 1.2, cam.z) + 1.0;
     if (cam.y < g) cam.y = g;
     this.constrain?.(cam);
-    this._look.set(this.target.x, this.target.y + 1.8, this.target.z);
     this.camera.lookAt(this._look);
   }
 }
