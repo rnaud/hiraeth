@@ -1,0 +1,39 @@
+README.md
+  s_aaae6e4311287b::t_a11b809c98431b 15-29,56-60
+package-lock.json
+  s_aaae6e4311287b::t_fcf941109c30b7 12-13,749-757
+package.json
+  s_aaae6e4311287b::t_71a050c62d57d7 13-14
+src/bike.js
+  s_aaae6e4311287b::t_009db2560b8c05 11,62-65,71,87,93-98,128-131,148,151-152
+src/levels/desert.js
+  s_aaae6e4311287b::t_686c1912382f6c 8-10
+src/levels/incal.js
+  s_aaae6e4311287b::t_cb91f93d3dec85 5,49,179,257-258,260-262,267,269-273,277,279-283,285,287,293,297-307
+src/main.js
+  s_aaae6e4311287b::t_894e45fb639dca 10,109-114,118,125,206-208,210-212,233,235,287
+src/physics.js
+  s_aaae6e4311287b::t_a25f6a45648a39 1-106
+src/player.js
+  s_aaae6e4311287b::t_2f26cfbb72e71f 5-8,125-126,128-129,133,144,146-149,158-161,163,176-212,214,216-222,227,230-233,286-293,295-296,321,326,374,376-378,419-429
+src/world.js
+  s_aaae6e4311287b::t_1f6333ef42d727 156,164,189,207,229-230,284,292,316,322,344,365,377,449,453
+src/taxi.js
+  s_aaae6e4311287b::t_14fd788493262c 1-159
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "da98c12fb3f0c2cc469216507ae4d6c403411f30",
+  "prompts": {},
+  "sessions": {
+    "s_aaae6e4311287b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a3718911-2af0-4cef-b5df-15d14f9e5623",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
