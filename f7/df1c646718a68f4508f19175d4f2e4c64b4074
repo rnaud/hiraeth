@@ -1,0 +1,59 @@
+.claude/launch.json
+  s_aaae6e4311287b::t_61b8bddb080108 1-6
+.gitignore
+  s_aaae6e4311287b::t_cd550694104879 1-2
+README.md
+  s_aaae6e4311287b::t_277f42e039f505 1-141
+index.html
+  s_aaae6e4311287b::t_e200eb87db7a9b 1-34
+mise.toml
+  s_aaae6e4311287b::t_5f5d61c0b7dab1 1-2
+package-lock.json
+  s_aaae6e4311287b::t_dd0a1060faf97a 1-844
+package.json
+  s_aaae6e4311287b::t_8c01c370b31fb4 1-18
+src/bike.js
+  s_aaae6e4311287b::t_71a1485c1b6881 1-163
+src/biome.js
+  s_d4167757533f66::t_f39a1a67c625b4 1-55
+src/main.js
+  s_aaae6e4311287b::t_a311725c8f54f3 1-261
+src/materials.js
+  s_aaae6e4311287b::t_ab3bb22025ee2a 1-495
+src/noise.js
+  s_d4167757533f66::t_805ec2b717a840 1-70
+src/player.js
+  s_aaae6e4311287b::t_2414cd07d6903c 1-324
+src/post.js
+  s_aaae6e4311287b::t_a57bf3b0a3191b 1-437
+src/timeofday.js
+  s_aaae6e4311287b::t_16a343ac3cdb79 1-80
+src/wind.js
+  s_aaae6e4311287b::t_8df17e40bec673 1-167
+src/world.js
+  s_aaae6e4311287b::t_8ad67f26743f44 1-451
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f7df1c646718a68f4508f19175d4f2e4c64b4074",
+  "prompts": {},
+  "sessions": {
+    "s_aaae6e4311287b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a3718911-2af0-4cef-b5df-15d14f9e5623",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_d4167757533f66": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "48273525-2b3d-4f06-b755-2ed24b8780e6",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
