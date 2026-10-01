@@ -212,7 +212,7 @@ export function createEdena(scene) {
     spawnHeading: Math.PI,
     camYaw: 0,
     features: { mount: false, wind: false, jetpack: false, climb: true },
-    defaults: { hour: 10.5, preset: 'Edena' },
+    defaults: { hour: 10.5, preset: 'Sable' },
     sky: {
       script: {
         day: ['#7fd0e8', '#f4f6dc', '#8fa8d8', '#ffffff', '#fffbe8'],

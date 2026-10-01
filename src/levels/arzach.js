@@ -224,7 +224,7 @@ export function createArzach(scene) {
     features: { mount: true, wind: true, jetpack: false, climb: true },
     mount: (physics) => new Bird(physics),
     mountName: 'bird',
-    defaults: { hour: 15.5, preset: 'Arzach' },
+    defaults: { hour: 15.5, preset: 'Sable' },
     life: {
       flocks: [{ count: 5, color: '#f4efe2', size: 3.2, radius: 160, height: [60, 140], speed: 0.06, seed: 2 },
                { count: 4, color: '#e6dcc6', size: 2.6, radius: 90, height: [40, 90], speed: -0.08, seed: 7 }],

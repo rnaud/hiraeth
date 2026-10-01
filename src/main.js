@@ -214,7 +214,7 @@ updateSky();
 // ------------------------------------------------------------------ GUI
 const U = post.uniforms;
 const params = {
-  preset: level.defaults.preset ?? 'Moebius',
+  preset: level.defaults.preset ?? 'Sable',
   debug: 0,
   ink: '#2b211f',
 };

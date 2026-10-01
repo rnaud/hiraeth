@@ -16,7 +16,7 @@ export function createDesert(scene) {
     features: { mount: true, wind: true, jetpack: false, climb: true },
     mount: (physics) => new Hoverbike(physics),
     mountName: 'hoverbike',
-    defaults: { hour: 9.5, preset: 'Moebius' },
+    defaults: { hour: 9.5, preset: 'Sable' },
     lights,
     life: {
       flocks: [{ count: 9, color: '#3a2f2a', size: 2.6, radius: 110, height: [40, 90], seed: 1 },

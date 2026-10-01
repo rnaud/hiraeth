@@ -166,7 +166,7 @@ const fragmentShader = /* glsl */ `
   //   z = albedo boundary, w = shadow boundary.
   // minDepth = nearest surface in the kernel (for fading).
   vec4 inkLines(vec2 uv, float w, bool interior, out float minDepth) {
-    vec2 px = w / uRes;
+    vec2 px = max(w, 1.0) / uRes;
     vec4 c  = texture(tNormal, uv);
     vec4 n1 = texture(tNormal, uv + vec2(px.x, 0.0));
     vec4 n2 = texture(tNormal, uv - vec2(px.x, 0.0));
@@ -410,12 +410,12 @@ const fragmentShader = /* glsl */ `
       s = mix(vec4(1e7), s, step(1e-6, s));
       probeD = min(min(s.x, s.y), min(s.z, s.w));
     }
-    float weight = mix(uLineWidth, 1.0, smoothstep(15.0, 400.0, probeD));
+    float weight = mix(uLineWidth, uLineWidth * 0.6, smoothstep(15.0, 400.0, probeD));
     // pen pressure: the line swells and thins along its length
     float press = mix(1.0, 0.65 + 0.7 * vnoise(fc * 0.045 + boilT * 3.1), uLineVary);
     // silhouettes (depth edges) heavy, interior creases and colour edges light
-    float silW = weight * mix(1.0, 1.65, uLineVary) * press;
-    float inW = weight * mix(1.0, 0.8, uLineVary) * mix(1.0, 0.85 + 0.3 * vnoise(fc * 0.06 + 9.0), uLineVary);
+    float silW = weight * mix(1.0, 1.35, uLineVary) * press;
+    float inW = weight * mix(1.0, 0.75, uLineVary) * mix(1.0, 0.85 + 0.3 * vnoise(fc * 0.06 + 9.0), uLineVary);
     float nearD2;
     vec4 eS = inkLines(euv, silW * uPixelRatio, false, nearD);
     vec4 eI = inkLines(euv, inW * uPixelRatio, true, nearD2);
@@ -523,7 +523,7 @@ export function createPost() {
     uFogDensity: { value: 0.0011 },
     uFogStart: { value: 120 },
 
-    uLineWidth: { value: 2.0 },
+    uLineWidth: { value: 1.25 },
     uDepthThresh: { value: 0.07 },
     uNormalThresh: { value: 0.22 },
     uAlbedoEdges: { value: 1 },
@@ -563,35 +563,36 @@ export function createPost() {
 // two-tone) or towards a Moebius page (inked, hatched, wobbly).
 export const PRESETS = {
   Moebius: {
-    uLineWidth: 2.0, uDepthThresh: 0.07, uNormalThresh: 0.22, uAlbedoEdges: 1, uShadowEdges: 1,
+    uLineWidth: 1.5, uLineVary: 1, uDepthThresh: 0.07, uNormalThresh: 0.22, uAlbedoEdges: 1, uShadowEdges: 1,
     uWobble: 1.0, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 5.5, uHighlight: 0, uGrain: 0.1, uClouds: 0.6,
     uFogDensity: 0.0011,
   },
+  // Sable: a fine, almost uniform pen line, flat colour, sparse dotting
   Sable: {
-    uLineWidth: 1.6, uDepthThresh: 0.07, uNormalThresh: 0.3, uAlbedoEdges: 0, uShadowEdges: 0,
-    uWobble: 0.0, uBoil: 0, uHatch: 1, uShadeStyle: 1, uHatchSpacing: 7, uHighlight: 0.05, uGrain: 0.04, uClouds: 0.5,
+    uLineWidth: 1.25, uLineVary: 0.25, uDepthThresh: 0.07, uNormalThresh: 0.3, uAlbedoEdges: 0, uShadowEdges: 0,
+    uWobble: 0.0, uBoil: 0, uHatch: 0.6, uShadeStyle: 1, uHatchSpacing: 8, uHighlight: 0.05, uGrain: 0.04, uClouds: 0.5,
     uFogDensity: 0.0009,
   },
   // high-key, bone-white, heavy cast shadows, few lines
   Arzach: {
-    uLineWidth: 1.8, uDepthThresh: 0.08, uNormalThresh: 0.35, uAlbedoEdges: 0.4, uShadowEdges: 1,
+    uLineWidth: 1.35, uLineVary: 0.9, uDepthThresh: 0.08, uNormalThresh: 0.35, uAlbedoEdges: 0.4, uShadowEdges: 1,
     uWobble: 1.2, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 4.5, uHighlight: 0, uGrain: 0.12, uClouds: 0.25,
     uFogDensity: 0.0008,
   },
   // Moebius at his cleanest: flat colour, thin lines, light dotting only
   Edena: {
-    uLineWidth: 1.4, uDepthThresh: 0.07, uNormalThresh: 0.28, uAlbedoEdges: 1, uShadowEdges: 0.4,
+    uLineWidth: 1.05, uLineVary: 0.6, uDepthThresh: 0.07, uNormalThresh: 0.28, uAlbedoEdges: 1, uShadowEdges: 0.4,
     uWobble: 0.4, uBoil: 0, uHatch: 0.5, uShadeStyle: 1, uHatchSpacing: 8, uHighlight: 0.06, uGrain: 0.05, uClouds: 0.7,
     uFogDensity: 0.0008,
   },
   // twilight swamp: dense hatching, glowing crystals carry the light
   Perdide: {
-    uLineWidth: 1.9, uDepthThresh: 0.07, uNormalThresh: 0.24, uAlbedoEdges: 1, uShadowEdges: 1,
+    uLineWidth: 1.45, uLineVary: 1, uDepthThresh: 0.07, uNormalThresh: 0.24, uAlbedoEdges: 1, uShadowEdges: 1,
     uWobble: 1.0, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 5, uHighlight: 0, uGrain: 0.1, uClouds: 0.5,
     uFogDensity: 0.0012,
   },
   'Animated ink': {
-    uLineWidth: 2.2, uDepthThresh: 0.07, uNormalThresh: 0.2, uAlbedoEdges: 1, uShadowEdges: 1,
+    uLineWidth: 1.7, uLineVary: 1, uDepthThresh: 0.07, uNormalThresh: 0.2, uAlbedoEdges: 1, uShadowEdges: 1,
     uWobble: 1.6, uBoil: 1, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 5, uHighlight: 0, uGrain: 0.14, uClouds: 0.7,
     uFogDensity: 0.0011,
   },
