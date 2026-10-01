@@ -1,5 +1,7 @@
 # Moebius / Sable — three.js shader PoC
 
+**Play it:** https://rnaud.github.io/moebius/
+
 A small third-person desert exploration prototype. The point of it is the
 rendering: a "ligne claire" look in the style of Moebius and the game *Sable*.
 
