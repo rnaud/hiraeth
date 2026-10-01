@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { mulberry32 } from '../noise.js';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
-import { jitter } from '../world.js';
+import { jitter, soften } from '../world.js';
 
 // ---------------------------------------------------------------------------
 // Le Garage hermétique (Moebius, 1976-79): Major Grubert's pocket universe.
@@ -43,7 +43,7 @@ export function createGarage(scene) {
   }
   function tower(parts = []) {
     const r = 3 + rng() * 4, h = 20 + rng() * 40;
-    parts.push(new THREE.CylinderGeometry(r * 0.9, r, h, 10).translate(0, h / 2, 0).toNonIndexed());
+    parts.push(soften(new THREE.CylinderGeometry(r * 0.9, r, h, 10, 5), 0.1).translate(0, h / 2, 0).toNonIndexed());
     if (rng() < 0.5) parts.push(new THREE.ConeGeometry(r * 1.3, r * 2.5, 10).translate(0, h + r * 1.2, 0).toNonIndexed());
     else parts.push(new THREE.SphereGeometry(r * 1.4, 12, 8).scale(1, 0.8, 1).translate(0, h + r, 0).toNonIndexed());
     return parts;
@@ -127,6 +127,45 @@ export function createGarage(scene) {
       const isl = new THREE.Mesh(ig, stone(3));
       isl.position.set(Math.cos(a) * r, -20 + rng() * 60, Math.sin(a) * r);
       scene.add(isl);
+    }
+  }
+
+  // ---------------------------------------------------------- hero: the great machine
+  // A cathedral of gears turning round a column, pistons pumping at its base.
+  {
+    const mx = 90, mz = -60;
+    const col = new THREE.Mesh(soften(new THREE.CylinderGeometry(6, 9, 80, 14, 8), 0.12).translate(0, 40, 0), stone(5));
+    col.position.set(mx, 0, mz);
+    scene.add(col);
+    const crown = new THREE.Mesh(new THREE.SphereGeometry(11, 16, 10).scale(1, 0.7, 1), makeMaterial({ color: '#f2c54b', grid: 3 }));
+    crown.position.set(mx, 82, mz);
+    scene.add(crown);
+    const gearMat = makeMaterial({ color: '#d9643a', flat: true, grid: 2 });
+    for (let i = 0; i < 5; i++) {
+      const r = 12 + i * 3 + rng() * 4;
+      const gear = new THREE.Group();
+      gear.position.set(mx, 12 + i * 14, mz);
+      gear.add(new THREE.Mesh(new THREE.TorusGeometry(r, 1.4, 6, 40).rotateX(Math.PI / 2), gearMat));
+      for (let k = 0; k < 14; k++) { // teeth
+        const a = (k / 14) * Math.PI * 2;
+        gear.add(new THREE.Mesh(new THREE.BoxGeometry(2.4, 2, 2.4).translate(Math.cos(a) * (r + 1.8), 0, Math.sin(a) * (r + 1.8)), gearMat));
+      }
+      for (let k = 0; k < 3; k++) // spokes
+        gear.add(new THREE.Mesh(new THREE.BoxGeometry(r * 2, 0.8, 0.8).rotateY((k / 3) * Math.PI), makeMaterial({ color: '#34405e', flat: true })));
+      gear.userData.noCollide = true;
+      scene.add(gear);
+      const sp = (i % 2 ? -1 : 1) * (0.15 + rng() * 0.15);
+      movers.push((t) => { gear.rotation.y = t * sp; });
+    }
+    for (let k = 0; k < 6; k++) { // pistons
+      const a = (k / 6) * Math.PI * 2, px = mx + Math.cos(a) * 20, pz = mz + Math.sin(a) * 20;
+      const housing = new THREE.Mesh(new THREE.CylinderGeometry(2.5, 3, 8, 8).translate(0, 4, 0), stone(2));
+      housing.position.set(px, 0, pz);
+      scene.add(housing);
+      const rod = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 10, 8), makeMaterial({ color: '#f3ead8', flat: true }));
+      rod.userData.noCollide = true;
+      scene.add(rod);
+      movers.push((t) => rod.position.set(px, 9 + Math.max(0, Math.sin(t * 1.6 + k)) * 6, pz));
     }
   }
 
@@ -223,8 +262,14 @@ export function createGarage(scene) {
     limit: Infinity,
     features: { mount: false, wind: false, jetpack: true, climb: true },
     defaults: { hour: 10.5, preset: 'Moebius' },
+    sky: { planets: [{ az: 40, el: 30, size: 7, color: '#62c3c9', ring: 0.4 }] },
     killY: -Infinity,
     noShadow,
+    lights: portals.map((p) => new THREE.Vector4(p.pos.x, p.pos.y, p.pos.z, 16)),
+    life: {
+      flocks: [{ count: 9, color: '#e6875f', size: 1.3, radius: 60, height: [10, 30], seed: 5 }],
+      motes: { count: 140, color: '#f2c54b', size: 0.05, glow: 0.7, rise: 0.15, wind: [0.2, 0.1] },
+    },
     gravityAt,
     zoneAt: (p) => ZONES[zoneId(p)],
     atmo: (x, z, y) => {

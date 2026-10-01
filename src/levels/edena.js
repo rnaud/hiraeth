@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createNoise2D, fbm, mulberry32, smoothstep } from '../noise.js';
 import { makeMaterial, MODE_TERRAIN, MODE_STRATA, MODE_WATER } from '../materials.js';
-import { Terrain, jitter } from '../world.js';
+import { Terrain, jitter, soften } from '../world.js';
 
 // ---------------------------------------------------------------------------
 // Le Monde d'Edena (Moebius, 1983-2001): a paradise planet with pale meadows,
@@ -57,6 +57,7 @@ export function createEdena(scene) {
     const trunk = new THREE.CylinderGeometry(2.8 * s, 5.5 * s, h, 10, 10);
     trunk.translate(0, h / 2, 0);
     jitter(trunk, 0.1, 0.05, rng() * 50);
+    soften(trunk, -0.12);   // pinched waist, flaring at root and crown
     const parts = [trunk.toNonIndexed()];
     // a couple of branches
     for (let b = 0; b < 3; b++) {
@@ -128,6 +129,40 @@ export function createEdena(scene) {
   ruins(180, 120);
   for (let i = 0; i < 7; i++) ruins((rng() * 2 - 1) * 1200, (rng() * 2 - 1) * 1200);
 
+  // ---------------------------------------------------------- hero: the crashed ship
+  // Stel and Atan's retro spaceship, nose-down in the meadow where the story begins.
+  {
+    const grp = new THREE.Group();
+    const hullMat = makeMaterial({ color: '#f3ead8', color2: '#e6875f', color3: '#f3ead8', mode: MODE_STRATA, strataSize: 3.5, grid: 3 });
+    const hull = new THREE.Mesh(soften(new THREE.CapsuleGeometry(9, 54, 8, 20), 0.08), hullMat);
+    hull.rotation.z = Math.PI / 2;
+    grp.add(hull);
+    const nose = new THREE.Mesh(new THREE.ConeGeometry(8.6, 22, 20).rotateZ(-Math.PI / 2), makeMaterial({ color: '#d9643a', flat: true }));
+    nose.position.x = 44;
+    grp.add(nose);
+    for (let k = 0; k < 3; k++) {
+      const fin = new THREE.Mesh(new THREE.BoxGeometry(16, 1.2, 12).translate(0, 0, 9), makeMaterial({ color: '#62c3c9', flat: true }));
+      fin.position.x = -30;
+      fin.rotation.x = (k / 3) * Math.PI * 2;
+      grp.add(fin);
+    }
+    const dome = new THREE.Mesh(new THREE.SphereGeometry(5, 14, 10, 0, Math.PI * 2, 0, Math.PI / 2), makeMaterial({ color: '#9fd6c9', glow: 0.25 }));
+    dome.position.set(18, 8.5, 0);
+    grp.add(dome);
+    const x = 40, z = -210;
+    grp.position.set(x, terrain.baseAt(x, z, 30) + 4, z);
+    grp.rotation.set(0.2, 0.9, -0.28);
+    scene.add(grp);
+    // debris scattered behind it
+    for (let i = 0; i < 18; i++) {
+      const d = new THREE.Mesh(new THREE.BoxGeometry(1 + rng() * 4, 0.6 + rng() * 2, 1 + rng() * 3), makeMaterial({ color: pick(['#f3ead8', '#e6875f', '#62c3c9']), flat: true }));
+      const dx = x - 30 - rng() * 60, dz = z + (rng() - 0.5) * 40;
+      d.position.set(dx, terrain.heightAt(dx, dz) + 0.3, dz);
+      d.rotation.set(rng() * 3, rng() * 3, rng() * 3);
+      scene.add(d);
+    }
+  }
+
   // ---------------------------------------------------------- flowers (walk-through)
   {
     const N = 3500, dummy = new THREE.Object3D(), color = new THREE.Color();
@@ -136,11 +171,16 @@ export function createEdena(scene) {
       new THREE.CylinderGeometry(0.35, 0.2, 0.12, 7).translate(0, 1.05, 0),
     ]);
     const flowers = new THREE.InstancedMesh(g, makeMaterial({ color: '#ffffff' }), N);
+    const data = [];
     for (let i = 0; i < N; i++) {
-      const cx = (rng() * 2 - 1) * 1400, cz = (rng() * 2 - 1) * 1400;
-      dummy.position.set(cx, terrain.heightAt(cx, cz), cz);
-      dummy.rotation.set((rng() - 0.5) * 0.4, rng() * 6, (rng() - 0.5) * 0.4);
-      dummy.scale.setScalar(0.7 + rng() * 1.2);
+      // clustered in meadows, denser near the start
+      const near = i < N * 0.4;
+      const cx = near ? (rng() * 2 - 1) * 260 : (rng() * 2 - 1) * 1400, cz = near ? (rng() * 2 - 1) * 260 : (rng() * 2 - 1) * 1400;
+      const d = { x: cx, y: terrain.heightAt(cx, cz), z: cz, yaw: rng() * 6, tilt: (rng() - 0.5) * 0.3, s: 0.7 + rng() * 1.2, ph: rng() * 6 };
+      data.push(d);
+      dummy.position.set(d.x, d.y, d.z);
+      dummy.rotation.set(d.tilt, d.yaw, 0);
+      dummy.scale.setScalar(d.s);
       dummy.updateMatrix();
       flowers.setMatrixAt(i, dummy.matrix);
       flowers.setColorAt(i, color.set(pick(['#f2a7b5', '#f2c54b', '#f3ead8', '#b5a7e6'])));
@@ -148,6 +188,21 @@ export function createEdena(scene) {
     flowers.frustumCulled = false;
     flowers.userData.noCollide = true;
     scene.add(flowers);
+    // sway in the breeze (only the ones near the player, every other frame)
+    let flip = 0;
+    movers.push((t, focus) => {
+      if (!focus || (flip ^= 1)) return;
+      for (let i = 0; i < N; i++) {
+        const d = data[i];
+        if (Math.abs(d.x - focus.x) > 120 || Math.abs(d.z - focus.z) > 120) continue;
+        dummy.position.set(d.x, d.y, d.z);
+        dummy.rotation.set(d.tilt + Math.sin(t * 1.8 + d.ph + d.x * 0.05) * 0.25, d.yaw, Math.cos(t * 1.3 + d.ph) * 0.12);
+        dummy.scale.setScalar(d.s);
+        dummy.updateMatrix();
+        flowers.setMatrixAt(i, dummy.matrix);
+      }
+      flowers.instanceMatrix.needsUpdate = true;
+    });
   }
 
   return {
@@ -158,8 +213,21 @@ export function createEdena(scene) {
     camYaw: 0,
     features: { mount: false, wind: false, jetpack: false, climb: true },
     defaults: { hour: 10.5, preset: 'Edena' },
+    sky: {
+      script: {
+        day: ['#7fd0e8', '#f4f6dc', '#8fa8d8', '#ffffff', '#fffbe8'],
+        dusk: ['#8f9fd8', '#f6c6a8', '#8a86c8', '#ffe6d0', '#fff0d6'],
+        night: ['#18264e', '#3a4c80', '#34407a', '#9ab0d8', '#f2f0e6'],
+      },
+      planets: [{ az: 230, el: 20, size: 12, color: '#9fd6c9', ring: 0.3 }],
+    },
     killY: -Infinity,
     atmo: () => ({ tint: [0.98, 1.0, 1.02], fog: 0.7, name: 'Edena' }),
-    update(dt, t) { for (const m of movers) m(t); },
+    life: {
+      flocks: [{ count: 16, color: '#f2a7b5', size: 1.4, radius: 70, height: [12, 40], seed: 6 },
+               { count: 12, color: '#62c3c9', size: 1.2, radius: 110, height: [20, 60], speed: -0.14, seed: 8 }],
+      motes: { count: 200, color: '#fffbe8', size: 0.045, rise: 0.15, wind: [0.5, 0.2] },
+    },
+    update(dt, t, ctx) { for (const m of movers) m(t, ctx?.player?.pos); },
   };
 }

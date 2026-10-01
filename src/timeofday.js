@@ -18,8 +18,22 @@ const KEYS = [
   [24.0, '#1d2a52', '#4a5a8a', '#3d4380', '#8e9ccc', '#f2f0e6'],
 ];
 // Built lazily: main.js disables colour management after modules are evaluated.
-let keys = null;
-const getKeys = () => (keys ??= KEYS.map(([h, ...c]) => [h, ...c.map((x) => new THREE.Color(x))]));
+const cache = new Map();
+const toColors = (keys) => keys.map(([h, ...c]) => [h, ...c.map((x) => new THREE.Color(x))]);
+
+/**
+ * A level's colour script: day / dusk / night palettes, each
+ * [skyTop, skyHorizon, shadowTint, lightTint, sunColour], expanded into the
+ * same keyframes as the default cycle (dawn mirrors dusk).
+ */
+export function colourScript({ day, dusk, night }) {
+  const mixHex = (a, b, t) => '#' + new THREE.Color(a).lerp(new THREE.Color(b), t).getHexString();
+  const twilight = dusk.map((c, i) => mixHex(c, night[i], 0.55));
+  return [
+    [0.0, ...night], [4.5, ...night], [5.6, ...twilight], [6.8, ...dusk],
+    [9.0, ...day], [16.0, ...day], [18.2, ...dusk], [19.4, ...twilight], [20.6, ...night], [24.0, ...night],
+  ];
+}
 
 const SUN_MAX_EL = 62;
 const MOON_MAX_EL = 48;
@@ -38,7 +52,7 @@ const FADE_EL = 5;    // shadows fade out / in over this many degrees around the
  * @param {number} hour 0..24
  * @param {{ tint: number[], fog: number }} [atmo] region atmosphere (biome.js)
  */
-export function applyTimeOfDay(hour, lightDir, U, atmo) {
+export function applyTimeOfDay(hour, lightDir, U, atmo, script = KEYS) {
   hour = ((hour % 24) + 24) % 24;
 
   // Sun: up from 6 to 18. Moon: up from 18 to 6 (opposite side of the sky).
@@ -60,7 +74,8 @@ export function applyTimeOfDay(hour, lightDir, U, atmo) {
   U.uNight.value = THREE.MathUtils.smoothstep(-sunEl, -2, 8);
   U.uMoonVis.value = THREE.MathUtils.smoothstep(moonEl, -1, 4) * THREE.MathUtils.smoothstep(-sunEl, -6, 2);
 
-  const K = getKeys();
+  if (!cache.has(script)) cache.set(script, toColors(script));
+  const K = cache.get(script);
   let i = 0;
   while (i < K.length - 2 && K[i + 1][0] <= hour) i++;
   const a = K[i], b = K[i + 1];

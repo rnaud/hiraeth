@@ -4,9 +4,10 @@ import { sharedUniforms } from './materials.js';
 import { createPost, DEBUG_VIEWS, PRESETS } from './post.js';
 import { LEVELS, levelById } from './levels/index.js';
 import { Player, CameraRig } from './player.js';
-import { applyTimeOfDay } from './timeofday.js';
+import { applyTimeOfDay, colourScript } from './timeofday.js';
 import { WindStreaks } from './wind.js';
 import { Physics } from './physics.js';
+import { Flock, Motes, Footprints } from './life.js';
 
 // We author every colour as a display value and output it untouched.
 THREE.ColorManagement.enabled = false;
@@ -76,6 +77,7 @@ function makeCascade(size, extent, depth, biasWorld, mapU, matrixU, biasU) {
   };
 }
 const SU = sharedUniforms;
+const fineShadow = makeCascade(2048, 12, 1600, 0.04, SU.uShadowMap0, SU.uShadowMatrix0, SU.uShadowBias0);
 const nearShadow = makeCascade(4096, 220, 1600, 0.25, SU.uShadowMap, SU.uShadowMatrix, SU.uShadowBias);
 const farShadow = makeCascade(2048, 1150, 3200, 2.5, SU.uShadowMap2, SU.uShadowMatrix2, SU.uShadowBias2);
 
@@ -84,16 +86,48 @@ post.uniforms.tAlbedo.value = gbuffer.textures[0];
 post.uniforms.tNormal.value = gbuffer.textures[1];
 post.uniforms.tHatch.value = gbuffer.textures[2];
 
+// Supersampling: the whole pipeline renders at renderScale x the device
+// resolution into an offscreen target, then is box-filtered down. Lines and
+// strokes are sized by the effective pixel ratio, so they keep their look.
+const quality = { renderScale: pixelRatio >= 2 ? 1 : 1.5 };
+const composeRT = new THREE.WebGLRenderTarget(1, 1, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, depthBuffer: false });
+const blit = (() => {
+  const material = new THREE.ShaderMaterial({
+    glslVersion: THREE.GLSL3,
+    uniforms: { tSrc: { value: composeRT.texture }, uTexel: { value: new THREE.Vector2() } },
+    vertexShader: 'out vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+    fragmentShader: `precision highp float; uniform sampler2D tSrc; uniform vec2 uTexel; in vec2 vUv; out highp vec4 fragColor;
+      void main() {
+        vec2 o = uTexel * 0.5;   // four bilinear taps = a box filter over the supersampled pixels
+        fragColor = 0.25 * (texture(tSrc, vUv + vec2(-o.x, -o.y)) + texture(tSrc, vUv + vec2(o.x, -o.y))
+                          + texture(tSrc, vUv + vec2(-o.x, o.y)) + texture(tSrc, vUv + vec2(o.x, o.y)));
+      }`,
+    depthTest: false, depthWrite: false,
+  });
+  const scene = new THREE.Scene();
+  const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
+  quad.frustumCulled = false;
+  scene.add(quad);
+  return { scene, material };
+})();
+
+const overlays = { motes: null };   // sprite overlays sized with the render targets
+
 function resize() {
   const w = window.innerWidth, h = window.innerHeight;
   renderer.setSize(w, h);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
-  gbuffer.setSize(Math.floor(w * pixelRatio), Math.floor(h * pixelRatio));
-  post.uniforms.uRes.value.set(w * pixelRatio, h * pixelRatio);
-  post.uniforms.uPixelRatio.value = pixelRatio;
-  sharedUniforms.uPixelRatio.value = pixelRatio;
-  wind?.uniforms.uRes.value.set(w * pixelRatio, h * pixelRatio);
+  const pr = pixelRatio * quality.renderScale;
+  const rw = Math.floor(w * pr), rh = Math.floor(h * pr);
+  gbuffer.setSize(rw, rh);
+  composeRT.setSize(rw, rh);
+  blit.material.uniforms.uTexel.value.set(1 / (w * pixelRatio), 1 / (h * pixelRatio));
+  post.uniforms.uRes.value.set(rw, rh);
+  post.uniforms.uPixelRatio.value = pr;
+  sharedUniforms.uPixelRatio.value = pr;
+  wind?.uniforms.uRes.value.set(rw, rh);
+  if (overlays.motes) { overlays.motes.uniforms.uRes.value.set(rw, rh); overlays.motes.uniforms.uPR.value = pr; }
 }
 window.addEventListener('resize', () => resize());
 let wind = null;
@@ -116,8 +150,37 @@ const player = new Player(physics, {
   gravityAt: level.gravityAt, unsafe: level.unsafe,
 });
 player.vehicles.push(...(level.vehicles ?? []));
-scene.add(player.object);
+player.attach(scene);
 if (player.mount) scene.add(player.mount.object);
+
+// ambient life
+const lifeCfg = level.life ?? {};
+const flocks = (lifeCfg.flocks ?? []).map((f) => new Flock(scene, f));
+const motes = lifeCfg.motes ? new Motes(scene, lifeCfg.motes) : null;
+if (motes) motes.uniforms.tNormal.value = gbuffer.textures[1];
+overlays.motes = motes;
+const footprints = lifeCfg.footprints ? new Footprints(scene, { color: lifeCfg.footprints }) : null;
+resize();
+if (footprints) player.onStep = (p, heading, up) => footprints.add(p, heading, up);
+
+// local lights: the 8 nearest to the player go to the shader each frame
+const levelLights = level.lights ?? [];
+const jetLight = new THREE.Vector4();
+function updateLights() {
+  const L = sharedUniforms.uLights.value;
+  const p = player.pos;
+  const ranked = levelLights
+    .map((l) => [l, (l.x - p.x) ** 2 + (l.y - p.y) ** 2 + (l.z - p.z) ** 2])
+    .filter(([l, d]) => d < (l.w + 250) ** 2)
+    .sort((a, b) => a[1] - b[1]);
+  let n = 0;
+  if (player.thrusting) {
+    jetLight.set(p.x, p.y + 0.6, p.z, 7 + Math.random() * 1.5);   // the flame flickers on nearby walls
+    L[n++].copy(jetLight);
+  }
+  for (const [l] of ranked) { if (n >= 8) break; L[n++].copy(l); }
+  for (; n < 8; n++) L[n].set(0, -1e5, 0, 0);
+}
 wind = new WindStreaks();
 wind.uniforms.tNormal.value = gbuffer.textures[1];
 wind.uniforms.uRes.value.copy(post.uniforms.uRes.value);
@@ -137,7 +200,15 @@ window.addEventListener('blur', () => Object.keys(input).forEach((k) => (input[k
 // ------------------------------------------------------------------ time of day
 const sky = { hour: level.defaults.hour, speed: 0 }; // speed in in-game hours per real minute
 let atmo = level.atmo(player.pos.x, player.pos.z, player.pos.y);
-const updateSky = () => applyTimeOfDay(sky.hour, sharedUniforms.uSunDir.value, post.uniforms, atmo);
+const script = level.sky?.script ? colourScript(level.sky.script) : undefined;
+const updateSky = () => applyTimeOfDay(sky.hour, sharedUniforms.uSunDir.value, post.uniforms, atmo, script);
+// planets hanging in this level's sky
+(level.sky?.planets ?? []).slice(0, 3).forEach((p, i) => {
+  const el = THREE.MathUtils.degToRad(p.el), az = THREE.MathUtils.degToRad(p.az);
+  post.uniforms.uPlanet.value[i].set(Math.cos(el) * Math.sin(az), Math.sin(el), Math.cos(el) * Math.cos(az), THREE.MathUtils.degToRad(p.size));
+  const c = new THREE.Color(p.color);
+  post.uniforms.uPlanetColor.value[i].set(c.r, c.g, c.b, p.ring ?? 0);
+});
 updateSky();
 
 // ------------------------------------------------------------------ GUI
@@ -184,6 +255,16 @@ fTime.add(sky, 'speed', 0, 120, 1).name('hours / minute');
 fTime.add(player, 'stopMotion').name('stop-motion anim');
 
 const world = { wind: level.features.wind };
+
+const fBeauty = gui.addFolder('Beauty');
+fBeauty.add(quality, 'renderScale', { '1× (fast)': 1, '1.5× (smooth)': 1.5, '2× (print)': 2 }).name('antialiasing').onChange(() => resize());
+fBeauty.add(U.uLineVary, 'value', 0, 1, 0.05).name('line weight variation');
+fBeauty.add(U.uAO, 'value', 0, 1, 0.05).name('crease shading');
+fBeauty.add(sharedUniforms.uFormHatch, 'value', 0, 1, 1).name('hatching follows form');
+fBeauty.add(U.uSkyBands, 'value', 0, 1, 0.05).name('sky bands');
+fBeauty.add(U.uHazeBands, 'value', 0, 1, 0.05).name('haze layers');
+fBeauty.add(U.uRays, 'value', 0, 1, 0.05).name('sun rays');
+fBeauty.close();
 const fWorld = gui.addFolder('World');
 fWorld.add(world, 'wind').name('wind-blown sand');
 fWorld.close();
@@ -219,6 +300,51 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Escape' && picker.classList.contains('open') && levelParam) showPicker(false);
   const n = Number(e.key);
   if (picker.classList.contains('open') && n >= 1 && n <= LEVELS.length) location.search = '?level=' + LEVELS[n - 1].id;
+});
+
+// ------------------------------------------------------------------ photo mode
+// P: free camera (WASD / Q E, mouse look, SHIFT faster), HUD hidden,
+// H toggles the panel, ENTER saves a PNG of the frame.
+const photo = { on: false, capture: false, pos: new THREE.Vector3() };
+const photoHint = document.getElementById('photo');
+const hud = document.getElementById('hud');
+function setPhoto(on) {
+  photo.on = on;
+  if (on) photo.pos.copy(camera.position);
+  hud.style.display = on ? 'none' : '';
+  gui.domElement.style.display = on ? 'none' : '';
+  photoHint.classList.toggle('open', on);
+}
+const _pf = new THREE.Vector3(), _pr = new THREE.Vector3();
+function photoUpdate(dt) {
+  const up = camera.up;
+  const cp = Math.cos(rig.pitch);
+  // the rig's yaw/pitch (driven by the mouse) aim the free camera
+  _pf.copy(player.frame.right).multiplyScalar(-Math.sin(rig.yaw) * cp)
+    .addScaledVector(player.frame.up, -Math.sin(rig.pitch))
+    .addScaledVector(player.frame.fwd, -Math.cos(rig.yaw) * cp).normalize();
+  _pr.crossVectors(_pf, up).normalize();
+  const sp = (input.ShiftLeft || input.ShiftRight ? 60 : 14) * dt;
+  const f = (input.KeyW ? 1 : 0) - (input.KeyS ? 1 : 0), s = (input.KeyD ? 1 : 0) - (input.KeyA ? 1 : 0);
+  const v = (input.KeyE ? 1 : 0) - (input.KeyQ ? 1 : 0);
+  photo.pos.addScaledVector(_pf, f * sp).addScaledVector(_pr, s * sp).addScaledVector(up, v * sp);
+  camera.position.copy(photo.pos);
+  camera.lookAt(_pr.copy(photo.pos).add(_pf));
+}
+function savePhoto() {
+  photo.capture = false;
+  renderer.domElement.toBlob((blob) => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `moebius-${levelId}-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.png`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  });
+}
+window.addEventListener('keydown', (e) => {
+  if (e.code === 'KeyP') setPhoto(!photo.on);
+  if (photo.on && e.code === 'KeyH') gui.domElement.style.display = gui.domElement.style.display === 'none' ? '' : 'none';
+  if (photo.on && e.code === 'Enter') photo.capture = true;
 });
 
 // ------------------------------------------------------------------ loop
@@ -263,9 +389,19 @@ function frame() {
   updateSky();
 
   for (const v of player.vehicles) if (v !== player.ride) v.update(dt, null, t);
-  player.update(dt, input, rig.yaw);
-  rig.follow(player.ride?.heading ?? 0, dt, player.riding);
-  rig.update(player.pos, dt, player.frame);
+  if (photo.on) {
+    photoUpdate(dt);
+  } else {
+    player.update(dt, input, rig.yaw);
+    rig.follow(player.ride?.heading ?? 0, dt, player.riding);
+    rig.update(player.pos, dt, player.frame);
+  }
+  const focus = photo.on ? camera.position : player.pos;
+  for (const f of flocks) f.update(dt, t, focus);
+  motes?.update(dt, t, camera.position);
+  footprints?.update(dt);
+  updateLights();
+  if (level.features.wind) { const [wx, wz] = wind.windDir; player.wind.set(wx * 2.5, 0, wz * 2.5); }
 
   // sand: ambient gusts + dust behind the bike
   const pxScale = (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) / window.innerHeight;
@@ -292,6 +428,8 @@ function frame() {
   const lightDir = sharedUniforms.uSunDir.value;
   scene.overrideMaterial = shadowOverride;
   for (const o of level.noShadow ?? []) o.visible = false;
+  fineShadow.update(player.pos, lightDir);
+  fineShadow.render(scene);
   nearShadow.update(player.pos, lightDir);
   nearShadow.render(scene);
   if (frameNo++ % 3 === 0 || sky.speed > 0) {
@@ -311,16 +449,26 @@ function frame() {
   // 3. Moebius composite
   U.uInvProj.value.copy(camera.projectionMatrixInverse);
   U.uCamWorld.value.copy(camera.matrixWorld);
-  renderer.setRenderTarget(null);
+  U.uProj11.value = camera.projectionMatrix.elements[5];
+  const ss = quality.renderScale > 1;
+  renderer.setRenderTarget(ss ? composeRT : null);
   renderer.clear();
   renderer.render(post.scene, post.camera);
 
-  // 4. wind-blown sand, inked on top (depth-tested against the G-buffer)
+  // 4. wind-blown sand and drifting motes, drawn on top (depth-tested against the G-buffer)
   renderer.render(wind.scene, camera);
+  if (motes) renderer.render(motes.scene, camera);
+
+  // 5. downsample the supersampled frame
+  if (ss) {
+    renderer.setRenderTarget(null);
+    renderer.render(blit.scene, post.camera);
+  }
+  if (photo.capture) savePhoto();
 
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
 
 // handy for debugging from the console
-Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics });
+Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize });

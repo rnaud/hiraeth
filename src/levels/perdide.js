@@ -70,6 +70,7 @@ export function createPerdide(scene) {
   });
   scene.add(terrain.mesh);
   const movers = [];
+  const lights = [];   // crystal groves, egg clutches: they light the swamp around them
 
   // ---------------------------------------------------------- water
   {
@@ -82,6 +83,7 @@ export function createPerdide(scene) {
 
   // ---------------------------------------------------------- crystal forests
   function crystals(cx, cz, count, spread, scale = 1) {
+    lights.push(new THREE.Vector4(cx, terrain.heightAt(cx, cz) + 4, cz, spread * 0.5 + 14));
     const parts = { };
     for (let i = 0; i < count; i++) {
       const x = cx + (rng() - 0.5) * spread, z = cz + (rng() - 0.5) * spread;
@@ -143,6 +145,7 @@ export function createPerdide(scene) {
 
   // ---------------------------------------------------------- glowing egg clutches
   function eggs(cx, cz) {
+    lights.push(new THREE.Vector4(cx, terrain.heightAt(cx, cz) + 1.5, cz, 11));
     const list = [];
     for (let i = 0; i < 5 + Math.floor(rng() * 8); i++) {
       const x = cx + (rng() - 0.5) * 8, z = cz + (rng() - 0.5) * 8, s = 0.7 + rng() * 0.9;
@@ -154,6 +157,27 @@ export function createPerdide(scene) {
   for (let i = 0; i < 30; i++) {
     const x = (rng() * 2 - 1) * 1000, z = (rng() * 2 - 1) * 1000;
     if (terrain.heightAt(x, z) > 0.3) eggs(x, z);
+  }
+
+  // ---------------------------------------------------------- hero: the Great Crystal
+  {
+    const gx = 120, gz = -150, base = terrain.heightAt(gx, gz);
+    const parts = [];
+    for (let i = 0; i < 9; i++) {
+      const h = 35 + rng() * 60, r = 5 + rng() * 7;
+      const g = new THREE.CylinderGeometry(0, r, h, 6).translate(0, h / 2, 0);
+      g.rotateX((rng() - 0.5) * 0.6).rotateZ((rng() - 0.5) * 0.6);
+      g.translate((rng() - 0.5) * 16, -2, (rng() - 0.5) * 16);
+      parts.push(g.toNonIndexed());
+    }
+    const cr = new THREE.Mesh(mergeGeometries(parts), makeMaterial({ color: '#c7a6f2', flat: true, glow: 0.8 }));
+    cr.position.set(gx, base, gz);
+    scene.add(cr);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(34, 3, 8, 48), makeMaterial({ color: '#8a7f8f', color2: '#6f6a80', color3: '#a99bb0', mode: 2, strataSize: 1.5, flat: true }));
+    ring.position.set(gx, base + 26, gz);
+    ring.rotation.set(1.2, 0.3, 0.2);
+    scene.add(ring);
+    lights.push(new THREE.Vector4(gx, base + 20, gz, 60));
   }
 
   // ---------------------------------------------------------- the crystal cave
@@ -209,8 +233,23 @@ export function createPerdide(scene) {
     mount: (physics) => new Hoverbike(physics, { build: buildSkiff, floor: WATER + 0.15, kind: 'skiff' }),
     mountName: 'skiff',
     defaults: { hour: 18.4, preset: 'Perdide' },
+    sky: {
+      // violet shadows, teal light
+      script: {
+        day: ['#7fb8b0', '#f0d0b8', '#8a6fc0', '#e6fff6', '#fff6dc'],
+        dusk: ['#5c6fa8', '#f2a98a', '#7a5bb0', '#bff0e0', '#ffe0c0'],
+        night: ['#141a3a', '#3a3f78', '#3d3478', '#7fd6c8', '#f2f0e6'],
+      },
+      planets: [{ az: 70, el: 22, size: 16, color: '#c7a6f2', ring: 0.35 }],
+    },
     killY: -Infinity,
     unsafe,
+    lights,
+    life: {
+      flocks: [{ count: 10, color: '#2b211f', size: 1.3, radius: 50, height: [8, 25], speed: 0.25, seed: 11 }],
+      motes: { count: 170, color: '#d6ff9a', size: 0.07, glow: 1, rise: 0.05, wind: [0.15, 0.1] },
+      footprints: '#5f7a4f',
+    },
     atmo: () => ({ tint: [0.92, 1.0, 1.0], fog: 1.5, name: 'Perdide' }),
     update(dt, t, ctx) {
       for (const m of movers) m(t);

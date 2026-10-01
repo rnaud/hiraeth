@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createNoise2D, fbm, mulberry32, smoothstep, lerp } from './noise.js';
 import { makeMaterial, MODE_TERRAIN, MODE_STRATA } from './materials.js';
+import { Banner } from './life.js';
 import { biomeWeights } from './biome.js';
 
 export const WORLD_SIZE = 4000;
@@ -133,6 +134,25 @@ export function jitter(geo, amount, freq, seed = 0, vertical = 0) {
   return geo;
 }
 
+/**
+ * Organic softening: a gentle belly along the height (and a slight sag at the
+ * top) so cylinders read as drawn forms rather than CAD primitives.
+ */
+export function soften(geo, bulge = 0.08, sag = 0.0) {
+  geo.computeBoundingBox();
+  const { min, max } = geo.boundingBox;
+  const p = geo.attributes.position;
+  for (let i = 0; i < p.count; i++) {
+    const t = (p.getY(i) - min.y) / Math.max(max.y - min.y, 1e-6);
+    const k = 1 + bulge * Math.sin(Math.PI * Math.min(t * 1.15, 1));
+    p.setX(i, p.getX(i) * k);
+    p.setZ(i, p.getZ(i) * k);
+    if (sag) p.setY(i, p.getY(i) - sag * t * t * Math.hypot(p.getX(i), p.getZ(i)) * 0.05);
+  }
+  geo.computeVertexNormals();
+  return geo;
+}
+
 // Terraced radius profile: each "step" of the mesa shrinks a bit.
 export function terrace(geo, height, steps, shrink) {
   const p = geo.attributes.position;
@@ -164,6 +184,8 @@ export function buildWorld(scene, terrain) {
   const rng = mulberry32(42);
   const footprints = []; // { x, z, r }: keeps props from overlapping when placed
   const floaters = [];  // { obj, baseY, phase }
+  const banners = [];
+  const lights = [];    // glowing things that light their surroundings at night
 
   scene.add(terrain.mesh);
 
@@ -324,9 +346,20 @@ export function buildWorld(scene, terrain) {
       scene.add(m);
       footprints.push({ x: px, z: pz, r: 3 });
     }
+    // prayer banners on two poles
+    for (let k = 0; k < 2; k++) {
+      const a = rng() * Math.PI * 2, px = x + Math.cos(a) * (R + 6), pz = z + Math.sin(a) * (R + 6);
+      const base = terrain.heightAt(px, pz);
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.2, 12, 5).translate(0, 6, 0), makeMaterial({ color: '#34405e' }));
+      pole.position.set(px, base - 0.5, pz);
+      scene.add(pole);
+      banners.push(new Banner(scene, new THREE.Vector3(px + 0.2, base + 11.5, pz), a + Math.PI / 2,
+        { width: 1.6, height: 6, color: ['#d9643a', '#58b4a8', '#f2c54b'][Math.floor(rng() * 3)] }));
+    }
     // central altar sphere
-    const orb = new THREE.Mesh(new THREE.IcosahedronGeometry(4, 1), makeMaterial({ color: '#58b4a8', flat: true }));
+    const orb = new THREE.Mesh(new THREE.IcosahedronGeometry(4, 1), makeMaterial({ color: '#58b4a8', flat: true, glow: 0.5 }));
     orb.position.set(x, terrain.heightAt(x, z) + 9, z);
+    lights.push(new THREE.Vector4(x, orb.position.y, z, 22));
     scene.add(orb);
     orb.userData.noCollide = true; // bobbing
     floaters.push({ obj: orb, baseY: orb.position.y, phase: rng() * 10, amp: 1.2, spin: 0.3 });
@@ -387,6 +420,38 @@ export function buildWorld(scene, terrain) {
       }
     }
   }
+
+  // ---------------------------------------------------------- hero: the sleeping mask
+  // A colossal masked head half-buried in the sand, framed through the arch
+  // when you look out from the start.
+  function sleepingMask(x, z) {
+    const base = terrain.baseAt(x, z, 30);
+    const grp = new THREE.Group();
+    const head = new THREE.Mesh(soften(new THREE.SphereGeometry(34, 26, 18).scale(1, 1.2, 0.95), 0.03),
+      makeMaterial({ color: '#d9a477', color2: '#c98f5f', color3: '#e9c49a', mode: MODE_STRATA, strataSize: 6, flat: true }));
+    const mask = new THREE.Mesh(new THREE.SphereGeometry(30, 24, 16).scale(0.92, 1.18, 0.5),
+      makeMaterial({ color: '#f3ead8', flat: true }));
+    mask.position.set(0, 2, 20);
+    const dark = makeMaterial({ color: '#34405e', flat: true });
+    for (const side of [-1, 1]) {
+      const eye = new THREE.Mesh(new THREE.BoxGeometry(11, 2.6, 6), dark);
+      eye.position.set(side * 10, 9, 33.5);
+      eye.rotation.z = side * -0.12;
+      grp.add(eye);
+    }
+    const ridge = new THREE.Mesh(new THREE.BoxGeometry(3.2, 20, 5), makeMaterial({ color: '#e9dcc0', flat: true }));
+    ridge.position.set(0, -1, 34.5);
+    const mouth = new THREE.Mesh(new THREE.BoxGeometry(9, 12, 6), dark); // a doorway into the head
+    mouth.position.set(0, -22, 30);
+    const crest = new THREE.Mesh(new THREE.ConeGeometry(9, 40, 8).rotateX(-0.5), makeMaterial({ color: '#c8483a', flat: true }));
+    crest.position.set(0, 44, -8);
+    grp.add(head, mask, ridge, mouth, crest);
+    grp.position.set(x, base - 6, z);
+    grp.rotation.set(-0.12, 0, 0.18);
+    scene.add(grp);
+    footprints.push({ x, z, r: 40 });
+  }
+  sleepingMask(-20, -400);
 
   // ---------------------------------------------------------- landmarks near spawn
   ribcage(70, -110, 1, 0.5);
@@ -459,5 +524,5 @@ export function buildWorld(scene, terrain) {
     scene.add(plants);
   }
 
-  return { floaters };
+  return { floaters, banners, lights };
 }

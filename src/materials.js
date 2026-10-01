@@ -30,6 +30,12 @@ export const sharedUniforms = {
   uShadowMatrix: { value: new THREE.Matrix4() },
   uShadowBias: { value: 0.0002 },
   uShadowNormalOffset: { value: 0.35 },
+  // finest cascade, a few metres around the player: crisp character shadows
+  // that don't crawl across a coarse texel grid while you move
+  uShadowMap0: { value: null },
+  uShadowMatrix0: { value: new THREE.Matrix4() },
+  uShadowBias0: { value: 0.00005 },
+  uShadowNormalOffset0: { value: 0.03 },
   // second, wider shadow range (cascade) for distant terrain and mesas
   uShadowMap2: { value: null },
   uShadowMatrix2: { value: new THREE.Matrix4() },
@@ -43,6 +49,9 @@ export const sharedUniforms = {
   uPixelRatio: { value: 1 },
   uShadeStyle: { value: 0 }, // 0 = hatching, 1 = stipple (Sable-style dotting)
   uClouds: { value: 0.6 },       // cloud cover, shared with the sky in post.js
+  // local lights (glowing crystals, eggs, portals, the jetpack flame): xyz + radius
+  uLights: { value: Array.from({ length: 8 }, () => new THREE.Vector4(0, -1e5, 0, 0)) },
+  uFormHatch: { value: 1 },      // strokes follow slopes / wrap round objects
   uCloudShadows: { value: 1 },
 };
 
@@ -100,6 +109,10 @@ const fragmentShader = /* glsl */ `
   uniform mat4 uShadowMatrix;
   uniform float uShadowBias;
   uniform float uShadowNormalOffset;
+  uniform sampler2D uShadowMap0;
+  uniform mat4 uShadowMatrix0;
+  uniform float uShadowBias0;
+  uniform float uShadowNormalOffset0;
   uniform sampler2D uShadowMap2;
   uniform mat4 uShadowMatrix2;
   uniform float uShadowBias2;
@@ -111,6 +124,8 @@ const fragmentShader = /* glsl */ `
   uniform float uGlow;      // self-lit (crystals, eggs): ignores shadow, glows at night
   uniform float uClouds;
   uniform float uCloudShadows;
+  uniform vec4 uLights[8];
+  uniform float uFormHatch;
   uniform float uTime;
   uniform float uToon;
   uniform float uHatch;
@@ -162,12 +177,15 @@ const fragmentShader = /* glsl */ `
   }
 
   float getShadow(vec3 wp, vec3 n) {
-    float i0, i1;
+    float iF, i0, i1;
+    float sF = sampleShadow(uShadowMap0, uShadowMatrix0, wp, n, uShadowNormalOffset0, uShadowBias0, iF);
+    if (iF >= 1.0) return sF;
     float s0 = sampleShadow(uShadowMap, uShadowMatrix, wp, n, uShadowNormalOffset, uShadowBias, i0);
-    if (i0 >= 1.0) return s0;
-    float s1 = sampleShadow(uShadowMap2, uShadowMatrix2, wp, n, uShadowNormalOffset2, uShadowBias2, i1);
-    s1 = mix(1.0, s1, i1);
-    return mix(s1, s0, i0);
+    if (i0 < 1.0) {
+      float s1 = sampleShadow(uShadowMap2, uShadowMatrix2, wp, n, uShadowNormalOffset2, uShadowBias2, i1);
+      s0 = mix(mix(1.0, s1, i1), s0, i0);
+    }
+    return mix(s0, sF, iF);
   }
 
   // Cloud shadows: the ground point is projected along the light onto a cloud
@@ -409,6 +427,9 @@ const fragmentShader = /* glsl */ `
     vec2 ce1 = strokeCoord(tw, vec2(0.766, 0.643));
     vec2 ce2 = strokeCoord(tw, vec2(0.83, -0.56));
     float fw1 = fwidth(ce1.x), fw2 = fwidth(ce2.x);
+    // form-following strokes: height contours (terrain slopes) / rings round objects
+    vec2 ceY = vec2(vObjPos.y, dot(vObjPos.xz, vec2(0.7071)));
+    float fwY = fwidth(vObjPos.y);
     vec2 fwd = vec2(fw1, fwidth(ce1.y));
     vec3 gq = vObjPos / max(uGrid, 1e-3);
     vec3 gfw = fwidth(gq);
@@ -467,6 +488,18 @@ const fragmentShader = /* glsl */ `
     float L = mix(min(lambert, 0.38), lambert, sh);
     L = mix(L, 1.0, uGlow);
 
+    // local lights pool light on nearby surfaces, even inside shadow
+    float local = 0.0;
+    for (int i = 0; i < 8; i++) {
+      vec3 dl = uLights[i].xyz - vWorldPos;
+      float d = length(dl);
+      if (d < uLights[i].w) {
+        float att = pow(1.0 - d / uLights[i].w, 2.0);
+        local = max(local, att * (0.35 + 0.65 * max(dot(n, dl / d), 0.0)));
+      }
+    }
+    L = max(L, mix(L, 0.97, smoothstep(0.15, 0.5, local)));
+
     gAlbedoLight = vec4(albedo, L);
     gNormalDepth = vec4(n, vViewDepth);
 
@@ -484,15 +517,25 @@ const fragmentShader = /* glsl */ `
       detail = max(detail, fissures(vec2(faceX, vObjPos.y), fissFw) * 0.85);
     }
     gHatch.b = detail;
-    gHatch.a = uGlow;
+    gHatch.a = max(uGlow, smoothstep(0.15, 0.6, local) * 0.6);
     float dark = clamp((uToon - L) / uToon, 0.0, 1.0);
     if (dark > 0.0 && uHatch > 0.0 && uShadeStyle == 1) {
       gHatch.r = stipple(ce1, fwd, uHatchSpacing * 1.15, dark) * smoothstep(0.02, 0.15, dark);
     } else if (dark > 0.0 && uHatch > 0.0) {
       float h1 = strokes(ce1, fw1, uHatchSpacing, mix(0.9, 2.2, dark)) * smoothstep(0.02, 0.12, dark);
+      if (uFormHatch > 0.0 && uMode == ${MODE_TERRAIN}) {
+        // on slopes the strokes become height contours wrapping round the dunes
+        float sm = smoothstep(0.1, 0.3, slope) * uFormHatch;
+        float hc = strokes(ceY, fwY, uHatchSpacing, mix(0.9, 2.2, dark)) * smoothstep(0.02, 0.12, dark);
+        h1 = mix(h1, hc, sm);
+      }
       float h2 = 0.0;
-      if (dark > 0.5)
-        h2 = strokes(ce2, fw2, uHatchSpacing * 1.2, mix(0.6, 1.7, dark)) * smoothstep(0.5, 0.65, dark);
+      if (dark > 0.5) {
+        bool rings = uFormHatch > 0.0 && uFlat < 0.5 && uMode != ${MODE_TERRAIN};
+        // smooth objects: cross-hatch as rings round the form (trunks, ribs, domes)
+        h2 = (rings ? strokes(ceY, fwY, uHatchSpacing * 1.2, mix(0.6, 1.7, dark))
+                    : strokes(ce2, fw2, uHatchSpacing * 1.2, mix(0.6, 1.7, dark))) * smoothstep(0.5, 0.65, dark);
+      }
       gHatch.rg = vec2(h1, h2);
     }
   }

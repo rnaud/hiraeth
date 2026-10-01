@@ -130,6 +130,58 @@ export function createArzach(scene) {
     scene.add(win);
   }
 
+  // ---------------------------------------------------------- hero: the fallen colossus and the hand
+  {
+    const stoneMat = makeMaterial({ color: '#efe6d2', color2: '#e0d2b8', color3: '#cdbb9c', mode: MODE_STRATA, strataSize: 4, flat: true });
+    const grp = new THREE.Group();
+    const cap = (r, len, x, y, z, rx, ry, rz) => {
+      const m = new THREE.Mesh(new THREE.CapsuleGeometry(r, len, 6, 14), stoneMat);
+      m.position.set(x, y, z);
+      m.rotation.set(rx, ry, rz);
+      grp.add(m);
+    };
+    cap(17, 46, 0, 8, 0, 0, 0, Math.PI / 2);                 // torso lying along x
+    cap(6, 40, -10, 4, 26, 0, 0.35, Math.PI / 2);            // arm flung out
+    cap(8, 34, 46, 18, -8, 0, 0, 1.0);                       // raised thigh
+    cap(7, 34, 62, 18, -8, 0, 0, -1.0);                      // shin back down
+    cap(8, 40, 52, 6, 12, 0, -0.1, Math.PI / 2);             // the other leg
+    const head = new THREE.Mesh(new THREE.SphereGeometry(15, 18, 14).scale(1, 1.1, 1), stoneMat);
+    head.position.set(-46, 12, 0);
+    const face = new THREE.Mesh(new THREE.SphereGeometry(12, 16, 12).scale(0.5, 1.05, 0.9), makeMaterial({ color: '#f7f1e4', flat: true }));
+    face.position.set(-50, 14, 7);
+    face.rotation.y = -0.6;
+    grp.add(head, face);
+    const x = 170, z = -260;
+    grp.position.set(x, terrain.baseAt(x, z, 40) - 6, z);
+    grp.rotation.y = 0.7;
+    scene.add(grp);
+
+    // a giant hand reaching out of the plain
+    const hand = new THREE.Group();
+    const palm = new THREE.Mesh(new THREE.CapsuleGeometry(9, 10, 4, 12).scale(1, 1, 0.5), stoneMat);
+    palm.position.y = 10;
+    hand.add(palm);
+    const fingers = [[-7, 0.25, 26], [-2.5, 0.08, 31], [2.5, -0.06, 30], [7, -0.22, 25]];
+    for (const [fx, tilt, len] of fingers) {
+      const f = new THREE.Mesh(new THREE.CapsuleGeometry(2.1, len, 4, 8), stoneMat);
+      f.position.set(fx, 18 + len / 2, 0);
+      f.rotation.z = tilt;
+      f.rotation.x = -0.15;
+      hand.add(f);
+    }
+    const thumb = new THREE.Mesh(new THREE.CapsuleGeometry(2.6, 14, 4, 8), stoneMat);
+    thumb.position.set(-12, 16, 2);
+    thumb.rotation.z = 0.9;
+    hand.add(thumb);
+    const forearm = new THREE.Mesh(new THREE.CapsuleGeometry(8, 20, 4, 12), stoneMat);
+    forearm.position.y = -6;
+    hand.add(forearm);
+    const hx = -150, hz = -210;
+    hand.position.set(hx, terrain.baseAt(hx, hz, 12) - 8, hz);
+    hand.rotation.set(0.12, 0.8, -0.1);
+    scene.add(hand);
+  }
+
   // ---------------------------------------------------------- menhirs and pebbles
   for (let i = 0; i < 60; i++) {
     const x = (rng() * 2 - 1) * 1300, z = (rng() * 2 - 1) * 1300;
@@ -168,6 +220,21 @@ export function createArzach(scene) {
     mount: (physics) => new Bird(physics),
     mountName: 'bird',
     defaults: { hour: 15.5, preset: 'Arzach' },
+    life: {
+      flocks: [{ count: 5, color: '#f4efe2', size: 3.2, radius: 160, height: [60, 140], speed: 0.06, seed: 2 },
+               { count: 4, color: '#e6dcc6', size: 2.6, radius: 90, height: [40, 90], speed: -0.08, seed: 7 }],
+      motes: { count: 120, color: '#f1e9d8', size: 0.05, wind: [0.8, 0.3] },
+      footprints: '#d9c9a8',
+    },
+    sky: {
+      // almost monochrome bone, with warm ochre shadows as the one accent
+      script: {
+        day: ['#dcd6c2', '#f5eedb', '#c9a27a', '#ffffff', '#fffaf0'],
+        dusk: ['#c9b9a4', '#f2cfa8', '#b0705a', '#ffe0c0', '#fff0d6'],
+        night: ['#2a2a38', '#4c4a58', '#3c3448', '#a8a4b8', '#f2f0e6'],
+      },
+      planets: [{ az: 140, el: 32, size: 6, color: '#efe6d2' }, { az: 120, el: 22, size: 2.4, color: '#d8c7a6' }],
+    },
     killY: -Infinity,
     atmo: () => ({ tint: [1.02, 0.99, 0.94], fog: 0.75, name: 'Arzach' }),
     update(dt, t) { for (const m of movers) m(t); },

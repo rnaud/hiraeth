@@ -24,17 +24,24 @@ function buildCharacter() {
   const body = new THREE.Group();
   root.add(body);
 
-  const legs = [];
+  // two-segment legs so the knees can bend
+  const legs = [], knees = [];
   for (const side of [-1, 1]) {
     const pivot = new THREE.Group();
     pivot.position.set(side * 0.16, 0.95, 0);
-    const leg = part(new THREE.CylinderGeometry(0.11, 0.09, 0.95, 6), '#34405e');
-    leg.position.y = -0.47;
+    const thigh = part(new THREE.CylinderGeometry(0.12, 0.1, 0.5, 6), '#34405e');
+    thigh.position.y = -0.24;
+    const knee = new THREE.Group();
+    knee.position.y = -0.47;
+    const shin = part(new THREE.CylinderGeometry(0.1, 0.085, 0.46, 6), '#34405e');
+    shin.position.y = -0.22;
     const boot = part(new THREE.BoxGeometry(0.2, 0.14, 0.32), '#7a4a35');
-    boot.position.set(0, -0.92, 0.06);
-    pivot.add(leg, boot);
+    boot.position.set(0, -0.45, 0.06);
+    knee.add(shin, boot);
+    pivot.add(thigh, knee);
     body.add(pivot);
     legs.push(pivot);
+    knees.push(knee);
   }
 
   const robe = part(new THREE.CylinderGeometry(0.27, 0.46, 0.95, 9), '#efe3c6');
@@ -115,10 +122,13 @@ function buildCharacter() {
   jetpack.visible = false;
 
   body.add(robe, belt, shoulders, head, mask, visor, brim, crown, band, pack, bedroll, scarf, jetpack);
-  return { root, body, legs, arms, scarf, scarf2: s2pivot, pack, bedroll, jetpack, flames };
+  s1.visible = s2.visible = false; // replaced by the simulated scarf (ClothTail), kept as its anchor
+  return { root, body, legs, knees, arms, scarf, scarf2: s2pivot, pack, bedroll, jetpack, flames };
 }
 
 const _v1 = new THREE.Vector3();
+const _cu = new THREE.Vector3(), _cs = new THREE.Vector3(), _cb = new THREE.Vector3(), _cw = new THREE.Vector3();
+const _ca = new THREE.Vector3(), _cbb = new THREE.Vector3(), _cA = new THREE.Vector3();
 const _v2 = new THREE.Vector3();
 const _v3 = new THREE.Vector3();
 const _mat = new THREE.Matrix4();
@@ -127,6 +137,78 @@ const Y = new THREE.Vector3(0, 1, 0);
 const _zAxis = new THREE.Vector3(0, 0, 1);
 const _qId = new THREE.Quaternion();
 const _xAxis = new THREE.Vector3(1, 0, 0);
+
+/**
+ * A scarf tail simulated as a Verlet chain and drawn as a ribbon in world
+ * space. It trails behind when you run or ride, sags when you stand, and is
+ * pushed out of the body.
+ */
+class ClothTail {
+  constructor(scene, { points = 8, seg = 0.2, width = 0.3, color = '#c8483a' } = {}) {
+    this.n = points;
+    this.seg = seg;
+    this.width = width;
+    this.p = Array.from({ length: points }, () => new THREE.Vector3());
+    this.prev = Array.from({ length: points }, () => new THREE.Vector3());
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(points * 2 * 3), 3));
+    const idx = [];
+    for (let i = 0; i < points - 1; i++) { const a = i * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+    geo.setIndex(idx);
+    this.mesh = new THREE.Mesh(geo, makeMaterial({ color, side: THREE.DoubleSide }));
+    this.mesh.frustumCulled = false;
+    this.mesh.userData.noCollide = true;
+    scene.add(this.mesh);
+    this.ready = false;
+  }
+
+  update(dt, anchor, up, side, back, wind, bodyA, bodyB) {
+    if (!this.ready || this.p[0].distanceTo(anchor) > 5) {
+      for (let i = 0; i < this.n; i++) {
+        this.p[i].copy(anchor).addScaledVector(up, -i * this.seg * 0.7).addScaledVector(back, i * this.seg * 0.7);
+        this.prev[i].copy(this.p[i]);
+      }
+      this.ready = true;
+    }
+    const steps = 2, h = Math.min(dt, 1 / 30) / steps;
+    for (let k = 0; k < steps; k++) {
+      this.p[0].copy(anchor);
+      for (let i = 1; i < this.n; i++) {
+        const p = this.p[i], q = this.prev[i];
+        _v1.subVectors(p, q).multiplyScalar(0.97);           // velocity with damping
+        q.copy(p);
+        p.add(_v1).addScaledVector(up, -4.0 * h * h).addScaledVector(wind, h * h);
+      }
+      for (let it = 0; it < 4; it++) {
+        for (let i = 1; i < this.n; i++) {
+          const a = this.p[i - 1], b = this.p[i];
+          _v1.subVectors(b, a);
+          const d = _v1.length() || 1e-6;
+          b.copy(a).addScaledVector(_v1, this.seg / d);
+        }
+        // keep the cloth out of the body (a capsule from hips to shoulders)
+        for (let i = 1; i < this.n; i++) {
+          const p = this.p[i];
+          _v2.subVectors(bodyB, bodyA);
+          const t = THREE.MathUtils.clamp(_v1.subVectors(p, bodyA).dot(_v2) / _v2.lengthSq(), 0, 1);
+          _v3.copy(bodyA).addScaledVector(_v2, t);
+          _v1.subVectors(p, _v3);
+          const d = _v1.length();
+          if (d < 0.42) p.copy(_v3).addScaledVector(d > 1e-4 ? _v1.divideScalar(d) : back, 0.42);
+        }
+      }
+    }
+    const pos = this.mesh.geometry.attributes.position.array;
+    for (let i = 0; i < this.n; i++) {
+      const w = this.width * (1 - 0.35 * (i / (this.n - 1)));   // tapers toward the tip
+      const j = i * 6;
+      pos[j] = this.p[i].x - side.x * w * 0.5; pos[j + 1] = this.p[i].y - side.y * w * 0.5; pos[j + 2] = this.p[i].z - side.z * w * 0.5;
+      pos[j + 3] = this.p[i].x + side.x * w * 0.5; pos[j + 4] = this.p[i].y + side.y * w * 0.5; pos[j + 5] = this.p[i].z + side.z * w * 0.5;
+    }
+    this.mesh.geometry.attributes.position.needsUpdate = true;
+    this.mesh.geometry.computeVertexNormals();
+  }
+}
 
 /**
  * Local movement frame: up (against gravity), forward reference and right.
@@ -218,6 +300,10 @@ export class Player {
     this.wallN = new THREE.Vector3();
     this._press = 0;
     this._climbCooldown = 0;
+    this.wind = new THREE.Vector3(1.2, 0, 0.5);   // levels can set this (wind on the scarf)
+    this.onStep = null;                            // (footPos, heading) for footprints
+    this._stepSide = 1;
+    this._prevPhase = 0;
     this.char.jetpack.visible = this.opts.jetpack;
     this.char.pack.visible = this.char.bedroll.visible = !this.opts.jetpack;
     if (this.opts.spawn) this.respawn();
@@ -226,6 +312,32 @@ export class Player {
 
   get riding() {
     return !!this.ride;
+  }
+
+  /** Add the parts that live directly in the scene (the simulated scarf). */
+  attach(scene) {
+    scene.add(this.object);
+    this.tails = [
+      new ClothTail(scene, { points: 9, seg: 0.21, width: 0.3 }),
+      new ClothTail(scene, { points: 6, seg: 0.19, width: 0.24 }),
+    ];
+  }
+
+  updateCloth(dt) {
+    if (!this.tails) return;
+    this.object.updateMatrixWorld(true);
+    const up = _cu.set(0, 1, 0).applyQuaternion(this.object.quaternion);
+    const side = _cs.set(1, 0, 0).applyQuaternion(this.object.quaternion);
+    const back = _cb.set(0, 0, -1).applyQuaternion(this.object.quaternion);
+    // relative airflow: the scarf streams behind you when you move
+    const vel = this.ride ? this.ride.vel : this.vel;
+    const wind = _cw.copy(this.wind).addScaledVector(vel, -1.6);
+    const a = _ca.set(0, 1.0, 0).applyMatrix4(this.object.matrixWorld);
+    const b = _cbb.set(0, 1.75, 0).applyMatrix4(this.object.matrixWorld);
+    for (let i = 0; i < this.tails.length; i++) {
+      const anchor = _cA.set(i === 0 ? -0.08 : 0.1, 1.9, -0.24).applyMatrix4(this.object.matrixWorld);
+      this.tails[i].update(dt, anchor, up, side, back, wind, a, b);
+    }
   }
 
   get up() {
@@ -319,6 +431,7 @@ export class Player {
       this.ride.update(dt, input, this.time);
       this.pos.copy(this.ride.pos);
       this.ride.seatTransform(this.object.position, this.object.quaternion);
+      this.updateCloth(dt);
       this._animAcc += dt;
       if (!this.stopMotion || this._animAcc >= 1 / 12) {
         this.animateRiding();
@@ -440,6 +553,7 @@ export class Player {
     }
     this.object.position.copy(this.pos);
     this.frame.quaternion(this.heading, this.object.quaternion);
+    this.updateCloth(dt);
   }
 
   // ------------------------------------------------------------------ climbing
@@ -509,6 +623,8 @@ export class Player {
     c.arms[1].rotation.set(-2.7 - k * 0.35, 0, 0.2);
     c.legs[0].rotation.x = -0.5 - k * 0.4;
     c.legs[1].rotation.x = -0.5 + k * 0.4;
+    c.knees[0].rotation.x = 0.9 + k * 0.4;
+    c.knees[1].rotation.x = 0.9 - k * 0.4;
     c.body.position.y = 0;
     c.body.rotation.x = -0.05;
     c.scarf.rotation.x = -0.1;
@@ -521,6 +637,7 @@ export class Player {
     const flow = Math.min(Math.abs(this.ride.speed) / 30, 1.3);
     c.legs[0].rotation.set(-1.35, 0, 0.12);
     c.legs[1].rotation.set(-1.35, 0, -0.12);
+    c.knees[0].rotation.x = c.knees[1].rotation.x = 1.45;
     c.body.position.y = 0;
     c.body.rotation.x = 0.25 + flow * 0.15;
     c.arms[0].rotation.set(-1.15, 0, -0.25);
@@ -536,6 +653,18 @@ export class Player {
     const swing = this.onGround ? Math.sin(this.phase) * 0.7 * Math.min(moving, 1) : 0.5;
     c.legs[0].rotation.x = swing;
     c.legs[1].rotation.x = this.onGround ? -swing : -0.3;
+    // knees bend as each leg swings through; tucked in the air
+    const kb = Math.min(moving, 1);
+    c.knees[0].rotation.x = this.onGround ? Math.max(0, Math.sin(this.phase + 1.4)) * 1.0 * kb + 0.05 : 0.6;
+    c.knees[1].rotation.x = this.onGround ? Math.max(0, Math.sin(this.phase + 1.4 + Math.PI)) * 1.0 * kb + 0.05 : 0.9;
+    // footprints: a foot plants each half cycle
+    if (this.onGround && hs > 1 && this.onStep && Math.floor(this.phase / Math.PI) !== Math.floor(this._prevPhase / Math.PI)) {
+      this._stepSide *= -1;
+      const d = this.frame.dir(this.heading, _v1);
+      const r = _v2.crossVectors(d, this.frame.up);
+      this.onStep(_v3.copy(this.pos).addScaledVector(r, this._stepSide * 0.16).addScaledVector(d, 0.1), this.heading, this.frame.up);
+    }
+    this._prevPhase = this.phase;
     c.body.position.y = this.onGround ? Math.abs(Math.sin(this.phase)) * 0.08 * moving : 0;
     c.body.rotation.x = Math.min(hs / RUN, 1) * 0.18;
 
@@ -548,6 +677,8 @@ export class Player {
       c.arms[1].rotation.set(0.25, 0, 0.5);
       c.legs[0].rotation.x = 0.2;
       c.legs[1].rotation.x = -0.15;
+      c.knees[0].rotation.x = 0.5;
+      c.knees[1].rotation.x = 0.3;
       c.scarf.rotation.x = -0.25 + Math.sin(this.time * 16) * 0.08;
       c.scarf2.rotation.x = Math.sin(this.time * 19) * 0.25;
     } else if (this.gliding) {

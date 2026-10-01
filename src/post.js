@@ -89,6 +89,14 @@ const fragmentShader = /* glsl */ `
   uniform float uClouds;
   uniform float uGrain;
   uniform int uDebug;
+  uniform float uProj11;      // projection[1][1] = 1 / tan(fov / 2)
+  uniform float uAO;          // crease shading + ink accents
+  uniform float uSkyBands;    // posterised sky gradient
+  uniform float uHazeBands;   // distance haze in flat layers
+  uniform float uRays;        // sun rays at low sun
+  uniform float uLineVary;    // thick silhouettes / thin interior lines / pen pressure
+  uniform vec4 uPlanet[3];        // xyz = direction, w = angular radius (0 = none)
+  uniform vec4 uPlanetColor[3];   // rgb, a = ring (0 none, else ring tilt)
 
   in vec2 vUv;
   out highp vec4 fragColor;
@@ -119,7 +127,10 @@ const fragmentShader = /* glsl */ `
 
   vec3 skyBase(vec3 rd) {
     float h = clamp(rd.y, 0.0, 1.0);
-    vec3 c = mix(uSkyHorizon, uSkyTop, smoothstep(0.0, 0.6, h));
+    float t = smoothstep(0.0, 0.6, h);
+    // posterised into flat bands, like a printed gradient
+    float tb = (floor(t * 5.0) + smoothstep(0.46, 0.54, fract(t * 5.0))) / 5.0;
+    vec3 c = mix(uSkyHorizon, uSkyTop, mix(t, tb, uSkyBands));
     float sd = max(dot(rd, uSunDisc), 0.0);
     c = mix(c, uSkyHorizon * vec3(1.03, 1.0, 0.96), pow(sd, 8.0) * 0.5 * (1.0 - h) * (1.0 - uNight));
     return c;
@@ -150,8 +161,11 @@ const fragmentShader = /* glsl */ `
 
   float invDepth(float d) { return d > 0.0 ? 1.0 / d : 0.0; }
 
-  // Returns ink amount; minDepth = nearest depth in the kernel (for fading).
-  float inkLines(vec2 uv, float w, out float minDepth) {
+  // Edge components at a given kernel width:
+  //   x = depth discontinuity (silhouettes), y = normal crease,
+  //   z = albedo boundary, w = shadow boundary.
+  // minDepth = nearest surface in the kernel (for fading).
+  vec4 inkLines(vec2 uv, float w, bool interior, out float minDepth) {
     vec2 px = w / uRes;
     vec4 c  = texture(tNormal, uv);
     vec4 n1 = texture(tNormal, uv + vec2(px.x, 0.0));
@@ -171,7 +185,7 @@ const fragmentShader = /* glsl */ `
 
     // Normals: creases.
     float nEdge = 0.0;
-    if (c.w > 0.0) {
+    if (c.w > 0.0 && interior) {
       float d1 = n1.w > 0.0 ? 1.0 - dot(c.xyz, n1.xyz) : 0.0;
       float d2 = n2.w > 0.0 ? 1.0 - dot(c.xyz, n2.xyz) : 0.0;
       float d3 = n3.w > 0.0 ? 1.0 - dot(c.xyz, n3.xyz) : 0.0;
@@ -181,7 +195,7 @@ const fragmentShader = /* glsl */ `
 
     // Albedo boundaries + shadow boundaries.
     float aEdge = 0.0, sEdge = 0.0;
-    if (c.w > 0.0 && (uAlbedoEdges > 0.0 || uShadowEdges > 0.0)) {
+    if (c.w > 0.0 && interior && (uAlbedoEdges > 0.0 || uShadowEdges > 0.0)) {
       vec4 a  = texture(tAlbedo, uv);
       vec4 a1 = texture(tAlbedo, uv + vec2(px.x, 0.0));
       vec4 a2 = texture(tAlbedo, uv - vec2(px.x, 0.0));
@@ -195,7 +209,94 @@ const fragmentShader = /* glsl */ `
                      max(abs(s - step(uToon, a3.a)), abs(s - step(uToon, a4.a))));
       sEdge = ds * uShadowEdges * (1.0 - uFlatten);
     }
-    return clamp(max(max(dEdge, nEdge), max(aEdge * 0.85, sEdge * 0.8)), 0.0, 1.0);
+    return vec4(dEdge, nEdge, aEdge, sEdge);
+  }
+
+  // ---------------------------------------------------------------- crease shading
+  // Small screen-space ambient occlusion from the depth/normal buffer: where
+  // nearby geometry closes in (building bases, crevices, under canopies) the
+  // inker adds darker tone and a few accent strokes.
+  vec3 viewPos(vec2 uv, float d) {
+    vec4 p = uInvProj * vec4(uv * 2.0 - 1.0, 1.0, 1.0);
+    vec3 r = p.xyz / p.w;
+    return r / -r.z * d;
+  }
+  float creaseAO(vec2 uv, vec3 nW, float d, vec2 fc) {
+    vec3 P = viewPos(uv, d);
+    vec3 nV = normalize(transpose(mat3(uCamWorld)) * nW);
+    float R = 1.3;
+    float rpx = clamp(R * uProj11 * 0.5 * uRes.y / d, 3.0, 48.0);
+    float a0 = hash(fc) * 6.2832;
+    float ao = 0.0;
+    for (int i = 0; i < 8; i++) {
+      float a = a0 + float(i) * 2.39996;
+      float rr = rpx * sqrt((float(i) + 0.5) / 8.0);
+      vec2 suv = uv + vec2(cos(a), sin(a)) * rr / uRes;
+      float sd = texture(tNormal, suv).w;
+      if (sd <= 0.0) continue;
+      vec3 v = viewPos(suv, sd) - P;
+      float dist = length(v);
+      ao += max(dot(nV, v / max(dist, 1e-4)) - 0.2, 0.0) * (1.0 - smoothstep(R * 0.6, R * 1.6, dist));
+    }
+    return clamp(ao / 8.0 * 2.2, 0.0, 1.0);
+  }
+
+  // ---------------------------------------------------------------- planets
+  // Big flat bodies hanging in the sky: toon-lit by the sun, hatched on the
+  // night side, a few craters, an optional ring, all inked.
+  void drawPlanet(vec3 rd, vec4 P, vec4 C, inout vec3 col, inout float ink) {
+    if (P.w <= 0.0) return;
+    vec3 dir = normalize(P.xyz);
+    vec3 e1 = normalize(cross(dir, vec3(0.0, 1.0, 0.0)));
+    vec3 e2 = cross(e1, dir);
+    // tangent-plane coordinates in units of the planet radius. Derivatives are
+    // taken before any branching (a branch here left garbage derivatives along
+    // the great circle 90° away, drawing a stray ink line across the sky).
+    vec2 q = vec2(dot(rd, e1), dot(rd, e2)) / tan(P.w);
+    float r = length(q);
+    float fw = min(fwidth(r), 0.5);
+    float cr0 = 0.0;
+    vec2 rq0 = vec2(q.x, q.y / max(C.a, 1e-3));
+    float ringFw = min(fwidth(length(rq0)), 0.5);
+    float facing = step(0.0, dot(rd, dir));   // back hemisphere: nothing drawn
+    if (facing == 0.0) return;
+    float px = uPixelRatio;
+    bool hasRing = C.a > 0.0;
+    float ringR = 0.0, ringMask = 0.0;
+    if (hasRing) {
+      vec2 rq = vec2(q.x, q.y / C.a);
+      ringR = length(rq);
+      ringMask = (smoothstep(1.45, 1.45 + ringFw * 2.0, ringR) - smoothstep(2.1 - ringFw * 2.0, 2.1, ringR));
+    }
+    // back half of the ring is hidden by the planet
+    bool front = q.y < 0.0;
+    if (hasRing && !front && r < 1.0) ringMask = 0.0;
+    if (r < 1.0 + fw) {
+      vec3 n = normalize(q.x * e1 + q.y * e2 - sqrt(max(1.0 - r * r, 0.0)) * dir);
+      float lit = smoothstep(-0.02, 0.02, dot(n, uSunDisc));
+      vec3 base = C.rgb;
+      vec3 pc = mix(base * uShadowTint * 0.9, base * mix(vec3(1.0), uLightTint, 0.3), lit);
+      // craters
+      vec2 cq = q * 4.0;
+      vec2 cid = floor(cq);
+      float ch = hash(cid + 3.1);
+      float cr = length(fract(cq) - 0.5 - (vec2(hash(cid), hash(cid + 1.7)) - 0.5) * 0.4);
+      float crater = step(0.7, ch) * (1.0 - smoothstep(0.18, 0.2, cr));
+      pc = mix(pc, pc * 0.86, crater);
+      float disc = 1.0 - smoothstep(1.0 - fw, 1.0 + fw, r);
+      col = mix(col, pc, disc);
+      // hatching on the night side, anchored to the planet
+      float hc = dot(q, vec2(0.8, 0.6)) * 22.0;
+      float hl = 1.0 - smoothstep(0.0, fwidth(hc) * 1.2 * px, abs(fract(hc) - 0.5) * 2.0 - 0.6);
+      col = mix(col, uInk, hl * (1.0 - lit) * disc * 0.35 * uHatch);
+      ink = max(ink, (1.0 - smoothstep(0.0, fw * 1.4 * px, abs(r - 1.0))) * 0.95);
+      ink = max(ink, (1.0 - smoothstep(0.0, fwidth(cr) * 1.2 * px, abs(cr - 0.19))) * step(0.7, ch) * disc * 0.5);
+    }
+    if (hasRing && ringMask > 0.0) {
+      vec3 rc = mix(C.rgb * 1.15, vec3(0.97, 0.94, 0.86), 0.5);
+      col = mix(col, rc, ringMask);
+      ink = max(ink, (1.0 - smoothstep(0.0, ringFw * 1.3 * px, min(abs(ringR - 1.45), abs(ringR - 2.1)))) * 0.85);
+    }
   }
 
   // ---------------------------------------------------------------- sky
@@ -225,6 +326,19 @@ const fragmentShader = /* glsl */ `
       col = mix(col, mix(vec3(0.96, 0.94, 0.88), uSkyTop * 1.2, crescent * 0.85), disc * uMoonVis);
       ink = max(ink, uMoonVis * (1.0 - smoothstep(0.0, mw * 1.2 * px, abs(ma - mr))));
     }
+
+    // Sun rays: pale wedges fanning from a low sun.
+    if (uRays > 0.0 && uSunDisc.y > -0.05) {
+      float low = (1.0 - smoothstep(0.08, 0.45, uSunDisc.y)) * (1.0 - uNight);
+      vec3 s1 = normalize(cross(uSunDisc, vec3(0.0, 1.0, 0.0)));
+      vec3 s2 = cross(s1, uSunDisc);
+      float phi = atan(dot(rd, s2), dot(rd, s1));
+      float wedge = smoothstep(0.55, 0.62, vnoise(vec2(phi * 9.0 + uTime * 0.01, 3.0)));
+      float near = (1.0 - smoothstep(0.08, 0.9, ang)) * step(r * 1.7, ang);
+      col = mix(col, mix(col, uSunColor, 0.6), wedge * near * low * uRays);
+    }
+
+    for (int i = 0; i < 3; i++) drawPlanet(rd, uPlanet[i], uPlanetColor[i], col, ink);
 
     // Stars: sparse inked-paper dots at night.
     if (uNight > 0.0 && rd.y > 0.0) {
@@ -297,7 +411,16 @@ const fragmentShader = /* glsl */ `
       probeD = min(min(s.x, s.y), min(s.z, s.w));
     }
     float weight = mix(uLineWidth, 1.0, smoothstep(15.0, 400.0, probeD));
-    float ink = inkLines(euv, weight * uPixelRatio, nearD);
+    // pen pressure: the line swells and thins along its length
+    float press = mix(1.0, 0.65 + 0.7 * vnoise(fc * 0.045 + boilT * 3.1), uLineVary);
+    // silhouettes (depth edges) heavy, interior creases and colour edges light
+    float silW = weight * mix(1.0, 1.65, uLineVary) * press;
+    float inW = weight * mix(1.0, 0.8, uLineVary) * mix(1.0, 0.85 + 0.3 * vnoise(fc * 0.06 + 9.0), uLineVary);
+    float nearD2;
+    vec4 eS = inkLines(euv, silW * uPixelRatio, false, nearD);
+    vec4 eI = inkLines(euv, inW * uPixelRatio, true, nearD2);
+    nearD = min(nearD, nearD2);
+    float ink = clamp(max(max(eS.x, eI.y), max(eI.z * 0.85, eI.w * 0.8)), 0.0, 1.0);
 
     // fog factor (for lines use the nearest surface in the kernel)
     float fogLine = 1.0 - exp(-max(nearD - uFogStart, 0.0) * uFogDensity * uFogMul * 1.4);
@@ -334,8 +457,18 @@ const fragmentShader = /* glsl */ `
         col = mix(col, uInk, max(h1, h2) * hFade * 0.55);
       }
 
-      // ---- 4. atmospheric perspective
+      // ---- 3b. crease shading: darker tone + accent strokes where geometry closes in
+      if (uAO > 0.0 && depth < 260.0) {
+        float ao = creaseAO(uv, N.xyz, depth, fc) * (1.0 - smoothstep(80.0, 260.0, depth)) * uAO;
+        col = mix(col, col * uShadowTint * 0.85, smoothstep(0.15, 0.7, ao) * 0.55);
+        ink = max(ink, smoothstep(0.6, 0.9, ao) * 0.45);
+      }
+
+      // ---- 4. atmospheric perspective, in flat layers like a printed background
       float fog = 1.0 - exp(-max(depth - uFogStart, 0.0) * uFogDensity * uFogMul);
+      float fb = fog * 4.0;
+      float fogQ = (floor(fb) + smoothstep(0.42, 0.58, fract(fb))) / 4.0;
+      fog = mix(fog, fogQ, uHazeBands);
       col = mix(col, skyBase(rd), fog);
     }
 
@@ -378,6 +511,14 @@ export function createPost() {
     uMoonVis: { value: 0 },
     uFlatten: { value: 0 },
     uFogMul: { value: 1 },
+    uProj11: { value: 1 },
+    uAO: { value: 1 },
+    uSkyBands: { value: 0.7 },
+    uHazeBands: { value: 0.6 },
+    uRays: { value: 1 },
+    uLineVary: { value: 1 },
+    uPlanet: { value: [new THREE.Vector4(), new THREE.Vector4(), new THREE.Vector4()] },
+    uPlanetColor: { value: [new THREE.Vector4(), new THREE.Vector4(), new THREE.Vector4()] },
 
     uFogDensity: { value: 0.0011 },
     uFogStart: { value: 120 },

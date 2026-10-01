@@ -201,6 +201,61 @@ converges to the light tone, so shadows fade out and back in instead of
 jumping. "Hours / minute" runs the cycle. Character
 poses update at 12 fps ("stop-motion anim") while movement stays smooth.
 
+## Beauty pass
+
+Each of these can be toggled or tuned in the panel's **Beauty** folder.
+- **Line weight like an inker:**
+  - silhouettes are drawn about 1.6× heavier, while creases and colour
+    boundaries are lighter;
+  - a "pen pressure" noise swells and thins each line along its length.
+- **Supersampled antialiasing:**
+  - the whole pipeline renders at 1.5× or 2× and is box-filtered down;
+  - stroke sizes follow, so the lines just get cleaner;
+  - the default is 1× on Retina screens, which are already dense.
+- **Hatching that follows form:** on slopes the strokes become height
+  contours, and on smooth objects the cross-hatch wraps round them as rings.
+- **Crease shading:**
+  - small screen-space ambient occlusion from the depth and normal buffers;
+  - it darkens building bases, crevices and canopy undersides, and adds ink
+    accents where geometry closes in.
+- **Skies:**
+  - posterised gradient bands and sun rays at low sun;
+  - per-level planets: toon-lit, cratered, hatched on the night side, with
+    optional rings;
+  - per-level colour scripts (`sky.script`): day, dusk and night palettes.
+- **Layered haze:** distant terrain flattens into a few flat tones, like a
+  printed background.
+- **Shadows:** a third, very fine cascade (±12 m) around the player keeps the
+  character's shadow crisp; it no longer crawls across coarse texels.
+- **Local lights:** up to 8 glowing things near the player (crystals, eggs,
+  portals, orbs, the jetpack flame) pool light on nearby surfaces, even in
+  shadow.
+- **Life** (`src/life.js`):
+  - bird flocks with flapping wings;
+  - drifting motes (dust, pollen, ash, blinking fireflies), drawn as
+    depth-tested sprites so they don't turn into ink specks;
+  - waving cloth banners;
+  - acid steam rising in the city-shaft;
+  - swaying flowers in Edena;
+  - footprints in sand.
+- **The character:**
+  - knees, so walking, sitting on mounts and climbing bend properly;
+  - a simulated two-tail scarf: a Verlet chain drawn as a ribbon, pushed
+    out of the body, streaming in the wind and behind you as you move.
+- **Hero landmarks:**
+  - the desert: a colossal half-buried masked head;
+  - Arzach: a fallen stone colossus and a giant hand rising from the plain;
+  - the city-shaft: the Incal and its dark twin above the palace;
+  - the Garage: a cathedral of turning gears and pistons;
+  - Edena: Stel and Atan's crashed ship;
+  - Perdide: the Great Crystal and its stone ring.
+- **Softer forms:** towers and trunks get organic bulges and pinches
+  (`soften()` in `src/world.js`).
+- **Photo mode** (**P**):
+  - WASD with Q/E flies a free camera; the mouse looks around, Shift goes
+    faster;
+  - H toggles the panel, and Enter saves a PNG.
+
 ## World
 
 The terrain is a 4 km × 4 km heightfield with domain-warped ridged dunes and

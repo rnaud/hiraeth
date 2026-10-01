@@ -3,6 +3,8 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { mulberry32 } from '../noise.js';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
 import { Taxi } from '../taxi.js';
+import { soften } from '../world.js';
+import { Banner, Puffs } from '../life.js';
 
 // ---------------------------------------------------------------------------
 // "La Cité-Puits": the city-shaft from Jodorowsky & Moebius' L'Incal.
@@ -40,6 +42,7 @@ export function createIncal(scene) {
   const rng = mulberry32(1977);
   const pick = (a) => a[Math.floor(rng() * a.length)];
   const movers = [];
+  const banners = [];
 
   const strata = (c1, c2, c3, size = 6, extra = {}) =>
     makeMaterial({ color: c1, color2: c2, color3: c3, mode: MODE_STRATA, strataSize: size, ...extra });
@@ -81,7 +84,7 @@ export function createIncal(scene) {
     const tiers = 1 + Math.floor(rng() * 3);
     for (let t = 0; t < tiers; t++) {
       const th = (height / tiers) * (0.8 + rng() * 0.4);
-      const g = new THREE.CylinderGeometry(r * (0.85 + rng() * 0.15), r, th, segs);
+      const g = soften(new THREE.CylinderGeometry(r * (0.85 + rng() * 0.15), r, th, segs, 4), 0.07);
       g.translate(0, y + th / 2, 0);
       parts.push(g);
       y += th;
@@ -129,6 +132,14 @@ export function createIncal(scene) {
       slab.position.y = y;
       scene.add(slab);
       terraces.push({ y, r0, a0, a1 });
+
+      // laundry and banners hanging off the edge
+      for (let k = 0; k < Math.floor(span * 3); k++) {
+        if (rng() < 0.4) continue;
+        const ang = a0 + rng() * span, rr = r0 + 0.3;
+        banners.push(new Banner(scene, new THREE.Vector3(Math.cos(ang) * rr, y - 5, Math.sin(ang) * rr), -ang + Math.PI / 2,
+          { width: 2 + rng() * 3, height: 5 + rng() * 9, color: pick(depth < 0.45 ? PASTELS : RUST) }));
+      }
 
       // railing along the inner edge, with openings
       const steps = Math.ceil(span * 6);
@@ -239,6 +250,33 @@ export function createIncal(scene) {
     scene.add(m);
   }
 
+  // ---------------------------------------------------------- hero: the Incal
+  // The light Incal and its dark twin, turning slowly high above the palace.
+  {
+    const grp = new THREE.Group();
+    grp.position.set(0, TOP + 250, 0);
+    grp.userData.noCollide = true;
+    const light = new THREE.Mesh(new THREE.OctahedronGeometry(14, 0).scale(1, 1.3, 1), makeMaterial({ color: '#fff8e8', flat: true, glow: 1 }));
+    const dark = new THREE.Mesh(new THREE.OctahedronGeometry(7, 0).scale(1, 1.3, 1), makeMaterial({ color: '#2b211f', flat: true }));
+    const halo = new THREE.Mesh(new THREE.TorusGeometry(26, 0.5, 6, 64), makeMaterial({ color: '#f2c54b', glow: 1 }));
+    halo.rotation.x = Math.PI / 2;
+    grp.add(light, dark, halo);
+    scene.add(grp);
+    movers.push({ update: (t) => {
+      light.rotation.y = t * 0.3;
+      dark.position.set(Math.cos(t * 0.5) * 32, Math.sin(t * 0.7) * 8, Math.sin(t * 0.5) * 32);
+      dark.rotation.y = -t * 0.6;
+      halo.rotation.z = t * 0.2;
+      grp.position.y = TOP + 250 + Math.sin(t * 0.4) * 4;
+    } });
+  }
+
+  // ---------------------------------------------------------- acid steam
+  const steam = new Puffs(scene, {
+    count: 70, color: '#cfe08a', glow: 0.35, rise: 4, life: 12, size: 10,
+    area: (r) => { const a = r() * TAU, d = Math.sqrt(r()) * (R - 20); return new THREE.Vector3(Math.cos(a) * d, BOTTOM + 1, Math.sin(a) * d); },
+  });
+
   // ---------------------------------------------------------- the acid lake
   {
     const lake = new THREE.Mesh(new THREE.CylinderGeometry(R, R, 2, 96), makeMaterial({ color: '#b8d65a' }));
@@ -306,6 +344,14 @@ export function createIncal(scene) {
       }
     },
     defaults: { hour: 12.5, preset: 'Moebius' },
+    sky: {
+      script: {
+        day: ['#9fc7e0', '#f6cfd6', '#9c86c8', '#fff4f0', '#fff6dc'],
+        dusk: ['#8a8fc8', '#f4a8a0', '#8a6fb8', '#ffd2c0', '#ffe2b8'],
+        night: ['#1d2250', '#4a4a8a', '#3d3a80', '#9a9ad0', '#f2f0e6'],
+      },
+      planets: [{ az: 210, el: 16, size: 9, color: '#e8b9c4', ring: 0.25 }],
+    },
     killY: BOTTOM + 4,
     // haze thickens and turns acid-green as you descend
     atmo(x, z, y = TOP) {
@@ -315,8 +361,15 @@ export function createIncal(scene) {
       const name = !inside ? 'The rim' : d < 0.3 ? 'Upper levels' : d < 0.65 ? 'Middle levels' : 'The depths';
       return { tint, fog: 1.6 + d * 1.6, name };
     },
+    life: {
+      flocks: [{ count: 12, color: '#f3ead8', size: 1.8, radius: 90, height: [15, 50], seed: 3 },
+               { count: 10, color: '#f3ead8', size: 1.6, radius: 140, height: [-40, 10], speed: -0.1, seed: 9 }],
+      motes: { count: 180, color: '#bdb4c8', size: 0.05, rise: -0.3, wind: [0.4, 0.2] },
+    },
     update(dt, t) {
       for (const m of movers) m.update(t);
+      for (const b of banners) b.update(t);
+      steam.update(dt);
     },
     constrainCamera(pos) {
       if (pos.y > TOP - 0.5) return;

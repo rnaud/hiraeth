@@ -39,6 +39,13 @@
       #picker .src { font-style: italic; opacity: 0.75; margin-bottom: 8px; }
       #picker p { margin: 0 0 10px; }
       #picker .moves { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #8a5a3c; }
+      #photo {
+        position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); display: none;
+        font: 12px ui-monospace, Menlo, monospace; color: #2b211f; background: rgba(247, 236, 210, 0.8);
+        border: 1.5px solid #2b211f; padding: 6px 12px; pointer-events: none; animation: fadehint 4s forwards;
+      }
+      #photo.open { display: block; }
+      @keyframes fadehint { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
       #loading {
         position: fixed; inset: 0; display: grid; place-items: center;
         font: 14px ui-monospace, Menlo, monospace; color: #2b211f; background: #f7ecd2;
@@ -47,6 +54,7 @@
   </head>
   <body>
     <div id="loading">sketching the world…</div>
+    <div id="photo">PHOTO MODE · WASD + Q/E fly · mouse look · SHIFT fast · H panel · ENTER save PNG · P exit</div>
     <div id="picker">
       <header>
         <h1>MOEBIUS — choose a world</h1>
@@ -57,7 +65,7 @@
     <div id="hud">
       <b>MOEBIUS PoC</b><br />
       click to capture mouse · WASD move · SHIFT run<br />
-      SPACE jump · hold SPACE in air to glide · push into walls to climb · wheel zoom · ESC release · L levels<br />
+      SPACE jump · hold SPACE in air to glide · push into walls to climb · wheel zoom · ESC release · L levels · P photo mode<br />
       <span id="status"></span>
     </div>
     <script type="module" src="/src/main.js"></script>
