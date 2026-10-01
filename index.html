@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="data:," />
+    <title>Moebius — ligne claire PoC</title>
+    <style>
+      html, body { margin: 0; height: 100%; overflow: hidden; background: #f7ecd2; }
+      canvas { display: block; }
+      #hud {
+        position: fixed; left: 16px; bottom: 16px;
+        font: 12px/1.5 ui-monospace, Menlo, monospace; color: #2b211f;
+        background: rgba(247, 236, 210, 0.85); border: 1.5px solid #2b211f;
+        padding: 8px 12px; pointer-events: none; user-select: none;
+      }
+      #hud b { letter-spacing: 0.08em; }
+      #loading {
+        position: fixed; inset: 0; display: grid; place-items: center;
+        font: 14px ui-monospace, Menlo, monospace; color: #2b211f; background: #f7ecd2;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="loading">sketching the desert…</div>
+    <div id="hud">
+      <b>MOEBIUS PoC</b><br />
+      click to capture mouse · WASD move · SHIFT run<br />
+      SPACE jump · hold SPACE in air to glide · wheel zoom · ESC release<br />
+      <span id="status"></span>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
