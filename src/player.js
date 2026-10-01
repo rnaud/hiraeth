@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { makeMaterial } from './materials.js';
 import { Hoverbike } from './bike.js';
+import { resolveColliders } from './collide.js';
 
 const RADIUS = 0.5;
 const WALK = 9;
@@ -8,6 +9,10 @@ const RUN = 22;
 const GRAVITY = 32;
 const JUMP = 13;
 const LIMIT = 1900;
+const JET_THRUST = 54;     // m/s² upward while thrusting (gravity is 32)
+const JET_MAX_UP = 15;
+const JET_DRAIN = 0.2;     // fuel per second
+const JET_REFILL = 0.55;
 
 function part(geo, color, opts = {}) {
   return new THREE.Mesh(geo, makeMaterial({ color, ...opts }));
@@ -86,13 +91,41 @@ function buildCharacter() {
   s2pivot.add(s2);
   scarf.add(s1, s2pivot);
 
-  body.add(robe, belt, shoulders, head, mask, visor, brim, crown, band, pack, bedroll, scarf);
-  return { root, body, legs, arms, scarf, scarf2: s2pivot };
+  // Jetpack (Incal level): twin canisters with inked flames.
+  const jetpack = new THREE.Group();
+  jetpack.position.set(0, 1.5, -0.36);
+  const flames = [];
+  for (const side of [-1, 1]) {
+    const can = part(new THREE.CylinderGeometry(0.12, 0.12, 0.6, 10), '#62c3c9');
+    can.position.x = side * 0.14;
+    const cap = part(new THREE.SphereGeometry(0.12, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), '#f3ead8');
+    cap.position.set(side * 0.14, 0.3, 0);
+    const nozzle = part(new THREE.CylinderGeometry(0.07, 0.11, 0.14, 8), '#34405e');
+    nozzle.position.set(side * 0.14, -0.37, 0);
+    const flame = part(new THREE.ConeGeometry(0.1, 0.7, 7), '#f6c04a', { flat: true });
+    flame.rotation.x = Math.PI;
+    flame.position.set(side * 0.14, -0.78, 0);
+    flame.visible = false;
+    jetpack.add(can, cap, nozzle, flame);
+    flames.push(flame);
+  }
+  const strap = part(new THREE.BoxGeometry(0.5, 0.08, 0.1), '#8a5a3c');
+  strap.position.set(0, 0.1, 0.06);
+  jetpack.add(strap);
+  jetpack.visible = false;
+
+  body.add(robe, belt, shoulders, head, mask, visor, brim, crown, band, pack, bedroll, scarf, jetpack);
+  return { root, body, legs, arms, scarf, scarf2: s2pivot, pack, bedroll, jetpack, flames };
 }
 
 export class Player {
-  constructor(terrain, colliders) {
+  /**
+   * @param ground  anything with heightAt(x, z, y?) -> highest walkable surface below y
+   * @param opts    { bike, jetpack, killY, spawn: Vector3, spawnHeading }
+   */
+  constructor(terrain, colliders, opts = {}) {
     this.terrain = terrain;
+    this.opts = { bike: true, jetpack: false, killY: -Infinity, ...opts };
     this.colliders = colliders;
     this.char = buildCharacter();
     this.object = this.char.root;
@@ -110,6 +143,20 @@ export class Player {
 
     this.bike = new Hoverbike(terrain, colliders);
     this.riding = false;
+
+    this.fuel = 1;
+    this.thrusting = false;
+    this.char.jetpack.visible = this.opts.jetpack;
+    this.char.pack.visible = this.char.bedroll.visible = !this.opts.jetpack;
+    if (this.opts.spawn) this.respawn();
+  }
+
+  respawn() {
+    this.pos.copy(this.opts.spawn);
+    this.vel.set(0, 0, 0);
+    this.heading = this.opts.spawnHeading ?? Math.PI;
+    this.onGround = false;
+    this.fuel = 1;
   }
 
   /** Distance from the player to the bike, on the ground plane. */
@@ -144,7 +191,7 @@ export class Player {
 
   update(dt, input, camYaw) {
     this.time += dt;
-    if (input.KeyE && !this._eHeld) this.toggleBike();
+    if (input.KeyE && !this._eHeld && this.opts.bike) this.toggleBike();
     this._eHeld = !!input.KeyE;
 
     if (this.riding) {
@@ -157,7 +204,7 @@ export class Player {
       }
       return;
     }
-    this.bike.update(dt, null);
+    if (this.opts.bike) this.bike.update(dt, null);
 
     const f = (input.KeyW || input.ArrowUp ? 1 : 0) - (input.KeyS || input.ArrowDown ? 1 : 0);
     const s = (input.KeyD || input.ArrowRight ? 1 : 0) - (input.KeyA || input.ArrowLeft ? 1 : 0);
@@ -172,7 +219,8 @@ export class Player {
 
     let speed = run ? RUN : WALK;
     if (this.gliding) speed *= 1.25;
-    const accel = this.onGround ? 10 : 2.5;
+    if (this.thrusting) speed *= 1.3;
+    const accel = this.onGround ? 10 : this.thrusting ? 5 : 2.5;
     const a = 1 - Math.exp(-accel * dt);
     this.vel.x += (mx * speed - this.vel.x) * a;
     this.vel.z += (mz * speed - this.vel.z) * a;
@@ -182,27 +230,31 @@ export class Player {
       this.vel.y = JUMP;
       this.onGround = false;
     }
+    const jumpedNow = input.Space && !this._jumpHeld;
     this._jumpHeld = !!input.Space;
     this.vel.y -= GRAVITY * dt;
-    this.gliding = !this.onGround && input.Space && this.vel.y < 0;
+
+    // Jetpack: hold Space in the air (or keep holding after a jump) to thrust
+    // while there's fuel; refills on the ground. Out of fuel -> glide.
+    this.thrusting = this.opts.jetpack && !this.onGround && input.Space && this.fuel > 0 && !jumpedNow;
+    if (this.thrusting) {
+      this.vel.y = Math.min(this.vel.y + JET_THRUST * dt, JET_MAX_UP);
+      this.fuel = Math.max(this.fuel - JET_DRAIN * dt, 0);
+    } else if (this.onGround) {
+      this.fuel = Math.min(this.fuel + JET_REFILL * dt, 1);
+    }
+    this.gliding = !this.onGround && !this.thrusting && input.Space && this.vel.y < 0;
     if (this.gliding) this.vel.y = Math.max(this.vel.y, -2.2);
 
     this.pos.addScaledVector(this.vel, dt);
     this.pos.x = THREE.MathUtils.clamp(this.pos.x, -LIMIT, LIMIT);
     this.pos.z = THREE.MathUtils.clamp(this.pos.z, -LIMIT, LIMIT);
 
-    // simple circle colliders
-    for (const c of this.colliders) {
-      const dx = this.pos.x - c.x, dz = this.pos.z - c.z;
-      const d = Math.hypot(dx, dz), min = c.r + RADIUS;
-      if (d < min && d > 1e-5) {
-        this.pos.x = c.x + (dx / d) * min;
-        this.pos.z = c.z + (dz / d) * min;
-      }
-    }
+    resolveColliders(this.pos, RADIUS, this.colliders);
 
-    // ground
-    const g = this.terrain.heightAt(this.pos.x, this.pos.z);
+    // ground: highest walkable surface at or just below the feet
+    const g = this.terrain.heightAt(this.pos.x, this.pos.z, this.pos.y + 0.6);
+    if (this.pos.y < this.opts.killY) this.respawn();
     if (this.pos.y <= g || (this.onGround && this.pos.y - g < 0.8 && this.vel.y <= 0)) {
       this.pos.y = g;
       this.vel.y = 0;
@@ -252,7 +304,18 @@ export class Player {
     c.body.position.y = this.onGround ? Math.abs(Math.sin(this.phase)) * 0.08 * moving : 0;
     c.body.rotation.x = Math.min(hs / RUN, 1) * 0.18;
 
-    if (this.gliding) {
+    for (const f of c.flames) {
+      f.visible = this.thrusting;
+      f.scale.set(1, 0.8 + Math.random() * 0.6, 1);
+    }
+    if (this.thrusting) {
+      c.arms[0].rotation.set(0.25, 0, -0.5);
+      c.arms[1].rotation.set(0.25, 0, 0.5);
+      c.legs[0].rotation.x = 0.2;
+      c.legs[1].rotation.x = -0.15;
+      c.scarf.rotation.x = -0.25 + Math.sin(this.time * 16) * 0.08;
+      c.scarf2.rotation.x = Math.sin(this.time * 19) * 0.25;
+    } else if (this.gliding) {
       c.arms[0].rotation.set(0, 0, -1.45);
       c.arms[1].rotation.set(0, 0, 1.45);
       c.scarf.rotation.x = -1.35 + Math.sin(this.time * 14) * 0.06;
@@ -316,8 +379,9 @@ export class CameraRig {
       this.target.y + 1.8 + Math.sin(this.pitch) * dist,
       this.target.z + Math.cos(this.yaw) * cp * dist
     );
-    const g = this.terrain.heightAt(cam.x, cam.z) + 1.2;
+    const g = this.terrain.heightAt(cam.x, cam.z, cam.y + 1.2) + 1.2;
     if (cam.y < g) cam.y = g;
+    this.constrain?.(cam);
     this._look.set(this.target.x, this.target.y + 1.8, this.target.z);
     this.camera.lookAt(this._look);
   }

@@ -2,10 +2,10 @@ import * as THREE from 'three';
 import GUI from 'lil-gui';
 import { sharedUniforms } from './materials.js';
 import { createPost, DEBUG_VIEWS, PRESETS } from './post.js';
-import { Terrain, buildWorld } from './world.js';
+import { createDesert } from './levels/desert.js';
+import { createIncal } from './levels/incal.js';
 import { Player, CameraRig } from './player.js';
 import { applyTimeOfDay } from './timeofday.js';
-import { biomeAtmosphere } from './biome.js';
 import { WindStreaks } from './wind.js';
 
 // We author every colour as a display value and output it untouched.
@@ -100,15 +100,24 @@ let wind = null;
 resize();
 
 // ------------------------------------------------------------------ world
-const terrain = new Terrain();
-const { colliders, floaters } = buildWorld(scene, terrain);
-const player = new Player(terrain, colliders);
-scene.add(player.object, player.bike.object);
+const LEVELS = { desert: createDesert, incal: createIncal };
+const levelId = new URLSearchParams(location.search).get('level') in LEVELS
+  ? new URLSearchParams(location.search).get('level') : 'desert';
+const level = LEVELS[levelId](scene);
+const terrain = level.ground;
+const player = new Player(terrain, level.colliders, {
+  bike: level.features.bike, jetpack: level.features.jetpack,
+  killY: level.killY, spawn: level.spawn, spawnHeading: level.spawnHeading,
+});
+scene.add(player.object);
+if (level.features.bike) scene.add(player.bike.object);
 wind = new WindStreaks();
 wind.uniforms.tNormal.value = gbuffer.textures[1];
 wind.uniforms.uRes.value.copy(post.uniforms.uRes.value);
 wind.uniforms.uInk.value = post.uniforms.uInk.value;
 const rig = new CameraRig(camera, renderer.domElement, terrain);
+rig.yaw = level.camYaw;
+rig.constrain = level.constrainCamera;
 
 const input = {};
 window.addEventListener('keydown', (e) => {
@@ -119,8 +128,8 @@ window.addEventListener('keyup', (e) => (input[e.code] = false));
 window.addEventListener('blur', () => Object.keys(input).forEach((k) => (input[k] = false)));
 
 // ------------------------------------------------------------------ time of day
-const sky = { hour: 9.5, speed: 0 }; // speed in in-game hours per real minute
-let atmo = biomeAtmosphere(0, 0);
+const sky = { hour: level.defaults.hour, speed: 0 }; // speed in in-game hours per real minute
+let atmo = level.atmo(player.pos.x, player.pos.z, player.pos.y);
 const updateSky = () => applyTimeOfDay(sky.hour, sharedUniforms.uSunDir.value, post.uniforms, atmo);
 updateSky();
 
@@ -133,6 +142,8 @@ const params = {
 };
 const gui = new GUI({ title: 'Moebius shader' });
 gui.add(params, 'preset', Object.keys(PRESETS)).name('style preset').onChange(applyPreset);
+gui.add({ level: levelId }, 'level', { 'Desert (Sable)': 'desert', "L'Incal — city-shaft": 'incal' })
+  .name('level').onChange((v) => { location.search = '?level=' + v; });
 gui.add(params, 'debug', DEBUG_VIEWS).name('view');
 
 const fLines = gui.addFolder('Ink lines');
@@ -165,7 +176,7 @@ fTime.add(sky, 'hour', 0, 24, 0.05).name('hour').listen().onChange(updateSky);
 fTime.add(sky, 'speed', 0, 120, 1).name('hours / minute');
 fTime.add(player, 'stopMotion').name('stop-motion anim');
 
-const world = { wind: true };
+const world = { wind: level.features.wind };
 const fWorld = gui.addFolder('World');
 fWorld.add(world, 'wind').name('wind-blown sand');
 fWorld.close();
@@ -184,10 +195,16 @@ let frameNo = 0;
 const status = document.getElementById('status');
 let lastStatus = '';
 function updateHud() {
-  const d = player.bikeDistance();
-  const bike = player.riding ? 'E dismount · W/S throttle · A/D steer · SHIFT boost'
-    : d < 6 ? 'E ride the hoverbike' : 'E whistle for the hoverbike';
-  const text = `${atmo.name} · ${bike}`;
+  let hint;
+  if (level.features.jetpack) {
+    const n = Math.round(player.fuel * 10);
+    hint = `jetpack [${'■'.repeat(n)}${'·'.repeat(10 - n)}] hold SPACE in the air`;
+  } else {
+    const d = player.bikeDistance();
+    hint = player.riding ? 'E dismount · W/S throttle · A/D steer · SHIFT boost'
+      : d < 6 ? 'E ride the hoverbike' : 'E whistle for the hoverbike';
+  }
+  const text = `${atmo.name} · ${hint}`;
   if (text !== lastStatus) { status.textContent = text; lastStatus = text; }
 }
 document.getElementById('loading')?.remove();
@@ -199,7 +216,7 @@ function frame() {
 
   if (sky.speed > 0) sky.hour = (sky.hour + (sky.speed / 60) * dt) % 24;
   // region fog / horizon follow the player smoothly (the field itself is smooth)
-  atmo = biomeAtmosphere(player.pos.x, player.pos.z);
+  atmo = level.atmo(player.pos.x, player.pos.z, player.pos.y);
   updateSky();
 
   player.update(dt, input, rig.yaw);
@@ -209,17 +226,14 @@ function frame() {
   // sand: ambient gusts + dust behind the bike
   const pxScale = (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) / window.innerHeight;
   const b = player.bike;
-  if (player.riding && Math.abs(b.speed) > 10 && b.grounded && world.wind) {
+  if (level.features.bike && player.riding && Math.abs(b.speed) > 10 && b.grounded && world.wind) {
     const [fx, fz] = b.forward;
     for (let i = 0; i < Math.abs(b.speed) / 12; i++)
       wind.emit(b.pos.x - fx * 1.8, b.pos.z - fz * 1.8, b.vel.x * 0.25 - fz * (Math.random() - 0.5) * 6, b.vel.z * 0.25 + fx * (Math.random() - 0.5) * 6);
   }
   wind.update(dt, player.pos, camera, terrain, pxScale, world.wind);
   updateHud();
-  for (const f of floaters) {
-    f.obj.position.y = f.baseY + Math.sin(t * 0.4 + f.phase) * f.amp;
-    f.obj.rotation.y += f.spin * dt;
-  }
+  level.update(dt, t);
 
   sharedUniforms.uTime.value = t;
   U.uTime.value = t;
@@ -258,4 +272,4 @@ function frame() {
 requestAnimationFrame(frame);
 
 // handy for debugging from the console
-Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input });
+Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level });

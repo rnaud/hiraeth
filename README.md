@@ -15,6 +15,34 @@ W/S throttle and brake, A/D steer, Shift boost, Space hop.
 The panel on the right exposes every shader parameter. It also has style
 presets (Moebius / Sable / Animated ink) and debug views of each G-buffer channel.
 
+## Levels
+
+Pick a level from the panel, or use the URL: `?level=desert` (the default)
+or `?level=incal`.
+
+- **Desert (Sable):** open dunes, mesas, three regions, a hoverbike and
+  wind.
+- **L'Incal: the city-shaft** (`src/levels/incal.js`). This is the pit-city
+  from Jodorowsky & Moebius' *L'Incal*:
+  - a 520 m-wide shaft dropping 580 m to an acid lake;
+  - eight levels of terraces with towers: pastel at the top, rusty in the
+    depths;
+  - a striped central spire with rings, bridges and a golden palace on top;
+  - floating landing pads, hanging cables, billboards with glyphs, flying
+    taxis on circular lanes, and a skyline around the rim.
+
+  The haze thickens and turns greener as you descend. Falling into the
+  acid sends you back to the rim.
+
+  **Jetpack:** hold Space in the air, or keep holding it after a jump, to
+  thrust. You get about 5 s of fuel, which refills on the ground. When it
+  runs out, holding Space glides.
+
+  Walkable surfaces at many heights come from `CityGround`: a spatial grid of
+  terrace sectors, discs and bridges answering "highest surface below me".
+  Colliders can be limited to a height range, or keep you inside the shaft
+  wall (`src/collide.js`).
+
 ## How the look is built
 
 Three passes per frame (`src/main.js`):

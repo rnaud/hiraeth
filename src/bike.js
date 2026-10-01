@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { makeMaterial } from './materials.js';
+import { resolveColliders } from './collide.js';
 
 // A Sable-like hoverbike. Controls when riding: W throttle, S brake/reverse,
 // A/D steer, Shift boost, Space hop. It hovers on a spring above the dunes,
@@ -136,15 +137,7 @@ export class Hoverbike {
     this.pos.x = THREE.MathUtils.clamp(this.pos.x, -LIMIT, LIMIT);
     this.pos.z = THREE.MathUtils.clamp(this.pos.z, -LIMIT, LIMIT);
 
-    for (const c of this.colliders) {
-      const dx = this.pos.x - c.x, dz = this.pos.z - c.z;
-      const d = Math.hypot(dx, dz), min = c.r + RADIUS;
-      if (d < min && d > 1e-5) {
-        this.pos.x = c.x + (dx / d) * min;
-        this.pos.z = c.z + (dz / d) * min;
-        this.speed *= 0.5;
-      }
-    }
+    if (resolveColliders(this.pos, RADIUS, this.colliders)) this.speed *= 0.5;
 
     // pose: pitch with the ground, bank into turns
     const hBack = this.terrain.heightAt(this.pos.x - fx * 1.5, this.pos.z - fz * 1.5);
