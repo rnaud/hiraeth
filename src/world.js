@@ -446,8 +446,8 @@ export function buildWorld(scene, terrain) {
     const crest = new THREE.Mesh(new THREE.ConeGeometry(9, 40, 8).rotateX(-0.5), makeMaterial({ color: '#c8483a', flat: true }));
     crest.position.set(0, 44, -8);
     grp.add(head, mask, ridge, mouth, crest);
-    grp.position.set(x, base - 6, z);
-    grp.rotation.set(-0.12, 0, 0.18);
+    grp.position.set(x, base + 14, z);   // chin in the sand, the whole face clear of the dunes
+    grp.rotation.set(-0.05, 0.75, 0.12);   // face turned toward the morning sun (east)
     scene.add(grp);
     footprints.push({ x, z, r: 40 });
   }

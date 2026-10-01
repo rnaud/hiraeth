@@ -396,8 +396,8 @@ function frame() {
     rig.follow(player.ride?.heading ?? 0, dt, player.riding);
     rig.update(player.pos, dt, player.frame);
   }
-  const focus = photo.on ? camera.position : player.pos;
-  for (const f of flocks) f.update(dt, t, focus);
+  // flocks circle the player (also in photo mode, so you can fly up to them)
+  for (const f of flocks) f.update(dt, t, player.pos, camera.position);
   motes?.update(dt, t, camera.position);
   footprints?.update(dt);
   updateLights();
@@ -471,4 +471,4 @@ function frame() {
 requestAnimationFrame(frame);
 
 // handy for debugging from the console
-Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize });
+Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks });

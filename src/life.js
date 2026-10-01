@@ -42,7 +42,8 @@ export class Flock {
     this.center = new THREE.Vector3();
   }
 
-  update(dt, t, focus) {
+  /** @param eye camera position: birds never shrink below ~minPx on screen */
+  update(dt, t, focus, eye) {
     const a = this.phase + t * this.speed;
     const h = this.height[0] + (this.height[1] - this.height[0]) * (0.5 + 0.5 * Math.sin(t * 0.05 + this.phase));
     this.center.set(focus.x + Math.cos(a) * this.radius, focus.y + h, focus.z + Math.sin(a) * this.radius);
@@ -60,7 +61,7 @@ export class Flock {
         const side = w === 0 ? -1 : 1;
         _e.set(0, yaw, side * flap, 'YXZ');
         _q.setFromEuler(_e);
-        _s.setScalar(this.size);
+        _s.setScalar(eye ? Math.max(this.size, _p.distanceTo(eye) * 0.03) : this.size);
         _m.compose(_p, _q, _s);
         this.wings[w].setMatrixAt(i, _m);
       }

@@ -156,29 +156,34 @@ export function createArzach(scene) {
     grp.rotation.y = 0.7;
     scene.add(grp);
 
-    // a giant hand reaching out of the plain
+    // a giant hand reaching out of the plain: wide open palm, fingers splayed
+    // in a fan with a knuckle bend each, thumb out to the side, wrist rising
+    // from the sand at an angle so it reads as a hand from far away
     const hand = new THREE.Group();
-    const palm = new THREE.Mesh(new THREE.CapsuleGeometry(9, 10, 4, 12).scale(1, 1, 0.5), stoneMat);
-    palm.position.y = 10;
+    const seg = (r, len, from, dir) => {
+      const d = dir.clone().normalize();
+      const m = new THREE.Mesh(new THREE.CapsuleGeometry(r, len, 4, 10), stoneMat);
+      m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d);
+      m.position.copy(from).addScaledVector(d, len / 2);
+      hand.add(m);
+      return from.clone().addScaledVector(d, len);
+    };
+    const palm = new THREE.Mesh(new THREE.BoxGeometry(26, 26, 9), stoneMat);
+    palm.geometry.translate(0, 13, 0);
     hand.add(palm);
-    const fingers = [[-7, 0.25, 26], [-2.5, 0.08, 31], [2.5, -0.06, 30], [7, -0.22, 25]];
-    for (const [fx, tilt, len] of fingers) {
-      const f = new THREE.Mesh(new THREE.CapsuleGeometry(2.1, len, 4, 8), stoneMat);
-      f.position.set(fx, 18 + len / 2, 0);
-      f.rotation.z = tilt;
-      f.rotation.x = -0.15;
-      hand.add(f);
+    seg(9, 26, new THREE.Vector3(0, -24, -2), new THREE.Vector3(0, 1, -0.12));   // forearm
+    const fingers = [[-9.5, -0.32, 15, 12], [-3.2, -0.1, 18, 14], [3.2, 0.1, 17, 13], [9.5, 0.3, 13, 11]];
+    for (const [fx, spread, l1, l2] of fingers) {
+      const base = new THREE.Vector3(fx, 25, 0);
+      const knuckle = seg(3, l1, base, new THREE.Vector3(Math.sin(spread), Math.cos(spread), 0));
+      seg(2.6, l2, knuckle, new THREE.Vector3(Math.sin(spread) * 1.2, Math.cos(spread), 0.45));  // curls slightly forward
     }
-    const thumb = new THREE.Mesh(new THREE.CapsuleGeometry(2.6, 14, 4, 8), stoneMat);
-    thumb.position.set(-12, 16, 2);
-    thumb.rotation.z = 0.9;
-    hand.add(thumb);
-    const forearm = new THREE.Mesh(new THREE.CapsuleGeometry(8, 20, 4, 12), stoneMat);
-    forearm.position.y = -6;
-    hand.add(forearm);
+    const tk = seg(3.6, 13, new THREE.Vector3(-12, 6, 1), new THREE.Vector3(-1, 0.55, 0.15)); // thumb
+    seg(3, 10, tk, new THREE.Vector3(-0.45, 1, 0.3));
     const hx = -150, hz = -210;
-    hand.position.set(hx, terrain.baseAt(hx, hz, 12) - 8, hz);
-    hand.rotation.set(0.12, 0.8, -0.1);
+    hand.position.set(hx, terrain.baseAt(hx, hz, 12) + 2, hz);
+    // palm faces the start (the origin), leaning back a little
+    hand.rotation.set(-0.15, Math.atan2(-hx, -hz), 0.08, 'YXZ');
     scene.add(hand);
   }
 
