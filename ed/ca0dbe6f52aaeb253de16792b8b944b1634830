@@ -1,0 +1,25 @@
+src/levels/arzach.js
+  s_aaae6e4311287b::t_e154d45879a24f 159-161,163-172,174-179,181-182,184-186
+src/life.js
+  s_aaae6e4311287b::t_2f64b340c9625b 45-46,64
+src/main.js
+  s_aaae6e4311287b::t_5888b418435c50 399-400,474
+src/world.js
+  s_aaae6e4311287b::t_681b4fedebc752 449-450
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "edca0dbe6f52aaeb253de16792b8b944b1634830",
+  "prompts": {},
+  "sessions": {
+    "s_aaae6e4311287b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a3718911-2af0-4cef-b5df-15d14f9e5623",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
