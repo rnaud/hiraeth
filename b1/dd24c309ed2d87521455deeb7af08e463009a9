@@ -1,0 +1,23 @@
+.github/workflows/deploy.yml
+  s_aaae6e4311287b::t_6b82523abf5012 1-40
+README.md
+  s_aaae6e4311287b::t_889f9ca87b092f 3-4
+vite.config.js
+  s_aaae6e4311287b::t_d43ddc4b1d25b9 1-7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b1dd24c309ed2d87521455deeb7af08e463009a9",
+  "prompts": {},
+  "sessions": {
+    "s_aaae6e4311287b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a3718911-2af0-4cef-b5df-15d14f9e5623",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
