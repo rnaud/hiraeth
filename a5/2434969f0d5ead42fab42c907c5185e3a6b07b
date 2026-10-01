@@ -1,0 +1,47 @@
+README.md
+  s_aaae6e4311287b::t_96fcce82cd04dd 204-258
+index.html
+  s_aaae6e4311287b::t_adb437a2090bde 42-48,57,68
+src/levels/arzach.js
+  s_aaae6e4311287b::t_4a3e5b3ad8de91 133-184,223-237
+src/levels/desert.js
+  s_aaae6e4311287b::t_cae26c713fc021 9,20-27,31
+src/levels/edena.js
+  s_aaae6e4311287b::t_8561c1466f4c6f 5,60,132-165,174,176-183,191-205,216-223,226-231
+src/levels/garage.js
+  s_aaae6e4311287b::t_b3cff8faeb18ef 5,46,133-171,265,268-272
+src/levels/incal.js
+  s_aaae6e4311287b::t_f08528df5e8f1e 6-7,45,87,136-143,253-279,347-354,364-368,371-372
+src/levels/perdide.js
+  s_aaae6e4311287b::t_7d82ff1724bcaf 73,86,148,162-182,236-244,247-252
+src/life.js
+  s_aaae6e4311287b::t_f6204b6254768d 1-242
+src/main.js
+  s_aaae6e4311287b::t_b58cda83e86c7b 7,10,80,89-115,121-130,153,155-183,203-211,258-267,305-349,392-404,431-432,452-454,458,460-467,474
+src/materials.js
+  s_aaae6e4311287b::t_efd901fc346ffc 33-38,52-54,112-115,127-128,180-182,184-188,430-432,491-502,520,526-531,533-538
+src/player.js
+  s_aaae6e4311287b::t_86aab234463e7e 27-28,32-37,39-41,44,125-126,130-131,141-212,303-306,317-342,434,556,626-627,640,656-667,680-681
+src/post.js
+  s_aaae6e4311287b::t_bbe1aadde632a3 92-99,130-133,164-168,188,198,212-299,330-342,414-423,460-467,469-471,514-521
+src/timeofday.js
+  s_aaae6e4311287b::t_08da7b1f509060 21-36,55,77-78
+src/world.js
+  s_aaae6e4311287b::t_73252eec99db43 5,137-155,187-188,349-358,360,362,424-455,527
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a52434969f0d5ead42fab42c907c5185e3a6b07b",
+  "prompts": {},
+  "sessions": {
+    "s_aaae6e4311287b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a3718911-2af0-4cef-b5df-15d14f9e5623",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
