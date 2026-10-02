@@ -286,9 +286,11 @@ export class Sound {
   croak(t) {
     const ctx = this.ctx, o = ctx.createOscillator(), g = ctx.createGain(), am = ctx.createOscillator(), ag = ctx.createGain();
     o.type = 'sawtooth'; o.frequency.value = 90 + Math.random() * 60;
-    am.frequency.value = 28; ag.gain.value = 0.5; am.connect(ag).connect(g.gain);
+    // tremolo on a separate gain stage, scaled to the croak (not added to its envelope)
+    const trem = ctx.createGain(); trem.gain.value = 0.6;
+    am.frequency.value = 28; ag.gain.value = 0.4; am.connect(ag).connect(trem.gain);
     const b = ctx.createBiquadFilter(); b.type = 'lowpass'; b.frequency.value = 500;
-    o.connect(b).connect(g).connect(this.fx);
+    o.connect(b).connect(trem).connect(g).connect(this.fx);
     g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.009, t + 0.05); g.gain.linearRampToValueAtTime(0, t + 0.35);
     o.start(t); am.start(t); o.stop(t + 0.4); am.stop(t + 0.4);
   }
