@@ -1,0 +1,31 @@
+src/bike.js
+  s_aaae6e4311287b::t_3ece9865a83671 9-10
+src/humanoid.js
+  s_aaae6e4311287b::t_d6369475150a14 432-435,464-466
+src/main.js
+  s_aaae6e4311287b::t_888b6c3c107673 11,135,152,204-206,565,652-656
+src/physics.js
+  s_aaae6e4311287b::t_048f66bf2459b2 96-109
+src/player.js
+  s_aaae6e4311287b::t_b6078f7b04e195 10-11,689,1168-1169
+src/trail.js
+  s_aaae6e4311287b::t_9456d47ccf9ee8 1-119
+README.md
+  s_aaae6e4311287b::t_5725a3887ca279 367-368
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4141ce88768c8942f5c8c63f5f449d44cabf1903",
+  "prompts": {},
+  "sessions": {
+    "s_aaae6e4311287b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a3718911-2af0-4cef-b5df-15d14f9e5623",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
