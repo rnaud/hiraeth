@@ -56,7 +56,7 @@ reopen it at any time, or **1–6** while it's open. Each level is a module in
   - a 520 m-wide pit, 580 m deep, with eight levels of terraces;
   - a central spire with rings, bridges and a golden palace on top;
   - flying taxis, landing pads, cables and an acid lake at the bottom;
-  - **jetpack:** hold Space in the air; you get about 5 s of fuel;
+  - **jetpack:** hold Space in the air for about 10 s of thrust; you lean forward into the flight when steering;
   - **E** hails a taxi, then gets in. Driving: W/S throttle, A/D steer,
     Space up, Shift down.
   - taxis are solid: you bump into their sides, and you can land on a roof
