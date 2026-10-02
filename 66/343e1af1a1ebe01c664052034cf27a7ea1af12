@@ -1,0 +1,51 @@
+README.md
+  s_aaae6e4311287b::t_2f8186ff2dd107 208-248,287-306
+index.html
+  s_aaae6e4311287b::t_009fae1cdd0a7e 18,51-52,54-135,139-153
+src/audio.js
+  s_d4167757533f66::t_6f18ed7c1d3536 1-243
+src/cape.js
+  s_aaae6e4311287b::t_097fbcd90cfee3 1-184
+src/levels/content.js
+  s_aaae6e4311287b::t_24e17e8e0a4671 1-132
+src/main.js
+  s_aaae6e4311287b::t_faaa1c10df757a 11-23,150-152,155-156,159,165,186,211-249,329,331-336,443-447,450-517,523,535,544-565,588,593-606,609
+src/npc.js
+  s_aaae6e4311287b::t_645ceb3b97f70b 1-206
+src/player.js
+  s_aaae6e4311287b::t_595a02ff5e9ab5 3,8-9,25-29,33,40,52-54,56-58,63,132,135,171-172,176-177,179,368,373-393,395-402,404,723-724,744-745,762-770,781,791,793-794,797-823,826-879,882-887,889-891,893-924,926-931,933-934,937-956
+src/post.js
+  s_aaae6e4311287b::t_7685dbb8df97f3 98-100,481-506,549-551
+src/quest.js
+  s_aaae6e4311287b::t_78eb166927c57e 1-331
+src/weather.js
+  s_d4167757533f66::t_e40cfb02a876a9 1-53
+src/wind.js
+  s_aaae6e4311287b::t_21687942560323 96-97
+vite.config.js
+  s_aaae6e4311287b::t_f5229dc4249142 7-8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "66343e1af1a1ebe01c664052034cf27a7ea1af12",
+  "prompts": {},
+  "sessions": {
+    "s_aaae6e4311287b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a3718911-2af0-4cef-b5df-15d14f9e5623",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_d4167757533f66": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "48273525-2b3d-4f06-b755-2ed24b8780e6",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
