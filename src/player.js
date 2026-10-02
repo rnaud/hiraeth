@@ -545,6 +545,11 @@ export class Player {
       stickScale = Math.min(Math.hypot(f, s), 1);
     }
 
+    if (this.mantle) {
+      this.updateMantle(dt);
+      this.finishFrame(dt, 0);
+      return;
+    }
     if (this.climbing) {
       this.updateClimb(dt, f, s, input);
       this.finishFrame(dt, 0);
@@ -667,14 +672,103 @@ export class Player {
   finishFrame(dt, hs) {
     this._animAcc += dt;
     if (!this.stopMotion || this._animAcc >= 1 / 12) {
-      if (this.climbing) this.animateClimb(this._animAcc);
+      if (this.mantle) this.animateMantle();
+      else if (this.climbing) this.animateClimb(this._animAcc);
       else this.animate(this._animAcc, hs);
       this._animAcc = 0;
     }
     this.object.position.copy(this.pos);
     this.frame.quaternion(this.heading, this.object.quaternion);
-    this.humanoid?.update();
+    const H = this.humanoid;
+    if (H) {
+      H.update();
+      const U = this.frame.up;
+      if (this.mantle) { H.resetFeet(); H.reach(this.mantleTargets()); }
+      else if (this.climbing) { H.resetFeet(); H.reach(this.climbTargets()); }
+      else if (this.onGround && this.animator && !this.thrusting) {
+        H.plantFeet(dt, this.physics, U, this.pos, this.frame.dir(this.heading, _g1).clone(), (p) => this.stepped(p.clone(), 0));
+      } else H.resetFeet();
+    }
     this.updateCloth(dt);
+  }
+
+  /** Hand and foot holds on the wall for the current point of the climb cycle. */
+  climbTargets() {
+    const B = this.humanoid.b, U = this.frame.up, n = this.wallN, into = _g6.copy(n).negate();
+    const cyc = ((this.phase / (Math.PI * 2)) % 1 + 1) % 1;
+    const tri = cyc < 0.5 ? cyc * 2 : 2 - cyc * 2;
+    const t = tri * tri * (3 - 2 * tri);
+    const hold = (base, out) => {
+      const hit = this.physics.rayHit(_g5.copy(base).addScaledVector(n, 0.6), into, 1.6);
+      return hit ? hit.point.addScaledVector(n, out) : base.clone().addScaledVector(into, 0.3);
+    };
+    const hands = [], feet = [];
+    ['r', 'l'].forEach((s, i) => {
+      const k = i === 0 ? t : 1 - t;                    // one hand reaches while the other pulls
+      const sh = B[`upperarm_${s}`].getWorldPosition(new THREE.Vector3());
+      hands.push(hold(sh.addScaledVector(U, 0.12 + 0.48 * k), 0.05));
+      const hip = B[`thigh_${s}`].getWorldPosition(new THREE.Vector3());
+      feet.push(hold(hip.addScaledVector(U, -0.78 + 0.38 * (1 - k)), 0.1));   // the opposite foot steps up
+    });
+    return { hands, feet, wallN: n, up: U };
+  }
+
+  // ------------------------------------------------------------------ mantling
+  /** Near the top of a wall (or where it turns into a slope): look for a surface to pull up onto. */
+  tryMantle(U, into) {
+    for (const d of [0.55, 0.9, 1.3]) {
+      const probe = _g5.copy(this.pos).addScaledVector(U, 2.7).addScaledVector(into, d);
+      const hit = this.physics.rayHit(probe, _g6.copy(U).negate(), 3.4);
+      if (!hit || hit.normal.dot(U) < 0.45) continue;
+      const rise = _g4.subVectors(hit.point, this.pos).dot(U);
+      if (rise < -0.3 || rise > 2.8) continue;
+      this.climbing = false;
+      this.mantle = { from: this.pos.clone(), to: hit.point.clone(), edge: this.pos.clone().addScaledVector(U, Math.max(rise, 0)).addScaledVector(into, 0.32), rise, t: 0, n: this.wallN.clone() };
+      this.vel.set(0, 0, 0);
+      return true;
+    }
+    return false;
+  }
+
+  updateMantle(dt) {
+    const M = this.mantle, U = this.frame.up;
+    M.t = Math.min(M.t + dt / 0.75, 1);
+    const ease = (x) => x * x * (3 - 2 * x);
+    // up first (hauling the body over the edge), then forward onto the top
+    const up = ease(Math.min(M.t / 0.6, 1)), fwd = ease(Math.max((M.t - 0.35) / 0.65, 0));
+    const lift = M.rise + 0.25 * Math.sin(Math.PI * Math.min(M.t / 0.85, 1));
+    this.pos.copy(M.from).addScaledVector(U, lift * up);
+    const horiz = _g4.subVectors(M.to, M.from).addScaledVector(U, -_g4.subVectors(M.to, M.from).dot(U));
+    this.pos.addScaledVector(horiz, fwd);
+    this.phase += dt * 4;
+    if (M.t >= 1) {
+      this.pos.copy(M.to);
+      this.mantle = null;
+      this.onGround = true;
+      this.vel.set(0, 0, 0);
+    }
+  }
+
+  mantleTargets() {
+    const M = this.mantle, U = this.frame.up;
+    const side = _g5.crossVectors(U, M.n).normalize();
+    const hands = [M.edge.clone().addScaledVector(side, 0.22), M.edge.clone().addScaledVector(side, -0.22)];
+    // feet scrabble up the wall in the first half, then step onto the top
+    const k = Math.min(M.t / 0.6, 1);
+    const feet = M.t < 0.6 ? [0, 1].map((i) => M.from.clone().addScaledVector(U, M.rise * k * (i ? 0.7 : 0.4)).addScaledVector(M.n, -0.35)) : null;
+    return { hands, feet, wallN: M.n, up: U };
+  }
+
+  animateMantle() {
+    const c = this.char, k = this.mantle.t;
+    c.body.position.set(0, 0, 0);
+    c.body.rotation.set(0.35 * Math.sin(Math.PI * k), 0, 0);
+    c.torso.rotation.set(0.2, 0, 0);
+    c.head.rotation.set(-0.2 + k * 0.3, 0, 0);
+    c.arms[0].rotation.set(-1.4 + k * 1.1, 0, -0.15); c.arms[1].rotation.set(-1.4 + k * 1.1, 0, 0.15);
+    c.elbows[0].rotation.set(-0.8, 0, 0); c.elbows[1].rotation.set(-0.8, 0, 0);
+    c.legs[0].rotation.set(-1.3 * Math.sin(Math.PI * k), 0, 0); c.legs[1].rotation.set(-0.4, 0, 0);
+    c.knees[0].rotation.set(1.6 * Math.sin(Math.PI * k), 0, 0); c.knees[1].rotation.set(0.6, 0, 0);
   }
 
   // ------------------------------------------------------------------ climbing
@@ -694,19 +788,17 @@ export class Player {
     const into = _v1.copy(n).negate();
     const chest = _v2.copy(this.pos).addScaledVector(U, 1.2);
     const hit = this.physics.rayHit(chest, into, 1.6);
-    if (!hit) { this.stopClimb(false); return; }
+    // the wall ended (a ledge) or leans back into a slope: pull up onto it
+    if (!hit) { if (f >= 0 && this.tryMantle(U, into)) return; this.stopClimb(false); return; }
     n.copy(hit.normal);
-    if (Math.abs(n.dot(U)) > 0.6) { this.stopClimb(true); return; }   // wall became a floor: step on
+    if (n.dot(U) > 0.55) { if (!this.tryMantle(U, into)) this.stopClimb(true); return; }
+    if (n.dot(U) < -0.6) { this.stopClimb(false); return; }                // an overhang
     // stick to the wall
     this.pos.copy(hit.point).addScaledVector(n, RADIUS + 0.08).addScaledVector(U, -1.2);
 
     // reached the top: nothing in front at head height -> mantle over
     const head = _v2.copy(this.pos).addScaledVector(U, 2.3);
-    if (f > 0 && !this.physics.rayHit(head, into, 1.6)) {
-      this.pos.addScaledVector(U, 2.4).addScaledVector(into, 1.1);
-      this.stopClimb(true);
-      return;
-    }
+    if (f > 0 && !this.physics.rayHit(head, into, 1.6) && this.tryMantle(U, into)) return;
 
     const right = _v3.crossVectors(into, U).normalize().negate();
     const sp = (input.ShiftLeft || input.ShiftRight ? 6.5 : 4);
@@ -986,10 +1078,10 @@ export class Player {
     this.object.position.copy(this.pos);
     this.frame.quaternion(this.heading, this.object.quaternion);
     A.apply(this.object, { bank, legScale: 1.04 });
-    if (this.onGround) this.footIK(dt);
+    if (this.onGround && !this.humanoid) this.footIK(dt);
     c.hatTip.rotation.x = -hs * 0.02 + c.body.position.y * 3;
     // footstep: a foot reaches its lowest point and starts rising again
-    if (this.onGround && hs > 0.8) {
+    if (this.onGround && hs > 0.8 && !this.humanoid) {
       for (let i = 0; i < 2; i++) {
         const y = c.feet[i].getWorldPosition(_g4).dot(this.frame.up);
         const prev = this._fy?.[i];

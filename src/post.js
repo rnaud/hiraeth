@@ -95,6 +95,9 @@ const fragmentShader = /* glsl */ `
   uniform float uHazeBands;   // distance haze in flat layers
   uniform float uRays;        // sun rays at low sun
   uniform float uLineVary;    // thick silhouettes / thin interior lines / pen pressure
+  uniform float uSkyFlat;     // flat printed sky (vs gradient)
+  uniform float uSkyDots;     // stipple dots in the sky
+  uniform float uCumulus;     // puffy cloud bank on the horizon
   uniform float uRain;        // weather: ink rain 0..1
   uniform float uStorm;       // weather: sandstorm 0..1
   uniform vec3 uStormColor;
@@ -134,6 +137,7 @@ const fragmentShader = /* glsl */ `
     // posterised into flat bands, like a printed gradient
     float tb = (floor(t * 5.0) + smoothstep(0.46, 0.54, fract(t * 5.0))) / 5.0;
     vec3 c = mix(uSkyHorizon, uSkyTop, mix(t, tb, uSkyBands));
+    c = mix(c, mix(uSkyHorizon, uSkyTop, smoothstep(0.0, 0.07, h)), uSkyFlat);
     float sd = max(dot(rd, uSunDisc), 0.0);
     c = mix(c, uSkyHorizon * vec3(1.03, 1.0, 0.96), pow(sd, 8.0) * 0.5 * (1.0 - h) * (1.0 - uNight));
     return c;
@@ -343,6 +347,41 @@ const fragmentShader = /* glsl */ `
 
     for (int i = 0; i < 3; i++) drawPlanet(rd, uPlanet[i], uPlanetColor[i], col, ink);
 
+    // printed sky: a field of fine dots, a bit denser up high
+    if (uSkyDots > 0.0 && rd.y > 0.0) {
+      vec2 g = fc / 3.2, id = floor(g);
+      vec2 o = vec2(hash(id + 1.3), hash(id + 7.1)) * 0.6 + 0.2;
+      float present = step(hash(id + 4.4), mix(0.18, 0.42, smoothstep(0.05, 0.6, rd.y)));
+      float dot = (1.0 - smoothstep(0.32, 0.5, length(fract(g) - o) * 3.2 / (0.9 * uPixelRatio))) * present;
+      col = mix(col, uSkyTop * 0.72, dot * uSkyDots * (1.0 - uNight * 0.5));
+    }
+
+    // cumulus bank: puffy cream clouds sitting on the horizon, inked, each
+    // puff drawn as an arc, undersides cut flat
+    if (uCumulus > 0.0 && rd.y > -0.02) {
+      float az = atan(rd.x, rd.z);
+      float e = rd.y;
+      float hgt = 0.0, inner = 1.0;
+      for (int k = 0; k < 3; k++) {
+        float n = 7.0 + float(k) * 5.0;                       // puffs per radian
+        float f = az * n / 6.2832 * 6.2832 + float(k) * 1.7;
+        float cell = floor(f), u = fract(f) * 2.0 - 1.0;
+        float big = hash(vec2(cell, float(k) + 2.0));
+        float mass = smoothstep(0.25, 0.65, vnoise(vec2(az * 1.3 + float(k) * 3.0, 4.0)));   // gaps between banks
+        float r = (0.012 + 0.03 * big) * mass * (1.0 - float(k) * 0.22);
+        float top = (0.03 + 0.03 * mass) * step(0.01, mass) + r * 1.6 * sqrt(max(1.0 - u * u, 0.0));
+        hgt = max(hgt, top);
+        inner = min(inner, abs(e - top) / max(fwidth(e), 1e-5));
+      }
+      float fw = max(fwidth(e), 1e-5);
+      float cloud = (1.0 - smoothstep(hgt - fw, hgt + fw, e)) * step(0.0, hgt - 0.001) * uCumulus;
+      float shade = smoothstep(hgt * 0.45, 0.0, e);                 // bottom of the bank in shade
+      vec3 cc = mix(vec3(0.98, 0.95, 0.86) * uLightTint, uSkyHorizon * uShadowTint * 1.12, shade * 0.6);
+      col = mix(col, cc, cloud);
+      ink = max(ink, (1.0 - smoothstep(0.0, 1.3 * uPixelRatio, abs(e - hgt) / fw)) * step(0.001, hgt) * uCumulus);
+      ink = max(ink, (1.0 - smoothstep(0.0, 0.9 * uPixelRatio, inner)) * cloud * 0.55);   // inner puff arcs
+    }
+
     // Stars: sparse inked-paper dots at night.
     if (uNight > 0.0 && rd.y > 0.0) {
       vec2 sp = rd.xz / (rd.y + 1.0) * 260.0;
@@ -546,6 +585,9 @@ export function createPost() {
     uHazeBands: { value: 0.6 },
     uRays: { value: 1 },
     uLineVary: { value: 1 },
+    uSkyFlat: { value: 0 },
+    uSkyDots: { value: 0 },
+    uCumulus: { value: 0 },
     uRain: { value: 0 },
     uStorm: { value: 0 },
     uStormColor: { value: new THREE.Color('#e3c58f') },
@@ -568,6 +610,7 @@ export function createPost() {
     uHatch: sharedUniforms.uHatch,
     uHatchSpacing: sharedUniforms.uHatchSpacing,
     uShadeStyle: sharedUniforms.uShadeStyle,
+    uDots: sharedUniforms.uDots,
     uHighlight: { value: 0.0 },
     uClouds: sharedUniforms.uClouds,
     uGrain: { value: 0.1 },
@@ -597,35 +640,42 @@ export const PRESETS = {
   Moebius: {
     uLineWidth: 1.5, uLineVary: 1, uDepthThresh: 0.07, uNormalThresh: 0.22, uAlbedoEdges: 1, uShadowEdges: 1,
     uWobble: 1.0, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 5.5, uHighlight: 0, uGrain: 0.1, uClouds: 0.6,
-    uFogDensity: 0.0011,
+    uFogDensity: 0.0011, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
   },
   // Sable: a fine, almost uniform pen line, flat colour, sparse dotting
   Sable: {
     uLineWidth: 1.25, uLineVary: 0.25, uDepthThresh: 0.07, uNormalThresh: 0.3, uAlbedoEdges: 0, uShadowEdges: 0,
     uWobble: 0.0, uBoil: 0, uHatch: 0.6, uShadeStyle: 1, uHatchSpacing: 8, uHighlight: 0.05, uGrain: 0.04, uClouds: 0.5,
-    uFogDensity: 0.0009,
+    uFogDensity: 0.0009, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
+  },
+  // a Moebius print: flat stippled sky, cumulus on the horizon, dotted ground,
+  // fine even ink, dense fine hatching in blue shadow
+  'Moebius print': {
+    uLineWidth: 1.15, uLineVary: 0.35, uDepthThresh: 0.07, uNormalThresh: 0.24, uAlbedoEdges: 1, uShadowEdges: 0.8,
+    uWobble: 0.35, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 3.6, uHighlight: 0, uGrain: 0.16, uClouds: 0,
+    uFogDensity: 0.0009, uSkyFlat: 1, uSkyDots: 1, uCumulus: 1, uSkyBands: 0, uHazeBands: 0.5, uRays: 0, uDots: 1,
   },
   // high-key, bone-white, heavy cast shadows, few lines
   Arzach: {
     uLineWidth: 1.35, uLineVary: 0.9, uDepthThresh: 0.08, uNormalThresh: 0.35, uAlbedoEdges: 0.4, uShadowEdges: 1,
     uWobble: 1.2, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 4.5, uHighlight: 0, uGrain: 0.12, uClouds: 0.25,
-    uFogDensity: 0.0008,
+    uFogDensity: 0.0008, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
   },
   // Moebius at his cleanest: flat colour, thin lines, light dotting only
   Edena: {
     uLineWidth: 1.05, uLineVary: 0.6, uDepthThresh: 0.07, uNormalThresh: 0.28, uAlbedoEdges: 1, uShadowEdges: 0.4,
     uWobble: 0.4, uBoil: 0, uHatch: 0.5, uShadeStyle: 1, uHatchSpacing: 8, uHighlight: 0.06, uGrain: 0.05, uClouds: 0.7,
-    uFogDensity: 0.0008,
+    uFogDensity: 0.0008, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
   },
   // twilight swamp: dense hatching, glowing crystals carry the light
   Perdide: {
     uLineWidth: 1.45, uLineVary: 1, uDepthThresh: 0.07, uNormalThresh: 0.24, uAlbedoEdges: 1, uShadowEdges: 1,
     uWobble: 1.0, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 5, uHighlight: 0, uGrain: 0.1, uClouds: 0.5,
-    uFogDensity: 0.0012,
+    uFogDensity: 0.0012, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
   },
   'Animated ink': {
     uLineWidth: 1.7, uLineVary: 1, uDepthThresh: 0.07, uNormalThresh: 0.2, uAlbedoEdges: 1, uShadowEdges: 1,
     uWobble: 1.6, uBoil: 1, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 5, uHighlight: 0, uGrain: 0.14, uClouds: 0.7,
-    uFogDensity: 0.0011,
+    uFogDensity: 0.0011, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
   },
 };

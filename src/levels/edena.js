@@ -187,6 +187,7 @@ export function createEdena(scene) {
     }
     flowers.frustumCulled = false;
     flowers.userData.noCollide = true;
+    flowers.userData.dynamic = true;   // they sway: keep as one mesh
     scene.add(flowers);
     // sway in the breeze (only the ones near the player, every other frame)
     let flip = 0;
@@ -212,7 +213,7 @@ export function createEdena(scene) {
     spawnHeading: Math.PI,
     camYaw: 0,
     features: { mount: false, wind: false, jetpack: false, climb: true },
-    defaults: { hour: 10.5, preset: 'Sable', cloudShadows: 0 },
+    defaults: { hour: 10.5, preset: 'Moebius print', cloudShadows: 0 },
     sky: {
       script: {
         day: ['#7fd0e8', '#f4f6dc', '#8fa8d8', '#ffffff', '#fffbe8'],

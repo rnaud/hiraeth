@@ -53,6 +53,7 @@ export const sharedUniforms = {
   // local lights (glowing crystals, eggs, portals, the jetpack flame): xyz + radius
   uLights: { value: Array.from({ length: 8 }, () => new THREE.Vector4(0, -1e5, 0, 0)) },
   uFormHatch: { value: 1 },      // strokes follow slopes / wrap round objects
+  uDots: { value: 0 },           // pen dotting on the ground (print style)
   uCloudShadows: { value: 1 },
 };
 
@@ -64,6 +65,8 @@ const vertexShader = /* glsl */ `
   out vec3 vObjPos;
   out vec3 vObjNormal;
   out vec3 vBind;
+  in vec2 aFold;          // cloth: (across, down) 0..1; (0,0) on everything else
+  out vec2 vFold;
   #include <skinning_pars_vertex>
 
   void main() {
@@ -75,6 +78,7 @@ const vertexShader = /* glsl */ `
       #include <skinning_vertex>
     #endif
     vBind = position;
+    vFold = aFold;
     vec4 pos = vec4(transformed, 1.0);
     vec3 nrm = objectNormal;
     #ifdef USE_INSTANCING
@@ -152,6 +156,9 @@ const fragmentShader = /* glsl */ `
   in vec3 vObjPos;
   in vec3 vObjNormal;
   in vec3 vBind;
+  in vec2 vFold;
+  uniform float uFolds;
+  uniform float uDots;
   uniform vec3 uSkin;
   uniform vec4 uOutfit;   // bootTop, beltY, neckY, wristX (rest pose, metres)
   uniform vec4 uFace;     // eyeY, eyeX, noseY, chinY (rest pose)
@@ -476,6 +483,8 @@ const fragmentShader = /* glsl */ `
     vec3 gw = vec3(0.0);
     if (uGrid > 0.0 || uGlyphs > 0.0) { gw = pow(abs(normalize(on)), vec3(6.0)); gw /= (gw.x + gw.y + gw.z); }
     vec2 fwp = fwidth(vWorldPos.xz);
+    float foldU = vFold.x * uFolds;
+    float foldFw = fwidth(foldU);
     float fwBind = max(fwidth(vBind.y), fwidth(vBind.x)) / max(uPixelRatio, 1e-3);
     // drawn-detail coordinates + derivatives (uniform control flow)
     float rippleFw = fwidth(dot(vWorldPos.xz, vec2(0.82, 0.57)) / 1.6);
@@ -562,10 +571,25 @@ const fragmentShader = /* glsl */ `
       if (uRipples > 0.5) detail = max(detail, sandRipples(vWorldPos.xz, rippleFw, slope) * (1.0 - bw.y));
       if (bw.y > 0.0 && slope < 0.2) detail = max(detail, mudCracks(vWorldPos.xz, crackFw) * smoothstep(0.3, 0.8, bw.y));
       if (uTicks > 0.5 && slope < 0.35) detail = max(detail, grassTicks(vWorldPos.xz, fwp) * 0.8);
+      if (uDots > 0.0) {
+        // pen dotting: patchy, denser in hollows, a few bigger pebble dots
+        float patchy = 0.45 + 0.55 * smoothstep(0.3, 0.75, vnoise(vWorldPos.xz * 0.06 + 7.0));
+        float dots = stipple(ce1, fwd, 8.5, 0.32);
+        float pebbles = stipple(ce2 * 0.37, fwd * 0.37, 20.0, 0.75) * step(0.5, vnoise(vWorldPos.xz * 0.2));
+        detail = max(detail, max(dots * patchy, pebbles) * uDots * 1.6);
+      }
     } else if (uMode == ${MODE_WATER}) {
       detail = max(detail, waterLines(vWorldPos.xz, uTime) * 0.7);
     } else if (uMode == ${MODE_STRATA} && abs(normalize(on).y) < 0.6) {
       detail = max(detail, fissures(vec2(faceX, vObjPos.y), fissFw) * 0.85);
+    }
+    if (uFolds > 0.0) {
+      // drapery: fold lines down the cloth, each starting and ending at its own height
+      float col = floor(foldU + 0.5);
+      float d = abs(foldU - col) / max(foldFw, 1e-5);
+      float h1 = hash(vec2(col, 3.1)), h2 = hash(vec2(col, 8.7));
+      float run = smoothstep(0.08 + h1 * 0.25, 0.14 + h1 * 0.25, vFold.y) * (1.0 - smoothstep(0.75 + h2 * 0.25, 0.8 + h2 * 0.25, vFold.y));
+      detail = max(detail, inkLine(d, mix(1.3, 0.7, vFold.y)) * run * step(0.25, h2 + 0.3));
     }
     if (uMode == ${MODE_OUTFIT} && vBind.y > uOutfit.z && abs(vBind.x) < 0.16) {
       float frontal = smoothstep(0.15, 0.45, normalize(vObjNormal).z);
@@ -636,6 +660,7 @@ export function makeMaterial(o) {
       uRipples: { value: o.ripples ? 1 : 0 },
       uTicks: { value: o.ticks ? 1 : 0 },
       uGlow: { value: o.glow ?? 0 },
+      uFolds: { value: o.folds ?? 0 },
       uSkin: { value: new THREE.Color(o.skin ?? '#e8c6a8') },
       uOutfit: { value: new THREE.Vector4(...(o.outfit ?? [0.13, 0.97, 1.47, 0.64])) },
       uFace: { value: new THREE.Vector4(...(o.face ?? [1.7, 0.032, 1.657, 1.577]).filter((_, i) => i !== 3)) },

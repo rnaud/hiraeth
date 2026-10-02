@@ -35,7 +35,7 @@ export function heightFn(x, z) {
 
   // A ring of far mountains to close the horizon.
   const edge = Math.max(Math.abs(x), Math.abs(z));
-  h += smoothstep(1300, 1950, edge) * (170 + fbm(noise, x * 0.004, z * 0.004, 3) * 140);
+  h += smoothstep(1300, 1950, edge) * (55 + fbm(noise, x * 0.004, z * 0.004, 3) * 45);   // low, so the cloud bank shows above
   return h;
 }
 
@@ -522,6 +522,77 @@ export function buildWorld(scene, terrain) {
     plants.frustumCulled = false;
     plants.userData.noCollide = true; // walk through the grass
     scene.add(plants);
+  }
+
+  // ---------------------------------------------------------- ochre scrub
+  // round, many-lobed desert bushes in clumps, thickest around the start
+  {
+    const lobes = [];
+    for (let k = 0; k < 9; k++) {
+      const a = k * 2.39996, r = 0.2 + 0.3 * Math.sqrt((k + 0.5) / 9);
+      const g = new THREE.IcosahedronGeometry(0.24 + (k % 3) * 0.04, 0);
+      g.translate(Math.cos(a) * r, 0.22 + (1 - r) * 0.42 + (k % 3) * 0.05, Math.sin(a) * r);
+      lobes.push(g);
+    }
+    const geo = mergeGeometries(lobes.map((g) => g.toNonIndexed()));
+    geo.computeVertexNormals();
+    const N = 1600;
+    const bushes = new THREE.InstancedMesh(geo, makeMaterial({ color: '#ffffff' }), N);
+    const tones = ['#d9a441', '#c98a3a', '#e0b85a', '#c6743a', '#b9a24a'];
+    for (let i = 0; i < N; i++) {
+      const near = i < 650;
+      const cx = near ? (rng() * 2 - 1) * 160 : (rng() * 2 - 1) * 1450, cz = near ? (rng() * 2 - 1) * 160 : (rng() * 2 - 1) * 1450;
+      if (near && Math.hypot(cx, cz) < 9) { dummy.scale.setScalar(0); dummy.updateMatrix(); bushes.setMatrixAt(i, dummy.matrix); continue; }
+      const s = 0.6 + Math.pow(rng(), 2) * 1.3;
+      dummy.position.set(cx, terrain.heightAt(cx, cz) - 0.15 * s, cz);
+      dummy.rotation.set((rng() - 0.5) * 0.2, rng() * 6, (rng() - 0.5) * 0.2);
+      dummy.scale.set(s * (0.9 + rng() * 0.4), s * (0.6 + rng() * 0.35), s * (0.9 + rng() * 0.4));
+      dummy.updateMatrix();
+      bushes.setMatrixAt(i, dummy.matrix);
+      bushes.setColorAt(i, color.set(tones[Math.floor(rng() * tones.length)]));
+    }
+    bushes.frustumCulled = false;
+    bushes.userData.noCollide = true;
+    scene.add(bushes);
+  }
+
+  // ---------------------------------------------------------- the saucer tower
+  // a thin needle carrying a wide ribbed disc, hanging over the plain
+  {
+    const x = 160, z = -560, base = terrain.baseAt(x, z, 10);
+    const pale = makeMaterial({ color: '#eef0ea', color2: '#cfd9e6', color3: '#b9c8dc', mode: MODE_STRATA, strataSize: 3, grid: 4 });
+    const parts = [
+      new THREE.CylinderGeometry(3, 7, 150, 14).translate(0, 75, 0),
+      new THREE.CylinderGeometry(95, 26, 26, 48, 4).translate(0, 158, 0),          // disc underside
+      new THREE.CylinderGeometry(70, 95, 6, 48).translate(0, 174, 0),              // rim
+      new THREE.CylinderGeometry(18, 40, 14, 24).translate(0, 184, 0),
+      new THREE.CylinderGeometry(1.5, 9, 120, 12).translate(0, 250, 0),             // spire
+    ].map((g) => g.toNonIndexed());
+    const m = new THREE.Mesh(mergeGeometries(parts), pale);
+    m.position.set(x, base - 2, z);
+    scene.add(m);
+    footprints.push({ x, z, r: 12 });
+  }
+
+  // ---------------------------------------------------------- the spired city on the horizon
+  {
+    const pale = makeMaterial({ color: '#eef0ea', color2: '#dfe4ea', color3: '#c4d0e0', mode: MODE_STRATA, strataSize: 6, grid: 6 });
+    const cx = -520, cz = -950, parts = [];
+    parts.push(new THREE.CylinderGeometry(120, 150, 22, 32).translate(0, 8, 0));
+    for (let i = 0; i < 16; i++) {
+      const a = rng() * Math.PI * 2, d = Math.sqrt(rng()) * 110, h = 40 + Math.pow(rng(), 2) * 190, r = 4 + rng() * 9;
+      const x = Math.cos(a) * d, z = Math.sin(a) * d;
+      parts.push(new THREE.CylinderGeometry(r * 0.55, r, h, 12).translate(x, h / 2, z));
+      parts.push(new THREE.SphereGeometry(r * 0.9, 12, 8).scale(1, 1.3, 1).translate(x, h, z));
+      parts.push(new THREE.ConeGeometry(r * 0.35, h * 0.35, 8).translate(x, h * 1.17 + r, z));
+    }
+    for (let i = 0; i < 10; i++) {
+      const a = rng() * Math.PI * 2, d = 40 + rng() * 120, r = 14 + rng() * 22;
+      parts.push(new THREE.SphereGeometry(r, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.55, 1).translate(Math.cos(a) * d, 18, Math.sin(a) * d));
+    }
+    const m = new THREE.Mesh(mergeGeometries(parts.map((g) => g.toNonIndexed())), pale);
+    m.position.set(cx, terrain.baseAt(cx, cz, 60) - 4, cz);
+    scene.add(m);
   }
 
   return { floaters, banners, lights };

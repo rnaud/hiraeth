@@ -246,7 +246,7 @@ export function createGarage(scene) {
     return Y;
   };
   const ZONES = {
-    A: { name: "Grubert's plateau", preset: 'Sable', tint: [1, 1, 1], fog: 0.9 },
+    A: { name: "Grubert's plateau", preset: 'Moebius print', tint: [1, 1, 1], fog: 0.9 },
     B: { name: 'The upside-down quarter', preset: 'Animated ink', tint: [0.95, 0.92, 1.02], fog: 1.2 },
     C: { name: 'The ring', preset: 'Moebius', tint: [1.0, 0.96, 0.9], fog: 0.8 },
   };
@@ -261,7 +261,7 @@ export function createGarage(scene) {
     camYaw: 0,
     limit: Infinity,
     features: { mount: false, wind: false, jetpack: true, climb: true },
-    defaults: { hour: 10.5, preset: 'Sable' },
+    defaults: { hour: 10.5, preset: 'Moebius print' },
     sky: { planets: [{ az: 40, el: 30, size: 7, color: '#62c3c9', ring: 0.4 }] },
     killY: -Infinity,
     noShadow,

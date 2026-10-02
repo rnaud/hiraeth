@@ -263,6 +263,24 @@ poses update at 12 fps ("stop-motion anim") while movement stays smooth.
   screen, and every shader is compiled before the first frame, so there's no
   hitch when it appears.
 
+## The print look (default preset "Moebius print")
+
+Modelled on a classic Moebius desert plate:
+- a flat cerulean sky printed with fine dots, and a bank of inked cream
+  cumulus sitting on the horizon;
+- pen-dotted sand with pebbles, ochre scrub bushes, and blue-grey hatched
+  shadows;
+- fine, even ink lines, and fold lines drawn down the cape;
+- the wide-brimmed pointed hat;
+- a saucer tower and a pale spired city on the horizon.
+
+## Performance
+
+`src/perf.js` splits the terrain and the big scattered-prop sets into
+260 m tiles. Each pass (the view and the three shadow cascades) then draws
+only what it can see, and small props are skipped in the far cascade. That
+cut the desert from about 13 M to 1 M triangles a frame.
+
 ## Beauty pass
 
 Each of these can be toggled or tuned in the panel's **Beauty** folder.
@@ -331,8 +349,17 @@ Each of these can be toggled or tuned in the panel's **Beauty** folder.
       and it collides with the body and legs.
   - **Toggle:** "mocap animation" in the Time of day folder switches back to
     the procedural gait for comparison.
-  - **Foot IK:** on top of the clips it fits planted feet to slopes, steps
-    and rocks, using a pelvis drop and a two-bone leg solve.
+  - **Foot planting:** when the ball of a foot comes down in the clip, it is
+    locked to the real ground where it lands and held there (no slip, no
+    sinking).
+    - A two-bone IK on the human legs reaches it, keeping the clip's heel
+      roll, and the pelvis drops when needed.
+    - Swinging feet follow the terrain, and footprints go where the foot
+      landed.
+  - **Climbing:** hands and feet are IK'd onto ray-cast holds on the actual
+    wall, in a hand-over-hand cycle.
+    - At a ledge, or where the wall leans back into a slope, an animated
+      mantle hauls you over onto the top.
   - **Climbing:** keyframed hand-over-hand reaches with opposite high steps,
     plus a landing clip after real falls.
 - **Villagers:** each one draws a hood, a wide hat, a head-wrap or bare hair

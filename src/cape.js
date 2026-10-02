@@ -56,6 +56,9 @@ export class Cape {
 
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(this.p, 3));
+    const fold = new Float32Array(n * 2);
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) { fold[(r * cols + c) * 2] = c / (cols - 1); fold[(r * cols + c) * 2 + 1] = r / (rows - 1); }
+    geo.setAttribute('aFold', new THREE.BufferAttribute(fold, 2));
     const idx = [];
     for (let r = 0; r < rows - 1; r++)
       for (let c = 0; c < cols - 1; c++) {
@@ -64,7 +67,7 @@ export class Cape {
       }
     geo.setIndex(idx);
     this.geo = geo;
-    this.mesh = new THREE.Mesh(geo, makeMaterial({ color, side: THREE.DoubleSide }));
+    this.mesh = new THREE.Mesh(geo, makeMaterial({ color, side: THREE.DoubleSide, folds: cols * 0.9 }));
     this.mesh.frustumCulled = false;
     this.mesh.userData.noCollide = true;
     scene.add(this.mesh);

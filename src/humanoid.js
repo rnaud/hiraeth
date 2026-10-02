@@ -154,6 +154,9 @@ function reshape(scene, kind) {
 const OUTFIT = { m: [0.13, 0.97, 1.47, 0.64], f: [0.12, 0.95, 1.44, 0.58] };
 
 const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _c = new THREE.Vector3();
+const _i1 = new THREE.Vector3(), _i2 = new THREE.Vector3(), _i3 = new THREE.Vector3(), _i4 = new THREE.Vector3(), _i5 = new THREE.Vector3();
+const _i6 = new THREE.Vector3(), _i7 = new THREE.Vector3(), _i8 = new THREE.Vector3(), _i9 = new THREE.Vector3();
+const _iq = new THREE.Quaternion(), _iq2 = new THREE.Quaternion(), _iq3 = new THREE.Quaternion(), _im = new THREE.Matrix4();
 const _q = new THREE.Quaternion(), _qr = new THREE.Quaternion(), _qp = new THREE.Quaternion();
 const _m4 = new THREE.Matrix4();
 
@@ -290,6 +293,21 @@ export class Humanoid {
       const crown = add(new THREE.CylinderGeometry(0.075, 0.12, 0.17, 14), mat(color), 0, 0.16, 0);
       add(new THREE.CylinderGeometry(0.121, 0.124, 0.03, 14), mat(accent), 0, 0.09, 0);
       brim.rotation.z = crown.rotation.z = (Math.random() - 0.5) * 0.2;
+    } else if (kind === 'wizard') {
+      // the tall pointed hat with a wide brim, its tip bending back a little
+      add(new THREE.CylinderGeometry(0.4, 0.4, 0.012, 28), mat(color), 0, 0.07, 0).rotation.x = -0.06;
+      add(new THREE.CylinderGeometry(0.13, 0.142, 0.05, 18), mat(color), 0, 0.095, 0);
+      const crown = add(new THREE.ConeGeometry(0.13, 0.42, 18, 1, true), mat(color, { side: THREE.DoubleSide }), 0, 0.33, -0.01);
+      crown.rotation.x = -0.08;
+      const tipPivot = new THREE.Group();
+      tipPivot.position.set(0, 0.53, -0.03);
+      tipPivot.rotation.x = -0.32;
+      const tip = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.3, 12), mat(color));
+      tip.position.y = 0.13;
+      tip.userData.noCollide = true;
+      tipPivot.add(tip);
+      A.add(tipPivot);
+      this.hatTip = tipPivot;
     } else if (kind === 'wrap') {
       // head-wrap: stacked twisted rolls and a trailing tail
       for (let k = 0; k < 3; k++) {
@@ -350,6 +368,121 @@ export class Humanoid {
       }
     }
     this.model.updateMatrixWorld(true);
+  }
+
+  // ------------------------------------------------------------------ IK
+  /** Rotate a bone (in world space) so its direction `from` turns to `to`. */
+  turnBone(bone, from, to) {
+    if (from.lengthSq() < 1e-10 || to.lengthSq() < 1e-10) return;
+    const q = _iq.setFromUnitVectors(from.normalize(), to.normalize());
+    const wq = bone.getWorldQuaternion(_iq2).premultiply(q);
+    const pq = bone.parent.getWorldQuaternion(_iq3);
+    bone.quaternion.copy(pq.invert().multiply(wq));
+    bone.updateMatrixWorld(true);
+  }
+
+  /** Two-bone IK: a (root), b (mid), c (end) so c reaches `target`, bending toward `pole` (world). */
+  solveTwoBone(a, b, c, target, pole, weight = 1) {
+    if (weight <= 0.001) return;
+    const A = a.getWorldPosition(_i1), B = b.getWorldPosition(_i2), C = c.getWorldPosition(_i3);
+    const la = A.distanceTo(B), lb = B.distanceTo(C);
+    const T = _i4.copy(C).lerp(target, weight);
+    const dir = _i5.subVectors(T, A);
+    const d = THREE.MathUtils.clamp(dir.length(), Math.abs(la - lb) + 1e-3, (la + lb) * 0.999);
+    dir.normalize();
+    const along = (la * la - lb * lb + d * d) / (2 * d), h = Math.sqrt(Math.max(la * la - along * along, 0));
+    const pd = _i6.subVectors(pole, A);
+    pd.addScaledVector(dir, -pd.dot(dir));
+    if (pd.lengthSq() < 1e-8) pd.subVectors(B, A).addScaledVector(dir, -_i7.subVectors(B, A).dot(dir));
+    pd.normalize();
+    const newB = _i7.copy(A).addScaledVector(dir, along).addScaledVector(pd, h);
+    this.turnBone(a, _i8.subVectors(B, A), _i9.subVectors(newB, A));
+    const B2 = b.getWorldPosition(_i2), C2 = c.getWorldPosition(_i3);
+    const endT = _i1.copy(A).addScaledVector(dir, d);
+    this.turnBone(b, _i8.subVectors(C2, B2), _i9.subVectors(endT, B2));
+  }
+
+  /**
+   * Plant the feet: a foot that comes down in the clip is locked to the real
+   * ground where it lands and held there while the body moves over it (no
+   * sliding, no sinking); swinging feet are kept above the ground; the pelvis
+   * drops when a locked foot is out of reach. Calls onStep(groundPoint) on
+   * each touchdown.
+   */
+  plantFeet(dt, physics, up, rootPos, fwd, onStep) {
+    const B = this.b;
+    const S = (this._feet ??= { l: { locked: false, w: 0, pos: new THREE.Vector3() }, r: { locked: false, w: 0, pos: new THREE.Vector3() }, drop: 0 });
+    const H0 = this.rest.get(B.foot_l).p.y;        // ankle height above the sole at rest
+    const targets = {};
+    let need = 0;
+    for (const s of ['l', 'r']) {
+      const F = S[s];
+      // contact is judged at the ball of the foot (the heel rolls up first)
+      const ankle = B[`foot_${s}`].getWorldPosition(new THREE.Vector3());
+      const ball = B[`ball_${s}`].getWorldPosition(new THREE.Vector3());
+      const ballRest = this.rest.get(B[`ball_${s}`]).p.y;
+      const hBall = _i1.subVectors(ball, rootPos).dot(up);
+      const hClip = _i1.subVectors(ankle, rootPos).dot(up);
+      const planted = hBall < ballRest + 0.05;
+      const gh = physics.heightAbove(_i2.copy(ball).addScaledVector(up, 1.2), up, 0);
+      const groundH = Number.isFinite(gh) ? 1.2 - gh : -hBall;          // ball -> real ground
+      if (planted && !F.locked) {
+        F.locked = true;
+        F.pos.copy(ball).addScaledVector(up, groundH + ballRest);
+        onStep?.(_i3.copy(ball).addScaledVector(up, groundH), s);
+      } else if (!planted) F.locked = false;
+      if (F.locked && F.pos.distanceTo(ball) > 0.45) F.pos.copy(ball).addScaledVector(up, groundH + ballRest);
+      F.w += ((F.locked ? 1 : 0) - F.w) * (1 - Math.exp(-28 * dt));
+      // ankle target: keep the clip's heel roll around the locked ball
+      const locked = _i4.copy(F.pos).add(_i5.subVectors(ankle, ball));
+      const swing = ankle.clone().addScaledVector(up, THREE.MathUtils.clamp(groundH + hBall, -0.25, 0.3));
+      const t = swing.lerp(locked, F.w);
+      targets[s] = t;
+      const hip = B[`thigh_${s}`].getWorldPosition(_i4);
+      const reach = hip.distanceTo(t) - (this.legLen ??= this.rest.get(B[`thigh_${s}`]).p.distanceTo(this.rest.get(B[`calf_${s}`]).p) + this.rest.get(B[`calf_${s}`]).p.distanceTo(this.rest.get(B[`foot_${s}`]).p)) * 0.985;
+      need = Math.max(need, reach);
+    }
+    S.drop += (THREE.MathUtils.clamp(need, 0, 0.3) - S.drop) * (1 - Math.exp(-16 * dt));
+    if (S.drop > 0.002) {
+      // lower the pelvis (world down) and refresh the chain
+      const p = B.pelvis;
+      const down = _i5.copy(up).multiplyScalar(-S.drop);
+      const parentInv = _im.copy(p.parent.matrixWorld).invert();
+      const wp = p.getWorldPosition(_i6).add(down).applyMatrix4(parentInv);
+      p.position.copy(wp);
+      p.updateMatrixWorld(true);
+    }
+    for (const s of ['l', 'r']) {
+      const foot = B[`foot_${s}`];
+      const fq = foot.getWorldQuaternion(new THREE.Quaternion());
+      const knee = B[`calf_${s}`].getWorldPosition(new THREE.Vector3());
+      const pole = knee.addScaledVector(fwd, 0.6);
+      this.solveTwoBone(B[`thigh_${s}`], B[`calf_${s}`], foot, targets[s], pole);
+      // the foot keeps the clip's orientation
+      foot.quaternion.copy(foot.parent.getWorldQuaternion(_iq3).invert().multiply(fq));
+      foot.updateMatrixWorld(true);
+    }
+  }
+
+  resetFeet() { if (this._feet) { this._feet.l.locked = this._feet.r.locked = false; this._feet.l.w = this._feet.r.w = 0; this._feet.drop = 0; } }
+
+  /** Climbing: hands and feet onto wall points (world), elbows out, knees off the wall. */
+  reach({ hands, feet, wallN, up }) {
+    const B = this.b;
+    ['r', 'l'].forEach((s, i) => {
+      const side = i === 0 ? -1 : 1;
+      if (hands?.[i]) {
+        const sh = B[`upperarm_${s}`].getWorldPosition(new THREE.Vector3());
+        const right = _i5.crossVectors(up, wallN).normalize();   // character's left, seen from the wall
+        const pole = sh.addScaledVector(right, side * 0.6).addScaledVector(up, -0.4).addScaledVector(wallN, 0.4);
+        this.solveTwoBone(B[`upperarm_${s}`], B[`lowerarm_${s}`], B[`hand_${s}`], hands[i], pole);
+      }
+      if (feet?.[i]) {
+        const hip = B[`thigh_${s}`].getWorldPosition(new THREE.Vector3());
+        const pole = hip.addScaledVector(wallN, 0.8).addScaledVector(up, 0.3);
+        this.solveTwoBone(B[`thigh_${s}`], B[`calf_${s}`], B[`foot_${s}`], feet[i], pole);
+      }
+    });
   }
 
   /** Body capsules (world space) for cloth collision. */

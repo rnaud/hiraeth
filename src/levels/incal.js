@@ -343,7 +343,7 @@ export function createIncal(scene) {
         vehicles.push(taxi);
       }
     },
-    defaults: { hour: 12.5, preset: 'Sable' },
+    defaults: { hour: 12.5, preset: 'Moebius print' },
     sky: {
       script: {
         day: ['#9fc7e0', '#f6cfd6', '#9c86c8', '#fff4f0', '#fff6dc'],

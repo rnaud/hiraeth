@@ -7,6 +7,7 @@ import { Player, CameraRig } from './player.js';
 import { applyTimeOfDay, colourScript } from './timeofday.js';
 import { WindStreaks } from './wind.js';
 import { Physics } from './physics.js';
+import { tileScene } from './perf.js';
 import { Flock, Motes, Footprints } from './life.js';
 import { Sound } from './audio.js';
 import { Weather, WEATHER_KINDS } from './weather.js';
@@ -170,6 +171,8 @@ const t0 = performance.now();
 const physics = new Physics(scene, level.ground.heightAt ? level.ground : null);
 console.info(`collision: ${physics.triangles.toLocaleString()} triangles in ${(performance.now() - t0).toFixed(0)} ms`);
 level.init?.(physics);
+// tile world-spanning meshes so each pass only draws what it can see
+const tiled = tileScene(scene);
 await stage('waking the people…');
 const player = new Player(physics, {
   mount: level.mount, jetpack: level.features.jetpack, climb: level.features.climb ?? true,
@@ -183,7 +186,10 @@ if (lib) {
   console.info('clip ground speeds (m/s):', Object.fromEntries(Object.entries(lib.native).map(([k, v]) => [k, +v.toFixed(2)])));
 }
 const humanT = await humans;
-if (humanT) player.humanoid = new Humanoid(humanT[0], player.char, 'm', { skin: '#e9cfb4' });
+if (humanT) {
+  player.humanoid = new Humanoid(humanT[0], player.char, 'm', { skin: '#e9cfb4' });
+  player.humanoid.setHeadwear('wizard', { color: player.char.colors.cloak, hair: '#3a2a22' });
+}
 player.attach(scene);
 if (player.mount) scene.add(player.mount.object);
 
@@ -304,7 +310,7 @@ updateSky();
 // ------------------------------------------------------------------ GUI
 const U = post.uniforms;
 const params = {
-  preset: level.defaults.preset ?? 'Sable',
+  preset: level.defaults.preset ?? 'Moebius print',
   debug: 0,
   ink: '#2b211f',
 };
@@ -524,8 +530,10 @@ function renderFrame() {
   nearShadow.update(player.pos, lightDir);
   nearShadow.render(scene);
   if (frameNo++ % 3 === 0 || sky.speed > 0) {
+    for (const o of tiled.small) o.visible = false;   // pebbles and bushes don't need km-wide shadows
     farShadow.update(player.pos, lightDir);
     farShadow.render(scene);
+    for (const o of tiled.small) o.visible = true;
   }
   scene.overrideMaterial = null;
   for (const o of level.noShadow ?? []) o.visible = true;

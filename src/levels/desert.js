@@ -16,7 +16,7 @@ export function createDesert(scene) {
     features: { mount: true, wind: true, jetpack: false, climb: true },
     mount: (physics) => new Hoverbike(physics),
     mountName: 'hoverbike',
-    defaults: { hour: 9.5, preset: 'Sable' },
+    defaults: { hour: 9.5, preset: 'Moebius print' },
     lights,
     life: {
       flocks: [{ count: 9, color: '#3a2f2a', size: 2.6, radius: 110, height: [40, 90], seed: 1 },
@@ -24,7 +24,15 @@ export function createDesert(scene) {
       motes: { count: 160, color: '#e6cf9f', size: 0.05, wind: [1.6, 0.6] },
       footprints: '#d8b884',
     },
-    sky: { planets: [{ az: 300, el: 24, size: 3.5, color: '#ece4d2' }] },
+    sky: {
+      // the print: flat cerulean sky, cream sand, blue-grey shadows
+      script: {
+        day: ['#6f9fd3', '#c3d3dc', '#93a6cf', '#fff9ee', '#fff6dc'],
+        dusk: ['#7f8fc8', '#f2c49a', '#8a7fb8', '#ffe0c0', '#ffe2b8'],
+        night: ['#1d2a52', '#4a5a8a', '#3d4380', '#8e9ccc', '#f2f0e6'],
+      },
+      planets: [{ az: 300, el: 24, size: 3.5, color: '#ece4d2' }],
+    },
     killY: -Infinity,
     atmo: (x, z) => biomeAtmosphere(x, z),
     update(dt, t) {

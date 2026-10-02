@@ -232,7 +232,7 @@ export function createPerdide(scene) {
     features: { mount: true, wind: false, jetpack: false, climb: true },
     mount: (physics) => new Hoverbike(physics, { build: buildSkiff, floor: WATER + 0.15, kind: 'skiff' }),
     mountName: 'skiff',
-    defaults: { hour: 18.4, preset: 'Sable', cloudShadows: 0 },
+    defaults: { hour: 18.4, preset: 'Moebius print', cloudShadows: 0 },
     sky: {
       // violet shadows, teal light
       script: {
