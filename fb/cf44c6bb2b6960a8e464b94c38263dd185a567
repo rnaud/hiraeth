@@ -1,0 +1,41 @@
+README.md
+  s_aaae6e4311287b::t_e5f5e30b170311 208-224,334-340
+index.html
+  s_aaae6e4311287b::t_d3815374143142 50-91,196-198,208,210-211
+src/animator.js
+  s_aaae6e4311287b::t_55c75d17daf144 107,125-131,143
+src/humanoid.js
+  s_aaae6e4311287b::t_525b85836c6863 242,248-249,266-303
+src/levels/atelier.js
+  s_aaae6e4311287b::t_a9ad3d1cdfeffb 1-128
+src/levels/content.js
+  s_aaae6e4311287b::t_81cc810d72c57c 8-11,17-31
+src/levels/index.js
+  s_aaae6e4311287b::t_6a66dbd7dbbbc3 7,47-52
+src/main.js
+  s_aaae6e4311287b::t_1012294ab4ff02 18-19,109-111,234,258-273,290-291,380-395,398-409,430,513,656-686,701
+src/npc.js
+  s_aaae6e4311287b::t_3f314f8541a87c 33,35-44,126-127,232
+src/player.js
+  s_aaae6e4311287b::t_fd117c0745b72d 180-186,538-539,541-546,561,740-745,749-764,989,1006-1059,1100-1101,1104,1111-1118
+src/quest.js
+  s_aaae6e4311287b::t_35c86804492148 51
+src/ui.js
+  s_aaae6e4311287b::t_723a4506934384 1-168
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fbcf44c6bb2b6960a8e464b94c38263dd185a567",
+  "prompts": {},
+  "sessions": {
+    "s_aaae6e4311287b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a3718911-2af0-4cef-b5df-15d14f9e5623",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
