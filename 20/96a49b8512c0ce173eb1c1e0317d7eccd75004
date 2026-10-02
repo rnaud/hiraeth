@@ -1,0 +1,23 @@
+README.md
+  s_aaae6e4311287b::t_7c4cbd8e73e4e2 290-300
+src/humanoid.js
+  s_aaae6e4311287b::t_41e4d6f1d61079 17,21-145,164
+src/materials.js
+  s_aaae6e4311287b::t_446791b3be307e 157,359-385,481,572-575,643
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2096a49b8512c0ce173eb1c1e0317d7eccd75004",
+  "prompts": {},
+  "sessions": {
+    "s_aaae6e4311287b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a3718911-2af0-4cef-b5df-15d14f9e5623",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
