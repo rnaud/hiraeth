@@ -30,9 +30,18 @@ export class NPC {
     this.object.scale.setScalar(scale);
     this.object.userData.noCollide = true;
     scene.add(this.object);
+    const pick = (a) => a[Math.floor(Math.random() * a.length)];
     const SKINS = ['#e9cfb4', '#d9a98a', '#b07a5a', '#f1dccb', '#8a5a40'];
-    this.humanoid = human ? new Humanoid(human, this.char, kind, { skin: SKINS[Math.floor(Math.random() * SKINS.length)] }) : null;
-    this.cape = new Cape(scene, this.char.capeAnchor ?? this.char.torso, { color: this.char.colors.cloak, cols: 10, rows: 8 });
+    const HAIR = ['#2b211f', '#4a3226', '#6e4a32', '#b0a89a', '#a8552e', '#e8dcc0'];
+    this.humanoid = human ? new Humanoid(human, this.char, kind, { skin: pick(SKINS) }) : null;
+    // costume: headwear and a cape from shoulder-short to floor-length (or none)
+    const head = pick(['hood', 'hat', 'hat', 'wrap', 'hair', 'hair']);
+    this.humanoid?.setHeadwear(head, { color: pick(['#d8a24a', '#e6875f', '#f3ead8', '#62c3c9', '#a99be0']), hair: pick(HAIR), accent: this.char.colors.cloak });
+    const capeLen = head === 'hood' ? 1.45 : pick([0, 0.55, 0.9, 1.25, 1.45]);
+    this.cape = capeLen > 0
+      ? new Cape(scene, this.char.capeAnchor ?? this.char.torso, { color: this.char.colors.cloak, cols: 10, rows: capeLen > 1 ? 8 : 6, length: capeLen, bottom: 0.25 + capeLen * 0.17 })
+      : null;
+    if (!this.cape) this.char.root.traverse((o) => { if (o.isMesh && o.geometry.type === 'TorusGeometry' && o.parent === this.char.capeAnchor) o.visible = false; });
     this.animator = lib ? new Animator(lib, this.char) : null;
     this.pos = route[0].clone();
     this.heading = 0;
@@ -114,8 +123,8 @@ export class NPC {
 
     // cloth only near the camera
     const camD = camera.position.distanceTo(this.pos);
-    this.cape.mesh.visible = camD < 220;
-    if (camD < 70) {
+    if (this.cape) this.cape.mesh.visible = camD < 220;
+    if (this.cape && camD < 70) {
       this.object.updateMatrixWorld(true);
       this.vel.set(Math.sin(this.heading) * speed, 0, Math.cos(this.heading) * speed);
       this.cape.update(dt, { up: Y, vel: this.vel, wind: player.wind, floor: this.pos, capsules: this.humanoid ? this.humanoid.capsules() : this.capsules() });
@@ -220,7 +229,7 @@ export class NPC {
 
   dispose(scene) {
     scene.remove(this.object);
-    this.cape.dispose(scene);
+    this.cape?.dispose(scene);
     this.balloon.remove();
   }
 }

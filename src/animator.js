@@ -104,7 +104,7 @@ export class Animator {
     this.restHipsQ = this.hips.getWorldQuaternion(new THREE.Quaternion());
     for (const a of Object.values(this.actions)) a.play();
     this.phase = 0;
-    this.w = { idle: 1, walk: 0, jog: 0, sprint: 0, air: 0, drive: 0, talk: 0 };
+    this.w = { idle: 1, walk: 0, jog: 0, sprint: 0, air: 0, drive: 0, talk: 0, jumpLand: 0 };
     this.airState = null;
   }
 
@@ -122,7 +122,13 @@ export class Animator {
     const N = this.lib.native;
     const sp = s.speed;
     // target weights for the locomotion blend (piecewise between clip speeds)
-    const tw = { idle: 0, walk: 0, jog: 0, sprint: 0, air: 0, drive: 0, talk: 0 };
+    const tw = { idle: 0, walk: 0, jog: 0, sprint: 0, air: 0, drive: 0, talk: 0, jumpLand: 0 };
+    // landing from a real fall: play the land clip for a beat
+    if (s.onGround && this._wasAir && this._airT > 0.45 && this.actions.jumpLand) { this.landT = 0; this.actions.jumpLand.reset().play(); }
+    this._airT = s.onGround ? 0 : (this._airT ?? 0) + dt;
+    this._wasAir = !s.onGround;
+    const landing = this.landT !== undefined && this.landT < 0.45;
+    if (landing) { this.landT += dt; this.actions.jumpLand.time = this.landT * 1.3 + 0.1; }
     if (s.mode === 'drive') tw.drive = 1;
     else if (!s.onGround) tw.air = 1;
     else if (sp < 0.25) tw[s.mode === 'talk' ? 'talk' : 'idle'] = 1;
@@ -134,6 +140,7 @@ export class Animator {
       tw[stops[k][0]] = 1 - t;
       tw[stops[k + 1][0]] = t;
     }
+    if (landing && sp < 3) { for (const k in tw) tw[k] *= 0.15; tw.jumpLand = 0.85; }
     const kk = 1 - Math.exp(-10 * dt);
     for (const key in this.w) this.w[key] = L(this.w[key], tw[key], kk);
 

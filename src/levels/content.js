@@ -5,12 +5,30 @@
 // surface just below y; { at: [x, y, z] } floats exactly there.
 // Story goal y: a number, 'ground' (terrain height) or 'top' (highest surface).
 
-const pal = (cloak, extra = {}) => ({ cloak, lining: extra.lining ?? '#2b211f', ...extra });
+const TUNICS = ['#343a56', '#5a4a3a', '#3f6f6a', '#6a3a4a', '#e2d3b4', '#4a5a3a'];
+const TROUSERS = ['#2b2f45', '#4a3a2a', '#2f3f3a', '#5a4a40', '#3a3a3a'];
+const any = (a) => a[Math.floor(Math.random() * a.length)];
+const pal = (cloak, extra = {}) => ({ cloak, lining: extra.lining ?? '#2b211f', cloth: any(TUNICS), legs: any(TROUSERS), ...extra });
 
 export const ORDER = ['desert', 'incal', 'arzach', 'garage', 'edena', 'perdide'];
 export const nextLevel = (id) => ORDER[(ORDER.indexOf(id) + 1) % ORDER.length];
 
 export const CONTENT = {
+  atelier: {
+    weather: [],
+    story: {
+      title: 'THE LAST PAGE',
+      intro: 'Every world you crossed was drawn here.',
+      outro: 'The pen lifts. The page is yours now.',
+      label: 'the pen', goal: [0, 'ground', 0], radius: 18,
+    },
+    relics: { spots: [], names: [] },
+    gate: { at: [0, 110], heading: 0 },
+    npcs: [
+      { at: [22, 26], radius: 3, palette: { cloak: '#2b211f', cloth: '#f3ead8', legs: '#2b2f45' },
+        lines: ['Ah, you found the atelier.', 'I only draw the deserts. You walked them.', 'Every line starts as a wander.'] },
+    ],
+  },
   desert: {
     weather: ['storm'],
     story: {

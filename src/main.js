@@ -15,6 +15,8 @@ import { Journal, Relics, Story, Gate, turnPage, arriveFromPage } from './quest.
 import { CONTENT, nextLevel } from './levels/content.js';
 import { loadAnimationLibrary, Animator } from './animator.js';
 import { loadHuman, Humanoid } from './humanoid.js';
+import { Settings, SettingsMenu, TouchControls, SaveGame, isTouch } from './ui.js';
+import { ORDER } from './levels/content.js';
 
 // Loading: each stage updates the inked loading screen, then yields a frame
 // so it can paint (its pen animation runs on the compositor meanwhile).
@@ -104,7 +106,9 @@ post.uniforms.tHatch.value = gbuffer.textures[2];
 // Supersampling: the whole pipeline renders at renderScale x the device
 // resolution into an offscreen target, then is box-filtered down. Lines and
 // strokes are sized by the effective pixel ratio, so they keep their look.
-const quality = { renderScale: pixelRatio >= 2 ? 1 : 1.5 };
+const settings = new Settings();
+const QUALITY = { low: 0.7, medium: 1, high: pixelRatio >= 2 ? 1 : 1.5 };
+const quality = { renderScale: QUALITY[settings.quality] ?? 1 };
 const composeRT = new THREE.WebGLRenderTarget(1, 1, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, depthBuffer: false });
 const blit = (() => {
   const material = new THREE.ShaderMaterial({
@@ -227,7 +231,7 @@ const weather = new Weather(content.weather);
   if (stormColor) post.uniforms.uStormColor.value.set(stormColor);
 }
 const npcs = spawnNPCs(scene, physics, content.npcs, { lib, humans: humanT });
-const journal = new Journal(LEVELS.map((l) => ({ id: l.id, title: l.title, relicNames: CONTENT[l.id].relics.names, storyTitle: CONTENT[l.id].story.title })));
+const journal = new Journal(LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, relicNames: CONTENT[l.id].relics.names, storyTitle: CONTENT[l.id].story.title })));
 const capture = (eye, look, w, h) => captureView(eye, look, w, h);
 const relics = new Relics(scene, physics, { levelId, spots: content.relics.spots, names: content.relics.names, journal, sound, capture, lights: levelLights });
 const next = nextLevel(levelId);
@@ -251,6 +255,22 @@ if (viaGate) {
   rig.yaw = a.heading;   // camera behind the player, looking away from the gate
   history.replaceState(null, '', `?level=${levelId}`);
 }
+// continue where you left off (same world, not arriving through a gate)
+const saved = SaveGame.load();
+if (!viaGate && saved?.level === levelId && saved.pos) {
+  const p = new THREE.Vector3(...saved.pos);
+  player.respawn(p);
+  if (saved.up) player.frame.set(new THREE.Vector3(...saved.up), new THREE.Vector3(...saved.fwd));
+  player.heading = saved.heading ?? player.heading;
+  rig.yaw = saved.yaw ?? rig.yaw;
+}
+const writeSave = () => SaveGame.write({
+  level: levelId, pos: player.pos.toArray(), heading: player.heading, yaw: rig.yaw, hour: sky.hour,
+  up: player.frame.up.toArray(), fwd: player.frame.fwd.toArray(),
+});
+setInterval(() => { if (!player.riding && player.onGround) writeSave(); }, 5000);
+window.addEventListener('beforeunload', () => { if (!player.riding) writeSave(); });
+
 // footsteps: prints in the sand + a sound
 const onStepPrint = player.onStep;
 player.onStep = (p, heading, up, i) => {
@@ -267,7 +287,8 @@ window.addEventListener('keyup', (e) => (input[e.code] = false));
 window.addEventListener('blur', () => Object.keys(input).forEach((k) => (input[k] = false)));
 
 // ------------------------------------------------------------------ time of day
-const sky = { hour: level.defaults.hour, speed: 0 }; // speed in in-game hours per real minute
+const savedEarly = SaveGame.load();
+const sky = { hour: !viaGate && savedEarly?.level === levelId && savedEarly.hour !== undefined ? savedEarly.hour : level.defaults.hour, speed: 0 }; // speed in in-game hours per real minute
 let atmo = level.atmo(player.pos.x, player.pos.z, player.pos.y);
 const script = level.sky?.script ? colourScript(level.sky.script) : undefined;
 const updateSky = () => applyTimeOfDay(sky.hour, sharedUniforms.uSunDir.value, post.uniforms, atmo, script);
@@ -356,9 +377,36 @@ function applyPreset(name) {
 applyPreset(params.preset);
 gui.close();   // collapsed by default; click the title to open
 
+// ------------------------------------------------------------------ settings, touch
+let lastQuality = settings.quality;
+settings.on((k) => {
+  rig.sensitivity = settings.sensitivity;
+  rig.invertY = settings.invertY;
+  sound.setVolumes(settings.music, settings.effects);
+  gui.domElement.style.display = settings.devPanel ? '' : 'none';
+  if (settings.quality !== lastQuality) { lastQuality = settings.quality; quality.renderScale = QUALITY[settings.quality] ?? 1; resize(); }
+});
+const menu = new SettingsMenu(settings, {
+  sound,
+  isBusy: () => story.pageOpen || journal.open || picker.classList.contains('open') || photo.on,
+  onResetProgress: () => { localStorage.removeItem('moebius.journal.v1'); SaveGame.clear(); location.search = '?level=desert'; },
+});
+if (isTouch) new TouchControls(input, rig);
+
 // ------------------------------------------------------------------ level picker
 const picker = document.getElementById('picker');
-picker.querySelector('.cards').innerHTML = LEVELS.map((l, i) => `
+const completed = () => !!journal.data.completed;
+const cont = SaveGame.load();
+if (cont?.level && levelById(cont.level)) {
+  const btn = document.createElement('a');
+  btn.className = 'continue';
+  btn.href = `?level=${cont.level}`;
+  btn.textContent = `▶ Continue — ${levelById(cont.level).title}`;
+  picker.querySelector('header').after(btn);
+}
+picker.querySelector('.cards').innerHTML = LEVELS.map((l, i) => l.hidden && !completed() ? `
+  <div class="card locked"><div class="lock">?</div><div class="txt"><div class="num">${i + 1}</div><h2>???</h2>
+    <p>Find every story page and every relic in the six worlds.</p><div class="moves">a seventh page</div></div></div>` : `
   <a class="card${l.id === levelId ? ' current' : ''}" href="?level=${l.id}">
     <img src="thumbs/${l.id}.jpg" alt="" onerror="this.style.visibility='hidden'" />
     <div class="txt">
@@ -379,7 +427,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'KeyL') showPicker(!picker.classList.contains('open'));
   if (e.code === 'Escape' && picker.classList.contains('open') && levelParam) showPicker(false);
   const n = Number(e.key);
-  if (picker.classList.contains('open') && n >= 1 && n <= LEVELS.length) location.search = '?level=' + LEVELS[n - 1].id;
+  if (picker.classList.contains('open') && n >= 1 && n <= LEVELS.length && (!LEVELS[n - 1].hidden || completed())) location.search = '?level=' + LEVELS[n - 1].id;
 });
 
 // ------------------------------------------------------------------ photo mode
@@ -462,7 +510,7 @@ function updateHud() {
 }
 
 
-const busy = () => story.pageOpen || journal.open || picker.classList.contains('open');
+const busy = () => story.pageOpen || journal.open || picker.classList.contains('open') || menu.open || endingOpen;
 const noInput = {};
 
 /** The whole pipeline for one view: shadows, G-buffer, composite, overlays. */
@@ -605,6 +653,37 @@ function frame() {
 }
 let flapT = 0;
 
+// ------------------------------------------------------------------ the ending
+// Every world's story page and every relic found: a closing page, and the
+// seventh page (the Atelier) opens in the picker.
+let endingOpen = false;
+const allDone = () => ORDER.every((id) => journal.storyDone(id) && journal.relicCount(id) >= CONTENT[id].relics.names.length);
+setInterval(() => {
+  if (journal.data.completed || story.pageOpen || journal.open || !allDone()) return;
+  journal.data.completed = Date.now();
+  journal.save();
+  const up = player.frame.up, p = player.pos;
+  const shots = [
+    [p.clone().addScaledVector(up, 60).add(new THREE.Vector3(40, 0, 40)), p],
+    [p.clone().add(new THREE.Vector3(2.4, 1.9, 2.4)), p.clone().addScaledVector(up, 1.7)],
+    [p.clone().addScaledVector(up, 2), p.clone().addScaledVector(up, 200).add(new THREE.Vector3(0, 0, -150))],
+  ];
+  const imgs = shots.map(([e, l], i) => captureView(e, l, i === 0 ? 900 : 440, i === 0 ? 380 : 300));
+  const page = document.getElementById('page');
+  page.innerHTML = `<div class="sheet">
+    <div class="p p1"><img src="${imgs[0]}" alt=""><div class="cap"><b>THE END OF THE ROAD</b><br>Six worlds, thirty small things kept.</div></div>
+    <div class="p p2"><img src="${imgs[1]}" alt=""></div>
+    <div class="p p3"><img src="${imgs[2]}" alt=""><div class="cap">A seventh page has opened.<br>(L → The Atelier)</div></div>
+    <div class="hint">click / E to continue</div></div>`;
+  page.classList.add('open');
+  endingOpen = true;
+  sound.chime();
+  const close = () => { page.classList.remove('open'); endingOpen = false; window.removeEventListener('keydown', key); };
+  const key = (e) => { if (e.code === 'Enter' || e.code === 'KeyE' || e.code === 'Escape') close(); };
+  page.addEventListener('click', close, { once: true });
+  window.addEventListener('keydown', key);
+}, 1000);
+
 // compile every shader before the first frame, so it doesn't hitch
 await stage('mixing the inks…');
 await renderer.compileAsync(scene, camera).catch(() => {});
@@ -619,4 +698,4 @@ requestAnimationFrame((t) => {
 });
 
 // handy for debugging from the console
-Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, gate, journal, weather, sound, captureView });
+Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, gate, journal, weather, sound, captureView, settings, menu });

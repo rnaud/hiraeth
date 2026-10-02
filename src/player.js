@@ -177,6 +177,13 @@ export function buildCharacter(palette = {}) {
 const _v1 = new THREE.Vector3();
 const _g1 = new THREE.Vector3(), _g2 = new THREE.Vector3(), _g3 = new THREE.Vector3(), _g4 = new THREE.Vector3(), _g5 = new THREE.Vector3(), _g6 = new THREE.Vector3();
 const LEG_A = 0.49, LEG_B = 0.47;   // thigh, shin+foot
+// climbing key poses (rig angles in radians; arm x < 0 raises the arm forward/up)
+const CLIMB_KEYS = {
+  A: { armL: -3.05, armLz: 0.15, elbL: -0.25, armR: -1.75, armRz: -0.25, elbR: -1.55,
+       legL: -0.35, kneeL: 0.55, footL: -0.2, legR: -1.15, kneeR: 1.75, footR: -0.5, sway: 1, lift: 0 },
+  B: { armL: -1.75, armLz: 0.25, elbL: -1.55, armR: -3.05, armRz: -0.15, elbR: -0.25,
+       legL: -1.15, kneeL: 1.75, footL: -0.5, legR: -0.35, kneeR: 0.55, footR: -0.2, sway: -1, lift: 0 },
+};
 const _cu = new THREE.Vector3(), _cs = new THREE.Vector3(), _cb = new THREE.Vector3(), _cw = new THREE.Vector3();
 const _ca = new THREE.Vector3(), _cbb = new THREE.Vector3(), _cA = new THREE.Vector3(), _cv = new THREE.Vector3();
 const _v2 = new THREE.Vector3();
@@ -528,9 +535,15 @@ export class Player {
     if (this.opts.gravityAt) F.turnToward(this.opts.gravityAt(this.pos), 5, dt);
     const U = F.up;
 
-    const f = (input.KeyW || input.ArrowUp ? 1 : 0) - (input.KeyS || input.ArrowDown ? 1 : 0);
-    const s = (input.KeyD || input.ArrowRight ? 1 : 0) - (input.KeyA || input.ArrowLeft ? 1 : 0);
+    let f = (input.KeyW || input.ArrowUp ? 1 : 0) - (input.KeyS || input.ArrowDown ? 1 : 0);
+    let s = (input.KeyD || input.ArrowRight ? 1 : 0) - (input.KeyA || input.ArrowLeft ? 1 : 0);
     const run = input.ShiftLeft || input.ShiftRight;
+    // analog stick (touch): direction and partial speed
+    let stickScale = 1;
+    if (input.stick && (input.stick.x || input.stick.y)) {
+      f = input.stick.y; s = input.stick.x;
+      stickScale = Math.min(Math.hypot(f, s), 1);
+    }
 
     if (this.climbing) {
       this.updateClimb(dt, f, s, input);
@@ -545,7 +558,7 @@ export class Player {
     const move = new THREE.Vector3().addScaledVector(camF, f).addScaledVector(camR, s);
     if (move.lengthSq() > 0) move.normalize();
 
-    let speed = run ? RUN : WALK;
+    let speed = (run ? RUN : WALK) * (stickScale < 1 ? THREE.MathUtils.lerp(0.35, 1, stickScale) : 1);
     if (this.gliding) speed *= 1.25;
     if (this.thrusting) speed *= 1.9;
     const accel = this.onGround ? 10 : this.thrusting ? 5 : 2.5;
@@ -724,24 +737,31 @@ export class Player {
     if (!onTop) this._climbCooldown = Math.max(this._climbCooldown, 0.3);
   }
 
+  /**
+   * Keyframed climbing: two key poses (left hand reaching / right hand
+   * reaching), eased between as you move, so one arm stretches up while the
+   * other pulls and the opposite knee steps high; hips sway toward the pulling
+   * side, and the head looks up the wall.
+   */
   animateClimb() {
     const c = this.char;
     this._gait = null;
-    for (const f of c.feet) f.rotation.set(0, 0, 0);
-    const k = Math.sin(this.phase);
-    c.arms[0].rotation.set(-2.75 + k * 0.4, 0, -0.15);
-    c.arms[1].rotation.set(-2.75 - k * 0.4, 0, 0.15);
-    c.elbows[0].rotation.x = -0.5 - Math.max(0, k) * 0.7;
-    c.elbows[1].rotation.x = -0.5 - Math.max(0, -k) * 0.7;
-    c.legs[0].rotation.x = -0.6 - k * 0.45;
-    c.legs[1].rotation.x = -0.6 + k * 0.45;
-    c.knees[0].rotation.x = 1.0 + k * 0.45;
-    c.knees[1].rotation.x = 1.0 - k * 0.45;
-    c.body.position.y = 0;
-    c.body.rotation.set(-0.05, 0, 0);
-    c.torso.rotation.set(0, 0, 0);
-    c.head.rotation.set(-0.35, 0, 0);          // looking up the wall
-    c.hatTip.rotation.x = -0.4;
+    const K = CLIMB_KEYS;
+    const cyc = ((this.phase / (Math.PI * 2)) % 1 + 1) % 1;
+    const tri = cyc < 0.5 ? cyc * 2 : 2 - cyc * 2;              // 0 -> 1 -> 0
+    const t = tri * tri * (3 - 2 * tri);                        // ease
+    const L = (a, b) => a + (b - a) * t;
+    const P = {};
+    for (const k in K.A) P[k] = L(K.A[k], K.B[k]);
+    c.arms[0].rotation.set(P.armR, 0, P.armRz);  c.elbows[0].rotation.set(P.elbR, 0, 0);
+    c.arms[1].rotation.set(P.armL, 0, P.armLz);  c.elbows[1].rotation.set(P.elbL, 0, 0);
+    c.legs[0].rotation.set(P.legR, 0, -0.08);    c.knees[0].rotation.set(P.kneeR, 0, 0);
+    c.legs[1].rotation.set(P.legL, 0, 0.08);     c.knees[1].rotation.set(P.kneeL, 0, 0);
+    c.feet[0].rotation.set(P.footR, 0, 0);       c.feet[1].rotation.set(P.footL, 0, 0);
+    c.body.position.set(P.sway * 0.06, P.lift * 0.05, 0);
+    c.body.rotation.set(-0.08, 0, P.sway * 0.07);
+    c.torso.rotation.set(0, P.sway * 0.12, 0);
+    c.head.rotation.set(-0.45, -P.sway * 0.2, 0);
     for (const fl of c.flames) fl.visible = false;
   }
 
@@ -966,6 +986,7 @@ export class Player {
     this.object.position.copy(this.pos);
     this.frame.quaternion(this.heading, this.object.quaternion);
     A.apply(this.object, { bank, legScale: 1.04 });
+    if (this.onGround) this.footIK(dt);
     c.hatTip.rotation.x = -hs * 0.02 + c.body.position.y * 3;
     // footstep: a foot reaches its lowest point and starts rising again
     if (this.onGround && hs > 0.8) {
@@ -980,6 +1001,60 @@ export class Player {
         (this._fv ??= [])[i] = v;
       }
     }
+  }
+
+  /**
+   * Fit the clip's feet to the real ground (slopes, steps, rocks). The clips
+   * assume flat ground at the root: each foot near its planted height is moved
+   * by the ground's offset under it, the pelvis drops for the lower foot, and
+   * a two-bone solve bends the leg to reach.
+   */
+  footIK(dt) {
+    const c = this.char, U = this.frame.up;
+    const root = this.object;
+    root.updateMatrixWorld(true);
+    const S = (this._ik ??= { off: [0, 0], drop: 0 });
+    const feetW = [0, 1].map((i) => c.feet[i].getWorldPosition(new THREE.Vector3()));
+    const heights = feetW.map((p) => _g5.copy(p).sub(this.pos).dot(U));       // above the clip's floor
+    for (let i = 0; i < 2; i++) {
+      // how planted is this foot in the clip (fully at ankle height, fading by 25 cm up)
+      const planted = 1 - THREE.MathUtils.smoothstep(heights[i], 0.09, 0.3);
+      const g = _g4.copy(feetW[i]).addScaledVector(U, -heights[i]);           // the foot's spot on the clip floor
+      this.groundPoint(g, U);
+      const off = THREE.MathUtils.clamp(g.sub(this.pos).dot(U), -0.45, 0.45) * planted;
+      S.off[i] = THREE.MathUtils.lerp(S.off[i], off, 1 - Math.exp(-18 * dt));
+    }
+    const drop = Math.min(S.off[0], S.off[1], 0);
+    S.drop = THREE.MathUtils.lerp(S.drop, drop, 1 - Math.exp(-14 * dt));
+    if (Math.abs(S.off[0]) + Math.abs(S.off[1]) < 0.004) return;
+    c.body.position.y += S.drop;
+    c.body.updateMatrixWorld(true);
+    for (let i = 0; i < 2; i++) {
+      const target = feetW[i].addScaledVector(U, S.off[i]);
+      this.legIK(i, target);
+    }
+  }
+
+  /** Two-bone IK for one rig leg: hip pitch/roll + knee bend to put the ankle at `target` (world). */
+  legIK(i, target) {
+    const c = this.char;
+    const ankleRest = c.feet[i].position.y;                       // knee -> ankle (negative)
+    const A = LEG_A, B = Math.abs(ankleRest);
+    c.body.worldToLocal(_g4.copy(target)).sub(c.legs[i].position);
+    const dist = THREE.MathUtils.clamp(_g4.length(), 0.2, (A + B) * 0.999);
+    const roll = THREE.MathUtils.clamp(Math.atan2(_g4.x, -_g4.y), -0.35, 0.35);
+    const pitch = Math.atan2(-_g4.z, -_g4.y);
+    const alpha = Math.acos(THREE.MathUtils.clamp((A * A + dist * dist - B * B) / (2 * A * dist), -1, 1));
+    const bend = Math.PI - Math.acos(THREE.MathUtils.clamp((A * A + B * B - dist * dist) / (2 * A * B), -1, 1));
+    // keep the clip's foot orientation in body space
+    c.feet[i].updateWorldMatrix(true, false);
+    const footQ = c.feet[i].getWorldQuaternion(new THREE.Quaternion());
+    c.legs[i].rotation.set(pitch - alpha, 0, roll);
+    c.knees[i].rotation.set(bend, 0, 0);
+    c.knees[i].updateWorldMatrix(true, false);
+    const kneeQ = c.knees[i].getWorldQuaternion(new THREE.Quaternion());
+    c.feet[i].quaternion.copy(kneeQ.invert().multiply(footQ));
+    c.feet[i].updateMatrixWorld(true);
   }
 
   initGait(fwd, right) {
@@ -1022,15 +1097,23 @@ export class CameraRig {
     dom.addEventListener('click', () => dom.requestPointerLock?.());
     dom.addEventListener('mousedown', () => (this._dragging = true));
     window.addEventListener('mouseup', () => (this._dragging = false));
+    this.sensitivity = 1;
+    this.invertY = false;
     window.addEventListener('mousemove', (e) => {
       if (document.pointerLockElement !== dom && !this._dragging) return;
-      this._lastMouse = this._now;
-      this.yaw -= e.movementX * 0.0025;
-      this.pitch = THREE.MathUtils.clamp(this.pitch + e.movementY * 0.0025, -0.35, 1.3);
+      this.look(e.movementX, e.movementY);
     });
     dom.addEventListener('wheel', (e) => {
       this.dist = THREE.MathUtils.clamp(this.dist * (1 + Math.sign(e.deltaY) * 0.1), 4, 60);
     }, { passive: true });
+  }
+
+  /** Turn the camera by a pointer delta in pixels (mouse or touch). */
+  look(dx, dy) {
+    this._lastMouse = this._now;
+    const k = 0.0025 * this.sensitivity;
+    this.yaw -= dx * k;
+    this.pitch = THREE.MathUtils.clamp(this.pitch + dy * k * (this.invertY ? -1 : 1), -0.35, 1.3);
   }
 
   /** While riding: swing behind the bike unless the mouse moved recently. */

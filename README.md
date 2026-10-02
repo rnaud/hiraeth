@@ -205,6 +205,23 @@ converges to the light tone, so shadows fade out and back in instead of
 jumping. "Hours / minute" runs the cycle. Character
 poses update at 12 fps ("stop-motion anim") while movement stays smooth.
 
+## Playing
+
+- **Continue:** your world, position and time of day are saved every few
+  seconds; the picker shows a Continue button.
+- **Settings (O, Esc or ⚙):**
+  - graphics quality: low / medium / high;
+  - mouse and touch sensitivity, and invert Y;
+  - music and effects volume, and mute;
+  - reset progress;
+  - the developer shader panel is hidden unless you enable it here.
+- **Touch:** a floating stick on the left, drag on the right to look, and
+  buttons for jump, interact, run, sketchbook and worlds. Low graphics by
+  default.
+- **Ending:** find all six story pages and all 30 relics for a closing page.
+  It unlocks a seventh world, **The Atelier**: a blank page with pencil
+  sketches of every landmark and the artist at his table.
+
 ## Story, people, sound and weather
 
 - **Story** (`src/quest.js`, `src/levels/content.js`):
@@ -314,6 +331,13 @@ Each of these can be toggled or tuned in the panel's **Beauty** folder.
       and it collides with the body and legs.
   - **Toggle:** "mocap animation" in the Time of day folder switches back to
     the procedural gait for comparison.
+  - **Foot IK:** on top of the clips it fits planted feet to slopes, steps
+    and rocks, using a pelvis drop and a two-bone leg solve.
+  - **Climbing:** keyframed hand-over-hand reaches with opposite high steps,
+    plus a landing clip after real falls.
+- **Villagers:** each one draws a hood, a wide hat, a head-wrap or bare hair
+  (with a top-knot or ponytail), a cape length from none to floor, and
+  tunic and trouser colours.
 - **Hero landmarks:**
   - the desert: a colossal half-buried masked head;
   - Arzach: a fallen stone colossus and a giant hand rising from the plain;

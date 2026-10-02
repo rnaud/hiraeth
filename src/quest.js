@@ -48,7 +48,7 @@ export class Journal {
 
   render() {
     const body = this.el.querySelector('.pages');
-    body.innerHTML = this.levels.map((L) => {
+    body.innerHTML = this.levels.filter((L) => !L.hidden || this.data.completed).map((L) => {
       const relics = (L.relicNames ?? []).map((name, i) => {
         const e = this.data.relics[L.id]?.[i];
         return e

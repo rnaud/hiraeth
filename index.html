@@ -47,6 +47,48 @@
       }
       #photo.open { display: block; }
       @keyframes fadehint { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
+      #gear {
+        position: fixed; right: 14px; bottom: 14px; z-index: 30; width: 40px; height: 40px; font-size: 22px; line-height: 1;
+        background: #fffaf0; color: #2b211f; border: 2px solid #2b211f; box-shadow: 3px 3px 0 #2b211f; cursor: pointer;
+      }
+      #settings { position: fixed; inset: 0; z-index: 90; display: none; place-items: center; background: rgba(43, 33, 31, 0.45); }
+      #settings.open { display: grid; }
+      #settings .panel {
+        width: min(460px, 92vw); padding: 20px 24px; background: #f7ecd2; border: 2px solid #2b211f; box-shadow: 7px 7px 0 #2b211f;
+        font: 13px ui-monospace, Menlo, monospace; color: #2b211f;
+      }
+      #settings h1 { margin: 0 0 14px; font-size: 20px; letter-spacing: 0.14em; }
+      #settings .row { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin: 9px 0; }
+      #settings select, #settings input[type=range] { width: 52%; accent-color: #c8483a; font: inherit; }
+      #settings .buttons { display: flex; justify-content: space-between; margin-top: 16px; }
+      #settings button { font: inherit; padding: 6px 12px; background: #fffaf0; border: 2px solid #2b211f; cursor: pointer; }
+      #settings .keys { margin: 14px 0 0; font-size: 11px; opacity: 0.65; line-height: 1.5; }
+      #picker .continue {
+        display: inline-block; margin: 0 0 18px; padding: 8px 14px; color: #2b211f; text-decoration: none; font-weight: bold;
+        background: #f2c54b; border: 2px solid #2b211f; box-shadow: 4px 4px 0 #2b211f;
+      }
+      #picker .card.locked { opacity: 0.6; cursor: default; }
+      #picker .card.locked .lock { aspect-ratio: 16 / 9; display: grid; place-items: center; font-size: 46px; border-bottom: 2px solid #2b211f; background: repeating-linear-gradient(45deg, #efe3c6 0 10px, #e6d8b8 10px 20px); }
+
+      /* touch */
+      #touch { display: none; }
+      body.touch #touch { display: block; }
+      body.touch #hud .help { display: none; }
+      body.touch #hud { font-size: 10px; max-width: 46vw; bottom: auto; top: 10px; }
+      #touch .stick { position: fixed; width: 140px; height: 140px; border-radius: 50%; border: 2px solid rgba(43, 33, 31, 0.5); background: rgba(255, 250, 240, 0.25); display: none; z-index: 35; pointer-events: none; }
+      #touch .stick.on { display: block; }
+      #touch .nub { position: absolute; left: 45px; top: 45px; width: 50px; height: 50px; border-radius: 50%; background: rgba(43, 33, 31, 0.55); }
+      #touch button {
+        position: fixed; z-index: 36; width: 64px; height: 64px; border-radius: 50%; font: 18px ui-monospace, Menlo, monospace;
+        color: #2b211f; background: rgba(255, 250, 240, 0.8); border: 2px solid #2b211f; touch-action: none;
+      }
+      #touch .b-jump { right: 24px; bottom: 90px; width: 78px; height: 78px; font-size: 26px; }
+      #touch .b-use { right: 112px; bottom: 40px; }
+      #touch .b-run { right: 24px; bottom: 186px; font-size: 13px; }
+      #touch .b-run.on { background: #f2c54b; }
+      #touch .b-book { right: 112px; bottom: 120px; }
+      #touch .b-map { right: 70px; top: 14px; width: 46px; height: 46px; }
+      body.touch #gear { top: 14px; bottom: auto; }
       #loading {
         position: fixed; inset: 0; z-index: 9000; display: grid; place-content: center; justify-items: center; gap: 18px;
         font: 14px ui-monospace, Menlo, monospace; color: #2b211f; background: #f7ecd2; transition: opacity 0.8s;
@@ -151,6 +193,9 @@
     <div id="page"></div>
     <div id="toast"></div>
     <div id="travel"><div class="title"></div></div>
+    <div id="settings"></div>
+    <div id="touch"></div>
+    <button id="gear" title="Settings (O)">⚙</button>
     <div id="photo">PHOTO MODE · WASD + Q/E fly · mouse look · SHIFT fast · H panel · ENTER save PNG · P exit</div>
     <div id="picker">
       <header>
@@ -160,10 +205,10 @@
       <div class="cards"></div>
     </div>
     <div id="hud">
-      <b>MOEBIUS PoC</b><br />
+      <span class="help"><b>MOEBIUS PoC</b><br />
       click to capture mouse · WASD move · SHIFT run<br />
-      SPACE jump · hold SPACE in air to glide · push into walls to climb · wheel zoom · ESC release · L levels · P photo mode<br />
-      <span id="status"></span>
+      SPACE jump · hold SPACE in air to glide · push into walls to climb · wheel zoom · L worlds · P photo · O settings<br />
+      </span><span id="status"></span>
     </div>
     <script type="module" src="/src/main.js"></script>
   </body>

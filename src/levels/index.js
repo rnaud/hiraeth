@@ -4,6 +4,7 @@ import { createArzach } from './arzach.js';
 import { createGarage } from './garage.js';
 import { createEdena } from './edena.js';
 import { createPerdide } from './perdide.js';
+import { createAtelier } from './atelier.js';
 
 // Level registry: shown in the picker and the panel, loaded with ?level=<id>.
 export const LEVELS = [
@@ -42,6 +43,12 @@ export const LEVELS = [
     title: 'Perdide', source: 'Les Maîtres du temps (Laloux & Moebius, 1982)',
     blurb: 'A twilight swamp of humming crystal forests, carnivorous plants and glowing eggs. Cross it by skiff.',
     moves: 'hover-skiff · wading · caves',
+  },
+  {
+    id: 'atelier', create: createAtelier, hidden: true,
+    title: 'The Atelier', source: 'the last page',
+    blurb: 'A blank page where every world you crossed is sketched in pencil. Someone is still drawing.',
+    moves: 'unlocked by finishing every world',
   },
 ];
 

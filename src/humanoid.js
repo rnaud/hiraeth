@@ -239,12 +239,14 @@ export class Humanoid {
     this.headAnchor = anchor(B.Head, new THREE.Vector3(0, restHead.y + 0.1, restHead.z + 0.01));
     this.chestAnchor = anchor(B.spine_03, new THREE.Vector3(0, this.rest.get(B.neck_01).p.y - 0.74 - 0.02, 0));
     const move = (obj, parent, pos) => { parent.add(obj); if (pos) obj.position.copy(pos); obj.traverse((o) => keep.add(o)); };
+    this.hood = [];
     // the hood (and its peak) were children of the rig head
     for (const child of [...c.head.children]) {
       if (child.isMesh && child.geometry.type === 'SphereGeometry' && child.material.side === THREE.DoubleSide) {
         move(child, this.headAnchor, new THREE.Vector3(0, 0, -0.02));
         child.scale.multiplyScalar(0.92);
-      } else if (child.isGroup) move(child, this.headAnchor, new THREE.Vector3(0, 0.12, -0.04));
+        this.hood.push(child);
+      } else if (child.isGroup) { move(child, this.headAnchor, new THREE.Vector3(0, 0.12, -0.04)); this.hood.push(child); }
     }
     // collar + jetpack + satchel lived on the rig torso
     for (const child of [...c.torso.children]) {
@@ -259,6 +261,44 @@ export class Humanoid {
     });
     // the cape pins under the human's collar
     c.capeAnchor = this.chestAnchor;
+  }
+
+  /**
+   * Swap the hood for other headwear: 'hood' | 'hat' | 'wrap' | 'hair'.
+   * The head anchor sits at the centre of the skull, facing +z.
+   */
+  setHeadwear(kind, { color = '#d8a24a', hair = '#3a2a22', accent = '#c8483a' } = {}) {
+    for (const h of this.hood) h.visible = kind === 'hood';
+    if (kind === 'hood') return;
+    const A = this.headAnchor;
+    const mat = (c, o = {}) => makeMaterial({ color: c, ...o });
+    const add = (geo, m, x = 0, y = 0, z = 0) => { const mesh = new THREE.Mesh(geo, m); mesh.position.set(x, y, z); mesh.userData.noCollide = true; A.add(mesh); return mesh; };
+    // short hair under any hat, a fuller cut for bare heads
+    const cap = new THREE.SphereGeometry(0.118, 16, 10, 0, Math.PI * 2, 0, Math.PI * 0.58);
+    cap.scale(1, 1.08, 1.12);
+    add(cap, mat(hair), 0, 0.012, -0.012).rotation.x = -0.32;
+    if (kind === 'hair') {
+      const style = Math.random();
+      if (style < 0.5) add(new THREE.SphereGeometry(0.045, 10, 8), mat(hair), 0, 0.12, -0.06);                 // top-knot
+      else {
+        const tail = add(new THREE.CapsuleGeometry(0.03, 0.18, 4, 8), mat(hair), 0, -0.06, -0.12);              // ponytail
+        tail.rotation.x = 0.35;
+      }
+    } else if (kind === 'hat') {
+      // wide flat desert hat with a tall crown, tilted a little
+      const brim = add(new THREE.CylinderGeometry(0.3, 0.3, 0.014, 22), mat(color), 0, 0.075, 0);
+      const crown = add(new THREE.CylinderGeometry(0.075, 0.12, 0.17, 14), mat(color), 0, 0.16, 0);
+      add(new THREE.CylinderGeometry(0.121, 0.124, 0.03, 14), mat(accent), 0, 0.09, 0);
+      brim.rotation.z = crown.rotation.z = (Math.random() - 0.5) * 0.2;
+    } else if (kind === 'wrap') {
+      // head-wrap: stacked twisted rolls and a trailing tail
+      for (let k = 0; k < 3; k++) {
+        const t = add(new THREE.TorusGeometry(0.11 - k * 0.02, 0.032, 8, 18), mat(k % 2 ? accent : color, { flat: true }), 0, 0.045 + k * 0.045, -0.01);
+        t.rotation.set(Math.PI / 2 + 0.15, 0, k * 0.4);
+      }
+      const tail = add(new THREE.BoxGeometry(0.07, 0.32, 0.01), mat(color, { side: THREE.DoubleSide }), 0.02, -0.08, -0.12);
+      tail.rotation.set(0.25, 0.3, 0.1);
+    }
   }
 
   /** Aim the skeleton along the rig (call after the rig's pose for this frame). */
