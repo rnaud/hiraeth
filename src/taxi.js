@@ -28,6 +28,19 @@ function buildTaxi(color) {
   shield.position.set(0, 0.5, 0.95);
   const grp = new THREE.Group();
   grp.add(body, shield);
+  // a passenger in the back seat, hat and all (a driver of the player's ride sits in front)
+  if (Math.random() < 0.6) {
+    const coat = ['#c8483a', '#5fb7ad', '#d8a24a', '#8a6fb8', '#f3ead8'][Math.floor(Math.random() * 5)];
+    const pax = new THREE.Group();
+    pax.add(new THREE.Mesh(new THREE.CapsuleGeometry(0.28, 0.45, 3, 8).translate(0, 0.55, 0), makeMaterial({ color: coat })));
+    pax.add(new THREE.Mesh(new THREE.SphereGeometry(0.17, 10, 8).translate(0, 1.15, 0.02), makeMaterial({ color: '#e9cfb4' })));
+    if (Math.random() < 0.6) {
+      pax.add(new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.34, 0.02, 14).translate(0, 1.27, 0), makeMaterial({ color: coat })));
+      pax.add(new THREE.Mesh(new THREE.ConeGeometry(0.13, 0.4, 10).translate(0, 1.47, 0), makeMaterial({ color: coat })));
+    }
+    pax.position.set(0, 0.2, -0.95);
+    grp.add(pax);
+  }
   grp.userData.noCollide = true;
   return grp;
 }

@@ -45,14 +45,22 @@ export function createIncal(scene) {
   const rng = mulberry32(1977);
   const pick = (a) => a[Math.floor(rng() * a.length)];
   const movers = [];
+  const lod = [];      // { obj, y, far }: hidden when the camera is that far above / below
+  const small = [];    // left out of the far shadow cascade
   const banners = [];
 
   const strata = (c1, c2, c3, size = 6, extra = {}) =>
     makeMaterial({ color: c1, color2: c2, color3: c3, mode: MODE_STRATA, strataSize: size, ...extra });
 
   // merged geometry buckets (one draw per material, keeps the town cheap)
+  // buckets are also split by terrace sector (curGroup), so each piece can be culled
   const buckets = new Map();
-  const bucket = (key, mat) => { if (!buckets.has(key)) buckets.set(key, { mat, geos: [] }); return buckets.get(key).geos; };
+  let curGroup = 'misc', curY = TOP;
+  const bucket = (key, mat) => {
+    const k = key + '@' + curGroup;
+    if (!buckets.has(k)) buckets.set(k, { mat, geos: [], y: curY });
+    return buckets.get(k).geos;
+  };
   const placed = (g, x, y, z, rot = 0) => g.rotateY(rot).translate(x, y, z);
   const wallMat = (i) => strata(PASTELS[i % PASTELS.length], PASTELS[(i + 2) % PASTELS.length], '#f6efe0', 3.2, { grid: 2.4, flat: true });
   const roofMat = (i) => makeMaterial({ color: ROOFS[i % ROOFS.length], flat: true });
@@ -75,7 +83,9 @@ export function createIncal(scene) {
       trees.push([x, y + h + 0.9, z, 0.6]);    // a little roof garden
     }
   }
-  const trees = [];   // [x, y, z, scale]
+  const trees = [];   // [x, y, z, scale, group]
+  const _push = trees.push.bind(trees);
+  trees.push = (t) => _push([...t, curGroup, curY]);
 
   // ---------------------------------------------------------- the shaft wall
   {
@@ -160,11 +170,12 @@ export function createIncal(scene) {
     for (let s = 0; s < nSectors; s++) {
       const span = TAU / nSectors - gap;
       const a0 = a, a1 = a + span;
+      curGroup = `t${li}`; curY = y;
       const slab = new THREE.Mesh(sectorGeometry(r0, R, a0, a1, 7),
         strata(STEEL.color, STEEL.color2, STEEL.color3, 1.4, { flat: true, grid: 3 }));
       slab.position.y = y;
       scene.add(slab);
-      terraces.push({ y, r0, a0, a1 });
+      terraces.push({ y, r0, a0, a1, width });
 
       // laundry and banners hanging off the edge
       for (let k = 0; k < Math.floor(span * 3); k++) {
@@ -191,7 +202,7 @@ export function createIncal(scene) {
       const count = Math.floor(span * 130);
       for (let k = 0; k < count; k++) {
         const ang = a0 + (k + 0.5 + (rng() - 0.5) * 0.5) / count * span;
-        const rad = r0 + 8 + rng() * (width - 14);
+        const rad = r0 + 13 + rng() * (width - 19);   // leaves a promenade along the edge
         const x = Math.cos(ang) * rad, z = Math.sin(ang) * rad;
         const roll = rng();
         if (roll < 0.52) house(x, y, z);
@@ -211,6 +222,7 @@ export function createIncal(scene) {
     a += TAU / nSectors;
   });
 
+  curGroup = 'misc'; curY = TOP;
   // ---------------------------------------------------------- central spire
   {
     const height = TOP + 120 - BOTTOM;
@@ -372,6 +384,47 @@ export function createIncal(scene) {
   }
   const vehicles = [];
 
+  // ---------------------------------------------------------- street life: market stalls and laundry lines
+  {
+    const AWN = ['#c8483a', '#f2c54b', '#5fb7ad', '#e6875f'];
+    const wood = makeMaterial({ color: '#8a5a3c', flat: true });
+    const cloth = AWN.map((c) => makeMaterial({ color: c, side: THREE.DoubleSide }));
+    const line = makeMaterial({ color: '#c9d2dc' });
+    for (const t of terraces) {
+      curGroup = 't' + LEVELS.indexOf(t.y); curY = t.y;
+      const span = t.a1 - t.a0;
+      // stalls along the inner side of the promenade
+      for (let k = 0; k < span * 6; k++) {
+        if (rng() < 0.45) continue;
+        const ang = t.a0 + (k + 0.5) / (span * 6) * span, rad = t.r0 + 10;
+        const x = Math.cos(ang) * rad, z = Math.sin(ang) * rad, rot = -ang;
+        bucket('wood', wood).push(placed(mergeGeometries([
+          new THREE.BoxGeometry(3, 1, 1.6).translate(0, 0.5, 0),
+          ...[[-1.4, -0.7], [1.4, -0.7], [-1.4, 0.7], [1.4, 0.7]].map(([a, b]) => new THREE.CylinderGeometry(0.05, 0.05, 2.6, 4).translate(a, 1.3, b)),
+        ]), x, t.y, z, rot));
+        const ci = Math.floor(rng() * AWN.length);
+        bucket('awn' + ci, cloth[ci]).push(placed(new THREE.CylinderGeometry(0.01, 2.2, 0.7, 4, 1, true).rotateY(Math.PI / 4).scale(1, 1, 0.7).translate(0, 2.9, 0), x, t.y, z, rot));
+        // goods on the counter
+        for (let q = 0; q < 4; q++) bucket('roof' + (q % 4), roofMat(q % 4)).push(new THREE.SphereGeometry(0.18 + rng() * 0.1, 6, 4).translate(x + (rng() - 0.5) * 2, t.y + 1.15, z + (rng() - 0.5) * 0.8));
+      }
+      // laundry lines strung across the promenade, between the edge and the houses
+      for (let k = 0; k < span * 5; k++) {
+        if (rng() < 0.55) continue;
+        const ang = t.a0 + rng() * span, h = t.y + 4 + rng() * 2;
+        const pa = new THREE.Vector3(Math.cos(ang) * (t.r0 + 1.5), h, Math.sin(ang) * (t.r0 + 1.5));
+        const pb = new THREE.Vector3(Math.cos(ang + 0.012) * (t.r0 + 13), h + 1, Math.sin(ang + 0.012) * (t.r0 + 13));
+        const mid = pa.clone().lerp(pb, 0.5); mid.y -= 0.6;
+        bucket('line', line).push(new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(pa, mid, pb), 8, 0.03, 4));
+        for (let q = 1; q < 6; q++) {
+          const u = q / 6, p = new THREE.Vector3().lerpVectors(pa, pb, u); p.y -= Math.sin(Math.PI * u) * 0.6;
+          const ci = Math.floor(rng() * AWN.length), w = 0.5 + rng() * 0.5, hh = 0.6 + rng() * 0.6;
+          bucket('awn' + ci, cloth[ci]).push(new THREE.PlaneGeometry(w, hh).translate(0, -hh / 2, 0).rotateY(-ang).translate(p.x, p.y, p.z));
+        }
+      }
+    }
+    curGroup = 'misc'; curY = TOP;
+  }
+
   // ---------------------------------------------------------- arched viaducts across the void
   {
     const steel = strata(STEEL.color, STEEL.color2, STEEL.color3, 2, { grid: 4 });
@@ -430,9 +483,12 @@ export function createIncal(scene) {
     olive.computeVertexNormals();
     const greens = ['#5e7a3a', '#4f6b34', '#6f8a42', '#56733f'];
     const hash01 = (i) => ((Math.sin(i * 12.9898) * 43758.5453) % 1 + 1) % 1;
-    for (const geo of [cypress, olive]) {
-      const list = trees.filter((_, i) => (hash01(i) < 0.55) === (geo === cypress));
-      const mesh = new THREE.InstancedMesh(geo, makeMaterial({ color: '#ffffff', scrub: true }), Math.max(list.length, 1));
+    const groups = [...new Set(trees.map((t) => t[4]))];
+    const treeMat = makeMaterial({ color: '#ffffff', scrub: true });
+    for (const grp of groups) for (const geo of [cypress, olive]) {
+      const list = trees.filter((t, i) => t[4] === grp && (hash01(i) < 0.55) === (geo === cypress));
+      if (!list.length) continue;
+      const mesh = new THREE.InstancedMesh(geo, treeMat, list.length);
       list.forEach(([x, y, z, s], i) => {
         dummy.position.set(x, y, z);
         dummy.rotation.set(0, rng() * TAU, 0);
@@ -442,15 +498,24 @@ export function createIncal(scene) {
         mesh.setColorAt(i, color.set(pick(greens)));
       });
       mesh.userData.noCollide = true;
+      mesh.userData.tiled = true;           // already grouped; tileScene leaves it alone
+      mesh.computeBoundingSphere();
+      lod.push({ obj: mesh, y: list[0][5], far: 260 });
+      small.push(mesh);
       scene.add(mesh);
     }
   }
 
-  // merge the town buckets
-  for (const { mat, geos } of buckets.values()) {
+  // merge the town buckets (one mesh per material per terrace sector)
+  for (const [key, { mat, geos, y }] of buckets) {
     if (!geos.length) continue;
     const g = mergeGeometries(geos.map((x) => (x.index ? x : x.toNonIndexed())).map((x) => { x.deleteAttribute('uv'); return x; }));
-    scene.add(new THREE.Mesh(g, mat));
+    g.computeBoundingSphere();
+    const m = new THREE.Mesh(g, mat);
+    m.userData.tiled = true;
+    scene.add(m);
+    // roofs and domes far above or below you drop out first (walls stay as silhouettes)
+    if (key.startsWith('roof') && !key.endsWith('@misc')) lod.push({ obj: m, y, far: 380 });
   }
 
   // a railing and cypresses at the spawn, looking out over the town (as in the plate)
@@ -509,8 +574,25 @@ export function createIncal(scene) {
       const inside = Math.hypot(p.x, p.z) < R + 20 && p.y < TOP + 40;
       if (inside && dir.y > 0.05) { dir.y += 0.9; dir.normalize(); }
     },
+    smallProps: small,
+    // walking routes for the crowd: arcs along each terrace promenade
+    crowd() {
+      const out = [];
+      for (const t of terraces) {
+        const span = t.a1 - t.a0, n = rng() < 0.6 ? 1 : 0;   // about one walker per terrace sector
+        for (let k = 0; k < n; k++) {
+          const s0 = t.a0 + 0.1 + rng() * (span - 0.6), len = 0.25 + rng() * 0.35, r = t.r0 + 5 + rng() * 2.5;
+          const pts = [];
+          for (let q = 0; q <= 6; q++) { const a = s0 + (q / 6) * len; pts.push(new THREE.Vector3(Math.cos(a) * r, t.y, Math.sin(a) * r)); }
+          out.push([...pts, ...pts.slice(1, -1).reverse()]);   // walk there and back
+        }
+      }
+      return out;
+    },
     update(dt, t, ctx) {
       if (ctx?.player) Taxi.playerPos = ctx.player.pos;
+      const cy = ctx?.camera?.position.y ?? ctx?.player?.pos.y ?? TOP;
+      for (const l of lod) l.obj.visible = Math.abs(cy - l.y) < l.far;
       for (const m of movers) m.update(t);
       for (const b of banners) b.update(t);
       steam.update(dt);

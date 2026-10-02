@@ -12,7 +12,7 @@ import { Trail } from './trail.js';
 import { Flock, Motes, Footprints } from './life.js';
 import { Sound } from './audio.js';
 import { Weather, WEATHER_KINDS } from './weather.js';
-import { spawnNPCs } from './npc.js';
+import { spawnNPCs, NPC } from './npc.js';
 import { Journal, Relics, Story, Gate, turnPage, arriveFromPage } from './quest.js';
 import { CONTENT, nextLevel } from './levels/content.js';
 import { loadAnimationLibrary, Animator } from './animator.js';
@@ -23,7 +23,11 @@ import { ORDER } from './levels/content.js';
 // Loading: each stage updates the inked loading screen, then yields a frame
 // so it can paint (its pen animation runs on the compositor meanwhile).
 const loadMsg = document.querySelector('#loading .msg');
+const tLoad = performance.now();
+let tStage = tLoad, lastMsg = 'start';
 const stage = (msg) => {
+  console.info(`load: ${lastMsg} ${(performance.now() - tStage).toFixed(0)} ms`);
+  tStage = performance.now(); lastMsg = msg;
   if (loadMsg) loadMsg.textContent = msg;
   return new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0)));
 };
@@ -169,11 +173,12 @@ const terrain = level.ground;
 await stage('inking the collisions…');
 // Collision against the real level geometry (built before the player / vehicles join the scene).
 const t0 = performance.now();
-const physics = new Physics(scene, level.ground.heightAt ? level.ground : null);
-console.info(`collision: ${physics.triangles.toLocaleString()} triangles in ${(performance.now() - t0).toFixed(0)} ms`);
+const physics = await Physics.create(scene, level.ground.heightAt ? level.ground : null);
+console.info(`collision: ${physics.triangles.toLocaleString()} triangles in ${(performance.now() - t0).toFixed(0)} ms (BVH in a worker)`);
 level.init?.(physics);
 // tile world-spanning meshes so each pass only draws what it can see
 const tiled = tileScene(scene);
+tiled.small.push(...(level.smallProps ?? []));
 await stage('waking the people…');
 const player = new Player(physics, {
   mount: level.mount, jetpack: level.features.jetpack, climb: level.features.climb ?? true,
@@ -242,6 +247,17 @@ const weather = new Weather(content.weather);
   if (stormColor) post.uniforms.uStormColor.value.set(stormColor);
 }
 const npcs = spawnNPCs(scene, physics, content.npcs, { lib, humans: humanT });
+// a crowd on the city promenades
+if (level.crowd) {
+  const CITY_LINES = ['Fresh figs! Fresh figs!', 'Mind the edge, it\u2019s a long way down.', 'The taxis never stop for us lower folk.',
+    'Have you seen the light above the palace?', 'Laundry dries fast up here.', 'My grandmother never saw the sky.', 'Lovely hat.'];
+  const PAL = ['#c8483a', '#5fb7ad', '#d8a24a', '#8a6fb8', '#e6875f', '#f3ead8', '#62c3c9'];
+  level.crowd().forEach((route, k) => {
+    const kind = k % 2 ? 'f' : 'm';
+    npcs.push(new NPC(scene, physics, { route, palette: { cloak: PAL[k % PAL.length], cloth: ['#343a56', '#5a4a3a', '#3f6f6a', '#e2d3b4'][k % 4] },
+      lines: [CITY_LINES[k % CITY_LINES.length], CITY_LINES[(k + 3) % CITY_LINES.length]], lib, human: humanT ? humanT[kind === 'm' ? 0 : 1] : null, kind }));
+  });
+}
 const journal = new Journal(LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, relicNames: CONTENT[l.id].relics.names, storyTitle: CONTENT[l.id].story.title })));
 const capture = (eye, look, w, h) => captureView(eye, look, w, h);
 const relics = new Relics(scene, physics, { levelId, spots: content.relics.spots, names: content.relics.names, journal, sound, capture, lights: levelLights });
@@ -637,6 +653,12 @@ function frame() {
     player.wind.set(wx * k, 0, wz * k);
   }
   for (const n of npcs) n.update(dt, player, camera);
+  // only the nearest talking villager shows a balloon
+  {
+    let best = null, bd = Infinity;
+    for (const n of npcs) if (n.balloon.classList.contains('show')) { const d = n.pos.distanceTo(player.pos); if (d < bd) { bd = d; best = n; } }
+    for (const n of npcs) if (n !== best) n.balloon.classList.remove('show');
+  }
   relics.update(dt, t, player);
   story.update(dt, t, camera);
   gate.update(dt, t, player);
@@ -663,7 +685,7 @@ function frame() {
     trails.forEach((tr, i) => tr.update(dt, moving ? m.body.localToWorld(JETS[i].clone()) : null));
   }
   updateHud();
-  level.update(dt, t, { player, rig });
+  level.update(dt, t, { player, rig, camera });
   // levels with zones (the Garage) switch ink style as you cross between them
   if (level.zoneAt) {
     const zone = level.zoneAt(player.pos);
@@ -716,6 +738,7 @@ setInterval(() => {
 await stage('mixing the inks…');
 await renderer.compileAsync(scene, camera).catch(() => {});
 await renderer.compileAsync(post.scene, post.camera).catch(() => {});
+stage('ready'); console.info(`load: total ${(performance.now() - tLoad).toFixed(0)} ms (after module load)`);
 requestAnimationFrame((t) => {
   frame(t);
   const ld = document.getElementById('loading');

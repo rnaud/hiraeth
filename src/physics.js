@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { MeshBVH } from 'three-mesh-bvh';
+import { GenerateMeshBVHWorker } from 'three-mesh-bvh/src/workers/GenerateMeshBVHWorker.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 // Collision against the real level geometry. Every static mesh in the scene
@@ -30,7 +31,23 @@ export class Physics {
    * @param base   optional heightfield with heightAt(x, z) (desert terrain),
    *               combined with the mesh collision in groundAt()
    */
-  constructor(scene, base = null) {
+  /** Build the BVH in a web worker (keeps the page responsive while loading). */
+  static async create(scene, base = null) {
+    const p = new Physics(scene, base, true);
+    if (p.geometry.attributes.position) {
+      try {
+        const worker = new GenerateMeshBVHWorker();
+        p.bvh = await worker.generate(p.geometry);
+        worker.dispose();
+      } catch (e) {
+        console.warn('BVH worker failed, building on the main thread', e);
+        p.bvh = new MeshBVH(p.geometry);
+      }
+    }
+    return p;
+  }
+
+  constructor(scene, base = null, deferBVH = false) {
     this.base = base;
     scene.updateMatrixWorld(true);
     const geos = [];
@@ -51,7 +68,7 @@ export class Physics {
       }
     });
     this.geometry = geos.length ? mergeGeometries(geos) : new THREE.BufferGeometry();
-    this.bvh = geos.length ? new MeshBVH(this.geometry) : null;
+    this.bvh = geos.length && !deferBVH ? new MeshBVH(this.geometry) : null;
     this.triangles = this.geometry.attributes.position ? this.geometry.attributes.position.count / 3 : 0;
   }
 

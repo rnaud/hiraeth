@@ -59,6 +59,13 @@ export class NPC {
   }
 
   update(dt, player, camera) {
+    // far away: hidden past 260 m, updated at a quarter rate past 110 m
+    const camD0 = camera.position.distanceTo(this.pos);
+    this.object.visible = camD0 < 260;
+    if (this.cape) this.cape.mesh.visible = camD0 < 220;
+    if (camD0 > 260) { this.balloon.classList.remove('show'); return; }
+    if (camD0 > 110) { this._skip = ((this._skip ?? 0) + 1) % 4; this._acc = (this._acc ?? 0) + dt; if (this._skip) return; dt = this._acc; this._acc = 0; }
+    else this._acc = 0;
     this.time += dt;
     const toPlayer = _v.subVectors(player.pos, this.pos);
     toPlayer.y = 0;
