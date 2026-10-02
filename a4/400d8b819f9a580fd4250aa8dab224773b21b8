@@ -1,0 +1,39 @@
+README.md
+  s_aaae6e4311287b::t_e73e294095249c 286-300,302-305,336-346
+public/anim/LICENSE-Quaternius-BaseCharacters-CC0.txt
+  s_aaae6e4311287b::t_8dea0290e53d39 1-22
+public/anim/LICENSE-Quaternius-CC0.txt
+  s_aaae6e4311287b::t_0549b04c4e90b3 1-121
+src/animator.js
+  s_aaae6e4311287b::t_f54f0f7e5f8dc3 1-203
+src/audio.js
+  s_aaae6e4311287b::t_41fb002c3bac63 49,53,58-65,92-104,114-115,253-255
+src/humanoid.js
+  s_aaae6e4311287b::t_c92caa308c4969 1-200
+src/main.js
+  s_aaae6e4311287b::t_08587351ed4394 16-17,158-159,176-182,229,326-327,570
+src/materials.js
+  s_aaae6e4311287b::t_4f416b04b86eb5 26,66-67,70-79,154-156,490-499,608-609
+src/npc.js
+  s_aaae6e4311287b::t_4406d1a4f39da5 4-5,12,21,33-36,57-59,62-72,79,113,121,125,160,163-184,232-233,244-246
+src/player.js
+  s_aaae6e4311287b::t_f7f82c1ebb7faa 8-11,370,404,516,661,777,943-978
+src/quest.js
+  s_aaae6e4311287b::t_3f79e2a3009826 165-173,179,196,198-203
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a4400d8b819f9a580fd4250aa8dab224773b21b8",
+  "prompts": {},
+  "sessions": {
+    "s_aaae6e4311287b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a3718911-2af0-4cef-b5df-15d14f9e5623",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
