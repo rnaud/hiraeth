@@ -429,7 +429,10 @@ export class Humanoid {
       if (planted && !F.locked) {
         F.locked = true;
         F.pos.copy(ball).addScaledVector(up, groundH + ballRest);
-        onStep?.(_i3.copy(ball).addScaledVector(up, groundH), s);
+        // the slope under the foot: the sole and the footprint lie along it
+        F.n = physics.groundNormal(ball.x, ball.y + 1.2, ball.z, F.n ?? new THREE.Vector3());
+        if (F.n.dot(up) < 0.5) F.n.copy(up);
+        onStep?.(_i3.copy(ball).addScaledVector(up, groundH), s, F.n);
       } else if (!planted) F.locked = false;
       if (F.locked && F.pos.distanceTo(ball) > 0.45) F.pos.copy(ball).addScaledVector(up, groundH + ballRest);
       F.w += ((F.locked ? 1 : 0) - F.w) * (1 - Math.exp(-28 * dt));
@@ -458,7 +461,9 @@ export class Humanoid {
       const knee = B[`calf_${s}`].getWorldPosition(new THREE.Vector3());
       const pole = knee.addScaledVector(fwd, 0.6);
       this.solveTwoBone(B[`thigh_${s}`], B[`calf_${s}`], foot, targets[s], pole);
-      // the foot keeps the clip's orientation
+      // the foot keeps the clip's orientation, tilted onto the slope while planted
+      const F = S[s];
+      if (F.n && F.w > 0.01) fq.premultiply(_iq.setFromUnitVectors(up, F.n).slerp(_iq2.identity(), 1 - F.w));
       foot.quaternion.copy(foot.parent.getWorldQuaternion(_iq3).invert().multiply(fq));
       foot.updateMatrixWorld(true);
     }

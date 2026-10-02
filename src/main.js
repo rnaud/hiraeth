@@ -8,6 +8,7 @@ import { applyTimeOfDay, colourScript } from './timeofday.js';
 import { WindStreaks } from './wind.js';
 import { Physics } from './physics.js';
 import { tileScene } from './perf.js';
+import { Trail } from './trail.js';
 import { Flock, Motes, Footprints } from './life.js';
 import { Sound } from './audio.js';
 import { Weather, WEATHER_KINDS } from './weather.js';
@@ -131,7 +132,7 @@ const blit = (() => {
   return { scene, material };
 })();
 
-const overlays = { motes: null };   // sprite overlays sized with the render targets
+const overlays = { motes: null, trail: null };   // sprite overlays sized with the render targets
 
 function resize() {
   const w = window.innerWidth, h = window.innerHeight;
@@ -148,6 +149,7 @@ function resize() {
   sharedUniforms.uPixelRatio.value = pr;
   wind?.uniforms.uRes.value.set(rw, rh);
   if (overlays.motes) { overlays.motes.uniforms.uRes.value.set(rw, rh); overlays.motes.uniforms.uPR.value = pr; }
+  if (overlays.trail) { overlays.trail.uniforms.uRes.value.set(rw, rh); overlays.trail.uniforms.uPR.value = pr; }
 }
 window.addEventListener('resize', () => resize());
 let wind = null;
@@ -199,6 +201,9 @@ const flocks = (lifeCfg.flocks ?? []).map((f) => new Flock(scene, f));
 const motes = lifeCfg.motes ? new Motes(scene, lifeCfg.motes) : null;
 if (motes) motes.uniforms.tNormal.value = gbuffer.textures[1];
 overlays.motes = motes;
+// the hoverbike / skiff trail
+const trail = player.mount && player.mount.kind !== 'bird' ? new Trail() : null;
+if (trail) { trail.uniforms.tNormal.value = gbuffer.textures[1]; trail.uniforms.uInk.value = post.uniforms.uInk.value; overlays.trail = trail; }
 const footprints = lifeCfg.footprints ? new Footprints(scene, { color: lifeCfg.footprints }) : null;
 resize();
 if (footprints) player.onStep = (p, heading, up) => footprints.add(p, heading, up);
@@ -557,6 +562,7 @@ function renderFrame() {
 
   // 4. wind-blown sand and drifting motes, drawn on top (depth-tested against the G-buffer)
   renderer.render(wind.scene, camera);
+  if (trail) renderer.render(trail.scene, camera);
   if (motes) renderer.render(motes.scene, camera);
 
   // 5. downsample the supersampled frame
@@ -643,6 +649,11 @@ function frame() {
       wind.emit(b.pos.x - fx * 1.8, b.pos.z - fz * 1.8, b.vel.x * 0.25 - fz * (Math.random() - 0.5) * 6, b.vel.z * 0.25 + fx * (Math.random() - 0.5) * 6);
   }
   wind.update(dt, player.pos, camera, terrain, pxScale, world.wind);
+  if (trail) {
+    const m = player.mount, moving = Math.hypot(m.vel.x, m.vel.z) > 3 && m.grounded;
+    const g = moving ? new THREE.Vector3(m.pos.x, m.groundAt(m.pos.x, m.pos.y, m.pos.z), m.pos.z) : null;
+    trail.update(dt, g, new THREE.Vector3(m.vel.x, 0, m.vel.z).normalize(), player.frame.up);
+  }
   updateHud();
   level.update(dt, t, { player, rig });
   // levels with zones (the Garage) switch ink style as you cross between them

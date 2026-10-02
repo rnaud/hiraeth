@@ -6,8 +6,8 @@ import { makeMaterial } from './materials.js';
 // banks into turns and pitches with the ground.
 
 const HOVER = 1.15;
-const MAX = 30;
-const BOOST = 48;
+const MAX = 45;      // m/s
+const BOOST = 72;
 const RADIUS = 0.85;
 const LIMIT = 1900;
 

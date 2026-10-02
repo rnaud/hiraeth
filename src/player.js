@@ -7,8 +7,8 @@ const STEP = 0.6;    // obstacles lower than this are stepped onto
 const HEIGHT = 2.2;
 // m/s, matched to the mocap clips: the default pace plays the jog loop at
 // ~1x, SHIFT the sprint loop with a slightly lengthened stride
-const WALK = 3.8;
-const RUN = 8;
+const WALK = 5.5;
+const RUN = 11;
 const GRAVITY = 32;
 const JUMP = 13;
 const LIMIT = 1900;
@@ -686,7 +686,7 @@ export class Player {
       if (this.mantle) { H.resetFeet(); H.reach(this.mantleTargets()); }
       else if (this.climbing) { H.resetFeet(); H.reach(this.climbTargets()); }
       else if (this.onGround && this.animator && !this.thrusting) {
-        H.plantFeet(dt, this.physics, U, this.pos, this.frame.dir(this.heading, _g1).clone(), (p) => this.stepped(p.clone(), 0));
+        H.plantFeet(dt, this.physics, U, this.pos, this.frame.dir(this.heading, _g1).clone(), (p, side, n) => this.stepped(p.clone(), 0, n));
       } else H.resetFeet();
     }
     this.updateCloth(dt);
@@ -1165,8 +1165,8 @@ export class Player {
     return p;
   }
 
-  stepped(p, i) {
-    if (this.onStep) this.onStep(p, this.heading, this.frame.up, i);
+  stepped(p, i, n) {
+    if (this.onStep) this.onStep(p, this.heading, n ? n.clone() : this.frame.up, i);
   }
 }
 

@@ -93,6 +93,20 @@ export class Physics {
     return this.rayDistance(_cap, _dir, 600) - step;
   }
 
+  /** Surface normal of the ground at (x, z) below fromY (meshes or the heightfield). */
+  groundNormal(x, fromY, z, out = new THREE.Vector3()) {
+    const b = this.base ? this.base.heightAt(x, z) : -Infinity;
+    if (this.bvh) {
+      _ray.origin.set(x + 1.37e-4, fromY, z + 2.91e-4);
+      _ray.direction.set(0, -1, 0);
+      const hit = this.bvh.raycastFirst(_ray, THREE.DoubleSide, 0, 600);
+      if (hit && hit.point.y >= b) { out.copy(hit.face.normal).transformDirection(_m.identity()); if (out.y < 0) out.negate(); return out; }
+    }
+    if (!this.base) return out.set(0, 1, 0);
+    const e = 0.35, H = (a, c) => this.base.heightAt(a, c);
+    return out.set(H(x - e, z) - H(x + e, z), 2 * e, H(x, z - e) - H(x, z + e)).normalize();
+  }
+
   /** Distance along a ray to the first hit (or Infinity). */
   rayDistance(origin, dir, far) {
     if (!this.bvh) return Infinity;

@@ -364,6 +364,8 @@ Each of these can be toggled or tuned in the panel's **Beauty** folder.
       roll, and the pelvis drops when needed.
     - Swinging feet follow the terrain, and footprints go where the foot
       landed.
+    - Planted soles are tilted onto the local ground slope, and footprints
+      lie along it.
   - **Climbing:** hands and feet are IK'd onto ray-cast holds on the actual
     wall, in a hand-over-hand cycle.
     - At a ledge, or where the wall leans back into a slope, an animated
