@@ -373,6 +373,27 @@ export class Player {
 
   /** Add the parts that live directly in the scene (the simulated scarf). */
   attach(scene) {
+    // the paraglider: a curved, striped wing over the head with lines down to the hands
+    {
+      const wing = new THREE.Group();
+      // an arc spanning left-right over the head (chord along the flight direction), top at the origin
+      const g = new THREE.CylinderGeometry(4.2, 4.2, 2.2, 28, 1, true, Math.PI - 0.85, 1.7);
+      g.rotateX(Math.PI / 2).translate(0, -4.2, 0);
+      const top = new THREE.Mesh(g, makeMaterial({ color: '#f2c54b', color2: '#c8483a', color3: '#f3ead8', mode: 2, strataSize: 0.35, side: THREE.DoubleSide }));
+      wing.add(top);
+      const lineMat = makeMaterial({ color: '#34405e' });
+      for (const sx of [-1, 1]) for (const k of [0.45, 0.85]) {
+        const a = sx * k;
+        const p0 = new THREE.Vector3(Math.sin(a) * 4.2, Math.cos(a) * 4.2 - 4.2 + 0.0, 0);
+        const p1 = new THREE.Vector3(sx * 0.35, -2.6, 0.1);
+        wing.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.LineCurve3(p0, p1), 1, 0.012, 3), lineMat));
+      }
+      wing.position.set(0, 4.7, -0.4);
+      wing.visible = false;
+      wing.userData.noCollide = true;
+      this.object.add(wing);
+      this.wing = wing;
+    }
     scene.add(this.object);
     this.cape = new Cape(scene, this.char.capeAnchor ?? this.char.torso, { color: this.char.colors.cloak });
     this.tails = this.char.scarfAnchors.map((_, i) =>
@@ -583,7 +604,9 @@ export class Player {
 
     // Jetpack: hold Space in the air (or keep holding after a jump) to thrust
     // while there's fuel; refills on the ground. Out of fuel -> glide.
-    this.thrusting = this.opts.jetpack && !this.onGround && input.Space && this.fuel > 0 && !jumpedNow;
+    // Shift + Space glides even when there's fuel left
+    const wantGlide = !this.onGround && input.Space && (run || !this.opts.jetpack || this.fuel <= 0);
+    this.thrusting = this.opts.jetpack && !this.onGround && input.Space && this.fuel > 0 && !jumpedNow && !wantGlide;
     if (this.thrusting) {
       // tilted forward: part of the thrust drives you along when you steer
       if (move.lengthSq() > 0) tv.addScaledVector(move, JET_THRUST * 0.35 * dt);
@@ -592,8 +615,22 @@ export class Player {
     } else if (this.onGround) {
       this.fuel = Math.min(this.fuel + JET_REFILL * dt, 1);
     }
-    this.gliding = !this.onGround && !this.thrusting && input.Space && vu < 0;
-    if (this.gliding) vu = Math.max(vu, -2.2);
+    // Paraglider: opens when you hold Space while falling. You fly forward with
+    // momentum along your heading: A/D bank and turn, W dives (faster, sinks
+    // more), S flares (slow, floaty).
+    const wasGliding = this.gliding;
+    this.gliding = wantGlide && (vu < 0 || wasGliding);
+    if (this.gliding) {
+      if (!wasGliding) this.glideSpeed = Math.max(Math.hypot(tv.x, tv.z), 11);
+      const target = f > 0 ? 30 : f < 0 ? 7 : 15;
+      this.glideSpeed += (target - this.glideSpeed) * (1 - Math.exp(-(f > 0 ? 0.9 : 0.6) * dt));
+      const sink = f > 0 ? 7 : f < 0 ? 1.3 : 2.4;
+      this.glideTurn = THREE.MathUtils.lerp(this.glideTurn ?? 0, -s * 1.25, 1 - Math.exp(-4 * dt));
+      this.heading += this.glideTurn * dt;
+      tv.copy(F.dir(this.heading, _g6)).multiplyScalar(this.glideSpeed);
+      vu += GRAVITY * dt;                                  // the wing carries you: no free fall
+      vu += (-sink - vu) * (1 - Math.exp(-3 * dt));
+    } else this.glideTurn = 0;
     this.vel.copy(tv).addScaledVector(U, vu);
 
     this.pos.addScaledVector(this.vel, dt);
@@ -661,7 +698,7 @@ export class Player {
     // facing
     const tvel = _v1.copy(this.vel).addScaledVector(U, -this.vel.dot(U));
     const hs = tvel.length();
-    if (hs > 0.5) {
+    if (hs > 0.5 && !this.gliding) {
       let d = F.headingOf(tvel) - this.heading;
       d = Math.atan2(Math.sin(d), Math.cos(d));
       this.heading += d * (1 - Math.exp(-12 * dt));
@@ -670,6 +707,14 @@ export class Player {
   }
 
   finishFrame(dt, hs) {
+    if (this.wing) {
+      // the wing pops open and banks into turns
+      const open = this.gliding ? 1 : 0;
+      this._wingK = THREE.MathUtils.lerp(this._wingK ?? 0, open, 1 - Math.exp(-(open ? 9 : 14) * dt));
+      this.wing.visible = this._wingK > 0.03;
+      this.wing.scale.set(this._wingK, 0.6 + 0.4 * this._wingK, 1);
+      this.wing.rotation.z = -(this.glideTurn ?? 0) * 0.35;
+    }
     this._animAcc += dt;
     if (!this.stopMotion || this._animAcc >= 1 / 12) {
       if (this.mantle) this.animateMantle();

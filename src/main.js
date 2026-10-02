@@ -633,7 +633,7 @@ function frame() {
     photoUpdate(dt);
   } else {
     player.update(dt, ctl, rig.yaw);
-    rig.follow(player.ride?.heading ?? 0, dt, player.riding);
+    rig.follow(player.ride?.heading ?? player.heading, dt, player.riding || player.gliding);
     rig.update(player.pos, dt, player.frame);
   }
   // flocks circle the player (also in photo mode, so you can fly up to them)
