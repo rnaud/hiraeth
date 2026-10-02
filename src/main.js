@@ -201,7 +201,9 @@ const motes = lifeCfg.motes ? new Motes(scene, lifeCfg.motes) : null;
 if (motes) motes.uniforms.tNormal.value = gbuffer.textures[1];
 overlays.motes = motes;
 // the hoverbike / skiff trail
-const trail = player.mount && player.mount.kind !== 'bird' ? new Trail(scene) : null;
+// two trails, one per hover jet
+const trails = player.mount && player.mount.kind !== 'bird' ? [new Trail(scene, { offset: 0 }), new Trail(scene, { offset: 2.5 })] : null;
+const JETS = [new THREE.Vector3(0.66, -0.08, -1.18), new THREE.Vector3(-0.66, -0.08, -1.18)];   // the pods' rear caps
 const footprints = lifeCfg.footprints ? new Footprints(scene, { color: lifeCfg.footprints }) : null;
 resize();
 if (footprints) player.onStep = (p, heading, up) => footprints.add(p, heading, up);
@@ -646,10 +648,10 @@ function frame() {
       wind.emit(b.pos.x - fx * 1.8, b.pos.z - fz * 1.8, b.vel.x * 0.25 - fz * (Math.random() - 0.5) * 6, b.vel.z * 0.25 + fx * (Math.random() - 0.5) * 6);
   }
   wind.update(dt, player.pos, camera, terrain, pxScale, world.wind);
-  if (trail) {
-    // out of the back of the hover, between the two pods
+  if (trails) {
     const m = player.mount, moving = Math.hypot(m.vel.x, m.vel.z) > 3;
-    trail.update(dt, moving ? m.body.localToWorld(new THREE.Vector3(0, -0.05, -1.3)) : null);
+    m.body.updateMatrixWorld(true);
+    trails.forEach((tr, i) => tr.update(dt, moving ? m.body.localToWorld(JETS[i].clone()) : null));
   }
   updateHud();
   level.update(dt, t, { player, rig });
@@ -715,4 +717,4 @@ requestAnimationFrame((t) => {
 });
 
 // handy for debugging from the console
-Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, gate, journal, weather, sound, captureView, settings, menu });
+Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, gate, journal, weather, sound, captureView, settings, menu, trails });

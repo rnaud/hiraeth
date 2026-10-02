@@ -467,7 +467,17 @@ const fragmentShader = /* glsl */ `
     return inkLine(d, 1.0) * broken * (1.0 - smoothstep(0.25, 0.5, fw));
   }
 
+  // ordered 4x4 dither threshold, for print-like dissolves
+  float bayer4(vec2 p) {
+    vec2 q = mod(floor(p), 4.0);
+    int i = int(q.x) + int(q.y) * 4;
+    int m[16] = int[16](0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5);
+    return (float(m[i]) + 0.5) / 16.0;
+  }
+
   void main() {
+    // the hover trail dissolves into dots over its last stretch
+    if (uMode == ${MODE_RIBBON} && bayer4(gl_FragCoord.xy / max(uPixelRatio, 1.0) * 0.5) < smoothstep(0.45, 0.95, vFold.y)) discard;
     // stroke coordinates + derivatives first, in uniform control flow
     vec3 on = uFlat > 0.5 ? cross(dFdx(vObjPos), dFdy(vObjPos)) : vObjNormal;
     vec3 tw = pow(abs(normalize(on)), vec3(3.0));
