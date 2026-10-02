@@ -1,13 +1,15 @@
 import * as THREE from 'three';
 import { buildCharacter } from './player.js';
 import { Cape } from './cape.js';
+import { Animator } from './animator.js';
+import { Humanoid } from './humanoid.js';
 
 // People of the world: they walk a looping route, pause and look around,
 // turn and wave when you come close, then say a line in a comic speech
 // balloon. Shy ones back away if you run at them. Their cloaks are the same
 // cloth simulation as yours, updated only when they are near the camera.
 
-const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _push = new THREE.Vector3();
+const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _d = new THREE.Vector3(), _push = new THREE.Vector3();
 const Y = new THREE.Vector3(0, 1, 0);
 
 export class NPC {
@@ -16,7 +18,7 @@ export class NPC {
    * @param o.palette colours for buildCharacter
    * @param o.lines   things they say
    */
-  constructor(scene, physics, { route, palette, lines, speed = 1.7, shy = false, scale = 1 }) {
+  constructor(scene, physics, { route, palette, lines, speed = 1.25, shy = false, scale = 1, lib = null, human = null, kind = 'm' }) {
     this.physics = physics;
     this.route = route;
     this.lines = lines;
@@ -28,7 +30,10 @@ export class NPC {
     this.object.scale.setScalar(scale);
     this.object.userData.noCollide = true;
     scene.add(this.object);
-    this.cape = new Cape(scene, this.char.torso, { color: this.char.colors.cloak, cols: 10, rows: 8 });
+    const SKINS = ['#e9cfb4', '#d9a98a', '#b07a5a', '#f1dccb', '#8a5a40'];
+    this.humanoid = human ? new Humanoid(human, this.char, kind, { skin: SKINS[Math.floor(Math.random() * SKINS.length)] }) : null;
+    this.cape = new Cape(scene, this.char.capeAnchor ?? this.char.torso, { color: this.char.colors.cloak, cols: 10, rows: 8 });
+    this.animator = lib ? new Animator(lib, this.char) : null;
     this.pos = route[0].clone();
     this.heading = 0;
     this.wp = 1;
@@ -49,17 +54,29 @@ export class NPC {
     const toPlayer = _v.subVectors(player.pos, this.pos);
     toPlayer.y = 0;
     const dist = toPlayer.length();
-    const playerSpeed = Math.hypot(player.vel.x, player.vel.z);
+    const mover = player.ride ?? player;
+    const playerSpeed = Math.hypot(mover.vel.x, mover.vel.z);
+    const greetR = player.riding ? 18 : 9;
     let speed = 0, face = null;
 
-    if (this.shy && dist < 7 && playerSpeed > 6) {
+    // a vehicle bearing down on them: jump aside (perpendicular to its path)
+    const incoming = player.riding && dist < 9 && playerSpeed > 6 &&
+      _w.set(mover.vel.x, 0, mover.vel.z).normalize().dot(_d.copy(toPlayer).normalize().negate()) > 0.6;
+    if (incoming) {
+      _w.set(-mover.vel.z, 0, mover.vel.x).normalize();
+      if (_w.dot(toPlayer) > 0) _w.negate();
+      speed = this.speed * 3.2;
+      this.move(_w, speed, dt);
+      face = Math.atan2(-toPlayer.x, -toPlayer.z) + Math.PI;
+      this.greeted = 0;
+    } else if (this.shy && dist < 7 && playerSpeed > 6) {
       // run away from a charging player
       _w.copy(toPlayer).normalize().negate();
       speed = this.speed * 2.6;
       this.move(_w, speed, dt);
       face = Math.atan2(_w.x, _w.z);
       this.greeted = 0;
-    } else if (dist < 9 && !player.riding) {
+    } else if (dist < greetR) {
       // stop, face the player, wave once
       face = Math.atan2(toPlayer.x, toPlayer.z);
       if (!this.greeted) { this.greeted = this.time; this.lineIdx = (this.lineIdx + 1) % this.lines.length; }
@@ -93,6 +110,7 @@ export class NPC {
     this.pose(dt, speed, this.greeted ? this.time - this.greeted : -1, dist, player);
     this.object.position.copy(this.pos);
     this.object.quaternion.setFromAxisAngle(Y, this.heading);
+    if (camera.position.distanceTo(this.pos) < 160) this.humanoid?.update();
 
     // cloth only near the camera
     const camD = camera.position.distanceTo(this.pos);
@@ -100,11 +118,11 @@ export class NPC {
     if (camD < 70) {
       this.object.updateMatrixWorld(true);
       this.vel.set(Math.sin(this.heading) * speed, 0, Math.cos(this.heading) * speed);
-      this.cape.update(dt, { up: Y, vel: this.vel, wind: player.wind, floor: this.pos, capsules: this.capsules() });
+      this.cape.update(dt, { up: Y, vel: this.vel, wind: player.wind, floor: this.pos, capsules: this.humanoid ? this.humanoid.capsules() : this.capsules() });
     }
 
     // speech balloon
-    const talking = this.greeted && this.time - this.greeted > 0.6 && dist < 9;
+    const talking = this.greeted && this.time - this.greeted > 0.6 && dist < greetR;
     if (talking) {
       _w.copy(this.pos).add(_v.set(0, 2.7, 0)).project(camera);
       const on = _w.z < 1 && Math.abs(_w.x) < 1.1 && Math.abs(_w.y) < 1.1;
@@ -139,9 +157,31 @@ export class NPC {
     return K;
   }
 
-  /** Lightweight procedural walk (NPCs are seen from further away). */
+  /** Mocap clips (walk / jog when fleeing / idle / talking), wave layered on top. */
   pose(dt, speed, waveT, dist, player) {
     const c = this.char;
+    if (this.animator) {
+      const N = this.animator.lib.native;
+      this.animator.update(dt, {
+        speed, onGround: true, mode: waveT >= 0 ? 'talk' : 'ground',
+        walkAt: N.walk * 1.3, jogAt: N.jog, sprintAt: N.sprint * 1.2, strideScale: 1.05,
+      });
+      this.object.position.copy(this.pos);
+      this.object.quaternion.setFromAxisAngle(Y, this.heading);
+      this.animator.apply(this.object, { legScale: 1.04 });
+      if (waveT >= 0 && waveT < 2.2) {
+        const k = Math.min(waveT * 4, 1) * Math.min((2.2 - waveT) * 4, 1);
+        c.arms[1].rotation.set(-0.2 * k, 0, 0.12 + 2.5 * k);
+        c.elbows[1].rotation.set(-(0.3 + 0.5 * Math.sin(waveT * 14) * k), 0, 0);
+      }
+      if (dist < 12) {
+        _v.subVectors(player.pos, this.pos);
+        let a = Math.atan2(_v.x, _v.z) - this.heading;
+        a = Math.atan2(Math.sin(a), Math.cos(a));
+        c.head.rotateY(THREE.MathUtils.clamp(a, -1.1, 1.1) * 0.8);
+      }
+      return;
+    }
     const moving = Math.min(speed / 1.5, 1), run = Math.min(Math.max((speed - 3) / 3, 0), 1);
     this.phase = (this.phase + (speed / THREE.MathUtils.lerp(1.5, 2.6, run)) * dt) % 1;
     const ph = this.phase * Math.PI * 2;
@@ -189,8 +229,8 @@ export class NPC {
  * Scatter a level's people: each walks a small loop around a centre.
  * @param spots [{ at: [x, z] | Vector3, palette, lines, shy, radius }]
  */
-export function spawnNPCs(scene, physics, spots, { fromY = 1e4 } = {}) {
-  return spots.map((s) => {
+export function spawnNPCs(scene, physics, spots, { fromY = 1e4, lib = null, humans = null } = {}) {
+  return spots.map((s, k) => {
     const cx = s.at[0], cz = s.at[1];
     const r = s.radius ?? 14;
     const route = [];
@@ -201,6 +241,8 @@ export function spawnNPCs(scene, physics, spots, { fromY = 1e4 } = {}) {
       const y = physics.groundAt(x, s.y !== undefined ? s.y + 2 : fromY, z);
       route.push(new THREE.Vector3(x, Number.isFinite(y) ? y : 0, z));
     }
-    return new NPC(scene, physics, { route, palette: s.palette, lines: s.lines, shy: s.shy, speed: s.speed });
+    const kind = k % 2 ? 'f' : 'm';
+    return new NPC(scene, physics, { route, palette: s.palette, lines: s.lines, shy: s.shy, speed: s.speed, lib,
+      human: humans ? humans[kind === 'm' ? 0 : 1] : null, kind });
   });
 }

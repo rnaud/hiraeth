@@ -13,6 +13,8 @@ import { Weather, WEATHER_KINDS } from './weather.js';
 import { spawnNPCs } from './npc.js';
 import { Journal, Relics, Story, Gate, turnPage, arriveFromPage } from './quest.js';
 import { CONTENT, nextLevel } from './levels/content.js';
+import { loadAnimationLibrary, Animator } from './animator.js';
+import { loadHuman, Humanoid } from './humanoid.js';
 
 // Loading: each stage updates the inked loading screen, then yields a frame
 // so it can paint (its pen animation runs on the compositor meanwhile).
@@ -153,6 +155,8 @@ const viaGate = query.get('via') === 'gate';
 const meta = levelById(levelParam) ?? LEVELS[0];
 const levelId = meta.id;
 const content = CONTENT[levelId];
+const animLib = loadAnimationLibrary().catch((e) => { console.warn('animation library failed to load', e); return null; });
+const humans = Promise.all([loadHuman('m'), loadHuman('f')]).catch((e) => { console.warn('human models failed to load', e); return null; });
 await stage(`sketching ${meta.title.toLowerCase()}…`);
 const level = meta.create(scene);
 const terrain = level.ground;
@@ -169,6 +173,13 @@ const player = new Player(physics, {
   gravityAt: level.gravityAt, unsafe: level.unsafe, dynamic: level.dynamic,
 });
 player.vehicles.push(...(level.vehicles ?? []));
+const lib = await animLib;
+if (lib) {
+  player.animator = player._animator = new Animator(lib, player.char);
+  console.info('clip ground speeds (m/s):', Object.fromEntries(Object.entries(lib.native).map(([k, v]) => [k, +v.toFixed(2)])));
+}
+const humanT = await humans;
+if (humanT) player.humanoid = new Humanoid(humanT[0], player.char, 'm', { skin: '#e9cfb4' });
 player.attach(scene);
 if (player.mount) scene.add(player.mount.object);
 
@@ -215,7 +226,7 @@ const weather = new Weather(content.weather);
   const stormColor = { desert: '#e3c58f', arzach: '#e8dfcb' }[levelId];
   if (stormColor) post.uniforms.uStormColor.value.set(stormColor);
 }
-const npcs = spawnNPCs(scene, physics, content.npcs);
+const npcs = spawnNPCs(scene, physics, content.npcs, { lib, humans: humanT });
 const journal = new Journal(LEVELS.map((l) => ({ id: l.id, title: l.title, relicNames: CONTENT[l.id].relics.names, storyTitle: CONTENT[l.id].story.title })));
 const capture = (eye, look, w, h) => captureView(eye, look, w, h);
 const relics = new Relics(scene, physics, { levelId, spots: content.relics.spots, names: content.relics.names, journal, sound, capture, lights: levelLights });
@@ -312,6 +323,8 @@ const fTime = gui.addFolder('Time of day');
 fTime.add(sky, 'hour', 0, 24, 0.05).name('hour').listen().onChange(updateSky);
 fTime.add(sky, 'speed', 0, 120, 1).name('hours / minute');
 fTime.add(player, 'stopMotion').name('stop-motion anim');
+const animCfg = { mocap: true };
+fTime.add(animCfg, 'mocap').name('mocap animation').onChange((v) => { player.animator = v ? player._animator : null; });
 
 const world = { wind: level.features.wind };
 
@@ -554,7 +567,7 @@ function frame() {
   }
   for (const n of npcs) n.update(dt, player, camera);
   relics.update(dt, t, player);
-  story.update(dt, t);
+  story.update(dt, t, camera);
   gate.update(dt, t, player);
   const rideK = player.ride?.kind;
   if (rideK === 'bird' && ctl.Space && (flapT -= dt) <= 0) { sound.flap(); flapT = 0.5; }

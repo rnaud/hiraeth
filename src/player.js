@@ -5,8 +5,10 @@ import { Cape } from './cape.js';
 const RADIUS = 0.45;
 const STEP = 0.6;    // obstacles lower than this are stepped onto
 const HEIGHT = 2.2;
-const WALK = 4.5;   // m/s: slower than before so feet can stay planted at a sane cadence
-const RUN = 11;
+// m/s, matched to the mocap clips: the default pace plays the jog loop at
+// ~1x, SHIFT the sprint loop with a slightly lengthened stride
+const WALK = 3.8;
+const RUN = 8;
 const GRAVITY = 32;
 const JUMP = 13;
 const LIMIT = 1900;
@@ -365,7 +367,7 @@ export class Player {
   /** Add the parts that live directly in the scene (the simulated scarf). */
   attach(scene) {
     scene.add(this.object);
-    this.cape = new Cape(scene, this.char.torso, { color: this.char.colors.cloak });
+    this.cape = new Cape(scene, this.char.capeAnchor ?? this.char.torso, { color: this.char.colors.cloak });
     this.tails = this.char.scarfAnchors.map((_, i) =>
       new ClothTail(scene, i === 0 ? { points: 10, seg: 0.2, width: 0.2 } : { points: 7, seg: 0.18, width: 0.16 }));
   }
@@ -399,7 +401,7 @@ export class Player {
         vel: this.ride ? this.ride.vel : this.climbing ? _cv.set(0, 0, 0) : this.vel,
         wind: this.wind,
         floor: this.pos,
-        capsules: this.bodyCapsules(),
+        capsules: this.humanoid ? this.humanoid.capsules() : this.bodyCapsules(),
         spread: this.gliding ? 1 : 0,
         lift: this.thrusting ? 1 : 0,
       });
@@ -511,6 +513,7 @@ export class Player {
       this.ride.update(dt, input, this.time);
       this.pos.copy(this.ride.pos);
       this.ride.seatTransform(this.object.position, this.object.quaternion);
+      this.humanoid?.update();
       this.updateCloth(dt);
       this._animAcc += dt;
       if (!this.stopMotion || this._animAcc >= 1 / 12) {
@@ -655,6 +658,7 @@ export class Player {
     }
     this.object.position.copy(this.pos);
     this.frame.quaternion(this.heading, this.object.quaternion);
+    this.humanoid?.update();
     this.updateCloth(dt);
   }
 
@@ -770,6 +774,7 @@ export class Player {
    * turn. Airborne / glide / jetpack keep authored poses.
    */
   animate(dt, hs) {
+    if (this.animator && !this.thrusting && !this.gliding) return this.animateClips(dt, hs);
     const c = this.char;
     const L = THREE.MathUtils.lerp, sm = THREE.MathUtils.smoothstep;
     const moving = sm(hs, 0.3, 2.5);
@@ -933,6 +938,42 @@ export class Player {
     c.head.rotation.set(-lean * 0.7 + (1 - moving) * Math.sin(t * 0.21) * 0.08, look + swingDiff * 0.15, 0);
     c.hatTip.rotation.x = -hs * 0.02 + Math.cos(2 * ph) * 0.12 * moving + squash * 0.4;
     c.hatTip.rotation.z = Math.sin(ph) * 0.1 * moving;
+  }
+
+  /** Motion-captured clips (Quaternius, CC0) retargeted onto the rig. */
+  animateClips(dt, hs) {
+    const c = this.char, A = this.animator;
+    this._gait = null;
+    for (const f of c.flames) f.visible = false;
+    let dh = this.heading - (this._lastHeading ?? this.heading);
+    dh = Math.atan2(Math.sin(dh), Math.cos(dh));
+    this._lastHeading = this.heading;
+    this._turn = THREE.MathUtils.lerp(this._turn ?? 0, dt > 0 ? dh / dt : 0, 1 - Math.exp(-8 * dt));
+    const N = A.lib.native;
+    // our walk / run speeds land on the walk and sprint clips; jog in between
+    A.update(dt, {
+      speed: hs, onGround: this.onGround, mode: 'ground',
+      walkAt: Math.min(N.walk * 1.2, WALK * 0.4), jogAt: WALK, sprintAt: RUN,
+      strideScale: 1 + 0.3 * THREE.MathUtils.smoothstep(hs, WALK, RUN),
+    });
+    const bank = THREE.MathUtils.clamp(-this._turn * 0.05 * Math.min(hs / WALK, 1), -0.25, 0.25);
+    this.object.position.copy(this.pos);
+    this.frame.quaternion(this.heading, this.object.quaternion);
+    A.apply(this.object, { bank, legScale: 1.04 });
+    c.hatTip.rotation.x = -hs * 0.02 + c.body.position.y * 3;
+    // footstep: a foot reaches its lowest point and starts rising again
+    if (this.onGround && hs > 0.8) {
+      for (let i = 0; i < 2; i++) {
+        const y = c.feet[i].getWorldPosition(_g4).dot(this.frame.up);
+        const prev = this._fy?.[i];
+        const v = prev === undefined ? 0 : y - prev;
+        this._fc = this._fc ?? [0, 0];
+        this._fc[i] -= dt;
+        if ((this._fv?.[i] ?? 0) < -1e-4 && v >= 0 && this._fc[i] <= 0) { this.stepped(_g4.clone(), i); this._fc[i] = 0.28; }
+        (this._fy ??= [])[i] = y;
+        (this._fv ??= [])[i] = v;
+      }
+    }
   }
 
   initGait(fwd, right) {

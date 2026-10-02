@@ -23,6 +23,7 @@ export const MODE_PLAIN = 0;
 export const MODE_TERRAIN = 1;
 export const MODE_STRATA = 2;
 export const MODE_WATER = 3;
+export const MODE_OUTFIT = 4;   // skinned people: clothes by body region (rest pose)
 
 export const sharedUniforms = {
   uSunDir: { value: new THREE.Vector3(0.5, 0.6, 0.3).normalize() },
@@ -62,10 +63,20 @@ const vertexShader = /* glsl */ `
   out float vViewDepth;
   out vec3 vObjPos;
   out vec3 vObjNormal;
+  out vec3 vBind;
+  #include <skinning_pars_vertex>
 
   void main() {
-    vec4 pos = vec4(position, 1.0);
-    vec3 nrm = normal;
+    vec3 transformed = position;
+    vec3 objectNormal = normal;
+    #ifdef USE_SKINNING
+      #include <skinbase_vertex>
+      #include <skinnormal_vertex>
+      #include <skinning_vertex>
+    #endif
+    vBind = position;
+    vec4 pos = vec4(transformed, 1.0);
+    vec3 nrm = objectNormal;
     #ifdef USE_INSTANCING
       pos = instanceMatrix * pos;
       nrm = mat3(instanceMatrix) * nrm;
@@ -140,6 +151,9 @@ const fragmentShader = /* glsl */ `
   in float vViewDepth;
   in vec3 vObjPos;
   in vec3 vObjNormal;
+  in vec3 vBind;
+  uniform vec3 uSkin;
+  uniform vec4 uOutfit;   // bootTop, beltY, neckY, wristX (rest pose, metres)
 
   layout(location = 0) out highp vec4 gAlbedoLight;
   layout(location = 1) out highp vec4 gNormalDepth;
@@ -473,6 +487,16 @@ const fragmentShader = /* glsl */ `
       albedo *= mix(vec3(1.0), vec3(0.945, 0.935, 0.965), b);
     } else if (uMode == ${MODE_STRATA}) {
       albedo = strata(vWorldPos);
+    } else if (uMode == ${MODE_OUTFIT}) {
+      // boots / trousers / belt / tunic with sleeves / skin at the neck and hands
+      vec3 b = vBind;
+      float ax = abs(b.x);
+      if ((b.y > uOutfit.z && ax < 0.16) || ax > uOutfit.w) albedo = uSkin;
+      else if (b.y < uOutfit.x) albedo = uColor3;
+      else if (abs(b.y - uOutfit.y) < 0.03 && ax < 0.25) albedo = uColor2 * 0.6 + vec3(0.33, 0.24, 0.1);
+      else if (b.y < uOutfit.y) albedo = uColor2;
+      else if (ax > uOutfit.w - 0.05) albedo = uColor * 0.75;     // cuffs
+      else albedo = uColor;
     } else if (uMode == ${MODE_WATER}) {
       // two flat tones drifting slowly
       float w = vnoise(vWorldPos.xz * 0.012 + uTime * 0.01);
@@ -581,6 +605,8 @@ export function makeMaterial(o) {
       uRipples: { value: o.ripples ? 1 : 0 },
       uTicks: { value: o.ticks ? 1 : 0 },
       uGlow: { value: o.glow ?? 0 },
+      uSkin: { value: new THREE.Color(o.skin ?? '#e8c6a8') },
+      uOutfit: { value: new THREE.Vector4(...(o.outfit ?? [0.13, 0.97, 1.47, 0.64])) },
     },
   });
   cache.set(key, mat);

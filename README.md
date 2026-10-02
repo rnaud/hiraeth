@@ -283,27 +283,26 @@ Each of these can be toggled or tuned in the panel's **Beauty** folder.
   - acid steam rising in the city-shaft;
   - swaying flowers in Edena;
   - footprints in sand.
-- **The character:** an Arzach-style rider, tall and gaunt, with a long pale
-  face and a long thin nose under a peaked hood.
-  - **The cloak is real cloth** (`src/cape.js`): a 14×11 particle grid pinned
-    at the collar and integrated with Verlet.
+- **The character:** a real human body (Quaternius' Universal Base
+  Characters, CC0) dressed as the Arzach rider: tunic, trousers, belt and
+  boots, coloured by body region in a skinned version of the inked material.
+  The red hood and a cloth cape go on top.
+  - **Motion:** mocap from Quaternius' Universal Animation Library (CC0).
+    - Idle, walk, jog, sprint and jump clips play on a hidden copy of the
+      library skeleton and are retargeted by limb direction onto our rig.
+    - Locomotion blends by speed on one shared gait phase, with playback rate
+      set from each clip's measured stride, so the feet don't skate.
+    - Climbing, riding, gliding and jetpack keep their authored poses.
+  - **The human skeleton** is aimed bone by bone along the rig every frame,
+    keeping each bone's rest twist. The same body drives the NPCs, in male
+    and female versions with varied skin tones.
+  - **The cloak is real cloth** (`src/cape.js`): Verlet particles pinned at
+    the collar.
     - Structural, shear and bend constraints keep its shape.
-    - Gravity follows the local "up", and air drag against your motion and
-      the wind makes it stream behind you.
-    - It collides with capsules on the torso and each leg segment, so the
-      striding legs push it, and with the ground.
-    - When gliding it opens like wings; the jetpack lifts it.
-  - **Planted-feet locomotion:** each foot alternates between stance (planted
-    on the real ground, slopes and rocks included) and swing (an arc to a
-    landing point predicted from your velocity).
-    - Two-bone IK solves hip and knee, the ankle keeps the boot flat, and the
-      pelvis drops when a foot reaches down.
-    - Walking keeps a foot down most of the time; running has a flight phase,
-      compression, lean and pumping arms.
-    - Standing still, feet stay put and take a small corrective step when you
-      turn.
-    - Median foot slip while planted is about 5 mm per frame walking and
-      11 mm running.
+    - It feels gravity along the local "up" and drag from the air and wind,
+      and it collides with the body and legs.
+  - **Toggle:** "mocap animation" in the Time of day folder switches back to
+    the procedural gait for comparison.
 - **Hero landmarks:**
   - the desert: a colossal half-buried masked head;
   - Arzach: a fallen stone colossus and a giant hand rising from the plain;
@@ -334,3 +333,14 @@ procedurally:
 
 Collision uses simple circles against the props, plus an exact height
 lookup on the terrain mesh.
+
+## Credits
+
+- Animations: [Universal Animation Library](https://quaternius.com/packs/universalanimationlibrary.html)
+  by Quaternius, CC0, via the glTF mirror at
+  [J-Ponzo/gltf-universal-animation-library](https://github.com/J-Ponzo/gltf-universal-animation-library).
+  It has been trimmed to the clips used here (`public/anim/ual.glb`).
+- Human body: [Universal Base Characters](https://quaternius.com/packs/universalbasecharacters.html)
+  by Quaternius, CC0, with the Superhero male and female models and
+  textures removed (`public/anim/human_*.glb`).
+- License texts are in `public/anim/`.

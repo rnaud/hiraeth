@@ -46,14 +46,22 @@ export class Sound {
     const wet = ctx.createGain(); wet.gain.value = 0.55;
     this.reverb.connect(wet).connect(this.master);
 
-    this.music = ctx.createGain(); this.music.gain.value = 0.32 * this.musicVol;
+    this.music = ctx.createGain(); this.music.gain.value = 0.62 * this.musicVol;
     this.music.connect(this.master);
     this.musicSend = ctx.createGain(); this.musicSend.gain.value = 0.7;
     this.music.connect(this.musicSend).connect(this.reverb);
-    this.fx = ctx.createGain(); this.fx.gain.value = this.fxVol;
+    this.fx = ctx.createGain(); this.fx.gain.value = 1.6 * this.fxVol;
     this.fx.connect(this.master);
     this.fxSend = ctx.createGain(); this.fxSend.gain.value = 0.25;
     this.fx.connect(this.fxSend).connect(this.reverb);
+
+    // level meters (RMS in dBFS) on each bus, for balancing the mix
+    this.meters = {};
+    for (const [name, node] of [['music', this.music], ['fx', this.fx], ['master', this.master]]) {
+      const an = ctx.createAnalyser(); an.fftSize = 2048;
+      node.connect(an);
+      this.meters[name] = an;
+    }
 
     // shared noise
     const nb = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate), nd = nb.getChannelData(0);
@@ -81,6 +89,19 @@ export class Sound {
     this.scheduler = setInterval(() => this.schedule(), 100);
   }
 
+  /** Current RMS level of each bus in dBFS (-Infinity when silent). */
+  levels() {
+    const out = {};
+    const buf = new Float32Array(2048);
+    for (const [k, an] of Object.entries(this.meters ?? {})) {
+      an.getFloatTimeDomainData(buf);
+      let sum = 0;
+      for (const v of buf) sum += v * v;
+      out[k] = 10 * Math.log10(sum / buf.length + 1e-12);
+    }
+    return out;
+  }
+
   toggleMute() {
     this.muted = !this.muted;
     localStorage.setItem('moebius.muted', this.muted ? '1' : '0');
@@ -90,8 +111,8 @@ export class Sound {
   setVolumes(music, fx) {
     this.musicVol = music; this.fxVol = fx;
     if (!this.ctx) return;
-    this.music.gain.setTargetAtTime(0.32 * music, this.ctx.currentTime, 0.2);
-    this.fx.gain.setTargetAtTime(fx, this.ctx.currentTime, 0.2);
+    this.music.gain.setTargetAtTime(0.62 * music, this.ctx.currentTime, 0.2);
+    this.fx.gain.setTargetAtTime(1.6 * fx, this.ctx.currentTime, 0.2);
   }
 
   noiseLayer(type, freq, q) {
@@ -229,9 +250,9 @@ export class Sound {
   update(s) {
     if (!this.ctx) return;
     const k = Math.min(s.speed / 11, 1.5);
-    this.set('wind', 0.03 + s.gust * 0.05 + s.storm * 0.35 + k * 0.03, 420 + s.gust * 300 + s.storm * 400);
-    this.set('howl', s.gust * 0.012 + s.storm * 0.06 + (s.altitude > 60 ? 0.02 : 0), 700 + Math.sin(this.ctx.currentTime * 0.3) * 250);
-    this.set('rain', s.rain * 0.22);
+    this.set('wind', 0.03 + s.gust * 0.05 + s.storm * 0.11 + k * 0.03, 420 + s.gust * 300 + s.storm * 400);
+    this.set('howl', s.gust * 0.012 + s.storm * 0.025 + (s.altitude > 60 ? 0.02 : 0), 700 + Math.sin(this.ctx.currentTime * 0.3) * 250);
+    this.set('rain', s.rain * 0.07);
     this.set('cloak', s.riding ? 0.04 + k * 0.05 : Math.pow(Math.min(s.speed / 11, 1), 2) * 0.07);
     this.set('jet', s.thrusting ? 0.32 : 0);
     const e = this.engine, t = this.ctx.currentTime;

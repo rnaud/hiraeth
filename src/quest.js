@@ -162,13 +162,21 @@ export class Story {
     this.page.addEventListener('click', () => this.closePage());
     window.addEventListener('keydown', (e) => { if (this.pageOpen && (e.code === 'Enter' || e.code === 'KeyE' || e.code === 'Escape')) this.closePage(); });
     // beacon: a tall thin column of light over the goal
-    const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 240, 8, 1, true), makeMaterial({ color: '#fff3c8', glow: 1, side: THREE.DoubleSide }));
-    beam.position.copy(this.goal).add(new THREE.Vector3(0, 120, 0));
+    // from the ground below the goal to well above it, so it reads from far
+    // below a high goal (Arzach's tower) as well as across a plain
+    const baseY = Math.min(this.goal.y, (physics.groundAt(gx, this.goal.y - 1, gz, 2e4) || this.goal.y));
+    const top = this.goal.y + 260;
+    const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, top - baseY, 8, 1, true).translate(0, (top - baseY) / 2, 0),
+      makeMaterial({ color: '#f2c54b', glow: 1, side: THREE.DoubleSide }));
+    beam.position.set(gx, baseY, gz);
+    beam.userData.noCollide = true;
+    this.beam = beam;
     const halo = new THREE.Mesh(new THREE.TorusGeometry(2.4, 0.12, 6, 32), makeMaterial({ color: '#f2c54b', glow: 1 }));
     halo.rotation.x = Math.PI / 2;
     halo.position.copy(this.goal).add(new THREE.Vector3(0, 0.4, 0));
     this.beacon = new THREE.Group();
     this.beacon.add(beam, halo);
+    this._cam = null;
     this.beacon.userData.noCollide = true;
     this.beacon.visible = !this.done;
     scene.add(this.beacon);
@@ -185,8 +193,14 @@ export class Story {
     }
   }
 
-  update(dt, t) {
+  update(dt, t, camera) {
     this.halo.scale.setScalar(1 + Math.sin(t * 2) * 0.08);
+    // keep the beam at least ~4 px wide however far away you are
+    if (camera) {
+      const d = Math.hypot(camera.position.x - this.goal.x, camera.position.z - this.goal.z);
+      const k = Math.max(1, d * 0.0038);
+      this.beam.scale.set(k, 1, k);
+    }
     if (this.done || this.pageOpen) return;
     const r = this.def.radius ?? 12, p = this.player.pos;
     if (Math.hypot(p.x - this.goal.x, p.z - this.goal.z) < r && Math.abs(p.y - this.goal.y) < Math.max(r, 20)) {
