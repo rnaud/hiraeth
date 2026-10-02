@@ -14,8 +14,133 @@ import { makeMaterial, MODE_OUTFIT } from './materials.js';
 const MODELS = { m: 'anim/human_m.glb', f: 'anim/human_f.glb' };
 const cache = {};
 export function loadHuman(kind = 'm') {
-  cache[kind] ??= new GLTFLoader().loadAsync(MODELS[kind]).then((g) => g.scene);
+  cache[kind] ??= new GLTFLoader().loadAsync(MODELS[kind]).then((g) => { reshape(g.scene, kind); return g.scene; });
   return cache[kind];
+}
+
+// Rest-pose facial landmarks (metres): eyeY, eyeX, noseY, noseZ, chinY
+export const FACE = { m: [1.699, 0.032, 1.657, 0.115, 1.577], f: [1.656, 0.032, 1.617, 0.112, 1.538] };
+
+// ---------------------------------------------------------------------------
+// Turn the stock "superhero" into a gaunt Moebius figure, in the rest pose:
+//  - slim: every vertex is pulled toward the bones it's skinned to (weighted,
+//    so joints stay smooth); the shoulders come in by moving the arm bones;
+//  - face: narrower and longer, a long straight nose, hollow cheeks, a heavy
+//    brow. The ink lines of the face are drawn by the material (outfit mode).
+
+// radial factor per bone, and the bone that ends its segment
+const SLIM = [
+  [/^thigh_/, 0.74], [/^calf_/, 0.78], [/^upperarm_/, 0.66], [/^lowerarm_/, 0.74], [/^clavicle_/, 0.78],
+  [/^spine_0[123]$/, [0.78, 0.84]], [/^pelvis$/, [0.86, 0.88]], [/^neck_01$/, 0.82],
+];
+const NEXT = { pelvis: 'spine_01', spine_01: 'spine_02', spine_02: 'spine_03', spine_03: 'neck_01', neck_01: 'Head',
+  thigh_l: 'calf_l', calf_l: 'foot_l', thigh_r: 'calf_r', calf_r: 'foot_r',
+  clavicle_l: 'upperarm_l', upperarm_l: 'lowerarm_l', lowerarm_l: 'hand_l',
+  clavicle_r: 'upperarm_r', upperarm_r: 'lowerarm_r', lowerarm_r: 'hand_r' };
+const SHOULDER_IN = { m: 0.045, f: 0.02 };
+
+/** Landmarks after reshape(): the lower face is 22% longer, x narrowed 10%. */
+function faceAfterReshape(kind) {
+  const [eyeY, eyeX, noseY, noseZ, chinY] = FACE[kind];
+  const longer = (y) => eyeY + (y - eyeY) * 1.22;
+  return [eyeY, eyeX * 0.9, longer(noseY), noseZ, longer(chinY)];
+}
+
+function reshape(scene, kind) {
+  scene.updateMatrixWorld(true);
+  const meshes = [];
+  scene.traverse((o) => { if (o.isSkinnedMesh) meshes.push(o); });
+  const skel = meshes[0].skeleton;
+  const bones = skel.bones, idx = new Map(bones.map((b, i) => [b.name, i]));
+  const bindPos = bones.map((b) => new THREE.Vector3().setFromMatrixPosition(b.matrixWorld));
+  const seg = bones.map((b) => {
+    const rule = SLIM.find(([re]) => re.test(b.name));
+    const next = NEXT[b.name] !== undefined ? idx.get(NEXT[b.name]) : undefined;
+    if (!rule || next === undefined) return null;
+    const f = Array.isArray(rule[1]) ? rule[1] : [rule[1], rule[1]];
+    return { a: bindPos[bones.indexOf(b)], b: bindPos[next], fx: f[0], fz: f[1], vertical: /spine|pelvis|neck/.test(b.name) };
+  });
+  const armSide = bones.map((b) => {
+    if (/(upperarm|lowerarm|hand|index|middle|ring|pinky|thumb)(_twist)?_?\d*_l$/.test(b.name)) return 1;
+    if (/(upperarm|lowerarm|hand|index|middle|ring|pinky|thumb)(_twist)?_?\d*_r$/.test(b.name)) return -1;
+    if (b.name === 'clavicle_l') return 0.5;
+    if (b.name === 'clavicle_r') return -0.5;
+    return 0;
+  });
+  const [eyeY, , noseY, noseZ, chinY] = FACE[kind];
+  const headI = idx.get('Head');
+  const shoulderIn = SHOULDER_IN[kind];
+  const v = new THREE.Vector3(), out = new THREE.Vector3(), c = new THREE.Vector3(), ab = new THREE.Vector3();
+
+  for (const mesh of meshes) {
+    const g = mesh.geometry;
+    const P = g.attributes.position, J = g.attributes.skinIndex, W = g.attributes.skinWeight;
+    for (let i = 0; i < P.count; i++) {
+      v.fromBufferAttribute(P, i);
+      out.set(0, 0, 0);
+      let wsum = 0, headW = 0, arm = 0;
+      for (let k = 0; k < 4; k++) {
+        const j = J.getComponent(i, k), w = W.getComponent(i, k);
+        if (w <= 0) continue;
+        wsum += w;
+        if (j === headI) headW += w;
+        arm += armSide[j] * w;
+        const sg = seg[j];
+        if (!sg) { out.addScaledVector(v, w); continue; }
+        // closest point on the bone segment, then scale the offset from it
+        ab.subVectors(sg.b, sg.a);
+        const t = THREE.MathUtils.clamp(c.subVectors(v, sg.a).dot(ab) / ab.lengthSq(), 0, 1);
+        c.copy(sg.a).addScaledVector(ab, t);
+        if (sg.vertical) { c.x = sg.a.x; }   // torso: squeeze toward the spine's vertical axis
+        const dx = v.x - c.x, dy = v.y - c.y, dz = v.z - c.z;
+        const fy = sg.vertical ? 1 : sg.fx;
+        out.x += (c.x + dx * sg.fx) * w;
+        out.y += (c.y + dy * fy) * w;
+        out.z += (c.z + dz * sg.fz) * w;
+      }
+      if (wsum > 0) v.copy(out.divideScalar(wsum));
+      // shoulders in: the arms (and half the clavicles) slide toward the body
+      v.x -= Math.sign(arm) * Math.min(Math.abs(arm), 1) * shoulderIn;
+      // the face
+      if (headW > 0.3) {
+        const k = THREE.MathUtils.smoothstep(headW, 0.3, 0.8);
+        let x = v.x * (1 - 0.1 * k), y = v.y, z = v.z;
+        if (y < eyeY) y = eyeY + (y - eyeY) * (1 + 0.22 * k);                       // longer lower face
+        const front = THREE.MathUtils.smoothstep(z, noseZ - 0.045, noseZ - 0.01);
+        // long straight nose: a ridge from between the eyes to below the old tip
+        const along = THREE.MathUtils.clamp((eyeY - 0.004 - y) / (eyeY - noseY + 0.012), 0, 1);
+        const ridge = Math.exp(-((v.x / 0.013) ** 2)) * front * Math.sin(Math.PI * Math.min(along * 1.05, 1)) ** 0.6;
+        z += ridge * 0.03 * k;
+        y -= ridge * along * 0.016 * k;
+        // hollow cheeks under the cheekbones
+        const cheek = Math.exp(-(((Math.abs(v.x) - 0.052) / 0.016) ** 2) - (((y - (noseY - 0.018)) / 0.02) ** 2));
+        z -= cheek * 0.008 * k;
+        x -= Math.sign(v.x) * cheek * 0.005 * k;
+        // heavy brow
+        const brow = Math.exp(-(((y - (eyeY + 0.017)) / 0.008) ** 2)) * THREE.MathUtils.smoothstep(z, 0.03, 0.07);
+        z += brow * 0.007 * k;
+        // a stronger, narrower chin
+        const chin = Math.exp(-((v.x / 0.02) ** 2) - (((y - chinY) / 0.02) ** 2));
+        z += chin * 0.006 * k;
+        v.set(x, y, z);
+      }
+      P.setXYZ(i, v.x, v.y, v.z);
+    }
+    P.needsUpdate = true;
+    g.computeVertexNormals();
+    g.computeBoundingSphere();
+  }
+
+  // move the arm bones in to match, then rebind
+  for (const s of ['l', 'r']) {
+    const ua = bones[idx.get(`upperarm_${s}`)];
+    const parentQ = ua.parent.getWorldQuaternion(new THREE.Quaternion());
+    const parentS = ua.parent.getWorldScale(new THREE.Vector3());
+    const d = new THREE.Vector3(s === 'l' ? -shoulderIn : shoulderIn, 0, 0).applyQuaternion(parentQ.invert()).divide(parentS);
+    ua.position.add(d);
+  }
+  scene.updateMatrixWorld(true);
+  for (const m of meshes) { m.bind(m.skeleton, m.matrixWorld); m.skeleton.calculateInverses(); }
 }
 
 // rest-pose regions per model (metres): bootTop, beltY, neckY, wristX
@@ -36,7 +161,7 @@ export class Humanoid {
     const model = cloneSkinned(template);
     this.model = model;
     const C = char.colors;
-    const body = makeMaterial({ color: C.cloth, color2: C.legs, color3: C.boot ?? '#6e3f2c', mode: MODE_OUTFIT, skin, outfit: OUTFIT[kind] });
+    const body = makeMaterial({ color: C.cloth, color2: C.legs, color3: C.boot ?? '#6e3f2c', mode: MODE_OUTFIT, skin, outfit: OUTFIT[kind], face: faceAfterReshape(kind) });
     const eyes = makeMaterial({ color: C.ink });
     const brows = makeMaterial({ color: hair });
     model.traverse((o) => {

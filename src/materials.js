@@ -154,6 +154,7 @@ const fragmentShader = /* glsl */ `
   in vec3 vBind;
   uniform vec3 uSkin;
   uniform vec4 uOutfit;   // bootTop, beltY, neckY, wristX (rest pose, metres)
+  uniform vec4 uFace;     // eyeY, eyeX, noseY, chinY (rest pose)
 
   layout(location = 0) out highp vec4 gAlbedoLight;
   layout(location = 1) out highp vec4 gNormalDepth;
@@ -355,6 +356,33 @@ const fragmentShader = /* glsl */ `
     return md;
   }
 
+  float segDist(vec2 p, vec2 a, vec2 b) {
+    vec2 ab = b - a;
+    float t = clamp(dot(p - a, ab) / dot(ab, ab), 0.0, 1.0);
+    return length(p - a - ab * t);
+  }
+
+  // Moebius face ink, in rest-pose face coordinates (q.x = |x|, q.y = y - eyeY):
+  // heavy upper lids, bags under the eyes, a frown crease, the nose bridge,
+  // nose-to-mouth folds, cheekbones and the mouth line. fwq = metres per pixel.
+  float faceInk(vec2 q, float fwq, float frontal) {
+    float e = uFace.y, ny = uFace.z - uFace.x, cy = uFace.w - uFace.x;
+    vec2 lid = (q - vec2(e, 0.004)) / vec2(0.017, 0.008);
+    float m = 0.0;
+    float dLid = abs(length(lid) - 1.0) * 0.008;
+    m = max(m, inkLine(dLid / fwq, 1.7) * step(0.0, lid.y + 0.25) * step(abs(lid.x), 1.1));
+    vec2 bag = (q - vec2(e + 0.002, -0.006)) / vec2(0.014, 0.006);
+    m = max(m, inkLine(abs(length(bag) - 1.0) * 0.006 / fwq, 0.9) * step(bag.y, -0.35) * 0.8);
+    m = max(m, inkLine(segDist(q, vec2(0.004, 0.012), vec2(0.0025, 0.026)) / fwq, 1.0));          // frown
+    m = max(m, inkLine(segDist(q, vec2(0.011, 0.002), vec2(0.014, ny + 0.008)) / fwq, 0.9) * 0.8); // bridge
+    m = max(m, inkLine(segDist(q, vec2(0.02, ny - 0.002), vec2(0.036, ny - 0.05)) / fwq, 1.2));    // fold
+    m = max(m, inkLine(segDist(q, vec2(0.042, -0.018), vec2(0.064, -0.036)) / fwq, 1.0) * 0.8);    // cheekbone
+    float my = ny + (cy - ny) * 0.42;
+    m = max(m, inkLine(segDist(q, vec2(0.0, my), vec2(0.021, my + 0.003)) / fwq, 1.2));           // mouth
+    m = max(m, inkLine(segDist(q, vec2(0.0, cy + 0.012), vec2(0.008, cy + 0.011)) / fwq, 1.0) * 0.6); // chin cleft
+    return m * frontal;
+  }
+
   // Wind ripples on sand: broken wavy lines across the prevailing wind, in patches.
   float sandRipples(vec2 p, float fwu, float slope) {
     const vec2 across = vec2(0.82, 0.57);
@@ -450,6 +478,7 @@ const fragmentShader = /* glsl */ `
     vec3 gw = vec3(0.0);
     if (uGrid > 0.0 || uGlyphs > 0.0) { gw = pow(abs(normalize(on)), vec3(6.0)); gw /= (gw.x + gw.y + gw.z); }
     vec2 fwp = fwidth(vWorldPos.xz);
+    float fwBind = max(fwidth(vBind.y), fwidth(vBind.x)) / max(uPixelRatio, 1e-3);
     // drawn-detail coordinates + derivatives (uniform control flow)
     float rippleFw = fwidth(dot(vWorldPos.xz, vec2(0.82, 0.57)) / 1.6);
     float crackFw = max(fwp.x, fwp.y) / 5.5;
@@ -540,6 +569,10 @@ const fragmentShader = /* glsl */ `
     } else if (uMode == ${MODE_STRATA} && abs(normalize(on).y) < 0.6) {
       detail = max(detail, fissures(vec2(faceX, vObjPos.y), fissFw) * 0.85);
     }
+    if (uMode == ${MODE_OUTFIT} && vBind.y > uOutfit.z && abs(vBind.x) < 0.16) {
+      float frontal = smoothstep(0.15, 0.45, normalize(vObjNormal).z);
+      detail = max(detail, faceInk(vec2(abs(vBind.x), vBind.y - uFace.x), fwBind * uPixelRatio, frontal));
+    }
     gHatch.b = detail;
     gHatch.a = max(uGlow, smoothstep(0.15, 0.6, local) * 0.6);
     float dark = clamp((uToon - L) / uToon, 0.0, 1.0);
@@ -607,6 +640,7 @@ export function makeMaterial(o) {
       uGlow: { value: o.glow ?? 0 },
       uSkin: { value: new THREE.Color(o.skin ?? '#e8c6a8') },
       uOutfit: { value: new THREE.Vector4(...(o.outfit ?? [0.13, 0.97, 1.47, 0.64])) },
+      uFace: { value: new THREE.Vector4(...(o.face ?? [1.7, 0.032, 1.657, 1.577]).filter((_, i) => i !== 3)) },
     },
   });
   cache.set(key, mat);
