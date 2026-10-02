@@ -351,7 +351,7 @@ const fragmentShader = /* glsl */ `
     float patchMask = smoothstep(0.55, 0.7, vnoise(p * 0.025 + 3.0));
     float broken = smoothstep(0.35, 0.55, vnoise(vec2(along * 0.35, floor(u) * 7.1)));
     float vis = 1.0 - smoothstep(0.12, 0.3, fwu);
-    return inkLine(d, 0.9) * patchMask * broken * vis * (1.0 - smoothstep(0.15, 0.3, slope));
+    return inkLine(d, 0.9) * patchMask * broken * vis * (1.0 - smoothstep(0.06, 0.16, slope));
   }
 
   // Dried-mud cracks: Voronoi borders, jittered, with some segments missing.

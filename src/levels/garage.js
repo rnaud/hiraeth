@@ -271,6 +271,8 @@ export function createGarage(scene) {
       motes: { count: 140, color: '#f2c54b', size: 0.05, glow: 0.7, rise: 0.15, wind: [0.2, 0.1] },
     },
     gravityAt,
+    // the hanging city faces down: mirror the sun so it's lit, not cross-hatched
+    lightAt: (p, dir) => { if (inB(p)) dir.y = -dir.y; },
     zoneAt: (p) => ZONES[zoneId(p)],
     atmo: (x, z, y) => {
       const zn = ZONES[zoneId({ x, y, z })];

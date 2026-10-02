@@ -147,7 +147,7 @@ level.init?.(physics);
 const player = new Player(physics, {
   mount: level.mount, jetpack: level.features.jetpack, climb: level.features.climb ?? true,
   killY: level.killY, limit: level.limit ?? 1900, spawn: level.spawn, spawnHeading: level.spawnHeading,
-  gravityAt: level.gravityAt, unsafe: level.unsafe,
+  gravityAt: level.gravityAt, unsafe: level.unsafe, dynamic: level.dynamic,
 });
 player.vehicles.push(...(level.vehicles ?? []));
 player.attach(scene);
@@ -242,6 +242,7 @@ fShade.add(U.uHatchScreen, 'value', { 'on surfaces': 0, 'screen space': 1 }).nam
 fShade.add(U.uHighlight, 'value', 0, 0.3, 0.01).name('highlight');
 fShade.addColor(params, 'ink').name('ink').onChange((v) => U.uInk.value.set(v));
 
+sharedUniforms.uCloudShadows.value = level.defaults.cloudShadows ?? 1;
 const fAtmo = gui.addFolder('Atmosphere');
 fAtmo.add(U.uFogDensity, 'value', 0, 0.004, 0.0001).name('haze');
 fAtmo.add(U.uClouds, 'value', 0, 1, 0.01).name('clouds');
@@ -275,6 +276,7 @@ function applyPreset(name) {
   gui.controllersRecursive().forEach((c) => c.updateDisplay());
 }
 applyPreset(params.preset);
+gui.close();   // collapsed by default; click the title to open
 
 // ------------------------------------------------------------------ level picker
 const picker = document.getElementById('picker');
@@ -387,6 +389,7 @@ function frame() {
   // region fog / horizon follow the player smoothly (the field itself is smooth)
   atmo = level.atmo(player.pos.x, player.pos.z, player.pos.y);
   updateSky();
+  level.lightAt?.(player.pos, sharedUniforms.uSunDir.value);
 
   for (const v of player.vehicles) if (v !== player.ride) v.update(dt, null, t);
   if (photo.on) {

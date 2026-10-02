@@ -59,6 +59,8 @@ reopen it at any time, or **1–6** while it's open. Each level is a module in
   - **jetpack:** hold Space in the air; you get about 5 s of fuel;
   - **E** hails a taxi, then gets in. Driving: W/S throttle, A/D steer,
     Space up, Shift down.
+  - taxis are solid: you bump into their sides, and you can land on a roof
+    and ride along; a taxi left idle for 30 s flies back into traffic.
 - **Arzach:**
   - a bone-white world of needle spires, stone arches, floating ruins and a
     lone tower;
@@ -240,10 +242,19 @@ Each of these can be toggled or tuned in the panel's **Beauty** folder.
   - acid steam rising in the city-shaft;
   - swaying flowers in Edena;
   - footprints in sand.
-- **The character:**
-  - knees, so walking, sitting on mounts and climbing bend properly;
-  - a simulated two-tail scarf: a Verlet chain drawn as a ribbon, pushed
-    out of the body, streaming in the wind and behind you as you move.
+- **The character:** a slender masked wanderer with a long-beaked mask, a
+  wide hat with a crooked tip that bounces, a short striped poncho and a
+  walking staff on the back. They have knees and elbows, and a simulated
+  two-tail scarf (a Verlet chain drawn as a ribbon) that streams in the wind.
+  - **Walk and run:** the gait is driven by distance travelled, so the feet
+    don't slide.
+    - Running brings a bigger stride, higher knees and pumping arms.
+    - The body bobs up when walking and compresses when running, leans into
+      speed and banks into turns, and the torso twists against the hips.
+  - **Other movement:** idle breathing and looking around, a squash on
+    landing, and distinct jump, glide, jetpack, climb and riding poses.
+  - **Stop-motion:** 12 fps posing is still available as a "stop-motion
+    anim" toggle.
 - **Hero landmarks:**
   - the desert: a colossal half-buried masked head;
   - Arzach: a fallen stone colossus and a giant hand rising from the plain;

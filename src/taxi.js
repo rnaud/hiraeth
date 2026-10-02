@@ -33,6 +33,9 @@ function buildTaxi(color) {
 }
 
 export class Taxi {
+  // set by the level each frame so idle taxis don't leave while you're beside them
+  static playerPos = null;
+
   /**
    * @param lane  (t, taxi) => void, writes taxi.pos / heading / bank / pitch
    */
@@ -90,9 +93,14 @@ export class Taxi {
 
   update(dt, input, t) {
     this._prev.copy(this.pos);
+    if (this.mode === 'parked') this.idle += dt; else this.idle = 0;
+    // left parked long enough with nobody nearby: fly back into traffic
+    const near = Taxi.playerPos && Taxi.playerPos.distanceTo(this.pos) < 25;
+    if (this.mode === 'parked' && this.idle > 30 && !near) this.mode = 'return';
     if (input && this.mode === 'driven') this.drive(dt, input);
     else if (this.mode === 'lane') this.lane(t, this);
     else if (this.mode === 'hail') this.flyToTarget(dt);
+    else if (this.mode === 'return') this.returnToLane(dt, t);
     else {
       // parked: hover in place
       this.speed *= Math.exp(-2 * dt);
@@ -104,6 +112,27 @@ export class Taxi {
     this.object.position.copy(this.pos);
     this.object.rotation.set(this.pitch, this.heading, this.bank, 'YXZ');
     this.object.updateMatrixWorld();
+  }
+
+  /** Chase where the lane would put us now; rejoin traffic when caught up. */
+  returnToLane(dt, t) {
+    const ghost = this._ghost ??= { pos: new THREE.Vector3(), heading: 0, bank: 0, pitch: 0 };
+    this.lane(t, ghost);
+    _v.subVectors(ghost.pos, this.pos);
+    const d = _v.length();
+    if (d < 2) { this.mode = 'lane'; return; }
+    this.pos.addScaledVector(_v.normalize(), Math.min(Math.max(30, d * 0.8) * dt, d));
+    let dh = (d > 20 ? Math.atan2(_v.x, _v.z) : ghost.heading) - this.heading;
+    dh = Math.atan2(Math.sin(dh), Math.cos(dh));
+    this.heading += dh * (1 - Math.exp(-3 * dt));
+    this.bank = THREE.MathUtils.clamp(-dh * 0.6, -0.4, 0.4);
+    this.pitch = -_v.y * 0.3;
+  }
+
+  /** Solid volume for characters: a vertical cylinder, roof on top. */
+  get solid() {
+    const s = this.scale;
+    return { pos: this.pos, vel: this.vel, r: 1.45 * s, top: this.pos.y + 0.55 * s, bottom: this.pos.y - 0.6 * s };
   }
 
   flyToTarget(dt) {

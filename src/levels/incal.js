@@ -366,7 +366,10 @@ export function createIncal(scene) {
                { count: 10, color: '#f3ead8', size: 1.6, radius: 140, height: [-40, 10], speed: -0.1, seed: 9 }],
       motes: { count: 180, color: '#bdb4c8', size: 0.05, rise: -0.3, wind: [0.4, 0.2] },
     },
-    update(dt, t) {
+    // taxis are solid: bump into them, or land on a roof and ride along
+    dynamic: () => vehicles,
+    update(dt, t, ctx) {
+      if (ctx?.player) Taxi.playerPos = ctx.player.pos;
       for (const m of movers) m.update(t);
       for (const b of banners) b.update(t);
       steam.update(dt);

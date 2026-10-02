@@ -201,10 +201,13 @@ export class Bird {
     this.heading -= Math.tan(this.bank) * 9.8 / Math.max(this.speed, 8) * dt * 2.2;
 
     // energy: diving speeds up, climbing slows down, drag, flaps add thrust
-    this.speed += (Math.sin(this.pitch) * 22 - this.speed * 0.012 * this.speed * 0.5 + (flapping ? 12 : 0)) * dt;
+    // drag only bites above cruising speed, so a level glide keeps its momentum
+    const drag = this.speed > 22 ? (this.speed - 22) * 0.35 : 0.25;
+    this.speed += (Math.sin(this.pitch) * 22 - drag + (flapping ? 12 : 0)) * dt;
     this.speed = THREE.MathUtils.clamp(this.speed, MIN_SPEED, MAX_SPEED);
     const lift = flapping ? 9 : 0;
-    const sink = THREE.MathUtils.mapLinear(this.speed, MIN_SPEED, MAX_SPEED, 5, 0.5);
+    // a level glide holds height from 16 m/s; slower it sinks
+    const sink = THREE.MathUtils.clamp(THREE.MathUtils.mapLinear(this.speed, MIN_SPEED, 16, 2.5, 0), -0.3, 2.5);
 
     const [fx, fz] = this.forward;
     const cp = Math.cos(this.pitch);

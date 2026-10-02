@@ -18,112 +18,166 @@ function part(geo, color, opts = {}) {
   return new THREE.Mesh(geo, makeMaterial({ color, ...opts }));
 }
 
-// A small masked wanderer with a big hat and a long scarf.
+// A slender masked wanderer: long thin legs, a short striped poncho, a mask
+// with a long beak, a wide hat whose crooked tip bounces as they move, and a
+// walking staff on the back.
 function buildCharacter() {
   const root = new THREE.Group();
-  const body = new THREE.Group();
+  const body = new THREE.Group();          // whole-figure bob / lean / bank
   root.add(body);
+  const C = { pants: '#2f3a5a', boot: '#6e3f2c', tunic: '#3f8f8a', poncho: '#f1e6cc', stripe: '#c8483a',
+    skin: '#e9dcc0', mask: '#fffaf0', ink: '#2b211f', hat: '#d8a24a', band: '#c8483a', wood: '#8a5a3c' };
+
+  // pelvis
+  const pelvis = part(new THREE.CylinderGeometry(0.15, 0.16, 0.16, 10), C.pants);
+  pelvis.position.y = 0.98;
+  body.add(pelvis);
 
   // two-segment legs so the knees can bend
   const legs = [], knees = [];
   for (const side of [-1, 1]) {
     const pivot = new THREE.Group();
-    pivot.position.set(side * 0.16, 0.95, 0);
-    const thigh = part(new THREE.CylinderGeometry(0.12, 0.1, 0.5, 6), '#34405e');
-    thigh.position.y = -0.24;
+    pivot.position.set(side * 0.1, 0.95, 0);
+    const thigh = part(new THREE.CylinderGeometry(0.075, 0.062, 0.49, 7), C.pants);
+    thigh.position.y = -0.245;
     const knee = new THREE.Group();
-    knee.position.y = -0.47;
-    const shin = part(new THREE.CylinderGeometry(0.1, 0.085, 0.46, 6), '#34405e');
-    shin.position.y = -0.22;
-    const boot = part(new THREE.BoxGeometry(0.2, 0.14, 0.32), '#7a4a35');
-    boot.position.set(0, -0.45, 0.06);
-    knee.add(shin, boot);
+    knee.position.y = -0.48;
+    const shin = part(new THREE.CylinderGeometry(0.06, 0.045, 0.43, 7), C.pants);
+    shin.position.y = -0.215;
+    const boot = part(new THREE.BoxGeometry(0.12, 0.09, 0.27), C.boot, { flat: true });
+    boot.position.set(0, -0.43, 0.06);
+    const toe = part(new THREE.ConeGeometry(0.06, 0.12, 6).rotateX(Math.PI / 2), C.boot, { flat: true });
+    toe.position.set(0, -0.44, 0.24);
+    knee.add(shin, boot, toe);
     pivot.add(thigh, knee);
     body.add(pivot);
     legs.push(pivot);
     knees.push(knee);
   }
 
-  const robe = part(new THREE.CylinderGeometry(0.27, 0.46, 0.95, 9), '#efe3c6');
-  robe.position.y = 1.35;
-  const belt = part(new THREE.CylinderGeometry(0.3, 0.33, 0.12, 9), '#d9643a');
-  belt.position.y = 1.12;
-  const shoulders = part(new THREE.SphereGeometry(0.33, 10, 6), '#efe3c6');
-  shoulders.scale.set(1.15, 0.55, 0.85);
-  shoulders.position.y = 1.8;
+  // torso pivots at the waist (twist against the hips, lean)
+  const torso = new THREE.Group();
+  torso.position.y = 1.05;
+  body.add(torso);
+  const tunic = part(new THREE.CylinderGeometry(0.13, 0.17, 0.58, 10), C.tunic);
+  tunic.position.y = 0.29;
+  const sash = part(new THREE.TorusGeometry(0.17, 0.028, 6, 16).rotateX(Math.PI / 2), C.stripe);
+  sash.position.y = 0.05;
+  const sashTail = part(new THREE.BoxGeometry(0.05, 0.3, 0.015), C.stripe);
+  sashTail.position.set(0.16, -0.1, 0.06);
+  sashTail.rotation.z = 0.15;
+  const poncho = part(new THREE.CylinderGeometry(0.07, 0.34, 0.36, 12, 1, true), C.poncho, { side: THREE.DoubleSide });
+  poncho.position.y = 0.55;
+  const ponchoBand = part(new THREE.CylinderGeometry(0.345, 0.355, 0.05, 12, 1, true), C.stripe, { side: THREE.DoubleSide });
+  ponchoBand.position.y = 0.4;
+  torso.add(tunic, sash, sashTail, poncho, ponchoBand);
 
-  const arms = [];
+  // arms with elbows
+  const arms = [], elbows = [];
   for (const side of [-1, 1]) {
     const pivot = new THREE.Group();
-    pivot.position.set(side * 0.38, 1.78, 0);
-    const arm = part(new THREE.CylinderGeometry(0.08, 0.07, 0.75, 6), '#efe3c6');
-    arm.position.y = -0.36;
-    const hand = part(new THREE.SphereGeometry(0.09, 6, 4), '#34405e');
-    hand.position.y = -0.76;
-    pivot.add(arm, hand);
-    pivot.rotation.z = side * 0.12;
-    body.add(pivot);
+    pivot.position.set(side * 0.19, 0.64, 0);
+    const upper = part(new THREE.CylinderGeometry(0.042, 0.036, 0.31, 6), C.poncho);
+    upper.position.y = -0.155;
+    const elbow = new THREE.Group();
+    elbow.position.y = -0.31;
+    const fore = part(new THREE.CylinderGeometry(0.036, 0.03, 0.29, 6), C.tunic);
+    fore.position.y = -0.145;
+    const hand = part(new THREE.SphereGeometry(0.05, 6, 4), C.ink);
+    hand.position.y = -0.31;
+    elbow.add(fore, hand);
+    pivot.add(upper, elbow);
+    pivot.rotation.z = side * 0.08;
+    torso.add(pivot);
     arms.push(pivot);
+    elbows.push(elbow);
   }
 
-  const head = part(new THREE.SphereGeometry(0.24, 12, 8), '#e5d6b8');
-  head.position.y = 2.08;
-  const mask = part(new THREE.SphereGeometry(0.21, 12, 8), '#fffaf0');
-  mask.scale.set(1, 1.15, 0.6);
-  mask.position.set(0, 2.06, 0.13);
-  const visor = part(new THREE.BoxGeometry(0.3, 0.05, 0.06), '#2b211f');
-  visor.position.set(0, 2.1, 0.25);
-  const brim = part(new THREE.CylinderGeometry(0.62, 0.62, 0.04, 16), '#d8a24a');
-  brim.position.y = 2.27;
-  const crown = part(new THREE.ConeGeometry(0.26, 0.5, 12), '#d8a24a');
-  crown.position.y = 2.53;
-  const band = part(new THREE.CylinderGeometry(0.255, 0.27, 0.08, 12), '#c8483a');
-  band.position.y = 2.33;
+  // neck, head, beaked mask
+  const neck = part(new THREE.CylinderGeometry(0.038, 0.05, 0.14, 6), C.skin);
+  neck.position.y = 0.76;
+  torso.add(neck);
+  const head = new THREE.Group();
+  head.position.y = 0.9;
+  torso.add(head);
+  head.add(part(new THREE.SphereGeometry(0.13, 12, 9), C.skin));
+  const mask = part(new THREE.SphereGeometry(0.12, 12, 9), C.mask);
+  mask.scale.set(1, 1.2, 0.55);
+  mask.position.set(0, -0.005, 0.075);
+  const beak = part(new THREE.ConeGeometry(0.032, 0.2, 6).rotateX(Math.PI / 2 + 0.25), C.mask, { flat: true });
+  beak.position.set(0, -0.03, 0.2);
+  head.add(mask, beak);
+  for (const side of [-1, 1]) {
+    const eye = part(new THREE.BoxGeometry(0.05, 0.013, 0.02), C.ink);
+    eye.position.set(side * 0.045, 0.035, 0.135);
+    eye.rotation.z = side * -0.25;            // a slightly wry look
+    head.add(eye);
+  }
 
-  const pack = part(new THREE.BoxGeometry(0.46, 0.55, 0.24), '#8a5a3c', { flat: true });
-  pack.position.set(0, 1.5, -0.33);
-  const bedroll = part(new THREE.CylinderGeometry(0.11, 0.11, 0.56, 8), '#5fb7ad');
+  // hat: wide brim, tall crown, crooked tip on a hinge so it can bounce
+  const hat = new THREE.Group();
+  hat.position.y = 0.1;
+  hat.rotation.z = 0.06;
+  head.add(hat);
+  hat.add(part(new THREE.CylinderGeometry(0.43, 0.43, 0.022, 22), C.hat));
+  const band = part(new THREE.CylinderGeometry(0.135, 0.145, 0.05, 12), C.band);
+  band.position.y = 0.035;
+  const crown = part(new THREE.CylinderGeometry(0.06, 0.14, 0.26, 12), C.hat);
+  crown.position.y = 0.16;
+  const hatTip = new THREE.Group();
+  hatTip.position.y = 0.29;
+  hatTip.rotation.x = -0.55;
+  const tip = part(new THREE.ConeGeometry(0.06, 0.26, 10), C.hat);
+  tip.position.y = 0.12;
+  const bead = part(new THREE.SphereGeometry(0.03, 6, 4), C.band);
+  bead.position.y = 0.26;
+  hatTip.add(tip, bead);
+  hat.add(band, crown, hatTip);
+
+  // pack: canister, bedroll and a long walking staff slung across the back
+  const pack = new THREE.Group();
+  const canister = part(new THREE.CylinderGeometry(0.085, 0.085, 0.32, 10), '#5fb7ad');
+  canister.position.set(0.05, 0.36, -0.19);
+  const staff = part(new THREE.CylinderGeometry(0.016, 0.016, 1.55, 5), C.wood);
+  staff.position.set(0, 0.42, -0.24);
+  staff.rotation.z = 0.62;
+  const staffRing = part(new THREE.TorusGeometry(0.05, 0.012, 4, 10).rotateX(Math.PI / 2), C.hat);
+  staffRing.position.set(-0.42, 1.02, -0.24);
+  pack.add(canister, staff, staffRing);
+  const bedroll = part(new THREE.CylinderGeometry(0.06, 0.06, 0.36, 8), C.stripe);
   bedroll.rotation.z = Math.PI / 2;
-  bedroll.position.set(0, 1.85, -0.36);
+  bedroll.position.set(0, 0.6, -0.17);
+  torso.add(pack, bedroll);
 
-  // Scarf: two segments so it can fold while running / gliding.
-  const scarf = new THREE.Group();
-  scarf.position.set(0, 1.92, -0.2);
-  const s1 = part(new THREE.PlaneGeometry(0.34, 0.8), '#c8483a', { side: THREE.DoubleSide });
-  s1.position.y = -0.4;
-  const s2pivot = new THREE.Group();
-  s2pivot.position.y = -0.8;
-  const s2 = part(new THREE.PlaneGeometry(0.34, 0.7), '#c8483a', { side: THREE.DoubleSide });
-  s2.position.y = -0.35;
-  s2pivot.add(s2);
-  scarf.add(s1, s2pivot);
+  // the cloth scarf is simulated (ClothTail); these groups only give the
+  // animation code something to rotate
+  const scarf = new THREE.Group(), scarf2 = new THREE.Group();
+  torso.add(scarf);
+  scarf.add(scarf2);
 
   // Jetpack (Incal level): twin canisters with inked flames.
   const jetpack = new THREE.Group();
-  jetpack.position.set(0, 1.5, -0.36);
+  jetpack.position.set(0, 0.42, -0.2);
   const flames = [];
   for (const side of [-1, 1]) {
-    const can = part(new THREE.CylinderGeometry(0.12, 0.12, 0.6, 10), '#62c3c9');
-    can.position.x = side * 0.14;
-    const cap = part(new THREE.SphereGeometry(0.12, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), '#f3ead8');
-    cap.position.set(side * 0.14, 0.3, 0);
-    const nozzle = part(new THREE.CylinderGeometry(0.07, 0.11, 0.14, 8), '#34405e');
-    nozzle.position.set(side * 0.14, -0.37, 0);
-    const flame = part(new THREE.ConeGeometry(0.1, 0.7, 7), '#f6c04a', { flat: true });
+    const can = part(new THREE.CylinderGeometry(0.095, 0.095, 0.52, 10), '#62c3c9');
+    can.position.x = side * 0.115;
+    const cap = part(new THREE.SphereGeometry(0.095, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), '#f3ead8');
+    cap.position.set(side * 0.115, 0.26, 0);
+    const nozzle = part(new THREE.CylinderGeometry(0.055, 0.09, 0.12, 8), C.pants);
+    nozzle.position.set(side * 0.115, -0.32, 0);
+    const flame = part(new THREE.ConeGeometry(0.08, 0.6, 7), '#f6c04a', { flat: true });
     flame.rotation.x = Math.PI;
-    flame.position.set(side * 0.14, -0.78, 0);
+    flame.position.set(side * 0.115, -0.68, 0);
     flame.visible = false;
     jetpack.add(can, cap, nozzle, flame);
     flames.push(flame);
   }
-  const strap = part(new THREE.BoxGeometry(0.5, 0.08, 0.1), '#8a5a3c');
-  strap.position.set(0, 0.1, 0.06);
-  jetpack.add(strap);
   jetpack.visible = false;
+  torso.add(jetpack);
 
-  body.add(robe, belt, shoulders, head, mask, visor, brim, crown, band, pack, bedroll, scarf, jetpack);
-  s1.visible = s2.visible = false; // replaced by the simulated scarf (ClothTail), kept as its anchor
-  return { root, body, legs, knees, arms, scarf, scarf2: s2pivot, pack, bedroll, jetpack, flames };
+  return { root, body, torso, head, hatTip, legs, knees, arms, elbows, scarf, scarf2, pack, bedroll, jetpack, flames,
+    scarfAnchors: [new THREE.Vector3(-0.05, 1.8, -0.1), new THREE.Vector3(0.06, 1.8, -0.1)] };
 }
 
 const _v1 = new THREE.Vector3();
@@ -194,7 +248,7 @@ class ClothTail {
           _v3.copy(bodyA).addScaledVector(_v2, t);
           _v1.subVectors(p, _v3);
           const d = _v1.length();
-          if (d < 0.42) p.copy(_v3).addScaledVector(d > 1e-4 ? _v1.divideScalar(d) : back, 0.42);
+          if (d < 0.3) p.copy(_v3).addScaledVector(d > 1e-4 ? _v1.divideScalar(d) : back, 0.3);
         }
       }
     }
@@ -279,9 +333,9 @@ export class Player {
     this.gliding = false;
     this.phase = 0;
     this.time = 0;
-    // Pose updates at 12 fps ("on twos"), like Sable's stop-motion feel;
-    // movement itself stays smooth.
-    this.stopMotion = true;
+    // Optional: pose updates at 12 fps ("on twos"), like Sable's stop-motion
+    // feel (Time of day > stop-motion anim); movement itself stays smooth.
+    this.stopMotion = false;
     this._animAcc = 0;
     this._push = new THREE.Vector3();
     this.lastSafe = new THREE.Vector3();
@@ -318,8 +372,8 @@ export class Player {
   attach(scene) {
     scene.add(this.object);
     this.tails = [
-      new ClothTail(scene, { points: 9, seg: 0.21, width: 0.3 }),
-      new ClothTail(scene, { points: 6, seg: 0.19, width: 0.24 }),
+      new ClothTail(scene, { points: 10, seg: 0.2, width: 0.2 }),
+      new ClothTail(scene, { points: 7, seg: 0.18, width: 0.16 }),
     ];
   }
 
@@ -335,7 +389,7 @@ export class Player {
     const a = _ca.set(0, 1.0, 0).applyMatrix4(this.object.matrixWorld);
     const b = _cbb.set(0, 1.75, 0).applyMatrix4(this.object.matrixWorld);
     for (let i = 0; i < this.tails.length; i++) {
-      const anchor = _cA.set(i === 0 ? -0.08 : 0.1, 1.9, -0.24).applyMatrix4(this.object.matrixWorld);
+      const anchor = _cA.copy(this.char.scarfAnchors[i]).applyMatrix4(this.object.matrixWorld);
       this.tails[i].update(dt, anchor, up, side, back, wind, a, b);
     }
   }
@@ -514,8 +568,28 @@ export class Player {
     } else this._press = 0;
     if (this.climbing) { this.finishFrame(dt, 0); return; }
 
+    // Moving solids (taxis): pushed out of their sides, or standing on the roof
+    let carrier = null, roofH = Infinity;
+    if (this.opts.dynamic) {
+      for (const v of this.opts.dynamic()) {
+        if (v === this.ride || !v.solid) continue;
+        const d = v.solid;
+        const dx = this.pos.x - d.pos.x, dz = this.pos.z - d.pos.z, hd = Math.hypot(dx, dz);
+        if (hd > d.r + RADIUS) continue;
+        const above = this.pos.y - d.top;
+        if (above > -0.5 && above < 0.9 && this.vel.y - d.vel.y <= 0.5) {
+          if (above < roofH) { roofH = above; carrier = d; }
+        } else if (this.pos.y + HEIGHT > d.bottom && this.pos.y < d.top - 0.5 && hd > 1e-4) {
+          const k = (d.r + RADIUS) / hd;
+          this.pos.x = d.pos.x + dx * k;
+          this.pos.z = d.pos.z + dz * k;
+        }
+      }
+    }
+
     // Ground: first surface below step height (terrain, rocks, roofs, domes...)
-    const h = this.physics.heightAbove(this.pos, U, STEP);
+    let h = this.physics.heightAbove(this.pos, U, STEP);
+    if (carrier && roofH < h) h = roofH;
     if (this.pos.y < this.opts.killY) this.respawn();
     vu = this.vel.dot(U);
     if (h <= 0 || (this.onGround && h < 0.8 && vu <= 0)) {
@@ -526,6 +600,8 @@ export class Player {
       this.onGround = h <= 0.01;
     }
     if (this.onGround) this.stamina = Math.min(this.stamina + 0.5 * dt, 1);
+    // ride along on whatever you're standing on
+    if (carrier && this.onGround) this.pos.addScaledVector(carrier.vel, dt);
 
     // deep water and other unsafe places put you back where you last stood safely
     if (this.opts.unsafe) {
@@ -619,16 +695,19 @@ export class Player {
   animateClimb() {
     const c = this.char;
     const k = Math.sin(this.phase);
-    c.arms[0].rotation.set(-2.7 + k * 0.35, 0, -0.2);
-    c.arms[1].rotation.set(-2.7 - k * 0.35, 0, 0.2);
-    c.legs[0].rotation.x = -0.5 - k * 0.4;
-    c.legs[1].rotation.x = -0.5 + k * 0.4;
-    c.knees[0].rotation.x = 0.9 + k * 0.4;
-    c.knees[1].rotation.x = 0.9 - k * 0.4;
+    c.arms[0].rotation.set(-2.75 + k * 0.4, 0, -0.15);
+    c.arms[1].rotation.set(-2.75 - k * 0.4, 0, 0.15);
+    c.elbows[0].rotation.x = -0.5 - Math.max(0, k) * 0.7;
+    c.elbows[1].rotation.x = -0.5 - Math.max(0, -k) * 0.7;
+    c.legs[0].rotation.x = -0.6 - k * 0.45;
+    c.legs[1].rotation.x = -0.6 + k * 0.45;
+    c.knees[0].rotation.x = 1.0 + k * 0.45;
+    c.knees[1].rotation.x = 1.0 - k * 0.45;
     c.body.position.y = 0;
-    c.body.rotation.x = -0.05;
-    c.scarf.rotation.x = -0.1;
-    c.scarf2.rotation.x = 0.1;
+    c.body.rotation.set(-0.05, 0, 0);
+    c.torso.rotation.set(0, 0, 0);
+    c.head.rotation.set(-0.35, 0, 0);          // looking up the wall
+    c.hatTip.rotation.x = -0.4;
     for (const fl of c.flames) fl.visible = false;
   }
 
@@ -639,60 +718,134 @@ export class Player {
     c.legs[1].rotation.set(-1.35, 0, -0.12);
     c.knees[0].rotation.x = c.knees[1].rotation.x = 1.45;
     c.body.position.y = 0;
-    c.body.rotation.x = 0.25 + flow * 0.15;
-    c.arms[0].rotation.set(-1.15, 0, -0.25);
-    c.arms[1].rotation.set(-1.15, 0, 0.25);
-    c.scarf.rotation.x = -0.4 - flow * 0.9 + Math.sin(this.time * 18) * 0.06 * flow;
-    c.scarf2.rotation.x = -flow * 0.35 + Math.sin(this.time * 23 + 1) * 0.2 * flow;
+    c.body.rotation.set(0.12 + flow * 0.12, 0, 0);
+    c.torso.rotation.set(0.12, 0, 0);
+    c.arms[0].rotation.set(-1.0, 0, -0.2);
+    c.arms[1].rotation.set(-1.0, 0, 0.2);
+    c.elbows[0].rotation.x = c.elbows[1].rotation.x = -0.6;
+    c.head.rotation.set(-0.15, 0, 0);
+    c.hatTip.rotation.x = -0.55 - flow * 0.5 + Math.sin(this.time * 20) * 0.06 * flow;  // flaps in the wind
+    for (const fl of c.flames) fl.visible = false;
   }
 
+  /**
+   * Walk / run cycle driven by distance travelled (no foot sliding):
+   * hips swing more and knees fold higher as speed rises, the body bobs up at
+   * mid-stance when walking and dips (compresses) when running, leans into
+   * speed and banks into turns, the torso twists against the hips, arms swing
+   * opposite with elbows bending as you run, and the hat tip bounces. Idle has
+   * breathing and a slow look around; landings squash.
+   */
   animate(dt, hs) {
     const c = this.char;
-    const moving = Math.min(hs / WALK, 1.6);
-    this.phase += dt * (4 + hs * 0.55) * (this.onGround ? 1 : 0.3);
-    const swing = this.onGround ? Math.sin(this.phase) * 0.7 * Math.min(moving, 1) : 0.5;
-    c.legs[0].rotation.x = swing;
-    c.legs[1].rotation.x = this.onGround ? -swing : -0.3;
-    // knees bend as each leg swings through; tucked in the air
-    const kb = Math.min(moving, 1);
-    c.knees[0].rotation.x = this.onGround ? Math.max(0, Math.sin(this.phase + 1.4)) * 1.0 * kb + 0.05 : 0.6;
-    c.knees[1].rotation.x = this.onGround ? Math.max(0, Math.sin(this.phase + 1.4 + Math.PI)) * 1.0 * kb + 0.05 : 0.9;
+    const L = THREE.MathUtils.lerp, sm = THREE.MathUtils.smoothstep;
+    const moving = sm(hs, 0.3, 2.5);
+    const run = sm(hs, WALK * 0.8, RUN * 0.9);
+    // turn rate (for banking)
+    let dh = this.heading - (this._lastHeading ?? this.heading);
+    dh = Math.atan2(Math.sin(dh), Math.cos(dh));
+    this._lastHeading = this.heading;
+    this._turn = L(this._turn ?? 0, dt > 0 ? dh / dt : 0, 1 - Math.exp(-8 * dt));
+    // landing squash
+    if (this.onGround && this._wasAir) this._land = Math.min(1, (this._airTime ?? 0) * 1.5);
+    this._wasAir = !this.onGround;
+    this._airTime = this.onGround ? 0 : (this._airTime ?? 0) + dt;
+    this._land = Math.max(0, (this._land ?? 0) - dt * 4);
+
+    if (this.onGround) {
+      const cycle = L(1.55, 3.0, run);                    // metres per full gait cycle
+      this.phase += (hs / cycle) * Math.PI * 2 * dt;
+    }
+    const ph = this.phase;
+    const hipAmp = L(0.5, 0.95, run) * moving;
+    const kneeAmp = L(0.75, 1.75, run) * moving;
+    const hip0 = Math.sin(ph) * hipAmp;                   // + = leg back
+    const knee0 = Math.max(0, -Math.cos(ph)) * kneeAmp;   // folds while swinging forward
+    const knee1 = Math.max(0, Math.cos(ph)) * kneeAmp;
+
     // footprints: a foot plants each half cycle
-    if (this.onGround && hs > 1 && this.onStep && Math.floor(this.phase / Math.PI) !== Math.floor(this._prevPhase / Math.PI)) {
+    if (this.onGround && hs > 1 && this.onStep && Math.floor(ph / Math.PI) !== Math.floor(this._prevPhase / Math.PI)) {
       this._stepSide *= -1;
       const d = this.frame.dir(this.heading, _v1);
       const r = _v2.crossVectors(d, this.frame.up);
-      this.onStep(_v3.copy(this.pos).addScaledVector(r, this._stepSide * 0.16).addScaledVector(d, 0.1), this.heading, this.frame.up);
+      this.onStep(_v3.copy(this.pos).addScaledVector(r, this._stepSide * 0.11).addScaledVector(d, 0.1), this.heading, this.frame.up);
     }
-    this._prevPhase = this.phase;
-    c.body.position.y = this.onGround ? Math.abs(Math.sin(this.phase)) * 0.08 * moving : 0;
-    c.body.rotation.x = Math.min(hs / RUN, 1) * 0.18;
+    this._prevPhase = ph;
 
     for (const f of c.flames) {
       f.visible = this.thrusting;
       f.scale.set(1, 0.8 + Math.random() * 0.6, 1);
     }
-    if (this.thrusting) {
-      c.arms[0].rotation.set(0.25, 0, -0.5);
-      c.arms[1].rotation.set(0.25, 0, 0.5);
-      c.legs[0].rotation.x = 0.2;
-      c.legs[1].rotation.x = -0.15;
-      c.knees[0].rotation.x = 0.5;
-      c.knees[1].rotation.x = 0.3;
-      c.scarf.rotation.x = -0.25 + Math.sin(this.time * 16) * 0.08;
-      c.scarf2.rotation.x = Math.sin(this.time * 19) * 0.25;
-    } else if (this.gliding) {
-      c.arms[0].rotation.set(0, 0, -1.45);
-      c.arms[1].rotation.set(0, 0, 1.45);
-      c.scarf.rotation.x = -1.35 + Math.sin(this.time * 14) * 0.06;
-      c.scarf2.rotation.x = Math.sin(this.time * 17) * 0.2;
-    } else {
-      c.arms[0].rotation.set(-swing * 0.8, 0, -0.12);
-      c.arms[1].rotation.set(swing * 0.8, 0, 0.12);
-      const flow = Math.min(hs / RUN, 1);
-      c.scarf.rotation.x = -0.15 - flow * 0.9 + Math.sin(this.time * 6) * 0.05 * (0.3 + flow);
-      c.scarf2.rotation.x = -flow * 0.4 + Math.sin(this.time * 9 + 1) * 0.15 * flow;
+
+    const t = this.time;
+    const breathe = Math.sin(t * 2.1) * 0.012 * (1 - moving);
+    // vertical bob: up at mid-stance for a walk, compressed for a run
+    const walkBob = 0.5 + 0.5 * Math.cos(2 * ph);
+    const bob = L(walkBob, 1 - walkBob, run) * L(0.035, 0.09, run) * moving;
+    const lean = L(0.03, 0.3, run) * moving;
+    const bank = THREE.MathUtils.clamp(-this._turn * 0.06 * moving, -0.3, 0.3);
+
+    if (!this.onGround && !this.thrusting && !this.gliding) {
+      // airborne: one leg tucked, one reaching, arms up for balance
+      c.legs[0].rotation.x = -0.6; c.legs[1].rotation.x = 0.25;
+      c.knees[0].rotation.x = 1.1; c.knees[1].rotation.x = 0.4;
+      c.arms[0].rotation.set(-0.5, 0, -0.55); c.arms[1].rotation.set(0.3, 0, 0.55);
+      c.elbows[0].rotation.x = -0.9; c.elbows[1].rotation.x = -0.4;
+      c.body.position.y = 0;
+      c.body.rotation.set(0.1, 0, bank);
+      c.torso.rotation.set(0, 0, 0);
+      c.head.rotation.set(-0.1, 0, 0);
+      c.hatTip.rotation.x = -0.25;                        // blown up by the fall
+      return;
     }
+    if (this.thrusting) {
+      c.legs[0].rotation.x = 0.2; c.legs[1].rotation.x = -0.15;
+      c.knees[0].rotation.x = 0.5; c.knees[1].rotation.x = 0.3;
+      c.arms[0].rotation.set(0.25, 0, -0.5); c.arms[1].rotation.set(0.25, 0, 0.5);
+      c.elbows[0].rotation.x = c.elbows[1].rotation.x = -0.3;
+      c.body.position.y = 0;
+      c.body.rotation.set(0.15, 0, bank);
+      c.torso.rotation.set(0, 0, 0);
+      c.head.rotation.set(-0.2, 0, 0);
+      c.hatTip.rotation.x = -1.0 + Math.sin(t * 25) * 0.08;
+      return;
+    }
+    if (this.gliding) {
+      c.legs[0].rotation.x = 0.3; c.legs[1].rotation.x = 0.1;
+      c.knees[0].rotation.x = 0.4; c.knees[1].rotation.x = 0.2;
+      c.arms[0].rotation.set(0, 0, -1.45); c.arms[1].rotation.set(0, 0, 1.45);
+      c.elbows[0].rotation.x = c.elbows[1].rotation.x = 0;
+      c.body.position.y = 0;
+      c.body.rotation.set(0.35, 0, bank * 2);
+      c.torso.rotation.set(0, 0, 0);
+      c.head.rotation.set(-0.3, 0, 0);
+      c.hatTip.rotation.x = -1.1 + Math.sin(t * 14) * 0.08;
+      return;
+    }
+
+    // ---- ground: walk / run / idle
+    const squash = this._land;
+    c.legs[0].rotation.set(hip0 - squash * 0.5, 0, 0.02);
+    c.legs[1].rotation.set(-hip0 - squash * 0.5, 0, -0.02);
+    c.knees[0].rotation.x = knee0 + 0.06 + squash * 1.0;
+    c.knees[1].rotation.x = knee1 + 0.06 + squash * 1.0;
+    c.body.position.y = bob - squash * 0.14 + breathe * 0.3;
+    c.body.rotation.set(lean + squash * 0.15, 0, bank);
+    // torso twists against the hips; idle breathing
+    c.torso.rotation.set(0, Math.sin(ph) * 0.16 * moving, -Math.sin(ph) * 0.03 * run);
+    c.torso.scale.y = 1 + breathe;
+    // arms swing opposite the same-side leg, elbows fold as you run
+    const armK = L(0.8, 1.15, run);
+    c.arms[0].rotation.set(-hip0 * armK, 0, -0.08 - run * 0.1);
+    c.arms[1].rotation.set(hip0 * armK, 0, 0.08 + run * 0.1);
+    c.elbows[0].rotation.x = -(0.15 + L(0.2, 1.5, run) * moving + Math.max(0, -Math.sin(ph)) * 0.4 * run);
+    c.elbows[1].rotation.x = -(0.15 + L(0.2, 1.5, run) * moving + Math.max(0, Math.sin(ph)) * 0.4 * run);
+    // head: keeps looking ahead while moving, looks around when idle
+    const look = (1 - moving) * (Math.sin(t * 0.37) * 0.5 + Math.sin(t * 0.13) * 0.3);
+    c.head.rotation.set(-lean * 0.7 + (1 - moving) * Math.sin(t * 0.21) * 0.08, look - Math.sin(ph) * 0.1 * moving, 0);
+    // hat tip: springs with the bob, trails back with speed
+    c.hatTip.rotation.x = -0.55 - hs * 0.018 + Math.cos(2 * ph) * 0.12 * moving + squash * 0.4;
+    c.hatTip.rotation.z = Math.sin(ph) * 0.1 * moving;
   }
 }
 
@@ -751,7 +904,10 @@ export class CameraRig {
 
     // Line of sight: pull the camera in front of any wall between it and the
     // player (snap in, ease back out).
-    const hit = this.physics.rayDistance(this._look, this._dir, dist + 0.5);
+    // (skipped while gravity is rolling the view: the swinging ray would
+    // otherwise clip the floor and yank the camera in)
+    const rolling = this.camera.up.dot(U) < 0.985;
+    const hit = rolling ? Infinity : this.physics.rayDistance(this._look, this._dir, dist + 0.5);
     const allowed = Math.max(Math.min(dist, hit - 0.6), 1.5);
     this._curDist = allowed < this._curDist ? allowed : this._curDist + (allowed - this._curDist) * (1 - Math.exp(-3 * dt));
     cam.copy(this._look).addScaledVector(this._dir, this._curDist);
