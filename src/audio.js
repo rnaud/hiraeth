@@ -10,11 +10,34 @@ const PROFILES = {
   garage:  { root: 130.81, scale: [0, 2, 4, 6, 8, 10], tempo: 92, pad: 'square', arp: 'sawtooth', prog: [0, 2, 4, 1], density: 0.55, ground: 'stone' },
   edena:   { root: 196.0, scale: [0, 2, 4, 7, 9], tempo: 72, pad: 'triangle', arp: 'sine', prog: [0, 3, 4, 2], density: 0.5, ground: 'grass' },
   perdide: { root: 164.81, scale: [0, 1, 3, 5, 7, 8, 10], tempo: 56, pad: 'sine', arp: 'triangle', prog: [0, 1, 0, 5], density: 0.35, ground: 'grass' },
+  atelier: { root: 130.81, scale: [0, 2, 4, 5, 7, 9, 11], tempo: 60, pad: 'sine', arp: 'sine', prog: [0, 3, 5, 4], density: 0.3, ground: 'stone' },
+};
+
+// Each world's own voice: the lead instrument, its recurring melody (a phrase
+// of [scale degree, beats], played every 16 beats, varied each time), the
+// pluck colour, and the ambience bed.
+const VOICES = {
+  desert:  { lead: 'duduk', pluck: 'kalimba', ambience: 'wind',
+    melody: [[4, 2], [3, 1], [2, 1], [0, 3], [null, 1], [2, 1], [3, 1], [4, 1], [6, 2], [4, 3]] },
+  incal:   { lead: 'reed', pluck: 'marimba', ambience: 'city',
+    melody: [[0, 1], [2, 1], [4, 1], [6, 2], [5, 1], [4, 1], [2, 2], [null, 1], [4, 1], [3, 1], [1, 3]] },
+  arzach:  { lead: 'flute', pluck: 'kalimba', ambience: 'highwind',
+    melody: [[2, 3], [1, 1], [0, 4], [null, 2], [3, 2], [4, 4]] },
+  garage:  { lead: 'synth', pluck: 'synth', ambience: 'machine',
+    melody: [[0, 0.5], [2, 0.5], [4, 0.5], [6, 0.5], [7, 1], [4, 1], [5, 0.5], [3, 0.5], [1, 2]] },
+  edena:   { lead: 'strings', pluck: 'celesta', ambience: 'birds',
+    melody: [[4, 1], [5, 1], [7, 2], [5, 1], [4, 1], [2, 2], [null, 1], [2, 1], [4, 1], [3, 3]] },
+  perdide: { lead: 'bell', pluck: 'bell', ambience: 'swamp',
+    melody: [[0, 2], [5, 2], [4, 1], [2, 1], [1, 4], [null, 2], [0, 4]] },
+  atelier: { lead: 'flute', pluck: 'celesta', ambience: 'paper',
+    melody: [[0, 2], [2, 1], [4, 1], [7, 3], [6, 1], [4, 4]] },
 };
 
 export class Sound {
   constructor(levelId) {
     this.profile = PROFILES[levelId] ?? PROFILES.desert;
+    this.voice = VOICES[levelId] ?? VOICES.desert;
+    this.phrase = 0;
     this.ctx = null;
     this.muted = localStorage.getItem('moebius.muted') === '1';
     this.musicVol = 0.8;
@@ -150,13 +173,124 @@ export class Sound {
         for (const k of [0, 2, 4]) this.pad(this.freq(root + k), t, spb * 8.5);
         this.bass(this.freq(root, -1), t, spb * 8);
       }
-      if (Math.random() < P.density) {      // sparse arpeggio
+      if (this.beat % 16 === 4) this.playPhrase(t, spb);   // the world's melody, every 16 beats
+      if (Math.random() < P.density * (this.beat % 16 < 4 ? 1 : 0.55)) {      // sparse arpeggio, quieter under the melody
         const deg = this.chord + [0, 2, 4, 7, 9][Math.floor(Math.random() * 5)];
-        this.pluck(this.freq(deg, 1), t + (Math.random() < 0.3 ? spb / 2 : 0));
+        this.instrument(this.voice.pluck, this.freq(deg, 1), t + (Math.random() < 0.3 ? spb / 2 : 0), 0.4, 0.07);
       }
+      this.ambienceTick(t, spb);
       this.beat++;
       this.nextBeat += spb;
     }
+  }
+
+  // ------------------------------------------------------------------ voices
+  playPhrase(t, spb) {
+    const M = this.voice.melody, n = this.phrase++;
+    const shift = [0, 0, 2, -1][n % 4];        // a varied answer every few phrases
+    const oct = n % 3 === 2 ? 1 : 0;
+    let tt = t;
+    for (const [deg, beats] of M) {
+      if (deg !== null && !(n % 5 === 4 && Math.random() < 0.3)) this.instrument(this.voice.lead, this.freq(deg + shift, oct), tt, beats * spb, 0.11);
+      tt += beats * spb;
+    }
+  }
+
+  /** One note of a named instrument. dur in seconds. */
+  instrument(kind, f, t, dur, vol) {
+    const ctx = this.ctx, out = ctx.createGain();
+    const pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+    if (pan) { pan.pan.value = Math.random() * 0.8 - 0.4; out.connect(pan).connect(this.music); } else out.connect(this.music);
+    const env = (g, a, d, peak, sustain = 0) => {
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(peak, t + a);
+      if (sustain) { g.gain.setValueAtTime(peak, t + Math.max(a, dur - d)); g.gain.linearRampToValueAtTime(0, t + dur + d); }
+      else g.gain.exponentialRampToValueAtTime(0.0005, t + a + d);
+    };
+    const osc = (type, freq, dest, detune = 0) => { const o = ctx.createOscillator(); o.type = type; o.frequency.value = freq; o.detune.value = detune; o.connect(dest); o.start(t); o.stop(t + dur + 3); return o; };
+    const vib = (o, rate, depth) => { const l = ctx.createOscillator(), lg = ctx.createGain(); l.frequency.value = rate; lg.gain.value = depth; l.connect(lg).connect(o.frequency); l.start(t + 0.15); l.stop(t + dur + 3); };
+    const filt = (type, fr, q = 0.7) => { const b = ctx.createBiquadFilter(); b.type = type; b.frequency.value = fr; b.Q.value = q; b.connect(out); return b; };
+    if (kind === 'duduk' || kind === 'reed') {          // breathy double reed / clarinet-ish
+      const b = filt('lowpass', kind === 'duduk' ? 1400 : 2200, 2);
+      const o = osc(kind === 'duduk' ? 'sawtooth' : 'square', f, b); vib(o, 5, f * 0.006);
+      env(out, 0.12, 0.25, vol, true);
+    } else if (kind === 'flute') {                       // sine + breath noise
+      const o = osc('sine', f, out); vib(o, 5.5, f * 0.005);
+      osc('triangle', f * 2, out).frequency.value = f * 2;
+      const n = ctx.createBufferSource(); n.buffer = this.noiseBuf; const nb = ctx.createBiquadFilter(); nb.type = 'bandpass'; nb.frequency.value = f * 2; nb.Q.value = 3;
+      const ng = ctx.createGain(); ng.gain.value = 0.25; n.connect(nb).connect(ng).connect(out); n.start(t); n.stop(t + dur + 0.5);
+      env(out, 0.15, 0.3, vol * 0.9, true);
+    } else if (kind === 'strings') {                     // detuned saws, slow bow
+      const b = filt('lowpass', 1800, 0.5);
+      for (const d of [-9, 0, 8]) vib(osc('sawtooth', f, b, d), 4.5, f * 0.004);
+      env(out, 0.35, 0.6, vol * 0.55, true);
+    } else if (kind === 'synth') {                       // bright analog lead
+      const b = filt('lowpass', 2600, 6);
+      osc('sawtooth', f, b, -6); osc('square', f / 2, b, 4);
+      env(out, 0.01, 0.12, vol * 0.7, true);
+    } else if (kind === 'bell') {                        // FM bell
+      const car = ctx.createOscillator(), mod = ctx.createOscillator(), mg = ctx.createGain();
+      car.frequency.value = f; mod.frequency.value = f * 3.5; mg.gain.setValueAtTime(f * 2.5, t); mg.gain.exponentialRampToValueAtTime(1, t + 2.5);
+      mod.connect(mg).connect(car.frequency); car.connect(out);
+      car.start(t); mod.start(t); car.stop(t + 4); mod.stop(t + 4);
+      env(out, 0.005, 2.6, vol * 0.8);
+    } else if (kind === 'marimba') {
+      osc('sine', f, out); osc('sine', f * 4, out).detune.value = 3;
+      env(out, 0.003, 0.5, vol);
+    } else if (kind === 'celesta') {
+      osc('sine', f * 2, out); osc('triangle', f * 4, out);
+      env(out, 0.003, 1.0, vol * 0.7);
+    } else {                                             // kalimba (default pluck)
+      const b = filt('lowpass', 2400, 1);
+      osc('triangle', f, b); osc('sine', f * 2.01, b);
+      env(out, 0.004, 0.9, vol);
+    }
+  }
+
+  // ------------------------------------------------------------------ ambience beds
+  ambienceTick(t, spb) {
+    const A = this.voice.ambience, R = Math.random();
+    if (A === 'birds' && R < 0.35) {                     // little chirps, in twos and threes
+      const base = 2400 + Math.random() * 2200, n = 2 + Math.floor(Math.random() * 3);
+      for (let i = 0; i < n; i++) this.chirp(t + i * 0.09 + Math.random() * spb, base * (1 + (Math.random() - 0.5) * 0.2), 0.05);
+    } else if (A === 'city') {
+      if (R < 0.08) this.horn(t + Math.random() * spb);
+      if (R > 0.6) this.burst(t + Math.random() * spb, { dur: 1.4, type: 'bandpass', freq: 300 + Math.random() * 200, q: 0.8, vol: 0.05, rate: 0.5 });   // a taxi passing
+    } else if (A === 'swamp') {
+      if (R < 0.3) this.croak(t + Math.random() * spb);
+      if (R > 0.75) this.burst(t, { dur: 0.6, type: "bandpass", freq: 5200, q: 6, vol: 0.006 });   // insects
+    } else if (A === 'machine') {
+      for (let i = 0; i < 2; i++) this.burst(t + i * spb / 2, { dur: 0.03, type: 'highpass', freq: 3000, q: 1, vol: 0.06 });   // ticking gears
+      if (R < 0.1) this.burst(t, { dur: 0.5, type: 'lowpass', freq: 140, q: 1, vol: 0.18, rate: 0.4 });                       // a piston thump
+    } else if (A === 'highwind' && R < 0.12) {
+      this.burst(t, { dur: 3, type: 'bandpass', freq: 600 + Math.random() * 500, q: 4, vol: 0.06, rate: 0.6 });
+    } else if (A === 'paper' && R < 0.15) {
+      this.burst(t + Math.random() * spb, { dur: 0.4, type: 'highpass', freq: 2500, q: 0.6, vol: 0.03, rate: 0.7 });
+    }
+  }
+
+  chirp(t, f, vol) {
+    const ctx = this.ctx, o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = 'sine'; o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * 1.5, t + 0.06);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0005, t + 0.08);
+    o.connect(g).connect(this.fx); o.start(t); o.stop(t + 0.1);
+  }
+
+  horn(t) {
+    const ctx = this.ctx, g = ctx.createGain(), b = ctx.createBiquadFilter();
+    b.type = 'lowpass'; b.frequency.value = 900; g.gain.value = 0;
+    for (const f of [233, 294]) { const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; o.connect(b); o.start(t); o.stop(t + 0.7); }
+    b.connect(g).connect(this.fx);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.025, t + 0.05); g.gain.linearRampToValueAtTime(0, t + 0.6);
+  }
+
+  croak(t) {
+    const ctx = this.ctx, o = ctx.createOscillator(), g = ctx.createGain(), am = ctx.createOscillator(), ag = ctx.createGain();
+    o.type = 'sawtooth'; o.frequency.value = 90 + Math.random() * 60;
+    am.frequency.value = 28; ag.gain.value = 0.5; am.connect(ag).connect(g.gain);
+    const b = ctx.createBiquadFilter(); b.type = 'lowpass'; b.frequency.value = 500;
+    o.connect(b).connect(g).connect(this.fx);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.009, t + 0.05); g.gain.linearRampToValueAtTime(0, t + 0.35);
+    o.start(t); am.start(t); o.stop(t + 0.4); am.stop(t + 0.4);
   }
 
   pad(f, t, dur) {
@@ -251,7 +385,9 @@ export class Sound {
     if (!this.ctx) return;
     const k = Math.min(s.speed / 11, 1.5);
     this.set('wind', 0.03 + s.gust * 0.05 + s.storm * 0.11 + k * 0.03, 420 + s.gust * 300 + s.storm * 400);
-    this.set('howl', s.gust * 0.012 + s.storm * 0.025 + (s.altitude > 60 ? 0.02 : 0), 700 + Math.sin(this.ctx.currentTime * 0.3) * 250);
+    const highWind = this.voice.ambience === 'highwind' ? 0.03 : 0;
+    this.set('howl', s.gust * 0.012 + s.storm * 0.025 + highWind + (s.altitude > 60 ? 0.02 : 0), 700 + Math.sin(this.ctx.currentTime * 0.3) * 250);
+    this.set('wind', 0.03 + s.gust * 0.05 + s.storm * 0.11 + k * 0.03 + (this.voice.ambience === 'city' ? 0.02 : 0), 420 + s.gust * 300 + s.storm * 400);
     this.set('rain', s.rain * 0.07);
     this.set('cloak', s.riding ? 0.04 + k * 0.05 : Math.pow(Math.min(s.speed / 11, 1), 2) * 0.07);
     this.set('jet', s.thrusting ? 0.32 : 0);

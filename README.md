@@ -229,6 +229,30 @@ poses update at 12 fps ("stop-motion anim") while movement stays smooth.
   It unlocks a seventh world, **The Atelier**: a blank page with pencil
   sketches of every landmark and the artist at his table.
 
+## Interiors, crowds and the glider
+
+- **Interiors** (`src/interiors.js`): rooms are real geometry, with walls
+  that have door and window openings, so the sun's shadow map throws light
+  patches inside. Each has furniture and a glowing lamp.
+  - **City:** three villas behind the spawn you walk straight into.
+  - **Desert:** a carved doorway in front of the masked head leads to a
+    glyph chamber under an oculus.
+  - **Edena:** a hatch beside the crashed ship opens onto its cabin.
+  - Rooms that can't fit inside their building are built high above the
+    map and reached through doorway portals.
+- **City street life:**
+  - a promenade along every terrace edge, with villagers walking it;
+  - market stalls with awnings and goods;
+  - laundry lines strung across the walkways;
+  - passengers riding in the taxis.
+  Only the nearest speaker's balloon shows, and far villagers update at a
+  quarter rate or are hidden.
+- **Paraglider:** hold Space while falling, or Shift+Space in jetpack
+  worlds, to open a striped wing.
+  - You fly forward with momentum: A/D bank and turn, W dives (up to
+    30 m/s), and S flares.
+  - The glide ratio is about 6:1, and the camera swings behind you.
+
 ## Story, people, sound and weather
 
 - **Story** (`src/quest.js`, `src/levels/content.js`):
@@ -249,6 +273,17 @@ poses update at 12 fps ("stop-motion anim") while movement stays smooth.
   Arzach → Garage → Edena → Perdide → desert).
 - **Sound** (`src/audio.js`): everything is synthesised with Web Audio, with
   no audio files.
+  - Each world has its own lead instrument and a recurring melody, played
+    every 16 beats and varied each time:
+    - desert: duduk and kalimba;
+    - city-shaft: reed and marimba;
+    - Arzach: flute;
+    - Garage: analog synth;
+    - Edena: strings and celesta;
+    - Perdide: FM bells.
+  - Each also has its own ambience bed: city horns and passing taxis,
+    birdsong, frogs and insects, ticking gears, high wind, or rustling
+    paper.
   - A generative score per world: its own scale, tempo, pads, bass and
     sparse arpeggios, with reverb.
   - Wind that follows the gusts and storms, and rain.
@@ -291,6 +326,14 @@ Modelled on a classic Moebius desert plate:
   so they stay put and round as the camera turns.
 
 ## Performance
+
+- **Background collision:** the collision BVH is built in a web worker.
+  The game code itself takes about 0.5 s to load a world.
+- **City grouping:** the city's merged town is grouped per terrace level, so
+  whole levels can be culled.
+- **Distance detail:** trees and roofs far above or below the camera are
+  hidden, and trees stay out of the far shadow pass. That cut about 20–40%
+  of the triangles per frame.
 
 `src/perf.js` splits the terrain and the big scattered-prop sets into
 260 m tiles. Each pass (the view and the three shadow cascades) then draws
