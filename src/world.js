@@ -186,6 +186,7 @@ export function buildWorld(scene, terrain) {
   const floaters = [];  // { obj, baseY, phase }
   const banners = [];
   const lights = [];    // glowing things that light their surroundings at night
+  const doors = [];     // doorways into interiors
 
   scene.add(terrain.mesh);
 
@@ -447,7 +448,10 @@ export function buildWorld(scene, terrain) {
     crest.position.set(0, 44, -8);
     grp.add(head, mask, ridge, mouth, crest);
     grp.position.set(x, base + 14, z);   // chin in the sand, the whole face clear of the dunes
-    grp.rotation.set(-0.05, 0.75, 0.12);   // face turned toward the morning sun (east)
+    grp.rotation.set(-0.05, 0.75, 0.12);
+    // a carved doorway in the sand in front of the face leads inside
+    const fx = Math.sin(0.75), fz = Math.cos(0.75), dx = x + fx * 40, dz = z + fz * 40;
+    doors.push({ at: new THREE.Vector3(dx, terrain.heightAt(dx, dz), dz), heading: 0.75, name: 'head' });   // face turned toward the morning sun (east)
     scene.add(grp);
     footprints.push({ x, z, r: 40 });
   }
@@ -593,5 +597,5 @@ export function buildWorld(scene, terrain) {
     scene.add(m);
   }
 
-  return { floaters, banners, lights };
+  return { floaters, banners, lights, doors };
 }

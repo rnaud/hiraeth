@@ -5,6 +5,7 @@ import { makeMaterial, MODE_STRATA } from '../materials.js';
 import { Taxi } from '../taxi.js';
 import { soften } from '../world.js';
 import { Banner, Puffs } from '../life.js';
+import { buildRoom } from '../interiors.js';
 
 // ---------------------------------------------------------------------------
 // "La Cité-Puits": the city-shaft from Jodorowsky & Moebius' L'Incal.
@@ -518,6 +519,22 @@ export function createIncal(scene) {
     if (key.startsWith('roof') && !key.endsWith('@misc')) lod.push({ obj: m, y, far: 380 });
   }
 
+  // three villas behind the spawn you can walk into (doors face the pit)
+  const roomLights = [];
+  for (const [vz, wcol] of [[-26, '#f1e6cf'], [2, '#ead7b5'], [30, '#efe2c8']]) {
+    const room = buildRoom(scene, {
+      pos: new THREE.Vector3(R + 44, TOP, vz), rot: -Math.PI / 2, w: 10, d: 9, h: 4.6,
+      wall: { color: wcol, color2: '#e6cfae' }, floor: '#c8673f', ceiling: '#e9dcc2',
+      windows: [{ side: 'left', x: 4.5, y: 1.2, w: 1.6, h: 1.6 }, { side: 'right', x: 4.5, y: 1.2, w: 1.6, h: 1.6 }, { side: 'back', x: 5, y: 1.3, w: 2.2, h: 1.4 }, { side: 'front', x: 2, y: 1.2, w: 1.4, h: 1.4 }],
+      furniture: [['table', 0, -0.5, 0], ['chair', -1.3, -0.5, Math.PI / 2], ['chair', 1.3, -0.5, -Math.PI / 2], ['bed', 3.6, -2.6, 0, '#8a5a3c', '#5fb7ad'],
+        ['shelf', -3.6, -4.0, 0], ['rug', 0, 1.6, 0, '#8a5a3c', '#d8a24a'], ['pot', -4.2, 3.4]],
+    });
+    roomLights.push(...room.lights);
+    // a terracotta roof on top, like the town below
+    const roof = new THREE.Mesh(new THREE.ConeGeometry(8.2, 3.2, 4).rotateY(Math.PI / 4).scale(1.05, 1, 0.95), makeMaterial({ color: ROOFS[Math.floor(rng() * 4)], flat: true }));
+    roof.position.set(R + 44, TOP + 4.6 + 1.6 + 0.3, vz);
+    scene.add(roof);
+  }
   // a railing and cypresses at the spawn, looking out over the town (as in the plate)
   {
     const rail = new THREE.TubeGeometry(new THREE.LineCurve3(new THREE.Vector3(R + 0.6, TOP + 1.1, -30), new THREE.Vector3(R + 0.6, TOP + 1.1, 30)), 8, 0.12, 8);
@@ -575,6 +592,7 @@ export function createIncal(scene) {
       if (inside && dir.y > 0.05) { dir.y += 0.9; dir.normalize(); }
     },
     smallProps: small,
+    get lights() { return roomLights; },
     // walking routes for the crowd: arcs along each terrace promenade
     crowd() {
       const out = [];

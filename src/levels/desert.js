@@ -2,11 +2,30 @@ import * as THREE from 'three';
 import { Terrain, buildWorld } from '../world.js';
 import { biomeAtmosphere } from '../biome.js';
 import { Hoverbike } from '../bike.js';
+import { makeMaterial } from '../materials.js';
+const makeGlow = () => makeMaterial({ color: '#fffaf0', glow: 1 });
+import { buildRoom, doorwayPortals } from '../interiors.js';
 
 // The original open desert: dunes, mesas, regions, hoverbike and wind.
 export function createDesert(scene) {
   const terrain = new Terrain();
-  const { floaters, banners, lights } = buildWorld(scene, terrain);
+  const { floaters, banners, lights, doors } = buildWorld(scene, terrain);
+  // inside the masked head: a glyph-carved chamber under an oculus, built high above the map
+  const portals = [];
+  for (const d of doors) {
+    const room = buildRoom(scene, {
+      pos: new THREE.Vector3(0, 1500, 0), w: 14, d: 14, h: 8, oculus: 3,
+      wall: { color: '#e6cfae', color2: '#d9a477', glyphs: true, grid: 1.4 }, floor: '#c98f5f',
+      furniture: [['pedestal', 0, 0, 0, '#f3ead8'], ['bench', -4.5, 0, Math.PI / 2, '#c9a27a'], ['bench', 4.5, 0, Math.PI / 2, '#c9a27a'], ['rug', 0, 3, 0, '#c8483a', '#c8483a']],
+      lamp: '#f2c54b',
+    });
+    // a little glowing mask on the pedestal
+    const mask = new THREE.Mesh(new THREE.SphereGeometry(0.45, 14, 10).scale(0.9, 1.15, 0.5), makeGlow());
+    mask.position.copy(room.group.localToWorld(new THREE.Vector3(0, 1.6, 0)));
+    scene.add(mask);
+    lights.push(...room.lights, new THREE.Vector4(mask.position.x, mask.position.y, mask.position.z, 9));
+    portals.push(...doorwayPortals(scene, { at: d.at, heading: d.heading, room }));
+  }
   return {
     id: 'desert',
     ground: terrain,
@@ -18,6 +37,7 @@ export function createDesert(scene) {
     mountName: 'hoverbike',
     defaults: { hour: 9.5, preset: 'Moebius print' },
     lights,
+    portals,
     life: {
       flocks: [{ count: 9, color: '#3a2f2a', size: 2.6, radius: 110, height: [40, 90], seed: 1 },
                { count: 6, color: '#3a2f2a', size: 2.8, radius: 70, height: [55, 110], speed: -0.09, seed: 4 }],

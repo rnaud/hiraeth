@@ -3,6 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createNoise2D, fbm, mulberry32, smoothstep } from '../noise.js';
 import { makeMaterial, MODE_TERRAIN, MODE_STRATA, MODE_WATER } from '../materials.js';
 import { Terrain, jitter, soften } from '../world.js';
+import { buildRoom, doorwayPortals } from '../interiors.js';
 
 // ---------------------------------------------------------------------------
 // Le Monde d'Edena (Moebius, 1983-2001): a paradise planet with pale meadows,
@@ -38,6 +39,8 @@ export function createEdena(scene) {
   });
   scene.add(terrain.mesh);
   const movers = [];
+  let shipRoom = null;
+  const shipPortals = [];
 
   // ---------------------------------------------------------- pond
   {
@@ -151,6 +154,20 @@ export function createEdena(scene) {
     grp.add(dome);
     const x = 40, z = -210;
     grp.position.set(x, terrain.baseAt(x, z, 30) + 4, z);
+    // a hatch beside the hull opens onto the cabin
+    {
+      const sx = Math.cos(0.9) * 14, sz = -Math.sin(0.9) * 14, hx = x + sx, hz = z + sz;
+      const room = buildRoom(scene, {
+        pos: new THREE.Vector3(0, 1500, 0), w: 6, d: 16, h: 3.2,
+        wall: { color: '#f3ead8', color2: '#e6875f', grid: 0.6 }, floor: '#62c3c9', ceiling: '#e9e3d4',
+        windows: [{ side: 'left', x: 4, y: 1.3, w: 1.1, h: 0.9 }, { side: 'left', x: 9, y: 1.3, w: 1.1, h: 0.9 }, { side: 'right', x: 7, y: 1.3, w: 1.1, h: 0.9 }, { side: 'back', x: 3, y: 1.1, w: 4, h: 1.2 }],
+        furniture: [['seat', -1.2, -6.2, Math.PI, '#d9643a'], ['seat', 1.2, -6.2, Math.PI, '#d9643a'], ['panel', 0, -7.2, Math.PI, '#34405e'],
+          ['bunk', -2.4, 1.5, 0, '#8a5a3c', '#f2a7b5'], ['bunk', 2.4, 1.5, 0, '#8a5a3c', '#9fd6c9'], ['table', 0, -2.5, 0, '#e9e3d4'], ['pot', 2.4, 5.5]],
+        lamp: '#9fd6e8',
+      });
+      shipRoom = room;
+      shipPortals.push(...doorwayPortals(scene, { at: new THREE.Vector3(hx, terrain.heightAt(hx, hz), hz), heading: Math.atan2(sx, sz), room, frame: '#f3ead8' }));
+    }
     grp.rotation.set(0.2, 0.9, -0.28);
     scene.add(grp);
     // debris scattered behind it
@@ -223,6 +240,8 @@ export function createEdena(scene) {
       planets: [{ az: 230, el: 20, size: 12, color: '#9fd6c9', ring: 0.3 }],
     },
     killY: -Infinity,
+    portals: shipPortals,
+    get lights() { return shipRoom ? shipRoom.lights : []; },
     atmo: () => ({ tint: [0.98, 1.0, 1.02], fog: 0.7, name: 'Edena' }),
     life: {
       flocks: [{ count: 16, color: '#f2a7b5', size: 1.4, radius: 70, height: [12, 40], seed: 6 },

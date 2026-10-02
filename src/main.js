@@ -652,6 +652,22 @@ function frame() {
     const k = (level.features.wind ? 2.5 : 1.2) * (1 + W.storm * 3.5 + W.rain * 0.6);
     player.wind.set(wx * k, 0, wz * k);
   }
+  // doorways into interiors (and back out)
+  portalCool = Math.max(portalCool - dt, 0);
+  if (!portalCool && !player.riding && level.portals) {
+    for (const pt of level.portals) {
+      if (player.pos.distanceTo(pt.at) < pt.r) {
+        player.teleport(pt.to, new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1));
+        player.heading = pt.heading;
+        rig.yaw = pt.heading + Math.PI;
+        rig.target.copy(pt.to);
+        rig._curDist = 2;
+        sound.page();
+        portalCool = 1.2;
+        break;
+      }
+    }
+  }
   for (const n of npcs) n.update(dt, player, camera);
   // only the nearest talking villager shows a balloon
   {
@@ -702,6 +718,7 @@ function frame() {
   requestAnimationFrame(frame);
 }
 let flapT = 0;
+let portalCool = 0;
 
 // ------------------------------------------------------------------ the ending
 // Every world's story page and every relic found: a closing page, and the
