@@ -1,0 +1,47 @@
+README.md
+  s_aaae6e4311287b::t_d175144cc270be 266-283,352-362
+src/cape.js
+  s_aaae6e4311287b::t_969bae6b9d462e 59-61,70
+src/humanoid.js
+  s_aaae6e4311287b::t_e86cb7afa298e0 157-159,296-310,371-485
+src/levels/arzach.js
+  s_aaae6e4311287b::t_7d0a77b2aaa8c4 227
+src/levels/desert.js
+  s_aaae6e4311287b::t_516271ae1dd524 19,27-35
+src/levels/edena.js
+  s_aaae6e4311287b::t_a2d5ee34178626 190,216
+src/levels/garage.js
+  s_aaae6e4311287b::t_d04f8cfeece97e 249,264
+src/levels/incal.js
+  s_aaae6e4311287b::t_524902d2a2eed2 346
+src/levels/perdide.js
+  s_aaae6e4311287b::t_b2a7d3e53b112d 235
+src/main.js
+  s_aaae6e4311287b::t_a0024ad73793e2 10,174-175,189-192,313,533,536
+src/materials.js
+  s_aaae6e4311287b::t_a58d91fff42f9b 56,68-69,81,159-161,486-487,574-580,586-593,663
+src/player.js
+  s_aaae6e4311287b::t_9a70290a62d1e5 548-552,675-676,682-691,695-773,791-792,794-795,801,1081,1084
+src/post.js
+  s_aaae6e4311287b::t_bdb18ce000ead7 98-100,140,350-384,588-590,613,643,649-656,662,668,674,679
+src/world.js
+  s_aaae6e4311287b::t_cab915020f16b1 38,527-597
+src/perf.js
+  s_aaae6e4311287b::t_3c14cdb598f722 1-87
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a9796c2df4162a22c3c068afce388dbf0b1ba26f",
+  "prompts": {},
+  "sessions": {
+    "s_aaae6e4311287b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a3718911-2af0-4cef-b5df-15d14f9e5623",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
