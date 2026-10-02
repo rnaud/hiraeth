@@ -275,7 +275,8 @@ Modelled on a classic Moebius desert plate:
 - a saucer tower and a pale spired city on the horizon;
 - an open plain around the desert start, with landmarks set back from it;
 - stroke-textured scrub;
-- a heavy-wool cape that falls in long vertical folds;
+- a heavy-wool cape that falls in long vertical folds and barely moves in
+  the wind; only your own motion swings it;
 - a print palette for every world: a flat sky over a pale horizon, with
   blue-grey shadows.
 - **Sky dots** are placed on the sky dome (azimuth and elevation, with a

@@ -19,10 +19,11 @@ export class Cape {
   constructor(scene, anchor, { cols = 14, rows = 11, top = 0.19, bottom = 0.5, length = 1.5, y = 0.74, gap = 0.42, color = '#c8483a', heavy = true } = {}) {
     this.anchor = anchor;
     // heavy wool: falls in long vertical folds, swings slowly, barely flutters
-    this.damp = heavy ? 0.955 : 0.985;
-    this.gravity = heavy ? 14 : 9.8;
-    this.drag = heavy ? 0.22 : 0.42;
-    this.flutter = heavy ? 0.08 : 0.35;
+    this.damp = heavy ? 0.95 : 0.985;
+    this.gravity = heavy ? 18 : 9.8;
+    this.drag = heavy ? 0.2 : 0.42;
+    this.flutter = heavy ? 0.04 : 0.35;
+    this.windScale = heavy ? 0.3 : 1;   // the ambient wind barely lifts it; your own motion still does
     this.cols = cols;
     this.rows = rows;
     const n = cols * rows;
@@ -111,7 +112,7 @@ export class Cape {
     const { cols, rows } = this;
     const up = s.up;
     // relative air: ambient wind minus our own motion, plus an updraft for the jetpack
-    const air = _d.copy(s.wind).sub(s.vel).addScaledVector(up, (s.lift ?? 0) * 9);
+    const air = _d.copy(s.wind).multiplyScalar(this.windScale).sub(s.vel).addScaledVector(up, (s.lift ?? 0) * 9);
     const right = _r.set(1, 0, 0).transformDirection(m);
     for (let k = 0; k < steps; k++) {
       // pin the collar row to the anchor, the second row softly (shoulder shape)

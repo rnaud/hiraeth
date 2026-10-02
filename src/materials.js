@@ -23,7 +23,8 @@ export const MODE_PLAIN = 0;
 export const MODE_TERRAIN = 1;
 export const MODE_STRATA = 2;
 export const MODE_WATER = 3;
-export const MODE_OUTFIT = 4;   // skinned people: clothes by body region (rest pose)
+export const MODE_OUTFIT = 4;
+export const MODE_RIBBON = 5;   // hover trail: flat colour bands along aFold.x   // skinned people: clothes by body region (rest pose)
 
 export const sharedUniforms = {
   uSunDir: { value: new THREE.Vector3(0.5, 0.6, 0.3).normalize() },
@@ -524,6 +525,11 @@ const fragmentShader = /* glsl */ `
       albedo *= mix(vec3(1.0), vec3(0.945, 0.935, 0.965), b);
     } else if (uMode == ${MODE_STRATA}) {
       albedo = strata(vWorldPos);
+    } else if (uMode == ${MODE_RIBBON}) {
+      // flat print bands of colour, fixed along the path so they don't crawl
+      float band = mod(floor(vFold.x), 5.0);
+      albedo = band < 1.0 ? vec3(0.949, 0.773, 0.294) : band < 2.0 ? vec3(0.902, 0.529, 0.373)
+             : band < 3.0 ? vec3(0.910, 0.561, 0.651) : band < 4.0 ? vec3(0.663, 0.608, 0.878) : vec3(0.384, 0.765, 0.788);
     } else if (uMode == ${MODE_OUTFIT}) {
       // boots / trousers / belt / tunic with sleeves / skin at the neck and hands
       vec3 b = vBind;

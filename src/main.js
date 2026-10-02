@@ -149,7 +149,6 @@ function resize() {
   sharedUniforms.uPixelRatio.value = pr;
   wind?.uniforms.uRes.value.set(rw, rh);
   if (overlays.motes) { overlays.motes.uniforms.uRes.value.set(rw, rh); overlays.motes.uniforms.uPR.value = pr; }
-  if (overlays.trail) { overlays.trail.uniforms.uRes.value.set(rw, rh); overlays.trail.uniforms.uPR.value = pr; }
 }
 window.addEventListener('resize', () => resize());
 let wind = null;
@@ -202,8 +201,7 @@ const motes = lifeCfg.motes ? new Motes(scene, lifeCfg.motes) : null;
 if (motes) motes.uniforms.tNormal.value = gbuffer.textures[1];
 overlays.motes = motes;
 // the hoverbike / skiff trail
-const trail = player.mount && player.mount.kind !== 'bird' ? new Trail() : null;
-if (trail) { trail.uniforms.tNormal.value = gbuffer.textures[1]; trail.uniforms.uInk.value = post.uniforms.uInk.value; overlays.trail = trail; }
+const trail = player.mount && player.mount.kind !== 'bird' ? new Trail(scene) : null;
 const footprints = lifeCfg.footprints ? new Footprints(scene, { color: lifeCfg.footprints }) : null;
 resize();
 if (footprints) player.onStep = (p, heading, up) => footprints.add(p, heading, up);
@@ -562,7 +560,6 @@ function renderFrame() {
 
   // 4. wind-blown sand and drifting motes, drawn on top (depth-tested against the G-buffer)
   renderer.render(wind.scene, camera);
-  if (trail) renderer.render(trail.scene, camera);
   if (motes) renderer.render(motes.scene, camera);
 
   // 5. downsample the supersampled frame
@@ -650,9 +647,9 @@ function frame() {
   }
   wind.update(dt, player.pos, camera, terrain, pxScale, world.wind);
   if (trail) {
-    const m = player.mount, moving = Math.hypot(m.vel.x, m.vel.z) > 3 && m.grounded;
-    const g = moving ? new THREE.Vector3(m.pos.x, m.groundAt(m.pos.x, m.pos.y, m.pos.z), m.pos.z) : null;
-    trail.update(dt, g, new THREE.Vector3(m.vel.x, 0, m.vel.z).normalize(), player.frame.up);
+    // out of the back of the hover, between the two pods
+    const m = player.mount, moving = Math.hypot(m.vel.x, m.vel.z) > 3;
+    trail.update(dt, moving ? m.body.localToWorld(new THREE.Vector3(0, -0.05, -1.3)) : null);
   }
   updateHud();
   level.update(dt, t, { player, rig });
