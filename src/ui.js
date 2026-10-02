@@ -13,6 +13,7 @@ const DEFAULTS = {
   music: 0.8,
   effects: 1,
   devPanel: false,
+  showFps: true,
 };
 
 export class Settings {
@@ -46,6 +47,7 @@ export class SettingsMenu {
         ${row('Music', `<input data-k="music" type="range" min="0" max="1" step="0.05">`)}
         ${row('Effects', `<input data-k="effects" type="range" min="0" max="1" step="0.05">`)}
         ${row('Mute (M)', `<input data-k="mute" type="checkbox">`)}
+        ${row('Show FPS (F)', `<input data-k="showFps" type="checkbox">`)}
         ${row('Developer panel', `<input data-k="devPanel" type="checkbox">`)}
         <div class="buttons">
           <button data-a="reset">Reset progress</button>

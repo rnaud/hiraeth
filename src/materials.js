@@ -537,9 +537,11 @@ const fragmentShader = /* glsl */ `
       albedo = strata(vWorldPos);
     } else if (uMode == ${MODE_RIBBON}) {
       // flat print bands of colour, fixed along the path so they don't crawl
-      float band = mod(floor(vFold.x), 5.0);
-      albedo = band < 1.0 ? vec3(0.949, 0.773, 0.294) : band < 2.0 ? vec3(0.902, 0.529, 0.373)
-             : band < 3.0 ? vec3(0.910, 0.561, 0.651) : band < 4.0 ? vec3(0.663, 0.608, 0.878) : vec3(0.384, 0.765, 0.788);
+      // colours blend smoothly from one band into the next
+      vec3 P[5] = vec3[5](vec3(0.949, 0.773, 0.294), vec3(0.902, 0.529, 0.373), vec3(0.910, 0.561, 0.651),
+                          vec3(0.663, 0.608, 0.878), vec3(0.384, 0.765, 0.788));
+      int i0 = int(mod(floor(vFold.x), 5.0)), i1 = int(mod(floor(vFold.x) + 1.0, 5.0));
+      albedo = mix(P[i0], P[i1], smoothstep(0.0, 1.0, fract(vFold.x)));
     } else if (uMode == ${MODE_OUTFIT}) {
       // boots / trousers / belt / tunic with sleeves / skin at the neck and hands
       vec3 b = vBind;

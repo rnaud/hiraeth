@@ -12,7 +12,7 @@ npm run dev     # http://localhost:5173
 
 Controls: click to capture the mouse · WASD move · Shift run · Space jump ·
 hold Space in the air to glide · mouse wheel zoom · Esc releases the mouse.
-**H** shows or hides the controls help (hidden by default). **E** interacts: whistle for the level's mount (or hail a taxi), get on, get
+**F** toggles the FPS counter. **H** shows or hides the controls help (hidden by default). **E** interacts: whistle for the level's mount (or hail a taxi), get on, get
 off. **L** opens the level picker. Each level's controls are listed below.
 
 ## Collision
@@ -52,7 +52,14 @@ reopen it at any time, or **1–6** while it's open. Each level is a module in
   - three regions: golden dunes, rose canyons and salt flats;
   - wind-blown sand and cloud shadows;
   - **E** whistles for the hoverbike.
-- **The City-Shaft:**
+- **The City-Shaft:** (styled after a Moebius hill-town plate)
+  - a dense Mediterranean town: cream villas with window grids, terracotta
+    hipped roofs and domes, roof gardens, and cypress and olive trees,
+    packed onto blue-grey steel viaduct terraces;
+  - arched viaducts span the void, and a vast blue grid saucer hangs over
+    the far side;
+  - the sun comes in steeper inside the shaft so the terraces stay lit, and
+    the spawn has a railing overlooking the town;
   - a 520 m-wide pit, 580 m deep, with eight levels of terraces;
   - a central spire with rings, bridges and a golden palace on top;
   - flying taxis, landing pads, cables and an acid lake at the bottom;

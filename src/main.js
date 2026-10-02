@@ -395,6 +395,7 @@ settings.on((k) => {
   rig.invertY = settings.invertY;
   sound.setVolumes(settings.music, settings.effects);
   gui.domElement.style.display = settings.devPanel ? '' : 'none';
+  document.body.classList.toggle('nofps', !settings.showFps);
   if (settings.quality !== lastQuality) { lastQuality = settings.quality; quality.renderScale = QUALITY[settings.quality] ?? 1; resize(); }
 });
 const menu = new SettingsMenu(settings, {
@@ -591,7 +592,15 @@ function captureView(eye, look, w, h) {
   return grabCanvas.toDataURL('image/jpeg', 0.82);
 }
 
+const fpsEl = document.getElementById('fps');
+let fpsN = 0, fpsT = performance.now();
+window.addEventListener('keydown', (e) => { if (e.code === 'KeyF' && !photo.on) settings.set('showFps', !settings.showFps); });
 function frame() {
+  if (++fpsN, performance.now() - fpsT > 500) {
+    const now = performance.now();
+    fpsEl.textContent = `${Math.round((fpsN * 1000) / (now - fpsT))} fps`;
+    fpsN = 0; fpsT = now;
+  }
   timer.update();
   const dt = Math.min(timer.getDelta(), 1 / 20);
   const t = timer.getElapsed();

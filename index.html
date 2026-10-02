@@ -47,6 +47,10 @@
       }
       #photo.open { display: block; }
       @keyframes fadehint { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
+      #fps { position: fixed; right: 64px; bottom: 22px; z-index: 30; font: 12px ui-monospace, Menlo, monospace; color: #2b211f;
+        background: rgba(255, 250, 240, 0.8); border: 1.5px solid #2b211f; padding: 3px 7px; pointer-events: none; }
+      #fps:empty, body.nofps #fps { display: none; }
+      body.touch #fps { top: 22px; bottom: auto; right: 64px; }
       #gear {
         position: fixed; right: 14px; bottom: 14px; z-index: 30; width: 40px; height: 40px; font-size: 22px; line-height: 1;
         background: #fffaf0; color: #2b211f; border: 2px solid #2b211f; box-shadow: 3px 3px 0 #2b211f; cursor: pointer;
@@ -198,6 +202,7 @@
     <div id="settings"></div>
     <div id="touch"></div>
     <button id="gear" title="Settings (O)">⚙</button>
+    <div id="fps"></div>
     <div id="photo">PHOTO MODE · WASD + Q/E fly · mouse look · SHIFT fast · H panel · ENTER save PNG · P exit</div>
     <div id="picker">
       <header>
