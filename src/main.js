@@ -476,6 +476,7 @@ function savePhoto() {
   });
 }
 window.addEventListener('keydown', (e) => {
+  if (e.code === 'KeyH' && !photo.on) document.body.classList.toggle('help');   // controls help, off by default
   if (e.code === 'KeyP') setPhoto(!photo.on);
   if (photo.on && e.code === 'KeyH') gui.domElement.style.display = gui.domElement.style.display === 'none' ? '' : 'none';
   if (photo.on && e.code === 'Enter') photo.capture = true;
@@ -509,7 +510,7 @@ function updateHud() {
   }
   const goal = story.hud();
   const text = `${atmo.name} · ${parts.join(' · ')}` +
-    `\n${goal ? goal + ' · ' : ''}relics ${journal.relicCount(levelId)}/${content.relics.names.length} · J sketchbook · M ${sound.muted ? 'unmute' : 'mute'}` +
+    `\n${goal ? goal + ' · ' : ''}relics ${journal.relicCount(levelId)}/${content.relics.names.length} · H help` +
     (gate.near ? ` · walk through the gate to ${nextTitle}` : '');
   audioCfg.mute = sound.muted;
   if (text !== lastStatus) { status.textContent = text; lastStatus = text; }

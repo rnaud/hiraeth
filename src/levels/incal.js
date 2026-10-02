@@ -346,7 +346,7 @@ export function createIncal(scene) {
     defaults: { hour: 12.5, preset: 'Moebius print' },
     sky: {
       script: {
-        day: ['#9fc7e0', '#f6cfd6', '#9c86c8', '#fff4f0', '#fff6dc'],
+        day: ['#7f9fd8', '#f1cfd2', '#9a9fd0', '#fff6f2', '#fff6dc'],   // print: cobalt over the pink haze
         dusk: ['#8a8fc8', '#f4a8a0', '#8a6fb8', '#ffd2c0', '#ffe2b8'],
         night: ['#1d2250', '#4a4a8a', '#3d3a80', '#9a9ad0', '#f2f0e6'],
       },

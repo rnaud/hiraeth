@@ -38,14 +38,14 @@ export const CONTENT = {
       label: 'the masked head', goal: [-20, 'ground', -372], radius: 26,
     },
     relics: {
-      spots: [[-180, -260], [70, -110], [-58, -44], [150, 60], [-262, 12]],
+      spots: [[-260, -330], [150, -210], [-150, -112], [150, 60], [-262, 12]],
       names: ['Sun disc', 'Bone flute', 'Glass bead', 'Mask shard', 'Salt-polished coin'],
     },
     gate: { at: [24, 34], heading: Math.PI },
     npcs: [
       { at: [30, 12], palette: pal('#d8a24a', { cloth: '#5a4a3a' }), lines: ['The wind took my tracks again.', 'Every dune remembers a city.'] },
-      { at: [-36, -86], palette: pal('#5fb7ad'), lines: ['The mask sleeps. Don’t wake it.', 'I counted the ribs once. Forty.'] },
-      { at: [96, -60], palette: pal('#8a6fb8', { face: '#e6d3b8' }), lines: ['Have you seen my bike? It wanders off.'], shy: true },
+      { at: [-140, -80], palette: pal('#5fb7ad'), lines: ['The mask sleeps. Don’t wake it.', 'I counted the ribs once. Forty.'] },
+      { at: [110, -150], palette: pal('#8a6fb8', { face: '#e6d3b8' }), lines: ['Have you seen my bike? It wanders off.'], shy: true },
       { at: [-120, 34], palette: pal('#e6875f'), lines: ['The salt flats are that way. Bring water.', 'At night the moon throws shadows too.'] },
       { at: [10, -200], palette: pal('#f3ead8', { cloth: '#7a4a35' }), lines: ['The stones hum when a storm comes.'] },
     ],

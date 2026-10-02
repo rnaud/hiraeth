@@ -262,7 +262,14 @@ export function createGarage(scene) {
     limit: Infinity,
     features: { mount: false, wind: false, jetpack: true, climb: true },
     defaults: { hour: 10.5, preset: 'Moebius print' },
-    sky: { planets: [{ az: 40, el: 30, size: 7, color: '#62c3c9', ring: 0.4 }] },
+    sky: {
+      script: {
+        day: ['#6aaed0', '#efe2c6', '#93a6cf', '#fffaf0', '#fff6dc'],   // print: teal-cerulean over cream
+        dusk: ['#7f8fc8', '#f2c49a', '#8a7fb8', '#ffe0c0', '#ffe2b8'],
+        night: ['#1d2a52', '#4a5a8a', '#3d4380', '#8e9ccc', '#f2f0e6'],
+      },
+      planets: [{ az: 40, el: 30, size: 7, color: '#62c3c9', ring: 0.4 }],
+    },
     killY: -Infinity,
     noShadow,
     lights: portals.map((p) => new THREE.Vector4(p.pos.x, p.pos.y, p.pos.z, 16)),

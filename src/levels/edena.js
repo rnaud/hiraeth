@@ -216,7 +216,7 @@ export function createEdena(scene) {
     defaults: { hour: 10.5, preset: 'Moebius print', cloudShadows: 0 },
     sky: {
       script: {
-        day: ['#7fd0e8', '#f4f6dc', '#8fa8d8', '#ffffff', '#fffbe8'],
+        day: ['#5ea7da', '#e3efe0', '#8ea7d2', '#fffdf4', '#fffbe8'],   // print: deep cerulean over meadow
         dusk: ['#8f9fd8', '#f6c6a8', '#8a86c8', '#ffe6d0', '#fff0d6'],
         night: ['#18264e', '#3a4c80', '#34407a', '#9ab0d8', '#f2f0e6'],
       },

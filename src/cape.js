@@ -16,8 +16,13 @@ export class Cape {
    * @param o.top / o.bottom  radius at the collar / hem, o.length, o.y (collar height in anchor space)
    * @param o.gap   half-angle of the opening at the front
    */
-  constructor(scene, anchor, { cols = 14, rows = 11, top = 0.19, bottom = 0.5, length = 1.5, y = 0.74, gap = 0.42, color = '#c8483a' } = {}) {
+  constructor(scene, anchor, { cols = 14, rows = 11, top = 0.19, bottom = 0.5, length = 1.5, y = 0.74, gap = 0.42, color = '#c8483a', heavy = true } = {}) {
     this.anchor = anchor;
+    // heavy wool: falls in long vertical folds, swings slowly, barely flutters
+    this.damp = heavy ? 0.955 : 0.985;
+    this.gravity = heavy ? 14 : 9.8;
+    this.drag = heavy ? 0.22 : 0.42;
+    this.flutter = heavy ? 0.08 : 0.35;
     this.cols = cols;
     this.rows = rows;
     const n = cols * rows;
@@ -49,7 +54,7 @@ export class Cape {
         add(r, c, r + 1, c, 1);            // down
         add(r, c, r + 1, c + 1, 0.5);      // shear
         add(r, c, r + 1, c - 1, 0.5);
-        add(r, c, r + 2, c, 0.25);         // bend
+        add(r, c, r + 2, c, heavy ? 0.55 : 0.25);   // bend: stiff downward, so folds stay long
         add(r, c, r, c + 2, 0.15);
       }
     this.cons = new Float32Array(cons);
@@ -124,15 +129,15 @@ export class Cape {
         const tr = r / (rows - 1);
         for (let c = 0; c < cols; c++) {
           const i = (r * cols + c) * 3;
-          const vx = (this.p[i] - this.q[i]) * 0.985, vy = (this.p[i + 1] - this.q[i + 1]) * 0.985, vz = (this.p[i + 2] - this.q[i + 2]) * 0.985;
+          const vx = (this.p[i] - this.q[i]) * this.damp, vy = (this.p[i + 1] - this.q[i + 1]) * this.damp, vz = (this.p[i + 2] - this.q[i + 2]) * this.damp;
           this.q[i] = this.p[i]; this.q[i + 1] = this.p[i + 1]; this.q[i + 2] = this.p[i + 2];
           // drag towards the relative air velocity (per-particle velocity matters)
           const pv = 1 / h;
-          const flutter = 1 + 0.35 * Math.sin(this.time * 9 + c * 1.7 + r * 0.9);
-          const kd = 0.42 * tr * flutter;
-          let ax = -up.x * 9.8 + (air.x - vx * pv) * kd;
-          let ay = -up.y * 9.8 + (air.y - vy * pv) * kd;
-          let az = -up.z * 9.8 + (air.z - vz * pv) * kd;
+          const flutter = 1 + this.flutter * Math.sin(this.time * 6 + c * 1.7 + r * 0.9);
+          const kd = this.drag * tr * flutter;
+          let ax = -up.x * this.gravity + (air.x - vx * pv) * kd;
+          let ay = -up.y * this.gravity + (air.y - vy * pv) * kd;
+          let az = -up.z * this.gravity + (air.z - vz * pv) * kd;
           if (s.spread) {   // gliding: push the sides out like wings
             const side = Math.sign(this.local[i]) || 0;
             ax += right.x * side * 14 * s.spread * tr; ay += right.y * side * 14 * s.spread * tr; az += right.z * side * 14 * s.spread * tr;

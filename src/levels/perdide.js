@@ -236,8 +236,8 @@ export function createPerdide(scene) {
     sky: {
       // violet shadows, teal light
       script: {
-        day: ['#7fb8b0', '#f0d0b8', '#8a6fc0', '#e6fff6', '#fff6dc'],
-        dusk: ['#5c6fa8', '#f2a98a', '#7a5bb0', '#bff0e0', '#ffe0c0'],
+        day: ['#6aa0c8', '#e9d6bf', '#8a86c4', '#effff8', '#fff6dc'],
+        dusk: ['#5a7cc0', '#f0b48e', '#7f78bc', '#c8f2e4', '#ffe0c0'],   // print: twilight blue over coral
         night: ['#141a3a', '#3a3f78', '#3d3478', '#7fd6c8', '#f2f0e6'],
       },
       planets: [{ az: 70, el: 22, size: 16, color: '#c7a6f2', ring: 0.35 }],

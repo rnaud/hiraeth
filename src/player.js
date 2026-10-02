@@ -800,7 +800,7 @@ export class Player {
     const head = _v2.copy(this.pos).addScaledVector(U, 2.3);
     if (f > 0 && !this.physics.rayHit(head, into, 1.6) && this.tryMantle(U, into)) return;
 
-    const right = _v3.crossVectors(into, U).normalize().negate();
+    const right = _v3.crossVectors(into, U).normalize();   // screen-right while facing the wall
     const sp = (input.ShiftLeft || input.ShiftRight ? 6.5 : 4);
     this.pos.addScaledVector(U, f * sp * dt).addScaledVector(right, s * sp * 0.8 * dt);
     this.heading = this.frame.headingOf(into);
@@ -1205,7 +1205,7 @@ export class CameraRig {
     this._lastMouse = this._now;
     const k = 0.0025 * this.sensitivity;
     this.yaw -= dx * k;
-    this.pitch = THREE.MathUtils.clamp(this.pitch + dy * k * (this.invertY ? -1 : 1), -0.35, 1.3);
+    this.pitch = THREE.MathUtils.clamp(this.pitch + dy * k * (this.invertY ? -1 : 1), -0.62, 1.3);
   }
 
   /** While riding: swing behind the bike unless the mouse moved recently. */
@@ -1226,7 +1226,8 @@ export class CameraRig {
     if (this.target.lengthSq() === 0) this.target.copy(playerPos);
     const cp = Math.cos(this.pitch);
     const cam = this.camera.position;
-    this._look.copy(this.target).addScaledVector(U, 1.8);
+    // looking up from low down: aim higher so the sky and clouds fill the view
+    this._look.copy(this.target).addScaledVector(U, 1.8 + Math.max(0, -this.pitch) * 1.4);
     this._dir.copy(Rt).multiplyScalar(Math.sin(this.yaw) * cp)
       .addScaledVector(U, Math.sin(this.pitch))
       .addScaledVector(Fw, Math.cos(this.yaw) * cp);
@@ -1242,7 +1243,16 @@ export class CameraRig {
     cam.copy(this._look).addScaledVector(this._dir, this._curDist);
 
     if (U.y > 0.999) {
-      const g = this.physics.groundAt(cam.x, cam.y + 1.2, cam.z) + 1.0;
+      // keep the camera above the ground by pulling it in along its arm
+      // (rather than pushing it up), so you can drop low and look at the sky
+      let d = this._curDist;
+      for (let k = 0; k < 10; k++) {
+        cam.copy(this._look).addScaledVector(this._dir, d);
+        if (cam.y >= this.physics.groundAt(cam.x, cam.y + 3, cam.z) + 0.35) break;
+        d *= 0.8;
+      }
+      this._curDist = Math.min(this._curDist, Math.max(d, 1.2));
+      const g = this.physics.groundAt(cam.x, cam.y + 3, cam.z) + 0.3;
       if (cam.y < g) cam.y = g;
     }
     this.constrain?.(cam);

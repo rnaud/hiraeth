@@ -158,6 +158,7 @@ const fragmentShader = /* glsl */ `
   in vec3 vBind;
   in vec2 vFold;
   uniform float uFolds;
+  uniform float uScrub;
   uniform float uDots;
   uniform vec3 uSkin;
   uniform vec4 uOutfit;   // bootTop, beltY, neckY, wristX (rest pose, metres)
@@ -583,6 +584,13 @@ const fragmentShader = /* glsl */ `
     } else if (uMode == ${MODE_STRATA} && abs(normalize(on).y) < 0.6) {
       detail = max(detail, fissures(vec2(faceX, vObjPos.y), fissFw) * 0.85);
     }
+    if (uScrub > 0.0) {
+      // brush: short broken pen strokes over the lobes, denser in shade
+      float dash = smoothstep(0.42, 0.6, vnoise(vec2(ce1.x * 2.5, ce1.y * 9.0)));
+      float dk = clamp((uToon - L) / uToon, 0.0, 1.0);
+      float strokesB = strokes(ce1, fw1, mix(6.0, 3.5, dk), mix(0.8, 1.3, dk));
+      detail = max(detail, strokesB * dash * (0.6 + 0.4 * dk));
+    }
     if (uFolds > 0.0) {
       // drapery: fold lines down the cloth, each starting and ending at its own height
       float col = floor(foldU + 0.5);
@@ -661,6 +669,7 @@ export function makeMaterial(o) {
       uTicks: { value: o.ticks ? 1 : 0 },
       uGlow: { value: o.glow ?? 0 },
       uFolds: { value: o.folds ?? 0 },
+      uScrub: { value: o.scrub ? 1 : 0 },
       uSkin: { value: new THREE.Color(o.skin ?? '#e8c6a8') },
       uOutfit: { value: new THREE.Vector4(...(o.outfit ?? [0.13, 0.97, 1.47, 0.64])) },
       uFace: { value: new THREE.Vector4(...(o.face ?? [1.7, 0.032, 1.657, 1.577]).filter((_, i) => i !== 3)) },

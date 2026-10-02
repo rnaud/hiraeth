@@ -349,11 +349,29 @@ const fragmentShader = /* glsl */ `
 
     // printed sky: a field of fine dots, a bit denser up high
     if (uSkyDots > 0.0 && rd.y > 0.0) {
-      vec2 g = fc / 3.2, id = floor(g);
-      vec2 o = vec2(hash(id + 1.3), hash(id + 7.1)) * 0.6 + 0.2;
-      float present = step(hash(id + 4.4), mix(0.18, 0.42, smoothstep(0.05, 0.6, rd.y)));
-      float dot = (1.0 - smoothstep(0.32, 0.5, length(fract(g) - o) * 3.2 / (0.9 * uPixelRatio))) * present;
-      col = mix(col, uSkyTop * 0.72, dot * uSkyDots * (1.0 - uNight * 0.5));
+      // dots live on the sky dome (azimuth / elevation), not on the screen;
+      // the grid spacing snaps to powers of two of ~3.4 px so they stay even
+      float el = asin(clamp(rd.y, -1.0, 1.0));
+      // azimuth/elevation low in the sky, a projected cap overhead (no pinch at the zenith)
+      bool cap = rd.y > 0.82;
+      vec2 sp = cap ? rd.xz / rd.y + 40.0 : vec2(atan(rd.x, rd.z) * cos(el), el);
+      // the mapping's screen Jacobian: sky units per device pixel, both axes
+      mat2 J = mat2(dFdx(sp), dFdy(sp));
+      float det = abs(determinant(J));
+      mat2 Ji = det > 1e-12 ? inverse(J) : mat2(1e6);
+      float pxA = clamp(sqrt(det), 1e-6, 0.02);
+      float lvl = log2(pxA * 3.4 * uPixelRatio);
+      float dots = 0.0;
+      for (int L = 0; L < 2; L++) {
+        float cell = exp2(floor(lvl) + float(L));
+        vec2 g = sp / cell, id = floor(g);
+        vec2 o = vec2(hash(id + 1.3), hash(id + 7.1)) * 0.6 + 0.2;
+        float present = step(hash(id + 4.4), mix(0.18, 0.42, smoothstep(0.05, 0.6, rd.y)));
+        float dpx = length(Ji * ((fract(g) - o) * cell));      // true screen pixels: round dots
+        float d = (1.0 - smoothstep(0.5 * uPixelRatio, 0.5 * uPixelRatio + 0.8, dpx)) * present;
+        dots += d * (L == 0 ? 1.0 - fract(lvl) : fract(lvl));
+      }
+      col = mix(col, uSkyTop * 0.72, clamp(dots, 0.0, 1.0) * uSkyDots * (1.0 - uNight * 0.5));
     }
 
     // cumulus bank: puffy cream clouds sitting on the horizon, inked, each
@@ -545,7 +563,7 @@ const fragmentShader = /* glsl */ `
 
     // ---- 6. paper
     float grain = hash(fc + fract(uTime * 7.0) * 113.0 * uBoil) - 0.5;
-    float fibre = vnoise(fc * vec2(0.9, 0.12)) * 0.5 + vnoise(fc * 0.25) * 0.5;
+    float fibre = vnoise(fc * 0.55) * 0.5 + vnoise(fc * 0.21 + 7.0) * 0.5;   // isotropic: no streaks
     col *= 1.0 + uGrain * (grain * 0.5 + (fibre - 0.5) * 0.6);
     vec2 q = uv - 0.5;
     col *= 1.0 - 0.28 * pow(length(q) * 1.25, 3.0);

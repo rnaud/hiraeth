@@ -51,7 +51,7 @@ export class SettingsMenu {
           <button data-a="reset">Reset progress</button>
           <button data-a="close">Close</button>
         </div>
-        <p class="keys">WASD move · SHIFT run · SPACE jump / glide / jetpack · E interact · J sketchbook · L worlds · P photo · O settings</p>
+        <p class="keys">WASD move · SHIFT run · SPACE jump / glide / jetpack · E interact · J sketchbook · L worlds · P photo · H help · O settings</p>
       </div>`;
     const sync = () => {
       for (const c of el.querySelectorAll('[data-k]')) {

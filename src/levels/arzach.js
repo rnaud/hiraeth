@@ -234,7 +234,7 @@ export function createArzach(scene) {
     sky: {
       // almost monochrome bone, with warm ochre shadows as the one accent
       script: {
-        day: ['#dcd6c2', '#f5eedb', '#c9a27a', '#ffffff', '#fffaf0'],
+        day: ['#86aed6', '#e9e3d2', '#9eaacb', '#fffcf4', '#fffaf0'],   // print: pale cerulean over bone
         dusk: ['#c9b9a4', '#f2cfa8', '#b0705a', '#ffe0c0', '#fff0d6'],
         night: ['#2a2a38', '#4c4a58', '#3c3448', '#a8a4b8', '#f2f0e6'],
       },

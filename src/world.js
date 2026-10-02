@@ -190,7 +190,7 @@ export function buildWorld(scene, terrain) {
   scene.add(terrain.mesh);
 
   const free = (x, z, r) => {
-    if (Math.hypot(x, z) < 40 + r) return false;
+    if (Math.hypot(x, z) < 190 + r) return false;
     if (Math.max(Math.abs(x), Math.abs(z)) > 1500) return false;
     for (const c of footprints) if (Math.hypot(c.x - x, c.z - z) < c.r + r + 10) return false;
     return true;
@@ -454,14 +454,12 @@ export function buildWorld(scene, terrain) {
   sleepingMask(-20, -400);
 
   // ---------------------------------------------------------- landmarks near spawn
-  ribcage(70, -110, 1, 0.5);
-  monoliths(-70, -50, 22);
-  arch(-10, -230, 34, 6);
-  mushroom(40, -40, 0.8);
-  mushroom(-30, 60, 1.1);
-  mesa(-180, -260, 50, 90);
-  mesa(160, -320, 38, 70);
-  floater(-20, -160, 18);
+  // the start is an open plain (like the print): landmarks stand back from it
+  ribcage(150, -210, 1, 0.5);
+  monoliths(-170, -120, 22);
+  arch(-10, -260, 34, 6);
+  mesa(-260, -330, 50, 90);
+  mesa(230, -380, 38, 70);
   domeCity(520, -620);
 
   // ---------------------------------------------------------- scattered
@@ -486,7 +484,7 @@ export function buildWorld(scene, terrain) {
     for (let i = 0; i < N; i++) {
       // cluster rocks: pick a random centre, then jitter
       const x = (rng() * 2 - 1) * 1500, z = (rng() * 2 - 1) * 1500;
-      const s = 0.4 + Math.pow(rng(), 3) * 6;
+      const s = (0.4 + Math.pow(rng(), 3) * 6) * (Math.hypot(x, z) < 160 ? 0.25 : 1);   // only pebbles on the open plain
       dummy.position.set(x, terrain.heightAt(x, z) + s * 0.3, z);
       dummy.rotation.set(rng() * 6, rng() * 6, rng() * 6);
       dummy.scale.set(s * (0.8 + rng() * 0.6), s * (0.5 + rng() * 0.5), s * (0.8 + rng() * 0.6));
@@ -537,7 +535,7 @@ export function buildWorld(scene, terrain) {
     const geo = mergeGeometries(lobes.map((g) => g.toNonIndexed()));
     geo.computeVertexNormals();
     const N = 1600;
-    const bushes = new THREE.InstancedMesh(geo, makeMaterial({ color: '#ffffff' }), N);
+    const bushes = new THREE.InstancedMesh(geo, makeMaterial({ color: '#ffffff', scrub: true }), N);
     const tones = ['#d9a441', '#c98a3a', '#e0b85a', '#c6743a', '#b9a24a'];
     for (let i = 0; i < N; i++) {
       const near = i < 650;

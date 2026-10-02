@@ -12,7 +12,7 @@ npm run dev     # http://localhost:5173
 
 Controls: click to capture the mouse · WASD move · Shift run · Space jump ·
 hold Space in the air to glide · mouse wheel zoom · Esc releases the mouse.
-**E** interacts: whistle for the level's mount (or hail a taxi), get on, get
+**H** shows or hides the controls help (hidden by default). **E** interacts: whistle for the level's mount (or hail a taxi), get on, get
 off. **L** opens the level picker. Each level's controls are listed below.
 
 ## Collision
@@ -272,7 +272,15 @@ Modelled on a classic Moebius desert plate:
   shadows;
 - fine, even ink lines, and fold lines drawn down the cape;
 - the wide-brimmed pointed hat;
-- a saucer tower and a pale spired city on the horizon.
+- a saucer tower and a pale spired city on the horizon;
+- an open plain around the desert start, with landmarks set back from it;
+- stroke-textured scrub;
+- a heavy-wool cape that falls in long vertical folds;
+- a print palette for every world: a flat sky over a pale horizon, with
+  blue-grey shadows.
+- **Sky dots** are placed on the sky dome (azimuth and elevation, with a
+  projected cap overhead) and sized through the mapping's screen Jacobian,
+  so they stay put and round as the camera turns.
 
 ## Performance
 
