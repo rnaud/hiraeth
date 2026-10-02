@@ -242,10 +242,12 @@ Each of these can be toggled or tuned in the panel's **Beauty** folder.
   - acid steam rising in the city-shaft;
   - swaying flowers in Edena;
   - footprints in sand.
-- **The character:** a slender masked wanderer with a long-beaked mask, a
-  wide hat with a crooked tip that bounces, a short striped poncho and a
-  walking staff on the back. They have knees and elbows, and a simulated
-  two-tail scarf (a Verlet chain drawn as a ribbon) that streams in the wind.
+- **The character:** an Arzach-style rider, tall and gaunt, with a long pale
+  face and a long thin nose under a peaked hood. They wear an enormous red
+  cloak, open at the front, that reaches the ankles.
+  - **The cloak:** its vertices are reshaped every frame, so it flares out
+    behind when running, ripples along the hem, spreads like wings when
+    gliding, lifts when jetpacking and streams back on mounts.
   - **Walk and run:** the gait is driven by distance travelled, so the feet
     don't slide.
     - Running brings a bigger stride, higher knees and pumping arms.

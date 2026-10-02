@@ -18,157 +18,170 @@ function part(geo, color, opts = {}) {
   return new THREE.Mesh(geo, makeMaterial({ color, ...opts }));
 }
 
-// A slender masked wanderer: long thin legs, a short striped poncho, a mask
-// with a long beak, a wide hat whose crooked tip bounces as they move, and a
-// walking staff on the back.
+// An Arzach-style rider: tall and gaunt, swallowed by an enormous red hooded
+// cloak that reaches the ankles and flares out behind when running, a long
+// pale face with a long thin nose, a peaked hood whose tip trails behind.
 function buildCharacter() {
   const root = new THREE.Group();
   const body = new THREE.Group();          // whole-figure bob / lean / bank
   root.add(body);
-  const C = { pants: '#2f3a5a', boot: '#6e3f2c', tunic: '#3f8f8a', poncho: '#f1e6cc', stripe: '#c8483a',
-    skin: '#e9dcc0', mask: '#fffaf0', ink: '#2b211f', hat: '#d8a24a', band: '#c8483a', wood: '#8a5a3c' };
+  const C = { cloak: '#c8483a', lining: '#9e3a33', cloth: '#343a56', legs: '#2b2f45', wrap: '#e2d3b4',
+    face: '#f1e6d0', ink: '#2b211f', belt: '#d8a24a' };
 
-  // pelvis
-  const pelvis = part(new THREE.CylinderGeometry(0.15, 0.16, 0.16, 10), C.pants);
-  pelvis.position.y = 0.98;
+  const pelvis = part(new THREE.CylinderGeometry(0.12, 0.13, 0.15, 10), C.cloth);
+  pelvis.position.y = 0.99;
   body.add(pelvis);
 
-  // two-segment legs so the knees can bend
+  // long thin legs with knees, wrapped boots
   const legs = [], knees = [];
   for (const side of [-1, 1]) {
     const pivot = new THREE.Group();
-    pivot.position.set(side * 0.1, 0.95, 0);
-    const thigh = part(new THREE.CylinderGeometry(0.075, 0.062, 0.49, 7), C.pants);
-    thigh.position.y = -0.245;
+    pivot.position.set(side * 0.085, 0.96, 0);
+    const thigh = part(new THREE.CylinderGeometry(0.06, 0.05, 0.5, 7), C.legs);
+    thigh.position.y = -0.25;
     const knee = new THREE.Group();
-    knee.position.y = -0.48;
-    const shin = part(new THREE.CylinderGeometry(0.06, 0.045, 0.43, 7), C.pants);
-    shin.position.y = -0.215;
-    const boot = part(new THREE.BoxGeometry(0.12, 0.09, 0.27), C.boot, { flat: true });
+    knee.position.y = -0.49;
+    const shin = part(new THREE.CylinderGeometry(0.05, 0.04, 0.42, 7), C.legs);
+    shin.position.y = -0.21;
+    const wrap = part(new THREE.CylinderGeometry(0.052, 0.058, 0.2, 7), C.wrap, { flat: true });
+    wrap.position.y = -0.33;
+    const boot = part(new THREE.BoxGeometry(0.1, 0.08, 0.25), C.wrap, { flat: true });
     boot.position.set(0, -0.43, 0.06);
-    const toe = part(new THREE.ConeGeometry(0.06, 0.12, 6).rotateX(Math.PI / 2), C.boot, { flat: true });
-    toe.position.set(0, -0.44, 0.24);
-    knee.add(shin, boot, toe);
+    knee.add(shin, wrap, boot);
     pivot.add(thigh, knee);
     body.add(pivot);
     legs.push(pivot);
     knees.push(knee);
   }
 
-  // torso pivots at the waist (twist against the hips, lean)
   const torso = new THREE.Group();
-  torso.position.y = 1.05;
+  torso.position.y = 1.06;
   body.add(torso);
-  const tunic = part(new THREE.CylinderGeometry(0.13, 0.17, 0.58, 10), C.tunic);
-  tunic.position.y = 0.29;
-  const sash = part(new THREE.TorusGeometry(0.17, 0.028, 6, 16).rotateX(Math.PI / 2), C.stripe);
-  sash.position.y = 0.05;
-  const sashTail = part(new THREE.BoxGeometry(0.05, 0.3, 0.015), C.stripe);
-  sashTail.position.set(0.16, -0.1, 0.06);
-  sashTail.rotation.z = 0.15;
-  const poncho = part(new THREE.CylinderGeometry(0.07, 0.34, 0.36, 12, 1, true), C.poncho, { side: THREE.DoubleSide });
-  poncho.position.y = 0.55;
-  const ponchoBand = part(new THREE.CylinderGeometry(0.345, 0.355, 0.05, 12, 1, true), C.stripe, { side: THREE.DoubleSide });
-  ponchoBand.position.y = 0.4;
-  torso.add(tunic, sash, sashTail, poncho, ponchoBand);
+  const tunic = part(new THREE.CylinderGeometry(0.11, 0.135, 0.62, 10), C.cloth);
+  tunic.position.y = 0.31;
+  const belt = part(new THREE.TorusGeometry(0.135, 0.022, 6, 16).rotateX(Math.PI / 2), C.belt);
+  belt.position.y = 0.06;
+  torso.add(tunic, belt);
 
-  // arms with elbows
+  // thin arms with elbows, red cuffs
   const arms = [], elbows = [];
   for (const side of [-1, 1]) {
     const pivot = new THREE.Group();
-    pivot.position.set(side * 0.19, 0.64, 0);
-    const upper = part(new THREE.CylinderGeometry(0.042, 0.036, 0.31, 6), C.poncho);
-    upper.position.y = -0.155;
+    pivot.position.set(side * 0.16, 0.66, 0);
+    const upper = part(new THREE.CylinderGeometry(0.036, 0.032, 0.32, 6), C.cloth);
+    upper.position.y = -0.16;
     const elbow = new THREE.Group();
-    elbow.position.y = -0.31;
-    const fore = part(new THREE.CylinderGeometry(0.036, 0.03, 0.29, 6), C.tunic);
-    fore.position.y = -0.145;
-    const hand = part(new THREE.SphereGeometry(0.05, 6, 4), C.ink);
-    hand.position.y = -0.31;
-    elbow.add(fore, hand);
+    elbow.position.y = -0.32;
+    const fore = part(new THREE.CylinderGeometry(0.032, 0.027, 0.3, 6), C.cloth);
+    fore.position.y = -0.15;
+    const cuff = part(new THREE.CylinderGeometry(0.036, 0.036, 0.06, 6), C.cloak);
+    cuff.position.y = -0.27;
+    const hand = part(new THREE.SphereGeometry(0.042, 6, 4), C.face);
+    hand.position.y = -0.33;
+    elbow.add(fore, cuff, hand);
     pivot.add(upper, elbow);
-    pivot.rotation.z = side * 0.08;
+    pivot.rotation.z = side * 0.06;
     torso.add(pivot);
     arms.push(pivot);
     elbows.push(elbow);
   }
 
-  // neck, head, beaked mask
-  const neck = part(new THREE.CylinderGeometry(0.038, 0.05, 0.14, 6), C.skin);
-  neck.position.y = 0.76;
-  torso.add(neck);
+  // head: long pale face, long nose, deep peaked hood
   const head = new THREE.Group();
-  head.position.y = 0.9;
+  head.position.y = 0.87;
   torso.add(head);
-  head.add(part(new THREE.SphereGeometry(0.13, 12, 9), C.skin));
-  const mask = part(new THREE.SphereGeometry(0.12, 12, 9), C.mask);
-  mask.scale.set(1, 1.2, 0.55);
-  mask.position.set(0, -0.005, 0.075);
-  const beak = part(new THREE.ConeGeometry(0.032, 0.2, 6).rotateX(Math.PI / 2 + 0.25), C.mask, { flat: true });
-  beak.position.set(0, -0.03, 0.2);
-  head.add(mask, beak);
+  const neck = part(new THREE.CylinderGeometry(0.035, 0.045, 0.12, 6), C.face);
+  neck.position.y = 0.79;
+  torso.add(neck);
+  const face = part(new THREE.CapsuleGeometry(0.07, 0.13, 4, 10), C.face);
+  face.scale.set(1, 1, 0.95);
+  face.position.y = 0.01;
+  const nose = part(new THREE.ConeGeometry(0.02, 0.17, 6).rotateX(Math.PI / 2 + 0.45), C.face, { flat: true });
+  nose.position.set(0, 0.0, 0.11);
+  head.add(face, nose);
   for (const side of [-1, 1]) {
-    const eye = part(new THREE.BoxGeometry(0.05, 0.013, 0.02), C.ink);
-    eye.position.set(side * 0.045, 0.035, 0.135);
-    eye.rotation.z = side * -0.25;            // a slightly wry look
+    const eye = part(new THREE.BoxGeometry(0.035, 0.01, 0.015), C.ink);
+    eye.position.set(side * 0.032, 0.045, 0.066);
+    eye.rotation.z = side * 0.18;            // heavy-lidded, weary
     head.add(eye);
   }
-
-  // hat: wide brim, tall crown, crooked tip on a hinge so it can bounce
-  const hat = new THREE.Group();
-  hat.position.y = 0.1;
-  hat.rotation.z = 0.06;
-  head.add(hat);
-  hat.add(part(new THREE.CylinderGeometry(0.43, 0.43, 0.022, 22), C.hat));
-  const band = part(new THREE.CylinderGeometry(0.135, 0.145, 0.05, 12), C.band);
-  band.position.y = 0.035;
-  const crown = part(new THREE.CylinderGeometry(0.06, 0.14, 0.26, 12), C.hat);
-  crown.position.y = 0.16;
+  const hood = part(new THREE.SphereGeometry(0.15, 16, 12, Math.PI / 2 + 0.75, Math.PI * 2 - 1.5), C.cloak, { side: THREE.DoubleSide });
+  hood.scale.set(1, 1.25, 1.15);
+  hood.position.set(0, 0.04, -0.02);
+  head.add(hood);
+  // hood peak on a hinge: trails back, bounces (driven as "hatTip")
+  const peakBase = new THREE.Group();
+  peakBase.position.set(0, 0.17, -0.05);
+  peakBase.rotation.x = -0.65;
   const hatTip = new THREE.Group();
-  hatTip.position.y = 0.29;
-  hatTip.rotation.x = -0.55;
-  const tip = part(new THREE.ConeGeometry(0.06, 0.26, 10), C.hat);
-  tip.position.y = 0.12;
-  const bead = part(new THREE.SphereGeometry(0.03, 6, 4), C.band);
-  bead.position.y = 0.26;
-  hatTip.add(tip, bead);
-  hat.add(band, crown, hatTip);
+  const peak = part(new THREE.ConeGeometry(0.075, 0.34, 10), C.cloak);
+  peak.position.y = 0.15;
+  hatTip.add(peak);
+  peakBase.add(hatTip);
+  head.add(peakBase);
 
-  // pack: canister, bedroll and a long walking staff slung across the back
+  // the cloak: an open-fronted cone from the shoulders to the ankles whose
+  // vertices are reshaped every frame (flare, spread, ripple)
+  const CH = 1.55, CR0 = 0.19, CR1 = 0.47;
+  const cloakGeo = new THREE.CylinderGeometry(CR0, CR1, CH, 22, 9, true, 0.42, Math.PI * 2 - 0.84);
+  cloakGeo.translate(0, -CH / 2, 0);
+  const base = cloakGeo.attributes.position.array.slice();
+  const cloak = part(cloakGeo, C.cloak, { side: THREE.DoubleSide });
+  cloak.position.y = 0.74;
+  cloak.frustumCulled = false;
+  const collar = part(new THREE.TorusGeometry(0.19, 0.035, 6, 18).rotateX(Math.PI / 2), C.lining);
+  collar.position.y = 0.74;
+  torso.add(cloak, collar);
+  const cs = { flare: 0, spread: 0, lift: 0 };
+  function updateCloak(state) {
+    const k = 1 - Math.exp(-6 * state.dt);
+    cs.flare += (state.flare - cs.flare) * k;
+    cs.spread += (state.spread - cs.spread) * k;
+    cs.lift += (state.lift - cs.lift) * k;
+    const p = cloakGeo.attributes.position.array, t = state.t;
+    for (let i = 0; i < p.length; i += 3) {
+      const x0 = base[i], y0 = base[i + 1], z0 = base[i + 2];
+      const h = -y0 / CH;                                   // 0 at the shoulders, 1 at the hem
+      const ang = Math.atan2(x0, z0);                       // 0 = front
+      const back = 0.5 - 0.5 * Math.cos(ang);               // 0 front .. 1 back
+      const h2 = h * h;
+      const wave = Math.sin(ang * 3 + t * 7 - h * 4) * 0.045 * h * (0.25 + cs.flare);
+      const stride = Math.sin(t * 4 + ang) * 0.015 * h;     // gentle sway even when idle
+      p[i] = x0 * (1 + cs.spread * h * 1.6) + wave * Math.cos(ang);
+      p[i + 1] = y0 + back * h2 * (cs.flare * 0.55 + cs.lift * 0.9);
+      p[i + 2] = z0 - back * h2 * (cs.flare * 0.95 + cs.lift * 0.3) + stride - wave * Math.sin(ang);
+    }
+    cloakGeo.attributes.position.needsUpdate = true;
+    cloakGeo.computeVertexNormals();
+  }
+
+  // a small satchel at the hip (hidden when the jetpack is on)
   const pack = new THREE.Group();
-  const canister = part(new THREE.CylinderGeometry(0.085, 0.085, 0.32, 10), '#5fb7ad');
-  canister.position.set(0.05, 0.36, -0.19);
-  const staff = part(new THREE.CylinderGeometry(0.016, 0.016, 1.55, 5), C.wood);
-  staff.position.set(0, 0.42, -0.24);
-  staff.rotation.z = 0.62;
-  const staffRing = part(new THREE.TorusGeometry(0.05, 0.012, 4, 10).rotateX(Math.PI / 2), C.hat);
-  staffRing.position.set(-0.42, 1.02, -0.24);
-  pack.add(canister, staff, staffRing);
-  const bedroll = part(new THREE.CylinderGeometry(0.06, 0.06, 0.36, 8), C.stripe);
-  bedroll.rotation.z = Math.PI / 2;
-  bedroll.position.set(0, 0.6, -0.17);
+  const satchel = part(new THREE.BoxGeometry(0.14, 0.16, 0.07), '#8a5a3c', { flat: true });
+  satchel.position.set(0.16, 0.0, 0.03);
+  pack.add(satchel);
+  const bedroll = new THREE.Group();
   torso.add(pack, bedroll);
 
-  // the cloth scarf is simulated (ClothTail); these groups only give the
-  // animation code something to rotate
+  // kept for the animation code; the cloak replaces the scarf
   const scarf = new THREE.Group(), scarf2 = new THREE.Group();
   torso.add(scarf);
   scarf.add(scarf2);
 
-  // Jetpack (Incal level): twin canisters with inked flames.
+  // Jetpack (Incal level): twin canisters worn over the cloak.
   const jetpack = new THREE.Group();
-  jetpack.position.set(0, 0.42, -0.2);
+  jetpack.position.set(0, 0.44, -0.3);
   const flames = [];
   for (const side of [-1, 1]) {
-    const can = part(new THREE.CylinderGeometry(0.095, 0.095, 0.52, 10), '#62c3c9');
-    can.position.x = side * 0.115;
-    const cap = part(new THREE.SphereGeometry(0.095, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), '#f3ead8');
-    cap.position.set(side * 0.115, 0.26, 0);
-    const nozzle = part(new THREE.CylinderGeometry(0.055, 0.09, 0.12, 8), C.pants);
-    nozzle.position.set(side * 0.115, -0.32, 0);
+    const can = part(new THREE.CylinderGeometry(0.09, 0.09, 0.5, 10), '#62c3c9');
+    can.position.x = side * 0.11;
+    const cap = part(new THREE.SphereGeometry(0.09, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), '#f3ead8');
+    cap.position.set(side * 0.11, 0.25, 0);
+    const nozzle = part(new THREE.CylinderGeometry(0.05, 0.085, 0.12, 8), C.cloth);
+    nozzle.position.set(side * 0.11, -0.31, 0);
     const flame = part(new THREE.ConeGeometry(0.08, 0.6, 7), '#f6c04a', { flat: true });
     flame.rotation.x = Math.PI;
-    flame.position.set(side * 0.115, -0.68, 0);
+    flame.position.set(side * 0.11, -0.67, 0);
     flame.visible = false;
     jetpack.add(can, cap, nozzle, flame);
     flames.push(flame);
@@ -177,7 +190,7 @@ function buildCharacter() {
   torso.add(jetpack);
 
   return { root, body, torso, head, hatTip, legs, knees, arms, elbows, scarf, scarf2, pack, bedroll, jetpack, flames,
-    scarfAnchors: [new THREE.Vector3(-0.05, 1.8, -0.1), new THREE.Vector3(0.06, 1.8, -0.1)] };
+    scarfAnchors: [], updateCloak };
 }
 
 const _v1 = new THREE.Vector3();
@@ -371,13 +384,21 @@ export class Player {
   /** Add the parts that live directly in the scene (the simulated scarf). */
   attach(scene) {
     scene.add(this.object);
-    this.tails = [
-      new ClothTail(scene, { points: 10, seg: 0.2, width: 0.2 }),
-      new ClothTail(scene, { points: 7, seg: 0.18, width: 0.16 }),
-    ];
+    this.tails = this.char.scarfAnchors.map((_, i) =>
+      new ClothTail(scene, i === 0 ? { points: 10, seg: 0.2, width: 0.2 } : { points: 7, seg: 0.18, width: 0.16 }));
   }
 
   updateCloth(dt) {
+    if (this.char.updateCloak) {
+      const sp = this.ride ? Math.abs(this.ride.speed) : Math.hypot(this.vel.x, this.vel.z);
+      const airborne = !this.ride && !this.onGround && !this.climbing;
+      this.char.updateCloak({
+        dt, t: this.time,
+        flare: this.climbing ? 0 : THREE.MathUtils.clamp(sp / (this.ride ? 30 : RUN), 0, 1.3) + (airborne ? 0.3 : 0),
+        spread: this.gliding ? 1 : 0,
+        lift: this.thrusting ? 1 : this.gliding ? 0.5 : 0,
+      });
+    }
     if (!this.tails) return;
     this.object.updateMatrixWorld(true);
     const up = _cu.set(0, 1, 0).applyQuaternion(this.object.quaternion);
