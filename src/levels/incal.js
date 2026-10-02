@@ -188,15 +188,24 @@ export function createIncal(scene) {
       const above = li === 0 ? TOP + 60 : LEVELS[li - 1];
       const maxH = Math.max(above - y - 9, 10);
       // a packed hill-town: villas in rows, a few domed towers, cypresses and olive trees between
-      const count = Math.floor(span * 80);
+      const count = Math.floor(span * 130);
       for (let k = 0; k < count; k++) {
         const ang = a0 + (k + 0.5 + (rng() - 0.5) * 0.5) / count * span;
         const rad = r0 + 8 + rng() * (width - 14);
         const x = Math.cos(ang) * rad, z = Math.sin(ang) * rad;
         const roll = rng();
-        if (roll < 0.6) house(x, y, z);
-        else if (roll < 0.66) tower(x, z, y, maxH * (0.45 + rng() * 0.5), 3 + rng() * 4, palette, { roof: true });
-        else trees.push([x, y, z, 0.8 + rng() * 0.8]);
+        if (roll < 0.52) house(x, y, z);
+        else if (roll < 0.57) tower(x, z, y, maxH * (0.45 + rng() * 0.5), 3 + rng() * 4, palette, { roof: true });
+        else {   // trees grow in clumps
+          const n = 1 + Math.floor(rng() * 4);
+          for (let q = 0; q < n; q++) trees.push([x + (rng() - 0.5) * 6, y, z + (rng() - 0.5) * 6, 0.7 + rng() * 0.9]);
+        }
+      }
+      // a row of cypresses along the terrace edge, like a garden balustrade
+      for (let k = 0; k < span * 60; k++) {
+        if (rng() < 0.35) continue;
+        const ang = a0 + (k / (span * 60)) * span, rad = r0 + 2.5 + rng() * 1.5;
+        trees.push([Math.cos(ang) * rad, y, Math.sin(ang) * rad, 0.75 + rng() * 0.5]);
       }
     }
     a += TAU / nSectors;
@@ -401,10 +410,19 @@ export function createIncal(scene) {
     scene.add(m);
   }
 
+  // trees on the rim around the spawn
+  for (let k = 0; k < 160; k++) {
+    const a = (rng() - 0.5) * 0.9, rad = R + 6 + rng() * 60;
+    const x = Math.cos(a) * rad, z = Math.sin(a) * rad + (rng() - 0.5) * 20;
+    if (Math.abs(z) < 16 && x < R + 40) continue;     // keep the view from the spawn open
+    trees.push([x, TOP, z, 0.8 + rng() * 0.8]);
+  }
   // ---------------------------------------------------------- trees: cypresses and round olives
   {
     const dummy = new THREE.Object3D(), color = new THREE.Color();
-    const cypress = new THREE.CapsuleGeometry(1.1, 7, 3, 8).translate(0, 4.6, 0);
+    // cypress: a tall flame, widest a third of the way up, tip pointed
+    const prof = [[0, 0], [0.55, 0.3], [1.15, 2.2], [1.25, 3.6], [1.0, 6], [0.55, 8.2], [0.12, 9.6], [0, 10]].map(([r, y]) => new THREE.Vector2(r, y));
+    const cypress = new THREE.LatheGeometry(prof, 9);
     const lobes = [];
     for (let k = 0; k < 7; k++) { const a = k * 2.39996, r = 0.9 + (k % 3) * 0.5; lobes.push(new THREE.IcosahedronGeometry(1.5 + (k % 2) * 0.5, 0).translate(Math.cos(a) * r, 3 + (k % 3) * 0.8, Math.sin(a) * r)); }
     lobes.push(new THREE.CylinderGeometry(0.25, 0.35, 3, 5).translate(0, 1.5, 0));
