@@ -1,0 +1,37 @@
+README.md
+  s_aaae6e4311287b::t_696aa52359d8d3 62-63,245-257
+src/bird.js
+  s_aaae6e4311287b::t_1d32139b3b935b 204-206,209-210
+src/levels/edena.js
+  s_aaae6e4311287b::t_4d6cf16faa4e64 215
+src/levels/garage.js
+  s_aaae6e4311287b::t_8962e614df1ed7 274-275
+src/levels/incal.js
+  s_aaae6e4311287b::t_5cad450bfb8156 369-372
+src/levels/perdide.js
+  s_aaae6e4311287b::t_49befb76fc0231 235
+src/main.js
+  s_aaae6e4311287b::t_9eb145dbf7d39e 150,245,279,392
+src/materials.js
+  s_aaae6e4311287b::t_75f8881d734599 354
+src/player.js
+  s_aaae6e4311287b::t_0fb95b3df1e877 21-23,26,28-34,40-42,44-51,58-76,79-91,93-147,149-156,160,163-169,171,177,179-180,251,336-338,375-376,392,571-589,591-592,603-604,698-705,707-710,721-728,731-738,741-765,767,771,773,779-800,802-811,813-848,907-910
+src/taxi.js
+  s_aaae6e4311287b::t_4d19c25a239af1 36-38,96-99,103,117-137
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fce7fea7ec26a18c5a9bf5a66d4c8be98dbbeeb5",
+  "prompts": {},
+  "sessions": {
+    "s_aaae6e4311287b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a3718911-2af0-4cef-b5df-15d14f9e5623",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
