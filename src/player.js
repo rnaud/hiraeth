@@ -1238,23 +1238,22 @@ export class CameraRig {
     // otherwise clip the floor and yank the camera in)
     const rolling = this.camera.up.dot(U) < 0.985;
     const hit = rolling ? Infinity : this.physics.rayDistance(this._look, this._dir, dist + 0.5);
-    const allowed = Math.max(Math.min(dist, hit - 0.6), 1.5);
-    this._curDist = allowed < this._curDist ? allowed : this._curDist + (allowed - this._curDist) * (1 - Math.exp(-3 * dt));
-    cam.copy(this._look).addScaledVector(this._dir, this._curDist);
-
+    let allowed = Math.max(Math.min(dist, hit - 0.6), 1.5);
+    // the ground limits the arm too (so you can drop low and look at the sky):
+    // the longest arm whose end stays 0.4 m above the ground, found by
+    // bisection, folded into the same target so the two can't fight
     if (U.y > 0.999) {
-      // keep the camera above the ground by pulling it in along its arm
-      // (rather than pushing it up), so you can drop low and look at the sky
-      let d = this._curDist;
-      for (let k = 0; k < 10; k++) {
-        cam.copy(this._look).addScaledVector(this._dir, d);
-        if (cam.y >= this.physics.groundAt(cam.x, cam.y + 3, cam.z) + 0.35) break;
-        d *= 0.8;
+      const clear = (d) => { cam.copy(this._look).addScaledVector(this._dir, d); return cam.y >= this.physics.groundAt(cam.x, cam.y + 3, cam.z) + 0.4; };
+      if (!clear(allowed)) {
+        let lo = 0.8, hi = allowed;
+        for (let k = 0; k < 8; k++) { const m = (lo + hi) / 2; if (clear(m)) lo = m; else hi = m; }
+        allowed = lo;
       }
-      this._curDist = Math.min(this._curDist, Math.max(d, 1.2));
-      const g = this.physics.groundAt(cam.x, cam.y + 3, cam.z) + 0.3;
-      if (cam.y < g) cam.y = g;
     }
+    // snap in, ease back out; tiny changes are ignored so it can't jitter
+    if (allowed < this._curDist - 0.02) this._curDist = allowed;
+    else this._curDist += (allowed - this._curDist) * (1 - Math.exp(-3 * dt));
+    cam.copy(this._look).addScaledVector(this._dir, this._curDist);
     this.constrain?.(cam);
     // roll the camera with gravity (smoothly, so portals don't snap the view)
     // (a quaternion turn, so even a 180° flip rotates instead of collapsing)

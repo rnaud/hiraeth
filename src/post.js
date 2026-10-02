@@ -562,7 +562,8 @@ const fragmentShader = /* glsl */ `
     }
 
     // ---- 6. paper
-    float grain = hash(fc + fract(uTime * 7.0) * 113.0 * uBoil) - 0.5;
+    // no per-pixel noise: a screen-fixed grain reads as dirt the world slides under
+    float grain = 0.0;
     float fibre = vnoise(fc * 0.55) * 0.5 + vnoise(fc * 0.21 + 7.0) * 0.5;   // isotropic: no streaks
     col *= 1.0 + uGrain * (grain * 0.5 + (fibre - 0.5) * 0.6);
     vec2 q = uv - 0.5;
@@ -670,7 +671,7 @@ export const PRESETS = {
   // fine even ink, dense fine hatching in blue shadow
   'Moebius print': {
     uLineWidth: 1.15, uLineVary: 0.35, uDepthThresh: 0.07, uNormalThresh: 0.24, uAlbedoEdges: 1, uShadowEdges: 0.8,
-    uWobble: 0.35, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 3.6, uHighlight: 0, uGrain: 0.16, uClouds: 0,
+    uWobble: 0.35, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 3.6, uHighlight: 0, uGrain: 0.05, uClouds: 0.45,
     uFogDensity: 0.0009, uSkyFlat: 1, uSkyDots: 1, uCumulus: 1, uSkyBands: 0, uHazeBands: 0.5, uRays: 0, uDots: 1,
   },
   // high-key, bone-white, heavy cast shadows, few lines
