@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 import { makeMaterial } from './materials.js';
+import { Cape } from './cape.js';
 
 const RADIUS = 0.45;
 const STEP = 0.6;    // obstacles lower than this are stepped onto
 const HEIGHT = 2.2;
-const WALK = 9;
-const RUN = 22;
+const WALK = 4.5;   // m/s: slower than before so feet can stay planted at a sane cadence
+const RUN = 11;
 const GRAVITY = 32;
 const JUMP = 13;
 const LIMIT = 1900;
@@ -21,19 +22,22 @@ function part(geo, color, opts = {}) {
 // An Arzach-style rider: tall and gaunt, swallowed by an enormous red hooded
 // cloak that reaches the ankles and flares out behind when running, a long
 // pale face with a long thin nose, a peaked hood whose tip trails behind.
-function buildCharacter() {
+export const RIDER_COLORS = { cloak: '#c8483a', lining: '#9e3a33', cloth: '#343a56', legs: '#2b2f45', wrap: '#e2d3b4',
+  face: '#f1e6d0', ink: '#2b211f', belt: '#d8a24a' };
+
+/** @param palette overrides for RIDER_COLORS (NPCs use their own) */
+export function buildCharacter(palette = {}) {
   const root = new THREE.Group();
   const body = new THREE.Group();          // whole-figure bob / lean / bank
   root.add(body);
-  const C = { cloak: '#c8483a', lining: '#9e3a33', cloth: '#343a56', legs: '#2b2f45', wrap: '#e2d3b4',
-    face: '#f1e6d0', ink: '#2b211f', belt: '#d8a24a' };
+  const C = { ...RIDER_COLORS, ...palette };
 
   const pelvis = part(new THREE.CylinderGeometry(0.12, 0.13, 0.15, 10), C.cloth);
   pelvis.position.y = 0.99;
   body.add(pelvis);
 
   // long thin legs with knees, wrapped boots
-  const legs = [], knees = [];
+  const legs = [], knees = [], feet = [];
   for (const side of [-1, 1]) {
     const pivot = new THREE.Group();
     pivot.position.set(side * 0.085, 0.96, 0);
@@ -45,13 +49,18 @@ function buildCharacter() {
     shin.position.y = -0.21;
     const wrap = part(new THREE.CylinderGeometry(0.052, 0.058, 0.2, 7), C.wrap, { flat: true });
     wrap.position.y = -0.33;
+    // the boot hangs from an ankle pivot so it can stay flat on the ground
+    const ankle = new THREE.Group();
+    ankle.position.y = -0.43;
     const boot = part(new THREE.BoxGeometry(0.1, 0.08, 0.25), C.wrap, { flat: true });
-    boot.position.set(0, -0.43, 0.06);
-    knee.add(shin, wrap, boot);
+    boot.position.set(0, 0, 0.06);
+    ankle.add(boot);
+    knee.add(shin, wrap, ankle);
     pivot.add(thigh, knee);
     body.add(pivot);
     legs.push(pivot);
     knees.push(knee);
+    feet.push(ankle);
   }
 
   const torso = new THREE.Group();
@@ -120,40 +129,10 @@ function buildCharacter() {
   peakBase.add(hatTip);
   head.add(peakBase);
 
-  // the cloak: an open-fronted cone from the shoulders to the ankles whose
-  // vertices are reshaped every frame (flare, spread, ripple)
-  const CH = 1.55, CR0 = 0.19, CR1 = 0.47;
-  const cloakGeo = new THREE.CylinderGeometry(CR0, CR1, CH, 22, 9, true, 0.42, Math.PI * 2 - 0.84);
-  cloakGeo.translate(0, -CH / 2, 0);
-  const base = cloakGeo.attributes.position.array.slice();
-  const cloak = part(cloakGeo, C.cloak, { side: THREE.DoubleSide });
-  cloak.position.y = 0.74;
-  cloak.frustumCulled = false;
+  // the cloak itself is a cloth simulation (cape.js), pinned under this collar
   const collar = part(new THREE.TorusGeometry(0.19, 0.035, 6, 18).rotateX(Math.PI / 2), C.lining);
   collar.position.y = 0.74;
-  torso.add(cloak, collar);
-  const cs = { flare: 0, spread: 0, lift: 0 };
-  function updateCloak(state) {
-    const k = 1 - Math.exp(-6 * state.dt);
-    cs.flare += (state.flare - cs.flare) * k;
-    cs.spread += (state.spread - cs.spread) * k;
-    cs.lift += (state.lift - cs.lift) * k;
-    const p = cloakGeo.attributes.position.array, t = state.t;
-    for (let i = 0; i < p.length; i += 3) {
-      const x0 = base[i], y0 = base[i + 1], z0 = base[i + 2];
-      const h = -y0 / CH;                                   // 0 at the shoulders, 1 at the hem
-      const ang = Math.atan2(x0, z0);                       // 0 = front
-      const back = 0.5 - 0.5 * Math.cos(ang);               // 0 front .. 1 back
-      const h2 = h * h;
-      const wave = Math.sin(ang * 3 + t * 7 - h * 4) * 0.045 * h * (0.25 + cs.flare);
-      const stride = Math.sin(t * 4 + ang) * 0.015 * h;     // gentle sway even when idle
-      p[i] = x0 * (1 + cs.spread * h * 1.6) + wave * Math.cos(ang);
-      p[i + 1] = y0 + back * h2 * (cs.flare * 0.55 + cs.lift * 0.9);
-      p[i + 2] = z0 - back * h2 * (cs.flare * 0.95 + cs.lift * 0.3) + stride - wave * Math.sin(ang);
-    }
-    cloakGeo.attributes.position.needsUpdate = true;
-    cloakGeo.computeVertexNormals();
-  }
+  torso.add(collar);
 
   // a small satchel at the hip (hidden when the jetpack is on)
   const pack = new THREE.Group();
@@ -189,13 +168,15 @@ function buildCharacter() {
   jetpack.visible = false;
   torso.add(jetpack);
 
-  return { root, body, torso, head, hatTip, legs, knees, arms, elbows, scarf, scarf2, pack, bedroll, jetpack, flames,
-    scarfAnchors: [], updateCloak };
+  return { root, body, torso, head, hatTip, legs, knees, feet, arms, elbows, scarf, scarf2, pack, bedroll, jetpack, flames,
+    scarfAnchors: [], colors: C };
 }
 
 const _v1 = new THREE.Vector3();
+const _g1 = new THREE.Vector3(), _g2 = new THREE.Vector3(), _g3 = new THREE.Vector3(), _g4 = new THREE.Vector3(), _g5 = new THREE.Vector3(), _g6 = new THREE.Vector3();
+const LEG_A = 0.49, LEG_B = 0.47;   // thigh, shin+foot
 const _cu = new THREE.Vector3(), _cs = new THREE.Vector3(), _cb = new THREE.Vector3(), _cw = new THREE.Vector3();
-const _ca = new THREE.Vector3(), _cbb = new THREE.Vector3(), _cA = new THREE.Vector3();
+const _ca = new THREE.Vector3(), _cbb = new THREE.Vector3(), _cA = new THREE.Vector3(), _cv = new THREE.Vector3();
 const _v2 = new THREE.Vector3();
 const _v3 = new THREE.Vector3();
 const _mat = new THREE.Matrix4();
@@ -384,19 +365,43 @@ export class Player {
   /** Add the parts that live directly in the scene (the simulated scarf). */
   attach(scene) {
     scene.add(this.object);
+    this.cape = new Cape(scene, this.char.torso, { color: this.char.colors.cloak });
     this.tails = this.char.scarfAnchors.map((_, i) =>
       new ClothTail(scene, i === 0 ? { points: 10, seg: 0.2, width: 0.2 } : { points: 7, seg: 0.18, width: 0.16 }));
   }
 
+  /** Torso and leg capsules in world space, for the cape to collide with. */
+  bodyCapsules() {
+    const c = this.char;
+    if (!this._caps) {
+      this._caps = [{ a: new THREE.Vector3(), b: new THREE.Vector3(), r: 0.2 }];
+      for (let i = 0; i < 2; i++) this._caps.push({ a: new THREE.Vector3(), b: new THREE.Vector3(), r: 0.11 }, { a: new THREE.Vector3(), b: new THREE.Vector3(), r: 0.09 });
+      if (this.char.jetpack.visible) this._caps.push({ a: new THREE.Vector3(), b: new THREE.Vector3(), r: 0.2 });
+    }
+    const K = this._caps;
+    c.torso.localToWorld(K[0].a.set(0, 0.05, 0));
+    c.torso.localToWorld(K[0].b.set(0, 0.6, 0));
+    for (let i = 0; i < 2; i++) {
+      c.legs[i].localToWorld(K[1 + i * 2].a.set(0, 0, 0));
+      c.knees[i].localToWorld(K[1 + i * 2].b.set(0, 0, 0));
+      K[2 + i * 2].a.copy(K[1 + i * 2].b);
+      c.feet[i].localToWorld(K[2 + i * 2].b.set(0, 0, 0.05));
+    }
+    if (K[5]) { c.jetpack.localToWorld(K[5].a.set(0, -0.2, -0.02)); c.jetpack.localToWorld(K[5].b.set(0, 0.25, -0.02)); }
+    return K;
+  }
+
   updateCloth(dt) {
-    if (this.char.updateCloak) {
-      const sp = this.ride ? Math.abs(this.ride.speed) : Math.hypot(this.vel.x, this.vel.z);
-      const airborne = !this.ride && !this.onGround && !this.climbing;
-      this.char.updateCloak({
-        dt, t: this.time,
-        flare: this.climbing ? 0 : THREE.MathUtils.clamp(sp / (this.ride ? 30 : RUN), 0, 1.3) + (airborne ? 0.3 : 0),
+    if (this.cape) {
+      this.object.updateMatrixWorld(true);
+      this.cape.update(dt, {
+        up: this.frame.up,
+        vel: this.ride ? this.ride.vel : this.climbing ? _cv.set(0, 0, 0) : this.vel,
+        wind: this.wind,
+        floor: this.pos,
+        capsules: this.bodyCapsules(),
         spread: this.gliding ? 1 : 0,
-        lift: this.thrusting ? 1 : this.gliding ? 0.5 : 0,
+        lift: this.thrusting ? 1 : 0,
       });
     }
     if (!this.tails) return;
@@ -715,6 +720,8 @@ export class Player {
 
   animateClimb() {
     const c = this.char;
+    this._gait = null;
+    for (const f of c.feet) f.rotation.set(0, 0, 0);
     const k = Math.sin(this.phase);
     c.arms[0].rotation.set(-2.75 + k * 0.4, 0, -0.15);
     c.arms[1].rotation.set(-2.75 - k * 0.4, 0, 0.15);
@@ -734,6 +741,8 @@ export class Player {
 
   animateRiding() {
     const c = this.char;
+    this._gait = null;
+    for (const f of c.feet) f.rotation.set(0, 0, 0);
     const flow = Math.min(Math.abs(this.ride.speed) / 30, 1.3);
     c.legs[0].rotation.set(-1.35, 0, 0.12);
     c.legs[1].rotation.set(-1.35, 0, -0.12);
@@ -750,123 +759,200 @@ export class Player {
   }
 
   /**
-   * Walk / run cycle driven by distance travelled (no foot sliding):
-   * hips swing more and knees fold higher as speed rises, the body bobs up at
-   * mid-stance when walking and dips (compresses) when running, leans into
-   * speed and banks into turns, the torso twists against the hips, arms swing
-   * opposite with elbows bending as you run, and the hat tip bounces. Idle has
-   * breathing and a slow look around; landings squash.
+   * Locomotion with planted feet.
+   * Each foot alternates stance (planted where it landed, on the real ground:
+   * slopes, steps, rocks) and swing (an arc to where it will land next,
+   * predicted from the velocity). A two-bone IK solves hip and knee for each
+   * foot target; the pelvis drops when a foot has to reach down. Walking
+   * keeps a foot down most of the time and bobs up at mid-stance; running has
+   * a flight phase, compresses at contact, leans in and pumps the arms.
+   * Standing still, feet stay put and take small corrective steps when you
+   * turn. Airborne / glide / jetpack keep authored poses.
    */
   animate(dt, hs) {
     const c = this.char;
     const L = THREE.MathUtils.lerp, sm = THREE.MathUtils.smoothstep;
     const moving = sm(hs, 0.3, 2.5);
     const run = sm(hs, WALK * 0.8, RUN * 0.9);
-    // turn rate (for banking)
     let dh = this.heading - (this._lastHeading ?? this.heading);
     dh = Math.atan2(Math.sin(dh), Math.cos(dh));
     this._lastHeading = this.heading;
     this._turn = L(this._turn ?? 0, dt > 0 ? dh / dt : 0, 1 - Math.exp(-8 * dt));
-    // landing squash
-    if (this.onGround && this._wasAir) this._land = Math.min(1, (this._airTime ?? 0) * 1.5);
+    if (this.onGround && this._wasAir) { this._land = Math.min(1, (this._airTime ?? 0) * 1.5); this._gait = null; }
     this._wasAir = !this.onGround;
     this._airTime = this.onGround ? 0 : (this._airTime ?? 0) + dt;
     this._land = Math.max(0, (this._land ?? 0) - dt * 4);
-
-    if (this.onGround) {
-      const cycle = L(1.55, 3.0, run);                    // metres per full gait cycle
-      this.phase += (hs / cycle) * Math.PI * 2 * dt;
-    }
-    const ph = this.phase;
-    const hipAmp = L(0.5, 0.95, run) * moving;
-    const kneeAmp = L(0.75, 1.75, run) * moving;
-    const hip0 = Math.sin(ph) * hipAmp;                   // + = leg back
-    const knee0 = Math.max(0, -Math.cos(ph)) * kneeAmp;   // folds while swinging forward
-    const knee1 = Math.max(0, Math.cos(ph)) * kneeAmp;
-
-    // footprints: a foot plants each half cycle
-    if (this.onGround && hs > 1 && this.onStep && Math.floor(ph / Math.PI) !== Math.floor(this._prevPhase / Math.PI)) {
-      this._stepSide *= -1;
-      const d = this.frame.dir(this.heading, _v1);
-      const r = _v2.crossVectors(d, this.frame.up);
-      this.onStep(_v3.copy(this.pos).addScaledVector(r, this._stepSide * 0.11).addScaledVector(d, 0.1), this.heading, this.frame.up);
-    }
-    this._prevPhase = ph;
-
     for (const f of c.flames) {
       f.visible = this.thrusting;
       f.scale.set(1, 0.8 + Math.random() * 0.6, 1);
     }
-
     const t = this.time;
-    const breathe = Math.sin(t * 2.1) * 0.012 * (1 - moving);
-    // vertical bob: up at mid-stance for a walk, compressed for a run
-    const walkBob = 0.5 + 0.5 * Math.cos(2 * ph);
-    const bob = L(walkBob, 1 - walkBob, run) * L(0.035, 0.09, run) * moving;
-    const lean = L(0.03, 0.3, run) * moving;
     const bank = THREE.MathUtils.clamp(-this._turn * 0.06 * moving, -0.3, 0.3);
+    for (const f of c.feet) f.rotation.set(0, 0, 0);
 
-    if (!this.onGround && !this.thrusting && !this.gliding) {
-      // airborne: one leg tucked, one reaching, arms up for balance
-      c.legs[0].rotation.x = -0.6; c.legs[1].rotation.x = 0.25;
-      c.knees[0].rotation.x = 1.1; c.knees[1].rotation.x = 0.4;
-      c.arms[0].rotation.set(-0.5, 0, -0.55); c.arms[1].rotation.set(0.3, 0, 0.55);
-      c.elbows[0].rotation.x = -0.9; c.elbows[1].rotation.x = -0.4;
+    if (!this.onGround || this.thrusting || this.gliding) {
+      this._gait = null;
       c.body.position.y = 0;
-      c.body.rotation.set(0.1, 0, bank);
       c.torso.rotation.set(0, 0, 0);
-      c.head.rotation.set(-0.1, 0, 0);
-      c.hatTip.rotation.x = -0.25;                        // blown up by the fall
-      return;
-    }
-    if (this.thrusting) {
-      c.legs[0].rotation.x = 0.2; c.legs[1].rotation.x = -0.15;
-      c.knees[0].rotation.x = 0.5; c.knees[1].rotation.x = 0.3;
-      c.arms[0].rotation.set(0.25, 0, -0.5); c.arms[1].rotation.set(0.25, 0, 0.5);
-      c.elbows[0].rotation.x = c.elbows[1].rotation.x = -0.3;
-      c.body.position.y = 0;
-      c.body.rotation.set(0.15, 0, bank);
-      c.torso.rotation.set(0, 0, 0);
-      c.head.rotation.set(-0.2, 0, 0);
-      c.hatTip.rotation.x = -1.0 + Math.sin(t * 25) * 0.08;
-      return;
-    }
-    if (this.gliding) {
-      c.legs[0].rotation.x = 0.3; c.legs[1].rotation.x = 0.1;
-      c.knees[0].rotation.x = 0.4; c.knees[1].rotation.x = 0.2;
-      c.arms[0].rotation.set(0, 0, -1.45); c.arms[1].rotation.set(0, 0, 1.45);
-      c.elbows[0].rotation.x = c.elbows[1].rotation.x = 0;
-      c.body.position.y = 0;
-      c.body.rotation.set(0.35, 0, bank * 2);
-      c.torso.rotation.set(0, 0, 0);
-      c.head.rotation.set(-0.3, 0, 0);
-      c.hatTip.rotation.x = -1.1 + Math.sin(t * 14) * 0.08;
+      if (this.thrusting) {
+        c.legs[0].rotation.set(0.2, 0, 0); c.legs[1].rotation.set(-0.15, 0, 0);
+        c.knees[0].rotation.x = 0.5; c.knees[1].rotation.x = 0.3;
+        c.arms[0].rotation.set(0.25, 0, -0.5); c.arms[1].rotation.set(0.25, 0, 0.5);
+        c.elbows[0].rotation.x = c.elbows[1].rotation.x = -0.3;
+        c.body.rotation.set(0.15, 0, bank);
+        c.head.rotation.set(-0.2, 0, 0);
+        c.hatTip.rotation.x = -0.5 + Math.sin(t * 25) * 0.08;
+      } else if (this.gliding) {
+        c.legs[0].rotation.set(0.3, 0, 0); c.legs[1].rotation.set(0.1, 0, 0);
+        c.knees[0].rotation.x = 0.4; c.knees[1].rotation.x = 0.2;
+        c.arms[0].rotation.set(0, 0, -1.45); c.arms[1].rotation.set(0, 0, 1.45);
+        c.elbows[0].rotation.x = c.elbows[1].rotation.x = 0;
+        c.body.rotation.set(0.35, 0, bank * 2);
+        c.head.rotation.set(-0.3, 0, 0);
+        c.hatTip.rotation.x = -0.6 + Math.sin(t * 14) * 0.08;
+      } else {
+        // airborne: one leg tucked, one reaching, arms out for balance
+        const up = this.vel.dot(this.frame.up) > 0;
+        c.legs[0].rotation.set(up ? -0.7 : -0.35, 0, 0); c.legs[1].rotation.set(up ? 0.3 : 0.1, 0, 0);
+        c.knees[0].rotation.x = up ? 1.2 : 0.7; c.knees[1].rotation.x = up ? 0.5 : 0.25;
+        c.arms[0].rotation.set(-0.5, 0, -0.6); c.arms[1].rotation.set(0.3, 0, 0.6);
+        c.elbows[0].rotation.x = -0.9; c.elbows[1].rotation.x = -0.4;
+        c.body.rotation.set(0.1, 0, bank);
+        c.head.rotation.set(-0.1, 0, 0);
+        c.hatTip.rotation.x = up ? 0.2 : -0.1;
+      }
       return;
     }
 
-    // ---- ground: walk / run / idle
+    // ---------------------------------------------------------- gait
+    const U = this.frame.up;
+    const fwd = this.frame.dir(this.heading, _g1);
+    const right = _g2.crossVectors(U, fwd).normalize().negate();   // character's right (-x local)
+    const G = (this._gait ??= this.initGait(fwd, right));
+    const duty = L(0.62, 0.3, run);                                 // fraction of the cycle a foot is down
+    const cycle = L(1.6, 2.7, run);                                  // metres per gait cycle (two steps)
+    const liftH = L(0.1, 0.32, run);
+    if (moving > 0.05) G.phase = (G.phase + (hs / cycle) * dt) % 1;
+    const hipW = 0.085;
+
+    for (let i = 0; i < 2; i++) {
+      const F = G.feet[i];
+      const side = i === 0 ? -1 : 1;                                   // legs[0] is on the -x side
+      // where this foot will land: the body travels (1 - p) * cycle before
+      // touchdown, and the foot lands half a stance ahead of the hips
+      const p = (G.phase + i * 0.5) % 1;
+      const ahead = moving > 0.05 ? (p >= duty ? (1 - p) * cycle : 0) + duty * cycle * 0.45 : 0;
+      // the moving velocity direction, not the facing (so strafing / turning plants correctly)
+      const dir = hs > 0.5 ? _g6.copy(this.vel).addScaledVector(U, -this.vel.dot(U)).normalize() : fwd;
+      _g3.copy(this.pos).addScaledVector(dir, ahead).addScaledVector(right, -side * hipW * L(1.3, 0.8, run));
+      this.groundPoint(_g3, U);
+      if (moving > 0.05) {
+        const swing = p >= duty;
+        if (swing && !F.swinging) { F.swinging = true; F.from.copy(F.plant); }
+        if (!swing && F.swinging) {                                    // touch down
+          F.swinging = false;
+          F.plant.copy(_g3);
+          this.stepped(F.plant, i);
+        }
+        if (swing) {
+          const s = sm((p - duty) / (1 - duty), 0, 1);
+          F.target.lerpVectors(F.from, _g3, s).addScaledVector(U, Math.sin(Math.PI * s) * liftH);
+          F.toe = -Math.sin(Math.PI * s) * 0.5;
+        } else {
+          F.target.copy(F.plant);
+          F.toe = 0;
+        }
+        F.step = null;
+      } else {
+        // standing: stay planted; a quick corrective step if a foot is left behind
+        if (!F.step && !G.feet[1 - i].step && F.plant.distanceTo(_g3) > 0.32) {
+          F.step = { from: F.plant.clone(), to: _g3.clone(), k: 0 };
+        }
+        if (F.step) {
+          F.step.k += dt / 0.22;
+          const s = sm(Math.min(F.step.k, 1), 0, 1);
+          F.target.lerpVectors(F.step.from, F.step.to, s).addScaledVector(U, Math.sin(Math.PI * s) * 0.09);
+          if (F.step.k >= 1) { F.plant.copy(F.step.to); this.stepped(F.plant, i); F.step = null; }
+        } else F.target.copy(F.plant);
+        F.toe = 0;
+        F.swinging = false;
+      }
+    }
+
+    // body: bob, lean, bank, landing squash; pelvis drops to reach the lower foot
+    const ph = G.phase * Math.PI * 2;
+    const walkBob = 0.5 + 0.5 * Math.cos(2 * ph);
+    const bob = L(walkBob, 1 - walkBob, run) * L(0.03, 0.08, run) * moving;
+    const lean = L(0.03, 0.3, run) * moving;
+    const breathe = Math.sin(t * 2.1) * 0.012 * (1 - moving);
     const squash = this._land;
-    c.legs[0].rotation.set(hip0 - squash * 0.5, 0, 0.02);
-    c.legs[1].rotation.set(-hip0 - squash * 0.5, 0, -0.02);
-    c.knees[0].rotation.x = knee0 + 0.06 + squash * 1.0;
-    c.knees[1].rotation.x = knee1 + 0.06 + squash * 1.0;
-    c.body.position.y = bob - squash * 0.14 + breathe * 0.3;
+    // place the root now so IK can work in body space
+    this.object.position.copy(this.pos);
+    this.frame.quaternion(this.heading, this.object.quaternion);
     c.body.rotation.set(lean + squash * 0.15, 0, bank);
-    // torso twists against the hips; idle breathing
-    c.torso.rotation.set(0, Math.sin(ph) * 0.16 * moving, -Math.sin(ph) * 0.03 * run);
+    c.body.position.y = 0;
+    this.object.updateMatrixWorld(true);
+    let reachDrop = 0;
+    for (let i = 0; i < 2; i++) {
+      c.body.worldToLocal(_g4.copy(G.feet[i].target));
+      const d = _g4.sub(c.legs[i].position).length();
+      reachDrop = Math.max(reachDrop, d - (LEG_A + LEG_B) * 0.985);
+    }
+    G.drop = L(G.drop ?? 0, Math.min(Math.max(reachDrop, 0), 0.24), 1 - Math.exp(-14 * dt));
+    c.body.position.y = bob - G.drop - squash * 0.14 + breathe * 0.3;
+    c.body.updateMatrixWorld(true);
+
+    // two-bone IK per leg
+    for (let i = 0; i < 2; i++) {
+      const F = G.feet[i];
+      c.body.worldToLocal(_g4.copy(F.target));
+      _g4.sub(c.legs[i].position);
+      const dist = THREE.MathUtils.clamp(_g4.length(), 0.25, (LEG_A + LEG_B) * 0.999);
+      const roll = THREE.MathUtils.clamp(Math.atan2(_g4.x, -_g4.y), -0.35, 0.35);
+      const pitchToFoot = Math.atan2(-_g4.z, -_g4.y);                 // + = foot behind the hip
+      const alpha = Math.acos(THREE.MathUtils.clamp((LEG_A * LEG_A + dist * dist - LEG_B * LEG_B) / (2 * LEG_A * dist), -1, 1));
+      const bend = Math.PI - Math.acos(THREE.MathUtils.clamp((LEG_A * LEG_A + LEG_B * LEG_B - dist * dist) / (2 * LEG_A * LEG_B), -1, 1));
+      c.legs[i].rotation.set(pitchToFoot - alpha, 0, roll);
+      c.knees[i].rotation.x = bend;
+      // keep the boot flat on the ground (toe dips during the swing)
+      c.feet[i].rotation.x = -(pitchToFoot - alpha + bend) - (lean + squash * 0.15) + F.toe;
+      F.localZ = _g4.z;
+    }
+
+    // upper body: twist against the hips, arms swing with the opposite foot
+    const swingDiff = (G.feet[0].localZ - G.feet[1].localZ);
+    c.torso.rotation.set(0, -swingDiff * 0.35, -Math.sin(ph) * 0.03 * run);
     c.torso.scale.y = 1 + breathe;
-    // arms swing opposite the same-side leg, elbows fold as you run
-    const armK = L(0.8, 1.15, run);
-    c.arms[0].rotation.set(-hip0 * armK, 0, -0.08 - run * 0.1);
-    c.arms[1].rotation.set(hip0 * armK, 0, 0.08 + run * 0.1);
-    c.elbows[0].rotation.x = -(0.15 + L(0.2, 1.5, run) * moving + Math.max(0, -Math.sin(ph)) * 0.4 * run);
-    c.elbows[1].rotation.x = -(0.15 + L(0.2, 1.5, run) * moving + Math.max(0, Math.sin(ph)) * 0.4 * run);
-    // head: keeps looking ahead while moving, looks around when idle
+    const armK = L(1.4, 2.0, run) * moving;
+    c.arms[0].rotation.set(THREE.MathUtils.clamp(G.feet[0].localZ * armK, -1.2, 1.2), 0, -0.06 - run * 0.1);
+    c.arms[1].rotation.set(THREE.MathUtils.clamp(G.feet[1].localZ * armK, -1.2, 1.2), 0, 0.06 + run * 0.1);
+    const elb = 0.15 + L(0.15, 1.45, run) * moving;
+    c.elbows[0].rotation.x = -(elb + Math.max(0, -G.feet[0].localZ) * 0.5 * run);
+    c.elbows[1].rotation.x = -(elb + Math.max(0, -G.feet[1].localZ) * 0.5 * run);
     const look = (1 - moving) * (Math.sin(t * 0.37) * 0.5 + Math.sin(t * 0.13) * 0.3);
-    c.head.rotation.set(-lean * 0.7 + (1 - moving) * Math.sin(t * 0.21) * 0.08, look - Math.sin(ph) * 0.1 * moving, 0);
-    // hat tip: springs with the bob, trails back with speed
-    c.hatTip.rotation.x = -0.55 - hs * 0.018 + Math.cos(2 * ph) * 0.12 * moving + squash * 0.4;
+    c.head.rotation.set(-lean * 0.7 + (1 - moving) * Math.sin(t * 0.21) * 0.08, look + swingDiff * 0.15, 0);
+    c.hatTip.rotation.x = -hs * 0.02 + Math.cos(2 * ph) * 0.12 * moving + squash * 0.4;
     c.hatTip.rotation.z = Math.sin(ph) * 0.1 * moving;
+  }
+
+  initGait(fwd, right) {
+    const mk = (side) => {
+      const p = this.pos.clone().addScaledVector(right, -side * 0.12);
+      this.groundPoint(p, this.frame.up);
+      return { plant: p, from: p.clone(), target: p.clone(), swinging: false, step: null, toe: 0, localZ: 0 };
+    };
+    return { phase: 0, feet: [mk(-1), mk(1)], drop: 0 };
+  }
+
+  /** Snap a world point to the ground below/above it (along up). */
+  groundPoint(p, up) {
+    const h = this.physics.heightAbove(_g5.copy(p).addScaledVector(up, 0.7), up, 0.6) - 0.7;
+    if (Number.isFinite(h) && Math.abs(h) < 1.5) p.addScaledVector(up, -h);
+    return p;
+  }
+
+  stepped(p, i) {
+    if (this.onStep) this.onStep(p, this.heading, this.frame.up, i);
   }
 }
 

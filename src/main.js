@@ -8,6 +8,19 @@ import { applyTimeOfDay, colourScript } from './timeofday.js';
 import { WindStreaks } from './wind.js';
 import { Physics } from './physics.js';
 import { Flock, Motes, Footprints } from './life.js';
+import { Sound } from './audio.js';
+import { Weather, WEATHER_KINDS } from './weather.js';
+import { spawnNPCs } from './npc.js';
+import { Journal, Relics, Story, Gate, turnPage, arriveFromPage } from './quest.js';
+import { CONTENT, nextLevel } from './levels/content.js';
+
+// Loading: each stage updates the inked loading screen, then yields a frame
+// so it can paint (its pen animation runs on the compositor meanwhile).
+const loadMsg = document.querySelector('#loading .msg');
+const stage = (msg) => {
+  if (loadMsg) loadMsg.textContent = msg;
+  return new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0)));
+};
 
 // We author every colour as a display value and output it untouched.
 THREE.ColorManagement.enabled = false;
@@ -134,16 +147,22 @@ let wind = null;
 resize();
 
 // ------------------------------------------------------------------ world
-const levelParam = new URLSearchParams(location.search).get('level');
+const query = new URLSearchParams(location.search);
+const levelParam = query.get('level');
+const viaGate = query.get('via') === 'gate';
 const meta = levelById(levelParam) ?? LEVELS[0];
 const levelId = meta.id;
+const content = CONTENT[levelId];
+await stage(`sketching ${meta.title.toLowerCase()}…`);
 const level = meta.create(scene);
 const terrain = level.ground;
+await stage('inking the collisions…');
 // Collision against the real level geometry (built before the player / vehicles join the scene).
 const t0 = performance.now();
 const physics = new Physics(scene, level.ground.heightAt ? level.ground : null);
 console.info(`collision: ${physics.triangles.toLocaleString()} triangles in ${(performance.now() - t0).toFixed(0)} ms`);
 level.init?.(physics);
+await stage('waking the people…');
 const player = new Player(physics, {
   mount: level.mount, jetpack: level.features.jetpack, climb: level.features.climb ?? true,
   killY: level.killY, limit: level.limit ?? 1900, spawn: level.spawn, spawnHeading: level.spawnHeading,
@@ -164,7 +183,7 @@ resize();
 if (footprints) player.onStep = (p, heading, up) => footprints.add(p, heading, up);
 
 // local lights: the 8 nearest to the player go to the shader each frame
-const levelLights = level.lights ?? [];
+const levelLights = level.lights ?? (level.lights = []);
 const jetLight = new THREE.Vector4();
 function updateLights() {
   const L = sharedUniforms.uLights.value;
@@ -188,6 +207,45 @@ wind.uniforms.uInk.value = post.uniforms.uInk.value;
 const rig = new CameraRig(camera, renderer.domElement, physics);
 rig.yaw = level.camYaw;
 rig.constrain = level.constrainCamera;
+
+// ------------------------------------------------------------------ sound, weather, people, story
+const sound = new Sound(levelId);
+const weather = new Weather(content.weather);
+{
+  const stormColor = { desert: '#e3c58f', arzach: '#e8dfcb' }[levelId];
+  if (stormColor) post.uniforms.uStormColor.value.set(stormColor);
+}
+const npcs = spawnNPCs(scene, physics, content.npcs);
+const journal = new Journal(LEVELS.map((l) => ({ id: l.id, title: l.title, relicNames: CONTENT[l.id].relics.names, storyTitle: CONTENT[l.id].story.title })));
+const capture = (eye, look, w, h) => captureView(eye, look, w, h);
+const relics = new Relics(scene, physics, { levelId, spots: content.relics.spots, names: content.relics.names, journal, sound, capture, lights: levelLights });
+const next = nextLevel(levelId);
+const nextTitle = levelById(next).title;
+const story = new Story(scene, { levelId, def: { ...content.story, next: nextTitle }, journal, sound, capture, player, physics, ground: level.ground.heightAt ? level.ground : null });
+const gate = (() => {
+  const g = content.gate;
+  const fromY = levelId === 'incal' ? level.spawn.y + 5 : 1e4;
+  const y = physics.groundAt(g.at[0], fromY, g.at[1], 2e4);
+  return new Gate(scene, {
+    pos: new THREE.Vector3(g.at[0], Number.isFinite(y) ? y : level.spawn.y, g.at[1]), heading: g.heading,
+    dest: next, destTitle: nextTitle, sound,
+    onTravel: (dest, title) => turnPage(title, () => { location.search = `?level=${dest}&via=gate`; }),
+  });
+})();
+levelLights.push(gate.light);
+if (viaGate) {
+  const a = gate.arrival();
+  player.respawn(a.pos);
+  player.heading = a.heading;
+  rig.yaw = a.heading;   // camera behind the player, looking away from the gate
+  history.replaceState(null, '', `?level=${levelId}`);
+}
+// footsteps: prints in the sand + a sound
+const onStepPrint = player.onStep;
+player.onStep = (p, heading, up, i) => {
+  onStepPrint?.(p, heading, up, i);
+  sound.step(Math.hypot(player.vel.x, player.vel.z));
+};
 
 const input = {};
 window.addEventListener('keydown', (e) => {
@@ -268,7 +326,14 @@ fBeauty.add(U.uRays, 'value', 0, 1, 0.05).name('sun rays');
 fBeauty.close();
 const fWorld = gui.addFolder('World');
 fWorld.add(world, 'wind').name('wind-blown sand');
+fWorld.add(weather, 'mode', ['auto', ...WEATHER_KINDS]).name('weather');
 fWorld.close();
+const audioCfg = { music: 0.8, effects: 1, mute: sound.muted };
+const fSound = gui.addFolder('Sound');
+fSound.add(audioCfg, 'music', 0, 1, 0.05).onChange(() => sound.setVolumes(audioCfg.music, audioCfg.effects));
+fSound.add(audioCfg, 'effects', 0, 1, 0.05).onChange(() => sound.setVolumes(audioCfg.music, audioCfg.effects));
+fSound.add(audioCfg, 'mute').name('mute (M)').listen().onChange((v) => { if (v !== sound.muted) sound.toggleMute(); });
+fSound.close();
 
 function applyPreset(name) {
   const p = PRESETS[name];
@@ -375,58 +440,20 @@ function updateHud() {
     else if (level.features.taxis) parts.push('E hail a taxi');
     if (!parts.length) parts.push('push into a wall to climb it');
   }
-  const text = `${atmo.name} · ${parts.join(' · ')}`;
+  const goal = story.hud();
+  const text = `${atmo.name} · ${parts.join(' · ')}` +
+    `\n${goal ? goal + ' · ' : ''}relics ${journal.relicCount(levelId)}/${content.relics.names.length} · J sketchbook · M ${sound.muted ? 'unmute' : 'mute'}` +
+    (gate.near ? ` · walk through the gate to ${nextTitle}` : '');
+  audioCfg.mute = sound.muted;
   if (text !== lastStatus) { status.textContent = text; lastStatus = text; }
 }
-document.getElementById('loading')?.remove();
 
-function frame() {
-  timer.update();
-  const dt = Math.min(timer.getDelta(), 1 / 20);
-  const t = timer.getElapsed();
 
-  if (sky.speed > 0) sky.hour = (sky.hour + (sky.speed / 60) * dt) % 24;
-  // region fog / horizon follow the player smoothly (the field itself is smooth)
-  atmo = level.atmo(player.pos.x, player.pos.z, player.pos.y);
-  updateSky();
-  level.lightAt?.(player.pos, sharedUniforms.uSunDir.value);
+const busy = () => story.pageOpen || journal.open || picker.classList.contains('open');
+const noInput = {};
 
-  for (const v of player.vehicles) if (v !== player.ride) v.update(dt, null, t);
-  if (photo.on) {
-    photoUpdate(dt);
-  } else {
-    player.update(dt, input, rig.yaw);
-    rig.follow(player.ride?.heading ?? 0, dt, player.riding);
-    rig.update(player.pos, dt, player.frame);
-  }
-  // flocks circle the player (also in photo mode, so you can fly up to them)
-  for (const f of flocks) f.update(dt, t, player.pos, camera.position);
-  motes?.update(dt, t, camera.position);
-  footprints?.update(dt);
-  updateLights();
-  if (level.features.wind) { const [wx, wz] = wind.windDir; player.wind.set(wx * 2.5, 0, wz * 2.5); }
-
-  // sand: ambient gusts + dust behind the bike
-  const pxScale = (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) / window.innerHeight;
-  const b = player.mount;
-  if (b && player.ride === b && b.grounded && Math.abs(b.speed) > 10 && world.wind) {
-    const [fx, fz] = b.forward;
-    for (let i = 0; i < Math.abs(b.speed) / 12; i++)
-      wind.emit(b.pos.x - fx * 1.8, b.pos.z - fz * 1.8, b.vel.x * 0.25 - fz * (Math.random() - 0.5) * 6, b.vel.z * 0.25 + fx * (Math.random() - 0.5) * 6);
-  }
-  wind.update(dt, player.pos, camera, terrain, pxScale, world.wind);
-  updateHud();
-  level.update(dt, t, { player, rig });
-  // levels with zones (the Garage) switch ink style as you cross between them
-  if (level.zoneAt) {
-    const zone = level.zoneAt(player.pos);
-    if (zone.preset !== params.preset) { params.preset = zone.preset; applyPreset(zone.preset); }
-  }
-
-  sharedUniforms.uTime.value = t;
-  U.uTime.value = t;
-  U.uDebug.value = params.debug;
-
+/** The whole pipeline for one view: shadows, G-buffer, composite, overlays. */
+function renderFrame() {
   // 1. shadow maps (the wide cascade only refreshes every 3rd frame)
   const lightDir = sharedUniforms.uSunDir.value;
   scene.overrideMaterial = shadowOverride;
@@ -467,11 +494,116 @@ function frame() {
     renderer.setRenderTarget(null);
     renderer.render(blit.scene, post.camera);
   }
+}
+
+/** Render the scene from another viewpoint and grab it as an image (comic panels, sketches). */
+const grabCanvas = document.createElement('canvas');
+const _cp = new THREE.Vector3(), _cq = new THREE.Quaternion(), _cu = new THREE.Vector3();
+function captureView(eye, look, w, h) {
+  _cp.copy(camera.position); _cq.copy(camera.quaternion); _cu.copy(camera.up);
+  camera.position.copy(eye);
+  camera.up.copy(player.frame.up);
+  camera.lookAt(look);
+  renderFrame();
+  const src = renderer.domElement;
+  const aspect = w / h, sw = src.width, sh = src.height;
+  let cw = sw, ch = sw / aspect;
+  if (ch > sh) { ch = sh; cw = sh * aspect; }
+  grabCanvas.width = w; grabCanvas.height = h;
+  grabCanvas.getContext('2d').drawImage(src, (sw - cw) / 2, (sh - ch) / 2, cw, ch, 0, 0, w, h);
+  camera.position.copy(_cp); camera.quaternion.copy(_cq); camera.up.copy(_cu);
+  camera.updateMatrixWorld();
+  return grabCanvas.toDataURL('image/jpeg', 0.82);
+}
+
+function frame() {
+  timer.update();
+  const dt = Math.min(timer.getDelta(), 1 / 20);
+  const t = timer.getElapsed();
+  const ctl = busy() ? noInput : input;
+
+  if (sky.speed > 0) sky.hour = (sky.hour + (sky.speed / 60) * dt) % 24;
+  // region fog / horizon follow the player smoothly (the field itself is smooth)
+  atmo = level.atmo(player.pos.x, player.pos.z, player.pos.y);
+  updateSky();
+  level.lightAt?.(player.pos, sharedUniforms.uSunDir.value);
+
+  for (const v of player.vehicles) if (v !== player.ride) v.update(dt, null, t);
+  if (photo.on) {
+    photoUpdate(dt);
+  } else {
+    player.update(dt, ctl, rig.yaw);
+    rig.follow(player.ride?.heading ?? 0, dt, player.riding);
+    rig.update(player.pos, dt, player.frame);
+  }
+  // flocks circle the player (also in photo mode, so you can fly up to them)
+  for (const f of flocks) f.update(dt, t, player.pos, camera.position);
+  motes?.update(dt, t, camera.position);
+  footprints?.update(dt);
+  updateLights();
+  // weather: wind, haze, rain and storm feed the shader, the cloth and the sound
+  const W = weather.update(dt);
+  U.uRain.value = W.rain;
+  U.uStorm.value = W.storm;
+  U.uFogMul.value *= 1 + W.fog * 2.6 + W.storm * 2.2 + W.rain * 0.6;
+  wind.boost = W.storm;
+  {
+    const [wx, wz] = wind.windDir;
+    const k = (level.features.wind ? 2.5 : 1.2) * (1 + W.storm * 3.5 + W.rain * 0.6);
+    player.wind.set(wx * k, 0, wz * k);
+  }
+  for (const n of npcs) n.update(dt, player, camera);
+  relics.update(dt, t, player);
+  story.update(dt, t);
+  gate.update(dt, t, player);
+  const rideK = player.ride?.kind;
+  if (rideK === 'bird' && ctl.Space && (flapT -= dt) <= 0) { sound.flap(); flapT = 0.5; }
+  sound.update({
+    speed: player.riding ? 0 : Math.hypot(player.vel.x, player.vel.z), gust: wind.gust(), storm: W.storm, rain: W.rain,
+    thrusting: player.thrusting, riding: player.riding, rideKind: rideK, rideSpeed: player.ride?.speed ?? 0,
+    altitude: player.pos.y - (terrain.heightAt ? terrain.heightAt(player.pos.x, player.pos.z) : player.pos.y),
+  });
+
+  // sand: ambient gusts + dust behind the bike
+  const pxScale = (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) / window.innerHeight;
+  const b = player.mount;
+  if (b && player.ride === b && b.grounded && Math.abs(b.speed) > 10 && world.wind) {
+    const [fx, fz] = b.forward;
+    for (let i = 0; i < Math.abs(b.speed) / 12; i++)
+      wind.emit(b.pos.x - fx * 1.8, b.pos.z - fz * 1.8, b.vel.x * 0.25 - fz * (Math.random() - 0.5) * 6, b.vel.z * 0.25 + fx * (Math.random() - 0.5) * 6);
+  }
+  wind.update(dt, player.pos, camera, terrain, pxScale, world.wind);
+  updateHud();
+  level.update(dt, t, { player, rig });
+  // levels with zones (the Garage) switch ink style as you cross between them
+  if (level.zoneAt) {
+    const zone = level.zoneAt(player.pos);
+    if (zone.preset !== params.preset) { params.preset = zone.preset; applyPreset(zone.preset); }
+  }
+
+  sharedUniforms.uTime.value = t;
+  U.uTime.value = t;
+  U.uDebug.value = params.debug;
+
+  renderFrame();
   if (photo.capture) savePhoto();
 
   requestAnimationFrame(frame);
 }
-requestAnimationFrame(frame);
+let flapT = 0;
+
+// compile every shader before the first frame, so it doesn't hitch
+await stage('mixing the inks…');
+await renderer.compileAsync(scene, camera).catch(() => {});
+await renderer.compileAsync(post.scene, post.camera).catch(() => {});
+requestAnimationFrame((t) => {
+  frame(t);
+  const ld = document.getElementById('loading');
+  ld?.classList.add('done');
+  setTimeout(() => ld?.remove(), 900);
+  if (viaGate) arriveFromPage(meta.title);
+  else story.start();
+});
 
 // handy for debugging from the console
-Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks });
+Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, gate, journal, weather, sound, captureView });

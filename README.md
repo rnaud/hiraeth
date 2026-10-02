@@ -205,6 +205,47 @@ converges to the light tone, so shadows fade out and back in instead of
 jumping. "Hours / minute" runs the cycle. Character
 poses update at 12 fps ("stop-motion anim") while movement stays smooth.
 
+## Story, people, sound and weather
+
+- **Story** (`src/quest.js`, `src/levels/content.js`):
+  - each world has one quiet goal, marked by a beam of light, with its
+    distance in the HUD;
+  - a first visit opens a wordless three-panel comic page, rendered live
+    from the game, and reaching the goal opens the closing page.
+- **Relics:** five per world, often on rooftops, mesas or trees you have to
+  climb. Picking one up sketches the moment into your **sketchbook**: press
+  **J** to open it. Progress is saved in `localStorage`.
+- **People** (`src/npc.js`):
+  - two to five per world, wearing the same rider design in their own
+    colours, with simulated cloaks near the camera;
+  - they walk their routes, stop to look at you, wave, and say a line in a
+    speech balloon; shy ones run away if you charge at them.
+- **Travel:** every world has a stone gate. Walk through it and the page
+  turns to the next world, where you step out of its gate (desert → city →
+  Arzach → Garage → Edena → Perdide → desert).
+- **Sound** (`src/audio.js`): everything is synthesised with Web Audio, with
+  no audio files.
+  - A generative score per world: its own scale, tempo, pads, bass and
+    sparse arpeggios, with reverb.
+  - Wind that follows the gusts and storms, and rain.
+  - Footsteps that match the ground (sand, stone, grass) and the cloak
+    flutter.
+  - The jetpack roar, an engine for the bike, skiff and taxis, and bird
+    flaps.
+  - Chimes for relics, page turns, and a whoosh at the gates.
+  - Sound starts on your first click, and **M** mutes.
+- **Weather** (`src/weather.js`): each world alternates clear spells with
+  its own weather, ramping in and out over a few seconds. You can force it
+  from World → weather.
+  - Sandstorms: a warm haze swallows the distance, and streaks of sand race
+    across the screen.
+  - Rain: slanted ink strokes falling over the scene.
+  - Fog banks in the city-shaft and on Perdide.
+  - Weather drives the wind on the cloak and the sound.
+- **Loading:** the world is built in stages behind an animated inked loading
+  screen, and every shader is compiled before the first frame, so there's no
+  hitch when it appears.
+
 ## Beauty pass
 
 Each of these can be toggled or tuned in the panel's **Beauty** folder.
@@ -243,20 +284,26 @@ Each of these can be toggled or tuned in the panel's **Beauty** folder.
   - swaying flowers in Edena;
   - footprints in sand.
 - **The character:** an Arzach-style rider, tall and gaunt, with a long pale
-  face and a long thin nose under a peaked hood. They wear an enormous red
-  cloak, open at the front, that reaches the ankles.
-  - **The cloak:** its vertices are reshaped every frame, so it flares out
-    behind when running, ripples along the hem, spreads like wings when
-    gliding, lifts when jetpacking and streams back on mounts.
-  - **Walk and run:** the gait is driven by distance travelled, so the feet
-    don't slide.
-    - Running brings a bigger stride, higher knees and pumping arms.
-    - The body bobs up when walking and compresses when running, leans into
-      speed and banks into turns, and the torso twists against the hips.
-  - **Other movement:** idle breathing and looking around, a squash on
-    landing, and distinct jump, glide, jetpack, climb and riding poses.
-  - **Stop-motion:** 12 fps posing is still available as a "stop-motion
-    anim" toggle.
+  face and a long thin nose under a peaked hood.
+  - **The cloak is real cloth** (`src/cape.js`): a 14×11 particle grid pinned
+    at the collar and integrated with Verlet.
+    - Structural, shear and bend constraints keep its shape.
+    - Gravity follows the local "up", and air drag against your motion and
+      the wind makes it stream behind you.
+    - It collides with capsules on the torso and each leg segment, so the
+      striding legs push it, and with the ground.
+    - When gliding it opens like wings; the jetpack lifts it.
+  - **Planted-feet locomotion:** each foot alternates between stance (planted
+    on the real ground, slopes and rocks included) and swing (an arc to a
+    landing point predicted from your velocity).
+    - Two-bone IK solves hip and knee, the ankle keeps the boot flat, and the
+      pelvis drops when a foot reaches down.
+    - Walking keeps a foot down most of the time; running has a flight phase,
+      compression, lean and pumping arms.
+    - Standing still, feet stay put and take a small corrective step when you
+      turn.
+    - Median foot slip while planted is about 5 mm per frame walking and
+      11 mm running.
 - **Hero landmarks:**
   - the desert: a colossal half-buried masked head;
   - Arzach: a fallen stone colossus and a giant hand rising from the plain;

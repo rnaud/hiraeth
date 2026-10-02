@@ -93,7 +93,8 @@ export class WindStreaks {
   /** Gust strength 0..1, slowly varying. */
   gust() {
     const t = this.time;
-    return THREE.MathUtils.clamp(0.35 + 0.45 * Math.sin(t * 0.21) + 0.3 * Math.sin(t * 0.53 + 1.7), 0, 1);
+    const g = THREE.MathUtils.clamp(0.35 + 0.45 * Math.sin(t * 0.21) + 0.3 * Math.sin(t * 0.53 + 1.7), 0, 1);
+    return Math.max(g, this.boost ?? 0);   // a sandstorm keeps it gusting
   }
 
   spawn(w, x, z, vx, vz, opts = {}) {

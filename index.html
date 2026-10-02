@@ -15,6 +15,7 @@
         padding: 8px 12px; pointer-events: none; user-select: none;
       }
       #hud b { letter-spacing: 0.08em; }
+      #status { white-space: pre-line; }
       #picker {
         position: fixed; inset: 0; z-index: 5000; display: none; overflow: auto;
         background: rgba(247, 236, 210, 0.94); color: #2b211f;
@@ -47,13 +48,109 @@
       #photo.open { display: block; }
       @keyframes fadehint { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
       #loading {
-        position: fixed; inset: 0; display: grid; place-items: center;
-        font: 14px ui-monospace, Menlo, monospace; color: #2b211f; background: #f7ecd2;
+        position: fixed; inset: 0; z-index: 9000; display: grid; place-content: center; justify-items: center; gap: 18px;
+        font: 14px ui-monospace, Menlo, monospace; color: #2b211f; background: #f7ecd2; transition: opacity 0.8s;
       }
+      #loading.done { opacity: 0; pointer-events: none; }
+      /* transform animations run on the compositor, so they keep moving while the world is built */
+      #loading .pen { width: 96px; height: 96px; animation: spin 2.4s linear infinite; }
+      #loading .ring { fill: none; stroke: #2b211f; stroke-width: 2.2; stroke-dasharray: 18 9; }
+      #loading .r2 { stroke-dasharray: 4 7; opacity: 0.6; }
+      #loading .nib { fill: #c8483a; stroke: #2b211f; stroke-width: 2; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+
+      .balloon {
+        position: fixed; z-index: 40; transform: translate(-50%, -100%); max-width: 240px; padding: 7px 11px;
+        font: 13px/1.35 ui-monospace, Menlo, monospace; color: #2b211f; background: #fffaf0;
+        border: 2px solid #2b211f; border-radius: 16px; pointer-events: none; opacity: 0; transition: opacity 0.25s;
+      }
+      .balloon::after {
+        content: ''; position: absolute; left: 22px; bottom: -11px; border: 10px solid transparent;
+        border-top-color: #2b211f; border-bottom: 0; border-left: 0;
+      }
+      .balloon.show { opacity: 1; }
+
+      #toast {
+        position: fixed; left: 50%; top: 22px; transform: translateX(-50%); z-index: 60; padding: 8px 14px;
+        font: 13px ui-monospace, Menlo, monospace; color: #2b211f; background: #fffaf0; border: 2px solid #2b211f;
+        box-shadow: 4px 4px 0 #2b211f; opacity: 0; pointer-events: none;
+      }
+      #toast.show { animation: toast 4.5s forwards; }
+      @keyframes toast { 0% { opacity: 0; transform: translate(-50%, -8px); } 8%, 80% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; } }
+
+      #page {
+        position: fixed; inset: 0; z-index: 80; display: none; place-items: center;
+        background: rgba(43, 33, 31, 0.55); cursor: pointer;
+      }
+      #page.open { display: grid; animation: pagein 0.5s ease-out; }
+      @keyframes pagein { from { opacity: 0; transform: rotate(-1.5deg) scale(0.97); } }
+      #page .sheet {
+        width: min(960px, 92vw, calc((100vh - 110px) / 0.8)); padding: 22px; background: #f7ecd2; border: 2px solid #2b211f; box-shadow: 8px 8px 0 #2b211f;
+        display: grid; grid-template-columns: 1fr 1fr; gap: 14px; transform: rotate(-0.6deg);
+      }
+      #page .p { position: relative; border: 3px solid #2b211f; background: #efe3c6; overflow: hidden; }
+      #page .p img { display: block; width: 100%; height: 100%; object-fit: cover; }
+      #page .p1 { grid-column: 1 / 3; aspect-ratio: 900 / 380; }
+      #page .p2 { aspect-ratio: 440 / 300; transform: rotate(0.5deg); }
+      #page .p3 { aspect-ratio: 440 / 300; transform: rotate(-0.4deg); }
+      #page .cap {
+        position: absolute; left: 12px; top: 12px; max-width: 46%; padding: 7px 10px; background: #fff6dc;
+        border: 2px solid #2b211f; font: 13px/1.4 ui-monospace, Menlo, monospace; color: #2b211f;
+      }
+      #page .cap b { letter-spacing: 0.12em; }
+      #page .hint { grid-column: 1 / 3; text-align: right; font: 11px ui-monospace, Menlo, monospace; opacity: 0.6; }
+
+      #journal {
+        position: fixed; inset: 0; z-index: 70; display: none; overflow: auto; padding: 34px 44px;
+        background: #f3e7cc; color: #2b211f; font: 13px ui-monospace, Menlo, monospace;
+        background-image: repeating-linear-gradient(0deg, transparent 0 27px, rgba(43, 33, 31, 0.07) 27px 28px);
+      }
+      #journal.open { display: block; }
+      #journal header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; }
+      #journal h1 { margin: 0; font-size: 26px; letter-spacing: 0.14em; }
+      #journal .close { border: 1.5px solid #2b211f; background: none; font: inherit; padding: 4px 10px; cursor: pointer; }
+      #journal section { margin-bottom: 22px; }
+      #journal h2 { font-size: 15px; letter-spacing: 0.06em; margin: 0 0 8px; }
+      #journal h2 span { opacity: 0.55; font-weight: normal; }
+      #journal .row { display: flex; gap: 12px; flex-wrap: wrap; }
+      #journal .tile { margin: 0; width: 170px; }
+      #journal .tile img, #journal .tile.empty div {
+        display: block; width: 170px; height: 120px; object-fit: cover; border: 2px solid #2b211f; background: #efe3c6;
+      }
+      #journal .tile.story img, #journal .tile.story.empty div { width: 240px; }
+      #journal .tile.story { width: 240px; }
+      #journal .tile:nth-child(odd) img { transform: rotate(-0.8deg); }
+      #journal .tile:nth-child(even) img { transform: rotate(0.7deg); }
+      #journal .tile.empty div { display: grid; place-items: center; border-style: dashed; opacity: 0.45; font-size: 28px; }
+      #journal figcaption { margin-top: 4px; font-size: 11px; }
+
+      #travel {
+        position: fixed; inset: 0; z-index: 8500; display: grid; place-items: center; pointer-events: none;
+        background: #f7ecd2; transform: translateX(105%); transition: transform 1s cubic-bezier(0.7, 0, 0.3, 1);
+        box-shadow: -14px 0 0 #2b211f;
+      }
+      #travel.in { transform: translateX(0); pointer-events: auto; }
+      #travel.out { transform: translateX(-105%); }
+      #travel.instant { transition: none; }
+      #travel .title { font: 34px ui-monospace, Menlo, monospace; letter-spacing: 0.2em; color: #2b211f; text-transform: uppercase; }
     </style>
   </head>
   <body>
-    <div id="loading">sketching the world…</div>
+    <div id="loading">
+      <svg class="pen" viewBox="0 0 120 120" aria-hidden="true">
+        <circle class="ring" cx="60" cy="60" r="44" />
+        <circle class="ring r2" cx="60" cy="60" r="30" />
+        <path class="nib" d="M60 14 L66 34 L60 40 L54 34 Z" />
+      </svg>
+      <div class="msg">sketching the world…</div>
+    </div>
+    <div id="journal">
+      <header><h1>SKETCHBOOK</h1><span>J to close <button class="close">close ✕</button></span></header>
+      <div class="pages"></div>
+    </div>
+    <div id="page"></div>
+    <div id="toast"></div>
+    <div id="travel"><div class="title"></div></div>
     <div id="photo">PHOTO MODE · WASD + Q/E fly · mouse look · SHIFT fast · H panel · ENTER save PNG · P exit</div>
     <div id="picker">
       <header>

@@ -95,6 +95,9 @@ const fragmentShader = /* glsl */ `
   uniform float uHazeBands;   // distance haze in flat layers
   uniform float uRays;        // sun rays at low sun
   uniform float uLineVary;    // thick silhouettes / thin interior lines / pen pressure
+  uniform float uRain;        // weather: ink rain 0..1
+  uniform float uStorm;       // weather: sandstorm 0..1
+  uniform vec3 uStormColor;
   uniform vec4 uPlanet[3];        // xyz = direction, w = angular radius (0 = none)
   uniform vec4 uPlanetColor[3];   // rgb, a = ring (0 none, else ring tilt)
 
@@ -475,6 +478,32 @@ const fragmentShader = /* glsl */ `
     if (uDebug == 6) col = vec3(0.97, 0.94, 0.86);
     col = mix(col, uInk, ink);
 
+    // ---- 5. weather, drawn on the page like the rest
+    if (uStorm > 0.0) {
+      // sand haze: the whole picture sinks into a warm flat tone, nearest things last
+      float near = isSky ? 1.0 : smoothstep(4.0, 90.0, depth);
+      col = mix(col, uStormColor, uStorm * (0.25 + 0.55 * near));
+      // streaks of blown sand racing across the frame
+      vec2 sp = vec2(fc.x * 0.6 - uTime * 900.0, fc.y);
+      float row = floor(sp.y / 6.0);
+      float hr = hash(vec2(row, 3.7));
+      float dash = smoothstep(0.82, 0.86, fract(sp.x / (180.0 + hr * 260.0) + hr * 7.0)) * step(0.55, hr);
+      float thin = 1.0 - smoothstep(0.6, 1.2, abs(fract(sp.y / 6.0) - 0.5) * 6.0);
+      col = mix(col, uInk * 0.6 + uStormColor * 0.4, dash * thin * uStorm * 0.45);
+    }
+    if (uRain > 0.0) {
+      col *= 1.0 - 0.1 * uRain;
+      // slanted ink strokes falling in columns
+      vec2 rp = vec2(fc.x + fc.y * 0.22, fc.y + uTime * 1100.0);
+      float colId = floor(rp.x / 11.0);
+      float h1 = hash(vec2(colId, 1.3)), h2 = hash(vec2(colId, 8.1));
+      float len = 26.0 + h1 * 40.0;
+      float v = fract((rp.y + h2 * 900.0) / (len * 6.0));
+      float stroke = (1.0 - smoothstep(0.0, 0.16, v)) * step(0.35, h1);
+      float w = 1.0 - smoothstep(0.35, 0.9, abs(fract(rp.x / 11.0) - 0.5) * 11.0);
+      col = mix(col, uInk, stroke * w * uRain * 0.5);
+    }
+
     // ---- 6. paper
     float grain = hash(fc + fract(uTime * 7.0) * 113.0 * uBoil) - 0.5;
     float fibre = vnoise(fc * vec2(0.9, 0.12)) * 0.5 + vnoise(fc * 0.25) * 0.5;
@@ -517,6 +546,9 @@ export function createPost() {
     uHazeBands: { value: 0.6 },
     uRays: { value: 1 },
     uLineVary: { value: 1 },
+    uRain: { value: 0 },
+    uStorm: { value: 0 },
+    uStormColor: { value: new THREE.Color('#e3c58f') },
     uPlanet: { value: [new THREE.Vector4(), new THREE.Vector4(), new THREE.Vector4()] },
     uPlanetColor: { value: [new THREE.Vector4(), new THREE.Vector4(), new THREE.Vector4()] },
 

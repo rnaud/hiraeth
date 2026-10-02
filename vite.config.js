@@ -4,4 +4,6 @@ import { defineConfig } from 'vite';
 // GitHub Pages' /moebius/ sub-path.
 export default defineConfig({
   base: './',
+  // main.js loads in stages with top-level await
+  build: { target: 'es2022' },
 });
