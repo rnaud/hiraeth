@@ -14,7 +14,7 @@ const JUMP = 13;
 const LIMIT = 1900;
 const JET_THRUST = 54;     // m/s² upward while thrusting (gravity is 32)
 const JET_MAX_UP = 15;
-const JET_DRAIN = 0.2;     // fuel per second
+const JET_DRAIN = 0.1;     // fuel per second (~10 s of thrust)
 const JET_REFILL = 0.55;
 
 function part(geo, color, opts = {}) {
@@ -547,7 +547,7 @@ export class Player {
 
     let speed = run ? RUN : WALK;
     if (this.gliding) speed *= 1.25;
-    if (this.thrusting) speed *= 1.3;
+    if (this.thrusting) speed *= 1.9;
     const accel = this.onGround ? 10 : this.thrusting ? 5 : 2.5;
     const a = 1 - Math.exp(-accel * dt);
     let vu = this.vel.dot(U);
@@ -567,6 +567,8 @@ export class Player {
     // while there's fuel; refills on the ground. Out of fuel -> glide.
     this.thrusting = this.opts.jetpack && !this.onGround && input.Space && this.fuel > 0 && !jumpedNow;
     if (this.thrusting) {
+      // tilted forward: part of the thrust drives you along when you steer
+      if (move.lengthSq() > 0) tv.addScaledVector(move, JET_THRUST * 0.35 * dt);
       vu = Math.min(vu + JET_THRUST * dt, JET_MAX_UP);
       this.fuel = Math.max(this.fuel - JET_DRAIN * dt, 0);
     } else if (this.onGround) {
@@ -804,8 +806,12 @@ export class Player {
         c.knees[0].rotation.x = 0.5; c.knees[1].rotation.x = 0.3;
         c.arms[0].rotation.set(0.25, 0, -0.5); c.arms[1].rotation.set(0.25, 0, 0.5);
         c.elbows[0].rotation.x = c.elbows[1].rotation.x = -0.3;
-        c.body.rotation.set(0.15, 0, bank);
-        c.head.rotation.set(-0.2, 0, 0);
+        // lean into the flight: more the faster you go
+        const fly = THREE.MathUtils.clamp(hs / (RUN * 1.9), 0, 1);
+        c.body.rotation.set(0.2 + fly * 0.65, 0, bank);
+        c.head.rotation.set(-0.25 - fly * 0.45, 0, 0);
+        c.legs[0].rotation.set(0.2 + fly * 0.3, 0, 0); c.legs[1].rotation.set(-0.1 + fly * 0.35, 0, 0);
+        c.arms[0].rotation.set(0.25 + fly * 0.5, 0, -0.35); c.arms[1].rotation.set(0.25 + fly * 0.5, 0, 0.35);
         c.hatTip.rotation.x = -0.5 + Math.sin(t * 25) * 0.08;
       } else if (this.gliding) {
         c.legs[0].rotation.set(0.3, 0, 0); c.legs[1].rotation.set(0.1, 0, 0);

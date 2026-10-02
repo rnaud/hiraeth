@@ -293,11 +293,11 @@ Each of these can be toggled or tuned in the panel's **Beauty** folder.
       the joints stay smooth;
     - the shoulders come in by moving the arm bones, then the mesh is
       re-bound;
-    - the face gets narrower and longer, with a long straight nose, hollow
-      cheeks, a heavy brow and a firmer chin.
-  - **Face ink:** the shader draws it in rest-pose face coordinates: heavy
-    upper lids, bags under the eyes, a frown crease, the nose bridge,
-    nose-to-mouth folds, cheekbones and a stern mouth line.
+    - the face gets narrower and longer, with a straighter nose, hollow
+      cheeks and a firmer chin, and the brows are thinned.
+  - **Face ink:** the shader draws fine lines in rest-pose face coordinates:
+    the upper lids, light marks under the eyes, nose-to-mouth folds,
+    cheekbones and the mouth.
   - **Motion:** mocap from Quaternius' Universal Animation Library (CC0).
     - Idle, walk, jog, sprint and jump clips play on a hidden copy of the
       library skeleton and are retargeted by limb direction onto our rig.

@@ -97,7 +97,9 @@ export class Cape {
     _a.set(this.local[0], this.local[1], this.local[2]).applyMatrix4(m);
     if (!this.ready || Math.hypot(_a.x - this.p[0], _a.y - this.p[1], _a.z - this.p[2]) > 3) this.reset();
     this.time += dt;
-    const steps = 3, h = Math.min(dt, 1 / 30) / steps;
+    // more substeps when the body moves fast, so limbs can't tunnel through the cloth
+    const fast = Math.hypot(s.vel.x, s.vel.y, s.vel.z);
+    const steps = fast > 6 ? 5 : 3, h = Math.min(dt, 1 / 30) / steps;
     const { cols, rows } = this;
     const up = s.up;
     // relative air: ambient wind minus our own motion, plus an updraft for the jetpack
@@ -136,7 +138,7 @@ export class Cape {
         }
       }
       // constraints, then collisions
-      for (let it = 0; it < 4; it++) {
+      for (let it = 0; it < 5; it++) {
         const C = this.cons;
         for (let k2 = 0; k2 < C.length; k2 += 4) {
           const i = C[k2] * 3, j = C[k2 + 1] * 3, rest = C[k2 + 2], st = C[k2 + 3];

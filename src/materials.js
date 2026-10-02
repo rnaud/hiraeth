@@ -370,15 +370,13 @@ const fragmentShader = /* glsl */ `
     vec2 lid = (q - vec2(e, 0.004)) / vec2(0.017, 0.008);
     float m = 0.0;
     float dLid = abs(length(lid) - 1.0) * 0.008;
-    m = max(m, inkLine(dLid / fwq, 1.7) * step(0.0, lid.y + 0.25) * step(abs(lid.x), 1.1));
+    m = max(m, inkLine(dLid / fwq, 1.0) * step(0.0, lid.y + 0.25) * step(abs(lid.x), 1.1));
     vec2 bag = (q - vec2(e + 0.002, -0.006)) / vec2(0.014, 0.006);
-    m = max(m, inkLine(abs(length(bag) - 1.0) * 0.006 / fwq, 0.9) * step(bag.y, -0.35) * 0.8);
-    m = max(m, inkLine(segDist(q, vec2(0.004, 0.012), vec2(0.0025, 0.026)) / fwq, 1.0));          // frown
-    m = max(m, inkLine(segDist(q, vec2(0.011, 0.002), vec2(0.014, ny + 0.008)) / fwq, 0.9) * 0.8); // bridge
-    m = max(m, inkLine(segDist(q, vec2(0.02, ny - 0.002), vec2(0.036, ny - 0.05)) / fwq, 1.2));    // fold
+    m = max(m, inkLine(abs(length(bag) - 1.0) * 0.006 / fwq, 0.7) * step(bag.y, -0.35) * 0.45);
+    m = max(m, inkLine(segDist(q, vec2(0.02, ny - 0.002), vec2(0.034, ny - 0.04)) / fwq, 0.8) * 0.7); // fold
     m = max(m, inkLine(segDist(q, vec2(0.042, -0.018), vec2(0.064, -0.036)) / fwq, 1.0) * 0.8);    // cheekbone
     float my = ny + (cy - ny) * 0.42;
-    m = max(m, inkLine(segDist(q, vec2(0.0, my), vec2(0.021, my + 0.003)) / fwq, 1.2));           // mouth
+    m = max(m, inkLine(segDist(q, vec2(0.0, my), vec2(0.019, my + 0.002)) / fwq, 1.0));           // mouth
     m = max(m, inkLine(segDist(q, vec2(0.0, cy + 0.012), vec2(0.008, cy + 0.011)) / fwq, 1.0) * 0.6); // chin cleft
     return m * frontal;
   }

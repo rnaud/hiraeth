@@ -74,6 +74,13 @@ function reshape(scene, kind) {
 
   for (const mesh of meshes) {
     const g = mesh.geometry;
+    const isBrow = /hair/i.test(mesh.material?.name ?? '');
+    if (isBrow) {   // eyebrows: half as tall, pulled toward their own centre line
+      g.computeBoundingBox();
+      const cy = (g.boundingBox.min.y + g.boundingBox.max.y) / 2;
+      const Pb = g.attributes.position;
+      for (let i = 0; i < Pb.count; i++) Pb.setY(i, cy + (Pb.getY(i) - cy) * 0.5);
+    }
     const P = g.attributes.position, J = g.attributes.skinIndex, W = g.attributes.skinWeight;
     for (let i = 0; i < P.count; i++) {
       v.fromBufferAttribute(P, i);
@@ -110,15 +117,15 @@ function reshape(scene, kind) {
         // long straight nose: a ridge from between the eyes to below the old tip
         const along = THREE.MathUtils.clamp((eyeY - 0.004 - y) / (eyeY - noseY + 0.012), 0, 1);
         const ridge = Math.exp(-((v.x / 0.013) ** 2)) * front * Math.sin(Math.PI * Math.min(along * 1.05, 1)) ** 0.6;
-        z += ridge * 0.03 * k;
-        y -= ridge * along * 0.016 * k;
+        z += ridge * 0.009 * k;
+        y -= ridge * along * 0.004 * k;
         // hollow cheeks under the cheekbones
         const cheek = Math.exp(-(((Math.abs(v.x) - 0.052) / 0.016) ** 2) - (((y - (noseY - 0.018)) / 0.02) ** 2));
         z -= cheek * 0.008 * k;
         x -= Math.sign(v.x) * cheek * 0.005 * k;
         // heavy brow
         const brow = Math.exp(-(((y - (eyeY + 0.017)) / 0.008) ** 2)) * THREE.MathUtils.smoothstep(z, 0.03, 0.07);
-        z += brow * 0.007 * k;
+        z += brow * 0.002 * k;
         // a stronger, narrower chin
         const chin = Math.exp(-((v.x / 0.02) ** 2) - (((y - chinY) / 0.02) ** 2));
         z += chin * 0.006 * k;
@@ -156,7 +163,7 @@ export class Humanoid {
    * @param char     the rig from buildCharacter()
    * @param kind     'm' | 'f'
    */
-  constructor(template, char, kind = 'm', { skin = '#e8c6a8', hair = '#2b211f' } = {}) {
+  constructor(template, char, kind = 'm', { skin = '#e8c6a8', hair = '#8a6a55' } = {}) {
     this.char = char;
     const model = cloneSkinned(template);
     this.model = model;
@@ -166,7 +173,8 @@ export class Humanoid {
     const brows = makeMaterial({ color: hair });
     model.traverse((o) => {
       if (!o.isMesh) return;
-      o.material = /eye(?!brow)/i.test(o.name) ? eyes : /brow/i.test(o.name) ? brows : body;
+      const isBrow = /brow/i.test(o.name) || /hair/i.test(o.material?.name ?? '');
+      o.material = isBrow ? brows : /eye/i.test(o.name) ? eyes : body;
       o.frustumCulled = false;
       o.userData.noCollide = true;
     });
@@ -241,7 +249,7 @@ export class Humanoid {
     // collar + jetpack + satchel lived on the rig torso
     for (const child of [...c.torso.children]) {
       if (child.isMesh && child.geometry.type === 'TorusGeometry' && Math.abs(child.position.y - 0.74) < 0.01) move(child, this.chestAnchor);
-      else if (child === c.jetpack) move(child, this.chestAnchor, new THREE.Vector3(0, 0.52, -0.22));
+      else if (child === c.jetpack) move(child, this.chestAnchor, new THREE.Vector3(0, 0.52, -0.33));
       else if (child === c.pack) move(child, this.chestAnchor, new THREE.Vector3(0, 0.3, 0));
     }
     c.jetpack.scale.setScalar(0.92);
@@ -307,19 +315,16 @@ export class Humanoid {
   /** Body capsules (world space) for cloth collision. */
   capsules() {
     const B = this.b;
-    if (!this._caps) {
-      this._caps = [{ a: new THREE.Vector3(), b: new THREE.Vector3(), r: 0.19 }];
-      for (let i = 0; i < 4; i++) this._caps.push({ a: new THREE.Vector3(), b: new THREE.Vector3(), r: i % 2 ? 0.08 : 0.1 });
-    }
-    const K = this._caps;
-    B.pelvis.getWorldPosition(K[0].a);
-    B.spine_03.getWorldPosition(K[0].b);
-    ['r', 'l'].forEach((s, i) => {
-      B[`thigh_${s}`].getWorldPosition(K[1 + i * 2].a);
-      B[`calf_${s}`].getWorldPosition(K[1 + i * 2].b);
-      K[2 + i * 2].a.copy(K[1 + i * 2].b);
-      B[`foot_${s}`].getWorldPosition(K[2 + i * 2].b);
-    });
-    return K;
+    // [from bone, to bone (or point offset), radius]; radii include the cloth's thickness
+    const spec = this._spec ??= [
+      ['pelvis', 'spine_03', 0.2], ['spine_03', 'neck_01', 0.17], ['clavicle_l', 'clavicle_r', 0.12],
+      ['thigh_l', 'calf_l', 0.12], ['calf_l', 'foot_l', 0.1], ['foot_l', 'ball_l', 0.08],
+      ['thigh_r', 'calf_r', 0.12], ['calf_r', 'foot_r', 0.1], ['foot_r', 'ball_r', 0.08],
+      ['upperarm_l', 'lowerarm_l', 0.08], ['lowerarm_l', 'hand_l', 0.07],
+      ['upperarm_r', 'lowerarm_r', 0.08], ['lowerarm_r', 'hand_r', 0.07],
+    ].filter(([a, b]) => B[a] && B[b]);
+    if (!this._caps) this._caps = spec.map(([, , r]) => ({ a: new THREE.Vector3(), b: new THREE.Vector3(), r }));
+    spec.forEach(([a, b], i) => { B[a].getWorldPosition(this._caps[i].a); B[b].getWorldPosition(this._caps[i].b); });
+    return this._caps;   // the jetpack sits on top of the cloth, so it isn't a collider
   }
 }
