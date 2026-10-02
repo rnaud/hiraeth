@@ -1,0 +1,29 @@
+src/interiors.js
+  s_aaae6e4311287b::t_697bb8b35dd96a 1-127
+src/levels/desert.js
+  s_aaae6e4311287b::t_cccc0282836a8a 5-7,12-28,40
+src/levels/edena.js
+  s_aaae6e4311287b::t_a9677ba18e1775 6,42-43,157-170,243-244
+src/levels/incal.js
+  s_aaae6e4311287b::t_31d51d6fa492ab 8,522-537,595
+src/main.js
+  s_aaae6e4311287b::t_7502f4908191fa 655-670,721
+src/world.js
+  s_aaae6e4311287b::t_6fe49bcd6a431b 189,451-454,600
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "798fa5fce9be9ea4ca6abeb62b00894b09a88ec4",
+  "prompts": {},
+  "sessions": {
+    "s_aaae6e4311287b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a3718911-2af0-4cef-b5df-15d14f9e5623",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
