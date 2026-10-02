@@ -1,0 +1,27 @@
+src/cape.js
+  s_aaae6e4311287b::t_d3a7de2c23d018 22-26,115
+src/main.js
+  s_aaae6e4311287b::t_7308227c4a74a1 204,650-652
+src/materials.js
+  s_aaae6e4311287b::t_dcf5cece9a8cc0 26-27,528-532
+src/trail.js
+  s_aaae6e4311287b::t_e30fd2b9b66baf 2,4-7,9-10,13-14,18-26,28-35,37-39,42-43,46,48-52,57-87,90-94
+README.md
+  s_aaae6e4311287b::t_6c94d3b0de9d3a 278-279
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a18abc5695cff1a6e6efbc6a4e1ccb457123c3b3",
+  "prompts": {},
+  "sessions": {
+    "s_aaae6e4311287b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a3718911-2af0-4cef-b5df-15d14f9e5623",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
