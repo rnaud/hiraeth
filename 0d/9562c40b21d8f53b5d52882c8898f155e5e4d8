@@ -1,0 +1,21 @@
+src/player.js
+  s_aaae6e4311287b::t_33a69a6fedca73 21-23,28-29,31-32,35,39-41,43-48,50,58,60-64,66,70-72,74-81,83,89,91,93-101,103-105,108-115,117-121,123-158,160-163,166,171,173,176-181,184,193,387-388,392-401
+README.md
+  s_aaae6e4311287b::t_599815a380edf3 245-250
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0d9562c40b21d8f53b5d52882c8898f155e5e4d8",
+  "prompts": {},
+  "sessions": {
+    "s_aaae6e4311287b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a3718911-2af0-4cef-b5df-15d14f9e5623",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
