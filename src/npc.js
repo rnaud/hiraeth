@@ -129,7 +129,7 @@ export class NPC {
       }
       for (const m of this._mats.values()) {
         const u = m.uniforms;
-        if (m.userData.role === 'body') { u.uColor.value.set(s.cloth); u.uColor2.value.set(s.legs); u.uSkin.value.set(s.skin); }
+        if (m.userData.role === 'body') { u.uColor.value.set(s.cloth); u.uColor2.value.set(s.legs); u.uSkin.value.set(s.skin); u.uGlove.value.w = 0; }   // bare hands, like the crowd figures
         else if (m.userData.role === 'brows') u.uColor.value.set(s.hair);
       }
       // headwear: drop what setHeadwear added last time, then dress again
@@ -305,10 +305,14 @@ export class NPC {
     this.humanoid?.update();
     const camD = camera.position.distanceTo(p.pos);
     if (this.cape) this.cape.mesh.visible = true;
-    if (this.cape && camD < (this.lowDetail ? 30 : 70)) {
+    // the cloth is the costly part: every other frame unless right by the camera
+    this._clothDt = (this._clothDt ?? 0) + dt;
+    this._clothTick = !this._clothTick;
+    if (this.cape && (camD < 5 || this._clothTick || !this.cape.ready)) {
       this.object.updateMatrixWorld(true);
       this.vel.set(Math.sin(this.heading) * p.speed, 0, Math.cos(this.heading) * p.speed);
-      this.cape.update(dt, { up: Y, vel: this.vel, wind: player.wind, floor: p.pos, capsules: this.humanoid ? this.humanoid.capsules() : this.capsules() });
+      this.cape.update(Math.min(this._clothDt, 1 / 20), { up: Y, vel: this.vel, wind: player.wind, floor: p.pos, capsules: this.humanoid ? this.humanoid.capsules() : this.capsules() });
+      this._clothDt = 0;
     }
     const line = now < (p.shoutUntil ?? -1) ? p.say : p.lines[p.lineIdx % p.lines.length];
     if (this.lines[0] !== line) { this.lines = [line]; this.lineIdx = 0; }

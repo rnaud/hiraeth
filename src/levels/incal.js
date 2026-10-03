@@ -644,7 +644,7 @@ export function createIncal(scene) {
         // the promenade: between the cypress row and the market stalls
         const rw = t.r0 + 6.1, pts = [];
         for (let a = t.a0 + 0.03; a <= t.a1 - 0.03; a += 2.5 / rw) pts.push(P(a, rw, t.y));
-        walks.push({ path: pts, n: Math.max(2, Math.round(span * rw / 22)), pair: 0.5, lateral: 0.6, keepRight: 0.4 });
+        walks.push({ path: pts, n: Math.max(2, Math.round(span * rw / 15)), pair: 0.5, lateral: 0.6, keepRight: 0.4 });
         // circles in the gaps of the cypress row, and in the lanes between the houses
         for (let a = t.a0 + 0.02; a < t.a1 - 0.02; a += (10 + r() * 14) / t.r0) {
           const rad = r() < 0.55 ? t.r0 + 2.4 + r() * 1.6 : t.r0 + 14 + r() * (t.width - 18);

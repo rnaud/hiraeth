@@ -704,15 +704,17 @@ export class Crowd {
     const cand = [];
     for (const p of this.people) if (p.tier === TIER.mid && p._dCam < nearIn && (p._vis || p._dCam < 4)) cand.push(p);   // the few full NPCs go to people in view
     if (!cand.length) return;
-    cand.sort((a, b) => a._dCam - b._dCam);
+    // the one you are talking to first, then by distance to the camera (how big they are on screen)
+    const score = (p) => p._dCam - (p.greetT >= 0 ? 6 : 0);
+    cand.sort((a, b) => score(a) - score(b));
     for (const p of cand) {
       if (budget.n <= 0) break;
       let e = this.pool.find((x) => !x.person && x.kind === p.kind);
       const used = this.pool.filter((x) => x.person).length;
       if (!e || used >= cap) {
         // swap out the farthest of the same kind if this one is clearly closer
-        const worst = this.pool.filter((x) => x.person && x.kind === p.kind).sort((a, b) => b.person._dCam - a.person._dCam)[0];
-        if (!worst || worst.person._dCam < p._dCam + 3 || budget.n < 2) continue;
+        const worst = this.pool.filter((x) => x.person && x.kind === p.kind).sort((a, b) => score(b.person) - score(a.person))[0];
+        if (!worst || score(worst.person) < score(p) + 3 || budget.n < 2) continue;
         this.demote(worst); budget.n--;
         e = worst;
       }
