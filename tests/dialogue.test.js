@@ -201,7 +201,9 @@ test('the panel: the speaker turns to you, Esc-closing emits the events, motifs 
   d.open = true; d.blend = 1;
   d.frameCamera(cam, { pos: new THREE.Vector3() }, npc.pos);
   const mid = new THREE.Vector3(1, 1.5, 0), f = cam.getWorldDirection(new THREE.Vector3());
-  assert.ok(f.dot(mid.clone().sub(cam.position).normalize()) > 0.99, 'looking between them');
+  const flat = (v) => v.clone().setY(0).normalize();
+  assert.ok(flat(f).dot(flat(mid.clone().sub(cam.position))) > 0.98, 'looking between them');
+  assert.ok(f.y < 0 && f.y > -0.5, 'a little down, so the faces sit above the panel');
   assert.ok(cam.position.distanceTo(mid) > 2.5 && cam.position.distanceTo(mid) < 8, 'close enough to see faces');
 });
 

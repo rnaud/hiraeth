@@ -11,6 +11,10 @@ import { registerTarget } from './targets.js';
 //  - Journal (J): a sketchbook with every relic and story page found, kept
 //    in localStorage.
 //  - Gate: a standing stone frame that turns the page to the next world.
+//  - A story with `manual: true` (the desert's) has no beacon and doesn't
+//    finish on arrival: its quest calls story.complete() (src/story/).
+//  - journal.sections: functions returning extra HTML for the sketchbook
+//    (the quest log).
 
 const STORE = 'moebius.journal.v1';
 
@@ -27,6 +31,7 @@ export class Journal {
       else if (e.code === 'Escape' && this.open) this.toggle(false);
     });
     this.el.querySelector('.close').addEventListener('click', () => this.toggle(false));
+    this.sections = [];   // () => html, rendered first (the quest log)
   }
 
   save() {
@@ -51,7 +56,8 @@ export class Journal {
 
   render() {
     const body = this.el.querySelector('.pages');
-    body.innerHTML = this.levels.filter((L) => !L.hidden || this.data.completed).map((L) => {
+    const extra = this.sections.map((f) => { try { return f() ?? ''; } catch (e) { console.warn(e); return ''; } }).join('');
+    body.innerHTML = extra + this.levels.filter((L) => !L.hidden || this.data.completed).map((L) => {
       const relics = (L.relicNames ?? []).map((name, i) => {
         const e = this.data.relics[L.id]?.[i];
         return e
@@ -188,7 +194,7 @@ export class Story {
     this.beacon.add(beam, halo);
     this._cam = null;
     this.beacon.userData.noCollide = true;
-    this.beacon.visible = !this.done;
+    this.beacon.visible = !this.done && !def.manual;
     scene.add(this.beacon);
     this.halo = halo;
     this.player = player;
@@ -211,7 +217,7 @@ export class Story {
       const k = Math.max(1, d * 0.0038);
       this.beam.scale.set(k, 1, k);
     }
-    if (this.done || this.pageOpen) return;
+    if (this.done || this.pageOpen || this.def.manual) return;
     const r = this.def.radius ?? 12, p = this.player.pos;
     if (Math.hypot(p.x - this.goal.x, p.z - this.goal.z) < r && Math.abs(p.y - this.goal.y) < (this.def.verticalRadius ?? Math.max(r, 20))) {
       this.done = true;
@@ -219,8 +225,16 @@ export class Story {
     }
   }
 
+  /** Finish a manual story (its quest is done): the closing page. */
+  complete() {
+    if (this.done) return false;
+    this.done = true;
+    this.showPage('outro');
+    return true;
+  }
+
   hud() {
-    if (this.done) return null;
+    if (this.done || this.def.manual) return null;
     const d = this.player.pos.distanceTo(this.goal);
     return `◆ ${this.def.label} · ${d < 1000 ? Math.round(d) + ' m' : (d / 1000).toFixed(1) + ' km'}`;
   }

@@ -59,24 +59,56 @@ export const CONTENT = {
   },
   desert: {
     weather: ['storm'],
+    // the desert's story is a quest (src/story/desert-data.js): this page
+    // opens on the first visit and closes when the ship has power again
     story: {
-      title: 'THE MASK IN THE SAND',
-      intro: 'Something old sleeps beneath the dunes.',
-      outro: 'It does not wake. But it saw you.',
-      label: 'the masked head', goal: [-20, 'ground', -372], radius: 26,
+      title: 'THE TREE THAT DRINKS',
+      intro: 'The ship is dark. Beyond the dunes, smoke rises, and a tree is burning.',
+      outro: 'The water rose, the tree drank, and the ship woke. Something of value? Ask the pilgrims.',
+      label: 'the burning tree', goal: [230, 'ground', 400], radius: 20, manual: true,
     },
     relics: {
       spots: [[-260, -330], [150, -210], [-150, -112], [150, 60], [-262, 12]],
       names: ['Sun disc', 'Bone flute', 'Glass bead', 'Mask shard', 'Salt-polished coin'],
     },
     gate: { at: [24, 34], heading: Math.PI },
+    // the people near the start (indices matter: errands and the observatory use them);
+    // the camps' people are in src/story/desert-data.js
     npcs: [
-      { at: [30, 12], palette: pal('#d8a24a', { cloth: '#5a4a3a' }), lines: ['The wind took my tracks again.', 'Every dune remembers a city.'] },
-      { at: [-140, -80], palette: pal('#5fb7ad'), lines: ['The mask sleeps. Don’t wake it.', 'I counted the ribs once. Forty.'] },
-      { at: [110, -150], palette: pal('#8a6fb8', { face: '#e6d3b8' }), lines: ['Have you seen my bike? It wanders off.'], shy: true },
-      { at: [-120, 34], palette: pal('#e6875f'), lines: ['The salt flats are that way. Bring water.', 'At night the moon throws shadows too.'] },
-      { at: [10, -200], palette: pal('#f3ead8', { cloth: '#7a4a35' }), lines: ['The stones hum when a storm comes.'] },
-      { at: [-18, 18], radius: 2, palette: pal('#697a98'), lines: ['A sleeping observatory stands east of camp.'] },
+      { at: [30, 12], palette: pal('#d8a24a', { cloth: '#5a4a3a' }), lines: ['The wind took my tracks again.', 'Every dune remembers a city.'],
+        id: 'ysa', name: 'Ysa', title: 'dune walker', color: '#d8a24a', talk: { nodes: {
+          hello: { say: ['The wind took my tracks again. Every morning I walk out, every evening the dunes pretend I never did.'], choices: [
+            { text: 'Where is everyone?', goto: 'where' }, { text: 'What do the dunes remember?', goto: 'city' }, { text: 'Bye, Ysa.', end: true }] },
+          where: { say: ['At Qanat, the old city, north-east past the low dunes. You can see the tree burning from here, look. The pilgrims are camped at its gate, waiting for the drinking.'], choices: [{ text: 'Thanks.', end: true }] },
+          city: { say: ['Every dune remembers a city. Walls under the sand, everywhere. Qanat is the one that didn’t sink: the tree holds it up by the roots, the old people say.'], choices: [{ text: 'Thanks.', end: true }] },
+        } } },
+      { at: [-140, -80], palette: pal('#5fb7ad'), lines: ['The mask sleeps. Don’t wake it.', 'I counted the ribs once. Forty.'],
+        id: 'pell', name: 'Pell', title: 'counter of bones', color: '#5fb7ad', talk: { nodes: {
+          hello: { say: ['I counted the ribs once. The big beast south of here: forty. The giant under Qanat must have more, but you can’t count what you’re standing on.'], choices: [
+            { text: 'There’s a giant under the city?', goto: 'giant' }, { text: 'What sleeps in the south?', goto: 'mask' }, { text: 'Bye, Pell.', end: true }] },
+          giant: { say: ['Its head sticks out by the back gate. The rest of it is the hill the city stands on. Big things lie down and become places. Give it time.'], choices: [{ text: 'And the south?', goto: 'mask' }, { text: 'Bye.', end: true }] },
+          mask: { say: ['The mask sleeps, past the ribs, face to the sky. Don’t wake it. Or do; I don’t think it can.'], do: { start: 'desert.mask' }, choices: [{ text: 'I’ll look at it.', end: true }] },
+        } } },
+      { at: [110, -150], palette: pal('#8a6fb8', { face: '#e6d3b8' }), lines: ['Have you seen my bike? It wanders off.'], shy: true,
+        id: 'rook', name: 'Rook', title: 'who lost a bike', color: '#8a6fb8', talk: { nodes: {
+          hello: { say: ['Have you seen my bike? It wanders off. Yours comes when you whistle, I saw. Mine has opinions.'], choices: [{ text: 'What does yours think?', goto: 'op' }, { text: 'Good luck, Rook.', end: true }] },
+          op: { say: ['That I walk too slowly and talk too much. It went to see the procession, I bet. Everyone goes to see the procession.'], choices: [{ text: 'Good luck.', end: true }] },
+        } } },
+      { at: [-120, 34], palette: pal('#e6875f'), lines: ['The salt flats are that way. Bring water.', 'At night the moon throws shadows too.'],
+        id: 'ennor', name: 'Ennor', title: 'guide to the salt', color: '#e6875f', talk: { nodes: {
+          hello: { say: ['The salt flats are west. Bring water. Bring two waters. At night the moon throws shadows too, and they don’t always point away from it.'], choices: [{ text: 'Where can I find water?', goto: 'water' }, { text: 'Bye.', end: true }] },
+          water: { say: ['Ha. Ask the pilgrims at Qanat; they’ve been waiting eleven days for water themselves. The tree gets the first drink. Always has.'], choices: [{ text: 'Thanks, Ennor.', end: true }] },
+        } } },
+      { at: [10, -200], palette: pal('#f3ead8', { cloth: '#7a4a35' }), lines: ['The stones hum when a storm comes.'],
+        id: 'tamsin', name: 'Tamsin', title: 'listener to stones', color: '#f3ead8', talk: { nodes: {
+          hello: { say: ['The stones hum when a storm comes. Three nights ago they hummed with no storm at all, and a light went over, singing the same note.'], choices: [{ text: 'The same note?', goto: 'note' }, { text: 'Bye, Tamsin.', end: true }] },
+          note: { say: ['Low, then rising. Like a question. The stones answered it. I didn’t like the answer, and I don’t speak stone.'], choices: [{ text: 'Bye.', end: true }] },
+        } } },
+      { at: [-18, 18], radius: 2, palette: pal('#697a98'), lines: ['A sleeping observatory stands east of camp.'],
+        id: 'traveller', name: 'The traveller', title: 'sketching', color: '#697a98', talk: { nodes: {
+          hello: { say: ['A sleeping observatory stands east of camp: a tower crowned by a brass ring. I’ve drawn it a hundred times. I’ve never seen it awake.'], choices: [{ text: 'How do I wake it?', goto: 'how' }, { text: 'Bye.', end: true }] },
+          how: { say: ['Climb its six ledges. Turn the three lenses toward the heart. Then come back and tell me; I’m too old for ledges.'], choices: [{ text: 'I will.', end: true }] },
+        } } },
     ],
   },
   incal: {

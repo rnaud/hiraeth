@@ -18,6 +18,11 @@ import { registerTarget } from './targets.js';
 //
 // The player's tool: hit(mode). A dart startles them (a jump, a turn to the
 // shooter, a short line); a stun freezes them for a moment in a comic pose.
+//
+// Story people (src/story/): `follow` walks them toward a moving target
+// (the head of a procession, the player), `seat` sits them on a cushion at
+// that height, and while `talkTo` is set they stop, turn to the player and
+// gesture as they speak. `def` is their conversation data.
 
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _d = new THREE.Vector3(), _push = new THREE.Vector3();
 const Y = new THREE.Vector3(0, 1, 0);
@@ -30,8 +35,12 @@ export class NPC {
    * @param o.lines   things they say
    * @param o.pooled  a crowd's near-tier body (hidden until assign())
    */
-  constructor(scene, physics, { route, palette, lines, speed = 1.25, shy = false, scale = 1, lib = null, human = null, kind = 'm', pooled = false }) {
+  constructor(scene, physics, { route, palette, lines, speed = 1.25, shy = false, scale = 1, lib = null, human = null, kind = 'm', pooled = false, follow = null, seat = null, head = null, cape = null, def = null }) {
     this.physics = physics;
+    this.follow = follow;   // () => { pos, speed, near } | null: walk there instead of the route
+    this.seat = seat;       // sit on something this high (m) instead of walking
+    this.def = def;
+    this.talkTo = null;     // set by the conversation: face the player, stay put
     this.scene = scene;
     this.kind = kind;
     this.pooled = pooled;
@@ -54,9 +63,9 @@ export class NPC {
     const HAIR = ['#2b211f', '#4a3226', '#6e4a32', '#b0a89a', '#a8552e', '#e8dcc0'];
     this.humanoid = human ? new Humanoid(human, this.char, kind, { skin: pick(SKINS) }) : null;
     // costume: headwear and a cape from shoulder-short to floor-length (or none)
-    const head = pooled ? 'hood' : pick(['hood', 'hat', 'hat', 'wrap', 'hair', 'hair']);
-    if (!pooled) this.humanoid?.setHeadwear(head, { color: pick(['#d8a24a', '#e6875f', '#f3ead8', '#62c3c9', '#a99be0']), hair: pick(HAIR), accent: this.char.colors.cloak });
-    const capeLen = pooled ? 0 : head === 'hood' ? 1.45 : pick([0, 0.55, 0.9, 1.25, 1.45]);
+    head = pooled ? 'hood' : head ?? pick(['hood', 'hat', 'hat', 'wrap', 'hair', 'hair']);
+    if (!pooled) this.humanoid?.setHeadwear(head, { color: palette.hat ?? pick(['#d8a24a', '#e6875f', '#f3ead8', '#62c3c9', '#a99be0']), hair: palette.hair ?? pick(HAIR), accent: this.char.colors.cloak });
+    const capeLen = pooled ? 0 : cape ?? (head === 'hood' ? 1.45 : pick([0, 0.55, 0.9, 1.25, 1.45]));
     this.cape = capeLen > 0
       ? new Cape(scene, this.char.capeAnchor ?? this.char.torso, { color: this.char.colors.cloak, cols: 10, rows: capeLen > 1 ? 8 : 6, length: capeLen, bottom: 0.25 + capeLen * 0.17 })
       : null;
@@ -175,6 +184,13 @@ export class NPC {
     const camD0 = camera.position.distanceTo(this.pos);
     this.object.visible = camD0 < 260;
     if (this.cape) this.cape.mesh.visible = camD0 < 220;
+    if (camD0 > 110 && this.follow) {
+      // far away a follower simply keeps up (no walking simulation)
+      const f = this.follow();
+      if (f?.pos) { _w.subVectors(f.pos, this.pos); _w.y = 0; if (_w.lengthSq() > 0.25) this.heading = Math.atan2(_w.x, _w.z); this.pos.copy(f.pos); }
+      this.object.position.copy(this.pos);
+      this.object.quaternion.setFromAxisAngle(Y, this.heading);
+    }
     if (camD0 > 260) { this.talking = false; return; }
     if (camD0 > 110) { this._skip = ((this._skip ?? 0) + 1) % 4; this._acc = (this._acc ?? 0) + dt; if (this._skip) return; dt = this._acc; this._acc = 0; }
     else this._acc = 0;
@@ -200,7 +216,11 @@ export class NPC {
     // a vehicle bearing down on them: jump aside (perpendicular to its path)
     const incoming = player.riding && dist < 9 && playerSpeed > 6 &&
       _w.set(mover.vel.x, 0, mover.vel.z).normalize().dot(_d.copy(toPlayer).normalize().negate()) > 0.6;
-    if (incoming) {
+    if (this.talkTo) {
+      // in conversation: still, turned to the player (seated people only turn their head)
+      if (!this.seat) face = Math.atan2(toPlayer.x, toPlayer.z);
+      this.greeted = 0;
+    } else if (incoming && !this.seat) {
       _w.set(-mover.vel.z, 0, mover.vel.x).normalize();
       if (_w.dot(toPlayer) > 0) _w.negate();
       speed = this.speed * 3.2;
@@ -211,6 +231,9 @@ export class NPC {
       // darted: stand still, turned to the shooter
       face = this.faceTo;
       this.greeted = 0;
+    } else if (this.seat) {
+      // seated: stays put, turns the head toward you when you're close
+      this.greeted = dist < greetR ? (this.greeted || this.time) : 0;
     } else if (this.shy && dist < 7 && playerSpeed > 6) {
       // run away from a charging player
       _w.copy(toPlayer).normalize().negate();
@@ -222,6 +245,21 @@ export class NPC {
       // stop, face the player, wave once
       face = Math.atan2(toPlayer.x, toPlayer.z);
       if (!this.greeted) { this.greeted = this.time; this.lineIdx = (this.lineIdx + 1) % this.lines.length; }
+    } else if (this.follow) {
+      // walk toward a moving target, matching its pace; wait when close enough
+      this.greeted = 0;
+      const f = this.follow();
+      if (f?.pos) {
+        _w.subVectors(f.pos, this.pos); _w.y = 0;
+        const d = _w.length(), near = f.near ?? 1.2;
+        if (d > 40) { this.pos.copy(f.pos); }           // fell far behind (a teleport, a long fall): catch up
+        else if (d > near) {
+          _w.divideScalar(d);
+          speed = Math.min((f.speed ?? this.speed) + (d - near) * 0.6, f.max ?? 4.5);
+          this.move(_w, speed, dt);
+          face = Math.atan2(_w.x, _w.z);
+        } else if (f.face !== undefined) face = f.face;
+      }
     } else {
       this.greeted = 0;
       if (this.pause > 0) this.pause -= dt;
@@ -246,13 +284,21 @@ export class NPC {
       this.heading += dh * (1 - Math.exp(-5 * dt));
     }
     // stay on the ground
-    const g = this.physics.groundAt(this.pos.x, this.pos.y + 1.5, this.pos.z);
-    if (Number.isFinite(g)) this.pos.y += (g - this.pos.y) * (1 - Math.exp(-15 * dt));
+    const g = this.physics.groundAt(this.pos.x, this.pos.y + 1.5 - (this.seat ?? 0), this.pos.z);
+    if (Number.isFinite(g)) this.pos.y += (g + (this.seat ?? 0) - this.pos.y) * (1 - Math.exp(-15 * dt));
 
-    this.pose(dt, speed, this.greeted ? this.time - this.greeted : -1, dist, player);
+    const waveT = this.talkTo ? -1 : this.greeted && !this.seat ? this.time - this.greeted : -1;
+    this.pose(dt, speed, waveT, dist, player, this.talkTo ? (this.talkTo.speaking ? 'talk' : 'ground') : null);
     this.object.position.copy(this.pos);
     this.object.quaternion.setFromAxisAngle(Y, this.heading);
-    this.posture(dt, { startle: this.time - this.startleAt });
+    this.posture(dt, { startle: this.time - this.startleAt, pose: this.seat ? 4 : 0 });
+    if (this.seat) {
+      // the hips down on the cushion, a little behind its front edge
+      const s = this.object.scale.y;
+      this.object.position.x -= Math.sin(this.heading) * 0.12 * s;
+      this.object.position.z -= Math.cos(this.heading) * 0.12 * s;
+      this.object.position.y += (0.05 - 0.95) * s;
+    }
     if (camera.position.distanceTo(this.pos) < 160) this.humanoid?.update();
 
     // cloth only near the camera
@@ -265,7 +311,7 @@ export class NPC {
     }
 
     // speech balloon: placed by placeBalloon() after the camera has moved this frame
-    this.talking = this.greeted && this.time - this.greeted > 0.6 && dist < greetR;
+    this.talking = !this.talkTo && this.greeted && this.time - this.greeted > 0.6 && dist < greetR;
     if (this.shout && this.time < this.shout.until) this.talking = true;
   }
 
@@ -493,8 +539,9 @@ export function spawnNPCs(scene, physics, spots, { fromY = 1e4, lib = null, huma
       route.push(new THREE.Vector3(x, Number.isFinite(y) ? y : 0, z));
     }
     const kind = k % 2 ? 'f' : 'm';
-    return new NPC(scene, physics, { route, palette: s.palette, lines: s.lines, shy: s.shy, speed: s.speed, lib,
-      human: humans ? humans[kind === 'm' ? 0 : 1] : null, kind });
+    const npc = new NPC(scene, physics, { route, palette: s.palette, lines: s.lines, shy: s.shy, speed: s.speed, lib,
+      human: humans ? humans[kind === 'm' ? 0 : 1] : null, kind, def: s.talk ? s : null });
+    return npc;
   });
 }
 

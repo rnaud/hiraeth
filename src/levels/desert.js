@@ -8,6 +8,8 @@ import { Hoverbike } from '../bike.js';
 import { makeMaterial } from '../materials.js';
 const makeGlow = () => makeMaterial({ color: '#fffaf0', glow: 1 });
 import { buildRoom, doorwayPortals } from '../interiors.js';
+import { buildDesertCity, desertCrowdSpots } from '../desert-city.js';
+import { LINES } from '../story/desert-data.js';
 
 // The original open desert: dunes, mesas, regions, hoverbike and wind.
 export function createDesert(scene) {
@@ -33,9 +35,18 @@ export function createDesert(scene) {
   }
   const observatory = buildObservatory(scene, terrain);
   lights.push(...observatory.lights);
+  // the story: the old city of Qanat round its burning tree, the pilgrims'
+  // camps, the fallen giant and the cave in its chest (src/desert-city.js,
+  // src/story/desert.js)
+  const qanat = buildDesertCity(scene, terrain);
+  lights.push(...qanat.lights);
+  portals.push(...qanat.portals);
+  // the main fire's first benches belong to the musicians and Teo (and Oum, once she's home)
+  for (const s of qanat.seats) if (s.fire.big && s.i <= 3) s.reserved = true;
   return {
     id: 'desert',
     observatory,
+    qanat,
     vistas,
     landmarks,
     ground: terrain,
@@ -48,6 +59,9 @@ export function createDesert(scene) {
     defaults: { hour: 9.5, preset: 'Moebius print' },
     lights,
     portals,
+    // the procession, the camps and the people waiting at the gate (crowd.js)
+    crowdSpots: () => desertCrowdSpots(terrain, { ...qanat, lines: LINES }),
+    crowdLines: LINES.camp,
     life: {
       flocks: [{ count: 12, color: '#665c50', size: .8, radius: 65, height: [22, 48], seed: 1 },
                { count: 8, color: '#665c50', size: .9, radius: 90, height: [40, 75], speed: -0.09, seed: 4 }],
@@ -65,7 +79,8 @@ export function createDesert(scene) {
     },
     killY: -Infinity,
     atmo: (x, z) => biomeAtmosphere(x, z),
-    update(dt, t) {
+    update(dt, t, o = {}) {
+      if (o.camera) qanat.update(dt, t, o);
       for (const b of banners) b.update(t);
       for (const f of floaters) {
         f.obj.position.y = f.baseY + Math.sin(t * 0.4 + f.phase) * f.amp;

@@ -1,6 +1,13 @@
 // Procedural sound: generative music per level + ambience + effects, all
 // synthesised with Web Audio (no audio files). Starts on the first click or
 // key press (browsers require a gesture). M mutes.
+//
+// Musicians in the world (setBands): each band is a place (or a walker) that
+// plays its own instruments in time with the score, heard positionally:
+// louder as you approach, panned by where it is relative to the camera, and
+// the score steps back when you stand by them. A band's `mode` changes the
+// tune: 'play' (their own ostinato), 'near' (someone is listening: they pick
+// up the world's melody), 'feast' (the holy event: double-time and claps).
 
 const PROFILES = {
   bazaar: { root: 164.81, scale: [0,2,4,6,7,9,11], tempo: 88, pad: 'triangle', arp: 'sine', prog: [0,3,1,4], density: .55, ground: 'stone' },
@@ -189,6 +196,7 @@ export class Sound {
         this.instrument(this.voice.pluck, this.freq(deg, 1), t + (Math.random() < 0.3 ? spb / 2 : 0), 0.4, 0.07);
       }
       this.ambienceTick(t, spb);
+      if (this.bands) for (const b of this.bands) if (b.level > 0.004) this.bandBeat(b, t, spb);
       this.beat++;
       this.nextBeat += spb;
     }
@@ -206,11 +214,12 @@ export class Sound {
     }
   }
 
-  /** One note of a named instrument. dur in seconds. */
-  instrument(kind, f, t, dur, vol) {
+  /** One note of a named instrument. dur in seconds. `dest`: a band's input instead of the score. */
+  instrument(kind, f, t, dur, vol, dest = null) {
     const ctx = this.ctx, out = ctx.createGain();
-    const pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
-    if (pan) { pan.pan.value = Math.random() * 0.8 - 0.4; out.connect(pan).connect(this.music); } else out.connect(this.music);
+    const pan = !dest && ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+    if (dest) out.connect(dest);
+    else if (pan) { pan.pan.value = Math.random() * 0.8 - 0.4; out.connect(pan).connect(this.music); } else out.connect(this.music);
     const env = (g, a, d, peak, sustain = 0) => {
       g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(peak, t + a);
       if (sustain) { g.gain.setValueAtTime(peak, t + Math.max(a, dur - d)); g.gain.linearRampToValueAtTime(0, t + dur + d); }
@@ -246,6 +255,20 @@ export class Sound {
     } else if (kind === 'marimba') {
       osc('sine', f, out); osc('sine', f * 4, out).detune.value = 3;
       env(out, 0.003, 0.5, vol);
+    } else if (kind === 'oud') {                         // a plucked lute: bright attack, quick fall, a buzz
+      const b = filt('lowpass', 2600, 1.5);
+      b.frequency.setValueAtTime(3200, t); b.frequency.exponentialRampToValueAtTime(700, t + 0.5);
+      osc('sawtooth', f, b, -4); osc('triangle', f * 2, b, 5);
+      env(out, 0.003, 0.7, vol);
+    } else if (kind === 'ney') {                         // breathy reed flute: lots of air
+      const o = osc('triangle', f, out); vib(o, 4.6, f * 0.008);
+      const n = ctx.createBufferSource(); n.buffer = this.noiseBuf; const nb = ctx.createBiquadFilter(); nb.type = 'bandpass'; nb.frequency.value = f * 1.5; nb.Q.value = 1.6;
+      const ng = ctx.createGain(); ng.gain.value = 0.5; n.connect(nb).connect(ng).connect(out); n.start(t, Math.random()); n.stop(t + dur + 0.5);
+      env(out, 0.2, 0.35, vol, true);
+    } else if (kind === 'chant') {                       // a sung "ah": a buzz through two vowel formants
+      const f1 = filt('bandpass', 720, 6), f2 = filt('bandpass', 1150, 8);
+      for (const d of [-7, 6]) { const o = osc('sawtooth', f, f1, d); o.connect(f2); vib(o, 5.2, f * 0.01); }
+      env(out, 0.25, 0.5, vol * 1.6, true);
     } else if (kind === 'celesta') {
       osc('sine', f * 2, out); osc('triangle', f * 4, out);
       env(out, 0.003, 1.0, vol * 0.7);
@@ -482,9 +505,131 @@ export class Sound {
     this.sweep(t + 0.05, high ? 1900 : 800, high ? 2100 : 700, 0.04, 0.05);
   }
 
+  // ------------------------------------------------------------------ musicians in the world
+  /**
+   * @param bands [{ id, pos: Vector3 | () => Vector3, radius, parts: ['oud', 'ney', 'drum', 'chant', 'bell'], mode, vol }]
+   */
+  setBands(bands) {
+    this.bandDefs = bands;
+    this.bands = null;
+    if (this.ctx) this.makeBands();
+  }
+  makeBands() {
+    const ctx = this.ctx;
+    this.bands = (this.bandDefs ?? []).map((d) => {
+      const input = ctx.createGain(), gain = ctx.createGain(), pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+      gain.gain.value = 0;
+      input.connect(gain);
+      (pan ? gain.connect(pan) : gain).connect(this.master);
+      const send = ctx.createGain(); send.gain.value = 0.35; gain.connect(send).connect(this.reverb);
+      return Object.assign(d, { input, gain, pan, level: 0, mode: d.mode ?? 'play', phrase: 0 });
+    });
+  }
+  band(id) { return (this.bands ?? this.bandDefs)?.find((b) => b.id === id) ?? null; }
+  setBandMode(id, mode) { const b = this.band(id); if (b) b.mode = mode; }
+  /** Per frame: levels and panning from the listener (the camera) and the player. */
+  listen(pos, yaw) {
+    if (!this.ctx || !this.bands) return;
+    const t = this.ctx.currentTime;
+    let near = 0;
+    for (const b of this.bands) {
+      const p = typeof b.pos === 'function' ? b.pos() : b.pos;
+      if (!p) { b.level = 0; b.gain.gain.setTargetAtTime(0, t, 0.3); continue; }
+      const dx = p.x - pos.x, dz = p.z - pos.z, d = Math.hypot(dx, dz, (p.y - pos.y) * 0.5);
+      const k = Math.max(0, 1 - d / b.radius);
+      b.level = k * k * (b.vol ?? 1);
+      near = Math.max(near, Math.max(0, 1 - d / (b.radius * 0.45)) * (b.duck ?? 1));
+      b.gain.gain.setTargetAtTime(this.muted ? 0 : b.level * 0.9 * this.musicVol, t, 0.25);
+      if (b.pan) {
+        // the camera looks along -z turned by yaw: its right is +x turned by yaw
+        const rx = Math.cos(yaw), rz = -Math.sin(yaw);
+        b.pan.pan.setTargetAtTime(Math.max(-0.85, Math.min(0.85, (dx * rx + dz * rz) / Math.max(d, 1) * 0.9)), t, 0.2);
+      }
+    }
+    // the score steps back when you stand among musicians
+    this.music.gain.setTargetAtTime(0.62 * this.musicVol * (1 - 0.7 * Math.min(near, 1)), t, 0.5);
+  }
+  /** One beat of a band, scheduled with the score's beat. */
+  bandBeat(b, t, spb) {
+    const beat = this.beat, chord = this.chord, D = b.input;
+    const feast = b.mode === 'feast', near = b.mode === 'near';
+    const v = (b.vol ?? 1) * 0.9;
+    for (const part of b.parts) {
+      if (part === 'drum') {
+        // a frame drum: dum . tek dum | tek . dum tek (eighths), doubled at the feast
+        const pat = feast ? [2, 1, 1, 2, 1, 1, 2, 1, 2, 1, 1, 2, 1, 2, 1, 1] : [2, 0, 1, 2, 1, 0, 2, 1];
+        const sub = feast ? 4 : 2;
+        for (let k = 0; k < sub; k++) {
+          const hit = pat[(beat * sub + k) % pat.length], tt = t + k * spb / sub;
+          if (hit === 2) this.dum(tt, 0.32 * v, D);
+          else if (hit === 1) this.tek(tt, 0.13 * v, D);
+        }
+        if (feast && beat % 2 === 1) this.clap(t + spb / 2, 0.1 * v, D);
+      } else if (part === 'oud') {
+        if (near || feast) {
+          // they pick up the world's tune, quicker, with grace notes
+          if (beat % 8 === 0) {
+            let tt = t;
+            for (const [deg, beats] of this.voice.melody) {
+              if (deg !== null) {
+                this.instrument('oud', this.freq(deg, 1), tt, beats * spb * 0.5, 0.16 * v, D);
+                if (Math.random() < 0.3) this.instrument('oud', this.freq(deg + 1, 1), tt + 0.06, 0.05, 0.07 * v, D);
+              }
+              tt += beats * spb * 0.5;
+            }
+          }
+        } else {
+          // an ostinato on the chord: root, fifth, a turn
+          const fig = [0, 4, 2, 4, 0, 4, 5, 4];
+          for (let k = 0; k < 2; k++) if (Math.random() < 0.9) this.instrument('oud', this.freq(chord + fig[(beat * 2 + k) % 8], 0), t + k * spb / 2, spb * 0.45, 0.13 * v, D);
+        }
+      } else if (part === 'ney') {
+        if (beat % 4 === 0 && (near || feast || Math.random() < 0.7)) {
+          const deg = chord + [4, 2, 6, 3][(beat / 4 + b.phrase) % 4];
+          this.instrument('ney', this.freq(deg, 1), t, spb * 3.6, 0.1 * v, D);
+        }
+        if (beat % 16 === 15) b.phrase++;
+      } else if (part === 'chant') {
+        if (beat % 8 === 0 && (feast || near || Math.random() < 0.6)) {
+          this.instrument('chant', this.freq(chord, 0), t, spb * 3.8, 0.07 * v, D);
+          this.instrument('chant', this.freq(chord + (feast ? 4 : 2), 0), t + spb * 4, spb * 3.8, 0.06 * v, D);
+        }
+      } else if (part === 'bell') {
+        if (Math.random() < (feast ? 0.6 : 0.25)) this.instrument('bell', this.freq(chord + [0, 4, 7][beat % 3], 2), t + (beat % 2) * spb * 0.5, 1, 0.05 * v, D);
+      }
+    }
+  }
+  dum(t, vol, dest) {
+    const ctx = this.ctx, o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = 'sine'; o.frequency.setValueAtTime(130, t); o.frequency.exponentialRampToValueAtTime(58, t + 0.18);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + 0.005); g.gain.exponentialRampToValueAtTime(0.0005, t + 0.4);
+    o.connect(g).connect(dest); o.start(t); o.stop(t + 0.45);
+    this.noiseHit(t, 0.06, 'lowpass', 500, vol * 0.4, dest);
+  }
+  tek(t, vol, dest) { this.noiseHit(t, 0.05, 'bandpass', 2600, vol, dest); }
+  clap(t, vol, dest) { for (let i = 0; i < 3; i++) this.noiseHit(t + i * 0.012, 0.04, 'bandpass', 1500, vol, dest); }
+  noiseHit(t, dur, type, freq, vol, dest) {
+    const ctx = this.ctx, src = ctx.createBufferSource(); src.buffer = this.noiseBuf;
+    const f = ctx.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = 1.2;
+    const g = ctx.createGain(); src.connect(f).connect(g).connect(dest);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0005, t + dur);
+    src.start(t, Math.random() * 1.5); src.stop(t + dur + 0.05);
+  }
+  /** A soft syllable blip while someone's words appear (pitch: their voice). */
+  blip(pitch = 1) {
+    if (!this.ctx || this.muted) return;
+    const ctx = this.ctx, t = ctx.currentTime, o = ctx.createOscillator(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    const base = 190 * pitch * (0.92 + Math.random() * 0.16);
+    o.type = 'triangle'; o.frequency.setValueAtTime(base, t); o.frequency.linearRampToValueAtTime(base * (0.9 + Math.random() * 0.25), t + 0.07);
+    f.type = 'bandpass'; f.frequency.value = 900 + Math.random() * 500; f.Q.value = 1.4;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.05, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0005, t + 0.09);
+    o.connect(f).connect(g).connect(this.fx); o.start(t); o.stop(t + 0.1);
+  }
+
   /** Per frame: drive the continuous layers from the game state. */
   update(s) {
     if (!this.ctx) return;
+    if (this.bandDefs && !this.bands) this.makeBands();
     const k = Math.min(s.speed / 11, 1.5);
     this.set('wind', 0.03 + s.gust * 0.05 + s.storm * 0.11 + k * 0.03, 420 + s.gust * 300 + s.storm * 400);
     const highWind = this.voice.ambience === 'highwind' ? 0.03 : 0;
