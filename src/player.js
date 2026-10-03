@@ -194,6 +194,7 @@ const _mat = new THREE.Matrix4();
 const _q1 = new THREE.Quaternion();
 const Y = new THREE.Vector3(0, 1, 0);
 const _zAxis = new THREE.Vector3(0, 0, 1);
+const _shoulder = new THREE.Vector3();
 const _qId = new THREE.Quaternion();
 const _xAxis = new THREE.Vector3(1, 0, 0);
 
@@ -361,6 +362,7 @@ export class Player {
     this._climbCooldown = 0;
     this.wind = new THREE.Vector3(1.2, 0, 0.5);   // levels can set this (wind on the scarf)
     this.onStep = null;                            // (footPos, heading) for footprints
+    this.aim = null;                               // { k, point, dir } while aiming the tool (blaster.js)
     this._stepSide = 1;
     this._prevPhase = 0;
     this.char.jetpack.visible = this.opts.jetpack;
@@ -651,6 +653,7 @@ export class Player {
     let speed = (run ? RUN : WALK) * (stickScale < 1 ? THREE.MathUtils.lerp(0.35, 1, stickScale) : 1);
     if (this.gliding) speed *= 1.25;
     if (this.thrusting) speed *= 1.9;
+    if (this.aim) speed = Math.min(speed, WALK) * (1 - 0.35 * this.aim.k);   // aiming: a steady walk
     const accel = this.onGround ? (move.lengthSq() < .001 ? 16 : 8) : this.thrusting ? 5 : 2.5;
     const a = 1 - Math.exp(-accel * dt);
     let vu = this.vel.dot(U);
@@ -762,7 +765,8 @@ export class Player {
     // facing
     const tvel = _v1.copy(this.vel).addScaledVector(U, -this.vel.dot(U));
     const hs = tvel.length();
-    if (hs > 0.5 && !this.gliding) {
+    if (this.aim && !this.gliding) this.faceAim(dt, tvel, hs);
+    else if (hs > 0.5 && !this.gliding) {
       let d = F.headingOf(tvel) - this.heading;
       d = Math.atan2(Math.sin(d), Math.cos(d));
       this.heading += d * (1 - Math.exp(-12 * dt));
@@ -800,6 +804,7 @@ export class Player {
       else if (this.onGround && this.animator && !this.thrusting) {
         H.plantFeet(dt, this.physics, U, this.pos, this.frame.dir(this.heading, _g1).clone(), (p, side, n) => this.stepped(p.clone(), 0, n));
       } else H.resetFeet();
+      if (this.aim && !this.climbing && !this.mantle && !this.gliding) H.aimAt?.(this.aim.point, this.aim.k, U);
       if (this.wing && this._wingK > 0.03) this.holdWing();
     }
     if (this.gear && dt > 0) {
@@ -811,6 +816,24 @@ export class Player {
       this.gear.update(dt, acc.clampLength(0, 40), this.phase ?? 0, this.onGround ? moving : 0.4, this.object.visible && !this.climbing && !this.gliding && !this.ride);
     }
     this.updateCloth(dt);
+  }
+
+  /**
+   * Aiming the tool (this.aim = { k, point, dir } from the Blaster): the body
+   * turns to the aim; walking sideways the legs lead by up to ~50° and the
+   * chest twists back (Humanoid.aimAt).
+   */
+  faceAim(dt, tvel, hs) {
+    const F = this.frame;
+    let target = F.headingOf(this.aim.dir);
+    if (hs > 0.5) {
+      let lead = F.headingOf(tvel) - target;
+      lead = Math.atan2(Math.sin(lead), Math.cos(lead));
+      if (Math.abs(lead) > Math.PI / 2) lead = Math.atan2(Math.sin(lead + Math.PI), Math.cos(lead + Math.PI));   // backing off: face the aim
+      target += THREE.MathUtils.clamp(lead, -0.9, 0.9) * Math.min(1, hs / 2);
+    }
+    const d = Math.atan2(Math.sin(target - this.heading), Math.cos(target - this.heading));
+    this.heading += d * (1 - Math.exp(-14 * this.aim.k * dt));
   }
 
   /** Gliding: both hands up on the brake handles, the canopy above them, the risers running into the fists. */
@@ -1431,6 +1454,7 @@ export class CameraRig {
     this._lastMouse = -1e9;
     this._now = 0;
     this._distBoost = 0;
+    this.aimK = 0;           // set by the Blaster while aiming (0..1)
 
     dom.addEventListener('click', () => dom.requestPointerLock?.());
     dom.addEventListener('mousedown', () => (this._dragging = true));
@@ -1467,16 +1491,18 @@ export class CameraRig {
   update(playerPos, dt, frame) {
     this._now += dt;
     const U = frame ? frame.up : Y, Fw = frame ? frame.fwd : _zAxis, Rt = frame ? frame.right : _xAxis;
-    const dist = this.dist + this._distBoost;
+    const ak = this.aimK ?? 0;   // aiming the tool: in close, over the right shoulder
+    const dist = THREE.MathUtils.lerp(this.dist + this._distBoost, 3.4, ak);
     this.target.lerp(playerPos, 1 - Math.exp(-14 * dt));
     if (this.target.lengthSq() === 0) this.target.copy(playerPos);
     const cp = Math.cos(this.pitch);
     const cam = this.camera.position;
     // looking up from low down: aim higher so the sky and clouds fill the view
-    this._look.copy(this.target).addScaledVector(U, 1.8 + Math.max(0, -this.pitch) * 1.4);
+    this._look.copy(this.target).addScaledVector(U, 1.8 + Math.max(0, -this.pitch) * 1.4 * (1 - ak) - 0.1 * ak);
     this._dir.copy(Rt).multiplyScalar(Math.sin(this.yaw) * cp)
       .addScaledVector(U, Math.sin(this.pitch))
       .addScaledVector(Fw, Math.cos(this.yaw) * cp);
+    if (ak > 0) this._look.addScaledVector(_shoulder.crossVectors(U, this._dir).normalize(), 0.85 * ak);
 
     // Line of sight: pull the camera in front of any wall between it and the
     // player (snap in, ease back out).

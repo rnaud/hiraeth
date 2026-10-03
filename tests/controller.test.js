@@ -47,3 +47,19 @@ test('photo controls capture once and use shoulders for altitude', () => {
   assert.deepEqual(t.actions,['capture']); t.button(1,true); t.c.update(.016);
   assert.deepEqual(t.actions,['capture','photo']);
 });
+test('the tool: LT aims, RT fires only while aiming (instead of running), D-pad left/right switch mode', () => {
+  const t=setup(); t.button(7,true);
+  let input=t.c.update(.016);
+  assert.ok(input.ShiftLeft && !input.PadFire && !input.PadAim, 'RT alone still runs');
+  t.button(6,true); input=t.c.update(.016);
+  assert.ok(input.PadAim && input.PadFire && !input.ShiftLeft);
+  t.button(10,true); assert.ok(t.c.update(.016).ShiftLeft, 'L3 can still run while aiming');
+  t.button(14,true); assert.ok(t.c.update(.016).PadMode);
+  t.button(14,false); t.button(15,true); assert.ok(t.c.update(.016).PadMode);
+  // a light squeeze of LT is enough to aim
+  const s=setup(); s.pad.buttons[6]={pressed:false,value:.35}; assert.ok(s.c.update(.016).PadAim);
+  // no aiming or firing from menus
+  const m=setup(); m.context('menu'); [6,7].forEach(i=>m.button(i,true)); assert.deepEqual(m.c.update(.016),{});
+  assert.ok(mergeControls({KeyR:true},{PadAim:false}).KeyR);
+  assert.ok(mergeControls({},{PadFire:true}).PadFire);
+});
