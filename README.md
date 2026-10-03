@@ -800,3 +800,9 @@ Front, side and back views show the textured model with joint overlays;
 actual `Animator` and `Humanoid` classes, before terrain foot placement.
 `tests/traveller.test.js` compares every gait phase to the source animation,
 including hand direction, palm twist, limb lengths, boot pitch and loop seams.
+
+The review also has **Face close-up** and **Face views** for head turnarounds.
+To rebuild the face, run Blender with `scripts/refine-traveller-face.py --
+input.glb output-directory`, then run `python3 scripts/merge-traveller-face.py
+input.glb output-directory/character.glb public/anim/traveller.glb`. The second
+step copies only the new facial meshes and preserves the shipped rig data.

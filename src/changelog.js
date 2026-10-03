@@ -3,6 +3,10 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.26', date: '2026-10-03', items: [
+    'Refined the traveller’s face from the character reference: a longer forehead, tapered jaw, sculpted nose, small inked eyes and mouth, and a grey liner behind the head.',
+    'Facial features now sit on the surface and remain readable through the bubble helmet. The existing body rig and walking/running corrections are preserved.',
+  ] },
   { v: '0.25', date: '2026-10-03', items: [
     'Fixed the imported traveller’s wrist mapping: hands now follow the animation’s finger direction and palm rotation instead of twisting sideways from the different resting pose.',
     'Climbing also uses the actual hand-bone direction. Walk, jog and run now have full-cycle checks for limb direction, wrist twist, boot pitch and seamless looping.',

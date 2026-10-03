@@ -11,7 +11,10 @@ for use in external editors. NPCs continue using the Quaternius characters.
 Rendering: the embedded texture feeds the game's G-buffer; the helmet uses
 the existing rim/highlight glass shader and is excluded from sun shadows.
 
-Known prototype limitations: simplified face and mitten-like hands without
+Face refined in v0.26 using scripts/refine-traveller-face.py and merged with
+scripts/merge-traveller-face.py to preserve the original rig and animation data.
+
+Known prototype limitations: no facial animation and mitten-like hands without
 finger joints; inferred backpack details; some pinching around the baggy
 crotch in deep bends. Full Blender/FBX source and generation scripts remain
 in the local output/character-local directory, outside the published game.

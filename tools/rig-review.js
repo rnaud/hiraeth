@@ -38,11 +38,12 @@ function sample(frame) {
 }
 function render() {
  const width=$('view').clientWidth,height=$('view').clientHeight;renderer.setSize(width,height,false);camera.aspect=width/height;camera.updateProjectionMatrix();
- const positions={front:[0,1.15,4.5],side:[4.5,1.15,0],back:[0,1.15,-4.5]};camera.position.set(...positions[$('angle').value]);camera.lookAt(0,1.04,0);
+ const positions={front:[0,1.15,4.5],side:[4.5,1.15,0],back:[0,1.15,-4.5],threequarter:[3,1.15,3]};
+ const close=$('face').checked;camera.position.set(...positions[$('angle').value]);if(close){camera.position.multiplyScalar(.19);camera.position.y=1.84;}camera.lookAt(0,close?1.82:1.04,0);
  lines.visible=$('bones').checked;renderer.render(scene,camera);
 }
 function update(){sample(+$('phase').value);render();}
-$('phase').oninput=$('motion').onchange=$('angle').onchange=$('bones').onchange=update;
+$('phase').oninput=$('motion').onchange=$('angle').onchange=$('bones').onchange=$('face').onchange=update;
 $('prev').onclick=()=>{$('phase').value=(+$('phase').value+119)%120;update();};$('next').onclick=()=>{$('phase').value=(+$('phase').value+1)%120;update();};
 let playing=false,last=0,elapsed=0;
 $('play').onclick=()=>{playing=!playing;$('play').textContent=playing?'Pause':'Play';};
@@ -55,3 +56,15 @@ $('capture').onclick=()=>{
  const a=document.createElement('a');a.download=`traveller-${$('motion').value}-${$('angle').value}-frames.png`;a.href=sheet.toDataURL();const img=new Image();img.src=a.href;a.append(img);$('sheet').replaceChildren(a);renderer.setPixelRatio(Math.min(devicePixelRatio,2));update();
 };
 window.addEventListener('resize',render);update();
+
+$('faceCapture').onclick=()=>{
+ playing=false;$('play').textContent='Play';$('face').checked=true;$('bones').checked=false;
+ // Restore the neutral pose so facial proportions can be compared across views.
+ for(const o of [...char.arms,...char.elbows,...char.legs,...char.knees,...char.feet,char.torso,char.head,char.body])o.quaternion.identity();char.body.position.set(0,0,0);humanoid.update();
+ const sheet=document.createElement('canvas');sheet.width=1200;sheet.height=500;const ctx=sheet.getContext('2d');ctx.fillStyle='#eee9de';ctx.fillRect(0,0,1200,500);
+ renderer.setPixelRatio(1);renderer.setSize(400,460,false);camera.aspect=400/460;camera.updateProjectionMatrix();lines.visible=false;
+ for(const [i,[label,eye]] of [['Front',[0,1.83,.87]],['Three-quarter',[.56,1.83,.67]],['Profile',[.87,1.83,0]]].entries()){
+  camera.position.set(...eye);camera.lookAt(0,1.81,0);renderer.render(scene,camera);ctx.drawImage(renderer.domElement,i*400,40);ctx.fillStyle='#242c38';ctx.font='20px sans-serif';ctx.fillText(label,i*400+16,28);
+ }
+ const a=document.createElement('a');a.download='traveller-face-views.png';a.href=sheet.toDataURL();const img=new Image();img.src=a.href;a.append(img);$('sheet').replaceChildren(a);renderer.setPixelRatio(Math.min(devicePixelRatio,2));render();
+};

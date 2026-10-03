@@ -136,3 +136,33 @@ for (const gait of ['walk', 'jog', 'sprint']) test(`${gait}: arms, legs, hands a
     if (frame === 120) pose.forEach((q, i) => assert.ok(q.angleTo(first[i]) < .0001, 'no jump at loop boundary'));
   }
 });
+
+test('sculpted face has a nose profile and visible eyes rigidly attached to the head', () => {
+  const face = template.getObjectByName('Traveller_sculpted_face');
+  assert.ok(face?.isSkinnedMesh);
+  const positions = face.geometry.attributes.position;
+  let nose = -Infinity, forehead = -Infinity;
+  for (let i = 0; i < positions.count; i++) {
+    const x = positions.getX(i), y = positions.getY(i), z = positions.getZ(i);
+    if (Math.abs(x) < .012 && y > 1.78 && y < 1.80) nose = Math.max(nose, z);
+    if (Math.abs(x) < .012 && y > 1.88 && y < 1.90) forehead = Math.max(forehead, z);
+  }
+  assert.ok(nose > forehead + .025, 'nose is part of the head silhouette');
+  template.updateMatrixWorld(true);
+  for (const s of [-1, 1]) {
+    const eye = template.getObjectByName(`Traveller_eye_${s}`);
+    const p = new THREE.Vector3().fromBufferAttribute(eye.geometry.attributes.position, 0);
+    const normal = new THREE.Vector3().fromBufferAttribute(eye.geometry.attributes.normal, 0);
+    assert.ok(normal.z > .8, 'front-facing eye surface');
+    const hit = new THREE.Raycaster(new THREE.Vector3(p.x, p.y, .5), new THREE.Vector3(0, 0, -1)).intersectObject(face, false)[0];
+    assert.ok(hit && p.z > hit.point.z, 'eye sits outside the facial surface');
+  }
+  template.traverse(o => {
+    if (!o.isSkinnedMesh || !o.name.startsWith('Traveller_')) return;
+    const weights = o.geometry.attributes.skinWeight, indices = o.geometry.attributes.skinIndex;
+    for (let i = 0; i < weights.count; i++) {
+      assert.equal(weights.getX(i), 1);
+      assert.equal(o.skeleton.bones[indices.getX(i)].name, 'head');
+    }
+  });
+});
