@@ -1,0 +1,39 @@
+README.md
+  s_aaae6e4311287b::t_a77aa9fb3ac4b0 351-399,593-596
+src/animator.js
+  s_aaae6e4311287b::t_4e1293925cabd2 16,20-23,43,89-90,93-98,101,110-111,122,129,136-146,157-168,184-190
+src/bike.js
+  s_aaae6e4311287b::t_c1770eb9c2d816 98-99,101,105-123,139-157
+src/bird.js
+  s_aaae6e4311287b::t_e271954e87ce8c 112-121,143,189-210
+src/changelog.js
+  s_aaae6e4311287b::t_55c60ffe4463ab 6-14
+src/gear.js
+  s_aaae6e4311287b::t_aa0b8b7fdc93cf 1-185
+src/humanoid.js
+  s_aaae6e4311287b::t_c4a4b27b7afb68 169,174,283-284
+src/life.js
+  s_aaae6e4311287b::t_53769b591a9866 210-216,219-247,249,260,270-272,274,277-286,288-291
+src/main.js
+  s_aaae6e4311287b::t_80c38f34ee1c33 198-199,214,307-308,626,642,724
+src/materials.js
+  s_aaae6e4311287b::t_b2961b08e61c5e 72-73,77-79,171-173,543-550,620-621,700-713,790-792
+src/player.js
+  s_aaae6e4311287b::t_9958cc5b32c98e 4,28,382-395,418-419,421,423-427,455,548-551,576-578,591-598,783,795,801,807,842-852,920,922-930,964-965,976,1007,1010-1019
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2bcd29cb66a3ecfd0feda2c2ef5d5ceac007cc88",
+  "prompts": {},
+  "sessions": {
+    "s_aaae6e4311287b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a3718911-2af0-4cef-b5df-15d14f9e5623",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
