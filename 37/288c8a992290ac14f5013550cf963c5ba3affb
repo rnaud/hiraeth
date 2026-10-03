@@ -1,0 +1,21 @@
+src/fluid-tool.js
+  s_1fd8d0e7b02dcf::t_f63f89da9e77e1 564-576
+tests/fluid-tool.test.js
+  s_1fd8d0e7b02dcf::t_ecc8256fd61e5b 10,338-374
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "37288c8a992290ac14f5013550cf963c5ba3affb",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
