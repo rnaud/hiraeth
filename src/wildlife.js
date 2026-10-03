@@ -41,7 +41,7 @@ const _ca = new THREE.Color(), _cb = new THREE.Color(), _col2 = new THREE.Color(
 function shimmer(main, tones, x, out) {
   const n = tones.length, w = ((x % n) + n) % n, i = Math.floor(w), f = THREE.MathUtils.smoothstep(w - i, 0.35, 0.65);
   _ca.set(tones[i]).lerp(_cb.set(tones[(i + 1) % n]), f);
-  const k = (c, m) => Math.min(2.6, Math.max(0.35, c / Math.max(m, 0.05)));
+  const k = (c, m) => Math.min(4, Math.max(0.2, c / Math.max(m, 0.05)));
   return out.setRGB(k(_ca.r, main.r), k(_ca.g, main.g), k(_ca.b, main.b));
 }
 const damp = (a, b, rate, dt) => a + (b - a) * (1 - Math.exp(-rate * dt));

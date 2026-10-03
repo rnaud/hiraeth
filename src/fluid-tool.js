@@ -730,7 +730,7 @@ export class FluidTool {
     this.fill += (target - this.fill) * (1 - Math.exp(-rate * dt));
     this.flash = Math.max(0, this.flash - dt * 3);
     this.wave = Math.max(0, this.wave - dt * 0.9);
-    this.pulse += dt * 3.2;
+    this.pulse += dt * 5;
     if (p?.vel && dt > 0) {
       // the fluid sloshes with the body's accelerations
       if (this._hasVel) this.slosh = Math.max(this.slosh * Math.exp(-2.2 * dt), Math.min(1, _a.subVectors(p.vel, this._lastVel).length() / dt / 70));
