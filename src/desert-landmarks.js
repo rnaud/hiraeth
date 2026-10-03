@@ -107,9 +107,12 @@ class Kit {
     this.frame = new THREE.Matrix4().compose(V(x, y, z), new THREE.Quaternion().setFromAxisAngle(V(0, 1, 0), yaw), V(1, 1, 1));
     this.origin = V(x, y, z); this.yaw = yaw;
     this.batches = new Map(); this.proxies = [];
+    this.terrain = Kit.terrain;
   }
   /** local -> world point */
   world(x, y, z) { return V(x, y, z).applyMatrix4(this.frame); }
+  /** ground height under a local point, in local coordinates */
+  gy(x, z) { const p = this.world(x, 0, z); return this.terrain.heightAt(p.x, p.z) - this.origin.y; }
   add(mat, geo) {
     if (!this.batches.has(mat)) this.batches.set(mat, []);
     this.batches.get(mat).push(prep(geo).applyMatrix4(this.frame));
@@ -167,14 +170,16 @@ export function buildDesertLandmarks(scene, terrain) {
   };
   const out = {};
   const ground = (s, r) => terrain.baseAt(s.x, s.z, r);
+  Kit.terrain = terrain;
 
   // ---------------------------------------------------------- the sunken leviathan
   // Lying on its side in a dune: the spine along the sand, the ribs arching
   // over into a tunnel you can walk through, the skull nose-down at one end.
   // Sand drifts (DRIFTS, part of the height field) bury the spine and tail.
   {
-    const s = SITES.carcass, k = new Kit(root, 'Sunken leviathan', s.x, ground(s, 40) - 2.5, s.z, s.yaw);
-    const spine = new THREE.CatmullRomCurve3(Array.from({ length: 9 }, (_, i) => { const t = i / 8; return V(-75 + 138 * t, 1 + 6 * Math.sin(Math.PI * t), -15 + 3 * Math.sin(t * 5)); }));
+    const s = SITES.carcass, k = new Kit(root, 'Sunken leviathan', s.x, terrain.heightAt(s.x, s.z) - 3, s.z, s.yaw);
+    // the spine follows the dune, half sunk in it
+    const spine = new THREE.CatmullRomCurve3(Array.from({ length: 9 }, (_, i) => { const t = i / 8, x = -75 + 138 * t, z = -15 + 3 * Math.sin(t * 5); return V(x, k.gy(x, z) - 1.5 + 4 * Math.sin(Math.PI * t), z); }));
     k.add(M.bone, new THREE.TubeGeometry(spine, 60, 2.8, 8));
     k.solid(new THREE.TubeGeometry(spine, 12, 2.8, 4));
     const ribs = 19;
@@ -182,10 +187,10 @@ export function buildDesertLandmarks(scene, terrain) {
       const t = 0.12 + 0.72 * i / (ribs - 1), b = spine.getPoint(t);
       const g = 0.3 + 0.7 * Math.sin(Math.PI * Math.min(1, Math.max(0, (t - 0.04) / 0.86)));
       const H = 4 + 25 * g, W = 8 + 15 * g, end = i % 5 === 3 ? 0.6 + rng() * 0.15 : 1;   // a few broken ribs
-      const lean = (rng() - 0.5) * 2.5, pts = [];
+      const lean = (rng() - 0.5) * 2.5, pts = [], gEnd = k.gy(b.x - 8, b.z + 2 * W) - 4;
       for (let j = 0; j <= 9; j++) {
-        const th = Math.PI * (j / 9) * end;
-        pts.push(V(b.x - 8 * th / Math.PI + lean * Math.sin(th), b.y + Math.sin(th) * H - (j === 9 && end === 1 ? 6 : 0), b.z + (1 - Math.cos(th)) * W));
+        const th = Math.PI * (j / 9) * end, base = THREE.MathUtils.lerp(b.y, gEnd, (1 - Math.cos(th)) / 2);
+        pts.push(V(b.x - 8 * th / Math.PI + lean * Math.sin(th), base + Math.sin(th) * H, b.z + (1 - Math.cos(th)) * W));
       }
       const r = 1.2 + 1.2 * g;
       k.add(M.bone, T(tube(pts, r, 24, 7), [0, 0, 0], [0, 0, 0], [1, 1, 1]));
@@ -195,18 +200,18 @@ export function buildDesertLandmarks(scene, terrain) {
     // tail vertebrae trailing into the sand
     for (let i = 1; i <= 9; i++) {
       const r = 2.8 - i * 0.22;
-      k.add(M.bone, T(new THREE.SphereGeometry(r, 8, 6), [-75 - i * 5.4, 1 - i * 0.4, -15 + Math.sin(i * 0.7) * 2.5], [0, 0, 0], [1.3, 0.9, 1]));
+      const x = -75 - i * 5.4, z = -15 + Math.sin(i * 0.7) * 2.5;
+      k.add(M.bone, T(new THREE.SphereGeometry(r, 8, 6), [x, k.gy(x, z) - 0.4 * r, z], [0, 0, 0], [1.3, 0.9, 1]));
     }
     // skull, nose down, a dark socket turned to the sky, jaw and tusks in the sand
-    const skullT = [[84, 5, -8], [0.3, 0, -0.2], [1.7, 0.85, 1.05]];
+    const sy = k.gy(84, -8) + 2, skullT = [[84, sy, -8], [0.3, 0, -0.2], [1.7, 0.85, 1.05]];
     k.add(M.bone, T(new THREE.SphereGeometry(16, 18, 12), ...skullT));
     k.solid(T(new THREE.SphereGeometry(16, 8, 6), ...skullT));
-    k.add(M.bone, T(new THREE.SphereGeometry(9, 12, 8), [62, 10, -10], [0, 0, 0], [1, 0.9, 1.2]));   // the brow behind the sockets
-    k.add(M.ink, T(new THREE.SphereGeometry(4.2, 12, 8), [80, 14.5, 1], [0.7, 0.3, 0], [1.4, 0.55, 1]));
-    k.add(M.ink, T(new THREE.SphereGeometry(2.4, 8, 6), [108, 5, -2], [0.4, 0, -0.25], [1.6, 0.4, 0.9]));
-    k.add(M.boneDark, T(new THREE.SphereGeometry(11, 12, 8), [94, -2, -16], [0, 0.15, -0.12], [1.9, 0.35, 0.8]));   // jaw
-    for (const z of [-5, 5]) k.add(M.bone, tube([V(108, -1, -12 + z), V(122, -3, -9 + z), V(132, 5, -6 + z)], 1.4, 10, 5));   // tusks
-    out.carcass = k.origin.clone().add(V(0, 20, 0));
+    k.add(M.bone, T(new THREE.SphereGeometry(9, 12, 8), [62, sy + 5, -10], [0, 0, 0], [1, 0.9, 1.2]));   // the brow behind the sockets
+    k.add(M.ink, T(new THREE.SphereGeometry(4.2, 12, 8), [80, sy + 9.5, 1], [0.7, 0.3, 0], [1.4, 0.55, 1]));
+    k.add(M.boneDark, T(new THREE.SphereGeometry(8, 12, 8), [96, sy - 3, -15], [0, 0.15, -0.12], [1.8, 0.6, 0.9]));   // jaw, mostly sunk
+    for (const z of [-6, 6]) k.add(M.bone, tube([V(104, sy - 3, -10 + z), V(116, sy - 4, -8 + z * 1.6), V(126, sy - 1, -6 + z * 1.8), V(130, sy + 6, -5 + z * 1.4)], 1.3, 16, 8));   // tusks
+    out.carcass = k.world(0, 20, 6);
     k.flush();
   }
 
@@ -214,7 +219,7 @@ export function buildDesertLandmarks(scene, terrain) {
   // A blue-grey hull nose-down in a dune with a broken-off section, masts and
   // a little salvage camp in its lee: a quonset hut, domes, a gantry arch.
   {
-    const s = SITES.wreck, k = new Kit(root, 'Crashed hull', s.x, ground(s, 35) - 1, s.z, s.yaw);
+    const s = SITES.wreck, k = new Kit(root, 'Crashed hull', s.x, terrain.heightAt(s.x, s.z) - 1.5, s.z, s.yaw);
     const L = 38, R = 11.5;
     const prof = (n) => Array.from({ length: n + 1 }, (_, i) => { const y = -L * 0.82 + (1.82 * L) * i / n; return [R * Math.sqrt(Math.max(0, 1 - Math.abs(y / L) ** 3)), y]; });
     // hull axis along local +x, nose (+x) dipping into the sand, rolled a little
@@ -257,23 +262,24 @@ export function buildDesertLandmarks(scene, terrain) {
       k.add(M.hullDark, T(T(new THREE.TorusGeometry(7.3, 0.9, 5, 24), [0, y, 0], [Math.PI / 2, 0, 0]), secPos, secRot));
       k.add(M.ink, T(T(new THREE.CircleGeometry(6.8, 20), [0, y * 0.9, 0], [Math.PI / 2, 0, 0]), secPos, secRot));
     }
-    // salvage camp in the lee
-    const cz = 30;
+    // salvage camp in the lee, each piece set on the sand
+    const cz = 32, g = (x, z) => k.gy(x, z);
     const hut = new THREE.CylinderGeometry(4.2, 4.2, 13, 16, 1, false, 0, Math.PI).rotateZ(Math.PI / 2);
-    k.both(M.cream, T(hut, [-14, 0, cz], [0, 0.3, 0]), T(new THREE.BoxGeometry(13, 4, 7), [-14, 2, cz], [0, 0.3, 0]));
-    k.add(M.ink, T(new THREE.BoxGeometry(0.4, 3.2, 2.2), [-14 + Math.cos(0.3) * 6.6, 1.5, cz - Math.sin(0.3) * 6.6], [0, 0.3, 0]));
-    k.add(M.ink, T(new THREE.BoxGeometry(8, 0.6, 0.3), [-14 + 2.75 * Math.sin(0.3), 3.2, cz + 2.75 * Math.cos(0.3)], [-0.86, 0.3, 0], [1, 1, 1]));
+    const hy = g(-14, cz) - 0.3;
+    k.both(M.cream, T(hut, [-14, hy, cz], [0, 0.3, 0]), T(new THREE.BoxGeometry(13, 4, 7), [-14, hy + 2, cz], [0, 0.3, 0]));
+    k.add(M.ink, T(new THREE.BoxGeometry(0.4, 3.2, 2.2), [-14 + Math.cos(0.3) * 6.6, hy + 1.5, cz - Math.sin(0.3) * 6.6], [0, 0.3, 0]));
+    k.add(M.ink, T(new THREE.BoxGeometry(8, 0.6, 0.3), [-14 + 2.75 * Math.sin(0.3), hy + 3.2, cz + 2.75 * Math.cos(0.3)], [-0.86, 0.3, 0]));
     for (const [x, z, r] of [[2, cz + 4, 3.6], [8, cz - 3, 2.6], [-26, cz + 6, 3]]) {
-      k.both(M.creamSmooth, new THREE.SphereGeometry(r, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2).translate(x, -0.3, z), new THREE.SphereGeometry(r, 8, 3, 0, Math.PI * 2, 0, Math.PI / 2).translate(x, -0.3, z));
-      k.add(M.ink, new THREE.BoxGeometry(1.4, 1.8, 0.4).translate(x, 0.6, z + r - 0.1));
+      const y = g(x, z) - 0.3;
+      k.both(M.creamSmooth, new THREE.SphereGeometry(r, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2).translate(x, y, z), new THREE.SphereGeometry(r, 8, 3, 0, Math.PI * 2, 0, Math.PI / 2).translate(x, y, z));
+      k.add(M.ink, new THREE.BoxGeometry(1.4, 1.8, 0.4).translate(x, y + 0.9, z + r - 0.1));
     }
-    k.add(M.rope, new THREE.TorusGeometry(6, 0.35, 6, 18, Math.PI).translate(-34, 0, cz - 6));
-    k.add(M.rope, new THREE.TorusGeometry(6, 0.35, 6, 18, Math.PI).translate(-34, 0, cz - 2));
-    k.add(M.rope, new THREE.CylinderGeometry(0.2, 0.3, 20, 6).translate(4, 10, cz + 12));
-    k.add(M.rope, new THREE.CylinderGeometry(0.15, 0.2, 13, 6).translate(-30, 6.5, cz + 14));
+    for (const dz of [-6, -2]) k.add(M.rope, new THREE.TorusGeometry(6, 0.35, 6, 18, Math.PI).translate(-34, g(-34, cz + dz) - 0.3, cz + dz));
+    k.add(M.rope, new THREE.CylinderGeometry(0.2, 0.3, 20, 6).translate(4, g(4, cz + 12) + 10, cz + 12));
+    k.add(M.rope, new THREE.CylinderGeometry(0.15, 0.2, 13, 6).translate(-30, g(-30, cz + 14) + 6.5, cz + 14));
     for (let i = 0; i < 6; i++) {
       const sz = 1.2 + rng() * 1.2, x = -6 + rng() * 14, z = cz - 8 + rng() * 6;
-      k.both(i % 2 ? M.rust : M.cream, T(new THREE.BoxGeometry(sz * 1.4, sz, sz), [x, sz / 2 - 0.2, z], [0, rng() * 3, 0]));
+      k.both(i % 2 ? M.rust : M.cream, T(new THREE.BoxGeometry(sz * 1.4, sz, sz), [x, g(x, z) + sz / 2 - 0.2, z], [0, rng() * 3, 0]));
     }
     out.wreck = k.origin.clone().add(V(0, 15, 0));
     k.flush();
@@ -294,6 +300,15 @@ export function buildDesertLandmarks(scene, terrain) {
     for (const [x, z, sz, m] of [[3.6, 2.6, 0.8, M.rust], [4.2, 1.5, 0.6, M.cream], [-2.5, 3.6, 0.7, M.cream]]) k.both(m, new THREE.BoxGeometry(sz * 1.4, sz, sz).translate(x, sz / 2, z));
     for (const [x, z] of [[1, 3], [5, 3], [1, 6], [5, 6]]) k.add(M.wood, new THREE.CylinderGeometry(0.06, 0.06, 2.4, 4).translate(x, 1.2, z + 0.5));
     k.add(M.rust, T(new THREE.BoxGeometry(4.4, 0.08, 3.4), [3, 2.4, 5], [0.12, 0, 0]));
+    // a bigger quonset for the radio gear, a teal dome tent, a rug and a fire ring
+    k.both(M.creamSmooth, new THREE.CylinderGeometry(2.8, 2.8, 8, 14, 1, false, 0, Math.PI).rotateZ(Math.PI / 2).rotateY(1.2).translate(-8, -0.2, -6), T(new THREE.BoxGeometry(8, 2.6, 5), [-8, 1.1, -6], [0, 1.2, 0]));
+    k.add(M.rust, new THREE.CylinderGeometry(2.86, 2.86, 0.7, 14, 1, true, 0, Math.PI).rotateZ(Math.PI / 2).rotateY(1.2).translate(-8, -0.2, -6));
+    k.add(M.ink, T(new THREE.BoxGeometry(0.3, 2, 1.6), [-8 + Math.cos(1.2) * 4.05, 1, -6 - Math.sin(1.2) * 4.05], [0, 1.2, 0]));
+    k.both(M.station, new THREE.SphereGeometry(1.5, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2).scale(1.2, 0.9, 1).translate(5.5, 0, -3), new THREE.BoxGeometry(3.4, 1.3, 2.8).translate(5.5, 0.65, -3));
+    k.add(M.rust, new THREE.BoxGeometry(3, 0.04, 2).translate(-1.5, 0.03, 3));
+    for (let i = 0; i < 7; i++) { const a = i * Math.PI * 2 / 7; k.add(M.rope, new THREE.IcosahedronGeometry(0.22, 0).translate(1.2 + Math.cos(a) * 0.7, 0.1, 4.6 + Math.sin(a) * 0.7)); }
+    k.add(M.wood, new THREE.CylinderGeometry(0.05, 0.07, 9, 4).translate(6.5, 4.5, 1));
+    k.add(M.rust, new THREE.BoxGeometry(0.05, 0.8, 1.8).translate(6.5, 8.4, 1.95));
     out.camp = k.origin.clone().add(V(0, 3, 0));
     k.flush();
   }
@@ -374,7 +389,7 @@ export function buildDesertLandmarks(scene, terrain) {
     {
       const pos = [], idx = [], n = 60;
       for (let i = 0; i <= n; i++) {
-        const u = -LEN / 2 - 30 + (LEN + 60) * i / n, c = 4 * Math.sin(u / 26), w = 3 + 1.5 * Math.sin(u / 17 + 1);
+        const u = -105 + 210 * i / n, c = 4 * Math.sin(u / 26), w = 3 + 1.5 * Math.sin(u / 17 + 1);
         for (const e of [-1, 1]) {
           const v = c + e * w, p = k.world(u, 0, v);
           pos.push(u, terrain.heightAt(p.x, p.z) - k.origin.y + 0.12, v);
@@ -471,7 +486,10 @@ export function buildDesertLandmarks(scene, terrain) {
     for (let i = 0; i < N; i++) {
       const az = i * Math.PI * 2 / N, len = Lp * (i % 2 ? 0.85 : 1), lift = tilt + (i % 3) * 0.05;
       const place = (g) => g.translate(len / 2, 0, 0).rotateZ(lift).rotateY(-az).translate(Math.cos(az) * 6.5, 2.2, Math.sin(az) * 6.5);
-      k.add(i % 2 ? M.petalB : M.petalA, place(new THREE.SphereGeometry(1, 20, 8, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2).scale(len / 2, 4.2, Wp / 2)));
+      // the bowl's normals are turned inward so its cupped, sunlit inside shades as the top
+      const bowl = new THREE.SphereGeometry(1, 20, 8, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2).scale(len / 2, 4.2, Wp / 2);
+      bowl.computeVertexNormals(); bowl.attributes.normal.array.forEach((v, j, a) => { a[j] = -v; });
+      k.add(i % 2 ? M.petalB : M.petalA, place(bowl));
       k.solid(place(new THREE.BoxGeometry(len * 0.9, 0.8, Wp * 0.6).translate(0, -3.0, 0)));
       // a spine of the crown between this petal and the next
       const a2 = az + Math.PI / N;
