@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from './materials.js';
+import { sweepCapsule, unbury } from './physics.js';
 
 // A flying taxi (John Difool drives one in L'Incal). Modes:
 //   lane    follows its circular traffic lane (set by the level)
@@ -12,7 +13,7 @@ import { makeMaterial } from './materials.js';
 
 const MAX = 40;
 const _q = new THREE.Quaternion();
-const _v = new THREE.Vector3();
+const _v = new THREE.Vector3(), _from = new THREE.Vector3();
 
 function buildTaxi(color) {
   const g = mergeGeometries([
@@ -182,15 +183,18 @@ export class Taxi {
     this.vy += (lift * 14 - this.vy) * (1 - Math.exp(-3 * dt));
 
     const [fx, fz] = this.forward;
+    const from = _from.copy(this.pos);
     this.pos.x += fx * this.speed * dt;
     this.pos.z += fz * this.speed * dt;
     this.pos.y += this.vy * dt;
 
-    if (this.physics.pushCapsule(this.pos, 1.1 * s, -0.6 * s, 0.9 * s, this._push)) {
+    // swept, so full throttle in a slow frame can't jump through a tower
+    if (sweepCapsule(this.physics, this.pos, from, 1.1 * s, -0.6 * s, 0.9 * s, this._push)) {
       if (Math.hypot(this._push.x, this._push.z) > 0.02) this.speed *= 0.7;
       if (this._push.y < 0 && this.vy > 0) this.vy = 0;
     }
-    const g = this.physics.groundAt(this.pos.x, this.pos.y, this.pos.z);
+    if (this.physics.embedded?.(this.pos)) { unbury(this, from, 1.1 * s); this.vy = 0; }
+    const g = this.physics.groundAt(this.pos.x, Math.max(from.y, this.pos.y), this.pos.z);
     const minY = g + 0.7 * s;
     if (this.pos.y < minY) { this.pos.y = minY; this.vy = Math.max(this.vy, 0); }
 
