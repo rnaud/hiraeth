@@ -4,9 +4,9 @@ import * as THREE from 'three';
 import { createBazaar } from '../src/levels/bazaar.js';
 import { createIncal } from '../src/levels/incal.js';
 import { Physics } from '../src/physics.js';
-import { Crowd, CROWD_BUDGET, CROWD_TIER, figureGeometry } from '../src/crowd.js';
+import { Crowd, CROWD_BUDGET, CROWD_TIER, figureGeometry, SPLASH_LINES, SHOVE_LINES } from '../src/crowd.js';
 import { CROWD_POSES } from '../src/crowd-shader.js';
-import { allTargets, clearTargets, raycastTargets, hitTarget } from '../src/targets.js';
+import { allTargets, clearTargets, raycastTargets, hitTarget, targetsInCone } from '../src/targets.js';
 import { registerNPCTargets } from '../src/npc.js';
 
 const cities = {};
@@ -111,7 +111,7 @@ test('promotion and demotion respect the pool and the per-frame budget', () => {
   assert.equal(active(), 0);
 });
 
-test('the tool: nearby people are targets; a dart startles, a stun freezes', () => {
+test('the fluid tool: nearby people are targets; a glob splashes and startles, the push shoves a group', () => {
   const crowd = makeCrowd('bazaar');
   const g = crowd.groups.find((q) => q.members.length >= 3 && q.center.z < 80 && q.center.z > 0) ?? crowd.groups[0];
   const player = { pos: g.center.clone().add(new THREE.Vector3(0, 0, 7)), vel: new THREE.Vector3() };
@@ -120,27 +120,41 @@ test('the tool: nearby people are targets; a dart startles, a stun freezes', () 
   const targets = allTargets().filter((t) => t.kind === 'npc');
   assert.ok(targets.length > 10 && targets.length < crowd.people.length, `${targets.length} targets`);
   for (const t of targets) assert.ok(t.position().distanceTo(player.pos) < 62);
-  // dart someone in the group
+  // a glob splashes someone in the group
   const victim = g.members[0];
   const eye = player.pos.clone().add(new THREE.Vector3(0, 1.5, 0));
   const dir = crowd.chest(victim).clone().sub(eye).normalize();
   const hit = raycastTargets(eye, dir, 80);
-  assert.ok(hit && hit.target.person, 'the dart finds a person');
+  assert.ok(hit && hit.target.person, 'the glob finds a person');
   const who = hit.target.person;
-  assert.ok(hitTarget(hit, 'dart', dir));
+  assert.ok(hitTarget(hit, 'shoot', dir, { colours: ['#52c8cf', '#966ede'] }));
   assert.equal(who.startleT, crowd.time);
-  assert.ok(who.say.length > 0, 'they say something');
+  assert.ok(SPLASH_LINES.includes(who.say), 'they complain about the splash');
   if (who.group) assert.ok(who.group.lookUntil > crowd.time && who.group.pauseUntil > crowd.time, 'the group looks round');
   // the startled person turns to face the player
   for (let f = 0; f < 60; f++) crowd.update(1 / 60, 0.2 + f / 60, player, cam);
   const toPlayer = Math.atan2(player.pos.x - who.pos.x, player.pos.z - who.pos.z);
   assert.ok(Math.abs(Math.atan2(Math.sin(toPlayer - who.heading), Math.cos(toPlayer - who.heading))) < 0.5);
-  // stun: frozen, drawn in the stunned pose
-  hitTarget({ target: targets.find((t) => t.person === who), point: eye }, 'stun', dir);
-  const pos = who.pos.clone(), heading = who.heading;
-  for (let f = 0; f < 30; f++) crowd.update(1 / 60, 1.2 + f / 60, player, cam);
-  assert.ok(crowd.time < who.stunUntil);
-  assert.ok(who.pos.distanceTo(pos) < 1e-6 && who.heading === heading, 'frozen in place');
+  // the push: everyone in the cone is shoved away from the traveller, stumbling; the rest of the group jumps
+  const standing = g.members.filter((m) => m.pose === CROWD_POSES.stand && !m.walk);
+  const shoved = standing[0] ?? who, t0 = crowd.time;
+  const from = shoved.pos.clone();
+  const away = shoved.pos.clone().sub(player.pos).setY(0).normalize();
+  const cone = targetsInCone(eye, crowd.chest(shoved).clone().sub(eye).normalize(), 12, 0.2);
+  const entry = cone.find((h) => h.target.person === shoved);
+  assert.ok(entry, 'the shoved person is in the cone');
+  hitTarget(entry, 'push', entry.dir, { strength: 1 });
+  assert.ok(crowd.time < shoved.stumbleUntil, 'stumbling');
+  assert.ok(SHOVE_LINES.includes(shoved.say));
+  for (const m of g.members) if (m !== shoved) assert.ok(m.startleT > t0 - 1e-9 && m.lookUntil > t0, 'the group reacts');
+  for (let f = 0; f < 30; f++) crowd.update(1 / 60, 1.3 + f / 60, player, cam);
+  const moved = shoved.pos.clone().sub(from).setY(0);
+  assert.ok(moved.length() > 0.8, `knocked back ${moved.length().toFixed(2)} m`);
+  assert.ok(moved.normalize().dot(away) > 0.7, 'away from the traveller');
+  // and then they walk back to their place
+  for (let f = 0; f < 300; f++) crowd.update(1 / 60, 1.8 + f / 60, player, cam);
+  assert.ok(shoved.pos.distanceTo(from) < 0.6, 'back at their place');
+  assert.ok(crowd.time > shoved.stumbleUntil);
   // unregistered once the player is far away
   player.pos.set(0, 0, -330);
   for (let f = 0; f < 12; f++) crowd.update(1 / 60, 3 + f / 60, player, camAt(new THREE.Vector3(0, 3, -335), new THREE.Vector3(0, 0, -400)));
@@ -153,7 +167,7 @@ test('the tool: nearby people are targets; a dart startles, a stun freezes', () 
   registerNPCTargets([npc, { pooled: true }]);
   assert.equal(allTargets().length, 1);
   const h = raycastTargets(new THREE.Vector3(0, 1.2, 5), new THREE.Vector3(0, 0, -1));
-  hitTarget(h, 'dart', new THREE.Vector3(0, 0, -1));
-  assert.deepEqual(hits, ['dart']);
+  hitTarget(h, 'shoot', new THREE.Vector3(0, 0, -1));
+  assert.deepEqual(hits, ['shoot']);
   clearTargets();
 });

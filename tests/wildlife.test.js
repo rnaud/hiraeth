@@ -79,37 +79,50 @@ test('wandering keeps creatures on walkable ground', () => {
   }
 });
 
-test('the stun ray freezes a creature (no surprise), then it wakes and wanders off calmly', () => {
+test('a glob of fluid freezes a creature in an enchanted shimmer (no surprise), then it wakes and wanders off calmly', () => {
   clearTargets();
   const { scene, level, physics } = world('bazaar');
   const w = new Wildlife(scene, level, physics, { content: CONTENT.bazaar });
   const c = w.creatures[0], p = player(c.pos.clone().add(new THREE.Vector3(30, 0, 0))), cam = camera(c.pos);
   run(w, p, cam, 0.5);
-  // the paralyze ray finds it through the shared registry
+  // a glob finds it through the shared registry
   const eye = c.center.clone().add(new THREE.Vector3(0, 0.5, 6));
   const dir = c.center.clone().sub(eye).normalize();
   const hit = raycastTargets(eye, dir, 20);
   assert.equal(hit?.target.kind, 'wildlife');
   assert.equal(hit.target.creature, c);
-  hitTarget(hit, 'stun', dir);
+  const tones = ['#52c8cf', '#966ede', '#ef7e62'];
+  hitTarget(hit, 'shoot', dir, { colours: tones });
   assert.equal(c.state, 'stun');
   assert.equal(c.stunned, true);
+  assert.deepEqual(c.tones, tones, 'it takes the fluid\'s tones');
   const at = c.pos.clone();
   run(w, p, cam, 3, 10);
   assert.equal(c.state, 'stun', 'still frozen after 3 s');
-  assert.ok(c.pos.distanceTo(at) < 1e-6, 'it does not move while stunned');
-  assert.ok(c.tint > 0.9, 'its colour is drained');
+  assert.ok(c.pos.distanceTo(at) < 1e-6, 'it does not move while enchanted');
+  assert.ok(c.tint > 0.9, 'it is fully enchanted');
+  // its tint shimmers: not white, and changing from one moment to the next
+  const part = c.herd.parts[0].mesh, col = () => { const v = new THREE.Color(); part.getColorAt(c.index, v); return v; };
+  const c1 = col();
+  run(w, p, cam, 0.6, 13.1);
+  const c2 = col();
+  assert.ok(Math.abs(c1.r - 1) + Math.abs(c1.g - 1) + Math.abs(c1.b - 1) > 0.1, 'tinted in the fluid\'s colours');
+  assert.ok(Math.abs(c1.r - c2.r) + Math.abs(c1.g - c2.g) + Math.abs(c1.b - c2.b) > 0.01, 'the colours shift');
   assert.equal(w.stars.mesh.count, 3, 'stars wheel over its head');
   assert.equal(hit.target.enabled(), true, 'a stunned creature can still be hit');
   run(w, p, cam, 3.5, 20);
   assert.notEqual(c.state, 'stun', 'it wakes up within 6 s');
   assert.notEqual(c.state, 'trick', 'waking is calm, no surprise');
   run(w, p, cam, 2, 30);
-  assert.ok(c.tint < 0.1, 'colour comes back');
+  assert.ok(c.tint < 0.1, 'its own colour comes back');
+  // the push does not enchant: it sets off the surprise
+  c.cool = 0;
+  const target = allTargets().find((t) => t.creature === c);
+  if (target.enabled()) { target.onHit('push', c.center.clone(), new THREE.Vector3(0, 0, -1)); assert.equal(c.state, 'trick'); }
   w.dispose();
 });
 
-test('a foam dart (or a scare) sets off the surprise, then the creature recovers or comes back later', () => {
+test('the push (or a scare) sets off the surprise, then the creature recovers or comes back later', () => {
   clearTargets();
   const { scene, level, physics } = world('spheres');
   const w = new Wildlife(scene, level, physics, { content: CONTENT.spheres });
@@ -117,7 +130,7 @@ test('a foam dart (or a scare) sets off the surprise, then the creature recovers
     const c = w.creatures.find((k) => k.species.id === def.id);
     const p = player(c.pos.clone().add(new THREE.Vector3(40, 0, 0))), cam = camera(c.pos);
     const target = allTargets().find((t) => t.creature === c);
-    target.onHit('dart', c.center.clone(), new THREE.Vector3(0, 0, -1));
+    target.onHit('push', c.center.clone(), new THREE.Vector3(0, 0, -1));
     assert.equal(c.state, 'trick', `${def.id} plays its surprise`);
     assert.equal(target.enabled(), false, 'mid-surprise it cannot be hit again');
     run(w, p, cam, def.trick.dur + 0.5, 50);

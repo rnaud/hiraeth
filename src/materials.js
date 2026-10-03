@@ -591,6 +591,80 @@ const fragmentShader = /* glsl */ `
     return (float(m[i]) + 0.5) / 16.0;
   }
 
+  #ifdef FLUID
+  // The traveller's magical fluid (fluid-tool.js; makeMaterial({ fluid })): a
+  // lava lamp in flat print tones. Only materials made with o.fluid compile this.
+  uniform vec4 uFluidA;    // fill 0..1 · tones in the blend (2..6) · time (s) · kind: 0 tank, 1 hose, 2 glob
+  uniform vec4 uFluidB;    // flash 0..1 · refill 0..1 (0 = none) · hose pulse head (0 tank -> 1 hand) · slosh 0..1
+  uniform vec4 uFluidBox;  // object space: glass bottom y, top y, radius, highlight angle (rad, about +y)
+  // keep in step with FLUID_TONES in fluid-tool.js
+  vec3 fluidTone(int i) {
+    int k = i - 6 * (i / 6);
+    if (k == 0) return vec3(0.322, 0.784, 0.812);   // cyan
+    if (k == 1) return vec3(0.588, 0.431, 0.871);   // violet
+    if (k == 2) return vec3(0.937, 0.494, 0.384);   // coral
+    if (k == 3) return vec3(0.965, 0.784, 0.306);   // gold
+    if (k == 4) return vec3(0.929, 0.502, 0.690);   // pink
+    return vec3(0.514, 0.812, 0.443);               // green
+  }
+  // Round a vertical axis (angle a, height h 0..1, aspect = radius / height):
+  // three stacked bands of one tone each, with metaball blobs of the other
+  // tones rising, sinking and merging through them. Flat tones, so the post
+  // pass inks every boundary.
+  vec3 fluidLava(float a, float h, float aspect, float t, int n) {
+    float F[6] = float[6](0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+    for (int i = 0; i < 9; i++) {
+      float fi = float(i);
+      float ph = 6.2831 * (0.045 + 0.03 * fract(fi * 0.618)) * t + fi * 2.13;
+      float cy = 0.5 + 0.48 * sin(ph);
+      float ca = fi * 2.39996 + 0.6 * sin(t * 0.11 + fi * 1.7);
+      float r = 0.1 + 0.035 * sin(t * 0.37 + fi * 1.31);
+      float da = abs(mod(a - ca + 3.14159, 6.28318) - 3.14159) * aspect;
+      float dy = (h - cy) / (1.0 + 0.5 * abs(cos(ph)));     // stretched while it rises or sinks
+      F[i - n * (i / n)] += r * r / max(da * da + dy * dy, 1e-5);
+    }
+    float hb = h + 0.025 * sin(a * 3.0 + t * 0.9);
+    int base = int(clamp(floor(hb * 3.0), 0.0, 2.0));
+    base -= n * (base / n);
+    int pick = base;
+    float best = 1.0;
+    for (int c = 0; c < 6; c++) { if (c >= n) break; if (c != base && F[c] > best) { best = F[c]; pick = c; } }
+    return fluidTone(pick);
+  }
+  vec3 fluidAlbedo(vec3 base) {
+    float t = uFluidA.z, kind = uFluidA.w;
+    int n = int(uFluidA.y + 0.5);
+    if (kind > 0.5 && kind < 1.5) {
+      // the hose: rubber, with a slug of fluid running down it when the tool is used
+      float u = vFold.x, head = uFluidB.z;
+      if (u < head && u > head - 0.3) return fluidTone(int(mod(floor(u * 7.0 - t * 3.0), float(n))));
+      return base;
+    }
+    float H = uFluidBox.y - uFluidBox.x;
+    float h = (vBind.y - uFluidBox.x) / H;
+    float a = atan(vBind.z, vBind.x);
+    vec3 col = fluidLava(a, h, uFluidBox.z / H, kind > 1.5 ? t * 5.0 : t, n);
+    if (kind > 1.5) return mix(col, vec3(1.0), uFluidB.x * 0.4);   // a glob in flight
+    // the tank: the fluid stands at the fill level (three charges = three bands), sloshing; empty glass above
+    float fill = uFluidA.x;
+    float surf = max(fill, 0.035) + (0.012 + 0.05 * uFluidB.w) * sin(a + t * 6.0) * min(1.0, fill * 8.0);
+    float w = uFluidB.y;
+    if (w > 0.0 && h < surf) {
+      // refilling: bubbles stream up through it
+      vec2 g = vec2(a * uFluidBox.z / H * 10.0, h * 10.0 - t * 5.0);
+      vec2 c = fract(g) - 0.5;
+      if (hash(floor(g)) > 0.55 && dot(c, c) < 0.07) col = mix(col, vec3(1.0), 0.75 * w);
+    }
+    if (h > surf) col = vec3(0.855, 0.925, 0.945);
+    else if (h > surf - 0.04) col = mix(col, vec3(1.0), 0.35 + 0.4 * w);   // the meniscus
+    col = mix(col, vec3(1.0), uFluidB.x * 0.45);
+    // a highlight streak down the glass
+    float dh = abs(mod(a - uFluidBox.w + 3.14159, 6.28318) - 3.14159);
+    if (dh < 0.14 && h > 0.1 && h < 0.86) col = mix(col, vec3(1.0), h > surf ? 0.9 : 0.5);
+    return col;
+  }
+  #endif
+
   void main() {
     // the hover trail dissolves into dots over its last stretch
     // glass (the bubble helmet): see-through except at the grazing rim and a curved highlight
@@ -693,6 +767,9 @@ const fragmentShader = /* glsl */ `
       float w = vnoise(vWorldPos.xz * 0.012 + uTime * 0.01);
       albedo = w > 0.55 ? uColor2 : uColor;
     }
+    #ifdef FLUID
+      albedo = fluidAlbedo(albedo);
+    #endif
     float patInk = 0.0;
     if (uPattern == 1) patInk = facade(vWorldPos, n, albedo);
     else if (uPattern == 2) patInk = roofTiles(vWorldPos);
@@ -831,6 +908,10 @@ const cache = new Map();
  * @param {THREE.Side} [o.side]
  * @param {boolean} [o.crowd]   instanced crowd figures: the vertex shader poses and colours each
  *                              instance from its attributes (crowd-shader.js); no other mode changes
+ * @param {string}  [o.fluid]   'tank' | 'hose' | 'glob': the traveller's magical fluid (fluid-tool.js).
+ *                              Compiles the FLUID block (a lava-lamp albedo in flat tones) and adds
+ *                              uFluidA / uFluidB / uFluidBox; materials without it are unchanged
+ * @param {number[]} [o.fluidBox] [glass bottom y, top y, radius, highlight angle] in object space
  */
 export function makeMaterial(o) {
   const key = JSON.stringify({ ...o, map: o.map?.uuid });
@@ -880,6 +961,12 @@ export function makeMaterial(o) {
   });
   mat.vertexColors = !!o.vertexColors;
   if (o.crowd) mat.defines = { CROWD: 1 };
+  if (o.fluid) {
+    mat.defines = { ...mat.defines, FLUID: 1 };
+    mat.uniforms.uFluidA = { value: new THREE.Vector4(1, 2, 0, { tank: 0, hose: 1, glob: 2 }[o.fluid] ?? 0) };
+    mat.uniforms.uFluidB = { value: new THREE.Vector4() };
+    mat.uniforms.uFluidBox = { value: new THREE.Vector4(...(o.fluidBox ?? [-1, 1, 1, 0])) };
+  }
   cache.set(key, mat);
   return mat;
 }

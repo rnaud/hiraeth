@@ -13,7 +13,8 @@
 //   prologue.done         the opening cinematic has played (skip it next time)
 //   ship.powered          the ship can fly; the galactic map is unlocked
 //   ship.level            id of the world the ship is parked on
-//   tool.colours          number of colour bands in the backpack fluid (1 at start)
+//   tool.colours          number of colour bands in the backpack fluid (1 at start: cyan and
+//                         violet; each band adds a tone, up to 5; written by tool.refill)
 //   calls.<n>             call n home has been heard
 //   quest.<id>            a quest's stage (string); see src/story/quests.js
 //   world.<id>.done       that world's discovery is made
@@ -24,6 +25,13 @@
 //   'dialogue:start' / 'dialogue:end' { npc, id }
 //   'quest' { id, stage }          a quest advanced
 //   'tool:fire' { mode, point }    the fluid tool was used (mode: 'shoot' | 'boost' | 'push')
+//   'tool:refilled' { charges, colours, added }   the tank filled up (after the 5 s wait, or refill());
+//                                  added: a colour band was added (magical water)
+// Requests the fluid tool listens for (fluid-tool.js; same as calling the tool directly):
+//   'tool:refill' { addColour }    fill the tank now; addColour: true adds a colour band for good
+//                                  (sets tool.colours, up to 5) — the desert's magical water
+//   'tool:enable' { on }           on: false puts the tool away (no shoot, push or boost), e.g.
+//                                  inside the ship before the player first steps outside
 
 const KEY = 'moebius.game.v1';
 

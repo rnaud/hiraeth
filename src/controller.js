@@ -57,10 +57,10 @@ export class Controller {
         if (press(1) || press(13) || press(9)) this.action('photo');
       } else {
         h.Space = down(0); h.KeyE = down(2);
-        // the tool: hold LT to aim, RT fires while aiming (instead of running), D-pad ← / → switches mode
+        // the fluid tool: hold LT to aim, RT shoots while aiming (instead of running), B pushes; A in the air boosts (it's jump)
         h.PadAim = down(6);
         if (h.PadAim) { h.PadFire = down(7); h.ShiftLeft = down(10); }
-        h.PadMode = down(14) || down(15);
+        h.PadPush = down(1);
         if (down(4) || down(5)) this.action(down(4) ? 'zoomOut' : 'zoomIn', dt);
         if (press(3)) this.action('ping');
         if (press(9)) this.action('settings');

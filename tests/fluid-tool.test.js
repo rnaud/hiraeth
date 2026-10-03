@@ -1,0 +1,336 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import * as THREE from 'three';
+import { FluidTool, FLUID, FLUID_TONES, Glob, Reserve, boostVelocity, fluidTones, launchDir, predictArc, toolInput, traceShot } from '../src/fluid-tool.js';
+import { clearTargets, hitTarget, registerTarget, targetsInCone } from '../src/targets.js';
+import { GameState } from '../src/game-state.js';
+import { ReactiveWorld } from '../src/reactive-world.js';
+import { Player } from '../src/player.js';
+import { Physics } from '../src/physics.js';
+
+const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
+const DT = 1 / 60;
+
+/** Collision stub: one infinite plane (point p, normal n), hit from either side. */
+function planePhysics(p, n) {
+  return {
+    rayHit(origin, dir, far) {
+      const denom = dir.dot(n);
+      if (Math.abs(denom) < 1e-9) return null;
+      const t = p.clone().sub(origin).dot(n) / denom;
+      if (t < 0 || t > far) return null;
+      return { distance: t, point: origin.clone().addScaledVector(dir, t), normal: denom > 0 ? n.clone().negate() : n.clone() };
+    },
+    rayDistance(origin, dir, far) { return this.rayHit(origin, dir, far)?.distance ?? Infinity; },
+  };
+}
+const open = { rayHit: () => null, rayDistance: () => Infinity };
+
+function target(pos, radius = 0.6, kind = 'wildlife') {
+  const hits = [];
+  registerTarget({ kind, radius, position: () => pos, onHit: (mode, point, dir, info) => hits.push({ mode, point, dir, info }) });
+  return hits;
+}
+function stubPlayer() {
+  const frame = { up: v(0, 1, 0), fwd: v(0, 0, 1), right: v(1, 0, 0), dir: (h, out) => out.set(Math.sin(h), 0, Math.cos(h)) };
+  return { pos: v(), vel: v(), heading: Math.PI, frame, vehicles: [], object: { visible: true }, ride: null, gliding: false, climbing: false, mantle: null, thrusting: false, onGround: true, aim: null, opts: {} };
+}
+function makeTool(o = {}) {
+  const camera = new THREE.PerspectiveCamera();
+  camera.position.set(0.8, 1.6, 3.4); camera.lookAt(0.8, 1.6, -30); camera.updateMatrixWorld();
+  const state = new GameState(null);
+  const player = o.player ?? stubPlayer();
+  const tool = new FluidTool({ scene: new THREE.Scene(), player, physics: o.physics ?? open, camera, rig: { aimK: 0 }, state, level: o.level });
+  return { tool, player, camera, state };
+}
+const frames = (tool, n, ctl = {}) => { for (let i = 0; i < n; i++) tool.update(DT, ctl); };
+
+test('the shared reserve: three uses, then none, then all three back exactly 5 s after the last use', () => {
+  const r = new Reserve();
+  assert.equal(r.charges, 3);
+  assert.ok(r.use() && r.use());
+  r.update(4);                        // a wait shorter than the delay…
+  assert.equal(r.charges, 1);
+  assert.ok(r.use());                 // …and the last use restarts the clock
+  assert.equal(r.use(), false, 'empty');
+  assert.equal(r.charges, 0);
+  for (let i = 0; i < 299; i++) assert.equal(r.update(DT), false);
+  assert.equal(r.charges, 0, 'still empty just before 5 s');
+  assert.ok(Math.abs(r.refillIn - DT) < 1e-6);
+  assert.equal(r.update(DT), true, 'refilled at 5 s');
+  assert.equal(r.charges, 3, 'all three at once');
+  assert.equal(r.update(10), false, 'nothing more to do when full');
+  assert.equal(FLUID.charges, 3); assert.equal(FLUID.refillDelay, 5);
+});
+
+test('controls: aim, shoot and push from keyboard, mouse, pad or touch', () => {
+  assert.deepEqual(toolInput({ KeyR: true, KeyG: true }), { aim: true, shoot: true, push: false });
+  assert.deepEqual(toolInput({ MouseRight: true, MouseLeft: true, MouseMiddle: true }), { aim: true, shoot: true, push: true });
+  assert.deepEqual(toolInput({ PadAim: true, PadFire: true, PadPush: true }), { aim: true, shoot: true, push: true });
+  assert.deepEqual(toolInput({ KeyC: true }), { aim: false, shoot: false, push: true });
+  assert.deepEqual(toolInput({ KeyX: true, KeyF: true, KeyE: true }), { aim: false, shoot: false, push: false }, 'X, F and E do nothing to the tool');
+});
+
+test('each ability spends a charge from the one reserve; empty, nothing fires until the refill', () => {
+  clearTargets();
+  const { tool, player, state } = makeTool();
+  const fired = [];
+  state.on('tool:fire', (e) => fired.push(e.mode));
+  // shoot: aim, then a press
+  frames(tool, 30, { KeyR: true });
+  assert.ok(tool.aiming && player.aim?.k > 0.9);
+  tool.update(DT, { KeyR: true, KeyG: true });
+  assert.equal(tool.charges, 2); assert.equal(tool.globs.length, 1);
+  frames(tool, 30, { KeyR: true });
+  // push: a press, no aiming needed
+  tool.update(DT, { KeyC: true }); frames(tool, 10);
+  assert.equal(tool.charges, 1);
+  // boost: the player asks on a fresh press of jump in the air
+  player.onGround = false; player.vel.set(0, -3, 0);
+  assert.equal(player.onAirJump(1), true);
+  assert.equal(tool.charges, 0);
+  assert.ok(player.vel.y > 10, 'up it goes');
+  assert.deepEqual(fired, ['shoot', 'push', 'boost']);
+  // nothing left: a press only sputters, and the boost declines (the player just glides)
+  frames(tool, 25, { KeyR: true });
+  tool.update(DT, { KeyR: true, KeyG: true }); frames(tool, 20, { KeyR: true });
+  assert.equal(tool.globs.filter((g) => g.state === 'fly').length <= 1, true);
+  assert.equal(fired.length, 3);
+  assert.equal(player.onAirJump(1), false);
+  // 5 s after the last use, the tank is full again
+  const until = 5 - tool.reserve.since;
+  frames(tool, Math.floor(until / DT) - 2);
+  assert.equal(tool.charges, 0);
+  frames(tool, 4);
+  assert.equal(tool.charges, 3);
+  // disabled (the ship prologue): nothing comes out
+  tool.enabled = false;
+  tool.update(DT, { KeyC: true }); frames(tool, 10);
+  assert.equal(tool.charges, 3); assert.equal(player.onAirJump(1), false);
+  state.emit('tool:enable', { on: true });
+  assert.equal(tool.enabled, true);
+  tool.dispose();
+});
+
+test('shoot: a glob arcs onto the crosshair, hits the nearest target and the world occludes it', () => {
+  clearTargets();
+  const near = target(v(0, 0, -10)), far = target(v(0, 0, -20)), aside = target(v(3, 0, -5));
+  const fly = (physics, from = v(), vel = v(0, 0, -FLUID.shoot.speed), up = v(0, 1, 0), gravity = 0) => {
+    const g = new Glob(from, vel);
+    for (let i = 0; i < 400; i++) { const e = g.step(DT, { physics, up, gravity }); if (e) return { g, e }; }
+    return { g, e: null };
+  };
+  let { e } = fly(open);
+  assert.equal(e.type, 'target');
+  hitTarget(e.hit, 'shoot', e.dir, { colours: fluidTones(1) });
+  assert.equal(near.length, 1); assert.equal(near[0].mode, 'shoot');
+  assert.deepEqual(near[0].info.colours, FLUID_TONES.slice(0, 2));
+  assert.equal(far.length, 0); assert.equal(aside.length, 0);
+  // a wall in front of the target takes the glob (a splat on the wall)
+  ({ e } = fly(planePhysics(v(0, 0, -6), v(0, 0, 1))));
+  assert.equal(e.type, 'world'); assert.ok(Math.abs(e.point.z + 6) < 1e-6); assert.ok(e.normal.z > 0.99);
+  // a wall behind it doesn't
+  ({ e } = fly(planePhysics(v(0, 0, -15), v(0, 0, 1))));
+  assert.equal(e.type, 'target');
+  // the crosshair trace agrees
+  assert.equal(traceShot(planePhysics(v(0, 0, -6), v(0, 0, 1)), v(), v(0, 0, -1)).kind, 'world');
+  // the arc: lobbed onto the crosshair point, whichever way gravity points
+  for (const up of [v(0, 1, 0), v(1, 0, 0), v(0, -0.6, 0.8)]) {
+    clearTargets();
+    const aimAt = v(4, -2, -25), got = target(aimAt, 0.4);
+    const dir = launchDir(v(), aimAt, FLUID.shoot.speed, FLUID.shoot.gravity, up);
+    const { e: hit } = fly(open, v(), dir.multiplyScalar(FLUID.shoot.speed), up, FLUID.shoot.gravity);
+    assert.equal(hit?.type, 'target', `gravity along ${up.toArray()}`);
+    assert.equal(got.length, 0);
+    const { end } = predictArc(v(), launchDir(v(), aimAt, FLUID.shoot.speed, FLUID.shoot.gravity, up).multiplyScalar(FLUID.shoot.speed), { physics: open, up, dt: DT, steps: 200 });
+    assert.equal(end?.type, 'target', 'the preview arc agrees');
+  }
+  // through the tool: aimed at a target, the glob flies there and calls onHit('shoot')
+  clearTargets();
+  const hits = target(v(0.8, 1.6, -20), 0.8);
+  const { tool } = makeTool();
+  frames(tool, 30, { KeyR: true });
+  assert.ok(tool.aimPoint.distanceTo(v(0.8, 1.6, -19.2)) < 0.05, 'the crosshair sits on the target');
+  tool.update(DT, { KeyR: true, KeyG: true });
+  for (let i = 0; i < 90 && !hits.length; i++) tool.update(DT, { KeyR: true });
+  assert.equal(hits.length, 1); assert.equal(hits[0].mode, 'shoot');
+  // a glob on the world leaves a splat that fades away
+  clearTargets();
+  const wall = makeTool({ physics: planePhysics(v(0, 0, -12), v(0, 0, 1)) }).tool;
+  frames(wall, 30, { KeyR: true });
+  wall.update(DT, { KeyR: true, KeyG: true });
+  for (let i = 0; i < 60 && !wall.splats.list.length; i++) wall.update(DT, { KeyR: true });
+  assert.equal(wall.splats.list.length, 2, 'a two-tone splat');
+  frames(wall, Math.ceil(FLUID.shoot.splatLife / DT) + 2);
+  assert.equal(wall.splats.list.length, 0, 'short-lived');
+  tool.dispose(); wall.dispose();
+});
+
+test('push: only targets inside the cone (and in view) are pushed, away from the traveller', () => {
+  clearTargets();
+  const origin = v(0, 1.2, 0), dir = v(0, 0, -1);
+  const ahead = target(v(0, 1.2, -4)), edge = target(v(2.4, 1.2, -4), 0.5), wide = target(v(4, 1.2, -2)), behind = target(v(0, 1.2, 3)), beyond = target(v(0, 1.2, -7.5));
+  const hits = targetsInCone(origin, dir, FLUID.push.range, FLUID.push.angle, open);
+  assert.equal(hits.length, 2);
+  for (const h of hits) hitTarget(h, 'push', h.dir, { strength: 1 - h.distance / FLUID.push.range });
+  assert.equal(ahead.length, 1); assert.equal(edge.length, 1, 'the radius counts at the edge of the cone');
+  assert.equal(wide.length + behind.length + beyond.length, 0);
+  assert.equal(ahead[0].mode, 'push');
+  assert.ok(ahead[0].dir.distanceTo(v(0, 0, -1)) < 1e-6, 'pushed straight away');
+  assert.ok(edge[0].dir.x > 0.4, 'pushed outward along its own line');
+  // a wall between: nothing
+  assert.equal(targetsInCone(origin, dir, FLUID.push.range, FLUID.push.angle, planePhysics(v(0, 0, -2), v(0, 0, 1))).length, 0);
+  // through the tool: a quick push along the camera (flattened), one charge
+  clearTargets();
+  const front = target(v(0.4, 1.2, -4)), side = target(v(-5, 1.2, 0));
+  const { tool, player } = makeTool();
+  player.vel.set(0, 0, 0);
+  tool.update(DT, { KeyC: true }); frames(tool, 12);
+  assert.equal(front.length, 1); assert.equal(side.length, 0);
+  assert.equal(tool.charges, 2);
+  assert.ok(front[0].info.strength > 0.2 && front[0].info.strength < 1);
+  assert.ok(player.vel.z > 0.5, 'a little recoil');
+  tool.dispose();
+});
+
+test('boost: a strong burst up and a little forward, in any gravity; jetpack levels boost on a double tap', () => {
+  // the pure velocity change
+  for (const up of [v(0, 1, 0), v(1, 0, 0), v(0, -0.6, 0.8).normalize()]) {
+    const fwd = new THREE.Vector3(0, 0, 1).addScaledVector(up, -up.z).normalize();
+    const vel = up.clone().multiplyScalar(-9).addScaledVector(fwd, 2);
+    boostVelocity(vel, up, fwd);
+    assert.ok(Math.abs(vel.dot(up) - FLUID.boost.up) < 1e-9, `falling: a fresh burst up (${up.toArray()})`);
+    assert.ok(Math.abs(vel.dot(fwd) - 2 - FLUID.boost.forward) < 1e-9);
+    const rising = up.clone().multiplyScalar(10);
+    boostVelocity(rising, up, null);
+    assert.ok(rising.dot(up) > FLUID.boost.up, 'keeps some of a jump still rising');
+  }
+  // the real player: jump, then press again in the air
+  for (const up of [v(0, 1, 0), v(1, 0, 0)]) {
+    const p = new Player(new Physics(new THREE.Scene()), { gravityAt: () => up });
+    p.frame.set(up, up.y > 0.5 ? v(0, 0, 1) : v(0, 1, 0));
+    p.pos.copy(up).multiplyScalar(20); p.onGround = false; p.vel.copy(up).multiplyScalar(-4);
+    const { tool } = makeTool({ player: Object.assign(p, {}) });
+    p.update(DT, {}, 0);
+    const before = p.vel.dot(up);
+    p.update(DT, { Space: true }, 0);
+    assert.equal(tool.charges, 2, 'a charge spent');
+    assert.ok(p.vel.dot(up) > before + 10, `boosted along ${up.toArray()}: ${p.vel.dot(up).toFixed(1)}`);
+    assert.equal(p.gliding, false, 'the wing stays shut while rising');
+    // holding on still opens the paraglider once falling
+    for (let i = 0; i < 120 && !p.gliding; i++) p.update(DT, { Space: true }, 0);
+    assert.equal(p.gliding, true);
+    tool.dispose();
+  }
+  // jetpack: one press in the air thrusts (no charge), a quick double tap boosts
+  const p = new Player(new Physics(new THREE.Scene()), { jetpack: true });
+  p.pos.set(0, 30, 0); p.onGround = false;
+  const { tool } = makeTool({ player: p });
+  p.update(DT, {}, 0); p.update(DT, { Space: true }, 0);
+  for (let i = 0; i < 40; i++) p.update(DT, { Space: true }, 0);
+  assert.equal(tool.charges, 3); assert.ok(p.thrusting, 'holding thrusts');
+  p.update(DT, {}, 0); p.update(DT, { Space: true }, 0);
+  for (let i = 0; i < 40; i++) p.update(DT, {}, 0);
+  assert.equal(tool.charges, 3, 'a slow second press does not boost');
+  p.update(DT, { Space: true }, 0); p.update(DT, {}, 0); p.update(DT, {}, 0); p.update(DT, { Space: true }, 0);
+  assert.equal(tool.charges, 2, 'a double tap does');
+  tool.dispose();
+});
+
+test('refill: magical water fills the tank and adds a colour band for good', () => {
+  clearTargets();
+  const { tool, state } = makeTool();
+  const events = [];
+  state.on('tool:refilled', (e) => events.push(e));
+  assert.equal(tool.colours, 1);
+  assert.deepEqual(tool.tones, ['#52c8cf', '#966ede'], 'two tones at the start');
+  tool.reserve.use(); tool.reserve.use();
+  assert.equal(tool.refill({ addColour: true }), 2);
+  assert.equal(tool.charges, 3); assert.equal(state.flag('tool.colours'), 2);
+  assert.equal(tool.tones.length, 3);
+  assert.deepEqual(events.at(-1), { charges: 3, colours: 2, added: true });
+  tool.refill();
+  assert.equal(tool.colours, 2, 'a plain refill adds nothing');
+  // the story can do it through the bus
+  state.emit('tool:refill', { addColour: true });
+  assert.equal(tool.colours, 3);
+  for (let i = 0; i < 9; i++) tool.refill({ addColour: true });
+  assert.equal(tool.colours, FLUID.maxColours, 'up to the last tone');
+  assert.equal(tool.tones.length, FLUID.maxColours + 1);
+  tool.dispose();
+});
+
+test('targets answer the new modes: reactive scenery blooms in the fluid, lenses, the gate, taxis and plants', async () => {
+  clearTargets();
+  const store = { value: null, getItem() { return this.value; }, setItem(k, val) { this.value = val; } };
+  const ground = { rayHit: (origin) => ({ point: v(origin.x, 0, origin.z) }), rayDistance: () => Infinity };
+  const scene = new THREE.Scene();
+  const world = new ReactiveWorld(scene, { id: 'desert', spawn: v(), ground: { heightAt: () => 0 } }, ground, { npcs: [], story: { goal: [0, 0, -100] }, relics: { spots: [] } }, { storage: store });
+  const node = world.field.nodes[0];
+  const neighbour = world.field.nodes.find((n) => n !== node && n.cluster === node.cluster);
+  // a glob from 25 m wakes it like walking up to it, and it takes the fluid's tones
+  const from = node.pos.clone().add(v(25, 0, 0));
+  const g = new Glob(from, node.pos.clone().sub(from).normalize().multiplyScalar(FLUID.shoot.speed));
+  let e = null;
+  for (let i = 0; i < 120 && !e; i++) e = g.step(DT, { physics: open, up: v(0, 1, 0), gravity: 0 });
+  assert.equal(e?.type, 'target'); assert.equal(e.hit.target.kind, 'reactive');
+  hitTarget(e.hit, 'shoot', e.dir, { colours: ['#ef7e62', '#f6c84e'] });
+  assert.ok(world.field.seen.has(node.cluster), 'the encounter is remembered');
+  assert.ok(Number.isFinite(neighbour.pulseAt), 'an echo runs through the cluster');
+  const camera = new THREE.PerspectiveCamera(); camera.position.set(500, 2, 500); camera.updateMatrixWorld();
+  const far = { pos: v(500, 0, 500), frame: { up: v(0, 1, 0) } };
+  const quiet = node.obj.base.clone();
+  for (let i = 0; i < 8; i++) world.update(0.25, i * 0.25, far, camera);
+  const col = node.obj.m.uniforms.uColor.value;
+  const toFluid = Math.min(col.clone().sub(new THREE.Color('#ef7e62')).toArray().reduce((s, c) => s + Math.abs(c), 0), col.clone().sub(new THREE.Color('#f6c84e')).toArray().reduce((s, c) => s + Math.abs(c), 0));
+  assert.ok(toFluid < 0.35, 'it blooms in the fluid\'s colours');
+  assert.ok(col.clone().sub(quiet).toArray().reduce((s, c) => s + Math.abs(c), 0) > 0.3);
+  // the push only stirs it: a shimmer, no new encounter
+  const other = world.field.nodes.find((n) => n.cluster !== node.cluster);
+  other.obj.root.visible = true;   // (hidden while the traveller is far off)
+  const cone = targetsInCone(other.pos.clone().add(v(0, 0, 3)), v(0, 0, -1), FLUID.push.range, FLUID.push.angle);
+  const mine = cone.find((h) => h.target.kind === 'reactive' && h.point.distanceTo(other.pos) < 1e-6);
+  assert.ok(mine);
+  hitTarget(mine, 'push', mine.dir);
+  assert.ok(!world.field.seen.has(other.cluster) && other.pulse > 0.4 && other.sway > 0);
+  world.dispose();
+
+  clearTargets();
+  const { buildObservatory, ObservatoryQuest } = await import('../src/observatory.js');
+  const { Gate } = await import('../src/quest.js');
+  const s2 = new THREE.Scene(), model = buildObservatory(s2, { baseAt: () => 0 }); s2.updateMatrixWorld(true);
+  const journal = { data: { observatory: { started: true, turns: [1, 0, 3], done: false, fragments: [] } }, save() {} };
+  const quest = new ObservatoryQuest({ model, journal, traveler: { lines: [], pos: v(), greeted: false }, sound: { chime() {} } });
+  const lens = model.dials[0].getWorldPosition(v());
+  const aim = (fromP, at) => traceShot(open, fromP, at.clone().sub(fromP).normalize(), 60);
+  const ledge = lens.clone().add(v(12, -1, 0));
+  quest.update(0, { pos: ledge, riding: false }, {}, false);
+  const shot = aim(ledge, lens);
+  assert.equal(shot.target?.kind, 'lens');
+  hitTarget(shot.hit, 'push', v());
+  assert.deepEqual(quest.state.turns, [1, 0, 3], 'the push does not turn a lens');
+  hitTarget(shot.hit, 'shoot', v());
+  assert.deepEqual(quest.state.turns, [2, 0, 3]);
+  quest.dispose();
+
+  clearTargets();
+  const gate = new Gate(s2, { pos: v(0, 0, -30), heading: 0, sound: { chime() {} } });
+  const gh = aim(v(0, 4, 0), v(0, 4, -30));
+  assert.equal(gh.target?.kind, 'gate');
+  hitTarget(gh.hit, 'shoot', v(0, 0, -1));
+  assert.ok(gate.ringT > 1);
+
+  clearTargets();
+  const hails = [], plant = [];
+  const taxi = { pos: v(0, 10, -25), mode: 'lane', hail: (p) => hails.push(p.clone()) };
+  const player = { ...stubPlayer(), vehicles: [taxi] };
+  const { tool } = makeTool({ player, level: { targets: [{ kind: 'plant', radius: 2, position: () => v(20, 2, -20), onHit: (mode) => plant.push(mode) }] } });
+  const t = aim(v(0, 10, 0), taxi.pos);
+  assert.equal(t.target?.kind, 'vehicle');
+  hitTarget(t.hit, 'push', v()); assert.equal(hails.length, 0, 'a push does not hail a cab');
+  hitTarget(t.hit, 'shoot', v()); assert.equal(hails.length, 1);
+  hitTarget(aim(v(0, 2, 0), v(20, 2, -20)).hit, 'shoot', v());
+  assert.deepEqual(plant, ['shoot']);
+  tool.dispose();
+  assert.equal(aim(v(0, 2, 0), v(20, 2, -20)).kind, 'none');
+});

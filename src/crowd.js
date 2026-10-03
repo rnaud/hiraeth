@@ -47,6 +47,11 @@ export const CROWD_STYLE = {
 };
 const HEADS = ['hood', 'hat', 'wrap', 'hair'];
 export const STARTLE_LINES = ['Hey!', 'Ow! What was that?', 'Who threw that?', 'Watch it!', 'Was that you?', 'Hey, not funny!'];
+// what people say when a glob of fluid splashes them, and when the push shoves them
+export const SPLASH_LINES = ['Hey! I\u2019m soaked!', 'Ugh, it\u2019s all colours!', 'Who threw that?', 'Was that you?', 'My good cloak!', 'Hey, not funny!'];
+export const SHOVE_LINES = ['Whoa! Watch it!', 'Oof! Hey!', 'Mind where you push!', 'Easy, traveller!', 'What was that for?'];
+/** A shove's displacement over time (0..1): knocked back fast, held a moment, then they walk back to their place. */
+export const shoveCurve = (s) => (s < 0 || s > 3.6 ? 0 : s < 0.35 ? 1 - (1 - s / 0.35) ** 3 : s < 1.8 ? 1 : 1 - THREE.MathUtils.smoothstep(s, 1.8, 3.6));
 export const GREET_LINES = ['Fresh figs! Fresh figs!', 'Mind the edge, it\u2019s a long way down.', 'The taxis never stop for us lower folk.',
   'Have you seen the light above the palace?', 'Laundry dries fast up here.', 'My grandmother never saw the sky.', 'Lovely hat.', 'Excuse me.', 'Busy day.'];
 
@@ -297,7 +302,7 @@ export function buildPeople(physics, spots, { seed = 7, clear = [] } = {}) {
       pos: o.pos.clone(), home: o.pos.clone(), heading: o.heading, homeHeading: o.heading,
       pose: POSE[o.pose ?? 'stand'], group: null, walk: null, seed: rng(),
       phase: rng(), cadence: 0, speed: 0, headYaw: 0, headPitch: 0, talk: 0,
-      startleT: -1e9, stunUntil: -1e9, stunT: 0, lookUntil: -1e9, faceUntil: -1e9, greetT: -1, speaking: false, say: '',
+      startleT: -1e9, stumbleUntil: -1e9, stumbleT: 0, lookUntil: -1e9, faceUntil: -1e9, greetT: -1, speaking: false, say: '',
       offset: new THREE.Vector3(), tier: TIER.off, npc: null, unreg: null, chestV: new THREE.Vector3(),
       lines: spots.lines ?? GREET_LINES, lineIdx: Math.floor(rng() * 20), shoutUntil: -1e9,
     };
@@ -422,12 +427,12 @@ class Tier {
     M[o + 8] = sn; M[o + 9] = 0; M[o + 10] = c; M[o + 11] = 0;
     M[o + 12] = p.pos.x; M[o + 13] = p.pos.y; M[o + 14] = p.pos.z; M[o + 15] = 1;
     const A = this.attrs, j = i * 4;
-    const stunned = t < p.stunUntil;
-    const cad = stunned ? 0 : p.cadence;
+    const stumbling = t < p.stumbleUntil;
+    const cad = stumbling ? 0 : p.cadence;
     const an = A.aAnim.array;
-    an[j] = ((p.phase - t * cad) % 1 + 1) % 1; an[j + 1] = cad; an[j + 2] = p.seed; an[j + 3] = stunned ? POSE.stunned : p.speed > 0.05 ? POSE.walk : p.pose === POSE.walk ? POSE.stand : p.pose;
+    an[j] = ((p.phase - t * cad) % 1 + 1) % 1; an[j + 1] = cad; an[j + 2] = p.seed; an[j + 3] = stumbling ? POSE.stumble : p.speed > 0.05 ? POSE.walk : p.pose === POSE.walk ? POSE.stand : p.pose;
     const re = A.aReact.array;
-    re[j] = p.headYaw; re[j + 1] = p.headPitch; re[j + 2] = p.talk; re[j + 3] = stunned ? p.stunT : p.startleT;
+    re[j] = p.headYaw; re[j + 1] = p.headPitch; re[j + 2] = p.talk; re[j + 3] = stumbling ? p.stumbleT : p.startleT;
     A.aLook0.array.set(p.look[0], j);
     A.aLook1.array.set(p.look[1], j);
   }
@@ -524,7 +529,7 @@ export class Crowd {
       const dc = g.center.distanceToSquared(cam);
       if (dc > 120 * 120 && this.frame % 8) continue;
       if (t > g.next) {
-        const alive = g.members.filter((m) => t > m.stunUntil);
+        const alive = g.members.filter((m) => t > m.stumbleUntil);
         g.speaker = this.rng() < 0.15 || !alive.length ? -1 : g.members.indexOf(alive[Math.floor(this.rng() * alive.length)]);
         g.next = t + 2.5 + this.rng() * 4.5;
       }
@@ -597,23 +602,24 @@ export class Crowd {
   }
 
   simulate(p, dt, t, pp, playerSpeed, dCam) {
-    const stunned = t < p.stunUntil;
+    const stumbling = t < p.stumbleUntil;
+    if (p.shoved) p.pos.sub(p.shoved);   // a shove is laid over the simulated place (see below)
     _v.subVectors(pp, p.pos); const dy = _v.y; _v.y = 0;
     const dPlayer = _v.length();
     const sameLevel = Math.abs(dy) < 2.5;
     const g = p.group;
     let lookAt = null, face = null;
     // greeting: the person you stop beside turns to you and says something
-    const close = sameLevel && dPlayer < 2.6 && playerSpeed < 2.2 && !stunned;
+    const close = sameLevel && dPlayer < 2.6 && playerSpeed < 2.2 && !stumbling;
     if (close) { if (p.greetT < 0) { p.greetT = t; p.lineIdx++; } }
     else if (dPlayer > 4) p.greetT = -1;
     p.speaking = p.greetT >= 0 && t - p.greetT > 0.6 && close;
     if (t < p.shoutUntil) p.speaking = true;
     if (p.greetT >= 0) { lookAt = pp; if (p.pose !== POSE.sit && p.pose !== POSE.kerb && p.pose !== POSE.rail) face = Math.atan2(_v.x, _v.z); }
-    if (t < p.faceUntil && !stunned) face = Math.atan2(_v.x, _v.z);
+    if (t < p.faceUntil && !stumbling) face = Math.atan2(_v.x, _v.z);
     if (t < p.lookUntil || (g && t < g.lookUntil) || (sameLevel && dPlayer < 4 && playerSpeed > 0.3)) lookAt = pp;
 
-    if (p.walk && !stunned) {
+    if (p.walk && !stumbling) {
       const w = p.walk;
       let target = w.speed;
       if (w.pause > 0) { w.pause -= dt; target = 0; }
@@ -638,8 +644,8 @@ export class Crowd {
       if (face !== null) p.heading = h + wrapA(face - h) * damp(5, dt);
       // pairs chat as they walk
       if (w.partner && !lookAt && Math.sin(t * 0.7 + p.seed * 9) > 0.3) lookAt = w.partner.pos;
-    } else if (p.walk || stunned) {
-      p.speed = 0;   // frozen (or a stunned walker)
+    } else if (p.walk || stumbling) {
+      p.speed = 0;   // frozen (or a stumbling walker)
     } else {
       // standing: drift back to their spot, unless the player is pushing through
       _w.subVectors(p.home, pp); _w.y = 0;
@@ -664,26 +670,35 @@ export class Crowd {
       const hw = face ?? (p.offset.lengthSq() > 0.04 ? p.homeHeading + 0.5 * Math.sign(wrapA(Math.atan2(_v.x, _v.z) - p.homeHeading)) : p.homeHeading);
       p.heading += wrapA(hw - p.heading) * damp(face !== null ? 6 : 2.5, dt);
     }
+    // shoved (the fluid push): knocked back, then they walk back to their place
+    if (p.shoved || p.shoveT !== undefined) {
+      const k = shoveCurve(t - p.shoveT), was = p.shoved ? p.shoved.length() : 0;
+      if (k > 0) {
+        p.pos.add((p.shoved ??= new THREE.Vector3()).copy(p.shoveDir).multiplyScalar(p.shoveDist * k));
+        const moved = Math.abs(p.shoveDist * k - was);
+        if (!stumbling && dt > 0 && moved > 0.002) p.speed = Math.max(p.speed, Math.min(moved / dt, 2));
+      } else { p.shoved = null; p.shoveT = undefined; }
+    }
     p.cadence = p.speed / (1.35 * p.scale);
     p.phase = (p.phase + p.cadence * dt) % 1;
 
     // talk: the group's speaker, unless paused by the player or a startle
     let talkT = 0;
-    if (g && g.speaker >= 0 && g.members[g.speaker] === p && t > g.pauseUntil && !stunned) talkT = 1;
+    if (g && g.speaker >= 0 && g.members[g.speaker] === p && t > g.pauseUntil && !stumbling) talkT = 1;
     if (p.speaking) talkT = 0.8;
     p.talk += (talkT - p.talk) * damp(3, dt);
     // head: at the player, the speaker, or the partner; idle drift is in the shader
     if (!lookAt && g && g.speaker >= 0 && g.members[g.speaker] !== p) lookAt = g.members[g.speaker].pos;
     let yaw = 0, pitch = 0;
-    if (lookAt && !stunned) {
+    if (lookAt && !stumbling) {
       _w.subVectors(lookAt, p.pos);
       yaw = wrapA(Math.atan2(_w.x, _w.z) - p.heading);
-      if (Math.abs(yaw) > 1.15 && !p.walk && p.pose === POSE.stand && !stunned) p.heading += Math.sign(yaw) * (Math.abs(yaw) - 1.15) * damp(2, dt);
+      if (Math.abs(yaw) > 1.15 && !p.walk && p.pose === POSE.stand && !stumbling) p.heading += Math.sign(yaw) * (Math.abs(yaw) - 1.15) * damp(2, dt);
       yaw = THREE.MathUtils.clamp(yaw, -1.15, 1.15);
       // eye to eye: the player's eyes are at ~1.5 m, everyone else's at their own height
       pitch = THREE.MathUtils.clamp(-Math.atan2(_w.y + (lookAt === pp ? -0.1 : 0), Math.hypot(_w.x, _w.z) + 0.3) * 0.6, -0.4, 0.4);
     }
-    if (!stunned) {
+    if (!stumbling) {
       p.headYaw += (yaw - p.headYaw) * damp(5, dt);
       p.headPitch += (pitch - p.headPitch) * damp(4, dt);
     }
@@ -744,7 +759,7 @@ export class Crowd {
         p.unreg = registerTarget({
           kind: 'npc', radius: 0.45, person: p,
           position: () => this.chest(p),
-          onHit: (mode, point, dir) => this.hit(p, mode, dir),
+          onHit: (mode, point, dir, info) => this.hit(p, mode, dir, info),
         });
       } else if (!want && p.unreg) { p.unreg(); p.unreg = null; }
       if (p.unreg) n++;
@@ -757,26 +772,53 @@ export class Crowd {
     return p.chestV.set(p.pos.x, p.pos.y + (low ? 0.45 : 1.15) * p.scale, p.pos.z);
   }
 
-  /** The tool hit someone: a dart startles them (the group looks round), a stun freezes them in a comic pose. */
-  hit(p, mode, dir) {
+  /**
+   * The fluid tool touched someone. 'shoot': a startled splash (a jump, a turn
+   * to the traveller, a line; the group looks round). 'push': a shove, they
+   * stumble back (arms flung up) and come back to their place; the group jumps
+   * and steps back from them. Seated and leaning people just jump.
+   */
+  hit(p, mode, dir, info) {
     const t = this.time;
-    if (mode === 'stun') {
-      p.stunUntil = t + 3.5; p.stunT = t; p.talk = 0;
+    if (t < p.stumbleUntil) return;
+    const pick = (a) => a[Math.floor(this.rng() * a.length)];
+    const upright = p.pose === POSE.stand || p.pose === POSE.walk || p.pose === POSE.wall || !!p.walk;
+    if (mode === 'push' && upright) {
+      this.shove(p, dir, 1.8 * (0.55 + 0.45 * (info?.strength ?? 1)));
+      p.stumbleUntil = t + 0.9; p.stumbleT = t; p.talk = 0;
+      p.faceUntil = t + 3.6;
+      p.say = pick(SHOVE_LINES);
+      p.shoutUntil = t + 3;
     } else {
-      if (t < p.stunUntil) return;
       p.startleT = t;
-      p.faceUntil = p.pose === POSE.stand || p.walk ? t + 2.5 : -1e9;
-      p.say = STARTLE_LINES[Math.floor(this.rng() * STARTLE_LINES.length)];
+      p.faceUntil = upright ? t + 2.5 : -1e9;
+      p.say = pick(mode === 'push' ? SHOVE_LINES : SPLASH_LINES);
       p.shoutUntil = t + 2.2;
     }
-    p.lookUntil = t + 3;
+    p.lookUntil = t + 3.5;
     const g = p.group;
     if (g) {
-      g.lookUntil = t + 3; g.pauseUntil = t + 2.5;
-      for (const m of g.members) if (m !== p && t > m.stunUntil) { m.lookUntil = t + 3; if (mode === 'stun') m.startleT = t + 0.1 + this.rng() * 0.2; }
+      g.lookUntil = t + 3.5; g.pauseUntil = t + 3;
+      for (const m of g.members) {
+        if (m === p || t < m.stumbleUntil) continue;
+        m.lookUntil = t + 3.5;
+        m.startleT = t + 0.1 + this.rng() * 0.25;   // the others jump too
+        if (mode === 'push' && (m.pose === POSE.stand || m.walk)) { m.faceUntil = t + 3; this.shove(m, _d.subVectors(m.pos, p.pos), 0.5); }
+      }
     }
     if (p.walk?.partner) p.walk.partner.lookUntil = t + 3;
-    if (!p.npc && p.say && mode !== 'stun') this.shout = p;
+    if (!p.npc && p.say) this.shout = p;
+  }
+
+  /** Knock someone dist metres along dir (flattened), never into a wall. */
+  shove(p, dir, dist) {
+    const d = _w.set(dir.x, 0, dir.z);
+    if (d.lengthSq() < 1e-6) return;
+    d.normalize();
+    const wall = this.physics.rayDistance?.(this.chest(p), d, dist + 0.6) ?? Infinity;
+    p.shoveDir = (p.shoveDir ?? new THREE.Vector3()).copy(d);
+    p.shoveDist = Math.max(0, Math.min(dist, wall - 0.6));
+    p.shoveT = this.time;
   }
 
   /** A shout from someone in the mid tier (the near tier has the NPCs' own balloons). */
