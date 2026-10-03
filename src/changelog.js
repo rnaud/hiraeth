@@ -3,6 +3,12 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.22', date: '2026-10-03', items: [
+    'The world notices you: reactive scenery across all eight worlds responds to proximity and attention, then settles when you leave. Nearby objects answer in a delayed wave.',
+    'Salt blooms open and release spores in the desert; Edena flowers turn pink and unfold; shy Perdide fungi close and glow. Pale fronds listen in Arzach and the Atelier.',
+    'City and Garage terminals wake with messages. Signal Market storefronts and selected existing billboards respond as you pass. Returning visitors and encounters from other worlds leave a remembered signal.',
+    'Reactions respect walls, pause in menus and photo mode, and use bounded spore effects. The Garage reactions follow local gravity, including the upside-down quarter and ring.',
+  ] },
   { v: '0.21', date: '2026-10-03', items: [
     'Desert birds now have bodies, heads, beaks, fan tails and feathered wings. They circle closer at a smaller scale, with bounded distance scaling to keep their silhouettes natural.',
     'The Arzach riding bird has a curved neck, hooked beak, eyes, talons and a feathered tail. Layered flight feathers replace the old flat wing panels.',

@@ -56,8 +56,8 @@ landscape and find your way, especially on a phone.
 **Design check:** What notices the player here? How does it respond? What might
 that response reveal about its connection to the rest of the world?
 
-The examples above describe the intended direction; they are not a list of
-features already implemented.
+These principles guide the reactive scenery introduced in v0.22 and future
+additions to the world.
 
 ```bash
 npm install
@@ -758,3 +758,35 @@ The Arzach mount has overlapping secondary and primary feathers, articulated
 shoulders and wrists, folded resting wings, a hooked beak, a fan tail and talons.
 Static feather geometry is merged within each moving joint. Tests cover flock
 scaling, wing folding, takeoff and the rider seat transform.
+
+
+## Responsive worlds (v0.22)
+
+Walk near the new clusters or look toward them. Each responds gradually,
+passes one delayed pulse to its neighbors, and settles after you leave.
+
+| World | Response |
+| --- | --- |
+| Desert | Salt blooms open, turn turquoise and release a brief cloud of spores. |
+| City-Shaft | Terminals wake along the terraces and recognize returning visits. |
+| Arzach | Tall pale fronds turn toward visitors and take on a lavender tint. |
+| Garage | Machines stir and pass amber signals, including in the other gravity zones. |
+| Edena | Larger flowers unfold, turn pink and turn toward the player. |
+| Perdide | Fungi shrink away, glow turquoise and release spores. |
+| Signal Market | Shopfront terminals and selected existing billboards wake with changing messages. |
+| Atelier | Pale paper-like growths open and pick up a soft teal glow. |
+
+The three small lights/seeds recur across living and mechanical objects. Screens
+say WE SEE YOU, AGAIN or HEARD according to encounter history. Encounters persist
+in `moebius.encounters.v1`; visiting another world can change a first greeting.
+Reset progress clears that memory. Returning plants retain a faint glow.
+
+`src/reactive-world.js` owns sensing, delayed propagation, local gravity placement,
+rendering and save handling. Occlusion checks run five times a second near the
+player. Geometry is grouped within each object, distant clusters are hidden,
+and spores share a pool capped at 72. Menus and photo mode pause reactions.
+The new scenery has no collision so it does not block established routes.
+
+Verification includes reaction/cooldown/occlusion/memory tests, placement checks
+against every world's actual collision geometry, and browser checks of plant
+and screen behavior. Performance on a physical iPhone still needs confirmation.

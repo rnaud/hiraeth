@@ -9,7 +9,7 @@ import { Taxi } from '../taxi.js';
 export const SIGNAL = { x: 0, z: -255, deckY: 44, approachZ: -234 };
 export const BRIDGES = [{ z: 25, y: 19 }, { z: -90, y: 25 }, { z: -190, y: 72 }, { z: -330, y: 64 }];
 export function createBazaar(scene) {
-  const rng = mulberry32(20261004), buckets = new Map();
+  const rng = mulberry32(20261004), buckets = new Map(), reactiveScreens = [];
   const colors = ['#f0a083', '#e4bd83', '#8dbbb9', '#94a9bd', '#ebce98'];
   const mat = (color, extra = {}) => makeMaterial({ color, flat: true, ...extra });
   const coral = mat('#f0a083', { grid: 12 }), teal = mat('#88b4b5', { grid: 9 });
@@ -41,6 +41,7 @@ export function createBazaar(scene) {
   // Billboards are relief illustrations, not noisy microtexture. All faces
   // use the game's ink shader: illustrated heads, planets and alien symbols.
   function poster(x,y,z,w,h,yaw,seed) {
+    reactiveScreens.push({pos:new THREE.Vector3(x-Math.sin(yaw)*-.9,y,z+Math.cos(yaw)*.9),w,h,yaw});
     const plate = (g,m) => local(g,x,y,z,yaw,m);
     plate(new THREE.BoxGeometry(w+.9,h+.9,.8),ink);
     plate(new THREE.BoxGeometry(w,h,.3).translate(0,0,.53),shop[seed%shop.length]);
@@ -175,7 +176,7 @@ export function createBazaar(scene) {
   }
   const vehicles=[];
   return {
-    id:'bazaar', ground:{heightAt:()=>0}, spawn:new THREE.Vector3(0,.1,88), spawnHeading:Math.PI,camYaw:0,camPitch:.02,
+    id:'bazaar', reactiveScreens, ground:{heightAt:()=>0}, spawn:new THREE.Vector3(0,.1,88), spawnHeading:Math.PI,camYaw:0,camPitch:.02,
     features:{mount:false,wind:false,jetpack:true,climb:true,taxis:true}, vehicles,
     limit:700,killY:-20, defaults:{hour:11.5,preset:'Moebius print',cloudShadows:0,look:{uHatch:.18,uLineWidth:.85,uWobble:.1,uGrain:.025}},
     sky:{script:{day:['#a4d7d1','#e1e6c6','#70969e','#fff1cf','#ffe1ae'],dusk:['#9dabc3','#ffc5a2','#887b9e','#ffd6aa','#ffe5c2'],night:['#243e59','#587581','#55547c','#8daec0','#f9e3ac']}},

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { ReactiveWorld } from './reactive-world.js';
 import { Controller, mergeControls, menuNavigate } from './controller.js';
 import { ObservatoryQuest } from './observatory.js';
 import { Scout, nextObjective } from './scout.js';
@@ -176,6 +177,8 @@ const t0 = performance.now();
 const physics = await Physics.create(scene, level.ground.heightAt ? level.ground : null);
 console.info(`collision: ${physics.triangles.toLocaleString()} triangles in ${(performance.now() - t0).toFixed(0)} ms (BVH in a worker)`);
 level.init?.(physics);
+const reactiveWorld = new ReactiveWorld(scene, level, physics, content);
+window.addEventListener('pagehide', () => reactiveWorld.flush());
 // tile world-spanning meshes so each pass only draws what it can see
 const tiled = tileScene(scene);
 tiled.small.push(...(level.smallProps ?? []));
@@ -500,7 +503,7 @@ const menu = new SettingsMenu(settings, {
   sound,
   onNews: () => changelog.toggle(true),
   isBusy: () => story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || photo.on,
-  onResetProgress: () => { localStorage.removeItem('moebius.journal.v1'); SaveGame.clear(); location.search = '?level=desert'; },
+  onResetProgress: () => { reactiveWorld.clear(); localStorage.removeItem('moebius.journal.v1'); SaveGame.clear(); location.search = '?level=desert'; },
 });
 if (isTouch) new TouchControls(input, rig);
 
@@ -855,6 +858,7 @@ function frame() {
   }
   updateHud();
   level.update(dt, t, { player, rig, camera });
+  reactiveWorld.update(dt, t, player, camera, busy() || photo.on);
   // levels with zones (the Garage) switch ink style as you cross between them
   if (level.zoneAt) {
     const zone = level.zoneAt(player.pos);
@@ -934,4 +938,4 @@ requestAnimationFrame((t) => {
 });
 
 // handy for debugging from the console
-Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, gate, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails });
+Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, gate, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld });
