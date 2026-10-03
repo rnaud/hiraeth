@@ -74,6 +74,40 @@ export class Physics {
     this.triangles = this.geometry.attributes.position ? this.geometry.attributes.position.count / 3 : 0;
   }
 
+  /**
+   * Static collision added after loading (the ship and its interior): the
+   * meshes under `object` (minus noCollide) get their own BVH, and every query
+   * below sees them together with the level. Returns a handle for removeCollider.
+   */
+  addCollider(object) {
+    object.updateMatrixWorld(true);
+    const geos = [];
+    object.traverse((obj) => {
+      if (!obj.isMesh || isExcluded(obj)) return;
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', obj.geometry.attributes.position);
+      if (obj.geometry.index) g.setIndex(obj.geometry.index);
+      const w = g.clone().applyMatrix4(obj.matrixWorld);   // (clone: the attributes belong to the visible mesh)
+      geos.push(w.index ? w.toNonIndexed() : w);
+    });
+    if (!geos.length) return null;
+    const geometry = mergeGeometries(geos);
+    geometry.computeBoundingBox();
+    const extra = { bvh: new MeshBVH(geometry), box: geometry.boundingBox.clone().expandByScalar(0.5), triangles: geometry.attributes.position.count / 3 };
+    if (!this.extras) {
+      this.extras = [];
+      this.levelBVH = this.bvh;
+      this.bvh = compositeBVH(this);
+    }
+    this.extras.push(extra);
+    return extra;
+  }
+
+  removeCollider(handle) {
+    const i = this.extras?.indexOf(handle) ?? -1;
+    if (i >= 0) this.extras.splice(i, 1);
+  }
+
   /** Height of the first surface below (x, fromY, z), or -Infinity. */
   groundAt(x, fromY, z, maxDrop = 600) {
     const b = this.base ? this.base.heightAt(x, z) : -Infinity;
@@ -234,6 +268,36 @@ export class Physics {
     }
     return best;
   }
+}
+
+/** The level's BVH plus the colliders added later, behind the same three calls. */
+const _cr = new THREE.Vector3();
+function compositeBVH(physics) {
+  const reach = (box, ray, far) => {
+    if (box.containsPoint(ray.origin)) return true;
+    const p = ray.intersectBox(box, _cr);
+    return !!p && p.distanceTo(ray.origin) <= far;
+  };
+  return {
+    raycastFirst(ray, side, near, far) {
+      let best = physics.levelBVH ? physics.levelBVH.raycastFirst(ray, side, near, far) : null;
+      for (const e of physics.extras) {
+        if (!reach(e.box, ray, best ? best.distance : far)) continue;
+        const h = e.bvh.raycastFirst(ray, side, near, best ? best.distance : far);
+        if (h && (!best || h.distance < best.distance)) best = h;
+      }
+      return best;
+    },
+    raycast(ray, side, near, far) {
+      const out = physics.levelBVH ? physics.levelBVH.raycast(ray, side, near, far) : [];
+      for (const e of physics.extras) if (reach(e.box, ray, far)) out.push(...e.bvh.raycast(ray, side, near, far));
+      return out;
+    },
+    shapecast(cb) {
+      physics.levelBVH?.shapecast(cb);
+      for (const e of physics.extras) e.bvh.shapecast(cb);
+    },
+  };
 }
 
 // up first: in the open it escapes to the sky, so most checks cost one ray
