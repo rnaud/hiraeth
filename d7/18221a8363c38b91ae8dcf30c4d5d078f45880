@@ -1,0 +1,31 @@
+README.md
+  s_c90ca0a3de1a1d::t_976002587d590e 59-60,761-792
+src/changelog.js
+  s_c90ca0a3de1a1d::t_62fa7f40617ae1 6-11
+src/levels/bazaar.js
+  s_c90ca0a3de1a1d::t_b7b752862ae2ff 12,44,179
+src/levels/index.js
+  s_c90ca0a3de1a1d::t_1fb01c98dadc85 15,21,27,33,39,45,51,57
+src/main.js
+  s_c90ca0a3de1a1d::t_def06ecf9440a4 2,180-181,506,861,941
+src/reactive-world.js
+  s_c90ca0a3de1a1d::t_2f641af104b440 1-210
+tests/reactive-world.test.js
+  s_c90ca0a3de1a1d::t_80c3b40a2a9533 1-38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d718221a8363c38b91ae8dcf30c4d5d078f45880",
+  "prompts": {},
+  "sessions": {
+    "s_c90ca0a3de1a1d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a100ef-7d9f-7b43-ae7d-30f5177e2ff0",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
