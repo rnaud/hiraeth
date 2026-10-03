@@ -382,6 +382,7 @@ const updateSky = () => applyTimeOfDay(sky.hour, sharedUniforms.uSunDir.value, p
   post.uniforms.uPlanet.value[i].set(Math.cos(el) * Math.sin(az), Math.sin(el), Math.cos(el) * Math.cos(az), THREE.MathUtils.degToRad(p.size));
   const c = new THREE.Color(p.color);
   post.uniforms.uPlanetColor.value[i].set(c.r, c.g, c.b, p.ring ?? 0);
+  post.uniforms.uPlanetCraters.value.setComponent(i, p.craters === false ? 0 : 1);
 });
 updateSky();
 

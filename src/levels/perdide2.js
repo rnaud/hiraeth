@@ -173,7 +173,7 @@ export function createPerdide2(scene) {
   const R = (a, b) => a + rng() * (b - a);
   const pick = (a) => a[Math.floor(rng() * a.length)];
   const terrain = new Terrain({
-    size: 1800, seg: 450, height,
+    size: 1800, seg: 360, height,
     material: { color: '#46686e', color2: '#517676', color3: '#55588a', mode: MODE_TERRAIN, ticks: true },   // teal moss, violet mud
   });
   scene.add(terrain.mesh);
@@ -701,7 +701,7 @@ export function createPerdide2(scene) {
         dusk: ['#b97f93', '#f0927a', '#4a4f7a', '#f2cfc4', '#fff2e2'],
         night: ['#1b1f3e', '#5a3f62', '#2f3560', '#8fb8c8', '#f2e8e0'],
       },
-      planets: [{ az: 172, el: 12, size: 2.2, color: '#f6e6dc' }],
+      planets: [{ az: 172, el: 12, size: 2.2, color: '#f6e6dc', craters: false }],
     },
     killY: -Infinity,
     unsafe,

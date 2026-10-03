@@ -856,7 +856,7 @@ export function createSpheres(scene) {
         dusk: ['#a9b4d8', '#f6c4ae', '#9b9cc8', '#ffe6d0', '#fff0d6'],
         night: ['#1c2a50', '#3c4f80', '#34407a', '#9ab0d8', '#f2f0e6'],
       },
-      planets: [{ az: 95, el: 24, size: 7, color: '#f6efd0' }, { az: 40, el: 12, size: 3, color: '#f3e3a0' }],
+      planets: [{ az: 95, el: 24, size: 7, color: '#f6efd0', craters: false }, { az: 40, el: 12, size: 3, color: '#f3e3a0', craters: false }],
     },
     killY: -Infinity,
     unsafe,

@@ -129,7 +129,7 @@ export function createBuried(scene) {
   const lights = [];
 
   const terrain = new Terrain({
-    size: 4000, seg: 600, height,
+    size: 4000, seg: 440, height,
     material: { color: '#f3ead2', color2: '#ece0c2', color3: '#dccba6', mode: MODE_TERRAIN, ripples: true },
   });
   scene.add(terrain.mesh);
@@ -746,7 +746,7 @@ export function createBuried(scene) {
         dusk: ['#a8ab92', '#f3c39a', '#8a7c9e', '#ffe0c0', '#ffe2b8'],
         night: ['#1e2c34', '#3f5660', '#33485a', '#93aab2', '#f2f0e6'],
       },
-      planets: [{ az: 160, el: 20, size: 3.5, color: '#efe8dc' }],
+      planets: [{ az: 160, el: 20, size: 3.5, color: '#efe8dc', craters: false }],
     },
     killY: -Infinity,
     noShadow,

@@ -291,7 +291,7 @@ export function createArzach2(scene) {
   const rng = mulberry32(2026);
   const R = (a, b) => a + rng() * (b - a);
   const terrain = new Terrain({
-    size: 5200, seg: 460, height,
+    size: 5200, seg: 320, height,
     material: { color: '#eda584', color2: '#f2b48f', color3: '#c98f86', mode: MODE_TERRAIN, ripples: true },
   });
   scene.add(terrain.mesh);
@@ -764,7 +764,7 @@ export function createArzach2(scene) {
         dusk: ['#f2ae8c', '#f6c4a0', '#8f88b8', '#ffd9bc', '#ffe2c0'],
         night: ['#262a3c', '#4a4a5e', '#383650', '#a8a8c0', '#f2f0e6'],
       },
-      planets: [{ az: 200, el: 26, size: 6.5, color: '#f3ead8' }, { az: 222, el: 18, size: 2.2, color: '#e9c8b4' }],
+      planets: [{ az: 200, el: 26, size: 6.5, color: '#f3ead8', craters: false }, { az: 222, el: 18, size: 2.2, color: '#e9c8b4', craters: false }],
     },
     killY: -Infinity,
     unsafe: (p) => p.y < UNSAFE_Y,

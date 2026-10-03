@@ -105,6 +105,7 @@ const fragmentShader = /* glsl */ `
   uniform vec3 uStormColor;
   uniform vec4 uPlanet[3];        // xyz = direction, w = angular radius (0 = none)
   uniform vec4 uPlanetColor[3];   // rgb, a = ring (0 none, else ring tilt)
+  uniform vec3 uPlanetCraters;    // per planet: 1 = cratered, 0 = a plain printed disc
 
   in vec2 vUv;
   out highp vec4 fragColor;
@@ -253,7 +254,7 @@ const fragmentShader = /* glsl */ `
   // ---------------------------------------------------------------- planets
   // Big flat bodies hanging in the sky: toon-lit by the sun, hatched on the
   // night side, a few craters, an optional ring, all inked.
-  void drawPlanet(vec3 rd, vec4 P, vec4 C, inout vec3 col, inout float ink) {
+  void drawPlanet(vec3 rd, vec4 P, vec4 C, float craters, inout vec3 col, inout float ink) {
     if (P.w <= 0.0) return;
     vec3 dir = normalize(P.xyz);
     vec3 e1 = normalize(cross(dir, vec3(0.0, 1.0, 0.0)));
@@ -290,7 +291,7 @@ const fragmentShader = /* glsl */ `
       vec2 cid = floor(cq);
       float ch = hash(cid + 3.1);
       float cr = length(fract(cq) - 0.5 - (vec2(hash(cid), hash(cid + 1.7)) - 0.5) * 0.4);
-      float crater = step(0.7, ch) * (1.0 - smoothstep(0.18, 0.2, cr));
+      float crater = step(0.7, ch) * (1.0 - smoothstep(0.18, 0.2, cr)) * craters;
       pc = mix(pc, pc * 0.86, crater);
       float disc = 1.0 - smoothstep(1.0 - fw, 1.0 + fw, r);
       col = mix(col, pc, disc);
@@ -299,7 +300,7 @@ const fragmentShader = /* glsl */ `
       float hl = 1.0 - smoothstep(0.0, fwidth(hc) * 1.2 * px, abs(fract(hc) - 0.5) * 2.0 - 0.6);
       col = mix(col, uInk, hl * (1.0 - lit) * disc * 0.35 * uHatch);
       ink = max(ink, (1.0 - smoothstep(0.0, fw * 1.4 * px, abs(r - 1.0))) * 0.95);
-      ink = max(ink, (1.0 - smoothstep(0.0, fwidth(cr) * 1.2 * px, abs(cr - 0.19))) * step(0.7, ch) * disc * 0.5);
+      ink = max(ink, (1.0 - smoothstep(0.0, fwidth(cr) * 1.2 * px, abs(cr - 0.19))) * step(0.7, ch) * disc * 0.5 * craters);
     }
     if (hasRing && ringMask > 0.0) {
       vec3 rc = mix(C.rgb * 1.15, vec3(0.97, 0.94, 0.86), 0.5);
@@ -347,7 +348,7 @@ const fragmentShader = /* glsl */ `
       col = mix(col, mix(col, uSunColor, 0.6), wedge * near * low * uRays);
     }
 
-    for (int i = 0; i < 3; i++) drawPlanet(rd, uPlanet[i], uPlanetColor[i], col, ink);
+    for (int i = 0; i < 3; i++) drawPlanet(rd, uPlanet[i], uPlanetColor[i], uPlanetCraters[i], col, ink);
 
     // printed sky: a field of fine dots, a bit denser up high
     if (uSkyDots > 0.0 && rd.y > 0.0) {
@@ -649,6 +650,7 @@ export function createPost() {
     uStormColor: { value: new THREE.Color('#e3c58f') },
     uPlanet: { value: [new THREE.Vector4(), new THREE.Vector4(), new THREE.Vector4()] },
     uPlanetColor: { value: [new THREE.Vector4(), new THREE.Vector4(), new THREE.Vector4()] },
+    uPlanetCraters: { value: new THREE.Vector3(1, 1, 1) },
 
     uFogDensity: { value: 0.0011 },
     uFogStart: { value: 120 },
