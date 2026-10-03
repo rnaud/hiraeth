@@ -589,6 +589,12 @@ export class FluidTool {
       this.bracer = buildBracer();
       fore.add(this.bracer.group);
     }
+    // jetpack levels: its twin canisters move out to flank the tank instead of hiding it
+    const jet = p.char?.jetpack;
+    if (jet) {
+      jet.position.set(0, TANK.at[1] + 0.26, TANK.at[2] + 0.03);
+      for (const o of jet.children) o.position.x = Math.sign(o.position.x) * 0.31;
+    }
     // the handheld device stays in the gear but the bracer replaces it in the hand
     for (const o of p.gear?.device?.children ?? []) o.visible = false;
     this.hose = new Hose(this.scene ?? tank.group);
@@ -937,7 +943,7 @@ export class FluidTool {
     const pips = '◆'.repeat(this.reserve.charges) + '◇'.repeat(this.reserve.max - this.reserve.charges);
     const wait = this.reserve.charges < this.reserve.max ? ` refill ${Math.ceil(this.reserve.refillIn)}s` : '';
     const touch = globalThis.document?.body?.classList.contains('touch');
-    const keys = pad ? 'RT / R2 shoot · B / ○ push · A / × in the air boost' : touch ? '✺ shoot · ✋ push · ⤒ in the air boost' : 'click / G shoot · C / middle click push · SPACE in the air boost';
+    const keys = pad ? 'RT / R2 shoot · B / ○ push · A / × in the air boost' : touch ? '✺ shoot · ✋ push · ⤒ ⤒ boost' : 'click / G shoot · C push · SPACE in the air boost';
     return `fluid ${pips}${wait} · ${keys}`;
   }
 }
