@@ -36,7 +36,7 @@ export const FLUID = {
   refillDelay: 5,         // s after the last use, all three come back at once
   maxColours: 5,          // colour bands magical water can add (the blend shows colours + 1 tones)
   shoot: { speed: 30, gravity: 8, range: 42, cooldown: 0.28, splatLife: 5, splatSize: 0.75 },
-  push: { range: 6, angle: 0.62, cooldown: 0.4, shove: 1.8, recoil: 2.2 },    // angle: cone half-angle (rad, ~35°)
+  push: { range: 6, angle: 0.62, cooldown: 0.4, shove: 2.4, recoil: 2.2 },    // angle: cone half-angle (rad, ~35°); shove: metres people are knocked back (info.shove)
   boost: { up: 15, forward: 4, keep: 0.35, doubleTap: 0.35 },              // keep: share of a rising jump's speed kept
 };
 
@@ -91,7 +91,34 @@ export class Reserve {
   fill() { this.charges = this.max; this.since = Infinity; }
 }
 
-const _d = new THREE.Vector3();
+const _d = new THREE.Vector3(), _rp = new THREE.Vector3();
+
+/**
+ * The first world surface along a ray: the collision meshes (physics.rayHit)
+ * and the level's heightfield (physics.base, the dunes), which the mesh rays
+ * don't see. Returns { distance, point, normal } or null.
+ */
+export function rayWorld(physics, origin, dir, far) {
+  const w = physics?.rayHit?.(origin, dir, far) ?? null;
+  const base = physics?.base?.heightAt ? physics.base : null;
+  if (!base) return w;
+  const lim = w ? w.distance : far;
+  const above = (t) => { _rp.copy(origin).addScaledVector(dir, t); const h = base.heightAt(_rp.x, _rp.z); return Number.isFinite(h) ? _rp.y - h : 1; };
+  if (above(0) < 0) return w;   // starting under the heightfield (inside a cave): only the meshes count
+  const step = Math.max(0.6, lim / 64);
+  let t0 = 0;
+  for (let t = Math.min(step, lim); ; t = Math.min(t + step, lim)) {
+    if (above(t) < 0) {
+      let a = t0, b = t;
+      for (let i = 0; i < 10; i++) { const m = (a + b) / 2; if (above(m) < 0) b = m; else a = m; }
+      const point = origin.clone().addScaledVector(dir, b), e = 0.35, H = (x, z) => base.heightAt(x, z);
+      const normal = new THREE.Vector3(H(point.x - e, point.z) - H(point.x + e, point.z), 2 * e, H(point.x, point.z - e) - H(point.x, point.z + e)).normalize();
+      return { distance: b, point, normal };
+    }
+    if (t >= lim) return w;
+    t0 = t;
+  }
+}
 
 /**
  * One straight trace: the nearest registered target along the ray, unless the
@@ -100,7 +127,7 @@ const _d = new THREE.Vector3();
  */
 export function traceShot(physics, origin, dir, range = FLUID.shoot.range) {
   const t = raycastTargets(origin, dir, range);
-  const w = physics?.rayHit?.(origin, dir, range) ?? null;
+  const w = rayWorld(physics, origin, dir, range);
   if (t && (!w || t.distance <= w.distance)) return { kind: 'target', hit: t, target: t.target, point: t.point.clone(), normal: dir.clone().negate(), distance: t.distance };
   if (w) return { kind: 'world', point: w.point.clone(), normal: w.normal.clone(), distance: w.distance };
   return { kind: 'none', point: origin.clone().addScaledVector(dir, range), normal: dir.clone().negate(), distance: range };
@@ -130,7 +157,7 @@ export class Glob {
     _d.copy(this.vel).divideScalar(speed);
     this.dir.copy(_d);
     const t = raycastTargets(this.pos, _d, len);
-    const w = physics?.rayHit?.(this.pos, _d, len + 0.05) ?? null;
+    const w = rayWorld(physics, this.pos, _d, len + 0.05);
     if (t && (!w || t.distance <= w.distance)) {
       this.state = 'hit'; this.pos.copy(t.point);
       return { type: 'target', hit: t, dir: this.dir.clone() };
@@ -333,13 +360,14 @@ class Rings {
 // wearer's back), placed in the chest anchor's frame (y = 0 at the hips,
 // 0.74 at the collar, +z forward, the character's right at -x).
 export const TANK = {
-  at: [0, 0.4, -0.32],      // glass bottom, behind the shoulder blades
+  at: [0, 0.4, -0.33],      // glass bottom, behind the shoulder blades
   height: 0.52,             // glass
   full: 0.5,                // fluid height at three charges (a sliver of air on top)
-  squash: 1.15,             // wider than deep
-  profile: [[0.112, 0], [0.142, 0.05], [0.155, 0.14], [0.15, 0.26], [0.136, 0.38], [0.112, 0.47], [0.092, 0.52]],
-  outlet: [-0.22, 0.085, -0.02],   // where the hose leaves (the wearer's right)
+  squash: 1.2,              // wider than deep
+  profile: [[0.12, 0], [0.153, 0.05], [0.167, 0.14], [0.162, 0.26], [0.147, 0.38], [0.121, 0.47], [0.098, 0.52]],
+  outlet: [-0.11, 0.6, 0.03],      // where the hose leaves: the cap's fitting, on the wearer's right
   highlight: -1.05,         // streak angle (atan2(z, x) in tank space): on the back, to one side
+  inked: true,              // blobs inked at full strength (not the player's softer interior lines)
 };
 const profileCurve = new THREE.SplineCurve(TANK.profile.map(([r, y]) => new THREE.Vector2(r, y)));
 function radiusAt(y) {
@@ -358,9 +386,9 @@ function buildTank() {
     makeMaterial({ color: '#ffffff', fluid: 'tank', glow: 0.5, fluidBox: [0, TANK.full, R, TANK.highlight] }));
   glass.name = 'Fluid glass';
   // brass base cup and foot ring, the cap with its valve
-  add(new THREE.CylinderGeometry(0.127, 0.15, 0.075, 28), flatMat(BRASS), 0, -0.03, 0);
-  add(new THREE.TorusGeometry(0.149, 0.013, 5, 28).rotateX(Math.PI / 2), flatMat(BRASS_DARK), 0, -0.066, 0);
-  add(new THREE.CylinderGeometry(0.058, 0.096, 0.06, 24), flatMat(BRASS), 0, TANK.height + 0.024, 0);
+  add(new THREE.CylinderGeometry(0.136, 0.16, 0.075, 28), flatMat(BRASS), 0, -0.03, 0);
+  add(new THREE.TorusGeometry(0.159, 0.013, 5, 28).rotateX(Math.PI / 2), flatMat(BRASS_DARK), 0, -0.066, 0);
+  add(new THREE.CylinderGeometry(0.06, 0.103, 0.06, 24), flatMat(BRASS), 0, TANK.height + 0.024, 0);
   add(new THREE.CylinderGeometry(0.03, 0.036, 0.03, 12), flatMat(STEEL), 0, TANK.height + 0.068, 0, false);
   add(new THREE.TorusGeometry(0.045, 0.008, 4, 16).rotateX(Math.PI / 2), flatMat(INK), 0, TANK.height + 0.086, 0, false);
   add(new THREE.SphereGeometry(0.022, 10, 7), flatMat(BRASS), 0, TANK.height + 0.094, 0, false);
@@ -372,14 +400,14 @@ function buildTank() {
   // side rails and the back plate on the straps
   const railX = R * TANK.squash + 0.018;
   for (const sx of [-1, 1]) {
-    add(new THREE.CylinderGeometry(0.012, 0.012, TANK.height + 0.1, 6), flatMat(STEEL_DARK), sx * railX, TANK.height / 2, 0.02, false);
+    add(new THREE.CylinderGeometry(0.012, 0.012, TANK.height + 0.05, 6), flatMat(STEEL_DARK), sx * railX, TANK.height / 2 - 0.01, 0.02, false);
     for (const y of [0.04, TANK.height - 0.04]) add(new THREE.BoxGeometry(0.03, 0.026, 0.15), flatMat(STEEL_DARK), sx * railX, y, 0.09, false);
   }
-  add(new THREE.BoxGeometry(0.34, 0.46, 0.024), flatMat(STEEL_DARK), 0, TANK.height / 2, 0.16, false);
-  // the hose outlet on the right
+  add(new THREE.BoxGeometry(0.36, 0.46, 0.024), flatMat(STEEL_DARK), 0, TANK.height / 2, 0.17, false);
+  // the hose's fitting on the cap, leaning toward the right shoulder
   const [ox, oy, oz] = TANK.outlet;
-  add(new THREE.CylinderGeometry(0.024, 0.024, 0.07, 10).rotateZ(Math.PI / 2), flatMat(BRASS), ox + 0.035, oy, oz, false);
-  add(new THREE.TorusGeometry(0.028, 0.008, 4, 12).rotateY(Math.PI / 2), flatMat(INK), ox + 0.012, oy, oz, false);
+  add(new THREE.CylinderGeometry(0.022, 0.026, 0.07, 10), flatMat(BRASS), ox + 0.02, oy - 0.03, oz, false).rotation.z = 0.55;
+  add(new THREE.TorusGeometry(0.026, 0.008, 4, 12).rotateX(Math.PI / 2), flatMat(INK), ox + 0.008, oy - 0.012, oz, false).rotation.z = 0.55;
   g.position.set(...TANK.at);
   return { group: noCollide(g), glass, outlet: new THREE.Vector3(ox, oy, oz), top: TANK.at[1] + TANK.height + 0.11 };
 }
@@ -412,7 +440,7 @@ function buildBracer() {
 
 /** The hose: a ribbed tube re-laid every frame along a Catmull-Rom curve through the tank, the arm and the bracer. */
 class Hose {
-  constructor(parent, { rings = 30, sides = 7, radius = 0.021 } = {}) {
+  constructor(parent, { rings = 48, sides = 7, radius = 0.02 } = {}) {
     Object.assign(this, { R: rings, S: sides, radius });
     const n = rings * sides;
     this.pos = new Float32Array(n * 3); this.nrm = new Float32Array(n * 3);
@@ -451,7 +479,7 @@ class Hose {
       else { N.addScaledVector(T, -N.dot(T)).normalize(); }   // parallel transport: no twisting
       B.crossVectors(T, N);
       if (r > 0) len += P[r].distanceTo(P[r - 1]);
-      const rad = this.radius * (1 + 0.14 * Math.sin(len * (Math.PI * 2 / 0.034)));   // ribs
+      const rad = this.radius * (1 + 0.09 * Math.sin(len * (Math.PI * 2 / 0.045)));   // ribs
       for (let k = 0; k < S; k++) {
         const th = (k / S) * Math.PI * 2, cs = Math.cos(th), sn = Math.sin(th);
         const nx = N.x * cs + B.x * sn, ny = N.y * cs + B.y * sn, nz = N.z * cs + B.z * sn;
@@ -497,7 +525,7 @@ export class FluidTool {
     fx.name = 'Fluid effects'; fx.userData.noCollide = true;
     scene?.add(fx);
     noShadow?.push(fx);
-    this.drops = new Dots(fx, 360, flatMat('#ffffff', { glow: 0.45 }));
+    this.drops = new Dots(fx, 360, flatMat('#ffffff', { glow: 0.7 }));
     this.glow = new Dots(fx, 160, makeMaterial({ color: '#ffffff', flat: true, glow: 0.95 }));
     this.arc = new Dots(fx, 48, flatMat('#ffffff'));
     this.splats = new Splats(fx);
@@ -546,8 +574,10 @@ export class FluidTool {
     // the handheld device stays in the gear but the bracer replaces it in the hand
     for (const o of p.gear?.device?.children ?? []) o.visible = false;
     this.hose = new Hose(this.scene ?? tank.group);
-    const copies = new Map();
+    const copies = new Map(), glassMat = tank.glass.material;
     markHero(tank.group, copies);
+    // the fluid stays out of the player's soft-ink mask, so the post pass inks its blobs like print
+    if (TANK.inked) tank.glass.material = glassMat;
     if (this.bracer) markHero(this.bracer.group, copies);
     markHero(this.hose.mesh, copies);
     this.tankU = tank.glass.material.uniforms;
@@ -690,27 +720,25 @@ export class FluidTool {
       u.uGlow.value = 0.95 * k;
     });
     if (this.bracer) this.bracer.lens.scale.setScalar(this.reserve.charges ? 1 + this.flash * 0.8 : 0.6);
-    // the hose: tank outlet, out to the side, past the elbow, along the forearm to the bracer
+    // the hose: up out of the cap, over the right shoulder, down the outside of the arm to the bracer
     const H = p.humanoid, B = H.b;
     const P = this.hosePts;
-    this.tank.group.updateWorldMatrix(true, false);
-    this.tank.group.localToWorld(P[0].copy(this.tank.outlet));
-    const U = p.frame.up;
-    const chest = B.spine_03.getWorldPosition(_t1);
-    const elbow = B.lowerarm_r.getWorldPosition(_t2);
-    const wrist = B.hand_r.getWorldPosition(_t3);
+    const tg = this.tank.group;
+    tg.updateWorldMatrix(true, false);
+    tg.localToWorld(P[0].copy(this.tank.outlet));
+    _q.setFromRotationMatrix(tg.matrixWorld);
+    const Uc = _o.set(0, 1, 0).applyQuaternion(_q), Rc = _f.set(-1, 0, 0).applyQuaternion(_q), Bk = _m.set(0, 0, -1).applyQuaternion(_q);
+    const S = B.upperarm_r.getWorldPosition(_t1), E = B.lowerarm_r.getWorldPosition(_t2);
     if (this.bracer) { this.bracer.group.updateWorldMatrix(true, false); this.bracer.group.localToWorld(P[5].copy(this.bracer.inlet)); }
-    else P[5].copy(wrist);
-    // out of the outlet sideways (the anchor's -x is the wearer's right), sagging a little
-    _q.setFromRotationMatrix(this.tank.group.matrixWorld);
-    const right = _f.set(-1, 0, 0).applyQuaternion(_q);
-    P[1].copy(P[0]).addScaledVector(right, 0.07).addScaledVector(U, -0.05);
-    // past the elbow, kept off the sleeve on the outside of the arm
-    const out = _m.subVectors(elbow, chest); out.addScaledVector(U, -out.dot(U));
-    if (out.lengthSq() < 1e-6) out.copy(right); out.normalize();
-    P[2].lerpVectors(P[1], elbow, 0.55).addScaledVector(out, 0.08).addScaledVector(U, -0.06);
-    P[3].copy(elbow).addScaledVector(out, 0.065).addScaledVector(U, -0.025);
-    P[4].lerpVectors(elbow, P[5], 0.55).addScaledVector(out, 0.05);
+    else B.hand_r.getWorldPosition(P[5]);
+    P[1].copy(P[0]).addScaledVector(Uc, 0.06).addScaledVector(Rc, 0.04);
+    P[2].copy(S).addScaledVector(Uc, 0.1).addScaledVector(Bk, 0.05);
+    // off the sleeve: outward, square to each bone
+    const side = (a, b, out) => { _t3.subVectors(b, a).normalize(); out.copy(Rc).addScaledVector(_t3, -Rc.dot(_t3)); return out.lengthSq() > 1e-6 ? out.normalize() : out.copy(Rc); };
+    side(S, E, _a);
+    P[3].lerpVectors(S, E, 0.5).addScaledVector(_a, 0.07).addScaledVector(Bk, 0.02);
+    side(E, P[5], _a);
+    P[4].copy(E).addScaledVector(_a, 0.065).addScaledVector(Bk, 0.015);
     this.hose.set(P);
   }
 
@@ -723,7 +751,7 @@ export class FluidTool {
   }
 
   /** The tones as hex strings, for targets (info.colours). */
-  info(strength = 1) { return { colours: this.tones, strength, tool: this }; }
+  info(strength = 1) { return { colours: this.tones, strength, shove: FLUID.push.shove, tool: this }; }
 
   /** Fire a glob at the crosshair now (the arm is assumed to be up). */
   shoot() {
@@ -793,15 +821,16 @@ export class FluidTool {
     // a spray of fluid down from the tank and under the boots, and a ring where it leaves
     const tones = this.tones;
     const base = this.tank ? this.tank.group.localToWorld(_o.set(0, -0.05, 0)) : _o.copy(p.pos).addScaledVector(U, 0.9);
-    for (let i = 0; i < 46; i++) {
-      const fromTank = i % 3 === 0;
-      const at = fromTank ? base : _t2.copy(p.pos).addScaledVector(U, 0.1);
-      const v = _a.copy(U).multiplyScalar(-(7 + Math.random() * 8)).add(_t1.randomDirection().multiplyScalar(fromTank ? 1.5 : 3.5));
-      this.drops.add({ pos: at, vel: v.addScaledVector(p.vel, 0.25), drag: 2.5, grav: 6, size: 0.03 + Math.random() * 0.025, stretch: 3, life: 0.5 + Math.random() * 0.3, color: tones[i % tones.length] });
+    for (let i = 0; i < 34; i++) {
+      const fromTank = i % 4 === 0;
+      const at = fromTank ? base : _t2.copy(p.pos).addScaledVector(U, 0.15);
+      const v = _a.copy(U).multiplyScalar(-(5 + Math.random() * 7)).add(_t1.randomDirection().multiplyScalar(fromTank ? 1.5 : 4.5));
+      this.drops.add({ pos: at, vel: v.addScaledVector(p.vel, 0.2), drag: 2.5, grav: 6, size: 0.045 + Math.random() * 0.045, stretch: 1.7, life: 0.5 + Math.random() * 0.35, color: tones[i % tones.length] });
     }
+    for (let i = 0; i < 10; i++) this.glow.add({ pos: _t2.copy(p.pos).addScaledVector(U, 0.1), vel: _a.randomDirection().multiplyScalar(2.5).addScaledVector(U, -1.5), drag: 3, size: 0.08, life: 0.45, color: tones[i % tones.length], grow: true });
     for (let i = 0; i < 2; i++) this.rings.add({ from: _t2.copy(p.pos).addScaledVector(U, 0.05), dir: U, reach: -0.3, r0: 0.25, r1: 1.4 + i * 0.6, life: 0.45 + i * 0.1, delay: i * 0.06, color: tones[i % tones.length], thick: 1.2 });
     // and a splat on the ground right under you
-    const g = this.physics?.rayHit?.(_t2.copy(p.pos).addScaledVector(U, 0.5), _t3.copy(U).negate(), 3.5);
+    const g = rayWorld(this.physics, _t2.copy(p.pos).addScaledVector(U, 0.5), _t3.copy(U).negate(), 3.5);
     if (g) this.splats.add(g.point, g.normal, tones[0], tones[1 % tones.length], 0.9);
     return true;
   }
@@ -827,11 +856,12 @@ export class FluidTool {
   splash(point, normal, scale = 1) {
     const tones = this.tones;
     const sc = (this.camera ? THREE.MathUtils.clamp(point.distanceTo(this.camera.position) / 14, 1, 2.5) : 1) * scale;
-    for (let i = 0; i < 18; i++) {
-      const v = _a.randomDirection().addScaledVector(normal, 1.3).normalize().multiplyScalar((3 + Math.random() * 5) * sc);
-      this.drops.add({ pos: point, vel: v, drag: 2.5, grav: 9, size: (0.03 + Math.random() * 0.03) * sc, stretch: 2.5, life: 0.5 + Math.random() * 0.35, color: tones[i % tones.length] });
+    for (let i = 0; i < 28; i++) {
+      const v = _a.randomDirection().addScaledVector(normal, 1.2).normalize().multiplyScalar((3 + Math.random() * 6) * sc);
+      this.drops.add({ pos: point, vel: v, drag: 2.2, grav: 9, size: (0.045 + Math.random() * 0.05) * sc, stretch: 2.5, life: 0.55 + Math.random() * 0.4, color: tones[i % tones.length] });
     }
-    this.rings.add({ from: point, dir: normal, reach: 0.05, r0: 0.1 * sc, r1: 0.7 * sc, life: 0.3, color: tones[1 % tones.length], thick: 0.7 });
+    for (let i = 0; i < 5; i++) this.glow.add({ pos: point, vel: _a.randomDirection().addScaledVector(normal, 0.8).multiplyScalar(1.4 * sc), drag: 3, size: 0.09 * sc, life: 0.5, color: tones[i % tones.length], grow: true });
+    this.rings.add({ from: point, dir: normal, reach: 0.05, r0: 0.15 * sc, r1: 1.0 * sc, life: 0.32, color: tones[1 % tones.length], thick: 0.8 });
   }
 
   updateGlobs(dt) {
@@ -862,7 +892,7 @@ export class FluidTool {
       m.position.copy(g.pos);
       // a wobbling drop, stretched along its flight
       m.quaternion.setFromUnitVectors(_y, g.dir);
-      const w = Math.sin(g.age * 38) * 0.12, s = 0.17;
+      const w = Math.sin(g.age * 38) * 0.14, s = 0.13;
       m.scale.set(s * (1 + w), s * (1.45 - w), s * (1 + w));
     }
     this.globs = this.globs.filter((g) => !g.dead);

@@ -611,20 +611,23 @@ const fragmentShader = /* glsl */ `
   // three stacked bands of one tone each, with metaball blobs of the other
   // tones rising, sinking and merging through them. Flat tones, so the post
   // pass inks every boundary.
-  vec3 fluidLava(float a, float h, float aspect, float t, int n) {
+  vec3 fluidLava(float a, float h, float aspect, float t, int n, bool banded) {
     float F[6] = float[6](0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-    for (int i = 0; i < 9; i++) {
+    // a slow warp keeps every edge organic
+    float wa = a + 0.16 * sin(h * 8.0 + t * 0.7);
+    float wh = h + 0.03 * sin(a * 3.0 - t * 0.9);
+    for (int i = 0; i < 12; i++) {
       float fi = float(i);
-      float ph = 6.2831 * (0.045 + 0.03 * fract(fi * 0.618)) * t + fi * 2.13;
-      float cy = 0.5 + 0.48 * sin(ph);
-      float ca = fi * 2.39996 + 0.6 * sin(t * 0.11 + fi * 1.7);
-      float r = 0.1 + 0.035 * sin(t * 0.37 + fi * 1.31);
-      float da = abs(mod(a - ca + 3.14159, 6.28318) - 3.14159) * aspect;
-      float dy = (h - cy) / (1.0 + 0.5 * abs(cos(ph)));     // stretched while it rises or sinks
+      float ph = 6.2831 * (0.06 + 0.05 * fract(fi * 0.618)) * t + fi * 2.13;
+      float cy = 0.5 + 0.56 * sin(ph);                       // a little past the ends: blobs pool and break away
+      float ca = fi * 2.39996 + 0.9 * sin(t * 0.13 + fi * 1.7);
+      float r = 0.115 + 0.045 * sin(t * 0.43 + fi * 1.31);
+      float da = abs(mod(wa - ca + 3.14159, 6.28318) - 3.14159) * aspect;
+      float dy = (wh - cy) / (1.0 + 0.6 * abs(cos(ph)));      // stretched while it rises or sinks
       F[i - n * (i / n)] += r * r / max(da * da + dy * dy, 1e-5);
     }
-    float hb = h + 0.025 * sin(a * 3.0 + t * 0.9);
-    int base = int(clamp(floor(hb * 3.0), 0.0, 2.0));
+    float hb = h + 0.035 * sin(a * 2.0 + t * 0.6) + 0.02 * sin(a * 5.0 - t * 1.4);
+    int base = banded ? int(clamp(floor(hb * 3.0), 0.0, 2.0)) : int(step(0.5 + 0.25 * sin(a * 2.0 + t * 0.5), h));
     base -= n * (base / n);
     int pick = base;
     float best = 1.0;
@@ -643,11 +646,11 @@ const fragmentShader = /* glsl */ `
     float H = uFluidBox.y - uFluidBox.x;
     float h = (vBind.y - uFluidBox.x) / H;
     float a = atan(vBind.z, vBind.x);
-    vec3 col = fluidLava(a, h, uFluidBox.z / H, kind > 1.5 ? t * 5.0 : t, n);
-    if (kind > 1.5) return mix(col, vec3(1.0), uFluidB.x * 0.4);   // a glob in flight
+    vec3 col = fluidLava(a, h, uFluidBox.z / H, kind > 1.5 ? t * 4.0 : t, n, kind < 1.5);
+    if (kind > 1.5) return col;   // a glob in flight: blobs churning, no bands
     // the tank: the fluid stands at the fill level (three charges = three bands), sloshing; empty glass above
     float fill = uFluidA.x;
-    float surf = max(fill, 0.035) + (0.012 + 0.05 * uFluidB.w) * sin(a + t * 6.0) * min(1.0, fill * 8.0);
+    float surf = max(fill, 0.07) + (0.012 + 0.05 * uFluidB.w) * sin(a + t * 6.0) * min(1.0, fill * 8.0);
     float w = uFluidB.y;
     if (w > 0.0 && h < surf) {
       // refilling: bubbles stream up through it

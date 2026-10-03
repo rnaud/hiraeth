@@ -11,7 +11,8 @@ import * as THREE from 'three';
 // modes (fluid-tool.js):
 //   'shoot'  a glob of magical fluid landed on it (point: where; dir: the glob's flight)
 //   'push'   it was inside the push cone (dir: away from the traveller, the way to shove it)
-// info: { colours: ['#52c8cf', …] } the fluid's current tones, strength (push: 1 near, 0 at the cone's reach)
+// info: { colours: ['#52c8cf', …] } the fluid's current tones; push only: strength (1 close, 0 at the
+//       cone's reach) and shove (metres to knock people back at full strength)
 
 const targets = new Set();
 const _oc = new THREE.Vector3();

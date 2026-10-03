@@ -225,8 +225,9 @@ export class ReactiveWorld {
       }
       if(n.sway){n.sway=Math.max(0,n.sway-dt*.7);}
       if(obj.petals){
-        const opening=(this.theme.shy?1-e*.62:.35+e*.65)*(1+.35*bloom*(1+.25*Math.sin(t*5)));
-        obj.petals.scale.set(opening,1+.3*bloom,opening);
+        const opening=(this.theme.shy?1-e*.62:.35+e*.65)*(1+.6*bloom*(1+.2*Math.sin(t*5)));
+        obj.petals.scale.set(opening,1+.5*bloom,opening);
+        obj.moving.scale.setScalar(1+.22*bloom);
         obj.moving.rotation.z=Math.sin(t*.9+n.pos.x)*e*.09+Math.sin(t*7)*(n.sway??0)*.35;
         // Turn toward the visitor in the local gravity frame.
         const direction=player.pos.clone().sub(n.pos).applyQuaternion((n.rotation??new THREE.Quaternion()).clone().invert());

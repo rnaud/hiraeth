@@ -784,7 +784,7 @@ export class Crowd {
     const pick = (a) => a[Math.floor(this.rng() * a.length)];
     const upright = p.pose === POSE.stand || p.pose === POSE.walk || p.pose === POSE.wall || !!p.walk;
     if (mode === 'push' && upright) {
-      this.shove(p, dir, 1.8 * (0.55 + 0.45 * (info?.strength ?? 1)));
+      this.shove(p, dir, (info?.shove ?? 2.4) * (0.6 + 0.4 * (info?.strength ?? 1)));
       p.stumbleUntil = t + 0.9; p.stumbleT = t; p.talk = 0;
       p.faceUntil = t + 3.6;
       p.say = pick(SHOVE_LINES);

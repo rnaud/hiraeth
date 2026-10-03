@@ -161,7 +161,7 @@ export class NPC {
     if (dir) this.faceTo = Math.atan2(-dir.x, -dir.z);
     if (mode === 'push') {
       this.stumbleUntil = this.time + 0.9; this._frozen = false;
-      if (dir) this.knock.set(dir.x, 0, dir.z).normalize().multiplyScalar(5.5 * (0.55 + 0.45 * (info?.strength ?? 1)));
+      if (dir) this.knock.set(dir.x, 0, dir.z).normalize().multiplyScalar(4 * (info?.shove ?? 2.4) * (0.6 + 0.4 * (info?.strength ?? 1)));   // dies away at 4/s: ~shove metres
       this.startleAt = this.time + 0.1;   // no hop after the stumble: they just stand and glare (until ~2.5 s)
       this.shout = { text: pick(SHOVED), until: this.time + 3 };
       return;
