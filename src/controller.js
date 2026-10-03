@@ -20,7 +20,7 @@ export class Controller {
     if (!pad) { this.previous = []; this.index = null; this.lastContext = null; return this.held; }
     if (this.index !== pad.index) { this.previous = []; this.blocked.clear(); }
     this.index = pad.index;
-    const buttons = pad.buttons.map(b => b.pressed || b.value > 0.5);
+    const buttons = pad.buttons.map((b, i) => b.pressed || b.value > (i === 6 ? 0.3 : 0.5));   // LT aims from a light squeeze
     const ctx = this.context();
     // A held confirm/jump must never leak through when a menu closes.
     if (ctx !== this.lastContext) {
@@ -57,6 +57,10 @@ export class Controller {
         if (press(1) || press(13) || press(9)) this.action('photo');
       } else {
         h.Space = down(0); h.KeyE = down(2);
+        // the tool: hold LT to aim, RT fires while aiming (instead of running), D-pad ← / → switches mode
+        h.PadAim = down(6);
+        if (h.PadAim) { h.PadFire = down(7); h.ShiftLeft = down(10); }
+        h.PadMode = down(14) || down(15);
         if (down(4) || down(5)) this.action(down(4) ? 'zoomOut' : 'zoomIn', dt);
         if (press(3)) this.action('ping');
         if (press(9)) this.action('settings');

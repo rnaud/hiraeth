@@ -24,7 +24,8 @@ import { loadAnimationLibrary, Animator } from './animator.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { loadHuman, Humanoid } from './humanoid.js';
 import { Changelog, VERSION } from './changelog.js';
-import { Settings, SettingsMenu, TouchControls, SaveGame, isTouch } from './ui.js';
+import { Settings, SettingsMenu, TouchControls, SaveGame, isTouch, ToolHud } from './ui.js';
+import { Blaster, bindToolMouse } from './blaster.js';
 import { ORDER } from './levels/content.js';
 
 // Loading: each stage updates the inked loading screen, then yields a frame
@@ -253,6 +254,8 @@ rig.constrain = level.constrainCamera;
 
 // ------------------------------------------------------------------ sound, weather, people, story
 const sound = new Sound(levelId);
+// the traveller's non-lethal tool: paralyze ray / foam dart (blaster.js)
+const blaster = new Blaster({ scene, player, physics, camera, rig, sound, level, hud: new ToolHud(), noShadow: (level.noShadow ??= []) });
 const weather = new Weather(content.weather);
 {
   const stormColor = { desert: '#e3c58f', arzach: '#e8dfcb' }[levelId];
@@ -368,6 +371,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Space') e.preventDefault();
 });
 window.addEventListener('keyup', (e) => (input[e.code] = false));
+bindToolMouse(renderer.domElement, input);   // right button aims, left fires, middle switches
 window.addEventListener('blur', () => Object.keys(input).forEach((k) => (input[k] = false)));
 
 // ------------------------------------------------------------------ time of day
@@ -612,6 +616,7 @@ function updateHud() {
   };
   const parts = [];
   if (player.ride) parts.push(RIDE[player.ride.kind] ?? RIDE.bike);
+  else if (blaster.aiming) parts.push(blaster.hudText(controllerActive));
   else {
     if (player.climbing) parts.push(`climbing ${gauge(player.stamina)} · SPACE jump off`);
     else if (player.stamina < 0.99) parts.push(`stamina ${gauge(player.stamina)}`);
@@ -626,9 +631,9 @@ function updateHud() {
   const goal = expedition && !expedition.state.returned ? expedition.hud(player) : story.hud();
   const edgeHint = edgeTravel();
   let text = `${atmo.name} · ${parts.join(' · ')}` +
-    `\n${goal ? goal + ' · ' : ''}${errands.hud() ? errands.hud() + ' · ' : ''}relics ${journal.relicCount(levelId)}/${content.relics.names.length} · Q ping · H help` +
+    `\n${goal ? goal + ' · ' : ''}${errands.hud() ? errands.hud() + ' · ' : ''}relics ${journal.relicCount(levelId)}/${content.relics.names.length} · Q ping · R tool · H help` +
     (gate.near ? ` · walk through the gate to ${nextTitle}` : '') + (edgeHint ? ` · ${edgeHint}` : '');
-  if (controllerActive) text = text.replaceAll('SPACE', 'A / ×').replaceAll('SHIFT', 'RT / R2').replaceAll('W/S', 'left stick').replaceAll('A/D', 'left stick').replace(/\bE\b/g, 'X / □').replace('Q ping · H help', 'Y / △ ping · Menu settings');
+  if (controllerActive) text = text.replaceAll('SPACE', 'A / ×').replaceAll('SHIFT', 'RT / R2').replaceAll('W/S', 'left stick').replaceAll('A/D', 'left stick').replace(/\bE\b/g, 'X / □').replace('Q ping · R tool · H help', 'Y / △ ping · LT tool · Menu settings');
   audioCfg.mute = sound.muted;
   if (text !== lastStatus) { status.textContent = text; lastStatus = text; }
 }
@@ -772,7 +777,7 @@ function frame() {
   document.body.classList.toggle('controller', controllerActive);
   controllerHint.textContent = busy() ? 'D-pad / left stick select · A / × confirm · B / ○ back · right stick scroll'
     : photo.on ? 'Left stick fly · right stick look · LB/RB down/up · A / × save · B / ○ exit'
-    : 'A / × jump · X / □ use · Y / △ ping · RT / R2 run · ↑ worlds · ↓ photo · View sketchbook · Menu settings';
+    : 'A / × jump · X / □ use · Y / △ ping · RT / R2 run · LT aim (+ RT fire, ← → ray / dart) · ↑ worlds · ↓ photo · View sketchbook · Menu settings';
   const mergedInput = mergeControls(input, padInput);
   const ctl = busy() ? noInput : mergedInput;
 
@@ -793,6 +798,7 @@ function frame() {
     rig.follow(player.ride?.heading ?? player.heading, dt, player.riding || player.gliding);
     rig.update(player.pos, dt, player.frame);
   }
+  blaster.update(dt, ctl, busy() || photo.on);
   scout.update(dt, busy() || photo.on);
   if (!busy() && !photo.on) scout.placeLabel(camera);
   else if (scout.label) scout.label.hidden = true;
@@ -944,4 +950,4 @@ requestAnimationFrame((t) => {
 });
 
 // handy for debugging from the console
-Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, gate, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld });
+Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, gate, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, blaster });
