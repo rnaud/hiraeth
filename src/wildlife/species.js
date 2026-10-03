@@ -446,7 +446,7 @@ const pipeBeetle = {
 const coil = (() => {
   const pts = [];
   for (let i = 0; i <= 72; i++) { const z = -0.2 + (i / 72) * 0.4, a = (i / 72) * PI * 2 * 6; pts.push([Math.cos(a) * 0.07, 0.08 + Math.sin(a) * 0.07, z]); }
-  return tube(pts, 0.017, '#3f8f8a', 150, 4);
+  return tube(pts, 0.017, '#3f8f8a', 96, 4);
 })();
 
 const springWorm = {

@@ -23,7 +23,7 @@ function finish(g, color, at, rot, scale) {
 }
 
 /** ellipsoid with radii r = [x, y, z] */
-export const ell = (r, color, at, rot, seg = [10, 7]) => finish(new THREE.SphereGeometry(1, seg[0], seg[1]), color, at, rot, r);
+export const ell = (r, color, at, rot, seg = [9, 6]) => finish(new THREE.SphereGeometry(1, seg[0], seg[1]), color, at, rot, r);
 /** half ellipsoid (dome, flat side down) */
 export const dome = (r, color, at, rot, seg = [10, 4]) => finish(new THREE.SphereGeometry(1, seg[0], seg[1], 0, Math.PI * 2, 0, Math.PI / 2), color, at, rot, r);
 export const box = (s, color, at, rot) => finish(new THREE.BoxGeometry(s[0], s[1], s[2]), color, at, rot);

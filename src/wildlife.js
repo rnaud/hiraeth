@@ -23,7 +23,8 @@ export { WILDLIFE, SPECIES };
 const Y = new THREE.Vector3(0, 1, 0);
 const ZERO = new THREE.Matrix4().makeScale(0, 0, 0);
 const WHITE = new THREE.Color(1, 1, 1);
-const NEAR = 70, SLEEP = 170;
+const NEAR = 60, SLEEP = 140;
+const SCALE = 1.35;   // a touch larger than life, so they read at play distance
 const STUN = [4, 6];
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _u = new THREE.Vector3(), _to = new THREE.Vector3();
 const _o = new THREE.Vector3(), _d = new THREE.Vector3(), _s = new THREE.Vector3(), _p = new THREE.Vector3();
@@ -131,8 +132,11 @@ class FX {
 // rotations apply yaw first, then pitch, then roll (creature-friendly)
 const slot = () => ({ p: new THREE.Vector3(), r: new THREE.Euler(0, 0, 0, 'YXZ'), s: new THREE.Vector3(1, 1, 1), show: true });
 
+// only the big pieces cast shadows (legs, eyes and tails would cost a draw per shadow cascade)
+const SHADOW_PARTS = new Set(['body', 'shell', 'stone1', 'stone2', 'stone3', 'lid', 'sail', 'temple', 'petals', 'cog', 'wingL', 'wingR']);
+
 class Herd {
-  constructor(root, def, count) {
+  constructor(root, def, count, noShadow = []) {
     this.def = def;
     const body = makeMaterial({ color: '#ffffff', vertexColors: true });
     const lit = makeMaterial({ color: '#ffffff', vertexColors: true, glow: 0.8 });
@@ -146,15 +150,17 @@ class Herd {
       mesh.boundingSphere = this.sphere;   // kept around the herd by hand, so it culls correctly
       for (let i = 0; i < count; i++) { mesh.setMatrixAt(i, ZERO); mesh.setColorAt(i, WHITE); }
       root.add(mesh);
+      // hidden-until-the-surprise parts keep their shadow (the renderer would re-show noShadow meshes)
+      if (!s.hidden && !(s.shadow ?? SHADOW_PARTS.has(name))) noShadow.push(mesh);
       return { name, mesh, at: new THREE.Vector3(...(s.at ?? [0, 0, 0])), hidden: !!s.hidden, free: !!s.free, dirty: true };
     });
     this.pose = { root: slot() };
     for (const p of this.parts) this.pose[p.name] = slot();
     this.members = [];
-    // stun: tint toward grey (as seen on the species' main colour)
+    // stun: the colour drains to a pale, washed-out grey (worked out on the species' main colour)
     const main = new THREE.Color(def.main ?? '#a0a0a0');
-    const lum = main.r * 0.3 + main.g * 0.55 + main.b * 0.15;
-    this.drain = new THREE.Color(...[main.r, main.g, main.b].map((c, i) => Math.min(2.2, Math.max(0.35, (lum * [0.9, 0.92, 1.02][i]) / Math.max(c, 0.05)))));
+    const lum = Math.min(0.85, (main.r * 0.3 + main.g * 0.55 + main.b * 0.15) * 1.3);
+    this.drain = new THREE.Color(...[main.r, main.g, main.b].map((c, i) => Math.min(2.6, Math.max(0.35, (lum * [0.96, 0.97, 1.04][i]) / Math.max(c, 0.05)))));
   }
   reset() {
     const P = this.pose;
@@ -189,7 +195,7 @@ export class Creature {
     this.pos = new THREE.Vector3(); this.up = new THREE.Vector3(0, 1, 0); this.fwd = new THREE.Vector3(0, 0, 1);
     this.home = new THREE.Vector3(); this.quat = new THREE.Quaternion();
     this.target = new THREE.Vector3(); this.center = new THREE.Vector3(); this.wpos = new THREE.Vector3();
-    this.size = (herd.def.size ?? 1) * (0.88 + rng() * 0.24);
+    this.size = (herd.def.size ?? 1) * SCALE * (0.88 + rng() * 0.24);
     this.seed = rng() * 100;
     this.phase = rng() * 6; this.speed = 0; this.moveAmt = 0; this.look = 0; this.lookTo = 0; this.glance = 0;
     this.state = 'idle'; this.timer = 1 + rng() * 3; this.cool = 0; this.calm = 0;
@@ -589,7 +595,7 @@ export class Wildlife {
     const spots = this.findSpots(def, count * 3);
     if (!spots.length) { console.warn(`wildlife: no room for ${def.id} in ${this.level.id}`); return; }
     const n = Math.min(count, spots.length);
-    const herd = new Herd(this.root, def, n);
+    const herd = new Herd(this.root, def, n, this.level.noShadow ??= []);
     herd.spots = spots;
     this.herds.push(herd);
     // spread the first ones over the pool (it is ordered by the anchor sampling)
