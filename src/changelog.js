@@ -3,6 +3,13 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.16', date: '2026-10-03', items: [
+    'Install on iPhone from Safari: Share → Add to Home Screen. Launch from the Moebius icon to play without browser bars, with controls clear of the notch and home indicator.',
+    'The Sleeping Observatory: meet the traveler beside desert camp, follow their sketch east, climb six resting ledges and align three lenses to unfold the roof and reveal a constellation.',
+    'Lens positions, discoveries and the awakened observatory are saved in the sketchbook. Return to the traveler for new dialogue.',
+    'Smoother outlines at every graphics setting. Mobile Auto now favours a clear image at 30 fps, starts at full resolution and stops reducing resolution at 0.75×.',
+    'Lighter, more widely spaced sky dots, with less ink at low resolution. Comic pages fit narrow phone screens.',
+  ] },
   { v: '0.15', date: '2026-10-03', items: [
     'A new hero after your reference: a baggy lavender suit with creases, salmon gloves, a glass bubble helmet over a blue headset, a radio pack with a whip antenna, cables, a pouch belt and a handheld device. No cape.',
     'Real climbing animation (Quaternius mocap): up, down, sideways and a hanging idle, with the hands and feet pressed onto the wall. The ledge climb is mocap too.',

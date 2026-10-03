@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { ObservatoryQuest } from './observatory.js';
+import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
 import GUI from 'lil-gui';
 import { sharedUniforms } from './materials.js';
 import { createPost, DEBUG_VIEWS, PRESETS } from './post.js';
@@ -110,26 +112,20 @@ post.uniforms.tAlbedo.value = gbuffer.textures[0];
 post.uniforms.tNormal.value = gbuffer.textures[1];
 post.uniforms.tHatch.value = gbuffer.textures[2];
 
-// Supersampling: the whole pipeline renders at renderScale x the device
-// resolution into an offscreen target, then is box-filtered down. Lines and
-// strokes are sized by the effective pixel ratio, so they keep their look.
+// Render at the selected resolution, then smooth the final colour with FXAA.
+// The G-buffer stays nearest-filtered so depth and surface boundaries stay exact.
 const settings = new Settings();
-const QUALITY = { low: 0.7, medium: 1, high: pixelRatio >= 2 ? 1 : 1.5, auto: isTouch ? 0.85 : 1 };
+const QUALITY = { low: 0.7, medium: 1, high: pixelRatio >= 2 ? 1 : 1.5, auto: 1 };
 const quality = { renderScale: QUALITY[settings.quality] ?? 1 };
 const composeRT = new THREE.WebGLRenderTarget(1, 1, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, depthBuffer: false });
 const blit = (() => {
   const material = new THREE.ShaderMaterial({
-    glslVersion: THREE.GLSL3,
-    uniforms: { tSrc: { value: composeRT.texture }, uTexel: { value: new THREE.Vector2() } },
-    vertexShader: 'out vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
-    fragmentShader: `precision highp float; uniform sampler2D tSrc; uniform vec2 uTexel; in vec2 vUv; out highp vec4 fragColor;
-      void main() {
-        vec2 o = uTexel * 0.5;   // four bilinear taps = a box filter over the supersampled pixels
-        fragColor = 0.25 * (texture(tSrc, vUv + vec2(-o.x, -o.y)) + texture(tSrc, vUv + vec2(o.x, -o.y))
-                          + texture(tSrc, vUv + vec2(-o.x, o.y)) + texture(tSrc, vUv + vec2(o.x, o.y)));
-      }`,
+    uniforms: THREE.UniformsUtils.clone(FXAAShader.uniforms),
+    vertexShader: FXAAShader.vertexShader,
+    fragmentShader: FXAAShader.fragmentShader,
     depthTest: false, depthWrite: false,
   });
+  material.uniforms.tDiffuse.value = composeRT.texture;
   const scene = new THREE.Scene();
   const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
   quad.frustumCulled = false;
@@ -148,7 +144,7 @@ function resize() {
   const rw = Math.floor(w * pr), rh = Math.floor(h * pr);
   gbuffer.setSize(rw, rh);
   composeRT.setSize(rw, rh);
-  blit.material.uniforms.uTexel.value.set(1 / (w * pixelRatio), 1 / (h * pixelRatio));
+  blit.material.uniforms.resolution.value.set(1 / rw, 1 / rh);
   post.uniforms.uRes.value.set(rw, rh);
   post.uniforms.uPixelRatio.value = pr;
   sharedUniforms.uPixelRatio.value = pr;
@@ -267,6 +263,7 @@ const relics = new Relics(scene, physics, { levelId, spots: content.relics.spots
 const next = nextLevel(levelId);
 const nextTitle = levelById(next).title;
 const story = new Story(scene, { levelId, def: { ...content.story, next: nextTitle }, journal, sound, capture, player, physics, ground: level.ground.heightAt ? level.ground : null });
+const expedition = level.observatory ? new ObservatoryQuest({ model: level.observatory, journal, traveler: npcs[5], story, capture, sound }) : null;
 const gate = (() => {
   const g = content.gate;
   const fromY = levelId === 'incal' ? level.spawn.y + 5 : 1e4;
@@ -461,12 +458,15 @@ function applyDetail() {
   sharedUniforms.uCloudShadows.value = low ? 0 : baseCloudSh;
   for (const n of npcs) n.lowDetail = low;
 }
-/** Auto quality: called twice a second with the measured fps; steps the resolution down (to 0.5) or back up. */
+/** Mobile Auto aims for 30 fps and keeps at least 1.5 pixels per CSS pixel on HiDPI. */
 function adaptQuality(fps) {
-  if (settings.quality !== 'auto' || document.hidden) return;
-  if (fps < 40) { adapt.slow++; adapt.fast = 0; } else if (fps > 56) { adapt.fast++; adapt.slow = 0; } else adapt.slow = adapt.fast = 0;
-  if (adapt.slow >= 6 && quality.renderScale > 0.5) {
-    quality.renderScale = Math.max(0.5, +(quality.renderScale - 0.15).toFixed(2));
+  if (settings.quality !== 'auto' || document.hidden || busy() || photo.on) return;
+  const minScale = isTouch ? 0.75 : 0.5;
+  const slowFps = isTouch ? 28 : 40;
+  const fastFps = isTouch ? 34 : 56;
+  if (fps < slowFps) { adapt.slow++; adapt.fast = 0; } else if (fps > fastFps) { adapt.fast++; adapt.slow = 0; } else adapt.slow = adapt.fast = 0;
+  if (adapt.slow >= 6 && quality.renderScale > minScale) {
+    quality.renderScale = Math.max(minScale, +(quality.renderScale - 0.1).toFixed(2));
     adapt.slow = 0;
     if (!adapt.dropped) { adapt.dropped = true; applyDetail(); }
     resize();
@@ -482,7 +482,7 @@ settings.on((k) => {
   sound.setVolumes(settings.music, settings.effects);
   gui.domElement.style.display = settings.devPanel ? '' : 'none';
   document.body.classList.toggle('nofps', !settings.showFps);
-  if (settings.quality !== lastQuality) { lastQuality = settings.quality; quality.renderScale = QUALITY[settings.quality] ?? 1; resize(); }
+  if (settings.quality !== lastQuality) { lastQuality = settings.quality; quality.renderScale = QUALITY[settings.quality] ?? 1; adapt.slow = adapt.fast = 0; adapt.dropped = false; resize(); }
   applyDetail();
 });
 const changelog = new Changelog();
@@ -598,12 +598,13 @@ function updateHud() {
     else if (player.stamina < 0.99) parts.push(`stamina ${gauge(player.stamina)}`);
     if (level.features.jetpack) parts.push(`jetpack ${gauge(player.fuel)}`);
     const near = player.nearestVehicle();
-    if (near) parts.push(`E ${near.kind === 'taxi' ? 'get in the taxi' : 'ride the ' + (level.mountName ?? near.kind)}`);
+    if (expedition?.nearby(player) >= 0) parts.push('observatory lenses');
+    else if (near) parts.push(`E ${near.kind === 'taxi' ? 'get in the taxi' : 'ride the ' + (level.mountName ?? near.kind)}`);
     else if (player.mount) parts.push(`E whistle for the ${level.mountName}`);
     else if (level.features.taxis) parts.push('E hail a taxi');
     if (!parts.length) parts.push('push into a wall to climb it');
   }
-  const goal = story.hud();
+  const goal = expedition?.hud(player) ?? story.hud();
   const edgeHint = edgeTravel();
   const text = `${atmo.name} · ${parts.join(' · ')}` +
     `\n${goal ? goal + ' · ' : ''}${errands.hud() ? errands.hud() + ' · ' : ''}relics ${journal.relicCount(levelId)}/${content.relics.names.length} · H help` +
@@ -659,8 +660,7 @@ function renderFrame() {
     _subj.applyMatrix4(camera.projectionMatrix);
     U.uSubject.value.set(_subj.x * 0.5 + 0.5, _subj.y * 0.5 + 0.5, sdep, 1.35 * U.uProj11.value / (2 * sdep));
   } else U.uSubject.value.w = -1;
-  const ss = quality.renderScale > 1;
-  renderer.setRenderTarget(ss ? composeRT : null);
+  renderer.setRenderTarget(composeRT);
   renderer.clear();
   renderer.render(post.scene, post.camera);
 
@@ -668,11 +668,9 @@ function renderFrame() {
   renderer.render(wind.scene, camera);
   if (motes) renderer.render(motes.scene, camera);
 
-  // 5. downsample the supersampled frame
-  if (ss) {
-    renderer.setRenderTarget(null);
-    renderer.render(blit.scene, post.camera);
-  }
+  // 5. smooth edges and scale the completed frame to the display
+  renderer.setRenderTarget(null);
+  renderer.render(blit.scene, post.camera);
 }
 
 /** Render the scene from another viewpoint and grab it as an image (comic panels, sketches). */
@@ -722,7 +720,9 @@ function frame() {
     photoUpdate(dt);
   } else {
     player.camFwd = camera.getWorldDirection(player.camFwd ?? new THREE.Vector3());   // whistled mounts arrive into view
-    player.update(dt, ctl, rig.yaw);
+    const usingLens = expedition?.update(dt, player, ctl, busy());
+    if (usingLens && ctl.KeyE) player._eHeld = true; // the same press must not whistle after the last turn
+    player.update(dt, busy() ? noInput : ctl, rig.yaw);
     rig.follow(player.ride?.heading ?? player.heading, dt, player.riding || player.gliding);
     rig.update(player.pos, dt, player.frame);
   }
@@ -863,4 +863,4 @@ requestAnimationFrame((t) => {
 });
 
 // handy for debugging from the console
-Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, gate, journal, errands, weather, sound, captureView, settings, menu, trails });
+Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, gate, journal, errands, expedition, weather, sound, captureView, settings, menu, trails });

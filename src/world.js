@@ -1,3 +1,4 @@
+import { OBSERVATORY } from './observatory.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createNoise2D, fbm, mulberry32, smoothstep, lerp } from './noise.js';
@@ -182,7 +183,7 @@ function strataMat(rng, size) {
 
 export function buildWorld(scene, terrain) {
   const rng = mulberry32(42);
-  const footprints = []; // { x, z, r }: keeps props from overlapping when placed
+  const footprints = [{ x: OBSERVATORY.x, z: OBSERVATORY.z, r: OBSERVATORY.radius }]; // { x, z, r }: keeps props from overlapping when placed
   const floaters = [];  // { obj, baseY, phase }
   const banners = [];
   const lights = [];    // glowing things that light their surroundings at night

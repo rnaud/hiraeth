@@ -48,6 +48,7 @@ export const CONTENT = {
       { at: [110, -150], palette: pal('#8a6fb8', { face: '#e6d3b8' }), lines: ['Have you seen my bike? It wanders off.'], shy: true },
       { at: [-120, 34], palette: pal('#e6875f'), lines: ['The salt flats are that way. Bring water.', 'At night the moon throws shadows too.'] },
       { at: [10, -200], palette: pal('#f3ead8', { cloth: '#7a4a35' }), lines: ['The stones hum when a storm comes.'] },
+      { at: [-18, 18], radius: 2, palette: pal('#697a98'), lines: ['A sleeping observatory stands east of camp.'] },
     ],
   },
   incal: {

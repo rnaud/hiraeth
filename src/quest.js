@@ -63,6 +63,8 @@ export class Journal {
         : `<figure class="tile story empty"><div>…</div><figcaption>${L.storyTitle ?? ''}</figcaption></figure>`;
       return `<section><h2>${L.title} <span>${this.relicCount(L.id)}/${(L.relicNames ?? []).length}</span></h2><div class="row">${story}${relics}</div></section>`;
     }).join('');
+    const obs = this.data.observatory;
+    if (obs?.started) body.innerHTML += `<section><h2>The Sleeping Observatory</h2><div class="row"><figure class="tile story"><img src="${obs.img ?? ''}" alt="Observatory sketch"><figcaption>${obs.done ? 'The stars remember' : 'East of camp · climb the six ledges · turn the lenses toward the centre'}</figcaption></figure></div>${(obs.fragments ?? []).map((f) => `<p>${f}</p>`).join('')}</section>`;
     const errands = Object.entries(this.data.errands ?? {});
     if (errands.length) body.innerHTML += `<section><h2>Errands <span>${errands.filter(([, e]) => e.done).length}</span></h2><div class="row">${
       errands.map(([, e]) => e.done

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { buildObservatory } from '../observatory.js';
 import { Terrain, buildWorld } from '../world.js';
 import { biomeAtmosphere } from '../biome.js';
 import { Hoverbike } from '../bike.js';
@@ -26,8 +27,11 @@ export function createDesert(scene) {
     lights.push(...room.lights, new THREE.Vector4(mask.position.x, mask.position.y, mask.position.z, 9));
     portals.push(...doorwayPortals(scene, { at: d.at, heading: d.heading, room }));
   }
+  const observatory = buildObservatory(scene, terrain);
+  lights.push(...observatory.lights);
   return {
     id: 'desert',
+    observatory,
     ground: terrain,
     spawn: new THREE.Vector3(0, terrain.heightAt(0, 0), 0),
     spawnHeading: Math.PI,

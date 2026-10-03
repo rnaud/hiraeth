@@ -55,6 +55,7 @@ export class SettingsMenu {
           <button data-a="news">What's new (N)</button>
           <button data-a="close">Close</button>
         </div>
+        <p class="keys install-tip">Play full screen on iPhone: open in Safari, tap Share → Add to Home Screen, then enable Open as Web App if shown.</p>
         <p class="keys">WASD move · SHIFT run · SPACE jump / glide / jetpack · E interact · J sketchbook · L worlds · P photo · H help · O settings · N what's new</p>
       </div>`;
     const sync = () => {

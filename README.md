@@ -15,6 +15,19 @@ hold Space in the air to glide · mouse wheel zoom · Esc releases the mouse.
 **F** toggles the FPS counter. **H** shows or hides the controls help (hidden by default). **E** interacts: whistle for the level's mount (or hail a taxi), get on, get
 off. **L** opens the level picker. Each level's controls are listed below.
 
+## Install on iPhone
+
+Open [the game](https://rnaud.github.io/moebius/) in Safari, tap **Share → Add
+to Home Screen**, leave **Open as Web App** enabled if shown, and tap **Add**.
+Launch the **Moebius** icon to play without Safari's address and bottom bars.
+The game fills the screen; controls account for the notch and home indicator
+in portrait and landscape. An internet connection is needed to load the game.
+
+`public/manifest.webmanifest` uses relative URLs so installation works under
+GitHub Pages' `/moebius/` path and at a site root. iOS metadata and a 180 px
+Apple touch icon are included. Regenerate the icons with
+`python3 scripts/generate-icons.py`.
+
 ## Collision
 
 `src/physics.js` bakes every static mesh of the level into one world-space
@@ -447,6 +460,35 @@ update, a note points to it once.
   the mount if you were riding and that world has one. The HUD warns you
   as you get close. The Garage (a ring world) and the Atelier have no edges.
 
+## The Sleeping Observatory (v0.16)
+
+Meet the blue-cloaked traveler beside the desert camp (west of the starting
+point). They give you a sketch of the observatory, about 830 m east of camp.
+Ride there, then climb the six receding terraces. Each terrace is a place to
+rest; three carry fragments of the keeper's story. In the open chamber,
+stand beside each lens and press **E** (or tap the touch E button) to turn it.
+Aim all three beams at the central receiver. Each aligned beam lights a ring
+and illuminates the room. The roof unfolds over five seconds, a constellation
+appears, and a comic page records the moment. Glide back to the traveler to
+finish the expedition.
+
+The existing masked-head story remains available. The new expedition keeps
+its sketch, discovered fragments, lens positions and completion in the same
+journal save; old saves pick up the expedition without resetting progress.
+Implementation: `src/observatory.js`. Run `node --test tests/observatory.test.js`
+for puzzle, save-state and collision checks.
+
+### Phone rendering
+
+The old mobile Auto setting could fall to 0.5× of the capped device pixel
+ratio: on a 3× phone that meant just one rendered pixel per CSS pixel. Ink
+edges were then drawn from a nearest-filtered G-buffer without final
+antialiasing. Mobile Auto now starts at 1×, uses a 0.75× floor and targets
+roughly 30 fps. All quality levels composite at their own resolution and use
+FXAA on the final colour before scaling to the display. Sky dots are spaced
+farther apart and fade at low pixel density. High remains available in
+Settings for a fixed full-resolution image on HiDPI phones.
+
 ## Performance
 
 - **Background collision:** the collision BVH is built in a web worker.
@@ -458,7 +500,8 @@ update, a note points to it once.
   of the triangles per frame.
 
 - **Auto quality** (the default on touch devices): if the frame rate stays
-  under 40 fps for about 3 s, the resolution drops in steps (down to 0.5×);
+  under 28 fps on touch devices (40 fps on desktop) for about 3 s, the
+  resolution drops in steps, down to 0.75× on touch or 0.5× on desktop;
   it climbs back when there's headroom. The current scale shows next to the
   fps counter.
 - **Low detail** (Low, or Auto on touch or once it has had to drop): no
@@ -478,7 +521,8 @@ Each of these can be toggled or tuned in the panel's **Beauty** folder.
     boundaries are lighter;
   - a "pen pressure" noise swells and thins each line along its length.
 - **Supersampled antialiasing:**
-  - the whole pipeline renders at 1.5× or 2× and is box-filtered down;
+  - the whole pipeline can render at 1.5× or 2×; the final colour passes
+    through FXAA and is scaled to the display;
   - stroke sizes follow, so the lines just get cleaner;
   - the default is 1× on Retina screens, which are already dense.
 - **Hatching that follows form:** on slopes the strokes become height

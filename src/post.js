@@ -362,7 +362,7 @@ const fragmentShader = /* glsl */ `
       float det = abs(determinant(J));
       mat2 Ji = det > 1e-12 ? inverse(J) : mat2(1e6);
       float pxA = clamp(sqrt(det), 1e-6, 0.02);
-      float lvl = log2(pxA * 3.4 * uPixelRatio);
+      float lvl = log2(pxA * 5.0 * uPixelRatio);
       float dots = 0.0;
       for (int L = 0; L < 2; L++) {
         float cell = exp2(floor(lvl) + float(L));
@@ -370,10 +370,10 @@ const fragmentShader = /* glsl */ `
         vec2 o = vec2(hash(id + 1.3), hash(id + 7.1)) * 0.6 + 0.2;
         float present = step(hash(id + 4.4), mix(0.18, 0.42, smoothstep(0.05, 0.6, rd.y)));
         float dpx = length(Ji * ((fract(g) - o) * cell));      // true screen pixels: round dots
-        float d = (1.0 - smoothstep(0.5 * uPixelRatio, 0.5 * uPixelRatio + 0.8, dpx)) * present;
+        float d = (1.0 - smoothstep(0.5 * uPixelRatio, 0.5 * uPixelRatio + 0.5, dpx)) * present;
         dots += d * (L == 0 ? 1.0 - fract(lvl) : fract(lvl));
       }
-      col = mix(col, uSkyTop * 0.72, clamp(dots, 0.0, 1.0) * uSkyDots * (1.0 - uNight * 0.5));
+      col = mix(col, uSkyTop * 0.72, clamp(dots, 0.0, 1.0) * smoothstep(0.65, 1.6, uPixelRatio) * uSkyDots * (1.0 - uNight * 0.5));
     }
 
     // cumulus bank: puffy cream clouds sitting on the horizon, inked, each
