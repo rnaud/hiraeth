@@ -1,0 +1,49 @@
+README.md
+  s_c90ca0a3de1a1d::t_a9a48890461c84 18,650-656
+src/animator.js
+  s_c90ca0a3de1a1d::t_da407e57a96c56 106,189
+src/bike.js
+  s_c90ca0a3de1a1d::t_b8dbb8045bd293 115,118,123-143,156,164-171,174-177,185-186,190,199,226-230
+src/changelog.js
+  s_c90ca0a3de1a1d::t_20905bc1f8b544 6-11
+src/desert-vistas.js
+  s_c90ca0a3de1a1d::t_731463d1fe870e 1-69
+src/gear.js
+  s_c90ca0a3de1a1d::t_221d68563739d8 6,17,41-45,81-82
+src/humanoid.js
+  s_c90ca0a3de1a1d::t_51682dc617f6d9 374-385,439-441,452,463,487-500,503,511-522,528-532
+src/levels/desert.js
+  s_c90ca0a3de1a1d::t_a1a001480ea555 1,4,13,15,37,57
+src/main.js
+  s_c90ca0a3de1a1d::t_08f83eb284f4e8 859-870
+src/player.js
+  s_c90ca0a3de1a1d::t_c03d5b28ec802b 11-12,28,793,796,844-849,852-863,865,886,966-967,989-990,1031,1272
+src/scout.js
+  s_c90ca0a3de1a1d::t_671f758c3fbf9d 127,149,156
+src/world.js
+  s_c90ca0a3de1a1d::t_d8227349a02f28 186,482
+tests/bike.test.js
+  s_c90ca0a3de1a1d::t_2c92fffc6f8c47 1-20
+tests/desert-vistas.test.js
+  s_c90ca0a3de1a1d::t_395fbe16ca45e6 1-15
+tests/motion.test.js
+  s_c90ca0a3de1a1d::t_4fb87f7d35c3d9 1-34
+tests/scout.test.js
+  s_c90ca0a3de1a1d::t_4cee355209bd30 39,43-44
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "42aa0bac3073b28a0d404b50c5d6d94789e0463c",
+  "prompts": {},
+  "sessions": {
+    "s_c90ca0a3de1a1d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a100ef-7d9f-7b43-ae7d-30f5177e2ff0",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
