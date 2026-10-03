@@ -5,8 +5,8 @@ import { raycastTargets, hitTarget, registerTarget, targetsInCone } from './targ
 import { game as sharedGame } from './game-state.js';
 
 // The magic-fluid backpack: the traveller's signature tool. A glass tank of
-// shifting, lava-lamp fluid rides on the back; a ribbed hose runs down the
-// right arm to a brass nozzle on a bracer. Three abilities share one reserve
+// shifting, lava-lamp fluid rides on the back; a ribbed hose runs from its cap
+// over the right shoulder and down the arm to a brass nozzle on a bracer. Three abilities share one reserve
 // of three charges (docs/game-brief.md, working decision 4):
 //   shoot  a glob of fluid on a slight arc: it splashes on whatever it meets
 //          and leaves a short-lived colourful splat on surfaces
@@ -22,11 +22,13 @@ import { game as sharedGame } from './game-state.js';
 // three rings that light for the charges left. Magical water (the desert's
 // cave) refills it and adds a colour band for good: tool.refill({ addColour: true }).
 //
-// Story API (also through the game-state bus, see game-state.js):
+// Story API (main.js builds one FluidTool, window.tool; story code needs no
+// import and can use the game-state bus instead, see game-state.js):
 //   tool.charges          0..3
 //   tool.colours          colour bands added to the fluid (game flag tool.colours, 1 at the start)
+//   tool.tones            the tones in the blend, hex strings
 //   tool.enabled          false: put away, nothing fires (the ship prologue, cutscenes)
-//   tool.refill({ addColour })
+//   tool.refill({ addColour, tone })   fill now; addColour adds a band (tone: its colour, optional)
 //   game.emit('tool:refill', { addColour: true }) · game.emit('tool:enable', { on: false })
 //   emits 'tool:fire' { mode, point } and 'tool:refilled' { charges, colours, added }
 
