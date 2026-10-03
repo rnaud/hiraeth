@@ -735,7 +735,7 @@ export class Player {
     } else this.glideTurn = 0;
     this.vel.copy(tv).addScaledVector(U, vu);
     // boost: the tool spends a charge and sets the burst on this.vel; the wing reopens once you fall again
-    if (airPress && this.onAirJump?.(sincePress)) { this.gliding = false; this.thrusting = false; this.boostAt = this.time; }
+    if (airPress && this.onAirJump?.(sincePress)) { this.gliding = false; this.thrusting = false; }
 
     // Swept collision: the frame's motion is split into sub-steps no longer
     // than half the capsule radius, each pushed out of walls and checked for
