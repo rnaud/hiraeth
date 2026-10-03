@@ -638,14 +638,14 @@ export class Crowd {
       if (face !== null) p.heading = h + wrapA(face - h) * damp(5, dt);
       // pairs chat as they walk
       if (w.partner && !lookAt && Math.sin(t * 0.7 + p.seed * 9) > 0.3) lookAt = w.partner.pos;
-    } else if (p.walk) {
-      p.speed = 0;
+    } else if (p.walk || stunned) {
+      p.speed = 0;   // frozen (or a stunned walker)
     } else {
       // standing: drift back to their spot, unless the player is pushing through
       _w.subVectors(p.home, pp); _w.y = 0;
       const dh = _w.length();
       const room = 1.25;
-      if (sameLevel && dh < room && !stunned && p.pose !== POSE.sit && p.pose !== POSE.kerb) {
+      if (sameLevel && dh < room && p.pose !== POSE.sit && p.pose !== POSE.kerb) {
         _w.multiplyScalar((room - dh + 0.15) / Math.max(dh, 0.05));
         if (_w.length() > 1.1) _w.setLength(1.1);
         p.offset.lerp(_w, damp(7, dt));
@@ -662,7 +662,7 @@ export class Crowd {
       p.pos.copy(_o);
       p.speed = dt > 0 ? Math.min(moved / dt, 2) * (moved > 0.004 ? 1 : 0) : 0;
       const hw = face ?? (p.offset.lengthSq() > 0.04 ? p.homeHeading + 0.5 * Math.sign(wrapA(Math.atan2(_v.x, _v.z) - p.homeHeading)) : p.homeHeading);
-      if (!stunned) p.heading += wrapA(hw - p.heading) * damp(face !== null ? 6 : 2.5, dt);
+      p.heading += wrapA(hw - p.heading) * damp(face !== null ? 6 : 2.5, dt);
     }
     p.cadence = p.speed / (1.35 * p.scale);
     p.phase = (p.phase + p.cadence * dt) % 1;
@@ -680,7 +680,8 @@ export class Crowd {
       yaw = wrapA(Math.atan2(_w.x, _w.z) - p.heading);
       if (Math.abs(yaw) > 1.15 && !p.walk && p.pose === POSE.stand && !stunned) p.heading += Math.sign(yaw) * (Math.abs(yaw) - 1.15) * damp(2, dt);
       yaw = THREE.MathUtils.clamp(yaw, -1.15, 1.15);
-      pitch = THREE.MathUtils.clamp(-Math.atan2(_w.y + (lookAt === pp ? 1.5 : 0) - 1.6, Math.hypot(_w.x, _w.z) + 0.3) * 0.6, -0.4, 0.4);
+      // eye to eye: the player's eyes are at ~1.5 m, everyone else's at their own height
+      pitch = THREE.MathUtils.clamp(-Math.atan2(_w.y + (lookAt === pp ? -0.1 : 0), Math.hypot(_w.x, _w.z) + 0.3) * 0.6, -0.4, 0.4);
     }
     if (!stunned) {
       p.headYaw += (yaw - p.headYaw) * damp(5, dt);
