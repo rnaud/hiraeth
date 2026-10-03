@@ -1,7 +1,8 @@
-import { basinHeight, buildDesertVistas } from '../desert-vistas.js';
+import { buildDesertVistas } from '../desert-vistas.js';
+import { buildDesertLandmarks, desertHeight } from '../desert-landmarks.js';
 import * as THREE from 'three';
 import { buildObservatory } from '../observatory.js';
-import { Terrain, buildWorld, heightFn } from '../world.js';
+import { Terrain, buildWorld } from '../world.js';
 import { biomeAtmosphere } from '../biome.js';
 import { Hoverbike } from '../bike.js';
 import { makeMaterial } from '../materials.js';
@@ -10,9 +11,10 @@ import { buildRoom, doorwayPortals } from '../interiors.js';
 
 // The original open desert: dunes, mesas, regions, hoverbike and wind.
 export function createDesert(scene) {
-  const terrain = new Terrain({ height: (x, z) => basinHeight(x, z, heightFn) });
+  const terrain = new Terrain({ height: desertHeight });
   const { floaters, banners, lights, doors } = buildWorld(scene, terrain);
   const vistas = buildDesertVistas(scene, terrain);
+  const landmarks = buildDesertLandmarks(scene, terrain);
   // inside the masked head: a glyph-carved chamber under an oculus, built high above the map
   const portals = [];
   for (const d of doors) {
@@ -35,6 +37,7 @@ export function createDesert(scene) {
     id: 'desert',
     observatory,
     vistas,
+    landmarks,
     ground: terrain,
     spawn: new THREE.Vector3(0, terrain.heightAt(0, 0), 0),
     spawnHeading: Math.PI,
