@@ -1,0 +1,37 @@
+src/desert-city.js
+  s_1fd8d0e7b02dcf::t_e93055d1289b8e 1-740
+src/desert-landmarks.js
+  s_1fd8d0e7b02dcf::t_c5fc3105d5c58a 7,45-49,59,81-83
+src/desert-sites.js
+  s_1fd8d0e7b02dcf::t_6d5292fd01a128 1-2,21-45
+src/story/flames.js
+  s_1fd8d0e7b02dcf::t_24d38958bff6a2 1-178
+src/world.js
+  s_1fd8d0e7b02dcf::t_86260f203bb1b5 2,250-260,295,313,334,390,422,431-432,435,440,573,598
+src/story/magic-water.js
+  s_8e592b7e8a9172::t_be255b89361612 1-79
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "39a745a7d08f5c413d33c8ad63235ac052444fdf",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_8e592b7e8a9172": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a57094f7ad3a2e2ca",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
