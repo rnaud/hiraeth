@@ -1,2 +1,5 @@
 node_modules
 dist
+.local-tools/
+output/character-local/
+output/character-tripo/

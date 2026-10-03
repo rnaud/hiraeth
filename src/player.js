@@ -603,13 +603,15 @@ export class Player {
       this.ride.update(dt, input, this.time);
       this.pos.copy(this.ride.pos);
       this.ride.seatTransform(this.object.position, this.object.quaternion);
-      this.humanoid?.update();
-      this.updateCloth(dt);
       this._animAcc += dt;
       if (!this.stopMotion || this._animAcc >= 1 / 12) {
         this.animateRiding();
         this._animAcc = 0;
       }
+      this.humanoid?.update();
+      this.humanoid?.resetFeet();
+      if (this.gear) this.gear.device.visible = false;
+      this.updateCloth(dt);
       return;
     }
 

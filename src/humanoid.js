@@ -166,8 +166,10 @@ export class Humanoid {
    * @param char     the rig from buildCharacter()
    * @param kind     'm' | 'f'
    */
-  constructor(template, char, kind = 'm', { skin = '#e8c6a8', hair = '#8a6a55', gloves = null, suit = false } = {}) {
+  constructor(template, char, kind = 'm', { skin = '#e8c6a8', hair = '#8a6a55', gloves = null, suit = false, imported = false } = {}) {
     this.char = char;
+    this.imported = imported;
+    this.noShadow = [];
     const model = cloneSkinned(template);
     this.model = model;
     const C = char.colors;
@@ -177,7 +179,14 @@ export class Humanoid {
     model.traverse((o) => {
       if (!o.isMesh) return;
       const isBrow = /brow/i.test(o.name) || /hair/i.test(o.material?.name ?? '');
-      o.material = isBrow ? brows : /eye/i.test(o.name) ? eyes : body;
+      if (imported) {
+        const source = o.material;
+        const glass = source.name === 'Clear bubble';
+        o.geometry.computeBoundingBox();
+        const glassCenter = glass ? o.geometry.boundingBox.getCenter(new THREE.Vector3()) : undefined;
+        o.material = makeMaterial({ color: source.color, map: source.map, glass, glassCenter, glow: glass ? 0.35 : 0 });
+        if (glass) this.noShadow.push(o);
+      } else o.material = isBrow ? brows : /eye/i.test(o.name) ? eyes : body;
       o.frustumCulled = false;
       o.userData.noCollide = true;
     });
@@ -188,6 +197,16 @@ export class Humanoid {
     // bones and their rest pose, in model (character) space
     this.b = {};
     model.traverse((o) => { if (o.isBone) this.b[o.name] = o; });
+    if (imported) {
+      const aliases = { spine: 'spine_01', chest: 'spine_03', neck: 'neck_01', head: 'Head' };
+      for (const [source, target] of Object.entries(aliases)) this.b[target] = this.b[source];
+      for (const s of ['l', 'r']) {
+        for (const [source, target] of Object.entries({ clavicle: 'clavicle', upper_arm: 'upperarm', forearm: 'lowerarm', hand: 'hand', thigh: 'thigh', shin: 'calf', foot: 'foot', toe: 'ball' })) {
+          // GLTFLoader sanitizes periods in node names.
+          this.b[`${target}_${s}`] = this.b[`${source}${s.toUpperCase()}`] ?? this.b[`${source}.${s.toUpperCase()}`];
+        }
+      }
+    }
     this.rest = new Map();
     for (const bone of Object.values(this.b)) {
       const q = new THREE.Quaternion(), p = new THREE.Vector3();
@@ -243,6 +262,14 @@ export class Humanoid {
     this.chestAnchor = anchor(B.spine_03, new THREE.Vector3(0, this.rest.get(B.neck_01).p.y - 0.74 - 0.02, 0));
     const move = (obj, parent, pos) => { parent.add(obj); if (pos) obj.position.copy(pos); obj.traverse((o) => keep.add(o)); };
     this.hood = [];
+    if (this.imported) {
+      move(c.jetpack, this.chestAnchor, new THREE.Vector3(0, 0.52, -0.33));
+      c.root.traverse((o) => {
+        if (o.isMesh && !keep.has(o) && !this.model.getObjectById(o.id)) o.visible = false;
+      });
+      c.capeAnchor = this.chestAnchor;
+      return;
+    }
     // the hood (and its peak) were children of the rig head
     for (const child of [...c.head.children]) {
       if (child.isMesh && child.geometry.type === 'SphereGeometry' && child.material.side === THREE.DoubleSide) {
@@ -514,9 +541,11 @@ export class Humanoid {
         hand.updateMatrixWorld(true);
         if (wallContact) {
           const origin = this.rest.get(hand).p;
-          const fingers = this.rest.get(B[`middle_01_${s}`]).p.clone().sub(origin).normalize();
-          const span = this.rest.get(B[`index_01_${s}`]).p.clone().sub(this.rest.get(B[`pinky_01_${s}`]).p);
-          const palm = new THREE.Vector3().crossVectors(fingers, span).normalize();
+          const fingers = this.imported
+            ? origin.clone().sub(this.rest.get(B[`lowerarm_${s}`]).p).normalize()
+            : this.rest.get(B[`middle_01_${s}`]).p.clone().sub(origin).normalize();
+          const span = this.imported ? null : this.rest.get(B[`index_01_${s}`]).p.clone().sub(this.rest.get(B[`pinky_01_${s}`]).p);
+          const palm = this.imported ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3().crossVectors(fingers, span).normalize();
           if (palm.y > 0) palm.negate();
           this.orientContact(hand, fingers, palm, up, wallN.clone().negate());
         }

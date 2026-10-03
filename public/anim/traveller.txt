@@ -1,0 +1,17 @@
+Traveller character — imported in v0.24
+
+Created locally from the user's character reference using Hunyuan3D shape and
+texture generation, then cleaned, rigged, and exported using Blender.
+
+traveller.glb contains the embedded illustrated texture, 22-bone humanoid rig,
+and Idle/Walk source clips. The game retargets its existing locomotion and
+traversal animations to this skeleton; the source clips remain in the asset
+for use in external editors. NPCs continue using the Quaternius characters.
+
+Rendering: the embedded texture feeds the game's G-buffer; the helmet uses
+the existing rim/highlight glass shader and is excluded from sun shadows.
+
+Known prototype limitations: simplified face and mitten-like hands without
+finger joints; inferred backpack details; some pinching around the baggy
+crotch in deep bends. Full Blender/FBX source and generation scripts remain
+in the local output/character-local directory, outside the published game.

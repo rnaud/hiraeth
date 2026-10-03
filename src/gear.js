@@ -32,12 +32,13 @@ export class Gear {
   /** @param humanoid Humanoid (for its head / chest anchors and bones) */
   constructor(scene, humanoid, char) {
     this.h = humanoid;
-    this.noShadow = [];
+    this.noShadow = [...(humanoid.noShadow ?? [])];
     this.springs = [];
     const chest = humanoid.chestAnchor, head = humanoid.headAnchor;
     // the old cloak collar isn't part of this outfit
     for (const o of chest.children) if (o.geometry?.type === 'TorusGeometry' && Math.abs(o.position.y - 0.74) < 0.02) o.visible = false;
 
+    const originalChest = new Set(chest.children);
     // Soft folded collar, as on the reference's lavender coveralls.
     for (const [y, r] of [[0.75, 0.14], [0.79, 0.13]]) {
       chest.add(mesh(new THREE.TorusGeometry(r, 0.035, 6, 18).rotateX(Math.PI / 2), mat(char.colors.cloth), 0, y, 0));
@@ -160,6 +161,14 @@ export class Gear {
     this.device = dev;
 
     for (const g of [hs, pack, belt]) g.traverse((o) => { o.userData.noCollide = true; });
+    if (humanoid.imported) {
+      hs.visible = false;
+      // Keep the launch socket, but replace all legacy wearable geometry.
+      for (const group of [pack, belt]) group.traverse(o => { if (o.isMesh) o.visible = false; });
+      for (const o of chest.children) if (!originalChest.has(o) && o.isMesh) o.visible = false;
+      this.noShadow = [...humanoid.noShadow];
+      this.springs = [];
+    }
     this.char = char;
   }
 

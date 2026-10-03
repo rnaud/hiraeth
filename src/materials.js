@@ -68,6 +68,7 @@ const vertexShader = /* glsl */ `
   out vec3 vBind;
   in vec2 aFold;          // cloth: (across, down) 0..1; (0,0) on everything else
   out vec2 vFold;
+  out vec2 vTextureUV;
   #include <skinning_pars_vertex>
   uniform vec4 uOutfit;
   uniform float uSuit;
@@ -83,6 +84,7 @@ const vertexShader = /* glsl */ `
       #include <skinnormal_vertex>
       #include <skinning_vertex>
     #endif
+    vTextureUV = uv;
     vBind = position;
     vFold = aFold;
     vec4 pos = vec4(transformed, 1.0);
@@ -163,6 +165,9 @@ const fragmentShader = /* glsl */ `
   in vec3 vObjNormal;
   in vec3 vBind;
   in vec2 vFold;
+  in vec2 vTextureUV;
+  uniform sampler2D uMap;
+  uniform float uHasMap;
   uniform float uFolds;
   uniform float uScrub;
   uniform int uPattern;    // 1 facade, 2 roof tiles, 3 leaves, 4 rock cracks
@@ -171,6 +176,7 @@ const fragmentShader = /* glsl */ `
   uniform vec4 uGlove;    // rgb, a = 1: gloved hands
   uniform float uHero;    // player-only flag, packed above the glow range in gHatch.a
   uniform float uSuit;    // puffy-suit crease lines at the joints
+  uniform vec3 uGlassCenter;
   uniform float uGlass;   // glass: only the rim and a highlight streak are drawn
   uniform vec4 uOutfit;   // bootTop, beltY, neckY, wristX (rest pose, metres)
   uniform vec4 uFace;     // eyeY, eyeX, noseY, chinY (rest pose)
@@ -545,7 +551,7 @@ const fragmentShader = /* glsl */ `
     if (uGlass > 0.0) {
       vec3 Vg = normalize(cameraPosition - vWorldPos);
       float fr = 1.0 - abs(dot(normalize(vNormal), Vg));
-      vec3 od = normalize(vObjPos);
+      vec3 od = normalize(vObjPos - uGlassCenter);
       float streak = step(abs(atan(od.y, od.x) - 2.2), 0.09) * step(0.25, od.z) * step(od.z, 0.75);
       if (fr < 0.72 && streak < 0.5) discard;
     }
@@ -587,6 +593,7 @@ const fragmentShader = /* glsl */ `
     }
 
     vec3 albedo = uColor;
+    if (uHasMap > 0.5) albedo *= texture(uMap, vTextureUV).rgb;
     vec2 bw = vec2(0.0);
     float slope = 1.0 - n.y;
     if (uMode == ${MODE_TERRAIN}) {
@@ -763,7 +770,7 @@ const cache = new Map();
  * @param {THREE.Side} [o.side]
  */
 export function makeMaterial(o) {
-  const key = JSON.stringify(o);
+  const key = JSON.stringify({ ...o, map: o.map?.uuid });
   if (cache.has(key)) return cache.get(key);
   const mat = new THREE.ShaderMaterial({
     glslVersion: THREE.GLSL3,
@@ -775,6 +782,8 @@ export function makeMaterial(o) {
       uColor: { value: new THREE.Color(o.color) },
       uColor2: { value: new THREE.Color(o.color2 ?? o.color) },
       uColor3: { value: new THREE.Color(o.color3 ?? o.color) },
+      uMap: { value: o.map ?? null },
+      uHasMap: { value: o.map ? 1 : 0 },
       uMode: { value: o.mode ?? MODE_PLAIN },
       uFlat: { value: o.flat ? 1 : 0 },
       uStrataSize: { value: o.strataSize ?? 4.0 },
@@ -791,6 +800,7 @@ export function makeMaterial(o) {
       uGlove: { value: o.gloves ? new THREE.Vector4(...new THREE.Color(o.gloves).toArray(), 1) : new THREE.Vector4() },
       uHero: { value: 0 },
       uSuit: { value: o.suit ? 1 : 0 },
+      uGlassCenter: { value: o.glassCenter ?? new THREE.Vector3() },
       uGlass: { value: o.glass ? 1 : 0 },
       uOutfit: { value: new THREE.Vector4(...(o.outfit ?? [0.13, 0.97, 1.47, 0.64])) },
       uFace: { value: new THREE.Vector4(...(o.face ?? [1.7, 0.032, 1.657, 1.577]).filter((_, i) => i !== 3)) },

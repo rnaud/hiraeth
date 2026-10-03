@@ -21,6 +21,7 @@ import { spawnNPCs, NPC } from './npc.js';
 import { Journal, Relics, Story, Gate, Errands, turnPage, arriveFromPage } from './quest.js';
 import { CONTENT, ERRANDS, nextLevel } from './levels/content.js';
 import { loadAnimationLibrary, Animator } from './animator.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { loadHuman, Humanoid } from './humanoid.js';
 import { Changelog, VERSION } from './changelog.js';
 import { Settings, SettingsMenu, TouchControls, SaveGame, isTouch } from './ui.js';
@@ -167,6 +168,7 @@ const meta = levelById(levelParam) ?? LEVELS[0];
 const levelId = meta.id;
 const content = CONTENT[levelId];
 const animLib = loadAnimationLibrary().catch((e) => { console.warn('animation library failed to load', e); return null; });
+const traveller = new GLTFLoader().loadAsync(`${import.meta.env.BASE_URL}anim/traveller.glb`).then(g => g.scene).catch(e => { console.warn('Traveller unavailable; using the original explorer.', e); return null; });
 const humans = Promise.all([loadHuman('m'), loadHuman('f')]).catch((e) => { console.warn('human models failed to load', e); return null; });
 await stage(`sketching ${meta.title.toLowerCase()}…`);
 const level = meta.create(scene);
@@ -195,7 +197,10 @@ if (lib) {
   console.info('clip ground speeds (m/s):', Object.fromEntries(Object.entries(lib.native).map(([k, v]) => [k, +v.toFixed(2)])));
 }
 const humanT = await humans;
-if (humanT) {
+const travellerTemplate = await traveller;
+if (travellerTemplate) {
+  player.humanoid = new Humanoid(travellerTemplate, player.char, 'm', { imported: true });
+} else if (humanT) {
   player.humanoid = new Humanoid(humanT[0], player.char, 'm', { skin: '#e9b9a0', gloves: player.char.colors.gloves, suit: true });
   player.humanoid.setHeadwear('short', { hair: '#8a5638' });
 }

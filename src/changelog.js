@@ -3,6 +3,10 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.24', date: '2026-10-03', items: [
+    'Your illustrated traveller is now playable in every world: lavender coveralls, orange gloves, pink boots, blue headphones, a clear bubble helmet and the textured radio backpack.',
+    'The new skeleton follows the existing running, climbing, gliding and vehicle animations, with planted feet and wall contact for the hands and boots. The scout still launches from the backpack.',
+  ] },
   { v: '0.23', date: '2026-10-03', items: [
     'Fixed iPhone scrolling in the world picker and other menus. Gameplay now captures swipes only on the canvas, leaving menu scrolling to the browser.',
   ] },
