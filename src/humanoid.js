@@ -587,8 +587,13 @@ export class Humanoid {
         }
       }
       if (feet?.[i]) {
+        // A knee only hinges forward: facing the wall, it comes toward the
+        // wall surface, up and splayed out to its own side (a climber's frog
+        // stance), so it never folds backward behind the hip-foot line. The
+        // pole lies in front of the hip (into the wall), never behind it.
         const hip = B[`thigh_${s}`].getWorldPosition(new THREE.Vector3());
-        const pole = hip.addScaledVector(wallN, 0.8).addScaledVector(up, 0.3);
+        const out = _i5.crossVectors(wallN, up).normalize().multiplyScalar(side);   // the character's right for 'r', left for 'l'
+        const pole = hip.addScaledVector(wallN, -0.55).addScaledVector(up, 0.45).addScaledVector(out, 0.4);
         this.solveTwoBone(B[`thigh_${s}`], B[`calf_${s}`], B[`foot_${s}`], feet[i], pole);
         if (wallContact) {
           const foot = B[`foot_${s}`];

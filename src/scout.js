@@ -1,5 +1,13 @@
 import * as THREE from 'three';
 import { makeMaterial, markHero } from './materials.js';
+import { sweepCapsule } from './physics.js';
+
+const RADIUS = 0.25;     // the drone's collision sphere
+const CLEAR = 0.9;       // air it keeps below itself while flying
+const MIN_CLEAR = 0.35;  // never lower than this over the ground
+const STEER = 6;         // velocity response (1/s): smooth, no jitter
+const _d = new THREE.Vector3(), _w = new THREE.Vector3(), _a = new THREE.Vector3(), _n = new THREE.Vector3(), _f = new THREE.Vector3();
+const _s = new THREE.Vector3(), _p = new THREE.Vector3(), _o = new THREE.Vector3(), _m = new THREE.Matrix4(), _q = new THREE.Quaternion();
 
 const objective = (id, label, position) => ({ id, label, position: position.clone() });
 
@@ -62,6 +70,7 @@ export class Scout {
   constructor({ scene, player, physics, getTarget, sound, label = null }) {
     Object.assign(this, { player, physics, getTarget, sound, label });
     this.phase = 'docked'; this.age = 0; this.elapsed = 0;
+    this.vel = new THREE.Vector3(); this.stuck = 0; this.over = 0; this.fade = null;
     this.object = new THREE.Group(); this.object.userData.noCollide = true; scene.add(this.object);
     const shell = makeMaterial({ color: '#fff1ca', flat: true, glow: 0.35 });
     const brass = makeMaterial({ color: '#e2b552', flat: true });
@@ -85,32 +94,121 @@ export class Scout {
     return this.player.char.torso.localToWorld(new THREE.Vector3(0, 0.7, -0.3));
   }
   dock() {
-    this.phase = 'docked'; this.object.position.copy(this.anchor()); this.object.scale.setScalar(0.5);
+    this.phase = 'docked'; this.vel.set(0, 0, 0); this.stuck = this.over = 0; this.overUsed = false; this.fade = null; this.object.position.copy(this.anchor()); this.object.scale.setScalar(0.5);
     this.ring.visible = false; if (this.label) this.label.hidden = true;
   }
   ping() {
     const target = this.getTarget();
     if (!target) return false;
-    this.target = target; this.age = 0;
-    if (this.phase === 'docked') { this.phase = 'launch'; this.origin = this.anchor(); this.object.position.copy(this.origin); }
+    this.target = target; this.age = 0; this.relaunched = false;
+    if (this.phase === 'docked') this.launch();
     else { this.phase = 'guide'; this.object.scale.setScalar(1); }
     this.sound?.chime?.(); return true;
   }
-  moveToward(destination, distance, up) {
-    const pos = this.object.position, delta = destination.clone().sub(pos);
-    if (delta.length() < 0.02) return;
-    const step = Math.min(distance, delta.length()), direct = delta.normalize();
-    const side = new THREE.Vector3().crossVectors(direct, up).normalize();
-    const options = [direct, direct.clone().addScaledVector(up, 1.8).normalize(), side, side.clone().negate(), up.clone()];
-    for (const direction of options) {
-      if (direction.lengthSq() < 0.5) continue;
-      if (this.physics.rayDistance(pos, direction, step + 0.4) < step + 0.35) continue;
-      const next = pos.clone().addScaledVector(direction, step);
-      if (this.physics.base && next.y < this.physics.base.heightAt(next.x, next.z) + 0.35) continue;
-      pos.copy(next);
-      this.object.up.copy(up); this.object.lookAt(pos.clone().add(direction)); return;
-    }
+  /** Height above whatever is below along -up (meshes and the heightfield), Infinity if nothing. */
+  clearance(p, up) {
+    const P = this.physics;
+    if (P.heightAbove) return P.heightAbove(p, up, 0.1);   // from just above: a ceiling overhead is not ground
+    if (P.base && up.y > 0.99) return p.y - P.base.heightAt(p.x, p.z);
+    return Infinity;
   }
+
+  /** First obstacle along a ray: { distance, normal } (normal facing back at us), or null. */
+  obstacle(origin, dir, far) {
+    const P = this.physics;
+    if (P.rayHit) return P.rayHit(origin, dir, far);
+    const d = P.rayDistance?.(origin, dir, far) ?? Infinity;
+    return d < far ? { distance: d, normal: dir.clone().negate() } : null;
+  }
+
+  /**
+   * Steer smoothly toward `destination`: a damped velocity that eases in
+   * and out (arrives without overshooting or ping-ponging), slides along
+   * walls instead of stopping at them, and keeps a cushion of air over the
+   * ground by rising over terrain instead of refusing to move. If it makes
+   * no progress for a moment it glides straight up and over; still boxed in,
+   * it reports `true` so the caller can recall it.
+   */
+  fly(destination, maxSpeed, up, dt) {
+    if (dt <= 0) return false;
+    const pos = this.object.position, vel = this.vel;
+    const to = _d.subVectors(destination, pos), dist = to.length();
+    // arrive: full speed far away, slowing down inside the last couple of metres
+    const want = _w.copy(to).multiplyScalar(dist > 1e-4 ? Math.min(maxSpeed, dist * 3.2) / dist : 0);
+    if (this.over > 0) {
+      // boxed in: rise up and over whatever is in the way
+      this.over -= dt;
+      want.multiplyScalar(0.35).addScaledVector(up, Math.max(4, maxSpeed * 0.7));
+    }
+    // terrain following: hold ~1 m of air below, here and a little ahead
+    // (less right at the destination, so it can still settle onto a low dock)
+    const clear = Math.min(CLEAR, MIN_CLEAR + dist * 0.4);
+    const ahead = _a.copy(pos).addScaledVector(vel, 0.35);
+    const h = Math.min(this.clearance(pos, up), this.clearance(ahead, up) + 0.25);
+    const rise = want.dot(up);
+    if (h < clear) want.addScaledVector(up, (clear - h) * 6 - Math.min(rise, 0));
+    else if (h < clear * 2 && rise < 0) want.addScaledVector(up, -rise * (1 - (h - clear) / clear));
+    // walls ahead: steer along them (never straight into them)
+    const speed = vel.length();
+    if (speed > 0.05 || want.lengthSq() > 0.01) {
+      const dir = _n.copy(speed > 0.05 ? vel : want).normalize();
+      const look = 0.6 + speed * 0.45;
+      const hit = this.obstacle(pos, dir, look);
+      if (hit) {
+        const into = want.dot(hit.normal);
+        if (into < 0) want.addScaledVector(hit.normal, -into);
+        want.addScaledVector(hit.normal, (1 - hit.distance / look) * maxSpeed * 0.6);
+      }
+    }
+    vel.lerp(want, 1 - Math.exp(-STEER * dt));
+    // move: swept against the level so it can't pass through anything
+    const from = _f.copy(pos);
+    const step = _s.copy(vel).multiplyScalar(dt), len = step.length();
+    if (len > 1e-6) {
+      const hit = this.obstacle(pos, _n.copy(step).divideScalar(len), len + RADIUS);
+      if (hit && hit.distance < len + RADIUS) {
+        // slide: drop the part of the step (and the velocity) that goes into the surface
+        const into = step.dot(hit.normal);
+        if (into < 0) step.addScaledVector(hit.normal, -into);
+        const vin = vel.dot(hit.normal);
+        if (vin < 0) vel.addScaledVector(hit.normal, -vin);
+        step.addScaledVector(hit.normal, Math.max(0, RADIUS - hit.distance) * 0.5);
+      }
+      pos.add(step);
+      if (this.physics.pushCapsule) sweepCapsule(this.physics, pos, from, RADIUS, -RADIUS, RADIUS, _p, up);
+    }
+    // never inside the ground: lift out (keeping any sideways motion)
+    const h2 = this.clearance(pos, up);
+    if (h2 < MIN_CLEAR) {
+      pos.addScaledVector(up, MIN_CLEAR - h2);
+      const vu = vel.dot(up);
+      if (vu < 0) vel.addScaledVector(up, -vu);
+    }
+    // facing: turn smoothly toward the flight direction
+    const face = vel.lengthSq() > 0.09 ? vel : to;
+    if (face.lengthSq() > 1e-6) {
+      _m.lookAt(_o.set(0, 0, 0), _n.copy(face).normalize().negate(), up);
+      _q.setFromRotationMatrix(_m);
+      this.object.quaternion.slerp(_q, 1 - Math.exp(-8 * dt));
+    }
+    // Progress watch: not getting closer although still far away. Distance
+    // counts sideways, and up only when the goal is above: hovering right
+    // over a goal that is inside a hill is as close as it can get.
+    const gap = (p) => { const g = _d.subVectors(destination, p), u = g.dot(up); return Math.hypot(Math.sqrt(Math.max(g.lengthSq() - u * u, 0)), Math.max(u, 0)); };
+    const before = gap(from), after = gap(pos);
+    if (this.over > 0) { /* gliding up and over: hold the count */ }
+    else if (after > 1.5 && (before - after) / dt < Math.min(1, maxSpeed * 0.15)) this.stuck += dt;
+    else this.stuck = Math.max(0, this.stuck - dt * 2);
+    if (this.stuck > 0.5 && !(this.over > 0) && !this.overUsed) { this.over = 0.9; this.overUsed = true; }
+    if (this.stuck < 0.05 && !(this.over > 0)) this.overUsed = false;
+    return this.stuck > 1.6;
+  }
+  launch() {
+    this.phase = 'launch'; this.origin = this.anchor(); this.object.position.copy(this.origin);
+    this.vel.copy(this.player.ride?.vel ?? this.player.vel ?? _o.set(0, 0, 0)); this.stuck = this.over = 0; this.fade = null;
+  }
+  /** Boxed in: blink out (a short shrink) and come back to the dock, relaunching if still guiding. */
+  recall() { if (this.fade === null) this.fade = 0.3; }
   update(dt, paused = false) {
     const up = this.player.frame.up;
     if (this.player.pos.distanceTo(this.previousPlayer) > 45) this.dock();
@@ -125,9 +223,20 @@ export class Scout {
     this.age += dt; this.elapsed += dt;
     this.target = this.getTarget();
     if (!this.target || this.age >= 5) this.phase = 'return';
+    if (this.fade !== null) {
+      this.fade -= dt;
+      this.object.scale.setScalar(Math.max(0, this.fade / 0.3));
+      if (this.fade <= 0) {
+        // once per ping it pops back out of the dock to try again from your shoulder
+        const relaunch = this.phase !== 'return' && this.target && this.age < 4.5 && !this.relaunched;
+        this.dock();
+        if (relaunch) { this.launch(); this.relaunched = true; }
+      }
+      return;
+    }
     if (this.phase === 'launch') {
       const k = Math.min(1, this.age / 0.8);
-      this.moveToward(this.origin.clone().addScaledVector(up, 1.4), dt * 2, up);
+      this.fly(this.origin.clone().addScaledVector(up, 1.4), 2.5, up, dt);
       this.object.scale.setScalar(0.5 + k * 0.5);
       if (k === 1) this.phase = 'guide';
     } else if (this.phase === 'guide') {
@@ -137,14 +246,15 @@ export class Scout {
       const ahead = from.clone().addScaledVector(delta.normalize(), Math.min(9, range));
       ahead.addScaledVector(up, Math.sin(this.elapsed * 3) * 0.15);
       const speed = Math.max(7, (this.player.ride?.vel ?? this.player.vel)?.length() + 4 || 7);
-      this.moveToward(ahead, dt * speed, up);
+      if (this.fly(ahead, speed, up, dt)) this.recall();
       if (this.object.position.distanceTo(this.player.pos) > 18) this.phase = 'return';
     } else {
       const home = this.anchor();
-      this.moveToward(home, dt * 10, up);
+      const boxed = this.fly(home, 10, up, dt);
       const d = this.object.position.distanceTo(home);
       this.object.scale.setScalar(Math.min(1, 0.5 + d));
       if (d < 0.4) this.dock();
+      else if (boxed) this.recall();
       // Recall safely if a closed doorway prevents a physical return.
       else if (this.age > 6.5) { this.object.scale.setScalar(Math.max(0, (7 - this.age) * 2) * 0.5); if (this.age >= 7) this.dock(); }
     }

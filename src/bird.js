@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { featherGeometry } from './avian.js';
 import { makeMaterial } from './materials.js';
+import { sweepCapsule, unbury } from './physics.js';
 
 // Arzach's bird: a long-beaked, feathered soaring mount. Controls when riding:
 // A/D bank and turn, W dive (gain speed), S pull up (trade speed for height),
@@ -9,7 +10,7 @@ import { makeMaterial } from './materials.js';
 
 const MIN_SPEED = 9;
 const MAX_SPEED = 55;
-const _v = new THREE.Vector3();
+const _v = new THREE.Vector3(), _from = new THREE.Vector3();
 
 export function buildBird() {
   const root = new THREE.Group(), body = new THREE.Group(); root.add(body);
@@ -193,6 +194,10 @@ export class Bird {
     aim.normalize();
     const sp = Math.min(40, d * 1.5 + 5);
     this.pos.addScaledVector(aim, Math.min(sp * dt, d));
+    // rise smoothly over hills and roofs on the way instead of through them
+    const g = this.physics.groundAt(this.pos.x, this.pos.y + 3, this.pos.z);
+    if (d > 4 && this.pos.y < g + 3) this.pos.y += (g + 3 - this.pos.y) * (1 - Math.exp(-8 * dt));
+    if (this.pos.y < g + 1.4) this.pos.y = g + 1.4;
     let dh = Math.atan2(aim.x, aim.z) - this.heading;
     dh = Math.atan2(Math.sin(dh), Math.cos(dh));
     this.heading += dh * (1 - Math.exp(-3 * dt));
@@ -259,11 +264,15 @@ export class Bird {
     const [fx, fz] = this.forward;
     const cp = Math.cos(this.pitch);
     this.vel.set(fx * cp * this.speed, -Math.sin(this.pitch) * this.speed + lift - sink, fz * cp * this.speed);
+    const from = _from.copy(this.pos);
     this.pos.addScaledVector(this.vel, dt);
     this.flapPower += ((flapping ? 1 : 0.15) - this.flapPower) * (1 - Math.exp(-5 * dt));
 
-    if (this.physics.pushCapsule(this.pos, 1.4, -1.0, 1.4, this._push)) this.speed *= 0.85;
-    const g = this.physics.groundAt(this.pos.x, this.pos.y + 0.5, this.pos.z);
+    // swept: a 55 m/s dive covers several body lengths in a slow frame
+    if (sweepCapsule(this.physics, this.pos, from, 1.4, -1.0, 1.4, this._push)) this.speed *= 0.85;
+    if (this.physics.embedded?.(this.pos)) { unbury(this, from, 1.4); this.speed = MIN_SPEED; }
+    // the ground below, looked for from the height it flew in at (never under a roof it dived through)
+    const g = this.physics.groundAt(this.pos.x, Math.max(from.y, this.pos.y) + 0.5, this.pos.z);
     if (this.pos.y < g + 1.4) {
       this.pos.y = g + 1.4;
       if (this.speed < 22 || dive >= 0) { this.landed = true; this.speed = 0; }
