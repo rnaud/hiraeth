@@ -8,8 +8,8 @@ const STEP = 0.6;    // obstacles lower than this are stepped onto
 const HEIGHT = 2.2;
 // m/s, matched to the mocap clips: the default pace plays the jog loop at
 // ~1x, SHIFT the sprint loop with a slightly lengthened stride
-const WALK = 5.5;
-const RUN = 11;
+const WALK = 3.8;
+const RUN = 7.2;
 const GRAVITY = 32;
 const JUMP = 13;
 const LIMIT = 1900;
@@ -25,7 +25,7 @@ function part(geo, color, opts = {}) {
 // An Arzach-style rider: tall and gaunt, swallowed by an enormous red hooded
 // cloak that reaches the ankles and flares out behind when running, a long
 // pale face with a long thin nose, a peaked hood whose tip trails behind.
-export const RIDER_COLORS = { cloak: '#3f5fae', cloak2: '#7a4fa8', lining: '#2f3f80', cloth: '#ab9fe0', legs: '#a296da', boot: '#8d80c8', gloves: '#e9998a', wrap: '#e2d3b4',
+export const RIDER_COLORS = { cloak: '#3f5fae', cloak2: '#7a4fa8', lining: '#2f3f80', cloth: '#b4a2c4', legs: '#aa98ba', boot: '#c39988', gloves: '#ea9678', wrap: '#e2d3b4',
   face: '#f1e6d0', ink: '#2b211f', belt: '#d8a24a', robe: '#ead9b4', robe2: '#c9a577' };
 
 /** @param palette overrides for RIDER_COLORS (NPCs use their own) */
@@ -790,9 +790,10 @@ export class Player {
     const H = this.humanoid;
     if (H) {
       H.update();
+      if (this.animator && !this.ride && !this.gliding && !this.thrusting) H.poseHands(this.animator);
       const U = this.frame.up;
       if (this.mantle) { H.resetFeet(); H.reach(this.mantleTargets()); }
-      else if (this.climbing) { H.resetFeet(); H.reach(this.animator ? this.climbContacts() : this.climbTargets()); }
+      else if (this.climbing) { H.resetFeet(); H.reach(this.animator ? this.climbContacts(dt) : this.climbTargets()); }
       else if (this.onGround && this.animator && !this.thrusting) {
         H.plantFeet(dt, this.physics, U, this.pos, this.frame.dir(this.heading, _g1).clone(), (p, side, n) => this.stepped(p.clone(), 0, n));
       } else H.resetFeet();
@@ -840,14 +841,28 @@ export class Player {
   }
 
   /** The clip's hands and feet, pressed onto the wall where they are: raycast each into the wall. */
-  climbContacts() {
-    const B = this.humanoid.b, U = this.frame.up, n = this.wallN, into = _g6.copy(n).negate();
+  climbContacts(dt = 1 / 60) {
+    const B = this.humanoid.b, U = this.frame.up, n = this.wallN;
+    const into = n.clone().negate(), right = new THREE.Vector3().crossVectors(into, U).normalize();
+    const travel = U.clone().multiplyScalar(this._climbF ?? 0).addScaledVector(right, (this._climbS ?? 0) * 0.8);
+    const moving = travel.lengthSq() > 0.001; travel.normalize();
+    const holds = this._wallHolds ??= {};
     const press = (bone, out) => {
       const p = B[bone].getWorldPosition(new THREE.Vector3());
-      const hit = this.physics.rayHit(_g5.copy(p).addScaledVector(n, 0.5), into, 1.4);
-      return hit ? hit.point.addScaledVector(n, out) : p;
+      const local = p.clone().sub(this.pos);
+      const hit = this.physics.rayHit(p.clone().addScaledVector(n, 0.5), into, 1.4);
+      const raw = hit ? hit.point.clone().addScaledVector(n, out) : p;
+      const h = holds[bone] ??= { previous: local.clone(), point: raw.clone(), locked: false, weight: 0, released: false };
+      const speed = local.clone().sub(h.previous).dot(travel) / Math.max(dt, 0.001);
+      h.previous.copy(local);
+      // A support stroke moves back relative to the body: keep that hold in world space.
+      if (moving && speed > 0.04) { h.locked = false; h.released = false; }
+      else if (!h.locked && !h.released && (!moving || speed < -0.08)) { h.point.copy(raw); h.locked = true; }
+      if (h.locked && h.point.distanceTo(raw) > 0.32) { h.locked = false; h.released = true; }
+      h.weight += ((h.locked ? 1 : 0) - h.weight) * (1 - Math.exp(-24 * dt));
+      return raw.lerp(h.point, h.weight);
     };
-    return { hands: [press('hand_r', 0.04), press('hand_l', 0.04)], feet: [press('foot_r', 0.13), press('foot_l', 0.13)], wallN: n, up: U };
+    return { hands: [press('hand_r', 0.04), press('hand_l', 0.04)], feet: [press('foot_r', 0.13), press('foot_l', 0.13)], wallN: n, up: U, wallContact: true };
   }
 
   /** Hand and foot holds on the wall for the current point of the climb cycle. */
@@ -868,7 +883,7 @@ export class Player {
       const hip = B[`thigh_${s}`].getWorldPosition(new THREE.Vector3());
       feet.push(hold(hip.addScaledVector(U, -0.78 + 0.38 * (1 - k)), 0.1));   // the opposite foot steps up
     });
-    return { hands, feet, wallN: n, up: U };
+    return { hands, feet, wallN: n, up: U, wallContact: true };
   }
 
   // ------------------------------------------------------------------ mantling
@@ -948,6 +963,8 @@ export class Player {
     this.gliding = this.thrusting = false;
     this.heading = this.frame.headingOf(_v1.copy(n).negate());
     this._climbTime = 0;
+    this._wallHolds = null;
+    this._climbF = this._climbS = 0;
   }
 
   updateClimb(dt, f, s, input) {
@@ -969,7 +986,8 @@ export class Player {
     if (f > 0 && !this.physics.rayHit(head, into, 1.6) && this.tryMantle(U, into)) return;
 
     const right = _v3.crossVectors(into, U).normalize();   // screen-right while facing the wall
-    const sp = (input.ShiftLeft || input.ShiftRight ? 6.5 : 4);
+    const sp = (input.ShiftLeft || input.ShiftRight ? 2.1 : 1.4);
+    this._climbRate = sp / 1.4;
     this.pos.addScaledVector(U, f * sp * dt).addScaledVector(right, s * sp * 0.8 * dt);
     this.heading = this.frame.headingOf(into);
     this.phase += dt * (f || s ? 7 : 0);
@@ -1010,7 +1028,7 @@ export class Player {
     if (this.animator) {
       // mocap climbing (Quaternius UAL): up / down / left / right loops and a hanging idle;
       // the hands and feet are then pressed onto the real wall (climbContacts)
-      this.animator.update(dt, { speed: 0, onGround: true, mode: 'climb', climbF: this._climbF ?? 0, climbS: this._climbS ?? 0, walkAt: 1, jogAt: 2, sprintAt: 3, strideScale: 1 });
+      this.animator.update(dt, { speed: 0, onGround: true, mode: 'climb', climbRate: this._climbRate ?? 1, climbF: this._climbF ?? 0, climbS: this._climbS ?? 0, walkAt: 1, jogAt: 2, sprintAt: 3, strideScale: 1 });
       this.object.position.copy(this.pos);
       this.frame.quaternion(this.heading, this.object.quaternion);
       this.animator.apply(this.object, {});
@@ -1251,7 +1269,7 @@ export class Player {
     A.update(dt, {
       speed: hs, onGround: this.onGround, mode: 'ground',
       walkAt: Math.min(N.walk * 1.2, WALK * 0.4), jogAt: WALK, sprintAt: RUN,
-      strideScale: 1 + 0.3 * THREE.MathUtils.smoothstep(hs, WALK, RUN),
+      strideScale: 1,
     });
     const bank = THREE.MathUtils.clamp(-this._turn * 0.05 * Math.min(hs / WALK, 1), -0.25, 0.25);
     this.object.position.copy(this.pos);

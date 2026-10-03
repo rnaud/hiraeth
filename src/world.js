@@ -183,7 +183,7 @@ function strataMat(rng, size) {
 
 export function buildWorld(scene, terrain) {
   const rng = mulberry32(42);
-  const footprints = [{ x: OBSERVATORY.x, z: OBSERVATORY.z, r: OBSERVATORY.radius }]; // { x, z, r }: keeps props from overlapping when placed
+  const footprints = [{ x: -430, z: -180, r: 120 }, { x: -430, z: -470, r: 90 }, { x: OBSERVATORY.x, z: OBSERVATORY.z, r: OBSERVATORY.radius }]; // { x, z, r }: keeps props from overlapping when placed
   const floaters = [];  // { obj, baseY, phase }
   const banners = [];
   const lights = [];    // glowing things that light their surroundings at night
@@ -479,7 +479,7 @@ export function buildWorld(scene, terrain) {
   const dummy = new THREE.Object3D();
   const color = new THREE.Color();
   {
-    const N = 5000;
+    const N = 2800;
     const rocks = new THREE.InstancedMesh(
       new THREE.IcosahedronGeometry(1, 0),
       makeMaterial({ color: '#ffffff', flat: true, pattern: 'cracks' }),

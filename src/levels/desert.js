@@ -1,6 +1,7 @@
+import { basinHeight, buildDesertVistas } from '../desert-vistas.js';
 import * as THREE from 'three';
 import { buildObservatory } from '../observatory.js';
-import { Terrain, buildWorld } from '../world.js';
+import { Terrain, buildWorld, heightFn } from '../world.js';
 import { biomeAtmosphere } from '../biome.js';
 import { Hoverbike } from '../bike.js';
 import { makeMaterial } from '../materials.js';
@@ -9,8 +10,9 @@ import { buildRoom, doorwayPortals } from '../interiors.js';
 
 // The original open desert: dunes, mesas, regions, hoverbike and wind.
 export function createDesert(scene) {
-  const terrain = new Terrain();
+  const terrain = new Terrain({ height: (x, z) => basinHeight(x, z, heightFn) });
   const { floaters, banners, lights, doors } = buildWorld(scene, terrain);
+  const vistas = buildDesertVistas(scene, terrain);
   // inside the masked head: a glyph-carved chamber under an oculus, built high above the map
   const portals = [];
   for (const d of doors) {
@@ -32,6 +34,7 @@ export function createDesert(scene) {
   return {
     id: 'desert',
     observatory,
+    vistas,
     ground: terrain,
     spawn: new THREE.Vector3(0, terrain.heightAt(0, 0), 0),
     spawnHeading: Math.PI,
@@ -51,7 +54,7 @@ export function createDesert(scene) {
     sky: {
       // the print: flat cerulean sky, cream sand, blue-grey shadows
       script: {
-        day: ['#6f9fd3', '#c3d3dc', '#93a6cf', '#fff9ee', '#fff6dc'],
+        day: ['#92b6c5', '#d7dfd9', '#93a6cf', '#fff9ee', '#fff6dc'],
         dusk: ['#7f8fc8', '#f2c49a', '#8a7fb8', '#ffe0c0', '#ffe2b8'],
         night: ['#1d2a52', '#4a5a8a', '#3d4380', '#8e9ccc', '#f2f0e6'],
       },

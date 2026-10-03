@@ -3,7 +3,7 @@ import { makeMaterial } from './materials.js';
 
 // The hero's kit, after the reference plate: a glass bubble helmet over a
 // blue headset (ear cups, mic, a gadget cluster and little aerials at the
-// back), a boxy blue radio pack with dials, a lens and a long whip antenna
+// back), a boxy cream radio pack with dials, a lens and a long whip antenna
 // with a ball tip, cables looping down to a tan belt crowded with pouches,
 // and a handheld device. Authored in the humanoid's anchor frames: the chest
 // anchor (y = 0 at the hips, 0.74 at the collar, +z forward) and the head
@@ -14,7 +14,7 @@ const mat = (c, o = {}) => { const k = c + JSON.stringify(o); if (!mats.has(k)) 
 
 export const GEAR_COLORS = {
   steel: '#86a9d8', steelDark: '#5f86bf', steelLight: '#b8d0ec', tan: '#c9a577', tanDark: '#a8794f',
-  leather: '#b08a5a', brass: '#e2b552', glass: '#dcefff', screen: '#cfeef2', ink: '#2b211f', rubber: '#3a4466',
+  leather: '#b08a5a', brass: '#e2b552', cream: '#eadbb7', creamDark: '#bcae94', glass: '#dcefff', screen: '#cfeef2', ink: '#2b211f', rubber: '#3a4466',
 };
 const G = GEAR_COLORS;
 
@@ -37,6 +37,11 @@ export class Gear {
     const chest = humanoid.chestAnchor, head = humanoid.headAnchor;
     // the old cloak collar isn't part of this outfit
     for (const o of chest.children) if (o.geometry?.type === 'TorusGeometry' && Math.abs(o.position.y - 0.74) < 0.02) o.visible = false;
+
+    // Soft folded collar, as on the reference's lavender coveralls.
+    for (const [y, r] of [[0.75, 0.14], [0.79, 0.13]]) {
+      chest.add(mesh(new THREE.TorusGeometry(r, 0.035, 6, 18).rotateX(Math.PI / 2), mat(char.colors.cloth), 0, y, 0));
+    }
 
     // ---------------------------------------------------------------- helmet + headset
     const hs = new THREE.Group();
@@ -73,8 +78,8 @@ export class Gear {
     this.scoutDock = new THREE.Object3D();
     this.scoutDock.position.set(0, 0.74, -0.29);
     pack.add(this.scoutDock);
-    pack.add(box(0.34, 0.4, 0.2, G.steel, 0, 0.5, -0.27));
-    pack.add(box(0.36, 0.06, 0.22, G.steelDark, 0, 0.3, -0.27));
+    pack.add(box(0.34, 0.4, 0.2, G.cream, 0, 0.5, -0.27));
+    pack.add(box(0.36, 0.06, 0.22, G.creamDark, 0, 0.3, -0.27));
     pack.add(box(0.12, 0.14, 0.03, G.steelDark, -0.08, 0.56, -0.385));
     pack.add(box(0.06, 0.04, 0.02, G.steelLight, 0.09, 0.64, -0.38));
     for (const [x, y, r, c] of [[0.07, 0.48, 0.05, G.steelLight], [-0.09, 0.42, 0.032, G.steelDark], [0.1, 0.38, 0.025, G.brass], [-0.02, 0.36, 0.02, G.steelLight]]) {

@@ -112,15 +112,35 @@ export class Hoverbike {
    */
   summon(x, z, heading, near, { camFwd = null } = {}) {
     const ref = near ?? new THREE.Vector3(x, 0, z);
-    if (!Number.isFinite(this.pos.x) || this.pos.distanceTo(ref) > 220) {
+    if (![this.pos.x, this.pos.y, this.pos.z].every(Number.isFinite) || this.pos.distanceTo(ref) > 80) {
       // come in from the side of the view, so you see it arrive
       const a = Math.atan2(camFwd?.x ?? Math.sin(heading), camFwd?.z ?? Math.cos(heading)) + (Math.random() < 0.5 ? 1.5 : -1.5);
-      const sx = ref.x + Math.sin(a) * 140, sz = ref.z + Math.cos(a) * 140;
+      const sx = ref.x + Math.sin(a) * 20, sz = ref.z + Math.cos(a) * 20;
       this.pos.set(sx, this.groundAt(sx, 1e4, sz) + HOVER, sz);
       this.vel.set(0, 0, 0);
       this.heading = Math.atan2(ref.x - sx, ref.z - sz);
     }
-    this.auto = { near: ref, dx: x - ref.x, dz: z - ref.z, heading };
+    this.auto = { near: ref, dx: x - ref.x, dz: z - ref.z, heading, elapsed: 0, stalled: 0 };
+  }
+
+  /** Find a clear, boardable spot beside the caller before teleporting. */
+  recallNear(A) {
+    for (const radius of [3, 4.5]) for (let i = 0; i < 12; i++) {
+      const angle = A.heading + i * Math.PI / 6;
+      const p = new THREE.Vector3(A.near.x + Math.sin(angle) * radius, 0, A.near.z + Math.cos(angle) * radius);
+      const ground = this.groundAt(p.x, A.near.y + 2, p.z);
+      if (!Number.isFinite(ground) || Math.abs(ground - A.near.y) > 2.5) continue;
+      p.y = ground + HOVER;
+      const probe = p.clone();
+      if (this.physics.pushCapsule(probe, RADIUS, -0.35, 1.0, this._push)) continue;
+      const origin = A.near.clone().add(new THREE.Vector3(0, 1, 0)), delta = p.clone().sub(origin);
+      if (this.physics.rayDistance?.(origin, delta.clone().normalize(), delta.length()) < delta.length() - 0.5) continue;
+      this.pos.copy(p); this.vel.set(0, 0, 0); this.speed = this.yawRate = 0;
+      this.heading = A.heading; this.auto = null;
+      this.object.position.copy(p); this.object.rotation.y = this.heading;
+      return true;
+    }
+    return false;
   }
 
   /** Where the rider sits (world space). */
@@ -133,7 +153,7 @@ export class Hoverbike {
   update(dt, input) {
     this.time += dt;
     const ridden = !!input;
-    const [fx, fz] = this.forward;
+    let [fx, fz] = this.forward;
 
     let throttle = 0, steer = 0, boost = false;
     if (ridden) this.auto = null;
@@ -141,18 +161,20 @@ export class Hoverbike {
       // autopilot: steer at the spot beside the player, ease off as it arrives
       const A = this.auto, tx = A.near.x + A.dx, tz = A.near.z + A.dz;
       const dx = tx - this.pos.x, dz = tz - this.pos.z, d = Math.hypot(dx, dz);
-      if (d < 7 && Math.abs(this.speed) > 1.5) {
-        this.speed *= Math.exp(-3.5 * dt);              // brake into the spot, don't circle it
-      } else if (d < 7) {
-        let dh = A.heading - this.heading; dh = Math.atan2(Math.sin(dh), Math.cos(dh));
-        this.heading += dh * (1 - Math.exp(-4 * dt));
-        if (Math.abs(dh) < 0.05) this.auto = null;
+      A.elapsed += dt;
+      if ((A.elapsed >= 4 || A.stalled > 0.8) && A.elapsed >= (A.nextRecall ?? 0)) {
+        A.nextRecall = A.elapsed + 0.5;
+        if (this.recallNear(A)) return;
+      }
+      if (d < 1.2) {
+        this.speed = 0; this.vel.x = this.vel.z = 0;
+        this.heading = A.heading; this.yawRate = 0; this.auto = null;
       } else {
         let dh = Math.atan2(dx, dz) - this.heading; dh = Math.atan2(Math.sin(dh), Math.cos(dh));
-        steer = THREE.MathUtils.clamp(-dh * 2.5, -1, 1);
-        const want = Math.min(MAX, d * 0.9 + 2) * Math.max(0.2, Math.cos(dh));
-        throttle = this.speed < want ? 1 : 0;
-        if (this.speed > want + 2) this.speed -= 30 * dt;
+        this.heading += dh * (1 - Math.exp(-10 * dt)); this.yawRate = 0;
+        [fx, fz] = this.forward;
+        const want = Math.min(BOOST, d * 3.5) * Math.max(0.25, Math.cos(dh));
+        this.speed += (want - this.speed) * (1 - Math.exp(-5 * dt));
       }
     }
     if (ridden) {
@@ -160,10 +182,12 @@ export class Hoverbike {
       steer = (input.KeyD || input.ArrowRight ? 1 : 0) - (input.KeyA || input.ArrowLeft ? 1 : 0);
       boost = input.ShiftLeft || input.ShiftRight;
     }
+    const recalling = !ridden && !!this.auto;
+    const oldPos = this.pos.clone();
     const max = boost ? BOOST : MAX;
     if (throttle > 0) this.speed += (max - this.speed) * (1 - Math.exp(-(boost ? 0.9 : 0.6) * dt));
     else if (throttle < 0) this.speed = Math.max(this.speed - 40 * dt, -8);
-    else this.speed *= Math.exp(-0.5 * dt);
+    else if (!recalling) this.speed *= Math.exp(-0.5 * dt);
 
     // steering: right = decreasing heading; tighter at low speed
     const grip = THREE.MathUtils.clamp(Math.abs(this.speed) / 14, 0.35, 1);
@@ -172,7 +196,7 @@ export class Hoverbike {
     this.heading += this.yawRate * dt;
 
     // horizontal velocity slides toward the facing direction (a bit of drift)
-    const a = 1 - Math.exp(-(this.grounded ? 3.5 : 0.8) * dt);
+    const a = 1 - Math.exp(-(recalling ? 12 : this.grounded ? 3.5 : 0.8) * dt);
     this.vel.x += (fx * this.speed - this.vel.x) * a;
     this.vel.z += (fz * this.speed - this.vel.z) * a;
 
@@ -198,6 +222,11 @@ export class Hoverbike {
     this.pos.z = THREE.MathUtils.clamp(this.pos.z, -LIMIT, LIMIT);
 
     if (this.physics.pushCapsule(this.pos, RADIUS, -0.35, 1.0, this._push)) this.speed *= 0.6;
+
+    if (this.auto) {
+      const progress = Math.hypot(this.pos.x - oldPos.x, this.pos.z - oldPos.z);
+      this.auto.stalled = progress < Math.max(0.02, Math.abs(this.speed) * dt * 0.2) ? this.auto.stalled + dt : 0;
+    }
 
     // pose: pitch with the ground, bank into turns
     const hBack = this.groundAt(this.pos.x - fx * 1.5, probe, this.pos.z - fz * 1.5);

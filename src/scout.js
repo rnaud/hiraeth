@@ -124,7 +124,7 @@ export class Scout {
     if (paused) { if (this.label) this.label.hidden = true; return; }
     this.age += dt; this.elapsed += dt;
     this.target = this.getTarget();
-    if (!this.target || this.age > 22) this.phase = 'return';
+    if (!this.target || this.age >= 5) this.phase = 'return';
     if (this.phase === 'launch') {
       const k = Math.min(1, this.age / 0.8);
       this.moveToward(this.origin.clone().addScaledVector(up, 1.4), dt * 2, up);
@@ -146,14 +146,14 @@ export class Scout {
       this.object.scale.setScalar(Math.min(1, 0.5 + d));
       if (d < 0.4) this.dock();
       // Recall safely if a closed doorway prevents a physical return.
-      else if (this.age > 30) { this.object.scale.setScalar(Math.max(0, 31 - this.age) * 0.5); if (this.age > 31) this.dock(); }
+      else if (this.age > 6.5) { this.object.scale.setScalar(Math.max(0, (7 - this.age) * 2) * 0.5); if (this.age >= 7) this.dock(); }
     }
     this.ring.visible = this.phase === 'guide'; this.ring.rotation.z += dt * 2;
     this.wings.forEach((w, i) => { w.rotation.z = Math.sin(this.elapsed * 12 + i * Math.PI) * 0.25; });
   }
   placeLabel(camera) {
     if (!this.label) return;
-    const show = this.phase !== 'docked' && !!this.target;
+    const show = (this.phase === 'launch' || this.phase === 'guide') && this.age < 5 && !!this.target;
     this.label.hidden = !show;
     if (!show) return;
     const p = this.object.position.clone().project(camera);

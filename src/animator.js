@@ -103,6 +103,7 @@ export class Animator {
     this.mixer.stopAllAction();
     this.src.updateMatrixWorld(true);
     for (const m of this.map) m.rest.copy(this.dir(m.A, m.B, _a));
+    this.restHands = Object.fromEntries(['r', 'l'].map((s) => [s, this.bone(`hand_${s}`).getWorldQuaternion(new THREE.Quaternion())]));
     this.restHips = this.hips.getWorldPosition(new THREE.Vector3());
     this.restHipsQ = this.hips.getWorldQuaternion(new THREE.Quaternion());
     for (const a of Object.values(this.actions)) a.play();
@@ -185,7 +186,7 @@ export class Animator {
     const moving = s.mode === 'climb' && (s.climbF || s.climbS);
     for (const k of CLIMB) {
       const a = this.actions[k];
-      if (a) a.time = (a.time + dt * (k === 'climbIdle' ? 1 : moving ? 1.6 : 0)) % this.lib.clips[k].duration;
+      if (a) a.time = (a.time + dt * (k === 'climbIdle' ? 1 : moving ? 1.6 * (s.climbRate ?? 1) : 0)) % this.lib.clips[k].duration;
     }
     if (this.actions.ledge) this.actions.ledge.time = THREE.MathUtils.clamp(s.ledgeT ?? 0, 0, 1) * this.lib.clips.ledge.duration * 0.999;
     // idle / talk / drive loop at their own pace

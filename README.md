@@ -15,7 +15,7 @@ hold Space in the air to glide · mouse wheel zoom · Esc releases the mouse.
 **F** toggles the FPS counter. **H** shows or hides the controls help (hidden by default). **E** interacts: whistle for the level's mount (or hail a taxi), get on, get
 off. **Q** (or touch **ping**) launches a tiny backpack scout toward your next
 objective. It waits a few metres ahead, labels the destination and returns after
-about 22 seconds; ping again to refresh it. The guide follows quest progress and
+five seconds; ping again to refresh it. The guide follows quest progress and
 portal routes, with local obstacle avoidance. **L** opens the level picker. Each level's controls are listed below.
 
 ## Install on iPhone
@@ -647,3 +647,10 @@ lookup on the terrain mesh.
 - License texts are in `public/anim/`.
 
 Character rendering and scout regression checks: `node --test tests/*.test.js`.
+
+The desert reference pass adds cream radio equipment, a softer lavender suit,
+a shallow turquoise mineral basin west of camp, a suspension bridge farther
+northwest, and large dish canopies above the dome village. Running and climbing
+now use speeds matched to the animation; climb contacts orient palms and toes
+toward the wall. The bike parks within boarding range and recalls to a clear
+nearby spot if blocked or still travelling after four seconds.

@@ -3,6 +3,12 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.18', date: '2026-10-03', items: [
+    'More natural running and climbing cadence. Climbing hands hold their place during the support stroke; palms face the wall and boots point toward it. Wrists follow the animation.',
+    'Ping lasts five seconds, then the scout returns to the backpack.',
+    'The hoverbike arrives faster and parks close enough to board. If blocked or still approaching after four seconds, it recalls to a clear spot nearby.',
+    'Inspired by the new reference sheets: softer lavender coveralls, a cream radio pack, a turquoise mineral basin, a suspension bridge and vast dish canopies over the desert village. Fewer scattered rocks leave the dunes more open.',
+  ] },
   { v: '0.17', date: '2026-10-03', items: [
     'Press Q or tap ping to launch a tiny scout from your backpack. It flies ahead toward your next objective, waits nearby and returns home.',
     'The scout follows your progress: traveler, observatory ledges, unfinished lenses, story objectives, relics and gates. Doorways and gravity portals are included.',

@@ -856,8 +856,18 @@ setInterval(() => {
 
 // compile every shader before the first frame, so it doesn't hitch
 await stage('mixing the inks…');
-await renderer.compileAsync(scene, camera).catch(() => {});
-await renderer.compileAsync(post.scene, post.camera).catch(() => {});
+// Some WebGL drivers never signal completion of parallel shader warmup.
+// The first render can finish compilation normally, so don't strand the loading screen.
+async function warmShaders(targetScene, targetCamera) {
+  let timer;
+  await Promise.race([
+    renderer.compileAsync(targetScene, targetCamera).catch(() => {}),
+    new Promise((resolve) => { timer = setTimeout(resolve, 2000); }),
+  ]);
+  clearTimeout(timer);
+}
+await warmShaders(scene, camera);
+await warmShaders(post.scene, post.camera);
 stage('ready'); console.info(`load: total ${(performance.now() - tLoad).toFixed(0)} ms (after module load)`);
 requestAnimationFrame((t) => {
   frame(t);

@@ -36,11 +36,12 @@ function fixture(physics={rayDistance:()=>Infinity}) {
 }
 test('scout undocks, waits ahead, pauses, refreshes on ping and returns to its dock', () => {
   const {scout}=fixture(); assert.equal(scout.phase,'docked'); scout.ping();
-  for(let i=0;i<200;i++)scout.update(.05);
+  for(let i=0;i<60;i++)scout.update(.05);
   assert.equal(scout.phase,'guide'); assert.ok(scout.object.position.x>8);
   const age=scout.age; scout.update(2,true); assert.equal(scout.age,age);
   scout.ping(); assert.equal(scout.age,0);
-  for(let i=0;i<650;i++)scout.update(.05);
+  scout.age=4.99; scout.update(.01); assert.equal(scout.phase,'return');
+  for(let i=0;i<160;i++)scout.update(.05);
   assert.equal(scout.phase,'docked'); assert.ok(scout.object.position.distanceTo(scout.anchor())<.01);
 });
 test('scout avoids solid obstacles and terrain; teleport recalls it', () => {

@@ -371,6 +371,18 @@ export class Humanoid {
     this.model.updateMatrixWorld(true);
   }
 
+  /** Preserve wrist rotation from the source clip instead of leaving T-pose hands. */
+  poseHands(animator) {
+    const rootQ = this.char.root.getWorldQuaternion(new THREE.Quaternion());
+    for (const s of ['r', 'l']) {
+      const hand = this.b[`hand_${s}`];
+      const q = animator.bone(`hand_${s}`).getWorldQuaternion(new THREE.Quaternion())
+        .multiply(animator.restHands[s].clone().invert()).multiply(this.rest.get(hand).q).premultiply(rootQ);
+      hand.quaternion.copy(hand.parent.getWorldQuaternion(new THREE.Quaternion()).invert().multiply(q));
+      hand.updateMatrixWorld(true);
+    }
+  }
+
   // ------------------------------------------------------------------ IK
   /** Rotate a bone (in world space) so its direction `from` turns to `to`. */
   turnBone(bone, from, to) {
@@ -424,7 +436,9 @@ export class Humanoid {
       const ballRest = this.rest.get(B[`ball_${s}`]).p.y;
       const hBall = _i1.subVectors(ball, rootPos).dot(up);
       const hClip = _i1.subVectors(ankle, rootPos).dot(up);
-      const planted = hBall < ballRest + 0.05;
+      const rising = F.lastHeight !== undefined && hBall - F.lastHeight > dt * 0.12;
+      const planted = hBall < ballRest + (F.locked ? 0.09 : 0.04) && !rising;
+      F.lastHeight = hBall;
       const gh = physics.heightAbove(_i2.copy(ball).addScaledVector(up, 1.2), up, 0);
       const groundH = Number.isFinite(gh) ? 1.2 - gh : -hBall;          // ball -> real ground
       if (planted && !F.locked) {
@@ -435,7 +449,7 @@ export class Humanoid {
         if (F.n.dot(up) < 0.5) F.n.copy(up);
         onStep?.(_i3.copy(ball).addScaledVector(up, groundH), s, F.n);
       } else if (!planted) F.locked = false;
-      if (F.locked && F.pos.distanceTo(ball) > 0.45) F.pos.copy(ball).addScaledVector(up, groundH + ballRest);
+      if (F.locked && F.pos.distanceTo(ball) > 0.45) F.locked = false;
       F.w += ((F.locked ? 1 : 0) - F.w) * (1 - Math.exp(-28 * dt));
       // ankle target: keep the clip's heel roll around the locked ball
       const locked = _i4.copy(F.pos).add(_i5.subVectors(ankle, ball));
@@ -446,7 +460,7 @@ export class Humanoid {
       const reach = hip.distanceTo(t) - (this.legLen ??= this.rest.get(B[`thigh_${s}`]).p.distanceTo(this.rest.get(B[`calf_${s}`]).p) + this.rest.get(B[`calf_${s}`]).p.distanceTo(this.rest.get(B[`foot_${s}`]).p)) * 0.985;
       need = Math.max(need, reach);
     }
-    S.drop += (THREE.MathUtils.clamp(need, 0, 0.3) - S.drop) * (1 - Math.exp(-16 * dt));
+    S.drop += (THREE.MathUtils.clamp(need, 0, 0.12) - S.drop) * (1 - Math.exp(-16 * dt));
     if (S.drop > 0.002) {
       // lower the pelvis (world down) and refresh the chain
       const p = B.pelvis;
@@ -470,10 +484,23 @@ export class Humanoid {
     }
   }
 
-  resetFeet() { if (this._feet) { this._feet.l.locked = this._feet.r.locked = false; this._feet.l.w = this._feet.r.w = 0; this._feet.drop = 0; } }
+  resetFeet() { if (this._feet) { this._feet.l.locked = this._feet.r.locked = false; this._feet.l.w = this._feet.r.w = 0; this._feet.drop = 0; this._feet.l.lastHeight = this._feet.r.lastHeight = undefined; } }
+
+  /** Match a contact's direction and surface normal, including its rest-pose twist. */
+  orientContact(bone, restDirection, restNormal, direction, normal) {
+    const basis = (along, facing) => {
+      const y = along.clone().normalize();
+      const z = facing.clone().addScaledVector(y, -facing.dot(y)).normalize();
+      const x = new THREE.Vector3().crossVectors(y, z).normalize();
+      return new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, y, z));
+    };
+    const world = basis(direction, normal).multiply(basis(restDirection, restNormal).invert()).multiply(this.rest.get(bone).q);
+    bone.quaternion.copy(bone.parent.getWorldQuaternion(new THREE.Quaternion()).invert().multiply(world));
+    bone.updateMatrixWorld(true);
+  }
 
   /** Climbing: hands and feet onto wall points (world), elbows out, knees off the wall. */
-  reach({ hands, feet, wallN, up }) {
+  reach({ hands, feet, wallN, up, wallContact = false }) {
     const B = this.b;
     ['r', 'l'].forEach((s, i) => {
       const side = i === 0 ? -1 : 1;
@@ -481,12 +508,28 @@ export class Humanoid {
         const sh = B[`upperarm_${s}`].getWorldPosition(new THREE.Vector3());
         const right = _i5.crossVectors(up, wallN).normalize();   // character's left, seen from the wall
         const pole = sh.addScaledVector(right, side * 0.6).addScaledVector(up, -0.4).addScaledVector(wallN, 0.4);
-        this.solveTwoBone(B[`upperarm_${s}`], B[`lowerarm_${s}`], B[`hand_${s}`], hands[i], pole);
+        const hand = B[`hand_${s}`], q = hand.getWorldQuaternion(new THREE.Quaternion());
+        this.solveTwoBone(B[`upperarm_${s}`], B[`lowerarm_${s}`], hand, hands[i], pole);
+        hand.quaternion.copy(hand.parent.getWorldQuaternion(new THREE.Quaternion()).invert().multiply(q));
+        hand.updateMatrixWorld(true);
+        if (wallContact) {
+          const origin = this.rest.get(hand).p;
+          const fingers = this.rest.get(B[`middle_01_${s}`]).p.clone().sub(origin).normalize();
+          const span = this.rest.get(B[`index_01_${s}`]).p.clone().sub(this.rest.get(B[`pinky_01_${s}`]).p);
+          const palm = new THREE.Vector3().crossVectors(fingers, span).normalize();
+          if (palm.y > 0) palm.negate();
+          this.orientContact(hand, fingers, palm, up, wallN.clone().negate());
+        }
       }
       if (feet?.[i]) {
         const hip = B[`thigh_${s}`].getWorldPosition(new THREE.Vector3());
         const pole = hip.addScaledVector(wallN, 0.8).addScaledVector(up, 0.3);
         this.solveTwoBone(B[`thigh_${s}`], B[`calf_${s}`], B[`foot_${s}`], feet[i], pole);
+        if (wallContact) {
+          const foot = B[`foot_${s}`];
+          const toes = this.rest.get(B[`ball_${s}`]).p.clone().sub(this.rest.get(foot).p).normalize();
+          this.orientContact(foot, toes, new THREE.Vector3(0, 1, 0), wallN.clone().negate().addScaledVector(up, 0.35).normalize(), up);
+        }
       }
     });
   }
