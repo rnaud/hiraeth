@@ -1,0 +1,45 @@
+README.md
+  s_c90ca0a3de1a1d::t_648ece1f3799bb 18-30,463-491,503-504,524-525
+index.html
+  s_c90ca0a3de1a1d::t_2fea51d5c39031 5-13,16-21,42,164,166,178-185,219-235
+public/manifest.webmanifest
+  s_c90ca0a3de1a1d::t_d0256327f6bd93 1-16
+scripts/generate-icons.py
+  s_c90ca0a3de1a1d::t_cd0b54d2114c08 1-55
+src/changelog.js
+  s_c90ca0a3de1a1d::t_2e325f10fb88f5 6-12
+src/levels/content.js
+  s_c90ca0a3de1a1d::t_f4e4e2881f0653 51
+src/levels/desert.js
+  s_c90ca0a3de1a1d::t_7d9a6944e065b7 2,30-31,34
+src/main.js
+  s_c90ca0a3de1a1d::t_69ee685b1ac13b 2-3,115-116,118,123-125,128,147,266,461,463-469,485,601-602,607,663,671-673,723-725,866
+src/observatory.js
+  s_c90ca0a3de1a1d::t_093882f25edef0 1-174
+src/post.js
+  s_c90ca0a3de1a1d::t_9b79af04469cfd 365,373,376
+src/quest.js
+  s_c90ca0a3de1a1d::t_d66d13eb84d757 66-67
+src/ui.js
+  s_c90ca0a3de1a1d::t_c6fe5e3b171213 58
+src/world.js
+  s_c90ca0a3de1a1d::t_8bdbbf81e566e9 1,186
+tests/observatory.test.js
+  s_c90ca0a3de1a1d::t_a53a3dea590dcf 1-61
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "912bd0a856437ab314eefc06ffe90f7d39170840",
+  "prompts": {},
+  "sessions": {
+    "s_c90ca0a3de1a1d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a100ef-7d9f-7b43-ae7d-30f5177e2ff0",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
