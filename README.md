@@ -790,3 +790,13 @@ The new scenery has no collision so it does not block established routes.
 Verification includes reaction/cooldown/occlusion/memory tests, placement checks
 against every world's actual collision geometry, and browser checks of plant
 and screen behavior. Performance on a physical iPhone still needs confirmation.
+
+### Character animation review
+
+With `npm run dev` running, open `/tools/rig-review.html`. Choose Walk, Jog,
+or Run and step through the 120 samples with the slider or frame buttons.
+Front, side and back views show the textured model with joint overlays;
+**12-frame sheet** creates a downloadable contact sheet. This uses the game's
+actual `Animator` and `Humanoid` classes, before terrain foot placement.
+`tests/traveller.test.js` compares every gait phase to the source animation,
+including hand direction, palm twist, limb lengths, boot pitch and loop seams.

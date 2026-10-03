@@ -104,6 +104,16 @@ export class Animator {
     this.src.updateMatrixWorld(true);
     for (const m of this.map) m.rest.copy(this.dir(m.A, m.B, _a));
     this.restHands = Object.fromEntries(['r', 'l'].map((s) => [s, this.bone(`hand_${s}`).getWorldQuaternion(new THREE.Quaternion())]));
+    // Hand directions are measured in the source bone's local frame. Retargeting
+    // these anatomical axes also works when the destination was bound in A-pose.
+    this.handFrames = Object.fromEntries(['r', 'l'].map((s) => {
+      const hand = this.bone(`hand_${s}`), inverse = this.restHands[s].clone().invert();
+      const along = this.dir(hand, this.bone(`middle_01_${s}`), new THREE.Vector3());
+      const span = this.dir(this.bone(`pinky_01_${s}`), this.bone(`index_01_${s}`), new THREE.Vector3());
+      const normal = new THREE.Vector3().crossVectors(along, span).normalize();
+      if (normal.y > 0) normal.negate(); // palms face down in the source T-pose
+      return [s, { along: along.applyQuaternion(inverse), normal: normal.applyQuaternion(inverse) }];
+    }));
     this.restHips = this.hips.getWorldPosition(new THREE.Vector3());
     this.restHipsQ = this.hips.getWorldQuaternion(new THREE.Quaternion());
     for (const a of Object.values(this.actions)) a.play();

@@ -51,7 +51,7 @@ test('imported rig retargets, plants feet and reaches walls under rotated gravit
     for (const s of ['r', 'l']) {
       const toe = B[`ball_${s}`].getWorldPosition(new THREE.Vector3()).sub(B[`foot_${s}`].getWorldPosition(new THREE.Vector3())).normalize();
       assert.ok(toe.dot(normal) < -.9);
-      const fingerRest = h.rest.get(B[`hand_${s}`]).p.clone().sub(h.rest.get(B[`lowerarm_${s}`]).p).normalize();
+      const fingerRest = new THREE.Vector3(0, 1, 0).applyQuaternion(h.rest.get(B[`hand_${s}`]).q);
       const finger = fingerRest.applyQuaternion(h.rest.get(B[`hand_${s}`]).q.clone().invert()).applyQuaternion(B[`hand_${s}`].getWorldQuaternion(new THREE.Quaternion()));
       assert.ok(finger.dot(up) > .99);
     }
@@ -90,4 +90,49 @@ test('vehicle animation reaches the skin on the first frame and releases foot lo
   assert.ok(before.angleTo(p.humanoid.b.thigh_r.quaternion) > .5);
   assert.equal(p.humanoid._feet.r.locked, false);
   assert.equal(p.gear.device.visible, false);
+});
+
+// Sample the actual shipped motion library, including the seam at the end of
+// each loop. This caught the fixed 78-degree A-pose/T-pose wrist mismatch.
+const motionBytes = await readFile(new URL('../public/anim/ual.glb', import.meta.url));
+const motion = await new GLTFLoader().parseAsync(motionBytes.buffer.slice(motionBytes.byteOffset, motionBytes.byteOffset + motionBytes.byteLength), '');
+const { Animator } = await import('../src/animator.js');
+const gaitClips = Object.fromEntries([['walk', 'Walk_Loop'], ['jog', 'Jog_Fwd_Loop'], ['sprint', 'Sprint_Loop']].map(([key, name]) => [key, motion.animations.find(c => c.name === name)]));
+const direction = (a, b) => b.getWorldPosition(new THREE.Vector3()).sub(a.getWorldPosition(new THREE.Vector3())).normalize();
+for (const gait of ['walk', 'jog', 'sprint']) test(`${gait}: arms, legs, hands and palms match all 120 phases of the source motion`, () => {
+  const char = buildCharacter(), h = new Humanoid(template, char, 'm', { imported: true });
+  const a = new Animator({ scene: motion.scene, clips: gaitClips, native: { walk: 1, jog: 3, sprint: 6 } }, char);
+  const rootQ = new THREE.Quaternion().setFromEuler(new THREE.Euler(.2, .7, -.4));
+  char.root.quaternion.copy(rootQ);
+  let first;
+  for (let frame = 0; frame <= 120; frame++) {
+    for (const [name, action] of Object.entries(a.actions)) { action.setEffectiveWeight(name === gait ? 1 : 0); action.time = (frame % 120) / 120 * gaitClips[name].duration; }
+    a.mixer.update(0); a.src.updateMatrixWorld(true); a.apply(char.root); h.update(); h.poseHands(a);
+    const B = h.b;
+    for (const s of ['r', 'l']) {
+      for (const [parent, child] of [['upperarm', 'lowerarm'], ['lowerarm', 'hand'], ['thigh', 'calf'], ['calf', 'foot']]) {
+        const from = `${parent}_${s}`, to = `${child}_${s}`;
+        const want = direction(a.bone(from), a.bone(to)).applyQuaternion(rootQ);
+        assert.ok(direction(B[from], B[to]).dot(want) > .99999, `${gait} ${frame}: ${from} follows its own source limb`);
+        const length = B[from].getWorldPosition(new THREE.Vector3()).distanceTo(B[to].getWorldPosition(new THREE.Vector3()));
+        assert.ok(Math.abs(length - h.rest.get(B[from]).p.distanceTo(h.rest.get(B[to]).p)) < .0001, 'limb length stays fixed');
+      }
+      const foot = B[`foot_${s}`];
+      const sole = new THREE.Vector3(0, 0, 1).applyQuaternion(h.rest.get(foot).q.clone().invert()).applyQuaternion(foot.getWorldQuaternion(new THREE.Quaternion()));
+      const expectedSole = new THREE.Vector3(0, 0, 1).applyQuaternion(char.feet[s === 'r' ? 0 : 1].getWorldQuaternion(new THREE.Quaternion()));
+      assert.ok(sole.dot(expectedSole) > .99999, 'boot sole keeps the corrected clip pitch');
+      const hand = B[`hand_${s}`], q = hand.getWorldQuaternion(new THREE.Quaternion());
+      const along = new THREE.Vector3(0, 1, 0).applyQuaternion(q);
+      const want = direction(a.bone(`hand_${s}`), a.bone(`middle_01_${s}`)).applyQuaternion(rootQ);
+      assert.ok(along.dot(want) > .99999, `${gait} ${frame}: fingertips follow the source wrist`);
+      const rest = h.handFrames[s];
+      const palm = rest.normal.clone().addScaledVector(rest.along, -rest.normal.dot(rest.along)).normalize()
+        .applyQuaternion(h.rest.get(hand).q.clone().invert()).applyQuaternion(q);
+      const sourcePalm = a.handFrames[s].normal.clone().applyQuaternion(a.bone(`hand_${s}`).getWorldQuaternion(new THREE.Quaternion())).applyQuaternion(rootQ);
+      assert.ok(palm.dot(sourcePalm) > .99999, `${gait} ${frame}: palm twist follows source`);
+    }
+    const pose = Object.values(h.b).map(b => b.quaternion.clone());
+    if (!first) first = pose;
+    if (frame === 120) pose.forEach((q, i) => assert.ok(q.angleTo(first[i]) < .0001, 'no jump at loop boundary'));
+  }
 });

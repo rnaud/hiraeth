@@ -231,6 +231,12 @@ export class Humanoid {
       ['neck_01', () => char.head], ['Head', () => char.head],
       ['foot_r', () => char.feet[0]], ['foot_l', () => char.feet[1]],
     ].filter(([n]) => B[n]).map(([n, j]) => ({ B: B[n], j }));
+    // Blender hand bones run along local +Y. Using the forearm as a substitute
+    // loses the bend already present at the wrist in the imported bind pose.
+    this.handFrames = imported ? Object.fromEntries(['r', 'l'].map(s => [s, {
+      along: new THREE.Vector3(0, 1, 0).applyQuaternion(this.rest.get(B[`hand_${s}`]).q),
+      normal: new THREE.Vector3(0, 0, 1),
+    }])) : null;
     this.restHipMid = this.rest.get(B.thigh_l).p.clone().add(this.rest.get(B.thigh_r).p).multiplyScalar(0.5);
     this.restPelvis = this.rest.get(B.pelvis).p.clone();
 
@@ -403,6 +409,13 @@ export class Humanoid {
     const rootQ = this.char.root.getWorldQuaternion(new THREE.Quaternion());
     for (const s of ['r', 'l']) {
       const hand = this.b[`hand_${s}`];
+      if (this.imported) {
+        const source = animator.handFrames[s], rest = this.handFrames[s];
+        const q = animator.bone(`hand_${s}`).getWorldQuaternion(new THREE.Quaternion()).premultiply(rootQ);
+        this.orientContact(hand, rest.along, rest.normal,
+          source.along.clone().applyQuaternion(q), source.normal.clone().applyQuaternion(q));
+        continue;
+      }
       const q = animator.bone(`hand_${s}`).getWorldQuaternion(new THREE.Quaternion())
         .multiply(animator.restHands[s].clone().invert()).multiply(this.rest.get(hand).q).premultiply(rootQ);
       hand.quaternion.copy(hand.parent.getWorldQuaternion(new THREE.Quaternion()).invert().multiply(q));
@@ -542,10 +555,10 @@ export class Humanoid {
         if (wallContact) {
           const origin = this.rest.get(hand).p;
           const fingers = this.imported
-            ? origin.clone().sub(this.rest.get(B[`lowerarm_${s}`]).p).normalize()
+            ? this.handFrames[s].along.clone()
             : this.rest.get(B[`middle_01_${s}`]).p.clone().sub(origin).normalize();
           const span = this.imported ? null : this.rest.get(B[`index_01_${s}`]).p.clone().sub(this.rest.get(B[`pinky_01_${s}`]).p);
-          const palm = this.imported ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3().crossVectors(fingers, span).normalize();
+          const palm = this.imported ? this.handFrames[s].normal.clone() : new THREE.Vector3().crossVectors(fingers, span).normalize();
           if (palm.y > 0) palm.negate();
           this.orientContact(hand, fingers, palm, up, wallN.clone().negate());
         }
