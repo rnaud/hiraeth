@@ -712,7 +712,8 @@ export function createArzach2(scene) {
       if (rng() < 0.6) list.push({ x: x + R(-0.2, 0.2) * s, y: y0 + s * 0.45, z: z + R(-0.2, 0.2) * s, s: s * R(0.45, 0.6), sy: 0.8 });
     }
     const dummy = new THREE.Object3D();
-    for (const [list, detail] of [[near.filter((p) => p.main), 2], [near.filter((p) => !p.main), 1], [far, 1]]) {
+    // distant puffs sit under fog and haze: the coarsest shape is enough there
+    for (const [list, detail] of [[near.filter((p) => p.main), 2], [near.filter((p) => !p.main), 1], [far, 0]]) {
       const im = new THREE.InstancedMesh(puffGeo(detail), cloudMat, list.length);
       list.forEach((p, i) => {
         dummy.position.set(p.x, p.y, p.z);

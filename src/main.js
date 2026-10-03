@@ -12,7 +12,7 @@ import { Player, CameraRig } from './player.js';
 import { applyTimeOfDay, colourScript } from './timeofday.js';
 import { WindStreaks } from './wind.js';
 import { Physics } from './physics.js';
-import { tileScene } from './perf.js';
+import { tileScene, cullFar } from './perf.js';
 import { Trail } from './trail.js';
 import { Flock, Motes, Footprints } from './life.js';
 import { Sound } from './audio.js';
@@ -682,6 +682,8 @@ const _subj = new THREE.Vector3(), _subjUp = new THREE.Vector3(0, 1, 0);
 function renderFrame() {
   // 1. shadow maps (the wide cascade only refreshes every 3rd frame)
   const lightDir = sharedUniforms.uSunDir.value;
+  // far pebbles and shrubs are skipped in every pass; only what is shown now is hidden, then restored
+  const farHidden = cullFar(tiled.small, camera);
   scene.overrideMaterial = shadowOverride;
   for (const o of level.noShadow ?? []) o.visible = false;
   for (const o of player.gear?.noShadow ?? []) o.visible = false;
@@ -693,10 +695,11 @@ function renderFrame() {
     nearShadow.render(scene);
   }
   if (frameNo++ % 3 === 0 || sky.speed > 0) {
-    for (const o of tiled.small) o.visible = false;   // pebbles and bushes don't need km-wide shadows
+    const shown = tiled.small.filter((o) => o.visible);
+    for (const o of shown) o.visible = false;   // pebbles and bushes don't need km-wide shadows
     farShadow.update(player.pos, lightDir);
     farShadow.render(scene);
-    for (const o of tiled.small) o.visible = true;
+    for (const o of shown) o.visible = true;
   }
   scene.overrideMaterial = null;
   for (const o of level.noShadow ?? []) o.visible = true;
@@ -731,6 +734,7 @@ function renderFrame() {
   // 5. smooth edges and scale the completed frame to the display
   renderer.setRenderTarget(null);
   renderer.render(blit.scene, post.camera);
+  for (const o of farHidden) o.visible = true;
 }
 
 /** Render the scene from another viewpoint and grab it as an image (comic panels, sketches). */
