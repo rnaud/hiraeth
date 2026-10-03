@@ -17,7 +17,8 @@ import { Trail } from './trail.js';
 import { Flock, Motes, Footprints } from './life.js';
 import { Sound } from './audio.js';
 import { Weather, WEATHER_KINDS } from './weather.js';
-import { spawnNPCs, NPC } from './npc.js';
+import { spawnNPCs, pooledNPC, registerNPCTargets } from './npc.js';
+import { Crowd } from './crowd.js';
 import { Journal, Relics, Story, Gate, Errands, turnPage, arriveFromPage } from './quest.js';
 import { CONTENT, ERRANDS, nextLevel } from './levels/content.js';
 import { loadAnimationLibrary, Animator } from './animator.js';
@@ -263,17 +264,14 @@ const weather = new Weather(content.weather);
   if (stormColor) post.uniforms.uStormColor.value.set(stormColor);
 }
 const npcs = spawnNPCs(scene, physics, content.npcs, { lib, humans: humanT });
-// a crowd on the city promenades
-if (level.crowd) {
-  const CITY_LINES = level.crowdLines ?? ['Fresh figs! Fresh figs!', 'Mind the edge, it\u2019s a long way down.', 'The taxis never stop for us lower folk.',
-    'Have you seen the light above the palace?', 'Laundry dries fast up here.', 'My grandmother never saw the sky.', 'Lovely hat.'];
-  const PAL = ['#c8483a', '#5fb7ad', '#d8a24a', '#8a6fb8', '#e6875f', '#f3ead8', '#62c3c9'];
-  level.crowd().forEach((route, k) => {
-    const kind = k % 2 ? 'f' : 'm';
-    npcs.push(new NPC(scene, physics, { route, palette: { cloak: PAL[k % PAL.length], cloth: ['#343a56', '#5a4a3a', '#3f6f6a', '#e2d3b4'][k % 4] },
-      lines: [CITY_LINES[k % CITY_LINES.length], CITY_LINES[(k + 3) % CITY_LINES.length]], lib, human: humanT ? humanT[kind === 'm' ? 0 : 1] : null, kind }));
-  });
-}
+// city crowds: hundreds of GPU-animated people, the nearest few promoted to full NPCs (crowd.js)
+const crowd = level.crowdSpots ? new Crowd(scene, physics, {
+  spots: { lines: level.crowdLines, ...level.crowdSpots() },
+  clear: content.npcs.map((s) => ({ x: s.at[0], y: s.y, z: s.at[1], r: 3 })),
+  makeNPC: (kind) => pooledNPC(scene, physics, { kind, lib, humans: humanT }),
+}) : null;
+if (crowd) { npcs.push(...crowd.npcs); console.info(`crowd: ${crowd.people.length} people in ${crowd.groups.length} groups, placed in ${crowd.buildMs.toFixed(0)} ms`); }
+registerNPCTargets(npcs);   // the player's tool can startle or stun anyone
 const journal = new Journal(LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, relicNames: CONTENT[l.id].relics.names, storyTitle: CONTENT[l.id].story.title })));
 const errands = new Errands({ levelId, defs: ERRANDS, npcs, journal, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])), capture: (e, l, w, h) => captureView(e, l, w, h), sound });
 const capture = (eye, look, w, h) => captureView(eye, look, w, h);
@@ -839,6 +837,7 @@ function frame() {
       }
     }
   }
+  crowd?.update(dt, t, player, camera);
   for (const n of npcs) n.update(dt, player, camera);
   errands.update();
   // only the nearest talking villager shows a balloon
@@ -955,4 +954,4 @@ requestAnimationFrame((t) => {
 });
 
 // handy for debugging from the console
-Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, gate, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, blaster });
+Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, gate, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, blaster, crowd });

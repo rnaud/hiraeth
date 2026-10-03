@@ -403,6 +403,7 @@ export function createIncal(scene) {
     taxiSpecs.push({ color, scale, lane });
   }
   const vehicles = [];
+  const stallSpots = [], viaducts = [];   // kept for the crowd
 
   // ---------------------------------------------------------- street life: market stalls and laundry lines
   {
@@ -418,6 +419,7 @@ export function createIncal(scene) {
         if (rng() < 0.45) continue;
         const ang = t.a0 + (k + 0.5) / (span * 6) * span, rad = t.r0 + 10;
         const x = Math.cos(ang) * rad, z = Math.sin(ang) * rad, rot = -ang;
+        stallSpots.push([x, t.y, z]);
         bucket('wood', wood).push(placed(mergeGeometries([
           new THREE.BoxGeometry(3, 1, 1.6).translate(0, 0.5, 0),
           ...[[-1.4, -0.7], [1.4, -0.7], [-1.4, 0.7], [1.4, 0.7]].map(([a, b]) => new THREE.CylinderGeometry(0.05, 0.05, 2.6, 4).translate(a, 1.3, b)),
@@ -450,6 +452,7 @@ export function createIncal(scene) {
     const steel = strata(STEEL.color, STEEL.color2, STEEL.color3, 2, { grid: 4 });
     for (let i = 0; i < 4; i++) {
       const y = LEVELS[1 + i * 2] + 2, a = rng() * TAU, span = R * 2 - 30;
+      viaducts.push({ y: y + 2, a, span });
       const deck = new THREE.BoxGeometry(span, 4, 16).translate(0, y, 0);
       // the arch beneath: a deep half-ring, flattened
       const arch = new THREE.TorusGeometry(span / 2, 5, 6, 40, Math.PI).rotateX(Math.PI).scale(1, 0.32, 2.4).translate(0, y - 2, 0);
@@ -619,19 +622,63 @@ export function createIncal(scene) {
     },
     smallProps: small,
     get lights() { return roomLights; },
-    // walking routes for the crowd: arcs along each terrace promenade
-    crowd() {
-      const out = [];
+    // The city crowd (crowd.js): strollers along every promenade, circles by the
+    // parapet, at the stalls and in the lanes between the houses, people leaning
+    // over the edge or sitting with their legs over the drop, more on the spire
+    // rings, the viaducts and the rim round the spawn. Candidates only: the
+    // crowd keeps those on clear, walkable ground.
+    crowdSpots() {
+      const r = mulberry32(31337), V = (x, y, z) => new THREE.Vector3(x, y, z);
+      const P = (a, rad, y) => V(Math.cos(a) * rad, y, Math.sin(a) * rad);
+      const inward = (p) => Math.atan2(-p.x, -p.z), outward = (p) => Math.atan2(p.x, p.z);
+      const size = () => 2 + Math.floor(r() ** 1.2 * 4);
+      const groups = [], walks = [], edges = [];
+      const avoid = [...trees.map(([x, y, z, s]) => ({ x, y, z, r: 1.05 * s + 0.2 })), ...stallSpots.map(([x, y, z]) => ({ x, y, z, r: 1.6 }))];
+      // shoppers at the stalls
+      for (const [x, y, z] of stallSpots) if (r() < 0.55) {
+        const d = Math.hypot(x, z), k = (d - 2.15) / d;
+        groups.push({ at: V(x * k, y, z * k), n: 2 + (r() < 0.3 ? 1 : 0) });
+      }
       for (const t of terraces) {
-        const span = t.a1 - t.a0, n = rng() < 0.6 ? 1 : 0;   // about one walker per terrace sector
-        for (let k = 0; k < n; k++) {
-          const s0 = t.a0 + 0.1 + rng() * (span - 0.6), len = 0.25 + rng() * 0.35, r = t.r0 + 5 + rng() * 2.5;
-          const pts = [];
-          for (let q = 0; q <= 6; q++) { const a = s0 + (q / 6) * len; pts.push(new THREE.Vector3(Math.cos(a) * r, t.y, Math.sin(a) * r)); }
-          out.push([...pts, ...pts.slice(1, -1).reverse()]);   // walk there and back
+        const span = t.a1 - t.a0;
+        // the promenade: between the cypress row and the market stalls
+        const rw = t.r0 + 6.1, pts = [];
+        for (let a = t.a0 + 0.03; a <= t.a1 - 0.03; a += 2.5 / rw) pts.push(P(a, rw, t.y));
+        walks.push({ path: pts, n: Math.max(2, Math.round(span * rw / 15)), pair: 0.5, lateral: 0.6, keepRight: 0.4 });
+        // circles in the gaps of the cypress row, and in the lanes between the houses
+        for (let a = t.a0 + 0.02; a < t.a1 - 0.02; a += (10 + r() * 14) / t.r0) {
+          const rad = r() < 0.55 ? t.r0 + 2.4 + r() * 1.6 : t.r0 + 14 + r() * (t.width - 18);
+          groups.push({ at: P(a, rad, t.y), n: size() });
+        }
+        for (let a = t.a0 + 0.02; a < t.a1 - 0.02; a += (8 + r() * 12) / t.r0) {
+          if (r() < 0.45) continue;
+          const sit = r() < 0.5, p = P(a, t.r0 + (sit ? 0.22 : 1.1), t.y);
+          edges.push({ at: p, heading: inward(p), pose: sit ? 'sit' : 'rail' });
         }
       }
-      return out;
+      // the spire rings: a stroll round each, a few circles, legs over the outer edge
+      for (const y of LEVELS) {
+        const pts = [];
+        for (let a = 0; a < TAU; a += 2.5 / 36) pts.push(P(a, 36, y));
+        walks.push({ path: pts, loop: true, n: 3, pair: 0.5, lateral: 0.9 });
+        for (let k = 0; k < 5; k++) groups.push({ at: P(r() * TAU, r() < 0.5 ? 29.5 : 42.5, y), n: size() });
+        for (let k = 0; k < 6; k++) { const p = P(r() * TAU, SPIRE_RING - 0.22, y); edges.push({ at: p, heading: outward(p), pose: 'sit' }); }
+      }
+      // the viaduct decks, among their villas
+      for (const v of viaducts) for (let k = 0; k < 12; k++) {
+        const t = (r() - 0.5) * (v.span - 30), o = (r() - 0.5) * 12;
+        groups.push({ at: V(t * Math.cos(v.a) - o * Math.sin(v.a), v.y, -t * Math.sin(v.a) - o * Math.cos(v.a)), n: size() });
+      }
+      // the rim: folk by the railing looking down into the city, and chatting by the villas
+      for (let z = -28; z <= 28; z += 1.8 + r() * 3) if (Math.abs(z) > 3 && r() < 0.75) edges.push({ at: V(R + 1.1, TOP, z), heading: -Math.PI / 2, pose: 'rail' });
+      for (let k = 0; k < 40; k++) {
+        const x = R + 5 + r() * 34, z = (r() - 0.5) * 100;
+        if (Math.abs(z) < 8 && x < R + 24) continue;   // the view from the spawn stays open
+        groups.push({ at: V(x, TOP, z), n: size() });
+      }
+      for (const z of [-34, 34]) walks.push({ path: [V(R + 6, TOP, z), V(R + 36, TOP, z)], n: 2, pair: 0.6 });
+      walks.push({ path: [V(R + 9, TOP, -60), V(R + 9, TOP, 60)], n: 4, pair: 0.5 });
+      return { groups, walks, edges, avoid, farMax: 600, clear: [{ x: spawn.x, y: TOP, z: spawn.z, r: 4 }] };
     },
     update(dt, t, ctx) {
       if (ctx?.player) Taxi.playerPos = ctx.player.pos;
