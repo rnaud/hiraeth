@@ -46,8 +46,8 @@ export function createDesert(scene) {
     lights,
     portals,
     life: {
-      flocks: [{ count: 9, color: '#3a2f2a', size: 2.6, radius: 110, height: [40, 90], seed: 1 },
-               { count: 6, color: '#3a2f2a', size: 2.8, radius: 70, height: [55, 110], speed: -0.09, seed: 4 }],
+      flocks: [{ count: 12, color: '#665c50', size: .8, radius: 65, height: [22, 48], seed: 1 },
+               { count: 8, color: '#665c50', size: .9, radius: 90, height: [40, 75], speed: -0.09, seed: 4 }],
       motes: { count: 160, color: '#e6cf9f', size: 0.05, wind: [1.6, 0.6] },
       footprints: '#d8b884',
     },

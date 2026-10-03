@@ -693,3 +693,14 @@ Geometry is merged by street block and material for culling. Collision tests
 cover the avenue, bridge decks, climbing ledges, relic platforms and quest
 altitude. Browser checks cover rendering and story completion; phone-sized
 layout checks do not establish performance on physical iPhone hardware.
+
+
+### Feathered birds (v0.21)
+
+Ambient flocks now draw an instanced body/head/beak/tail and two feathered wings
+(three draw calls per flock). Desert birds circle lower and closer at a smaller
+scale; distance scaling is capped at 1.7 times their base size.
+The Arzach mount has overlapping secondary and primary feathers, articulated
+shoulders and wrists, folded resting wings, a hooked beak, a fan tail and talons.
+Static feather geometry is merged within each moving joint. Tests cover flock
+scaling, wing folding, takeoff and the rider seat transform.

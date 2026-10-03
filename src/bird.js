@@ -1,8 +1,9 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { featherGeometry } from './avian.js';
 import { makeMaterial } from './materials.js';
 
-// Arzach's bird: a long-beaked, pterodactyl-like mount. Controls when riding:
+// Arzach's bird: a long-beaked, feathered soaring mount. Controls when riding:
 // A/D bank and turn, W dive (gain speed), S pull up (trade speed for height),
 // Space flap (climb). Touching down slowly lands it; Space on the ground takes off.
 
@@ -10,72 +11,84 @@ const MIN_SPEED = 9;
 const MAX_SPEED = 55;
 const _v = new THREE.Vector3();
 
-function buildBird() {
-  const root = new THREE.Group();
-  const body = new THREE.Group();
-  root.add(body);
-  const white = makeMaterial({ color: '#f4efe2' });
-  const ochre = makeMaterial({ color: '#d8a24a', flat: true });
-  const dark = makeMaterial({ color: '#34405e' });
-
-  const torso = new THREE.Mesh(new THREE.SphereGeometry(1, 14, 10), white);
-  torso.scale.set(0.9, 0.75, 2.1);
-  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.45, 2.2, 8), white);
-  neck.rotation.x = Math.PI / 2 - 0.5;
-  neck.position.set(0, 0.7, 2.2);
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.55, 10, 8), white);
-  head.scale.set(0.8, 0.8, 1.3);
-  head.position.set(0, 1.25, 3.2);
-  const crest = new THREE.Mesh(new THREE.ConeGeometry(0.25, 1.6, 6), ochre);
-  crest.rotation.x = -2.2;
-  crest.position.set(0, 1.6, 2.6);
-  const beak = new THREE.Mesh(new THREE.ConeGeometry(0.22, 2.4, 6), ochre);
-  beak.rotation.x = Math.PI / 2;
-  beak.position.set(0, 1.15, 4.6);
-  const eye = new THREE.Mesh(new THREE.SphereGeometry(0.09, 6, 4), dark);
-  eye.position.set(0.32, 1.38, 3.45);
-  const eye2 = eye.clone();
-  eye2.position.x = -0.32;
-  const tail = new THREE.Mesh(new THREE.ConeGeometry(0.4, 2.6, 6), white);
-  tail.rotation.x = -Math.PI / 2;
-  tail.position.set(0, 0, -3.0);
-  const saddle = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.2, 1.2), makeMaterial({ color: '#c8483a', flat: true }));
-  saddle.position.set(0, 0.78, 0.2);
-  body.add(torso, neck, head, crest, beak, eye, eye2, tail, saddle);
-
-  // wings: inner + outer panel, hinged so they can flap and fold
-  const wings = [];
-  for (const side of [-1, 1]) {
-    const shoulder = new THREE.Group();
-    shoulder.position.set(side * 0.7, 0.35, 0.4);
-    const inner = new THREE.Mesh(
-      mergeGeometries([new THREE.BoxGeometry(3.4, 0.12, 2.2).translate(side * 1.7, 0, 0)]),
-      makeMaterial({ color: '#efe6d2', flat: true, side: THREE.DoubleSide })
-    );
-    const elbow = new THREE.Group();
-    elbow.position.set(side * 3.4, 0, 0);
-    const outer = new THREE.Mesh(
-      new THREE.ConeGeometry(1.1, 4.2, 3).rotateZ(side * Math.PI / 2).translate(side * 2.1, 0, -0.2).scale(1, 0.12, 1),
-      makeMaterial({ color: '#e7dcc4', flat: true, side: THREE.DoubleSide })
-    );
-    elbow.add(outer);
-    shoulder.add(inner, elbow);
-    body.add(shoulder);
-    wings.push({ shoulder, elbow, side });
+export function buildBird() {
+  const root = new THREE.Group(), body = new THREE.Group(); root.add(body);
+  const white = makeMaterial({color:'#e9e3d4'});
+  const cover = makeMaterial({color:'#d6cdbb',side:THREE.DoubleSide});
+  const flight = makeMaterial({color:'#b8ad98',side:THREE.DoubleSide});
+  const featherWhite = makeMaterial({color:'#eee8da',side:THREE.DoubleSide});
+  const ochre = makeMaterial({color:'#bd945d',flat:true});
+  const dark = makeMaterial({color:'#343b44'});
+  function ellipsoid(parent,x,y,z,sx,sy,sz,material) {
+    const m=new THREE.Mesh(new THREE.SphereGeometry(1,16,10),material);
+    m.position.set(x,y,z);m.scale.set(sx,sy,sz);parent.add(m);return m;
   }
-  // dangling legs
-  const legs = [];
-  for (const side of [-1, 1]) {
-    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.06, 1.4, 5), ochre);
-    leg.position.set(side * 0.4, -0.9, -0.6);
-    body.add(leg);
-    legs.push(leg);
+  function feather(parent,length,width,x,y,z,angle,material) {
+    const m=new THREE.Mesh(featherGeometry(length,width),material);
+    m.position.set(x,y,z);m.rotation.y=angle;parent.add(m);return m;
   }
-  const seat = new THREE.Group();
-  seat.position.set(0, 0.88 - 0.56, 0.2);
-  body.add(seat);
-  root.userData.noCollide = true;
-  return { root, body, wings, legs, seat };
+  // Deep breast, tapered back, an arched neck and a distinct brow and beak.
+  ellipsoid(body,0,0,0,.86,.79,1.85,white);
+  ellipsoid(body,0,-.16,.85,.72,.68,1.12,white);
+  const neckCurve=new THREE.CatmullRomCurve3([new THREE.Vector3(0,.2,1.1),new THREE.Vector3(0,.65,1.7),new THREE.Vector3(0,1.3,1.9),new THREE.Vector3(0,1.55,2.5)]);
+  body.add(new THREE.Mesh(new THREE.TubeGeometry(neckCurve,12,.32,10,false),white));
+  ellipsoid(body,0,1.5,2.65,.39,.4,.63,white);
+  const beak=new THREE.Mesh(new THREE.ConeGeometry(.22,1.45,8).rotateX(Math.PI/2),ochre);
+  beak.scale.y=.65;beak.position.set(0,1.42,3.57);body.add(beak);
+  const hook=new THREE.Mesh(new THREE.ConeGeometry(.13,.35,7),dark);
+  hook.rotation.z=Math.PI;hook.position.set(0,1.29,4.18);body.add(hook);
+  for(const side of [-1,1]) {
+    ellipsoid(body,side*.354,1.61,2.85,.065,.085,.09,ochre);
+    ellipsoid(body,side*.401,1.62,2.86,.028,.044,.048,dark);
+    ellipsoid(body,side*.3,1.76,2.85,.16,.055,.23,white);
+    for(let k=0;k<4;k++) feather(body,.65,.3,side*(.38+k*.085),.48-k*.12,1.35-k*.2,side*.4,featherWhite);
+  }
+  const tail=new THREE.Group();tail.position.set(0,.08,-1.35);body.add(tail);
+  for(let i=-3;i<=3;i++) feather(tail,1.65-Math.abs(i)*.08,.37,i*.105,Math.abs(i)*-.012,0,i*.16,i%2?flight:featherWhite);
+  const saddle=new THREE.Mesh(new THREE.BoxGeometry(.85,.18,1.15),makeMaterial({color:'#b55d48',flat:true}));
+  saddle.position.set(0,.79,.2);body.add(saddle);
+  const strap=new THREE.Mesh(new THREE.TorusGeometry(.79,.05,5,24).rotateY(Math.PI/2),ochre);strap.scale.y=.9;body.add(strap);
+
+  const wings=[];
+  for(const side of [-1,1]) {
+    const shoulder=new THREE.Group();shoulder.position.set(side*.65,.35,.55);
+    const elbow=new THREE.Group();elbow.position.set(side*2.65,0,-.3);
+    // Rounded leading edge over an overlapping row of secondary feathers.
+    feather(shoulder,3.2,1.7,0,.04,.1,-side*1.35,featherWhite);
+    for(let i=0;i<10;i++) feather(shoulder,1.45+i*.04,.46,side*(.35+i*.235),-.03,-.05-i*.035,-side*.13,i%3?featherWhite:cover);
+    feather(elbow,2.7,1.1,0,.03,.12,-side*1.17,cover);
+    // Primary feathers fan from the wrist with separate, swept tips.
+    for(let i=0;i<9;i++) feather(elbow,2.8-i*.09,.45,side*(.28+i*.18),-.035-i*.004,-i*.045,-side*(.48+i*.115),i%3?flight:featherWhite);
+    // Shorter coverts lie on top and hide the feather roots.
+    for(let i=0;i<7;i++) feather(shoulder,.9,.46,side*(.3+i*.34),.16,.16,-side*.35,cover);
+    shoulder.add(elbow);body.add(shoulder);wings.push({shoulder,elbow,side});
+  }
+  const legs=[];
+  for(const side of [-1,1]) {
+    const leg=new THREE.Group();leg.position.set(side*.42,-.45,-.45);
+    ellipsoid(leg,0,-.18,0,.22,.4,.32,white);
+    const shin=new THREE.Mesh(new THREE.CylinderGeometry(.075,.055,.6,7),ochre);shin.position.set(0,-.58,.08);leg.add(shin);
+    for(let i=-1;i<=1;i++) {
+      const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(0,-.85,.08),new THREE.Vector3(i*.13,-.91,.28),new THREE.Vector3(i*.22,-.91,.58)]);
+      leg.add(new THREE.Mesh(new THREE.TubeGeometry(curve,4,.045,5,false),ochre));
+      const claw=new THREE.Mesh(new THREE.ConeGeometry(.05,.18,5).rotateX(Math.PI/2),dark);claw.position.set(i*.22,-.91,.65);leg.add(claw);
+    }
+    body.add(leg);legs.push(leg);
+  }
+  const seat=new THREE.Group();seat.position.set(0,.88-.56,.2);body.add(seat);
+  // Keep every joint, but batch the stationary feathers within each joint.
+  for (const group of [body,tail,...legs,...wings.flatMap(w=>[w.shoulder,w.elbow])]) {
+    const batches=new Map();
+    for(const child of [...group.children]) if(child.isMesh){
+      child.updateMatrix();const g=child.geometry.index?child.geometry.toNonIndexed():child.geometry.clone();
+      g.applyMatrix4(child.matrix);g.deleteAttribute('uv');
+      if(!batches.has(child.material))batches.set(child.material,[]);
+      batches.get(child.material).push(g);group.remove(child);child.geometry.dispose();
+    }
+    for(const [material,geos] of batches){group.add(new THREE.Mesh(mergeGeometries(geos),material));geos.forEach(g=>g.dispose());}
+  }
+  root.userData.noCollide=true;
+  return {root,body,wings,legs,seat,tail};
 }
 
 export class Bird {
@@ -88,6 +101,8 @@ export class Bird {
     this.wings = b.wings;
     this.legs = b.legs;
     this.seat = b.seat;
+    this.tail = b.tail;
+    this.wingFold = 1;
     this.pos = new THREE.Vector3(10, 0, 6);
     this.pos.y = physics.groundAt(10, 1e4, 6) + 1.4;
     this.vel = new THREE.Vector3();
@@ -258,14 +273,21 @@ export class Bird {
   }
 
   pose(dt) {
-    this.flap += dt * (3 + this.flapPower * 9);
-    const amp = this.landed ? 0.05 : 0.15 + this.flapPower * 0.75;
+    this.flap += dt * (3 + this.flapPower * 5);
+    this.wingFold += ((this.landed ? 1 : 0) - this.wingFold) * (1 - Math.exp(-5 * dt));
+    const fold = this.wingFold;
+    const amp = (1-fold) * (.12 + this.flapPower * .65);
     for (const w of this.wings) {
-      const fold = this.landed ? 1.2 : 0;
-      w.shoulder.rotation.z = w.side * (Math.sin(this.flap) * amp + (this.landed ? -0.9 : 0.05));
-      w.elbow.rotation.z = w.side * (Math.sin(this.flap - 0.8) * amp * 0.6 - fold * 0.9);
+      // Shoulder powers the stroke; the wrist follows and twists on recovery.
+      w.shoulder.rotation.y = w.side * fold * 1.12;
+      w.shoulder.rotation.z = w.side * (Math.sin(this.flap) * amp - fold * .32 + .08);
+      w.elbow.rotation.y = w.side * (fold * 1.5 + (1-fold)*(.12 + Math.max(0,Math.cos(this.flap))*.22*this.flapPower));
+      w.elbow.rotation.z = w.side * Math.sin(this.flap-.65) * amp * .48;
+      w.elbow.rotation.x = Math.cos(this.flap-.35) * amp * .18;
     }
-    for (const l of this.legs) l.rotation.x = this.landed ? 0 : 1.2;
+    for (const l of this.legs) l.rotation.x = -(1-fold)*1.25;
+    this.tail.rotation.x = -.08 + this.pitch*.18;
+    this.tail.rotation.z = -this.bank*.25;
     this.object.position.copy(this.pos);
     this.object.rotation.set(0, this.heading, 0);
     this.body.rotation.set(this.pitch, 0, this.bank);

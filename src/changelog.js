@@ -3,6 +3,11 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.21', date: '2026-10-03', items: [
+    'Desert birds now have bodies, heads, beaks, fan tails and feathered wings. They circle closer at a smaller scale, with bounded distance scaling to keep their silhouettes natural.',
+    'The Arzach riding bird has a curved neck, hooked beak, eyes, talons and a feathered tail. Layered flight feathers replace the old flat wing panels.',
+    'Shoulders and wrists articulate through the wingbeat; wings fold along the back on landing, legs tuck in flight and the tail responds to banking. Feathers are batched within each joint for rendering.',
+  ] },
   { v: '0.20', date: '2026-10-03', items: [
     'New world: The Signal Market. A street-level city of coral and teal towers, illustrated billboards, awnings, lanterns, cables and four walkable skybridges, inspired by your city reference sheets.',
     'Meet the market crowd and lavender inhabitants, hail flying taxis, or take the cab parked near the entrance. Climb or jetpack to the broadcast balcony to find The Last Broadcast.',

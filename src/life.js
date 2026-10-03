@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { featherGeometry, smallWingGeometry } from './avian.js';
 import { makeMaterial } from './materials.js';
 
 // Small ambient life: none of it is gameplay, all of it is drawn with the same
@@ -9,14 +11,6 @@ const _q = new THREE.Quaternion();
 const _p = new THREE.Vector3();
 const _s = new THREE.Vector3();
 const _e = new THREE.Euler();
-
-function wingGeometry(side) {
-  const g = new THREE.BufferGeometry().setFromPoints([
-    new THREE.Vector3(0, 0, 0.25), new THREE.Vector3(side * 1.3, 0, -0.15), new THREE.Vector3(0, 0, -0.35),
-  ]);
-  g.computeVertexNormals();
-  return g;
-}
 
 /** A flock of birds circling somewhere near the player, wings flapping. */
 export class Flock {
@@ -29,12 +23,24 @@ export class Flock {
     this.phase = seed * 1.7;
     const mat = makeMaterial({ color, flat: true, side: THREE.DoubleSide });
     this.wings = [-1, 1].map((side) => {
-      const m = new THREE.InstancedMesh(wingGeometry(side), mat, count);
+      const m = new THREE.InstancedMesh(smallWingGeometry(side), mat, count);
       m.frustumCulled = false;
       m.userData.noCollide = true;
+      m.userData.dynamic = true;
       scene.add(m);
       return m;
     });
+    const parts = [
+      new THREE.SphereGeometry(1,10,7).scale(.18,.2,.48),
+      new THREE.SphereGeometry(1,10,7).scale(.14,.15,.18).translate(0,.16,.42),
+      new THREE.ConeGeometry(.075,.26,6).rotateX(Math.PI/2).translate(0,.13,.66),
+    ];
+    for(let i=-2;i<=2;i++) parts.push(featherGeometry(.53,.16).rotateY(i*.17).translate(i*.045,.03,-.3));
+    this.bodies = new THREE.InstancedMesh(mergeGeometries(parts.map(g=>{const out=g.index?g.toNonIndexed():g;out.deleteAttribute('uv');return out;})),
+      makeMaterial({color:new THREE.Color(color).lerp(new THREE.Color('#b6aaa0'),.3).getStyle(),flat:true,side:THREE.DoubleSide}),count);
+    this.bodies.frustumCulled=false;
+    this.bodies.userData.noCollide=true; this.bodies.userData.dynamic=true;
+    scene.add(this.bodies);
     this.birds = Array.from({ length: count }, (_, i) => ({
       off: new THREE.Vector3((Math.random() - 0.5) * 16, (Math.random() - 0.5) * 6, (Math.random() - 0.5) * 16),
       flap: Math.random() * 6, rate: 7 + Math.random() * 4, glide: Math.random() * 10,
@@ -47,7 +53,7 @@ export class Flock {
     const a = this.phase + t * this.speed;
     const h = this.height[0] + (this.height[1] - this.height[0]) * (0.5 + 0.5 * Math.sin(t * 0.05 + this.phase));
     this.center.set(focus.x + Math.cos(a) * this.radius, focus.y + h, focus.z + Math.sin(a) * this.radius);
-    const yaw = Math.atan2(-Math.sin(a), Math.cos(a)); // along the tangent of the circle
+    const yaw = Math.atan2(-Math.sin(a), Math.cos(a)) + (this.speed < 0 ? Math.PI : 0); // along the tangent of the circle
     for (let i = 0; i < this.count; i++) {
       const b = this.birds[i];
       b.flap += dt * b.rate;
@@ -57,15 +63,21 @@ export class Flock {
       _p.copy(this.center).add(b.off);
       _p.x += Math.sin(t * 0.7 + i) * 2;
       _p.y += Math.sin(t * 0.9 + i * 1.3) * 1.2;
+      // Cap distance compensation: distant birds must not grow into giant Vs.
+      _s.setScalar(eye ? Math.min(this.size*1.7, Math.max(this.size, _p.distanceTo(eye)*.009)) : this.size);
+      const bank = this.speed < 0 ? -.13 : .13;
+      _e.set(.05,yaw,bank,'YXZ'); _q.setFromEuler(_e);
+      _m.compose(_p,_q,_s); this.bodies.setMatrixAt(i,_m);
       for (let w = 0; w < 2; w++) {
         const side = w === 0 ? -1 : 1;
-        _e.set(0, yaw, side * flap, 'YXZ');
+        _e.set(.05, yaw, bank + side * flap, 'YXZ');
         _q.setFromEuler(_e);
-        _s.setScalar(eye ? Math.max(this.size, _p.distanceTo(eye) * 0.03) : this.size);
+
         _m.compose(_p, _q, _s);
         this.wings[w].setMatrixAt(i, _m);
       }
     }
+    this.bodies.instanceMatrix.needsUpdate = true;
     for (const m of this.wings) m.instanceMatrix.needsUpdate = true;
   }
 }
