@@ -13,7 +13,10 @@ npm run dev     # http://localhost:5173
 Controls: click to capture the mouse · WASD move · Shift run · Space jump ·
 hold Space in the air to glide · mouse wheel zoom · Esc releases the mouse.
 **F** toggles the FPS counter. **H** shows or hides the controls help (hidden by default). **E** interacts: whistle for the level's mount (or hail a taxi), get on, get
-off. **L** opens the level picker. Each level's controls are listed below.
+off. **Q** (or touch **ping**) launches a tiny backpack scout toward your next
+objective. It waits a few metres ahead, labels the destination and returns after
+about 22 seconds; ping again to refresh it. The guide follows quest progress and
+portal routes, with local obstacle avoidance. **L** opens the level picker. Each level's controls are listed below.
 
 ## Install on iPhone
 
@@ -642,3 +645,5 @@ lookup on the terrain mesh.
   by Quaternius, CC0, with the Superhero male and female models and
   textures removed (`public/anim/human_*.glb`).
 - License texts are in `public/anim/`.
+
+Character rendering and scout regression checks: `node --test tests/*.test.js`.

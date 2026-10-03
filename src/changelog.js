@@ -3,6 +3,11 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.17', date: '2026-10-03', items: [
+    'Press Q or tap ping to launch a tiny scout from your backpack. It flies ahead toward your next objective, waits nearby and returns home.',
+    'The scout follows your progress: traveler, observatory ledges, unfinished lenses, story objectives, relics and gates. Doorways and gravity portals are included.',
+    'Clearer small characters: thinner silhouettes, lighter shadows and less clothing detail at a distance, so the lavender suit stays readable on phones.',
+  ] },
   { v: '0.16', date: '2026-10-03', items: [
     'Install on iPhone from Safari: Share → Add to Home Screen. Launch from the Moebius icon to play without browser bars, with controls clear of the notch and home indicator.',
     'The Sleeping Observatory: meet the traveler beside desert camp, follow their sketch east, climb six resting ledges and align three lenses to unfold the roof and reveal a constellation.',

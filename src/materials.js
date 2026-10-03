@@ -169,6 +169,7 @@ const fragmentShader = /* glsl */ `
   uniform float uDots;
   uniform vec3 uSkin;
   uniform vec4 uGlove;    // rgb, a = 1: gloved hands
+  uniform float uHero;    // player-only flag, packed above the glow range in gHatch.a
   uniform float uSuit;    // puffy-suit crease lines at the joints
   uniform float uGlass;   // glass: only the rim and a highlight streak are drawn
   uniform vec4 uOutfit;   // bootTop, beltY, neckY, wristX (rest pose, metres)
@@ -717,7 +718,7 @@ const fragmentShader = /* glsl */ `
     }
     detail = max(detail, patInk);
     gHatch.b = detail;
-    gHatch.a = max(uGlow, smoothstep(0.15, 0.6, local) * 0.6);
+    gHatch.a = max(uGlow, smoothstep(0.15, 0.6, local) * 0.6) + 2.0 * uHero;
     float dark = clamp((uToon - L) / uToon, 0.0, 1.0);
     // detail by distance: finer marks close to the camera, coarser far away
     float hsp = uHatchSpacing * mix(0.78, 1.4, smoothstep(6.0, 260.0, vViewDepth));
@@ -788,6 +789,7 @@ export function makeMaterial(o) {
       uPattern: { value: { facade: 1, tiles: 2, leaves: 3, cracks: 4 }[o.pattern] ?? 0 },
       uSkin: { value: new THREE.Color(o.skin ?? '#e8c6a8') },
       uGlove: { value: o.gloves ? new THREE.Vector4(...new THREE.Color(o.gloves).toArray(), 1) : new THREE.Vector4() },
+      uHero: { value: 0 },
       uSuit: { value: o.suit ? 1 : 0 },
       uGlass: { value: o.glass ? 1 : 0 },
       uOutfit: { value: new THREE.Vector4(...(o.outfit ?? [0.13, 0.97, 1.47, 0.64])) },
@@ -796,4 +798,24 @@ export function makeMaterial(o) {
   });
   cache.set(key, mat);
   return mat;
+}
+
+
+/** Tag only the player's materials, preserving live shared shader uniforms. */
+export function markHero(root, copies = new Map()) {
+  root?.traverse((o) => {
+    if (!o.isMesh) return;
+    const tagged = (material) => {
+      if (!material.uniforms?.uHero) return material;
+      if (!copies.has(material)) {
+        const copy = material.clone();
+        Object.assign(copy.uniforms, sharedUniforms);
+        copy.uniforms.uHero.value = 1;
+        copies.set(material, copy);
+      }
+      return copies.get(material);
+    };
+    o.material = Array.isArray(o.material) ? o.material.map(tagged) : tagged(o.material);
+  });
+  return copies;
 }

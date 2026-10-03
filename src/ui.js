@@ -56,7 +56,7 @@ export class SettingsMenu {
           <button data-a="close">Close</button>
         </div>
         <p class="keys install-tip">Play full screen on iPhone: open in Safari, tap Share → Add to Home Screen, then enable Open as Web App if shown.</p>
-        <p class="keys">WASD move · SHIFT run · SPACE jump / glide / jetpack · E interact · J sketchbook · L worlds · P photo · H help · O settings · N what's new</p>
+        <p class="keys">WASD move · SHIFT run · SPACE jump / glide / jetpack · E interact · Q ping scout · J sketchbook · L worlds · P photo · H help · O settings · N what's new</p>
       </div>`;
     const sync = () => {
       for (const c of el.querySelectorAll('[data-k]')) {
@@ -109,6 +109,7 @@ export class TouchControls {
       <button data-key="Space" class="b-jump">⤒</button>
       <button data-key="KeyE" class="b-use">E</button>
       <button data-toggle="ShiftLeft" class="b-run">run</button>
+      <button data-press="KeyQ" class="b-ping" aria-label="Ping next objective">ping</button>
       <button data-press="KeyJ" class="b-book">❏</button>
       <button data-press="KeyL" class="b-map">◫</button>`;
     const stick = root.querySelector('.stick'), nub = root.querySelector('.nub');
@@ -158,9 +159,18 @@ export class TouchControls {
         e.preventDefault();
         if (b.dataset.key) input[b.dataset.key] = true;
         if (b.dataset.toggle) { input[b.dataset.toggle] = !input[b.dataset.toggle]; b.classList.toggle('on', input[b.dataset.toggle]); }
-        if (b.dataset.press) window.dispatchEvent(new KeyboardEvent('keydown', { code: b.dataset.press }));
+        if (b.dataset.press) {
+          window.dispatchEvent(new KeyboardEvent('keydown', { code: b.dataset.press }));
+          window.dispatchEvent(new KeyboardEvent('keyup', { code: b.dataset.press }));
+        }
       }, { passive: false });
       b.addEventListener('touchend', (e) => { e.preventDefault(); if (b.dataset.key) input[b.dataset.key] = false; }, { passive: false });
+      b.addEventListener('touchcancel', () => { if (b.dataset.key) input[b.dataset.key] = false; });
+      // Touch prevents the compatibility click; keyboard/assistive clicks still work.
+      if (b.dataset.press) b.addEventListener('click', () => {
+        window.dispatchEvent(new KeyboardEvent('keydown', { code: b.dataset.press }));
+        window.dispatchEvent(new KeyboardEvent('keyup', { code: b.dataset.press }));
+      });
     }
   }
 }

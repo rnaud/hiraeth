@@ -70,6 +70,9 @@ export class Gear {
     // ---------------------------------------------------------------- radio pack
     const pack = new THREE.Group();
     chest.add(pack);
+    this.scoutDock = new THREE.Object3D();
+    this.scoutDock.position.set(0, 0.74, -0.29);
+    pack.add(this.scoutDock);
     pack.add(box(0.34, 0.4, 0.2, G.steel, 0, 0.5, -0.27));
     pack.add(box(0.36, 0.06, 0.22, G.steelDark, 0, 0.3, -0.27));
     pack.add(box(0.12, 0.14, 0.03, G.steelDark, -0.08, 0.56, -0.385));

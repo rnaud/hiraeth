@@ -443,6 +443,17 @@ const fragmentShader = /* glsl */ `
     vec4 A = texture(tAlbedo, uv);
     vec4 N = texture(tNormal, uv);
     bool isSky = N.w <= 0.0;
+    vec4 surface = texture(tHatch, uv);
+    float hero = step(1.5, surface.a);
+    // Detail follows projected size, so a small landscape-phone figure keeps colour.
+    float heroHeight = max(0.0, uSubject.w) * 2.0 * uRes.y / uPixelRatio;
+    float heroDetail = smoothstep(70.0, 180.0, heroHeight);
+    vec2 hp = max(1.0, 0.65 * uPixelRatio) / uRes;
+    vec4 hm = step(vec4(1.5), vec4(texture(tHatch, uv + vec2(hp.x, 0)).a,
+      texture(tHatch, uv - vec2(hp.x, 0)).a, texture(tHatch, uv + vec2(0, hp.y)).a,
+      texture(tHatch, uv - vec2(0, hp.y)).a));
+    float heroNear = max(hero, max(max(hm.x, hm.y), max(hm.z, hm.w)));
+    float heroBoundary = heroNear - min(hero, min(min(hm.x, hm.y), min(hm.z, hm.w)));
     float depth = isSky ? 1e7 : N.w;
     vec3 rd = viewRay(uv);
 
@@ -478,10 +489,12 @@ const fragmentShader = /* glsl */ `
     // silhouettes (depth edges) heavy, interior creases and colour edges light
     float silW = weight * mix(1.0, 1.35, uLineVary) * press;
     float inW = weight * mix(1.0, 0.75, uLineVary) * mix(1.0, 0.85 + 0.3 * vnoise(fc * 0.06 + 9.0), uLineVary);
-    // the subject gets a heavier outline so the figure reads against the page
+    // Keep continuous interior strokes near the subject.
     vec2 sd = (uv - uSubject.xy) * vec2(uRes.x / uRes.y, 1.0);
     float subj = (1.0 - smoothstep(uSubject.w * 0.7, uSubject.w, length(sd))) * (1.0 - smoothstep(1.5, 4.0, abs(probeD - uSubject.z)));
-    silW *= 1.0 + 0.7 * subj * step(0.0, uSubject.w);
+    // Use the exact player mask instead of fattening everything near its screen centre.
+    silW = mix(silW, 0.65, heroNear);
+    euv = mix(euv, uv, heroNear);
     float nearD2;
     vec4 eS = inkLines(euv, silW * uPixelRatio, false, nearD);
     vec4 eI = inkLines(euv, inW * uPixelRatio, true, nearD2);
@@ -491,6 +504,9 @@ const fragmentShader = /* glsl */ `
     float gapN = vnoise(vec2(wpL.x + wpL.y * 0.7, wpL.z - wpL.y * 0.4) * 0.9);
     float broken = mix(1.0, smoothstep(0.22, 0.34, gapN), uLineVary * (1.0 - subj) * smoothstep(3.0, 12.0, probeD));
     float ink = clamp(max(max(eS.x, eI.y * broken), max(eI.z * 0.85 * broken, eI.w * 0.8)), 0.0, 1.0);
+
+    float heroInk = max(heroBoundary * 0.82, max(eI.y, eI.z) * 0.22 * heroDetail * hero);
+    ink = mix(ink, heroInk, heroNear);
 
     // fog factor (for lines use the nearest surface in the kernel)
     float fogLine = 1.0 - exp(-max(nearD - uFogStart, 0.0) * uFogDensity * uFogMul * 1.4);
@@ -509,14 +525,17 @@ const fragmentShader = /* glsl */ `
       // during the sun -> moon hand-over both tones converge, so shadows fade
       vec3 shade = mix(albedo * uShadowTint, albedo * uLightTint, uFlatten);
       // self-lit surfaces (gHatch.a) keep their colour at night and glow a little
-      float glow = texture(tHatch, uv).a;
+      float glow = surface.a - 2.0 * hero;
       col = mix(shade, albedo * mix(uLightTint, vec3(1.12), glow), lit);
+      col = mix(col, mix(col, albedo * uLightTint, 0.3), hero);
       col *= 1.0 + uHighlight * smoothstep(0.9, 0.92, L);
 
       // ---- 3. hatching in shadow
       float dark = clamp((uToon - L) / uToon, 0.0, 1.0);
       float hFade = (1.0 - smoothstep(uHatchScreen > 0.5 ? 40.0 : 150.0, uHatchScreen > 0.5 ? 350.0 : 700.0, depth)) * uHatch * (1.0 - uFlatten);
-      vec3 H = texture(tHatch, uv).rgb;
+      hFade *= mix(1.0, 0.12 * heroDetail, hero);
+      vec3 H = surface.rgb;
+      H.b *= mix(1.0, 0.35 * heroDetail, hero);
       // drawn detail lines: grids, glyphs, ripples, cracks, fissures (independent of the marks toggle)
       col = mix(col, uInk, clamp(H.b, 0.0, 1.0) * 0.6 * (1.0 - smoothstep(120.0, 600.0, depth)));
       if (hFade > 0.0 && uHatchScreen < 0.5) {
@@ -528,7 +547,7 @@ const fragmentShader = /* glsl */ `
       }
 
       // ---- 3b. crease shading: darker tone + accent strokes where geometry closes in
-      if (uAO > 0.0 && depth < 260.0) {
+      if (uAO > 0.0 && depth < 260.0 && hero < 0.5) {
         float ao = creaseAO(uv, N.xyz, depth, fc) * (1.0 - smoothstep(80.0, 260.0, depth)) * uAO;
         col = mix(col, col * uShadowTint * 0.85, smoothstep(0.15, 0.7, ao) * 0.55);
         ink = max(ink, smoothstep(0.6, 0.9, ao) * 0.45);

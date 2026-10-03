@@ -233,6 +233,10 @@
       #picker, #journal { padding: calc(24px + var(--safe-top)) calc(20px + var(--safe-right)) calc(24px + var(--safe-bottom)) calc(20px + var(--safe-left)); }
       #picker header { flex-wrap: wrap; gap: 12px; }
       @media (display-mode: standalone) { .install-tip { display: none; } }
+      #touch .b-ping { right: calc(112px + var(--safe-right)); bottom: calc(200px + var(--safe-bottom)); font-size: 13px; }
+      #scout-label { position: fixed; z-index: 29; transform: translate(-50%, -100%); max-width: 180px;
+        padding: 5px 8px; border: 1px solid #2b211f; background: rgba(255, 246, 220, 0.92); color: #2b211f;
+        font: 11px/1.35 ui-monospace, Menlo, monospace; text-align: center; pointer-events: none; }
     </style>
   </head>
   <body>
@@ -253,6 +257,7 @@
     <div id="travel"><div class="title"></div></div>
     <div id="settings"></div>
     <div id="touch"></div>
+    <div id="scout-label" hidden></div>
     <button id="gear" title="Settings (O)">⚙</button>
     <div id="fps"></div>
     <div id="photo">PHOTO MODE · WASD + Q/E fly · mouse look · SHIFT fast · H panel · ENTER save PNG · P exit</div>
@@ -266,7 +271,7 @@
     <div id="hud">
       <span class="help"><b>MOEBIUS PoC</b><br />
       click to capture mouse · WASD move · SHIFT run<br />
-      SPACE jump · hold SPACE in air to glide · push into walls to climb · wheel zoom · L worlds · P photo · O settings<br />
+      SPACE jump · hold SPACE in air to glide · push into walls to climb · wheel zoom · Q ping scout · L worlds · P photo · O settings<br />
       </span><span id="status"></span>
     </div>
     <script type="module" src="/src/main.js"></script>

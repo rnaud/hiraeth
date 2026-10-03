@@ -1,8 +1,9 @@
 import * as THREE from 'three';
 import { ObservatoryQuest } from './observatory.js';
+import { Scout, nextObjective } from './scout.js';
 import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
 import GUI from 'lil-gui';
-import { sharedUniforms } from './materials.js';
+import { sharedUniforms, markHero } from './materials.js';
 import { createPost, DEBUG_VIEWS, PRESETS } from './post.js';
 import { LEVELS, levelById } from './levels/index.js';
 import { Player, CameraRig } from './player.js';
@@ -195,6 +196,9 @@ if (humanT) {
   player.humanoid.setHeadwear('short', { hair: '#8a5638' });
 }
 player.attach(scene);
+const heroMaterials = markHero(player.char.root);
+markHero(player.gear?.device, heroMaterials);
+markHero(player.cape?.mesh, heroMaterials);
 if (player.mount) scene.add(player.mount.object);
 
 // ambient life
@@ -275,6 +279,9 @@ const gate = (() => {
   });
 })();
 levelLights.push(gate.light);
+const scout = new Scout({ scene, player, physics, sound, label: document.getElementById('scout-label'),
+  getTarget: () => nextObjective({ player, expedition, story, relics, gate, level }),
+});
 if (viaGate) {
   const a = gate.arrival();
   player.respawn(a.pos);
@@ -347,6 +354,7 @@ player.onStep = (p, heading, up, i) => {
 const input = {};
 window.addEventListener('keydown', (e) => {
   input[e.code] = true;
+  if (e.code === 'KeyQ' && !e.repeat && !busy() && !photo.on) scout.ping();
   if (e.code === 'Space') e.preventDefault();
 });
 window.addEventListener('keyup', (e) => (input[e.code] = false));
@@ -604,10 +612,10 @@ function updateHud() {
     else if (level.features.taxis) parts.push('E hail a taxi');
     if (!parts.length) parts.push('push into a wall to climb it');
   }
-  const goal = expedition?.hud(player) ?? story.hud();
+  const goal = expedition && !expedition.state.returned ? expedition.hud(player) : story.hud();
   const edgeHint = edgeTravel();
   const text = `${atmo.name} · ${parts.join(' · ')}` +
-    `\n${goal ? goal + ' · ' : ''}${errands.hud() ? errands.hud() + ' · ' : ''}relics ${journal.relicCount(levelId)}/${content.relics.names.length} · H help` +
+    `\n${goal ? goal + ' · ' : ''}${errands.hud() ? errands.hud() + ' · ' : ''}relics ${journal.relicCount(levelId)}/${content.relics.names.length} · Q ping · H help` +
     (gate.near ? ` · walk through the gate to ${nextTitle}` : '') + (edgeHint ? ` · ${edgeHint}` : '');
   audioCfg.mute = sound.muted;
   if (text !== lastStatus) { status.textContent = text; lastStatus = text; }
@@ -653,7 +661,7 @@ function renderFrame() {
   U.uInvProj.value.copy(camera.projectionMatrixInverse);
   U.uCamWorld.value.copy(camera.matrixWorld);
   U.uProj11.value = camera.projectionMatrix.elements[5];
-  // the subject (the player) on screen, for its heavier outline
+  // Projected player size controls how much fine ink detail remains visible.
   _subj.copy(player.pos).addScaledVector(player.frame?.up ?? _subjUp, 0.95).applyMatrix4(camera.matrixWorldInverse);
   const sdep = -_subj.z;
   if (sdep > 0.5 && !player.hidden) {
@@ -726,6 +734,9 @@ function frame() {
     rig.follow(player.ride?.heading ?? player.heading, dt, player.riding || player.gliding);
     rig.update(player.pos, dt, player.frame);
   }
+  scout.update(dt, busy() || photo.on);
+  if (!busy() && !photo.on) scout.placeLabel(camera);
+  else if (scout.label) scout.label.hidden = true;
   // flocks circle the player (also in photo mode, so you can fly up to them)
   for (const f of flocks) f.update(dt, t, player.pos, camera.position);
   motes?.update(dt, t, camera.position);
@@ -863,4 +874,4 @@ requestAnimationFrame((t) => {
 });
 
 // handy for debugging from the console
-Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, gate, journal, errands, expedition, weather, sound, captureView, settings, menu, trails });
+Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, gate, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails });

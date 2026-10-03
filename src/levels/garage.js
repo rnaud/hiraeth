@@ -339,6 +339,7 @@ export function createGarage(scene) {
       flocks: [{ count: 9, color: '#e6875f', size: 1.3, radius: 60, height: [10, 30], seed: 5 }],
       motes: { count: 140, color: '#f2c54b', size: 0.05, glow: 0.7, rise: 0.15, wind: [0.2, 0.1] },
     },
+    navigationPortals: portals,
     gravityAt,
     // the hanging city faces down: mirror the sun so it's lit, not cross-hatched
     lightAt: (p, dir) => { if (inB(p)) dir.y = -dir.y; },
