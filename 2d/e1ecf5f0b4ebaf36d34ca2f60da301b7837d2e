@@ -1,0 +1,25 @@
+tests/touch.test.js
+  s_c90ca0a3de1a1d::t_943d838963ab91 1-42
+index.html
+  s_c90ca0a3de1a1d::t_539ef7ac75be7c 23
+src/changelog.js
+  s_c90ca0a3de1a1d::t_50168a1083931f 6-8
+src/ui.js
+  s_c90ca0a3de1a1d::t_7e4e86826a7482 154-156
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2de1ecf5f0b4ebaf36d34ca2f60da301b7837d2e",
+  "prompts": {},
+  "sessions": {
+    "s_c90ca0a3de1a1d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a100ef-7d9f-7b43-ae7d-30f5177e2ff0",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
