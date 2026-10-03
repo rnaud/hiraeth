@@ -37,6 +37,8 @@ export class Journal {
   relicCount(level) { return Object.keys(this.data.relics[level] ?? {}).length; }
   storyDone(level) { return !!this.data.stories[level]; }
   addStory(level, entry) { this.data.stories[level] = entry; this.save(); }
+  errand(id) { return this.data.errands?.[id]; }
+  setErrand(id, v) { (this.data.errands ??= {})[id] = v; this.save(); }
   seen(level) { return !!this.data.seen[level]; }
   markSeen(level) { this.data.seen[level] = 1; this.save(); }
 
@@ -61,6 +63,11 @@ export class Journal {
         : `<figure class="tile story empty"><div>…</div><figcaption>${L.storyTitle ?? ''}</figcaption></figure>`;
       return `<section><h2>${L.title} <span>${this.relicCount(L.id)}/${(L.relicNames ?? []).length}</span></h2><div class="row">${story}${relics}</div></section>`;
     }).join('');
+    const errands = Object.entries(this.data.errands ?? {});
+    if (errands.length) body.innerHTML += `<section><h2>Errands <span>${errands.filter(([, e]) => e.done).length}</span></h2><div class="row">${
+      errands.map(([, e]) => e.done
+        ? `<figure class="tile"><img src="${e.img}" alt=""><figcaption>${e.item} · delivered</figcaption></figure>`
+        : `<figure class="tile empty"><div>✉</div><figcaption>${e.item} · ${e.toTitle}</figcaption></figure>`).join('')}</div></section>`;
   }
 }
 
@@ -342,4 +349,57 @@ export function arriveFromPage(title) {
     el.classList.remove('instant');
     setTimeout(() => { el.classList.remove('in'); el.classList.add('out'); }, 500);
   }));
+}
+
+/**
+ * Errands between worlds (levels/content.js ERRANDS). Watches this world's
+ * villagers: greeting a giver hands you the parcel, greeting the receiver
+ * while carrying it delivers it (with a sketch of them for the journal).
+ */
+export class Errands {
+  constructor({ levelId, defs, npcs, journal, titles, capture, sound }) {
+    Object.assign(this, { levelId, defs, npcs, journal, titles, capture, sound });
+    this.watch = [];
+    for (const d of defs) {
+      if (d.from[0] === levelId && npcs[d.from[1]]) this.watch.push({ d, npc: npcs[d.from[1]], role: 'give' });
+      if (d.to[0] === levelId && npcs[d.to[1]]) this.watch.push({ d, npc: npcs[d.to[1]], role: 'take' });
+    }
+    for (const w of this.watch) w.base = w.npc.lines;
+  }
+
+  update() {
+    for (const w of this.watch) {
+      const { d, npc } = w, st = this.journal.errand(d.id);
+      if (!npc.greeted) { w.handled = false; continue; }
+      if (w.handled) continue;
+      w.handled = true;
+      const say = (line) => { npc.lines = [line]; npc.lineIdx = 0; };
+      if (w.role === 'give') {
+        if (!st) {
+          say(d.ask);
+          this.journal.setErrand(d.id, { item: d.item, to: d.to[0], toTitle: this.titles[d.to[0]] ?? d.to[0], done: false });
+          toast(`Errand: carry ${d.item} to ${this.titles[d.to[0]] ?? d.to[0]}`);
+          this.sound?.chime?.();
+        } else if (!st.done) say(d.wait);
+        else npc.lines = w.base;
+      } else if (st && !st.done) {
+        say(d.thanks);
+        const P = npc.pos, h = npc.heading;
+        let img = '';
+        try {
+          img = this.capture(new THREE.Vector3(P.x + Math.sin(h) * 3, P.y + 1.8, P.z + Math.cos(h) * 3), P.clone().add(new THREE.Vector3(0, 1.4, 0)), 240, 180);
+        } catch { /* no sketch */ }
+        this.journal.setErrand(d.id, { ...st, done: true, img });
+        toast(`Delivered ${d.item} · J to see it in the sketchbook`);
+        this.sound?.chime?.();
+      } else npc.lines = w.base;
+    }
+  }
+
+  /** The parcels you're carrying, for the HUD. */
+  hud() {
+    const out = [];
+    for (const [, e] of Object.entries(this.journal.data.errands ?? {})) if (!e.done) out.push(`carrying ${e.item.replace(/^an? /, '')} → ${e.toTitle}`);
+    return out.slice(0, 1).join('');
+  }
 }

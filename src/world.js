@@ -481,7 +481,7 @@ export function buildWorld(scene, terrain) {
     const N = 5000;
     const rocks = new THREE.InstancedMesh(
       new THREE.IcosahedronGeometry(1, 0),
-      makeMaterial({ color: '#ffffff', flat: true }),
+      makeMaterial({ color: '#ffffff', flat: true, pattern: 'cracks' }),
       N
     );
     const tones = ['#d9a07c', '#c98d70', '#e8c49a', '#b9a3c7'];

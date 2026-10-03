@@ -130,8 +130,8 @@ export class NPC {
 
     // cloth only near the camera
     const camD = camera.position.distanceTo(this.pos);
-    if (this.cape) this.cape.mesh.visible = camD < 220;
-    if (this.cape && camD < 70) {
+    if (this.cape) this.cape.mesh.visible = camD < (this.lowDetail ? 120 : 220);
+    if (this.cape && camD < (this.lowDetail ? 30 : 70)) {
       this.object.updateMatrixWorld(true);
       this.vel.set(Math.sin(this.heading) * speed, 0, Math.cos(this.heading) * speed);
       this.cape.update(dt, { up: Y, vel: this.vel, wind: player.wind, floor: this.pos, capsules: this.humanoid ? this.humanoid.capsules() : this.capsules() });

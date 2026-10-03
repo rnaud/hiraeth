@@ -49,7 +49,7 @@ export function buildRoom(scene, {
   for (const g of wallWithHoles(w, h, t, holesFor('back'))) W.push(g.rotateY(Math.PI).translate(0, 0, -d / 2));
   for (const g of wallWithHoles(d, h, t, holesFor('right'))) W.push(g.rotateY(-Math.PI / 2).translate(w / 2, 0, 0));
   for (const g of wallWithHoles(d, h, t, holesFor('left'))) W.push(g.rotateY(Math.PI / 2).translate(-w / 2, 0, 0));
-  F.push(new THREE.BoxGeometry(w + t, 0.3, d + t + 2.4).translate(0, -0.15, 1.2));   // with a doorstep outside
+  F.push(new THREE.BoxGeometry(w + t, 0.3, d + t + 2.4).translate(0, -0.11, 1.2));   // with a doorstep outside; top 4 cm above the ground so they never z-fight
   // ceiling, optionally with a square oculus letting a shaft of sun in
   if (oculus > 0) {
     const o = oculus / 2;

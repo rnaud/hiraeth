@@ -63,8 +63,10 @@ export function createIncal(scene) {
     return buckets.get(k).geos;
   };
   const placed = (g, x, y, z, rot = 0) => g.rotateY(rot).translate(x, y, z);
-  const wallMat = (i) => strata(PASTELS[i % PASTELS.length], PASTELS[(i + 2) % PASTELS.length], '#f6efe0', 3.2, { grid: 2.4, flat: true });
-  const roofMat = (i) => makeMaterial({ color: ROOFS[i % ROOFS.length], flat: true });
+  const wallMat = (i) => strata(PASTELS[i % PASTELS.length], PASTELS[(i + 2) % PASTELS.length], '#f6efe0', 3.2, { pattern: 'facade', flat: true });
+  const roofMat = (i) => makeMaterial({ color: ROOFS[i % ROOFS.length], flat: true, pattern: 'tiles' });
+  const ironMat = makeMaterial({ color: '#34405e', flat: true });
+  const doorMat = makeMaterial({ color: '#5a3a2c', flat: true });
 
   /** A villa: block walls with a window grid, a hipped roof, a dome on a drum, or a roof garden. */
   function house(x, y, z) {
@@ -82,6 +84,23 @@ export function createIncal(scene) {
     } else {
       bucket('wall' + wi, wallMat(wi)).push(placed(new THREE.BoxGeometry(w + 0.4, 0.9, d + 0.4).translate(0, h + 0.45, 0), x, y, z, rot));
       trees.push([x, y + h + 0.9, z, 0.6]);    // a little roof garden
+    }
+    // silhouette details: an arched door, a balcony, a chimney
+    const face = rng() < 0.5 ? 1 : -1;
+    bucket('door', doorMat).push(placed(new THREE.BoxGeometry(1.3, 2.2, 0.2).translate(0, 1.1, face * d / 2), x, y, z, rot));
+    bucket('door', doorMat).push(placed(new THREE.CylinderGeometry(0.65, 0.65, 0.2, 10, 1, false, 0, Math.PI).rotateX(Math.PI / 2).rotateZ(Math.PI / 2).translate(0, 2.2, face * d / 2), x, y, z, rot));
+    if (h > 7 && rng() < 0.6) {
+      const by = 3.3 * Math.max(1, Math.floor(rng() * (h / 3.3 - 1))), bw = 2 + rng() * 2;
+      const bx = (rng() - 0.5) * (w - bw - 0.6);
+      bucket('wall' + wi, wallMat(wi)).push(placed(new THREE.BoxGeometry(bw, 0.2, 1.1).translate(bx, by, -face * (d / 2 + 0.55)), x, y, z, rot));
+      bucket('iron', ironMat).push(placed(new THREE.BoxGeometry(bw, 0.06, 0.06).translate(bx, by + 0.95, -face * (d / 2 + 1.07)), x, y, z, rot));
+      for (let k = 0; k <= Math.round(bw / 0.35); k++)
+        bucket('iron', ironMat).push(placed(new THREE.BoxGeometry(0.04, 0.9, 0.04).translate(bx - bw / 2 + k * 0.35, by + 0.5, -face * (d / 2 + 1.07)), x, y, z, rot));
+    }
+    if (kind < 0.5 && rng() < 0.55) {
+      const cx = (rng() - 0.5) * w * 0.5, cz = (rng() - 0.5) * d * 0.5;
+      bucket('wall' + wi, wallMat(wi)).push(placed(new THREE.BoxGeometry(0.7, 3.2, 0.7).translate(cx, h + 1.6, cz), x, y, z, rot));
+      bucket('roof' + ri, roofMat(ri)).push(placed(new THREE.BoxGeometry(1.0, 0.25, 1.0).translate(cx, h + 3.3, cz), x, y, z, rot));
     }
   }
   const trees = [];   // [x, y, z, scale, group]
@@ -469,6 +488,7 @@ export function createIncal(scene) {
     const a = (rng() - 0.5) * 0.9, rad = R + 6 + rng() * 60;
     const x = Math.cos(a) * rad, z = Math.sin(a) * rad + (rng() - 0.5) * 20;
     if (Math.abs(z) < 16 && x < R + 40) continue;     // keep the view from the spawn open
+    if (x > R + 30 && x < R + 60 && Math.abs(z) < 42) continue;   // and the walk-in villas clear
     trees.push([x, TOP, z, 0.8 + rng() * 0.8]);
   }
   // ---------------------------------------------------------- trees: cypresses and round olives
@@ -485,9 +505,15 @@ export function createIncal(scene) {
     const greens = ['#5e7a3a', '#4f6b34', '#6f8a42', '#56733f'];
     const hash01 = (i) => ((Math.sin(i * 12.9898) * 43758.5453) % 1 + 1) % 1;
     const groups = [...new Set(trees.map((t) => t[4]))];
-    const treeMat = makeMaterial({ color: '#ffffff', scrub: true });
-    for (const grp of groups) for (const geo of [cypress, olive]) {
-      const list = trees.filter((t, i) => t[4] === grp && (hash01(i) < 0.55) === (geo === cypress));
+    const treeMat = makeMaterial({ color: '#ffffff', scrub: true, pattern: 'leaves' });
+    // umbrella pine: a bare leaning trunk under a flat layered canopy
+    const pineParts = [new THREE.CylinderGeometry(0.22, 0.4, 8, 5).translate(0, 4, 0).rotateZ(0.12)];
+    for (let k = 0; k < 5; k++) { const a = k * 1.9, r = k ? 1.8 : 0; pineParts.push(new THREE.IcosahedronGeometry(2.2, 0).scale(1.2, 0.42, 1.2).translate(Math.cos(a) * r + 0.95, 8.4 + (k % 2) * 0.5, Math.sin(a) * r)); }
+    const pine = mergeGeometries(pineParts.map((g) => g.toNonIndexed()));
+    pine.computeVertexNormals();
+    const kindOf = (i) => { const h = hash01(i); return h < 0.5 ? cypress : h < 0.82 ? olive : pine; };
+    for (const grp of groups) for (const geo of [cypress, olive, pine]) {
+      const list = trees.filter((t, i) => t[4] === grp && kindOf(i) === geo);
       if (!list.length) continue;
       const mesh = new THREE.InstancedMesh(geo, treeMat, list.length);
       list.forEach(([x, y, z, s], i) => {
@@ -531,7 +557,7 @@ export function createIncal(scene) {
     });
     roomLights.push(...room.lights);
     // a terracotta roof on top, like the town below
-    const roof = new THREE.Mesh(new THREE.ConeGeometry(8.2, 3.2, 4).rotateY(Math.PI / 4).scale(1.05, 1, 0.95), makeMaterial({ color: ROOFS[Math.floor(rng() * 4)], flat: true }));
+    const roof = new THREE.Mesh(new THREE.ConeGeometry(8.2, 3.2, 4).rotateY(Math.PI / 4).scale(1.05, 1, 0.95), makeMaterial({ color: ROOFS[Math.floor(rng() * 4)], flat: true, pattern: 'tiles' }));
     roof.position.set(R + 44, TOP + 4.6 + 1.6 + 0.3, vz);
     scene.add(roof);
   }

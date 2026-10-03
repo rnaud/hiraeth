@@ -13,8 +13,8 @@ import { Flock, Motes, Footprints } from './life.js';
 import { Sound } from './audio.js';
 import { Weather, WEATHER_KINDS } from './weather.js';
 import { spawnNPCs, NPC } from './npc.js';
-import { Journal, Relics, Story, Gate, turnPage, arriveFromPage } from './quest.js';
-import { CONTENT, nextLevel } from './levels/content.js';
+import { Journal, Relics, Story, Gate, Errands, turnPage, arriveFromPage } from './quest.js';
+import { CONTENT, ERRANDS, nextLevel } from './levels/content.js';
 import { loadAnimationLibrary, Animator } from './animator.js';
 import { loadHuman, Humanoid } from './humanoid.js';
 import { Settings, SettingsMenu, TouchControls, SaveGame, isTouch } from './ui.js';
@@ -113,7 +113,7 @@ post.uniforms.tHatch.value = gbuffer.textures[2];
 // resolution into an offscreen target, then is box-filtered down. Lines and
 // strokes are sized by the effective pixel ratio, so they keep their look.
 const settings = new Settings();
-const QUALITY = { low: 0.7, medium: 1, high: pixelRatio >= 2 ? 1 : 1.5 };
+const QUALITY = { low: 0.7, medium: 1, high: pixelRatio >= 2 ? 1 : 1.5, auto: isTouch ? 0.85 : 1 };
 const quality = { renderScale: QUALITY[settings.quality] ?? 1 };
 const composeRT = new THREE.WebGLRenderTarget(1, 1, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, depthBuffer: false });
 const blit = (() => {
@@ -161,7 +161,8 @@ resize();
 // ------------------------------------------------------------------ world
 const query = new URLSearchParams(location.search);
 const levelParam = query.get('level');
-const viaGate = query.get('via') === 'gate';
+const viaEdge = query.get('via') === 'edge';
+const viaGate = query.get('via') === 'gate' || viaEdge;
 const meta = levelById(levelParam) ?? LEVELS[0];
 const levelId = meta.id;
 const content = CONTENT[levelId];
@@ -259,6 +260,7 @@ if (level.crowd) {
   });
 }
 const journal = new Journal(LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, relicNames: CONTENT[l.id].relics.names, storyTitle: CONTENT[l.id].story.title })));
+const errands = new Errands({ levelId, defs: ERRANDS, npcs, journal, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])), capture: (e, l, w, h) => captureView(e, l, w, h), sound });
 const capture = (eye, look, w, h) => captureView(eye, look, w, h);
 const relics = new Relics(scene, physics, { levelId, spots: content.relics.spots, names: content.relics.names, journal, sound, capture, lights: levelLights });
 const next = nextLevel(levelId);
@@ -281,6 +283,44 @@ if (viaGate) {
   player.heading = a.heading;
   rig.yaw = a.heading;   // camera behind the player, looking away from the gate
   history.replaceState(null, '', `?level=${levelId}`);
+}
+// ---- seamless travel: walk, ride or glide off the edge of a world into the next one
+const EDGE = levelId === 'atelier' || !Number.isFinite(level.limit ?? 1900) ? null : (level.limit ?? 1900) - 50;
+const prevLevel = ORDER[(ORDER.indexOf(levelId) + ORDER.length - 1) % ORDER.length];
+if (viaEdge && EDGE) {
+  // left the last world through its +x edge (side=xp): arrive at this world's -x edge, heading inward, same lateral place
+  const side = query.get('side') ?? 'xp', axis = side[0], sgn = side[1] === 'n' ? -1 : 1;
+  const lat = THREE.MathUtils.clamp(+(query.get('lat') ?? 0), -0.6, 0.6) * EDGE;
+  // the arrival point: near the edge, walking inward until there is ground (the city is smaller than its page)
+  let x = 0, z = 0, g = NaN;
+  for (let k = EDGE - 220; k >= 0 && !Number.isFinite(g); k -= 60) {
+    const inset = -sgn * k, l = lat * (k / EDGE);
+    x = axis === 'x' ? inset : l; z = axis === 'x' ? l : inset;
+    g = physics.groundAt(x, 1e4, z, 2e4);
+  }
+  const pos = Number.isFinite(g) ? new THREE.Vector3(x, g + 1, z) : player.pos.clone();
+  player.respawn(pos);
+  player.heading = axis === 'x' ? (sgn > 0 ? Math.PI / 2 : -Math.PI / 2) : (sgn > 0 ? 0 : Math.PI);
+  rig.yaw = player.heading;
+  if (query.get('ride') === '1' && player.mount) {
+    player.mount.summon(x, z, player.heading, pos);
+    player.mount_(player.mount);
+  }
+}
+let edgeLeaving = false;
+function edgeTravel() {
+  if (!EDGE || edgeLeaving || endingOpen) return null;
+  const p = player.ride?.pos ?? player.pos;
+  const ax = Math.abs(p.x) > Math.abs(p.z) ? 'x' : 'z', v = p[ax], m = Math.abs(v);
+  const dest = v > 0 ? next : prevLevel;
+  if (m > EDGE) {
+    edgeLeaving = true;
+    const lat = (ax === 'x' ? p.z : p.x) / EDGE;
+    const ride = player.ride && player.ride === player.mount ? 1 : 0;
+    turnPage(levelById(dest).title, () => { location.search = `?level=${dest}&via=edge&side=${ax}${v > 0 ? 'p' : 'n'}&lat=${lat.toFixed(3)}&ride=${ride}`; });
+    return null;
+  }
+  return m > EDGE - 160 ? `the edge of the page · keep going for ${levelById(dest).title}` : null;
 }
 // continue where you left off (same world, not arriving through a gate)
 const saved = SaveGame.load();
@@ -406,6 +446,32 @@ gui.close();   // collapsed by default; click the title to open
 
 // ------------------------------------------------------------------ settings, touch
 let lastQuality = settings.quality;
+// Low-detail mode (Low, or Auto once it has had to drop resolution on a slow device):
+// no crease shading, no cloud shadows, the near shadow cascade at half rate, fewer far NPC updates.
+const baseAO = U.uAO.value, baseCloudSh = sharedUniforms.uCloudShadows.value;
+const adapt = { scale: QUALITY.auto, slow: 0, fast: 0, dropped: false };
+const lowDetail = () => settings.quality === 'low' || (settings.quality === 'auto' && (isTouch || adapt.dropped));
+function applyDetail() {
+  const low = lowDetail();
+  U.uAO.value = low ? 0 : baseAO;
+  sharedUniforms.uCloudShadows.value = low ? 0 : baseCloudSh;
+  for (const n of npcs) n.lowDetail = low;
+}
+/** Auto quality: called twice a second with the measured fps; steps the resolution down (to 0.5) or back up. */
+function adaptQuality(fps) {
+  if (settings.quality !== 'auto' || document.hidden) return;
+  if (fps < 40) { adapt.slow++; adapt.fast = 0; } else if (fps > 56) { adapt.fast++; adapt.slow = 0; } else adapt.slow = adapt.fast = 0;
+  if (adapt.slow >= 6 && quality.renderScale > 0.5) {
+    quality.renderScale = Math.max(0.5, +(quality.renderScale - 0.15).toFixed(2));
+    adapt.slow = 0;
+    if (!adapt.dropped) { adapt.dropped = true; applyDetail(); }
+    resize();
+  } else if (adapt.fast >= 16 && quality.renderScale < QUALITY.auto) {
+    quality.renderScale = Math.min(QUALITY.auto, +(quality.renderScale + 0.1).toFixed(2));
+    adapt.fast = 0;
+    resize();
+  }
+}
 settings.on((k) => {
   rig.sensitivity = settings.sensitivity;
   rig.invertY = settings.invertY;
@@ -413,6 +479,7 @@ settings.on((k) => {
   gui.domElement.style.display = settings.devPanel ? '' : 'none';
   document.body.classList.toggle('nofps', !settings.showFps);
   if (settings.quality !== lastQuality) { lastQuality = settings.quality; quality.renderScale = QUALITY[settings.quality] ?? 1; resize(); }
+  applyDetail();
 });
 const menu = new SettingsMenu(settings, {
   sound,
@@ -531,9 +598,10 @@ function updateHud() {
     if (!parts.length) parts.push('push into a wall to climb it');
   }
   const goal = story.hud();
+  const edgeHint = edgeTravel();
   const text = `${atmo.name} · ${parts.join(' · ')}` +
-    `\n${goal ? goal + ' · ' : ''}relics ${journal.relicCount(levelId)}/${content.relics.names.length} · H help` +
-    (gate.near ? ` · walk through the gate to ${nextTitle}` : '');
+    `\n${goal ? goal + ' · ' : ''}${errands.hud() ? errands.hud() + ' · ' : ''}relics ${journal.relicCount(levelId)}/${content.relics.names.length} · H help` +
+    (gate.near ? ` · walk through the gate to ${nextTitle}` : '') + (edgeHint ? ` · ${edgeHint}` : '');
   audioCfg.mute = sound.muted;
   if (text !== lastStatus) { status.textContent = text; lastStatus = text; }
 }
@@ -543,6 +611,7 @@ const busy = () => story.pageOpen || journal.open || picker.classList.contains('
 const noInput = {};
 
 /** The whole pipeline for one view: shadows, G-buffer, composite, overlays. */
+const _subj = new THREE.Vector3(), _subjUp = new THREE.Vector3(0, 1, 0);
 function renderFrame() {
   // 1. shadow maps (the wide cascade only refreshes every 3rd frame)
   const lightDir = sharedUniforms.uSunDir.value;
@@ -550,8 +619,11 @@ function renderFrame() {
   for (const o of level.noShadow ?? []) o.visible = false;
   fineShadow.update(player.pos, lightDir);
   fineShadow.render(scene);
-  nearShadow.update(player.pos, lightDir);
-  nearShadow.render(scene);
+  // low detail: the near cascade every other frame (it follows you smoothly enough)
+  if (!lowDetail() || frameNo % 2 === 0) {
+    nearShadow.update(player.pos, lightDir);
+    nearShadow.render(scene);
+  }
   if (frameNo++ % 3 === 0 || sky.speed > 0) {
     for (const o of tiled.small) o.visible = false;   // pebbles and bushes don't need km-wide shadows
     farShadow.update(player.pos, lightDir);
@@ -572,6 +644,13 @@ function renderFrame() {
   U.uInvProj.value.copy(camera.projectionMatrixInverse);
   U.uCamWorld.value.copy(camera.matrixWorld);
   U.uProj11.value = camera.projectionMatrix.elements[5];
+  // the subject (the player) on screen, for its heavier outline
+  _subj.copy(player.pos).addScaledVector(player.frame?.up ?? _subjUp, 0.95).applyMatrix4(camera.matrixWorldInverse);
+  const sdep = -_subj.z;
+  if (sdep > 0.5 && !player.hidden) {
+    _subj.applyMatrix4(camera.projectionMatrix);
+    U.uSubject.value.set(_subj.x * 0.5 + 0.5, _subj.y * 0.5 + 0.5, sdep, 1.35 * U.uProj11.value / (2 * sdep));
+  } else U.uSubject.value.w = -1;
   const ss = quality.renderScale > 1;
   renderer.setRenderTarget(ss ? composeRT : null);
   renderer.clear();
@@ -614,7 +693,9 @@ window.addEventListener('keydown', (e) => { if (e.code === 'KeyF' && !photo.on) 
 function frame() {
   if (++fpsN, performance.now() - fpsT > 500) {
     const now = performance.now();
-    fpsEl.textContent = `${Math.round((fpsN * 1000) / (now - fpsT))} fps`;
+    const fps = (fpsN * 1000) / (now - fpsT);
+    fpsEl.textContent = `${Math.round(fps)} fps${settings.quality === 'auto' ? ` · ${quality.renderScale}×` : ''}`;
+    adaptQuality(fps);
     fpsN = 0; fpsT = now;
   }
   timer.update();
@@ -669,6 +750,7 @@ function frame() {
     }
   }
   for (const n of npcs) n.update(dt, player, camera);
+  errands.update();
   // only the nearest talking villager shows a balloon
   {
     let best = null, bd = Infinity;
@@ -766,4 +848,4 @@ requestAnimationFrame((t) => {
 });
 
 // handy for debugging from the console
-Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, gate, journal, weather, sound, captureView, settings, menu, trails });
+Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, gate, journal, errands, weather, sound, captureView, settings, menu, trails });

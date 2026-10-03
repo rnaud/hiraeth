@@ -94,6 +94,8 @@ const fragmentShader = /* glsl */ `
   uniform float uSkyBands;    // posterised sky gradient
   uniform float uHazeBands;   // distance haze in flat layers
   uniform float uRays;        // sun rays at low sun
+  uniform vec4 uSubject;      // the player on screen: uv, view depth, radius (uv units, y)
+  uniform float uAerial;      // distant layers lose saturation and drift to the sky colour
   uniform float uLineVary;    // thick silhouettes / thin interior lines / pen pressure
   uniform float uSkyFlat;     // flat printed sky (vs gradient)
   uniform float uSkyDots;     // stipple dots in the sky
@@ -476,11 +478,19 @@ const fragmentShader = /* glsl */ `
     // silhouettes (depth edges) heavy, interior creases and colour edges light
     float silW = weight * mix(1.0, 1.35, uLineVary) * press;
     float inW = weight * mix(1.0, 0.75, uLineVary) * mix(1.0, 0.85 + 0.3 * vnoise(fc * 0.06 + 9.0), uLineVary);
+    // the subject gets a heavier outline so the figure reads against the page
+    vec2 sd = (uv - uSubject.xy) * vec2(uRes.x / uRes.y, 1.0);
+    float subj = (1.0 - smoothstep(uSubject.w * 0.7, uSubject.w, length(sd))) * (1.0 - smoothstep(1.5, 4.0, abs(probeD - uSubject.z)));
+    silW *= 1.0 + 0.7 * subj * step(0.0, uSubject.w);
     float nearD2;
     vec4 eS = inkLines(euv, silW * uPixelRatio, false, nearD);
     vec4 eI = inkLines(euv, inW * uPixelRatio, true, nearD2);
     nearD = min(nearD, nearD2);
-    float ink = clamp(max(max(eS.x, eI.y), max(eI.z * 0.85, eI.w * 0.8)), 0.0, 1.0);
+    // interior lines break up like quick pen strokes; gaps are anchored in the world
+    vec3 wpL = uCamWorld[3].xyz + rd * min(probeD, 5000.0) / max(dot(rd, -uCamWorld[2].xyz), 0.2);
+    float gapN = vnoise(vec2(wpL.x + wpL.y * 0.7, wpL.z - wpL.y * 0.4) * 0.9);
+    float broken = mix(1.0, smoothstep(0.22, 0.34, gapN), uLineVary * (1.0 - subj) * smoothstep(3.0, 12.0, probeD));
+    float ink = clamp(max(max(eS.x, eI.y * broken), max(eI.z * 0.85 * broken, eI.w * 0.8)), 0.0, 1.0);
 
     // fog factor (for lines use the nearest surface in the kernel)
     float fogLine = 1.0 - exp(-max(nearD - uFogStart, 0.0) * uFogDensity * uFogMul * 1.4);
@@ -529,7 +539,12 @@ const fragmentShader = /* glsl */ `
       float fb = fog * 4.0;
       float fogQ = (floor(fb) + smoothstep(0.42, 0.58, fract(fb))) / 4.0;
       fog = mix(fog, fogQ, uHazeBands);
-      col = mix(col, skyBase(rd), fog);
+      vec3 skyC = skyBase(rd);
+      // aerial perspective: mid-distance layers go greyer and paler before the fog takes them
+      float aer = smoothstep(0.0, 0.55, fog) * uAerial;
+      float luma = dot(col, vec3(0.3, 0.55, 0.15));
+      col = mix(col, mix(vec3(luma), skyC, 0.35) * 1.04, aer * 0.4);
+      col = mix(col, skyC, fog);
     }
 
     if (uDebug == 6) col = vec3(0.97, 0.94, 0.86);
@@ -604,6 +619,8 @@ export function createPost() {
     uHazeBands: { value: 0.6 },
     uRays: { value: 1 },
     uLineVary: { value: 1 },
+    uSubject: { value: new THREE.Vector4(0, 0, 0, -1) },
+    uAerial: { value: 1 },
     uSkyFlat: { value: 0 },
     uSkyDots: { value: 0 },
     uCumulus: { value: 0 },

@@ -325,6 +325,44 @@ Modelled on a classic Moebius desert plate:
   projected cap overhead) and sized through the mapping's screen Jacobian,
   so they stay put and round as the camera turns.
 
+## Drawn textures, lines and depth
+
+- **Drawn patterns** (`pattern` option in `makeMaterial`), all in surface
+  coordinates so they stick to the object, and faded out where they'd shimmer:
+  - `facade`: windows per storey, some with arched tops, with frames, sills,
+    painted shutters, dark glass and a cornice line. Used on the city houses.
+  - `tiles`: rows of roof tiles with staggered joints. Used on the terracotta roofs.
+  - `leaves`: little scalloped leaf arcs. Used on the trees.
+  - `cracks`: a broken Voronoi crack network. Used on the boulders.
+- **City silhouettes:** arched doors, iron-railed balconies and chimneys on
+  the houses, plus umbrella pines among the cypresses and olives.
+- **Line quality:**
+  - Interior lines break into short strokes. The gaps are anchored in the
+    world, so they don't crawl.
+  - The player gets a heavier outline so the figure reads against the page.
+- **Aerial perspective:** mid-distance layers lose saturation and drift
+  towards the sky colour before the fog takes them.
+- **Detail by distance:** hatching and sand dots are finer close to the
+  camera and coarser far away.
+- **The rider's robe:** a short, front-open skirt of heavy cloth hangs from
+  the waist under the cape. It's a second cloth simulation, kicked by the
+  leg capsules.
+
+## Errands and travel between worlds
+
+- **Errands:** in each world one villager asks you to carry something to
+  someone in the next world: a jar of singing sand, a taxi token, a feather,
+  a brass gear, a glass seed, a humming crystal. Greeting them hands you the
+  parcel, and the HUD shows what you're carrying. Greeting the receiver
+  delivers it and puts a sketch of them in the sketchbook (J, "Errands").
+  The errands are defined in `ERRANDS` in `levels/content.js`.
+- **Seamless travel:** walk, ride or glide off the edge of a world (past
+  ~1850 m) and the page turns into the neighbouring world: the next one
+  across the +x/+z edges, the previous one across −x/−z. You arrive at the
+  matching edge, at the same place along it, heading inward, and still on
+  the mount if you were riding and that world has one. The HUD warns you
+  as you get close. The Garage (a ring world) and the Atelier have no edges.
+
 ## Performance
 
 - **Background collision:** the collision BVH is built in a web worker.
@@ -334,6 +372,14 @@ Modelled on a classic Moebius desert plate:
 - **Distance detail:** trees and roofs far above or below the camera are
   hidden, and trees stay out of the far shadow pass. That cut about 20–40%
   of the triangles per frame.
+
+- **Auto quality** (the default on touch devices): if the frame rate stays
+  under 40 fps for about 3 s, the resolution drops in steps (down to 0.5×);
+  it climbs back when there's headroom. The current scale shows next to the
+  fps counter.
+- **Low detail** (Low, or Auto on touch or once it has had to drop): no
+  crease shading, no cloud shadows, the near shadow cascade at half rate, and
+  villagers' capes simulated only up close.
 
 `src/perf.js` splits the terrain and the big scattered-prop sets into
 260 m tiles. Each pass (the view and the three shadow cascades) then draws

@@ -7,7 +7,7 @@ const SAVE_KEY = 'moebius.save.v1';
 export const isTouch = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
 
 const DEFAULTS = {
-  quality: isTouch ? 'low' : 'high',   // low | medium | high
+  quality: isTouch ? 'auto' : 'high',   // auto | low | medium | high
   sensitivity: 1,
   invertY: false,
   music: 0.8,
@@ -41,7 +41,7 @@ export class SettingsMenu {
     el.innerHTML = `
       <div class="panel">
         <h1>SETTINGS</h1>
-        ${row('Graphics', `<select data-k="quality"><option value="low">Low (fast)</option><option value="medium">Medium</option><option value="high">High (smooth lines)</option></select>`)}
+        ${row('Graphics', `<select data-k="quality"><option value="auto">Auto (adapts to keep it smooth)</option><option value="low">Low (fast)</option><option value="medium">Medium</option><option value="high">High (smooth lines)</option></select>`)}
         ${row('Mouse / touch sensitivity', `<input data-k="sensitivity" type="range" min="0.3" max="3" step="0.05">`)}
         ${row('Invert camera Y', `<input data-k="invertY" type="checkbox">`)}
         ${row('Music', `<input data-k="music" type="range" min="0" max="1" step="0.05">`)}

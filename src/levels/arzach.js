@@ -200,7 +200,7 @@ export function createArzach(scene) {
   }
   {
     const N = 2500, dummy = new THREE.Object3D(), color = new THREE.Color();
-    const rocks = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 0), makeMaterial({ color: '#ffffff', flat: true }), N);
+    const rocks = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 0), makeMaterial({ color: '#ffffff', flat: true, pattern: 'cracks' }), N);
     for (let i = 0; i < N; i++) {
       const x = (rng() * 2 - 1) * 1400, z = (rng() * 2 - 1) * 1400;
       const s = 0.4 + Math.pow(rng(), 3) * 5;

@@ -160,6 +160,7 @@ const fragmentShader = /* glsl */ `
   in vec2 vFold;
   uniform float uFolds;
   uniform float uScrub;
+  uniform int uPattern;    // 1 facade, 2 roof tiles, 3 leaves, 4 rock cracks
   uniform float uDots;
   uniform vec3 uSkin;
   uniform vec4 uOutfit;   // bootTop, beltY, neckY, wristX (rest pose, metres)
@@ -365,6 +366,60 @@ const fragmentShader = /* glsl */ `
     return md;
   }
 
+  // ---------------------------------------------------------------- drawn patterns
+  // Windows on a wall: frames (some arched), dark glass, sills, painted shutters,
+  // a cornice line per storey. Coordinates run along the face, so they stick.
+  float facade(vec3 wp, vec3 n, inout vec3 alb) {
+    float vert = 1.0 - smoothstep(0.25, 0.4, abs(n.y));
+    vec2 dirH = normalize(vec2(-n.z, n.x) + 1e-5);
+    vec2 q = vec2(dot(wp.xz, dirH), wp.y) / vec2(3.0, 3.3);
+    vec2 fq = max(fwidth(q), vec2(1e-5));
+    vec2 id = floor(q), f = fract(q);
+    float h = hash(id + 3.7), h2 = hash(id + 9.1);
+    float ink = inkLine(abs(f.y - 0.03) / fq.y, 0.8) * 0.6;                    // cornice
+    if (h > 0.22) {
+      vec2 c = f - vec2(0.5, 0.48), hf = vec2(0.17, 0.22);
+      vec2 d2 = abs(c) - hf;
+      float box = max(d2.x, d2.y);
+      if (h2 > 0.5 && c.y > hf.y - hf.x) box = length(vec2(c.x, c.y - (hf.y - hf.x))) - hf.x;   // arched top
+      if (box < 0.0) alb = mix(alb, vec3(0.36, 0.43, 0.56), vert);
+      ink = max(ink, inkLine(abs(box) / fq.x, 1.0));
+      if (abs(c.x) < hf.x + 0.05) ink = max(ink, inkLine(abs(c.y + hf.y + 0.03) / fq.y, 1.3));  // sill
+      if (h2 > 0.55 && h2 < 0.88 && abs(abs(c.x) - hf.x - 0.075) < 0.065 && abs(c.y) < hf.y)     // shutters
+        alb = mix(alb, h > 0.6 ? vec3(0.37, 0.55, 0.5) : vec3(0.36, 0.47, 0.62), vert);
+    }
+    return ink * vert * (1.0 - smoothstep(0.06, 0.16, max(fq.x, fq.y)));
+  }
+
+  // Roof tiles: rows with staggered joints.
+  float roofTiles(vec3 wp) {
+    float v = wp.y * 4.5, u = dot(wp.xz, vec2(0.707)) * 3.5;
+    float fv = max(fwidth(v), 1e-5), fu = max(fwidth(u), 1e-5);
+    float row = abs(fract(v + 0.5) - 0.5) / fv;
+    float joint = abs(fract(u + floor(v) * 0.5 + 0.5) - 0.5) / fu;
+    return max(inkLine(row, 0.8), inkLine(joint, 0.7) * 0.7) * (1.0 - smoothstep(0.15, 0.4, max(fv, fu)));
+  }
+
+  // Leaves: little scalloped arcs on the foliage, more of them in shade.
+  float leaves(vec3 op) {
+    vec2 q = vec2(op.x + op.z * 0.6, op.y) * 2.6;
+    vec2 fq = max(fwidth(q), vec2(1e-5));
+    vec2 id = floor(q), f = fract(q);
+    vec2 o = vec2(hash(id), hash(id + 2.3)) * 0.3 - 0.15;
+    vec2 c = f - vec2(0.5, 0.3) - o;
+    float d = abs(length(c) - 0.3);
+    return inkLine(d / max(fq.x, fq.y), 0.9) * step(0.0, c.y) * step(0.35, hash(id + 5.0)) * (1.0 - smoothstep(0.12, 0.3, max(fq.x, fq.y)));
+  }
+
+  // Rock cracks: a broken Voronoi network across the stone.
+  float rockCracks(vec3 op) {
+    vec2 q = (op.xy + op.zx * 0.6) * 0.9;
+    float fwq = max(max(fwidth(q.x), fwidth(q.y)), 1e-5);
+    float d = voronoiBorder(q) / fwq;
+    float gaps = smoothstep(0.35, 0.55, vnoise(q * 2.3 + 11.0));
+    return inkLine(d, 0.9) * gaps * (1.0 - smoothstep(0.08, 0.2, fwq));
+  }
+
   float segDist(vec2 p, vec2 a, vec2 b) {
     vec2 ab = b - a;
     float t = clamp(dot(p - a, ab) / dot(ab, ab), 0.0, 1.0);
@@ -557,6 +612,11 @@ const fragmentShader = /* glsl */ `
       float w = vnoise(vWorldPos.xz * 0.012 + uTime * 0.01);
       albedo = w > 0.55 ? uColor2 : uColor;
     }
+    float patInk = 0.0;
+    if (uPattern == 1) patInk = facade(vWorldPos, n, albedo);
+    else if (uPattern == 2) patInk = roofTiles(vWorldPos);
+    else if (uPattern == 3) patInk = leaves(vObjPos);
+    else if (uPattern == 4) patInk = rockCracks(vObjPos);
     albedo *= vInstColor;
     // cloth: the colour runs from the collar (uColor) down to the hem (uColor2)
     if (uFolds > 0.0) albedo = mix(uColor, uColor2, smoothstep(0.15, 0.95, vFold.y)) * vInstColor;
@@ -595,7 +655,7 @@ const fragmentShader = /* glsl */ `
       if (uDots > 0.0) {
         // pen dotting: patchy, denser in hollows, a few bigger pebble dots
         float patchy = 0.45 + 0.55 * smoothstep(0.3, 0.75, vnoise(vWorldPos.xz * 0.06 + 7.0));
-        float dots = stipple(ce1, fwd, 8.5, 0.32);
+        float dots = stipple(ce1, fwd, 8.5 * mix(0.7, 1.45, smoothstep(5.0, 220.0, vViewDepth)), 0.32);
         float pebbles = stipple(ce2 * 0.37, fwd * 0.37, 20.0, 0.75) * step(0.5, vnoise(vWorldPos.xz * 0.2));
         detail = max(detail, max(dots * patchy, pebbles) * uDots * 1.6);
       }
@@ -623,25 +683,28 @@ const fragmentShader = /* glsl */ `
       float frontal = smoothstep(0.15, 0.45, normalize(vObjNormal).z);
       detail = max(detail, faceInk(vec2(abs(vBind.x), vBind.y - uFace.x), fwBind * uPixelRatio, frontal));
     }
+    detail = max(detail, patInk);
     gHatch.b = detail;
     gHatch.a = max(uGlow, smoothstep(0.15, 0.6, local) * 0.6);
     float dark = clamp((uToon - L) / uToon, 0.0, 1.0);
+    // detail by distance: finer marks close to the camera, coarser far away
+    float hsp = uHatchSpacing * mix(0.78, 1.4, smoothstep(6.0, 260.0, vViewDepth));
     if (dark > 0.0 && uHatch > 0.0 && uShadeStyle == 1) {
-      gHatch.r = stipple(ce1, fwd, uHatchSpacing * 1.15, dark) * smoothstep(0.02, 0.15, dark);
+      gHatch.r = stipple(ce1, fwd, hsp * 1.15, dark) * smoothstep(0.02, 0.15, dark);
     } else if (dark > 0.0 && uHatch > 0.0) {
-      float h1 = strokes(ce1, fw1, uHatchSpacing, mix(0.9, 2.2, dark)) * smoothstep(0.02, 0.12, dark);
+      float h1 = strokes(ce1, fw1, hsp, mix(0.9, 2.2, dark)) * smoothstep(0.02, 0.12, dark);
       if (uFormHatch > 0.0 && uMode == ${MODE_TERRAIN}) {
         // on slopes the strokes become height contours wrapping round the dunes
         float sm = smoothstep(0.1, 0.3, slope) * uFormHatch;
-        float hc = strokes(ceY, fwY, uHatchSpacing, mix(0.9, 2.2, dark)) * smoothstep(0.02, 0.12, dark);
+        float hc = strokes(ceY, fwY, hsp, mix(0.9, 2.2, dark)) * smoothstep(0.02, 0.12, dark);
         h1 = mix(h1, hc, sm);
       }
       float h2 = 0.0;
       if (dark > 0.5) {
         bool rings = uFormHatch > 0.0 && uFlat < 0.5 && uMode != ${MODE_TERRAIN};
         // smooth objects: cross-hatch as rings round the form (trunks, ribs, domes)
-        h2 = (rings ? strokes(ceY, fwY, uHatchSpacing * 1.2, mix(0.6, 1.7, dark))
-                    : strokes(ce2, fw2, uHatchSpacing * 1.2, mix(0.6, 1.7, dark))) * smoothstep(0.5, 0.65, dark);
+        h2 = (rings ? strokes(ceY, fwY, hsp * 1.2, mix(0.6, 1.7, dark))
+                    : strokes(ce2, fw2, hsp * 1.2, mix(0.6, 1.7, dark))) * smoothstep(0.5, 0.65, dark);
       }
       gHatch.rg = vec2(h1, h2);
     }
@@ -690,6 +753,7 @@ export function makeMaterial(o) {
       uGlow: { value: o.glow ?? 0 },
       uFolds: { value: o.folds ?? 0 },
       uScrub: { value: o.scrub ? 1 : 0 },
+      uPattern: { value: { facade: 1, tiles: 2, leaves: 3, cracks: 4 }[o.pattern] ?? 0 },
       uSkin: { value: new THREE.Color(o.skin ?? '#e8c6a8') },
       uOutfit: { value: new THREE.Vector4(...(o.outfit ?? [0.13, 0.97, 1.47, 0.64])) },
       uFace: { value: new THREE.Vector4(...(o.face ?? [1.7, 0.032, 1.657, 1.577]).filter((_, i) => i !== 3)) },

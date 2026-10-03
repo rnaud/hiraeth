@@ -148,3 +148,33 @@ export const CONTENT = {
     ],
   },
 };
+
+// Errands: villagers asking you to carry something to someone in another
+// world. Greeting the giver hands you the parcel; greeting the receiver
+// (npc index into that world's `npcs`) delivers it. A loop through every world.
+export const ERRANDS = [
+  { id: 'sand', item: 'a jar of singing sand', from: ['desert', 1], to: ['incal', 3],
+    ask: 'My cousin sweeps the high terraces of the city. Take her this jar of singing sand?',
+    wait: 'The terraces, up by the palace. She sweeps there.',
+    thanks: 'Sand from home! It still hums. Thank you, traveller.' },
+  { id: 'token', item: 'a taxi token', from: ['incal', 1], to: ['arzach', 1],
+    ask: 'Someone out in the bone country wants a ride. Give them this token.',
+    wait: 'Arzach’s country. Past the gate, past the bones.',
+    thanks: 'A token for a city I’ll never see. I’ll keep it anyway.' },
+  { id: 'feather', item: 'a feather from the bird', from: ['arzach', 2], to: ['garage', 0],
+    ask: 'The Major collects feathers. Bring this one to his people in the Garage.',
+    wait: 'The hollow world. Someone there will know the Major.',
+    thanks: 'Ha! The Major will pretend he never asked for it.' },
+  { id: 'gear', item: 'a brass gear', from: ['garage', 1], to: ['edena', 0],
+    ask: 'A gardener in Edena needs a gear for her water clock. Don’t lean on it.',
+    wait: 'Edena. The garden with the white pyramids.',
+    thanks: 'It fits. The garden can keep time again.' },
+  { id: 'seed', item: 'a glass seed', from: ['edena', 3], to: ['perdide', 0],
+    ask: 'Carry this seed to the keeper in the swamp. She knows where it grows.',
+    wait: 'Perdide. Follow the glow.',
+    thanks: 'We don’t feed the plants. But this one we will plant.' },
+  { id: 'crystal', item: 'a humming crystal', from: ['perdide', 2], to: ['desert', 0],
+    ask: 'Bring this crystal to the dune walker. It hums before storms.',
+    wait: 'The golden dunes, near where you first woke.',
+    thanks: 'Now I’ll hear the storms before they find me. Thank you.' },
+];

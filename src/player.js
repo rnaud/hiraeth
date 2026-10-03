@@ -25,7 +25,7 @@ function part(geo, color, opts = {}) {
 // cloak that reaches the ankles and flares out behind when running, a long
 // pale face with a long thin nose, a peaked hood whose tip trails behind.
 export const RIDER_COLORS = { cloak: '#3f5fae', cloak2: '#7a4fa8', lining: '#2f3f80', cloth: '#343a56', legs: '#2b2f45', wrap: '#e2d3b4',
-  face: '#f1e6d0', ink: '#2b211f', belt: '#d8a24a' };
+  face: '#f1e6d0', ink: '#2b211f', belt: '#d8a24a', robe: '#ead9b4', robe2: '#c9a577' };
 
 /** @param palette overrides for RIDER_COLORS (NPCs use their own) */
 export function buildCharacter(palette = {}) {
@@ -395,6 +395,7 @@ export class Player {
       this.wing = wing;
     }
     scene.add(this.object);
+    this.scene = scene;
     this.cape = new Cape(scene, this.char.capeAnchor ?? this.char.torso, { color: this.char.colors.cloak, color2: this.char.colors.cloak2 });
     this.tails = this.char.scarfAnchors.map((_, i) =>
       new ClothTail(scene, i === 0 ? { points: 10, seg: 0.2, width: 0.2 } : { points: 7, seg: 0.18, width: 0.16 }));
@@ -422,6 +423,26 @@ export class Player {
   }
 
   updateCloth(dt) {
+    // the robe: a short front-open skirt of heavy cloth hanging from the waist, kicked by the legs
+    const pelvis = this.humanoid?.b?.pelvis;
+    if (pelvis && !this.robe) {
+      this.waist = new THREE.Object3D();
+      this.scene.add(this.waist);
+      this.robe = new Cape(this.scene, this.waist, { cols: 12, rows: 6, top: 0.17, bottom: 0.33, length: 0.62, y: 0.1, gap: 0.6, color: this.char.colors.robe ?? '#c98f52', color2: this.char.colors.robe2 ?? '#8a5a3c' });
+    }
+    if (this.robe) {
+      this.object.updateMatrixWorld(true);
+      pelvis.getWorldPosition(this.waist.position);
+      this.object.getWorldQuaternion(this.waist.quaternion);
+      this.robe.mesh.visible = this.object.visible;
+      this.robe.update(dt, {
+        up: this.frame.up,
+        vel: this.ride ? this.ride.vel : this.climbing ? _cv.set(0, 0, 0) : this.vel,
+        wind: this.wind, floor: this.pos,
+        capsules: this.humanoid.capsules(),
+        spread: 0, lift: this.thrusting ? 0.5 : 0,
+      });
+    }
     if (this.cape) {
       this.object.updateMatrixWorld(true);
       this.cape.update(dt, {
