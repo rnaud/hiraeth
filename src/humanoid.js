@@ -166,12 +166,12 @@ export class Humanoid {
    * @param char     the rig from buildCharacter()
    * @param kind     'm' | 'f'
    */
-  constructor(template, char, kind = 'm', { skin = '#e8c6a8', hair = '#8a6a55' } = {}) {
+  constructor(template, char, kind = 'm', { skin = '#e8c6a8', hair = '#8a6a55', gloves = null, suit = false } = {}) {
     this.char = char;
     const model = cloneSkinned(template);
     this.model = model;
     const C = char.colors;
-    const body = makeMaterial({ color: C.cloth, color2: C.legs, color3: C.boot ?? '#6e3f2c', mode: MODE_OUTFIT, skin, outfit: OUTFIT[kind], face: faceAfterReshape(kind) });
+    const body = makeMaterial({ color: C.cloth, color2: C.legs, color3: C.boot ?? '#6e3f2c', mode: MODE_OUTFIT, skin, outfit: OUTFIT[kind], face: faceAfterReshape(kind), gloves, suit });
     const eyes = makeMaterial({ color: C.ink });
     const brows = makeMaterial({ color: hair });
     model.traverse((o) => {
@@ -280,7 +280,8 @@ export class Humanoid {
     const cap = new THREE.SphereGeometry(0.118, 16, 10, 0, Math.PI * 2, 0, Math.PI * 0.58);
     cap.scale(1, 1.08, 1.12);
     add(cap, mat(hair), 0, 0.012, -0.012).rotation.x = -0.32;
-    if (kind === 'hair') {
+    if (kind === 'short') { /* just the short crop */ }
+    else if (kind === 'hair') {
       const style = Math.random();
       if (style < 0.5) add(new THREE.SphereGeometry(0.045, 10, 8), mat(hair), 0, 0.12, -0.06);                 // top-knot
       else {

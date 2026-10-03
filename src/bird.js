@@ -109,7 +109,16 @@ export class Bird {
   }
 
   /** Called by the player's whistle: fly to the player and land beside them. */
-  summon(x, z, heading, near) {
+  summon(x, z, heading, near, { airborne = false, vel = null } = {}) {
+    if (airborne && near) {
+      // you're falling or gliding: swoop in from behind and below and catch you
+      this.catchRef = near; this.catchVel = vel;
+      if (this.pos.distanceTo(near) > 500) this.pos.copy(near).add(new THREE.Vector3(-(vel?.x ?? 0) * 4 - 60, -30, -(vel?.z ?? 0) * 4 - 60));
+      this.landed = false;
+      this.mode = 'catching';
+      this.speed = 30;
+      return;
+    }
     // land on the ground at the player's level (not on an arch above them)
     const from = near ? near.y + 4 : 1e4;
     this.target = new THREE.Vector3(x, this.physics.groundAt(x, from, z) + 1.4, z);
@@ -131,6 +140,7 @@ export class Bird {
     this.time += dt;
     if (input && this.mode === 'ridden') this.fly(dt, input);
     else if (this.mode === 'summoned') this.flyTo(dt);
+    else if (this.mode === 'catching') this.flyCatch(dt);
     else if (this.mode === 'glide-down') this.glideDown(dt);
     else this.idle(dt);
     this.pose(dt);
@@ -174,6 +184,28 @@ export class Bird {
     this.bank = THREE.MathUtils.clamp(-dh, -0.5, 0.5);
     this.pitch = -aim.y * 0.5;
     this.flapPower = d < 20 ? 1 : 0.5;
+  }
+
+  /** Chase a falling rider: aim at a point a little ahead of and under them, faster than they fall. */
+  flyCatch(dt) {
+    const P = this.catchRef, V = this.catchVel ?? _v.set(0, 0, 0);
+    const aim = new THREE.Vector3(P.x + V.x * 0.35, P.y + V.y * 0.35 - 1.6, P.z + V.z * 0.35).sub(this.pos);
+    const d = aim.length();
+    this.catchDist = d;
+    const g = this.physics.groundAt(this.pos.x, this.pos.y + 1, this.pos.z);
+    // the rider landed first: just come and land beside them instead
+    if (P.y - this.physics.groundAt(P.x, P.y + 1, P.z) < 1.5) { this.summon(P.x + 3, P.z + 2, this.heading, P); return; }
+    aim.normalize();
+    const vlen = Math.hypot(V.x, V.y, V.z);
+    this.speed = THREE.MathUtils.lerp(this.speed, Math.max(vlen + 18, Math.min(70, d * 2 + 10)), 1 - Math.exp(-2 * dt));
+    this.pos.addScaledVector(aim, Math.min(this.speed * dt, d));
+    if (this.pos.y < g + 1.4) this.pos.y = g + 1.4;
+    let dh = Math.atan2(aim.x, aim.z) - this.heading;
+    dh = Math.atan2(Math.sin(dh), Math.cos(dh));
+    this.heading += dh * (1 - Math.exp(-5 * dt));
+    this.bank = THREE.MathUtils.clamp(-dh * 1.5, -0.6, 0.6);
+    this.pitch = -aim.y * 0.6;
+    this.flapPower = 1;
   }
 
   fly(dt, input) {

@@ -95,12 +95,32 @@ export class Hoverbike {
     return [Math.sin(this.heading), Math.cos(this.heading)];
   }
 
-  summon(x, z, heading, near) {
+  /** Put it right here (arriving in a new world already riding). */
+  place(x, z, heading, near) {
     const from = near ? near.y + 4 : 1e4;
-    this.pos.set(x, this.groundAt(x, from, z) + HOVER + 4, z);
+    this.pos.set(x, this.groundAt(x, from, z) + HOVER + 1, z);
     this.vel.set(0, 0, 0);
     this.speed = 0;
     this.heading = heading;
+    this.auto = null;
+  }
+
+  /**
+   * Whistled for: it drives over to you from wherever it is (if it's very far
+   * or lost, it comes in from a way off), then pulls up beside you.
+   * `near` is the live player position; the bike keeps the same offset from it.
+   */
+  summon(x, z, heading, near, { camFwd = null } = {}) {
+    const ref = near ?? new THREE.Vector3(x, 0, z);
+    if (!Number.isFinite(this.pos.x) || this.pos.distanceTo(ref) > 220) {
+      // come in from the side of the view, so you see it arrive
+      const a = Math.atan2(camFwd?.x ?? Math.sin(heading), camFwd?.z ?? Math.cos(heading)) + (Math.random() < 0.5 ? 1.5 : -1.5);
+      const sx = ref.x + Math.sin(a) * 140, sz = ref.z + Math.cos(a) * 140;
+      this.pos.set(sx, this.groundAt(sx, 1e4, sz) + HOVER, sz);
+      this.vel.set(0, 0, 0);
+      this.heading = Math.atan2(ref.x - sx, ref.z - sz);
+    }
+    this.auto = { near: ref, dx: x - ref.x, dz: z - ref.z, heading };
   }
 
   /** Where the rider sits (world space). */
@@ -116,6 +136,25 @@ export class Hoverbike {
     const [fx, fz] = this.forward;
 
     let throttle = 0, steer = 0, boost = false;
+    if (ridden) this.auto = null;
+    if (!ridden && this.auto) {
+      // autopilot: steer at the spot beside the player, ease off as it arrives
+      const A = this.auto, tx = A.near.x + A.dx, tz = A.near.z + A.dz;
+      const dx = tx - this.pos.x, dz = tz - this.pos.z, d = Math.hypot(dx, dz);
+      if (d < 7 && Math.abs(this.speed) > 1.5) {
+        this.speed *= Math.exp(-3.5 * dt);              // brake into the spot, don't circle it
+      } else if (d < 7) {
+        let dh = A.heading - this.heading; dh = Math.atan2(Math.sin(dh), Math.cos(dh));
+        this.heading += dh * (1 - Math.exp(-4 * dt));
+        if (Math.abs(dh) < 0.05) this.auto = null;
+      } else {
+        let dh = Math.atan2(dx, dz) - this.heading; dh = Math.atan2(Math.sin(dh), Math.cos(dh));
+        steer = THREE.MathUtils.clamp(-dh * 2.5, -1, 1);
+        const want = Math.min(MAX, d * 0.9 + 2) * Math.max(0.2, Math.cos(dh));
+        throttle = this.speed < want ? 1 : 0;
+        if (this.speed > want + 2) this.speed -= 30 * dt;
+      }
+    }
     if (ridden) {
       throttle = (input.KeyW || input.ArrowUp ? 1 : 0) - (input.KeyS || input.ArrowDown ? 1 : 0);
       steer = (input.KeyD || input.ArrowRight ? 1 : 0) - (input.KeyA || input.ArrowLeft ? 1 : 0);

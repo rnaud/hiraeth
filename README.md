@@ -348,7 +348,55 @@ Modelled on a classic Moebius desert plate:
   the waist under the cape. It's a second cloth simulation, kicked by the
   leg capsules.
 
-## The rider
+## The hero (v0.15)
+
+After the reference plate:
+- **Suit:** a baggy lavender suit. The body swells along its normals in the
+  vertex shader, more on the legs, and creases are inked at the elbows,
+  knees and waist.
+- **Gloves:** salmon.
+- **Helmet:** a glass bubble. The `glass` material discards everything but
+  the grazing rim and a curved highlight streak, and it casts no shadow.
+- **Headset:** blue ear cups, a mic and a gadget cluster with aerials.
+- **Radio pack:** blue, with dials, a lens and a sprung whip antenna with a
+  ball tip.
+- **Belt:** cables loop down to a tan belt crowded with pouches, plus a
+  dangling meter.
+- **Handheld device:** sits in the right fist, screen towards the eyes.
+- **Code:** `src/gear.js`. There is no cape. The jetpack rides behind the
+  radio pack.
+
+### Climbing and mantling
+
+The mocap climb loops play by the direction you push: up, down, left or
+right, with a hanging idle otherwise. The climber hugs the wall (hips about
+0.27 m off it), and each hand and foot from the clip is ray-cast onto the
+real wall surface, with two-bone IK pressing it there. Mantling plays the
+ledge-climb clip timed to the pull-up, with the hands on the edge.
+
+### Mounts come to you
+
+- **Hoverbike:** whistle (E) and it drives over on autopilot. If it's
+  further than 220 m away, it first comes in from 140 m off to the side of
+  the view. It brakes into a spot beside you.
+- **Bird:** whistle in the air (falling, gliding, jumping off something
+  high) and it swoops in from behind and below, faster than you fall,
+  catches you and flies on. On the ground it lands beside you as before.
+
+### Footprints
+
+Footprints are boot-sole decals that multiply the G-buffer albedo
+underneath. A print is a darker shade of whatever it's on (sand, moss,
+stone, tiles) and fades back in. It doesn't touch normals or depth, so it
+isn't outlined.
+
+### Paraglider
+
+The canopy is in fixed cells: cream, salmon towards the tips and one blue
+cell in the middle. Nothing scrolls or pulses as you fly. It folds away
+when you mount.
+
+## The rider (v0.14, the Arzach-style look; NPCs still wear capes)
 
 - **Outfit:** flat blocks of colour (a body colour and a hem band), not gradients.
 - **Cape:** a short cape, knee-length.
@@ -542,9 +590,10 @@ lookup on the terrain mesh.
 ## Credits
 
 - Animations: [Universal Animation Library](https://quaternius.com/packs/universalanimationlibrary.html)
-  by Quaternius, CC0, via the glTF mirror at
-  [J-Ponzo/gltf-universal-animation-library](https://github.com/J-Ponzo/gltf-universal-animation-library).
-  It has been trimmed to the clips used here (`public/anim/ual.glb`).
+  by Quaternius, CC0. This is the full version with the climbing set, from the glTF mirror at
+  [Cinevva](https://app.cinevva.com/tools/animations) (UE mannequin bone names). It has
+  been trimmed to the 16 clips used here (`public/anim/ual.glb`, 219 KB): locomotion, jumps,
+  driving, talking, look-around, the climb loops (idle/up/down/left/right) and the ledge climb.
 - Human body: [Universal Base Characters](https://quaternius.com/packs/universalbasecharacters.html)
   by Quaternius, CC0, with the Superhero male and female models and
   textures removed (`public/anim/human_*.glb`).

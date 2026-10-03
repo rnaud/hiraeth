@@ -195,8 +195,8 @@ if (lib) {
 }
 const humanT = await humans;
 if (humanT) {
-  player.humanoid = new Humanoid(humanT[0], player.char, 'm', { skin: '#e9cfb4' });
-  player.humanoid.setHeadwear('wizard', { color: player.char.colors.cloak2, hair: '#3a2a22' });
+  player.humanoid = new Humanoid(humanT[0], player.char, 'm', { skin: '#e9b9a0', gloves: player.char.colors.gloves, suit: true });
+  player.humanoid.setHeadwear('short', { hair: '#8a5638' });
 }
 player.attach(scene);
 if (player.mount) scene.add(player.mount.object);
@@ -211,7 +211,7 @@ overlays.motes = motes;
 // two trails, one per hover jet
 const trails = player.mount && player.mount.kind !== 'bird' ? [new Trail(scene, { offset: 0 }), new Trail(scene, { offset: 2.5 })] : null;
 const JETS = [new THREE.Vector3(0.66, -0.08, -1.18), new THREE.Vector3(-0.66, -0.08, -1.18)];   // the pods' rear caps
-const footprints = lifeCfg.footprints ? new Footprints(scene, { color: lifeCfg.footprints }) : null;
+const footprints = new Footprints(scene);   // prints take the colour of whatever they land on
 resize();
 if (footprints) player.onStep = (p, heading, up) => footprints.add(p, heading, up);
 
@@ -304,7 +304,8 @@ if (viaEdge && EDGE) {
   player.heading = axis === 'x' ? (sgn > 0 ? Math.PI / 2 : -Math.PI / 2) : (sgn > 0 ? 0 : Math.PI);
   rig.yaw = player.heading;
   if (query.get('ride') === '1' && player.mount) {
-    player.mount.summon(x, z, player.heading, pos);
+    if (player.mount.place) player.mount.place(x, z, player.heading, pos);
+    else player.mount.pos.copy(pos);
     player.mount_(player.mount);
   }
 }
@@ -622,6 +623,7 @@ function renderFrame() {
   const lightDir = sharedUniforms.uSunDir.value;
   scene.overrideMaterial = shadowOverride;
   for (const o of level.noShadow ?? []) o.visible = false;
+  for (const o of player.gear?.noShadow ?? []) o.visible = false;
   fineShadow.update(player.pos, lightDir);
   fineShadow.render(scene);
   // low detail: the near cascade every other frame (it follows you smoothly enough)
@@ -637,6 +639,7 @@ function renderFrame() {
   }
   scene.overrideMaterial = null;
   for (const o of level.noShadow ?? []) o.visible = true;
+  for (const o of player.gear?.noShadow ?? []) o.visible = true;
 
   // 2. G-buffer (clearing to 0 marks sky pixels with depth 0)
   camera.updateMatrixWorld();
@@ -718,6 +721,7 @@ function frame() {
   if (photo.on) {
     photoUpdate(dt);
   } else {
+    player.camFwd = camera.getWorldDirection(player.camFwd ?? new THREE.Vector3());   // whistled mounts arrive into view
     player.update(dt, ctl, rig.yaw);
     rig.follow(player.ride?.heading ?? player.heading, dt, player.riding || player.gliding);
     rig.update(player.pos, dt, player.frame);

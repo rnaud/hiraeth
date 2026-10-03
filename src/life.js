@@ -207,12 +207,46 @@ export class Puffs {
 
 /** Footprints pressed into sand: a recycled pool of small dark ovals that fade. */
 export class Footprints {
-  constructor(scene, { count = 160, color = '#cfae7c', life = 30 } = {}) {
+  /**
+   * Boot prints pressed into whatever you walk on: a decal that darkens the
+   * G-buffer albedo underneath it (multiply blend), so a print always takes
+   * the colour of its surface, sand, moss, stone or tiles alike. Normals,
+   * depth and marks are left alone, so prints don't get outlined.
+   */
+  constructor(scene, { count = 160, life = 30, depth = 0.87 } = {}) {
     this.count = count;
     this.life = life;
-    const g = new THREE.CylinderGeometry(1, 1, 1, 9);
-    this.mesh = new THREE.InstancedMesh(g, makeMaterial({ color }), count);
+    // a sole: heel and ball as two ovals, toe forward (+z)
+    const sole = new THREE.Shape();
+    sole.absellipse(0, -0.075, 0.042, 0.05, 0, Math.PI * 2);
+    const g = mergeSole([new THREE.ShapeGeometry(sole, 10), new THREE.ShapeGeometry(new THREE.Shape().absellipse(0.004, 0.055, 0.05, 0.075, 0, Math.PI * 2), 12)]);
+    g.rotateX(Math.PI / 2);
+    const material = new THREE.ShaderMaterial({
+      glslVersion: THREE.GLSL3,
+      uniforms: { uDepth: { value: depth } },
+      vertexShader: `in float aFade; out float vFade;
+        void main() { vFade = aFade; gl_Position = projectionMatrix * viewMatrix * modelMatrix * instanceMatrix * vec4(position, 1.0); }`,
+      fragmentShader: `precision highp float; uniform float uDepth; in float vFade;
+        layout(location = 0) out highp vec4 gAlbedoLight;
+        layout(location = 1) out highp vec4 gNormalDepth;
+        layout(location = 2) out highp vec4 gHatch;
+        void main() {
+          float k = mix(1.0, uDepth, vFade);
+          gAlbedoLight = vec4(k, k, k, 1.0);    // multiplied into the surface colour; light (alpha) unchanged
+          gNormalDepth = vec4(1.0);
+          gHatch = vec4(1.0);
+        }`,
+      transparent: true, depthWrite: false, depthTest: true, side: THREE.DoubleSide,
+      blending: THREE.CustomBlending, blendEquation: THREE.AddEquation,
+      blendSrc: THREE.DstColorFactor, blendDst: THREE.ZeroFactor,
+      blendSrcAlpha: THREE.ZeroFactor, blendDstAlpha: THREE.OneFactor,
+      polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2,
+    });
+    this.fade = new THREE.InstancedBufferAttribute(new Float32Array(count), 1);
+    g.setAttribute('aFade', this.fade);
+    this.mesh = new THREE.InstancedMesh(g, material, count);
     this.mesh.frustumCulled = false;
+    this.mesh.renderOrder = 5;
     this.mesh.userData.noCollide = true;
     this.items = Array.from({ length: count }, () => ({ pos: new THREE.Vector3(), q: new THREE.Quaternion(), age: life }));
     this.next = 0;
@@ -223,7 +257,7 @@ export class Footprints {
   add(pos, heading, up) {
     const it = this.items[this.next];
     this.next = (this.next + 1) % this.count;
-    it.pos.copy(pos).addScaledVector(up, 0.01);
+    it.pos.copy(pos).addScaledVector(up, 0.012);
     it.q.setFromUnitVectors(_s.set(0, 1, 0), up).multiply(_q.setFromAxisAngle(_s.set(0, 1, 0), heading));
     it.age = 0;
   }
@@ -233,11 +267,26 @@ export class Footprints {
       const it = this.items[i];
       if (it.age >= this.life) continue;
       it.age += dt;
-      const k = 1 - Math.min(it.age / this.life, 1);   // fade by shrinking
-      _s.set(0.11 * k, 0.02, 0.17 * k);
-      _m.compose(it.pos, it.q, _s);
+      const k = 1 - Math.min(it.age / this.life, 1);   // fade out: the print fills back in
+      this.fade.setX(i, k * k);
+      _m.compose(it.pos, it.q, _s.set(1, 1, 1));
       this.mesh.setMatrixAt(i, _m);
+      if (k <= 0) { _m.makeScale(0, 0, 0); this.mesh.setMatrixAt(i, _m); }
     }
     this.mesh.instanceMatrix.needsUpdate = true;
+    this.fade.needsUpdate = true;
   }
+}
+
+function mergeSole(geos) {
+  const pos = [], idx = [];
+  for (const g of geos) {
+    const base = pos.length / 3, P = g.attributes.position;
+    for (let i = 0; i < P.count; i++) pos.push(P.getX(i), P.getY(i), P.getZ(i));
+    for (const v of g.index.array) idx.push(base + v);
+  }
+  const out = new THREE.BufferGeometry();
+  out.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  out.setIndex(idx);
+  return out;
 }

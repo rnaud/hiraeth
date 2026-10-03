@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { makeMaterial } from './materials.js';
 import { Cape } from './cape.js';
-import { Trinkets } from './trinkets.js';
+import { Gear } from './gear.js';
 
 const RADIUS = 0.45;
 const STEP = 0.6;    // obstacles lower than this are stepped onto
@@ -25,7 +25,7 @@ function part(geo, color, opts = {}) {
 // An Arzach-style rider: tall and gaunt, swallowed by an enormous red hooded
 // cloak that reaches the ankles and flares out behind when running, a long
 // pale face with a long thin nose, a peaked hood whose tip trails behind.
-export const RIDER_COLORS = { cloak: '#3f5fae', cloak2: '#7a4fa8', lining: '#2f3f80', cloth: '#343a56', legs: '#2b2f45', wrap: '#e2d3b4',
+export const RIDER_COLORS = { cloak: '#3f5fae', cloak2: '#7a4fa8', lining: '#2f3f80', cloth: '#ab9fe0', legs: '#a296da', boot: '#8d80c8', gloves: '#e9998a', wrap: '#e2d3b4',
   face: '#f1e6d0', ink: '#2b211f', belt: '#d8a24a', robe: '#ead9b4', robe2: '#c9a577' };
 
 /** @param palette overrides for RIDER_COLORS (NPCs use their own) */
@@ -379,10 +379,20 @@ export class Player {
     {
       const wing = new THREE.Group();
       // an arc spanning left-right over the head (chord along the flight direction), top at the origin
-      const g = new THREE.CylinderGeometry(4.2, 4.2, 2.2, 28, 1, true, Math.PI - 0.85, 1.7);
-      g.rotateX(Math.PI / 2).translate(0, -4.2, 0);
-      const top = new THREE.Mesh(g, makeMaterial({ color: '#f2c54b', color2: '#c8483a', color3: '#f3ead8', mode: 2, strataSize: 0.35, side: THREE.DoubleSide }));
-      wing.add(top);
+      // fixed cells (no world-space bands, so nothing scrolls as you fly): cream with
+      // salmon cells towards the tips and one steel-blue cell in the middle, like the suit's kit
+      const CELLS = 11, span = 1.7, cellColors = ['#e9998a', '#efe2c8', '#e9998a', '#efe2c8', '#efe2c8', '#86a9d8', '#efe2c8', '#efe2c8', '#e9998a', '#efe2c8', '#e9998a'];
+      for (let i = 0; i < CELLS; i++) {
+        const g = new THREE.CylinderGeometry(4.2, 4.2, 2.2, 3, 1, true, Math.PI - 0.85 + (i / CELLS) * span, span / CELLS);
+        g.rotateX(Math.PI / 2).translate(0, -4.2, 0);
+        const cell = new THREE.Mesh(g, makeMaterial({ color: cellColors[i], flat: true, side: THREE.DoubleSide }));
+        cell.userData.noCollide = true;
+        wing.add(cell);
+      }
+      // a thin inked leading edge
+      const lead = new THREE.Mesh(new THREE.TorusGeometry(4.2, 0.03, 4, 40, span).rotateZ(Math.PI / 2 - 0.85).translate(0, -4.2, 1.1), makeMaterial({ color: '#2b211f' }));
+      lead.userData.noCollide = true;
+      wing.add(lead);
       // risers: unit tubes re-aimed every frame from the canopy to the hands
       const lineMat = makeMaterial({ color: '#34405e' });
       const unit = new THREE.CylinderGeometry(0.014, 0.014, 1, 3, 1, true).translate(0, 0.5, 0);
@@ -404,15 +414,18 @@ export class Player {
     }
     scene.add(this.object);
     this.scene = scene;
-    // a shorter cape, so the clutter on the belt shows
-    this.cape = new Cape(scene, this.char.capeAnchor ?? this.char.torso, { rows: 9, length: 0.95, bottom: 0.4, color: this.char.colors.cloak, color2: this.char.colors.cloak2 });
     if (this.humanoid) {
-      this.trinkets = new Trinkets(this.char.capeAnchor);
+      // the explorer: suit, bubble helmet, radio pack and pouch belt (no cape)
+      this.gear = new Gear(scene, this.humanoid, this.char);
       if (this.char.pack) this.char.pack.visible = false;
+      this.char.jetpack.position.set(0, 0.4, -0.47);     // the jetpack rides behind the radio pack
       this._lastVel = new THREE.Vector3();
+      this.tails = [];
+    } else {
+      this.cape = new Cape(scene, this.char.capeAnchor ?? this.char.torso, { rows: 9, length: 0.95, bottom: 0.4, color: this.char.colors.cloak, color2: this.char.colors.cloak2 });
+      this.tails = this.char.scarfAnchors.map((_, i) =>
+        new ClothTail(scene, i === 0 ? { points: 10, seg: 0.2, width: 0.2 } : { points: 7, seg: 0.18, width: 0.16 }));
     }
-    this.tails = this.char.scarfAnchors.map((_, i) =>
-      new ClothTail(scene, i === 0 ? { points: 10, seg: 0.2, width: 0.2 } : { points: 7, seg: 0.18, width: 0.16 }));
   }
 
   /** Torso and leg capsules in world space, for the cape to collide with. */
@@ -439,7 +452,7 @@ export class Player {
   updateCloth(dt) {
     // the robe: a short front-open skirt of heavy cloth hanging from the waist, kicked by the legs
     const pelvis = this.humanoid?.b?.pelvis;
-    if (pelvis && !this.robe) {
+    if (pelvis && !this.robe && !this.gear) {
       this.waist = new THREE.Object3D();
       this.scene.add(this.waist);
       this.robe = new Cape(this.scene, this.waist, { cols: 12, rows: 6, top: 0.17, bottom: 0.33, length: 0.62, y: 0.1, gap: 0.6, color: this.char.colors.robe ?? '#c98f52', color2: this.char.colors.robe2 ?? '#8a5a3c' });
@@ -532,6 +545,10 @@ export class Player {
   mount_(v) {
     this.ride = v;
     this.gliding = this.thrusting = this.climbing = false;
+    // fold the paraglider away
+    this._wingK = 0;
+    if (this.wing) this.wing.visible = false;
+    for (const r of this.risers ?? []) r.mesh.visible = false;
     v.board?.();
   }
 
@@ -556,7 +573,9 @@ export class Player {
     if (near) return this.mount_(near);
     if (this.mount) {
       const d = this.frame.dir(this.heading, _v1);
-      return this.mount.summon(this.pos.x + d.z * 3 + d.x * 2, this.pos.z - d.x * 3 + d.z * 2, this.heading, this.pos);
+      const airborne = !this.onGround && !this.climbing && this.physics.heightAbove(this.pos, this.frame.up) > 3;
+      return this.mount.summon(this.pos.x + d.z * 3 + d.x * 2, this.pos.z - d.x * 3 + d.z * 2, this.heading, this.pos,
+        { airborne, vel: this.vel, camFwd: this.camFwd });
     }
     let best = null, bd = Infinity;
     for (const v of this.vehicles) {
@@ -569,6 +588,14 @@ export class Player {
 
   update(dt, input, camYaw) {
     this.time += dt;
+    // the bird caught up with you in mid-air: you're on its back
+    const M = this.mount;
+    if (M && M.mode === 'catching' && !this.ride && M.catchDist < 2.6) {
+      this.mount_(M);
+      M.landed = false;
+      M.speed = Math.max(18, Math.hypot(this.vel.x, this.vel.z));
+      this.gliding = false;
+    }
     if (input.KeyE && !this._eHeld) this.interact();
     this._eHeld = !!input.KeyE;
 
@@ -753,7 +780,7 @@ export class Player {
     }
     this._animAcc += dt;
     if (!this.stopMotion || this._animAcc >= 1 / 12) {
-      if (this.mantle) this.animateMantle();
+      if (this.mantle) this.animateMantle(this._animAcc);
       else if (this.climbing) this.animateClimb(this._animAcc);
       else this.animate(this._animAcc, hs);
       this._animAcc = 0;
@@ -765,19 +792,19 @@ export class Player {
       H.update();
       const U = this.frame.up;
       if (this.mantle) { H.resetFeet(); H.reach(this.mantleTargets()); }
-      else if (this.climbing) { H.resetFeet(); H.reach(this.climbTargets()); }
+      else if (this.climbing) { H.resetFeet(); H.reach(this.animator ? this.climbContacts() : this.climbTargets()); }
       else if (this.onGround && this.animator && !this.thrusting) {
         H.plantFeet(dt, this.physics, U, this.pos, this.frame.dir(this.heading, _g1).clone(), (p, side, n) => this.stepped(p.clone(), 0, n));
       } else H.resetFeet();
       if (this.wing && this._wingK > 0.03) this.holdWing();
     }
-    if (this.trinkets && dt > 0) {
+    if (this.gear && dt > 0) {
       const v = this.ride ? this.ride.vel : this.vel;
       const acc = _g4.subVectors(v, this._lastVel).divideScalar(dt);
       this._lastVel.copy(v);
       acc.applyQuaternion(_tq.copy(this.object.quaternion).invert());
       const moving = this.ride ? 0.3 : Math.min(Math.hypot(this.vel.x, this.vel.z) / 6, 1);
-      this.trinkets.update(dt, acc.clampLength(0, 40), this.phase ?? 0, this.onGround ? moving : 0.4);
+      this.gear.update(dt, acc.clampLength(0, 40), this.phase ?? 0, this.onGround ? moving : 0.4, this.object.visible && !this.climbing && !this.gliding && !this.ride);
     }
     this.updateCloth(dt);
   }
@@ -810,6 +837,17 @@ export class Player {
       r.mesh.quaternion.setFromUnitVectors(_g6.set(0, 1, 0), d.divideScalar(len || 1));
       r.mesh.scale.set(1, len, 1);
     }
+  }
+
+  /** The clip's hands and feet, pressed onto the wall where they are: raycast each into the wall. */
+  climbContacts() {
+    const B = this.humanoid.b, U = this.frame.up, n = this.wallN, into = _g6.copy(n).negate();
+    const press = (bone, out) => {
+      const p = B[bone].getWorldPosition(new THREE.Vector3());
+      const hit = this.physics.rayHit(_g5.copy(p).addScaledVector(n, 0.5), into, 1.4);
+      return hit ? hit.point.addScaledVector(n, out) : p;
+    };
+    return { hands: [press('hand_r', 0.04), press('hand_l', 0.04)], feet: [press('foot_r', 0.13), press('foot_l', 0.13)], wallN: n, up: U };
   }
 
   /** Hand and foot holds on the wall for the current point of the climb cycle. */
@@ -879,8 +917,17 @@ export class Player {
     return { hands, feet, wallN: M.n, up: U };
   }
 
-  animateMantle() {
+  animateMantle(dt = 1 / 60) {
     const c = this.char, k = this.mantle.t;
+    if (this.animator) {
+      // the ledge-climb clip times the limbs; our mantle moves the body, the hands hold the edge
+      this.animator.update(dt, { speed: 0, onGround: true, mode: 'ledge', ledgeT: k, walkAt: 1, jogAt: 2, sprintAt: 3, strideScale: 1 });
+      this.object.position.copy(this.pos);
+      this.frame.quaternion(this.heading, this.object.quaternion);
+      this.animator.apply(this.object, {});
+      c.body.position.set(0, 0, 0);
+      return;
+    }
     c.body.position.set(0, 0, 0);
     c.body.rotation.set(0.35 * Math.sin(Math.PI * k), 0, 0);
     c.torso.rotation.set(0.2, 0, 0);
@@ -914,7 +961,8 @@ export class Player {
     if (n.dot(U) > 0.55) { if (!this.tryMantle(U, into)) this.stopClimb(true); return; }
     if (n.dot(U) < -0.6) { this.stopClimb(false); return; }                // an overhang
     // stick to the wall
-    this.pos.copy(hit.point).addScaledVector(n, RADIUS + 0.08).addScaledVector(U, -1.2);
+    // hug the wall: the mocap clips hold the hips ~0.25 m off it
+    this.pos.copy(hit.point).addScaledVector(n, this.animator ? 0.27 : RADIUS + 0.08).addScaledVector(U, -1.2);
 
     // reached the top: nothing in front at head height -> mantle over
     const head = _v2.copy(this.pos).addScaledVector(U, 2.3);
@@ -925,6 +973,7 @@ export class Player {
     this.pos.addScaledVector(U, f * sp * dt).addScaledVector(right, s * sp * 0.8 * dt);
     this.heading = this.frame.headingOf(into);
     this.phase += dt * (f || s ? 7 : 0);
+    this._climbF = f; this._climbS = s;
 
     this.stamina -= (f || s ? 0.045 : 0.02) * dt;   // ~22 s of climbing
     if (input.Space && !this._jumpHeld) {                       // jump off the wall
@@ -955,9 +1004,19 @@ export class Player {
    * other pulls and the opposite knee steps high; hips sway toward the pulling
    * side, and the head looks up the wall.
    */
-  animateClimb() {
+  animateClimb(dt = 1 / 60) {
     const c = this.char;
     this._gait = null;
+    if (this.animator) {
+      // mocap climbing (Quaternius UAL): up / down / left / right loops and a hanging idle;
+      // the hands and feet are then pressed onto the real wall (climbContacts)
+      this.animator.update(dt, { speed: 0, onGround: true, mode: 'climb', climbF: this._climbF ?? 0, climbS: this._climbS ?? 0, walkAt: 1, jogAt: 2, sprintAt: 3, strideScale: 1 });
+      this.object.position.copy(this.pos);
+      this.frame.quaternion(this.heading, this.object.quaternion);
+      this.animator.apply(this.object, {});
+      for (const fl of c.flames) fl.visible = false;
+      return;
+    }
     const K = CLIMB_KEYS;
     const cyc = ((this.phase / (Math.PI * 2)) % 1 + 1) % 1;
     const tri = cyc < 0.5 ? cyc * 2 : 2 - cyc * 2;              // 0 -> 1 -> 0

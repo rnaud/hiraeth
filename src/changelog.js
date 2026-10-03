@@ -3,6 +3,15 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.15', date: '2026-10-03', items: [
+    'A new hero after your reference: a baggy lavender suit with creases, salmon gloves, a glass bubble helmet over a blue headset, a radio pack with a whip antenna, cables, a pouch belt and a handheld device. No cape.',
+    'Real climbing animation (Quaternius mocap): up, down, sideways and a hanging idle, with the hands and feet pressed onto the wall. The ledge climb is mocap too.',
+    'Standing still a while, the hero sometimes looks around properly.',
+    'Footprints take the colour of whatever they\'re on, as a darker print in the surface.',
+    'The hoverbike drives over to you when you whistle, instead of appearing.',
+    'Whistle for the bird in mid-air and it swoops in and catches you.',
+    'The paraglider is in fixed colour cells (no more pulsing stripes), and folds away when you mount.',
+  ] },
   { v: '0.14', date: '2026-10-03', items: [
     'Speech balloons sit over the speaker\'s head and stay put as the camera moves.',
     'The paraglider\'s lines run into the rider\'s hands, gripping the brake handles; pull one to turn.',

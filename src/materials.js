@@ -69,9 +69,14 @@ const vertexShader = /* glsl */ `
   in vec2 aFold;          // cloth: (across, down) 0..1; (0,0) on everything else
   out vec2 vFold;
   #include <skinning_pars_vertex>
+  uniform vec4 uOutfit;
+  uniform float uSuit;
 
   void main() {
     vec3 transformed = position;
+    // a padded suit: the body swells along its normals (baggier on the legs), not the head or hands
+    if (uSuit > 0.0 && position.y < uOutfit.z - 0.02 && abs(position.x) < uOutfit.w - 0.03)
+      transformed += normal * (position.y < uOutfit.y ? 0.03 : 0.022) * smoothstep(uOutfit.x - 0.04, uOutfit.x + 0.04, position.y);
     vec3 objectNormal = normal;
     #ifdef USE_SKINNING
       #include <skinbase_vertex>
@@ -163,6 +168,9 @@ const fragmentShader = /* glsl */ `
   uniform int uPattern;    // 1 facade, 2 roof tiles, 3 leaves, 4 rock cracks
   uniform float uDots;
   uniform vec3 uSkin;
+  uniform vec4 uGlove;    // rgb, a = 1: gloved hands
+  uniform float uSuit;    // puffy-suit crease lines at the joints
+  uniform float uGlass;   // glass: only the rim and a highlight streak are drawn
   uniform vec4 uOutfit;   // bootTop, beltY, neckY, wristX (rest pose, metres)
   uniform vec4 uFace;     // eyeY, eyeX, noseY, chinY (rest pose)
 
@@ -532,6 +540,14 @@ const fragmentShader = /* glsl */ `
 
   void main() {
     // the hover trail dissolves into dots over its last stretch
+    // glass (the bubble helmet): see-through except at the grazing rim and a curved highlight
+    if (uGlass > 0.0) {
+      vec3 Vg = normalize(cameraPosition - vWorldPos);
+      float fr = 1.0 - abs(dot(normalize(vNormal), Vg));
+      vec3 od = normalize(vObjPos);
+      float streak = step(abs(atan(od.y, od.x) - 2.2), 0.09) * step(0.25, od.z) * step(od.z, 0.75);
+      if (fr < 0.72 && streak < 0.5) discard;
+    }
     if (uMode == ${MODE_RIBBON} && bayer4(gl_FragCoord.xy / max(uPixelRatio, 1.0) * 0.5) < smoothstep(0.45, 0.95, vFold.y)) discard;
     // stroke coordinates + derivatives first, in uniform control flow
     vec3 on = uFlat > 0.5 ? cross(dFdx(vObjPos), dFdy(vObjPos)) : vObjNormal;
@@ -601,7 +617,8 @@ const fragmentShader = /* glsl */ `
       // boots / trousers / belt / tunic with sleeves / skin at the neck and hands
       vec3 b = vBind;
       float ax = abs(b.x);
-      if ((b.y > uOutfit.z && ax < 0.16) || ax > uOutfit.w) albedo = uSkin;
+      if (ax > uOutfit.w && uGlove.a > 0.5) albedo = uGlove.rgb;
+      else if ((b.y > uOutfit.z && ax < 0.16) || ax > uOutfit.w) albedo = uSkin;
       else if (b.y < uOutfit.x) albedo = uColor3;
       else if (abs(b.y - uOutfit.y) < 0.03 && ax < 0.25) albedo = uColor2 * 0.6 + vec3(0.33, 0.24, 0.1);
       else if (b.y < uOutfit.y) albedo = uColor2;
@@ -680,6 +697,20 @@ const fragmentShader = /* glsl */ `
       float run = smoothstep(0.08 + h1 * 0.25, 0.14 + h1 * 0.25, vFold.y) * (1.0 - smoothstep(0.75 + h2 * 0.25, 0.8 + h2 * 0.25, vFold.y));
       detail = max(detail, inkLine(d, mix(1.3, 0.7, vFold.y)) * run * step(0.25, h2 + 0.3));
     }
+    if (uMode == ${MODE_OUTFIT} && uSuit > 0.0) {
+      // a padded suit: short curved creases bunch up at the elbows, knees, waist and shoulders
+      vec3 b = vBind;
+      float ax = abs(b.x);
+      float wob = (vnoise(b.xz * 40.0 + b.y * 9.0) - 0.5) * 0.35;
+      float arm = smoothstep(0.24, 0.3, ax) * (1.0 - smoothstep(uOutfit.w - 0.06, uOutfit.w - 0.02, ax));
+      float elbow = 1.0 - smoothstep(0.03, 0.11, abs(ax - 0.42));
+      float knee = (1.0 - smoothstep(0.04, 0.13, abs(b.y - 0.5))) * step(ax, 0.24);
+      float waist = (1.0 - smoothstep(0.02, 0.08, abs(b.y - uOutfit.y + 0.06))) * step(ax, 0.24);
+      float u = arm > 0.5 ? ax * 22.0 + wob : b.y * 22.0 + wob;
+      float fu = max(fwidth(u), 1e-4);
+      float creases = inkLine(abs(fract(u) - 0.5) / fu, 0.9) * step(0.45, vnoise(vec2(u * 0.7, b.z * 30.0 + b.x * 11.0)));
+      detail = max(detail, creases * max(max(elbow * arm, knee), waist) * 0.85 * (1.0 - smoothstep(0.05, 0.2, fu)));
+    }
     if (uMode == ${MODE_OUTFIT} && vBind.y > uOutfit.z && abs(vBind.x) < 0.16) {
       float frontal = smoothstep(0.15, 0.45, normalize(vObjNormal).z);
       detail = max(detail, faceInk(vec2(abs(vBind.x), vBind.y - uFace.x), fwBind * uPixelRatio, frontal));
@@ -756,6 +787,9 @@ export function makeMaterial(o) {
       uScrub: { value: o.scrub ? 1 : 0 },
       uPattern: { value: { facade: 1, tiles: 2, leaves: 3, cracks: 4 }[o.pattern] ?? 0 },
       uSkin: { value: new THREE.Color(o.skin ?? '#e8c6a8') },
+      uGlove: { value: o.gloves ? new THREE.Vector4(...new THREE.Color(o.gloves).toArray(), 1) : new THREE.Vector4() },
+      uSuit: { value: o.suit ? 1 : 0 },
+      uGlass: { value: o.glass ? 1 : 0 },
       uOutfit: { value: new THREE.Vector4(...(o.outfit ?? [0.13, 0.97, 1.47, 0.64])) },
       uFace: { value: new THREE.Vector4(...(o.face ?? [1.7, 0.032, 1.657, 1.577]).filter((_, i) => i !== 3)) },
     },

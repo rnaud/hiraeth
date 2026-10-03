@@ -13,11 +13,14 @@ import { clone as cloneSkeleton } from 'three/addons/utils/SkeletonUtils.js';
 // shared gait phase, and each clip's playback rate is set from its measured
 // stride so the feet don't skate.
 
-// GLTFLoader sanitises node names ("DEF-foot.L" -> "DEF-footL")
+// The library uses the UE mannequin bone names (pelvis, spine_01, thigh_l…).
 const byName = (root, n) => root.getObjectByName(THREE.PropertyBinding.sanitizeNodeName(n));
 
 const CLIPS = { idle: 'Idle_Loop', walk: 'Walk_Loop', jog: 'Jog_Fwd_Loop', sprint: 'Sprint_Loop',
-  jumpStart: 'Jump_Start', jumpLoop: 'Jump_Loop', jumpLand: 'Jump_Land', drive: 'Driving_Loop', talk: 'Idle_Talking_Loop' };
+  jumpStart: 'Jump_Start', jumpLoop: 'Jump_Loop', jumpLand: 'Jump_Land', drive: 'Driving_Loop', talk: 'Idle_Talking_Loop',
+  look: 'Idle_LookAround_Loop', ledge: 'ClimbLedge',
+  climbIdle: 'Climb_Idle_Loop', climbUp: 'Climb_Up_Loop', climbDown: 'Climb_Down_Loop', climbLeft: 'Climb_Left_Loop', climbRight: 'Climb_Right_Loop' };
+const CLIMB = ['climbIdle', 'climbUp', 'climbDown', 'climbLeft', 'climbRight'];
 
 let libPromise = null;
 /** Load the clip library once; resolves to { scene, clips, native } (native = ground speed per loop). */
@@ -37,7 +40,7 @@ function measureGroundSpeed(lib, clip) {
   const s = cloneSkeleton(lib.scene);
   const mixer = new THREE.AnimationMixer(s);
   mixer.clipAction(clip).play();
-  const feet = ['DEF-foot.L', 'DEF-foot.R'].map((n) => byName(s, n));
+  const feet = ['foot_l', 'foot_r'].map((n) => byName(s, n));
   const N = 120, dt = clip.duration / N, samples = [];
   const prev = feet.map(() => new THREE.Vector3()), cur = new THREE.Vector3();
   for (let i = 0; i <= N; i++) {
@@ -83,19 +86,19 @@ export class Animator {
     // our joint ← library chain (from, to), our joint's rest axis
     const C = char;
     const map = [
-      { j: C.torso, a: 'DEF-spine.001', b: 'DEF-spine.003', axis: UP },
-      { j: C.head, a: 'DEF-neck', b: 'DEF-head', axis: UP },
+      { j: C.torso, a: 'spine_01', b: 'spine_03', axis: UP },
+      { j: C.head, a: 'neck_01', b: 'Head', axis: UP },
     ];
     // our index 0 is the -x side, which is the character's right
-    ['R', 'L'].forEach((s, i) => {
-      map.push({ j: C.arms[i], a: `DEF-upper_arm.${s}`, b: `DEF-forearm.${s}`, axis: DOWN });
-      map.push({ j: C.elbows[i], a: `DEF-forearm.${s}`, b: `DEF-hand.${s}`, axis: DOWN });
-      map.push({ j: C.legs[i], a: `DEF-thigh.${s}`, b: `DEF-shin.${s}`, axis: DOWN });
-      map.push({ j: C.knees[i], a: `DEF-shin.${s}`, b: `DEF-foot.${s}`, axis: DOWN });
-      map.push({ j: C.feet[i], a: `DEF-foot.${s}`, b: `DEF-toe.${s}`, axis: FWD, foot: true });
+    ['r', 'l'].forEach((s, i) => {
+      map.push({ j: C.arms[i], a: `upperarm_${s}`, b: `lowerarm_${s}`, axis: DOWN });
+      map.push({ j: C.elbows[i], a: `lowerarm_${s}`, b: `hand_${s}`, axis: DOWN });
+      map.push({ j: C.legs[i], a: `thigh_${s}`, b: `calf_${s}`, axis: DOWN });
+      map.push({ j: C.knees[i], a: `calf_${s}`, b: `foot_${s}`, axis: DOWN });
+      map.push({ j: C.feet[i], a: `foot_${s}`, b: `ball_${s}`, axis: FWD, foot: true });
     });
     this.map = map.map((m) => ({ ...m, A: this.bone(m.a), B: this.bone(m.b), rest: new THREE.Vector3() }));
-    this.hips = this.bone('DEF-hips');
+    this.hips = this.bone('pelvis');
     // rest directions from the T-pose
     this.mixer.stopAllAction();
     this.src.updateMatrixWorld(true);
@@ -104,7 +107,8 @@ export class Animator {
     this.restHipsQ = this.hips.getWorldQuaternion(new THREE.Quaternion());
     for (const a of Object.values(this.actions)) a.play();
     this.phase = 0;
-    this.w = { idle: 1, walk: 0, jog: 0, sprint: 0, air: 0, drive: 0, talk: 0, jumpLand: 0 };
+    this.w = { idle: 1, walk: 0, jog: 0, sprint: 0, air: 0, drive: 0, talk: 0, jumpLand: 0, look: 0, ledge: 0, climbIdle: 0, climbUp: 0, climbDown: 0, climbLeft: 0, climbRight: 0 };
+    this.idleT = 0;
     this.airState = null;
   }
 
@@ -115,21 +119,31 @@ export class Animator {
 
   /**
    * @param s.speed horizontal speed (m/s), s.onGround, s.vy (up velocity),
-   *          s.mode 'ground' | 'drive' | 'talk'
+   *          s.mode 'ground' | 'drive' | 'talk' | 'climb' (s.climbF, s.climbS: -1..1) | 'ledge' (s.ledgeT 0..1)
    */
   update(dt, s) {
     const L = THREE.MathUtils.lerp, sm = THREE.MathUtils.smoothstep;
     const N = this.lib.native;
     const sp = s.speed;
     // target weights for the locomotion blend (piecewise between clip speeds)
-    const tw = { idle: 0, walk: 0, jog: 0, sprint: 0, air: 0, drive: 0, talk: 0, jumpLand: 0 };
+    const tw = { idle: 0, walk: 0, jog: 0, sprint: 0, air: 0, drive: 0, talk: 0, jumpLand: 0, look: 0, ledge: 0, climbIdle: 0, climbUp: 0, climbDown: 0, climbLeft: 0, climbRight: 0 };
     // landing from a real fall: play the land clip for a beat
     if (s.onGround && this._wasAir && this._airT > 0.45 && this.actions.jumpLand) { this.landT = 0; this.actions.jumpLand.reset().play(); }
     this._airT = s.onGround ? 0 : (this._airT ?? 0) + dt;
     this._wasAir = !s.onGround;
     const landing = this.landT !== undefined && this.landT < 0.45;
     if (landing) { this.landT += dt; this.actions.jumpLand.time = this.landT * 1.3 + 0.1; }
-    if (s.mode === 'drive') tw.drive = 1;
+    if (s.mode === 'climb') {
+      // on the wall: up / down / sideways loops by the direction you push, hanging idle otherwise
+      const f = s.climbF ?? 0, sd = s.climbS ?? 0;
+      if (!f && !sd) tw.climbIdle = 1;
+      else {
+        const m = Math.abs(f) + Math.abs(sd);
+        tw[f > 0 ? 'climbUp' : 'climbDown'] = Math.abs(f) / m;
+        tw[sd > 0 ? 'climbRight' : 'climbLeft'] += Math.abs(sd) / m;
+      }
+    } else if (s.mode === 'ledge') tw.ledge = 1;
+    else if (s.mode === 'drive') tw.drive = 1;
     else if (!s.onGround) tw.air = 1;
     else if (sp < 0.25) tw[s.mode === 'talk' ? 'talk' : 'idle'] = 1;
     else {
@@ -140,7 +154,18 @@ export class Animator {
       tw[stops[k][0]] = 1 - t;
       tw[stops[k + 1][0]] = t;
     }
-    if (landing && sp < 3) { for (const k in tw) tw[k] *= 0.15; tw.jumpLand = 0.85; }
+    if (landing && sp < 3 && s.mode !== 'climb') { for (const k in tw) tw[k] *= 0.15; tw.jumpLand = 0.85; }
+    // standing a while: now and then look around properly
+    this.idleT = tw.idle > 0.99 ? this.idleT + dt : 0;
+    const look = this.lib.clips.look;
+    if (look && this.idleT > 7) {
+      const lt = (this.idleT - 7) % (look.duration + 14);
+      if (lt < look.duration) {
+        const k = Math.min(lt / 0.6, (look.duration - lt) / 0.6, 1);
+        tw.look = k; tw.idle = 1 - k;
+        this.actions.look.time = lt;
+      }
+    }
     const kk = 1 - Math.exp(-10 * dt);
     for (const key in this.w) this.w[key] = L(this.w[key], tw[key], kk);
 
@@ -156,6 +181,13 @@ export class Animator {
       this.phase = (this.phase + cps * dt) % 1;
     }
     for (const k of gaitKeys) this.actions[k].time = this.phase * this.lib.clips[k].duration;
+    // climbing loops: a little faster than authored, since we climb quickly
+    const moving = s.mode === 'climb' && (s.climbF || s.climbS);
+    for (const k of CLIMB) {
+      const a = this.actions[k];
+      if (a) a.time = (a.time + dt * (k === 'climbIdle' ? 1 : moving ? 1.6 : 0)) % this.lib.clips[k].duration;
+    }
+    if (this.actions.ledge) this.actions.ledge.time = THREE.MathUtils.clamp(s.ledgeT ?? 0, 0, 1) * this.lib.clips.ledge.duration * 0.999;
     // idle / talk / drive loop at their own pace
     for (const k of ['idle', 'talk', 'drive']) {
       const a = this.actions[k];
