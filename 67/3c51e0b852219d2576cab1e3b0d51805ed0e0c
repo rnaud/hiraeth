@@ -1,0 +1,25 @@
+src/cape.js
+  s_aaae6e4311287b::t_a8704b1fadc025 19,76
+src/main.js
+  s_aaae6e4311287b::t_6c9abe6342b580 197
+src/materials.js
+  s_aaae6e4311287b::t_962bcda5876902 561-562
+src/player.js
+  s_aaae6e4311287b::t_8fb88b86c4024f 27,398
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "673c51e0b852219d2576cab1e3b0d51805ed0e0c",
+  "prompts": {},
+  "sessions": {
+    "s_aaae6e4311287b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a3718911-2af0-4cef-b5df-15d14f9e5623",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
