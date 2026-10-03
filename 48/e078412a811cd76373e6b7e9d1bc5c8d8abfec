@@ -1,0 +1,21 @@
+src/world.js
+  s_1fd8d0e7b02dcf::t_cc1af3a8a57f84 15-18,20,22-77,80,82
+tests/dunes.test.js
+  s_1fd8d0e7b02dcf::t_c82dc6bb61d6da 1-70
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "48e078412a811cd76373e6b7e9d1bc5c8d8abfec",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
