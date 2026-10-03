@@ -3,6 +3,12 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.30', date: '2026-10-03', items: [
+    'Arzach II: The Sky Stones. Ride the bird over a sea of cloud past needle forests, balanced stones, giant mushroom tables, cliff-top monasteries and aqueducts, then cross the peach plain to the lone tower.',
+    'The Buried Machine. Domes and pipes surface from pale dunes. Below them lie a rust canyon of machinery, giant ring windows and the oculus, all under a city hanging upside down from the sky.',
+    'The Garden of Spheres. Umbrella trees, white pyramids, great pale spheres, a mirror lake and a cypress avenue leading to a round stone plaza.',
+    'Perdide II: The Deep Wood. A violet swamp of pale mushrooms, glowing eggs and root arches, lit by pools of light, leads to the cave where the skiff waits.',
+  ] },
   { v: '0.29', date: '2026-10-03', items: [
     'The traveller face is drawn like a Moebius portrait, with tapered pen lines: almond eyelids with dark pupils, light brows, a single nose line, a lower-lip stroke, and fine hatching along the shadow edge. The face now has one clean shadow shape and a lighter skin tone, matching the reference.',
     'The suit no longer uses a painted texture. It now uses flat printed colours from the reference art. The shader draws its shadows and folds: chevrons at the elbows and knees, gathered cuffs, pulls at the hips and armpits, and the front zip.',

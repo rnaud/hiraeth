@@ -6,6 +6,10 @@ import { createEdena } from './edena.js';
 import { createPerdide } from './perdide.js';
 import { createBazaar } from './bazaar.js';
 import { createAtelier } from './atelier.js';
+import { createArzach2 } from './arzach2.js';
+import { createBuried } from './buried.js';
+import { createSpheres } from './spheres.js';
+import { createPerdide2 } from './perdide2.js';
 
 // Level registry: shown in the picker and the panel, loaded with ?level=<id>.
 export const LEVELS = [
@@ -28,10 +32,22 @@ export const LEVELS = [
     moves: 'flying mount · climb',
   },
   {
+    id: 'arzach2', create: createArzach2,
+    title: 'Arzach II: The Sky Stones', source: 'after Arzach (Moebius, 1975)',
+    blurb: 'Bone-white needles and balanced stones rise from a sea of cloud. Ride the bird between cliff-top monasteries and broken aqueducts, then cross the peach plain to the lone tower.',
+    moves: 'flying mount · climb',
+  },
+  {
     id: 'garage', create: createGarage,
     title: 'The Airtight Garage', source: 'Le Garage hermétique (Moebius, 1976–79)',
     blurb: "Major Grubert's pocket universe: portals to an upside-down quarter and a ring where gravity points outward. Machines pass a signal between these strange places.",
     moves: 'portals · shifting gravity · jetpack',
+  },
+  {
+    id: 'buried', create: createBuried,
+    title: 'The Buried Machine', source: 'after Moebius',
+    blurb: 'Domes and pipes surface from pale dunes. Below them lie rust-red machine canyons, giant ring windows, and a city hanging upside down from the sky.',
+    moves: 'climb · jetpack',
   },
   {
     id: 'edena', create: createEdena,
@@ -40,9 +56,21 @@ export const LEVELS = [
     moves: 'climbing · stamina',
   },
   {
+    id: 'spheres', create: createSpheres,
+    title: 'The Garden of Spheres', source: "after Le Monde d'Edena (Moebius)",
+    blurb: 'Umbrella trees shade white pyramids. Great pale spheres sink into a mirror lake, and cypress avenues lead to a round stone plaza.',
+    moves: 'walk · climb',
+  },
+  {
     id: 'perdide', create: createPerdide,
     title: 'Perdide', source: 'Les Maîtres du temps (Laloux & Moebius, 1982)',
     blurb: 'A twilight swamp of humming crystal forests, carnivorous plants and glowing eggs. Cross it by skiff; shy fungi close and send glowing spores through the reeds.',
+    moves: 'hover-skiff · wading · caves',
+  },
+  {
+    id: 'perdide2', create: createPerdide2,
+    title: 'Perdide II: The Deep Wood', source: 'after Les Maîtres du temps (Laloux & Moebius)',
+    blurb: 'A violet swamp under giant pale mushrooms. Glowing eggs, crystal reeds and moss domes line it. Follow the lit pools under root arches to the cave where the skiff waits.',
     moves: 'hover-skiff · wading · caves',
   },
   {

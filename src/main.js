@@ -525,7 +525,7 @@ if (cont?.level && levelById(cont.level)) {
 }
 picker.querySelector('.cards').innerHTML = LEVELS.map((l, i) => l.hidden && !completed() ? `
   <div class="card locked"><div class="lock">?</div><div class="txt"><div class="num">${i + 1}</div><h2>???</h2>
-    <p>Find every story page and every relic in all seven worlds.</p><div class="moves">the final page</div></div></div>` : `
+    <p>Find every story page and every relic in all ${ORDER.length} worlds.</p><div class="moves">the final page</div></div></div>` : `
   <a class="card${l.id === levelId ? ' current' : ''}" href="?level=${l.id}">
     <img src="thumbs/${l.id}.jpg" alt="" onerror="this.style.visibility='hidden'" />
     <div class="txt">

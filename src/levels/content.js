@@ -10,10 +10,19 @@ const TROUSERS = ['#2b2f45', '#4a3a2a', '#2f3f3a', '#5a4a40', '#3a3a3a'];
 const any = (a) => a[Math.floor(Math.random() * a.length)];
 const pal = (cloak, extra = {}) => ({ cloak, lining: extra.lining ?? '#2b211f', cloth: any(TUNICS), legs: any(TROUSERS), ...extra });
 
-export const ORDER = ['desert', 'incal', 'arzach', 'garage', 'edena', 'perdide', 'bazaar'];
+import { ARZACH2_CONTENT } from './arzach2.js';
+import { BURIED_CONTENT } from './buried.js';
+import { SPHERES_CONTENT } from './spheres.js';
+import { PERDIDE2_CONTENT } from './perdide2.js';
+
+export const ORDER = ['desert', 'incal', 'arzach', 'arzach2', 'garage', 'buried', 'edena', 'spheres', 'perdide', 'perdide2', 'bazaar'];
 export const nextLevel = (id) => ORDER[(ORDER.indexOf(id) + 1) % ORDER.length];
 
 export const CONTENT = {
+  arzach2: ARZACH2_CONTENT,
+  buried: BURIED_CONTENT,
+  spheres: SPHERES_CONTENT,
+  perdide2: PERDIDE2_CONTENT,
   bazaar: {
     weather: [],
     story: {

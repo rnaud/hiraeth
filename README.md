@@ -123,7 +123,7 @@ presets (Moebius / Sable / Animated ink) and debug views of each G-buffer channe
 ## Levels
 
 Opening the page with no `?level=` shows a **level picker**. Press **L** to
-reopen it at any time, or **1–6** while it's open. Each level is a module in
+reopen it at any time, or **1–9** while it's open (later worlds are clicked). Each level is a module in
 `src/levels/`, registered in `src/levels/index.js`.
 
 | # | Level | After | Getting around |
@@ -134,6 +134,15 @@ reopen it at any time, or **1–6** while it's open. Each level is a module in
 | 4 | **The Airtight Garage** (`garage`) | *Le Garage hermétique* (Moebius) | portals, shifting gravity, jetpack |
 | 5 | **Edena** (`edena`) | *Le Monde d'Edena* (Moebius) | climbing with stamina |
 | 6 | **Perdide** (`perdide`) | *Les Maîtres du temps* (Laloux & Moebius) | hover-skiff, wading, caves |
+| – | **Arzach II: The Sky Stones** (`arzach2`) | after *Arzach* | the flying bird, climb |
+| – | **The Buried Machine** (`buried`) | after Moebius | climb, jetpack |
+| – | **The Garden of Spheres** (`spheres`) | after *Le Monde d'Edena* | walk, climb |
+| – | **Perdide II: The Deep Wood** (`perdide2`) | after *Les Maîtres du temps* | hover-skiff, wading, caves |
+
+The picker lists worlds in the order of `LEVELS`. Each second take sits after
+its original, and progression follows `ORDER` in `src/levels/content.js`.
+The reference pages for the four v0.30 worlds are in `references/`
+(IMG_3783–3800).
 
 - **The Desert:**
   - dunes, mesas, giant skeletons and monolith rings;
@@ -858,4 +867,29 @@ a head sphere, giving one clean terminator. Face cast shadows are sampled outsid
 the helmet, so the headphones cannot cut ragged shapes across it. The post pass
 now draws the player's face and folds at full strength once the figure is large
 enough to read; previously they were faded to about a fifth.
+
+### Four new worlds (v0.30)
+Each new world is self-contained in `src/levels/<id>.js`. The module exports its
+journal content (`<ID>_CONTENT`, imported by `content.js`) and has its own test in
+`tests/<id>.test.js`. Visible rock and props generally render without collision;
+hidden coarse copies collide instead. Static collision for each world is under 60k triangles.
+- **Arzach II** (`arzach2`): plateaus and needle forests above a cloud sea, linked
+  by aqueducts and natural bridges. The rocks are built from noisy horizontal rings:
+  fluted needles that fuse like drips, egg-stone stacks, mushroom tables with
+  ribbed and hatched undersides, and overhanging rose cliffs with monasteries.
+  Below the cloud deck counts as unsafe and returns you to your last footing.
+  The peach plain leads to the lone tower.
+- **The Buried Machine** (`buried`): domes and pipes on pale dunes, a trench
+  that exposes blue-grey machine strata, a rust canyon with oval doors and lit
+  portholes, and the oculus drum with its balcony goal. A ring wall with a rim
+  city stands on the horizon, and an upside-down city hangs overhead.
+- **The Garden of Spheres** (`spheres`): umbrella trees with gill undersides,
+  white pyramids and an overgrown terraced hill with stairs, and giant spheres
+  whose crescents face the light. It also has a sphere-arch, a mirror lake with
+  projected reflections (correct from the south shore), and a cypress avenue to
+  the round plaza.
+- **Perdide II** (`perdide2`): violet trunks and pale mushrooms at dusk, with
+  crystal reeds, glowing egg heaps and lit pools along a wadeable path. The path
+  passes root arches, moss domes and a sunken saucer, and ends at a coral-lit
+  root cave with the teal skiff moored outside.
 

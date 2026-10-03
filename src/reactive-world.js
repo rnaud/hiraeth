@@ -11,6 +11,10 @@ export const WORLD_REACTIONS = {
   edena: {kind:'flower',quiet:'#8bb7a1',awake:'#f2aecc',radius:11},
   perdide: {kind:'fungus',quiet:'#827699',awake:'#94ebd3',radius:10,spores:true,shy:true},
   bazaar: {kind:'screen',quiet:'#46616a',awake:'#f6dcb0',radius:13},
+  arzach2: {kind:'fan',quiet:'#e6dccb',awake:'#e8a68e',radius:11},
+  buried: {kind:'machine',quiet:'#7d8a86',awake:'#f2c58a',radius:10},
+  spheres: {kind:'flower',quiet:'#a8c48a',awake:'#f6e2a0',radius:11},
+  perdide2: {kind:'fungus',quiet:'#6f6a94',awake:'#ffb38a',radius:10,spores:true,shy:true},
   atelier: {kind:'fan',quiet:'#c4beb0',awake:'#8cbdb7',radius:10},
 };
 

@@ -11,6 +11,10 @@ const PROFILES = {
   garage:  { root: 130.81, scale: [0, 2, 4, 6, 8, 10], tempo: 92, pad: 'square', arp: 'sawtooth', prog: [0, 2, 4, 1], density: 0.55, ground: 'stone' },
   edena:   { root: 196.0, scale: [0, 2, 4, 7, 9], tempo: 72, pad: 'triangle', arp: 'sine', prog: [0, 3, 4, 2], density: 0.5, ground: 'grass' },
   perdide: { root: 164.81, scale: [0, 1, 3, 5, 7, 8, 10], tempo: 56, pad: 'sine', arp: 'triangle', prog: [0, 1, 0, 5], density: 0.35, ground: 'grass' },
+  arzach2: { root: 116.54, scale: [0, 3, 5, 7, 10], tempo: 46, pad: 'sine', arp: 'sine', prog: [0, 3, 0, 4], density: 0.22, ground: 'stone' },
+  buried:  { root: 123.47, scale: [0, 2, 3, 6, 7, 8, 11], tempo: 70, pad: 'triangle', arp: 'square', prog: [0, 4, 1, 3], density: 0.4, ground: 'sand' },
+  spheres: { root: 220.0, scale: [0, 2, 4, 7, 9], tempo: 64, pad: 'triangle', arp: 'sine', prog: [0, 4, 3, 2], density: 0.42, ground: 'grass' },
+  perdide2: { root: 155.56, scale: [0, 1, 3, 5, 7, 8, 10], tempo: 52, pad: 'sine', arp: 'triangle', prog: [0, 5, 1, 0], density: 0.3, ground: 'grass' },
   atelier: { root: 130.81, scale: [0, 2, 4, 5, 7, 9, 11], tempo: 60, pad: 'sine', arp: 'sine', prog: [0, 3, 5, 4], density: 0.3, ground: 'stone' },
 };
 
@@ -31,6 +35,10 @@ const VOICES = {
     melody: [[4, 1], [5, 1], [7, 2], [5, 1], [4, 1], [2, 2], [null, 1], [2, 1], [4, 1], [3, 3]] },
   perdide: { lead: 'bell', pluck: 'bell', ambience: 'swamp',
     melody: [[0, 2], [5, 2], [4, 1], [2, 1], [1, 4], [null, 2], [0, 4]] },
+  arzach2: { lead: 'flute', pluck: 'kalimba', ambience: 'highwind', melody: [[4, 3], [2, 1], [3, 4], [null, 2], [1, 2], [0, 4]] },
+  buried:  { lead: 'reed', pluck: 'marimba', ambience: 'machine', melody: [[0, 2], [3, 1], [2, 1], [6, 3], [null, 1], [4, 1], [3, 1], [0, 3]] },
+  spheres: { lead: 'strings', pluck: 'celesta', ambience: 'birds', melody: [[2, 1], [4, 1], [5, 2], [4, 1], [2, 1], [0, 2], [null, 1], [1, 1], [2, 3]] },
+  perdide2: { lead: 'bell', pluck: 'bell', ambience: 'swamp', melody: [[0, 3], [2, 1], [1, 2], [5, 2], [null, 2], [4, 1], [0, 4]] },
   atelier: { lead: 'flute', pluck: 'celesta', ambience: 'paper',
     melody: [[0, 2], [2, 1], [4, 1], [7, 3], [6, 1], [4, 4]] },
 };

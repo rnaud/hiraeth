@@ -19,7 +19,7 @@ test('all skybridges and broadcast balcony have continuous collision',()=>{
  for(let k=1;k<=6;k++) assert.ok(Math.abs(physics.groundAt(k%2?-7:7,k*6+1,-235)-(k*6+.325))<.01);
 });
 test('new world participates in progression and has five reachable relic surfaces',()=>{
- assert.equal(nextLevel('perdide'),'bazaar');assert.equal(nextLevel('bazaar'),'desert');
+ assert.equal(nextLevel('perdide2'),'bazaar');assert.equal(nextLevel('bazaar'),'desert');
  assert.ok(ORDER.includes('bazaar'));assert.ok(LEVELS.some(l=>l.id==='bazaar'&&!l.hidden));
  assert.equal(CONTENT.bazaar.relics.spots.length,5);
  for(const {at:[x,y,z]} of CONTENT.bazaar.relics.spots) {
