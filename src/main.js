@@ -219,7 +219,8 @@ if (motes) motes.uniforms.tNormal.value = gbuffer.textures[1];
 overlays.motes = motes;
 // the hoverbike / skiff trail
 // two trails, one per hover jet
-const trails = player.mount && player.mount.kind !== 'bird' ? [new Trail(scene, { offset: 0 }), new Trail(scene, { offset: 2.5 })] : null;
+const trailGround = (x, y, z) => (player.mount.groundAt ? player.mount.groundAt(x, y, z) : physics.groundAt(x, y, z));   // never under the ground (or the skiff's water)
+const trails = player.mount && player.mount.kind !== 'bird' ? [new Trail(scene, { offset: 0, physics, ground: trailGround }), new Trail(scene, { offset: 2.5, physics, ground: trailGround })] : null;
 const JETS = [new THREE.Vector3(0.66, -0.08, -1.18), new THREE.Vector3(-0.66, -0.08, -1.18)];   // the pods' rear caps
 const footprints = new Footprints(scene);   // prints take the colour of whatever they land on
 resize();

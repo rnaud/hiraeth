@@ -6,12 +6,31 @@ import { makeMaterial, MODE_RIBBON } from './materials.js';
 // older rings come from recorded samples. It swells a little, then
 // dissolves into print dots towards the tail. Real geometry in the inked
 // G-buffer, self-lit; colour bands are fixed along the path.
+//
+// It never dips into the ground: each sample remembers the ground under it
+// (its height and the slope out to each side, from a few cheap ground
+// queries when it is laid down), the ring centre is kept above it, and the
+// part of the tube that would sink is flattened onto the surface instead.
+// Given the level's collision, the centreline also keeps a radius clear of
+// the walls and rocks it brushes past.
 
 const RINGS = 120;
 const SIDES = 10;
+const LIFT = 0.06;     // gap kept between the tube and the ground
+const SLOPE = 0.6;     // spacing of the slope probes (m)
 
 export class Trail {
-  constructor(scene, { radius = 0.55, life = 3.4, offset = 0 } = {}) {
+  /**
+   * @param physics optional level collision: the tube's centreline is kept
+   *                out of walls and rocks it brushes past (pushCapsule), and
+   *                it is the default ground query
+   * @param ground  optional (x, fromY, z) -> height of the first surface below
+   *                (e.g. a vehicle's own groundAt, with its water floor)
+   */
+  constructor(scene, { radius = 0.55, life = 3.4, offset = 0, physics = null, ground = null } = {}) {
+    this.physics = physics?.pushCapsule ? physics : null;
+    this.ground = ground ?? (physics ? (x, y, z) => physics.groundAt(x, y, z) : null);
+    this._jet = new THREE.Vector3(); this._push = new THREE.Vector3();
     this.samples = [];          // { p, t, d }
     this.time = 0;
     this.dist = 0;
@@ -35,6 +54,7 @@ export class Trail {
     this.windingChecked = false;
     this._t = new THREE.Vector3(); this._n = new THREE.Vector3(); this._b = new THREE.Vector3();
     this._up = new THREE.Vector3(0, 1, 0); this._c = new THREE.Vector3();
+    this._live = {};
   }
 
   setIndex(flip) {
@@ -47,16 +67,57 @@ export class Trail {
     this.geo.setIndex(idx);
   }
 
+  /**
+   * The ground under a point as a little tent { x, z, h, s, m }: the height
+   * below it, the slope out to each side (s: +x, -x, +z, -z) and a margin
+   * for creases between them, or null with no
+   * ground query. Looked for from a metre above the jet (still under the
+   * vehicle's own collision top), so a jet that dipped into a roof still
+   * finds that roof, while a bridge overhead isn't mistaken for the ground.
+   */
+  groundPlane(p, out = {}, like = null) {
+    if (!this.ground) return null;
+    const from = p.y + 1, e = SLOPE;
+    const fin = (h) => (Number.isFinite(h) ? h : -Infinity);
+    const h = fin(this.ground(p.x, from, p.z));
+    out.x = p.x; out.z = p.z; out.h = h;
+    if (like) { out.s = like.s; out.m = like.m; return out; }   // the live ring: one query, the last sample's slopes
+    // a slope on each side (+x, -x, +z, -z), so crests and V-shaped dips are
+    // followed too; a probe off an edge counts as level, and a ledge is
+    // clamped so it can't tilt it wildly
+    const slope = (dx, dz) => {
+      const a = fin(this.ground(p.x + dx, from, p.z + dz));
+      return Number.isFinite(a) && Number.isFinite(h) ? THREE.MathUtils.clamp((a - h) / e, -1.5, 1.5) : 0;
+    };
+    const sl = out.s = [slope(e, 0), slope(-e, 0), slope(0, e), slope(0, -e)];
+    // and on the diagonals, where a crease of the terrain mesh can run between
+    // the probes: whatever the tent misses there is added as a margin
+    out.m = 0;
+    const k = e * Math.SQRT1_2;
+    if (Number.isFinite(h)) for (const [dx, dz] of [[k, k], [k, -k], [-k, k], [-k, -k]]) {
+      const a = fin(this.ground(p.x + dx, from, p.z + dz));
+      const tent = h + k * sl[dx > 0 ? 0 : 1] + k * sl[dz > 0 ? 2 : 3];
+      if (Number.isFinite(a) && a - tent < 0.6) out.m = Math.max(out.m, a - tent);
+    }
+    return out;
+  }
+
   /** @param jet world position of the jet nozzle, or null when not laying a trail */
   update(dt, jet) {
     this.time += dt;
     const S = this.samples;
+    // a jet brushing a wall or a rock: lay the tube a radius clear of it
+    if (jet && this.physics) {
+      jet = this._jet.copy(jet);
+      const r = this.radius * 1.1;
+      this.physics.pushCapsule(jet, r, -r, r, this._push);
+    }
     if (jet) {
       const last = S[S.length - 1];
       const step = last ? last.p.distanceTo(jet) : 0;
       if (!last || step > 0.45) {
         this.dist += step;
-        S.push({ p: jet.clone(), t: this.time, d: this.dist });
+        S.push({ p: jet.clone(), t: this.time, d: this.dist, g: this.groundPlane(jet) });
         if (S.length > RINGS - 1) S.shift();
       }
     }
@@ -64,8 +125,8 @@ export class Trail {
     // ring 0 = the live jet (or the newest sample when stopped), then samples newest -> oldest
     const pts = [];
     const live = jet ?? S[S.length - 1]?.p;
-    if (live) pts.push({ p: live, age: 0, d: this.dist + (S.length ? S[S.length - 1].p.distanceTo(live) : 0) });
-    for (let i = S.length - 1; i >= 0; i--) pts.push({ p: S[i].p, age: Math.min((this.time - S[i].t) / this.life, 1), d: S[i].d });
+    if (live) pts.push({ p: live, age: 0, d: this.dist + (S.length ? S[S.length - 1].p.distanceTo(live) : 0), g: jet ? this.groundPlane(jet, this._live, S[S.length - 1]?.g) : S[S.length - 1].g });
+    for (let i = S.length - 1; i >= 0; i--) pts.push({ p: S[i].p, age: Math.min((this.time - S[i].t) / this.life, 1), d: S[i].d, g: S[i].g });
     const n = pts.length;
     const T = this._t, N = this._n, B = this._b;
     for (let r = 0; r < RINGS; r++) {
@@ -83,12 +144,26 @@ export class Trail {
       T.normalize();
       N.crossVectors(T, this._up); if (N.lengthSq() < 1e-6) N.set(1, 0, 0); N.normalize();
       B.crossVectors(N, T).normalize();
-      const c = q ? q.p : this._c.set(0, -1e4, 0);
+      let c = q ? q.p : this._c.set(0, -1e4, 0);
+      const G = q && r < n ? q.g : null;
+      if (G) {
+        // keep the centre clear of the ground (a flattened tube rather than a buried one)
+        const floor = G.h + LIFT + radius * 0.3;
+        if (c.y < floor) c = this._c.set(c.x, floor, c.z);
+      }
       for (let k = 0; k < SIDES; k++) {
         const th = (k / SIDES) * Math.PI * 2, cs = Math.cos(th), sn = Math.sin(th);
         const j = (r * SIDES + k) * 3;
         const nx = N.x * cs + B.x * sn, ny = N.y * cs + B.y * sn, nz = N.z * cs + B.z * sn;
-        this.pos[j] = c.x + nx * radius; this.pos[j + 1] = c.y + ny * radius; this.pos[j + 2] = c.z + nz * radius;
+        const px = c.x + nx * radius, pz = c.z + nz * radius;
+        let py = c.y + ny * radius;
+        if (G) {
+          // squash: the underside rests on the ground, never below it
+          const dx = px - G.x, dz = pz - G.z, sl = G.s;
+          const floor = G.h + Math.abs(dx) * sl[dx > 0 ? 0 : 1] + Math.abs(dz) * sl[dz > 0 ? 2 : 3] + G.m + LIFT;
+          if (py < floor) py = floor;
+        }
+        this.pos[j] = px; this.pos[j + 1] = py; this.pos[j + 2] = pz;
         this.nrm[j] = nx; this.nrm[j + 1] = ny; this.nrm[j + 2] = nz;
         const f = (r * SIDES + k) * 2;
         this.fold[f] = q ? q.d / 6.0 + this.offset : 0;     // a colour band every 6 m of path
