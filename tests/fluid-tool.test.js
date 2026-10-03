@@ -7,6 +7,7 @@ import { GameState } from '../src/game-state.js';
 import { ReactiveWorld } from '../src/reactive-world.js';
 import { Player } from '../src/player.js';
 import { Physics } from '../src/physics.js';
+import { NPC } from '../src/npc.js';
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const DT = 1 / 60;
@@ -333,4 +334,41 @@ test('targets answer the new modes: reactive scenery blooms in the fluid, lenses
   assert.deepEqual(plant, ['shoot']);
   tool.dispose();
   assert.equal(aim(v(0, 2, 0), v(20, 2, -20)).kind, 'none');
+});
+
+test('push: villagers stumble back a couple of metres and a parked hoverbike slides away', () => {
+  clearTargets();
+  const hadDoc = 'document' in globalThis;   // the speech balloon is a DOM element
+  if (!hadDoc) globalThis.document = { createElement: () => ({ className: '', style: {}, classList: { add() {}, remove() {}, toggle() {} } }), body: { appendChild() {} } };
+  const scene = new THREE.Scene(), physics = new Physics(scene);
+  const npc = new NPC(scene, physics, { route: [v(0, 0, -5)], palette: {}, lines: ['…'] });
+  npc.pos.set(0, 0, -5);
+  const camera = new THREE.PerspectiveCamera(); camera.position.set(0, 2, 6); camera.updateMatrixWorld();
+  const walker = { pos: v(0, 0, 0), vel: v(), ride: null, riding: false, wind: v() };
+  npc.update(DT, walker, camera);
+  const from = npc.pos.clone();
+  npc.hit('push', v(0, 0, -1), { strength: 1, shove: FLUID.push.shove });
+  assert.ok(npc.time < npc.stumbleUntil, 'stumbling');
+  assert.ok(npc.shout?.text, 'and says so');
+  for (let i = 0; i < 60; i++) npc.update(DT, walker, camera);
+  const moved = from.distanceTo(npc.pos);
+  assert.ok(moved > 1.2 && moved < FLUID.push.shove + 0.3, `knocked back ${moved.toFixed(2)} m`);
+  assert.ok(npc.pos.z < from.z - 1, 'away from the traveller');
+  const n2 = new NPC(scene, physics, { route: [v(3, 0, -5)], palette: {}, lines: ['…'] });
+  n2.hit('shoot', v(0, 0, -1), { colours: FLUID_TONES.slice(0, 2) });
+  assert.ok(n2.shout?.text && n2.time >= n2.stumbleUntil, 'a glob startles, no stumble');
+
+  // the mount
+  const bike = { kind: 'bike', pos: v(0, 0, -4), speed: 0, yawRate: 0, heading: 0, get forward() { return [Math.sin(this.heading), Math.cos(this.heading)]; } };
+  const rider = { ...stubPlayer(), mount: bike };
+  const { tool } = makeTool({ player: rider });
+  const hits = targetsInCone(v(0, 1.2, 0), v(0, 0, -1), FLUID.push.range, FLUID.push.angle);
+  const h = hits.find((x) => x.target.kind === 'mount');
+  assert.ok(h, 'the parked bike is in the cone');
+  hitTarget(h, 'push', h.dir, { strength: 1 });
+  assert.ok(bike.speed < -2, 'sliding away (backwards along its own axis)');
+  rider.ride = bike;
+  assert.equal(targetsInCone(v(0, 1.2, 0), v(0, 0, -1), FLUID.push.range, FLUID.push.angle).some((x) => x.target.kind === 'mount'), false, 'not while ridden');
+  tool.dispose();
+  if (!hadDoc) delete globalThis.document;
 });

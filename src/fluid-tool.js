@@ -561,6 +561,19 @@ export class FluidTool {
         enabled: () => v.mode === 'lane' || v.mode === 'return',
         onHit: (mode) => { if (mode === 'shoot') v.hail(player.pos, player.heading); return mode === 'shoot'; } }));
     }
+    // a parked hoverbike or skiff is a loose thing: the push sends it sliding and turning
+    const m = player?.mount;
+    if (m && 'speed' in m && 'yawRate' in m && m.kind !== 'bird') {
+      this.offs.push(registerTarget({ kind: 'mount', radius: 1.3, position: () => (this._mountAt ??= new THREE.Vector3()).copy(m.pos).addScaledVector(player.frame.up, 0.6),
+        enabled: () => player.ride !== m && !m.auto,
+        onHit: (mode, point, dir, info) => {
+          if (mode !== 'push' || !dir) return false;
+          const [fx, fz] = m.forward, k = FLUID.push.shove * 1.3 * (0.6 + 0.4 * (info?.strength ?? 1));
+          m.speed += (dir.x * fx + dir.z * fz) * k;
+          m.yawRate += (dir.x * fz - dir.z * fx) * 1.6;
+          return true;
+        } }));
+    }
     for (const t of level?.targets ?? []) this.offs.push(registerTarget(t));
     // the story drives it through the shared bus too
     this.offs.push(state.on('tool:refill', (o) => this.refill(o ?? {})));
