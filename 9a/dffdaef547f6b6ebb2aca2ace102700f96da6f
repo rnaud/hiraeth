@@ -1,0 +1,23 @@
+docs/game-brief.md
+  s_1fd8d0e7b02dcf::t_2023d43e0615f2 118
+src/fluid-tool.js
+  s_1fd8d0e7b02dcf::t_1ae685db102e2e 592-597,946
+tests/touch.test.js
+  s_1fd8d0e7b02dcf::t_2725f2f2076a1d 22-26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9adffdaef547f6b6ebb2aca2ace102700f96da6f",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
