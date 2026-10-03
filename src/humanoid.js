@@ -1,3 +1,4 @@
+import { FaceExpression } from './face.js';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
@@ -169,6 +170,7 @@ export class Humanoid {
   constructor(template, char, kind = 'm', { skin = '#e8c6a8', hair = '#8a6a55', gloves = null, suit = false, imported = false } = {}) {
     this.char = char;
     this.imported = imported;
+    if (imported) this.face = new FaceExpression();
     this.noShadow = [];
     const model = cloneSkinned(template);
     this.model = model;
@@ -182,9 +184,17 @@ export class Humanoid {
       if (imported) {
         const source = o.material;
         const glass = source.name === 'Clear bubble';
+        const portrait = source.name === 'Traveller peach skin';
+        if (['Traveller facial ink', 'Traveller warm facial lines'].includes(source.name)) o.visible = false;
         o.geometry.computeBoundingBox();
         const glassCenter = glass ? o.geometry.boundingBox.getCenter(new THREE.Vector3()) : undefined;
         o.material = makeMaterial({ color: source.color, map: source.map, glass, glassCenter, glow: glass ? 0.35 : 0 });
+        if (portrait) {
+          const uniforms = o.material.uniforms;
+          o.material = o.material.clone();
+          Object.assign(o.material.uniforms, uniforms, { uMap: { value: null }, uHasMap: { value: 0 } });
+          Object.assign(o.material.uniforms, this.face.uniforms);
+        }
         if (glass) this.noShadow.push(o);
       } else o.material = isBrow ? brows : /eye/i.test(o.name) ? eyes : body;
       o.frustumCulled = false;
@@ -481,7 +491,8 @@ export class Humanoid {
       F.lastHeight = hBall;
       const gh = physics.heightAbove(_i2.copy(ball).addScaledVector(up, 1.2), up, 0);
       const groundH = Number.isFinite(gh) ? 1.2 - gh : -hBall;          // ball -> real ground
-      if (planted && !F.locked) {
+      if (!planted) F.released = false;
+      if (planted && !F.locked && !F.released && Number.isFinite(gh)) {
         F.locked = true;
         F.pos.copy(ball).addScaledVector(up, groundH + ballRest);
         // the slope under the foot: the sole and the footprint lie along it
@@ -489,7 +500,7 @@ export class Humanoid {
         if (F.n.dot(up) < 0.5) F.n.copy(up);
         onStep?.(_i3.copy(ball).addScaledVector(up, groundH), s, F.n);
       } else if (!planted) F.locked = false;
-      if (F.locked && F.pos.distanceTo(ball) > 0.45) F.locked = false;
+      if (F.locked && F.pos.distanceTo(ball) > 0.45) { F.locked = false; F.released = true; }
       F.w += ((F.locked ? 1 : 0) - F.w) * (1 - Math.exp(-28 * dt));
       // ankle target: keep the clip's heel roll around the locked ball
       const locked = _i4.copy(F.pos).add(_i5.subVectors(ankle, ball));
@@ -524,7 +535,7 @@ export class Humanoid {
     }
   }
 
-  resetFeet() { if (this._feet) { this._feet.l.locked = this._feet.r.locked = false; this._feet.l.w = this._feet.r.w = 0; this._feet.drop = 0; this._feet.l.lastHeight = this._feet.r.lastHeight = undefined; } }
+  resetFeet() { if (this._feet) { this._feet.l.locked = this._feet.r.locked = false; this._feet.l.w = this._feet.r.w = 0; this._feet.drop = 0; this._feet.l.released = this._feet.r.released = false; this._feet.l.lastHeight = this._feet.r.lastHeight = undefined; } }
 
   /** Match a contact's direction and surface normal, including its rest-pose twist. */
   orientContact(bone, restDirection, restNormal, direction, normal) {

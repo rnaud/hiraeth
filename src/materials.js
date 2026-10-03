@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { PORTRAIT_GLSL } from './face.js';
 import { BIOME_GLSL } from './biome.js';
 
 // ---------------------------------------------------------------------------
@@ -180,6 +181,7 @@ const fragmentShader = /* glsl */ `
   uniform vec3 uGlassCenter;
   uniform float uGlass;   // glass: only the rim and a highlight streak are drawn
   uniform vec4 uOutfit;   // bootTop, beltY, neckY, wristX (rest pose, metres)
+  ${PORTRAIT_GLSL}
   uniform vec4 uFace;     // eyeY, eyeX, noseY, chinY (rest pose)
 
   layout(location = 0) out highp vec4 gAlbedoLight;
@@ -688,7 +690,7 @@ const fragmentShader = /* glsl */ `
     gNormalDepth = vec4(n, vViewDepth);
 
     gHatch = vec4(0.0);
-    float detail = 0.0;
+    float detail = uPortrait > 0.5 ? portraitInk(vBind) : 0.0;
     if (uGrid > 0.0) detail = gridLines(gq, gfw, gw);
     if (uGlyphs > 0.0) detail = max(detail, glyphs(glyphUV, glyphFw));
     if (uMode == ${MODE_TERRAIN}) {
@@ -819,6 +821,9 @@ export function makeMaterial(o) {
       uSkin: { value: new THREE.Color(o.skin ?? '#e8c6a8') },
       uGlove: { value: o.gloves ? new THREE.Vector4(...new THREE.Color(o.gloves).toArray(), 1) : new THREE.Vector4() },
       uHero: { value: 0 },
+      uPortrait: { value: 0 },
+      uExpression: { value: new THREE.Vector4() },
+      uGaze: { value: new THREE.Vector2() },
       uSuit: { value: o.suit ? 1 : 0 },
       uGlassCenter: { value: o.glassCenter ?? new THREE.Vector3() },
       uGlass: { value: o.glass ? 1 : 0 },
@@ -841,6 +846,9 @@ export function markHero(root, copies = new Map()) {
         const copy = material.clone();
         Object.assign(copy.uniforms, sharedUniforms);
         copy.uniforms.uHero.value = 1;
+        if (material.uniforms.uPortrait.value) {
+          for (const key of ['uPortrait', 'uExpression', 'uGaze']) copy.uniforms[key] = material.uniforms[key];
+        }
         copies.set(material, copy);
       }
       return copies.get(material);

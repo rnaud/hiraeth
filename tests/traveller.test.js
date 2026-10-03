@@ -218,3 +218,23 @@ test('actual glove thumbs point inward with fingers up and palms on a climbing w
     }
   }
 });
+
+test('shader face replaces fixed ink, stays image-free and keeps live hero expressions', async () => {
+  const { markHero } = await import('../src/materials.js');
+  const a = new Humanoid(template, buildCharacter(), 'm', { imported: true });
+  const b = new Humanoid(template, buildCharacter(), 'm', { imported: true });
+  let portrait;
+  a.model.traverse(o => { if (o.material?.uniforms?.uPortrait.value) portrait = o; });
+  assert.ok(portrait);
+  assert.equal(portrait.material.uniforms.uHasMap.value, 0);
+  markHero(a.model);
+  a.face.update(.09, { smile: .6 });
+  assert.ok(a.face.uniforms.uExpression.value.x > .99);
+  assert.equal(portrait.material.uniforms.uExpression, a.face.uniforms.uExpression);
+  assert.equal(b.face.uniforms.uExpression.value.y, 0);
+  a.face.update(.2);
+  assert.equal(a.face.uniforms.uExpression.value.x, 0);
+  const ink=[];a.model.traverse(o=>{if (/Traveller_(eye|mouth|nostril|temple_mark|brow_mark)/.test(o.name)) ink.push(o);});
+  assert.ok(ink.length >= 5);
+  assert.ok(ink.every(o=>!o.visible));
+});

@@ -820,3 +820,16 @@ anchored to the surface, and existing slope/shadow hatching. Dot stippling and
 round albedo flecks are disabled for these surfaces. Strokes fade when too small
 to resolve, rather than growing into distant dots. Other terrain styles retain
 their own settings.
+
+### Shader face (v0.28)
+`src/face.js` draws sparse eyes, brows, nostril marks and a mouth in the head's
+rest coordinates. The sculpted head supplies the silhouette; old fixed ink meshes
+are hidden at runtime. Face materials have no image map. Each traveller owns
+blink, smile, mouth-opening, brow and gaze uniforms, which remain live after hero
+material cloning. `finishFrame` drives automatic blinks and exertion; the rig review
+page exposes Blink and Smile sliders using the same GLSL. These shader expressions
+are game-side and are not embedded into the GLB export.
+
+Movement now uses separate acceleration and braking rates, prevents repeated foot
+locks before lift-off, requires a wall hit to acquire a climbing hold, adds reaching
+clearance, and releases ledge grips into the animation before standing.

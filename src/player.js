@@ -651,7 +651,7 @@ export class Player {
     let speed = (run ? RUN : WALK) * (stickScale < 1 ? THREE.MathUtils.lerp(0.35, 1, stickScale) : 1);
     if (this.gliding) speed *= 1.25;
     if (this.thrusting) speed *= 1.9;
-    const accel = this.onGround ? 10 : this.thrusting ? 5 : 2.5;
+    const accel = this.onGround ? (move.lengthSq() < .001 ? 16 : 8) : this.thrusting ? 5 : 2.5;
     const a = 1 - Math.exp(-accel * dt);
     let vu = this.vel.dot(U);
     const tv = _v3.copy(this.vel).addScaledVector(U, -vu);
@@ -791,6 +791,7 @@ export class Player {
     this.frame.quaternion(this.heading, this.object.quaternion);
     const H = this.humanoid;
     if (H) {
+      H.face?.update(dt, { speed: hs, climbing: this.climbing || !!this.mantle });
       H.update();
       if (this.animator && !this.ride && !this.gliding && !this.thrusting) H.poseHands(this.animator);
       const U = this.frame.up;
@@ -859,7 +860,9 @@ export class Player {
       h.previous.copy(local);
       // A support stroke moves back relative to the body: keep that hold in world space.
       if (moving && speed > 0.04) { h.locked = false; h.released = false; }
-      else if (!h.locked && !h.released && (!moving || speed < -0.08)) { h.point.copy(raw); h.locked = true; }
+      else if (hit && !h.locked && !h.released && (!moving || speed < -0.08)) { h.point.copy(raw); h.locked = true; }
+      if (!hit) h.locked = false;
+      if (hit && moving && speed > .04) raw.addScaledVector(n, Math.min(.07, speed * .035));
       if (h.locked && h.point.distanceTo(raw) > 0.32) { h.locked = false; h.released = true; }
       h.weight += ((h.locked ? 1 : 0) - h.weight) * (1 - Math.exp(-24 * dt));
       return raw.lerp(h.point, h.weight);
@@ -907,8 +910,8 @@ export class Player {
 
   updateMantle(dt) {
     const M = this.mantle, U = this.frame.up;
-    M.t = Math.min(M.t + dt / 0.75, 1);
-    const ease = (x) => x * x * (3 - 2 * x);
+    M.t = Math.min(M.t + dt / (0.75 + Math.max(0, M.rise) * .12), 1);
+    const ease = (x) => x * x * x * (x * (x * 6 - 15) + 10);
     // up first (hauling the body over the edge), then forward onto the top
     const up = ease(Math.min(M.t / 0.6, 1)), fwd = ease(Math.max((M.t - 0.35) / 0.65, 0));
     const lift = M.rise + 0.25 * Math.sin(Math.PI * Math.min(M.t / 0.85, 1));
@@ -928,6 +931,11 @@ export class Player {
     const M = this.mantle, U = this.frame.up;
     const side = _g5.crossVectors(U, M.n).normalize();
     const hands = [M.edge.clone().addScaledVector(side, 0.22), M.edge.clone().addScaledVector(side, -0.22)];
+    // Release each grip into the clip before standing, avoiding a last-frame arm snap.
+    if (this.humanoid) hands.forEach((target, i) => {
+      const t = THREE.MathUtils.smoothstep(M.t, i ? .66 : .54, i ? .94 : .84);
+      target.lerp(this.humanoid.b[`hand_${i ? 'l' : 'r'}`].getWorldPosition(new THREE.Vector3()), t);
+    });
     // feet scrabble up the wall in the first half, then step onto the top
     const k = Math.min(M.t / 0.6, 1);
     const feet = M.t < 0.6 ? [0, 1].map((i) => M.from.clone().addScaledVector(U, M.rise * k * (i ? 0.7 : 0.4)).addScaledVector(M.n, -0.35)) : null;

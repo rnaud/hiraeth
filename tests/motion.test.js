@@ -32,3 +32,25 @@ test('climbing speed matches the support stroke and sprint scales clip cadence',
  assert.ok(Math.abs(p.pos.y-start-1.4)<.01);assert.equal(p._climbRate,1);
  p.updateClimb(1/60,1,0,{ShiftLeft:true});assert.ok(Math.abs(p._climbRate-1.5)<1e-9);
 });
+
+test('mantle hands release into the standing pose before completion', () => {
+ const p = new Player(new Physics(new THREE.Scene()));
+ p.humanoid = new Humanoid(template, p.char);p.humanoid.update();
+ p.mantle = {from:new THREE.Vector3(),to:new THREE.Vector3(0,1,1),edge:new THREE.Vector3(0,1,.3),rise:1,t:.95,n:new THREE.Vector3(0,0,-1)};
+ const targets=p.mantleTargets();
+ for(const [i,s] of ['r','l'].entries()) assert.ok(targets.hands[i].distanceTo(p.humanoid.b['hand_'+s].getWorldPosition(new THREE.Vector3()))<1e-8);
+ for(let i=0;i<120 && p.mantle;i++) p.updateMantle(1/60);
+ assert.equal(p.mantle,null);assert.ok(p.pos.distanceTo(new THREE.Vector3(0,1,1))<1e-8);
+});
+
+test('a stretched foot does not repeatedly acquire the same support stroke', () => {
+ const char=buildCharacter(), H=new Humanoid(template,char);H.update();
+ const up=new THREE.Vector3(0,1,0), root=new THREE.Vector3(), fwd=new THREE.Vector3(0,0,1);
+ const physics={heightAbove:p=>p.y,groundNormal:(x,y,z,out)=>out.set(0,1,0)};
+ let steps=0;H.plantFeet(1/60,physics,up,root,fwd,()=>steps++);
+ const initial=steps;assert.ok(initial>0);
+ for(const s of ['l','r']) H._feet[s].pos.x+=1;
+ H.update();H.plantFeet(1/60,physics,up,root,fwd,()=>steps++);
+ for(let i=0;i<5;i++){H.update();H.plantFeet(1/60,physics,up,root,fwd,()=>steps++);}
+ assert.equal(steps,initial);
+});

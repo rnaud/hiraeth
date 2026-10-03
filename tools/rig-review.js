@@ -1,3 +1,4 @@
+import { attachPortraitPreview } from '../src/face.js';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { loadAnimationLibrary, Animator } from '../src/animator.js';
@@ -11,6 +12,7 @@ humanoid.model.traverse(o => {
   if (!o.isMesh) return;
   const u = o.material.uniforms, glass = u.uGlass.value > 0;
   o.material = new THREE.MeshBasicMaterial({ color: u.uColor.value, map: u.uMap.value, transparent: glass, opacity: glass ? .12 : 1, depthWrite: !glass, side: THREE.DoubleSide });
+  if (u.uPortrait?.value) attachPortraitPreview(o.material, humanoid.face.uniforms);
 });
 const grid = new THREE.GridHelper(5, 20, '#beb7a6', '#d5cebf');scene.add(grid);
 const lines = new THREE.Group();scene.add(lines);
@@ -31,6 +33,7 @@ function updateLines() {
 const renderer=new THREE.WebGLRenderer({canvas:$('view'),antialias:true,preserveDrawingBuffer:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.outputColorSpace=THREE.SRGBColorSpace;
 const camera=new THREE.PerspectiveCamera(35,1,.01,100);
 function sample(frame) {
+ humanoid.face.update(0, { blink: Number($('blink').value), smile: Number($('smile').value) });
  const motion=$('motion').value;
  for(const [name,action] of Object.entries(animator.actions)){action.setEffectiveWeight(name===motion?1:0);action.time=frame/120*lib.clips[name].duration;}
  animator.mixer.update(0);animator.src.updateMatrixWorld(true);animator.apply(char.root);humanoid.update();humanoid.poseHands(animator);
@@ -48,7 +51,7 @@ function render() {
  lines.visible=$('bones').checked;renderer.render(scene,camera);
 }
 function update(){sample(+$('phase').value);render();}
-$('phase').oninput=$('motion').onchange=$('angle').onchange=$('bones').onchange=$('face').onchange=update;
+$('blink').oninput=$('smile').oninput=$('phase').oninput=$('motion').onchange=$('angle').onchange=$('bones').onchange=$('face').onchange=update;
 $('prev').onclick=()=>{$('phase').value=(+$('phase').value+119)%120;update();};$('next').onclick=()=>{$('phase').value=(+$('phase').value+1)%120;update();};
 let playing=false,last=0,elapsed=0;
 $('play').onclick=()=>{playing=!playing;$('play').textContent=playing?'Pause':'Play';};

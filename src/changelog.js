@@ -3,6 +3,11 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.28', date: '2026-10-03', items: [
+    'The traveller face now uses animated shader ink: blinking eyes, subtle gaze and breathing, plus adjustable smile and brows. No face image texture is needed.',
+    'Smoother movement starts, quicker braking, and stable foot contacts that cannot repeatedly replant during one support stroke.',
+    'Climbing limbs lift away from the wall when reaching. Ledge climbs ease into position and release each hand before standing.',
+  ] },
   { v: '0.27', date: '2026-10-03', items: [
     'Desert sand now uses broad flat colors and sparse wind-shaped ink strokes. Removed the ground dots and round color flecks; thinned the scrub to leave open dunes like the reference art.',
     'Rebuilt the traveller’s gloves with thumbs and individual finger shapes, pink boots with soles and straps, and a cream radio backpack with vents, a display and pouches.',
