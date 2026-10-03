@@ -40,10 +40,11 @@ export const FLUID = {
   boost: { up: 15, forward: 4, keep: 0.35, doubleTap: 0.35 },              // keep: share of a rising jump's speed kept
 };
 
-// The fluid's tones, in the order bands are added (the shader's fluidTone() in materials.js matches).
+// The fluid's tones, in the order bands are added (written into the shader's uFluidTones).
+// A world's source can bring its own tone instead: refill({ addColour: true, tone: '#e9a53c' }).
 export const FLUID_TONES = ['#52c8cf', '#966ede', '#ef7e62', '#f6c84e', '#ed80b0', '#83cf71'];
-/** The tones in the blend for a number of colour bands (1 -> cyan and violet). */
-export const fluidTones = (colours = 1) => FLUID_TONES.slice(0, THREE.MathUtils.clamp(Math.round(colours), 1, FLUID.maxColours) + 1);
+/** The tones in the blend for a number of colour bands (1 -> cyan and violet); custom[i] overrides tone i. */
+export const fluidTones = (colours = 1, custom = []) => FLUID_TONES.slice(0, THREE.MathUtils.clamp(Math.round(colours), 1, FLUID.maxColours) + 1).map((t, i) => (i >= 2 && custom?.[i]) || t);
 
 /** Map raw input (keyboard, mouse, gamepad and touch all write into the same object) to the tool's controls. Boost is jump in the air (player.js). */
 export function toolInput(c = {}) {
@@ -399,7 +400,7 @@ function buildTank() {
   const add = (geo, m, x = 0, y = 0, z = 0, sq = true) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); if (sq) o.scale.x = TANK.squash; g.add(o); return o; };
   const R = TANK.profile.reduce((m, [r]) => Math.max(m, r), 0);
   const glass = add(new THREE.LatheGeometry(profileCurve.getPoints(24), 28),
-    makeMaterial({ color: '#ffffff', fluid: 'tank', glow: 0.5, fluidBox: [0, TANK.full, R, TANK.highlight] }));
+    makeMaterial({ color: '#ffffff', fluid: 'tank', glow: 0.5, fluidBox: [0, TANK.full, R, TANK.highlight], fluidTones: FLUID_TONES }));
   glass.name = 'Fluid glass';
   // brass base cup and foot ring, the cap with its valve
   add(new THREE.CylinderGeometry(0.136, 0.16, 0.075, 28), flatMat(BRASS), 0, -0.03, 0);
@@ -475,7 +476,7 @@ class Hose {
     }
     g.setIndex(idx);
     this.geo = g;
-    this.mesh = new THREE.Mesh(g, makeMaterial({ color: RUBBER, fluid: 'hose', glow: 0.12 }));
+    this.mesh = new THREE.Mesh(g, makeMaterial({ color: RUBBER, fluid: 'hose', glow: 0.12, fluidTones: FLUID_TONES }));
     this.mesh.name = 'Fluid hose';
     this.mesh.frustumCulled = false; this.mesh.userData.noCollide = true;
     parent.add(this.mesh);
@@ -548,7 +549,7 @@ export class FluidTool {
     this.arc = new Dots(fx, 48, flatMat('#ffffff'));
     this.splats = new Splats(fx);
     this.rings = new Rings(fx);
-    const globMat = makeMaterial({ color: '#ffffff', fluid: 'glob', glow: 0.8, fluidBox: [-1, 1, 1, 0] });
+    const globMat = makeMaterial({ color: '#ffffff', fluid: 'glob', glow: 0.8, fluidBox: [-1, 1, 1, 0], fluidTones: FLUID_TONES });
     this.globU = globMat.uniforms;
     this.globMeshes = Array.from({ length: 6 }, () => { const m = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 2), globMat); m.visible = false; m.userData.noCollide = true; fx.add(m); return m; });
     this.wear();
@@ -631,16 +632,24 @@ export class FluidTool {
   // ------------------------------------------------------------ the story API
   get charges() { return this.reserve.charges; }
   get colours() { return THREE.MathUtils.clamp(this.state.flag('tool.colours') ?? 1, 1, FLUID.maxColours); }
-  get tones() { return fluidTones(this.colours); }
+  get tones() { return fluidTones(this.colours, this.state.flag('tool.tones')); }
   get enabled() { return this._enabled; }
   set enabled(on) {
     this._enabled = !!on;
     if (!on) { this.pending = null; this.quick = 0; }
   }
-  /** Fill the tank now (magical water); addColour: true also adds a colour band for good. Returns the colour count. */
-  refill({ addColour = false } = {}) {
+  /**
+   * Fill the tank now (magical water). addColour: true also adds a colour band
+   * for good, in the next tone of FLUID_TONES or in `tone` (a hex colour, e.g.
+   * a world's own light). Returns the colour count.
+   */
+  refill({ addColour = false, tone = null } = {}) {
     const added = addColour && this.colours < FLUID.maxColours;
-    if (added) this.state.set('tool.colours', this.colours + 1);
+    if (added) {
+      const c = this.colours + 1;
+      if (tone) { const custom = [...(this.state.flag('tool.tones') ?? [])]; custom[c] = '#' + new THREE.Color(tone).getHexString(); this.state.set('tool.tones', custom); }
+      this.state.set('tool.colours', c);
+    }
     this.reserve.fill();
     this.onRefilled(added);
     return this.colours;
@@ -736,9 +745,12 @@ export class FluidTool {
       if (this._hasVel) this.slosh = Math.max(this.slosh * Math.exp(-2.2 * dt), Math.min(1, _a.subVectors(p.vel, this._lastVel).length() / dt / 70));
       this._lastVel.copy(p.vel); this._hasVel = true;
     }
-    const n = this.tones.length;
+    const tones = this.tones, n = tones.length, key = tones.join();
+    const retone = key !== this._tonesKey;
+    this._tonesKey = key;
     for (const U of [this.tankU, this.hoseU, this.globU]) {
       if (!U) continue;
+      if (retone) U.uFluidTones.value.forEach((c, i) => c.set(tones[i] ?? FLUID_TONES[i]));
       U.uFluidA.value.x = this.fill; U.uFluidA.value.y = n; U.uFluidA.value.z = this.time;
       U.uFluidB.value.set(this.flash, this.wave, this.pulse, this.slosh);
     }
@@ -748,7 +760,6 @@ export class FluidTool {
     this.hose.mesh.visible = visible;
     if (!visible) return;
     // the bracer's rings light for the charges left (in sequence as it refills)
-    const tones = this.tones;
     this.bracer?.rings.forEach((ring, i) => {
       const lit = this.reserve.charges > i ? 1 : 0;
       this.ringLit[i] += (lit - this.ringLit[i]) * (1 - Math.exp(-(lit ? 7 : 20) * dt));

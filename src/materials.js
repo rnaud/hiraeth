@@ -597,16 +597,8 @@ const fragmentShader = /* glsl */ `
   uniform vec4 uFluidA;    // fill 0..1 · tones in the blend (2..6) · time (s) · kind: 0 tank, 1 hose, 2 glob
   uniform vec4 uFluidB;    // flash 0..1 · refill 0..1 (0 = none) · hose pulse head (0 tank -> 1 hand) · slosh 0..1
   uniform vec4 uFluidBox;  // object space: glass bottom y, top y, radius, highlight angle (rad, about +y)
-  // keep in step with FLUID_TONES in fluid-tool.js
-  vec3 fluidTone(int i) {
-    int k = i - 6 * (i / 6);
-    if (k == 0) return vec3(0.322, 0.784, 0.812);   // cyan
-    if (k == 1) return vec3(0.588, 0.431, 0.871);   // violet
-    if (k == 2) return vec3(0.937, 0.494, 0.384);   // coral
-    if (k == 3) return vec3(0.965, 0.784, 0.306);   // gold
-    if (k == 4) return vec3(0.929, 0.502, 0.690);   // pink
-    return vec3(0.514, 0.812, 0.443);               // green
-  }
+  uniform vec3 uFluidTones[6];   // the fluid's tones in the order they join the blend (fluid-tool.js sets them)
+  vec3 fluidTone(int i) { return uFluidTones[i - 6 * (i / 6)]; }
   // Round a vertical axis (angle a, height h 0..1, aspect = radius / height):
   // three stacked bands of one tone each, with metaball blobs of the other
   // tones rising, sinking and merging through them. Flat tones, so the post
@@ -915,6 +907,7 @@ const cache = new Map();
  *                              Compiles the FLUID block (a lava-lamp albedo in flat tones) and adds
  *                              uFluidA / uFluidB / uFluidBox; materials without it are unchanged
  * @param {number[]} [o.fluidBox] [glass bottom y, top y, radius, highlight angle] in object space
+ * @param {string[]} [o.fluidTones] the six tones (uFluidTones; the tool rewrites them as colours are added)
  */
 export function makeMaterial(o) {
   const key = JSON.stringify({ ...o, map: o.map?.uuid });
@@ -969,6 +962,7 @@ export function makeMaterial(o) {
     mat.uniforms.uFluidA = { value: new THREE.Vector4(1, 2, 0, { tank: 0, hose: 1, glob: 2 }[o.fluid] ?? 0) };
     mat.uniforms.uFluidB = { value: new THREE.Vector4() };
     mat.uniforms.uFluidBox = { value: new THREE.Vector4(...(o.fluidBox ?? [-1, 1, 1, 0])) };
+    mat.uniforms.uFluidTones = { value: Array.from({ length: 6 }, (_, i) => new THREE.Color(o.fluidTones?.[i] ?? '#ffffff')) };
   }
   cache.set(key, mat);
   return mat;

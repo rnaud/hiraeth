@@ -255,6 +255,13 @@ test('refill: magical water fills the tank and adds a colour band for good', () 
   // the story can do it through the bus
   state.emit('tool:refill', { addColour: true });
   assert.equal(tool.colours, 3);
+  // a world's own light can bring its own tone (the bazaar's lantern sun, the buried machine's oil-light)
+  state.emit('tool:refill', { addColour: true, tone: '#e9a53c' });
+  assert.equal(tool.colours, 4);
+  assert.equal(tool.tones[4], '#e9a53c');
+  assert.deepEqual(tool.tones.slice(0, 4), FLUID_TONES.slice(0, 4), 'the earlier bands keep their tones');
+  tool.update(DT, {});
+  assert.equal('#' + tool.globU.uFluidTones.value[4].getHexString(), '#e9a53c', 'the shader gets it');
   for (let i = 0; i < 9; i++) tool.refill({ addColour: true });
   assert.equal(tool.colours, FLUID.maxColours, 'up to the last tone');
   assert.equal(tool.tones.length, FLUID.maxColours + 1);
