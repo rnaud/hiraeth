@@ -1,3 +1,4 @@
+import { VERSION } from './changelog.js';
 // Player-facing UI: settings (saved), the settings menu, touch controls and
 // the save file for "continue where you left off".
 
@@ -34,13 +35,13 @@ export class Settings {
 
 /** The settings menu: O, Esc (when nothing else is open) or the gear button. */
 export class SettingsMenu {
-  constructor(settings, { sound, onResetProgress, isBusy }) {
+  constructor(settings, { sound, onResetProgress, isBusy, onNews }) {
     this.s = settings;
     const el = (this.el = document.getElementById('settings'));
     const row = (label, control) => `<label class="row"><span>${label}</span>${control}</label>`;
     el.innerHTML = `
       <div class="panel">
-        <h1>SETTINGS</h1>
+        <h1>SETTINGS <span style="font-size:12px;letter-spacing:0;opacity:.6">v${VERSION}</span></h1>
         ${row('Graphics', `<select data-k="quality"><option value="auto">Auto (adapts to keep it smooth)</option><option value="low">Low (fast)</option><option value="medium">Medium</option><option value="high">High (smooth lines)</option></select>`)}
         ${row('Mouse / touch sensitivity', `<input data-k="sensitivity" type="range" min="0.3" max="3" step="0.05">`)}
         ${row('Invert camera Y', `<input data-k="invertY" type="checkbox">`)}
@@ -51,9 +52,10 @@ export class SettingsMenu {
         ${row('Developer panel', `<input data-k="devPanel" type="checkbox">`)}
         <div class="buttons">
           <button data-a="reset">Reset progress</button>
+          <button data-a="news">What's new (N)</button>
           <button data-a="close">Close</button>
         </div>
-        <p class="keys">WASD move · SHIFT run · SPACE jump / glide / jetpack · E interact · J sketchbook · L worlds · P photo · H help · O settings</p>
+        <p class="keys">WASD move · SHIFT run · SPACE jump / glide / jetpack · E interact · J sketchbook · L worlds · P photo · H help · O settings · N what's new</p>
       </div>`;
     const sync = () => {
       for (const c of el.querySelectorAll('[data-k]')) {
@@ -71,6 +73,7 @@ export class SettingsMenu {
     el.addEventListener('click', (e) => {
       const a = e.target.dataset?.a;
       if (a === 'close' || e.target === el) this.toggle(false);
+      if (a === 'news') { this.toggle(false); onNews?.(); }
       if (a === 'reset' && confirm('Forget every relic, story page and saved position?')) onResetProgress();
     });
     window.addEventListener('keydown', (e) => {

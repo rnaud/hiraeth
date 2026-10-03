@@ -348,6 +348,42 @@ Modelled on a classic Moebius desert plate:
   the waist under the cape. It's a second cloth simulation, kicked by the
   leg capsules.
 
+## The rider
+
+- **Outfit:** flat blocks of colour (a body colour and a hem band), not gradients.
+- **Cape:** a short cape, knee-length.
+- **Clutter:** belt pouches, a canteen, a lantern, bells, a bandolier of charms,
+  a bedroll with a pot and a rolled map, and a walking stick with a pennant
+  (`src/trinkets.js`). The hanging pieces are damped springs, kicked by the
+  body's acceleration and the gait.
+- **Standing:** an idle layer on top of the Idle clip. The weight settles on
+  one leg, then shifts: the hip drops, the shoulders counter-tilt and the free
+  knee bends. The stance also narrows, the chest breathes, a hand hooks the
+  belt and the head glances around. The foot IK keeps the feet planted.
+- **Paraglider:** the hands grip the brake handles (two-bone IK) and the
+  canopy rides above them. The risers are re-aimed into the fists every frame,
+  and turning pulls one brake down.
+
+## World passes after the books
+
+- **Arzach:** warm peach sand, an aqua sky, rose-mauve shadows, mushroom-capped
+  hoodoos and boulders balanced on needles.
+- **Edena:** a ligne-claire look via `defaults.look` (thin even lines, flat
+  colour, little hatching, no dots). Also great spheres half-sunk in the
+  meadow and rows of ornaments on white pedestals.
+- **Perdide:** giant fungus trees (violet stalks, softly glowing caps that
+  light the swamp) and reeds along the waterlines.
+- **The Garage:** pipes with valve wheels and pumps, aerials, cabins, and
+  cables slung from the keep, all over a paved plateau.
+
+A world can tweak its default preset with `defaults.look` (post uniforms).
+
+## Changelog
+
+Press **N**, or use the button in settings, for what's new in each version
+(`src/changelog.js`; add an entry at the top for every release). After an
+update, a note points to it once.
+
 ## Errands and travel between worlds
 
 - **Errands:** in each world one villager asks you to carry something to

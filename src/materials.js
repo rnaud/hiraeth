@@ -619,7 +619,8 @@ const fragmentShader = /* glsl */ `
     else if (uPattern == 4) patInk = rockCracks(vObjPos);
     albedo *= vInstColor;
     // cloth: the colour runs from the collar (uColor) down to the hem (uColor2)
-    if (uFolds > 0.0) albedo = mix(uColor, uColor2, smoothstep(0.15, 0.95, vFold.y)) * vInstColor;
+    // cloth in flat blocks of colour, like a printed plate: the body colour, then a hem band
+    if (uFolds > 0.0) albedo = (vFold.y < 0.62 ? uColor : uColor2) * vInstColor;
 
     float ndl = dot(n, uSunDir);
     float lambert = ndl * 0.5 + 0.5;

@@ -223,6 +223,38 @@ export function createEdena(scene) {
     });
   }
 
+  // ---------------------------------------------------------- the android garden
+  // Edena's perfect geometry: great smooth spheres half-sunk in the meadow,
+  // and little ornaments on white pedestals (spheres, cones, diamonds) in flat
+  // pastel colours with no texture at all.
+  {
+    const white = makeMaterial({ color: '#fbf8f0' });
+    const ACC = ['#f2a7b5', '#62c3c9', '#f6c7a0', '#b5a7e6', '#f2c54b', '#7fcfa8'];
+    const accent = ACC.map((c) => makeMaterial({ color: c }));
+    for (let i = 0; i < 9; i++) {
+      const a = rng() * Math.PI * 2, r = 160 + rng() * 700;
+      const x = Math.cos(a) * r, z = Math.sin(a) * r, R = 9 + rng() * 16;
+      const m = new THREE.Mesh(new THREE.SphereGeometry(R, 40, 24), rng() < 0.5 ? white : pick(accent));
+      m.position.set(x, terrain.heightAt(x, z) + R * (0.15 + rng() * 0.5), z);
+      scene.add(m);
+    }
+    const byMat = new Map();
+    const add = (mat, g) => { if (!byMat.has(mat)) byMat.set(mat, []); byMat.get(mat).push(g.toNonIndexed()); };
+    for (let i = 0; i < 70; i++) {
+      // in loose rows, like a garden laid out by machines
+      const row = Math.floor(i / 10), k = i % 10;
+      const ca = (row / 7) * Math.PI * 2 + 0.4, cr = 120 + row * 45;
+      const x = Math.cos(ca) * cr + (k - 4.5) * 9 * Math.sin(ca), z = Math.sin(ca) * cr - (k - 4.5) * 9 * Math.cos(ca);
+      const base = terrain.baseAt(x, z, 2), ph = 1.5 + rng() * 2.5;
+      add(white, new THREE.CylinderGeometry(1.1, 1.4, ph, 16).translate(x, base + ph / 2, z));
+      const mat = pick(accent), top = base + ph, kind = rng();
+      if (kind < 0.45) add(mat, new THREE.SphereGeometry(1.4, 20, 12).translate(x, top + 1.4, z));
+      else if (kind < 0.75) add(mat, new THREE.ConeGeometry(1.3, 3, 16).translate(x, top + 1.5, z));
+      else add(mat, new THREE.OctahedronGeometry(1.6, 0).translate(x, top + 1.6, z));
+    }
+    for (const [mat, list] of byMat) scene.add(new THREE.Mesh(mergeGeometries(list), mat));
+  }
+
   return {
     id: 'edena',
     ground: terrain,
@@ -230,7 +262,9 @@ export function createEdena(scene) {
     spawnHeading: Math.PI,
     camYaw: 0,
     features: { mount: false, wind: false, jetpack: false, climb: true },
-    defaults: { hour: 10.5, preset: 'Moebius print', cloudShadows: 0 },
+    // ligne claire: thin even lines, flat colour, almost no hatching or dotting
+    defaults: { hour: 10.5, preset: 'Moebius print', cloudShadows: 0,
+      look: { uLineWidth: 1.0, uLineVary: 0.08, uWobble: 0.12, uHatch: 0.35, uDots: 0, uSkyDots: 0.35 } },
     sky: {
       script: {
         day: ['#5ea7da', '#e3efe0', '#8ea7d2', '#fffdf4', '#fffbe8'],   // print: deep cerulean over meadow

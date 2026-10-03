@@ -66,7 +66,7 @@ export function createPerdide(scene) {
   const pick = (a) => a[Math.floor(rng() * a.length)];
   const terrain = new Terrain({
     size: 4000, seg: 480, height,
-    material: { color: '#7f9a6a', color2: '#95ad7a', color3: '#8a7f6a', mode: MODE_TERRAIN, ticks: true },
+    material: { color: '#6f8a62', color2: '#86a070', color3: '#7a6a86', mode: MODE_TERRAIN, ticks: true },   // olive moss with violet mud
   });
   scene.add(terrain.mesh);
   const movers = [];
@@ -222,6 +222,55 @@ export function createPerdide(scene) {
   }
 
   const unsafe = (p) => terrain.heightAt(p.x, p.z) < DEEP && p.y < WATER + 0.5;
+
+  // ---------------------------------------------------------- giant fungus trees and reeds
+  // The film's swamp flora: swollen violet stalks under broad, softly glowing
+  // caps, and dark reeds crowding every waterline.
+  {
+    const prof = [[0, 0], [2.6, 0], [3.8, 0.07], [3.2, 0.2], [1.5, 0.45], [1.25, 0.7], [1.9, 0.79], [8.5, 0.83], [9.5, 0.88], [7.0, 0.96], [0, 1]];
+    const STALK = ['#8a6fb8', '#7a5fa0', '#9a7fc4'], CAP = ['#d6ff9a', '#f2a7b5', '#7fe0d0', '#f2c54b'];
+    const stalks = {}, caps = {};
+    for (let i = 0; i < 70; i++) {
+      const x = (rng() * 2 - 1) * 1200, z = (rng() * 2 - 1) * 1200;
+      if (Math.hypot(x, z) < 45) continue;
+      const g0 = terrain.heightAt(x, z);
+      if (g0 < DEEP - 2) continue;
+      const s = 0.6 + rng() * 1.8, H = (14 + rng() * 22) * s;
+      const geo = new THREE.LatheGeometry(prof.map(([pr, py]) => new THREE.Vector2(pr * s, py * H)), 12);
+      jitter(geo, 0.12, 0.03, i);
+      geo.rotateZ((rng() - 0.5) * 0.18).rotateY(rng() * 6).translate(x, g0 - 0.6, z);
+      // split the lathe into stalk (below the cap) and cap, by height
+      const pos = geo.attributes.position, cut = g0 - 0.6 + H * 0.8;
+      const idx = geo.index.array, st = [], cp = [];
+      for (let t = 0; t < idx.length; t += 3) (Math.max(pos.getY(idx[t]), pos.getY(idx[t + 1]), pos.getY(idx[t + 2])) > cut ? cp : st).push(idx[t], idx[t + 1], idx[t + 2]);
+      const part = (list) => { const g = geo.clone(); g.setIndex(list); return g.toNonIndexed(); };
+      (stalks[pick(STALK)] ??= []).push(part(st));
+      (caps[pick(CAP)] ??= []).push(part(cp));
+      if (s > 1.4) lights.push(new THREE.Vector4(x, g0 + H * 0.75, z, 10 * s));
+    }
+    for (const [c, l] of Object.entries(stalks)) scene.add(new THREE.Mesh(mergeGeometries(l), makeMaterial({ color: c, flat: true })));
+    for (const [c, l] of Object.entries(caps)) scene.add(new THREE.Mesh(mergeGeometries(l), makeMaterial({ color: c, flat: true, glow: 0.3 })));
+    // reeds
+    const N = 3200, dummy = new THREE.Object3D(), col = new THREE.Color();
+    const reeds = new THREE.InstancedMesh(new THREE.ConeGeometry(0.09, 1, 4).translate(0, 0.5, 0), makeMaterial({ color: '#ffffff' }), N);
+    let n = 0;
+    for (let tries = 0; tries < N * 6 && n < N; tries++) {
+      const cx = (rng() * 2 - 1) * 1100, cz = (rng() * 2 - 1) * 1100, h0 = terrain.heightAt(cx, cz);
+      if (h0 < -1.2 || h0 > 0.9) continue;   // only along the waterline
+      for (let k = 0; k < 12 && n < N; k++) {
+        const x = cx + (rng() - 0.5) * 4, z = cz + (rng() - 0.5) * 4;
+        dummy.position.set(x, terrain.heightAt(x, z) - 0.2, z);
+        dummy.rotation.set((rng() - 0.5) * 0.35, 0, (rng() - 0.5) * 0.35);
+        dummy.scale.set(1, 1.6 + rng() * 2.8, 1);
+        dummy.updateMatrix();
+        reeds.setMatrixAt(n, dummy.matrix);
+        reeds.setColorAt(n++, col.set(pick(['#3f5a3a', '#4f6b34', '#5a4a6a'])));
+      }
+    }
+    reeds.count = n;
+    reeds.userData.noCollide = true;
+    scene.add(reeds);
+  }
 
   return {
     id: 'perdide',

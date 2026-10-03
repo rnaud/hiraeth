@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { makeMaterial } from './materials.js';
 import { Cape } from './cape.js';
+import { Trinkets } from './trinkets.js';
 
 const RADIUS = 0.45;
 const STEP = 0.6;    // obstacles lower than this are stepped onto
@@ -175,6 +176,7 @@ export function buildCharacter(palette = {}) {
 }
 
 const _v1 = new THREE.Vector3();
+const _tq = new THREE.Quaternion(), _te = new THREE.Euler();
 const _g1 = new THREE.Vector3(), _g2 = new THREE.Vector3(), _g3 = new THREE.Vector3(), _g4 = new THREE.Vector3(), _g5 = new THREE.Vector3(), _g6 = new THREE.Vector3();
 const LEG_A = 0.49, LEG_B = 0.47;   // thigh, shin+foot
 // climbing key poses (rig angles in radians; arm x < 0 raises the arm forward/up)
@@ -381,14 +383,20 @@ export class Player {
       g.rotateX(Math.PI / 2).translate(0, -4.2, 0);
       const top = new THREE.Mesh(g, makeMaterial({ color: '#f2c54b', color2: '#c8483a', color3: '#f3ead8', mode: 2, strataSize: 0.35, side: THREE.DoubleSide }));
       wing.add(top);
+      // risers: unit tubes re-aimed every frame from the canopy to the hands
       const lineMat = makeMaterial({ color: '#34405e' });
-      for (const sx of [-1, 1]) for (const k of [0.45, 0.85]) {
+      const unit = new THREE.CylinderGeometry(0.014, 0.014, 1, 3, 1, true).translate(0, 0.5, 0);
+      this.risers = [];
+      for (const sx of [-1, 1]) for (const k of [0.3, 0.6, 0.85]) {
         const a = sx * k;
-        const p0 = new THREE.Vector3(Math.sin(a) * 4.2, Math.cos(a) * 4.2 - 4.2 + 0.0, 0);
-        const p1 = new THREE.Vector3(sx * 0.35, -2.6, 0.1);
-        wing.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.LineCurve3(p0, p1), 1, 0.012, 3), lineMat));
+        const m = new THREE.Mesh(unit, lineMat);
+        m.visible = false;
+        m.userData.noCollide = true;
+        m.frustumCulled = false;
+        this.object.add(m);
+        this.risers.push({ mesh: m, at: new THREE.Vector3(Math.sin(a) * 4.2, Math.cos(a) * 4.2 - 4.2, 0), hand: sx < 0 ? 'r' : 'l' });
       }
-      wing.position.set(0, 4.7, -0.4);
+      wing.position.set(0, 4.7, -0.1);
       wing.visible = false;
       wing.userData.noCollide = true;
       this.object.add(wing);
@@ -396,7 +404,13 @@ export class Player {
     }
     scene.add(this.object);
     this.scene = scene;
-    this.cape = new Cape(scene, this.char.capeAnchor ?? this.char.torso, { color: this.char.colors.cloak, color2: this.char.colors.cloak2 });
+    // a shorter cape, so the clutter on the belt shows
+    this.cape = new Cape(scene, this.char.capeAnchor ?? this.char.torso, { rows: 9, length: 0.95, bottom: 0.4, color: this.char.colors.cloak, color2: this.char.colors.cloak2 });
+    if (this.humanoid) {
+      this.trinkets = new Trinkets(this.char.capeAnchor);
+      if (this.char.pack) this.char.pack.visible = false;
+      this._lastVel = new THREE.Vector3();
+    }
     this.tails = this.char.scarfAnchors.map((_, i) =>
       new ClothTail(scene, i === 0 ? { points: 10, seg: 0.2, width: 0.2 } : { points: 7, seg: 0.18, width: 0.16 }));
   }
@@ -733,6 +747,7 @@ export class Player {
       const open = this.gliding ? 1 : 0;
       this._wingK = THREE.MathUtils.lerp(this._wingK ?? 0, open, 1 - Math.exp(-(open ? 9 : 14) * dt));
       this.wing.visible = this._wingK > 0.03;
+      for (const r of this.risers ?? []) r.mesh.visible = this.wing.visible && !!this.humanoid;
       this.wing.scale.set(this._wingK, 0.6 + 0.4 * this._wingK, 1);
       this.wing.rotation.z = -(this.glideTurn ?? 0) * 0.35;
     }
@@ -754,8 +769,47 @@ export class Player {
       else if (this.onGround && this.animator && !this.thrusting) {
         H.plantFeet(dt, this.physics, U, this.pos, this.frame.dir(this.heading, _g1).clone(), (p, side, n) => this.stepped(p.clone(), 0, n));
       } else H.resetFeet();
+      if (this.wing && this._wingK > 0.03) this.holdWing();
+    }
+    if (this.trinkets && dt > 0) {
+      const v = this.ride ? this.ride.vel : this.vel;
+      const acc = _g4.subVectors(v, this._lastVel).divideScalar(dt);
+      this._lastVel.copy(v);
+      acc.applyQuaternion(_tq.copy(this.object.quaternion).invert());
+      const moving = this.ride ? 0.3 : Math.min(Math.hypot(this.vel.x, this.vel.z) / 6, 1);
+      this.trinkets.update(dt, acc.clampLength(0, 40), this.phase ?? 0, this.onGround ? moving : 0.4);
     }
     this.updateCloth(dt);
+  }
+
+  /** Gliding: both hands up on the brake handles, the canopy above them, the risers running into the fists. */
+  holdWing() {
+    const H = this.humanoid, B = H.b, U = this.frame.up, k = this._wingK;
+    const fwd = this.frame.dir(this.heading, _g1), back = _g2.copy(fwd).negate();
+    const right = _g3.crossVectors(fwd, U).normalize();
+    const hands = ['r', 'l'].map((s, i) => {
+      const sh = B[`upperarm_${s}`].getWorldPosition(new THREE.Vector3());
+      const pull = (i === 0 ? 1 : -1) * (this.glideTurn ?? 0) * 0.25;     // pull the brake on the side you turn to
+      return sh.addScaledVector(U, 0.5 - Math.max(0, pull)).addScaledVector(right, (i === 0 ? 1 : -1) * 0.12).addScaledVector(fwd, 0.08);
+    });
+    H.reach({ hands, wallN: back, up: U });
+    this.object.updateMatrixWorld(true);
+    // the canopy rides 3.4 m above the hands' midpoint
+    const mid = new THREE.Vector3();
+    for (const s of ['r', 'l']) mid.add(B[`hand_${s}`].getWorldPosition(_g4)).multiplyScalar(1);
+    mid.multiplyScalar(0.5);
+    this.object.worldToLocal(mid);
+    this.wing.position.set(mid.x, mid.y + 3.4 * (0.6 + 0.4 * k), mid.z);
+    this.wing.updateMatrixWorld(true);
+    for (const r of this.risers) {
+      const p0 = this.wing.localToWorld(_g4.copy(r.at));
+      const p1 = B[`hand_${r.hand}`].getWorldPosition(_g5);
+      this.object.worldToLocal(p0); this.object.worldToLocal(p1);
+      const d = p1.sub(p0), len = d.length();
+      r.mesh.position.copy(p0);
+      r.mesh.quaternion.setFromUnitVectors(_g6.set(0, 1, 0), d.divideScalar(len || 1));
+      r.mesh.scale.set(1, len, 1);
+    }
   }
 
   /** Hand and foot holds on the wall for the current point of the climb cycle. */
@@ -1144,6 +1198,7 @@ export class Player {
     this.object.position.copy(this.pos);
     this.frame.quaternion(this.heading, this.object.quaternion);
     A.apply(this.object, { bank, legScale: 1.04 });
+    this.idleLayer(dt, hs);
     if (this.onGround && !this.humanoid) this.footIK(dt);
     c.hatTip.rotation.x = -hs * 0.02 + c.body.position.y * 3;
     // footstep: a foot reaches its lowest point and starts rising again
@@ -1159,6 +1214,44 @@ export class Player {
         (this._fv ??= [])[i] = v;
       }
     }
+  }
+
+  /**
+   * Standing still: a relaxed, living stance on top of the idle clip. The
+   * weight settles on one leg for a few seconds (the hip drops on the other
+   * side, the shoulders counter-tilt, the free knee bends), then shifts over;
+   * the stance narrows, the chest breathes, the elbows soften and the head
+   * looks around now and then. The foot IK keeps both feet planted.
+   */
+  idleLayer(dt, hs) {
+    const target = this.onGround && !this.ride && hs < 0.35 && !this.climbing ? 1 : 0;
+    const k = this._still = THREE.MathUtils.lerp(this._still ?? 0, target, 1 - Math.exp(-(target ? 2.5 : 8) * dt));
+    if (k < 0.01) return;
+    const c = this.char, t = this.time;
+    const rot = (j, x, y, z) => j.quaternion.multiply(_tq.setFromEuler(_te.set(x * k, y * k, z * k)));
+    const w = Math.tanh(3 * Math.sin(t * 0.38 + 0.6));          // -1..1, dwells on each side
+    const breath = Math.sin(t * 1.7);
+    c.body.position.x += w * 0.045 * k;
+    c.body.position.y -= 0.015 * Math.abs(w) * k;
+    rot(c.body, 0, w * 0.06, -w * 0.07);
+    rot(c.torso, breath * 0.018, -w * 0.05, w * 0.09);
+    // narrow the stance; the free leg relaxes forward with a bent knee
+    for (let i = 0; i < 2; i++) {
+      const side = i === 0 ? 1 : -1;                               // which way is inward for this leg
+      const free = THREE.MathUtils.smoothstep(-w * side, 0.1, 0.9);
+      rot(c.legs[i], 0.1 * free, 0.08 * free * side, side * 0.05);
+      rot(c.knees[i], 0.3 * free, 0, 0);
+    }
+    // soft arms, a slow sway, one hand hooks the belt while the weight is on that side
+    for (let i = 0; i < 2; i++) {
+      const side = i === 0 ? 1 : -1;
+      const hook = THREE.MathUtils.smoothstep(w * side, 0.4, 0.95) * 0.6;
+      rot(c.arms[i], 0.06 + breath * 0.01 - hook * 0.25, 0, side * (0.1 + hook * 0.35));
+      rot(c.elbows[i], -0.28 - hook * 0.9, 0, 0);
+    }
+    // glances: hold, turn the head, hold
+    const look = Math.tanh(2.5 * Math.sin(t * 0.21)) * 0.45 + Math.sin(t * 0.9) * 0.03;
+    rot(c.head, -0.04 + Math.max(0, Math.sin(t * 0.13)) * 0.12, look, 0);
   }
 
   /**

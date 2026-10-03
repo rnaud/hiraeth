@@ -63,7 +63,7 @@ export class NPC {
     const camD0 = camera.position.distanceTo(this.pos);
     this.object.visible = camD0 < 260;
     if (this.cape) this.cape.mesh.visible = camD0 < 220;
-    if (camD0 > 260) { this.balloon.classList.remove('show'); return; }
+    if (camD0 > 260) { this.talking = false; return; }
     if (camD0 > 110) { this._skip = ((this._skip ?? 0) + 1) % 4; this._acc = (this._acc ?? 0) + dt; if (this._skip) return; dt = this._acc; this._acc = 0; }
     else this._acc = 0;
     this.time += dt;
@@ -137,18 +137,24 @@ export class NPC {
       this.cape.update(dt, { up: Y, vel: this.vel, wind: player.wind, floor: this.pos, capsules: this.humanoid ? this.humanoid.capsules() : this.capsules() });
     }
 
-    // speech balloon
-    const talking = this.greeted && this.time - this.greeted > 0.6 && dist < greetR;
-    if (talking) {
-      _w.copy(this.pos).add(_v.set(0, 2.7, 0)).project(camera);
-      const on = _w.z < 1 && Math.abs(_w.x) < 1.1 && Math.abs(_w.y) < 1.1;
-      if (on) {
-        this.balloon.textContent = this.lines[this.lineIdx];
-        this.balloon.style.left = `${(_w.x * 0.5 + 0.5) * window.innerWidth}px`;
-        this.balloon.style.top = `${(-_w.y * 0.5 + 0.5) * window.innerHeight}px`;
-      }
-      this.balloon.classList.toggle('show', on);
-    } else this.balloon.classList.remove('show');
+    // speech balloon: placed by placeBalloon() after the camera has moved this frame
+    this.talking = this.greeted && this.time - this.greeted > 0.6 && dist < greetR;
+  }
+
+  /** Put the balloon over the head (call after the camera update; only for the one that talks). */
+  placeBalloon(camera, show) {
+    if (!show || !this.talking) { this.balloon.classList.remove('show'); return; }
+    const head = this.humanoid?.b?.Head;
+    if (head) head.getWorldPosition(_w).add(_v.set(0, 0.62, 0));
+    else _w.copy(this.pos).add(_v.set(0, 2.3, 0));
+    _w.project(camera);
+    const on = _w.z < 1 && Math.abs(_w.x) < 1.1 && Math.abs(_w.y) < 1.1;
+    if (on) {
+      const text = this.lines[this.lineIdx];
+      if (this.balloon.textContent !== text) this.balloon.textContent = text;
+      this.balloon.style.transform = `translate(${((_w.x * 0.5 + 0.5) * window.innerWidth).toFixed(1)}px, ${((-_w.y * 0.5 + 0.5) * window.innerHeight).toFixed(1)}px) translate(-22px, calc(-100% - 12px))`;
+    }
+    this.balloon.classList.toggle('show', on);
   }
 
   move(dir, speed, dt) {

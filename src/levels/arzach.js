@@ -29,6 +29,7 @@ function height(x, z) {
 
 const BONE = [
   ['#f4efe2', '#e6dcc6', '#d6c7a8'],
+  ['#f2d6c4', '#e8c0aa', '#f8ecdf'],   // the book's rose-tinted stone
   ['#efe4cf', '#e2cfae', '#f7f1e4'],
   ['#ece6da', '#d9cfc0', '#c9b8a0'],
 ];
@@ -38,7 +39,7 @@ export function createArzach(scene) {
   const pick = (a) => a[Math.floor(rng() * a.length)];
   const terrain = new Terrain({
     size: 4000, seg: 420, height,
-    material: { color: '#efe6d2', color2: '#f7f0e2', color3: '#d9c7a6', mode: MODE_TERRAIN, ripples: true },
+    material: { color: '#f0dcc0', color2: '#f7ead4', color3: '#e3bf9c', mode: MODE_TERRAIN, ripples: true },   // warm peach sand
   });
   scene.add(terrain.mesh);
   const bone = (size = 5) => { const p = pick(BONE); return makeMaterial({ color: p[0], color2: p[1], color3: p[2], mode: MODE_STRATA, strataSize: size, flat: true }); };
@@ -215,6 +216,37 @@ export function createArzach(scene) {
     scene.add(rocks);
   }
 
+  // ---------------------------------------------------------- mushroom rocks and balanced stones
+  // The book's eroded hoodoos: a thin weathered stalk under a wide flat cap,
+  // in warm ochre and rose against the pale sand. Their caps are landing spots.
+  {
+    const WARM = [['#e9b8a0', '#f2d2b8', '#d99a86'], ['#e6c08a', '#f0d6a8', '#d0a070'], ['#f0d8c0', '#e2bfa0', '#c98f7a']];
+    const prof = [[0, 0], [5.5, 0], [4.2, 0.08], [3.0, 0.25], [2.1, 0.5], [2.0, 0.68], [2.8, 0.78], [7.5, 0.82], [8.2, 0.88], [7.0, 0.96], [0, 1]];
+    for (let i = 0; i < 48; i++) {
+      const a = rng() * Math.PI * 2, r = 150 + Math.pow(rng(), 0.7) * 1050;
+      const x = Math.cos(a) * r, z = Math.sin(a) * r;
+      const s = 0.7 + rng() * 1.5, h = (16 + rng() * 26) * s, lean = (rng() - 0.5) * 0.25;
+      const g = new THREE.LatheGeometry(prof.map(([pr, py]) => new THREE.Vector2(pr * s * (0.8 + rng() * 0.4), py * h)), 11);
+      jitter(g, 0.18, 0.04, rng() * 50);
+      const p = pick(WARM);
+      const m = new THREE.Mesh(g, makeMaterial({ color: p[0], color2: p[1], color3: p[2], mode: MODE_STRATA, strataSize: 2 + rng() * 2.5, flat: true }));
+      m.position.set(x, terrain.baseAt(x, z, 5 * s) - 1.5, z);
+      m.rotation.set(lean, rng() * 6, lean * 0.5);
+      scene.add(m);
+    }
+    for (let i = 0; i < 12; i++) {   // a boulder balanced on a needle
+      const a = rng() * Math.PI * 2, r = 180 + rng() * 800;
+      const x = Math.cos(a) * r, z = Math.sin(a) * r, s = 0.8 + rng();
+      const ped = new THREE.CylinderGeometry(1.2 * s, 3.4 * s, 12 * s, 7, 4).translate(0, 6 * s, 0);
+      const stone = new THREE.IcosahedronGeometry(5.5 * s, 1).scale(1.2, 0.8, 1).translate(0.8 * s, 12 * s + 3.6 * s, 0);
+      jitter(ped, 0.15, 0.04, i); jitter(stone, 0.2, 0.05, i + 9);
+      const m = new THREE.Mesh(mergeGeometries([ped.toNonIndexed(), stone.toNonIndexed()]), bone(3));
+      m.position.set(x, terrain.baseAt(x, z, 4 * s) - 1, z);
+      m.rotation.y = rng() * 6;
+      scene.add(m);
+    }
+  }
+
   return {
     id: 'arzach',
     ground: terrain,
@@ -234,7 +266,7 @@ export function createArzach(scene) {
     sky: {
       // almost monochrome bone, with warm ochre shadows as the one accent
       script: {
-        day: ['#86aed6', '#e9e3d2', '#9eaacb', '#fffcf4', '#fffaf0'],   // print: pale cerulean over bone
+        day: ['#7cc1c4', '#f4d4b6', '#b98f9a', '#fff4e6', '#fff0d8'],   // the book: aqua sky over a peach horizon, rose-mauve shadows
         dusk: ['#c9b9a4', '#f2cfa8', '#b0705a', '#ffe0c0', '#fff0d6'],
         night: ['#2a2a38', '#4c4a58', '#3c3448', '#a8a4b8', '#f2f0e6'],
       },

@@ -62,6 +62,20 @@
         font: 13px ui-monospace, Menlo, monospace; color: #2b211f;
       }
       #settings h1 { margin: 0 0 14px; font-size: 20px; letter-spacing: 0.14em; }
+      #changelog { position: fixed; inset: 0; z-index: 91; display: none; place-items: center; background: rgba(43, 33, 31, 0.45); }
+      #changelog.open { display: grid; }
+      #changelog .panel {
+        width: min(620px, 94vw); max-height: 86vh; display: flex; flex-direction: column; padding: 20px 24px; background: #f7ecd2;
+        border: 2px solid #2b211f; box-shadow: 7px 7px 0 #2b211f; font: 13px/1.45 ui-monospace, Menlo, monospace; color: #2b211f;
+      }
+      #changelog h1 { margin: 0 0 10px; font-size: 20px; letter-spacing: 0.14em; }
+      #changelog h1 span, #changelog h2 span { font-size: 12px; letter-spacing: 0; opacity: 0.6; font-weight: normal; }
+      #changelog .list { overflow-y: auto; padding-right: 8px; }
+      #changelog h2 { margin: 14px 0 4px; font-size: 14px; border-bottom: 1px solid #2b211f; }
+      #changelog ul { margin: 0; padding-left: 18px; }
+      #changelog li { margin: 3px 0; }
+      #changelog .buttons { margin-top: 12px; text-align: right; }
+      #changelog button { font: inherit; padding: 6px 12px; background: #fffaf0; border: 2px solid #2b211f; cursor: pointer; }
       #settings .row { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin: 9px 0; }
       #settings select, #settings input[type=range] { width: 52%; accent-color: #c8483a; font: inherit; }
       #settings .buttons { display: flex; justify-content: space-between; margin-top: 16px; }
@@ -108,7 +122,7 @@
       @keyframes spin { to { transform: rotate(360deg); } }
 
       .balloon {
-        position: fixed; z-index: 40; transform: translate(-50%, -100%); max-width: 240px; padding: 7px 11px;
+        position: fixed; left: 0; top: 0; z-index: 40; will-change: transform; max-width: 240px; padding: 7px 11px;
         font: 13px/1.35 ui-monospace, Menlo, monospace; color: #2b211f; background: #fffaf0;
         border: 2px solid #2b211f; border-radius: 16px; pointer-events: none; opacity: 0; transition: opacity 0.25s;
       }

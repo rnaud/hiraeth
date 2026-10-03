@@ -17,6 +17,7 @@ import { Journal, Relics, Story, Gate, Errands, turnPage, arriveFromPage } from 
 import { CONTENT, ERRANDS, nextLevel } from './levels/content.js';
 import { loadAnimationLibrary, Animator } from './animator.js';
 import { loadHuman, Humanoid } from './humanoid.js';
+import { Changelog, VERSION } from './changelog.js';
 import { Settings, SettingsMenu, TouchControls, SaveGame, isTouch } from './ui.js';
 import { ORDER } from './levels/content.js';
 
@@ -439,6 +440,8 @@ fSound.close();
 function applyPreset(name) {
   const p = PRESETS[name];
   for (const [k, v] of Object.entries(p)) if (U[k]) U[k].value = v;
+  // the world's own touches on its default look (line weight, hatching, dots…)
+  if (name === (level.defaults.preset ?? 'Moebius print')) for (const [k, v] of Object.entries(level.defaults.look ?? {})) if (U[k]) U[k].value = v;
   gui.controllersRecursive().forEach((c) => c.updateDisplay());
 }
 applyPreset(params.preset);
@@ -481,9 +484,11 @@ settings.on((k) => {
   if (settings.quality !== lastQuality) { lastQuality = settings.quality; quality.renderScale = QUALITY[settings.quality] ?? 1; resize(); }
   applyDetail();
 });
+const changelog = new Changelog();
 const menu = new SettingsMenu(settings, {
   sound,
-  isBusy: () => story.pageOpen || journal.open || picker.classList.contains('open') || photo.on,
+  onNews: () => changelog.toggle(true),
+  isBusy: () => story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || photo.on,
   onResetProgress: () => { localStorage.removeItem('moebius.journal.v1'); SaveGame.clear(); location.search = '?level=desert'; },
 });
 if (isTouch) new TouchControls(input, rig);
@@ -607,7 +612,7 @@ function updateHud() {
 }
 
 
-const busy = () => story.pageOpen || journal.open || picker.classList.contains('open') || menu.open || endingOpen;
+const busy = () => story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || menu.open || endingOpen;
 const noInput = {};
 
 /** The whole pipeline for one view: shadows, G-buffer, composite, overlays. */
@@ -753,9 +758,10 @@ function frame() {
   errands.update();
   // only the nearest talking villager shows a balloon
   {
+    camera.updateMatrixWorld();   // project with this frame's camera, not last frame's
     let best = null, bd = Infinity;
-    for (const n of npcs) if (n.balloon.classList.contains('show')) { const d = n.pos.distanceTo(player.pos); if (d < bd) { bd = d; best = n; } }
-    for (const n of npcs) if (n !== best) n.balloon.classList.remove('show');
+    for (const n of npcs) if (n.talking) { const d = n.pos.distanceTo(player.pos); if (d < bd) { bd = d; best = n; } }
+    for (const n of npcs) n.placeBalloon(camera, n === best);
   }
   relics.update(dt, t, player);
   story.update(dt, t, camera);
@@ -845,6 +851,11 @@ requestAnimationFrame((t) => {
   setTimeout(() => ld?.remove(), 900);
   if (viaGate) arriveFromPage(meta.title);
   else story.start();
+  if (changelog.fresh) setTimeout(() => {   // after an update: point at what changed, once
+    const t = document.getElementById('toast');
+    t.textContent = `Updated to v${VERSION} · press N to see what's new`;
+    t.classList.remove('show'); void t.offsetWidth; t.classList.add('show');
+  }, 4000);
 });
 
 // handy for debugging from the console

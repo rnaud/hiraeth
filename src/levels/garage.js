@@ -88,7 +88,7 @@ export function createGarage(scene) {
     const g = new THREE.CylinderGeometry(210, 120, 70, 30, 6);
     g.translate(0, -35, 0);
     jitter(g, 0.12, 0.01, 4);
-    scene.add(new THREE.Mesh(g, makeMaterial({ color: '#cfe0a8', color2: '#b5a37f', color3: '#e9d7b0', mode: MODE_STRATA, strataSize: 7, flat: true })));
+    scene.add(new THREE.Mesh(g, makeMaterial({ color: '#cfe0a8', color2: '#b5a37f', color3: '#e9d7b0', mode: MODE_STRATA, strataSize: 7, flat: true, pattern: 'cracks' })));
     // a keep with walls and corner towers
     const keep = [];
     for (let i = 0; i < 4; i++) {
@@ -128,6 +128,68 @@ export function createGarage(scene) {
       isl.position.set(Math.cos(a) * r, -20 + rng() * 60, Math.sin(a) * r);
       scene.add(isl);
     }
+  }
+
+  // ---------------------------------------------------------- the plateau's clutter
+  // Grubert's asteroid is a tangle of plumbing: pipes snaking over the ground
+  // with valve wheels and pumps, cables slung between the towers, aerials and
+  // little cabins everywhere. Kept off the path from the start to the keep.
+  {
+    const clear = (x, z) => Math.abs(x) < 16 && z > 20 && z < 150;
+    const pipeMats = ['#e6875f', '#62c3c9', '#a99be0', '#f2c54b'].map((c) => makeMaterial({ color: c }));
+    const brass = makeMaterial({ color: '#d8a24a', flat: true }), ink = makeMaterial({ color: '#34405e' });
+    const pipes = new Map(), bits = [];
+    for (let i = 0; i < 26; i++) {
+      const pts = [];
+      let a = rng() * Math.PI * 2, r = 50 + rng() * 140;
+      for (let k = 0; k < 6; k++) {
+        const x = Math.cos(a) * r, z = Math.sin(a) * r;
+        pts.push(new THREE.Vector3(x, 0.7 + (k % 3 === 1 ? 2 + rng() * 5 : 0), z));
+        a += (rng() - 0.5) * 0.4; r = THREE.MathUtils.clamp(r + (rng() - 0.5) * 40, 45, 195);
+      }
+      if (pts.some((p) => clear(p.x, p.z))) continue;
+      const rad = 0.5 + rng() * 0.7, mat = pick(pipeMats);
+      if (!pipes.has(mat)) pipes.set(mat, []);
+      pipes.get(mat).push(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 40, rad, 8).toNonIndexed());
+      for (const p of [pts[1], pts[4]]) {   // a valve wheel and a pump on each run
+        bits.push(new THREE.TorusGeometry(rad * 1.8, 0.15, 5, 14).rotateX(Math.PI / 2).translate(p.x, p.y + rad + 0.6, p.z).toNonIndexed());
+        bits.push(new THREE.CylinderGeometry(rad * 1.6, rad * 1.8, 2.4, 10).translate(p.x, 1.2, p.z + 0.01).toNonIndexed());
+      }
+    }
+    for (const [mat, list] of pipes) scene.add(new THREE.Mesh(mergeGeometries(list), mat));
+    scene.add(new THREE.Mesh(mergeGeometries(bits), brass));
+    // aerials with dishes, and little cabins
+    const huts = [];
+    for (let i = 0; i < 24; i++) {
+      const a = rng() * Math.PI * 2, r = 50 + rng() * 150, x = Math.cos(a) * r, z = Math.sin(a) * r;
+      if (clear(x, z)) continue;
+      if (i % 2) {
+        const h = 10 + rng() * 18;
+        huts.push(new THREE.CylinderGeometry(0.2, 0.3, h, 5).translate(x, h / 2, z).toNonIndexed());
+        huts.push(new THREE.SphereGeometry(2.2, 12, 6, 0, Math.PI * 2, 0, 1.1).rotateX(-0.9).translate(x, h, z).toNonIndexed());
+        huts.push(new THREE.BoxGeometry(3, 0.15, 0.15).translate(x, h * 0.7, z).toNonIndexed());
+      } else {
+        const w = 3 + rng() * 2, hh = 3 + rng() * 2;
+        huts.push(new THREE.BoxGeometry(w, hh, w).rotateY(rng() * 3).translate(x, hh / 2, z).toNonIndexed());
+        huts.push(new THREE.SphereGeometry(w * 0.62, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2).translate(x, hh, z).toNonIndexed());
+        huts.push(new THREE.CylinderGeometry(0.25, 0.25, 2.5, 6).translate(x + w * 0.3, hh + 1.6, z).toNonIndexed());
+      }
+    }
+    scene.add(new THREE.Mesh(mergeGeometries(huts), stone(2)));
+    // cables slung from the keep's towers out to the masts
+    const cables = [];
+    for (let i = 0; i < 4; i++) {
+      const a = i * Math.PI / 2 + Math.PI / 4, top = new THREE.Vector3(Math.cos(a) * 34, 44, Math.sin(a) * 34);
+      for (let k = 0; k < 3; k++) {
+        const b = a + (k - 1) * 0.5, r = 120 + k * 25, end = new THREE.Vector3(Math.cos(b) * r, 22 + k * 4, Math.sin(b) * r);
+        const mid = top.clone().lerp(end, 0.5); mid.y -= 10;
+        cables.push(new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(top, mid, end), 20, 0.12, 4).toNonIndexed());
+        cables.push(new THREE.CylinderGeometry(0.35, 0.5, end.y, 6).translate(end.x, end.y / 2, end.z).toNonIndexed());
+      }
+    }
+    const cm = new THREE.Mesh(mergeGeometries(cables), ink);
+    cm.userData.noCollide = true;
+    scene.add(cm);
   }
 
   // ---------------------------------------------------------- hero: the great machine
