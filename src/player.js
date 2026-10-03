@@ -24,7 +24,7 @@ function part(geo, color, opts = {}) {
 // An Arzach-style rider: tall and gaunt, swallowed by an enormous red hooded
 // cloak that reaches the ankles and flares out behind when running, a long
 // pale face with a long thin nose, a peaked hood whose tip trails behind.
-export const RIDER_COLORS = { cloak: '#c8483a', lining: '#9e3a33', cloth: '#343a56', legs: '#2b2f45', wrap: '#e2d3b4',
+export const RIDER_COLORS = { cloak: '#3f5fae', cloak2: '#7a4fa8', lining: '#2f3f80', cloth: '#343a56', legs: '#2b2f45', wrap: '#e2d3b4',
   face: '#f1e6d0', ink: '#2b211f', belt: '#d8a24a' };
 
 /** @param palette overrides for RIDER_COLORS (NPCs use their own) */
@@ -395,7 +395,7 @@ export class Player {
       this.wing = wing;
     }
     scene.add(this.object);
-    this.cape = new Cape(scene, this.char.capeAnchor ?? this.char.torso, { color: this.char.colors.cloak });
+    this.cape = new Cape(scene, this.char.capeAnchor ?? this.char.torso, { color: this.char.colors.cloak, color2: this.char.colors.cloak2 });
     this.tails = this.char.scarfAnchors.map((_, i) =>
       new ClothTail(scene, i === 0 ? { points: 10, seg: 0.2, width: 0.2 } : { points: 7, seg: 0.18, width: 0.16 }));
   }

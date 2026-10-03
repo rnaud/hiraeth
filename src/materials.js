@@ -558,6 +558,8 @@ const fragmentShader = /* glsl */ `
       albedo = w > 0.55 ? uColor2 : uColor;
     }
     albedo *= vInstColor;
+    // cloth: the colour runs from the collar (uColor) down to the hem (uColor2)
+    if (uFolds > 0.0) albedo = mix(uColor, uColor2, smoothstep(0.15, 0.95, vFold.y)) * vInstColor;
 
     float ndl = dot(n, uSunDir);
     float lambert = ndl * 0.5 + 0.5;

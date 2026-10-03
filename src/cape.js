@@ -16,7 +16,7 @@ export class Cape {
    * @param o.top / o.bottom  radius at the collar / hem, o.length, o.y (collar height in anchor space)
    * @param o.gap   half-angle of the opening at the front
    */
-  constructor(scene, anchor, { cols = 14, rows = 11, top = 0.19, bottom = 0.5, length = 1.5, y = 0.74, gap = 0.42, color = '#c8483a', heavy = true } = {}) {
+  constructor(scene, anchor, { cols = 14, rows = 11, top = 0.19, bottom = 0.5, length = 1.5, y = 0.74, gap = 0.42, color = '#c8483a', color2 = null, heavy = true } = {}) {
     this.anchor = anchor;
     // heavy wool: falls in long vertical folds, swings slowly, barely flutters
     this.damp = heavy ? 0.95 : 0.985;
@@ -73,7 +73,7 @@ export class Cape {
       }
     geo.setIndex(idx);
     this.geo = geo;
-    this.mesh = new THREE.Mesh(geo, makeMaterial({ color, side: THREE.DoubleSide, folds: cols * 0.9 }));
+    this.mesh = new THREE.Mesh(geo, makeMaterial({ color, color2: color2 ?? color, side: THREE.DoubleSide, folds: cols * 0.9 }));
     this.mesh.frustumCulled = false;
     this.mesh.userData.noCollide = true;
     scene.add(this.mesh);

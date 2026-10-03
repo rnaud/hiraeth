@@ -194,7 +194,7 @@ if (lib) {
 const humanT = await humans;
 if (humanT) {
   player.humanoid = new Humanoid(humanT[0], player.char, 'm', { skin: '#e9cfb4' });
-  player.humanoid.setHeadwear('wizard', { color: player.char.colors.cloak, hair: '#3a2a22' });
+  player.humanoid.setHeadwear('wizard', { color: player.char.colors.cloak2, hair: '#3a2a22' });
 }
 player.attach(scene);
 if (player.mount) scene.add(player.mount.object);
