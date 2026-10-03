@@ -5,6 +5,7 @@ import {createBazaar, BRIDGES, SIGNAL} from '../src/levels/bazaar.js';
 import {Physics} from '../src/physics.js';
 import {CONTENT,ORDER,nextLevel} from '../src/levels/content.js';
 import {LEVELS} from '../src/levels/index.js';
+import {buildPeople} from '../src/crowd.js';
 const scene=new THREE.Scene(),level=createBazaar(scene),physics=new Physics(scene,level.ground);
 test('market avenue is clear at walking height and spawn has a solid floor',()=>{
  assert.equal(physics.groundAt(0,3,125),0);
@@ -27,9 +28,12 @@ test('new world participates in progression and has five reachable relic surface
   assert.ok(y-ground>0 && y-ground<3,`relic has a nearby platform at ${x},${y},${z}: ${ground}`);
  }
 });
-test('taxis initialize and moving crowd routes avoid stalls',()=>{
+test('taxis initialize and the crowd walks the avenue, sidewalks and skybridges',()=>{
  level.init(physics);assert.equal(level.vehicles.length,12);assert.equal(level.vehicles[0].mode,'parked');
- for(const route of level.crowd()) for(const p of route) assert.ok(Math.abs(physics.groundAt(p.x,3,p.z))<1e-6);
+ const {routes}=buildPeople(physics,level.crowdSpots());
+ assert.ok(routes.length>=10,`walkable crowd routes: ${routes.length}`);
+ assert.ok(routes.some(r=>r.pts[0].y>15),'someone strolls across a skybridge');
+ for(const route of routes) for(const p of route.pts) assert.ok(Math.abs(physics.groundAt(p.x,p.y+1,p.z,3)-p.y)<1e-6);
  const triangles=physics.triangles;assert.ok(triangles<30000,`static collision budget: ${triangles}`);
 });
 

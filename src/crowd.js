@@ -1,0 +1,802 @@
+import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { makeMaterial, sharedUniforms } from './materials.js';
+import { CROWD_GLSL, CROWD_POSES as POSE, CROWD_ZONES as Z, CROWD_PARTS as P } from './crowd-shader.js';
+import { registerTarget } from './targets.js';
+import { mulberry32 } from './noise.js';
+
+// City crowds, Assassin's Creed style: everybody is simulated by one cheap
+// CPU loop (positions, groups, glances, reactions), and drawn in tiers:
+//
+//   near  the few closest people become full NPCs (skinned body, cloth cape,
+//         mocap, speech balloons), taken from a small pool and restyled to
+//         match; at most a couple are swapped per frame
+//   mid   up to ~70 m: one InstancedMesh of low-poly figures posed entirely
+//         in the vertex shader (crowd-shader.js) from per-instance attributes;
+//         rebuilt every frame with only the people in view; the closest ones
+//         also cast shadows through a matching depth-only mesh
+//   far   beyond: an even simpler figure, no shadows, rewritten every 4th frame
+//
+// People stand in conversation circles (one talks, the others listen, nod and
+// glance), stroll alone or in pairs along routes, lean on railings and walls,
+// or sit on edges. Walking through a group parts it; they look at you and
+// pause their talk. Placement comes from the level (level.crowdSpots()) and is
+// checked against the collision world: only walkable, clear ground.
+
+const TIER = { off: 0, far: 1, mid: 2, near: 3 };
+export const CROWD_TIER = TIER;
+export const CROWD_RANGE = { nearIn: 9, nearOut: 12.5, midIn: 65, midOut: 72, shadow: 35, target: 60, far: 420 };
+export const CROWD_BUDGET = { pool: 4, swapsPerFrame: 2 };   // full NPCs cost ~0.3 ms of CPU each
+
+const TAU = Math.PI * 2;
+const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _o = new THREE.Vector3(), _d = new THREE.Vector3();
+const _m = new THREE.Matrix4(), _frustum = new THREE.Frustum(), _sphere = new THREE.Sphere();
+const UP = new THREE.Vector3(0, 1, 0);
+const DIRS8 = Array.from({ length: 8 }, (_, i) => new THREE.Vector3(Math.cos(i * TAU / 8), 0, Math.sin(i * TAU / 8)));
+const wrapA = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+const damp = (k, dt) => 1 - Math.exp(-k * dt);
+
+// ------------------------------------------------------------------ looks
+export const CROWD_STYLE = {
+  cloaks: ['#c8483a', '#5fb7ad', '#d8a24a', '#8a6fb8', '#e6875f', '#f3ead8', '#62c3c9', '#e88fa6', '#697a98', '#dca273', '#84bab3', '#c3a9cc'],
+  tunics: ['#343a56', '#5a4a3a', '#3f6f6a', '#6a3a4a', '#e2d3b4', '#4a5a3a'],
+  legs: ['#2b2f45', '#4a3a2a', '#2f3f3a', '#5a4a40', '#3a3a3a'],
+  skins: ['#e9cfb4', '#d9a98a', '#b07a5a', '#f1dccb', '#8a5a40'],
+  hair: ['#2b211f', '#4a3226', '#6e4a32', '#b0a89a', '#a8552e', '#e8dcc0'],
+  hats: ['#d8a24a', '#e6875f', '#f3ead8', '#62c3c9', '#a99be0'],
+};
+const HEADS = ['hood', 'hat', 'wrap', 'hair'];
+export const STARTLE_LINES = ['Hey!', 'Ow! What was that?', 'Who threw that?', 'Watch it!', 'Was that you?', 'Hey, not funny!'];
+export const GREET_LINES = ['Fresh figs! Fresh figs!', 'Mind the edge, it\u2019s a long way down.', 'The taxis never stop for us lower folk.',
+  'Have you seen the light above the palace?', 'Laundry dries fast up here.', 'My grandmother never saw the sky.', 'Lovely hat.', 'Excuse me.', 'Busy day.'];
+
+const hexOf = (c) => new THREE.Color(c).getHex();
+export function crowdStyle(rng, palette = {}) {
+  const S = { ...CROWD_STYLE, ...palette };
+  const pick = (a) => a[Math.floor(rng() * a.length)];
+  const head = pick(['hood', 'hat', 'hat', 'wrap', 'hair', 'hair']);
+  const capeLen = head === 'hood' ? 1.4 : pick([0, 0.5, 0.9, 1.2, 1.4]);
+  return { cloak: pick(S.cloaks), cloth: pick(S.tunics), legs: pick(S.legs), skin: pick(S.skins), hair: pick(S.hair),
+    hat: pick(S.hats), accent: pick(S.cloaks), head, capeLen };
+}
+function packLook(s) {
+  const head = HEADS.indexOf(s.head);
+  return [
+    new Float32Array([hexOf(s.cloak), hexOf(s.cloth), hexOf(s.legs), hexOf(s.skin)]),
+    new Float32Array([hexOf(s.hat), hexOf(s.accent), hexOf(s.hair), head + 4 * Math.round(s.capeLen * 10)]),
+  ];
+}
+
+// ------------------------------------------------------------------ figures
+function tag(geo, part, zone, variant = 0) {
+  if (geo.attributes.uv) geo.deleteAttribute('uv');
+  const n = geo.attributes.position.count, a = new Float32Array(n * 4);
+  for (let i = 0; i < n; i++) { a[i * 4] = part; a[i * 4 + 1] = zone; a[i * 4 + 2] = variant; }
+  geo.setAttribute('aRig', new THREE.BufferAttribute(a, 4));
+  if (!geo.index) geo.setIndex([...Array(n).keys()]);
+  return geo;
+}
+/** The cape as parameters: xz = direction round the body, aRig.w = 0 collar → 1 hem (the shader places it). */
+function capeGeometry(cols, rows, gap = 0.42) {
+  const pos = [], nrm = [], rig = [], idx = [];
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+    const a = gap + (c / (cols - 1)) * (TAU - gap * 2), t = r / (rows - 1);
+    pos.push(Math.sin(a), 0, Math.cos(a)); nrm.push(Math.sin(a), 0, Math.cos(a)); rig.push(P.cape, Z.cloak, 6, t);
+  }
+  for (let r = 0; r < rows - 1; r++) for (let c = 0; c < cols - 1; c++) {
+    const a = r * cols + c, b = a + 1, d = a + cols, e = d + 1;
+    idx.push(a, d, b, b, d, e);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3));
+  g.setAttribute('aRig', new THREE.Float32BufferAttribute(rig, 4));
+  g.setIndex(idx);
+  return g;
+}
+const at = (g, x, y, z) => g.translate(x, y, z);
+
+/** Low-poly figure for the instanced tiers; 'mid' (~0.9k tris incl. costume variants) or 'far' (~0.15k). */
+export function figureGeometry(detail = 'mid') {
+  const C = THREE;
+  const parts = [];
+  const add = (g, part, zone, variant = 0) => parts.push(tag(g, part, zone, variant));
+  if (detail === 'far') {
+    for (const s of [1, -1]) {
+      add(at(new C.BoxGeometry(0.11, 0.5, 0.13), s * 0.09, 0.72, 0), s > 0 ? P.thighL : P.thighR, Z.legs);
+      add(at(new C.BoxGeometry(0.1, 0.5, 0.12), s * 0.09, 0.25, 0.01), s > 0 ? P.shinL : P.shinR, Z.legs);
+      add(at(new C.BoxGeometry(0.075, 0.6, 0.08), s * 0.2, 1.14, 0), s > 0 ? P.armL : P.armR, Z.cloth);
+    }
+    add(at(new C.CylinderGeometry(0.135, 0.165, 0.62, 6, 1, true), 0, 1.16, 0), P.torso, Z.cloth);
+    add(at(new C.SphereGeometry(0.105, 6, 4).scale(0.92, 1.2, 1), 0, 1.64, 0), P.head, Z.skin);
+    add(at(new C.ConeGeometry(0.16, 0.42, 6), 0, 1.73, -0.03), P.head, Z.cloak, 1);
+    add(at(new C.CylinderGeometry(0.3, 0.3, 0.02, 8), 0, 1.775, 0), P.head, Z.hat, 2);
+    add(at(new C.CylinderGeometry(0.09, 0.115, 0.17, 6, 1), 0, 1.86, 0), P.head, Z.hat, 2);
+    add(at(new C.CylinderGeometry(0.1, 0.125, 0.14, 6, 1), 0, 1.75, 0), P.head, Z.hat, 3);
+    add(at(new C.SphereGeometry(0.11, 6, 2, 0, TAU, 0, Math.PI * 0.5), 0, 1.66, -0.01), P.head, Z.hair, 4);
+    parts.push(capeGeometry(6, 2));
+    return finish(parts);
+  }
+  for (const s of [1, -1]) {
+    const L = s > 0;
+    add(at(new C.BoxGeometry(0.1, 0.08, 0.25), s * 0.09, 0.04, 0.045), L ? P.shinL : P.shinR, Z.boots);
+    add(at(new C.CylinderGeometry(0.05, 0.042, 0.44, 6, 1, true), s * 0.09, 0.3, 0), L ? P.shinL : P.shinR, Z.legs);
+    add(at(new C.CylinderGeometry(0.068, 0.052, 0.48, 6, 1, true), s * 0.09, 0.73, 0), L ? P.thighL : P.thighR, Z.legs);
+    add(at(new C.CylinderGeometry(0.042, 0.036, 0.3, 5, 1, true), s * 0.2, 1.28, 0), L ? P.armL : P.armR, Z.cloth);
+    add(at(new C.CylinderGeometry(0.036, 0.03, 0.25, 5, 1, true), s * 0.2, 1.005, 0), L ? P.foreL : P.foreR, Z.cloth);
+    add(at(new C.CylinderGeometry(0.04, 0.04, 0.05, 5, 1, true), s * 0.2, 0.9, 0), L ? P.foreL : P.foreR, Z.cuff);
+    add(at(new C.SphereGeometry(0.044, 5, 4), s * 0.2, 0.845, 0.005), L ? P.foreL : P.foreR, Z.skin);
+    add(at(new C.BoxGeometry(0.034, 0.011, 0.012).rotateZ(s * 0.18), s * 0.031, 1.672, 0.092), P.head, Z.lining);
+  }
+  // tunic: a long figure, slim waist, a short flare over the trousers
+  const prof = [[0.158, 0.86], [0.15, 0.95], [0.132, 1.03], [0.15, 1.22], [0.165, 1.35], [0.12, 1.465], [0.05, 1.49]].map(([r, y]) => new C.Vector2(r, y));
+  add(new C.LatheGeometry(prof, 9), P.torso, Z.cloth);
+  add(at(new C.CylinderGeometry(0.142, 0.142, 0.05, 9, 1, true), 0, 0.97, 0), P.torso, Z.belt);
+  add(at(new C.CylinderGeometry(0.045, 0.05, 0.13, 6, 1, true), 0, 1.5, 0), P.head, Z.skin);
+  add(at(new C.SphereGeometry(0.1, 8, 6).scale(0.92, 1.22, 1.02), 0, 1.64, 0.005), P.head, Z.skin);
+  add(at(new C.ConeGeometry(0.022, 0.12, 4).rotateX(Math.PI / 2 + 0.4), 0, 1.625, 0.105), P.head, Z.skin);
+  // headwear variants (the shader keeps the one each person wears)
+  add(at(new C.SphereGeometry(0.15, 10, 6, Math.PI / 2 + 0.75, TAU - 1.5).scale(1, 1.25, 1.15), 0, 1.68, -0.02), P.head, Z.cloak, 1);
+  add(at(new C.ConeGeometry(0.065, 0.26, 6).translate(0, 0.12, 0).rotateX(-1.15), 0, 1.83, -0.09), P.head, Z.cloak, 1);
+  add(at(new C.CylinderGeometry(0.3, 0.3, 0.016, 14), 0, 1.775, 0), P.head, Z.hat, 2);
+  add(at(new C.CylinderGeometry(0.075, 0.115, 0.17, 10), 0, 1.86, 0), P.head, Z.hat, 2);
+  add(at(new C.CylinderGeometry(0.117, 0.12, 0.03, 10, 1, true), 0, 1.79, 0), P.head, Z.accent, 2);
+  [[0.125, 1.712, Z.hat], [0.115, 1.752, Z.accent], [0.095, 1.79, Z.hat]].forEach(([r, y, z]) =>
+    add(at(new C.CylinderGeometry(r * 0.88, r, 0.045, 10, 1, true), 0, y, -0.01), P.head, z, 3));
+  add(at(new C.SphereGeometry(0.05, 6, 4), 0, 1.775, -0.075), P.head, Z.hair, 4);
+  add(at(new C.SphereGeometry(0.108, 8, 4, 0, TAU, 0, Math.PI * 0.56).scale(1, 1.08, 1.1).rotateX(-0.3), 0, 1.655, -0.012), P.head, Z.hair, 5);
+  // the cape and its collar
+  parts.push(capeGeometry(9, 4));
+  add(at(new C.TorusGeometry(0.19, 0.03, 4, 10).rotateX(Math.PI / 2), 0, 1.45, 0), P.torso, Z.lining, 6);
+  return finish(parts);
+}
+function finish(parts) {
+  for (const g of parts) for (const k of Object.keys(g.attributes)) if (!['position', 'normal', 'aRig'].includes(k)) g.deleteAttribute(k);
+  const g = mergeGeometries(parts);
+  g.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 1, 0), 1.6);
+  return g;
+}
+
+// ------------------------------------------------------------------ placement
+/** Spatial hash of circles to keep clear (trees, props, quest people). */
+export class ClearMap {
+  constructor(list = [], cell = 8) {
+    this.cell = cell; this.map = new Map();
+    for (const c of list) this.add(c);
+  }
+  key(i, j) { return i * 73856093 ^ j * 19349663; }
+  add(c) {
+    const s = this.cell, r = c.r;
+    for (let i = Math.floor((c.x - r) / s); i <= Math.floor((c.x + r) / s); i++)
+      for (let j = Math.floor((c.z - r) / s); j <= Math.floor((c.z + r) / s); j++) {
+        const k = this.key(i, j);
+        if (!this.map.has(k)) this.map.set(k, []);
+        this.map.get(k).push(c);
+      }
+  }
+  blocked(x, y, z, pad = 0) {
+    const l = this.map.get(this.key(Math.floor(x / this.cell), Math.floor(z / this.cell)));
+    if (!l) return false;
+    for (const c of l) if ((c.x - x) ** 2 + (c.z - z) ** 2 < (c.r + pad) ** 2 && (c.y === undefined || Math.abs(c.y - y) < (c.h ?? 3))) return true;
+    return false;
+  }
+}
+
+/**
+ * Ground under (x, z) close to height y, if a person can stand there: a floor
+ * within 0.7 m, nothing overhead, no wall within `clear`, and level ground all
+ * round the feet (not on an edge). Returns the floor height or NaN.
+ */
+export function standable(physics, x, y, z, { clear = 0.45, avoid = null, pad = 0.3, edge = true, heights = [0.4, 1.25] } = {}) {
+  const g = physics.groundAt(x, y + 1.6, z, 3.5);
+  if (!Number.isFinite(g) || Math.abs(g - y) > 0.7) return NaN;
+  if (avoid?.blocked(x, g, z, pad)) return NaN;
+  _o.set(x, g + 0.12, z);
+  if (physics.rayDistance(_o, UP, 2.1) < 2.1) return NaN;
+  for (const h of heights) {
+    _o.set(x, g + h, z);
+    for (let i = 0; i < 8; i += h < 0.9 ? 2 : 1) if (physics.rayDistance(_o, DIRS8[i], clear) < clear) return NaN;
+  }
+  if (edge) for (let i = 1; i < 8; i += 2) {
+    const gx = physics.groundAt(x + DIRS8[i].x * 0.32, g + 0.8, z + DIRS8[i].z * 0.32, 1.5);
+    if (!Number.isFinite(gx) || Math.abs(gx - g) > 0.22) return NaN;
+  }
+  return g;
+}
+
+const fwdOf = (h, out = new THREE.Vector3()) => out.set(Math.sin(h), 0, Math.cos(h));
+
+/** Check a perch: 'rail' (lean on a railing ahead), 'sit' (legs over a drop), 'kerb' (a low step ahead), 'wall' (back to a wall), 'look', or 'edge' (rail, else sit). */
+export function perch(physics, spot, avoid) {
+  const f = fwdOf(spot.heading, new THREE.Vector3());
+  const { x, z } = spot.at, y = spot.at.y;
+  const ahead = (h, d, from = 0) => physics.rayDistance(_o.set(x + f.x * from, h, z + f.z * from), f, d);
+  const tryRail = () => {
+    const g = standable(physics, x, y, z, { clear: 0.28, avoid, pad: 0.2 });
+    if (!Number.isFinite(g)) return null;
+    if (spot.rail !== undefined) return { pose: 'rail', y: g, back: 0.5 - spot.rail };   // a drawn-only railing the level vouches for
+    const d = Math.min(ahead(g + 1.05, 0.95), ahead(g + 1.18, 0.95));
+    return d < 0.95 && d > 0.22 ? { pose: 'rail', y: g, back: 0.5 - d } : null;
+  };
+  const trySit = () => {
+    const g = physics.groundAt(x, y + 1.6, z, 3.5);
+    if (!Number.isFinite(g) || Math.abs(g - y) > 0.7 || avoid?.blocked(x, g, z, 0.2)) return null;
+    // the seat and room behind it, a long drop ahead, nothing in the way of the legs
+    const gb = physics.groundAt(x - f.x * 0.35, g + 0.8, z - f.z * 0.35, 1.5);
+    if (!Number.isFinite(gb) || Math.abs(gb - g) > 0.15) return null;
+    const ga = physics.groundAt(x + f.x * 0.45, g + 0.2, z + f.z * 0.45, 400);
+    if (Number.isFinite(ga) && ga > g - 1.6) return null;
+    if (ahead(g + 0.3, 1.0) < 1.0 || ahead(g - 0.5, 0.7, 0.3) < 0.7 || physics.rayDistance(_o.set(x, g + 0.1, z), UP, 1.6) < 1.6) return null;
+    return { pose: 'sit', y: g };
+  };
+  if (spot.pose === 'rail') return tryRail();
+  if (spot.pose === 'sit') return trySit();
+  if (spot.pose === 'edge') return tryRail() ?? trySit();
+  if (spot.pose === 'kerb') {
+    const g = physics.groundAt(x, y + 1.6, z, 3.5);
+    if (!Number.isFinite(g) || Math.abs(g - y) > 0.5 || avoid?.blocked(x, g, z, 0.5)) return null;
+    const gf = physics.groundAt(x + f.x * 0.55, g + 0.1, z + f.z * 0.55, 1.2);
+    if (!Number.isFinite(gf) || Math.abs(g - gf - 0.3) > 0.12) return null;
+    if (ahead(g - 0.15, 0.8, 0.3) < 0.8 || ahead(g + 0.6, 1.1) < 1.1) return null;
+    return { pose: 'kerb', y: g };
+  }
+  const g = standable(physics, x, y, z, { clear: spot.pose === 'wall' ? 0.22 : 0.45, avoid });
+  if (!Number.isFinite(g)) return null;
+  if (spot.pose === 'wall') {
+    _d.copy(f).negate();
+    const d = physics.rayDistance(_o.set(x, g + 1.2, z), _d, 0.65);
+    return d < 0.65 ? { pose: 'wall', y: g, back: d - 0.3 } : null;
+  }
+  return { pose: 'look', y: g };
+}
+
+/** Split a polyline into walkable runs (samples ~2.5 m apart, at least minRun of them): [{ pts (with ground heights), loop }]. */
+export function walkablePath(physics, pts, { avoid = null, clear = 1.3, lateral = 1.1, loop = false, minRun = 5 } = {}) {
+  const samples = [];
+  const src = loop ? [...pts, pts[0]] : pts;
+  for (let i = 0; i < src.length - 1; i++) {
+    const a = src[i], b = src[i + 1], len = a.distanceTo(b), n = Math.max(1, Math.ceil(len / 2.5));
+    for (let k = 0; k < n; k++) samples.push(a.clone().lerp(b, k / n));
+  }
+  if (!loop) samples.push(src[src.length - 1].clone());
+  const ok = samples.map((p, i) => {
+    const g = standable(physics, p.x, p.y, p.z, { clear, avoid, pad: 0.5, edge: false, heights: [1.0] });   // the side checks below cover edges
+    if (!Number.isFinite(g)) return false;
+    // room for side by side walkers and sidesteps: ground both sides at the same height
+    const q = samples[(i + 1) % samples.length], dx = q.x - p.x, dz = q.z - p.z, l = Math.hypot(dx, dz) || 1;
+    for (const s of [-lateral, lateral]) {
+      const x = p.x - dz / l * s, z = p.z + dx / l * s;
+      const gs = physics.groundAt(x, g + 0.8, z, 1.5);
+      if (!Number.isFinite(gs) || Math.abs(gs - g) > 0.25 || avoid?.blocked(x, g, z, 0.3)) return false;
+    }
+    p.y = g;
+    return true;
+  });
+  const runs = [];
+  let cur = [];
+  for (let i = 0; i < samples.length; i++) {
+    if (ok[i]) cur.push(samples[i]);
+    else { runs.push(cur); cur = []; }
+  }
+  runs.push(cur);
+  if (loop && runs.length === 1) return [{ pts: cur, loop: true }];
+  return runs.filter((r) => r.length >= minRun).map((pts) => ({ pts, loop: false }));
+}
+
+/** Turn a level's crowd spots into people: validated against the collision world. */
+export function buildPeople(physics, spots, { seed = 7, clear = [] } = {}) {
+  const rng = mulberry32(seed);
+  const avoid = new ClearMap([...(spots.avoid ?? []), ...(spots.clear ?? []), ...clear]);
+  const people = [], groups = [], routes = [];
+  const style = () => crowdStyle(rng, spots.palette);
+  const person = (o) => {
+    const kind = rng() < 0.5 ? 'm' : 'f';
+    const s = style(), size = 0.95 + rng() * 0.1;
+    const p = {
+      id: people.length, kind, style: s, look: packLook(s), size, scale: size * (kind === 'm' ? 1.03 : 1.0),
+      pos: o.pos.clone(), home: o.pos.clone(), heading: o.heading, homeHeading: o.heading,
+      pose: POSE[o.pose ?? 'stand'], group: null, walk: null, seed: rng(),
+      phase: rng(), cadence: 0, speed: 0, headYaw: 0, headPitch: 0, talk: 0,
+      startleT: -1e9, stunUntil: -1e9, stunT: 0, lookUntil: -1e9, faceUntil: -1e9, greetT: -1, speaking: false, say: '',
+      offset: new THREE.Vector3(), tier: TIER.off, npc: null, unreg: null, chestV: new THREE.Vector3(),
+      lines: spots.lines ?? GREET_LINES, lineIdx: Math.floor(rng() * 20), shoutUntil: -1e9,
+    };
+    people.push(p);
+    return p;
+  };
+  // strollers, alone or in pairs, both ways along each route (keeping right)
+  for (const sp of spots.walks ?? []) {
+    const runs = walkablePath(physics, sp.path, { avoid, loop: sp.loop, lateral: sp.lateral ?? 1.1 });
+    const runLen = runs.reduce((s, r) => s + r.pts.length, 0);
+    for (const path of runs) {
+    const pts = path.pts, cum = [0];
+    for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + pts[i].distanceTo(pts[i - 1]));
+    const total = path.loop ? cum[cum.length - 1] + pts[pts.length - 1].distanceTo(pts[0]) : cum[cum.length - 1];
+    if (total < 8) continue;
+    const lateral = sp.lateral ?? 1.1;
+    const route = { pts, cum, total, loop: path.loop, keepRight: sp.keepRight ?? 0.7, lateral };
+    routes.push(route);
+    // keep the lanes free of standing people
+    for (let i = 0; i < pts.length; i += 2) avoid.add({ x: pts[i].x, y: pts[i].y, z: pts[i].z, r: lateral + 0.45 });
+    const units = Math.max(1, Math.round((sp.n ?? 4) * pts.length / runLen));
+    for (let k = 0; k < units; k++) {
+      const pair = rng() < (sp.pair ?? 0.45);
+      const u = rng() * total, dir = path.loop ? (rng() < 0.7 ? 1 : -1) : (rng() < 0.5 ? 1 : -1);
+      const speed = 1.05 + rng() * 0.35;
+      const unit = [];
+      for (let q = 0; q < (pair ? 2 : 1); q++) {
+        const p = person({ pos: pts[0], heading: 0, pose: 'walk' });
+        p.walk = { route, u, dir, speed, side: pair ? (q ? 0.36 : -0.36) : 0, step: 0, pause: rng() * 2, avoid: 0, partner: null, slow: 1 };
+        unit.push(p);
+      }
+      if (pair) { unit[0].walk.partner = unit[1]; unit[1].walk.partner = unit[0]; }
+      for (const p of unit) placeWalker(p, 0);
+    }
+    }
+  }
+  // conversation circles
+  for (const sp of spots.groups ?? []) {
+    const n = sp.n ?? 3, r = 0.42 + n * 0.17, a0 = rng() * TAU;
+    const cx = sp.at.x, cz = sp.at.z;
+    if (avoid.blocked(cx, sp.at.y, cz, r * 0.6)) continue;
+    const mem = [];
+    for (let k = 0; k < n; k++) {
+      // a couple of tries per place in the circle, shuffling round a little
+      for (let tryN = 0; tryN < 3; tryN++) {
+        const a = a0 + (k / n) * TAU + (rng() - 0.5) * (tryN ? 1.1 : 0.5), rr = r * (0.88 + rng() * 0.24) * (tryN === 2 ? 0.8 : 1);
+        const x = cx + Math.cos(a) * rr, z = cz + Math.sin(a) * rr;
+        const g = standable(physics, x, sp.at.y, z, { avoid });
+        if (!Number.isFinite(g)) continue;
+        mem.push({ pos: new THREE.Vector3(x, g, z), heading: Math.atan2(cx - x, cz - z) + (rng() - 0.5) * 0.3 });
+        break;
+      }
+    }
+    if (mem.length < 2) continue;
+    const g = { id: groups.length, center: new THREE.Vector3(cx, mem[0].pos.y, cz), r, members: [], speaker: 0, next: rng() * 4, pauseUntil: -1e9, lookUntil: -1e9 };
+    for (const m of mem) { const p = person(m); p.group = g; g.members.push(p); }
+    groups.push(g);
+    avoid.add({ x: cx, y: g.center.y, z: cz, r: r + 0.3 });
+  }
+  // perches: railings, walls, kerbs and edges
+  for (const sp of spots.edges ?? []) {
+    if (avoid.blocked(sp.at.x, sp.at.y, sp.at.z, 0.25)) continue;
+    const ok = perch(physics, sp, avoid);
+    if (!ok) continue;
+    const pos = new THREE.Vector3(sp.at.x, ok.y, sp.at.z);
+    if (ok.back) pos.addScaledVector(fwdOf(sp.heading, _v), -ok.back);
+    const p = person({ pos, heading: sp.heading, pose: ok.pose === 'look' ? 'stand' : ok.pose });
+    p.perch = ok.pose;
+    avoid.add({ x: pos.x, y: pos.y, z: pos.z, r: 0.45 });
+  }
+  return { people, groups, routes };
+}
+
+/** Where a walker is on its route at its current u (with the lateral keep-right / pair / sidestep offsets). */
+function placeWalker(p, dt) {
+  const w = p.walk, R = w.route, pts = R.pts, cum = R.cum;
+  let u = w.u;
+  if (R.loop) u = ((u % R.total) + R.total) % R.total;
+  else u = THREE.MathUtils.clamp(u, 0, R.total);
+  // segment search from the last one
+  let i = THREE.MathUtils.clamp(w.step, 0, pts.length - 1);
+  while (i > 0 && cum[i] > u) i--;
+  while (i < pts.length - 1 && cum[i + 1] <= u) i++;
+  w.step = i;
+  const a = pts[i], b = pts[(i + 1) % pts.length];
+  const segLen = i + 1 < pts.length ? cum[i + 1] - cum[i] : R.total - cum[i];
+  const k = segLen > 1e-6 ? (u - cum[i]) / segLen : 0;
+  _v.copy(a).lerp(b, THREE.MathUtils.clamp(k, 0, 1));
+  _d.subVectors(b, a); _d.y = 0;
+  if (_d.lengthSq() < 1e-8) _d.set(0, 0, 1);
+  _d.normalize().multiplyScalar(w.dir);
+  const lat = R.keepRight + w.side * w.dir + w.avoid;   // right of the walking direction
+  p.pos.set(_v.x - _d.z * lat, _v.y, _v.z + _d.x * lat);
+  const want = Math.atan2(_d.x, _d.z);
+  p.heading += wrapA(want - p.heading) * (dt ? damp(6, dt) : 1);
+}
+
+// ------------------------------------------------------------------ instanced tiers
+class Tier {
+  constructor(geometry, material, max) {
+    this.max = max;
+    this.geometry = geometry;
+    this.attrs = {};
+    for (const k of ['aAnim', 'aReact', 'aLook0', 'aLook1']) {
+      const a = new THREE.InstancedBufferAttribute(new Float32Array(max * 4), 4);
+      a.setUsage(THREE.DynamicDrawUsage);
+      geometry.setAttribute(k, a);
+      this.attrs[k] = a;
+    }
+    this.mesh = new THREE.InstancedMesh(geometry, material, max);
+    this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    this.mesh.frustumCulled = false;
+    this.mesh.userData.noCollide = true;
+    this.mesh.userData.dynamic = true;
+    this.mesh.count = 0;
+    this.n = 0;
+  }
+  write(i, p, t) {
+    const M = this.mesh.instanceMatrix.array, o = i * 16, s = p.scale, c = Math.cos(p.heading) * s, sn = Math.sin(p.heading) * s;
+    M[o] = c; M[o + 1] = 0; M[o + 2] = -sn; M[o + 3] = 0;
+    M[o + 4] = 0; M[o + 5] = s; M[o + 6] = 0; M[o + 7] = 0;
+    M[o + 8] = sn; M[o + 9] = 0; M[o + 10] = c; M[o + 11] = 0;
+    M[o + 12] = p.pos.x; M[o + 13] = p.pos.y; M[o + 14] = p.pos.z; M[o + 15] = 1;
+    const A = this.attrs, j = i * 4;
+    const stunned = t < p.stunUntil;
+    const cad = stunned ? 0 : p.cadence;
+    const an = A.aAnim.array;
+    an[j] = ((p.phase - t * cad) % 1 + 1) % 1; an[j + 1] = cad; an[j + 2] = p.seed; an[j + 3] = stunned ? POSE.stunned : p.speed > 0.05 ? POSE.walk : p.pose === POSE.walk ? POSE.stand : p.pose;
+    const re = A.aReact.array;
+    re[j] = p.headYaw; re[j + 1] = p.headPitch; re[j + 2] = p.talk; re[j + 3] = stunned ? p.stunT : p.startleT;
+    A.aLook0.array.set(p.look[0], j);
+    A.aLook1.array.set(p.look[1], j);
+  }
+  commit(n) {
+    this.n = n;
+    const m = this.mesh.instanceMatrix;
+    m.clearUpdateRanges(); m.addUpdateRange(0, Math.max(n, 1) * 16); m.needsUpdate = true;
+    for (const a of Object.values(this.attrs)) { a.clearUpdateRanges(); a.addUpdateRange(0, Math.max(n, 1) * 4); a.needsUpdate = true; }
+  }
+}
+
+function crowdDepthMaterial() {
+  const m = new THREE.ShaderMaterial({
+    glslVersion: THREE.GLSL3,
+    uniforms: { uTime: sharedUniforms.uTime },
+    vertexShader: `${CROWD_GLSL}
+      void main() {
+        vec3 p = position, n = normal, c;
+        crowdAnimate(p, n, c);
+        gl_Position = projectionMatrix * modelViewMatrix * instanceMatrix * vec4(p, 1.0);
+      }`,
+    fragmentShader: 'void main() {}',
+    side: THREE.DoubleSide,
+    colorWrite: false,
+  });
+  m.allowOverride = false;   // keeps its own vertex animation in the shadow passes (which override every other material)
+  return m;
+}
+
+// ------------------------------------------------------------------ the crowd
+export class Crowd {
+  /**
+   * @param o.spots      level.crowdSpots() result
+   * @param o.makeNPC    (kind) => NPC with assign(person) / release(): the near-tier pool (omit for no pool)
+   * @param o.clear      [{ x, y, z, r }] keep these clear (quest people, the spawn, the gate)
+   */
+  constructor(scene, physics, { spots, makeNPC = null, pool = CROWD_BUDGET.pool, clear = [], seed = 11, range = {} } = {}) {
+    this.scene = scene;
+    this.physics = physics;
+    this.range = { ...CROWD_RANGE, far: spots.farMax ?? CROWD_RANGE.far, ...range };
+    const t0 = typeof performance !== 'undefined' ? performance.now() : 0;
+    Object.assign(this, buildPeople(physics, spots, { seed, clear }));
+    this.buildMs = (typeof performance !== 'undefined' ? performance.now() : 0) - t0;
+    this.rng = mulberry32(seed + 1);
+    const n = this.people.length;
+    const material = makeMaterial({ color: '#ffffff', crowd: true, side: THREE.DoubleSide });
+    this.mid = new Tier(figureGeometry('mid'), material, Math.max(n, 1));
+    this.far = new Tier(figureGeometry('far'), material, Math.max(n, 1));
+    // the shadow caster shares the mid tier's buffers, but draws only the closest, only in shadow passes
+    this.shadow = new THREE.InstancedMesh(this.mid.geometry, crowdDepthMaterial(), Math.max(n, 1));
+    this.shadow.instanceMatrix = this.mid.mesh.instanceMatrix;
+    Object.assign(this.shadow, { frustumCulled: false, count: 0 });
+    this.shadow.userData.noCollide = true;
+    this.nShadow = 0;
+    const shadowPass = (scene) => !!scene.overrideMaterial;
+    this.mid.mesh.onBeforeRender = (r, scene) => { this.mid.mesh.count = shadowPass(scene) ? 0 : this.mid.n; };
+    this.far.mesh.onBeforeRender = (r, scene) => { this.far.mesh.count = shadowPass(scene) ? 0 : this.far.n; };
+    // only the fine and near cascades: in the km-wide one a person is less than a texel
+    this.shadow.onBeforeRender = (r, scene, cam) => { this.shadow.count = shadowPass(scene) && cam.isOrthographicCamera && cam.right - cam.left < 1000 ? this.nShadow : 0; };
+    scene.add(this.mid.mesh, this.far.mesh, this.shadow);
+
+    this.pool = [];
+    if (makeNPC) for (let i = 0; i < pool; i++) this.pool.push({ npc: makeNPC(i % 2 ? 'f' : 'm'), kind: i % 2 ? 'f' : 'm', person: null });
+    this.frame = 0;
+    this.time = 0;
+    this.playerPos = new THREE.Vector3();
+    this.stats = { people: n, groups: this.groups.length, near: 0, mid: 0, far: 0, shadow: 0, targets: 0, promoted: 0, demoted: 0 };
+    this.farDirty = true;
+    if (typeof document !== 'undefined') {
+      this.balloon = document.createElement('div');
+      this.balloon.className = 'balloon';
+      document.body.appendChild(this.balloon);
+      this.shout = null;
+    }
+  }
+
+  get npcs() { return this.pool.map((e) => e.npc); }
+  get lowDetail() { return this.pool.some((e) => e.npc.lowDetail); }
+
+  /** Simulate everybody, pick tiers, promote / demote, fill the instance buffers. */
+  update(dt, t, player, camera) {
+    this.time = t;
+    this.frame++;
+    this.playerPos.copy(player.pos);
+    const pp = player.pos, mover = player.ride ?? player;
+    const playerSpeed = Math.hypot(mover.vel?.x ?? 0, mover.vel?.z ?? 0);
+    camera.updateMatrixWorld();
+    const cam = camera.position;
+    const low = this.lowDetail;
+    const R = this.range, midIn = low ? 45 : R.midIn, midOut = low ? 50 : R.midOut;
+
+    // ---- groups: who's talking, and whether you're barging through
+    for (const g of this.groups) {
+      const dc = g.center.distanceToSquared(cam);
+      if (dc > 120 * 120 && this.frame % 8) continue;
+      if (t > g.next) {
+        const alive = g.members.filter((m) => t > m.stunUntil);
+        g.speaker = this.rng() < 0.15 || !alive.length ? -1 : g.members.indexOf(alive[Math.floor(this.rng() * alive.length)]);
+        g.next = t + 2.5 + this.rng() * 4.5;
+      }
+      const d = Math.hypot(pp.x - g.center.x, pp.z - g.center.z);
+      if (Math.abs(pp.y - g.center.y) < 2.5) {
+        if (d < g.r + 1.3) { g.pauseUntil = t + 1.6; g.lookUntil = Math.max(g.lookUntil, t + 2.2); }
+        else if (d < g.r + 3.5 && playerSpeed > 0.3) g.lookUntil = Math.max(g.lookUntil, t + 0.8);
+      }
+    }
+
+    // ---- people
+    let anyTierChange = false;
+    for (const p of this.people) {
+      const dCam = p.pos.distanceTo(cam);
+      // far away people only move a few times a second
+      let pdt = dt;
+      if (dCam > 120) { p._acc = (p._acc ?? 0) + dt; if ((this.frame + p.id) % 6) { this.tierOf(p, dCam, midIn, midOut) && (anyTierChange = true); continue; } pdt = p._acc; }
+      p._acc = 0;
+      this.simulate(p, pdt, t, pp, playerSpeed, dCam);
+      if (this.tierOf(p, dCam, midIn, midOut)) anyTierChange = true;
+    }
+
+    // ---- near tier: promote the closest, demote the ones left behind (a couple per frame)
+    this.swapNear(cam, low);
+
+    // ---- mid tier: in view only, the shadow casters first
+    const proj = _m.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+    _frustum.setFromProjectionMatrix(proj);
+    let n = 0;
+    const later = this._later ?? (this._later = []);
+    later.length = 0;
+    for (const p of this.people) {
+      if (p.tier < TIER.mid) continue;
+      _sphere.center.set(p.pos.x, p.pos.y + 0.9, p.pos.z); _sphere.radius = 1.3;
+      p._vis = _frustum.intersectsSphere(_sphere);
+      if (!p._vis || p.tier === TIER.near) continue;
+      if (p._dCam < R.shadow) this.mid.write(n++, p, t);
+      else later.push(p);
+    }
+    this.nShadow = n;
+    for (const p of later) this.mid.write(n++, p, t);
+    this.mid.commit(n);
+
+    // ---- far tier: everybody past the mid range, rewritten every 4th frame
+    if (anyTierChange || this.farDirty || this.frame % 4 === 0) {
+      let m = 0;
+      for (const p of this.people) if (p.tier === TIER.far) this.far.write(m++, p, t);
+      this.far.commit(m);
+      this.farDirty = false;
+    }
+
+    // ---- the tool's targets: people in the near and mid tiers within reach
+    if (this.frame % 10 === 1) this.updateTargets();
+
+    const S = this.stats;
+    S.mid = n; S.shadow = this.nShadow; S.far = this.far.n; S.near = this.pool.filter((e) => e.person).length;
+    this.placeBalloon(camera);
+  }
+
+  /** Assign a tier with hysteresis; returns true if it changed to / from the far tier. */
+  tierOf(p, d, midIn, midOut) {
+    p._dCam = d;
+    if (p.tier === TIER.near) return false;
+    const prev = p.tier;
+    const farMax = this.range.far;
+    if (d < (prev === TIER.mid ? midOut : midIn)) p.tier = TIER.mid;
+    else if (d < (prev >= TIER.far ? farMax + 10 : farMax)) p.tier = TIER.far;
+    else p.tier = TIER.off;
+    return (prev === TIER.far) !== (p.tier === TIER.far);
+  }
+
+  simulate(p, dt, t, pp, playerSpeed, dCam) {
+    const stunned = t < p.stunUntil;
+    _v.subVectors(pp, p.pos); const dy = _v.y; _v.y = 0;
+    const dPlayer = _v.length();
+    const sameLevel = Math.abs(dy) < 2.5;
+    const g = p.group;
+    let lookAt = null, face = null;
+    // greeting: the person you stop beside turns to you and says something
+    const close = sameLevel && dPlayer < 2.6 && playerSpeed < 2.2 && !stunned;
+    if (close) { if (p.greetT < 0) { p.greetT = t; p.lineIdx++; } }
+    else if (dPlayer > 4) p.greetT = -1;
+    p.speaking = p.greetT >= 0 && t - p.greetT > 0.6 && close;
+    if (t < p.shoutUntil) p.speaking = true;
+    if (p.greetT >= 0) { lookAt = pp; if (p.pose !== POSE.sit && p.pose !== POSE.kerb && p.pose !== POSE.rail) face = Math.atan2(_v.x, _v.z); }
+    if (t < p.faceUntil && !stunned) face = Math.atan2(_v.x, _v.z);
+    if (t < p.lookUntil || (g && t < g.lookUntil) || (sameLevel && dPlayer < 4 && playerSpeed > 0.3)) lookAt = pp;
+
+    if (p.walk && !stunned) {
+      const w = p.walk;
+      let target = w.speed;
+      if (w.pause > 0) { w.pause -= dt; target = 0; }
+      // step aside for the player coming the other way (or standing in the way)
+      fwdOf(p.heading, _w);
+      const ahead = _v.dot(_w), side = _v.x * -_w.z + _v.z * _w.x;   // + = player on our right
+      let want = 0;
+      if (sameLevel && ahead > -0.5 && ahead < 3.2 && Math.abs(side) < 1.3) { const lim = Math.min(1, w.route.lateral); want = side > 0 ? -lim : lim; target *= ahead < 1 ? 0.3 : 0.65; }
+      if (w.partner) want = w.partner.walk.avoid * 0.9 + want * 0.1;
+      if (face !== null || t < p.startleT + 1.2) target = 0;
+      w.avoid += (want - w.avoid) * damp(want ? 4 : 1.2, dt);
+      p.speed += (target - p.speed) * damp(4, dt);
+      w.u += w.dir * p.speed * dt;
+      const R = w.route;
+      if (!R.loop && (w.u <= 0 || w.u >= R.total)) {
+        w.u = THREE.MathUtils.clamp(w.u, 0, R.total);
+        w.dir = -w.dir; w.pause = 1 + this.rng() * 3;
+        if (w.partner) { w.partner.walk.dir = w.dir; w.partner.walk.u = w.u; w.partner.walk.pause = w.pause; }
+      }
+      const h = p.heading;
+      placeWalker(p, dt);
+      if (face !== null) p.heading = h + wrapA(face - h) * damp(5, dt);
+      // pairs chat as they walk
+      if (w.partner && !lookAt && Math.sin(t * 0.7 + p.seed * 9) > 0.3) lookAt = w.partner.pos;
+    } else if (p.walk) {
+      p.speed = 0;
+    } else {
+      // standing: drift back to their spot, unless the player is pushing through
+      _w.subVectors(p.home, pp); _w.y = 0;
+      const dh = _w.length();
+      const room = 1.25;
+      if (sameLevel && dh < room && !stunned && p.pose !== POSE.sit && p.pose !== POSE.kerb) {
+        _w.multiplyScalar((room - dh + 0.15) / Math.max(dh, 0.05));
+        if (_w.length() > 1.1) _w.setLength(1.1);
+        p.offset.lerp(_w, damp(7, dt));
+        if (!lookAt) lookAt = pp;
+      } else p.offset.multiplyScalar(1 - damp(1.3, dt));
+      _o.copy(p.home).add(p.offset);
+      if (p.offset.lengthSq() > 1e-4) {
+        // stay on the floor and out of the walls while stepping aside
+        const gy = this.physics.groundAt(_o.x, p.home.y + 0.8, _o.z, 1.5);
+        if (!Number.isFinite(gy) || Math.abs(gy - p.home.y) > 0.3) { p.offset.multiplyScalar(0.8); _o.copy(p.home).add(p.offset); }
+        else this.physics.pushCapsule(_o, 0.25, 0.3, 1.6);
+      }
+      const moved = _o.distanceTo(p.pos);
+      p.pos.copy(_o);
+      p.speed = dt > 0 ? Math.min(moved / dt, 2) * (moved > 0.004 ? 1 : 0) : 0;
+      const hw = face ?? (p.offset.lengthSq() > 0.04 ? p.homeHeading + 0.5 * Math.sign(wrapA(Math.atan2(_v.x, _v.z) - p.homeHeading)) : p.homeHeading);
+      if (!stunned) p.heading += wrapA(hw - p.heading) * damp(face !== null ? 6 : 2.5, dt);
+    }
+    p.cadence = p.speed / (1.35 * p.scale);
+    p.phase = (p.phase + p.cadence * dt) % 1;
+
+    // talk: the group's speaker, unless paused by the player or a startle
+    let talkT = 0;
+    if (g && g.speaker >= 0 && g.members[g.speaker] === p && t > g.pauseUntil && !stunned) talkT = 1;
+    if (p.speaking) talkT = 0.8;
+    p.talk += (talkT - p.talk) * damp(3, dt);
+    // head: at the player, the speaker, or the partner; idle drift is in the shader
+    if (!lookAt && g && g.speaker >= 0 && g.members[g.speaker] !== p) lookAt = g.members[g.speaker].pos;
+    let yaw = 0, pitch = 0;
+    if (lookAt && !stunned) {
+      _w.subVectors(lookAt, p.pos);
+      yaw = wrapA(Math.atan2(_w.x, _w.z) - p.heading);
+      if (Math.abs(yaw) > 1.15 && !p.walk && p.pose === POSE.stand && !stunned) p.heading += Math.sign(yaw) * (Math.abs(yaw) - 1.15) * damp(2, dt);
+      yaw = THREE.MathUtils.clamp(yaw, -1.15, 1.15);
+      pitch = THREE.MathUtils.clamp(-Math.atan2(_w.y + (lookAt === pp ? 1.5 : 0) - 1.6, Math.hypot(_w.x, _w.z) + 0.3) * 0.6, -0.4, 0.4);
+    }
+    if (!stunned) {
+      p.headYaw += (yaw - p.headYaw) * damp(5, dt);
+      p.headPitch += (pitch - p.headPitch) * damp(4, dt);
+    }
+  }
+
+  swapNear(cam, low) {
+    const R = this.range, nearIn = R.nearIn, nearOut = R.nearOut;
+    const budget = { n: CROWD_BUDGET.swapsPerFrame };
+    const cap = low ? Math.ceil(this.pool.length / 2) : this.pool.length;
+    // demote: too far, or over the low-detail cap
+    let active = this.pool.filter((e) => e.person);
+    active.sort((a, b) => b.person._dCam - a.person._dCam);
+    for (const e of active) {
+      if (budget.n <= 0) break;
+      if (e.person._dCam > nearOut || active.filter((x) => x.person).length > cap) { this.demote(e); budget.n--; }
+    }
+    if (budget.n <= 0 || !this.pool.length) return;
+    // promote: the closest candidates first
+    const cand = [];
+    for (const p of this.people) if (p.tier === TIER.mid && p._dCam < nearIn && (p._vis || p._dCam < 4)) cand.push(p);   // the few full NPCs go to people in view
+    if (!cand.length) return;
+    cand.sort((a, b) => a._dCam - b._dCam);
+    for (const p of cand) {
+      if (budget.n <= 0) break;
+      let e = this.pool.find((x) => !x.person && x.kind === p.kind);
+      const used = this.pool.filter((x) => x.person).length;
+      if (!e || used >= cap) {
+        // swap out the farthest of the same kind if this one is clearly closer
+        const worst = this.pool.filter((x) => x.person && x.kind === p.kind).sort((a, b) => b.person._dCam - a.person._dCam)[0];
+        if (!worst || worst.person._dCam < p._dCam + 3 || budget.n < 2) continue;
+        this.demote(worst); budget.n--;
+        e = worst;
+      }
+      this.promote(e, p); budget.n--;
+    }
+  }
+
+  promote(e, p) {
+    e.person = p; p.npc = e.npc; p.tier = TIER.near;
+    e.npc.assign?.(p, this);
+    this.stats.promoted++;
+  }
+  demote(e) {
+    const p = e.person;
+    e.npc.release?.();
+    e.person = null; p.npc = null; p.tier = TIER.mid;
+    this.stats.demoted++;
+  }
+
+  updateTargets() {
+    const pp = this.playerPos, R2 = this.range.target ** 2;
+    let n = 0;
+    for (const p of this.people) {
+      const want = p.tier >= TIER.mid && p.pos.distanceToSquared(pp) < R2;
+      if (want && !p.unreg) {
+        p.unreg = registerTarget({
+          kind: 'npc', radius: 0.45, person: p,
+          position: () => this.chest(p),
+          onHit: (mode, point, dir) => this.hit(p, mode, dir),
+        });
+      } else if (!want && p.unreg) { p.unreg(); p.unreg = null; }
+      if (p.unreg) n++;
+    }
+    this.stats.targets = n;
+  }
+
+  chest(p) {
+    const low = p.pose === POSE.sit || p.pose === POSE.kerb;
+    return p.chestV.set(p.pos.x, p.pos.y + (low ? 0.45 : 1.15) * p.scale, p.pos.z);
+  }
+
+  /** The tool hit someone: a dart startles them (the group looks round), a stun freezes them in a comic pose. */
+  hit(p, mode, dir) {
+    const t = this.time;
+    if (mode === 'stun') {
+      p.stunUntil = t + 3.5; p.stunT = t; p.talk = 0;
+    } else {
+      if (t < p.stunUntil) return;
+      p.startleT = t;
+      p.faceUntil = p.pose === POSE.stand || p.walk ? t + 2.5 : -1e9;
+      p.say = STARTLE_LINES[Math.floor(this.rng() * STARTLE_LINES.length)];
+      p.shoutUntil = t + 2.2;
+    }
+    p.lookUntil = t + 3;
+    const g = p.group;
+    if (g) {
+      g.lookUntil = t + 3; g.pauseUntil = t + 2.5;
+      for (const m of g.members) if (m !== p && t > m.stunUntil) { m.lookUntil = t + 3; if (mode === 'stun') m.startleT = t + 0.1 + this.rng() * 0.2; }
+    }
+    if (p.walk?.partner) p.walk.partner.lookUntil = t + 3;
+    if (!p.npc && p.say && mode !== 'stun') this.shout = p;
+  }
+
+  /** A shout from someone in the mid tier (the near tier has the NPCs' own balloons). */
+  placeBalloon(camera) {
+    const b = this.balloon;
+    if (!b) return;
+    const p = this.shout;
+    const on = p && !p.npc && this.time < p.shoutUntil && p._dCam < 45;
+    if (on) {
+      _w.set(p.pos.x, p.pos.y + 2.05 * p.scale, p.pos.z).project(camera);
+      if (_w.z < 1 && Math.abs(_w.x) < 1.1 && Math.abs(_w.y) < 1.1) {
+        if (b.textContent !== p.say) b.textContent = p.say;
+        b.style.transform = `translate(${((_w.x * 0.5 + 0.5) * window.innerWidth).toFixed(1)}px, ${((-_w.y * 0.5 + 0.5) * window.innerHeight).toFixed(1)}px) translate(-22px, calc(-100% - 12px))`;
+        b.classList.add('show');
+        return;
+      }
+    }
+    b.classList.remove('show');
+  }
+
+  dispose() {
+    for (const p of this.people) p.unreg?.();
+    this.scene.remove(this.mid.mesh, this.far.mesh, this.shadow);
+    this.balloon?.remove();
+  }
+}

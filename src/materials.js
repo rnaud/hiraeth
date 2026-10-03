@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { PORTRAIT_GLSL } from './face.js';
 import { CREASE_GLSL } from './creases.js';
 import { BIOME_GLSL } from './biome.js';
+import { CROWD_GLSL } from './crowd-shader.js';
 
 // ---------------------------------------------------------------------------
 // G-buffer surface material.
@@ -76,6 +77,9 @@ const vertexShader = /* glsl */ `
   uniform float uSuit;
   uniform float uPortrait;
   uniform vec4 uHeadBall;  // portrait: bind-pose head centre, how far its normals round off
+  #ifdef CROWD
+    ${CROWD_GLSL}
+  #endif
 
   void main() {
     vec3 transformed = position;
@@ -85,6 +89,10 @@ const vertexShader = /* glsl */ `
     vec3 objectNormal = normal;
     // Light the face as one rounded volume, so its shadow is a single clean shape.
     if (uPortrait > 0.5) objectNormal = normalize(mix(normal, normalize(position - uHeadBall.xyz), uHeadBall.w));
+    #ifdef CROWD
+      vec3 crowdColor;
+      crowdAnimate(transformed, objectNormal, crowdColor);   // instanced crowd: pose + colour zones per instance
+    #endif
     #ifdef USE_SKINNING
       #include <skinbase_vertex>
       #include <skinnormal_vertex>
@@ -103,6 +111,9 @@ const vertexShader = /* glsl */ `
     #ifdef USE_INSTANCING_COLOR
       vInstColor = instanceColor;
     #endif
+    #ifdef CROWD
+      vInstColor = crowdColor;
+    #endif
     #if defined(USE_COLOR) || defined(USE_COLOR_ALPHA)
       vInstColor *= color.rgb;   // flat printed colour zones
     #endif
@@ -116,6 +127,10 @@ const vertexShader = /* glsl */ `
     vec3 scl = vec3(length(M[0].xyz), length(M[1].xyz), length(M[2].xyz));
     vObjPos = position * scl;
     vObjNormal = normal / scl;
+    #ifdef CROWD
+      vObjPos = transformed * scl;     // strokes stay on the moving limbs
+      vObjNormal = objectNormal / scl;
+    #endif
 
     vec4 world = modelMatrix * pos;
     vWorldPos = world.xyz;
@@ -814,6 +829,8 @@ const cache = new Map();
  * @param {boolean} [o.ticks]   terrain: inked grass ticks
  * @param {number}  [o.glow]    0..1 self-lit
  * @param {THREE.Side} [o.side]
+ * @param {boolean} [o.crowd]   instanced crowd figures: the vertex shader poses and colours each
+ *                              instance from its attributes (crowd-shader.js); no other mode changes
  */
 export function makeMaterial(o) {
   const key = JSON.stringify({ ...o, map: o.map?.uuid });
@@ -862,6 +879,7 @@ export function makeMaterial(o) {
     },
   });
   mat.vertexColors = !!o.vertexColors;
+  if (o.crowd) mat.defines = { CROWD: 1 };
   cache.set(key, mat);
   return mat;
 }
