@@ -3,6 +3,9 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.23', date: '2026-10-03', items: [
+    'Fixed iPhone scrolling in the world picker and other menus. Gameplay now captures swipes only on the canvas, leaving menu scrolling to the browser.',
+  ] },
   { v: '0.22', date: '2026-10-03', items: [
     'The world notices you: reactive scenery across all eight worlds responds to proximity and attention, then settles when you leave. Nearby objects answer in a delayed wave.',
     'Salt blooms open and release spores in the desert; Edena flowers turn pink and unfold; shy Perdide fungi close and glow. Pale fronds listen in Arzach and the Atelier.',

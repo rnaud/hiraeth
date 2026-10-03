@@ -151,7 +151,9 @@ export class TouchControls {
       }
     };
     canvas.addEventListener('touchstart', onStart, { passive: true });
-    window.addEventListener('touchmove', onMove, { passive: false });
+    // Touch events stay targeted at the element where the gesture began.
+    // Only canvas gestures belong to gameplay; menu swipes must scroll normally.
+    canvas.addEventListener('touchmove', onMove, { passive: false });
     window.addEventListener('touchend', onEnd);
     window.addEventListener('touchcancel', onEnd);
     // buttons: hold keys, toggle run, or a one-shot key press (for page hotkeys)
