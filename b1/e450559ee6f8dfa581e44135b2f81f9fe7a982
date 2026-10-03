@@ -1,0 +1,33 @@
+src/crowd-shader.js
+  s_1fd8d0e7b02dcf::t_f62eba516a70be 1-186
+src/crowd.js
+  s_1fd8d0e7b02dcf::t_ab69752ee45a2c 1-805
+src/levels/bazaar.js
+  s_1fd8d0e7b02dcf::t_4956e41e265ffa 163,166,189-221
+src/levels/incal.js
+  s_1fd8d0e7b02dcf::t_8c1c6df9a41eb0 406,422,455,625-641,643-656,659-681
+src/main.js
+  s_1fd8d0e7b02dcf::t_ed0811025d90bb 20-21,267-274,840,957
+src/npc.js
+  s_1fd8d0e7b02dcf::t_dd111ab88f8067 6-7,13-20,24,31,33,35-41,47,57-59,67,78-165,169-173,182-190,198,210-213,255,269-370,382,412,417,500-513
+tests/bazaar.test.js
+  s_1fd8d0e7b02dcf::t_5fc5da23bc2538 8,31,33-36
+tests/crowd.test.js
+  s_1fd8d0e7b02dcf::t_5f9a66ad5abc4c 1-159
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b1e450559ee6f8dfa581e44135b2f81f9fe7a982",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
