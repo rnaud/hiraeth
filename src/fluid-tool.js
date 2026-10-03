@@ -218,6 +218,22 @@ export function boostVelocity(vel, up, fwd, { up: burst = FLUID.boost.up, forwar
 const INK = '#2b211f', BRASS = '#e2b552', BRASS_DARK = '#b5862f', STEEL = '#86a9d8', STEEL_DARK = '#5f86bf', RUBBER = '#3c4a78';
 const flatMat = (color, o = {}) => makeMaterial({ color, flat: true, ...o });
 const noCollide = (root) => { root.traverse((o) => { o.userData.noCollide = true; }); return root; };
+/** Bake a group's static parts into one mesh per material (fewer draws in every pass); `keep` stay as they are. */
+function mergeParts(group, keep = []) {
+  const batches = new Map();
+  for (const o of [...group.children]) {
+    if (!o.isMesh || keep.includes(o)) continue;
+    o.updateMatrix();
+    const g = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone();
+    for (const k of Object.keys(g.attributes)) if (k !== 'position' && k !== 'normal') g.deleteAttribute(k);
+    g.applyMatrix4(o.matrix);
+    if (!batches.has(o.material)) batches.set(o.material, []);
+    batches.get(o.material).push(g);
+    group.remove(o); o.geometry.dispose();
+  }
+  for (const [material, parts] of batches) { group.add(new THREE.Mesh(mergeGeometries(parts), material)); parts.forEach((g) => g.dispose()); }
+  return group;
+}
 
 /** Instanced dots and dashes: droplets, sprays, the glob's wake, the aim arc. */
 class Dots {
@@ -408,6 +424,7 @@ function buildTank() {
   const [ox, oy, oz] = TANK.outlet;
   add(new THREE.CylinderGeometry(0.022, 0.026, 0.07, 10), flatMat(BRASS), ox + 0.02, oy - 0.03, oz, false).rotation.z = 0.55;
   add(new THREE.TorusGeometry(0.026, 0.008, 4, 12).rotateX(Math.PI / 2), flatMat(INK), ox + 0.008, oy - 0.012, oz, false).rotation.z = 0.55;
+  mergeParts(g, [glass]);
   g.position.set(...TANK.at);
   return { group: noCollide(g), glass, outlet: new THREE.Vector3(ox, oy, oz), top: TANK.at[1] + TANK.height + 0.11 };
 }
@@ -435,6 +452,7 @@ function buildBracer() {
   });
   const [ix, iy, iz] = BRACER.inlet;
   add(new THREE.CylinderGeometry(0.02, 0.02, 0.05, 8), flatMat(BRASS), ix, iy, iz);
+  mergeParts(g, [lens, ...rings]);
   return { group: noCollide(g), rings, lens, muzzle: new THREE.Vector3(...BRACER.muzzle), inlet: new THREE.Vector3(ix, iy - 0.03, iz) };
 }
 
@@ -565,7 +583,7 @@ export class FluidTool {
     } else for (const o of p.gear?.scoutDock?.parent?.children ?? []) if (o.isMesh) o.visible = false;   // the procedural pack
     const tank = (this.tank = buildTank());
     H.chestAnchor.add(tank.group);
-    p.gear?.scoutDock?.position.set(0, tank.top, TANK.at[2]);   // the scout perches on the cap
+    p.gear?.scoutDock?.position.set(0.25, TANK.at[1] + TANK.height * 0.62, TANK.at[2] + 0.02);   // the scout clings to the tank's left side (the cap would hide the helmet)
     const fore = H.b.lowerarm_r;
     if (fore) {
       this.bracer = buildBracer();
