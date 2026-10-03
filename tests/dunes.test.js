@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { Terrain, heightFn } from '../src/world.js';
-import { basinHeight } from '../src/desert-vistas.js';
+import { Terrain } from '../src/world.js';
+import { desertHeight } from '../src/desert-landmarks.js';
 import { Hoverbike } from '../src/bike.js';
 import { mulberry32 } from '../src/noise.js';
 import { biomeWeights } from '../src/biome.js';
 
 // The desert as the game builds it (same mesh, same exact height lookup).
-const terrain = new Terrain({ height: (x, z) => basinHeight(x, z, heightFn) });
+const terrain = new Terrain({ height: desertHeight });
 const INNER = 1250;   // inside the ring of horizon mountains
 const quantile = (a, p) => Float64Array.from(a).sort()[Math.floor(p * (a.length - 1))];
 

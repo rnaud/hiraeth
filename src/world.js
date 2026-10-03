@@ -1,4 +1,5 @@
 import { OBSERVATORY } from './observatory.js';
+import { SITES, POLE_LINE } from './desert-sites.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createNoise2D, fbm, mulberry32, smoothstep, lerp } from './noise.js';
@@ -61,7 +62,10 @@ export function duneRelief(x, z) {
 }
 
 // Sites that need level ground: the dune and ridge relief fades out around them.
-export const CALM_SITES = [{ x: OBSERVATORY.x, z: OBSERVATORY.z, r: 40, fade: 70 }];
+export const CALM_SITES = [
+  { x: OBSERVATORY.x, z: OBSERVATORY.z, r: 40, fade: 70 },
+  ...Object.values(SITES).filter((s) => s.calm).map((s) => ({ x: s.x, z: s.z, r: s.r * 0.75, fade: 70 })),
+];
 function calm(x, z) {
   let k = 1;
   for (const c of CALM_SITES) k *= smoothstep(c.r, c.r + c.fade, Math.hypot(x - c.x, z - c.z));
@@ -237,6 +241,12 @@ function strataMat(rng, size) {
 export function buildWorld(scene, terrain) {
   const rng = mulberry32(42);
   const footprints = [{ x: -430, z: -180, r: 120 }, { x: -430, z: -470, r: 90 }, { x: OBSERVATORY.x, z: OBSERVATORY.z, r: OBSERVATORY.radius }]; // { x, z, r }: keeps props from overlapping when placed
+  // the hand-built landmarks of src/desert-landmarks.js
+  for (const s of Object.values(SITES)) footprints.push({ x: s.x, z: s.z, r: s.r });
+  for (let i = 0; i <= 8; i++) {
+    const [[ax, az], [bx, bz]] = POLE_LINE;
+    footprints.push({ x: ax + (bx - ax) * i / 8, z: az + (bz - az) * i / 8, r: 6 });
+  }
   const floaters = [];  // { obj, baseY, phase }
   const banners = [];
   const lights = [];    // glowing things that light their surroundings at night
