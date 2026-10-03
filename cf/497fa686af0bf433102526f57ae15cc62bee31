@@ -1,0 +1,45 @@
+README.md
+  s_aaae6e4311287b::t_2ea1184386b037 351-386
+index.html
+  s_aaae6e4311287b::t_c4dfeb3b0617ef 65-78,125
+src/bike.js
+  s_aaae6e4311287b::t_4eeb655c727635 9-10
+src/changelog.js
+  s_aaae6e4311287b::t_ec65e7980c9a72 1-107
+src/levels/arzach.js
+  s_aaae6e4311287b::t_32a8a829730852 32,42,219-249,269
+src/levels/edena.js
+  s_aaae6e4311287b::t_606030661a6128 226-257,265-267
+src/levels/garage.js
+  s_aaae6e4311287b::t_efcef46c8ebed1 91,133-194
+src/levels/perdide.js
+  s_aaae6e4311287b::t_29875f6d0da0cf 69,226-274
+src/main.js
+  s_aaae6e4311287b::t_6685896716ee17 20,443-444,487,490-491,615,761,763-764,854-858
+src/materials.js
+  s_aaae6e4311287b::t_9199d7c4bd3c00 622-623
+src/npc.js
+  s_aaae6e4311287b::t_4c9098939f60ef 66,140-157
+src/player.js
+  s_aaae6e4311287b::t_3884ef42e4656a 4,179,386,388-390,392-397,399,407-413,750,772-780,785-814,1201,1219-1256
+src/trinkets.js
+  s_aaae6e4311287b::t_96c15edacd6e63 1-98
+src/ui.js
+  s_aaae6e4311287b::t_a2089f1edd049a 1,38,44,55,58,76
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "cf497fa686af0bf433102526f57ae15cc62bee31",
+  "prompts": {},
+  "sessions": {
+    "s_aaae6e4311287b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a3718911-2af0-4cef-b5df-15d14f9e5623",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
