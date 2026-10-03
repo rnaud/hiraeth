@@ -1,0 +1,57 @@
+README.md
+  s_1fd8d0e7b02dcf::t_ab8ea0cfce40c7 126,137-145,871-895
+src/audio.js
+  s_1fd8d0e7b02dcf::t_78b4643cb4c0fd 14-17,38-41
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_3f3a0cdb7cb4ff 6-11
+src/levels/arzach2.js
+  s_1fd8d0e7b02dcf::t_bcdbf4711cb3bf 1-777
+src/levels/buried.js
+  s_1fd8d0e7b02dcf::t_644f88e46de788 1-767
+src/levels/content.js
+  s_1fd8d0e7b02dcf::t_34260e806b3a1f 13-18,22-25
+src/levels/index.js
+  s_1fd8d0e7b02dcf::t_2962c3b93d02ec 9-12,34-39,46-51,58-63,70-75
+src/levels/perdide2.js
+  s_1fd8d0e7b02dcf::t_4c7889c828e781 1-718
+src/levels/spheres.js
+  s_1fd8d0e7b02dcf::t_edfb1548c585de 1-872
+src/main.js
+  s_1fd8d0e7b02dcf::t_21f1cafba4fd19 528
+src/reactive-world.js
+  s_1fd8d0e7b02dcf::t_91becf968cabc3 14-17
+tests/arzach2.test.js
+  s_1fd8d0e7b02dcf::t_0a69764b9a6917 1-87
+tests/bazaar.test.js
+  s_1fd8d0e7b02dcf::t_d9ba4a785b60a4 22
+tests/buried.test.js
+  s_1fd8d0e7b02dcf::t_e21fa0f1629734 1-77
+tests/spheres.test.js
+  s_1fd8d0e7b02dcf::t_844bec809cfb0f 1-96
+tests/perdide2.test.js
+  s_78913df1d84276::t_f500cb81bddc05 1-80
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "202858651bb3bee4545d8990eac11e4d366b7418",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_78913df1d84276": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aee60f394900a9a7e",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
