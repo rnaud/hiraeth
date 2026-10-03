@@ -3,6 +3,7 @@ import { ReactiveWorld } from './reactive-world.js';
 import { Controller, mergeControls, menuNavigate } from './controller.js';
 import { ObservatoryQuest } from './observatory.js';
 import { Scout, nextObjective } from './scout.js';
+import { Wildlife } from './wildlife.js';
 import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
 import GUI from 'lil-gui';
 import { sharedUniforms, markHero } from './materials.js';
@@ -292,6 +293,8 @@ levelLights.push(gate.light);
 const scout = new Scout({ scene, player, physics, sound, label: document.getElementById('scout-label'),
   getTarget: () => nextObjective({ player, expedition, story, relics, gate, level }),
 });
+// wildlife: two or three small species per world, each with a surprise (src/wildlife.js)
+const wildlife = new Wildlife(scene, level, physics, { content, sound });
 if (viaGate) {
   const a = gate.arrival();
   player.respawn(a.pos);
@@ -865,6 +868,7 @@ function frame() {
   updateHud();
   level.update(dt, t, { player, rig, camera });
   reactiveWorld.update(dt, t, player, camera, busy() || photo.on);
+  wildlife.update(dt, t, player, camera, busy() || photo.on);
   // levels with zones (the Garage) switch ink style as you cross between them
   if (level.zoneAt) {
     const zone = level.zoneAt(player.pos);
@@ -944,4 +948,4 @@ requestAnimationFrame((t) => {
 });
 
 // handy for debugging from the console
-Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, gate, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld });
+Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, gate, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, wildlife });
