@@ -166,3 +166,55 @@ test('sculpted face has a nose profile and visible eyes rigidly attached to the 
     }
   });
 });
+
+test('rebuilt gloves and soles bind to the correct limb; equipment stays batched', () => {
+  const equipment=[]; template.traverse(o=>{if(o.isSkinnedMesh && o.name.startsWith('Equipment'))equipment.push(o);});
+  assert.equal(equipment.length,9,'details are batched by material');
+  for(const [label,material,bonePrefix] of [['gloves','Equipment orange leather','hand'],['soles','Equipment rubber soles','foot']]) {
+    const mesh=equipment.find(o=>o.material.name===material);assert.ok(mesh,label);
+    const {position,skinIndex,skinWeight}=mesh.geometry.attributes;
+    for(let i=0;i<position.count;i++) {
+      assert.ok(Math.abs(skinWeight.getX(i)-1)<1e-6,`${label} stay rigid rather than stretching`);
+      const side=position.getX(i)>0?'L':'R';
+      assert.equal(mesh.skeleton.bones[skinIndex.getX(i)].name,`${bonePrefix}${side}`);
+    }
+  }
+  for(const mesh of equipment) {
+    for(const attribute of Object.values(mesh.geometry.attributes))
+      assert.ok(Array.from(attribute.array).every(Number.isFinite),'no invalid exported geometry');
+  }
+});
+
+test('actual glove thumbs point inward with fingers up and palms on a climbing wall', () => {
+  for(const angle of [0,Math.PI/2]) {
+    const char=buildCharacter(),h=new Humanoid(template,char,'m',{imported:true});
+    const glove=h.model.getObjectByName('Equipment_orange_leather');
+    assert.ok(glove,'glove mesh exists');
+    const P=glove.geometry.attributes.position;
+    const thumbIndices={};
+    for(const side of ['l','r']) {
+      const hand=h.b[`hand_${side}`],wrist=h.rest.get(hand).p,sign=side==='l'?1:-1;
+      const along=h.handFrames[side].along;
+      const across=new THREE.Vector3(sign,0,0).addScaledVector(along,-along.x*sign).normalize();
+      let max=-Infinity;
+      for(let i=0;i<P.count;i++) {
+        if(P.getX(i)*sign<0)continue;
+        const d=new THREE.Vector3().fromBufferAttribute(P,i).sub(wrist).dot(across);
+        if(d>max){max=d;thumbIndices[side]=i;}
+      }
+      assert.ok(max>.06,'distinct thumb extends from the anatomical outer palm edge at rest');
+    }
+    char.root.rotation.z=angle;h.update();
+    const up=new THREE.Vector3(0,1,0).applyAxisAngle(new THREE.Vector3(0,0,1),angle),wallN=new THREE.Vector3(0,0,-1);
+    const B=h.b;
+    h.reach({hands:['r','l'].map(s=>B[`hand_${s}`].getWorldPosition(new THREE.Vector3())),feet:['r','l'].map(s=>B[`foot_${s}`].getWorldPosition(new THREE.Vector3())),wallN,up,wallContact:true});
+    glove.skeleton.update();
+    const left=B.hand_l.getWorldPosition(new THREE.Vector3()),right=B.hand_r.getWorldPosition(new THREE.Vector3());
+    const inward={l:right.clone().sub(left).normalize(),r:left.clone().sub(right).normalize()};
+    for(const side of ['l','r']) {
+      const wrist=B[`hand_${side}`].getWorldPosition(new THREE.Vector3());
+      const thumb=glove.localToWorld(glove.getVertexPosition(thumbIndices[side],new THREE.Vector3())).sub(wrist);
+      assert.ok(thumb.dot(inward[side])>.035,`${side} thumb points toward the other hand on the wall`);
+    }
+  }
+});

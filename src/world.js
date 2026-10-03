@@ -85,7 +85,7 @@ export class Terrain {
     this.mesh = new THREE.Mesh(
       geo,
       makeMaterial(material ?? {
-        color: '#efd29b', color2: '#f5e1b6', color3: '#dca57a', mode: MODE_TERRAIN, biomes: true, ripples: true,
+        color: '#efd29b', color2: '#f5e1b6', color3: '#dca57a', mode: MODE_TERRAIN, biomes: true, ripples: true, sandInk: true,
       })
     );
     // the heightfield has an exact lookup, so it stays out of the mesh collision
@@ -528,7 +528,7 @@ export function buildWorld(scene, terrain) {
   }
 
   // ---------------------------------------------------------- ochre scrub
-  // round, many-lobed desert bushes in clumps, thickest around the start
+  // Sparse scrub leaves broad stretches of clean sand, as in the reference.
   {
     const lobes = [];
     for (let k = 0; k < 9; k++) {
@@ -539,11 +539,11 @@ export function buildWorld(scene, terrain) {
     }
     const geo = mergeGeometries(lobes.map((g) => g.toNonIndexed()));
     geo.computeVertexNormals();
-    const N = 1600;
+    const N = 1040;
     const bushes = new THREE.InstancedMesh(geo, makeMaterial({ color: '#ffffff', scrub: true }), N);
     const tones = ['#d9a441', '#c98a3a', '#e0b85a', '#c6743a', '#b9a24a'];
     for (let i = 0; i < N; i++) {
-      const near = i < 650;
+      const near = i < 90;
       const cx = near ? (rng() * 2 - 1) * 160 : (rng() * 2 - 1) * 1450, cz = near ? (rng() * 2 - 1) * 160 : (rng() * 2 - 1) * 1450;
       if (near && Math.hypot(cx, cz) < 9) { dummy.scale.setScalar(0); dummy.updateMatrix(); bushes.setMatrixAt(i, dummy.matrix); continue; }
       const s = 0.6 + Math.pow(rng(), 2) * 1.3;

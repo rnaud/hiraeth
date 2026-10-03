@@ -794,7 +794,7 @@ and screen behavior. Performance on a physical iPhone still needs confirmation.
 ### Character animation review
 
 With `npm run dev` running, open `/tools/rig-review.html`. Choose Walk, Jog,
-or Run and step through the 120 samples with the slider or frame buttons.
+Run, or Climb and step through the 120 samples with the slider or frame buttons.
 Front, side and back views show the textured model with joint overlays;
 **12-frame sheet** creates a downloadable contact sheet. This uses the game's
 actual `Animator` and `Humanoid` classes, before terrain foot placement.
@@ -806,3 +806,17 @@ To rebuild the face, run Blender with `scripts/refine-traveller-face.py --
 input.glb output-directory`, then run `python3 scripts/merge-traveller-face.py
 input.glb output-directory/character.glb public/anim/traveller.glb`. The second
 step copies only the new facial meshes and preserves the shipped rig data.
+
+The v0.27 equipment pass uses `scripts/refine-traveller-equipment.py --
+input.glb output-directory`, followed by `python3 scripts/merge-traveller-equipment.py
+input.glb output-directory/character.glb public/anim/traveller.glb`. Use the same
+input for both commands. It rebuilds gloves, boots and the radio pack, smooths
+local elbow/knee/hip weights, and preserves the original skeleton and animation
+buffers. New parts are batched into nine meshes by material. Fingers have a
+fixed relaxed pose; they do not have separate animation joints.
+
+Desert materials opt into `sandInk`: broad flat color, sparse curved strokes
+anchored to the surface, and existing slope/shadow hatching. Dot stippling and
+round albedo flecks are disabled for these surfaces. Strokes fade when too small
+to resolve, rather than growing into distant dots. Other terrain styles retain
+their own settings.

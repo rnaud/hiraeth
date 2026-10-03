@@ -33,7 +33,12 @@ const camera=new THREE.PerspectiveCamera(35,1,.01,100);
 function sample(frame) {
  const motion=$('motion').value;
  for(const [name,action] of Object.entries(animator.actions)){action.setEffectiveWeight(name===motion?1:0);action.time=frame/120*lib.clips[name].duration;}
- animator.mixer.update(0);animator.src.updateMatrixWorld(true);animator.apply(char.root);humanoid.update();humanoid.poseHands(animator);updateLines();
+ animator.mixer.update(0);animator.src.updateMatrixWorld(true);animator.apply(char.root);humanoid.update();humanoid.poseHands(animator);
+ if(motion.startsWith('climb')) {
+  const B=humanoid.b,point=n=>B[n].getWorldPosition(new THREE.Vector3());
+  humanoid.reach({hands:['r','l'].map(s=>point(`hand_${s}`)),feet:['r','l'].map(s=>point(`foot_${s}`)),wallN:new THREE.Vector3(0,0,-1),up:new THREE.Vector3(0,1,0),wallContact:true});
+ }
+ updateLines();
  $('status').textContent=`${frame+1}/120 · ${(frame/120*100).toFixed(0)}%`;
 }
 function render() {

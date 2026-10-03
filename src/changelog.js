@@ -3,6 +3,11 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.27', date: '2026-10-03', items: [
+    'Desert sand now uses broad flat colors and sparse wind-shaped ink strokes. Removed the ground dots and round color flecks; thinned the scrub to leave open dunes like the reference art.',
+    'Rebuilt the traveller’s gloves with thumbs and individual finger shapes, pink boots with soles and straps, and a cream radio backpack with vents, a display and pouches.',
+    'Smoothed skin weights around elbows, knees and hips. Corrected the gloves’ thumb placement so thumbs point inward on climbing walls. The refined face and clear helmet are preserved. Equipment details share materials to keep drawing costs down.',
+  ] },
   { v: '0.26', date: '2026-10-03', items: [
     'Refined the traveller’s face from the character reference: a longer forehead, tapered jaw, sculpted nose, small inked eyes and mouth, and a grey liner behind the head.',
     'Facial features now sit on the surface and remain readable through the bubble helmet. The existing body rig and walking/running corrections are preserved.',

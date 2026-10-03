@@ -142,6 +142,7 @@ const fragmentShader = /* glsl */ `
   uniform float uShadowNormalOffset2;
   uniform float uGlyphs;
   uniform float uBiomes;    // terrain: desert regions decide the ground palette
+  uniform float uSandInk;  // sparse desert wind strokes, no pebble-dot field
   uniform float uRipples;   // terrain: wind ripple marks
   uniform float uTicks;     // terrain: inked grass ticks
   uniform float uGlow;      // self-lit (crystals, eggs): ignores shadow, glows at night
@@ -473,6 +474,22 @@ const fragmentShader = /* glsl */ `
     return inkLine(d, 0.9) * patchMask * broken * vis * (1.0 - smoothstep(0.06, 0.16, slope));
   }
 
+  // Sparse, surface-anchored pen strokes. Their physical length stays fixed;
+  // fade subpixel strokes away instead of enlarging them into screen-space dots.
+  float sandScuffs(vec2 p) {
+    vec2 q = mat2(0.82, -0.57, 0.57, 0.82) * p / 22.0;
+    vec2 cell = floor(q), local = fract(q) - (0.25 + hash2(cell + 11.0) * 0.5);
+    float seed = hash(cell + 37.0);
+    float halfLength = mix(0.055, 0.18, hash(cell + 19.0));
+    float bend = local.y - local.x * local.x * 0.5;
+    float aa = max(fwidth(bend), 1e-5);
+    float stroke = inkLine(abs(bend) / aa, 0.65);
+    stroke *= 1.0 - smoothstep(halfLength * 0.6, halfLength, abs(local.x));
+    float resolved = smoothstep(3.0, 7.0, halfLength * 2.0 / max(fwidth(q.x), 1e-5));
+    float scuffPatch = smoothstep(0.40, 0.70, vnoise(p * 0.045 + 13.0));
+    return stroke * step(0.65, seed) * scuffPatch * resolved * 0.55;
+  }
+
   // Dried-mud cracks: Voronoi borders, jittered, with some segments missing.
   float mudCracks(vec2 p, float fwc) {
     vec2 q = p / 5.5;
@@ -611,7 +628,7 @@ const fragmentShader = /* glsl */ `
       float b = max(blobs(vWorldPos.xz, fwp, 2.2, 0.28, 0.45, 0.0),
                 max(blobs(vWorldPos.xz, fwp, 11.0, 1.3, 0.35, 41.0),
                     blobs(vWorldPos.xz, fwp, 34.0, 3.2, 0.22, 97.0)));
-      albedo *= mix(vec3(1.0), vec3(0.945, 0.935, 0.965), b);
+      if (uSandInk < 0.5) albedo *= mix(vec3(1.0), vec3(0.945, 0.935, 0.965), b);
     } else if (uMode == ${MODE_STRATA}) {
       albedo = strata(vWorldPos);
     } else if (uMode == ${MODE_RIBBON}) {
@@ -678,7 +695,8 @@ const fragmentShader = /* glsl */ `
       if (uRipples > 0.5) detail = max(detail, sandRipples(vWorldPos.xz, rippleFw, slope) * (1.0 - bw.y));
       if (bw.y > 0.0 && slope < 0.2) detail = max(detail, mudCracks(vWorldPos.xz, crackFw) * smoothstep(0.3, 0.8, bw.y));
       if (uTicks > 0.5 && slope < 0.35) detail = max(detail, grassTicks(vWorldPos.xz, fwp) * 0.8);
-      if (uDots > 0.0) {
+      if (uSandInk > 0.5) detail = max(detail, sandScuffs(vWorldPos.xz) * (1.0 - bw.y));
+      if (uDots > 0.0 && uSandInk < 0.5) {
         // pen dotting: patchy, denser in hollows, a few bigger pebble dots
         float patchy = 0.45 + 0.55 * smoothstep(0.3, 0.75, vnoise(vWorldPos.xz * 0.06 + 7.0));
         float dots = stipple(ce1, fwd, 8.5 * mix(0.7, 1.45, smoothstep(5.0, 220.0, vViewDepth)), 0.32);
@@ -764,6 +782,7 @@ const cache = new Map();
  * @param {number} [o.grid] spacing of drawn grid lines (0 = none)
  * @param {boolean} [o.glyphs] draw alien glyphs in the grid cells
  * @param {boolean} [o.biomes]  terrain: desert region palettes
+ * @param {boolean} [o.sandInk] terrain: sparse contour strokes instead of dot fields
  * @param {boolean} [o.ripples] terrain: wind ripple marks
  * @param {boolean} [o.ticks]   terrain: inked grass ticks
  * @param {number}  [o.glow]    0..1 self-lit
@@ -791,6 +810,7 @@ export function makeMaterial(o) {
       uGlyphs: { value: o.glyphs ? 1 : 0 },
       uBiomes: { value: o.biomes ? 1 : 0 },
       uRipples: { value: o.ripples ? 1 : 0 },
+      uSandInk: { value: o.sandInk ? 1 : 0 },
       uTicks: { value: o.ticks ? 1 : 0 },
       uGlow: { value: o.glow ?? 0 },
       uFolds: { value: o.folds ?? 0 },
