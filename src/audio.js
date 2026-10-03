@@ -392,6 +392,35 @@ export class Sound {
     [0, 4, 7, 11].forEach((d, i) => this.pluck(this.freq(d, 1), t + 0.2 + i * 0.15, 0.08, 'triangle', this.fx));
   }
 
+  /** Wildlife: a small sound for a creature's surprise (vol 0..1, by distance). */
+  critter(kind = 'squeak', vol = 1) {
+    if (!this.ctx || this.muted) return;
+    const ctx = this.ctx, t = ctx.currentTime, v = Math.max(0, Math.min(1, vol));
+    const sweep = (f0, f1, dur, type = 'sine', g0 = 0.05, wobble = 0) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+      if (wobble) { const l = ctx.createOscillator(), lg = ctx.createGain(); l.frequency.value = wobble; lg.gain.value = f0 * 0.08; l.connect(lg).connect(o.frequency); l.start(t); l.stop(t + dur + 0.05); }
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(g0 * v, t + 0.015); g.gain.exponentialRampToValueAtTime(0.0005, t + dur);
+      o.connect(g).connect(this.fx); o.start(t); o.stop(t + dur + 0.05);
+    };
+    const noise = (o) => this.burst(t + (o.at ?? 0), { ...o, vol: (o.vol ?? 0.1) * v });
+    switch (kind) {
+      case 'inflate': sweep(300, 1400, 0.9, 'triangle', 0.04, 9); break;                                  // a balloon squeak
+      case 'boing': sweep(180, 620, 0.35, 'triangle', 0.05, 14); break;
+      case 'portal': sweep(900, 220, 0.5, 'sine', 0.05, 30); sweep(450, 1800, 0.4, 'sine', 0.025); break;
+      case 'chime': case 'bloom': [0, 4, 7].forEach((d, i) => this.pluck(this.freq(d, 2), t + i * 0.09, 0.05 * v, 'sine', this.fx)); break;
+      case 'jet': case 'whirr': noise({ dur: 1.1, type: 'bandpass', freq: kind === 'jet' ? 900 : 2400, q: 2, vol: 0.12, rate: 1.4 }); sweep(220, 900, 1, 'sawtooth', 0.012); break;
+      case 'clank': case 'clack': case 'blip': noise({ dur: 0.07, type: 'bandpass', freq: kind === 'clank' ? 1300 : kind === 'clack' ? 2200 : 3400, q: 6, vol: 0.18 }); if (kind === 'blip') sweep(1200, 1600, 0.12, 'square', 0.015); break;
+      case 'splash': case 'skip': case 'plop': noise({ dur: 0.25, type: 'lowpass', freq: 1800, q: 0.6, vol: 0.12 }); sweep(kind === 'plop' ? 500 : 700, 160, 0.15, 'sine', 0.05); break;
+      case 'poof': case 'puff': case 'spores': noise({ dur: kind === 'spores' ? 0.8 : 0.45, type: 'lowpass', freq: kind === 'spores' ? 2600 : 700, q: 0.5, vol: 0.16, rate: 0.7 }); break;
+      case 'flutter': case 'scribble': for (let i = 0; i < 6; i++) noise({ at: i * 0.05, dur: 0.04, type: 'highpass', freq: kind === 'flutter' ? 3000 : 5000, q: 1, vol: 0.05 }); break;
+      case 'creak': sweep(140, 90, 0.6, 'sawtooth', 0.012, 22); break;
+      case 'daze': sweep(900, 260, 0.7, 'sine', 0.035, 11); break;                                       // a dazed wobble down
+      case 'flash': sweep(2400, 600, 0.25, 'sine', 0.03); break;
+      default: sweep(1300, 2300, 0.12, 'sine', 0.04); sweep(1700, 2900, 0.1, 'sine', 0.025);             // an alarmed squeak / pop
+    }
+  }
+
   // ------------------------------------------------------------------ the traveller's tool
   /** A pitched blip that slides from f0 to f1 (the tool's voice). */
   sweep(t, f0, f1, dur, vol, type = 'sine') {
