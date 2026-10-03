@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from './materials.js';
+import { registerTarget } from './targets.js';
 
 const UP = new THREE.Vector3(0,1,0);
 export const WORLD_REACTIONS = {
@@ -25,6 +26,20 @@ export class ReactionField {
     this.nodes=nodes.map(n=>({...n,energy:0,inside:false,cooldown:0,pulseAt:Infinity,pulse:0,remembered:seen.includes(n.cluster)}));
     this.seen=new Set(seen);this.onEncounter=onEncounter;this.time=0;
   }
+  /** A direct encounter: the node wakes, the cluster is remembered and a delayed echo runs through it. */
+  encounter(n) {
+    n.cooldown=7;n.pulse=1;
+    const known=this.seen.has(n.cluster);this.seen.add(n.cluster);
+    this.onEncounter(n,known);
+    this.nodes.filter(o=>o.cluster===n.cluster&&o!==n).forEach(o=>{o.pulseAt=Math.min(o.pulseAt,this.time+.45+n.pos.distanceTo(o.pos)/12);});
+  }
+  /** Touched from afar (the traveller's foam dart): the same encounter as walking up to it.
+   * While it is still awake from the last one it just pulses again; a weaker touch (the ray) only shimmers. */
+  trigger(n,strength=1) {
+    if(strength>=1&&n.cooldown===0)this.encounter(n);
+    else n.pulse=Math.max(n.pulse,Math.min(1,strength));
+    return true;
+  }
   update(dt,player,eye,forward,visible=()=>true) {
     this.time+=dt;
     for(const n of this.nodes){
@@ -33,12 +48,7 @@ export class ReactionField {
       const gaze=lookDistance>0 && lookDistance<(n.gazeRadius??24) && to.multiplyScalar(1/lookDistance).dot(forward)>.94;
       const sensed=distance<n.radius || gaze;
       const inside=sensed && visible(n);
-      if(inside&&!n.inside&&n.cooldown===0){
-        n.cooldown=7;n.pulse=1;
-        const known=this.seen.has(n.cluster);this.seen.add(n.cluster);
-        this.onEncounter(n,known);
-        this.nodes.filter(o=>o.cluster===n.cluster&&o!==n).forEach(o=>{o.pulseAt=Math.min(o.pulseAt,this.time+.45+n.pos.distanceTo(o.pos)/12);});
-      }
+      if(inside&&!n.inside&&n.cooldown===0)this.encounter(n);
       // Hysteresis prevents jitter at the approach boundary retriggering it.
       n.inside=inside || (n.inside && distance<n.radius*1.35);
       if(this.time>=n.pulseAt){n.pulse=1;n.pulseAt=Infinity;}
@@ -146,6 +156,10 @@ export class ReactiveWorld {
       this.dirty=true;
 
     }});
+    // Darts wake nodes from afar; the paralyze ray only makes them shimmer.
+    const screenLike=this.theme.kind==='screen'||this.theme.kind==='machine';
+    this.offTargets=this.field.nodes.map(n=>registerTarget({kind:'reactive',radius:n.obj.root.scale.x*(screenLike||n.radius>=16?1.9:.75),
+      position:()=>n.pos,enabled:()=>n.obj.root.visible,onHit:mode=>this.field.trigger(n,mode==='dart'?1:.45)}));
     const pm=makeMaterial({color:this.theme.awake,flat:true,glow:.75});
     this.spores=new THREE.InstancedMesh(new THREE.SphereGeometry(.055,5,4),pm,72);
     this.spores.userData.noCollide=true;this.spores.frustumCulled=false;this.spores.count=0;this.root.add(this.spores);
@@ -163,6 +177,7 @@ export class ReactiveWorld {
     this.nodes.push({pos:pos.clone().addScaledVector(up,1.3),radius:this.theme.radius,cluster,obj,up:up.clone(),rotation:rotation.clone()});
   }
   emit(n){for(let i=0;i<8&&this.particles.length<72;i++)this.particles.push({pos:n.pos.clone(),vel:new THREE.Vector3(Math.sin(i*2.4)*.32,.4+i*.035,Math.cos(i*2.4)*.32).applyQuaternion(n.rotation??new THREE.Quaternion()),life:3.2});}
+  dispose(){this.offTargets.forEach(off=>off());this.offTargets=[];this.root.removeFromParent();}
   clear(){
     this.dirty=false;this.saved={};this.field.seen.clear();
     try{this.storage?.removeItem(this.key);}catch{}
