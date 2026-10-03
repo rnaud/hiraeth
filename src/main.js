@@ -13,19 +13,21 @@ import { Player, CameraRig } from './player.js';
 import { applyTimeOfDay, colourScript } from './timeofday.js';
 import { WindStreaks } from './wind.js';
 import { Physics } from './physics.js';
-import { tileScene } from './perf.js';
+import { tileScene, cullFar } from './perf.js';
 import { Trail } from './trail.js';
 import { Flock, Motes, Footprints } from './life.js';
 import { Sound } from './audio.js';
 import { Weather, WEATHER_KINDS } from './weather.js';
-import { spawnNPCs, NPC } from './npc.js';
+import { spawnNPCs, pooledNPC, registerNPCTargets } from './npc.js';
+import { Crowd } from './crowd.js';
 import { Journal, Relics, Story, Gate, Errands, turnPage, arriveFromPage } from './quest.js';
 import { CONTENT, ERRANDS, nextLevel } from './levels/content.js';
 import { loadAnimationLibrary, Animator } from './animator.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { loadHuman, Humanoid } from './humanoid.js';
 import { Changelog, VERSION } from './changelog.js';
-import { Settings, SettingsMenu, TouchControls, SaveGame, isTouch } from './ui.js';
+import { Settings, SettingsMenu, TouchControls, SaveGame, isTouch, ToolHud } from './ui.js';
+import { Blaster, bindToolMouse } from './blaster.js';
 import { ORDER } from './levels/content.js';
 
 // Loading: each stage updates the inked loading screen, then yields a frame
@@ -219,7 +221,8 @@ if (motes) motes.uniforms.tNormal.value = gbuffer.textures[1];
 overlays.motes = motes;
 // the hoverbike / skiff trail
 // two trails, one per hover jet
-const trails = player.mount && player.mount.kind !== 'bird' ? [new Trail(scene, { offset: 0 }), new Trail(scene, { offset: 2.5 })] : null;
+const trailGround = (x, y, z) => (player.mount.groundAt ? player.mount.groundAt(x, y, z) : physics.groundAt(x, y, z));   // never under the ground (or the skiff's water)
+const trails = player.mount && player.mount.kind !== 'bird' ? [new Trail(scene, { offset: 0, physics, ground: trailGround }), new Trail(scene, { offset: 2.5, physics, ground: trailGround })] : null;
 const JETS = [new THREE.Vector3(0.66, -0.08, -1.18), new THREE.Vector3(-0.66, -0.08, -1.18)];   // the pods' rear caps
 const footprints = new Footprints(scene);   // prints take the colour of whatever they land on
 resize();
@@ -254,23 +257,22 @@ rig.constrain = level.constrainCamera;
 
 // ------------------------------------------------------------------ sound, weather, people, story
 const sound = new Sound(levelId);
+// the traveller's non-lethal tool: paralyze ray / foam dart (blaster.js)
+const blaster = new Blaster({ scene, player, physics, camera, rig, sound, level, hud: new ToolHud(), noShadow: (level.noShadow ??= []) });
 const weather = new Weather(content.weather);
 {
   const stormColor = { desert: '#e3c58f', arzach: '#e8dfcb' }[levelId];
   if (stormColor) post.uniforms.uStormColor.value.set(stormColor);
 }
 const npcs = spawnNPCs(scene, physics, content.npcs, { lib, humans: humanT });
-// a crowd on the city promenades
-if (level.crowd) {
-  const CITY_LINES = level.crowdLines ?? ['Fresh figs! Fresh figs!', 'Mind the edge, it\u2019s a long way down.', 'The taxis never stop for us lower folk.',
-    'Have you seen the light above the palace?', 'Laundry dries fast up here.', 'My grandmother never saw the sky.', 'Lovely hat.'];
-  const PAL = ['#c8483a', '#5fb7ad', '#d8a24a', '#8a6fb8', '#e6875f', '#f3ead8', '#62c3c9'];
-  level.crowd().forEach((route, k) => {
-    const kind = k % 2 ? 'f' : 'm';
-    npcs.push(new NPC(scene, physics, { route, palette: { cloak: PAL[k % PAL.length], cloth: ['#343a56', '#5a4a3a', '#3f6f6a', '#e2d3b4'][k % 4] },
-      lines: [CITY_LINES[k % CITY_LINES.length], CITY_LINES[(k + 3) % CITY_LINES.length]], lib, human: humanT ? humanT[kind === 'm' ? 0 : 1] : null, kind }));
-  });
-}
+// city crowds: hundreds of GPU-animated people, the nearest few promoted to full NPCs (crowd.js)
+const crowd = level.crowdSpots ? new Crowd(scene, physics, {
+  spots: { lines: level.crowdLines, ...level.crowdSpots() },
+  clear: content.npcs.map((s) => ({ x: s.at[0], y: s.y, z: s.at[1], r: 3 })),
+  makeNPC: (kind) => pooledNPC(scene, physics, { kind, lib, humans: humanT }),
+}) : null;
+if (crowd) { npcs.push(...crowd.npcs); console.info(`crowd: ${crowd.people.length} people in ${crowd.groups.length} groups, placed in ${crowd.buildMs.toFixed(0)} ms`); }
+registerNPCTargets(npcs);   // the player's tool can startle or stun anyone
 const journal = new Journal(LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, relicNames: CONTENT[l.id].relics.names, storyTitle: CONTENT[l.id].story.title })));
 const errands = new Errands({ levelId, defs: ERRANDS, npcs, journal, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])), capture: (e, l, w, h) => captureView(e, l, w, h), sound });
 const capture = (eye, look, w, h) => captureView(eye, look, w, h);
@@ -371,6 +373,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Space') e.preventDefault();
 });
 window.addEventListener('keyup', (e) => (input[e.code] = false));
+bindToolMouse(renderer.domElement, input);   // right button aims, left fires, middle switches
 window.addEventListener('blur', () => Object.keys(input).forEach((k) => (input[k] = false)));
 
 // ------------------------------------------------------------------ time of day
@@ -615,6 +618,7 @@ function updateHud() {
   };
   const parts = [];
   if (player.ride) parts.push(RIDE[player.ride.kind] ?? RIDE.bike);
+  else if (blaster.aiming) parts.push(blaster.hudText(controllerActive));
   else {
     if (player.climbing) parts.push(`climbing ${gauge(player.stamina)} · SPACE jump off`);
     else if (player.stamina < 0.99) parts.push(`stamina ${gauge(player.stamina)}`);
@@ -629,9 +633,9 @@ function updateHud() {
   const goal = expedition && !expedition.state.returned ? expedition.hud(player) : story.hud();
   const edgeHint = edgeTravel();
   let text = `${atmo.name} · ${parts.join(' · ')}` +
-    `\n${goal ? goal + ' · ' : ''}${errands.hud() ? errands.hud() + ' · ' : ''}relics ${journal.relicCount(levelId)}/${content.relics.names.length} · Q ping · H help` +
+    `\n${goal ? goal + ' · ' : ''}${errands.hud() ? errands.hud() + ' · ' : ''}relics ${journal.relicCount(levelId)}/${content.relics.names.length} · Q ping · R tool · H help` +
     (gate.near ? ` · walk through the gate to ${nextTitle}` : '') + (edgeHint ? ` · ${edgeHint}` : '');
-  if (controllerActive) text = text.replaceAll('SPACE', 'A / ×').replaceAll('SHIFT', 'RT / R2').replaceAll('W/S', 'left stick').replaceAll('A/D', 'left stick').replace(/\bE\b/g, 'X / □').replace('Q ping · H help', 'Y / △ ping · Menu settings');
+  if (controllerActive) text = text.replaceAll('SPACE', 'A / ×').replaceAll('SHIFT', 'RT / R2').replaceAll('W/S', 'left stick').replaceAll('A/D', 'left stick').replace(/\bE\b/g, 'X / □').replace('Q ping · R tool · H help', 'Y / △ ping · LT tool · Menu settings');
   audioCfg.mute = sound.muted;
   if (text !== lastStatus) { status.textContent = text; lastStatus = text; }
 }
@@ -685,6 +689,8 @@ const _subj = new THREE.Vector3(), _subjUp = new THREE.Vector3(0, 1, 0);
 function renderFrame() {
   // 1. shadow maps (the wide cascade only refreshes every 3rd frame)
   const lightDir = sharedUniforms.uSunDir.value;
+  // far pebbles and shrubs are skipped in every pass; only what is shown now is hidden, then restored
+  const farHidden = cullFar(tiled.small, camera);
   scene.overrideMaterial = shadowOverride;
   for (const o of level.noShadow ?? []) o.visible = false;
   for (const o of player.gear?.noShadow ?? []) o.visible = false;
@@ -696,10 +702,11 @@ function renderFrame() {
     nearShadow.render(scene);
   }
   if (frameNo++ % 3 === 0 || sky.speed > 0) {
-    for (const o of tiled.small) o.visible = false;   // pebbles and bushes don't need km-wide shadows
+    const shown = tiled.small.filter((o) => o.visible);
+    for (const o of shown) o.visible = false;   // pebbles and bushes don't need km-wide shadows
     farShadow.update(player.pos, lightDir);
     farShadow.render(scene);
-    for (const o of tiled.small) o.visible = true;
+    for (const o of shown) o.visible = true;
   }
   scene.overrideMaterial = null;
   for (const o of level.noShadow ?? []) o.visible = true;
@@ -734,6 +741,7 @@ function renderFrame() {
   // 5. smooth edges and scale the completed frame to the display
   renderer.setRenderTarget(null);
   renderer.render(blit.scene, post.camera);
+  for (const o of farHidden) o.visible = true;
 }
 
 /** Render the scene from another viewpoint and grab it as an image (comic panels, sketches). */
@@ -775,7 +783,7 @@ function frame() {
   document.body.classList.toggle('controller', controllerActive);
   controllerHint.textContent = busy() ? 'D-pad / left stick select · A / × confirm · B / ○ back · right stick scroll'
     : photo.on ? 'Left stick fly · right stick look · LB/RB down/up · A / × save · B / ○ exit'
-    : 'A / × jump · X / □ use · Y / △ ping · RT / R2 run · ↑ worlds · ↓ photo · View sketchbook · Menu settings';
+    : 'A / × jump · X / □ use · Y / △ ping · RT / R2 run · LT aim (+ RT fire, ← → ray / dart) · ↑ worlds · ↓ photo · View sketchbook · Menu settings';
   const mergedInput = mergeControls(input, padInput);
   const ctl = busy() ? noInput : mergedInput;
 
@@ -796,6 +804,7 @@ function frame() {
     rig.follow(player.ride?.heading ?? player.heading, dt, player.riding || player.gliding);
     rig.update(player.pos, dt, player.frame);
   }
+  blaster.update(dt, ctl, busy() || photo.on);
   scout.update(dt, busy() || photo.on);
   if (!busy() && !photo.on) scout.placeLabel(camera);
   else if (scout.label) scout.label.hidden = true;
@@ -831,6 +840,7 @@ function frame() {
       }
     }
   }
+  crowd?.update(dt, t, player, camera);
   for (const n of npcs) n.update(dt, player, camera);
   errands.update();
   // only the nearest talking villager shows a balloon
@@ -948,4 +958,4 @@ requestAnimationFrame((t) => {
 });
 
 // handy for debugging from the console
-Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, gate, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, wildlife });
+Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, gate, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, blaster, crowd, wildlife });

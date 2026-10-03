@@ -54,3 +54,26 @@ test('a stretched foot does not repeatedly acquire the same support stroke', () 
  for(let i=0;i<5;i++){H.update();H.plantFeet(1/60,physics,up,root,fwd,()=>steps++);}
  assert.equal(steps,initial);
 });
+
+test('climbing knees hinge forward toward the wall and up, never backward, including rotated gravity',()=>{
+ for(const angle of [0,Math.PI/2,Math.PI]){
+  const char=buildCharacter(),H=new Humanoid(template,char);
+  char.root.rotation.z=angle;char.root.updateMatrixWorld(true);
+  const up=new THREE.Vector3(0,1,0).applyAxisAngle(new THREE.Vector3(0,0,1),angle);
+  const wallN=new THREE.Vector3(0,0,-1),into=wallN.clone().negate(),B=H.b,P=n=>B[n].getWorldPosition(new THREE.Vector3());
+  // feet low under the hips, at mid height and stepping high (a climber's range of holds)
+  for(const [drop,ahead] of [[.75,.12],[.55,.15],[.3,.2]]){
+   H.update();
+   const feet=['r','l'].map(s=>P('thigh_'+s).addScaledVector(up,-drop).addScaledVector(into,ahead));
+   H.reach({feet,wallN,up,wallContact:true});
+   for(const s of ['r','l']){
+    const hip=P('thigh_'+s),knee=P('calf_'+s),foot=P('foot_'+s);
+    const line=foot.clone().sub(hip).normalize();
+    const off=knee.clone().sub(hip);off.addScaledVector(line,-off.dot(line));
+    assert.ok(off.length()>.03,'the knee is bent');
+    assert.ok(off.dot(into)>.02,`${s} knee comes toward the wall (drop ${drop}, angle ${angle.toFixed(2)}): ${off.dot(into).toFixed(3)}`);
+    assert.ok(off.dot(up)>-.02,`${s} knee does not drop below the hip-foot line`);
+   }
+  }
+ }
+});

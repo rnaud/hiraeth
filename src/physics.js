@@ -40,8 +40,10 @@ export class Physics {
         p.bvh = await worker.generate(p.geometry);
         worker.dispose();
       } catch (e) {
+        // the worker took (transferred) the geometry's buffers with it, so
+        // bake the scene again rather than building a BVH over nothing
         console.warn('BVH worker failed, building on the main thread', e);
-        p.bvh = new MeshBVH(p.geometry);
+        return new Physics(scene, base);
       }
     }
     return p;
@@ -161,4 +163,124 @@ export class Physics {
     pos.add(out);
     return out;
   }
+
+  /** Swept pushCapsule from `from` to `pos` (see sweepCapsule below). */
+  sweepCapsule(pos, from, r, bottom, top, out = new THREE.Vector3(), up = _Y) {
+    return sweepCapsule(this, pos, from, r, bottom, top, out, up);
+  }
+
+  /**
+   * Is this point inside closed solid geometry (a building, a rock)? Rays in
+   * the six axis directions must all leave through the back of a face; any
+   * ray that escapes to open space, or first meets a front face (the outside
+   * of something, or a room seen from within), means it's free.
+   */
+  embedded(p, far = 400) {
+    if (!this.bvh) return false;
+    for (const d of AXES) {
+      _ray.origin.copy(p);
+      _ray.direction.copy(d);
+      const hit = this.bvh.raycastFirst(_ray, THREE.DoubleSide, 0, far);
+      if (!hit) return false;
+      if (hit.face.normal.dot(d) > 0) continue;
+      // a front face first: but a building's floor often lies flush on the
+      // street (or a setback on its roof), and either of two coplanar faces
+      // may come first, so look for a back face at the same distance
+      const near = this.bvh.raycast(_ray, THREE.DoubleSide, 0, hit.distance + 0.02);
+      if (!near.some((h) => h.face.normal.dot(d) > 0)) return false;
+    }
+    return true;
+  }
+
+  /**
+   * The nearest free spot outside the solid that `centre` is buried in:
+   * walks out along the horizontal directions (and up, onto the top) to where
+   * a capsule of radius r (half-height `half`) fits. Returns the new centre,
+   * or null when nothing is found within `maxMove`.
+   */
+  escape(centre, r, up = _Y, half = r, maxMove = 60) {
+    if (!this.bvh) return null;
+    const side = _esA.set(1, 0, 0);
+    if (Math.abs(side.dot(up)) > 0.9) side.set(0, 0, 1);
+    side.addScaledVector(up, -side.dot(up)).normalize();
+    const other = _esB.crossVectors(up, side);
+    let best = null, bestD = maxMove;
+    const dirs = [up];
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2;
+      dirs.push(new THREE.Vector3().copy(side).multiplyScalar(Math.cos(a)).addScaledVector(other, Math.sin(a)));
+    }
+    for (const d of dirs) {
+      const clear = d === up ? half : r;
+      let s = 0;
+      for (let hop = 0; hop < 8 && s < bestD; hop++) {
+        _ray.origin.copy(centre).addScaledVector(d, s);
+        _ray.direction.copy(d);
+        const hit = this.bvh.raycastFirst(_ray, THREE.DoubleSide, 0, bestD - s);
+        if (!hit) break;
+        s += hit.distance + 0.02;
+        if (hit.face.normal.dot(d) <= 0) continue;          // entering something else on the way out
+        const move = s + clear + 0.08;
+        if (move >= bestD) break;
+        const c = _esC.copy(centre).addScaledVector(d, move);
+        if (this.embedded(c)) continue;
+        const probe = _esD.copy(c);
+        const push = this.pushCapsule(probe, r, -half, half, _esE, up);
+        if (push && push.length() > r * 0.5) continue;
+        best = (best ?? new THREE.Vector3()).copy(probe);
+        bestD = move;
+        break;
+      }
+    }
+    return best;
+  }
+}
+
+// up first: in the open it escapes to the sky, so most checks cost one ray
+const AXES = [new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0), new THREE.Vector3(-1, 0, 0),
+  new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, -1, 0)];
+const _esA = new THREE.Vector3(), _esB = new THREE.Vector3(), _esC = new THREE.Vector3(), _esD = new THREE.Vector3(), _esE = new THREE.Vector3();
+const _swD = new THREE.Vector3(), _swP = new THREE.Vector3(), _swN = new THREE.Vector3();
+
+/**
+ * Swept capsule collision: moves `pos` from `from` to where it is now in
+ * sub-steps no longer than half the radius, pushing it out of the geometry
+ * at each, and sliding the rest of the motion along any wall it meets. A
+ * single push at the end of a long step can't tell which side of a wall the
+ * capsule came from (it pops out on the far side, or deeper inside a solid);
+ * a half-radius step never crosses a surface. Works with any physics that
+ * has pushCapsule (also test doubles). Returns the total push, or null.
+ */
+export function sweepCapsule(physics, pos, from, r, bottom, top, out = new THREE.Vector3(), up = _Y) {
+  const delta = _swD.subVectors(pos, from);
+  const len = delta.length();
+  const steps = Math.min(Math.ceil(len / (r * 0.5)), 48) || 1;
+  delta.divideScalar(steps);
+  pos.copy(from);
+  out.set(0, 0, 0);
+  let hit = false;
+  for (let i = 0; i < steps; i++) {
+    pos.add(delta);
+    const push = physics.pushCapsule(pos, r, bottom, top, _swP, up);
+    if (!push) continue;
+    hit = true;
+    if (!push.isVector3) continue;
+    out.add(push);
+    const n = _swN.copy(push).normalize(), into = delta.dot(n);
+    if (into < 0) delta.addScaledVector(n, -into);
+  }
+  return hit ? out : null;
+}
+
+const _ub = new THREE.Vector3();
+/**
+ * A vehicle (pos, vel, speed, physics) that ended up inside something solid:
+ * back to `from`, where it last was free, or out through the nearest face.
+ */
+export function unbury(v, from, r) {
+  const P = v.physics;
+  if (!P.embedded(_ub.copy(from).setY(from.y + 0.3))) v.pos.copy(from);
+  else v.pos.copy(P.escape(_ub, r, _Y, r) ?? from);
+  v.vel.set(0, 0, 0);
+  v.speed = 0;
 }

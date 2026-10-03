@@ -194,6 +194,7 @@ const _mat = new THREE.Matrix4();
 const _q1 = new THREE.Quaternion();
 const Y = new THREE.Vector3(0, 1, 0);
 const _zAxis = new THREE.Vector3(0, 0, 1);
+const _shoulder = new THREE.Vector3();
 const _qId = new THREE.Quaternion();
 const _xAxis = new THREE.Vector3(1, 0, 0);
 
@@ -361,6 +362,7 @@ export class Player {
     this._climbCooldown = 0;
     this.wind = new THREE.Vector3(1.2, 0, 0.5);   // levels can set this (wind on the scarf)
     this.onStep = null;                            // (footPos, heading) for footprints
+    this.aim = null;                               // { k, point, dir } while aiming the tool (blaster.js)
     this._stepSide = 1;
     this._prevPhase = 0;
     this.char.jetpack.visible = this.opts.jetpack;
@@ -556,14 +558,42 @@ export class Player {
     const v = this.ride;
     this.ride = null;
     v.leave?.();
-    const [fx, fz] = v.forward;
-    const side = v.exitOffset ?? 1.8;
-    this.pos.set(v.pos.x - fz * side, v.pos.y, v.pos.z + fx * side);
-    const g = this.physics.groundAt(this.pos.x, this.pos.y + 2, this.pos.z);
-    if (this.pos.y - g < 3) this.pos.y = g;
+    this.pos.copy(this.exitSpot(v));
     this.vel.set(v.vel.x * 0.3, 0, v.vel.z * 0.3);
     this.heading = v.heading;
     this.onGround = false;
+    this.unstick();
+  }
+
+  /**
+   * Where to step off a vehicle: its left side as before, else the right,
+   * behind, in front, further out, and finally on the spot it occupies (it
+   * collides with the level itself, so that's free). A spot only counts if
+   * the body fits there, it isn't inside a building and you can reach it
+   * from the seat without passing through a wall.
+   */
+  exitSpot(v) {
+    const [fx, fz] = v.forward;
+    const side = v.exitOffset ?? 1.8, P = this.physics;
+    const seat = _g4.set(v.pos.x, v.pos.y + 0.6, v.pos.z);
+    const offsets = [[-fz, fx, 1], [fz, -fx, 1], [-fx, -fz, 1.4], [fx, fz, 1.6], [-fz, fx, 1.8], [fz, -fx, 1.8], [-fx, -fz, 2.4]];
+    const spot = new THREE.Vector3();
+    for (const [dx, dz, k] of offsets) {
+      spot.set(v.pos.x + dx * side * k, v.pos.y, v.pos.z + dz * side * k);
+      const g = P.groundAt(spot.x, spot.y + 2, spot.z);
+      if (spot.y - g < 3) spot.y = g;
+      const to = _g6.copy(spot).addScaledVector(Y, 1.1).sub(seat), d = to.length();
+      if (P.rayDistance(seat, to.normalize(), d) < d) continue;           // a wall in the way
+      if (P.embedded?.(_g6.copy(spot).addScaledVector(Y, 1.1))) continue;   // inside a building
+      const probe = _g6.copy(spot);
+      const push = P.pushCapsule(probe, RADIUS, STEP, HEIGHT, this._push, Y);
+      if (push && push.length() > 0.05) continue;                          // the body doesn't fit
+      return spot;
+    }
+    spot.copy(v.pos);
+    const g = P.groundAt(spot.x, spot.y + 1, spot.z);
+    if (spot.y - g < 3) spot.y = g;
+    return spot;
   }
 
   // E: get off; get on a vehicle close by; otherwise whistle the mount or hail a taxi.
@@ -651,6 +681,7 @@ export class Player {
     let speed = (run ? RUN : WALK) * (stickScale < 1 ? THREE.MathUtils.lerp(0.35, 1, stickScale) : 1);
     if (this.gliding) speed *= 1.25;
     if (this.thrusting) speed *= 1.9;
+    if (this.aim) speed = Math.min(speed, WALK) * (1 - 0.35 * this.aim.k);   // aiming: a steady walk
     const accel = this.onGround ? (move.lengthSq() < .001 ? 16 : 8) : this.thrusting ? 5 : 2.5;
     const a = 1 - Math.exp(-accel * dt);
     let vu = this.vel.dot(U);
@@ -697,6 +728,52 @@ export class Player {
     } else this.glideTurn = 0;
     this.vel.copy(tv).addScaledVector(U, vu);
 
+    // Swept collision: the frame's motion is split into sub-steps no longer
+    // than half the capsule radius, each pushed out of walls and checked for
+    // ground, so sprinting, gliding, the jetpack, long falls or a slow frame
+    // can't carry you through a wall or a roof between two checks.
+    const steps = Math.min(Math.ceil((this.vel.length() * dt) / (RADIUS * 0.5)), 48) || 1;
+    const sdt = dt / steps;
+    let carrier = null, pushed = false;
+    for (let k = 0; k < steps; k++) {
+      carrier = this.moveStep(sdt, U, move);
+      if (this._pushedStep) pushed = true;
+      if (this.climbing || this._respawned) break;
+    }
+    this._respawned = false;
+    if (!pushed) this._press = 0;
+    if (this.climbing) { this.finishFrame(dt, 0); return; }
+    if (this.onGround) this.stamina = Math.min(this.stamina + 0.5 * dt, 1);
+    // ride along on whatever you're standing on
+    if (carrier && this.onGround) this.pos.addScaledVector(carrier.vel, dt);
+
+    // Still ended up inside solid geometry (a moving taxi, a teleport, a
+    // vehicle): step out to the nearest free spot, or back to the last one.
+    const stuck = this.unstick();
+
+    // deep water and other unsafe places put you back where you last stood safely
+    if (this.opts.unsafe && this.opts.unsafe(this.pos)) this.respawn(this.lastSafe);
+    else if (!stuck && this.onGround && (this._safeTimer += dt) > 0.4) { this.lastSafe.copy(this.pos); this._safeTimer = 0; }
+
+    // facing
+    const tvel = _v1.copy(this.vel).addScaledVector(U, -this.vel.dot(U));
+    const hs = tvel.length();
+    if (this.aim && !this.gliding) this.faceAim(dt, tvel, hs);
+    else if (hs > 0.5 && !this.gliding) {
+      let d = F.headingOf(tvel) - this.heading;
+      d = Math.atan2(Math.sin(d), Math.cos(d));
+      this.heading += d * (1 - Math.exp(-12 * dt));
+    }
+    this.finishFrame(dt, hs);
+  }
+
+  /**
+   * One collision sub-step of free movement: integrate, push out of walls
+   * (sliding along them, maybe grabbing them to climb), moving solids, then
+   * the ground. Returns the carrier (a taxi roof) you stand on, if any.
+   */
+  moveStep(dt, U, move) {
+    this._pushedStep = false;
     this.pos.addScaledVector(this.vel, dt);
     const L = this.opts.limit;
     this.pos.x = THREE.MathUtils.clamp(this.pos.x, -L, L);
@@ -706,6 +783,7 @@ export class Player {
     // Anything lower than STEP is stepped onto by the ground ray below.
     const push = this.physics.pushCapsule(this.pos, RADIUS, STEP, HEIGHT, this._push, U);
     if (push) {
+      this._pushedStep = true;
       const n = push.normalize();
       const vn = this.vel.dot(n);
       if (vn < 0) this.vel.addScaledVector(n, -vn); // slide along the wall
@@ -715,8 +793,8 @@ export class Player {
         this._press += dt;
         if (!this.onGround || this._press > 0.25) this.startClimb(n);
       } else this._press = 0;
-    } else this._press = 0;
-    if (this.climbing) { this.finishFrame(dt, 0); return; }
+    }
+    if (this.climbing) return null;
 
     // Moving solids (taxis): pushed out of their sides, or standing on the roof
     let carrier = null, roofH = Infinity;
@@ -740,8 +818,8 @@ export class Player {
     // Ground: first surface below step height (terrain, rocks, roofs, domes...)
     let h = this.physics.heightAbove(this.pos, U, STEP);
     if (carrier && roofH < h) h = roofH;
-    if (this.pos.y < this.opts.killY) this.respawn();
-    vu = this.vel.dot(U);
+    if (this.pos.y < this.opts.killY) { this.respawn(); this._respawned = true; return null; }
+    const vu = this.vel.dot(U);
     if (h <= 0 || (this.onGround && h < 0.8 && vu <= 0)) {
       this.pos.addScaledVector(U, -h);
       this.vel.addScaledVector(U, -vu);
@@ -749,25 +827,27 @@ export class Player {
     } else {
       this.onGround = h <= 0.01;
     }
-    if (this.onGround) this.stamina = Math.min(this.stamina + 0.5 * dt, 1);
-    // ride along on whatever you're standing on
-    if (carrier && this.onGround) this.pos.addScaledVector(carrier.vel, dt);
+    return carrier;
+  }
 
-    // deep water and other unsafe places put you back where you last stood safely
-    if (this.opts.unsafe) {
-      if (this.opts.unsafe(this.pos)) this.respawn(this.lastSafe);
-      else if (this.onGround && (this._safeTimer += dt) > 0.4) { this.lastSafe.copy(this.pos); this._safeTimer = 0; }
-    }
-
-    // facing
-    const tvel = _v1.copy(this.vel).addScaledVector(U, -this.vel.dot(U));
-    const hs = tvel.length();
-    if (hs > 0.5 && !this.gliding) {
-      let d = F.headingOf(tvel) - this.heading;
-      d = Math.atan2(Math.sin(d), Math.cos(d));
-      this.heading += d * (1 - Math.exp(-12 * dt));
-    }
-    this.finishFrame(dt, hs);
+  /**
+   * Buried inside solid geometry (the capsule's middle is enclosed on every
+   * side)? Move to the nearest spot where the capsule fits, or back to the
+   * last place you stood safely. Returns true if it had to move you.
+   */
+  unstick() {
+    const P = this.physics;
+    if (!P.embedded) return false;
+    const U = this.frame.up, half = HEIGHT * 0.5;
+    const centre = _g5.copy(this.pos).addScaledVector(U, half);
+    if (!P.embedded(centre)) return false;
+    const free = P.escape?.(centre, RADIUS, U, half);
+    if (free) this.pos.copy(free).addScaledVector(U, -half);
+    else this.pos.copy(this.lastSafe);
+    this.vel.set(0, 0, 0);
+    this.onGround = false;
+    this.climbing = false;
+    return true;
   }
 
   finishFrame(dt, hs) {
@@ -800,6 +880,7 @@ export class Player {
       else if (this.onGround && this.animator && !this.thrusting) {
         H.plantFeet(dt, this.physics, U, this.pos, this.frame.dir(this.heading, _g1).clone(), (p, side, n) => this.stepped(p.clone(), 0, n));
       } else H.resetFeet();
+      if (this.aim && !this.climbing && !this.mantle && !this.gliding) H.aimAt?.(this.aim.point, this.aim.k, U);
       if (this.wing && this._wingK > 0.03) this.holdWing();
     }
     if (this.gear && dt > 0) {
@@ -811,6 +892,24 @@ export class Player {
       this.gear.update(dt, acc.clampLength(0, 40), this.phase ?? 0, this.onGround ? moving : 0.4, this.object.visible && !this.climbing && !this.gliding && !this.ride);
     }
     this.updateCloth(dt);
+  }
+
+  /**
+   * Aiming the tool (this.aim = { k, point, dir } from the Blaster): the body
+   * turns to the aim; walking sideways the legs lead by up to ~50° and the
+   * chest twists back (Humanoid.aimAt).
+   */
+  faceAim(dt, tvel, hs) {
+    const F = this.frame;
+    let target = F.headingOf(this.aim.dir);
+    if (hs > 0.5) {
+      let lead = F.headingOf(tvel) - target;
+      lead = Math.atan2(Math.sin(lead), Math.cos(lead));
+      if (Math.abs(lead) > Math.PI / 2) lead = Math.atan2(Math.sin(lead + Math.PI), Math.cos(lead + Math.PI));   // backing off: face the aim
+      target += THREE.MathUtils.clamp(lead, -0.9, 0.9) * Math.min(1, hs / 2);
+    }
+    const d = Math.atan2(Math.sin(target - this.heading), Math.cos(target - this.heading));
+    this.heading += d * (1 - Math.exp(-14 * this.aim.k * dt));
   }
 
   /** Gliding: both hands up on the brake handles, the canopy above them, the risers running into the fists. */
@@ -1431,6 +1530,7 @@ export class CameraRig {
     this._lastMouse = -1e9;
     this._now = 0;
     this._distBoost = 0;
+    this.aimK = 0;           // set by the Blaster while aiming (0..1)
 
     dom.addEventListener('click', () => dom.requestPointerLock?.());
     dom.addEventListener('mousedown', () => (this._dragging = true));
@@ -1467,16 +1567,18 @@ export class CameraRig {
   update(playerPos, dt, frame) {
     this._now += dt;
     const U = frame ? frame.up : Y, Fw = frame ? frame.fwd : _zAxis, Rt = frame ? frame.right : _xAxis;
-    const dist = this.dist + this._distBoost;
+    const ak = this.aimK ?? 0;   // aiming the tool: in close, over the right shoulder
+    const dist = THREE.MathUtils.lerp(this.dist + this._distBoost, 3.4, ak);
     this.target.lerp(playerPos, 1 - Math.exp(-14 * dt));
     if (this.target.lengthSq() === 0) this.target.copy(playerPos);
     const cp = Math.cos(this.pitch);
     const cam = this.camera.position;
     // looking up from low down: aim higher so the sky and clouds fill the view
-    this._look.copy(this.target).addScaledVector(U, 1.8 + Math.max(0, -this.pitch) * 1.4);
+    this._look.copy(this.target).addScaledVector(U, 1.8 + Math.max(0, -this.pitch) * 1.4 * (1 - ak) - 0.1 * ak);
     this._dir.copy(Rt).multiplyScalar(Math.sin(this.yaw) * cp)
       .addScaledVector(U, Math.sin(this.pitch))
       .addScaledVector(Fw, Math.cos(this.yaw) * cp);
+    if (ak > 0) this._look.addScaledVector(_shoulder.crossVectors(U, this._dir).normalize(), 0.85 * ak);
 
     // Line of sight: pull the camera in front of any wall between it and the
     // player (snap in, ease back out).

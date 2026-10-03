@@ -1,4 +1,5 @@
 import { OBSERVATORY } from './observatory.js';
+import { SITES, POLE_LINE } from './desert-sites.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createNoise2D, fbm, mulberry32, smoothstep, lerp } from './noise.js';
@@ -12,23 +13,79 @@ const noiseB = createNoise2D(1337);
 
 // ------------------------------------------------------------------ terrain
 
-export function heightFn(x, z) {
-  // Large rolling basins.
-  let h = fbm(noise, x * 0.0011, z * 0.0011, 4) * 60;
-
-  // Dunes: domain-warped ridged noise, elongated along one axis.
+// Dune and canyon-ridge relief before smoothing: domain-warped ridged noise,
+// elongated along one axis. Ridged noise has a crease at every crest, so it is
+// only ever read through the blurred grid below.
+function rawRelief(x, z) {
   const warp = noiseB(x * 0.0025, z * 0.0025) * 60;
-  const ridge = 1 - Math.abs(noise((x + warp) * 0.0045, (z * 0.45 + warp) * 0.0045));
+  const ridge = 1 - Math.abs(noise((x + warp) * 0.004, (z * 0.45 + warp) * 0.004));
   const duneMask = smoothstep(-0.35, 0.35, noiseB(x * 0.0007 + 40, z * 0.0007 - 12));
-  h += Math.pow(ridge, 3) * 22 * duneMask;
+  let h = Math.pow(ridge, 2.5) * 24 * duneMask;
+  // rose canyons get taller ridges of their own
+  const rose = biomeWeights(x, z).rose;
+  if (rose > 0) h += Math.pow(1 - Math.abs(noiseB(x * 0.0045 - 9, z * 0.0045 + 4)), 3) * 28 * rose;
+  return h;
+}
+
+// The relief is sampled on an 8 m grid and Gaussian-blurred (σ = 40 m), which
+// rounds every crest into a soft, long Sable dune: the curvature stays low
+// enough that the hoverbike's hover spring holds it to the sand at full speed
+// (tests/dunes.test.js). Built lazily, so other worlds never pay for it.
+export const DUNE_BLUR = 40;
+const RELIEF_STEP = 8, RELIEF_HALF = WORLD_SIZE / 2, RELIEF_N = RELIEF_HALF * 2 / RELIEF_STEP + 1;
+let reliefGrid = null;
+function buildRelief() {
+  const N = RELIEF_N, g = new Float32Array(N * N), tmp = new Float32Array(N * N);
+  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) g[j * N + i] = rawRelief(-RELIEF_HALF + i * RELIEF_STEP, -RELIEF_HALF + j * RELIEF_STEP);
+  const s = DUNE_BLUR / RELIEF_STEP, R = Math.ceil(s * 3), w = new Float32Array(2 * R + 1);
+  let sum = 0;
+  for (let k = -R; k <= R; k++) sum += (w[k + R] = Math.exp(-k * k / (2 * s * s)));
+  for (let k = 0; k < w.length; k++) w[k] /= sum;
+  const clampI = (i) => Math.min(N - 1, Math.max(0, i));
+  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
+    let v = 0; for (let k = -R; k <= R; k++) v += w[k + R] * g[j * N + clampI(i + k)]; tmp[j * N + i] = v;
+  }
+  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
+    let v = 0; for (let k = -R; k <= R; k++) v += w[k + R] * tmp[clampI(j + k) * N + i]; g[j * N + i] = v;
+  }
+  return g;
+}
+// Catmull-Rom, so the sampled relief stays smooth between grid points
+const cubic = (p0, p1, p2, p3, t) => p1 + 0.5 * t * (p2 - p0 + t * (2 * p0 - 5 * p1 + 4 * p2 - p3 + t * (3 * (p1 - p2) + p3 - p0)));
+export function duneRelief(x, z) {
+  const g = reliefGrid ??= buildRelief(), N = RELIEF_N;
+  const fx = Math.min(Math.max((x + RELIEF_HALF) / RELIEF_STEP, 1), N - 3);
+  const fz = Math.min(Math.max((z + RELIEF_HALF) / RELIEF_STEP, 1), N - 3);
+  const i = Math.floor(fx), j = Math.floor(fz), tx = fx - i, tz = fz - j;
+  const row = (r) => cubic(g[r * N + i - 1], g[r * N + i], g[r * N + i + 1], g[r * N + i + 2], tx);
+  return cubic(row(j - 1), row(j), row(j + 1), row(j + 2), tz);
+}
+
+// Sites that need level ground: the dune and ridge relief fades out around them.
+export const CALM_SITES = [
+  { x: OBSERVATORY.x, z: OBSERVATORY.z, r: 40, fade: 70 },
+  ...Object.values(SITES).filter((s) => s.calm).map((s) => ({ x: s.x, z: s.z, r: s.r * 0.75, fade: 70 })),
+];
+function calm(x, z) {
+  let k = 1;
+  for (const c of CALM_SITES) k *= smoothstep(c.r, c.r + c.fade, Math.hypot(x - c.x, z - c.z));
+  return k;
+}
+
+export function heightFn(x, z) {
+  // Large rolling basins (three octaves: a fourth one only added lumps that
+  // threw the bike).
+  let h = fbm(noise, x * 0.0011, z * 0.0011, 3) * 56;
+
+  // Dunes and canyon ridges: soft, rounded crests.
+  h += duneRelief(x, z) * calm(x, z);
 
   // Small ripples.
-  h += fbm(noiseB, x * 0.02, z * 0.02, 2) * 1.0;
+  h += noiseB(x * 0.02, z * 0.02) * 0.5;
 
-  // Regions: salt flats are nearly flat, rose canyons get sharper ridges.
+  // Regions: salt flats are nearly flat (rose canyon ridges are in the relief).
   const bw = biomeWeights(x, z);
   if (bw.salt > 0) h = lerp(h, h * 0.15 + fbm(noise, x * 0.004, z * 0.004, 2) * 2, bw.salt);
-  if (bw.rose > 0) h += Math.pow(1 - Math.abs(noiseB(x * 0.006 - 9, z * 0.006 + 4)), 4) * 26 * bw.rose;
 
   // Flatter, calmer area around the spawn point.
   const d = Math.hypot(x, z);
@@ -184,6 +241,12 @@ function strataMat(rng, size) {
 export function buildWorld(scene, terrain) {
   const rng = mulberry32(42);
   const footprints = [{ x: -430, z: -180, r: 120 }, { x: -430, z: -470, r: 90 }, { x: OBSERVATORY.x, z: OBSERVATORY.z, r: OBSERVATORY.radius }]; // { x, z, r }: keeps props from overlapping when placed
+  // the hand-built landmarks of src/desert-landmarks.js
+  for (const s of Object.values(SITES)) footprints.push({ x: s.x, z: s.z, r: s.r });
+  for (let i = 0; i <= 8; i++) {
+    const [[ax, az], [bx, bz]] = POLE_LINE;
+    footprints.push({ x: ax + (bx - ax) * i / 8, z: az + (bz - az) * i / 8, r: 6 });
+  }
   const floaters = [];  // { obj, baseY, phase }
   const banners = [];
   const lights = [];    // glowing things that light their surroundings at night

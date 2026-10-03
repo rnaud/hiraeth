@@ -162,6 +162,8 @@ const _i6 = new THREE.Vector3(), _i7 = new THREE.Vector3(), _i8 = new THREE.Vect
 const _iq = new THREE.Quaternion(), _iq2 = new THREE.Quaternion(), _iq3 = new THREE.Quaternion(), _im = new THREE.Matrix4();
 const _q = new THREE.Quaternion(), _qr = new THREE.Quaternion(), _qp = new THREE.Quaternion();
 const _m4 = new THREE.Matrix4();
+const _w1 = new THREE.Vector3(), _w2 = new THREE.Vector3(), _w3 = new THREE.Vector3();
+const _wq1 = new THREE.Quaternion(), _wq2 = new THREE.Quaternion(), _wq3 = new THREE.Quaternion(), _wq4 = new THREE.Quaternion(), _wq5 = new THREE.Quaternion();
 
 // The face lights as one rounded volume (bind-pose centre, normal blend).
 const HEAD_BALL = [0, 1.8, 0.03, 0.8];
@@ -585,8 +587,13 @@ export class Humanoid {
         }
       }
       if (feet?.[i]) {
+        // A knee only hinges forward: facing the wall, it comes toward the
+        // wall surface, up and splayed out to its own side (a climber's frog
+        // stance), so it never folds backward behind the hip-foot line. The
+        // pole lies in front of the hip (into the wall), never behind it.
         const hip = B[`thigh_${s}`].getWorldPosition(new THREE.Vector3());
-        const pole = hip.addScaledVector(wallN, 0.8).addScaledVector(up, 0.3);
+        const out = _i5.crossVectors(wallN, up).normalize().multiplyScalar(side);   // the character's right for 'r', left for 'l'
+        const pole = hip.addScaledVector(wallN, -0.55).addScaledVector(up, 0.45).addScaledVector(out, 0.4);
         this.solveTwoBone(B[`thigh_${s}`], B[`calf_${s}`], B[`foot_${s}`], feet[i], pole);
         if (wallContact) {
           const foot = B[`foot_${s}`];
@@ -595,6 +602,49 @@ export class Humanoid {
         }
       }
     });
+  }
+
+  /**
+   * Aiming the handheld tool at a world point, blended over the current pose
+   * by k (0..1): spine, chest and head share the turn toward the target, the
+   * right arm reaches along the line of fire with the fist's knuckles on it
+   * (thumb up), and the left hand comes up under the wrist to steady it.
+   */
+  aimAt(point, k, up) {
+    const B = this.b;
+    if (k <= 0.001 || !B.upperarm_r || !B.lowerarm_r || !B.hand_r) return;
+    const fwd = _w1.set(0, 0, 1).applyQuaternion(this.char.root.getWorldQuaternion(_wq1)).normalize();
+    for (const [name, share, from] of [['spine_02', 0.3, 'upperarm_r'], ['spine_03', 0.35, 'upperarm_r'], ['Head', 0.55, 'Head']]) {
+      const bone = B[name];
+      if (!bone?.parent) continue;
+      const to = _w2.subVectors(point, B[from].getWorldPosition(_w3)).normalize();
+      const turn = _wq2.identity().slerp(_wq3.setFromUnitVectors(fwd, to), share * k);
+      bone.quaternion.copy(bone.parent.getWorldQuaternion(_wq4).invert().multiply(bone.getWorldQuaternion(_wq5).premultiply(turn)));
+      bone.updateMatrixWorld(true);
+      fwd.applyQuaternion(turn);
+    }
+    const sh = B.upperarm_r.getWorldPosition(new THREE.Vector3());
+    const to = new THREE.Vector3().subVectors(point, sh).normalize();
+    const right = new THREE.Vector3().crossVectors(to, up).normalize();        // the character's right
+    const len = (this._armLen ??= this.rest.get(B.upperarm_r).p.distanceTo(this.rest.get(B.lowerarm_r).p) + this.rest.get(B.lowerarm_r).p.distanceTo(this.rest.get(B.hand_r).p));
+    const grip = sh.clone().addScaledVector(to, len * 0.9).addScaledVector(up, 0.03);
+    const blendHand = (hand, along, thumb, w) => {
+      if (!this.handFrames) return;
+      const s = hand === B.hand_r ? 'r' : 'l', q0 = hand.getWorldQuaternion(new THREE.Quaternion());
+      this.orientContact(hand, this.handFrames[s].along, this.handFrames[s].normal, along, thumb);
+      const q = q0.slerp(hand.getWorldQuaternion(_wq1), w);
+      hand.quaternion.copy(hand.parent.getWorldQuaternion(_wq2).invert().multiply(q));
+      hand.updateMatrixWorld(true);
+    };
+    const thumb = up.clone().addScaledVector(to, -up.dot(to)).normalize();
+    this.solveTwoBone(B.upperarm_r, B.lowerarm_r, B.hand_r, grip, sh.clone().addScaledVector(up, -0.6).addScaledVector(right, 0.5), k);
+    blendHand(B.hand_r, to, thumb, k);
+    if (B.upperarm_l && B.lowerarm_l && B.hand_l) {
+      const shl = B.upperarm_l.getWorldPosition(new THREE.Vector3());
+      const under = B.hand_r.getWorldPosition(new THREE.Vector3()).addScaledVector(up, -0.06).addScaledVector(to, -0.05).addScaledVector(right, -0.05);
+      this.solveTwoBone(B.upperarm_l, B.lowerarm_l, B.hand_l, under, shl.addScaledVector(up, -0.6).addScaledVector(right, -0.6), k * 0.85);
+      blendHand(B.hand_l, to.clone().addScaledVector(right, 1.2).normalize(), thumb, k * 0.85);
+    }
   }
 
   /** Body capsules (world space) for cloth collision. */

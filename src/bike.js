@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { makeMaterial } from './materials.js';
+import { sweepCapsule, unbury } from './physics.js';
 
 // A Sable-like hoverbike. Controls when riding: W throttle, S brake/reverse,
 // A/D steer, Shift boost, Space hop. It hovers on a spring above the dunes,
@@ -10,6 +11,8 @@ const MAX = 34;      // m/s
 const BOOST = 54;
 const RADIUS = 0.85;
 const LIMIT = 1900;
+
+const _c = new THREE.Vector3();
 
 function part(geo, color, opts = {}) {
   return new THREE.Mesh(geo, makeMaterial({ color, ...opts }));
@@ -217,11 +220,17 @@ export class Hoverbike {
     this._hopHeld = ridden && !!input.Space;
 
     this.pos.addScaledVector(this.vel, dt);
-    if (this.pos.y < g + 0.4) { this.pos.y = g + 0.4; this.vel.y = Math.max(this.vel.y, 0); }
     this.pos.x = THREE.MathUtils.clamp(this.pos.x, -LIMIT, LIMIT);
     this.pos.z = THREE.MathUtils.clamp(this.pos.z, -LIMIT, LIMIT);
 
-    if (this.physics.pushCapsule(this.pos, RADIUS, -0.35, 1.0, this._push)) this.speed *= 0.6;
+    // swept, so a boosted bike (or a slow frame) can't jump through a wall
+    if (sweepCapsule(this.physics, this.pos, oldPos, RADIUS, -0.35, 1.0, this._push)) this.speed *= 0.6;
+    // the ground where it is now, looked for from where it came from: a long
+    // drop can't skip through a roof
+    const gNow = this.groundAt(this.pos.x, Math.max(oldPos.y, this.pos.y) + 0.3, this.pos.z);
+    if (this.pos.y < gNow + 0.4) { this.pos.y = gNow + 0.4; this.vel.y = Math.max(this.vel.y, 0); }
+    // still buried in something solid: back to where it was free
+    if (this.physics.embedded?.(_c.copy(this.pos).setY(this.pos.y + 0.3))) unbury(this, oldPos, RADIUS);
 
     if (this.auto) {
       const progress = Math.hypot(this.pos.x - oldPos.x, this.pos.z - oldPos.z);

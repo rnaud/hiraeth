@@ -44,11 +44,68 @@ test('scout undocks, waits ahead, pauses, refreshes on ping and returns to its d
   for(let i=0;i<160;i++)scout.update(.05);
   assert.equal(scout.phase,'docked'); assert.ok(scout.object.position.distanceTo(scout.anchor())<.01);
 });
-test('scout avoids solid obstacles and terrain; teleport recalls it', () => {
-  const {scout,player}=fixture({rayDistance:(_p,d)=>d.x>.5 ? 0 : Infinity,base:{heightAt:()=>0}});
-  scout.moveToward(v(10,2),1,v(0,1)); assert.ok(scout.object.position.x<1);
-  scout.moveToward(v(0,-10),5,v(0,1)); assert.ok(scout.object.position.y>=.35);
+// a wall plane at x = 1 and ground given by heightAt (a stand-in for the BVH and heightfield)
+function walled(heightAt=()=>0, wallX=Infinity) {
+  return {
+    base:{heightAt},
+    rayHit(o,d,far){ if(d.x<=1e-6||o.x>=wallX) return null; const t=(wallX-o.x)/d.x; return t<=far?{distance:t,point:o.clone().addScaledVector(d,t),normal:v(-1)}:null; },
+  };
+}
+test('scout slides along walls and asks for a recall when boxed in; teleport recalls it', () => {
+  const {scout,player}=fixture(walled(()=>0,1));
+  const up=v(0,1),pos=scout.object.position;pos.set(0,2,0);
+  let boxed=false;
+  for(let i=0;i<120&&!boxed;i++){ boxed=scout.fly(v(10,2),7,up,1/30); assert.ok(pos.x<1,`through the wall: ${pos.x}`); }
+  assert.ok(boxed,'a scout pinned against a wall gives up instead of hovering there forever');
+  // a whole ping: it blinks back to the dock, relaunches once, then stays home
+  scout.dock();scout.ping();let docks=0,was=scout.phase;
+  for(let i=0;i<200;i++){scout.update(1/30);assert.ok(pos.x<1);if(scout.phase==='docked'&&was!=='docked')docks++;was=scout.phase;}
+  assert.equal(scout.phase,'docked');assert.ok(docks>=1&&docks<=2,`recalls: ${docks}`);
   scout.ping(); player.pos.x=100; scout.update(.01); assert.equal(scout.phase,'docked');
+});
+test('scout rises over terrain instead of freezing, never dips into it, and moves smoothly', () => {
+  // rolling slopes, then a 10 m rise; the destination itself is below the ground
+  const ground=x=>Math.sin(x*.6)*1.2+Math.max(0,x-15)*.8;
+  const {scout}=fixture(walled(x=>ground(x)));
+  const up=v(0,1),pos=scout.object.position;pos.set(0,1.5,0);
+  let last=pos.clone(),lastV=scout.vel.clone(),frozen=0;
+  for(let i=0;i<360;i++){
+    scout.fly(v(30,ground(30)-2,0),7,up,1/60);
+    assert.ok(pos.y-ground(pos.x)>=.35-1e-6,`in the ground at ${pos.x.toFixed(2)}: ${(pos.y-ground(pos.x)).toFixed(3)}`);
+    const step=pos.distanceTo(last); if(i>20&&pos.x<29&&step<.02) frozen++;
+    assert.ok(scout.vel.distanceTo(lastV)<1.2,`velocity jumps (stutter): ${scout.vel.distanceTo(lastV)}`);
+    last.copy(pos);lastV.copy(scout.vel);
+  }
+  assert.equal(frozen,0,'never stalls on a slope');
+  assert.ok(pos.x>27,`arrives over the hill: ${pos.x}`);
+});
+test('scout arrives at a point without ping-ponging around it', () => {
+  const {scout}=fixture(walled());
+  const up=v(0,1),pos=scout.object.position,goal=v(6,3,2);pos.set(0,2,0);
+  let flips=0,prev=null;
+  for(let i=0;i<300;i++){
+    scout.fly(goal,9,up,1/60);
+    const along=scout.vel.dot(goal.clone().sub(v(0,2,0)).normalize());
+    if(prev!==null&&Math.sign(along)!==Math.sign(prev)&&Math.abs(along)>.05&&Math.abs(prev)>.05) flips++;
+    prev=along;
+  }
+  assert.ok(flips<=1,`direction flips: ${flips}`);
+  assert.ok(pos.distanceTo(goal)<.15,`settles at the goal: ${pos.distanceTo(goal)}`);
+});
+test('scout gets past a solid block in real level geometry without entering it', async () => {
+  const {Physics}=await import('../src/physics.js');
+  const scene=new THREE.Scene();
+  for(const [x,y,z,w,h,d] of [[5,2,0,2,4,8],[0,-.5,0,100,1,100]]){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d));m.position.set(x,y,z);scene.add(m);}
+  const physics=new Physics(scene);
+  const {scout}=fixture(physics);
+  const up=v(0,1),pos=scout.object.position;pos.set(0,1.5,0);
+  let recall=false;
+  for(let i=0;i<360;i++){
+    recall=scout.fly(v(10,1.5,0),7,up,1/60)||recall;
+    assert.ok(!(pos.x>3.85&&pos.x<6.15&&pos.y<4.15&&Math.abs(pos.z)<4.15),`inside the block at ${pos.toArray()}`);
+  }
+  assert.ok(pos.distanceTo(v(10,1.5,0))<1||recall,`past the block or recalled: ${pos.toArray()}`);
+  assert.ok(pos.x>6,`made it over: ${pos.toArray()}`);
 });
 test('hero tagging isolates cached materials while preserving live scene uniforms', () => {
   const shared=makeMaterial({color:'#aabbcc'}), root=new THREE.Group();

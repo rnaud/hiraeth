@@ -160,8 +160,10 @@ export function createBazaar(scene) {
 
   // Quiet lavender inhabitants beside the shops: broad heads, tiny eyes.
   // Batched with the street furniture, so they don't require skeletal updates.
+  const folk=[];   // kept clear by the crowd
   for(let i=0;i<26;i++) {
     const side=i%2?1:-1,x=side*(17+rng()*2),z=72-Math.floor(i/2)*31,s=.8+rng()*.45;
+    folk.push({x,y:0,z,r:.85*s+.15});
     sphere(x,1.1*s,z,.6*s,1.05*s,.42*s,lilac);
     sphere(x,2.05*s,z,.82*s,.42*s,.44*s,lilac);
     for(const dx of [-.26,.26]) sphere(x+dx*s,2.08*s,z+.41*s,.055,.045,.03,dark);
@@ -184,7 +186,39 @@ export function createBazaar(scene) {
     atmo:(x,z,y)=>({tint:[1,1,1],fog:.65,name:y>35?'Above the market':z<-190?'Signal Square':'The lantern market'}),
     life:{motes:{count:70,color:'#ffe3aa',size:.035,rise:.1,wind:[.2,0]}},
     crowdLines:['The last broadcast is still waiting above the square.','The relay is above the stacked signs. Rest on the blue ledges.','Fruit from seven moons! Pick one.','Hail a cab if your feet get tired.','Nobody remembers who drew the first advertisement.','The quiet ones listen with their whole heads.'],
-    crowd(){return Array.from({length:24},(_,i)=>{const x=(i%2?1:-1)*(4+(i%4)*2.5),z=95-Math.floor(i/2)*31;return [new THREE.Vector3(x,0,z),new THREE.Vector3(x,0,z-22)];});},
+    // The market crowd (crowd.js): conversation circles between the walking
+    // lanes, strollers along the avenue, sidewalks, skybridges and round the
+    // tower, kerb sitters and people leaning on counters and bridge rails.
+    // Candidates only: the crowd keeps those on clear, walkable ground.
+    crowdSpots(){
+      const r=mulberry32(4711),V=(x,y,z)=>new THREE.Vector3(x,y,z);
+      const groups=[],walks=[],edges=[],size=()=>2+Math.floor(r()**1.2*4);
+      const LANES=[-12,-4.5,4.5,12];
+      for(const x of LANES) walks.push({path:[V(x,0,118),V(x,0,-212)],n:10,pair:.45});
+      walks.push({path:[V(-15.6,0,-226),V(15.6,0,-226),V(15.6,0,-286),V(-15.6,0,-286)],loop:true,n:9,pair:.5});
+      for(const s of [-1,1]) walks.push({path:[V(s*20.8,.3,110),V(s*20.8,.3,-330)],n:6,pair:.25,keepRight:.35,lateral:.75});
+      for(const {z,y} of BRIDGES) walks.push({path:[V(-31,y,z),V(31,y,z)],n:3,pair:.5,keepRight:.9,lateral:.9});
+      // circles between the lanes along the avenue; denser round the square
+      for(let z=114;z>-212;z-=4.5+r()*4) for(const [x,w] of [[0,1.2],[-8.25,.7],[8.25,.7],[-15.2,.25],[15.2,.25]])
+        if(r()<(Math.abs(x)>14?.3:.5)) groups.push({at:V(x+(r()-.5)*2*w,0,z+(r()-.5)*3),n:Math.abs(x)>14?2:size()});
+      for(let i=0;i<70;i++) {
+        const x=(r()-.5)*31,z=-200-r()*130;
+        if(Math.abs(x)<14.5&&z<-236&&z>-274) continue;   // the tower
+        groups.push({at:V(x,0,z),n:size()});
+      }
+      for(let z=112;z>-330;z-=6+r()*8) for(const s of [-1,1]) {
+        if(r()<.4) edges.push({at:V(s*19.22,.3,z),heading:-s*Math.PI/2,pose:'kerb'});
+      }
+      // leaning back on the shop counters
+      for(let k=0;k<18;k++) for(const s of [-1,1]) for(const dz of [-3.2,0,3.2]) if(r()<.3) edges.push({at:V(s*22.35,.3,100-k*27+dz),heading:-s*Math.PI/2,pose:'wall'});
+      // looking down from the skybridges
+      for(const {z,y} of BRIDGES) for(let x=-28;x<=28;x+=3.2+r()*3) if(r()<.5) {
+        const s=r()<.5?1:-1;
+        edges.push({at:V(x,y,z+s*2.82),heading:s>0?0:Math.PI,pose:'rail',rail:.5});   // the rails are drawn only (no collision)
+      }
+      return {groups,walks,edges,avoid:folk,farMax:420,palette:{cloaks:['#f0a083','#88b4b5','#e4bd83','#b9a9c5','#94a9bd','#ebce98','#c8483a','#5fb7ad','#d8a24a','#8a6fb8','#62c3c9','#f3ead8']},
+        clear:[{x:0,z:88,r:3.5},{x:8,z:82,r:4},{x:-11,z:121,r:5}]};
+    },
     init(physics){
       for(let i=0;i<12;i++) {
         const lane=(t,taxi)=>{

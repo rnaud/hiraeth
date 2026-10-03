@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, MODE_STRATA } from './materials.js';
+import { registerTarget } from './targets.js';
 
 // Story, collectibles, the sketchbook journal and the gates between worlds.
 //  - Story: one quiet goal per level, marked by a beacon. Arriving opens a
@@ -310,6 +311,15 @@ export class Gate {
     this.side = new THREE.Vector3(Math.cos(heading), 0, -Math.sin(heading));
     this.light = new THREE.Vector4(pos.x, pos.y + 4, pos.z, 14);
     this._prevSide = null;
+    // the glyph rings like a bell when a foam dart (or the ray) touches the gate
+    this.ringT = 0;
+    this.offTarget = registerTarget({ kind: 'gate', radius: 3.4, position: () => glyph.getWorldPosition(this._glyphAt ??= new THREE.Vector3()).lerp(this.pos, 0.45), onHit: () => this.ring() });
+  }
+
+  ring() {
+    if (this.ringT < 0.5) this.sound.chime();
+    this.ringT = 1.6;
+    return true;
   }
 
   /** Where you arrive when coming through this gate: in front of it, facing away. */
@@ -318,8 +328,13 @@ export class Gate {
   }
 
   update(dt, t, player) {
-    this.glyph.rotation.y = t * 0.8;
-    this.glyph.position.y = 11.4 + Math.sin(t * 1.3) * 0.25;
+    this.ringT = Math.max(0, this.ringT - dt);
+    const r = Math.min(1, this.ringT);
+    this.spin = (this.spin ?? 0) + dt * (0.8 + r * r * 14);
+    this.glyph.rotation.y = this.spin;
+    this.glyph.position.y = 11.4 + Math.sin(t * 1.3) * 0.25 + Math.sin(this.ringT * 18) * 0.15 * r;
+    this.glyph.scale.setScalar(1 + 0.5 * r);
+    this.light.w = 14 + 22 * r;
     const rel = player.pos.clone().sub(this.pos);
     const along = rel.dot(this.side), across = rel.dot(this.normal), height = rel.y;
     const sideNow = Math.sign(across);

@@ -274,6 +274,8 @@ export function createPerdide(scene) {
 
   return {
     id: 'perdide',
+    // the traveller's foam darts make a plant snap shut from afar
+    targets: plants.map((p) => ({ kind: 'plant', radius: 2.2, position: () => p.pos, onHit: (mode) => { p.snap = mode === 'dart' ? 2.5 : 0.8; return true; } })),
     ground: terrain,
     spawn: new THREE.Vector3(0, terrain.heightAt(0, 0), 0),
     spawnHeading: Math.PI,
@@ -305,7 +307,8 @@ export function createPerdide(scene) {
       // carnivorous plants snap shut when the player comes close
       const pp = ctx?.player?.pos;
       for (const p of plants) {
-        const near = pp && pp.distanceTo(p.pos) < 7;
+        p.snap = Math.max(0, (p.snap ?? 0) - dt);
+        const near = (pp && pp.distanceTo(p.pos) < 7) || p.snap > 0;
         p.open += ((near ? 0.05 : 1) - p.open) * (1 - Math.exp(-(near ? 14 : 2) * dt));
         const breathe = Math.sin(t * 1.5 + p.pos.x) * 0.06;
         for (const j of p.jaws) j.jaw.rotation.z = j.side * (p.open * 0.75 + breathe);

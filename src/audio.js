@@ -421,6 +421,67 @@ export class Sound {
     }
   }
 
+  // ------------------------------------------------------------------ the traveller's tool
+  /** A pitched blip that slides from f0 to f1 (the tool's voice). */
+  sweep(t, f0, f1, dur, vol, type = 'sine') {
+    const ctx = this.ctx, o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0005, t + dur);
+    o.connect(g).connect(this.fx);
+    o.start(t); o.stop(t + dur + 0.02);
+  }
+
+  /** The paralyze ray: a bright falling whine over a fizz of static. */
+  zap() {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    this.sweep(t, 1900, 380, 0.24, 0.07);
+    this.sweep(t, 2850, 720, 0.18, 0.025, 'triangle');
+    this.burst(t, { dur: 0.16, type: 'highpass', freq: 4200, q: 0.5, vol: 0.05, rate: 1.4 });
+  }
+
+  /** A foam dart leaving the barrel: a soft pneumatic puff. */
+  puff() {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    this.burst(t, { dur: 0.13, type: 'bandpass', freq: 850, q: 0.9, vol: 0.28, rate: 0.7 });
+    this.sweep(t, 190, 70, 0.09, 0.12);
+  }
+
+  /** Something was hit: a round pop, a woody tick and two bright notes. */
+  pop(mode = 'dart') {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    this.sweep(t, mode === 'stun' ? 1300 : 900, 160, 0.09, 0.22);
+    this.burst(t, { dur: 0.035, type: 'bandpass', freq: 2600, q: 1.5, vol: 0.18 });
+    const notes = mode === 'stun' ? [7, 11] : [4, 9];
+    notes.forEach((d, i) => this.pluck(this.freq(d, 2), t + 0.04 + i * 0.07, 0.08, mode === 'stun' ? 'sine' : 'triangle', this.fx));
+  }
+
+  /** Nothing living was hit: a gentle tap (dart) or a soft hiss (ray) on the world. */
+  tap(mode = 'dart') {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    if (mode === 'dart') this.burst(t, { dur: 0.07, type: 'lowpass', freq: 700, q: 0.7, vol: 0.12 });
+    else this.burst(t + 0.05, { dur: 0.22, type: 'bandpass', freq: 3400, q: 0.8, vol: 0.04 });
+  }
+
+  /** The ray ran out into the open air. */
+  fizzle() {
+    if (!this.ctx) return;
+    this.burst(this.ctx.currentTime + 0.08, { dur: 0.3, type: 'highpass', freq: 5000, q: 0.4, vol: 0.025 });
+  }
+
+  /** Switching mode (high = dart), or an empty gauge. */
+  toolClick(high = false, empty = false) {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    if (empty) { this.sweep(t, 300, 180, 0.08, 0.06, 'square'); return; }
+    this.sweep(t, high ? 1500 : 1100, high ? 1700 : 900, 0.04, 0.06);
+    this.sweep(t + 0.05, high ? 1900 : 800, high ? 2100 : 700, 0.04, 0.05);
+  }
+
   /** Per frame: drive the continuous layers from the game state. */
   update(s) {
     if (!this.ctx) return;
