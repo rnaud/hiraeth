@@ -1,0 +1,45 @@
+README.md
+  s_c90ca0a3de1a1d::t_f5f718b2c3aa9a 797,809-822
+public/anim/traveller.txt
+  s_c90ca0a3de1a1d::t_41a6e300227b6a 17-24
+scripts/merge-traveller-equipment.py
+  s_c90ca0a3de1a1d::t_57e402f2badbc0 1-43
+src/changelog.js
+  s_c90ca0a3de1a1d::t_a2861470e89cd5 6-10
+src/materials.js
+  s_c90ca0a3de1a1d::t_50023c7935181b 145,477-492,631,698-699,785,813
+src/world.js
+  s_c90ca0a3de1a1d::t_6400ae8a63c8e4 88,531,542,546
+tests/traveller.test.js
+  s_c90ca0a3de1a1d::t_5866ddd3f7dcff 169-220
+tools/rig-review.html
+  s_c90ca0a3de1a1d::t_65b8f266b79c47 3
+tools/rig-review.js
+  s_c90ca0a3de1a1d::t_90aa26bc850858 36-41
+scripts/refine-traveller-equipment.py
+  s_26d1010a55a1ab::t_d1ac31412785f3 1-154
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e11793e97de1af17496b6538333423c6bfdd2715",
+  "prompts": {},
+  "sessions": {
+    "s_26d1010a55a1ab": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a10228-271b-7681-ac69-c95ca32e69c2",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_c90ca0a3de1a1d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a100ef-7d9f-7b43-ae7d-30f5177e2ff0",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
