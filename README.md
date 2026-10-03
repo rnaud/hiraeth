@@ -72,6 +72,13 @@ objective. It waits a few metres ahead, labels the destination and returns after
 five seconds; ping again to refresh it. The guide follows quest progress and
 portal routes, with local obstacle avoidance. **L** opens the level picker. Each level's controls are listed below.
 
+**The tool:** hold right mouse (or **R**) to aim, click (or **G**) to fire, and
+**X** (or middle click) to switch modes. On a gamepad, LT aims, RT fires while
+aiming and the D-pad switches; on touch, use **◎ ✺ ⇄**. The paralyze ray
+freezes wildlife and people briefly. Foam darts activate things from afar:
+reactive scenery, observatory lenses within 30 m, the world gate, cruising
+taxis and Perdide's carnivorous plants.
+
 ## Controller
 
 Connect a standard Xbox, PlayStation or compatible gamepad, then press a button
@@ -892,4 +899,48 @@ hidden coarse copies collide instead. Static collision for each world is under 6
   crystal reeds, glowing egg heaps and lit pools along a wadeable path. The path
   passes root arches, moss domes and a sunken saucer, and ends at a coral-lit
   root cave with the teal skiff moored outside.
+
+### Wildlife, the tool, crowds and fixes (v0.31)
+- **Wildlife** (`src/wildlife.js`, `src/wildlife/`): every world has 2–3 species
+  (11–14 creatures), each with its own surprise when scared: the desert's puff
+  lizard balloons up and floats away, Arzach's bone kite unfolds into a paper
+  kite, Edena's pyramid tortoise raises its shell into a temple, and so on.
+  Sprinting, hard landings, passing vehicles and darts scare them; the ray stuns
+  them. Creatures that leave return out of view 14–28 s later, sleep beyond
+  140 m, and update coarsely beyond 60 m.
+- **The tool** (`src/blaster.js`): a hitscan paralyze ray (40 m, energy gauge)
+  and a ballistic foam dart that follows the level's gravity. Anything can
+  register in `src/targets.js` (`registerTarget`) to be hit; levels can add
+  their own through `level.targets`.
+- **City crowds** (`src/crowd.js`, `src/crowd-shader.js`): one CPU simulation
+  drives 586 people in the Signal Market and about 1,400 in the City-Shaft, in
+  talking circles of 2–5, strolling pairs, rail leaners and edge sitters.
+  Mid-distance people are one GPU-posed `InstancedMesh` (`makeMaterial({ crowd:
+  true })`), the far tier is coarser, and a pool of 4 full NPCs is swapped in
+  within 9 m. Only people within 35 m cast shadows. Levels opt in with
+  `level.crowdSpots()`.
+- **Desert** (`src/desert-landmarks.js`, `src/desert-sites.js`): dune and ridge
+  relief is Gaussian-smoothed, so the hoverbike stays down at boost
+  (`tests/dunes.test.js`). It adds the landmarks from the reference pages:
+  - in the golden dunes, a half-buried leviathan, a crashed hull with a salvage
+    camp, the traveller's camp and sail tents;
+  - in the rose canyons, a rose gorge with suspension and rope bridges, and an
+    umbrella grove;
+  - on the salt flats, a petal station, turquoise salt lagoons, a telegraph line
+    and a radio-dish array.
+- **Fixes:**
+  - Fast movement is swept in sub-steps, with an escape when the player is
+    embedded. Vehicles sweep too, and dismounting picks a free spot.
+  - The scout drone flies with damped steering and terrain clearance.
+  - Climbing knees bend toward the wall.
+  - Hover trails stay above the ground and out of walls.
+  - NPCs have bare hands unless gloves are requested.
+  - The BVH worker fallback rebuilds collision from the scene instead of
+    building an empty tree.
+- **Performance:**
+  - `tileScene` now also tiles large merged and instanced props, as children of
+    the original. Before, a merged mesh touching the 24 m fine cascade was drawn
+    whole in every shadow pass.
+  - Small-prop tiles beyond 520 m are skipped in all passes.
+  - Uncapped frame times on the reference Mac are 3.0–7.0 ms in every world.
 

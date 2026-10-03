@@ -3,6 +3,13 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.31', date: '2026-10-03', items: [
+    'Wildlife in every world: two or three species each, with a surprise when scared. A lizard balloons up and floats away, a kite unfolds from the bones, a tortoise raises its shell into a little temple, and more.',
+    'A non-lethal tool: hold right mouse (or R) to aim and click to fire. The paralyze ray freezes creatures and people for a moment. Foam darts wake flowers and machines, turn lenses, ring the gate and hail taxis from afar. X switches modes.',
+    'The cities are crowded now: hundreds of people talking in small groups, strolling, leaning on rails and sitting on edges. They make room when you walk through, and turn to look.',
+    'The desert dunes are smoother, so the hoverbike stays on the sand. New landmarks: a half-buried leviathan, a crashed ship with a salvage camp, a rose gorge with bridges, an umbrella grove, a petal station, salt lagoons and a radio-dish array.',
+    'Fixes: fast movement no longer passes into buildings, the scout drone flies smoothly over terrain, climbing knees bend the right way, and hover trails stay above the ground.',
+  ] },
   { v: '0.30', date: '2026-10-03', items: [
     'Arzach II: The Sky Stones. Ride the bird over a sea of cloud past needle forests, balanced stones, giant mushroom tables, cliff-top monasteries and aqueducts, then cross the peach plain to the lone tower.',
     'The Buried Machine. Domes and pipes surface from pale dunes. Below them lie a rust canyon of machinery, giant ring windows and the oculus, all under a city hanging upside down from the sky.',
