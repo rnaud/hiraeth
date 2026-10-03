@@ -795,7 +795,7 @@ and screen behavior. Performance on a physical iPhone still needs confirmation.
 
 With `npm run dev` running, open `/tools/rig-review.html`. Choose Walk, Jog,
 Run, or Climb and step through the 120 samples with the slider or frame buttons.
-Front, side and back views show the textured model with joint overlays;
+Front, side and back views show the flat-coloured model with joint overlays;
 **12-frame sheet** creates a downloadable contact sheet. This uses the game's
 actual `Animator` and `Humanoid` classes, before terrain foot placement.
 `tests/traveller.test.js` compares every gait phase to the source animation,
@@ -833,3 +833,29 @@ are game-side and are not embedded into the GLB export.
 Movement now uses separate acceleration and braking rates, prevents repeated foot
 locks before lift-off, requires a wall hit to acquire a climbing hold, adds reaching
 clearance, and releases ledge grips into the animation before standing.
+
+### Flat printed outfit and Moebius face (v0.29)
+The traveller GLB no longer contains an image. The generated body's painted
+texture had baked-in shading and creases, so `scripts/flatten-traveller-outfit.mjs`
+sampled it once per vertex and matched each sample to the reference palette in
+`src/traveller-style.js`. It then removed small islands and wrote the zones as
+`COLOR_0`. The script also relaxed the lumpy generated normals and removed the
+5.8 MB image (9.0 → 3.8 MB). Run it last, after either merge script:
+`node scripts/flatten-traveller-outfit.mjs input.glb public/anim/traveller.glb`.
+In the game shader, blended vertex colours snap to the nearest palette ink, so
+zone edges stay crisp. Equipment materials use the same palette by name.
+
+Shadow and folds are drawn by the shader. `src/creases.js` places folds in
+bind-pose space using the skeleton's real limb segments: chevron folds at the
+elbows and knees, gathered elastic cuffs with pleats at the wrists and ankles,
+pulls from the crotch and armpits, and the front zip. Fold arcs lengthen in shade.
+
+The face (`src/face.js`) uses tapered pen strokes: almond lids with solid pupils
+that close into a lowered arc, light brows, one hooked line down the nose, a
+mouth with a lower-lip stroke and smile ticks, and a chin mark. Fine hatching
+follows the shadow edge, and deep shade is left flat. Face normals blend toward
+a head sphere, giving one clean terminator. Face cast shadows are sampled outside
+the helmet, so the headphones cannot cut ragged shapes across it. The post pass
+now draws the player's face and folds at full strength once the figure is large
+enough to read; previously they were faded to about a fifth.
+

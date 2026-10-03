@@ -535,9 +535,10 @@ const fragmentShader = /* glsl */ `
       float hFade = (1.0 - smoothstep(uHatchScreen > 0.5 ? 40.0 : 150.0, uHatchScreen > 0.5 ? 350.0 : 700.0, depth)) * uHatch * (1.0 - uFlatten);
       hFade *= mix(1.0, 0.12 * heroDetail, hero);
       vec3 H = surface.rgb;
-      H.b *= mix(1.0, 0.35 * heroDetail, hero);
+      // the player's drawn face and folds are its pen work: full strength once it is large enough to read
+      H.b *= mix(1.0, heroDetail, hero);
       // drawn detail lines: grids, glyphs, ripples, cracks, fissures (independent of the marks toggle)
-      col = mix(col, uInk, clamp(H.b, 0.0, 1.0) * 0.6 * (1.0 - smoothstep(120.0, 600.0, depth)));
+      col = mix(col, uInk, clamp(H.b, 0.0, 1.0) * mix(0.6, 0.88, hero) * (1.0 - smoothstep(120.0, 600.0, depth)));
       if (hFade > 0.0 && uHatchScreen < 0.5) {
         col = mix(col, uInk, clamp(max(H.r, H.g), 0.0, 1.0) * hFade * 0.55);
       } else if (hFade > 0.0) {

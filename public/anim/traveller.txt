@@ -3,12 +3,12 @@ Traveller character — imported in v0.24
 Created locally from the user's character reference using Hunyuan3D shape and
 texture generation, then cleaned, rigged, and exported using Blender.
 
-traveller.glb contains the embedded illustrated texture, 22-bone humanoid rig,
+traveller.glb contains a 22-bone humanoid rig,
 and Idle/Walk source clips. The game retargets its existing locomotion and
 traversal animations to this skeleton; the source clips remain in the asset
 for use in external editors. NPCs continue using the Quaternius characters.
 
-Rendering: the embedded texture feeds the game's G-buffer; the helmet uses
+Rendering: the flat colour zones feed the game's G-buffer; the helmet uses
 the existing rim/highlight glass shader and is excluded from sun shadows.
 
 Face refined in v0.26 using scripts/refine-traveller-face.py and merged with
@@ -19,6 +19,11 @@ with scripts/merge-traveller-equipment.py. Separate finger/thumb silhouettes,
 boot soles/straps and radio panels/pouches replace the soft generated parts.
 Joint weights are smoothed locally; the original animation buffers remain intact.
 The equipment is batched into nine meshes by material.
+
+Outfit flattened in v0.29 using scripts/flatten-traveller-outfit.mjs. The
+generated texture was replaced by per-vertex palette zones (COLOR_0) and relaxed
+normals. The image is removed; the game shader draws the shadow and folds. Run
+the flatten script after either merge script.
 
 Known prototype limitations: no facial animation or individual finger joints;
 fingers keep a relaxed pose; some pinching around the baggy

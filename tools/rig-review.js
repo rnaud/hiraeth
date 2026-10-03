@@ -11,7 +11,7 @@ const scene = new THREE.Scene(); scene.background = new THREE.Color('#eee9de'); 
 humanoid.model.traverse(o => {
   if (!o.isMesh) return;
   const u = o.material.uniforms, glass = u.uGlass.value > 0;
-  o.material = new THREE.MeshBasicMaterial({ color: u.uColor.value, map: u.uMap.value, transparent: glass, opacity: glass ? .12 : 1, depthWrite: !glass, side: THREE.DoubleSide });
+  o.material = new THREE.MeshBasicMaterial({ color: u.uColor.value, vertexColors: o.material.vertexColors, transparent: glass, opacity: glass ? .12 : 1, depthWrite: !glass, side: THREE.DoubleSide });
   if (u.uPortrait?.value) attachPortraitPreview(o.material, humanoid.face.uniforms);
 });
 const grid = new THREE.GridHelper(5, 20, '#beb7a6', '#d5cebf');scene.add(grid);

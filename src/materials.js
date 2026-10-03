@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { PORTRAIT_GLSL } from './face.js';
+import { CREASE_GLSL } from './creases.js';
 import { BIOME_GLSL } from './biome.js';
 
 // ---------------------------------------------------------------------------
@@ -73,6 +74,8 @@ const vertexShader = /* glsl */ `
   #include <skinning_pars_vertex>
   uniform vec4 uOutfit;
   uniform float uSuit;
+  uniform float uPortrait;
+  uniform vec4 uHeadBall;  // portrait: bind-pose head centre, how far its normals round off
 
   void main() {
     vec3 transformed = position;
@@ -80,6 +83,8 @@ const vertexShader = /* glsl */ `
     if (uSuit > 0.0 && position.y < uOutfit.z - 0.02 && abs(position.x) < uOutfit.w - 0.03)
       transformed += normal * (position.y < uOutfit.y ? 0.03 : 0.022) * smoothstep(uOutfit.x - 0.04, uOutfit.x + 0.04, position.y);
     vec3 objectNormal = normal;
+    // Light the face as one rounded volume, so its shadow is a single clean shape.
+    if (uPortrait > 0.5) objectNormal = normalize(mix(normal, normalize(position - uHeadBall.xyz), uHeadBall.w));
     #ifdef USE_SKINNING
       #include <skinbase_vertex>
       #include <skinnormal_vertex>
@@ -97,6 +102,9 @@ const vertexShader = /* glsl */ `
     vInstColor = vec3(1.0);
     #ifdef USE_INSTANCING_COLOR
       vInstColor = instanceColor;
+    #endif
+    #if defined(USE_COLOR) || defined(USE_COLOR_ALPHA)
+      vInstColor *= color.rgb;   // flat printed colour zones
     #endif
     // Object-space position with the object's scale baked in: hatch strokes
     // are anchored to the object (they move/rotate with it) but keep a
@@ -181,8 +189,9 @@ const fragmentShader = /* glsl */ `
   uniform vec3 uGlassCenter;
   uniform float uGlass;   // glass: only the rim and a highlight streak are drawn
   uniform vec4 uOutfit;   // bootTop, beltY, neckY, wristX (rest pose, metres)
-  ${PORTRAIT_GLSL}
   uniform vec4 uFace;     // eyeY, eyeX, noseY, chinY (rest pose)
+  uniform vec3 uPalette[12];
+  uniform int uPaletteSize;
 
   layout(location = 0) out highp vec4 gAlbedoLight;
   layout(location = 1) out highp vec4 gNormalDepth;
@@ -463,6 +472,9 @@ const fragmentShader = /* glsl */ `
     return m * frontal;
   }
 
+  ${PORTRAIT_GLSL}
+  ${CREASE_GLSL}
+
   // Wind ripples on sand: broken wavy lines across the prevailing wind, in patches.
   float sandRipples(vec2 p, float fwu, float slope) {
     const vec2 across = vec2(0.82, 0.57);
@@ -613,6 +625,16 @@ const fragmentShader = /* glsl */ `
 
     vec3 albedo = uColor;
     if (uHasMap > 0.5) albedo *= texture(uMap, vTextureUV).rgb;
+    vec3 instColor = vInstColor;
+    if (uPaletteSize > 0) {
+      // printed zones: snap blended vertex colours to the nearest ink, so zone edges stay crisp
+      float best = 1e9;
+      for (int i = 0; i < 12; i++) {
+        if (i >= uPaletteSize) break;
+        vec3 d = vInstColor - uPalette[i];
+        if (dot(d, d) < best) { best = dot(d, d); instColor = uPalette[i]; }
+      }
+    }
     vec2 bw = vec2(0.0);
     float slope = 1.0 - n.y;
     if (uMode == ${MODE_TERRAIN}) {
@@ -661,14 +683,16 @@ const fragmentShader = /* glsl */ `
     else if (uPattern == 2) patInk = roofTiles(vWorldPos);
     else if (uPattern == 3) patInk = leaves(vObjPos);
     else if (uPattern == 4) patInk = rockCracks(vObjPos);
-    albedo *= vInstColor;
+    albedo *= instColor;
     // cloth: the colour runs from the collar (uColor) down to the hem (uColor2)
     // cloth in flat blocks of colour, like a printed plate: the body colour, then a hem band
     if (uFolds > 0.0) albedo = (vFold.y < 0.62 ? uColor : uColor2) * vInstColor;
 
     float ndl = dot(n, uSunDir);
     float lambert = ndl * 0.5 + 0.5;
-    float sh = ndl > 0.0 ? getShadow(vWorldPos, n) * cloudShadow(vWorldPos) : 1.0;
+    // the face takes cast shadows from outside its helmet only, keeping one clean shadow shape
+    vec3 shadowAt = uPortrait > 0.5 ? vWorldPos + n * 0.22 : vWorldPos;
+    float sh = ndl > 0.0 ? getShadow(shadowAt, n) * cloudShadow(vWorldPos) : 1.0;
     // Cast shadows clamp the light term below the toon threshold (0.5) but keep
     // some gradation so the post-process can choose single vs cross hatching.
     float L = mix(min(lambert, 0.38), lambert, sh);
@@ -690,7 +714,8 @@ const fragmentShader = /* glsl */ `
     gNormalDepth = vec4(n, vViewDepth);
 
     gHatch = vec4(0.0);
-    float detail = uPortrait > 0.5 ? portraitInk(vBind) : 0.0;
+    float detail = uPortrait > 0.5 ? portraitInk(vBind, clamp((uToon - L) / uToon, 0.0, 1.0)) : 0.0;
+    if (uCreases > 0.0) detail = max(detail, outfitCreases(vBind, normalize(vObjNormal), clamp((uToon - L) / uToon, 0.0, 1.0)));
     if (uGrid > 0.0) detail = gridLines(gq, gfw, gw);
     if (uGlyphs > 0.0) detail = max(detail, glyphs(glyphUV, glyphFw));
     if (uMode == ${MODE_TERRAIN}) {
@@ -824,6 +849,11 @@ export function makeMaterial(o) {
       uPortrait: { value: 0 },
       uExpression: { value: new THREE.Vector4() },
       uGaze: { value: new THREE.Vector2() },
+      uHeadBall: { value: new THREE.Vector4(...(o.headBall ?? [0, 0, 0, 0])) },
+      uCreases: { value: o.creases ? 1 : 0 },
+      uPalette: { value: Array.from({ length: 12 }, (_, i) => new THREE.Color(o.palette?.[i] ?? 0)) },
+      uPaletteSize: { value: Math.min(o.palette?.length ?? 0, 12) },
+      uLimbs: { value: o.creases ?? Array.from({ length: 16 }, () => new THREE.Vector3()) },
       uSuit: { value: o.suit ? 1 : 0 },
       uGlassCenter: { value: o.glassCenter ?? new THREE.Vector3() },
       uGlass: { value: o.glass ? 1 : 0 },
@@ -831,6 +861,7 @@ export function makeMaterial(o) {
       uFace: { value: new THREE.Vector4(...(o.face ?? [1.7, 0.032, 1.657, 1.577]).filter((_, i) => i !== 3)) },
     },
   });
+  mat.vertexColors = !!o.vertexColors;
   cache.set(key, mat);
   return mat;
 }

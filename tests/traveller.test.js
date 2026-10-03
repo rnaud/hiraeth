@@ -7,23 +7,32 @@ import { Humanoid } from '../src/humanoid.js';
 import { buildCharacter, Player } from '../src/player.js';
 import { Physics } from '../src/physics.js';
 import { Gear } from '../src/gear.js';
+import { TRAVELLER_PALETTE } from '../src/traveller-style.js';
 
 const bytes = await readFile(new URL('../public/anim/traveller.glb', import.meta.url));
 const length = bytes.readUInt32LE(12);
 const asset = JSON.parse(bytes.subarray(20, 20 + length));
-// Test the real geometry and skeleton without requiring a browser image decoder.
 const json = structuredClone(asset);
-for (const m of json.materials) delete m.pbrMetallicRoughness.baseColorTexture;
-delete json.images; delete json.textures;
 const binary = bytes.subarray(28 + length);
 json.buffers[0].uri = `data:application/octet-stream;base64,${binary.toString('base64')}`;
 globalThis.ProgressEvent ??= class { constructor(type, init) { Object.assign(this, { type }, init); } };
 const template = (await new GLTFLoader().parseAsync(JSON.stringify(json), '')).scene;
 
-test('traveller asset includes an embedded illustrated texture and weighted humanoid skin', () => {
-  assert.equal(asset.images.length, 1);
-  assert.ok(asset.images[0].bufferView !== undefined);
+test('traveller asset is image-free, with flat printed colour zones and weighted humanoid skin', () => {
+  assert.equal(asset.images, undefined);
+  assert.equal(asset.textures, undefined);
+  assert.ok(asset.materials.every(m => !m.pbrMetallicRoughness?.baseColorTexture));
   assert.equal(asset.skins[0].joints.length, 22);
+  const inks = new Set(Object.values(TRAVELLER_PALETTE));
+  let zoned = 0;
+  template.traverse(o => {
+    const color = o.isSkinnedMesh && o.geometry.attributes.color;
+    if (!color) return;
+    zoned++;
+    const hex = i => '#' + [color.getX(i), color.getY(i), color.getZ(i)].map(c => Math.round(c * 255).toString(16).padStart(2, '0')).join('');
+    for (let i = 0; i < color.count; i += 7) assert.ok(inks.has(hex(i)), 'every zone is a palette ink');
+  });
+  assert.equal(zoned, 1, 'the generated body carries the colour zones');
   template.traverse(o => {
     if (!o.isSkinnedMesh) return;
     const weights = o.geometry.attributes.skinWeight;
@@ -237,4 +246,21 @@ test('shader face replaces fixed ink, stays image-free and keeps live hero expre
   const ink=[];a.model.traverse(o=>{if (/Traveller_(eye|mouth|nostril|temple_mark|brow_mark)/.test(o.name)) ink.push(o);});
   assert.ok(ink.length >= 5);
   assert.ok(ink.every(o=>!o.visible));
+});
+
+test('flat suit draws shader folds at the real joints; equipment prints in the reference palette', () => {
+  const h = new Humanoid(template, buildCharacter(), 'm', { imported: true });
+  let suit;
+  const tones = {};
+  h.model.traverse(o => { if (!o.isMesh) return; if (o.material.uniforms.uCreases.value) suit = o; tones[o.material.name || o.name] = o.material; });
+  assert.ok(suit?.material.vertexColors, 'suit colour comes from its zones, not an image');
+  assert.equal(suit.material.uniforms.uHasMap.value, 0);
+  assert.equal(suit.material.uniforms.uPaletteSize.value, Object.keys(TRAVELLER_PALETTE).length);
+  const limbs = suit.material.uniforms.uLimbs.value;
+  assert.equal(limbs.length, 16);
+  // upper arm starts at the shoulder and ends at the elbow; shins run knee to ankle
+  assert.ok(limbs[0].y > limbs[1].y && limbs[1].y > limbs[5].y, 'arm segments run shoulder, elbow, wrist');
+  assert.ok(limbs[12].y > .4 && limbs[13].y < .25, 'shins run from knee to ankle');
+  const glove = h.model.getObjectByName('Equipment_orange_leather');
+  assert.equal('#' + glove.material.uniforms.uColor.value.getHexString(), TRAVELLER_PALETTE.glove);
 });

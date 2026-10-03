@@ -3,6 +3,11 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.29', date: '2026-10-03', items: [
+    'The traveller face is drawn like a Moebius portrait, with tapered pen lines: almond eyelids with dark pupils, light brows, a single nose line, a lower-lip stroke, and fine hatching along the shadow edge. The face now has one clean shadow shape and a lighter skin tone, matching the reference.',
+    'The suit no longer uses a painted texture. It now uses flat printed colours from the reference art. The shader draws its shadows and folds: chevrons at the elbows and knees, gathered cuffs, pulls at the hips and armpits, and the front zip.',
+    'The boots, gloves, pack and headphones use the same reference palette. The character file is less than half its previous size.',
+  ] },
   { v: '0.28', date: '2026-10-03', items: [
     'The traveller face now uses animated shader ink: blinking eyes, subtle gaze and breathing, plus adjustable smile and brows. No face image texture is needed.',
     'Smoother movement starts, quicker braking, and stable foot contacts that cannot repeatedly replant during one support stroke.',

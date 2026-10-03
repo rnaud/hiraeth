@@ -1,4 +1,6 @@
 import { FaceExpression } from './face.js';
+import { limbSegments } from './creases.js';
+import { TRAVELLER_PALETTE, TRAVELLER_TONES } from './traveller-style.js';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
@@ -161,6 +163,9 @@ const _iq = new THREE.Quaternion(), _iq2 = new THREE.Quaternion(), _iq3 = new TH
 const _q = new THREE.Quaternion(), _qr = new THREE.Quaternion(), _qp = new THREE.Quaternion();
 const _m4 = new THREE.Matrix4();
 
+// The face lights as one rounded volume (bind-pose centre, normal blend).
+const HEAD_BALL = [0, 1.8, 0.03, 0.8];
+
 export class Humanoid {
   /**
    * @param template loadHuman() result
@@ -188,7 +193,12 @@ export class Humanoid {
         if (['Traveller facial ink', 'Traveller warm facial lines'].includes(source.name)) o.visible = false;
         o.geometry.computeBoundingBox();
         const glassCenter = glass ? o.geometry.boundingBox.getCenter(new THREE.Vector3()) : undefined;
-        o.material = makeMaterial({ color: source.color, map: source.map, glass, glassCenter, glow: glass ? 0.35 : 0 });
+        // The suit is flat printed colour (baked vertex zones); the shader draws its folds.
+        const flat = !!o.geometry.attributes.color;
+        const tone = TRAVELLER_PALETTE[TRAVELLER_TONES[source.name]];
+        const color = flat ? '#ffffff' : tone ?? source.color;
+        o.material = makeMaterial({ color, map: source.map, glass, glassCenter, glow: glass ? 0.35 : 0, vertexColors: flat, palette: flat ? Object.values(TRAVELLER_PALETTE) : null,
+          creases: flat && o.isSkinnedMesh ? limbSegments(o) : null, headBall: portrait ? HEAD_BALL : undefined });
         if (portrait) {
           const uniforms = o.material.uniforms;
           o.material = o.material.clone();
