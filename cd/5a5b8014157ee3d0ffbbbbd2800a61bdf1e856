@@ -1,0 +1,25 @@
+.gitignore
+  s_1fd8d0e7b02dcf::t_888c04d8af5167 6
+src/levels/arzach2.js
+  s_1fd8d0e7b02dcf::t_6127ceef92e528 715-716
+src/main.js
+  s_1fd8d0e7b02dcf::t_f6032395fc922e 15,685-686,698-699,702,737
+src/perf.js
+  s_1fd8d0e7b02dcf::t_b05ec170b456dc 5-12,16-24,28-36,39-41,44-45,48-57,63-64,84-85,114-135
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "cd5a5b8014157ee3d0ffbbbbd2800a61bdf1e856",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
