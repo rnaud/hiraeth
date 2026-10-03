@@ -10,10 +10,29 @@ const TROUSERS = ['#2b2f45', '#4a3a2a', '#2f3f3a', '#5a4a40', '#3a3a3a'];
 const any = (a) => a[Math.floor(Math.random() * a.length)];
 const pal = (cloak, extra = {}) => ({ cloak, lining: extra.lining ?? '#2b211f', cloth: any(TUNICS), legs: any(TROUSERS), ...extra });
 
-export const ORDER = ['desert', 'incal', 'arzach', 'garage', 'edena', 'perdide'];
+export const ORDER = ['desert', 'incal', 'arzach', 'garage', 'edena', 'perdide', 'bazaar'];
 export const nextLevel = (id) => ORDER[(ORDER.indexOf(id) + 1) % ORDER.length];
 
 export const CONTENT = {
+  bazaar: {
+    weather: [],
+    story: {
+      title: 'THE LAST BROADCAST',
+      intro: 'A thousand signs are speaking. One tower has fallen silent. Follow the avenue, then climb the blue ledges or hail a taxi to its cream balcony.',
+      outro: 'A voice crosses the square: you are not alone. For a moment, everyone stops to listen.',
+      label: 'the broadcast balcony', goal: [0, 45, -234], radius: 5, verticalRadius: 5,
+    },
+    relics: {
+      spots: [{at:[18,1.1,48]}, {at:[-29,6.2,-35]}, {at:[0,26.1,-90]}, {at:[12,45.1,-232]}, {at:[0,65.1,-330]}],
+      names: ['Lantern seed', 'Market stamp', 'Skybridge ticket', 'Unsent recording', 'Antenna tuning fork'],
+    },
+    gate: {at:[-11,121],heading:Math.PI},
+    npcs: [
+      {at:[12,105],radius:2,palette:pal('#dca273'),lines:['Welcome to the Signal Market. The broadcast tower is straight ahead.','Climb its blue ledges, use your jetpack, or take the parked taxi.']},
+      {at:[-17,42],radius:1,palette:pal('#84bab3'),lines:['Every lantern holds a little sun.','Somebody dropped a lantern seed on the other side of the street.']},
+      {at:[14,-203],radius:1,palette:pal('#c3a9cc'),lines:['The cream balcony has the old transmitter.','The taxis can take you above the bridges.']},
+    ],
+  },
   atelier: {
     weather: [],
     story: {

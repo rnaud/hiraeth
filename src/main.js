@@ -240,6 +240,7 @@ wind.uniforms.uRes.value.copy(post.uniforms.uRes.value);
 wind.uniforms.uInk.value = post.uniforms.uInk.value;
 const rig = new CameraRig(camera, renderer.domElement, physics);
 rig.yaw = level.camYaw;
+rig.pitch = level.camPitch ?? rig.pitch;
 rig.constrain = level.constrainCamera;
 
 // ------------------------------------------------------------------ sound, weather, people, story
@@ -252,7 +253,7 @@ const weather = new Weather(content.weather);
 const npcs = spawnNPCs(scene, physics, content.npcs, { lib, humans: humanT });
 // a crowd on the city promenades
 if (level.crowd) {
-  const CITY_LINES = ['Fresh figs! Fresh figs!', 'Mind the edge, it\u2019s a long way down.', 'The taxis never stop for us lower folk.',
+  const CITY_LINES = level.crowdLines ?? ['Fresh figs! Fresh figs!', 'Mind the edge, it\u2019s a long way down.', 'The taxis never stop for us lower folk.',
     'Have you seen the light above the palace?', 'Laundry dries fast up here.', 'My grandmother never saw the sky.', 'Lovely hat.'];
   const PAL = ['#c8483a', '#5fb7ad', '#d8a24a', '#8a6fb8', '#e6875f', '#f3ead8', '#62c3c9'];
   level.crowd().forEach((route, k) => {
@@ -516,7 +517,7 @@ if (cont?.level && levelById(cont.level)) {
 }
 picker.querySelector('.cards').innerHTML = LEVELS.map((l, i) => l.hidden && !completed() ? `
   <div class="card locked"><div class="lock">?</div><div class="txt"><div class="num">${i + 1}</div><h2>???</h2>
-    <p>Find every story page and every relic in the six worlds.</p><div class="moves">a seventh page</div></div></div>` : `
+    <p>Find every story page and every relic in all seven worlds.</p><div class="moves">the final page</div></div></div>` : `
   <a class="card${l.id === levelId ? ' current' : ''}" href="?level=${l.id}">
     <img src="thumbs/${l.id}.jpg" alt="" onerror="this.style.visibility='hidden'" />
     <div class="txt">
@@ -874,7 +875,7 @@ let portalCool = 0;
 
 // ------------------------------------------------------------------ the ending
 // Every world's story page and every relic found: a closing page, and the
-// seventh page (the Atelier) opens in the picker.
+// final page (the Atelier) opens in the picker.
 let endingOpen = false;
 const allDone = () => ORDER.every((id) => journal.storyDone(id) && journal.relicCount(id) >= CONTENT[id].relics.names.length);
 setInterval(() => {
@@ -890,9 +891,9 @@ setInterval(() => {
   const imgs = shots.map(([e, l], i) => captureView(e, l, i === 0 ? 900 : 440, i === 0 ? 380 : 300));
   const page = document.getElementById('page');
   page.innerHTML = `<div class="sheet">
-    <div class="p p1"><img src="${imgs[0]}" alt=""><div class="cap"><b>THE END OF THE ROAD</b><br>Six worlds, thirty small things kept.</div></div>
+    <div class="p p1"><img src="${imgs[0]}" alt=""><div class="cap"><b>THE END OF THE ROAD</b><br>Seven worlds, thirty-five small things kept.</div></div>
     <div class="p p2"><img src="${imgs[1]}" alt=""></div>
-    <div class="p p3"><img src="${imgs[2]}" alt=""><div class="cap">A seventh page has opened.<br>(L → The Atelier)</div></div>
+    <div class="p p3"><img src="${imgs[2]}" alt=""><div class="cap">The final page has opened.<br>(L → The Atelier)</div></div>
     <div class="hint">click / E to continue</div></div>`;
   page.classList.add('open');
   endingOpen = true;

@@ -3,6 +3,7 @@
 // key press (browsers require a gesture). M mutes.
 
 const PROFILES = {
+  bazaar: { root: 164.81, scale: [0,2,4,6,7,9,11], tempo: 88, pad: 'triangle', arp: 'sine', prog: [0,3,1,4], density: .55, ground: 'stone' },
   // root (Hz), scale (semitones), tempo, waveforms, chord roots (scale degrees), arpeggio density
   desert:  { root: 146.83, scale: [0, 2, 3, 5, 7, 9, 10], tempo: 66, pad: 'triangle', arp: 'triangle', prog: [0, 5, 3, 4], density: 0.45, ground: 'sand' },
   incal:   { root: 174.61, scale: [0, 2, 4, 6, 7, 9, 11], tempo: 84, pad: 'sawtooth', arp: 'square', prog: [0, 1, 4, 0], density: 0.6, ground: 'stone' },
@@ -17,6 +18,7 @@ const PROFILES = {
 // of [scale degree, beats], played every 16 beats, varied each time), the
 // pluck colour, and the ambience bed.
 const VOICES = {
+  bazaar: { lead: 'reed', pluck: 'celesta', ambience: 'city', melody: [[0,1],[4,1],[6,2],[5,1],[2,1],[4,2],[null,1],[1,1],[0,2]] },
   desert:  { lead: 'duduk', pluck: 'kalimba', ambience: 'wind',
     melody: [[4, 2], [3, 1], [2, 1], [0, 3], [null, 1], [2, 1], [3, 1], [4, 1], [6, 2], [4, 3]] },
   incal:   { lead: 'reed', pluck: 'marimba', ambience: 'city',

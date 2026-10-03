@@ -212,7 +212,7 @@ export class Story {
     }
     if (this.done || this.pageOpen) return;
     const r = this.def.radius ?? 12, p = this.player.pos;
-    if (Math.hypot(p.x - this.goal.x, p.z - this.goal.z) < r && Math.abs(p.y - this.goal.y) < Math.max(r, 20)) {
+    if (Math.hypot(p.x - this.goal.x, p.z - this.goal.z) < r && Math.abs(p.y - this.goal.y) < (this.def.verticalRadius ?? Math.max(r, 20))) {
       this.done = true;
       this.showPage('outro');
     }

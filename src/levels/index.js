@@ -4,6 +4,7 @@ import { createArzach } from './arzach.js';
 import { createGarage } from './garage.js';
 import { createEdena } from './edena.js';
 import { createPerdide } from './perdide.js';
+import { createBazaar } from './bazaar.js';
 import { createAtelier } from './atelier.js';
 
 // Level registry: shown in the picker and the panel, loaded with ?level=<id>.
@@ -43,6 +44,12 @@ export const LEVELS = [
     title: 'Perdide', source: 'Les Maîtres du temps (Laloux & Moebius, 1982)',
     blurb: 'A twilight swamp of humming crystal forests, carnivorous plants and glowing eggs. Cross it by skiff.',
     moves: 'hover-skiff · wading · caves',
+  },
+  {
+    id: 'bazaar', create: createBazaar,
+    title: 'The Signal Market', source: 'a city of a thousand broadcasts',
+    blurb: 'Coral towers, illustrated signs and a busy alien bazaar. Climb the skybridges or hail a cab to the silent broadcast tower.',
+    moves: 'market streets · skybridges · jetpack · taxis',
   },
   {
     id: 'atelier', create: createAtelier, hidden: true,

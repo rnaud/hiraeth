@@ -3,6 +3,11 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.20', date: '2026-10-03', items: [
+    'New world: The Signal Market. A street-level city of coral and teal towers, illustrated billboards, awnings, lanterns, cables and four walkable skybridges, inspired by your city reference sheets.',
+    'Meet the market crowd and lavender inhabitants, hail flying taxis, or take the cab parked near the entrance. Climb or jetpack to the broadcast balcony to find The Last Broadcast.',
+    'Five new relics, a city soundtrack and sketchbook entries. Choose world 7 in the picker; the journey now continues from Perdide through the market and back to the desert.',
+  ] },
   { v: '0.19', date: '2026-10-03', items: [
     'Controller support: analog movement and camera, jumping, climbing, gliding, vehicles, interaction and scout ping. Hold RT/R2 to run or boost; LB/RB zoom the camera.',
     'Navigate settings, worlds, story pages and the sketchbook with your controller. Photo mode supports flying, altitude and saving pictures. Button hints appear when you use a controller.',

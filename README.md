@@ -259,8 +259,8 @@ poses update at 12 fps ("stop-motion anim") while movement stays smooth.
 - **Touch:** a floating stick on the left, drag on the right to look, and
   buttons for jump, interact, run, sketchbook and worlds. Low graphics by
   default.
-- **Ending:** find all six story pages and all 30 relics for a closing page.
-  It unlocks a seventh world, **The Atelier**: a blank page with pencil
+- **Ending:** find all seven story pages and all 35 relics for a closing page.
+  It unlocks an eighth world, **The Atelier**: a blank page with pencil
   sketches of every landmark and the artist at his table.
 
 ## Interiors, crowds and the glider
@@ -672,3 +672,24 @@ northwest, and large dish canopies above the dome village. Running and climbing
 now use speeds matched to the animation; climb contacts orient palms and toes
 toward the wall. The bike parks within boarding range and recalls to a clear
 nearby spot if blocked or still travelling after four seconds.
+
+
+## The Signal Market (v0.20)
+
+Open `?level=bazaar` or choose world 7. Inspired by the supplied city reference
+sheets: a long market avenue framed by coral and teal towers, relief billboards,
+service pipes, cables, awnings, lavender inhabitants and a walking crowd.
+Four solid skybridges overlook the street. Twelve taxis circulate overhead,
+with one parked beside the entrance for immediate boarding.
+
+Follow the avenue to the stacked broadcast tower. Its cream balcony is 44 m
+above the street; use the jetpack, climb the blue resting ledges, or hail a taxi.
+Reaching the console completes **The Last Broadcast**. Five relics are spread
+between the market, a stall roof, two bridges and the balcony. The scout, saves,
+sketchbook, controller and touch controls use the existing game systems.
+The gate leads back to the desert; Perdide now leads into the market.
+
+Geometry is merged by street block and material for culling. Collision tests
+cover the avenue, bridge decks, climbing ledges, relic platforms and quest
+altitude. Browser checks cover rendering and story completion; phone-sized
+layout checks do not establish performance on physical iPhone hardware.
