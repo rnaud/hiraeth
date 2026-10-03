@@ -262,6 +262,14 @@ export function buildDesertLandmarks(scene, terrain) {
       k.add(M.hullDark, T(T(new THREE.TorusGeometry(7.3, 0.9, 5, 24), [0, y, 0], [Math.PI / 2, 0, 0]), secPos, secRot));
       k.add(M.ink, T(T(new THREE.CircleGeometry(6.8, 20), [0, y * 0.9, 0], [Math.PI / 2, 0, 0]), secPos, secRot));
     }
+    // two escape pods, half-buried helmets with dark visors
+    for (const [x, z, r, yaw] of [[30, -34, 5.5, 0.6], [52, -20, 4.2, -0.4]]) {
+      const y = k.gy(x, z) + r * 0.25, place = (g) => T(g, [x, y, z], [0.25, yaw, -0.3]);
+      k.both(M.hull, place(new THREE.SphereGeometry(r, 18, 12).scale(1.35, 1, 1)), place(new THREE.SphereGeometry(r, 8, 5).scale(1.35, 1, 1)));
+      k.add(M.hullDark, place(new THREE.TorusGeometry(r * 0.55, r * 0.12, 6, 20).rotateY(Math.PI / 2).translate(r * 1.25, r * 0.15, 0)));
+      k.add(M.ink, place(new THREE.CircleGeometry(r * 0.5, 16).rotateY(Math.PI / 2).translate(r * 1.28, r * 0.15, 0)));
+      k.add(M.hullDark, place(new THREE.BoxGeometry(r * 0.9, r * 0.12, r * 1.6).translate(-r * 1.1, r * 0.4, 0)));
+    }
     // salvage camp in the lee, each piece set on the sand
     const cz = 32, g = (x, z) => k.gy(x, z);
     const hut = new THREE.CylinderGeometry(4.2, 4.2, 13, 16, 1, false, 0, Math.PI).rotateZ(Math.PI / 2);
