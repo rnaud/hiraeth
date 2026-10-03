@@ -764,14 +764,14 @@ export class Wildlife {
     const h = (c.species.height ?? 0.3) * 2 + 0.18;
     for (let k = 0; k < 3; k++) {
       const a = t * 3.2 + (k * Math.PI * 2) / 3 + c.seed;
-      c.toWorld(Math.cos(a) * 0.22, h + Math.sin(a * 2) * 0.03, Math.sin(a) * 0.22, _p);
-      _s.setScalar(0.055 * Math.max(0.8, c.size));
+      c.toWorld(Math.cos(a) * 0.26, h + Math.sin(a * 2) * 0.03, Math.sin(a) * 0.26, _p);
+      _s.setScalar(0.075 * Math.max(0.8, c.size));
       _q.copy(c.quat).multiply(_q2.setFromAxisAngle(Y, a * 2));
       _mw.compose(_p, _q, _s);
       this.stars.mesh.setMatrixAt(i * 3 + k, _mw);
     }
     c.toWorld(0, h - 0.04, 0, _p);
-    _s.setScalar(0.17 * Math.max(0.8, c.size));
+    _s.setScalar(0.2 * Math.max(0.8, c.size));
     _q.copy(c.quat).multiply(_q2.setFromAxisAngle(Y, -t * 4));
     _mw.compose(_p, _q, _s);
     this.stars.swirl.setMatrixAt(i, _mw);
