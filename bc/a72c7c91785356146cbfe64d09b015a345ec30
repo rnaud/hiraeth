@@ -1,0 +1,37 @@
+README.md
+  s_c90ca0a3de1a1d::t_f2bd36b283a9f5 823-835
+src/changelog.js
+  s_c90ca0a3de1a1d::t_4f37cba8c2b2a5 6-10
+src/face.js
+  s_c90ca0a3de1a1d::t_174be632cd2af2 1-58
+src/humanoid.js
+  s_c90ca0a3de1a1d::t_c382d4f1013643 1,173,187-188,192-197,494-495,503,538
+src/materials.js
+  s_c90ca0a3de1a1d::t_cc8a11497aaed5 2,184,693,824-826,849-851
+src/player.js
+  s_c90ca0a3de1a1d::t_c43d8b98b15e2e 654,794,863-865,913-914,934-938
+tests/motion.test.js
+  s_c90ca0a3de1a1d::t_13daccacb2c83e 35-56
+tests/traveller.test.js
+  s_c90ca0a3de1a1d::t_3798e9105ff9a4 221-240
+tools/rig-review.html
+  s_c90ca0a3de1a1d::t_04c70119815ab3 3-5
+tools/rig-review.js
+  s_c90ca0a3de1a1d::t_f0ad7bf2839468 1,15,36,54
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bca72c7c91785356146cbfe64d09b015a345ec30",
+  "prompts": {},
+  "sessions": {
+    "s_c90ca0a3de1a1d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a100ef-7d9f-7b43-ae7d-30f5177e2ff0",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
