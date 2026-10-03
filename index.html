@@ -237,6 +237,10 @@
       #scout-label { position: fixed; z-index: 29; transform: translate(-50%, -100%); max-width: 180px;
         padding: 5px 8px; border: 1px solid #2b211f; background: rgba(255, 246, 220, 0.92); color: #2b211f;
         font: 11px/1.35 ui-monospace, Menlo, monospace; text-align: center; pointer-events: none; }
+      #controller-hint { display: none; position: fixed; z-index: 1000; bottom: calc(8px + var(--safe-bottom)); left: 50%; transform: translateX(-50%); width: max-content; max-width: 90%; padding: 7px 12px; background: #f7eed9ed; border: 1px solid #473d36; font: 12px monospace; pointer-events: none; }
+      body.controller #controller-hint { display: block; }
+      body.controller #touch { display: none; }
+      body.controller :focus { outline: 3px solid #277e86; outline-offset: 4px; }
     </style>
   </head>
   <body>

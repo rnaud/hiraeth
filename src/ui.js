@@ -43,7 +43,7 @@ export class SettingsMenu {
       <div class="panel">
         <h1>SETTINGS <span style="font-size:12px;letter-spacing:0;opacity:.6">v${VERSION}</span></h1>
         ${row('Graphics', `<select data-k="quality"><option value="auto">Auto (adapts to keep it smooth)</option><option value="low">Low (fast)</option><option value="medium">Medium</option><option value="high">High (smooth lines)</option></select>`)}
-        ${row('Mouse / touch sensitivity', `<input data-k="sensitivity" type="range" min="0.3" max="3" step="0.05">`)}
+        ${row('Camera sensitivity', `<input data-k="sensitivity" type="range" min="0.3" max="3" step="0.05">`)}
         ${row('Invert camera Y', `<input data-k="invertY" type="checkbox">`)}
         ${row('Music', `<input data-k="music" type="range" min="0" max="1" step="0.05">`)}
         ${row('Effects', `<input data-k="effects" type="range" min="0" max="1" step="0.05">`)}
@@ -55,6 +55,7 @@ export class SettingsMenu {
           <button data-a="news">What's new (N)</button>
           <button data-a="close">Close</button>
         </div>
+        <p class="keys">Controller: left stick move · right stick look · A/× jump · X/□ interact · Y/△ ping · RT/R2 run or boost · ↑ worlds · ↓ photo · View sketchbook · Menu settings. In menus: D-pad select, left/right adjust, A/× confirm, B/○ back, right stick scroll.</p>
         <p class="keys install-tip">Play full screen on iPhone: open in Safari, tap Share → Add to Home Screen, then enable Open as Web App if shown.</p>
         <p class="keys">WASD move · SHIFT run · SPACE jump / glide / jetpack · E interact · Q ping scout · J sketchbook · L worlds · P photo · H help · O settings · N what's new</p>
       </div>`;

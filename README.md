@@ -18,6 +18,24 @@ objective. It waits a few metres ahead, labels the destination and returns after
 five seconds; ping again to refresh it. The guide follows quest progress and
 portal routes, with local obstacle avoidance. **L** opens the level picker. Each level's controls are listed below.
 
+## Controller
+
+Connect a standard Xbox, PlayStation or compatible gamepad, then press a button
+while the game is focused. Keyboard and touch remain available.
+
+- Left stick: move, climb, steer; right stick: camera.
+- A / ×: jump, glide, flap or ascend; X / □: interact, whistle, mount/dismount.
+- Y / △: scout ping; RT / R2 or left-stick click: run/boost (descend in taxis).
+- LB/RB: zoom out/in. D-pad up: worlds; down: photo mode.
+- View / Share: sketchbook; Menu / Options: settings.
+- Menus: D-pad or left stick selects; left/right adjusts settings; A / × confirms;
+  B / ○ returns; right stick scrolls.
+- Photo: sticks fly/look, LB/RB lower/raise, A / × saves, B / ○ exits.
+
+On browsers that require a touch or click to enable audio, tap the page once.
+Controller logic and browser integration are tested with simulated standard pads;
+physical controller testing is still needed on iPhone.
+
 ## Install on iPhone
 
 Open [the game](https://rnaud.github.io/moebius/) in Safari, tap **Share → Add

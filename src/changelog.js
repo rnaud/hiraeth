@@ -3,6 +3,11 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.19', date: '2026-10-03', items: [
+    'Controller support: analog movement and camera, jumping, climbing, gliding, vehicles, interaction and scout ping. Hold RT/R2 to run or boost; LB/RB zoom the camera.',
+    'Navigate settings, worlds, story pages and the sketchbook with your controller. Photo mode supports flying, altitude and saving pictures. Button hints appear when you use a controller.',
+    'Stick deadzones prevent drift. Disconnecting releases controls, and menu confirmation cannot carry a held jump into gameplay.',
+  ] },
   { v: '0.18', date: '2026-10-03', items: [
     'More natural running and climbing cadence. Climbing hands hold their place during the support stroke; palms face the wall and boots point toward it. Wrists follow the animation.',
     'Ping lasts five seconds, then the scout returns to the backpack.',

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { Controller, mergeControls, menuNavigate } from './controller.js';
 import { ObservatoryQuest } from './observatory.js';
 import { Scout, nextObjective } from './scout.js';
 import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
@@ -553,7 +554,7 @@ function setPhoto(on) {
   photoHint.classList.toggle('open', on);
 }
 const _pf = new THREE.Vector3(), _pr = new THREE.Vector3();
-function photoUpdate(dt) {
+function photoUpdate(dt, input) {
   const up = camera.up;
   const cp = Math.cos(rig.pitch);
   // the rig's yaw/pitch (driven by the mouse) aim the free camera
@@ -614,9 +615,10 @@ function updateHud() {
   }
   const goal = expedition && !expedition.state.returned ? expedition.hud(player) : story.hud();
   const edgeHint = edgeTravel();
-  const text = `${atmo.name} · ${parts.join(' · ')}` +
+  let text = `${atmo.name} · ${parts.join(' · ')}` +
     `\n${goal ? goal + ' · ' : ''}${errands.hud() ? errands.hud() + ' · ' : ''}relics ${journal.relicCount(levelId)}/${content.relics.names.length} · Q ping · H help` +
     (gate.near ? ` · walk through the gate to ${nextTitle}` : '') + (edgeHint ? ` · ${edgeHint}` : '');
+  if (controllerActive) text = text.replaceAll('SPACE', 'A / ×').replaceAll('SHIFT', 'RT / R2').replaceAll('W/S', 'left stick').replaceAll('A/D', 'left stick').replace(/\bE\b/g, 'X / □').replace('Q ping · H help', 'Y / △ ping · Menu settings');
   audioCfg.mute = sound.muted;
   if (text !== lastStatus) { status.textContent = text; lastStatus = text; }
 }
@@ -624,6 +626,46 @@ function updateHud() {
 
 const busy = () => story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || menu.open || endingOpen;
 const noInput = {};
+let controllerActive = false;
+const controllerHint = document.createElement('div');
+controllerHint.id = 'controller-hint';
+document.body.appendChild(controllerHint);
+const menuRoot = () => menu.open ? menu.el : changelog.open ? changelog.el : journal.open ? journal.el : picker.classList.contains('open') ? picker : document.getElementById('page');
+const closeControllerMenu = () => {
+  if (menu.open) menu.toggle(false);
+  else if (changelog.open) changelog.toggle(false);
+  else if (journal.open) journal.toggle(false);
+  else if (picker.classList.contains('open')) showPicker(false);
+  else document.getElementById('page').click();
+};
+const controller = new Controller({
+  context: () => busy() ? 'menu' : photo.on ? 'photo' : 'game',
+  look: (x, y) => { if (x || y) rig.look(x, y); },
+  activity: () => { controllerActive = true; },
+  navigate: (x, y) => menuNavigate(menuRoot(), x, y),
+  scroll: amount => { const root = menuRoot(); (root.querySelector('.list, .panel, .sheet') ?? root).scrollTop += amount; },
+  action: (name, dt) => {
+    if (name === 'zoomOut' || name === 'zoomIn') rig.dist = THREE.MathUtils.clamp(rig.dist * Math.exp((name === 'zoomOut' ? 1 : -1) * dt), 4, 60);
+    if (name === 'back') closeControllerMenu();
+    if (name === 'confirm') {
+      const root = menuRoot();
+      if (root.id === 'page') root.click();
+      else if (root.contains(document.activeElement)) {
+        const el = document.activeElement;
+        if (el.tagName !== 'SELECT' && el.type !== 'range') el.click();
+      }
+      else menuNavigate(root, 0, 1);
+    }
+    if (name === 'settings') menu.toggle(true);
+    if (name === 'journal') journal.toggle(true);
+    if (name === 'worlds') showPicker(true);
+    if (name === 'photo') setPhoto(!photo.on);
+    if (name === 'capture') photo.capture = true;
+    if (name === 'ping') scout.ping();
+  },
+});
+for (const event of ['keydown', 'pointerdown', 'touchstart']) window.addEventListener(event, () => { controllerActive = false; });
+
 
 /** The whole pipeline for one view: shadows, G-buffer, composite, overlays. */
 const _subj = new THREE.Vector3(), _subjUp = new THREE.Vector3(0, 1, 0);
@@ -715,7 +757,14 @@ function frame() {
   timer.update();
   const dt = Math.min(timer.getDelta(), 1 / 20);
   const t = timer.getElapsed();
-  const ctl = busy() ? noInput : input;
+  const padInput = controller.update(dt, !document.hidden && document.hasFocus());
+  if (controller.index === null) controllerActive = false;
+  document.body.classList.toggle('controller', controllerActive);
+  controllerHint.textContent = busy() ? 'D-pad / left stick select · A / × confirm · B / ○ back · right stick scroll'
+    : photo.on ? 'Left stick fly · right stick look · LB/RB down/up · A / × save · B / ○ exit'
+    : 'A / × jump · X / □ use · Y / △ ping · RT / R2 run · ↑ worlds · ↓ photo · View sketchbook · Menu settings';
+  const mergedInput = mergeControls(input, padInput);
+  const ctl = busy() ? noInput : mergedInput;
 
   if (sky.speed > 0) sky.hour = (sky.hour + (sky.speed / 60) * dt) % 24;
   // region fog / horizon follow the player smoothly (the field itself is smooth)
@@ -725,7 +774,7 @@ function frame() {
 
   for (const v of player.vehicles) if (v !== player.ride) v.update(dt, null, t);
   if (photo.on) {
-    photoUpdate(dt);
+    if (!busy()) photoUpdate(dt, mergedInput);
   } else {
     player.camFwd = camera.getWorldDirection(player.camFwd ?? new THREE.Vector3());   // whistled mounts arrive into view
     const usingLens = expedition?.update(dt, player, ctl, busy());
