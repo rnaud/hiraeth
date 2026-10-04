@@ -199,13 +199,18 @@ export function createPerdide(scene) {
   let crystal = null;
   {
     const gx = GREAT.x, gz = GREAT.z, base = terrain.heightAt(gx, gz);
-    const parts = [];
+    const parts = [], spires = [];
     for (let i = 0; i < 9; i++) {
       const h = 35 + rng() * 60, r = 5 + rng() * 7;
       const g = new THREE.CylinderGeometry(0, r, h, 6).translate(0, h / 2, 0);
-      g.rotateX((rng() - 0.5) * 0.6).rotateZ((rng() - 0.5) * 0.6);
-      g.translate((rng() - 0.5) * 16, -2, (rng() - 0.5) * 16);
+      const rx = (rng() - 0.5) * 0.6, rz = (rng() - 0.5) * 0.6;
+      g.rotateX(rx).rotateZ(rz);
+      const tx = (rng() - 0.5) * 16, tz = (rng() - 0.5) * 16;
+      g.translate(tx, -2, tz);
       parts.push(g.toNonIndexed());
+      // where the fluid can splash it: a few points up its axis, each as wide as the spire there
+      const R = new THREE.Matrix4().makeRotationZ(rz).multiply(new THREE.Matrix4().makeRotationX(rx));
+      for (const k of [0.12, 0.3, 0.5]) spires.push({ pos: new THREE.Vector3(0, k * h, 0).applyMatrix4(R).add(new THREE.Vector3(gx + tx, base - 2, gz + tz)), r: r * (1 - k) + 1.2 });
     }
     // its own material: the story brightens it while it sings
     const crMat = makeMaterial({ color: '#c7a6f2', flat: true, glow: 0.8, greatCrystal: true });
@@ -218,7 +223,7 @@ export function createPerdide(scene) {
     scene.add(ring);
     const light = new THREE.Vector4(gx, base + 20, gz, 60);
     lights.push(light);
-    crystal = { mesh: cr, mat: crMat, ring, light, pos: new THREE.Vector3(gx, base, gz), center: new THREE.Vector3(gx, base + 18, gz) };
+    crystal = { mesh: cr, mat: crMat, ring, light, pos: new THREE.Vector3(gx, base, gz), center: new THREE.Vector3(gx, base + 18, gz), spires };
   }
 
   // ---------------------------------------------------------- the crystal cave

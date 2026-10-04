@@ -48,7 +48,8 @@ export function singingLight(sound, vol = 0.1) {
 export function setupPerdide(ctx) {
   const { level, physics, player, quests, dialogue, game, sound, story, spawn, scene, toast, npcs } = ctx;
   if (level.id !== 'perdide' || !level.crystal) return null;
-  const weather = ctx.weather ?? globalThis.weather ?? null;
+  // the weather (main.js puts it on window once everything is built; tests have none)
+  const sky = () => ctx.weather ?? globalThis.weather ?? null;
   for (const q of QUESTS) quests.define(q);
   quests.itemNames = { ...(quests.itemNames ?? {}), ...ITEMS };
   if (!quests.isStarted(Q) && !game.flag('world.perdide.done')) quests.start(Q);
@@ -110,7 +111,7 @@ export function setupPerdide(ctx) {
 
   // ---------------------------------------------------------------- the song
   const st = { k: 0, until: -1, clock: 0, hits: [], phraseT: 0, near: false, tank: false, ringT: 0, quest: false };
-  const raining = () => (weather?.state?.rain ?? 0) > 0.35;
+  const raining = () => (sky()?.state?.rain ?? 0) > 0.35;
   const singing = () => st.clock < st.until;
   const sing = (dur, why) => {
     const was = singing();
@@ -123,20 +124,24 @@ export function setupPerdide(ctx) {
   };
   // a shower to go with your rain, if the sky is between moods
   const callRain = () => {
+    const weather = sky();
     if (!weather || weather.mode !== 'auto' || weather.target > 0.3) return;
     weather.kind = 'rain'; weather.target = 0.75; weather.timer = SONG + 10;
   };
-  registerTarget({ kind: 'crystal', radius: 15, position: () => C.center, enabled: () => flat(player.pos, GREAT) < 160,
-    onHit: (mode) => {
-      if (mode !== 'shoot') { if (!st.pushed) { st.pushed = true; toast('The push breaks on the crystal like a wave on a cliff. It hums a little lower, and doesn’t move.'); } return true; }
-      st.hits = st.hits.filter((t) => st.clock - t < 14);
-      st.hits.push(st.clock);
-      st.flash = 1;
-      sound.critter?.('chime', 0.8);
-      if (st.hits.length >= 3 && !singing()) { st.hits = []; sing(SONG, 'fluid'); callRain(); }
-      else if (!singing() && st.hits.length === 1 && !st.hinted) { st.hinted = true; toast('The spire rings, and the ring fades. Again, close together…'); }
-      return true;
-    } });
+  // the fluid splashes the spires (a few points up each one) or the heart of the cluster
+  const ring = (mode) => {
+    if (mode !== 'shoot') { if (!st.pushed) { st.pushed = true; toast('The push breaks on the crystal like a wave on a cliff. It hums a little lower, and doesn’t move.'); } return true; }
+    st.hits = st.hits.filter((t) => st.clock - t < 14);
+    st.hits.push(st.clock);
+    st.flash = 1;
+    sound.critter?.('chime', 0.8);
+    if (st.hits.length >= 3 && !singing()) { st.hits = []; sing(SONG, 'fluid'); callRain(); }
+    else if (!singing() && st.hits.length === 1 && !st.hinted) { st.hinted = true; toast('The spire rings, and the ring fades. Again, close together…'); }
+    return true;
+  };
+  const near = () => flat(player.pos, GREAT) < 160;
+  registerTarget({ kind: 'crystal', radius: 12, position: () => C.center, enabled: near, onHit: ring });
+  for (const s of C.spires ?? []) registerTarget({ kind: 'crystal', radius: s.r, position: () => s.pos, enabled: near, onHit: ring });
 
   // rings of light running out from the spires while it sings
   const ringMat = makeMaterial({ color: '#efe4ff', glow: 1, flat: true, side: THREE.DoubleSide });

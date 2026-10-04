@@ -139,6 +139,7 @@ test('the main quest: the crystal sings the song of the light that struck the sh
   assert.equal(quests.stage('perdide.crystal'), 'sing');
   // three splashes on the spires, close together: it sings, and every jaw shuts
   const crystal = allTargets().find((t) => t.kind === 'crystal');
+  assert.ok(allTargets().filter((t) => t.kind === 'crystal').length >= 20, 'the spires can be splashed one by one');
   assert.ok(crystal?.enabled(), 'the crystal is a target from its foot');
   crystal.onHit('shoot'); step(10);
   crystal.onHit('shoot'); step(10);
