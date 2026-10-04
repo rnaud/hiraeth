@@ -1,0 +1,53 @@
+README.md
+  s_1fd8d0e7b02dcf::t_a4708eed4f8d85 1124,1191-1218
+index.html
+  s_1fd8d0e7b02dcf::t_931622f3fb1b3a 156,159-160,162,168-177,183-187,191,196-199,201-211,214-219,221,224-225,228-239,286,293,353-354
+src/fluid-tool.js
+  s_1fd8d0e7b02dcf::t_f37fddad1efb0d 1268-1269,1272
+src/main.js
+  s_1fd8d0e7b02dcf::t_58eec7c61706e8 45-46,316-317,706-710,720-739,747-748,750,752,763-766,771-772,775,780,805-809,925-929,942-944,949-964,1003,1005-1009,1148,1163,1198
+src/observatory.js
+  s_1fd8d0e7b02dcf::t_39d5ba6ed5e335 114
+src/prompt-keys.js
+  s_1fd8d0e7b02dcf::t_fb51528aec9324 1-26
+src/ship/cinema.js
+  s_1fd8d0e7b02dcf::t_69358bab393b24 187
+src/story/dialogue.js
+  s_1fd8d0e7b02dcf::t_96c1b86ba8fd18 174-178,227-231,305-306
+src/story/index.js
+  s_1fd8d0e7b02dcf::t_31c9b83f652a41 9-10,61,84-86,95-97,196-198
+tests/hud-cleanup.test.js
+  s_1fd8d0e7b02dcf::t_574a3b3b95ca73 1-102
+src/boxes/card.js
+  s_e4a6b54eb1285c::t_6dea43f71d9870 48,51,61
+src/post.js
+  s_e4a6b54eb1285c::t_c61478d05387c7 110,529-530,662
+src/quest.js
+  s_e4a6b54eb1285c::t_9a18e7f93ed087 156,179-180,223-224,274-278,283,288,291,295-306
+src/story/portrait-bg.js
+  s_e4a6b54eb1285c::t_761cc6ab08d22e 1-74
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c034a15cf9d62abf52a146a426e316c36ea2488b",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_e4a6b54eb1285c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a6572cd729687eb1e",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
