@@ -7,6 +7,7 @@ import { NPC, registerNPCTargets } from '../npc.js';
 import { makeMaterial } from '../materials.js';
 import { viaPortal } from '../scout.js';
 import { setupDesert } from './desert.js';
+import { setupBuried } from './buried.js';
 
 // The story runtime for a world: quests, conversations, the objective
 // marker, the E prompt, and the world's own story (src/story/<world>.js).
@@ -23,7 +24,9 @@ import { setupDesert } from './desert.js';
 //   storyRt.dialogue    start(person, npc) (src/story/dialogue.js)
 //   registerInteractable(...) for anything E should use (src/interact.js)
 
-const WORLDS = { desert: setupDesert };
+const WORLDS = { desert: setupDesert,
+  buried: setupBuried,
+};
 const UP = new THREE.Vector3(0, 1, 0);
 const _p = new THREE.Vector3(), _d = new THREE.Vector3();
 

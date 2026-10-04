@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import {createBuried, BURIED_CONTENT, OCULUS, canyonX} from '../src/levels/buried.js';
+import {createBuried, BURIED_CONTENT, OCULUS, canyonX, WHEEL} from '../src/levels/buried.js';
 import {Physics} from '../src/physics.js';
 import {CONTENT, ORDER} from '../src/levels/content.js';
 import {LEVELS} from '../src/levels/index.js';
@@ -38,7 +38,8 @@ test('the canyon floor is open from the ramp to the oculus doorway', () => {
     }
   }
   // into the drum through the arched door
-  const hit = physics.rayHit(new THREE.Vector3(OCULUS.x, -31, OCULUS.z + 60), new THREE.Vector3(0, 0, -1), 80);
+  // (a little off-centre: the oculus lamp stands in the middle of the drum)
+  const hit = physics.rayHit(new THREE.Vector3(OCULUS.x - 5, -31, OCULUS.z + 60), new THREE.Vector3(0, 0, -1), 80);
   assert.ok(!hit || hit.point.z < OCULUS.z - OCULUS.r + 8, `doorway blocked at ${hit?.point.z}`);
 });
 
@@ -59,15 +60,24 @@ test('five relics rest on reachable structures, open to the sky', () => {
   }
 });
 
-test('the story goal is the balcony inside the oculus', () => {
-  const {goal, radius, verticalRadius} = BURIED_CONTENT.story;
-  assert.equal(goal[1], 'top');
-  const y = physics.groundAt(goal[0], 1e4, goal[2], 2e4);
-  assert.ok(Math.abs(y - OCULUS.balcony) < 0.01, `goal surface ${y}`);
-  assert.ok(Math.hypot(goal[0] - OCULUS.x, goal[2] - OCULUS.z) < OCULUS.r, 'goal is inside the drum');
-  assert.ok(radius <= 6 && verticalRadius <= 6, 'you have to climb or fly up to it');
-  // the drum is open to the sky above the floor centre
-  assert.equal(physics.rayHit(new THREE.Vector3(OCULUS.x, -30, OCULUS.z), new THREE.Vector3(0, 1, 0), 2000), null);
+test('the story is a quest (manual page); the balcony inside the oculus is still reachable and open to the sky', () => {
+  const {goal, manual} = BURIED_CONTENT.story;
+  assert.equal(manual, true, 'the page closes when the wheel has turned (src/story/buried.js)');
+  assert.ok(Math.hypot(goal[0] - WHEEL.x, goal[2] - WHEEL.z) < 1, 'the page frames the great wheel');
+  const y = physics.groundAt(OCULUS.x, 1e4, OCULUS.z - 31, 2e4);
+  assert.ok(Math.abs(y - OCULUS.balcony) < 0.01, `balcony surface ${y}`);
+  // the drum is open to the sky above the lamp in its centre
+  assert.equal(physics.rayHit(new THREE.Vector3(OCULUS.x, -28, OCULUS.z), new THREE.Vector3(0, 1, 0), 2000), null);
+});
+
+test('the great wheel breaks the dunes east of the canyon: a solid rim you can stand on, clear of the canyon', () => {
+  const {wheel} = level.buried;
+  assert.ok(wheel.top - wheel.ground > 25, `the arc rises ${(wheel.top - wheel.ground).toFixed(1)} m out of the sand`);
+  const top = physics.groundAt(wheel.centre.x, 1e4, wheel.centre.z, 2e4);
+  assert.ok(Math.abs(top - (wheel.centre.y + wheel.R + wheel.tooth * 0.5)) < 0.6, `the rim's top is solid (${top})`);
+  // the canyon floor beside it stays open
+  const z = wheel.centre.z, g = physics.groundAt(canyonX(z), 0, z, 60);
+  assert.ok(Math.abs(g + 34) < 0.5, `canyon floor beside the wheel ${g}`);
 });
 
 test('static collision stays within budget; the hanging city and ring are not collidable', () => {
