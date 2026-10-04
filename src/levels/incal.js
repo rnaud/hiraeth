@@ -842,7 +842,7 @@ export function createIncal(scene) {
       // the story's places stay clear: the shrine and its keeper, the call-lamp, the sweeper's corner
       const keep = [[places.shrine, 3.6], [places.ossa, 1.6], [places.pip, 1.2], [places.lamp, 1.2], [places.wren, 1.4], [places.nima, 2.5]];
       for (const [p, rr] of keep) avoid.push({ x: p.x, y: p.y, z: p.z, r: rr });
-      return { groups, walks, edges, avoid, farMax: 600, clear: [{ x: spawn.x, y: TOP, z: spawn.z, r: 4 }, ...keep.map(([p, rr]) => ({ x: p.x, y: p.y, z: p.z, r: rr + 1 }))] };
+      return { groups, walks, edges, avoid, farMax: 600, costume: 'incal', clear: [{ x: spawn.x, y: TOP, z: spawn.z, r: 4 }, ...keep.map(([p, rr]) => ({ x: p.x, y: p.y, z: p.z, r: rr + 1 }))] };
     },
     update(dt, t, ctx) {
       if (ctx?.player) Taxi.playerPos = ctx.player.pos;

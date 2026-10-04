@@ -51,7 +51,7 @@ export const HOME_CONTENT = {
   gate: { at: [96, -70], heading: -Math.PI / 2 },
   npcs: [
     {
-      at: HOME_SPOTS.father, radius: 0.5, speed: 0.35, head: 'wrap', cape: 0,
+      at: HOME_SPOTS.father, radius: 0.5, speed: 0.35, head: 'wrap', cape: 0, look: { robe: 0.5, flare: 0.25 },
       palette: { cloak: '#f3ead8', lining: '#7a3a35', cloth: '#b5473a', legs: '#2b2f45', hat: '#3d4a80', hair: '#b8b0a4' },   // as on the call screen: a blue band, a red coat
       lines: ['~neutral~ The ship looks well.', '~happy~ Your mother kept your room.', '~tired~ Hm.'],
       id: 'father', name: 'Your father', title: 'at home', color: '#7a3a35', voice: 0.7,

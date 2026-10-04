@@ -64,7 +64,7 @@ const EARLY = { quest: Q, stage: ['nima', 'ossa'] };   // before the splinter is
 export const PEOPLE = {
   nima: {
     id: 'nima', name: 'Nima', title: 'who sweeps the high terrace', color: '#a99be0', voice: 0.95, kind: 'f',
-    palette: { cloak: '#a99be0', lining: '#2b211f', cloth: '#e2d3b4', legs: '#4a3a2a', hat: '#f3ead8', hair: '#b0a89a' }, head: 'wrap', cape: 0.9,
+    palette: { cloak: '#a99be0', lining: '#2b211f', cloth: '#e2d3b4', legs: '#4a3a2a', hat: '#f3ead8', hair: '#b0a89a' }, head: 'wrap', cape: 0.9, look: { prop: 'basket' },
     lines: ['~playful~ The rich live up here. Me, I just sweep.', '~neutral~ Mind the dust.', '~happy~ Look up once in a while. It’s free.'],
     talk: {
       entry: [
@@ -161,7 +161,7 @@ export const PEOPLE = {
 
   ossa: {
     id: 'ossa', name: 'Ossa', title: 'keeper of the Upward Shrine', color: '#cdb38e', voice: 0.8, kind: 'f', scale: 0.96,
-    palette: { cloak: '#8a6a4a', lining: '#2b211f', cloth: '#cdb38e', legs: '#3a3a3a', hat: '#d9c3a0', hair: '#e8dcc0' }, head: 'hood', cape: 1.4,
+    palette: { cloak: '#8a6a4a', lining: '#2b211f', cloth: '#cdb38e', legs: '#3a3a3a', hat: '#d9c3a0', hair: '#e8dcc0' }, head: 'hood', cape: 1.4, look: { prop: 'lantern' },
     lines: ['~solemn~ Eyes shut, face up.', '~solemn~ The smog stings. The light doesn’t.', '~whisper~ Hum with it. It hums back.'],
     talk: {
       entry: [
@@ -271,7 +271,7 @@ export const PEOPLE = {
 
   dov: {
     id: 'dov', name: 'Dov', title: 'guard at the palace gate', color: '#f2c54b', voice: 0.85, kind: 'm', scale: 1.06,
-    palette: { cloak: '#34405e', lining: '#f2c54b', cloth: '#f3ead8', legs: '#2b2f45', hat: '#f2c54b', hair: '#2b211f' }, head: 'hat', cape: 1.3,
+    palette: { cloak: '#34405e', lining: '#f2c54b', cloth: '#f3ead8', legs: '#2b2f45', hat: '#f2c54b', hair: '#2b211f' }, head: 'hat', cape: 1.3, look: { body: 'collar', prop: 'staff' },
     lines: ['~angry~ Keep to the ring.', '~neutral~ Eyes on the visitors.', '~tired~ Palace rules.'],
     talk: {
       entry: [

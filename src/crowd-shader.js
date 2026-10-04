@@ -5,19 +5,27 @@
 //
 // Figure space: feet at y = 0, facing +z, the character's left at +x.
 // Per vertex (geometry):
-//   aRig.x  part   0 torso · 1 head · 2/3 thigh L/R · 4/5 shin L/R · 6/7 upper arm L/R · 8/9 forearm L/R · 10 cape
+//   aRig.x  part   0 torso · 1 head · 2/3 thigh L/R · 4/5 shin L/R · 6/7 upper arm L/R · 8/9 forearm L/R · 10 cape · 11 robe
 //   aRig.y  colour zone (see CROWD_ZONES)
-//   aRig.z  variant: 0 always · 1 hood · 2 hat · 3 wrap · 4 hair · 5 hair under a hat/wrap/hair · 6 cape and collar
-//   aRig.w  cape: 0 at the collar → 1 at the hem (its position is computed from the length)
+//   aRig.z  costume piece: slot * 64 + id. Slots: 0 always · 1 headwear (HEAD_IDS) · 2 mask (MASK_IDS)
+//           · 3 shoulder / chest piece (BODY_IDS) · 4 held prop (PROP_IDS) · 5 cape and its collar
+//           · 6 robe · 7 short hair under the headwear (costumes.js has the ids)
+//   aRig.w  cape / robe: 0 at the collar / belt → 1 at the hem (their shape comes from the lengths)
 // Per instance:
 //   aAnim   gait phase at upload (cycles), cadence (cycles / s, 0 standing), seed 0..1, pose (CROWD_POSES)
 //   aReact  head yaw (rad, relative to the body), head pitch, talk 0..1, startle time (uTime; stumbling: when the shove landed, the pose's frozen time)
 //   aLook0  cloak, cloth, legs, skin as 0xRRGGBB packed in floats (exact up to 2^24)
-//   aLook1  hat, accent, hair, style = head kind (0 hood, 1 hat, 2 wrap, 3 hair) + 4 * cape length (decimetres)
+//   aLook1  hat, accent, hair, body = bulk (0..3) + 4 * sleeveless + 8 * cloth pattern (TRIM_IDS) + 128 * robe hem radius (cm)
+//   aDress  headwear + 32 * short hair under it, mask + 8 * chest piece + 128 * prop,
+//           cape length (m) + 2 * cape width (tenths), robe length (m below the belt, 0 none) — costumes.js packDress
+// A piece that isn't worn collapses to a point (zero-area triangles): every world bakes only its own
+// pieces into its figure (crowd.js figureGeometry), so the vertex count stays small.
 
 export const CROWD_POSES = { stand: 0, walk: 1, rail: 2, sit: 3, kerb: 4, stumble: 5, wall: 6 };
-export const CROWD_ZONES = { skin: 0, cloak: 1, cloth: 2, legs: 3, boots: 4, hat: 5, accent: 6, hair: 7, lining: 8, belt: 9, cuff: 10 };
-export const CROWD_PARTS = { torso: 0, head: 1, thighL: 2, thighR: 3, shinL: 4, shinR: 5, armL: 6, armR: 7, foreL: 8, foreR: 9, cape: 10 };
+export const CROWD_ZONES = { skin: 0, cloak: 1, cloth: 2, legs: 3, boots: 4, hat: 5, accent: 6, hair: 7, lining: 8, belt: 9, cuff: 10, dark: 11, metal: 12, wood: 13, lamp: 14 };
+export const CROWD_PARTS = { torso: 0, head: 1, thighL: 2, thighR: 3, shinL: 4, shinR: 5, armL: 6, armR: 7, foreL: 8, foreR: 9, cape: 10, robe: 11 };
+/** aRig.z slots (see above). */
+export const CROWD_SLOTS = { always: 0, head: 1, mask: 2, body: 3, prop: 4, cape: 5, robe: 6, hairCap: 7 };
 /** Joint pivots in figure space (metres, scale 1). */
 export const CROWD_JOINTS = { hip: 0.95, hipX: 0.09, knee: 0.5, shoulder: 1.43, shoulderX: 0.2, elbow: 1.13, neck: 1.5, collar: 1.45 };
 
@@ -27,7 +35,9 @@ export const CROWD_GLSL = /* glsl */ `
   in vec4 aReact;
   in vec4 aLook0;
   in vec4 aLook1;
+  in vec4 aDress;
   uniform float uTime;
+  flat out vec4 vCrowdTrim;   // the tunic's printed pattern: accent colour, pattern id (0 none)
 
   vec3 crowdRGB(float f) {
     float r = floor(f / 65536.0); f -= r * 65536.0;
@@ -43,18 +53,28 @@ export const CROWD_GLSL = /* glsl */ `
   //   hip / knee per leg (hip > 0 swings the thigh forward, knee > 0 folds the shin back)
   //   shoulder fwd / abduction, elbow per arm; torso pitch / yaw / roll; head pitch / yaw; root offset
   void crowdAnimate(inout vec3 p, inout vec3 n, out vec3 col) {
-    int part = int(aRig.x + 0.5), zone = int(aRig.y + 0.5), variant = int(aRig.z + 0.5);
+    int part = int(aRig.x + 0.5), zone = int(aRig.y + 0.5), code = int(aRig.z + 0.5);
+    int slot = code / 64, pid = code - slot * 64;
     int pose = int(aAnim.w + 0.5);
     float seed = aAnim.z;
-    float headKind = mod(aLook1.w, 4.0);
-    float capeLen = floor(aLook1.w / 4.0 + 0.01) * 0.1;
+    // the costume (costumes.js packDress)
+    int headId = int(mod(aDress.x, 32.0) + 0.5);
+    bool hairCap = aDress.x > 31.5;
+    int maskId = int(mod(aDress.y, 8.0) + 0.5), bodyId = int(mod(floor(aDress.y / 8.0 + 0.01), 16.0) + 0.5), propId = int(floor(aDress.y / 128.0 + 0.01) + 0.5);
+    float capeWide = floor(aDress.z / 2.0 + 0.001);
+    float capeLen = aDress.z - capeWide * 2.0;
+    capeWide *= 0.1;
+    float robeLen = aDress.w;
+    float bulk = mod(aLook1.w, 4.0);
+    bool sleeveless = mod(floor(aLook1.w / 4.0 + 0.01), 2.0) > 0.5;
+    float trim = mod(floor(aLook1.w / 8.0 + 0.01), 16.0);
+    float flare = floor(aLook1.w / 128.0 + 0.01) * 0.01;
     float capeShow = capeLen;                 // worn at all
     if (pose == 3 || pose == 4) capeLen = min(capeLen, 0.62);   // seated: it pools on the seat behind
 
-    // costume variants that aren't worn collapse to a point (zero-area triangles)
-    bool show = variant == 0 || (variant == 1 && headKind < 0.5) || (variant == 2 && abs(headKind - 1.0) < 0.5)
-      || (variant == 3 && abs(headKind - 2.0) < 0.5) || (variant == 4 && headKind > 2.5)
-      || (variant == 5 && headKind > 0.5) || (variant == 6 && capeShow > 0.01);
+    // costume pieces that aren't worn collapse to a point (zero-area triangles)
+    bool show = slot == 0 || (slot == 1 && pid == headId) || (slot == 2 && pid == maskId) || (slot == 3 && pid == bodyId)
+      || (slot == 4 && pid == propId) || (slot == 5 && capeShow > 0.01) || (slot == 6 && robeLen > 0.01) || (slot == 7 && hairCap);
 
     // a stumbling person is caught mid-flail (frozen in time); everybody else lives on uTime
     float tt = pose == 5 ? aReact.w : uTime;
@@ -146,7 +166,7 @@ export const CROWD_GLSL = /* glsl */ `
       float t = aRig.w;
       // shoulders are wider than deep; the cloth falls a little behind the body
       float k = pow(t, 0.8);
-      vec2 rad = mix(vec2(0.2, 0.135), vec2(0.25, 0.2) + capeLen * 0.05, k);
+      vec2 rad = mix(vec2(0.2, 0.135), (vec2(0.25, 0.2) + capeLen * 0.05) * capeWide, k);
       vec3 dir = normalize(vec3(p.x, 0.0, p.z) + vec3(0.0, 0.0, 1e-5));
       p = vec3(dir.x * rad.x, COLLAR - t * capeLen, dir.z * rad.y - 0.02 - 0.05 * t);
       n = normalize(vec3(dir.x / rad.x, 0.0, dir.z / rad.y));
@@ -156,6 +176,19 @@ export const CROWD_GLSL = /* glsl */ `
       p.y += t * t * 0.08 * amp;
       if (pose == 3 || pose == 4) p.z -= t * t * 0.3;
     }
+    if (part == 11) {
+      // the robe: a bell from the belt to its hem, swinging with the thighs
+      float t = aRig.w;
+      vec3 dir = normalize(vec3(p.x, 0.0, p.z) + vec3(0.0, 0.0, 1e-5));
+      vec2 rad = mix(vec2(0.165, 0.14), vec2(flare, flare * 0.86), pow(t, 0.85));
+      p = vec3(dir.x * rad.x, HIP + 0.01 - t * robeLen, dir.z * rad.y - 0.01);
+      n = normalize(vec3(dir.x / rad.x, 0.25, dir.z / rad.y));
+      float wl = smoothstep(-0.7, 0.7, dir.x);
+      float follow = 0.75 * smoothstep(0.0, 0.5, t);
+      crowdTurn(p, n, vec3(0.0, HIP, 0.0), crowdRotX(-mix(hip.y, hip.x, wl) * follow));
+    }
+    // a padded suit: the clothes swell along their normals (not the head, hands or costume pieces)
+    if (bulk > 0.0 && slot == 0 && part != 1 && part < 10 && (zone == 2 || zone == 3 || zone == 9 || zone == 10)) p += n * bulk * 0.014;
     if (part == 4 || part == 5) {
       int i = part - 4;
       crowdTurn(p, n, vec3(side * HIPX, KNEE, 0.0), crowdRotX(i == 0 ? knee.x : knee.y));
@@ -171,16 +204,41 @@ export const CROWD_GLSL = /* glsl */ `
       crowdTurn(p, n, vec3(0.0, NECK, 0.0), crowdRotY(clamp(hY, -1.3, 1.3)) * crowdRotX(hP));
     }
     // the upper body (torso, head, arms, cape) leans, twists and rolls over the hips
-    if (part < 2 || part >= 6) crowdTurn(p, n, vec3(0.0, HIP, 0.0), crowdRotY(tY) * crowdRotZ(tR) * crowdRotX(tP));
+    if (part < 2 || (part >= 6 && part != 11)) crowdTurn(p, n, vec3(0.0, HIP, 0.0), crowdRotY(tY) * crowdRotZ(tR) * crowdRotX(tP));
     if (tilt != 0.0) crowdTurn(p, n, vec3(0.0), crowdRotX(tilt));
     p += root;
     if (!show) { p = vec3(0.0, HIP, 0.0); }
 
     // ---- printed colour zones
     vec3 cloak = crowdRGB(aLook0.x), cloth = crowdRGB(aLook0.y), legs = crowdRGB(aLook0.z), skin = crowdRGB(aLook0.w);
+    if (sleeveless && zone == 2 && part >= 6 && part <= 9) zone = 0;   // bare arms
     col = zone == 0 ? skin : zone == 1 ? cloak : zone == 2 ? cloth : zone == 3 ? legs
       : zone == 4 ? vec3(0.431, 0.247, 0.172) : zone == 5 ? crowdRGB(aLook1.x) : zone == 6 ? crowdRGB(aLook1.y)
       : zone == 7 ? crowdRGB(aLook1.z) : zone == 8 ? vec3(0.169, 0.129, 0.122) : zone == 9 ? legs * 0.6 + vec3(0.33, 0.24, 0.1)
-      : cloak * 0.75;
+      : zone == 10 ? cloak * 0.75 : zone == 11 ? vec3(0.169, 0.129, 0.122) : zone == 12 ? vec3(0.663, 0.643, 0.576)
+      : zone == 13 ? vec3(0.541, 0.376, 0.251) : vec3(1.0, 0.851, 0.541);
+    // the pattern on the tunic (drawn by the fragment shader: TRIM_GLSL)
+    vCrowdTrim = vec4(crowdRGB(aLook1.y), zone == 2 && part == 0 && slot == 0 ? trim : 0.0);
+  }
+`;
+
+/**
+ * Printed cloth patterns (costumes.js TRIM_IDS), in rest-pose body space (metres, feet at 0, facing +z):
+ * shared by the full NPCs' outfit material and the crowd figures, so both print the same tunic.
+ */
+export const TRIM_GLSL = /* glsl */ `
+  vec3 outfitTrim(vec3 base, vec3 trim, float kind, vec3 b) {
+    int k = int(kind + 0.5);
+    float ax = abs(b.x);
+    bool on = false;
+    if (k == 1) on = fract(b.y / 0.09) < 0.32;                                     // stripes
+    else if (k == 2) on = abs((b.y - 1.2) + b.x * 0.95) < 0.035;                   // a sash, shoulder to hip
+    else if (k == 3) on = b.y > 1.31 || (ax < 0.012 && b.z > 0.0);                 // a uniform's yoke and placket
+    else if (k == 4) on = (b.y < 1.27 && ax < 0.11 && b.z > 0.0) || (abs(ax - 0.075) < 0.018 && b.y > 1.26);   // overall bib, straps
+    else if (k == 5) on = mod(floor(b.x * 14.0 + b.y * 14.0) + floor(b.x * 14.0 - b.y * 14.0), 2.0) < 0.5;   // diamonds
+    else if (k == 6) on = fract(sin(dot(floor(vec2(b.x * 7.0 + b.z * 3.0, b.y * 7.0)), vec2(12.9898, 78.233))) * 43758.5453) > 0.74;   // patches
+    else if (k == 7) on = length(fract(vec2(b.x + b.z * 0.5, b.y) * 9.0) - 0.5) < 0.2;   // dots
+    else if (k == 8) on = abs(b.y - 1.03) < 0.022 || b.y > 1.4;                 // a band above the belt, a collar
+    return on ? trim : base;
   }
 `;

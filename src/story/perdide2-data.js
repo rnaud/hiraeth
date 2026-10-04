@@ -60,7 +60,7 @@ const P = (cloak, cloth, extra = {}) => ({ cloak, lining: '#2b211f', cloth, legs
 // CONTENT.perdide2.npcs (src/levels/perdide2.js): kind by index (spawnNPCs: even m, odd f).
 export const KEEPERS = [
   {
-    at: [-8, 10], radius: 2, palette: P('#f2a07a', '#3e5a6a'),
+    at: [-8, 10], radius: 2, palette: P('#f2a07a', '#3e5a6a'), look: { prop: 'lamppole' },
     lines: ['~neutral~ The lit pools lead to the cave. Keep to them after dark.', '~surprised~ A traveller. A traveller!', '~playful~ The eggs are warm. Don’t ask what’s inside.'],
     id: 'hollin', name: 'Hollin', title: 'keeper of the lamps', color: '#f2a07a', voice: 0.8,
     talk: {
@@ -210,7 +210,7 @@ export const KEEPERS = [
 export const PEOPLE = {
   wick: {
     id: 'wick', name: 'Wick', title: 'a young lamp-keeper', color: '#ffd6a0', voice: 1.35, kind: 'f',
-    palette: { cloak: '#ffd6a0', lining: '#2b211f', cloth: '#3a6a58', legs: '#2f3a4f', hat: '#f2a07a', hair: '#2b211f' }, head: 'hair', cape: 0.55,
+    palette: { cloak: '#ffd6a0', lining: '#2b211f', cloth: '#3a6a58', legs: '#2f3a4f', hat: '#f2a07a', hair: '#2b211f' }, head: 'hair', cape: 0.55, look: { prop: 'lantern' },
     lines: ['~angry~ It won’t take my light.', '~shout~ Splash it! Go on!', '~neutral~ Mind the eggs.'],
     talk: {
       entry: [

@@ -62,7 +62,7 @@ export const QUESTS = [
 export const PEOPLE = {
   mira: {
     id: 'mira', name: 'Mira', title: 'who keeps the water clock', color: '#62c3c9', voice: 1.05, kind: 'f',
-    palette: { cloak: '#f7f4ec', lining: '#2b211f', cloth: '#62c3c9', legs: '#7f9a90', hat: '#9fd6c9', hair: '#3d2a22', face: '#dfe8ec' }, head: 'wrap', cape: 1.1,
+    palette: { cloak: '#f7f4ec', lining: '#2b211f', cloth: '#62c3c9', legs: '#7f9a90', hat: '#9fd6c9', hair: '#3d2a22', face: '#dfe8ec' }, head: 'wrap', cape: 1.1, look: { body: 'garland' },
     lines: ['~solemn~ We tend the garden. The garden tends us.', '~playful~ The clock says it is time for tea. It always says that.', '~playful~ Mind the flowers. They mind you.'],
     talk: {
       entry: [
@@ -238,7 +238,7 @@ export const PEOPLE = {
 
   vey: {
     id: 'vey', name: 'Vey', title: 'who tends the vines', color: '#7fcfa8', voice: 0.8, kind: 'f', scale: 1.02,
-    palette: { cloak: '#7fcfa8', lining: '#2b211f', cloth: '#f7f4ec', legs: '#4a5a3a', hat: '#f7f4ec', hair: '#e8dcc0' }, head: 'hood', cape: 1.4,
+    palette: { cloak: '#7fcfa8', lining: '#2b211f', cloth: '#f7f4ec', legs: '#4a5a3a', hat: '#f7f4ec', hair: '#e8dcc0' }, head: 'hood', cape: 1.4, look: { prop: 'flower' },
     lines: ['~angry~ Don’t cut anything.', '~solemn~ It fell. It belongs to the ground now.', '~whisper~ Gently.'],
     talk: {
       entry: [

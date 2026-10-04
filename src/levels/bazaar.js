@@ -314,7 +314,7 @@ export function createBazaar(scene) {
       for(const sp of [...groups,...walks,...edges]){sp.id=zoneOf(sp.at??sp.path[0]);sp.lines=STORY_LINES[sp.id];}
       const P=signal.places, keep=[[P.kip,1.6],[P.ferro,1.6],[P.console,2.2]];
       for(const [q,rr] of keep) folk.push({x:q.x,y:q.y,z:q.z,r:rr});
-      return {groups,walks,edges,avoid:folk,farMax:420,palette:{cloaks:['#f0a083','#88b4b5','#e4bd83','#b9a9c5','#94a9bd','#ebce98','#c8483a','#5fb7ad','#d8a24a','#8a6fb8','#62c3c9','#f3ead8']},
+      return {groups,walks,edges,avoid:folk,farMax:420,costume:'bazaar',palette:{cloaks:['#f0a083','#88b4b5','#e4bd83','#b9a9c5','#94a9bd','#ebce98','#c8483a','#5fb7ad','#d8a24a','#8a6fb8','#62c3c9','#f3ead8']},
         clear:[{x:0,z:88,r:3.5},{x:8,z:82,r:4},{x:-11,z:121,r:5}]};
     },
     init(physics){

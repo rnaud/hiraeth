@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { PORTRAIT_GLSL } from './face.js';
 import { CREASE_GLSL } from './creases.js';
 import { BIOME_GLSL } from './biome.js';
-import { CROWD_GLSL } from './crowd-shader.js';
+import { CROWD_GLSL, TRIM_GLSL } from './crowd-shader.js';
 
 // ---------------------------------------------------------------------------
 // G-buffer surface material.
@@ -204,6 +204,11 @@ const fragmentShader = /* glsl */ `
   uniform vec3 uGlassCenter;
   uniform float uGlass;   // glass: only the rim and a highlight streak are drawn
   uniform vec4 uOutfit;   // bootTop, beltY, neckY, wristX (rest pose, metres)
+  uniform vec4 uTrim;     // outfit: the tunic's printed pattern (rgb, costumes.js TRIM_IDS; 0 none)
+  #ifdef CROWD
+    flat in vec4 vCrowdTrim;
+  #endif
+  ${TRIM_GLSL}
   uniform vec4 uFace;     // eyeY, eyeX, noseY, chinY (rest pose)
   uniform vec3 uPalette[12];
   uniform int uPaletteSize;
@@ -778,7 +783,7 @@ const fragmentShader = /* glsl */ `
       else if (abs(b.y - uOutfit.y) < 0.03 && ax < 0.25) albedo = uColor2 * 0.6 + vec3(0.33, 0.24, 0.1);
       else if (b.y < uOutfit.y) albedo = uColor2;
       else if (ax > uOutfit.w - 0.05) albedo = uColor * 0.75;     // cuffs
-      else albedo = uColor;
+      else albedo = uTrim.w > 0.5 ? outfitTrim(uColor, uTrim.rgb, uTrim.w, b) : uColor;
     } else if (uMode == ${MODE_WATER}) {
       // two flat tones drifting slowly
       float w = vnoise(vWorldPos.xz * 0.012 + uTime * 0.01);
@@ -793,6 +798,9 @@ const fragmentShader = /* glsl */ `
     else if (uPattern == 3) patInk = leaves(vObjPos);
     else if (uPattern == 4) patInk = rockCracks(vObjPos);
     albedo *= instColor;
+    #ifdef CROWD
+      if (vCrowdTrim.w > 0.5) albedo = outfitTrim(albedo, vCrowdTrim.rgb, vCrowdTrim.w, vBind);
+    #endif
     // cloth: the colour runs from the collar (uColor) down to the hem (uColor2)
     // cloth in flat blocks of colour, like a printed plate: the body colour, then a hem band
     if (uFolds > 0.0) albedo = (vFold.y < 0.62 ? uColor : uColor2) * vInstColor;
@@ -974,6 +982,7 @@ export function makeMaterial(o) {
       uGlassCenter: { value: o.glassCenter ?? new THREE.Vector3() },
       uGlass: { value: o.glass ? 1 : 0 },
       uOutfit: { value: new THREE.Vector4(...(o.outfit ?? [0.13, 0.97, 1.47, 0.64])) },
+      uTrim: { value: new THREE.Vector4(...(o.trim ?? [0, 0, 0, 0])) },
       uFace: { value: new THREE.Vector4(...(o.face ?? [1.7, 0.032, 1.657, 1.577]).filter((_, i) => i !== 3)) },
     },
   });

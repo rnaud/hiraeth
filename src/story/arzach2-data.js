@@ -71,7 +71,7 @@ export const QUESTS = [
 export const PEOPLE = {
   ysolde: {
     id: 'ysolde', name: 'Mother Ysolde', title: 'who writes the letters', color: '#e9d7b0', voice: 0.85, kind: 'f', age: 'elder', scale: 0.95,
-    palette: { cloak: '#f3ead8', lining: '#6a3a4a', cloth: '#6a3a4a', legs: '#4a3a2a', hat: '#f3ead8', hair: '#e8dcc0' }, head: 'hood', cape: 1.45,
+    palette: { cloak: '#f3ead8', lining: '#6a3a4a', cloth: '#6a3a4a', legs: '#4a3a2a', hat: '#f3ead8', hair: '#e8dcc0' }, head: 'hood', cape: 1.45, look: { prop: 'bell', body: 'scarf' },
     lines: ['~scared~ Mind the cliff, child.', '~sad~ Thirty years of letters, and not one sent.', '~surprised~ Is that a bird? A real one?'],
     talk: {
       entry: [
@@ -106,7 +106,7 @@ export const PEOPLE = {
   },
   tiv: {
     id: 'tiv', name: 'Tiv', title: 'a novice who balances stones', color: '#9fc3c4', voice: 1.4, kind: 'm', scale: 0.85,
-    palette: { cloak: '#9fc3c4', lining: '#2b211f', cloth: '#f3ead8', legs: '#4a3a2a', hat: '#f3ead8', hair: '#6e4a32' }, head: 'hair', cape: 0.55,
+    palette: { cloak: '#9fc3c4', lining: '#2b211f', cloth: '#f3ead8', legs: '#4a3a2a', hat: '#f3ead8', hair: '#6e4a32' }, head: 'hair', cape: 0.55, look: { prop: 'none', body: 'none' },
     lines: ['~whisper~ Shh, it’s nearly balanced.', '~surprised~ They fell UP. Up!', '~neutral~ Widest first. Always widest first.'],
     talk: {
       entry: [

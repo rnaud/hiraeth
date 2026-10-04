@@ -71,7 +71,7 @@ export const QUESTS = [
 export const PEOPLE = {
   wen: {
     id: 'wen', name: 'Wen', title: 'who counts the teeth', color: '#e8b896', voice: 1.0, kind: 'f',
-    palette: { cloak: '#e8b896', lining: '#2b211f', cloth: '#5f7488', legs: '#3a3a3a', hat: '#f3ead2', hair: '#3d2a22' }, head: 'wrap', cape: 1.1,
+    palette: { cloak: '#e8b896', lining: '#2b211f', cloth: '#5f7488', legs: '#3a3a3a', hat: '#f3ead2', hair: '#3d2a22' }, head: 'wrap', cape: 1.1, look: { mask: 'breather', body: 'pauldrons' },
     lines: ['~neutral~ Tooth Day. Mind the sand.', '~happy~ Forty-one teeth, and every one counted.', '~neutral~ Watch the city when it turns.'],
     talk: {
       entry: [
@@ -144,7 +144,7 @@ export const PEOPLE = {
 
   hask: {
     id: 'hask', name: 'Hask', title: 'keeper of the Wick', color: '#7f93a3', voice: 0.7, kind: 'm', scale: 0.96,
-    palette: { cloak: '#7f93a3', lining: '#2b211f', cloth: '#c8643f', legs: '#4a3a2a', hat: '#e9dcc0', hair: '#e8dcc0' }, head: 'hat', cape: 1.3,
+    palette: { cloak: '#7f93a3', lining: '#2b211f', cloth: '#c8643f', legs: '#4a3a2a', hat: '#e9dcc0', hair: '#e8dcc0' }, head: 'hat', cape: 1.3, look: { prop: 'lantern' },
     lines: ['~tired~ Mm.', '~tired~ Fifty-two Tooth Days.', '~neutral~ (he watches the sky)'],
     talk: {
       entry: [
