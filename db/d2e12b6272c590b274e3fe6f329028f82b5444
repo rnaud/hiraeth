@@ -1,0 +1,21 @@
+src/ship/starmap.js
+  s_1fd8d0e7b02dcf::t_57200f4782baff 54-65,94-98,100-107,119-122,126-127,135-136,140
+tests/ship.test.js
+  s_1fd8d0e7b02dcf::t_5f82ec9c0cdd76 180-186
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dbd2e12b6272c590b274e3fe6f329028f82b5444",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
