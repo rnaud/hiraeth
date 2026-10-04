@@ -1,0 +1,23 @@
+src/story/incal-data.js
+  s_1fd8d0e7b02dcf::t_ba32989654f8af 60,101-102,107,140,362
+tests/story-bazaar.test.js
+  s_1fd8d0e7b02dcf::t_e755c8f5fc5053 87-98
+tests/story-incal.test.js
+  s_1fd8d0e7b02dcf::t_4bc0df5f173c1e 114-125
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2c682627cd339764d17a159aa9cc74b9a584ac34",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
