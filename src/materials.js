@@ -46,6 +46,10 @@ export const sharedUniforms = {
   uShadowMatrix2: { value: new THREE.Matrix4() },
   uShadowBias2: { value: 0.0005 },
   uShadowNormalOffset2: { value: 2.0 },
+  // each cascade's texel in metres (fine, near, far): the filter widens to the pixel's
+  // footprint where a texel is smaller than a pixel, instead of aliasing
+  uShadowTexel: { value: new THREE.Vector3(0.0117, 0.107, 1.12) },
+  uShadowTaps: { value: 9 },      // PCF taps: 9 (a smooth 4x4-texel tent) or 4 (3x3, the handheld preset)
   uTime: { value: 0 },
   // Shared with the post pass (same uniform objects).
   uToon: { value: 0.5 },
@@ -152,15 +156,17 @@ const fragmentShader = /* glsl */ `
   uniform float uStrataSize;
 
   uniform vec3 uSunDir;
-  uniform sampler2D uShadowMap;
+  uniform highp sampler2DShadow uShadowMap;
   uniform mat4 uShadowMatrix;
   uniform float uShadowBias;
   uniform float uShadowNormalOffset;
-  uniform sampler2D uShadowMap0;
+  uniform highp sampler2DShadow uShadowMap0;
   uniform mat4 uShadowMatrix0;
   uniform float uShadowBias0;
   uniform float uShadowNormalOffset0;
-  uniform sampler2D uShadowMap2;
+  uniform vec3 uShadowTexel;
+  uniform float uShadowTaps;
+  uniform highp sampler2DShadow uShadowMap2;
   uniform mat4 uShadowMatrix2;
   uniform float uShadowBias2;
   uniform float uShadowNormalOffset2;
@@ -231,30 +237,48 @@ const fragmentShader = /* glsl */ `
 
   ${BIOME_GLSL}
 
-  // Hand-rolled shadow map lookup with two cascades: a sharp one around the
-  // player and a wide one so mesas shadow the far dunes. "inside" fades out at
-  // the frustum border so the hand-over between cascades is invisible.
-  float sampleShadow(sampler2D map, mat4 m, vec3 wp, vec3 n, float off, float bias, out float inside) {
-    vec4 sc = m * vec4(wp + n * off, 1.0);
+  // Hand-rolled shadow map lookup over three cascades (fine, near, far; main.js
+  // and shadows.js). "inside" fades out at each map's border so the hand-over
+  // between cascades is a blend, not a seam.
+  //  - the maps are depth textures with hardware comparison and linear
+  //    filtering: every tap is a bilinear 2x2 PCF, so edges move smoothly
+  //    with sub-texel precision instead of stepping texel by texel
+  //  - normal offset and bias are in texels of each cascade (main.js sets
+  //    them from the map size); the offset grows towards grazing light,
+  //    where acne starts, and stays small facing the sun (no peter-panning)
+  //  - where a texel is smaller than the pixel (far walls in the near
+  //    cascade, the handheld's low resolution) the taps spread to the
+  //    pixel's footprint: a filtered edge instead of shimmering texels
+  float sampleShadow(highp sampler2DShadow map, mat4 m, vec3 wp, vec3 n, float sinL, float off, float bias, float spread, out float inside) {
+    vec4 sc = m * vec4(wp + n * (off * (0.35 + 0.65 * sinL)), 1.0);
     vec3 p = sc.xyz / sc.w * 0.5 + 0.5;
     vec2 e = smoothstep(0.0, 0.06, p.xy) * (1.0 - smoothstep(0.94, 1.0, p.xy));
     inside = p.z > 1.0 ? 0.0 : e.x * e.y;
     if (inside <= 0.0) return 1.0;
-    vec2 texel = 1.0 / vec2(textureSize(map, 0));
+    vec2 texel = spread / vec2(textureSize(map, 0));
+    float z = p.z - bias;
+    if (uShadowTaps < 5.0) {
+      vec2 o = texel * 0.5;
+      return 0.25 * (texture(map, vec3(p.xy + vec2(-o.x, -o.y), z)) + texture(map, vec3(p.xy + vec2(o.x, -o.y), z))
+                   + texture(map, vec3(p.xy + vec2(-o.x, o.y), z)) + texture(map, vec3(p.xy + vec2(o.x, o.y), z)));
+    }
     float s = 0.0;
     for (int x = -1; x <= 1; x++)
       for (int y = -1; y <= 1; y++)
-        s += step(p.z - bias, textureLod(map, p.xy + vec2(x, y) * texel, 0.0).r);
+        s += texture(map, vec3(p.xy + vec2(x, y) * texel, z));
     return s / 9.0;
   }
 
-  float getShadow(vec3 wp, vec3 n) {
+  // ndl: light facing (> 0); px: the pixel's footprint in metres
+  float getShadow(vec3 wp, vec3 n, float ndl, float px) {
     float iF, i0, i1;
-    float sF = sampleShadow(uShadowMap0, uShadowMatrix0, wp, n, uShadowNormalOffset0, uShadowBias0, iF);
+    float sinL = sqrt(max(1.0 - ndl * ndl, 0.0));
+    vec3 spread = clamp(vec3(px) / uShadowTexel, 1.0, 2.5);
+    float sF = sampleShadow(uShadowMap0, uShadowMatrix0, wp, n, sinL, uShadowNormalOffset0, uShadowBias0, spread.x, iF);
     if (iF >= 1.0) return sF;
-    float s0 = sampleShadow(uShadowMap, uShadowMatrix, wp, n, uShadowNormalOffset, uShadowBias, i0);
+    float s0 = sampleShadow(uShadowMap, uShadowMatrix, wp, n, sinL, uShadowNormalOffset, uShadowBias, spread.y, i0);
     if (i0 < 1.0) {
-      float s1 = sampleShadow(uShadowMap2, uShadowMatrix2, wp, n, uShadowNormalOffset2, uShadowBias2, i1);
+      float s1 = sampleShadow(uShadowMap2, uShadowMatrix2, wp, n, sinL, uShadowNormalOffset2, uShadowBias2, spread.z, i1);
       s0 = mix(mix(1.0, s1, i1), s0, i0);
     }
     return mix(s0, sF, iF);
@@ -809,7 +833,8 @@ const fragmentShader = /* glsl */ `
     float lambert = ndl * 0.5 + 0.5;
     // the face takes cast shadows from outside its helmet only, keeping one clean shadow shape
     vec3 shadowAt = uPortrait > 0.5 ? vWorldPos + n * 0.22 : vWorldPos;
-    float sh = ndl > 0.0 ? getShadow(shadowAt, n) * cloudShadow(vWorldPos) : 1.0;
+    float shadowPx = max(length(dFdx(vWorldPos)), length(dFdy(vWorldPos)));   // (outside the branch: derivatives)
+    float sh = ndl > 0.0 ? getShadow(shadowAt, n, ndl, shadowPx) * cloudShadow(vWorldPos) : 1.0;
     // Cast shadows clamp the light term below the toon threshold (0.5) but keep
     // some gradation so the post-process can choose single vs cross hatching.
     float L = mix(min(lambert, 0.38), lambert, sh);

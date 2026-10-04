@@ -1169,3 +1169,22 @@ Pocket. Their built-in controls work through the Gamepad API.
   `node scripts/changelog-md.mjs` and `tests/changelog.test.js` keeps them in sync (see
   CLAUDE.md).
 
+### Steady shadows, view culling and the Handheld preset (v0.38)
+- **Shadows** (`src/shadows.js`): each cascade is a `Cascade` whose centre snaps to its
+  shadow-map texel grid in light space, with a fixed size and a quantised sun direction,
+  so shadows no longer swim as the camera moves. The maps are depth textures with
+  hardware comparison (`sampler2DShadow`), and the filter widens to the pixel's footprint.
+  Bias and normal offset are set in texels per cascade.
+- **Culling** (`src/perf.js`, `shadows.js`): `fitBounds` gives instanced meshes real bounds
+  so they cull; `ShadowCuller` skips casters whose shadows can't reach the view;
+  `SmallCuller` drops props by projected size; `RoomCuller` hides off-map rooms (ship,
+  caves) unless the camera is near. Draw calls fall 10–36% across the worlds.
+- **Graphics presets** (`QUALITY_PRESETS`, `resolveQuality`, `detectHandheld` in
+  `perf.js`): Handheld (75% resolution with dynamic scaling, no fine cascade, 4-tap shadows,
+  no crease shading or cloud shadows, shorter crowd and prop ranges, a lighter ink pass)
+  is chosen by Auto on Android and mobile GPUs. The F readout shows ms (CPU and GPU where
+  the browser allows), render scale, draw calls and triangles.
+- Known: on desktop Metal (ANGLE), Perdide II and the Buried Machine run about 1 ms slower
+  per frame than before despite fewer draws (still over 200 fps here); the desert and the
+  City-Shaft are about 1 ms faster.
+

@@ -300,7 +300,8 @@
       /* The canvas fills the screen; interactive UI stays inside iOS safe areas. */
       #hud { left: calc(16px + var(--safe-left)); bottom: calc(16px + var(--safe-bottom)); }
       #gear { right: calc(14px + var(--safe-right)); bottom: calc(14px + var(--safe-bottom)); }
-      #fps { right: calc(64px + var(--safe-right)); bottom: calc(22px + var(--safe-bottom)); }
+      /* the frame-time readout sits top right, clear of the status box and its long lines */
+      #fps { right: calc(14px + var(--safe-right)); top: calc(14px + var(--safe-top)); bottom: auto; }
       body.touch #hud { top: calc(10px + var(--safe-top)); bottom: auto; }
       body.touch #gear { top: calc(14px + var(--safe-top)); bottom: auto; }
       body.touch #fps { top: auto; bottom: calc(14px + var(--safe-bottom)); left: calc(16px + var(--safe-left)); right: auto; }

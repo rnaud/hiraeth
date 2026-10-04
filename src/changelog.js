@@ -4,6 +4,8 @@
 
 export const CHANGELOG = [
   { v: '0.38', date: '2026-10-04', items: [
+    'Steadier sun shadows: building and cliff shadows no longer shimmer or crawl as you walk and turn, and their edges are softer.',
+    'Faster drawing on every world: the game skips what you can’t see, and the shadows of things that can’t reach the screen. A new Handheld graphics setting is chosen automatically on Android, and the frame readout (F) now shows frame time, draw calls and resolution in the top right.',
     'The settings now say plainly whether you have the newest game: “Up to date (build 16)”, “Build 17 available, downloading…”, or “downloaded: restart to play it”. This needs the new app once; accept the app update when it is offered.',
   ] },
   { v: '0.37', date: '2026-10-04', items: [

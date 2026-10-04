@@ -7,8 +7,11 @@ const SAVE_KEY = 'moebius.save.v1';
 
 export const isTouch = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
 
+// the Android app (the Retroid Pocket and phones) starts on the handheld preset (perf.js QUALITY_PRESETS)
+export const isNativeApp = !!globalThis.Capacitor?.isNativePlatform?.();
+
 const DEFAULTS = {
-  quality: isTouch ? 'auto' : 'high',   // auto | low | medium | high
+  quality: isNativeApp ? 'handheld' : isTouch ? 'auto' : 'high',   // auto | handheld | low | medium | high
   sensitivity: 1,
   invertY: false,
   swapAB: false,   // controller: B confirms and jumps, A goes back (native-pad.js)
@@ -45,7 +48,7 @@ export class SettingsMenu {
     el.innerHTML = `
       <div class="panel">
         <h1>SETTINGS <span style="font-size:12px;letter-spacing:0;opacity:.6">v${VERSION}</span></h1>
-        ${row('Graphics', `<select data-k="quality"><option value="auto">Auto (adapts to keep it smooth)</option><option value="low">Low (fast)</option><option value="medium">Medium</option><option value="high">High (smooth lines)</option></select>`)}
+        ${row('Graphics', `<select data-k="quality"><option value="auto">Auto (adapts to keep it smooth)</option><option value="handheld">Handheld (Retroid, phones)</option><option value="low">Low (fast)</option><option value="medium">Medium</option><option value="high">High (smooth lines)</option></select>`)}
         ${row('Camera sensitivity', `<input data-k="sensitivity" type="range" min="0.3" max="3" step="0.05">`)}
         ${row('Invert camera Y', `<input data-k="invertY" type="checkbox">`)}
         ${row('Swap A/B (confirm/back)', `<input data-k="swapAB" type="checkbox">`)}
@@ -54,7 +57,7 @@ export class SettingsMenu {
         ${row('Voices', `<input data-k="voices" type="range" min="0" max="1" step="0.05">`)}
         ${row('Alien voices (heard through your translator)', `<input data-k="alienVoices" type="checkbox">`)}
         ${row('Mute (M)', `<input data-k="mute" type="checkbox">`)}
-        ${row('Show FPS (F)', `<input data-k="showFps" type="checkbox">`)}
+        ${row('Show FPS and frame time (F)', `<input data-k="showFps" type="checkbox">`)}
         ${row('Developer panel', `<input data-k="devPanel" type="checkbox">`)}
         ${row('Dev menu: items, boxes, worlds (\`)', `<button data-a="dev" type="button">open</button>`)}
         <div class="buttons">
