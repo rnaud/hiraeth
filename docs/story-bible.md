@@ -23,6 +23,13 @@ android ruins of Viridel and on the oldest market sign. Locals each have a
 different name and story for it. Nobody knows what struck the ship; in each
 world one person has seen "a falling light that sang" around the same time.
 
+**The signature** (src/story/signature.js; LORE.md, "The strike's signature"):
+the scar is magnetised, and its field beats slowly in threes. The ship charts
+only the worlds whose field carries the same signature (the worlds the singing
+light passed through) and reads the trace further on from each one finished.
+Home has none. The ship says so after the crash, on the map and out of each
+first jump; a few locals notice it as compasses and needles that turn.
+
 **The boxes** (src/boxes/, src/items.js): every item box in the game is an
 artifact of the **makers**, the people whose sign is the glyph. Nobody has
 seen a maker. They made the giants walk (the giants carried their water

@@ -5,6 +5,9 @@
 //
 //  - Only the worlds you know of are named and can be chosen; the rest are
 //    faint dots further along the route (the unlock rule: src/story/route.js).
+//  - Every world on the chart carries the strike's signature (src/story/signature.js):
+//    a small glyph mark on its disc, its reading in the panel, and a line beside the
+//    chart saying why these worlds and no others.
 //  - Choosing a world asks first: "Travel to X?" Yes / No (keyboard, mouse,
 //    touch and pad: A / × yes, B / ○ no). The press that opens the question
 //    never answers it.
@@ -21,6 +24,7 @@
 import { homeEntry } from '../story/ending.js';
 import { knownWorlds } from '../story/route.js';
 import { planetSvg } from './planets.js';
+import { hasSignature, signatureReading, SIGNATURE, SIGNATURE_LEGEND, SIGNATURE_LEGEND_SHORT } from '../story/signature.js';
 import { padIndex, confirmKey, backKey } from '../native-pad.js';
 
 /** What the console does when you press E: a pending call first, then the map, which needs power. */
@@ -36,10 +40,10 @@ export function mapEntries({ order, levels, flag, journal, current, home }) {
   const known = new Set(knownWorlds({ order, done: isDone, visited: isVisited, current }));
   const out = order.map((id, i) => {
     const L = levels.find((l) => l.id === id) ?? { id, title: id };
-    return { id, i, title: L.title, source: L.source ?? '', blurb: L.blurb ?? '', visited: isVisited(id), done: isDone(id), current: id === current, known: known.has(id) };
+    return { id, i, title: L.title, source: L.source ?? '', blurb: L.blurb ?? '', visited: isVisited(id), done: isDone(id), current: id === current, known: known.has(id), signature: hasSignature(id) };
   });
   const h = homeEntry({ unlocked: typeof home === 'function' ? home() : !!home, current });
-  if (h) out.push({ ...h, i: out.length, known: true });
+  if (h) out.push({ ...h, i: out.length, known: true, signature: false });
   return out;
 }
 
@@ -50,6 +54,9 @@ export function worldBox(s = 1) {
   const disc = Math.round(58 * s), font = Math.max(9.5, 11.5 * s), line = font * 1.25;
   return { disc, font, w: Math.max(84, Math.round(108 * s)), h: disc + 10 + 2 * line + line * 0.95 };
 }
+
+/** The strike's signature as the ship draws it: the glyph, three dots over an upward arc. */
+export const SIG_GLYPH = '<svg class="glyph" viewBox="0 0 20 16" aria-hidden="true"><circle cx="4.5" cy="2.2" r="1.7"/><circle cx="10" cy="2.2" r="1.7"/><circle cx="15.5" cy="2.2" r="1.7"/><path d="M3 15 Q10 4.5 17 15" fill="none" stroke-width="2.2" stroke-linecap="round"/></svg>';
 
 const HEADER = 62;   // the title and the count, top left of the field
 const PAD = 6;
@@ -129,6 +136,18 @@ const CSS = `
 #starmap .world .name { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: 10px; text-align: center; line-height: 1.25; text-shadow: 0 1px 0 #1f2747; }
 #starmap .world .tag { display: block; text-align: center; line-height: 1.2; color: #9fe0d6; min-height: 1.2em; white-space: nowrap; }
 #starmap .world .star { position: absolute; right: -7px; top: -7px; width: 18px; height: 18px; display: grid; place-items: center; border-radius: 50%; background: #f2c54b; color: #2b211f; border: 2px solid #2b211f; font-size: 11px; line-height: 1; }
+#starmap .world .sig { position: absolute; left: -7px; bottom: -5px; width: 20px; height: 20px; display: grid; place-items: center; border-radius: 50%; background: #1f2747; border: 1.5px solid #cdb4ff; }
+#starmap svg.glyph { width: 13px; height: 11px; fill: #cdb4ff; stroke: #cdb4ff; overflow: visible; }
+#starmap .panel .sigline { display: flex; gap: 6px; align-items: baseline; font-size: 11px; letter-spacing: .04em; color: #5b3f8f; margin: -2px 0 8px; }
+#starmap .panel .sigline svg.glyph { fill: #6a4aa8; stroke: #6a4aa8; flex: none; }
+#starmap .legend { padding: 8px 10px; font-size: 11px; line-height: 1.35; color: #e9dcff; border: 1.5px dashed rgba(205, 180, 255, .55); background: rgba(31, 39, 71, .6); }
+#starmap .legend b { color: #cdb4ff; letter-spacing: .08em; font-weight: normal; }
+#starmap .legend svg.glyph { vertical-align: -1px; margin-right: 4px; }
+#starmap .legend .short { display: none; }
+#starmap.portrait .legend, #starmap.small .legend { padding: 3px 8px; font-size: 10px; }
+#starmap.portrait .legend .long, #starmap.small .legend .long { display: none; }
+#starmap.portrait .legend .short, #starmap.small .legend .short { display: inline; }
+@media (max-height: 760px) { #starmap .legend .long { display: none; } #starmap .legend .short { display: inline; } }
 #starmap .world.unvisited .disc::after { border: 2px dashed rgba(247, 236, 210, .75); }
 #starmap .world.current .disc::after { border: 3px solid #e6875f; }
 #starmap .world.current .tag { color: #e6875f; }
@@ -150,7 +169,7 @@ const CSS = `
 #starmap .keys { margin-top: auto; opacity: .65; font-size: 11px; text-align: right; }
 #starmap .close { position: absolute; right: 12px; top: 12px; z-index: 2; font: inherit; font-size: 13px; padding: 4px 10px; color: #f7ecd2; background: none; border: 1.5px solid rgba(247, 236, 210, .6); cursor: pointer; }
 /* portrait (phones): the field on top, the panel under it */
-#starmap.portrait .chart { grid-template-columns: 1fr; grid-template-rows: 1fr 232px; height: min(800px, 92vh); }
+#starmap.portrait .chart { grid-template-columns: 1fr; grid-template-rows: 1fr 292px; height: min(800px, 92vh); }
 #starmap.portrait .side { padding: 0 10px 8px; gap: 4px; }
 #starmap.portrait .panel { padding: 10px 12px; }
 #starmap.portrait .panel p { font-size: 11.5px; margin-bottom: 6px; }
@@ -240,12 +259,13 @@ export class StarMap {
         <svg class="route"></svg>
         <h1>GALACTIC MAP</h1><div class="sub">${known.length} worlds charted · ${done} ${done === 1 ? 'discovery' : 'discoveries'} made</div>
         ${this.entries.map((e, i) => e.known ? `<button class="world${e.done ? ' done' : ''}${e.visited ? '' : ' unvisited'}${e.current ? ' current' : ''}${e.home ? ' home' : ''}" data-i="${i}">
-            <span class="disc">${e.home ? '' : planetSvg(e.id)}${e.done ? '<span class="star">✦</span>' : ''}</span>
+            <span class="disc">${e.home ? '' : planetSvg(e.id)}${e.done ? '<span class="star">✦</span>' : ''}${e.signature ? `<span class="sig" title="${SIGNATURE.toLowerCase()}">${SIG_GLYPH}</span>` : ''}</span>
             <span class="name">${e.title}</span><span class="tag">${e.current ? 'you are here' : e.home ? 'they are waiting' : e.visited ? '' : 'new'}</span></button>` : '').join('')}
         <button class="close">close ✕</button>
       </div>
       <div class="side">
         <div class="panel"></div>
+        <div class="legend">${SIG_GLYPH}<b>${SIGNATURE}</b> · <span class="long">${SIGNATURE_LEGEND}</span><span class="short">${SIGNATURE_LEGEND_SHORT}</span></div>
         <div class="keys">${{ touch: 'tap a world, then Travel', pad: `D-pad choose · ${confirmKey()} travel · ${backKey()} close`, keys: '← → choose · Enter travel · Esc close' }[this.hints]}</div>
       </div>
       <div class="confirm"><div class="card"></div></div>
@@ -294,7 +314,9 @@ export class StarMap {
     const e = this.entries[i];
     for (const b of this.el.querySelectorAll('button.world')) b.classList.toggle('sel', +b.dataset.i === i);
     const p = this.el.querySelector('.panel');
+    const sig = signatureReading(e.id, { visited: e.visited });
     p.innerHTML = `${e.home ? '' : planetSvg(e.id, { cls: 'mini' })}<h2>${e.title}</h2><div class="src">${e.source}</div><p>${e.blurb}</p>
+      ${sig ? `<div class="sigline">${SIG_GLYPH}<span>SIGNATURE · ${sig}</span></div>` : ''}
       <div class="state">${e.current ? 'THE SHIP IS HERE' : e.home ? 'HOME' : e.done ? '✦ DISCOVERY MADE' : e.visited ? 'VISITED' : 'NOT YET VISITED'}</div>
       <button class="go"${e.current || !this.o.powered?.() ? ' disabled' : ''}>${e.current ? 'you are here' : 'Travel ▶'}</button>`;
     p.querySelector('.go').addEventListener('click', () => this.go());

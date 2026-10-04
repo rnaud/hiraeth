@@ -353,7 +353,8 @@ export const PEOPLE = {
         },
         light: {
           say: ['~scared~ I was flying under it. It came over the rim slow and low, singing, and then it turned, like it was looking for something. My compass spun for an hour.',
-            '~sad~ Then it went off over the rim toward the deserts, and the shaft went quiet, and the light above the palace was dimmer. That’s all I know. It’s more than most.'],
+            '~sad~ Then it went off over the rim toward the deserts, and the shaft went quiet, and the light above the palace was dimmer. That’s all I know. It’s more than most.',
+            '~curious~ Funny thing: it twitches again near your ship. Not for an hour, just a twitch, the same way round. Whatever that light was, it left its pull on you.'],
           do: { set: { 'incal.rumour.light': true } },
           choices: [{ text: '~neutral~ I need to get to the top.', goto: 'ride' }],
         },

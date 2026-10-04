@@ -159,7 +159,7 @@ export const PEOPLE = {
           do: { set: { 'garage.rumour.light': true } },
           choices: [{ text: '~neutral~ My ship fell that night.', goto: 'ship' }, { text: '~neutral~ (look up at the slit)', end: true }],
         },
-        ship: { say: ['~curious~ Then the light was looking for something that fell. Or something fell because it looked. The Major would know. The Major would have forgotten.'], choices: [{ text: '~neutral~ (look up at the slit)', end: true }] },
+        ship: { say: ['~curious~ Then the light was looking for something that fell. Or something fell because it looked. The Major would know. The Major would have forgotten.', '~curious~ It left something in the slit’s rim, too. Every compass in the ring still points at the place where it turned, and so does your ship’s scar. I checked.'], choices: [{ text: '~neutral~ (look up at the slit)', end: true }] },
         unstamped: { say: ['~surprised~ That’s the signal! But it isn’t stamped. It has to go through *the relay in the upside-down* first, or the light won’t come through it right. Don’t ask me why. Habit.'], choices: [{ text: '~tired~ Back to the upside-down, then.', end: true }] },
         signal: {
           say: ['~surprised~ You brought the round yourself? Nobody has done that since… nobody has done that.', '~solemn~ (She holds the tube up to the slit. Noon light comes through it in nine little dots and lies on the floor between you: on, off, on, on…)', '~curious~ Hm. That’s not a message. It’s never been a message. It’s a page number. Or a place. The Major wrote it on the back of something.'],
