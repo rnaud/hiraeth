@@ -206,7 +206,7 @@ const smooth = (a, b, x) => { const t = Math.min(Math.max((x - a) / (b - a), 0),
  * still hides behind dunes and walls.
  */
 export class SmokeColumn {
-  constructor(parent, at, { count = 230, height = 430, drift = 520, base = 3, top = 22, period = 170, palette = SMOKE_WARM, tint = FIRE[1], farNear = 260, farScale = 0.2, glow = 0.36 } = {}) {
+  constructor(parent, at, { count = 340, height = 430, drift = 520, base = 5.5, top = 22, period = 170, palette = SMOKE_WARM, tint = FIRE[1], farNear = 260, farScale = 0.2, glow = 0.92 } = {}) {   // nearly self-lit: one flat soft tone, no shadow crescent on every puff
     this.at = at.clone();
     this.height = height; this.drift = drift; this.base = base; this.top = top; this.period = period;
     const mat = makeMaterial({ color: '#ffffff', glow, tag: 'smoke-column' });
@@ -230,17 +230,14 @@ export class SmokeColumn {
     this.mesh.castShadow = false; this.mesh.receiveShadow = false;
     parent.add(this.mesh);
     // u: how far along the path (0..1, advancing with time); tone: which smoke colour; oa/ob/oc: scatter round the path
-    // The fire breathes the smoke out in billows of PER puffs (one big, the rest smaller and further out):
-    // near the fire they rise apart with sky between them, aloft they swell and merge into one line.
-    const PER = 5, billows = Math.ceil(count / PER);
-    this.items = Array.from({ length: count }, (_, i) => {
-      const b = Math.floor(i / PER), k = i % PER;
-      return {
-        u: (b + Math.random() * 0.3) / billows + k * 0.0025, tone: Math.random(),
-        size: k === 0 ? 1.05 + Math.random() * 0.3 : 0.45 + Math.random() * 0.5, spread: k === 0 ? 0.35 : 1.25,
-        oa: (Math.random() - 0.5) * 2, ob: (Math.random() - 0.5) * 2, oc: (Math.random() - 0.5) * 2, ph: Math.random() * 10,
-      };
-    });
+    // One continuous soft trail: the puffs are spaced evenly along the path and packed closely enough to
+    // overlap everywhere, from the fire to the end of the plume, with little scatter and close sizes and
+    // tones, so the silhouette reads as a single line rather than a string of beads.
+    this.items = Array.from({ length: count }, (_, i) => ({
+      u: (i + Math.random() * 0.5) / count, tone: 0.35 + Math.random() * 0.3,
+      size: 0.9 + Math.random() * 0.2, spread: 0.22,
+      oa: (Math.random() - 0.5) * 2, ob: (Math.random() - 0.5) * 2, oc: (Math.random() - 0.5) * 2, ph: Math.random() * 10,
+    }));
     // the wind: a direction on the ground and a gentle strength, eased slowly so the column swings like a real one
     this.wind = new THREE.Vector3(0.83, 0, 0.56);
     this.windK = 1;
@@ -322,13 +319,13 @@ export class SmokeColumn {
       const pr = s < RISE ? 0 : (s - RISE) / (1 - RISE), pl = smooth(0, 0.3, pr);
       const r = it.size * smooth(0, 0.02, s) * (s < RISE ? this.base + (this.top - this.base) * Math.pow(s / RISE, 1.1) : this.top * (1 - 0.6 * pr)) * (1 - smooth(0.72, 1, pr));
       // scatter round the centre line: little near the fire, more aloft (the column frays), widest in the plume
-      const sc = r * (0.5 + 0.5 * Math.min(s / RISE, 1) + 0.6 * pl), sw = Math.sin(t * 0.21 + it.ph + s * 9) * r * 0.25;
+      const sc = r * (0.5 + 0.5 * Math.min(s / RISE, 1) + 0.6 * pl), sw = Math.sin(t * 0.21 + s * 9) * r * 0.12;   // the whole line sways together
       const across = it.oa * sc * it.spread + sw, along = it.ob * sc * it.spread * 0.6;
       _p.x += across * cy + along * sy;
       _p.z += -across * sy + along * cy;
       _p.y += it.oc * sc * it.spread * (0.45 - 0.35 * pl);
       _s.set(r * (1 - 0.1 * pl), r * (0.85 - 0.5 * pl), r * (1 + 1.6 * pl));
-      _q.setFromEuler(_e.set(it.ph * 0.3 * (1 - pl), yaw + it.oc * 0.25, it.ob * 0.2));
+      _q.setFromEuler(_e.set(0, yaw, 0));
       this.mesh.setMatrixAt(i, _m.compose(_p, _q, _s));
       this.mesh.setColorAt(i, _a.copy(it.c).lerp(this.tint, 0.5 * (1 - smooth(0.01, 0.13, s))));
     }
