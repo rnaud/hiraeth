@@ -1,0 +1,129 @@
+README.md
+  s_1fd8d0e7b02dcf::t_f71111b32252a7 80,168,170-183,211,216,218,223,227,382,423-426,445,550,568,570,573,575,694,697,747,749-751,823,838-841,933,948,956-957,1048-1050,1052,1054-1055,1081-1082,1231-1232,1297
+TODO.md
+  s_1fd8d0e7b02dcf::t_a3ba5271bdd3ad 198-201
+changelog.md
+  s_1fd8d0e7b02dcf::t_84e6386913dfa0 27
+docs/game-brief.md
+  s_1fd8d0e7b02dcf::t_664458d657c8b1 124
+docs/story-bible.md
+  s_1fd8d0e7b02dcf::t_81c62205b4f7c7 22,55,70,82,84,86,88,156,166,168,175,177,188-189,211-212,217,228,237,243-244,278-280,282,284-285,290,292,297
+src/bird.js
+  s_1fd8d0e7b02dcf::t_f0e381b7d23246 8
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_ef590286d86141 27
+src/costumes.js
+  s_1fd8d0e7b02dcf::t_d57396f84743ce 476,482,498,517,581,595,599,607
+src/interiors.js
+  s_1fd8d0e7b02dcf::t_860310b93f18f6 9,148
+src/levels/arzach.js
+  s_1fd8d0e7b02dcf::t_65ca27dd54e6fa 9,305
+src/levels/arzach2.js
+  s_1fd8d0e7b02dcf::t_85b918b980459e 9,876
+src/levels/atelier.js
+  s_1fd8d0e7b02dcf::t_68b8d22bf6d450 113
+src/levels/content.js
+  s_1fd8d0e7b02dcf::t_2ed2ca82a82e63 181-182,187,210,213,217-218,222
+src/levels/edena.js
+  s_1fd8d0e7b02dcf::t_0f95f21fe51755 10,63,68,362,463,494,549,614
+src/levels/garage.js
+  s_1fd8d0e7b02dcf::t_5fd5ad51d6b2b7 8,10,95,143,435
+src/levels/incal.js
+  s_1fd8d0e7b02dcf::t_4c93a2e23c021b 13
+src/levels/index.js
+  s_1fd8d0e7b02dcf::t_bc4ac6542f57e0 27,33,39,45-46,51,57,63,69,75
+src/levels/lab.js
+  s_1fd8d0e7b02dcf::t_3502fb9fd7c62d 128
+src/levels/names.js
+  s_1fd8d0e7b02dcf::t_cb99c4d261074a 8-10,12,14-15
+src/levels/perdide.js
+  s_1fd8d0e7b02dcf::t_3b85cfb8d3c024 10,402
+src/levels/perdide2.js
+  s_1fd8d0e7b02dcf::t_4337cc65b90be8 10-11
+src/levels/spheres.js
+  s_1fd8d0e7b02dcf::t_3e267e900fe47c 10
+src/main.js
+  s_1fd8d0e7b02dcf::t_9880c4af91c7c7 1141
+src/player.js
+  s_1fd8d0e7b02dcf::t_484bd2fa54f6d2 36,707
+src/post.js
+  s_1fd8d0e7b02dcf::t_9b1dc32289ac18 733,739,745
+src/quest.js
+  s_1fd8d0e7b02dcf::t_229ab1b75d05e5 184
+src/reactive-world.js
+  s_1fd8d0e7b02dcf::t_93da3662de8e65 131
+src/shelter.js
+  s_1fd8d0e7b02dcf::t_89ef27c5ffb82c 58
+src/story/arzach-data.js
+  s_1fd8d0e7b02dcf::t_48f58a8500bf14 1,8
+src/story/arzach.js
+  s_1fd8d0e7b02dcf::t_808dfdbe6ea346 9
+src/story/arzach2-data.js
+  s_1fd8d0e7b02dcf::t_d3920e7fdcbd1a 1,144
+src/story/arzach2.js
+  s_1fd8d0e7b02dcf::t_c0404135bf902d 7,29
+src/story/buried-data.js
+  s_1fd8d0e7b02dcf::t_61a00919f56791 17-18,393-395
+src/story/calls.js
+  s_1fd8d0e7b02dcf::t_50f4d2acc38e30 208
+src/story/edena-data.js
+  s_1fd8d0e7b02dcf::t_f4a83e1d4d2b36 1,3,6-7,10,33,37,86,102,114,116,120,135,140,150,154,221,228,232,253,261,283,287,309,312
+src/story/edena.js
+  s_1fd8d0e7b02dcf::t_8407570b5765e1 9,13
+src/story/garage-data.js
+  s_1fd8d0e7b02dcf::t_9f06c9701563f6 1,3,83,121,218,224,226,236-237
+src/story/garage.js
+  s_1fd8d0e7b02dcf::t_bcc8f2ae6692ad 7,10
+src/story/incal-data.js
+  s_1fd8d0e7b02dcf::t_c8329220e4637d 19
+src/story/perdide-data.js
+  s_1fd8d0e7b02dcf::t_d1fc29fe8a7944 1
+src/story/perdide.js
+  s_1fd8d0e7b02dcf::t_3cfe187d346ef2 9
+src/story/perdide2-data.js
+  s_1fd8d0e7b02dcf::t_74cd092442c23f 1,12-13,113,118,258,266
+src/story/perdide2.js
+  s_1fd8d0e7b02dcf::t_10d2667fa7874e 10,15
+src/story/voice.js
+  s_1fd8d0e7b02dcf::t_3b1ac61d1507b7 87,91,99
+src/taxi.js
+  s_1fd8d0e7b02dcf::t_11a0ff18019376 7
+src/wildlife/species.js
+  s_1fd8d0e7b02dcf::t_573c755cd97771 212,272,339,477,639,708
+tests/costumes.test.js
+  s_1fd8d0e7b02dcf::t_1e7dc7af769d13 55
+tests/highlight.test.js
+  s_1fd8d0e7b02dcf::t_53a51929c9b964 50
+tests/hud-cleanup.test.js
+  s_1fd8d0e7b02dcf::t_93e22f02d7e187 13,16
+tests/route.test.js
+  s_1fd8d0e7b02dcf::t_4edce8866a1f43 17
+tests/shelter.test.js
+  s_1fd8d0e7b02dcf::t_f69adf44f83c9c 12
+tests/ship.test.js
+  s_1fd8d0e7b02dcf::t_13d70aa25d734f 131
+tests/story-arzach.test.js
+  s_1fd8d0e7b02dcf::t_f726544f4eccc1 129,187
+tests/story-buried.test.js
+  s_1fd8d0e7b02dcf::t_42a8578913d439 170
+tests/story-garage.test.js
+  s_1fd8d0e7b02dcf::t_212d2c3453d0be 154
+tests/tone.test.js
+  s_1fd8d0e7b02dcf::t_c382a610a94e00 170-171,173,208
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "69a623e7e5d86f4b3fbd87a6e1cce673c02f027d",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
