@@ -424,6 +424,8 @@ export const TANK = {
   highlight: -1.05,         // streak angle (atan2(z, x) in tank space): on the back, to one side
   inked: true,              // blobs inked at full strength (not the player's softer interior lines)
 };
+/** The docked scout's centre off the tank's axis: the widest glass (0.167 × squash), the scout's half depth docked (0.11), a gap. */
+export const SCOUT_DOCK_X = 0.167 * TANK.squash + 0.11 + 0.03;
 const profileCurve = new THREE.SplineCurve(TANK.profile.map(([r, y]) => new THREE.Vector2(r, y)));
 function radiusAt(y) {
   // the profile is monotonic in y: a few bisection steps are plenty
@@ -645,7 +647,10 @@ export class FluidTool {
     } else for (const o of p.gear?.scoutDock?.parent?.children ?? []) if (o.isMesh) o.visible = false;   // the procedural pack
     const tank = (this.tank = buildTank());
     H.chestAnchor.add(tank.group);
-    p.gear?.scoutDock?.position.set(0.25, TANK.at[1] + TANK.height * 0.62, TANK.at[2] + 0.02);   // the scout clings to the tank's left side (the cap would hide the helmet)
+    // the scout clings to the tank's left side (the cap would hide the helmet), clear of the glass
+    // and the frame: lens out, wings fore and aft (side on, they cut into the tank)
+    const dock = p.gear?.scoutDock;
+    if (dock) { dock.position.set(SCOUT_DOCK_X, TANK.at[1] + TANK.height * 0.62, TANK.at[2] + 0.02); dock.rotation.set(0, Math.PI / 2, 0); }
     const fore = H.b.lowerarm_r;
     if (fore) {
       this.bracer = buildBracer();

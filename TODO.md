@@ -85,7 +85,7 @@ Grouped by area. Checked items are done; the changelog says when.
   being part of the ship; it rains inside the ship. It must never rain indoors.
 - [ ] Perdide: looking inside the tooth flowers you can see through them (no
   inside faces / texture).
-- [ ] The drone on my back clips into the backpack.
+- [x] The drone on my back clips into the backpack.
 - [ ] Clipping pass: check that most things don't sink into surfaces.
 - [ ] Building textures and windows flicker when the camera moves.
 - [ ] I can't always look all the way up at the sky: the camera stops short.
