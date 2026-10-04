@@ -1,0 +1,41 @@
+README.md
+  s_1fd8d0e7b02dcf::t_ce2c6825ed1d70 1231-1271
+src/creases.js
+  s_1fd8d0e7b02dcf::t_9cc6d0caf79157 70,74
+src/fluid-tool.js
+  s_1fd8d0e7b02dcf::t_cf801a4359ff98 640-641,646,673-681,1006-1008
+src/gear.js
+  s_1fd8d0e7b02dcf::t_aae67474aa30e8 166,168-170
+src/humanoid.js
+  s_1fd8d0e7b02dcf::t_07651c3622fd28 2,7,10,256,258,268,340,343-344,352-357,359,363,410-412,415-428,430-443,446,448-449
+src/main.js
+  s_1fd8d0e7b02dcf::t_05a6607bde3e32 278
+src/player.js
+  s_1fd8d0e7b02dcf::t_9a638af47af4bd 1137-1138
+src/traveller-style.js
+  s_1fd8d0e7b02dcf::t_9d547e471cb0f9 5
+src/traveller.js
+  s_1fd8d0e7b02dcf::t_58932836261f8a 1-437
+tests/traveller.test.js
+  s_1fd8d0e7b02dcf::t_a8ac9a8bd997cb 10,12-13,15-17,30-45,47,50-55,59-78,80-87,90-102,105,107-125,127-128,130-141,144-146,151-169,171-176,179,181-182,184-185,187,189,191,193-196,200,202-203,205,208,214-215,221-223,227,230,232,234-238,243-274,277-288
+tools/rig-review.html
+  s_1fd8d0e7b02dcf::t_2969c6449613e9 4
+tools/rig-review.js
+  s_1fd8d0e7b02dcf::t_374b557c5c4b70 8,49,53,73-74
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c5d9e9877231515cbbd21d92f487ca139311fda7",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
