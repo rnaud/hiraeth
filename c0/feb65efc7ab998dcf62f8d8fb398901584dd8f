@@ -1,0 +1,27 @@
+src/levels/spheres.js
+  s_1fd8d0e7b02dcf::t_67fdd82d990c43 7,74-75,77-80,93,95-98,161,345,545,559,845,848-854
+src/story/index.js
+  s_1fd8d0e7b02dcf::t_1a7302156758a4 12,32
+src/story/spheres-data.js
+  s_1fd8d0e7b02dcf::t_3eebf935b74c53 1-255
+src/story/spheres.js
+  s_1fd8d0e7b02dcf::t_37e8807b7aa6e2 1-307
+tests/story-spheres.test.js
+  s_1fd8d0e7b02dcf::t_11cc225c2ffb10 1-151
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c0feb65efc7ab998dcf62f8d8fb398901584dd8f",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
