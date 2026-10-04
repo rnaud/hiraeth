@@ -1,5 +1,5 @@
 import { OBSERVATORY } from './observatory.js';
-import { SITES, POLE_LINE } from './desert-sites.js';
+import { SITES, POLE_LINE, STORY, processionLoop } from './desert-sites.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createNoise2D, fbm, mulberry32, smoothstep, lerp } from './noise.js';
@@ -247,6 +247,17 @@ export function buildWorld(scene, terrain) {
     const [[ax, az], [bx, bz]] = POLE_LINE;
     footprints.push({ x: ax + (bx - ax) * i / 8, z: az + (bz - az) * i / 8, r: 6 });
   }
+  // The story's places (the old city, its camps, the giant's skull, the
+  // procession's circuit): scattered props that would land there are simply
+  // not added. Placement itself is unchanged (same random draws, same
+  // footprints), so the rest of the desert stays exactly as it was.
+  const storyClear = [
+    { x: STORY.city.x, z: STORY.city.z, r: 150 }, { x: STORY.camps.x, z: STORY.camps.z, r: 70 },
+    { x: STORY.giant.x, z: STORY.giant.z, r: 70 }, { x: STORY.pilgrim.x, z: STORY.pilgrim.z, r: 18 },
+  ];
+  for (const [x, z] of processionLoop(10)) storyClear.push({ x, z, r: 12 });
+  const story = (x, z, r = 0) => { for (const c of storyClear) if ((c.x - x) ** 2 + (c.z - z) ** 2 < (c.r + r) ** 2) return true; return false; };
+  const addProp = (m, x, z, r) => { if (!story(x, z, r)) scene.add(m); };
   const floaters = [];  // { obj, baseY, phase }
   const banners = [];
   const lights = [];    // glowing things that light their surroundings at night
@@ -281,7 +292,7 @@ export function buildWorld(scene, terrain) {
     const base = terrain.baseAt(x, z, radius);
     m.position.set(x, base + height / 2 - 2, z);
     m.rotation.y = rng() * Math.PI;
-    scene.add(m);
+    addProp(m, x, z, radius);
     footprints.push({ x, z, r: radius * 1.02 });
   }
 
@@ -299,7 +310,7 @@ export function buildWorld(scene, terrain) {
     const m = new THREE.Mesh(g, strataMat(rng, 1.6 + rng() * 2));
     m.position.set(x, terrain.baseAt(x, z, 4 * s) - 1, z);
     m.rotation.set((rng() - 0.5) * 0.12, rng() * Math.PI, (rng() - 0.5) * 0.12);
-    scene.add(m);
+    addProp(m, x, z, capR);
     footprints.push({ x, z, r: 4.2 * s });
   }
 
@@ -320,7 +331,7 @@ export function buildWorld(scene, terrain) {
     const rot = rng() * Math.PI;
     m.position.set(x, terrain.baseAt(x, z, R) - tube, z);
     m.rotation.y = rot;
-    scene.add(m);
+    addProp(m, x, z, R + tube);
     const ca = Math.cos(rot), sa = Math.sin(rot);
     footprints.push({ x: x + ca * R, z: z - sa * R, r: tube * 1.35 });
     footprints.push({ x: x - ca * R, z: z + sa * R, r: tube * 1.35 });
@@ -376,7 +387,7 @@ export function buildWorld(scene, terrain) {
     const m = new THREE.Mesh(mergeGeometries(geos), boneMat);
     m.position.set(x, terrain.baseAt(x, z, 30 * s) - 1, z);
     m.rotation.y = rot;
-    scene.add(m);
+    addProp(m, x, z, 70 * s);
     // footprints of the rib feet
     const ca = Math.cos(rot), sa = Math.sin(rot);
     for (let i = 0; i < ribs; i++) {
@@ -408,7 +419,7 @@ export function buildWorld(scene, terrain) {
       const m = new THREE.Mesh(g, stoneMats[rng() < 0.75 ? 0 : 1 + Math.floor(rng() * 2)]);
       m.position.set(px, terrain.baseAt(px, pz, 3) - 1.5, pz);
       m.rotation.set((rng() - 0.5) * 0.25, -a + Math.PI / 2, (rng() - 0.5) * 0.25);
-      scene.add(m);
+      addProp(m, px, pz, 3);
       footprints.push({ x: px, z: pz, r: 3 });
     }
     // prayer banners on two poles
@@ -417,13 +428,16 @@ export function buildWorld(scene, terrain) {
       const base = terrain.heightAt(px, pz);
       const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.2, 12, 5).translate(0, 6, 0), makeMaterial({ color: '#34405e' }));
       pole.position.set(px, base - 0.5, pz);
+      const bannerColor = ['#d9643a', '#58b4a8', '#f2c54b'][Math.floor(rng() * 3)];
+      if (story(px, pz, 2)) continue;
       scene.add(pole);
       banners.push(new Banner(scene, new THREE.Vector3(px + 0.2, base + 11.5, pz), a + Math.PI / 2,
-        { width: 1.6, height: 6, color: ['#d9643a', '#58b4a8', '#f2c54b'][Math.floor(rng() * 3)] }));
+        { width: 1.6, height: 6, color: bannerColor }));
     }
     // central altar sphere
     const orb = new THREE.Mesh(new THREE.IcosahedronGeometry(4, 1), makeMaterial({ color: '#58b4a8', flat: true, glow: 0.5 }));
     orb.position.set(x, terrain.heightAt(x, z) + 9, z);
+    if (story(x, z, R)) return;
     lights.push(new THREE.Vector4(x, orb.position.y, z, 22));
     scene.add(orb);
     orb.userData.noCollide = true; // bobbing
@@ -556,6 +570,7 @@ export function buildWorld(scene, terrain) {
       dummy.position.set(x, terrain.heightAt(x, z) + s * 0.3, z);
       dummy.rotation.set(rng() * 6, rng() * 6, rng() * 6);
       dummy.scale.set(s * (0.8 + rng() * 0.6), s * (0.5 + rng() * 0.5), s * (0.8 + rng() * 0.6));
+      if (story(x, z, s)) dummy.scale.setScalar(0);
       dummy.updateMatrix();
       rocks.setMatrixAt(i, dummy.matrix);
       rocks.setColorAt(i, color.set(tones[Math.floor(rng() * tones.length)]));
@@ -580,6 +595,7 @@ export function buildWorld(scene, terrain) {
         dummy.position.set(x, terrain.heightAt(x, z) - 0.1, z);
         dummy.rotation.set((rng() - 0.5) * 1.1, rng() * 6, (rng() - 0.5) * 1.1);
         dummy.scale.setScalar(size * (0.6 + rng() * 0.6));
+        if (story(x, z) && Math.hypot(x - STORY.city.x, z - STORY.city.z) < 80) dummy.scale.setScalar(0);   // the city's paving (the camps and dunes keep their tufts)
         dummy.updateMatrix();
         plants.setMatrixAt(i, dummy.matrix);
         plants.setColorAt(i, color.set(tone));

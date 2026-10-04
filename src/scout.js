@@ -11,10 +11,18 @@ const _s = new THREE.Vector3(), _p = new THREE.Vector3(), _o = new THREE.Vector3
 
 const objective = (id, label, position) => ({ id, label, position: position.clone() });
 
-/** Resolve the next actionable step, using the same progress as the journal. */
-export function nextObjective({ player, expedition, story, relics, gate, level }) {
+/**
+ * Resolve the next actionable step, using the same progress as the journal.
+ * `quest`: the tracked quest's objective ({ id, label, position }, or a
+ * function returning it; src/story/quests.js). It comes first, except while
+ * the observatory expedition is under way.
+ */
+export function nextObjective({ player, expedition, story, relics, gate, level, quest = null }) {
   let target;
-  if (expedition && !expedition.state.returned) {
+  const q = typeof quest === 'function' ? quest() : quest;
+  const expeditionUnderWay = expedition && expedition.state.started && !expedition.state.returned;
+  if (q && !expeditionUnderWay) target = objective(q.id, q.label, q.position);
+  else if (expedition && !expedition.state.returned) {
     const { state, model, traveler } = expedition;
     if (!state.started || state.done) {
       target = objective('traveler', state.done ? 'Return to the traveler' : 'Meet the traveler', traveler.pos);

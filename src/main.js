@@ -29,6 +29,9 @@ import { Changelog, VERSION } from './changelog.js';
 import { Settings, SettingsMenu, TouchControls, SaveGame, isTouch, ToolHud } from './ui.js';
 import { FluidTool, bindToolMouse } from './fluid-tool.js';
 import { ORDER } from './levels/content.js';
+import { createStory } from './story/index.js';
+import { registerInteractable, PRIORITY } from './interact.js';
+import { game } from './game-state.js';
 
 // Loading: each stage updates the inked loading screen, then yields a frame
 // so it can paint (its pen animation runs on the compositor meanwhile).
@@ -292,8 +295,17 @@ const gate = (() => {
   });
 })();
 levelLights.push(gate.light);
+// ---- story: conversations, quests, the world's people and places (src/story/, src/interact.js)
+const showToast = (text) => { const el = document.getElementById('toast'); el.textContent = text; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); };
+const storyRt = createStory({ levelId, scene, physics, level, player, npcs, crowd, sound, journal, story, lib, humans: humanT, toast: showToast, tool,
+  capture: (e, l, w, h) => captureView(e, l, w, h) });
+// E: boarding a vehicle and turning a lens share the interact button with talking (nearest wins)
+registerInteractable({ id: 'vehicle', priority: PRIORITY.vehicle, range: 6, at: () => player.nearestVehicle()?.pos,
+  prompt: () => { const v = player.nearestVehicle(); return v?.kind === 'taxi' ? 'get in the taxi' : `ride the ${level.mountName ?? v?.kind ?? 'mount'}`; },
+  distance: (p) => { const v = p.nearestVehicle(); return v ? v.pos.distanceTo(p.pos) : Infinity; }, use: () => player.interact() });
+if (expedition) registerInteractable({ id: 'lens', priority: PRIORITY.use, range: 1, prompt: 'turn the lens', distance: (p) => (expedition.nearby(p) >= 0 ? 0 : Infinity), use: () => {} });
 const scout = new Scout({ scene, player, physics, sound, label: document.getElementById('scout-label'),
-  getTarget: () => nextObjective({ player, expedition, story, relics, gate, level }),
+  getTarget: () => nextObjective({ player, expedition, story, relics, gate, level, quest: () => storyRt.objective() }),
 });
 // wildlife: two or three small species per world, each with a surprise (src/wildlife.js)
 const wildlife = new Wildlife(scene, level, physics, { content, sound });
@@ -514,7 +526,7 @@ const changelog = new Changelog();
 const menu = new SettingsMenu(settings, {
   sound,
   onNews: () => changelog.toggle(true),
-  isBusy: () => story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || photo.on,
+  isBusy: () => story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || photo.on || storyRt.busy(),
   onResetProgress: () => { reactiveWorld.clear(); localStorage.removeItem('moebius.journal.v1'); SaveGame.clear(); location.search = '?level=desert'; },
 });
 if (isTouch) new TouchControls(input, rig);
@@ -624,13 +636,15 @@ function updateHud() {
     else if (player.stamina < 0.99) parts.push(`stamina ${gauge(player.stamina)}`);
     if (level.features.jetpack) parts.push(`jetpack ${gauge(player.fuel)}`);
     const near = player.nearestVehicle();
-    if (expedition?.nearby(player) >= 0) parts.push('observatory lenses');
+    if (storyRt.prompt) parts.push(`E ${storyRt.prompt}`);
+    else if (expedition?.nearby(player) >= 0) parts.push('observatory lenses');
     else if (near) parts.push(`E ${near.kind === 'taxi' ? 'get in the taxi' : 'ride the ' + (level.mountName ?? near.kind)}`);
     else if (player.mount) parts.push(`E whistle for the ${level.mountName}`);
     else if (level.features.taxis) parts.push('E hail a taxi');
     if (!parts.length) parts.push('push into a wall to climb it');
   }
-  const goal = expedition && !expedition.state.returned ? expedition.hud(player) : story.hud();
+  const goal = expedition?.state.started && !expedition.state.returned ? expedition.hud(player)
+    : storyRt.hud() ?? (expedition && !expedition.state.returned ? expedition.hud(player) : story.hud());
   const edgeHint = edgeTravel();
   let text = `${atmo.name} · ${parts.join(' · ')}` +
     `\n${goal ? goal + ' · ' : ''}${errands.hud() ? errands.hud() + ' · ' : ''}relics ${journal.relicCount(levelId)}/${content.relics.names.length} · Q ping · R tool · H help` +
@@ -641,15 +655,16 @@ function updateHud() {
 }
 
 
-const busy = () => story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || menu.open || endingOpen;
+const busy = () => story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || menu.open || endingOpen || storyRt.busy();
 const noInput = {};
 let controllerActive = false;
 const controllerHint = document.createElement('div');
 controllerHint.id = 'controller-hint';
 document.body.appendChild(controllerHint);
-const menuRoot = () => menu.open ? menu.el : changelog.open ? changelog.el : journal.open ? journal.el : picker.classList.contains('open') ? picker : document.getElementById('page');
+const menuRoot = () => storyRt.dialogue.open ? storyRt.dialogue.el : menu.open ? menu.el : changelog.open ? changelog.el : journal.open ? journal.el : picker.classList.contains('open') ? picker : document.getElementById('page');
 const closeControllerMenu = () => {
-  if (menu.open) menu.toggle(false);
+  if (storyRt.dialogue.open) storyRt.dialogue.close();
+  else if (menu.open) menu.toggle(false);
   else if (changelog.open) changelog.toggle(false);
   else if (journal.open) journal.toggle(false);
   else if (picker.classList.contains('open')) showPicker(false);
@@ -666,7 +681,8 @@ const controller = new Controller({
     if (name === 'back') closeControllerMenu();
     if (name === 'confirm') {
       const root = menuRoot();
-      if (root.id === 'page') root.click();
+      if (root.id === 'dialogue') { const f = document.activeElement; if (f?.dataset?.i !== undefined && root.contains(f) && storyRt.dialogue.revealed >= storyRt.dialogue.runner.text.length) f.click(); else storyRt.dialogue.next(); }
+      else if (root.id === 'page') root.click();
       else if (root.contains(document.activeElement)) {
         const el = document.activeElement;
         if (el.tagName !== 'SELECT' && el.type !== 'range') el.click();
@@ -794,15 +810,20 @@ function frame() {
   level.lightAt?.(player.pos, sharedUniforms.uSunDir.value);
 
   for (const v of player.vehicles) if (v !== player.ride) v.update(dt, null, t);
+  // E goes to the nearest person / thing / vehicle first (src/interact.js); only then to the player's whistle
+  const ePressed = !!ctl.KeyE && !eWasDown && !photo.on; eWasDown = !!ctl.KeyE;
+  const interacted = storyRt.update(dt, t, { camera, ePressed, paused: busy() || photo.on }).handled;
   if (photo.on) {
     if (!busy()) photoUpdate(dt, mergedInput);
   } else {
     player.camFwd = camera.getWorldDirection(player.camFwd ?? new THREE.Vector3());   // whistled mounts arrive into view
     const usingLens = expedition?.update(dt, player, ctl, busy());
     if (usingLens && ctl.KeyE) player._eHeld = true; // the same press must not whistle after the last turn
+    if (interacted) player._eHeld = true;
     player.update(dt, busy() ? noInput : ctl, rig.yaw);
     rig.follow(player.ride?.heading ?? player.heading, dt, player.riding || player.gliding);
     rig.update(player.pos, dt, player.frame);
+    storyRt.frameCamera(camera);   // the two-shot while talking
   }
   tool.update(dt, ctl, busy() || photo.on);
   scout.update(dt, busy() || photo.on);
@@ -849,6 +870,7 @@ function frame() {
     let best = null, bd = Infinity;
     for (const n of npcs) if (n.talking) { const d = n.pos.distanceTo(player.pos); if (d < bd) { bd = d; best = n; } }
     for (const n of npcs) n.placeBalloon(camera, n === best);
+    if (!busy() && !photo.on) storyRt.placePrompt(camera, controllerActive); else storyRt.placePrompt(camera, false);
   }
   relics.update(dt, t, player);
   story.update(dt, t, camera);
@@ -896,6 +918,7 @@ function frame() {
 }
 let flapT = 0;
 let portalCool = 0;
+let eWasDown = false;
 
 // ------------------------------------------------------------------ the ending
 // Every world's story page and every relic found: a closing page, and the
@@ -958,4 +981,5 @@ requestAnimationFrame((t) => {
 });
 
 // handy for debugging from the console
-Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, gate, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife });
+Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, gate, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife,
+  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, game });

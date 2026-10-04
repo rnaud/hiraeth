@@ -20,6 +20,15 @@
 //   calls.<n>             call n home has been heard
 //   quest.<id>            a quest's stage (string); see src/story/quests.js
 //   world.<id>.done       that world's discovery is made
+//   quest.tracked         the quest shown on the HUD and pinged by Q (src/story/quests.js)
+//   item.<id>             how many of an item the traveller carries (quests.give / has / take)
+//   met.<person>          you have talked to them (set by the conversation panel)
+//   said.<person>.<node>.<i>  a once-only answer was given
+//   desert.*              the desert's story (src/story/desert.js): camps.seen, jar.given,
+//                         speaker.heard, well.seen, cave.seen, channel.open (the rib is pushed
+//                         clear and the tree drinks), jar.filled, ship.fed, pool.tinted, teo.drumming,
+//                         ilo.following / ilo.atSkull / ilo.told, oum.following / oum.home,
+//                         stele.read, mural.read, brow.seen, rumour.light; clue.desert.perdide
 //
 // Well-known events:
 //   'ship:enter' / 'ship:exit'     the player walks into / out of the ship
@@ -27,6 +36,7 @@
 //   'dialogue:start' / 'dialogue:end' { npc, id }
 //   'quest' { id, stage }          a quest advanced
 //   'tool:fire' { mode, point }    the fluid tool was used (mode: 'shoot' | 'boost' | 'push')
+//   'item' { item, n }             an item was given (n > 0) or taken (n < 0)
 //   'tool:refilled' { charges, colours, added }   the tank filled up (after the 5 s wait, or refill());
 //                                  added: a colour band was added (magical water)
 // Requests the fluid tool listens for (fluid-tool.js; same as calling the tool directly):

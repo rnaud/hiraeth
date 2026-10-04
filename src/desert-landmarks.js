@@ -4,7 +4,7 @@ import { makeMaterial, MODE_STRATA, MODE_WATER } from './materials.js';
 import { createNoise2D, fbm, mulberry32, smoothstep } from './noise.js';
 import { heightFn } from './world.js';
 import { basinHeight } from './desert-vistas.js';
-import { SITES, POLE_LINE } from './desert-sites.js';
+import { SITES, POLE_LINE, STORY } from './desert-sites.js';
 
 // The structures of the desert reference pages (references/IMG_3772-3775),
 // built as destinations across the three regions:
@@ -42,7 +42,11 @@ export const lagoonWater = () => level() + 0.15 - 0.6;
 
 // The gorge and the umbrella grove stand on level floors cut into the rose
 // hills; the wide fade keeps the rim gentle enough to ride over.
-const FLATS = [{ ...SITES.canyon, r: 125, fade: 120 }, { ...SITES.umbrellas, r: 55, fade: 120 }];
+// The old city of Qanat and its camps share one level floor (the camps' flat
+// takes the city's level, so there is no step between them).
+const CITY_FLAT = { ...STORY.city, r: 100, fade: 170 };
+const FLATS = [{ ...SITES.canyon, r: 125, fade: 120 }, { ...SITES.umbrellas, r: 55, fade: 120 }, CITY_FLAT,
+  { ...STORY.camps, r: 44, fade: 70, same: CITY_FLAT }];
 // the floor sits at the mean height of the surrounding hills, so the rim is as low as it can be
 const floorLevel = (f) => {
   let sum = 0;
@@ -52,7 +56,7 @@ const floorLevel = (f) => {
 function flatten(x, z, h) {
   for (const f of FLATS) {
     const d = Math.hypot(x - f.x, z - f.z);
-    if (d < f.r + f.fade) h = THREE.MathUtils.lerp(f.level ??= floorLevel(f), h, smoothstep(f.r, f.r + f.fade, d));
+    if (d < f.r + f.fade) h = THREE.MathUtils.lerp(f.level ??= f.same ? (f.same.level ??= floorLevel(f.same)) : floorLevel(f), h, smoothstep(f.r, f.r + f.fade, d));
   }
   return h;
 }
@@ -73,6 +77,9 @@ function drifts(x, z, h) {
   }
   return h;
 }
+
+/** The level floor of the old city (and its camps). */
+export const cityFloor = () => CITY_FLAT.level ??= floorLevel(CITY_FLAT);
 
 /** The desert's full height field: dunes, the mineral basin, level landmark floors, drifts and the salt lagoons. */
 export function desertHeight(x, z) {

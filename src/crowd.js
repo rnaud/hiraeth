@@ -22,6 +22,13 @@ import { mulberry32 } from './noise.js';
 // or sit on edges. Walking through a group parts it; they look at you and
 // pause their talk. Placement comes from the level (level.crowdSpots()) and is
 // checked against the collision world: only walkable, clear ground.
+//
+// A walk can be a procession (`column: true`): everyone goes one way round
+// a loop, spread over `spread` (fractions of the route) at one `speed`, in
+// `lanes` side by side, keeping their place in the column; crowd.hold(id)
+// stops the whole column for a moment (someone in it is talking to you).
+// Any spot may carry its own `lines` (what those people say) and `roles`
+// (tags given to its first people: a drummer, a lantern bearer…).
 
 const TIER = { off: 0, far: 1, mid: 2, near: 3 };
 export const CROWD_TIER = TIER;
@@ -304,7 +311,8 @@ export function buildPeople(physics, spots, { seed = 7, clear = [] } = {}) {
       phase: rng(), cadence: 0, speed: 0, headYaw: 0, headPitch: 0, talk: 0,
       startleT: -1e9, stumbleUntil: -1e9, stumbleT: 0, lookUntil: -1e9, faceUntil: -1e9, greetT: -1, speaking: false, say: '',
       offset: new THREE.Vector3(), tier: TIER.off, npc: null, unreg: null, chestV: new THREE.Vector3(),
-      lines: spots.lines ?? GREET_LINES, lineIdx: Math.floor(rng() * 20), shoutUntil: -1e9,
+      lines: o.lines ?? spots.lines ?? GREET_LINES, lineIdx: Math.floor(rng() * 20), shoutUntil: -1e9,
+      role: o.role ?? null, spot: o.spot ?? null,
     };
     people.push(p);
     return p;
@@ -319,10 +327,24 @@ export function buildPeople(physics, spots, { seed = 7, clear = [] } = {}) {
     const total = path.loop ? cum[cum.length - 1] + pts[pts.length - 1].distanceTo(pts[0]) : cum[cum.length - 1];
     if (total < 8) continue;
     const lateral = sp.lateral ?? 1.1;
-    const route = { pts, cum, total, loop: path.loop, keepRight: sp.keepRight ?? 0.7, lateral };
+    const route = { pts, cum, total, loop: path.loop, keepRight: sp.keepRight ?? 0.7, lateral, id: sp.id ?? null };
     routes.push(route);
     // keep the lanes free of standing people
-    for (let i = 0; i < pts.length; i += 2) avoid.add({ x: pts[i].x, y: pts[i].y, z: pts[i].z, r: lateral + 0.45 });
+    for (let i = 0; i < pts.length; i += 2) avoid.add({ x: pts[i].x, y: pts[i].y, z: pts[i].z, r: lateral + 0.45 + (sp.lanes ? sp.lanes * 0.45 : 0) });
+    if (sp.column && path.loop) {
+      // a procession: rows of `lanes`, one way round, spread over a stretch of the loop
+      const lanes = sp.lanes ?? 3, n = sp.n ?? 40, rows = Math.ceil(n / lanes);
+      const [f0, f1] = sp.spread ?? [0, 0.1];
+      route.column = { speed: sp.speed ?? 1.15, clock: 0, holdUntil: -1e9, lead: f1 * total, lanes, gap: sp.gap ?? 0.95 };
+      let k = 0, roles = [...(sp.roles ?? [])];
+      for (let r = 0; r < rows && k < n; r++) for (let l = 0; l < lanes && k < n; l++, k++) {
+        const slot = f1 * total - (r / Math.max(rows - 1, 1)) * (f1 - f0) * total + (rng() - 0.5) * 0.5;
+        const p = person({ pos: pts[0], heading: 0, pose: 'walk', lines: sp.lines, role: roles.shift() ?? null, spot: sp });
+        p.walk = { route, u: slot, slot, dir: 1, speed: route.column.speed, side: (l - (lanes - 1) / 2) * route.column.gap * 2 - route.keepRight, step: 0, pause: 0, avoid: 0, partner: null, slow: 1 };
+        placeWalker(p, 0);
+      }
+      continue;
+    }
     const units = Math.max(1, Math.round((sp.n ?? 4) * pts.length / runLen));
     for (let k = 0; k < units; k++) {
       const pair = rng() < (sp.pair ?? 0.45);
@@ -330,7 +352,7 @@ export function buildPeople(physics, spots, { seed = 7, clear = [] } = {}) {
       const speed = 1.05 + rng() * 0.35;
       const unit = [];
       for (let q = 0; q < (pair ? 2 : 1); q++) {
-        const p = person({ pos: pts[0], heading: 0, pose: 'walk' });
+        const p = person({ pos: pts[0], heading: 0, pose: 'walk', lines: sp.lines, spot: sp });
         p.walk = { route, u, dir, speed, side: pair ? (q ? 0.36 : -0.36) : 0, step: 0, pause: rng() * 2, avoid: 0, partner: null, slow: 1 };
         unit.push(p);
       }
@@ -345,6 +367,7 @@ export function buildPeople(physics, spots, { seed = 7, clear = [] } = {}) {
     const cx = sp.at.x, cz = sp.at.z;
     if (avoid.blocked(cx, sp.at.y, cz, r * 0.6)) continue;
     const mem = [];
+    const roles = [...(sp.roles ?? [])];
     for (let k = 0; k < n; k++) {
       // a couple of tries per place in the circle, shuffling round a little
       for (let tryN = 0; tryN < 3; tryN++) {
@@ -358,7 +381,8 @@ export function buildPeople(physics, spots, { seed = 7, clear = [] } = {}) {
     }
     if (mem.length < 2) continue;
     const g = { id: groups.length, center: new THREE.Vector3(cx, mem[0].pos.y, cz), r, members: [], speaker: 0, next: rng() * 4, pauseUntil: -1e9, lookUntil: -1e9 };
-    for (const m of mem) { const p = person(m); p.group = g; g.members.push(p); }
+    for (const m of mem) { const p = person({ ...m, lines: sp.lines, role: roles.shift() ?? null, spot: sp }); p.group = g; g.members.push(p); }
+    g.tag = sp.id ?? null;
     groups.push(g);
     avoid.add({ x: cx, y: g.center.y, z: cz, r: r + 0.3 });
   }
@@ -369,7 +393,7 @@ export function buildPeople(physics, spots, { seed = 7, clear = [] } = {}) {
     if (!ok) continue;
     const pos = new THREE.Vector3(sp.at.x, ok.y, sp.at.z);
     if (ok.back) pos.addScaledVector(fwdOf(sp.heading, _v), -ok.back);
-    const p = person({ pos, heading: sp.heading, pose: ok.pose === 'look' ? 'stand' : ok.pose });
+    const p = person({ pos, heading: sp.heading, pose: ok.pose === 'look' ? 'stand' : ok.pose, lines: sp.lines, role: sp.role ?? null, spot: sp });
     p.perch = ok.pose;
     avoid.add({ x: pos.x, y: pos.y, z: pos.z, r: 0.45 });
   }
@@ -510,6 +534,33 @@ export class Crowd {
   }
 
   get npcs() { return this.pool.map((e) => e.npc); }
+
+  /** A procession route by id. */
+  route(id) { return this.routes.find((r) => r.id === id) ?? null; }
+  /** Stop a procession (or a group, by its spot id) for `seconds` from now. */
+  hold(id, seconds = 1) {
+    const r = this.route(id);
+    if (r?.column) r.column.holdUntil = Math.max(r.column.holdUntil, this.time + seconds);
+    for (const g of this.groups) if (g.tag === id) { g.pauseUntil = Math.max(g.pauseUntil, this.time + seconds); g.lookUntil = Math.max(g.lookUntil, this.time + seconds); }
+  }
+  /** The point at distance u along a route (wrapping on loops), and its heading. */
+  routePoint(route, u, out = new THREE.Vector3()) {
+    const R = route, pts = R.pts, cum = R.cum;
+    u = R.loop ? ((u % R.total) + R.total) % R.total : THREE.MathUtils.clamp(u, 0, R.total);
+    let lo = 0, hi = pts.length - 1;
+    while (lo < hi) { const m = (lo + hi + 1) >> 1; if (cum[m] <= u) lo = m; else hi = m - 1; }
+    const a = pts[lo], b = pts[(lo + 1) % pts.length];
+    const seg = lo + 1 < pts.length ? cum[lo + 1] - cum[lo] : R.total - cum[lo];
+    out.copy(a).lerp(b, seg > 1e-6 ? THREE.MathUtils.clamp((u - cum[lo]) / seg, 0, 1) : 0);
+    out.heading = Math.atan2(b.x - a.x, b.z - a.z);
+    return out;
+  }
+  /** The head of a procession: where the first row is now. */
+  columnHead(id, ahead = 0, out = new THREE.Vector3()) {
+    const r = this.route(id);
+    if (!r?.column) return null;
+    return this.routePoint(r, r.column.clock + r.column.lead + ahead, out);
+  }
   get lowDetail() { return this.pool.some((e) => e.npc.lowDetail); }
 
   /** Simulate everybody, pick tiers, promote / demote, fill the instance buffers. */
@@ -523,6 +574,9 @@ export class Crowd {
     const cam = camera.position;
     const low = this.lowDetail;
     const R = this.range, midIn = low ? 45 : R.midIn, midOut = low ? 50 : R.midOut;
+
+    // ---- processions advance (unless someone in them is talking to you)
+    for (const r of this.routes) if (r.column && t >= r.column.holdUntil) r.column.clock += r.column.speed * dt;
 
     // ---- groups: who's talking, and whether you're barging through
     for (const g of this.groups) {
@@ -622,6 +676,14 @@ export class Crowd {
     if (p.walk && !stumbling) {
       const w = p.walk;
       let target = w.speed;
+      const col = w.route.column;
+      if (col) {
+        // keep your place in the procession: a little faster when behind, slower when ahead
+        const T = w.route.total;
+        let err = (col.clock + w.slot) - w.u;
+        err -= Math.round(err / T) * T;
+        target = t < col.holdUntil ? 0 : THREE.MathUtils.clamp(col.speed + err * 0.35, 0, col.speed + 0.9);
+      }
       if (w.pause > 0) { w.pause -= dt; target = 0; }
       // step aside for the player coming the other way (or standing in the way)
       fwdOf(p.heading, _w);
