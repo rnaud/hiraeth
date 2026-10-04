@@ -67,17 +67,23 @@ float outfitCreases(vec3 p, vec3 n, float dark) {
 }
 `;
 
+// the outfit rig's names, and the people's skeleton's (the traveller now wears the outfit on it: outfit.js)
 const LIMBS = ['upper_arm', 'forearm', 'hand', 'thigh', 'shin', 'foot'];
-/** Bind-pose limb segments (upper arms, forearms, thighs, shins) of an imported skin. */
+const HUMAN = ['upperarm_', 'lowerarm_', 'hand_', 'thigh_', 'calf_', 'foot_'];
+/**
+ * Bind-pose limb segments (upper arms, forearms, thighs, shins) of a skin, in its own geometry's
+ * coordinates (an outfit fitted through its inverse bind matrices gets its own rig's joints back).
+ */
 export function limbSegments(skinned) {
   const { bones, boneInverses } = skinned.skeleton;
-  const at = name => {
-    const i = bones.findIndex(b => b.name.replace('.', '') === name);
-    return i < 0 ? null : new THREE.Vector3().setFromMatrixPosition(boneInverses[i].clone().invert());
+  const at = (k, side) => {
+    const names = [LIMBS[k] + side, HUMAN[k] + side.toLowerCase()];
+    const i = bones.findIndex(b => names.includes(b.name.replace('.', '')));
+    return i < 0 ? null : new THREE.Vector3().setFromMatrixPosition(boneInverses[i].clone().invert()).applyMatrix4(skinned.bindMatrixInverse);
   };
   const out = [];
   for (const [from, to] of [[0, 1], [1, 2], [3, 4], [4, 5]]) for (const side of ['L', 'R']) {
-    const a = at(LIMBS[from] + side), b = at(LIMBS[to] + side);
+    const a = at(from, side), b = at(to, side);
     if (!a || !b) return null;
     out.push(a, b);
   }

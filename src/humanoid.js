@@ -7,6 +7,7 @@ import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 import { makeMaterial, MODE_OUTFIT } from './materials.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { lookPieces, roleColor } from './costumes.js';
+import { fitOutfit } from './outfit.js';
 
 // A real human body (Quaternius' Universal Base Characters, CC0) dressed in
 // the rider's clothes by our inked material, driven every frame by the
@@ -19,8 +20,13 @@ import { lookPieces, roleColor } from './costumes.js';
 const MODELS = { m: 'anim/human_m.glb', f: 'anim/human_f.glb' };
 const cache = {};
 export function loadHuman(kind = 'm') {
-  cache[kind] ??= new GLTFLoader().loadAsync(MODELS[kind]).then((g) => { reshape(g.scene, kind); return g.scene; });
+  cache[kind] ??= new GLTFLoader().loadAsync(MODELS[kind]).then((g) => prepareHuman(g.scene, kind));
   return cache[kind];
+}
+/** A loaded human model made into a template, as loadHuman() does (tests and tools load their own). */
+export function prepareHuman(scene, kind = 'm') {
+  reshape(scene, kind);
+  return scene;
 }
 
 // Rest-pose facial landmarks (metres): eyeY, eyeX, noseY, noseZ, chinY
@@ -155,6 +161,8 @@ function reshape(scene, kind) {
   for (const m of meshes) { m.bind(m.skeleton, m.matrixWorld); m.skeleton.calculateInverses(); }
 }
 
+function bodyOf(template) { return template; }
+
 // rest-pose regions per model (metres): bootTop, beltY, neckY, wristX
 const OUTFIT = { m: [0.13, 0.97, 1.47, 0.64], f: [0.12, 0.95, 1.44, 0.58] };
 
@@ -181,14 +189,16 @@ export class Humanoid {
    * @param char     the rig from buildCharacter()
    * @param kind     'm' | 'f'
    */
-  constructor(template, char, kind = 'm', { skin = '#e8c6a8', hair = '#8a6a55', gloves = null, suit = false, imported = false } = {}) {
+  constructor(template, char, kind = 'm', { skin = '#e8c6a8', hair = '#8a6a55', gloves = null, suit = false, outfit = null, build = null } = {}) {
     this.char = char;
     this.kind = kind;
-    this.imported = imported;
-    if (imported) this.face = new FaceExpression();
+    // the traveller: the same body and skeleton as everyone, with its outfit (traveller.glb) fitted on top (outfit.js)
+    this.outfit = !!outfit;
+    if (outfit) this.face = new FaceExpression();
     this.noShadow = [];
-    const model = cloneSkinned(template);
+    const model = cloneSkinned(build ? bodyOf(template, kind, build) : template);
     this.model = model;
+    this.build = build;
     const C = char.colors;
     const body = makeMaterial({ color: C.cloth, color2: C.legs, color3: C.boot ?? '#6e3f2c', mode: MODE_OUTFIT, skin, outfit: OUTFIT[kind], face: faceAfterReshape(kind), gloves, suit });
     const eyes = makeMaterial({ color: C.ink });
@@ -196,34 +206,13 @@ export class Humanoid {
     model.traverse((o) => {
       if (!o.isMesh) return;
       const isBrow = /brow/i.test(o.name) || /hair/i.test(o.material?.name ?? '');
-      if (imported) {
-        const source = o.material;
-        const glass = source.name === 'Clear bubble';
-        const portrait = source.name === 'Traveller peach skin';
-        if (['Traveller facial ink', 'Traveller warm facial lines'].includes(source.name)) o.visible = false;
-        o.geometry.computeBoundingBox();
-        const glassCenter = glass ? o.geometry.boundingBox.getCenter(new THREE.Vector3()) : undefined;
-        // The suit is flat printed colour (baked vertex zones); the shader draws its folds.
-        const flat = !!o.geometry.attributes.color;
-        const tone = TRAVELLER_PALETTE[TRAVELLER_TONES[source.name]];
-        const color = flat ? '#ffffff' : tone ?? source.color;
-        o.material = makeMaterial({ color, map: source.map, glass, glassCenter, glow: glass ? 0.35 : 0, vertexColors: flat, palette: flat ? Object.values(TRAVELLER_PALETTE) : null,
-          creases: flat && o.isSkinnedMesh ? limbSegments(o) : null, headBall: portrait ? HEAD_BALL : undefined });
-        if (portrait) {
-          const uniforms = o.material.uniforms;
-          o.material = o.material.clone();
-          Object.assign(o.material.uniforms, uniforms, { uMap: { value: null }, uHasMap: { value: 0 } });
-          Object.assign(o.material.uniforms, this.face.uniforms);
-        }
-        if (glass) this.noShadow.push(o);
-      } else {
-        o.material = isBrow ? brows : /eye/i.test(o.name) ? eyes : body;
-        // the body itself: costumes (dress()) are skinned onto its skeleton
-        if (o.isSkinnedMesh && o.material === body && (!this.body || o.geometry.attributes.position.count > this.body.geometry.attributes.position.count)) this.body = o;
-      }
+      o.material = isBrow ? brows : /eye/i.test(o.name) ? eyes : body;
+      // the body itself: costumes (dress()) are skinned onto its skeleton
+      if (o.isSkinnedMesh && o.material === body && (!this.body || o.geometry.attributes.position.count > this.body.geometry.attributes.position.count)) this.body = o;
       o.frustumCulled = false;
       o.userData.noCollide = true;
     });
+    if (outfit) this.wearOutfit(outfit);
     char.root.add(model);
     char.root.updateMatrixWorld(true);
     const rootInv = char.root.matrixWorld.clone().invert();
@@ -231,16 +220,6 @@ export class Humanoid {
     // bones and their rest pose, in model (character) space
     this.b = {};
     model.traverse((o) => { if (o.isBone) this.b[o.name] = o; });
-    if (imported) {
-      const aliases = { spine: 'spine_01', chest: 'spine_03', neck: 'neck_01', head: 'Head' };
-      for (const [source, target] of Object.entries(aliases)) this.b[target] = this.b[source];
-      for (const s of ['l', 'r']) {
-        for (const [source, target] of Object.entries({ clavicle: 'clavicle', upper_arm: 'upperarm', forearm: 'lowerarm', hand: 'hand', thigh: 'thigh', shin: 'calf', foot: 'foot', toe: 'ball' })) {
-          // GLTFLoader sanitizes periods in node names.
-          this.b[`${target}_${s}`] = this.b[`${source}${s.toUpperCase()}`] ?? this.b[`${source}.${s.toUpperCase()}`];
-        }
-      }
-    }
     this.rest = new Map();
     for (const bone of Object.values(this.b)) {
       const q = new THREE.Quaternion(), p = new THREE.Vector3();
@@ -265,12 +244,15 @@ export class Humanoid {
       ['neck_01', () => char.head], ['Head', () => char.head],
       ['foot_r', () => char.feet[0]], ['foot_l', () => char.feet[1]],
     ].filter(([n]) => B[n]).map(([n, j]) => ({ B: B[n], j }));
-    // Blender hand bones run along local +Y. Using the forearm as a substitute
-    // loses the bend already present at the wrist in the imported bind pose.
-    this.handFrames = imported ? Object.fromEntries(['r', 'l'].map(s => [s, {
-      along: new THREE.Vector3(0, 1, 0).applyQuaternion(this.rest.get(B[`hand_${s}`]).q),
-      normal: new THREE.Vector3(0, 0, 1),
-    }])) : null;
+    // each hand's anatomy at rest (character space): along the fingers, and the way the palm faces
+    this.handFrames = Object.fromEntries(['r', 'l'].filter((s) => B[`middle_01_${s}`]).map((s) => {
+      const origin = this.rest.get(B[`hand_${s}`]).p;
+      const along = this.rest.get(B[`middle_01_${s}`]).p.clone().sub(origin).normalize();
+      const span = this.rest.get(B[`index_01_${s}`]).p.clone().sub(this.rest.get(B[`pinky_01_${s}`]).p);
+      const normal = new THREE.Vector3().crossVectors(along, span).normalize();
+      if (normal.y > 0) normal.negate();   // palms face down in the T-pose
+      return [s, { along, normal }];
+    }));
     this.restHipMid = this.rest.get(B.thigh_l).p.clone().add(this.rest.get(B.thigh_r).p).multiplyScalar(0.5);
     this.restPelvis = this.rest.get(B.pelvis).p.clone();
 
@@ -288,9 +270,10 @@ export class Humanoid {
     const c = this.char, B = this.b;
     const keep = new Set();
     // anchors at the head and shoulders, oriented like the character
-    const anchor = (bone, charPos) => {
+    const anchor = (bone, charPos, scale = 1) => {
       const g = new THREE.Group();
       g.position.copy(charPos);
+      g.scale.setScalar(scale);
       c.root.add(g);
       c.root.updateMatrixWorld(true);
       bone.attach(g);     // keeps its character-space placement at the rest pose
@@ -298,11 +281,26 @@ export class Humanoid {
     };
     this.update(true);  // make sure the skeleton is at rest before anchoring
     const restHead = this.rest.get(B.Head).p;
-    this.headAnchor = anchor(B.Head, new THREE.Vector3(0, restHead.y + 0.1, restHead.z + 0.01));
-    this.chestAnchor = anchor(B.spine_03, new THREE.Vector3(0, this.rest.get(B.neck_01).p.y - 0.74 - 0.02, 0));
+    const fit = this.outfitFit;
+    if (fit) {
+      // where the outfit rig had them (its head centre, its chest frame), carried over by the fit
+      this.headAnchor = anchor(B.Head, new THREE.Vector3(0, 1.75, 0.01).applyMatrix4(fit.head.W), fit.head.scale);
+      this.chestAnchor = anchor(B.spine_03, new THREE.Vector3(0, 0.73, 0).applyMatrix4(fit.pack));
+      // the right forearm in the outfit rig's frame (+y toward the hand, -x the thumb side): the bracer straps on here
+      this.forearm = Object.fromEntries(['l', 'r'].map((s) => {
+        const o = new THREE.Object3D();
+        o.name = `forearm frame ${s}`;
+        fit.forearm[s].decompose(o.position, o.quaternion, o.scale);
+        B[`lowerarm_${s}`].add(o);
+        return [s, o];
+      }));
+    } else {
+      this.headAnchor = anchor(B.Head, new THREE.Vector3(0, restHead.y + 0.1, restHead.z + 0.01));
+      this.chestAnchor = anchor(B.spine_03, new THREE.Vector3(0, this.rest.get(B.neck_01).p.y - 0.74 - 0.02, 0));
+    }
     const move = (obj, parent, pos) => { parent.add(obj); if (pos) obj.position.copy(pos); obj.traverse((o) => keep.add(o)); };
     this.hood = [];
-    if (this.imported) {
+    if (this.outfit) {
       move(c.jetpack, this.chestAnchor, new THREE.Vector3(0, 0.52, -0.33));
       c.root.traverse((o) => {
         if (o.isMesh && !keep.has(o) && !this.model.getObjectById(o.id)) o.visible = false;
@@ -331,6 +329,48 @@ export class Humanoid {
     });
     // the cape pins under the human's collar
     c.capeAnchor = this.chestAnchor;
+  }
+
+  /**
+   * Put the traveller's outfit (traveller.glb) on this body: every piece is skinned to this
+   * skeleton through the fit in outfit.js, and the body itself, wholly covered, is hidden.
+   */
+  wearOutfit(scene) {
+    const fits = (scene.userData.fits ??= new Map());
+    const key = `${this.kind}|${this.body.geometry.uuid}`;
+    if (!fits.has(key)) fits.set(key, fitOutfit(scene, this.body));
+    const fit = (this.outfitFit = fits.get(key));
+    for (const o of [...this.model.children]) o.traverse((m) => { if (m.isMesh) m.visible = false; });
+    const bones = this.body.skeleton.bones;
+    const skeletons = { body: new THREE.Skeleton(bones, fit.inverses.body.map((m) => m.clone())), rigid: new THREE.Skeleton(bones, fit.inverses.rigid.map((m) => m.clone())) };
+    this.outfitMeshes = [];
+    for (const { source, geometry, rigid } of fit.meshes) {
+      const o = new THREE.SkinnedMesh(geometry, source.material);
+      o.name = source.name;
+      o.bind(skeletons[rigid ? 'rigid' : 'body'], new THREE.Matrix4());
+      const mat = source.material;
+      const glass = mat.name === 'Clear bubble';
+      const portrait = mat.name === 'Traveller peach skin';
+      if (['Traveller facial ink', 'Traveller warm facial lines'].includes(mat.name)) o.visible = false;
+      geometry.boundingBox ?? geometry.computeBoundingBox();
+      const glassCenter = glass ? geometry.boundingBox.getCenter(new THREE.Vector3()) : undefined;
+      // the suit is flat printed colour (baked vertex zones); the shader draws its folds
+      const flat = !!geometry.attributes.color;
+      const tone = TRAVELLER_PALETTE[TRAVELLER_TONES[mat.name]];
+      o.material = makeMaterial({ color: flat ? '#ffffff' : tone ?? mat.color, map: mat.map, glass, glassCenter, glow: glass ? 0.35 : 0, vertexColors: flat,
+        palette: flat ? Object.values(TRAVELLER_PALETTE) : null, creases: flat ? limbSegments(o) : null, headBall: portrait ? HEAD_BALL : undefined });
+      if (portrait) {
+        const uniforms = o.material.uniforms;
+        o.material = o.material.clone();
+        Object.assign(o.material.uniforms, uniforms, { uMap: { value: null }, uHasMap: { value: 0 } });
+        Object.assign(o.material.uniforms, this.face.uniforms);
+      }
+      if (glass) this.noShadow.push(o);
+      o.frustumCulled = false;
+      o.userData.noCollide = true;
+      this.model.add(o);
+      this.outfitMeshes.push(o);
+    }
   }
 
   /**
@@ -396,7 +436,7 @@ export class Humanoid {
     for (const m of this._costume ?? []) { m.removeFromParent(); m.geometry.dispose(); }
     this._costume = [];
     for (const h of this.hood) h.visible = false;
-    if (!look || this.imported || !this.body) return;
+    if (!look || this.outfit || !this.body) return;
     const base = this.costumeGeometry(look);
     const col = new THREE.Color();
     const make = (src, mat) => {
@@ -567,13 +607,6 @@ export class Humanoid {
     const rootQ = this.char.root.getWorldQuaternion(new THREE.Quaternion());
     for (const s of ['r', 'l']) {
       const hand = this.b[`hand_${s}`];
-      if (this.imported) {
-        const source = animator.handFrames[s], rest = this.handFrames[s];
-        const q = animator.bone(`hand_${s}`).getWorldQuaternion(new THREE.Quaternion()).premultiply(rootQ);
-        this.orientContact(hand, rest.along, rest.normal,
-          source.along.clone().applyQuaternion(q), source.normal.clone().applyQuaternion(q));
-        continue;
-      }
       const q = animator.bone(`hand_${s}`).getWorldQuaternion(new THREE.Quaternion())
         .multiply(animator.restHands[s].clone().invert()).multiply(this.rest.get(hand).q).premultiply(rootQ);
       hand.quaternion.copy(hand.parent.getWorldQuaternion(new THREE.Quaternion()).invert().multiply(q));
@@ -712,14 +745,8 @@ export class Humanoid {
         hand.quaternion.copy(hand.parent.getWorldQuaternion(new THREE.Quaternion()).invert().multiply(q));
         hand.updateMatrixWorld(true);
         if (wallContact) {
-          const origin = this.rest.get(hand).p;
-          const fingers = this.imported
-            ? this.handFrames[s].along.clone()
-            : this.rest.get(B[`middle_01_${s}`]).p.clone().sub(origin).normalize();
-          const span = this.imported ? null : this.rest.get(B[`index_01_${s}`]).p.clone().sub(this.rest.get(B[`pinky_01_${s}`]).p);
-          const palm = this.imported ? this.handFrames[s].normal.clone() : new THREE.Vector3().crossVectors(fingers, span).normalize();
-          if (palm.y > 0) palm.negate();
-          this.orientContact(hand, fingers, palm, up, wallN.clone().negate());
+          const { along, normal } = this.handFrames[s];
+          this.orientContact(hand, along, normal, up, wallN.clone().negate());
         }
       }
       if (feet?.[i]) {
@@ -764,22 +791,23 @@ export class Humanoid {
     const right = new THREE.Vector3().crossVectors(to, up).normalize();        // the character's right
     const len = (this._armLen ??= this.rest.get(B.upperarm_r).p.distanceTo(this.rest.get(B.lowerarm_r).p) + this.rest.get(B.lowerarm_r).p.distanceTo(this.rest.get(B.hand_r).p));
     const grip = sh.clone().addScaledVector(to, len * 0.9).addScaledVector(up, 0.03);
-    const blendHand = (hand, along, thumb, w) => {
-      if (!this.handFrames) return;
-      const s = hand === B.hand_r ? 'r' : 'l', q0 = hand.getWorldQuaternion(new THREE.Quaternion());
-      this.orientContact(hand, this.handFrames[s].along, this.handFrames[s].normal, along, thumb);
+    const blendHand = (hand, along, palm, w) => {
+      const s = hand === B.hand_r ? 'r' : 'l', F = this.handFrames[s];
+      if (!F) return;
+      const q0 = hand.getWorldQuaternion(new THREE.Quaternion());
+      this.orientContact(hand, F.along, F.normal, along, palm);
       const q = q0.slerp(hand.getWorldQuaternion(_wq1), w);
       hand.quaternion.copy(hand.parent.getWorldQuaternion(_wq2).invert().multiply(q));
       hand.updateMatrixWorld(true);
     };
-    const thumb = up.clone().addScaledVector(to, -up.dot(to)).normalize();
+    // the fist along the line of fire, thumb up: its palm faces in, across the body
     this.solveTwoBone(B.upperarm_r, B.lowerarm_r, B.hand_r, grip, sh.clone().addScaledVector(up, -0.6).addScaledVector(right, 0.5), k);
-    blendHand(B.hand_r, to, thumb, k);
+    blendHand(B.hand_r, to, right.clone().negate(), k);
     if (B.upperarm_l && B.lowerarm_l && B.hand_l) {
       const shl = B.upperarm_l.getWorldPosition(new THREE.Vector3());
       const under = B.hand_r.getWorldPosition(new THREE.Vector3()).addScaledVector(up, -0.06).addScaledVector(to, -0.05).addScaledVector(right, -0.05);
       this.solveTwoBone(B.upperarm_l, B.lowerarm_l, B.hand_l, under, shl.addScaledVector(up, -0.6).addScaledVector(right, -0.6), k * 0.85);
-      blendHand(B.hand_l, to.clone().addScaledVector(right, 1.2).normalize(), thumb, k * 0.85);
+      blendHand(B.hand_l, to.clone().addScaledVector(right, 1.2).normalize(), up, k * 0.85);   // cupped under it, palm up
     }
   }
 

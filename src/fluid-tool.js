@@ -470,7 +470,7 @@ function buildTank() {
   return { group: noCollide(g), glass, outlet: new THREE.Vector3(ox, oy, oz), top: TANK.at[1] + TANK.height + 0.11 };
 }
 
-// The bracer, in the right forearm bone's frame (the traveller's rig: +y
+// The bracer, in the right forearm's outfit frame (Humanoid.forearm.r, as the outfit's own rig had it: +y
 // along the forearm toward the hand, -x the thumb side (up when aiming), +z
 // outward).
 const BRACER = { nozzle: [-0.056, 0.2, 0.0], muzzle: [-0.056, 0.335, 0.0], inlet: [-0.012, 0.075, 0.05], rings: [0.215, 0.248, 0.281] };
@@ -638,11 +638,11 @@ export class FluidTool {
     const p = this.player, H = p?.humanoid;
     if (!H?.chestAnchor) return;
     // the cream radio pack gives way to the tank (the glb's pack parts are skinned to the chest)
-    if (H.imported) {
+    if (H.outfit) {
       H.model.traverse((o) => {
         if (!o.isSkinnedMesh) return;
         if (/^Equipment_(blue_metal|cyan_glass)$/.test(o.name)) o.visible = false;
-        else if (o.name === 'Equipment_ivory_radio') o.geometry = withoutBone(o, 'chest');
+        else if (o.name === 'Equipment_ivory_radio') o.geometry = withoutBone(o, 'spine_03');
       });
     } else for (const o of p.gear?.scoutDock?.parent?.children ?? []) if (o.isMesh) o.visible = false;   // the procedural pack
     const tank = (this.tank = buildTank());
@@ -651,7 +651,7 @@ export class FluidTool {
     // and the frame: lens out, wings fore and aft (side on, they cut into the tank)
     const dock = p.gear?.scoutDock;
     if (dock) { dock.position.set(SCOUT_DOCK_X, TANK.at[1] + TANK.height * 0.62, TANK.at[2] + 0.02); dock.rotation.set(0, Math.PI / 2, 0); }
-    const fore = H.b.lowerarm_r;
+    const fore = H.forearm?.r ?? H.b.lowerarm_r;
     if (fore) {
       this.bracer = buildBracer();
       fore.add(this.bracer.group);

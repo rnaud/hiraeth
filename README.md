@@ -1133,6 +1133,33 @@ In the desert, asking Bako to play emits `music:solo { who: 'bako' }` from his
 conversation (`src/story/desert-data.js`), and `src/story/desert.js` starts it
 at his seat.
 
+## The traveller on the people's skeleton (v0.39)
+
+The traveller is now built like everyone else: Quaternius' male human
+(`human_m.glb`, reshaped like the NPCs) with the outfit of `traveller.glb`
+fitted on top (`src/outfit.js`, `Humanoid` option `outfit`). The old 22-bone
+rig is gone; every animation (clips, foot planting, climbing and mantle IK,
+gliding, aiming, kneeling, riding) runs on the same 65 bones, retargeting and
+rest pose as the NPCs. The human's own body, wholly covered, is not drawn.
+
+- **No geometry changes.** Each outfit mesh is skinned to the human's bones with
+  its own weights renamed (spine → `spine_01`, chest → `spine_03`, shin → `calf`…).
+  The fit lives in the inverse bind matrices: `A⁻¹ · W` per bone, where `A` is the
+  human bent into the outfit's A-pose (arms down along the sleeves) and `W` maps
+  each outfit joint onto the human's, turned onto its limb and scaled to its
+  length and girth (measured from both meshes; `OUTFIT_FIT.bag` keeps the suit
+  baggy). The face shader, the suit's folds (`limbSegments` undoes the warp) and
+  the helmet glass all keep working in the outfit's own coordinates.
+- **Rigid pieces:** the head (helmet, face, headphones, scarf) is scaled to 0.86 on
+  the human's head; gloves are turned so their palms match the human's; boots ride
+  the foot alone, soles on the ground; the radio pack is moved onto the narrower
+  back (its own skeleton copy, so the suit's chest can still be scaled).
+- `Humanoid.headAnchor` / `chestAnchor` carry over the outfit rig's frames, and
+  `Humanoid.forearm.r` is the old forearm frame the bracer was authored in.
+- `tests/traveller.test.js` checks the skeleton is exactly the NPCs', the fit
+  (soles, helmet, gloves), rigid pieces, gait retargeting at 120 phases, wall
+  contact and the face. `/tools/rig-review.html` shows the actual build per clip.
+
 ## Android (offline APK)
 The game is also packaged as an Android app, for handhelds such as the Retroid
 Pocket. Their built-in controls work through the Gamepad API.

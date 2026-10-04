@@ -233,8 +233,9 @@ if (lib) {
 }
 const humanT = await humans;
 const travellerTemplate = await traveller;
-if (travellerTemplate) {
-  player.humanoid = new Humanoid(travellerTemplate, player.char, 'm', { imported: true });
+if (humanT && travellerTemplate) {
+  // the traveller: the people's own body and skeleton, the outfit fitted on top (src/outfit.js)
+  player.humanoid = new Humanoid(humanT[0], player.char, 'm', { outfit: travellerTemplate });
 } else if (humanT) {
   player.humanoid = new Humanoid(humanT[0], player.char, 'm', { skin: '#e9b9a0', gloves: player.char.colors.gloves, suit: true });
   player.humanoid.setHeadwear('short', { hair: '#8a5638' });
