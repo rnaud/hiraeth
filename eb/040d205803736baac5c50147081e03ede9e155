@@ -1,0 +1,43 @@
+prompts/README.md
+  s_1fd8d0e7b02dcf::t_05f7aa1448ac32 1-27
+prompts/buried-machine.md
+  s_1fd8d0e7b02dcf::t_a5c287f8023190 1-23
+prompts/city-shaft.md
+  s_1fd8d0e7b02dcf::t_61b2ca04d66f72 1-23
+prompts/desert.md
+  s_1fd8d0e7b02dcf::t_39bc0dc3377fbf 1-23
+prompts/garden-of-spheres.md
+  s_1fd8d0e7b02dcf::t_0edfc01159e4e7 1-23
+prompts/hero.md
+  s_1fd8d0e7b02dcf::t_2ef1bc8fde06b7 1-3
+prompts/lorn-ii.md
+  s_1fd8d0e7b02dcf::t_870041203286ad 1-23
+prompts/lorn.md
+  s_1fd8d0e7b02dcf::t_f5f78a71c1381c 1-23
+prompts/sealed-hangar.md
+  s_1fd8d0e7b02dcf::t_f75f2237638ffd 1-23
+prompts/signal-market.md
+  s_1fd8d0e7b02dcf::t_b8acb23edcb998 1-23
+prompts/vael-ii.md
+  s_1fd8d0e7b02dcf::t_2c1e3bfb5821e0 1-23
+prompts/vael.md
+  s_1fd8d0e7b02dcf::t_e4a494fdcb305b 1-23
+prompts/viridel.md
+  s_1fd8d0e7b02dcf::t_139a2eeb5212cf 1-23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "eb040d205803736baac5c50147081e03ede9e155",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
