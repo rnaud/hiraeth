@@ -105,7 +105,7 @@ export function placementsFor(levelId, { level, has = (id) => items.has(id), tab
   return list;
 }
 
-export function createBoxes({ levelId, scene, physics, level, player, sound = null, quests = null, toast = () => {}, cam = null, anchor = null, game: g = sharedGame, table = PLACEMENTS }) {
+export function createBoxes({ levelId, scene, physics, level, player, sound = null, quests = null, toast = () => {}, cam = null, anchor = null, game: g = sharedGame, table = PLACEMENTS, quiet = () => false }) {
   const lights = level.lights ?? (level.lights = []);
   const noShadow = level.noShadow ?? (level.noShadow = []);
   // beacons hang off one always-visible group (noShadow re-shows its members after the shadow passes)
@@ -227,6 +227,7 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
   let questClock = 0, questsOffered = false;
   function offerQuests(dt) {
     if (questsOffered || !quests?.start) return;
+    if (quiet()) return;   // (not over a scene or a recording: the clock starts once they are over)
     if ((questClock += dt) < BOX_QUEST_DELAY || current) return;
     questsOffered = true;
     let n = 0;

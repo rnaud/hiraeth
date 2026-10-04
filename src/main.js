@@ -347,6 +347,7 @@ const scout = new Scout({ scene, player, physics, sound, label: document.getElem
 // ---- item boxes (src/boxes/): they notice you; E opens one (a Zelda-style scene on the ship's cinematic camera)
 const boxes = createBoxes({ levelId, scene, physics, level, player, sound, quests: storyRt.quests, toast: showToast,
   anchor: () => ship.arrivalSpot(),
+  quiet: () => ship.playing || storyRt.dialogue.open,   // box quests wait for the landing, the recordings and talk to be over
   cam: { shot: (s) => ship.shot(s), release: (b) => ship.release(b), hud: (on) => ship.cinema.hud(on), bars: (on) => ship.cinema.bars(on) } });
 const itemFx = createItemEffects({ player, tool, level, sound, toast: showToast, isNight: () => sky.hour < 6.4 || sky.hour > 19.3 });
 journal.sections.unshift(() => gearHtml(items.owned(), { mode: tool.owned && tool.modes.length > 1 ? tool.modeName : null }));   // Select / View opens on your gear
