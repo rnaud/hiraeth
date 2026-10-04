@@ -1,0 +1,51 @@
+src/crowd.js
+  s_1fd8d0e7b02dcf::t_4a733cf9b821ed 546-556,686
+src/levels/bazaar.js
+  s_1fd8d0e7b02dcf::t_61cac2b2fb0025 6-7,70,89,156,178-260,269,307-312
+src/levels/content.js
+  s_1fd8d0e7b02dcf::t_2dd032a335a635 17-18,30-31,33-36,40,43,45-47,121-122,124-127,131,134-135,137-140
+src/levels/incal.js
+  s_1fd8d0e7b02dcf::t_b979073875b9db 9-10,26-28,65-67,69,95,185,202-203,239,246,259,302,346-350,353,355-357,359,361-380,382-383,385-386,390-401,539,544-637,733-734,758-760,762,834-841
+src/story/bazaar-data.js
+  s_1fd8d0e7b02dcf::t_f14f3937841c56 1-438
+src/story/incal-data.js
+  s_1fd8d0e7b02dcf::t_dc8f9032cd0362 1-514
+src/story/incal.js
+  s_1fd8d0e7b02dcf::t_a9035820092e78 1-299
+src/story/index.js
+  s_1fd8d0e7b02dcf::t_4dab54713d7dbb 10-11,29-30,178
+src/story/sign-text.js
+  s_1fd8d0e7b02dcf::t_3aa321e88a3d6b 1-57
+tests/bazaar.test.js
+  s_1fd8d0e7b02dcf::t_a9a207543864fc 40,44,46-47
+tests/story-bazaar.test.js
+  s_1fd8d0e7b02dcf::t_3749f7745e5049 1-184
+tests/story-incal.test.js
+  s_1fd8d0e7b02dcf::t_941b394d47b574 1-206
+src/story/bazaar.js
+  s_1580f654170c9a::t_df4011b722f412 1-303
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d0b0a238751e37ef25f8e9450c903112fc927726",
+  "prompts": {},
+  "sessions": {
+    "s_1580f654170c9a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a82e8413b13bd56f2",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
