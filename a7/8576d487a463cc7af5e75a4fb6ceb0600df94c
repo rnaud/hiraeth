@@ -1,0 +1,53 @@
+README.md
+  s_1fd8d0e7b02dcf::t_083f8fadbef09f 1292-1324
+src/desert-city.js
+  s_1fd8d0e7b02dcf::t_a9453f0a9c7179 8,375,380
+src/materials.js
+  s_1fd8d0e7b02dcf::t_4b3c33e799cf33 292,805-807,809,980,1048-1049
+src/player.js
+  s_1fd8d0e7b02dcf::t_65ba0922e05d14 191,1566-1569,1579-1580,1657-1658,1782-1845,1870-1886,1888,1898,1900,1904-1906,1913-1914,1949-1953
+src/ship/approach.js
+  s_1fd8d0e7b02dcf::t_4c72133aacabf9 1-174
+src/ship/cinematics.js
+  s_1fd8d0e7b02dcf::t_78bbc2f1e3a347 9,284-286,408-415,422-433,436-437,442-516,519,526,533-537,542,549-551,569-571,589,608-610,616-619,622-623,628-629
+src/ship/exhaust.js
+  s_1fd8d0e7b02dcf::t_9d77abbbdbebac 1-86
+src/ship/homecoming.js
+  s_1fd8d0e7b02dcf::t_822dcc3abc91f4 8,276,395-397,403-404
+src/ship/model.js
+  s_1fd8d0e7b02dcf::t_3b31c9c4850418 3,11-12,81-86,107-108,111,114-129,133-136,138,171-214,234
+src/ship/ship.js
+  s_1fd8d0e7b02dcf::t_c9008617f8f9c0 3,9,42-46,87-99,181-182,218-248,280-284,286-289,293,295-296
+src/story/flames.js
+  s_1fd8d0e7b02dcf::t_ef5acef55a93c9 110-276
+tests/cutscenes.test.js
+  s_1fd8d0e7b02dcf::t_61c1d8c2ecf4bc 1-189
+tests/ship-camera.test.js
+  s_1fd8d0e7b02dcf::t_c7841430db85f5 1-86
+src/ship/sfx.js
+  s_c76bb594939574::t_7b5beafc89fda2 122-138
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a78576d487a463cc7af5e75a4fb6ceb0600df94c",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_c76bb594939574": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a58fa2a080b4d8b07",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
