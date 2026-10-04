@@ -1,0 +1,55 @@
+README.md
+  s_1fd8d0e7b02dcf::t_3ff39bf05fba09 1118-1149
+src/flora.js
+  s_1fd8d0e7b02dcf::t_0f58be3120219b 216-219,221-234,248,286
+src/levels/arzach.js
+  s_1fd8d0e7b02dcf::t_6695f1de77bf7c 30
+src/levels/arzach2.js
+  s_1fd8d0e7b02dcf::t_a0c977208537bb 78,85,137,185,221,237
+src/levels/buried.js
+  s_1fd8d0e7b02dcf::t_00a46d721a6343 135,142
+src/levels/content.js
+  s_1fd8d0e7b02dcf::t_077cd6899e2e73 13,54-55,58,60,66
+src/levels/edena.js
+  s_1fd8d0e7b02dcf::t_a519e52b35b65e 60-61,259-324,349-350,360,367
+src/levels/garage.js
+  s_1fd8d0e7b02dcf::t_db696fecff9bc6 22,49-74,84
+src/levels/incal.js
+  s_1fd8d0e7b02dcf::t_5d07f972dd9682 35,47-50
+src/levels/lab-kit.js
+  s_1fd8d0e7b02dcf::t_09a9df51ce568f 1-94
+src/levels/lab-rooms.js
+  s_1fd8d0e7b02dcf::t_edda87ccd72bf8 1-1111
+src/levels/lab.js
+  s_1fd8d0e7b02dcf::t_fb3cbfdf70969d 6-9,12-14,21-31,58-92,94-96,98,101,105,120,124,129,142,145,160,165,171,174-301,304,311-320,328-369
+src/levels/perdide.js
+  s_1fd8d0e7b02dcf::t_9e35440ab860d1 156
+src/levels/perdide2.js
+  s_1fd8d0e7b02dcf::t_b542e0d19c3028 143,151
+src/levels/spheres.js
+  s_1fd8d0e7b02dcf::t_d9ae27053767cd 69,103,114
+src/main.js
+  s_1fd8d0e7b02dcf::t_8451002006f34f 372,432-446,1169-1176,1205
+src/npc.js
+  s_1fd8d0e7b02dcf::t_a36d1aae3bfc46 637
+src/world.js
+  s_1fd8d0e7b02dcf::t_74e6ed0962b7fd 285-406,455-459,461
+tests/lab.test.js
+  s_1fd8d0e7b02dcf::t_241b8dd5df39ee 6-32,38,41-42,45-126
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f4ed2b9e6743eedea22e37cf75bfee6fad6d70c2",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
