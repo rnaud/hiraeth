@@ -90,10 +90,11 @@ export class PrologueDirector {
       case 'walk':
         sp.interior.guide.visible = true;
         C.hint('Follow the lights to the cockpit');
+        C.controls(true);   // (on a phone: the stick and buttons, to walk there)
         this.ringT = 0;
         break;
       case 'call': {
-        C.hint(null);
+        C.hint(null); C.controls(false);
         sp.interior.guide.visible = false;
         s.auto = null;
         s.placePlayer(this.W(this.pt('cockpit')), s.worldHeading(sp, Math.PI), true);
@@ -109,7 +110,7 @@ export class PrologueDirector {
         C.fade(1, true, 0); setTimeout(() => C.fade(0, true, 0.35), 60);
         break;
       case 'fall':
-        C.say({ who: 'ship', text: 'Main power lost. Emergency descent.' });
+        C.say({ who: 'ship', text: 'Emergency descent.' });   // (after "Main power lost.": a new line, not an echo)
         break;
       case 'streak':
         C.say(null); C.red(0);
@@ -182,24 +183,16 @@ export class PrologueDirector {
           // (swung off the back if the top bunk or its ladder would be between the camera and you)
           s.rig.pitch = 0.18; s.rig.indoor = true;
           s.rig.yaw = s.rig.clearYaw(s.player.pos, s.player.heading + Math.PI, { want: 3 });
-          s.rig.target.copy(s.player.pos); s.rig._curDist = 2.5;
+          s.rig.target.copy(s.player.pos); s.rig.snapTight?.(s.player.pos); s.rig._curDist = 2.5;
           s.release(0); s.blend = null;
           C.fade(0, false, 0.5);
         }
         if (!this.risen) s.shot({ pos: this.W(this.pt('wakeEye')), look: this.W(this.pt('wakeLook')), fov: 62 });
         break;
       case 'walk': {
+        // the call rings on, the lights on the floor point the way; you go when you like
+        // (the ship never walks you there itself)
         if ((this.ringT -= dt) <= 0) { this.ringT = 3.2; sfx.ring(s.sound); }
-        // the ship walks you there if you stay put
-        if (t > 12 && !s.auto && !this.autoed) {
-          this.autoed = true;
-          const route = this.sp.interior.points.route.map((p) => this.W(p));
-          const pl = s.player.pos;
-          let k = 0, best = Infinity;
-          route.forEach((p, i) => { const d = p.distanceTo(pl); if (d < best) { best = d; k = i; } });
-          s.autopilot(route.slice(k));
-          C.hint('…the ship guides you');
-        }
         break;
       }
       case 'call':

@@ -293,3 +293,50 @@ test('the prologue plays through to the end and sets prologue.done', () => {
   assert.equal(seen2.at(-1), 'skipped');
   assert.equal(g2.flag('prologue.done'), true);
 });
+
+test('the walk to the cockpit waits as long as you like: no time limit', () => {
+  // the state machine: a director that never says "ready" keeps it in the walk
+  const g = new GameState({ getItem: () => null, setItem: () => {} });
+  const p = new Prologue({ director: { enter() {}, frame() {}, ready: () => false, finish() {} }, game: g });
+  p.start();
+  for (let i = 0; i < 6000; i++) p.update(0.1);
+  assert.equal(p.stage, 'walk', `still walking after ten minutes (${p.stage})`);
+  assert.ok(p.interactive(), 'and the player has control');
+});
+
+test('the prologue never walks you: you stand in the bunk room for minutes, then the call starts at the console', async () => {
+  const { PrologueDirector } = await import('../src/ship/cinematics.js');
+  const scene = new THREE.Scene();
+  scene.add(new THREE.Mesh(new THREE.PlaneGeometry(400, 400).rotateX(-Math.PI / 2)));
+  const physics = new Physics(scene);
+  const level = { spawn: v(0, 0, 60), ground: { heightAt: () => 0 }, lights: [], shipSite: { x: 0, z: 0, heading: Math.PI / 2 } };
+  const ship = quiet(() => new Ship({ scene, physics, level, levelId: 'test', content: { npcs: [], relics: { spots: [] } }, prologue: true }));
+  ship.site.crash ??= { travel: 0, length: 60 };
+  ship.player = new Player(physics);
+  ship.sound = {};   // silent (no audio context in node)
+  ship.rig = { yaw: 0, pitch: 0.2, indoor: false, indoorK: 0, target: v(), clearYaw: (p, yaw) => yaw, snapTight() {} };
+  let autopilots = 0;
+  const auto = ship.autopilot.bind(ship);
+  ship.autopilot = (...a) => { autopilots++; auto(...a); };
+  const g = new GameState({ getItem: () => null, setItem: () => {} });
+  const prologue = new Prologue({ director: new PrologueDirector(ship), game: g });
+  prologue.start();
+  const dt = 1 / 30, P = ship.player;
+  const tick = () => { const ctl = ship.input({}); P.update(dt, ctl, 0); prologue.update(dt); };
+  let t = 0;
+  while (prologue.stage !== 'walk' && t < 30) { tick(); t += dt; }
+  assert.equal(prologue.stage, 'walk');
+  for (let i = 0; i < 30; i++) tick();   // settle on the floor
+  const start = P.pos.clone();
+  for (let i = 0; i < 180 / dt; i++) tick();   // three minutes, hands off the controls
+  assert.equal(prologue.stage, 'walk', 'still waiting for you');
+  assert.equal(autopilots, 0, 'the ship never took over');
+  assert.equal(ship.auto, null);
+  assert.ok(P.pos.distanceTo(start) < 0.3, `you stayed where you stood (${P.pos.distanceTo(start).toFixed(2)} m)`);
+  // you get there yourself: the call starts
+  const m = ship.spaceCopy.model;
+  ship.placePlayer(ship.world(m, m.interior.points.cockpit), 0, true);
+  for (let i = 0; i < 5; i++) tick();
+  assert.equal(prologue.stage, 'call', 'at the console the call starts');
+  assert.equal(autopilots, 0);
+});
