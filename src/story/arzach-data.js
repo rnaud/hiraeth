@@ -232,7 +232,15 @@ export const THINGS = {
     talk: {
       entry: [{ if: { flag: 'arzach.hand.rung' }, node: 'open' }, { node: 'look' }],
       nodes: {
-        look: { say: ['~solemn~ The hand is taller than a house, the palm turned to the start of the plain. In the middle of the palm, worn shallow, the mark: {glyph}', '~neutral~ Its knuckles are pale and smooth, as if they had been *struck many times*, long ago.'], choices: [{ text: '~neutral~ (step back)', end: true }] },
+        look: {
+          say: ['~solemn~ The hand is taller than a house, the palm turned to the start of the plain. In the middle of the palm, worn shallow, the mark: {glyph}', '~neutral~ Its four knuckles are pale and smooth, as if they had been *struck many times*, long ago. Between two stone fingers *something white* flutters, out of reach.'],
+          do: { start: 'arzach.hand' },
+          choices: [{ text: '~curious~ (rap a knuckle)', goto: 'strike' }, { text: '~neutral~ (step back)', end: true }],
+        },
+        strike: {
+          say: ['~neutral~ Your knuckles on the stone make no sound at all. But a splash of your fluid, from a distance, would ring it like a bell: *aim and shoot a knuckle*.', '~curious~ Four knuckles, four notes. They want *an order*. *Hollin, who keeps the hand*, would know it.'],
+          choices: [{ text: '~neutral~ (step back)', end: true }],
+        },
         open: { say: ['~scared~ The mark in the palm still glows faintly, like a coal. The hand has not moved. You are almost sure it has not moved.'], choices: [{ text: '~neutral~ (step back)', end: true }] },
       },
     },

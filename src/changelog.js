@@ -13,6 +13,7 @@ export const CHANGELOG = [
     'Five save slots: each shows its world, how far you’ve come, the time played and when you last played. Start a new game in an empty slot, or delete a save after a confirmation. Your current progress is kept in the first slot.',
     'Start and Select now open full-screen menus that pause the game, with their own calm music over the hushed world. Quit to title is in the Start menu, and restarting from the prologue only starts over the save you’re playing.',
     'Places to go, the next thing to do and the hints that solve a puzzle now stand out in colour in conversations, in every world, far more often than before. Speech balloons show these highlights too, instead of stray stars.',
+    'Arzach’s stone hand now tells you what it wants when you look at it: its quest starts, it shows the feather caught in its fingers, and it says to shoot the knuckles in the right order, which Hollin knows.',
     'A health bar, and falls hurt: a long drop takes a share of it, a very long one knocks you out and you come round where you last stood. It refills after a few quiet seconds, and only shows while you are hurt.',
     'Controller buttons now work by position on every pad. On a Retroid: B jumps, A talks and gets on, Y calls your mount or a taxi, X pings, L2 aims, R2 shoots, R1 pushes, and you click the left stick to run.',
     'Riding on a controller: R2 is the throttle and L2 brakes, and the stick steers. On the bird and the taxi the stick also tips you up and down.',

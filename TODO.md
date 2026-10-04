@@ -89,7 +89,7 @@ Grouped by area. Checked items are done; the changelog says when.
 - [ ] Clipping pass: check that most things don't sink into surfaces.
 - [ ] Building textures and windows flicker when the camera moves.
 - [x] I can't always look all the way up at the sky: the camera stops short.
-- [ ] Shed / feather site: looking at the stone hand does nothing; unclear
+- [x] Shed / feather site: looking at the stone hand does nothing; unclear
   what to do there.
 
 ## Controls (Retroid Pocket layout)
