@@ -185,7 +185,7 @@ Grouped by area. Checked items are done; the changelog says when.
 - [ ] Redesign the taxis and the hover car.
 - [ ] More flowers and plants, some large; each planet has its own flora (no
   reuse), and plants grow in clusters instead of being scattered (as in Edena).
-- [ ] Level 2: the area of the man by the trees is crowded and hard to see; the
+- [x] Level 2: the area of the man by the trees is crowded and hard to see; the
   trees are too low.
 - [ ] The great wheel: when it turns, it clears the sand around it, then keeps
   turning.

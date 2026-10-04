@@ -644,6 +644,7 @@ export function createIncal(scene) {
   // trees on the rim around the spawn
   for (let k = 0; k < 160; k++) {
     const a = (rng() - 0.5) * 0.9, rad = R + 6 + rng() * 60;
+    if (k % 4 === 3) { rng(); rng(); continue; }   // a lighter grove: a quarter fewer, so the rim's people can be seen
     const x = Math.cos(a) * rad, z = Math.sin(a) * rad + (rng() - 0.5) * 20;
     if (Math.abs(z) < 16 && x < R + 40) continue;     // keep the view from the spawn open
     if (x > R + 30 && x < R + 60 && Math.abs(z) < 42) continue;   // and the walk-in villas clear
@@ -657,8 +658,9 @@ export function createIncal(scene) {
     const prof = [[0, 0], [0.55, 0.3], [1.15, 2.2], [1.25, 3.6], [1.0, 6], [0.55, 8.2], [0.12, 9.6], [0, 10]].map(([r, y]) => new THREE.Vector2(r, y));
     const cypress = new THREE.LatheGeometry(prof, 9);
     const lobes = [];
-    for (let k = 0; k < 7; k++) { const a = k * 2.39996, r = 0.9 + (k % 3) * 0.5; lobes.push(new THREE.IcosahedronGeometry(1.5 + (k % 2) * 0.5, 0).translate(Math.cos(a) * r, 3 + (k % 3) * 0.8, Math.sin(a) * r)); }
-    lobes.push(new THREE.CylinderGeometry(0.25, 0.35, 3, 5).translate(0, 1.5, 0));
+    // (the crown held high on a tall trunk: you see the people under it, and the camera passes beneath)
+    for (let k = 0; k < 7; k++) { const a = k * 2.39996, r = 0.9 + (k % 3) * 0.5; lobes.push(new THREE.IcosahedronGeometry(1.5 + (k % 2) * 0.5, 0).translate(Math.cos(a) * r, 5.4 + (k % 3) * 0.8, Math.sin(a) * r)); }
+    lobes.push(new THREE.CylinderGeometry(0.22, 0.35, 5.6, 5).translate(0, 2.8, 0));
     const olive = mergeGeometries(lobes.map((g) => g.toNonIndexed()));
     olive.computeVertexNormals();
     const greens = ['#5e7a3a', '#4f6b34', '#6f8a42', '#56733f'];
