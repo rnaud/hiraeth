@@ -1069,7 +1069,7 @@ function frame() {
     trails.forEach((tr, i) => tr.update(dt, moving ? m.body.localToWorld(JETS[i].clone()) : null));
   }
   updateHud();
-  level.update(dt, t, { player, rig, camera });
+  level.update(dt, t, { player, rig, camera, fade: (k, secs) => ship.cinema?.fade(k, true, secs) });
   reactiveWorld.update(dt, t, player, camera, busy() || photo.on);
   wildlife.update(dt, t, player, camera, busy() || photo.on);
   // levels with zones (the Garage) switch ink style as you cross between them

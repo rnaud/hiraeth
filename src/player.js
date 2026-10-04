@@ -498,15 +498,17 @@ export class Player {
     this.stamina = 1;
   }
 
-  /** Jump to another place, e.g. through a portal, with a new "up". */
-  teleport(pos, up, fwd) {
+  /** Jump to another place, e.g. through a portal, with a new "up" (speed: carry on walking along fwd). */
+  teleport(pos, up, fwd, { speed = 0 } = {}) {
     this.boarding = this.unboarding = null;   // the pack is simply back on (fluid-tool.js follows the state)
     this.pos.copy(pos);
     this.vel.set(0, 0, 0);
+    if (speed > 0 && fwd) this.vel.copy(fwd).normalize().multiplyScalar(speed);
     this.frame.set(up, fwd);
     this.heading = 0;
     this.onGround = false;
     this.climbing = false;
+    this.mantle = null;   // (a climb onto a ledge in progress would pull you back to it)
     this.lastSafe.copy(pos);
   }
 

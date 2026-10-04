@@ -437,7 +437,8 @@ export function createGarage(scene) {
     C: { name: 'The ring', preset: 'Moebius', tint: [1.0, 0.96, 0.9], fog: 0.8 },
   };
   const zoneId = (p) => (inRing(p) ? 'C' : inB(p) ? 'B' : 'A');
-  let cooldown = 0;
+  let cooldown = 0, passing = null;
+  const PASS = { in: 0.16, out: 0.4 };   // s: the fade into the portal's light, and out of it
 
   return {
     id: 'garage',
@@ -490,11 +491,29 @@ export function createGarage(scene) {
       if (!player) return;
       cooldown = Math.max(cooldown - dt, 0);
       const p = player.pos;
-      if (cooldown === 0 && !player.riding) {
+      // Through a portal: a quick fade into its light, then out the far side at your own pace,
+      // the camera already upright and behind you (no snap of the view, no dead stop).
+      if (passing) {
+        passing.t += dt;
+        if (!passing.done && passing.t >= PASS.in) {
+          passing.done = true;
+          const po = passing.po;
+          player.teleport(po.to, po.toUp, po.toFwd, { speed: passing.speed });
+          if (ctx.rig) {
+            ctx.rig.yaw = Math.PI; ctx.rig.pitch = 0.2;
+            ctx.rig.target?.copy(player.pos);
+            ctx.rig.camera?.up.copy(po.toUp);
+          }
+          ctx.fade?.(0, PASS.out);
+        }
+        if (passing.t >= PASS.in + PASS.out) passing = null;
+      } else if (cooldown === 0 && !player.riding) {
         for (const po of portals) {
           if (p.distanceTo(po.pos) < 5.5) {
-            player.teleport(po.to, po.toUp, po.toFwd);
-            if (ctx.rig) { ctx.rig.yaw = Math.PI; ctx.rig.pitch = 0.2; }
+            const v = player.vel, u = player.frame?.up ?? Y, along = v.dot(u);
+            passing = { po, t: 0, done: false, speed: Math.max(2.5, Math.sqrt(Math.max(0, v.lengthSq() - along * along))) };
+            ctx.fade?.(0.9, PASS.in);
+            if (!ctx.fade) passing.t = PASS.in;   // (no screen to fade: straight through)
             cooldown = 1.5;
             break;
           }

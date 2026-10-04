@@ -189,7 +189,7 @@ Grouped by area. Checked items are done; the changelog says when.
   trees are too low.
 - [ ] The great wheel: when it turns, it clears the sand around it, then keeps
   turning.
-- [ ] Airtight level: walking into the portals animates off and feels jarring.
+- [x] Airtight level: walking into the portals animates off and feels jarring.
 - [ ] Garden of spheres: if the spheres play music, make them play, and trigger
   them by shooting at them rather than looking.
 - [x] Rename the Incal: nothing in the game named after Moebius works. (Now "the Lodestar"; the
