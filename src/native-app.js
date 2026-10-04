@@ -54,6 +54,8 @@ export function updateStatus(info) {
 /**
  * @param {{ sound?: { ctx?: AudioContext, start(): void }, label?: () => HTMLElement | null, toast?: (text: string) => void }} hooks
  */
+const TOLD_KEY = 'moebius.updateToastFor';
+
 export function installAppShell({ sound, label = () => null, toast = () => {} } = {}, win = globalThis.window) {
   if (!shell(win)) return null;
   let info = null, told = 0;
@@ -77,9 +79,12 @@ export function installAppShell({ sound, label = () => null, toast = () => {} } 
     if (at === undefined) return setTimeout(() => later(f), 2000);
     setTimeout(f, Math.max(0, at + 9000 - (win.performance?.now?.() ?? Infinity)));
   };
+  // once per downloaded build, not again on every world (each world is a new page)
+  try { told = +(win.localStorage?.getItem(TOLD_KEY) ?? 0); } catch { /* ignore */ }
   const ready = () => {
     if (!info?.ready || told === info.ready) return;
     told = info.ready;
+    try { win.localStorage?.setItem(TOLD_KEY, String(told)); } catch { /* ignore */ }
     const text = `Update ready${info.readyVersion ? ` (v${info.readyVersion})` : ''} — restart to apply`;
     later(() => toast(text));
   };

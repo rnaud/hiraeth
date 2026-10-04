@@ -41,15 +41,15 @@
       #picker .close { border: 1.5px solid #2b211f; background: none; font: inherit; padding: 4px 10px; cursor: pointer; }
       #picker .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(330px, 100%), 1fr)); gap: 22px; }
       #picker .card {
-        display: block; color: inherit; text-decoration: none; background: #fbf4e2;
+        display: flex; align-items: stretch; color: inherit; text-decoration: none; background: #fbf4e2;
         border: 2px solid #2b211f; box-shadow: 5px 5px 0 #2b211f; transition: transform 0.12s;
       }
       #picker .card:hover { transform: translate(-2px, -2px); box-shadow: 7px 7px 0 #2b211f; }
       #picker .card.current { outline: 3px solid #d9643a; outline-offset: 3px; }
-      #picker img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-bottom: 2px solid #2b211f; background: #efe3c6; }
-      #picker .txt { padding: 12px 14px 14px; position: relative; }
+      #picker img { display: block; flex: none; align-self: flex-start; width: 96px; height: 96px; margin: 12px 0 12px 12px; object-fit: cover; border: 2px solid #2b211f; background: #efe3c6; }
+      #picker .txt { flex: 1; min-width: 0; padding: 12px 14px 14px; position: relative; }
       #picker .num { position: absolute; right: 14px; top: 10px; font-size: 22px; opacity: 0.35; }
-      #picker h2 { margin: 0 0 2px; font-size: 17px; letter-spacing: 0.05em; }
+      #picker h2 { margin: 0 0 2px; padding-right: 30px; font-size: 17px; letter-spacing: 0.05em; }
       #picker .src { font-style: italic; opacity: 0.75; margin-bottom: 8px; }
       #picker p { margin: 0 0 10px; }
       #picker .moves { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #8a5a3c; }
@@ -99,7 +99,7 @@
         background: #f2c54b; border: 2px solid #2b211f; box-shadow: 4px 4px 0 #2b211f;
       }
       #picker .card.locked { opacity: 0.6; cursor: default; }
-      #picker .card.locked .lock { aspect-ratio: 16 / 9; display: grid; place-items: center; font-size: 46px; border-bottom: 2px solid #2b211f; background: repeating-linear-gradient(45deg, #efe3c6 0 10px, #e6d8b8 10px 20px); }
+      #picker .card.locked .lock { flex: none; align-self: flex-start; width: 96px; height: 96px; margin: 12px 0 12px 12px; display: grid; place-items: center; font-size: 40px; border: 2px solid #2b211f; background: repeating-linear-gradient(45deg, #efe3c6 0 10px, #e6d8b8 10px 20px); }
 
       /* touch */
       #touch { display: none; }

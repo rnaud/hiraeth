@@ -102,6 +102,17 @@ let powerId = 0;
 
 export { buildBike };
 
+/**
+ * The stick's sideways push as steering, -1..1. Pushing ahead is rarely quite
+ * straight, so while driving forward a wider deadzone ignores the drift, and the
+ * curve keeps small pushes gentle: a full turn needs the stick well over.
+ */
+export function bikeSteer(x, forward = false) {
+  const dz = forward ? 0.32 : 0.12, a = Math.abs(x);
+  if (a <= dz) return 0;
+  return Math.sign(x) * Math.min(1, (a - dz) / (1 - dz)) ** 1.6;
+}
+
 export class Hoverbike {
   /**
    * @param {object} [opts]
@@ -257,7 +268,8 @@ export class Hoverbike {
     }
     if (ridden) {
       throttle = (input.KeyW || input.ArrowUp ? 1 : 0) - (input.KeyS || input.ArrowDown ? 1 : 0);
-      steer = (input.KeyD || input.ArrowRight ? 1 : 0) - (input.KeyA || input.ArrowLeft ? 1 : 0);
+      steer = input.stick && (input.stick.x || input.stick.y) ? bikeSteer(input.stick.x, throttle > 0)
+        : (input.KeyD || input.ArrowRight ? 1 : 0) - (input.KeyA || input.ArrowLeft ? 1 : 0);
       boost = input.ShiftLeft || input.ShiftRight;
     }
     const recalling = !ridden && !!this.auto;

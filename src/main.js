@@ -1165,7 +1165,7 @@ requestAnimationFrame((t) => {
   setTimeout(() => ld?.remove(), 900);
   if (viaGate) arriveFromPage(meta.title);
   ship.start({ via: viaShip ? 'ship' : viaGate ? 'gate' : null, prologue: playPrologue, homecoming: playHomecoming, onReady: () => { if (playHomecoming) journal.markSeen(levelId); else if (!viaGate) story.start(); } });   // the homecoming is its own page
-  if (changelog.fresh) setTimeout(() => showToast(`Updated to v${VERSION} · press N to see what's new`), 4000);   // after an update: point at what changed, once
+  if (changelog.fresh) { changelog.markSeen(); setTimeout(() => showToast(`Updated to v${VERSION} · press N to see what's new`), 4000); }   // after an update: point at what changed, once (not again on the next world)
 });
 
 // handy for debugging from the console

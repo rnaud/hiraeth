@@ -303,7 +303,9 @@ Three passes per frame (`src/main.js`):
   dunes and rocks.
 - **Hoverbike** (`src/bike.js`): it rides on a hover spring, drifts a little,
   banks into turns and pitches with the ground. The camera swings behind it
-  unless you're moving the mouse.
+  unless you're moving the mouse. On a stick, `bikeSteer()` ignores sideways
+  drift while you drive forward (a 0.32 deadzone, 0.12 otherwise) and curves
+  small pushes gently, so it doesn't swerve.
 
 ## Time of day
 
@@ -974,7 +976,7 @@ Every system talks through it, and its header lists the flags and events.
 - **The fluid backpack** (`src/fluid-tool.js`): a lava-lamp tank (`#ifdef FLUID`
   in `materials.js`), a hose and a wrist bracer. Shoot (G / click while aiming),
   push (C / middle click / pad B) and boost (jump again in the air) share three
-  charges, and all three refill 5 s after the last use. Hits reach `targets.js` as `'shoot'` and
+  charges, and all three refill 2 s after the last use (for the jets, 2 s after landing). Hits reach `targets.js` as `'shoot'` and
   `'push'` (with `info { colours, strength, shove }`). `tool.refill({ addColour,
   tone })` adds a colour band for good.
 - **Conversations and quests**:

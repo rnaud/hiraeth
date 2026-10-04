@@ -34,8 +34,9 @@ test('the update status says plainly whether this is the newest game', () => {
   assert.equal(updateStatus({ web: 16, app: 14 }), '', 'older apps report no check: no line');
 });
 
-function fakeApp(info) {
+function fakeApp(info, store = new Map()) {
   const win = new EventTarget();
+  win.localStorage = { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, v) };
   win.__moebiusBootedAt = -1e9;   // the game has been up for a while
   win.document = Object.assign(new EventTarget(), { hidden: false, createElement: () => ({ style: {}, addEventListener(t, f) { this.click = f; } }) });
   const calls = [];
@@ -60,6 +61,16 @@ test('in the app: the label, the update toast and restart now', async () => {
   a.win.dispatchEvent(new Event('moebius:webupdate'));   // the app told us about a download
   await tick();
   assert.equal(a.toasts.length, 1, 'one toast per update');
+});
+
+test('in the app: the update toast shows once, not again on the next world', async () => {
+  const store = new Map(), info = { native: 3, app: 18, web: 18, bundle: true, ready: 19, readyVersion: '0.39' };
+  const first = fakeApp(info, store); await tick();
+  assert.equal(first.toasts.length, 1);
+  const next = fakeApp(info, store); await tick();   // another world: a new page
+  assert.equal(next.toasts.length, 0);
+  const newer = fakeApp({ ...info, ready: 20 }, store); await tick();
+  assert.equal(newer.toasts.length, 1, 'a newer download is told again');
 });
 
 test('in the app: sound pauses with the app and comes back', async () => {

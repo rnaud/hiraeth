@@ -19,7 +19,7 @@ import { MODES, STUN_SECONDS, FluidWings, FluidJets, HANDOFF, handoffPose, nextM
 //          (and a little forward) on a spray of fluid. Holding jump after it
 //          still opens the wings once you fall (with the glider). With the
 //          jets, holding jump thrusts instead, and a quick double tap boosts.
-// Five seconds after the last use, all three charges refill at once.
+// Two seconds after the last use, all three charges refill at once.
 //
 // Everything runs on the backpack (src/items.js): without items.has('backpack')
 // the tank, hose and bracer are not worn and nothing fires. The other items
@@ -28,7 +28,7 @@ import { MODES, STUN_SECONDS, FluidWings, FluidJets, HANDOFF, handoffPose, nextM
 //            smooth gauge (FLUID.jet.drain charges a second: a full tank is
 //            ten seconds of flight); a shot needs a whole charge left. The
 //            refill clock waits until you land after a burn, then the usual
-//            five seconds refill everything.
+//            two seconds refill everything.
 //   glider   fluid wings bloom out of the tank while gliding (hold jump while falling)
 //   stun / fire   gun modes (X, D-pad left / right, the touch ◐ button): the glob
 //            stills (onHit 'stun') or burns ('fire') instead of splashing; all
@@ -56,7 +56,7 @@ import { MODES, STUN_SECONDS, FluidWings, FluidJets, HANDOFF, handoffPose, nextM
 /** Every tuning value in one place. */
 export const FLUID = {
   charges: 3,             // one reserve shared by shoot, boost and push
-  refillDelay: 5,         // s after the last use, all three come back at once
+  refillDelay: 2,         // s after the last use (after landing, for the jets), all three come back at once
   maxColours: 5,          // colour bands magical water can add (the blend shows colours + 1 tones)
   shoot: { speed: 30, gravity: 8, range: 42, cooldown: 0.28, splatLife: 5, splatSize: 0.75 },
   push: { range: 6, angle: 0.62, cooldown: 0.4, shove: 2.4, recoil: 2.2 },    // angle: cone half-angle (rad, ~35°); shove: metres people are knocked back (info.shove)

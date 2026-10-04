@@ -28,7 +28,7 @@ const Y = new THREE.Vector3(0, 1, 0);
 const ZERO = new THREE.Matrix4().makeScale(0, 0, 0);
 const WHITE = new THREE.Color(1, 1, 1);
 const NEAR = 60, SLEEP = 140;
-const SCALE = 1.35;   // a touch larger than life, so they read at play distance
+const SCALE = 2.5;    // well larger than life, so they are easy to notice at play distance
 const STUN = [4, 6];
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _u = new THREE.Vector3(), _to = new THREE.Vector3();
 const _o = new THREE.Vector3(), _d = new THREE.Vector3(), _s = new THREE.Vector3(), _p = new THREE.Vector3();

@@ -2,6 +2,13 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.39 — 2026-10-04
+
+- The backpack’s charges now come back two seconds after you last used them (for the jets, two seconds after you land), instead of five.
+- Animals are bigger and easier to spot.
+- The hoverbike and the skiff no longer swerve when the stick drifts a little as you drive forward: small pushes turn gently, a full turn needs the stick well over.
+- The “Updated to …” and “Update ready” notes show once, not again on every world you visit. The worlds list has smaller pictures.
+
 ## v0.38 — 2026-10-04
 
 - Villagers keep the same little walks on every visit, and no longer wander onto steep banks.

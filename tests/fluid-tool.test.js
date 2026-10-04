@@ -50,22 +50,22 @@ function makeTool(o = {}) {
 }
 const frames = (tool, n, ctl = {}) => { for (let i = 0; i < n; i++) tool.update(DT, ctl); };
 
-test('the shared reserve: three uses, then none, then all three back exactly 5 s after the last use', () => {
+test('the shared reserve: three uses, then none, then all three back exactly 2 s after the last use', () => {
   const r = new Reserve();
   assert.equal(r.charges, 3);
   assert.ok(r.use() && r.use());
-  r.update(4);                        // a wait shorter than the delay…
+  r.update(1.5);                      // a wait shorter than the delay…
   assert.equal(r.charges, 1);
   assert.ok(r.use());                 // …and the last use restarts the clock
   assert.equal(r.use(), false, 'empty');
   assert.equal(r.charges, 0);
-  for (let i = 0; i < 299; i++) assert.equal(r.update(DT), false);
-  assert.equal(r.charges, 0, 'still empty just before 5 s');
+  for (let i = 0; i < Math.round(2 / DT) - 1; i++) assert.equal(r.update(DT), false);
+  assert.equal(r.charges, 0, 'still empty just before 2 s');
   assert.ok(Math.abs(r.refillIn - DT) < 1e-6);
-  assert.equal(r.update(DT), true, 'refilled at 5 s');
+  assert.equal(r.update(DT), true, 'refilled at 2 s');
   assert.equal(r.charges, 3, 'all three at once');
   assert.equal(r.update(10), false, 'nothing more to do when full');
-  assert.equal(FLUID.charges, 3); assert.equal(FLUID.refillDelay, 5);
+  assert.equal(FLUID.charges, 3); assert.equal(FLUID.refillDelay, 2);
 });
 
 test('controls: aim, shoot and push from keyboard, mouse, pad or touch', () => {
@@ -105,8 +105,8 @@ test('each ability spends a charge from the one reserve; empty, nothing fires un
   assert.equal(tool.globs.filter((g) => g.state === 'fly').length <= 1, true);
   assert.equal(fired.length, 3);
   assert.equal(player.onAirJump(1), false);
-  // 5 s after the last use, the tank is full again
-  const until = 5 - tool.reserve.since;
+  // 2 s after the last use, the tank is full again
+  const until = FLUID.refillDelay - tool.reserve.since;
   frames(tool, Math.floor(until / DT) - 2);
   assert.equal(tool.charges, 0);
   frames(tool, 4);

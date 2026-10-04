@@ -116,11 +116,11 @@ test('the jets: only with the item; thrust burns the tank as a smooth gauge that
   assert.ok(tool.fill < 1 && tool.fill > 0.7, 'the tank shows it draining');
   assert.ok(Math.abs(p.jetFuel - tool.reserve.level / 3) < 1e-9, 'the HUD gauge is the tank');
   // off the jets, still airborne: the refill clock waits for the ground
-  step(400);
+  for (let i = 0; i < 400 && !p.onGround; i++) step(1);
   assert.equal(p.onGround, true);
   assert.ok(tool.reserve.level < 3, 'not refilled in the air');
   step(Math.ceil(FLUID.refillDelay / DT) + 2);
-  assert.equal(tool.reserve.level, 3, 'full again five seconds after landing');
+  assert.equal(tool.reserve.level, 3, 'full again two seconds after landing');
   // burnt dry it stops (and drops), a whole charge left still shoots
   tool.reserve.drain(2.95); p.pos.set(0, 30, 0); p.onGround = false; step(1);
   step(1, { Space: true }); step(30, { Space: true });

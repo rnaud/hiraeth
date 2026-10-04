@@ -3,6 +3,12 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.39', date: '2026-10-04', items: [
+    'The backpack’s charges now come back two seconds after you last used them (for the jets, two seconds after you land), instead of five.',
+    'Animals are bigger and easier to spot.',
+    'The hoverbike and the skiff no longer swerve when the stick drifts a little as you drive forward: small pushes turn gently, a full turn needs the stick well over.',
+    'The “Updated to …” and “Update ready” notes show once, not again on every world you visit. The worlds list has smaller pictures.',
+  ] },
   { v: '0.38', date: '2026-10-04', items: [
     'Villagers keep the same little walks on every visit, and no longer wander onto steep banks.',
     'Steadier sun shadows: building and cliff shadows no longer shimmer or crawl as you walk and turn, and their edges are softer.',
@@ -238,9 +244,15 @@ export class Changelog {
     this.fresh = seen !== VERSION;      // updated since your last visit
   }
 
+  /** This version's notes count as seen: the "Updated to …" toast shows once, not on every world. */
+  markSeen() {
+    try { localStorage.setItem(SEEN_KEY, VERSION); } catch { /* ignore */ }
+    this.fresh = false;
+  }
+
   toggle(on = !this.open) {
     this.open = on;
-    if (on) { document.exitPointerLock?.(); this.onOpen?.(); try { localStorage.setItem(SEEN_KEY, VERSION); } catch { /* ignore */ } this.fresh = false; }
+    if (on) { document.exitPointerLock?.(); this.onOpen?.(); this.markSeen(); }
     this.el.classList.toggle('open', on);
   }
 }
