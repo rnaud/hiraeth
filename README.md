@@ -77,7 +77,7 @@ portal routes, with local obstacle avoidance. **L** opens the level picker. Each
 aiming and the D-pad switches; on touch, use **◎ ✺ ⇄**. The paralyze ray
 freezes wildlife and people briefly. Foam darts activate things from afar:
 reactive scenery, observatory lenses within 30 m, cruising
-taxis and Perdide's carnivorous plants.
+taxis and Lorn's carnivorous plants.
 
 ## Controller
 
@@ -165,18 +165,22 @@ It lists only the worlds you know of (see "The galactic map and the route"
 below); `?level=<id>` and the dev menu still open any world. Each level is a module in
 `src/levels/`, registered in `src/levels/index.js`.
 
-| # | Level | After | Getting around |
+| # | Level | Tagline | Getting around |
 |---|---|---|---|
-| 1 | **The Desert** (`desert`) | *Sable* (Shedworks) | walk, climb, glide, hoverbike |
-| 2 | **The City-Shaft** (`incal`) | *L'Incal* (Jodorowsky & Moebius) | jetpack, climb, flying taxis |
-| 3 | **Arzach** (`arzach`) | *Arzach* (Moebius) | the flying bird, climb |
-| 4 | **The Airtight Garage** (`garage`) | *Le Garage hermétique* (Moebius) | portals, shifting gravity, jetpack |
-| 5 | **Edena** (`edena`) | *Le Monde d'Edena* (Moebius) | climbing with stamina |
-| 6 | **Perdide** (`perdide`) | *Les Maîtres du temps* (Laloux & Moebius) | hover-skiff, wading, caves |
-| – | **Arzach II: The Sky Stones** (`arzach2`) | after *Arzach* | the flying bird, climb |
-| – | **The Buried Machine** (`buried`) | after Moebius | climb, jetpack |
-| – | **The Garden of Spheres** (`spheres`) | after *Le Monde d'Edena* | walk, climb |
-| – | **Perdide II: The Deep Wood** (`perdide2`) | after *Les Maîtres du temps* | hover-skiff, wading, caves |
+| 1 | **The Desert** (`desert`) | after *Sable* (Shedworks) | walk, climb, glide, hoverbike |
+| 2 | **The City-Shaft** (`incal`) | a city stacked down a pit | jetpack, climb, flying taxis |
+| 3 | **Vael** (`arzach`) | a silent world of needles | the flying bird, climb |
+| 4 | **The Sealed Hangar** (`garage`) | a pocket universe that keeps turning | portals, shifting gravity, jetpack |
+| 5 | **Viridel** (`edena`) | a garden that keeps what falls | climbing with stamina |
+| 6 | **Lorn** (`perdide`) | a twilight swamp that hums | hover-skiff, wading, caves |
+| – | **Vael II: The Sky Stones** (`arzach2`) | stones that fell up | the flying bird, climb |
+| – | **The Buried Machine** (`buried`) | a machine under the dunes | climb, jetpack |
+| – | **The Garden of Spheres** (`spheres`) | spheres that answer | walk, climb |
+| – | **Lorn II: The Deep Wood** (`perdide2`) | the wood under the swamp | hover-skiff, wading, caves |
+
+Nothing in the game is named after a Moebius work (v0.39): the worlds, people and
+places all have names of their own. The level ids (`arzach`, `edena`, `garage`,
+`perdide`, `incal`, …) are only internal and stay as they were, so saves keep working.
 
 The picker lists worlds in the order of `LEVELS`. Each second take sits after
 its original, and progression follows `ORDER` in `src/levels/content.js`.
@@ -204,23 +208,23 @@ The reference pages for the four v0.30 worlds are in `references/`
     Space up, Shift down.
   - taxis are solid: you bump into their sides, and you can land on a roof
     and ride along; a taxi left idle for 30 s flies back into traffic.
-- **Arzach:**
+- **Vael:**
   - a bone-white world of needle spires, stone arches, floating ruins and a
     lone tower;
   - **E** whistles for the bird. Flying: A/D bank, W dive to gain speed, S
     pull up, Space flap.
-- **The Airtight Garage:** three zones joined by glowing portals. Each has its
+- **The Sealed Hangar:** three zones joined by glowing portals. Each has its
   own gravity, and the ink style switches when you cross between them:
-  - **Grubert's plateau:** normal gravity, Moebius style;
+  - **Brask's plateau:** normal gravity, Moebius style;
   - **the upside-down quarter:** a city hanging under a slab, where gravity
     pulls you up; Animated ink style;
   - **the ring:** a cylinder habitat lit through a slit in its roof, where
     gravity points outward so you walk all the way round; Sable style.
-- **Edena:**
+- **Viridel:**
   - flat colours and thin lines, light stipple only;
   - giant umbrella trees (climb the trunk and stand on the canopy), step
     pyramids and white android ruins with glyphs.
-- **Perdide:**
+- **Lorn:**
   - a twilight swamp with inked water;
   - crystal forests and egg clutches that glow;
   - carnivorous plants that snap when you get close;
@@ -375,7 +379,7 @@ poses update at 12 fps ("stop-motion anim") while movement stays smooth.
   - **City:** three villas behind the spawn you walk straight into.
   - **Desert:** a carved doorway in front of the masked head leads to a
     glyph chamber under an oculus.
-  - **Edena:** a hatch in the crashed ship's hull, under an arch of flowers,
+  - **Viridel:** a hatch in the crashed ship's hull, under an arch of flowers,
     opens onto its cabin (`hullHatch` places it round the hull where its
     sill clears the meadow; `portalPair` gives the way in without a doorway).
   - Rooms that can't fit inside their building are built high above the
@@ -416,10 +420,10 @@ poses update at 12 fps ("stop-motion anim") while movement stays smooth.
     every 16 beats and varied each time:
     - desert: duduk and kalimba;
     - city-shaft: reed and marimba;
-    - Arzach: flute;
-    - Garage: analog synth;
-    - Edena: strings and celesta;
-    - Perdide: FM bells.
+    - Vael: flute;
+    - Hangar: analog synth;
+    - Viridel: strings and celesta;
+    - Lorn: FM bells.
   - Each also has its own ambience bed: city horns and passing taxis,
     birdsong, frogs and insects, ticking gears, high wind, or rustling
     paper.
@@ -438,7 +442,7 @@ poses update at 12 fps ("stop-motion anim") while movement stays smooth.
   - Sandstorms: a warm haze swallows the distance, and streaks of sand race
     across the screen.
   - Rain: slanted ink strokes falling over the scene.
-  - Fog banks in the city-shaft and on Perdide.
+  - Fog banks in the city-shaft and on Lorn.
   - Weather drives the wind on the cloak and the sound.
   - **Shelter** (`src/shelter.js`): the weather stays outdoors. Every
     `interiors.js` room and the traveller's ship are registered interiors
@@ -543,7 +547,7 @@ The canopy is in fixed cells: cream, salmon towards the tips and one blue
 cell in the middle. Nothing scrolls or pulses as you fly. It folds away
 when you mount.
 
-## The rider (v0.14, the Arzach-style look; NPCs still wear capes)
+## The rider (v0.14, the Vael-style look; NPCs still wear capes)
 
 - **Outfit:** flat blocks of colour (a body colour and a hem band), not gradients.
 - **Cape:** a short cape, knee-length.
@@ -561,14 +565,14 @@ when you mount.
 
 ## World passes after the books
 
-- **Arzach:** warm peach sand, an aqua sky, rose-mauve shadows, mushroom-capped
+- **Vael:** warm peach sand, an aqua sky, rose-mauve shadows, mushroom-capped
   hoodoos and boulders balanced on needles.
-- **Edena:** a ligne-claire look via `defaults.look` (thin even lines, flat
+- **Viridel:** a ligne-claire look via `defaults.look` (thin even lines, flat
   colour, little hatching, no dots). Also great spheres half-sunk in the
   meadow and rows of ornaments on white pedestals.
-- **Perdide:** giant fungus trees (violet stalks, softly glowing caps that
+- **Lorn:** giant fungus trees (violet stalks, softly glowing caps that
   light the swamp) and reeds along the waterlines.
-- **The Garage:** pipes with valve wheels and pumps, aerials, cabins, and
+- **The Hangar:** pipes with valve wheels and pumps, aerials, cabins, and
   cables slung from the keep, all over a paved plateau.
 
 A world can tweak its default preset with `defaults.look` (post uniforms).
@@ -687,10 +691,10 @@ Each of these can be toggled or tuned in the panel's **Beauty** folder.
     depth-tested sprites so they don't turn into ink specks;
   - waving cloth banners;
   - acid steam rising in the city-shaft;
-  - swaying flowers in Edena;
+  - swaying flowers in Viridel;
   - footprints in sand.
 - **The character:** a real human body (Quaternius' Universal Base
-  Characters, CC0) dressed as the Arzach rider: tunic, trousers, belt and
+  Characters, CC0) dressed as the Vael rider: tunic, trousers, belt and
   boots, coloured by body region in a skinned version of the inked material.
   The red hood and a cloth cape go on top.
   - **Reshaped at load** (`reshape()` in `src/humanoid.js`) from the stock
@@ -740,11 +744,11 @@ Each of these can be toggled or tuned in the panel's **Beauty** folder.
   tunic and trouser colours.
 - **Hero landmarks:**
   - the desert: a colossal half-buried masked head;
-  - Arzach: a fallen stone colossus and a giant hand rising from the plain;
+  - Vael: a fallen stone colossus and a giant hand rising from the plain;
   - the city-shaft: the Lodestar and its dark twin above the palace;
-  - the Garage: a cathedral of turning gears and pistons;
-  - Edena: Stel and Atan's crashed ship;
-  - Perdide: the Great Crystal and its stone ring.
+  - the Hangar: a cathedral of turning gears and pistons;
+  - Viridel: Odile and Talo's crashed ship;
+  - Lorn: the Great Crystal and its stone ring.
 - **Softer forms:** towers and trunks get organic bulges and pinches
   (`soften()` in `src/world.js`).
 - **Photo mode** (**P**):
@@ -816,7 +820,7 @@ layout checks do not establish performance on physical iPhone hardware.
 Ambient flocks now draw an instanced body/head/beak/tail and two feathered wings
 (three draw calls per flock). Desert birds circle lower and closer at a smaller
 scale; distance scaling is capped at 1.7 times their base size.
-The Arzach mount has overlapping secondary and primary feathers, articulated
+The Vael mount has overlapping secondary and primary feathers, articulated
 shoulders and wrists, folded resting wings, a hooked beak, a fan tail and talons.
 Static feather geometry is merged within each moving joint. Tests cover flock
 scaling, wing folding, takeoff and the rider seat transform.
@@ -831,10 +835,10 @@ passes one delayed pulse to its neighbors, and settles after you leave.
 | --- | --- |
 | Desert | Salt blooms open, turn turquoise and release a brief cloud of spores. |
 | City-Shaft | Terminals wake along the terraces and recognize returning visits. |
-| Arzach | Tall pale fronds turn toward visitors and take on a lavender tint. |
-| Garage | Machines stir and pass amber signals, including in the other gravity zones. |
-| Edena | Larger flowers unfold, turn pink and turn toward the player. |
-| Perdide | Fungi shrink away, glow turquoise and release spores. |
+| Vael | Tall pale fronds turn toward visitors and take on a lavender tint. |
+| Hangar | Machines stir and pass amber signals, including in the other gravity zones. |
+| Viridel | Larger flowers unfold, turn pink and turn toward the player. |
+| Lorn | Fungi shrink away, glow turquoise and release spores. |
 | Signal Market | Shopfront terminals and selected existing billboards wake with changing messages. |
 | Atelier | Pale paper-like growths open and pick up a soft teal glow. |
 
@@ -926,7 +930,7 @@ Each new world is self-contained in `src/levels/<id>.js`. The module exports its
 journal content (`<ID>_CONTENT`, imported by `content.js`) and has its own test in
 `tests/<id>.test.js`. Visible rock and props generally render without collision;
 hidden coarse copies collide instead. Static collision for each world is under 60k triangles.
-- **Arzach II** (`arzach2`): plateaus and needle forests above a cloud sea, linked
+- **Vael II** (`arzach2`): plateaus and needle forests above a cloud sea, linked
   by aqueducts and natural bridges. The rocks are built from noisy horizontal rings:
   fluted needles that fuse like drips, egg-stone stacks, mushroom tables with
   ribbed and hatched undersides, and overhanging rose cliffs with monasteries.
@@ -941,7 +945,7 @@ hidden coarse copies collide instead. Static collision for each world is under 6
   whose crescents face the light. It also has a sphere-arch, a mirror lake with
   projected reflections (correct from the south shore), and a cypress avenue to
   the round plaza.
-- **Perdide II** (`perdide2`): violet trunks and pale mushrooms at dusk, with
+- **Lorn II** (`perdide2`): violet trunks and pale mushrooms at dusk, with
   crystal reeds, glowing egg heaps and lit pools along a wadeable path. The path
   passes root arches, moss domes and a sunken saucer, and ends at a coral-lit
   root cave with the teal skiff moored outside.
@@ -949,8 +953,8 @@ hidden coarse copies collide instead. Static collision for each world is under 6
 ### Wildlife, the tool, crowds and fixes (v0.31)
 - **Wildlife** (`src/wildlife.js`, `src/wildlife/`): every world has 2–3 species
   (11–14 creatures), each with its own surprise when scared: the desert's puff
-  lizard balloons up and floats away, Arzach's bone kite unfolds into a paper
-  kite, Edena's pyramid tortoise raises its shell into a temple, and so on.
+  lizard balloons up and floats away, Vael's bone kite unfolds into a paper
+  kite, Viridel's pyramid tortoise raises its shell into a temple, and so on.
   Sprinting, hard landings, passing vehicles and darts scare them; the ray stuns
   them. Creatures that leave return out of view 14–28 s later, sleep beyond
   140 m, and update coarsely beyond 60 m.
@@ -1041,14 +1045,14 @@ walkthroughs and local names; each data file's header lists its flags.
 
 | World | Main quest | Keepsake |
 |---|---|---|
-| Arzach | climb the tower with boost-jumps, blow the rider's whistle | the bird's promise (person) |
-| Arzach II | fetch the clapper from the floating island, ring the bell: the cloud sinks 16 m | the bell's note (song; it then sounds when you shoot) |
-| Garage | carry the signal through all three zones to the Major's desk | the Major's note (knowing) |
+| Vael | climb the tower with boost-jumps, blow the rider's whistle | the bird's promise (person) |
+| Vael II | fetch the clapper from the floating island, ring the bell: the cloud sinks 16 m | the bell's note (song; it then sounds when you shoot) |
+| Hangar | carry the signal through all three zones to the Major's desk | the Major's note (knowing) |
 | Buried Machine | push the oil valve, shoot the wick, stand in the light (amber band); the wheel turns a tooth | a rust gear tooth (thing) |
-| Edena | open Stel and Atan's overgrown ship, play their log, part the flowers over the scorch | Mira's words (word) |
+| Viridel | open Odile and Talo's overgrown ship, play their log, part the flowers over the scorch | Mira's words (word) |
 | Garden of Spheres | listen at three spheres, then at the plaza's pole | the chord of the spheres (song) |
-| Perdide | make the Great Crystal sing (rain or three shots), carry its splinter to the cave (violet band) | a singing splinter (thing) |
-| Perdide II | relight three dark pools; the saucer answers; it is Stel and Atan's pod | Hollin's lamps (person) |
+| Lorn | make the Great Crystal sing (rain or three shots), carry its splinter to the cave (violet band) | a singing splinter (thing) |
+| Lorn II | relight three dark pools; the saucer answers; it is Odile and Talo's pod | Hollin's lamps (person) |
 | City-Shaft | carry the splinter from the bottom to the palace; the Lodestar brightens | "Look up once a day" (word) |
 | Signal Market | tune the antenna (three shots at once), play the recording: the father's voice | "You are not alone" (word) |
 
@@ -1074,8 +1078,8 @@ walkthroughs and local names; each data file's header lists its flags.
 - **Home** (`src/levels/home.js`, hidden): a dusk dome house under two moons,
   with an umbrella tree, a washing line in the backpack's colours, and a landing
   ring painted with the glyph. The parents are there to talk to.
-- **The bird's promise:** with `bird.promise` set, the whistle calls the Arzach
-  bird in worlds with open sky and no mount (Edena, the Garden of Spheres, Home).
+- **The bird's promise:** with `bird.promise` set, the whistle calls the Vael
+  bird in worlds with open sky and no mount (Viridel, the Garden of Spheres, Home).
 
 ## The scout keeps pace (v0.39)
 
@@ -1224,8 +1228,8 @@ Pocket. Their built-in controls work through the Gamepad API.
   from `neutral, happy, sad, angry, scared, surprised, curious, tired, solemn, playful,
   whisper, shout`. Tags are stripped wherever text is shown, and `tests/tone.test.js`
   checks every line in the game has one.
-- **Tongues** (`LANGUAGES`, by level id): Qanati, Shaft cant, the Arzach hush, cloud-monk
-  chant, Garage clatter and so on, each with its own glyph script. The traveller's
+- **Tongues** (`LANGUAGES`, by level id): Qanati, Shaft cant, the Vael hush, cloud-monk
+  chant, Hangar clatter and so on, each with its own glyph script. The traveller's
   translator resolves the glyphs at the caret into your words (no label: the effect says it).
 
 ### Over-the-air updates and the handheld pass (v0.37)
@@ -1290,7 +1294,7 @@ Pocket. Their built-in controls work through the Gamepad API.
   no crease shading or cloud shadows, shorter crowd and prop ranges, a lighter ink pass)
   is chosen by Auto on Android and mobile GPUs. The F readout shows ms (CPU and GPU where
   the browser allows), render scale, draw calls and triangles.
-- Known: on desktop Metal (ANGLE), Perdide II and the Buried Machine run about 1 ms slower
+- Known: on desktop Metal (ANGLE), Lorn II and the Buried Machine run about 1 ms slower
   per frame than before despite fewer draws (still over 200 fps here); the desert and the
   City-Shaft are about 1 ms faster.
 

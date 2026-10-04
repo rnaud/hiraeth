@@ -10,7 +10,7 @@ import { glyphGeometry, textGeometry } from '../story/sign-text.js';
 import { LINES } from '../story/incal-data.js';
 
 // ---------------------------------------------------------------------------
-// "La Cité-Puits": the city-shaft from Jodorowsky & Moebius' L'Incal.
+// The City-Shaft: a city stacked down a 600 m pit.
 // An enormous vertical pit lined with terraces, the rich at the sunny top,
 // the poor in the depths, an acid lake at the bottom, a central spire with
 // rings and bridges, floating landing pads and flying taxis on circular lanes.

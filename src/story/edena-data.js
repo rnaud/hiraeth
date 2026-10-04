@@ -1,13 +1,13 @@
-// Edena's story as data: "The Garden Grows Over" (docs/story-bible.md).
+// Viridel's story as data: "The Garden Grows Over" (docs/story-bible.md).
 //
-// Long ago Stel and Atan's ship fell in the south meadow. The gardeners took
+// Long ago Odile and Talo's ship fell in the south meadow. The gardeners took
 // them in, gave them tea and a great deal of advice about not digging, and
 // let the garden take the ship: they believe nothing that falls should be dug
-// up again. Stel and Atan left one spring in their little saucer, "toward the
-// deep wood where the lamps are kept" (Perdide II, where the saucer lies).
+// up again. Odile and Talo left one spring in their little saucer, "toward the
+// deep wood where the lamps are kept" (Lorn II, where the saucer lies).
 //
 // The reveal, kept quiet and in the traveller's own hands: the ship's last
-// log (a singing light paced them, turned, and struck), Atan's request ("look
+// log (a singing light paced them, turned, and struck), Talo's request ("look
 // under the flowers on the starboard side; look, and then let it be"), and
 // the veil of vines over the hull that parts when you water it rather than
 // cut it. Under it is the scorch: three dots over an arc, exactly the mark
@@ -30,11 +30,11 @@ export const QUESTS = [
     outro: 'You looked, and let it be. You were not the first.',
     stages: [
       { id: 'mira', text: 'Talk to Mira, who keeps the gardeners’ water clock near where you landed', label: 'Mira, the gardener', flag: 'edena.mira.heard', at: 'mira' },
-      { id: 'ship', text: 'Find Stel and Atan’s ship, fallen in the south meadow', label: 'The fallen ship', goto: 'ship', radius: 45, at: 'ship' },
+      { id: 'ship', text: 'Find Odile and Talo’s ship, fallen in the south meadow', label: 'The fallen ship', goto: 'ship', radius: 45, at: 'ship' },
       { id: 'vey', text: 'Vey tends the vines over the ship. Ask before you touch anything', label: 'Vey, by the ship', flag: 'edena.vey.asked', at: 'vey' },
       { id: 'inside', text: 'Go in through the hatch on the ship’s flank', label: 'The overgrown hatch', flag: 'edena.cabin.seen', at: 'hatch' },
       { id: 'log', text: 'Play the ship’s last log at the cockpit panel', label: 'The cockpit panel', flag: 'edena.log.read', at: 'panel' },
-      { id: 'veil', text: 'Look under the flowers on the ship’s flank, as Atan asked. Don’t cut them: water them (shoot)', label: 'The flowers on the flank', flag: 'edena.veil.open', at: 'veil' },
+      { id: 'veil', text: 'Look under the flowers on the ship’s flank, as Talo asked. Don’t cut them: water them (shoot)', label: 'The flowers on the flank', flag: 'edena.veil.open', at: 'veil' },
       { id: 'scar', text: 'Look at what the garden uncovered', label: 'Under the flowers', flag: 'edena.scar.seen', at: 'veilLook' },
       { id: 'tell', text: 'Tell Mira what you saw', label: 'Mira, the gardener', talk: 'mira', at: 'mira' },
     ],
@@ -83,7 +83,7 @@ export const PEOPLE = {
         who: { say: ['~playful~ The gardeners. Us. And the garden, which tends us back. There were others before us, the white builders who left the ruins and the pedestals. They tended it with straight lines. We prefer curved ones.'], choices: [{ text: '~curious~ Something else fell here, you said?', goto: 'twice' }] },
         value: { say: ['~solemn~ Then you’ve come to the wrong garden, or the right one. We don’t keep anything. Everything here is on its way to being something else.'], choices: [{ text: '~curious~ You said something else fell here?', goto: 'twice' }] },
         twice: {
-          say: ['~neutral~ A ship, long ago, when I was small. Stel and Atan’s. It came down in *the south meadow*, burning, and ploughed a furrow you can still see from the tall trees.', '~solemn~ They lived. We gave them tea. They stayed one spring, and then they left, and we let the garden take the ship. We don’t dig up what falls. It fell; it belongs to the ground now.'],
+          say: ['~neutral~ A ship, long ago, when I was small. Odile and Talo’s. It came down in *the south meadow*, burning, and ploughed a furrow you can still see from the tall trees.', '~solemn~ They lived. We gave them tea. They stayed one spring, and then they left, and we let the garden take the ship. We don’t dig up what falls. It fell; it belongs to the ground now.'],
           do: { set: { 'edena.mira.heard': true } },
           choices: [
             { text: '~curious~ Can I see it?', goto: 'see' },
@@ -99,7 +99,7 @@ export const PEOPLE = {
           ],
           choices: [
             { text: '~curious~ What is the water clock for?', goto: 'clock', once: true },
-            { text: '~curious~ Where did Stel and Atan go?', goto: 'went' },
+            { text: '~curious~ Where did Odile and Talo go?', goto: 'went' },
             { text: '~happy~ See you, Mira.', end: true },
           ],
         },
@@ -111,13 +111,13 @@ export const PEOPLE = {
             { text: '~solemn~ My ship has the same mark. Something struck it, on the way here.', goto: 'same' },
           ],
         },
-        mark: { say: ['~sad~ Yes. We knew it was there. Atan showed us, the first spring. Then he asked us to let the garden have it, and we did. We’re good at that.'], choices: [{ text: '~solemn~ My ship has the same mark. Something struck it, on the way here.', goto: 'same' }] },
+        mark: { say: ['~sad~ Yes. We knew it was there. Talo showed us, the first spring. Then he asked us to let the garden have it, and we did. We’re good at that.'], choices: [{ text: '~solemn~ My ship has the same mark. Something struck it, on the way here.', goto: 'same' }] },
         same: {
-          say: ['~surprised~ …', '~whisper~ Then it wasn’t only theirs.', '~solemn~ Atan called it the Singer. A light that sang as it came, and turned before it struck, as if it had been looking for something. They never learned what it was. That’s why they left: to go and ask it.'],
+          say: ['~surprised~ …', '~whisper~ Then it wasn’t only theirs.', '~solemn~ Talo called it the Singer. A light that sang as it came, and turned before it struck, as if it had been looking for something. They never learned what it was. That’s why they left: to go and ask it.'],
           do: { set: { 'clue.edena.struck': true } },
           choices: [{ text: '~curious~ Where did they go to ask?', goto: 'where' }, { text: '~curious~ What does it want?', goto: 'want' }],
         },
-        where: { say: ['~sad~ Toward *the deep wood where the lamps are kept*, Atan said. Where the pools are lit for travellers who never come. I’ve never been. Nobody here has.'], do: { set: { 'clue.edena.pod': true } }, choices: [{ text: '~curious~ What does it want?', goto: 'want' }] },
+        where: { say: ['~sad~ Toward *the deep wood where the lamps are kept*, Talo said. Where the pools are lit for travellers who never come. I’ve never been. Nobody here has.'], do: { set: { 'clue.edena.pod': true } }, choices: [{ text: '~curious~ What does it want?', goto: 'want' }] },
         want: {
           say: ['~solemn~ I don’t know. Nobody here does. I don’t think the light is ours to know.', '~solemn~ But I know what we do with the things that fall on us. We tend the garden. The garden tends us.'],
           do: [{ advance: [Q, 'tell'] }, { keepsake: KEEPSAKE }, { set: { 'clue.edena.pod': true } }],
@@ -132,12 +132,12 @@ export const PEOPLE = {
   sol: {
     id: 'sol', name: 'Sol', title: 'who remembers them', color: '#9fd6c9', voice: 0.85, kind: 'm',
     palette: { cloak: '#9fd6c9', lining: '#2b211f', cloth: '#f7f4ec', legs: '#5a6a6a', hat: '#f2a7b5', hair: '#e8dcc0' }, head: 'hat', cape: 0.9,
-    lines: ['~curious~ Stel? Atan? They left in the ship.', '~happy~ They’ll be back for the tea.', '~surprised~ Every flower turned east. Every one.'],
+    lines: ['~curious~ Odile? Talo? They left in the ship.', '~happy~ They’ll be back for the tea.', '~surprised~ Every flower turned east. Every one.'],
     talk: {
       entry: [{ if: { quest: Q, done: true }, node: 'after' }, { if: { flag: 'met.sol' }, node: 'again' }, { node: 'hello' }],
       nodes: {
         hello: {
-          say: ['~curious~ Stel? Atan? They left in the ship. The little one, I mean; the big one stayed. You’re not them, are you? No. They’d have brought cake.', '~playful~ I’m Sol. I knew them, when I was young enough to follow them about. Atan let me hold his tools. Stel let me hold Atan, when he fell off things.'],
+          say: ['~curious~ Odile? Talo? They left in the ship. The little one, I mean; the big one stayed. You’re not them, are you? No. They’d have brought cake.', '~playful~ I’m Sol. I knew them, when I was young enough to follow them about. Talo let me hold his tools. Odile let me hold Talo, when he fell off things.'],
           choices: [
             { text: '~curious~ Are they coming back?', goto: 'back' },
             { text: '~curious~ Have you seen anything strange lately?', goto: 'strange' },
@@ -147,11 +147,11 @@ export const PEOPLE = {
         back: { say: ['~happy~ Of course. They said they’d be back for the tea, and nobody says that about tea unless they mean it. It’s been a long time, I grant you. Tea keeps.'], choices: [{ text: '~curious~ Have you seen anything strange lately?', goto: 'strange' }, { text: '~neutral~ Goodbye, Sol.', end: true }] },
         believe: { say: ['~playful~ That nothing that falls should be dug up again. Leaves, seeds, ships, old men. You let it lie and the garden makes something of it. Vey believes it hardest. I believe it on Tuesdays.'], choices: [{ text: '~curious~ Have you seen anything strange lately?', goto: 'strange' }] },
         strange: {
-          say: ['~whisper~ Three nights ago, a light went over, very high. Singing. A long note, like a finger round a glass. And every flower in the meadow turned to follow it, all at once, in the dark.', '~playful~ Atan had a name for a light like that. The Singer. He said it the way you’d say the name of someone who owes you money.'],
+          say: ['~whisper~ Three nights ago, a light went over, very high. Singing. A long note, like a finger round a glass. And every flower in the meadow turned to follow it, all at once, in the dark.', '~playful~ Talo had a name for a light like that. The Singer. He said it the way you’d say the name of someone who owes you money.'],
           do: { set: { 'edena.rumour.light': true } },
           choices: [{ text: '~neutral~ It struck my ship.', goto: 'struck' }, { text: '~neutral~ Goodbye, Sol.', end: true }],
         },
-        struck: { say: ['~curious~ Did it. Hm. Then you and Atan have something to talk about, when he’s back for the tea.'], choices: [{ text: '~neutral~ Goodbye, Sol.', end: true }] },
+        struck: { say: ['~curious~ Did it. Hm. Then you and Talo have something to talk about, when he’s back for the tea.'], choices: [{ text: '~neutral~ Goodbye, Sol.', end: true }] },
         again: { say: ['~tired~ Any sign of them? No. Tea keeps.'], choices: [{ text: '~curious~ Tell me about the light again.', goto: 'strange' }, { text: '~neutral~ Goodbye, Sol.', end: true }] },
         after: { say: ['~sad~ Mira says you saw it, under the flowers. Then you know why they went. I always knew they’d go. I always know they’ll come back. Both can be true.'], choices: [{ text: '~solemn~ Both can be true.', end: true }] },
       },
@@ -218,18 +218,18 @@ export const PEOPLE = {
             { text: '~playful~ I can jump quite high.', goto: 'jump' },
           ],
         },
-        what: { say: ['~curious~ Nobody knows! Sol says Atan used to go up there, before he left. Sol says a lot of things. But from the second canopy I saw something on the crown, something square.'], choices: [{ text: '~neutral~ I’ll go and look.', do: { start: 'edena.tree' }, goto: 'go' }, { text: '~neutral~ Maybe later.', end: true }] },
+        what: { say: ['~curious~ Nobody knows! Sol says Talo used to go up there, before he left. Sol says a lot of things. But from the second canopy I saw something on the crown, something square.'], choices: [{ text: '~neutral~ I’ll go and look.', do: { start: 'edena.tree' }, goto: 'go' }, { text: '~neutral~ Maybe later.', end: true }] },
         jump: { say: ['~surprised~ With that thing on your back? The fizzing one? Then go! *Climb the trunk to the second canopy*, run to the edge under the crown, and jump, and *jump again in the air*.'], choices: [{ text: '~neutral~ I’ll go and look.', do: { start: 'edena.tree' }, goto: 'go' }] },
         go: { say: ['~playful~ Tell me everything. If there’s treasure I want a third. A quarter. Some.'], choices: [{ text: '~playful~ Deal.', end: true }] },
         waiting: { say: ['~neutral~ *North-west, the tallest one*. Trunk, first canopy, trunk, second canopy, then up. And *jump again in the air*!'], choices: [{ text: '~neutral~ On my way.', end: true }] },
         tell: {
           say: ['~surprised~ You went up! You went UP! What was there?'],
           choices: [
-            { text: '~neutral~ A bench, and a note from Atan. He watched the sky from up there.', do: { advance: ['edena.tree', 'tell'] }, goto: 'atan' },
+            { text: '~neutral~ A bench, and a note from Talo. He watched the sky from up there.', do: { advance: ['edena.tree', 'tell'] }, goto: 'atan' },
             { text: '~neutral~ The whole garden, and the furrow the ship cut across it.', do: { advance: ['edena.tree', 'tell'] }, goto: 'view' },
           ],
         },
-        atan: { say: ['~surprised~ A bench! He took a BENCH up there? Atan was the best climber in the world and nobody told me. I’m going to practise jumping until I can sit on it.'], choices: [{ text: '~happy~ You will.', end: true }] },
+        atan: { say: ['~surprised~ A bench! He took a BENCH up there? Talo was the best climber in the world and nobody told me. I’m going to practise jumping until I can sit on it.'], choices: [{ text: '~happy~ You will.', end: true }] },
         view: { say: ['~curious~ The furrow! You can see it from up there? Like a long green stitch. That’s what Sol says. He says it’s the garden sewing up the cut.'], choices: [{ text: '~neutral~ It does look like that.', end: true }] },
         after: { say: ['~playful~ I jumped this high today. Well. This high. Still practising.'], choices: [{ text: '~happy~ Keep going.', end: true }] },
       },
@@ -250,7 +250,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~angry~ Stop there. Gently. You’re standing on a root.', '~tired~ I’m Vey. I tend the vines on Stel and Atan’s ship. Forty years now. When I started you could still see the paint.'],
+          say: ['~angry~ Stop there. Gently. You’re standing on a root.', '~tired~ I’m Vey. I tend the vines on Odile and Talo’s ship. Forty years now. When I started you could still see the paint.'],
           choices: [
             { text: '~neutral~ Mira said I should ask before I touch anything.', goto: 'ask' },
             { text: '~curious~ Why let the garden take it?', goto: 'why' },
@@ -258,7 +258,7 @@ export const PEOPLE = {
         },
         why: { say: ['~solemn~ Because it fell. Everything that falls belongs to the ground. A leaf, a seed, a ship. You dig it up, you put it back in the world, and the world has to deal with it all over again. We let it rest.'], choices: [{ text: '~curious~ May I look at it?', goto: 'ask' }] },
         ask: {
-          say: ['~happy~ Good. You asked. Most don’t; most just stare.', '~neutral~ You may look. You may go inside: the hatch is *on this flank, under the arch of flowers*. Going in isn’t digging. Atan used to sit in there and talk to the panel.', '~solemn~ *Don’t cut anything*. Don’t pull anything. If the garden wants to show you something, it will.'],
+          say: ['~happy~ Good. You asked. Most don’t; most just stare.', '~neutral~ You may look. You may go inside: the hatch is *on this flank, under the arch of flowers*. Going in isn’t digging. Talo used to sit in there and talk to the panel.', '~solemn~ *Don’t cut anything*. Don’t pull anything. If the garden wants to show you something, it will.'],
           do: { set: { 'edena.vey.asked': true } },
           choices: [{ text: '~neutral~ I won’t cut anything.', end: true }],
         },
@@ -280,11 +280,11 @@ export const THINGS = {
     id: 'log', name: 'The ship’s log', title: 'at the cockpit panel', color: '#34405e', voice: 0.75,
     talk: { nodes: {
       stel: {
-        say: ['~tired~ The panel wakes when you touch it, slowly, as if from a long sleep. A woman’s voice, tired and amused: *Stel’s log. Day ninety-one of the crossing.*', '~curious~ *Atan says the hull is ringing. There’s a light pacing us off the port bow, and it’s… singing. I can hear it through the walls. It’s beautiful, actually. Atan doesn’t think so.*', '~scared~ *It’s turning. It’s coming about toward us. Atan, are you…* The recording stops.'],
+        say: ['~tired~ The panel wakes when you touch it, slowly, as if from a long sleep. A woman’s voice, tired and amused: *Odile’s log. Day ninety-one of the crossing.*', '~curious~ *Talo says the hull is ringing. There’s a light pacing us off the port bow, and it’s… singing. I can hear it through the walls. It’s beautiful, actually. Talo doesn’t think so.*', '~scared~ *It’s turning. It’s coming about toward us. Talo, are you…* The recording stops.'],
         next: 'atan',
       },
       atan: {
-        say: ['~happy~ A second entry, later. A man’s voice, with birds behind it: *Atan. We’re down, both of us, alive. The people here are gardeners. They’ve given us tea and a great deal of advice about not digging.*', '~curious~ *Stel wants to mend the ship. I want to understand what hit us. It left a mark on the hull where it struck. I’ve seen that mark before, on the white ruins in the meadow.*', '~solemn~ *We’re taking the little saucer. If it comes back, we’d rather meet it than wait for it. Whoever finds this: look under the flowers on the flank. Look, and then let it be.*'],
+        say: ['~happy~ A second entry, later. A man’s voice, with birds behind it: *Talo. We’re down, both of us, alive. The people here are gardeners. They’ve given us tea and a great deal of advice about not digging.*', '~curious~ *Odile wants to mend the ship. I want to understand what hit us. It left a mark on the hull where it struck. I’ve seen that mark before, on the white ruins in the meadow.*', '~solemn~ *We’re taking the little saucer. If it comes back, we’d rather meet it than wait for it. Whoever finds this: look under the flowers on the flank. Look, and then let it be.*'],
         do: { set: { 'edena.log.read': true } },
         choices: [{ text: '~whisper~ (let the panel sleep)', end: true }],
       },
@@ -306,10 +306,10 @@ export const THINGS = {
     } },
   },
   lookout: {
-    id: 'lookout', name: 'Atan’s lookout', title: 'on the tallest tree’s crown', color: '#b5a7e6', voice: 0.75,
+    id: 'lookout', name: 'Talo’s lookout', title: 'on the tallest tree’s crown', color: '#b5a7e6', voice: 0.75,
     talk: { nodes: {
       note: {
-        say: ['~neutral~ A bench, worn smooth, facing east. On a post beside it someone has carved three dots over an arc, small and careful, and pinned a folded note under it.', '~solemn~ *From here I can watch the east, where it came from. Stel says it won’t come back. I say it turned once, it can turn again. If it does, I want to see it first. — A.*', '~sad~ Below, the whole garden. Across the south meadow runs a long green line, greener than the rest: the furrow the ship cut, grown over.'],
+        say: ['~neutral~ A bench, worn smooth, facing east. On a post beside it someone has carved three dots over an arc, small and careful, and pinned a folded note under it.', '~solemn~ *From here I can watch the east, where it came from. Odile says it won’t come back. I say it turned once, it can turn again. If it does, I want to see it first. — A.*', '~sad~ Below, the whole garden. Across the south meadow runs a long green line, greener than the rest: the furrow the ship cut, grown over.'],
         do: { set: { 'edena.lookout.read': true } },
         choices: [{ text: '~curious~ (watch the east for a while)', end: true }],
       },

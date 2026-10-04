@@ -14,8 +14,8 @@
 //
 // The glyph is "the Maker's Thumb" here, pressed into every plate and gauge.
 // The Major himself (a man in a tall helmet) once came down to see the wheel,
-// left numbers on the drum wall and went back up very quiet (the Garage's
-// note led him here, and leads you; tell the wheel the Garage is still turning). Conversations: src/story/dialogue.js; quests:
+// left numbers on the drum wall and went back up very quiet (the Hangar's
+// note led him here, and leads you; tell the wheel the Hangar is still turning). Conversations: src/story/dialogue.js; quests:
 // src/story/quests.js. Flags (game-state.js): buried.* below.
 
 const Q = 'buried.tooth';
@@ -390,9 +390,9 @@ export const THINGS = {
     talk: {
       entry: [{ if: { flag: 'buried.wheel.turned' }, node: 'after' }, { node: 'look' }],
       nodes: {
-        look: { say: ['~solemn~ Each tooth is taller than you, worn smooth on one face. Sand runs off them in thin streams. Deep inside, too low to hear with your ears, something hums.'], choices: [{ text: '~neutral~ (tell it the Garage is still turning)', if: { all: [{ flag: 'clue.garage.buried' }, { not: { flag: 'buried.told.garage' } }] }, goto: 'garage' }, { text: '~neutral~ (step back)', end: true }] },
-        after: { say: ['~solemn~ One tooth further round than this morning. The worn face has moved on, and a new one waits for next year.'], choices: [{ text: '~neutral~ (tell it the Garage is still turning)', if: { all: [{ flag: 'clue.garage.buried' }, { not: { flag: 'buried.told.garage' } }] }, goto: 'garage' }, { text: '~neutral~ (step back)', end: true }] },
-        garage: { say: ['~playful~ You say it out loud, to a wheel, feeling foolish: the Garage is still turning.', '~solemn~ Deep inside, the hum changes, very slightly, for about as long as it takes to say it back.'], do: { set: { 'buried.told.garage': true } }, choices: [{ text: '~neutral~ (step back)', end: true }] },
+        look: { say: ['~solemn~ Each tooth is taller than you, worn smooth on one face. Sand runs off them in thin streams. Deep inside, too low to hear with your ears, something hums.'], choices: [{ text: '~neutral~ (tell it the Hangar is still turning)', if: { all: [{ flag: 'clue.garage.buried' }, { not: { flag: 'buried.told.garage' } }] }, goto: 'garage' }, { text: '~neutral~ (step back)', end: true }] },
+        after: { say: ['~solemn~ One tooth further round than this morning. The worn face has moved on, and a new one waits for next year.'], choices: [{ text: '~neutral~ (tell it the Hangar is still turning)', if: { all: [{ flag: 'clue.garage.buried' }, { not: { flag: 'buried.told.garage' } }] }, goto: 'garage' }, { text: '~neutral~ (step back)', end: true }] },
+        garage: { say: ['~playful~ You say it out loud, to a wheel, feeling foolish: the Hangar is still turning.', '~solemn~ Deep inside, the hum changes, very slightly, for about as long as it takes to say it back.'], do: { set: { 'buried.told.garage': true } }, choices: [{ text: '~neutral~ (step back)', end: true }] },
       },
     },
   },

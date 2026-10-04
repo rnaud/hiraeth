@@ -151,6 +151,6 @@ test('side quests: three machines restart when shot, and Pip’s ball crosses fr
   // the locals talk too
   for (const l of LOCALS) talk(l, []);
   await new Promise((r) => setTimeout(r, 1600));
-  assert.ok(storyDone, 'the main quest closed the Garage’s story page');
+  assert.ok(storyDone, 'the main quest closed the Hangar’s story page');
   clearInteractables(); clearTargets();
 });

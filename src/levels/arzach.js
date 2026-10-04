@@ -6,7 +6,7 @@ import { Terrain, jitter } from '../world.js';
 import { Bird } from '../bird.js';
 
 // ---------------------------------------------------------------------------
-// Arzach (Moebius, 1975): a silent, bone-white world of needle spires,
+// Vael: a silent, bone-white world of needle spires,
 // floating stone ruins and a lone tower. You explore it on a long-beaked bird.
 // High-key palette, heavy ink shadows, very few lines.
 // ---------------------------------------------------------------------------
@@ -302,7 +302,7 @@ export function createArzach(scene) {
       planets: [{ az: 140, el: 32, size: 6, color: '#efe6d2' }, { az: 120, el: 22, size: 2.4, color: '#d8c7a6' }],
     },
     killY: -Infinity,
-    atmo: () => ({ tint: [1.02, 0.99, 0.94], fog: 0.75, name: 'Arzach' }),
+    atmo: () => ({ tint: [1.02, 0.99, 0.94], fog: 0.75, name: 'Vael' }),
     update(dt, t) { for (const m of movers) m(t); },
   };
 }

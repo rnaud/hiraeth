@@ -6,7 +6,7 @@ import { registerInteractable, PRIORITY } from '../interact.js';
 import { GREAT, BED, ISLE, CAVE } from '../levels/perdide.js';
 import { QUESTS, PEOPLE, THINGS, ITEMS, LINES } from './perdide-data.js';
 
-// Perdide's story, alive (perdide-data.js has the words): "The Great Crystal".
+// Lorn's story, alive (perdide-data.js has the words): "The Great Crystal".
 //
 //   the landing  Wendel by the eggs, Sedge by the reeds, Corm at the snapping bed
 //   the crystal  Saba sits on her stone at its foot; the root stone carries the Hush

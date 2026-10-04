@@ -16,7 +16,7 @@
 // Side errands: Pip's ration tin for his uncle Dov, the palace guard; the dead
 // taxi call-lamp at the bottom (shoot it) and Wren, the driver who still stops.
 // Clue: the splinter carries the glyph and hums the same note as the singing
-// crystals of the swamp of lights (Perdide).
+// crystals of the swamp of lights (Lorn).
 //
 // Flags (game-state.js): incal.rumour.light, incal.splinter.given, incal.dov.allowed,
 // incal.lit (the Lodestar burns bright again), incal.lamp.lit, incal.wren.met,

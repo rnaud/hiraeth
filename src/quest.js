@@ -181,7 +181,7 @@ export class Story {
     window.addEventListener('keydown', (e) => { if (this.pageOpen && (e.code === 'Enter' || e.code === 'KeyE' || e.code === 'Escape')) this.closePage(); });
     // beacon: a tall thin column of light over the goal
     // from the ground below the goal to well above it, so it reads from far
-    // below a high goal (Arzach's tower) as well as across a plain
+    // below a high goal (Vael's tower) as well as across a plain
     const baseY = Math.min(this.goal.y, (physics.groundAt(gx, this.goal.y - 1, gz, 2e4) || this.goal.y));
     const top = this.goal.y + 260;
     const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, top - baseY, 8, 1, true).translate(0, (top - baseY) / 2, 0),

@@ -4,7 +4,7 @@ import { makeMaterial } from './materials.js';
 import { sweepCapsule, unbury } from './physics.js';
 import { padRide } from './controller.js';
 
-// A flying taxi (John Difool drives one in L'Incal). Modes:
+// A flying taxi (the City-Shaft's cabs). Modes:
 //   lane    follows its circular traffic lane (set by the level)
 //   hail    flies to where the player whistled, then parks
 //   parked  hovers in place, waiting

@@ -167,10 +167,10 @@ test('each world has its own tongue', () => {
   const C = (lang) => contourOf(P(lang));
   assert.ok(C('desert').breath > 0.35 && C('desert').mean < C('home').mean, 'the desert: breathy and low');
   assert.ok(C('incal').rate > C('desert').rate * 1.15 && C('incal').len < C('desert').len * 0.6, 'the City-Shaft: fast and clipped');
-  assert.ok(C('arzach').n < C('desert').n * 0.6 && C('arzach').loud < C('desert').loud * 0.5, 'Arzach: almost silent');
-  assert.ok(P('garage').syllables.every((s) => s.mech), 'the Garage: mechanical');
+  assert.ok(C('arzach').n < C('desert').n * 0.6 && C('arzach').loud < C('desert').loud * 0.5, 'Vael: almost silent');
+  assert.ok(P('garage').syllables.every((s) => s.mech), 'the Hangar: mechanical');
   const drop = (lang) => { const S = P(lang).syllables; return S.reduce((a, s) => a + Math.log2(s.pitch.at(-1)[1] / s.pitch[0][1]) * 12, 0) / S.length; };
-  assert.ok(drop('perdide') < -1.5 && drop('perdide') < drop('desert') - 1 && P('perdide').syllables.every((s) => s.pitch.length > 3), 'Perdide: watery, wobbling bloops down');
+  assert.ok(drop('perdide') < -1.5 && drop('perdide') < drop('desert') - 1 && P('perdide').syllables.every((s) => s.pitch.length > 3), 'Lorn: watery, wobbling bloops down');
   assert.ok(LANGUAGES.home.native && !LANGUAGES.desert.native, 'home needs no translation');
   // different syllables for the same words
   const cons = (lang) => P(lang).syllables.map((s) => s.consonant).join(' ');
@@ -205,7 +205,7 @@ test('the voice keeps step with the letters, and stage directions are silent', (
   for (let k = 1; k < p.syllables.length; k++) assert.ok(p.syllables[k].i >= p.syllables[k - 1].i && p.syllables[k].t >= p.syllables[k - 1].t);
   assert.ok(Math.abs(p.syllables.at(-1).t - (p.syllables.at(-1).i - p.syllables[0].i) / p.cps) < 0.01, 'timed to the reveal');
   assert.ok(p.cps > REVEAL_CPS * 0.6 && p.cps < REVEAL_CPS * 1.35);
-  const n = planLine('The panel wakes. A voice: *Stel’s log. Day ninety-one.*', { voice: AMA, lang: 'edena', narrator: true });
+  const n = planLine('The panel wakes. A voice: *Odile’s log. Day ninety-one.*', { voice: AMA, lang: 'edena', narrator: true });
   assert.ok(n.syllables.length > 0 && n.syllables.every((s) => s.i > 'The panel wakes. A voice: '.length), 'a narrator voices only the quoted words');
   assert.equal(planLine('(leave)', { voice: AMA }).syllables.length, 0);
 });

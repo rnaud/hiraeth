@@ -47,7 +47,7 @@ test('a short *span* is a highlight, a long one a quotation', () => {
   assert.equal(formatText('Take it *up to the console*, then.', false), 'Take it up to the console, then.');
   assert.ok(!isQuote('the shrine by the dry well'));
   assert.ok(!isQuote('Under the giant’s head, outside the back gate'));
-  assert.ok(isQuote('Stel’s log. Day ninety-one of the crossing.'), 'two sentences: a quotation');
+  assert.ok(isQuote('Odile’s log. Day ninety-one of the crossing.'), 'two sentences: a quotation');
   assert.ok(isQuote('the giants came down from the swamp of lights, carrying the water'), 'a long span: a quotation');
   assert.match(formatText('It says: *I built it to see what I would do with it. I still don’t know.*'), /<em class="quote">/);
   // a choice renders its highlights too (the same formatText)

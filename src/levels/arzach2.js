@@ -6,7 +6,7 @@ import { Terrain } from '../world.js';
 import { Bird } from '../bird.js';
 
 // ---------------------------------------------------------------------------
-// Arzach II: The Sky Stones. Bone-white needle clusters, balanced stones and
+// Vael II: The Sky Stones. Bone-white needle clusters, balanced stones and
 // wide mushroom tables rise out of a sea of cloud. Cliff-top monasteries and
 // ruined aqueducts link the plateaus; past them a peach plain runs to a lone
 // tower. Rock is drawn flat cream in light and blue-grey in shade, with dense
@@ -873,7 +873,7 @@ export function createArzach2(scene) {
       tower: new THREE.Vector3(TOWER.x, terrain.heightAt(TOWER.x, TOWER.z), TOWER.z),
       plainEdge: PLAIN_EDGE,
     },
-    atmo: (x, z) => ({ tint: [1.02, 0.99, 0.96], fog: 0.65, name: z < PLAIN_EDGE - 40 ? 'Arzach II · the peach plain' : 'Arzach II · the sky stones' }),
+    atmo: (x, z) => ({ tint: [1.02, 0.99, 0.96], fog: 0.65, name: z < PLAIN_EDGE - 40 ? 'Vael II · the peach plain' : 'Vael II · the sky stones' }),
     update(dt, t) { for (const m of movers) m(t); },
   };
 }

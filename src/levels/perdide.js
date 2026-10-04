@@ -7,7 +7,7 @@ import { Hoverbike } from '../bike.js';
 import { LANDING } from '../story/perdide-data.js';
 
 // ---------------------------------------------------------------------------
-// Perdide, from Les Maîtres du temps (René Laloux, 1982, designed by Moebius):
+// Lorn:
 // a swamp planet of humming crystal forests, carnivorous plants and glowing
 // eggs, lit at twilight. Cross the deep water on a hover-skiff; wading too
 // deep puts you back on the last dry ground. A crystal cave glows from within.
@@ -399,7 +399,7 @@ export function createPerdide(scene) {
       motes: { count: 170, color: '#d6ff9a', size: 0.07, glow: 1, rise: 0.05, wind: [0.15, 0.1] },
       footprints: '#5f7a4f',
     },
-    atmo: () => ({ tint: [0.92, 1.0, 1.0], fog: 1.5, name: 'Perdide' }),
+    atmo: () => ({ tint: [0.92, 1.0, 1.0], fog: 1.5, name: 'Lorn' }),
     update(dt, t, ctx) {
       for (const m of movers) m(t);
       // carnivorous plants snap shut when the player comes close

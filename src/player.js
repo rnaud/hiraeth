@@ -33,7 +33,7 @@ function part(geo, color, opts = {}) {
   return new THREE.Mesh(geo, makeMaterial({ color, ...opts }));
 }
 
-// An Arzach-style rider: tall and gaunt, swallowed by an enormous red hooded
+// An Vael-style rider: tall and gaunt, swallowed by an enormous red hooded
 // cloak that reaches the ankles and flares out behind when running, a long
 // pale face with a long thin nose, a peaked hood whose tip trails behind.
 export const RIDER_COLORS = { cloak: '#3f5fae', cloak2: '#7a4fa8', lining: '#2f3f80', cloth: '#b4a2c4', legs: '#aa98ba', boot: '#c39988', gloves: '#ea9678', wrap: '#e2d3b4',
@@ -704,7 +704,7 @@ export class Player {
       return;
     }
 
-    // gravity can change direction (Airtight Garage)
+    // gravity can change direction (Sealed Hangar)
     const F = this.frame;
     if (this.opts.gravityAt) F.turnToward(this.opts.gravityAt(this.pos), 5, dt);
     const U = F.up;

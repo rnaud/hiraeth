@@ -1,11 +1,11 @@
-// Arzach's story as data: "The Waiting Bird" (docs/story-bible.md).
+// Vael's story as data: "The Waiting Bird" (docs/story-bible.md).
 //
 // A silent country. The bird waits for a rider who left the lone tower long
 // ago, and nobody here says much: people point, draw in the sand, hum. The
 // bird and the stones speak through what they do. Oïa watches the tower
 // from beside the bird; when you ride to it and climb to its one window you
 // find the rider's room: a map of the sky stones painted on the wall (the
-// rider walked away to Arzach II), and, on a nail by the window, the rider's
+// rider walked away to Vael II), and, on a nail by the window, the rider's
 // bone whistle with a feather tied to it, left for whoever came next.
 // Blow it, and the bird comes, and bows: wherever there is sky, she will
 // come when you call (a keepsake of the kind *person*: a promise).

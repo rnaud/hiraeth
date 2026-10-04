@@ -4,7 +4,7 @@ import { registerInteractable, PRIORITY } from '../interact.js';
 import { game as sharedGame } from '../game-state.js';
 import { QUESTS, PEOPLE, LOCALS, THINGS, ITEMS, CAIRN_STONES } from './arzach2-data.js';
 
-// Arzach II's story, alive (arzach2-data.js has the words): "The Bell Under the Cloud".
+// Vael II's story, alive (arzach2-data.js has the words): "The Bell Under the Cloud".
 //
 //   the start plateau  Sister Aube by her hermitage, watching the cloud
 //   the monastery      Brother Calix under the bell tower, Mother Ysolde by the
@@ -26,7 +26,7 @@ const SETTLE = 16;          // m the cloud sinks when the bell rings
 const STONES_DOWN = 6;      // m the floating stones come down
 
 // ------------------------------------------------------------------ the bell's note, from the tank
-// A low FM bell. In Arzach II it plays through the level's Sound; elsewhere the
+// A low FM bell. In Vael II it plays through the level's Sound; elsewhere the
 // module keeps a tiny AudioContext of its own (shooting is a user gesture).
 let noteSound = null, ownCtx = null, lastNote = -1;
 export function playBellNote({ vol = 0.07, f = 164.8 } = {}) {

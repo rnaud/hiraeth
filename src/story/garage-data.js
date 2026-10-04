@@ -1,6 +1,6 @@
-// The Airtight Garage's story as data: "The Major Forgot" (docs/story-bible.md).
+// The Sealed Hangar's story as data: "The Major Forgot" (docs/story-bible.md).
 //
-// Major Grubert built this pocket universe and forgot why. His people keep
+// Major Brask built this pocket universe and forgot why. His people keep
 // the machines turning out of habit, and pass a signal round the three zones
 // every day, a brass tube that ticks, that nobody can read: the clerk on the
 // plateau gives it to the relay box in the upside-down quarter, the relay
@@ -80,7 +80,7 @@ export const PEOPLE = {
         },
         say: { say: ['~happy~ Nobody knows! Isn’t it marvellous? It ticks. The board blinks it. Lune in the ring holds it up to the light. Nobody can read it. The Major wrote it, and the Major forgot.'], choices: [{ text: '~curious~ Who is the Major?', goto: 'who' }, { text: '~curious~ Can I carry it?', goto: 'carry' }] },
         who: {
-          say: ['~sad~ Major Grubert. He built all of this: the plateau, the upside-down, the ring, the portals, us, probably. Then one morning he couldn’t remember why, and he went for a walk, and he hasn’t come back.', '~playful~ We keep everything turning in case he does. Out of habit. Habit is very underrated.'],
+          say: ['~sad~ Major Brask. He built all of this: the plateau, the upside-down, the ring, the portals, us, probably. Then one morning he couldn’t remember why, and he went for a walk, and he hasn’t come back.', '~playful~ We keep everything turning in case he does. Out of habit. Habit is very underrated.'],
           choices: [{ text: '~curious~ Can I carry the signal round?', goto: 'carry' }, { text: '~neutral~ Goodbye.', end: true }],
         },
         carry: {
@@ -118,7 +118,7 @@ export const PEOPLE = {
           ],
         },
         night: { say: ['~playful~ The night the slit in the ring sang, Lune says. I didn’t hear it. I was asleep under the pump. When I woke up, three machines had stopped, and the fourth was me.'], choices: [{ text: '~neutral~ Can I help?', goto: 'help' }] },
-        mark: { say: ['~playful~ The maker’s rivets. {glyph} Three over a curve. The Major put them on everything he was proud of, Malvina says. The great machine. The portals’ footings. Me, if you look behind my ear. Don’t look behind my ear.', '~curious~ And *the blue box on the keep wall*, with the star. He didn’t make that one. He found it, rivets and all, and never opened it. Not mine, he said: it’s for the next one. Are you the next one?'], choices: [{ text: '~neutral~ Can I help with the machines?', goto: 'help' }, { text: '~playful~ I won’t.', end: true }] },
+        mark: { say: ['~playful~ The maker’s rivets. {glyph} Three over a curve. The Major put them on everything he was proud of, Clemence says. The great machine. The portals’ footings. Me, if you look behind my ear. Don’t look behind my ear.', '~curious~ And *the blue box on the keep wall*, with the star. He didn’t make that one. He found it, rivets and all, and never opened it. Not mine, he said: it’s for the next one. Are you the next one?'], choices: [{ text: '~neutral~ Can I help with the machines?', goto: 'help' }, { text: '~playful~ I won’t.', end: true }] },
         help: {
           say: ['~neutral~ With that tank on your back? Maybe. Machines here run on habit and a little colour. Give each one a squirt of whatever’s in there: *shoot it, right in the works*. If it remembers what it’s for, it’ll start.'],
           do: { start: 'garage.machines' },
@@ -215,15 +215,15 @@ export const PEOPLE = {
 /** The level's own people (content.js garage npcs, by index): the errands keep their places. */
 export const LOCALS = [
   {
-    id: 'malvina', name: 'Malvina', title: 'who remembers the Major', color: '#e6875f', voice: 1.05,
+    id: 'malvina', name: 'Clemence', title: 'who remembers the Major', color: '#e6875f', voice: 1.05,
     talk: {
       entry: [{ if: { flag: 'garage.note.read' }, node: 'note' }, { node: 'hello' }],
       nodes: {
         note: {
           say: ['~sad~ You found his desk. I can tell; you have the look of somebody who has read his handwriting. “That is the point.” Yes. That sounds like him.', '~solemn~ He never did know what he wanted it for. I think that was the only way he could bear to build something so big: not knowing, and doing it anyway, carefully.'],
-          choices: [{ text: '~curious~ And the wheel under the sand?', goto: 'wheel' }, { text: '~happy~ Thank you, Malvina.', end: true }],
+          choices: [{ text: '~curious~ And the wheel under the sand?', goto: 'wheel' }, { text: '~happy~ Thank you, Clemence.', end: true }],
         },
-        wheel: { say: ['~solemn~ Ah. The wheel. A machine somewhere out under a desert that turns one tooth a year; people there time their lives by it, he said. He went to see it once, and came back very quiet. If you go, tell it the Garage is still turning.'], choices: [{ text: '~solemn~ I will.', end: true }] },
+        wheel: { say: ['~solemn~ Ah. The wheel. A machine somewhere out under a desert that turns one tooth a year; people there time their lives by it, he said. He went to see it once, and came back very quiet. If you go, tell it the Hangar is still turning.'], choices: [{ text: '~solemn~ I will.', end: true }] },
         hello: {
           say: ['~playful~ Up is a matter of opinion here. Down is a matter of habit.', '~sad~ I knew the Major. Knew him before he built all this, when he was just a man with a pencil and too many ideas. He built it all, and then he forgot.'],
           choices: [
@@ -233,8 +233,8 @@ export const LOCALS = [
           ],
         },
         forgot: { say: ['~sad~ Why. He remembered how, every rivet. But why he’d made a world in a garage, with three kinds of down and a ring you can walk round forever, that he lost. It bothered him terribly. Then it stopped bothering him, which bothered me more.'], choices: [{ text: '~curious~ Where did he go?', goto: 'where' }] },
-        where: { say: ['~tired~ For a walk. Round the ring, I expect. Walk far enough and you’re back, they say. He hasn’t been back. Or he has, and none of us noticed. He was like that.'], choices: [{ text: '~curious~ What’s the mark on the great machine?', goto: 'mark' }, { text: '~happy~ Thank you, Malvina.', end: true }] },
-        mark: { say: ['~solemn~ His thumbprint, I called it. {glyph} He said it wasn’t his: he’d found it, scratched on a stone in his first garage, before any of this, and copied it onto everything since. For luck, he said. Or for somebody.'], choices: [{ text: '~happy~ Thank you, Malvina.', end: true }] },
+        where: { say: ['~tired~ For a walk. Round the ring, I expect. Walk far enough and you’re back, they say. He hasn’t been back. Or he has, and none of us noticed. He was like that.'], choices: [{ text: '~curious~ What’s the mark on the great machine?', goto: 'mark' }, { text: '~happy~ Thank you, Clemence.', end: true }] },
+        mark: { say: ['~solemn~ His thumbprint, I called it. {glyph} He said it wasn’t his: he’d found it, scratched on a stone in his first garage, before any of this, and copied it onto everything since. For luck, he said. Or for somebody.'], choices: [{ text: '~happy~ Thank you, Clemence.', end: true }] },
       },
     },
   },

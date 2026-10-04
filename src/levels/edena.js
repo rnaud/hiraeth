@@ -7,7 +7,7 @@ import { buildRoom, portalPair } from '../interiors.js';
 import { PEOPLE } from '../story/edena-data.js';
 
 // ---------------------------------------------------------------------------
-// Le Monde d'Edena (Moebius, 1983-2001): a paradise planet with pale meadows,
+// Viridel: a paradise planet with pale meadows,
 // giant trees, pyramids and the clean white ruins of an android civilisation.
 // Moebius at his cleanest: flat colours, thin lines, almost no hatching.
 // Built for climbing: trees, pyramids and ruins can all be scaled.
@@ -60,12 +60,12 @@ export const EDENA_CONTENT = {
 const LEAVES = ['#7fcfa8', '#f2a7b5', '#9fd6c9', '#f6c7a0', '#b5a7e6'];
 const TRUNK = ['#c98a76', '#d9a5a0', '#b98aa8'];
 
-// the tallest tree in the garden (Atan's lookout is on its crown) and the pond
+// the tallest tree in the garden (Talo's lookout is on its crown) and the pond
 export const TALL_TREE = { x: -118, z: 150, h: 92 };
 export const POND = { x: -120, z: -160, r: 95 };
 
 // ---------------------------------------------------------------------------
-// The garden growing over Stel and Atan's ship: vines draped over the hull,
+// The garden growing over Odile and Talo's ship: vines draped over the hull,
 // leaves and flowers, and a thick veil of them over the scorch on the
 // starboard flank. All in the ship group's own frame (hull axis = local x,
 // radius 9). crashed.part(k) draws the veil aside (0 closed … 1 open).
@@ -359,7 +359,7 @@ export function createEdena(scene) {
   for (let i = 0; i < 7; i++) ruins((rng() * 2 - 1) * 1200, (rng() * 2 - 1) * 1200);
 
   // ---------------------------------------------------------- hero: the crashed ship
-  // Stel and Atan's retro spaceship, nose-down in the meadow where the story begins.
+  // Odile and Talo's retro spaceship, nose-down in the meadow where the story begins.
   // The garden has begun to grow over it (overgrow, below); under the flowers on
   // its starboard flank is the scorch of what struck it (src/story/edena.js).
   const crashed = {};
@@ -460,7 +460,7 @@ export function createEdena(scene) {
   }
 
   // ---------------------------------------------------------- the android garden
-  // Edena's perfect geometry: great smooth spheres half-sunk in the meadow,
+  // Viridel's perfect geometry: great smooth spheres half-sunk in the meadow,
   // and little ornaments on white pedestals (spheres, cones, diamonds) in flat
   // pastel colours with no texture at all.
   {
@@ -491,7 +491,7 @@ export function createEdena(scene) {
     for (const [mat, list] of byMat) scene.add(new THREE.Mesh(mergeGeometries(list), mat));
   }
 
-  // ---------------------------------------------------------- the tallest tree, and Atan's lookout on its crown
+  // ---------------------------------------------------------- the tallest tree, and Talo's lookout on its crown
   // Climb the trunk to the two canopies; the crown floats above the upper one on
   // thin branches: a fluid boost from the upper canopy's rim lands you on it.
   const tall = {};
@@ -546,7 +546,7 @@ export function createEdena(scene) {
     tw.position.set(x, base - 1, z);
     tw.userData.noCollide = true;
     scene.add(tw);
-    // Atan's lookout: a bench, a post with the glyph carved in it, and a folded note
+    // Talo's lookout: a bench, a post with the glyph carved in it, and a folded note
     const L = tall.crown;
     const wood = makeMaterial({ color: '#8a5a3c', flat: true });
     const bench = new THREE.Mesh(mergeGeometries([new THREE.BoxGeometry(2.4, 0.18, 0.7).translate(0, 0.5, 0), new THREE.BoxGeometry(0.18, 0.5, 0.6).translate(-1, 0.25, 0), new THREE.BoxGeometry(0.18, 0.5, 0.6).translate(1, 0.25, 0)].map((g) => g.toNonIndexed())), wood);
@@ -611,7 +611,7 @@ export function createEdena(scene) {
     killY: -Infinity,
     portals: shipPortals,
     get lights() { return shipRoom ? shipRoom.lights : []; },
-    atmo: () => ({ tint: [0.98, 1.0, 1.02], fog: 0.7, name: 'Edena' }),
+    atmo: () => ({ tint: [0.98, 1.0, 1.02], fog: 0.7, name: 'Viridel' }),
     life: {
       flocks: [{ count: 16, color: '#f2a7b5', size: 1.4, radius: 70, height: [12, 40], seed: 6 },
                { count: 12, color: '#62c3c9', size: 1.2, radius: 110, height: [20, 60], speed: -0.14, seed: 8 }],

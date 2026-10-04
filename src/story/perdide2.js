@@ -7,12 +7,12 @@ import { DARK_POOLS, DOMES, SAUCER, FEN, HOLLIN_END, CAVE } from '../levels/perd
 import { magicMaterial, magicPool, setMagic } from './magic-water.js';
 import { QUESTS, PEOPLE, THINGS, ITEMS, LINES } from './perdide2-data.js';
 
-// Perdide II's story, alive (perdide2-data.js has the words): "The Lamps Are Kept".
+// Lorn II's story, alive (perdide2-data.js has the words): "The Lamps Are Kept".
 //
 //   the island   Hollin, the old lamp-keeper, waits where the path begins
 //   the path     three pools gone dark (shoot them alight; they take your colours);
 //                Pim by the moss domes, Wick at the second dark pool
-//   the water    the saucer in the deep pool (Stel and Atan's lifeboat), and old
+//   the water    the saucer in the deep pool (Odile and Talo's lifeboat), and old
 //                Fen in the far dome on its mud islet (the skiff is his)
 //   the cave     Bram minds the mouth; Hollin walks down to wait there at the end
 //

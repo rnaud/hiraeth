@@ -6,7 +6,7 @@ import { addIndoors } from './shelter.js';
 // Small inked interiors. Rooms are real geometry (walls with door and window
 // openings, so the sun's shadow map throws light patches through them), with
 // a little furniture and a glowing lamp. Rooms that can't fit inside their
-// building (the desert's masked head, Edena's crashed ship) are built high
+// building (the desert's masked head, Viridel's crashed ship) are built high
 // above the map and reached through a doorway portal.
 
 const Y = new THREE.Vector3(0, 1, 0);
@@ -145,7 +145,7 @@ export function doorwayPortals(scene, { at, heading, room, frame = '#e9dcc0', vo
 
 /**
  * The two portal entries for a way into a room elsewhere, without any doorway
- * geometry (for doors that are part of something else: Edena's crashed ship
+ * geometry (for doors that are part of something else: Viridel's crashed ship
  * has its hatch in its hull). `at` is the threshold on the ground, `heading`
  * points out of the door.
  */

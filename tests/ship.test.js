@@ -128,7 +128,7 @@ test('a flat, clear spot is found near the spawn in real levels', () => {
   }
 });
 
-test('the site search does not hang on float noise (the browser and node found different Garage spots)', () => {
+test('the site search does not hang on float noise (the browser and node found different Hangar spots)', () => {
   const meta = LEVELS.find((l) => l.id === 'garage');
   const scene = new THREE.Scene();
   const level = quiet(() => meta.create(scene));

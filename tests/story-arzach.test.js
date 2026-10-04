@@ -126,7 +126,7 @@ test('the main quest: Oïa, the bird, the tower, the window, the whistle, the pr
   assert.equal(e?.entry.id, 'window', 'E looks through the window from the sill');
   talk(THINGS.window, ['(take']);
   assert.ok(quests.has('whistle'), 'the rider’s whistle');
-  assert.equal(game.flag('clue.arzach.arzach2'), true, 'the map of the sky stones: the clue to Arzach II');
+  assert.equal(game.flag('clue.arzach.arzach2'), true, 'the map of the sky stones: the clue to Vael II');
   step(2);
   assert.equal(quests.stage('arzach.bird'), 'call');
   // blow the whistle down on the plain: she flies to you, lands and bows
@@ -184,7 +184,7 @@ test('side quests: the stone hand rings small to tall, and the three feathers go
   assert.equal(quests.isDone('arzach.feathers'), true);
   assert.equal(game.flag('item.feather'), 0);
   await new Promise((r) => setTimeout(r, 1600));
-  assert.ok(storyDone, 'the main quest closed Arzach’s story page');
+  assert.ok(storyDone, 'the main quest closed Vael’s story page');
   clearInteractables(); clearTargets();
 });
 

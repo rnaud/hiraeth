@@ -24,7 +24,7 @@ export const CHANGELOG = [
     'Walking through the portals in the Airtight Garage is smooth: a quick fade into the portal’s light and you walk out the other side at your own pace, the view already upright, instead of a hard cut. Fixed a portal sometimes throwing you back to the one you entered.',
     'For testing: a Lab world in the worlds list (L) shows every surface the game draws side by side, and four giant villagers to study faces by.',
     'In the City-Shaft the jets’ box no longer waits beside the ship: it sits on top of a lone makers’ pillar on the rim, a climb away.',
-    'The great light that turns above the City-Shaft’s palace is now called the Lodestar.',
+    'Nothing in the game is named after a Moebius work any more: the great light above the City-Shaft is the Lodestar, Arzach is now Vael, Edena is Viridel, Perdide is Lorn, the Airtight Garage is the Sealed Hangar, and their people have new names too (Major Brask, Clemence, Odile and Talo). The worlds list shows each world’s own tagline instead of a credit. Your saves carry over.',
     'The door to the crashed ship on Edena is now a hatch in its hull, under an arch of flowers, instead of a doorway standing a few metres away.',
     'It no longer rains indoors: rooms, the crashed ship’s cabin and your own ship stay dry, and the rain becomes a muffled drumming on the roof.',
     'Ringing the bell in Arzach no longer swings its rope through the tower. Perdide’s tooth flowers have an inside you can’t see through.',

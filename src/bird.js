@@ -5,7 +5,7 @@ import { makeMaterial } from './materials.js';
 import { sweepCapsule, unbury } from './physics.js';
 import { padRide } from './controller.js';
 
-// Arzach's bird: a long-beaked, feathered soaring mount. Controls when riding:
+// Vael's bird: a long-beaked, feathered soaring mount. Controls when riding:
 // A/D bank and turn, W dive (gain speed), S pull up (trade speed for height),
 // Space flap (climb). Touching down slowly lands it; Space on the ground takes off.
 // A controller: RT flies on (thrust, analog; squeezed on the ground, she takes off),

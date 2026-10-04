@@ -4,10 +4,10 @@ import { registerTarget } from '../targets.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { QUESTS, PEOPLE, LOCALS, THINGS, ITEMS, MACHINES, SIGNAL, BOARD_GLYPH } from './garage-data.js';
 
-// The Airtight Garage's story, alive (garage-data.js has the words): "The Major Forgot".
+// The Sealed Hangar's story, alive (garage-data.js has the words): "The Major Forgot".
 //
 //   A, the plateau      Ambroise at the signal board (its nine lamps blink the
-//                       signal); Ottla by the stopped windmill; Malvina, Nikko and
+//                       signal); Ottla by the stopped windmill; Clemence, Nikko and
 //                       Ferrol (the level's own people)
 //   B, the upside-down  the relay box by the path, the stopped lamp pump, and at
 //                       the slab's far edge the Major's desk, its lamp still lit

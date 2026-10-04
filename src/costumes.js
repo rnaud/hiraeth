@@ -473,13 +473,13 @@ export const HEADS = {
     P('cloak', sphere(0.175, q, 12, 9, Math.PI / 2 + 0.62, Math.PI * 2 - 1.24, 0, Math.PI * 0.78).scale(1.05, 1.12, 1.15).translate(0, 0.0, -0.035), true),
     P('cloak', torus(0.13, 0.055, q, 12, 6).scale(1, 1, 0.8).rotateX(Math.PI / 2).translate(0, -0.14, -0.01), true),
   ] },
-  // Arzach: a monk's cowl rising to a tall point behind, the cloth falling over the shoulders
+  // Vael: a monk's cowl rising to a tall point behind, the cloth falling over the shoulders
   cowl: { cap: false, parts: (q) => [
     P('cloak', sphere(0.168, q, 14, 10, Math.PI / 2 + 0.7, Math.PI * 2 - 1.4).scale(1, 1.2, 1.15).translate(0, 0.012, -0.02), true),
     P('cloak', cone(0.125, 0.46, q, 10).translate(0, 0.23, 0).rotateX(-0.5).translate(0, 0.1, -0.07), true),
     P('cloak', cyl(0.15, 0.24, 0.22, q, 14, true, 0.6, Math.PI * 2 - 1.2).translate(0, -0.17, -0.02), true),
   ] },
-  // the Garage: a round helmet, ear discs and two antennae
+  // the Hangar: a round helmet, ear discs and two antennae
   antenna: { cap: false, parts: (q) => [
     P('hat', sphere(0.143, q, 14, 8, 0, Math.PI * 2, 0, Math.PI * 0.56).scale(1, 0.98, 1.06).translate(0, 0.012, -0.01), true),
     P('accent', torus(0.136, 0.014, q, 16, 4).rotateX(Math.PI / 2).translate(0, 0.0, -0.005)),
@@ -495,7 +495,7 @@ export const HEADS = {
     P('accent', torus(0.138, 0.034, q, 16, 6).rotateX(Math.PI / 2 + 0.3).translate(0, -0.01, 0.0), true),
     ...[1, -1].map((s) => P('accent', cyl(0.058, 0.058, 0.055, q, 10).rotateZ(Math.PI / 2).translate(s * 0.14, -0.03, -0.01))),
   ] },
-  // Edena: loose hair and a crown of blossoms
+  // Viridel: loose hair and a crown of blossoms
   flowers: { cap: true, parts: (q) => [
     P('hair', sphere(0.12, q, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.75).scale(1.05, 1.15, 0.9).translate(0, -0.02, -0.05)),
     ...blossoms(q < 0.5 ? 7 : 10, 0.13, 0.07, -0.22, 0.044, q, ['hat', 'accent', 'hat']).map((p) => ((p.far = true), p)),
@@ -514,7 +514,7 @@ export const HEADS = {
     P('metal', cone(0.045, 0.04, q, 8).translate(0, 0.2, 0.46)),
     P('lamp', cyl(0.034, 0.034, 0.065, q, 8).translate(0, 0.15, 0.46), true),
   ] },
-  // Perdide: a thatch of reeds, rising to a point and drooping over the shoulders
+  // Lorn: a thatch of reeds, rising to a point and drooping over the shoulders
   reeds: { cap: false, parts: (q) => [
     P('hat', cone(0.2, 0.42, q, 9).translate(0, 0.22, -0.01), true),
     P('hat', jag(cyl(0.13, 0.27, 0.24, q, 9, true).translate(0, -0.02, -0.01), 0.04, -0.12), true),
@@ -578,7 +578,7 @@ export const BODIES = {
   none: () => [],
   // the rim: a stiff collar standing up behind the head
   collar: (q) => [P('accent', cyl(0.2, 0.115, 0.24, q, 14, true, 0.85, Math.PI * 2 - 1.7).translate(0, 0.84, -0.015), true)],
-  // Arzach: a scarf round the neck, its long tail streaming back in the wind
+  // Vael: a scarf round the neck, its long tail streaming back in the wind
   scarf: (q) => {
     const ribbon = new THREE.PlaneGeometry(0.1, 1, 1, sg(9, q));
     const p = ribbon.attributes.position;
@@ -592,11 +592,11 @@ export const BODIES = {
   pauldrons: (q) => [1, -1].map((s) => P('accent', sphere(0.088, q, 10, 6, 0, Math.PI * 2, 0, Math.PI * 0.5).scale(1.15, 0.8, 1.1).translate(s * 0.2, 0.685, 0), true)),
   // the desert: a short cape over the shoulders
   mantle: (q) => [P('cloak', cyl(0.16, 0.3, 0.28, q, 16, true).translate(0, 0.6, -0.005), true)],
-  // Perdide: a long rough cape of reeds
+  // Lorn: a long rough cape of reeds
   reedcape: (q) => [P('hat', jag(new THREE.CylinderGeometry(0.16, 0.37, 0.52, sg(14, q), 2, true).translate(0, 0.48, -0.01), 0.05, 0.3), true)],
   // the bottom of the shaft: rags over the shoulders
   tatters: (q) => [P('cloak', jag(new THREE.CylinderGeometry(0.17, 0.31, 0.34, sg(12, q), 1, true).translate(0, 0.57, -0.01), 0.05, 0.5), true)],
-  // Edena: a garland of blossoms
+  // Viridel: a garland of blossoms
   garland: (q) => blossoms(q < 0.5 ? 7 : 11, 0.13, 0.71, 0.4, 0.036, q, ['hat', 'accent']),
   // the market: a sign worn as a badge
   badge: (q) => [
@@ -604,7 +604,7 @@ export const BODIES = {
     P('dark', box(0.075, 0.014, 0.004).rotateZ(0.1).rotateX(-0.12).translate(0.06, 0.535, 0.138)),
     P('dark', box(0.05, 0.012, 0.004).rotateZ(0.1).rotateX(-0.12).translate(0.058, 0.507, 0.136)),
   ],
-  // the Garage: a tool belt with pouches and a hammer
+  // the Hangar: a tool belt with pouches and a hammer
   toolbelt: (q) => [
     P('dark', torus(0.152, 0.02, q, 16, 4).scale(1, 0.82, 1).rotateX(Math.PI / 2).translate(0, 0.27, 0)),
     ...[1, -1].map((s) => P('wood', box(0.07, 0.08, 0.045).rotateY(s * 0.7).translate(s * 0.12, 0.23, 0.08))),

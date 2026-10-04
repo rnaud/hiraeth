@@ -19,7 +19,7 @@ a promise to return), *knowing* (an understanding of how the world works).
 **The glyph**: three dots over an arc that bows upward (∩), never a smile. It is scorched into the ship's hull from
 the impact. It recurs on the reactive scenery's three apertures in every world,
 on the giants' bones, on the Lodestar's facets, on the Major's machine, on the
-android ruins of Edena and on the oldest market sign. Locals each have a
+android ruins of Viridel and on the oldest market sign. Locals each have a
 different name and story for it. Nobody knows what struck the ship; in each
 world one person has seen "a falling light that sang" around the same time.
 
@@ -52,7 +52,7 @@ wings, its lenses and rings, little charms. Each gift waits in a chest:
   the chests opened for Ilen.
 
 **The colours**: the backpack fluid starts two-tone (cyan and violet). Each
-world that has a "source" (desert water, Perdide crystal, the bazaar's lantern
+world that has a "source" (desert water, Lorn crystal, the bazaar's lantern
 sun, the buried machine's oil-light) can add a colour band. By the end the
 tank holds the colours of every world: the tool itself becomes a record of the
 journey.
@@ -67,7 +67,7 @@ traveller wears a small translator at the ear, a thing from home, so they
 *hear* each world's own tongue (a mumble of syllables) and *read* it in their
 own words. In the dialogue panel the last few letters still show in the
 speaker's script as they come in, and a small tag on the panel's edge says
-"translating · Qanati" (or Shaft cant, Perdide burble…). It is diegetic and
+"translating · Qanati" (or Shaft cant, Lorn burble…). It is diegetic and
 light-touch:
 - the father mentions it in the prologue call ("Keep the translator at your
   ear. Nobody out there talks like us…");
@@ -79,13 +79,13 @@ light-touch:
 Each world's tongue (src/story/voice.js `LANGUAGES`) has its own sound:
 - the desert is breathy and low;
 - the City-Shaft is fast and clipped;
-- Arzach is almost silent, leaving words out;
+- Vael is almost silent, leaving words out;
 - the cloud monks chant;
-- the Garage clanks like a voice-box;
+- the Hangar clanks like a voice-box;
 - the buried city rumbles;
-- Edena lilts upward like birds;
+- Viridel lilts upward like birds;
 - the spheres ring like glass;
-- Perdide is watery (bloops and wobbles);
+- Lorn is watery (bloops and wobbles);
 - the Signal Market patters through a speaker grille.
 
 Every line carries a tone (`'~sad~ …'`, src/story/tone.js) that colours how it
@@ -153,7 +153,7 @@ the settings.
   where they could go no further; the water pooled in their hearts. The tree
   grows from this giant's heart and Qanat was built round it.
 - **Clue**: the Speaker says the giants "came down from the swamp of lights"
-  → Perdide. Someone saw a singing light fall the night the ship crashed.
+  → Lorn. Someone saw a singing light fall the night the ship crashed.
 
 ### 2. The City-Shaft (incal) — "The Light Nobody Looks At"
 - **Local story**: The Lodestar turns above the palace; the upper city calls it a
@@ -163,18 +163,18 @@ the settings.
   is from the lower levels himself); find the taxi driver who still stops for
   the poor; carry a message up the shaft.
 - **Keepsake**: *word*: the sweeper's "Look up once a day."
-- **Clue**: a Lodestar splinter carries the glyph and hums like Perdide's crystal.
+- **Clue**: a Lodestar splinter carries the glyph and hums like Lorn's crystal.
 
-### 3. Arzach — "The Waiting Bird"
+### 3. Vael — "The Waiting Bird"
 - **Local story**: The bird waits for a rider who left the lone tower long ago.
   Nobody speaks much. The world is silent by choice.
 - **Quests**: find three feathers the bird has shed across the spires; ring
   the stone hand's knuckles in the right order; reach the tower window.
 - **Keepsake**: *person*: the bird lets you ride, and will come if called
   from any world with sky (a promise, not an item).
-- **Clue**: the tower's room has a map of the sky stones → Arzach II.
+- **Clue**: the tower's room has a map of the sky stones → Vael II.
 
-### 4. Arzach II — "The Bell Under the Cloud"
+### 4. Vael II — "The Bell Under the Cloud"
 - **Local story**: The monastery bell has not rung since the cloud rose; the
   monks believe the stones fell *up* when the bell stopped. Ring it and the
   cloud will settle.
@@ -185,8 +185,8 @@ the settings.
 - **Clue**: the tower on the plain holds the same masked face as the desert's
   sleeping head → the giants were here too.
 
-### 5. The Airtight Garage — "The Major Forgot"
-- **Local story**: Major Grubert built this pocket universe and forgot why.
+### 5. The Sealed Hangar — "The Major Forgot"
+- **Local story**: Major Brask built this pocket universe and forgot why.
   His people keep the machines turning out of habit, passing a signal around
   the three zones that nobody can read.
 - **Quests**: carry the signal through the portals to the ring; fix three
@@ -208,13 +208,13 @@ the settings.
 - **Clue**: oil-light in the oculus adds an amber band to the tank; the
   machine's maker's mark is the glyph.
 
-### 7. Edena — "The Garden Grows Over"
-- **Local story**: Stel and Atan's ship fell here; the gardeners let the
+### 7. Viridel — "The Garden Grows Over"
+- **Local story**: Odile and Talo's ship fell here; the gardeners let the
   garden take it. They believe nothing that falls should be dug up again.
 - **Quests**: find the crashed ship; return a pyramid seed to the gardener;
   climb the tallest tree.
 - **Keepsake**: *word*: "We tend the garden. The garden tends us."
-- **Clue**: Stel and Atan's ship was struck by the same singing light → the
+- **Clue**: Odile and Talo's ship was struck by the same singing light → the
   traveller's ship wasn't the first.
 
 ### 8. The Garden of Spheres — "What the Spheres Remember"
@@ -225,7 +225,7 @@ the settings.
 - **Keepsake**: *song*: the chord the three spheres make together.
 - **Clue**: one sphere's sound is the desert's procession drum.
 
-### 9. Perdide — "The Great Crystal"
+### 9. Lorn — "The Great Crystal"
 - **Local story**: The crystal sings in the rain and the carnivorous plants
   fall silent. The swamp people say it is a piece of something that fell.
 - **Quests**: feed nothing to the plants (a test of patience); bring a crystal
@@ -234,14 +234,14 @@ the settings.
 - **Clue**: the crystal's song matches the "singing light" → it is a fragment
   of whatever struck the ship.
 
-### 10. Perdide II — "The Lamps Are Kept"
+### 10. Lorn II — "The Lamps Are Kept"
 - **Local story**: In the deep wood people keep the pools lit for travellers
   who never come. You are the first in a long time.
 - **Quests**: relight three dark pools (shoot them); return the moss-dome
   latch; find the skiff's owner.
 - **Keepsake**: *person*: the lamp-keeper asks you to come back one day.
-- **Clue**: the saucer half-sunk in the pool is Stel and Atan's escape pod
-  → Edena.
+- **Clue**: the saucer half-sunk in the pool is Odile and Talo's escape pod
+  → Viridel.
 
 ### 11. The Signal Market — "You Are Not Alone"
 - **Local story**: A thousand signs speak; one tower is silent. The market
@@ -275,26 +275,26 @@ are calls from home.
 | World | The glyph | The singing light | The makers' boxes |
 |---|---|---|---|
 | Desert | the mark between the giant's eyes; the Giver's mark (the keepers) | the singing light that turned (Oum); the chest hummed back to it all night (Nour) | the Givers' chest, the star-chest (Nour, Hessa) |
-| Arzach | the bird's track (Oïa) | heard in the stones (Senn) | a square with a star, drawn in the sand (Oïa, who doesn't speak) |
-| Arzach II | the Three Notes (Calix) | the bell hummed by itself for it | a bell-chest: it hummed back too (Calix) |
-| Garage | the maker's rivets (Ottla), the Major's thumbprint (Malvina) | seen through the ring's slit (Lune); three machines stopped that night | "for the next one": the Major found it and never opened it (Ottla) |
+| Vael | the bird's track (Oïa) | heard in the stones (Senn) | a square with a star, drawn in the sand (Oïa, who doesn't speak) |
+| Vael II | the Three Notes (Calix) | the bell hummed by itself for it | a bell-chest: it hummed back too (Calix) |
+| Hangar | the maker's rivets (Ottla), the Major's thumbprint (Clemence) | seen through the ring's slit (Lune); three machines stopped that night | "for the next one": the Major found it and never opened it (Ottla) |
 | Buried Machine | the Maker's Thumb | the Tuning Star (Hask, Dun) | thumb-boxes (Wen) |
-| Edena | the Builders' mark (Oro) | the Singer (Atan's word, Sol) | Builders' gifts (Oro) |
+| Viridel | the Builders' mark (Oro) | the Singer (Talo's word, Sol) | Builders' gifts (Oro) |
 | Garden of Spheres | the Footprint, under every sphere (Ivo) | an Answerer (Ume) | left-behinds (Ivo) |
-| Perdide | the Hush: three drops of rain over a shut mouth | Sedge saw it fall the night before the crash; the crystal's 213th phrase is its song | the sky-egg (Wendel) |
-| Perdide II | the Welcome: three lamps over a hull | Wick saw it put the pools out | the traveller's chest (Hollin) |
+| Lorn | the Hush: three drops of rain over a shut mouth | Sedge saw it fall the night before the crash; the crystal's 213th phrase is its song | the sky-egg (Wendel) |
+| Lorn II | the Welcome: three lamps over a hull | Wick saw it put the pools out | the traveller's chest (Hollin) |
 | City-Shaft | the palace seal (rim), the Three Who Look Up (bottom) | it passed over the shaft and the Lodestar rang back; it left "toward the deserts" | lost property (rim), a promise (bottom; Ossa) |
 | Signal Market | the First Sign (Sel), the tuning mark (Ferro) | the unsent recording "came in singing" (Kip) | (no box of its own) |
 
 Built details beyond the bible: the bird's promise (`bird.promise`) could later
-let her answer a whistle in other worlds; Arzach II's clapper "fell up"; the
+let her answer a whistle in other worlds; Vael II's clapper "fell up"; the
 Major once visited the wheel and wrote "FOUND IT. NOW WHAT?" on the drum wall;
-Stel and Atan left in the saucer for the deep wood where the lamps are kept;
+Odile and Talo left in the saucer for the deep wood where the lamps are kept;
 each sphere remembers the last sound it heard before falling.
 
 More built details: the Great Crystal adds a crystal-violet band to the tank,
 and Wendel gives a second keepsake ("The patient are never eaten"). Hollin has
-kept the deep wood's lamps for 41 years; Stel and Atan borrowed Fen's skiff and
+kept the deep wood's lamps for 41 years; Odile and Talo borrowed Fen's skiff and
 left "the long way" through the root cave. The City-Shaft's rule: a light
 nobody looks at goes out. The Signal Market's rule: the first thing anyone ever
 sold there was an answer.

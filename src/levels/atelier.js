@@ -110,7 +110,7 @@ export function createAtelier(scene) {
     spawnHeading: Math.PI,
     camYaw: 0,
     features: { mount: false, wind: false, jetpack: true, climb: true },
-    defaults: { hour: 11, preset: 'Edena', cloudShadows: 0 },
+    defaults: { hour: 11, preset: 'Viridel', cloudShadows: 0 },
     killY: -Infinity,
     lights,
     sky: {

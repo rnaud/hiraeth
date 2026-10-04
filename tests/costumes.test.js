@@ -52,7 +52,7 @@ test('the worlds dress apart: silhouettes and palettes differ from world to worl
   // two far-apart worlds share no headwear at all
   assert.equal([...set('desert', 'head')].filter((h) => set('arzach', 'head').has(h)).length, 0);
   assert.equal([...set('garage', 'head')].filter((h) => set('arzach', 'head').has(h)).length, 0);
-  // skins: the Garage's grey-blue and Perdide's pale violet aren't anyone else's
+  // skins: the Hangar's grey-blue and Lorn's pale violet aren't anyone else's
   assert.ok([...set('garage', 'skin')].every((c) => !set('desert', 'skin').has(c)));
   assert.ok([...set('perdide', 'skin')].every((c) => !set('bazaar', 'skin').has(c)));
 });

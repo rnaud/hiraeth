@@ -6,7 +6,7 @@ import { registerInteractable, PRIORITY } from '../interact.js';
 import { featherGeometry } from '../avian.js';
 import { QUESTS, PEOPLE, LOCALS, THINGS, ITEMS, KNUCKLE_ORDER } from './arzach-data.js';
 
-// Arzach's story, alive (arzach-data.js has the words): "The Waiting Bird".
+// Vael's story, alive (arzach-data.js has the words): "The Waiting Bird".
 //
 //   the start    Oïa sits on a stone beside the bird, watching the lone tower;
 //                the bird keeps turning to look at it too, until she is called

@@ -9,7 +9,7 @@ const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const UP = v(0, 1, 0);
 const RAIN = { kind: 'rain', rain: 1, storm: 0, fog: 0 };
 
-// open ground; a porch roof 3.2 m up over x in [-5, 5]; a room built far off (as Edena's cabin is)
+// open ground; a porch roof 3.2 m up over x in [-5, 5]; a room built far off (as Viridel's cabin is)
 const scene = new THREE.Scene();
 const ground = new THREE.Mesh(new THREE.BoxGeometry(400, 1, 400)); ground.position.y = -0.5; scene.add(ground);
 const porch = new THREE.Mesh(new THREE.BoxGeometry(10, 0.3, 6)); porch.position.set(0, 3.2, 40); scene.add(porch);

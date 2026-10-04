@@ -7,8 +7,8 @@ import { Hoverbike } from '../bike.js';
 import { KEEPERS } from '../story/perdide2-data.js';
 
 // ---------------------------------------------------------------------------
-// Perdide II: the Deep Wood. The far side of the swamp planet from
-// Les Maîtres du temps: a dusk forest of giant pale mushrooms among dark
+// Lorn II: the Deep Wood. The far side of the swamp planet from
+// Lorn II: a dusk forest of giant pale mushrooms among dark
 // cathedral trunks, coral sky glimpsed between them. A lit path of glowing
 // pools and egg heaps winds beside a teal stream, under enormous root arches,
 // past moss domes and a crashed saucer pod, to a cave glowing coral inside,

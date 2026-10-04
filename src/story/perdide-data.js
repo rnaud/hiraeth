@@ -1,4 +1,4 @@
-// Perdide's story as data: "The Great Crystal" (docs/story-bible.md).
+// Lorn's story as data: "The Great Crystal" (docs/story-bible.md).
 //
 // The Great Crystal stands on its island east of the landing, over the ford.
 // It hums all day and sings when it rains, and while it sings every

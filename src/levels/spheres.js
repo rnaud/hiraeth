@@ -7,7 +7,7 @@ import { Terrain, jitter, soften } from '../world.js';
 import { PEOPLE } from '../story/spheres-data.js';
 
 // ---------------------------------------------------------------------------
-// The Garden of Spheres, after Le Monde d'Edena (Moebius): a calm meadow under
+// The Garden of Spheres: a calm meadow under
 // colossal umbrella trees, white pyramids, a white hill of sculpted rock, giant
 // pale spheres half sunk in the grass, a still mirror lake, and an avenue of
 // olives and cypresses through a sphere-arch to a round stone plaza.

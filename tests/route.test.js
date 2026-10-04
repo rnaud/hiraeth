@@ -14,7 +14,7 @@ test('the route: the desert and the next two worlds at first, one more for each 
   assert.deepEqual(knownWorlds({ order: ORDER }), ['desert', 'incal', 'arzach'], 'a new game: the crash site and a choice of two');
   // the desert done (the ship has power): still two to choose from
   assert.deepEqual(knownWorlds({ order: ORDER, done: set('desert'), current: 'desert' }), ['desert', 'incal', 'arzach']);
-  // the City-Shaft done: Arzach II joins Arzach
+  // the City-Shaft done: Vael II joins Vael
   assert.deepEqual(knownWorlds({ order: ORDER, done: set('desert', 'incal') }), ['desert', 'incal', 'arzach', 'arzach2']);
   // the other one done instead
   assert.deepEqual(knownWorlds({ order: ORDER, done: set('desert', 'arzach') }), ['desert', 'incal', 'arzach', 'arzach2']);

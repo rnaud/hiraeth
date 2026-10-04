@@ -1,4 +1,4 @@
-// Perdide II's story as data: "The Lamps Are Kept" (docs/story-bible.md).
+// Lorn II's story as data: "The Lamps Are Kept" (docs/story-bible.md).
 //
 // In the deep wood the people keep the pools lit for travellers who never
 // come. Two did, once, forty-one years ago: they climbed out of a little
@@ -9,8 +9,8 @@
 // Three pools went dark the night the sky rang, when a singing light passed
 // low over the wood. Relight them with the fluid (shoot them) and the third
 // is answered from across the water: the saucer half sunk in its pool
-// blinks back. Inside it are two couches, two names (Stel and Atan), a
-// drawing of a garden of white pyramids under umbrella trees (Edena), and
+// blinks back. Inside it are two couches, two names (Odile and Talo), a
+// drawing of a garden of white pyramids under umbrella trees (Viridel), and
 // the glyph scorched across its flank: the same light struck it. It was
 // their escape pod. Tell Hollin, the old lamp-keeper, and he asks you to
 // come back one day, so that once the lamps were lit for someone who came.
@@ -110,12 +110,12 @@ export const KEEPERS = [
         tell: {
           say: ['~happy~ Look at them. Every pool on the path, lit, and three in colours nobody here has ever made.', '~curious~ Tell me. What’s in the boat?'],
           choices: [
-            { text: '~solemn~ Two couches. Two names, Stel and Atan. And a drawing of a garden with white pyramids.', goto: 'names', if: { flag: 'perdide2.saucer.seen' } },
+            { text: '~solemn~ Two couches. Two names, Odile and Talo. And a drawing of a garden with white pyramids.', goto: 'names', if: { flag: 'perdide2.saucer.seen' } },
             { text: '~neutral~ I haven’t been out to it yet.', end: true, if: { not: { flag: 'perdide2.saucer.seen' } } },
           ],
         },
         names: {
-          say: ['~sad~ Stel and Atan. Yes. That’s them; that’s what they called each other.', '~tired~ A garden. Somewhere far, with white pyramids. Forty-one years of lamps, and they’re in a garden.', '~happy~ I should be sad. I’m not. It sounds like a good place to have got to.'],
+          say: ['~sad~ Odile and Talo. Yes. That’s them; that’s what they called each other.', '~tired~ A garden. Somewhere far, with white pyramids. Forty-one years of lamps, and they’re in a garden.', '~happy~ I should be sad. I’m not. It sounds like a good place to have got to.'],
           next: 'promise',
         },
         promise: {
@@ -255,7 +255,7 @@ export const PEOPLE = {
           ],
         },
         mine: {
-          say: ['~tired~ Mine. I lent it, long ago, to two strangers who came out of the sky-boat in the pool there. Stel and Atan. They were waiting for a ship of their own, and the waiting took a season.', '~sad~ They used my skiff to fish, and to go and sit in the saucer of an evening, and look up. Then they gave up waiting, moored it at the cave, and walked out of the wood. Didn’t come and tell me. I don’t blame them. Deep water.'],
+          say: ['~tired~ Mine. I lent it, long ago, to two strangers who came out of the sky-boat in the pool there. Odile and Talo. They were waiting for a ship of their own, and the waiting took a season.', '~sad~ They used my skiff to fish, and to go and sit in the saucer of an evening, and look up. Then they gave up waiting, moored it at the cave, and walked out of the wood. Didn’t come and tell me. I don’t blame them. Deep water.'],
           do: [{ set: { 'perdide2.fen.told': true } }, { start: 'perdide2.skiff' }],
           choices: [
             { text: '~curious~ Where did they go?', goto: 'where' },
@@ -263,7 +263,7 @@ export const PEOPLE = {
           ],
         },
         where: {
-          say: ['~solemn~ A garden, they said. A world that was all garden, with white pyramids. They had a drawing of it, in the saucer. Stel drew it, so they wouldn’t forget what they were walking toward.'],
+          say: ['~solemn~ A garden, they said. A world that was all garden, with white pyramids. They had a drawing of it, in the saucer. Odile drew it, so they wouldn’t forget what they were walking toward.'],
           do: { set: { 'clue.perdide2.edena': true } },
           choices: [{ text: '~curious~ Do you want your skiff back?', goto: 'back' }],
         },

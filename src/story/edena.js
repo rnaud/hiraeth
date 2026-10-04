@@ -6,11 +6,11 @@ import { registerInteractable, PRIORITY } from '../interact.js';
 import { Puffs, ownMaterial } from './puffs.js';
 import { QUESTS, PEOPLE, THINGS, ITEMS } from './edena-data.js';
 
-// Edena's story, alive (edena-data.js has the words).
+// Viridel's story, alive (edena-data.js has the words).
 //
 //   near the start  Mira (the water clock) and Sol, level people
 //   the ruins       Oro, who grows pyramids from seeds
-//   the trees       Lio, who climbs; the tallest tree, with Atan's lookout
+//   the trees       Lio, who climbs; the tallest tree, with Talo's lookout
 //                   on its floating crown (a boost from the upper canopy)
 //   the ship        Vey among the vines; the hatch, the cabin, the log at the
 //                   cockpit panel; the veil of flowers over the scorch on the

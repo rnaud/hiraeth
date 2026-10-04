@@ -205,7 +205,7 @@ const BEATS = [
     ],
   },
   {
-    // Stel and Atan's ship: struck by the same light
+    // Odile and Talo's ship: struck by the same light
     id: 'struck', when: (f) => f.struck,
     lines: () => [
       F('~angry~ Another ship, struck the same way as yours? Out there ships are struck. That is all it is.', { 'calls.beat.struck': true }),

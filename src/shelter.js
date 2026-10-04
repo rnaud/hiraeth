@@ -55,7 +55,7 @@ export class Shelter {
   /**
    * @param dt
    * @param cam     the camera's world position (the rain is drawn in front of it)
-   * @param up      world up for the roof probe (gravity can turn in the Garage)
+   * @param up      world up for the roof probe (gravity can turn in the Hangar)
    * @param others  more points that count as "where we are" for the interiors (the player)
    */
   update(dt, cam, up = THREE.Object3D.DEFAULT_UP, others = []) {

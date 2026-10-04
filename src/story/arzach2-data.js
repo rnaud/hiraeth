@@ -1,4 +1,4 @@
-// Arzach II's story as data: "The Bell Under the Cloud" (docs/story-bible.md).
+// Vael II's story as data: "The Bell Under the Cloud" (docs/story-bible.md).
 //
 // The monastery bell on the rose cliff has not rung since the cloud rose.
 // The monks believe the stones fell *up* when the bell stopped: the floating
@@ -141,7 +141,7 @@ export const PEOPLE = {
   },
 };
 
-/** The level's own people (Arzach II's npcs, by index). */
+/** The level's own people (Vael II's npcs, by index). */
 export const LOCALS = [
   {
     id: 'aube', name: 'Sister Aube', title: 'hermit of the edge', color: '#b9a7d8', voice: 0.9,

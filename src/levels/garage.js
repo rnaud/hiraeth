@@ -5,9 +5,9 @@ import { makeMaterial, MODE_STRATA } from '../materials.js';
 import { jitter, soften } from '../world.js';
 
 // ---------------------------------------------------------------------------
-// Le Garage hermétique (Moebius, 1976-79): Major Grubert's pocket universe.
+// The Sealed Hangar: Major Brask's pocket universe.
 // Three zones linked by portals, each with its own gravity and ink style:
-//   A  Grubert's plateau   normal gravity, a floating island      (Moebius)
+//   A  Brask's plateau   normal gravity, a floating island
 //   B  The upside-down     gravity pulls you *up* under a slab   (Animated ink)
 //   C  The ring            a cylinder habitat lit through a slit,
 //                          gravity points outward from the axis    (Sable)
@@ -92,7 +92,7 @@ export function createGarage(scene) {
     movers.push((t) => { inner.rotation.z = t * 0.6; ring.scale.setScalar(1 + Math.sin(t * 3) * 0.03); });
   }
 
-  // ======================================================== A: Grubert's plateau
+  // ======================================================== A: Brask's plateau
   {
     const g = new THREE.CylinderGeometry(210, 120, 70, 30, 6);
     g.translate(0, -35, 0);
@@ -140,7 +140,7 @@ export function createGarage(scene) {
   }
 
   // ---------------------------------------------------------- the plateau's clutter
-  // Grubert's asteroid is a tangle of plumbing: pipes snaking over the ground
+  // Brask's asteroid is a tangle of plumbing: pipes snaking over the ground
   // with valve wheels and pumps, cables slung between the towers, aerials and
   // little cabins everywhere. Kept off the path from the start to the keep.
   {
@@ -432,7 +432,7 @@ export function createGarage(scene) {
     return Y;
   };
   const ZONES = {
-    A: { name: "Grubert's plateau", preset: 'Moebius print', tint: [1, 1, 1], fog: 0.9 },
+    A: { name: "Brask's plateau", preset: 'Moebius print', tint: [1, 1, 1], fog: 0.9 },
     B: { name: 'The upside-down quarter', preset: 'Animated ink', tint: [0.95, 0.92, 1.02], fog: 1.2 },
     C: { name: 'The ring', preset: 'Moebius', tint: [1.0, 0.96, 0.9], fog: 0.8 },
   };

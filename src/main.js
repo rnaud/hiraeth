@@ -1138,7 +1138,7 @@ function frame() {
   level.update(dt, t, { player, rig, camera, fade: (k, secs) => ship.cinema?.fade(k, true, secs) });
   reactiveWorld.update(dt, t, player, camera, busy() || photo.on);
   wildlife.update(dt, t, player, camera, busy() || photo.on);
-  // levels with zones (the Garage) switch ink style as you cross between them
+  // levels with zones (the Hangar) switch ink style as you cross between them
   if (level.zoneAt) {
     const zone = level.zoneAt(player.pos);
     if (zone.preset !== params.preset) { params.preset = zone.preset; applyPreset(zone.preset); }
