@@ -3,6 +3,14 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.35', date: '2026-10-04', items: [
+    'You start without the backpack. It was thrown out in the crash: find its box near the ship. Item boxes glow and shudder as you come near; open one to kneel over it while light pours out and the item rises in front of you.',
+    'Boxes in every world hold new things: fluid jets in the City-Shaft, fluid wings in Arzach II, stilling and ember modes for the wrist nozzle, a fourth chamber, a quick coil, a lantern charm, a glyph lens, a bell-note whistle and a pale star.',
+    'Everything runs on the backpack. The jets burn its fluid, the wings bloom out of it, and X switches between shoot, stilling (freezes) and ember (lights lamps and fires, burns brambles). Vehicles need it too: you slot the tank into the hoverbike or skiff to ride.',
+    'The ship now crashes facing Qanat, so the city stands on the horizon when you step out. A long trail of smoke rises from the burning tree, visible across the whole desert.',
+    'A developer menu (the ` key): toggle every item, open or reset boxes, jump to any world.',
+    'An Android version: install the APK from the GitHub release page and play offline.',
+  ] },
   { v: '0.34', date: '2026-10-04', items: [
     'Calls home now react to what you found and who you met. After the Signal Market, ask about Ilen.',
     'After six worlds, your parents ask you home. Choose one keepsake to bring, land at the house under two moons, and see how they take it. Credits list everyone you met. You can keep exploring afterwards.',

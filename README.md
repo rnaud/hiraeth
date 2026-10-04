@@ -1058,3 +1058,29 @@ Pocket. Their built-in controls work through the Gamepad API.
   npm run build && npx cap sync android && (cd android && ./gradlew assembleDebug)
   ```
 
+### Items, boxes and the backpack (v0.35)
+- **Items** (`src/items.js`): the backpack, fluid jets, fluid wings, the stilling
+  and ember modes, and the boxes' special items. Each is stored as a game flag
+  `item.<id>`. `items.has/grant/revoke` take effect live.
+- **Boxes** (`src/boxes/`): a dark blue chest with a pale star, after
+  `references/box-opening.webp`. It glows, hums and shudders as you approach,
+  and E opens it. The opening scene: the traveller kneels (`Humanoid.kneel`),
+  the lid opens on a fan of light from the box, and the item hovers with a card
+  showing its name, what it is and what it does. Then the item is granted.
+  Placements are in `placements.js`: the backpack lies near the desert crash
+  site as the first quest stage, and every world has a box. Fallback boxes
+  appear by the ship if you reach a world without what it needs. Special item
+  effects are in `effects.js`. `migrateSave` gives saves from before v0.35
+  the backpack.
+- **Backpack-powered abilities** (`src/fluid-tool.js`, `src/fluid-kit.js`,
+  `src/flammable.js`):
+  - With no backpack there is no tool, and vehicles won't start.
+  - The jets drain the same reserve (0.3 charges per second) and work in any
+    world. The wings bloom from the tank and are needed to glide.
+  - X cycles through the modes you own: shoot, stilling (freezes) and ember
+    (lights `level.flammables`). A target that doesn't list a mode in
+    `accepts` gets `'shoot'`, so every puzzle works in every mode.
+  - Riding the hoverbike or skiff moves the tank into the vehicle's socket.
+- **Dev menu** (`src/dev-menu.js`, the backquote key or settings): items,
+  boxes, flags, teleport. Also `?items=all|none|a,b`.
+
