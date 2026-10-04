@@ -146,11 +146,20 @@ test('the site search does not hang on float noise (the browser and node found d
   assert.deepEqual([b.x, b.z, b.heading], [a.x, a.z, a.heading]);
 });
 
-test('the desert crash site is on open sand 40-80 m from the spawn, dug in and tilted', () => {
-  const s = SITE_OVERRIDES.desert;
-  const d = Math.hypot(s.x, s.z);
-  assert.ok(d >= 40 && d <= 80, `${d.toFixed(0)} m from the desert spawn`);
-  assert.ok(s.crash && Math.abs(s.crash.roll) + Math.abs(s.crash.pitch) > 0.05 && s.crash.length > 60);
+test('the desert crash site faces Qanat, and the city shows on the horizon from the ramp', async () => {
+  const { desertHeight } = await import('../src/desert-landmarks.js');
+  const s = SITE_OVERRIDES.desert, city = { x: 230, z: 400 };
+  assert.ok(Math.hypot(s.x, s.z) < 160, 'near the old camp');
+  assert.ok(s.crash && Math.abs(s.crash.roll) + Math.abs(s.crash.pitch) > 0.05 && s.crash.length > 60, 'dug in and tilted');
+  const toCity = Math.atan2(city.x - s.x, city.z - s.z);
+  assert.ok(Math.abs(Math.atan2(Math.sin(toCity - s.heading), Math.cos(toCity - s.heading))) < 0.2, 'the hatch faces the city');
+  // from eye height at the foot of the ramp, nothing in the dunes rises above the line to the city walls
+  const dx = Math.sin(s.heading), dz = Math.cos(s.heading), fx = s.x + dx * 18, fz = s.z + dz * 18;
+  const eye = desertHeight(fx, fz) + 1.7, wall = desertHeight(city.x, city.z) + 10, D = Math.hypot(city.x - fx, city.z - fz);
+  for (let t = 8; t < D - 40; t += 4) {
+    const k = t / D, x = fx + (city.x - fx) * k, z = fz + (city.z - fz) * k;
+    assert.ok(eye + (wall - eye) * k > desertHeight(x, z), `a dune hides the city ${t.toFixed(0)} m out`);
+  }
 });
 
 test('the console: a waiting call first; the galactic map is locked without power', () => {

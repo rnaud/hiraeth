@@ -12,6 +12,7 @@ import * as sfx from './sfx.js';
 // shorter scenes (a call home, arriving, taking off) are Sequences here.
 
 export const OBJECTIVE = 'Find a new source of power.';
+const STEP_OUT_YAW = 0.34;   // rad off straight-behind when the traveller first steps out
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const smooth = (t) => { t = THREE.MathUtils.clamp(t, 0, 1); return t * t * (3 - 2 * t); };
 const seg = (t, a, b) => THREE.MathUtils.clamp((t - a) / (b - a), 0, 1);
@@ -324,7 +325,8 @@ export class PrologueDirector {
       sfx.alarm(s.sound, 0); sfx.hum(s.sound, 0);
       const a = s.arrivalSpot();
       s.placePlayer(a.pos, a.heading, true);
-      s.rig.yaw = a.heading + Math.PI; s.rig.pitch = 0.2;
+      // over the shoulder, a little low: the city and its burning tree stand on the horizon beside the traveller
+      s.rig.yaw = a.heading + Math.PI + STEP_OUT_YAW; s.rig.pitch = 0.08;
       s.rig.target.copy(a.pos);
       s.cam = null; s.blend = null;
       C.objective(OBJECTIVE);

@@ -7,17 +7,19 @@ import { LIFT, R } from './hull.js';
 // the relics and the story goal). `heading` is the direction the hatch and
 // its ramp face (a player heading: 0 = +z, PI/2 = +x).
 //
-// The desert is special: the forced landing of the prologue. The ship lies
-// half dug into a rising dune face, tilted, at the end of a long furrow
-// ploughed from the north (it slid uphill, +z, and stopped). Sand is heaped
-// against its leading (south) side; the hatch opens back onto the furrow.
+// The desert is special: the forced landing of the prologue. The ship came
+// in low over Qanat and lies half dug into the dune, tilted, at the end of a
+// long furrow ploughed from the north (it slid south, -z, and stopped). Sand is
+// heaped against its leading (south) side; the hatch opens back up the furrow,
+// so stepping out you see the city and its burning tree on the horizon.
 
 export const SITE_OVERRIDES = {
   desert: {
-    // the hatch faces back along the furrow (north-east, in the morning sun); the cockpit window looks north-west to the camp
-    x: 58, z: 48, heading: (3 * Math.PI) / 4,
+    // on a rise north of the old camp where nothing hides the horizon: the hatch faces Qanat
+    // (230, 400), so stepping out you see the city and its burning tree across the dunes
+    x: 20, z: 120, heading: Math.atan2(230 - 20, 400 - 120),
     crash: {
-      travel: 0,          // the direction it was moving (heading): +z, up the dune, sliding on its side
+      travel: Math.PI,    // the direction it was moving (heading): -z, sliding on its side away from the city
       length: 118,        // furrow length behind it (m)
       pitch: 0.05,        // the cockpit side a little up (rad)
       roll: -0.15,        // tipped back with the slope of the dune (the hatch side lower)
