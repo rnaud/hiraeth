@@ -429,9 +429,7 @@ export class Ship {
     if (action === 'locked') {
       sfx.beep(this.sound);
       this.parked.callScreen?.set({ who: 'locked' });
-      this.cinema.say({ who: 'ship', text: 'No power. The engines are cold and the map is dark. Find a new source of power.' });
-      clearTimeout(this._sayT);
-      this._sayT = setTimeout(() => this.cinema.say(null), 4200);
+      this.cinema.say({ who: 'ship', text: 'No power. The engines are cold and the map is dark. Find a new source of power.' }, { secs: 4.2 });
       this.map.toggle(true);   // shown, but locked
       return;
     }
@@ -520,14 +518,14 @@ export class Ship {
     if (inside !== this.inside) {
       this.inside = inside;
       game.emit(inside ? 'ship:enter' : 'ship:exit', { level: this.levelId });
-      // a closer camera in the rooms, and no climbing the curved walls of home
-      this.rig.indoor = inside;   // the camera's tight-room mode (src/player.js CameraRig)
-      if (inside) { this._dist = this.rig.dist; this.rig.dist = Math.min(this.rig.dist, 4.2); this._climb = P.opts.climb; P.opts.climb = false; }
-      else {
-        if (this._dist) { this.rig.dist = this._dist; this._dist = null; }
-        if (this._climb !== undefined) { P.opts.climb = this._climb; this._climb = undefined; }
-      }
+      // a close, over-the-shoulder camera in the rooms (the rig's tight-space mode,
+      // src/player.js CameraRig: it eases in and back out by itself), and no climbing
+      // the curved walls of home
+      this.rig.indoor = inside;
+      if (inside) { this._climb = P.opts.climb; P.opts.climb = false; }
+      else if (this._climb !== undefined) { P.opts.climb = this._climb; this._climb = undefined; }
     }
+    this.cinema.update(dt);   // timed subtitles; everything on screen kept in its own place
     const c = this.cinematic;
     if (c && !c.done) {
       const skipHeld = !!(raw.Escape || this._esc || padSkip());

@@ -35,7 +35,7 @@ const SKIP_HOLD = 0.9;
 const _aim = new THREE.Vector3();
 
 const CSS = `
-#homeward { position: fixed; right: 4vw; top: calc(11vh + 14px); bottom: calc(11vh + 66px); width: min(470px, 46vw); z-index: 8100; display: none; flex-direction: column;
+#homeward { position: fixed; right: 4vw; top: calc(11vh + 14px); bottom: max(calc(11vh + 66px), var(--cine-sub-clear, 0px)); width: min(470px, 46vw); z-index: 8100; display: none; flex-direction: column;
   background: #f7ecd2; color: #2b211f; border: 2px solid #2b211f; box-shadow: 7px 7px 0 #2b211f; font: 13px/1.4 ui-monospace, Menlo, monospace; }
 #homeward.open { display: flex; }
 #homeward header { padding: 12px 16px 8px; border-bottom: 2px solid #2b211f; }
@@ -59,7 +59,7 @@ const CSS = `
   background: linear-gradient(rgba(43, 33, 31, .55), rgba(43, 33, 31, .35)); }
 #credits.on { opacity: 1; }
 /* a phone held upright: the panel across the screen, clear of the subtitles; no keyboard hint on touch */
-@media (max-width: 600px) { #homeward { left: 4vw; right: 4vw; width: auto; top: calc(11vh + 8px); bottom: calc(11vh + 150px); } }
+@media (max-width: 600px) { #homeward { left: 4vw; right: 4vw; width: auto; top: calc(11vh + 8px); bottom: max(calc(11vh + 150px), var(--cine-sub-clear, 0px)); } }
 body.touch #homeward footer span { display: none; }
 #credits .roll { position: absolute; left: 50%; top: 0; width: min(560px, 86vw); margin-left: calc(min(560px, 86vw) / -2); padding: 48px 40px 70px; box-sizing: border-box;
   background: #f7ecd2; color: #2b211f; border-left: 2px solid #2b211f; border-right: 2px solid #2b211f; box-shadow: 8px 0 0 #2b211f;

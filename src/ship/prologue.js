@@ -6,8 +6,8 @@
 //   black   → the screen is dark, the ship hums
 //   wake    → eyes open in the bunk: the drawing taped under the top bunk
 //   rise    → standing beside the bunk
-//   walk    → you walk to the cockpit (gentle lights on the floor; the ship
-//             walks you there itself if you don't go)
+//   walk    → you walk to the cockpit, in your own time (gentle lights on the
+//             floor and a hint point the way; nothing walks you there)
 //   call    → the father on the screen
 //   impact  → the hit: shake, alarms, red light, the screen breaks into static
 //   fall    → the planet swings up into the window
@@ -40,7 +40,7 @@ export const PROLOGUE_STAGES = [
   { id: 'black', dur: 1.6 },
   { id: 'wake', dur: 7.2 },
   { id: 'rise', dur: 1.1 },
-  { id: 'walk', until: true, dur: 60, play: true },
+  { id: 'walk', until: true, dur: Infinity, play: true },   // as long as you like: it ends at the console
   { id: 'call', dur: callTimeline(PROLOGUE_CALL).total },
   { id: 'impact', dur: 4.4 },
   { id: 'fall', dur: 2.6 },
@@ -97,7 +97,7 @@ export class Prologue {
     const s = this.stages[this.i];
     this.director.frame(s.id, this.t, dt);
     if (this.done) return;
-    // stages with `until` end when the director says so (or after their dur as a safety net)
+    // stages with `until` end when the director says so (or after their dur as a safety net, if they have one)
     if ((s.until && this.director.ready?.(s.id, this.t)) || this.t >= s.dur) this.next();
   }
 
