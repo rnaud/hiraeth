@@ -1,0 +1,23 @@
+src/story/edena-data.js
+  s_1fd8d0e7b02dcf::t_24f911a1e5c858 23-24
+src/story/puffs.js
+  s_1fd8d0e7b02dcf::t_37882ba602366a 20,37,57
+src/story/spheres-data.js
+  s_1fd8d0e7b02dcf::t_e2173c5621ae93 225
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "635ced3409e3684843b1908e5d9eda7d3ca5e919",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
