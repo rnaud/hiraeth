@@ -410,6 +410,11 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Space') e.preventDefault();
 });
 window.addEventListener('keyup', (e) => (input[e.code] = false));
+// The E that closes a story page, a conversation or the ending (their own keydown handlers,
+// which run first) must not also act in the world: it walked you up the ship's ramp or
+// whistled the mount. E pressed while something was open is ignored until it is released.
+let eBlocked = false, wasBusy = false;
+window.addEventListener('keydown', (e) => { if (e.code === 'KeyE' && (wasBusy || busy())) eBlocked = true; });
 bindToolMouse(renderer.domElement, input);   // right button aims, left shoots, middle pushes
 window.addEventListener('blur', () => Object.keys(input).forEach((k) => (input[k] = false)));
 
@@ -832,7 +837,11 @@ function frame() {
     : photo.on ? 'Left stick fly · right stick look · LB/RB down/up · A / × save · B / ○ exit'
     : 'A / × jump (again in the air: boost) · X / □ use · Y / △ ping · RT / R2 run · LT aim (+ RT shoot) · B / ○ push · ↑ worlds · ↓ photo · View sketchbook · Menu settings';
   const mergedInput = mergeControls(latchedInput(), padInput);
-  const ctl = busy() ? noInput : ship.input(mergedInput);   // the ship's E and its autopilot
+  wasBusy = busy();
+  if (wasBusy && mergedInput.KeyE) eBlocked = true;
+  if (!mergedInput.KeyE) eBlocked = false;
+  if (eBlocked) mergedInput.KeyE = false;
+  const ctl = wasBusy ? noInput : ship.input(mergedInput);   // the ship's E and its autopilot
 
   if (sky.speed > 0) sky.hour = (sky.hour + (sky.speed / 60) * dt) % 24;
   // region fog / horizon follow the player smoothly (the field itself is smooth)
