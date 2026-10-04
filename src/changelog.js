@@ -4,6 +4,7 @@
 
 export const CHANGELOG = [
   { v: '0.43', date: '2026-10-04', items: [
+    'People’s eyes are no longer black: everyone has eye whites, an iris of their own colour (brown, hazel, green, grey or blue) and a pupil, their eyes follow you when you talk to them, and they blink, in the crowds too. The traveller’s eyes match.',
     'For testing: a Debug entry on the title screen and in the Start menu opens the worlds list, and in the Lab [ and ] (L3 and R3 on a pad) hop from one world’s room to the next without walking to the doors.',
     'The Lab (in the worlds list, L) has a door for every world: step through to a little copy of each one, with its own ground, sky and light, rocks and buildings, plants, creatures and people in their own clothes. Each room has a door home behind you, and wandering off its edge brings you back to it.',
     'Plants part round you as you walk through them, leaning away from your legs, more when you hurry.',
