@@ -110,7 +110,7 @@ export function setupPerdide(ctx) {
   thing(THINGS.crystal, crystalLook, { range: 4, prompt: 'look up at the crystal' });
 
   // ---------------------------------------------------------------- the song
-  const st = { k: 0, until: -1, clock: 0, hits: [], phraseT: 0, near: false, tank: false, ringT: 0, quest: false };
+  const st = { k: 0, until: -1, clock: 0, hits: [], phraseT: 0, near: false, flash: 0 };
   const raining = () => (sky()?.state?.rain ?? 0) > 0.35;
   const singing = () => st.clock < st.until;
   const sing = (dur, why) => {
@@ -163,10 +163,9 @@ export function setupPerdide(ctx) {
     g.rotation.set(0.9, 0.4, 0.3);
     g.userData.noCollide = true;
     scene.add(g);
-    const light = V(0, 0, 0);
     const L = new THREE.Vector4(splinterAt.x, splinterAt.y + 0.8, splinterAt.z, 6);
     level.lights.push(L);
-    splinter = { g, L, off: null, light };
+    splinter = { g, L, off: null };
     splinter.off = registerInteractable({ id: 'splinter', priority: PRIORITY.use, range: 2.6, prompt: 'pick up the splinter', at: () => splinterAt, distance: (p) => flat(p.pos, splinterAt),
       use: () => {
         quests.give('splinter');
