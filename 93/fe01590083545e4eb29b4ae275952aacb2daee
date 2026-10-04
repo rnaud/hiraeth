@@ -1,0 +1,21 @@
+src/desert-city.js
+  s_1fd8d0e7b02dcf::t_8737cadb9daf72 380-382
+src/story/flames.js
+  s_1fd8d0e7b02dcf::t_6847cf66a360b3 331,348,363-367,371-372,383-386,396-397,400,403,438
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "93fe01590083545e4eb29b4ae275952aacb2daee",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
