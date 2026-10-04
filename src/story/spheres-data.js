@@ -65,7 +65,7 @@ export const PEOPLE = {
   aube: {
     id: 'aube', name: 'Aube', title: 'the listener', color: '#9fd0c8', voice: 1.0, kind: 'f',
     palette: { cloak: '#f3efe2', lining: '#2b211f', cloth: '#9fd0c8', legs: '#7f9a90', hat: '#f6efd0', hair: '#3d2a22', face: '#e8dcc8' }, head: 'wrap', cape: 1.2, look: { prop: 'parasol' },
-    lines: ['~neutral~ The spheres came down long ago. Nobody minds them now.', '~neutral~ Follow the pale path. It goes through the arch.', '~whisper~ Shh. Stand still.'],
+    lines: ['~neutral~ The spheres came down long ago. Nobody minds them now.', '~neutral~ *Follow the pale path*. It goes through the arch.', '~whisper~ Shh. Stand still.'],
     talk: {
       entry: [
         { if: { quest: Q, done: true }, node: 'after' },
@@ -83,11 +83,11 @@ export const PEOPLE = {
           ],
         },
         how: {
-          say: ['~whisper~ You stop. That’s all. Stand beside one and keep still, and it remembers, for you. They don’t remember for people who are passing.', '~neutral~ Three of them still remember anything you can hear: the pearl by the lake, the one west of the arch, and the big one among the pillars, far to the east.'],
+          say: ['~whisper~ You stop. That’s all. *Stand beside one and keep still*, and it remembers, for you. They don’t remember for people who are passing.', '~neutral~ Three of them still remember anything you can hear: *the pearl by the lake*, *the one west of the arch*, and *the big one among the pillars*, far to the east.'],
           do: { set: { 'spheres.aube.heard': true } },
           choices: [{ text: '~curious~ And then?', goto: 'then' }, { text: '~neutral~ I’ll go and listen.', end: true }],
         },
-        then: { say: ['~neutral~ Then carry what you heard down the avenue to the round plaza. The pole there hums while the great sphere is on the horizon. Ume keeps it. She says if you bring it three sounds, it will play them back together.'], choices: [{ text: '~neutral~ I’ll go and listen.', end: true }] },
+        then: { say: ['~neutral~ Then carry what you heard *down the avenue to the round plaza*. The pole there hums while the great sphere is on the horizon. *Ume* keeps it. She says if you bring it three sounds, it will play them back together.'], choices: [{ text: '~neutral~ I’ll go and listen.', end: true }] },
         what: { say: ['~playful~ Each one something different. A bell. Singing. One of them remembers a drum, which is strange: nobody here has ever owned a drum. We whistle.'], choices: [{ text: '~curious~ How do I hear them?', goto: 'how' }] },
         from: { say: ['~curious~ From the sky. From the great one on the horizon, some say: seeds it dropped. From somewhere with bells and drums, I’d say, which is not here.'], choices: [{ text: '~curious~ How do I hear them?', goto: 'how' }] },
         again: {
@@ -95,11 +95,11 @@ export const PEOPLE = {
             { if: { flag: 'spheres.heard.bell' }, text: '~happy~ You heard the pearl’s bell. Good. It rings longer for the second listener.' },
             { if: { flag: 'spheres.heard.chant' }, text: '~playful~ You heard the singing in the one west of the arch. It made you stand straighter; I can see.' },
             { if: { flag: 'spheres.heard.drum' }, text: '~curious~ A drum, from the big one among the pillars. A drum. Where would a sphere have heard a drum?' },
-            { if: { not: { any: [{ flag: 'spheres.heard.bell' }, { flag: 'spheres.heard.chant' }, { flag: 'spheres.heard.drum' }] } }, text: '~neutral~ The pearl by the lake, the one west of the arch, the big one in the east. Stand beside each, and keep still.' },
+            { if: { not: { any: [{ flag: 'spheres.heard.bell' }, { flag: 'spheres.heard.chant' }, { flag: 'spheres.heard.drum' }] } }, text: '~neutral~ *The pearl by the lake*, *the one west of the arch*, *the big one in the east*. Stand beside each, and keep still.' },
           ],
           choices: [{ text: '~whisper~ I’m listening.', end: true }],
         },
-        three: { say: ['~surprised~ All three? Then go: down the pale path, through the arch, along the avenue. Walk slowly. Ume will be at the pole.'], choices: [{ text: '~neutral~ I will.', end: true }] },
+        three: { say: ['~surprised~ All three? Then go: down *the pale path*, through the arch, along the avenue. Walk slowly. *Ume will be at the pole*.'], choices: [{ text: '~neutral~ I will.', end: true }] },
         after: { say: ['~happy~ You carried them to the pole and it played them back. I heard it from here, very faint. I’ll be listening to that for years.'], choices: [{ text: '~happy~ So will I.', end: true }] },
       },
     },
@@ -122,14 +122,14 @@ export const PEOPLE = {
         },
         twice: { say: ['~happy~ The pyramid, the white houses, the cypresses: all of them twice. The sphere on the far shore is two spheres touching at the waterline. When I was little I thought that was where spheres came from.'], choices: [{ text: '~curious~ Except one thing, you said?', goto: 'except' }] },
         except: {
-          say: ['~happy~ A pebble. A pebble that is a mirror all the way through, lying under the water off this shore. It glints, there, see? Every morning.', '~playful~ I can’t reach it; the water is cold and so am I. Give the glint a splash, and the lake might give it back. Then carry it to the plaza and set it at the foot of the pole, so the pole can see the sky twice.'],
+          say: ['~happy~ A pebble. A pebble that is a mirror all the way through, lying under the water off this shore. It glints, there, see? Every morning.', '~playful~ I can’t reach it; the water is cold and so am I. *Give the glint a splash*, and the lake might give it back. Then carry it to the plaza and *set it at the foot of the pole*, so the pole can see the sky twice.'],
           choices: [{ text: '~neutral~ I’ll try.', do: { start: 'spheres.pebble' }, goto: 'try' }, { text: '~neutral~ Maybe later.', end: true }],
         },
         try: { say: ['~neutral~ A splash. Not a shove; you’d only make waves. The lake doesn’t like being pushed.'], choices: [{ text: '~neutral~ A splash.', end: true }] },
         waiting: {
           say: [
-            { if: { flag: 'spheres.pebble.taken' }, text: '~happy~ You have it! Don’t look into it too long; it shows you the sky behind you. Down the avenue, to the pole’s foot.' },
-            { if: { not: { flag: 'spheres.pebble.taken' } }, text: '~neutral~ The glint, off this shore. Give it a splash.' },
+            { if: { flag: 'spheres.pebble.taken' }, text: '~happy~ You have it! Don’t look into it too long; it shows you the sky behind you. *Down the avenue, to the pole’s foot*.' },
+            { if: { not: { flag: 'spheres.pebble.taken' } }, text: '~neutral~ The glint, off this shore. *Give it a splash*.' },
           ],
           choices: [{ text: '~neutral~ On my way.', end: true }],
         },
@@ -145,7 +145,7 @@ export const PEOPLE = {
     talk: {
       nodes: {
         hello: {
-          say: ['~happy~ Climb the white hill! From the middle terrace you can step right out onto the great canopy. Nobody believes me until they do it.', '~curious~ I’m Ivo. I climb things. Have you ever looked under a sphere?'],
+          say: ['~happy~ *Climb the white hill*! From the middle terrace you can step right out onto the great canopy. Nobody believes me until they do it.', '~curious~ I’m Ivo. I climb things. Have you ever looked under a sphere?'],
           choices: [
             { text: '~curious~ Under a sphere?', goto: 'under' },
             { text: '~curious~ Seen anything strange lately?', goto: 'strange' },
@@ -153,11 +153,11 @@ export const PEOPLE = {
           ],
         },
         under: {
-          say: ['~whisper~ Where they touch the ground. I crawled under the pearl by the lake once, flat on my back. There’s a mark there, pressed into it, like where a foot came down. {glyph}', '~playful~ Three dots over an arc. We call it the Footprint. Every sphere has one, underneath, where nobody looks. Except me.', '~playful~ Sometimes there’s a blue box near a Footprint, with a star on the lid. A left-behind. Ume says they’re presents. Ume says everything is a present.'],
+          say: ['~whisper~ Where they touch the ground. I crawled under the pearl by the lake once, flat on my back. There’s a mark there, pressed into it, like where a foot came down. {glyph}', '~playful~ Three dots over an arc. We call it the Footprint. Every sphere has one, underneath, where nobody looks. Except me.', '~playful~ Sometimes there’s *a blue box near a Footprint*, with a star on the lid. A left-behind. Ume says they’re presents. Ume says everything is a present.'],
           choices: [{ text: '~curious~ Whose footprint?', goto: 'whose' }],
         },
         whose: { say: ['~curious~ Something that walked through the sky putting spheres down, I suppose, the way you’d put down cups. Some say the great one on the horizon, and that one day it will come back and collect them.'], choices: [{ text: '~curious~ Seen anything strange lately?', goto: 'strange' }, { text: '~happy~ Thanks, Ivo.', end: true }] },
-        strange: { say: ['~playful~ Ask Ume, at the plaza. She says the pole hummed on its own three nights ago, with the great sphere dark. She doesn’t say things like that. I say things like that.'], choices: [{ text: '~happy~ Thanks, Ivo.', end: true }] },
+        strange: { say: ['~playful~ *Ask Ume, at the plaza*. She says the pole hummed on its own three nights ago, with the great sphere dark. She doesn’t say things like that. I say things like that.'], choices: [{ text: '~happy~ Thanks, Ivo.', end: true }] },
       },
     },
   },
@@ -175,7 +175,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~solemn~ The cypresses lead to the rings. Walk slowly. It is that kind of road.', '~neutral~ I’m Cael. I walk it, up and down, every day. It takes me most of the morning. It could take a running man a minute, and he would never find out how long it is.'],
+          say: ['~solemn~ The cypresses lead to the rings. *Walk slowly*. It is that kind of road.', '~neutral~ I’m Cael. I walk it, up and down, every day. It takes me most of the morning. It could take a running man a minute, and he would never find out how long it is.'],
           choices: [
             { text: '~curious~ How long is it?', goto: 'long' },
             { text: '~curious~ What happens if you walk it slowly?', goto: 'slowly' },
@@ -183,11 +183,11 @@ export const PEOPLE = {
         },
         long: { say: ['~playful~ Exactly as long as it takes you. That’s the answer. Nobody likes it.'], choices: [{ text: '~curious~ What happens if you walk it slowly?', goto: 'slowly' }] },
         slowly: {
-          say: ['~neutral~ The little white bells along the edges open as you pass. The cypresses lean in to see who’s coming. Run, or jump about, and the bells shut and you’re just someone on a path.', '~playful~ Try it. From the arch to the plaza. Don’t run. Don’t jump. It isn’t a test. Well. It is a small test.'],
+          say: ['~neutral~ The little white bells along the edges open as you pass. The cypresses lean in to see who’s coming. Run, or jump about, and the bells shut and you’re just someone on a path.', '~playful~ Try it. *From the arch to the plaza*. Don’t run. Don’t jump. It isn’t a test. Well. It is a small test.'],
           choices: [{ text: '~neutral~ I’ll walk it.', do: { start: 'spheres.avenue' }, goto: 'go' }, { text: '~neutral~ Maybe later.', end: true }],
         },
-        go: { say: ['~neutral~ Start at the arch. I’ll be somewhere along it, being slow.'], choices: [{ text: '~solemn~ (walk slowly)', end: true }] },
-        waiting: { say: ['~neutral~ From the arch to the plaza, slowly. If you ran, start again at the arch. Nobody minds. The road doesn’t count.'], choices: [{ text: '~solemn~ (walk slowly)', end: true }] },
+        go: { say: ['~neutral~ *Start at the arch*. I’ll be somewhere along it, being slow.'], choices: [{ text: '~solemn~ (walk slowly)', end: true }] },
+        waiting: { say: ['~neutral~ *From the arch to the plaza, slowly*. If you ran, *start again at the arch*. Nobody minds. The road doesn’t count.'], choices: [{ text: '~solemn~ (walk slowly)', end: true }] },
         walked: {
           say: ['~happy~ You walked it. All of it. I saw the bells open behind you, all the way down.', '~solemn~ Now you know how long the avenue is. Most people never find out.'],
           do: { advance: ['spheres.avenue', 'tell'] },
@@ -227,8 +227,8 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ It struck my ship.', goto: 'struck' }, { text: '~neutral~ I’ll bring the pole three sounds.', end: true }],
         },
         struck: { say: ['~scared~ Did it? Then it was looking, and it found you. I’m glad it didn’t find the pole. It is only a pole.'], choices: [{ text: '~neutral~ I’ll bring it three sounds.', end: true }] },
-        again: { say: ['~neutral~ The pearl by the lake, the one west of the arch, the big one in the east. Stop beside each. Then bring them here.'], choices: [{ text: '~neutral~ I will.', end: true }] },
-        ready: { say: ['~happy~ You stopped for all three. I can tell; you’re walking like a bell. Stand by the pole, there, close, and keep still. Let it hear what you carried.'], choices: [{ text: '~whisper~ (stand by the pole)', end: true }] },
+        again: { say: ['~neutral~ *The pearl by the lake*, *the one west of the arch*, *the big one in the east*. Stop beside each. Then bring them here.'], choices: [{ text: '~neutral~ I will.', end: true }] },
+        ready: { say: ['~happy~ You stopped for all three. I can tell; you’re walking like a bell. *Stand by the pole*, there, close, and *keep still*. Let it hear what you carried.'], choices: [{ text: '~whisper~ (stand by the pole)', end: true }] },
         chord: {
           say: ['~surprised~ There. All three at once. Did you hear it? The bell and the voices and that drum.', '~solemn~ The spheres remember the last thing they heard before they came down. So somewhere there is a glass bell, and people singing, and a whole crowd walking to a drum in sand. They passed over all of it, once, on their way here.'],
           do: { set: { 'clue.spheres.desert': true } },

@@ -115,7 +115,7 @@ Grouped by area. Checked items are done; the changelog says when.
   double controller hint; no hint at all there.
 - [x] Portraits in conversations: just the person against a coloured
   background, not the environment.
-- [ ] Special places, hints and objectives are coloured in dialogue more often.
+- [x] Special places, hints and objectives are coloured in dialogue more often.
 - [ ] Clearer in the menu when a quest is complete.
 - [x] Level screenshots (level select) should be smaller.
 - [x] Don't show the "updated" screen on every level.

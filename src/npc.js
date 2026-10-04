@@ -7,7 +7,7 @@ import { makeMaterial, sharedUniforms, MODE_OUTFIT } from './materials.js';
 import { registerTarget } from './targets.js';
 import { mulberry32 } from './noise.js';
 import { namedLook, costumeWorld, TRIM_IDS } from './costumes.js';
-import { stripTone } from './story/tone.js';
+import { formatText } from './story/dialogue.js';
 import { speakBalloon } from './story/voice.js';
 
 // People of the world: they walk a looping route, pause and look around,
@@ -491,8 +491,8 @@ export class NPC {
     const on = _w.z < 1 && Math.abs(_w.x) < 1.1 && Math.abs(_w.y) < 1.1;
     if (on) {
       const line = this.shout && this.time < this.shout.until ? this.shout.text : this.lines[this.lineIdx];
-      const text = stripTone(line);
-      if (this.balloon.textContent !== text) this.balloon.textContent = text;
+      // (the same words as the dialogue panel: *highlighted* places and hints, the {glyph})
+      if (this._balloonLine !== line) { this._balloonLine = line; this.balloon.innerHTML = formatText(line); }
       // the mumble: once each time a line comes up (quieter further off, panned to where they stand)
       // (no room yet, someone else has the floor: try again next frame, while the balloon is up)
       if (line !== this._voiced && speakBalloon(line, { person: this.voicePerson(), dist: camera.position.distanceTo(this.pos), pan: THREE.MathUtils.clamp(_w.x * 0.8, -0.9, 0.9) })) this._voiced = line;

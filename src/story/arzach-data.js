@@ -71,7 +71,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~solemn~ (She doesn’t look round. She is watching the lone tower, far off across the plain.)', '~solemn~ (After a long while she lifts one hand and points: at the tower, at the bird, at the tower again.)'],
+          say: ['~solemn~ (She doesn’t look round. She is watching *the lone tower*, far off across the plain.)', '~solemn~ (After a long while she lifts one hand and points: at the tower, at the bird, at the tower again.)'],
           do: { set: { 'arzach.watcher.met': true } },
           choices: [
             { text: '~curious~ Who lived in the tower?', goto: 'rider' },
@@ -91,7 +91,7 @@ export const PEOPLE = {
           choices: [{ text: '~sad~ And the bird is still waiting.', goto: 'track' }],
         },
         track: {
-          say: ['~solemn~ (She nods, once. She smooths the sand in front of her and draws in it with one finger: three dots, and a curve beneath them.) {glyph}', '~neutral~ (She points at the bird’s feet: three long toes, the curved heel.) Her track.', '~whisper~ (Under the track she draws a small square with a star on its lid, then points north, at the needle spire. Something waits up there, she means. Something left for whoever climbs.)'],
+          say: ['~solemn~ (She nods, once. She smooths the sand in front of her and draws in it with one finger: three dots, and a curve beneath them.) {glyph}', '~neutral~ (She points at the bird’s feet: three long toes, the curved heel.) Her track.', '~whisper~ (Under the track she draws a small square with *a star on its lid*, then points *north, at the needle spire*. Something waits up there, she means. Something left for whoever climbs.)'],
           do: { set: { 'arzach.glyph.drawn': true } },
           choices: [
             { text: '~surprised~ I’ve seen that mark before. On my ship.', goto: 'mark' },
@@ -102,14 +102,14 @@ export const PEOPLE = {
           say: ['~surprised~ (She looks at you sharply. She taps the drawing, then the stone she sits on, then points out at the great stone hand on the plain.)', '~solemn~ (Everywhere. She spreads her hands: as old as the stones. Nobody knows who walked here first.)'],
           choices: [{ text: '~neutral~ I’ll go to the tower.', goto: 'go' }],
         },
-        go: { say: ['~neutral~ (She points at the bird. Then she makes a little climbing gesture with two fingers, up and round, up and round.)'], choices: [{ text: '~neutral~ (nod)', end: true }] },
+        go: { say: ['~neutral~ (She points at the bird. Then she makes a little climbing gesture with two fingers, *up and round, up and round*.)'], choices: [{ text: '~neutral~ (nod)', end: true }] },
         again: {
           say: [{ if: { flag: 'arzach.window.seen' }, text: '~curious~ (Oïa looks at your empty hands, and back at the tower. Did you find it?)' },
-            { if: { not: { flag: 'arzach.window.seen' } }, text: '~neutral~ (Oïa points at the bird, then at the tower. Go on.)' }],
+            { if: { not: { flag: 'arzach.window.seen' } }, text: '~neutral~ (Oïa points at *the bird, then at the tower*. Go on.)' }],
           choices: [{ text: '~curious~ Who lived in the tower?', goto: 'rider', if: { not: { flag: 'arzach.glyph.drawn' } } }, { text: '~neutral~ (nod)', end: true }],
         },
         whistle: {
-          say: ['~solemn~ (She sees the whistle in your hand and goes very still.)', '~whisper~ (Then she reaches out and touches the feather tied to it, once, lightly. She nods to you.) Blow.'],
+          say: ['~solemn~ (She sees the whistle in your hand and goes very still.)', '~whisper~ (Then she reaches out and touches the feather tied to it, once, lightly. She nods to you.) *Blow*.'],
           choices: [{ text: '~neutral~ (nod)', end: true }],
         },
         after: {
@@ -161,7 +161,7 @@ export const LOCALS = [
         },
         ship: { say: ['~solemn~ (She looks at you a long moment.) Then it sang for you.', '~neutral~ (She puts her ear back to the stone.)'], choices: [{ text: '~curious~ The bird cried?', goto: 'cried' }, { text: '~neutral~ (leave her to listen)', end: true }] },
         cried: {
-          say: ['~sad~ All night. Shook herself. (She plucks at her own sleeve.) Feathers everywhere.', '~neutral~ (She points at the high flat tops of two spires, then out at the stone hand.) Up there. And there. One the hand caught.'],
+          say: ['~sad~ All night. Shook herself. (She plucks at her own sleeve.) Feathers everywhere.', '~neutral~ (She points at *the high flat tops of two spires*, then out at *the stone hand*.) Up there. And there. One the hand caught.'],
           do: { start: 'arzach.feathers' },
           choices: [{ text: '~happy~ I’ll find them for her.', end: true }],
         },
@@ -189,14 +189,14 @@ export const LOCALS = [
         },
         whose: { say: ['~whisper~ (He points at the long stone body lying in the sand beyond it, the face turned to the sky. Then he shrugs.) Sleeping.'], choices: [{ text: '~curious~ You said it rang.', goto: 'rang' }] },
         rang: {
-          say: ['~neutral~ (He raps his knuckles on a stone: tok, tok.) Knuckles. Like bells.', '~neutral~ (He holds up his hand and touches his fingers one at a time: the smallest first, then the first finger, then the ring finger, and the tallest last.)', '~playful~ Small to tall. (He mimes throwing something at the hand. Splash.)'],
+          say: ['~neutral~ (He raps his knuckles on a stone: tok, tok.) Knuckles. Like bells.', '~neutral~ (He holds up his hand and touches his fingers one at a time: the smallest first, then the first finger, then the ring finger, and the tallest last.)', '~playful~ *Small to tall*. (He mimes throwing something at the hand. Splash.)'],
           do: { start: 'arzach.hand' },
           choices: [{ text: '~curious~ With the fluid?', goto: 'fluid' }, { text: '~curious~ What happens when it rings?', goto: 'gives' }],
         },
-        fluid: { say: ['~playful~ (He points at your tank, then at the hand, and grins with three teeth.)'], choices: [{ text: '~curious~ What happens when it rings?', goto: 'gives' }, { text: '~neutral~ I’ll try.', end: true }] },
+        fluid: { say: ['~playful~ (He points at *your tank, then at the hand*, and grins with three teeth.)'], choices: [{ text: '~curious~ What happens when it rings?', goto: 'gives' }, { text: '~neutral~ I’ll try.', end: true }] },
         gives: { say: ['~solemn~ (He cups his hand. Then he opens it slowly, palm up.)', '~solemn~ Gives.'], choices: [{ text: '~neutral~ I’ll try.', end: true }] },
         again: {
-          say: ['~tired~ (Hollin holds up his hand again and taps the fingers for you, slowly: smallest, first, ring, tallest.)', '~neutral~ Small to tall.'],
+          say: ['~tired~ (Hollin holds up his hand again and taps the fingers for you, slowly: *smallest, first, ring, tallest*.)', '~neutral~ Small to tall.'],
           choices: [{ text: '~neutral~ (nod)', end: true }],
         },
         after: { say: ['~happy~ (He holds up his hand and opens it, slowly, and nods at you.)', '~sad~ Rang. (He looks very pleased, and a little sad.) Long time.'], choices: [{ text: '~neutral~ (nod)', end: true }] },
@@ -214,12 +214,12 @@ export const THINGS = {
       nodes: {
         look: {
           say: ['~whisper~ You lean in at the window. Inside is one round room, swept clean and very quiet. A narrow bed. A cup turned upside down.',
-            '~neutral~ On the curved wall, painted in pale ochre: stones floating over a sea of cloud, dotted lines between them, a monastery on a cliff with a bell. Beneath it a small figure walks away along an aqueduct, toward a tower on a peach-coloured plain.',
-            '~sad~ On a nail by the window hangs a bone whistle with a white feather tied to it. The cord has been knotted and unknotted many times, as if someone kept deciding, and undeciding, to leave it.'],
+            '~neutral~ On the curved wall, painted in pale ochre: *stones floating over a sea of cloud*, dotted lines between them, a monastery on a cliff with a bell. Beneath it a small figure walks away along an aqueduct, toward a tower on a peach-coloured plain.',
+            '~sad~ On a nail by the window hangs *a bone whistle with a white feather* tied to it. The cord has been knotted and unknotted many times, as if someone kept deciding, and undeciding, to leave it.'],
           do: [{ set: { 'arzach.window.seen': true, 'clue.arzach.arzach2': true } }, { give: 'whistle' }],
           choices: [{ text: '~solemn~ (take the whistle)', end: true }],
         },
-        again: { say: ['~solemn~ The room is still. The map of the sky stones glows on the wall in the low sun: the floating stones, the monastery, the bell, the figure walking away.'], choices: [{ text: '~neutral~ (step back)', end: true }] },
+        again: { say: ['~solemn~ The room is still. *The map of the sky stones* glows on the wall in the low sun: the floating stones, the monastery, the bell, the figure walking away.'], choices: [{ text: '~neutral~ (step back)', end: true }] },
       },
     },
   },
@@ -232,7 +232,7 @@ export const THINGS = {
     talk: {
       entry: [{ if: { flag: 'arzach.hand.rung' }, node: 'open' }, { node: 'look' }],
       nodes: {
-        look: { say: ['~solemn~ The hand is taller than a house, the palm turned to the start of the plain. In the middle of the palm, worn shallow, the mark: {glyph}', '~neutral~ Its knuckles are pale and smooth, as if they had been struck many times, long ago.'], choices: [{ text: '~neutral~ (step back)', end: true }] },
+        look: { say: ['~solemn~ The hand is taller than a house, the palm turned to the start of the plain. In the middle of the palm, worn shallow, the mark: {glyph}', '~neutral~ Its knuckles are pale and smooth, as if they had been *struck many times*, long ago.'], choices: [{ text: '~neutral~ (step back)', end: true }] },
         open: { say: ['~scared~ The mark in the palm still glows faintly, like a coal. The hand has not moved. You are almost sure it has not moved.'], choices: [{ text: '~neutral~ (step back)', end: true }] },
       },
     },

@@ -9,6 +9,7 @@ export const CHANGELOG = [
     'The hoverbike and the skiff no longer swerve when the stick drifts a little as you drive forward: small pushes turn gently, a full turn needs the stick well over.',
     'The “Updated to …” and “Update ready” notes show once, not again on every world you visit. The worlds list has smaller pictures.',
     'Ask Bako, the ney player by the desert fire, to play, and he does: a slow, eerie tune over a low drone, while the rest of the camp falls quiet.',
+    'Places to go, the next thing to do and the hints that solve a puzzle now stand out in colour in conversations, in every world, far more often than before. Speech balloons show these highlights too, instead of stray stars.',
     'A health bar, and falls hurt: a long drop takes a share of it, a very long one knocks you out and you come round where you last stood. It refills after a few quiet seconds, and only shows while you are hurt.',
     'Controller buttons now work by position on every pad. On a Retroid: B jumps, A talks and gets on, Y calls your mount or a taxi, X pings, L2 aims, R2 shoots, R1 pushes, and you click the left stick to run.',
     'Riding on a controller: R2 is the throttle and L2 brakes, and the stick steers. On the bird and the taxi the stick also tips you up and down.',

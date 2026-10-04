@@ -108,15 +108,15 @@ export const PEOPLE = {
           choices: [{ text: '~curious~ And the wheel turns today?', goto: 'today' }],
         },
         today: {
-          say: ['~neutral~ It should. But the wheel won’t turn in the dark. Every Tooth Day, Hask goes down into the canyon and lights the Wick, the lamp at the bottom of the oculus. The wheel feels it, and turns.', '~scared~ This year Hask hasn’t gone down. He won’t tell me why. Ask him; he might tell a stranger.'],
+          say: ['~neutral~ It should. But the wheel won’t turn in the dark. Every Tooth Day, Hask goes down into the canyon and lights the Wick, the lamp at the bottom of the oculus. The wheel feels it, and turns.', '~scared~ This year Hask hasn’t gone down. He won’t tell me why. *Ask him*; he might tell a stranger.'],
           do: { set: { 'buried.wen.heard': true } },
           choices: [{ text: '~curious~ Where is Hask?', goto: 'where' }, { text: '~neutral~ I’ll talk to him.', end: true }],
         },
-        where: { say: ['~sad~ On the bench by his dome, just west of mine, staring at nothing. Since the night the sky rang he stares at nothing. It isn’t like him; he used to stare at people.'], choices: [{ text: '~neutral~ I’ll go.', end: true }] },
+        where: { say: ['~sad~ On *the bench by his dome*, just west of mine, staring at nothing. Since the night the sky rang he stares at nothing. It isn’t like him; he used to stare at people.'], choices: [{ text: '~neutral~ I’ll go.', end: true }] },
         again: {
           say: [
-            { if: { flag: 'buried.hask.asked' }, text: '~neutral~ Hask told you? The ramp is south of the domes, where the pipes go under. Go carefully. The day is getting on.' },
-            { if: { not: { flag: 'buried.hask.asked' } }, text: '~scared~ Has Hask said anything? His bench is just west of here. If the wheel doesn’t turn today I don’t know what I’ll count.' },
+            { if: { flag: 'buried.hask.asked' }, text: '~neutral~ Hask told you? *The ramp is south of the domes*, where the pipes go under. Go carefully. The day is getting on.' },
+            { if: { not: { flag: 'buried.hask.asked' } }, text: '~scared~ Has Hask said anything? *His bench is just west of here*. If the wheel doesn’t turn today I don’t know what I’ll count.' },
           ],
           choices: [
             { text: '~curious~ What’s the mark on your door?', goto: 'mark', once: true },
@@ -124,13 +124,13 @@ export const PEOPLE = {
             { text: '~happy~ See you, Wen.', end: true },
           ],
         },
-        mark: { say: ['~solemn~ {glyph} The Maker’s Thumb. It’s on every plate and pipe that comes up out of the sand. We paint it on our doors so the machine knows which domes are ours.', '~neutral~ It’s on the thumb-boxes too: the blue chests with a star on top that turn up in the sand every few lifetimes. One’s up on the chimney ring now. They never open for us. We leave them be.'], choices: [{ text: '~curious~ Does it work?', goto: 'works' }] },
+        mark: { say: ['~solemn~ {glyph} The Maker’s Thumb. It’s on every plate and pipe that comes up out of the sand. We paint it on our doors so the machine knows which domes are ours.', '~neutral~ It’s on the thumb-boxes too: *the blue chests with a star on top* that turn up in the sand every few lifetimes. One’s up on *the chimney ring* now. They never open for us. We leave them be.'], choices: [{ text: '~curious~ Does it work?', goto: 'works' }] },
         works: { say: ['~playful~ The machine has never once come to the wrong door. So yes.'], choices: [{ text: '~happy~ See you, Wen.', end: true }] },
         lit: {
-          say: ['~surprised~ I felt it in my feet! The Wick is lit. Go, stand in front of the wheel. It turns better when someone is watching. Everyone says so; nobody knows why.'],
+          say: ['~surprised~ I felt it in my feet! The Wick is lit. Go, *stand in front of the wheel*. It turns better when someone is watching. Everyone says so; nobody knows why.'],
           choices: [{ text: '~neutral~ I’m going.', end: true }],
         },
-        turned: { say: ['~surprised~ Did you see it? The whole city swung! And it dropped something for you, I’d bet. It always drops a sliver by its feet. Go and look.'], choices: [{ text: '~neutral~ I’ll look.', end: true }] },
+        turned: { say: ['~surprised~ Did you see it? The whole city swung! And it dropped something for you, I’d bet. It always drops *a sliver by its feet*. Go and look.'], choices: [{ text: '~neutral~ I’ll look.', end: true }] },
         count: {
           say: ['~happy~ You picked it up. It came off the wheel when it turned, didn’t it? Warm. They’re always warm.', '~playful~ Look: my string. Forty-one. Forty-two, now. Pim is ten, and furious about it, because now he has to carry water.', '~solemn~ You were here the year it turned, so that one is yours. Don’t put it on a string. Just keep it.'],
           do: [{ advance: [Q, 'count'] }, { keepsake: KEEPSAKE }],
@@ -169,13 +169,13 @@ export const PEOPLE = {
         },
         struck: { say: ['~sad~ Struck it? Then it found what it was looking for, and it wasn’t us. That’s a comfort to me and none to you. I’m sorry, child.'], choices: [{ text: '~neutral~ Let me light the Wick.', goto: 'light' }] },
         light: {
-          say: ['~tired~ Will you? It isn’t hard. My knees made it hard. Go down the sand ramp, south of the domes, into the rust canyon. Follow it through the two oval doors to the oculus.', '~neutral~ The Wick is in the middle. The oil valve beside it sticks; I used to kick it. You have that thing on your back that shoves. Shove the valve, the oil comes up, then give the wick a spark.'],
+          say: ['~tired~ Will you? It isn’t hard. My knees made it hard. Go down *the sand ramp, south of the domes*, into the rust canyon. Follow it *through the two oval doors to the oculus*.', '~neutral~ The Wick is in the middle. The oil valve beside it sticks; I used to kick it. You have that thing on your back that shoves. *Shove the valve*, the oil comes up, then *give the wick a spark*.'],
           do: { set: { 'buried.hask.asked': true } },
           choices: [{ text: '~curious~ A spark?', goto: 'spark' }, { text: '~neutral~ I’ll go.', end: true }],
         },
-        spark: { say: ['~neutral~ Anything bright. Your fluid’s bright enough, I’d think. Splash it. Then come up and watch, don’t stay down there. The wheel likes to be watched.'], choices: [{ text: '~neutral~ I’ll go.', end: true }] },
+        spark: { say: ['~neutral~ Anything bright. Your fluid’s bright enough, I’d think. *Splash it*. Then come up and watch, don’t stay down there. The wheel likes to be watched.'], choices: [{ text: '~neutral~ I’ll go.', end: true }] },
         again: {
-          say: ['~tired~ Down the ramp, through the two oval doors. Shove the valve, splash the wick. Then come up and watch.'],
+          say: ['~tired~ *Down the ramp, through the two oval doors*. *Shove the valve, splash the wick*. Then come up and watch.'],
           choices: [
             { text: '~curious~ What is the mark on everything here?', goto: 'thumb', once: true },
             { text: '~neutral~ I’m going.', end: true },
@@ -186,9 +186,9 @@ export const PEOPLE = {
           do: { set: { 'clue.buried.mark': true } },
           choices: [{ text: '~neutral~ No. Something hit it.', goto: 'hit' }, { text: '~neutral~ I don’t know.', goto: 'hit' }],
         },
-        hit: { say: ['~tired~ Then someone signs their work, and someone else signs their damage, with the same hand. Hm. Go light the Wick. I’ve had enough thinking for a Tooth Day.'], choices: [{ text: '~neutral~ I’m going.', end: true }] },
+        hit: { say: ['~tired~ Then someone signs their work, and someone else signs their damage, with the same hand. Hm. *Go light the Wick*. I’ve had enough thinking for a Tooth Day.'], choices: [{ text: '~neutral~ I’m going.', end: true }] },
         felt: {
-          say: [{ if: { flag: 'buried.wheel.turned' }, text: '~happy~ It turned. I felt the bench move. Fifty-three. And nothing came back for it.' }, { if: { not: { flag: 'buried.wheel.turned' } }, text: '~happy~ I felt it from here. The Wick is lit. Go up and stand in front of the wheel, child. I’ve seen it fifty-two times; you haven’t.' }],
+          say: [{ if: { flag: 'buried.wheel.turned' }, text: '~happy~ It turned. I felt the bench move. Fifty-three. And nothing came back for it.' }, { if: { not: { flag: 'buried.wheel.turned' } }, text: '~happy~ I felt it from here. The Wick is lit. Go up and *stand in front of the wheel*, child. I’ve seen it fifty-two times; you haven’t.' }],
           choices: [{ text: '~curious~ Did the light come back?', goto: 'back' }, { text: '~neutral~ Goodbye, Hask.', end: true }],
         },
         back: { say: ['~playful~ No. Just sky. Next year I’ll go down myself. Probably.'], choices: [{ text: '~neutral~ Goodbye, Hask.', end: true }] },
@@ -215,15 +215,15 @@ export const PEOPLE = {
         },
         cough: { say: ['~playful~ Soot on the beds. Soot in the soup. Soot in Wen’s hair, and then I hear about it until the next Tooth Day.'], choices: [{ text: '~curious~ Where’s your key?', goto: 'up' }] },
         up: {
-          say: ['~neutral~ On the crane hook of the floating derrick, east of here. You see it, hanging in the air like it forgot to fall.', '~scared~ The night the sky rang I climbed it to watch the light go over. I hung my key on the hook so I wouldn’t drop it. Then I saw the light, and forgot I had hands. Climbed down shaking. Left the key.'],
+          say: ['~neutral~ On *the crane hook of the floating derrick*, east of here. You see it, hanging in the air like it forgot to fall.', '~scared~ The night the sky rang I climbed it to watch the light go over. I hung my key on the hook so I wouldn’t drop it. Then I saw the light, and forgot I had hands. Climbed down shaking. Left the key.'],
           choices: [
             { text: '~neutral~ I’ll fetch it.', do: { start: 'buried.key' }, goto: 'thanks' },
             { text: '~curious~ What did the light look like?', goto: 'light' },
           ],
         },
         light: { say: ['~scared~ Like a note, if you can see a note. Low and humming, the wheel’s note, and it turned over the canyon as if it heard something and went south. I’d rather not see it twice.'], choices: [{ text: '~neutral~ I’ll fetch your key.', do: { start: 'buried.key' }, goto: 'thanks' }] },
-        thanks: { say: ['~playful~ Would you? Thirty metres up and floating. You have a jet on your back. I have a fear of heights I didn’t know about until that night.'], choices: [{ text: '~neutral~ Back soon.', end: true }] },
-        waiting: { say: ['~playful~ The floating derrick, east. The key’s on the crane hook, the end of the long arm. Don’t look down. That’s my advice, and I didn’t take it.'], choices: [{ text: '~neutral~ On my way.', end: true }] },
+        thanks: { say: ['~playful~ Would you? Thirty metres up and floating. *You have a jet on your back*. I have a fear of heights I didn’t know about until that night.'], choices: [{ text: '~neutral~ Back soon.', end: true }] },
+        waiting: { say: ['~playful~ *The floating derrick, east*. The key’s on *the crane hook*, the end of the long arm. Don’t look down. That’s my advice, and I didn’t take it.'], choices: [{ text: '~neutral~ On my way.', end: true }] },
         back: {
           say: ['~happy~ My key! Sand in the teeth and all. Stand back.', '~neutral~ (He climbs his dome, turns the key in the chimney, and slides down another, and another. Somewhere, a chimney whistles.)'],
           do: [{ take: 'key' }, { advance: 'buried.key' }, { set: { 'buried.chimneys.open': true } }],
@@ -252,7 +252,7 @@ export const PEOPLE = {
         },
         nine: { say: ['~whisper~ Nine is fine. But ten-year-olds are allowed down the ramp. The canyon walls are pipes, not stone; you can put your ear on them and hear the machine thinking.'], choices: [{ text: '~curious~ What’s up in the sky?', goto: 'city' }, { text: '~happy~ Bye, Pim.', end: true }] },
         city: { say: ['~happy~ The Other Half. When the wheel turns, it rocks. I watch from my roof. Last year a whole tower swung like a bell, and nobody heard anything, because it’s too high to hear.'], choices: [{ text: '~curious~ Seen anything strange?', goto: 'strange' }, { text: '~happy~ Bye, Pim.', end: true }] },
-        strange: { say: ['~whisper~ Hask. Hask is strange now. He used to tell stories and now he just watches the sky. And Dun’s key is stuck up on the floating derrick, everyone knows, but he says it isn’t.'], choices: [{ text: '~happy~ Bye, Pim.', end: true }] },
+        strange: { say: ['~whisper~ Hask. Hask is strange now. He used to tell stories and now he just watches the sky. And Dun’s key is stuck up on *the floating derrick*, everyone knows, but he says it isn’t.'], choices: [{ text: '~happy~ Bye, Pim.', end: true }] },
         ten: { say: ['~playful~ I’m TEN. I’m ten teeth! Wen says you’re only one. So I’m older than you, and you have to do what I say.'], choices: [{ text: '~playful~ What do you say?', goto: 'say' }] },
         say: { say: ['~playful~ Come back next year so I can be eleven in front of you.'], choices: [{ text: '~happy~ Deal.', end: true }] },
       },
@@ -278,21 +278,21 @@ export const PEOPLE = {
             { text: '~curious~ Where does the canyon lead?', goto: 'lead' },
           ],
         },
-        lead: { say: ['~neutral~ Through two oval doors to a room with no ceiling: the oculus. The Wick stands in it. If you’re going there, you’re doing Hask’s walk.'], choices: [{ text: '~curious~ What do the walls say?', goto: 'say' }] },
+        lead: { say: ['~neutral~ *Through two oval doors* to a room with no ceiling: the oculus. The Wick stands in it. If you’re going there, you’re doing Hask’s walk.'], choices: [{ text: '~curious~ What do the walls say?', goto: 'say' }] },
         say: {
-          say: ['~tired~ That they’re full. But I can’t read the gauges any more. The needles stick, and I can’t reach to knock them.', '~neutral~ There are three, on posts along the canyon floor: one on the ramp, one past this ledge, one between the oval doors.'],
+          say: ['~tired~ That they’re full. But I can’t read the gauges any more. The needles stick, and I can’t reach to knock them.', '~neutral~ There are three, *on posts along the canyon floor*: one on the ramp, one past this ledge, one between the oval doors.'],
           choices: [
             { text: '~happy~ I’ll read them for you.', do: { start: 'buried.gauges' }, goto: 'how' },
             { text: '~neutral~ Maybe later.', end: true },
           ],
         },
-        how: { say: ['~neutral~ Give each dial a splash from your hand there, a sharp one. If there’s anything behind the needle, it’ll jump.'], choices: [{ text: '~neutral~ Back soon.', end: true }] },
+        how: { say: ['~neutral~ *Give each dial a splash* from your hand there, a sharp one. If there’s anything behind the needle, it’ll jump.'], choices: [{ text: '~neutral~ Back soon.', end: true }] },
         waiting: {
           say: [
             { if: { flag: 'buried.gauge.0' }, text: '~neutral~ The one on the ramp reads ninety. Good.' },
             { if: { flag: 'buried.gauge.1' }, text: '~happy~ The one past the ledge, ninety-one. Better than good.' },
             { if: { flag: 'buried.gauge.2' }, text: '~neutral~ The one between the doors, ninety.' },
-            { if: { not: { flag: 'buried.gauges.read' } }, text: '~neutral~ Three gauges, on posts by the walls: on the ramp, past this ledge, between the oval doors. Splash each dial.' },
+            { if: { not: { flag: 'buried.gauges.read' } }, text: '~neutral~ Three gauges, on posts by the walls: on the ramp, past this ledge, between the oval doors. *Splash each dial*.' },
           ],
           choices: [{ text: '~neutral~ On it.', end: true }],
         },
@@ -319,7 +319,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~surprised~ Oh! Visitors don’t come this far. I’m Tull. I oil the oval doors. Nobody asked me to, but they’d squeal.', '~whisper~ Go in, go in. Look up: no lid. And up on the balcony, the window. It’s warm. Something in there is still alive, I’m sure of it. I talk to it some nights.'],
+          say: ['~surprised~ Oh! Visitors don’t come this far. I’m Tull. I oil the oval doors. Nobody asked me to, but they’d squeal.', '~whisper~ Go in, go in. Look up: no lid. And *up on the balcony, the window*. It’s warm. Something in there is still alive, I’m sure of it. I talk to it some nights.'],
           choices: [
             { text: '~curious~ What’s behind the window?', goto: 'behind' },
             { text: '~curious~ Has anyone else come down here?', goto: 'helmet' },
@@ -327,16 +327,16 @@ export const PEOPLE = {
           ],
         },
         behind: {
-          say: ['~curious~ The rest of the machine, all the way down? Or a room where someone’s still working. Put your hand on it. It’s as warm as a hand.'],
+          say: ['~curious~ The rest of the machine, all the way down? Or a room where someone’s still working. *Put your hand on it*. It’s as warm as a hand.'],
           choices: [{ text: '~neutral~ I’ll climb up and see.', do: { start: 'buried.window' }, end: true }, { text: '~curious~ Has anyone else come down here?', goto: 'helmet' }],
         },
         helmet: {
-          say: ['~solemn~ Once, when I was young. A man in a tall helmet came down the ramp with a box that ticked. He called himself a Major. He said he had built a whole world of his own and forgotten why, and he wanted to see a machine that had never once forgotten what it was for.', '~sad~ He scratched numbers on the drum wall by the doorway, stood in front of the Wick for a long time, laughed once, and went back up very quiet. The numbers are still there.'],
+          say: ['~solemn~ Once, when I was young. A man in a tall helmet came down the ramp with a box that ticked. He called himself a Major. He said he had built a whole world of his own and forgotten why, and he wanted to see a machine that had never once forgotten what it was for.', '~sad~ He scratched numbers on *the drum wall by the doorway*, stood in front of the Wick for a long time, laughed once, and went back up very quiet. The numbers are still there.'],
           do: { set: { 'clue.buried.garage': true } },
           choices: [{ text: '~neutral~ I’ll look at them.', end: true }, { text: '~curious~ What’s behind the window?', goto: 'behind' }],
         },
         again: {
-          say: [{ if: { flag: 'buried.oculus.lit' }, text: '~surprised~ The Wick! I saw it from the doors, the whole drum gone amber. The window’s even warmer now.' }, { if: { not: { flag: 'buried.oculus.lit' } }, text: '~playful~ Squeak? No squeak. Good. The window’s up on the balcony, if you’re climbing.' }],
+          say: [{ if: { flag: 'buried.oculus.lit' }, text: '~surprised~ The Wick! I saw it from the doors, the whole drum gone amber. The window’s even warmer now.' }, { if: { not: { flag: 'buried.oculus.lit' } }, text: '~playful~ Squeak? No squeak. Good. *The window’s up on the balcony*, if you’re climbing.' }],
           choices: [
             { text: '~curious~ Tell me about the window.', if: { quest: 'buried.window', started: false }, goto: 'behind' },
             { text: '~curious~ The man in the helmet?', if: { not: { flag: 'clue.buried.garage' } }, goto: 'helmet' },
@@ -357,11 +357,11 @@ export const THINGS = {
       entry: [{ if: { flag: 'buried.oculus.lit' }, node: 'lit' }, { if: { flag: 'buried.valve.open' }, node: 'oil' }, { node: 'dry' }],
       nodes: {
         dry: {
-          say: ['~neutral~ A shallow iron dish on a pedestal, black with old oil. A wick as thick as your arm lies coiled in it, dry.', '~neutral~ Beside it a valve stands on a stem, its handwheel rusted fast. A good shove might turn it. (*Push*: C, middle click, or RB / R1.)'],
+          say: ['~neutral~ A shallow iron dish on a pedestal, black with old oil. A wick as thick as your arm lies coiled in it, dry.', '~neutral~ Beside it a valve stands on a stem, its handwheel rusted fast. *A good shove might turn it*. (*Push*: C, middle click, or RB / R1.)'],
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
-        oil: { say: ['~neutral~ Oil has risen in the dish, dark and slow, smelling of warm iron. The wick drinks it. It only wants a spark. (*Shoot*: click, G, or RT.)'], choices: [{ text: '~neutral~ (step back)', end: true }] },
-        lit: { say: ['~solemn~ The Wick burns amber, steady and quiet, and the light goes straight up out of the oculus into the sky. Stand in it, and your tank hums.'], choices: [{ text: '~neutral~ (step back)', end: true }] },
+        oil: { say: ['~neutral~ Oil has risen in the dish, dark and slow, smelling of warm iron. The wick drinks it. *It only wants a spark*. (*Shoot*: click, G, or RT.)'], choices: [{ text: '~neutral~ (step back)', end: true }] },
+        lit: { say: ['~solemn~ The Wick burns amber, steady and quiet, and the light goes straight up out of the oculus into the sky. *Stand in it*, and your tank hums.'], choices: [{ text: '~neutral~ (step back)', end: true }] },
       },
     },
   },
