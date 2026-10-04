@@ -13,7 +13,9 @@ export class Controller {
     this.blocked = new Set(); this.lastContext = null;
   }
   update(dt, enabled = true) {
-    const pads = enabled ? Array.from(this.pads()).filter(p => p?.connected && p.mapping === 'standard') : [];
+    // standard-mapped pads first; a pad without the mapping (an unrecognised handheld) is read as standard rather than ignored
+    const all = enabled ? Array.from(this.pads()).filter(p => p?.connected && p.buttons?.length >= 12 && p.axes?.length >= 2) : [];
+    const pads = all.some(p => p.mapping === 'standard') ? all.filter(p => p.mapping === 'standard') : all;
     const used = p => p.buttons.some(b => b.pressed) || p.axes.some(a => Math.abs(a) > 0.22);
     const pad = pads.find(p => p.index === this.index && used(p)) ?? pads.find(used) ?? pads.find(p => p.index === this.index) ?? pads[0];
     this.held = {};

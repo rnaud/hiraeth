@@ -3,7 +3,8 @@ name: Android release
 # Every push to main builds a signed APK (the web game wrapped with Capacitor,
 # fully offline) and publishes it to the GitHub release for the newest version
 # in src/changelog.js, e.g. v0.34. Pushes within one version replace that
-# release's APK; a new changelog entry makes a new release.
+# release's APK; a new changelog entry makes a new release. The app checks the
+# latest release's latest.json on launch and offers to install newer builds.
 
 on:
   push:
@@ -74,11 +75,14 @@ jobs:
         run: |
           TAG="v$VERSION"
           APK="$RUNNER_TEMP/moebius-v$VERSION.apk"
+          # what the in-app updater reads (android/.../Updater.java): this build's versionCode and its APK
+          printf '{"code": %s, "name": "%s", "apk": "https://github.com/%s/releases/download/%s/moebius-v%s.apk"}\n' \
+            "${{ github.run_number }}" "$VERSION" "$GITHUB_REPOSITORY" "$TAG" "$VERSION" > "$RUNNER_TEMP/latest.json"
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "$APK" --clobber
+            gh release upload "$TAG" "$APK" "$RUNNER_TEMP/latest.json" --clobber
             gh release edit "$TAG" --notes-file "$RUNNER_TEMP/notes.md" --latest
           else
-            gh release create "$TAG" "$APK" --target "$GITHUB_SHA" --title "Moebius v$VERSION" --notes-file "$RUNNER_TEMP/notes.md" --latest
+            gh release create "$TAG" "$APK" "$RUNNER_TEMP/latest.json" --target "$GITHUB_SHA" --title "Moebius v$VERSION" --notes-file "$RUNNER_TEMP/notes.md" --latest
           fi
 
       - uses: actions/upload-artifact@v5

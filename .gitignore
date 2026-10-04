@@ -1,5 +1,7 @@
 node_modules
 dist
+output/steam-deck/
+__pycache__/
 .local-tools/
 output/character-local/
 output/character-tripo/

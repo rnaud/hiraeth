@@ -307,6 +307,8 @@
       #controller-hint { display: none; position: fixed; z-index: 1000; bottom: calc(8px + var(--safe-bottom)); left: 50%; transform: translateX(-50%); width: max-content; max-width: 90%; padding: 7px 12px; background: #f7eed9ed; border: 1px solid #473d36; font: 12px monospace; pointer-events: none; }
       body.controller #controller-hint { display: block; }
       body.controller #touch { display: none; }
+      /* with a controller the hint bar sits along the bottom; the status box rises above it */
+      body.controller #hud { bottom: calc(46px + var(--safe-bottom)); }
       body.controller :focus { outline: 3px solid #277e86; outline-offset: 4px; }
       /* the traveller's tool: crosshair + mode while aiming */
       #tool { display: none; position: fixed; left: 50%; top: 50%; z-index: 30; pointer-events: none; transform: translate(-50%, -50%); }
