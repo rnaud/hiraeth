@@ -264,7 +264,7 @@ export class NPC {
     const dist = toPlayer.length();
     const mover = player.ride ?? player;
     const playerSpeed = Math.hypot(mover.vel.x, mover.vel.z);
-    const greetR = player.riding ? 18 : 9;
+    const greetR = (player.riding ? 18 : 9) * Math.max(1, this.object.scale.x * 0.6);   // (giants notice you from further off)
     let speed = 0, face = null, fol = null;
     const startled = this.time - this.startleAt < 2.4 && this.faceTo !== undefined;
 
@@ -603,7 +603,7 @@ export class NPC {
 
 /**
  * Scatter a level's people: each walks a small loop around a centre.
- * @param spots [{ at: [x, z] | Vector3, palette, lines, shy, radius }]
+ * @param spots [{ at: [x, z] | Vector3, palette, lines, shy, radius, scale }]
  */
 export function spawnNPCs(scene, physics, spots, { fromY = 1e4, lib = null, humans = null } = {}) {
   return spots.map((s, k) => {
@@ -633,7 +633,7 @@ export function spawnNPCs(scene, physics, spots, { fromY = 1e4, lib = null, huma
       route.push(p);
     }
     const kind = k % 2 ? 'f' : 'm';
-    const npc = new NPC(scene, physics, { route, palette: s.palette, lines: s.lines, shy: s.shy, speed: s.speed, lib,
+    const npc = new NPC(scene, physics, { route, palette: s.palette, lines: s.lines, shy: s.shy, speed: s.speed, scale: s.scale ?? 1, lib,
       human: humans ? humans[kind === 'm' ? 0 : 1] : null, kind, def: s.talk ? s : null, head: s.head ?? null, cape: s.cape ?? null, look: s.look ?? null });
     return npc;
   });

@@ -9,6 +9,7 @@ export const CHANGELOG = [
     'The hoverbike and the skiff no longer swerve when the stick drifts a little as you drive forward: small pushes turn gently, a full turn needs the stick well over.',
     'The “Updated to …” and “Update ready” notes show once, not again on every world you visit. The worlds list has smaller pictures.',
     'Ask Bako, the ney player by the desert fire, to play, and he does: a slow, eerie tune over a low drone, while the rest of the camp falls quiet.',
+    'For testing: a hidden Lab world (open it with ?level=lab) shows every surface the game draws side by side, and four giant villagers to study faces by.',
     'In the City-Shaft the jets’ box no longer waits beside the ship: it sits on top of a lone makers’ pillar on the rim, a climb away.',
     'The great light that turns above the City-Shaft’s palace is now called the Lodestar.',
     'The door to the crashed ship on Edena is now a hatch in its hull, under an arch of flowers, instead of a doorway standing a few metres away.',

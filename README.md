@@ -1057,6 +1057,18 @@ stays ahead on a bike or a bird instead of trailing. It faces the goal itself
 `Trail` that dissolves once it is home. It only gives up and flies back when
 it is more than 27 m from you.
 
+## The Lab (v0.39)
+
+`?level=lab` (`src/levels/lab.js`) is a developer's world in no menu (`dev: true`
+in `src/levels/index.js`, filtered from the worlds list and off the route). A
+row of pedestals shows every surface `makeMaterial` can draw (`LAB_MATERIALS`:
+flat, smooth, rock strata, cracked, facade, tiles, leaves, brush, grid, glyphs,
+glow, a placeholder metal, and the box dissolve breathing in and out) on a
+sphere, a cube and a turning knot, with a water pool and a cloud at the ends.
+Behind the spawn, four villagers stand 4× life size on plinths (`LAB_FACES`,
+`content.js`; `spawnNPCs` passes `scale`) and turn to face you, for working on
+faces close up. Add a surface to `LAB_MATERIALS` to see it beside the others.
+
 ## Sound from the first frame (v0.39)
 
 Each world is a new page, and browsers only let a page's sound start after a

@@ -155,7 +155,8 @@ Grouped by area. Checked items are done; the changelog says when.
   animations don't break; put the outfit on top.
 - [ ] People of different heights, body types and genders.
 - [ ] Redo the face shaders to look more like Moebius; add a level with very
-  large faces to test and refine them.
+  large faces to test and refine them. (The giant faces are in `?level=lab`; the shader
+  is still to do.)
 - [ ] Ragdoll when falling, or when pushing people with the gun.
 - [ ] Hologram of the parents: a true hologram, not a 2D drawn render.
 - [x] Most animals are too small and hard to notice: make them bigger.
@@ -178,7 +179,8 @@ Grouped by area. Checked items are done; the changelog says when.
   redo the shader with a different look by distance.
 - [ ] Cracked ground looks fuzzy in the distance and pops in while walking;
   make it a shader.
-- [ ] A test level for materials: metal, rock, clouds, etc.
+- [x] A test level for materials: metal, rock, clouds, etc. (`?level=lab`; a real metal
+  surface is still to do)
 - [ ] No hover bike until I first find it; add a mission to find it.
 - [ ] Redesign the taxis and the hover car.
 - [ ] More flowers and plants, some large; each planet has its own flora (no

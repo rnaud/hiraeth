@@ -19,6 +19,7 @@ export const WORLD_REACTIONS = {
   buried: {kind:'fan',quiet:'#8c9c98',awake:'#f3a57c',radius:10},
   spheres: {kind:'flower',quiet:'#a8c48a',awake:'#f6e2a0',radius:11},
   perdide2: {kind:'fungus',quiet:'#6f6a94',awake:'#ffb38a',radius:10,spores:true,shy:true},
+  lab: {kind:'flower',quiet:'#b9b5ad',awake:'#71d7cf',radius:9},
   atelier: {kind:'fan',quiet:'#c4beb0',awake:'#8cbdb7',radius:10},
   home: {kind:'flower',quiet:'#d9a37f',awake:'#5fd0c6',radius:9},
 };

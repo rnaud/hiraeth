@@ -6,6 +6,7 @@ import { createEdena } from './edena.js';
 import { createPerdide } from './perdide.js';
 import { createBazaar } from './bazaar.js';
 import { createAtelier } from './atelier.js';
+import { createLab } from './lab.js';
 import { createArzach2 } from './arzach2.js';
 import { createBuried } from './buried.js';
 import { createSpheres } from './spheres.js';
@@ -85,6 +86,13 @@ export const LEVELS = [
     title: 'The Atelier', source: 'the last page',
     blurb: 'A blank page where every world you crossed is sketched in pencil. Someone is still drawing. Pale paper-like growths stir when you look at them.',
     moves: 'unlocked by finishing every world',
+  },
+  {
+    // a developer's world: the game's surfaces and giant faces side by side (?level=lab; in no menu)
+    id: 'lab', create: createLab, hidden: true, dev: true,
+    title: 'The Lab', source: 'for looking closely',
+    blurb: 'Every surface the game draws, on pedestals in a row, and four giant villagers to study faces by.',
+    moves: 'walk · jetpack',
   },
   {
     // where the route begins: on the galactic map once enough worlds are done (src/story/ending.js)

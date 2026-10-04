@@ -256,6 +256,14 @@ export const COSTUMES = {
     capes: [0], robe: 0, size: [1, 1],
     palette: { tunics: ['#b5473a', '#d9503f'], legs: ['#2b2f45', '#34405e'], skins: ['#e9cfb4', '#d9a98a'], accents: ['#f3ead8', '#5fb7ad'] },
   })] },
+  // the lab's giant sitters: plain clothes and a band at most, so nothing hides the face
+  lab: { tribes: [tribe({
+    name: 'the sitters',
+    heads: { band: 1 }, as: { wrap: 'band', hat: 'band', hood: 'band' },
+    masks: { none: 1 }, body: { none: 1 }, props: { none: 1 }, trim: { none: 1 },
+    capes: [0], robe: 0, size: [1, 1],
+    palette: { tunics: ['#d8a24a', '#8a6fb8'], legs: ['#2b2f45'], skins: ['#e9cfb4', '#c98f64', '#8a5a3c'], accents: ['#f3ead8'] },
+  })] },
   atelier: { tribes: [tribe({
     name: 'the artist',
     heads: { beret: 1 }, as: { hood: 'beret', hat: 'beret', wrap: 'beret', hair: 'beret' },
