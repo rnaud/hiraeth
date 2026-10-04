@@ -140,7 +140,7 @@ function buildSkiff() {
 }
 
 // mushroom profile: [r, y] pieces (stalk, gilled underside, cap top), radii in stalk units / cap units
-function shroomParts({ sr, capR, H, dome }) {
+export function shroomParts({ sr, capR, H, dome }) {
   const stalk = [[1.75 * sr, -0.04 * H], [1.6 * sr, 0.03 * H], [1.15 * sr, 0.12 * H], [0.85 * sr, 0.3 * H], [0.72 * sr, 0.55 * H], [0.7 * sr, 0.78 * H], [0.85 * sr, 0.87 * H], [1.2 * sr, 0.9 * H]];
   const top0 = 0.9 * H;
   const under = [[1.2 * sr, top0], [capR * 0.55, top0 - 0.015 * H], [capR * 0.92, top0 - 0.04 * H], [capR, top0 - 0.05 * H]];
@@ -148,7 +148,7 @@ function shroomParts({ sr, capR, H, dome }) {
   const top = [[capR, top0 - 0.05 * H], [capR * 1.02, top0 - 0.02 * H], [capR * 0.88, top0 + D * 0.45], [capR * 0.6, top0 + D * 0.82], [capR * 0.3, top0 + D * 0.97], [0, top0 + D]];
   return { stalk, under, top, topY: top0 + D };
 }
-const lathe = (pts, seg) => new THREE.LatheGeometry(pts.map(([r, y]) => new THREE.Vector2(r, y)), seg);
+export const lathe = (pts, seg) => new THREE.LatheGeometry(pts.map(([r, y]) => new THREE.Vector2(r, y)), seg);
 
 export const PERDIDE2_CONTENT = {
   weather: ['fog'],

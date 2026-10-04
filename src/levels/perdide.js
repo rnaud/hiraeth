@@ -153,7 +153,7 @@ export function buildSkiff() {
   return { root, body, seatAnchor, socket, port, lights: [under], jets, animate };
 }
 
-const CRYSTAL = ['#a99be0', '#62c3c9', '#c7a6f2', '#7fe0d0'];
+export const CRYSTAL = ['#a99be0', '#62c3c9', '#c7a6f2', '#7fe0d0'];
 
 // the level's content (levels/content.js): the story is a quest (src/story/perdide-data.js),
 // so the page opens on the first visit and closes when the splinter sings in the cave

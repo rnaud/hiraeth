@@ -132,14 +132,14 @@ function sectorGeometry(r0, r1, a0, a1, t, seg) {
 
 const Y = new THREE.Vector3(0, 1, 0);
 /** A cylinder from a to b (radius r0 at a, r1 at b). */
-function cylBetween(a, b, r0, r1 = r0, seg = 10, open = false) {
+export function cylBetween(a, b, r0, r1 = r0, seg = 10, open = false) {
   const d = new THREE.Vector3().subVectors(b, a), len = d.length();
   const g = new THREE.CylinderGeometry(r1, r0, len, seg, 1, open);
   g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(Y, d.normalize()));
   return g.translate((a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2);
 }
 /** A quarter-torus elbow with world basis (bx, by, bz) around centre c. */
-function elbow(c, R, r, bx, by, seg = 8) {
+export function elbow(c, R, r, bx, by, seg = 8) {
   const g = new THREE.TorusGeometry(R, r, seg, 6, Math.PI / 2);
   const bz = new THREE.Vector3().crossVectors(bx, by);
   g.applyMatrix4(new THREE.Matrix4().makeBasis(bx, by, bz));

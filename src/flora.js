@@ -214,10 +214,25 @@ function prepare(list) {
  * @returns {Flora|null}
  */
 export function buildFlora({ scene, level, levelId, physics, keep = [], density = 1 }) {
-  const world = FLORA_WORLDS[levelId], list = SPECIES[levelId];
-  if (!world || !list?.length) return null;
+  // a level may grow several worlds' flora (level.flora: [{ world, regions, patches, sparse, seed, water, zone }],
+  // the Lab's biome rooms); otherwise it is the world's own (FLORA_WORLDS)
+  const parts = (level.flora ?? (FLORA_WORLDS[levelId] ? [{ ...FLORA_WORLDS[levelId], world: levelId }] : [])).filter((p) => SPECIES[p.world]?.length);
+  if (!parts.length) return null;
   const t0 = performance.now();
-  const species = prepare(list);
+  const species = [], plants = [], why = {};
+  for (const part of parts) {
+    const own = prepare(SPECIES[part.world]);
+    species.push(...own);
+    plants.push(...growPart({ part, species: own, level, physics, keep, density, why }));
+  }
+  const flora = new Flora(scene, species, plants);
+  flora.buildMs = performance.now() - t0;
+  flora.why = why;
+  return flora;
+}
+
+/** One world's plants over its regions (buildFlora). */
+function growPart({ part: world, species, level, physics, keep, density, why }) {
   const heightAt = level.ground?.heightAt?.bind(level.ground);
   const water = world.water ?? -Infinity;
   const avoid = level.floraAvoid ?? (() => false);
@@ -231,7 +246,7 @@ export function buildFlora({ scene, level, levelId, physics, keep = [], density 
     const e = 0.8, sx = heightAt(x + e, z) - heightAt(x - e, z), sz = heightAt(x, z + e) - heightAt(x, z - e);
     return Math.max(Math.abs(sx), Math.abs(sz)) / (2 * e) <= (sp.slope ?? (sp.large ? 0.32 : 0.5));
   };
-  const why = {};   // why plants didn't grow, by reason (for tuning and the tests)
+  // (why: why plants didn't grow, by reason, for tuning and the tests)
   const no = (k) => { why[k] = (why[k] ?? 0) + 1; return null; };
   const groundAt = (x, z, sp, region) => {
     const base = heightAt?.(x, z) ?? -Infinity;
@@ -269,11 +284,7 @@ export function buildFlora({ scene, level, levelId, physics, keep = [], density 
     if (blocked(x, z, r)) return no(sp.large ? 'keep (large)' : 'keep');
     return groundAt(x, z, sp, region);
   };
-  const plants = clusterScatter({ species, regions: world.regions, patches: world.patches, sparse: world.sparse, density, accept, zone: world.zone, seed: world.seed });
-  const flora = new Flora(scene, species, plants);
-  flora.buildMs = performance.now() - t0;
-  flora.why = why;
-  return flora;
+  return clusterScatter({ species, regions: world.regions, patches: world.patches, sparse: world.sparse, density, accept, zone: world.zone, seed: world.seed });
 }
 
 const _fr = new THREE.Frustum(), _pm = new THREE.Matrix4(), _sph = new THREE.Sphere(), _box = new THREE.Box3();

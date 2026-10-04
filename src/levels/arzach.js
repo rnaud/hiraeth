@@ -27,7 +27,7 @@ function height(x, z) {
   return h;
 }
 
-const BONE = [
+export const BONE = [
   ['#f4efe2', '#e6dcc6', '#d6c7a8'],
   ['#f2d6c4', '#e8c0aa', '#f8ecdf'],   // the book's rose-tinted stone
   ['#efe4cf', '#e2cfae', '#f7f1e4'],

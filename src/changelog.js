@@ -4,6 +4,7 @@
 
 export const CHANGELOG = [
   { v: '0.43', date: '2026-10-04', items: [
+    'The Lab (in the worlds list, L) has a door for every world: step through to a little copy of each one, with its own ground, sky and light, rocks and buildings, plants, creatures and people in their own clothes. Each room has a door home behind you, and wandering off its edge brings you back to it.',
     'Plants part round you as you walk through them, leaning away from your legs, more when you hurry.',
     'The title screen is calmer: the name in thin, airy capitals, no subtitle or key hints, and the menu as light lettering over the view.',
     'Plants feel the wind: they lean downwind, gusts roll across the meadows as a wave, and a storm bends them hard.',

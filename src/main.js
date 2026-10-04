@@ -371,7 +371,7 @@ if (flora) {
   console.info(`flora: ${flora.count} plants (${flora.largeCount} large) of ${flora.sets.length} species, ${flora.buildMs.toFixed(0)} ms`);
 }
 // wildlife: two or three small species per world, each with a surprise (src/wildlife.js)
-const wildlife = new Wildlife(scene, level, physics, { content, sound });
+const wildlife = new Wildlife(scene, level, physics, { content, sound, defs: level.wildlife });   // (a level may bring its own list: the Lab's rooms)
 ship.attach({ player, rig, camera, sound, journal, post, story, wind, npcs, lib, humans: humanT, levels: LEVELS, order: ORDER, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])) });
 if (viaShip) {
   const a = ship.arrivalSpot();
@@ -431,15 +431,21 @@ const savedEarly = SaveGame.load();
 const sky = { hour: !viaShip && savedEarly?.level === levelId && savedEarly.hour !== undefined ? savedEarly.hour : level.defaults.hour, speed: 0 }; // speed in in-game hours per real minute
 let atmo = level.atmo(player.pos.x, player.pos.z, player.pos.y);
 const script = level.sky?.script ? colourScript(level.sky.script) : undefined;
-const updateSky = () => applyTimeOfDay(sky.hour, sharedUniforms.uSunDir.value, post.uniforms, atmo, script);
-// planets hanging in this level's sky
-(level.sky?.planets ?? []).slice(0, 3).forEach((p, i) => {
-  const el = THREE.MathUtils.degToRad(p.el), az = THREE.MathUtils.degToRad(p.az);
-  post.uniforms.uPlanet.value[i].set(Math.cos(el) * Math.sin(az), Math.sin(el), Math.cos(el) * Math.cos(az), THREE.MathUtils.degToRad(p.size));
-  const c = new THREE.Color(p.color);
-  post.uniforms.uPlanetColor.value[i].set(c.r, c.g, c.b, p.ring ?? 0);
-  post.uniforms.uPlanetCraters.value.setComponent(i, p.craters === false ? 0 : 1);
-});
+// (a level with rooms of its own sky, the Lab's biome rooms, hands its colour script over with atmo)
+const updateSky = () => applyTimeOfDay(sky.hour, sharedUniforms.uSunDir.value, post.uniforms, atmo, atmo?.script ?? script);
+// planets hanging in this level's sky (a zone may bring its own: the Lab's biome rooms)
+function setPlanets(list = []) {
+  for (let i = 0; i < 3; i++) {
+    const p = list[i];
+    if (!p) { post.uniforms.uPlanet.value[i].set(0, -1, 0, 0); continue; }
+    const el = THREE.MathUtils.degToRad(p.el), az = THREE.MathUtils.degToRad(p.az);
+    post.uniforms.uPlanet.value[i].set(Math.cos(el) * Math.sin(az), Math.sin(el), Math.cos(el) * Math.cos(az), THREE.MathUtils.degToRad(p.size));
+    const c = new THREE.Color(p.color);
+    post.uniforms.uPlanetColor.value[i].set(c.r, c.g, c.b, p.ring ?? 0);
+    post.uniforms.uPlanetCraters.value.setComponent(i, p.craters === false ? 0 : 1);
+  }
+}
+if (level.sky?.planets?.length) setPlanets(level.sky.planets);
 updateSky();
 
 // ------------------------------------------------------------------ GUI
@@ -1166,6 +1172,14 @@ function frame() {
   if (level.zoneAt) {
     const zone = level.zoneAt(player.pos);
     if (zone.preset !== params.preset) { params.preset = zone.preset; applyPreset(zone.preset); }
+    // a zone may also carry its world's own look, planets and hour (the Lab's biome rooms)
+    if (zone !== lastZone) {
+      if (zone.look) { for (const [k, v] of Object.entries(zone.look)) if (U[k]) U[k].value = v; gui.controllersRecursive().forEach((c) => c.updateDisplay()); }
+      else if (lastZone?.look) applyPreset(params.preset);
+      if (zone.planets || lastZone?.planets) setPlanets(zone.planets ?? level.sky?.planets ?? []);
+      if (zone.hour !== undefined && lastZone) sky.hour = zone.hour;
+      lastZone = zone;
+    }
   }
 
   sharedUniforms.uTime.value = t;
@@ -1194,6 +1208,7 @@ const CALM = { speed: 0, gust: 0, storm: 0, rain: 0, rainRoof: 0, thrusting: fal
 let simT = 0;
 let flapT = 0;
 let portalCool = 0;
+let lastZone = null;
 let eWasDown = false;
 
 // ------------------------------------------------------------------ the ending

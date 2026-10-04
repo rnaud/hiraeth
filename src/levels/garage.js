@@ -19,7 +19,7 @@ const RING_R = 150;
 const RING_L = 420;
 const SLIT = 0.35;                                // half-angle of the roof slit
 
-const PALETTE = ['#e88fa6', '#62c3c9', '#f2c54b', '#a99be0', '#f3ead8', '#e6875f', '#8fcf9a', '#d9643a'];
+export const PALETTE = ['#e88fa6', '#62c3c9', '#f2c54b', '#a99be0', '#f3ead8', '#e6875f', '#8fcf9a', '#d9643a'];
 const Y = new THREE.Vector3(0, 1, 0);
 
 /** Radial frame of the ring at an angle phi around the x axis (phi = 0 -> +z, pi/2 -> +y). */
@@ -46,6 +46,32 @@ const B_DESK = new THREE.Vector3(-140, 0, 72);        // B: slab-local: the Majo
 const B_PUMP = new THREE.Vector3(42, 0, -18);         // B: slab-local: the lamp pump
 const C_TURBINE = new THREE.Vector3(2905, 0, -22);    // C: on the ring floor near its entrance (x, -, z)
 
+// A little building kit, authored in local space (y up, base at y = 0): geometry parts,
+// drawn with the level's rng (createGarage; the Lab's Hangar room builds with it too).
+export function hangarHouse(rng, parts = []) {
+  const w = 6 + rng() * 8, d = 6 + rng() * 8, h = 6 + rng() * 14;
+  parts.push(new THREE.BoxGeometry(w, h, d).translate(0, h / 2, 0).toNonIndexed());
+  const roof = new THREE.ConeGeometry(Math.max(w, d) * 0.75, 4 + rng() * 6, 4).rotateY(Math.PI / 4).translate(0, h + 2.5, 0);
+  parts.push(roof.toNonIndexed());
+  return parts;
+}
+export function hangarTower(rng, parts = []) {
+  const r = 3 + rng() * 4, h = 20 + rng() * 40;
+  parts.push(soften(new THREE.CylinderGeometry(r * 0.9, r, h, 10, 5), 0.1).translate(0, h / 2, 0).toNonIndexed());
+  if (rng() < 0.5) parts.push(new THREE.ConeGeometry(r * 1.3, r * 2.5, 10).translate(0, h + r * 1.2, 0).toNonIndexed());
+  else parts.push(new THREE.SphereGeometry(r * 1.4, 12, 8).scale(1, 0.8, 1).translate(0, h + r, 0).toNonIndexed());
+  return parts;
+}
+export function hangarMachine(rng, parts = []) {
+  // pipes and a gear: Moebius' melting machinery
+  const r = 4 + rng() * 6;
+  parts.push(new THREE.TorusGeometry(r, 0.9, 6, 18).rotateY(rng() * 3).translate(0, r, 0).toNonIndexed());
+  const p0 = new THREE.Vector3(-r * 2, 0.8, 0), p3 = new THREE.Vector3(r * 2, 0.8, rng() * 8 - 4);
+  const curve = new THREE.CubicBezierCurve3(p0, new THREE.Vector3(-r, r * 2.5, 2), new THREE.Vector3(r, -1, -2), p3);
+  parts.push(new THREE.TubeGeometry(curve, 24, 0.8 + rng() * 0.8, 7).toNonIndexed());
+  return parts;
+}
+
 export function createGarage(scene) {
   const rng = mulberry32(1976);
   const pick = (a) => a[Math.floor(rng() * a.length)];
@@ -55,30 +81,7 @@ export function createGarage(scene) {
   const noShadow = [];
   const stone = (size = 3) => makeMaterial({ color: pick(PALETTE), color2: pick(PALETTE), color3: '#f3ead8', mode: MODE_STRATA, strataSize: size, flat: true });
 
-  // A little building kit, authored in local space (y up, base at y = 0).
-  function house(parts = []) {
-    const w = 6 + rng() * 8, d = 6 + rng() * 8, h = 6 + rng() * 14;
-    parts.push(new THREE.BoxGeometry(w, h, d).translate(0, h / 2, 0).toNonIndexed());
-    const roof = new THREE.ConeGeometry(Math.max(w, d) * 0.75, 4 + rng() * 6, 4).rotateY(Math.PI / 4).translate(0, h + 2.5, 0);
-    parts.push(roof.toNonIndexed());
-    return parts;
-  }
-  function tower(parts = []) {
-    const r = 3 + rng() * 4, h = 20 + rng() * 40;
-    parts.push(soften(new THREE.CylinderGeometry(r * 0.9, r, h, 10, 5), 0.1).translate(0, h / 2, 0).toNonIndexed());
-    if (rng() < 0.5) parts.push(new THREE.ConeGeometry(r * 1.3, r * 2.5, 10).translate(0, h + r * 1.2, 0).toNonIndexed());
-    else parts.push(new THREE.SphereGeometry(r * 1.4, 12, 8).scale(1, 0.8, 1).translate(0, h + r, 0).toNonIndexed());
-    return parts;
-  }
-  function machine(parts = []) {
-    // pipes and a gear: Moebius' melting machinery
-    const r = 4 + rng() * 6;
-    parts.push(new THREE.TorusGeometry(r, 0.9, 6, 18).rotateY(rng() * 3).translate(0, r, 0).toNonIndexed());
-    const p0 = new THREE.Vector3(-r * 2, 0.8, 0), p3 = new THREE.Vector3(r * 2, 0.8, rng() * 8 - 4);
-    const curve = new THREE.CubicBezierCurve3(p0, new THREE.Vector3(-r, r * 2.5, 2), new THREE.Vector3(r, -1, -2), p3);
-    parts.push(new THREE.TubeGeometry(curve, 24, 0.8 + rng() * 0.8, 7).toNonIndexed());
-    return parts;
-  }
+  const house = (parts) => hangarHouse(rng, parts), tower = (parts) => hangarTower(rng, parts), machine = (parts) => hangarMachine(rng, parts);
   const kit = [house, house, tower, machine];
   /** Place a random building at `pos`, with its up along `up`. */
   function build(pos, up, group = scene) {

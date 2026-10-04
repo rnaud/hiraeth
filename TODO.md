@@ -236,7 +236,7 @@ Grouped by area. Checked items are done; the changelog says when.
 
 ## Testing
 
-- [ ] The Lab big enough to hold everything: a copy of each biome (flora, fauna,
+- [x] The Lab big enough to hold everything: a copy of each biome (flora, fauna,
   rock formations, buildings…), with little doors to switch between them.
 
 ## Performance

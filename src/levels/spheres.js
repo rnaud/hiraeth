@@ -66,7 +66,7 @@ function height(x, z) {
 }
 
 // light direction the spheres' printed crescents are drawn for (morning sun from +x)
-const CRESCENT = new THREE.Vector3(0.75, 0.42, 0.5).normalize();
+export const CRESCENT = new THREE.Vector3(0.75, 0.42, 0.5).normalize();
 
 
 export const SPHERES_CONTENT = {
@@ -100,7 +100,7 @@ export const SPHERES_CONTENT = {
 
 // ------------------------------------------------------------------ helpers
 
-function prep(g, keepColor) {
+export function prep(g, keepColor) {
   const geo = g.index ? g.toNonIndexed() : g;
   if (!geo.attributes.normal) geo.computeVertexNormals();
   for (const k of Object.keys(geo.attributes)) {
@@ -111,7 +111,7 @@ function prep(g, keepColor) {
 
 const _c = new THREE.Color();
 /** Per-triangle colours (non-indexed): fn(centroid, faceNormal, triIndex) -> colour. */
-function paintFaces(geo, fn) {
+export function paintFaces(geo, fn) {
   const p = geo.attributes.position, n = p.count;
   const col = new Float32Array(n * 3);
   const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3(), cen = new THREE.Vector3(), nn = new THREE.Vector3();

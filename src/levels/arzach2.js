@@ -74,7 +74,7 @@ export const ARZACH2_CONTENT = {
  * Aqueduct / natural arch: a deck from a to b at deckY(u), with arches
  * opening below it and piers dropping into the cloud.
  */
-function bridge(o) {
+export function bridge(o) {
   const { a, b, y0, y1 = y0, W = 9, bays = 4, pier = 0.28, rise = 1, thick = 4, bottom = -120, seed = 0, rough = 0.5, ends = 0.06, flare = 0, step = 1.1, bulge = 0 } = o;
   const dx = b[0] - a[0], dz = b[1] - a[1], L = Math.hypot(dx, dz), ux = dx / L, uz = dz / L, px = -uz, pz = ux;
   const n = Math.ceil(L / step), sp = (L * (1 - 2 * ends)) / bays, half = (sp * (1 - pier)) / 2;
