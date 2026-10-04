@@ -204,6 +204,12 @@ const player = new Player(physics, {
   gravityAt: level.gravityAt, unsafe: level.unsafe, dynamic: level.dynamic,
 });
 player.vehicles.push(...(level.vehicles ?? []));
+// rooms off the map, reached through doorways (the desert's chambers and the cave in the
+// giant's chest, ~1 km up): no whistling the mount or hailing a taxi into them; it would
+// come to the same x, z on the dunes far below and wait there
+const offMapRooms = (level.portals ?? []).filter((p) => p.to && !p.toUp && p.to.y - (terrain.heightAt?.(p.to.x, p.to.z) ?? p.to.y) > 200).map((p) => p.to);
+const inOffMapRoom = () => offMapRooms.some((r) => r.distanceToSquared(player.pos) < 90 * 90);
+player.opts.canSummon = () => !inOffMapRoom();
 const lib = await animLib;
 if (lib) {
   player.animator = player._animator = new Animator(lib, player.char);
@@ -393,7 +399,11 @@ player.onStep = (p, heading, up, i) => {
   sound.step(Math.hypot(player.vel.x, player.vel.z));
 };
 
-const input = {};
+// Every press is seen for at least one frame: a quick tap (keydown and keyup between two
+// frames, easy at 20 fps or with a touch button) used to vanish, and E did nothing.
+const tapped = new Set();
+const input = new Proxy({}, { set(o, k, v) { if (v) tapped.add(k); o[k] = v; return true; } });
+const latchedInput = () => { const o = { ...input }; for (const k of tapped) o[k] = true; tapped.clear(); return o; };
 window.addEventListener('keydown', (e) => {
   input[e.code] = true;
   if (e.code === 'KeyQ' && !e.repeat && !busy() && !photo.on && !ship.playing) scout.ping();
@@ -654,8 +664,8 @@ function updateHud() {
     if (storyRt.prompt) parts.push(`E ${storyRt.prompt}`);
     else if (expedition?.nearby(player) >= 0) parts.push('observatory lenses');
     else if (near) parts.push(`E ${near.kind === 'taxi' ? 'get in the taxi' : 'ride the ' + (level.mountName ?? near.kind)}`);
-    else if (player.mount) parts.push(`E whistle for the ${level.mountName}`);
-    else if (level.features.taxis) parts.push('E hail a taxi');
+    else if (player.mount && !inOffMapRoom()) parts.push(`E whistle for the ${level.mountName}`);
+    else if (level.features.taxis && !inOffMapRoom()) parts.push('E hail a taxi');
     const shipHint = ship.hud();   // inside the ship and at its ramp, E is the ship's
     // (and while one of its scenes plays, E does nothing at all: no whistling from orbit)
     if (shipHint || ship.playing) { for (let i = parts.length - 1; i >= 0; i--) if (parts[i].startsWith('E ')) parts.splice(i, 1); if (shipHint) parts.unshift(shipHint); }
@@ -821,7 +831,7 @@ function frame() {
   controllerHint.textContent = busy() ? 'D-pad / left stick select · A / × confirm · B / ○ back · right stick scroll'
     : photo.on ? 'Left stick fly · right stick look · LB/RB down/up · A / × save · B / ○ exit'
     : 'A / × jump (again in the air: boost) · X / □ use · Y / △ ping · RT / R2 run · LT aim (+ RT shoot) · B / ○ push · ↑ worlds · ↓ photo · View sketchbook · Menu settings';
-  const mergedInput = mergeControls(input, padInput);
+  const mergedInput = mergeControls(latchedInput(), padInput);
   const ctl = busy() ? noInput : ship.input(mergedInput);   // the ship's E and its autopilot
 
   if (sky.speed > 0) sky.hour = (sky.hour + (sky.speed / 60) * dt) % 24;

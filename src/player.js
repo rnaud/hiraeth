@@ -602,6 +602,7 @@ export class Player {
     if (this.ride) return this.dismount();
     const near = this.nearestVehicle();
     if (near) return this.mount_(near);
+    if (this.opts.canSummon && !this.opts.canSummon()) return;   // e.g. in a room off the map
     if (this.mount) {
       const d = this.frame.dir(this.heading, _v1);
       const airborne = !this.onGround && !this.climbing && this.physics.heightAbove(this.pos, this.frame.up) > 3;
