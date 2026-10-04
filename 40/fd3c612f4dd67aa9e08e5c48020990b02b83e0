@@ -1,0 +1,31 @@
+TODO.md
+  s_1fd8d0e7b02dcf::t_8b8ec0b6ce40c0 141-143,182-185
+changelog.md
+  s_1fd8d0e7b02dcf::t_1de9fab34ddbd8 16-17
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_9d00d893f23e03 16-17
+src/player.js
+  s_1fd8d0e7b02dcf::t_fe27ca24963d8c 1650-1653,1958-1962
+src/ship/cinematics.js
+  s_1fd8d0e7b02dcf::t_dc5549fcc91046 191,210-211
+src/ship/interior.js
+  s_1fd8d0e7b02dcf::t_e9e1ad9c0cc573 10,96-111,113-114,353-355
+src/ship/prologue.js
+  s_1fd8d0e7b02dcf::t_6cd52f9867b05e 7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "40fd3c612f4dd67aa9e08e5c48020990b02b83e0",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
