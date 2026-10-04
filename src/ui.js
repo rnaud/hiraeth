@@ -217,8 +217,14 @@ export class ToolHud {
     }
     if (!on && !flash) return;
     const secs = charges < max ? Math.ceil(refillIn) : 0;
-    const key = `${charges}|${secs}|${ready}|${aimKind}|${tones.join()}|${mode}`;
+    const key = `${charges}|${max}|${secs}|${ready}|${aimKind}|${tones.join()}|${mode}`;
     if (key !== this.last) {
+      // one pip per charge the tank holds (four with the Fourth chamber)
+      if (this.pips.length !== max) {
+        const row = this.el.querySelector('.pips');
+        row.innerHTML = '<u></u>'.repeat(max);
+        this.pips = [...row.querySelectorAll('u')];
+      }
       this.last = key;
       if (this.name) this.name.textContent = modeName;
       this.el.className = `fluid m-${mode}${ready ? '' : ' wait'}${aimKind === 'target' ? ' lock' : ''}${charges ? '' : ' empty'}`;
