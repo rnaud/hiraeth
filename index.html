@@ -251,9 +251,8 @@
       #tool .cross i:nth-child(2) { left: 50%; bottom: -11px; width: 2px; height: 7px; margin-left: -1px; }
       #tool .cross i:nth-child(3) { top: 50%; left: -11px; height: 2px; width: 7px; margin-top: -1px; }
       #tool .cross i:nth-child(4) { top: 50%; right: -11px; height: 2px; width: 7px; margin-top: -1px; }
-      #tool.stun .cross { border-style: dashed; border-color: #277e86; }
-      #tool.stun .cross::after { background: #62c3c9; }
-      #tool.dart .cross::after { background: #e6875f; width: 5px; height: 5px; margin: -2.5px; }
+      #tool.fluid .cross::after { background: #966ede; width: 5px; height: 5px; margin: -2.5px; }
+      #tool.empty .cross { border-style: dashed; opacity: 0.55; }
       #tool.lock .cross { transform: scale(0.8) rotate(45deg); border-color: #c8483a; border-style: solid; }
       #tool.lock .cross i { background: #c8483a; }
       #tool.wait .cross { opacity: 0.45; }
@@ -264,11 +263,14 @@
       #tool .mode { position: absolute; top: 40px; left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 1px 7px;
         font: 11px/1.5 ui-monospace, Menlo, monospace; color: #2b211f; background: rgba(247, 236, 210, 0.85); border: 1px solid #2b211f; }
       #tool .mode b { font-weight: normal; letter-spacing: 0.08em; text-transform: uppercase; }
-      #tool .gauge { margin-left: 6px; color: #277e86; letter-spacing: -1px; }
+      #tool .pips { margin-left: 7px; display: inline-flex; gap: 3px; vertical-align: -1px; }
+      #tool .pips u { display: inline-block; width: 8px; height: 8px; border: 1.5px solid #2b211f; border-radius: 50%; background: transparent; transition: transform 0.15s; }
+      #tool .pips u.on { transform: scale(1.12); }
+      #tool .wait { margin-left: 6px; opacity: 0.7; }
       #touch .b-aim { right: calc(200px + var(--safe-right)); bottom: calc(150px + var(--safe-bottom)); font-size: 24px; }
       #touch .b-aim.on { background: #9fd6e8; }
       #touch .b-fire { right: calc(200px + var(--safe-right)); bottom: calc(60px + var(--safe-bottom)); width: 74px; height: 74px; font-size: 26px; }
-      #touch .b-mode { right: calc(206px + var(--safe-right)); bottom: calc(228px + var(--safe-bottom)); width: 50px; height: 50px; font-size: 18px; }
+      #touch .b-push { right: calc(206px + var(--safe-right)); bottom: calc(228px + var(--safe-bottom)); width: 54px; height: 54px; font-size: 22px; }
     </style>
   </head>
   <body>
@@ -304,8 +306,8 @@
     <div id="hud">
       <span class="help"><b>MOEBIUS PoC</b><br />
       click to capture mouse · WASD move · SHIFT run<br />
-      SPACE jump · hold SPACE in air to glide · push into walls to climb · wheel zoom · Q ping scout · L worlds · P photo · O settings<br />
-      hold right mouse / R aim the tool · left click / G fire · X / middle click switch paralyze ray ↔ foam dart<br />
+      SPACE jump · SPACE again in the air: fluid boost · hold SPACE in air to glide · push into walls to climb · wheel zoom · Q ping scout · L worlds · P photo · O settings<br />
+      fluid tool (3 charges, refill 5 s after the last use): hold right mouse / R aim · left click / G shoot · C / middle click push<br />
       </span><span id="status"></span>
     </div>
     <script type="module" src="/src/main.js"></script>

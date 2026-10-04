@@ -16,12 +16,14 @@ import { registerTarget } from './targets.js';
 // and it then mirrors that person's simulated place, pose and reactions until
 // release().
 //
-// The player's tool: hit(mode). A dart startles them (a jump, a turn to the
-// shooter, a short line); a stun freezes them for a moment in a comic pose.
+// The player's fluid tool: hit(mode). A glob splashes and startles them (a
+// jump, a turn to the shooter, a short line); the push shoves them back a
+// couple of metres, stumbling with their arms flung up.
 
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _d = new THREE.Vector3(), _push = new THREE.Vector3();
 const Y = new THREE.Vector3(0, 1, 0);
-const STARTLE = ['Hey!', 'Ow! What was that?', 'Who threw that?', 'Watch it!', 'Was that you?'];
+const SPLASHED = ['Hey! I\u2019m soaked!', 'Ugh, it\u2019s all colours!', 'Who threw that?', 'Was that you?', 'Hey, not funny!'];
+const SHOVED = ['Whoa! Watch it!', 'Oof! Hey!', 'Mind where you push!', 'Easy, traveller!'];
 
 export class NPC {
   /**
@@ -36,7 +38,8 @@ export class NPC {
     this.kind = kind;
     this.pooled = pooled;
     this.person = null;
-    this.stunUntil = -1;
+    this.stumbleUntil = -1;
+    this.knock = new THREE.Vector3();   // a shove's velocity (m/s), dying away
     this.startleAt = -1e9;
     this.shout = null;
     this.route = route;
@@ -151,13 +154,20 @@ export class NPC {
     c.root.traverse((o) => { if (o.isMesh && o.geometry.type === 'TorusGeometry' && o.parent === c.capeAnchor) o.visible = !!this.cape; });
   }
 
-  /** The tool: 'dart' startles (a jump, a turn to the shooter, a short line), 'stun' freezes them briefly. */
-  hit(mode, dir) {
-    if (mode === 'stun') { this.stunUntil = this.time + 3.5; this._frozen = false; return; }
-    if (this.time < this.stunUntil) return;
-    this.startleAt = this.time;
+  /** The fluid tool: 'shoot' startles (a jump, a turn to the shooter, a short line), 'push' shoves them back, stumbling. */
+  hit(mode, dir, info) {
+    if (this.time < this.stumbleUntil) return;
+    const pick = (a) => a[Math.floor(Math.random() * a.length)];
     if (dir) this.faceTo = Math.atan2(-dir.x, -dir.z);
-    this.shout = { text: STARTLE[Math.floor(Math.random() * STARTLE.length)], until: this.time + 2.2 };
+    if (mode === 'push') {
+      this.stumbleUntil = this.time + 0.9; this._frozen = false;
+      if (dir) this.knock.set(dir.x, 0, dir.z).normalize().multiplyScalar(4 * (info?.shove ?? 2.4) * (0.6 + 0.4 * (info?.strength ?? 1)));   // dies away at 4/s: ~shove metres
+      this.startleAt = this.time + 0.1;   // no hop after the stumble: they just stand and glare (until ~2.5 s)
+      this.shout = { text: pick(SHOVED), until: this.time + 3 };
+      return;
+    }
+    this.startleAt = this.time;
+    this.shout = { text: pick(SPLASHED), until: this.time + 2.2 };
   }
 
   /** Where the tool aims: the chest. */
@@ -179,11 +189,15 @@ export class NPC {
     if (camD0 > 110) { this._skip = ((this._skip ?? 0) + 1) % 4; this._acc = (this._acc ?? 0) + dt; if (this._skip) return; dt = this._acc; this._acc = 0; }
     else this._acc = 0;
     this.time += dt;
-    // stunned: frozen in place for a moment
-    if (this.time < this.stunUntil) {
+    // shoved: knocked back (not through walls), stumbling with the arms flung up
+    if (this.time < this.stumbleUntil) {
       this.greeted = 0;
-      this.talking = false;
-      this.posture(dt, { stunned: true });
+      this.talking = !!this.shout;
+      const sp = this.knock.length();
+      if (sp > 0.05) { this.move(_w.copy(this.knock).divideScalar(sp), sp, dt); this.knock.multiplyScalar(Math.exp(-4 * dt)); }
+      const g = this.physics.groundAt(this.pos.x, this.pos.y + 1.5, this.pos.z);
+      if (Number.isFinite(g)) this.pos.y += (g - this.pos.y) * (1 - Math.exp(-15 * dt));
+      this.posture(dt, { stumble: true });
       if (camD0 < 160) this.humanoid?.update();
       return;
     }
@@ -279,7 +293,7 @@ export class NPC {
     _v.subVectors(player.pos, this.pos); _v.y = 0;
     const dist = _v.length();
     const moving = p.speed > 0.05;
-    if (now < p.stunUntil) this.posture(dt, { stunned: true });
+    if (now < p.stumbleUntil) this.posture(dt, { stumble: true });
     else {
       this._frozen = false;
       const waveT = p.greetT >= 0 && p.pose === 0 && !p.group ? now - p.greetT : -1;
@@ -322,12 +336,12 @@ export class NPC {
   /**
    * Poses the mocap clips don't have, laid over the rig after the clip:
    * pose 2 lean on a rail, 3 sit on an edge, 4 sit on a kerb, 6 lean on a wall;
-   * stunned (frozen mid-flail, arms up) and startle (a jump, for ~0.8 s).
+   * stumble (shoved: caught mid-flail, arms up) and startle (a jump, for ~0.8 s).
    */
-  posture(dt, { pose = 0, stunned = false, startle = 99, seed = 0.5 } = {}) {
+  posture(dt, { pose = 0, stumble = false, startle = 99, seed = 0.5 } = {}) {
     const c = this.char;
-    if (stunned) {
-      // freeze: hold the clip's last frame with the arms flung up and one knee raised
+    if (stumble) {
+      // hold the clip's last frame with the arms flung up, one knee raised, leaning back
       if (!this._frozen) {
         this._frozen = true;
         c.arms[0].rotation.set(-0.2, 0, -2.4); c.arms[1].rotation.set(0.1, 0, 2.55);
@@ -336,7 +350,7 @@ export class NPC {
         c.body.rotation.set(-0.12, 0, 0.1);
         c.head.rotation.set(-0.22, 0.25, 0);
       }
-      c.body.position.x = 0.012 * Math.sin(this.time * 61);   // a zapped jitter
+      c.body.rotation.z = 0.1 + 0.08 * Math.sin(this.time * 9);   // wobbling for balance
       this.object.position.copy(this.pos);
       this.object.quaternion.setFromAxisAngle(Y, this.heading);
       return;
@@ -508,6 +522,6 @@ export function pooledNPC(scene, physics, { kind = 'm', lib = null, humans = nul
 export function registerNPCTargets(npcs) {
   return npcs.filter((n) => !n.pooled).map((n) => {
     const at = new THREE.Vector3();
-    return registerTarget({ kind: 'npc', radius: 0.45, npc: n, position: () => n.chest(at), enabled: () => n.object.visible, onHit: (mode, point, dir) => n.hit(mode, dir) });
+    return registerTarget({ kind: 'npc', radius: 0.45, npc: n, position: () => n.chest(at), enabled: () => n.object.visible, onHit: (mode, point, dir, info) => n.hit(mode, dir, info) });
   });
 }

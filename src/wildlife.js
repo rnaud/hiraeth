@@ -7,10 +7,11 @@ import { WILDLIFE, SPECIES } from './wildlife/species.js';
 // Wildlife: two or three small species per world, each with a surprise when
 // it is scared (a balloon lizard floats off, a crab digs in, a moth splits in
 // three...). They wander near paths, keep a wary distance from the traveller
-// and react to sprinting, hard landings, passing vehicles and the tool:
-//   'stun' (paralyze ray)  freezes them a few seconds, drained of colour, then
-//                          they wake and wander off calmly
-//   'dart' (foam dart)     scares them: the surprise plays
+// and react to sprinting, hard landings, passing vehicles and the fluid tool:
+//   'shoot' (a glob of fluid)  an enchanted freeze: still for a few seconds,
+//                              shimmering through the fluid's tones, then they
+//                              wake and wander off calmly
+//   'push'  (the fluid shock)  scares them: the surprise plays
 // After a surprise a creature recovers, or comes back later somewhere out of
 // sight, so a world never empties.
 //
@@ -34,6 +35,15 @@ const _mw = new THREE.Matrix4(), _mwr = new THREE.Matrix4(), _mr = new THREE.Mat
 const _ray = new THREE.Raycaster();
 
 export const clamp01 = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
+const FLUID_DEFAULT = ['#52c8cf', '#966ede'];   // the fluid's first two tones (fluid-tool.js), if a hit brings none
+const _ca = new THREE.Color(), _cb = new THREE.Color(), _col2 = new THREE.Color();
+/** The instance tint that shows a creature (main colour `main`) in the fluid tones, blending from one to the next over time x. */
+function shimmer(main, tones, x, out) {
+  const n = tones.length, w = ((x % n) + n) % n, i = Math.floor(w), f = THREE.MathUtils.smoothstep(w - i, 0.35, 0.65);
+  _ca.set(tones[i]).lerp(_cb.set(tones[(i + 1) % n]), f);
+  const k = (c, m) => Math.min(4, Math.max(0.2, c / Math.max(m, 0.05)));
+  return out.setRGB(k(_ca.r, main.r), k(_ca.g, main.g), k(_ca.b, main.b));
+}
 const damp = (a, b, rate, dt) => a + (b - a) * (1 - Math.exp(-rate * dt));
 const hashId = (s) => [...s].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >>> 0, 7);
 
@@ -157,10 +167,8 @@ class Herd {
     this.pose = { root: slot() };
     for (const p of this.parts) this.pose[p.name] = slot();
     this.members = [];
-    // stun: the colour drains to a pale, washed-out grey (worked out on the species' main colour)
-    const main = new THREE.Color(def.main ?? '#a0a0a0');
-    const lum = Math.min(0.85, (main.r * 0.3 + main.g * 0.55 + main.b * 0.15) * 1.3);
-    this.drain = new THREE.Color(...[main.r, main.g, main.b].map((c, i) => Math.min(2.6, Math.max(0.35, (lum * [0.96, 0.97, 1.04][i]) / Math.max(c, 0.05)))));
+    // enchanted: the instance tint that turns the species' main colour into a fluid tone
+    this.main = new THREE.Color(def.main ?? '#a0a0a0');
   }
   reset() {
     const P = this.pose;
@@ -211,7 +219,7 @@ export class Creature {
       kind: 'wildlife', radius: r, creature: this,
       position: () => this.center,
       enabled: () => this.alive && this.visible,
-      onHit: (mode, point, dir) => this.hit(mode, point, dir),
+      onHit: (mode, point, dir, info) => this.hit(mode, point, dir, info),
     });
   }
 
@@ -257,17 +265,18 @@ export class Creature {
     this.world.onSurprise?.(this);
     return true;
   }
-  /** Paralyze: frozen for STUN seconds, no surprise, no harm. */
-  stun(seconds) {
+  /** The enchanted freeze: still for STUN seconds, shimmering in the fluid's tones; no surprise, no harm. */
+  stun(seconds, tones = null) {
     if (this.removed || this.state === 'trick' || this.state === 'gone' || this.hidden) return false;
     this.state = 'stun'; this.speed = 0;
+    this.tones = tones?.length ? tones : FLUID_DEFAULT;
     this.timer = seconds ?? STUN[0] + this.rng() * (STUN[1] - STUN[0]);
     this.world.fx.play('daze', this.pos, this.world.ear);
     return true;
   }
-  hit(mode, point, dir) {
-    if (mode === 'stun') return this.stun();
-    if (mode === 'dart') return this.scare(dir && point ? _o.copy(point).addScaledVector(dir, -4) : point);
+  hit(mode, point, dir, info) {
+    if (mode === 'shoot') return this.stun(undefined, info?.colours);
+    if (mode === 'push') return this.scare(dir && point ? _o.copy(point).addScaledVector(dir, -4) : point);
     return false;
   }
   /** take it out of the world for good (and out of the target registry) */
@@ -429,9 +438,10 @@ export class Wildlife {
   get species() { return this.herds.map((h) => h.def); }
 
   makeStars() {
-    // three little stars wheel over a stunned head, with an ink swirl under them
+    // three little sparks in the fluid's tones wheel over an enchanted head, with an ink swirl under them
     const g = new THREE.OctahedronGeometry(1, 0).scale(1, 1, 0.35);
-    const mesh = new THREE.InstancedMesh(g, makeMaterial({ color: '#ffe9a0', flat: true, glow: 0.9 }), 30);
+    const mesh = new THREE.InstancedMesh(g, makeMaterial({ color: '#ffffff', flat: true, glow: 0.9 }), 30);
+    mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(30 * 3).fill(1), 3);
     const swirl = new THREE.InstancedMesh(new THREE.TorusGeometry(1, 0.08, 4, 20, Math.PI * 1.6).rotateX(Math.PI / 2), makeMaterial({ color: '#2b211f', flat: true }), 10);
     for (const m of [mesh, swirl]) {
       m.frustumCulled = false; m.userData.noCollide = true; m.userData.dynamic = true; m.count = 0;
@@ -719,7 +729,7 @@ export class Wildlife {
     }
     this.stars.mesh.count = stunned * 3; this.stars.swirl.count = stunned;
     this.stars.mesh.visible = this.stars.swirl.visible = stunned > 0;
-    if (stunned) { this.stars.mesh.instanceMatrix.needsUpdate = true; this.stars.swirl.instanceMatrix.needsUpdate = true; }
+    if (stunned) { this.stars.mesh.instanceMatrix.needsUpdate = true; this.stars.mesh.instanceColor.needsUpdate = true; this.stars.swirl.instanceMatrix.needsUpdate = true; }
     this.fx.update(dt, t);
     for (const h of this.herds) h.flush();
   }
@@ -744,8 +754,9 @@ export class Wildlife {
     c.wpos.setFromMatrixPosition(_mwr);
     c.center.set(0, sp.height ?? 0.3, 0).applyMatrix4(_mwr);
     c.reach = (sp.reach ?? 1.5) * c.size * (c.state === 'trick' ? (c.trick.reach ?? 2) : 1);
-    const tinted = Math.abs(c.tint - c.tintShown) > 0.02 || (c.tint === 0 && c.tintShown !== 0);
-    if (tinted) { c.tintShown = c.tint < 0.02 ? 0 : c.tint; _col.copy(WHITE).lerp(herd.drain, c.tintShown); }
+    // enchanted: the tint shimmers through the fluid's tones (rewritten every frame while it shows)
+    const tinted = c.tint > 0.02 || c.tintShown !== 0;
+    if (tinted) { c.tintShown = c.tint < 0.02 ? 0 : c.tint; _col.copy(WHITE).lerp(shimmer(herd.main, c.tones ?? FLUID_DEFAULT, t * 1.1 + c.seed, _col2), c.tintShown); }
     for (const part of herd.parts) {
       const q = P[part.name];
       c.shown[part.name] = q.show && (part.free || P.root.show);
@@ -769,6 +780,8 @@ export class Wildlife {
       _q.copy(c.quat).multiply(_q2.setFromAxisAngle(Y, a * 2));
       _mw.compose(_p, _q, _s);
       this.stars.mesh.setMatrixAt(i * 3 + k, _mw);
+      const tones = c.tones ?? FLUID_DEFAULT;
+      this.stars.mesh.setColorAt(i * 3 + k, _col2.set(tones[(k + Math.floor(t * 3)) % tones.length]));
     }
     c.toWorld(0, h - 0.04, 0, _p);
     _s.setScalar(0.2 * Math.max(0.8, c.size));

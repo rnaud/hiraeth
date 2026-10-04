@@ -11,11 +11,11 @@
 //   aRig.w  cape: 0 at the collar → 1 at the hem (its position is computed from the length)
 // Per instance:
 //   aAnim   gait phase at upload (cycles), cadence (cycles / s, 0 standing), seed 0..1, pose (CROWD_POSES)
-//   aReact  head yaw (rad, relative to the body), head pitch, talk 0..1, startle time (uTime; stun: frozen time)
+//   aReact  head yaw (rad, relative to the body), head pitch, talk 0..1, startle time (uTime; stumbling: when the shove landed, the pose's frozen time)
 //   aLook0  cloak, cloth, legs, skin as 0xRRGGBB packed in floats (exact up to 2^24)
 //   aLook1  hat, accent, hair, style = head kind (0 hood, 1 hat, 2 wrap, 3 hair) + 4 * cape length (decimetres)
 
-export const CROWD_POSES = { stand: 0, walk: 1, rail: 2, sit: 3, kerb: 4, stunned: 5, wall: 6 };
+export const CROWD_POSES = { stand: 0, walk: 1, rail: 2, sit: 3, kerb: 4, stumble: 5, wall: 6 };
 export const CROWD_ZONES = { skin: 0, cloak: 1, cloth: 2, legs: 3, boots: 4, hat: 5, accent: 6, hair: 7, lining: 8, belt: 9, cuff: 10 };
 export const CROWD_PARTS = { torso: 0, head: 1, thighL: 2, thighR: 3, shinL: 4, shinR: 5, armL: 6, armR: 7, foreL: 8, foreR: 9, cape: 10 };
 /** Joint pivots in figure space (metres, scale 1). */
@@ -56,7 +56,7 @@ export const CROWD_GLSL = /* glsl */ `
       || (variant == 3 && abs(headKind - 2.0) < 0.5) || (variant == 4 && headKind > 2.5)
       || (variant == 5 && headKind > 0.5) || (variant == 6 && capeShow > 0.01);
 
-    // stunned people freeze in time; everybody else lives on uTime
+    // a stumbling person is caught mid-flail (frozen in time); everybody else lives on uTime
     float tt = pose == 5 ? aReact.w : uTime;
     float ph = 6.2831853 * (aAnim.x + uTime * aAnim.y);
     float amp = clamp(aAnim.y / 0.85, 0.0, 1.3);
@@ -123,11 +123,11 @@ export const CROWD_GLSL = /* glsl */ `
         tilt = -0.06; hip = vec2(0.0, 0.32); knee = vec2(0.04, 0.75);
         shF = vec2(0.42); shA = vec2(0.12); elb = vec2(1.4); elbIn = vec2(0.95); root.x = 0.0; tR = 0.0;
       } else if (pose == 5) {
-        // stunned: frozen mid-flail, arms flung up, one knee raised, a little zapped jitter
+        // stumbling back from a shove: arms flung up, one knee raised, leaning back, wobbling
+        float wob = sin((uTime - aReact.w) * 9.0) * exp(-(uTime - aReact.w) * 2.0);
         hip = vec2(0.65, -0.05); knee = vec2(1.05, 0.05);
         shF = vec2(0.25, -0.15); shA = vec2(2.35, 2.55); elb = vec2(0.45, 0.25); elbIn = vec2(0.0);
-        tP = -0.14; tR = 0.12; hP = -0.22; hY = 0.25;
-        root = vec3(0.012 * sin(uTime * 61.0), 0.0, 0.0);
+        tP = -0.2 + 0.06 * wob; tR = 0.12 + 0.1 * wob; hP = -0.22; hY = 0.25;
       }
     }
     // startled: a little jump, arms flailing, head back

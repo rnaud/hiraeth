@@ -362,7 +362,8 @@ export class Player {
     this._climbCooldown = 0;
     this.wind = new THREE.Vector3(1.2, 0, 0.5);   // levels can set this (wind on the scarf)
     this.onStep = null;                            // (footPos, heading) for footprints
-    this.aim = null;                               // { k, point, dir } while aiming the tool (blaster.js)
+    this.aim = null;                               // { k, point, dir } while aiming the tool (fluid-tool.js)
+    this.onAirJump = null;                         // (secondsSinceLastPress) => true if the fluid tool boosted
     this._stepSide = 1;
     this._prevPhase = 0;
     this.char.jetpack.visible = this.opts.jetpack;
@@ -689,12 +690,18 @@ export class Player {
     tv.addScaledVector(_v1.copy(move).multiplyScalar(speed).sub(tv), a);
 
     // jump / glide
+    let jumped = false;
     if (input.Space && this.onGround && !this._jumpHeld) {
       vu = JUMP;
       this.onGround = false;
+      jumped = true;
     }
     const jumpedNow = input.Space && !this._jumpHeld;
     this._jumpHeld = !!input.Space;
+    // a fresh press in the air may be a fluid boost (fluid-tool.js decides; since = time since the last press)
+    const airPress = jumpedNow && !jumped && !this.onGround;
+    const sincePress = this.time - (this._pressAt ?? -Infinity);
+    if (jumpedNow) this._pressAt = this.time;
     vu -= GRAVITY * dt;
 
     // Jetpack: hold Space in the air (or keep holding after a jump) to thrust
@@ -727,6 +734,8 @@ export class Player {
       vu += (-sink - vu) * (1 - Math.exp(-3 * dt));
     } else this.glideTurn = 0;
     this.vel.copy(tv).addScaledVector(U, vu);
+    // boost: the tool spends a charge and sets the burst on this.vel; the wing reopens once you fall again
+    if (airPress && this.onAirJump?.(sincePress)) { this.gliding = false; this.thrusting = false; }
 
     // Swept collision: the frame's motion is split into sub-steps no longer
     // than half the capsule radius, each pushed out of walls and checked for
@@ -895,7 +904,7 @@ export class Player {
   }
 
   /**
-   * Aiming the tool (this.aim = { k, point, dir } from the Blaster): the body
+   * Aiming the tool (this.aim = { k, point, dir } from the fluid tool): the body
    * turns to the aim; walking sideways the legs lead by up to ~50° and the
    * chest twists back (Humanoid.aimAt).
    */
@@ -1530,7 +1539,7 @@ export class CameraRig {
     this._lastMouse = -1e9;
     this._now = 0;
     this._distBoost = 0;
-    this.aimK = 0;           // set by the Blaster while aiming (0..1)
+    this.aimK = 0;           // set by the fluid tool while aiming (0..1)
 
     dom.addEventListener('click', () => dom.requestPointerLock?.());
     dom.addEventListener('mousedown', () => (this._dragging = true));

@@ -274,8 +274,8 @@ export function createPerdide(scene) {
 
   return {
     id: 'perdide',
-    // the traveller's foam darts make a plant snap shut from afar
-    targets: plants.map((p) => ({ kind: 'plant', radius: 2.2, position: () => p.pos, onHit: (mode) => { p.snap = mode === 'dart' ? 2.5 : 0.8; return true; } })),
+    // a glob of the traveller's fluid makes a plant snap shut from afar (the push just rattles it)
+    targets: plants.map((p) => ({ kind: 'plant', radius: 2.2, position: () => p.pos, onHit: (mode) => { p.snap = mode === 'shoot' ? 2.5 : 0.8; return true; } })),
     ground: terrain,
     spawn: new THREE.Vector3(0, terrain.heightAt(0, 0), 0),
     spawnHeading: Math.PI,
