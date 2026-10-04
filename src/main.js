@@ -747,6 +747,25 @@ const controller = new Controller({
 for (const event of ['keydown', 'pointerdown', 'touchstart']) window.addEventListener(event, () => { controllerActive = false; });
 
 
+// People's eyes, brows and small gear (under 7 cm) cast no visible shadow but cost a draw call
+// in each of the three shadow passes (~60 a frame by a camp fire): they skip the shadow passes.
+let tinyCache = null;
+function tinyShadowCasters() {
+  if (tinyCache && tinyCache.n === npcs.length) return tinyCache.list;
+  const list = [], s = new THREE.Vector3();
+  for (const root of [player.object, ...npcs.map((n) => n.object)]) {
+    root?.updateMatrixWorld(true);
+    root?.traverse((o) => {
+      if (!o.isMesh || !o.geometry?.attributes?.position) return;
+      if (!o.geometry.boundingSphere) o.geometry.computeBoundingSphere();
+      const r = (o.geometry.boundingSphere?.radius ?? 1) * o.getWorldScale(s).x;
+      if (r < 0.07) list.push(o);
+    });
+  }
+  tinyCache = { n: npcs.length, list };
+  return list;
+}
+
 /** The whole pipeline for one view: shadows, G-buffer, composite, overlays. */
 const _subj = new THREE.Vector3(), _subjUp = new THREE.Vector3(0, 1, 0);
 function renderFrame() {
@@ -762,6 +781,8 @@ function renderFrame() {
   scene.overrideMaterial = shadowOverride;
   for (const o of level.noShadow ?? []) o.visible = false;
   for (const o of player.gear?.noShadow ?? []) o.visible = false;
+  const tinyOn = tinyShadowCasters().filter((o) => o.visible);
+  for (const o of tinyOn) o.visible = false;
   fineShadow.update(player.pos, lightDir);
   fineShadow.render(scene);
   // low detail: the near cascade every other frame (it follows you smoothly enough)
@@ -779,6 +800,7 @@ function renderFrame() {
   scene.overrideMaterial = null;
   for (const o of level.noShadow ?? []) o.visible = true;
   for (const o of player.gear?.noShadow ?? []) o.visible = true;
+  for (const o of tinyOn) o.visible = true;
 
   // 2. G-buffer (clearing to 0 marks sky pixels with depth 0)
   camera.updateMatrixWorld();
