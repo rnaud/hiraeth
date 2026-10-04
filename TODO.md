@@ -158,7 +158,7 @@ Grouped by area. Checked items are done; the changelog says when.
   large faces to test and refine them. (The giant faces are in `?level=lab`; the shader
   is still to do.)
 - [ ] Ragdoll when falling, or when pushing people with the gun.
-- [ ] Hologram of the parents: a true hologram, not a 2D drawn render.
+- [x] Hologram of the parents: a true hologram, not a 2D drawn render.
 - [x] Most animals are too small and hard to notice: make them bigger.
 
 ## Gift boxes
@@ -209,13 +209,13 @@ Grouped by area. Checked items are done; the changelog says when.
 
 - [ ] Fewer pure fetch quests: add more to each, like pushing something with the
   gun or lighting something, with a small puzzle.
-- [ ] Story: the hero listens to recordings of their parents made before they
+- [x] Story: the hero listens to recordings of their parents made before they
   died, and the parents weren't happy with them. The recordings don't always
   fit or react to what you do; the hero believes they relate to each planet.
   Over the game it becomes clear they're old, and that the hero is trying to make
   them proud after their death. Final scene: bring back all the collected items,
   tokens of having grown up, and place them on their tomb.
-- [ ] The hero always faces the recording when one starts.
+- [x] The hero always faces the recording when one starts.
 
 ## Testing
 

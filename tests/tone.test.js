@@ -10,7 +10,7 @@ const { CONTENT, ERRANDS } = await import('../src/levels/content.js');
 const crowd = await import('../src/crowd.js');
 const npc = await import('../src/npc.js');
 const { callLines, PROLOGUE_CALL, CALL_COUNT, ILEN_CALL } = await import('../src/story/calls.js');
-const { reactionLines, FATHER_HOME, NOTHING } = await import('../src/story/ending.js');
+const { tombLines, tokenList, TOKEN_ITEMS } = await import('../src/story/ending.js');
 
 const SRC = new URL('../src/', import.meta.url);
 const DATA = readdirSync(new URL('story/', SRC)).filter((f) => f.endsWith('-data.js'));
@@ -108,7 +108,7 @@ test('the story scripts’ own shouts and balloon lines are tagged (source scan)
   assert.deepEqual(bad, []);
 });
 
-test('every call home and every word at the door has a tone', () => {
+test('every recording and every word at the stone has a tone', () => {
   const flagsets = [
     {}, { 'clue.bazaar.home': true }, { 'calls.ilen.asked': true, 'calls.ilen.told': true }, { 'calls.ilen.told': true, 'calls.home': true },
     { 'desert.rumour.light': true, 'incal.rumour.light': true, 'arzach.rumour.light': true, 'arzach2.rumour.light': true, 'clue.edena.struck': true, 'clue.buried.mark': true, 'arzach2.bell.note': true, 'bird.promise': true, 'perdide2.promise': true },
@@ -119,9 +119,8 @@ test('every call home and every word at the door has a tone', () => {
   for (const flags of flagsets) for (const k of keepsakes) for (const n of [...Array.from({ length: CALL_COUNT }, (_, i) => i + 1), ILEN_CALL]) {
     lines.push(...callLines(n, { flag: (f) => flags[f], keepsake: k, keepsakes: k ? [k, k] : [], completed: ['desert', 'incal'], lastWorld: 'desert', worldTitle: 'The Desert' }));
   }
-  for (const k of [NOTHING, ...Object.keys(FATHER_HOME).map((kind) => ({ id: `y.${kind}`, name: `A ${kind}`, kind, text: '“A word.”' })), { id: 'bazaar.word', kind: 'word', name: 'Words' }]) {
-    for (const ctx of [{}, { ilen: true }, { ilen: true, ilenTold: true }]) lines.push(...reactionLines(k, ctx));
-  }
+  const tokens = tokenList([...['thing', 'song', 'word', 'person', 'knowing'].map((kind) => ({ id: `y.${kind}`, name: `A ${kind}`, kind, text: '“A word.”' })), { id: 'bazaar.word', kind: 'word', name: 'Words' }], TOKEN_ITEMS);
+  for (const ctx of [{}, { ilenTold: true }]) { lines.push(...tombLines(tokens, ctx)); lines.push(...tombLines([], ctx)); }
   assert.ok(lines.length > 400);
   assert.deepEqual([...UNTAGGED], [], 'every scripted line came with its tone');
   for (const l of lines) {

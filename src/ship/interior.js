@@ -18,6 +18,8 @@ export const CORE_R = 1.35, RING_R = 3.4;
 // how near the cockpit point counts as "at the console": the pilot's seat stands on the
 // way in (r 5.2-6.7), so walking straight at the dash stops about 1.7 m short of it
 export const CONSOLE_R = 2.3;
+/** How far out the recordings' projector stands on the dash (ship-local radius, m). */
+export const PROJECTOR_R = 7.95;
 export const ROOM = { bunk: 0, hall: HATCH_A, cockpit: PI, galley: PI * 1.5 };
 const rAt = (r, y) => Math.sqrt(Math.max(r * r - y * y, 0));
 const H = (h) => DECK + h;
@@ -255,7 +257,7 @@ export function buildInterior(batch, group, o = {}) {
     // buttons, dials and levers on the dash
     const cols = ['btnA', 'btnB', 'btnC'];
     for (let row = 0; row < 3; row++) for (let k = 0; k < 13; k++) {
-      if ((k * 5 + row * 3) % 7 === 0) continue;
+      if ((k * 5 + row * 3) % 7 === 0 || (k === 6 && row > 0)) continue;   // (the middle: the projector)
       const a = cA - 0.42 + (k / 12) * 0.84, p = polar(7.55 + row * 0.32, a, H(1.0));
       batch.add(cols[(k + row) % 3], box(0.09, 0.05, 0.09).rotateY(a).translate(p.x, p.y, p.z));
     }
@@ -277,6 +279,12 @@ export function buildInterior(batch, group, o = {}) {
     batch.add('blanket', new THREE.SphereGeometry(0.16, 12, 6, 0, PI * 2, 0, PI / 2).translate(cap.x, cap.y, cap.z));
     batch.add('blanket', box(0.18, 0.02, 0.14).rotateY(cA - 0.44).translate(...polar(7.35, cA - 0.44, H(1.02)).toArray()));
   }
+  // the recordings' projector in the middle of the dash: a dark drum, a brass rim, a lens
+  // (the parents rise over it as a hologram, src/ship/hologram.js)
+  const proj = polar(PROJECTOR_R, cA, H(1.0));
+  batch.add('dark', cyl(0.34, 0.3, 0.06, proj.x, proj.y, proj.z, 24));
+  batch.add('band', new THREE.TorusGeometry(0.3, 0.025, 6, 28).rotateX(PI / 2).translate(proj.x, proj.y + 0.06, proj.z));
+  batch.add('glowTeal', cyl(0.16, 0.16, 0.02, proj.x, proj.y + 0.06, proj.z, 20));
   // the pilot's seat
   const seat = placeAt(5.95, cA, DECK);
   {
@@ -286,14 +294,14 @@ export function buildInterior(batch, group, o = {}) {
     batch.add('cushion', S(box(0.72, 0.95, 0.16, 0, 0.55, -0.36).rotateX(-0.12)));
     for (const s of [-1, 1]) batch.add('dark', S(box(0.08, 0.08, 0.55, s * 0.4, 0.75, -0.02)));
   }
-  // the round screen hanging from the ceiling, for calls
-  const scr = { c: polar(7.05, cA, H(2.38)), tilt: 0.2 };
+  // the round screen hanging from the ceiling, up out of the hologram's way: the map, the reel's date stamp
+  const scr = { c: polar(7.05, cA, H(2.86)), tilt: 0.24, r: 0.48 };
   {
-    const top = polar(7.05, cA, H(3.1));
+    const top = polar(7.05, cA, H(3.3));
     batch.add('dark', box(0.08, CEIL - top.y, 0.08).translate(top.x, top.y, top.z));
-    const bez = new THREE.TorusGeometry(0.74, 0.08, 6, 32).rotateX(scr.tilt).rotateY(cA + PI).translate(scr.c.x, scr.c.y, scr.c.z);
+    const bez = new THREE.TorusGeometry(scr.r + 0.05, 0.07, 6, 32).rotateX(scr.tilt).rotateY(cA + PI).translate(scr.c.x, scr.c.y, scr.c.z);
     batch.add('dark', bez);
-    batch.add('dark', new THREE.CylinderGeometry(0.76, 0.76, 0.08, 32).rotateX(PI / 2 + scr.tilt).rotateY(cA + PI).translate(...scr.c.clone().add(polar(0.07, cA, 0)).toArray()));
+    batch.add('dark', new THREE.CylinderGeometry(scr.r + 0.07, scr.r + 0.07, 0.08, 32).rotateX(PI / 2 + scr.tilt).rotateY(cA + PI).translate(...scr.c.clone().add(polar(0.07, cA, 0)).toArray()));
   }
   const screenNormal = polar(-1, cA, 0).normalize().applyAxisAngle(new THREE.Vector3(Math.cos(cA), 0, -Math.sin(cA)), -scr.tilt);
   // the star chart on the side wall
@@ -339,7 +347,7 @@ export function buildInterior(batch, group, o = {}) {
 
   return {
     deco, guide, chevrons, lamps,
-    screen: { centre: scr.c, normal: screenNormal, radius: 0.68, tilt: scr.tilt, a: cA },
+    screen: { centre: scr.c, normal: screenNormal, radius: scr.r - 0.03, tilt: scr.tilt, a: cA },
     points: {
       wakeEye: bedPt(-0.72, 0.86, 0.05),
       wakeLook: bedPt(-0.4, 1.5, 0.0),
@@ -347,6 +355,7 @@ export function buildInterior(batch, group, o = {}) {
       bunkStandHeading: Math.atan2(-Math.sin(bunkA), -Math.cos(bunkA)),
       cockpit: polar(6.55, PI, DECK),
       cockpitHeading: PI,
+      projector: polar(PROJECTOR_R, cA, H(1.07)),   // where the recordings' hologram stands
       seat: new THREE.Vector3(0, 0.45, 0).applyMatrix4(seat),
       hatchIn: polar(8.1, HATCH_A, DECK),
       hatchHeading: HATCH_A,

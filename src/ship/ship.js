@@ -10,7 +10,8 @@ import { buildApproach } from './approach.js';
 import { Puffs } from './fx.js';
 import { Cinema, Warp } from './cinema.js';
 import { StarMap, consoleAction } from './starmap.js';
-import { pendingCall, completedWorlds, callLines, callContext, applyCall, ILEN_CALL } from '../story/calls.js';
+import { pendingCall, completedWorlds, callLines, callContext, applyCall, recordingLabel } from '../story/calls.js';
+import { Hologram } from './hologram.js';
 import { endingUnlocked, HOME_ID } from '../story/ending.js';
 import { HomecomingDirector } from './homecoming.js';
 import * as sfx from './sfx.js';
@@ -25,7 +26,8 @@ import { PrologueDirector, ArrivalDirector, TakeoffDirector, CallDirector, OBJEC
 //    dug into a dune at the end of its furrow.
 //  - Walk up the ramp and in: bunk room, ring corridor, galley, entry hall,
 //    cockpit. All of it collides (physics.addCollider).
-//  - E at the cockpit console: a waiting call home, else the galactic map
+//  - E at the cockpit console: a waiting recording (the parents on the reel, as a
+//    hologram over the dash: src/story/calls.js, src/ship/hologram.js), else the galactic map
 //    (locked until `ship.powered`). Choosing a world takes off and lands
 //    there (?level=<id>&via=ship).
 //  - E at the foot of the ramp walks you aboard; E in the entry hall walks
@@ -301,7 +303,9 @@ export class Ship {
   // ------------------------------------------------------------------ wiring
   /** The rest of the game, once it exists. */
   attach(deps) {
-    Object.assign(this, deps);   // player, rig, camera, sound, journal, post, story, wind, levels, order, titles, levelTitle
+    Object.assign(this, deps);   // player, rig, camera, sound, journal, post, story, wind, levels, order, titles, levelTitle, lib, humans
+    // the recordings' hologram: the game's own people, drawn in light (needs the bodies and the mocap library)
+    if (deps.lib && deps.humans && !this.holo) this.holo = new Hologram({ lib: deps.lib, humans: deps.humans });
     this.map = new StarMap({
       order: deps.order, levels: deps.levels, journal: deps.journal, current: this.levelId,
       flag: (k) => game.flag(k), powered: () => !!game.flag('ship.powered'),
@@ -468,8 +472,9 @@ export class Ship {
     const action = consoleAction({ powered: !!game.flag('ship.powered'), pendingCall: n });
     if (action === 'call') {
       const done = this.completed();
-      const lines = callLines(n, callContext(game, { titles: this.titles, completed: done, lastWorld: done.slice(-1)[0] }));
-      this.cinematic = new CallDirector(this, { n, lines, who: n === ILEN_CALL ? 'mother' : undefined,
+      const ctx = callContext(game, { titles: this.titles, completed: done, lastWorld: done.slice(-1)[0] });
+      const lines = callLines(n, ctx);
+      this.cinematic = new CallDirector(this, { n, lines, label: recordingLabel(n, ctx),
         onDone: () => { applyCall(game, lines); game.set(`calls.${n}`, true); game.emit('call', { n }); } });
       this.cinematic.start();
       return;
@@ -503,7 +508,7 @@ export class Ship {
     if (this.inside) {
       if (this.atConsole()) {
         const call = pendingCall({ flag: (k) => game.flag(k), completed: this.completed().length });
-        return call ? 'E answer the call home' : game.flag('ship.powered') ? 'E galactic map' : 'E console (no power)';
+        return call ? 'E play a recording' : game.flag('ship.powered') ? 'E galactic map' : 'E console (no power)';
       }
       if (this.atHatchInside()) return 'E step outside';
       return 'aboard the ship';
@@ -602,6 +607,7 @@ export class Ship {
       if (mob) mob.rotation.y += dt * 0.15;
       if (m.interior.guide.visible) m.interior.chevrons.forEach((g, i) => { g.scale.setScalar(0.8 + 0.35 * Math.max(0, Math.sin(t * 4 - i * 0.7))); });
     }
+    this.holo?.update(dt);
     this.map?.update();
     this.warp.update(dt);
     // smoke rising from the wreck until it has power again

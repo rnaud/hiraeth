@@ -10,7 +10,9 @@ import { polar } from '../src/ship/geo.js';
 import { CONSOLE_R } from '../src/ship/interior.js';
 import { findShipSite, siteAvoid, probeSite, SITE_OVERRIDES } from '../src/ship/sites.js';
 import { consoleAction, mapEntries, chartLayout, boxRect } from '../src/ship/starmap.js';
-import { pendingCall, callLines, completedWorlds, applyCall, CALL_COUNT, ILEN_CALL, PROLOGUE_CALL } from '../src/story/calls.js';
+import { pendingCall, callLines, completedWorlds, applyCall, CALL_COUNT, ILEN_CALL, PROLOGUE_CALL, AGE, REEL, recordingLabel, recordingSpan, onHologram } from '../src/story/calls.js';
+import { holoLayout, mouthOpen, HOLO } from '../src/ship/hologram.js';
+import { ENDING_WORLDS } from '../src/story/ending.js';
 import { Prologue, PROLOGUE_STAGES } from '../src/ship/prologue.js';
 import { LEVELS } from '../src/levels/index.js';
 import { CONTENT, ORDER } from '../src/levels/content.js';
@@ -221,7 +223,7 @@ test('the galactic map spaces its worlds so no two discs or names overlap, in ev
   assert.equal(chartLayout(ORDER.length, ...fields.handheld).kind, 'snake', 'a handheld gets rows');
 });
 
-test('calls home: one per completed world, each heard once, the mother from the third', () => {
+test('recordings: one per completed world, each heard once, the mother from the third', () => {
   const store = new Map();
   const game = new GameState({ getItem: (k) => store.get(k) ?? null, setItem: (k, val) => store.set(k, val) });
   const flag = (k) => game.flag(k);
@@ -248,7 +250,7 @@ test('calls home: one per completed world, each heard once, the mother from the 
     assert.ok(lines.length >= 3, `call ${n} has lines`);
     assert.equal(lines.some((l) => l.who === 'mother'), n >= 3, `call ${n}: the mother ${n >= 3 ? 'joins' : 'is silent'}`);
   }
-  assert.ok(callLines(1, { keepsake: { name: 'A gear tooth', kind: 'thing' } }).some((l) => l.text.includes('A gear tooth')), 'the keepsake is named');
+  assert.ok(callLines(1, { keepsake: { name: 'A gear tooth', kind: 'thing' } }).some((l) => l.who === 'you' && l.text.includes('a gear tooth')), 'he holds the keepsake up to them');
   assert.ok(callLines(2, { keepsake: { name: 'x', kind: 'song' } }).some((l) => /song/i.test(l.text)), 'he reacts to a song');
   assert.ok(callLines(3, { keepsake: { name: 'x', kind: 'person' } }).some((l) => l.who === 'mother' && /Who/.test(l.text)), 'she asks who you met');
   assert.ok(PROLOGUE_CALL.some((l) => l.text === 'My son, make us proud. Bring back something of value.'));
@@ -258,11 +260,84 @@ test('calls home: one per completed world, each heard once, the mother from the 
   assert.equal(pendingCall({ flag: (k) => flags[k], completed: 0 }), null);
   flags['ship.level'] = 'edena';
   assert.equal(pendingCall({ flag: (k) => flags[k], completed: 0 }), ILEN_CALL);
-  assert.ok(callLines(ILEN_CALL, { flag: (k) => flags[k] }).every((l) => l.who === 'mother'), 'her call is hers alone');
+  assert.ok(callLines(ILEN_CALL, { flag: (k) => flags[k] }).filter((l) => l.who === 'father' || l.who === 'mother').every((l) => l.who === 'mother'), 'her recording is hers alone');
   // what a call carries is set once it is heard
   const g2 = new GameState({ getItem: () => null, setItem: () => {} });
   applyCall(g2, callLines(6, { keepsake: { name: 'x', kind: 'song' }, flag: () => undefined }));
   assert.equal(g2.flag('calls.home'), true, 'the sixth call asks you home');
+});
+
+test('the recordings are old, and it shows a little more each time; they never answer him', () => {
+  const flag = () => undefined;
+  const at = (n) => callLines(n, { flag, completed: ['desert'], lastWorld: 'desert', keepsake: { id: 'x', name: 'A thing', kind: 'thing' } });
+  // each one: he asks the reel for the world's word, it finds one, it plays
+  for (let n = 1; n < ENDING_WORLDS; n++) {
+    const L = at(n);
+    assert.ok(L.some((l) => l.who === 'you' && l.text.includes(`anything about ${REEL.desert.word}`)), `${n}: he asks the reel for water`);
+    assert.ok(L.some((l) => l.who === 'father' && l.text === REEL.desert.find.replace(/^~\w+~ /, '')), `${n}: the line it finds`);
+    assert.ok(recordingSpan(L), `${n}: the parents are on it`);
+    assert.ok(!L.some((l) => /\bcall\b/i.test(l.text) && l.who === 'ship'), `${n}: nobody calls`);
+  }
+  // no date at first; then a worn stamp; then years
+  assert.equal(recordingLabel(1), '');
+  assert.match(recordingLabel(2), /WORN/);
+  for (const n of [3, 4, 5]) assert.match(recordingLabel(n), /YEARS AGO/);
+  assert.ok(!at(1).some((l) => /years ago/i.test(l.text)), 'the first says nothing about when');
+  assert.ok(at(3).some((l) => l.who === 'scene' && /child’s voice/.test(l.text) && /your voice/.test(l.text)), 'his own voice behind them, a child');
+  assert.ok(at(3).some((l) => l.who === 'ship' && /nineteen years ago/.test(l.text)), 'the ship logs the date');
+  assert.ok(at(4).some((l) => /tape is worn/.test(l.text)), 'a worn tape');
+  assert.ok(at(5).some((l) => l.who === 'mother' && /one day you will/.test(l.text)));
+  const last = at(ENDING_WORLDS);
+  assert.ok(last.some((l) => l.who === 'ship' && /last recording on the reel/.test(l.text) && /house went quiet/.test(l.text)), 'the last one, before the house went quiet');
+  assert.equal(recordingLabel(ENDING_WORLDS), 'THE LAST RECORDING');
+  // who stands on the hologram
+  assert.equal(onHologram('prologue'), 'father');
+  assert.equal(onHologram(1), 'father');
+  assert.equal(onHologram(3), 'both');
+  assert.equal(onHologram(ILEN_CALL), 'mother');
+  assert.ok(Object.keys(AGE).length === ENDING_WORLDS - 1);
+  // the prologue's is a recording too
+  assert.ok(PROLOGUE_CALL[0].who === 'ship' && /reel/.test(PROLOGUE_CALL[0].text));
+});
+
+test('the hologram: who stands where, and a mouth that only moves while they speak', () => {
+  assert.deepEqual(holoLayout('father').map((f) => f.id), ['father']);
+  assert.deepEqual(holoLayout('both').map((f) => f.id), ['father', 'mother']);
+  assert.deepEqual(holoLayout('three').map((f) => f.id), ['father', 'child', 'mother']);
+  const both = holoLayout('both');
+  assert.ok(both[0].x < 0 && both[1].x > 0, 'side by side');
+  assert.equal(mouthOpen(1.3, false), 0);
+  let open = 0;
+  for (let t = 0; t < 3; t += 0.05) { const m = mouthOpen(t, true); assert.ok(m >= 0 && m <= 1); open = Math.max(open, m); }
+  assert.ok(open > 0.6, 'it opens');
+  assert.equal(HOLO.live(), false, 'nothing drawn until a recording plays');
+});
+
+test('a recording at the console: the traveller faces the projector, the camera behind him', async () => {
+  const { CallDirector, callShot } = await import('../src/ship/cinematics.js');
+  const scene = new THREE.Scene();
+  scene.add(new THREE.Mesh(new THREE.PlaneGeometry(400, 400).rotateX(-Math.PI / 2)));
+  const physics = new Physics(scene);
+  const level = { spawn: v(0, 0, 60), ground: { heightAt: () => 0 }, lights: [], shipSite: { x: 0, z: 0, heading: 1.1 } };
+  const ship = quiet(() => new Ship({ scene, physics, level, levelId: 'test', content: { npcs: [], relics: { spots: [] } } }));
+  ship.player = new Player(physics);
+  ship.sound = {};
+  ship.rig = { yaw: 0, pitch: 0.2, indoor: false, indoorK: 0, target: v() };
+  ship.player.heading = 2.5;   // looking anywhere else
+  const lines = callLines(3, { flag: () => undefined, completed: ['desert'], lastWorld: 'desert' });
+  const dir = new CallDirector(ship, { n: 3, lines, label: recordingLabel(3) });
+  ship.cinematic = dir;
+  dir.start();
+  dir.update(1 / 30, false);
+  const m = ship.parked, P = ship.player;
+  const proj = ship.world(m, m.interior.points.projector);
+  const toProj = Math.atan2(proj.x - P.pos.x, proj.z - P.pos.z);
+  const off = Math.atan2(Math.sin(P.heading - toProj), Math.cos(P.heading - toProj));
+  assert.ok(Math.abs(off) < 0.25, `he faces the recording (${off.toFixed(2)} rad off)`);
+  const shot = callShot(ship, m, 0);
+  const camToHim = P.pos.clone().sub(shot.pos).setY(0).normalize(), facing = v(Math.sin(P.heading), 0, Math.cos(P.heading));
+  assert.ok(camToHim.dot(facing) > 0.5, 'the camera is behind him, looking the way he looks');
+  assert.ok(shot.pos.distanceTo(proj) > P.pos.distanceTo(proj), 'he stands between the camera and the hologram');
 });
 
 test('the prologue plays through to the end and sets prologue.done', () => {

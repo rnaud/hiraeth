@@ -3,14 +3,14 @@ import { game } from '../game-state.js';
 import { polar } from './geo.js';
 import { R, DECK, HATCH_A } from './hull.js';
 import { CONSOLE_R } from './interior.js';
-import { PROLOGUE_CALL } from '../story/calls.js';
+import { PROLOGUE_CALL, recordingSpan, onHologram, recordingLabel } from '../story/calls.js';
 import { callTimeline } from './prologue.js';
 import * as sfx from './sfx.js';
 import { exhaust, footPuffs } from './exhaust.js';
 
 // What the ship's cinematics look like: cameras, the moving ship, dust,
 // sounds, subtitles. The prologue's timing lives in prologue.js; the
-// shorter scenes (a call home, arriving, taking off) are Sequences here.
+// shorter scenes (a recording at the console, arriving, taking off) are Sequences here.
 
 export const OBJECTIVE = 'Find a new source of power.';
 /** A new game steps out without the backpack: it waits in a makers' box in Qanat, under the smoke (src/boxes/, the desert's first stage). */
@@ -24,23 +24,46 @@ const SAND = ['#e3c58f', '#d8b884', '#efd29b', '#cfa877'];
 const FIRE = ['#ffd27a', '#ff9a4a', '#f2c54b', '#e6503a'];
 const pickOf = (a) => a[Math.floor(Math.random() * a.length)];
 
-/** The over-the-shoulder view of the call screen, in ship-local space. */
-function callShot(ship, model, t = 0) {
-  const sc = model.interior.screen.centre;
-  const push = Math.min(t * 0.04, 0.35);
+/** The hologram's size over the projector (1: life size). */
+export const HOLO_SCALE = 0.6;
+
+/**
+ * The view while a recording plays, in ship-local space: from behind the traveller's right
+ * shoulder, so he stands at the left of the frame facing the recording, the hologram over the
+ * dash in front of him and the screen with its date stamp above it.
+ */
+export function callShot(ship, model, t = 0) {
+  const p = model.interior.points.projector ?? polar(7.95, Math.PI, DECK + 1.07);
+  const push = Math.min(t * 0.03, 0.3);
   return {
-    pos: ship.world(model, V(1.35, DECK + 1.9, -4.45 - push)),
-    look: ship.world(model, V(0.2, DECK + 2.25, sc.z)),
-    fov: 50,
+    pos: ship.world(model, V(1.3, DECK + 1.95, -4.8 - push)),
+    look: ship.world(model, V(p.x - 0.12, DECK + 1.82, p.z)),
+    fov: 48,
   };
 }
 
-/** Lines on a timeline: subtitles and the speaking mouth. */
-function playLines(ship, model, timeline, t, { both = false, who = both ? 'both' : 'father' } = {}) {
+/** Facing the recording: the traveller turned to the console (ship-local heading PI). */
+export function faceRecording(ship, model) {
+  ship.player.heading = ship.worldHeading(model, Math.PI);
+}
+
+/**
+ * Lines on a timeline: subtitles, the screen (the reel turning, its date stamp), and the
+ * hologram, which rises just before the first of the parents' lines and folds away after the
+ * last (`st`: { span: recordingSpan(lines), who, label }, plus what has happened).
+ */
+function playLines(ship, model, timeline, t, st = {}) {
   const cur = timeline.lines.find((l) => t >= l.t0 && t < l.t1) ?? null;
   if (cur !== ship._line) { ship._line = cur; ship.cinema.say(cur ? cur.line : null); }
-  const talk = cur && t < cur.t0 + (cur.t1 - cur.t0) * 0.9 ? 1 : 0;
-  model.callScreen?.set({ who, talk, speaker: cur?.line.who ?? 'father' });
+  const who = cur?.line.who;
+  const talking = !!cur && t < cur.t0 + (cur.t1 - cur.t0) * 0.9 && (who === 'father' || who === 'mother');
+  model.callScreen?.set({ who: 'tape', talk: talking ? 1 : 0, speaker: who ?? 'father', label: st.label ?? '' });
+  const H = ship.holo, span = st.span;
+  if (!H || !span) return;
+  const t0 = timeline.lines[span[0]].t0 - 0.9, t1 = timeline.lines[span[1]].t1 + 0.15;
+  if (!st.shown && t >= t0 && t < t1) { st.shown = true; H.show({ parent: model.group, at: model.interior.points.projector, scale: HOLO_SCALE, who: st.who ?? 'father' }); }
+  if (st.shown && !st.folded && t >= t1 && !timeline.lines[span[1]].line.cut) { st.folded = true; H.hide(); }
+  H.speak(talking ? who : null);
 }
 
 // ---------------------------------------------------------------------------
@@ -52,6 +75,7 @@ export class PrologueDirector {
     this.sp = ship.spaceCopy.model;
     this.pk = ship.parked;
     this.call = callTimeline(PROLOGUE_CALL);
+    this.rec = { span: recordingSpan(PROLOGUE_CALL), who: onHologram('prologue'), label: recordingLabel('prologue') };
     const c = ship.site.crash;
     this.T = V(Math.sin(c.travel), 0, Math.cos(c.travel));
     this.N = V(this.T.z, 0, -this.T.x);
@@ -98,8 +122,8 @@ export class PrologueDirector {
         C.hint(null); C.controls(false);
         sp.interior.guide.visible = false;
         s.auto = null;
-        s.placePlayer(this.W(this.pt('cockpit')), s.worldHeading(sp, Math.PI), true);
-        sp.callScreen?.set({ who: 'father', statik: 1 });
+        s.placePlayer(this.W(this.pt('cockpit')), s.worldHeading(sp, Math.PI), true);   // facing the recording
+        sp.callScreen?.set({ who: 'tape', statik: 1, label: this.rec.label });
         break;
       }
       case 'impact':
@@ -107,6 +131,7 @@ export class PrologueDirector {
         s.shake(2.2);
         s.setPower('alarm', sp);
         sp.callScreen?.set({ statik: 1, crack: 1, talk: 0 });
+        s.holo?.speak(null); s.holo?.glitch(1);   // the picture tears apart
         C.say({ who: 'ship', text: 'Impact. Hull breach.' });
         C.fade(1, true, 0); setTimeout(() => C.fade(0, true, 0.35), 60);
         break;
@@ -115,6 +140,7 @@ export class PrologueDirector {
         break;
       case 'streak':
         C.say(null); C.red(0);
+        s.holo?.clear();
         sfx.alarm(s.sound, 0); sfx.hum(s.sound, 0); sfx.roar(s.sound, 4.8);
         s.removeSpaceCopy();
         // the player waits, hidden, inside the parked ship; the ship itself flies in
@@ -172,7 +198,7 @@ export class PrologueDirector {
           // eyes: half open, a blink, then open
           const k = t < 0.6 ? 0 : t < 1.6 ? 0.35 * smooth(seg(t, 0.6, 1.6)) : t < 2.1 ? 0.35 - 0.3 * smooth(seg(t, 1.6, 2.0)) : 0.05 + 0.95 * smooth(seg(t, 2.3, 3.6));
           C.eyelids(k);
-          if (t > 3.9 && !this.said) { this.said = true; sfx.ring(s.sound); C.say({ who: 'ship', text: 'Good morning. A call from home is waiting in the cockpit.' }); }
+          if (t > 3.9 && !this.said) { this.said = true; sfx.ring(s.sound); C.say({ who: 'ship', text: 'Good morning. The reel is cued in the cockpit, where you left it.' }); }
         }
         break;
       }
@@ -191,7 +217,7 @@ export class PrologueDirector {
         if (!this.risen) s.shot({ pos: this.W(this.pt('wakeEye')), look: this.W(this.pt('wakeLook')), fov: 62 });
         break;
       case 'walk': {
-        // the call rings on, the lights on the floor point the way; you go when you like
+        // the console chimes on, the lights on the floor point the way; you go when you like
         // (the ship never walks you there itself)
         if ((this.ringT -= dt) <= 0) { this.ringT = 3.2; sfx.ring(s.sound); }
         break;
@@ -199,8 +225,8 @@ export class PrologueDirector {
       case 'call':
         s.shot(callShot(s, sp, t));
         sp.callScreen?.set({ statik: Math.max(0, 1 - t / 0.8) });
-        playLines(s, sp, this.call, t);
-        s.player.heading = s.worldHeading(sp, Math.PI);
+        playLines(s, sp, this.call, t, this.rec);
+        faceRecording(s, sp);
         break;
       case 'impact': {
         // a hand-held view of the cockpit, the red light pulsing, the planet starting to swing
@@ -209,6 +235,7 @@ export class PrologueDirector {
         C.red(0.55 + 0.35 * Math.sin(t * 6.5));
         if (Math.random() < dt * 2.2) s.shake(0.8);
         if (t > 2.4 && !this.said2) { this.said2 = true; C.say({ who: 'ship', text: 'Main power lost.' }); }
+        if (t > 0.5 && !this.torn) { this.torn = true; s.holo?.hide(); }
         this.s.spaceCopy && (this.s.spaceCopy.space.rotation.x = 0.14 * k);
         // the core and the lamps stutter
         sp.mats.core.uniforms.uGlow.value = Math.random() < 0.5 ? 0 : 0.6 * (1 - k);
@@ -309,6 +336,7 @@ export class PrologueDirector {
 
   finish(skipped) {
     const s = this.s, C = s.cinema, pk = this.pk;
+    s.holo?.clear();
     if (skipped) {
       C.clear();
       s.auto = null;
@@ -369,39 +397,42 @@ class Sequence {
   }
 }
 
-/** A call home at the console. */
+/** A recording at the console: the traveller faces the projector, the parents rise over it. */
 export class CallDirector extends Sequence {
-  constructor(ship, { n, lines, onDone, who: onScreen }) {
-    const m = ship.parked, who = onScreen ?? (n >= 3 ? 'both' : 'father');
+  constructor(ship, { n, lines, onDone, who, label = '' }) {
+    const m = ship.parked;
     const tl = callTimeline(lines);
     const C = ship.cinema;
+    const st = { span: recordingSpan(lines), who: who ?? onHologram(n), label };
     super(ship, [
       {
         dur: tl.total + 0.6,
         enter: () => {
           C.hud(false); C.bars(true);
-          ship.placePlayer(ship.world(m, m.interior.points.cockpit), ship.worldHeading(m, Math.PI), true);
-          m.callScreen?.set({ who, statik: 1 });
-          sfx.ring(ship.sound);
+          ship.placePlayer(ship.world(m, m.interior.points.cockpit), ship.worldHeading(m, Math.PI), true);   // facing the recording
+          m.callScreen?.set({ who: 'tape', statik: 1, label });
+          sfx.beep(ship.sound, true);
         },
         frame: (t) => {
           ship.shot(callShot(ship, m, t));
           m.callScreen?.set({ statik: Math.max(0, 1 - t / 0.8) });
-          playLines(ship, m, tl, t, { who });
-          ship.player.heading = ship.worldHeading(m, Math.PI);
+          playLines(ship, m, tl, t, st);
+          faceRecording(ship, m);
         },
       },
     ], {
-      onFinish: () => {
+      onFinish: (skipped) => {
         C.say(null); C.bars(false); C.hud(true);
         ship._line = null;
-        m.callScreen?.set({ who: 'idle', talk: 0, statik: 0 });
+        if (skipped) ship.holo?.clear(); else ship.holo?.hide();
+        m.callScreen?.set({ who: 'idle', talk: 0, statik: 0, label: '' });
         sfx.staticBurst(ship.sound, 0.4);
         ship.rig.yaw = ship.player.heading + Math.PI;
         ship.release(0.8);
         onDone?.();
       },
     });
+    this.rec = st;
   }
 }
 

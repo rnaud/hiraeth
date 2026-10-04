@@ -13,6 +13,9 @@ The same release notes shown in the game (press **N** or open settings).
 - Five save slots: each shows its world, how far you’ve come, the time played and when you last played. Start a new game in an empty slot, or delete a save after a confirmation. Your current progress is kept in the first slot.
 - Start and Select now open full-screen menus that pause the game, with their own calm music over the hushed world. Quit to title is in the Start menu, and restarting from the prologue only starts over the save you’re playing.
 - Places to go, the next thing to do and the hints that solve a puzzle now stand out in colour in conversations, in every world, far more often than before. Speech balloons show these highlights too, instead of stray stars.
+- There are no calls home any more: after each world you play an old recording of your parents at the cockpit console, and they appear in front of you as a hologram over the dash. You always face them as it plays.
+- The recordings don’t always fit where you’ve been, and little by little they show how old they are: date stamps, a worn tape, a child’s voice in the background.
+- Home is different now: the house is quiet, and in the yard is your parents’ stone. You set everything you collected on it, one piece at a time, before one last recording plays. The ending closes with an end card and credits that list what you left on the stone.
 - In the Garden of Spheres every great sphere rings its own note when you shoot it, bigger ones lower. Splash the three that remember to wake them, then splash the pole on the plaza and it plays them back as a little tune.
 - When the great wheel in the Buried Machine turns, the sand slides off it into a long hollow, and it keeps on turning.
 - The jets no longer push you out through the floor of the Sealed Hangar’s ring. If you ever get caught outside it, or wedged in mid-air anywhere, you’re put back where you last stood.

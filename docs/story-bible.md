@@ -57,10 +57,14 @@ sun, the buried machine's oil-light) can add a colour band. By the end the
 tank holds the colours of every world: the tool itself becomes a record of the
 journey.
 
-**Calls home** (src/story/calls.js) track the arc. The father starts warm and
-exacting, and grows terser when keepsakes are quiet ones. The mother joins from
-the third call and asks different questions ("Who did you meet?"). The last
-call depends on the player's choice.
+**The recordings** (src/story/calls.js; the full arc is the section "The
+recordings" below). There are no calls home. The traveller plays old
+recordings of the parents, one after each world, on the cockpit console, and
+hopes each one has something to do with where he has just been. They don't
+answer him. Over the game it comes out that they are very old, that the
+parents were not happy with him when they made them, and, at the end, that the
+parents are dead: the journey is a son trying to make them proud after the
+fact.
 
 **The translator.** Nobody out there speaks the traveller's language. The
 traveller wears a small translator at the ear, a thing from home, so they
@@ -69,12 +73,12 @@ own words. In the dialogue panel the last few letters still show in the
 speaker's script as they come in, and a small tag on the panel's edge says
 "translating · Qanati" (or Shaft cant, Lorn burble…). It is diegetic and
 light-touch:
-- the father mentions it in the prologue call ("Keep the translator at your
-  ear. Nobody out there talks like us…");
+- the father mentions it in the prologue's recording, made the day the traveller
+  left ("Keep the translator at your ear. Nobody out there talks like us…");
 - Nour notices it ("I hear you, child: clicks and hums, like a pot coming to
   the boil. Then that little thing at your ear hums back at me…");
-- at home it says nothing: the parents speak the home tongue, warm and
-  familiar, and the tag stays hidden.
+- on the recordings and at home it says nothing: the parents speak the home
+  tongue, warm and familiar, and the tag stays hidden.
 
 Each world's tongue (src/story/voice.js `LANGUAGES`) has its own sound:
 - the desert is breathy and low;
@@ -252,24 +256,103 @@ the settings.
 - **Keepsake**: *word*: the broadcast's message.
 - **Clue**: the broadcast was sent from the traveller's home system.
 
+## The recordings (built: src/story/calls.js, src/ship/hologram.js)
+
+**What is true, and is only said at the very end.** The traveller's mother and
+father are dead. He left home at seventeen, after one fight too many, with his
+father's words at the port ("make us proud, bring back something of value"),
+and he did not come back while they were alive. They died two years ago,
+within a season of each other. What is left of them is **the reel**: the old
+house recorder's spool, every message they ever left him on it over twenty-odd
+years, reminders and scoldings, birthdays, nights he did not come home, and
+the ones made after he had gone. Most of them are not happy with him. He took
+the reel and his father's old ship (the flight cap on the dash, the drawings
+under the bunk, three stools in the galley) and went out to do, at last, the
+thing he was asked: bring back something of value. After every world he plays
+a recording, and hopes it is about where he has been.
+
+**How it plays.** At the console, E plays a recording (`calls.<n>`, one waiting
+after each finished world, as the calls were). The traveller asks the reel for
+a word that belongs to the world just finished (the desert: *water*; the
+City-Shaft: *looking up*; Vael: *quiet*; Vael II: *bell*; the Hangar: *why*;
+the Buried Machine: *patience*; Viridel: *garden*; the spheres: *remember*;
+Lorn: *rain*; Lorn II: *lamp*; the Signal Market: *listening*). The ship finds
+one match and plays it: the parents rise over the projector on the dash as a
+hologram, as they were when they made it, and the traveller stands facing them.
+The recording fits loosely, sometimes oddly (he asks for water and gets his
+father telling him to turn the tap off; he asks for patience and hears "one
+tooth at a time, your grandfather said"). It never answers him. His own lines
+are short: a hope that it fits ("He means the water. He must."), later an
+answer the recording cannot hear (he says the names of the people he met
+when his mother asks "who did you meet today?"; he holds the keepsake up to
+the light, where they would see it).
+
+**The recordings are old, and it shows a little more each time** (keyed to n,
+the recordings heard, whatever the order of the worlds):
+1. The prologue: "The reel is cued in the cockpit, where you left it." The
+   father's speech the day he left; the player takes it for a call from home.
+   The impact tears the hologram apart.
+2. The first one after a world: no date; the father is short with him.
+3. The father mentions things that cannot be now (exams, the fence, the Orrin
+   boy). The screen shows a worn date stamp.
+4. The mother joins. A child's voice behind them: "Is that for me?" It is the
+   traveller's. The ship: "Logged nineteen years ago."
+5. The tape is wearing: a word is lost. "When you are older you will
+   understand." The traveller: "I know what it says. I just want to hear it."
+6. The mother alone at the end of one: "Your father says I shouldn't make
+   these. He says you never listen to them. I think one day you will."
+7. (After `ENDING_WORLDS` worlds) the last recording on the reel: both of them,
+   "Come home." The ship: "That was the last recording on the reel. Logged two
+   years ago, eleven days before the house went quiet." Home is on the map.
+
+Before that, a few recordings answer what happened in a way the traveller
+cannot explain (each once, flags `calls.beat.<id>`): the father warning him
+off "anything singing out there" (after the singing light); the harbour bell
+behind them (after Vael II's bell); "ships get struck out there, that's all it
+is" (after Odile and Talo's ship); the three dots he drew on the landing ring
+as a boy (after the glyph); a bird's promise in a child's story; the lamp the
+mother leaves in the round window. The keepsake kinds still matter: whichever
+he brings, the recording happens to hold what his father once said about such
+things (a song: "nobody ever fuelled a ship with a song"; words: "you always
+have words, show me something"), and once he has heard about Ilen, what the
+father said later, sorrier.
+
+**Ilen.** The Signal Market's broadcast is the father's voice, years younger,
+to a child called Ilen. Afterwards the traveller asks the reel for the name
+(`calls.ilen.asked`). There is one recording, in the mother's voice, labelled
+"For when he asks." He is not ready: "Not here. Not yet." Once the ship has
+flown on, it is waiting (`calls.ilen`, `calls.ilen.told`): she made it knowing
+he would hear the broadcast one day. Ilen was his elder sister, grown and gone
+before he was born, sent out with the same words; she never came home; the
+father sent that message after her every night for a year; the last thing that
+came back from her ship was a sound like singing. "He isn't asking you for
+something of value. He never was." After that the next recording he finds is
+the father saying it himself: "I said the same words to you at the port that I
+said to her."
+
+**After the ending** the reel plays its oldest side, from when he was small;
+they are happier, and he sometimes answers them.
+
 ## The ending (built: src/story/ending.js, src/ship/homecoming.js, src/levels/home.js)
-After six worlds (`ENDING_WORLDS`), the call home that follows asks the
-traveller to come home, and the galactic map shows **Home** just under its
-centre. Choosing it flies there. Out of the jump, in orbit, the ship asks for a
-cargo check: the traveller chooses one keepsake to bring home (every keepsake,
-with its words and kind, or **nothing**). The ship lands on the ring by a small
-round house on a small round hill at dusk (a cream dome with a lamp in its
-round window, an umbrella tree, a washing line in the backpack's colours, two
-moons). The parents wait at the door. The father's words depend on the kind
-(a thing: "It is lighter than I thought it would be"; a song: he keeps the
-beat; words: "Then they saw you properly"; a person: "So were we"; a knowing:
-"Explain it again tomorrow"; nothing: "the only thing I ever wanted back", or,
-if you know about Ilen, "what I told Ilen to bring, in the end"). The mother's
-are always the same, about the traveller. A closing line ("Something of value.
-You brought it home on your own two feet."), then the credits: a paper page of
-the worlds and their people (the ones you met in ink, the others in pencil).
-`ending.keepsake` keeps the choice; the game goes on, and calls home after that
-are calls from home.
+After `ENDING_WORLDS` (6) worlds, the last recording asks the traveller home
+and the galactic map shows **Home** just under its centre ("Nobody lives there
+now. There is a stone on the hill."). Choosing it flies there. Out of the jump
+the ship reads out the hold: every keepsake and every one of the makers' small
+gifts (the charms, the lenses, the star; not the backpack and its wings and
+jets, which he wears) goes down with him. The ship lands on the ring by the
+small round house at dusk: the lamp in the round window is dark, the door is
+shut. He walks past the door to the **stone** in the front yard, a round-topped
+headstone over a low slab with two rings carved on it, overlapping like the
+two moons. He sets the tokens on the slab one by one, each with a short line
+of what it was ("Teo's walking rhythm. You can hum it now without thinking.";
+for words, the words). Last he sets the reel down, and it plays by itself the
+one recording he never searched for, the oldest: the parents young, a small
+child between them waving at the recorder. "You don't have to bring us
+anything. We are proud of you already." He says goodbye. The closing line
+("Something of value. You brought it home on your own two feet."), an end
+card, then the credits: the worlds and their people, and what he left on the
+stone. Flags: `ending.done`; `ending.keepsake` is `all` (saves that chose one
+keepsake before keep theirs). The stone keeps its tokens when you come back.
 
 ## Local names (as built)
 | World | The glyph | The singing light | The makers' boxes |
@@ -304,16 +387,12 @@ younger, speaking to a child called Ilen, with the same words he said to his
 own son. Sel offers two readings: he once had someone else to call home, or he
 lent his voice to another family through the old relays.
 
-**Ilen (as built, src/story/calls.js).** The first reading, made plain: Ilen was
-the traveller's elder sister, grown and gone before the traveller was born. She
+**Ilen (as built, src/story/calls.js).** The first reading, made plain, by
+the mother's own recording "For when he asks" (see "The recordings" above):
+Ilen was the traveller's elder sister, grown and gone before he was born. She
 went out the same way; at the port the father told her to make them proud and
 bring back something of value. She never came home, and nobody found out why.
 The broadcast is the message he sent after her every night for a year, until
-the mother asked him to stop. The call after the broadcast, the traveller says
-the name and the father deflects (relays cross voices). Once the ship has flown
-on, the mother calls on her own and tells the truth. The last thing that came
-back from Ilen's ship was not a voice but a sound like singing: the parents
-have heard the singing light too, and the father will not talk about it. After
-that he says it himself ("I said the same words to you at the port that I said
-to her"), and stops weighing what you bring.
-
+the mother asked him to stop. The last thing that came back from Ilen's ship
+was not a voice but a sound like singing: the parents heard the singing light
+too. At the stone, the traveller leaves the last token for her.
