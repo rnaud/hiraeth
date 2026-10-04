@@ -1444,13 +1444,35 @@ Pocket. Their built-in controls work through the Gamepad API.
   `?level=<id>` (the ship's arrivals, the dev shortcut), `?prologue=1`, `?ending=1`, and
   `?start` (a save started over from the Start menu; the URL is cleaned so a reload goes
   back to the title). Quit to title is just a load of the bare page.
-- **Title screen**: the name in comic lettering over a drawn landscape (SVG, a little CSS
-  motion: clouds, the planet, the traveller's cape), then Continue (the slot played last),
+- **Title screen**: the name in comic lettering over a live view of the land above the
+  clouds (below), then Continue (the slot played last),
   Saves, Settings (the same settings, `SettingsMenu({ el, title: true })`) and, in a desktop
   browser, Full screen. Keyboard (arrows / WASD, Enter, Esc, Delete), mouse and touch, and a
   controller through `Controller` + `menuNavigate` (the save list moves by rows, left /
   right reaches a save's Delete). It imports nothing that loads the game state, and marks
   the Android boot heartbeat (`markBooted`) once it is up. Styles: `src/menus.css`.
+- **The title's vista** (`src/title-vista.js`): a golden-hour view over a sea of cloud, drawn
+  by the game's own pipeline (G-buffer materials, the ink pass of `post.js` in the 'Moebius
+  print' style, the sky with two pale moons). Mushroom tables, needle spires, balanced stacks
+  and bobbing floating stones from the Sky Stones' rock builders (`src/levels/sky-stones-kit.js`,
+  shared with `arzach2.js`) stand to either side of the menu, rose mesas close the horizon, a
+  few birds circle (`life.js` Flock). The camera (`vistaCamera(t)`, pure) sweeps slowly round
+  the great table and back every 4 minutes, high over the cloud, the sun to one side.
+  - *Boot*: the menu shows at once over a CSS sky gradient; the module is imported after the
+    menu has painted, builds in small steps (`buildVista`, yielding so input keeps working),
+    compiles its shaders (`compileAsync`), and fades its canvas in on the first frame. The
+    heartbeat doesn't wait for it. Picking a save before it is ready aborts the build.
+  - *Light*: the sun's shadow map is drawn once (one wide cascade; nothing in it moves);
+    resolution follows the Graphics preset, never above 1×, capped at 2.1 MP (1 MP on a touch
+    screen, 0.5 MP and 30 fps on a handheld, with fewer puffs and coarser rock there), and drops
+    by steps if frames come slowly. Reduced motion draws one still frame.
+  - *Fallback*: no WebGL, a software GPU (SwiftShader / llvmpipe) or a lost context shows the
+    drawn SVG backdrop (`BACKDROP`) instead.
+  - *Clean hand-over*: it touches no save. On continue it stops drawing (its last frame fades
+    out with the title), then frees its renderer and GPU context (`forceContextLoss`) and puts
+    the shared surface uniforms (sun, shadow maps, hatching style) back as they were, before
+    `main.js` makes its own renderer. `tests/title-vista.test.js` checks the imports, the
+    resolution caps, the camera path and the build budget.
 - **Save slots** (`src/save-slots.js`): `slotStorage` is a localStorage look-alike that files
   each progress key under the active slot (`moebius.game.v1` in slot 2 is
   `moebius.s2.game.v1`): the game state, the sketchbook, the saved position and the reactive

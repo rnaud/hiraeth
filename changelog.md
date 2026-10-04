@@ -19,6 +19,7 @@ The same release notes shown in the game (press **N** or open settings).
 - People now come in all heights and builds, slim to broad to heavy, men and women alike: long hair, buns and beards, and the same face in the crowd every time you visit.
 - Your bed in the ship is a proper bed now, not a bunk: a wide bed with a headboard, two pillows and a shelf over them, where the family drawing is taped.
 - Inside the ship the camera is at your height, close over your shoulder and looking level, instead of up under the ceiling pointing at the floor, and you can tilt it freely with the mouse or the stick.
+- The title screen is a live view of the land above the clouds: stone tables and needle spires rise out of a golden-hour sea of cloud while the camera drifts slowly past. Devices that can’t draw it keep the drawn backdrop.
 - The game is now called Memento: on the title screen, in the menus, as the app’s name on Android and the Steam Deck, and on the web. Your saves and settings carry over.
 - Every world now grows its own plants: flowers, cushions and tufts in clumps, with a few large plants among them, from desert candelabras to Viridel’s giant parasol leaves. They keep clear of paths, people, boxes and where the ship lands.
 - The large plants are solid: you bump into them and can climb them. Handhelds grow a lighter garden to stay smooth.

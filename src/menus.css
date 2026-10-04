@@ -10,7 +10,18 @@
   transition: opacity 0.45s;
 }
 #title.leaving { opacity: 0; pointer-events: none; }
-#title .land { position: absolute; inset: 0; width: 100%; height: 100%; }
+#title .land { position: absolute; inset: 0; width: 100%; height: 100%; transition: opacity 0.6s; }
+/* the live view (src/title-vista.js): a golden-hour sky until it fades in; the drawn land if it can't */
+#title.vista-wait, #title.vista-on { background: linear-gradient(#9fcbd0 0%, #e9cdb6 46%, #f7d8bd 58%, #f3e9e4 72%, #e2deec 100%); }
+#title.vista-wait .land { opacity: 0; }
+#title.vista-on .land { display: none; }
+#title canvas.vista { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 1.6s ease-out; }
+#title.vista-on canvas.vista { opacity: 1; }
+/* a soft paper light behind the menu column, the corners a touch darker, so the menu reads over any view */
+#title .veil { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 1.6s;
+  background: radial-gradient(ellipse 46% 62% at 50% 56%, rgba(251, 244, 226, 0.34), rgba(251, 244, 226, 0) 70%),
+    radial-gradient(ellipse 120% 110% at 50% 45%, rgba(43, 33, 31, 0) 62%, rgba(43, 33, 31, 0.22) 100%); }
+#title.vista-wait .veil, #title.vista-on .veil { opacity: 1; }
 #title .clouds { animation: title-clouds 70s linear infinite alternate; }
 @keyframes title-clouds { to { transform: translateX(220px); } }
 #title .planet { animation: title-float 9s ease-in-out infinite alternate; }
@@ -87,7 +98,7 @@
 #title .hint .pad, #title.pad .hint .keys { display: none; }
 #title.pad .hint .pad { display: inline; }
 @media (pointer: coarse) { #title:not(.pad) .hint { visibility: hidden; } }
-#title .version { position: absolute; right: calc(12px + env(safe-area-inset-right, 0px)); bottom: calc(8px + env(safe-area-inset-bottom, 0px)); margin: 0; font-size: 11px; opacity: 0.6; }
+#title .version { position: absolute; right: calc(12px + env(safe-area-inset-right, 0px)); bottom: calc(8px + env(safe-area-inset-bottom, 0px)); margin: 0; padding: 1px 6px; font-size: 11px; opacity: 0.75; background: rgba(247, 236, 210, 0.7); }
 /* the save selector takes the room the name had */
 #title[data-screen="saves"] header { display: none; }
 #title[data-screen="saves"] .front { grid-template-rows: minmax(0, 1fr) auto; }

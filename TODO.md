@@ -104,6 +104,8 @@ Grouped by area. Checked items are done; the changelog says when.
 
 ## HUD, menus and prompts
 
+- [x] The title screen's background in 3D: a beautiful view of the land above the clouds.
+
 - [x] A title screen, and a save selector (up to 5 saves) at the start of the
   game: continue a save, start a new one, or delete one.
 
