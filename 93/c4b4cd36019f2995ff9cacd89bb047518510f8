@@ -1,0 +1,19 @@
+src/audio.js
+  s_6457fa49057b23::t_64685ef08cd8e6 12-14,745-746,748-749,751
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "93c4b4cd36019f2995ff9cacd89bb047518510f8",
+  "prompts": {},
+  "sessions": {
+    "s_6457fa49057b23": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a105d7-6746-7643-a6b7-da41f67274a1",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
