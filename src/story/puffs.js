@@ -17,6 +17,7 @@ export class Puffs {
     this.mesh.userData.noCollide = true;
     this.mesh.frustumCulled = false;
     this.mesh.count = 0;
+    this.mesh.visible = false;   // nothing to draw until the first burst
     parent.add(this.mesh);
     this.items = [];
     this.max = max;
@@ -33,7 +34,7 @@ export class Puffs {
   }
   get active() { return this.items.length > 0; }
   update(dt, wind = null) {
-    if (!this.items.length) { this.mesh.count = 0; return; }
+    if (!this.items.length) { this.mesh.count = 0; this.mesh.visible = false; return; }
     const d = this.dummy;
     let n = 0;
     for (let i = this.items.length - 1; i >= 0; i--) {
@@ -53,6 +54,7 @@ export class Puffs {
       this.mesh.setMatrixAt(n++, d.matrix);
     }
     this.mesh.count = n;
+    this.mesh.visible = n > 0;
     this.mesh.instanceMatrix.needsUpdate = true;
   }
 }

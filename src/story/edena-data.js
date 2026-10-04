@@ -20,7 +20,8 @@
 const Q = 'edena.garden';
 
 export const ITEMS = { seed: 'a pyramid seed' };
-export const KEEPSAKE = { id: 'edena.word', level: 'edena', name: '“We tend the garden. The garden tends us.”', kind: 'word', text: 'What Mira said when you told her about the mark under the flowers. The gardeners say it about everything, and mean it about everything.' };
+// (calls home quote a word's `text` as said: src/story/calls.js)
+export const KEEPSAKE = { id: 'edena.word', level: 'edena', name: 'Mira’s words', kind: 'word', text: 'We tend the garden. The garden tends us.', note: 'What Mira said when you told her about the mark under the flowers. The gardeners say it about everything, and mean it about everything.' };
 
 // ------------------------------------------------------------------ quests
 export const QUESTS = [

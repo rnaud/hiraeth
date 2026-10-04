@@ -222,7 +222,7 @@ export const PEOPLE = {
         },
         why: { say: ['Because the great sphere is there, the way a bowl hums when you set another bowl beside it. When the great sphere sets, it stops. Mostly.'], choices: [{ text: 'Mostly?', goto: 'strange' }] },
         strange: {
-          say: ['Three nights ago it hummed with the great sphere set and dark. I came out to see why. A light was going over, very high, singing: singing the pole’s own note, exactly.', 'It turned. Right over the plaza, it turned, as if the pole had answered it and it wanted to know who. Then it went on. I haven’t slept well since.'],
+          say: ['Three nights ago it hummed with the great sphere set and dark. I came out to see why. A light was going over, very high, singing: singing the pole’s own note, exactly. The old listeners had a name for such a thing: an Answerer.', 'It turned. Right over the plaza, it turned, as if the pole had answered it and it wanted to know who. Then it went on. I haven’t slept well since.'],
           do: { set: { 'spheres.rumour.light': true } },
           choices: [{ text: 'It struck my ship.', goto: 'struck' }, { text: 'I’ll bring the pole three sounds.', end: true }],
         },
