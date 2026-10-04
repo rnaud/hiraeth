@@ -153,11 +153,12 @@ export const CONTENT = {
   },
   garage: {
     weather: ['rain'],
+    // the story is a quest (src/story/garage-data.js): this page closes when the Major's note is found
     story: {
-      title: 'THE MAJOR’S MACHINE',
-      intro: 'Climb to the crown of the great machine.',
-      outro: 'Somewhere, Major Grubert smiles.',
-      label: 'the great machine', goal: [90, 86, -60], radius: 12,
+      title: 'THE MAJOR FORGOT',
+      intro: 'Major Grubert built this pocket universe, and forgot why. His people keep the machines turning, and pass round a signal nobody can read.',
+      outro: '“I built it to see what I would do with it. I still don’t know. That is the point.” Somewhere, Major Grubert smiles.',
+      label: 'the great machine', goal: [90, 86, -60], radius: 12, manual: true,
     },
     relics: {
       spots: [[0, -40], [-120, 60], [150, 40], { at: [60, 898.8, 2940] }, { at: [2940, -148.8, 0] }],
