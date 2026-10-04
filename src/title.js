@@ -1,4 +1,4 @@
-// The title screen: the game's name over a drawn Moebius landscape, then Continue (the
+// The title screen: the game's name (Memento) over a drawn landscape, then Continue (the
 // save played last), Saves (five slots: continue one, start a new game in an empty one,
 // delete one) and Settings. It runs before the game's modules load (src/boot.js), so
 // the slot chosen here is the one every store reads (src/save-slots.js).
@@ -72,10 +72,10 @@ export const BACKDROP = `
 
 /** The name in comic lettering: thick ink outline, a hard shadow, letters set a little askew. */
 export const LOGO = `
-<svg class="logo" viewBox="0 0 1000 250" role="img" aria-label="Moebius">
+<svg class="logo" viewBox="0 0 1000 250" role="img" aria-label="Memento">
   <g font-family="Futura, 'Futura PT', 'Avenir Next', 'Roboto', 'Arial Black', sans-serif" font-weight="900" font-size="200" text-anchor="middle">
-    <text x="512" y="200" rotate="-5 3 -2 4 -3 2 -4" textLength="860" lengthAdjust="spacingAndGlyphs" fill="#2b211f" stroke="#2b211f" stroke-width="16" stroke-linejoin="round">MOEBIUS</text>
-    <text x="500" y="188" rotate="-5 3 -2 4 -3 2 -4" textLength="860" lengthAdjust="spacingAndGlyphs" fill="#f2c54b" stroke="#2b211f" stroke-width="14" stroke-linejoin="round" paint-order="stroke">MOEBIUS</text>
+    <text x="512" y="200" rotate="-5 3 -2 4 -3 2 -4" textLength="860" lengthAdjust="spacingAndGlyphs" fill="#2b211f" stroke="#2b211f" stroke-width="16" stroke-linejoin="round">MEMENTO</text>
+    <text x="500" y="188" rotate="-5 3 -2 4 -3 2 -4" textLength="860" lengthAdjust="spacingAndGlyphs" fill="#f2c54b" stroke="#2b211f" stroke-width="14" stroke-linejoin="round" paint-order="stroke">MEMENTO</text>
   </g>
   <path d="M190 226 C380 210 640 214 820 230" fill="none" stroke="#c8483a" stroke-width="9" stroke-linecap="round"/>
 </svg>`;

@@ -1,4 +1,7 @@
-# Moebius / Sable — three.js shader PoC
+# Memento
+
+A three.js exploration game in ligne claire, formerly the Moebius / Sable shader PoC
+(the repository and internal ids keep the old name).
 
 **Play it:** https://rnaud.github.io/moebius/
 

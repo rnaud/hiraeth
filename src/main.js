@@ -447,7 +447,7 @@ const params = {
   debug: 0,
   ink: '#2b211f',
 };
-const gui = new GUI({ title: 'Moebius shader' });
+const gui = new GUI({ title: 'Memento shader' });
 gui.add(params, 'preset', Object.keys(PRESETS)).name('style preset').onChange(applyPreset);
 gui.add({ level: levelId }, 'level', Object.fromEntries(LEVELS.map((l) => [l.title, l.id])))
   .name('level').onChange((v) => { location.search = '?level=' + v; });

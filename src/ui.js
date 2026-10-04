@@ -73,7 +73,7 @@ export class SettingsMenu {
     el.innerHTML = `
       <div class="pause">
         <aside class="side">
-          <div class="brand" aria-hidden="true">${game ? 'PAUSED' : 'MOEBIUS'}</div>
+          <div class="brand" aria-hidden="true">${game ? 'PAUSED' : 'MEMENTO'}</div>
           <div class="where"></div>
           <nav class="menu-nav">
             <button data-a="close" class="primary">${game ? 'Resume' : 'Back'}</button>

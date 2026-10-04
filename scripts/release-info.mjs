@@ -45,7 +45,7 @@ function main(what = 'version', ...args) {
   else if (what === 'latest-json') console.log(JSON.stringify(latestJson({ build: +args[0], version: latest.v, apk: args[1] })));
   else if (what === 'web-json') console.log(JSON.stringify(webJson({ build: +args[0], version: latest.v, file: args[1], zip: args[2] })));
   else if (what === 'notes') {
-    console.log(`Moebius v${latest.v} (${latest.date}) for Android. Download the APK below and open it on the device to install; new versions install over the old one and keep your progress. Once installed, the app updates the game by itself when online.\n`);
+    console.log(`Memento v${latest.v} (${latest.date}) for Android. Download the APK below and open it on the device to install; new versions install over the old one and keep your progress. Once installed, the app updates the game by itself when online.\n`);
     console.log(latest.items.map((i) => `- ${i}`).join('\n'));
     console.log('\nThe game runs fully offline. Built from the web version that is also playable on GitHub Pages.');
   } else throw new Error(`unknown: ${what}`);

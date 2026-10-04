@@ -1,4 +1,4 @@
-Play Moebius offline on Steam Deck, with automatic updates and a non-Steam library shortcut.
+Play Memento offline on Steam Deck, with automatic updates and a non-Steam library shortcut.
 
 In **Desktop Mode**, open Konsole and run:
 
@@ -6,7 +6,7 @@ In **Desktop Mode**, open Konsole and run:
 curl --fail --location --output /tmp/install-moebius.py https://github.com/rnaud/moebius/releases/download/steam-deck/install-moebius.py && python3 /tmp/install-moebius.py
 ```
 
-When prompted, use **Steam → Exit**. The installer adds Moebius to the existing
+When prompted, use **Steam → Exit**. The installer adds Memento to the existing
 Steam accounts on the Deck, then you can reopen Steam or return to Gaming Mode.
 No root password, Proton, or changes to SteamOS are needed.
 

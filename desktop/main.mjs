@@ -3,7 +3,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import path from 'node:path';
 
 // A fixed origin and profile keep saves independent of the installed build.
-app.setName('Moebius');
+app.setName('Memento');   // (saves stay in the old 'moebius' profile folder, set just below)
 app.setPath('userData', path.join(app.getPath('appData'), 'moebius'));
 protocol.registerSchemesAsPrivileged([{ scheme: 'moebius', privileges: {
   standard: true, secure: true, supportFetchAPI: true, corsEnabled: true,
@@ -26,7 +26,7 @@ else {
     return net.fetch(pathToFileURL(target).href);
   });
   window = new BrowserWindow({
-    title: 'Moebius', width: 1280, height: 800, fullscreen: true,
+    title: 'Memento', width: 1280, height: 800, fullscreen: true,
     autoHideMenuBar: true, backgroundColor: '#fffaf0',
     icon: path.join(root, 'icons/icon-512.png'),
     webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true },

@@ -13,6 +13,7 @@ export const CHANGELOG = [
     'Five save slots: each shows its world, how far you’ve come, the time played and when you last played. Start a new game in an empty slot, or delete a save after a confirmation. Your current progress is kept in the first slot.',
     'Start and Select now open full-screen menus that pause the game, with their own calm music over the hushed world. Quit to title is in the Start menu, and restarting from the prologue only starts over the save you’re playing.',
     'Places to go, the next thing to do and the hints that solve a puzzle now stand out in colour in conversations, in every world, far more often than before. Speech balloons show these highlights too, instead of stray stars.',
+    'The game is now called Memento: on the title screen, in the menus, as the app’s name on Android and the Steam Deck, and on the web. Your saves and settings carry over.',
     'Every world now grows its own plants: flowers, cushions and tufts in clumps, with a few large plants among them, from desert candelabras to Viridel’s giant parasol leaves. They keep clear of paths, people, boxes and where the ship lands.',
     'The large plants are solid: you bump into them and can climb them. Handhelds grow a lighter garden to stay smooth.',
     'There are no calls home any more: after each world you play an old recording of your parents at the cockpit console, and they appear in front of you as a hologram over the dash. You always face them as it plays.',

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Moebius Steam Deck installer, background updater, and Steam integration.
+"""Memento Steam Deck installer, background updater, and Steam integration.
 
 Standard-library only; no root, FUSE, Proton, or SteamOS system changes.
 """
@@ -132,9 +132,9 @@ def add_shortcut(config, root):
     # Identity is the stable executable, not the display name. Keep user edits.
     if any(isinstance(value, list) and field(value, 'exe') == exe for _, value in entries):
         return False
-    appid = zlib.crc32((exe + 'Moebius').encode()) | 0x80000000
+    appid = zlib.crc32((exe + 'Moebius').encode()) | 0x80000000   # (the old name: the id stays stable)
     entries.append((str(len(entries)), [
-        ('appid', appid), ('AppName', 'Moebius'), ('Exe', exe),
+        ('appid', appid), ('AppName', 'Memento'), ('Exe', exe),
         ('StartDir', f'"{root}"'), ('icon', str(root / 'icon.png')),
         ('ShortcutPath', ''), ('LaunchOptions', ''), ('IsHidden', 0),
         ('AllowDesktopConfig', 1), ('AllowOverlay', 1), ('OpenVR', 0),
@@ -292,7 +292,7 @@ def write_launchers(root):
     atomic_write(root / 'icon.png', (root / 'current/resources/app/game/icons/icon-512.png').read_bytes())
     # Desktop Exec quoting is not shell quoting; escape its reserved characters.
     command = str(root / 'launch').replace('\\', '\\\\').replace('"', '\\"').replace('`', '\\`').replace('$', '\\$').replace('%', '%%')
-    entry = f'[Desktop Entry]\nType=Application\nName=Moebius\nExec="{command}"\nIcon={root / "icon.png"}\nTerminal=false\nCategories=Game;\n'
+    entry = f'[Desktop Entry]\nType=Application\nName=Memento\nExec="{command}"\nIcon={root / "icon.png"}\nTerminal=false\nCategories=Game;\n'
     atomic_write(Path.home() / '.local/share/applications/moebius.desktop', entry.encode(), 0o755)
 
 
@@ -328,7 +328,7 @@ def main():
     if extra:
         parser.error('Unknown arguments: ' + ' '.join(extra))
     if not args.register_steam:
-        print('Checking for a Moebius update…', flush=True)
+        print('Checking for a Memento update…', flush=True)
         changed = install_update(ROOT, get_manifest())
         print('Update installed. It will be used on the next launch.' if changed else 'Already up to date.', flush=True)
     if args.update:
@@ -338,7 +338,7 @@ def main():
     if not configs:
         raise RuntimeError('Game installed. Open Steam and sign in once, then rerun this installer to add it to the library.')
     if steam_running():
-        print('Game installed. Exit Steam using Steam → Exit; this installer will add Moebius automatically once Steam closes.', flush=True)
+        print('Game installed. Exit Steam using Steam → Exit; this installer will add Memento automatically once Steam closes.', flush=True)
         deadline = time.monotonic() + 300
         while steam_running() and time.monotonic() < deadline:
             time.sleep(1)
@@ -347,12 +347,12 @@ def main():
         time.sleep(2)  # allow Steam to finish flushing its configuration
     for config in configs:
         add_shortcut(config, ROOT)
-    print('Moebius is installed and added to Steam. Reopen Steam or return to Gaming Mode. Updates download while you play and apply next launch.', flush=True)
+    print('Memento is installed and added to Steam. Reopen Steam or return to Gaming Mode. Updates download while you play and apply next launch.', flush=True)
 
 
 if __name__ == '__main__':
     try:
         main()
     except Exception as error:
-        print(f'Moebius: {error}', file=sys.stderr)
+        print(f'Memento: {error}', file=sys.stderr)
         sys.exit(1)

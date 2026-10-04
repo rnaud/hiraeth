@@ -1,6 +1,7 @@
-# Moebius: notes for Claude
+# Memento: notes for Claude
 
-A three.js exploration game in the style of Moebius, played in the browser
+A three.js exploration game called Memento (the repository and internal ids still say
+`moebius`), drawn in the style of Moebius, played in the browser
 (GitHub Pages) and as an Android app (`android/`, Capacitor). Design lives in
 `docs/game-brief.md` and `docs/story-bible.md`; architecture, version by
 version, in `README.md`.
