@@ -1,0 +1,29 @@
+index.html
+  s_1fd8d0e7b02dcf::t_421570f3403e1e 221-224
+src/main.js
+  s_1fd8d0e7b02dcf::t_9801c3dfb0053c 340,1117
+src/ship/cinema.js
+  s_1fd8d0e7b02dcf::t_efa33fecc3e7b8 4-12,20-23,26-31,38-39,41,43,45-46,57-187,192-197,213-220,223-228,232,237-248,250,252-253,256-261,267-269,273-280,293,296,302-305,312-395
+src/ship/homecoming.js
+  s_1fd8d0e7b02dcf::t_d7a34bb664bad1 38,62
+src/ship/ship.js
+  s_1fd8d0e7b02dcf::t_ec011ae53bfae4 432,521-526,528
+tests/cinema.test.js
+  s_1fd8d0e7b02dcf::t_d2b97642eac4a2 1-119
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "21f4aa538445d49c70d05b10359c445d15540e72",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
