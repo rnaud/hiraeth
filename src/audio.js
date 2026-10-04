@@ -404,6 +404,7 @@ export class Sound {
   /** A box nearby hums: k 0..1 (how close the nearest unopened box is). A soft fifth that beats slowly. */
   boxHum(k = 0) {
     if (!this.ctx) return;
+    if (!Number.isFinite(k)) k = 0;
     const ctx = this.ctx, t = ctx.currentTime;
     if (!this._hum) {
       if (k <= 0.001) return;

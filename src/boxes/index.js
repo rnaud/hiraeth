@@ -211,7 +211,7 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
       if (instant || !player) { grant(); finish(); return true; }
       if (spent(b)) return false;
       sound?.boxHum?.(0);
-      current = new BoxScene({ box: b, def: b.def, item: b.item, player, cam, sound, card, groundAt: ground,
+      current = new BoxScene({ box: b, def: b.def, item: b.item, player, cam, sound, card, groundAt: ground, physics,
         onGrant: grant,
         onEnd: () => { current = null; finish(); } });
       current.start();
@@ -282,7 +282,8 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
         if (b.beacon) {
           const on = (b.alwaysBeacon || items.has('lens')) && d > 9;
           b.beacon.visible = on;
-          if (on) { const w = THREE.MathUtils.clamp(d * 0.006, 0.4, 3) * smoothstep(9, 22, d); b.beacon.scale.set(w, 36, w); }
+          // (thicker far off, so it stays a few pixels wide at any distance)
+          if (on) { const w = THREE.MathUtils.clamp(d * 0.045, 1, 14) * smoothstep(9, 22, d); b.beacon.scale.set(w, 36, w); }
         }
       }
       sound?.boxHum?.(current ? 0 : hum);

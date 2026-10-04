@@ -677,7 +677,7 @@ export class Humanoid {
     const knee = gy(hipL.clone().addScaledVector(F, 0.26)).addScaledVector(up, 0.07);
     const footL = gy(knee.clone().addScaledVector(F, -0.4)).addScaledVector(up, 0.12);
     this.solveTwoBone(B.thigh_l, B.calf_l, B.foot_l, footL, knee.clone().addScaledVector(F, 0.6).addScaledVector(up, -0.3), k);
-    const footR = gy(hipR.clone().addScaledVector(F, 0.4)).addScaledVector(up, 0.09);
+    const footR = gy(hipR.clone().addScaledVector(F, 0.32)).addScaledVector(up, 0.09);
     this.solveTwoBone(B.thigh_r, B.calf_r, B.foot_r, footR, hipR.clone().addScaledVector(F, 1).addScaledVector(up, 0.5).addScaledVector(right, 0.15), k);
     // the right foot stays flat; the left one tips onto its toes behind
     const setWorldQ = (bone, q) => { bone.quaternion.copy(bone.parent.getWorldQuaternion(_kq).invert().multiply(q)); bone.updateMatrixWorld(true); };

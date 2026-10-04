@@ -36,10 +36,10 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
   if (H?.chestAnchor) {
     const grp = new THREE.Group();
     const paper = makeMaterial({ color: '#e0503a', flat: true, glow: 0.2, key: 'lantern.paper' });
-    grp.add(new THREE.Mesh(new THREE.SphereGeometry(0.045, 10, 8).scale(1, 1.25, 1), paper));
-    grp.add(new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.025, 0.016, 8).translate(0, 0.058, 0), makeMaterial({ color: '#2b211f', flat: true })));
-    grp.add(new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.003, 0.07, 4).translate(0, 0.1, 0), makeMaterial({ color: '#c8483a', flat: true })));
-    grp.position.set(0.19, 0.5, -0.36);   // on the tank's left side, below the cap (chest-anchor frame)
+    grp.add(new THREE.Mesh(new THREE.SphereGeometry(0.055, 10, 8).scale(1, 1.25, 1), paper));
+    grp.add(new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.025, 0.016, 8).translate(0, 0.07, 0), makeMaterial({ color: '#2b211f', flat: true })));
+    grp.add(new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.003, 0.07, 4).translate(0, 0.11, 0), makeMaterial({ color: '#c8483a', flat: true })));
+    grp.position.set(0.28, 0.6, -0.3);   // hung off the tank's left rail, below the cap (chest-anchor frame)
     grp.traverse((o) => { o.userData.noCollide = true; });
     grp.visible = false;
     H.chestAnchor.add(grp);
@@ -50,8 +50,8 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
   if (H?.headAnchor) {
     star = new THREE.Mesh(new THREE.ExtrudeGeometry(starShape(0.045, 0.015), { depth: 0.008, bevelEnabled: false }),
       makeMaterial({ color: BOX_COLORS.star, flat: true, glow: 0.3 }));
-    star.position.set(0, 0.075, 0.125);
-    star.rotation.set(-0.55, 0, 0);
+    star.position.set(0, 0.17, 0.112);   // on the brow (the imported head: eyes at y 0.09, the crown at 0.23)
+    star.rotation.set(-0.5, 0, 0);
     star.userData.noCollide = true;
     star.visible = false;
     H.headAnchor.add(star);

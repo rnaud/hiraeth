@@ -26,11 +26,13 @@ import { buildItemModel, buildSparkles, fluidMaterials, BOX } from './model.js';
 export const TIMES = { approach: 0.6, kneel: 1.0, crack: 0.9, lift: 1.1, rise: 1.5 };
 const ORDER = ['approach', 'kneel', 'crack', 'lift', 'rise', 'card', 'out'];
 export const OUT_TIME = 1.3;
+export const KNEEL_AT = 0.8;   // m from the box centre to where the traveller kneels (front side)
 export const CARD_MIN = 0.5;   // s the card is up before a press counts (no accidental dismissals)
 const LID_OPEN = 1.95;         // rad the lid swings back (past upright: a backdrop behind the item)
 const smooth = (t) => { t = THREE.MathUtils.clamp(t, 0, 1); return t * t * (3 - 2 * t); };
 const easeOut = (t) => 1 - Math.pow(1 - THREE.MathUtils.clamp(t, 0, 1), 3);
 const UP = new THREE.Vector3(0, 1, 0);
+const _d = new THREE.Vector3();
 
 export class BoxScene {
   /**
@@ -55,7 +57,7 @@ export class BoxScene {
   start() {
     const P = this.player, b = this.box;
     // square in front of the box, facing it
-    const stand = this.P(0, 0, 0.95);
+    const stand = this.P(0, 0, KNEEL_AT);
     const g = this.groundAt?.(stand.x, stand.z, b.pos.y + 1.5);
     stand.y = Number.isFinite(g) && Math.abs(g - b.pos.y) < 1.2 ? g : b.pos.y;
     if (P) {
@@ -201,7 +203,7 @@ export class BoxScene {
       P.object?.updateMatrixWorld?.(true);
       const fwd = new THREE.Vector3(-this.F.x, 0, -this.F.z);
       const look = this.model.visible ? this.model.position : this.P(0, BOX.h, 0.1);
-      H.kneel(kneel, { up: P.frame?.up ?? UP, fwd, ground: this.ground, look, hands, reach });
+      H.kneel(kneel, { up: P.frame?.up ?? UP, fwd, ground: this.ground, look, hands, reach, lean: 0.62 });
     }
     // ---- the camera
     this.camera(dt, time);
@@ -217,7 +219,7 @@ export class BoxScene {
       // A: low three-quarter from the traveller's right, pushing in
       const since = (this.phaseStart('approach') ?? 0);
       const k = 1 - 0.16 * smooth(since / 3.6);
-      pos = this.P(3.5 * k, 0.95, 0.35 + 0.45 * k);
+      pos = this.P(3.2 * k, 0.9, -0.35 + 0.2 * k);
       look = this.P(0, 0.72, 0.5);
       fov = 40;
     } else {
@@ -228,6 +230,15 @@ export class BoxScene {
       pos = this.P(0.8 * k, 1.12 - 0.05 * (1 - k), -2.7 * k);
       look = this.P(0, 0.8, 0.55);
       fov = 42;
+    }
+    // keep out of walls and dunes: pull in to whatever stands between the subject and the lens
+    if (this.physics) {
+      const dir = _d.subVectors(pos, look), d = dir.length();
+      dir.divideScalar(d);
+      const hit = this.physics.rayDistance(look, dir, d);
+      if (hit < d) pos.copy(look).addScaledVector(dir, Math.max(0.7, hit - 0.25));
+      const g = this.physics.groundAt(pos.x, pos.y + 2, pos.z, 6);
+      if (Number.isFinite(g) && pos.y < g + 0.35) pos.y = g + 0.35;
     }
     // a breath of handheld drift
     pos.x += Math.sin(time * 0.7) * 0.012; pos.y += Math.sin(time * 0.9) * 0.01;
