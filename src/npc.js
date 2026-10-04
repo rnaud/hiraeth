@@ -370,7 +370,7 @@ export class NPC {
     if (this.cape && camD < (this.lowDetail ? 30 : 70) && (this._clothN === 0 || !this.cape.ready)) {
       this.object.updateMatrixWorld(true);
       this.vel.set(Math.sin(this.heading) * speed, 0, Math.cos(this.heading) * speed);
-      this.cape.update(Math.min(this._clothDt, 1 / 20), { up: Y, vel: this.vel, wind: player.wind, floor: this.pos, capsules: this.humanoid ? this.humanoid.capsules() : this.capsules() });
+      this.cape.update(Math.min(this._clothDt, 1 / 20), { up: Y, vel: this.vel, wind: player.wind, floor: this.pos, capsules: this.clothCapsules(player) });
       this._clothDt = 0;
     } else if (!this.cape || camD >= (this.lowDetail ? 30 : 70)) this._clothDt = 0;
 
@@ -421,7 +421,7 @@ export class NPC {
     if (this.cape && (camD < 5 || this._clothTick || !this.cape.ready)) {
       this.object.updateMatrixWorld(true);
       this.vel.set(Math.sin(this.heading) * p.speed, 0, Math.cos(this.heading) * p.speed);
-      this.cape.update(Math.min(this._clothDt, 1 / 20), { up: Y, vel: this.vel, wind: player.wind, floor: p.pos, capsules: this.humanoid ? this.humanoid.capsules() : this.capsules() });
+      this.cape.update(Math.min(this._clothDt, 1 / 20), { up: Y, vel: this.vel, wind: player.wind, floor: p.pos, capsules: this.clothCapsules(player) });
       this._clothDt = 0;
     }
     const line = now < (p.shoutUntil ?? -1) ? p.say : p.lines[p.lineIdx % p.lines.length];
@@ -515,6 +515,17 @@ export class NPC {
     this.pos.addScaledVector(dir, speed * dt);
     // don't walk through walls, rocks or buildings
     this.physics.pushCapsule(this.pos, 0.4, 0.6, 2.0, _push);
+  }
+
+  /** What the cape collides with: this body, and the traveller's when they stand close (a cape no longer drapes through them). */
+  clothCapsules(player) {
+    const own = this.humanoid ? this.humanoid.capsules() : this.capsules();
+    if (!player?.bodyCapsules || player.hidden || player.pos.distanceToSquared(this.pos) > 2.2 * 2.2) return own;
+    const out = (this._withPlayer ??= []);
+    out.length = 0;
+    for (const k of own) out.push(k);
+    for (const k of player.bodyCapsules()) out.push(k);
+    return out;
   }
 
   capsules() {

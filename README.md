@@ -1444,4 +1444,12 @@ crowd spots must not be inside a solid (`standable`), and a crowd route is sampl
 1.5 m with the side lanes checked for posts and pillars; a box placed on a ledge or a rounded
 stone is moved (up to 1.2 m, `settle` in `src/boxes/index.js`) to where all four corners meet
 the ground. Known and left: the Garage's upside-down quarter (its props "float" by world down),
-the ship's interior seen from outside, and props resting on water.
+props resting on water, and stones buried inside Arzach II's mesas (unseen). Across the twelve
+worlds the audit went from 139 offenders to 85 (crowd 21 to 1; Incal 34 to 4, the Buried City
+15 to 4, Edena 19 to 8).
+
+The traveller's own kit, checked in idle, walk, run and jump poses (by
+sampling of the arm bones against the tank's profile): the arms never reach into the tank;
+the right hand, with the bracer, hung into the hip in the idle sway and now hangs a little
+out (`idleLayer`). NPC capes collide with the traveller's body capsules when they stand
+within 2.2 m (`NPC.clothCapsules`), so a seated elder's cape no longer drapes through your legs.

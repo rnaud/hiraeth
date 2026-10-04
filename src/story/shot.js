@@ -123,16 +123,22 @@ function score(eye, sees, { sight, people, up }) {
   return { cost, blocked, why, room };
 }
 
-/** The eye pulled in toward `from` until the line is clear (the last resort for a blocked shot). */
-export function pullIn(eye, from, sight, keep = 0.3) {
+
+/**
+ * The eye pulled in toward `from` until the line is clear (the last resort for a blocked shot);
+ * never closer than `min` to it (a camera in someone's face is worse than a post in the corner).
+ */
+export function pullIn(eye, from, sight, keep = 0.3, min = 1.0) {
   if (!sight) return eye;
   const len = from.distanceTo(eye);
   const free = sight.ray(from, eye);
   if (free >= len - 0.05) return eye;
-  return eye.lerpVectors(from, eye, Math.max(0, free - keep) / len);
+  const to = Math.max(0, free - keep);
+  if (to < Math.min(min, len)) return eye;
+  return eye.lerpVectors(from, eye, to / len);
 }
 
-const portraitPull = (aspect) => THREE.MathUtils.clamp(1.25 / (aspect || 1.6), 1, 2.3);
+const portraitPull =(aspect) => THREE.MathUtils.clamp(1.25 / (aspect || 1.6), 1, 2.3);
 
 /**
  * Talking to someone: both faces in frame, the camera off to the side of the
@@ -162,7 +168,7 @@ export function pickTwoShot({ a, b, faceA = null, faceB = null, up = UPY, aspect
         for (const [h, hc] of [[0.4, 0], [1.1, 0.5], [0.05, 0.6]]) {
           const dir = _a.copy(side).multiplyScalar(s * Math.cos(phi)).addScaledVector(across, -Math.sin(phi));
           const eye = mid.clone().addScaledVector(dir, dist * k).addScaledVector(up, h * Math.min(1, k + 0.2));
-          cands.push({ eye, look: look(), pref: pc + kc + hc + (s === here ? 0 : 0.3), kind: 'two', side: s });
+          cands.push({ eye, look: look(), pref: pc + kc + hc + (s === here ? 0 : 0.3), kind: 'two', side: s, anchorAt: fa });
         }
       }
     }
@@ -177,7 +183,7 @@ export function pickTwoShot({ a, b, faceA = null, faceB = null, up = UPY, aspect
       cands.push({ eye: rev, look: fa.clone().addScaledVector(up, -0.35), pref: 5 + wc, kind: 'shoulder', side: s, near: fb, far: fa });
     }
   }
-  return best(cands, (c) => (c.kind === 'two' ? [[fa, 0.15, [b]], [fb, 0.15, [a]], [mid]] : [[c.far, 0.15, null, null, [c.near]], [c.near, 0.5]]), { sight, people, up, prefer }, mid);
+  return best(cands, (c) => (c.kind === 'two' ? [[fa, 0.15, [b]], [fb, 0.15, [a]], [mid, 0.6]] : [[c.far, 0.15, null, null, [c.near]], [c.near, 0.5]]), { sight, people, up, prefer }, mid);
 }
 
 /**
@@ -251,7 +257,7 @@ function best(cands, seesOf, o, anchor) {
     if (!pick || c.cost < pick.cost) pick = c;
   }
   // nothing clear anywhere: the least blocked, pulled in to where the line is free
-  pick.anchor = pick.near ?? anchor;   // (a line the pick was scored on: the camera is pulled in along it, never through a wall)
+  pick.anchor = pick.near ?? pick.anchorAt ?? anchor;   // (a line the pick was scored on: the camera is pulled in along it, never through a wall)
   if (pick.blocked) pullIn(pick.eye, pick.anchor, o.sight);
   pick.all = cands;   // (for the dev tools: what else was tried, and why not)
   return pick;

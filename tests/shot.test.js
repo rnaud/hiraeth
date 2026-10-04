@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { Physics } from '../src/physics.js';
-import { pickTwoShot, pickLookShot, sightOf } from '../src/story/shot.js';
+import { pickTwoShot, pickLookShot, sightOf, pullIn } from '../src/story/shot.js';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const UP = V(0, 1, 0);
@@ -95,4 +95,12 @@ test('a thing high above: looked up at, the traveller still at the bottom of the
   assert.ok(Math.acos(dir.dot(toT)) < half, 'the thing is in view');
   assert.ok(Math.acos(dir.dot(toH)) < half * 1.01 || Math.acos(dir.dot(toT)) > 0.8 * half, 'the traveller too, or the thing at the very top');
   assert.ok(dir.y > 0.3, 'looking up');
+});
+
+test('a blocked line pulls the camera in, but never into someone’s face', () => {
+  const sight = sightOf(level([0, 1.5, -3, 4, 3, 0.3]));   // a wall 3 m out
+  const far = pullIn(V(0, 1.5, -5), V(0, 1.5, 0.5), sight);
+  assert.ok(far.z > -2.9 && far.z < -1, `in front of the far wall: ${far.z}`);
+  const near = pullIn(V(0, 1.5, -5), V(0, 1.5, 0), sightOf(level([0, 1.5, -0.5, 4, 3, 0.3])));   // a wall half a metre from the anchor
+  assert.equal(near.z, -5, 'a wall right at the anchor: left where it was');
 });
