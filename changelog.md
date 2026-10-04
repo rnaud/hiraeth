@@ -9,6 +9,9 @@ The same release notes shown in the game (press **N** or open settings).
 - The hoverbike and the skiff no longer swerve when the stick drifts a little as you drive forward: small pushes turn gently, a full turn needs the stick well over.
 - The “Updated to …” and “Update ready” notes show once, not again on every world you visit. The worlds list has smaller pictures.
 - Ask Bako, the ney player by the desert fire, to play, and he does: a slow, eerie tune over a low drone, while the rest of the camp falls quiet.
+- Controller buttons now work by position on every pad. On a Retroid: B jumps, A talks and gets on, Y calls your mount or a taxi, X pings, L2 aims, R2 shoots, R1 pushes, and you click the left stick to run.
+- Riding on a controller: R2 is the throttle and L2 brakes, and the stick steers. On the bird and the taxi the stick also tips you up and down.
+- Select opens your gear, every item and what it does; Start opens the settings. In menus, A confirms and B goes back. The “Swap A/B” setting is now “Controller buttons”, for pads whose letters sit somewhere else.
 - Walking through the portals in the Airtight Garage is smooth: a quick fade into the portal’s light and you walk out the other side at your own pace, the view already upright, instead of a hard cut. Fixed a portal sometimes throwing you back to the one you entered.
 - For testing: a hidden Lab world (open it with ?level=lab) shows every surface the game draws side by side, and four giant villagers to study faces by.
 - In the City-Shaft the jets’ box no longer waits beside the ship: it sits on top of a lone makers’ pillar on the rim, a climb away.

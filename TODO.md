@@ -94,11 +94,11 @@ Grouped by area. Checked items are done; the changelog says when.
 
 ## Controls (Retroid Pocket layout)
 
-- [ ] Map the buttons by position on the Retroid Pocket (B is the bottom
+- [x] Map the buttons by position on the Retroid Pocket (B is the bottom
   button): B jump, A interact, L2 aim, R2 shoot, Select gear menu (everything
   I carry), Start options menu, Y call my mount, X ping.
-- [ ] Action and call-out/ping must be different buttons.
-- [ ] Mounts and taxis: R2 moves forward, the stick tilts up/down/left/right.
+- [x] Action and call-out/ping must be different buttons.
+- [x] Mounts and taxis: R2 moves forward, the stick tilts up/down/left/right.
 - [x] Hover car: deadzone on steering when driving forward; it turns too
   easily now.
 
