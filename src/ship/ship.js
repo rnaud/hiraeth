@@ -29,7 +29,8 @@ import { PrologueDirector, ArrivalDirector, TakeoffDirector, CallDirector } from
 //  - The prologue (src/ship/prologue.js) plays on a new game.
 //
 // Flags: prologue.done, ship.powered, ship.level, ship.launched, calls.<n>,
-// objective. Events on `game`: ship:enter, ship:exit, travel { to }, call { n }.
+// objective. Events on `game`: ship:enter, ship:exit, travel { to }, call { n }; it sends
+// tool:enable { on } to put the fluid tool away indoors and during its scenes.
 
 const Y = new THREE.Vector3(0, 1, 0);
 const rAt = (r, y) => Math.sqrt(Math.max(r * r - y * y, 0));
@@ -516,6 +517,9 @@ export class Ship {
       if (c.skippable !== false) this.cinema.skip(Math.min(1, (c.skipT ?? 0) / 0.9), !c.interactive?.() && ((c.skipT ?? 0) > 0.05 || recent));
       if (c.done) { this.cinematic = null; this.cinema.skip(0, false); }
     }
+    // the fluid tool is put away at home and while a scene plays (src/fluid-tool.js listens)
+    const toolOn = !this.inside && !(this.cinematic && !this.cinematic.done) && !this.auto;
+    if (toolOn !== this._toolOn) { this._toolOn = toolOn; game.emit('tool:enable', { on: toolOn }); }
     // the screen, the mobile, the guide chevrons
     for (const m of [this.parked, this.spaceCopy?.model]) {
       if (!m) continue;

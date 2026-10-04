@@ -4,6 +4,9 @@ import { makeMaterial } from './materials.js';
 import { registerTarget } from './targets.js';
 
 const UP = new THREE.Vector3(0,1,0);
+const FLUID_DEFAULT=['#52c8cf','#966ede'];   // the fluid's first tones (fluid-tool.js), if a hit brings none
+const FLUID_BLOOM=9;                        // s a fluid-woken node keeps the fluid's colours
+const _tone=new THREE.Color();
 export const WORLD_REACTIONS = {
   desert: {kind:'flower',quiet:'#a4a77d',awake:'#71d7cf',radius:9,spores:true},
   incal: {kind:'screen',quiet:'#435861',awake:'#ffc98b',radius:12},
@@ -33,8 +36,8 @@ export class ReactionField {
     this.onEncounter(n,known);
     this.nodes.filter(o=>o.cluster===n.cluster&&o!==n).forEach(o=>{o.pulseAt=Math.min(o.pulseAt,this.time+.45+n.pos.distanceTo(o.pos)/12);});
   }
-  /** Touched from afar (the traveller's foam dart): the same encounter as walking up to it.
-   * While it is still awake from the last one it just pulses again; a weaker touch (the ray) only shimmers. */
+  /** Touched from afar (a glob of the traveller's fluid): the same encounter as walking up to it.
+   * While it is still awake from the last one it just pulses again; a weaker touch (the push) only shimmers. */
   trigger(n,strength=1) {
     if(strength>=1&&n.cooldown===0)this.encounter(n);
     else n.pulse=Math.max(n.pulse,Math.min(1,strength));
@@ -156,10 +159,15 @@ export class ReactiveWorld {
       this.dirty=true;
 
     }});
-    // Darts wake nodes from afar; the paralyze ray only makes them shimmer.
+    // A glob of magical fluid wakes a node from afar and it blooms in the fluid's own tones for a while;
+    // the push only stirs it (a shimmer and a sway).
     const screenLike=this.theme.kind==='screen'||this.theme.kind==='machine';
     this.offTargets=this.field.nodes.map(n=>registerTarget({kind:'reactive',radius:n.obj.root.scale.x*(screenLike||n.radius>=16?1.9:.75),
-      position:()=>n.pos,enabled:()=>n.obj.root.visible,onHit:mode=>this.field.trigger(n,mode==='dart'?1:.45)}));
+      position:()=>n.pos,enabled:()=>n.obj.root.visible,onHit:(mode,point,dir,info)=>{
+        if(mode==='shoot')n.fluid={tones:(info?.colours??FLUID_DEFAULT).map(c=>new THREE.Color(c)),t:0};
+        else if(mode==='push')n.sway=1;
+        return this.field.trigger(n,mode==='shoot'?1:.45);
+      }}));
     const pm=makeMaterial({color:this.theme.awake,flat:true,glow:.75});
     this.spores=new THREE.InstancedMesh(new THREE.SphereGeometry(.055,5,4),pm,72);
     this.spores.userData.noCollide=true;this.spores.frustumCulled=false;this.spores.count=0;this.root.add(this.spores);
@@ -205,10 +213,22 @@ export class ReactiveWorld {
       if(!obj.root.visible&&e<.01)continue;
       obj.m.uniforms.uColor.value.copy(obj.base).lerp(obj.active,e);
       obj.m.uniforms.uGlow.value=e*.65+(n.remembered?.06:0);
+      // fluid-woken: blooms through the fluid's tones, then settles back to the world's own colour
+      let bloom=0;
+      if(n.fluid){
+        const f=n.fluid,T=f.tones,x=(f.t+=dt)*.7,i=Math.floor(x)%T.length;
+        bloom=1-THREE.MathUtils.smoothstep(f.t,FLUID_BLOOM-2.5,FLUID_BLOOM);
+        _tone.copy(T[i]).lerp(T[(i+1)%T.length],THREE.MathUtils.smoothstep(x%1,.3,.7));
+        obj.m.uniforms.uColor.value.lerp(_tone,bloom*Math.max(e,.5));
+        obj.m.uniforms.uGlow.value=Math.max(obj.m.uniforms.uGlow.value,.85*bloom);
+        if(f.t>FLUID_BLOOM)n.fluid=null;
+      }
+      if(n.sway){n.sway=Math.max(0,n.sway-dt*.7);}
       if(obj.petals){
-        const opening=this.theme.shy?1-e*.62:.35+e*.65;
-        obj.petals.scale.set(opening,1,opening);
-        obj.moving.rotation.z=Math.sin(t*.9+n.pos.x)*e*.09;
+        const opening=(this.theme.shy?1-e*.62:.35+e*.65)*(1+.6*bloom*(1+.2*Math.sin(t*5)));
+        obj.petals.scale.set(opening,1+.5*bloom,opening);
+        obj.moving.scale.setScalar(1+.22*bloom);
+        obj.moving.rotation.z=Math.sin(t*.9+n.pos.x)*e*.09+Math.sin(t*7)*(n.sway??0)*.35;
         // Turn toward the visitor in the local gravity frame.
         const direction=player.pos.clone().sub(n.pos).applyQuaternion((n.rotation??new THREE.Quaternion()).clone().invert());
         obj.moving.rotation.y=Math.atan2(direction.x,direction.z)*e*.35;
@@ -216,7 +236,7 @@ export class ReactiveWorld {
       }else{
         const which=obj.returning||n.remembered?1:obj.heardElsewhere?2:0;
         obj.texts.forEach((text,i)=>text.visible=e>.38&&i===which);
-        obj.moving.rotation.z=this.theme.kind==='machine'?Math.sin(t*1.4)*e*.045:0;
+        obj.moving.rotation.z=(this.theme.kind==='machine'?Math.sin(t*1.4)*e*.045:0)+Math.sin(t*9)*(n.sway??0)*.08;
       }
       obj.lastEnergy=e;
     }

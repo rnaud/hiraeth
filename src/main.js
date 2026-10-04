@@ -27,7 +27,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { loadHuman, Humanoid } from './humanoid.js';
 import { Changelog, VERSION } from './changelog.js';
 import { Settings, SettingsMenu, TouchControls, SaveGame, isTouch, ToolHud } from './ui.js';
-import { Blaster, bindToolMouse } from './blaster.js';
+import { FluidTool, bindToolMouse } from './fluid-tool.js';
 import { ORDER } from './levels/content.js';
 import { Ship } from './ship/ship.js';
 import { game } from './game-state.js';
@@ -264,8 +264,8 @@ rig.constrain = level.constrainCamera;
 
 // ------------------------------------------------------------------ sound, weather, people, story
 const sound = new Sound(levelId);
-// the traveller's non-lethal tool: paralyze ray / foam dart (blaster.js)
-const blaster = new Blaster({ scene, player, physics, camera, rig, sound, level, hud: new ToolHud(), noShadow: (level.noShadow ??= []) });
+// the magic-fluid backpack: shoot, boost and push on three shared charges (fluid-tool.js)
+const tool = new FluidTool({ scene, player, physics, camera, rig, sound, level, hud: new ToolHud(), noShadow: (level.noShadow ??= []) });
 const weather = new Weather(content.weather);
 {
   const stormColor = { desert: '#e3c58f', arzach: '#e8dfcb' }[levelId];
@@ -279,7 +279,7 @@ const crowd = level.crowdSpots ? new Crowd(scene, physics, {
   makeNPC: (kind) => pooledNPC(scene, physics, { kind, lib, humans: humanT }),
 }) : null;
 if (crowd) { npcs.push(...crowd.npcs); console.info(`crowd: ${crowd.people.length} people in ${crowd.groups.length} groups, placed in ${crowd.buildMs.toFixed(0)} ms`); }
-registerNPCTargets(npcs);   // the player's tool can startle or stun anyone
+registerNPCTargets(npcs);   // the fluid tool can splash or shove anyone
 const journal = new Journal(LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, relicNames: CONTENT[l.id].relics.names, storyTitle: CONTENT[l.id].story.title })));
 const errands = new Errands({ levelId, defs: ERRANDS, npcs, journal, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])), capture: (e, l, w, h) => captureView(e, l, w, h), sound });
 const capture = (eye, look, w, h) => captureView(eye, look, w, h);
@@ -388,7 +388,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Space') e.preventDefault();
 });
 window.addEventListener('keyup', (e) => (input[e.code] = false));
-bindToolMouse(renderer.domElement, input);   // right button aims, left fires, middle switches
+bindToolMouse(renderer.domElement, input);   // right button aims, left shoots, middle pushes
 window.addEventListener('blur', () => Object.keys(input).forEach((k) => (input[k] = false)));
 
 // ------------------------------------------------------------------ time of day
@@ -633,7 +633,7 @@ function updateHud() {
   };
   const parts = [];
   if (player.ride) parts.push(RIDE[player.ride.kind] ?? RIDE.bike);
-  else if (blaster.aiming) parts.push(blaster.hudText(controllerActive));
+  else if (tool.aiming) parts.push(tool.hudText(controllerActive));
   else {
     if (player.climbing) parts.push(`climbing ${gauge(player.stamina)} · SPACE jump off`);
     else if (player.stamina < 0.99) parts.push(`stamina ${gauge(player.stamina)}`);
@@ -801,7 +801,7 @@ function frame() {
   document.body.classList.toggle('controller', controllerActive);
   controllerHint.textContent = busy() ? 'D-pad / left stick select · A / × confirm · B / ○ back · right stick scroll'
     : photo.on ? 'Left stick fly · right stick look · LB/RB down/up · A / × save · B / ○ exit'
-    : 'A / × jump · X / □ use · Y / △ ping · RT / R2 run · LT aim (+ RT fire, ← → ray / dart) · ↑ worlds · ↓ photo · View sketchbook · Menu settings';
+    : 'A / × jump (again in the air: boost) · X / □ use · Y / △ ping · RT / R2 run · LT aim (+ RT shoot) · B / ○ push · ↑ worlds · ↓ photo · View sketchbook · Menu settings';
   const mergedInput = mergeControls(input, padInput);
   const ctl = busy() ? noInput : ship.input(mergedInput);   // the ship's E and its autopilot
 
@@ -823,7 +823,7 @@ function frame() {
     rig.update(player.pos, dt, player.frame);
   }
   ship.update(dt, t, mergedInput, { photo: photo.on });   // inside / outside, its scenes and their camera
-  blaster.update(dt, ctl, busy() || photo.on);
+  tool.update(dt, ctl, busy() || photo.on);
   scout.update(dt, busy() || photo.on);
   if (!busy() && !photo.on) scout.placeLabel(camera);
   else if (scout.label) scout.label.hidden = true;
@@ -977,4 +977,4 @@ requestAnimationFrame((t) => {
 });
 
 // handy for debugging from the console
-Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, gate, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, blaster, crowd, wildlife, ship, game });
+Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, gate, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife, ship, game });

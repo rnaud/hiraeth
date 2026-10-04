@@ -19,6 +19,11 @@ test('menu swipes remain native while canvas gestures move and look', async () =
     const { TouchControls } = await import('../src/ui.js');
     const input = {}, looks = [];
     new TouchControls(input, { look: (...args) => looks.push(args) });
+    // the fluid tool's buttons: aim (toggle), shoot and push (held keys); jump boosts in the air
+    assert.match(root.innerHTML, /data-toggle="KeyR" class="b-aim"/);
+    assert.match(root.innerHTML, /data-key="KeyG" class="b-fire"/);
+    assert.match(root.innerHTML, /data-key="KeyC" class="b-push"/);
+    assert.doesNotMatch(root.innerHTML, /KeyX|b-mode/, 'no mode switch any more');
     const touch = (identifier, clientX, clientY) => ({ identifier, clientX, clientY, target: canvas });
     const fire = (target, type, changedTouches) => {
       const event = new Event(type, { cancelable: true });

@@ -18,7 +18,10 @@
 //                         it standing on its legs, not dug into the dune)
 //   objective             the current main objective, shown in the HUD (string; the prologue sets
 //                         'Find a new source of power.'; the story clears or replaces it)
-//   tool.colours          number of colour bands in the backpack fluid (1 at start)
+//   tool.colours          number of colour bands in the backpack fluid (1 at start: cyan and
+//                         violet; each band adds a tone, up to 5; written by tool.refill)
+//   tool.tones            optional custom tones by index ([, , '#e9a53c']), when a band was
+//                         added with refill({ addColour: true, tone })
 //   calls.<n>             call n home has been heard (src/story/calls.js; call n waits at the
 //                         cockpit console once n worlds are complete)
 //   quest.<id>            a quest's stage (string); see src/story/quests.js
@@ -31,6 +34,14 @@
 //   'dialogue:start' / 'dialogue:end' { npc, id }
 //   'quest' { id, stage }          a quest advanced
 //   'tool:fire' { mode, point }    the fluid tool was used (mode: 'shoot' | 'boost' | 'push')
+//   'tool:refilled' { charges, colours, added }   the tank filled up (after the 5 s wait, or refill());
+//                                  added: a colour band was added (magical water)
+// Requests the fluid tool listens for (fluid-tool.js; same as calling the tool directly):
+//   'tool:refill' { addColour, tone }  fill the tank now; addColour: true adds a colour band for good
+//                                  (sets tool.colours, up to 5) — the desert's magical water; tone:
+//                                  optional hex colour for that band (default: the next fluid tone)
+//   'tool:enable' { on }           on: false puts the tool away (no shoot, push or boost), e.g.
+//                                  inside the ship before the player first steps outside
 
 const KEY = 'moebius.game.v1';
 
