@@ -186,11 +186,17 @@ export class Quests {
     const row = (d) => {
       const done = this.isDone(d.id), st = this.current(d.id);
       const steps = d.stages.filter((s) => this.reached(d.id, s.id) && s !== st && !s.secret).map((s) => `<li class="done">${s.text}</li>`).join('');
-      return `<div class="quest${done ? ' finished' : ''}${d.id === tracked ? ' tracked' : ''}" data-quest="${d.id}">
+      // finished: a stamp, and only how it ended (its steps are history)
+      if (done) return `<div class="quest finished" data-quest="${d.id}">
+        <h3>${d.main ? '◆ ' : '◇ '}${d.title}<b class="stamp">✓ Complete</b></h3>
+        <ul><li class="outro">${d.outro ?? 'Done.'}</li></ul></div>`;
+      return `<div class="quest${d.id === tracked ? ' tracked' : ''}" data-quest="${d.id}">
         <h3>${d.main ? '◆ ' : '◇ '}${d.title}${d.id === tracked ? ' <span>tracked</span>' : ''}</h3>
-        <ul>${steps}${done ? `<li class="now">${d.outro ?? 'Done.'}</li>` : `<li class="now">${st?.text ?? ''}</li>`}</ul></div>`;
+        <ul>${steps}<li class="now">${st?.text ?? ''}</li></ul></div>`;
     };
-    return `<section class="quests"><h2>Quests <span>${fin.length}/${list.length}</span></h2>${act.map(row).join('')}${fin.map(row).join('')}<p class="qhint">click a quest to track it · Q pings the tracked objective</p></section>`;
+    return `<section class="quests"><h2>Quests <span>${fin.length}/${list.length} complete</span></h2>${act.map(row).join('')}`
+      + (fin.length ? `<h4 class="qgroup">Completed</h4>${fin.map(row).join('')}` : '')
+      + `<p class="qhint">choose a quest to track it</p></section>`;
   }
 }
 

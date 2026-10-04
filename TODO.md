@@ -116,7 +116,7 @@ Grouped by area. Checked items are done; the changelog says when.
 - [x] Portraits in conversations: just the person against a coloured
   background, not the environment.
 - [x] Special places, hints and objectives are coloured in dialogue more often.
-- [ ] Clearer in the menu when a quest is complete.
+- [x] Clearer in the menu when a quest is complete.
 - [x] Level screenshots (level select) should be smaller.
 - [x] Don't show the "updated" screen on every level.
 - [x] Select and Start screens pause the game, full screen, with their own
