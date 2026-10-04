@@ -1,0 +1,29 @@
+src/levels/content.js
+  s_1fd8d0e7b02dcf::t_d8a90d453c3bca 156,158-161
+src/levels/garage.js
+  s_1fd8d0e7b02dcf::t_26e3a8cd38e8b5 28-34,40,129,203-222,250-259,273,281-282,285-336,341,352-358,383-406,467-472,482-487
+src/story/garage-data.js
+  s_1fd8d0e7b02dcf::t_cff8c1e7608fd9 1-303
+src/story/garage.js
+  s_1fd8d0e7b02dcf::t_df84fdd856f88b 1-237
+src/story/index.js
+  s_1fd8d0e7b02dcf::t_d3f3e3bce23ffc 12,32
+tests/story-garage.test.js
+  s_1fd8d0e7b02dcf::t_7ed0e92c767245 1-156
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b20659ae2966ca1f210406808671772af0ad5829",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
