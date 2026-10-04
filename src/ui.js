@@ -35,7 +35,7 @@ export class Settings {
 
 /** The settings menu: O, Esc (when nothing else is open) or the gear button. */
 export class SettingsMenu {
-  constructor(settings, { sound, onResetProgress, isBusy, onNews }) {
+  constructor(settings, { sound, onResetProgress, isBusy, onNews, onDev }) {
     this.s = settings;
     const el = (this.el = document.getElementById('settings'));
     const row = (label, control) => `<label class="row"><span>${label}</span>${control}</label>`;
@@ -50,6 +50,7 @@ export class SettingsMenu {
         ${row('Mute (M)', `<input data-k="mute" type="checkbox">`)}
         ${row('Show FPS (F)', `<input data-k="showFps" type="checkbox">`)}
         ${row('Developer panel', `<input data-k="devPanel" type="checkbox">`)}
+        ${row('Dev menu: items, boxes, worlds (\`)', `<button data-a="dev" type="button">open</button>`)}
         <div class="buttons">
           <button data-a="reset">Reset progress</button>
           <button data-a="news">What's new (N)</button>
@@ -76,6 +77,7 @@ export class SettingsMenu {
       const a = e.target.dataset?.a;
       if (a === 'close' || e.target === el) this.toggle(false);
       if (a === 'news') { this.toggle(false); onNews?.(); }
+      if (a === 'dev') { e.preventDefault(); this.toggle(false); onDev?.(); }
       if (a === 'reset' && confirm('Forget every relic, story page and saved position?')) onResetProgress();
     });
     window.addEventListener('keydown', (e) => {

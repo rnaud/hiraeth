@@ -8,6 +8,7 @@ import { STORY } from '../desert-sites.js';
 import { COOL_FIRE, FIRE, SMOKE_COOL } from './flames.js';
 import { setMagic } from './magic-water.js';
 import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK } from './desert-data.js';
+import { items } from '../items.js';
 
 // The desert's story, alive: who stands where, what reacts to you, and the
 // chain of the main quest (desert-data.js has the words).
@@ -18,6 +19,7 @@ import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK } from './desert-data.
 //   the city     Hessa keeps the dry well at the burning tree's roots
 //   the dunes    old Oum sits on a stone where she fell behind
 //   the cave     the pool, the fallen rib across the channel, the mural
+//   the dune     the backpack's box, thrown out in the crash (src/boxes/): the first stage
 //
 // Flags (game-state.js): desert.camps.seen, desert.jar.given,
 // desert.speaker.heard, desert.well.seen, desert.cave.seen,
@@ -173,7 +175,8 @@ export function setupDesert(ctx) {
   // ---------------------------------------------------------------- the channel and the pool
   const st = { level: cave.levels.low, boneT: 0, flare: 0, drink: 0, approached: false, campsIn: false };
   const open = () => !!game.flag('desert.channel.open');
-  const toolHasPush = () => !!(tool && (typeof tool.push === 'function' || tool.modes?.includes?.('push') || tool.MODES?.includes?.('push')));
+  // the tool pushes only once the backpack is found (src/boxes/); before that the rib is heaved by hand
+  const toolHasPush = () => !!tool && (tool.owned ?? items.has('backpack'));
   const clearChannel = (how) => {
     if (open()) return;
     game.set('desert.channel.open', true);
@@ -221,7 +224,7 @@ export function setupDesert(ctx) {
     if (inPool && !wasIn) {
       if (!open()) toast('The water is shallow and dull, barely moving. It’s waiting for something.');
       else {
-        const addColour = !game.flag('desert.pool.tinted');
+        const addColour = !game.flag('desert.pool.tinted') && items.has('backpack');   // (no tank, nothing to tint yet)
         // the fluid tool listens for this (fluid-tool.js): a full tank, and for good a new colour band
         game.emit('tool:refill', { addColour });
         if (addColour) { game.set('desert.pool.tinted', true); toast('The water climbs your hose. The tank takes its colours.'); }
@@ -248,6 +251,11 @@ export function setupDesert(ctx) {
     return true;
   };
   game.on('ship:enter', () => feedShip());
+  // the backpack found: a nudge to try it
+  game.on('box:opened', ({ item } = {}) => {
+    if (item !== 'backpack') return;
+    setTimeout(() => toast('Try shooting (G) or pushing (C).'), 3200);
+  });
   quests.def('desert.power').onDone = () => {
     game.set('ship.powered', true);
     game.set('world.desert.done', true);

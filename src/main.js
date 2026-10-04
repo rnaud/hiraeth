@@ -36,6 +36,9 @@ import { birdAnswers, promisedBird } from './bird.js';
 import { game } from './game-state.js';
 import { items, ITEMS } from './items.js';
 import { Flammables, flammableSpots } from './flammable.js';
+import { createBoxes, migrateSave } from './boxes/index.js';
+import { createItemEffects } from './boxes/effects.js';
+import { DevMenu } from './dev-menu.js';
 
 // Loading: each stage updates the inked loading screen, then yields a frame
 // so it can paint (its pen animation runs on the compositor meanwhile).
@@ -171,6 +174,7 @@ resize();
 
 // ------------------------------------------------------------------ world
 const query = new URLSearchParams(location.search);
+migrateSave();   // saves from before the items: whoever finished the prologue keeps the backpack (src/boxes/index.js)
 // items (src/items.js), for development: ?items=all grants everything, ?items=none takes it all
 // away, ?items=backpack,glider owns exactly those (the dev menu toggles them one by one)
 {
@@ -339,6 +343,18 @@ registerInteractable({ id: 'vehicle', priority: PRIORITY.vehicle, range: 6, at: 
 if (expedition) registerInteractable({ id: 'lens', priority: PRIORITY.use, range: 1, prompt: 'turn the lens', distance: (p) => (expedition.nearby(p) >= 0 ? 0 : Infinity), use: () => {} });
 const scout = new Scout({ scene, player, physics, sound, label: document.getElementById('scout-label'),
   getTarget: () => nextObjective({ player, expedition, story, relics, gate, level, quest: () => storyRt.objective() }),
+});
+// ---- item boxes (src/boxes/): they notice you; E opens one (a Zelda-style scene on the ship's cinematic camera)
+const boxes = createBoxes({ levelId, scene, physics, level, player, sound, quests: storyRt.quests, toast: showToast,
+  anchor: () => ship.arrivalSpot(),
+  cam: { shot: (s) => ship.shot(s), release: (b) => ship.release(b), hud: (on) => ship.cinema.hud(on), bars: (on) => ship.cinema.bars(on) } });
+const itemFx = createItemEffects({ player, tool, level, sound, toast: showToast, isNight: () => sky.hour < 6.4 || sky.hour > 19.3 });
+journal.sections.push(() => boxes.journalHtml(Object.fromEntries(LEVELS.map((l) => [l.id, l.title]))));
+const devMenu = new DevMenu({ levelId, levels: LEVELS, boxes, quests: storyRt.quests, story });
+window.addEventListener('keydown', (e) => {
+  if (!boxes.busy() || e.repeat) return;
+  if (e.code === 'Escape') boxes.skip();
+  else if (e.code === 'KeyE' || e.code === 'Enter' || e.code === 'Space') boxes.dismiss();
 });
 // wildlife: two or three small species per world, each with a surprise (src/wildlife.js)
 const wildlife = new Wildlife(scene, level, physics, { content, sound });
@@ -576,8 +592,9 @@ const changelog = new Changelog();
 const menu = new SettingsMenu(settings, {
   sound,
   onNews: () => changelog.toggle(true),
+  onDev: () => devMenu.toggle(true),
   // (Esc during the ship's scenes is "hold to skip", even in the parts you walk through)
-  isBusy: () => story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || photo.on || storyRt.busy() || ship.busy() || ship.playing,
+  isBusy: () => story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || photo.on || storyRt.busy() || ship.busy() || ship.playing || boxes.busy(),
   onResetProgress: () => { reactiveWorld.clear(); localStorage.removeItem('moebius.journal.v1'); SaveGame.clear(); game.reset(); location.href = location.pathname; },   // a new game: the prologue
 });
 // one panel at a time: J over the open settings drew the sketchbook's quest log under the
@@ -729,15 +746,16 @@ function updateHud() {
 }
 
 
-const busy = () => story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || menu.open || endingOpen || storyRt.busy() || ship.busy();
+const busy = () => story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || menu.open || endingOpen || storyRt.busy() || ship.busy() || boxes.busy();
 const noInput = {};
 let controllerActive = false;
 const controllerHint = document.createElement('div');
 controllerHint.id = 'controller-hint';
 document.body.appendChild(controllerHint);
-const menuRoot = () => storyRt.dialogue.open ? storyRt.dialogue.el : menu.open ? menu.el : changelog.open ? changelog.el : journal.open ? journal.el : picker.classList.contains('open') ? picker : document.getElementById('page');
+const menuRoot = () => boxes.busy() && boxes.card.el ? boxes.card.el : storyRt.dialogue.open ? storyRt.dialogue.el : menu.open ? menu.el : changelog.open ? changelog.el : journal.open ? journal.el : picker.classList.contains('open') ? picker : document.getElementById('page');
 const closeControllerMenu = () => {
-  if (storyRt.dialogue.open) storyRt.dialogue.close();
+  if (boxes.busy()) boxes.skip();
+  else if (storyRt.dialogue.open) storyRt.dialogue.close();
   else if (menu.open) menu.toggle(false);
   else if (changelog.open) changelog.toggle(false);
   else if (journal.open) journal.toggle(false);
@@ -932,6 +950,8 @@ function frame() {
     rig.update(player.pos, dt, player.frame);
     storyRt.frameCamera(camera);   // the two-shot while talking
   }
+  boxes.update(dt, t, { camera });   // (after the player: it poses the kneel; before the ship, which places its camera)
+  itemFx.update(dt, t);
   ship.update(dt, t, mergedInput, { photo: photo.on });   // inside / outside, its scenes and their camera
   tool.update(dt, ctl, busy() || photo.on);
   flammables.update(dt, t, player.pos);
@@ -1092,4 +1112,4 @@ requestAnimationFrame((t) => {
 
 // handy for debugging from the console
 Object.assign(window, { items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, gate, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife,
-  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game });
+  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, boxes, devMenu });

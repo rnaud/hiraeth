@@ -26,6 +26,8 @@ export const QUESTS = [
     id: Q, title: 'The Tree That Drinks', world: 'desert', main: true,
     outro: 'The ship hums. The tree drank, and so did you.',
     stages: [
+      // the backpack was thrown out in the crash: its box lies down the dune, at the end of the debris (src/boxes/placements.js)
+      { id: 'pack', text: 'Something was thrown from the ship in the crash. Find what fell', label: 'What fell from the ship', flag: 'item.backpack', at: 'box.desert.backpack' },
       { id: 'camps', text: 'The ship is dead. Follow the smoke to the pilgrims’ camps', label: 'The pilgrims’ camps', flag: 'desert.camps.seen', at: 'camps' },
       { id: 'ama', text: 'Ask Ama, keeper of the fires, where to find power', label: 'Ama, keeper of the fires', flag: 'desert.jar.given', at: 'ama' },
       { id: 'speaker', text: 'Find the Speaker at the head of the procession', label: 'The Speaker', flag: 'desert.speaker.heard', at: 'speaker' },

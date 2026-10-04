@@ -164,6 +164,8 @@ const _q = new THREE.Quaternion(), _qr = new THREE.Quaternion(), _qp = new THREE
 const _m4 = new THREE.Matrix4();
 const _w1 = new THREE.Vector3(), _w2 = new THREE.Vector3(), _w3 = new THREE.Vector3();
 const _wq1 = new THREE.Quaternion(), _wq2 = new THREE.Quaternion(), _wq3 = new THREE.Quaternion(), _wq4 = new THREE.Quaternion(), _wq5 = new THREE.Quaternion();
+const _k1 = new THREE.Vector3(), _k2 = new THREE.Vector3(), _k3 = new THREE.Vector3(), _k4 = new THREE.Vector3(), _k5 = new THREE.Vector3(), _k6 = new THREE.Vector3();
+const _kq = new THREE.Quaternion(), _kq2 = new THREE.Quaternion(), _kq3 = new THREE.Quaternion(), _km = new THREE.Matrix4();
 
 // The face lights as one rounded volume (bind-pose centre, normal blend).
 const HEAD_BALL = [0, 1.8, 0.03, 0.8];
@@ -644,6 +646,65 @@ export class Humanoid {
       const under = B.hand_r.getWorldPosition(new THREE.Vector3()).addScaledVector(up, -0.06).addScaledVector(to, -0.05).addScaledVector(right, -0.05);
       this.solveTwoBone(B.upperarm_l, B.lowerarm_l, B.hand_l, under, shl.addScaledVector(up, -0.6).addScaledVector(right, -0.6), k * 0.85);
       blendHand(B.hand_l, to.clone().addScaledVector(right, 1.2).normalize(), thumb, k * 0.85);
+    }
+  }
+
+  /**
+   * Kneeling at something low in front (an item box), blended over the
+   * current pose by k (0..1); call after the frame's pose (update, plantFeet).
+   * The pelvis drops, the left knee goes down to the ground with the shin
+   * lying back, the right foot plants ahead with its knee up, the back leans
+   * in and the head looks down at `look`. `hands` ([right, left] world
+   * points) pulls the hands there by `reach` (0..1): lifting a lid.
+   * Every bone it turns is re-driven by update() next frame, so nothing
+   * accumulates.
+   */
+  kneel(k, { up, fwd, ground, look = null, hands = null, reach = 0, lean = 0.42 }) {
+    const B = this.b;
+    if (k <= 0.001 || !B.pelvis || !B.thigh_l || !B.calf_l || !B.foot_l || !B.thigh_r || !B.calf_r || !B.foot_r) return;
+    const F = _k1.copy(fwd).addScaledVector(up, -fwd.dot(up)).normalize();
+    const right = _k2.crossVectors(F, up).normalize();          // the character's right
+    const axis = _k3.crossVectors(up, F).normalize();           // turning about it tips up toward fwd
+    const footQ = { l: B.foot_l.getWorldQuaternion(new THREE.Quaternion()), r: B.foot_r.getWorldQuaternion(new THREE.Quaternion()) };
+    // 1. the pelvis drops (and sits back a little over the kneeling leg)
+    const p = B.pelvis;
+    const wp = p.getWorldPosition(_k4).addScaledVector(up, -0.43 * k).addScaledVector(F, -0.06 * k);
+    p.position.copy(wp.applyMatrix4(_km.copy(p.parent.matrixWorld).invert()));
+    p.updateMatrixWorld(true);
+    // 2. the legs: left knee down, right foot ahead
+    const gy = (v) => v.addScaledVector(up, ground - v.dot(up));   // onto the ground plane (along up)
+    const hipL = B.thigh_l.getWorldPosition(new THREE.Vector3()), hipR = B.thigh_r.getWorldPosition(new THREE.Vector3());
+    const knee = gy(hipL.clone().addScaledVector(F, 0.26)).addScaledVector(up, 0.07);
+    const footL = gy(knee.clone().addScaledVector(F, -0.4)).addScaledVector(up, 0.12);
+    this.solveTwoBone(B.thigh_l, B.calf_l, B.foot_l, footL, knee.clone().addScaledVector(F, 0.6).addScaledVector(up, -0.3), k);
+    const footR = gy(hipR.clone().addScaledVector(F, 0.32)).addScaledVector(up, 0.09);
+    this.solveTwoBone(B.thigh_r, B.calf_r, B.foot_r, footR, hipR.clone().addScaledVector(F, 1).addScaledVector(up, 0.5).addScaledVector(right, 0.15), k);
+    // the right foot stays flat; the left one tips onto its toes behind
+    const setWorldQ = (bone, q) => { bone.quaternion.copy(bone.parent.getWorldQuaternion(_kq).invert().multiply(q)); bone.updateMatrixWorld(true); };
+    setWorldQ(B.foot_r, footQ.r);
+    setWorldQ(B.foot_l, footQ.l.premultiply(_kq2.setFromAxisAngle(axis, 1.15 * k)));
+    // 3. the back leans in, the head looks down at the box
+    for (const [name, share] of [['spine_01', 0.25], ['spine_02', 0.4], ['spine_03', 0.35]]) {
+      const bone = B[name];
+      if (!bone?.parent) continue;
+      setWorldQ(bone, bone.getWorldQuaternion(_kq3).premultiply(_kq2.setFromAxisAngle(axis, lean * share * k)));
+    }
+    if (look && B.Head?.parent) {
+      const h = B.Head.getWorldPosition(_k4);
+      const to = _k5.subVectors(look, h).normalize();
+      const now = _k6.copy(F).applyAxisAngle(axis, lean * k);
+      setWorldQ(B.Head, B.Head.getWorldQuaternion(_kq3).premultiply(_kq2.setFromUnitVectors(now, to).slerp(_kq.identity(), 1 - 0.6 * k)));
+    }
+    // 4. the hands
+    if (hands && reach > 0.001 && B.upperarm_r && B.lowerarm_r && B.hand_r) {
+      ['r', 'l'].forEach((s, i) => {
+        const ua = B[`upperarm_${s}`], la = B[`lowerarm_${s}`], hd = B[`hand_${s}`];
+        if (!ua || !la || !hd || !hands[i]) return;
+        const sh = ua.getWorldPosition(new THREE.Vector3());
+        const q = hd.getWorldQuaternion(new THREE.Quaternion());
+        this.solveTwoBone(ua, la, hd, hands[i], sh.addScaledVector(right, i === 0 ? 0.6 : -0.6).addScaledVector(up, -0.5), reach * k);
+        setWorldQ(hd, q);
+      });
     }
   }
 

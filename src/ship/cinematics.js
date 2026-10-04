@@ -12,6 +12,9 @@ import * as sfx from './sfx.js';
 // shorter scenes (a call home, arriving, taking off) are Sequences here.
 
 export const OBJECTIVE = 'Find a new source of power.';
+/** A new game steps out without the backpack: it was thrown out in the crash (src/boxes/, the desert's first stage). */
+export const FIRST_OBJECTIVE = 'Find what fell from the ship.';
+const stepOutObjective = () => (game.flag('item.backpack') ? OBJECTIVE : FIRST_OBJECTIVE);
 const STEP_OUT_YAW = 0.34;   // rad off straight-behind when the traveller first steps out
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const smooth = (t) => { t = THREE.MathUtils.clamp(t, 0, 1); return t * t * (3 - 2 * t); };
@@ -144,7 +147,7 @@ export class PrologueDirector {
         s.rig.pitch = 0.2;
         s.release(1.4);
         C.bars(false); C.hud(true);
-        C.objective(OBJECTIVE);
+        C.objective(stepOutObjective());
         s.sound?.chime?.();
         break;
     }
@@ -329,7 +332,7 @@ export class PrologueDirector {
       s.rig.yaw = a.heading + Math.PI + STEP_OUT_YAW; s.rig.pitch = 0.08;
       s.rig.target.copy(a.pos);
       s.cam = null; s.blend = null;
-      C.objective(OBJECTIVE);
+      C.objective(stepOutObjective());
     } else {
       C.say(null); C.hint(null); C.hud(true); C.bars(false);
     }
