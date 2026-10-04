@@ -484,10 +484,8 @@ export class NPC {
       const text = stripTone(line);
       if (this.balloon.textContent !== text) this.balloon.textContent = text;
       // the mumble: once each time a line comes up (quieter further off, panned to where they stand)
-      if (line !== this._voiced) {
-        this._voiced = line;
-        speakBalloon(line, { person: this.voicePerson(), dist: camera.position.distanceTo(this.pos), pan: THREE.MathUtils.clamp(_w.x * 0.8, -0.9, 0.9) });
-      }
+      // (no room yet, someone else has the floor: try again next frame, while the balloon is up)
+      if (line !== this._voiced && speakBalloon(line, { person: this.voicePerson(), dist: camera.position.distanceTo(this.pos), pan: THREE.MathUtils.clamp(_w.x * 0.8, -0.9, 0.9) })) this._voiced = line;
       // kept on the screen (on a phone a balloon over someone near the edge ran off it)
       const w = this.balloon.offsetWidth || 200;
       const x = THREE.MathUtils.clamp((_w.x * 0.5 + 0.5) * window.innerWidth - 22, 6, Math.max(6, window.innerWidth - w - 6));

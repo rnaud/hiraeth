@@ -100,7 +100,7 @@ export const LANGUAGES = {
     cons: ['bl', 'gl', 'w', 'l', 'b', 'm', 'p'], vowels: ['u', 'o', 'oe', 'a'], glyphs: '∿≀≈⌇∾〰' },
   perdide2: { name: 'lamp-keeper burble', wave: 'triangle', pitch: 0.9, rate: 0.82, len: 1.2, gain: 0.9, breath: 0.12, clip: 0, glide: -2.2, formant: 0.82, density: 0.8, wobble: [7, 0.9],
     cons: ['gl', 'l', 'w', 'm', 'n', 'b'], vowels: ['o', 'u', 'a'], glyphs: '∿≈∾⌇≋' },
-  bazaar:   { name: 'Market patter', wave: 'sawtooth', pitch: 1.04, rate: 1.22, len: 0.75, gain: 0.85, breath: 0.06, clip: 0.5, glide: 0.8, formant: 1.04, density: 0.9, radio: 0.6,
+  bazaar:   { name: 'Market patter', wave: 'sawtooth', pitch: 1.04, rate: 1.22, len: 0.75, gain: 1.1, breath: 0.06, clip: 0.5, glide: 0.8, formant: 1.04, density: 0.9, radio: 0.6,
     cons: ['b', 'd', 'z', 'r', 'sh', 'p', 'y', 'n'], vowels: ['a', 'e', 'o', 'i', 'ae'], glyphs: '⌘⌥⍟⎈⍣⍤⋇' },
   atelier:  { name: 'pen-and-paper', wave: 'triangle', pitch: 1.0, rate: 0.95, len: 0.9, gain: 0.8, breath: 0.3, clip: 0.2, glide: 0.3, formant: 1.0, density: 0.75,
     cons: ['s', 'f', 'sh', 'l', 't'], vowels: ['e', 'i', 'a'], glyphs: '〜∫∮⌇⌒' },
@@ -311,7 +311,7 @@ export function speakLine(line) {
 export function speakBalloon(text, { person = {}, dist = 0, pan = 0, range = 26, max = 9 } = {}) {
   if (!OUT || !text) return false;
   const k = Math.max(0, 1 - dist / range);
-  if (k <= 0.05) return false;
+  if (k <= 0.05 || OUT.canSpeak?.('balloon', k * k) === false) return false;   // (checked before planning: cheap to retry next frame)
   const lang = OUT.language ?? 'desert';
   const plan = planLine(text, { voice: voiceOf(person), lang, max });
   return OUT.speak?.(plan, { channel: 'balloon', gain: k * k, pan }) ?? false;

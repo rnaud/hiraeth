@@ -919,10 +919,8 @@ export class Crowd {
         const text = stripTone(p.say);
         if (b.textContent !== text) b.textContent = text;
         // the shout, heard from where they stand (a short mumble; at most a couple at once: audio.js)
-        if (this._voiced !== p || this._voicedLine !== p.say) {
-          this._voiced = p; this._voicedLine = p.say;
-          speakBalloon(p.say, { person: { seed: `crowd:${p.id}`, kind: p.kind, size: p.size }, dist: p._dCam, pan: THREE.MathUtils.clamp(_w.x * 0.8, -0.9, 0.9), max: 6 });
-        }
+        if ((this._voiced !== p || this._voicedLine !== p.say)
+          && speakBalloon(p.say, { person: { seed: `crowd:${p.id}`, kind: p.kind, size: p.size }, dist: p._dCam, pan: THREE.MathUtils.clamp(_w.x * 0.8, -0.9, 0.9), max: 6 })) { this._voiced = p; this._voicedLine = p.say; }
         b.style.transform = `translate(${((_w.x * 0.5 + 0.5) * window.innerWidth).toFixed(1)}px, ${((-_w.y * 0.5 + 0.5) * window.innerHeight).toFixed(1)}px) translate(-22px, calc(-100% - 12px))`;
         b.classList.add('show');
         return;

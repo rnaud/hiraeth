@@ -316,6 +316,7 @@ export class Dialogue {
     const target = this.open ? 1 : 0;
     this.blend += (target - this.blend) * (1 - Math.exp(-(this.open ? 3.2 : 4.5) * dt));
     if (!this.open) return;
+    this.sound?.holdFloor?.();   // nobody else mumbles over a conversation
     const len = this.runner.text.length;
     if (this.revealed < len) {
       // the voice keeps step with the letters: each syllable sounds as the reveal reaches it

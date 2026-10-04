@@ -59,7 +59,7 @@ const VOICES = {
 };
 
 // The voice bus's level against the rest (× the voice volume setting), and how many balloon mumbles may overlap.
-const VOICE_LEVEL = 1.1;
+const VOICE_LEVEL = 1.25;
 const BALLOON_VOICES = 2;
 
 /**
@@ -832,11 +832,7 @@ export class Sound {
   speak(plan, { channel = 'balloon', gain = 1, pan = 0, radio = 0 } = {}) {
     if (!this.ctx || this.muted || !this.alienVoices || !plan?.syllables?.length) return false;
     const ctx = this.ctx, t = ctx.currentTime + 0.03;
-    if (channel === 'balloon') {
-      this._balloons = this._balloons.filter((b) => b.end > t);
-      // a conversation or a call has the floor; and never more than a couple of mumbles at once
-      if (t < this._talkUntil || this._balloons.length >= BALLOON_VOICES || gain < 0.02) return false;
-    }
+    if (channel === 'balloon' && !this.canSpeak('balloon', gain)) return false;
     const out = this.utterance({ gain, pan, radio: Math.max(radio, plan.syllables[0].radio ?? 0) });
     for (const s of plan.syllables) renderSyllable(ctx, out.input, s, t + s.t, this.noiseBuf);
     const end = t + plan.total + 0.2;
@@ -846,6 +842,15 @@ export class Sound {
     if (channel === 'choice') this._talkUntil = Math.max(this._talkUntil, end);
     this.trace(channel, plan, gain);
     return true;
+  }
+
+  /** Is there room for another mumble now? (Balloons: a conversation or a call has the floor, and never more than a couple at once.) */
+  canSpeak(channel = 'balloon', gain = 1) {
+    if (!this.ctx || this.muted || !this.alienVoices) return false;
+    if (channel !== 'balloon') return true;
+    const t = this.ctx.currentTime;
+    this._balloons = this._balloons.filter((b) => b.end > t);
+    return t >= this._talkUntil && this._balloons.length < BALLOON_VOICES && gain >= 0.02;
   }
 
   /** One syllable now, for the dialogue panel's letter-by-letter reveal (alien voices off: the old blip). */
@@ -859,6 +864,9 @@ export class Sound {
     if (plan && plan !== this._talkPlan) { this._talkPlan = plan; this.trace('dialogue', plan, 1); }
   }
 
+  /** A conversation is open: the balloons around keep quiet meanwhile. */
+  holdFloor(secs = 0.5) { if (this.ctx) this._talkUntil = Math.max(this._talkUntil, this.ctx.currentTime + secs); }
+
   /** Fade the call's voice (its subtitle was cleared or skipped). */
   hush(channel = 'call') {
     if (channel === 'call' && this._calls) { this._calls.fade(); this._calls = null; this._talkUntil = 0; }
@@ -871,9 +879,11 @@ export class Sound {
     let head = input;
     const nodes = [input, g];
     if (radio > 0) {
-      const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 380 + 400 * radio;
-      const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3600 - 1400 * radio; lp.Q.value = 2.2;
+      // a speaker grille (the call screen, the market's radio patter): band-limited, made up in level
+      const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 250 + 300 * radio;
+      const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3800 - 1200 * radio; lp.Q.value = 2.2;
       head.connect(hp).connect(lp); head = lp; nodes.push(hp, lp);
+      g.gain.value = gain * (1 + 0.9 * radio);
     }
     const p = pan && ctx.createStereoPanner ? ctx.createStereoPanner() : null;
     if (p) { p.pan.value = Math.max(-0.9, Math.min(0.9, pan)); nodes.push(p); }
