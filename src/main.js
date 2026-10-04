@@ -561,7 +561,8 @@ const changelog = new Changelog();
 const menu = new SettingsMenu(settings, {
   sound,
   onNews: () => changelog.toggle(true),
-  isBusy: () => story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || photo.on || storyRt.busy() || ship.busy(),
+  // (Esc during the ship's scenes is "hold to skip", even in the parts you walk through)
+  isBusy: () => story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || photo.on || storyRt.busy() || ship.busy() || ship.playing,
   onResetProgress: () => { reactiveWorld.clear(); localStorage.removeItem('moebius.journal.v1'); SaveGame.clear(); game.reset(); location.href = location.pathname; },   // a new game: the prologue
 });
 // one panel at a time: J over the open settings drew the sketchbook's quest log under the

@@ -79,6 +79,7 @@ export class SettingsMenu {
       if (a === 'reset' && confirm('Forget every relic, story page and saved position?')) onResetProgress();
     });
     window.addEventListener('keydown', (e) => {
+      if (e.repeat) return;   // (holding Esc to skip a scene must not open the settings when the scene ends)
       if (e.code === 'KeyO') this.toggle();
       else if (e.code === 'Escape') {
         if (this.open) this.toggle(false);
