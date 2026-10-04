@@ -768,7 +768,7 @@ const closeControllerMenu = () => {
 const controller = new Controller({
   context: () => busy() ? 'menu' : photo.on ? 'photo' : 'game',
   look: (x, y) => { if (x || y) rig.look(x, y); },
-  activity: () => { controllerActive = true; },
+  activity: () => { controllerActive = true; sound.start(); },   // (where a pad press may start sound: the Android app)
   swapAB: () => settings.swapAB,
   navigate: (x, y) => menuNavigate(menuRoot(), x, y),
   scroll: amount => { const root = menuRoot(); (root.querySelector('.list, .panel, .sheet') ?? root).scrollTop += amount; },

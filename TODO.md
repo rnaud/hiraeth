@@ -129,7 +129,7 @@ Grouped by area. Checked items are done; the changelog says when.
   so there's a choice).
 - [ ] Remove the teleport doors to other levels now that we have the ship.
 - [ ] The cutscene between levels shows the approach to the planet from space.
-- [ ] The landing cutscene has no sound at all; add it.
+- [x] The landing cutscene has no sound at all; add it.
 - [ ] Ship take-off and landing: the smoke comes from the wrong places.
 - [ ] The door opening outside the spaceship animates oddly; fix it.
 

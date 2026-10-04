@@ -1040,6 +1040,17 @@ walkthroughs and local names; each data file's header lists its flags.
 - **The bird's promise:** with `bird.promise` set, the whistle calls the Arzach
   bird in worlds with open sky and no mount (Edena, the Garden of Spheres, Home).
 
+## Sound from the first frame (v0.39)
+
+Each world is a new page, and browsers only let a page's sound start after a
+press. `Sound.mayStart()` (`src/audio.js`) asks whether a context would run
+now (`navigator.getAutoplayPolicy`, else a probe context's state); if so the
+sound starts with the world, as it does in the Android app (its WebView plays
+without a gesture). Otherwise it waits for the first key, click or pad press,
+since a suspended context would only queue sounds to burst out at once. The
+ship's arrival sets its engines every frame, so they come in even when the
+sound starts partway through.
+
 ## Musicians' solos (v0.39)
 
 Bands (`sound.setBands`) play on the score's beat around a place. A solo is

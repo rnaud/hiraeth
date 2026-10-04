@@ -428,6 +428,10 @@ export class ArrivalDirector extends Sequence {
           look.lerp(m.group.position, t < 0.05 ? 1 : 1 - Math.exp(-5 * dt));
           ship.shot({ pos: cam, look, fov: 50 });
           const h = m.group.position.y - ship.restPos.y;
+          // set every frame, so the engines come in even if the sound starts mid-scene
+          if (!this.thud) sfx.engines(ship.sound, 0.55 + 0.45 * (1 - Math.min(1, h / 140)));
+          if (!this.whoosh && ship.sound?.ctx) { this.whoosh = true; sfx.roar(ship.sound, Math.max(1, 4.2 - t)); }
+          if (h < 40 && !this.dusted && ship.sound?.ctx) { this.dusted = true; sfx.rumble(ship.sound, 2.4, 0.35); }
           if (h < 40 && Math.random() < 0.8) {
             for (let i = 0; i < 2; i++) {
               const a = Math.random() * Math.PI * 2, r = R * (0.6 + Math.random() * 0.6);

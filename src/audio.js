@@ -162,6 +162,25 @@ export class Sound {
     const start = () => this.start();
     window.addEventListener('pointerdown', start, { once: false });
     window.addEventListener('keydown', (e) => { if (e.code === 'KeyM') this.toggleMute(); else start(); });
+    // Each world is a new page: without this, a landing (or anything before your first
+    // press) would play in silence. Start now wherever sound is allowed without a press.
+    if (Sound.mayStart(window)) this.start();
+  }
+
+  /**
+   * Would an AudioContext run right now, before any press? (The Android app lets it,
+   * and browsers do once the site has been played with.) A suspended context would
+   * only queue sounds that all burst out at the first press, so then we wait.
+   */
+  static mayStart(win) {
+    const AC = win.AudioContext || win.webkitAudioContext;
+    if (!AC) return false;
+    if (win.navigator?.getAutoplayPolicy) return win.navigator.getAutoplayPolicy('audiocontext') === 'allowed';
+    try {
+      const probe = new AC(), running = probe.state === 'running';
+      probe.close?.();
+      return running;
+    } catch { return false; }
   }
 
   start() {
