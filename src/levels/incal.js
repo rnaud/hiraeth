@@ -746,6 +746,10 @@ export function createIncal(scene) {
   const spawn = new THREE.Vector3(R + 14, TOP, 0);
   return {
     id: 'incal',
+    // the rim's flora (src/flora.js) keeps the view from the spawn, the villas, the pillar and the trees' feet clear
+    floraAvoid: (x, z, r) => (Math.abs(z) < 18 + r && x < R + 42) || (x > R + 28 && x < R + 62 && Math.abs(z) < 44)
+      || Math.hypot(x - Math.cos(PILLAR.a) * PILLAR.r, z - Math.sin(PILLAR.a) * PILLAR.r) < 10 + r
+      || trees.some((t) => t[3] > 0 && Math.abs(t[1] - TOP) < 1 && Math.hypot(t[0] - x, t[2] - z) < 2.2 + r),
     ground: { heightAt: () => -Infinity }, // everything walkable is real geometry
     spawn,
     spawnHeading: -Math.PI / 2,   // facing the pit

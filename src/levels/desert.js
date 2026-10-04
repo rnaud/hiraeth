@@ -14,7 +14,7 @@ import { LINES } from '../story/desert-data.js';
 // The original open desert: dunes, mesas, regions, hoverbike and wind.
 export function createDesert(scene) {
   const terrain = new Terrain({ height: desertHeight });
-  const { floaters, banners, lights, doors } = buildWorld(scene, terrain);
+  const { floaters, banners, lights, doors, floraAvoid } = buildWorld(scene, terrain);
   const vistas = buildDesertVistas(scene, terrain);
   const landmarks = buildDesertLandmarks(scene, terrain);
   // inside the masked head: a glyph-carved chamber under an oculus, built high above the map
@@ -45,6 +45,7 @@ export function createDesert(scene) {
   for (const s of qanat.seats) if (s.fire.big && s.i <= 3) s.reserved = true;
   return {
     id: 'desert',
+    floraAvoid,
     observatory,
     qanat,
     vistas,

@@ -186,7 +186,7 @@ Grouped by area. Checked items are done; the changelog says when.
   surface is still to do)
 - [x] No hover bike until I first find it; add a mission to find it.
 - [x] Redesign the taxis and the hover car.
-- [ ] More flowers and plants, some large; each planet has its own flora (no
+- [x] More flowers and plants, some large; each planet has its own flora (no
   reuse), and plants grow in clusters instead of being scattered (as in Edena).
 - [x] Level 2: the area of the man by the trees is crowded and hard to see; the
   trees are too low.

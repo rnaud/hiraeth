@@ -18,6 +18,7 @@ import { WindStreaks } from './wind.js';
 import { HOLO } from './ship/hologram.js';
 import { Physics } from './physics.js';
 import { tileScene, cullFar, fitBounds, SmallCuller, RoomCuller, resolveQuality, detectHandheld, GpuTimer } from './perf.js';
+import { buildFlora, floraKeep } from './flora.js';
 import { Cascade, ShadowCuller, shadowDirection } from './shadows.js';
 import { Trail } from './trail.js';
 import { Flock, Motes, Footprints } from './life.js';
@@ -358,6 +359,15 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Escape') boxes.skip();
   else if (e.code === 'KeyE' || e.code === 'Enter' || e.code === 'Space') boxes.dismiss();
 });
+// flora: the world's own plants in clumps, clear of the people, the boxes, the relics, the ship and
+// the story's places (src/flora.js); the large ones are solid
+const flora = buildFlora({ scene, level, levelId, physics, density: preset.floraDensity ?? 1, keep: floraKeep({ level, content, ship, npcs, crowd, boxes, reactiveWorld }) });
+if (flora) {
+  tiled.small.push(...flora.small);
+  (level.noShadow ??= []).push(...flora.noShadow);
+  if (flora.collider) physics.addCollider(flora.collider);
+  console.info(`flora: ${flora.count} plants (${flora.largeCount} large) of ${flora.sets.length} species, ${flora.buildMs.toFixed(0)} ms`);
+}
 // wildlife: two or three small species per world, each with a surprise (src/wildlife.js)
 const wildlife = new Wildlife(scene, level, physics, { content, sound });
 ship.attach({ player, rig, camera, sound, journal, post, story, wind, npcs, lib, humans: humanT, levels: LEVELS, order: ORDER, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])) });
@@ -890,7 +900,9 @@ function renderFrame() {
   // hidden in every pass of this frame (then shown again): far pebbles and shrubs, props under
   // a pixel or two on screen, rooms off the map while the camera is elsewhere
   camera.updateMatrixWorld();
-  const frameHidden = cullFar(tiled.small, camera, preset.propFar);
+  const frameHidden = [];
+  flora?.update(camera, preset.floraFar ?? 1);   // each species draws the plants in view near enough
+  cullFar(tiled.small, camera, preset.propFar, frameHidden);
   smallCull.hide(camera, gbuffer.height / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)), preset.propPx, frameHidden);
   (roomCull ??= new RoomCuller(scene, offMapRooms, { keep: [player.object, player.mount?.object, ...player.vehicles.map((v) => v.object ?? v.mesh), ...npcs.map((n) => n.object)] })).hide(camera, frameHidden);
 
@@ -1237,5 +1249,5 @@ requestAnimationFrame((t) => {
 });
 
 // handy for debugging from the console
-Object.assign(window, { shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife,
+Object.assign(window, { flora, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife,
   storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, boxes, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats });
