@@ -175,8 +175,8 @@ export function setupDesert(ctx) {
   // ---------------------------------------------------------------- the channel and the pool
   const st = { level: cave.levels.low, boneT: 0, flare: 0, drink: 0, approached: false, campsIn: false };
   const open = () => !!game.flag('desert.channel.open');
-  // (the tool's push needs the backpack on: without it, the rib is heaved by hand)
-  const toolHasPush = () => items.has('backpack') && !!(tool && (typeof tool.push === 'function' || tool.modes?.includes?.('push') || tool.MODES?.includes?.('push')));
+  // the tool pushes only once the backpack is found (src/boxes/); before that the rib is heaved by hand
+  const toolHasPush = () => !!tool && (tool.owned ?? items.has('backpack'));
   const clearChannel = (how) => {
     if (open()) return;
     game.set('desert.channel.open', true);

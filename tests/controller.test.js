@@ -57,7 +57,10 @@ test('the fluid tool: LT aims, RT shoots only while aiming (instead of running),
   t.button(1,true); assert.ok(t.c.update(.016).PadPush, 'B pushes');
   const b=setup(); b.button(1,true); input=b.c.update(.016);
   assert.ok(input.PadPush && !input.PadAim, 'B pushes without aiming too');
-  b.button(1,false); b.button(14,true); assert.ok(!b.c.update(.016).PadPush, 'the D-pad no longer switches anything');
+  b.button(1,false); b.button(14,true); input=b.c.update(.016);
+  assert.ok(!input.PadPush && input.PadModePrev && !input.PadModeNext, 'D-pad left: the previous gun mode');
+  b.button(14,false); b.button(15,true); input=b.c.update(.016);
+  assert.ok(input.PadModeNext && !input.PadModePrev, 'D-pad right: the next one');
   // a light squeeze of LT is enough to aim
   const s=setup(); s.pad.buttons[6]={pressed:false,value:.35}; assert.ok(s.c.update(.016).PadAim);
   // no aiming or firing from menus

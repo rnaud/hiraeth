@@ -23,7 +23,7 @@ test('menu swipes remain native while canvas gestures move and look', async () =
     assert.match(root.innerHTML, /data-toggle="KeyR" class="b-aim"/);
     assert.match(root.innerHTML, /data-key="KeyG" class="b-fire"/);
     assert.match(root.innerHTML, /data-key="KeyC" class="b-push"/);
-    assert.doesNotMatch(root.innerHTML, /KeyX|b-mode/, 'no mode switch any more');
+    assert.match(root.innerHTML, /data-key="KeyX" class="b-mode"/, 'a button cycles the owned gun modes (hidden until there are two)');
     const touch = (identifier, clientX, clientY) => ({ identifier, clientX, clientY, target: canvas });
     const fire = (target, type, changedTouches) => {
       const event = new Event(type, { cancelable: true });

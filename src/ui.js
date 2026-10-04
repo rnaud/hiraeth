@@ -118,7 +118,8 @@ export class TouchControls {
       <button data-press="KeyL" class="b-map">◫</button>
       <button data-toggle="KeyR" class="b-aim" aria-label="Aim the fluid tool">◎</button>
       <button data-key="KeyG" class="b-fire" aria-label="Shoot fluid">✺</button>
-      <button data-key="KeyC" class="b-push" aria-label="Push">✋</button>`;
+      <button data-key="KeyC" class="b-push" aria-label="Push">✋</button>
+      <button data-key="KeyX" class="b-mode" aria-label="Switch the fluid's mode">◐</button>`;
     const stick = root.querySelector('.stick'), nub = root.querySelector('.nub');
     let stickId = null, lookId = null, sx = 0, sy = 0, lx = 0, ly = 0;
     const R = 60;
@@ -189,7 +190,10 @@ export class TouchControls {
  * the screen, and under it the three charges as pips in the fluid's tones
  * (with the seconds to the refill when some are spent). The crosshair opens
  * when it sits on something the tool can touch and kicks on a hit; it
- * shakes when the tank is empty.
+ * shakes when the tank is empty. The label says the gun mode (fluid,
+ * stilling, ember) in its colour, and shows for a moment on a switch even
+ * when not aiming. Without the backpack the body gets .no-tool (index.html
+ * hides the tool's buttons and hints); with two modes or more, .modes.
  */
 export class ToolHud {
   constructor(el = document.getElementById('tool')) {
@@ -199,17 +203,25 @@ export class ToolHud {
     this.pips = [...el.querySelectorAll('.pips u')];
     this.wait = el.querySelector('.wait');
     this.cross = el.querySelector('.cross');
-    this.last = '';
+    this.name = el.querySelector('.mode b');
+    this.last = ''; this.lastBody = '';
   }
-  update({ on, charges = 3, max = 3, refillIn = 0, ready, aimKind, hit, tones = [] }) {
+  update({ on, charges = 3, max = 3, refillIn = 0, ready, aimKind, hit, tones = [], owned = true, mode = 'shoot', modeName = 'fluid', modes = 1, modeFlash = 0 }) {
     if (!this.el) return;
-    document.body.classList.toggle('aiming', on);
-    if (!on) return;
+    const flash = modeFlash > 0 && !on;
+    const bodyKey = `${on}|${owned}|${modes > 1}|${flash}`;
+    if (bodyKey !== this.lastBody) {
+      this.lastBody = bodyKey;
+      const b = document.body.classList;
+      b.toggle('aiming', on); b.toggle('no-tool', !owned); b.toggle('modes', modes > 1); b.toggle('modeflash', flash);
+    }
+    if (!on && !flash) return;
     const secs = charges < max ? Math.ceil(refillIn) : 0;
-    const key = `${charges}|${secs}|${ready}|${aimKind}|${tones.length}`;
+    const key = `${charges}|${secs}|${ready}|${aimKind}|${tones.join()}|${mode}`;
     if (key !== this.last) {
       this.last = key;
-      this.el.className = `fluid${ready ? '' : ' wait'}${aimKind === 'target' ? ' lock' : ''}${charges ? '' : ' empty'}`;
+      if (this.name) this.name.textContent = modeName;
+      this.el.className = `fluid m-${mode}${ready ? '' : ' wait'}${aimKind === 'target' ? ' lock' : ''}${charges ? '' : ' empty'}`;
       this.pips.forEach((u, i) => { u.style.background = i < charges ? tones[i % tones.length] ?? '' : ''; u.classList.toggle('on', i < charges); });
       this.wait.textContent = secs ? `${secs}s` : '';
     }

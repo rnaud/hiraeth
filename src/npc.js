@@ -29,6 +29,8 @@ const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _d = new THREE.Vector3
 const Y = new THREE.Vector3(0, 1, 0);
 const SPLASHED = ['Hey! I\u2019m soaked!', 'Ugh, it\u2019s all colours!', 'Who threw that?', 'Was that you?', 'Hey, not funny!'];
 const SHOVED = ['Whoa! Watch it!', 'Oof! Hey!', 'Mind where you push!', 'Easy, traveller!'];
+const SINGED = ['Hot! Hot!', 'Yow! That’s warm!', 'My cloak! …oh. It doesn’t burn?', 'Sparks! Who’s throwing sparks?'];
+const STUN_FOR = 3.5;   // seconds a stilling glob holds them (fluid-kit.js STUN_SECONDS)
 
 export class NPC {
   /**
@@ -48,6 +50,7 @@ export class NPC {
     this.pooled = pooled;
     this.person = null;
     this.stumbleUntil = -1;
+    this.stunUntil = -1;
     this.knock = new THREE.Vector3();   // a shove's velocity (m/s), dying away
     this.startleAt = -1e9;
     this.shout = null;
@@ -170,11 +173,30 @@ export class NPC {
     c.root.traverse((o) => { if (o.isMesh && o.geometry.type === 'TorusGeometry' && o.parent === c.capeAnchor) o.visible = !!this.cape; });
   }
 
-  /** The fluid tool: 'shoot' startles (a jump, a turn to the shooter, a short line), 'push' shoves them back, stumbling. */
+  /** Stilled by a 'stun' glob: frozen mid-move for a few seconds (nobody can talk to them meanwhile). */
+  stunned() { return this.time < this.stunUntil; }
+
+  /**
+   * The fluid tool: 'shoot' startles (a jump, a turn to the shooter, a short
+   * line), 'push' shoves them back, stumbling, 'stun' freezes them for a few
+   * seconds, 'fire' makes them jump and yelp (it never burns).
+   */
   hit(mode, dir, info) {
+    // a crowd member standing in for someone: the crowd keeps their state
+    if (this.pooled && this.person && this.crowd?.hit) return this.crowd.hit(this.person, mode, dir, info);
     if (this.time < this.stumbleUntil) return;
     const pick = (a) => a[Math.floor(Math.random() * a.length)];
+    if (mode === 'stun') {
+      this.stunUntil = this.stumbleUntil = this.time + STUN_FOR; this._frozen = false;
+      this.knock.set(0, 0, 0); this.shout = null;
+      return;
+    }
     if (dir) this.faceTo = Math.atan2(-dir.x, -dir.z);
+    if (mode === 'fire') {
+      this.startleAt = this.time;
+      this.shout = { text: pick(SINGED), until: this.time + 2.4 };
+      return;
+    }
     if (mode === 'push') {
       this.stumbleUntil = this.time + 0.9; this._frozen = false;
       if (dir) this.knock.set(dir.x, 0, dir.z).normalize().multiplyScalar(4 * (info?.shove ?? 2.4) * (0.6 + 0.4 * (info?.strength ?? 1)));   // dies away at 4/s: ~shove metres
@@ -220,7 +242,7 @@ export class NPC {
       if (sp > 0.05) { this.move(_w.copy(this.knock).divideScalar(sp), sp, dt); this.knock.multiplyScalar(Math.exp(-4 * dt)); }
       const g = this.physics.groundAt(this.pos.x, this.pos.y + 1.5, this.pos.z);
       if (Number.isFinite(g)) this.pos.y += (g - this.pos.y) * (1 - Math.exp(-15 * dt));
-      this.posture(dt, { stumble: true });
+      this.posture(dt, { stumble: true, still: this.time < this.stunUntil });
       if (camD0 < 160) this.humanoid?.update();
       return;
     }
@@ -355,7 +377,7 @@ export class NPC {
     _v.subVectors(player.pos, this.pos); _v.y = 0;
     const dist = _v.length();
     const moving = p.speed > 0.05;
-    if (now < p.stumbleUntil) this.posture(dt, { stumble: true });
+    if (now < p.stumbleUntil) this.posture(dt, { stumble: true, still: now < (p.stunUntil ?? -1) });
     else {
       this._frozen = false;
       const waveT = p.greetT >= 0 && p.pose === 0 && !p.group ? now - p.greetT : -1;
@@ -400,7 +422,7 @@ export class NPC {
    * pose 2 lean on a rail, 3 sit on an edge, 4 sit on a kerb, 6 lean on a wall;
    * stumble (shoved: caught mid-flail, arms up) and startle (a jump, for ~0.8 s).
    */
-  posture(dt, { pose = 0, stumble = false, startle = 99, seed = 0.5 } = {}) {
+  posture(dt, { pose = 0, stumble = false, still = false, startle = 99, seed = 0.5 } = {}) {
     const c = this.char;
     if (stumble) {
       // hold the clip's last frame with the arms flung up, one knee raised, leaning back
@@ -412,7 +434,7 @@ export class NPC {
         c.body.rotation.set(-0.12, 0, 0.1);
         c.head.rotation.set(-0.22, 0.25, 0);
       }
-      c.body.rotation.z = 0.1 + 0.08 * Math.sin(this.time * 9);   // wobbling for balance
+      if (!still) c.body.rotation.z = 0.1 + 0.08 * Math.sin(this.time * 9);   // wobbling for balance (stilled: not a twitch)
       this.object.position.copy(this.pos);
       this.object.quaternion.setFromAxisAngle(Y, this.heading);
       return;
@@ -589,6 +611,6 @@ export function pooledNPC(scene, physics, { kind = 'm', lib = null, humans = nul
 export function registerNPCTargets(npcs) {
   return npcs.filter((n) => !n.pooled).map((n) => {
     const at = new THREE.Vector3();
-    return registerTarget({ kind: 'npc', radius: 0.45, npc: n, position: () => n.chest(at), enabled: () => n.object.visible, onHit: (mode, point, dir, info) => n.hit(mode, dir, info) });
+    return registerTarget({ kind: 'npc', radius: 0.45, npc: n, accepts: ['stun', 'fire'], position: () => n.chest(at), enabled: () => n.object.visible, onHit: (mode, point, dir, info) => n.hit(mode, dir, info) });
   });
 }
