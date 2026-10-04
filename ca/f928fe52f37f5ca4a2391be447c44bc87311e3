@@ -1,0 +1,39 @@
+README.md
+  s_1fd8d0e7b02dcf::t_ec4158a0413f19 1097-1106
+TODO.md
+  s_1fd8d0e7b02dcf::t_4484b4b8d60e0b 186-188
+changelog.md
+  s_1fd8d0e7b02dcf::t_66437d962ca544 16
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_5d8ee979171272 16
+src/desert-city.js
+  s_1fd8d0e7b02dcf::t_ccce736f804343 9,384-386,709-710,712
+src/flora-species.js
+  s_1fd8d0e7b02dcf::t_efbcd75c29067a 16,38,223
+src/flora.js
+  s_1fd8d0e7b02dcf::t_ad60c19eef8d03 1,337-338,340,345
+src/hazards.js
+  s_1fd8d0e7b02dcf::t_8fd51f98289470 1-87
+src/main.js
+  s_1fd8d0e7b02dcf::t_8615650ef7bf39 2,1159
+src/story/flames.js
+  s_1fd8d0e7b02dcf::t_2f0ee1e2b583bf 307-309,346
+tests/hazards.test.js
+  s_1fd8d0e7b02dcf::t_2ae20f4bab00cd 1-31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "caf928fe52f37f5ca4a2391be447c44bc87311e3",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
