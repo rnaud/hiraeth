@@ -188,7 +188,9 @@ Grouped by area. Checked items are done; the changelog says when.
 - [ ] Airtight level: walking into the portals animates off and feels jarring.
 - [ ] Garden of spheres: if the spheres play music, make them play, and trigger
   them by shooting at them rather than looking.
-- [ ] Rename the Incal: nothing in the game named after Moebius works.
+- [x] Rename the Incal: nothing in the game named after Moebius works. (Now "the Lodestar"; the
+  other Moebius-derived names — Arzach, Edena, the Airtight Garage, Perdide, Major Grubert,
+  and the "after …" credit lines — are waiting on a decision.)
 - [x] The recharge wait once on the ground is 2 seconds.
 
 ## Audio

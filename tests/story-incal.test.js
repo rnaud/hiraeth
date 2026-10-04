@@ -139,7 +139,7 @@ test('the main quest: from the rim, down to the shrine, up to the palace, and th
   assert.equal(taxi.mode, before, 'a cab won’t stop in the depths');
   assert.ok(toasts.some((t) => /flies on/.test(t)));
   // Ossa gives the splinter (and the clue: it hums like the swamp's crystal)
-  talk(PEOPLE.ossa, ['What came down', 'The Incal is dimming', 'Then let me carry']);
+  talk(PEOPLE.ossa, ['What came down', 'The Lodestar is dimming', 'Then let me carry']);
   assert.ok(quests.has('splinter'));
   assert.equal(game.flag('clue.incal.perdide'), true);
   assert.equal(quests.stage('incal.light'), 'palace');

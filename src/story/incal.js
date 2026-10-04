@@ -14,7 +14,7 @@ import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK } from './incal-data.j
 //   the bottom       Ossa keeps the Upward Shrine (y −290), where the splinter
 //                    fell; Pip plays round it; the dead taxi call-lamp at the edge
 //   the palace       Dov guards the landing ring round the gold dome (y 320); the
-//                    crown on top of the dome, under the Incal
+//                    crown on top of the dome, under the Lodestar
 //
 // The light: level.shaft.incal.k goes from 0 (dim, guttering) to 1 when the
 // splinter is given back and you look up at it from the palace. Then the city
@@ -229,7 +229,7 @@ export function setupIncal(ctx) {
       if (near[0]) crowd.shout = near[0];
     }
     for (const n of Object.values(people)) if (n) n.shout = { text: n === people.dov ? '~solemn~ …' : '~shout~ Look!', until: n.time + 3 };
-    toast('The Incal flares. Light pours down the shaft, level after level, all the way to the bottom.');
+    toast('The Lodestar flares. Light pours down the shaft, level after level, all the way to the bottom.');
   };
   // sending messages home: once it burns, the HUD objective is to tell Nima (quest stage 'tell')
 

@@ -343,8 +343,8 @@ export function createIncal(scene) {
     billboards.push({ pos: m.position.clone(), quat: m.quaternion.clone(), w: m.geometry.parameters.width, h: m.geometry.parameters.height });
   }
 
-  // ---------------------------------------------------------- hero: the Incal
-  // The light Incal and its dark twin, turning slowly high above the palace.
+  // ---------------------------------------------------------- hero: the Lodestar
+  // The light Lodestar and its dark twin, turning slowly high above the palace.
   // Its story (src/story/incal.js) drives `incalRig.k`: 0 dim and flickering
   // (it has been dimming since "the night the sky rang"), 1 burning bright;
   // `flare` is a passing flash. The glyph is cut into its four lower facets,
@@ -538,13 +538,13 @@ export function createIncal(scene) {
       new THREE.CylinderGeometry(70, 30, 60, 24).translate(0, -50, 0),
     ];
     const m = new THREE.Mesh(mergeGeometries(parts), steel);
-    m.position.set(-290, TOP + 175, 40);   // over the far side: framed when you look across (and clear of the Incal, seen from the palace)
+    m.position.set(-290, TOP + 175, 40);   // over the far side: framed when you look across (and clear of the Lodestar, seen from the palace)
     m.userData.noCollide = true;
     scene.add(m);
   }
 
   // ---------------------------------------------------------- the story's places (src/story/incal.js)
-  // The high terrace where Nima sweeps; the palace landing under the Incal
+  // The high terrace where Nima sweeps; the palace landing under the Lodestar
   // (a ring round the dome, a gate facing the rim, a crown round the needle);
   // the Upward Shrine on the bottom terrace, where the splinter fell, and the
   // dead taxi call-lamp at the edge beside it.
@@ -563,7 +563,7 @@ export function createIncal(scene) {
     places.cab = P3(la, low.r0 - 5.5, low.y + 2.4);
     places.wren = P3(la + 0.012, low.r0 + 3.4, low.y);
     places.bottom = low;
-    places.lights = [];   // warm lamps along the lower terraces, lit when the Incal is (Vector4s: the story moves them in)
+    places.lights = [];   // warm lamps along the lower terraces, lit when the Lodestar is (Vector4s: the story moves them in)
     const gold = makeMaterial({ color: '#f2c54b', grid: 5 }), steelM = strata(STEEL.color, STEEL.color2, '#f1e6cf', 1.5, { flat: true, grid: 3 });
     const cream = makeMaterial({ color: '#f3ead8', flat: true }), ink = makeMaterial({ color: '#34405e', flat: true });
     // the small things up on the palace and down at the shrine drop out when you are far above or below them
@@ -593,7 +593,7 @@ export function createIncal(scene) {
     palaceG.add(rail);
 
     // the Upward Shrine: a round dais, a bowl held up to the light, candles, the glyph on the floor
-    const S = places.shrine, face = Math.atan2(-S.x, -S.z);   // facing the void (and the Incal, far above)
+    const S = places.shrine, face = Math.atan2(-S.x, -S.z);   // facing the void (and the Lodestar, far above)
     const stone = makeMaterial({ color: '#cdb38e', flat: true }), bowlM = makeMaterial({ color: '#b5862f', flat: true });
     const dais = [new THREE.CylinderGeometry(2.6, 2.8, 0.34, 18).translate(0, 0.17, 0), new THREE.CylinderGeometry(0.28, 0.4, 1.0, 8).translate(0, 0.84, 0)];
     const bowl = new THREE.LatheGeometry([[0.08, 0], [0.5, 0.08], [0.78, 0.3], [0.82, 0.42], [0.74, 0.4], [0.45, 0.16], [0, 0.12]].map(([r, y]) => new THREE.Vector2(r, y)), 14).translate(0, 1.32, 0);
@@ -734,7 +734,7 @@ export function createIncal(scene) {
     camYaw: Math.PI / 2,
     features: { mount: false, wind: false, jetpack: true, climb: true, taxis: true },
     vehicles,
-    // the city's shape, for its story (src/story/incal.js): terraces, bridges, the palace and the Incal
+    // the city's shape, for its story (src/story/incal.js): terraces, bridges, the palace and the Lodestar
     shaft: { R, TOP, BOTTOM, LEVELS, SPIRE_R, SPIRE_RING, terraces, bridges, stallSpots, viaducts, billboards, incal: incalRig, places },
     // called once the physics exists: spawn the taxis (they collide when driven)
     init(physics) {
@@ -759,7 +759,7 @@ export function createIncal(scene) {
     atmo(x, z, y = TOP) {
       const inside = Math.hypot(x, z) < R;
       const d = inside ? THREE.MathUtils.clamp((TOP - y) / (TOP - BOTTOM), 0, 1) : 0;
-      // once the Incal burns bright again (its story), its light reaches further down: less smog, warmer
+      // once the Lodestar burns bright again (its story), its light reaches further down: less smog, warmer
       const lit = incalRig.k;
       const tint = [1.0 - 0.08 * d + 0.05 * d * lit, 0.92 + 0.06 * d, 0.95 - 0.12 * d - 0.02 * d * lit];
       const name = !inside ? 'The rim' : d < 0.3 ? 'Upper levels' : d < 0.65 ? 'Middle levels' : 'The depths';
@@ -836,7 +836,7 @@ export function createIncal(scene) {
       for (const z of [-34, 34]) walks.push({ path: [V(R + 6, TOP, z), V(R + 36, TOP, z)], n: 2, pair: 0.6 });
       walks.push({ path: [V(R + 9, TOP, -60), V(R + 9, TOP, 60)], n: 4, pair: 0.5 });
       // who they are depends on how far down they live: the rim and the upper terraces call the
-      // Incal a tourist story, the depths pray to it (src/story/incal-data.js; the story talks to them by zone)
+      // Lodestar a tourist story, the depths pray to it (src/story/incal-data.js; the story talks to them by zone)
       const zoneOf = (y) => (y >= TOP - 1 ? 'rim' : y >= LEVELS[1] - 1 ? 'upper' : y >= LEVELS[4] - 1 ? 'middle' : 'lower');
       for (const s of [...groups, ...walks, ...edges]) { s.id = zoneOf(s.at?.y ?? s.path[0].y); s.lines = LINES[s.id]; }
       // the story's places stay clear: the shrine and its keeper, the call-lamp, the sweeper's corner

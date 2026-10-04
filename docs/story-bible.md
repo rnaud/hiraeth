@@ -18,7 +18,7 @@ a promise to return), *knowing* (an understanding of how the world works).
 
 **The glyph**: three dots over an arc that bows upward (∩), never a smile. It is scorched into the ship's hull from
 the impact. It recurs on the reactive scenery's three apertures in every world,
-on the giants' bones, on the Incal's facets, on the Major's machine, on the
+on the giants' bones, on the Lodestar's facets, on the Major's machine, on the
 android ruins of Edena and on the oldest market sign. Locals each have a
 different name and story for it. Nobody knows what struck the ship; in each
 world one person has seen "a falling light that sang" around the same time.
@@ -156,14 +156,14 @@ the settings.
   → Perdide. Someone saw a singing light fall the night the ship crashed.
 
 ### 2. The City-Shaft (incal) — "The Light Nobody Looks At"
-- **Local story**: The Incal turns above the palace; the upper city calls it a
+- **Local story**: The Lodestar turns above the palace; the upper city calls it a
   tourist story, the lower levels pray to it. A sweeper on the high terraces
   says it has been dimming since "the night the sky rang".
 - **Quests**: deliver a ration from the lower levels to the palace guard (who
   is from the lower levels himself); find the taxi driver who still stops for
   the poor; carry a message up the shaft.
 - **Keepsake**: *word*: the sweeper's "Look up once a day."
-- **Clue**: an Incal splinter carries the glyph and hums like Perdide's crystal.
+- **Clue**: a Lodestar splinter carries the glyph and hums like Perdide's crystal.
 
 ### 3. Arzach — "The Waiting Bird"
 - **Local story**: The bird waits for a rider who left the lone tower long ago.
@@ -283,7 +283,7 @@ are calls from home.
 | Garden of Spheres | the Footprint, under every sphere (Ivo) | an Answerer (Ume) | left-behinds (Ivo) |
 | Perdide | the Hush: three drops of rain over a shut mouth | Sedge saw it fall the night before the crash; the crystal's 213th phrase is its song | the sky-egg (Wendel) |
 | Perdide II | the Welcome: three lamps over a hull | Wick saw it put the pools out | the traveller's chest (Hollin) |
-| City-Shaft | the palace seal (rim), the Three Who Look Up (bottom) | it passed over the shaft and the Incal rang back; it left "toward the deserts" | lost property (rim), a promise (bottom; Ossa) |
+| City-Shaft | the palace seal (rim), the Three Who Look Up (bottom) | it passed over the shaft and the Lodestar rang back; it left "toward the deserts" | lost property (rim), a promise (bottom; Ossa) |
 | Signal Market | the First Sign (Sel), the tuning mark (Ferro) | the unsent recording "came in singing" (Kip) | (no box of its own) |
 
 Built details beyond the bible: the bird's promise (`bird.promise`) could later

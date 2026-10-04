@@ -1,10 +1,10 @@
 // The City-Shaft's story as data: "The Light Nobody Looks At" (docs/story-bible.md).
 //
-// The Incal turns above the palace. The rim and the upper terraces call it a
+// The Lodestar turns above the palace. The rim and the upper terraces call it a
 // tourist story; the bottom levels pray to it, with their eyes shut, because
 // the smog stings. Nima, who sweeps the high terrace, has looked up at it once
 // a day for forty years, and says it has been dimming since "the night the sky
-// rang": something passed over the shaft, low and singing, the Incal rang
+// rang": something passed over the shaft, low and singing, the Lodestar rang
 // back, and a splinter of it fell down the middle of the city to the bottom.
 // The bottom caught it, as it catches everything, and built the Upward Shrine
 // round it. Ossa, who keeps the shrine, knows why the light is going out: a
@@ -19,24 +19,24 @@
 // crystals of the swamp of lights (Perdide).
 //
 // Flags (game-state.js): incal.rumour.light, incal.splinter.given, incal.dov.allowed,
-// incal.lit (the Incal burns bright again), incal.lamp.lit, incal.wren.met,
+// incal.lit (the Lodestar burns bright again), incal.lamp.lit, incal.wren.met,
 // incal.dov.fed; clue.incal.perdide. Items: splinter, ration.
 
 const Q = 'incal.light';
 
-export const ITEMS = { splinter: 'the Incal splinter', ration: 'Pip’s ration tin' };
+export const ITEMS = { splinter: 'the Lodestar splinter', ration: 'Pip’s ration tin' };
 
 // ------------------------------------------------------------------ quests
 export const QUESTS = [
   {
     id: Q, title: 'The Light Nobody Looks At', world: 'incal', main: true,
-    outro: 'The Incal burns bright. For a moment, every level looked up.',
+    outro: 'The Lodestar burns bright. For a moment, every level looked up.',
     stages: [
       { id: 'nima', text: 'The light above the palace is dimming. Find the sweeper on the high terrace, who still watches it', label: 'Nima, the sweeper', talk: 'nima' },
       { id: 'ossa', text: 'Go down to the bottom terrace and ask at the Upward Shrine what fell the night the sky rang', label: 'Ossa, at the bottom of the shaft', talk: 'ossa' },
-      { id: 'palace', text: 'Carry the splinter up the whole shaft to the palace, under the Incal', label: 'The palace gate', talk: 'dov' },
-      { id: 'look', text: 'Stand on the palace and look up at the Incal', label: 'Look up', flag: 'incal.lit', at: 'crown' },
-      { id: 'tell', text: 'The Incal burns again. Go down and tell Nima', label: 'Nima, on the high terrace', talk: 'nima' },
+      { id: 'palace', text: 'Carry the splinter up the whole shaft to the palace, under the Lodestar', label: 'The palace gate', talk: 'dov' },
+      { id: 'look', text: 'Stand on the palace and look up at the Lodestar', label: 'Look up', flag: 'incal.lit', at: 'crown' },
+      { id: 'tell', text: 'The Lodestar burns again. Go down and tell Nima', label: 'Nima, on the high terrace', talk: 'nima' },
     ],
   },
   {
@@ -86,7 +86,7 @@ export const PEOPLE = {
           ],
         },
         what: {
-          say: ['~neutral~ The Incal. Up here they’ll tell you it’s a palace light show, paid for out of the taxi tax. Down at the bottom they pray to it.',
+          say: ['~neutral~ The Lodestar. Up here they’ll tell you it’s a palace light show, paid for out of the taxi tax. Down at the bottom they pray to it.',
             '~sad~ I don’t know what it is. I know it was brighter when I was a girl, and I know it’s been going out since the night the sky rang.'],
           choices: [{ text: '~curious~ The night the sky rang?', goto: 'rang' }, { text: '~neutral~ It does look dim.', goto: 'dim' }],
         },
@@ -96,7 +96,7 @@ export const PEOPLE = {
         },
         rang: {
           say: ['~solemn~ Something went over the shaft, low and slow, singing. Like the rim of a glass when you wet your finger and go round. Every window in the city hummed with it.',
-            '~surprised~ And the Incal answered. I swear it did. It rang back, and a piece of it came away: a splinter of light, falling down the middle of the shaft. Past me. Past every level. Singing all the way to the bottom.'],
+            '~surprised~ And the Lodestar answered. I swear it did. It rang back, and a piece of it came away: a splinter of light, falling down the middle of the shaft. Past me. Past every level. Singing all the way to the bottom.'],
           do: { set: { 'incal.rumour.light': true } },
           choices: [{ text: '~neutral~ Something struck my ship that night.', goto: 'ship' }, { text: '~curious~ Where did the piece land?', if: EARLY, goto: 'where' },
             { text: '~neutral~ I have it. Ossa gave it to me.', if: { has: 'splinter' }, goto: 'carry' }],
@@ -125,7 +125,7 @@ export const PEOPLE = {
         again: {
           say: ['~playful~ Still here? The bottom terrace is a long way down: across the shaft, under the smog. Ask for Ossa at the Upward Shrine.'],
           choices: [
-            { text: '~neutral~ There’s a mark on the Incal’s lower facets.', goto: 'glyph', once: true },
+            { text: '~neutral~ There’s a mark on the Lodestar’s lower facets.', goto: 'glyph', once: true },
             { text: '~neutral~ On my way.', end: true },
           ],
         },
@@ -196,7 +196,7 @@ export const PEOPLE = {
           say: ['~whisper~ A piece of the light. Look in the bowl. It still hums: put your ear to it. A long note, like wet glass.',
             '~neutral~ A trader from the swamp of lights came through once, with a crystal that sang. The same note. Exactly the same. I wrote it down; I’m not a fool.'],
           do: { set: { 'clue.incal.perdide': true } },
-          choices: [{ text: '~neutral~ The Incal is dimming. Nima thinks it’s because of this.', goto: 'why' }],
+          choices: [{ text: '~neutral~ The Lodestar is dimming. Nima thinks it’s because of this.', goto: 'why' }],
         },
         why: {
           say: ['~solemn~ Of course it’s dimming. A light nobody looks at goes out. Everybody down here knows that. We just can’t see it to look.',
@@ -381,7 +381,7 @@ export const RIM = {
           say: ['~playful~ Admiring the view? Everybody does, the first day. Then you stop seeing it. That’s how you know you live here.', '~neutral~ Corvin Sale. Of the rim. Third generation.'],
           choices: [{ text: '~curious~ What is the light above the palace?', goto: 'incal' }, { text: '~curious~ What’s down there?', goto: 'down' }, { text: '~curious~ What’s that mark on the cabs?', goto: 'glyph', once: true }, { text: '~neutral~ Goodbye.', end: true }],
         },
-        incal: { say: ['~tired~ The Incal? A light show. A story for tourists, and for the lower levels, who need stories. The palace pays for it out of the taxi tax.', '~playful~ Dimming, is it? Then the palace is economising. Good.'], choices: [{ text: '~curious~ What’s down there?', goto: 'down' }, { text: '~neutral~ Goodbye.', end: true }] },
+        incal: { say: ['~tired~ The Lodestar? A light show. A story for tourists, and for the lower levels, who need stories. The palace pays for it out of the taxi tax.', '~playful~ Dimming, is it? Then the palace is economising. Good.'], choices: [{ text: '~curious~ What’s down there?', goto: 'down' }, { text: '~neutral~ Goodbye.', end: true }] },
         down: { say: ['~angry~ Level minus eighty-six? I’ve never been below the smog. Why would I? Everything I need comes up.'], choices: [{ text: '~neutral~ Goodbye.', end: true }] },
         glyph: { say: ['~neutral~ {glyph} The palace seal. It’s on every cab licence, every permit, every gate. It means *approved*.'], choices: [{ text: '~neutral~ Goodbye.', end: true }] },
         lit: { say: ['~surprised~ I looked up. I didn’t mean to. Everybody did; it would have been rude not to.', '~whisper~ Don’t tell anyone I said it was beautiful.'], choices: [{ text: '~playful~ Your secret is safe.', end: true }] },
@@ -423,7 +423,7 @@ export const THINGS = {
       entry: [{ if: { flag: 'incal.splinter.given' }, node: 'empty' }, { node: 'full' }],
       nodes: {
         full: {
-          say: ['~neutral~ A brass bowl, held up on a stone post. In it lies a splinter of light as long as your hand, faceted like the Incal far above, and cut with the mark: {glyph}',
+          say: ['~neutral~ A brass bowl, held up on a stone post. In it lies a splinter of light as long as your hand, faceted like the Lodestar far above, and cut with the mark: {glyph}',
             '~whisper~ It hums: a long note, like wet glass. And it leans, very slightly, toward the top of the shaft.'],
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
@@ -449,7 +449,7 @@ export const THINGS = {
 
 // What crowd people say when you stop beside them (balloons), by where they live.
 export const LINES = {
-  rim: ['~happy~ Lovely day for looking down.', '~neutral~ Mind the edge, it’s a long way down.', '~tired~ The Incal? A light show.', '~playful~ Have you been to the palace? Neither have I.', '~shout~ Taxi! Oh. Not you.', '~angry~ Laundry? Up here? Never.'],
+  rim: ['~happy~ Lovely day for looking down.', '~neutral~ Mind the edge, it’s a long way down.', '~tired~ The Lodestar? A light show.', '~playful~ Have you been to the palace? Neither have I.', '~shout~ Taxi! Oh. Not you.', '~angry~ Laundry? Up here? Never.'],
   upper: ['~neutral~ Laundry dries fast up here.', '~tired~ The light? The tourists like it.', '~neutral~ I never go below the smog.', '~neutral~ Mind the edge.', '~shout~ Fresh figs! Fresh figs!', '~playful~ The taxis stop for us. Naturally.'],
   middle: ['~tired~ Busy day.', '~neutral~ Excuse me.', '~tired~ Up a level, down a level, that’s my life.', '~curious~ Have you seen the light above the palace?', '~neutral~ Mind the cables.'],
   lower: ['~angry~ The taxis never stop for us lower folk.', '~sad~ My grandmother never saw the sky.', '~solemn~ We pray with our eyes shut. The smog stings.', '~whisper~ A piece of the light fell down here, you know.', '~solemn~ Hum with it. It hums back.', '~solemn~ Up. Everything good is up.'],
@@ -468,11 +468,11 @@ const bye = { text: '~neutral~ Goodbye.', end: true };
 export const CROWD_TALK = {
   rim: [
     { name: 'A rim resident', title: 'taking the air', talk: { nodes: {
-      hello: { say: ['~tired~ The Incal? My dear, it’s a light show. The palace switches it on for the tourists.'], choices: [{ text: '~neutral~ It’s dimming.', goto: 'dim' }, bye] },
+      hello: { say: ['~tired~ The Lodestar? My dear, it’s a light show. The palace switches it on for the tourists.'], choices: [{ text: '~neutral~ It’s dimming.', goto: 'dim' }, bye] },
       dim: { say: ['~tired~ Is it? I hadn’t looked. One doesn’t, really.'], choices: [bye] },
     } } },
     { name: 'A tourist', title: 'from off-world', talk: { nodes: {
-      hello: { say: ['~tired~ I came all this way to see the Incal and, honestly? It’s smaller than on the postcards. And sort of grey.'], choices: [bye] },
+      hello: { say: ['~tired~ I came all this way to see the Lodestar and, honestly? It’s smaller than on the postcards. And sort of grey.'], choices: [bye] },
     } } },
   ],
   upper: [

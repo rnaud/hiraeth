@@ -711,7 +711,7 @@ Each of these can be toggled or tuned in the panel's **Beauty** folder.
 - **Hero landmarks:**
   - the desert: a colossal half-buried masked head;
   - Arzach: a fallen stone colossus and a giant hand rising from the plain;
-  - the city-shaft: the Incal and its dark twin above the palace;
+  - the city-shaft: the Lodestar and its dark twin above the palace;
   - the Garage: a cathedral of turning gears and pistons;
   - Edena: Stel and Atan's crashed ship;
   - Perdide: the Great Crystal and its stone ring.
@@ -1019,7 +1019,7 @@ walkthroughs and local names; each data file's header lists its flags.
 | Garden of Spheres | listen at three spheres, then at the plaza's pole | the chord of the spheres (song) |
 | Perdide | make the Great Crystal sing (rain or three shots), carry its splinter to the cave (violet band) | a singing splinter (thing) |
 | Perdide II | relight three dark pools; the saucer answers; it is Stel and Atan's pod | Hollin's lamps (person) |
-| City-Shaft | carry the splinter from the bottom to the palace; the Incal brightens | "Look up once a day" (word) |
+| City-Shaft | carry the splinter from the bottom to the palace; the Lodestar brightens | "Look up once a day" (word) |
 | Signal Market | tune the antenna (three shots at once), play the recording: the father's voice | "You are not alone" (word) |
 
 ### The ending (v0.34)

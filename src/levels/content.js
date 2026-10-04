@@ -122,9 +122,9 @@ export const CONTENT = {
     // the first visit and closes when the light burns again and Nima has been told
     story: {
       title: 'THE LIGHT NOBODY LOOKS AT',
-      intro: 'Above the palace, the Incal turns, dimmer than it should be. Nobody here looks up.',
+      intro: 'Above the palace, the Lodestar turns, dimmer than it should be. Nobody here looks up.',
       outro: 'For a moment, every level of the city looked up. Something of value? Look up once a day.',
-      label: 'the Incal', goal: [0, 450, 0], radius: 34, manual: true,
+      label: 'the Lodestar', goal: [0, 450, 0], radius: 34, manual: true,
     },
     relics: {
       spots: [{ at: [320, 200, -80], snap: true }, { at: [-210, 150, 30], snap: true }, { at: [150, 36, -150], snap: true }, { at: [-60, -86, 205], snap: true }, { at: [205, -218, -40], snap: true }],
@@ -133,7 +133,7 @@ export const CONTENT = {
     // the rim's people, and Nima on the high terrace (index 3: the desert's errand of
     // singing sand is for her); the rest of the city's people are in src/story/incal-data.js
     npcs: [
-      { at: [300, -40], y: 200, palette: pal('#e88fa6', { cloth: '#3a3f5a' }), lines: ['~angry~ Level −86? Never been below the smog.', '~tired~ The Incal? A story for tourists.'], ...INCAL_RIM.corvin },
+      { at: [300, -40], y: 200, palette: pal('#e88fa6', { cloth: '#3a3f5a' }), lines: ['~angry~ Level −86? Never been below the smog.', '~tired~ The Lodestar? A story for tourists.'], ...INCAL_RIM.corvin },
       { at: [330, 40], y: 200, palette: pal('#62c3c9'), lines: ['~playful~ Mind the taxis. They don’t stop.'], ...INCAL_RIM.lio },
       { at: [290, 110], y: 200, palette: pal('#f2c54b', { cloth: '#5a3a3a' }), lines: ['~shout~ I sell views of the abyss. Cheap.'], shy: true, ...INCAL_RIM.hask },
       { ...INCAL_PEOPLE.nima, at: [112.1, 165.8], y: 150, radius: 1.8, speed: 0.45 },

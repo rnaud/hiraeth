@@ -108,7 +108,7 @@ export const LANGUAGES = {
   ship:     { name: 'ship', native: true, wave: 'square', pitch: 1.5, rate: 1.3, len: 0.55, gain: 0.55, breath: 0, clip: 0.9, glide: 0, formant: 1.2, density: 0.7, mech: 1,
     cons: ['t', 'p', 'd', ''], vowels: ['i', 'e'], glyphs: '' },
 };
-/** Each language's place: the City-Shaft is the Incal level, the Signal Market the bazaar. */
+/** Each language's place: the City-Shaft is the Lodestar level, the Signal Market the bazaar. */
 export const languageOf = (levelId) => (LANGUAGES[levelId] ? levelId : 'desert');
 
 // ------------------------------------------------------------------ speakers

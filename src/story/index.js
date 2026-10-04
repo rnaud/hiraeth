@@ -202,7 +202,7 @@ export function createStory(o) {
     },
     /** The two-shot during a conversation (after the rig has placed the camera). */
     frameCamera(camera) {
-      world?.frameCamera?.(camera);   // a world's own camera moment (the Incal flaring, the broadcast)
+      world?.frameCamera?.(camera);   // a world's own camera moment (the Lodestar flaring, the broadcast)
       const at = talking?.npc?.pos ?? talking?.at ?? rt._lastAt;
       if (at) rt._lastAt = at;
       if (dialogue.blend < 0.002) { rt._lastAt = null; return; }

@@ -9,6 +9,7 @@ The same release notes shown in the game (press **N** or open settings).
 - The hoverbike and the skiff no longer swerve when the stick drifts a little as you drive forward: small pushes turn gently, a full turn needs the stick well over.
 - The “Updated to …” and “Update ready” notes show once, not again on every world you visit. The worlds list has smaller pictures.
 - Ask Bako, the ney player by the desert fire, to play, and he does: a slow, eerie tune over a low drone, while the rest of the camp falls quiet.
+- The great light that turns above the City-Shaft’s palace is now called the Lodestar.
 - The door to the crashed ship on Edena is now a hatch in its hull, under an arch of flowers, instead of a doorway standing a few metres away.
 - It no longer rains indoors: rooms, the crashed ship’s cabin and your own ship stay dry, and the rain becomes a muffled drumming on the roof.
 - Ringing the bell in Arzach no longer swings its rope through the tower. Perdide’s tooth flowers have an inside you can’t see through.
