@@ -14,7 +14,9 @@ if (!app.requestSingleInstanceLock()) app.quit();
 else {
   let window;
   app.on('second-instance', () => { window?.restore(); window?.focus(); });
-  await app.whenReady();
+  // Electron waits for an ESM entry point to finish evaluating before ready.
+  // Do not top-level-await whenReady(), which would deadlock startup.
+  app.whenReady().then(async () => {
   const root = fileURLToPath(new URL('./game/', import.meta.url));
   protocol.handle('moebius', (request) => {
     const url = new URL(request.url);
@@ -37,6 +39,10 @@ else {
     callback(permission === 'fullscreen' || permission === 'pointerLock');
   });
   app.on('window-all-closed', () => app.quit());
+  if (process.env.MOEBIUS_SMOKE === '1') {
+    window.webContents.on('console-message', (_event, ...args) => console.log(...args));
+    window.webContents.on('render-process-gone', (_event, details) => { console.error(details); app.exit(1); });
+  }
   await window.loadURL('moebius://game/index.html');
   // CI exercises the packaged browser, local protocol, WebGL and game loading.
   if (process.env.MOEBIUS_SMOKE === '1') {
@@ -50,6 +56,6 @@ else {
         else if (Date.now() > deadline) { clearInterval(check); app.exit(1); }
       } catch (error) { console.error(error); clearInterval(check); app.exit(1); }
     }, 1000);
-    window.webContents.on('console-message', (_event, ...args) => console.log(...args));
   }
+  }).catch((error) => { console.error(error); app.exit(1); });
 }
