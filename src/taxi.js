@@ -24,6 +24,7 @@ const COATS = ['#c8483a', '#5fb7ad', '#d8a24a', '#8a6fb8', '#f3ead8', '#34405e']
 // the body, along +z: fat in the middle, rounded at the stern, a blunt nose
 const HULL = [[0.001, -2.0], [0.5, -1.85], [0.82, -1.3], [0.9, -0.4], [0.88, 0.6], [0.72, 1.35], [0.42, 1.85], [0.001, 2.1]];
 const SY = 0.55;
+const BENCH_Y = 0.49;   // the passenger bench's top, in cab units: the passenger's (and your) hips
 const rAt = (z) => {
   for (let i = 1; i < HULL.length; i++) if (z <= HULL[i][1]) { const [r0, z0] = HULL[i - 1], [r1, z1] = HULL[i]; return r0 + (r1 - r0) * (z - z0) / (z1 - z0); }
   return 0;
@@ -93,22 +94,28 @@ function cabParts(color) {
   return parts;
 }
 
-/** A seated figure (a driver with a peaked cap, or a passenger in a hat), one vertex-coloured mesh. */
+/**
+ * A seated figure (a driver with a peaked cap, or a passenger in a hat), one vertex-coloured
+ * mesh, its origin at the hips. Built a metre from seat to crown and drawn at FIGURE_H of it,
+ * divided by the cab's scale: people are people-sized in a cab of any size (the City-Shaft's
+ * cabs are twice the bazaar's, and their drivers and fares used to be twice the traveller).
+ */
+export const FIGURE_H = 0.9;   // seat to crown, in metres (the traveller, seated, is ~0.9)
 function figure({ coat, skin, hat, cap = false }) {
   const p = new Paint();
-  p.add(new THREE.CapsuleGeometry(0.21, 0.3, 2, 7), coat, { at: [0, 0.3, 0] });
-  p.add(new THREE.SphereGeometry(0.16, 8, 6), skin, { at: [0, 0.78, 0.02] });
+  p.add(new THREE.CapsuleGeometry(0.21, 0.3, 2, 7), coat, { at: [0, 0.36, 0] });
+  p.add(new THREE.SphereGeometry(0.16, 8, 6), skin, { at: [0, 0.84, 0.02] });
   if (cap) {
-    p.add(new THREE.CylinderGeometry(0.17, 0.16, 0.12, 10), hat, { at: [0, 0.92, 0] });
-    p.add(new THREE.BoxGeometry(0.3, 0.03, 0.16), INK, { at: [0, 0.87, 0.14] });
+    p.add(new THREE.CylinderGeometry(0.17, 0.16, 0.12, 10), hat, { at: [0, 0.98, 0] });
+    p.add(new THREE.BoxGeometry(0.3, 0.03, 0.16), INK, { at: [0, 0.93, 0.14] });
   } else if (hat) {
-    p.add(new THREE.CylinderGeometry(0.32, 0.32, 0.02, 12), hat, { at: [0, 0.9, 0] });
-    p.add(new THREE.ConeGeometry(0.13, 0.36, 10), hat, { at: [0, 1.08, 0] });
+    p.add(new THREE.CylinderGeometry(0.32, 0.32, 0.02, 12), hat, { at: [0, 0.96, 0] });
+    p.add(new THREE.ConeGeometry(0.13, 0.24, 10), hat, { at: [0, 1.08, 0] });
   }
   return p.mesh({ smooth: true });
 }
 
-function buildTaxi(color, { driver = true } = {}) {
+function buildTaxi(color, { driver = true, fares = true, scale = 1 } = {}) {
   const P = cabParts(color);
   const grp = new THREE.Group();
   const body = new THREE.Mesh(P.smooth, paintMaterial({ smooth: true, side: THREE.DoubleSide }));
@@ -120,17 +127,23 @@ function buildTaxi(color, { driver = true } = {}) {
   const lamps = new THREE.Mesh(P.lamps, makeMaterial({ color: '#f6c84e', glow: 1, flat: true }));
   grp.add(body, trim, tail, glow, lamps);
   const rnd = Math.random;
-  // the driver up front, in the bubble; a passenger on the bench, now and then
+  // the driver up front, in the bubble; a passenger on the bench, now and then. Both human-sized
+  // whatever the cab's scale (k undoes it): the driver sits low enough in the cockpit that his
+  // head and shoulders clear the windscreen; the passenger sits on the bench, where you sit
   let cabbie = null, pax = null;
+  const k = FIGURE_H / scale;
   if (driver) {
     cabbie = figure({ coat: rnd() < 0.5 ? INK : COATS[Math.floor(rnd() * COATS.length)], skin: SKIN[Math.floor(rnd() * SKIN.length)], hat: color === '#f2c54b' ? RED : '#f2c54b', cap: true });
-    cabbie.position.set(0, 0.0, 0.78);
+    cabbie.scale.setScalar(k);
+    cabbie.position.set(0, Math.max(0, 0.54 - 0.6 / scale), 0.78);
+    cabbie.userData.y0 = cabbie.position.y;
     grp.add(cabbie);
   }
-  if (rnd() < 0.6) {
+  if (fares && rnd() < 0.6) {
     const coat = COATS[Math.floor(rnd() * COATS.length)];
     pax = figure({ coat, skin: SKIN[Math.floor(rnd() * SKIN.length)], hat: rnd() < 0.6 ? coat : null });
-    pax.position.set(0, 0.2, -0.85);
+    pax.scale.setScalar(k);
+    pax.position.set(0, BENCH_Y, -0.85);
     grp.add(pax);
   }
   grp.traverse((o) => { o.userData.noCollide = true; });
@@ -143,11 +156,12 @@ export class Taxi {
 
   /**
    * @param lane  (t, taxi) => void, writes taxi.pos / heading / bank / pitch
+   * @param fares false: a cab that never carries anyone but you (Wren's)
    */
-  constructor(physics, color, scale, lane, { driver = true } = {}) {
+  constructor(physics, color, scale, lane, { driver = true, fares = true } = {}) {
     this.physics = physics;
     this.kind = 'taxi';
-    const b = buildTaxi(color, { driver });
+    const b = buildTaxi(color, { driver, fares, scale });
     this.object = b.root;
     this.parts = b;
     this.time = Math.random() * 10;
@@ -155,6 +169,8 @@ export class Taxi {
     this.object.scale.setScalar(scale);
     this.lane = lane;
     this.mode = 'lane';
+    // a passenger aboard (shown in traffic only): a cab that comes when you call is free, its seat yours
+    this.fare = !!b.pax;
     this.pos = new THREE.Vector3();
     this.vel = new THREE.Vector3();
     this.heading = 0;
@@ -175,6 +191,7 @@ export class Taxi {
 
   hail(playerPos, playerHeading) {
     if (this.mode === 'driven') return;
+    this.fare = false;   // it's coming for you: no one else aboard
     // stop beside the player, slightly above, facing the same way
     const fx = Math.sin(playerHeading), fz = Math.cos(playerHeading);
     this.target = new THREE.Vector3(playerPos.x + fz * 4 + fx * 3, playerPos.y + 1.2 * this.scale, playerPos.z - fx * 4 + fz * 3);
@@ -194,7 +211,7 @@ export class Taxi {
 
   seatTransform(pos, quat) {
     const s = this.scale;
-    _v.set(0, 0.49 - 0.9 / s, -0.8); // the passenger's feet (hips on the bench, under the awning), in taxi-local units
+    _v.set(0, BENCH_Y - 0.9 / s, -0.8); // the passenger's feet (hips on the bench, under the awning), in taxi-local units
     pos.copy(_v).applyMatrix4(this.object.matrixWorld);
     quat.copy(this.object.quaternion);
   }
@@ -202,8 +219,10 @@ export class Taxi {
   /**
    * The cab's moving details: the tail fins trim into turns, the driver looks
    * about (and into the turn), the "for hire" lamps are lit while it's free
-   * (blinking while it waits for you) and dark while you ride; the passenger
-   * gets out when you get in. Far away only its painted body is drawn.
+   * (blinking while it waits for you) and dark while you ride. A passenger rides
+   * only in traffic: a cab that answers your call (or Wren's, coming to the lamp)
+   * comes empty, and one back in its lane picks up a new fare out of sight.
+   * Far away only its painted body is drawn.
    */
   animate(dt) {
     const P = this.parts;
@@ -218,15 +237,17 @@ export class Taxi {
     const far = d2 > (60 + 15 * s) ** 2;
     for (const o of P.mid) o.visible = d2 < (110 + 25 * s) ** 2;
     for (const o of P.near) o.visible = !far;
-    if (P.pax) P.pax.visible = !far && this.mode !== 'driven';
+    if (this.mode !== 'lane') this.fare = false;
+    else if (far && P.pax) this.fare = true;
+    if (P.pax) P.pax.visible = !far && this.fare;
     if (P.cabbie && this.driverOut?.()) P.cabbie.visible = false;
     if (far) return;
     P.tail.rotation.set(Math.sin(this.time * 1.7) * 0.04, -this._turn * 0.3, 0);
     const waiting = this.mode === 'parked' || this.mode === 'hail';
-    P.lamps.visible &&= this.mode !== 'driven' && (!waiting || Math.sin(this.time * 6) > -0.3);
+    P.lamps.visible &&= this.mode !== 'driven' && !this.fare && (!waiting || Math.sin(this.time * 6) > -0.3);   // (not for hire with a fare aboard)
     if (P.cabbie) {
       P.cabbie.rotation.y = this._turn * 0.5 + Math.sin(this.time * 0.37) * 0.35 * Math.sin(this.time * 0.11);
-      P.cabbie.position.y = Math.abs(Math.sin(this.time * 2.1)) * 0.02;
+      P.cabbie.position.y = P.cabbie.userData.y0 + Math.abs(Math.sin(this.time * 2.1)) * 0.02 / s;
     }
   }
 

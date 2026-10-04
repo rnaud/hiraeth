@@ -1700,6 +1700,14 @@ picks the device. The tab keeps its own storage (not the app's saves). Afterward
   rim, inked, tongues scrolled up a noise field. It writes a depth that bulges toward the
   camera, so the tree's limbs reach into the fire. Same interface as `Flames`
   (`intensity` for the flares, `setPalette(COOL_FIRE)` for the feast).
+- **The tree's bark is a closed solid** (`taper` and the trunk's lathe in `src/desert-city.js`):
+  the roots, limbs and the buttress's roots are tubes wound outward and capped at both ends
+  with a low rounded tip, each starting well inside the trunk; the trunk's lathe is shut under
+  the terrace and by a low crown over the top. (The tubes used to be inside out and open, so
+  you saw into the roots; the giant's arm and the cave's ribs and roots share `taper` and were
+  fixed with them.) `tests/desert-tree.test.js` welds the bark mesh and checks it has no open
+  edges and no flipped faces, and casts rays from the terraces, stairs and trunk: every first
+  hit is bark seen from outside.
 
 ### Ground ink by distance, steady façades, fine lines on distant people
 - **Ground ink** (`src/ground-ink.js`, used by `MODE_TERRAIN` in `src/materials.js`): every
@@ -1765,6 +1773,14 @@ picks the device. The tab keeps its own storage (not the app's saves). Afterward
   ~75–95 m only the body and its glow are drawn (3 calls), beyond ~135–170 m just the body
   (2). The roof you can stand on is the awning's crest (`solid.top`). Wren's cab loses its
   driver once she has stepped out by the lamp (`driverOut`).
+  **People aboard are people-sized** in a cab of any size: the driver and the passenger are
+  scaled by `FIGURE_H / scale` (0.9 m seat to crown, the traveller's own), the passenger's
+  hips on the bench where yours go. A passenger (`fare`) rides only in traffic: a cab that
+  comes when you call (`hail`, or Wren's flying to the lamp) arrives empty, a free cab answers
+  before a nearer one with a fare, and a cab back in its lane takes a new fare only out of
+  sight; the "for hire" lamps are dark while a fare is aboard. Wren's cab never carries anyone
+  (`fares: false`). The bazaar's cabs are the City-Shaft's size (2: at 1 the awning came down to
+  the traveller's chin). `tests/taxi.test.js`.
   `tests/hoverbike-quest.test.js` covers the quest, the migration and the budgets.
 
 ### The singing spheres, the wheel that keeps turning, and the ring's skin

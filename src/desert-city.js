@@ -46,8 +46,12 @@ const lathe = (pts, seg = 20) => new THREE.LatheGeometry(pts.map(([r, y]) => new
 const domeSolid = (r, at, sy = 1) => T(new THREE.SphereGeometry(r, 16, 7, 0, Math.PI * 2, 0, Math.PI / 2), at, [0, 0, 0], [1, sy, 1]);
 const dome = (r, seg = 16, rings = 6) => new THREE.SphereGeometry(r, Math.max(seg, 16), Math.max(rings, 9), 0, Math.PI * 2, 0, Math.PI / 2);
 
-/** A tube whose radius tapers from r0 to r1 along the curve. */
-function taper(points, r0, r1, seg = 16, radial = 7) {
+/**
+ * A tube whose radius tapers from r0 to r1 along the curve: a closed solid, its faces
+ * turned outward, each end shut by a low rounded cap (they used to be inside out and open,
+ * so you saw into the tree's roots and limbs, and through them).
+ */
+export function taper(points, r0, r1, seg = 16, radial = 7) {
   const curve = new THREE.CatmullRomCurve3(points);
   const frames = curve.computeFrenetFrames(seg, false);
   const pos = [], idx = [];
@@ -55,13 +59,20 @@ function taper(points, r0, r1, seg = 16, radial = 7) {
     const u = i / seg, c = curve.getPointAt(u), r = THREE.MathUtils.lerp(r0, r1, u);
     const N = frames.normals[i], B = frames.binormals[i];
     for (let j = 0; j <= radial; j++) {
-      const a = (j / radial) * Math.PI * 2;
+      // (the seam's last vertex is the first one again, exactly, so the tube welds shut)
+      const a = (j % radial) / radial * Math.PI * 2;
       pos.push(c.x + (Math.cos(a) * N.x + Math.sin(a) * B.x) * r, c.y + (Math.cos(a) * N.y + Math.sin(a) * B.y) * r, c.z + (Math.cos(a) * N.z + Math.sin(a) * B.z) * r);
     }
   }
   for (let i = 0; i < seg; i++) for (let j = 0; j < radial; j++) {
     const a = i * (radial + 1) + j, b = a + radial + 1;
-    idx.push(a, b, a + 1, a + 1, b, b + 1);
+    idx.push(a, a + 1, b, a + 1, b + 1, b);
+  }
+  // the caps: a fan from a point a little beyond each end, along the curve
+  for (const [i, r, sgn] of [[0, r0, -1], [seg, r1, 1]]) {
+    const c = curve.getPointAt(i / seg).addScaledVector(frames.tangents[i], sgn * r * 0.45), k = pos.length / 3, ring = i * (radial + 1);
+    pos.push(c.x, c.y, c.z);
+    for (let j = 0; j < radial; j++) idx.push(...(sgn > 0 ? [k, ring + j, ring + j + 1] : [k, ring + j + 1, ring + j]));
   }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
@@ -364,21 +375,24 @@ export function buildDesertCity(scene, terrain) {
     const barkR = (th, y) => profileR(y) * gnarl(y, th - y * 0.045);
     // collision is the bark itself (it used to be a plain cone, up to 0.7 m proud of it, so a
     // climber's hands hung in the air), minus the foot's flare, which is drawn over the roots
-    city.both(M.bark, twist(lathe(PROFILE, 18)), twist(lathe([[4.75, -0.3], ...PROFILE.slice(1)], 18)));
+    // (shut at both ends: under the terrace, and a low crown over the top, between the limbs)
+    const CROWN = [[2.3, 19.5 * S + 0.5], [0, 19.5 * S + 0.8]];
+    city.both(M.bark, twist(lathe([[0, -0.3], ...PROFILE, ...CROWN], 18)), twist(lathe([[0, -0.3], [4.75, -0.3], ...PROFILE.slice(1), ...CROWN], 18)));
     // the makers' ledge (below): a shelf on a buttress root, up the trunk toward the old shrine's corner
     const LEDGE = { phi: -0.5, H: 3.2, W: 2.4 };
     // roots over the terrace, some curling down its sides (none where the ledge's buttress stands)
     for (let k = 0; k < 7; k++) {
       const a = k / 7 * Math.PI * 2 + 0.4, ca = Math.sin(a), sa = Math.cos(a);
       if (Math.abs(Math.atan2(Math.sin(a - LEDGE.phi), Math.cos(a - LEDGE.phi))) < 0.4) continue;
-      const pts = [V(TREE.x + ca * 3, top + 1.2, TREE.z + sa * 3), V(TREE.x + ca * 6.5, top + 0.4, TREE.z + sa * 6.5), V(TREE.x + ca * 10.5, top - 0.2, TREE.z + sa * 10.5), V(TREE.x + ca * 12.2, top - 2.5, TREE.z + sa * 12.2)];
+      // (each grows out of the bark: it starts well inside the trunk, whose knots dip to r 3.6 here)
+      const pts = [V(TREE.x + ca * 2, top + 1.3, TREE.z + sa * 2), V(TREE.x + ca * 6.5, top + 0.4, TREE.z + sa * 6.5), V(TREE.x + ca * 10.5, top - 0.2, TREE.z + sa * 10.5), V(TREE.x + ca * 12.2, top - 2.5, TREE.z + sa * 12.2)];
       city.add(M.bark, taper(pts, 1.1, 0.35, 12, 6));
     }
     // limbs: a candelabrum of six arms reaching up and out, each ending in a flame
     const limbs = [];
     for (let k = 0; k < 6; k++) {
       const a = k / 6 * Math.PI * 2 + 0.2, ca = Math.sin(a), sa = Math.cos(a), reach = (9 + (k % 2) * 4) * S, rise = (13 + (k % 3) * 3) * S, fork = 17 * S;
-      const p0 = V(TREE.x + ca * 1.8, top + fork, TREE.z + sa * 1.8);
+      const p0 = V(TREE.x + ca * 0.6, top + fork - 1.2 * S, TREE.z + sa * 0.6);   // (inside the trunk, so the limb grows out of it)
       const p1 = V(TREE.x + ca * reach * 0.6, top + fork + 2.5 * S, TREE.z + sa * reach * 0.6);
       const p2 = V(TREE.x + ca * reach, top + fork + rise * 0.55, TREE.z + sa * reach);
       const p3 = V(TREE.x + ca * reach * 1.05, top + fork + rise, TREE.z + sa * reach * 1.05);
@@ -470,7 +484,7 @@ export function buildDesertCity(scene, terrain) {
       b.computeVertexNormals();
       city.add(M.bark, lg(b));
       // two roots twisting down its sides into the terrace
-      for (const s of [-1, 1]) city.add(M.bark, lg(taper([V(s * 0.9, H - 0.7, sF - 1.4), V(s * 1.25, H * 0.5, sF - 0.9), V(s * 1.5, 0.15, sF - 0.6), V(s * 1.7, -0.25, sF - 0.3)], 0.42, 0.2, 10, 6)));
+      for (const s of [-1, 1]) city.add(M.bark, lg(taper([V(s * 0.62, H - 0.6, sF - 1.5), V(s * 1.25, H * 0.5, sF - 0.9), V(s * 1.5, 0.15, sF - 0.6), V(s * 1.7, -0.25, sF - 0.3)], 0.42, 0.2, 10, 6)));
       // the makers' mark on its face, and offering cloths tied to the shelf's corners
       city.add(M.glyph, lg(glyphGeometry(0.42).translate(0, 1.75, sF + 0.06)));
       [[-1, 0, 1.25], [1, 1, 0.95]].forEach(([s, c, len]) => city.add(M.cloth[c], lg(new THREE.PlaneGeometry(0.2, len).translate(s * (W / 2 - 0.08), H - 0.3 - len / 2, sF - 0.02))));
@@ -489,8 +503,9 @@ export function buildDesertCity(scene, terrain) {
       bench: { at: city.world(BENCH.x, top + 0.42, BENCH.z), heading: city.heading(benchYaw) },
     };
 
-    city.flush();
+    const cityMeshes = city.flush();
     out.city = {
+      bark: cityMeshes.find((m) => m.material === M.bark),   // the tree: trunk, roots, limbs and the buttress (tests: closed)
       center: city.world(0, 0, 0), gate: city.world(0, 0, R + 6), backGate: city.world(0, 0, -R - 4),
       top: city.world(0, top, 0), well: city.world(WELL.x, top, WELL.z), stele: city.world(ST.x, top, ST.z + 1.2),
       wellLook: city.world(WELL.x, top, WELL.z + 3.4), treeBase: city.world(TREE.x, top, TREE.z), crown,
