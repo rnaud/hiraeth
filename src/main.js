@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { ReactiveWorld } from './reactive-world.js';
 import { Controller, mergeControls, menuNavigate } from './controller.js';
+import { installNativePad, watchLabels } from './native-pad.js';
 import { ObservatoryQuest } from './observatory.js';
 import { Scout, nextObjective } from './scout.js';
 import { Wildlife } from './wildlife.js';
@@ -39,6 +40,10 @@ import { Flammables, flammableSpots } from './flammable.js';
 import { createBoxes, migrateSave } from './boxes/index.js';
 import { createItemEffects } from './boxes/effects.js';
 import { DevMenu } from './dev-menu.js';
+
+// Android: the handheld's controls come from the app (native-pad.js), and prompts use its button names
+installNativePad();
+watchLabels();
 
 // Loading: each stage updates the inked loading screen, then yields a frame
 // so it can paint (its pen animation runs on the compositor meanwhile).
