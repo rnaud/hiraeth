@@ -1440,3 +1440,37 @@ Pocket. Their built-in controls work through the Gamepad API.
   rim, inked, tongues scrolled up a noise field. It writes a depth that bulges toward the
   camera, so the tree's limbs reach into the fire. Same interface as `Flames`
   (`intensity` for the flares, `setPalette(COOL_FIRE)` for the feast).
+
+### The recordings, the hologram and the stone
+- **No calls home** (`src/story/calls.js`; the arc in docs/story-bible.md, "The
+  recordings"). The traveller plays old recordings of his parents on the cockpit console,
+  one waiting after each finished world (`calls.<n>`, as before, so saves carry over). He
+  asks the reel for the world's word (`REEL`: water, looking up, quiet, bell…) and it plays
+  the one match: a line that fits loosely, never an answer. How old they are shows a little
+  more each time (`AGE[n]`: a worn date stamp, his own child's voice behind them, "logged
+  nineteen years ago", a worn tape), and the console's screen shows the stamp
+  (`recordingLabel`). Recording `ENDING_WORLDS` is the last on the reel ("Come home", logged
+  "eleven days before the house went quiet"); later ones come from the reel's oldest side
+  (`OLDER`). Once-only beats (`calls.beat.<id>`) still follow the journey, and Ilen is a
+  recording of the mother's labelled "For when he asks" (`calls.ilen.*`, as before). HUD:
+  "E play a recording".
+- **The hologram** (`src/ship/hologram.js`): the parents are the game's own people (the
+  human bodies, dressed by `costumes.js`, played by the mocap library: idle, and the
+  talking clip's gestures while they speak) drawn in light: teal, bright at the rims,
+  climbing scanlines, flicker, slices that slide sideways now and then (more when torn up
+  by the prologue's impact), eyes and a mouth that opens with the voice (drawn from the
+  bind-pose face). It stands in a cone of streaked light with motes over a projector in the
+  middle of the dash (`interior.points.projector`); the screen hangs higher now. It is not in
+  the G-buffer: `HOLO.scene` is drawn after the composite (`renderFrame`, like the wind),
+  premultiplied light with a little dimming behind, depth-tested by hand against the
+  G-buffer, so the traveller in front of it still hides it. `callShot` frames it from
+  behind his right shoulder; `faceRecording` keeps him turned to it for the whole recording.
+- **The stone** (`src/levels/home.js` `buildTomb`, `src/ship/homecoming.js`,
+  `src/story/ending.js`): nobody waits at the door; the window is dark. The cargo check lists
+  everything (`tokenList`: the keepsakes, then the makers' small gifts, not the backpack,
+  jets or wings). He walks to the parents' stone in the front yard and sets each token on
+  the slab (`tombSlots`, `tokenModel`; one short line each, `tombLines`, on a brisk
+  `tombTimeline`), last the reel (`reelModel`), which plays `FINAL_RECORDING`, the oldest,
+  as a hologram of the three of them over the stone. Then the closing line, an end card and
+  the credits ("Left on the stone"). `ending.keepsake` is `all`; saves that ended with one
+  keepsake chosen keep it. Coming back later, the stone keeps its tokens.

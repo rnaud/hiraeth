@@ -9,10 +9,10 @@ import { mapEntries, consoleAction } from '../src/ship/starmap.js';
 import { HomecomingDirector } from '../src/ship/homecoming.js';
 import { LEVELS } from '../src/levels/index.js';
 import { CONTENT, ORDER } from '../src/levels/content.js';
-import { HOME_SPOTS } from '../src/levels/home.js';
+import { HOME_SPOTS, tombSlots, SLAB, tokenModel } from '../src/levels/home.js';
 import {
-  ENDING_WORLDS, HOME_ID, NOTHING, endingUnlocked, homeEntry, choiceList, chooseKeepsake, chosenKeepsake,
-  reactionLines, FATHER_HOME, MOTHER_HOME, credits, creditsHtml, peopleOf,
+  ENDING_WORLDS, HOME_ID, NOTHING, ALL, endingUnlocked, homeEntry, tokenList, tokenLine, leaveTokens, chosenKeepsake,
+  tombLines, FINAL_RECORDING, TOKEN_ITEMS, credits, creditsHtml, peopleOf,
 } from '../src/story/ending.js';
 import { callLines, callContext, pendingCall, applyCall, completedWorlds, ILEN_CALL } from '../src/story/calls.js';
 import { birdAnswers, OPEN_SKY } from '../src/bird.js';
@@ -67,7 +67,8 @@ test('Home appears on the galactic map once the ending is open, at the centre of
   const L = LEVELS.find((l) => l.id === HOME_ID);
   assert.ok(L && L.hidden && L.title === 'Home');
   assert.equal(LEVELS.find((l) => l.id === 'atelier')?.hidden, true, 'the Atelier stays as it is');
-  assert.deepEqual(CONTENT.home.npcs.map((n) => n.id), ['father', 'mother']);
+  assert.deepEqual(CONTENT.home.npcs, [], 'nobody lives there now');
+  assert.match(homeEntry({ unlocked: true }).blurb, /Nobody lives there now/);
   // the ship's map asks the ship whether home is open
   const scene = new THREE.Scene();
   scene.add(new THREE.Mesh(new THREE.PlaneGeometry(400, 400).rotateX(-Math.PI / 2)));
@@ -81,48 +82,64 @@ test('Home appears on the galactic map once the ending is open, at the centre of
   assert.ok(mapEntries({ ...ship.map.o }).some((e) => e.home), 'six worlds: home');
 });
 
-test('the keepsake chosen in the cockpit is stored in game (ending.keepsake)', () => {
+test('everything goes on the stone: the keepsakes, then the makers’ small gifts (not the backpack, jets or wings)', () => {
   const { store, game } = memory();
   const ks = [GEAR_TOOTH, BAZAAR_WORD, { id: 'arzach.person', level: 'arzach', name: 'The bird’s promise', kind: 'person', text: '…' }];
   for (const k of ks) game.addKeepsake(k);
-  const list = choiceList(game.keepsakes());
-  assert.deepEqual(list.map((k) => k.id), [...ks.map((k) => k.id), NOTHING.id], 'every keepsake, then nothing');
-  assert.ok(list.every((k) => k.name && k.kind && k.text), 'with their texts and kinds');
-  chooseKeepsake(game, list[1]);
-  assert.equal(game.flag('ending.keepsake'), BAZAAR_WORD.id);
-  assert.equal(game.flag('ending.kind'), 'word');
+  const list = tokenList([...game.keepsakes(), GEAR_TOOTH], ['backpack', 'jetpack', 'glider', 'star', 'lens', 'fire']);
+  assert.deepEqual(list.map((t) => t.id), [...ks.map((k) => k.id), 'item.fire', 'item.lens', 'item.star'], 'every keepsake once, in order, then the gifts');
+  assert.ok(list.every((t) => t.name && t.kind), 'with names and kinds');
+  assert.ok(!TOKEN_ITEMS.some((id) => ['backpack', 'jetpack', 'glider'].includes(id)), 'he wears those');
+  assert.equal(leaveTokens(game, list), ALL);
+  assert.equal(game.flag('ending.keepsake'), 'all');
+  assert.equal(game.flag('ending.tokens'), list.length);
   const again = new GameState({ getItem: (k) => store.get(k) ?? null, setItem: () => {} });
-  assert.equal(chosenKeepsake(again)?.name, BAZAAR_WORD.name, 'remembered');
-  chooseKeepsake(game, NOTHING);
+  assert.equal(chosenKeepsake(again), ALL, 'remembered');
+  // a save that ended before the stone, with one keepsake chosen, keeps it
+  game.set('ending.keepsake', GEAR_TOOTH.id);
+  assert.equal(chosenKeepsake(game)?.name, GEAR_TOOTH.name);
+  game.set('ending.keepsake', NOTHING.id);
   assert.equal(chosenKeepsake(game), NOTHING);
 });
 
-test('each kind gives a different father; the mother is always the same', () => {
-  const sample = {
-    thing: GEAR_TOOTH,
-    song: { id: 's', name: 'The bell’s note', kind: 'song', text: 'One low note.' },
-    word: { id: 'w', name: 'Look up once a day', kind: 'word', text: '“Look up once a day.” Nima.' },
-    person: { id: 'p', name: 'Hollin’s lamps', kind: 'person', text: 'Come back one day.' },
-    knowing: { id: 'k', name: 'What the giants left', kind: 'knowing', text: 'The giants carried the water.' },
-    nothing: NOTHING,
-  };
-  assert.deepEqual(Object.keys(FATHER_HOME).sort(), Object.keys(sample).sort());
-  const fathers = new Set(), mothers = new Set();
-  for (const k of Object.values(sample)) {
-    const lines = reactionLines(k);
-    const f = lines.filter((l) => l.who === 'father').map((l) => l.text).join(' | ');
-    fathers.add(f);
-    mothers.add(lines.filter((l) => l.who === 'mother').map((l) => l.text).join(' | '));
-    assert.ok(lines.at(-1).who === 'scene' && /Something of value/.test(lines.at(-1).text), 'a closing line');
+test('at the stone: a line for every token as it is set down, the reel last, its oldest recording, the closing line', () => {
+  const list = tokenList([GEAR_TOOTH, { id: 'incal.word', level: 'incal', name: 'Look up once a day', kind: 'word', text: '“Look up once a day.” Nima.' },
+    { id: 's', name: 'Teo’s walking rhythm', kind: 'song' }, { id: 'p', name: 'Hollin’s lamps', kind: 'person' }, { id: 'k', name: 'What the giants left', kind: 'knowing' }], ['star', 'bell']);
+  const lines = tombLines(list, { ilenTold: true });
+  const set = lines.filter((l) => l.token);
+  assert.deepEqual(set.map((l) => l.token.id), list.map((t) => t.id), 'one line per token, in order');
+  assert.ok(set.every((l) => l.who === 'scene' && /^\(/.test(l.text)), 'quiet stage lines');
+  assert.ok(set.some((l) => l.text.includes('rust gear tooth')), 'the thing is named');
+  assert.ok(set.some((l) => l.text.includes('Look up once a day')), 'the words are said');
+  assert.equal(new Set(set.map((l) => l.text.replace(/^\([^.]*\./, ''))).size, set.length, 'each kind says something of its own');
+  const reel = lines.findIndex((l) => l.reel);
+  assert.ok(reel > lines.indexOf(set.at(-1)), 'the reel goes down last');
+  assert.deepEqual(lines.slice(reel + 1, reel + 1 + FINAL_RECORDING.length), FINAL_RECORDING, 'then it plays the oldest recording');
+  assert.ok(FINAL_RECORDING.some((l) => l.who === 'mother' && /proud of you already/.test(l.text)));
+  assert.ok(FINAL_RECORDING.some((l) => l.who === 'father' && /don’t have to bring us anything/i.test(l.text)));
+  assert.ok(lines.at(-1).who === 'scene' && /Something of value/.test(lines.at(-1).text), 'a closing line');
+  assert.ok(lines.some((l) => /Ilen/.test(l.text)), 'and a place for Ilen');
+  assert.ok(!tombLines(list).some((l) => /Ilen/.test(l.text)), 'only once she is known');
+  const empty = tombLines([]);
+  assert.ok(!empty.some((l) => l.token) && empty.some((l) => /empty/.test(l.text)), 'empty hands');
+  assert.ok(list.every((t) => tokenLine(t).text.length > 4));
+});
+
+test('the stone: room on the slab for every token, none on top of another', () => {
+  for (const n of [1, 2, 5, 9, 14, 20, 26]) {
+    const P = tombSlots(n);
+    assert.equal(P.length, n);
+    for (const p of P) assert.ok(Math.abs(p.x) <= SLAB.x && p.z >= SLAB.z0 - 1e-6 && p.z <= SLAB.z1 + 1e-6 && p.y > SLAB.top, `${n}: on the slab (${p.toArray()})`);
+    let min = Infinity;
+    for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) min = Math.min(min, Math.hypot(P[i].x - P[j].x, P[i].z - P[j].z));
+    assert.ok(min > 0.14, `${n} tokens: ${min.toFixed(2)} m apart`);
   }
-  assert.equal(fathers.size, Object.keys(sample).length, 'a different father for every kind');
-  assert.equal(mothers.size, 1, 'one mother');
-  assert.deepEqual(reactionLines(GEAR_TOOTH).filter((l) => l.who === 'mother'), MOTHER_HOME);
-  assert.ok(MOTHER_HOME.every((l) => !/tooth|gift|brought/i.test(l.text)), 'about you, not the gift');
-  assert.ok(reactionLines(sample.thing).some((l) => l.text.includes('rust gear tooth')), 'the thing is named');
-  assert.ok(reactionLines(sample.word).some((l) => l.text.includes('Look up once a day')), 'the words are said');
-  assert.ok(reactionLines(BAZAAR_WORD).some((l) => l.who === 'father' && /Those were mine/.test(l.text)), 'he knows his own words');
-  assert.ok(reactionLines(NOTHING, { ilen: true }).some((l) => /Ilen/.test(l.text)));
+  // every token has a model, small enough for the slab
+  for (const t of tokenList([GEAR_TOOTH, BAZAAR_WORD, { id: 'x', kind: 'song', name: 's' }, { id: 'y', kind: 'person', name: 'p' }, { id: 'z', kind: 'knowing', name: 'k' }], TOKEN_ITEMS)) {
+    const m = tokenModel(t);
+    const box = new THREE.Box3().setFromObject(m), size = box.getSize(new THREE.Vector3());
+    assert.ok(size.x < 0.45 && size.y < 0.45 && size.z < 0.45, `${t.id}: ${size.toArray().map((v) => v.toFixed(2))}`);
+  }
 });
 
 test('the credits roll the worlds in order and the people from the story data', () => {
@@ -135,13 +152,14 @@ test('the credits roll the worlds in order and the people from the story data', 
   assert.ok(!names.some((n) => /^The (broadcast|root stone|Upward Shrine)/.test(n)), 'people only');
   const desert = c.worlds.find((w) => w.id === 'desert');
   assert.ok(desert.done && desert.people.find((p) => p.name === 'Teo').met && !desert.people.find((p) => p.name === 'Ama').met);
-  assert.ok(c.home.some((h) => /bird/.test(h)) && c.home.some((h) => /Ilen/.test(h)));
-  const html = creditsHtml(c);
-  assert.ok(html.includes('Madame Sel') && html.includes('The Desert') && html.includes('A rust gear tooth'));
+  assert.ok(c.home.some((h) => /bird/.test(h)) && c.home.some((h) => /Ilen/.test(h)) && c.home.some((h) => /your father, on the hill/.test(h)));
+  assert.ok(creditsHtml(c).includes('A rust gear tooth'), 'an older save: what it brought home');
+  const html = creditsHtml(credits({ order: ORDER, titles, storyTitles, flag: (k) => flags[k], keepsake: ALL, tokens: tokenList([GEAR_TOOTH], ['star']) }));
+  assert.ok(html.includes('Madame Sel') && html.includes('The Desert') && html.includes('Left on the stone') && html.includes('A rust gear tooth') && html.includes('Pale star'));
   assert.equal(peopleOf('nowhere').length, 0);
 });
 
-test('Ilen: the father deflects, the mother tells the truth in a later call of her own', () => {
+test('Ilen: he asks the reel for her, is not ready, and hears his mother’s recording somewhere else', () => {
   const { game } = memory();
   const done = ['desert', 'incal', 'arzach'];
   for (const id of done) game.set(`world.${id}.done`, true);
@@ -154,35 +172,38 @@ test('Ilen: the father deflects, the mother tells the truth in a later call of h
   done.push('bazaar');
   const [call] = hearAll(game, done);
   assert.equal(call.n, 4);
-  assert.ok(call.lines.some((l) => /Ilen/.test(l.text)), 'the call is about Ilen');
-  assert.ok(call.lines.some((l) => l.who === 'father' && /relays/.test(l.text)), 'he deflects');
+  assert.ok(call.lines.some((l) => l.who === 'you' && /Ilen/.test(l.text)), 'he asks the reel for the name');
+  assert.ok(call.lines.some((l) => l.who === 'ship' && /For when he asks/.test(l.text)), 'one recording, in her voice');
+  assert.ok(call.lines.some((l) => l.who === 'you' && /Not here\. Not yet\./.test(l.text)), 'not here');
   assert.ok(!call.lines.some((l) => /sister/.test(l.text)), 'not the truth yet');
   assert.equal(pendingCall({ flag: (k) => game.flag(k), completed: done.length }), null, 'not while still at the market');
   game.set('ship.level', 'buried');
-  assert.equal(pendingCall({ flag: (k) => game.flag(k), completed: done.length }), ILEN_CALL, 'after flying on, the mother calls');
+  assert.equal(pendingCall({ flag: (k) => game.flag(k), completed: done.length }), ILEN_CALL, 'after flying on, it waits');
   const [hers] = hearAll(game, done);
-  assert.ok(hers.lines.every((l) => l.who === 'mother'), 'on her own');
+  assert.ok(hers.lines.filter((l) => l.who === 'father' || l.who === 'mother').every((l) => l.who === 'mother'), 'hers alone');
   assert.ok(hers.lines.some((l) => /Ilen was your sister/.test(l.text)));
   assert.ok(hers.lines.some((l) => /singing/i.test(l.text)), 'the singing light: they heard it too');
   assert.equal(game.flag('calls.ilen.told'), true);
   game.set('world.buried.done', true);
   done.push('buried');
   const [next] = hearAll(game, done);
-  assert.ok(next.lines.some((l) => l.who === 'father' && /Your mother told you/.test(l.text)), 'and then he says it himself');
+  assert.ok(next.lines.some((l) => l.who === 'father' && /the same words to you at the port/.test(l.text)), 'and then his own words about it');
 });
 
-test('the calls react to what happened: the bell, the bird, the glyph, the people met', () => {
+test('the recordings fit what happened, loosely: the bell, the bird, the glyph; he names the people he met', () => {
   const flags = { 'arzach2.bell.note': true, 'met.ysolde': true, 'met.tiv': true };
   const lines = callLines(3, { keepsake: { id: 'arzach2.song', level: 'arzach2', name: 'The bell’s note', kind: 'song' }, flag: (k) => flags[k], completed: ['desert', 'arzach', 'arzach2'] });
-  assert.ok(lines.some((l) => /bell/i.test(l.text) && /harbour/.test(l.text)), 'they hear the bell');
-  assert.ok(lines.some((l) => l.who === 'mother' && /Mother Ysolde and Tiv/.test(l.text)), 'she asks after the people, by name');
+  assert.ok(lines.some((l) => /bell/i.test(l.text) && /harbour/.test(l.text)), 'the harbour bell behind them');
+  assert.ok(lines.some((l) => l.who === 'mother' && /Who did you meet/.test(l.text)), 'she asks who he met');
+  assert.ok(lines.some((l) => l.who === 'you' && /Mother Ysolde and Tiv/.test(l.text)), 'he answers with their names');
+  assert.ok(lines.some((l) => l.who === 'you' && /bell/.test(l.text) && /^\(/.test(l.text)), 'he finds the bell in it');
   const bird = callLines(2, { keepsake: { id: 'arzach.person', name: 'The bird’s promise', kind: 'person' }, flag: (k) => k === 'bird.promise' });
   assert.ok(bird.some((l) => /bird/.test(l.text) && /promise/.test(l.text)));
   const glyph = callLines(2, { keepsake: GEAR_TOOTH, flag: (k) => k === 'clue.buried.mark' });
-  assert.ok(glyph.some((l) => /Three dots over an arc/.test(l.text)));
+  assert.ok(glyph.some((l) => /three dots/.test(l.text) && /landing ring/.test(l.text)));
   // each is said once
   const heard = { 'clue.buried.mark': true, 'calls.beat.glyph': true };
-  assert.ok(!callLines(2, { keepsake: GEAR_TOOTH, flag: (k) => heard[k] }).some((l) => /Three dots/.test(l.text)));
+  assert.ok(!callLines(2, { keepsake: GEAR_TOOTH, flag: (k) => heard[k] }).some((l) => /three dots/.test(l.text)));
 });
 
 test('the bird answers the whistle only under open sky, in worlds without a mount, once she has promised', () => {
@@ -194,10 +215,11 @@ test('the bird answers the whistle only under open sky, in worlds without a moun
   assert.equal(birdAnswers('incal', { features: {} }, flag), false, 'no open sky down the shaft');
 });
 
-test('the homecoming plays: in orbit, the choice, the landing, the door, the credits, then free play', () => {
+test('the homecoming plays: in orbit, the cargo, the landing, the stone and its tokens, the end card, the credits, then free play', () => {
   const meta = LEVELS.find((l) => l.id === HOME_ID);
   const scene = new THREE.Scene();
   const level = quiet(() => meta.create(scene));
+  assert.ok(level.tomb && level.tomb.group.parent === scene, 'the stone is in the yard');
   const physics = new Physics(scene, level.ground);
   const ship = quiet(() => new Ship({ scene, physics, level, levelId: HOME_ID, content: CONTENT.home, prologue: true }));
   assert.ok(ship.spaceCopy, 'the ship in orbit');
@@ -207,24 +229,36 @@ test('the homecoming plays: in orbit, the choice, the landing, the door, the cre
   const rig = { yaw: 0, pitch: 0, target: new THREE.Vector3(), dist: 6 };
   const camera = new THREE.PerspectiveCamera();
   ship.attach({ player, rig, camera, sound: {}, levels: LEVELS, order: ORDER, titles, npcs: [] });
+  game.addKeepsake(GEAR_TOOTH);
+  game.addKeepsake(BAZAAR_WORD);
   const dir = new HomecomingDirector(ship);
   ship.cinematic = dir;
   dir.start();
   assert.equal(dir.stage, 'approach');
+  assert.ok(dir.items.some((t) => t.id === GEAR_TOOTH.id) && dir.items.some((t) => t.id === BAZAAR_WORD.id), 'everything in the hold');
   const step = (secs, skip = false) => { for (let t = 0; t < secs && !dir.done; t += 1 / 30) { dir.update(1 / 30, skip); player.update(1 / 30, ship.input({}), rig.yaw); } };
   step(8);
-  assert.equal(dir.stage, 'choose', 'waits for the choice');
-  step(3, true);
-  assert.equal(dir.stage, 'choose', 'the choice cannot be skipped');
-  const pick = dir.items.find((k) => k.id === NOTHING.id);
-  dir.choose(pick);
+  assert.equal(dir.stage, 'cargo', 'waits at the cargo check');
+  dir.choose();
+  assert.equal(game.flag('ending.keepsake'), 'all');
   step(4);
   assert.ok(['dive', 'descend'].includes(dir.stage), dir.stage);
-  step(30);
-  assert.ok(['walk', 'reaction', 'credits'].includes(dir.stage), `down and out: ${dir.stage}`);
-  step(1.2, true); step(0.2); step(1.2, true); step(0.2); step(1.2, true);
+  step(40);
+  assert.ok(['walk', 'tomb'].includes(dir.stage), `down and out to the stone: ${dir.stage}`);
+  while (dir.stage === 'walk' && !dir.done) step(1);
+  assert.equal(dir.stage, 'tomb');
+  assert.ok(player.pos.distanceTo(dir.standAt()) < 1.5, 'standing at the stone');
+  const toStone = Math.atan2(HOME_SPOTS.tomb.x - player.pos.x, HOME_SPOTS.tomb.z - player.pos.z);
+  assert.ok(Math.abs(Math.atan2(Math.sin(player.heading - toStone), Math.cos(player.heading - toStone))) < 0.3, 'facing it');
+  step(14);
+  assert.ok(level.tomb.tokens.children.length >= 1, 'the tokens go down one by one');
+  step(1.2, true);
+  assert.equal(level.tomb.tokens.children.length, dir.items.length + 1, 'skipping on: all of them are on the stone, and the reel');
+  step(0.2); step(1.2, true); step(0.2); step(1.2, true);
   assert.ok(dir.done, 'skipped to the end');
   assert.equal(game.flag('ending.done'), true);
-  assert.equal(game.flag('ending.keepsake'), NOTHING.id);
   assert.ok(!ship.spaceCopy && ship.parked.group.visible, 'parked on the ring, ready to fly');
+  // coming back later: the stone keeps them
+  const again = quiet(() => meta.create(new THREE.Scene()));
+  assert.ok(again.tomb.tokens.children.length >= 2, 'the stone keeps its tokens');
 });

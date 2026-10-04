@@ -15,6 +15,7 @@ import { LEVELS, levelById } from './levels/index.js';
 import { Player, CameraRig } from './player.js';
 import { applyTimeOfDay, colourScript } from './timeofday.js';
 import { WindStreaks } from './wind.js';
+import { HOLO } from './ship/hologram.js';
 import { Physics } from './physics.js';
 import { tileScene, cullFar, fitBounds, SmallCuller, RoomCuller, resolveQuality, detectHandheld, GpuTimer } from './perf.js';
 import { Cascade, ShadowCuller, shadowDirection } from './shadows.js';
@@ -148,6 +149,7 @@ function resize() {
   post.uniforms.uPixelRatio.value = pr;
   sharedUniforms.uPixelRatio.value = pr;
   wind?.uniforms.uRes.value.set(rw, rh);
+  HOLO.uniforms.uRes.value.set(rw, rh);
   if (overlays.motes) { overlays.motes.uniforms.uRes.value.set(rw, rh); overlays.motes.uniforms.uPR.value = pr; }
 }
 window.addEventListener('resize', () => resize());
@@ -282,6 +284,8 @@ wind = new WindStreaks();
 wind.uniforms.tNormal.value = gbuffer.textures[1];
 wind.uniforms.uRes.value.copy(post.uniforms.uRes.value);
 wind.uniforms.uInk.value = post.uniforms.uInk.value;
+// the recordings' hologram (src/ship/hologram.js): light drawn over the composite, hidden behind what the G-buffer holds
+HOLO.uniforms.tNormal.value = gbuffer.textures[1];
 const rig = new CameraRig(camera, renderer.domElement, physics);
 rig.yaw = level.camYaw;
 rig.pitch = level.camPitch ?? rig.pitch;
@@ -355,7 +359,7 @@ window.addEventListener('keydown', (e) => {
 });
 // wildlife: two or three small species per world, each with a surprise (src/wildlife.js)
 const wildlife = new Wildlife(scene, level, physics, { content, sound });
-ship.attach({ player, rig, camera, sound, journal, post, story, wind, npcs, levels: LEVELS, order: ORDER, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])) });
+ship.attach({ player, rig, camera, sound, journal, post, story, wind, npcs, lib, humans: humanT, levels: LEVELS, order: ORDER, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])) });
 if (viaShip) {
   const a = ship.arrivalSpot();
   player.respawn(a.pos);
@@ -940,6 +944,7 @@ function renderFrame() {
   if (!portraitShot) {
     renderer.render(wind.scene, camera);
     if (motes) renderer.render(motes.scene, camera);
+    if (HOLO.live()) renderer.render(HOLO.scene, camera);   // the recordings' hologram: light, not ink
   }
 
   // 5. smooth edges and scale the completed frame to the display

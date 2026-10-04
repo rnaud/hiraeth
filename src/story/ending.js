@@ -1,24 +1,25 @@
-// The ending: going home, and what you bring (docs/game-brief.md, working
-// decision 5; docs/story-bible.md, "The ending").
+// The ending: going home, to the stone on the hill (docs/game-brief.md, working
+// decision 5; docs/story-bible.md, "The recordings" and "The ending").
 //
-//  - Once ENDING_WORLDS worlds are done, the call home that follows asks the
-//    traveller to come home (src/story/calls.js) and the galactic map shows
-//    Home at its centre, where the route starts (src/ship/starmap.js).
-//  - Choosing Home flies there (?level=home&via=ship, src/levels/home.js).
-//    The ship comes out of the jump in orbit; in the cockpit the traveller
-//    chooses one keepsake to bring home, or nothing; the ship lands by the
-//    house; the parents are waiting (src/ship/homecoming.js plays it).
-//  - The father's words depend on the kind of thing chosen. The mother's do
-//    not: they are about the traveller. A closing line, then the credits: a
-//    paper page of the worlds and the people met, from the story data.
-//  - The choice is kept (`ending.keepsake`, `ending.kind`); `ending.done` is
-//    set at the end, and the game goes on: the ship flies anywhere again, and
-//    the calls home after that are calls from home.
+//  - Once ENDING_WORLDS worlds are done, the last recording on the reel asks the
+//    traveller home (src/story/calls.js) and the galactic map shows Home at its
+//    centre, where the route starts (src/ship/starmap.js).
+//  - Choosing Home flies there (?level=home&via=ship, src/levels/home.js). Out of
+//    the jump the ship reads out the hold: every keepsake and every one of the
+//    makers' small gifts (tokenList) goes down. The ship lands by the house; the
+//    lamp in its window is dark. The parents are dead: their stone stands in the
+//    front yard. The traveller sets the tokens on it one by one (tombLines: a short
+//    line for each), last the reel, which plays its oldest recording
+//    (FINAL_RECORDING, as a hologram over the stone). The closing line, an end
+//    card, then the credits: a paper page of the worlds, the people met, and what
+//    was left on the stone (src/ship/homecoming.js plays it all).
+//  - `ending.done` is set at the end, and the game goes on: the ship flies anywhere
+//    again; the reel plays its oldest side; the stone keeps its tokens.
 //
 // Everything here is pure (data and text); the tests use it directly.
 //
-// Flags: ending.keepsake (the chosen keepsake's id, or 'nothing'), ending.kind,
-// ending.name, ending.done.
+// Flags: ending.keepsake ('all'; saves that ended before kept one keepsake's id, or
+// 'nothing'), ending.kind, ending.name, ending.tokens (how many), ending.done.
 
 import * as desert from './desert-data.js';
 import * as incal from './incal-data.js';
@@ -32,6 +33,7 @@ import * as perdide from './perdide-data.js';
 import * as perdide2 from './perdide2-data.js';
 import * as bazaar from './bazaar-data.js';
 import { spoken } from './tone.js';
+import { ITEMS } from '../items.js';
 
 /** How many worlds must be done before home is on the map. */
 export const ENDING_WORLDS = 6;
@@ -46,37 +48,73 @@ export function homeEntry({ unlocked, current }) {
   return {
     id: HOME_ID, title: 'Home', home: true, current: current === HOME_ID, visited: true, done: false,
     source: 'where the route begins',
-    blurb: 'A small round house on a small round hill, a lamp in the window, and two moons over it. They are waiting.',
+    blurb: 'A small round house on a small round hill, and two moons over it. Nobody lives there now. There is a stone in the yard.',
   };
 }
 
-/** Coming home with empty hands is a choice too. */
+/** Coming home with empty hands (saves that ended before the stone could choose it). */
 export const NOTHING = { id: 'nothing', level: HOME_ID, name: 'Nothing', kind: 'nothing', text: 'Empty hands. Just you, walking back in through the door on your own two feet.' };
+/** What is left at the stone now: everything. */
+export const ALL = { id: 'all', level: HOME_ID, name: 'Everything you gathered', kind: 'all', text: 'Every keepsake and every gift, set on the stone one by one.' };
 
-export const KIND_LABEL = { thing: 'a thing', song: 'a song', word: 'words', person: 'a person', knowing: 'a knowing', nothing: 'yourself' };
+export const KIND_LABEL = { thing: 'a thing', song: 'a song', word: 'words', person: 'a person', knowing: 'a knowing', nothing: 'yourself', all: 'everything', item: 'a gift' };
 
-/** What the cockpit panel offers: every keepsake collected, then nothing. */
-export function choiceList(keepsakes = []) {
-  const seen = new Set();
-  const out = [];
-  for (const k of keepsakes) if (k && !seen.has(k.id)) { seen.add(k.id); out.push(k); }
-  return [...out, NOTHING];
+/** The makers' small gifts that go on the stone (not the backpack, its jets and wings: he wears those). */
+export const TOKEN_ITEMS = ['stun', 'fire', 'cell', 'coil', 'lantern', 'lens', 'bell', 'star'];
+
+/** What each gift means now, set on the stone. */
+const ITEM_LINES = {
+  stun: '~solemn~ (The stilling lens. You learned to wait.)',
+  fire: '~solemn~ (The ember ring. A fire that hurts nobody.)',
+  cell: '~solemn~ (The fourth chamber. You carry more than you used to.)',
+  coil: '~solemn~ (The quick coil. You get up faster now.)',
+  lantern: '~solemn~ (The lantern charm. It has never gone out.)',
+  lens: '~solemn~ (The glyph lens. You learned to see what nobody looks at.)',
+  bell: '~solemn~ (The bell-note whistle. One clear note, the same in every world.)',
+  star: '~solemn~ (The pale star, off your hood: a small light, a long way from home.)',
+};
+
+/**
+ * Everything that goes on the stone, in order: the keepsakes as they were found, then the
+ * makers' gifts. Each is { id, kind ('thing' | 'song' | 'word' | 'person' | 'knowing' | 'item'),
+ * name, text, keepsake?, item? }.
+ * @param keepsakes game.keepsakes() · owned: item ids (items.owned())
+ */
+export function tokenList(keepsakes = [], owned = []) {
+  const seen = new Set(), out = [];
+  for (const k of keepsakes) if (k?.id && !seen.has(k.id)) { seen.add(k.id); out.push({ id: k.id, kind: k.kind ?? 'thing', name: k.name, text: k.text ?? '', level: k.level, keepsake: k }); }
+  for (const id of TOKEN_ITEMS) if (owned.includes(id) && ITEMS[id]) out.push({ id: `item.${id}`, kind: 'item', name: ITEMS[id].name, text: ITEMS[id].text, item: id });
+  return out;
 }
 
-/** Keep the choice. */
-export function chooseKeepsake(game, k) {
-  const pick = k ?? NOTHING;
-  game.set('ending.keepsake', pick.id);
-  game.set('ending.kind', pick.kind);
-  game.set('ending.name', pick.name);
-  return pick;
+/** The line as a token is set down: what it was, now. */
+export function tokenLine(t) {
+  const name = t.name ?? '';
+  switch (t.kind) {
+    case 'item': return spoken('scene', ITEM_LINES[t.item] ?? `~solemn~ (${name}.)`);
+    case 'song': return spoken('scene', `~solemn~ (${name}. You can hum it now without thinking.)`);
+    case 'word': return spoken('scene', `~solemn~ (“${quoteOf(t.keepsake ?? t)}”)`);
+    case 'person': return spoken('scene', `~solemn~ (${name}. Someone out there is waiting for you to come back.)`);
+    case 'knowing': return spoken('scene', `~solemn~ (${name}. You understand it now. You could explain it to them.)`);
+    default: return spoken('scene', `~solemn~ (${name}. You carried it the whole way.)`);
+  }
 }
 
-/** The chosen keepsake, as kept (null before the ending). */
+/** Keep what was left at the stone. */
+export function leaveTokens(game, tokens = []) {
+  game.set('ending.keepsake', ALL.id);
+  game.set('ending.kind', ALL.kind);
+  game.set('ending.name', ALL.name);
+  game.set('ending.tokens', tokens.length);
+  return ALL;
+}
+
+/** What was left at the end, as kept (null before the ending). */
 export function chosenKeepsake(game) {
   const id = game.flag('ending.keepsake');
   if (!id) return null;
   if (id === NOTHING.id) return NOTHING;
+  if (id === ALL.id) return ALL;
   return (game.keepsakes() ?? []).find((k) => k.id === id) ?? { id, name: game.flag('ending.name') ?? id, kind: game.flag('ending.kind') ?? 'thing' };
 }
 
@@ -88,71 +126,44 @@ export function quoteOf(k) {
   return k?.kind === 'word' && t ? t : k?.name ?? '';
 }
 
-// ------------------------------------------------------------------ the parents' reaction
+// ------------------------------------------------------------------ at the stone
 
 // each line carries its tone ('~sad~ …': src/story/tone.js), read off by spoken()
-const F = (text) => spoken('father', text), M = (text) => spoken('mother', text), S = (text) => spoken('scene', text);
+const F = (text) => spoken('father', text), M = (text) => spoken('mother', text), S = (text, extra) => spoken('scene', text, extra), YOU = (text) => spoken('you', text);
 
-/** The father's words, by the kind of thing you brought. */
-export const FATHER_HOME = {
-  thing: (k) => [
-    S(`~solemn~ (You put ${k.name.replace(/^A /, 'the ').replace(/^An /, 'the ')} in his hands. He weighs it, the way he weighs everything.)`),
-    F('~happy~ Good. Solid. Something a man can hold. It is exactly what I asked you for.'),
-    F('~sad~ …It is lighter than I thought it would be.'),
-  ],
-  song: (k) => [
-    S(`~playful~ (You hum it for him: ${k.name.replace(/^The /, 'the ')}. Badly, then less badly.)`),
-    F('~curious~ Again.'),
-    S('~happy~ (He does not sing. But the third time through, his foot keeps the beat.)'),
-  ],
-  word: (k) => k.id === 'bazaar.word' ? [
-    S('~solemn~ (You start to tell him the words from the tower. He knows them before you finish.)'),
-    F('~sad~ Those were mine.'),
-    F('~solemn~ I sent them a long way, to someone else. I am glad they found somebody.'),
-  ] : [
-    S(`~solemn~ (You tell him what was said to you, out there: “${quoteOf(k)}”)`),
-    F('~surprised~ Someone said that to you? To you, and meant it?'),
-    F('~happy~ Then they saw you properly. Good. Somebody should have, sooner.'),
-  ],
-  person: (k) => [
-    S(`~solemn~ (You tell him about ${k.name.replace(/^The /, 'the ')}: someone out there who wants you to come back.)`),
-    F('~sad~ Someone is waiting for you, out there.'),
-    F('~sad~ So were we. We should have said that first, at the port, instead of all the rest.'),
-  ],
-  knowing: (k) => [
-    S(`~curious~ (You try to explain it: ${k.text ?? k.name})`),
-    F('~tired~ I don’t understand it.'),
-    F('~happy~ Explain it to me again tomorrow. And the day after. We have time now.'),
-  ],
-  nothing: (k, ctx = {}) => [
-    S('~sad~ (Your hands are empty. You hold them up so he can see.)'),
-    F('~tired~ Nothing.'),
-    ctx.ilen
-      ? F('~sad~ That is what I told Ilen to bring, in the end. Nothing. Only herself. I said it too late, to the wrong sky.')
-      : F('~solemn~ Good. That is the only thing I ever wanted back. I did not know how to ask for it.'),
-  ],
-};
-
-/** The mother's words: always the same, and about you, not the gift. */
-export const MOTHER_HOME = [
-  M('~happy~ Let me look at you.'),
-  M('~happy~ You’re taller. No, you’re not. You stand differently. Like someone who has been listened to.'),
-  M('~happy~ Come inside. There’s something warm on the stove. There always was.'),
+/**
+ * The oldest recording of all: the one he never searched for. It plays by itself when he
+ * sets the reel on the stone, the three of them on the hologram (the parents young, a small
+ * child between them).
+ */
+export const FINAL_RECORDING = [
+  S('~solemn~ (The oldest recording on the reel. You never searched for it.)'),
+  M('~happy~ Is it on? It’s on. Say hello, love. Wave.'),
+  S('~happy~ (A small child waves at the recorder with both hands. It is you.)'),
+  F('~happy~ We are making this so you will have it. For when you are big, and far away.'),
+  F('~solemn~ You don’t have to bring us anything. Do you hear? Nothing.'),
+  M('~happy~ We are proud of you already. Look at him. Look at his hands.'),
+  F('~playful~ All right. Say goodbye to the recorder. Goodbye, recorder.'),
+  YOU('~whisper~ Goodbye.'),
 ];
 
 export const CLOSING = S('~solemn~ Something of value. You brought it home on your own two feet.');
 
 /**
- * Everything said at the door, in order.
- * @param k the chosen keepsake (or NOTHING)
- * @param ctx { ilen: the Signal Market's broadcast was heard, ilenTold: the mother has told you }
+ * Everything at the stone, in order. Lines that set a token down carry it (`token`); the
+ * line that sets the reel down carries `reel: true`; FINAL_RECORDING follows it.
+ * @param tokens tokenList() · ctx { ilenTold: the mother's recording about Ilen was heard }
  */
-export function reactionLines(k, ctx = {}) {
-  const pick = k ?? NOTHING;
-  const father = (FATHER_HOME[pick.kind] ?? FATHER_HOME.thing)(pick, ctx);
-  const lines = [F('~happy~ You’re home.'), ...father, ...MOTHER_HOME];
-  if (ctx.ilen && !ctx.ilenTold) lines.push(M('~whisper~ There is someone we should tell you about. Tomorrow. Tonight you are home.'));
-  lines.push(CLOSING);
+export function tombLines(tokens = [], ctx = {}) {
+  const lines = [S('~solemn~ (Two rings carved on the stone, overlapping like the two moons. Their names under them.)')];
+  if (tokens.length) {
+    lines.push(YOU('~whisper~ I brought everything.'));
+    for (const t of tokens) lines.push({ ...tokenLine(t), token: t });
+  } else lines.push(S('~sad~ (Your hands are empty. You hold them up, so the stone can see.)'));
+  if (ctx.ilenTold) lines.push(YOU('~whisper~ And this space is for Ilen, wherever she is.'));
+  lines.push(YOU('~whisper~ It isn’t what you asked for. It’s what I have.'));
+  lines.push(S('~solemn~ (Last, you set the reel down on the stone. It plays by itself.)', { reel: true }));
+  lines.push(...FINAL_RECORDING, CLOSING);
   return lines;
 }
 
@@ -183,19 +194,19 @@ export function peopleOf(world) {
 
 /**
  * The credits roll: the worlds, in the order of the route, and their people.
- * @param o { order, titles: { id: level title }, storyTitles: { id: story title }, flag(k), keepsake (chosen) }
- * @returns { title, worlds: [{ id, title, story, done, people: [{ name, title, met }] }], home: [lines], keepsake }
+ * @param o { order, titles: { id: level title }, storyTitles: { id: story title }, flag(k), keepsake (ALL, or an older save's), tokens (tokenList) }
+ * @returns { title, worlds: [{ id, title, story, done, people: [{ name, title, met }] }], home: [lines], keepsake, tokens: [names] }
  */
-export function credits({ order = Object.keys(WORLD_DATA), titles = {}, storyTitles = {}, flag = () => undefined, keepsake = null } = {}) {
+export function credits({ order = Object.keys(WORLD_DATA), titles = {}, storyTitles = {}, flag = () => undefined, keepsake = null, tokens = [] } = {}) {
   const worlds = order.filter((id) => WORLD_DATA[id]).map((id) => ({
     id, title: titles[id] ?? id, story: storyTitles[id] ?? '', done: !!flag(`world.${id}.done`),
     people: peopleOf(id).map((p) => ({ ...p, met: !!flag(`met.${p.id}`) })),
   }));
   const home = [];
   if (flag('bird.promise')) home.push('the bird, who keeps her promises');
-  home.push('your mother', 'your father');
+  home.push('your mother and your father, on the hill');
   if (flag('calls.ilen.told')) home.push('and Ilen, wherever she is');
-  return { title: 'SOMETHING OF VALUE', worlds, home, keepsake };
+  return { title: 'SOMETHING OF VALUE', worlds, home, keepsake, tokens: tokens.map((t) => t.name) };
 }
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -212,7 +223,8 @@ export function creditsHtml(c) {
     <p class="lead">A traveller went out to bring back something of value,<br>and met these people on the way.</p>
     ${c.worlds.map(world).join('')}
     <section class="home"><h3>At home</h3><ul>${c.home.map((h) => `<li class="met"><b>${esc(h)}</b></li>`).join('')}</ul></section>
-    ${c.keepsake ? `<p class="brought">Brought home: <b>${esc(c.keepsake.name)}</b>${c.keepsake.kind && c.keepsake.kind !== 'nothing' ? ` <i>(${esc(KIND_LABEL[c.keepsake.kind] ?? c.keepsake.kind)})</i>` : ''}</p>` : ''}
+    ${c.tokens?.length ? `<section class="stone"><h3>Left on the stone</h3><ul>${c.tokens.map((n) => `<li class="met">${esc(n)}</li>`).join('')}</ul></section>`
+    : c.keepsake && c.keepsake.id !== 'all' ? `<p class="brought">Brought home: <b>${esc(c.keepsake.name)}</b>${c.keepsake.kind && c.keepsake.kind !== 'nothing' ? ` <i>(${esc(KIND_LABEL[c.keepsake.kind] ?? c.keepsake.kind)})</i>` : ''}</p>` : ''}
     <p class="end">The ship is ready whenever you are.</p>
   </div>`;
 }

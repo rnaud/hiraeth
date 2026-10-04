@@ -3,18 +3,23 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createNoise2D, fbm, smoothstep } from '../noise.js';
 import { makeMaterial, MODE_TERRAIN, MODE_STRATA } from '../materials.js';
 import { Terrain, jitter } from '../world.js';
+import { game } from '../game-state.js';
+import { items } from '../items.js';
+import { buildItemModel } from '../boxes/model.js';
+import { tokenList } from '../story/ending.js';
 
 // ---------------------------------------------------------------------------
 // Home: where the route begins (src/story/ending.js). Hidden, like the
 // Atelier: it opens on the galactic map once enough worlds are done.
 //
-// A small round house on a small round hill at dusk: a cream dome with a
-// lamp in its round window and the antenna the calls come through, a tall
+// A small round house on a small round hill at dusk: a cream dome with its
+// round window dark and the antenna the old recorder sent through, a tall
 // umbrella tree, a washing line, a stone path from the landing ring to the
-// door, and two moons over a valley of peach grass and lilac mesas. The
-// parents wait at the door (HOME_CONTENT.npcs: the father first, the mother
-// second; spawnNPCs dresses even indices as men). The homecoming itself
-// (src/ship/homecoming.js) frames them with HOME_SPOTS.
+// door, and two moons over a valley of peach grass and lilac mesas. Nobody
+// lives there now. In the front yard stands the parents' stone (buildTomb):
+// a round-topped headstone over a low slab, where the traveller sets the
+// tokens he brought (src/ship/homecoming.js frames it with HOME_SPOTS). Once
+// the ending is done the slab keeps them (tokenModel, tombSlots).
 // ---------------------------------------------------------------------------
 
 /** Where things are, for the homecoming's cameras. */
@@ -23,7 +28,10 @@ export const HOME_SPOTS = {
   door: new THREE.Vector3(0, 0, 25.6),    // the threshold, facing -z (the landing ring)
   father: [-1.5, 15.5],
   mother: [1.6, 16],
-  meet: new THREE.Vector3(0, 0, 13),    // where the traveller stops, facing the door
+  meet: new THREE.Vector3(0, 0, 13),    // on the path, in front of the door
+  tomb: new THREE.Vector3(-6.5, 0, 16.5),   // the parents' stone, in the front yard
+  tombYaw: 2.8,                         // it faces the path, toward the landing ring (its +z)
+  tombStand: 1.45,                      // m in front of it, where the traveller stands to set things down
   ship: { x: 0, z: -22, heading: 0 },     // the landing ring: the hatch faces the house
 };
 
@@ -43,61 +51,137 @@ export const HOME_CONTENT = {
   weather: [],
   story: {
     title: 'HOME',
-    intro: 'A small round house on a small round hill. The lamp is lit.',
+    intro: 'A small round house on a small round hill. The lamp in the window is dark.',
     outro: 'You came home.',
-    label: 'the door', goal: [0, 'ground', 26], radius: 5, manual: true,
+    label: 'the stone in the yard', goal: [HOME_SPOTS.tomb.x, 'ground', HOME_SPOTS.tomb.z], radius: 5, manual: true,
   },
   relics: { spots: [], names: [] },
-  npcs: [
-    {
-      at: HOME_SPOTS.father, radius: 0.5, speed: 0.35, head: 'wrap', cape: 0, look: { robe: 0.5, flare: 0.25 },
-      palette: { cloak: '#f3ead8', lining: '#7a3a35', cloth: '#b5473a', legs: '#2b2f45', hat: '#3d4a80', hair: '#b8b0a4' },   // as on the call screen: a blue band, a red coat
-      lines: ['~neutral~ The ship looks well.', '~happy~ Your mother kept your room.', '~tired~ Hm.'],
-      id: 'father', name: 'Your father', title: 'at home', color: '#7a3a35', voice: 0.7,
-      talk: {
-        entry: [{ if: { flag: 'ending.done' }, node: 'after' }, { node: 'before' }],
-        nodes: {
-          before: { say: ['~neutral~ (He is looking up, past you, at the sky.)', '~neutral~ You came the long way round. Come in by the ship, son. The proper way.'], choices: [{ text: '~neutral~ All right.', end: true }] },
-          after: {
-            say: [
-              { if: { flag: 'ending.kind', is: 'thing' }, text: '~happy~ I keep it on the shelf by the round window. I look at it more than I thought I would.' },
-              { if: { flag: 'ending.kind', is: 'song' }, text: '~neutral~ (He hums two notes of it, and stops, embarrassed.)' },
-              { if: { flag: 'ending.kind', is: 'word' }, text: '~solemn~ I wrote it down. The words. I keep it in my coat.' },
-              { if: { flag: 'ending.kind', is: 'person' }, text: '~happy~ Tell whoever is waiting for you out there that we said thank you.' },
-              { if: { flag: 'ending.kind', is: 'knowing' }, text: '~curious~ I still don’t understand it. Explain it again.' },
-              { if: { flag: 'ending.kind', is: 'nothing' }, text: '~solemn~ Your hands were empty. I keep thinking about that. It was the right answer.' },
-              '~happy~ The ship is fuelled. I checked it twice. Go wherever you like, and call.',
-            ],
-            choices: [
-              { text: '~curious~ Tell me about Ilen.', if: { flag: 'calls.ilen.told' }, goto: 'ilen' },
-              { text: '~happy~ I will.', end: true },
-            ],
-          },
-          ilen: {
-            say: ['~solemn~ (He is quiet for a long time.)', '~sad~ She laughed like your mother. She hated being told anything. She would have liked you.', '~solemn~ If you ever hear that singing out there, don’t follow it. Call me. I will listen. Every night, I will.'],
-            choices: [{ text: '~solemn~ (stay with him a while)', end: true }],
-          },
-        },
-      },
-    },
-    {
-      at: HOME_SPOTS.mother, radius: 0.5, speed: 0.35, head: 'hat', cape: 0.55,
-      palette: { cloak: '#277e86', lining: '#f2c49a', cloth: '#d9503f', legs: '#34405e', hat: '#5fb7ad', hair: '#5a4038' },   // a teal cap, a red top
-      lines: ['~happy~ Eat something warm.', '~happy~ Come here, let me look at you.', '~curious~ You stand differently now.'],
-      id: 'mother', name: 'Your mother', title: 'at home', color: '#277e86', voice: 1.0,
-      talk: {
-        entry: [{ node: 'hello' }],
-        nodes: {
-          hello: {
-            say: ['~happy~ There you are. Have you eaten?', '~curious~ Tell me one person you met out there. Just one. Slowly, so I can see them.'],
-            choices: [{ text: '~neutral~ (tell her)', goto: 'listen' }, { text: '~playful~ Later. I promise.', end: true }],
-          },
-          listen: { say: ['~neutral~ (She listens to all of it, and asks their names twice.)', '~happy~ Then go and see them again. Home will still be here. We always are.'], choices: [{ text: '~happy~ Thank you.', end: true }] },
-        },
-      },
-    },
-  ],
+  npcs: [],   // nobody lives there now (the stone: buildTomb)
 };
+
+/** The slab's top (tomb-local height, m) and the area tokens are set on (x half-width, z from .. to). */
+export const SLAB = { top: 0.34, x: 0.72, z0: -0.32, z1: 0.6 };
+
+/**
+ * Where n tokens go on the slab, in tomb-local space: rows from the front edge back to the
+ * headstone, evenly spread, never closer than about 15 cm.
+ */
+export function tombSlots(n) {
+  if (n <= 0) return [];
+  const W = SLAB.x * 2, D = SLAB.z1 - SLAB.z0;
+  const cols = Math.max(1, Math.min(n, Math.ceil(Math.sqrt(n * W / D))));
+  const rows = Math.ceil(n / cols);
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const r = Math.floor(i / cols), c = i % cols, inRow = Math.min(cols, n - r * cols);
+    const x = inRow === 1 ? 0 : -SLAB.x + (W * (c + 0.5)) / inRow;
+    const z = rows === 1 ? (SLAB.z0 + SLAB.z1) / 2 + 0.1 : SLAB.z1 - (D * (r + 0.5)) / rows;
+    out.push(new THREE.Vector3(x, SLAB.top + 0.05, z));
+  }
+  return out;
+}
+
+const tm = (color, o = {}) => makeMaterial({ color, flat: true, ...o });
+const tokenMesh = (g, geo, m, x = 0, y = 0, z = 0) => { const mesh = new THREE.Mesh(geo, m); mesh.position.set(x, y, z); mesh.userData.noCollide = true; g.add(mesh); return mesh; };
+
+/** A small model of a token: the makers' gifts as they came out of their boxes, the keepsakes by what they are. */
+export function tokenModel(t) {
+  if (t.kind === 'item') { const g = buildItemModel(t.item); g.scale.setScalar(0.95); return g; }
+  const g = new THREE.Group();
+  g.scale.setScalar(1.35);
+  g.name = `Token ${t.id}`;
+  const INK = tm('#2b211f');
+  if (t.id === 'buried.thing') {   // a rust gear tooth, still warm
+    const tooth = new THREE.Shape();
+    tooth.moveTo(-0.07, 0); tooth.lineTo(0.07, 0); tooth.lineTo(0.045, 0.09); tooth.lineTo(-0.045, 0.09); tooth.closePath();
+    tokenMesh(g, new THREE.ExtrudeGeometry(tooth, { depth: 0.04, bevelEnabled: false }).translate(0, -0.04, -0.02), tm('#a8582f', { glow: 0.25 }));
+  } else if (t.id === 'perdide.thing') {   // the singing splinter
+    tokenMesh(g, new THREE.OctahedronGeometry(0.05, 0).scale(0.7, 2.2, 0.7).rotateZ(0.5), tm('#a99be0', { glow: 0.7 }));
+  } else if (t.id === 'incal.token') {   // a lift token: a brass disc with a hole
+    tokenMesh(g, new THREE.TorusGeometry(0.05, 0.022, 8, 20).rotateX(Math.PI / 2), tm('#d6a94a'));
+  } else if (t.kind === 'song') {   // a little bell
+    tokenMesh(g, new THREE.CylinderGeometry(0.025, 0.065, 0.1, 14, 1, true).translate(0, 0, 0), tm('#d6a94a', { side: THREE.DoubleSide }));
+    tokenMesh(g, new THREE.SphereGeometry(0.02, 8, 6), tm('#9c7330'), 0, 0.06, 0);
+  } else if (t.kind === 'word') {   // a folded paper with the words on it
+    tokenMesh(g, new THREE.BoxGeometry(0.16, 0.012, 0.11).rotateY(0.3), tm('#f7ecd2'), 0, -0.04, 0);
+    for (let k = 0; k < 3; k++) tokenMesh(g, new THREE.BoxGeometry(0.1 - k * 0.02, 0.004, 0.008).rotateY(0.3), INK, 0, -0.032, -0.03 + k * 0.025);
+  } else if (t.kind === 'person') {   // a small lamp for someone waiting
+    tokenMesh(g, new THREE.CylinderGeometry(0.035, 0.045, 0.06, 12), tm('#c8673f'), 0, -0.02, 0);
+    tokenMesh(g, new THREE.SphereGeometry(0.025, 10, 8).scale(1, 1.5, 1), tm('#ffd27a', { glow: 1 }), 0, 0.035, 0);
+  } else if (t.kind === 'knowing') {   // a smooth pebble with the glyph
+    tokenMesh(g, new THREE.SphereGeometry(0.06, 14, 10).scale(1.2, 0.5, 0.9), tm('#b9a3c9'), 0, -0.03, 0);
+    for (const x of [-0.022, 0, 0.022]) tokenMesh(g, new THREE.SphereGeometry(0.008, 6, 5), INK, x, 0.0, 0.01);
+  } else {   // a thing: a little carved figure
+    tokenMesh(g, new THREE.CylinderGeometry(0.03, 0.04, 0.09, 8), tm('#a8754f'), 0, -0.01, 0);
+    tokenMesh(g, new THREE.SphereGeometry(0.03, 10, 8), tm('#a8754f'), 0, 0.055, 0);
+  }
+  return g;
+}
+
+/** The reel itself: a small spool of the old recorder's tape, set down last. */
+export function reelModel() {
+  const g = new THREE.Group();
+  g.name = 'Token reel';
+  for (const y of [-0.025, 0.025]) tokenMesh(g, new THREE.CylinderGeometry(0.11, 0.11, 0.008, 24), tm('#34405e'), 0, y, 0);
+  tokenMesh(g, new THREE.CylinderGeometry(0.085, 0.085, 0.045, 24), tm('#7f6250'));
+  tokenMesh(g, new THREE.CylinderGeometry(0.03, 0.03, 0.06, 12), tm('#9fe0d6', { glow: 0.8 }));
+  return g;
+}
+
+/** Where the reel goes: the front of the slab, in the middle (tomb-local). */
+export const REEL_AT = new THREE.Vector3(0, SLAB.top + 0.035, SLAB.z1 + 0.04);
+
+/** The tokens to show on the slab once the ending is done (from what you carry). */
+export function tokensNow(g = game) {
+  return tokenList(g.keepsakes?.() ?? [], items.owned());
+}
+
+/**
+ * The parents' stone: a round-topped headstone carved with two rings side by side (like the two
+ * moons) and lines for their names, over a low plinth and a slab; a jar of dried flowers.
+ * @returns { group (tomb-local: +z faces the path), place(meshes) , add(mesh, i, n), clear(), slots(n), stand, heading }
+ */
+function buildTomb(scene, mat) {
+  const group = new THREE.Group();
+  group.name = 'tomb';
+  group.position.copy(HOME_SPOTS.tomb);
+  group.rotation.y = HOME_SPOTS.tombYaw;
+  scene.add(group);
+  const stone = mat('#dccab0', { flat: true }), pale = mat('#efe2c4'), ink = mat('#2b211f', { flat: true });
+  const add = (geo, m, x = 0, y = 0, z = 0) => { const mesh = new THREE.Mesh(geo, m); mesh.position.set(x, y, z); group.add(mesh); return mesh; };
+  add(new THREE.BoxGeometry(2.0, 0.22, 1.6), stone, 0, 0.11, 0);
+  add(new THREE.BoxGeometry(1.7, 0.12, 1.15), pale, 0, 0.28, 0.12);
+  // the headstone: a rounded top, like the house
+  const sh = new THREE.Shape();
+  sh.moveTo(-0.65, 0); sh.lineTo(0.65, 0); sh.lineTo(0.65, 0.95); sh.absarc(0, 0.95, 0.65, 0, Math.PI, false); sh.lineTo(-0.65, 0);
+  add(new THREE.ExtrudeGeometry(sh, { depth: 0.24, bevelEnabled: false, curveSegments: 20 }), pale, 0, 0.22, -0.72);
+  // two rings carved in the arch, overlapping like the two moons over the house; their names under them
+  for (const [x, y, r] of [[-0.06, 1.42, 0.13], [0.13, 1.5, 0.075]]) add(new THREE.TorusGeometry(r, 0.018, 6, 28), ink, x, y, -0.47).userData.noCollide = true;
+  for (const [w, y] of [[0.78, 1.08], [0.6, 0.98], [0.34, 0.84]]) add(new THREE.BoxGeometry(w, 0.022, 0.01), ink, 0, y, -0.475).userData.noCollide = true;
+  // a jar of dried flowers at the corner
+  add(new THREE.CylinderGeometry(0.08, 0.1, 0.22, 10), mat('#c8673f', { flat: true }), 0.82, 0.33, 0.55).userData.noCollide = true;
+  for (const [dx, dz, c] of [[0, 0, '#b9a3c9'], [0.05, 0.03, '#f2c54b'], [-0.04, 0.02, '#e6875f']]) {
+    add(new THREE.CylinderGeometry(0.006, 0.006, 0.3, 4), mat('#4f6b34', { flat: true }), 0.82 + dx, 0.58, 0.55 + dz).userData.noCollide = true;
+    add(new THREE.SphereGeometry(0.035, 8, 6), mat(c, { flat: true }), 0.82 + dx, 0.74, 0.55 + dz).userData.noCollide = true;
+  }
+  const tokens = new THREE.Group();
+  tokens.userData.noCollide = true;
+  group.add(tokens);
+  group.updateMatrixWorld(true);
+  const stand = group.localToWorld(new THREE.Vector3(0, 0, HOME_SPOTS.tombStand));
+  return {
+    group, tokens,
+    stand, heading: HOME_SPOTS.tombYaw + Math.PI,   // the traveller faces the stone
+    slots: (n) => tombSlots(n),
+    /** Set a token model down on slot i of n (tomb-local). */
+    add(mesh, i, n) { const p = tombSlots(n)[i]; if (p) mesh.position.copy(p); mesh.rotation.y = (i * 1.7) % 1 - 0.5; mesh.traverse((o) => { o.userData.noCollide = true; }); tokens.add(mesh); return mesh; },
+    clear() { for (const c of [...tokens.children]) tokens.remove(c); },
+    /** Everything on it at once (coming back after the ending). */
+    fill(list) { this.clear(); list.forEach((t, i) => this.add(tokenModel(t), i, list.length)); if (list.length) this.addReel(); },
+    /** The reel, set down last, at the front. */
+    addReel() { const r = reelModel(); r.position.copy(REEL_AT); tokens.add(r); return r; },
+  };
+}
 
 export function createHome(scene) {
   const terrain = new Terrain({
@@ -128,21 +212,20 @@ export function createHome(scene) {
     const frame = mergeGeometries([new THREE.BoxGeometry(2.7, 3.0, 0.4).translate(0, 1.5, 0).toNonIndexed(),
       new THREE.CylinderGeometry(1.35, 1.35, 0.4, 20, 1, false, 0, Math.PI).rotateX(Math.PI / 2).rotateZ(Math.PI / 2).translate(0, 3.0, 0).toNonIndexed()]);
     add(frame, terracotta, x, 0.9, HOME_SPOTS.door.z + 0.12);
-    // the round window, with the lamp lit behind it (the call screen shows this room)
+    // the round window, the lamp behind it out
     const az = 0.55, el = 0.42;
     const dir = new THREE.Vector3(Math.sin(az) * Math.cos(el), Math.sin(el) * 0.86, -Math.cos(az) * Math.cos(el));
     const at = new THREE.Vector3(x, 0.9, z).add(new THREE.Vector3(dir.x * 8.47, dir.y * 8.47, dir.z * 8.47));
-    const win = add(new THREE.CircleGeometry(1.5, 32), mat('#ffd27a', { glow: 0.85 }), at.x, at.y, at.z);
+    const win = add(new THREE.CircleGeometry(1.5, 32), mat('#4a5a8a', { flat: true }), at.x, at.y, at.z);   // dark: nobody lives here now
     win.lookAt(at.clone().add(new THREE.Vector3(dir.x, dir.y / 0.74, dir.z)));
     win.userData.noCollide = true;
     const ring = add(new THREE.TorusGeometry(1.55, 0.18, 8, 32), ink, 0, 0, 0);
     ring.position.copy(win.position); ring.quaternion.copy(win.quaternion);
-    lights.push(new THREE.Vector4(win.position.x, win.position.y, win.position.z - 1.5, 9));
     // the lamp by the door
     add(new THREE.CylinderGeometry(0.08, 0.08, 2.6, 6), ink, x + 2.2, 0.9 + 1.3, HOME_SPOTS.door.z - 0.6);
     add(new THREE.SphereGeometry(0.3, 12, 8), mat('#ffe6b0', { glow: 1 }), x + 2.2, 0.9 + 2.75, HOME_SPOTS.door.z - 0.6);
     lights.push(new THREE.Vector4(x + 2.2, 3.4, HOME_SPOTS.door.z - 1.2, 8));
-    // the antenna on top: a mast and a little dish turned to the sky, the way the calls come in
+    // the antenna on top: a mast and a little dish turned to the sky, the old recorder's
     add(new THREE.CylinderGeometry(0.12, 0.18, 6, 8), ink, x - 1.5, 7.2 + 3, z + 1);
     const dish = add(new THREE.ConeGeometry(1.4, 0.7, 20, 1, true), mat('#f3ead8', { side: THREE.DoubleSide }), x - 1.5, 13.4, z + 1);
     dish.rotation.set(Math.PI + 0.6, 0, 0.3);
@@ -204,8 +287,11 @@ export function createHome(scene) {
       movers.push((t) => { cloth.rotation.x = base + Math.sin(t * 1.3 + i) * 0.12; });
     });
   }
+  // the parents' stone in the front yard, and the tokens on it once you have been home
+  const tomb = buildTomb(scene, mat);
+  if (game.flag('ending.done')) tomb.fill(tokensNow());
   // shrubs, round as the house
-  for (const [x, z, r, c] of [[-8, 22, 1.4, teal], [7, 21, 1.1, tealDark], [14, 26, 1.6, teal], [-15, 40, 1.8, tealDark], [16, 42, 1.3, lilac], [-4, 45, 2.0, teal], [22, 10, 1.2, lilac], [-22, 8, 1.5, teal]]) {
+  for (const [x, z, r, c] of [[-9.5, 22.5, 1.4, teal], [7, 21, 1.1, tealDark], [14, 26, 1.6, teal], [-15, 40, 1.8, tealDark], [16, 42, 1.3, lilac], [-4, 45, 2.0, teal], [22, 10, 1.2, lilac], [-22, 8, 1.5, teal]]) {
     const g = new THREE.SphereGeometry(r, 14, 10);
     jitter(g, 0.12 * r, 1.4, x * 7 + z);
     smallProps.push(add(g, c, x, H(x, z) + r * 0.7, z));
@@ -241,6 +327,7 @@ export function createHome(scene) {
     spawnHeading: Math.PI,
     camYaw: 0,
     shipSite: { ...HOME_SPOTS.ship },
+    tomb,
     features: { mount: false, wind: true, jetpack: false, climb: true, sky: true },
     limit: Infinity,
     killY: -Infinity,
