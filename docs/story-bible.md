@@ -41,16 +41,26 @@ call depends on the player's choice.
   rises from beneath the giants and the fire burns cool and many-coloured.
   Pilgrims cross the dunes in procession to see it. This year the water has
   not risen.
+- **Place**: the old city of **Qanat** (230, 400), built round the burning tree,
+  with pilgrims' camps outside its main gate (168, 292). Its sacred well is dry.
 - **People**: Ama, keeper of the camp fires; Teo, a drummer who lost his drum;
-  the Speaker who leads the procession; a child, Ilo, who wants to see the
-  cave; an old pilgrim who fell behind.
+  Sefa (oud) and Bako (ney), the camp musicians; the Speaker who leads the
+  procession; a child, Ilo, who wants to see the cave; old Oum, the pilgrim who
+  fell behind; Hessa, keeper of the dry well; Marrow, a salvager.
 - **Main quest**: find power for the ship → camps → procession → old city →
-  the well beneath the giants → the underwater cave of shifting water. The
+  out of the back gate to the fallen giant's skull (318, 530), whose open mouth
+  is a doorway → the cave of shifting water in the giant's chest, where the
+  tree's roots hang into the pool. The
   water is low because a giant's bone has fallen across the channel. Pushing
   it clear (fluid push) lets the water rise; the tree drinks; the vessel filled
   at the pool powers the ship.
-- **Keepsake**: *knowing*: "The giants carried the water. The tree drinks what
-  they left." (Or the *thing*: a vessel of the water.)
+- **Keepsakes**: *knowing*: "What the giants left" (main quest); *song*: "Teo's
+  walking rhythm" (his drum, found under the ribcage); *thing*: Oum's knotted
+  cord (walk her back to the fire and she tells the rumour of the singing
+  light).
+- **Lore**: the giants carried the water from the swamp of lights and lay down
+  where they could go no further; the water pooled in their hearts. The tree
+  grows from this giant's heart and Qanat was built round it.
 - **Clue**: the Speaker says the giants "came down from the swamp of lights"
   → Perdide. Someone saw a singing light fall the night the ship crashed.
 

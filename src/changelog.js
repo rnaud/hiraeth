@@ -3,6 +3,13 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.32', date: '2026-10-04', items: [
+    'A new game opens aboard the traveller’s round ship. You wake in your bunk, take a call from your father, and then something strikes the ship and it crash-lands in the desert.',
+    'The magic-fluid backpack: a lava-lamp tank of shifting colours feeds a hose to your wrist. Shoot, push, and boost-jump share three charges, and all three refill five seconds after the last use.',
+    'Talk to people with E. Conversations have choices, and many people have stories, rumours or a favour to ask. Quests show on screen, in the journal, and when you ping.',
+    'The desert story “The Tree That Drinks”. Find the pilgrims’ camps, walk with the procession, and explore Qanat, the old city around a burning tree. Then go down into the giant’s chest, where the colour-shifting water lies, and bring power back to the ship.',
+    'Once the ship has power, its cockpit opens a galactic map for travelling between worlds. A call home waits after each world you finish.',
+  ] },
   { v: '0.31', date: '2026-10-03', items: [
     'Wildlife in every world: two or three species each, with a surprise when scared. A lizard balloons up and floats away, a kite unfolds from the bones, a tortoise raises its shell into a little temple, and more.',
     'A non-lethal tool: hold right mouse (or R) to aim and click to fire. The paralyze ray freezes creatures and people for a moment. Foam darts wake flowers and machines, turn lenses, ring the gate and hail taxis from afar. X switches modes.',

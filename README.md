@@ -944,3 +944,44 @@ hidden coarse copies collide instead. Static collision for each world is under 6
   - Small-prop tiles beyond 520 m are skipped in all passes.
   - Uncapped frame times on the reference Mac are 3.0–7.0 ms in every world.
 
+### The traveller's story begins (v0.32)
+Design: `docs/game-brief.md` (the brief and its working decisions) and
+`docs/story-bible.md` (each world's story, quests, keepsake and clue). Shared
+story state is `src/game-state.js`: persistent flags, keepsakes and an event bus.
+Every system talks through it, and its header lists the flags and events.
+- **The ship** (`src/ship/`): a 26 m round ship with a walkable interior (bunk
+  room, galley, entry hall, cockpit around a reactor column). It has its own
+  collider (`physics.addCollider`) and lands at each world's arrival point
+  (`level.shipSite`, `SITE_OVERRIDES` in `sites.js`, or a site search near the
+  spawn). In the desert it lies crashed at (58, 48), with a furrow behind it.
+  E at the cockpit console plays a waiting call home, or opens the galactic map
+  (`starmap.js`). The map is locked until `ship.powered`. Travel loads
+  `?level=<id>&via=ship`, and the gates still work.
+- **The prologue** (`prologue.js` state machine, `cinematics.js` director)
+  plays on a new game: waking in the bunk, the father's call, the impact, the
+  crash landing seen from outside, stepping out. `?prologue=1` replays it; hold
+  Esc to skip. "Reset progress" starts a new game.
+- **Calls home** (`src/story/calls.js`): six calls, one waiting after each
+  completed world. The father reacts to the latest keepsake's kind; the mother
+  joins from the third.
+- **The fluid backpack** (`src/fluid-tool.js`): a lava-lamp tank (`#ifdef FLUID`
+  in `materials.js`), a hose and a wrist bracer. Shoot (G / click while aiming),
+  push (C / middle click / pad B) and boost (jump again in the air) share three
+  charges, and all three refill 5 s after the last use. Hits reach `targets.js` as `'shoot'` and
+  `'push'` (with `info { colours, strength, shove }`). `tool.refill({ addColour,
+  tone })` adds a colour band for good.
+- **Conversations and quests**:
+  - `src/story/dialogue.js`: data-driven conversation trees, with conditions,
+    choices and effects.
+  - `src/story/quests.js`: quests with goto / talk / bring / flag stages,
+    markers, HUD, the Q ping, and a journal section.
+  - `src/interact.js`: decides who gets the E key. The ship wins inside it and
+    at its ramp. Otherwise the nearest person, vehicle or thing wins, and only
+    after that the player's whistle.
+- **The desert story** (`src/story/desert.js`, `src/desert-city.js`, `magic-water.js`):
+  "The Tree That Drinks" (see the story bible). It has the city of Qanat with the
+  burning tree, the pilgrims' camps with positional music, a 72-person procession
+  on a 2.1 km loop and the cave in a giant's chest. Pushing the fallen rib clears
+  the channel; the tree drinks and the water refills the tank with a new colour.
+  Bringing the water to the ship powers it. There are three side quests.
+
