@@ -349,7 +349,7 @@ export function callLines(n, ctx = {}) {
   }
   switch (n) {
     case 1: return [
-      F('You are flying again. Good. I knew you would find a way.'),
+      F('The ship has power again. Good. I knew you would find a way.'),
       ...lead,
       ...(talksIlen ? [] : [F(`${where ? `So.${where}.` : 'So.'} What did you bring back?`)]),
       ...opt(onK ?? nothing),

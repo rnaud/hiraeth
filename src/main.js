@@ -1059,7 +1059,7 @@ requestAnimationFrame((t) => {
   ld?.classList.add('done');
   setTimeout(() => ld?.remove(), 900);
   if (viaGate) arriveFromPage(meta.title);
-  ship.start({ via: viaShip ? 'ship' : viaGate ? 'gate' : null, prologue: playPrologue, homecoming: playHomecoming, onReady: () => { if (!viaGate) story.start(); } });
+  ship.start({ via: viaShip ? 'ship' : viaGate ? 'gate' : null, prologue: playPrologue, homecoming: playHomecoming, onReady: () => { if (playHomecoming) journal.markSeen(levelId); else if (!viaGate) story.start(); } });   // the homecoming is its own page
   if (changelog.fresh) setTimeout(() => {   // after an update: point at what changed, once
     const t = document.getElementById('toast');
     t.textContent = `Updated to v${VERSION} · press N to see what's new`;

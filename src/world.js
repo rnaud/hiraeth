@@ -616,7 +616,7 @@ export function buildWorld(scene, terrain) {
       g.translate(Math.cos(a) * r, 0.22 + (1 - r) * 0.42 + (k % 3) * 0.05, Math.sin(a) * r);
       lobes.push(g);
     }
-    const geo = mergeGeometries(lobes.map((g) => g.toNonIndexed()));
+    const geo = mergeGeometries(lobes.map((g) => (g.index ? g.toNonIndexed() : g)));
     geo.computeVertexNormals();
     const N = 1040;
     const bushes = new THREE.InstancedMesh(geo, makeMaterial({ color: '#ffffff', scrub: true }), N);
@@ -649,7 +649,7 @@ export function buildWorld(scene, terrain) {
       new THREE.CylinderGeometry(70, 95, 6, 48).translate(0, 174, 0),              // rim
       new THREE.CylinderGeometry(18, 40, 14, 24).translate(0, 184, 0),
       new THREE.CylinderGeometry(1.5, 9, 120, 12).translate(0, 250, 0),             // spire
-    ].map((g) => g.toNonIndexed());
+    ].map((g) => (g.index ? g.toNonIndexed() : g));
     const m = new THREE.Mesh(mergeGeometries(parts), pale);
     m.position.set(x, base - 2, z);
     scene.add(m);
@@ -672,7 +672,7 @@ export function buildWorld(scene, terrain) {
       const a = rng() * Math.PI * 2, d = 40 + rng() * 120, r = 14 + rng() * 22;
       parts.push(new THREE.SphereGeometry(r, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.55, 1).translate(Math.cos(a) * d, 18, Math.sin(a) * d));
     }
-    const m = new THREE.Mesh(mergeGeometries(parts.map((g) => g.toNonIndexed())), pale);
+    const m = new THREE.Mesh(mergeGeometries(parts.map((g) => (g.index ? g.toNonIndexed() : g))), pale);
     m.position.set(cx, terrain.baseAt(cx, cz, 60) - 4, cz);
     scene.add(m);
   }
