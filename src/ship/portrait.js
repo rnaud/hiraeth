@@ -22,7 +22,7 @@ export class CallScreen {
     this.draw();
   }
 
-  /** who: 'off' | 'idle' (a dim standby glyph) | 'locked' (NO POWER) | 'father' | 'both' | 'map' */
+  /** who: 'off' | 'idle' (a dim standby glyph) | 'locked' (NO POWER) | 'father' | 'mother' | 'both' | 'map' */
   set(o) { Object.assign(this.state, o); }
 
   update(dt) {
@@ -96,7 +96,8 @@ export class CallScreen {
     if (s.who === 'both') {
       this.drawFather(g, S * 0.33, S * 0.6 + bob, S * 0.78, s, s.speaker === 'father');
       this.drawMother(g, S * 0.7, S * 0.64 - bob, S * 0.74, s, s.speaker === 'mother');
-    } else this.drawFather(g, S * 0.5, S * 0.58 + bob, S, s, true);
+    } else if (s.who === 'mother') this.drawMother(g, S * 0.5, S * 0.6 + bob, S * 0.95, s, true);   // her own call
+    else this.drawFather(g, S * 0.5, S * 0.58 + bob, S, s, true);
   }
 
   mouth(s, speaking) {
