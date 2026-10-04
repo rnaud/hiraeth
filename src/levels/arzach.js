@@ -55,16 +55,18 @@ export function createArzach(scene) {
     g.translate(0, h / 2, 0);
     jitter(g, 0.22, 0.03, rng() * 100);
     const parts = [g];
+    let cap = null;
     if (rng() < 0.4) { // a flat cap you can land on
       const cr = r * (0.6 + rng() * 0.6);
       parts.push(new THREE.CylinderGeometry(cr, cr * 0.7, 3, 10).translate(0, h, 0));
+      cap = cr;
     }
     const m = new THREE.Mesh(mergeGeometries(parts), bone(3 + rng() * 6));
     const base = terrain.baseAt(x, z, r);
     m.position.set(x, base - 2, z);
     m.rotation.set((rng() - 0.5) * 0.1, rng() * 6, (rng() - 0.5) * 0.1);
     scene.add(m);
-    spires.push({ x, z, top: base + h * 0.75, r });
+    spires.push({ x, z, top: base + h * 0.75, r, cap, capY: cap ? base - 2 + h + 1.5 : null });
   }
 
   // ---------------------------------------------------------- stone arches between neighbouring spires
@@ -110,6 +112,7 @@ export function createArzach(scene) {
   }
 
   // ---------------------------------------------------------- the lone tower
+  const towerInfo = {};
   {
     const x = 260, z = -420, base = terrain.baseAt(x, z, 14);
     const H = 240;
@@ -129,9 +132,20 @@ export function createArzach(scene) {
     const win = new THREE.Mesh(new THREE.BoxGeometry(5, 7, 1), makeMaterial({ color: '#34405e', flat: true }));
     win.position.set(x, base + H + 7, z + 15.5);
     scene.add(win);
+    // a stone sill under the window, and three corbels climbing to it round the
+    // room from the balcony: each a jump (or a boost) above the last
+    const floor = base - 2 + H - 2.25;                 // the balcony's walking surface
+    const sillY = floor + 7.6;
+    const stoneMat = makeMaterial({ color: '#efe6d2', color2: '#e0d2b8', color3: '#d8a24a', mode: MODE_STRATA, strataSize: 3, flat: true });
+    const steps = [[0.95, floor + 2.5, 17.2], [0.5, floor + 5.0, 17.4]].map(([a, y, r]) => new THREE.Vector3(x + Math.sin(a) * r, y, z + Math.cos(a) * r));
+    const stepGeo = steps.map((p, i) => new THREE.BoxGeometry(3.4, 0.9, 3.4).rotateY(i ? 0.5 : 0.95).translate(p.x, p.y - 0.45, p.z));
+    stepGeo.push(new THREE.BoxGeometry(6.5, 1.1, 5.2).translate(x, sillY - 0.55, z + 17.4));
+    scene.add(new THREE.Mesh(mergeGeometries(stepGeo), stoneMat));
+    Object.assign(towerInfo, { x, z, base, H, floor, balcony: new THREE.Vector3(x, floor, z + 13), sill: new THREE.Vector3(x, sillY, z + 17), window: win.position.clone(), windowMesh: win, steps });
   }
 
   // ---------------------------------------------------------- hero: the fallen colossus and the hand
+  const handInfo = {}, colossus = {};
   {
     const stoneMat = makeMaterial({ color: '#efe6d2', color2: '#e0d2b8', color3: '#cdbb9c', mode: MODE_STRATA, strataSize: 4, flat: true });
     const grp = new THREE.Group();
@@ -156,6 +170,7 @@ export function createArzach(scene) {
     grp.position.set(x, terrain.baseAt(x, z, 40) - 6, z);
     grp.rotation.y = 0.7;
     scene.add(grp);
+    grp.updateMatrixWorld(true);
 
     // a giant hand reaching out of the plain: wide open palm, fingers splayed
     // in a fan with a knuckle bend each, thumb out to the side, wrist rising
@@ -174,10 +189,12 @@ export function createArzach(scene) {
     hand.add(palm);
     seg(9, 26, new THREE.Vector3(0, -24, -2), new THREE.Vector3(0, 1, -0.12));   // forearm
     const fingers = [[-9.5, -0.32, 15, 12], [-3.2, -0.1, 18, 14], [3.2, 0.1, 17, 13], [9.5, 0.3, 13, 11]];
+    const knuckles = [];
     for (const [fx, spread, l1, l2] of fingers) {
       const base = new THREE.Vector3(fx, 25, 0);
       const knuckle = seg(3, l1, base, new THREE.Vector3(Math.sin(spread), Math.cos(spread), 0));
       seg(2.6, l2, knuckle, new THREE.Vector3(Math.sin(spread) * 1.2, Math.cos(spread), 0.45));  // curls slightly forward
+      knuckles.push({ local: knuckle.clone(), length: l1 + l2 });
     }
     const tk = seg(3.6, 13, new THREE.Vector3(-12, 6, 1), new THREE.Vector3(-1, 0.55, 0.15)); // thumb
     seg(3, 10, tk, new THREE.Vector3(-0.45, 1, 0.3));
@@ -186,9 +203,18 @@ export function createArzach(scene) {
     // palm faces the start (the origin), leaning back a little
     hand.rotation.set(-0.15, Math.atan2(-hx, -hz), 0.08, 'YXZ');
     scene.add(hand);
+    hand.updateMatrixWorld(true);
+    // index, middle, ring, little (from the thumb side); the palm's face, a little out from the stone
+    handInfo.group = hand;
+    handInfo.knuckles = knuckles.map((k) => ({ pos: hand.localToWorld(k.local.clone()), length: k.length }));
+    handInfo.palm = hand.localToWorld(new THREE.Vector3(0, 16, 6.5));
+    handInfo.normal = new THREE.Vector3(0, 0, 1).applyQuaternion(hand.quaternion);
+    colossus.head = grp.localToWorld(new THREE.Vector3(-46, 12, 0));
+    colossus.face = grp.localToWorld(new THREE.Vector3(-50, 14, 7));
   }
 
   // ---------------------------------------------------------- menhirs and pebbles
+  const menhirs = [];
   for (let i = 0; i < 60; i++) {
     const x = (rng() * 2 - 1) * 1300, z = (rng() * 2 - 1) * 1300;
     const h = 6 + rng() * 14;
@@ -198,6 +224,7 @@ export function createArzach(scene) {
     m.position.set(x, terrain.baseAt(x, z, 2) - 1, z);
     m.rotation.set((rng() - 0.5) * 0.3, rng() * 6, (rng() - 0.5) * 0.3);
     scene.add(m);
+    menhirs.push({ x, z, y: m.position.y, h });
   }
   {
     const N = 2500, dummy = new THREE.Object3D(), color = new THREE.Color();
@@ -254,6 +281,8 @@ export function createArzach(scene) {
     spawnHeading: Math.PI,
     camYaw: 0,
     features: { mount: true, wind: true, jetpack: false, climb: true },
+    // the story's places (src/story/arzach.js): the tower's balcony, steps and window, the hand's knuckles
+    arzach: { tower: towerInfo, hand: handInfo, colossus, spires, menhirs },
     mount: (physics) => new Bird(physics),
     mountName: 'bird',
     defaults: { hour: 15.5, preset: 'Moebius print' },
