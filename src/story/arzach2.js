@@ -143,7 +143,7 @@ export function setupArzach2(ctx) {
     if (!game.flag('arzach2.bell.rung')) {
       game.set('arzach2.bell.rung', true);
       toast('The bell speaks: one low note that goes on and on. Under the cliffs, the cloud begins to settle.');
-      for (const id of ['calix', 'ysolde']) { const n = people[id]; if (n) n.shout = { text: id === 'calix' ? 'Listen. Listen!' : 'Thirty years!', until: n.time + 3 }; }
+      for (const id of ['calix', 'ysolde']) { const n = people[id]; if (n) n.shout = { text: id === 'calix' ? '~shout~ Listen. Listen!' : '~shout~ Thirty years!', until: n.time + 3 }; }
     } else bell.dip = 1;
   };
   registerInteractable({ id: 'bellrope', priority: PRIORITY.use, range: 2.6, at: () => A.ropeFoot,
@@ -196,7 +196,7 @@ export function setupArzach2(ctx) {
       game.set('arzach2.cairn.last', 'ok');
       game.set('arzach2.cairn.placed', n + 1);
       sound.chime();
-      if (n + 1 === 3) { cairnHum = 1; people.tiv && (people.tiv.shout = { text: 'It stands!', until: people.tiv.time + 3 }); }
+      if (n + 1 === 3) { cairnHum = 1; people.tiv && (people.tiv.shout = { text: '~shout~ It stands!', until: people.tiv.time + 3 }); }
     } else {
       game.set('arzach2.cairn.last', null);
       game.set('arzach2.cairn.last', 'fell');
@@ -269,7 +269,7 @@ export function setupArzach2(ctx) {
     // the monks look up when you first land on the cliff
     if (!st.landed && flat(pp, A.monastery) < 70 && Math.abs(pp.y - A.monastery.y) < 6 && !player.riding) {
       st.landed = true;
-      const y = people.ysolde; if (y) y.shout = { text: 'A visitor! On a bird!', until: y.time + 3 };
+      const y = people.ysolde; if (y) y.shout = { text: '~shout~ A visitor! On a bird!', until: y.time + 3 };
       const c = people.calix; if (c) c.greeted = 0;
     }
     // the cairn hums when it stands: its stones shimmer

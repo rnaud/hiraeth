@@ -13,6 +13,8 @@ const DEFAULTS = {
   invertY: false,
   music: 0.8,
   effects: 1,
+  voices: 0.8,          // the mumbled alien voices (src/story/voice.js)
+  alienVoices: true,    // off: conversations go back to plain soft blips
   devPanel: false,
   showFps: true,
 };
@@ -47,6 +49,8 @@ export class SettingsMenu {
         ${row('Invert camera Y', `<input data-k="invertY" type="checkbox">`)}
         ${row('Music', `<input data-k="music" type="range" min="0" max="1" step="0.05">`)}
         ${row('Effects', `<input data-k="effects" type="range" min="0" max="1" step="0.05">`)}
+        ${row('Voices', `<input data-k="voices" type="range" min="0" max="1" step="0.05">`)}
+        ${row('Alien voices (heard through your translator)', `<input data-k="alienVoices" type="checkbox">`)}
         ${row('Mute (M)', `<input data-k="mute" type="checkbox">`)}
         ${row('Show FPS (F)', `<input data-k="showFps" type="checkbox">`)}
         ${row('Developer panel', `<input data-k="devPanel" type="checkbox">`)}
@@ -90,6 +94,7 @@ export class SettingsMenu {
     });
     document.getElementById('gear')?.addEventListener('click', () => this.toggle());
     this.sync = sync;
+    settings.on(() => sound?.setVoices?.(this.s.voices, this.s.alienVoices));
   }
   toggle(on = !this.open) {
     this.open = on;

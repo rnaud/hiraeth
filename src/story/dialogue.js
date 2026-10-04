@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { parseLine, stripTone } from './tone.js';
+import { planLine, voiceOf, PLAYER_VOICE, LANGUAGES, REVEAL_CPS } from './voice.js';
 
 // Conversations. People are data:
 //
@@ -35,7 +37,7 @@ export const MOTIFS = {
 
 /** Expand motifs and emphasis for display (html) or for tests and toasts (plain). */
 export function formatText(text, html = true) {
-  let s = String(text ?? '');
+  let s = stripTone(String(text ?? ''));
   if (html) s = s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
   s = s.replace(/\{(\w+)\}/g, (m, k) => MOTIFS[k] ? (html ? MOTIFS[k].html : MOTIFS[k].plain) : m);
   s = s.replace(/\*([^*]+)\*/g, (m, w) => html ? `<em>${w}</em>` : w);
@@ -101,18 +103,22 @@ export class DialogueRunner {
     if (!n) { this.ended = true; return; }
     this.nodeId = id;
     this.node = n;
-    this.pages = (Array.isArray(n.say) ? n.say : [n.say ?? '']).filter((s) => check(typeof s === 'object' && s?.if ? s.if : null, this.ctx)).map((s) => (typeof s === 'object' ? s.text : s));
+    // each page: its words and its tone ('~sad~ …' or { text, tone }: src/story/tone.js)
+    const said = (Array.isArray(n.say) ? n.say : [n.say ?? '']).filter((s) => check(typeof s === 'object' && s?.if ? s.if : null, this.ctx)).map((s) => parseLine(s));
+    this.pages = said.map((p) => p.text);
+    this.tones = said.map((p) => p.tone);
     this.page = 0;
     apply(n.do, this.ctx);
     this.ctx.onNode?.(id, n);
   }
   get text() { return this.pages[this.page] ?? ''; }
+  get tone() { return this.tones?.[this.page] ?? 'neutral'; }
   get speaker() { return this.node.speaker === 'player' ? 'player' : 'npc'; }
   get lastPage() { return this.page >= this.pages.length - 1; }
   /** The choices to show now (only on the last page): [{ text, index }]. Always at least "(leave)" when the node ends. */
   choices() {
     if (!this.lastPage || this.ended) return [];
-    const list = (this.node.choices ?? []).map((c, index) => ({ ...c, index })).filter((c) => check(c.if, this.ctx) && !(c.once && this.ctx.game.flag(`said.${this.person.id}.${this.nodeId}.${c.index}`)));
+    const list = (this.node.choices ?? []).map((c, index) => ({ ...c, index, text: stripTone(c.text), tone: parseLine(c.text).tone })).filter((c) => check(c.if, this.ctx) && !(c.once && this.ctx.game.flag(`said.${this.person.id}.${this.nodeId}.${c.index}`)));
     if (list.length) return list;
     if (this.node.next) return [];
     return [{ text: this.node.bye ?? '(leave)', end: true, index: -1 }];
@@ -138,7 +144,16 @@ export class DialogueRunner {
 
 // ---------------------------------------------------------------------------
 
-const REVEAL = 48;   // letters per second
+const REVEAL = REVEAL_CPS;   // letters per second at an even pace (each line's voice and tone scale it)
+const FRESH = 3;             // letters at the caret still in the alien script (the translator catching up)
+
+/** A letter in a world's script (the same letter always the same glyph). */
+function glyphOf(c, glyphs) {
+  if (!glyphs || /\s/.test(c)) return c;
+  if (/[^\p{L}\p{N}]/u.test(c)) return '';
+  const G = [...glyphs];
+  return G[(c.toLowerCase().codePointAt(0) * 7) % G.length];
+}
 
 /**
  * The conversation panel, the facing and the two-shot camera.
@@ -157,7 +172,8 @@ export class Dialogue {
     this._m = new THREE.Matrix4();
     if (this.el) {
       this.el.innerHTML = `<div class="dlg-panel"><div class="dlg-who"><div class="dlg-chip"><img alt=""><span></span></div><div><b class="dlg-name"></b><i class="dlg-title"></i></div></div>
-        <p class="dlg-text"></p><div class="dlg-choices"></div><div class="dlg-hint"></div></div>`;
+        <p class="dlg-text"></p><div class="dlg-choices"></div><div class="dlg-hint"></div>
+        <div class="dlg-tr" title="Your translator: you hear their tongue, and read it in yours"><i></i><span></span></div></div>`;
       this.q = (s) => this.el.querySelector(s);
       this.el.addEventListener('click', (e) => {
         const b = e.target.closest('button[data-i]');
@@ -225,8 +241,11 @@ export class Dialogue {
   choose(i) {
     if (!this.open) return;
     if (this.revealed < this.runner.text.length) { this.revealed = this.runner.text.length; this.render(); return; }
+    const said = this.runner.choices().find((c) => c.index === i);
     this.runner.choose(i);
     this.sound?.toolClick?.(true);
+    // the traveller answers, in their own words (a short mumble; actions in brackets are silent)
+    if (said && this.sound?.speak) this.sound.speak(planLine({ text: said.text, tone: said.tone }, { voice: voiceOf(PLAYER_VOICE), lang: 'home', max: 7 }), { channel: 'choice', gain: 0.8 });
     if (this.runner.ended) { this.close(); return; }
     this.revealed = 0;
     this.render();
@@ -241,12 +260,41 @@ export class Dialogue {
     this.onClose(this.person, this.npc);
   }
 
+  /** The voice of the page now showing: its syllables (planLine), language and pace. */
+  voicePlan() {
+    const r = this.runner, key = `${r.nodeId}:${r.page}:${r.text.length}`;
+    if (this._plan?.key === key) return this._plan;
+    const player = r.speaker === 'player';
+    // things you look at are narration: only their *quoted* words are voiced (a recording, a broadcast)
+    const narrator = !player && (this.person.narrator ?? (!this.npc && !this.person.kind && !this.person.speaks));
+    const lang = player ? 'home' : this.person.lang ?? this.sound?.language ?? 'home';
+    const voice = voiceOf(player ? PLAYER_VOICE : { ...this.person, scale: this.person.scale ?? this.npc?.person?.size ?? this.npc?.object?.scale?.x });
+    const plan = planLine({ text: r.text, tone: r.tone }, { voice, lang, narrator });
+    this._plan = Object.assign(plan, { key, next: 0, narrator, player, foreign: !LANGUAGES[lang]?.native && !(narrator && !plan.syllables.length) });
+    return this._plan;
+  }
+
   render() {
     if (!this.el) return;
     const r = this.runner, full = r.text;
-    // reveal letter by letter, keeping the motifs whole
-    const shown = full.slice(0, Math.floor(this.revealed));
-    this.q('.dlg-text').innerHTML = formatText(shown.replace(/\{\w*$/, '').replace(/\*([^*]*)$/, (m, w) => ((shown.match(/\*/g)?.length ?? 0) % 2 ? w : m)))   // hide only a star still waiting for its pair + (this.revealed < full.length ? '<span class="dlg-caret">▍</span>' : '');
+    const plan = this.voicePlan();
+    // reveal letter by letter, keeping the motifs whole; the last few letters at the caret
+    // are still in the speaker's own script, resolving into the translation as you read
+    const n = Math.floor(this.revealed), revealing = n < full.length;
+    const glyphs = plan.foreign && revealing ? LANGUAGES[plan.lang]?.glyphs : '';
+    const cut = glyphs ? Math.max(0, n - FRESH) : n;
+    const shown = full.slice(0, cut);
+    const fresh = glyphs ? [...full.slice(cut, n)].map((c) => glyphOf(c, glyphs)).join('') : '';
+    this.q('.dlg-text').innerHTML = formatText(shown.replace(/\{\w*$/, '').replace(/\*([^*]*)$/, (m, w) => ((shown.match(/\*/g)?.length ?? 0) % 2 ? w : m)))   // hide only a star still waiting for its pair
+      + (fresh ? `<span class="dlg-alien">${fresh.replace(/[&<>]/g, '')}</span>` : '') + (revealing ? '<span class="dlg-caret">▍</span>' : '');
+    // the translator: a small mark in the corner while someone speaks another tongue
+    const tr = this.q('.dlg-tr');
+    if (tr) {
+      tr.hidden = !plan.foreign;
+      tr.classList.toggle('busy', revealing);
+      const label = `${revealing ? 'translating' : 'translated'} · ${LANGUAGES[plan.lang]?.name ?? ''}`;
+      if (tr.lastChild.textContent !== label) tr.lastChild.textContent = label;
+    }
     this.q('.dlg-text').classList.toggle('player', r.speaker === 'player');
     const done = this.revealed >= full.length;
     const choices = done ? r.choices() : [];
@@ -270,10 +318,15 @@ export class Dialogue {
     if (!this.open) return;
     const len = this.runner.text.length;
     if (this.revealed < len) {
-      const before = Math.floor(this.revealed);
-      this.revealed = Math.min(len, this.revealed + dt * REVEAL);
-      const now = Math.floor(this.revealed);
-      if (now !== before && now % 3 === 0 && /\w/.test(this.runner.text[now] ?? '')) this.sound?.blip?.(this.runner.speaker === 'player' ? 1.5 : (this.person.voice ?? 1));
+      // the voice keeps step with the letters: each syllable sounds as the reveal reaches it
+      const plan = this.voicePlan();
+      this.revealed = Math.min(len, this.revealed + dt * (plan.cps || REVEAL));
+      const S = plan.syllables;
+      while (plan.next < S.length && S[plan.next].i < this.revealed) {
+        const syl = S[plan.next++];
+        if (this.sound?.syllable) this.sound.syllable(syl, { plan });
+        else this.sound?.blip?.(syl.f0 / 170);
+      }
       this.render();
     }
   }

@@ -277,7 +277,7 @@ export function createBazaar(scene) {
     lightAt(p,dir){ if(dir.y>0){dir.set(.12,1,.18).normalize();} },
     atmo:(x,z,y)=>({tint:[1,1,1],fog:.65,name:y>35?'Above the market':z<-190?'Signal Square':'The lantern market'}),
     life:{motes:{count:70,color:'#ffe3aa',size:.035,rise:.1,wind:[.2,0]}},
-    crowdLines:['The last broadcast is still waiting above the square.','The relay is above the stacked signs. Rest on the blue ledges.','Fruit from seven moons! Pick one.','Hail a cab if your feet get tired.','Nobody remembers who drew the first advertisement.','The quiet ones listen with their whole heads.'],
+    crowdLines:['~neutral~ The last broadcast is still waiting above the square.','~neutral~ The relay is above the stacked signs. Rest on the blue ledges.','~shout~ Fruit from seven moons! Pick one.','~playful~ Hail a cab if your feet get tired.','~curious~ Nobody remembers who drew the first advertisement.','~whisper~ The quiet ones listen with their whole heads.'],
     // The market crowd (crowd.js): conversation circles between the walking
     // lanes, strollers along the avenue, sidewalks, skybridges and round the
     // tower, kerb sitters and people leaning on counters and bridge rails.

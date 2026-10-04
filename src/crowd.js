@@ -4,6 +4,8 @@ import { makeMaterial, sharedUniforms } from './materials.js';
 import { CROWD_GLSL, CROWD_POSES as POSE, CROWD_ZONES as Z, CROWD_PARTS as P } from './crowd-shader.js';
 import { registerTarget } from './targets.js';
 import { mulberry32 } from './noise.js';
+import { stripTone } from './story/tone.js';
+import { speakBalloon } from './story/voice.js';
 
 // City crowds, Assassin's Creed style: everybody is simulated by one cheap
 // CPU loop (positions, groups, glances, reactions), and drawn in tiers:
@@ -53,17 +55,17 @@ export const CROWD_STYLE = {
   hats: ['#d8a24a', '#e6875f', '#f3ead8', '#62c3c9', '#a99be0'],
 };
 const HEADS = ['hood', 'hat', 'wrap', 'hair'];
-export const STARTLE_LINES = ['Hey!', 'Ow! What was that?', 'Who threw that?', 'Watch it!', 'Was that you?', 'Hey, not funny!'];
+export const STARTLE_LINES = ['~surprised~ Hey!', '~scared~ Ow! What was that?', '~angry~ Who threw that?', '~angry~ Watch it!', '~curious~ Was that you?', '~angry~ Hey, not funny!'];
 // what people say when a glob of fluid splashes them, and when the push shoves them
-export const SPLASH_LINES = ['Hey! I\u2019m soaked!', 'Ugh, it\u2019s all colours!', 'Who threw that?', 'Was that you?', 'My good cloak!', 'Hey, not funny!'];
-export const SHOVE_LINES = ['Whoa! Watch it!', 'Oof! Hey!', 'Mind where you push!', 'Easy, traveller!', 'What was that for?'];
+export const SPLASH_LINES = ['~angry~ Hey! I\u2019m soaked!', '~surprised~ Ugh, it\u2019s all colours!', '~angry~ Who threw that?', '~curious~ Was that you?', '~sad~ My good cloak!', '~angry~ Hey, not funny!'];
+export const SHOVE_LINES = ['~surprised~ Whoa! Watch it!', '~angry~ Oof! Hey!', '~angry~ Mind where you push!', '~scared~ Easy, traveller!', '~angry~ What was that for?'];
 // an ember glob (it never burns) and a stilling glob's few seconds (fluid-kit.js STUN_SECONDS)
-export const SINGE_LINES = ['Hot! Hot!', 'Yow! Sparks!', 'My cloak! …it doesn’t burn?', 'Who’s throwing fire?'];
+export const SINGE_LINES = ['~shout~ Hot! Hot!', '~surprised~ Yow! Sparks!', '~surprised~ My cloak! …it doesn’t burn?', '~angry~ Who’s throwing fire?'];
 const STUN_FOR = 3.5;
 /** A shove's displacement over time (0..1): knocked back fast, held a moment, then they walk back to their place. */
 export const shoveCurve = (s) => (s < 0 || s > 3.6 ? 0 : s < 0.35 ? 1 - (1 - s / 0.35) ** 3 : s < 1.8 ? 1 : 1 - THREE.MathUtils.smoothstep(s, 1.8, 3.6));
-export const GREET_LINES = ['Fresh figs! Fresh figs!', 'Mind the edge, it\u2019s a long way down.', 'The taxis never stop for us lower folk.',
-  'Have you seen the light above the palace?', 'Laundry dries fast up here.', 'My grandmother never saw the sky.', 'Lovely hat.', 'Excuse me.', 'Busy day.'];
+export const GREET_LINES = ['~shout~ Fresh figs! Fresh figs!', '~scared~ Mind the edge, it\u2019s a long way down.', '~angry~ The taxis never stop for us lower folk.',
+  '~curious~ Have you seen the light above the palace?', '~happy~ Laundry dries fast up here.', '~sad~ My grandmother never saw the sky.', '~playful~ Lovely hat.', '~neutral~ Excuse me.', '~tired~ Busy day.'];
 
 const hexOf = (c) => new THREE.Color(c).getHex();
 export function crowdStyle(rng, palette = {}) {
@@ -914,7 +916,13 @@ export class Crowd {
     if (on) {
       _w.set(p.pos.x, p.pos.y + 2.05 * p.scale, p.pos.z).project(camera);
       if (_w.z < 1 && Math.abs(_w.x) < 1.1 && Math.abs(_w.y) < 1.1) {
-        if (b.textContent !== p.say) b.textContent = p.say;
+        const text = stripTone(p.say);
+        if (b.textContent !== text) b.textContent = text;
+        // the shout, heard from where they stand (a short mumble; at most a couple at once: audio.js)
+        if (this._voiced !== p || this._voicedLine !== p.say) {
+          this._voiced = p; this._voicedLine = p.say;
+          speakBalloon(p.say, { person: { seed: `crowd:${p.id}`, kind: p.kind, size: p.size }, dist: p._dCam, pan: THREE.MathUtils.clamp(_w.x * 0.8, -0.9, 0.9), max: 6 });
+        }
         b.style.transform = `translate(${((_w.x * 0.5 + 0.5) * window.innerWidth).toFixed(1)}px, ${((-_w.y * 0.5 + 0.5) * window.innerHeight).toFixed(1)}px) translate(-22px, calc(-100% - 12px))`;
         b.classList.add('show');
         return;

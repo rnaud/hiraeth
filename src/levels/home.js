@@ -53,30 +53,30 @@ export const HOME_CONTENT = {
     {
       at: HOME_SPOTS.father, radius: 0.5, speed: 0.35, head: 'wrap', cape: 0,
       palette: { cloak: '#f3ead8', lining: '#7a3a35', cloth: '#b5473a', legs: '#2b2f45', hat: '#3d4a80', hair: '#b8b0a4' },   // as on the call screen: a blue band, a red coat
-      lines: ['The ship looks well.', 'Your mother kept your room.', 'Hm.'],
+      lines: ['~neutral~ The ship looks well.', '~happy~ Your mother kept your room.', '~tired~ Hm.'],
       id: 'father', name: 'Your father', title: 'at home', color: '#7a3a35', voice: 0.7,
       talk: {
         entry: [{ if: { flag: 'ending.done' }, node: 'after' }, { node: 'before' }],
         nodes: {
-          before: { say: ['(He is looking up, past you, at the sky.)', 'You came the long way round. Come in by the ship, son. The proper way.'], choices: [{ text: 'All right.', end: true }] },
+          before: { say: ['~neutral~ (He is looking up, past you, at the sky.)', '~neutral~ You came the long way round. Come in by the ship, son. The proper way.'], choices: [{ text: '~neutral~ All right.', end: true }] },
           after: {
             say: [
-              { if: { flag: 'ending.kind', is: 'thing' }, text: 'I keep it on the shelf by the round window. I look at it more than I thought I would.' },
-              { if: { flag: 'ending.kind', is: 'song' }, text: '(He hums two notes of it, and stops, embarrassed.)' },
-              { if: { flag: 'ending.kind', is: 'word' }, text: 'I wrote it down. The words. I keep it in my coat.' },
-              { if: { flag: 'ending.kind', is: 'person' }, text: 'Tell whoever is waiting for you out there that we said thank you.' },
-              { if: { flag: 'ending.kind', is: 'knowing' }, text: 'I still don’t understand it. Explain it again.' },
-              { if: { flag: 'ending.kind', is: 'nothing' }, text: 'Your hands were empty. I keep thinking about that. It was the right answer.' },
-              'The ship is fuelled. I checked it twice. Go wherever you like, and call.',
+              { if: { flag: 'ending.kind', is: 'thing' }, text: '~happy~ I keep it on the shelf by the round window. I look at it more than I thought I would.' },
+              { if: { flag: 'ending.kind', is: 'song' }, text: '~neutral~ (He hums two notes of it, and stops, embarrassed.)' },
+              { if: { flag: 'ending.kind', is: 'word' }, text: '~solemn~ I wrote it down. The words. I keep it in my coat.' },
+              { if: { flag: 'ending.kind', is: 'person' }, text: '~happy~ Tell whoever is waiting for you out there that we said thank you.' },
+              { if: { flag: 'ending.kind', is: 'knowing' }, text: '~curious~ I still don’t understand it. Explain it again.' },
+              { if: { flag: 'ending.kind', is: 'nothing' }, text: '~solemn~ Your hands were empty. I keep thinking about that. It was the right answer.' },
+              '~happy~ The ship is fuelled. I checked it twice. Go wherever you like, and call.',
             ],
             choices: [
-              { text: 'Tell me about Ilen.', if: { flag: 'calls.ilen.told' }, goto: 'ilen' },
-              { text: 'I will.', end: true },
+              { text: '~curious~ Tell me about Ilen.', if: { flag: 'calls.ilen.told' }, goto: 'ilen' },
+              { text: '~happy~ I will.', end: true },
             ],
           },
           ilen: {
-            say: ['(He is quiet for a long time.)', 'She laughed like your mother. She hated being told anything. She would have liked you.', 'If you ever hear that singing out there, don’t follow it. Call me. I will listen. Every night, I will.'],
-            choices: [{ text: '(stay with him a while)', end: true }],
+            say: ['~solemn~ (He is quiet for a long time.)', '~sad~ She laughed like your mother. She hated being told anything. She would have liked you.', '~solemn~ If you ever hear that singing out there, don’t follow it. Call me. I will listen. Every night, I will.'],
+            choices: [{ text: '~solemn~ (stay with him a while)', end: true }],
           },
         },
       },
@@ -84,16 +84,16 @@ export const HOME_CONTENT = {
     {
       at: HOME_SPOTS.mother, radius: 0.5, speed: 0.35, head: 'hat', cape: 0.55,
       palette: { cloak: '#277e86', lining: '#f2c49a', cloth: '#d9503f', legs: '#34405e', hat: '#5fb7ad', hair: '#5a4038' },   // a teal cap, a red top
-      lines: ['Eat something warm.', 'Come here, let me look at you.', 'You stand differently now.'],
+      lines: ['~happy~ Eat something warm.', '~happy~ Come here, let me look at you.', '~curious~ You stand differently now.'],
       id: 'mother', name: 'Your mother', title: 'at home', color: '#277e86', voice: 1.0,
       talk: {
         entry: [{ node: 'hello' }],
         nodes: {
           hello: {
-            say: ['There you are. Have you eaten?', 'Tell me one person you met out there. Just one. Slowly, so I can see them.'],
-            choices: [{ text: '(tell her)', goto: 'listen' }, { text: 'Later. I promise.', end: true }],
+            say: ['~happy~ There you are. Have you eaten?', '~curious~ Tell me one person you met out there. Just one. Slowly, so I can see them.'],
+            choices: [{ text: '~neutral~ (tell her)', goto: 'listen' }, { text: '~playful~ Later. I promise.', end: true }],
           },
-          listen: { say: ['(She listens to all of it, and asks their names twice.)', 'Then go and see them again. Home will still be here. We always are.'], choices: [{ text: 'Thank you.', end: true }] },
+          listen: { say: ['~neutral~ (She listens to all of it, and asks their names twice.)', '~happy~ Then go and see them again. Home will still be here. We always are.'], choices: [{ text: '~happy~ Thank you.', end: true }] },
         },
       },
     },

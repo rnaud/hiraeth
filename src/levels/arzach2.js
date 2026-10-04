@@ -65,11 +65,11 @@ export const ARZACH2_CONTENT = {
   gate: { at: [28, 34], heading: Math.PI },
   npcs: [
     { at: [-14, 30], y: START.top, radius: 5, palette: { cloak: '#b9a7d8', lining: '#2b211f', cloth: '#e2d3b4', legs: '#2b2f45' },
-      lines: ['The stones fell up, long ago. Some of them never came down.', 'Whistle and the bird will come. She does not like the cloud.'] },
+      lines: ['~solemn~ The stones fell up, long ago. Some of them never came down.', '~neutral~ Whistle and the bird will come. She does not like the cloud.'] },
     { at: [MONASTERY.x - 20, MONASTERY.z - 22], y: MONASTERY.top, radius: 4, palette: { cloak: '#f3ead8', lining: '#2b211f', cloth: '#6a3a4a', legs: '#4a3a2a' },
-      lines: ['The bell has not rung since the cloud rose.', 'From the tower roof you can see the plain. Nobody goes there.'] },
+      lines: ['~sad~ The bell has not rung since the cloud rose.', '~scared~ From the tower roof you can see the plain. Nobody goes there.'] },
     { at: [195, -1010], radius: 6, palette: { cloak: '#e9a17f', lining: '#2b211f', cloth: '#343a56', legs: '#3a3a3a' },
-      lines: ['Walk toward the tower. It does not get closer for a long time.', 'The cracks in the plain are older than the sky.'], shy: true },
+      lines: ['~tired~ Walk toward the tower. It does not get closer for a long time.', '~solemn~ The cracks in the plain are older than the sky.'], shy: true },
   ],
 };
 

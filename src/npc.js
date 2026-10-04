@@ -5,6 +5,8 @@ import { Animator } from './animator.js';
 import { Humanoid } from './humanoid.js';
 import { makeMaterial, sharedUniforms, MODE_OUTFIT } from './materials.js';
 import { registerTarget } from './targets.js';
+import { stripTone } from './story/tone.js';
+import { speakBalloon } from './story/voice.js';
 
 // People of the world: they walk a looping route, pause and look around,
 // turn and wave when you come close, then say a line in a comic speech
@@ -27,9 +29,9 @@ import { registerTarget } from './targets.js';
 
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _d = new THREE.Vector3(), _push = new THREE.Vector3();
 const Y = new THREE.Vector3(0, 1, 0);
-const SPLASHED = ['Hey! I\u2019m soaked!', 'Ugh, it\u2019s all colours!', 'Who threw that?', 'Was that you?', 'Hey, not funny!'];
-const SHOVED = ['Whoa! Watch it!', 'Oof! Hey!', 'Mind where you push!', 'Easy, traveller!'];
-const SINGED = ['Hot! Hot!', 'Yow! That’s warm!', 'My cloak! …oh. It doesn’t burn?', 'Sparks! Who’s throwing sparks?'];
+export const SPLASHED = ['~angry~ Hey! I\u2019m soaked!', '~surprised~ Ugh, it\u2019s all colours!', '~angry~ Who threw that?', '~curious~ Was that you?', '~angry~ Hey, not funny!'];
+export const SHOVED = ['~surprised~ Whoa! Watch it!', '~angry~ Oof! Hey!', '~angry~ Mind where you push!', '~scared~ Easy, traveller!'];
+export const SINGED = ['~shout~ Hot! Hot!', '~surprised~ Yow! That’s warm!', '~surprised~ My cloak! …oh. It doesn’t burn?', '~angry~ Sparks! Who’s throwing sparks?'];
 const STUN_FOR = 3.5;   // seconds a stilling glob holds them (fluid-kit.js STUN_SECONDS)
 
 export class NPC {
@@ -471,21 +473,34 @@ export class NPC {
   /** Put the balloon over the head (call after the camera update; only for the one that talks). */
   /** @param lift extra pixels up (the E prompt hangs over this person's head) */
   placeBalloon(camera, show, lift = 0) {
-    if (!show || !this.talking) { this.balloon.classList.remove('show'); return; }
+    if (!show || !this.talking) { this.balloon.classList.remove('show'); this._voiced = null; return; }
     const head = this.humanoid?.b?.Head;
     if (head) head.getWorldPosition(_w).add(_v.set(0, 0.62, 0));
     else _w.copy(this.pos).add(_v.set(0, 2.3, 0));
     _w.project(camera);
     const on = _w.z < 1 && Math.abs(_w.x) < 1.1 && Math.abs(_w.y) < 1.1;
     if (on) {
-      const text = this.shout && this.time < this.shout.until ? this.shout.text : this.lines[this.lineIdx];
+      const line = this.shout && this.time < this.shout.until ? this.shout.text : this.lines[this.lineIdx];
+      const text = stripTone(line);
       if (this.balloon.textContent !== text) this.balloon.textContent = text;
+      // the mumble: once each time a line comes up (quieter further off, panned to where they stand)
+      if (line !== this._voiced) {
+        this._voiced = line;
+        speakBalloon(line, { person: this.voicePerson(), dist: camera.position.distanceTo(this.pos), pan: THREE.MathUtils.clamp(_w.x * 0.8, -0.9, 0.9) });
+      }
       // kept on the screen (on a phone a balloon over someone near the edge ran off it)
       const w = this.balloon.offsetWidth || 200;
       const x = THREE.MathUtils.clamp((_w.x * 0.5 + 0.5) * window.innerWidth - 22, 6, Math.max(6, window.innerWidth - w - 6));
       this.balloon.style.transform = `translate(${x.toFixed(1)}px, ${((-_w.y * 0.5 + 0.5) * window.innerHeight - lift).toFixed(1)}px) translate(0, calc(-100% - 12px))`;
     }
     this.balloon.classList.toggle('show', on);
+  }
+
+  /** Who is speaking, for the voice (src/story/voice.js voiceOf): their data, a crowd person's seed, or this body. */
+  voicePerson() {
+    if (this.person) return { seed: `crowd:${this.person.id}`, kind: this.person.kind ?? this.kind, size: this.person.size };   // the same voice as their conversation (story/<world>.js crowdTalk)
+    if (this.def) return this.def;
+    return (this._vp ??= { id: `npc:${String(this.lines?.[0] ?? '')}`, kind: this.kind, scale: this.object.scale.x });
   }
 
   move(dir, speed, dt) {
