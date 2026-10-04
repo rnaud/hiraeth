@@ -274,6 +274,13 @@ To start after the current work lands. Ordered from easiest to most complex.
 - [ ] Highlight "Bring back something of value", the father's first major quest: it is the
   heart of the game (in the journal, the HUD and the moment it's given).
 
+## Tools
+
+- [ ] A character studio page (`studio.html`): people rendered with the game's own ink pass, with
+  dropdowns for bodies, outfits and faces, sliders for morphology, face features, hair and
+  expressions, every animation, lineups, and looks saved in the URL. For nailing the character
+  designs and the face shaders without loading the game.
+
 ## Screens and presentation
 
 - [ ] Redesign the screens that say "Hello", "again", etc.: they feel out of place (find
