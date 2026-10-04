@@ -1,0 +1,81 @@
+README.md
+  s_1fd8d0e7b02dcf::t_e464fbbd3b7d12 85-124,1221-1222
+android/app/src/main/java/com/rnaud/moebius/GamepadBridge.java
+  s_1fd8d0e7b02dcf::t_6867248c84798b 16-18
+src/bike.js
+  s_1fd8d0e7b02dcf::t_da088efefab222 4,7-8,273-276,278,283-285
+src/bird.js
+  s_1fd8d0e7b02dcf::t_a8b20fe0e12a2f 6,11-12,235-236,238-239,245,250,263,274
+src/boxes/effects.js
+  s_1fd8d0e7b02dcf::t_5ba5c2de6860ec 72
+src/boxes/index.js
+  s_1fd8d0e7b02dcf::t_1d8098c61bfba3 259
+src/boxes/scene.js
+  s_1fd8d0e7b02dcf::t_667e051a088d46 18
+src/controller.js
+  s_1fd8d0e7b02dcf::t_d76cb9a2a023b3 1-26,34-42,44-49,51,60,63-66,68,78-85,93,96-98,101-113,115-124,126-135,143-151,156
+src/fluid-tool.js
+  s_1fd8d0e7b02dcf::t_db61de7921cb09 33
+src/interact.js
+  s_1fd8d0e7b02dcf::t_2c80aa5c6cd6ae 1
+src/items.js
+  s_1fd8d0e7b02dcf::t_a6f8cc6e184c7d 42,47,73,106-120
+src/main.js
+  s_1fd8d0e7b02dcf::t_145f0fbc7b5ba5 4,42,210,330,566-567,666-678,682,712-713,741-742,766-767,972,1062
+src/native-pad.js
+  s_1fd8d0e7b02dcf::t_e35acd11d3b287 1,10-21,23-29,36,41,43,57,60-104,106-111,116,119,121-122,124-128,149,153,155
+src/player.js
+  s_1fd8d0e7b02dcf::t_b286d7339af0cf 608-610,615-620,648
+src/prompt-keys.js
+  s_1fd8d0e7b02dcf::t_67997f952964bc 14-15
+src/ship/homecoming.js
+  s_1fd8d0e7b02dcf::t_aba0474d97bf2e 8,147-149
+src/ship/ship.js
+  s_1fd8d0e7b02dcf::t_110bb0254b0bc3 16,582
+src/ship/starmap.js
+  s_1fd8d0e7b02dcf::t_799b7d90c6afa8 24,249,318,369
+src/story/bazaar-data.js
+  s_1fd8d0e7b02dcf::t_f90e65778ecb5c 335,362
+src/story/bazaar.js
+  s_1fd8d0e7b02dcf::t_a1d681f4235b88 150
+src/story/buried-data.js
+  s_1fd8d0e7b02dcf::t_7569b769b188eb 360
+src/story/buried.js
+  s_1fd8d0e7b02dcf::t_04dfc3a5f0e864 160
+src/story/desert-data.js
+  s_1fd8d0e7b02dcf::t_f37515bd560672 567
+src/story/desert.js
+  s_1fd8d0e7b02dcf::t_5d881318b62ece 243
+src/story/garage-data.js
+  s_1fd8d0e7b02dcf::t_d9ef87de045dbe 55
+src/story/index.js
+  s_1fd8d0e7b02dcf::t_97df7b4c29e95a 196
+src/taxi.js
+  s_1fd8d0e7b02dcf::t_d9c0745840df8a 5,11-12,175-183,185-186
+src/ui.js
+  s_1fd8d0e7b02dcf::t_032e834ef7b64f 2,18,43-55,68,82,87-88,90
+tests/abilities.test.js
+  s_1fd8d0e7b02dcf::t_84f9bc9e282c0b 390-407
+tests/controller.test.js
+  s_1fd8d0e7b02dcf::t_d455c1bcd97302 3-6,10-14,22-23,25,27-39,47,56-66,78-79,81-88,92,94,98-135
+tests/hud-cleanup.test.js
+  s_1fd8d0e7b02dcf::t_0c8fbdcfb5b005 24-25
+tests/native-pad.test.js
+  s_1fd8d0e7b02dcf::t_85e2d1b028573e 3-11,14,16,19,23-79,84,89-90,92-96,104-152
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "97e0a77e2b920e199a5d9c49753ee305fe9e1f2a",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
