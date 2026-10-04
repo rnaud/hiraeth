@@ -254,6 +254,7 @@ export function buildWorld(scene, terrain) {
   const storyClear = [
     { x: STORY.city.x, z: STORY.city.z, r: 150 }, { x: STORY.camps.x, z: STORY.camps.z, r: 70 },
     { x: STORY.giant.x, z: STORY.giant.z, r: 70 }, { x: STORY.pilgrim.x, z: STORY.pilgrim.z, r: 18 },
+    { x: STORY.bike.x, z: STORY.bike.z, r: 16 },
   ];
   for (const [x, z] of processionLoop(10)) storyClear.push({ x, z, r: 12 });
   const story = (x, z, r = 0) => { for (const c of storyClear) if ((c.x - x) ** 2 + (c.z - z) ** 2 < (c.r + r) ** 2) return true; return false; };

@@ -9,6 +9,7 @@ import { COOL_FIRE, FIRE, SMOKE_COOL } from './flames.js';
 import { setMagic } from './magic-water.js';
 import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, STAGE_MIGRATION, VILLAGERS, MURMURS, VILLAGER_TALK } from './desert-data.js';
 import { items } from '../items.js';
+import { setupHoverbike } from './desert-bike.js';
 
 // The desert's story, alive: who stands where, what reacts to you, and the
 // chain of the main quest (desert-data.js has the words).
@@ -221,6 +222,10 @@ export function setupDesert(ctx) {
         g.removeFromParent(); drum.off(); drum = null; sound.chime();
       } });
   }
+
+  // ---------------------------------------------------------------- the hoverbike
+  // not yours from the start: Marrow hid it under a tarp in a hollow (src/story/desert-bike.js)
+  const hollow = setupHoverbike(ctx);
 
   // ---------------------------------------------------------------- the channel and the pool
   const st = { level: cave.levels.low, boneT: 0, flare: 0, drink: 0, approached: false, campsIn: false };
@@ -579,10 +584,11 @@ export function setupDesert(ctx) {
     // the musicians pick up your tune when you stand with them
     if (!st.drinking) sound.setBandMode('camp', flat(pp, fire) < 9 ? 'near' : 'play');
     updateProps(t, camPos);
+    hollow.update(dt, t, camPos);
   };
 
   return {
-    people, update, state: st, villagers, shrine: sh, gatherSpots,
+    people, update, state: st, villagers, shrine: sh, gatherSpots, hollow,
     /** E on a crowd person: their short conversation (by where they stand). */
     crowdTalk(p) {
       const id = p.spot?.id;

@@ -191,7 +191,7 @@ The reference pages for the four v0.30 worlds are in `references/`
   - dunes, mesas, giant skeletons and monolith rings;
   - three regions: golden dunes, rose canyons and salt flats;
   - wind-blown sand and cloud shadows;
-  - **E** whistles for the hoverbike.
+  - **E** whistles for the hoverbike, once you have found it (Marrow hid it under a tarp).
 - **The City-Shaft:** (styled after a Moebius hill-town plate)
   - a dense Mediterranean town: cream villas with window grids, terracotta
     hipped roofs and domes, roof gardens, and cypress and olive trees,
@@ -1471,3 +1471,38 @@ Pocket. Their built-in controls work through the Gamepad API.
   inner lines, drawn detail and hatching fading first. Distant figures keep their
   colours with a fine outline; only pixels that already have ink pay the extra taps. The
   player keeps its own mask (`uHero`).
+
+### Finding the hoverbike, and the vehicles redrawn
+- **The hoverbike has to be found** (`src/story/desert-bike.js`): a new game starts on
+  foot. Marrow the salvager hid the bike under a tarp in a hollow between the ship and the
+  camps (`STORY.bike`; a broad dip, `HOLLOWS` in `src/desert-landmarks.js`), marked by a red
+  rag on a pole. Until then `Hoverbike.rest()` lays it there dormant: no "ride" prompt, no
+  whistle, no push from the tool, no physics. The errand `desert.bike` ("Something Faster
+  Than Walking") starts with Rook near the ship, with Marrow ("Got anything faster than
+  walking?"), or once Nour has sent you on; E pulls back the tarp, and with the backpack a
+  second E wakes it (`wake()`): the tank swings into its cradle and you're riding.
+  Flags: `desert.bike.uncovered`, `desert.bike.found` (for good, per save; a dev-menu box).
+  Old saves (`migrateBike`, once): anyone who had the backpack could already ride, so they
+  keep the bike; a save without the backpack never rode it and finds it like a new game.
+- **Painted vehicles** (`src/vehicle-kit.js`): plain-coloured parts are merged into one
+  vertex-coloured mesh per shading (`Paint`), so a vehicle of thirty parts is two draw
+  calls; the ink pass outlines the colour boundaries. Moving and glowing parts are small
+  meshes of their own. A builder returns `{ root, body, seatAnchor, socket, port, lights,
+  jets, animate }`: `lights` are what the fluid lights (`Hoverbike.makePowerLights`), `jets`
+  where the hover trails stream from, `animate(dt, vehicle)` the moving details.
+- **The hoverbike** (`buildBike`): a long-nosed orange fuselage with a cream beak, teal jet
+  fairings, a padded saddle, swept bars and a windscreen, a rudder that turns with the
+  steering, a pennant that flutters faster with speed, a hover plate that glows. Seat, bars
+  and socket are where they were (9 draw calls, was 17).
+- **The skiff** (`buildSkiff`, Lorn): an open boat with a deck and a cream gunwale, its prow
+  curled up with a swinging lantern, a teal float on outrigger arms, a striped lateen sail
+  that fills with speed and trims into turns.
+- **The taxis** (`src/taxi.js`): a round-bellied cab in its colour with a checker band, a
+  bubble of ribs over a driver in a peaked cap who looks about, a striped awning over the
+  passenger bench (you ride there; the passenger gets out), V-fins that trim into turns,
+  wing-tip lamps and a "for hire" sign (lit while free, blinking while it waits, dark while
+  you ride), hover rings underneath. Geometry is built once per colour and shared; beyond
+  ~75–95 m only the body and its glow are drawn (3 calls), beyond ~135–170 m just the body
+  (2). The roof you can stand on is the awning's crest (`solid.top`). Wren's cab loses its
+  driver once she has stepped out by the lamp (`driverOut`).
+  `tests/hoverbike-quest.test.js` covers the quest, the migration and the budgets.

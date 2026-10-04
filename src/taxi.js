@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from './materials.js';
+import { Paint, paintMaterial, plate, spindle } from './vehicle-kit.js';
 import { sweepCapsule, unbury } from './physics.js';
 import { padRide } from './controller.js';
 
@@ -17,35 +18,123 @@ const MAX = 40;
 const _q = new THREE.Quaternion();
 const _v = new THREE.Vector3(), _from = new THREE.Vector3();
 
-function buildTaxi(color) {
-  const g = mergeGeometries([
-    new THREE.BoxGeometry(1.7, 1.0, 3.4),
-    new THREE.ConeGeometry(0.8, 1.4, 6).rotateX(Math.PI / 2).translate(0, 0, 2.3),
-    new THREE.BoxGeometry(2.8, 0.25, 1.0).translate(0, -0.2, -0.9),
-    new THREE.BoxGeometry(0.15, 0.7, 0.7).translate(0, 0.75, -1.45),
-  ]);
-  const body = new THREE.Mesh(g, makeMaterial({ color, flat: true }));
-  // open cab: windshield dome in front of the driver
-  const shield = new THREE.Mesh(new THREE.SphereGeometry(0.75, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), makeMaterial({ color: '#f3ead8' }));
-  shield.scale.set(1, 0.7, 0.8);
-  shield.position.set(0, 0.5, 0.95);
-  const grp = new THREE.Group();
-  grp.add(body, shield);
-  // a passenger in the back seat, hat and all (a driver of the player's ride sits in front)
-  if (Math.random() < 0.6) {
-    const coat = ['#c8483a', '#5fb7ad', '#d8a24a', '#8a6fb8', '#f3ead8'][Math.floor(Math.random() * 5)];
-    const pax = new THREE.Group();
-    pax.add(new THREE.Mesh(new THREE.CapsuleGeometry(0.28, 0.45, 3, 8).translate(0, 0.55, 0), makeMaterial({ color: coat })));
-    pax.add(new THREE.Mesh(new THREE.SphereGeometry(0.17, 10, 8).translate(0, 1.15, 0.02), makeMaterial({ color: '#e9cfb4' })));
-    if (Math.random() < 0.6) {
-      pax.add(new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.34, 0.02, 14).translate(0, 1.27, 0), makeMaterial({ color: coat })));
-      pax.add(new THREE.Mesh(new THREE.ConeGeometry(0.13, 0.4, 10).translate(0, 1.47, 0), makeMaterial({ color: coat })));
+// The cab's palette (its body takes the colour it is given)
+const INK = '#34405e', CREAM = '#f3ead8', RED = '#c8483a', GLASS = '#a9d3cc', SKIN = ['#e9cfb4', '#c99a7a', '#8a5a44', '#f0d8c0'];
+const COATS = ['#c8483a', '#5fb7ad', '#d8a24a', '#8a6fb8', '#f3ead8', '#34405e'];
+// the body, along +z: fat in the middle, rounded at the stern, a blunt nose
+const HULL = [[0.001, -2.0], [0.5, -1.85], [0.82, -1.3], [0.9, -0.4], [0.88, 0.6], [0.72, 1.35], [0.42, 1.85], [0.001, 2.1]];
+const SY = 0.55;
+const rAt = (z) => {
+  for (let i = 1; i < HULL.length; i++) if (z <= HULL[i][1]) { const [r0, z0] = HULL[i - 1], [r1, z1] = HULL[i]; return r0 + (r1 - r0) * (z - z0) / (z1 - z0); }
+  return 0;
+};
+const half = (pts, phi, sy, seg = 14) => new THREE.LatheGeometry(pts.map(([r, z]) => new THREE.Vector2(r, z)), seg, -phi, phi * 2).rotateX(Math.PI / 2).scale(1, sy, 1);
+
+/**
+ * The cab, in flat comic colours: a round-bellied body in its own colour with
+ * a checker band at the waist and a navy belly, a low windscreen and a cage
+ * of ribs over the driver (the bubble), a striped awning over the passenger
+ * bench, V-fins at the tail, stub wings with lamps at their tips, a "for hire"
+ * sign on the awning and glowing hover rings underneath. Its static parts
+ * are built once per colour and shared (two draw calls); the moving and
+ * lit parts are small meshes of their own.
+ */
+const CABS = new Map();
+function cabParts(color) {
+  if (CABS.has(color)) return CABS.get(color);
+  const smooth = new Paint(), flat = new Paint();
+  smooth.add(spindle(HULL, { seg: 16, sy: SY }), color, { at: [0, -0.1, 0] });
+  smooth.add(half(HULL.map(([r, z]) => [r * 1.02, z * 1.005]), 0.75, SY * 1.02), INK, { at: [0, -0.1, 0] });
+  // the checker band round the waist
+  for (const side of [-1, 1]) {
+    for (let i = 0; i < 15; i++) {
+      const z = -1.5 + i * 0.22, r = rAt(z), r2 = rAt(z + 0.05) - rAt(z - 0.05);
+      flat.add(new THREE.BoxGeometry(0.04, 0.16, 0.22), i % 2 ? INK : CREAM, { at: [side * (r + 0.005), -0.08, z], rot: [0, side * Math.atan2(r2, 0.1), 0] });
     }
-    pax.position.set(0, 0.2, -0.95);
+  }
+  // the nose cap and the bumper ring
+  smooth.add(new THREE.SphereGeometry(0.3, 10, 6), CREAM, { at: [0, -0.12, 1.98], scale: [1.1, 0.7, 0.6] });
+  smooth.add(new THREE.TorusGeometry(0.45, 0.05, 4, 16), INK, { at: [0, -0.1, 1.82], scale: [1, SY * 1.1, 1] });
+  // the cab: a low windscreen and a cage of ribs over the driver, a steering wheel
+  smooth.add(new THREE.CylinderGeometry(0.6, 0.6, 0.24, 8, 1, true, -0.9, 1.8), GLASS, { at: [0, 0.42, 0.8], rot: [-0.3, 0, 0] });
+  for (const z of [0.55, 1.12]) flat.add(new THREE.TorusGeometry(0.62, 0.035, 3, 10, Math.PI), INK, { at: [0, 0.3, z], scale: [1, 0.85, 1] });
+  flat.add(new THREE.TorusGeometry(0.62, 0.035, 4, 10, Math.PI * 0.62), INK, { at: [0, 0.3, 0.3], rot: [0, Math.PI / 2, 0.08], scale: [1, 0.85, 1.05] });
+  flat.add(new THREE.TorusGeometry(0.14, 0.025, 4, 10), INK, { at: [0, 0.52, 1.05], rot: [-0.9, 0, 0] });
+  // the passenger bench and the awning over it, on four posts, in red and cream stripes
+  flat.add(new THREE.BoxGeometry(1.0, 0.14, 0.55), INK, { at: [0, 0.42, -0.85] });
+  flat.add(new THREE.BoxGeometry(1.0, 0.42, 0.08), INK, { at: [0, 0.6, -1.17], rot: [-0.12, 0, 0] });
+  for (const x of [-0.7, 0.7]) for (const z of [-1.5, -0.22]) flat.add(new THREE.CylinderGeometry(0.025, 0.025, 0.95, 4), INK, { at: [x, 0.72, z] });
+  const BANDS = 7;
+  for (let i = 0; i < BANDS; i++) {
+    const t0 = Math.PI / 2 + (i / BANDS) * Math.PI;
+    smooth.add(new THREE.CylinderGeometry(0.8, 0.8, 1.55, 3, 1, true, t0, Math.PI / BANDS).rotateX(Math.PI / 2), i % 2 ? CREAM : RED, { at: [0, 1.15, -0.86], scale: [1, 0.42, 1] });
+  }
+  // a scalloped valance along the awning's sides
+  for (const side of [-1, 1]) for (let i = 0; i < 6; i++) flat.add(new THREE.ConeGeometry(0.09, 0.14, 3), i % 2 ? CREAM : RED, { at: [side * 0.8, 1.08, -1.5 + i * 0.26 + 0.13], rot: [Math.PI, 0, 0] });
+  // stub wings, the sign's base, and the hover rings' mounts
+  for (const side of [-1, 1]) flat.add(plate([[0, -0.2], [0.55, -0.05], [0.55, 0.12], [0, 0.25]], 0.06), color, { at: [side * 0.85, -0.05, -0.25], rot: [Math.PI / 2, 0, side > 0 ? 0 : Math.PI], scale: [1, 1, 1] });
+  flat.add(new THREE.BoxGeometry(0.62, 0.06, 0.16), INK, { at: [0, 1.36, -0.25] });
+  const tail = new Paint();
+  for (const side of [-1, 1]) {
+    tail.add(plate([[0, 0], [0.4, 0], [0.62, 0.72], [0.4, 0.75]], 0.05).rotateY(Math.PI / 2), color, { at: [side * 0.2, 0, 0], rot: [0, 0, side * 0.55] });
+    tail.add(plate([[0.5, 0.45], [0.62, 0.72], [0.4, 0.75], [0.36, 0.5]], 0.07).rotateY(Math.PI / 2), RED, { at: [side * 0.2, 0, 0], rot: [0, 0, side * 0.55] });
+  }
+  // what glows: the headlamps and the hover rings (always); the sign and the wing-tip lamps (for hire)
+  const glow = mergeGeometries([
+    ...[-0.32, 0.32].map((x) => new THREE.CircleGeometry(0.11, 10).translate(x, 0.02, 1.95).toNonIndexed()),
+    ...[-1.0, 1.0].map((z) => new THREE.TorusGeometry(0.42, 0.06, 3, 12).rotateX(Math.PI / 2).translate(0, -0.62, z).toNonIndexed()),
+  ]);
+  const lamps = mergeGeometries([
+    new THREE.BoxGeometry(0.52, 0.2, 0.1).translate(0, 1.5, -0.25).toNonIndexed(),
+    ...[-1, 1].map((side) => new THREE.SphereGeometry(0.07, 6, 4).translate(side * 1.42, -0.04, -0.2).toNonIndexed()),
+  ]);
+  const parts = { smooth: smooth.geometry(), flat: flat.geometry(), tail: tail.geometry(), glow, lamps };
+  CABS.set(color, parts);
+  return parts;
+}
+
+/** A seated figure (a driver with a peaked cap, or a passenger in a hat), one vertex-coloured mesh. */
+function figure({ coat, skin, hat, cap = false }) {
+  const p = new Paint();
+  p.add(new THREE.CapsuleGeometry(0.21, 0.3, 2, 7), coat, { at: [0, 0.3, 0] });
+  p.add(new THREE.SphereGeometry(0.16, 8, 6), skin, { at: [0, 0.78, 0.02] });
+  if (cap) {
+    p.add(new THREE.CylinderGeometry(0.17, 0.16, 0.12, 10), hat, { at: [0, 0.92, 0] });
+    p.add(new THREE.BoxGeometry(0.3, 0.03, 0.16), INK, { at: [0, 0.87, 0.14] });
+  } else if (hat) {
+    p.add(new THREE.CylinderGeometry(0.32, 0.32, 0.02, 12), hat, { at: [0, 0.9, 0] });
+    p.add(new THREE.ConeGeometry(0.13, 0.36, 10), hat, { at: [0, 1.08, 0] });
+  }
+  return p.mesh({ smooth: true });
+}
+
+function buildTaxi(color, { driver = true } = {}) {
+  const P = cabParts(color);
+  const grp = new THREE.Group();
+  const body = new THREE.Mesh(P.smooth, paintMaterial({ smooth: true, side: THREE.DoubleSide }));
+  const trim = new THREE.Mesh(P.flat, paintMaterial());
+  const tail = new THREE.Group();
+  tail.position.set(0, 0.2, -1.7);
+  tail.add(new THREE.Mesh(P.tail, paintMaterial()));
+  const glow = new THREE.Mesh(P.glow, makeMaterial({ color: '#fff3c4', glow: 1, flat: true }));
+  const lamps = new THREE.Mesh(P.lamps, makeMaterial({ color: '#f6c84e', glow: 1, flat: true }));
+  grp.add(body, trim, tail, glow, lamps);
+  const rnd = Math.random;
+  // the driver up front, in the bubble; a passenger on the bench, now and then
+  let cabbie = null, pax = null;
+  if (driver) {
+    cabbie = figure({ coat: rnd() < 0.5 ? INK : COATS[Math.floor(rnd() * COATS.length)], skin: SKIN[Math.floor(rnd() * SKIN.length)], hat: color === '#f2c54b' ? RED : '#f2c54b', cap: true });
+    cabbie.position.set(0, 0.0, 0.78);
+    grp.add(cabbie);
+  }
+  if (rnd() < 0.6) {
+    const coat = COATS[Math.floor(rnd() * COATS.length)];
+    pax = figure({ coat, skin: SKIN[Math.floor(rnd() * SKIN.length)], hat: rnd() < 0.6 ? coat : null });
+    pax.position.set(0, 0.2, -0.85);
     grp.add(pax);
   }
-  grp.userData.noCollide = true;
-  return grp;
+  grp.traverse((o) => { o.userData.noCollide = true; });
+  return { root: grp, tail, glow, lamps, cabbie, pax, near: [tail, cabbie, pax].filter(Boolean), mid: [glow, lamps] };
 }
 
 export class Taxi {
@@ -55,10 +144,13 @@ export class Taxi {
   /**
    * @param lane  (t, taxi) => void, writes taxi.pos / heading / bank / pitch
    */
-  constructor(physics, color, scale, lane) {
+  constructor(physics, color, scale, lane, { driver = true } = {}) {
     this.physics = physics;
     this.kind = 'taxi';
-    this.object = buildTaxi(color);
+    const b = buildTaxi(color, { driver });
+    this.object = b.root;
+    this.parts = b;
+    this.time = Math.random() * 10;
     this.scale = scale;
     this.object.scale.setScalar(scale);
     this.lane = lane;
@@ -102,9 +194,40 @@ export class Taxi {
 
   seatTransform(pos, quat) {
     const s = this.scale;
-    _v.set(0, 0.5 - 0.6 / s, -0.25); // driver's feet, in taxi-local units
+    _v.set(0, 0.49 - 0.9 / s, -0.8); // the passenger's feet (hips on the bench, under the awning), in taxi-local units
     pos.copy(_v).applyMatrix4(this.object.matrixWorld);
     quat.copy(this.object.quaternion);
+  }
+
+  /**
+   * The cab's moving details: the tail fins trim into turns, the driver looks
+   * about (and into the turn), the "for hire" lamps are lit while it's free
+   * (blinking while it waits for you) and dark while you ride; the passenger
+   * gets out when you get in. Far away only its painted body is drawn.
+   */
+  animate(dt) {
+    const P = this.parts;
+    this.time += dt;
+    let dh = this.heading - (this._lastHeading ?? this.heading);
+    dh = Math.atan2(Math.sin(dh), Math.cos(dh));
+    this._lastHeading = this.heading;
+    const turn = THREE.MathUtils.clamp(dt > 0 ? dh / dt : 0, -1.5, 1.5);
+    this._turn = (this._turn ?? 0) + (turn - (this._turn ?? 0)) * (1 - Math.exp(-4 * dt));
+    // (levels of detail: the glow and the lamps from mid range, the fins and the people up close)
+    const d2 = Taxi.playerPos ? Taxi.playerPos.distanceToSquared(this.pos) : 0, s = this.scale;
+    const far = d2 > (60 + 15 * s) ** 2;
+    for (const o of P.mid) o.visible = d2 < (110 + 25 * s) ** 2;
+    for (const o of P.near) o.visible = !far;
+    if (P.pax) P.pax.visible = !far && this.mode !== 'driven';
+    if (P.cabbie && this.driverOut?.()) P.cabbie.visible = false;
+    if (far) return;
+    P.tail.rotation.set(Math.sin(this.time * 1.7) * 0.04, -this._turn * 0.3, 0);
+    const waiting = this.mode === 'parked' || this.mode === 'hail';
+    P.lamps.visible &&= this.mode !== 'driven' && (!waiting || Math.sin(this.time * 6) > -0.3);
+    if (P.cabbie) {
+      P.cabbie.rotation.y = this._turn * 0.5 + Math.sin(this.time * 0.37) * 0.35 * Math.sin(this.time * 0.11);
+      P.cabbie.position.y = Math.abs(Math.sin(this.time * 2.1)) * 0.02;
+    }
   }
 
   update(dt, input, t) {
@@ -128,6 +251,7 @@ export class Taxi {
     this.object.position.copy(this.pos);
     this.object.rotation.set(this.pitch, this.heading, this.bank, 'YXZ');
     this.object.updateMatrixWorld();
+    this.animate(dt);
   }
 
   /** Chase where the lane would put us now; rejoin traffic when caught up. */
@@ -145,10 +269,10 @@ export class Taxi {
     this.pitch = -_v.y * 0.3;
   }
 
-  /** Solid volume for characters: a vertical cylinder, roof on top. */
+  /** Solid volume for characters: a vertical cylinder, its roof the awning's crest. */
   get solid() {
     const s = this.scale;
-    return { pos: this.pos, vel: this.vel, r: 1.45 * s, top: this.pos.y + 0.55 * s, bottom: this.pos.y - 0.6 * s };
+    return { pos: this.pos, vel: this.vel, r: 1.45 * s, top: this.pos.y + 1.45 * s, bottom: this.pos.y - 0.6 * s };
   }
 
   flyToTarget(dt) {

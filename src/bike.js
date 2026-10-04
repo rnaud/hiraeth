@@ -1,5 +1,7 @@
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from './materials.js';
+import { Paint, painted, paintMaterial, plate, spindle } from './vehicle-kit.js';
 import { sweepCapsule, unbury } from './physics.js';
 import { padRide } from './controller.js';
 
@@ -11,7 +13,8 @@ import { padRide } from './controller.js';
 // It runs on the traveller's magic-fluid backpack (powered: true; the skiff
 // too): boarding swings the tank into the socket behind the seat (player.js,
 // fluid-tool.js), a hose clicks into the engine's port, and the fluid lights
-// the pods' caps and the hover trails. Without the backpack it won't start.
+// the jets' caps, the headlamp, the hover plate and the trails. Without the backpack
+// it won't start. In the desert it must first be found (src/story/desert-bike.js).
 
 const HOVER = 1.15;
 const MAX = 34;      // m/s
@@ -26,49 +29,90 @@ function part(geo, color, opts = {}) {
   return new THREE.Mesh(geo, makeMaterial({ color, ...opts }));
 }
 
+// the bike's colours: a printed plate, flat and few
+const C = { orange: '#d9643a', cream: '#f2e6cc', teal: '#5fb7ad', tealDark: '#3f8f87', navy: '#34405e', red: '#c8483a', brass: '#e2b552', glow: '#9fe0d0' };
+
+/**
+ * The hoverbike: a long-nosed fuselage in orange with a cream beak, two teal
+ * jet fairings on its cheeks, a navy saddle with a raised cantle, swept bars
+ * behind a little windscreen, an upswept rudder that turns with the steering,
+ * a whip aerial with a pennant, and a hover plate underneath that glows with
+ * the backpack's fluid. Painted parts share two draw calls (vehicle-kit.js).
+ * Forward is +z; the seat, the bars and the tank's socket are where the
+ * rider's pose and the hand-off expect them.
+ */
 function buildBike() {
   const root = new THREE.Group();
   const body = new THREE.Group(); // pitched / banked
   root.add(body);
-  const orange = '#d9643a', cream = '#f2e6cc', teal = '#5fb7ad', dark = '#34405e';
-
-  const chassis = part(new THREE.BoxGeometry(0.9, 0.42, 2.5), orange, { flat: true });
-  const nose = part(new THREE.ConeGeometry(0.46, 1.1, 8), cream, { flat: true });
-  nose.rotation.x = Math.PI / 2;
-  nose.position.set(0, 0.02, 1.8);
-  const seat = part(new THREE.BoxGeometry(0.5, 0.18, 0.95), dark, { flat: true });
-  seat.position.set(0, 0.3, -0.35);
-  const stem = part(new THREE.CylinderGeometry(0.05, 0.05, 0.5, 6), dark);
-  stem.position.set(0, 0.42, 0.75);
-  stem.rotation.x = -0.4;
-  const bar = part(new THREE.CylinderGeometry(0.045, 0.045, 1.0, 6), dark);
-  bar.rotation.z = Math.PI / 2;
-  bar.position.set(0, 0.64, 0.65);
-  const fin = part(new THREE.BoxGeometry(0.06, 0.6, 0.65), cream, { flat: true });
-  fin.position.set(0, 0.45, -1.36);   // set back to make room for the tank's socket
-  fin.rotation.x = -0.35;
-  body.add(chassis, nose, seat, stem, bar, fin);
+  const smooth = new Paint(), flat = new Paint();
+  // the fuselage: fat under the saddle, drawn out to a long nose
+  smooth.add(spindle([[0.05, -1.55], [0.2, -1.45], [0.34, -1.15], [0.42, -0.6], [0.45, 0], [0.42, 0.6], [0.34, 1.15], [0.24, 1.6], [0.12, 1.95]], { seg: 12, sx: 1.05, sy: 0.72 }), C.orange);
+  // the beak: cream, long and pointed, a red ring where it meets the body
+  smooth.add(spindle([[0.16, 1.8], [0.13, 2.2], [0.08, 2.6], [0.015, 2.95]], { seg: 8, sx: 1.05, sy: 0.72 }), C.cream, { at: [0, -0.02, 0] });
+  smooth.add(new THREE.TorusGeometry(0.16, 0.035, 5, 14), C.red, { at: [0, -0.02, 1.82], scale: [1.05, 0.72, 1] });
+  // a cream belly and a red racing stripe along the spine
+  smooth.add(spindle([[0.3, -1.1], [0.4, -0.5], [0.43, 0.2], [0.38, 0.9], [0.3, 1.3]], { seg: 12, sx: 1.08, sy: 0.5 }), C.cream, { at: [0, -0.12, 0] });
+  flat.add(new THREE.BoxGeometry(0.12, 0.05, 1.1), C.red, { at: [0, 0.3, 0.95], rot: [-0.18, 0, 0] });
+  // the jet fairings on its cheeks, with their struts, swept fins and foot pegs
   for (const side of [-1, 1]) {
-    const pod = part(new THREE.CylinderGeometry(0.27, 0.22, 1.7, 9), teal, { flat: true });
-    pod.rotation.x = Math.PI / 2;
-    pod.position.set(side * 0.66, -0.08, -0.25);
-    const cap = part(new THREE.CylinderGeometry(0.2, 0.2, 0.06, 9), cream);
-    cap.rotation.x = Math.PI / 2;
-    cap.position.set(side * 0.66, -0.08, -1.12);
-    body.add(pod, cap);
+    smooth.add(spindle([[0.1, -1.05], [0.2, -0.9], [0.25, -0.5], [0.26, 0], [0.22, 0.45], [0.12, 0.75], [0.02, 0.9]], { seg: 10, sx: 1, sy: 0.9 }), C.teal, { at: [side * 0.64, -0.12, -0.28] });
+    smooth.add(new THREE.TorusGeometry(0.2, 0.03, 4, 12), C.cream, { at: [side * 0.64, -0.12, -1.33] });
+    flat.add(new THREE.BoxGeometry(0.34, 0.08, 0.5), C.navy, { at: [side * 0.38, -0.08, -0.35] });
+    flat.add(plate([[0, 0], [0.55, 0], [0.75, 0.3], [0.45, 0.3]], 0.04), C.tealDark, { at: [side * 0.64, 0.08, -0.62], rot: [0, -Math.PI / 2, 0] });
+    flat.add(new THREE.BoxGeometry(0.16, 0.05, 0.2), C.navy, { at: [side * 0.42, -0.2, 0.05] });
   }
-  for (const z of [0.8, -0.9]) {
-    const pad = part(new THREE.CylinderGeometry(0.34, 0.4, 0.09, 12), cream);
-    pad.position.set(0, -0.27, z);
-    body.add(pad);
-  }
+  // the saddle: padded, its cantle raised, clear of the tank's cradle behind it
+  smooth.add(new THREE.CapsuleGeometry(0.2, 0.62, 3, 10).rotateX(Math.PI / 2), C.navy, { at: [0, 0.31, -0.3], scale: [1.25, 0.5, 1] });
+  flat.add(new THREE.BoxGeometry(0.44, 0.16, 0.08), C.navy, { at: [0, 0.4, -0.7], rot: [-0.35, 0, 0] });
+  // the bars: a stem, swept handlebars with red grips, a windscreen and a round headlamp
+  flat.add(new THREE.CylinderGeometry(0.045, 0.06, 0.42, 6), C.navy, { at: [0, 0.45, 0.72], rot: [-0.35, 0, 0] });
+  flat.add(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(-0.5, 0.7, 0.5), new THREE.Vector3(-0.22, 0.64, 0.66), new THREE.Vector3(0.22, 0.64, 0.66), new THREE.Vector3(0.5, 0.7, 0.5)]), 8, 0.035, 5), C.navy);
+  for (const side of [-1, 1]) flat.add(new THREE.CylinderGeometry(0.05, 0.05, 0.16, 6), C.red, { at: [side * 0.5, 0.7, 0.5], rot: [0, 0, Math.PI / 2] });
+  smooth.add(new THREE.CylinderGeometry(0.34, 0.34, 0.22, 8, 1, true, -0.8, 1.6), '#cfe3dc', { at: [0, 0.5, 0.68], rot: [-0.45, 0, 0], scale: [1, 1, 0.6] });
+  smooth.add(new THREE.CylinderGeometry(0.13, 0.15, 0.1, 10), C.brass, { at: [0, 0.3, 1.32], rot: [Math.PI / 2 - 0.25, 0, 0] });
+  // the aerial for the pennant
+  flat.add(new THREE.CylinderGeometry(0.012, 0.018, 1.05, 4), C.navy, { at: [-0.3, 0.72, -1.38] });
+  const sm = smooth.mesh({ smooth: true, side: THREE.DoubleSide }), fl = flat.mesh();
+  body.add(sm, fl);
+
+  // the rudder: it turns with the steering (animate)
+  const rudder = new THREE.Group();
+  rudder.position.set(0, 0.2, -1.35);
+  const fin = new Paint();
+  fin.add(plate([[0, 0], [-0.32, 0], [-0.55, 0.62], [-0.38, 0.66]], 0.05), C.cream, { rot: [0, Math.PI / 2, 0] });
+  fin.add(plate([[-0.45, 0.42], [-0.55, 0.62], [-0.38, 0.66], [-0.31, 0.46]], 0.07), C.red, { rot: [0, Math.PI / 2, 0] });
+  rudder.add(fin.mesh());
+  body.add(rudder);
+  // the pennant at the aerial's tip: it flutters, harder the faster you go
+  const flagGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, -0.15, 0), new THREE.Vector3(0, -0.07, -0.34)]);
+  flagGeo.computeVertexNormals();
+  const flag = new THREE.Mesh(painted(flagGeo, C.red), paintMaterial({ side: THREE.DoubleSide }));
+  flag.position.set(-0.3, 1.24, -1.38);
+  body.add(flag);
+
+  // what the fluid lights: the jets' caps and the headlamp, and the hover plate under the belly
+  const caps = new THREE.Mesh(mergeGeometries([
+    ...[-1, 1].map((side) => new THREE.CircleGeometry(0.17, 12).rotateY(Math.PI).translate(side * 0.64, -0.12, -1.34)),
+    new THREE.SphereGeometry(0.1, 10, 6).scale(1, 1, 0.5).rotateX(-0.25).translate(0, 0.31, 1.37).toNonIndexed(),
+  ].map((g) => (g.index ? g.toNonIndexed() : g))), makeMaterial({ color: C.cream }));
+  const under = new THREE.Mesh(new THREE.CircleGeometry(1, 20).rotateX(Math.PI / 2).scale(0.42, 1, 1.35).translate(0, -0.33, 0.1), makeMaterial({ color: C.glow }));
+  body.add(caps, under);
+
   // where the rider sits (character feet origin; hips land on the seat)
   const seatAnchor = new THREE.Group();
   seatAnchor.position.set(0, -0.56, -0.4);
   body.add(seatAnchor);
   // the backpack's socket: a brass cradle behind the seat, the engine's port under it
   const { socket, port } = buildSocket(body, { at: [0, 0.21, -1.0], port: [0.2, 0.05, -0.62] });
-  return { root, body, seatAnchor, socket, port };
+  const jets = [new THREE.Vector3(0.64, -0.12, -1.36), new THREE.Vector3(-0.64, -0.12, -1.36)];
+  const animate = (dt, b) => {
+    rudder.rotation.y = THREE.MathUtils.clamp(-b.yawRate * 0.35, -0.5, 0.5);
+    const flow = Math.min(1, Math.abs(b.speed) / 30);
+    flag.rotation.y = Math.sin(b.time * (5 + flow * 9)) * (0.5 - flow * 0.35);
+    flag.scale.set(1, 1, 1 + flow * 0.25);
+  };
+  return { root, body, seatAnchor, socket, port, lights: [caps, under], jets, animate };
 }
 
 /**
@@ -81,16 +125,14 @@ export function buildSocket(body, { at = [0, 0.25, -1.4], port = [0.22, 0.05, -1
   socket.position.set(...at);
   body.add(socket);
   const brass = '#e2b552', dark = '#5f86bf';
-  const ring = part(new THREE.TorusGeometry(0.2, 0.025, 5, 20).rotateX(Math.PI / 2).scale(1.2, 1, 1), brass);
-  ring.position.y = -0.02;
-  const plate = part(new THREE.CylinderGeometry(0.21, 0.23, 0.05, 16).scale(1.2, 1, 1), dark, { flat: true });
-  plate.position.y = -0.045;
-  socket.add(ring, plate);
-  for (const sx of [-1, 1]) {
-    const clamp = part(new THREE.BoxGeometry(0.04, 0.16, 0.06), brass, { flat: true });
-    clamp.position.set(sx * 0.26, 0.06, 0);
-    socket.add(clamp);
-  }
+  // the ring and its two clamps are one brass mesh (the first child: it glows if nothing else does)
+  const ring = part(mergeGeometries([
+    new THREE.TorusGeometry(0.2, 0.025, 5, 20).rotateX(Math.PI / 2).scale(1.2, 1, 1).translate(0, -0.02, 0),
+    ...[-1, 1].map((sx) => new THREE.BoxGeometry(0.04, 0.16, 0.06).translate(sx * 0.26, 0.06, 0)),
+  ].map((g) => g.toNonIndexed())), brass);
+  const base = part(new THREE.CylinderGeometry(0.21, 0.23, 0.05, 16).scale(1.2, 1, 1), dark, { flat: true });
+  base.position.y = -0.045;
+  socket.add(ring, base);
   const p = new THREE.Group();
   p.position.set(...port);
   body.add(p);
@@ -130,13 +172,18 @@ export class Hoverbike {
     this.object = b.root;
     this.body = b.body;
     this.seat = b.seatAnchor;
+    this.jets = b.jets ?? null;          // where the hover trails stream from (body space)
+    this.animate = b.animate ?? null;    // (dt, vehicle): its moving details (a rudder, a flag, a sail)
     // it runs on the backpack: the tank sits in the socket while ridden
     this.powered = opts.powered ?? true;
     if (this.powered) {
       const sk = b.socket ? b : buildSocket(this.body, opts.socket ?? { at: [0, 0.25, -1.45], port: [0.25, 0.1, -1.05] });
       this.socket = sk.socket; this.port = sk.port;
-      this.powerLights = this.makePowerLights();
+      this.powerLights = this.makePowerLights(b.lights);
     }
+    // dormant: not found yet (the desert's bike under its tarp, src/story/desert.js): it lies
+    // where it is, can't be boarded or whistled for, and nothing moves it
+    this.dormant = false;
     this.pos = new THREE.Vector3(8, 0, 4);
     this.pos.y = this.groundAt(8, 1e4, 4) + HOVER;
     this.vel = new THREE.Vector3();
@@ -209,17 +256,43 @@ export class Hoverbike {
    * The parts the fluid lights while the tank sits in the socket: the pods'
    * caps (bike) or the socket's ring, each with its own material.
    */
-  makePowerLights() {
+  makePowerLights(meshes = null) {
     const id = powerId++, lights = [];
-    const caps = [];
-    this.body.traverse((o) => { if (o.isMesh && o.geometry?.type === 'CylinderGeometry' && Math.abs((o.geometry.parameters.height ?? 1) - 0.06) < 1e-6 && Math.abs(o.position.z) > 1) caps.push(o); });
     const add = (o, i) => {
-      o.material = makeMaterial({ color: '#f2e6cc', key: `power.${id}.${i}` });
-      lights.push({ mesh: o, base: new THREE.Color('#f2e6cc') });
+      // each its own material, starting from the colour it was built in
+      const base = o.material?.uniforms?.uColor?.value?.clone() ?? new THREE.Color('#f2e6cc');
+      o.material = makeMaterial({ color: `#${base.getHexString()}`, key: `power.${id}.${i}` });
+      lights.push({ mesh: o, base });
     };
-    caps.forEach(add);
-    if (!caps.length) this.socket.children.slice(0, 1).forEach((o, i) => add(o, 10 + i));
+    if (meshes?.length) meshes.forEach(add);
+    else this.socket.children.slice(0, 1).forEach((o, i) => add(o, 10 + i));
     return lights;
+  }
+
+  /**
+   * Lie still at (x, z), half sunk in the sand and tipped on one side, until
+   * wake(): the bike before it is found.
+   */
+  rest(x, z, heading, { sink = 0.9, tilt = [0.08, 0.2] } = {}) {
+    this.dormant = true;
+    this.auto = null;
+    this.vel.set(0, 0, 0);
+    this.speed = this.yawRate = 0;
+    this.heading = heading;
+    this.pos.set(x, this.groundAt(x, 1e4, z) + HOVER - sink, z);
+    this.pitch = tilt[0]; this.bank = tilt[1];
+    this.object.position.copy(this.pos);
+    this.object.rotation.y = heading;
+    this.body.rotation.set(this.pitch, 0, this.bank);
+    this.object.updateMatrixWorld(true);
+  }
+
+  /** Found: it lifts out of the sand onto its hover spring and works as ever. */
+  wake() {
+    if (!this.dormant) return;
+    this.dormant = false;
+    this.vel.set(0, 3, 0);
+    this.grounded = false;
   }
 
   /** k 0..1: how much the fluid powers it now; tones: the fluid's colours (fluid-tool.js). */
@@ -242,6 +315,7 @@ export class Hoverbike {
 
   /** @param input key state, or null when nobody rides it */
   update(dt, input) {
+    if (this.dormant) return;   // under its tarp: nothing moves it
     this.time += dt;
     const ridden = !!input;
     let [fx, fz] = this.forward;
@@ -343,5 +417,6 @@ export class Hoverbike {
     this.object.position.copy(this.pos);
     this.object.rotation.y = this.heading;
     this.body.rotation.set(this.pitch, 0, this.bank);
+    this.animate?.(dt, this);
   }
 }

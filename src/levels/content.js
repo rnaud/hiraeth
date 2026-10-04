@@ -110,7 +110,13 @@ export const CONTENT = {
           mask: { say: ['~whisper~ The mask sleeps, past the ribs, face to the sky. Don’t wake it. Or do; I don’t think it can.'], do: { start: 'desert.mask' }, choices: [{ text: '~neutral~ I’ll look at it.', end: true }] },
         } } },
       { at: [110, -150], palette: pal('#8a6fb8', { face: '#e6d3b8' }), lines: ['~curious~ Have you seen my bike? It wanders off.'], shy: true,
-        id: 'rook', name: 'Rook', title: 'who lost a bike', color: '#8a6fb8', talk: { nodes: {
+        id: 'rook', name: 'Rook', title: 'who lost a bike', color: '#8a6fb8', talk: {
+          // before you have a hoverbike of your own, Rook sends you to Marrow for one (quest desert.bike)
+          entry: [{ if: { not: { flag: 'desert.bike.found' } }, node: 'walk' }, { node: 'hello' }],
+          nodes: {
+          walk: { say: ['~curious~ Have you seen my bike? It wanders off. You’re on foot too, I see.', '~whisper~ Ask *Marrow at the camps*. Whatever falls out there, he drags home and hides. He had a bike under a tarp last week. It wasn’t mine. I checked.'],
+            do: (ctx) => { if (!ctx.quests?.isStarted('desert.bike') && ctx.quests?.def('desert.bike')) ctx.quests.start('desert.bike'); },
+            choices: [{ text: '~happy~ I’ll ask him. Good luck, Rook.', end: true }] },
           hello: { say: ['~playful~ Have you seen my bike? It wanders off. Yours comes when you whistle, I saw. Mine has opinions.'], choices: [{ text: '~playful~ What does yours think?', goto: 'op' }, { text: '~happy~ Good luck, Rook.', end: true }] },
           op: { say: ['~tired~ That I walk too slowly and talk too much. It went to see the procession, I bet. Everyone goes to see the procession.'], choices: [{ text: '~happy~ Good luck.', end: true }] },
         } } },

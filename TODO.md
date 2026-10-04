@@ -184,8 +184,8 @@ Grouped by area. Checked items are done; the changelog says when.
   make it a shader.
 - [x] A test level for materials: metal, rock, clouds, etc. (`?level=lab`; a real metal
   surface is still to do)
-- [ ] No hover bike until I first find it; add a mission to find it.
-- [ ] Redesign the taxis and the hover car.
+- [x] No hover bike until I first find it; add a mission to find it.
+- [x] Redesign the taxis and the hover car.
 - [ ] More flowers and plants, some large; each planet has its own flora (no
   reuse), and plants grow in clusters instead of being scattered (as in Edena).
 - [x] Level 2: the area of the man by the trees is crowded and hard to see; the
