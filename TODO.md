@@ -104,6 +104,9 @@ Grouped by area. Checked items are done; the changelog says when.
 
 ## HUD, menus and prompts
 
+- [ ] A title screen, and a save selector (up to 5 saves) at the start of the
+  game: continue a save, start a new one, or delete one.
+
 - [x] Too much on screen: remove all the button reminders.
 - [x] With a controller (e.g. Retroid Pocket), show no on-screen buttons.
 - [x] Button prompts use a small rounded icon, not a square.
