@@ -2,6 +2,14 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.45 — 2026-10-05
+
+- The ship now has a reason for its route: whatever struck it left a magnetic signature in the scar on the hull, and the ship flies only to worlds that carry the same signature.
+- The galactic map marks every signature world with the glyph, shows its reading, and explains the signature beside the chart.
+- The ship mentions the signature after the crash, the first time the map opens, and on first arrival at each world; newly charted worlds say it reads there too.
+- A few people across the worlds now notice the strange pull the light left on compasses and metal.
+- Odile and Talo’s names are now right on the saucer’s console and on Talo’s note.
+
 ## v0.44 — 2026-10-04
 
 - The traveller is a real person again: normal proportions and a natural stance, in a baggy lavender suit with salmon gloves and boots, the bubble helmet sitting right round their head, headphones on their ears, a scarf, a belt of pouches and the radio pack strapped on their back.

@@ -283,9 +283,9 @@ To start after the current work lands. Ordered from easiest to most complex.
 
 ## Lore
 
-- [ ] A reason to visit these planets and not others: they all carry the same magnetic
+- [x] A reason to visit these planets and not others: they all carry the same magnetic
   signature as the thing that hit the ship (the map and the scout show it).
-- [ ] LORE.md: a summary of the story and the lore in one place, to read and edit.
+- [x] LORE.md: a summary of the story and the lore in one place, to read and edit.
 
 ## Spaceship
 
