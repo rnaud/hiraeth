@@ -7,6 +7,7 @@ import { PROLOGUE_CALL, recordingSpan, onHologram, recordingLabel } from '../sto
 import { callTimeline } from './prologue.js';
 import * as sfx from './sfx.js';
 import { exhaust, footPuffs } from './exhaust.js';
+import { showChargeCard, GIVEN as CHARGE_GIVEN, CARD as CHARGE_CARD, CHARGE_CARD_MS } from '../story/charge.js';
 
 // What the ship's cinematics look like: cameras, the moving ship, dust,
 // sounds, subtitles. The prologue's timing lives in prologue.js; the
@@ -159,6 +160,7 @@ export class PrologueDirector {
         s.crashSite?.reveal(1);
         if (s.crashSite) s.crashSite.berm.visible = true;
         s.startSmoke = true;
+        this.giveCharge();   // as the dust clears: his last words, lettered over the crash (src/story/charge.js)
         break;
       case 'hatch':
         pk.lightsOff = false;
@@ -334,9 +336,21 @@ export class PrologueDirector {
     return true;
   }
 
+  /** The father's charge, given once: its title card and its sound. */
+  giveCharge() {
+    if (game.flag(CHARGE_CARD)) return;
+    game.set(CHARGE_GIVEN, true); game.set(CHARGE_CARD, true);
+    this.cardUntil = (typeof performance !== 'undefined' ? performance.now() : 0) + CHARGE_CARD_MS;
+    showChargeCard({ sound: this.s.sound });
+  }
+
   finish(skipped) {
     const s = this.s, C = s.cinema, pk = this.pk;
     s.holo?.clear();
+    // skipped before the dust cleared: the charge is still given, and the objective waits for its card
+    if (skipped) this.giveCharge();
+    game.set(CHARGE_GIVEN, true);
+    const wait = Math.max(0, (this.cardUntil ?? 0) - (typeof performance !== 'undefined' ? performance.now() : 0));
     if (skipped) {
       C.clear();
       s.auto = null;
@@ -355,13 +369,13 @@ export class PrologueDirector {
       s.rig.yaw = a.heading + Math.PI + STEP_OUT_YAW; s.rig.pitch = 0.08;
       s.rig.target.copy(a.pos);
       s.cam = null; s.blend = null;
-      C.objective(stepOutObjective());
+      if (wait > 0) setTimeout(() => C.objective(stepOutObjective()), wait - 500); else C.objective(stepOutObjective());
     } else {
       C.say(null); C.hint(null); C.hud(true); C.bars(false);
     }
     game.set('objective', OBJECTIVE);
     game.set('ship.level', 'desert');
-    setTimeout(() => s.onReady?.(), 6800);   // after the objective card (6.5 s) has faded, never on top of it
+    setTimeout(() => s.onReady?.(), 6800 + (skipped ? Math.max(0, wait - 500) : 0));   // after the objective card (6.5 s) has faded, never on top of it
   }
 }
 
