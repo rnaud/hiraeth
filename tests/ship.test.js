@@ -9,7 +9,7 @@ import { DECK, R } from '../src/ship/hull.js';
 import { polar } from '../src/ship/geo.js';
 import { findShipSite, siteAvoid, probeSite, SITE_OVERRIDES } from '../src/ship/sites.js';
 import { consoleAction, mapEntries } from '../src/ship/starmap.js';
-import { pendingCall, callLines, completedWorlds, CALL_COUNT, PROLOGUE_CALL } from '../src/story/calls.js';
+import { pendingCall, callLines, completedWorlds, applyCall, CALL_COUNT, ILEN_CALL, PROLOGUE_CALL } from '../src/story/calls.js';
 import { Prologue, PROLOGUE_STAGES } from '../src/ship/prologue.js';
 import { LEVELS } from '../src/levels/index.js';
 import { CONTENT, ORDER } from '../src/levels/content.js';
@@ -149,6 +149,17 @@ test('calls home: one per completed world, each heard once, the mother from the 
   assert.ok(callLines(2, { keepsake: { name: 'x', kind: 'song' } }).some((l) => /song/i.test(l.text)), 'he reacts to a song');
   assert.ok(callLines(3, { keepsake: { name: 'x', kind: 'person' } }).some((l) => l.who === 'mother' && /Who/.test(l.text)), 'she asks who you met');
   assert.ok(PROLOGUE_CALL.some((l) => l.text === 'My son, make us proud. Bring back something of value.'));
+  // one call per world on the route; the mother's own call (Ilen) waits once he has been asked and the ship has flown on
+  assert.equal(CALL_COUNT, ORDER.length);
+  const flags = { 'calls.ilen.asked': true, 'calls.ilen.at': 'bazaar', 'ship.level': 'bazaar' };
+  assert.equal(pendingCall({ flag: (k) => flags[k], completed: 0 }), null);
+  flags['ship.level'] = 'edena';
+  assert.equal(pendingCall({ flag: (k) => flags[k], completed: 0 }), ILEN_CALL);
+  assert.ok(callLines(ILEN_CALL, { flag: (k) => flags[k] }).every((l) => l.who === 'mother'), 'her call is hers alone');
+  // what a call carries is set once it is heard
+  const g2 = new GameState({ getItem: () => null, setItem: () => {} });
+  applyCall(g2, callLines(6, { keepsake: { name: 'x', kind: 'song' }, flag: () => undefined }));
+  assert.equal(g2.flag('calls.home'), true, 'the sixth call asks you home');
 });
 
 test('the prologue plays through to the end and sets prologue.done', () => {

@@ -23,7 +23,7 @@ export const HOME_SPOTS = {
   door: new THREE.Vector3(0, 0, 25.6),    // the threshold, facing -z (the landing ring)
   father: [-1.5, 15.5],
   mother: [1.6, 16],
-  meet: new THREE.Vector3(0, 0, 11.5),    // where the traveller stops, facing the door
+  meet: new THREE.Vector3(0, 0, 13),    // where the traveller stops, facing the door
   ship: { x: 0, z: -22, heading: 0 },     // the landing ring: the hatch faces the house
 };
 
@@ -48,11 +48,11 @@ export const HOME_CONTENT = {
     label: 'the door', goal: [0, 'ground', 26], radius: 5, manual: true,
   },
   relics: { spots: [], names: [] },
-  gate: { at: [-64, 46], heading: Math.PI / 2 },
+  gate: { at: [96, -70], heading: -Math.PI / 2 },
   npcs: [
     {
       at: HOME_SPOTS.father, radius: 0.5, speed: 0.35, head: 'wrap', cape: 0,
-      palette: { cloak: '#f3ead8', lining: '#7a3a35', cloth: '#7a3a35', legs: '#2b2f45', hat: '#3a2f2a', hair: '#b8b0a4' },
+      palette: { cloak: '#f3ead8', lining: '#7a3a35', cloth: '#b5473a', legs: '#2b2f45', hat: '#3d4a80', hair: '#b8b0a4' },   // as on the call screen: a blue band, a red coat
       lines: ['The ship looks well.', 'Your mother kept your room.', 'Hm.'],
       id: 'father', name: 'Your father', title: 'at home', color: '#7a3a35', voice: 0.7,
       talk: {
@@ -82,8 +82,8 @@ export const HOME_CONTENT = {
       },
     },
     {
-      at: HOME_SPOTS.mother, radius: 0.5, speed: 0.35, head: 'hair', cape: 0.55,
-      palette: { cloak: '#277e86', lining: '#f2c49a', cloth: '#f2c49a', legs: '#34405e', hat: '#277e86', hair: '#5a4038' },
+      at: HOME_SPOTS.mother, radius: 0.5, speed: 0.35, head: 'hat', cape: 0.55,
+      palette: { cloak: '#277e86', lining: '#f2c49a', cloth: '#d9503f', legs: '#34405e', hat: '#5fb7ad', hair: '#5a4038' },   // a teal cap, a red top
       lines: ['Eat something warm.', 'Come here, let me look at you.', 'You stand differently now.'],
       id: 'mother', name: 'Your mother', title: 'at home', color: '#277e86', voice: 1.0,
       talk: {
@@ -228,7 +228,7 @@ export function createHome(scene) {
     const parts = [];
     for (let i = 0; i < 11; i++) {
       const a = i * 0.83 + 0.4, r = 520 + (i % 3) * 70;
-      const x = Math.cos(a) * r, z = Math.sin(a) * r, w = 30 + (i % 4) * 14, h = 60 + (i % 5) * 26;
+      const x = Math.cos(a) * r, z = Math.sin(a) * r, w = 55 + (i % 4) * 22, h = 34 + (i % 5) * 14;
       parts.push(new THREE.CylinderGeometry(w * 0.82, w, h, 9, 1).translate(x, H(x, z) + h / 2 - 6, z).toNonIndexed());
     }
     const mesas = add(mergeGeometries(parts), mat('#b9a3c9', { color2: '#d8b7c4', color3: '#9a8fb8', mode: MODE_STRATA, strataSize: 9 }));

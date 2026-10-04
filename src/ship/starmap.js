@@ -50,7 +50,7 @@ const CSS = `
 #starmap .world.done .tag { color: #f2c54b; }
 #starmap .world.unvisited .disc { filter: grayscale(.8) brightness(.7); border-style: dashed; }
 #starmap .world.current .disc { border-color: #e6875f; box-shadow: 0 0 0 3px #1f2747, 0 0 0 6px #e6875f; }
-#starmap .world.home .disc { position: relative; background: radial-gradient(circle at 50% 70%, #f6c89a 0 34%, #f2c54b 35% 38%, #4a5a8a 39%); border-color: #f2c54b; }
+#starmap .world.home .disc { position: relative; width: 50px; height: 50px; background: radial-gradient(circle at 50% 70%, #f6c89a 0 34%, #f2c54b 35% 38%, #4a5a8a 39%); border-color: #f2c54b; }
 #starmap .world.home .disc::after { content: '⌂'; position: absolute; inset: 0; display: grid; place-items: center; font-size: 30px; color: #2b211f; }
 #starmap .world.home .tag { color: #f2c54b; }
 #starmap .world.sel .disc, #starmap .world:hover .disc, #starmap .world:focus .disc { transform: scale(1.18); border-color: #f2c54b; }
@@ -107,7 +107,7 @@ export class StarMap {
     const worlds = this.entries.filter((e) => !e.home);
     const pts = this.layout(worlds.length);
     const path = pts.map(([x, y], i) => `${i ? 'L' : 'M'}${x} ${y}`).join(' ');
-    pts.push(...this.entries.filter((e) => e.home).map(() => [38, 52]));   // home: the centre the route spirals out from
+    pts.push(...this.entries.filter((e) => e.home).map(() => [38.5, 59]));   // home: just under the centre the route spirals out from
     this.el.innerHTML = `<div class="chart">
       <svg viewBox="0 0 100 100" preserveAspectRatio="none">
         <ellipse cx="38" cy="52" rx="2.6" ry="4" fill="#f2c54b" stroke="#2b211f" stroke-width=".3"/>

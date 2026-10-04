@@ -96,7 +96,7 @@ export class CallScreen {
     if (s.who === 'both') {
       this.drawFather(g, S * 0.33, S * 0.6 + bob, S * 0.78, s, s.speaker === 'father');
       this.drawMother(g, S * 0.7, S * 0.64 - bob, S * 0.74, s, s.speaker === 'mother');
-    } else if (s.who === 'mother') this.drawMother(g, S * 0.5, S * 0.6 + bob, S * 0.95, s, true);   // her own call
+    } else if (s.who === 'mother') this.drawMother(g, S * 0.5, S * 0.7 + bob, S * 0.82, s, true);   // her own call
     else this.drawFather(g, S * 0.5, S * 0.58 + bob, S, s, true);
   }
 

@@ -32,9 +32,10 @@ const smooth = (t) => { t = THREE.MathUtils.clamp(t, 0, 1); return t * t * (3 - 
 const seg = (t, a, b) => THREE.MathUtils.clamp((t - a) / (b - a), 0, 1);
 const GRASS = ['#eebd8e', '#e3a97c', '#f2c49a', '#d9a37f'];
 const SKIP_HOLD = 0.9;
+const _aim = new THREE.Vector3();
 
 const CSS = `
-#homeward { position: fixed; right: 4vw; top: 13vh; bottom: 14vh; width: min(470px, 46vw); z-index: 8100; display: none; flex-direction: column;
+#homeward { position: fixed; right: 4vw; top: calc(11vh + 14px); bottom: calc(11vh + 66px); width: min(470px, 46vw); z-index: 8100; display: none; flex-direction: column;
   background: #f7ecd2; color: #2b211f; border: 2px solid #2b211f; box-shadow: 7px 7px 0 #2b211f; font: 13px/1.4 ui-monospace, Menlo, monospace; }
 #homeward.open { display: flex; }
 #homeward header { padding: 12px 16px 8px; border-bottom: 2px solid #2b211f; }
@@ -212,7 +213,7 @@ export class HomecomingDirector {
 
   W(v) { return this.s.world(this.sp, v); }
   npc(i) { return (this.s.npcs ?? [])[i] ?? null; }
-  ground(x, z) { return this.s.groundAt(x, z); }
+  ground(x, z) { const h = this.s.heightAt?.(x, z); return Number.isFinite(h) ? h : this.s.groundAt(x, z); }   // the terrain, never the ship's roof
   at(x, y, z) { return V(x, this.ground(x, z) + y, z); }
 
   start() { this.next(); }
@@ -372,19 +373,22 @@ export class HomecomingDirector {
           if (t > 1.6 && !this.said) { this.said = true; C.say({ who: 'ship', text: 'Out of the jump. Home is below us.' }); }
           if (t > 5.4 && !this.said2) { this.said2 = true; C.say(null); }
         }
-        if (id === 'choose') this.panel?.pad();
+        if (id === 'choose') {
+          this.panel?.pad();
+          if (t > 3.6 && !this.chosen && !this.quiet) { this.quiet = true; C.say(null); }   // the panel asks the rest
+        }
         if (dive) s.shake(0.4 * dive);
         break;
       }
       case 'descend': {
         const k = 1 - Math.pow(1 - Math.min(1, t / 6.0), 3);
         pk.group.position.copy(this.top).lerp(s.restPos, k);
-        // from behind the parents at the door, looking up at the ship coming down
-        const cam = this.at(4.2, 1.5, HOME_SPOTS.door.z - 3.2);
-        this.look.lerp(pk.group.position, t < 0.05 ? 1 : 1 - Math.exp(-5 * dt));
-        s.shot({ pos: cam, look: this.look, fov: 50 });
+        const cam = this.at(3.4, 3.0, HOME_SPOTS.door.z - 1.2);   // behind the parents at the door, looking out over the ring
+        _aim.copy(pk.group.position).setY(Math.min(pk.group.position.y * 0.5, s.restPos.y * 0.5 + 24));   // the parents' heads stay in the frame
+        this.look.lerp(_aim, t < 0.05 ? 1 : 1 - Math.exp(-5 * dt));
+        s.shot({ pos: cam, look: this.look, fov: 56 });
         const h = pk.group.position.y - s.restPos.y;
-        if (h < 40 && Math.random() < 0.8) for (let i = 0; i < 2; i++) {
+        if (h < 26 && Math.random() < 0.45) {   // a little dust off the ring: home is grass, not sand
           const a = Math.random() * Math.PI * 2, r = R * (0.6 + Math.random() * 0.6);
           const at = s.restPos.clone().add(V(Math.sin(a) * r, 0, Math.cos(a) * r));
           at.y = s.groundAt(at.x, at.z) + 0.8;
@@ -424,17 +428,19 @@ export class HomecomingDirector {
         if (cur === this.tl.lines[this.tl.lines.length - 1]) {
           // the closing line: wide, the house, the lamp, the three of them small in front of it
           const k = smooth(this.shotT / 6);
-          shot = { pos: this.at(-3 + k * 2, 6 + k * 3, -9 - k * 3), look: this.at(0, 3.5, HOME_SPOTS.house.z - 6), fov: 46 };
-        } else if (who === 'father') shot = { pos: p.clone().add(V(0.95, 1.72, -1.5 + push)), look: fHead, fov: 40 };
-        else if (who === 'mother') shot = { pos: p.clone().add(V(-0.95, 1.72, -1.5 + push)), look: mHead, fov: 40 };
-        else shot = { pos: this.at(5.5 - push * 2, 2.0, 7.5), look: fHead.clone().lerp(mHead, 0.5).lerp(p.clone().add(V(0, 1.4, 0)), 0.45), fov: 44 };
+          shot = { pos: this.at(-7 + k * 1.5, 3.4 + k * 1.2, p.z - 9 - k * 2), look: this.at(0, 2.6, HOME_SPOTS.door.z - 2), fov: 44 };
+        } else if (who === 'father' || who === 'mother') {
+          // over the traveller's shoulder, from the speaker's side so the traveller is only an edge of the frame
+          const head = who === 'father' ? fHead : mHead, side = Math.sign(head.x - p.x) || 1;
+          shot = { pos: p.clone().add(V(side * 2.1, 1.9, -2.3 + push)), look: head, fov: 36 };
+        } else shot = { pos: this.at(6.5 - push * 2, 2.2, p.z - 3.5), look: fHead.clone().lerp(mHead, 0.5).lerp(p.clone().add(V(0, 1.4, 0)), 0.45), fov: 44 };
         s.shot(shot);
         break;
       }
       case 'credits': {
         this.credits?.update(dt);
         const k = smooth(t / 30);
-        s.shot({ pos: this.at(-1 + k * 4, 9 + k * 10, -12 - k * 10), look: this.at(0, 3 + k * 4, HOME_SPOTS.house.z - 4), fov: 46 });
+        s.shot({ pos: this.at(-8 + k * 3, 3.6 + k * 6, -2 - k * 8), look: this.at(0, 3 + k * 3, HOME_SPOTS.door.z), fov: 46 });
         break;
       }
     }
