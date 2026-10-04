@@ -384,10 +384,10 @@ export function buildDesertCity(scene, terrain) {
     root.add(treeGroup);
     const flames = new Flames(treeGroup, tongues, { seed: 7 });
     const crown = city.world(TREE.x, top + 30 * S, TREE.z);
-    const embers = new Embers(root, [...limbs.map((p) => city.world(p.x, p.y + 5 * S, p.z)), crown], { count: 140, rise: 2.4, life: 6, spread: 3, size: 0.32 });
+    const embers = new Embers(root, [...limbs.map((p) => city.world(p.x, p.y + 5 * S, p.z)), crown], { count: 70, rise: 2.4, life: 6, spread: 3, size: 0.6, color: '#fff3c4' });
     embers.mesh.boundingSphere = new THREE.Sphere(crown.clone(), 45); embers.mesh.frustumCulled = true;
     const treeLight = new THREE.Vector4(crown.x, crown.y - 12, crown.z, 90);
-    const treeLight2 = new THREE.Vector4(crown.x, top + floor + 4, crown.z, 34);
+    const treeLight2 = new THREE.Vector4(crown.x, top + floor + 6, crown.z, 58);   // the plaza and the nearest roofs, warm at night
     lights.push(treeLight, treeLight2);
 
     // the dry well at the tree's roots, and the carved stele beside it
@@ -434,7 +434,7 @@ export function buildDesertCity(scene, terrain) {
       lights.push(new THREE.Vector4(fp.x, fp.y, fp.z, f.big ? 16 : 11));
       out.fires.push(fp);
       const sp = camp.world(f.x, 2.5, f.z);
-      const smoke = new Smoke(root, sp, { count: f.big ? 26 : 18, height: f.big ? 26 : 16, size: f.big ? 0.9 : 0.65 });
+      const smoke = new Smoke(root, sp, { count: f.big ? 18 : 12, height: f.big ? 26 : 16, size: f.big ? 1.25 : 0.9 });
       smoke.mid = sp.clone().add(V(0, f.big ? 13 : 8, 0));
       smoke.mesh.boundingSphere = new THREE.Sphere(smoke.mid.clone(), f.big ? 22 : 15); smoke.mesh.frustumCulled = true;
       smokes.push(smoke);
@@ -663,7 +663,9 @@ export function buildDesertCity(scene, terrain) {
     treeDt += dt;
     const every = dCity < 250 ? 1 : dCity < 700 ? 2 : 4;
     if (dCity < 1500 && frameNo % every === 0 && seen(out.city.crown, 45)) { out.city.flames.update(treeDt, t); treeDt = 0; }
-    if (dCity < 500 && seen(out.city.crown, 40)) out.city.embers.update(dt, t, player?.wind);
+    // sparks are a close-up detail (far away they'd read as specks of ink)
+    out.city.embers.mesh.visible = dCity < 220;
+    if (dCity < 220 && seen(out.city.crown, 40)) out.city.embers.update(dt, t, player?.wind);
     // the cave: drawn only when you're down there
     const inCave = _cam.distanceTo(O) < 300;
     cv.group.visible = inCave; cv.pool.visible = inCave; cv.stream.visible = inCave && cv.streamOn; cv.pond.visible = inCave; cv.bone.visible = inCave;

@@ -152,7 +152,7 @@ export class Embers {
 export class Smoke {
   constructor(parent, at, { count = 34, height = 16, size = 0.75, color = '#efe6d6', lean = new THREE.Vector3(1, 0, 0.4) } = {}) {
     this.at = at.clone(); this.height = height; this.size = size; this.lean = lean.clone().normalize();
-    this.mesh = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 1), makeMaterial({ color, glow: 0.65, flat: true }), count);
+    this.mesh = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 1), makeMaterial({ color, glow: 0.8, flat: true }), count);
     this.mesh.userData.noCollide = true;
     this.mesh.frustumCulled = false;
     parent.add(this.mesh);
