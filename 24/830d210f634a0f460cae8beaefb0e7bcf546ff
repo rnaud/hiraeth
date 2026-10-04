@@ -1,0 +1,35 @@
+docs/game-brief.md
+  s_1fd8d0e7b02dcf::t_ee8d30dd57394a 119
+src/ship/starmap.js
+  s_1fd8d0e7b02dcf::t_9d6def7e542919 116
+src/story/calls.js
+  s_1fd8d0e7b02dcf::t_cd8f10cd685d8f 124-133,295,318,321,354,357,365-366
+docs/story-bible.md
+  s_25e98d198a8396::t_3379b7bd9c4900 164-181,214-227
+src/ship/homecoming.js
+  s_25e98d198a8396::t_61e27c5e797b6c 339
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "24830d210f634a0f460cae8beaefb0e7bcf546ff",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_25e98d198a8396": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ab7531dbc1d9cff63",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
