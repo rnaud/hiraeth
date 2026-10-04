@@ -175,10 +175,27 @@ bring home. The father's reaction depends on its kind; the mother's does not.
 | Buried Machine | the Maker's Thumb | the Tuning Star (Hask, Dun) |
 | Edena | the Builders' mark (Oro) | the Singer (Atan's word, Sol) |
 | Garden of Spheres | the Footprint, under every sphere (Ivo) | an Answerer (Ume) |
+| Perdide | the Hush: three drops of rain over a shut mouth | Sedge saw it fall the night before the crash; the crystal's 213th phrase is its song |
+| Perdide II | the Welcome: three lamps over a hull | Wick saw it put the pools out |
+| City-Shaft | the palace seal (rim), the Three Who Look Up (bottom) | it passed over the shaft and the Incal rang back; it left "toward the deserts" |
+| Signal Market | the First Sign (Sel), the tuning mark (Ferro) | the unsent recording "came in singing" (Kip) |
 
 Built details beyond the bible: the bird's promise (`bird.promise`) could later
 let her answer a whistle in other worlds; Arzach II's clapper "fell up"; the
 Major once visited the wheel and wrote "FOUND IT. NOW WHAT?" on the drum wall;
 Stel and Atan left in the saucer for the deep wood where the lamps are kept;
 each sphere remembers the last sound it heard before falling.
+
+More built details: the Great Crystal adds a crystal-violet band to the tank,
+and Wendel gives a second keepsake ("The patient are never eaten"). Hollin has
+kept the deep wood's lamps for 41 years; Stel and Atan borrowed Fen's skiff and
+left "the long way" through the root cave. The City-Shaft's rule: a light
+nobody looks at goes out. The Signal Market's rule: the first thing anyone ever
+sold there was an answer.
+
+**Open thread: Ilen.** The Signal Market's broadcast is the father, years
+younger, speaking to a child called Ilen, with the same words he said to his
+own son. Sel offers two readings: he once had someone else to call home, or he
+lent his voice to another family through the old relays. Later calls home, and
+the mother, could pick this up.
 
