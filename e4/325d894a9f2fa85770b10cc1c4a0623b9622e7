@@ -1,0 +1,49 @@
+README.md
+  s_1fd8d0e7b02dcf::t_4e652b37ba0760 714,1022
+docs/story-bible.md
+  s_1fd8d0e7b02dcf::t_c7a3a5777141bc 21,159,166,286
+src/levels/content.js
+  s_1fd8d0e7b02dcf::t_75b1694b96cb60 125,127,136
+src/levels/incal.js
+  s_1fd8d0e7b02dcf::t_76c24602afc7b2 346-347,541,547,566,596,737,762,839
+src/story/incal-data.js
+  s_1fd8d0e7b02dcf::t_3d1d09a3c43e5f 3,7,22,27,33,37-39,89,99,128,199,384,426,452,471,475
+src/story/incal.js
+  s_1fd8d0e7b02dcf::t_ba1db88d27ab7e 17,232
+src/story/index.js
+  s_1fd8d0e7b02dcf::t_1473d70d96a4e5 205
+src/story/voice.js
+  s_1fd8d0e7b02dcf::t_b3765860766f7c 111
+tests/story-incal.test.js
+  s_1fd8d0e7b02dcf::t_590eaecd1beedf 142
+TODO.md
+  s_c76bb594939574::t_17ca5955c725f9 191-193
+changelog.md
+  s_c76bb594939574::t_f022d8be8314f2 12
+src/changelog.js
+  s_c76bb594939574::t_a5d956b8f210b6 12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e4325d894a9f2fa85770b10cc1c4a0623b9622e7",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_c76bb594939574": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a58fa2a080b4d8b07",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
