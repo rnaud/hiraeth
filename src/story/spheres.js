@@ -4,21 +4,22 @@ import { makeMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { Puffs, ownMaterial } from './puffs.js';
-import { QUESTS, PEOPLE, THINGS, ITEMS, SOUNDS, LISTEN_TIME } from './spheres-data.js';
+import { QUESTS, PEOPLE, THINGS, ITEMS, SOUNDS, orbDegree } from './spheres-data.js';
 
 // The Garden of Spheres' story, alive (spheres-data.js has the words).
 //
 //   the grove    Aube, the listener (a level person), near the start
 //   the lake     Nell on the south shore; the glint in the water (shoot it)
 //   the hill     Ivo, who has looked under a sphere
-//   the spheres  three that remember: stand still beside one and a ring of
-//                light closes round its foot, then it plays its sound (a band
-//                of its own) and rings ripple out over the meadow
+//   the spheres  every great sphere rings its own note when the fluid touches
+//                it (shoot them: the garden is an instrument); three remember
+//                more: splashed, a ring of light closes round its foot, it
+//                plays its sound (then a band of its own) and rings ripple out
 //   the avenue   Cael walking it slowly; white bells along its edges open
 //                as you pass, and shut if you run or jump
-//   the plaza    Ume by the pole; stand still by the pole with the three
-//                sounds and it plays them together (the great sphere on the
-//                horizon answers with a halo)
+//   the plaza    Ume by the pole; splash the pole with the three sounds and
+//                it plays them back as one little tune, then together (the
+//                great sphere on the horizon answers with a halo)
 //
 // Flags (game-state.js): spheres.aube.heard, spheres.heard.bell / chant /
 // drum, spheres.heard.three, spheres.chord.heard, spheres.rumour.light,
@@ -28,7 +29,6 @@ import { QUESTS, PEOPLE, THINGS, ITEMS, SOUNDS, LISTEN_TIME } from './spheres-da
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const ease = (t) => t * t * (3 - 2 * t);
-export const POLE_TIME = 5;   // s of standing still by the pole
 
 export function setupSpheres(ctx) {
   const { level, physics, player, quests, dialogue, game, sound, story, spawn, scene, toast, npcs } = ctx;
@@ -82,15 +82,30 @@ export function setupSpheres(ctx) {
   });
   const remember = (s) => {
     game.set(`spheres.heard.${s.id}`, true);
-    s.pulseT = 0; s.voice = 1; s.voiceT = 14;
+    s.pulseT = 0; s.voice = 1; s.voiceT = 14; s.k = 1;
     toast(`The sphere remembers: ${SOUNDS[s.id].text}.`);
-    sound.chime?.();
     if (s.id === 'drum') {
       game.set('clue.spheres.desert', true);
       if (game.flag('desert.teo.drumming') || game.flag('world.desert.done')) setTimeout(() => toast('Dum, tek-dum. You know this rhythm: the pilgrims walked to it, round the burning tree in the desert.'), 3800);
     }
     if (count() >= 3) game.set('spheres.heard.three', true);
   };
+  // every great sphere is a note: shoot one and it rings (bigger, lower); the three that remember play their sound
+  const rememberer = (o) => L.find((s) => s.o === o);
+  const orbHit = (o) => (mode, point) => {
+    const at = V(o.x, o.y, o.z), s = rememberer(o), soft = mode === 'push';
+    motes.burst(point ?? at, { n: soft ? 2 : 5, rise: 1.6, size: 0.25 + Math.min(o.R, 40) * 0.006, spread: 1, life: 2.2 });
+    if (!s) { sound.orbNote?.(orbDegree(o.R), at, { size: Math.min(1, o.R / 46), soft }); return true; }
+    s.flash = 1;
+    sound.remembered?.(SOUNDS[s.id].part, at, { vol: soft ? 0.6 : 1 });
+    if (!heard(s.id)) remember(s);
+    return true;
+  };
+  for (const o of G.orbs ?? []) {
+    if (o.R > 100) continue;   // (the great sphere on the horizon is out of reach)
+    const c = V(o.x, o.y, o.z);
+    registerTarget({ kind: 'orb', radius: o.R, position: () => c, enabled: () => flat(player.pos, o) < o.R + 70, onHit: orbHit(o), orb: o });
+  }
 
   // ---------------------------------------------------------------- the pole, its hum, and the chord
   const polePos = V(Pz.x, Pz.ground + 1, Pz.z + 2.2);
@@ -107,17 +122,32 @@ export function setupSpheres(ctx) {
   halo.position.set(Gr.x, Gr.y, Gr.z);
   halo.visible = false; halo.userData.noCollide = true;
   scene.add(halo);
-  const st = { pole: 0, chordT: game.flag('spheres.chord.heard') ? 99 : -1, still: 0, walk: null, walkBest: 0, bellsDirty: true };
+  const st = { pole: 0, poleHinted: false, chordT: game.flag('spheres.chord.heard') ? 99 : -1, still: 0, walk: null, walkBest: 0, bellsDirty: true };
   const chord = () => {
     game.set('spheres.chord.heard', true);
     st.chordT = 0;
     const b = sound.band?.('pole');
     if (b) { b.parts = ['bell', 'chant', 'drum', ...(game.flag('spheres.pebble.placed') ? ['ney'] : [])]; b.vol = 1; b.radius = 140; }
     sound.setBandMode?.('pole', 'near');
-    for (const s of L) { s.voice = Math.max(s.voice, 0.6); s.voiceT = 20; s.pulseT = 0; }
-    toast('The pole sings them back: the bell, the voices and the drum, all at once. On the horizon the great sphere answers.');
-    sound.chime?.();
+    // first as one little tune, the bell carrying it over the voices and the drum; then the band holds the chord
+    const len = sound.spheresSong?.(V(Pz.x, Pz.top, Pz.z), { ney: !!game.flag('spheres.pebble.placed') }) ?? 0;
+    if (b && len) { b.vol = 0.15; setTimeout(() => { b.vol = 1; }, len * 1000); }
+    for (const s of L) { s.voice = Math.max(s.voice, 0.6); s.voiceT = 20 + len; s.pulseT = 0; }
+    toast('The pole sings them back: the bell, the voices and the drum, one tune, then all at once. On the horizon the great sphere answers.');
   };
+  // splash the pole: with the three sounds (and the plaza reached), the chord; before that, only its own hum
+  const poleHit = (mode, point) => {
+    motes.burst(point ?? V(Pz.x, Pz.top, Pz.z), { n: 4, rise: 1.4, size: 0.22, spread: 0.8, life: 2 });
+    if (game.flag('spheres.chord.heard')) { sound.orbNote?.(0, V(Pz.x, Pz.top, Pz.z), { size: 0.3, soft: mode === 'push' }); return true; }
+    if (game.flag('spheres.heard.three') && quests.reached(Q, 'pole')) { chord(); return true; }
+    sound.orbNote?.(0, V(Pz.x, Pz.top, Pz.z), { size: 0.3, soft: true });
+    if (!st.poleHinted) { st.poleHinted = true; toast(count() < 3 ? `The pole hums its one note back at you. It is waiting for more than that: ${count()} of the three sounds.` : 'The pole hums back. Come onto the plaza and give it a splash there.'); }
+    return true;
+  };
+  for (const [dy, r] of [[2.5, 1.3], [6, 1.3], [10, 1.3], [14, 1.3], [Pz.top - Pz.ground, 1.6]]) {
+    const c = V(Pz.x, Pz.ground + dy, Pz.z);
+    registerTarget({ kind: 'pole', radius: r, position: () => c, enabled: () => flat(player.pos, pole) < 80, onHit: poleHit });
+  }
 
   // ---------------------------------------------------------------- the lake's reflection: the glint, the pebble
   const Lk = G.lake;
@@ -217,21 +247,18 @@ export function setupSpheres(ctx) {
     const still = speed < 0.45 && grounded && !player.climbing && !player.riding && !dialogue.open;
     st.still = still ? st.still + dt : 0;
 
-    // listening: stand still beside a sphere and its ring of light closes; then it remembers
+    // the spheres that remember: the ring round its foot flares when the fluid lands, and closes as it remembers
     for (const s of L) {
-      const d = flat(pp, s.centre), inRange = d < s.o.R + 12 && pp.y < s.centre.y + s.o.R + 3;
-      if (inRange && !s.near && !heard(s.id) && !s.hinted && game.flag('spheres.aube.heard')) { s.hinted = true; toast('Stand still beside it, and listen.'); }
+      const d = flat(pp, s.centre), inRange = d < s.o.R + 30 && pp.y < s.centre.y + s.o.R + 3;
+      if (inRange && !s.near && !heard(s.id) && !s.hinted && game.flag('spheres.aube.heard')) { s.hinted = true; toast('Give it a splash of your fluid, and listen.'); }
       s.near = inRange;
-      if (!heard(s.id)) {
-        if (inRange && still) s.k = Math.min(1, s.k + dt / LISTEN_TIME); else s.k = Math.max(0, s.k - dt * 0.6);
-        if (s.k >= 1) remember(s);
-        if (s.k > 0.05 && Math.random() < dt * 10 * s.k) { _m.set(s.o.x + (Math.random() - 0.5) * s.o.R * 1.2, s.centre.y + s.o.R * (0.6 + Math.random() * 0.3), s.o.z + (Math.random() - 0.5) * s.o.R * 1.2); motes.burst(_m, { n: 1, rise: 1.2 + s.k, size: 0.22, spread: 0.3, life: 2.5 }); }
-      }
+      s.flash = Math.max(0, (s.flash ?? 0) - dt * 0.8);
+      if (!heard(s.id) && s.k > 0 && s.k < 1) s.k = Math.max(0, s.k - dt * 0.3);
       // the ring: closing round the foot while you listen; faintly lit once it has remembered; brightening near you
-      const lit = heard(s.id) ? 0.35 + 0.4 * THREE.MathUtils.clamp(1 - d / (s.o.R + 40), 0, 1) : s.k;
+      const lit = Math.max(s.flash, heard(s.id) ? 0.35 + 0.4 * THREE.MathUtils.clamp(1 - d / (s.o.R + 40), 0, 1) : s.k);
       s.mat.uniforms.uGlow.value = lit;
       s.ring.visible = lit > 0.02 && flat(camera?.position ?? pp, s.centre) < 600;
-      s.ring.scale.setScalar(heard(s.id) ? 1 : 1.6 - 0.6 * ease(s.k));
+      s.ring.scale.setScalar(heard(s.id) ? 1 + 0.12 * s.flash : 1.6 - 0.6 * ease(s.k));
       // the ripples
       if (s.pulseT >= 0) {
         s.pulseT += dt;
@@ -245,14 +272,13 @@ export function setupSpheres(ctx) {
       if (b) b.vol = s.voice;
     }
 
-    // the pole: with the three sounds, stand still by it
+    // the pole: splashed with the three sounds, it sings them back (poleHit, above); its crown glows as you come near
     const dPole = flat(pp, pole);
     if (game.flag('spheres.heard.three') && !game.flag('spheres.chord.heard') && quests.reached(Q, 'pole')) {
-      if (dPole < 9 && still) st.pole = Math.min(1, st.pole + dt / POLE_TIME); else st.pole = Math.max(0, st.pole - dt * 0.5);
+      st.pole += ((dPole < 30 ? 0.35 + 0.15 * Math.sin(t * 2.2) : 0) - st.pole) * Math.min(1, dt * 2);
       crown.visible = st.pole > 0.02;
       crown.material.uniforms.uGlow.value = st.pole;
       if (st.pole > 0.05 && Math.random() < dt * 6 * st.pole) motes.burst(V(Pz.x, Pz.top + 0.6, Pz.z), { n: 1, rise: 1.5, size: 0.2, spread: 0.4, life: 2.5 });
-      if (st.pole >= 1) chord();
     }
     if (st.chordT >= 0 && st.chordT < 12) {
       st.chordT += dt;

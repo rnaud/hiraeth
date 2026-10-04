@@ -2,15 +2,16 @@
 // (docs/story-bible.md).
 //
 // The spheres came down long ago, and each one remembers one sound: the last
-// thing it heard before it fell, the listeners say. They only remember for
-// someone who stops: stand still beside one and it plays its sound. Three of
-// them still remember anything you can hear: the pearl by the lake (a glass
+// thing it heard before it fell, the listeners say. Every sphere rings its
+// own note when the fluid touches it (bigger ones lower); three of them still
+// remember more than a note: the pearl by the lake (a glass
 // bell), the sphere west of the arch (far voices singing one note), and the
 // great one among the pillars in the east (a drum: dum, tek-dum, and many
 // feet in sand; the desert's procession drum, though nobody here has ever
 // heard of the desert). Carry the three sounds down the avenue to the round
-// plaza and the pole, which hums while the great sphere is on the horizon,
-// sounds them together: the chord is the keepsake.
+// plaza and splash the pole, which hums while the great sphere is on the
+// horizon: it plays them back together as one little tune, and the chord is
+// the keepsake.
 //
 // The glyph is "the Footprint" here (on the underside of every sphere, where
 // it touches the ground). Ume, who keeps the pole, heard the singing light
@@ -26,7 +27,10 @@ export const SOUNDS = {
   drum: { name: 'a walking drum', part: 'drum', text: 'a drum: dum, tek-dum, and the shuffle of many feet in sand' },
 };
 export const KEEPSAKE = { id: 'spheres.song', level: 'spheres', name: 'The chord of the spheres', kind: 'song', text: 'A glass bell, far voices and a walking drum, sounding together at the pole on the round plaza while the great sphere stood on the horizon.' };
-export const LISTEN_TIME = 4;   // s of standing still beside a sphere
+// Every great sphere sounds one note when the fluid touches it, in the garden's
+// own (pentatonic) scale: the bigger the sphere, the lower its note (a degree
+// of the scale from its middle octave; 0 is the lowest, for the giants).
+export const orbDegree = (R) => Math.max(0, Math.min(9, Math.round(9 - ((R - 12) / 34) * 9)));
 
 // ------------------------------------------------------------------ quests
 export const QUESTS = [
@@ -35,9 +39,9 @@ export const QUESTS = [
     outro: 'Three sounds, carried to the pole, sounding together.',
     stages: [
       { id: 'aube', text: 'Talk to Aube, the listener, in the umbrella grove', label: 'Aube, the listener', flag: 'spheres.aube.heard', at: 'aube' },
-      { id: 'listen', text: 'Listen at the three spheres that remember: stand still beside each until it plays its sound', label: 'A sphere that remembers', flag: 'spheres.heard.three', at: 'sphere' },
+      { id: 'listen', text: 'Splash the three spheres that remember with your fluid, and listen to each play its sound', label: 'A sphere that remembers', flag: 'spheres.heard.three', at: 'sphere' },
       { id: 'plaza', text: 'Carry the sounds down the avenue, through the sphere-arch, to the round plaza', label: 'The round plaza', goto: 'plaza', radius: 22, at: 'plaza' },
-      { id: 'pole', text: 'Stand still by the humming pole and listen', label: 'The humming pole', flag: 'spheres.chord.heard', at: 'pole' },
+      { id: 'pole', text: 'Splash the humming pole, and listen', label: 'The humming pole', flag: 'spheres.chord.heard', at: 'pole' },
       { id: 'ume', text: 'Tell Ume, who keeps the pole, what you heard', label: 'Ume, on the plaza', talk: 'ume', at: 'ume' },
     ],
   },
@@ -65,7 +69,7 @@ export const PEOPLE = {
   aube: {
     id: 'aube', name: 'Aube', title: 'the listener', color: '#9fd0c8', voice: 1.0, kind: 'f',
     palette: { cloak: '#f3efe2', lining: '#2b211f', cloth: '#9fd0c8', legs: '#7f9a90', hat: '#f6efd0', hair: '#3d2a22', face: '#e8dcc8' }, head: 'wrap', cape: 1.2, look: { prop: 'parasol' },
-    lines: ['~neutral~ The spheres came down long ago. Nobody minds them now.', '~neutral~ *Follow the pale path*. It goes through the arch.', '~whisper~ Shh. Stand still.'],
+    lines: ['~neutral~ The spheres came down long ago. Nobody minds them now.', '~neutral~ *Follow the pale path*. It goes through the arch.', '~whisper~ Shh. Listen.'],
     talk: {
       entry: [
         { if: { quest: Q, done: true }, node: 'after' },
@@ -83,7 +87,7 @@ export const PEOPLE = {
           ],
         },
         how: {
-          say: ['~whisper~ You stop. That’s all. *Stand beside one and keep still*, and it remembers, for you. They don’t remember for people who are passing.', '~neutral~ Three of them still remember anything you can hear: *the pearl by the lake*, *the one west of the arch*, and *the big one among the pillars*, far to the east.'],
+          say: ['~whisper~ You touch it. That’s all. *Give one a splash of your fluid*, and it remembers, for you, out loud. Every sphere has a note of its own.', '~neutral~ Three of them still remember anything you can hear: *the pearl by the lake*, *the one west of the arch*, and *the big one among the pillars*, far to the east.'],
           do: { set: { 'spheres.aube.heard': true } },
           choices: [{ text: '~curious~ And then?', goto: 'then' }, { text: '~neutral~ I’ll go and listen.', end: true }],
         },
@@ -95,7 +99,7 @@ export const PEOPLE = {
             { if: { flag: 'spheres.heard.bell' }, text: '~happy~ You heard the pearl’s bell. Good. It rings longer for the second listener.' },
             { if: { flag: 'spheres.heard.chant' }, text: '~playful~ You heard the singing in the one west of the arch. It made you stand straighter; I can see.' },
             { if: { flag: 'spheres.heard.drum' }, text: '~curious~ A drum, from the big one among the pillars. A drum. Where would a sphere have heard a drum?' },
-            { if: { not: { any: [{ flag: 'spheres.heard.bell' }, { flag: 'spheres.heard.chant' }, { flag: 'spheres.heard.drum' }] } }, text: '~neutral~ *The pearl by the lake*, *the one west of the arch*, *the big one in the east*. Stand beside each, and keep still.' },
+            { if: { not: { any: [{ flag: 'spheres.heard.bell' }, { flag: 'spheres.heard.chant' }, { flag: 'spheres.heard.drum' }] } }, text: '~neutral~ *The pearl by the lake*, *the one west of the arch*, *the big one in the east*. *Splash each one*, and listen.' },
           ],
           choices: [{ text: '~whisper~ I’m listening.', end: true }],
         },
@@ -214,7 +218,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~happy~ Hear it? The pole hums while the great sphere is on the horizon. Hm-mm-mm. I’m Ume. I keep it. Keeping it means mostly listening to it.', '~tired~ Aube sends people down the avenue with sounds for it. Most never bring any. You can’t carry a sound you didn’t stop for.'],
+          say: ['~happy~ Hear it? The pole hums while the great sphere is on the horizon. Hm-mm-mm. I’m Ume. I keep it. Keeping it means mostly listening to it.', '~tired~ Aube sends people down the avenue with sounds for it. Most never bring any. You can’t carry a sound you never went to.'],
           choices: [
             { text: '~curious~ Why does the pole hum?', goto: 'why' },
             { text: '~curious~ Have you heard anything strange?', goto: 'strange' },
@@ -227,8 +231,8 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ It struck my ship.', goto: 'struck' }, { text: '~neutral~ I’ll bring the pole three sounds.', end: true }],
         },
         struck: { say: ['~scared~ Did it? Then it was looking, and it found you. I’m glad it didn’t find the pole. It is only a pole.'], choices: [{ text: '~neutral~ I’ll bring it three sounds.', end: true }] },
-        again: { say: ['~neutral~ *The pearl by the lake*, *the one west of the arch*, *the big one in the east*. Stop beside each. Then bring them here.'], choices: [{ text: '~neutral~ I will.', end: true }] },
-        ready: { say: ['~happy~ You stopped for all three. I can tell; you’re walking like a bell. *Stand by the pole*, there, close, and *keep still*. Let it hear what you carried.'], choices: [{ text: '~whisper~ (stand by the pole)', end: true }] },
+        again: { say: ['~neutral~ *The pearl by the lake*, *the one west of the arch*, *the big one in the east*. *Splash each one*, and listen. Then bring them here.'], choices: [{ text: '~neutral~ I will.', end: true }] },
+        ready: { say: ['~happy~ You woke all three. I can tell; you’re walking like a bell. *Give the pole a splash*, there, close. Let it hear what you carried.'], choices: [{ text: '~whisper~ (splash the pole)', end: true }] },
         chord: {
           say: ['~surprised~ There. All three at once. Did you hear it? The bell and the voices and that drum.', '~solemn~ The spheres remember the last thing they heard before they came down. So somewhere there is a glass bell, and people singing, and a whole crowd walking to a drum in sand. They passed over all of it, once, on their way here.'],
           do: { set: { 'clue.spheres.desert': true } },

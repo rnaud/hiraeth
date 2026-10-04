@@ -12,8 +12,8 @@ const { spawnNPCs } = await import('../src/npc.js');
 const { createStory } = await import('../src/story/index.js');
 const { game } = await import('../src/game-state.js');
 const { DialogueRunner } = await import('../src/story/dialogue.js');
-const { PEOPLE, SOUNDS, LISTEN_TIME } = await import('../src/story/spheres-data.js');
-const { POLE_TIME } = await import('../src/story/spheres.js');
+const { PEOPLE, SOUNDS, orbDegree } = await import('../src/story/spheres-data.js');
+const { SPHERES_SONG } = await import('../src/audio.js');
 const { clearInteractables, bestInteractable } = await import('../src/interact.js');
 const { allTargets, clearTargets } = await import('../src/targets.js');
 const { CONTENT } = await import('../src/levels/content.js');
@@ -30,7 +30,9 @@ const player = { pos: level.spawn.clone(), vel: V(), heading: 0, riding: false, 
 const at = (p) => { player.pos.copy(p); player.vel.set(0, 0, 0); return player; };
 // a sound stand-in that keeps its bands, so the test can hear what plays
 let bands = [];
-const sound = { setBands(b) { bands = b; }, setBandMode(id, m) { const b = bands.find((x) => x.id === id); if (b) b.mode = m; }, band: (id) => bands.find((x) => x.id === id) ?? null, chime() {}, listen() {}, whoosh() {} };
+const played = [];
+const sound = { setBands(b) { bands = b; }, setBandMode(id, m) { const b = bands.find((x) => x.id === id); if (b) b.mode = m; }, band: (id) => bands.find((x) => x.id === id) ?? null, chime() {}, listen() {}, whoosh() {},
+  orbNote: (deg, at, o) => played.push({ what: 'note', deg, at, ...o }), remembered: (kind, at) => played.push({ what: kind, at }), spheresSong: (at, o) => { played.push({ what: 'song', at, ...o }); return 0; } };
 const toasts = [];
 const camera = new THREE.PerspectiveCamera();
 let storyDone = false;
@@ -75,23 +77,43 @@ test('the listeners stand on walkable, dry ground; there is somewhere to stand b
   assert.equal(level.unsafe(rt.world.shore), false);
 });
 
-test('the main quest: three spheres remembered by standing still, the chord at the pole', async () => {
+test('every great sphere is a note: splashed, it rings, bigger ones lower', () => {
+  const orbs = allTargets().filter((t) => t.kind === 'orb');
+  assert.ok(orbs.length >= 8, `${orbs.length} spheres you can play`);
+  const plain = orbs.filter((t) => !rt.world.listeners.some((s) => s.o === t.orb));
+  played.length = 0;
+  for (const t of plain) t.onHit('shoot', t.position().clone());
+  assert.equal(played.length, plain.length);
+  assert.ok(played.every((p) => p.what === 'note'));
+  const byR = plain.map((t, i) => [t.orb.R, played[i].deg]).sort((a, b) => a[0] - b[0]);
+  for (let i = 1; i < byR.length; i++) assert.ok(byR[i][1] <= byR[i - 1][1], 'a bigger sphere never sings higher');
+  assert.ok(new Set(byR.map((x) => x[1])).size >= 4, 'several different notes');
+  assert.equal(orbDegree(12), 9); assert.equal(orbDegree(46), 0);
+  for (const s of rt.world.listeners) assert.equal(game.flag(`spheres.heard.${s.id}`), undefined, 'nothing remembered yet');
+});
+
+test('the main quest: three spheres remembered by splashing them, the pole sings them back as a tune', async () => {
   const Q = 'spheres.listen';
   assert.equal(quests.stage(Q), 'aube');
   talk(PEOPLE.aube, ['How do you hear it?', 'And then?']);
   step(2);
   assert.equal(quests.stage(Q), 'listen');
-  // walking past doesn't count: the ring only closes while you keep still
+  // standing and looking does nothing now: it wants the fluid
   const [first] = rt.world.listeners;
-  at(beside(first)); player.vel.set(2, 0, 0);
-  step(Math.ceil(LISTEN_TIME * 1.5 * 30));
-  assert.ok(!game.flag(`spheres.heard.${first.id}`), 'a passer-by hears nothing');
+  at(beside(first));
+  step(30 * 6);
+  assert.ok(!game.flag(`spheres.heard.${first.id}`), 'looking alone hears nothing');
+  assert.ok(toasts.some((t) => t.includes('splash')), 'a hint to splash it');
   for (const s of rt.world.listeners) {
     at(beside(s));
-    step(Math.ceil(LISTEN_TIME * 30) + 10);
+    const t = allTargets().find((x) => x.kind === 'orb' && x.orb === s.o);
+    played.length = 0;
+    t.onHit('shoot', t.position().clone());
+    step(2);
     assert.equal(game.flag(`spheres.heard.${s.id}`), true, `the ${s.id} sphere remembered`);
-    assert.ok(sound.band(`sphere.${s.id}`).vol > 0.9, 'and plays its sound');
-    assert.ok(toasts.some((t) => t.includes(SOUNDS[s.id].text)), 'and says what it remembers');
+    assert.deepEqual(played.map((p) => p.what), [SOUNDS[s.id].part], 'and plays its own sound');
+    assert.ok(sound.band(`sphere.${s.id}`).vol > 0.9, 'then keeps playing it');
+    assert.ok(toasts.some((x) => x.includes(SOUNDS[s.id].text)), 'and says what it remembers');
   }
   assert.equal(game.flag('clue.spheres.desert'), true, 'one remembers the desert’s drum');
   step(2);
@@ -99,8 +121,13 @@ test('the main quest: three spheres remembered by standing still, the chord at t
   at(V(G.plaza.x, G.plaza.inner, G.plaza.z + G.plaza.r - 4)); step(2);
   assert.equal(quests.stage(Q), 'pole');
   at(rt.world.pole.clone().add(V(0, G.plaza.inner, 3)));
-  step(Math.ceil(POLE_TIME * 30) + 10);
+  step(30 * 6);
+  assert.equal(game.flag('spheres.chord.heard'), undefined, 'standing still by it is not enough');
+  played.length = 0;
+  allTargets().find((x) => x.kind === 'pole').onHit('shoot');
   assert.equal(game.flag('spheres.chord.heard'), true);
+  assert.equal(played.filter((p) => p.what === 'song').length, 1, 'the pole plays them back as a tune');
+  assert.ok(SPHERES_SONG.length >= 8 && SPHERES_SONG.every(([d, n]) => (d === null || Number.isInteger(d)) && n > 0));
   assert.deepEqual(sound.band('pole').parts.slice(0, 3), ['bell', 'chant', 'drum'], 'the pole plays all three');
   step(2);
   assert.equal(quests.stage(Q), 'ume');
