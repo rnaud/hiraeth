@@ -79,12 +79,12 @@ export class StarMap {
     window.addEventListener('keyup', (e) => { if (e.code === 'KeyE') this._armed = true; });
   }
 
-  /** Positions along a spiral, in percent of the chart. */
+  /** Positions along a spiral, in percent of the chart (spaced so no two worlds' discs and names overlap). */
   layout(n) {
     const out = [];
     for (let i = 0; i < n; i++) {
       const k = i / Math.max(1, n - 1);
-      const a = -2.4 + k * Math.PI * 2.35, r = 0.28 + k * 0.72;
+      const a = -3.2 + k * Math.PI * 2.35, r = 0.58 + k * 0.5;
       out.push([38 + Math.cos(a) * r * 29, 52 + Math.sin(a) * r * 37]);
     }
     return out;
@@ -98,7 +98,7 @@ export class StarMap {
     this.el.innerHTML = `<div class="chart">
       <svg viewBox="0 0 100 100" preserveAspectRatio="none">
         <ellipse cx="38" cy="52" rx="2.6" ry="4" fill="#f2c54b" stroke="#2b211f" stroke-width=".3"/>
-        ${[0.3, 0.55, 0.8, 1.02].map((r) => `<ellipse cx="38" cy="52" rx="${r * 29}" ry="${r * 37}" fill="none" stroke="rgba(247,236,210,.18)" stroke-width=".15"/>`).join('')}
+        ${[0.45, 0.7, 0.92, 1.1].map((r) => `<ellipse cx="38" cy="52" rx="${r * 29}" ry="${r * 37}" fill="none" stroke="rgba(247,236,210,.18)" stroke-width=".15"/>`).join('')}
         <path d="${path}" fill="none" stroke="#e6875f" stroke-width=".35" stroke-dasharray="1 1.2" vector-effect="non-scaling-stroke"/>
       </svg>
       <h1>GALACTIC MAP</h1><div class="sub">${this.entries.filter((e) => e.done).length} of ${this.entries.length} worlds · discoveries made</div>

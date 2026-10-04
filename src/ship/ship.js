@@ -12,7 +12,7 @@ import { StarMap, consoleAction } from './starmap.js';
 import { pendingCall, completedWorlds, callLines, callContext } from '../story/calls.js';
 import * as sfx from './sfx.js';
 import { Prologue } from './prologue.js';
-import { PrologueDirector, ArrivalDirector, TakeoffDirector, CallDirector } from './cinematics.js';
+import { PrologueDirector, ArrivalDirector, TakeoffDirector, CallDirector, OBJECTIVE } from './cinematics.js';
 
 // The traveller's ship: a big round ball, home between worlds.
 //
@@ -63,8 +63,12 @@ export class Ship {
     if (prologue) this.buildSpaceCopy();
     this.cinema = new Cinema();
     this.warp = new Warp();
-    game.on('flag:ship.powered', (v) => this.setPower(v ? 'on' : 'emergency'));
+    game.on('flag:ship.powered', (v) => { this.setPower(v ? 'on' : 'emergency'); if (v) this.clearObjective(); });
+    if (game.flag('ship.powered')) this.clearObjective();
   }
+
+  /** The prologue's "Find a new source of power." is done once the ship has power (it stayed on the HUD). */
+  clearObjective() { if (game.flag('objective') === OBJECTIVE) game.set('objective', null); }
 
   // ------------------------------------------------------------------ placement
   groundAt(x, z, fromY) {

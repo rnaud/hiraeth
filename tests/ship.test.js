@@ -9,7 +9,7 @@ import { DECK, R } from '../src/ship/hull.js';
 import { polar } from '../src/ship/geo.js';
 import { CONSOLE_R } from '../src/ship/interior.js';
 import { findShipSite, siteAvoid, probeSite, SITE_OVERRIDES } from '../src/ship/sites.js';
-import { consoleAction, mapEntries } from '../src/ship/starmap.js';
+import { consoleAction, mapEntries, StarMap } from '../src/ship/starmap.js';
 import { pendingCall, callLines, completedWorlds, CALL_COUNT, PROLOGUE_CALL } from '../src/story/calls.js';
 import { Prologue, PROLOGUE_STAGES } from '../src/ship/prologue.js';
 import { LEVELS } from '../src/levels/index.js';
@@ -136,6 +136,16 @@ test('the console: a waiting call first; the galactic map is locked without powe
   assert.ok(by.arzach.visited && !by.arzach.done);
   assert.ok(!by.bazaar.visited);
   assert.equal(by.incal.title, LEVELS.find((l) => l.id === 'incal').title);
+});
+
+test('the galactic map spaces its worlds so no two discs or names overlap, clear of the info panel', () => {
+  const pts = new StarMap({}).layout(ORDER.length);
+  const W = 1100, H = 680;   // the chart at its full size
+  for (let i = 0; i < pts.length; i++) for (let j = i + 1; j < pts.length; j++) {
+    const dx = ((pts[i][0] - pts[j][0]) / 100) * W, dy = ((pts[i][1] - pts[j][1]) / 100) * H;
+    assert.ok(Math.abs(dx) > 92 || Math.abs(dy) > 105, `worlds ${i} and ${j} overlap (${dx.toFixed(0)}, ${dy.toFixed(0)} px)`);
+  }
+  for (const [x, y] of pts) assert.ok(x > 5 && x < 64 && y > 12 && y < 88, `on the chart, left of the panel: ${x.toFixed(0)}%, ${y.toFixed(0)}%`);
 });
 
 test('calls home: one per completed world, each heard once, the mother from the third', () => {
