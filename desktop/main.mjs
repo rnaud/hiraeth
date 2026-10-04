@@ -44,18 +44,26 @@ else {
     window.webContents.on('render-process-gone', (_event, details) => { console.error(details); app.exit(1); });
   }
   await window.loadURL('moebius://game/index.html');
-  // CI exercises the packaged browser, local protocol, WebGL and game loading.
+  // CI exercises the packaged browser, local protocol, WebGL and game loading: the title
+  // screen first (the game opens on it), then a world straight from ?level= (no save picked).
   if (process.env.MOEBIUS_SMOKE === '1') {
     const deadline = Date.now() + 120_000;
-    const check = setInterval(async () => {
-      try {
-        const ready = await window.webContents.executeJavaScript(`
-          Boolean(document.querySelector('canvas') && (!document.querySelector('#loading') || document.querySelector('#loading').classList.contains('done')))
-        `);
-        if (ready) { clearInterval(check); console.log('MOEBIUS_SMOKE_OK'); app.exit(0); }
-        else if (Date.now() > deadline) { clearInterval(check); app.exit(1); }
-      } catch (error) { console.error(error); clearInterval(check); app.exit(1); }
-    }, 1000);
+    const until = (js) => new Promise((resolve, reject) => {
+      const check = setInterval(async () => {
+        try {
+          if (await window.webContents.executeJavaScript(js)) { clearInterval(check); resolve(); }
+          else if (Date.now() > deadline) { clearInterval(check); reject(new Error(`timed out waiting for: ${js.trim()}`)); }
+        } catch (error) { clearInterval(check); reject(error); }
+      }, 1000);
+    });
+    try {
+      await until(`Boolean(document.querySelector('#title, .title-screen, [data-title]') || document.querySelector('canvas'))`);
+      console.log('MOEBIUS_SMOKE_TITLE');
+      await window.loadURL('moebius://game/index.html?level=desert');
+      await until(`Boolean(document.querySelector('canvas') && (!document.querySelector('#loading') || document.querySelector('#loading').classList.contains('done')))`);
+      console.log('MOEBIUS_SMOKE_OK');
+      app.exit(0);
+    } catch (error) { console.error(error); app.exit(1); }
   }
   }).catch((error) => { console.error(error); app.exit(1); });
 }
