@@ -1,0 +1,25 @@
+README.md
+  s_1fd8d0e7b02dcf::t_90bc39d52762d9 1402-1429
+src/levels/garage.js
+  s_1fd8d0e7b02dcf::t_d16eeb124226ca 28-41,379,483-485
+src/player.js
+  s_1fd8d0e7b02dcf::t_cd4f0a43cffce9 29-30,505-507,509-510,850,945,952-978
+tests/ring-jets.test.js
+  s_1fd8d0e7b02dcf::t_be4ece598025da 1-100
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3d6d1f0e995861bca89904684bde53247b7b4a17",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
