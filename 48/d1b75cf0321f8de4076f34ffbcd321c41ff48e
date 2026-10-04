@@ -1,0 +1,59 @@
+README.md
+  s_1fd8d0e7b02dcf::t_489336de51c86d 1347-1360
+index.html
+  s_1fd8d0e7b02dcf::t_ef8e7b5d6b8618 189-191,199
+src/crowd.js
+  s_1fd8d0e7b02dcf::t_acb357637a0c01 8,968
+src/npc.js
+  s_1fd8d0e7b02dcf::t_1c2f085c0774c8 10,494-495
+src/story/arzach-data.js
+  s_1fd8d0e7b02dcf::t_6eee7ec0b99d4d 74,94,105,108,112,164,192,196,199,217-218,222,235
+src/story/arzach2-data.js
+  s_1fd8d0e7b02dcf::t_eaf296dea4f770 93,95,99-100,126-127,129,133,159,164-165,190,195,199-201,203,207,230,238,253,262,284
+src/story/bazaar-data.js
+  s_1fd8d0e7b02dcf::t_8c52f606074e50 108-109,114-115,182,206,221,250-251,255,282-283,301,317,335,352,362,405
+src/story/buried-data.js
+  s_1fd8d0e7b02dcf::t_30bfc8a8d4d3e6 111,115,118-119,127,130,133,172,176,178,189,191,218,225-226,255,281,283,289,295,322,330,334,339,360,363-364
+src/story/desert-data.js
+  s_1fd8d0e7b02dcf::t_a2c7b122ec491c 118,140,144,151,153,161,164,189,197-198,261,268,271,303,325,328,332,340-341,404,411,428,437,441,449,451,459,461,468,482,496,534,582,584,606
+src/story/dialogue.js
+  s_1fd8d0e7b02dcf::t_b505c396f79431 3,31-32,41,44-45,276-278
+src/story/edena-data.js
+  s_1fd8d0e7b02dcf::t_c41bfa49e74b71 86,94,98,120,182,186,189-190,192,196,215,222,224,261,265-266,268
+src/story/garage-data.js
+  s_1fd8d0e7b02dcf::t_d86954b51153d4 87,113,121,123,127,163,170,173,191,199,203,261
+src/story/incal-data.js
+  s_1fd8d0e7b02dcf::t_c07cca9ecde140 111,117,126,138-139,192,197,207,209,252,262,307,315,361-362,399
+src/story/perdide-data.js
+  s_1fd8d0e7b02dcf::t_1fd7c875131701 101,106,115,119,121,126-127,181,185,193,224,228,287,298,310,315,319-320,425
+src/story/perdide2-data.js
+  s_1fd8d0e7b02dcf::t_9826cdd5510f4d 89,97-98,102,105-106,109,159,162-163,198,229
+src/story/spheres-data.js
+  s_1fd8d0e7b02dcf::t_0e50bdbd54731a 68,86,90,98,102,125,131-132,148,156,160,178,186,189-190,230-231
+src/story/voice.js
+  s_1fd8d0e7b02dcf::t_fd19a2b4c525d9 164-176,179,183-187
+tests/highlight.test.js
+  s_1fd8d0e7b02dcf::t_e371245edd0cbd 1-67
+TODO.md
+  s_1fd8d0e7b02dcf::t_03b735512abc40 118
+changelog.md
+  s_1fd8d0e7b02dcf::t_4a2a0e043c7027 12
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_66e9fd45244d3d 12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "48d1b75cf0321f8de4076f34ffbcd321c41ff48e",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
