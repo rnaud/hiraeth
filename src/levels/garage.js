@@ -25,6 +25,20 @@ const Y = new THREE.Vector3(0, 1, 0);
 /** Radial frame of the ring at an angle phi around the x axis (phi = 0 -> +z, pi/2 -> +y). */
 const ringDir = (phi) => new THREE.Vector3(0, Math.sin(phi), Math.cos(phi));
 
+/**
+ * The ring's skin turned to face the axis, where you walk. Collision reads a
+ * face's front as its open side (physics.embedded): with the cylinder's own
+ * outward faces, everywhere inside the ring looked like the inside of a solid,
+ * and a ray grazing an end rim was enough to "unstick" a flier through the skin.
+ */
+export function facingIn(g) {
+  const ix = g.index.array;
+  for (let i = 0; i < ix.length; i += 3) { const t = ix[i + 1]; ix[i + 1] = ix[i + 2]; ix[i + 2] = t; }
+  const n = g.attributes.normal;
+  for (let i = 0; i < n.array.length; i++) n.array[i] = -n.array[i];
+  return g;
+}
+
 // the story's places (src/story/garage.js), kept clear of the random buildings
 const BOARD = new THREE.Vector3(-13, 0, 98);          // A: the signal board by the path from the start
 const B_RELAY = new THREE.Vector3(9, 0, 14);          // B: slab-local (y down into the quarter): the relay box
@@ -362,7 +376,7 @@ export function createGarage(scene) {
   // ======================================================== C: the ring
   {
     // shell with a slit in the roof (centred on +y) so the sun can shine in
-    const shell = new THREE.CylinderGeometry(RING_R, RING_R, RING_L, 112, 1, true, Math.PI / 2 + SLIT, Math.PI * 2 - SLIT * 2);
+    const shell = facingIn(new THREE.CylinderGeometry(RING_R, RING_R, RING_L, 112, 1, true, Math.PI / 2 + SLIT, Math.PI * 2 - SLIT * 2));
     shell.rotateZ(Math.PI / 2);
     const sm = new THREE.Mesh(shell, makeMaterial({ color: '#e9cdb8', color2: '#cfe0a8', color3: '#c7c0dd', mode: MODE_STRATA, strataSize: 18, grid: 8, side: THREE.DoubleSide }));
     sm.position.copy(C_POS);
@@ -466,6 +480,9 @@ export function createGarage(scene) {
     },
     navigationPortals: portals,
     gravityAt,
+    // out through the ring's skin (the slit, or pressed through it): there is nothing to stand on
+    // out there, and the jets only push you back against the hull, so you go back where you last stood
+    unsafe: (p) => inRing(p) && Math.abs(p.x - C_POS.x) < RING_L / 2 - 2 && Math.hypot(p.y - C_POS.y, p.z - C_POS.z) > RING_R + 0.8,
     // the story's handles (src/story/garage.js)
     garage: {
       B_POS, C_POS, RING_R, RING_L, SLIT, ringDir, zoneId: (p) => zoneId(p), inRing: (p) => inRing(p), inB: (p) => inB(p),

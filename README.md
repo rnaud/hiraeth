@@ -1399,3 +1399,31 @@ Pocket. Their built-in controls work through the Gamepad API.
   (I-V-vi-IV), a music box arpeggio and a falling melody every 32 beats, flute then bell
   (`MENU_SCORE`, `menuBeat(b)`). The title screen plays it on a `Sound('title', { score: false })`
   that fades out and closes as the game loads.
+
+### The singing spheres, the wheel that keeps turning, and the ring's skin
+
+- **Garden of Spheres** (`src/story/spheres.js`): every great sphere is a fluid target
+  (`kind: 'orb'`) and rings one glass note when it is shot or pushed, in the garden's
+  pentatonic scale, bigger spheres lower (`orbDegree(R)` in `spheres-data.js`,
+  `Sound.orbNote(degree, pos)`); notes are placed by the camera (`Sound.placeAt`, the ear
+  set in `listen`). The three that remember now wake when splashed, not when you stand
+  still beside them: each plays its phrase (`Sound.remembered('bell' | 'chant' | 'drum')`)
+  and then keeps its band. The pole on the plaza is a target too: splashed with all three
+  sounds it plays them back as a little tune (`Sound.spheresSong`, `SPHERES_SONG` in
+  `src/audio.js`: the bell carrying the melody over the voices and the drum, the ney
+  answering once the mirrored pebble is set) before the band holds the chord.
+- **The great wheel** (`src/story/buried.js`): once it has turned its tooth, the sand round
+  it slides away over `CLEAR_TIME` s in a haze of dust, the heap against its faces and a
+  long hollow along its plane (`wheelSand(x, z)` in `src/levels/buried.js`, applied with
+  `wheel.clear(k)` through `Terrain.setHeights`, which reshapes the drawn ground, its exact
+  lookup and so the collision, and sums the normals again the way three.js does). Then it
+  keeps turning at `SPIN` rad/s, shedding sand off its teeth. `buried.wheel.turned` keeps
+  both on later visits.
+- **The Garage's ring** (`src/levels/garage.js`): its skin faces the axis (`facingIn`), the
+  side you walk on. With the cylinder's own outward faces, every point inside the ring read
+  as the inside of a solid to `physics.embedded` whenever a ray along the axis grazed an end
+  rim, and the unstick pushed jet-fliers out through the skin, where they were pinned
+  against the hull. Outside the skin is now `unsafe` (back where you last stood), respawns
+  stand you the way that place's gravity is up, and `Player.unhang` puts back anyone wedged
+  in mid-air (off the ground, no jets or wings, not falling for `HANG.time` s).
+  `tests/ring-jets.test.js`.
