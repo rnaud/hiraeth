@@ -1,0 +1,37 @@
+README.md
+  s_1fd8d0e7b02dcf::t_542439523c2687 1447-1448,1454-1475
+TODO.md
+  s_1fd8d0e7b02dcf::t_29413ed8ed1008 107-108
+changelog.md
+  s_1fd8d0e7b02dcf::t_54939b64f514ee 22
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_40075cb2f7b54b 22
+src/levels/arzach2.js
+  s_1fd8d0e7b02dcf::t_99118b611332b4 3-4
+src/levels/sky-stones-kit.js
+  s_1fd8d0e7b02dcf::t_1b96bb518e0784 1-167
+src/menus.css
+  s_1fd8d0e7b02dcf::t_64f9066dd86e97 13-24,101
+src/title-vista.js
+  s_1fd8d0e7b02dcf::t_8e245833b61ec0 1-528
+src/title.js
+  s_1fd8d0e7b02dcf::t_707f340c18f540 1-3,15,24,103,107-111,116,118,186-187,289-308
+tests/title-vista.test.js
+  s_1fd8d0e7b02dcf::t_71c8b098e2bb22 1-68
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b5fc1c94aef01251fdcbd40af497f6f69a3d94e7",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
