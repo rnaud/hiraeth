@@ -3,6 +3,8 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
 import { mulberry32 } from '../noise.js';
 import { Taxi } from '../taxi.js';
+import { glyphGeometry } from '../story/sign-text.js';
+import { LINES as STORY_LINES } from '../story/bazaar-data.js';
 
 // A street-level city, separate from the City-Shaft. Repeated details are
 // merged by street block and material so the mobile renderer can cull them.
@@ -65,6 +67,7 @@ export function createBazaar(scene) {
     for(let i=0;i<4;i++) plate(new THREE.BoxGeometry(w*.12,.25,.06).translate((i-1.5)*w*.2,-h*.43,faceZ+.02),cream);
   }
 
+  const frontPosters=[], towerPosters=[];   // for the story: signs that face the street; the silent tower's own screens
   // Tower canyon. Setbacks and exposed service stacks break up the slabs.
   for(let row=0;row<9;row++) for(const side of [-1,1]) {
     const z=105-row*60, x=side*(54+(row%3)*3), h=125+rng()*130, w=34+rng()*7;
@@ -83,6 +86,7 @@ export function createBazaar(scene) {
     poster(face-side*1.6,20,z+9,7,13,yaw,row+1);
     // Forward-facing signs are legible as you enter the street.
     poster(x,h*.32,z+22.2,20,24,0,row+2);
+    frontPosters.push({x,y:h*.32,z:z+22.2+1.05,w:20,h:24,yaw:0});
     for(let k=0;k<5;k++) {
       box(face-side*1.6,5+k*2.1,z-12,2,1.3,5,teal,false);
       box(face-side*2.7,5+k*2.1,z-12,.15,.5,3,dark,false);
@@ -149,6 +153,7 @@ export function createBazaar(scene) {
     poster(0,y+6,-239.9,20,10,0,k);
     poster(-13,y+6,-255,21,10,-Math.PI/2,k+1);
     poster(13,y+6,-255,21,10,Math.PI/2,k+2);
+    towerPosters.push({x:0,y:y+6,z:-239.9,w:20,h:10,yaw:0,k},{x:-13,y:y+6,z:-255,w:21,h:10,yaw:-Math.PI/2,k},{x:13,y:y+6,z:-255,w:21,h:10,yaw:Math.PI/2,k});
   }
   for(let k=1;k<=6;k++) box(k%2?-7:7,k*6,-238,12,.65,8,teal);
   box(0,SIGNAL.deckY-.5,SIGNAL.approachZ,30,1,12,cream);
@@ -170,6 +175,91 @@ export function createBazaar(scene) {
     for(const dx of [-.25,.25]) box(x+dx*s,.17*s,z,.2*s,.34*s,.4*s,ink,false);
   }
 
+  // ---------------------------------------------------------- the story's places (src/story/bazaar.js)
+  // The silent tower's screens under dark covers (they wake row by row when the broadcast plays);
+  // the antenna's tuning mark, three bulbs over a dish, at the top of the aerial; the oldest sign
+  // in the market, hanging dark under the second skybridge; a heap of crates fallen in an alley
+  // mouth, over something brass; the quiet one Ummu and its little screen; Sel's crate and radio
+  // at the tower's foot; Brush's ladder.
+  const signal = (() => {
+    const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
+    const story = (o) => { o.userData.noCollide = true; o.traverse?.((c) => { c.userData.noCollide = true; }); scene.add(o); return o; };
+    const places = {
+      sel: V3(-4.6, 0, -230.6), selSeat: V3(-4.6, 0, -230.6),
+      kip: V3(-24, 25, -89.4), ferro: V3(6.5, 44, -231.2), brush: V3(-20.9, .3, -164.5),
+      ummu: V3(-20.7, .3, -222.2), crates: V3(-21.4, .3, -216.4), console: V3(0, 45.4, -236.9),
+      antenna: V3(12, 61.4, -237.5), oldSign: V3(-20, 20.6, -86.1), square: V3(0, 0, -222), towerTop: V3(0, 98, -240),
+    };
+    // dark covers over the tower's screens, one mesh per row (the broadcast lifts them bottom to top)
+    const coverMat = makeMaterial({ color: '#2f3d43', flat: true, key: 'bazaar.covers' });
+    const covers = [], coverGeo = (q) => new THREE.BoxGeometry(q.w + .9, q.h + .9, .12).translate(0, 0, 1.12).rotateY(q.yaw).translate(q.x, q.y, q.z);
+    for (let k = 0; k < 7; k++) {
+      const m = story(new THREE.Mesh(mergeGeometries(towerPosters.filter((q) => q.k === k).map(coverGeo)), coverMat));
+      m.visible = false;   // the rows only while the tower wakes; otherwise one mesh for all of them
+      covers.push(m);
+    }
+    const coversAll = story(new THREE.Mesh(mergeGeometries(towerPosters.map(coverGeo)), coverMat));
+    // the tuning mark: three bulbs over a dish, on a short mast above the aerial's lamp
+    add(new THREE.CylinderGeometry(.08, .08, 1.7, 5).translate(12, 59.9, -238), brass, false);
+    const dish = story(new THREE.Mesh(new THREE.TorusGeometry(1.25, .1, 4, 18, Math.PI * .8).rotateZ(Math.PI * .1).scale(1, .55, 1).translate(0, -.45, 0), brass));
+    dish.position.copy(places.antenna);
+    const bulbs = [[-1, .52], [0, .9], [1, .52]].map(([bx, by], i) => {
+      const m = makeMaterial({ color: '#56686d', flat: true, key: `bazaar.bulb${i}` });
+      const b = story(new THREE.Mesh(new THREE.SphereGeometry(.36, 10, 7), m));
+      b.position.copy(places.antenna).add(V3(bx, by, .05));
+      return { mesh: b, mat: m };
+    });
+    // the oldest sign: a dark plate hung from the underside of the second bridge on two straps
+    const oldMat = makeMaterial({ color: '#3b4547', flat: true, key: 'bazaar.oldsign' });
+    const o = places.oldSign;
+    add(new THREE.BoxGeometry(.1, 3.4, .1).translate(o.x - 2.6, o.y + 2.2, o.z - .1), ink, false);
+    add(new THREE.BoxGeometry(.1, 3.4, .1).translate(o.x + 2.6, o.y + 2.2, o.z - .1), ink, false);
+    const oldSign = story(new THREE.Mesh(new THREE.BoxGeometry(6.8, 3.4, .22), oldMat));
+    oldSign.position.copy(o);
+    add(new THREE.BoxGeometry(7.2, .22, .3).translate(o.x, o.y + 1.8, o.z), ink, false);
+    add(new THREE.BoxGeometry(7.2, .22, .3).translate(o.x, o.y - 1.8, o.z), ink, false);
+    // the crates, fallen in the alley mouth the night the sky rang; the brass bowl under them
+    const crateMats = ['#c99758', '#f5dfab', '#88b4b5', '#f0a083'].map((c) => makeMaterial({ color: c, flat: true, grid: 3 }));
+    const crates = [[0, .55, 0, 1.1, 0], [1.05, .5, .35, 1, .4], [-.2, .5, 1.15, 1, .2], [.45, 1.55, .5, .95, .7], [-.9, .45, -.6, .9, .3], [.9, .45, -1, .9, .9]].map(([dx, dy, dz, sz, ry], i) => {
+      const m = story(new THREE.Mesh(new THREE.BoxGeometry(sz, sz, sz), crateMats[i % 4]));
+      m.position.copy(places.crates).add(V3(dx, dy * (sz / 1.1) + (dy > 1 ? 0 : 0), dz));
+      m.rotation.set(0, ry, i === 3 ? .25 : 0);
+      return { mesh: m, rest: m.position.clone(), rot: m.rotation.clone() };
+    });
+    const bowl = story(new THREE.Mesh(new THREE.LatheGeometry([[.05, 0], [.28, .04], [.42, .16], [.44, .24], [.38, .22], [.22, .08], [0, .06]].map(([r, y]) => new THREE.Vector2(r, y)), 12), brass));
+    bowl.position.copy(places.crates).add(V3(.15, .02, .3));
+    // Ummu, one of the quiet ones: a body, a broad head that turns, a little screen on a pole
+    const S = 1.18, U = places.ummu;
+    const ummu = new THREE.Group();
+    ummu.add(new THREE.Mesh(new THREE.SphereGeometry(1, 12, 9).scale(.6 * S, 1.05 * S, .42 * S).translate(0, 1.1 * S, 0), lilac));
+    const head = new THREE.Group();
+    head.position.y = 2.05 * S;
+    head.add(new THREE.Mesh(new THREE.SphereGeometry(1, 14, 9).scale(.82 * S, .42 * S, .44 * S), lilac));
+    for (const dx of [-.26, .26]) head.add(new THREE.Mesh(new THREE.SphereGeometry(1, 6, 4).scale(.06, .05, .03).translate(dx * S, .03, .41 * S), dark));
+    ummu.add(head);
+    for (const dx of [-.25, .25]) ummu.add(new THREE.Mesh(new THREE.BoxGeometry(.2 * S, .34 * S, .4 * S).translate(dx * S, .17 * S, 0), ink));
+    ummu.position.copy(U); ummu.rotation.y = Math.PI / 2;
+    story(ummu);
+    add(new THREE.CylinderGeometry(.06, .06, 3.6, 5).translate(U.x - .55, U.y + 1.8, U.z - 1.05), ink, false);
+    const screen = story(new THREE.Mesh(new THREE.BoxGeometry(.1, 1.0, 2.2), makeMaterial({ color: '#2f3d43', flat: true, key: 'bazaar.ummuScreen' })));
+    screen.position.set(U.x - .5, U.y + 3.75, U.z - 1.05);
+    places.ummuScreen = V3(U.x - .43, U.y + 3.75, U.z - 1.05);
+    // Sel's crate and old radio at the tower's foot; Brush's ladder against a shop sign
+    add(new THREE.BoxGeometry(.9, .45, .9).translate(places.selSeat.x, .225, places.selSeat.z - .3), shop[1], false);
+    add(new THREE.BoxGeometry(.7, .45, .4).translate(places.selSeat.x + 1.1, .225, places.selSeat.z - .2), dark, false);
+    add(new THREE.CylinderGeometry(.03, .03, 1.2, 4).rotateZ(.5).translate(places.selSeat.x + 1.25, .9, places.selSeat.z - .2), brass, false);
+    const B = places.brush;
+    for (const dz of [-.3, .3]) add(new THREE.BoxGeometry(.08, 6.2, .08).rotateZ(-.18).translate(B.x - .6, 3.3, B.z + dz), cream, false);
+    for (let k = 0; k < 9; k++) add(new THREE.BoxGeometry(.06, .06, .66).translate(B.x - .6 - Math.sin(.18) * (k * .65 + .5) + .55, .5 + k * .65, B.z), cream, false);
+    for (const [dx, dz, c] of [[-.4, .9, 0], [-.1, 1.2, 2], [-.6, 1.3, 3]]) add(new THREE.CylinderGeometry(.18, .16, .32, 8).translate(B.x + dx, B.y + .16, B.z + dz), shop[c], false);
+    // the glyph, small, on the oldest shop in the square (the first sign's mark)
+    const g = new THREE.Mesh(glyphGeometry(1.4, .05).rotateY(Math.PI / 2).translate(-24.95, 3.2, -205), dark);
+    story(g);
+    return { places, covers, coversAll, coverMat, bulbs, dish, oldSign, oldMat, crates, bowl, ummu, ummuHead: head, screen, towerPosters, frontPosters };
+  })();
+  folk.push({ x: signal.places.ummu.x, y: 0, z: signal.places.ummu.z, r: 1.3 }, { x: signal.places.crates.x, y: 0, z: signal.places.crates.z, r: 2.2 },
+    { x: signal.places.sel.x, y: 0, z: signal.places.sel.z, r: 1.8 }, { x: signal.places.brush.x, y: 0, z: signal.places.brush.z, r: 1.6 }, { x: signal.places.brush.x - .5, y: 0, z: signal.places.brush.z + 1, r: .9 });
+
   for(const {geos,material,solid} of buckets.values()) {
     const mesh=new THREE.Mesh(mergeGeometries(geos),material);
     mesh.userData.noCollide=!solid; mesh.userData.tiled=true;
@@ -178,7 +268,7 @@ export function createBazaar(scene) {
   }
   const vehicles=[];
   return {
-    id:'bazaar', reactiveScreens, ground:{heightAt:()=>0}, spawn:new THREE.Vector3(0,.1,88), spawnHeading:Math.PI,camYaw:0,camPitch:.02,
+    id:'bazaar', reactiveScreens, signal, ground:{heightAt:()=>0}, spawn:new THREE.Vector3(0,.1,88), spawnHeading:Math.PI,camYaw:0,camPitch:.02,
     features:{mount:false,wind:false,jetpack:true,climb:true,taxis:true}, vehicles,
     limit:700,killY:-20, defaults:{hour:11.5,preset:'Moebius print',cloudShadows:0,look:{uHatch:.18,uLineWidth:.85,uWobble:.1,uGrain:.025}},
     sky:{script:{day:['#a4d7d1','#e1e6c6','#70969e','#fff1cf','#ffe1ae'],dusk:['#9dabc3','#ffc5a2','#887b9e','#ffd6aa','#ffe5c2'],night:['#243e59','#587581','#55547c','#8daec0','#f9e3ac']}},
@@ -216,6 +306,12 @@ export function createBazaar(scene) {
         const s=r()<.5?1:-1;
         edges.push({at:V(x,y,z+s*2.82),heading:s>0?0:Math.PI,pose:'rail',rail:.5});   // the rails are drawn only (no collision)
       }
+      // who they are depends on where they are: the avenue's market, the square under the silent
+      // tower, the skybridges (src/story/bazaar-data.js; the story talks to them by zone)
+      const zoneOf=(p)=>p.y>8?'bridge':p.z<-200?'square':'market';
+      for(const sp of [...groups,...walks,...edges]){sp.id=zoneOf(sp.at??sp.path[0]);sp.lines=STORY_LINES[sp.id];}
+      const P=signal.places, keep=[[P.kip,1.6],[P.ferro,1.6],[P.console,2.2]];
+      for(const [q,rr] of keep) folk.push({x:q.x,y:q.y,z:q.z,r:rr});
       return {groups,walks,edges,avoid:folk,farMax:420,palette:{cloaks:['#f0a083','#88b4b5','#e4bd83','#b9a9c5','#94a9bd','#ebce98','#c8483a','#5fb7ad','#d8a24a','#8a6fb8','#62c3c9','#f3ead8']},
         clear:[{x:0,z:88,r:3.5},{x:8,z:82,r:4},{x:-11,z:121,r:5}]};
     },
