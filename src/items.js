@@ -13,6 +13,11 @@ import { game } from './game-state.js';
 //
 // Stored as game flags `item.<id>` = true. Systems read items.has() every
 // frame (cheap), so a grant takes effect at once.
+//
+// Kinds: core (the backpack), movement, mode (gun modes, MODE_ITEMS), and the
+// boxes' special items: upgrade (the tank), charm, cosmetic. Most items come
+// out of item boxes (src/boxes/): the box-opening card shows name, text
+// ("what it is") and use ("what it does").
 
 export const ITEMS = {
   backpack: {
@@ -39,6 +44,37 @@ export const ITEMS = {
     name: 'Ember mode', kind: 'mode', needs: 'backpack',
     text: 'A flint ring for the wrist nozzle. The fluid comes out burning, but the fire does not hurt.',
     use: 'Switch modes with X. Ember bursts light lamps, braziers and fuses, and burn away dry brambles.',
+  },
+  // ---- special items, found in boxes across the worlds (src/boxes/placements.js; effects in src/boxes/effects.js)
+  cell: {
+    name: 'Fourth chamber', kind: 'upgrade', needs: 'backpack',
+    text: 'A ring of blown glass that screws under the tank and makes it a little taller.',
+    use: 'The backpack holds four charges instead of three.',
+  },
+  coil: {
+    name: 'Quick coil', kind: 'upgrade', needs: 'backpack',
+    text: 'A copper spiral that warms the fluid while it rests.',
+    use: 'The tank refills three seconds after the last use instead of five.',
+  },
+  lantern: {
+    name: 'Lantern charm', kind: 'charm',
+    text: 'A paper lantern no bigger than a thumb, tied to the tank with red string. It never goes out.',
+    use: 'After dusk the charm glows and lights the ground around you.',
+  },
+  lens: {
+    name: 'Glyph lens', kind: 'charm',
+    text: 'A cloudy disc ground with the three-dot glyph. Through it, the mark burns where nobody looks.',
+    use: 'Unopened boxes show from far away: a pale column of light rises from each one.',
+  },
+  bell: {
+    name: 'Bell-note whistle', kind: 'charm',
+    text: 'A bone whistle that plays one clear bell note, the same note in every world.',
+    use: 'Press V to sound it. Unopened boxes nearby answer with a chime from where they hide.',
+  },
+  star: {
+    name: 'Pale star', kind: 'cosmetic',
+    text: 'A star of pale enamel, the same as the one on every box lid.',
+    use: 'Worn on the hood, over the brow. It does nothing at all, and it looks very good.',
   },
 };
 

@@ -1,0 +1,297 @@
+import * as THREE from 'three';
+import { game as sharedGame } from '../game-state.js';
+import { items, ITEMS } from '../items.js';
+import { registerInteractable, PRIORITY } from '../interact.js';
+import { buildBox, buildBeacon, buildDebris, BOX, BOX_COLORS } from './model.js';
+import { BoxScene } from './scene.js';
+import { BoxCard } from './card.js';
+import { PLACEMENTS, FALLBACKS, FALLBACK_OFFSETS } from './placements.js';
+
+// Item boxes: dark blue chests with a pale star on the lid, each holding one
+// item (src/items.js). They notice you: the star pulses, light leaks from the
+// lid's seam, the box hums and, close up, shudders. E opens one: the opening
+// scene (scene.js), then the item is yours. Opened boxes stay open and empty.
+//
+//   const boxes = createBoxes({ levelId, scene, physics, level, player, sound, quests, toast, cam, anchor });
+//   boxes.update(dt, t, { camera })   per frame, after the player (it poses the kneel) and before the ship (camera)
+//   boxes.busy()                      the opening scene is playing (input is cut, the HUD hidden)
+//   boxes.list                        this world's boxes: { id, item, pos, yaw, spent(), opened() }
+//   boxes.open(id, { instant })       open one (instant: no scene; tests and the dev menu)
+//   boxes.skip()                      Esc / B: jump to the card, or past it
+//   boxes.reset() / boxes.openAll()   every box closed again / every box opened (dev menu)
+//   boxes.journalHtml()               "Boxes found n/m" per world, for the sketchbook
+//
+// Placement: src/boxes/placements.js (a table keyed by level id). Fallbacks:
+// a world that needs an item you don't have (the jetpack worlds; the backpack
+// everywhere but the desert) puts a box with it beside the ship's ramp.
+//
+// Flags (game-state.js): box.<id> = true once opened; items.v = 1 once the
+// save has been migrated (migrateSave). Events: 'box:opened' { id, item, level }.
+// Quest locators: 'box.<id>' (the desert's first stage points at its box).
+
+const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
+const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
+const smoothstep = (a, b, x) => { const t = THREE.MathUtils.clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+const LID_REST = 1.95;
+
+/**
+ * Saves from before items existed: anyone who finished the prologue had the
+ * backpack on from the start. Rule: prologue.done and no item.<id> flag of any
+ * registry item (and not migrated yet) → grant the backpack. Returns true if it did.
+ */
+export function migrateSave(g = sharedGame) {
+  if (g.flag('items.v')) return false;
+  const legacy = !!g.flag('prologue.done') && !Object.keys(ITEMS).some((id) => g.flag(`item.${id}`) !== undefined);
+  if (legacy) g.set('item.backpack', true);
+  g.set('items.v', 1);
+  return legacy;
+}
+
+/** Where a placement stands: { pos (on the ground), yaw } or null if there is no ground there. */
+export function resolvePlacement(p, { physics, level, anchor = null }) {
+  let x, z, fromY;
+  if (p.near) {
+    // beside the ship's ramp (or the spawn): try a few offsets until one is on level ground
+    const a = anchor ?? { pos: level.spawn, heading: level.spawnHeading ?? 0 };
+    const h = a.heading ?? 0, f = V(Math.sin(h), 0, Math.cos(h)), r = V(-f.z, 0, f.x);
+    for (const [ox, oz] of FALLBACK_OFFSETS[p.slot ?? 0]) {
+      const c = a.pos.clone().addScaledVector(r, ox).addScaledVector(f, oz);
+      const g = physics.groundAt(c.x, a.pos.y + 3, c.z, 8);
+      if (!Number.isFinite(g) || Math.abs(g - a.pos.y) > 1.6) continue;
+      const n = physics.groundNormal?.(c.x, g + 1, c.z);
+      if (n && n.y < 0.85) continue;
+      c.y = g;
+      return { pos: c, yaw: Math.atan2(a.pos.x - c.x, a.pos.z - c.z) };
+    }
+    return null;
+  }
+  [x, z] = [p.at[0], p.at[p.at.length - 1]];
+  fromY = p.at.length === 3 ? p.at[1] + 2 : 1e4;
+  const g = physics.groundAt(x, fromY, z, p.at.length === 3 ? 8 : 2e4);
+  if (!Number.isFinite(g)) return null;
+  // the front faces `face` (a heading), or back toward where you come from
+  const toward = p.toward ?? [level.spawn.x, level.spawn.z];
+  const yaw = p.face ?? Math.atan2(toward[0] - x, toward[1] - z);
+  return { pos: V(x, g + (p.lift ?? 0), z), yaw };
+}
+
+/** This world's placements, with the fallbacks it needs right now. */
+export function placementsFor(levelId, { level, has = (id) => items.has(id), table = PLACEMENTS } = {}) {
+  const list = (table[levelId] ?? []).map((p) => ({ ...p }));
+  for (const fb of FALLBACKS) {
+    if (!fb.when({ levelId, level })) continue;
+    if (has(fb.item)) continue;
+    if (list.some((p) => p.item === fb.item)) continue;   // the world has its own box with it
+    list.push({ id: `${levelId}.${fb.item}`, item: fb.item, near: 'ship', slot: fb.slot, fallback: true, beacon: true });
+  }
+  return list;
+}
+
+export function createBoxes({ levelId, scene, physics, level, player, sound = null, quests = null, toast = () => {}, cam = null, anchor = null, game: g = sharedGame, table = PLACEMENTS }) {
+  const lights = level.lights ?? (level.lights = []);
+  const noShadow = level.noShadow ?? (level.noShadow = []);
+  // beacons hang off one always-visible group (noShadow re-shows its members after the shadow passes)
+  const fx = new THREE.Group();
+  fx.name = 'Box beacons';
+  scene?.add(fx);
+  noShadow.push(fx);
+  const card = new BoxCard({ onDismiss: () => api.dismiss(), onSkip: () => api.skip() });
+  const ground = (x, z, fromY) => { const y = physics.groundAt(x, fromY, z, 6); return Number.isFinite(y) ? y : NaN; };
+  let current = null;   // the playing BoxScene
+  const list = [];
+  const offs = [];
+
+  const opened = (b) => !!g.flag(`box.${b.id}`);
+  // a world's own box is spent once opened, or once you have its item anyway; a fallback only while you have it
+  const spent = (b) => (b.fallback ? items.has(b.item) : opened(b) || items.has(b.item));
+
+  function build() {
+    const anc = typeof anchor === 'function' ? anchor() : anchor;
+    for (const p of placementsFor(levelId, { level, table })) {
+      if (!ITEMS[p.item]) continue;
+      const at = resolvePlacement(p, { physics, level, anchor: anc });
+      if (!at) { console.warn(`box ${p.id}: no ground at its placement`); continue; }
+      const parts = buildBox(p.id);
+      parts.root.position.copy(at.pos);
+      parts.root.rotation.y = at.yaw;
+      scene?.add(parts.root);
+      const b = {
+        id: p.id, item: p.item, def: ITEMS[p.item], pos: at.pos, yaw: at.yaw, parts, place: p, fallback: !!p.fallback, scene,
+        light: new THREE.Vector4(0, -1e5, 0, 0), near: 0, shake: 0, glow: 0, sceneLight: 0, phase: Math.random() * 6,
+        spent: () => spent(b), opened: () => opened(b),
+      };
+      lights.push(b.light);
+      // solid: an invisible block the size of the body (you can stand on it)
+      const block = new THREE.Mesh(new THREE.BoxGeometry(BOX.w + 0.04, BOX.h + BOX.lid, BOX.d + 0.04).translate(0, (BOX.h + BOX.lid) / 2, 0));
+      block.position.copy(at.pos); block.rotation.y = at.yaw;
+      b.collider = physics.addCollider?.(block) ?? null;
+      // a pale column over it, seen from afar: always for the boxes you must find, for the rest with the glyph lens
+      b.beacon = buildBeacon(p.id);
+      b.beacon.position.copy(at.pos).add(V(0, 0.6, 0));
+      b.beacon.visible = false;
+      b.alwaysBeacon = !!p.beacon;
+      fx.add(b.beacon);
+      noShadow.push(parts.raysWrap);
+      // the crash's trail of debris, from the ship to the box
+      if (p.debris && anc) {
+        b.debris = buildDebris(anc.pos, at.pos, (x, z) => { const y = ground(x, z, at.pos.y + 30); return Number.isFinite(y) ? y : at.pos.y; });
+        scene?.add(b.debris);
+      }
+      b.off = registerInteractable({
+        id: `box.${p.id}`, priority: PRIORITY.use + 1, range: 2.3,
+        prompt: 'open',
+        at: () => (b._at ??= V()).copy(b.pos).add(V(0, 1.05, 0)),
+        enabled: () => !spent(b) && !current && !player?.riding,
+        distance: (pl) => (Math.abs(pl.pos.y - b.pos.y) < 2 ? flat(pl.pos, b.pos) : Infinity),
+        use: () => api.open(b.id),
+      });
+      quests?.locate?.(`box.${p.id}`, () => b.pos);
+      setSpentLook(b, spent(b));
+      list.push(b);
+    }
+  }
+
+  function setSpentLook(b, isSpent) {
+    const P = b.parts;
+    P.lid.rotation.z = isSpent ? LID_REST : 0;
+    P.glowFloor.visible = false;
+    P.rays.visible = false;
+    P.mats.star.uniforms.uGlow.value = isSpent ? 0.12 : 0.35;
+    P.mats.seam.uniforms.uColor.value.set(BOX_COLORS.band);
+    P.mats.seam.uniforms.uGlow.value = 0;
+    b.light.set(0, -1e5, 0, 0);
+    if (b.beacon) b.beacon.visible = false;
+    b.isSpent = isSpent;
+    // a fallback box that is no longer needed (you have its item) goes away
+    P.root.visible = !(b.fallback && isSpent && !b.justOpened);
+  }
+
+  function dispose() {
+    for (const b of list) {
+      b.parts.root.removeFromParent(); b.beacon?.removeFromParent(); b.debris?.removeFromParent();
+      b.off?.();
+      if (b.collider) physics.removeCollider?.(b.collider);
+      const i = lights.indexOf(b.light); if (i >= 0) lights.splice(i, 1);
+      const j = noShadow.indexOf(b.parts.raysWrap); if (j >= 0) noShadow.splice(j, 1);
+    }
+    list.length = 0;
+  }
+
+  // keep the look in step with the items (the dev menu, a grant elsewhere)
+  offs.push(items.on(() => { for (const b of list) if (b !== current?.box && spent(b) !== b.isSpent) setSpentLook(b, spent(b)); }));
+
+  // ------------------------------------------------------------------ the bell's call (src/boxes/effects.js sounds it)
+  offs.push(g.on('bell', ({ pos } = {}) => {
+    for (const b of list) {
+      if (spent(b) || !pos) continue;
+      const d = flat(pos, b.pos);
+      if (d > 90) continue;
+      b.answer = { at: 0.4 + d / 60, k: 1 };
+      setTimeout(() => sound?.boxAnswer?.(Math.max(0.2, 1 - d / 90)), (0.4 + d / 60) * 1000);
+    }
+  }));
+
+  const api = {
+    list,
+    card,
+    busy: () => !!current,
+    get scene() { return current; },
+    open(id, { instant = false } = {}) {
+      const b = list.find((x) => x.id === id);
+      if (!b || current) return false;
+      const grant = () => {
+        items.grant(b.item);
+        g.set(`box.${b.id}`, true);
+      };
+      const finish = () => {
+        b.justOpened = true;
+        setSpentLook(b, true);
+        g.emit('box:opened', { id: b.id, item: b.item, level: levelId });
+      };
+      if (instant || !player) { grant(); finish(); return true; }
+      if (spent(b)) return false;
+      sound?.boxHum?.(0);
+      current = new BoxScene({ box: b, def: b.def, item: b.item, player, cam, sound, card, groundAt: ground,
+        onGrant: grant,
+        onEnd: () => { current = null; finish(); } });
+      current.start();
+      return true;
+    },
+    skip() { current?.skip(); },
+    dismiss() { return current?.dismiss() ?? false; },
+    reset() {
+      for (const k of Object.keys(g.data?.flags ?? {})) if (k.startsWith('box.')) g.set(k, undefined);
+      api.rebuild();
+    },
+    openAll() {
+      for (const p of Object.values(table).flat()) { if (ITEMS[p.item]) { items.grant(p.item); g.set(`box.${p.id}`, true); } }
+      for (const b of list) { b.justOpened = true; setSpentLook(b, true); }
+    },
+    rebuild() { if (current) current.end(); dispose(); build(); },
+    /** Boxes found / placed per world (the table's own boxes; fallbacks don't count). */
+    counts() {
+      const out = {};
+      for (const [id, ps] of Object.entries(table)) out[id] = { found: ps.filter((p) => g.flag(`box.${p.id}`)).length, total: ps.length };
+      return out;
+    },
+    journalHtml(titles = {}) {
+      const c = api.counts();
+      const rows = Object.entries(c).filter(([, v]) => v.total).map(([id, v]) => `<li class="${v.found >= v.total ? 'done' : ''}">${titles[id] ?? id} · boxes found ${v.found}/${v.total}</li>`).join('');
+      const owned = items.owned().map((id) => ITEMS[id].name).join(' · ');
+      const found = Object.values(c).reduce((s, v) => s + v.found, 0), total = Object.values(c).reduce((s, v) => s + v.total, 0);
+      return `<section class="quests boxes"><h2>Item boxes <span>${found}/${total}</span></h2><ul>${rows}</ul>${owned ? `<p class="qhint">carrying: ${owned}</p>` : ''}</section>`;
+    },
+    update(dt, t, { camera } = {}) {
+      // the reactions: star, seam, light, hum, shudder
+      let hum = 0;
+      const pp = player?.pos;
+      for (const b of list) {
+        const P = b.parts, M = P.mats;
+        const playing = current?.box === b;
+        if (!P.root.visible) continue;
+        const d = pp ? flat(pp, b.pos) + Math.max(0, Math.abs(pp.y - b.pos.y) - 2) : Infinity;
+        if (playing) {
+          // the scene drives the lid; the box pours light
+          const k = b.sceneLight;
+          M.seam.uniforms.uColor.value.set(BOX_COLORS.seam); M.seam.uniforms.uGlow.value = 1;
+          M.star.uniforms.uGlow.value = 0.6 + 0.4 * k;
+          b.light.set(b.pos.x, b.pos.y + 0.75, b.pos.z, 2.5 + 6.5 * k);
+          P.root.rotation.set(0, b.yaw, 0);
+          if (b.beacon) b.beacon.visible = false;
+          continue;
+        }
+        if (b.isSpent) continue;
+        const near = (b.near = smoothstep(18, 2.5, d));
+        hum = Math.max(hum, near);
+        const pulse = 0.5 + 0.5 * Math.sin(t * 3.2 + b.phase);
+        M.star.uniforms.uGlow.value = 0.35 + 0.65 * near * (0.55 + 0.45 * pulse);
+        const seam = near * (0.45 + 0.55 * Math.sin(t * 4.1 + b.phase) ** 2);
+        M.seam.uniforms.uColor.value.set(BOX_COLORS.band).lerp(_c.set(BOX_COLORS.seam), Math.min(1, seam * 1.4));
+        M.seam.uniforms.uGlow.value = seam;
+        b.light.set(b.pos.x, b.pos.y + 0.7, b.pos.z, near > 0.01 ? 1.2 + 3.8 * near * (0.8 + 0.2 * pulse) : 0);
+        // close up it shudders, in little fits, the lid knocking
+        let shake = 0;
+        if (d < 4.5) {
+          const cyc = (t + b.phase) % 1.7;
+          shake = cyc < 0.32 ? Math.sin(cyc / 0.32 * Math.PI) * smoothstep(4.5, 1.5, d) : 0;
+        }
+        if (b.answer) { b.answer.at -= dt; if (b.answer.at <= 0) { shake = Math.max(shake, b.answer.k); b.answer.k -= dt * 2; if (b.answer.k <= 0) b.answer = null; } }
+        P.root.rotation.set(Math.sin(t * 47) * 0.02 * shake, b.yaw + Math.sin(t * 31) * 0.025 * shake, Math.sin(t * 53) * 0.02 * shake);
+        P.lid.rotation.z = Math.max(0, Math.sin(t * 23)) * 0.06 * shake;
+        // the beacon: from afar (always for the boxes that must be found, with the lens for all)
+        if (b.beacon) {
+          const on = (b.alwaysBeacon || items.has('lens')) && d > 9;
+          b.beacon.visible = on;
+          if (on) { const w = THREE.MathUtils.clamp(d * 0.006, 0.4, 3) * smoothstep(9, 22, d); b.beacon.scale.set(w, 36, w); }
+        }
+      }
+      sound?.boxHum?.(current ? 0 : hum);
+      if (current) current.update(dt);
+      void camera;
+    },
+    dispose() { dispose(); for (const f of offs) f(); offs.length = 0; },
+  };
+  build();
+  return api;
+}
+const _c = new THREE.Color();

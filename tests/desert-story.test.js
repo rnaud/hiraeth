@@ -141,6 +141,27 @@ test('scattered props keep out of the city, and the camps’ people are placed',
   assert.ok(camp.some((p) => p.perch === 'kerb'), 'some sit on the benches by the fires');
 });
 
+test('a new game starts without the backpack: the first stage is to find what fell from the ship', async () => {
+  const { items } = await import('../src/items.js');
+  const { createBoxes } = await import('../src/boxes/index.js');
+  assert.equal(items.has('backpack'), false, 'the traveller’s back is bare');
+  assert.equal(quests.stage('desert.power'), 'pack');
+  // the box is the marker
+  const boxes = createBoxes({ levelId: 'desert', scene, physics, level, player, quests });
+  const box = boxes.list.find((b) => b.item === 'backpack');
+  assert.equal(quests.objective().label, 'What fell from the ship');
+  assert.ok(quests.objective().position.distanceTo(box.pos) < 0.01, 'the marker stands on the box');
+  // without the backpack the rib is heaved by hand (nothing breaks without a tool)
+  assert.equal(rt.world.toolHasPush(), false);
+  boxes.open(box.id, { instant: true });
+  assert.equal(items.has('backpack'), true);
+  step(2);
+  assert.equal(quests.stage('desert.power'), 'camps', 'then on to the camps');
+  await new Promise((r) => setTimeout(r, 3400));
+  assert.ok(toasts.some((t) => /Try shooting \(G\) or pushing \(C\)/.test(t)), 'a nudge to try the tool');
+  boxes.dispose();
+});
+
 test('the main quest runs from the dead ship to a powered one', () => {
   assert.equal(quests.stage('desert.power'), 'camps');
   assert.equal(quests.objective().label, 'The pilgrims’ camps');

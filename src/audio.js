@@ -400,6 +400,83 @@ export class Sound {
     [0, 2, 4, 7].forEach((d, i) => this.pluck(this.freq(d, 2), t + i * 0.12, 0.12, 'sine', this.fx));
   }
 
+  // ------------------------------------------------------------------ item boxes (src/boxes/)
+  /** A box nearby hums: k 0..1 (how close the nearest unopened box is). A soft fifth that beats slowly. */
+  boxHum(k = 0) {
+    if (!this.ctx) return;
+    const ctx = this.ctx, t = ctx.currentTime;
+    if (!this._hum) {
+      if (k <= 0.001) return;
+      const g = ctx.createGain(); g.gain.value = 0;
+      const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 900;
+      const oscs = [[196, 'sine', 0], [293.7, 'sine', 3], [392.4, 'triangle', -4]].map(([fr, type, det]) => {
+        const o = ctx.createOscillator(); o.type = type; o.frequency.value = fr; o.detune.value = det; o.connect(f); o.start(); return o;
+      });
+      // a slow tremolo: the box breathes
+      const lfo = ctx.createOscillator(), lg = ctx.createGain(); lfo.frequency.value = 0.9; lg.gain.value = 0.35;
+      const trem = ctx.createGain(); trem.gain.value = 0.65;
+      lfo.connect(lg).connect(trem.gain); lfo.start();
+      f.connect(trem).connect(g).connect(this.fx);
+      this._hum = { g, oscs, lfo };
+    }
+    this._hum.g.gain.setTargetAtTime(this.muted ? 0 : 0.05 * k * k, t, 0.25);
+  }
+
+  /** The lid lifts: a wooden creak and a breath of air. */
+  boxCreak() {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    this.sweep(t, 150, 95, 0.55, 0.035, 'sawtooth');
+    this.sweep(t + 0.18, 210, 120, 0.4, 0.02, 'sawtooth');
+    this.burst(t + 0.1, { dur: 0.7, type: 'bandpass', freq: 1800, q: 0.5, vol: 0.06, rate: 0.6 });
+  }
+
+  /** The light pours out: a bright rising shimmer. */
+  boxBurst() {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    this.burst(t, { dur: 1.4, type: 'highpass', freq: 3800, q: 0.4, vol: 0.09, rate: 1.2 });
+    for (let i = 0; i < 7; i++) this.sweep(t + i * 0.06, 900 + i * 260, 1800 + i * 420, 0.5, 0.018, 'sine');
+  }
+
+  /**
+   * The item rises: a small fanfare of its own, a rising arpeggio that lands on a
+   * held chord (in absolute pitches, so it sounds the same in every world's scale).
+   */
+  fanfare() {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime, bus = this.fx;
+    const n = (semi) => 392 * Math.pow(2, semi / 12);            // from G4
+    const notes = [[0, 0], [4, 0.13], [7, 0.26], [11, 0.39], [12, 0.6]];   // G B D F# G: up and open
+    for (const [s, d] of notes) { this.pluck(n(s), t + d, 0.11, 'triangle', bus); this.pluck(n(s + 12), t + d, 0.035, 'sine', bus); }
+    // the held chord under the last note
+    for (const s of [0, 7, 12, 16]) {
+      const ctx = this.ctx, o = ctx.createOscillator(), g = ctx.createGain(), f = ctx.createBiquadFilter();
+      o.type = 'triangle'; o.frequency.value = n(s - 12); f.type = 'lowpass'; f.frequency.value = 1800;
+      g.gain.setValueAtTime(0, t + 0.6); g.gain.linearRampToValueAtTime(0.03, t + 0.7); g.gain.exponentialRampToValueAtTime(0.0005, t + 2.8);
+      o.connect(f).connect(g).connect(bus); o.start(t + 0.6); o.stop(t + 2.9);
+    }
+  }
+
+  /** An unopened box answers the bell: a small far chime (vol 0..1 by distance). */
+  boxAnswer(vol = 1) {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    [12, 19].forEach((s, i) => this.pluck(392 * Math.pow(2, s / 12), t + i * 0.09, 0.05 * vol, 'sine', this.fx));
+  }
+
+  /** The bell-note whistle: one clear note with a bell's inharmonic partials. */
+  bell() {
+    if (!this.ctx) return;
+    const ctx = this.ctx, t = ctx.currentTime, f0 = 587.3;
+    for (const [m, v, d] of [[1, 0.09, 2.6], [2.76, 0.035, 1.6], [5.4, 0.018, 0.9], [0.5, 0.03, 2.2]]) {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'sine'; o.frequency.value = f0 * m;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0005, t + d);
+      o.connect(g).connect(this.fx); o.start(t); o.stop(t + d + 0.05);
+    }
+  }
+
   page() {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
