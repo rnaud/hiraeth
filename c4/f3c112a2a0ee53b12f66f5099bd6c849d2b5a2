@@ -1,0 +1,21 @@
+src/levels/arzach2.js
+  s_1fd8d0e7b02dcf::t_7ee9b67b6b6282 40
+src/story/arzach.js
+  s_1fd8d0e7b02dcf::t_f177ef2ac5534b 70,74,107,113
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c4f3c112a2a0ee53b12f66f5099bd6c849d2b5a2",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
