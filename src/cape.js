@@ -7,8 +7,28 @@ import { makeMaterial } from './materials.js';
 // drag against the character's motion makes it stream out behind when
 // running, and it collides with capsules on the body and legs so the legs
 // push it around as they swing, plus the ground under the feet.
+//
+// Far from the camera nobody simulates cloth, but a cape mustn't be left
+// hanging in the air where it last was (or mid-swing): it *hangs* instead, its
+// drape (the cloth at rest on that body, in the collar's own space) carried by
+// the body like any other piece of costume, at no cost a frame. The drape is
+// baked once by letting the cloth settle on the body (one bake at a time,
+// shared between capes of the same cut on the same kind of body), and kept
+// fresh from the simulation whenever the wearer stands still and the cloth
+// has come to rest. The simulation starts from it again when you come close,
+// so the cloth doesn't drop into place in front of you.
 
 const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _c = new THREE.Vector3(), _d = new THREE.Vector3(), _r = new THREE.Vector3();
+const _mi = new THREE.Matrix4(), ZERO = new THREE.Vector3();
+const DRAPES = new Map();          // drape key → Float32Array (anchor space), shared
+const BAKE_GAP_MS = 12;            // at most one bake every ~frame
+let lastBake = -1e9;
+// a bake: the cloth's own steps, heavily damped so it comes to rest in a few (within ~2 cm of
+// letting it fall for seconds), the colliders once a step: ~1 ms
+const BAKE = { steps: 3, damp: 0.6, iters: 5, n: 7 };
+const now = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
+/** Tests: forget the shared drapes and the bake budget. */
+export function resetDrapes() { DRAPES.clear(); lastBake = -1e9; }
 
 export class Cape {
   /**
@@ -18,6 +38,10 @@ export class Cape {
    */
   constructor(scene, anchor, { cols = 14, rows = 11, top = 0.19, bottom = 0.5, length = 1.5, y = 0.74, gap = 0.42, color = '#c8483a', color2 = null, heavy = true } = {}) {
     this.anchor = anchor;
+    this.scene = scene;
+    this.cut = [cols, rows, top, bottom, length, y, gap, heavy].map((v) => (typeof v === 'number' ? v.toFixed(3) : v)).join('/');
+    this.drape = null;      // the cloth at rest on the body, in anchor space (see bake())
+    this.hung = false;      // shown as the drape, carried by the anchor (not simulated)
     // heavy wool: falls in long vertical folds, swings slowly, barely flutters
     this.damp = heavy ? 0.95 : 0.985;
     this.gravity = heavy ? 18 : 9.8;
@@ -82,11 +106,14 @@ export class Cape {
     this.time = 0;
   }
 
+  /** Start the cloth over: on its drape if it has one (already settled), else the cut's cone. */
   reset() {
+    this.unhang();
     this.anchor.updateWorldMatrix(true, false);
     const m = this.anchor.matrixWorld;
+    const src = this.drape ?? this.local;
     for (let i = 0; i < this.p.length; i += 3) {
-      _a.set(this.local[i], this.local[i + 1], this.local[i + 2]).applyMatrix4(m);
+      _a.set(src[i], src[i + 1], src[i + 2]).applyMatrix4(m);
       this.p[i] = this.q[i] = _a.x; this.p[i + 1] = this.q[i + 1] = _a.y; this.p[i + 2] = this.q[i + 2] = _a.z;
     }
     this.ready = true;
@@ -101,6 +128,8 @@ export class Cape {
    * @param s.spread 0..1 open like wings (gliding), s.lift 0..1 updraft (jetpack)
    */
   update(dt, s) {
+    if (this.hung) this.unhang();   // (and starts again from the drape: reset())
+    this._ease = 0;
     this.anchor.updateWorldMatrix(true, false);
     const m = this.anchor.matrixWorld;
     _a.set(this.local[0], this.local[1], this.local[2]).applyMatrix4(m);
@@ -108,7 +137,9 @@ export class Cape {
     this.time += dt;
     // more substeps when the body moves fast, so limbs can't tunnel through the cloth
     const fast = Math.hypot(s.vel.x, s.vel.y, s.vel.z);
-    const steps = fast > 6 ? 5 : 3, h = Math.min(dt, 1 / 30) / steps;
+    // (a bake only needs where the cloth comes to rest: see BAKE)
+    const steps = s.quiet ? BAKE.steps : fast > 6 ? 5 : 3, h = Math.min(dt, 1 / 30) / steps;
+    const damp = s.quiet ? BAKE.damp : this.damp;
     const { cols, rows } = this;
     const up = s.up;
     // relative air: ambient wind minus our own motion, plus an updraft for the jetpack
@@ -130,7 +161,7 @@ export class Cape {
         const tr = r / (rows - 1);
         for (let c = 0; c < cols; c++) {
           const i = (r * cols + c) * 3;
-          const vx = (this.p[i] - this.q[i]) * this.damp, vy = (this.p[i + 1] - this.q[i + 1]) * this.damp, vz = (this.p[i + 2] - this.q[i + 2]) * this.damp;
+          const vx = (this.p[i] - this.q[i]) * damp, vy = (this.p[i + 1] - this.q[i + 1]) * damp, vz = (this.p[i + 2] - this.q[i + 2]) * damp;
           this.q[i] = this.p[i]; this.q[i + 1] = this.p[i + 1]; this.q[i + 2] = this.p[i + 2];
           // drag towards the relative air velocity (per-particle velocity matters)
           const pv = 1 / h;
@@ -147,7 +178,8 @@ export class Cape {
         }
       }
       // constraints, then collisions
-      for (let it = 0; it < 5; it++) {
+      const iters = s.quiet ? BAKE.iters : 5;
+      for (let it = 0; it < iters; it++) {
         const C = this.cons;
         for (let k2 = 0; k2 < C.length; k2 += 4) {
           const i = C[k2] * 3, j = C[k2 + 1] * 3, rest = C[k2 + 2], st = C[k2 + 3];
@@ -159,36 +191,138 @@ export class Cape {
           this.p[i] += dx * diff * wi; this.p[i + 1] += dy * diff * wi; this.p[i + 2] += dz * diff * wi;
           this.p[j] -= dx * diff * wj; this.p[j + 1] -= dy * diff * wj; this.p[j + 2] -= dz * diff * wj;
         }
-        this.collide(s);
+        if (!s.quiet || it === iters - 1) this.collide(s);   // (a bake: the colliders once a step)
       }
     }
+    // the wearer standing still and the cloth at rest: that is its drape now (seated, leaning…)
+    if (s.still) {
+      this._still = (this._still ?? 0) + dt;
+      if (this._still > 1.5 && this.restless() < 1e-3) { this.capture(); this._still = 0.5; }
+    } else this._still = 0;
+    if (s.quiet) return;   // (baking: no mesh to refresh until the end)
     this.geo.attributes.position.needsUpdate = true;
     this.geo.computeVertexNormals();
     this.geo.computeBoundingSphere();
   }
 
+  /** How far the cloth moved in the last step (m, the most of any particle): ~0 at rest. */
+  restless() {
+    let mx = 0;
+    for (let i = this.cols * 3; i < this.p.length; i++) mx = Math.max(mx, Math.abs(this.p[i] - this.q[i]));
+    return mx;
+  }
+
+  /** Keep the simulated cloth, as it is now, as this cape's drape (in anchor space). */
+  capture() {
+    if (!this.ready || this.hung) return;
+    if (!this._ownDrape || !this.drape) { this.drape = new Float32Array(this.p.length); this._ownDrape = true; }
+    this.anchor.updateWorldMatrix(true, false);
+    _mi.copy(this.anchor.matrixWorld).invert();
+    for (let i = 0; i < this.p.length; i += 3) {
+      _a.set(this.p[i], this.p[i + 1], this.p[i + 2]).applyMatrix4(_mi);
+      this.drape[i] = _a.x; this.drape[i + 1] = _a.y; this.drape[i + 2] = _a.z;
+    }
+  }
+
+  /**
+   * Give the cape its drape: the shared one for this cut on this kind of body (`key`), or let the
+   * cloth settle on the body as it stands now (s as for update(): capsules, floor, up). Only one
+   * bake every ~frame (returns false when it has to wait, unless `force`).
+   */
+  bake(s, { key = null, force = false } = {}) {
+    const k = key === null ? null : `${this.cut}|${key}`;
+    if (k && DRAPES.has(k)) { this.drape = DRAPES.get(k); this._ownDrape = false; return true; }
+    const t = now();
+    if (!force && t - lastBake < BAKE_GAP_MS) return false;
+    lastBake = t;
+    const still = { up: s.up, floor: s.floor, capsules: s.capsules, vel: ZERO, wind: ZERO, quiet: true };
+    this.drape = null; this._ownDrape = false;
+    this.ready = false;
+    for (let i = 0; i < BAKE.n; i++) this.update(1 / 30, still);
+    this.capture();
+    if (k) { DRAPES.set(k, this.drape); this._ownDrape = false; }
+    this.geo.attributes.position.needsUpdate = true;
+    this.geo.computeVertexNormals();
+    return true;
+  }
+
+  /**
+   * Out of the cloth range: ease the cloth onto its drape over ~half a second (no simulation, so
+   * a cape that was swinging doesn't freeze mid-swing), then hang it from the anchor.
+   * Returns true once it hangs (false: no drape yet, bake() first).
+   */
+  rest(dt) {
+    if (this.hung) return true;
+    if (!this.drape) return false;
+    if (!this.ready) return this.hang();
+    this._ease = (this._ease ?? 0) + dt;
+    if (this._ease >= 0.5) return this.hang();
+    this.anchor.updateWorldMatrix(true, false);
+    const m = this.anchor.matrixWorld, k = 1 - Math.exp(-9 * dt);
+    for (let i = 0; i < this.p.length; i += 3) {
+      _a.set(this.drape[i], this.drape[i + 1], this.drape[i + 2]).applyMatrix4(m);
+      this.p[i] += (_a.x - this.p[i]) * k; this.p[i + 1] += (_a.y - this.p[i + 1]) * k; this.p[i + 2] += (_a.z - this.p[i + 2]) * k;
+    }
+    this.q.set(this.p);
+    this.geo.attributes.position.needsUpdate = true;
+    this.geo.computeVertexNormals();
+    return false;
+  }
+
+  /** Show the drape, carried by the anchor (its matrices move it; nothing to do per frame). */
+  hang() {
+    if (!this.drape) return false;
+    if (this.hung) return true;
+    this.hung = true;
+    this._ease = 0;
+    this.p.set(this.drape);
+    this.anchor.add(this.mesh);
+    this.geo.attributes.position.needsUpdate = true;
+    this.geo.computeVertexNormals();
+    this.geo.computeBoundingSphere();
+    return true;
+  }
+
+  /** Back to world space for the simulation (it starts again from the drape: reset()). */
+  unhang() {
+    this._ease = 0;
+    if (!this.hung) return;
+    this.hung = false;
+    this.ready = false;
+    this.scene.add(this.mesh);
+  }
+
   collide(s) {
-    const { cols, rows } = this;
-    for (let r = 1; r < rows; r++)
-      for (let c = 0; c < cols; c++) {
-        const i = (r * cols + c) * 3;
-        _a.set(this.p[i], this.p[i + 1], this.p[i + 2]);
-        for (const cap of s.capsules) {
-          _b.subVectors(cap.b, cap.a);
-          const t = Math.max(0, Math.min(1, _c.subVectors(_a, cap.a).dot(_b) / Math.max(_b.lengthSq(), 1e-8)));
-          _c.copy(cap.a).addScaledVector(_b, t);
-          _b.subVectors(_a, _c);
-          const d = _b.length();
-          if (d < cap.r && d > 1e-5) _a.copy(_c).addScaledVector(_b, cap.r / d);
-        }
-        // the ground under the feet
-        const above = _b.subVectors(_a, s.floor).dot(s.up);
-        if (above < 0.03) _a.addScaledVector(s.up, 0.03 - above);
-        this.p[i] = _a.x; this.p[i + 1] = _a.y; this.p[i + 2] = _a.z;
+    const { cols, rows } = this, P = this.p;
+    // the capsules as plain numbers once per pass (Vector3 calls in the inner loop were most of the cloth's cost)
+    const caps = s.capsules, nc = caps.length;
+    const K = (this._k && this._k.length >= nc * 8) ? this._k : (this._k = new Float64Array(nc * 8));
+    for (let j = 0; j < nc; j++) {
+      const c = caps[j], o = j * 8;
+      const bx = c.b.x - c.a.x, by = c.b.y - c.a.y, bz = c.b.z - c.a.z;
+      K[o] = c.a.x; K[o + 1] = c.a.y; K[o + 2] = c.a.z; K[o + 3] = bx; K[o + 4] = by; K[o + 5] = bz;
+      K[o + 6] = 1 / Math.max(bx * bx + by * by + bz * bz, 1e-8); K[o + 7] = c.r;
+    }
+    const ux = s.up.x, uy = s.up.y, uz = s.up.z, fx = s.floor.x, fy = s.floor.y, fz = s.floor.z;
+    for (let i = cols * 3, n = rows * cols * 3; i < n; i += 3) {
+      let x = P[i], y = P[i + 1], z = P[i + 2];
+      for (let o = 0; o < nc * 8; o += 8) {
+        const bx = K[o + 3], by = K[o + 4], bz = K[o + 5];
+        let t = ((x - K[o]) * bx + (y - K[o + 1]) * by + (z - K[o + 2]) * bz) * K[o + 6];
+        t = t < 0 ? 0 : t > 1 ? 1 : t;
+        const cx = K[o] + bx * t, cy = K[o + 1] + by * t, cz = K[o + 2] + bz * t;
+        const dx = x - cx, dy = y - cy, dz = z - cz, d = Math.sqrt(dx * dx + dy * dy + dz * dz), r = K[o + 7];
+        if (d < r && d > 1e-5) { const k = r / d; x = cx + dx * k; y = cy + dy * k; z = cz + dz * k; }
       }
+      // the ground under the feet
+      const above = (x - fx) * ux + (y - fy) * uy + (z - fz) * uz;
+      if (above < 0.03) { const k = 0.03 - above; x += ux * k; y += uy * k; z += uz * k; }
+      P[i] = x; P[i + 1] = y; P[i + 2] = z;
+    }
   }
 
   dispose(scene) {
+    this.mesh.removeFromParent();
     scene.remove(this.mesh);
     this.geo.dispose();
   }

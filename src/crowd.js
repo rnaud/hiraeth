@@ -45,6 +45,17 @@ const UP = new THREE.Vector3(0, 1, 0);
 const DIRS8 = Array.from({ length: 8 }, (_, i) => new THREE.Vector3(Math.cos(i * TAU / 8), 0, Math.sin(i * TAU / 8)));
 const wrapA = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 const damp = (k, dt) => 1 - Math.exp(-k * dt);
+/**
+ * The way to face someone at flat offset `v` (`d` m away), kept in `o[key]`: followed as they move,
+ * but held while they stand right on top of us (an atan2 of a few centimetres swung people round
+ * and back every frame as you shuffled into them).
+ */
+export function holdAim(o, key, v, d, near = 0.25, far = 0.7) {
+  const a = Math.atan2(v.x, v.z);
+  if (o[key] === undefined || !Number.isFinite(o[key])) o[key] = a;
+  else o[key] += wrapA(a - o[key]) * THREE.MathUtils.smoothstep(d, near, far);
+  return o[key];
+}
 
 // ------------------------------------------------------------------ looks
 // (what people wear comes from their world: costumes.js)
@@ -467,6 +478,7 @@ function placeWalker(p, dt) {
   _d.subVectors(b, a); _d.y = 0;
   if (_d.lengthSq() < 1e-8) _d.set(0, 0, 1);
   _d.normalize().multiplyScalar(w.dir);
+  w.fx = _d.x; w.fz = _d.z;   // (the way they walk)
   const lat = R.keepRight + w.side * w.dir + w.avoid;   // right of the walking direction
   p.pos.set(_v.x - _d.z * lat, _v.y, _v.z + _d.x * lat);
   const want = Math.atan2(_d.x, _d.z);
@@ -734,6 +746,7 @@ export class Crowd {
     const dPlayer = _v.length();
     const sameLevel = Math.abs(dy) < 2.5;
     const g = p.group;
+    const toYou = holdAim(p, 'faceA', _v, dPlayer);   // (held while you stand on them)
     let lookAt = null, face = null;
     // greeting: the person you stop beside turns to you and says something
     const close = sameLevel && dPlayer < 2.6 && playerSpeed < 2.2 && !stumbling;
@@ -741,8 +754,8 @@ export class Crowd {
     else if (dPlayer > 4) p.greetT = -1;
     p.speaking = p.greetT >= 0 && t - p.greetT > 0.6 && close;
     if (t < p.shoutUntil) p.speaking = true;
-    if (p.greetT >= 0) { lookAt = pp; if (p.pose !== POSE.sit && p.pose !== POSE.kerb && p.pose !== POSE.rail) face = Math.atan2(_v.x, _v.z); }
-    if (t < p.faceUntil && !stumbling) face = Math.atan2(_v.x, _v.z);
+    if (p.greetT >= 0) { lookAt = pp; if (p.pose !== POSE.sit && p.pose !== POSE.kerb && p.pose !== POSE.rail) face = toYou; }
+    if (t < p.faceUntil && !stumbling) face = toYou;
     if (t < p.lookUntil || (g && t < g.lookUntil) || (sameLevel && dPlayer < 4 && playerSpeed > 0.3)) lookAt = pp;
     if (p.gazeAt && t < p.gazeUntil && !close) lookAt = p.gazeAt;   // everyone looking at something (crowd.lookAt)
 
@@ -758,11 +771,21 @@ export class Crowd {
         target = t < col.holdUntil ? 0 : THREE.MathUtils.clamp(col.speed + err * 0.35, 0, col.speed + 0.9);
       }
       if (w.pause > 0) { w.pause -= dt; target = 0; }
-      // step aside for the player coming the other way (or standing in the way)
-      fwdOf(p.heading, _w);
+      // step aside for the player coming the other way (or standing in the way), judged along the
+      // way they walk (turned to greet you, their heading is you)
+      if (w.fx !== undefined) _w.set(w.fx, 0, w.fz); else fwdOf(p.heading, _w);
       const ahead = _v.dot(_w), side = _v.x * -_w.z + _v.z * _w.x;   // + = player on our right
       let want = 0;
-      if (sameLevel && ahead > -0.5 && ahead < 3.2 && Math.abs(side) < 1.3) { const lim = Math.min(1, w.route.lateral); want = side > 0 ? -lim : lim; target *= ahead < 1 ? 0.3 : 0.65; }
+      // (whether you're in their way is judged from where they'd walk without the step: judged from
+      // where it had taken them, near the edge of their lane the step took them out of it and the
+      // fading step back in, a zigzag every frame; and a small margin once they're stepping)
+      const side0 = side + w.avoid, m = w.stepSide ? 0.2 : 0;
+      if (sameLevel && ahead > -0.5 - m && ahead < 3.2 + m && Math.abs(side0) < 1.3 + m) {
+        // (the side to step to is kept while you're nearly dead ahead: turned to greet you, you
+        // are always dead ahead, and the sign of a few cm flipped them left and right every frame)
+        if (Math.abs(side0) > 0.3 || !w.stepSide) w.stepSide = side0 > 0 ? -1 : 1;
+        want = w.stepSide * Math.min(1, w.route.lateral); target *= ahead < 1 ? 0.3 : 0.65;
+      } else w.stepSide = 0;
       if (w.partner) want = w.partner.walk.avoid * 0.9 + want * 0.1;
       if (face !== null || t < p.startleT + 1.2) target = 0;
       w.avoid += (want - w.avoid) * damp(want ? 4 : 1.2, dt);
@@ -782,14 +805,21 @@ export class Crowd {
     } else if (p.walk || stumbling) {
       p.speed = 0;   // frozen (or a stumbling walker)
     } else {
-      // standing: drift back to their spot, unless the player is pushing through
+      // standing: drift back to their spot, unless the player is pushing through. They step out of
+      // your way and round you, not through you: the offset turns (its way held while you stand
+      // on their spot) rather than flipping across, and grows or shrinks along it. (It aimed straight
+      // away from you, so a player on their spot swung them from side to side every frame.)
       _w.subVectors(p.home, pp); _w.y = 0;
       const dh = _w.length();
       const room = 1.25;
+      let len = p.offset.length();
+      if (len < 0.02) p.asideA = undefined;   // back home: the next push picks its way afresh
+      const away = holdAim(p, 'asideA', _w, dh, 0.15, 0.6);
       if (sameLevel && dh < room && p.pose !== POSE.sit && p.pose !== POSE.kerb) {
-        _w.multiplyScalar((room - dh + 0.15) / Math.max(dh, 0.05));
-        if (_w.length() > 1.1) _w.setLength(1.1);
-        p.offset.lerp(_w, damp(7, dt));
+        let ang = len < 0.02 ? away : Math.atan2(p.offset.x, p.offset.z);
+        ang += wrapA(away - ang) * damp(5, dt);
+        len += (Math.min(room - dh + 0.15, 1.1) - len) * damp(7, dt);
+        p.offset.set(Math.sin(ang) * len, 0, Math.cos(ang) * len);
         if (!lookAt) lookAt = pp;
       } else p.offset.multiplyScalar(1 - damp(1.3, dt));
       _o.copy(p.home).add(p.offset);
@@ -801,8 +831,15 @@ export class Crowd {
       }
       const moved = _o.distanceTo(p.pos);
       p.pos.copy(_o);
-      p.speed = dt > 0 ? Math.min(moved / dt, 2) * (moved > 0.004 ? 1 : 0) : 0;
-      const hw = face ?? (p.offset.lengthSq() > 0.04 ? p.homeHeading + 0.5 * Math.sign(wrapA(Math.atan2(_v.x, _v.z) - p.homeHeading)) : p.homeHeading);
+      // their pace, smoothed: (read off a single frame it flickered between a step and nothing,
+      // and the legs with it)
+      const raw = dt > 0 ? Math.min(moved / dt, 2) : 0;
+      p.speed += ((raw > 0.12 ? raw : 0) - p.speed) * damp(8, dt);
+      if (p.speed < 0.03) p.speed = 0;
+      // half turned to you as they step aside (which side you're on: kept while you're nearly in front)
+      const rel = wrapA(toYou - p.homeHeading);
+      if (Math.abs(rel) > 0.25 || !p.asideTurn) p.asideTurn = Math.sign(rel) || 1;
+      const hw = face ?? (p.offset.lengthSq() > 0.04 ? p.homeHeading + 0.5 * p.asideTurn : p.homeHeading);
       p.heading += wrapA(hw - p.heading) * damp(face !== null ? 6 : 2.5, dt);
     }
     // shoved (the fluid push): knocked back, then they walk back to their place
@@ -827,7 +864,7 @@ export class Crowd {
     let yaw = 0, pitch = 0;
     if (lookAt && !stumbling) {
       _w.subVectors(lookAt, p.pos);
-      yaw = wrapA(Math.atan2(_w.x, _w.z) - p.heading);
+      yaw = wrapA((lookAt === pp ? toYou : Math.atan2(_w.x, _w.z)) - p.heading);
       if (Math.abs(yaw) > 1.15 && !p.walk && p.pose === POSE.stand && !stumbling) p.heading += Math.sign(yaw) * (Math.abs(yaw) - 1.15) * damp(2, dt);
       yaw = THREE.MathUtils.clamp(yaw, -1.15, 1.15);
       // eye to eye: the player's eyes are at ~1.5 m, everyone else's at their own height

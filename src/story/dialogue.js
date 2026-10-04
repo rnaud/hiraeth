@@ -336,12 +336,19 @@ export class Dialogue {
    * over the follow camera by `blend`.
    */
   frameCamera(camera, player, npcPos, up = new THREE.Vector3(0, 1, 0), avoid = []) {
-    if (this.blend < 0.002 || !npcPos) { this._side = 0; return; }
+    if (this.blend < 0.002 || !npcPos) { this._side = 0; this._across = null; return; }
     const a = player.pos, b = npcPos;
     const mid = this._look.copy(a).lerp(b, 0.5).addScaledVector(up, 1.45);
     const across = new THREE.Vector3().subVectors(b, a); across.addScaledVector(up, -across.dot(up));
     const sep = Math.max(across.length(), 0.8);
-    across.normalize();
+    // (standing nose to nose the line between you is a few cm long and its way is noise: keep the
+    // last good one, or at first the camera's own heading, rather than let it swing the shot about)
+    if (across.lengthSq() > 0.3 * 0.3) (this._across ??= new THREE.Vector3()).copy(across).normalize();
+    else if (!this._across) {
+      camera.getWorldDirection(across); across.addScaledVector(up, -across.dot(up));
+      this._across = across.lengthSq() > 1e-6 ? across.clone().normalize() : new THREE.Vector3(0, 0, 1);
+    }
+    across.copy(this._across);
     const side = new THREE.Vector3().crossVectors(up, across).normalize();
     // (pulled back on a portrait screen, where the horizontal view is narrow: both still in frame)
     const dist = (2.0 + sep * 1.0) * THREE.MathUtils.clamp(1.25 / (camera.aspect || 1.6), 1, 2.3);
