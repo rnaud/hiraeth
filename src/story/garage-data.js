@@ -84,7 +84,7 @@ export const PEOPLE = {
           choices: [{ text: '~curious~ Can I carry the signal round?', goto: 'carry' }, { text: '~neutral~ Goodbye.', end: true }],
         },
         carry: {
-          say: ['~surprised~ You want to? Nobody ever wants to; that’s why there’s a clerk. Here. Mind, it ticks. Don’t try to stop it ticking.', '~neutral~ Through the portal behind the start, to the upside-down. Post it in the relay box by the path there. It’ll know what to do. Then on, to the ring.'],
+          say: ['~surprised~ You want to? Nobody ever wants to; that’s why there’s a clerk. Here. Mind, it ticks. Don’t try to stop it ticking.', '~neutral~ Through the portal behind the start, to the upside-down. *Post it in the relay box* by the path there. It’ll know what to do. Then on, to the ring.'],
           do: [{ give: 'signal' }, { set: { 'garage.signal.given': true } }],
           choices: [{ text: '~neutral~ Through the portal, the relay box, the ring.', end: true }],
         },
@@ -110,7 +110,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~angry~ Don’t touch the windmill. It’s not broken. It’s thinking about whether to be broken.', '~scared~ Three machines stopped in one night: this windmill, the lamp pump in the upside-down, and the big turbine in the ring. Nothing wrong with any of them. They just… stopped.'],
+          say: ['~angry~ Don’t touch the windmill. It’s not broken. It’s thinking about whether to be broken.', '~scared~ Three machines stopped in one night: this windmill, *the lamp pump in the upside-down*, and *the big turbine in the ring*. Nothing wrong with any of them. They just… stopped.'],
           choices: [
             { text: '~curious~ What night?', goto: 'night' },
             { text: '~neutral~ Can I help?', goto: 'help' },
@@ -118,13 +118,13 @@ export const PEOPLE = {
           ],
         },
         night: { say: ['~playful~ The night the slit in the ring sang, Lune says. I didn’t hear it. I was asleep under the pump. When I woke up, three machines had stopped, and the fourth was me.'], choices: [{ text: '~neutral~ Can I help?', goto: 'help' }] },
-        mark: { say: ['~playful~ The maker’s rivets. {glyph} Three over a curve. The Major put them on everything he was proud of, Malvina says. The great machine. The portals’ footings. Me, if you look behind my ear. Don’t look behind my ear.', '~curious~ And the blue box on the keep wall, with the star. He didn’t make that one. He found it, rivets and all, and never opened it. Not mine, he said: it’s for the next one. Are you the next one?'], choices: [{ text: '~neutral~ Can I help with the machines?', goto: 'help' }, { text: '~playful~ I won’t.', end: true }] },
+        mark: { say: ['~playful~ The maker’s rivets. {glyph} Three over a curve. The Major put them on everything he was proud of, Malvina says. The great machine. The portals’ footings. Me, if you look behind my ear. Don’t look behind my ear.', '~curious~ And *the blue box on the keep wall*, with the star. He didn’t make that one. He found it, rivets and all, and never opened it. Not mine, he said: it’s for the next one. Are you the next one?'], choices: [{ text: '~neutral~ Can I help with the machines?', goto: 'help' }, { text: '~playful~ I won’t.', end: true }] },
         help: {
-          say: ['~neutral~ With that tank on your back? Maybe. Machines here run on habit and a little colour. Give each one a squirt of whatever’s in there: shoot it, right in the works. If it remembers what it’s for, it’ll start.'],
+          say: ['~neutral~ With that tank on your back? Maybe. Machines here run on habit and a little colour. Give each one a squirt of whatever’s in there: *shoot it, right in the works*. If it remembers what it’s for, it’ll start.'],
           do: { start: 'garage.machines' },
           choices: [{ text: '~neutral~ The windmill, the pump, the turbine.', end: true }],
         },
-        again: { say: ['~neutral~ Shoot them right in the works. The windmill’s blades, the pump’s flywheel in the upside-down, the turbine’s paddles in the ring.'], choices: [{ text: '~neutral~ On it.', end: true }] },
+        again: { say: ['~neutral~ *Shoot them right in the works*. The windmill’s blades, the pump’s flywheel in the upside-down, the turbine’s paddles in the ring.'], choices: [{ text: '~neutral~ On it.', end: true }] },
         tell: {
           say: ['~happy~ I heard them. I heard all three, from here, even the ring. You can hear a machine you love from anywhere.', '~sad~ Thank you. I’d have waited for them forever. That’s the trouble with this place: forever is very easy here.'],
           do: [{ advance: ['garage.machines', 'tell'] }],
@@ -160,17 +160,17 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ My ship fell that night.', goto: 'ship' }, { text: '~neutral~ (look up at the slit)', end: true }],
         },
         ship: { say: ['~curious~ Then the light was looking for something that fell. Or something fell because it looked. The Major would know. The Major would have forgotten.'], choices: [{ text: '~neutral~ (look up at the slit)', end: true }] },
-        unstamped: { say: ['~surprised~ That’s the signal! But it isn’t stamped. It has to go through the relay in the upside-down first, or the light won’t come through it right. Don’t ask me why. Habit.'], choices: [{ text: '~tired~ Back to the upside-down, then.', end: true }] },
+        unstamped: { say: ['~surprised~ That’s the signal! But it isn’t stamped. It has to go through *the relay in the upside-down* first, or the light won’t come through it right. Don’t ask me why. Habit.'], choices: [{ text: '~tired~ Back to the upside-down, then.', end: true }] },
         signal: {
           say: ['~surprised~ You brought the round yourself? Nobody has done that since… nobody has done that.', '~solemn~ (She holds the tube up to the slit. Noon light comes through it in nine little dots and lies on the floor between you: on, off, on, on…)', '~curious~ Hm. That’s not a message. It’s never been a message. It’s a page number. Or a place. The Major wrote it on the back of something.'],
           do: [{ take: 'signal' }, { set: { 'garage.signal.read': true } }, { advance: [Q, 'ring'] }],
           next: 'where',
         },
         where: {
-          say: ['~neutral~ He had a desk once. In the upside-down, at the very edge of the slab, where nobody goes because the edge is a long way down, or up. The Major went there to think. Go and look. I’ll keep the round going.'],
+          say: ['~neutral~ He had a desk once. In the upside-down, *at the very edge of the slab*, where nobody goes because the edge is a long way down, or up. The Major went there to think. Go and look. I’ll keep the round going.'],
           choices: [{ text: '~neutral~ The desk at the slab’s edge.', end: true }, { text: '~curious~ Has anything strange happened here?', goto: 'light', if: { not: { flag: 'garage.rumour.light' } } }],
         },
-        desk: { say: ['~neutral~ The Major’s desk: at the far edge of the upside-down slab. Back through the portal on the wall, across the plateau, through the first portal. A long way round. Everything here is.'], choices: [{ text: '~happy~ Thank you, Lune.', end: true }] },
+        desk: { say: ['~neutral~ The Major’s desk: at *the far edge of the upside-down slab*. *Back through the portal on the wall*, across the plateau, through the first portal. A long way round. Everything here is.'], choices: [{ text: '~happy~ Thank you, Lune.', end: true }] },
         after: { say: ['~happy~ I still hold it up to the light at noon. I know what it says now. It’s nicer, somehow, when you know and you look anyway.'], choices: [{ text: '~happy~ It is.', end: true }] },
       },
     },
@@ -188,7 +188,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~shout~ Don’t walk up there! If you walk up the curve, down goes with you, and then the ground’s over there and the sky is in your feet.', '~sad~ My ball wants to go to the plateau. Where down stays down. Through the portal on the wall up there. But the wall is UP.'],
+          say: ['~shout~ Don’t walk up there! If you walk up the curve, down goes with you, and then the ground’s over there and the sky is in your feet.', '~sad~ My ball wants to go to the plateau. Where down stays down. *Through the portal on the wall* up there. But the wall is UP.'],
           choices: [
             { text: '~happy~ I’ll push it up for you.', goto: 'push' },
             { text: '~curious~ Why does your ball want to go?', goto: 'why' },
@@ -196,11 +196,11 @@ export const PEOPLE = {
         },
         why: { say: ['~sad~ Because it rolls away from me every time. Round and round. It keeps coming back from the other side. A ball should be allowed to stop somewhere.'], choices: [{ text: '~happy~ I’ll push it up for you.', goto: 'push' }] },
         push: {
-          say: ['~happy~ Really? Push it with your squirty thing, the shove one. It rolls forever here, there’s nothing to stop it, so be gentle. Up the curve, to the portal on the wall. Then it’s on the plateau!'],
+          say: ['~happy~ Really? *Push it with your squirty thing*, the shove one. It rolls forever here, there’s nothing to stop it, so be gentle. Up the curve, *to the portal on the wall*. Then it’s on the plateau!'],
           do: { start: 'garage.ball' },
           choices: [{ text: '~neutral~ Up the curve, through the portal.', end: true }],
         },
-        again: { say: ['~shout~ Up the curve! Toward the portal on the wall! If it comes back round from the other side, don’t worry, I’ll put it back here.'], choices: [{ text: '~neutral~ Got it.', end: true }] },
+        again: { say: ['~shout~ Up the curve! *Toward the portal on the wall*! If it comes back round from the other side, don’t worry, I’ll put it back here.'], choices: [{ text: '~neutral~ Got it.', end: true }] },
         through: {
           say: ['~surprised~ It went through? It went THROUGH? Then it’s on the plateau, and down there down stays down, and it can stop.', '~playful~ Thank you. You walked up the curve and you didn’t even fall off. You’re very brave or very new.'],
           do: [{ advance: ['garage.ball', 'tell'] }],
@@ -258,7 +258,7 @@ export const LOCALS = [
           say: ['~tired~ The ring? Walk far enough and you’re back. I did it once. Took a week. When I got back I was standing on my own footprints, and they were older than me.'],
           choices: [{ text: '~curious~ Did you see the Major?', goto: 'major' }, { text: '~neutral~ Bye.', end: true }],
         },
-        major: { say: ['~whisper~ I saw a desk at the edge of the upside-down once, with a lamp on it, still lit. Nobody sitting there. I didn’t go near. You don’t go near a desk like that. It might be waiting for you.'], choices: [{ text: '~neutral~ Bye, Ferrol.', end: true }] },
+        major: { say: ['~whisper~ I saw a desk at *the edge of the upside-down* once, with a lamp on it, still lit. Nobody sitting there. I didn’t go near. You don’t go near a desk like that. It might be waiting for you.'], choices: [{ text: '~neutral~ Bye, Ferrol.', end: true }] },
       },
     },
   },

@@ -83,7 +83,7 @@ export const PEOPLE = {
         who: { say: ['~playful~ The gardeners. Us. And the garden, which tends us back. There were others before us, the white builders who left the ruins and the pedestals. They tended it with straight lines. We prefer curved ones.'], choices: [{ text: '~curious~ Something else fell here, you said?', goto: 'twice' }] },
         value: { say: ['~solemn~ Then you’ve come to the wrong garden, or the right one. We don’t keep anything. Everything here is on its way to being something else.'], choices: [{ text: '~curious~ You said something else fell here?', goto: 'twice' }] },
         twice: {
-          say: ['~neutral~ A ship, long ago, when I was small. Stel and Atan’s. It came down in the south meadow, burning, and ploughed a furrow you can still see from the tall trees.', '~solemn~ They lived. We gave them tea. They stayed one spring, and then they left, and we let the garden take the ship. We don’t dig up what falls. It fell; it belongs to the ground now.'],
+          say: ['~neutral~ A ship, long ago, when I was small. Stel and Atan’s. It came down in *the south meadow*, burning, and ploughed a furrow you can still see from the tall trees.', '~solemn~ They lived. We gave them tea. They stayed one spring, and then they left, and we let the garden take the ship. We don’t dig up what falls. It fell; it belongs to the ground now.'],
           do: { set: { 'edena.mira.heard': true } },
           choices: [
             { text: '~curious~ Can I see it?', goto: 'see' },
@@ -91,11 +91,11 @@ export const PEOPLE = {
           ],
         },
         went: { say: ['~playful~ Away, in the little round boat they kept inside the big one. Sol will tell you they’re coming back. Sol tells everyone that.'], choices: [{ text: '~curious~ Can I see their ship?', goto: 'see' }] },
-        see: { say: ['~neutral~ Seeing isn’t digging. Go south, past the pond, where the meadow dips. Vey tends the vines there. Ask her before you touch anything; the vines are hers more than anyone’s.'], choices: [{ text: '~neutral~ I’ll ask her.', end: true }] },
+        see: { say: ['~neutral~ Seeing isn’t digging. Go *south, past the pond, where the meadow dips*. Vey tends the vines there. *Ask her before you touch anything*; the vines are hers more than anyone’s.'], choices: [{ text: '~neutral~ I’ll ask her.', end: true }] },
         again: {
           say: [
             { if: { flag: 'edena.log.read' }, text: '~sad~ You went inside. I can tell; everyone comes out of that ship walking more slowly.' },
-            { if: { not: { flag: 'edena.log.read' } }, text: '~neutral~ South, past the pond, where the meadow dips. Vey will be with the vines.' },
+            { if: { not: { flag: 'edena.log.read' } }, text: '~neutral~ *South, past the pond, where the meadow dips*. Vey will be with the vines.' },
           ],
           choices: [
             { text: '~curious~ What is the water clock for?', goto: 'clock', once: true },
@@ -117,7 +117,7 @@ export const PEOPLE = {
           do: { set: { 'clue.edena.struck': true } },
           choices: [{ text: '~curious~ Where did they go to ask?', goto: 'where' }, { text: '~curious~ What does it want?', goto: 'want' }],
         },
-        where: { say: ['~sad~ Toward the deep wood where the lamps are kept, Atan said. Where the pools are lit for travellers who never come. I’ve never been. Nobody here has.'], do: { set: { 'clue.edena.pod': true } }, choices: [{ text: '~curious~ What does it want?', goto: 'want' }] },
+        where: { say: ['~sad~ Toward *the deep wood where the lamps are kept*, Atan said. Where the pools are lit for travellers who never come. I’ve never been. Nobody here has.'], do: { set: { 'clue.edena.pod': true } }, choices: [{ text: '~curious~ What does it want?', goto: 'want' }] },
         want: {
           say: ['~solemn~ I don’t know. Nobody here does. I don’t think the light is ours to know.', '~solemn~ But I know what we do with the things that fall on us. We tend the garden. The garden tends us.'],
           do: [{ advance: [Q, 'tell'] }, { keepsake: KEEPSAKE }, { set: { 'clue.edena.pod': true } }],
@@ -179,21 +179,21 @@ export const PEOPLE = {
           ],
         },
         seeds: {
-          say: ['~neutral~ Of course. Little white ones, stepped, like the pyramid they’ll be. I had one ready to plant, and it rolled out of my hand and away downhill. Seeds always roll toward water. Toward the pond, then, the far shore, west of where you landed.'],
+          say: ['~neutral~ Of course. Little white ones, stepped, like the pyramid they’ll be. I had one ready to plant, and it rolled out of my hand and away downhill. Seeds always roll toward water. Toward the pond, then, *the far shore, west of where you landed*.'],
           choices: [{ text: '~happy~ I’ll look for it.', do: { start: 'edena.seed' }, goto: 'thanks' }, { text: '~neutral~ Maybe later.', end: true }],
         },
         androids: {
-          say: ['~neutral~ The white builders. They made the ruins and the pedestals and the perfect spheres, and then they stopped. Nobody knows why. They found the pyramids already here and copied them, badly, with straight lines.', '~solemn~ They carved one mark on every ruin. {glyph} Three dots over an arc. We call it the Builders’ mark. They left nothing else written. Just that, everywhere, like a signature. Or an apology.', '~whisper~ Nothing else but the gifts: blue chests with a pale star, up in the canopies where only a climber goes. Builders’ gifts, we call them. The garden grows round them and never over.'],
+          say: ['~neutral~ The white builders. They made the ruins and the pedestals and the perfect spheres, and then they stopped. Nobody knows why. They found the pyramids already here and copied them, badly, with straight lines.', '~solemn~ They carved one mark on every ruin. {glyph} Three dots over an arc. We call it the Builders’ mark. They left nothing else written. Just that, everywhere, like a signature. Or an apology.', '~whisper~ Nothing else but the gifts: *blue chests with a pale star*, *up in the canopies* where only a climber goes. Builders’ gifts, we call them. The garden grows round them and never over.'],
           choices: [{ text: '~curious~ Pyramids grow from seeds, you said?', goto: 'seeds' }],
         },
-        thanks: { say: ['~happy~ You will? It glows a little when someone is near; seeds like company. Bring it back and we’ll plant it together.'], choices: [{ text: '~happy~ Back soon.', end: true }] },
-        waiting: { say: ['~neutral~ Toward water, always toward water. The pond’s far shore, west of where you landed. It glows a little when you’re near.'], choices: [{ text: '~neutral~ On my way.', end: true }] },
+        thanks: { say: ['~happy~ You will? *It glows a little when someone is near*; seeds like company. Bring it back and we’ll plant it together.'], choices: [{ text: '~happy~ Back soon.', end: true }] },
+        waiting: { say: ['~neutral~ Toward water, always toward water. *The pond’s far shore*, west of where you landed. It glows a little when you’re near.'], choices: [{ text: '~neutral~ On my way.', end: true }] },
         back: {
-          say: ['~happy~ My seed! You found it. Look at it, all its little steps.', '~whisper~ (He kneels and presses it into the meadow beside him, gently, the way you’d tuck someone in.)', '~playful~ Now it needs water. Not much. A splash, from that hand of yours.'],
+          say: ['~happy~ My seed! You found it. Look at it, all its little steps.', '~whisper~ (He kneels and presses it into the meadow beside him, gently, the way you’d tuck someone in.)', '~playful~ *Now it needs water*. Not much. A splash, from that hand of yours.'],
           do: [{ take: 'seed' }, { advance: 'edena.seed' }, { set: { 'edena.seed.planted': true } }],
           choices: [{ text: '~playful~ (splash it)', end: true }],
         },
-        water: { say: ['~neutral~ A splash, there, on the seed. Pyramids are thirsty when they’re small.'], choices: [{ text: '~playful~ (splash it)', end: true }] },
+        water: { say: ['~neutral~ *A splash, there, on the seed*. Pyramids are thirsty when they’re small.'], choices: [{ text: '~playful~ (splash it)', end: true }] },
         after: { say: ['~surprised~ Look at it. Look at it grow! Well, it’s stopped now. That was a thousand years’ worth of growing for one splash. Your water is strange, traveller.'], choices: [{ text: '~playful~ It is.', end: true }] },
       },
     },
@@ -212,16 +212,16 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~happy~ Climb the trees! The view is worth it. I’m Lio. I’ve climbed every tree in the garden except one.', '~sad~ The tallest one, there, north-west. I’ve been up the trunk to the second canopy, twice. But the crown floats on top on little branches, and you can’t climb a branch that thin, and I can’t jump that high.'],
+          say: ['~happy~ Climb the trees! The view is worth it. I’m Lio. I’ve climbed every tree in the garden except one.', '~sad~ *The tallest one, there, north-west*. I’ve been up the trunk to the second canopy, twice. But the crown floats on top on little branches, and you can’t climb a branch that thin, and I can’t jump that high.'],
           choices: [
             { text: '~curious~ What’s on the crown?', goto: 'what' },
             { text: '~playful~ I can jump quite high.', goto: 'jump' },
           ],
         },
         what: { say: ['~curious~ Nobody knows! Sol says Atan used to go up there, before he left. Sol says a lot of things. But from the second canopy I saw something on the crown, something square.'], choices: [{ text: '~neutral~ I’ll go and look.', do: { start: 'edena.tree' }, goto: 'go' }, { text: '~neutral~ Maybe later.', end: true }] },
-        jump: { say: ['~surprised~ With that thing on your back? The fizzing one? Then go! Climb the trunk to the second canopy, run to the edge under the crown, and jump, and jump again in the air.'], choices: [{ text: '~neutral~ I’ll go and look.', do: { start: 'edena.tree' }, goto: 'go' }] },
+        jump: { say: ['~surprised~ With that thing on your back? The fizzing one? Then go! *Climb the trunk to the second canopy*, run to the edge under the crown, and jump, and *jump again in the air*.'], choices: [{ text: '~neutral~ I’ll go and look.', do: { start: 'edena.tree' }, goto: 'go' }] },
         go: { say: ['~playful~ Tell me everything. If there’s treasure I want a third. A quarter. Some.'], choices: [{ text: '~playful~ Deal.', end: true }] },
-        waiting: { say: ['~neutral~ North-west, the tallest one. Trunk, first canopy, trunk, second canopy, then up. And jump again in the air!'], choices: [{ text: '~neutral~ On my way.', end: true }] },
+        waiting: { say: ['~neutral~ *North-west, the tallest one*. Trunk, first canopy, trunk, second canopy, then up. And *jump again in the air*!'], choices: [{ text: '~neutral~ On my way.', end: true }] },
         tell: {
           say: ['~surprised~ You went up! You went UP! What was there?'],
           choices: [
@@ -258,14 +258,14 @@ export const PEOPLE = {
         },
         why: { say: ['~solemn~ Because it fell. Everything that falls belongs to the ground. A leaf, a seed, a ship. You dig it up, you put it back in the world, and the world has to deal with it all over again. We let it rest.'], choices: [{ text: '~curious~ May I look at it?', goto: 'ask' }] },
         ask: {
-          say: ['~happy~ Good. You asked. Most don’t; most just stare.', '~neutral~ You may look. You may go inside: the hatch is on this flank, under the arch of flowers. Going in isn’t digging. Atan used to sit in there and talk to the panel.', '~solemn~ Don’t cut anything. Don’t pull anything. If the garden wants to show you something, it will.'],
+          say: ['~happy~ Good. You asked. Most don’t; most just stare.', '~neutral~ You may look. You may go inside: the hatch is *on this flank, under the arch of flowers*. Going in isn’t digging. Atan used to sit in there and talk to the panel.', '~solemn~ *Don’t cut anything*. Don’t pull anything. If the garden wants to show you something, it will.'],
           do: { set: { 'edena.vey.asked': true } },
           choices: [{ text: '~neutral~ I won’t cut anything.', end: true }],
         },
-        again: { say: ['~neutral~ The hatch is on this flank. Go in, gently. Come out the same way.'], choices: [{ text: '~whisper~ Gently.', end: true }] },
-        pushed: { say: ['~angry~ You shoved the vines. I saw. They shoved back, didn’t they? The garden isn’t a door. Ask it, or leave it.'], choices: [{ text: '~sad~ Sorry, Vey.', end: true }] },
+        again: { say: ['~neutral~ *The hatch is on this flank*. Go in, gently. Come out the same way.'], choices: [{ text: '~whisper~ Gently.', end: true }] },
+        pushed: { say: ['~angry~ You shoved the vines. I saw. They shoved back, didn’t they? The garden isn’t a door. *Ask it, or leave it*.'], choices: [{ text: '~sad~ Sorry, Vey.', end: true }] },
         opened: {
-          say: ['~surprised~ It opened for you. Forty years I’ve tended those vines, and they never once drew aside for me.', '~curious~ I didn’t cut them, and you didn’t cut them, and they opened anyway. Hm. Maybe the garden thought you needed to see. Go on, look. Then let it close.'],
+          say: ['~surprised~ It opened for you. Forty years I’ve tended those vines, and they never once drew aside for me.', '~curious~ I didn’t cut them, and you didn’t cut them, and they opened anyway. Hm. Maybe the garden thought you needed to see. *Go on, look*. Then let it close.'],
           choices: [{ text: '~solemn~ I’ll look, and let it close.', end: true }],
         },
         after: { say: ['~solemn~ The flowers are closing over it again. They’ll be thicker next spring. That’s how it should be.'], choices: [{ text: '~solemn~ That’s how it should be.', end: true }] },

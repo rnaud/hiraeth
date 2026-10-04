@@ -5,7 +5,7 @@ import { CROWD_GLSL, CROWD_POSES as POSE, CROWD_ZONES as Z, CROWD_PARTS as P, CR
 import { COSTUMES, HEADS as HEADWEAR, MASKS, BODIES, PROPS, HEAD_IDS, MASK_IDS, BODY_IDS, PROP_IDS, CROWD_FRAMES, hairCap, crowdLook, packDress, costumeWorld } from './costumes.js';
 import { registerTarget } from './targets.js';
 import { mulberry32 } from './noise.js';
-import { stripTone } from './story/tone.js';
+import { formatText } from './story/dialogue.js';
 import { speakBalloon } from './story/voice.js';
 
 // City crowds, Assassin's Creed style: everybody is simulated by one cheap
@@ -965,8 +965,7 @@ export class Crowd {
     if (on) {
       _w.set(p.pos.x, p.pos.y + 2.05 * p.scale, p.pos.z).project(camera);
       if (_w.z < 1 && Math.abs(_w.x) < 1.1 && Math.abs(_w.y) < 1.1) {
-        const text = stripTone(p.say);
-        if (b.textContent !== text) b.textContent = text;
+        if (this._balloonLine !== p.say) { this._balloonLine = p.say; b.innerHTML = formatText(p.say); }   // *highlights* as in the dialogue panel
         // the shout, heard from where they stand (a short mumble; at most a couple at once: audio.js)
         if ((this._voiced !== p || this._voicedLine !== p.say)
           && speakBalloon(p.say, { person: { seed: `crowd:${p.id}`, kind: p.kind, size: p.size }, dist: p._dCam, pan: THREE.MathUtils.clamp(_w.x * 0.8, -0.9, 0.9), max: 6 })) { this._voiced = p; this._voicedLine = p.say; }

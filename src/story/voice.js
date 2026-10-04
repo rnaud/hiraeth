@@ -161,15 +161,30 @@ export function revealSpeed(voice, tone = 'neutral', lang = 'home') {
   return REVEAL_CPS * Math.min(1.3, Math.max(0.65, Math.pow(voice.rate * T.rate * Math.sqrt(L.rate), 0.75)));
 }
 
-/** Which characters are spoken: not (stage directions); for a narrator, only the *quoted* words. */
+/**
+ * A *starred* span is a highlight (a place to go, a thing to do: a few words) or a quotation
+ * (a letter, a recording: more than eight words, or more than one sentence).
+ */
+export function isQuote(span) {
+  const w = String(span).replace(/<[^>]*>/g, ' ');
+  return (w.match(WORD)?.length ?? 0) > 8 || /[.!?…]\s+\S/.test(w);
+}
+
+/**
+ * Which characters are spoken: not (stage directions); for a narrator, only the *quoted* words
+ * (narrator 'all': every starred span; otherwise the quotations, not the highlights).
+ */
 function spokenMask(text, narrator) {
   const m = new Uint8Array(text.length);
-  let paren = 0, star = false;
+  let paren = 0, star = false, quote = false;
   for (let i = 0; i < text.length; i++) {
     const c = text[i];
     if (c === '(') paren++;
-    if (c === '*') star = !star;
-    m[i] = paren === 0 && (!narrator || star) ? 1 : 0;
+    if (c === '*') {
+      star = !star;
+      if (star) { const end = text.indexOf('*', i + 1); quote = narrator === 'all' || isQuote(text.slice(i + 1, end < 0 ? text.length : end)); }
+    }
+    m[i] = paren === 0 && (!narrator || (star && quote)) ? 1 : 0;
     if (c === ')') paren = Math.max(0, paren - 1);
   }
   return m;

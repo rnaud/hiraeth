@@ -108,13 +108,13 @@ export const PEOPLE = {
         },
         where: {
           say: ['~playful~ At the bottom. Where else does anything land? The lower levels catch everything that falls off the top: soup, rain, rich men’s hats.',
-            '~neutral~ Go down, all the way down, and ask for Ossa. She keeps the Upward Shrine. If a piece of the light fell on them, she’ll have it, and she’ll have opinions.',
+            '~neutral~ Go down, all the way down, and *ask for Ossa*. She keeps *the Upward Shrine*. If a piece of the light fell on them, she’ll have it, and she’ll have opinions.',
             '~whisper~ Tell her Nima still sweeps. She’ll know what that means.'],
           do: { advance: [Q, 'nima'] },
           choices: [{ text: '~curious~ How do I get down?', goto: 'down' }, { text: '~neutral~ I’ll go down.', end: true }],
         },
         down: {
-          say: ['~angry~ Down is easy: step off and glide, or take a cab. Up is the hard part. The cabs don’t stop below the smog. Not for anybody from down there.'],
+          say: ['~angry~ Down is easy: *step off and glide*, or take a cab. Up is the hard part. The cabs don’t stop below the smog. Not for anybody from down there.'],
           choices: [{ text: '~neutral~ I’ll manage.', end: true }],
         },
         sweep: {
@@ -123,7 +123,7 @@ export const PEOPLE = {
           choices: [{ text: '~curious~ What is the light?', goto: 'what' }, { text: '~happy~ Goodbye, Nima.', end: true }],
         },
         again: {
-          say: ['~playful~ Still here? The bottom terrace is a long way down: across the shaft, under the smog. Ask for Ossa at the Upward Shrine.'],
+          say: ['~playful~ Still here? The bottom terrace is a long way down: across the shaft, under the smog. *Ask for Ossa at the Upward Shrine*.'],
           choices: [
             { text: '~neutral~ There’s a mark on the Lodestar’s lower facets.', goto: 'glyph', once: true },
             { text: '~neutral~ On my way.', end: true },
@@ -135,8 +135,8 @@ export const PEOPLE = {
           choices: [{ text: '~happy~ Goodbye, Nima.', end: true }],
         },
         carry: {
-          say: [{ if: { has: 'splinter' }, text: '~surprised~ Is that it? It’s humming. It’s leaning up, like a plant at a window. Take it to the palace. The guard there is called Dov; he’s not as stiff as he stands.' },
-            { if: { not: { has: 'splinter' } }, text: '~neutral~ Up to the palace, then. The guard there is called Dov. He’s not as stiff as he stands.' }],
+          say: [{ if: { has: 'splinter' }, text: '~surprised~ Is that it? It’s humming. It’s leaning up, like a plant at a window. *Take it to the palace*. The guard there is called Dov; he’s not as stiff as he stands.' },
+            { if: { not: { has: 'splinter' } }, text: '~neutral~ *Up to the palace*, then. The guard there is called Dov. He’s not as stiff as he stands.' }],
           choices: [{ text: '~curious~ What happened, the night the sky rang?', if: { not: { flag: 'incal.rumour.light' } }, goto: 'rang' }, { text: '~neutral~ I will.', end: true }],
         },
         told: {
@@ -189,12 +189,12 @@ export const PEOPLE = {
         },
         glyph: {
           say: ['~solemn~ {glyph} The Three Who Look Up. Three of us, over the hill of the world, looking up.',
-            '~angry~ Somebody at the top stamps it on cab licences and calls it a seal. Let them. It was ours first; it’s on the light’s underside, where only we can see it.', '~solemn~ It’s on the blue star-box up on the rim, too, behind the villas. The palace calls it lost property. Down here we call it a promise: somebody is coming for it.'],
+            '~angry~ Somebody at the top stamps it on cab licences and calls it a seal. Let them. It was ours first; it’s on the light’s underside, where only we can see it.', '~solemn~ It’s on *the blue star-box up on the rim*, too, behind the villas. The palace calls it lost property. Down here we call it a promise: somebody is coming for it.'],
           choices: [{ text: '~curious~ What came down?', goto: 'splinter' }],
         },
         splinter: {
           say: ['~whisper~ A piece of the light. Look in the bowl. It still hums: put your ear to it. A long note, like wet glass.',
-            '~neutral~ A trader from the swamp of lights came through once, with a crystal that sang. The same note. Exactly the same. I wrote it down; I’m not a fool.'],
+            '~neutral~ A trader from *the swamp of lights* came through once, with a crystal that sang. The same note. Exactly the same. I wrote it down; I’m not a fool.'],
           do: { set: { 'clue.incal.perdide': true } },
           choices: [{ text: '~neutral~ The Lodestar is dimming. Nima thinks it’s because of this.', goto: 'why' }],
         },
@@ -204,9 +204,9 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ Then let me carry it back up.', goto: 'give' }],
         },
         give: {
-          say: ['~playful~ Up. All the way up, to the palace, past the guards, who will want to know why somebody with soot on their boots is walking on their gold.',
+          say: ['~playful~ Up. All the way up, *to the palace*, past the guards, who will want to know why somebody with soot on their boots is walking on their gold.',
             '~solemn~ Take it. And carry this up with it, from us: *we are still down here, and we are still looking.* Say it to the light, if lights hear. Say it to the guards, if they don’t.',
-            '~neutral~ One more thing. To get back up you’ll want a cab, and the cabs don’t stop down here. Light the old call-lamp at the edge, if you can. One driver used to come.'],
+            '~neutral~ One more thing. To get back up you’ll want a cab, and the cabs don’t stop down here. *Light the old call-lamp at the edge*, if you can. One driver used to come.'],
           do: [{ give: 'splinter' }, { set: { 'incal.splinter.given': true } }, { start: 'incal.wren' }, { stage: [Q, 'palace'] }, { track: Q }],
           choices: [{ text: '~solemn~ I’ll carry it up.', end: true }],
         },
@@ -249,7 +249,7 @@ export const PEOPLE = {
           choices: [{ text: '~happy~ I could take him something from you.', goto: 'take' }, { text: '~happy~ Bye, Pip.', end: true }],
         },
         take: {
-          say: ['~happy~ You would? Take him this! It’s a ration tin; Mum makes them. Smog-cabbage and the good bread. He used to eat three.',
+          say: ['~happy~ You would? Take him this! It’s *a ration tin*; Mum makes them. Smog-cabbage and the good bread. He used to eat three.',
             '~playful~ Tell him it’s from Pip. Tell him I’m taller.'],
           do: [{ give: 'ration' }, { start: 'incal.ration' }],
           choices: [{ text: '~happy~ I’ll tell him.', end: true }],
@@ -259,7 +259,7 @@ export const PEOPLE = {
           choices: [{ text: '~curious~ What did it look like?', goto: 'sky' }],
         },
         sky: { say: ['~solemn~ Blue, with a light in it. Ossa says it was THE light. I think so too.'], choices: [{ text: '~neutral~ I could take something up to your uncle.', if: { quest: 'incal.ration', started: false }, goto: 'take' }, { text: '~happy~ Bye, Pip.', end: true }] },
-        waiting: { say: ['~curious~ Did you give it to him yet? He’s at the very top. With all the gold.'], choices: [{ text: '~neutral~ Not yet.', end: true }] },
+        waiting: { say: ['~curious~ Did you give it to him yet? *He’s at the very top*. With all the gold.'], choices: [{ text: '~neutral~ Not yet.', end: true }] },
         lit: {
           say: ['~shout~ I SAW IT! The light! Through the smog, all the way down, like somebody opened a door in the ceiling!', '~happy~ Twelve seconds this time. No: more. I stopped counting.'],
           choices: [{ text: '~neutral~ I could take something up to your uncle.', if: { quest: 'incal.ration', started: false }, goto: 'take' }, { text: '~happy~ I saw it too.', end: true }],
@@ -304,7 +304,7 @@ export const PEOPLE = {
         splinter: {
           say: ['~surprised~ Wait. What is that you’re— I can hear it. That note. It used to come up through the floor of our flat all night, when I was small.',
             '~solemn~ That’s from the bottom. That’s the thing that fell into Behla’s laundry. You’ve carried it all the way up.',
-            '~whisper~ Go on. Up the dome, to the crown, under the light. I didn’t see you. I’m looking at the visitors.'],
+            '~whisper~ Go on. *Up the dome, to the crown*, under the light. I didn’t see you. I’m looking at the visitors.'],
           do: [{ advance: [Q, 'palace'] }, { set: { 'incal.dov.allowed': true } }],
           choices: [{ text: '~neutral~ You’re from the bottom.', goto: 'caught' }, { text: '~happy~ Thank you, Dov.', end: true }],
         },
@@ -312,7 +312,7 @@ export const PEOPLE = {
           say: ['~whisper~ …Minus two-nine-zero. Stall nineteen, above the cabbage man. Don’t tell anyone up here. Go on, up. Before I remember the rules.'],
           choices: [{ text: '~whisper~ I won’t tell.', end: true }],
         },
-        allowed: { say: ['~playful~ I didn’t see you. Up the dome, to the crown. Jetpack’s quicker than the stairs; there aren’t any stairs.'], choices: [{ text: '~neutral~ (go up)', end: true }] },
+        allowed: { say: ['~playful~ I didn’t see you. *Up the dome, to the crown*. *Jetpack’s quicker than the stairs*; there aren’t any stairs.'], choices: [{ text: '~neutral~ (go up)', end: true }] },
         ration: {
           say: ['~surprised~ Is that… that’s a smog-cabbage tin. That’s my sister’s handwriting on the lid.',
             '~sad~ From Pip? He says he’s taller? Of course he’s taller. It’s been eleven years.'],
@@ -358,8 +358,8 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ I need to get to the top.', goto: 'ride' }],
         },
         ride: {
-          say: ['~neutral~ Take her, then. She knows the way home: leave her anywhere and she’ll come back to this lamp. W to go, Space to climb, Shift to drop. Mind the laundry.',
-            '~playful~ The palace? Straight up the middle, past the rings, and set her down on the landing by the gate. The guards hate that. Do it anyway.',
+          say: ['~neutral~ Take her, then. She knows the way home: leave her anywhere and she’ll come back to this lamp. W to go, *Space to climb, Shift to drop*. Mind the laundry.',
+            '~playful~ The palace? Straight up the middle, past the rings, and set her down on *the landing by the gate*. The guards hate that. Do it anyway.',
             '~sad~ And if you hail a cab down here, it’ll be me. Nobody else is coming.'],
           do: [{ advance: ['incal.wren', 'wren'] }, { set: { 'incal.wren.met': true } }],
           choices: [{ text: '~happy~ Thank you, Wren.', end: true }],
@@ -396,7 +396,7 @@ export const RIM = {
           say: ['~playful~ Mind the taxis. They don’t stop. Well: up here they stop for you. You’ve got the face for it.', '~neutral~ I dispatch. Every lane, every cab, every fare. Nine hundred cabs, and not one of them stops below the smog.'],
           choices: [{ text: '~curious~ Why not?', goto: 'why' }, { text: '~curious~ Seen anything strange lately?', goto: 'strange' }, { text: '~neutral~ Goodbye.', end: true }],
         },
-        why: { say: ['~neutral~ No fares down there. Well, no fares that pay. There’s a story about one driver who still stops at the bottom, if you light the old lamp. Wren, they call her. Drivers tell it to each other to feel bad.'], choices: [{ text: '~neutral~ Goodbye.', end: true }] },
+        why: { say: ['~neutral~ No fares down there. Well, no fares that pay. There’s a story about one driver who still stops at the bottom, if you *light the old lamp*. Wren, they call her. Drivers tell it to each other to feel bad.'], choices: [{ text: '~neutral~ Goodbye.', end: true }] },
         strange: { say: ['~scared~ The night the sky rang, every cab in the shaft lost its compass at once. Nine hundred cabs, spinning like leaves in a drain. I haven’t slept properly since.'], do: { set: { 'incal.rumour.light': true } }, choices: [{ text: '~neutral~ Goodbye.', end: true }] },
       },
     },

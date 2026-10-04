@@ -1289,3 +1289,17 @@ Pocket. Their built-in controls work through the Gamepad API.
   conversation and stay up while A turned the pages under it. It is now drawn and kept in
   the sketchbook at once, and opens when the conversation closes (`story.waitFor`); a
   controller press goes to whatever is on top (`menuRoot`).
+
+### Highlights in the dialogue
+- **`*words*` in the story text are highlights**: the places to go or remember, the next
+  thing to do, key items and the hint that solves a puzzle ("Go to *the back gate*",
+  "*Fill the jar*"). `formatText` (`src/story/dialogue.js`) draws them bold in a warm red
+  on a pale yellow mark, in the panel, in the choices and in the balloons over people and
+  the crowd (`npc.js` / `crowd.js` use `formatText` too, so no star ever shows).
+- **A long span is a quotation** (`isQuote` in `src/story/voice.js`: more than eight words,
+  or more than one sentence): a letter or a recording, drawn as before (`em.quote`, the
+  yellow mark only). Narrated things voice only their quotations, never a highlight; the
+  broadcast (`narrator: true`) voices every starred word.
+- **Writing them**: a few words, no wording changes, the tone tag and `{motifs}` outside
+  the stars; usually one or two per page that gives a direction, none in flavour or lore.
+  `tests/highlight.test.js` checks that every star in the story data pairs up.

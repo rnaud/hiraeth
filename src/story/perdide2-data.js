@@ -86,7 +86,7 @@ export const KEEPERS = [
           choices: [{ text: '~curious~ The Welcome?', goto: 'glyph' }, { text: '~sad~ And they never came back.', goto: 'dark' }],
         },
         glyph: {
-          say: ['~neutral~ The mark: {glyph} Three lamps over a hull. We paint it by every pool so a traveller knows they’re expected.', '~solemn~ It’s carved round the traveller’s chest on the root arch, too, the blue one with the star. We dust it. It isn’t ours to open.'],
+          say: ['~neutral~ The mark: {glyph} Three lamps over a hull. We paint it by every pool so a traveller knows they’re expected.', '~solemn~ It’s carved round *the traveller’s chest on the root arch*, too, the blue one with the star. We dust it. It isn’t ours to open.'],
           do: { set: { 'perdide2.glyph.heard': true } },
           choices: [{ text: '~solemn~ I’ve seen that mark. It’s burned into my ship.', goto: 'mark' }, { text: '~sad~ And the travellers never came back.', goto: 'dark' }],
         },
@@ -94,19 +94,19 @@ export const KEEPERS = [
         dark: {
           say: ['~sad~ Not yet. But listen: three pools went dark along the path. The night the sky rang, they went out, and nothing we pour in will take.',
             { if: { not: { flag: 'perdide2.pools.lit' } }, text: '~curious~ My lamps want water that remembers light. And that tank on your back is full of it, isn’t it? I can see it from here, all those colours.' },
-            { if: { not: { flag: 'perdide2.pools.lit' } }, text: '~happy~ Would you? Three dark pools, between here and the root cave. Splash them. Wake them up.' },
-            { if: { flag: 'perdide2.pools.lit' }, text: '~surprised~ …Wait. You’ve already been splashing them, haven’t you? I saw new colours on the path and thought my eyes were going. Light the rest, if any are still dark.' }],
+            { if: { not: { flag: 'perdide2.pools.lit' } }, text: '~happy~ Would you? *Three dark pools*, between here and the root cave. *Splash them*. Wake them up.' },
+            { if: { flag: 'perdide2.pools.lit' }, text: '~surprised~ …Wait. You’ve already been splashing them, haven’t you? I saw new colours on the path and thought my eyes were going. *Light the rest*, if any are still dark.' }],
           do: { set: { 'perdide2.hollin.met': true } },
           choices: [{ text: '~neutral~ I’ll light them.', end: true }, { text: '~curious~ What happened the night the sky rang?', goto: 'rang' }],
         },
-        rang: { say: ['~playful~ Ask Wick, down by the glass dome. She was out with her bucket. I was asleep, which at my age is the only sensible thing to do at night.'], choices: [{ text: '~neutral~ I’ll light your pools.', end: true }] },
+        rang: { say: ['~playful~ *Ask Wick, down by the glass dome*. She was out with her bucket. I was asleep, which at my age is the only sensible thing to do at night.'], choices: [{ text: '~neutral~ I’ll light your pools.', end: true }] },
         again: {
           say: [{ if: { flag: 'perdide2.pools.lit', is: 1 }, text: '~surprised~ One’s lit! I saw it from here, a new colour on the path. Two more.' },
-            { if: { flag: 'perdide2.pools.lit', is: 2 }, text: '~happy~ Two! Two lit. The last one is down by the root cave, where the path ends.' },
-            { if: { not: { flag: 'perdide2.pools.lit' } }, text: '~sad~ Three dark pools, between here and the root cave. You’ll know them: cold, like eyes shut.' }],
+            { if: { flag: 'perdide2.pools.lit', is: 2 }, text: '~happy~ Two! Two lit. The last one is *down by the root cave*, where the path ends.' },
+            { if: { not: { flag: 'perdide2.pools.lit' } }, text: '~sad~ Three dark pools, *between here and the root cave*. You’ll know them: cold, like eyes shut.' }],
           choices: [{ text: '~curious~ What happened the night the sky rang?', goto: 'rang' }, { text: '~neutral~ On my way.', end: true }],
         },
-        answer: { say: ['~surprised~ The deep pool answered? The sky-boat? …Go and look. Whistle up the skiff. I’m walking down to the root cave to see your lights with my own eyes.'], choices: [{ text: '~neutral~ Meet you there.', end: true }] },
+        answer: { say: ['~surprised~ The deep pool answered? The sky-boat? …Go and look. *Whistle up the skiff*. I’m walking down to *the root cave* to see your lights with my own eyes.'], choices: [{ text: '~neutral~ Meet you there.', end: true }] },
         tell: {
           say: ['~happy~ Look at them. Every pool on the path, lit, and three in colours nobody here has ever made.', '~curious~ Tell me. What’s in the boat?'],
           choices: [
@@ -156,11 +156,11 @@ export const KEEPERS = [
         },
         domes: { say: ['~neutral~ Houses. Old ones. Nobody built them; we found them, and moved in, and put moss on them to keep them cool. The glass one down the path has ribs like a fish. Nobody lives in that one. Too bright.'], choices: [{ text: '~curious~ And your door?', goto: 'latch' }, { text: '~neutral~ Bye, Pim.', end: true }] },
         latch: {
-          say: ['~sad~ I climbed the big roof to watch the lights, the glass dome further down the path, and I put my latch down to hold on, and then I came down without it.', '~scared~ I’m not climbing up there again. It’s very high and very round.'],
+          say: ['~sad~ I climbed the big roof to watch the lights, *the glass dome further down the path*, and I put my latch down to hold on, and then I came down without it.', '~scared~ I’m not climbing up there again. It’s very high and very round.'],
           choices: [{ text: '~neutral~ I’ll fetch it.', do: { start: 'perdide2.latch' }, goto: 'thanks' }, { text: '~sad~ That’s a shame.', end: true }],
         },
-        thanks: { say: ['~playful~ Would you? It’s a ring of shell with a hook. Right on top. You can’t miss it, unless you fall off, which I did.'], choices: [{ text: '~neutral~ I’ll be careful.', end: true }] },
-        waiting: { say: ['~neutral~ On top of the glass dome, down the path. Mind the ribs; they’re slippery.'], choices: [{ text: '~neutral~ Going.', end: true }] },
+        thanks: { say: ['~playful~ Would you? It’s *a ring of shell with a hook*. Right on top. You can’t miss it, unless you fall off, which I did.'], choices: [{ text: '~neutral~ I’ll be careful.', end: true }] },
+        waiting: { say: ['~neutral~ *On top of the glass dome*, down the path. Mind the ribs; they’re slippery.'], choices: [{ text: '~neutral~ Going.', end: true }] },
         strange: { say: ['~playful~ Strange? You. Mostly you. And the night the sky rang, the pools went out. Wick saw it. Wick sees everything; she never sleeps.'], choices: [{ text: '~curious~ And your door?', goto: 'latch', if: { quest: 'perdide2.latch', started: false } }, { text: '~neutral~ Bye, Pim.', end: true }] },
         back: {
           say: ['~surprised~ My latch! You went all the way up?', '~happy~ There. Shut. Open. Shut. Oh, that’s lovely. Listen to that click.', '~happy~ Here, take this. A moss lamp: it lights itself when it’s dark enough. It’s the only thing I’ve got that isn’t a door.'],
@@ -195,7 +195,7 @@ export const KEEPERS = [
           ],
         },
         skiff: {
-          say: ['~neutral~ Not ours. It’s been moored there longer than I’ve been minding. Whistle and it comes, out on the water, and it goes back when you’re done, like a dog that lives with everybody.', '~neutral~ Old Fen might know. He lives in the far dome, out on the deep water past the saucer pool. Nobody visits him, on account of the deep water.'],
+          say: ['~neutral~ Not ours. It’s been moored there longer than I’ve been minding. Whistle and it comes, out on the water, and it goes back when you’re done, like a dog that lives with everybody.', '~neutral~ *Old Fen* might know. He lives in *the far dome*, out on the deep water past the saucer pool. Nobody visits him, on account of the deep water.'],
           do: { start: 'perdide2.skiff' },
           choices: [{ text: '~neutral~ I’ll ask him.', end: true }],
         },
@@ -226,7 +226,7 @@ export const PEOPLE = {
             { text: '~neutral~ Let me try.', end: true },
           ],
         },
-        again: { say: ['~tired~ Still dark. Go on, try yours.'], choices: [{ text: '~curious~ What happened to it?', goto: 'night' }, { text: '~neutral~ (aim at the pool)', end: true }] },
+        again: { say: ['~tired~ Still dark. Go on, *try yours*.'], choices: [{ text: '~curious~ What happened to it?', goto: 'night' }, { text: '~neutral~ (aim at the pool)', end: true }] },
         night: {
           say: ['~whisper~ The night the sky rang. I was out with my bucket. A light came over the wood, low, singing, like when you run your finger round a wet cup.', '~scared~ Every pool it passed over went out: pop, pop, pop. Three of them. Then it climbed and it was gone.'],
           do: { set: { 'perdide2.rumour.light': true } },

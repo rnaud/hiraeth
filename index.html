@@ -177,7 +177,9 @@
       #dialogue .dlg-title:empty { display: none; }
       #dialogue .dlg-text { margin: 4px 0 8px; min-height: 2.9em; }
       #dialogue .dlg-text.player { font-style: italic; color: #34405e; }
-      #dialogue .dlg-text em { font-style: normal; background: #f2c54b55; padding: 0 2px; }
+      /* *highlights*: the places to go, the things to do (in the panel, the choices and the balloons) */
+      #dialogue .dlg-text em, #dialogue .dlg-choices em, .balloon em { font-style: normal; font-weight: bold; color: #b23a2c; background: #f2c54b4d; padding: 0 2px; border-radius: 2px; }
+      #dialogue .dlg-text em.quote, .balloon em.quote { font-weight: normal; color: inherit; background: #f2c54b55; }   /* a quoted letter or recording */
       #dialogue .dlg-caret { animation: blink 0.8s steps(1) infinite; opacity: 0.6; }
       @keyframes blink { 50% { opacity: 0; } }
       /* the line is done: a small pointer in the corner (any press turns the page) */
@@ -185,7 +187,7 @@
         border: 7px solid transparent; border-top: 9px solid #c8483a; border-bottom: 0; animation: dlg-more 1s ease-in-out infinite; }
       #dialogue.more .dlg-more { display: block; }
       @keyframes dlg-more { 50% { transform: translateY(3px); } }
-      #dialogue .glyph { width: 1.6em; height: 1.05em; vertical-align: -0.12em; fill: #3aa6a8; stroke: #3aa6a8; margin: 0 2px; }
+      #dialogue .glyph, .balloon .glyph { width: 1.6em; height: 1.05em; vertical-align: -0.12em; fill: #3aa6a8; stroke: #3aa6a8; margin: 0 2px; }
       #dialogue .dlg-choices { display: flex; flex-direction: column; gap: 5px; }
       #dialogue .dlg-choices button {
         text-align: left; font: inherit; font-size: 0.93em; color: #2b211f; background: #f3e7cc; border: 1.5px solid #2b211f; padding: 5px 10px; cursor: pointer;

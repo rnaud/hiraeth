@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { parseLine, stripTone } from './tone.js';
-import { planLine, voiceOf, PLAYER_VOICE, LANGUAGES, REVEAL_CPS } from './voice.js';
+import { planLine, voiceOf, PLAYER_VOICE, LANGUAGES, REVEAL_CPS, isQuote } from './voice.js';
 
 // Conversations. People are data:
 //
@@ -28,7 +28,8 @@ import { planLine, voiceOf, PLAYER_VOICE, LANGUAGES, REVEAL_CPS } from './voice.
 // Effects (a single one or a list): { set: { flag: value } } · { start: id } · { advance: id | [id, fromStage] }
 //   · { stage: [id, stage] } · { give: item } · { take: item } · { keepsake: {...} } · { emit: [event, payload] }
 //   · { track: id } · (ctx) => {}
-// Text: {glyph} is the recurring three-dots-over-an-arc mark, *words* are emphasised.
+// Text: {glyph} is the recurring three-dots-over-an-arc mark, *words* are highlighted: the places
+// to go and the things to do (a span of more than eight words is a quotation: a letter, a recording).
 // A node without choices ends with "(leave)"; `next: id` continues with another node.
 
 export const MOTIFS = {
@@ -37,10 +38,11 @@ export const MOTIFS = {
 
 /** Expand motifs and emphasis for display (html) or for tests and toasts (plain). */
 export function formatText(text, html = true) {
-  let s = stripTone(String(text ?? ''));
+  let s = String(stripTone(text ?? ''));   // (a line may be { text, tone })
   if (html) s = s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
   s = s.replace(/\{(\w+)\}/g, (m, k) => MOTIFS[k] ? (html ? MOTIFS[k].html : MOTIFS[k].plain) : m);
-  s = s.replace(/\*([^*]+)\*/g, (m, w) => html ? `<em>${w}</em>` : w);
+  // a short span is a highlight (a place to go, a thing to do); a long one is a quotation (a letter, a recording)
+  s = s.replace(/\*([^*]+)\*/g, (m, w) => !html ? w : isQuote(w) ? `<em class="quote">${w}</em>` : `<em>${w}</em>`);
   return s;
 }
 
@@ -271,8 +273,9 @@ export class Dialogue {
     const r = this.runner, key = `${r.nodeId}:${r.page}:${r.text.length}`;
     if (this._plan?.key === key) return this._plan;
     const player = r.speaker === 'player';
-    // things you look at are narration: only their *quoted* words are voiced (a recording, a broadcast)
-    const narrator = !player && (this.person.narrator ?? (!this.npc && !this.person.kind && !this.person.speaks));
+    // things you look at are narration: only their *quoted* words are voiced (a recording, a letter; not
+    // a *highlight*), and a broadcast (narrator: true) voices every *starred* word
+    const narrator = !player && (this.person.narrator ? 'all' : this.person.narrator ?? (!this.npc && !this.person.kind && !this.person.speaks));
     const lang = player ? 'home' : this.person.lang ?? this.sound?.language ?? 'home';
     const voice = voiceOf(player ? PLAYER_VOICE : { ...this.person, scale: this.person.scale ?? this.npc?.person?.size ?? this.npc?.object?.scale?.x });
     const plan = planLine({ text: r.text, tone: r.tone }, { voice, lang, narrator });
