@@ -198,6 +198,8 @@
       #prompt b { display: inline-block; background: #2b211f; color: #fffaf0; padding: 0 5px; margin-right: 4px; }
       #prompt.show { opacity: 1; }
       body.talking #hud, body.talking .balloon, body.talking #scout-label { visibility: hidden; }
+      /* the conversation is answered by tapping the panel: the game buttons would sit under and round it */
+      body.talking #touch { visibility: hidden; }
       #touch .b-use.talk { font-size: 13px; }
       /* the quest log in the sketchbook */
       #journal .quests .quest { border-left: 3px solid #2b211f; padding: 2px 0 2px 12px; margin: 0 0 12px; cursor: pointer; max-width: 640px; }

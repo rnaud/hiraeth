@@ -256,7 +256,9 @@ export class Dialogue {
       box.innerHTML = html; box.dataset.html = html;
       if (choices.length && document.body.classList.contains('controller')) box.querySelector('button')?.focus();
     }
-    this.q('.dlg-hint').textContent = !done ? 'E / click: skip' : choices.length ? '1–4 or click to answer · Esc leave' : 'E / click: continue · Esc leave';
+    const touch = typeof document !== 'undefined' && document.body.classList.contains('touch');
+    this.q('.dlg-hint').textContent = touch ? (!done ? 'tap: skip' : choices.length ? 'tap an answer' : 'tap: continue')
+      : !done ? 'E / click: skip' : choices.length ? '1–4 or click to answer · Esc leave' : 'E / click: continue · Esc leave';
   }
 
   /** Per frame: reveal text, voice blips, keep the speaker turned to you. */
@@ -287,7 +289,8 @@ export class Dialogue {
     const sep = Math.max(across.length(), 0.8);
     across.normalize();
     const side = new THREE.Vector3().crossVectors(up, across).normalize();
-    const dist = 2.0 + sep * 1.0;
+    // (pulled back on a portrait screen, where the horizontal view is narrow: both still in frame)
+    const dist = (2.0 + sep * 1.0) * THREE.MathUtils.clamp(1.25 / (camera.aspect || 1.6), 1, 2.3);
     const eyeOn = (s, out) => out.copy(mid).addScaledVector(side, s * dist).addScaledVector(across, -sep * 0.3).addScaledVector(up, 0.4);
     if (!this._side) {
       // pick the side once per conversation: the one with nobody standing in the shot,

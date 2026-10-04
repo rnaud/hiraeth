@@ -695,6 +695,7 @@ function updateHud() {
   let text = `${atmo.name} · ${parts.join(' · ')}` +
     `\n${goal ? goal + ' · ' : ''}${errands.hud() ? errands.hud() + ' · ' : ''}relics ${journal.relicCount(levelId)}/${content.relics.names.length} · Q ping · R tool · H help` +
     (gate.near ? ` · walk through the gate to ${nextTitle}` : '') + (edgeHint ? ` · ${edgeHint}` : '');
+  if (isTouch && !controllerActive) text = text.replace(' · Q ping · R tool · H help', '');   // the buttons say it
   if (controllerActive) text = text.replaceAll('SPACE', 'A / ×').replaceAll('SHIFT', 'RT / R2').replaceAll('W/S', 'left stick').replaceAll('A/D', 'left stick').replace(/\bE\b/g, 'X / □').replace('Q ping · R tool · H help', 'Y / △ ping · LT tool · Menu settings');
   audioCfg.mute = sound.muted;
   if (text !== lastStatus) { status.textContent = text; lastStatus = text; }
@@ -920,7 +921,8 @@ function frame() {
     camera.updateMatrixWorld();   // project with this frame's camera, not last frame's
     let best = null, bd = Infinity;
     for (const n of npcs) if (n.talking) { const d = n.pos.distanceTo(player.pos); if (d < bd) { bd = d; best = n; } }
-    for (const n of npcs) n.placeBalloon(camera, n === best);
+    const prompted = storyRt.prompt && storyRt.promptEntry?.npc;
+    for (const n of npcs) n.placeBalloon(camera, n === best, n === prompted ? 30 : 0);
     if (!busy() && !photo.on) storyRt.placePrompt(camera, controllerActive); else storyRt.placePrompt(camera, false);
   }
   relics.update(dt, t, player);

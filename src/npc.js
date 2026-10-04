@@ -438,7 +438,8 @@ export class NPC {
   }
 
   /** Put the balloon over the head (call after the camera update; only for the one that talks). */
-  placeBalloon(camera, show) {
+  /** @param lift extra pixels up (the E prompt hangs over this person's head) */
+  placeBalloon(camera, show, lift = 0) {
     if (!show || !this.talking) { this.balloon.classList.remove('show'); return; }
     const head = this.humanoid?.b?.Head;
     if (head) head.getWorldPosition(_w).add(_v.set(0, 0.62, 0));
@@ -448,7 +449,10 @@ export class NPC {
     if (on) {
       const text = this.shout && this.time < this.shout.until ? this.shout.text : this.lines[this.lineIdx];
       if (this.balloon.textContent !== text) this.balloon.textContent = text;
-      this.balloon.style.transform = `translate(${((_w.x * 0.5 + 0.5) * window.innerWidth).toFixed(1)}px, ${((-_w.y * 0.5 + 0.5) * window.innerHeight).toFixed(1)}px) translate(-22px, calc(-100% - 12px))`;
+      // kept on the screen (on a phone a balloon over someone near the edge ran off it)
+      const w = this.balloon.offsetWidth || 200;
+      const x = THREE.MathUtils.clamp((_w.x * 0.5 + 0.5) * window.innerWidth - 22, 6, Math.max(6, window.innerWidth - w - 6));
+      this.balloon.style.transform = `translate(${x.toFixed(1)}px, ${((-_w.y * 0.5 + 0.5) * window.innerHeight - lift).toFixed(1)}px) translate(0, calc(-100% - 12px))`;
     }
     this.balloon.classList.toggle('show', on);
   }
