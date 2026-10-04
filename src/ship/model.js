@@ -130,7 +130,9 @@ export function buildShipModel(o = {}) {
   screen.userData.noCollide = true;
   group.add(screen);
 
-  return { tag, group, meshes, mats, door, ramp, interior, hull, screen, callScreen };
+  // what only shows from inside (hidden when the camera is far away: fewer draw calls)
+  const indoor = [interior.deco, screen, ...['core', 'lamp', 'btnA', 'btnB', 'btnC', 'portIn', ...INTERIOR].map((k) => meshes[k]).filter(Boolean)];
+  return { tag, group, meshes, mats, door, ramp, interior, hull, screen, callScreen, indoor };
 }
 
 function mergeAll(geos) {

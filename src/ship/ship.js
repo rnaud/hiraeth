@@ -520,6 +520,15 @@ export class Ship {
     // the fluid tool is put away at home and while a scene plays (src/fluid-tool.js listens)
     const toolOn = !this.inside && !(this.cinematic && !this.cinematic.done) && !this.auto;
     if (toolOn !== this._toolOn) { this._toolOn = toolOn; game.emit('tool:enable', { on: toolOn }); }
+    // rooms are only drawn when the camera is near enough to see in
+    for (const m of [this.parked, this.spaceCopy?.model]) {
+      if (!m) continue;
+      const near = this.camera.position.distanceTo(m.group.position) < 48;
+      if (near !== m.indoorShown) {
+        m.indoorShown = near;
+        for (const o of m.indoor) o.visible = near;
+      }
+    }
     // the screen, the mobile, the guide chevrons
     for (const m of [this.parked, this.spaceCopy?.model]) {
       if (!m) continue;
