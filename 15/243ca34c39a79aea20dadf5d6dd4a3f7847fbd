@@ -1,0 +1,47 @@
+.gitignore
+  s_1fd8d0e7b02dcf::t_e6ef2c16582b2a 3-4
+README.md
+  s_6457fa49057b23::t_a4005fa366d5ec 533-538
+desktop/main.mjs
+  s_6457fa49057b23::t_ce89354a258d7c 1-55
+desktop/package-lock.json
+  s_6457fa49057b23::t_8212f7edfe42bd 1-720
+desktop/package.json
+  s_6457fa49057b23::t_94b8b0a17a8655 1-11
+docs/steam-deck.md
+  s_6457fa49057b23::t_976ea4490d6527 1-93
+scripts/package-steam-deck.mjs
+  s_6457fa49057b23::t_a3a2836b0f7d82 1-30
+tests/test_steam_deck.py
+  s_6457fa49057b23::t_0bf53ccc4add41 1-179
+.github/workflows/steam-deck.yml
+  s_6457fa49057b23::t_32d0fcba79212d 1-71
+scripts/steam-deck/deck.py
+  s_6457fa49057b23::t_d541d77cced369 1-358
+scripts/steam-deck/release-notes.md
+  s_6457fa49057b23::t_183aed9775e8d4 1-23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "15243ca34c39a79aea20dadf5d6dd4a3f7847fbd",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_6457fa49057b23": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a105d7-6746-7643-a6b7-da41f67274a1",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
