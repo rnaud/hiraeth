@@ -1,0 +1,27 @@
+src/desert-city.js
+  s_1fd8d0e7b02dcf::t_c5d116abaf86ff 105-118,131-132,134,163,165-168,170-178,183-184,388,439-442,615,657-660,663-666,668-673
+src/npc.js
+  s_1fd8d0e7b02dcf::t_0873d21a5948a4 90-96,98,192,329
+src/story/desert.js
+  s_1fd8d0e7b02dcf::t_dd887033f0efea 2,152,154-157,279,281,284-286,300,311
+src/story/dialogue.js
+  s_1fd8d0e7b02dcf::t_500f7e1bac50ec 272,282-283,285,290-305,308-309
+src/story/flames.js
+  s_1fd8d0e7b02dcf::t_f5df51c055c05b 58,60
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2be32ceb9f1f20d869ff0ee28f8f6869034dcf73",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
