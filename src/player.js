@@ -379,8 +379,8 @@ export class Player {
 
   /** Owns an item (src/items.js). */
   has(id) { return !!this.items?.has(id); }
-  /** The backpack is on the traveller's back (owned, and not in a vehicle's socket or being swung). */
-  get packWorn() { return this.has('backpack') && !this.ride && !this.boarding && !this.unboarding; }
+  /** The backpack is on the traveller's back and usable (owned, not in a vehicle's socket or being swung, not put away by the story). */
+  get packWorn() { return this.has('backpack') && !this.ride && !this.boarding && !this.unboarding && (this.fuelSource?.enabled ?? true); }
   /** The jets (they burn the backpack's fluid). */
   get canJet() { return this.packWorn && this.has('jetpack'); }
   /** The fluid wings. */
@@ -498,8 +498,7 @@ export class Player {
 
   /** Jump to another place, e.g. through a portal, with a new "up". */
   teleport(pos, up, fwd) {
-    if (this.boarding) this.finishBoarding();
-    this.unboarding = null;
+    this.boarding = this.unboarding = null;   // the pack is simply back on (fluid-tool.js follows the state)
     this.pos.copy(pos);
     this.vel.set(0, 0, 0);
     this.frame.set(up, fwd);

@@ -344,6 +344,7 @@
       body.no-tool #touch .b-aim, body.no-tool #touch .b-fire, body.no-tool #touch .b-push, body.no-tool #touch .b-mode, body.no-tool #hud .fluid-help { display: none; }
       /* the gun modes: the label and the crosshair's dot take the mode's colour */
       body.modeflash #tool { display: block; }
+      body.modeflash:not(.aiming) #tool { top: 30%; }
       body.modeflash:not(.aiming) #tool .cross { visibility: hidden; }
       body.modeflash:not(.aiming) #tool .mode { animation: modeflash 1.6s ease-out forwards; }
       @keyframes modeflash { 0% { transform: translateX(-50%) scale(1.35); } 15% { transform: translateX(-50%) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; } }

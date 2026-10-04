@@ -697,7 +697,7 @@ function updateHud() {
     else if (player.stamina < 0.99) parts.push(`stamina ${gauge(player.stamina)}`);
     // the jets burn the tank: a gauge while it's not full (or in the air)
     if (player.canJet && (player.thrusting || tool.jetBurnt)) parts.push(`jets ${gauge(player.jetFuel)}`);
-    if (tool.modes.length > 1 && !player.ride) parts.push(`${controllerActive ? 'D-pad ← →' : 'X'} mode: ${tool.modeName}`);
+    if (tool.modes.length > 1 && !player.ride) parts.push(`${controllerActive ? 'D-pad ← →' : isTouch ? '◐' : 'X'} mode: ${tool.modeName}`);
     const near = player.nearestVehicle();
     const unpowered = (v) => v?.powered && !items.has('backpack');   // hoverbikes and skiffs run on the backpack
     if (storyRt.prompt) parts.push(`E ${storyRt.prompt}`);

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { makeMaterial } from './materials.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 // What the magic-fluid backpack grows when the traveller finds the pieces
 // (src/items.js): the gun modes' looks, the fluid wings that bloom out of the
@@ -162,19 +163,18 @@ export class FluidJets {
     this.group.name = 'Fluid jets';
     this.nozzles = [];
     this.flames = [];
+    const parts = new Map();   // the brass and steel, baked into one mesh per material (fewer draws in every pass)
+    const bake = (geo, mat, m) => { if (!parts.has(mat)) parts.set(mat, []); parts.get(mat).push(geo.applyMatrix4(m)); };
     for (const s of [-1, 1]) {
       const n = new THREE.Group();
       n.position.set(s * 0.1, -0.085, 0.03);
       n.rotation.z = s * 0.16;                       // splayed a little outward
-      const clip = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, 0.07), metal.dark);
-      clip.position.y = 0.03;
-      const body = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.045, 0.1, 10), metal.brass);
-      body.position.y = -0.03;
-      const bell = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.06, 0.05, 12, 1, true), metal.brassOpen);
-      bell.position.y = -0.1;
-      n.add(clip, body, bell);
-      // the flame: a cone of churning fluid pointing down, stretched by the thrust
-      // a teardrop: it swells out of the bell, then licks to a point
+      n.updateMatrix();
+      const at = (y) => new THREE.Matrix4().makeTranslation(0, y, 0).premultiply(n.matrix);
+      bake(new THREE.BoxGeometry(0.05, 0.05, 0.07), metal.dark, at(0.03));                        // the clip
+      bake(new THREE.CylinderGeometry(0.03, 0.045, 0.1, 10), metal.brass, at(-0.03));              // the body
+      bake(new THREE.CylinderGeometry(0.045, 0.06, 0.05, 12, 1, true), metal.brassOpen, at(-0.1)); // the bell
+      // the flame: a teardrop of churning fluid pointing down, stretched by the thrust
       const flame = new THREE.Mesh(new THREE.LatheGeometry([[0, 0], [0.045, -0.02], [0.08, -0.14], [0.07, -0.34], [0.04, -0.66], [0, -1]].map(([x, y]) => new THREE.Vector2(x, y)), 10), flameMaterial);
       flame.position.y = -0.12;
       flame.visible = false;
@@ -187,6 +187,12 @@ export class FluidJets {
       this.group.add(n);
       this.nozzles.push(n);
       this.flames.push({ flame, core });
+    }
+    for (const [mat, geos] of parts) {
+      for (const g of geos) if (g.index) { const ng = g.toNonIndexed(); g.dispose(); geos[geos.indexOf(g)] = ng; }
+      for (const g of geos) for (const k of Object.keys(g.attributes)) if (k !== 'position' && k !== 'normal') g.deleteAttribute(k);
+      this.group.add(new THREE.Mesh(mergeGeometries(geos), mat));
+      geos.forEach((g) => g.dispose());
     }
     this.group.traverse((o) => { o.userData.noCollide = true; });
     this.group.visible = false;

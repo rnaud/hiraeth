@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { registerTarget } from './targets.js';
 import { Flames } from './story/flames.js';
 import { makeMaterial } from './materials.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 // Things an ember glob (the backpack's 'fire' mode, src/items.js) sets alight.
 // The fire never hurts: lamps light, fires flare, dry brambles burn away and
@@ -37,11 +38,12 @@ export function flammableSpots(level) {
   return out;
 }
 
+/** A dry tangle of thorny stems, one mesh (one draw). */
 function brambleMesh(seed) {
   let s = seed * 9301 + 49297;
   const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
-  const g = new THREE.Group();
   const mat = makeMaterial({ color: '#9a7448', key: `bramble.${seed}` });
+  const parts = [];
   for (let i = 0; i < 7; i++) {
     const pts = [];
     let x = (rnd() - 0.5) * 0.4, z = (rnd() - 0.5) * 0.4, y = 0;
@@ -49,12 +51,15 @@ function brambleMesh(seed) {
       pts.push(new THREE.Vector3(x, y, z));
       x += (rnd() - 0.5) * 0.7; z += (rnd() - 0.5) * 0.7; y += 0.12 + rnd() * 0.22;
     }
-    const m = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 10, 0.025, 4), mat);
-    m.userData.noCollide = true;
-    g.add(m);
+    const g = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 10, 0.025, 4);
+    g.deleteAttribute('uv');
+    parts.push(g);
   }
-  g.userData.mat = mat;
-  return g;
+  const m = new THREE.Mesh(mergeGeometries(parts), mat);
+  parts.forEach((g) => g.dispose());
+  m.userData.noCollide = true;
+  m.userData.mat = mat;
+  return m;
 }
 
 export class Flammables {
@@ -154,7 +159,7 @@ export class Flammables {
         const col = a > BURN.regrow || a < 0.3 ? '#9a7448' : '#2b211f';   // charred while it burns, dry tan again as it regrows
         if (s.col !== col) { s.col = col; s.mesh.userData.mat.uniforms.uColor.value.set(col); }
       }
-      s.mesh.visible = s.grow > 0.02;
+      s.mesh.visible = s.grow > 0.02 && s.at.distanceToSquared(this.focus) < 160 * 160;   // only drawn near
       s.mesh.scale.set(1, Math.max(0.02, s.grow), 1);
     }
   }
