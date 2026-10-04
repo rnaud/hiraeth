@@ -231,12 +231,18 @@ export class BoxScene {
       look = this.P(0, 0.8, 0.55);
       fov = 42;
     }
+    // a tall phone screen: widen the lens so the traveller, the box and the item still fit across
+    const aspect = typeof innerWidth === 'number' && innerHeight > 0 ? innerWidth / innerHeight : 1.6;
+    fov = Math.min(80, Math.max(fov, THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(27)) / aspect))));
+    if (aspect < 1) { pos.lerp(look, -0.12); look.y -= 0.6; }   // and step back, aiming low so the subject sits above the card
     // keep out of walls and dunes: pull in to whatever stands between the subject and the lens
     if (this.physics) {
-      const dir = _d.subVectors(pos, look), d = dir.length();
+      // (from the traveller's chest, which stands clear above the box, not from the aim point)
+      const from = this.P(0, 0.95, KNEEL_AT - 0.1);
+      const dir = _d.subVectors(pos, from), d = dir.length();
       dir.divideScalar(d);
-      const hit = this.physics.rayDistance(look, dir, d);
-      if (hit < d) pos.copy(look).addScaledVector(dir, Math.max(0.7, hit - 0.25));
+      const hit = this.physics.rayDistance(from, dir, d);
+      if (hit < d) pos.copy(from).addScaledVector(dir, Math.max(0.9, hit - 0.25));
       const g = this.physics.groundAt(pos.x, pos.y + 2, pos.z, 6);
       if (Number.isFinite(g) && pos.y < g + 0.35) pos.y = g + 0.35;
     }

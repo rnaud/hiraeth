@@ -15,10 +15,11 @@
 
 export const PLACEMENTS = {
   desert: [
-    // thrown out of the ship in the crash: at the end of a trail of hull bits, down the dune
-    // in front of the ramp (≈ 55 m out, a little right of the city), in plain sight of the hatch
-    { id: 'desert.backpack', item: 'backpack', at: [66, 168], toward: [27, 129], beacon: true, debris: true,
-      note: 'Down the dune from the ramp, at the end of the debris trail: the first objective.' },
+    // thrown out of the ship in the crash: at the end of a trail of hull bits, on the open dune
+    // to the right of the ramp (≈ 60 m out). The dune falls away evenly there, so the box is in
+    // plain sight from the foot of the ramp (straight ahead, toward the city, a crest hides the sand)
+    { id: 'desert.backpack', item: 'backpack', at: [86.7, 111], toward: [27, 129], beacon: true, debris: true,
+      note: 'Down the dune to the right of the ramp, at the end of the debris trail: the first objective.' },
     // Qanat: on the flat roof of a domeless house inside the main gate (a 6 m climb)
     { id: 'desert.star', item: 'star', at: [246.9, 7.6, 363.6], lift: 0.5, toward: [230, 330],
       note: 'A house roof just inside the main gate of the old city; climb its wall.' },

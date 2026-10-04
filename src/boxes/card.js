@@ -28,6 +28,7 @@ const CSS = `
 @media (max-width: 600px) { #boxcard { font-size: 13px; padding: 12px 14px 10px; bottom: calc(11vh + 10px); } #boxcard h2 { font-size: 20px; } }
 `;
 
+const touch = () => typeof matchMedia === 'function' && (matchMedia('(pointer: coarse)').matches || 'ontouchstart' in globalThis);
 const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 
 export class BoxCard {
@@ -40,7 +41,7 @@ export class BoxCard {
     }
     const el = (this.el = document.createElement('div'));
     el.id = 'boxscene';
-    el.innerHTML = `<button class="skip" type="button">ESC skip</button>
+    el.innerHTML = `<button class="skip" type="button">${touch() ? 'skip' : 'ESC skip'}</button>
       <div id="boxcard" role="dialog" aria-live="polite"><div class="k">YOU FOUND</div><h2><i class="star"></i><span class="name"></span></h2>
       <p class="what"><b>What it is</b><span class="text"></span></p><p class="does"><b>What it does</b><span class="use"></span></p>
       <button class="go" type="button">E · continue</button></div>`;
@@ -53,7 +54,7 @@ export class BoxCard {
   }
   /** The scene is playing (catch clicks, show the skip button). */
   scene(on) { if (this.dom) this.el.classList.toggle('on', on); if (!on) this.hide(); }
-  show(def, hint = 'E · continue') {
+  show(def, hint = touch() ? 'tap to continue' : 'E · continue') {
     this.shown = true;
     if (!this.dom) return;
     this.card.querySelector('.name').textContent = def.name;

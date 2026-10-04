@@ -140,7 +140,7 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
       b.off = registerInteractable({
         id: `box.${p.id}`, priority: PRIORITY.use + 1, range: 2.3,
         prompt: 'open',
-        at: () => (b._at ??= V()).copy(b.pos).add(V(0, 1.05, 0)),
+        at: () => (b._at ??= V()).set(b.pos.x, b.pos.y + 1.05, b.pos.z),
         enabled: () => !spent(b) && !current && !player?.riding,
         distance: (pl) => (Math.abs(pl.pos.y - b.pos.y) < 2 ? flat(pl.pos, b.pos) : Infinity),
         use: () => api.open(b.id),
@@ -283,7 +283,7 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
           const on = (b.alwaysBeacon || items.has('lens')) && d > 9;
           b.beacon.visible = on;
           // (thicker far off, so it stays a few pixels wide at any distance)
-          if (on) { const w = THREE.MathUtils.clamp(d * 0.045, 1, 14) * smoothstep(9, 22, d); b.beacon.scale.set(w, 36, w); }
+          if (on) { const w = THREE.MathUtils.clamp(d * 0.03, 1, 12) * smoothstep(9, 22, d); b.beacon.scale.set(w, 36, w); }
         }
       }
       sound?.boxHum?.(current ? 0 : hum);

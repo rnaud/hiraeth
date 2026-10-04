@@ -104,12 +104,17 @@ test('the desert backpack box is in sight of the ramp foot, 40–90 m out, at th
   const at = resolvePlacement(p, { physics, level });
   const d = Math.hypot(at.pos.x - s.rampFoot.x, at.pos.z - s.rampFoot.z);
   assert.ok(d > 40 && d < 90, `${d.toFixed(1)} m from the ramp`);
-  const eye = s.rampFoot.clone().add(V(0, 1.6, 0));
-  const to = at.pos.clone().add(V(0, 0.4, 0)).sub(eye);
-  assert.ok(physics.rayDistance(eye, to.clone().normalize(), to.length()) >= to.length() - 0.3, 'nothing hides it from the ramp');
-  // and it's ahead of you as you step out: within 40° of the hatch's heading
+  // line of sight from eye height at the foot of the ramp to the top of the box: nothing in the way,
+  // neither the dunes (the heightfield) nor anything solid (the ship, its berm, rocks)
+  const eye = s.rampFoot.clone().add(V(0, 1.6, 0)), top = at.pos.clone().add(V(0, 0.4, 0));
+  for (let t = 0.03; t < 0.97; t += 0.005) {
+    const p = eye.clone().lerp(top, t);
+    const g = Math.max(level.ground.heightAt(p.x, p.z), physics.groundAt(p.x, p.y + 0.3, p.z, 40));
+    assert.ok(g < p.y, `the view is blocked ${(t * d).toFixed(1)} m out (${g.toFixed(2)} over ${p.y.toFixed(2)})`);
+  }
+  // and on the hatch's side of the ship (the ramp faces it), not behind the hull
   const a = Math.atan2(at.pos.x - s.rampFoot.x, at.pos.z - s.rampFoot.z) - s.site.heading;
-  assert.ok(Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) < 0.7, 'in front of the hatch');
+  assert.ok(Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) < 1.4, 'out in front of the hatch');
   assert.ok(p.debris && p.beacon);
 });
 
