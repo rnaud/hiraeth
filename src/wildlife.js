@@ -8,10 +8,13 @@ import { WILDLIFE, SPECIES } from './wildlife/species.js';
 // it is scared (a balloon lizard floats off, a crab digs in, a moth splits in
 // three...). They wander near paths, keep a wary distance from the traveller
 // and react to sprinting, hard landings, passing vehicles and the fluid tool:
-//   'shoot' (a glob of fluid)  an enchanted freeze: still for a few seconds,
-//                              shimmering through the fluid's tones, then they
-//                              wake and wander off calmly
+//   'stun'  (a stilling glob)  an enchanted freeze: still for a few seconds,
+//                              shimmering through the glob's cold tones, then
+//                              they wake and wander off calmly
+//   'shoot' (a glob of fluid)  a splash: they shake it off and scamper away,
+//                              glinting in the fluid's colours for a moment
 //   'push'  (the fluid shock)  scares them: the surprise plays
+//   'fire'  (an ember glob)    scares them too: it never burns, they just flee
 // After a surprise a creature recovers, or comes back later somewhere out of
 // sight, so a world never empties.
 //
@@ -216,7 +219,7 @@ export class Creature {
     this.orient();
     const r = (herd.def.radius ?? 0.45) * this.size;
     this.offTarget = registerTarget({
-      kind: 'wildlife', radius: r, creature: this,
+      kind: 'wildlife', radius: r, creature: this, accepts: ['stun', 'fire'],
       position: () => this.center,
       enabled: () => this.alive && this.visible,
       onHit: (mode, point, dir, info) => this.hit(mode, point, dir, info),
@@ -274,9 +277,21 @@ export class Creature {
     this.world.fx.play('daze', this.pos, this.world.ear);
     return true;
   }
+  /** A splash of plain fluid: a glint of its colours and a scamper away from where it landed. */
+  splashed(from, tones = null) {
+    if (this.removed || this.state === 'trick' || this.state === 'gone' || this.hidden || this.state === 'stun') return false;
+    if (from) this.faceAway(from);
+    this.tones = tones?.length ? tones : FLUID_DEFAULT;
+    this.tint = 0.85;
+    this.state = 'flee'; this.timer = 1.4 + this.rng(); this.cool = 1;
+    this.world.fx.play('squeak', this.pos, this.world.ear);
+    return true;
+  }
   hit(mode, point, dir, info) {
-    if (mode === 'shoot') return this.stun(undefined, info?.colours);
-    if (mode === 'push') return this.scare(dir && point ? _o.copy(point).addScaledVector(dir, -4) : point);
+    const from = dir && point ? _o.copy(point).addScaledVector(dir, -4) : point;
+    if (mode === 'stun') return this.stun(undefined, info?.colours);
+    if (mode === 'push' || mode === 'fire') return this.scare(from);
+    if (mode === 'shoot') return this.splashed(from, info?.colours);
     return false;
   }
   /** take it out of the world for good (and out of the target registry) */

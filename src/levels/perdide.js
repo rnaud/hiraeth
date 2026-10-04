@@ -346,7 +346,8 @@ export function createPerdide(scene) {
     // jaw (the crystal is singing), tame stops them snapping at you, calm only the bed's
     crystal, caveMat, plants, nest, silence: 0, tame: false, calm: false,
     // a glob of the traveller's fluid makes a plant snap shut from afar (the push just rattles it)
-    targets: plants.map((p) => ({ kind: 'plant', radius: 2.2, position: () => p.pos, onHit: (mode) => { p.snap = mode === 'shoot' ? 2.5 : 0.8; if (mode === 'shoot') p.fed++; return true; } })),
+    // an ember glob makes one recoil: it clamps shut and shudders (it doesn't feed it)
+    targets: plants.map((p) => ({ kind: 'plant', radius: 2.2, accepts: ['fire'], position: () => p.pos, onHit: (mode) => { p.snap = mode === 'shoot' || mode === 'fire' ? 2.5 : 0.8; if (mode === 'shoot') p.fed++; if (mode === 'fire') p.recoil = 1; return true; } })),
     ground: terrain,
     spawn: new THREE.Vector3(0, terrain.heightAt(0, 0), 0),
     spawnHeading: Math.PI,
@@ -384,7 +385,9 @@ export function createPerdide(scene) {
         const want = near ? 0.05 : 1 - 0.92 * quiet;
         p.open += (want - p.open) * (1 - Math.exp(-(near ? 14 : 2 - quiet * 1.4) * dt));
         const breathe = Math.sin(t * 1.5 + p.pos.x) * 0.06 * (1 - quiet);
-        for (const j of p.jaws) j.jaw.rotation.z = j.side * (p.open * 0.75 + breathe);
+        p.recoil = Math.max(0, (p.recoil ?? 0) - dt * 0.6);
+        const shudder = p.recoil ? Math.sin(t * 38 + p.pos.z) * 0.12 * p.recoil : 0;
+        for (const j of p.jaws) j.jaw.rotation.z = j.side * (p.open * 0.75 + breathe) + shudder;
       }
     },
   };

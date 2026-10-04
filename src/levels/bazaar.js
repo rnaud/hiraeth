@@ -106,6 +106,7 @@ export function createBazaar(scene) {
   box(0,465,-455,1.5,70,1.5,brass,false);
 
   // Market frontage: awnings, stacked shop signs, produce and hanging lamps.
+  const flammables=[];   // the hanging lamps: an ember glob lights a little sun on each (src/flammable.js)
   for(let i=0;i<36;i++) {
     const side=i%2?1:-1, z=100-Math.floor(i/2)*27, x=side*29;
     const body=shop[i%5], yaw=-side*Math.PI/2;
@@ -121,6 +122,7 @@ export function createBazaar(scene) {
     for(const dz of [-5,5]) {
       box(x-side*6.5,2.3,z+dz,.12,4.6,.12,brass,false);
       sphere(x-side*6.5,3.9,z+dz,.45,.6,.45,glow);
+      flammables.push({at:new THREE.Vector3(x-side*6.5,3.9,z+dz),kind:'lantern',r:.7,top:.55});
     }
     for(let k=0;k<10;k++) {
       const zz=z-4+k*.88;
@@ -269,7 +271,7 @@ export function createBazaar(scene) {
   const vehicles=[];
   return {
     id:'bazaar', reactiveScreens, signal, ground:{heightAt:()=>0}, spawn:new THREE.Vector3(0,.1,88), spawnHeading:Math.PI,camYaw:0,camPitch:.02,
-    features:{mount:false,wind:false,jetpack:true,climb:true,taxis:true}, vehicles,
+    features:{mount:false,wind:false,jetpack:true,climb:true,taxis:true}, vehicles, flammables,
     limit:700,killY:-20, defaults:{hour:11.5,preset:'Moebius print',cloudShadows:0,look:{uHatch:.18,uLineWidth:.85,uWobble:.1,uGrain:.025}},
     sky:{script:{day:['#a4d7d1','#e1e6c6','#70969e','#fff1cf','#ffe1ae'],dusk:['#9dabc3','#ffc5a2','#887b9e','#ffd6aa','#ffe5c2'],night:['#243e59','#587581','#55547c','#8daec0','#f9e3ac']}},
     lightAt(p,dir){ if(dir.y>0){dir.set(.12,1,.18).normalize();} },

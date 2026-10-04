@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { makeMaterial } from './materials.js';
 import { Cape } from './cape.js';
 import { Gear } from './gear.js';
+import { items as sharedItems } from './items.js';
+import { HANDOFF } from './fluid-kit.js';
 
 const RADIUS = 0.45;
 const STEP = 0.6;    // obstacles lower than this are stepped onto
@@ -15,7 +17,7 @@ const JUMP = 13;
 const LIMIT = 1900;
 const JET_THRUST = 54;     // m/s² upward while thrusting (gravity is 32)
 const JET_MAX_UP = 15;
-const JET_DRAIN = 0.1;     // fuel per second (~10 s of thrust)
+const JET_DRAIN = 0.1;     // fuel per second (~10 s of thrust), when no backpack tool burns its fluid (tests)
 const JET_REFILL = 0.55;
 
 function part(geo, color, opts = {}) {
@@ -150,24 +152,11 @@ export function buildCharacter(palette = {}) {
   torso.add(scarf);
   scarf.add(scarf2);
 
-  // Jetpack (Incal level): twin canisters worn over the cloak.
+  // The jetpack's old canisters are gone: the jets are two nozzles under the
+  // backpack's tank now (fluid-kit.js). The empty group stays as an anchor.
   const jetpack = new THREE.Group();
   jetpack.position.set(0, 0.44, -0.3);
   const flames = [];
-  for (const side of [-1, 1]) {
-    const can = part(new THREE.CylinderGeometry(0.09, 0.09, 0.5, 10), '#62c3c9');
-    can.position.x = side * 0.11;
-    const cap = part(new THREE.SphereGeometry(0.09, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), '#f3ead8');
-    cap.position.set(side * 0.11, 0.25, 0);
-    const nozzle = part(new THREE.CylinderGeometry(0.05, 0.085, 0.12, 8), C.cloth);
-    nozzle.position.set(side * 0.11, -0.31, 0);
-    const flame = part(new THREE.ConeGeometry(0.08, 0.6, 7), '#f6c04a', { flat: true });
-    flame.rotation.x = Math.PI;
-    flame.position.set(side * 0.11, -0.67, 0);
-    flame.visible = false;
-    jetpack.add(can, cap, nozzle, flame);
-    flames.push(flame);
-  }
   jetpack.visible = false;
   torso.add(jetpack);
 
@@ -324,7 +313,10 @@ export class Player {
    * @param physics  Physics (ground rays + capsule collision against the level)
    * @param opts     { mount: (physics) => vehicle, jetpack, climb, killY, limit,
    *                   spawn, spawnHeading, spawnUp, gravityAt(pos) -> up,
-   *                   unsafe(pos) -> bool }
+   *                   unsafe(pos) -> bool, items }
+   *                 jetpack is only a hint now (the level wants the jets; the box
+   *                 agent puts their box there): the jets, the wings and powered
+   *                 vehicles go by items (src/items.js), in any world.
    */
   constructor(physics, opts = {}) {
     this.physics = physics;
@@ -364,10 +356,19 @@ export class Player {
     this.onStep = null;                            // (footPos, heading) for footprints
     this.aim = null;                               // { k, point, dir } while aiming the tool (fluid-tool.js)
     this.onAirJump = null;                         // (secondsSinceLastPress) => true if the fluid tool boosted
+    // Everything runs on the backpack (src/items.js). The fluid tool plugs in:
+    //   fuelSource { jetLevel() 0..1, burnJet(dt) -> bool }  the jets burn the tank's reserve
+    //   handoff { handPoint(out) }   boarding a powered vehicle swings the tank into its socket
+    this.items = this.opts.items ?? sharedItems;
+    this.fuelSource = null;
+    this.handoff = null;
+    this.boarding = null;                          // { v, t, dur, k } swinging the pack into a vehicle, then climbing on
+    this.unboarding = null;                        // { v, t, dur, k } stepped off: taking the pack back
+    this.onNotice = null;                          // (text) a short message for the player ("It needs power.")
+    this.wingK = 0;                                // the fluid wings: 0 folded .. 1 open (fluid-kit.js draws them)
     this._stepSide = 1;
     this._prevPhase = 0;
-    this.char.jetpack.visible = this.opts.jetpack;
-    this.char.pack.visible = this.char.bedroll.visible = !this.opts.jetpack;
+    this.char.jetpack.visible = false;
     if (this.opts.spawn) this.respawn();
     this.lastSafe.copy(this.pos);
   }
@@ -376,52 +377,27 @@ export class Player {
     return !!this.ride;
   }
 
+  /** Owns an item (src/items.js). */
+  has(id) { return !!this.items?.has(id); }
+  /** The backpack is on the traveller's back and usable (owned, not in a vehicle's socket or being swung, not put away by the story). */
+  get packWorn() { return this.has('backpack') && !this.ride && !this.boarding && !this.unboarding && (this.fuelSource?.enabled ?? true); }
+  /** The jets (they burn the backpack's fluid). */
+  get canJet() { return this.packWorn && this.has('jetpack'); }
+  /** The fluid wings. */
+  get canGlide() { return this.packWorn && this.has('glider'); }
+  /** The jets' gauge 0..1: the tank's reserve when the tool is worn, else the old fuel. */
+  get jetFuel() { return this.fuelSource ? this.fuelSource.jetLevel() : this.fuel; }
+  notice(text) { this.lastNotice = text; this.onNotice?.(text); }
+
   /** Add the parts that live directly in the scene (the simulated scarf). */
   attach(scene) {
-    // the paraglider: a curved, striped wing over the head with lines down to the hands
-    {
-      const wing = new THREE.Group();
-      // an arc spanning left-right over the head (chord along the flight direction), top at the origin
-      // fixed cells (no world-space bands, so nothing scrolls as you fly): cream with
-      // salmon cells towards the tips and one steel-blue cell in the middle, like the suit's kit
-      const CELLS = 11, span = 1.7, cellColors = ['#e9998a', '#efe2c8', '#e9998a', '#efe2c8', '#efe2c8', '#86a9d8', '#efe2c8', '#efe2c8', '#e9998a', '#efe2c8', '#e9998a'];
-      for (let i = 0; i < CELLS; i++) {
-        const g = new THREE.CylinderGeometry(4.2, 4.2, 2.2, 3, 1, true, Math.PI - 0.85 + (i / CELLS) * span, span / CELLS);
-        g.rotateX(Math.PI / 2).translate(0, -4.2, 0);
-        const cell = new THREE.Mesh(g, makeMaterial({ color: cellColors[i], flat: true, side: THREE.DoubleSide }));
-        cell.userData.noCollide = true;
-        wing.add(cell);
-      }
-      // a thin inked leading edge
-      const lead = new THREE.Mesh(new THREE.TorusGeometry(4.2, 0.03, 4, 40, span).rotateZ(Math.PI / 2 - 0.85).translate(0, -4.2, 1.1), makeMaterial({ color: '#2b211f' }));
-      lead.userData.noCollide = true;
-      wing.add(lead);
-      // risers: unit tubes re-aimed every frame from the canopy to the hands
-      const lineMat = makeMaterial({ color: '#34405e' });
-      const unit = new THREE.CylinderGeometry(0.014, 0.014, 1, 3, 1, true).translate(0, 0.5, 0);
-      this.risers = [];
-      for (const sx of [-1, 1]) for (const k of [0.3, 0.6, 0.85]) {
-        const a = sx * k;
-        const m = new THREE.Mesh(unit, lineMat);
-        m.visible = false;
-        m.userData.noCollide = true;
-        m.frustumCulled = false;
-        this.object.add(m);
-        this.risers.push({ mesh: m, at: new THREE.Vector3(Math.sin(a) * 4.2, Math.cos(a) * 4.2 - 4.2, 0), hand: sx < 0 ? 'r' : 'l' });
-      }
-      wing.position.set(0, 4.7, -0.1);
-      wing.visible = false;
-      wing.userData.noCollide = true;
-      this.object.add(wing);
-      this.wing = wing;
-    }
+    // (the paraglider is gone: the fluid wings bloom out of the backpack's tank, fluid-kit.js)
     scene.add(this.object);
     this.scene = scene;
     if (this.humanoid) {
       // the explorer: suit, bubble helmet, radio pack and pouch belt (no cape)
       this.gear = new Gear(scene, this.humanoid, this.char);
       if (this.char.pack) this.char.pack.visible = false;
-      this.char.jetpack.position.set(0, 0.4, -0.47);     // the jetpack rides behind the radio pack
       this._lastVel = new THREE.Vector3();
       this.tails = [];
     } else {
@@ -506,7 +482,8 @@ export class Player {
   }
 
   respawn(to) {
-    if (this.ride) this.dismount();
+    if (this.ride) this.dismount(true);
+    this.boarding = this.unboarding = null;
     this.pos.copy(to ?? this.opts.spawn);
     this.vel.set(0, 0, 0);
     if (!to) {
@@ -521,6 +498,7 @@ export class Player {
 
   /** Jump to another place, e.g. through a portal, with a new "up". */
   teleport(pos, up, fwd) {
+    this.boarding = this.unboarding = null;   // the pack is simply back on (fluid-tool.js follows the state)
     this.pos.copy(pos);
     this.vel.set(0, 0, 0);
     this.frame.set(up, fwd);
@@ -547,15 +525,41 @@ export class Player {
 
   mount_(v) {
     this.ride = v;
+    this.boarding = this.unboarding = null;
     this.gliding = this.thrusting = this.climbing = false;
-    // fold the paraglider away
-    this._wingK = 0;
-    if (this.wing) this.wing.visible = false;
-    for (const r of this.risers ?? []) r.mesh.visible = false;
+    this.wingK = 0;   // the wings fold away at once
     v.board?.();
   }
 
-  dismount() {
+  /** Does this vehicle run on the backpack? (hoverbikes and skiffs; not the bird, who's alive, nor taxis, which someone else drives) */
+  needsPower(v) { return !!v?.powered; }
+
+  /**
+   * Get on a vehicle. A powered one needs the backpack: without it, a notice
+   * and nothing else. With it, the hand-off plays (HANDOFF.board, ~1 s: the
+   * pack swings off into the vehicle's socket, then you climb on); moving
+   * skips to the end. Without the fluid tool (tests) or a socket, you just get on.
+   */
+  board(v) {
+    if (this.needsPower(v) && !this.has('backpack')) { this.notice('It needs power.'); return false; }
+    if (this.needsPower(v) && this.handoff && v.socket && this.onGround && !this.climbing && !this.mantle) {
+      this.boarding = { v, t: 0, dur: HANDOFF.board, k: 0, from: this.pos.clone(), heading: this.heading };
+      this.vel.set(0, 0, 0);
+      this.gliding = this.thrusting = false;
+      return true;
+    }
+    this.mount_(v);
+    return true;
+  }
+
+  finishBoarding() {
+    const B = this.boarding;
+    this.boarding = null;
+    if (B) this.mount_(B.v);
+  }
+
+  /** instant: no hand-off back (respawning); the pack is simply on the back again. */
+  dismount(instant = false) {
     const v = this.ride;
     this.ride = null;
     v.leave?.();
@@ -564,6 +568,8 @@ export class Player {
     this.heading = v.heading;
     this.onGround = false;
     this.unstick();
+    // take the backpack back out of its socket and put it on
+    if (!instant && this.needsPower(v) && this.handoff && v.socket && this.has('backpack')) this.unboarding = { v, t: 0, dur: HANDOFF.unboard, k: 0 };
   }
 
   /**
@@ -599,10 +605,12 @@ export class Player {
 
   // E: get off; get on a vehicle close by; otherwise whistle the mount or hail a taxi.
   interact() {
+    if (this.boarding || this.unboarding) return;
     if (this.ride) return this.dismount();
     const near = this.nearestVehicle();
-    if (near) return this.mount_(near);
+    if (near) return this.board(near);
     if (this.opts.canSummon && !this.opts.canSummon()) return;   // e.g. in a room off the map
+    if (this.mount && this.needsPower(this.mount) && !this.has('backpack')) return this.notice('It needs power.');   // the whistle wakes nothing
     if (this.mount) {
       const d = this.frame.dir(this.heading, _v1);
       const airborne = !this.onGround && !this.climbing && this.physics.heightAbove(this.pos, this.frame.up) > 3;
@@ -662,6 +670,26 @@ export class Player {
       stickScale = Math.min(Math.hypot(f, s), 1);
     }
 
+    // the hand-off: swinging the pack into the vehicle's socket, then climbing on (moving, jumping skip it)
+    if (this.boarding) {
+      const B = this.boarding;
+      B.t += dt; B.k = Math.min(1, B.t / B.dur);
+      const gone = B.v.pos.distanceTo(this.pos) > (B.v.boardDistance ?? 6) + 4;
+      if (B.k >= 1 || f || s || input.Space || gone) { this.finishBoarding(); this._jumpHeld = !!input.Space; return; }
+      // stand still, turned to the socket
+      this.vel.set(0, 0, 0);
+      const to = _v1.subVectors(B.v.pos, this.pos);
+      to.addScaledVector(F.up, -to.dot(F.up));
+      if (to.lengthSq() > 0.01) { let d = F.headingOf(to) - this.heading; d = Math.atan2(Math.sin(d), Math.cos(d)); this.heading += d * (1 - Math.exp(-10 * dt)); }
+      this._jumpHeld = !!input.Space;
+      this.finishFrame(dt, 0);
+      return;
+    }
+    if (this.unboarding) {
+      const B = this.unboarding;
+      B.t += dt; B.k = Math.min(1, B.t / B.dur);
+      if (B.k >= 1 || (input.Space && !this._jumpHeld)) this.unboarding = null;
+    }
     if (this.mantle) {
       this.updateMantle(dt);
       this.finishFrame(dt, 0);
@@ -705,22 +733,26 @@ export class Player {
     if (jumpedNow) this._pressAt = this.time;
     vu -= GRAVITY * dt;
 
-    // Jetpack: hold Space in the air (or keep holding after a jump) to thrust
-    // while there's fuel; refills on the ground. Out of fuel -> glide.
-    // Shift + Space glides even when there's fuel left
-    const wantGlide = !this.onGround && input.Space && (run || !this.opts.jetpack || this.fuel <= 0);
-    this.thrusting = this.opts.jetpack && !this.onGround && input.Space && this.fuel > 0 && !jumpedNow && !wantGlide;
+    // The jets (items: backpack + jetpack, any world): hold Space in the air (or
+    // keep holding after a jump) to thrust while the tank has fluid; a quick
+    // double tap boosts instead (fluid-tool.js). Out of fluid -> the wings, if you
+    // have them. Shift + Space glides even with fluid left.
+    const canJet = this.canJet, canGlide = this.canGlide, fuel = this.jetFuel;
+    const wantGlide = canGlide && !this.onGround && input.Space && (run || !canJet || fuel <= 0.004);
+    this.thrusting = canJet && !this.onGround && input.Space && fuel > 0.004 && !jumpedNow && !wantGlide;
+    // the tank's fluid burns as thrust (fuelSource); without the tool, the old gauge
+    if (this.thrusting && this.fuelSource && !this.fuelSource.burnJet(dt)) this.thrusting = false;
     if (this.thrusting) {
       // tilted forward: part of the thrust drives you along when you steer
       if (move.lengthSq() > 0) tv.addScaledVector(move, JET_THRUST * 0.35 * dt);
       vu = Math.min(vu + JET_THRUST * dt, JET_MAX_UP);
-      this.fuel = Math.max(this.fuel - JET_DRAIN * dt, 0);
+      if (!this.fuelSource) this.fuel = Math.max(this.fuel - JET_DRAIN * dt, 0);
     } else if (this.onGround) {
       this.fuel = Math.min(this.fuel + JET_REFILL * dt, 1);
     }
-    // Paraglider: opens when you hold Space while falling. You fly forward with
-    // momentum along your heading: A/D bank and turn, W dives (faster, sinks
-    // more), S flares (slow, floaty).
+    // The fluid wings (items: backpack + glider): they open when you hold Space
+    // while falling. You fly forward with momentum along your heading: A/D bank
+    // and turn, W dives (faster, sinks more), S flares (slow, floaty).
     const wasGliding = this.gliding;
     this.gliding = wantGlide && (vu < 0 || wasGliding);
     if (this.gliding) {
@@ -861,14 +893,11 @@ export class Player {
   }
 
   finishFrame(dt, hs) {
-    if (this.wing) {
-      // the wing pops open and banks into turns
+    // the wings bloom open over ~0.4 s and fold back faster on landing (fluid-kit.js draws them)
+    {
       const open = this.gliding ? 1 : 0;
-      this._wingK = THREE.MathUtils.lerp(this._wingK ?? 0, open, 1 - Math.exp(-(open ? 9 : 14) * dt));
-      this.wing.visible = this._wingK > 0.03;
-      for (const r of this.risers ?? []) r.mesh.visible = this.wing.visible && !!this.humanoid;
-      this.wing.scale.set(this._wingK, 0.6 + 0.4 * this._wingK, 1);
-      this.wing.rotation.z = -(this.glideTurn ?? 0) * 0.35;
+      const k = this.wingK + (open ? 1 / 0.42 : -1 / 0.3) * dt;
+      this.wingK = Math.min(1, Math.max(0, k));
     }
     this._animAcc += dt;
     if (!this.stopMotion || this._animAcc >= 1 / 12) {
@@ -891,7 +920,17 @@ export class Player {
         H.plantFeet(dt, this.physics, U, this.pos, this.frame.dir(this.heading, _g1).clone(), (p, side, n) => this.stepped(p.clone(), 0, n));
       } else H.resetFeet();
       if (this.aim && !this.climbing && !this.mantle && !this.gliding) H.aimAt?.(this.aim.point, this.aim.k, U);
-      if (this.wing && this._wingK > 0.03) this.holdWing();
+      if (this.wingK > 0.03) this.spreadArms();
+      // the hand-off: both hands on the tank while it swings between the back and the socket
+      const hk = this.handoffGrip();
+      if (hk > 0.01 && this.handoff?.handPoint) H.handOff?.(this.handoff.handPoint(_g1), hk, U);
+    }
+    // climbing on: over the last part of the hand-off, a hop from where you stand onto the seat
+    if (this.boarding && this.boarding.k > 0.66 && this.boarding.v.seatTransform) {
+      const e = THREE.MathUtils.smoothstep(this.boarding.k, 0.66, 1);
+      this.boarding.v.seatTransform(_g2, _q1);
+      this.object.position.lerp(_g2, e).addScaledVector(this.frame.up, Math.sin(Math.PI * e) * 0.35);
+      this.object.quaternion.slerp(_q1, e);
     }
     if (this.gear && dt > 0) {
       const v = this.ride ? this.ride.vel : this.vel;
@@ -922,34 +961,30 @@ export class Player {
     this.heading += d * (1 - Math.exp(-14 * this.aim.k * dt));
   }
 
-  /** Gliding: both hands up on the brake handles, the canopy above them, the risers running into the fists. */
-  holdWing() {
-    const H = this.humanoid, B = H.b, U = this.frame.up, k = this._wingK;
+  /** Gliding on the fluid wings: the arms open out and a little back under them, the lower one leading the turn. */
+  spreadArms() {
+    const H = this.humanoid, B = H.b, U = this.frame.up, k = THREE.MathUtils.smoothstep(this.wingK, 0, 1);
+    if (!B.upperarm_r || !B.hand_r) return;
     const fwd = this.frame.dir(this.heading, _g1), back = _g2.copy(fwd).negate();
     const right = _g3.crossVectors(fwd, U).normalize();
+    const turn = this.glideTurn ?? 0;
     const hands = ['r', 'l'].map((s, i) => {
+      const side = i === 0 ? 1 : -1;
       const sh = B[`upperarm_${s}`].getWorldPosition(new THREE.Vector3());
-      const pull = (i === 0 ? 1 : -1) * (this.glideTurn ?? 0) * 0.25;     // pull the brake on the side you turn to
-      return sh.addScaledVector(U, 0.5 - Math.max(0, pull)).addScaledVector(right, (i === 0 ? 1 : -1) * 0.12).addScaledVector(fwd, 0.08);
+      const rest = B[`hand_${s}`].getWorldPosition(new THREE.Vector3());
+      // turning toward a side dips that hand and lifts the other
+      const target = sh.clone().addScaledVector(right, side * 0.5).addScaledVector(U, -0.12 - side * turn * 0.12).addScaledVector(back, 0.12);
+      return rest.lerp(target, k);
     });
     H.reach({ hands, wallN: back, up: U });
-    this.object.updateMatrixWorld(true);
-    // the canopy rides 3.4 m above the hands' midpoint
-    const mid = new THREE.Vector3();
-    for (const s of ['r', 'l']) mid.add(B[`hand_${s}`].getWorldPosition(_g4)).multiplyScalar(1);
-    mid.multiplyScalar(0.5);
-    this.object.worldToLocal(mid);
-    this.wing.position.set(mid.x, mid.y + 3.4 * (0.6 + 0.4 * k), mid.z);
-    this.wing.updateMatrixWorld(true);
-    for (const r of this.risers) {
-      const p0 = this.wing.localToWorld(_g4.copy(r.at));
-      const p1 = B[`hand_${r.hand}`].getWorldPosition(_g5);
-      this.object.worldToLocal(p0); this.object.worldToLocal(p1);
-      const d = p1.sub(p0), len = d.length();
-      r.mesh.position.copy(p0);
-      r.mesh.quaternion.setFromUnitVectors(_g6.set(0, 1, 0), d.divideScalar(len || 1));
-      r.mesh.scale.set(1, len, 1);
-    }
+  }
+
+  /** How much the hands hold the tank during a hand-off, 0..1 (on as it lifts off, off as it's seated / worn). */
+  handoffGrip() {
+    const sm = THREE.MathUtils.smoothstep;
+    if (this.boarding) { const k = this.boarding.k; return sm(k, 0, HANDOFF.lift + 0.06) * (1 - sm(k, HANDOFF.seat - 0.05, HANDOFF.seat + 0.1)); }
+    if (this.unboarding) { const k = this.unboarding.k; return sm(k, HANDOFF.grab - 0.08, HANDOFF.grab + 0.1) * (1 - sm(k, HANDOFF.worn - 0.05, HANDOFF.worn + 0.15)); }
+    return 0;
   }
 
   /** The clip's hands and feet, pressed onto the wall where they are: raycast each into the wall. */

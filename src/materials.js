@@ -629,6 +629,19 @@ const fragmentShader = /* glsl */ `
   vec3 fluidAlbedo(vec3 base) {
     float t = uFluidA.z, kind = uFluidA.w;
     int n = int(uFluidA.y + 0.5);
+    if (kind > 3.5) return base;   // the hover trail: its bands are drawn in the ribbon branch
+    if (kind > 2.5) {
+      // a wing's membrane (fluid-kit.js): a lobe of length 1 along y, half-width WING_W(y) along x;
+      // the lava flows across it in two zones, pale like a soap film, with inked veins along it
+      float y = vBind.y, wy = max(0.5 * pow(sin(3.14159 * min(1.0, pow(max(y, 0.0), 0.8) * 0.97 + 0.03)), 0.85), 0.02);
+      float u = vBind.x / wy;
+      vec3 col = fluidLava(vBind.x * 5.0 + 0.6 * y, y, 0.4, t * 0.8, n, false);
+      col = mix(col, vec3(1.0), 0.3 + 0.22 * y + uFluidB.x * 0.3);
+      float vein = min(abs(u), min(abs(u - 0.55 * (1.0 - y * 0.3)), abs(u + 0.55 * (1.0 - y * 0.3))));
+      if (vein < 0.03 * (1.2 - y) && y < 0.9) col = mix(col, vec3(0.17, 0.13, 0.12), 0.55);
+      if (abs(u) > 0.88) col = mix(col, vec3(1.0), 0.6);    // a pale rim
+      return col;
+    }
     if (kind > 0.5 && kind < 1.5) {
       // the hose: rubber, with a slug of fluid running down it when the tool is used
       float u = vFold.x, head = uFluidB.z;
@@ -671,6 +684,10 @@ const fragmentShader = /* glsl */ `
       if (fr < 0.72 && streak < 0.5) discard;
     }
     if (uMode == ${MODE_RIBBON} && bayer4(gl_FragCoord.xy / max(uPixelRatio, 1.0) * 0.5) < smoothstep(0.45, 0.95, vFold.y)) discard;
+    #ifdef FLUID
+    // the wings' tips dissolve into print dots (more while they bloom or fold: uFluidB.y)
+    if (uFluidA.w > 2.5 && uFluidA.w < 3.5 && bayer4(gl_FragCoord.xy / max(uPixelRatio, 1.0) * 0.5) < smoothstep(0.9, 1.02, vBind.y) * 0.5 + uFluidB.y * (0.3 + 0.7 * smoothstep(0.2, 1.0, vBind.y))) discard;
+    #endif
     // stroke coordinates + derivatives first, in uniform control flow
     vec3 on = uFlat > 0.5 ? cross(dFdx(vObjPos), dFdy(vObjPos)) : vObjNormal;
     vec3 tw = pow(abs(normalize(on)), vec3(3.0));
@@ -746,6 +763,11 @@ const fragmentShader = /* glsl */ `
                           vec3(0.663, 0.608, 0.878), vec3(0.384, 0.765, 0.788));
       int i0 = int(mod(floor(vFold.x), 5.0)), i1 = int(mod(floor(vFold.x) + 1.0, 5.0));
       albedo = mix(P[i0], P[i1], smoothstep(0.0, 1.0, fract(vFold.x)));
+      #ifdef FLUID
+        // powered by the backpack: the bands run in the fluid's tones (fluid-tool.js powerTrails)
+        float nf = max(uFluidA.y, 1.0);
+        albedo = mix(fluidTone(int(mod(floor(vFold.x), nf))), fluidTone(int(mod(floor(vFold.x) + 1.0, nf))), smoothstep(0.0, 1.0, fract(vFold.x)));
+      #endif
     } else if (uMode == ${MODE_OUTFIT}) {
       // boots / trousers / belt / tunic with sleeves / skin at the neck and hands
       vec3 b = vBind;
@@ -903,7 +925,7 @@ const cache = new Map();
  * @param {THREE.Side} [o.side]
  * @param {boolean} [o.crowd]   instanced crowd figures: the vertex shader poses and colours each
  *                              instance from its attributes (crowd-shader.js); no other mode changes
- * @param {string}  [o.fluid]   'tank' | 'hose' | 'glob': the traveller's magical fluid (fluid-tool.js).
+ * @param {string}  [o.fluid]   'tank' | 'hose' | 'glob' | 'wing' | 'trail': the traveller's magical fluid (fluid-tool.js, fluid-kit.js).
  *                              Compiles the FLUID block (a lava-lamp albedo in flat tones) and adds
  *                              uFluidA / uFluidB / uFluidBox; materials without it are unchanged
  * @param {number[]} [o.fluidBox] [glass bottom y, top y, radius, highlight angle] in object space
@@ -959,7 +981,7 @@ export function makeMaterial(o) {
   if (o.crowd) mat.defines = { CROWD: 1 };
   if (o.fluid) {
     mat.defines = { ...mat.defines, FLUID: 1 };
-    mat.uniforms.uFluidA = { value: new THREE.Vector4(1, 2, 0, { tank: 0, hose: 1, glob: 2 }[o.fluid] ?? 0) };
+    mat.uniforms.uFluidA = { value: new THREE.Vector4(1, 2, 0, { tank: 0, hose: 1, glob: 2, wing: 3, trail: 4 }[o.fluid] ?? 0) };
     mat.uniforms.uFluidB = { value: new THREE.Vector4() };
     mat.uniforms.uFluidBox = { value: new THREE.Vector4(...(o.fluidBox ?? [-1, 1, 1, 0])) };
     mat.uniforms.uFluidTones = { value: Array.from({ length: 6 }, (_, i) => new THREE.Color(o.fluidTones?.[i] ?? '#ffffff')) };

@@ -647,6 +647,38 @@ export class Humanoid {
     }
   }
 
+  /**
+   * The backpack hand-off (fluid-tool.js, player.js): both hands on the tank
+   * at a world point as it swings off the back into a vehicle's socket (or
+   * back), blended over the current pose by k (0..1). The hands hold its
+   * sides, elbows out and down; the chest turns a little toward it.
+   */
+  handOff(point, k, up) {
+    const B = this.b;
+    if (k <= 0.001 || !B.upperarm_r || !B.upperarm_l || !B.hand_r || !B.hand_l) return;
+    const chest = B.spine_03;
+    const fwd = _w1.set(0, 0, 1).applyQuaternion(this.char.root.getWorldQuaternion(_wq1)).normalize();
+    if (chest?.parent) {
+      const to = _w2.subVectors(point, chest.getWorldPosition(_w3)).addScaledVector(up, -_w2.dot(up));
+      if (to.lengthSq() > 1e-4) {
+        to.normalize();
+        const turn = _wq2.identity().slerp(_wq3.setFromUnitVectors(fwd, to), 0.3 * k);
+        chest.quaternion.copy(chest.parent.getWorldQuaternion(_wq4).invert().multiply(chest.getWorldQuaternion(_wq5).premultiply(turn)));
+        chest.updateMatrixWorld(true);
+      }
+    }
+    const mid = B.spine_03 ? B.spine_03.getWorldPosition(new THREE.Vector3()) : point.clone();
+    const across = new THREE.Vector3().subVectors(point, mid).cross(up);
+    if (across.lengthSq() < 1e-6) across.crossVectors(fwd, up);
+    across.normalize();   // from the traveller's view: to their right of the tank
+    for (const [s, side] of [['r', 1], ['l', -1]]) {
+      const grip = point.clone().addScaledVector(across, side * 0.2);
+      const sh = B[`upperarm_${s}`].getWorldPosition(new THREE.Vector3());
+      const pole = sh.clone().addScaledVector(up, -0.6).addScaledVector(across, side * 0.5);
+      this.solveTwoBone(B[`upperarm_${s}`], B[`lowerarm_${s}`], B[`hand_${s}`], grip, pole, k);
+    }
+  }
+
   /** Body capsules (world space) for cloth collision. */
   capsules() {
     const B = this.b;

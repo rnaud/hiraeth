@@ -79,7 +79,7 @@ test('wandering keeps creatures on walkable ground', () => {
   }
 });
 
-test('a glob of fluid freezes a creature in an enchanted shimmer (no surprise), then it wakes and wanders off calmly', () => {
+test('a stilling glob freezes a creature in an enchanted shimmer (no surprise), then it wakes and wanders off calmly', () => {
   clearTargets();
   const { scene, level, physics } = world('bazaar');
   const w = new Wildlife(scene, level, physics, { content: CONTENT.bazaar });
@@ -91,8 +91,8 @@ test('a glob of fluid freezes a creature in an enchanted shimmer (no surprise), 
   const hit = raycastTargets(eye, dir, 20);
   assert.equal(hit?.target.kind, 'wildlife');
   assert.equal(hit.target.creature, c);
-  const tones = ['#52c8cf', '#966ede', '#ef7e62'];
-  hitTarget(hit, 'shoot', dir, { colours: tones });
+  const tones = ['#d6f0fa', '#86bfe8', '#5a8ed6'];
+  hitTarget(hit, 'stun', dir, { colours: tones });
   assert.equal(c.state, 'stun');
   assert.equal(c.stunned, true);
   assert.deepEqual(c.tones, tones, 'it takes the fluid\'s tones');
@@ -119,6 +119,17 @@ test('a glob of fluid freezes a creature in an enchanted shimmer (no surprise), 
   c.cool = 0;
   const target = allTargets().find((t) => t.creature === c);
   if (target.enabled()) { target.onHit('push', c.center.clone(), new THREE.Vector3(0, 0, -1)); assert.equal(c.state, 'trick'); }
+  // a plain glob of fluid splashes: a glint of colour, and it scampers off (no freeze); an ember glob scares it
+  const d = w.creatures.find((k) => k !== c && k.visible && k.state !== 'trick');
+  if (d) {
+    const td = allTargets().find((t) => t.creature === d);
+    hitTarget({ target: td, point: d.center.clone() }, 'shoot', new THREE.Vector3(0, 0, -1), { colours: ['#52c8cf', '#966ede'] });
+    assert.equal(d.state, 'flee', 'splashed: it runs');
+    assert.ok(d.tint > 0.5, 'glinting in the fluid');
+    d.state = 'idle'; d.cool = 0;
+    hitTarget({ target: td, point: d.center.clone() }, 'fire', new THREE.Vector3(0, 0, -1), {});
+    assert.equal(d.state, 'trick', 'an ember glob sets off its surprise: it flees');
+  }
   w.dispose();
 });
 

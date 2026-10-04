@@ -8,6 +8,10 @@ import { ReactiveWorld } from '../src/reactive-world.js';
 import { Player } from '../src/player.js';
 import { Physics } from '../src/physics.js';
 import { NPC } from '../src/npc.js';
+import { items } from '../src/items.js';
+
+// everything runs on the backpack (src/items.js): these tests wear it (tests/abilities.test.js covers going without)
+items.grant('backpack');
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const DT = 1 / 60;
@@ -65,11 +69,14 @@ test('the shared reserve: three uses, then none, then all three back exactly 5 s
 });
 
 test('controls: aim, shoot and push from keyboard, mouse, pad or touch', () => {
-  assert.deepEqual(toolInput({ KeyR: true, KeyG: true }), { aim: true, shoot: true, push: false });
-  assert.deepEqual(toolInput({ MouseRight: true, MouseLeft: true, MouseMiddle: true }), { aim: true, shoot: true, push: true });
-  assert.deepEqual(toolInput({ PadAim: true, PadFire: true, PadPush: true }), { aim: true, shoot: true, push: true });
-  assert.deepEqual(toolInput({ KeyC: true }), { aim: false, shoot: false, push: true });
-  assert.deepEqual(toolInput({ KeyX: true, KeyF: true, KeyE: true }), { aim: false, shoot: false, push: false }, 'X, F and E do nothing to the tool');
+  const none = { aim: false, shoot: false, push: false, mode: false, modeBack: false };
+  assert.deepEqual(toolInput({ KeyR: true, KeyG: true }), { ...none, aim: true, shoot: true });
+  assert.deepEqual(toolInput({ MouseRight: true, MouseLeft: true, MouseMiddle: true }), { ...none, aim: true, shoot: true, push: true });
+  assert.deepEqual(toolInput({ PadAim: true, PadFire: true, PadPush: true }), { ...none, aim: true, shoot: true, push: true });
+  assert.deepEqual(toolInput({ KeyC: true }), { ...none, push: true });
+  assert.deepEqual(toolInput({ KeyX: true, KeyF: true, KeyE: true }), { ...none, mode: true }, 'X switches the gun mode; F and E do nothing to the tool');
+  assert.deepEqual(toolInput({ PadModeNext: true }), { ...none, mode: true }, 'D-pad right');
+  assert.deepEqual(toolInput({ PadModePrev: true }), { ...none, modeBack: true }, 'D-pad left');
 });
 
 test('each ability spends a charge from the one reserve; empty, nothing fires until the refill', () => {
@@ -194,7 +201,8 @@ test('push: only targets inside the cone (and in view) are pushed, away from the
   tool.dispose();
 });
 
-test('boost: a strong burst up and a little forward, in any gravity; jetpack levels boost on a double tap', () => {
+test('boost: a strong burst up and a little forward, in any gravity; with the jets, a double tap boosts', () => {
+  items.grant('glider');
   // the pure velocity change
   for (const up of [v(0, 1, 0), v(1, 0, 0), v(0, -0.6, 0.8).normalize()]) {
     const fwd = new THREE.Vector3(0, 0, 1).addScaledVector(up, -up.z).normalize();
@@ -218,24 +226,29 @@ test('boost: a strong burst up and a little forward, in any gravity; jetpack lev
     assert.equal(tool.charges, 2, 'a charge spent');
     assert.ok(p.vel.dot(up) > before + 10, `boosted along ${up.toArray()}: ${p.vel.dot(up).toFixed(1)}`);
     assert.equal(p.gliding, false, 'the wing stays shut while rising');
-    // holding on still opens the paraglider once falling
+    // holding on still opens the wings once falling (with the glider)
     for (let i = 0; i < 120 && !p.gliding; i++) p.update(DT, { Space: true }, 0);
     assert.equal(p.gliding, true);
     tool.dispose();
   }
-  // jetpack: one press in the air thrusts (no charge), a quick double tap boosts
-  const p = new Player(new Physics(new THREE.Scene()), { jetpack: true });
+  // the jets: one press in the air thrusts (burning the gauge, not a whole charge), a quick double tap boosts
+  items.grant('jetpack');
+  const p = new Player(new Physics(new THREE.Scene()), {});
   p.pos.set(0, 30, 0); p.onGround = false;
   const { tool } = makeTool({ player: p });
   p.update(DT, {}, 0); p.update(DT, { Space: true }, 0);
   for (let i = 0; i < 40; i++) p.update(DT, { Space: true }, 0);
-  assert.equal(tool.charges, 3); assert.ok(p.thrusting, 'holding thrusts');
+  assert.ok(p.thrusting, 'holding thrusts');
+  const burnt = 3 - tool.reserve.level;
+  assert.ok(burnt > 0.15 && burnt < 0.25, `~0.2 of a charge burnt in 2/3 s: ${burnt.toFixed(3)}`);
   p.update(DT, {}, 0); p.update(DT, { Space: true }, 0);
   for (let i = 0; i < 40; i++) p.update(DT, {}, 0);
-  assert.equal(tool.charges, 3, 'a slow second press does not boost');
+  const before = tool.reserve.level;
+  assert.ok(before > 2 && before < 3, 'a slow second press does not boost (it thrusts a moment)');
   p.update(DT, { Space: true }, 0); p.update(DT, {}, 0); p.update(DT, {}, 0); p.update(DT, { Space: true }, 0);
-  assert.equal(tool.charges, 2, 'a double tap does');
+  assert.ok(Math.abs(tool.reserve.level - (before - 1)) < 0.05, 'a double tap spends a whole charge');
   tool.dispose();
+  items.revoke('jetpack'); items.revoke('glider');
 });
 
 test('refill: magical water fills the tank and adds a colour band for good', () => {
