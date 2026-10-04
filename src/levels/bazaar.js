@@ -316,20 +316,22 @@ export function createBazaar(scene) {
       const P=signal.places, keep=[[P.kip,1.6],[P.ferro,1.6],[P.console,2.2]];
       for(const [q,rr] of keep) folk.push({x:q.x,y:q.y,z:q.z,r:rr});
       return {groups,walks,edges,avoid:folk,farMax:420,costume:'bazaar',palette:{cloaks:['#f0a083','#88b4b5','#e4bd83','#b9a9c5','#94a9bd','#ebce98','#c8483a','#5fb7ad','#d8a24a','#8a6fb8','#62c3c9','#f3ead8']},
-        clear:[{x:0,z:88,r:3.5},{x:8,z:82,r:4},{x:-11,z:121,r:5}]};
+        clear:[{x:0,z:88,r:3.5},{x:8,z:82,r:5.5},{x:-11,z:121,r:5}]};
     },
     init(physics){
+      const CAB=2;
       for(let i=0;i<12;i++) {
         const lane=(t,taxi)=>{
           const a=t*.055+i*Math.PI/6;
           taxi.pos.set(Math.sin(a)*22,[35,52,100][i%3],Math.cos(a)*240-120);
           taxi.heading=Math.atan2(Math.cos(a)*22,-Math.sin(a)*240); taxi.bank=Math.sin(a)*.12;
         };
-        const taxi=new Taxi(physics,i%3?'#e9b45f':'#e5cba0',1,lane);
+        // (the City-Shaft's cabs, at its smallest size: at 1 the awning came down to the traveller's chin)
+        const taxi=new Taxi(physics,i%3?'#e9b45f':'#e5cba0',CAB,lane);
         taxi.update(0,null,0);scene.add(taxi.object);vehicles.push(taxi);
       }
       // One parked cab makes vertical exploration available immediately.
-      vehicles[0].pos.set(8,1.2,82); vehicles[0].mode='parked';vehicles[0].parkY=1.2;vehicles[0].idle=0;
+      vehicles[0].pos.set(8,1.2*CAB,82); vehicles[0].mode='parked';vehicles[0].parkY=1.2*CAB;vehicles[0].idle=0;
       vehicles[0].update(0,null,0);
     },
     dynamic:()=>vehicles,

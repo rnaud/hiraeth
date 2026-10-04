@@ -121,6 +121,7 @@ test('feet stand on what is drawn: the terraces round the tree, the plaza, the a
     total++;
     const g = physics.groundAt(w.x, w.y, w.z, 10), hit = drawnBelow(w);
     if (!hit || Math.abs(hit.point.y - g) > 0.5) continue;                     // a root, a bench, a prop over it
+    if (hit.object === C.bark) continue;                                        // a root's tail, low over the paving (walked through)
     checked++;
     if (Math.abs(hit.point.y - g) > 0.04) bad.push(`${x.toFixed(1)},${z.toFixed(1)}: drawn ${(hit.point.y - g).toFixed(3)} m off`);
   }
@@ -128,7 +129,7 @@ test('feet stand on what is drawn: the terraces round the tree, the plaza, the a
   assert.deepEqual(bad.slice(0, 6), [], `the drawn paving is where the feet stand (${bad.length} off)`);
   // the trunk: its collider is the bark, so climbing hands and feet touch what you see
   let n = 0;
-  for (let y = 1.5; y < 17.5; y += 1.6) for (let a = 0; a < Math.PI * 2; a += 0.45) {   // (under the crown's flame)
+  for (let y = 3.1; y < 17.5; y += 1.6) for (let a = 0; a < Math.PI * 2; a += 0.45) {   // (over the roots, under the crown's flame)
     const d = V(Math.sin(a), 0, Math.cos(a)), from = C.treeBase.clone().addScaledVector(d, 9).setY(C.top + y);
     const dir = d.clone().negate(), solid = physics.rayDistance(from, dir, 9);
     rc.set(from, dir); rc.far = 9;

@@ -775,7 +775,8 @@ export class Player {
     let best = null, bd = Infinity;
     for (const v of this.vehicles) {
       if (!v.hail) continue;
-      const d = v.pos.distanceTo(this.pos);
+      // (a free cab answers before a nearer one with a fare aboard, which would have to drop it first)
+      const d = v.pos.distanceTo(this.pos) * (v.fare ? 1.5 : 1);
       if (d < bd) { best = v; bd = d; }
     }
     if (best) { this.opts.onWhistle?.('taxi'); best.hail(this.pos, this.heading); }
