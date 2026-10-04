@@ -230,8 +230,8 @@ export class PrologueDirector {
         pk.group.quaternion.copy(spin.multiply(s.restQuat));
         const vel = this.bez(Math.min(1, u + 0.01)).sub(p).normalize();
         for (let i = 0; i < 3; i++) {
-          const g = 0.35 + Math.random() * 0.3;
-          s.smoke.emit(p.clone().addScaledVector(vel, -R * 0.6).add(V((Math.random() - 0.5) * 8, (Math.random() - 0.5) * 8, (Math.random() - 0.5) * 8)), V(0, 1, 0), 5 + Math.random() * 4, 4 + Math.random() * 2, new THREE.Color(g, g * 0.95, g * 0.92));
+          const g = 0.55 + Math.random() * 0.25;
+          s.smoke.emit(p.clone().addScaledVector(vel, -R * 0.6).add(V((Math.random() - 0.5) * 8, (Math.random() - 0.5) * 8, (Math.random() - 0.5) * 8)), V(0, 5, 0), 3 + Math.random() * 2.5, 2.4 + Math.random() * 1.2, new THREE.Color(g, g * 0.96, g * 0.93));
           s.flame.emit(p.clone().addScaledVector(vel, R * 0.75 + Math.random() * 3).add(V((Math.random() - 0.5) * 9, (Math.random() - 0.5) * 9, (Math.random() - 0.5) * 9)), vel.clone().multiplyScalar(-30), 3 + Math.random() * 3, 0.35 + Math.random() * 0.25, pickOf(FIRE));
         }
         const cam = s.restPos.clone().addScaledVector(this.N, -82).addScaledVector(this.T, 46).add(V(0, 9, 0));
@@ -255,7 +255,7 @@ export class PrologueDirector {
           const at = pos.clone().addScaledVector(this.T, R * 0.6).addScaledVector(this.N, side * R * (0.5 + Math.random() * 0.5));
           at.y = s.groundAt(at.x, at.z) + 1;
           const v = this.N.clone().multiplyScalar(side * (6 + Math.random() * 10)).addScaledVector(this.T, 8 * (1 - p)).add(V(0, 5 + Math.random() * 6, 0));
-          s.dust.emit(at, v, 1.6 + Math.random() * 2.4 * (1 - p * 0.5), 1.8 + Math.random() * 1.6, new THREE.Color(pickOf(SAND)));
+          s.dust.emit(at, v, 1 + Math.random() * 1.6 * (1 - p * 0.5), 1.2 + Math.random(), new THREE.Color(pickOf(SAND)));
         }
         if (s.wind && Math.random() < 0.7) for (let i = 0; i < 6; i++) s.wind.emit(pos.x + (Math.random() - 0.5) * 30, pos.z + (Math.random() - 0.5) * 30, this.N.x * (Math.random() - 0.5) * 30, this.N.z * (Math.random() - 0.5) * 30);
         if (u < 0.5 && Math.random() < 0.4) s.flame.emit(pos.clone().addScaledVector(this.T, R * 0.7).add(V(0, -R * 0.4, 0)), V(0, 3, 0), 2 + Math.random() * 2, 0.4, pickOf(FIRE));

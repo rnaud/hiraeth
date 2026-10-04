@@ -140,7 +140,7 @@ export function findShipSite({ level, physics, levelId, avoid = [], spawn }) {
     const probe = probeSite(physics, fixed.x, fixed.z, fixed.heading ?? 0, { refY: Number.isFinite(g) ? g : S.y, tolerance: 1e9 });
     return { ...fixed, ground: probe?.ground ?? g, source: level.shipSite ? 'level' : 'table' };
   }
-  const clear = (x, z) => avoid.every((a) => Math.hypot(x - a.x, z - a.z) > a.r + R);
+  const clear = (x, z) => avoid.every((a) => Math.hypot(x - a.x, z - a.z) > a.r + R + 3);   // (+3: the legs reach out past the hull)
   let best = null;
   for (let d = 34; d <= 150; d += 8) {
     const n = Math.max(12, Math.round((TAU * d) / 10));
@@ -150,6 +150,9 @@ export function findShipSite({ level, physics, levelId, avoid = [], spawn }) {
       if (!clear(x, z)) continue;
       // hatch toward the spawn, so you step out facing where you came in
       const heading = Math.atan2(S.x - x, S.z - z);
+      // and nothing standing on the ramp's way down
+      const [hx, hz] = dirOf(heading);
+      if (![14, 18, 22].every((k) => avoid.every((a) => Math.hypot(x + hx * k - a.x, z + hz * k - a.z) > a.r + 1.5))) continue;
       const p = probeSite(physics, x, z, heading, { refY: S.y, unsafe: level.unsafe });
       if (!p) continue;
       const score = d + p.spread * 14 + Math.abs(p.ground - S.y) * 1.5 + Math.max(0, S.y - 1.5 - p.ground) * 12;   // not down in a hollow (or a pond)

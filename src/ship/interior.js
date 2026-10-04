@@ -104,7 +104,7 @@ export function buildInterior(batch, group, o = {}) {
     for (let k = 1; k < 5; k++) batch.add('wood', B(box(0.08, 0.05, 0.36, -1.15, k * 0.4, -0.5)));   // the ladder rungs
     // the drawing taped under the top bunk, seen from the pillow
     const under = familyDrawing();
-    const dm = new THREE.Mesh(new THREE.PlaneGeometry(0.62, 0.46).rotateX(PI / 2).rotateY(PI / 2), makeMaterial({ color: '#ffffff', map: under ?? undefined, flat: true, glow: 0.3 }));
+    const dm = new THREE.Mesh(new THREE.PlaneGeometry(0.62, 0.46).rotateX(PI / 2).rotateY(PI / 2), makeMaterial({ color: '#ffffff', map: under ?? undefined, flat: true, glow: 0.65 }));
     dm.applyMatrix4(new THREE.Matrix4().makeTranslation(-0.55, 1.505, 0));
     dm.applyMatrix4(bed);
     dm.userData.noCollide = true;
