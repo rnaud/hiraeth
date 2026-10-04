@@ -92,7 +92,10 @@ export const KEEPERS = [
         },
         mark: { say: ['On your ship? Then you were expected too, maybe, only not by us.'], choices: [{ text: 'And the two travellers?', goto: 'dark' }] },
         dark: {
-          say: ['Not yet. But listen: three pools have gone dark along the path. The night the sky rang, they went out, and nothing we pour in will take.', 'My lamps want water that remembers light. And that tank on your back is full of it, isn’t it? I can see it from here, all those colours.', 'Would you? Three dark pools, between here and the root cave. Splash them. Wake them up.'],
+          say: ['Not yet. But listen: three pools went dark along the path. The night the sky rang, they went out, and nothing we pour in will take.',
+            { if: { not: { flag: 'perdide2.pools.lit' } }, text: 'My lamps want water that remembers light. And that tank on your back is full of it, isn’t it? I can see it from here, all those colours.' },
+            { if: { not: { flag: 'perdide2.pools.lit' } }, text: 'Would you? Three dark pools, between here and the root cave. Splash them. Wake them up.' },
+            { if: { flag: 'perdide2.pools.lit' }, text: '…Wait. You’ve already been splashing them, haven’t you? I saw new colours on the path and thought my eyes were going. Light the rest, if any are still dark.' }],
           do: { set: { 'perdide2.hollin.met': true } },
           choices: [{ text: 'I’ll light them.', end: true }, { text: 'What happened the night the sky rang?', goto: 'rang' }],
         },
