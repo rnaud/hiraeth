@@ -207,7 +207,7 @@ export const PEOPLE = {
           say: ['Hm. You’re the one from the ball. The ball with the burn on it.'],
           choices: [{ text: 'You saw the burn?', goto: 'burn' }, { text: 'What’s that flute?', goto: 'ney' }, { text: '(leave him to his music)', end: true }],
         },
-        burn: { say: ['Three dots over a curve. {glyph} Like on the giant’s brow, out past the back gate. Like on the old stones. Hm. Somebody signs their work.'], choices: [{ text: 'Who?', goto: 'who' }, { text: 'Thank you.', end: true }] },
+        burn: { say: ['Three dots over a curve. {glyph} Like between the giant’s eyes, out past the back gate. Like on the old stones. Hm. Somebody signs their work.'], choices: [{ text: 'Who?', goto: 'who' }, { text: 'Thank you.', end: true }] },
         who: { say: ['If I knew that I wouldn’t need a flute. Hm-hm.'], choices: [{ text: '(leave him to his music)', end: true }] },
         ney: { say: ['A ney. Reed from the oasis at the salt. It only knows one song, and every year it plays it differently.'], choices: [{ text: 'Play it for me.', end: true }] },
       },
@@ -414,7 +414,7 @@ export const THINGS = {
   brow: {
     id: 'brow', name: 'The giant’s brow', title: 'the fallen giant', color: '#f2ead6', voice: 0.6,
     talk: { nodes: { look: {
-      say: ['The skull is bigger than a house. On its brow, worn into the bone, the mark: {glyph} It glows faintly, like the water in a jar held up to the sun.', 'Between the teeth, carved stones prop the jaw open. Cool air breathes out of the dark.'],
+      say: ['The skull is bigger than a house. Between its eyes, worn into the bone, the mark: {glyph} It glows faintly, like the water in a jar held up to the sun.', 'Between the teeth, carved stones prop the jaw open. Cool air breathes out of the dark.'],
       do: { set: { 'desert.brow.seen': true } }, choices: [{ text: '(go on)', end: true }],
     } } },
   },

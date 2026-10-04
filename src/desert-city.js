@@ -518,7 +518,7 @@ export function buildDesertCity(scene, terrain) {
     for (let i = -5; i <= 5; i++) if (Math.abs(i) > 1) giant.add(M.bone, T(new THREE.BoxGeometry(1.1, 1.8, 1.2), [i * 1.45, 1.6 + Math.abs(i) * 0.08, 14.1 - Math.abs(i) * 0.25], [0.1, 0, 0]));
     giant.add(M.ink, T(new THREE.BoxGeometry(3.2, 3.4, 1.2), [0, 1.7, 14.2]));
     // the glyph on its brow, faintly alight
-    giant.add(M.glyph, T(glyphGeometry(2.2), [0, 11.6, 11.2], [-0.55, 0, 0]));
+    giant.add(M.glyph, T(glyphGeometry(1.35), [0, 8.4, 14.35], [-0.2, 0, 0]));   // between the eyes
     // one arm reaching out of the sand: shoulder, elbow, a hand spread on the dune
     const sh = V(17, -1, 2), el = V(25, 8, 9), wr = V(31, 1.5, 17);
     const armPts = [[sh, el, 2.2, 1.7], [el, wr, 1.7, 1.2]];
