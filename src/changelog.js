@@ -7,6 +7,7 @@ export const CHANGELOG = [
     'The backpack now waits in Qanat. After the crash, follow the smoke to the city: in a shrine by the dry well stands a makers’ box that has not opened in living memory. Opening it brings the villagers and Nour, the eldest, who sends you on the rest of your search for power.',
     'Every item box is now an artifact of the makers, the people of the three-dot glyph, left for whoever comes a long way. People in each world have their own name for them.',
     'The Retroid Pocket’s built-in sticks and buttons now work, and every prompt uses its button names (A, B, X, Y, L1, R1, L2, R2, Select, Start). This also fixes being stuck after the crash on Android.',
+    'With a controller, the button list now shows for a few seconds and then fades (it stays in menus), and the status box no longer stretches across the screen on handhelds.',
     'The Android app updates itself from GitHub releases: when a newer build is out, it offers to install it and keeps your progress.',
     'Fixed a gap between the ship’s floor and its ramp that you could fall through. The burning tree’s smoke is one soft continuous trail, and the wind is quieter.',
   ] },

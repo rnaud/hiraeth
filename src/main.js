@@ -754,6 +754,7 @@ function updateHud() {
 const busy = () => story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || menu.open || endingOpen || storyRt.busy() || ship.busy() || boxes.busy();
 const noInput = {};
 let controllerActive = false;
+const hintShown = { text: '', at: -1e9, active: false };
 const controllerHint = document.createElement('div');
 controllerHint.id = 'controller-hint';
 document.body.appendChild(controllerHint);
@@ -922,10 +923,15 @@ function frame() {
   const padInput = controller.update(dt, !document.hidden && document.hasFocus());
   if (controller.index === null) controllerActive = false;
   document.body.classList.toggle('controller', controllerActive);
-  controllerHint.textContent = busy() ? 'D-pad / left stick select · A / × confirm · B / ○ back · right stick scroll'
+  const hintText = busy() ? 'D-pad / left stick select · A / × confirm · B / ○ back · right stick scroll'
     : photo.on ? 'Left stick fly · right stick look · LB/RB down/up · A / × save · B / ○ exit'
     : tool.owned ? `A / × jump (again in the air: boost) · X / □ use · Y / △ ping · RT / R2 run · LT aim (+ RT shoot) · B / ○ push${tool.modes.length > 1 ? ' · ← → mode' : ''} · ↑ worlds · ↓ photo · View sketchbook · Menu settings`
     : 'A / × jump · X / □ use · Y / △ ping · RT / R2 run · ↑ worlds · ↓ photo · View sketchbook · Menu settings';
+  // the button list shows for a few seconds when the controller takes over (or what the buttons do changes),
+  // then fades; in menus and photo mode it stays. Set only when it changes (the label rewrite watches the page).
+  if (hintText !== hintShown.text || (controllerActive && !hintShown.active)) { if (hintText !== hintShown.text) controllerHint.textContent = hintText; hintShown.text = hintText; hintShown.at = t; }
+  hintShown.active = controllerActive;
+  document.body.classList.toggle('controller-hint', controllerActive && (busy() || photo.on || t - hintShown.at < 7));
   const mergedInput = mergeControls(latchedInput(), padInput);
   wasBusy = busy();
   if (wasBusy && mergedInput.KeyE) eBlocked = true;
