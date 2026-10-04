@@ -7,6 +7,14 @@
 // channel. Push it clear and the water rises, the tree drinks, and the jar
 // Ama gave you fills with living water: power for the ship.
 //
+// It starts in the city. The traveller steps out of a dark ship with nothing
+// on their back and follows the smoke to Qanat. Beside the dry well stands
+// the Givers' shrine, and under it the makers' chest that has not opened in
+// living memory ("it opens for one who fell from the sky"). It opens for the
+// traveller: the backpack. Qanat gathers, the tree flares, and Nour, the
+// eldest, who has kept the chest for sixty years, sends them on: the well,
+// Ama's jar, the Speaker's old words, the way down.
+//
 // How the three connect (said by nobody all at once): the giants carried the
 // water across the desert from the swamp of lights, and lay down where they
 // could go no further; the water they carried pooled in their hearts; the
@@ -20,18 +28,29 @@ const Q = 'desert.power';
 
 export const ITEMS = { jar: 'Ama’s drinking jar', water: 'a jar of living water', drum: 'Teo’s drum', cord: 'Oum’s knotted cord' };
 
+/**
+ * Saves from before the backpack's box moved into the city (the stages were
+ * pack, camps, ama, speaker, well, down, channel, fill, ship): where an old
+ * stage goes now. Everyone short of the cave goes to meet Nour; the steps
+ * they already did advance at once on their flags (jar, Speaker, well).
+ */
+export const STAGE_MIGRATION = { pack: 'city', camps: 'city', ama: 'elder', speaker: 'elder', well: 'elder' };
+
 // ------------------------------------------------------------------ quests
 export const QUESTS = [
   {
     id: Q, title: 'The Tree That Drinks', world: 'desert', main: true,
     outro: 'The ship hums. The tree drank, and so did you.',
     stages: [
-      // the backpack was thrown out in the crash: its box lies down the dune, at the end of the debris (src/boxes/placements.js)
-      { id: 'pack', text: 'Something was thrown from the ship in the crash. Find what fell', label: 'What fell from the ship', flag: 'item.backpack', at: 'box.desert.backpack' },
-      { id: 'camps', text: 'The ship is dead. Follow the smoke to the pilgrims’ camps', label: 'The pilgrims’ camps', flag: 'desert.camps.seen', at: 'camps' },
-      { id: 'ama', text: 'Ask Ama, keeper of the fires, where to find power', label: 'Ama, keeper of the fires', flag: 'desert.jar.given', at: 'ama' },
-      { id: 'speaker', text: 'Find the Speaker at the head of the procession', label: 'The Speaker', flag: 'desert.speaker.heard', at: 'speaker' },
-      { id: 'well', text: 'Look into the dry well at the burning tree’s roots', label: 'The dry well', flag: 'desert.well.seen', at: 'well' },
+      // the ship is dark and the traveller's back is bare: past the camps and the procession, into the city
+      { id: 'city', text: 'The ship is dark. Follow the smoke to the city', label: 'Qanat, under the smoke', flag: 'desert.city.entered', at: 'cityGate' },
+      // the makers' chest under the Givers' shrine, beside the dry well (src/boxes/placements.js): the backpack
+      { id: 'box', text: 'Something by the burning tree is humming. Find it', label: 'The humming by the tree', flag: 'item.backpack', at: 'box.desert.backpack' },
+      // Qanat gathers; Nour, the eldest, comes to see who opened it (src/story/desert.js, the reaction)
+      { id: 'elder', text: 'The chest opened. Speak with Nour, the eldest of Qanat', label: 'Nour, the eldest', flag: 'desert.elder.heard', at: 'nour' },
+      { id: 'well', text: 'Listen at the dry well, as Nour asked', label: 'The dry well', flag: 'desert.well.seen', at: 'well' },
+      { id: 'ama', text: 'Ask Ama at the camp fires for the drinking jar', label: 'Ama, keeper of the fires', flag: 'desert.jar.given', at: 'ama' },
+      { id: 'speaker', text: 'Find the Speaker at the head of the procession: the old words know the way down', label: 'The Speaker', flag: 'desert.speaker.heard', at: 'speaker' },
       { id: 'down', text: 'Find the way beneath the giant, outside the back gate', label: 'The giant’s skull', flag: 'desert.cave.seen', at: 'caveIn' },
       { id: 'channel', text: 'The pool is low: something blocks the channel. Push it clear', label: 'The blocked channel', flag: 'desert.channel.open', at: 'bone' },
       { id: 'fill', text: 'Fill Ama’s jar in the risen pool', label: 'The pool', flag: 'desert.jar.filled', at: 'pool' },
@@ -83,37 +102,46 @@ export const PEOPLE = {
         { if: { quest: Q, done: true }, node: 'after' },
         { if: { flag: 'desert.channel.open' }, node: 'drinking' },
         { if: { flag: 'desert.jar.given' }, node: 'again' },
+        { if: { flag: 'desert.elder.heard' }, node: 'sent' },
         { node: 'hello' },
       ],
       nodes: {
         hello: {
           say: ['A stranger, walking in from where the sky-ball fell. Sit. Nobody goes thirsty at my fires.', 'I am Ama. I keep the fires for the pilgrims while they walk the circuit.'],
           choices: [
-            { text: 'My ship has no power. I need to find some.', goto: 'power' },
+            { text: 'My ship has no power. I need to find some.', goto: 'early' },
             { text: 'Who are all these people?', goto: 'who' },
             { text: 'What is that tree? It’s burning.', goto: 'tree' },
           ],
+        },
+        early: {
+          say: ['Power? Not at my fires, sky-stranger. I only have fire.', 'Go into the city, under the smoke, up the steps to the tree. Old Nour sits there beside a chest nobody can open. It has been humming since the night the light sang. Whatever a sky-ball needs, she’ll know where to start.'],
+          choices: [{ text: 'I’ll go to the city.', end: true }, { text: 'Who are all these people?', goto: 'who' }],
+        },
+        sent: {
+          say: ['Nour sent you? Then it’s serious. She hasn’t sent anyone anywhere since my wedding.', 'And you’re wearing the chest’s… whatever it is. Well. It suits you.'],
+          next: 'power',
         },
         who: {
           say: ['Pilgrims, from every oasis between here and the salt. Once a year we come to Qanat to watch the tree drink.', 'The water rises from beneath the giants, the fire turns cool, and we all drink from the same jar. This year we have walked eleven days, and the water has not risen.'],
           choices: [
             { text: 'Rises from where?', goto: 'giants' },
-            { text: 'I need power for my ship.', goto: 'power' },
+            { text: 'I need power for my ship.', goto: 'early' },
           ],
         },
         tree: {
           say: ['It has always burned. My grandmother’s grandmother saw it burn. It eats nothing, it never falls.', 'Once a year it drinks, and then it burns in every colour. You’ll see. If it drinks this year.'],
           choices: [
             { text: 'And if it doesn’t?', goto: 'giants' },
-            { text: 'I need power for my ship.', goto: 'power' },
+            { text: 'I need power for my ship.', goto: 'early' },
           ],
         },
         giants: {
           say: ['Ask the Speaker; he knows the old words. I only know the fires.', 'He walks at the head of the procession. You’ll hear the drum before you see him.'],
-          choices: [{ text: 'I need power for my ship.', goto: 'power' }, { text: 'Thank you, Ama.', end: true }],
+          choices: [{ text: 'I need power for my ship.', goto: 'early' }, { text: 'Thank you, Ama.', end: true }],
         },
         power: {
-          say: ['Power. Hm. The only power in this desert is the water that makes the tree drink. When it rises, everything wakes: the fire, the people, the old stones.', 'Here. A drinking jar. If the water rises, fill it. We’ll need it for the drinking anyway, and maybe it will wake your ball too.', 'Find the Speaker. If anyone knows why the water is late, it’s him.'],
+          say: ['Power. Hm. The only power in this desert is the water that makes the tree drink. When it rises, everything wakes: the fire, the people, the old stones.', 'Here. The drinking jar. If the water rises, fill it. We’ll need it for the drinking anyway, and maybe it will wake your ball too.', 'Find the Speaker. If anyone knows the old way down to the water, it’s him.'],
           do: [{ give: 'jar' }, { set: { 'desert.jar.given': true } }],
           choices: [
             { text: 'Where is the Speaker?', goto: 'where' },
@@ -122,7 +150,7 @@ export const PEOPLE = {
         },
         where: { say: ['Walking the circuit round the walls, like everyone. Follow the banners. Listen for the drum.'], choices: [{ text: 'Thank you.', end: true }] },
         again: {
-          say: [{ if: { has: 'water' }, text: 'Your jar is heavy. Full? Then go, wake your ball. And thank you.' }, { if: { not: { has: 'water' } }, text: 'Still looking? The Speaker walks the circuit. The well is at the tree’s roots, past the gate.' }],
+          say: [{ if: { has: 'water' }, text: 'Your jar is heavy. Full? Then go, wake your ball. And thank you.' }, { if: { not: { has: 'water' } }, text: 'Still looking? The Speaker walks the circuit. The giant’s head is out past the back gate.' }],
           choices: [
             { text: 'Have you seen anything strange lately?', goto: 'rumour', once: true },
             { text: 'Who is that boy staring at the fire?', if: { quest: 'desert.drum', started: false }, goto: 'teo' },
@@ -267,31 +295,43 @@ export const PEOPLE = {
         { if: { quest: Q, done: true }, node: 'after' },
         { if: { flag: 'desert.channel.open' }, node: 'drinking' },
         { if: { flag: 'desert.speaker.heard' }, node: 'again' },
+        { if: { quest: Q, stage: ['city', 'box'] }, node: 'early' },
         { node: 'hello' },
       ],
       nodes: {
+        early: {
+          say: ['Walk with me a moment; the circuit doesn’t stop for strangers. Though for you, it seems, it does.', 'You came down after the singing light. Go to Qanat, under the smoke, and up the steps to the tree. Nour, our eldest, keeps a chest there that has hummed every night since. When it is quiet again, come and walk with me.'],
+          choices: [{ text: 'I’ll go to the city.', end: true }, { text: 'Why do you walk round and round?', goto: 'hello' }],
+        },
         hello: {
           say: ['Walk with me a moment; the circuit doesn’t stop for strangers. Though for you, it seems, it does.', 'You want to know why we walk. Everyone asks. We walk because the tree is thirsty, and walking is the only thing we know how to do about it.'],
           choices: [
             { text: 'Why is the tree thirsty?', goto: 'old' },
             { text: 'Ama says you know the old words.', goto: 'old' },
+            { text: 'Nour says the old words know the way down to the water.', if: { flag: 'desert.elder.heard' }, goto: 'old' },
           ],
         },
         old: {
           say: ['The old words say: *the giants came down from the swamp of lights, carrying the water, and walked until they could not.* Where they lay down, the water stayed in them.', 'One of them lies beneath Qanat. The tree grows from its heart. Once a year the water rises in it, through the roots, up to the well, and the tree drinks.', 'This year it hasn’t. Either the tree has stopped wanting, or the giant has stopped giving. The old words don’t say which is worse.'],
           do: { set: { 'desert.speaker.heard': true } },
           choices: [
+            { text: 'Is there a way down to the water?', goto: 'way' },
             { text: 'Where does the water come up?', goto: 'well' },
             { text: 'The swamp of lights?', goto: 'swamp' },
             { text: 'What happens if it never drinks?', goto: 'never' },
           ],
         },
-        well: { say: ['At the well, in the tree’s roots, inside the walls. Go and look; it’s dry as a bone. Some say the old people once went down to the water itself, beneath the giant. Nobody remembers the way. Or nobody admits it.'], choices: [{ text: 'I’ll look.', end: true }, { text: 'The swamp of lights?', goto: 'swamp' }] },
+        way: {
+          say: ['There is a line nobody sings any more, because nobody knows what it means: “Where the giant’s eyes are marked, its mouth is a door.”', 'The giant’s head lies outside the back gate, face down in the sand, with the Givers’ mark between its eyes. Its jaw is propped open with carved stones. Make of that what you can, little star. I am too old to fit.'],
+          choices: [{ text: 'I’ll go and look.', end: true }, { text: 'The swamp of lights?', goto: 'swamp' }],
+        },
+        well: { say: ['At the well, in the tree’s roots, inside the walls. It’s dry as a bone. The old people once went down to the water itself, beneath the giant. Nobody remembers the way. Or nobody admits it.'], choices: [{ text: 'Is there a way down?', goto: 'way' }, { text: 'The swamp of lights?', goto: 'swamp' }] },
         swamp: { say: ['A place of glowing water and plants that sing. Far, very far; farther than walking. Maybe you’ve flown over it, in your ball.'], do: { set: { 'clue.desert.perdide': true } }, choices: [{ text: 'Not yet.', goto: 'well' }] },
         never: { say: ['Then we walk until we forget why. Then we keep walking anyway, because by then the walking is the reason.'], choices: [{ text: 'Where does the water come up?', goto: 'well' }] },
         again: {
           say: ['Still here, little star? The well is at the tree’s roots. Beyond the back gate, the giant’s head watches the dunes. Make of that what you can.'],
           choices: [
+            { text: 'Tell me the line about the giant’s mouth again.', goto: 'way' },
             { text: 'Have you seen an old woman who fell behind?', if: { quest: 'desert.oum', done: false }, goto: 'oum' },
             { text: 'Have you heard of a masked head in the sand?', if: { quest: 'desert.mask', started: false }, goto: 'mask' },
             { text: 'Walk on, Speaker.', end: true },
@@ -345,6 +385,89 @@ export const PEOPLE = {
     },
   },
 
+  // the eldest of Qanat, Hessa's grandmother, who has kept the makers' chest under the Givers' shrine for sixty years
+  nour: {
+    id: 'nour', name: 'Nour', title: 'the eldest of Qanat', color: '#3b4f8a', voice: 0.72, kind: 'f', scale: 0.93,
+    palette: { cloak: '#2f437a', lining: '#dcecf2', cloth: '#e2d3b4', legs: '#5a4a40', hat: '#f3ead8', hair: '#ece4d2' }, head: 'wrap', cape: 1.45,
+    lines: ['Mind the chest, child.', 'Sixty years I have sat with it.', 'It hums more when you are near. Did you notice?'],
+    talk: {
+      entry: [
+        { if: { quest: Q, done: true }, node: 'after' },
+        { if: { flag: 'desert.channel.open' }, node: 'drinking' },
+        { if: { flag: 'desert.elder.heard' }, node: 'again' },
+        { if: { flag: 'item.backpack' }, node: 'opened' },
+        { node: 'shut' },
+      ],
+      nodes: {
+        // before it opens
+        shut: {
+          say: ['Mind the chest, stranger. It belongs to the Givers, and they have not come back for it.', 'It has not opened for anyone in living memory. Not for me, not for my mother, not for the Speaker, who tried with a knife when he was young and foolish, which was a long time ago.', 'The old words say it opens only for “one who fell from the sky”.'],
+          choices: [
+            { text: 'I fell from the sky. This morning.', goto: 'fell' },
+            { text: 'Who are the Givers?', goto: 'givers' },
+            { text: 'I’ll leave it be.', end: true },
+          ],
+        },
+        fell: { say: ['So you did. The whole desert saw the smoke. And the night before, a light crossed the sky singing, and this chest sang back all night long. I did not sleep. Neither did it.', 'Well. Go on, then. Try it. If it bites you, I will say I warned you.'], choices: [{ text: '(try the chest)', end: true }] },
+        // it opened: the reaction (desert.js brings her over and opens this on her own)
+        opened: {
+          say: [
+            { if: { flag: 'desert.shrine.gathered' }, text: 'It opened. It opened! Sixty years I have sat beside that chest, and my mother before me, and it never once so much as creaked.' },
+            { if: { not: { flag: 'desert.shrine.gathered' } }, text: 'The chest stands open, and empty, and you walk in wearing what was in it. So. It opened for you, and nobody was there to see. That is just like the Givers.' },
+            'The old words say: “The Givers’ chest opens for one who fell from the sky.” We took it for a riddle. Then a light crossed the sky singing, the chest hummed all night, and in the morning your ball came down burning.',
+          ],
+          choices: [
+            { text: 'Who are the Givers?', goto: 'givers' },
+            { text: 'I didn’t fall. Something struck my ship.', goto: 'struck', once: true },
+            { text: 'What is this thing on my back?', goto: 'pack', once: true },
+            { text: 'My ship has no power. Can you help me?', goto: 'power' },
+          ],
+        },
+        givers: {
+          say: ['The ones who made the giants walk. Everything they made, they marked: three dots over an arch. {glyph} On the giants’ brows, on the stele, on that chest.', 'Nobody has seen a Giver. We have only what they left behind, and what they left behind is mostly gifts: the water, the giants who carried it, and chests with a star on the lid, for travellers who would come a long way after them.'],
+          choices: [
+            { text: 'Why a star?', goto: 'star', once: true },
+            { text: 'Are there other chests?', goto: 'others', once: true },
+            { text: 'My ship has no power. Can you help me?', if: { flag: 'item.backpack' }, goto: 'power' },
+            { text: 'I fell from the sky, you know.', if: { not: { flag: 'item.backpack' } }, goto: 'fell' },
+          ],
+        },
+        star: { say: ['Because that is what a traveller looks like from far off: a small light, a long way from home. The chest waits for one. You look like one, too. Lost, and shining a little.'], choices: [{ text: 'Are there other chests?', goto: 'others', once: true }, { text: 'My ship has no power.', if: { flag: 'item.backpack' }, goto: 'power' }, { text: '(back)', goto: 'givers' }] },
+        others: { say: ['The old words say the Givers walked further than the desert, further than walking. If there are other places, there are other chests, wherever their giants lay down. Look for the star. It looks for you, too.'], choices: [{ text: 'My ship has no power.', if: { flag: 'item.backpack' }, goto: 'power' }, { text: '(back)', goto: 'givers' }] },
+        struck: { say: ['Struck, fell. The sky does not care which. Marrow says there is a mark burned on your ball: three dots over an arch. The Givers’ mark.', 'Whatever struck you knew their sign. Or it was one of their gifts, too, and lost its way. I am too old to know which, and too curious to stop wondering.'], choices: [{ text: 'What is this thing on my back?', goto: 'pack', once: true }, { text: 'My ship has no power. Can you help me?', goto: 'power' }] },
+        pack: { say: ['A tank of living water. Look at it move. The same water the giants carried, I would wager my teeth, and I have four left.', 'The Givers made it to be worn. Try it. It will push what your arms cannot, and where the water is, it fills.'], choices: [{ text: 'Who are the Givers?', goto: 'givers' }, { text: 'My ship has no power. Can you help me?', goto: 'power' }] },
+        power: {
+          say: ['Power. For your ball. Hm. In this desert there is one power: the water that rises under the tree once a year, and makes it drink. When it rises, everything wakes: the fire, the people, the old stones.', 'This year it has not risen, and the pilgrims walk round and round the walls, waiting. Perhaps the chest knew. Perhaps it opened now because the water needs someone to fetch it.'],
+          choices: [
+            { text: 'Then I’ll find out why the water hasn’t risen.', goto: 'quest' },
+            { text: 'Why me? I only want to get home.', goto: 'why' },
+          ],
+        },
+        why: { say: ['Everyone who comes a long way only wants to get home. That is how you can tell they came a long way.', 'Wake the water and your ball wakes with it. Then go home, if home is still where you want to go.'], choices: [{ text: 'All right. Where do I start?', goto: 'quest' }] },
+        quest: {
+          say: ['Good. Listen, then. I am old, so I will say it once, and twice if you look lost.', 'Listen at the well first, there, at the roots. Put your ear to the rim. Hessa, my granddaughter, will tell you what she hears every night.', 'Then go out to Ama at the fires and ask her for the drinking jar: if the water rises, someone must carry it. And walk with the Speaker at the head of the procession. He keeps the old words, and the old words know the way down to the water.'],
+          do: [{ set: { 'desert.elder.heard': true } }, { track: Q }],
+          choices: [
+            { text: 'The well, Ama’s jar, the Speaker.', goto: 'go' },
+            { text: 'And if the old words don’t help?', goto: 'down' },
+          ],
+        },
+        go: { say: ['Twice was not needed. Go on, little star. Qanat will be watching you; try to look as if you know where you are going.'], choices: [{ text: 'Thank you, Nour.', end: true }] },
+        down: { say: ['Then look between the giant’s eyes, outside the back gate. Everything the Givers made, they marked. Even you, now, it seems.'], choices: [{ text: 'Thank you, Nour.', end: true }] },
+        again: {
+          say: ['The well, Ama’s jar, the Speaker’s old words. In that order, if you like order. I never did.'],
+          choices: [
+            { text: 'Tell me about the Givers again.', goto: 'givers' },
+            { text: 'Are there other chests?', goto: 'others' },
+            { text: 'Goodbye, Nour.', end: true },
+          ],
+        },
+        drinking: { say: ['The tree drinks, and the chest is empty, and an old woman has lived to see both. Go and wake your ball, child. Before I start to cry and Hessa sees.'], choices: [{ text: 'Goodbye, Nour.', end: true }] },
+        after: { say: ['When you find the next chest, tell it Qanat says hello. I think they are all one family. Like the giants. Like us.'], choices: [{ text: 'I will, Nour.', end: true }] },
+      },
+    },
+  },
+
   hessa: {
     id: 'hessa', name: 'Hessa', title: 'keeper of the well', color: '#62c3c9', voice: 0.95, kind: 'f',
     palette: { cloak: '#62c3c9', lining: '#2b211f', cloth: '#f3ead8', legs: '#2b2f45', hat: '#f3ead8', hair: '#4a3226' }, head: 'hood', cape: 1.45,
@@ -353,14 +476,21 @@ export const PEOPLE = {
       entry: [{ if: { flag: 'desert.channel.open' }, node: 'full' }, { node: 'hello' }],
       nodes: {
         hello: {
-          say: ['I keep the well. That means I sweep it, and wait, and sweep it again. The water comes up through the roots, here, every year. This year it’s only dust.', 'Read the stele, if you can read stone. The giants carry the water to the tree. That’s all it says. That’s all it needs to say.'],
+          say: [{ if: { flag: 'desert.elder.heard' }, text: 'Grandmother sent you to listen? Then listen. Put your ear to the rim, after dark it’s loudest.' }, 'I keep the well. That means I sweep it, and wait, and sweep it again. The water comes up through the roots, here, every year. This year it’s only dust.', 'Read the stele, if you can read stone. The giants carry the water to the tree. That’s all it says. That’s all it needs to say.'],
           choices: [
             { text: 'Where does the water come from?', goto: 'from' },
             { text: 'What’s the mark above the carving?', goto: 'glyph' },
+            { text: 'What is the little blue shrine?', goto: 'chest' },
             { text: 'I’ll let you sweep.', end: true },
           ],
         },
-        from: { say: ['From below. From the giant. Its head lies outside the back gate; its heart lies under our feet. The old keepers went down through its mouth to clean the channel, so my grandmother said. Nobody has gone down in my lifetime.'], choices: [{ text: 'Through its mouth?', goto: 'mouth' }] },
+        chest: {
+          say: [{ if: { not: { flag: 'item.backpack' } }, text: 'The Givers’ shrine. The chest under it was here before the city; we built the city round the tree, and the tree round… well. My grandmother Nour keeps the chest. I keep the well. Neither of them does anything.' },
+            { if: { not: { flag: 'item.backpack' } }, text: 'It has hummed every night since the light sang. Grandmother says it’s waiting for someone. Grandmother says a lot of things.' },
+            { if: { flag: 'item.backpack' }, text: 'The Givers’ shrine. Sixty years my grandmother sat beside that chest, and it opened for you on a Tuesday. She’ll be insufferable.' }],
+          choices: [{ text: 'Where does the water come from?', goto: 'from' }, { text: 'Thank you, Hessa.', end: true }],
+        },
+        from: { say: ['From below. From the giant. Its head lies outside the back gate; its heart lies under our feet. The old keepers went down through its mouth to clean the channel, so my grandmother Nour says; she saw them go when she was a girl. Nobody has gone down in my lifetime.'], choices: [{ text: 'Through its mouth?', goto: 'mouth' }] },
         mouth: { say: ['Propped open with carved stones. Children dare each other to touch the teeth. Don’t tell Ilo I told you.'], choices: [{ text: 'I won’t.', end: true }] },
         glyph: { say: ['{glyph} The keepers call it the Giver’s mark. The pilgrims from the salt call it the Eye That Fell. The children call it the bird. Nobody knows who put it there first.'], choices: [{ text: 'Where does the water come from?', goto: 'from' }, { text: 'Thank you, Hessa.', end: true }] },
         full: { say: ['Look at it. Look! It came up through the roots in every colour, like it used to. I didn’t even have time to finish sweeping.'], choices: [{ text: 'It was waiting for someone to clear the way.', end: true }] },
@@ -444,6 +574,35 @@ export const LINES = {
   drinking: ['It drinks! It drinks!', 'Every colour! Look!', 'One more circuit, for joy!', 'I told you it would.', 'Sing, everyone!'],
   camp: ['Ama’s fires never go out.', 'The tree is late this year.', 'Did you see the light that fell? It sang.', 'Eleven days we walked.', 'Sit, sit.', 'Who are you, then?', 'Sefa plays better when someone listens.'],
   gate: ['We wait here for the Speaker’s word.', 'The well is dry. Imagine.', 'Mind the steps, they’re older than the walls.'],
+  // until the chest is open: everyone points the stranger on toward the city and the tree (desert.js mixes these in)
+  waveOn: {
+    camp: ['The city’s that way, sky-stranger. Follow the smoke!', 'Go on in! Nour will want to see you.', 'Through the big gate and up to the tree.', 'You’re the one from the ball? The tree’s been flaring all morning.'],
+    procession: ['Qanat’s ahead, stranger, under the smoke!', 'Keep the step, or go on to the city. Not both!', 'The tree is waiting. Something is.'],
+    gate: ['Go on up to the tree. Something there is humming.', 'Nour is up by the well. Mind the steps.', 'Up the stairs, stranger. Everyone’s waiting to see.'],
+  },
+};
+
+/** The people of Qanat who gather when the chest opens (desert.js places them; they share a short conversation). */
+export const VILLAGERS = [
+  { id: 'qanat.weaver', name: 'Tamra', title: 'a weaver of Qanat', kind: 'f', palette: { cloak: '#e88fa6', lining: '#2b211f', cloth: '#f3ead8', legs: '#4a3a2a', hat: '#f3ead8', hair: '#4a3226' }, head: 'wrap', cape: 0.9, lines: ['Is it humming louder?', 'Don’t touch it, they say.'] },
+  { id: 'qanat.potter', name: 'Idris', title: 'a potter of Qanat', kind: 'm', palette: { cloak: '#dca273', lining: '#2b211f', cloth: '#5a4a3a', legs: '#2b2f45', hat: '#d8a24a', hair: '#2b211f' }, head: 'hat', cape: 0, lines: ['Sixty years Nour has sat there.', 'Hm.'] },
+  { id: 'qanat.boy', name: 'Kito', title: 'who follows Ilo about', kind: 'm', scale: 0.78, palette: { cloak: '#62c3c9', lining: '#2b211f', cloth: '#c8483a', legs: '#4a3a2a', hat: '#e6875f', hair: '#6e4a32' }, head: 'hair', cape: 0.55, lines: ['Are you going to open it?', 'Ilo says you’re from the sky.'] },
+  { id: 'qanat.baker', name: 'Lula', title: 'who bakes for the pilgrims', kind: 'f', palette: { cloak: '#f2c54b', lining: '#2b211f', cloth: '#5a4a3a', legs: '#2b2f45', hat: '#f3ead8', hair: '#b0a89a' }, head: 'hood', cape: 1.25, lines: ['Flour on my hands, mind.', 'The tree flared when you came in.'] },
+  { id: 'qanat.guard', name: 'Haro', title: 'who guards the steps', kind: 'm', palette: { cloak: '#8a6fb8', lining: '#2b211f', cloth: '#e2d3b4', legs: '#3a3a3a', hat: '#c8483a', hair: '#4a3226' }, head: 'hat', cape: 1.25, lines: ['Steady, stranger.', 'I only guard the steps.'] },
+  { id: 'qanat.sweeper', name: 'Mim', title: 'who sweeps the terraces', kind: 'f', palette: { cloak: '#5fb7ad', lining: '#2b211f', cloth: '#f3ead8', legs: '#5a4a40', hat: '#f3ead8', hair: '#e8dcc0' }, head: 'wrap', cape: 1.45, lines: ['Every day I sweep these steps.', 'Look at the tree!'] },
+];
+/** What they say as they gather (balloons), and when the traveller first comes near the chest. */
+export const MURMURS = {
+  near: ['Look, the one from the sky-ball.', 'It’s humming louder. Listen.', 'Is that the one who fell?', 'The tree, look at the tree!'],
+  gather: ['It opened!', 'The Givers’ chest… it’s open!', 'Fetch Nour! Somebody wake Nour!', 'For the sky-stranger. It opened for the sky-stranger.', 'Sixty years and it opens on a Tuesday.', 'Did you see the light come out?'],
+  nour: ['Eh? What—', 'Let me through. Let an old woman through.', 'It opened. It opened!'],
+};
+export const VILLAGER_TALK = {
+  name: 'Someone from Qanat', title: 'of Qanat', color: '#e6875f', voice: 1.0,
+  talk: { entry: [{ if: { flag: 'item.backpack' }, node: 'open' }, { node: 'shut' }], nodes: {
+    shut: { say: ['That’s the Givers’ chest, under the little blue dome. It never opens. Nour sits with it, in case. Go and look, if you like; it hums at people.'], choices: [{ text: 'Thanks.', end: true }] },
+    open: { say: ['I was there when it opened! Well. Near. I heard it. Everyone heard it. My grandmother is going to say she saw it, and she was asleep.'], choices: [{ text: '(smile)', end: true }] },
+  } },
 };
 
 /** Short conversations for people in the crowd, by where they stand. Picked by their seed. */

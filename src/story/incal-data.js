@@ -189,7 +189,7 @@ export const PEOPLE = {
         },
         glyph: {
           say: ['{glyph} The Three Who Look Up. Three of us, over the hill of the world, looking up.',
-            'Somebody at the top stamps it on cab licences and calls it a seal. Let them. It was ours first; it’s on the light’s underside, where only we can see it.'],
+            'Somebody at the top stamps it on cab licences and calls it a seal. Let them. It was ours first; it’s on the light’s underside, where only we can see it.', 'It’s on the blue star-box up on the rim, too, behind the villas. The palace calls it lost property. Down here we call it a promise: somebody is coming for it.'],
           choices: [{ text: 'What came down?', goto: 'splinter' }],
         },
         splinter: {

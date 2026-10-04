@@ -118,7 +118,7 @@ export const LANDING = [
         },
         fell: { say: ['Ask Saba. I only know that nothing grows that big by itself. Not even out here.'], choices: [{ text: 'What’s that mark on your staff?', goto: 'glyph' }, { text: 'I’ll go and see.', end: true }] },
         glyph: {
-          say: ['The Hush. {glyph} Three drops of rain over a shut mouth. You paint it on anything you don’t want eaten: eggs, boots, children.', 'It’s carved under the Great Crystal too, older than anyone. Maybe that’s why the plants leave it alone.'],
+          say: ['The Hush. {glyph} Three drops of rain over a shut mouth. You paint it on anything you don’t want eaten: eggs, boots, children.', 'It’s carved under the Great Crystal too, older than anyone. Maybe that’s why the plants leave it alone.', 'And round the sky-egg on the mossy rise: a blue chest with a pale star, hushed all over. The plants never touch it. Nothing hatches from it, either. Not for us.'],
           do: { set: { 'perdide.glyph.heard': true } },
           choices: [{ text: 'Thank you, Wendel.', end: true }],
         },

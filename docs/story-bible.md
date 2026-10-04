@@ -23,6 +23,34 @@ android ruins of Edena and on the oldest market sign. Locals each have a
 different name and story for it. Nobody knows what struck the ship; in each
 world one person has seen "a falling light that sang" around the same time.
 
+**The boxes** (src/boxes/, src/items.js): every item box in the game is an
+artifact of the **makers**, the people whose sign is the glyph. Nobody has
+seen a maker. They made the giants walk (the giants carried their water
+across the worlds, and lay down where they could go no further), they marked
+everything they made with the glyph, and they left gifts behind them for
+travellers who would come a long way after them: the backpack, its jets and
+wings, its lenses and rings, little charms. Each gift waits in a chest:
+- **The look.** Knee-high, dark blue paint crazed with age, corners worn
+  round, a tapering plinth, a frieze of carved glyph rings round the body and
+  a carved ring round the lid's **pale four-point star**. They are very old
+  and have never been broken; up close they hum, their star and carvings
+  brighten and the seam leaks light.
+- **The star** is the makers' sign for a traveller: what a traveller looks
+  like from far off, "a small light, a long way from home" (Nour). The pale
+  star item is a copy of it, worn on the hood.
+- **They open only for someone who has come a long way.** Locals have sat
+  beside them for generations and never seen one open. In the desert the old
+  words say it plainly: "the Givers' chest opens for one who fell from the
+  sky". The traveller is the first in living memory.
+- **Where they are.** Where the makers' giants walked: shrines, high
+  places, out-of-the-way ledges, never lying in the open by chance. Each
+  world has its own name for them (table below), and one person in each
+  world mentions theirs.
+- **Open questions** (left for later): whether the singing light that struck
+  the ship was a makers' thing too (Nour wonders: "whatever struck you knew
+  their sign, or it was one of their gifts, too, and lost its way"); whether
+  the chests opened for Ilen.
+
 **The colours**: the backpack fluid starts two-tone (cyan and violet). Each
 world that has a "source" (desert water, Perdide crystal, the bazaar's lantern
 sun, the buried machine's oil-light) can add a colour band. By the end the
@@ -43,17 +71,48 @@ call depends on the player's choice.
   not risen.
 - **Place**: the old city of **Qanat** (230, 400), built round the burning tree,
   with pilgrims' camps outside its main gate (168, 292). Its sacred well is dry.
+  Beside the well, opposite the carved stele, stands the **Givers' shrine**
+  (231, 391): a small dark blue dome on four pillars, a pale star on its spire,
+  the glyph on its lintel. Under it, on the paving, the makers' chest that holds
+  the backpack. Nour's stone bench is beside it, under the tree's arm.
 - **People**: Ama, keeper of the camp fires; Teo, a drummer who lost his drum;
   Sefa (oud) and Bako (ney), the camp musicians; the Speaker who leads the
   procession; a child, Ilo, who wants to see the cave; old Oum, the pilgrim who
-  fell behind; Hessa, keeper of the dry well; Marrow, a salvager.
-- **Main quest**: find power for the ship → camps → procession → old city →
-  out of the back gate to the fallen giant's skull (318, 530), whose open mouth
-  is a doorway → the cave of shifting water in the giant's chest, where the
-  tree's roots hang into the pool. The
-  water is low because a giant's bone has fallen across the channel. Pushing
-  it clear (fluid push) lets the water rise; the tree drinks; the vessel filled
-  at the pool powers the ship.
+  fell behind; Hessa, keeper of the dry well; Marrow, a salvager; **Nour, the
+  eldest of Qanat**, Hessa's grandmother, who has kept the chest company for
+  sixty years (her mother kept it before her); and a few people of Qanat (a
+  weaver, a potter, a boy, a baker, a guard, a sweeper) about the terraces and
+  the avenue.
+- **Main quest** (`desert.power`, stages in src/story/desert-data.js):
+  1. `city`: the ship is dark and the traveller's back is bare. "Follow the
+     smoke to the city." On the way the camps and the procession wave them on
+     (Ama: "To the city, sky-stranger! Up to the tree!"; the Speaker: "Qanat is
+     ahead, little star"). Nothing on the way needs the tool.
+  2. `box`: "Something by the burning tree is humming." Up the main stairs, the
+     shrine stands left of the well. The first time you come near, the people
+     on the terrace turn and murmur, Hessa calls her grandmother, the tree
+     flares. Nour, asked before it opens: it has not opened for anyone in
+     living memory; it opens only for "one who fell from the sky".
+  3. `elder`: it opens for the traveller (the backpack). Qanat gathers round
+     the shrine (the ones in the avenue come up the stairs), everyone looks up,
+     the tree flares high, and Nour gets off her bench, comes to you and
+     speaks: the old words, the singing light the chest hummed back to, the
+     Givers, the star, the tank ("the same water the giants carried"), and the
+     one power in the desert, the water that has not risen. She sends you on.
+  4. `well`: listen at the dry well (Hessa). 5. `ama`: ask Ama at the fires for
+     the drinking jar. 6. `speaker`: walk with the Speaker; the old words know
+     the way down: "Where the giant's eyes are marked, its mouth is a door."
+  7. `down`: out of the back gate to the fallen giant's skull (318, 530),
+     whose open mouth is a doorway → the cave of shifting water in the giant's
+     chest, where the tree's roots hang into the pool. 8. `channel`: the water is
+     low because a giant's bone has fallen across the channel. Pushing it clear
+     (fluid push; without the tool, a heave) lets the water rise; the tree
+     drinks. 9. `fill`, 10. `ship`: the jar filled at the pool powers the ship
+     (`ship.powered`, `world.desert.done`, the keepsake).
+  Saves from before (stages `pack`, `camps`, then ama, speaker, well) move to
+  `city` or to Nour and skip what they already did (src/story/desert.js
+  `migrateDesertQuest`; src/boxes/index.js `migrateSave` marks the shrine's
+  box open for anyone who already carries the backpack).
 - **Keepsakes**: *knowing*: "What the giants left" (main quest); *song*: "Teo's
   walking rhythm" (his drum, found under the ribcage); *thing*: Oum's knotted
   cord (walk her back to the fire and she tells the rumour of the singing
@@ -181,19 +240,19 @@ the worlds and their people (the ones you met in ink, the others in pencil).
 are calls from home.
 
 ## Local names (as built)
-| World | The glyph | The singing light |
-|---|---|---|
-| Desert | the mark between the giant's eyes | the singing light that turned (Oum) |
-| Arzach | the bird's track (Oïa) | heard in the stones (Senn) |
-| Arzach II | the Three Notes (Calix) | the bell hummed by itself for it |
-| Garage | the maker's rivets (Ottla), the Major's thumbprint (Malvina) | seen through the ring's slit (Lune); three machines stopped that night |
-| Buried Machine | the Maker's Thumb | the Tuning Star (Hask, Dun) |
-| Edena | the Builders' mark (Oro) | the Singer (Atan's word, Sol) |
-| Garden of Spheres | the Footprint, under every sphere (Ivo) | an Answerer (Ume) |
-| Perdide | the Hush: three drops of rain over a shut mouth | Sedge saw it fall the night before the crash; the crystal's 213th phrase is its song |
-| Perdide II | the Welcome: three lamps over a hull | Wick saw it put the pools out |
-| City-Shaft | the palace seal (rim), the Three Who Look Up (bottom) | it passed over the shaft and the Incal rang back; it left "toward the deserts" |
-| Signal Market | the First Sign (Sel), the tuning mark (Ferro) | the unsent recording "came in singing" (Kip) |
+| World | The glyph | The singing light | The makers' boxes |
+|---|---|---|---|
+| Desert | the mark between the giant's eyes; the Giver's mark (the keepers) | the singing light that turned (Oum); the chest hummed back to it all night (Nour) | the Givers' chest, the star-chest (Nour, Hessa) |
+| Arzach | the bird's track (Oïa) | heard in the stones (Senn) | a square with a star, drawn in the sand (Oïa, who doesn't speak) |
+| Arzach II | the Three Notes (Calix) | the bell hummed by itself for it | a bell-chest: it hummed back too (Calix) |
+| Garage | the maker's rivets (Ottla), the Major's thumbprint (Malvina) | seen through the ring's slit (Lune); three machines stopped that night | "for the next one": the Major found it and never opened it (Ottla) |
+| Buried Machine | the Maker's Thumb | the Tuning Star (Hask, Dun) | thumb-boxes (Wen) |
+| Edena | the Builders' mark (Oro) | the Singer (Atan's word, Sol) | Builders' gifts (Oro) |
+| Garden of Spheres | the Footprint, under every sphere (Ivo) | an Answerer (Ume) | left-behinds (Ivo) |
+| Perdide | the Hush: three drops of rain over a shut mouth | Sedge saw it fall the night before the crash; the crystal's 213th phrase is its song | the sky-egg (Wendel) |
+| Perdide II | the Welcome: three lamps over a hull | Wick saw it put the pools out | the traveller's chest (Hollin) |
+| City-Shaft | the palace seal (rim), the Three Who Look Up (bottom) | it passed over the shaft and the Incal rang back; it left "toward the deserts" | lost property (rim), a promise (bottom; Ossa) |
+| Signal Market | the First Sign (Sel), the tuning mark (Ferro) | the unsent recording "came in singing" (Kip) | (no box of its own) |
 
 Built details beyond the bible: the bird's promise (`bird.promise`) could later
 let her answer a whistle in other worlds; Arzach II's clapper "fell up"; the

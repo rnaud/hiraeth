@@ -7,7 +7,7 @@ import { Banner } from '../life.js';
 import { STORY } from '../desert-sites.js';
 import { COOL_FIRE, FIRE, SMOKE_COOL } from './flames.js';
 import { setMagic } from './magic-water.js';
-import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK } from './desert-data.js';
+import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, STAGE_MIGRATION, VILLAGERS, MURMURS, VILLAGER_TALK } from './desert-data.js';
 import { items } from '../items.js';
 
 // The desert's story, alive: who stands where, what reacts to you, and the
@@ -16,12 +16,23 @@ import { items } from '../items.js';
 //   the camps    Ama by the main fire; Sefa (oud), Bako (ney) and Teo on the
 //                benches; Ilo running between the tents; Marrow by his crates
 //   the circuit  the Speaker walks ahead of the procession (crowd.js column)
-//   the city     Hessa keeps the dry well at the burning tree's roots
+//   the city     Hessa keeps the dry well at the burning tree's roots; beside
+//                it the Givers' shrine with the makers' chest (src/boxes/: the
+//                backpack), Nour the eldest on her bench by it, and a few
+//                people of Qanat about the terraces and the avenue
 //   the dunes    old Oum sits on a stone where she fell behind
 //   the cave     the pool, the fallen rib across the channel, the mural
-//   the dune     the backpack's box, thrown out in the crash (src/boxes/): the first stage
 //
-// Flags (game-state.js): desert.camps.seen, desert.jar.given,
+// The reaction at the shrine: the first time you come near the closed chest,
+// the people on the terrace turn and murmur and the tree flares; when it opens
+// (box:opened), Qanat gathers round the shrine, the tree flares high, everyone
+// in the avenue looks up, and Nour gets up off her bench, comes to you and
+// talks (the 'elder' stage). Until the chest is open, the camps, the gate and
+// the procession wave you on toward the city.
+//
+// Flags (game-state.js): desert.city.entered, desert.shrine.gathered (the
+// reaction played), desert.elder.heard (Nour sent you on), desert.quest.v
+// (the stage migration), desert.camps.seen, desert.jar.given,
 // desert.speaker.heard, desert.well.seen, desert.cave.seen,
 // desert.channel.open (the rib is pushed clear: the tree drinks),
 // desert.jar.filled, desert.ship.fed, desert.pool.tinted (the first wade
@@ -32,12 +43,29 @@ import { items } from '../items.js';
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const _v = V(0, 0, 0), _w = V(0, 0, 0);
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
+const EARLY = ['city', 'box'];   // the main quest's stages before the chest is open
+
+/**
+ * Old saves (desert.quest.v < 2): the stages before the cave moved (the box is
+ * in the city now, then Nour). An old stage goes where STAGE_MIGRATION says;
+ * the steps already done advance at once on their flags. Returns the new
+ * stage, or null if nothing changed.
+ */
+export function migrateDesertQuest(game) {
+  if ((game.flag('desert.quest.v') ?? 0) >= 2) return null;
+  const s = game.flag('quest.desert.power');
+  const to = STAGE_MIGRATION[s] ?? null;
+  if (to) game.set('quest.desert.power', to);
+  game.set('desert.quest.v', 2);
+  return to;
+}
 
 export function setupDesert(ctx) {
   const { level, physics, player, crowd, quests, dialogue, game, sound, story, spawn, talkable, scene, toast, tool } = ctx;
   const Q = level.qanat;
   if (!Q) return null;
   const city = Q.city, camps = Q.camps, cave = Q.cave;
+  migrateDesertQuest(game);
   for (const q of QUESTS) quests.define(q);
   quests.itemNames = ITEMS;
   // the main quest: power for the ship (unless the ship already has it)
@@ -86,6 +114,28 @@ export function setupDesert(ctx) {
     heading: game.flag('desert.oum.home') ? oumSeat.heading : 1.2,
   });
   const oum = people.oum;
+  // Nour: on her bench by the Givers' shrine, keeping the makers' chest company (desert-city.js)
+  const shrine = city.shrine;
+  people.nour = spawn(PEOPLE.nour, { route: [shrine.bench.at.clone()], seat: 0.02, heading: shrine.bench.heading, speed: 0.8 });
+  const nour = people.nour;
+  // the people of Qanat: two on the top terrace, the rest down in the avenue by the main stairs
+  const T = city.top - city.center.y;
+  const homes = [
+    [[8.6, T, 2.5], [8.2, T, -3.5]], [[-9.6, T, -3.2], [-8.9, T, -6.4]],
+    [[-4.4, 0, 35], [-3.8, 0, 41]], [[4.4, 0, 34], [4.8, 0, 39]], [[-2.8, 0, 46], [2.6, 0, 46]], [[3.2, 0, 52], [-3.0, 0, 50]],
+  ].map((pts) => pts.map(([x, y, z]) => onGround(city.local(x, y + 1, z))));
+  const villagers = VILLAGERS.map((v, i) => {
+    const n = spawn({ ...VILLAGER_TALK, ...v }, { route: homes[i], speed: 0.9 });
+    n.home = homes[i];
+    n.below = i >= 2;   // down in the avenue: up the main stairs to gather
+    return n;
+  });
+  // where they gather: round the shrine's front and its open side (its left is the terrace's edge), clear of the well
+  // (shrine-local: x across, z out front)
+  const gatherSpots = [[-1.6, 2.8], [1.3, 2.3], [2.8, 1.0], [-1.1, 4.4], [3.5, -0.6], [-1.3, 5.7], [4.3, 1.0], [2.5, -2.0]]
+    .map(([x, z]) => shrine.at(x, 0, z))
+    .filter((p) => { const g = physics.groundAt(p.x, shrine.box.y + 1.5, p.z, 3); return Number.isFinite(g) && Math.abs(g - shrine.box.y) < 0.3 && flat(p, city.well) > 3.4; })
+    .map((p) => p.setY(shrine.box.y));
   // a stone for Oum to sit on, and her staff
   {
     const st = new THREE.Mesh(new THREE.IcosahedronGeometry(0.55, 0).scale(1.2, 0.8, 1), makeMaterial({ color: '#c9b8a0', flat: true }));
@@ -266,6 +316,7 @@ export function setupDesert(ctx) {
 
   // ---------------------------------------------------------------- places for the quest markers
   quests.locate('camps', () => camps.center);
+  quests.locate('cityGate', () => city.gate);
   quests.locate('well', () => city.wellLook);
   quests.locate('caveIn', () => cave.inside);
   quests.locate('skull', () => Q.giant.door);
@@ -337,6 +388,113 @@ export function setupDesert(ctx) {
   const treeTarget = registerTarget({ kind: 'tree', radius: 14, position: () => city.crown, onHit: () => { st.flare = Math.max(st.flare, 1); return true; } });
   void treeTarget;
 
+  // ---------------------------------------------------------------- the shrine: Qanat notices, gathers, and Nour comes
+  const say = (n, text, secs = 3) => { n.shout = { text, until: n.time + secs }; };
+  const pick = (list, i) => list[i % list.length];
+  const boxAt = shrine.box;
+  const faceBox = (p) => Math.atan2(boxAt.x - p.x, boxAt.z - p.z);
+  /** Walk an NPC along points (the stairs), then stand at the last one facing `face`. */
+  const walkPath = (n, pts, { speed = 1.25, face = null } = {}) => {
+    let i = 0;
+    n.follow = () => {
+      while (i < pts.length - 1 && flat(n.pos, pts[i]) < 0.9) i++;
+      return { pos: pts[i], speed, near: i < pts.length - 1 ? 0.5 : 0.35, max: speed + 0.6, face: face ?? undefined };
+    };
+  };
+  const stairs = [city.plinthStair.clone(), city.local(0, T * 0.5, 22), city.stairTop.clone()];
+  const sh = { noticed: false, gather: null, nour: null, timers: [] };
+  const later = (secs, fn) => sh.timers.push({ at: secs, fn });
+  const boxOpen = () => !!game.flag('box.desert.backpack') || items.has('backpack');
+  const notice = () => {
+    // the first time you come near the closed chest: heads turn, a murmur, the tree flares a little
+    sh.noticed = true;
+    st.flare = Math.max(st.flare, 1.1);
+    let k = 0;
+    for (const n of [...villagers, people.hessa]) {
+      if (flat(n.pos, boxAt) > 30) continue;
+      const line = n === people.hessa ? 'Grandmother! The sky-stranger is at the chest!' : pick(MURMURS.near, k);
+      later(0.3 + k++ * 0.9, () => say(n, line, 3));
+    }
+    crowd?.lookAt(boxAt.clone().setY(boxAt.y + 1), 6, { near: boxAt, r: 60 });
+  };
+  const gather = () => {
+    // the chest is open: everyone comes to see, the tree flares high, Nour gets up
+    game.set('desert.shrine.gathered', true);
+    sh.gather = { t: 0 };
+    st.flare = Math.max(st.flare, 2.4);
+    sound.chime?.();
+    crowd?.lookAt(boxAt.clone().setY(boxAt.y + 2), 14, { near: boxAt, r: 90 });
+    villagers.forEach((n, i) => {
+      const spot = gatherSpots[i % Math.max(1, gatherSpots.length)];
+      if (!spot) return;
+      walkPath(n, n.below ? [...stairs, spot] : [spot], { speed: n.below ? 1.6 : 1.2, face: faceBox(spot) });
+      later(0.6 + i * 0.75, () => say(n, pick(MURMURS.gather, i), 3.2));
+    });
+    later(1.2, () => say(people.hessa, 'Grandmother! It opened!', 3));
+    // Nour: up off her bench, to you
+    sh.nour = { t: 0, talked: false };
+    nour.seat = null;
+    later(0.4, () => say(nour, MURMURS.nour[0], 2));
+    later(2.6, () => say(nour, MURMURS.nour[1], 3));
+    nour.follow = () => ({ pos: player.pos, speed: 0.95, near: 1.8, max: 1.5 });
+  };
+  const disperse = () => {
+    // back to their doors and their sweeping, a while after
+    for (const n of villagers) walkPath(n, n.below ? [...stairs].reverse().concat([n.home[0]]) : [n.home[0]], { speed: 1.0 });
+    later(45, () => { for (const n of villagers) n.follow = null; });
+  };
+  const nourHome = () => {
+    // back to her bench and down onto it
+    sh.nour = null;
+    nour.follow = () => {
+      if (flat(nour.pos, shrine.bench.at) < 0.45) { nour.follow = null; nour.seat = 0.02; nour.heading = shrine.bench.heading; nour.pos.copy(shrine.bench.at); return null; }
+      return { pos: shrine.bench.at, speed: 0.8, near: 0.3, max: 1.1 };
+    };
+  };
+  game.on('box:opened', ({ id } = {}) => { if (id === 'desert.backpack' && !game.flag('desert.shrine.gathered')) gather(); });
+  game.on('dialogue:end', ({ id } = {}) => {
+    if (id !== 'nour') return;
+    if (sh.nour) sh.nour.talked = true;
+    if (sh.gather) sh.gather.talked = true;
+  });
+  const updateShrine = (dt, pp) => {
+    for (const tm of sh.timers) tm.at -= dt;
+    for (const tm of sh.timers.filter((x) => x.at <= 0)) { sh.timers.splice(sh.timers.indexOf(tm), 1); tm.fn(); }
+    const dBox = flat(pp, boxAt), level = Math.abs(pp.y - boxAt.y) < 3;
+    if (!sh.noticed && !boxOpen() && dBox < 13 && level) notice();
+    if (sh.gather) {
+      sh.gather.t += dt;
+      // they stay a while (all through Nour's talk), then drift back to their doors
+      if (!sh.gather.dispersed && ((sh.gather.talked && sh.gather.t > 50) || sh.gather.t > 120)) { sh.gather.dispersed = true; disperse(); }
+    }
+    if (sh.nour) {
+      sh.nour.t += dt;
+      // she reaches you: the conversation opens on its own (once)
+      if (!sh.nour.talked && !dialogue.open && flat(nour.pos, pp) < 2.6 && level && !player.riding && sh.nour.t > 1.5) {
+        if (dialogue.start(PEOPLE.nour, nour)) sh.nour.talked = true;
+      }
+      // you walked off: she waits by the shrine, where the marker finds her
+      if (!sh.nour.talked && dBox > 16 && !sh.nour.waiting) { sh.nour.waiting = true; const w = shrine.at(-1.6, 0, 1.8).setY(boxAt.y); nour.follow = () => ({ pos: w, speed: 0.9, near: 0.4, face: faceBox(w) }); }
+      if (sh.nour.waiting && !sh.nour.talked && dBox < 7) { sh.nour.waiting = false; nour.follow = () => ({ pos: player.pos, speed: 0.95, near: 1.8, max: 1.5 }); }
+      if (sh.nour.talked && dBox > 30) nourHome();
+    }
+  };
+
+  // ---------------------------------------------------------------- waved on toward the city
+  const early = () => EARLY.includes(quests.stage('desert.power'));
+  const setWaveOn = (on) => {
+    if (!crowd) return;
+    for (const p of crowd.people) {
+      const id = p.spot?.id, extra = LINES.waveOn[id];
+      if (!extra) continue;
+      p.baseLines ??= p.lines;
+      if (on && p.lines === p.baseLines) p.lines = p.baseLines.flatMap((l, i) => (i < extra.length ? [extra[(i + Math.floor(p.seed * 4)) % extra.length], l] : [l]));
+      else if (!on && p.lines !== LINES.drinking) p.lines = p.baseLines;
+    }
+  };
+  setWaveOn(early());
+  quests.onChange(({ id }) => { if (id === 'desert.power') setWaveOn(early()); });
+
   // ---------------------------------------------------------------- per frame
   const camPos = V(0, 0, 0);
   const update = (dt, t, { camera }) => {
@@ -356,7 +514,13 @@ export function setupDesert(ctx) {
         if (!p.walk && Math.random() < 0.4 && d < 22) { p.faceUntil = now + 1.5 + Math.random(); p.greetT = now; }
       }
       for (const n of [people.ama, people.ilo]) n.greeted = 0;
+      if (early()) { say(people.ama, 'To the city, sky-stranger! Up to the tree!', 3.5); later(1.4, () => say(people.ilo, 'Nour’s chest is humming! Go and see!', 3)); }
     } else if (dCamps > 60) st.campsIn = false;
+    // into the city: the walls are round it
+    if (!game.flag('desert.city.entered') && flat(pp, city.center) < 60 && Math.abs(pp.y - city.center.y) < 30) game.set('desert.city.entered', true);
+    // the Speaker waves you on too, as you come up to the procession
+    if (early() && !st.speakerWaved && flat(pp, people.speaker.pos) < 14) { st.speakerWaved = true; say(people.speaker, 'Qanat is ahead, little star. Up to the tree!', 3.5); }
+    updateShrine(dt, pp);
     if (pp.distanceTo(cave.origin) < 80 && !game.flag('desert.cave.seen')) game.set('desert.cave.seen', true);
     updateFollowers(dt);
     wade();
@@ -411,7 +575,7 @@ export function setupDesert(ctx) {
   };
 
   return {
-    people, update, state: st,
+    people, update, state: st, villagers, shrine: sh, gatherSpots,
     /** E on a crowd person: their short conversation (by where they stand). */
     crowdTalk(p) {
       const id = p.spot?.id;

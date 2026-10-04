@@ -182,6 +182,9 @@ function materials() {
     glyph: makeMaterial({ color: '#70e7df', glow: 0.85, flat: true }),
     dry: paint('#5a4a40'),
     boneMesh: makeMaterial({ color: '#f2ead6' }),
+    // the makers' colours: the item boxes' dark blue and pale star (src/boxes/model.js)
+    makers: paint('#25386c', { smooth: true }), makersFlat: paint('#25386c'), makersDark: paint('#18254b'),
+    paleStar: makeMaterial({ color: '#dcecf2', glow: 0.7, flat: true }),
   };
 }
 
@@ -409,6 +412,46 @@ export function buildDesertCity(scene, terrain) {
     city.add(M.ink, mural(3.0, 3.0).applyMatrix4(new THREE.Matrix4().compose(V(ST.x, top + 2.0, ST.z), new THREE.Quaternion().setFromAxisAngle(UP, -0.35), V(1, 1, 1)).multiply(new THREE.Matrix4().makeTranslation(0, 0, 0.31))));
     city.add(M.glyph, glyphGeometry(0.55).applyMatrix4(new THREE.Matrix4().compose(V(ST.x, top + 3.9, ST.z), new THREE.Quaternion().setFromAxisAngle(UP, -0.35), V(1, 1, 1)).multiply(new THREE.Matrix4().makeTranslation(0, 0, 0.32))));
 
+    // the Givers' shrine, the stele's twin on the other side of the well: a small dark blue dome
+    // on four pillars, a pale star on its spire, the glyph on its lintel. Under it, on the paving,
+    // the makers' chest that holds the backpack (src/boxes/placements.js: 'desert.backpack').
+    // Open on every side (the box's opening scene films it from behind and from the right).
+    const SH = { x: -5.8, z: 7.2 };
+    const shYaw = Math.atan2(0 - SH.x, 11.5 - SH.z);   // its front looks at the top of the main stairs
+    const shM = new THREE.Matrix4().compose(V(SH.x, top, SH.z), new THREE.Quaternion().setFromAxisAngle(UP, shYaw), V(1, 1, 1));
+    const sh = (g) => g.applyMatrix4(shM);
+    const shToCity = (x, y, z) => V(x, y, z).applyMatrix4(shM);
+    const PW = 1.25, PD = 1.05, PH = 3.0;   // pillar half-spacing (across, front-back) and height
+    const starGlow = M.paleStar;
+    city.add(M.stone, sh(new THREE.CylinderGeometry(1.95, 2.05, 0.05, 24).translate(0, 0.025, 0)));   // a worn round slab under it
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+      const x = sx * PW, z = sz * PD;
+      city.both(M.white, sh(new THREE.CylinderGeometry(0.15, 0.19, PH, 8).translate(x, PH / 2, z)));
+      city.add(M.stone, sh(new THREE.BoxGeometry(0.5, 0.22, 0.5).translate(x, 0.11, z)));        // a base
+      city.add(M.makersFlat, sh(new THREE.BoxGeometry(0.46, 0.2, 0.46).translate(x, PH - 0.1, z)));   // a capital
+    }
+    // the lintels, a roof slab (you can stand on it) and the dome
+    city.both(M.white, sh(new THREE.BoxGeometry(PW * 2 + 0.6, 0.4, PD * 2 + 0.6).translate(0, PH + 0.2, 0)));
+    city.add(M.makersDark, sh(new THREE.BoxGeometry(PW * 2 + 0.7, 0.08, PD * 2 + 0.7).translate(0, PH + 0.42, 0)));
+    city.add(M.makers, sh(T(dome(1.45, 18, 8), [0, PH + 0.44, 0], [0, 0, 0], [1, 1.25, 1])));
+    city.add(M.ink, sh(new THREE.CylinderGeometry(0.035, 0.05, 1.1, 5).translate(0, PH + 0.44 + 1.8 + 0.5, 0)));
+    // the pale star on the spire (facing the stairs) and the glyph on the front lintel
+    const spire = new THREE.ExtrudeGeometry(starOutline(0.42, 0.13), { depth: 0.05, bevelEnabled: false }).translate(0, 0, -0.025);
+    city.add(starGlow, sh(spire.translate(0, PH + 0.44 + 1.8 + 1.2, 0)));
+    city.add(M.glyph, sh(glyphGeometry(0.22).translate(0, PH + 0.2, PD + 0.31)));
+    for (const s of [-1, 1]) city.add(starGlow, sh(new THREE.ExtrudeGeometry(starOutline(0.1, 0.032), { depth: 0.02, bevelEnabled: false }).translate(s * 0.75, PH + 0.2, PD + 0.31)));
+    // a stone bench beside it, under the tree's arm: where Nour keeps the chest company
+    const BENCH = { x: -7.33, z: 2.22 }, benchYaw = Math.atan2(SH.x - BENCH.x, SH.z - BENCH.z);
+    city.both(M.stone, T(new THREE.BoxGeometry(1.5, 0.42, 0.5), [BENCH.x, 0.21 + top, BENCH.z], [0, benchYaw, 0]));
+    city.add(M.cloth[1], T(new THREE.BoxGeometry(1.2, 0.04, 0.44), [BENCH.x, 0.44 + top, BENCH.z], [0, benchYaw, 0]));
+    const shrine = {
+      box: city.world(SH.x, top, SH.z), yaw: city.heading(shYaw),
+      front: (d = 2.5, side = 0) => { const p = shToCity(side, 0, d); return city.world(p.x, p.y, p.z); },
+      at: (x, y, z) => { const p = shToCity(x, y, z); return city.world(p.x, p.y, p.z); },
+      bench: { at: city.world(BENCH.x, top + 0.42, BENCH.z), heading: city.heading(benchYaw) },
+      star: (() => { const p = shToCity(0, PH + 0.44 + 1.8 + 1.2, 0); return city.world(p.x, p.y, p.z); })(),
+    };
+
     city.flush();
     out.city = {
       center: city.world(0, 0, 0), gate: city.world(0, 0, R + 6), backGate: city.world(0, 0, -R - 4),
@@ -416,6 +459,7 @@ export function buildDesertCity(scene, terrain) {
       wellLook: city.world(WELL.x, top, WELL.z + 3.4), treeBase: city.world(TREE.x, top, TREE.z), crown,
       flames, embers, smoke, light: treeLight, light2: treeLight2, wellWater, wellMat, yaw: C.yaw,
       plinthStair: city.world(0, 0, 31), local: (x, y, z) => city.world(x, y, z), top: city.world(0, top, 0).y,
+      stairTop: city.world(0, top, 12.6), shrine,
     };
   }
 
@@ -679,6 +723,16 @@ export function buildDesertCity(scene, terrain) {
     cv.group.visible = inCave; cv.pool.visible = inCave; cv.stream.visible = inCave && cv.streamOn; cv.pond.visible = inCave; cv.bone.visible = inCave;
   };
   return out;
+}
+
+/** The makers' pale star, as on every box lid: four long points with concave sides (facing +z). */
+function starOutline(R = 1, r = 0.3) {
+  const s = new THREE.Shape();
+  for (let i = 0; i <= 8; i++) {
+    const a = (i / 8) * Math.PI * 2 + Math.PI / 2, rad = i % 2 === 0 ? R : r;
+    if (i === 0) s.moveTo(Math.cos(a) * rad, Math.sin(a) * rad); else s.lineTo(Math.cos(a) * rad, Math.sin(a) * rad);
+  }
+  return s;
 }
 
 /** The recurring glyph: three dots over an arc, as flat shapes (facing +z). */

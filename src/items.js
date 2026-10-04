@@ -16,64 +16,65 @@ import { game } from './game-state.js';
 //
 // Kinds: core (the backpack), movement, mode (gun modes, MODE_ITEMS), and the
 // boxes' special items: upgrade (the tank), charm, cosmetic. Most items come
-// out of item boxes (src/boxes/): the box-opening card shows name, text
-// ("what it is") and use ("what it does").
+// out of item boxes (src/boxes/), the makers' chests, left for a traveller who
+// comes a long way (docs/story-bible.md, "The boxes"): the box-opening card
+// shows name, text ("what it is") and use ("what it does").
 
 export const ITEMS = {
   backpack: {
     name: 'Magic-fluid backpack', kind: 'core',
-    text: 'A glass tank of living fluid, its colours always moving. A hose runs to your wrist.',
+    text: 'A glass tank of living water, its colours always moving: the makers made it to be worn, and filled it with what the giants carried. A hose runs to a bracer for your wrist.',
     use: 'Shoot bursts of fluid, push people and things away, and boost-jump. Three charges; they refill five seconds after the last use. It also powers vehicles.',
   },
   jetpack: {
     name: 'Fluid jets', kind: 'movement', needs: 'backpack',
-    text: 'Two nozzles that clip under the tank and burn its fluid as thrust.',
+    text: 'Two nozzles, worn smooth by hands older than any city, that clip under the tank and burn its fluid as thrust.',
     use: 'Hold jump in the air to fly upward. Uses the backpack’s fluid; land to let it recover.',
   },
   glider: {
     name: 'Fluid wings', kind: 'movement', needs: 'backpack',
-    text: 'Folded membranes that bloom from the tank in the fluid’s colours.',
+    text: 'Membranes the makers folded small, a very long time ago, to bloom from the tank in the fluid’s colours.',
     use: 'Hold jump while falling to unfold the wings and glide.',
   },
   stun: {
     name: 'Stilling mode', kind: 'mode', needs: 'backpack',
-    text: 'A lens for the wrist nozzle that turns the fluid cold and still.',
+    text: 'A lens for the wrist nozzle, cut with the glyph, that turns the fluid cold and still.',
     use: 'Switch modes with X. A stilling burst freezes creatures and people for a few seconds.',
   },
   fire: {
     name: 'Ember mode', kind: 'mode', needs: 'backpack',
-    text: 'A flint ring for the wrist nozzle. The fluid comes out burning, but the fire does not hurt.',
+    text: 'A flint ring for the wrist nozzle. The fluid comes out burning, but the makers’ fire does not hurt.',
     use: 'Switch modes with X. Ember bursts light lamps, braziers and fuses, and burn away dry brambles.',
   },
   // ---- special items, found in boxes across the worlds (src/boxes/placements.js; effects in src/boxes/effects.js)
   cell: {
     name: 'Fourth chamber', kind: 'upgrade', needs: 'backpack',
-    text: 'A ring of blown glass that screws under the tank and makes it a little taller.',
+    text: 'A ring of blown glass, older than it looks, that screws under the tank and makes it a little taller.',
     use: 'The backpack holds four charges instead of three.',
   },
   coil: {
     name: 'Quick coil', kind: 'upgrade', needs: 'backpack',
-    text: 'A copper spiral that warms the fluid while it rests.',
+    text: 'A copper spiral, still warm after all this time in the dark, that warms the fluid while it rests.',
     use: 'The tank refills three seconds after the last use instead of five.',
   },
   lantern: {
     name: 'Lantern charm', kind: 'charm',
-    text: 'A paper lantern no bigger than a thumb, tied to the tank with red string. It never goes out.',
+    text: 'A paper lantern no bigger than a thumb, tied to the tank with red string. Nobody knows how long it has been lit. It never goes out.',
     use: 'After dusk the charm glows and lights the ground around you.',
   },
   lens: {
     name: 'Glyph lens', kind: 'charm',
-    text: 'A cloudy disc ground with the three-dot glyph. Through it, the mark burns where nobody looks.',
+    text: 'A cloudy disc ground with the three-dot glyph. Through it, the makers’ mark burns where nobody looks, and so do their chests.',
     use: 'Unopened boxes show from far away: a pale column of light rises from each one.',
   },
   bell: {
     name: 'Bell-note whistle', kind: 'charm',
-    text: 'A bone whistle that plays one clear bell note, the same note in every world.',
+    text: 'A bone whistle that plays one clear bell note, the same note in every world. The makers’ chests know it.',
     use: 'Press V to sound it. Unopened boxes nearby answer with a chime from where they hide.',
   },
   star: {
     name: 'Pale star', kind: 'cosmetic',
-    text: 'A star of pale enamel, the same as the one on every box lid.',
+    text: 'A star of pale enamel, the same as the one on every chest lid: the makers’ sign for a traveller, a small light a long way from home.',
     use: 'Worn on the hood, over the brow. It does nothing at all, and it looks very good.',
   },
 };

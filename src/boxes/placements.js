@@ -1,4 +1,7 @@
 // Where the item boxes stand, world by world (src/boxes/index.js builds them).
+// Every box is an artifact of the makers (docs/story-bible.md, "The boxes"):
+// left where their giants walked, for a traveller who comes a long way, so
+// they sit in sacred or out-of-the-way places, never in the open by chance.
 // Coordinates are world metres. Each entry:
 //
 //   id       unique, '<world>.<what>' (its flag: box.<id>)
@@ -7,19 +10,20 @@
 //            (the surface just under y: a ledge, a roof, a terrace)
 //   toward   [x, z] the front of the box faces this way (where you come from;
 //            default: the world's spawn). face: a heading instead.
-//   beacon   a pale column over it, seen from afar (the boxes you must find)
-//   debris   the crash's trail of hull bits from the ship's ramp to the box
+//   site     (level) => { at, face } instead of at / face: a spot a level builds (a shrine)
+//   beacon   a pale column over it, seen from afar (the boxes you must find); a number: only
+//            within that many metres (it rises out of a city, not over the whole desert)
 //   note     where it is and how you get there (for people, not the code)
 //
 // tests/boxes.test.js checks that every one stands on reachable ground.
 
 export const PLACEMENTS = {
   desert: [
-    // thrown out of the ship in the crash: at the end of a trail of hull bits, on the open dune
-    // to the right of the ramp (≈ 60 m out). The dune falls away evenly there, so the box is in
-    // plain sight from the foot of the ramp (straight ahead, toward the city, a crest hides the sand)
-    { id: 'desert.backpack', item: 'backpack', at: [86.7, 111], toward: [27, 129], beacon: true, debris: true,
-      note: 'Down the dune to the right of the ramp, at the end of the debris trail: the first objective.' },
+    // the Givers' shrine in Qanat: under the little dark blue dome beside the dry well, at the burning
+    // tree's roots (src/desert-city.js builds it). Up the main stairs from the gate, on the left of the
+    // well; its spire's pale star and the box's pale column show the way from the avenue.
+    { id: 'desert.backpack', item: 'backpack', site: (level) => level.qanat?.city.shrine && { at: level.qanat.city.shrine.box.toArray(), face: level.qanat.city.shrine.yaw }, beacon: 170,
+      note: 'In Qanat, under the Givers’ shrine beside the dry well, up the main stairs: the first find, and the elder’s.' },
     // Qanat: on the flat roof of a domeless house inside the main gate (a 6 m climb)
     { id: 'desert.star', item: 'star', at: [246.9, 7.6, 363.6], lift: 0.5, toward: [230, 330],
       note: 'A house roof just inside the main gate of the old city; climb its wall.' },
