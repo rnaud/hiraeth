@@ -620,6 +620,13 @@ const fragmentShader = /* glsl */ `
     return (float(m[i]) + 0.5) / 16.0;
   }
 
+  #ifdef DISSOLVE
+  // A makers' box coming apart (src/boxes/scene.js; makeMaterial({ dissolve })): noise in world
+  // space, eaten from the top down as uDissolve.x goes 0 -> 1, the edge burning bright.
+  uniform vec4 uDissolve;        // amount 0..1 · edge width · bottom y · top y (world)
+  uniform vec3 uDissolveColor;   // the burning edge
+  #endif
+
   #ifdef FLUID
   // The traveller's magical fluid (fluid-tool.js; makeMaterial({ fluid })): a
   // lava lamp in flat print tones. Only materials made with o.fluid compile this.
@@ -713,6 +720,16 @@ const fragmentShader = /* glsl */ `
       if (fr < 0.72 && streak < 0.5) discard;
     }
     if (uMode == ${MODE_RIBBON} && bayer4(gl_FragCoord.xy / max(uPixelRatio, 1.0) * 0.5) < smoothstep(0.45, 0.95, vFold.y)) discard;
+    #ifdef DISSOLVE
+    float dEdge = 0.0;
+    if (uDissolve.x > 0.0) {
+      float dh = clamp((vWorldPos.y - uDissolve.z) / max(uDissolve.w - uDissolve.z, 1e-3), 0.0, 1.0);
+      float dn = vnoise(vWorldPos.xz * 6.0 + vWorldPos.y * 2.3) * 0.42 + vnoise(vWorldPos.zy * 15.0 + 3.1) * 0.18 + (1.0 - dh) * 0.4;
+      float dth = uDissolve.x * 1.15 - 0.08;
+      if (dn < dth) discard;
+      dEdge = 1.0 - smoothstep(0.0, uDissolve.y, dn - dth);
+    }
+    #endif
     #ifdef FLUID
     // the wings' tips dissolve into print dots (more while they bloom or fold: uFluidB.y)
     if (uFluidA.w > 2.5 && uFluidA.w < 3.5 && bayer4(gl_FragCoord.xy / max(uPixelRatio, 1.0) * 0.5) < smoothstep(0.9, 1.02, vBind.y) * 0.5 + uFluidB.y * (0.3 + 0.7 * smoothstep(0.2, 1.0, vBind.y))) discard;
@@ -851,6 +868,10 @@ const fragmentShader = /* glsl */ `
       }
     }
     L = max(L, mix(L, 0.97, smoothstep(0.15, 0.5, local)));
+    #ifdef DISSOLVE
+    albedo = mix(albedo, uDissolveColor, dEdge);
+    L = mix(L, 1.0, dEdge);
+    #endif
 
     gAlbedoLight = vec4(albedo, L);
     gNormalDepth = vec4(n, vViewDepth);
@@ -913,6 +934,9 @@ const fragmentShader = /* glsl */ `
     detail = max(detail, patInk);
     gHatch.b = detail;
     gHatch.a = max(uGlow, smoothstep(0.15, 0.6, local) * 0.6) + 2.0 * uHero;
+    #ifdef DISSOLVE
+    gHatch.a = max(gHatch.a, dEdge);
+    #endif
     float dark = clamp((uToon - L) / uToon, 0.0, 1.0);
     // detail by distance: finer marks close to the camera, coarser far away
     float hsp = uHatchSpacing * mix(0.78, 1.4, smoothstep(6.0, 260.0, vViewDepth));
@@ -963,6 +987,8 @@ const cache = new Map();
  *                              uFluidA / uFluidB / uFluidBox; materials without it are unchanged
  * @param {number[]} [o.fluidBox] [glass bottom y, top y, radius, highlight angle] in object space
  * @param {string[]} [o.fluidTones] the six tones (uFluidTones; the tool rewrites them as colours are added)
+ * @param {boolean|string} [o.dissolve] compile the DISSOLVE block: uDissolve (amount, edge, bottom y, top y in
+ *                              world space) eats the surface from the top down with a bright edge (o.dissolve: its colour)
  */
 export function makeMaterial(o) {
   const key = JSON.stringify({ ...o, map: o.map?.uuid });
@@ -1019,6 +1045,11 @@ export function makeMaterial(o) {
     mat.uniforms.uFluidB = { value: new THREE.Vector4() };
     mat.uniforms.uFluidBox = { value: new THREE.Vector4(...(o.fluidBox ?? [-1, 1, 1, 0])) };
     mat.uniforms.uFluidTones = { value: Array.from({ length: 6 }, (_, i) => new THREE.Color(o.fluidTones?.[i] ?? '#ffffff')) };
+  }
+  if (o.dissolve) {
+    mat.defines = { ...mat.defines, DISSOLVE: 1 };
+    mat.uniforms.uDissolve = { value: new THREE.Vector4(0, 0.08, 0, 1) };
+    mat.uniforms.uDissolveColor = { value: new THREE.Color(o.dissolve === true ? '#fff4d6' : o.dissolve) };
   }
   cache.set(key, mat);
   return mat;

@@ -12,9 +12,10 @@ import { TANK, FLUID_TONES } from '../fluid-tool.js';
 // four-point star of the reference drawing on the lid, inside a carved ring.
 //
 //   buildBox(key)    → { root, body, lid, hinge, star, carve, seam, glowFloor, rays, mats, size }
-//                      a chest about knee high. Local frame: +z is the front (where
-//                      the traveller kneels), the lid hinges on the left edge (-x;
-//                      lid.rotation.z opens it), y = 0 on the ground.
+//                      a chest about knee high at BOX's size; index.js sets it down
+//                      BOX_SCALE larger (about hip high). Local frame: +z is the front
+//                      (where the traveller stands), the lid hinges on the left edge
+//                      (-x; lid.rotation.z opens it), y = 0 on the ground.
 //   glyphCarving(s)  → the glyph (three dots over an arch) as a small relief
 //   buildItemModel(id) → a small Group (≈ 0.3 m) for the hovering display
 //   buildRays(key)   → the fan of flat bright wedges that bursts out of the box
@@ -22,6 +23,10 @@ import { TANK, FLUID_TONES } from '../fluid-tool.js';
 //   buildBeacon(key) → a thin pale column of light over an unopened box (seen from afar)
 
 export const BOX = { w: 0.8, h: 0.4, d: 0.55, lid: 0.085, wall: 0.045 };
+/** The chests are built at BOX's size and set down this much larger: big enough to notice from afar. */
+export const BOX_SCALE = 1.9;
+/** The item hovering where its box was. */
+export const ITEM_SCALE = 1.8;
 export const BOX_COLORS = { body: '#25386c', band: '#18254b', inside: '#0e1730', star: '#dcecf2', carve: '#9fbfdc', seam: '#fff4d6', light: '#fffbea' };
 
 const one = (list) => mergeGeometries(list.map((g) => (g.index ? g.toNonIndexed() : g)));
@@ -74,14 +79,15 @@ function worn(g, amount = 0.003, seed = 1) {
 export function buildBox(key = 'box') {
   const { w, h, d, lid: lh, wall } = BOX, C = BOX_COLORS;
   // per-box materials (the key makes them unique, so each box can glow on its own)
+  // (all of them dissolve when it opens: src/boxes/scene.js sets uDissolve)
   const mats = {
-    body: makeMaterial({ color: C.body, flat: true, pattern: 'cracks', key: `box.body.${key}` }),
-    band: makeMaterial({ color: C.band, flat: true }),
-    inside: makeMaterial({ color: C.inside, flat: true, side: THREE.DoubleSide }),
-    star: makeMaterial({ color: C.star, flat: true, glow: 0.35, key: `box.star.${key}` }),
-    carve: makeMaterial({ color: C.carve, flat: true, glow: 0.12, key: `box.carve.${key}` }),
-    seam: makeMaterial({ color: C.band, flat: true, glow: 0, key: `box.seam.${key}` }),
-    light: makeMaterial({ color: C.light, flat: true, glow: 1, key: `box.light.${key}` }),
+    body: makeMaterial({ color: C.body, flat: true, pattern: 'cracks', key: `box.body.${key}`, dissolve: C.seam }),
+    band: makeMaterial({ color: C.band, flat: true, key: `box.band.${key}`, dissolve: C.seam }),
+    inside: makeMaterial({ color: C.inside, flat: true, side: THREE.DoubleSide, key: `box.inside.${key}`, dissolve: C.seam }),
+    star: makeMaterial({ color: C.star, flat: true, glow: 0.35, key: `box.star.${key}`, dissolve: C.seam }),
+    carve: makeMaterial({ color: C.carve, flat: true, glow: 0.12, key: `box.carve.${key}`, dissolve: C.seam }),
+    seam: makeMaterial({ color: C.band, flat: true, glow: 0, key: `box.seam.${key}`, dissolve: C.seam }),
+    light: makeMaterial({ color: C.light, flat: true, glow: 1, key: `box.light.${key}`, dissolve: C.seam }),
   };
   const root = new THREE.Group();
   root.name = `Item box ${key}`;

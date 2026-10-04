@@ -9,6 +9,7 @@ The same release notes shown in the game (press **N** or open settings).
 - The hoverbike and the skiff no longer swerve when the stick drifts a little as you drive forward: small pushes turn gently, a full turn needs the stick well over.
 - The “Updated to …” and “Update ready” notes show once, not again on every world you visit. The worlds list has smaller pictures.
 - Ask Bako, the ney player by the desert fire, to play, and he does: a slow, eerie tune over a low drone, while the rest of the camp falls quiet.
+- The makers’ boxes are nearly twice as big, so you notice them. Opening one is new: it wakes, lifts off the ground turning slowly, and comes apart into light from the top down, leaving the item hovering where it stood. Once opened, a box is gone.
 - The scout drone no longer sinks into the backpack’s tank when it rests on your back: it clings to the side, lens out.
 - The scout drone (ping) keeps your pace whether you walk, ride or fly: it leads a little ahead towards the goal instead of falling behind, points at it (up and down too) with a lit beak, and leaves a glowing trail so you don’t lose it.
 - Landing on a new world is no longer silent: the sound starts with the world in the Android app, and you hear the engines, the roar of the descent and the touchdown. (In a browser it starts with your first key or click.)

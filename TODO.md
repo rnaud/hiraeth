@@ -159,8 +159,8 @@ Grouped by area. Checked items are done; the changelog says when.
 
 ## Gift boxes
 
-- [ ] Much bigger boxes.
-- [ ] They levitate before opening, dissolve into nothing with a shader, and the
+- [x] Much bigger boxes.
+- [x] They levitate before opening, dissolve into nothing with a shader, and the
   item levitates in the centre.
 - [ ] Hidden at interesting, hard-to-reach places (except on level 1). On level
   2 one is just outside the ship.

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { game as sharedGame } from '../game-state.js';
 import { items, ITEMS } from '../items.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
-import { buildBox, buildBeacon, BOX, BOX_COLORS } from './model.js';
+import { buildBox, buildBeacon, BOX, BOX_COLORS, BOX_SCALE } from './model.js';
 import { BoxScene } from './scene.js';
 import { BoxCard } from './card.js';
 import { PLACEMENTS, FALLBACKS, FALLBACK_OFFSETS } from './placements.js';
@@ -12,7 +12,8 @@ import { PLACEMENTS, FALLBACKS, FALLBACK_OFFSETS } from './placements.js';
 // item (src/items.js), left long ago for a traveller who comes a long way.
 // They notice you: the star and the carvings brighten, light leaks from the
 // lid's seam, the box hums and, close up, shudders. E opens one: the opening
-// scene (scene.js), then the item is yours. Opened boxes stay open and empty.
+// scene (scene.js: it lifts off the ground and comes apart into light), then the
+// item is yours. An opened box is gone for good.
 //
 //   const boxes = createBoxes({ levelId, scene, physics, level, player, sound, quests, toast, cam, anchor });
 //   boxes.update(dt, t, { camera })   per frame, after the player (it poses the kneel) and before the ship (camera)
@@ -34,7 +35,6 @@ import { PLACEMENTS, FALLBACKS, FALLBACK_OFFSETS } from './placements.js';
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const smoothstep = (a, b, x) => { const t = THREE.MathUtils.clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
-const LID_REST = 1.95;
 
 /**
  * Old saves. v1, from before items existed: anyone who finished the prologue
@@ -132,29 +132,30 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
       const parts = buildBox(p.id);
       parts.root.position.copy(at.pos);
       parts.root.rotation.y = at.yaw;
+      parts.root.scale.setScalar(BOX_SCALE);
       scene?.add(parts.root);
       const b = {
-        id: p.id, item: p.item, def: ITEMS[p.item], pos: at.pos, yaw: at.yaw, parts, place: p, fallback: !!p.fallback, scene,
+        id: p.id, item: p.item, def: ITEMS[p.item], pos: at.pos, yaw: at.yaw, parts, place: p, fallback: !!p.fallback, scene, noShadow,
         light: new THREE.Vector4(0, -1e5, 0, 0), near: 0, shake: 0, glow: 0, sceneLight: 0, phase: Math.random() * 6,
         spent: () => spent(b), opened: () => opened(b),
       };
       lights.push(b.light);
       // solid: an invisible block the size of the body (you can stand on it)
-      const block = new THREE.Mesh(new THREE.BoxGeometry(BOX.w + 0.04, BOX.h + BOX.lid, BOX.d + 0.04).translate(0, (BOX.h + BOX.lid) / 2, 0));
+      const S = BOX_SCALE, block = new THREE.Mesh(new THREE.BoxGeometry((BOX.w + 0.04) * S, (BOX.h + BOX.lid) * S, (BOX.d + 0.04) * S).translate(0, ((BOX.h + BOX.lid) * S) / 2, 0));
       block.position.copy(at.pos); block.rotation.y = at.yaw;
       b.collider = physics.addCollider?.(block) ?? null;
       // a pale column over it, seen from afar: always for the boxes you must find, for the rest with the glyph lens
       b.beacon = buildBeacon(p.id);
-      b.beacon.position.copy(at.pos).add(V(0, 0.6, 0));
+      b.beacon.position.copy(at.pos).add(V(0, 0.6 * BOX_SCALE, 0));
       b.beacon.visible = false;
       b.alwaysBeacon = !!p.beacon;
       b.beaconMax = typeof p.beacon === 'number' ? p.beacon : Infinity;   // (a number: only within that many metres, unless the lens shows it)
       fx.add(b.beacon);
       noShadow.push(parts.raysWrap);
       b.off = registerInteractable({
-        id: `box.${p.id}`, priority: PRIORITY.use + 1, range: 2.3,
+        id: `box.${p.id}`, priority: PRIORITY.use + 1, range: 3.2,
         prompt: 'open',
-        at: () => (b._at ??= V()).set(b.pos.x, b.pos.y + 1.05, b.pos.z),
+        at: () => (b._at ??= V()).set(b.pos.x, b.pos.y + 0.6 * BOX_SCALE + 0.5, b.pos.z),
         enabled: () => !spent(b) && !current && !player?.riding,
         distance: (pl) => (Math.abs(pl.pos.y - b.pos.y) < 2 ? flat(pl.pos, b.pos) : Infinity),
         use: () => api.open(b.id),
@@ -167,7 +168,7 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
 
   function setSpentLook(b, isSpent) {
     const P = b.parts;
-    P.lid.rotation.z = isSpent ? LID_REST : 0;
+    P.lid.rotation.z = 0;
     P.glowFloor.visible = false;
     P.rays.visible = false;
     P.mats.star.uniforms.uGlow.value = isSpent ? 0.12 : 0.35;
@@ -177,8 +178,10 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
     b.light.set(0, -1e5, 0, 0);
     if (b.beacon) b.beacon.visible = false;
     b.isSpent = isSpent;
-    // a fallback box that is no longer needed (you have its item) goes away
-    P.root.visible = !(b.fallback && isSpent && !b.justOpened);
+    // opened, it came apart into light: gone, and nothing to bump into (a fallback box
+    // you no longer need goes the same way)
+    P.root.visible = !isSpent;
+    if (isSpent && b.collider) { physics.removeCollider?.(b.collider); b.collider = null; }
   }
 
   function dispose() {
@@ -271,13 +274,12 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
           M.seam.uniforms.uColor.value.set(BOX_COLORS.seam); M.seam.uniforms.uGlow.value = 1;
           M.star.uniforms.uGlow.value = 0.6 + 0.4 * k;
           M.carve.uniforms.uGlow.value = 0.45 + 0.55 * k;
-          b.light.set(b.pos.x, b.pos.y + 0.75, b.pos.z, 2.5 + 6.5 * k);
-          P.root.rotation.set(0, b.yaw, 0);
+          b.light.set(b.pos.x, P.root.position.y + 0.5 * BOX_SCALE, b.pos.z, 3 + 8 * k);   // (the scene moves and turns the box)
           if (b.beacon) b.beacon.visible = false;
           continue;
         }
         if (b.isSpent) continue;
-        const near = (b.near = smoothstep(18, 2.5, d));
+        const near = (b.near = smoothstep(22, 3.2, d));
         hum = Math.max(hum, near);
         const pulse = 0.5 + 0.5 * Math.sin(t * 3.2 + b.phase);
         M.star.uniforms.uGlow.value = 0.35 + 0.65 * near * (0.55 + 0.45 * pulse);
@@ -286,12 +288,12 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
         const seam = near * (0.45 + 0.55 * Math.sin(t * 4.1 + b.phase) ** 2);
         M.seam.uniforms.uColor.value.set(BOX_COLORS.band).lerp(_c.set(BOX_COLORS.seam), Math.min(1, seam * 1.4));
         M.seam.uniforms.uGlow.value = seam;
-        b.light.set(b.pos.x, b.pos.y + 0.7, b.pos.z, near > 0.01 ? 1.2 + 3.8 * near * (0.8 + 0.2 * pulse) : 0);
+        b.light.set(b.pos.x, b.pos.y + 0.7 * BOX_SCALE, b.pos.z, near > 0.01 ? 1.8 + 5 * near * (0.8 + 0.2 * pulse) : 0);
         // close up it shudders, in little fits, the lid knocking
         let shake = 0;
-        if (d < 4.5) {
+        if (d < 5.5) {
           const cyc = (t + b.phase) % 1.7;
-          shake = cyc < 0.32 ? Math.sin(cyc / 0.32 * Math.PI) * smoothstep(4.5, 1.5, d) : 0;
+          shake = cyc < 0.32 ? Math.sin(cyc / 0.32 * Math.PI) * smoothstep(5.5, 2.2, d) : 0;
         }
         if (b.answer) { b.answer.at -= dt; if (b.answer.at <= 0) { shake = Math.max(shake, b.answer.k); b.answer.k -= dt * 2; if (b.answer.k <= 0) b.answer = null; } }
         P.root.rotation.set(Math.sin(t * 47) * 0.02 * shake, b.yaw + Math.sin(t * 31) * 0.025 * shake, Math.sin(t * 53) * 0.02 * shake);

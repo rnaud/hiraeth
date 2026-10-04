@@ -9,7 +9,8 @@ import { game, GameState } from '../src/game-state.js';
 import { items, ITEMS } from '../src/items.js';
 import { PLACEMENTS } from '../src/boxes/placements.js';
 import { createBoxes, migrateSave, resolvePlacement, placementsFor } from '../src/boxes/index.js';
-import { BoxScene } from '../src/boxes/scene.js';
+import { BoxScene, STAND_AT, LIFT } from '../src/boxes/scene.js';
+import { BOX, BOX_SCALE } from '../src/boxes/model.js';
 import { DevMenu } from '../src/dev-menu.js';
 import { bestInteractable, clearInteractables } from '../src/interact.js';
 
@@ -33,21 +34,22 @@ const ship = (id) => {
 };
 const player = (pos) => ({ pos: pos.clone(), vel: V(), heading: 0, riding: false, frame: { up: V(0, 1, 0), quaternion: (h, q) => q.setFromAxisAngle(V(0, 1, 0), h) } });
 
-/** Solid, walkable ground at p, with room to stand (and kneel) in front of the box. */
+/** Solid, walkable ground at p, with room to stand in front of the box and for it to rise. */
 function reachable(physics, p, yaw, label) {
   const g = physics.groundAt(p.x, p.y + 1.5, p.z, 4);
   assert.ok(Number.isFinite(g) && Math.abs(g - p.y) < 0.7, `${label}: ground under the box (${g} vs ${p.y.toFixed(2)})`);
   const n = physics.groundNormal(p.x, p.y + 1, p.z);
   assert.ok(n.y > 0.8, `${label}: level enough (${n.y.toFixed(2)})`);
   const F = V(Math.sin(yaw), 0, Math.cos(yaw));
-  const stand = p.clone().addScaledVector(F, 0.95);
+  const stand = p.clone().addScaledVector(F, STAND_AT);
   const gs = physics.groundAt(stand.x, p.y + 1.5, stand.z, 4);
-  assert.ok(Number.isFinite(gs) && Math.abs(gs - p.y) < 0.8, `${label}: somewhere to kneel in front (${gs} vs ${p.y.toFixed(2)})`);
-  // head room over the box and the kneeling spot
-  for (const q of [p, stand]) assert.ok(physics.rayDistance(V(q.x, Math.max(g, gs) + 0.3, q.z), V(0, 1, 0), 2) > 1.9, `${label}: room above`);
+  assert.ok(Number.isFinite(gs) && Math.abs(gs - p.y) < 0.8, `${label}: somewhere to stand in front (${gs} vs ${p.y.toFixed(2)})`);
+  // head room over the box (it rises before it comes apart) and the standing spot
+  const top = LIFT + (BOX.h + BOX.lid) * BOX_SCALE;
+  for (const q of [p, stand]) assert.ok(physics.rayDistance(V(q.x, Math.max(g, gs) + 0.3, q.z), V(0, 1, 0), 2.2) > Math.max(1.9, top - 0.2), `${label}: room above`);
 }
 
-test('every placement stands on reachable ground, with room to kneel', () => {
+test('every placement stands on reachable ground, with room to stand and rise', () => {
   for (const [id, list] of Object.entries(PLACEMENTS)) {
     const { level, physics } = world(id);
     for (const p of list) {
@@ -116,8 +118,8 @@ test('the desert backpack box sits in Qanat, under the Givers’ shrine by the w
   // its front faces the top of the main stairs, the way you come up from the gate
   const F = V(Math.sin(at.yaw), 0, Math.cos(at.yaw)), to = C.stairTop.clone().sub(at.pos).setY(0).normalize();
   assert.ok(F.dot(to) > 0.95, 'it faces the stairs');
-  // on foot from the gate: up the avenue, the stairs, across the terrace to where you kneel (no step over 0.62 m, no wall)
-  const kneel = at.pos.clone().addScaledVector(F, 0.95);
+  // on foot from the gate: up the avenue, the stairs, across the terrace to where you stand (no step over 0.62 m, no wall)
+  const kneel = at.pos.clone().addScaledVector(F, STAND_AT);
   const route = [C.gate, C.plinthStair, C.stairTop, kneel];
   for (let i = 0; i < route.length - 1; i++) {
     const a = route[i], b = route[i + 1], n = Math.ceil(a.distanceTo(b) / 0.5);
@@ -166,11 +168,14 @@ test('a box opens through E and its scene, grants its item and stays open', () =
   assert.equal(e.entry.prompt, 'open');
   e.entry.use(pl);
   assert.ok(boxes.busy(), 'the scene plays');
-  assert.ok(Math.abs(pl.pos.distanceTo(box.pos) - 0.95) < 0.6, 'the traveller is set before the box');
-  for (let i = 0; i < 30 * 6; i++) boxes.update(1 / 30, 2 + i / 30);
+  assert.ok(Math.abs(pl.pos.distanceTo(box.pos) - STAND_AT) < 0.3, 'the traveller is set before the box');
+  for (let i = 0; i < 30 * 2.2; i++) boxes.update(1 / 30, 2 + i / 30);
+  assert.ok(box.parts.root.position.y > box.pos.y + LIFT * 0.6, 'it lifts off the ground');
+  for (let i = 0; i < 30 * 4; i++) boxes.update(1 / 30, 4.2 + i / 30);
   assert.equal(boxes.scene.phase, 'card', 'the card waits');
-  assert.ok(box.parts.lid.rotation.z > 1.8, 'the lid is open');
-  assert.ok(box.parts.rays.visible, 'light pours out');
+  assert.equal(box.parts.mats.body.uniforms.uDissolve.value.x, 1, 'the box has come apart');
+  assert.ok(boxes.scene.model.visible && boxes.scene.model.position.distanceTo(box.pos) > LIFT, 'the item hangs where it was');
+  assert.ok(box.sceneLight > 0.9, 'light pours out');
   assert.ok(shots.length > 100 && shots.at(-1).pos, 'the camera is the scene’s');
   assert.equal(items.has('backpack'), false, 'not yours until you press on');
   assert.equal(boxes.dismiss(), true);
@@ -180,7 +185,7 @@ test('a box opens through E and its scene, grants its item and stays open', () =
   assert.equal(items.has('backpack'), true, 'granted');
   assert.equal(game.flag(`box.${box.id}`), true, 'persisted');
   assert.deepEqual(opened.map((o) => o.id), [box.id]);
-  assert.ok(box.spent() && box.parts.lid.rotation.z > 1.8, 'stays open');
+  assert.ok(box.spent() && !box.parts.root.visible && !box.collider, 'gone for good, nothing left to bump into');
   assert.equal(bestInteractable(pl)?.entry.id === `box.${box.id}`, false, 'nothing to open any more');
   // a fresh load: still open
   boxes.dispose();

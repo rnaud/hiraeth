@@ -1106,9 +1106,15 @@ Pocket. Their built-in controls work through the Gamepad API.
   `item.<id>`. `items.has/grant/revoke` take effect live.
 - **Boxes** (`src/boxes/`): a dark blue chest with a pale star, after
   `references/box-opening.webp`. It glows, hums and shudders as you approach,
-  and E opens it. The opening scene: the traveller kneels (`Humanoid.kneel`),
-  the lid opens on a fan of light from the box, and the item hovers with a card
-  showing its name, what it is and what it does. Then the item is granted.
+  and E opens it. Since v0.39 the chests are set down `BOX_SCALE` (1.9×) larger,
+  and the opening scene (`scene.js`) has them wake, lift `LIFT` metres off the
+  ground turning slowly, and come apart from the top down: every box material is
+  made with `makeMaterial({ dissolve })`, whose `DISSOLVE` block discards the
+  surface by world-space noise as `uDissolve.x` goes 0 → 1, with a burning edge
+  (the box leaves the shadow pass meanwhile). The item grows out of the light
+  at its centre and hovers there with a card showing its name, what it is and
+  what it does. Then the item is granted, and the box is gone for good (no
+  collider either).
   Placements are in `placements.js`: the backpack lies near the desert crash
   site as the first quest stage, and every world has a box. Fallback boxes
   appear by the ship if you reach a world without what it needs. Special item
