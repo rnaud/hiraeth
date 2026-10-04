@@ -559,6 +559,15 @@ const menu = new SettingsMenu(settings, {
   isBusy: () => story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || photo.on || storyRt.busy() || ship.busy(),
   onResetProgress: () => { reactiveWorld.clear(); localStorage.removeItem('moebius.journal.v1'); SaveGame.clear(); game.reset(); location.href = location.pathname; },   // a new game: the prologue
 });
+// one panel at a time: J over the open settings drew the sketchbook's quest log under the
+// settings card (and O over the sketchbook the other way round)
+{
+  const panels = [menu, journal, changelog];
+  for (const p of panels) {
+    const toggle = p.toggle.bind(p);
+    p.toggle = (on = !p.open, ...rest) => { if (on) for (const q of panels) if (q !== p && q.open) q.toggle(false); return toggle(on, ...rest); };
+  }
+}
 if (isTouch) new TouchControls(input, rig);
 
 // ------------------------------------------------------------------ level picker
@@ -586,6 +595,7 @@ picker.querySelector('.cards').innerHTML = LEVELS.map((l, i) => l.hidden && !com
     </div>
   </a>`).join('');
 function showPicker(on) {
+  if (on) for (const q of [menu, journal, changelog]) if (q.open) q.toggle(false);
   picker.classList.toggle('open', on);
   if (on) document.exitPointerLock?.();
 }
