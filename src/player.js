@@ -20,6 +20,14 @@ const JET_THRUST = 54;     // m/s² upward while thrusting (gravity is 32)
 const JET_MAX_UP = 15;
 const JET_DRAIN = 0.1;     // fuel per second (~10 s of thrust), when no backpack tool burns its fluid (tests)
 const JET_REFILL = 0.55;
+/**
+ * Health and falls. Landing faster than FALL.safe (m/s into the ground, about a
+ * 4.5 m drop) hurts, up to the whole bar at FALL.lethal (about a 22 m drop).
+ * After FALL.wait s without a hurt it comes back at FALL.regen a second.
+ */
+export const FALL = { safe: 17, lethal: 38, wait: 4, regen: 0.12 };
+/** The share of the health bar a landing at `speed` (m/s into the ground) takes. */
+export const fallDamage = (speed) => Math.min(1, Math.max(0, (speed - FALL.safe) / (FALL.lethal - FALL.safe)));
 
 function part(geo, color, opts = {}) {
   return new THREE.Mesh(geo, makeMaterial({ color, ...opts }));
@@ -350,6 +358,7 @@ export class Player {
     this.fuel = 1;
     this.thrusting = false;
     this.stamina = 1;
+    this.health = 1;          // 0..1 (hurt / heal; falls: FALL)
     this.climbing = false;
     this.wallN = new THREE.Vector3();
     this._press = 0;
@@ -498,6 +507,33 @@ export class Player {
     this.stamina = 1;
   }
 
+  /**
+   * Take a hurt (0..1 of the bar). At nothing left you are knocked out: back where you
+   * last stood safely, whole again (opts.onKnockout). opts.onHurt(amount, why) hears every one.
+   */
+  hurt(amount, why = 'hit') {
+    if (!(amount > 0) || this.opts.health === false) return;
+    this.health = Math.max(0, (this.health ?? 1) - amount);
+    this.hurtAt = this._clock ?? 0;
+    this.opts.onHurt?.(amount, why);
+    if (this.health <= 0) this._knockout = why;   // (handled at the start of the next frame, not mid-landing)
+  }
+
+  /** Knocked out: back where you last stood safely, whole again. */
+  wake() {
+    const why = this._knockout;
+    this._knockout = null;
+    this.health = 1;
+    this.respawn(this.lastSafe.lengthSq() || !this.opts.spawn ? this.lastSafe.clone() : undefined);
+    this.opts.onKnockout?.(why);
+  }
+
+  /** Per frame: health comes back once you have not been hurt for a while. */
+  heal(dt) {
+    this._clock = (this._clock ?? 0) + dt;
+    if ((this.health ?? 1) < 1 && this._clock - (this.hurtAt ?? -1e9) > FALL.wait) this.health = Math.min(1, this.health + FALL.regen * dt);
+  }
+
   /** Jump to another place, e.g. through a portal, with a new "up" (speed: carry on walking along fwd). */
   teleport(pos, up, fwd, { speed = 0 } = {}) {
     this.boarding = this.unboarding = null;   // the pack is simply back on (fluid-tool.js follows the state)
@@ -639,6 +675,8 @@ export class Player {
 
   update(dt, input, camYaw) {
     this.time += dt;
+    if (this._knockout) this.wake();
+    this.heal(dt);
     // the bird caught up with you in mid-air: you're on its back
     const M = this.mount;
     if (M && M.mode === 'catching' && !this.ride && M.catchDist < 2.6) {
@@ -874,6 +912,7 @@ export class Player {
     if (this.pos.y < this.opts.killY) { this.respawn(); this._respawned = true; return null; }
     const vu = this.vel.dot(U);
     if (h <= 0 || (this.onGround && h < 0.8 && vu <= 0)) {
+      if (!this.onGround && !this.ride && vu < -FALL.safe) this.hurt(fallDamage(-vu), 'fall');
       this.pos.addScaledVector(U, -h);
       this.vel.addScaledVector(U, -vu);
       this.onGround = true;

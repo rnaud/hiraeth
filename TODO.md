@@ -121,7 +121,7 @@ Grouped by area. Checked items are done; the changelog says when.
 - [x] Don't show the "updated" screen on every level.
 - [ ] Select and Start screens pause the game, full screen, with their own
   menu music.
-- [ ] Health bar and fall damage.
+- [x] Health bar and fall damage.
 
 ## Galactic map and travel
 

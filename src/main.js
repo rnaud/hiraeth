@@ -1,3 +1,4 @@
+import * as shipSfx from './ship/sfx.js';
 import * as THREE from 'three';
 import { ReactiveWorld } from './reactive-world.js';
 import { Controller, mergeControls, menuNavigate } from './controller.js';
@@ -200,7 +201,21 @@ const player = new Player(physics, {
   mount: level.mount, jetpack: level.features.jetpack, climb: level.features.climb ?? true,
   killY: level.killY, limit: level.limit ?? 1900, spawn: level.spawn, spawnHeading: level.spawnHeading,
   gravityAt: level.gravityAt, unsafe: level.unsafe, dynamic: level.dynamic,
+  // a hurt: a thud; knocked out: a white flash and you come round where you last stood
+  onHurt: (k) => { shipSfx.rumble(sound, 0.35 + k * 0.4, 0.25 + k * 0.5); hpShown = 3; },
+  onKnockout: () => { ship.cinema?.fade(1, true, 0.05); setTimeout(() => ship.cinema?.fade(0, true, 0.9), 120); showToast('You come round where you last stood.'); },
 });
+// the health bar (index.html #health): only while you're hurt, and a moment after
+const hpEl = document.getElementById('health'), hpFill = hpEl?.firstElementChild;
+let hpShown = 0;
+function updateHealth(dt) {
+  if (!hpEl) return;
+  const h = player.health ?? 1;
+  hpShown = h < 0.999 ? 3 : Math.max(0, hpShown - dt);
+  hpEl.classList.toggle('on', hpShown > 0 && !ship.playing);
+  hpEl.classList.toggle('low', h < 0.3);
+  hpFill.style.width = `${(h * 100).toFixed(1)}%`;
+}
 player.vehicles.push(...(level.vehicles ?? []));
 // rooms off the map, reached through doorways (the desert's chambers and the cave in the
 // giant's chest, ~1 km up): no whistling the mount or hailing a taxi into them; it would
@@ -1081,6 +1096,7 @@ function frame() {
     trails.forEach((tr, i) => tr.update(dt, moving ? m.body.localToWorld(JETS[i].clone()) : null));
   }
   updateHud();
+  updateHealth(dt);
   level.update(dt, t, { player, rig, camera, fade: (k, secs) => ship.cinema?.fade(k, true, secs) });
   reactiveWorld.update(dt, t, player, camera, busy() || photo.on);
   wildlife.update(dt, t, player, camera, busy() || photo.on);

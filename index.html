@@ -29,6 +29,15 @@
       }
       #hud b { letter-spacing: 0.08em; }
       #status { white-space: pre-line; }
+      /* health: a small inked bar, only while you're hurt (src/main.js) */
+      #health { position: fixed; left: calc(16px + var(--safe-left, 0px)); top: calc(14px + var(--safe-top, 0px)); width: 150px; height: 11px; z-index: 30;
+        border: 2px solid #2b211f; background: #f7ecd2; box-shadow: 2px 2px 0 #2b211f; border-radius: 6px; overflow: hidden;
+        opacity: 0; transition: opacity .5s; pointer-events: none; }
+      #health.on { opacity: 1; }
+      #health i { display: block; height: 100%; width: 100%; background: #d9503f; border-right: 2px solid #2b211f; transition: width .25s; }
+      #health.low i { animation: hpulse .8s ease-in-out infinite; }
+      @keyframes hpulse { 50% { background: #f2c54b; } }
+      body.talking #health { opacity: 0; }
       #picker {
         position: fixed; inset: 0; z-index: 5000; display: none; overflow: auto;
         background: rgba(247, 236, 210, 0.94); color: #2b211f;
@@ -429,9 +438,10 @@
       <span class="help"><b>MOEBIUS PoC</b><br />
       click to capture mouse · WASD move · SHIFT run<br />
       SPACE jump · <span class="fluid-help">SPACE again in the air: fluid boost · hold SPACE in the air: jets / wings (when found) · </span>push into walls to climb · wheel zoom · Q ping scout · L worlds · P photo · O settings<br />
-      <span class="fluid-help">fluid tool (3 charges, refill 5 s after the last use): hold right mouse / R aim · left click / G shoot · C / middle click push · X mode<br /></span>
+      <span class="fluid-help">fluid tool (3 charges, refill 2 s after the last use): hold right mouse / R aim · left click / G shoot · C / middle click push · X mode<br /></span>
       </span><span id="status"></span>
     </div>
+    <div id="health"><i></i></div>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

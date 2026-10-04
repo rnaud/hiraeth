@@ -1087,6 +1087,18 @@ stays ahead on a bike or a bird instead of trailing. It faces the goal itself
 `Trail` that dissolves once it is home. It only gives up and flies back when
 it is more than 27 m from you.
 
+## Health and falls (v0.39)
+
+The traveller has a health bar (`player.health`, 0..1). Landing faster than
+`FALL.safe` (17 m/s into the ground, about a 4.5 m drop) takes `fallDamage(speed)`,
+up to the whole bar at `FALL.lethal` (38 m/s, about 22 m); riding, gliding and
+the jets land softly enough not to. `player.hurt(k, why)` is the one way in
+(`opts.onHurt`); at nothing left you are knocked out and, on the next frame,
+wake where you last stood safely, whole again (`opts.onKnockout`: a white
+flash and a toast). After `FALL.wait` s without a hurt it refills. The bar
+(`#health`, top left) only shows while you are hurt. Physics tests that drop the
+player from great heights pass `health: false`.
+
 ## The Lab (v0.39)
 
 `?level=lab` (`src/levels/lab.js`) is a developer's world in no menu (`dev: true`

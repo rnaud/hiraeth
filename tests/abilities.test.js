@@ -43,7 +43,7 @@ function rig(p) {
 function setup({ up = null, physics = ground(), mount = null } = {}) {
   clearTargets();
   const scene = new THREE.Scene();
-  const p = new Player(physics, { mount: mount ? () => mount : null, ...(up ? { gravityAt: () => up } : {}) });
+  const p = new Player(physics, { health: false, mount: mount ? () => mount : null, ...(up ? { gravityAt: () => up } : {}) });   // (the falls here are physics; health has its own test)
   p.pos.set(0, 0, 0);   // on the slab (its ground query from far above finds nothing)
   if (up) p.frame.set(up, Math.abs(up.y) > 0.5 ? v(0, 0, 1) : v(0, 1, 0));
   const calls = rig(p);

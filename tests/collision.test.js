@@ -57,7 +57,7 @@ test('sprinting, gliding and the jetpack into a city tower never end up inside i
 test('a long fall lands on a thin roof instead of dropping through it', () => {
   const physics = blockScene([0, 20, 0, 10, 0.3, 10], [0, -0.5, 0, 200, 1, 200]);
   for (const dt of [1 / 60, 1 / 20]) for (const y of [60, 60.4, 60.9, 61.3]) {
-    const p = new Player(physics);
+    const p = new Player(physics, { health: false });   // (95 m/s would knock you out: this is about the roof)
     p.pos.set(0, y, 0); p.vel.set(0, -95, 0); p.onGround = false;
     for (let i = 0; i < 60; i++) p.update(dt, {}, 0);
     assert.ok(Math.abs(p.pos.y - 20.15) < 0.05, `stands on the roof (from ${y}, dt ${dt.toFixed(3)}): ${p.pos.y}`);
