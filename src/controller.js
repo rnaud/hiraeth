@@ -7,8 +7,8 @@ export function stick(x = 0, y = 0, deadzone = 0.18) {
 }
 
 export class Controller {
-  constructor({ pads = () => navigator.getGamepads?.() ?? [], context, action, look, navigate, scroll, activity = () => {} }) {
-    Object.assign(this, { pads, context, action, look, navigate, scroll, activity });
+  constructor({ pads = () => navigator.getGamepads?.() ?? [], context, action, look, navigate, scroll, activity = () => {}, swapAB = () => false }) {
+    Object.assign(this, { pads, context, action, look, navigate, scroll, activity, swapAB });
     this.previous = []; this.held = {}; this.index = null; this.repeat = 0;
     this.blocked = new Set(); this.lastContext = null;
   }
@@ -23,6 +23,7 @@ export class Controller {
     if (this.index !== pad.index) { this.previous = []; this.blocked.clear(); }
     this.index = pad.index;
     const buttons = pad.buttons.map((b, i) => b.pressed || b.value > (i === 6 ? 0.3 : 0.5));   // LT aims from a light squeeze
+    if (this.swapAB()) [buttons[0], buttons[1]] = [buttons[1], buttons[0]];   // the setting "Swap A/B": B confirms and jumps, A goes back
     const ctx = this.context();
     // A held confirm/jump must never leak through when a menu closes.
     if (ctx !== this.lastContext) {

@@ -23,31 +23,40 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-// Updates from GitHub releases. On launch (when online) it reads latest.json
-// from the newest release, which the Android workflow uploads next to the APK:
-// { "code": <versionCode>, "name": "0.35", "apk": "<download url>" }. If that
-// build is newer than this one, it offers to download the APK and hands it to
-// the system installer. The same signing key lets it install over this one and
-// keep the save. Offline or on any error it stays silent.
+// APK updates from GitHub releases, for changes to the app itself. On launch
+// (when online) it reads latest.json from the newest release, which the
+// Android workflow uploads next to the APK: { "code": <versionCode>,
+// "name": "0.35", "apk": "<download url>", "native": <WebBundles.NATIVE_API> }.
+// When that APK's native bridge is newer than this one's, it offers to download
+// it and hands it to the system installer. The same signing key lets it install
+// over this one and keep the save. Otherwise the game's own updates come over
+// the air without an APK (WebBundles). Offline or on any error it stays silent.
 final class Updater {
     static final String LATEST = "https://github.com/rnaud/moebius/releases/latest/download/latest.json";
     private final Activity activity;
+    private final WebBundles web;
     private final Handler ui = new Handler(Looper.getMainLooper());
 
-    Updater(Activity activity) { this.activity = activity; }
+    Updater(Activity activity, WebBundles web) { this.activity = activity; this.web = web; }
 
     void check() {
         new Thread(() -> {
+            boolean offered = false;
             try {
                 JSONObject latest = new JSONObject(new String(fetch(LATEST, 64 * 1024), "UTF-8"));
                 long code = latest.getLong("code");
-                if (code <= currentCode()) return;
-                String name = latest.optString("name", "");
-                String apk = latest.getString("apk");
-                ui.post(() -> offer(name, apk));
+                // (releases from before the over-the-air updates have no "native": they never ask for an APK)
+                if (latest.optInt("native", 0) > WebBundles.NATIVE_API && code > currentCode()) {
+                    String name = latest.optString("name", "");
+                    String apk = latest.getString("apk");
+                    ui.post(() -> offer(name, apk));
+                    offered = true;
+                }
             } catch (Exception ignored) {
                 // offline, rate-limited or no release yet: play on
             }
+            // a new APK brings its own game; else look for a newer web build
+            if (!offered && web != null) web.update();
         }, "moebius-update-check").start();
     }
 
@@ -95,8 +104,22 @@ final class Updater {
         activity.startActivity(intent);
     }
 
-    /** GET a URL, following GitHub's redirects to its download host. */
-    private static byte[] fetch(String url, int limit) throws Exception {
+    /** GET a URL into memory. */
+    static byte[] fetch(String url, int limit) throws Exception {
+        HttpURLConnection c = open(url);
+        try (InputStream in = c.getInputStream()) {
+            java.io.ByteArrayOutputStream buf = new java.io.ByteArrayOutputStream();
+            byte[] chunk = new byte[64 * 1024];
+            for (int n; (n = in.read(chunk)) > 0; ) {
+                buf.write(chunk, 0, n);
+                if (buf.size() > limit) throw new Exception("too large");
+            }
+            return buf.toByteArray();
+        } finally { c.disconnect(); }
+    }
+
+    /** Open a GET, following GitHub's redirects to its download host. @return a connection with status 200 */
+    static HttpURLConnection open(String url) throws Exception {
         for (int hop = 0; hop < 6; hop++) {
             HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
             c.setInstanceFollowRedirects(false);
@@ -105,16 +128,8 @@ final class Updater {
             c.setRequestProperty("User-Agent", "moebius-android");
             int status = c.getResponseCode();
             if (status >= 300 && status < 400) { url = new URL(new URL(url), c.getHeaderField("Location")).toString(); c.disconnect(); continue; }
-            if (status != 200) throw new Exception("HTTP " + status);
-            try (InputStream in = c.getInputStream()) {
-                java.io.ByteArrayOutputStream buf = new java.io.ByteArrayOutputStream();
-                byte[] chunk = new byte[64 * 1024];
-                for (int n; (n = in.read(chunk)) > 0; ) {
-                    buf.write(chunk, 0, n);
-                    if (buf.size() > limit) throw new Exception("too large");
-                }
-                return buf.toByteArray();
-            } finally { c.disconnect(); }
+            if (status != 200) { c.disconnect(); throw new Exception("HTTP " + status); }
+            return c;
         }
         throw new Exception("too many redirects");
     }

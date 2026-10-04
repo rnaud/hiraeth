@@ -11,6 +11,10 @@
 // "View", "Menu"). On Android handhelds such as the Retroid Pocket the buttons
 // are printed A B X Y, L1 R1 L2 R2, Select and Start: padText() rewrites
 // prompts to those names, and watchLabels() applies it to all text on the page.
+//
+// "Swap A/B" in the settings (setSwapAB) trades the two buttons for players
+// who expect the other one to confirm and jump (Controller swaps the button
+// indices, see controller.js); the prompts then name the other letter too.
 
 let native = null;
 
@@ -50,28 +54,47 @@ const ANDROID = [
   [/\bView\b(?= (?:sketchbook|journal))/g, 'Select'], [/\bMenu\b(?= (?:settings|menu))/g, 'Start'],
 ];
 
-/** A prompt in the given layout's button names. */
-export function padText(text, layout = 'android') {
-  if (layout !== 'android' || !text) return text;
-  let out = text;
+let swapped = false;
+/** Swap A and B (confirm / back, jump / push) and their names in the prompts. */
+export function setSwapAB(on, win = globalThis.window) {
+  if (swapped === !!on) return;
+  swapped = !!on;
+  relabel(win);
+}
+export const swapAB = () => swapped;
+
+const SWAP = /\b([AB])( ?\/ ?)([×○])/g;
+
+/** A prompt in the given layout's button names (and with A and B traded when swapped). */
+export function padText(text, layout = 'android', swap = swapped) {
+  if (!text) return text;
+  let out = swap ? text.replace(SWAP, (_, l, sep) => (l === 'A' ? `B${sep}○` : `A${sep}×`)) : text;
+  if (layout !== 'android') return out;
   for (const [re, to] of ANDROID) out = out.replace(re, to);
   return out;
 }
 
-let observer = null;
+let observer = null, layout = 'standard';
+const source = new WeakMap();   // text node → [its text as the game wrote it, what we made of it]
 function rewrite(node) {
   if (node.nodeType === 3) {
-    const t = padText(node.nodeValue);
+    const seen = source.get(node);
+    const src = seen && seen[1] === node.nodeValue ? seen[0] : node.nodeValue;
+    const t = padText(src, layout);
     if (t !== node.nodeValue) node.nodeValue = t;
+    if (t !== src) source.set(node, [src, t]); else source.delete(node);
     return;
   }
   if (node.nodeType !== 1 || node.tagName === 'SCRIPT' || node.tagName === 'STYLE') return;
   for (const c of node.childNodes) rewrite(c);
 }
 
-/** Keep every prompt on the page in Android button names (no-op in the standard layout). */
+/** Keep every prompt on the page in Android button names, and A/B swapped when set (else a no-op). */
 export function watchLabels(win = globalThis.window) {
-  if (!win?.document?.body || observer || padLayout(win) !== 'android') return;
+  if (!win?.document?.body) return;
+  layout = padLayout(win);
+  if (observer) { rewrite(win.document.body); return; }
+  if (layout !== 'android' && !swapped) return;
   rewrite(win.document.body);
   observer = new win.MutationObserver((list) => {
     for (const m of list) {
@@ -81,4 +104,5 @@ export function watchLabels(win = globalThis.window) {
   });
   observer.observe(win.document.body, { subtree: true, childList: true, characterData: true });
 }
-function applyLayout(win) { if (win.document?.body) watchLabels(win); }
+function applyLayout(win) { if (win?.document?.body) watchLabels(win); }
+const relabel = applyLayout;
