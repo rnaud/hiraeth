@@ -9,6 +9,9 @@
 // tune: 'play' (their own ostinato), 'near' (someone is listening: they pick
 // up the world's melody), 'feast' (the holy event: double-time and claps).
 
+// How loud the ambient wind (its whoosh and the high howl) is against everything else.
+export const AMBIENT_WIND = 0.4;
+
 const PROFILES = {
   bazaar: { root: 164.81, scale: [0,2,4,6,7,9,11], tempo: 88, pad: 'triangle', arp: 'sine', prog: [0,3,1,4], density: .55, ground: 'stone' },
   // root (Hz), scale (semitones), tempo, waveforms, chord roots (scale degrees), arpeggio density
@@ -739,12 +742,13 @@ export class Sound {
     if (!this.ctx) return;
     if (this.bandDefs && !this.bands) this.makeBands();
     const k = Math.min(s.speed / 11, 1.5);
-    this.set('wind', 0.03 + s.gust * 0.05 + s.storm * 0.11 + k * 0.03, 420 + s.gust * 300 + s.storm * 400);
+    // the wind's whoosh sits under the music, not over it (storms still rise well above the calm)
+    const W = AMBIENT_WIND;
     const highWind = this.voice.ambience === 'highwind' ? 0.03 : 0;
-    this.set('howl', s.gust * 0.012 + s.storm * 0.025 + highWind + (s.altitude > 60 ? 0.02 : 0), 700 + Math.sin(this.ctx.currentTime * 0.3) * 250);
-    this.set('wind', 0.03 + s.gust * 0.05 + s.storm * 0.11 + k * 0.03 + (this.voice.ambience === 'city' ? 0.02 : 0), 420 + s.gust * 300 + s.storm * 400);
+    this.set('howl', (s.gust * 0.012 + s.storm * 0.025 + highWind + (s.altitude > 60 ? 0.02 : 0)) * W, 700 + Math.sin(this.ctx.currentTime * 0.3) * 250);
+    this.set('wind', (0.03 + s.gust * 0.05 + s.storm * 0.11 + k * 0.03 + (this.voice.ambience === 'city' ? 0.02 : 0)) * W, 420 + s.gust * 300 + s.storm * 400);
     this.set('rain', s.rain * 0.07);
-    this.set('cloak', s.riding ? 0.04 + k * 0.05 : Math.pow(Math.min(s.speed / 11, 1), 2) * 0.07);
+    this.set('cloak', (s.riding ? 0.04 + k * 0.05 : Math.pow(Math.min(s.speed / 11, 1), 2) * 0.07) * (0.5 + 0.5 * W));
     this.set('jet', s.thrusting ? 0.32 : 0);
     const e = this.engine, t = this.ctx.currentTime;
     const motor = s.rideKind === 'bike' || s.rideKind === 'skiff' || s.rideKind === 'taxi';
