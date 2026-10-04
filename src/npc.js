@@ -231,7 +231,7 @@ export class NPC {
     const mover = player.ride ?? player;
     const playerSpeed = Math.hypot(mover.vel.x, mover.vel.z);
     const greetR = player.riding ? 18 : 9;
-    let speed = 0, face = null;
+    let speed = 0, face = null, fol = null;
     const startled = this.time - this.startleAt < 2.4 && this.faceTo !== undefined;
 
     // a vehicle bearing down on them: jump aside (perpendicular to its path)
@@ -262,25 +262,28 @@ export class NPC {
       this.move(_w, speed, dt);
       face = Math.atan2(_w.x, _w.z);
       this.greeted = 0;
+    } else if ((fol = this.follow?.()) && fol.pos && Math.hypot(fol.pos.x - this.pos.x, fol.pos.z - this.pos.z) > (fol.near ?? 1.2)) {
+      // walk toward a moving target, matching its pace (before greeting: a follower near you
+      // used to stop to wave whenever you were within 9 m, so Oum and Ilo trailed 9 m behind
+      // and the Speaker dropped out of his procession as you came up)
+      this.greeted = 0;
+      _w.subVectors(fol.pos, this.pos); _w.y = 0;
+      const d = _w.length(), near = fol.near ?? 1.2;
+      if (d > 40) { this.pos.copy(fol.pos); }           // fell far behind (a teleport, a long fall): catch up
+      else {
+        _w.divideScalar(d);
+        speed = Math.min((fol.speed ?? this.speed) + (d - near) * 0.6, fol.max ?? 4.5);
+        this.move(_w, speed, dt);
+        face = Math.atan2(_w.x, _w.z);
+      }
     } else if (dist < greetR) {
       // stop, face the player, wave once
       face = Math.atan2(toPlayer.x, toPlayer.z);
       if (!this.greeted) { this.greeted = this.time; this.lineIdx = (this.lineIdx + 1) % this.lines.length; }
-    } else if (this.follow) {
-      // walk toward a moving target, matching its pace; wait when close enough
+    } else if (fol) {
+      // arrived where they were going: waiting, facing their way
       this.greeted = 0;
-      const f = this.follow();
-      if (f?.pos) {
-        _w.subVectors(f.pos, this.pos); _w.y = 0;
-        const d = _w.length(), near = f.near ?? 1.2;
-        if (d > 40) { this.pos.copy(f.pos); }           // fell far behind (a teleport, a long fall): catch up
-        else if (d > near) {
-          _w.divideScalar(d);
-          speed = Math.min((f.speed ?? this.speed) + (d - near) * 0.6, f.max ?? 4.5);
-          this.move(_w, speed, dt);
-          face = Math.atan2(_w.x, _w.z);
-        } else if (f.face !== undefined) face = f.face;
-      }
+      if (fol.face !== undefined) face = fol.face;
     } else {
       this.greeted = 0;
       if (this.pause > 0) this.pause -= dt;
