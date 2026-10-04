@@ -13,6 +13,7 @@ import { StarMap, consoleAction } from './starmap.js';
 import { pendingCall, completedWorlds, callLines, callContext, applyCall, recordingLabel } from '../story/calls.js';
 import { Hologram } from './hologram.js';
 import { endingUnlocked, HOME_ID } from '../story/ending.js';
+import { MAP_LINE } from '../story/signature.js';
 import { HomecomingDirector } from './homecoming.js';
 import * as sfx from './sfx.js';
 import { padIndex } from '../native-pad.js';
@@ -489,6 +490,8 @@ export class Ship {
     sfx.beep(this.sound, true);
     this.parked.callScreen?.set({ who: 'map' });
     this.map.toggle(true);
+    // the first time with power: why these worlds (src/story/signature.js)
+    if (!game.flag('signature.told')) { game.set('signature.told', true); this.cinema.say(MAP_LINE, { secs: 7 }); }
   }
 
   travel(to) {

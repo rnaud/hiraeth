@@ -1562,6 +1562,24 @@ picks the device. The tab keeps its own storage (not the app's saves). Afterward
   "Back to the ship". Ship sites no longer keep clear of the old gate spots; the City-Shaft and the market,
   where that moved the ship, pin it where it stood (`SITE_OVERRIDES`).
 
+### The strike's signature: why these worlds
+- **The reason for the route** (`src/story/signature.js`, the lore in `LORE.md`). Whatever
+  struck the ship in the prologue left a magnetic signature in the glyph-shaped scar on its
+  hull, a slow pulse in threes. The ship charts only the worlds whose field carries the same
+  pulse (`SIGNATURE_WORLDS`: every world in `ORDER`, each with a reading and the place it is
+  strongest), and reads the trace further on from each one you finish (the route's unlock
+  rule, unchanged). Home has none: the ship knows that way by heart.
+- **Where it shows:** the ship says it as the emergency power comes on after the crash
+  (`CRASH_LINE`, the prologue's hatch), the first time the map opens with power (`MAP_LINE`,
+  flag `signature.told`), and out of the jump the first time it comes to a world
+  (`arrivalLine`, flag `signature.<id>`); the toast for newly charted worlds says the
+  signature reads there too (`revealNote`). On the map (`src/ship/starmap.js`) every
+  signature world wears a small glyph badge, the panel gives its reading ("matches the
+  scar", then where it is strongest once visited), and a dashed box beside the chart
+  explains it (a short form on small screens). A few locals notice it in their own words
+  (compasses in Qanat, the City-Shaft and the Hangar, the antenna dish in the market, Saba
+  at the Great Crystal). `tests/signature.test.js` checks that every destination carries it.
+
 ### A quieter screen: conversations and prompts
 - **No button reminders.** The status box (`updateHud` in `src/main.js`) shows the place,
   gauges, the objective and relics, and a prompt only for what is right here (the ship's

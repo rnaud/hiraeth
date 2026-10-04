@@ -286,7 +286,7 @@ export const THINGS = {
       entry: [{ if: { flag: 'perdide2.saucer.seen' }, node: 'again' }, { node: 'look' }],
       nodes: {
         look: {
-          say: ['~neutral~ The saucer sits tilted in the deep pool, water lapping at its rim. Its little light blinks: three short, one long. Three short, one long.', '~solemn~ Across its flank, scorched black into the teal: {glyph} Three dots over an arc. The same mark as the scar on your ship.', '~sad~ Through the canopy: two couches side by side, worn shiny. Two names scratched into the console, STEL and ATAN. And taped above them, a drawing, faded almost white: a garden of umbrella trees and white pyramids under a pale sky.', '~solemn~ It isn’t a ship. It’s a lifeboat. Whatever ship it fell from was struck by the same singing light that struck yours.'],
+          say: ['~neutral~ The saucer sits tilted in the deep pool, water lapping at its rim. Its little light blinks: three short, one long. Three short, one long.', '~solemn~ Across its flank, scorched black into the teal: {glyph} Three dots over an arc. The same mark as the scar on your ship.', '~sad~ Through the canopy: two couches side by side, worn shiny. Two names scratched into the console, ODILE and TALO. And taped above them, a drawing, faded almost white: a garden of umbrella trees and white pyramids under a pale sky.', '~solemn~ It isn’t a ship. It’s a lifeboat. Whatever ship it fell from was struck by the same singing light that struck yours.'],
           do: [{ set: { 'perdide2.saucer.seen': true, 'clue.perdide2.edena': true } }],
           choices: [{ text: '~solemn~ (remember the garden)', end: true }],
         },

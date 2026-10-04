@@ -7,6 +7,7 @@ import { PROLOGUE_CALL, recordingSpan, onHologram, recordingLabel } from '../sto
 import { callTimeline } from './prologue.js';
 import * as sfx from './sfx.js';
 import { exhaust, footPuffs } from './exhaust.js';
+import { CRASH_LINE, arrivalLine } from '../story/signature.js';
 
 // What the ship's cinematics look like: cameras, the moving ship, dust,
 // sounds, subtitles. The prologue's timing lives in prologue.js; the
@@ -163,6 +164,7 @@ export class PrologueDirector {
       case 'hatch':
         pk.lightsOff = false;
         s.setPower('emergency', pk);
+        C.say(CRASH_LINE, { secs: 6 });   // what struck the ship left a signature (src/story/signature.js)
         break;
       case 'stepout': {
         const thr = this.P(polar(9.0, HATCH_A, DECK));
@@ -470,6 +472,9 @@ export class ArrivalDirector extends Sequence {
           C.hud(false); C.bars(true);
           ship.placePlayer(ship.world(m, m.interior.points.hatchIn), ship.worldHeading(m, HATCH_A), false);
           ship.setDoor(m, 0); ship.setRamp(m, 0);
+          // the first time here: the ship reads the strike's signature (src/story/signature.js)
+          const sig = arrivalLine(ship.levelId, (k) => game.flag(k));
+          if (sig) { C.say(sig, { secs: 5.2 }); for (const [k, v] of Object.entries(sig.set)) game.set(k, v); }
           const a = ship.buildApproach();
           m.group.position.copy(a.centre); m.group.quaternion.copy(ship.restQuat);
           m.mats.thrust.uniforms.uGlow.value = 0.6;

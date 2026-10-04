@@ -39,6 +39,7 @@ import { FluidTool, bindToolMouse } from './fluid-tool.js';
 import { ORDER } from './levels/content.js';
 import { createStory } from './story/index.js';
 import { knownWorlds, newlyKnown } from './story/route.js';
+import { revealNote } from './story/signature.js';
 import { registerInteractable, PRIORITY } from './interact.js';
 import { Ship } from './ship/ship.js';
 import { birdAnswers, promisedBird } from './bird.js';
@@ -370,7 +371,7 @@ let knownBefore = known();
 const revealed = () => {
   const now = known(), fresh = newlyKnown(knownBefore, now);
   knownBefore = now;
-  return fresh.length ? `New on the ship's map: ${fresh.map((id) => levelById(id).title).join(' and ')}.` : null;
+  return revealNote(fresh.map((id) => levelById(id).title));   // "New on the ship's map: …", and the signature reads there too
 };
 journal.known = (id) => !ORDER.includes(id) || known().includes(id);   // the sketchbook leaves out worlds you don't know yet
 const story = new Story(scene, { levelId, def: { ...content.story, next: revealed }, journal, sound, capture, player, physics, ground: level.ground.heightAt ? level.ground : null });

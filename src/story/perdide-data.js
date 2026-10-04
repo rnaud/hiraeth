@@ -307,7 +307,7 @@ export const PEOPLE = {
         },
         mean: { say: ['~curious~ A new phrase is an answer. Something has sung to it, and it remembers. Have you heard it before, traveller? Your face says you have.'], choices: [{ text: '~solemn~ Yes. Just before something hit my ship.', goto: 'heard' }] },
         heard: {
-          say: ['~solemn~ Then that’s what it was answering. Whatever struck your ship sang the same song as this. They’re the same stuff, child: pieces of the same light.', '~solemn~ One of them fell here long ago, and stuck in the mud. One of them is still falling. You met it on the way down.', '~neutral~ Look: the song shook a splinter loose. It’s lying *at the foot of the spires*. Take it. It came off for you.'],
+          say: ['~solemn~ Then that’s what it was answering. Whatever struck your ship sang the same song as this. They’re the same stuff, child: pieces of the same light.', '~solemn~ One of them fell here long ago, and stuck in the mud. One of them is still falling. You met it on the way down.', '~solemn~ It left its pull in your hull, and the crystal pulls the same way. Iron that has been sung at leans toward the rest of the song. That is how your ship found us, I think.', '~neutral~ Look: the song shook a splinter loose. It’s lying *at the foot of the spires*. Take it. It came off for you.'],
           do: { set: { 'perdide.clue.ship': true } },
           choices: [{ text: '~curious~ What should I do with it?', goto: 'cave' }],
         },

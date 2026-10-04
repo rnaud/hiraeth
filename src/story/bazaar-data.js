@@ -213,7 +213,7 @@ export const PEOPLE = {
           choices: [{ text: '~playful~ Stand back.', end: true }],
         },
         light: {
-          say: ['~solemn~ I was up here when it passed. Low over the square, ringing, turning slowly, as if it were reading the signs. Every bulb on the antenna lit by itself.', '~sad~ Then they all went out, and the dish slipped, and the tower went quiet.'],
+          say: ['~solemn~ I was up here when it passed. Low over the square, ringing, turning slowly, as if it were reading the signs. Every bulb on the antenna lit by itself.', '~sad~ Then they all went out, and the dish slipped, and the tower went quiet.', '~curious~ The dish still swings a hair toward where it went. And toward your ship, when you walk past it. Same pull. I’d know it anywhere now.'],
           do: { set: { 'bazaar.rumour.light': true } },
           choices: [{ text: '~curious~ What’s wrong with it?', goto: 'wrong' }],
         },

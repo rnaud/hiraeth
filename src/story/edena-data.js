@@ -309,7 +309,7 @@ export const THINGS = {
     id: 'lookout', name: 'Talo’s lookout', title: 'on the tallest tree’s crown', color: '#b5a7e6', voice: 0.75,
     talk: { nodes: {
       note: {
-        say: ['~neutral~ A bench, worn smooth, facing east. On a post beside it someone has carved three dots over an arc, small and careful, and pinned a folded note under it.', '~solemn~ *From here I can watch the east, where it came from. Odile says it won’t come back. I say it turned once, it can turn again. If it does, I want to see it first. — A.*', '~sad~ Below, the whole garden. Across the south meadow runs a long green line, greener than the rest: the furrow the ship cut, grown over.'],
+        say: ['~neutral~ A bench, worn smooth, facing east. On a post beside it someone has carved three dots over an arc, small and careful, and pinned a folded note under it.', '~solemn~ *From here I can watch the east, where it came from. Odile says it won’t come back. I say it turned once, it can turn again. If it does, I want to see it first. — T.*', '~sad~ Below, the whole garden. Across the south meadow runs a long green line, greener than the rest: the furrow the ship cut, grown over.'],
         do: { set: { 'edena.lookout.read': true } },
         choices: [{ text: '~curious~ (watch the east for a while)', end: true }],
       },
