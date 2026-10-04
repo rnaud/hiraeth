@@ -65,14 +65,27 @@ export class ReactionField {
   }
 }
 
-const FONT={
- A:['010','101','111','101','101'],G:['111','100','101','101','111'],I:['111','010','010','010','111'],N:['101','111','111','111','101'],
- W:['101','101','111','111','010'],E:['111','100','110','100','111'],S:['111','100','111','001','111'],Y:['101','101','010','010','010'],O:['111','101','101','101','111'],U:['101','101','101','101','111'],
- H:['101','101','111','101','101'],R:['110','101','110','101','101'],D:['110','101','101','101','110'],T:['111','010','010','010','010'],B:['110','101','110','101','110'],C:['111','100','100','100','111'],K:['101','101','110','101','101'],
+// The makers' listening stones (City-Shaft, Signal Market, Hangar): a carved stone on a squat
+// plinth, a brass rim round a tall face, three brass-set lenses under it (the three apertures
+// that recur on flowers, machines and stones in every world). Waking, the face fills with light
+// and shows a glyph in the makers' manner, never a word: the mark itself (three dots over an arc:
+// it sees you), the mark doubled (again: it knows you), or the mark under a canopy, like a hand
+// cupped to an ear (it has heard of you, from another world).
+const GLYPHS={
+  see:[['stroke',.44,.78],['mark',0,1.3],['stroke',-.78,-.42]],
+  again:[['mark',.4,1.05],['mark',-.36,1.05]],
+  heard:[['wave',.8,.4],['wave',.6,.27],['mark',0,1.2],['stroke',-.78,-.44]],
 };
-function letters(text,width,material){
-  const geo=[],step=width/(text.length*4),x0=-width/2;
-  [...text].forEach((c,i)=>(FONT[c]??[]).forEach((row,y)=>[...row].forEach((v,x)=>{if(v==='1')geo.push(new THREE.BoxGeometry(step*.8,step*.8,.035).translate(x0+(i*4+x)*step,(2-y)*step,0));})));
+/** One glyph, read top to bottom like a line of carved script on the tall face. */
+function glyph(kind,material){
+  const geo=[],arc=(r,A,x,y)=>new THREE.TorusGeometry(r,.03,4,16,A).rotateZ(Math.PI/2-A/2).scale(1,1,.5).translate(x,y,0);
+  for(const [part,a,b] of GLYPHS[kind]){
+    if(part==='mark'){   // the makers' mark: three dots over an arc
+      for(const [x,y] of [[-.15,.1],[0,.16],[.15,.1]])geo.push(new THREE.SphereGeometry(.052*b,8,6).scale(1,1,.5).translate(x*b,a+y*b,0));
+      geo.push(arc(.4*b,1.05,0,a-.34*b));
+    }else if(part==='stroke')geo.push(new THREE.BoxGeometry(.05,b-a,.03).translate(0,(a+b)/2,0));
+    else geo.push(arc(b,1.4,0,a-b));   // a ripple over the mark: heard, from far off
+  }
   return new THREE.Mesh(mergeGeometries(geo),material);
 }
 function reactiveMaterial(color){
@@ -85,13 +98,27 @@ function objectFor(theme,screen=false){
   const moving=new THREE.Group();root.add(moving);
   let texts=[],petals=null;
   if(screen||theme.kind==='screen'||theme.kind==='machine'){
-    const pedestal=new THREE.Mesh(new THREE.BoxGeometry(.55,1.8,.5),metal);pedestal.position.y=.9;root.add(pedestal);
-    const frame=new THREE.Mesh(new THREE.BoxGeometry(3.7,2.2,.36),ink);frame.position.y=2.7;moving.add(frame);
-    const face=new THREE.Mesh(new THREE.BoxGeometry(3.4,1.9,.08),m);face.position.set(0,2.7,.22);moving.add(face);
-    const textMat=makeMaterial({color:'#304c53',flat:true,glow:.6});
-    texts=['WE SEE YOU','AGAIN','HEARD'].map(word=>{const mesh=letters(word,2.9,textMat);mesh.position.set(0,2.65,.3);mesh.visible=false;moving.add(mesh);return mesh;});
-    // Three apertures recur on flowers, machines and screens across worlds.
-    for(let i=-1;i<=1;i++) {const dot=new THREE.Mesh(new THREE.SphereGeometry(.1,7,5),m);dot.position.set(i*.4,1.99,.3);moving.add(dot);}
+    const stone=makeMaterial({color:'#e6dabb',flat:true}),brass=makeMaterial({color:'#c99d48',flat:true});
+    if(!screen){   // (a billboard in the market wears only the face, as a medallion)
+      const plinth=new THREE.Mesh(new THREE.CylinderGeometry(.34,.5,1.75,7),stone);plinth.position.y=.875;root.add(plinth);
+      const foot=new THREE.Mesh(new THREE.CylinderGeometry(.62,.66,.16,7),stone);foot.position.y=.08;root.add(foot);
+      const collar=new THREE.Mesh(new THREE.CylinderGeometry(.42,.38,.16,14),brass);collar.position.y=1.72;root.add(collar);
+      const neck=new THREE.Mesh(new THREE.CylinderGeometry(.22,.32,.32,7),stone);neck.position.y=1.88;moving.add(neck);
+    }
+    // the carved head: a tall stone, pointed like a seed, the face sunk in it behind a brass rim
+    const head=new THREE.Mesh(new THREE.CylinderGeometry(1,1,.34,20).rotateX(Math.PI/2).scale(.66,1.3,1),stone);head.position.y=2.7;moving.add(head);
+    const rim=new THREE.Mesh(new THREE.TorusGeometry(1,.07,5,30).scale(.56,1.18,1),brass);rim.position.set(0,2.7,.17);moving.add(rim);
+    const face=new THREE.Mesh(new THREE.CircleGeometry(1,30).scale(.52,1.14,1),m);face.position.set(0,2.7,.175);moving.add(face);
+    for(const side of [-1,1]){const ear=new THREE.Mesh(new THREE.SphereGeometry(.2,8,6).scale(.5,1.3,.7),brass);ear.position.set(side*.68,2.7,0);moving.add(ear);}
+    const crown=new THREE.Mesh(new THREE.ConeGeometry(.15,.42,6),brass);crown.position.y=4.18;moving.add(crown);
+    const textMat=makeMaterial({color:'#2f3d40',flat:true,glow:.6});
+    // first meeting, a return, heard of from another world (the order the update picks them in)
+    texts=['see','again','heard'].map(kind=>{const mesh=glyph(kind,textMat);mesh.position.set(0,2.7,.2);mesh.visible=false;moving.add(mesh);return mesh;});
+    // the three apertures: lenses of the face's own light, set in brass under the face
+    for(let i=-1;i<=1;i++){
+      const ring=new THREE.Mesh(new THREE.TorusGeometry(.11,.035,4,12),brass);ring.position.set(i*.36,1.72-(Math.abs(i)?.02:0),.37);if(screen)ring.position.set(i*.3,1.28,.12);moving.add(ring);
+      const lens=new THREE.Mesh(new THREE.SphereGeometry(.09,8,6).scale(1,1,.6),m);lens.position.copy(ring.position);moving.add(lens);
+    }
   } else {
     const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(0,0,0),new THREE.Vector3(-.14,.45,.04),new THREE.Vector3(.08,.85,0),new THREE.Vector3(0,1.2,0)]);
     root.add(new THREE.Mesh(new THREE.TubeGeometry(curve,8,.065,5,false),metal));

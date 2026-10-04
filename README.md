@@ -837,16 +837,20 @@ passes one delayed pulse to its neighbors, and settles after you leave.
 | World | Response |
 | --- | --- |
 | Desert | Salt blooms open, turn turquoise and release a brief cloud of spores. |
-| City-Shaft | Terminals wake along the terraces and recognize returning visits. |
+| City-Shaft | The makers' listening stones wake along the terraces and recognize returning visits. |
 | Vael | Tall pale fronds turn toward visitors and take on a lavender tint. |
-| Hangar | Machines stir and pass amber signals, including in the other gravity zones. |
+| Hangar | Brass-bound listening stones stir and pass amber signals, including in the other gravity zones. |
 | Viridel | Larger flowers unfold, turn pink and turn toward the player. |
 | Lorn | Fungi shrink away, glow turquoise and release spores. |
-| Signal Market | Shopfront terminals and selected existing billboards wake with changing messages. |
+| Signal Market | Listening stones along the shopfronts, and medallions on selected billboards, wake with changing glyphs. |
 | Atelier | Pale paper-like growths open and pick up a soft teal glow. |
 
-The three small lights/seeds recur across living and mechanical objects. Screens
-say WE SEE YOU, AGAIN or HEARD according to encounter history. Encounters persist
+The three small lights/seeds recur across living and mechanical objects. The
+makers' listening stones (a seed-shaped carved stele on a plinth, a brass rim, three
+brass-set lenses) never show words: waking, their tall face fills with light and a
+line of glyphs in the makers' manner, chosen by encounter history: the makers' mark
+between two strokes (a first meeting), the mark twice (again), the mark under two
+ripples (heard of you in another world). Encounters persist
 in `moebius.encounters.v1`; visiting another world can change a first greeting.
 Reset progress clears that memory. Returning plants retain a faint glow.
 
@@ -859,6 +863,35 @@ The new scenery has no collision so it does not block established routes.
 Verification includes reaction/cooldown/occlusion/memory tests, placement checks
 against every world's actual collision geometry, and browser checks of plant
 and screen behavior. Performance on a physical iPhone still needs confirmation.
+
+### Conversations: at most three answers
+
+No conversation node offers more than three answers at once, and almost all offer
+one or two (the few threes are real decisions: what to tell Ilo, what to say to
+Sel, which stone goes on Tiv's cairn). Secondary questions sit one node deeper
+instead of all on the greeting, and a goodbye is left out where every answer
+already ends the talk (B / Esc always closes it). `tests/dialogue-choices.test.js`
+walks every tree in the game, tries every combination of the conditions on a
+node's answers (flags, items, quest stages, function conditions), and checks the
+cap, the average (at most two) and that no node was stranded by the trimming.
+
+### The father’s charge
+
+"Bring back something of value", the father's last words on the prologue's
+recording, is the journey's own quest (`src/story/charge.js`). Its state is read
+off the save: given (`charge.given`, or any save past the prologue), out in the
+worlds, home on the map (after six worlds), brought home (`ending.done`). It has
+its own mark (✦, gold; a world's main quest is ◆, an errand ◇):
+
+- a title card when it is given, as the dust settles over the crash: the words
+  SOMETHING OF VALUE lettered on a band of paper with a pen line and a gold dot,
+  and its own sound (`sound.charge()`, a low fifth under three climbing notes). An
+  older save gets the card once, at its first quiet moment (`charge.card`);
+- a card pinned at the top of the sketchbook: his words, the step now, how many
+  worlds, and what you carry (the keepsakes);
+- a gold tag on the HUD's objective line: for a while after a keepsake is earned
+  ("✦ Something of value: Teo's walking rhythm"), and whenever nothing nearer is
+  asked of you.
 
 ### Character animation review
 
