@@ -74,6 +74,7 @@ const CSS = `
 #starmap.portrait button.world { width: 96px; }
 #starmap.portrait .world .disc { width: 52px; height: 52px; }
 #starmap.portrait .world .name { font-size: 10.5px; }
+#starmap.portrait .world .tag { font-size: 9.5px; white-space: nowrap; letter-spacing: -.02em; }
 #starmap .locked { position: absolute; inset: 0; display: none; place-items: center; background: rgba(31, 39, 71, .78); }
 #starmap.nopower .locked { display: grid; }
 #starmap .locked div { padding: 16px 26px; text-align: center; background: #3a1f22; border: 2px solid #e6503a; box-shadow: 6px 6px 0 #2b211f; color: #f7ecd2; }
