@@ -153,7 +153,7 @@ export const PEOPLE = {
           ],
         },
         under: {
-          say: ['Where they touch the ground. I crawled under the pearl by the lake once, flat on my back. There’s a mark there, pressed into it, like where a foot came down. {glyph}', 'Three dots over an arc. We call it the Footprint. Every sphere has one, underneath, where nobody looks. Except me.'],
+          say: ['Where they touch the ground. I crawled under the pearl by the lake once, flat on my back. There’s a mark there, pressed into it, like where a foot came down. {glyph}', 'Three dots over an arc. We call it the Footprint. Every sphere has one, underneath, where nobody looks. Except me.', 'Sometimes there’s a blue box near a Footprint, with a star on the lid. A left-behind. Ume says they’re presents. Ume says everything is a present.'],
           choices: [{ text: 'Whose footprint?', goto: 'whose' }],
         },
         whose: { say: ['Something that walked through the sky putting spheres down, I suppose, the way you’d put down cups. Some say the great one on the horizon, and that one day it will come back and collect them.'], choices: [{ text: 'Seen anything strange lately?', goto: 'strange' }, { text: 'Thanks, Ivo.', end: true }] },

@@ -97,25 +97,45 @@ test('jetpack worlds without the jets get a box with them beside the ship', () =
   game.reset();
 });
 
-test('the desert backpack box is in sight of the ramp foot, 40–90 m out, at the end of the debris', () => {
+test('the desert backpack box sits in Qanat, under the Givers’ shrine by the well, on reachable ground', () => {
   const { physics, level } = world('desert');
-  const s = ship('desert');
+  const C = level.qanat.city;
   const p = PLACEMENTS.desert.find((x) => x.item === 'backpack');
+  assert.ok(!p.debris && p.beacon, 'no crash trail; a pale column over it');
   const at = resolvePlacement(p, { physics, level });
-  const d = Math.hypot(at.pos.x - s.rampFoot.x, at.pos.z - s.rampFoot.z);
-  assert.ok(d > 40 && d < 90, `${d.toFixed(1)} m from the ramp`);
-  // line of sight from eye height at the foot of the ramp to the top of the box: nothing in the way,
-  // neither the dunes (the heightfield) nor anything solid (the ship, its berm, rocks)
-  const eye = s.rampFoot.clone().add(V(0, 1.6, 0)), top = at.pos.clone().add(V(0, 0.4, 0));
-  for (let t = 0.03; t < 0.97; t += 0.005) {
-    const p = eye.clone().lerp(top, t);
-    const g = Math.max(level.ground.heightAt(p.x, p.z), physics.groundAt(p.x, p.y + 0.3, p.z, 40));
-    assert.ok(g < p.y, `the view is blocked ${(t * d).toFixed(1)} m out (${g.toFixed(2)} over ${p.y.toFixed(2)})`);
+  assert.ok(at, 'resolves');
+  // inside the walls, up on the top terrace at the burning tree's roots, beside the well
+  assert.ok(Math.hypot(at.pos.x - C.center.x, at.pos.z - C.center.z) < 20, 'in the middle of the city');
+  assert.ok(Math.abs(at.pos.y - C.top) < 0.2, `on the top terrace (${at.pos.y.toFixed(2)} vs ${C.top.toFixed(2)})`);
+  assert.ok(at.pos.distanceTo(C.shrine.box) < 0.05, 'under the shrine');
+  const dw = Math.hypot(at.pos.x - C.well.x, at.pos.z - C.well.z);
+  assert.ok(dw > 3.5 && dw < 9, `beside the well (${dw.toFixed(1)} m)`);
+  // the shrine's roof is over it, with head room for the opening scene
+  assert.ok(physics.rayDistance(at.pos.clone().add(V(0, 0.5, 0)), V(0, 1, 0), 6) < 4, 'a roof overhead');
+  reachable(physics, at.pos, at.yaw, 'desert.backpack');
+  // its front faces the top of the main stairs, the way you come up from the gate
+  const F = V(Math.sin(at.yaw), 0, Math.cos(at.yaw)), to = C.stairTop.clone().sub(at.pos).setY(0).normalize();
+  assert.ok(F.dot(to) > 0.95, 'it faces the stairs');
+  // on foot from the gate: up the avenue, the stairs, across the terrace to where you kneel (no step over 0.62 m, no wall)
+  const kneel = at.pos.clone().addScaledVector(F, 0.95);
+  const route = [C.gate, C.plinthStair, C.stairTop, kneel];
+  for (let i = 0; i < route.length - 1; i++) {
+    const a = route[i], b = route[i + 1], n = Math.ceil(a.distanceTo(b) / 0.5);
+    let y = physics.groundAt(a.x, a.y + 1, a.z);
+    const dir = b.clone().sub(a).setY(0).normalize();
+    for (let k = 1; k <= n; k++) {
+      const q = a.clone().lerp(b, k / n), g = physics.groundAt(q.x, y + 0.65, q.z);
+      assert.ok(g > y - 3 && g - y < 0.62, `a step of ${(g - y).toFixed(2)} m at ${q.x.toFixed(1)},${q.z.toFixed(1)} (leg ${i})`);
+      for (const h of [0.9, 1.6]) assert.ok(physics.rayDistance(V(q.x, g + h, q.z).addScaledVector(dir, -0.25), dir, 0.5) > 0.49, `a wall at ${q.x.toFixed(1)},${q.z.toFixed(1)}`);
+      y = g;
+    }
   }
-  // and on the hatch's side of the ship (the ramp faces it), not behind the hull
-  const a = Math.atan2(at.pos.x - s.rampFoot.x, at.pos.z - s.rampFoot.z) - s.site.heading;
-  assert.ok(Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) < 1.4, 'out in front of the hatch');
-  assert.ok(p.debris && p.beacon);
+  // open behind and to the right: the opening scene's two cameras see the traveller from there
+  const S = V(Math.cos(at.yaw), 0, -Math.sin(at.yaw)), chest = kneel.clone().add(V(0, 0.95, 0)).addScaledVector(F, -0.15);
+  for (const [label, cam] of [['right', at.pos.clone().addScaledVector(S, 2.7).add(V(0, 0.9, 0))], ['behind', at.pos.clone().addScaledVector(S, 0.66).addScaledVector(F, -2.25).add(V(0, 1.1, 0))]]) {
+    const d = cam.distanceTo(chest);
+    assert.ok(physics.rayDistance(chest, cam.clone().sub(chest).normalize(), d) >= d - 0.05, `the ${label} camera has a clear view`);
+  }
 });
 
 test('a box opens through E and its scene, grants its item and stays open', () => {
@@ -131,7 +151,7 @@ test('a box opens through E and its scene, grants its item and stays open', () =
   const boxes = createBoxes({ levelId: 'desert', scene, physics, level, player: pl, cam, anchor: s.arrivalSpot() });
   const box = boxes.list.find((b) => b.item === 'backpack');
   assert.ok(box && !box.spent(), 'the backpack box, closed');
-  assert.ok(box.debris, 'with its debris trail');
+  assert.ok(box.parts.carve && box.parts.mats.carve, 'carved with the glyph');
   // it reacts as you come close: light, seam, star
   pl.pos.copy(box.pos).add(V(10, 0, 0));
   boxes.update(1 / 30, 1);
@@ -139,6 +159,7 @@ test('a box opens through E and its scene, grants its item and stays open', () =
   pl.pos.copy(box.pos).add(V(2, 0, 0));
   boxes.update(1 / 30, 1.1);
   assert.ok(box.light.w > far && box.parts.mats.seam.uniforms.uGlow.value > 0, 'it glows as you approach');
+  assert.ok(box.parts.mats.carve.uniforms.uGlow.value > 0.2, 'its carvings wake');
   // E: "open"
   const e = bestInteractable(pl);
   assert.equal(e?.entry.id, `box.${box.id}`);
@@ -203,11 +224,19 @@ test('old saves that finished the prologue keep the backpack; new games start wi
   old.set('prologue.done', true); old.set('quest.desert.power', 'speaker'); old.set('item.jar', 1);
   assert.equal(migrateSave(old), true);
   assert.equal(old.flag('item.backpack'), true);
+  assert.equal(old.flag('box.desert.backpack'), true, 'the shrine’s box is theirs already (open, counted as found)');
   assert.equal(migrateSave(old), false, 'once');
+  // a save from the crash-site box days (items.v 1, the backpack found): the shrine shows it open too
+  const v1 = new GameState(store());
+  v1.set('prologue.done', true); v1.set('items.v', 1); v1.set('item.backpack', true);
+  assert.equal(migrateSave(v1), false);
+  assert.equal(v1.flag('box.desert.backpack'), true);
+  assert.equal(v1.flag('items.v'), 2);
   // a new game: not yet through the prologue
   const fresh = new GameState(store());
   assert.equal(migrateSave(fresh), false);
   assert.equal(fresh.flag('item.backpack'), undefined);
+  assert.equal(fresh.flag('box.desert.backpack'), undefined, 'the shrine’s box waits for them');
   // ...and it stays without after the prologue ends (the migration is spent)
   fresh.set('prologue.done', true);
   assert.equal(migrateSave(fresh), false);

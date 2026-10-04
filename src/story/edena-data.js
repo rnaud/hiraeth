@@ -183,7 +183,7 @@ export const PEOPLE = {
           choices: [{ text: 'I’ll look for it.', do: { start: 'edena.seed' }, goto: 'thanks' }, { text: 'Maybe later.', end: true }],
         },
         androids: {
-          say: ['The white builders. They made the ruins and the pedestals and the perfect spheres, and then they stopped. Nobody knows why. They found the pyramids already here and copied them, badly, with straight lines.', 'They carved one mark on every ruin. {glyph} Three dots over an arc. We call it the Builders’ mark. They left nothing else written. Just that, everywhere, like a signature. Or an apology.'],
+          say: ['The white builders. They made the ruins and the pedestals and the perfect spheres, and then they stopped. Nobody knows why. They found the pyramids already here and copied them, badly, with straight lines.', 'They carved one mark on every ruin. {glyph} Three dots over an arc. We call it the Builders’ mark. They left nothing else written. Just that, everywhere, like a signature. Or an apology.', 'Nothing else but the gifts: blue chests with a pale star, up in the canopies where only a climber goes. Builders’ gifts, we call them. The garden grows round them and never over.'],
           choices: [{ text: 'Pyramids grow from seeds, you said?', goto: 'seeds' }],
         },
         thanks: { say: ['You will? It glows a little when someone is near; seeds like company. Bring it back and we’ll plant it together.'], choices: [{ text: 'Back soon.', end: true }] },

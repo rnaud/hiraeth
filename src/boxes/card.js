@@ -1,5 +1,6 @@
-// The box-opening card, in the game's paper-and-ink UI: what you found, what
-// it is, what it does. Also the full-screen catcher for the scene (a click or
+// The box-opening card, in the game's paper-and-ink UI: an artifact of the
+// makers (the glyph, then what you found), what it is, what it does, and the
+// makers' own line under it: left for one who has come a long way. Also the full-screen catcher for the scene (a click or
 // tap dismisses the card) and a small "skip" button for touch. Built on
 // demand, inert in node (no document).
 
@@ -14,7 +15,9 @@ const CSS = `
   opacity: 0; transition: opacity .35s, transform .45s cubic-bezier(.2,.9,.3,1.3); pointer-events: none;
   font: 14px/1.45 ui-monospace, Menlo, monospace; color: #2b211f; background: #fff6dc; border: 2px solid #2b211f; box-shadow: 6px 6px 0 #2b211f; padding: 14px 20px 12px; }
 #boxscene.card #boxcard { opacity: 1; transform: translate(-50%, 0) rotate(-.5deg); pointer-events: auto; }
-#boxcard .k { font-size: 11px; letter-spacing: .3em; opacity: .7; }
+#boxcard .k { font-size: 11px; letter-spacing: .3em; opacity: .75; }
+#boxcard .k svg { width: 22px; height: 14px; vertical-align: -2px; margin-right: 8px; fill: #25386c; stroke: #25386c; }
+#boxcard .left { margin: 2px 0 0; font-size: 11px; font-style: italic; letter-spacing: .06em; opacity: .65; }
 #boxcard h2 { margin: 4px 0 10px; font-size: 24px; letter-spacing: .04em; font-weight: bold; }
 #boxcard h2 .star { display: inline-block; width: 18px; height: 18px; margin-right: 8px; vertical-align: -1px; background: #25386c;
   clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0 50%, 39% 39%); }
@@ -29,6 +32,8 @@ const CSS = `
 `;
 
 const touch = () => typeof matchMedia === 'function' && (matchMedia('(pointer: coarse)').matches || 'ontouchstart' in globalThis);
+// the glyph (three dots over an arch, as in src/story/dialogue.js MOTIFS)
+const GLYPH = '<svg viewBox="0 0 24 16" aria-hidden="true"><circle cx="5" cy="5" r="2"/><circle cx="12" cy="3.2" r="2"/><circle cx="19" cy="5" r="2"/><path d="M3 15 Q12 6 21 15" fill="none" stroke-width="2"/></svg>';
 const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 
 export class BoxCard {
@@ -42,8 +47,8 @@ export class BoxCard {
     const el = (this.el = document.createElement('div'));
     el.id = 'boxscene';
     el.innerHTML = `<button class="skip" type="button">${touch() ? 'skip' : 'ESC skip'}</button>
-      <div id="boxcard" role="dialog" aria-live="polite"><div class="k">YOU FOUND</div><h2><i class="star"></i><span class="name"></span></h2>
-      <p class="what"><b>What it is</b><span class="text"></span></p><p class="does"><b>What it does</b><span class="use"></span></p>
+      <div id="boxcard" role="dialog" aria-live="polite"><div class="k">${GLYPH}AN ARTIFACT OF THE MAKERS</div><h2><i class="star"></i><span class="name"></span></h2>
+      <p class="what"><b>What it is</b><span class="text"></span></p><p class="does"><b>What it does</b><span class="use"></span></p><p class="left">Left by the makers for one who has come a long way.</p>
       <button class="go" type="button">E · continue</button></div>`;
     document.body.appendChild(el);
     this.card = el.querySelector('#boxcard');

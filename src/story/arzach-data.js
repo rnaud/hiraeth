@@ -91,7 +91,7 @@ export const PEOPLE = {
           choices: [{ text: 'And the bird is still waiting.', goto: 'track' }],
         },
         track: {
-          say: ['(She nods, once. She smooths the sand in front of her and draws in it with one finger: three dots, and a curve beneath them.) {glyph}', '(She points at the bird’s feet: three long toes, the curved heel.) Her track.'],
+          say: ['(She nods, once. She smooths the sand in front of her and draws in it with one finger: three dots, and a curve beneath them.) {glyph}', '(She points at the bird’s feet: three long toes, the curved heel.) Her track.', '(Under the track she draws a small square with a star on its lid, then points north, at the needle spire. Something waits up there, she means. Something left for whoever climbs.)'],
           do: { set: { 'arzach.glyph.drawn': true } },
           choices: [
             { text: 'I’ve seen that mark before. On my ship.', goto: 'mark' },

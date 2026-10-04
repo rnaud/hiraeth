@@ -86,7 +86,7 @@ export const KEEPERS = [
           choices: [{ text: 'The Welcome?', goto: 'glyph' }, { text: 'And they never came back.', goto: 'dark' }],
         },
         glyph: {
-          say: ['The mark: {glyph} Three lamps over a hull. We paint it by every pool so a traveller knows they’re expected.'],
+          say: ['The mark: {glyph} Three lamps over a hull. We paint it by every pool so a traveller knows they’re expected.', 'It’s carved round the traveller’s chest on the root arch, too, the blue one with the star. We dust it. It isn’t ours to open.'],
           do: { set: { 'perdide2.glyph.heard': true } },
           choices: [{ text: 'I’ve seen that mark. It’s burned into my ship.', goto: 'mark' }, { text: 'And the travellers never came back.', goto: 'dark' }],
         },

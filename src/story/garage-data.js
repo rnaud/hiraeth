@@ -118,7 +118,7 @@ export const PEOPLE = {
           ],
         },
         night: { say: ['The night the slit in the ring sang, Lune says. I didn’t hear it. I was asleep under the pump. When I woke up, three machines had stopped, and the fourth was me.'], choices: [{ text: 'Can I help?', goto: 'help' }] },
-        mark: { say: ['The maker’s rivets. {glyph} Three over a curve. The Major put them on everything he was proud of, Malvina says. The great machine. The portals’ footings. Me, if you look behind my ear. Don’t look behind my ear.'], choices: [{ text: 'Can I help with the machines?', goto: 'help' }, { text: 'I won’t.', end: true }] },
+        mark: { say: ['The maker’s rivets. {glyph} Three over a curve. The Major put them on everything he was proud of, Malvina says. The great machine. The portals’ footings. Me, if you look behind my ear. Don’t look behind my ear.', 'And the blue box on the keep wall, with the star. He didn’t make that one. He found it, rivets and all, and never opened it. Not mine, he said: it’s for the next one. Are you the next one?'], choices: [{ text: 'Can I help with the machines?', goto: 'help' }, { text: 'I won’t.', end: true }] },
         help: {
           say: ['With that tank on your back? Maybe. Machines here run on habit and a little colour. Give each one a squirt of whatever’s in there: shoot it, right in the works. If it remembers what it’s for, it’ll start.'],
           do: { start: 'garage.machines' },

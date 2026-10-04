@@ -124,7 +124,7 @@ export const PEOPLE = {
             { text: 'See you, Wen.', end: true },
           ],
         },
-        mark: { say: ['{glyph} The Maker’s Thumb. It’s on every plate and pipe that comes up out of the sand. We paint it on our doors so the machine knows which domes are ours.'], choices: [{ text: 'Does it work?', goto: 'works' }] },
+        mark: { say: ['{glyph} The Maker’s Thumb. It’s on every plate and pipe that comes up out of the sand. We paint it on our doors so the machine knows which domes are ours.', 'It’s on the thumb-boxes too: the blue chests with a star on top that turn up in the sand every few lifetimes. One’s up on the chimney ring now. They never open for us. We leave them be.'], choices: [{ text: 'Does it work?', goto: 'works' }] },
         works: { say: ['The machine has never once come to the wrong door. So yes.'], choices: [{ text: 'See you, Wen.', end: true }] },
         lit: {
           say: ['I felt it in my feet! The Wick is lit. Go, stand in front of the wheel. It turns better when someone is watching. Everyone says so; nobody knows why.'],

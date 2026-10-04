@@ -192,7 +192,7 @@ export const LOCALS = [
           choices: [{ text: 'I do. I’ll bring it back.', goto: 'bring' }, { text: 'What’s that mark on the bell?', goto: 'mark' }],
         },
         mark: {
-          say: ['The Three Notes over the rim. {glyph} The founders cast them into every bell they made: three notes, over the mouth that sings them. Nobody remembers which three.', 'Strange: the night the light went over, years after the clapper fell, the bell hummed. By itself. No clapper. One long note, answering something in the sky that sang.'],
+          say: ['The Three Notes over the rim. {glyph} The founders cast them into every bell they made: three notes, over the mouth that sings them. Nobody remembers which three.', 'Strange: the night the light went over, years after the clapper fell, the bell hummed. By itself. No clapper. One long note, answering something in the sky that sang.', 'And the blue chest on top of the balanced stones hummed back. A bell-chest, the founders called those: the star on the lid, the Three Notes round it. They say a bell-chest opens only for someone who has come further than the bell can be heard.'],
           do: { set: { 'arzach2.rumour.light': true } },
           choices: [{ text: 'A light that sang? That was the night my ship fell.', goto: 'light' }, { text: 'I’ll bring the clapper back.', goto: 'bring' }],
         },

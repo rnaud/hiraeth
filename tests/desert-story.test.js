@@ -28,7 +28,7 @@ const fakeNPC = (kind) => ({ kind, pooled: true, person: null, assign(p) { this.
 const crowd = new Crowd(scene, physics, { spots: level.crowdSpots(), makeNPC: fakeNPC });
 
 // a stand-in player who can be put anywhere
-const player = { pos: V(0, terrain.heightAt(0, 0), 0), vel: V(), heading: 0, riding: false, frame: { up: V(0, 1, 0), dir: (h, out) => out.set(Math.sin(h), 0, Math.cos(h)) } };
+const player = { pos: V(0, terrain.heightAt(0, 0), 0), vel: V(), wind: V(), heading: 0, riding: false, frame: { up: V(0, 1, 0), dir: (h, out) => out.set(Math.sin(h), 0, Math.cos(h)) } };
 const at = (p) => { player.pos.copy(p); return player; };
 const sound = { setBands() {}, setBandMode() {}, band: () => null, chime() {}, listen() {}, whoosh() {} };
 const toasts = [];
@@ -38,11 +38,13 @@ const npcs = [];
 const rt = createStory({ levelId: 'desert', scene, physics, level, player, npcs, crowd, sound, journal: { sections: [], el: { addEventListener() {} } }, story: { complete: () => { storyDone = true; } },
   capture: null, lib: null, humans: null, toast: (t) => toasts.push(t), tool: null });
 const { quests } = rt;
-const step = (n = 1, dt = 1 / 30) => { for (let i = 0; i < n; i++) { camera.position.copy(player.pos).add(V(0, 2, 4)); rt.update(dt, i * dt, { camera }); crowd.update(dt, i * dt, player, camera); } };
+// people: also walk the story people (main.js does it every frame; most tests don't need them to move)
+const step = (n = 1, dt = 1 / 30, { people = false } = {}) => { for (let i = 0; i < n; i++) { camera.position.copy(player.pos).add(V(0, 2, 4)); rt.update(dt, i * dt, { camera }); crowd.update(dt, i * dt, player, camera); if (people) for (const p of npcs) p.update(dt, player, camera); } };
 const talk = (person, choices) => {
   const r = new DialogueRunner(person, { game, quests });
   for (const c of choices) {
-    while (!r.lastPage) r.advance();
+    // to the last page of a node with choices (through any `next` chain)
+    while (!r.ended && (!r.lastPage || !r.choices().length) && r.advance());
     const pick = r.choices().find((x) => (typeof c === 'number' ? x.index === c : x.text.startsWith(c)));
     assert.ok(pick, `${person.name}: no choice "${c}" in ${JSON.stringify(r.choices().map((x) => x.text))} at ${r.nodeId}`);
     r.choose(pick.index);
@@ -179,43 +181,96 @@ test('the burning tree sends up a tall column of smoke, a landmark that never ge
   assert.ok(!Number.isFinite(g) || g < base.y + 40, `the ray through a puff at ${mid.pos.y.toFixed(0)} m lands at ${g}`);
 });
 
-test('a new game starts without the backpack: the first stage is to find what fell from the ship', async () => {
+test('a new game steps out with a bare back: no early step needs the tool; walk to the city past the camps', async () => {
   const { items } = await import('../src/items.js');
-  const { createBoxes } = await import('../src/boxes/index.js');
   assert.equal(items.has('backpack'), false, 'the traveller’s back is bare');
-  assert.equal(quests.stage('desert.power'), 'pack');
-  // the box is the marker
-  const boxes = createBoxes({ levelId: 'desert', scene, physics, level, player, quests });
-  const box = boxes.list.find((b) => b.item === 'backpack');
-  assert.equal(quests.objective().label, 'What fell from the ship');
-  assert.ok(quests.objective().position.distanceTo(box.pos) < 0.01, 'the marker stands on the box');
+  assert.equal(quests.stage('desert.power'), 'city');
+  assert.equal(quests.objective().label, 'Qanat, under the smoke');
+  assert.ok(quests.objective().position.distanceTo(Q.city.gate) < 0.01, 'the marker stands at the city gate');
   // without the backpack the rib is heaved by hand (nothing breaks without a tool)
   assert.equal(rt.world.toolHasPush(), false);
+  // the camps and the gate wave you on toward the city
+  const campers = crowd.people.filter((p) => p.spot?.id === 'camp');
+  assert.ok(campers.some((p) => p.lines.some((l) => /city|tree|Nour/.test(l))), 'the camps point the way');
+  assert.equal(talk(PEOPLE.ama, ['My ship']).nodeId, 'early', 'Ama sends you on to the city');
+  assert.ok(!quests.has('jar'), 'no jar yet: that comes when Nour sends you');
+  assert.equal(talk(PEOPLE.speaker, []).nodeId, 'early', 'the Speaker waves you on too');
+  at(Q.camps.center); step(3);
+  assert.equal(quests.stage('desert.power'), 'city', 'the camps are on the way, not the goal');
+  // through the gate: inside the walls
+  at(Q.city.plinthStair); step(2);
+  assert.equal(quests.stage('desert.power'), 'box');
+  assert.equal(quests.current('desert.power').label, 'The humming by the tree');
+});
+
+test('the makers’ chest is in the city; opening it gathers Qanat, flares the tree and brings Nour', async () => {
+  const { items } = await import('../src/items.js');
+  const { createBoxes } = await import('../src/boxes/index.js');
+  const boxes = createBoxes({ levelId: 'desert', scene, physics, level, player, quests });
+  const box = boxes.list.find((b) => b.item === 'backpack');
+  assert.ok(box.pos.distanceTo(Q.city.shrine.box) < 0.05, 'under the Givers’ shrine');
+  assert.ok(quests.objective().position.distanceTo(box.pos) < 0.01, 'the marker stands on the box');
+  const W = rt.world, nour = W.people.nour;
+  assert.ok(nour.seat !== null && nour.pos.distanceTo(Q.city.shrine.bench.at) < 0.5, 'Nour sits on her bench by the shrine');
+  // first sight of it: the people on the terrace turn and murmur, the tree flares
+  W.state.flare = 0;
+  at(Q.city.stairTop); step(40);
+  assert.ok(W.shrine.noticed, 'the chest is noticed');
+  assert.ok(W.state.flare > 0.5, 'the tree flares');
+  assert.ok([...W.villagers, W.people.hessa].some((n) => n.shout && /sky|hum|fell|tree|Grandmother/.test(n.shout.text)), 'a murmur');
+  // Nour, before it opens: it has not opened in living memory; it opens for one who fell from the sky
+  const before = talk(PEOPLE.nour, []);
+  assert.equal(before.nodeId, 'shut');
+  assert.match(before.pages.join(' '), /living memory/);
+  assert.match(before.pages.join(' '), /fell from the sky/);
+  // open it (the opening scene itself is tested in boxes.test.js)
+  at(box.pos.clone().add(V(Math.sin(box.yaw) * 0.8, 0, Math.cos(box.yaw) * 0.8)));
   boxes.open(box.id, { instant: true });
   assert.equal(items.has('backpack'), true);
   step(2);
-  assert.equal(quests.stage('desert.power'), 'camps', 'then on to the camps');
-  await new Promise((r) => setTimeout(r, 3400));
+  assert.equal(quests.stage('desert.power'), 'elder');
+  assert.equal(quests.objective().label, 'Nour, the eldest');
+  assert.equal(game.flag('desert.shrine.gathered'), true);
+  assert.ok(W.state.flare > 2, 'the tree flares high');
+  assert.ok(W.gatherSpots.length >= W.villagers.length, `room for everyone to gather (${W.gatherSpots.length} spots)`);
+  for (const p of W.gatherSpots) stand(p, 'a gathering spot');
+  // they walk over (the ones in the avenue up the main stairs), Nour gets up and comes to you, and talks
+  assert.equal(nour.seat, null, 'Nour stands');
+  for (let i = 0; i < 40 * 30 && !rt.dialogue.open; i += 10) step(10, 1 / 30, { people: true });
+  assert.ok(rt.dialogue.open && rt.dialogue.person.id === 'nour', 'Nour reaches you and speaks');
+  assert.equal(rt.dialogue.runner.nodeId, 'opened');
+  assert.match(rt.dialogue.runner.pages.join(' '), /opened/);
+  rt.dialogue.close();
+  step(30 * 30, 1 / 30, { people: true });
+  const near = W.villagers.filter((n) => flat(n.pos, box.pos) < 7).length;
+  assert.ok(near >= 4, `Qanat gathers round the shrine (${near} of ${W.villagers.length})`);
+  // a real conversation, with choices
+  const r = talk(PEOPLE.nour, ['Who are the Givers?', 'Why a star?', 'My ship has no power', 'Why me?', 'All right', 'The well']);
+  assert.equal(game.flag('desert.elder.heard'), true);
+  assert.equal(r.ended, false, 'a last word before you go');
+  step(2);
+  assert.equal(quests.stage('desert.power'), 'well');
+  await new Promise((res) => setTimeout(res, 3400));
   assert.ok(toasts.some((t) => /Try shooting \(G\) or pushing \(C\)/.test(t)), 'a nudge to try the tool');
   boxes.dispose();
 });
+const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 
-test('the main quest runs from the dead ship to a powered one', () => {
-  assert.equal(quests.stage('desert.power'), 'camps');
-  assert.equal(quests.objective().label, 'The pilgrims’ camps');
-  at(Q.camps.center); step(3);
+test('the main quest runs on from Nour to a powered ship', () => {
+  assert.equal(quests.stage('desert.power'), 'well');
+  assert.equal(quests.objective().label, 'The dry well');
+  talk(THINGS.well, [0]);
+  step(2);
   assert.equal(quests.stage('desert.power'), 'ama');
-  talk(PEOPLE.ama, ['My ship']);
-  assert.ok(quests.has('jar'), 'Ama gives a jar');
+  talk(PEOPLE.ama, ['I’ll bring it back full']);
+  assert.ok(quests.has('jar'), 'Ama gives the jar, now that Nour sent you');
   step(2);
   assert.equal(quests.stage('desert.power'), 'speaker');
   // the marker follows the Speaker round the circuit
   const sp = rt.world.people.speaker;
   assert.ok(quests.objective().position.distanceTo(sp.pos) < 0.01);
-  talk(PEOPLE.speaker, ['Why is the tree']);
-  step(2);
-  assert.equal(quests.stage('desert.power'), 'well');
-  talk(THINGS.well, [0]);
+  const said = talk(PEOPLE.speaker, ['Nour says', 'Is there a way down']);
+  assert.match(said.pages.join(' '), /mouth is a door/);
   step(2);
   assert.equal(quests.stage('desert.power'), 'down');
   // the objective is in the cave, so the guide routes through the skull's mouth
@@ -250,6 +305,53 @@ test('the main quest runs from the dead ship to a powered one', () => {
   assert.equal(game.flag('ship.powered'), true);
   assert.equal(game.flag('world.desert.done'), true);
   assert.ok(game.keepsakes().some((k) => k.id === 'desert.knowing'), 'the keepsake: what the giants left');
+  assert.equal(talk(PEOPLE.nour, []).nodeId, 'after');
+});
+
+test('old saves: stages that moved go to Nour, the ones done advance on their flags, the cave stays where it was', async () => {
+  const { GameState } = await import('../src/game-state.js');
+  const { Quests } = await import('../src/story/quests.js');
+  const { QUESTS } = await import('../src/story/desert-data.js');
+  const { migrateDesertQuest } = await import('../src/story/desert.js');
+  const { migrateSave } = await import('../src/boxes/index.js');
+  const store = () => { const m = new Map(); return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, v) }; };
+  const save = (stage, flags = {}) => {
+    const g = new GameState(store());
+    g.set('prologue.done', true); g.set('items.v', 1); g.set('quest.desert.power', stage);
+    for (const [k, v] of Object.entries(flags)) g.set(k, v);
+    const q = new Quests({ game: g });
+    for (const d of QUESTS) q.define(d);
+    return { g, q, run: () => { for (let i = 0; i < 12; i++) q.update(null); return q.stage('desert.power'); } };
+  };
+  // found the crash box, not yet at the camps: walk to the city; the shrine's box is already open (yours)
+  let s = save('camps', { 'item.backpack': true, 'box.desert.backpack': true });
+  migrateSave(s.g);
+  assert.equal(migrateDesertQuest(s.g), 'city');
+  s.g.set('desert.city.entered', true);
+  assert.equal(s.run(), 'elder', 'the box stage passes on the backpack you already carry');
+  // a pre-items save the v1 migration gave the backpack to: the shrine's box counts as found
+  s = save('pack');
+  s.g.set('items.v', undefined);
+  assert.equal(migrateSave(s.g), true);
+  assert.equal(s.g.flag('box.desert.backpack'), true);
+  assert.equal(migrateDesertQuest(s.g), 'city');
+  // half way (jar given, the Speaker heard): to Nour, then straight through to the well
+  s = save('well', { 'item.backpack': true, 'desert.jar.given': true, 'desert.speaker.heard': true });
+  assert.equal(migrateDesertQuest(s.g), 'elder');
+  assert.equal(s.run(), 'elder', 'Nour first');
+  s.g.set('desert.elder.heard', true);
+  assert.equal(s.run(), 'well');
+  s.g.set('desert.well.seen', true);
+  assert.equal(s.run(), 'down', 'the jar and the Speaker were done already');
+  // in the cave already: untouched
+  s = save('channel', { 'item.backpack': true });
+  assert.equal(migrateDesertQuest(s.g), null);
+  assert.equal(s.q.stage('desert.power'), 'channel');
+  // once only, and never for a new save
+  assert.equal(migrateDesertQuest(s.g), null);
+  const fresh = new GameState(store());
+  assert.equal(migrateDesertQuest(fresh), null);
+  assert.equal(fresh.flag('quest.desert.power'), undefined);
 });
 
 test('side quests: Teo’s drum, Ilo at the skull, Oum home from the dunes, the mask in the sand', async () => {

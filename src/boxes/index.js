@@ -2,13 +2,15 @@ import * as THREE from 'three';
 import { game as sharedGame } from '../game-state.js';
 import { items, ITEMS } from '../items.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
-import { buildBox, buildBeacon, buildDebris, BOX, BOX_COLORS } from './model.js';
+import { buildBox, buildBeacon, BOX, BOX_COLORS } from './model.js';
 import { BoxScene } from './scene.js';
 import { BoxCard } from './card.js';
 import { PLACEMENTS, FALLBACKS, FALLBACK_OFFSETS } from './placements.js';
 
-// Item boxes: dark blue chests with a pale star on the lid, each holding one
-// item (src/items.js). They notice you: the star pulses, light leaks from the
+// Item boxes: the makers' chests (docs/story-bible.md, "The boxes"). Dark blue,
+// carved with rings of the glyph, a pale star on the lid, each holding one
+// item (src/items.js), left long ago for a traveller who comes a long way.
+// They notice you: the star and the carvings brighten, light leaks from the
 // lid's seam, the box hums and, close up, shudders. E opens one: the opening
 // scene (scene.js), then the item is yours. Opened boxes stay open and empty.
 //
@@ -25,9 +27,9 @@ import { PLACEMENTS, FALLBACKS, FALLBACK_OFFSETS } from './placements.js';
 // a world that needs an item you don't have (the jetpack worlds; the backpack
 // everywhere but the desert) puts a box with it beside the ship's ramp.
 //
-// Flags (game-state.js): box.<id> = true once opened; items.v = 1 once the
+// Flags (game-state.js): box.<id> = true once opened; items.v = 2 once the
 // save has been migrated (migrateSave). Events: 'box:opened' { id, item, level }.
-// Quest locators: 'box.<id>' (the desert's first stage points at its box).
+// Quest locators: 'box.<id>' (the desert's 'box' stage points at the shrine's box).
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
@@ -35,21 +37,37 @@ const smoothstep = (a, b, x) => { const t = THREE.MathUtils.clamp((x - a) / (b -
 const LID_REST = 1.95;
 
 /**
- * Saves from before items existed: anyone who finished the prologue had the
- * backpack on from the start. Rule: prologue.done and no item.<id> flag of any
- * registry item (and not migrated yet) → grant the backpack. Returns true if it did.
+ * Old saves. v1, from before items existed: anyone who finished the prologue
+ * had the backpack on from the start. Rule: prologue.done and no item.<id> flag
+ * of any registry item → grant the backpack. Returns true if it did.
+ * v2, the backpack's box moved from the crash site into Qanat's shrine (same
+ * id): whoever already carries the backpack finds that box open (and counted
+ * as found), so the shrine never offers it again. The desert's quest stages
+ * have their own migration (src/story/desert.js, migrateDesertQuest).
  */
 export function migrateSave(g = sharedGame) {
-  if (g.flag('items.v')) return false;
-  const legacy = !!g.flag('prologue.done') && !Object.keys(ITEMS).some((id) => g.flag(`item.${id}`) !== undefined);
-  if (legacy) g.set('item.backpack', true);
-  g.set('items.v', 1);
+  const v = g.flag('items.v') ?? 0;
+  let legacy = false;
+  if (v < 1) {
+    legacy = !!g.flag('prologue.done') && !Object.keys(ITEMS).some((id) => g.flag(`item.${id}`) !== undefined);
+    if (legacy) g.set('item.backpack', true);
+  }
+  if (v < 2) {
+    if (g.flag('item.backpack') && !g.flag('box.desert.backpack')) g.set('box.desert.backpack', true);
+    g.set('items.v', 2);
+  }
   return legacy;
 }
 
 /** Where a placement stands: { pos (on the ground), yaw } or null if there is no ground there. */
 export function resolvePlacement(p, { physics, level, anchor = null }) {
   let x, z, fromY;
+  if (typeof p.site === 'function') {
+    // a spot the level builds (Qanat's shrine): { at: [x, y, z], face }
+    const s = p.site(level);
+    if (!s) return null;
+    p = { ...p, ...s, site: null };
+  }
   if (p.near) {
     // beside the ship's ramp (or the spawn): try a few offsets until one is on level ground
     const a = anchor ?? { pos: level.spawn, heading: level.spawnHeading ?? 0 };
@@ -130,13 +148,9 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
       b.beacon.position.copy(at.pos).add(V(0, 0.6, 0));
       b.beacon.visible = false;
       b.alwaysBeacon = !!p.beacon;
+      b.beaconMax = typeof p.beacon === 'number' ? p.beacon : Infinity;   // (a number: only within that many metres, unless the lens shows it)
       fx.add(b.beacon);
       noShadow.push(parts.raysWrap);
-      // the crash's trail of debris, from the ship to the box
-      if (p.debris && anc) {
-        b.debris = buildDebris(anc.pos, at.pos, (x, z) => { const y = ground(x, z, at.pos.y + 30); return Number.isFinite(y) ? y : at.pos.y; });
-        scene?.add(b.debris);
-      }
       b.off = registerInteractable({
         id: `box.${p.id}`, priority: PRIORITY.use + 1, range: 2.3,
         prompt: 'open',
@@ -157,6 +171,7 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
     P.glowFloor.visible = false;
     P.rays.visible = false;
     P.mats.star.uniforms.uGlow.value = isSpent ? 0.12 : 0.35;
+    P.mats.carve.uniforms.uGlow.value = isSpent ? 0.04 : 0.12;
     P.mats.seam.uniforms.uColor.value.set(BOX_COLORS.band);
     P.mats.seam.uniforms.uGlow.value = 0;
     b.light.set(0, -1e5, 0, 0);
@@ -168,7 +183,7 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
 
   function dispose() {
     for (const b of list) {
-      b.parts.root.removeFromParent(); b.beacon?.removeFromParent(); b.debris?.removeFromParent();
+      b.parts.root.removeFromParent(); b.beacon?.removeFromParent();
       b.off?.();
       if (b.collider) physics.removeCollider?.(b.collider);
       const i = lights.indexOf(b.light); if (i >= 0) lights.splice(i, 1);
@@ -255,6 +270,7 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
           const k = b.sceneLight;
           M.seam.uniforms.uColor.value.set(BOX_COLORS.seam); M.seam.uniforms.uGlow.value = 1;
           M.star.uniforms.uGlow.value = 0.6 + 0.4 * k;
+          M.carve.uniforms.uGlow.value = 0.45 + 0.55 * k;
           b.light.set(b.pos.x, b.pos.y + 0.75, b.pos.z, 2.5 + 6.5 * k);
           P.root.rotation.set(0, b.yaw, 0);
           if (b.beacon) b.beacon.visible = false;
@@ -265,6 +281,8 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
         hum = Math.max(hum, near);
         const pulse = 0.5 + 0.5 * Math.sin(t * 3.2 + b.phase);
         M.star.uniforms.uGlow.value = 0.35 + 0.65 * near * (0.55 + 0.45 * pulse);
+        // the carved glyph rings wake a moment after the star, a little out of step with it
+        M.carve.uniforms.uGlow.value = 0.12 + 0.6 * smoothstep(0.15, 1, near) * (0.6 + 0.4 * Math.sin(t * 3.2 + b.phase - 0.8));
         const seam = near * (0.45 + 0.55 * Math.sin(t * 4.1 + b.phase) ** 2);
         M.seam.uniforms.uColor.value.set(BOX_COLORS.band).lerp(_c.set(BOX_COLORS.seam), Math.min(1, seam * 1.4));
         M.seam.uniforms.uGlow.value = seam;
@@ -280,7 +298,8 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
         P.lid.rotation.z = Math.max(0, Math.sin(t * 23)) * 0.06 * shake;
         // the beacon: from afar (always for the boxes that must be found, with the lens for all)
         if (b.beacon) {
-          const on = (b.alwaysBeacon || items.has('lens')) && d > 9;
+          const lens = items.has('lens');
+          const on = ((b.alwaysBeacon && d < b.beaconMax) || lens) && d > 9;
           b.beacon.visible = on;
           // (thicker far off, so it stays a few pixels wide at any distance)
           if (on) { const w = THREE.MathUtils.clamp(d * 0.03, 1, 12) * smoothstep(9, 22, d); b.beacon.scale.set(w, 36, w); }
