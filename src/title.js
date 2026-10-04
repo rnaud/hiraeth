@@ -1,4 +1,6 @@
-// The title screen: the game's name over a drawn Moebius landscape, then Continue (the
+// The title screen: the game's name over a live view of the land above the clouds
+// (src/title-vista.js, faded in once it is ready; the drawn backdrop below when WebGL
+// can't), then Continue (the
 // save played last), Saves (five slots: continue one, start a new game in an empty one,
 // delete one) and Settings. It runs before the game's modules load (src/boot.js), so
 // the slot chosen here is the one every store reads (src/save-slots.js).
@@ -10,7 +12,7 @@
 // Imports nothing that loads the game state: the summaries come from the raw saves.
 
 import { slots, SLOT_COUNT, formatPlaytime, formatDate, progressLine } from './save-slots.js';
-import { Settings, SettingsMenu, isNativeApp } from './ui.js';
+import { Settings, SettingsMenu, isNativeApp, isTouch } from './ui.js';
 import { Sound } from './audio.js';
 import { Controller, menuNavigate } from './controller.js';
 import { setFaces, padFaces } from './native-pad.js';
@@ -19,7 +21,7 @@ import { VERSION } from './changelog.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 
-/** The drawn backdrop: a ringed planet over mesas, dunes, a giant's ribs and a caped traveller. */
+/** The drawn backdrop (without WebGL): a ringed planet over mesas, dunes, a giant's ribs and a caped traveller. */
 export const BACKDROP = `
 <svg class="land" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
   <defs>
@@ -98,17 +100,22 @@ function slotHtml(s) {
  * Show the title screen; resolves with the chosen slot ({ slot, fresh }) once the player
  * picks one (it is already the active slot then), after the title has faded out.
  */
-export function showTitle({ store = slots, doc = document, win = window } = {}) {
+export function showTitle({ store = slots, doc = document, win = window, vista: wantVista = true } = {}) {
   return new Promise((resolve) => {
     const settings = new Settings();
     const sound = new Sound('title', { score: false });
-    settings.on(() => { sound.setVolumes(settings.music, settings.effects); setFaces(settings.padFaces); });
+    let vista = null, vistaQuality = settings.quality;
+    settings.on(() => {
+      sound.setVolumes(settings.music, settings.effects); setFaces(settings.padFaces);
+      if (vista && settings.quality !== vistaQuality) vista.setQuality((vistaQuality = settings.quality));
+    });
     sound.menuMusic(true);
 
     const root = doc.createElement('div');
     root.id = 'title';
+    root.className = wantVista ? 'vista-wait' : '';   // (a warm sky colour until the 3D view fades in)
     const fullscreen = !isNativeApp && doc.fullscreenEnabled;
-    root.innerHTML = `${BACKDROP}
+    root.innerHTML = `${BACKDROP}<div class="veil" aria-hidden="true"></div>
       <div class="front">
         <header>${LOGO}<p class="tag">a traveller, a fallen ship, and worlds drawn in ink</p></header>
         <nav class="screen main-menu" data-screen="main"></nav>
@@ -176,7 +183,8 @@ export function showTitle({ store = slots, doc = document, win = window } = {}) 
       sound.menuMusic(false);
       root.classList.add('leaving');
       cleanup();
-      setTimeout(() => { sound.dispose(); root.remove(); resolve({ slot: n, fresh }); }, 450);
+      vistaAbort.abort(); vista?.stop();   // (its last frame fades out with the title)
+      setTimeout(() => { vista?.dispose(); vista = null; sound.dispose(); root.remove(); resolve({ slot: n, fresh }); }, 450);
     };
 
     const back = () => {
@@ -278,6 +286,25 @@ export function showTitle({ store = slots, doc = document, win = window } = {}) 
     show('main');
     // the app's heartbeat: this build is up (src/native-app.js; the game marks it again after its first frame)
     markBooted(win);
-    Object.assign(win, { title: { root, store, choose, show, askDelete, settingsMenu, sound } });
+
+    // the live view behind the menu, once the menu has painted: built in small steps, faded in on its
+    // first frame; without WebGL (or on a software GPU) the drawn backdrop shows instead
+    const vistaAbort = new AbortController();
+    const drawn = () => root.classList.remove('vista-wait', 'vista-on');
+    if (wantVista) win.requestAnimationFrame(() => setTimeout(() => {
+      if (done) return;
+      const still = !!win.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      import('./title-vista.js')
+        .then(({ startVista }) => startVista({ parent: root, settings, native: isNativeApp, touch: isTouch, still, signal: vistaAbort.signal, win }))
+        .then((v) => {
+          if (!v) { if (!done) drawn(); return; }
+          if (done) { v.dispose(); return; }
+          vista = v;
+          v.onLost = () => { drawn(); v.dispose(); if (vista === v) vista = null; };
+          win.requestAnimationFrame(() => root.classList.replace('vista-wait', 'vista-on'));
+        })
+        .catch((e) => { console.warn('title vista unavailable', e); if (!done) drawn(); });
+    }, 0));
+    Object.assign(win, { title: { root, store, choose, show, askDelete, settingsMenu, sound, get vista() { return vista; } } });
   });
 }
