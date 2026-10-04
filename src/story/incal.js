@@ -86,6 +86,7 @@ export function setupIncal(ctx) {
   const lampLight = new THREE.Vector4(0, -1e5, 0, 0);
   level.lights.push(lampLight);
   const cab = new Taxi(physics, '#f2c54b', 2.1, null);
+  cab.driverOut = () => !!people.wren;   // Wren drives it until she steps out by the lamp
   const cabHome = P.cab.clone(), cabHeading = facing(P.cab, P.lamp) + Math.PI / 2;
   // before the lamp: she circles low in the depths, looking for a fare that never calls
   const circling = (t, taxi) => {

@@ -3,7 +3,8 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createNoise2D, fbm, mulberry32, smoothstep } from '../noise.js';
 import { makeMaterial, MODE_TERRAIN, MODE_WATER } from '../materials.js';
 import { Terrain, jitter } from '../world.js';
-import { Hoverbike } from '../bike.js';
+import { Hoverbike, buildSocket } from '../bike.js';
+import { Paint, painted, paintMaterial, spindle } from '../vehicle-kit.js';
 import { LANDING } from '../story/perdide-data.js';
 
 // ---------------------------------------------------------------------------
@@ -43,30 +44,113 @@ function height(x, z) {
   return h;
 }
 
-function buildSkiff() {
+/**
+ * The hover-skiff: a long low hull in orange with a cream gunwale, its prow
+ * drawn up into a curl with a lantern swinging from it, a teal float on
+ * outrigger arms, a navy saddle, and a striped lateen sail that fills and
+ * flutters as you go. Underneath, a hover plate glows with the backpack's
+ * fluid (the tank sits in its cradle behind the seat). Painted parts share
+ * two draw calls (src/vehicle-kit.js).
+ */
+export function buildSkiff() {
   const root = new THREE.Group();
   const body = new THREE.Group();
   root.add(body);
-  const hull = new THREE.Mesh(mergeGeometries([
-    new THREE.BoxGeometry(1.4, 0.5, 3.6),
-    new THREE.ConeGeometry(0.7, 1.6, 4).rotateX(Math.PI / 2).rotateZ(Math.PI / 4).translate(0, 0, 2.6),
-  ]), makeMaterial({ color: '#d9643a', flat: true }));
-  const outrigger = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 3.2, 6).rotateX(Math.PI / 2), makeMaterial({ color: '#f3ead8' }));
-  outrigger.position.set(1.6, -0.15, 0);
-  const arm = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.12, 0.2), makeMaterial({ color: '#34405e' }));
-  arm.position.set(0.8, 0.05, 0);
-  const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 3.4, 5), makeMaterial({ color: '#34405e' }));
-  mast.position.set(0, 1.8, 0.6);
-  const sailGeo = new THREE.BufferGeometry().setFromPoints([
-    new THREE.Vector3(0, 0.3, 0.6), new THREE.Vector3(0, 3.4, 0.6), new THREE.Vector3(0, 0.6, -1.6),
-  ]);
-  sailGeo.computeVertexNormals();
-  const sail = new THREE.Mesh(sailGeo, makeMaterial({ color: '#f2c54b', side: THREE.DoubleSide }));
-  sail.position.y = 0.2;
+  const C = { orange: '#d9643a', cream: '#f3ead8', teal: '#5fb7ad', navy: '#34405e', yellow: '#f2c54b', coral: '#e6875f', glow: '#d6ff9a' };
+  const smooth = new Paint(), flat = new Paint();
+  // the hull: an open boat, long and low, wide at the stern, drawn to a point at the bow
+  const HULL = [[0.001, -2.1], [0.55, -1.95], [0.72, -1.4], [0.76, -0.3], [0.7, 0.8], [0.5, 1.6], [0.2, 2.15], [0.001, 2.35]];
+  const half = (pts, phi, sy) => {
+    // the lower part of a lathe along +z (phi: half-angle round the keel)
+    const g = new THREE.LatheGeometry(pts.map(([r, z]) => new THREE.Vector2(r, z)), 14, -phi, phi * 2);
+    return g.rotateX(Math.PI / 2).scale(1, sy, 1);
+  };
+  smooth.add(half(HULL, Math.PI / 2, 0.55), C.orange);
+  // a navy keel along its bottom
+  smooth.add(half(HULL.map(([r, z]) => [r * 1.015, z * 0.995]), 0.55, 0.56), C.navy);
+  // the gunwale: a cream rail round the rim, and the deck inside it
+  const rim = new THREE.CatmullRomCurve3([...HULL.slice(1, -1).map(([r, z]) => new THREE.Vector3(r, 0, z)), new THREE.Vector3(0, 0, 2.33), ...HULL.slice(1, -1).reverse().map(([r, z]) => new THREE.Vector3(-r, 0, z)), new THREE.Vector3(0, 0, -2.08)], true);
+  smooth.add(new THREE.TubeGeometry(rim, 40, 0.05, 4, true), C.cream);
+  const deck = new THREE.Shape(rim.getSpacedPoints(30).map((p) => new THREE.Vector2(p.x * 0.96, -p.z * 0.98)));
+  flat.add(new THREE.ShapeGeometry(deck).rotateX(-Math.PI / 2), '#c99a6a', { at: [0, -0.12, 0] });
+  // the prow's curl, rising from the bow and rolling back on itself
+  const curl = new THREE.CatmullRomCurve3([[0, 0.05, 2.1], [0, 0.45, 2.45], [0, 1.05, 2.55], [0, 1.4, 2.3], [0, 1.35, 2.02], [0, 1.15, 2.05]].map((p) => new THREE.Vector3(...p)));
+  smooth.add(new THREE.TubeGeometry(curl, 16, 0.07, 6), C.cream);
+  // the float on its arms, off the right side
+  smooth.add(spindle([[0.03, -1.5], [0.17, -1.2], [0.2, 0], [0.16, 1.1], [0.02, 1.55]], { seg: 8 }), C.teal, { at: [1.55, -0.15, 0.1] });
+  for (const z of [-0.6, 0.8]) {
+    const arm = new THREE.CatmullRomCurve3([[0.4, 0.15, z], [1.0, 0.32, z], [1.55, -0.02, z]].map((p) => new THREE.Vector3(...p)));
+    flat.add(new THREE.TubeGeometry(arm, 6, 0.05, 4), C.navy);
+  }
+  // the saddle, the mast and a boom
+  smooth.add(new THREE.CapsuleGeometry(0.2, 0.55, 3, 8).rotateX(Math.PI / 2), C.navy, { at: [0, 0.22, -0.4], scale: [1.3, 0.55, 1] });
+  flat.add(new THREE.BoxGeometry(0.4, 0.26, 0.7), C.navy, { at: [0, 0, -0.4] });
+  flat.add(new THREE.BoxGeometry(0.5, 0.12, 0.5), C.navy, { at: [0, -0.07, -1.25] });   // the tank's pedestal
+  flat.add(new THREE.CylinderGeometry(0.045, 0.065, 3.5, 5), C.navy, { at: [0, 1.85, 0.6] });
+  flat.add(new THREE.CylinderGeometry(0.035, 0.035, 2.3, 4), C.navy, { at: [0, 0.75, -0.45], rot: [Math.PI / 2 - 0.12, 0, 0] });
+  const sm = smooth.mesh({ smooth: true }), fl = flat.mesh();
+  body.add(sm, fl);
+
+  // the sail: a lateen triangle in yellow and coral stripes, set on the mast; it fills with speed
+  const sailRig = new THREE.Group();
+  sailRig.position.set(0, 0.35, 0.6);
+  const sail = new Paint();
+  const top = new THREE.Vector3(0, 3.25, 0), foot = new THREE.Vector3(0, 0.15, 0), clew = new THREE.Vector3(0, 0.45, -2.1);
+  const STRIPES = 5;
+  for (let i = 0; i < STRIPES; i++) {
+    // bands across the sail, from the luff (the mast) to the leech
+    const a0 = i / STRIPES, a1 = (i + 1) / STRIPES;
+    const p = (a, up) => (up ? top.clone().lerp(clew, a) : foot.clone().lerp(clew, a));
+    const g = new THREE.BufferGeometry().setFromPoints([p(a0, false), p(a0, true), p(a1, true), p(a0, false), p(a1, true), p(a1, false)]);
+    g.computeVertexNormals();
+    sail.add(g, i % 2 ? C.coral : C.yellow);
+  }
+  const sailMesh = sail.mesh({ side: THREE.DoubleSide });
+  sailRig.add(sailMesh);
+  body.add(sailRig);
+  // a pennant at the masthead
+  const flagGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, -0.2, 0), new THREE.Vector3(0, -0.1, -0.5)]);
+  flagGeo.computeVertexNormals();
+  const flag = new THREE.Mesh(painted(flagGeo, C.coral), paintMaterial({ side: THREE.DoubleSide }));
+  flag.position.set(0, 3.6, 0.6);
+  body.add(flag);
+  // the lantern, hanging from the curl on a short cord: it swings
+  const lantern = new THREE.Group();
+  lantern.position.set(0, 1.15, 2.05);
+  const cage = new Paint();
+  cage.add(new THREE.CylinderGeometry(0.004, 0.004, 0.25, 3), C.navy, { at: [0, -0.12, 0] });
+  cage.add(new THREE.ConeGeometry(0.13, 0.1, 6), C.navy, { at: [0, -0.27, 0] });
+  cage.add(new THREE.CylinderGeometry(0.09, 0.09, 0.03, 6), C.navy, { at: [0, -0.5, 0] });
+  lantern.add(cage.mesh());
+  const flame = new THREE.Mesh(new THREE.OctahedronGeometry(0.1, 0).scale(1, 1.4, 1).translate(0, -0.4, 0), makeMaterial({ color: '#fff3c4', glow: 1, flat: true }));
+  lantern.add(flame);
+  body.add(lantern);
+
+  // what the fluid lights: the hover plate under the hull
+  const under = new THREE.Mesh(new THREE.CircleGeometry(1, 20).rotateX(Math.PI / 2).scale(0.55, 1, 1.6).translate(0, -0.22, 0), makeMaterial({ color: C.glow }));
+  body.add(under);
   const seatAnchor = new THREE.Group();
   seatAnchor.position.set(0, -0.6, -0.6);
-  body.add(hull, outrigger, arm, mast, sail, seatAnchor);
-  return { root, body, seatAnchor };
+  body.add(seatAnchor);
+  const { socket, port } = buildSocket(body, { at: [0, 0.03, -1.25], port: [0.28, 0.0, -0.9] });
+  const jets = [new THREE.Vector3(0.45, -0.15, -1.95), new THREE.Vector3(-0.45, -0.15, -1.95)];
+  const animate = (dt, b) => {
+    const flow = Math.min(1, Math.abs(b.speed) / 30);
+    // the sail fills (bellies out to the lee of the turn) and flutters when slack
+    sailRig.rotation.y = THREE.MathUtils.clamp(b.yawRate * 0.25, -0.35, 0.35) + Math.sin(b.time * 7) * 0.03 * (1 - flow);
+    sailMesh.scale.x = 1 + flow * 0.5;
+    sailRig.scale.z = 1 - flow * 0.08;
+    flag.rotation.y = Math.sin(b.time * (4 + flow * 8)) * (0.5 - flow * 0.3);
+    // the lantern swings against the boat's moves
+    const s = lantern.userData;
+    s.a ??= 0; s.v ??= 0; s.sp ??= b.speed;
+    const kick = dt > 0 ? (b.speed - s.sp) / dt : 0;
+    s.sp = b.speed;
+    s.v += (-s.a * 18 - s.v * 1.5 + kick * 0.06) * dt;
+    s.a += s.v * dt;
+    lantern.rotation.set(THREE.MathUtils.clamp(s.a + Math.sin(b.time * 1.6) * 0.06, -0.7, 0.7), 0, -b.bank * 0.6);
+  };
+  return { root, body, seatAnchor, socket, port, lights: [under], jets, animate };
 }
 
 const CRYSTAL = ['#a99be0', '#62c3c9', '#c7a6f2', '#7fe0d0'];

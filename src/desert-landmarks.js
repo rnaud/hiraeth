@@ -70,7 +70,13 @@ export const DRIFTS = [
   const s = SITES[site], c = Math.cos(s.yaw), n = Math.sin(s.yaw);
   return { x: s.x + c * lx + n * lz, z: s.z - n * lx + c * lz, k: 1 / (2 * sigma * sigma), reach: 3 * sigma, h };
 });
+// Marrow's hollow (STORY.bike): a broad Gaussian dip, gentle enough to ride through
+export const HOLLOWS = [{ x: STORY.bike.x, z: STORY.bike.z, k: 1 / (2 * 13 * 13), reach: 39, h: -2.4 }];
 function drifts(x, z, h) {
+  for (const d of HOLLOWS) {
+    const dx = x - d.x, dz = z - d.z;
+    if (Math.abs(dx) < d.reach && Math.abs(dz) < d.reach) h += d.h * Math.exp(-(dx * dx + dz * dz) * d.k);
+  }
   for (const d of DRIFTS) {
     const dx = x - d.x, dz = z - d.z;
     if (Math.abs(dx) < d.reach && Math.abs(dz) < d.reach) h += d.h * Math.exp(-(dx * dx + dz * dz) * d.k);

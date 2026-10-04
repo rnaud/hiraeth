@@ -82,6 +82,17 @@ export const QUESTS = [
     ],
   },
   {
+    // the hoverbike isn't yours from the start: Marrow salvaged it and hid it under a tarp in a
+    // hollow (src/story/desert.js, "the hoverbike"); it runs on the backpack's fluid
+    id: 'desert.bike', title: 'Something Faster Than Walking', world: 'desert',
+    outro: 'The hoverbike hums under you. Whistle, and it comes.',
+    stages: [
+      { id: 'ask', text: 'Ask Marrow the salvager, at the camps, for something faster than walking', label: 'Marrow, at the camps', talk: 'marrow', at: 'marrow' },
+      { id: 'find', text: 'Find what Marrow hid under a tarp: the hollow with a red rag on a pole, between your ship and the camps', label: 'The tarp in the hollow', flag: 'desert.bike.uncovered', at: 'bike' },
+      { id: 'wake', text: 'It runs on fluid. Wake the hoverbike with the backpack', label: 'The hoverbike', flag: 'desert.bike.found', at: 'bike' },
+    ],
+  },
+  {
     id: 'desert.mask', title: 'The Mask in the Sand', world: 'desert',
     outro: 'It does not wake. But it saw you.',
     stages: [
@@ -506,15 +517,33 @@ export const PEOPLE = {
     palette: { cloak: '#dca273', lining: '#2b211f', cloth: '#34405e', legs: '#4a3a2a', hat: '#d8a24a', hair: '#2b211f' }, head: 'hat', cape: 0.9,
     lines: ['~shout~ Bones, glass, bits of sky. Cheap.', '~playful~ Everything that falls belongs to somebody. Usually me.', '~whisper~ Psst. Sky-person.'],
     talk: {
+      entry: [
+        { if: { quest: 'desert.bike', stage: 'ask' }, node: 'bike' },
+        { if: { quest: 'desert.bike', stage: ['find', 'wake'] }, node: 'bikeWhere' },
+        { if: { all: [{ flag: 'desert.bike.found' }, { not: { flag: 'desert.marrow.bike' } }] }, node: 'bikeAfter' },
+        { node: 'hello' },
+      ],
       nodes: {
         hello: {
           say: ['~playful~ Sky-person! I’ve been out to your ball already. Don’t look like that, I didn’t take anything. Much.', '~whisper~ There’s a burn on the side of it. Not a scrape; a burn, in a shape. Three dots over a curve. {glyph}'],
           choices: [
             { text: '~curious~ What does it mean?', goto: 'mean' },
             { text: '~curious~ What do you sell?', goto: 'sell' },
+            { text: '~curious~ Got anything faster than walking?', if: { all: [{ quest: 'desert.bike', started: false }, { not: { flag: 'desert.bike.found' } }] }, goto: 'bike' },
             { text: '~angry~ Stay away from my ship.', end: true },
           ],
         },
+        // the hoverbike (quest desert.bike): he found it, hid it, and can't start it
+        bike: {
+          say: ['~playful~ Faster than walking? Sky-person, you have come to the right liar.',
+            '~whisper~ A hoverbike. It fell off a caravan, or out of the sky; it didn’t say which. I dragged it into *the hollow with the red rag*, out between here and your ball, and threw *a tarp* over it.',
+            '~sad~ It won’t start for me. It coughs and sulks. It runs on something I haven’t got. Maybe you have.'],
+          do: { stage: ['desert.bike', 'find'] },
+          choices: [{ text: '~happy~ I’ll go and dig it out.', end: true }, { text: '~curious~ What do you want for it?', goto: 'price' }],
+        },
+        price: { say: ['~playful~ Nothing. It ate half my tarp. Ride past the camps fast and loud now and then, so people know where it came from.'], choices: [{ text: '~happy~ Deal.', end: true }] },
+        bikeWhere: { say: ['~neutral~ *The hollow with the red rag*, between the camps and your ball. Pull the tarp off. If it won’t wake, it’s hungry, not dead.'], choices: [{ text: '~neutral~ Thanks, Marrow.', end: true }, { text: '~curious~ What do you sell?', goto: 'sell' }] },
+        bikeAfter: { say: ['~happy~ I heard it from here! Like a kettle with ambitions. Look after it; it’s the most honest thing I ever found.'], do: { set: { 'desert.marrow.bike': true } }, choices: [{ text: '~playful~ It has opinions.', end: true }, { text: '~curious~ What do you sell?', goto: 'sell' }] },
         mean: { say: ['~solemn~ It means somebody signs their work. The same mark is on the giants, on the old stones, on the gates. I’ve seen it on things that fell out of the sky before, too. Never on anything that was still warm.'], choices: [{ text: '~curious~ Things that fell before?', goto: 'before' }, { text: '~neutral~ Thanks, Marrow.', end: true }] },
         before: { say: ['~playful~ Bits, mostly. A shard of glass that hums when it rains. A bowl that rings by itself. Things that sing don’t fall by accident, sky-person. That’s my professional opinion, free of charge.'], choices: [{ text: '~neutral~ Thanks, Marrow.', end: true }] },
         sell: { say: ['~playful~ Today? Rumours. The tree hasn’t drunk because the giant’s holding its breath. The water’s late because the Speaker walks the wrong way round. The ball fell because you sneezed. Pick one.'], choices: [{ text: '~tired~ I’ll pass.', end: true }] },

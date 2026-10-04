@@ -32,6 +32,7 @@ export const STORY = {
   cave: { x: -1250, y: 1000, z: 1250 },                             // the interior's origin (far overhead)
   pilgrim: { x: -60, z: 520 },                                      // the old pilgrim who fell behind
   drum: { x: 146, z: -204 },                                        // Teo's drum, blown under the old ribcage
+  bike: { x: 132, z: 150, yaw: 2.3 },                               // Marrow's hollow: the hoverbike under its tarp (quest desert.bike)
 };
 /** The procession's circuit as a smooth closed curve: [x, z] every `step` metres. */
 export function processionLoop(step = 3) {

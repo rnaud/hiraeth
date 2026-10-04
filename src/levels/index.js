@@ -19,7 +19,7 @@ export const LEVELS = [
   {
     id: 'desert', create: createDesert,
     title: TITLES.desert, source: 'after Sable (Shedworks)',
-    blurb: 'Dunes, mesas and giant skeletons across three regions. Whistle for the hoverbike; watch the salt blooms wake as you pass.',
+    blurb: 'Dunes, mesas and giant skeletons across three regions. Find a hoverbike and whistle for it; watch the salt blooms wake as you pass.',
     moves: 'walk · climb · glide · hoverbike',
   },
   {

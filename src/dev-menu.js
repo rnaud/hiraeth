@@ -112,7 +112,7 @@ export class DevMenu {
       <h2>Boxes${counts ? ` · here ${counts.found}/${counts.total}` : ''}</h2>
       <div class="btns"><button data-a="reset" type="button">reset boxes</button><button data-a="openall" type="button">open all boxes</button></div>
       <p class="hint">reset also takes the items back, so every box can be opened again</p>
-      <h2>Story</h2>${flag('prologue.done', 'Prologue done')}${flag('ship.powered', 'Ship powered')}
+      <h2>Story</h2>${flag('prologue.done', 'Prologue done')}${flag('ship.powered', 'Ship powered')}${flag('desert.bike.found', 'Hoverbike found')}
       <div class="btns" style="margin-top:8px"><button data-a="complete" type="button">complete current world</button></div>
       <h2>Teleport</h2><div class="worlds">${worlds}</div>
     </div>`;

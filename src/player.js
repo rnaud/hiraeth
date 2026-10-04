@@ -558,6 +558,7 @@ export class Player {
   nearestVehicle() {
     let best = null, bd = Infinity;
     for (const v of this.vehicles) {
+      if (v.dormant) continue;   // not found yet (the desert's bike under its tarp)
       const d = v.pos.distanceTo(this.pos);
       if (d < bd && d < (v.boardDistance ?? 6)) { best = v; bd = d; }
     }
@@ -658,6 +659,7 @@ export class Player {
   callMount() {
     if (this.boarding || this.unboarding || this.ride) return;
     if (this.opts.canSummon && !this.opts.canSummon()) return;   // e.g. in a room off the map
+    if (this.mount?.dormant) return;   // nothing to whistle for yet: it hasn't been found
     if (this.mount && this.needsPower(this.mount) && !this.has('backpack')) return this.notice('It needs power.');   // the whistle wakes nothing
     if (this.mount) {
       const d = this.frame.dir(this.heading, _v1);
