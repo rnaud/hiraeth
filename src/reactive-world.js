@@ -20,6 +20,7 @@ export const WORLD_REACTIONS = {
   spheres: {kind:'flower',quiet:'#a8c48a',awake:'#f6e2a0',radius:11},
   perdide2: {kind:'fungus',quiet:'#6f6a94',awake:'#ffb38a',radius:10,spores:true,shy:true},
   atelier: {kind:'fan',quiet:'#c4beb0',awake:'#8cbdb7',radius:10},
+  home: {kind:'flower',quiet:'#d9a37f',awake:'#5fd0c6',radius:9},
 };
 
 /** Stateful reactions, independent of rendering. A direct encounter sends one
@@ -179,6 +180,7 @@ export class ReactiveWorld {
     if(this.level.id==='edena')obj.root.scale.setScalar(1.4);
     if(this.level.id==='arzach')obj.root.scale.set(1.05,1.7,1.05);
     if(this.level.id==='perdide')obj.root.scale.set(1.3,.8,1.3);
+    if(this.level.id==='home')obj.root.scale.setScalar(.45);   // small flowers in the yard at home
     if(this.theme.kind!=='screen'&&this.theme.kind!=='machine')obj.root.scale.multiplyScalar(.8+.25*(1+Math.sin(pos.x*.7+pos.z)));
     obj.root.position.copy(pos);obj.root.quaternion.copy(rotation);
     obj.root.rotateY(index*.65);this.root.add(obj.root);

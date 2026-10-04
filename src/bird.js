@@ -302,3 +302,29 @@ export class Bird {
     this.body.rotation.set(this.pitch, 0, this.bank);
   }
 }
+
+// ---------------------------------------------------------------------------
+// The bird's promise (src/story/arzach.js sets `bird.promise`): "wherever there
+// is sky, call, and she will come". In a world with open sky and no mount of
+// its own, the whistle (E) calls her down out of the sky. She waits far off
+// and unseen until called; the first whistle brings her in from on high.
+
+/** Worlds with open sky and no mount of their own. */
+export const OPEN_SKY = new Set(['edena', 'spheres', 'home']);
+
+/** Does the bird answer the whistle in this world? */
+export function birdAnswers(levelId, level, flag) {
+  return !!flag?.('bird.promise') && !level.mount && (OPEN_SKY.has(levelId) || !!level.features?.sky);
+}
+
+/** The promised bird: hidden far away until the first whistle. */
+export function promisedBird(physics, spawn) {
+  const b = new Bird(physics);
+  const x = (spawn?.x ?? 0) - 480, z = (spawn?.z ?? 0) - 480;
+  const g = physics.groundAt(x, 1e4, z);
+  b.pos.set(x, (Number.isFinite(g) ? g : spawn?.y ?? 0) + 1.4, z);
+  b.object.visible = false;
+  const summon = b.summon.bind(b);
+  b.summon = (...args) => { b.object.visible = true; return summon(...args); };
+  return b;
+}

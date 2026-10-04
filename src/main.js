@@ -32,6 +32,7 @@ import { ORDER } from './levels/content.js';
 import { createStory } from './story/index.js';
 import { registerInteractable, PRIORITY } from './interact.js';
 import { Ship } from './ship/ship.js';
+import { birdAnswers, promisedBird } from './bird.js';
 import { game } from './game-state.js';
 
 // Loading: each stage updates the inked loading screen, then yields a frame
@@ -190,7 +191,9 @@ level.init?.(physics);
 // the traveller's ship at this world's arrival point (src/ship/); a new game opens with the prologue
 // (no ?level and prologue.done unset, or ?prologue=1 to replay it)
 const playPrologue = levelId === 'desert' && !viaGate && !viaShip && (query.get('prologue') === '1' || (!levelParam && !game.flag('prologue.done')));
-const ship = new Ship({ scene, physics, level, levelId, content, prologue: playPrologue });
+// coming home by ship ends the story (src/ship/homecoming.js); ?ending=1 replays it
+const playHomecoming = levelId === 'home' && ((viaShip && !game.flag('ending.done')) || query.get('ending') === '1');
+const ship = new Ship({ scene, physics, level, levelId, content, prologue: playPrologue || playHomecoming });
 level.ship ??= { pos: ship.rampFoot.clone() };   // quests that say "return to the ship" point at its ramp
 const reactiveWorld = new ReactiveWorld(scene, level, physics, content);
 window.addEventListener('pagehide', () => reactiveWorld.flush());
@@ -198,6 +201,8 @@ window.addEventListener('pagehide', () => reactiveWorld.flush());
 const tiled = tileScene(scene);
 tiled.small.push(...(level.smallProps ?? []));
 await stage('waking the people…');
+// the bird's promise: under open sky, in a world with no mount of its own, the whistle calls her down (src/bird.js)
+if (birdAnswers(levelId, level, (k) => game.flag(k))) { level.mount = (p) => promisedBird(p, level.spawn); level.mountName = 'bird'; }
 const player = new Player(physics, {
   mount: level.mount, jetpack: level.features.jetpack, climb: level.features.climb ?? true,
   killY: level.killY, limit: level.limit ?? 1900, spawn: level.spawn, spawnHeading: level.spawnHeading,
@@ -322,7 +327,7 @@ const scout = new Scout({ scene, player, physics, sound, label: document.getElem
 });
 // wildlife: two or three small species per world, each with a surprise (src/wildlife.js)
 const wildlife = new Wildlife(scene, level, physics, { content, sound });
-ship.attach({ player, rig, camera, sound, journal, post, story, wind, levels: LEVELS, order: ORDER, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])) });
+ship.attach({ player, rig, camera, sound, journal, post, story, wind, npcs, levels: LEVELS, order: ORDER, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])) });
 if (viaShip) {
   const a = ship.arrivalSpot();
   player.respawn(a.pos);
@@ -583,7 +588,7 @@ if (cont?.level && levelById(cont.level)) {
 }
 picker.querySelector('.cards').innerHTML = LEVELS.map((l, i) => l.hidden && !completed() ? `
   <div class="card locked"><div class="lock">?</div><div class="txt"><div class="num">${i + 1}</div><h2>???</h2>
-    <p>Find every story page and every relic in all ${ORDER.length} worlds.</p><div class="moves">the final page</div></div></div>` : `
+    <p>${l.lock?.text ?? `Find every story page and every relic in all ${ORDER.length} worlds.`}</p><div class="moves">${l.lock?.moves ?? 'the final page'}</div></div></div>` : `
   <a class="card${l.id === levelId ? ' current' : ''}" href="?level=${l.id}">
     <img src="thumbs/${l.id}.jpg" alt="" onerror="this.style.visibility='hidden'" />
     <div class="txt">
@@ -1053,7 +1058,7 @@ requestAnimationFrame((t) => {
   ld?.classList.add('done');
   setTimeout(() => ld?.remove(), 900);
   if (viaGate) arriveFromPage(meta.title);
-  ship.start({ via: viaShip ? 'ship' : viaGate ? 'gate' : null, prologue: playPrologue, onReady: () => { if (!viaGate) story.start(); } });
+  ship.start({ via: viaShip ? 'ship' : viaGate ? 'gate' : null, prologue: playPrologue, homecoming: playHomecoming, onReady: () => { if (!viaGate) story.start(); } });
   if (changelog.fresh) setTimeout(() => {   // after an update: point at what changed, once
     const t = document.getElementById('toast');
     t.textContent = `Updated to v${VERSION} · press N to see what's new`;

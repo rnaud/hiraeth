@@ -3,6 +3,11 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.34', date: '2026-10-04', items: [
+    'Calls home now react to what you found and who you met. After the Signal Market, ask about Ilen.',
+    'After six worlds, your parents ask you home. Choose one keepsake to bring, land at the house under two moons, and see how they take it. Credits list everyone you met. You can keep exploring afterwards.',
+    'The bird remembers her promise: whistle in a world with open sky and she comes.',
+  ] },
   { v: '0.33', date: '2026-10-04', items: [
     'Every world now has a story. Each one has people to talk to, a main quest that ends in a keepsake, and two side quests. Each also holds a clue about the singing light that struck your ship.',
     'Ring the monastery bell to settle the cloud in Arzach II. Make the Great Crystal sing in Perdide. Watch the buried wheel turn one tooth, and relight the lamps in the deep wood.',
