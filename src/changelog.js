@@ -5,6 +5,8 @@
 export const CHANGELOG = [
   { v: '0.37', date: '2026-10-04', items: [
     'The Android app now updates the game by itself: when you are online it downloads the newest game in the background and uses it from the next launch (or right away with “restart now” in the settings). No new APK needed. If an update ever fails to start, the app goes back to the game it shipped with. Your saves are kept either way.',
+    'People on every world now dress like it: pilgrim robes and straw hats in the desert, beaked monks’ cowls in Arzach, antenna helmets and overalls in the Garage, reed capes in Perdide, turbans and patterned coats in the Signal Market. The City-Shaft’s rim and bottom dress apart.',
+    'The camera comes in close over your shoulder in the ship, caves and narrow alleys. The walk to the cockpit is yours, at your own pace. Subtitles, hints and messages no longer overlap.',
     'Swap A/B in the settings, for handhelds whose confirm button is on the other side. The prompts follow.',
     'Leaving the app pauses the game and its sound, and coming back restores fullscreen. On a handheld the sound now starts with the first button press.',
   ] },

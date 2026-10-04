@@ -1148,3 +1148,17 @@ Pocket. Their built-in controls work through the Gamepad API.
 - **Testing a debug build:** `adb shell am start -n com.rnaud.moebius/.MainActivity
   --es webManifest <url>`. Debug builds otherwise skip over-the-air updates.
 
+### Costumes, the close camera and subtitles (v0.37)
+- **Costumes** (`src/costumes.js`, keyed by level id): each world has one or more tribes
+  (headwear, mask, shoulders, prop, robe, cape, pattern, skins, palette), seeded by world
+  and person id. Full NPCs get them as one merged skinned mesh (`Humanoid.dress()`); the
+  GPU crowd reads them from `aDress` and per-world figure geometry (`figureGeometry`),
+  with a shared `TRIM_GLSL` for cloth patterns. Quest people can set a `look:` override.
+- **Camera** (`CameraRig` in `src/player.js`): close over the shoulder (2.6 m) wherever
+  `tightness()` finds walls and a roof around the player, `rig.indoor` / `rig.tight` are
+  set, or the player is in an `interiors.js` room; 9.5 m in the open.
+- **Cinema layout** (`layoutCinema()` and `Subtitles` in `src/ship/cinema.js`): hint,
+  toasts, objective card, subtitle and skip bar each get their own place and never
+  overlap each other, the HUD, the touch buttons, a conversation or the box card. Toasts
+  queue and wait while the screen is dark or a panel is open.
+
