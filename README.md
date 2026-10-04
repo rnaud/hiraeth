@@ -1285,6 +1285,34 @@ it, so everyone looks the same on every visit:
   both kinds). `tests/people.test.js` covers the mix, the seeding, the pieces and
   the builds.
 
+## Capes at a distance, and people up close (v0.39)
+
+- **Capes hang at rest far off** (`src/cape.js`). Cloth is only simulated near the
+  camera (70 m, 30 m on the Handheld preset); further off a cape used to stay in
+  the air where it was last simulated, and drop from its stiff cut as you came
+  near. Now each cape has a *drape*: the cloth at rest on that body, in the
+  collar's space. Out of range the cloth eases onto it over half a second and the
+  mesh is parented to the collar (`Cape.rest` / `hang`), so it walks with its
+  wearer at no cost. Coming close, the simulation starts from the drape
+  (`reset`). The drape is baked by letting the cloth settle, heavily damped
+  (`Cape.bake`, ~1 ms, one a frame), shared by capes of one cut on one kind of
+  body (`NPC.drapeKey`: kind, build, standing or seated), and refreshed from the
+  simulation while the wearer stands still and the cloth is at rest. A crowd
+  person promoted to a full NPC gets the shared drape, so their cloth no longer
+  drops in front of you. The capsule collisions are plain arithmetic now, a third
+  cheaper and with the same result.
+- **Nobody shakes when you walk into them or talk nose to nose.** Nothing stops
+  you walking into people, and the way to you was an atan2 of a few centimetres:
+  every small step swung them round and back. `holdAim` (`src/crowd.js`, also used
+  by `src/npc.js`) follows you from 0.7 m out and holds its way inside 0.25 m.
+  A standing crowd person steps out of your way round you, not through you (the
+  offset turns, its way held while you stand on their spot), and their pace is
+  smoothed so the walk doesn't flicker on and off. A walker keeping clear of you
+  judges the lane from where they'd walk without the step, along their path rather
+  than their heading (turned to greet you, that is you), so they step aside once.
+  The two-shot keeps its last good line between you when you stand too close for
+  one. `tests/close-contact.test.js` and `tests/cape.test.js` cover them.
+
 ## Android (offline APK)
 The game is also packaged as an Android app, for handhelds such as the Retroid
 Pocket. Their built-in controls work through the Gamepad API.

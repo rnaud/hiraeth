@@ -168,8 +168,9 @@ Grouped by area. Checked items are done; the changelog says when.
   is still to do.)
 - [x] Ragdoll when falling, or when pushing people with the gun. Falls: ragdoll first,
   less damage; only a really high fall kills, then ask to "Restart".
-- [ ] People shake uncontrollably when pushed while walking, or when you talk to them
+- [x] People shake uncontrollably when pushed while walking, or when you talk to them
   too close.
+- [x] Robes look stuck from afar and only fall properly up close.
 - [x] Hologram of the parents: a true hologram, not a 2D drawn render.
 - [x] Most animals are too small and hard to notice: make them bigger.
 

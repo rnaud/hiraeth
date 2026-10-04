@@ -11,6 +11,7 @@ import { formatText } from './story/dialogue.js';
 import { speakBalloon } from './story/voice.js';
 import { Knockdown, toppleVelocities, KNOCKOVER } from './ragdoll.js';
 export { KNOCKOVER };
+import { holdAim } from './crowd.js';
 
 // People of the world: they walk a looping route, pause and look around,
 // turn and wave when you come close, then say a line in a comic speech
@@ -349,6 +350,9 @@ export class NPC {
     const toPlayer = _v.subVectors(player.pos, this.pos);
     toPlayer.y = 0;
     const dist = toPlayer.length();
+    // the way to you: held while you stand inside them (walking into someone, or talking nose to
+    // nose, an atan2 of a few cm turned them back and forth every frame)
+    const toYou = holdAim(this, '_toYou', toPlayer, dist);
     const mover = player.ride ?? player;
     const playerSpeed = Math.hypot(mover.vel.x, mover.vel.z);
     const greetR = (player.riding ? 18 : 9) * Math.max(1, this.object.scale.x * 0.6);   // (giants notice you from further off)
@@ -360,7 +364,7 @@ export class NPC {
       _w.set(mover.vel.x, 0, mover.vel.z).normalize().dot(_d.copy(toPlayer).normalize().negate()) > 0.6;
     if (this.talkTo) {
       // in conversation: still, turned to the player (seated people only turn their head)
-      if (!this.seat) face = Math.atan2(toPlayer.x, toPlayer.z);
+      if (!this.seat) face = toYou;
       this.greeted = 0;
     } else if (incoming && !this.seat) {
       _w.set(-mover.vel.z, 0, mover.vel.x).normalize();
@@ -399,7 +403,7 @@ export class NPC {
       }
     } else if (dist < greetR) {
       // stop, face the player, wave once
-      face = Math.atan2(toPlayer.x, toPlayer.z);
+      face = toYou;
       if (!this.greeted) { this.greeted = this.time; this.lineIdx = (this.lineIdx + 1) % this.lines.length; }
     } else if (fol) {
       // arrived where they were going: waiting, facing their way
@@ -455,8 +459,10 @@ export class NPC {
     if (this.shout && this.time < this.shout.until) this.talking = true;
   }
 
-  /** The cloak's cloth, only near the camera (speed: how fast they walk, for the airflow). */
+  /** The cloak's cloth (speed: how fast they walk, for the airflow). */
   updateCape(dt, player, camera, speed) {
+    // cloth: simulated near the camera; further off it hangs at rest on the body (Cape.rest), so
+    // nobody's cape is left in the air where it last was, or frozen mid-swing
     const camD = camera.position.distanceTo(this.pos);
     if (this.cape) this.cape.mesh.visible = camD < (this.lowDetail ? 120 : 220);
     // (every frame up close; every 2nd / 3rd frame further off, where a camp full of people
@@ -464,12 +470,28 @@ export class NPC {
     this._clothDt = (this._clothDt ?? 0) + dt;
     const every = camD < 12 ? 1 : camD < 35 ? 2 : 3;
     this._clothN = ((this._clothN ?? 0) + 1) % every;
-    if (this.cape && camD < (this.lowDetail ? 30 : 70) && (this._clothN === 0 || !this.cape.ready)) {
+    const clothR = (this.lowDetail ? 30 : 70) + (this._clothOn ? 5 : 0);   // (a margin: no flicker at the edge)
+    this._clothOn = !!this.cape && camD < clothR;
+    if (this._clothOn && (this._clothN === 0 || !this.cape.ready || this.cape.hung)) {
       this.object.updateMatrixWorld(true);
       this.vel.set(Math.sin(this.heading) * speed, 0, Math.cos(this.heading) * speed);
-      this.cape.update(Math.min(this._clothDt, 1 / 20), { up: Y, vel: this.vel, wind: player.wind, floor: this.pos, capsules: this.humanoid ? this.humanoid.capsules() : this.capsules() });
+      const s = this.clothState(player, speed);
+      if (!this.cape.drape && !this.cape.ready) this.cape.bake(s, { key: this.drapeKey() });   // starts settled, no drop
+      this.cape.update(Math.min(this._clothDt, 1 / 20), s);
       this._clothDt = 0;
-    } else if (!this.cape || camD >= (this.lowDetail ? 30 : 70)) this._clothDt = 0;
+    } else if (!this._clothOn) {
+      this._clothDt = 0;
+      if (this.cape?.mesh.visible && !this.cape.hung) {
+        if (!this.cape.drape) {
+          // (far off the body may not have been posed this frame)
+          if (camD >= 160) this.humanoid?.update();
+          this.object.updateMatrixWorld(true);
+          this.cape.bake(this.clothState(player, 0), { key: this.drapeKey() });
+        }
+        this.cape.rest(dt);
+      }
+    }
+
   }
 
   /** The near tier of a crowd: mirror the simulated person (crowd.js does the thinking). */
@@ -526,7 +548,10 @@ export class NPC {
     if (this.cape && (camD < 5 || this._clothTick || !this.cape.ready)) {
       this.object.updateMatrixWorld(true);
       this.vel.set(Math.sin(this.heading) * p.speed, 0, Math.cos(this.heading) * p.speed);
-      this.cape.update(Math.min(this._clothDt, 1 / 20), { up: Y, vel: this.vel, wind: player.wind, floor: p.pos, capsules: this.humanoid ? this.humanoid.capsules() : this.capsules() });
+      const s = { up: Y, vel: this.vel, wind: player.wind, floor: p.pos, capsules: this.humanoid ? this.humanoid.capsules() : this.capsules() };
+      // a new person: the cloth starts settled on them (it used to drop from a stiff cone as they came near)
+      if (!this.cape.ready && !this.cape.drape) this.cape.bake(s, { key: this.drapeKey(moving ? 0 : p.pose), force: true });   // (shared: rarely baked)
+      this.cape.update(Math.min(this._clothDt, 1 / 20), s);
       this._clothDt = 0;
     }
     const line = now < (p.shoutUntil ?? -1) ? p.say : p.lines[p.lineIdx % p.lines.length];
@@ -622,6 +647,16 @@ export class NPC {
     this.physics.pushCapsule(this.pos, 0.4, 0.6, 2.0, _push);
   }
 
+  /** What the cloth needs this frame (Cape.update): the body's colliders, the ground, the motion. */
+  clothState(player, speed) {
+    return { up: Y, vel: this.vel, wind: player.wind, floor: this.pos, capsules: this.humanoid ? this.humanoid.capsules() : this.capsules(), still: speed < 0.05 };
+  }
+
+  /** Capes of one cut on one kind of body, standing or seated, share a baked drape. */
+  drapeKey(pose = this.seat ? 4 : 0) {
+    return `${this.humanoid ? `${this.kind}/${this.humanoid.build}` : 'rig'}/${pose === 3 || pose === 4 ? pose : 0}`;
+  }
+
   capsules() {
     const c = this.char;
     if (!this._caps) {
@@ -636,6 +671,12 @@ export class NPC {
       c.feet[i].localToWorld(K[1 + i].b.set(0, 0, 0));
     }
     return K;
+  }
+
+  /** Which way the player is from here (held while they stand inside us: see update()). */
+  aimAtPlayer(player, dist) {
+    _v.subVectors(player.pos, this.pos);
+    return dist < 0.7 && this._toYou !== undefined ? this._toYou : Math.atan2(_v.x, _v.z);
   }
 
   /** Mocap clips (walk / jog when fleeing / idle / talking), wave layered on top. */
@@ -656,8 +697,7 @@ export class NPC {
         c.elbows[1].rotation.set(-(0.3 + 0.5 * Math.sin(waveT * 14) * k), 0, 0);
       }
       if (dist < 12) {
-        _v.subVectors(player.pos, this.pos);
-        let a = Math.atan2(_v.x, _v.z) - this.heading;
+        let a = this.aimAtPlayer(player, dist) - this.heading;
         a = Math.atan2(Math.sin(a), Math.cos(a));
         c.head.rotateY(THREE.MathUtils.clamp(a, -1.1, 1.1) * 0.8);
       }
@@ -690,8 +730,7 @@ export class NPC {
     // look: at the player when near, around when idle
     let look = Math.sin(this.time * 0.4) * 0.5 * (1 - moving);
     if (dist < 12) {
-      _v.subVectors(player.pos, this.pos);
-      let a = Math.atan2(_v.x, _v.z) - this.heading;
+      let a = this.aimAtPlayer(player, dist) - this.heading;
       a = Math.atan2(Math.sin(a), Math.cos(a));
       look = THREE.MathUtils.clamp(a, -1.1, 1.1);
     }
