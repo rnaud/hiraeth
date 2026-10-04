@@ -8,7 +8,8 @@ import { CONTENT } from '../src/levels/content.js';
 import { game, GameState } from '../src/game-state.js';
 import { items, ITEMS } from '../src/items.js';
 import { PLACEMENTS } from '../src/boxes/placements.js';
-import { createBoxes, migrateSave, resolvePlacement, placementsFor } from '../src/boxes/index.js';
+import { createBoxes, migrateSave, resolvePlacement, placementsFor, BOX_QUEST_DELAY } from '../src/boxes/index.js';
+import { Quests } from '../src/story/quests.js';
 import { BoxScene, STAND_AT, LIFT } from '../src/boxes/scene.js';
 import { BOX, BOX_SCALE } from '../src/boxes/model.js';
 import { DevMenu } from '../src/dev-menu.js';
@@ -266,4 +267,28 @@ test('the dev menu grants and revokes items, all and none', () => {
   dev.setFlag('prologue.done', true);
   assert.equal(game.flag('prologue.done'), true);
   game.reset();
+});
+
+test('every hidden box has a quest that says where to look; it starts on arrival and ends when the box opens', () => {
+  for (const [id, list] of Object.entries(PLACEMENTS)) for (const p of list) {
+    if (p.id === 'desert.backpack') continue;   // (the story's own)
+    assert.ok(p.hint && p.hint.length > 20 && !/\*/.test(p.hint), `${p.id}: a plain hint`);
+  }
+  game.reset(); clearInteractables();
+  const { scene, physics, level } = world('edena');
+  const quests = new Quests({ game });
+  const toasts = [];
+  const pl = player(level.spawn);
+  const boxes = createBoxes({ levelId: 'edena', scene, physics, level, player: pl, quests, toast: (t) => toasts.push(t) });
+  const [qid] = boxes.quests;
+  assert.equal(qid, 'box.edena.lantern');
+  assert.equal(quests.isStarted(qid), false, 'not straight away');
+  for (let i = 0; i < 30 * (BOX_QUEST_DELAY + 1); i++) boxes.update(1 / 30, i / 30);
+  assert.equal(quests.isActive(qid), true, 'started after the landing');
+  assert.ok(toasts.length === 1 && /sketchbook/.test(toasts[0]));
+  assert.ok(quests.journalHtml().includes('umbrella tree'), 'the sketchbook says where');
+  boxes.open('edena.lantern', { instant: true });
+  quests.update(pl);   // (the story runtime does this every frame)
+  assert.equal(quests.isDone(qid), true, 'opening the box finishes it');
+  boxes.dispose(); clearInteractables(); game.reset(); items.revoke('lantern');
 });

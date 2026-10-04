@@ -1176,6 +1176,10 @@ Pocket. Their built-in controls work through the Gamepad API.
   at its centre and hovers there with a card showing its name, what it is and
   what it does. Then the item is granted, and the box is gone for good (no
   collider either).
+  Each placement's `hint` makes a small quest (`box.<id>`, "A Makers' Box"):
+  it starts `BOX_QUEST_DELAY` s after you arrive while the box is shut, its one
+  step says where to look and points the scout at the box (locator `box.<id>`),
+  and the `box.<id>` flag finishes it. The desert's first box is the story's.
   Placements are in `placements.js`: the backpack lies near the desert crash
   site as the first quest stage, and every world has a box. Fallback boxes
   appear by the ship if you reach a world without what it needs. Special item

@@ -209,9 +209,36 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
     }
   }));
 
+  // ------------------------------------------------------------------ the boxes' own quests
+  // Each hidden box (with a hint) is a small quest in the sketchbook: it starts a few seconds after
+  // you arrive while the box is still shut, its step says where to look, tracking it sends the scout
+  // there, and opening the box finishes it (the flag box.<id>).
+  const boxQuests = [];
+  function defineQuests() {
+    if (!quests?.define) return;
+    for (const b of list) {
+      if (b.fallback || !b.place.hint) continue;
+      const id = `box.${b.id}`;
+      if (!quests.def?.(id)) quests.define({ id, title: b.place.title ?? 'A Makers’ Box', world: levelId, outro: `${b.def.name}: yours.`,
+        stages: [{ id: 'find', text: b.place.hint, label: 'The makers’ box', flag: `box.${b.id}`, at: `box.${b.id}` }] });
+      boxQuests.push({ b, id });
+    }
+  }
+  let questClock = 0, questsOffered = false;
+  function offerQuests(dt) {
+    if (questsOffered || !quests?.start) return;
+    if ((questClock += dt) < BOX_QUEST_DELAY || current) return;
+    questsOffered = true;
+    let n = 0;
+    for (const { b, id } of boxQuests) if (!spent(b) && !quests.isStarted?.(id)) { quests.start(id); n++; }
+    if (n) toast('Someone left a makers’ box in this world. Your sketchbook says where to look.');
+  }
+
   const api = {
     list,
     card,
+    /** The ids of this world's box quests. */
+    get quests() { return boxQuests.map((q) => q.id); },
     busy: () => !!current,
     get scene() { return current; },
     open(id, { instant = false } = {}) {
@@ -245,7 +272,7 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
       for (const p of Object.values(table).flat()) { if (ITEMS[p.item]) { items.grant(p.item); g.set(`box.${p.id}`, true); } }
       for (const b of list) { b.justOpened = true; setSpentLook(b, true); }
     },
-    rebuild() { if (current) current.end(); dispose(); build(); },
+    rebuild() { if (current) current.end(); dispose(); build(); boxQuests.length = 0; defineQuests(); },
     /** Boxes found / placed per world (the table's own boxes; fallbacks don't count). */
     counts() {
       const out = {};
@@ -307,12 +334,16 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
         }
       }
       sound?.boxHum?.(current ? 0 : hum);
+      offerQuests(dt);
       if (current) current.update(dt);
       void camera;
     },
     dispose() { dispose(); for (const f of offs) f(); offs.length = 0; },
   };
   build();
+  defineQuests();
   return api;
 }
+/** Seconds after you arrive before a world's box quests start (the landing and the first page come first). */
+export const BOX_QUEST_DELAY = 8;
 const _c = new THREE.Color();

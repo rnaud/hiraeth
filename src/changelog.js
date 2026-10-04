@@ -13,6 +13,7 @@ export const CHANGELOG = [
     'Five save slots: each shows its world, how far you’ve come, the time played and when you last played. Start a new game in an empty slot, or delete a save after a confirmation. Your current progress is kept in the first slot.',
     'Start and Select now open full-screen menus that pause the game, with their own calm music over the hushed world. Quit to title is in the Start menu, and restarting from the prologue only starts over the save you’re playing.',
     'Places to go, the next thing to do and the hints that solve a puzzle now stand out in colour in conversations, in every world, far more often than before. Speech balloons show these highlights too, instead of stray stars.',
+    'Every world’s hidden makers’ box now has its own quest: a few seconds after you land it appears in your sketchbook with where to look, tracking it sends the scout there, and opening the box finishes it.',
     'In the sketchbook, finished quests are plain to see: they move under “Completed” with a green ✓ Complete stamp and how they ended, below the ones still under way.',
     'The City-Shaft’s rim is easier to see across: its olive trees hold their crowns high on tall trunks, and the grove by the ship is lighter, so the people among them stand out.',
     'Arzach’s stone hand now tells you what it wants when you look at it: its quest starts, it shows the feather caught in its fingers, and it says to shoot the knuckles in the right order, which Hollin knows.',

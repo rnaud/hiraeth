@@ -163,6 +163,9 @@ Grouped by area. Checked items are done; the changelog says when.
 
 ## Gift boxes
 
+- [x] A quest in each world that leads you to its hidden box (2026-10-04: each box's
+  quest starts when you land and points the scout at it).
+
 - [x] Much bigger boxes.
 - [x] They levitate before opening, dissolve into nothing with a shader, and the
   item levitates in the centre.
@@ -213,6 +216,14 @@ Grouped by area. Checked items are done; the changelog says when.
   tokens of having grown up, and place them on their tomb.
 - [ ] The hero always faces the recording when one starts.
 
+## Testing
+
+- [ ] The Lab big enough to hold everything: a copy of each biome (flora, fauna,
+  rock formations, buildings…), with little doors to switch between them.
+
 ## Performance
+
+- [ ] Outlines of distant characters on the Retroid keep the same line width, so
+  far figures turn into dark silhouettes: thin and lighten lines with distance.
 
 - [ ] Performance pass on the Retroid Pocket, with it connected for testing.
