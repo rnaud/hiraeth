@@ -107,10 +107,13 @@ the settings.
   not risen.
 - **Place**: the old city of **Qanat** (230, 400), built round the burning tree,
   with pilgrims' camps outside its main gate (168, 292). Its sacred well is dry.
-  Beside the well, opposite the carved stele, stands the **Givers' shrine**
-  (231, 391): a small dark blue dome on four pillars, a pale star on its spire,
-  the glyph on its lintel. Under it, on the paving, the makers' chest that holds
-  the backpack. Nour's stone bench is beside it, under the tree's arm.
+  Beside the well, opposite the carved stele, a **ledge juts out of the burning
+  tree's trunk** a few metres up: a plank shelf on a buttress root marked with
+  the glyph, cloths tied to its corners. On it, in the open where you see it
+  from the stairs, the makers' chest that holds the backpack; you climb the
+  root to reach it. Nour's stone bench is below it, under the tree's arm. (It
+  was once a little blue shrine; the flag `desert.shrine.gathered` keeps its
+  name.)
 - **People**: Ama, keeper of the camp fires; Teo, a drummer who lost his drum;
   Sefa (oud) and Bako (ney), the camp musicians; the Speaker who leads the
   procession; a child, Ilo, who wants to see the cave; old Oum, the pilgrim who
@@ -124,15 +127,15 @@ the settings.
      smoke to the city." On the way the camps and the procession wave them on
      (Ama: "To the city, sky-stranger! Up to the tree!"; the Speaker: "Qanat is
      ahead, little star"). Nothing on the way needs the tool.
-  2. `box`: "Something by the burning tree is humming." Up the main stairs, the
-     shrine stands left of the well. The first time you come near, the people
+  2. `box`: "Something is humming on a ledge up the burning tree's trunk." Up
+     the main stairs, the ledge is left of the well; you climb the buttress root. The first time you come near, the people
      on the terrace turn and murmur, Hessa calls her grandmother, the tree
      flares. Nour, asked before it opens: it has not opened for anyone in
      living memory; it opens only for "one who fell from the sky".
-  3. `elder`: it opens for the traveller (the backpack). Qanat gathers round
-     the shrine (the ones in the avenue come up the stairs), everyone looks up,
-     the tree flares high, and Nour gets off her bench, comes to you and
-     speaks: the old words, the singing light the chest hummed back to, the
+  3. `elder`: it opens for the traveller (the backpack). Qanat gathers at the
+     tree's foot under the ledge (the ones in the avenue come up the stairs),
+     everyone looks up, the tree flares high, and Nour gets off her bench, waits
+     for you to climb down ("Come down, child!"), comes to you and speaks: the old words, the singing light the chest hummed back to, the
      Givers, the star, the tank ("the same water the giants carried"), and the
      one power in the desert, the water that has not risen. She sends you on.
   4. `well`: listen at the dry well (Hessa). 5. `ama`: ask Ama at the fires for
@@ -140,10 +143,11 @@ the settings.
      the way down: "Where the giant's eyes are marked, its mouth is a door."
   7. `down`: out of the back gate to the fallen giant's skull (318, 530),
      whose open mouth is a doorway → the cave of shifting water in the giant's
-     chest, where the tree's roots hang into the pool. 8. `channel`: the water is
-     low because a giant's bone has fallen across the channel. Pushing it clear
-     (fluid push; without the tool, a heave) lets the water rise; the tree
-     drinks. 9. `fill`, 10. `ship`: the jar filled at the pool powers the ship
+     chest, where the tree's roots hang into the pool. 8. `channel`: the pool is
+     dry (damp stains, a pale tide line, no water at all) because a giant's bone
+     has fallen across the channel. Pushing it clear (fluid push; without the
+     tool, a heave) lets the water run: the stream comes out of the crack, down
+     the channel, and fills the pool; the tree drinks. 9. `fill`, 10. `ship`: the jar filled at the pool powers the ship
      (`ship.powered`, `world.desert.done`, the keepsake).
   Saves from before (stages `pack`, `camps`, then ama, speaker, well) move to
   `city` or to Nour and skip what they already did (src/story/desert.js

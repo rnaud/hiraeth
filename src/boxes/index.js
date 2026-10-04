@@ -30,7 +30,7 @@ import { PLACEMENTS, FALLBACKS, FALLBACK_OFFSETS } from './placements.js';
 //
 // Flags (game-state.js): box.<id> = true once opened; items.v = 2 once the
 // save has been migrated (migrateSave). Events: 'box:opened' { id, item, level }.
-// Quest locators: 'box.<id>' (the desert's 'box' stage points at the shrine's box).
+// Quest locators: 'box.<id>' (the desert's 'box' stage points at the ledge's box).
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
@@ -63,7 +63,7 @@ export function migrateSave(g = sharedGame) {
 export function resolvePlacement(p, { physics, level, anchor = null }) {
   let x, z, fromY;
   if (typeof p.site === 'function') {
-    // a spot the level builds (Qanat's shrine): { at: [x, y, z], face }
+    // a spot the level builds (Qanat's ledge on the tree): { at: [x, y, z], face }
     const s = p.site(level);
     if (!s) return null;
     p = { ...p, ...s, site: null };

@@ -18,21 +18,27 @@ import { setupHoverbike } from './desert-bike.js';
 //                benches; Ilo running between the tents; Marrow by his crates
 //   the circuit  the Speaker walks ahead of the procession (crowd.js column)
 //   the city     Hessa keeps the dry well at the burning tree's roots; beside
-//                it the Givers' shrine with the makers' chest (src/boxes/: the
-//                backpack), Nour the eldest on her bench by it, and a few
-//                people of Qanat about the terraces and the avenue
+//                it, a few metres up the trunk, the makers' ledge with their
+//                chest on it (src/boxes/: the backpack), Nour the eldest on her
+//                bench below it, and a few people of Qanat about the terraces
+//                and the avenue
 //   the dunes    old Oum sits on a stone where she fell behind
-//   the cave     the pool, the fallen rib across the channel, the mural
+//   the cave     the dry pool, the fallen rib across the channel, the mural
 //
-// The reaction at the shrine: the first time you come near the closed chest,
-// the people on the terrace turn and murmur and the tree flares; when it opens
-// (box:opened), Qanat gathers round the shrine, the tree flares high, everyone
-// in the avenue looks up, and Nour gets up off her bench, comes to you and
-// talks (the 'elder' stage). Until the chest is open, the camps, the gate and
-// the procession wave you on toward the city.
+// The reaction at the tree: the first time you come near the closed chest, the
+// people on the terrace turn and murmur and the tree flares; when it opens
+// (box:opened), Qanat gathers at the tree's foot under the ledge, the tree
+// flares high, everyone in the avenue looks up, and Nour gets up off her bench
+// and waits for you to climb down, then talks (the 'elder' stage). Until the
+// chest is open, the camps, the gate and the procession wave you on toward
+// the city.
+//
+// The cave is dry until the rib is pushed off the channel: no pool, no stream,
+// only damp stains. Then the stream runs out of the crack and down the gutter,
+// and the pool fills the basin from its lowest point (desert-city.js setWater).
 //
 // Flags (game-state.js): desert.city.entered, desert.shrine.gathered (the
-// reaction played), desert.elder.heard (Nour sent you on), desert.quest.v
+// reaction played; named for the shrine the chest once stood in), desert.elder.heard (Nour sent you on), desert.quest.v
 // (the stage migration), desert.camps.seen, desert.jar.given,
 // desert.speaker.heard, desert.well.seen, desert.cave.seen,
 // desert.channel.open (the rib is pushed clear: the tree drinks),
@@ -115,9 +121,9 @@ export function setupDesert(ctx) {
     heading: game.flag('desert.oum.home') ? oumSeat.heading : 1.2,
   });
   const oum = people.oum;
-  // Nour: on her bench by the Givers' shrine, keeping the makers' chest company (desert-city.js)
-  const shrine = city.shrine;
-  people.nour = spawn(PEOPLE.nour, { route: [shrine.bench.at.clone()], seat: 0.02, heading: shrine.bench.heading, speed: 0.8 });
+  // Nour: on her bench under the makers' ledge, keeping their chest company (desert-city.js)
+  const ledge = city.ledge;
+  people.nour = spawn(PEOPLE.nour, { route: [ledge.bench.at.clone()], seat: 0.02, heading: ledge.bench.heading, speed: 0.8 });
   const nour = people.nour;
   // the people of Qanat: two on the top terrace, the rest down in the avenue by the main stairs
   const T = city.top - city.center.y;
@@ -131,12 +137,17 @@ export function setupDesert(ctx) {
     n.below = i >= 2;   // down in the avenue: up the main stairs to gather
     return n;
   });
-  // where they gather: round the shrine's front and its open side (its left is the terrace's edge), clear of the well
-  // (shrine-local: x across, z out front)
-  const gatherSpots = [[-1.6, 2.8], [1.3, 2.3], [2.8, 1.0], [-1.1, 4.4], [3.5, -0.6], [-1.3, 5.7], [4.3, 1.0], [2.5, -2.0]]
-    .map(([x, z]) => shrine.at(x, 0, z))
-    .filter((p) => { const g = physics.groundAt(p.x, shrine.box.y + 1.5, p.z, 3); return Number.isFinite(g) && Math.abs(g - shrine.box.y) < 0.3 && flat(p, city.well) > 3.4; })
-    .map((p) => p.setY(shrine.box.y));
+  // where they gather: on the terrace at the tree's foot, in front of the ledge and round its sides,
+  // looking up at it; clear of the well, Nour's bench and the buttress's face (where you climb)
+  // (ledge-local: x across, z out from the chest; the buttress's face is at ledge.face)
+  const terraceY = ledge.foot.y;
+  const gatherSpots = [[-2.3, 3.9], [1.9, 3.4], [-3.0, 2.2], [3.0, 2.0], [-0.6, 4.9], [0.9, 5.2], [-2.6, 5.4], [2.6, 4.5], [-3.6, 0.6], [3.6, 0.4]]
+    .map(([x, z]) => ledge.at(x, 0, ledge.face + z - 2))
+    .filter((p) => {
+      const g = physics.groundAt(p.x, terraceY + 1.5, p.z, 3);
+      return Number.isFinite(g) && Math.abs(g - terraceY) < 0.3 && flat(p, city.well) > 3.4 && flat(p, ledge.bench.at) > 1.3 && flat(p, ledge.foot) > 1.2;
+    })
+    .map((p) => p.setY(terraceY));
   // a stone for Oum to sit on, and her staff
   {
     const st = new THREE.Mesh(new THREE.IcosahedronGeometry(0.55, 0).scale(1.2, 0.8, 1), makeMaterial({ color: '#c9b8a0', flat: true }));
@@ -228,7 +239,8 @@ export function setupDesert(ctx) {
   const hollow = setupHoverbike(ctx);
 
   // ---------------------------------------------------------------- the channel and the pool
-  const st = { level: cave.levels.low, boneT: 0, flare: 0, drink: 0, approached: false, campsIn: false };
+  // the water: dry (cave.levels.dry) until the channel opens; then the stream runs (flow 0..1) and the pool rises
+  const st = { level: cave.levels.dry, flow: 0, flowT: 0, boneT: 0, flare: 0, drink: 0, approached: false, campsIn: false };
   const open = () => !!game.flag('desert.channel.open');
   // the tool pushes only once the backpack is found (src/boxes/); before that the rib is heaved by hand
   const toolHasPush = () => !!tool && (tool.owned ?? items.has('backpack'));
@@ -260,12 +272,14 @@ export function setupDesert(ctx) {
     city.flames.setPalette(COOL_FIRE, instant);
     city.smoke?.setPalette(SMOKE_COOL, instant, COOL_FIRE[1]);
     city.wellWater.visible = true;
-    cave.streamOn = true;
     if (crowd) for (const p of crowd.people) if (p.spot?.id === 'procession') p.lines = LINES.drinking;
     sound.setBandMode('camp', 'feast'); sound.setBandMode('procession', 'feast'); sound.setBandMode('tree', 'feast');
     st.drinking = true;
-    if (instant) { st.level = cave.levels.high; st.boneT = 1; st.drink = 1; }
+    if (instant) { st.level = cave.levels.high; st.flow = 1; st.boneT = 1; st.drink = 1; }
+    else if (!st.boneT) st.boneT = 0.001;   // (the flag set some other way: the rib still rolls off)
+    cave.setWater(st.flow, st.level);
   };
+  cave.setWater(st.flow, st.level);
   // the smoke column casts no shadow across the city (the renderer hides level.noShadow in its shadow passes)
   if (city.smoke) (level.noShadow ??= []).push(city.smoke.mesh);
   if (open()) applyOpen(true);
@@ -275,9 +289,12 @@ export function setupDesert(ctx) {
   let wasIn = false;
   const wade = () => {
     const c = cave.poolCenter;
-    const inPool = player.pos.distanceTo(cave.origin) < 200 && flat(player.pos, c) < cave.poolR && player.pos.y < cave.origin.y + st.level + 0.25;
+    // in the water (once there is some), or down in the dry basin
+    const inBasin = player.pos.distanceTo(cave.origin) < 200 && flat(player.pos, c) < cave.poolR && player.pos.y < cave.origin.y - 0.6;
+    const wet = cave.wet && flat(player.pos, c) < cave.basinR(st.level) - 0.4 && player.pos.y < cave.origin.y + st.level + 0.25;
+    const inPool = open() ? wet : inBasin;
     if (inPool && !wasIn) {
-      if (!open()) toast('The water is shallow and dull, barely moving. It’s waiting for something.');
+      if (!open()) toast('The basin is dry. Damp stains on the stone, a pale line where water stood. Something has stopped it coming.');
       else {
         const addColour = !game.flag('desert.pool.tinted') && items.has('backpack');   // (no tank, nothing to tint yet)
         // the fluid tool listens for this (fluid-tool.js): a full tank, and for good a new colour band
@@ -400,10 +417,10 @@ export function setupDesert(ctx) {
   const treeTarget = registerTarget({ kind: 'tree', radius: 14, position: () => city.crown, onHit: () => { st.flare = Math.max(st.flare, 1); return true; } });
   void treeTarget;
 
-  // ---------------------------------------------------------------- the shrine: Qanat notices, gathers, and Nour comes
+  // ---------------------------------------------------------------- the ledge: Qanat notices, gathers, and Nour comes
   const say = (n, text, secs = 3) => { n.shout = { text, until: n.time + secs }; };
   const pick = (list, i) => list[i % list.length];
-  const boxAt = shrine.box;
+  const boxAt = ledge.box;
   const faceBox = (p) => Math.atan2(boxAt.x - p.x, boxAt.z - p.z);
   /** Walk an NPC along points (the stairs), then stand at the last one facing `face`. */
   const walkPath = (n, pts, { speed = 1.25, face = null } = {}) => {
@@ -417,20 +434,25 @@ export function setupDesert(ctx) {
   const sh = { noticed: false, gather: null, nour: null, timers: [] };
   const later = (secs, fn) => sh.timers.push({ at: secs, fn });
   const boxOpen = () => !!game.flag('box.desert.backpack') || items.has('backpack');
+  // where Nour waits for you at the tree's foot, beside the buttress you climb, looking up at the chest
+  const nourWait = ledge.at(-1.0, 0, ledge.face + 1.1).setY(terraceY);
+  const nourToFoot = () => ({ pos: nourWait, speed: 0.95, near: 0.4, max: 1.4, face: faceBox(nourWait) });
+  const nourToYou = () => ({ pos: player.pos, speed: 0.95, near: 1.8, max: 1.5 });
   const notice = () => {
     // the first time you come near the closed chest: heads turn, a murmur, the tree flares a little
     sh.noticed = true;
     st.flare = Math.max(st.flare, 1.1);
     let k = 0;
+    const climbing = player.climbing || player.pos.y > terraceY + 1.5;
     for (const n of [...villagers, people.hessa]) {
       if (flat(n.pos, boxAt) > 30) continue;
-      const line = n === people.hessa ? '~shout~ Grandmother! The sky-stranger is at the chest!' : pick(MURMURS.near, k);
+      const line = n === people.hessa ? (climbing ? '~shout~ Grandmother! The sky-stranger is climbing the tree!' : '~shout~ Grandmother! The sky-stranger is at the chest!') : pick(MURMURS.near, k);
       later(0.3 + k++ * 0.9, () => say(n, line, 3));
     }
     crowd?.lookAt(boxAt.clone().setY(boxAt.y + 1), 6, { near: boxAt, r: 60 });
   };
   const gather = () => {
-    // the chest is open: everyone comes to see, the tree flares high, Nour gets up
+    // the chest is open: everyone comes to the tree's foot to look up at it, the tree flares high, Nour gets up
     game.set('desert.shrine.gathered', true);
     sh.gather = { t: 0 };
     st.flare = Math.max(st.flare, 2.4);
@@ -443,12 +465,12 @@ export function setupDesert(ctx) {
       later(0.6 + i * 0.75, () => say(n, pick(MURMURS.gather, i), 3.2));
     });
     later(1.2, () => say(people.hessa, '~shout~ Grandmother! It opened!', 3));
-    // Nour: up off her bench, to you
-    sh.nour = { t: 0, talked: false };
+    // Nour: up off her bench, to the foot of the ledge (you come down to her, or she comes to you)
+    sh.nour = { t: 0, talked: false, mode: 'foot' };
     nour.seat = null;
     later(0.4, () => say(nour, MURMURS.nour[0], 2));
     later(2.6, () => say(nour, MURMURS.nour[1], 3));
-    nour.follow = () => ({ pos: player.pos, speed: 0.95, near: 1.8, max: 1.5 });
+    nour.follow = nourToFoot;
   };
   const disperse = () => {
     // back to their doors and their sweeping, a while after
@@ -459,8 +481,8 @@ export function setupDesert(ctx) {
     // back to her bench and down onto it
     sh.nour = null;
     nour.follow = () => {
-      if (flat(nour.pos, shrine.bench.at) < 0.45) { nour.follow = null; nour.seat = 0.02; nour.heading = shrine.bench.heading; nour.pos.copy(shrine.bench.at); return null; }
-      return { pos: shrine.bench.at, speed: 0.8, near: 0.3, max: 1.1 };
+      if (flat(nour.pos, ledge.bench.at) < 0.45) { nour.follow = null; nour.seat = 0.02; nour.heading = ledge.bench.heading; nour.pos.copy(ledge.bench.at); return null; }
+      return { pos: ledge.bench.at, speed: 0.8, near: 0.3, max: 1.1 };
     };
   };
   game.on('box:opened', ({ id } = {}) => { if (id === 'desert.backpack' && !game.flag('desert.shrine.gathered')) gather(); });
@@ -469,26 +491,32 @@ export function setupDesert(ctx) {
     if (sh.nour) sh.nour.talked = true;
     if (sh.gather) sh.gather.talked = true;
   });
-  const updateShrine = (dt, pp) => {
+  const updateLedge = (dt, pp) => {
     for (const tm of sh.timers) tm.at -= dt;
     for (const tm of sh.timers.filter((x) => x.at <= 0)) { sh.timers.splice(sh.timers.indexOf(tm), 1); tm.fn(); }
-    const dBox = flat(pp, boxAt), level = Math.abs(pp.y - boxAt.y) < 3;
-    if (!sh.noticed && !boxOpen() && dBox < 13 && level) notice();
+    const dBox = flat(pp, boxAt);
+    const onTerrace = Math.abs(pp.y - terraceY) < 1.2, up = !onTerrace && pp.y > terraceY;   // (up: on the ledge, or climbing to it)
+    if (!sh.noticed && !boxOpen() && dBox < 13 && pp.y > terraceY - 1 && pp.y < boxAt.y + 2.5) notice();
     if (sh.gather) {
       sh.gather.t += dt;
       // they stay a while (all through Nour's talk), then drift back to their doors
       if (!sh.gather.dispersed && ((sh.gather.talked && sh.gather.t > 50) || sh.gather.t > 120)) { sh.gather.dispersed = true; disperse(); }
     }
-    if (sh.nour) {
-      sh.nour.t += dt;
-      // she reaches you: the conversation opens on its own (once)
-      if (!sh.nour.talked && !dialogue.open && flat(nour.pos, pp) < 2.6 && level && !player.riding && sh.nour.t > 1.5) {
-        if (dialogue.start(PEOPLE.nour, nour)) sh.nour.talked = true;
+    const N = sh.nour;
+    if (N) {
+      N.t += dt;
+      if (!N.talked) {
+        // you're still up there: she waits at the foot and calls you down (once); you walked off: she waits
+        // there too, where the marker finds her; you're down on the terrace near the tree: she comes to you
+        const want = up || dBox > (N.mode === 'you' ? 16 : 12) ? 'foot' : 'you';
+        if (want !== N.mode) { N.mode = want; nour.follow = want === 'foot' ? nourToFoot : nourToYou; }
+        if (up && !N.called && N.t > 6 && dBox < 6) { N.called = true; say(nour, MURMURS.nour[3], 3.5); }
+        // she reaches you: the conversation opens on its own (once)
+        if (!dialogue.open && onTerrace && flat(nour.pos, pp) < 2.6 && Math.abs(nour.pos.y - pp.y) < 1.2 && !player.riding && N.t > 1.5) {
+          if (dialogue.start(PEOPLE.nour, nour)) N.talked = true;
+        }
       }
-      // you walked off: she waits by the shrine, where the marker finds her
-      if (!sh.nour.talked && dBox > 16 && !sh.nour.waiting) { sh.nour.waiting = true; const w = shrine.at(-1.6, 0, 1.8).setY(boxAt.y); nour.follow = () => ({ pos: w, speed: 0.9, near: 0.4, face: faceBox(w) }); }
-      if (sh.nour.waiting && !sh.nour.talked && dBox < 7) { sh.nour.waiting = false; nour.follow = () => ({ pos: player.pos, speed: 0.95, near: 1.8, max: 1.5 }); }
-      if (sh.nour.talked && dBox > 30) nourHome();
+      if (N.talked && dBox > 30) nourHome();
     }
   };
 
@@ -532,7 +560,7 @@ export function setupDesert(ctx) {
     if (!game.flag('desert.city.entered') && flat(pp, city.center) < 60 && Math.abs(pp.y - city.center.y) < 30) game.set('desert.city.entered', true);
     // the Speaker waves you on too, as you come up to the procession
     if (early() && !st.speakerWaved && flat(pp, people.speaker.pos) < 14) { st.speakerWaved = true; say(people.speaker, '~happy~ Qanat is ahead, little star. Up to the tree!', 3.5); }
-    updateShrine(dt, pp);
+    updateLedge(dt, pp);
     if (pp.distanceTo(cave.origin) < 80 && !game.flag('desert.cave.seen')) game.set('desert.cave.seen', true);
     updateFollowers(dt);
     wade();
@@ -563,18 +591,21 @@ export function setupDesert(ctx) {
       st.wobble = Math.max(0, st.wobble - dt * 2);
       cave.bone.rotation.x = cave.boneRest.rot.x + Math.sin(st.wobble * 20) * 0.06 * st.wobble;
     }
-    if (open()) {
-      st.level = Math.min(cave.levels.high, st.level + dt * 0.12);
-      st.drink = Math.min(1, st.drink + dt / 6);
+    if (open() && st.level < cave.levels.high) {
+      // the stream runs out of the crack as the rib rolls clear, reaches the pool, and the pool fills
+      st.flowT += dt;
+      if (st.flowT > 0.5) st.flow = Math.min(1, st.flow + dt / 2.6);
+      if (st.flow >= 1) st.level = Math.min(cave.levels.high, st.level + dt * (st.level < cave.levels.dry + 0.12 ? 0.06 : 0.15));
+      st.drink = THREE.MathUtils.clamp((st.level - cave.levels.dry) / (cave.levels.high - cave.levels.dry), 0, 1);
+      cave.setWater(st.flow, st.level);
     }
-    cave.pool.position.y = cave.origin.y + st.level;
-    cave.poolLight.w = 14 + 16 * st.drink;
+    cave.poolLight.w = 10 + 20 * st.drink;
     const inCave = camPos.distanceTo(cave.origin) < 300;
     if (inCave) {
       // the same fluid as the tank: dull and slow while the channel is blocked, alive once the water runs
       st.poolT = (st.poolT ?? 0) + dt * (0.35 + 0.65 * st.drink);
       setMagic(cave.poolMat, st.poolT, { bright: 0.25 + 0.75 * st.drink, tones: st.drink > 0.5 ? 6 : 4 });
-      setMagic(cave.streamMat, t * (open() ? 2.2 : 0.4), { bright: open() ? 1 : 0.55, tones: 6 });
+      if (st.flow > 0) setMagic(cave.streamMat, t * 2.2, { bright: 1, tones: 6 });
     }
     if (city.wellWater.visible && flat(camPos, city.well) < 250) {
       city.wellWater.position.y = Math.min(city.well.y + 0.95, city.wellWater.position.y + dt * 0.25);
@@ -588,7 +619,7 @@ export function setupDesert(ctx) {
   };
 
   return {
-    people, update, state: st, villagers, shrine: sh, gatherSpots, hollow,
+    people, update, state: st, villagers, ledge: sh, gatherSpots, hollow,
     /** E on a crowd person: their short conversation (by where they stand). */
     crowdTalk(p) {
       const id = p.spot?.id;

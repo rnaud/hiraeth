@@ -10,7 +10,7 @@
 //            (the surface just under y: a ledge, a roof, a terrace)
 //   toward   [x, z] the front of the box faces this way (where you come from;
 //            default: the world's spawn). face: a heading instead.
-//   site     (level) => { at, face } instead of at / face: a spot a level builds (a shrine)
+//   site     (level) => { at, face } instead of at / face: a spot a level builds (Qanat's ledge)
 //   beacon   a pale column over it, seen from afar (the boxes you must find); a number: only
 //            within that many metres (it rises out of a city, not over the whole desert)
 //   hint     the box's own quest (src/boxes/index.js): where it is, in the player's words; the quest
@@ -21,11 +21,11 @@
 
 export const PLACEMENTS = {
   desert: [
-    // the Givers' shrine in Qanat: under the little dark blue dome beside the dry well, at the burning
-    // tree's roots (src/desert-city.js builds it). Up the main stairs from the gate, on the left of the
-    // well; its spire's pale star and the box's pale column show the way from the avenue.
-    { id: 'desert.backpack', item: 'backpack', site: (level) => level.qanat?.city.shrine && { at: level.qanat.city.shrine.box.toArray(), face: level.qanat.city.shrine.yaw }, beacon: 170,
-      note: 'In Qanat, under the Givers’ shrine beside the dry well, up the main stairs: the first find, and the elder’s.' },
+    // the makers' ledge in Qanat: a plank shelf jutting out of the burning tree's trunk 3 m up, on a
+    // buttress root you climb (src/desert-city.js builds it), above the terrace beside the dry well. Up
+    // the main stairs from the gate, on the left of the well; the box's pale column shows the way.
+    { id: 'desert.backpack', item: 'backpack', site: (level) => level.qanat?.city.ledge && { at: level.qanat.city.ledge.box.toArray(), face: level.qanat.city.ledge.yaw }, beacon: 170,
+      note: 'In Qanat, on the makers’ ledge up the burning tree’s trunk, left of the dry well: climb the buttress root. The first find, and the elder’s.' },
     // Qanat: on the flat roof of a domeless house inside the main gate (a 6 m climb)
     { id: 'desert.star', item: 'star', at: [246.9, 7.6, 363.6], lift: 0.5, toward: [230, 330],
       hint: 'A makers’ box sits on a flat roof just inside Qanat’s main gate. Climb the house wall',

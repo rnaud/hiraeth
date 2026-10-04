@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { Physics } from '../src/physics.js';
+import { Player } from '../src/player.js';
 import { Ship } from '../src/ship/ship.js';
 import { LEVELS } from '../src/levels/index.js';
 import { CONTENT } from '../src/levels/content.js';
@@ -100,28 +101,32 @@ test('jetpack worlds without the jets get a box with them beside the ship', () =
   game.reset();
 });
 
-test('the desert backpack box sits in Qanat, under the Givers’ shrine by the well, on reachable ground', () => {
+test('the desert backpack box sits on the makers’ ledge up the burning tree’s trunk: in sight from the stairs, a short climb', () => {
   const { physics, level } = world('desert');
-  const C = level.qanat.city;
+  const C = level.qanat.city, L = C.ledge;
   const p = PLACEMENTS.desert.find((x) => x.item === 'backpack');
   assert.ok(!p.debris && p.beacon, 'no crash trail; a pale column over it');
   const at = resolvePlacement(p, { physics, level });
   assert.ok(at, 'resolves');
-  // inside the walls, up on the top terrace at the burning tree's roots, beside the well
+  assert.ok(at.pos.distanceTo(L.box) < 0.05, 'on the ledge');
+  // inside the walls, at the burning tree beside the well, a few metres over the top terrace (a short climb)
   assert.ok(Math.hypot(at.pos.x - C.center.x, at.pos.z - C.center.z) < 20, 'in the middle of the city');
-  assert.ok(Math.abs(at.pos.y - C.top) < 0.2, `on the top terrace (${at.pos.y.toFixed(2)} vs ${C.top.toFixed(2)})`);
-  assert.ok(at.pos.distanceTo(C.shrine.box) < 0.05, 'under the shrine');
+  const rise = at.pos.y - C.top;
+  assert.ok(rise > 2.5 && rise < 4.5, `a few metres up the trunk (${rise.toFixed(2)} m)`);
   const dw = Math.hypot(at.pos.x - C.well.x, at.pos.z - C.well.z);
-  assert.ok(dw > 3.5 && dw < 9, `beside the well (${dw.toFixed(1)} m)`);
-  // the shrine's roof is over it, with head room for the opening scene
-  assert.ok(physics.rayDistance(at.pos.clone().add(V(0, 0.5, 0)), V(0, 1, 0), 6) < 4, 'a roof overhead');
+  assert.ok(dw > 3.5 && dw < 12, `beside the well (${dw.toFixed(1)} m)`);
+  // in the open (no roof: it shows from afar, and there's room for the opening scene), its back to the bark
+  assert.equal(physics.rayDistance(at.pos.clone().add(V(0, 0.5, 0)), V(0, 1, 0), 12), Infinity, 'open sky over it');
   reachable(physics, at.pos, at.yaw, 'desert.backpack');
-  // its front faces the top of the main stairs, the way you come up from the gate
-  const F = V(Math.sin(at.yaw), 0, Math.cos(at.yaw)), to = C.stairTop.clone().sub(at.pos).setY(0).normalize();
-  assert.ok(F.dot(to) > 0.95, 'it faces the stairs');
-  // on foot from the gate: up the avenue, the stairs, across the terrace to where you stand (no step over 0.62 m, no wall)
-  const kneel = at.pos.clone().addScaledVector(F, STAND_AT);
-  const route = [C.gate, C.plinthStair, C.stairTop, kneel];
+  const F = V(Math.sin(at.yaw), 0, Math.cos(at.yaw));
+  assert.ok(physics.rayDistance(at.pos.clone().add(V(0, 1.2, 0)), F.clone().negate(), 1.4) < 1.4, 'the trunk just behind it');
+  const out = at.pos.clone().sub(C.treeBase).setY(0).normalize();
+  assert.ok(F.dot(out) > 0.95, 'it faces out from the trunk');
+  // in sight from the top of the main stairs, the way you come up from the gate (well clear of the flame)
+  const eye = C.stairTop.clone().add(V(0, 1.6, 0)), lid = at.pos.clone().add(V(0, 0.9, 0)), d = eye.distanceTo(lid);
+  assert.ok(physics.rayDistance(eye, lid.clone().sub(eye).normalize(), d) > d - 0.2, 'seen from the top of the stairs');
+  // on foot from the gate: up the avenue, the stairs, round the well to the buttress's foot (no step over 0.62 m, no wall)
+  const route = [C.gate, C.plinthStair, C.stairTop, C.local(-4, C.top - C.center.y, 9.6), L.foot];
   for (let i = 0; i < route.length - 1; i++) {
     const a = route[i], b = route[i + 1], n = Math.ceil(a.distanceTo(b) / 0.5);
     let y = physics.groundAt(a.x, a.y + 1, a.z);
@@ -133,12 +138,48 @@ test('the desert backpack box sits in Qanat, under the Givers’ shrine by the w
       y = g;
     }
   }
-  // open behind and to the right: the opening scene's two cameras see the traveller from there
-  const S = V(Math.cos(at.yaw), 0, -Math.sin(at.yaw)), chest = kneel.clone().add(V(0, 0.95, 0)).addScaledVector(F, -0.15);
-  for (const [label, cam] of [['right', at.pos.clone().addScaledVector(S, 2.7).add(V(0, 0.9, 0))], ['behind', at.pos.clone().addScaledVector(S, 0.66).addScaledVector(F, -2.25).add(V(0, 1.1, 0))]]) {
-    const d = cam.distanceTo(chest);
-    assert.ok(physics.rayDistance(chest, cam.clone().sub(chest).normalize(), d) >= d - 0.05, `the ${label} camera has a clear view`);
+  // the climb: walk into the buttress root's face, climb it, pull up over the edge and stand in front of the chest
+  {
+    const P = new Player(physics, { health: false });
+    P.pos.copy(L.foot); P.heading = at.yaw + Math.PI; P.onGround = true;
+    const camYaw = Math.atan2(F.x, F.z);   // W walks toward -F: into the trunk
+    let climbed = false, onLedge = false;
+    for (let i = 0; i < 60 * 15 && !onLedge; i++) {
+      quiet(() => P.update(1 / 60, { KeyW: true }, camYaw));
+      climbed ||= P.climbing;
+      onLedge = P.onGround && !P.climbing && !P.mantle && Math.abs(P.pos.y - at.pos.y) < 0.15;
+    }
+    assert.ok(climbed, 'it climbs the root');
+    assert.ok(onLedge, `and stands on the ledge (${P.pos.y.toFixed(2)} vs ${at.pos.y.toFixed(2)})`);
+    const fd = Math.hypot(P.pos.x - at.pos.x, P.pos.z - at.pos.z);
+    assert.ok(fd > 1.0 && fd < 2.2, `in front of the chest, within reach (${fd.toFixed(2)} m)`);
   }
+  // (the mocap climb hugs the face closer, 0.27 m: its last reach over the edge still clears the chest,
+  // so the climb ends in a pull-up onto the shelf, not against the chest's front)
+  const face = at.pos.clone().addScaledVector(F, L.face + 0.27);
+  for (const h of [0.15, 0.5, 0.85]) assert.equal(physics.rayDistance(face.clone().add(V(0, h, 0)), F.clone().negate(), 1.6), Infinity, `over the edge at ${h} m: clear`);
+  // the opening scene up there: every shot sees the traveller and the chest, from the open air
+  game.reset();
+  clearInteractables();
+  const shots = [];
+  const cam = { shot: (o) => shots.push(o), release() {}, hud() {}, bars() {} };
+  const pl = player(at.pos.clone().addScaledVector(F, 1.6));
+  const boxes = createBoxes({ levelId: 'desert', scene: world('desert').scene, physics, level, player: pl, cam });
+  const box = boxes.list.find((b) => b.item === 'backpack');
+  boxes.open(box.id);
+  for (let i = 0; i < 30 * 7; i++) boxes.update(1 / 30, i / 30);
+  const real = shots.filter((s) => s.pos);
+  assert.ok(real.length > 100, 'the scene films it');
+  const chest = at.pos.clone().addScaledVector(F, STAND_AT).add(V(0, 1.3, 0));
+  for (const s of real.filter((_, i) => i % 10 === 0)) {
+    const d = s.pos.distanceTo(chest);
+    assert.ok(physics.rayDistance(chest, s.pos.clone().sub(chest).normalize(), d) >= d - 0.05, 'a clear view of the traveller');
+    assert.ok(!physics.embedded(s.pos), 'the lens is in the open');
+    assert.ok(s.pos.y > C.top + 1 && s.pos.y < C.top + 12 * 1.45, 'up by the ledge, under the flame');
+  }
+  boxes.dispose();
+  clearInteractables();
+  game.reset();
 });
 
 test('a box opens through E and its scene, grants its item and stays open', () => {
