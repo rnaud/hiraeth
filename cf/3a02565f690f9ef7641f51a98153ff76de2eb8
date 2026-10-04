@@ -1,0 +1,57 @@
+README.md
+  s_1fd8d0e7b02dcf::t_e33ab85580760c 1565-1582
+docs/story-bible.md
+  s_1fd8d0e7b02dcf::t_1bbe315f8e69c4 26-32
+src/main.js
+  s_1fd8d0e7b02dcf::t_a5defa500a416f 42,374
+src/ship/cinematics.js
+  s_1fd8d0e7b02dcf::t_02712adf32aae8 10,167,475-477
+src/ship/ship.js
+  s_1fd8d0e7b02dcf::t_d6bc65409aef5b 16,493-494
+src/ship/starmap.js
+  s_1fd8d0e7b02dcf::t_24f5d99d53a319 8-10,27,43,46,58-60,139-150,172,262,268,317,319
+src/story/bazaar-data.js
+  s_1fd8d0e7b02dcf::t_a33f7bd0efec50 216
+src/story/desert-data.js
+  s_1fd8d0e7b02dcf::t_92553c30a8c533 549-550
+src/story/edena-data.js
+  s_1fd8d0e7b02dcf::t_b99c47cfaf14ac 312
+src/story/garage-data.js
+  s_1fd8d0e7b02dcf::t_6cd39c7b709f58 162
+src/story/incal-data.js
+  s_1fd8d0e7b02dcf::t_d35e50717f4c99 356-357
+src/story/perdide-data.js
+  s_1fd8d0e7b02dcf::t_de7fa5b82b4d3f 310
+src/story/perdide2-data.js
+  s_1fd8d0e7b02dcf::t_8ca28fb860ef20 289
+src/story/signature.js
+  s_1fd8d0e7b02dcf::t_f745197e850e60 1-79
+tests/signature.test.js
+  s_1fd8d0e7b02dcf::t_e791526a2c1fa5 1-52
+LORE.md
+  s_7a58b1ba4761f0::t_e5af8bbb1537f2 1-723
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "cf3a02565f690f9ef7641f51a98153ff76de2eb8",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_7a58b1ba4761f0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a5bd096cd7fffd888",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
