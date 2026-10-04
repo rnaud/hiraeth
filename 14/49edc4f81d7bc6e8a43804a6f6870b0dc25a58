@@ -1,0 +1,37 @@
+src/levels/content.js
+  s_1fd8d0e7b02dcf::t_16b05776586b0c 17,193-194,218
+src/levels/perdide.js
+  s_1fd8d0e7b02dcf::t_d044b719460ffb 7,18-24,38-40,74-92,135-145,147-150,159,166,173-180,199,201,210-212,219-221,226,262-263,318-336,339-342,344,374-375,378-381
+src/levels/perdide2.js
+  s_1fd8d0e7b02dcf::t_ae8d8fd922b761 7,76-85,155-156,158-161,171,174-175,379,434-435,611,650,654-670,672,685-686,691-693,742-743
+src/story/index.js
+  s_1fd8d0e7b02dcf::t_5a0dda2bc96281 10-11,28-32
+src/story/perdide-data.js
+  s_1fd8d0e7b02dcf::t_145e0270939475 1-494
+src/story/perdide.js
+  s_1fd8d0e7b02dcf::t_de56df8216a3cc 1-366
+src/story/perdide2-data.js
+  s_1fd8d0e7b02dcf::t_6396b966d0692f 1-305
+src/story/perdide2.js
+  s_1fd8d0e7b02dcf::t_ea3bb54e489505 1-285
+tests/story-perdide.test.js
+  s_1fd8d0e7b02dcf::t_5a882af88c2aa9 1-204
+tests/story-perdide2.test.js
+  s_1fd8d0e7b02dcf::t_d9ee9cd3b97168 1-170
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1449edc4f81d7bc6e8a43804a6f6870b0dc25a58",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
