@@ -104,7 +104,7 @@ Grouped by area. Checked items are done; the changelog says when.
 
 ## HUD, menus and prompts
 
-- [ ] A title screen, and a save selector (up to 5 saves) at the start of the
+- [x] A title screen, and a save selector (up to 5 saves) at the start of the
   game: continue a save, start a new one, or delete one.
 
 - [x] Too much on screen: remove all the button reminders.
@@ -119,7 +119,7 @@ Grouped by area. Checked items are done; the changelog says when.
 - [ ] Clearer in the menu when a quest is complete.
 - [x] Level screenshots (level select) should be smaller.
 - [x] Don't show the "updated" screen on every level.
-- [ ] Select and Start screens pause the game, full screen, with their own
+- [x] Select and Start screens pause the game, full screen, with their own
   menu music.
 - [x] Health bar and fall damage.
 

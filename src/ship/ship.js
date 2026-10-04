@@ -579,7 +579,7 @@ const _p = new THREE.Vector3(), _l = new THREE.Vector3(), _l2 = new THREE.Vector
 
 function padSkip() {
   if (typeof navigator === 'undefined' || !navigator.getGamepads) return false;
-  for (const gp of navigator.getGamepads()) if (gp && (gp.buttons[padIndex('back')]?.pressed || gp.buttons[9]?.pressed)) return true;   // printed B, or Menu / Start
+  for (const gp of navigator.getGamepads()) if (gp && gp.buttons[padIndex('back')]?.pressed) return true;   // printed B (Menu / Start pauses the scene instead)
   return false;
 }
 

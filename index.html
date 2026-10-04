@@ -11,7 +11,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
-    <title>Moebius — ligne claire PoC</title>
+    <title>Moebius</title>
     <style>
       :root {
         --safe-top: env(safe-area-inset-top, 0px);
@@ -77,14 +77,7 @@
         position: fixed; right: 14px; bottom: 14px; z-index: 30; width: 40px; height: 40px; font-size: 22px; line-height: 1;
         background: #fffaf0; color: #2b211f; border: 2px solid #2b211f; box-shadow: 3px 3px 0 #2b211f; cursor: pointer;
       }
-      #settings { position: fixed; inset: 0; z-index: 90; display: none; place-items: center; background: rgba(43, 33, 31, 0.45); }
-      #settings.open { display: grid; }
-      #settings .panel {
-        width: min(460px, 92vw); padding: 20px 24px; background: #f7ecd2; border: 2px solid #2b211f; box-shadow: 7px 7px 0 #2b211f;
-        font: 13px ui-monospace, Menlo, monospace; color: #2b211f;
-      }
-      #settings h1 { margin: 0 0 14px; font-size: 20px; letter-spacing: 0.14em; }
-      #changelog { position: fixed; inset: 0; z-index: 91; display: none; place-items: center; background: rgba(43, 33, 31, 0.45); }
+      #changelog { position: fixed; inset: 0; z-index: 8700; display: none; place-items: center; background: rgba(43, 33, 31, 0.45); }
       #changelog.open { display: grid; }
       #changelog .panel {
         width: min(620px, 94vw); max-height: 86vh; display: flex; flex-direction: column; padding: 20px 24px; background: #f7ecd2;
@@ -98,11 +91,6 @@
       #changelog li { margin: 3px 0; }
       #changelog .buttons { margin-top: 12px; text-align: right; }
       #changelog button { font: inherit; padding: 6px 12px; background: #fffaf0; border: 2px solid #2b211f; cursor: pointer; }
-      #settings .row { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin: 9px 0; }
-      #settings select, #settings input[type=range] { width: 52%; accent-color: #c8483a; font: inherit; }
-      #settings .buttons { display: flex; justify-content: space-between; margin-top: 16px; }
-      #settings button { font: inherit; padding: 6px 12px; background: #fffaf0; border: 2px solid #2b211f; cursor: pointer; }
-      #settings .keys { margin: 14px 0 0; font-size: 11px; opacity: 0.65; line-height: 1.5; }
       #picker .continue {
         display: inline-block; margin: 0 0 18px; padding: 8px 14px; color: #2b211f; text-decoration: none; font-weight: bold;
         background: #f2c54b; border: 2px solid #2b211f; box-shadow: 4px 4px 0 #2b211f;
@@ -305,7 +293,7 @@
       }
 
       #journal {
-        position: fixed; inset: 0; z-index: 70; display: none; overflow: auto; padding: 34px 44px;
+        position: fixed; inset: 0; z-index: 8500; display: none; overflow: auto; padding: 34px 44px;
         background: #f3e7cc; color: #2b211f; font: 13px ui-monospace, Menlo, monospace;
         background-image: repeating-linear-gradient(0deg, transparent 0 27px, rgba(43, 33, 31, 0.07) 27px 28px);
       }
@@ -341,8 +329,8 @@
       #touch .b-use { right: calc(112px + var(--safe-right)); bottom: calc(40px + var(--safe-bottom)); }
       #touch .b-run { right: calc(24px + var(--safe-right)); bottom: calc(186px + var(--safe-bottom)); }
       #touch .b-book { right: calc(112px + var(--safe-right)); bottom: calc(120px + var(--safe-bottom)); }
-      #settings, #changelog, #page { box-sizing: border-box; padding: calc(12px + var(--safe-top)) calc(12px + var(--safe-right)) calc(12px + var(--safe-bottom)) calc(12px + var(--safe-left)); }
-      #settings .panel, #changelog .panel, #page .sheet { box-sizing: border-box; max-width: 100%; max-height: calc(100dvh - 32px - var(--safe-top) - var(--safe-bottom)); overflow: auto; }
+      #changelog, #page { box-sizing: border-box; padding: calc(12px + var(--safe-top)) calc(12px + var(--safe-right)) calc(12px + var(--safe-bottom)) calc(12px + var(--safe-left)); }
+      #changelog .panel, #page .sheet { box-sizing: border-box; max-width: 100%; max-height: calc(100dvh - 32px - var(--safe-top) - var(--safe-bottom)); overflow: auto; }
       #picker, #journal { padding: calc(24px + var(--safe-top)) calc(20px + var(--safe-right)) calc(24px + var(--safe-bottom)) calc(20px + var(--safe-left)); }
       #picker header { flex-wrap: wrap; gap: 12px; }
       @media (display-mode: standalone) { .install-tip { display: none; } }
@@ -444,6 +432,6 @@
       </span><span id="status"></span>
     </div>
     <div id="health"><i></i></div>
-    <script type="module" src="/src/main.js"></script>
+    <script type="module" src="/src/boot.js"></script>
   </body>
 </html>

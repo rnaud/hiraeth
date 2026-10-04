@@ -1,5 +1,6 @@
 import { VERSION } from './changelog.js';
 import { confirmKey, backKey } from './native-pad.js';
+import { slotStorage } from './save-slots.js';
 // Player-facing UI: settings (saved), the settings menu, touch controls and
 // the save file for "continue where you left off".
 
@@ -53,36 +54,59 @@ export function padControls(ok = confirmKey(), back = backKey()) {
     + `In menus: D-pad select, left / right adjust, ${ok} confirm, ${back} back, right stick scroll.`;
 }
 
-/** The settings menu: O, Esc (when nothing else is open) or the gear button. */
+/**
+ * The Start menu: O, Esc (when nothing else is open), the gear button or Menu / Start on a
+ * controller. Full screen: on the left Resume, the sketchbook, what's new and Quit to title
+ * (with where you are: the save, the world, the time played), on the right the settings.
+ * main.js pauses the game and plays the menu music while it is open.
+ * The title screen (src/title.js) shows the same settings on its own element: { el, title: true }
+ * (no game entries, no keys of its own).
+ */
 export class SettingsMenu {
-  constructor(settings, { sound, onResetProgress, isBusy, onNews, onDev }) {
+  constructor(settings, { sound, onResetProgress, isBusy = () => false, onNews, onDev, onQuit, onBook, where, el = document.getElementById('settings'), title = false }) {
     this.s = settings;
-    const el = (this.el = document.getElementById('settings'));
+    this.el = el;
+    this.where = where;
     const row = (label, control) => `<label class="row"><span>${label}</span>${control}</label>`;
+    const game = !title;
+    el.classList.add('fullmenu');
     el.innerHTML = `
-      <div class="panel">
-        <h1>SETTINGS <span style="font-size:12px;letter-spacing:0;opacity:.6">v${VERSION}</span></h1>
-        ${row('Graphics', `<select data-k="quality"><option value="auto">Auto (adapts to keep it smooth)</option><option value="handheld">Handheld (Retroid, phones)</option><option value="low">Low (fast)</option><option value="medium">Medium</option><option value="high">High (smooth lines)</option></select>`)}
-        ${row('Camera sensitivity', `<input data-k="sensitivity" type="range" min="0.3" max="3" step="0.05">`)}
-        ${row('Invert camera Y', `<input data-k="invertY" type="checkbox">`)}
-        ${row('Controller buttons', `<select data-k="padFaces"><option value="auto">Auto</option><option value="xbox">A at the bottom (Xbox, PlayStation)</option><option value="nintendo">A on the right (Retroid, Nintendo)</option><option value="nintendo-xbox">A on the right, Retroid set to Xbox style</option></select>`)}
-        ${row('Music', `<input data-k="music" type="range" min="0" max="1" step="0.05">`)}
-        ${row('Effects', `<input data-k="effects" type="range" min="0" max="1" step="0.05">`)}
-        ${row('Voices', `<input data-k="voices" type="range" min="0" max="1" step="0.05">`)}
-        ${row('Alien voices (heard through your translator)', `<input data-k="alienVoices" type="checkbox">`)}
-        ${row('Mute (M)', `<input data-k="mute" type="checkbox">`)}
-        ${row('Show FPS and frame time (F)', `<input data-k="showFps" type="checkbox">`)}
-        ${row('Developer panel', `<input data-k="devPanel" type="checkbox">`)}
-        ${row('Dev menu: items, boxes, worlds (\`)', `<button data-a="dev" type="button">open</button>`)}
-        <div class="buttons">
-          <button data-a="reset">Reset progress</button>
-          <button data-a="news">What's new (N)</button>
-          <button data-a="close">Close</button>
-        </div>
-        <p class="keys pad-keys">${padControls()}</p>
-        <p class="keys" id="app-build" hidden></p>
-        <p class="keys install-tip">Play full screen on iPhone: open in Safari, tap Share → Add to Home Screen, then enable Open as Web App if shown.</p>
-        <p class="keys">WASD move · SHIFT run · SPACE jump / glide / jetpack (SPACE again in the air: fluid boost) · E interact · Q ping scout · hold right mouse or R aim the fluid tool · left click or G shoot · C or middle click push · J sketchbook · L worlds · P photo · H help · O settings · N what's new</p>
+      <div class="pause">
+        <aside class="side">
+          <div class="brand" aria-hidden="true">${game ? 'PAUSED' : 'MOEBIUS'}</div>
+          <div class="where"></div>
+          <nav class="menu-nav">
+            <button data-a="close" class="primary">${game ? 'Resume' : 'Back'}</button>
+            ${game ? `<button data-a="book">Sketchbook</button>
+            <button data-a="news">What's new</button>
+            <button data-a="title">Quit to title</button>` : ''}
+          </nav>
+          <p class="saved">${game ? 'Your progress is saved as you play.' : ''}</p>
+        </aside>
+        <section class="panel">
+          <h1>SETTINGS <span>v${VERSION}</span></h1>
+          ${row('Graphics', `<select data-k="quality"><option value="auto">Auto (adapts to keep it smooth)</option><option value="handheld">Handheld (Retroid, phones)</option><option value="low">Low (fast)</option><option value="medium">Medium</option><option value="high">High (smooth lines)</option></select>`)}
+          ${row('Camera sensitivity', `<input data-k="sensitivity" type="range" min="0.3" max="3" step="0.05">`)}
+          ${row('Invert camera Y', `<input data-k="invertY" type="checkbox">`)}
+          ${row('Controller buttons', `<select data-k="padFaces"><option value="auto">Auto</option><option value="xbox">A at the bottom (Xbox, PlayStation)</option><option value="nintendo">A on the right (Retroid, Nintendo)</option><option value="nintendo-xbox">A on the right, Retroid set to Xbox style</option></select>`)}
+          ${row('Music', `<input data-k="music" type="range" min="0" max="1" step="0.05">`)}
+          ${row('Effects', `<input data-k="effects" type="range" min="0" max="1" step="0.05">`)}
+          ${row('Voices', `<input data-k="voices" type="range" min="0" max="1" step="0.05">`)}
+          ${row('Alien voices (heard through your translator)', `<input data-k="alienVoices" type="checkbox">`)}
+          ${row('Mute (M)', `<input data-k="mute" type="checkbox">`)}
+          ${row('Show FPS and frame time (F)', `<input data-k="showFps" type="checkbox">`)}
+          ${game ? `${row('Developer panel', `<input data-k="devPanel" type="checkbox">`)}
+          ${row('Dev menu: items, boxes, worlds (\`)', `<button data-a="dev" type="button">open</button>`)}
+          <div class="danger">
+            <button data-a="reset">Restart this save from the prologue</button>
+            <div class="ask" hidden><span>Forget every relic, story page and place in this save?</span>
+              <button data-a="reset-yes">Yes, start over</button><button data-a="reset-no">No, keep it</button></div>
+          </div>` : ''}
+          <p class="keys pad-keys">${padControls()}</p>
+          ${game ? '<p class="keys" id="app-build" hidden></p>' : ''}
+          <p class="keys install-tip">Play full screen on iPhone: open in Safari, tap Share → Add to Home Screen, then enable Open as Web App if shown.</p>
+          <p class="keys">WASD move · SHIFT run · SPACE jump / glide / jetpack (SPACE again in the air: fluid boost) · E interact · Q ping scout · hold right mouse or R aim the fluid tool · left click or G shoot · C or middle click push · J sketchbook · L worlds · P photo · H help · O settings · N what's new</p>
+        </section>
       </div>`;
     // the controls list names the menu's confirm / back buttons, which follow the "Controller buttons" setting
     this.syncControls = () => { const p = el.querySelector('.pad-keys'); if (p) p.textContent = padControls(); };
@@ -90,39 +114,65 @@ export class SettingsMenu {
       this.syncControls();
       for (const c of el.querySelectorAll('[data-k]')) {
         const k = c.dataset.k;
-        const v = k === 'mute' ? sound.muted : this.s[k];
+        const v = k === 'mute' ? sound?.muted : this.s[k];
         if (c.type === 'checkbox') c.checked = !!v; else c.value = v;
       }
     };
     el.addEventListener('input', (e) => {
       const c = e.target, k = c.dataset.k;
       if (!k) return;
-      if (k === 'mute') { if (c.checked !== sound.muted) sound.toggleMute(); return; }
+      if (k === 'mute') { if (sound && c.checked !== sound.muted) sound.toggleMute(); return; }
       this.s.set(k, c.type === 'checkbox' ? c.checked : c.type === 'range' ? +c.value : c.value);
     });
+    const ask = el.querySelector('.ask'), resetBtn = el.querySelector('[data-a="reset"]');
+    this.askReset = (on) => {
+      if (!ask) return;
+      ask.hidden = !on; resetBtn.hidden = on;
+      if (on) ask.querySelector('[data-a="reset-no"]').focus({ preventScroll: true });
+      else if (ask.contains(document.activeElement)) resetBtn.focus({ preventScroll: true });
+    };
     el.addEventListener('click', (e) => {
-      const a = e.target.dataset?.a;
-      if (a === 'close' || e.target === el) this.toggle(false);
+      const a = e.target.closest?.('[data-a]')?.dataset.a;
+      if (a === 'close') this.toggle(false);
       if (a === 'news') { this.toggle(false); onNews?.(); }
+      if (a === 'book') { this.toggle(false); onBook?.(); }
+      if (a === 'title') onQuit?.();
       if (a === 'dev') { e.preventDefault(); this.toggle(false); onDev?.(); }
-      if (a === 'reset' && confirm('Forget every relic, story page and saved position?')) onResetProgress();
+      // (an inline question, not confirm(): a controller can answer it)
+      if (a === 'reset') this.askReset(true);
+      if (a === 'reset-no') this.askReset(false);
+      if (a === 'reset-yes') onResetProgress?.();
     });
-    window.addEventListener('keydown', (e) => {
-      if (e.repeat) return;   // (holding Esc to skip a scene must not open the settings when the scene ends)
-      if (e.code === 'KeyO') this.toggle();
-      else if (e.code === 'Escape') {
-        if (this.open) this.toggle(false);
-        else if (!isBusy()) this.toggle(true);
-      }
-    });
-    document.getElementById('gear')?.addEventListener('click', () => this.toggle());
+    if (game) {
+      window.addEventListener('keydown', (e) => {
+        if (e.repeat) return;   // (holding Esc to skip a scene must not open the settings when the scene ends)
+        if (e.code === 'KeyO') this.toggle();
+        else if (e.code === 'Escape') {
+          if (this.open) this.back();
+          else if (!isBusy()) this.toggle(true);
+        }
+      });
+      document.getElementById('gear')?.addEventListener('click', () => this.toggle());
+    }
     this.sync = sync;
     settings.on(() => sound?.setVoices?.(this.s.voices, this.s.alienVoices));
   }
+  /** Back (B / ○, Esc): first out of the "start over?" question, then out of the menu. */
+  back() {
+    const ask = this.el.querySelector('.ask');
+    if (ask && !ask.hidden) this.askReset(false); else this.toggle(false);
+  }
   toggle(on = !this.open) {
     this.open = on;
-    if (on) { this.sync(); document.exitPointerLock?.(); }
+    if (on) {
+      this.sync(); document.exitPointerLock?.();
+      const w = this.el.querySelector('.where');
+      if (w) w.innerHTML = this.where?.() ?? '';
+      this.askReset(false);
+    } else if (this.el.contains(document.activeElement)) document.activeElement.blur();
     this.el.classList.toggle('open', on);
+    // (focus once it shows: a hidden element can't take it)
+    if (on) this.el.querySelector('.primary')?.focus({ preventScroll: true });
   }
 }
 
@@ -268,8 +318,9 @@ export class ToolHud {
 
 // ---------------------------------------------------------------------------
 
+// where you stand, in the active save slot (src/save-slots.js)
 export const SaveGame = {
-  load() { try { return JSON.parse(localStorage.getItem(SAVE_KEY)); } catch { return null; } },
-  write(state) { try { localStorage.setItem(SAVE_KEY, JSON.stringify({ ...state, t: Date.now() })); } catch { /* ignore */ } },
-  clear() { localStorage.removeItem(SAVE_KEY); },
+  load() { try { return JSON.parse(slotStorage.getItem(SAVE_KEY)); } catch { return null; } },
+  write(state) { try { slotStorage.setItem(SAVE_KEY, JSON.stringify({ ...state, t: Date.now() })); } catch { /* ignore */ } },
+  clear() { slotStorage.removeItem(SAVE_KEY); },
 };

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { makeMaterial } from './materials.js';
+import { slotStorage } from './save-slots.js';
 
 // Story, collectibles and the sketchbook journal (worlds are reached by the ship: src/ship/).
 //  - Story: one quiet goal per level, marked by a beacon. Arriving opens a
@@ -7,7 +8,7 @@ import { makeMaterial } from './materials.js';
 //  - Relics: five per level, often on top of things you have to climb.
 //    Picking one up sketches the moment into your journal.
 //  - Journal (J): a sketchbook with every relic and story page found, kept
-//    in localStorage.
+//    in localStorage (per save slot: src/save-slots.js).
 //  - A story with `manual: true` (the desert's) has no beacon and doesn't
 //    finish on arrival: its quest calls story.complete() (src/story/).
 //  - journal.sections: functions returning extra HTML for the sketchbook
@@ -18,21 +19,21 @@ const STORE = 'moebius.journal.v1';
 export class Journal {
   constructor(levels) {
     this.levels = levels;
-    try { this.data = JSON.parse(localStorage.getItem(STORE)) ?? {}; } catch { this.data = {}; }
+    try { this.data = JSON.parse(slotStorage.getItem(STORE)) ?? {}; } catch { this.data = {}; }
     this.data.relics ??= {};
     this.data.stories ??= {};
     this.data.seen ??= {};
     this.el = document.getElementById('journal');
     window.addEventListener('keydown', (e) => {
       if (e.code === 'KeyJ') this.toggle();
-      else if (e.code === 'Escape' && this.open) this.toggle(false);
+      else if (e.code === 'Escape' && this.open) { e.stopImmediatePropagation(); this.toggle(false); }   // (not also opening the Start menu)
     });
     this.el.querySelector('.close').addEventListener('click', () => this.toggle(false));
     this.sections = [];   // () => html, rendered first (the quest log)
   }
 
   save() {
-    try { localStorage.setItem(STORE, JSON.stringify(this.data)); } catch (e) { console.warn('journal not saved', e); }
+    try { slotStorage.setItem(STORE, JSON.stringify(this.data)); } catch (e) { console.warn('journal not saved', e); }
   }
 
   hasRelic(level, i) { return !!this.data.relics[level]?.[i]; }

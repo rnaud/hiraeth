@@ -18,7 +18,7 @@
 //   stepout → the traveller walks out
 //   objective → "Find a new source of power."
 //
-// Hold Esc (or B / Start on a pad) to skip. `prologue.done` is set at the end.
+// Hold Esc (or B on a pad) to skip; Menu / Start pauses it. `prologue.done` is set at the end.
 
 import { PROLOGUE_CALL } from '../story/calls.js';
 

@@ -55,12 +55,12 @@ test('confirm does not become a jump when returning to play', () => {
 });
 test('menus: printed A confirms and B goes back, wherever the pad prints them', () => {
   const x=setup(); x.context('menu'); x.tap(BOTTOM); x.tap(RIGHT); x.tap(VIEW); x.tap(MENU);
-  assert.deepEqual(x.actions,['confirm','back','back','back'], 'Xbox: A at the bottom confirms, B on the right goes back');
+  assert.deepEqual(x.actions,['confirm','back','select','start'], 'Xbox: A at the bottom confirms, B on the right goes back; View / Menu are the full-screen menus');
   const n=setup({ faces: 'nintendo' }); n.context('menu'); n.tap(RIGHT); n.tap(BOTTOM);
   assert.deepEqual(n.actions,['confirm','back'], 'Retroid: A on the right confirms, B at the bottom goes back');
   // talking: the interact button (right) carries the conversation on, also where it is B
   const xt=setup(); xt.context('talk'); xt.tap(RIGHT); xt.tap(BOTTOM); xt.tap(MENU);
-  assert.deepEqual(xt.actions,['confirm','confirm','back']);
+  assert.deepEqual(xt.actions,['confirm','confirm','start'], '(Menu pauses over a conversation)');
   const nt=setup({ faces: 'nintendo' }); nt.context('talk'); nt.tap(RIGHT); nt.tap(BOTTOM);
   assert.deepEqual(nt.actions,['confirm','back']);
 });
@@ -132,4 +132,14 @@ test('a pad reporting printed letters with Nintendo labels is read by position',
   assert.deepEqual(t.actions,['call','ping'], 'printed Y (left) calls the mount, printed X (top) pings');
   t.context('menu'); t.tap(0); t.tap(1);
   assert.deepEqual(t.actions.slice(2),['confirm','back'], 'menus: printed A confirms, printed B goes back');
+});
+
+test('in menus B steps back, Menu / Start and View / Select reach the game (pause menu, sketchbook)', () => {
+  const t=setup(); t.context('menu');
+  t.button(1,true); t.c.update(.016); t.button(1,false); t.c.update(.016);
+  t.button(9,true); t.c.update(.016); t.button(9,false); t.c.update(.016);
+  t.button(8,true); t.c.update(.016); t.button(8,false); t.c.update(.016);
+  assert.deepEqual(t.actions,['back','start','select']);
+  const g=setup(); g.button(9,true); g.c.update(.016); g.button(9,false); g.c.update(.016); g.button(8,true); g.c.update(.016);
+  assert.deepEqual(g.actions,['settings','journal']);
 });

@@ -75,11 +75,15 @@ export class Controller {
     const press = i => down(i) && !this.previous[i];
     const left = stick(pad.axes[0], pad.axes[1]), right = stick(pad.axes[2], pad.axes[3]);
     if (used(pad)) this.activity();
-    // menus: printed A confirms, B goes back (A is at the bottom on Xbox, on the right with Nintendo letters)
+    // menus: printed A confirms, B goes back (A is at the bottom on Xbox, on the right with Nintendo letters);
+    // Menu / Start and View / Select open (or close) the full-screen menus from anywhere, over a
+    // conversation or one of the ship's scenes too (main.js)
     const ok = faces === 'nintendo' ? EAST : SOUTH, no = faces === 'nintendo' ? SOUTH : EAST;
     if (ctx === 'menu' || ctx === 'talk') {
       const talkOn = ctx === 'talk' && press(EAST);   // the interact button carries a conversation on
-      if (press(VIEW) || press(MENU) || (press(no) && !(ctx === 'talk' && no === EAST))) this.action('back');
+      if (press(MENU)) this.action('start');
+      else if (press(VIEW)) this.action('select');
+      else if (press(no) && !(ctx === 'talk' && no === EAST)) this.action('back');
       else if (press(ok) || talkOn) this.action('confirm');
       const x = down(RIGHT) ? 1 : down(LEFT) ? -1 : Math.abs(left.x) > 0.5 ? Math.sign(left.x) : 0;
       const y = down(DOWN) ? 1 : down(UP) ? -1 : Math.abs(left.y) > 0.5 ? Math.sign(left.y) : 0;

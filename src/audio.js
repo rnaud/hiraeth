@@ -67,6 +67,49 @@ const VOICES = {
   home: { lead: 'strings', pluck: 'kalimba', ambience: 'birds', melody: [[0, 2], [2, 1], [4, 1], [5, 3], [null, 1], [4, 1], [2, 1], [0, 4]] },
 };
 
+// The menu music (the title screen, and the full-screen Start and Select menus): a calm
+// music box over a slow pad in D lydian, its own tune apart from every world's. It plays on
+// its own bus while the world's sound (music, effects, voices, their room) is hushed under it.
+export const MENU_SCORE = {
+  root: 146.83, scale: [0, 2, 4, 6, 7, 9, 11], tempo: 54,
+  prog: [0, 4, 5, 3],                        // I, V, vi, IV: a chord every 8 beats
+  arp: [0, 2, 4, 7, 9, 7, 4, null],          // the music box, one note a beat (scale degrees over the chord)
+  // a long, falling line every 32 beats, [degree, beats]; flute, answered by the bell the next time
+  melody: [[4, 2], [3, 1], [2, 1], [4, 4], [null, 2], [5, 2], [4, 1], [2, 1], [1, 2], [0, 4]],
+};
+export const MENU_HUSH = 0.16;     // the world's sound under a menu (× its usual level)
+const MENU_LEVEL = 0.9;            // the menu bus against the music volume setting
+
+/** The menu music's frequency for a scale degree (octave: up or down from D3). */
+export function menuFreq(degree, octave = 0, S = MENU_SCORE) {
+  const n = S.scale.length, o = Math.floor(degree / n), d = ((degree % n) + n) % n;
+  return S.root * Math.pow(2, (S.scale[d] + 12 * (o + octave)) / 12);
+}
+
+/**
+ * What the menu music plays on beat b: [{ kind, degree, octave, at (beats from b), beats, vol }].
+ * Deterministic, so the tune is the same each time a menu opens.
+ */
+export function menuBeat(b, S = MENU_SCORE) {
+  const out = [], bar = Math.floor(b / 8), chord = S.prog[bar % S.prog.length], i = b % 8;
+  if (i === 0) {
+    for (const k of [0, 2, 4]) out.push({ kind: 'pad', degree: chord + k, octave: 0, at: 0, beats: 8.5, vol: 0.05 });
+    out.push({ kind: 'bass', degree: chord, octave: -1, at: 0, beats: 8, vol: 0.07 });
+  }
+  const step = S.arp[i];
+  // every other bar the music box leaves out its off-beats: it breathes
+  if (step !== null && !(bar % 2 === 1 && i % 2 === 1)) out.push({ kind: 'celesta', degree: chord + step, octave: 1, at: 0, beats: 1, vol: 0.045 });
+  if (b % 32 === 8) {
+    const kind = Math.floor(b / 32) % 2 ? 'bell' : 'flute';
+    let at = 0;
+    for (const [deg, beats] of S.melody) {
+      if (deg !== null) out.push({ kind, degree: deg, octave: kind === 'bell' ? 1 : 0, at, beats, vol: kind === 'bell' ? 0.05 : 0.07 });
+      at += beats;
+    }
+  }
+  return out;
+}
+
 // The voice bus's level against the rest (× the voice volume setting), and how many balloon mumbles may overlap.
 const VOICE_LEVEL = 1.25;
 const BALLOON_VOICES = 2;
@@ -141,7 +184,10 @@ export function renderSyllable(ctx, dest, s, t, noise) {
 }
 
 export class Sound {
-  constructor(levelId) {
+  /** score: false plays no world music (the title screen: only the menu music). */
+  constructor(levelId, { score = true } = {}) {
+    this.score = score;
+    this.menuOn = false;
     this.profile = PROFILES[levelId] ?? PROFILES.desert;
     this.voice = VOICES[levelId] ?? VOICES.desert;
     this.phrase = 0;
@@ -160,8 +206,10 @@ export class Sound {
     this._talkUntil = 0;
     bindVoice(this);
     const start = () => this.start();
+    const key = (e) => { if (e.code === 'KeyM') this.toggleMute(); else start(); };
     window.addEventListener('pointerdown', start, { once: false });
-    window.addEventListener('keydown', (e) => { if (e.code === 'KeyM') this.toggleMute(); else start(); });
+    window.addEventListener('keydown', key);
+    this._unlisten = () => { window.removeEventListener('pointerdown', start); window.removeEventListener('keydown', key); };
     // Each world is a new page: without this, a landing (or anything before your first
     // press) would play in silence. Start now wherever sound is allowed without a press.
     if (Sound.mayStart(window)) this.start();
@@ -193,6 +241,10 @@ export class Sound {
     const comp = ctx.createDynamicsCompressor();
     comp.threshold.value = -18;
     this.master.connect(comp).connect(ctx.destination);
+    // the world's sound (music, effects, voices and their room) on one bus, hushed under a menu
+    this.world = ctx.createGain();
+    this.world.gain.value = this.menuOn ? MENU_HUSH : 1;
+    this.world.connect(this.master);
 
     // reverb: a generated decaying-noise impulse
     this.reverb = ctx.createConvolver();
@@ -203,19 +255,19 @@ export class Sound {
     }
     this.reverb.buffer = ir;
     const wet = ctx.createGain(); wet.gain.value = 0.55;
-    this.reverb.connect(wet).connect(this.master);
+    this.reverb.connect(wet).connect(this.world);
 
     this.music = ctx.createGain(); this.music.gain.value = 0.62 * this.musicVol;
-    this.music.connect(this.master);
+    this.music.connect(this.world);
     this.musicSend = ctx.createGain(); this.musicSend.gain.value = 0.7;
     this.music.connect(this.musicSend).connect(this.reverb);
     this.fx = ctx.createGain(); this.fx.gain.value = 1.6 * this.fxVol;
-    this.fx.connect(this.master);
+    this.fx.connect(this.world);
     this.fxSend = ctx.createGain(); this.fxSend.gain.value = 0.25;
     this.fx.connect(this.fxSend).connect(this.reverb);
     // the voices: their own bus (the voice volume), a touch of the room
     this.voices = ctx.createGain(); this.voices.gain.value = VOICE_LEVEL * this.voiceVol;
-    this.voices.connect(this.master);
+    this.voices.connect(this.world);
     this.voiceSend = ctx.createGain(); this.voiceSend.gain.value = 0.18;
     this.voices.connect(this.voiceSend).connect(this.reverb);
 
@@ -251,7 +303,76 @@ export class Sound {
     this.beat = 0;
     this.nextBeat = ctx.currentTime + 0.3;
     this.chord = 0;
-    this.scheduler = setInterval(() => this.schedule(), 100);
+    if (this.score) this.scheduler = setInterval(() => this.schedule(), 100);
+    if (this.menuOn) this.menuMusic(true);
+  }
+
+  // ------------------------------------------------------------------ menu music
+  /** The menu music fades in over the hushed world (on), or out as the world comes back (off). */
+  menuMusic(on) {
+    this.menuOn = !!on;
+    const ctx = this.ctx;
+    if (!ctx) return;   // (start() applies it)
+    const t = ctx.currentTime;
+    this.world.gain.setTargetAtTime(on ? MENU_HUSH : 1, t, on ? 0.3 : 0.5);
+    if (!this.menuBus) {
+      this.menuBus = ctx.createGain(); this.menuBus.gain.value = 0;
+      this.menuBus.connect(this.master);
+      // its own small room (the world's is hushed with it)
+      const verb = ctx.createConvolver(); verb.buffer = this.reverb.buffer;
+      const send = ctx.createGain(); send.gain.value = 0.6;
+      this.menuBus.connect(send).connect(verb).connect(this.master);
+    }
+    this.menuBus.gain.setTargetAtTime(on ? 0.62 * this.musicVol * MENU_LEVEL : 0, t, on ? 0.7 : 0.35);
+    clearTimeout(this._menuStop);
+    if (on && !this.menuTimer) {
+      this.menuBeatN = 0; this.menuNext = t + 0.15;
+      this.menuTimer = setInterval(() => this.menuSchedule(), 100);
+    } else if (!on && this.menuTimer) {
+      // let the last notes ring out under the fade, then stop scheduling
+      this._menuStop = setTimeout(() => { if (!this.menuOn) { clearInterval(this.menuTimer); this.menuTimer = null; } }, 2500);
+    }
+  }
+
+  menuSchedule() {
+    const ctx = this.ctx, spb = 60 / MENU_SCORE.tempo;
+    while (this.menuNext < ctx.currentTime + 0.4) {
+      const t0 = this.menuNext;
+      for (const e of menuBeat(this.menuBeatN)) {
+        const f = menuFreq(e.degree, e.octave), t = t0 + e.at * spb, dur = e.beats * spb;
+        if (e.kind === 'pad') this.menuPad(f, t, dur, e.vol);
+        else if (e.kind === 'bass') this.menuPad(f, t, dur, e.vol, 'sine');
+        else this.instrument(e.kind, f, t, dur, e.vol, this.menuBus);
+      }
+      this.menuBeatN++;
+      this.menuNext += spb;
+    }
+  }
+
+  /** A slow, soft pad note on the menu bus. */
+  menuPad(f, t, dur, vol, type = 'triangle') {
+    const ctx = this.ctx, g = ctx.createGain(), flt = ctx.createBiquadFilter();
+    flt.type = 'lowpass'; flt.frequency.value = 1500;
+    g.connect(flt).connect(this.menuBus);
+    for (const det of type === 'sine' ? [0] : [-5, 5]) {
+      const o = ctx.createOscillator(); o.type = type; o.frequency.value = f; o.detune.value = det;
+      o.connect(g); o.start(t); o.stop(t + dur + 3);
+    }
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(vol, t + 2.4);
+    g.gain.setValueAtTime(vol, t + Math.max(2.4, dur - 1));
+    g.gain.linearRampToValueAtTime(0, t + dur + 2.5);
+  }
+
+  /** Stop for good (the title screen's sound, handing over to the game's): fade out, then close. */
+  dispose() {
+    this._unlisten?.();
+    clearInterval(this.scheduler); clearInterval(this.menuTimer); clearTimeout(this._menuStop);
+    this.scheduler = this.menuTimer = null;
+    const ctx = this.ctx;
+    if (!ctx) return;
+    this.master.gain.setTargetAtTime(0, ctx.currentTime, 0.15);
+    setTimeout(() => ctx.close?.().catch?.(() => {}), 700);
   }
 
   /** Current RMS level of each bus in dBFS (-Infinity when silent). */
@@ -278,6 +399,7 @@ export class Sound {
     if (!this.ctx) return;
     this.music.gain.setTargetAtTime(0.62 * music, this.ctx.currentTime, 0.2);
     this.fx.gain.setTargetAtTime(1.6 * fx, this.ctx.currentTime, 0.2);
+    if (this.menuBus && this.menuOn) this.menuBus.gain.setTargetAtTime(0.62 * music * MENU_LEVEL, this.ctx.currentTime, 0.2);
   }
 
   /** The voice volume (0..1) and whether people mumble in their own tongues (off: the old soft blips in conversations). */
@@ -757,7 +879,7 @@ export class Sound {
       const input = ctx.createGain(), gain = ctx.createGain(), pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
       gain.gain.value = 0;
       input.connect(gain);
-      (pan ? gain.connect(pan) : gain).connect(this.master);
+      (pan ? gain.connect(pan) : gain).connect(this.world);
       const send = ctx.createGain(); send.gain.value = 0.35; gain.connect(send).connect(this.reverb);
       return Object.assign(d, { input, gain, pan, level: 0, mode: d.mode ?? 'play', phrase: 0 });
     });
@@ -854,7 +976,7 @@ export class Sound {
     const input = ctx.createGain(), gain = ctx.createGain(), pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
     gain.gain.value = 0;
     input.connect(gain);
-    (pan ? gain.connect(pan) : gain).connect(this.master);
+    (pan ? gain.connect(pan) : gain).connect(this.world);
     const send = ctx.createGain(); send.gain.value = 0.7; gain.connect(send).connect(this.reverb);   // a lot of room: it carries over the dunes
     let t = t0;
     for (const phrase of SOLO_TUNE) { this.soloPhrase(phrase, root, t, input, 0.16 * vol); t += phrase.reduce((a, [, d]) => a + d, 0) + 1.3; }
