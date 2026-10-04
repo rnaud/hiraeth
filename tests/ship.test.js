@@ -177,6 +177,13 @@ test('the galactic map spaces its worlds so no two discs or names overlap, clear
     assert.ok(Math.abs(dx) > 92 || Math.abs(dy) > 105, `worlds ${i} and ${j} overlap (${dx.toFixed(0)}, ${dy.toFixed(0)} px)`);
   }
   for (const [x, y] of pts) assert.ok(x > 5 && x < 64 && y > 12 && y < 88, `on the chart, left of the panel: ${x.toFixed(0)}%, ${y.toFixed(0)}%`);
+  // a phone held upright: a 353 x 700 px chart, the panel along its bottom fifth
+  const P = new StarMap({}).layout(ORDER.length, { portrait: true });
+  for (let i = 0; i < P.length; i++) for (let j = i + 1; j < P.length; j++) {
+    const dx = ((P[i][0] - P[j][0]) / 100) * 353, dy = ((P[i][1] - P[j][1]) / 100) * 700;
+    assert.ok(Math.abs(dx) > 98 || Math.abs(dy) > 100, `portrait: worlds ${i} and ${j} overlap (${dx.toFixed(0)}, ${dy.toFixed(0)} px)`);
+  }
+  for (const [x, y] of P) assert.ok(x > 10 && x < 90 && y > 10 && y < 64, `portrait: above the panel: ${x.toFixed(0)}%, ${y.toFixed(0)}%`);
 });
 
 test('calls home: one per completed world, each heard once, the mother from the third', () => {

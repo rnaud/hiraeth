@@ -51,6 +51,18 @@ const CSS = `
 #starmap .panel .state { font-size: 11px; letter-spacing: .06em; color: #8a5a3c; margin-bottom: 8px; }
 #starmap .panel button.go { font: inherit; padding: 6px 12px; background: #f2c54b; border: 2px solid #2b211f; box-shadow: 3px 3px 0 #2b211f; cursor: pointer; }
 #starmap .panel button.go[disabled] { background: #d9c7a6; cursor: default; opacity: .7; }
+#starmap .close { position: absolute; left: 18px; bottom: 10px; z-index: 2; font: inherit; font-size: 13px; padding: 4px 10px; color: #f7ecd2; background: none; border: 1.5px solid rgba(247, 236, 210, .6); cursor: pointer; }
+#starmap .panel { z-index: 1; }
+/* portrait (phones): the worlds snake down the chart in three columns, the panel along the bottom */
+#starmap.portrait .chart { height: min(780px, 88vh); }
+#starmap.portrait .panel { left: 10px; right: 10px; top: auto; bottom: 34px; width: auto; padding: 10px 12px; }
+#starmap.portrait .panel p { font-size: 11.5px; margin-bottom: 6px; }
+#starmap.portrait .close { left: auto; bottom: auto; right: 12px; top: 12px; }
+#starmap.portrait .sub { display: none; }
+#starmap.portrait h1 { font-size: 16px; }
+#starmap.portrait button.world { width: 96px; }
+#starmap.portrait .world .disc { width: 52px; height: 52px; }
+#starmap.portrait .world .name { font-size: 10.5px; }
 #starmap .locked { position: absolute; inset: 0; display: none; place-items: center; background: rgba(31, 39, 71, .78); }
 #starmap.nopower .locked { display: grid; }
 #starmap .locked div { padding: 16px 26px; text-align: center; background: #3a1f22; border: 2px solid #e6503a; box-shadow: 6px 6px 0 #2b211f; color: #f7ecd2; }
@@ -79,9 +91,20 @@ export class StarMap {
     window.addEventListener('keyup', (e) => { if (e.code === 'KeyE') this._armed = true; });
   }
 
-  /** Positions along a spiral, in percent of the chart (spaced so no two worlds' discs and names overlap). */
-  layout(n) {
+  /**
+   * Positions along a spiral, in percent of the chart (spaced so no two worlds' discs and names overlap).
+   * Portrait (a phone): a route snaking down three columns instead, above the panel.
+   */
+  layout(n, { portrait = false } = {}) {
     const out = [];
+    if (portrait) {
+      const rows = Math.ceil(n / 3);
+      for (let i = 0; i < n; i++) {
+        const r = Math.floor(i / 3), c = r % 2 ? 2 - (i % 3) : i % 3;
+        out.push([18 + c * 32, 13 + r * Math.min(14.5, 44 / Math.max(1, rows - 1))]);
+      }
+      return out;
+    }
     for (let i = 0; i < n; i++) {
       const k = i / Math.max(1, n - 1);
       const a = -3.2 + k * Math.PI * 2.35, r = 0.58 + k * 0.5;
@@ -93,12 +116,15 @@ export class StarMap {
   render() {
     const o = this.o;
     this.entries = mapEntries(o);
-    const pts = this.layout(this.entries.length);
+    const portrait = typeof innerWidth !== 'undefined' && Math.min(1100, innerWidth * 0.94) < Math.min(680, innerHeight * 0.86) * 1.1;
+    this.el.classList.toggle('portrait', portrait);
+    const pts = this.layout(this.entries.length, { portrait });
+    const touch = typeof document !== 'undefined' && document.body.classList.contains('touch');
     const path = pts.map(([x, y], i) => `${i ? 'L' : 'M'}${x} ${y}`).join(' ');
     this.el.innerHTML = `<div class="chart">
       <svg viewBox="0 0 100 100" preserveAspectRatio="none">
-        <ellipse cx="38" cy="52" rx="2.6" ry="4" fill="#f2c54b" stroke="#2b211f" stroke-width=".3"/>
-        ${[0.45, 0.7, 0.92, 1.1].map((r) => `<ellipse cx="38" cy="52" rx="${r * 29}" ry="${r * 37}" fill="none" stroke="rgba(247,236,210,.18)" stroke-width=".15"/>`).join('')}
+        ${portrait ? '' : `<ellipse cx="38" cy="52" rx="2.6" ry="4" fill="#f2c54b" stroke="#2b211f" stroke-width=".3"/>
+        ${[0.45, 0.7, 0.92, 1.1].map((r) => `<ellipse cx="38" cy="52" rx="${r * 29}" ry="${r * 37}" fill="none" stroke="rgba(247,236,210,.18)" stroke-width=".15"/>`).join('')}`}
         <path d="${path}" fill="none" stroke="#e6875f" stroke-width=".35" stroke-dasharray="1 1.2" vector-effect="non-scaling-stroke"/>
       </svg>
       <h1>GALACTIC MAP</h1><div class="sub">${this.entries.filter((e) => e.done).length} of ${this.entries.length} worlds · discoveries made</div>
@@ -106,10 +132,12 @@ export class StarMap {
           <span class="disc"><img src="thumbs/${e.id}.jpg" alt="" onerror="this.style.visibility='hidden'"></span>
           <span class="name">${e.title}</span><span class="tag">${e.current ? 'you are here' : e.done ? '✦ discovery made' : e.visited ? 'visited' : '· · ·'}</span></button>`).join('')}
       <div class="panel"></div>
-      <div class="keys">← → choose · ENTER travel · ESC close</div>
+      <button class="close">close ✕</button>
+      <div class="keys">${touch ? 'tap a world, then Travel' : '← → choose · ENTER travel · ESC close'}</div>
       <div class="locked"><div><b>NO POWER</b>The ship cannot fly.<br>Find a new source of power.</div></div>
     </div>`;
     this.el.classList.toggle('nopower', !o.powered());
+    this.el.querySelector('.close').addEventListener('click', () => this.toggle(false));
     for (const b of this.el.querySelectorAll('button.world')) {
       b.addEventListener('click', () => { if (this.sel === +b.dataset.i) this.go(); else this.select(+b.dataset.i); });
       b.addEventListener('mouseenter', () => this.select(+b.dataset.i));
