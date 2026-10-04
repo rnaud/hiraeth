@@ -4,6 +4,8 @@
 
 export const CHANGELOG = [
   { v: '0.43', date: '2026-10-04', items: [
+    'Fall from too high and you tumble over limp, lie a moment and get back up; falls hurt much less now. Only a really long fall (about 36 m or more) is fatal, and the game then asks you to Restart from where you last stood (Enter, A / ×, or a tap).',
+    'A close push from your fluid gun knocks people right off their feet; they pick themselves up and glare at you.',
     'In the desert city, the first makers’ box now waits on a little wooden ledge up the burning tree’s trunk, out in the open where you can see it from the stairs: climb the big root to reach it. Qanat gathers at the tree’s foot to watch, and Nour waits there for you to come down.',
     'Your feet no longer sink into the terraces around the burning tree, and climbing the trunk puts your hands on the bark.',
     'The cave in the giant’s chest is dry until you push the fallen rib off the channel; then the stream runs down and the pool fills before your eyes.',

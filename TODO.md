@@ -166,7 +166,7 @@ Grouped by area. Checked items are done; the changelog says when.
 - [ ] Then the Moebius-style face shader. Redo the face shaders to look more like Moebius; add a level with very
   large faces to test and refine them. (The giant faces are in `?level=lab`; the shader
   is still to do.)
-- [ ] Ragdoll when falling, or when pushing people with the gun. Falls: ragdoll first,
+- [x] Ragdoll when falling, or when pushing people with the gun. Falls: ragdoll first,
   less damage; only a really high fall kills, then ask to "Restart".
 - [ ] People shake uncontrollably when pushed while walking, or when you talk to them
   too close.
