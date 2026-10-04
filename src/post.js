@@ -107,6 +107,7 @@ const fragmentShader = /* glsl */ `
   uniform vec4 uPlanet[3];        // xyz = direction, w = angular radius (0 = none)
   uniform vec4 uPlanetColor[3];   // rgb, a = ring (0 none, else ring tilt)
   uniform vec3 uPlanetCraters;    // per planet: 1 = cratered, 0 = a plain printed disc
+  uniform vec4 uBackdrop;         // rgb, a = 1: one flat colour instead of the sky (a conversation's portrait)
 
   in vec2 vUv;
   out highp vec4 fragColor;
@@ -525,7 +526,8 @@ const fragmentShader = /* glsl */ `
     if (isSky) {
       float skyInk;
       col = renderSky(rd, fc, skyInk);
-      ink = max(ink, skyInk);
+      ink = max(ink, skyInk * (1.0 - uBackdrop.a));
+      col = mix(col, uBackdrop.rgb, uBackdrop.a);
     } else {
       // ---- 2. two-tone cel shading
       vec3 albedo = A.rgb;
@@ -657,6 +659,7 @@ export function createPost() {
     uRain: { value: 0 },
     uStorm: { value: 0 },
     uStormColor: { value: new THREE.Color('#e3c58f') },
+    uBackdrop: { value: new THREE.Vector4(0, 0, 0, 0) },
     uPlanet: { value: [new THREE.Vector4(), new THREE.Vector4(), new THREE.Vector4()] },
     uPlanetColor: { value: [new THREE.Vector4(), new THREE.Vector4(), new THREE.Vector4()] },
     uPlanetCraters: { value: new THREE.Vector3(1, 1, 1) },

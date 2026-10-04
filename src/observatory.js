@@ -111,7 +111,7 @@ export class ObservatoryQuest {
   }
   page(title, caption, shots) {
     const imgs = shots.map(([eye, look], i) => this.capture(eye, look, i === 0 ? 900 : 440, i === 0 ? 380 : 300));
-    this.story.page.innerHTML = `<div class="sheet"><div class="p p1"><img src="${imgs[0]}" alt="Observatory sketch"><div class="cap"><b>${title}</b><br>${caption}</div></div>${imgs.slice(1).map((img, i) => `<div class="p p${i + 2}"><img src="${img}" alt="Observatory detail"></div>`).join('')}<div class="hint">click / E to continue</div></div>`;
+    this.story.page.innerHTML = `<div class="sheet"><div class="p p1"><img src="${imgs[0]}" alt="Observatory sketch"><div class="cap"><b>${title}</b><br>${caption}</div></div>${imgs.slice(1).map((img, i) => `<div class="p p${i + 2}"><img src="${img}" alt="Observatory detail"></div>`).join('')}<div class="hint" aria-label="continue">▸</div></div>`;
     this.story.page.classList.add('open'); this.story.pageOpen = true;
     document.exitPointerLock?.(); this.sound.page();
     return imgs[0];

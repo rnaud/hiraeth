@@ -1270,14 +1270,11 @@ export class FluidTool {
     this.arc.update(0, _y);
   }
 
-  /** One line for the HUD while aiming. */
-  hudText(pad = false) {
+  /** One line for the HUD while aiming: the mode and the charges (no button list: the settings carry the controls). */
+  hudText() {
     const pips = '◆'.repeat(this.reserve.charges) + '◇'.repeat(this.reserve.max - this.reserve.charges);
     const wait = this.reserve.level < this.reserve.max ? ` refill ${Math.ceil(this.reserve.refillIn)}s` : '';
-    const touch = globalThis.document?.body?.classList.contains('touch');
-    const keys = pad ? 'RT / R2 shoot · B / ○ push · A / × in the air boost' : touch ? '✺ shoot · ✋ push · ⤒ ⤒ boost' : 'click / G shoot · C push · SPACE in the air boost';
-    const modes = this.modes.length > 1 ? ` · ${pad ? 'D-pad ← →' : touch ? '◐' : 'X'} mode` : '';
-    return `${this.modeName} ${pips}${wait} · ${keys}${modes}`;
+    return `${this.modeName} ${pips}${wait}`;
   }
 }
 

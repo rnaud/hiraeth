@@ -76,7 +76,7 @@ Grouped by area. Checked items are done; the changelog says when.
   moving around.
 - [ ] Crash landing on the first planet: the planet's shader keeps sliding
   around during the crash.
-- [ ] Achievement overlay stays up during a conversation: pressing A advances
+- [x] Achievement overlay stays up during a conversation: pressing A advances
   the dialogue (seen with Nima) but never dismisses the overlay.
 - [ ] Jetpack in the tube/cylinder level: got stuck against the ground and
   could not get out.
@@ -104,13 +104,13 @@ Grouped by area. Checked items are done; the changelog says when.
 
 ## HUD, menus and prompts
 
-- [ ] Too much on screen: remove all the button reminders.
-- [ ] With a controller (e.g. Retroid Pocket), show no on-screen buttons.
-- [ ] Button prompts use a small rounded icon, not a square.
-- [ ] The speaker's name sits at the top when talking to someone.
-- [ ] In conversations, remove "translated · XXX" (it's obvious) and remove the
+- [x] Too much on screen: remove all the button reminders.
+- [x] With a controller (e.g. Retroid Pocket), show no on-screen buttons.
+- [x] Button prompts use a small rounded icon, not a square.
+- [x] The speaker's name sits at the top when talking to someone.
+- [x] In conversations, remove "translated · XXX" (it's obvious) and remove the
   double controller hint; no hint at all there.
-- [ ] Portraits in conversations: just the person against a coloured
+- [x] Portraits in conversations: just the person against a coloured
   background, not the environment.
 - [ ] Special places, hints and objectives are coloured in dialogue more often.
 - [ ] Clearer in the menu when a quest is complete.

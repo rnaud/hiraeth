@@ -6,6 +6,8 @@ import { registerInteractable, updateInteract, PRIORITY } from '../interact.js';
 import { NPC, registerNPCTargets } from '../npc.js';
 import { makeMaterial } from '../materials.js';
 import { viaPortal } from '../scout.js';
+import { backdropFor } from './portrait-bg.js';
+import { keyBadge, escapeHtml } from '../prompt-keys.js';
 import { setupDesert } from './desert.js';
 import { setupPerdide } from './perdide.js';
 import { setupPerdide2 } from './perdide2.js';
@@ -56,7 +58,7 @@ export function createStory(o) {
   let world = null;
   const dialogue = new Dialogue({
     game, quests, sound, toast,
-    portrait: (person, npc) => npc && capture ? portrait(npc) : null,
+    portrait: (person, npc) => npc && capture ? portrait(npc, person) : null,
     onOpen: (person, npc) => {
       talking = { person, npc, at: dialogue.at };
       if (npc) npc.talkTo = { speaking: true };
@@ -79,8 +81,9 @@ export function createStory(o) {
     if (q && quests.isActive(q.dataset.quest)) { quests.track(q.dataset.quest); journal.render(); }
   });
 
-  // a sketch of whoever you're talking to, for the panel
-  function portrait(npc) {
+  // a sketch of whoever you're talking to, for the panel: just them (and their cape) against a flat
+  // colour of this world's (src/story/portrait-bg.js); returns { src, background }
+  function portrait(npc, person = npc.def) {
     // the head (the bone if there is one), seen from a little below: heads tilt down in the idle and seated poses
     const head = npc.humanoid?.b?.Head;
     const look = head ? head.getWorldPosition(_p).addScaledVector(UP, 0.1 * npc.object.scale.y) : _p.copy(npc.pos).addScaledVector(UP, (npc.seat ? 1.0 : 1.62) * npc.object.scale.y);
@@ -89,7 +92,9 @@ export function createStory(o) {
     _d.normalize();
     const s = npc.object.scale.y;
     const eye = look.clone().addScaledVector(_d, 1.05 * s).add(new THREE.Vector3(-_d.z * 0.3 * s, -0.32 * s, _d.x * 0.3 * s));
-    return capture(eye, look.clone().addScaledVector(UP, -0.06 * s), 160, 160);
+    const background = backdropFor(person, levelId);
+    const src = capture(eye, look.clone().addScaledVector(UP, -0.06 * s), 160, 160, { keep: [npc.object, npc.cape?.mesh], backdrop: background, fov: 36 });
+    return src ? { src, background } : null;
   }
 
   /** E talks to this person. */
@@ -188,8 +193,9 @@ export function createStory(o) {
       _p.copy(rt.promptAt).project(camera);
       const on = _p.z < 1 && Math.abs(_p.x) < 1.05 && Math.abs(_p.y) < 1.05;
       if (on) {
-        const text = `${controller ? 'X / □' : 'E'} ${rt.prompt}`;
-        if (promptEl.dataset.text !== text) { promptEl.dataset.text = text; promptEl.innerHTML = `<b>${controller ? 'X / □' : 'E'}</b> ${rt.prompt}`; }
+        const key = controller ? 'X / □' : 'E', text = `${key} ${rt.prompt}`;
+        // (the button as a round badge; native-pad.js renames it in place, it rewrites text nodes)
+        if (promptEl.dataset.text !== text) { promptEl.dataset.text = text; promptEl.innerHTML = `${keyBadge(key)}<span>${escapeHtml(rt.prompt)}</span>`; }
         promptEl.style.transform = `translate(${((_p.x * 0.5 + 0.5) * innerWidth).toFixed(1)}px, ${((-_p.y * 0.5 + 0.5) * innerHeight).toFixed(1)}px) translate(-50%, -100%)`;
       }
       promptEl.classList.toggle('show', on);

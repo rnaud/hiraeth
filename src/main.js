@@ -43,6 +43,8 @@ import { Flammables, flammableSpots } from './flammable.js';
 import { createBoxes, migrateSave } from './boxes/index.js';
 import { createItemEffects } from './boxes/effects.js';
 import { DevMenu } from './dev-menu.js';
+import { isolate, restore } from './story/portrait-bg.js';
+import { badgeLine } from './prompt-keys.js';
 
 // Android: the handheld's controls come from the app (native-pad.js), and prompts use its button names
 installNativePad();
@@ -307,7 +309,8 @@ const expedition = level.observatory ? new ObservatoryQuest({ model: level.obser
 const showToast = (text) => ship.cinema.toast(text);   // queued, and held while a scene has the screen dark (src/ship/cinema.js)
 player.onNotice = showToast;   // "It needs power." (a vehicle without the backpack)
 const storyRt = createStory({ levelId, scene, physics, level, player, npcs, crowd, sound, journal, story, lib, humans: humanT, toast: showToast, tool,
-  capture: (e, l, w, h) => captureView(e, l, w, h) });
+  capture: (e, l, w, h, o) => captureView(e, l, w, h, o) });
+story.waitFor = () => storyRt.dialogue.open;   // a story page never opens over a conversation: it waits for its end
 // E: boarding a vehicle and turning a lens share the interact button with talking (nearest wins)
 registerInteractable({ id: 'vehicle', priority: PRIORITY.vehicle, range: 6, at: () => player.nearestVehicle()?.pos,
   prompt: () => { const v = player.nearestVehicle(); return v?.kind === 'taxi' ? 'get in the taxi' : v?.powered && !items.has('backpack') ? `ride the ${level.mountName ?? v?.kind} (it needs power)` : `ride the ${level.mountName ?? v?.kind ?? 'mount'}`; },
@@ -652,6 +655,11 @@ let frameNo = 0;
 
 const status = document.getElementById('status');
 let lastStatus = '';
+// The status box: where you are, your gauges, and only the prompts for what is right here.
+// No standing list of buttons (the settings carry the full controls, H shows the keyboard's);
+// a button in a prompt is drawn as a round badge (src/prompt-keys.js).
+const RIDE_HINT_MS = 6000;   // a ride's controls show for a few seconds after you get on, then go
+const rideHint = { kind: null, at: 0 };
 function updateHud() {
   const gauge = (v) => { const n = Math.round(v * 10); return `[${'■'.repeat(n)}${'·'.repeat(10 - n)}]`; };
   const RIDE = {
@@ -661,40 +669,37 @@ function updateHud() {
     skiff: 'E step off · W/S throttle · A/D steer · SHIFT boost',
   };
   const parts = [];
-  if (player.ride) parts.push(RIDE[player.ride.kind] ?? RIDE.bike);
-  else if (tool.aiming) parts.push(tool.hudText(controllerActive));
-  else {
-    if (player.climbing) parts.push(`climbing ${gauge(player.stamina)} · SPACE jump off`);
-    else if (player.stamina < 0.99) parts.push(`stamina ${gauge(player.stamina)}`);
-    // the jets burn the tank: a gauge while it's not full (or in the air)
-    if (player.canJet && (player.thrusting || tool.jetBurnt)) parts.push(`jets ${gauge(player.jetFuel)}`);
-    if (tool.modes.length > 1 && !player.ride) parts.push(`${controllerActive ? 'D-pad ← →' : isTouch ? '◐' : 'X'} mode: ${tool.modeName}`);
-    const near = player.nearestVehicle();
-    const unpowered = (v) => v?.powered && !items.has('backpack');   // hoverbikes and skiffs run on the backpack
-    if (storyRt.prompt) parts.push(`E ${storyRt.prompt}`);
-    else if (expedition?.nearby(player) >= 0) parts.push('observatory lenses');
-    else if (player.boarding) parts.push('slotting the backpack in…');
-    else if (near && unpowered(near)) parts.push(`the ${level.mountName ?? near.kind} needs power`);
-    else if (near) parts.push(`E ${near.kind === 'taxi' ? 'get in the taxi' : 'ride the ' + (level.mountName ?? near.kind)}`);
-    else if (player.mount && !inOffMapRoom() && !unpowered(player.mount)) parts.push(`E whistle for the ${level.mountName}`);
-    else if (level.features.taxis && !inOffMapRoom()) parts.push('E hail a taxi');
-    const shipHint = ship.hud();   // inside the ship and at its ramp, E is the ship's
-    // (and while one of its scenes plays, E does nothing at all: no whistling from orbit)
-    if (shipHint || ship.playing) { for (let i = parts.length - 1; i >= 0; i--) if (parts[i].startsWith('E ')) parts.splice(i, 1); if (shipHint) parts.unshift(shipHint); }
-    if (!parts.length) parts.push('push into a wall to climb it');
+  const now = performance.now();
+  if (player.ride) {
+    if (rideHint.kind !== player.ride.kind) { rideHint.kind = player.ride.kind; rideHint.at = now; }
+    if (now - rideHint.at < RIDE_HINT_MS) parts.push(RIDE[player.ride.kind] ?? RIDE.bike);
+  } else {
+    rideHint.kind = null;
+    if (tool.aiming) parts.push(tool.hudText());
+    else {
+      if (player.climbing) parts.push(`climbing ${gauge(player.stamina)}`);
+      else if (player.stamina < 0.99) parts.push(`stamina ${gauge(player.stamina)}`);
+      // the jets burn the tank: a gauge while it's not full (or in the air)
+      if (player.canJet && (player.thrusting || tool.jetBurnt)) parts.push(`jets ${gauge(player.jetFuel)}`);
+      // what the use button does right here (a prompt with a place to hang floats over it instead: placePrompt)
+      if (storyRt.prompt && !storyRt.promptAt) parts.push(`E ${storyRt.prompt}`);
+      else if (!storyRt.prompt && expedition?.nearby(player) >= 0) parts.push('observatory lenses');
+      else if (player.boarding) parts.push('slotting the backpack in…');
+      const shipHint = ship.hud();   // inside the ship and at its ramp, E is the ship's
+      // (and while one of its scenes plays, E does nothing at all)
+      if (shipHint || ship.playing) { for (let i = parts.length - 1; i >= 0; i--) if (parts[i].startsWith('E ')) parts.splice(i, 1); if (shipHint) parts.unshift(shipHint); }
+    }
   }
   // a tracked quest's line wins; otherwise the ship's objective (set by the prologue) and the world's story
   const objective = game.flag('objective');
   // (none during the ship's scenes: in orbit the camps are "1.1 km through the doorway")
   const questLine = ship.playing ? null : expedition?.state.started && !expedition.state.returned ? expedition.hud(player) : storyRt.hud();
   const goal = ship.playing ? '' : questLine ?? [objective && `◆ ${objective}`, expedition && !expedition.state.returned ? expedition.hud(player) : story.hud()].filter(Boolean).join(' · ');
-  let text = `${atmo.name} · ${parts.join(' · ')}` +
-    `\n${goal ? goal + ' · ' : ''}${errands.hud() ? errands.hud() + ' · ' : ''}relics ${journal.relicCount(levelId)}/${content.relics.names.length} · Q ping · R tool · H help`;
-  if (!tool.owned) text = text.replace(' · R tool', '');   // no backpack yet: no tool
-  if (isTouch && !controllerActive) text = text.replace(' · Q ping · R tool · H help', '').replace(' · Q ping · H help', '');   // the buttons say it
-  if (controllerActive) text = text.replaceAll('SPACE', 'A / ×').replaceAll('SHIFT', 'RT / R2').replaceAll('W/S', 'left stick').replaceAll('A/D', 'left stick').replace(/\bE\b/g, 'X / □').replace('Q ping · R tool · H help', 'Y / △ ping · LT tool · Menu settings').replace('Q ping · H help', 'Y / △ ping · Menu settings');
+  let text = [atmo.name, ...parts].join(' · ') +
+    `\n${goal ? goal + ' · ' : ''}${errands.hud() ? errands.hud() + ' · ' : ''}relics ${journal.relicCount(levelId)}/${content.relics.names.length}`;
+  if (controllerActive) text = text.replaceAll('SPACE', 'A / ×').replaceAll('SHIFT', 'RT / R2').replaceAll('W/S', 'left stick').replaceAll('A/D', 'left stick').replace(/\bE\b/g, 'X / □');
   audioCfg.mute = sound.muted;
-  if (text !== lastStatus) { status.textContent = text; lastStatus = text; }
+  if (text !== lastStatus) { status.innerHTML = badgeLine(text); lastStatus = text; }
 }
 
 
@@ -705,20 +710,24 @@ const hintShown = { text: '', at: -1e9, active: false };
 const controllerHint = document.createElement('div');
 controllerHint.id = 'controller-hint';
 document.body.appendChild(controllerHint);
-const menuRoot = () => boxes.busy() && boxes.card.el ? boxes.card.el : storyRt.dialogue.open ? storyRt.dialogue.el : menu.open ? menu.el : changelog.open ? changelog.el : journal.open ? journal.el : picker.classList.contains('open') ? picker : document.getElementById('page');
+// what a controller press goes to: the topmost thing open (a story page sits over a conversation)
+const pageEl = document.getElementById('page');
+const pageUp = () => pageEl.classList.contains('open');
+const menuRoot = () => boxes.busy() && boxes.card.el ? boxes.card.el : menu.open ? menu.el : changelog.open ? changelog.el : pageUp() ? pageEl : storyRt.dialogue.open ? storyRt.dialogue.el : journal.open ? journal.el : picker.classList.contains('open') ? picker : pageEl;
 const closeControllerMenu = () => {
   if (boxes.busy()) boxes.skip();
-  else if (storyRt.dialogue.open) storyRt.dialogue.close();
   else if (menu.open) menu.toggle(false);
   else if (changelog.open) changelog.toggle(false);
+  else if (pageUp()) pageEl.click();
+  else if (storyRt.dialogue.open) storyRt.dialogue.close();
   else if (journal.open) journal.toggle(false);
   else if (picker.classList.contains('open')) showPicker(false);
-  else document.getElementById('page').click();
+  else pageEl.click();
 };
 const controller = new Controller({
   context: () => busy() ? 'menu' : photo.on ? 'photo' : 'game',
   look: (x, y) => { if (x || y) rig.look(x, y); },
-  activity: () => { controllerActive = true; sound.start(); },   // (where a pad press may start sound: the Android app)
+  activity: () => { controllerActive = true; screenInput = false; sound.start(); },   // (where a pad press may start sound: the Android app)
   swapAB: () => settings.swapAB,
   navigate: (x, y) => menuNavigate(menuRoot(), x, y),
   scroll: amount => { const root = menuRoot(); (root.querySelector('.list, .panel, .sheet') ?? root).scrollTop += amount; },
@@ -743,7 +752,11 @@ const controller = new Controller({
     if (name === 'ping' && !ship.playing) scout.ping();
   },
 });
-for (const event of ['keydown', 'pointerdown', 'touchstart']) window.addEventListener(event, () => { controllerActive = false; });
+// The keyboard, the mouse or a finger takes over from the controller (and back on its next use). A pad
+// that is connected (the Retroid's own controls) counts as in use until the screen or keys are touched,
+// so a handheld shows no touch buttons from the start.
+let screenInput = false;
+for (const event of ['keydown', 'pointerdown', 'touchstart']) window.addEventListener(event, () => { controllerActive = false; screenInput = true; });
 
 
 // People's eyes, brows and small gear (under 7 cm) cast no visible shadow but cost a draw call
@@ -859,8 +872,11 @@ function renderFrame() {
   renderer.render(post.scene, post.camera);
 
   // 4. wind-blown sand and drifting motes, drawn on top (depth-tested against the G-buffer)
-  renderer.render(wind.scene, camera);
-  if (motes) renderer.render(motes.scene, camera);
+  // (not in a portrait shot: just the person against a flat colour)
+  if (!portraitShot) {
+    renderer.render(wind.scene, camera);
+    if (motes) renderer.render(motes.scene, camera);
+  }
 
   // 5. smooth edges and scale the completed frame to the display
   renderer.setRenderTarget(null);
@@ -873,12 +889,29 @@ function renderFrame() {
 /** Render the scene from another viewpoint and grab it as an image (comic panels, sketches). */
 const grabCanvas = document.createElement('canvas');
 const _cp = new THREE.Vector3(), _cq = new THREE.Quaternion(), _cu = new THREE.Vector3();
-function captureView(eye, look, w, h) {
+// o.keep: draw only these objects (a conversation's portrait), with o.backdrop ('#hex') in place of the sky
+let portraitShot = false;
+function captureView(eye, look, w, h, { keep = null, backdrop = null, fov = null } = {}) {
   _cp.copy(camera.position); _cq.copy(camera.quaternion); _cu.copy(camera.up);
   camera.position.copy(eye);
   camera.up.copy(player.frame.up);
   camera.lookAt(look);
-  renderFrame();
+  const fov0 = camera.fov;
+  if (fov) { camera.fov = fov; camera.updateProjectionMatrix(); }
+  const hidden = keep ? isolate(keep, scene) : [];
+  const weather = [U.uRain.value, U.uStorm.value];
+  if (keep) {
+    portraitShot = true;
+    U.uRain.value = U.uStorm.value = 0;
+    if (backdrop) { const c = new THREE.Color(backdrop); U.uBackdrop.value.set(c.r, c.g, c.b, 1); }
+  }
+  try { renderFrame(); } finally {
+    restore(hidden);
+    portraitShot = false;
+    [U.uRain.value, U.uStorm.value] = weather;
+    U.uBackdrop.value.w = 0;
+    if (fov) { camera.fov = fov0; camera.updateProjectionMatrix(); }
+  }
   const src = renderer.domElement;
   const aspect = w / h, sw = src.width, sh = src.height;
   let cw = sw, ch = sw / aspect;
@@ -917,16 +950,13 @@ function frame() {
   const t = timer.getElapsed();
   const padInput = controller.update(dt, !document.hidden && document.hasFocus());
   if (controller.index === null) controllerActive = false;
+  else if (!screenInput) controllerActive = true;
   document.body.classList.toggle('controller', controllerActive);
-  const hintText = busy() ? 'D-pad / left stick select · A / × confirm · B / ○ back · right stick scroll'
-    : photo.on ? 'Left stick fly · right stick look · LB/RB down/up · A / × save · B / ○ exit'
-    : tool.owned ? `A / × jump (again in the air: boost) · X / □ use · Y / △ ping · RT / R2 run · LT aim (+ RT shoot) · B / ○ push${tool.modes.length > 1 ? ' · ← → mode' : ''} · ↑ worlds · ↓ photo · View sketchbook · Menu settings`
-    : 'A / × jump · X / □ use · Y / △ ping · RT / R2 run · ↑ worlds · ↓ photo · View sketchbook · Menu settings';
-  // the button list shows for a few seconds when the controller takes over (or what the buttons do changes),
-  // then fades; in menus and photo mode it stays. Set only when it changes (the label rewrite watches the page).
-  if (hintText !== hintShown.text || (controllerActive && !hintShown.active)) { if (hintText !== hintShown.text) controllerHint.textContent = hintText; hintShown.text = hintText; hintShown.at = t; }
-  hintShown.active = controllerActive;
-  document.body.classList.toggle('controller-hint', controllerActive && (busy() || photo.on || t - hintShown.at < 7));
+  // No button list on the screen while playing, talking or in menus (the settings list the controls);
+  // only photo mode, a tool few find by chance, keeps its own. Set only when it changes (the label rewrite watches the page).
+  const hintText = photo.on ? 'Left stick fly · right stick look · LB/RB down/up · A / × save · B / ○ exit' : '';
+  if (hintText !== hintShown.text) { controllerHint.textContent = hintText; hintShown.text = hintText; hintShown.at = t; }
+  document.body.classList.toggle('controller-hint', controllerActive && photo.on);
   const mergedInput = mergeControls(latchedInput(), padInput);
   wasBusy = busy();
   if (wasBusy && mergedInput.KeyE) eBlocked = true;
@@ -1064,7 +1094,7 @@ let eWasDown = false;
 let endingOpen = false;
 const allDone = () => ORDER.every((id) => journal.storyDone(id) && journal.relicCount(id) >= CONTENT[id].relics.names.length);
 setInterval(() => {
-  if (journal.data.completed || story.pageOpen || journal.open || !allDone()) return;
+  if (journal.data.completed || story.pageOpen || story.pending || storyRt.busy() || journal.open || !allDone()) return;
   journal.data.completed = Date.now();
   journal.save();
   const up = player.frame.up, p = player.pos;
@@ -1079,7 +1109,7 @@ setInterval(() => {
     <div class="p p1"><img src="${imgs[0]}" alt=""><div class="cap"><b>THE END OF THE ROAD</b><br>Seven worlds, thirty-five small things kept.</div></div>
     <div class="p p2"><img src="${imgs[1]}" alt=""></div>
     <div class="p p3"><img src="${imgs[2]}" alt=""><div class="cap">The final page has opened.<br>(L → The Atelier)</div></div>
-    <div class="hint">click / E to continue</div></div>`;
+    <div class="hint" aria-label="continue">▸</div></div>`;
   page.classList.add('open');
   endingOpen = true;
   sound.chime();
@@ -1113,7 +1143,7 @@ requestAnimationFrame((t) => {
   ld?.classList.add('done');
   setTimeout(() => ld?.remove(), 900);
   ship.start({ via: viaShip ? 'ship' : null, prologue: playPrologue, homecoming: playHomecoming, onReady: () => { if (playHomecoming) journal.markSeen(levelId); else story.start(); } });   // the homecoming is its own page
-  if (changelog.fresh) { changelog.markSeen(); setTimeout(() => showToast(`Updated to v${VERSION} · press N to see what's new`), 4000); }   // after an update: point at what changed, once (not again on the next world)
+  if (changelog.fresh) { changelog.markSeen(); setTimeout(() => showToast(`Updated to v${VERSION} · what's new is in the settings`), 4000); }   // after an update: point at what changed, once (not again on the next world; no key: a handheld has none)
 });
 
 // handy for debugging from the console
