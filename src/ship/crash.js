@@ -12,18 +12,22 @@ const smooth = (t) => t * t * (3 - 2 * t);
 const hash = (x) => { const s = Math.sin(x * 127.1) * 43758.5453; return s - Math.floor(s); };
 
 function gridMesh(rows, cols, at, mat) {
-  // rows x cols vertices from at(i, j) -> Vector3; triangles row by row (so drawRange reveals rows in order)
-  const pos = [];
+  // rows x cols vertices from at(i, j) -> Vector3; triangles row by row (so drawRange reveals rows in order).
+  // Indexed, so the normals are shared and the sand shades smoothly (one normal per
+  // triangle drew the heaps as a mosaic of flat, separately lit and inked facets).
+  const pos = new Float32Array(rows * cols * 3);
   const P = [];
-  for (let i = 0; i < rows; i++) { P.push([]); for (let j = 0; j < cols; j++) P[i].push(at(i, j)); }
+  for (let i = 0; i < rows; i++) { P.push([]); for (let j = 0; j < cols; j++) { const p = at(i, j); P[i].push(p); pos.set([p.x, p.y, p.z], (i * cols + j) * 3); } }
+  const idx = [];
+  const _ab = new THREE.Vector3(), _ad = new THREE.Vector3(), _n = new THREE.Vector3();
   for (let i = 0; i < rows - 1; i++) for (let j = 0; j < cols - 1; j++) {
-    const a = P[i][j], b = P[i][j + 1], c = P[i + 1][j + 1], d = P[i + 1][j];
-    const n = new THREE.Vector3().crossVectors(new THREE.Vector3().subVectors(b, a), new THREE.Vector3().subVectors(d, a));
-    const tri = n.y >= 0 ? [a, b, c, a, c, d] : [a, c, b, a, d, c];
-    for (const p of tri) pos.push(p.x, p.y, p.z);
+    const a = i * cols + j, b = a + 1, c = a + cols + 1, d = a + cols;
+    _n.crossVectors(_ab.subVectors(P[i][j + 1], P[i][j]), _ad.subVectors(P[i + 1][j], P[i][j]));
+    if (_n.y >= 0) idx.push(a, b, c, a, c, d); else idx.push(a, c, b, a, d, c);
   }
   const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  g.setIndex(idx);
   g.computeVertexNormals();
   const m = new THREE.Mesh(g, mat);
   m.userData.trisPerRow = (cols - 1) * 2;
