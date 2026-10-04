@@ -89,7 +89,6 @@ export const SPHERES_CONTENT = {
     ],
     names: ['Canopy seed', 'Pyramid key', 'Sphere pearl', 'White step stone', 'Android eye'],
   },
-  gate: { at: [24, 30], heading: Math.PI },
   // the level's people (talk: src/story/spheres-data.js); Ume at the plaza is the story's
   npcs: [
     { at: [12, 14], radius: 3, ...PEOPLE.aube },

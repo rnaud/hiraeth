@@ -281,7 +281,7 @@ test('refill: magical water fills the tank and adds a colour band for good', () 
   tool.dispose();
 });
 
-test('targets answer the new modes: reactive scenery blooms in the fluid, lenses, the gate, taxis and plants', async () => {
+test('targets answer the new modes: reactive scenery blooms in the fluid, lenses, taxis and plants', async () => {
   clearTargets();
   const store = { value: null, getItem() { return this.value; }, setItem(k, val) { this.value = val; } };
   const ground = { rayHit: (origin) => ({ point: v(origin.x, 0, origin.z) }), rayDistance: () => Infinity };
@@ -318,7 +318,6 @@ test('targets answer the new modes: reactive scenery blooms in the fluid, lenses
 
   clearTargets();
   const { buildObservatory, ObservatoryQuest } = await import('../src/observatory.js');
-  const { Gate } = await import('../src/quest.js');
   const s2 = new THREE.Scene(), model = buildObservatory(s2, { baseAt: () => 0 }); s2.updateMatrixWorld(true);
   const journal = { data: { observatory: { started: true, turns: [1, 0, 3], done: false, fragments: [] } }, save() {} };
   const quest = new ObservatoryQuest({ model, journal, traveler: { lines: [], pos: v(), greeted: false }, sound: { chime() {} } });
@@ -334,12 +333,6 @@ test('targets answer the new modes: reactive scenery blooms in the fluid, lenses
   assert.deepEqual(quest.state.turns, [2, 0, 3]);
   quest.dispose();
 
-  clearTargets();
-  const gate = new Gate(s2, { pos: v(0, 0, -30), heading: 0, sound: { chime() {} } });
-  const gh = aim(v(0, 4, 0), v(0, 4, -30));
-  assert.equal(gh.target?.kind, 'gate');
-  hitTarget(gh.hit, 'shoot', v(0, 0, -1));
-  assert.ok(gate.ringT > 1);
 
   clearTargets();
   const hails = [], plant = [];

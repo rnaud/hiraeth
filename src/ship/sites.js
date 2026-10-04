@@ -3,7 +3,7 @@ import { LIFT, R } from './hull.js';
 
 // Where the ship stands in each world. A level can define `shipSite`
 // ({ x, z, heading }) itself; otherwise the table below; otherwise a clear,
-// flat spot near the spawn is searched for (away from the gate, the people,
+// flat spot near the spawn is searched for (away from the people,
 // the relics and the story goal). `heading` is the direction the hatch and
 // its ramp face (a player heading: 0 = +z, PI/2 = +x).
 //
@@ -28,17 +28,19 @@ export const SITE_OVERRIDES = {
   },
   // the search's own pick crowded the pearl sphere, a listening spot of the main quest
   spheres: { x: 38, z: 81, heading: -2.7 },
+  // where the search put the ship while it kept clear of the old stone gates (removed in v0.38):
+  // without them it would pick other spots here, so these two stay where players know them
+  bazaar: { x: 19.9, z: 150.9, heading: -2.835 },
+  incal: { x: 331.1, z: -10.1, heading: -1.396 },
 };
 
 const TAU = Math.PI * 2;
 const dirOf = (h) => [Math.sin(h), Math.cos(h)];
 
 /** Everything the ship must keep clear of in a level: [{ x, z, r }]. */
-export function siteAvoid({ level, content, gate, npcs }) {
+export function siteAvoid({ level, content, npcs }) {
   const out = [];
   const add = (x, z, r) => { if (Number.isFinite(x) && Number.isFinite(z)) out.push({ x, z, r }); };
-  if (gate) add(gate.pos?.x ?? gate.at?.[0], gate.pos?.z ?? gate.at?.[1], 24);
-  else if (content?.gate) add(content.gate.at[0], content.gate.at[1], 24);
   for (const n of content?.npcs ?? []) add(n.at[0], n.at[1], 15);
   for (const n of npcs ?? []) if (n.pos) add(n.pos.x, n.pos.z, 12);
   const g = content?.story?.goal;

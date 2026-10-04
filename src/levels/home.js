@@ -48,7 +48,6 @@ export const HOME_CONTENT = {
     label: 'the door', goal: [0, 'ground', 26], radius: 5, manual: true,
   },
   relics: { spots: [], names: [] },
-  gate: { at: [96, -70], heading: -Math.PI / 2 },
   npcs: [
     {
       at: HOME_SPOTS.father, radius: 0.5, speed: 0.35, head: 'wrap', cape: 0, look: { robe: 0.5, flare: 0.25 },

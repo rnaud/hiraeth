@@ -9,7 +9,7 @@ import { DECK, R } from '../src/ship/hull.js';
 import { polar } from '../src/ship/geo.js';
 import { CONSOLE_R } from '../src/ship/interior.js';
 import { findShipSite, siteAvoid, probeSite, SITE_OVERRIDES } from '../src/ship/sites.js';
-import { consoleAction, mapEntries, StarMap } from '../src/ship/starmap.js';
+import { consoleAction, mapEntries, chartLayout, boxRect } from '../src/ship/starmap.js';
 import { pendingCall, callLines, completedWorlds, applyCall, CALL_COUNT, ILEN_CALL, PROLOGUE_CALL } from '../src/story/calls.js';
 import { Prologue, PROLOGUE_STAGES } from '../src/ship/prologue.js';
 import { LEVELS } from '../src/levels/index.js';
@@ -125,8 +125,6 @@ test('a flat, clear spot is found near the spawn in real levels', () => {
     const probe = probeSite(physics, site.x, site.z, site.heading, { refY: level.spawn.y });
     assert.ok(probe && probe.spread < 2.6, `${id}: flat (${probe?.spread.toFixed(2)} m)`);
     for (const a of avoid) assert.ok(Math.hypot(site.x - a.x, site.z - a.z) > a.r + R - 0.01, `${id}: clear of ${JSON.stringify(a)}`);
-    const g = CONTENT[id].gate.at;
-    assert.ok(Math.hypot(site.x - g[0], site.z - g[1]) > 24 + R - 0.01, `${id}: away from the gate`);
   }
 });
 
@@ -203,21 +201,24 @@ test('the console: a waiting call first; the galactic map is locked without powe
   assert.equal(by.incal.title, LEVELS.find((l) => l.id === 'incal').title);
 });
 
-test('the galactic map spaces its worlds so no two discs or names overlap, clear of the info panel', () => {
-  const pts = new StarMap({}).layout(ORDER.length);
-  const W = 1100, H = 680;   // the chart at its full size
-  for (let i = 0; i < pts.length; i++) for (let j = i + 1; j < pts.length; j++) {
-    const dx = ((pts[i][0] - pts[j][0]) / 100) * W, dy = ((pts[i][1] - pts[j][1]) / 100) * H;
-    assert.ok(Math.abs(dx) > 92 || Math.abs(dy) > 105, `worlds ${i} and ${j} overlap (${dx.toFixed(0)}, ${dy.toFixed(0)} px)`);
+test('the galactic map spaces its worlds so no two discs or names overlap, in every chart size', () => {
+  // the field beside the panel (or above it, upright): a desktop chart, a smaller window, a handheld, a phone
+  // (measured in Chrome: 1600 x 900 and 1920 x 1080 give 900 x 720, 844 x 390 gives 591 x 351, 390 x 844 gives 374 x 544)
+  const fields = { desktop: [900, 720], laptop: [880, 560], handheld: [591, 351], phone: [374, 544], 'small phone, sideways': [400, 320] };
+  for (const [name, [W, H]] of Object.entries(fields)) {
+    const L = chartLayout(ORDER.length, W, H);
+    const rects = [...L.pts.map(([x, y]) => boxRect(x, y, L.box)), boxRect(L.home[0], L.home[1], L.homeBox)];
+    for (let i = 0; i < rects.length; i++) for (let j = i + 1; j < rects.length; j++) {
+      const a = rects[i], b = rects[j];
+      assert.ok(a.x1 <= b.x0 || b.x1 <= a.x0 || a.y1 <= b.y0 || b.y1 <= a.y0, `${name}: places ${i} and ${j} overlap`);
+    }
+    for (const r of rects) assert.ok(r.x0 >= 0 && r.x1 <= W && r.y0 >= 50 && r.y1 <= H + 0.5, `${name}: inside the field, under the title: ${JSON.stringify(r)}`);
+    assert.ok(L.box.font >= 9.5, `${name}: names stay readable`);
   }
-  for (const [x, y] of pts) assert.ok(x > 5 && x < 64 && y > 12 && y < 88, `on the chart, left of the panel: ${x.toFixed(0)}%, ${y.toFixed(0)}%`);
-  // a phone held upright: a 353 x 700 px chart, the panel along its bottom fifth
-  const P = new StarMap({}).layout(ORDER.length, { portrait: true });
-  for (let i = 0; i < P.length; i++) for (let j = i + 1; j < P.length; j++) {
-    const dx = ((P[i][0] - P[j][0]) / 100) * 353, dy = ((P[i][1] - P[j][1]) / 100) * 700;
-    assert.ok(Math.abs(dx) > 98 || Math.abs(dy) > 100, `portrait: worlds ${i} and ${j} overlap (${dx.toFixed(0)}, ${dy.toFixed(0)} px)`);
-  }
-  for (const [x, y] of P) assert.ok(x > 10 && x < 90 && y > 10 && y < 64, `portrait: above the panel: ${x.toFixed(0)}%, ${y.toFixed(0)}%`);
+  const big = chartLayout(ORDER.length, ...fields.desktop);
+  assert.equal(big.kind, 'ring', 'on a desktop the route rings round home');
+  assert.ok(big.scale >= 0.9, `at (nearly) full size: ${big.scale}`);
+  assert.equal(chartLayout(ORDER.length, ...fields.handheld).kind, 'snake', 'a handheld gets rows');
 });
 
 test('calls home: one per completed world, each heard once, the mother from the third', () => {

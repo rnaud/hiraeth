@@ -536,7 +536,7 @@ export class Crowd {
   /**
    * @param o.spots      level.crowdSpots() result
    * @param o.makeNPC    (kind) => NPC with assign(person) / release(): the near-tier pool (omit for no pool)
-   * @param o.clear      [{ x, y, z, r }] keep these clear (quest people, the spawn, the gate)
+   * @param o.clear      [{ x, y, z, r }] keep these clear (quest people, the spawn)
    */
   constructor(scene, physics, { spots, makeNPC = null, pool = CROWD_BUDGET.pool, clear = [], seed = 11, range = {} } = {}) {
     this.scene = scene;

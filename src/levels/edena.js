@@ -49,7 +49,6 @@ export const EDENA_CONTENT = {
     spots: [[60, -80], [-200, 220], [180, 120], [-300, 50], [240, -300]],
     names: ['Canopy blossom', 'Pyramid capstone', 'Android sprocket', 'Glyph tablet', 'Ship rivet'],
   },
-  gate: { at: [26, 34], heading: Math.PI },
   npcs: [
     { at: [30, 30], ...PEOPLE.mira },
     { at: [-60, 60], ...PEOPLE.sol },

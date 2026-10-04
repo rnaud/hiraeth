@@ -23,8 +23,8 @@ import { Sound } from './audio.js';
 import { Weather, WEATHER_KINDS } from './weather.js';
 import { spawnNPCs, pooledNPC, registerNPCTargets } from './npc.js';
 import { Crowd } from './crowd.js';
-import { Journal, Relics, Story, Gate, Errands, turnPage, arriveFromPage } from './quest.js';
-import { CONTENT, ERRANDS, nextLevel } from './levels/content.js';
+import { Journal, Relics, Story, Errands } from './quest.js';
+import { CONTENT, ERRANDS } from './levels/content.js';
 import { loadAnimationLibrary, Animator } from './animator.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { loadHuman, Humanoid } from './humanoid.js';
@@ -33,6 +33,7 @@ import { Settings, SettingsMenu, TouchControls, SaveGame, isTouch, isNativeApp, 
 import { FluidTool, bindToolMouse } from './fluid-tool.js';
 import { ORDER } from './levels/content.js';
 import { createStory } from './story/index.js';
+import { knownWorlds, newlyKnown } from './story/route.js';
 import { registerInteractable, PRIORITY } from './interact.js';
 import { Ship } from './ship/ship.js';
 import { birdAnswers, promisedBird } from './bird.js';
@@ -161,8 +162,6 @@ migrateSave();   // saves from before the items: whoever finished the prologue k
   }
 }
 const levelParam = query.get('level');
-const viaEdge = query.get('via') === 'edge';
-const viaGate = query.get('via') === 'gate' || viaEdge;
 const viaShip = query.get('via') === 'ship';
 const meta = levelById(levelParam) ?? LEVELS[0];
 const levelId = meta.id;
@@ -181,7 +180,7 @@ console.info(`collision: ${physics.triangles.toLocaleString()} triangles in ${(p
 level.init?.(physics);
 // the traveller's ship at this world's arrival point (src/ship/); a new game opens with the prologue
 // (no ?level and prologue.done unset, or ?prologue=1 to replay it)
-const playPrologue = levelId === 'desert' && !viaGate && !viaShip && (query.get('prologue') === '1' || (!levelParam && !game.flag('prologue.done')));
+const playPrologue = levelId === 'desert' && !viaShip && (query.get('prologue') === '1' || (!levelParam && !game.flag('prologue.done')));
 // coming home by ship ends the story (src/ship/homecoming.js); ?ending=1 replays it
 const playHomecoming = levelId === 'home' && ((viaShip && !game.flag('ending.done')) || query.get('ending') === '1');
 const ship = new Ship({ scene, physics, level, levelId, content, prologue: playPrologue || playHomecoming });
@@ -292,21 +291,18 @@ const journal = new Journal(LEVELS.map((l) => ({ id: l.id, title: l.title, hidde
 const errands = new Errands({ levelId, defs: ERRANDS, npcs, journal, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])), capture: (e, l, w, h) => captureView(e, l, w, h), sound });
 const capture = (eye, look, w, h) => captureView(eye, look, w, h);
 const relics = new Relics(scene, physics, { levelId, spots: content.relics.spots, names: content.relics.names, journal, sound, capture, lights: levelLights });
-const next = nextLevel(levelId);
-const nextTitle = levelById(next).title;
-const story = new Story(scene, { levelId, def: { ...content.story, next: nextTitle }, journal, sound, capture, player, physics, ground: level.ground.heightAt ? level.ground : null });
+// the route: the worlds you know of (src/story/route.js); finishing this one names the next on the ship's map
+const worldDone = (id) => !!(game.flag(`world.${id}.done`) || journal.storyDone(id));
+const known = () => knownWorlds({ order: ORDER, done: worldDone, visited: (id) => journal.seen(id), current: levelId });
+let knownBefore = known();
+const revealed = () => {
+  const now = known(), fresh = newlyKnown(knownBefore, now);
+  knownBefore = now;
+  return fresh.length ? `New on the ship's map: ${fresh.map((id) => levelById(id).title).join(' and ')}.` : null;
+};
+journal.known = (id) => !ORDER.includes(id) || known().includes(id);   // the sketchbook leaves out worlds you don't know yet
+const story = new Story(scene, { levelId, def: { ...content.story, next: revealed }, journal, sound, capture, player, physics, ground: level.ground.heightAt ? level.ground : null });
 const expedition = level.observatory ? new ObservatoryQuest({ model: level.observatory, journal, traveler: npcs[5], story, capture, sound }) : null;
-const gate = (() => {
-  const g = content.gate;
-  const fromY = levelId === 'incal' ? level.spawn.y + 5 : 1e4;
-  const y = physics.groundAt(g.at[0], fromY, g.at[1], 2e4);
-  return new Gate(scene, {
-    pos: new THREE.Vector3(g.at[0], Number.isFinite(y) ? y : level.spawn.y, g.at[1]), heading: g.heading,
-    dest: next, destTitle: nextTitle, sound,
-    onTravel: (dest, title) => turnPage(title, () => { location.search = `?level=${dest}&via=gate`; }),
-  });
-})();
-levelLights.push(gate.light);
 // ---- story: conversations, quests, the world's people and places (src/story/, src/interact.js)
 const showToast = (text) => ship.cinema.toast(text);   // queued, and held while a scene has the screen dark (src/ship/cinema.js)
 player.onNotice = showToast;   // "It needs power." (a vehicle without the backpack)
@@ -318,7 +314,7 @@ registerInteractable({ id: 'vehicle', priority: PRIORITY.vehicle, range: 6, at: 
   distance: (p) => { const v = p.nearestVehicle(); return v && !p.boarding && !p.unboarding ? v.pos.distanceTo(p.pos) : Infinity; }, use: () => player.interact() });
 if (expedition) registerInteractable({ id: 'lens', priority: PRIORITY.use, range: 1, prompt: 'turn the lens', distance: (p) => (expedition.nearby(p) >= 0 ? 0 : Infinity), use: () => {} });
 const scout = new Scout({ scene, player, physics, sound, label: document.getElementById('scout-label'),
-  getTarget: () => nextObjective({ player, expedition, story, relics, gate, level, quest: () => storyRt.objective() }),
+  getTarget: () => nextObjective({ player, expedition, story, relics, ship: level.ship, level, quest: () => storyRt.objective() }),
 });
 // ---- item boxes (src/boxes/): they notice you; E opens one (a Zelda-style scene on the ship's cinematic camera)
 const boxes = createBoxes({ levelId, scene, physics, level, player, sound, quests: storyRt.quests, toast: showToast,
@@ -342,55 +338,9 @@ if (viaShip) {
   rig.yaw = a.heading + Math.PI;
   history.replaceState(null, '', `?level=${levelId}`);
 }
-if (viaGate) {
-  const a = gate.arrival();
-  player.respawn(a.pos);
-  player.heading = a.heading;
-  rig.yaw = a.heading;   // camera behind the player, looking away from the gate
-  history.replaceState(null, '', `?level=${levelId}`);
-}
-// ---- seamless travel: walk, ride or glide off the edge of a world into the next one
-const EDGE = levelId === 'atelier' || !Number.isFinite(level.limit ?? 1900) ? null : (level.limit ?? 1900) - 50;
-const prevLevel = ORDER[(ORDER.indexOf(levelId) + ORDER.length - 1) % ORDER.length];
-if (viaEdge && EDGE) {
-  // left the last world through its +x edge (side=xp): arrive at this world's -x edge, heading inward, same lateral place
-  const side = query.get('side') ?? 'xp', axis = side[0], sgn = side[1] === 'n' ? -1 : 1;
-  const lat = THREE.MathUtils.clamp(+(query.get('lat') ?? 0), -0.6, 0.6) * EDGE;
-  // the arrival point: near the edge, walking inward until there is ground (the city is smaller than its page)
-  let x = 0, z = 0, g = NaN;
-  for (let k = EDGE - 220; k >= 0 && !Number.isFinite(g); k -= 60) {
-    const inset = -sgn * k, l = lat * (k / EDGE);
-    x = axis === 'x' ? inset : l; z = axis === 'x' ? l : inset;
-    g = physics.groundAt(x, 1e4, z, 2e4);
-  }
-  const pos = Number.isFinite(g) ? new THREE.Vector3(x, g + 1, z) : player.pos.clone();
-  player.respawn(pos);
-  player.heading = axis === 'x' ? (sgn > 0 ? Math.PI / 2 : -Math.PI / 2) : (sgn > 0 ? 0 : Math.PI);
-  rig.yaw = player.heading;
-  if (query.get('ride') === '1' && player.mount && (!player.mount.powered || items.has('backpack'))) {
-    if (player.mount.place) player.mount.place(x, z, player.heading, pos);
-    else player.mount.pos.copy(pos);
-    player.mount_(player.mount);
-  }
-}
-let edgeLeaving = false;
-function edgeTravel() {
-  if (!EDGE || edgeLeaving || endingOpen) return null;
-  const p = player.ride?.pos ?? player.pos;
-  const ax = Math.abs(p.x) > Math.abs(p.z) ? 'x' : 'z', v = p[ax], m = Math.abs(v);
-  const dest = v > 0 ? next : prevLevel;
-  if (m > EDGE) {
-    edgeLeaving = true;
-    const lat = (ax === 'x' ? p.z : p.x) / EDGE;
-    const ride = player.ride && player.ride === player.mount ? 1 : 0;
-    turnPage(levelById(dest).title, () => { location.search = `?level=${dest}&via=edge&side=${ax}${v > 0 ? 'p' : 'n'}&lat=${lat.toFixed(3)}&ride=${ride}`; });
-    return null;
-  }
-  return m > EDGE - 160 ? `the edge of the page · keep going for ${levelById(dest).title}` : null;
-}
-// continue where you left off (same world, not arriving through a gate)
+// continue where you left off (same world, not arriving by ship)
 const saved = SaveGame.load();
-if (!viaGate && !viaShip && !playPrologue && saved?.level === levelId && saved.pos) {
+if (!viaShip && !playPrologue && saved?.level === levelId && saved.pos) {
   const p = new THREE.Vector3(...saved.pos);
   player.respawn(p);
   if (saved.up) player.frame.set(new THREE.Vector3(...saved.up), new THREE.Vector3(...saved.fwd));
@@ -432,7 +382,7 @@ window.addEventListener('blur', () => Object.keys(input).forEach((k) => (input[k
 
 // ------------------------------------------------------------------ time of day
 const savedEarly = SaveGame.load();
-const sky = { hour: !viaGate && savedEarly?.level === levelId && savedEarly.hour !== undefined ? savedEarly.hour : level.defaults.hour, speed: 0 }; // speed in in-game hours per real minute
+const sky = { hour: !viaShip && savedEarly?.level === levelId && savedEarly.hour !== undefined ? savedEarly.hour : level.defaults.hour, speed: 0 }; // speed in in-game hours per real minute
 let atmo = level.atmo(player.pos.x, player.pos.z, player.pos.y);
 const script = level.sky?.script ? colourScript(level.sky.script) : undefined;
 const updateSky = () => applyTimeOfDay(sky.hour, sharedUniforms.uSunDir.value, post.uniforms, atmo, script);
@@ -621,7 +571,9 @@ if (cont?.level && levelById(cont.level)) {
   btn.textContent = `▶ Continue — ${levelById(cont.level).title}`;
   picker.querySelector('header').after(btn);
 }
-picker.querySelector('.cards').innerHTML = LEVELS.map((l, i) => l.hidden && !completed() ? `
+// only the worlds you know of (src/story/route.js): the rest open as you go. ?level=<id> and the dev menu go anywhere.
+const pickable = LEVELS.filter((l) => l.hidden || !ORDER.includes(l.id) || l.id === levelId || knownBefore.includes(l.id));
+picker.querySelector('.cards').innerHTML = pickable.map((l, i) => l.hidden && !completed() ? `
   <div class="card locked"><div class="lock">?</div><div class="txt"><div class="num">${i + 1}</div><h2>???</h2>
     <p>${l.lock?.text ?? `Find every story page and every relic in all ${ORDER.length} worlds.`}</p><div class="moves">${l.lock?.moves ?? 'the final page'}</div></div></div>` : `
   <a class="card${l.id === levelId ? ' current' : ''}" href="?level=${l.id}">
@@ -645,7 +597,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'KeyL') showPicker(!picker.classList.contains('open'));
   if (e.code === 'Escape' && picker.classList.contains('open') && levelParam) showPicker(false);
   const n = Number(e.key);
-  if (picker.classList.contains('open') && n >= 1 && n <= LEVELS.length && (!LEVELS[n - 1].hidden || completed())) location.search = '?level=' + LEVELS[n - 1].id;
+  if (picker.classList.contains('open') && n >= 1 && n <= pickable.length && (!pickable[n - 1].hidden || completed())) location.search = '?level=' + pickable[n - 1].id;
 });
 
 // ------------------------------------------------------------------ photo mode
@@ -736,10 +688,8 @@ function updateHud() {
   // (none during the ship's scenes: in orbit the camps are "1.1 km through the doorway")
   const questLine = ship.playing ? null : expedition?.state.started && !expedition.state.returned ? expedition.hud(player) : storyRt.hud();
   const goal = ship.playing ? '' : questLine ?? [objective && `◆ ${objective}`, expedition && !expedition.state.returned ? expedition.hud(player) : story.hud()].filter(Boolean).join(' · ');
-  const edgeHint = edgeTravel();
   let text = `${atmo.name} · ${parts.join(' · ')}` +
-    `\n${goal ? goal + ' · ' : ''}${errands.hud() ? errands.hud() + ' · ' : ''}relics ${journal.relicCount(levelId)}/${content.relics.names.length} · Q ping · R tool · H help` +
-    (gate.near ? ` · walk through the gate to ${nextTitle}` : '') + (edgeHint ? ` · ${edgeHint}` : '');
+    `\n${goal ? goal + ' · ' : ''}${errands.hud() ? errands.hud() + ' · ' : ''}relics ${journal.relicCount(levelId)}/${content.relics.names.length} · Q ping · R tool · H help`;
   if (!tool.owned) text = text.replace(' · R tool', '');   // no backpack yet: no tool
   if (isTouch && !controllerActive) text = text.replace(' · Q ping · R tool · H help', '').replace(' · Q ping · H help', '');   // the buttons say it
   if (controllerActive) text = text.replaceAll('SPACE', 'A / ×').replaceAll('SHIFT', 'RT / R2').replaceAll('W/S', 'left stick').replaceAll('A/D', 'left stick').replace(/\bE\b/g, 'X / □').replace('Q ping · R tool · H help', 'Y / △ ping · LT tool · Menu settings').replace('Q ping · H help', 'Y / △ ping · Menu settings');
@@ -1060,7 +1010,6 @@ function frame() {
   }
   relics.update(dt, t, player);
   story.update(dt, t, camera);
-  gate.update(dt, t, player);
   const rideK = player.ride?.kind;
   if (rideK === 'bird' && ctl.Space && (flapT -= dt) <= 0) { sound.flap(); flapT = 0.5; }
   sound.update({
@@ -1163,11 +1112,10 @@ requestAnimationFrame((t) => {
   const ld = document.getElementById('loading');
   ld?.classList.add('done');
   setTimeout(() => ld?.remove(), 900);
-  if (viaGate) arriveFromPage(meta.title);
-  ship.start({ via: viaShip ? 'ship' : viaGate ? 'gate' : null, prologue: playPrologue, homecoming: playHomecoming, onReady: () => { if (playHomecoming) journal.markSeen(levelId); else if (!viaGate) story.start(); } });   // the homecoming is its own page
+  ship.start({ via: viaShip ? 'ship' : null, prologue: playPrologue, homecoming: playHomecoming, onReady: () => { if (playHomecoming) journal.markSeen(levelId); else story.start(); } });   // the homecoming is its own page
   if (changelog.fresh) setTimeout(() => showToast(`Updated to v${VERSION} · press N to see what's new`), 4000);   // after an update: point at what changed, once
 });
 
 // handy for debugging from the console
-Object.assign(window, { items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, gate, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife,
+Object.assign(window, { items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife,
   storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, boxes, devMenu, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats });

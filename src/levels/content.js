@@ -1,4 +1,4 @@
-// Per-level content: the story thread, relics, people and the gate onward.
+// Per-level content: the story thread, relics and people (worlds are reached by the ship).
 // Coordinates are world space.
 // Relic spots: [x, z] drops onto the highest surface there (often a rooftop
 // or a mesa you have to climb); { at: [x, y, z], snap: true } lands on the
@@ -42,7 +42,6 @@ export const CONTENT = {
       spots: [{at:[18,1.1,48]}, {at:[-29,6.2,-35]}, {at:[0,26.1,-90]}, {at:[12,45.1,-232]}, {at:[0,65.1,-330]}],
       names: ['Lantern seed', 'Market stamp', 'Skybridge ticket', 'Cracked valve', 'Pigeon’s message ring'],
     },
-    gate: {at:[-11,121],heading:Math.PI},
     // the market's own people; the story's (Sel, Kip, Ferro, Brush, Ummu) are in src/story/bazaar-data.js
     npcs: [
       {at:[12,105],radius:2,palette:pal('#dca273'),lines:['~happy~ Welcome to the Signal Market. The broadcast tower is straight ahead.','~neutral~ Climb its blue ledges, use your jetpack, or take the parked taxi.'],...BAZAAR_STREET.doss},
@@ -59,7 +58,6 @@ export const CONTENT = {
       label: 'the pen', goal: [0, 'ground', 0], radius: 18,
     },
     relics: { spots: [], names: [] },
-    gate: { at: [0, 110], heading: 0 },
     npcs: [
       { at: [22, 26], radius: 3, palette: { cloak: '#2b211f', cloth: '#f3ead8', legs: '#2b2f45' },
         lines: ['~happy~ Ah, you found the atelier.', '~playful~ I only draw the deserts. You walked them.', '~solemn~ Every line starts as a wander.'] },
@@ -79,7 +77,6 @@ export const CONTENT = {
       spots: [[-260, -330], [150, -210], [-150, -112], [150, 60], [-262, 12]],
       names: ['Sun disc', 'Bone flute', 'Glass bead', 'Mask shard', 'Salt-polished coin'],
     },
-    gate: { at: [24, 34], heading: Math.PI },
     // the people near the start (indices matter: errands and the observatory use them);
     // the camps' people are in src/story/desert-data.js
     npcs: [
@@ -133,7 +130,6 @@ export const CONTENT = {
       spots: [{ at: [320, 200, -80], snap: true }, { at: [-210, 150, 30], snap: true }, { at: [150, 36, -150], snap: true }, { at: [-60, -86, 205], snap: true }, { at: [205, -218, -40], snap: true }],
       names: ['Taxi token', 'Palace key', 'Smog lantern', 'Smog-cabbage seed', 'Prayer bead'],
     },
-    gate: { at: [300, 60], heading: -Math.PI / 2 },
     // the rim's people, and Nima on the high terrace (index 3: the desert's errand of
     // singing sand is for her); the rest of the city's people are in src/story/incal-data.js
     npcs: [
@@ -156,7 +152,6 @@ export const CONTENT = {
       spots: [[170, -260], [-150, -210], [300, 100], [-250, -80], [60, 300]],
       names: ['Bird feather', 'Bone needle', 'Tower brick', 'Pale stone eye', 'Wind charm'],
     },
-    gate: { at: [26, 32], heading: Math.PI },
     npcs: [
       { at: [40, 44], palette: pal('#f4efe2', { cloth: '#8a7a66' }), lines: ['~tired~ …'], shy: true },
       { at: [-60, -40], palette: pal('#d8c7a6'), lines: ['~solemn~ The bird knows the way.', '~sad~ She has waited in the tower a long time.'] },
@@ -176,7 +171,6 @@ export const CONTENT = {
       spots: [[0, -40], [-120, 60], [150, 40], { at: [60, 898.8, 2940] }, { at: [2940, -148.8, 0] }],
       names: ['Grubert’s cog', 'Portal fuse', 'Ring compass', 'Upside-down coin', 'Gravity marble'],
     },
-    gate: { at: [-60, 112], heading: Math.PI },
     npcs: [
       { at: [40, 60], palette: pal('#e6875f', { cloth: '#3f8f8a' }), lines: ['~playful~ Up is a matter of opinion here.', '~tired~ The Major built all of this. Then he forgot.'] },
       { at: [-80, -20], palette: pal('#62c3c9'), lines: ['~angry~ Don’t lean on the gears.'] },
@@ -198,7 +192,7 @@ export const ERRANDS = [
     thanks: '~happy~ Sand from home! It still hums. Thank you, traveller.' },
   { id: 'token', item: 'a taxi token', from: ['incal', 1], to: ['arzach', 1],
     ask: '~neutral~ Someone out in the bone country wants a ride. Give them this token.',
-    wait: '~neutral~ Arzach’s country. Past the gate, past the bones.',
+    wait: '~neutral~ Arzach’s country. Fly out past the bones.',
     thanks: '~sad~ A token for a city I’ll never see. I’ll keep it anyway.' },
   { id: 'feather', item: 'a feather from the bird', from: ['arzach', 2], to: ['garage', 0],
     ask: '~neutral~ The Major collects feathers. Bring this one to his people in the Garage.',

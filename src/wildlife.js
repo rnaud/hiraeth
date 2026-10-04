@@ -465,12 +465,11 @@ export class Wildlife {
     return { mesh, swirl };
   }
 
-  /** spawn clutter, people and the gate: keep a little room around them */
+  /** spawn clutter and people: keep a little room around them */
   clutter(content) {
     const L = this.level, out = [];
     if (L.spawn) out.push({ p: L.spawn.clone(), r: 9 });
     for (const n of content?.npcs ?? []) out.push({ p: new THREE.Vector3(n.at[0], n.y ?? L.spawn?.y ?? 0, n.at[1]), r: 3.5, flat: n.y === undefined });
-    if (content?.gate) out.push({ p: new THREE.Vector3(content.gate.at[0], L.spawn?.y ?? 0, content.gate.at[1]), r: 7, flat: true });
     return out;
   }
 

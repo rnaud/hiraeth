@@ -5,8 +5,8 @@ import { Scout, nextObjective, viaPortal } from '../src/scout.js';
 import { makeMaterial, markHero, sharedUniforms } from '../src/materials.js';
 const v = (x=0,y=0,z=0) => new THREE.Vector3(x,y,z);
 
-test('guide advances through traveler, climb, lenses, return, story, relics and gate', () => {
-  const ctx = { player: {pos:v()}, level:{}, story:{done:false,def:{label:'Story'},goal:v(50)}, relics:{items:[{i:1,pos:v(20),done:false}]}, gate:{pos:v(90),destTitle:'Next'} };
+test('guide advances through traveler, climb, lenses, return, story, relics and back to the ship', () => {
+  const ctx = { player: {pos:v()}, level:{}, story:{done:false,def:{label:'Story'},goal:v(50)}, relics:{items:[{i:1,pos:v(20),done:false}]}, ship:{pos:v(90)} };
   ctx.expedition = {state:{started:false,done:false,returned:false},traveler:{pos:v(10)},model:{center:v(100,51),ledges:[v(126,8),v(124,16)],receivers:[{visible:true},{visible:false}],dials:[new THREE.Object3D(),new THREE.Object3D()]}};
   const goal = () => nextObjective(ctx).id;
   assert.equal(goal(),'traveler');
@@ -16,8 +16,8 @@ test('guide advances through traveler, climb, lenses, return, story, relics and 
   ctx.expedition.state.done=true; assert.equal(goal(),'traveler');
   ctx.expedition.state.returned=true; assert.equal(goal(),'story');
   ctx.story.done=true; assert.equal(goal(),'relic-1');
-  ctx.relics.items[0].done=true; assert.equal(goal(),'gate');
-  ctx.gate=null; assert.equal(nextObjective(ctx),null);
+  ctx.relics.items[0].done=true; assert.equal(goal(),'ship');
+  ctx.ship=null; assert.equal(nextObjective(ctx),null);
 });
 
 test('route chooses the first of chained portals, but keeps nearby objectives direct', () => {

@@ -85,7 +85,6 @@ export const PERDIDE_CONTENT = {
     spots: [{ at: [CAVE.x, 3.6, CAVE.z], snap: true }, [-13, -25], [40, -70], [BED.x, BED.z], [ISLE.x + 4, ISLE.z - 4]],
     names: ['Cave lantern', 'Egg shell', 'Grove shard', 'Plant tooth', 'Skiff charm'],
   },
-  gate: { at: [22, 24], heading: Math.PI },
   // Wendel, Sedge and Ivo, with their conversations (the errands count on this order)
   npcs: LANDING,
 };
