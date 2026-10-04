@@ -641,12 +641,20 @@ export class Crowd {
     for (const p of later) this.mid.write(n++, p, t);
     this.mid.commit(n);
 
-    // ---- far tier: everybody past the mid range, rewritten every 4th frame
-    if (anyTierChange || this.farDirty || this.frame % 4 === 0) {
+    // ---- far tier: everybody past the mid range in (or just around) the view, rewritten every 4th
+    // frame, or as soon as the camera has turned more than that margin
+    const fwd = camera.getWorldDirection(_w);
+    const turned = !this._farFwd || fwd.dot(this._farFwd) < 0.99;
+    if (anyTierChange || this.farDirty || turned || this.frame % 4 === 0) {
       let m = 0;
-      for (const p of this.people) if (p.tier === TIER.far) this.far.write(m++, p, t);
+      for (const p of this.people) {
+        if (p.tier !== TIER.far) continue;
+        _sphere.center.set(p.pos.x, p.pos.y + 0.9, p.pos.z); _sphere.radius = 2 + p._dCam * 0.15;   // ~8 deg of margin
+        if (_frustum.intersectsSphere(_sphere)) this.far.write(m++, p, t);
+      }
       this.far.commit(m);
       this.farDirty = false;
+      (this._farFwd ??= new THREE.Vector3()).copy(fwd);
     }
 
     // ---- the tool's targets: people in the near and mid tiers within reach
