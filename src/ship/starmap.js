@@ -113,6 +113,7 @@ export class StarMap {
         <ellipse cx="38" cy="52" rx="2.6" ry="4" fill="#f2c54b" stroke="#2b211f" stroke-width=".3"/>
         ${[0.3, 0.55, 0.8, 1.02].map((r) => `<ellipse cx="38" cy="52" rx="${r * 29}" ry="${r * 37}" fill="none" stroke="rgba(247,236,210,.18)" stroke-width=".15"/>`).join('')}
         <path d="${path}" fill="none" stroke="#e6875f" stroke-width=".35" stroke-dasharray="1 1.2" vector-effect="non-scaling-stroke"/>
+        ${worlds.length < pts.length ? `<path d="M${pts[pts.length - 1].join(' ')} L38 52 L${pts[0].join(' ')}" fill="none" stroke="#f2c54b" stroke-width=".35" stroke-dasharray=".6 1" vector-effect="non-scaling-stroke"/>` : ''}
       </svg>
       <h1>GALACTIC MAP</h1><div class="sub">${worlds.filter((e) => e.done).length} of ${worlds.length} worlds · discoveries made</div>
       ${this.entries.map((e, i) => `<button class="world${e.done ? ' done' : ''}${e.visited ? '' : ' unvisited'}${e.current ? ' current' : ''}${e.home ? ' home' : ''}" data-i="${i}" style="left:${pts[i][0]}%;top:${pts[i][1]}%">

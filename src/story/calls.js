@@ -121,6 +121,16 @@ const FATHER_ON_WORLD = {
   perdide2: 'People keeping lamps lit for travellers who never come. That is not a trade, son. That is a habit.',
 };
 
+// After the ending: what became of the thing you brought home.
+const KEPT = {
+  thing: (c) => `${name(c).replace(/^An? /, 'The ')} is on the shelf by the round window. Your mother dusts it every morning.`,
+  song: (c) => `Your mother hums ${name(c).replace(/^The /, 'the ')} in the kitchen. She gets it wrong. She doesn’t mind.`,
+  word: (c) => `I wrote the words on the wall by the door. “${quoteOf(c)}” I read them going out.`,
+  person: (c) => `We talk about ${name(c).replace(/^The /, 'the ')} at supper. Somebody out there is waiting for you too.`,
+  knowing: (c) => `${name(c)}. I think about it at night. I am beginning to see it.`,
+  nothing: () => 'Your chair is where you left it. Nobody sits in it.',
+};
+
 /** Everything the calls know about the journey, from the context. */
 export function facts(ctx = {}) {
   const flag = ctx.flag ?? (() => undefined);
@@ -282,7 +292,7 @@ export function callLines(n, ctx = {}) {
   const f = facts(ctx);
   if (n === ILEN_CALL) return motherAlone(f);
   const { k, quiet, flag } = f;
-  const shifted = f.ilenTold && n >= 3;
+  const shifted = f.ilenTold;   // once the truth is told, he stops weighing what you bring
   const tier = shifted ? 3 : Math.min(2, Math.floor(quiet / 2) + (n >= 4 ? 1 : 0));   // how terse he has become
   const bs = beats(f, n, 2);
   const talksIlen = bs.lead.some((b) => b.id === 'ilen');
@@ -305,10 +315,10 @@ export function callLines(n, ctx = {}) {
     const c = f.chosen ?? chosenKeepsake({ flag, keepsakes: () => f.all });
     return [
       M('There you are. Out again? Good. Tell me everything.'),
-      F(c && c.id !== 'nothing' ? `${name(c)} is on the shelf by the round window. Your mother dusts it every morning.` : 'Your chair is where you left it. Nobody sits in it.'),
+      F(KEPT[c?.kind]?.(c) ?? KEPT.nothing()),
       ...lead,
       ...world,
-      ...(k && !talksIlen ? [F(`And now ${name(k)}. Bring it, or don’t. Just call.`)] : []),
+      ...(k && !talksIlen ? [F(`And now ${name(k)}. Keep it, or bring it. Just call.`)] : []),
       ...rest.slice(0, 2),
       whoMet,
       F('Come home when you are ready. Not before.'),
@@ -341,10 +351,10 @@ export function callLines(n, ctx = {}) {
     case 1: return [
       F('You are flying again. Good. I knew you would find a way.'),
       ...lead,
-      F(`${where ? `So.${where}.` : 'So.'} What did you bring back?`),
+      ...(talksIlen ? [] : [F(`${where ? `So.${where}.` : 'So.'} What did you bring back?`)]),
       ...opt(onK ?? nothing),
       ...rest,
-      F(isQuiet(k) ? 'Hm. Keep looking. There is time.' : 'Your mother sends her love. Do not waste the fuel.'),
+      F(shifted ? 'Come back safe. That is all.' : isQuiet(k) ? 'Hm. Keep looking. There is time.' : 'Your mother sends her love. Do not waste the fuel.'),
     ];
     case 2: return [
       F('Another world behind you. What have you got this time?'),
@@ -352,8 +362,8 @@ export function callLines(n, ctx = {}) {
       ...world,
       ...opt(onK ?? nothing),
       ...rest,
-      F(isQuiet(k) ? 'I asked for something of value, son. Not a souvenir.' : 'The Orrin boy came home with a reactor core. Just so you know.'),
-      F('Next world. Do better.'),
+      F(shifted ? 'Your mother sends her love. So do I.' : isQuiet(k) ? 'I asked for something of value, son. Not a souvenir.' : 'The Orrin boy came home with a reactor core. Just so you know.'),
+      F(shifted ? 'Next world, then. Carefully.' : 'Next world. Do better.'),
     ];
     case 3: return [
       M('Is that you? Oh, let me see your face. You look thin.'),

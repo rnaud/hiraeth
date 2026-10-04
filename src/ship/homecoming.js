@@ -336,7 +336,7 @@ export class HomecomingDirector {
     this.panel?.remove();
     this.panel = null;
     sfx.beep(this.s.sound);
-    this.s.cinema.say({ who: 'ship', text: k.id === 'nothing' ? 'Nothing in the hold. Understood. Beginning descent.' : `${k.name}: stowed by the hatch. Beginning descent.` });
+    this.s.cinema.say({ who: 'ship', text: k.id === 'nothing' ? 'Nothing in the hold. Understood. Beginning descent.' : k.kind === 'thing' ? `${k.name}: stowed by the hatch. Beginning descent.` : `${k.name}. Noted. Beginning descent.` });
   }
 
   /** Everything where it would be after the landing (skipping ahead). */
