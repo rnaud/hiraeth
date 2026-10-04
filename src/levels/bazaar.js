@@ -192,11 +192,13 @@ export function createBazaar(scene) {
     };
     // dark covers over the tower's screens, one mesh per row (the broadcast lifts them bottom to top)
     const coverMat = makeMaterial({ color: '#2f3d43', flat: true, key: 'bazaar.covers' });
-    const covers = [];
+    const covers = [], coverGeo = (q) => new THREE.BoxGeometry(q.w + .9, q.h + .9, .12).translate(0, 0, 1.12).rotateY(q.yaw).translate(q.x, q.y, q.z);
     for (let k = 0; k < 7; k++) {
-      const parts = towerPosters.filter((q) => q.k === k).map((q) => new THREE.BoxGeometry(q.w + .9, q.h + .9, .12).translate(0, 0, 1.12).rotateY(q.yaw).translate(q.x, q.y, q.z));
-      covers.push(story(new THREE.Mesh(mergeGeometries(parts), coverMat)));
+      const m = story(new THREE.Mesh(mergeGeometries(towerPosters.filter((q) => q.k === k).map(coverGeo)), coverMat));
+      m.visible = false;   // the rows only while the tower wakes; otherwise one mesh for all of them
+      covers.push(m);
     }
+    const coversAll = story(new THREE.Mesh(mergeGeometries(towerPosters.map(coverGeo)), coverMat));
     // the tuning mark: three bulbs over a dish, on a short mast above the aerial's lamp
     add(new THREE.CylinderGeometry(.08, .08, 1.7, 5).translate(12, 59.9, -238), brass, false);
     const dish = story(new THREE.Mesh(new THREE.TorusGeometry(1.25, .1, 4, 18, Math.PI * .8).rotateZ(Math.PI * .1).scale(1, .55, 1).translate(0, -.45, 0), brass));
@@ -253,7 +255,7 @@ export function createBazaar(scene) {
     // the glyph, small, on the oldest shop in the square (the first sign's mark)
     const g = new THREE.Mesh(glyphGeometry(1.4, .05).rotateY(Math.PI / 2).translate(-24.95, 3.2, -205), dark);
     story(g);
-    return { places, covers, coverMat, bulbs, dish, oldSign, oldMat, crates, bowl, ummu, ummuHead: head, screen, towerPosters, frontPosters };
+    return { places, covers, coversAll, coverMat, bulbs, dish, oldSign, oldMat, crates, bowl, ummu, ummuHead: head, screen, towerPosters, frontPosters };
   })();
   folk.push({ x: signal.places.ummu.x, y: 0, z: signal.places.ummu.z, r: 1.3 }, { x: signal.places.crates.x, y: 0, z: signal.places.crates.z, r: 2.2 },
     { x: signal.places.sel.x, y: 0, z: signal.places.sel.z, r: 1.8 }, { x: signal.places.brush.x, y: 0, z: signal.places.brush.z, r: 1.6 }, { x: signal.places.brush.x - .5, y: 0, z: signal.places.brush.z + 1, r: .9 });

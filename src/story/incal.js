@@ -3,7 +3,8 @@ import { makeMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { Taxi } from '../taxi.js';
-import { glyphGeometry } from './sign-text.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { glyphGeometry, textGeometry } from './sign-text.js';
 import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK } from './incal-data.js';
 
 // The City-Shaft's story, alive (incal-data.js has the words).
@@ -155,8 +156,30 @@ export function setupIncal(ctx) {
     }
     for (const l of lowerLights) level.lights.push(l.v);
   }
+  // what the story's people say in passing follows the story
+  const say = () => {
+    if (lit()) {
+      people.nima.lines = ['Once a day.', 'Did you look up today?', 'The steps went gold.'];
+      people.ossa.lines = ['Eyes open, face up.', 'It came all the way down.', 'It doesn’t sting.'];
+      people.dov.lines = ['I looked. On duty.', 'Worth it.', 'Eyes on the visitors. Mostly.'];
+      people.pip.lines = ['I SAW IT!', 'Twelve seconds! More!', 'It’s still there!'];
+    } else if (quests.has('splinter')) people.ossa.lines = ['Up, all the way up.', 'Hold it higher.'];
+    if (game.flag('incal.wren.met') && people.wren) people.wren.lines = ['Need a lift?', 'Space to climb, Shift to drop.', 'She knows the way home.'];
+  };
+  say();
+  game.on('flag', ({ name }) => { if (name.startsWith('incal.')) say(); });
   const zoneOf = (p) => p.spot?.id ?? (p.pos.y >= S.TOP - 1 ? 'rim' : p.pos.y >= S.LEVELS[1] - 1 ? 'upper' : p.pos.y >= S.LEVELS[4] - 1 ? 'middle' : 'lower');
+  // the billboards on the shaft wall stop selling: LOOK UP, on every one (one mesh, shown once it burns)
+  const lookUp = (() => {
+    const parts = S.billboards.map((b, i) => textGeometry(i % 3 === 2 ? 'ONCE\nA DAY' : 'LOOK\nUP', { width: b.w * (i % 3 === 2 ? 0.62 : 0.42), depth: 0.06 })
+      .applyMatrix4(new THREE.Matrix4().compose(b.pos.clone().add(V(0, 0, 0).set(0, 0, 0.47).applyQuaternion(b.quat)), b.quat, V(1, 1, 1))));
+    const m = new THREE.Mesh(mergeGeometries(parts.map((g) => { g.deleteAttribute('uv'); return g; })), makeMaterial({ color: '#fff8e8', flat: true, glow: 0.9, key: 'incal.lookUp' }));
+    m.userData.noCollide = true; m.visible = false;
+    scene.add(m);
+    return m;
+  })();
   const applyLit = (instant) => {
+    lookUp.visible = true;
     if (crowd) for (const p of crowd.people) { const z = zoneOf(p); p.lines = LINES.lit[z] ?? p.lines; }
     for (const l of lowerLights) l.v.copy(l.at);
     sound.setBandMode?.('shrine', 'feast');
@@ -167,8 +190,9 @@ export function setupIncal(ctx) {
   // the moment, framed: from out beside the palace, low, looking up past the dome to the light
   // (the follow camera can't look that steeply up); blends in, holds through the flare, blends out
   const startCine = () => {
-    // from the −x side, under the rim of the megastructure: the light against open sky beyond
-    st.cine = { t: 0, dur: 11, eye: V(-112, PY + 2, 16), look: V(0, PY + 84, 0) };
+    // from out on the +x side, low beside the dome: the crown below, the light above, open sky beyond
+    // (the megastructure hangs over the −x side)
+    st.cine = { t: 0, dur: 11, eye: V(100, PY + 4, 34), look: V(0, PY + 80, 0) };
   };
   const _q = new THREE.Quaternion(), _m = new THREE.Matrix4(), _e = V(0, 0, 0);
   const frameCamera = (camera) => {
@@ -257,6 +281,8 @@ export function setupIncal(ctx) {
         }
       }
     } else if (!lit() && !game.flag('incal.splinter.given')) {
+      // in the bowl (drawn only when you're down there)
+      splinter.visible = !camera || camera.position.distanceToSquared(P.bowlTop) < 160 * 160;
       splinter.position.copy(P.bowlTop); splinter.position.y += Math.sin(t * 1.7) * 0.04;
       splinter.rotation.y = t * 0.5;
     }

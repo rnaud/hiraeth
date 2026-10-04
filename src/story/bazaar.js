@@ -69,6 +69,10 @@ export function setupBazaar(ctx) {
   thing({ id: 'bowl', name: 'the bowl' }, G.bowl.position, { range: 2.4, prompt: 'pick up the brass bowl',
     enabled: () => !!game.flag('bazaar.crates.clear') && !quests.has('bowl') && !quests.isDone('bazaar.bowl') && G.bowl.visible,
     use: () => { quests.give('bowl'); G.bowl.visible = false; toast(`Picked up ${ITEMS.bowl}`); sound.chime?.(); if (!quests.isStarted('bazaar.bowl')) quests.start('bazaar.bowl', 'bowl'); } });
+  // the oldest sign, seen from the street right under it: you have to look up
+  const underSign = V(P.oldSign.x, 0, P.oldSign.z + 2.5);
+  registerInteractable({ id: 'oldSign', priority: PRIORITY.use, range: 3.5, prompt: 'look up at the old sign', at: () => underSign.clone().setY(2.2),
+    distance: (p) => (p.pos.y < 3 ? flat(p.pos, underSign) : Infinity), use: () => dialogue.start(THINGS.oldSign, null, underSign) });
   const ummuAt = P.ummu.clone().add(V(0, 1.2, 0));
   thing(THINGS.ummu, ummuAt, { range: 3, prompt: 'listen to Ummu' });
   if (quests.has('bowl') || quests.isDone('bazaar.bowl')) G.bowl.visible = false;
@@ -81,6 +85,7 @@ export function setupBazaar(ctx) {
     screenText = new THREE.Mesh(textGeometry(text, { width: 1.7, depth: 0.03 }).rotateY(Math.PI / 2), screenMat);
     screenText.position.copy(P.ummuScreen).add(V(0.04, 0, 0));
     screenText.userData.noCollide = true;
+    screenText.visible = st.nearSquare !== false;
     scene.add(screenText);
     G.screen.material.uniforms.uGlow.value = 0.25;
   };
@@ -163,7 +168,7 @@ export function setupBazaar(ctx) {
   plates.userData.noCollide = true;
   scene.add(plates);
   const texts = boards.map((b, i) => {
-    const m = new THREE.Mesh(textGeometry(MESSAGES[i % MESSAGES.length], { width: b.w * 0.78, depth: 0.05 }), inkMat);
+    const m = new THREE.Mesh(textGeometry(i === boards.length - 1 ? MESSAGES[0] : MESSAGES[i % MESSAGES.length], { width: b.w * 0.78, depth: 0.05 }), inkMat);
     m.position.set(b.x, b.y, b.z + 0.14); m.userData.noCollide = true;
     scene.add(m);
     return m;
@@ -173,10 +178,20 @@ export function setupBazaar(ctx) {
   scene.add(greet);
   const showBoards = (white, words) => { plates.visible = white; texts.forEach((t, i) => { t.visible = words && i !== st.near; }); greet.visible = words && st.near >= 0; };
   showBoards(onAir(), onAir());
-  const setCovers = (n) => G.covers.forEach((c, k) => { c.visible = k >= n; });
+  // n rows lifted: 0 = all dark (one mesh), 7 = all awake
+  const setCovers = (n) => { G.coversAll.visible = n === 0; G.covers.forEach((c, k) => { c.visible = n > 0 && k >= n; }); };
   setCovers(onAir() ? 7 : 0);
   const towerAim = V(0, 58, -240);
 
+  // what the story's people say in passing follows the story
+  const say = () => {
+    if (tuned()) people.ferro.lines = onAir() ? ['Clear as a bell!', 'Good antenna. Good, good antenna.'] : ['Listen to it hum!', 'The console’s right there.'];
+    if (game.flag('bazaar.kip.gave')) people.kip.lines = onAir() ? ['Everybody stopped! Even the fish man!', 'Messages! Real ones!'] : ['Did you play it yet?', 'Is it still singing?'];
+    if (onAir()) people.sel.lines = ['It’s talking again, love.', 'Listen. No. Listen properly.', 'Forty years on the way.'];
+    if (game.flag('bazaar.oldsign.awake')) people.brush.lines = ['WE HEARD YOU. Sixty-one signs so far.', 'Look in the corners.'];
+  };
+  say();
+  game.on('flag', ({ name }) => { if (name.startsWith('bazaar.')) say(); });
   const applyOnAir = () => {
     if (crowd) for (const p of crowd.people) p.lines = LINES.onAir;
     sound.setBandMode?.('tower', 'play');
@@ -242,9 +257,16 @@ export function setupBazaar(ctx) {
 
   // ---------------------------------------------------------------- per frame
   const _c = new THREE.Color(), _w = V(0, 0, 0);
-  const update = (dt, t) => {
+  const square = [G.dish, ...G.bulbs.map((b) => b.mesh), G.ummu, G.screen, ...G.crates.map((c) => c.mesh)];
+  const update = (dt, t, { camera } = {}) => {
     st.time += dt;
     const pp = player.pos;
+    // the square's small things are drawn only when you are near enough to see them
+    if (camera) {
+      const nearSquare = camera.position.distanceToSquared(P.square) < 170 * 170, nearSign = camera.position.distanceToSquared(P.oldSign) < 190 * 190;
+      if (nearSquare !== st.nearSquare) { st.nearSquare = nearSquare; for (const o of square) o.visible = nearSquare; if (screenText) screenText.visible = nearSquare; G.bowl.visible = nearSquare && !quests.has('bowl') && !quests.isDone('bazaar.bowl'); }
+      if (nearSign !== st.nearSign) { st.nearSign = nearSign; G.oldSign.visible = nearSign; signText.visible = nearSign && st.signK > 0; }
+    }
     // the broadcast: covers lift bottom to top, the street signs go white, then the voice
     if (st.cast) {
       const c = st.cast;
@@ -279,8 +301,14 @@ export function setupBazaar(ctx) {
     }
     // on the air: the sign you are walking past greets you
     if (onAir() && !st.cast) {
-      let best = -1, bd = 32 * 32;
-      boards.forEach((b, i) => { const d = (b.x - pp.x) ** 2 + (b.z - pp.z) ** 2; if (d < bd && Math.abs(b.y - pp.y) < 60) { bd = d; best = i; } });
+      // the boards face +z, down the avenue: the one ahead of you at a comfortable reading distance says hello
+      let best = -1, bd = Infinity;
+      boards.forEach((b, i) => {
+        const ahead = pp.z - b.z;
+        if (i === boards.length - 1 || ahead < 45 || ahead > 160) return;
+        const score = Math.abs(ahead - 85) + (Math.sign(b.x) === Math.sign(pp.x || 1) ? 0 : 6);
+        if (score < bd) { bd = score; best = i; }
+      });
       if (best !== st.near) {
         st.near = best;
         if (best >= 0) { const b = boards[best]; greet.position.set(b.x, b.y, b.z + 0.14); greet.scale.setScalar(b.w / 20); }

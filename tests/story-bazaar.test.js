@@ -113,9 +113,9 @@ test('the main quest: Sel, Kip’s recording, the antenna, the broadcast, and wh
   assert.equal(use?.entry.prompt(), 'play the recording');
   use.entry.use(player);
   assert.ok(!quests.has('recording'));
-  assert.ok(G.covers.every((c) => c.visible), 'the tower is still dark');
+  assert.ok(G.coversAll.visible, 'the tower is still dark');
   step(30 * 2);
-  assert.ok(G.covers.some((c) => !c.visible), 'the tower wakes row by row');
+  assert.ok(!G.coversAll.visible && G.covers.some((c) => c.visible) && G.covers.some((c) => !c.visible), 'the tower wakes row by row');
   const looking = crowd.people.filter((p) => p.gazeAt && p.gazeUntil > crowd.time).length;
   assert.ok(looking > crowd.people.length * 0.9, `${looking} of ${crowd.people.length} turn to the tower`);
   step(30 * 2.5);
@@ -129,7 +129,7 @@ test('the main quest: Sel, Kip’s recording, the antenna, the broadcast, and wh
   dialogue.close();
   step(3);
   assert.equal(game.flag('bazaar.broadcast.on'), true);
-  assert.ok(G.covers.every((c) => !c.visible), 'all the tower’s screens are lit');
+  assert.ok(!G.coversAll.visible && G.covers.every((c) => !c.visible), 'all the tower’s screens are lit');
   const k = game.keepsakes().find((x) => x.id === 'bazaar.word');
   assert.ok(k && k.kind === 'word' && /not alone/i.test(k.name));
   step(2);

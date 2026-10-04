@@ -332,6 +332,7 @@ export function createIncal(scene) {
   }
 
   // ---------------------------------------------------------- billboards on the wall
+  const billboards = [];   // { pos, quat, w, h }: the story writes on them once the light burns again
   for (let i = 0; i < 40; i++) {
     const a = rng() * TAU, y = BOTTOM + 30 + rng() * (TOP - BOTTOM - 30);
     const m = new THREE.Mesh(new THREE.BoxGeometry(14 + rng() * 10, 8 + rng() * 6, 0.8),
@@ -339,6 +340,7 @@ export function createIncal(scene) {
     m.position.set(Math.cos(a) * (R - 1.2), y, Math.sin(a) * (R - 1.2));
     m.lookAt(0, y, 0);
     scene.add(m);
+    billboards.push({ pos: m.position.clone(), quat: m.quaternion.clone(), w: m.geometry.parameters.width, h: m.geometry.parameters.height });
   }
 
   // ---------------------------------------------------------- hero: the Incal
@@ -564,6 +566,10 @@ export function createIncal(scene) {
     places.lights = [];   // warm lamps along the lower terraces, lit when the Incal is (Vector4s: the story moves them in)
     const gold = makeMaterial({ color: '#f2c54b', grid: 5 }), steelM = strata(STEEL.color, STEEL.color2, '#f1e6cf', 1.5, { flat: true, grid: 3 });
     const cream = makeMaterial({ color: '#f3ead8', flat: true }), ink = makeMaterial({ color: '#34405e', flat: true });
+    // the small things up on the palace and down at the shrine drop out when you are far above or below them
+    const palaceG = new THREE.Group(), shrineG = new THREE.Group();
+    scene.add(palaceG, shrineG);
+    lod.push({ obj: palaceG, y: PY, far: 300 }, { obj: shrineG, y: low.y, far: 170 });
     // the palace landing: a ring round the dome, a parapet with a gap at the gate
     const landing = new THREE.Mesh(sectorGeometry(35, 52, 0, TAU, 2.2), steelM);
     landing.position.y = PY;
@@ -576,17 +582,15 @@ export function createIncal(scene) {
     }
     // the gate: two pylons and a lintel, a seal on top
     for (const s of [-1, 1]) par.push(new THREE.BoxGeometry(1.8, 7, 1.8).translate(51.6, PY + 3.5, s * 6));
-    scene.add(new THREE.Mesh(mergeGeometries(par.map((g) => (g.index ? g.toNonIndexed() : g)).map((g) => { g.deleteAttribute('uv'); return g; })), cream));
-    const lintel = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.3, 14).translate(51.6, PY + 7.6, 0), gold);
-    scene.add(lintel);
+    palaceG.add(new THREE.Mesh(mergeGeometries(par.map((g) => (g.index ? g.toNonIndexed() : g)).map((g) => { g.deleteAttribute('uv'); return g; })), cream));
+    // the gold: the gate's lintel, and the crown, a small round terrace on top of the dome round the needle
+    palaceG.add(new THREE.Mesh(mergeGeometries([new THREE.BoxGeometry(2.2, 1.3, 14).translate(51.6, PY + 7.6, 0), new THREE.CylinderGeometry(6.5, 6.5, 1, 24).translate(0, PY + 34.5, 0)].map((g) => { g = g.toNonIndexed(); g.deleteAttribute('uv'); return g; })), gold));
     const seal = new THREE.Mesh(glyphGeometry(4, 0.3).rotateY(Math.PI / 2).translate(52.9, PY + 7.7, 0), ink);
     seal.userData.noCollide = true;
-    scene.add(seal);
-    // the crown: a small round terrace at the top of the dome, round the needle
-    scene.add(new THREE.Mesh(new THREE.CylinderGeometry(6.5, 6.5, 1, 24).translate(0, PY + 34.5, 0), gold));
+    palaceG.add(seal);
     const rail = new THREE.Mesh(new THREE.TorusGeometry(6.4, 0.08, 4, 40).rotateX(Math.PI / 2).translate(0, PY + 36, 0), cream);
     rail.userData.noCollide = true;
-    scene.add(rail);
+    palaceG.add(rail);
 
     // the Upward Shrine: a round dais, a bowl held up to the light, candles, the glyph on the floor
     const S = places.shrine, face = Math.atan2(-S.x, -S.z);   // facing the void (and the Incal, far above)
@@ -595,10 +599,10 @@ export function createIncal(scene) {
     const bowl = new THREE.LatheGeometry([[0.08, 0], [0.5, 0.08], [0.78, 0.3], [0.82, 0.42], [0.74, 0.4], [0.45, 0.16], [0, 0.12]].map(([r, y]) => new THREE.Vector2(r, y)), 14).translate(0, 1.32, 0);
     const m1 = new THREE.Mesh(mergeGeometries(dais.map((g) => g.toNonIndexed())), stone);
     m1.position.copy(S); m1.rotation.y = face;
-    scene.add(m1);
+    shrineG.add(m1);
     const m2 = new THREE.Mesh(bowl, bowlM);
     m2.position.copy(S); m2.userData.noCollide = true;
-    scene.add(m2);
+    shrineG.add(m2);
     const candles = [], flames = [];
     for (let i = 0; i < 11; i++) {
       const a = (i / 11) * TAU, r = 2.15 + (i % 2) * 0.2, h = 0.18 + (i % 3) * 0.08;
@@ -606,11 +610,11 @@ export function createIncal(scene) {
       flames.push(new THREE.OctahedronGeometry(0.06, 0).scale(1, 1.8, 1).translate(Math.cos(a) * r, 0.34 + h + 0.1, Math.sin(a) * r));
     }
     const cm = new THREE.Mesh(mergeGeometries(candles), cream), fm = new THREE.Mesh(mergeGeometries(flames), makeMaterial({ color: '#ffd27a', glow: 1, flat: true }));
-    for (const m of [cm, fm]) { m.position.copy(S); m.userData.noCollide = true; scene.add(m); }
+    for (const m of [cm, fm]) { m.position.copy(S); m.userData.noCollide = true; shrineG.add(m); }
     const floorGlyph = new THREE.Mesh(glyphGeometry(2.6, 0.02).rotateX(-Math.PI / 2).rotateY(face + Math.PI).translate(0, 0.36, 0.0), ink);
     floorGlyph.position.copy(S).add(new THREE.Vector3(Math.sin(face) * 1.35, 0, Math.cos(face) * 1.35));
     floorGlyph.userData.noCollide = true;
-    scene.add(floorGlyph);
+    shrineG.add(floorGlyph);
     places.bowlTop = S.clone().add(new THREE.Vector3(0, 1.62, 0));
     // the taxi call-lamp: a tall post at the edge, a round lamp gone dark, a sign that says so
     const L = places.lamp, lf = Math.atan2(-L.x, -L.z);
@@ -620,7 +624,7 @@ export function createIncal(scene) {
       new THREE.CylinderGeometry(0.42, 0.42, 0.14, 10).translate(1.15, 4.42, 0),
     ].map((g) => g.toNonIndexed())), ink);
     post.position.copy(L); post.rotation.y = lf - Math.PI / 2;
-    scene.add(post);
+    shrineG.add(post);
     const lampMat = makeMaterial({ color: '#5d574b', flat: true, key: 'incal.lamp' });
     const head = new THREE.Mesh(new THREE.SphereGeometry(0.36, 12, 8), lampMat);
     head.position.set(1.15, 4.1, 0);
@@ -731,7 +735,7 @@ export function createIncal(scene) {
     features: { mount: false, wind: false, jetpack: true, climb: true, taxis: true },
     vehicles,
     // the city's shape, for its story (src/story/incal.js): terraces, bridges, the palace and the Incal
-    shaft: { R, TOP, BOTTOM, LEVELS, SPIRE_R, SPIRE_RING, terraces, bridges, stallSpots, viaducts, incal: incalRig, places },
+    shaft: { R, TOP, BOTTOM, LEVELS, SPIRE_R, SPIRE_RING, terraces, bridges, stallSpots, viaducts, billboards, incal: incalRig, places },
     // called once the physics exists: spawn the taxis (they collide when driven)
     init(physics) {
       for (const spec of taxiSpecs) {
