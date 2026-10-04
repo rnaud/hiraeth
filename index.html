@@ -218,6 +218,10 @@
         box-shadow: 4px 4px 0 #2b211f; opacity: 0; pointer-events: none;
       }
       #toast.show { animation: toast 4.5s forwards; }
+      /* the toast is placed in the stack of things written on the screen (src/ship/cinema.js layoutCinema):
+         one line where it can, centred, and over the letterbox's frame during a scene, below its top bar */
+      #toast { width: max-content; max-width: calc(100vw - 32px); box-sizing: border-box; text-align: center; transition: top 0.3s; }
+      body.cine-on #toast { z-index: 8050; }
       @keyframes toast { 0% { opacity: 0; transform: translate(-50%, -8px); } 8%, 80% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; } }
 
       #page {
