@@ -1,0 +1,23 @@
+README.md
+  s_1fd8d0e7b02dcf::t_befdf13cfda7d1 988-1008
+docs/story-bible.md
+  s_1fd8d0e7b02dcf::t_bea5c42568822f 178-181,189-201
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_6b5df7acc67596 6-11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2b9523ba0d96b40c013f7475a2e47cda8150f979",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
