@@ -164,6 +164,52 @@ export class Terrain {
     return h11 + (h01 - h11) * (1 - tx) + (h10 - h11) * (1 - tz);
   }
 
+  /** Grid vertex index nearest below (x, z), and the grid coordinates: { i, ix, iz }. */
+  vertexAt(x, z) {
+    const half = this.size / 2;
+    const ix = Math.min(Math.max(Math.round((x + half) / this.step), 0), this.seg);
+    const iz = Math.min(Math.max(Math.round((z + half) / this.step), 0), this.seg);
+    return { i: iz * this.n + ix, ix, iz, x: -half + ix * this.step, z: -half + iz * this.step };
+  }
+
+  /**
+   * Reshape the ground after it was built (sand sliding away): `changes` is a
+   * list of [vertex index, new height]. The exact lookup (heightAt, so the
+   * collision too) and the drawn mesh both follow, and the normals round the
+   * changed vertices are summed again the way computeVertexNormals does.
+   */
+  setHeights(changes) {
+    if (!changes.length) return;
+    const g = this.mesh.geometry, pos = g.attributes.position.array, nrm = g.attributes.normal.array, n = this.n, seg = this.seg;
+    const touched = new Set();
+    for (const [i, h] of changes) {
+      this.heights[i] = h; pos[i * 3 + 1] = h;
+      const ix = i % n, iz = (i - ix) / n;
+      for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) {
+        const x = ix + dx, z = iz + dz;
+        if (x >= 0 && x <= seg && z >= 0 && z <= seg) touched.add(z * n + x);
+      }
+    }
+    const P = (i, o) => o.set(pos[i * 3], pos[i * 3 + 1], pos[i * 3 + 2]);
+    const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3(), cb = new THREE.Vector3(), ab = new THREE.Vector3(), sum = new THREE.Vector3();
+    // a face's (C - B) x (A - B), as three.js weights it; the quad (qx, qz) is two triangles (a, c, b) and (b, c, d)
+    const face = (A, B, C) => { P(A, a); P(B, b); P(C, c); sum.add(cb.subVectors(c, b).cross(ab.subVectors(a, b))); };
+    for (const i of touched) {
+      const ix = i % n, iz = (i - ix) / n;
+      sum.set(0, 0, 0);
+      const q = (qx, qz) => qx >= 0 && qz >= 0 && qx < seg && qz < seg;
+      const id = (x, z) => z * n + x;
+      if (q(ix, iz)) face(id(ix, iz), id(ix, iz + 1), id(ix + 1, iz));                        // v is a
+      if (q(ix - 1, iz)) { face(id(ix - 1, iz), id(ix - 1, iz + 1), i); face(i, id(ix - 1, iz + 1), id(ix, iz + 1)); }   // v is b
+      if (q(ix, iz - 1)) { face(id(ix, iz - 1), i, id(ix + 1, iz - 1)); face(id(ix + 1, iz - 1), i, id(ix + 1, iz)); }   // v is c
+      if (q(ix - 1, iz - 1)) face(id(ix, iz - 1), id(ix - 1, iz), i);                         // v is d
+      sum.normalize();
+      nrm[i * 3] = sum.x; nrm[i * 3 + 1] = sum.y; nrm[i * 3 + 2] = sum.z;
+    }
+    g.attributes.position.needsUpdate = true;
+    g.attributes.normal.needsUpdate = true;
+  }
+
   // Lowest ground under a footprint, so props don't float on slopes.
   baseAt(x, z, r) {
     let m = this.heightAt(x, z);

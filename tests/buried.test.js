@@ -85,3 +85,27 @@ test('static collision stays within budget; the hanging city and ring are not co
   // overhead city: a ray straight up from the dunes meets nothing
   assert.equal(physics.rayHit(new THREE.Vector3(-70, 20, -170), new THREE.Vector3(0, 1, 0), 2000), null);
 });
+
+test('the sand round the great wheel can slide away: the heights, the collision and the normals follow, and it comes back', () => {
+  const W = level.buried.wheel, T = level.ground;
+  assert.ok(W.sand.length > 20, 'a patch of the dunes round the wheel');
+  const at = [W.centre.x + W.face.x * 4, W.centre.z + W.face.z * 4];
+  const h0 = T.heightAt(...at);
+  W.clear(1);
+  const h1 = T.heightAt(...at);
+  assert.ok(h0 - h1 > 8 && h0 - h1 < 11, `a hollow along its face (${(h0 - h1).toFixed(2)} m)`);
+  assert.ok(Math.abs(physics.groundAt(at[0], h0 + 20, at[1], 60) - h1) < 1e-6, 'the collision follows');
+  // the patched normals are the ones three.js computes for the whole mesh
+  const geo = T.mesh.geometry, mine = geo.attributes.normal.array.slice();
+  geo.computeVertexNormals();
+  const ref = geo.attributes.normal.array;
+  let worst = 0;
+  for (const v of W.sand) for (let k = 0; k < 3; k++) worst = Math.max(worst, Math.abs(mine[v.i * 3 + k] - ref[v.i * 3 + k]));
+  assert.ok(worst < 1e-5, `normals match (${worst})`);
+  // a hollow you can walk out of: no slope in it steeper than about 40 degrees
+  let steep = 1;
+  for (const v of W.sand) steep = Math.min(steep, ref[v.i * 3 + 1]);
+  assert.ok(steep > 0.75, `gentle sides (${steep.toFixed(2)})`);
+  W.clear(0);
+  assert.ok(Math.abs(T.heightAt(...at) - h0) < 1e-6, 'and it comes back');
+});

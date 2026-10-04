@@ -13,7 +13,7 @@ const { createStory } = await import('../src/story/index.js');
 const { game } = await import('../src/game-state.js');
 const { DialogueRunner } = await import('../src/story/dialogue.js');
 const { PEOPLE, THINGS, AMBER } = await import('../src/story/buried-data.js');
-const { TURN_TIME } = await import('../src/story/buried.js');
+const { TURN_TIME, CLEAR_TIME } = await import('../src/story/buried.js');
 const { clearInteractables, bestInteractable } = await import('../src/interact.js');
 const { allTargets, clearTargets } = await import('../src/targets.js');
 const { CONTENT } = await import('../src/levels/content.js');
@@ -120,10 +120,21 @@ test('the main quest: Tooth Day, the Wick lit, the wheel turns one tooth, Wen co
   const W = B.wheel;
   at(W.drop.clone().addScaledVector(W.face, 20));
   const before = W.spin.rotation.z;
-  step(Math.ceil((TURN_TIME + 3) / 0.1), 0.1);
+  const sandBefore = level.ground.heightAt(W.centre.x + W.face.x * 5, W.centre.z + W.face.z * 5);
+  for (let i = 0; i < (TURN_TIME + 3) / 0.1 && !game.flag('buried.wheel.turned'); i++) step(1, 0.1);
   assert.equal(game.flag('buried.wheel.turned'), true);
-  assert.ok(Math.abs(W.spin.rotation.z - before + Math.PI * 2 / W.teeth) < 1e-6, 'exactly one tooth round');
+  assert.ok(Math.abs(W.spin.rotation.z - before + Math.PI * 2 / W.teeth) < 1e-3, 'one tooth round');
   assert.ok(Math.abs(B.city.rotation.z) > 0.002 || Math.abs(B.city.rotation.x) > 0.002, 'the hanging city sways');
+  // then the sand slides off it, and it keeps turning
+  step(Math.ceil((CLEAR_TIME + 2) / 0.1), 0.1);
+  assert.equal(W.cleared, 1, 'the sand is gone');
+  const sandAfter = level.ground.heightAt(W.centre.x + W.face.x * 5, W.centre.z + W.face.z * 5);
+  assert.ok(sandBefore - sandAfter > 8, `a hollow along its face (${(sandBefore - sandAfter).toFixed(1)} m)`);
+  assert.ok(physics.groundAt(W.centre.x + W.face.x * 5, sandBefore + 5, W.centre.z + W.face.z * 5) < sandBefore - 8, 'and you can walk down into it');
+  const spun = W.spin.rotation.z;
+  step(50, 0.1);
+  assert.ok(spun - W.spin.rotation.z > 0.1, 'still turning');
+  assert.ok(toasts.some((t) => t.includes('keeps on turning')));
   assert.equal(quests.stage(Q), 'tooth');
   at(W.drop.clone()); step(20, 0.1);
   const e = bestInteractable(player);
@@ -178,5 +189,24 @@ test('side quests: Dun’s key off the floating derrick, the three gauges, the w
   assert.equal(quests.isDone('buried.window'), true);
   talk(THINGS.numbers, [0]);
   assert.equal(game.flag('clue.buried.garage'), true);
+  clearInteractables(); clearTargets();
+});
+
+test('a later visit: the wheel stands in its hollow, bare of sand, and is still turning', () => {
+  assert.equal(game.flag('buried.wheel.turned'), true);
+  clearInteractables(); clearTargets();
+  const scene2 = new THREE.Scene();
+  const level2 = createBuried(scene2);
+  const physics2 = new Physics(scene2, level2.ground);
+  const W = level2.buried.wheel;
+  const heaped = level2.ground.heightAt(W.centre.x, W.centre.z);
+  const rt2 = createStory({ levelId: 'buried', scene: scene2, physics: physics2, level: level2, player, npcs: spawnNPCs(scene2, physics2, CONTENT.buried.npcs), crowd: null, sound,
+    journal: { sections: [], el: { addEventListener() {} } }, story: { complete() {} }, capture: null, lib: null, humans: null, toast: () => {}, tool: null });
+  assert.equal(W.cleared, 1, 'the sand stays gone');
+  assert.ok(heaped - level2.ground.heightAt(W.centre.x, W.centre.z) > 9);
+  const a = W.spin.rotation.z;
+  at(W.drop.clone().addScaledVector(W.face, 30));
+  for (let i = 0; i < 60; i++) rt2.update(0.1, 100 + i * 0.1, { camera });
+  assert.ok(a - W.spin.rotation.z > 0.1, 'it keeps turning');
   clearInteractables(); clearTargets();
 });

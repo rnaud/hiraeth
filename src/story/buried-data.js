@@ -10,7 +10,8 @@
 // oil-light adds an amber band to the tank), climb back out and watch the
 // wheel turn one tooth. The hanging city above, "the Other Half", rocks like
 // a cradle and every chimney on the dunes breathes out. The wheel sheds a
-// sliver of the tooth that turned; Wen gives it to you to keep.
+// sliver of the tooth that turned; Wen gives it to you to keep. Its sand slides
+// off into a long hollow, and from then on it keeps turning.
 //
 // The glyph is "the Maker's Thumb" here, pressed into every plate and gauge.
 // The Major himself (a man in a tall helmet) once came down to see the wheel,
@@ -130,14 +131,14 @@ export const PEOPLE = {
           say: ['~surprised~ I felt it in my feet! The Wick is lit. Go, *stand in front of the wheel*. It turns better when someone is watching. Everyone says so; nobody knows why.'],
           choices: [{ text: '~neutral~ I’m going.', end: true }],
         },
-        turned: { say: ['~surprised~ Did you see it? The whole city swung! And it dropped something for you, I’d bet. It always drops *a sliver by its feet*. Go and look.'], choices: [{ text: '~neutral~ I’ll look.', end: true }] },
+        turned: { say: ['~surprised~ Did you see it? The whole city swung! And it threw off all its sand, and it hasn’t stopped. It’s still going round! It never did that before.', '~playful~ It dropped something for you, I’d bet. It always drops *a sliver by its feet*. Go and look.'], choices: [{ text: '~neutral~ I’ll look.', end: true }] },
         count: {
           say: ['~happy~ You picked it up. It came off the wheel when it turned, didn’t it? Warm. They’re always warm.', '~playful~ Look: my string. Forty-one. Forty-two, now. Pim is ten, and furious about it, because now he has to carry water.', '~solemn~ You were here the year it turned, so that one is yours. Don’t put it on a string. Just keep it.'],
           do: [{ advance: [Q, 'count'] }, { keepsake: KEEPSAKE }],
           next: 'given',
         },
         given: { say: ['~happy~ There. Now I have to say you’re one tooth old. Welcome to the dunes, little one.'], choices: [{ text: '~happy~ Thank you, Wen.', end: true }] },
-        after: { say: ['~playful~ One tooth old! Come back when you’re two. The wheel will wait. It’s good at that.'], choices: [{ text: '~happy~ I will.', end: true }] },
+        after: { say: ['~playful~ One tooth old! Come back when you’re two. Listen: the wheel’s still turning. Pim says it’s counting for you now.'], choices: [{ text: '~happy~ I will.', end: true }] },
       },
     },
   },
@@ -386,12 +387,12 @@ export const THINGS = {
     } } },
   },
   wheel: {
-    id: 'wheelLook', name: 'The great wheel', title: 'sunk to its axle', color: '#c0603e', voice: 0.6,
+    id: 'wheelLook', name: 'The great wheel', title: 'sunk in the dunes', color: '#c0603e', voice: 0.6,
     talk: {
       entry: [{ if: { flag: 'buried.wheel.turned' }, node: 'after' }, { node: 'look' }],
       nodes: {
         look: { say: ['~solemn~ Each tooth is taller than you, worn smooth on one face. Sand runs off them in thin streams. Deep inside, too low to hear with your ears, something hums.'], choices: [{ text: '~neutral~ (tell it the Garage is still turning)', if: { all: [{ flag: 'clue.garage.buried' }, { not: { flag: 'buried.told.garage' } }] }, goto: 'garage' }, { text: '~neutral~ (step back)', end: true }] },
-        after: { say: ['~solemn~ One tooth further round than this morning. The worn face has moved on, and a new one waits for next year.'], choices: [{ text: '~neutral~ (tell it the Garage is still turning)', if: { all: [{ flag: 'clue.garage.buried' }, { not: { flag: 'buried.told.garage' } }] }, goto: 'garage' }, { text: '~neutral~ (step back)', end: true }] },
+        after: { say: ['~solemn~ The sand has slid off it into a long hollow, and it has not stopped since: tooth after tooth comes up out of the dune, sheds a thin stream of sand, and goes over. Deep inside, the hum has a beat to it now.'], choices: [{ text: '~neutral~ (tell it the Garage is still turning)', if: { all: [{ flag: 'clue.garage.buried' }, { not: { flag: 'buried.told.garage' } }] }, goto: 'garage' }, { text: '~neutral~ (step back)', end: true }] },
         garage: { say: ['~playful~ You say it out loud, to a wheel, feeling foolish: the Garage is still turning.', '~solemn~ Deep inside, the hum changes, very slightly, for about as long as it takes to say it back.'], do: { set: { 'buried.told.garage': true } }, choices: [{ text: '~neutral~ (step back)', end: true }] },
       },
     },
