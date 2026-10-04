@@ -9,3 +9,4 @@ output/character-tripo/
 
 # reference images sorted into world folders: kept local for now (slow uploads); add them back later
 references/*/
+handheld-perf.jsonl

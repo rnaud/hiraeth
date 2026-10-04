@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { QUALITY_PRESETS, resolveQuality, detectHandheld } from '../src/perf.js';
+import { QUALITY_PRESETS, resolveQuality, detectHandheld, adaptScale } from '../src/perf.js';
 
 const FIELDS = ['label', 'scale', 'dynamic', 'shadow', 'nearExtent', 'nearEvery', 'farEvery', 'taps', 'ao', 'cloudShadows', 'lowDetail', 'crowdFar', 'crowdMid', 'propFar', 'propPx', 'postLite'];
 
@@ -60,4 +60,43 @@ test('the settings menu offers every preset', () => {
   const sel = ui.match(/<select data-k="quality">(.*?)<\/select>/)[1];
   const values = [...sel.matchAll(/value="(\w+)"/g)].map((m) => m[1]).sort();
   assert.deepEqual(values, Object.keys(QUALITY_PRESETS).sort());
+});
+
+// ------------------------------------------------------------------ dynamic resolution (adaptScale)
+const windows = (s, D, scale, list) => { for (const w of list) scale = adaptScale(s, w, D, scale).scale; return scale; };
+const rep = (n, w) => Array.from({ length: n }, () => w);
+
+test('dynamic resolution without the steady rule: three slow windows step down, twelve fast ones step up', () => {
+  const D = QUALITY_PRESETS.auto.dynamic, s = { slow: 0, fast: 0, hold: 0 };
+  assert.equal(windows(s, D, 1, rep(2, { fps: 30 })), 1);
+  assert.equal(windows(s, D, 1, rep(1, { fps: 30 })), 0.95);
+  assert.equal(windows(s, D, 0.95, rep(3, { fps: 20 })), 0.85, 'well under: a bigger step');
+  assert.equal(windows(s, D, 0.85, rep(12, { fps: 60, missed: 9 })), 0.9, 'missed frames are not counted here');
+  assert.equal(windows(s, D, 0.5, rep(5, { fps: 10 })), 0.5, 'never under the floor');
+});
+
+test('the handheld steps down for missed refreshes, climbs only through clean windows and holds after a stutter', () => {
+  const D = QUALITY_PRESETS.handheld.dynamic, s = { slow: 0, fast: 0, hold: 0 };
+  assert.ok(D.steady > 0 && D.hold > 0);
+  // 50 fps on average, but four frames in thirty missed the refresh: a stutter, not "fast enough"
+  let scale = windows(s, D, 0.8, rep(3, { fps: 50, missed: 4 }));
+  assert.equal(scale, 0.75);
+  assert.equal(s.hold, D.hold);
+  // smooth again: no climbing back into the stutter until the hold is over
+  scale = windows(s, D, scale, rep(D.hold - 1, { fps: 60, missed: 0 }));
+  assert.equal(scale, 0.75);
+  scale = windows(s, D, scale, rep(12, { fps: 60, missed: 0 }));
+  assert.equal(scale, 0.8);
+  // fast windows with a missed frame in them don't count towards a climb
+  const t = { slow: 0, fast: 0, hold: 0 };
+  assert.equal(windows(t, D, 0.7, rep(30, { fps: 58, missed: 1 })), 0.7);
+  // a missed frame or two is no reason to drop
+  assert.equal(windows(t, D, 0.7, rep(10, { fps: 58, missed: D.steady - 1 })), 0.7);
+});
+
+test('the handheld refreshes the near shadow map every other frame, never on the far map\'s frame', () => {
+  const H = QUALITY_PRESETS.handheld;
+  assert.equal(H.nearEvery, 2);
+  // main.js: near on frameNo % nearEvery === 0, far on frameNo % farEvery === (nearEvery > 1 ? 1 : 0)
+  for (let f = 0; f < 64; f++) assert.ok(!(f % H.nearEvery === 0 && f % H.farEvery === 1), `frame ${f}`);
 });

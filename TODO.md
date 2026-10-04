@@ -248,7 +248,9 @@ Grouped by area. Checked items are done; the changelog says when.
 - [x] Outlines of distant characters on the Retroid keep the same line width, so
   far figures turn into dark silhouettes: thin and lighten lines with distance.
 
-- [ ] Performance pass on the Retroid Pocket, with it connected for testing.
+- [x] Performance pass on the Retroid Pocket, with it connected for testing. (First pass: hitch-aware
+  resolution, near shadows every other frame, City-Shaft trees split. Still to do with the device:
+  re-measure every world, a thermal soak, and measure inside the app's own WebView 109.)
 
 ---
 

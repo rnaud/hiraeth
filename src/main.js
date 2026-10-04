@@ -18,7 +18,7 @@ import { applyTimeOfDay, colourScript } from './timeofday.js';
 import { WindStreaks } from './wind.js';
 import { HOLO } from './ship/hologram.js';
 import { Physics, dropBuriedFlora } from './physics.js';
-import { tileScene, cullFar, fitBounds, SmallCuller, RoomCuller, resolveQuality, detectHandheld, GpuTimer } from './perf.js';
+import { tileScene, cullFar, fitBounds, SmallCuller, RoomCuller, resolveQuality, detectHandheld, GpuTimer, adaptScale } from './perf.js';
 import { buildFlora, floraKeep } from './flora.js';
 import { Cascade, ShadowCuller, shadowDirection } from './shadows.js';
 import { Trail } from './trail.js';
@@ -576,7 +576,7 @@ gui.close();   // collapsed by default; click the title to open
 let lastQuality = settings.quality;
 const baseAO = U.uAO.value, baseCloudSh = sharedUniforms.uCloudShadows.value;
 const crowdRange = crowd ? { ...crowd.range } : null;
-const adapt = { slow: 0, fast: 0, dropped: false };
+const adapt = { slow: 0, fast: 0, hold: 0, dropped: false };
 // low detail: the preset's, or a desktop Auto once it has had to drop resolution
 const lowDetail = () => preset.lowDetail || (preset.key === 'auto' && adapt.dropped);
 function applyDetail() {
@@ -595,7 +595,7 @@ function applyDetail() {
 function applyQuality() {
   preset = resolveQuality(settings.quality, { handheld, hiDPI: pixelRatio >= 2 });
   quality.renderScale = preset.scale;
-  adapt.slow = adapt.fast = 0; adapt.dropped = false;
+  adapt.slow = adapt.fast = adapt.hold = 0; adapt.dropped = false;
   const S = preset.shadow;
   cascades.fine.configure(S.fine || 256, cascades.fine.extent);
   if (!S.fine) cascades.fine.disable();
@@ -606,22 +606,15 @@ function applyQuality() {
   resize();
   applyDetail();
 }
-/** Dynamic resolution: the render scale follows the frame rate, inside the preset's range (Auto, Handheld). */
-function adaptQuality(fps) {
+/** Dynamic resolution: the render scale follows the frame rate, inside the preset's range (Auto, Handheld; perf.js adaptScale). */
+function adaptQuality(fps, missed) {
   const D = preset.dynamic;
   if (!D || document.hidden || busy() || photo.on) return;
-  if (fps < D.low) { adapt.slow++; adapt.fast = 0; } else if (fps > D.high) { adapt.fast++; adapt.slow = 0; } else adapt.slow = adapt.fast = 0;
-  if (adapt.slow >= 3 && quality.renderScale > D.min) {
-    const step = fps < D.low * 0.7 ? 0.1 : 0.05;   // well under: a bigger step
-    quality.renderScale = Math.max(D.min, +(quality.renderScale - step).toFixed(2));
-    adapt.slow = 0;
-    if (!adapt.dropped) { adapt.dropped = true; applyDetail(); }
-    resize();
-  } else if (adapt.fast >= 12 && quality.renderScale < D.max) {
-    quality.renderScale = Math.min(D.max, +(quality.renderScale + 0.05).toFixed(2));
-    adapt.fast = 0;
-    resize();
-  }
+  const { scale, dropped } = adaptScale(adapt, { fps, missed }, D, quality.renderScale);
+  if (scale === quality.renderScale) return;
+  quality.renderScale = scale;
+  if (dropped && !adapt.dropped) { adapt.dropped = true; applyDetail(); }
+  resize();
 }
 settings.on((k) => {
   rig.sensitivity = settings.sensitivity;
@@ -1065,7 +1058,15 @@ function captureView(eye, look, w, h, { keep = null, backdrop = null, fov = null
 // one line to screenshot when something is slow.
 const fpsEl = document.getElementById('fps');
 const gpuTimer = new GpuTimer(renderer.getContext());
-let fpsN = 0, fpsT = performance.now(), cpuMs = 0;
+let fpsN = 0, fpsT = performance.now(), cpuMs = 0, lastFrameT = 0;
+const gaps = [];   // this window's frame intervals (ms): the missed refreshes, for dynamic resolution
+/** Frames in this window that missed a refresh: over 1.5x the window's quickest interval. */
+function missedFrames() {
+  let quick = Infinity, n = 0;
+  for (const g of gaps) quick = Math.min(quick, g);
+  for (const g of gaps) if (g > quick * 1.5) n++;
+  return n;
+}
 window.addEventListener('keydown', (e) => { if (e.code === 'KeyF' && !photo.on) settings.set('showFps', !settings.showFps); });
 function frameReadout(fps) {
   const n = Math.max(frameStats.n, 1), gpu = gpuTimer.take();
@@ -1074,11 +1075,13 @@ function frameReadout(fps) {
 }
 function frame() {
   const tFrame = performance.now();
+  if (lastFrameT && gaps.length < 200) gaps.push(tFrame - lastFrameT);
+  lastFrameT = tFrame;
   if (++fpsN, tFrame - fpsT > 500) {
     const fps = (fpsN * 1000) / (tFrame - fpsT);
     if (settings.showFps) fpsEl.textContent = frameReadout(fps);
-    adaptQuality(fps);
-    fpsN = 0; fpsT = tFrame; cpuMs = 0;
+    adaptQuality(fps, missedFrames());
+    fpsN = 0; fpsT = tFrame; cpuMs = 0; gaps.length = 0;
     frameStats.calls = frameStats.tris = frameStats.n = frameStats.culled = 0;
   }
   gpuTimer.enabled = settings.showFps;
@@ -1329,4 +1332,4 @@ window.clipAudit = async (o = {}) => {
   return r;
 };
 Object.assign(window, { flora, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife,
-  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, boxes, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats });
+  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, boxes, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame });

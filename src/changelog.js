@@ -7,6 +7,9 @@ export const CHANGELOG = [
     'Conversations keep a clear view: the camera finds a spot with no wall, tree, rock or passer-by in the way, even in narrow streets, the ship and Viridel’s cabin.',
     'Looking at something now shows it over your shoulder, and the traveller turns to face it (and to whoever they talk to).',
     'Fewer things clip: trees no longer grow through houses, crowds don’t stand inside walls, boxes sit flat on ledges and stones, and capes and your bracer no longer pass through bodies.',
+    'On handhelds, the picture lowers its resolution as soon as frames start to hitch, rather than staying put while the game stutters every few frames.',
+    'Sun shadows close to you update a little less often on the Handheld setting, which takes a big load off the Retroid and phones.',
+    'The City-Shaft draws its trees more efficiently: the same trees, less work for your device.',
   ] },
   { v: '0.43', date: '2026-10-04', items: [
     'People no longer shake or spin when you walk into them or talk to them up close: they turn to you and hold still, and crowd folk step round you instead of jittering on the spot.',
