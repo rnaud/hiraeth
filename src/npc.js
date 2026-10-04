@@ -6,7 +6,7 @@ import { Humanoid } from './humanoid.js';
 import { makeMaterial, sharedUniforms, MODE_OUTFIT } from './materials.js';
 import { registerTarget } from './targets.js';
 import { mulberry32 } from './noise.js';
-import { namedLook, costumeWorld, TRIM_IDS } from './costumes.js';
+import { namedLook, costumeWorld, TRIM_IDS, BUILDS } from './costumes.js';
 import { formatText } from './story/dialogue.js';
 import { speakBalloon } from './story/voice.js';
 
@@ -49,7 +49,7 @@ export class NPC {
    * @param o.head / o.cape / o.look  the story's headwear, cape length and costume overrides (costumes.js dressFor)
    * @param o.world   the world they are dressed for (default: the current level's)
    */
-  constructor(scene, physics, { route, palette = {}, lines, speed = 1.25, shy = false, scale = 1, lib = null, human = null, kind = 'm', pooled = false, follow = null, seat = null, head = null, cape = null, def = null, look = null, world = null }) {
+  constructor(scene, physics, { route, palette = {}, lines, speed = 1.25, shy = false, scale = null, lib = null, human = null, kind = 'm', pooled = false, follow = null, seat = null, head = null, cape = null, def = null, look = null, world = null }) {
     this.physics = physics;
     this.follow = follow;   // () => { pos, speed, near } | null: walk there instead of the route
     this.seat = seat;       // sit on something this high (m) instead of walking
@@ -71,14 +71,16 @@ export class NPC {
     // their costume: seeded by who they are, so they look the same every visit
     const at = route[0];
     const dress = pooled ? null : namedLook({ world: world ?? costumeWorld(), id: def?.id ?? `${kind}:${Math.round(at.x)},${Math.round(at.z)}`,
-      palette, head, cape, look: look ?? def?.look ?? {}, pos: at });
+      // a story person's hair and beard follow their kind only when the story says it (def.kind)
+      palette, head, cape, look: look ?? def?.look ?? {}, pos: at, kind: def ? def.kind ?? null : kind });
     this.char = buildCharacter(dress ? { ...palette, cloak: dress.cloak, cloth: dress.cloth, legs: dress.legs } : palette);
     this.char.pack.visible = !pooled && !dress?.robe && Math.random() < 0.5;
     this.object = this.char.root;
-    this.object.scale.setScalar(scale * (dress?.size ?? 1));
+    // their height: the look's (seeded), unless the story sets their size (children, elders: def.scale)
+    this.object.scale.setScalar((scale ?? (dress?.height ?? 1)) * (dress?.size ?? 1));
     this.object.userData.noCollide = true;
     scene.add(this.object);
-    this.humanoid = human ? new Humanoid(human, this.char, kind, { skin: dress?.skin ?? '#e8c6a8' }) : null;
+    this.humanoid = human ? new Humanoid(human, this.char, kind, { skin: dress?.skin ?? '#e8c6a8', build: dress?.build }) : null;
     this.cape = null;
     if (dress) this.restyle(dress);
     else this.char.root.traverse((o) => { if (o.isMesh && o.geometry.type === 'TorusGeometry' && o.parent === this.char.capeAnchor) o.visible = false; });
@@ -172,13 +174,14 @@ export class NPC {
           u.uOutfit.value.w = s.sleeveless ? 0.2 : m.userData.wrist;      // bare arms in the garden
         } else if (m.userData.role === 'brows') u.uColor.value.set(s.hair);
       }
+      h.setBuild(s.build);   // a crowd body takes its person's build
       h.dress(s);
     }
     // the cape: the same colour, length and width as the crowd figure
     this.cape?.dispose(this.scene);
     const wide = s.capeWide ?? 1;
     this.cape = s.capeLen > 0
-      ? new Cape(this.scene, c.capeAnchor ?? c.torso, { color: s.cloak, cols: 10, rows: s.capeLen > 1 ? 8 : 6, length: s.capeLen, bottom: (0.25 + s.capeLen * 0.17) * wide })
+      ? new Cape(this.scene, c.capeAnchor ?? c.torso, { color: s.cloak, cols: 10, rows: s.capeLen > 1 ? 8 : 6, length: s.capeLen, bottom: (0.25 + s.capeLen * 0.17) * wide * (BUILDS[s.build]?.width ?? 1) })
       : null;
     if (this.cape && this.pooled) this.cape.mesh.visible = false;
     // the cape's rolled collar in the cape's own colour
@@ -632,8 +635,8 @@ export function spawnNPCs(scene, physics, spots, { fromY = 1e4, lib = null, huma
       if (!p) { const y = physics.groundAt(cx, from, cz); p = new THREE.Vector3(cx, Number.isFinite(y) ? y : 0, cz); }
       route.push(p);
     }
-    const kind = k % 2 ? 'f' : 'm';
-    const npc = new NPC(scene, physics, { route, palette: s.palette, lines: s.lines, shy: s.shy, speed: s.speed, scale: s.scale ?? 1, lib,
+    const kind = s.kind ?? (k % 2 ? 'f' : 'm');
+    const npc = new NPC(scene, physics, { route, palette: s.palette, lines: s.lines, shy: s.shy, speed: s.speed, scale: s.scale, lib,
       human: humans ? humans[kind === 'm' ? 0 : 1] : null, kind, def: s.talk ? s : null, head: s.head ?? null, cape: s.cape ?? null, look: s.look ?? null });
     return npc;
   });

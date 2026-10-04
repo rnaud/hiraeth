@@ -154,10 +154,11 @@ Grouped by area. Checked items are done; the changelog says when.
 
 ## Characters
 
-- [ ] Rebuild the traveller on the same skeleton as the other characters so
+- [x] Rebuild the traveller on the same skeleton as the other characters so
   animations don't break; put the outfit on top.
-- [ ] People of different heights, body types and genders.
-- [ ] Redo the face shaders to look more like Moebius; add a level with very
+- [x] People of different heights, body types and genders.
+- [ ] Faces: proper eyes with a white, an iris and a pupil (not solid black), then the
+  Moebius-style face shader. Redo the face shaders to look more like Moebius; add a level with very
   large faces to test and refine them. (The giant faces are in `?level=lab`; the shader
   is still to do.)
 - [ ] Ragdoll when falling, or when pushing people with the gun.

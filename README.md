@@ -1140,6 +1140,63 @@ In the desert, asking Bako to play emits `music:solo { who: 'bako' }` from his
 conversation (`src/story/desert-data.js`), and `src/story/desert.js` starts it
 at his seat.
 
+## The traveller on the people's skeleton (v0.39)
+
+The traveller is now built like everyone else: Quaternius' male human
+(`human_m.glb`, reshaped like the NPCs) with the outfit of `traveller.glb`
+fitted on top (`src/outfit.js`, `Humanoid` option `outfit`). The old 22-bone
+rig is gone; every animation (clips, foot planting, climbing and mantle IK,
+gliding, aiming, kneeling, riding) runs on the same 65 bones, retargeting and
+rest pose as the NPCs. The human's own body, wholly covered, is not drawn.
+
+- **No geometry changes.** Each outfit mesh is skinned to the human's bones with
+  its own weights renamed (spine → `spine_01`, chest → `spine_03`, shin → `calf`…).
+  The fit lives in the inverse bind matrices: `A⁻¹ · W` per bone, where `A` is the
+  human bent into the outfit's A-pose (arms down along the sleeves) and `W` maps
+  each outfit joint onto the human's, turned onto its limb and scaled to its
+  length and girth (measured from both meshes; `OUTFIT_FIT.bag` keeps the suit
+  baggy). The face shader, the suit's folds (`limbSegments` undoes the warp) and
+  the helmet glass all keep working in the outfit's own coordinates.
+- **Rigid pieces:** the head (helmet, face, headphones, scarf) is scaled to 0.86 on
+  the human's head; gloves are turned so their palms match the human's; boots ride
+  the foot alone, soles on the ground; the radio pack is moved onto the narrower
+  back (its own skeleton copy, so the suit's chest can still be scaled).
+- `Humanoid.headAnchor` / `chestAnchor` carry over the outfit rig's frames, and
+  `Humanoid.forearm.r` is the old forearm frame the bracer was authored in.
+- `tests/traveller.test.js` checks the skeleton is exactly the NPCs', the fit
+  (soles, helmet, gloves), rigid pieces, gait retargeting at 120 phases, wall
+  contact and the face. `/tools/rig-review.html` shows the actual build per clip.
+
+## People of every height, build and kind (v0.39)
+
+The body is part of a person's look (`dressFor` in `src/costumes.js`), drawn
+after everything else so the rest of each look is what it was, and seeded like
+it, so everyone looks the same on every visit:
+
+- **Kind** (`'m'` / `'f'`): crowds draw it per person, level NPCs alternate (or take
+  `kind` from their data), story people use `def.kind`. Women's bare heads get long
+  hair, a bun or a tail (`HEADS.long`, `HEADS.bun`); about a third of the men a beard
+  (`MASKS.beard`, only on a bare face). Tribes can weight headwear per kind
+  (`headsF` / `headsM`: the desert, the rim, the bazaar). Story people whose kind
+  isn't given get no hair swap or beard.
+- **Build** (`BUILDS`: slim, average, broad, heavy; women and men have their own odds).
+  Full NPCs reshape their body mesh round its bones (`buildGeometry` in
+  `src/humanoid.js`, cached per build; `Humanoid.setBuild` swaps it on a pooled
+  body); the skeleton, head, hands and feet stay as they are, so headwear, masks
+  and the foot planting still fit. Shoulder pieces widen with the build, robes
+  measure the body they hang on, cape colliders grow with the girth.
+- **Height** (`HEIGHT`: 0.85–1.15, a triangle round 1, women ×0.95) on top of the
+  tribe's size; people leaning on a railing keep nearly its height. Bodies scale
+  from their feet. A story person with `scale` keeps exactly that.
+- **The GPU crowd** gets the same body from a per-instance `aBody` (female, shoulder
+  width, girth: `packBody`): the shader narrows a woman's shoulders, widens her
+  hips and adds a bust, widens and fills the torso (the belly forward), thickens
+  limbs and moves the shoulder and hip pivots; capes and robes follow.
+- `/tools/people-review.html?world=bazaar` shows a row of a world's people as full
+  NPCs with the same looks as crowd figures behind (`&builds=1`: every build of
+  both kinds). `tests/people.test.js` covers the mix, the seeding, the pieces and
+  the builds.
+
 ## Android (offline APK)
 The game is also packaged as an Android app, for handhelds such as the Retroid
 Pocket. Their built-in controls work through the Gamepad API.

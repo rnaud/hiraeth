@@ -114,7 +114,7 @@ export function createStory(o) {
     const kind = def.kind ?? 'm';
     const npc = new NPC(scene, physics, {
       route, palette: def.palette, lines: def.lines ?? ['…'], lib, human: humans ? humans[kind === 'm' ? 0 : 1] : null, kind,
-      scale: def.scale ?? 1, seat, follow, head: def.head ?? null, cape: def.cape ?? null, speed, def,
+      scale: def.scale, seat, follow, head: def.head ?? null, cape: def.cape ?? null, speed, def,
     });
     if (heading !== null) npc.heading = heading;
     npcs.push(npc);

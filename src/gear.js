@@ -161,7 +161,7 @@ export class Gear {
     this.device = dev;
 
     for (const g of [hs, pack, belt]) g.traverse((o) => { o.userData.noCollide = true; });
-    if (humanoid.imported) {
+    if (humanoid.outfit) {
       hs.visible = false;
       // Keep the launch socket, but replace all legacy wearable geometry.
       for (const group of [pack, belt]) group.traverse(o => { if (o.isMesh) o.visible = false; });

@@ -2,11 +2,13 @@ import { attachPortraitPreview } from '../src/face.js';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { loadAnimationLibrary, Animator } from '../src/animator.js';
-import { Humanoid } from '../src/humanoid.js';
+import { Humanoid, prepareHuman } from '../src/humanoid.js';
 import { buildCharacter } from '../src/player.js';
 const $ = id => document.getElementById(id);
-const [lib, gltf] = await Promise.all([loadAnimationLibrary('/anim/ual.glb'), new GLTFLoader().loadAsync('/anim/traveller.glb')]);
-const char = buildCharacter(), humanoid = new Humanoid(gltf.scene, char, 'm', { imported: true }), animator = new Animator(lib, char);
+const [lib, gltf, human] = await Promise.all([loadAnimationLibrary('/anim/ual.glb'), new GLTFLoader().loadAsync('/anim/traveller.glb'), new GLTFLoader().loadAsync('/anim/human_m.glb').then((g) => prepareHuman(g.scene, 'm'))]);
+// the game's traveller: the people's body and skeleton with the outfit fitted on top (src/outfit.js)
+const char = buildCharacter(), humanoid = new Humanoid(human, char, 'm', { outfit: gltf.scene }), animator = new Animator(lib, char);
+window.review = { humanoid, animator, char };
 const scene = new THREE.Scene(); scene.background = new THREE.Color('#eee9de'); scene.add(char.root);
 humanoid.model.traverse(o => {
   if (!o.isMesh) return;

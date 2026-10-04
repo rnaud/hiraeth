@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, sharedUniforms } from './materials.js';
 import { CROWD_GLSL, CROWD_POSES as POSE, CROWD_ZONES as Z, CROWD_PARTS as P, CROWD_SLOTS as SLOT } from './crowd-shader.js';
-import { COSTUMES, HEADS as HEADWEAR, MASKS, BODIES, PROPS, HEAD_IDS, MASK_IDS, BODY_IDS, PROP_IDS, CROWD_FRAMES, hairCap, crowdLook, packDress, costumeWorld } from './costumes.js';
+import { COSTUMES, HEADS as HEADWEAR, MASKS, BODIES, PROPS, HEAD_IDS, MASK_IDS, BODY_IDS, PROP_IDS, CROWD_FRAMES, hairCap, crowdLook, packDress, packBody, costumeWorld } from './costumes.js';
 import { registerTarget } from './targets.js';
 import { mulberry32 } from './noise.js';
 import { formatText } from './story/dialogue.js';
@@ -70,16 +70,17 @@ export const GREET_LINES = ['~shout~ Fresh figs! Fresh figs!', '~scared~ Mind th
 
 const hexOf = (c) => new THREE.Color(c).getHex();
 /** A crowd person's look: their world's costume (costumes.js) over the level's crowd colours. */
-export function crowdStyle(rng, palette = {}, { world = costumeWorld(), spot = null, pos = null } = {}) {
-  return crowdLook(rng, { world, lists: palette, spot, pos });
+export function crowdStyle(rng, palette = {}, { world = costumeWorld(), spot = null, pos = null, kind = null } = {}) {
+  return crowdLook(rng, { world, lists: palette, spot, pos, kind });
 }
-/** The per-instance colour and costume attributes: aLook0, aLook1, aDress (crowd-shader.js). */
+/** The per-instance colour, costume and body attributes: aLook0, aLook1, aDress, aBody (crowd-shader.js). */
 export function packLook(s) {
   const d = packDress(s);
   return [
     new Float32Array([hexOf(s.cloak), hexOf(s.cloth), hexOf(s.legs), hexOf(s.skin)]),
     new Float32Array([hexOf(s.hat), hexOf(s.accent), hexOf(s.hair), d.w]),
     new Float32Array(d.dress),
+    new Float32Array(packBody(s)),
   ];
 }
 
@@ -138,13 +139,15 @@ function robeGeometry(cols, rows) {
 const at = (g, x, y, z) => g.translate(x, y, z);
 const ROLE_ZONE = { skin: Z.skin, cloak: Z.cloak, cloth: Z.cloth, legs: Z.legs, hat: Z.hat, accent: Z.accent, hair: Z.hair, lining: Z.lining,
   dark: Z.dark, metal: Z.metal, wood: Z.wood, lamp: Z.lamp };
-const LEGACY = { heads: ['hood', 'hat', 'wrap', 'hair'], masks: [], bodies: [], props: [], robe: false };
+const KIND_HEADS = ['long', 'bun', 'tail'];
+const LEGACY = { heads: ['hood', 'hat', 'wrap', 'hair', ...KIND_HEADS], masks: ['beard'], bodies: [], props: [], robe: false };
 /** The pieces a world's crowd can wear (every tribe's), for its figure. */
 export function worldPieces(world) {
   const set = COSTUMES[world];
   if (!set) return LEGACY;
-  const keys = (k) => [...new Set(set.tribes.flatMap((t) => Object.entries(t[k]).filter(([id, w]) => w > 0 && id !== 'none').map(([id]) => id)))];
-  return { heads: keys('heads'), masks: keys('masks'), bodies: keys('body'), props: keys('props'), robe: set.tribes.some((t) => t.robe > 0) };
+  const keys = (...ks) => [...new Set(set.tribes.flatMap((t) => ks.flatMap((k) => Object.entries(t[k] ?? {}).filter(([id, w]) => w > 0 && id !== 'none').map(([id]) => id))))];
+  // and what anyone may wear by being a man or a woman (costumes.js dressFor): long hair, a bun, a tail, a beard
+  return { heads: [...new Set([...keys('heads', 'headsF', 'headsM'), ...KIND_HEADS])], masks: [...new Set([...keys('masks'), 'beard'])], bodies: keys('body'), props: keys('props'), robe: set.tribes.some((t) => t.robe > 0) };
 }
 
 /**
@@ -347,7 +350,9 @@ export function buildPeople(physics, spots, { seed = 7, clear = [] } = {}) {
   const person = (o) => {
     const kind = rng() < 0.5 ? 'm' : 'f';
     oldDraws();
-    const s = crowdStyle(lookRng, spots.palette, { world, spot: o.spot ?? null, pos: o.pos }), size = (0.95 + rng() * 0.1) * s.size;
+    const s = crowdStyle(lookRng, spots.palette, { world, spot: o.spot ?? null, pos: o.pos, kind });
+    // their own height on top of the tribe's size (leaning on a railing: nearly the railing's height, so the arms meet it)
+    const size = (0.95 + rng() * 0.1) * s.size * (o.pose === 'rail' ? 1 + (s.height - 1) * 0.25 : s.height);
     const p = {
       id: people.length, kind, style: s, look: packLook(s), size, scale: size * (kind === 'm' ? 1.03 : 1.0),
       pos: o.pos.clone(), home: o.pos.clone(), heading: o.heading, homeHeading: o.heading,
@@ -469,12 +474,13 @@ function placeWalker(p, dt) {
 }
 
 // ------------------------------------------------------------------ instanced tiers
+const BODY0 = [0, 1, 1, 0];   // a plain body (no aBody given)
 class Tier {
   constructor(geometry, material, max) {
     this.max = max;
     this.geometry = geometry;
     this.attrs = {};
-    for (const k of ['aAnim', 'aReact', 'aLook0', 'aLook1', 'aDress']) {
+    for (const k of ['aAnim', 'aReact', 'aLook0', 'aLook1', 'aDress', 'aBody']) {
       const a = new THREE.InstancedBufferAttribute(new Float32Array(max * 4), 4);
       a.setUsage(THREE.DynamicDrawUsage);
       geometry.setAttribute(k, a);
@@ -504,6 +510,7 @@ class Tier {
     A.aLook0.array.set(p.look[0], j);
     A.aLook1.array.set(p.look[1], j);
     A.aDress.array.set(p.look[2], j);
+    A.aBody.array.set(p.look[3] ?? BODY0, j);
   }
   commit(n) {
     this.n = n;
