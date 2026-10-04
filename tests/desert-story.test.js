@@ -141,6 +141,44 @@ test('scattered props keep out of the city, and the camps’ people are placed',
   assert.ok(camp.some((p) => p.perch === 'kerb'), 'some sit on the benches by the fires');
 });
 
+// the instanced puffs of the tree's smoke column: their centres and how much bluer than red they are, on average
+const smokePuffs = (sm) => {
+  const m = new THREE.Matrix4(), p = V(0, 0, 0), s = V(0, 0, 0), q = new THREE.Quaternion(), c = new THREE.Color();
+  const out = [];
+  for (let i = 0; i < sm.mesh.count; i++) {
+    sm.mesh.getMatrixAt(i, m); m.decompose(p, q, s);
+    sm.mesh.getColorAt(i, c);
+    out.push({ pos: p.clone(), size: Math.max(s.x, s.y, s.z), cool: c.b - c.r });
+  }
+  return out;
+};
+const coolness = (sm) => { const ps = smokePuffs(sm); return ps.reduce((a, p) => a + p.cool, 0) / ps.length; };
+
+test('the burning tree sends up a tall column of smoke, a landmark that never gets in the way', () => {
+  const sm = Q.city.smoke;
+  assert.ok(sm?.mesh?.isInstancedMesh, 'one instanced mesh of puffs');
+  assert.ok(sm.mesh.userData.noCollide, 'the smoke is not solid');
+  assert.ok(level.noShadow?.includes(sm.mesh), 'it casts no shadow on the city');
+  assert.ok(sm.material.userData.farDepth, 'its far-shading exception matches the material shader (it stays clear of the distance fog)');
+  // run it a while: puffs rise from the crown flame, swell, and drift off downwind
+  const wind = V(2.07, 0, 1.41);
+  for (let i = 0; i < 600; i++) sm.update(1 / 2, i / 2, wind);
+  const base = Q.city.treeBase;
+  const puffs = smokePuffs(sm).filter((p) => p.size > 0.5);
+  const top = Math.max(...puffs.map((p) => p.pos.y));
+  assert.ok(top - base.y > 250, `the column reaches ${(top - base.y).toFixed(0)} m above the tree`);
+  // it starts in the tree's crown and leans downwind (never upwind)
+  const low = puffs.filter((p) => p.pos.y - base.y < 70);
+  assert.ok(low.length > 4 && low.every((p) => Math.hypot(p.pos.x - base.x, p.pos.z - base.z) < 25), 'the lowest puffs rise out of the crown');
+  const high = puffs.filter((p) => p.pos.y - base.y > 0.9 * (top - base.y));
+  const downwind = high.reduce((a, p) => a + (p.pos.x - base.x) * wind.x + (p.pos.z - base.z) * wind.z, 0);
+  assert.ok(downwind > 0, 'the plume drifts downwind');
+  // nothing to stand on: straight down through the column you land on the tree or the sand, not on smoke
+  const mid = puffs.find((p) => p.pos.y - base.y > 150);
+  const g = physics.groundAt(mid.pos.x, mid.pos.y + 5, mid.pos.z, 400);
+  assert.ok(!Number.isFinite(g) || g < base.y + 40, `the ray through a puff at ${mid.pos.y.toFixed(0)} m lands at ${g}`);
+});
+
 test('a new game starts without the backpack: the first stage is to find what fell from the ship', async () => {
   const { items } = await import('../src/items.js');
   const { createBoxes } = await import('../src/boxes/index.js');
@@ -192,6 +230,10 @@ test('the main quest runs from the dead ship to a powered one', () => {
   assert.equal(game.flag('desert.channel.open'), undefined, 'a shot only rocks it');
   bone.onHit('push');
   assert.equal(game.flag('desert.channel.open'), true, 'a push rolls it off');
+  // the tree drinks: its smoke takes on the cool colours of the new fire, rising up the column
+  const warm = coolness(Q.city.smoke);
+  for (let i = 0; i < 80; i++) Q.city.smoke.update(1 / 2, i / 2, null);
+  assert.ok(coolness(Q.city.smoke) > warm + 0.03, `the smoke turns cool (${warm.toFixed(3)} → ${coolness(Q.city.smoke).toFixed(3)})`);
   step(90, 1 / 10);   // the rib rolls, the pool rises
   assert.equal(quests.stage('desert.power'), 'fill');
   const refills = [];

@@ -534,7 +534,8 @@ A world can tweak its default preset with `defaults.look` (post uniforms).
 
 Press **N**, or use the button in settings, for what's new in each version
 (`src/changelog.js`; add an entry at the top for every release). After an
-update, a note points to it once.
+update, a note points to it once. The same release notes are in
+[changelog.md](changelog.md); keep it in sync when adding a release.
 
 ## Errands and travel between worlds
 
@@ -1030,4 +1031,30 @@ walkthroughs and local names; each data file's header lists its flags.
   ring painted with the glyph. The parents are there to talk to.
 - **The bird's promise:** with `bird.promise` set, the whistle calls the Arzach
   bird in worlds with open sky and no mount (Edena, the Garden of Spheres, Home).
+
+## Android (offline APK)
+The game is also packaged as an Android app, for handhelds such as the Retroid
+Pocket. Their built-in controls work through the Gamepad API.
+- **Release workflow** (`.github/workflows/android.yml`): every push to `main`
+  builds the web game, wraps it with Capacitor (`capacitor.config.json`,
+  `android/`) and builds a signed release APK. The APK is published to the
+  GitHub release for the newest version in `src/changelog.js` (`v0.34` and so
+  on, via `scripts/release-info.mjs`). Pushes within one version replace that
+  release's APK; adding a changelog entry starts a new release. Download
+  `moebius-v<version>.apk` from the repository's Releases page and open it on
+  the device to install. Allow installing from your browser or file manager
+  the first time.
+- **Signing:** one fixed release key, so new builds install over old ones and
+  keep your progress. The key is in the repository secrets
+  `ANDROID_KEYSTORE_BASE64` (a PKCS#12 keystore, alias `moebius`) and
+  `ANDROID_KEYSTORE_PASSWORD`. A local backup is in `.local-tools/android-signing/`,
+  which is git-ignored. Keep it: losing the key means the next APK has to
+  replace the app with an uninstall, which deletes your saves.
+- **The app** runs fullscreen and immersive in landscape, keeps the screen on,
+  and plays sound without an extra tap. `versionName` is the game version and
+  `versionCode` is the workflow run number.
+- **Local build** (needs JDK 21 and the Android SDK):
+  ```
+  npm run build && npx cap sync android && (cd android && ./gradlew assembleDebug)
+  ```
 
