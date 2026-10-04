@@ -99,14 +99,14 @@ export const CONTENT = {
       { at: [30, 12], palette: pal('#d8a24a', { cloth: '#5a4a3a' }), lines: ['~tired~ The wind took my tracks again.', '~solemn~ Every dune remembers a city.'],
         id: 'ysa', name: 'Ysa', title: 'dune walker', color: '#d8a24a', talk: { nodes: {
           hello: { say: ['~tired~ The wind took my tracks again. Every morning I walk out, every evening the dunes pretend I never did.'], choices: [
-            { text: '~curious~ Where is everyone?', goto: 'where' }, { text: '~curious~ What do the dunes remember?', goto: 'city' }, { text: '~neutral~ Bye, Ysa.', end: true }] },
-          where: { say: ['~neutral~ At Qanat, the old city, north-east past the low dunes. You can see the tree burning from here, look. The pilgrims are camped at its gate, waiting for the drinking.'], choices: [{ text: '~happy~ Thanks.', end: true }] },
+            { text: '~curious~ Where is everyone?', goto: 'where' }, { text: '~neutral~ Bye, Ysa.', end: true }] },
+          where: { say: ['~neutral~ At Qanat, the old city, north-east past the low dunes. You can see the tree burning from here, look. The pilgrims are camped at its gate, waiting for the drinking.'], choices: [{ text: '~curious~ What do the dunes remember?', goto: 'city' }, { text: '~happy~ Thanks.', end: true }] },
           city: { say: ['~solemn~ Every dune remembers a city. Walls under the sand, everywhere. Qanat is the one that didn’t sink: the tree holds it up by the roots, the old people say.'], choices: [{ text: '~happy~ Thanks.', end: true }] },
         } } },
       { at: [-140, -80], palette: pal('#5fb7ad'), lines: ['~whisper~ The mask sleeps. Don’t wake it.', '~neutral~ I counted the ribs once. Forty.'],
         id: 'pell', name: 'Pell', title: 'counter of bones', color: '#5fb7ad', talk: { nodes: {
           hello: { say: ['~playful~ I counted the ribs once. The big beast south of here: forty. The giant under Qanat must have more, but you can’t count what you’re standing on.'], choices: [
-            { text: '~surprised~ There’s a giant under the city?', goto: 'giant' }, { text: '~curious~ What sleeps in the south?', goto: 'mask' }, { text: '~neutral~ Bye, Pell.', end: true }] },
+            { text: '~surprised~ There’s a giant under the city?', goto: 'giant' }, { text: '~curious~ What sleeps in the south?', goto: 'mask' }] },
           giant: { say: ['~solemn~ Its head sticks out by the back gate. The rest of it is the hill the city stands on. Big things lie down and become places. Give it time.'], choices: [{ text: '~curious~ And the south?', goto: 'mask' }, { text: '~neutral~ Bye.', end: true }] },
           mask: { say: ['~whisper~ The mask sleeps, past the ribs, face to the sky. Don’t wake it. Or do; I don’t think it can.'], do: { start: 'desert.mask' }, choices: [{ text: '~neutral~ I’ll look at it.', end: true }] },
         } } },

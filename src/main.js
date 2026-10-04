@@ -51,6 +51,7 @@ import { createItemEffects } from './boxes/effects.js';
 import { DevMenu } from './dev-menu.js';
 import { isolate, restore } from './story/portrait-bg.js';
 import { badgeLine } from './prompt-keys.js';
+import { chargeState, chargeHud, chargeJournalHtml, showChargeCard, GIVEN as CHARGE_GIVEN, CARD as CHARGE_CARD } from './story/charge.js';
 import { slots, formatPlaytime } from './save-slots.js';
 
 // Android: the handheld's controls come from the app (native-pad.js), and prompts use its button names
@@ -400,6 +401,21 @@ const boxes = createBoxes({ levelId, scene, physics, level, player, sound, quest
 const itemFx = createItemEffects({ player, tool, level, sound, toast: showToast, isNight: () => sky.hour < 6.4 || sky.hour > 19.3 });
 journal.sections.unshift(() => gearHtml(items.owned(), { mode: tool.owned && tool.modes.length > 1 ? tool.modeName : null }));   // Select / View opens on your gear
 journal.sections.push(() => boxes.journalHtml(Object.fromEntries(LEVELS.map((l) => [l.id, l.title]))));
+// the father's charge (src/story/charge.js): the journey's own quest, pinned above everything
+const charge = () => chargeState({ flag: (f) => game.flag(f), keepsakes: game.keepsakes(), completed: ship.completed().length });
+journal.sections.unshift(() => chargeJournalHtml(charge()));
+let chargeKept = null;   // a keepsake just earned: the HUD says what the charge gained, for a while
+game.on('keepsake', (k) => { chargeKept = { name: k.name, until: performance.now() + 9000 }; });
+// a save from before the charge had its card: letter it once, at the first quiet moment
+if (game.flag('prologue.done') && !game.flag(CHARGE_CARD) && !playPrologue && !playHomecoming) {
+  game.set(CHARGE_GIVEN, true);
+  const wait = setInterval(() => {
+    if (busy() || ship.playing || ship.busy() || document.hidden) return;
+    clearInterval(wait);
+    game.set(CHARGE_CARD, true);
+    showChargeCard({ sound });
+  }, 4000);
+}
 const devMenu = new DevMenu({ levelId, levels: LEVELS, boxes, quests: storyRt.quests, story });
 window.addEventListener('keydown', (e) => {
   if (!boxes.busy() || e.repeat) return;
@@ -814,7 +830,10 @@ function updateHud() {
   const objective = game.flag('objective');
   // (none during the ship's scenes: in orbit the camps are "1.1 km through the doorway")
   const questLine = ship.playing ? null : expedition?.state.started && !expedition.state.returned ? expedition.hud(player) : storyRt.hud();
-  const goal = ship.playing ? '' : questLine ?? [objective && `◆ ${objective}`, expedition && !expedition.state.returned ? expedition.hud(player) : story.hud()].filter(Boolean).join(' · ');
+  // the father's charge (✦, gold): what a new keepsake added to it, for a while; otherwise whenever nothing nearer is asked
+  const kept = chargeKept && now < chargeKept.until ? chargeKept.name : null;
+  const chargeLine = ship.playing ? null : chargeHud(charge(), { kept });
+  const goal = ship.playing ? '' : (kept && chargeLine) || questLine || [objective && `◆ ${objective}`, expedition && !expedition.state.returned ? expedition.hud(player) : story.hud()].filter(Boolean).join(' · ') || chargeLine || '';
   let text = [atmo.name, ...parts].join(' · ') +
     `\n${goal ? goal + ' · ' : ''}${errands.hud() ? errands.hud() + ' · ' : ''}relics ${journal.relicCount(levelId)}/${content.relics.names.length}`;
   // the pad's names by position: bottom jumps, the right button uses (native-pad.js prints them as the pad does)

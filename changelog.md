@@ -14,6 +14,11 @@ The same release notes shown in the game (press **N** or open settings).
 - Taxi drivers and passengers are the size of people again, not giants twice your height.
 - A taxi you call comes empty, and the seat is yours. Cabs with a passenger aboard turn off their “for hire” lamps, and a free cab answers your call first.
 - The bazaar’s taxis are as big as the City-Shaft’s, so you fit under the awning.
+- “Bring back something of value”, your father’s last words on the recording, is now the main quest of the journey. As the dust settles after the crash it appears as a title card with its own music.
+- The sketchbook opens with your father’s charge pinned at the top: his words, how many worlds you have seen, and every keepsake you carry.
+- Your father’s charge has its own gold ✦ tag on the objective line. It shows when nothing else is asked of you, and for a moment each time you earn a keepsake.
+- Conversations are easier to follow: never more than three answers at once, usually one or two. Follow-up questions now come after the first answer instead of all at once.
+- The glowing screens in the City-Shaft, the Signal Market and the Sealed Hangar are now the makers’ listening stones: carved stones with a brass rim and three lenses. They wake with glyphs in the makers’ manner instead of English words.
 
 ## v0.44 — 2026-10-04
 

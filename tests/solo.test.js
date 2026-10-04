@@ -14,7 +14,7 @@ test('Bako’s solo: an unhurried tune that comes home to its tonic', () => {
 
 test('asking Bako to play starts it', () => {
   const nodes = PEOPLE.bako.talk.nodes;
-  const asks = [...nodes.hello.choices, ...nodes.ney.choices].filter((c) => c.do?.emit?.[0] === 'music:solo');
+  const asks = Object.values(nodes).flatMap((n) => n.choices ?? []).filter((c) => c.do?.emit?.[0] === 'music:solo');
   assert.equal(asks.length, 2);
   for (const c of asks) assert.equal(c.do.emit[1].who, 'bako');
 });

@@ -270,8 +270,8 @@ To start after the current work lands. Ordered from easiest to most complex.
 - [ ] Spaceship: the texture at the entrance shimmers.
 - [x] The desert's big tree: you can see inside the roots (missing faces / open trunk).
 - [x] Taxis: why are the riders giants? A taxi that comes to pick you up arrives empty.
-- [ ] Dialogue choices: 3 at most, usually 1 or 2 (with a test that checks every node).
-- [ ] Highlight "Bring back something of value", the father's first major quest: it is the
+- [x] Dialogue choices: 3 at most, usually 1 or 2 (with a test that checks every node).
+- [x] Highlight "Bring back something of value", the father's first major quest: it is the
   heart of the game (in the journal, the HUD and the moment it's given).
 
 ## Tools
@@ -283,7 +283,7 @@ To start after the current work lands. Ordered from easiest to most complex.
 
 ## Screens and presentation
 
-- [ ] Redesign the screens that say "Hello", "again", etc.: they feel out of place (find
+- [x] Redesign the screens that say "Hello", "again", etc.: they feel out of place (find
   which cards these are and give them the airy title-screen look).
 - [ ] Holograms (the father's and all others): in colour, not blue; torso and face, not full
   body. The father has a beard.

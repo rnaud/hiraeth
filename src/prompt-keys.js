@@ -20,6 +20,7 @@ const LEAD = /^(E|X \/ □|A \/ ×|B \/ ○|Y \/ △|RT \/ R2|LT \/ L2|RB \/ R1|
  */
 export function badgeLine(text) {
   return String(text ?? '').split('\n').map((line) => line.split(' · ').map((part) => {
+    if (part.startsWith('✦ ')) return `<span class="charge">${escapeHtml(part)}</span>`;   // the father's charge, in its own gold (src/story/charge.js)
     const m = part.match(LEAD);
     return m ? keyBadge(m[1]) + ' ' + escapeHtml(part.slice(m[0].length)) : escapeHtml(part);
   }).join(' · ')).join('\n');

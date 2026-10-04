@@ -129,7 +129,7 @@ test('side quest: feed nothing to the plants', () => {
 
 test('the main quest: the crystal sings the song of the light that struck the ship', async () => {
   assert.equal(quests.stage('perdide.crystal'), 'wendel');
-  talk(LANDING[0], ['Something is humming']);
+  talk(LANDING[0], ['I’m looking for something of value']);
   step(2);
   assert.equal(quests.stage('perdide.crystal'), 'cross');
   at(W.places.sabaAt.clone().add(V(1.5, 0, 0))); step(2);

@@ -804,6 +804,30 @@ export class Sound {
     }
   }
 
+  /**
+   * The father's charge is given (src/story/charge.js): a low open fifth swelling under three
+   * slow notes that climb and settle, and one clear high note over them, like a vow. In
+   * absolute pitches (D), the same in every world.
+   */
+  charge() {
+    if (!this.ctx) return;
+    const ctx = this.ctx, t = ctx.currentTime + 0.05, bus = this.fx;
+    const n = (semi) => 293.66 * Math.pow(2, semi / 12);            // from D4
+    for (const [s, v] of [[-12, 0.05], [-5, 0.035], [0, 0.02]]) {    // D3, A3, D4: held, swelling, fading
+      const o = ctx.createOscillator(), g = ctx.createGain(), f = ctx.createBiquadFilter();
+      o.type = 'triangle'; o.frequency.value = n(s); f.type = 'lowpass'; f.frequency.value = 1200;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + 1.4); g.gain.setValueAtTime(v, t + 3.2); g.gain.exponentialRampToValueAtTime(0.0005, t + 5.6);
+      o.connect(f).connect(g).connect(bus); o.start(t); o.stop(t + 5.7);
+    }
+    [[0, 0.5], [4, 1.0], [7, 1.5], [5, 2.15], [7, 2.6]].forEach(([s, d]) => { this.pluck(n(s + 12), t + d, 0.07, 'sine', bus); this.pluck(n(s), t + d, 0.03, 'triangle', bus); });
+    for (const [m, v, d] of [[1, 0.05, 2.8], [2.76, 0.014, 1.4]]) {   // the high D, a little bell in it
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'sine'; o.frequency.value = n(24) * m;
+      g.gain.setValueAtTime(0, t + 3.1); g.gain.linearRampToValueAtTime(v, t + 3.13); g.gain.exponentialRampToValueAtTime(0.0005, t + 3.1 + d);
+      o.connect(g).connect(bus); o.start(t + 3.1); o.stop(t + 3.2 + d);
+    }
+  }
+
   /** An unopened box answers the bell: a small far chime (vol 0..1 by distance). */
   boxAnswer(vol = 1) {
     if (!this.ctx) return;

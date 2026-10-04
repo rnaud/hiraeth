@@ -88,7 +88,6 @@ export const PEOPLE = {
           say: ['~happy~ You came down out of the sky in a round thing. Sit, if you like sand. I’m Wen. I count the teeth.', '~neutral~ Today is Tooth Day. Once a year the great wheel turns one tooth, and we count our lives by it. I’m forty-one teeth old. Pim over there is nine. The wheel is older than counting.'],
           choices: [
             { text: '~curious~ What wheel?', goto: 'wheel' },
-            { text: '~surprised~ You count your age in teeth?', goto: 'count0' },
             { text: '~neutral~ I’m looking for something of value.', goto: 'value' },
           ],
         },
@@ -102,7 +101,7 @@ export const PEOPLE = {
         },
         value: {
           say: ['~solemn~ Value? Here we say a thing is worth the years it stood still for.', '~playful~ The wheel is worth a great deal, then. So is Hask, though don’t tell him I said so.'],
-          choices: [{ text: '~neutral~ Tell me about the wheel.', goto: 'wheel' }],
+          choices: [{ text: '~neutral~ Tell me about the wheel.', goto: 'wheel' }, { text: '~surprised~ You count your age in teeth?', goto: 'count0' }],
         },
         city: {
           say: ['~solemn~ The Other Half. The wheel holds it up and it holds the wheel down, my mother said.', '~solemn~ When the last tooth has turned, the city will come down and sit on the wheel, and the year will be whole. Not for a long while. There are a great many teeth.'],
@@ -121,7 +120,6 @@ export const PEOPLE = {
           ],
           choices: [
             { text: '~curious~ What’s the mark on your door?', goto: 'mark', once: true },
-            { text: '~curious~ Tell me about the city up there.', goto: 'city' },
             { text: '~happy~ See you, Wen.', end: true },
           ],
         },
@@ -247,7 +245,6 @@ export const PEOPLE = {
           say: ['~curious~ Are you a person? You came out of a ball. I’m Pim. I’m nine teeth old.', '~scared~ If the wheel turns today I’ll be ten teeth. Wen says it might not. If it doesn’t I’ll be nine forever.'],
           choices: [
             { text: '~playful~ Is nine so bad?', goto: 'nine' },
-            { text: '~curious~ What’s that, up in the sky?', goto: 'city' },
             { text: '~curious~ Seen anything strange lately?', goto: 'strange' },
           ],
         },
@@ -324,7 +321,6 @@ export const PEOPLE = {
           choices: [
             { text: '~curious~ What’s behind the window?', goto: 'behind' },
             { text: '~curious~ Has anyone else come down here?', goto: 'helmet' },
-            { text: '~neutral~ I’ll go in.', end: true },
           ],
         },
         behind: {
@@ -340,7 +336,7 @@ export const PEOPLE = {
           say: [{ if: { flag: 'buried.oculus.lit' }, text: '~surprised~ The Wick! I saw it from the doors, the whole drum gone amber. The window’s even warmer now.' }, { if: { not: { flag: 'buried.oculus.lit' } }, text: '~playful~ Squeak? No squeak. Good. *The window’s up on the balcony*, if you’re climbing.' }],
           choices: [
             { text: '~curious~ Tell me about the window.', if: { quest: 'buried.window', started: false }, goto: 'behind' },
-            { text: '~curious~ The man in the helmet?', if: { not: { flag: 'clue.buried.garage' } }, goto: 'helmet' },
+            { text: '~curious~ The man in the helmet?', if: { all: [{ not: { flag: 'clue.buried.garage' } }, { quest: 'buried.window', started: true }] }, goto: 'helmet' },
             { text: '~happy~ Bye, Tull.', end: true },
           ],
         },

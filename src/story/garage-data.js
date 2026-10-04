@@ -114,10 +114,9 @@ export const PEOPLE = {
           choices: [
             { text: '~curious~ What night?', goto: 'night' },
             { text: '~neutral~ Can I help?', goto: 'help' },
-            { text: '~curious~ What’s that mark on the great machine?', goto: 'mark' },
           ],
         },
-        night: { say: ['~playful~ The night the slit in the ring sang, Lune says. I didn’t hear it. I was asleep under the pump. When I woke up, three machines had stopped, and the fourth was me.'], choices: [{ text: '~neutral~ Can I help?', goto: 'help' }] },
+        night: { say: ['~playful~ The night the slit in the ring sang, Lune says. I didn’t hear it. I was asleep under the pump. When I woke up, three machines had stopped, and the fourth was me.'], choices: [{ text: '~neutral~ Can I help?', goto: 'help' }, { text: '~curious~ What’s that mark on the great machine?', goto: 'mark' }] },
         mark: { say: ['~playful~ The maker’s rivets. {glyph} Three over a curve. The Major put them on everything he was proud of, Clemence says. The great machine. The portals’ footings. Me, if you look behind my ear. Don’t look behind my ear.', '~curious~ And *the blue box on the keep wall*, with the star. He didn’t make that one. He found it, rivets and all, and never opened it. Not mine, he said: it’s for the next one. Are you the next one?'], choices: [{ text: '~neutral~ Can I help with the machines?', goto: 'help' }, { text: '~playful~ I won’t.', end: true }] },
         help: {
           say: ['~neutral~ With that tank on your back? Maybe. Machines here run on habit and a little colour. Give each one a squirt of whatever’s in there: *shoot it, right in the works*. If it remembers what it’s for, it’ll start.'],
@@ -229,7 +228,6 @@ export const LOCALS = [
           choices: [
             { text: '~curious~ Forgot what?', goto: 'forgot' },
             { text: '~curious~ Where did he go?', goto: 'where' },
-            { text: '~curious~ What’s the mark on the great machine?', goto: 'mark' },
           ],
         },
         forgot: { say: ['~sad~ Why. He remembered how, every rivet. But why he’d made a world in a garage, with three kinds of down and a ring you can walk round forever, that he lost. It bothered him terribly. Then it stopped bothering him, which bothered me more.'], choices: [{ text: '~curious~ Where did he go?', goto: 'where' }] },
