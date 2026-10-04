@@ -130,6 +130,22 @@ test('a flat, clear spot is found near the spawn in real levels', () => {
   }
 });
 
+test('the site search does not hang on float noise (the browser and node found different Garage spots)', () => {
+  const meta = LEVELS.find((l) => l.id === 'garage');
+  const scene = new THREE.Scene();
+  const level = quiet(() => meta.create(scene));
+  const physics = new Physics(scene, level.ground.heightAt ? level.ground : null);
+  level.init?.(physics);
+  const avoid = siteAvoid({ level, content: CONTENT.garage });
+  const a = findShipSite({ level, physics, levelId: 'garage', avoid });
+  // the same collision, give or take 1e-12 m of noise
+  const g = physics.groundAt.bind(physics);
+  let seed = 1;
+  physics.groundAt = (...args) => g(...args) + (((seed = (seed * 16807) % 2147483647) / 2147483647) - 0.5) * 2e-12;
+  const b = findShipSite({ level, physics, levelId: 'garage', avoid });
+  assert.deepEqual([b.x, b.z, b.heading], [a.x, a.z, a.heading]);
+});
+
 test('the desert crash site is on open sand 40-80 m from the spawn, dug in and tilted', () => {
   const s = SITE_OVERRIDES.desert;
   const d = Math.hypot(s.x, s.z);

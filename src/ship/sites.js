@@ -156,7 +156,10 @@ export function findShipSite({ level, physics, levelId, avoid = [], spawn }) {
       const p = probeSite(physics, x, z, heading, { refY: S.y, unsafe: level.unsafe });
       if (!p) continue;
       const score = d + p.spread * 14 + Math.abs(p.ground - S.y) * 1.5 + Math.max(0, S.y - 1.5 - p.ground) * 12;   // not down in a hollow (or a pond)
-      if (!best || score < best.score) best = { x, z, heading, ground: p.ground, spread: p.spread, score, source: 'search' };
+      // only a clearly better spot replaces the first found: on flat floors every candidate of a ring
+      // scores the same give or take float noise (1e-14), and that noise differs between the browser's
+      // collision (built in a worker) and node's, so the tests and the game chose different spots
+      if (!best || score < best.score - 1e-3) best = { x, z, heading, ground: p.ground, spread: p.spread, score, source: 'search' };
     }
     if (best && d > best.score) break;   // nothing further out can beat it
   }
