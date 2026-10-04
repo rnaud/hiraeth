@@ -36,7 +36,11 @@ export class Controller {
     const left = stick(pad.axes[0], pad.axes[1]), right = stick(pad.axes[2], pad.axes[3]);
     if (used(pad)) this.activity();
     if (ctx === 'menu') {
-      if (press(1) || press(9) || press(8)) this.action('back');
+      // Menu / Start and View / Select open (or close) the full-screen menus from anywhere,
+      // over a conversation or one of the ship's scenes too (main.js); B steps back
+      if (press(9)) this.action('start');
+      else if (press(8)) this.action('select');
+      else if (press(1)) this.action('back');
       else if (press(0) || press(2)) this.action('confirm');
       const x = down(15) ? 1 : down(14) ? -1 : Math.abs(left.x) > 0.5 ? Math.sign(left.x) : 0;
       const y = down(13) ? 1 : down(12) ? -1 : Math.abs(left.y) > 0.5 ? Math.sign(left.y) : 0;

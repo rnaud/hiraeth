@@ -68,3 +68,13 @@ test('the fluid tool: LT aims, RT shoots only while aiming (instead of running),
   assert.ok(mergeControls({KeyR:true},{PadAim:false}).KeyR);
   assert.ok(mergeControls({},{PadFire:true}).PadFire);
 });
+
+test('in menus B steps back, Menu / Start and View / Select reach the game (pause menu, sketchbook)', () => {
+  const t=setup(); t.context('menu');
+  t.button(1,true); t.c.update(.016); t.button(1,false); t.c.update(.016);
+  t.button(9,true); t.c.update(.016); t.button(9,false); t.c.update(.016);
+  t.button(8,true); t.c.update(.016); t.button(8,false); t.c.update(.016);
+  assert.deepEqual(t.actions,['back','start','select']);
+  const g=setup(); g.button(9,true); g.c.update(.016); g.button(9,false); g.c.update(.016); g.button(8,true); g.c.update(.016);
+  assert.deepEqual(g.actions,['settings','journal']);
+});

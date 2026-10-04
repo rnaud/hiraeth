@@ -1289,3 +1289,44 @@ Pocket. Their built-in controls work through the Gamepad API.
   conversation and stay up while A turned the pages under it. It is now drawn and kept in
   the sketchbook at once, and opens when the conversation closes (`story.waitFor`); a
   controller press goes to whatever is on top (`menuRoot`).
+
+### The title screen, five saves and the pause menus
+- **Boot order** (`src/boot.js`, the page's entry): the title screen (`src/title.js`) runs
+  first and only then loads `src/main.js`, so the save slot chosen there is the one every
+  store reads. A world asked for directly skips it and plays the current slot:
+  `?level=<id>` (the ship's arrivals, the dev shortcut), `?prologue=1`, `?ending=1`, and
+  `?start` (a save started over from the Start menu; the URL is cleaned so a reload goes
+  back to the title). Quit to title is just a load of the bare page.
+- **Title screen**: the name in comic lettering over a drawn landscape (SVG, a little CSS
+  motion: clouds, the planet, the traveller's cape), then Continue (the slot played last),
+  Saves, Settings (the same settings, `SettingsMenu({ el, title: true })`) and, in a desktop
+  browser, Full screen. Keyboard (arrows / WASD, Enter, Esc, Delete), mouse and touch, and a
+  controller through `Controller` + `menuNavigate` (the save list moves by rows, left /
+  right reaches a save's Delete). It imports nothing that loads the game state, and marks
+  the Android boot heartbeat (`markBooted`) once it is up. Styles: `src/menus.css`.
+- **Save slots** (`src/save-slots.js`): `slotStorage` is a localStorage look-alike that files
+  each progress key under the active slot (`moebius.game.v1` in slot 2 is
+  `moebius.s2.game.v1`): the game state, the sketchbook, the saved position and the reactive
+  world's memory all read and write through it. The active slot is `moebius.slot`, pinned
+  for the page on first read. Settings, mute, the pad layout, the changelog's seen mark and
+  the update toast stay global. A per-slot `meta` key keeps the time played (counted while
+  the game runs, not paused) and when it was last played. `summary(n)` reads a slot's raw
+  saves for the selector (world, worlds done, relics, items found); the worlds' names come
+  from `src/levels/names.js`, which has no imports. The single save from before the slots is
+  copied into slot 1 once (`migrate()`); the old keys are left as they were, so an older
+  build (an over-the-air update rolled back) still finds its save.
+- **Pause menus**: Menu / Start (O, Esc) opens the Start menu, now full screen (Resume,
+  Sketchbook, What's new, Quit to title, where you are and the time played, the settings,
+  and "Restart this save from the prologue", which asks inline rather than with
+  `confirm()` and forgets only this slot). View / Select (J) opens the sketchbook. Start and
+  Select work over a conversation or one of the ship's scenes too (holding B still skips a
+  scene). While one of them (or What's new) is open, `frame()` skips the world entirely:
+  player, people, crowds, wildlife, vehicles, the ship's scenes and the world's clock
+  (`simT`) stop, nothing is drawn, presses don't leak into the game, and the time played
+  stops counting.
+- **Menu music** (`Sound.menuMusic(on)` in `src/audio.js`): the world's music, effects,
+  voices and their reverb now run through one `world` bus, hushed to `MENU_HUSH` under a
+  menu while a calm score of its own fades in on a separate bus: a slow pad in D lydian
+  (I-V-vi-IV), a music box arpeggio and a falling melody every 32 beats, flute then bell
+  (`MENU_SCORE`, `menuBeat(b)`). The title screen plays it on a `Sound('title', { score: false })`
+  that fades out and closes as the game loads.

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from './materials.js';
 import { registerTarget } from './targets.js';
+import { slotStorage } from './save-slots.js';
 
 const UP = new THREE.Vector3(0,1,0);
 const FLUID_DEFAULT=['#52c8cf','#966ede'];   // the fluid's first tones (fluid-tool.js), if a hit brings none
@@ -117,7 +118,7 @@ function objectFor(theme,screen=false){
 }
 
 export class ReactiveWorld {
-  constructor(scene,level,physics,content,{storage=globalThis.localStorage}={}){
+  constructor(scene,level,physics,content,{storage=slotStorage}={}){
     this.theme=WORLD_REACTIONS[level.id];this.storage=storage;this.level=level;this.physics=physics;
     this.root=new THREE.Group();this.root.name='Responsive world';this.root.userData.noCollide=true;scene.add(this.root);
     this.key='moebius.encounters.v1';let saved={};try{saved=JSON.parse(storage?.getItem(this.key)??'{}');}catch{}

@@ -46,6 +46,7 @@ import { createItemEffects } from './boxes/effects.js';
 import { DevMenu } from './dev-menu.js';
 import { isolate, restore } from './story/portrait-bg.js';
 import { badgeLine } from './prompt-keys.js';
+import { slots, formatPlaytime } from './save-slots.js';
 
 // Android: the handheld's controls come from the app (native-pad.js), and prompts use its button names
 installNativePad();
@@ -166,7 +167,9 @@ migrateSave();   // saves from before the items: whoever finished the prologue k
 }
 const levelParam = query.get('level');
 const viaShip = query.get('via') === 'ship';
-const meta = levelById(levelParam) ?? LEVELS[0];
+// from the title screen (no ?level): the world this save was left in (a new game: the desert's prologue)
+const resumeId = !levelParam && game.flag('prologue.done') ? SaveGame.load()?.level ?? game.flag('ship.level') : null;
+const meta = levelById(levelParam) ?? levelById(resumeId) ?? LEVELS[0];
 const levelId = meta.id;
 const content = CONTENT[levelId];
 const animLib = loadAnimationLibrary().catch((e) => { console.warn('animation library failed to load', e); return null; });
@@ -353,12 +356,16 @@ if (!viaShip && !playPrologue && saved?.level === levelId && saved.pos) {
   player.heading = saved.heading ?? player.heading;
   rig.yaw = saved.yaw ?? rig.yaw;
 }
-const writeSave = () => SaveGame.write({
+let resetting = false;   // (a save being started over: nothing more is written to it)
+const writeSave = () => !resetting && SaveGame.write({
   level: levelId, pos: player.pos.toArray(), heading: player.heading, yaw: rig.yaw, hour: sky.hour,
   up: player.frame.up.toArray(), fwd: player.frame.fwd.toArray(),
 });
-setInterval(() => { if (!player.riding && player.onGround && !ship.playing) writeSave(); }, 5000);
-window.addEventListener('beforeunload', () => { if (!player.riding && !ship.playing) writeSave(); });
+// time played, for the save selector (counted while the game runs, not while paused: src/save-slots.js)
+let playClock = 0;
+const flushPlay = () => { if (resetting) return; slots.touch(slots.active, { addSeconds: playClock }); playClock = 0; };
+setInterval(() => { if (!player.riding && player.onGround && !ship.playing) writeSave(); flushPlay(); }, 5000);
+window.addEventListener('beforeunload', () => { if (!player.riding && !ship.playing) writeSave(); flushPlay(); });
 
 // footsteps: prints in the sand + a sound
 const onStepPrint = player.onStep;
@@ -548,17 +555,41 @@ const menu = new SettingsMenu(settings, {
   sound,
   onNews: () => changelog.toggle(true),
   onDev: () => devMenu.toggle(true),
+  onBook: () => journal.toggle(true),
+  onQuit: () => quitToTitle(),
+  // where you are, at the top of the Start menu
+  where: () => `<b>Save ${slots.active}</b>${meta.title} · ${formatPlaytime((slots.meta().playtime ?? 0) + playClock)} played`,
   // (Esc during the ship's scenes is "hold to skip", even in the parts you walk through)
   isBusy: () => story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || photo.on || storyRt.busy() || ship.busy() || ship.playing || boxes.busy(),
-  onResetProgress: () => { reactiveWorld.clear(); localStorage.removeItem('moebius.journal.v1'); SaveGame.clear(); game.reset(); location.href = location.pathname; },   // a new game: the prologue
+  // this save only (the other slots stay): forget it and start again with the prologue
+  onResetProgress: () => {
+    reactiveWorld.clear(); game.reset();
+    resetting = true; slots.remove(slots.active);
+    location.href = `${location.pathname}?start`;
+  },
 });
+/** Back to the title screen (the position and the time played are saved first). */
+function quitToTitle() {
+  if (!player.riding && !ship.playing) writeSave();
+  flushPlay(); reactiveWorld.flush();
+  location.href = location.pathname;
+}
+// The full-screen menus (Start: settings; View / Select: the sketchbook; what's new) pause
+// the game: frame() skips the world while one is open, and the menu music plays over the
+// hushed world (src/audio.js menuMusic).
+const paused = () => menu.open || journal.open || changelog.open;
 // one panel at a time: J over the open settings drew the sketchbook's quest log under the
 // settings card (and O over the sketchbook the other way round)
 {
   const panels = [menu, journal, changelog];
   for (const p of panels) {
     const toggle = p.toggle.bind(p);
-    p.toggle = (on = !p.open, ...rest) => { if (on) for (const q of panels) if (q !== p && q.open) q.toggle(false); return toggle(on, ...rest); };
+    p.toggle = (on = !p.open, ...rest) => {
+      if (on) for (const q of panels) if (q !== p && q.open) q.toggle(false);
+      const r = toggle(on, ...rest);
+      sound.menuMusic(paused());
+      return r;
+    };
   }
 }
 if (isTouch) new TouchControls(input, rig);
@@ -597,11 +628,11 @@ function showPicker(on) {
   picker.classList.toggle('open', on);
   if (on) document.exitPointerLock?.();
 }
-showPicker(!levelParam && !playPrologue);   // L stays a developer shortcut; in play, worlds are chosen on the ship's galactic map
+showPicker(false);   // L is a developer shortcut; in play, worlds are chosen on the ship's galactic map (and saves on the title screen)
 picker.querySelector('.close').addEventListener('click', () => showPicker(false));
 window.addEventListener('keydown', (e) => {
   if (e.code === 'KeyL') showPicker(!picker.classList.contains('open'));
-  if (e.code === 'Escape' && picker.classList.contains('open') && levelParam) showPicker(false);
+  if (e.code === 'Escape' && picker.classList.contains('open')) showPicker(false);
   const n = Number(e.key);
   if (picker.classList.contains('open') && n >= 1 && n <= pickable.length && (!pickable[n - 1].hidden || completed())) location.search = '?level=' + pickable[n - 1].id;
 });
@@ -719,7 +750,7 @@ const pageUp = () => pageEl.classList.contains('open');
 const menuRoot = () => boxes.busy() && boxes.card.el ? boxes.card.el : menu.open ? menu.el : changelog.open ? changelog.el : pageUp() ? pageEl : storyRt.dialogue.open ? storyRt.dialogue.el : journal.open ? journal.el : picker.classList.contains('open') ? picker : pageEl;
 const closeControllerMenu = () => {
   if (boxes.busy()) boxes.skip();
-  else if (menu.open) menu.toggle(false);
+  else if (menu.open) menu.back();
   else if (changelog.open) changelog.toggle(false);
   else if (pageUp()) pageEl.click();
   else if (storyRt.dialogue.open) storyRt.dialogue.close();
@@ -737,6 +768,9 @@ const controller = new Controller({
   action: (name, dt) => {
     if (name === 'zoomOut' || name === 'zoomIn') rig.dist = THREE.MathUtils.clamp(rig.dist * Math.exp((name === 'zoomOut' ? 1 : -1) * dt), 4, 60);
     if (name === 'back') closeControllerMenu();
+    // (in a menu, a conversation or a scene: Start toggles the Start menu, Select the sketchbook)
+    if (name === 'start') menu.toggle(!menu.open);
+    if (name === 'select') journal.toggle(!journal.open);
     if (name === 'confirm') {
       const root = menuRoot();
       if (root.id === 'dialogue') { const f = document.activeElement; if (f?.dataset?.i !== undefined && root.contains(f) && storyRt.dialogue.revealed >= storyRt.dialogue.runner.text.length) f.click(); else storyRt.dialogue.next(); }
@@ -949,8 +983,8 @@ function frame() {
   }
   gpuTimer.enabled = settings.showFps;
   timer.update();
-  const dt = Math.min(timer.getDelta(), 1 / 20);
-  const t = timer.getElapsed();
+  const rawDt = timer.getDelta();
+  const dt = Math.min(rawDt, 1 / 20);
   const padInput = controller.update(dt, !document.hidden && document.hasFocus());
   if (controller.index === null) controllerActive = false;
   else if (!screenInput) controllerActive = true;
@@ -958,8 +992,12 @@ function frame() {
   // No button list on the screen while playing, talking or in menus (the settings list the controls);
   // only photo mode, a tool few find by chance, keeps its own. Set only when it changes (the label rewrite watches the page).
   const hintText = photo.on ? 'Left stick fly · right stick look · LB/RB down/up · A / × save · B / ○ exit' : '';
-  if (hintText !== hintShown.text) { controllerHint.textContent = hintText; hintShown.text = hintText; hintShown.at = t; }
+  if (hintText !== hintShown.text) { controllerHint.textContent = hintText; hintShown.text = hintText; hintShown.at = simT; }
   document.body.classList.toggle('controller-hint', controllerActive && photo.on);
+  if (paused()) { pausedFrame(); requestAnimationFrame(frame); return; }
+  simT += dt;
+  const t = simT;   // the world's clock: it stops while a menu is open
+  playClock += Math.min(rawDt, 1);
   const mergedInput = mergeControls(latchedInput(), padInput);
   wasBusy = busy();
   if (wasBusy && mergedInput.KeyE) eBlocked = true;
@@ -1090,6 +1128,18 @@ function frame() {
 
   requestAnimationFrame(frame);
 }
+/**
+ * A frame under a full-screen menu: nothing in the world moves (the player, people, wildlife,
+ * vehicles, the ship's scenes, the clock), nothing is drawn (the menu covers the screen), and
+ * presses made in the menu don't reach the game when it resumes.
+ */
+function pausedFrame() {
+  tapped.clear();
+  wasBusy = true;
+  sound.update(CALM);
+}
+const CALM = { speed: 0, gust: 0, storm: 0, rain: 0, rainRoof: 0, thrusting: false, riding: false, rideKind: null, rideSpeed: 0, altitude: 0 };
+let simT = 0;
 let flapT = 0;
 let portalCool = 0;
 let eWasDown = false;
@@ -1154,4 +1204,4 @@ requestAnimationFrame((t) => {
 
 // handy for debugging from the console
 Object.assign(window, { shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife,
-  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, boxes, devMenu, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats });
+  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, boxes, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats });

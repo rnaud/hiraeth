@@ -53,10 +53,12 @@
 //   'tool:enable' { on }           on: false puts the tool away (no shoot, push or boost), e.g.
 //                                  inside the ship before the player first steps outside
 
-const KEY = 'moebius.game.v1';
+import { slotStorage } from './save-slots.js';
+
+const KEY = 'moebius.game.v1';   // per save slot (src/save-slots.js)
 
 class GameState {
-  constructor(storage = globalThis.localStorage) {
+  constructor(storage = slotStorage) {
     this.storage = storage;
     this.listeners = new Map();
     try { this.data = JSON.parse(storage?.getItem(KEY)) ?? {}; } catch { this.data = {}; }
