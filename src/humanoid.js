@@ -4,7 +4,8 @@ import { TRAVELLER_PALETTE, TRAVELLER_TONES } from './traveller-style.js';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
-import { makeMaterial, MODE_OUTFIT } from './materials.js';
+import { makeMaterial, MODE_OUTFIT, MODE_EYE } from './materials.js';
+import { EyeLook, EYE_WHITE, EYE_TILT, eyeballOf } from './eyes.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { lookPieces, roleColor, BUILDS } from './costumes.js';
 import { fitOutfit } from './outfit.js';
@@ -61,6 +62,7 @@ function reshape(scene, kind) {
   scene.updateMatrixWorld(true);
   const meshes = [];
   scene.traverse((o) => { if (o.isSkinnedMesh) meshes.push(o); });
+  const eyeMesh = meshes.find((m) => /eye/i.test(m.name) && !/brow/i.test(m.name));
   const skel = meshes[0].skeleton;
   const bones = skel.bones, idx = new Map(bones.map((b, i) => [b.name, i]));
   const bindPos = bones.map((b) => new THREE.Vector3().setFromMatrixPosition(b.matrixWorld));
@@ -149,6 +151,9 @@ function reshape(scene, kind) {
     g.computeBoundingSphere();
   }
 
+  // the eyeballs as the reshape left them (narrower, longer below the eye line), for MODE_EYE
+  if (eyeMesh) eyeMesh.userData.eyeball = eyeballOf(eyeMesh.geometry, eyeY);
+
   // move the arm bones in to match, then rebind
   for (const s of ['l', 'r']) {
     const ua = bones[idx.get(`upperarm_${s}`)];
@@ -231,6 +236,7 @@ const _i6 = new THREE.Vector3(), _i7 = new THREE.Vector3(), _i8 = new THREE.Vect
 const _iq = new THREE.Quaternion(), _iq2 = new THREE.Quaternion(), _iq3 = new THREE.Quaternion(), _im = new THREE.Matrix4();
 const _q = new THREE.Quaternion(), _qr = new THREE.Quaternion(), _qp = new THREE.Quaternion();
 const _m4 = new THREE.Matrix4();
+const _xAxis = new THREE.Vector3(1, 0, 0);
 const _w1 = new THREE.Vector3(), _w2 = new THREE.Vector3(), _w3 = new THREE.Vector3();
 const _wq1 = new THREE.Quaternion(), _wq2 = new THREE.Quaternion(), _wq3 = new THREE.Quaternion(), _wq4 = new THREE.Quaternion(), _wq5 = new THREE.Quaternion();
 const _k1 = new THREE.Vector3(), _k2 = new THREE.Vector3(), _k3 = new THREE.Vector3(), _k4 = new THREE.Vector3(), _k5 = new THREE.Vector3(), _k6 = new THREE.Vector3();
@@ -260,12 +266,17 @@ export class Humanoid {
     this.build = 'average';
     const C = char.colors;
     const body = makeMaterial({ color: C.cloth, color2: C.legs, color3: C.boot ?? '#6e3f2c', mode: MODE_OUTFIT, skin, outfit: OUTFIT[kind], face: faceAfterReshape(kind), gloves, suit });
-    const eyes = makeMaterial({ color: C.ink, figure: true });
+    // the eyes (eyes.js): white, an iris (each person's own colour: NPC.restyle) that follows the gaze, blinking lids
+    let eyeball = null;
+    model.traverse((o) => { if (o.isMesh && /eye/i.test(o.name) && !/brow/i.test(o.name) && !eyeball) eyeball = o.userData.eyeball ?? null; });
+    const eyes = makeMaterial({ color: EYE_WHITE, color2: '#5e3a24', mode: MODE_EYE, skin, eye: eyeball ? { ...eyeball, iris: 0.4 } : undefined, figure: true });
+    this.eyeLook = new EyeLook();
     const brows = makeMaterial({ color: hair, figure: true });
     model.traverse((o) => {
       if (!o.isMesh) return;
       const isBrow = /brow/i.test(o.name) || /hair/i.test(o.material?.name ?? '');
       o.material = isBrow ? brows : /eye/i.test(o.name) ? eyes : body;
+      if (o.material === eyes) this.eyeMesh = o;
       // the body itself: costumes (dress()) are skinned onto its skeleton
       if (o.isSkinnedMesh && o.material === body && (!this.body || o.geometry.attributes.position.count > this.body.geometry.attributes.position.count)) this.body = o;
       o.frustumCulled = false;
@@ -622,6 +633,27 @@ export class Humanoid {
       return [[jp, jl, jr, 0], [1 - follow, follow * wl, follow * (1 - wl), 0]];
     };
     return [{ geo: band(0, 0.88, ts.length - 1), role: 'cloth', joints }, { geo: band(0.88, 1, 1), role: 'accent', joints }];
+  }
+
+  /**
+   * The eyes: look at `target` (a world point: the player's face, someone talking) when it is in
+   * reach of the eyes, else glance around; blink. Call after update(), only near the camera.
+   */
+  updateEyes(dt, target = null) {
+    const m = this.eyeMesh, head = this.b.Head;
+    if (!m || !head || !m.material.uniforms?.uEyeLook) return;
+    let dir = null;
+    if (target) {
+      // bind space -> world for the eyeballs (skinned to the head alone)
+      const i = m.skeleton.bones.indexOf(head);
+      _m4.multiplyMatrices(head.matrixWorld, m.skeleton.boneInverses[i]).multiply(m.bindMatrix).premultiply(m.bindMatrixInverse).premultiply(m.matrixWorld);
+      const c = m.material.uniforms.uEyeC.value;
+      const at = _a.set(0, c.y, c.z).applyMatrix4(_m4);
+      dir = _b.subVectors(target, at).transformDirection(_m4.invert());
+    }
+    this.eyeLook.update(dt, dir);
+    const L = _c.copy(this.eyeLook.look).applyAxisAngle(_xAxis, EYE_TILT);
+    m.material.uniforms.uEyeLook.value.set(L.x, L.y, L.z, this.eyeLook.blink);
   }
 
   /** Aim the skeleton along the rig (call after the rig's pose for this frame). */

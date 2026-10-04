@@ -1666,3 +1666,36 @@ Pocket. Their built-in controls work through the Gamepad API.
 - Viridel's even scatter of 3500 identical flowers is gone, and the desert's ochre scrub now
   grows in thickets; both keep their old random draws, so everything placed after them stays
   where it was.
+
+### Eyes: a white, an iris, a pupil, and blinking
+
+People's eyes were solid ink: up close, each a black almond. They are now drawn the
+ligne-claire way (`src/eyes.js`): a cream white, an iris in the person's own colour with a
+darker rim, a round dark pupil and a small highlight, the iris following the gaze and the
+lids closing over it to blink. One GLSL helper (`EYE_GLSL`, `eyeIris`) draws the iris for all
+three kinds of people, and its detail goes with the size on screen: a few pixels across, the
+iris is one dark dot on the white; smaller still the whole eye is one dark mark, so a face at
+a distance (or in the 160 px dialogue portrait) still has eyes.
+
+- **Colour**: `IRIS` (browns most, hazels, greens, greys, blues), `s.eyes` in `dressFor`, seeded
+  by the rest of the look rather than drawn from its random stream, so every look (and a crowd's
+  later ones) is what it was; a story palette may set `eyes`.
+- **Full NPCs**: the human model's eyeballs are shaded by `MODE_EYE` (`materials.js`). The
+  reshape narrows them and stretches them below the eye line, so `eyeballOf` records their
+  centre and radii and the shader finds each point's direction on the round eye; the iris
+  sits where that direction meets the gaze. `Humanoid.updateEyes(dt, target)` turns a world
+  point into the eyes' bind space (through the head bone's skinning) and `EyeLook` aims them:
+  clamped to the eyes' reach (`EYE_REACH`), a quick saccade rather than a drift, glances
+  around when nothing is in reach, a blink every 2–6 s (now and then a double one). The model's
+  lids open on the lower part of the ball, so the gaze is turned down by `EYE_TILT`. NPCs look
+  at the player's face when near or talking (`npc.js`, only within 40 m of the camera); the
+  lids are the person's skin (`NPC.restyle` sets the iris and the skin on their own copy of
+  the eye material).
+- **Crowd figures**: a small flat almond on the head (`CROWD_ZONES.eye`), the iris colour
+  packed in `aBody.w` (`packBody`), a blink on the shader's clock per seed. The fragment shader
+  draws the white and the iris only on those triangles.
+- **The traveller**: the drawn face (`face.js`) keeps its lid strokes; `portraitEyes` fills the
+  opening with the white and a slate-blue iris (`TRAVELLER_IRIS`, `uIris`) that moves with
+  `uGaze`, ringed by a fine line once the face is large enough.
+- `tests/eyes.test.js` covers the colours, the gaze clamping, the blink timing, the eyeballs
+  and the aim through the skeleton, and the crowd's eye triangles.

@@ -1,13 +1,45 @@
 import * as THREE from 'three';
+import { EYE_GLSL, EYE_WHITE, TRAVELLER_IRIS } from './eyes.js';
 
 // Rest-space ink follows the skinned head without a painted image or facial bones.
 // Drawn like a Moebius face: few marks, each a tapered pen stroke — almond lids
-// with solid pupils, one hooked line down the shadow side of the nose, a mouth
-// with a short lower-lip stroke, and fine parallel hatching in the face's shadow.
+// over a cream white and a coloured iris (eyes.js) that follows the gaze, one
+// hooked line down the shadow side of the nose, a mouth with a short lower-lip
+// stroke, and fine parallel hatching in the face's shadow.
+const white = new THREE.Color(EYE_WHITE);
 export const PORTRAIT_GLSL = `
 uniform float uPortrait;
 uniform vec4 uExpression; // blink, smile, mouth opening, brow lift
 uniform vec2 uGaze;
+uniform vec3 uIris;
+${EYE_GLSL}
+const vec3 PORTRAIT_WHITE = vec3(${white.r.toFixed(4)}, ${white.g.toFixed(4)}, ${white.b.toFixed(4)});
+// The eye's opening at e (from its centre; x mirrored, + toward the temple): the upper lid's arc,
+// which flattens and lowers as it blinks, and the lower lid's
+void portraitLids(vec2 e, out float top, out float bottom) {
+  float open = 1.0 - uExpression.x, smile = uExpression.y;
+  float lidK = mix(.0028, -.0042, open) - smile * .0012;
+  float lidY = mix(-.0006, .0034, open) + smile * .0007;
+  float u = e.x / .0115;
+  top = lidY + lidK * u * u;
+  bottom = -.0043 + .0035 * u * u - smile * .0006 * (1.0 - u * u);
+}
+// the iris: centre (in the eye's mirrored frame) and radius
+vec2 portraitIrisAt(float side) { return vec2(-.0006 + uGaze.x * side, -.0001 + uGaze.y); }
+const float PORTRAIT_IRIS = .0031;
+// The white and the iris inside the lids, over the skin's colour.
+vec3 portraitEyes(vec3 p, vec3 albedo) {
+  float aa = max(fwidth(p.x) + fwidth(p.y), .00035) * .5;
+  float side = p.x < 0.0 ? -1.0 : 1.0;
+  vec2 e = vec2(abs(p.x) - .039, p.y - 1.843);
+  float top, bottom;
+  portraitLids(e, top, bottom);
+  float inside = (1.0 - smoothstep(.96, 1.0, abs(e.x / .0115))) * smoothstep(-aa, aa, top - e.y) * smoothstep(-aa, aa, e.y - bottom)
+    * smoothstep(.15, .45, 1.0 - uExpression.x) * step(.075, p.z);
+  vec2 i = (e - portraitIrisAt(side)) / PORTRAIT_IRIS;
+  vec4 ir = eyeIris(vec2(i.x * side, i.y), aa / PORTRAIT_IRIS, uIris, PORTRAIT_WHITE);   // (unmirrored: the highlight on the same side in both)
+  return mix(albedo, mix(PORTRAIT_WHITE, ir.rgb, ir.a), inside);
+}
 // Ink of half-width w (metres); never thinner than a pen line on screen.
 float portraitPen(float d, float w, float aa) {
   w = max(w, aa * .45);
@@ -36,15 +68,17 @@ float portraitInk(vec3 p, float dark) {
   vec2 q = vec2(abs(p.x), p.y);
   float open = 1.0 - uExpression.x, smile = uExpression.y;
 
-  // eyes: an arched upper lid that flattens into a lowered arc as it blinks
-  vec2 e = vec2(q.x - .039 - uGaze.x * side, q.y - 1.843 - uGaze.y);
+  // eyes: an arched upper lid that flattens into a lowered arc as it blinks; the white and the
+  // iris under it are colour (portraitEyes), the iris ringed with a fine line
+  vec2 e = vec2(q.x - .039, q.y - 1.843);
   float lidK = mix(.0028, -.0042, open) - smile * .0012;
   float lidY = mix(-.0006, .0034, open) + smile * .0007;
   float ink = portraitArc(e, 0.0, lidY, .0115, lidK, .00085, aa);
   ink = max(ink, portraitSeg(e, vec2(.0105, lidY + lidK * .83), vec2(.0138, lidY + lidK * .83 + .0016), .0005, aa) * open);
-  vec2 iris = (e - vec2(-.0006, -.0004)) / vec2(max(.0027, aa * .9), max(.0034, aa * 1.1));
-  float lidAt = lidY + lidK * (e.x / .0115) * (e.x / .0115);
-  ink = max(ink, (1.0 - smoothstep(1.0 - aa / .003, 1.0, length(iris))) * step(e.y, lidAt) * smoothstep(.15, .45, open));
+  float lidTop, lidBottom;
+  portraitLids(e, lidTop, lidBottom);
+  float ring = portraitPen(abs(length(e - portraitIrisAt(side)) - PORTRAIT_IRIS), .00018, aa) * step(e.y, lidTop) * step(lidBottom, e.y);
+  ink = max(ink, ring * smoothstep(.15, .45, open) * fine * .8);
   ink = max(ink, portraitArc(e, .0035, -.0058, .0055, .0012, .00035, aa) * open * fine * .7);
 
   // brows: a light stroke, thicker at the inner end, lifting with expression
@@ -84,7 +118,7 @@ float portraitInk(vec3 p, float dark) {
 export class FaceExpression {
   constructor() {
     this.time = 0;
-    this.uniforms = { uPortrait: { value: 1 }, uExpression: { value: new THREE.Vector4() }, uGaze: { value: new THREE.Vector2() } };
+    this.uniforms = { uPortrait: { value: 1 }, uExpression: { value: new THREE.Vector4() }, uGaze: { value: new THREE.Vector2() }, uIris: { value: new THREE.Color(TRAVELLER_IRIS) } };
   }
   update(dt, { speed = 0, climbing = false, blink, smile = 0, mouth, brow = 0 } = {}) {
     this.time += Math.max(0, dt);
@@ -103,7 +137,7 @@ export function attachPortraitPreview(material, uniforms) {
   material.onBeforeCompile = shader => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = 'varying vec3 vPortrait;\n' + shader.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvPortrait = position;');
-    shader.fragmentShader = 'varying vec3 vPortrait;\n' + PORTRAIT_GLSL + shader.fragmentShader.replace('#include <color_fragment>', '#include <color_fragment>\ndiffuseColor.rgb = mix(diffuseColor.rgb, vec3(.10,.085,.09), portraitInk(vPortrait, 0.0));');
+    shader.fragmentShader = 'varying vec3 vPortrait;\n' + PORTRAIT_GLSL + shader.fragmentShader.replace('#include <color_fragment>', '#include <color_fragment>\ndiffuseColor.rgb = mix(portraitEyes(vPortrait, diffuseColor.rgb), vec3(.10,.085,.09), portraitInk(vPortrait, 0.0));');
   };
-  material.customProgramCacheKey = () => 'traveller-portrait-v2';
+  material.customProgramCacheKey = () => 'traveller-portrait-v3';
 }

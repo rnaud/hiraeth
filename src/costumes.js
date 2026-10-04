@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { mulberry32 } from './noise.js';
+import { irisFor } from './eyes.js';
 
 // What the people of each world wear. One table per world (keyed by level id),
 // each with one or more tribes (the City-Shaft's rim and its depths dress
@@ -364,6 +365,9 @@ export function dressFor(world, rng, { palette = {}, lists = {}, head = null, ca
   // bare heads: women mostly wear their hair long or up; some men have a beard
   if (female && !look.head && (s.head === 'hair' || s.head === 'short')) s.head = rh < 0.45 ? 'long' : rh < 0.8 ? 'bun' : 'tail';
   if (!female && kind && !look.mask && s.mask === 'none' && rb < BEARDS) s.mask = 'beard';
+  // their eyes' colour: seeded by the rest of the look, not drawn from rng, so the looks drawn after
+  // this one from the same stream (a crowd's) are what they were
+  s.eyes = palette.eyes ?? look.eyes ?? irisFor(mulberry32(hashSeed(`${s.skin}|${s.hair}|${s.cloak}|${s.height}|${s.capeWide}`)));
   return s;
 }
 
@@ -383,10 +387,10 @@ const BUILD_ODDS = { m: { slim: 2, average: 4, broad: 2.5, heavy: 1.5 }, f: { sl
 /** Heights: 1 ± spread (a triangle, most people near the middle), women a little shorter; the tribe's size on top. */
 export const HEIGHT = { spread: 0.14, f: 0.95, min: 0.85, max: 1.15 };
 const BEARDS = 0.3;
-/** The crowd shader's per-instance body: female (0 / 1), shoulder width, girth. */
+/** The crowd shader's per-instance body: female (0 / 1), shoulder width, girth, the iris colour (0xRRGGBB; 0: a brown). */
 export function packBody(s) {
   const b = BUILDS[s.build] ?? BUILDS.average;
-  return [s.kind === 'f' ? 1 : 0, b.width, b.girth, 0];
+  return [s.kind === 'f' ? 1 : 0, b.width, b.girth, s.eyes ? new THREE.Color(s.eyes).getHex() : 0];
 }
 
 /** A crowd person's look (crowd.js): the world's costume over the level's crowd colours. */

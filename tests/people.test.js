@@ -67,7 +67,7 @@ test('the new hair and beard pieces are in every world\'s crowd figure, within t
   }
   // the crowd's per-instance body
   const s = dressFor('bazaar', mulberry32(5), { kind: 'f', look: { build: 'heavy' } });
-  assert.deepEqual(packBody(s), [1, BUILDS.heavy.width, BUILDS.heavy.girth, 0]);
+  assert.deepEqual(packBody(s), [1, BUILDS.heavy.width, BUILDS.heavy.girth, new THREE.Color(s.eyes).getHex()]);
   assert.equal(packLook(s).length, 4);
   assert.ok(figureGeometry('mid', 'bazaar').attributes.aRig);
 });
