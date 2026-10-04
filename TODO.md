@@ -249,3 +249,78 @@ Grouped by area. Checked items are done; the changelog says when.
   far figures turn into dark silhouettes: thin and lighten lines with distance.
 
 - [ ] Performance pass on the Retroid Pocket, with it connected for testing.
+
+---
+
+# Player feedback backlog, part 2 (2026-10-04)
+
+To start after the current work lands. Ordered from easiest to most complex.
+
+## Quick fixes
+
+- [ ] Spaceship: the floor is flat, so the traveller doesn't bob up and down walking the deck.
+- [ ] Spaceship: the texture at the entrance shimmers.
+- [ ] The desert's big tree: you can see inside the roots (missing faces / open trunk).
+- [ ] Taxis: why are the riders giants? A taxi that comes to pick you up arrives empty.
+- [ ] Dialogue choices: 3 at most, usually 1 or 2 (with a test that checks every node).
+- [ ] Highlight "Bring back something of value", the father's first major quest: it is the
+  heart of the game (in the journal, the HUD and the moment it's given).
+
+## Screens and presentation
+
+- [ ] Redesign the screens that say "Hello", "again", etc.: they feel out of place (find
+  which cards these are and give them the airy title-screen look).
+- [ ] Holograms (the father's and all others): in colour, not blue; torso and face, not full
+  body. The father has a beard.
+
+## Lore
+
+- [ ] A reason to visit these planets and not others: they all carry the same magnetic
+  signature as the thing that hit the ship (the map and the scout show it).
+- [ ] LORE.md: a summary of the story and the lore in one place, to read and edit.
+
+## Spaceship
+
+- [ ] Replace the big structure at the centre of the ship with a small holo table that shows
+  the planet we're on now.
+- [ ] Make the main deck a bit smaller, so it feels right for one pilot.
+- [ ] Make the inside of the ship nicer and fuller overall.
+
+## Performance
+
+- [ ] LOD: distant structures cost as much as near ones. Add levels of detail (simpler meshes
+  and no outlines far away, impostors for the farthest) for buildings, rocks and flora.
+
+## Materials
+
+- [ ] A pass on materials: metal looks terrible, glow doesn't glow, glyphs are unclear (decide
+  what they're for), grass is still a flat texture (small shader-driven blades instead).
+
+## Drone
+
+- [ ] Remake the drone: a better design that folds, so it tucks neatly onto the outfit when
+  it's on the traveller.
+
+## Water
+
+- [ ] Better water shaders, and swimming.
+
+## Home level
+
+- [ ] Make it nicer: pay homage at the tomb, real cloth physics for the hanging cloths, a
+  little garden, and a home you can enter. The traveller has a daughter and a dog.
+
+## Story
+
+- [ ] A major quest you fail despite trying, and the attempt harms the local people. They
+  blame you; you say sorry; they accept it, and you have to move on.
+
+## Temples
+
+- [ ] Each world has a massive Makers' building that works as a temple (as in Zelda).
+  - Half the gadgets are found in the world and half in temples. A temple's gadget is the key
+    to finishing that temple.
+  - A boss at the end, with a non-lethal way to deal with it if it's organic (destroying it is
+    fine if it's a robot).
+  - Beating it changes something in the world: the temple covered in plants, crops growing
+    again, the grove pulsing with light…
