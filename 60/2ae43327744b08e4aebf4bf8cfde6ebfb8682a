@@ -1,0 +1,45 @@
+.gitignore
+  s_1fd8d0e7b02dcf::t_e8e72d66d02bd7 12
+README.md
+  s_1fd8d0e7b02dcf::t_ea535360c56cc7 1477-1538
+TODO.md
+  s_1fd8d0e7b02dcf::t_32e3a271f1a00e 251-253
+changelog.md
+  s_1fd8d0e7b02dcf::t_6e2c1e8a0a20a7 10-12
+scripts/handheld-perf/bench.mjs
+  s_1fd8d0e7b02dcf::t_4a5fa31ace5167 1-52
+scripts/handheld-perf/lib.mjs
+  s_1fd8d0e7b02dcf::t_2c9d670c2d4bb4 1-109
+scripts/handheld-perf/measure.mjs
+  s_1fd8d0e7b02dcf::t_73025f9e4ae28f 1-77
+scripts/handheld-perf/scenarios.mjs
+  s_1fd8d0e7b02dcf::t_ff723e3fdc9a6c 1-24
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_a677fbaddf131f 10-12
+src/levels/incal.js
+  s_1fd8d0e7b02dcf::t_21b85e78cb1fa6 679-683,687-688,693,695-708
+src/main.js
+  s_1fd8d0e7b02dcf::t_337cef2d236680 21,579,598,609-610,613-617,1061-1069,1078-1079,1083-1084,1335
+src/perf.js
+  s_1fd8d0e7b02dcf::t_4ba19dbc9d97f6 116,131,239-241,254-255,263-292
+tests/incal-trees.test.js
+  s_1fd8d0e7b02dcf::t_272f66db23dd6e 1-38
+tests/quality.test.js
+  s_1fd8d0e7b02dcf::t_b20c13687e5ff6 4,64-102
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "602ae43327744b08e4aebf4bf8cfde6ebfb8682a",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
