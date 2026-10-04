@@ -89,7 +89,7 @@ export const LEVELS = [
     moves: 'unlocked by finishing every world',
   },
   {
-    // a developer's world: the game's surfaces and giant faces side by side (?level=lab; in no menu)
+    // a developer's world: the game's surfaces and giant faces side by side (in the worlds list, L, for testing; never on the route)
     id: 'lab', create: createLab, hidden: true, dev: true,
     title: 'The Lab', source: 'for looking closely',
     blurb: 'Every surface the game draws, on pedestals in a row, and four giant villagers to study faces by.',

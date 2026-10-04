@@ -21,7 +21,7 @@ The same release notes shown in the game (press **N** or open settings).
 - Riding on a controller: R2 is the throttle and L2 brakes, and the stick steers. On the bird and the taxi the stick also tips you up and down.
 - Select opens your gear, every item and what it does; Start opens the settings. In menus, A confirms and B goes back. The “Swap A/B” setting is now “Controller buttons”, for pads whose letters sit somewhere else.
 - Walking through the portals in the Airtight Garage is smooth: a quick fade into the portal’s light and you walk out the other side at your own pace, the view already upright, instead of a hard cut. Fixed a portal sometimes throwing you back to the one you entered.
-- For testing: a hidden Lab world (open it with ?level=lab) shows every surface the game draws side by side, and four giant villagers to study faces by.
+- For testing: a Lab world in the worlds list (L) shows every surface the game draws side by side, and four giant villagers to study faces by.
 - In the City-Shaft the jets’ box no longer waits beside the ship: it sits on top of a lone makers’ pillar on the rim, a climb away.
 - The great light that turns above the City-Shaft’s palace is now called the Lodestar.
 - The door to the crashed ship on Edena is now a hatch in its hull, under an arch of flowers, instead of a doorway standing a few metres away.

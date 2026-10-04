@@ -1101,8 +1101,8 @@ player from great heights pass `health: false`.
 
 ## The Lab (v0.39)
 
-`?level=lab` (`src/levels/lab.js`) is a developer's world in no menu (`dev: true`
-in `src/levels/index.js`, filtered from the worlds list and off the route). A
+`?level=lab` (`src/levels/lab.js`) is a developer's world (`dev: true` in
+`src/levels/index.js`): always in the worlds list (L) for testing, never on the route. A
 row of pedestals shows every surface `makeMaterial` can draw (`LAB_MATERIALS`:
 flat, smooth, rock strata, cracked, facade, tiles, leaves, brush, grid, glyphs,
 glow, a placeholder metal, and the box dissolve breathing in and out) on a
