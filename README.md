@@ -1289,3 +1289,34 @@ Pocket. Their built-in controls work through the Gamepad API.
   conversation and stay up while A turned the pages under it. It is now drawn and kept in
   the sketchbook at once, and opens when the conversation closes (`story.waitFor`); a
   controller press goes to whatever is on top (`menuRoot`).
+
+### Ground ink by distance, steady façades, fine lines on distant people
+- **Ground ink** (`src/ground-ink.js`, used by `MODE_TERRAIN` in `src/materials.js`): every
+  mark on the ground has a real width in metres. Close up it is a crisp pen line (1 to
+  ~1.7 px, anti-aliased from its screen-space gradient, so it holds at grazing angles);
+  once it is thinner than a pixel it is drawn lighter instead of thinner, so a patch of
+  ground holds the same ink at every distance; once a pattern is too dense to draw it
+  hands over to exactly that average tone. Nothing switches on with distance any more
+  (the old pixel-width fade made ripples and cracks pop in a band ahead of you).
+  Sand: grains near → wind ripples (1.6 m) → long wind lines over the dunes (9 m) → tone;
+  in the dotted print style, world-sized dots replace the old pixel-sized stipple on sand.
+  Salt flats: small crust cracks near → the big dried-mud polygons → tone; the Voronoi
+  search returns the border normal, so crack width comes from the true screen gradient.
+  `penLine` / `lineField` have JS twins that `tests/ground-ink.test.js` checks.
+- **Flat walls far from the origin** (`vObjRel` in `materials.js`): facet normals came from
+  screen derivatives of positions hundreds of metres out (a merged city), whose low bits
+  are rounding noise; times those coordinates, the hatching on Qanat's walls turned into
+  speckle that changed every frame. The derivative now uses the position measured from
+  the camera, and a facet takes a single stroke projection.
+- **Façades** (`facade`, `strata`, `gridLines`, `roofTiles`): window glass and shutters are
+  anti-aliased and fade into the wall's average tint once windows are a few pixels; the
+  wall direction comes from the vertex normal (no jitter); strata bands, window grids and
+  roof rows hand over to their average colour or tone before they get dense enough to
+  shimmer. Hard tone edges stay hard on purpose: post.js inks them as one solid line.
+- **People far away** (`uFigure`, packed as +4 in `gHatch.a`; `post.js`): character
+  materials (humanoids, costumes, the crowd) are flagged. Where an inked pixel's kernel
+  touches a person, the lines are redrawn by the figure's height on screen: a narrower
+  kernel and a lighter outline that stays on the background side once small, and the
+  inner lines, drawn detail and hatching fading first. Distant figures keep their
+  colours with a fine outline; only pixels that already have ink pay the extra taps. The
+  player keeps its own mask (`uHero`).

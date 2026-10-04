@@ -448,14 +448,18 @@ const fragmentShader = /* glsl */ `
     vec4 N = texture(tNormal, uv);
     bool isSky = N.w <= 0.0;
     vec4 surface = texture(tHatch, uv);
+    // gHatch.a packs glow (0..1) + 2 hero (the player) + 4 figure (any other person)
+    float figure = step(3.5, surface.a);
+    surface.a -= 4.0 * figure;
     float hero = step(1.5, surface.a);
     // Detail follows projected size, so a small landscape-phone figure keeps colour.
     float heroHeight = max(0.0, uSubject.w) * 2.0 * uRes.y / uPixelRatio;
     float heroDetail = smoothstep(70.0, 180.0, heroHeight);
     vec2 hp = max(1.0, 0.65 * uPixelRatio) / uRes;
-    vec4 hm = step(vec4(1.5), vec4(texture(tHatch, uv + vec2(hp.x, 0)).a,
+    vec4 hm = vec4(texture(tHatch, uv + vec2(hp.x, 0)).a,
       texture(tHatch, uv - vec2(hp.x, 0)).a, texture(tHatch, uv + vec2(0, hp.y)).a,
-      texture(tHatch, uv - vec2(0, hp.y)).a));
+      texture(tHatch, uv - vec2(0, hp.y)).a);
+    hm = step(vec4(1.5), hm - 4.0 * step(vec4(3.5), hm));
     float heroNear = max(hero, max(max(hm.x, hm.y), max(hm.z, hm.w)));
     float heroBoundary = heroNear - min(hero, min(min(hm.x, hm.y), min(hm.z, hm.w)));
     float depth = isSky ? 1e7 : N.w;
@@ -516,6 +520,32 @@ const fragmentShader = /* glsl */ `
     float broken = mix(1.0, smoothstep(0.22, 0.34, gapN), uLineVary * (1.0 - subj) * smoothstep(3.0, 12.0, probeD));
     float ink = clamp(max(max(eS.x, eI.y * broken), max(eI.z * 0.85 * broken, eI.w * 0.8)), 0.0, 1.0);
 
+    // People far away: a pen line of fixed width turned small figures into black shapes
+    // (more so at the handheld's render scale). Where this pixel's kernel touches a person
+    // (gHatch.a figure flag), the lines are redrawn by the figure's height on screen: a
+    // narrower kernel and a lighter outline, kept on the background side once the figure is
+    // small, and the inner lines (folds, colour zones, face) fading out first. Only pixels
+    // that already have ink pay for the extra taps.
+    // how much inner ink (lines, drawn detail, hatching) a person keeps here
+    float innerK = figure > 0.5 && hero < 0.5 ? smoothstep(70.0, 260.0, 1.8 * uRes.y * 0.5 * uProj11 / max(depth, 0.1)) : 1.0;
+    if (ink > 0.02 && hero < 0.5 && !isSky) {
+      vec2 fo = max(silW * uPixelRatio, 1.0) / uRes;
+      vec4 fa = vec4(texture(tHatch, euv + vec2(fo.x, 0)).a, texture(tHatch, euv - vec2(fo.x, 0)).a,
+                     texture(tHatch, euv + vec2(0, fo.y)).a, texture(tHatch, euv - vec2(0, fo.y)).a);
+      float figHit = max(figure, max(max(step(3.5, fa.x), step(3.5, fa.y)), max(step(3.5, fa.z), step(3.5, fa.w))));
+      if (figHit > 0.5) {
+        float figPx = 1.8 * uRes.y * 0.5 * uProj11 / max(nearD, 0.1);   // a person's height, render px
+        float k = smoothstep(40.0, 260.0, figPx);
+        float innerF = smoothstep(70.0, 260.0, figPx);
+        float alpha = mix(0.5, 1.0, smoothstep(20.0, 140.0, figPx));
+        float nd;
+        vec4 fS = inkLines(euv, mix(1.0, silW * uPixelRatio, k), false, nd);
+        vec4 fI = uPostLite > 0.5 ? fS : inkLines(euv, mix(1.0, inW * uPixelRatio, k), true, nd);
+        float outline = fS.x * alpha * mix(1.0 - figure, 1.0, k);
+        ink = clamp(max(outline, max(max(fI.y, fI.z * 0.85) * broken, fI.w * 0.8) * mix(innerF, 1.0, 1.0 - figure)), 0.0, 1.0);
+      }
+    }
+
     float heroInk = max(heroBoundary * 0.82, max(eI.y, eI.z) * 0.22 * heroDetail * hero);
     ink = mix(ink, heroInk, heroNear);
 
@@ -548,7 +578,8 @@ const fragmentShader = /* glsl */ `
       hFade *= mix(1.0, 0.12 * heroDetail, hero);
       vec3 H = surface.rgb;
       // the player's drawn face and folds are its pen work: full strength once it is large enough to read
-      H.b *= mix(1.0, heroDetail, hero);
+      H.b *= mix(1.0, heroDetail, hero) * innerK;
+      hFade *= innerK;
       // drawn detail lines: grids, glyphs, ripples, cracks, fissures (independent of the marks toggle)
       col = mix(col, uInk, clamp(H.b, 0.0, 1.0) * mix(0.6, 0.88, hero) * (1.0 - smoothstep(120.0, 600.0, depth)));
       if (hFade > 0.0 && uHatchScreen < 0.5) {
@@ -563,7 +594,7 @@ const fragmentShader = /* glsl */ `
       if (uAO > 0.0 && depth < 260.0 && hero < 0.5) {
         float ao = creaseAO(uv, N.xyz, depth, fc) * (1.0 - smoothstep(80.0, 260.0, depth)) * uAO;
         col = mix(col, col * uShadowTint * 0.85, smoothstep(0.15, 0.7, ao) * 0.55);
-        ink = max(ink, smoothstep(0.6, 0.9, ao) * 0.45);
+        ink = max(ink, smoothstep(0.6, 0.9, ao) * 0.45 * innerK);
       }
 
       // ---- 4. atmospheric perspective, in flat layers like a printed background

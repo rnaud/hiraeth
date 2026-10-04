@@ -191,8 +191,8 @@ export class Humanoid {
     this.model = model;
     const C = char.colors;
     const body = makeMaterial({ color: C.cloth, color2: C.legs, color3: C.boot ?? '#6e3f2c', mode: MODE_OUTFIT, skin, outfit: OUTFIT[kind], face: faceAfterReshape(kind), gloves, suit });
-    const eyes = makeMaterial({ color: C.ink });
-    const brows = makeMaterial({ color: hair });
+    const eyes = makeMaterial({ color: C.ink, figure: true });
+    const brows = makeMaterial({ color: hair, figure: true });
     model.traverse((o) => {
       if (!o.isMesh) return;
       const isBrow = /brow/i.test(o.name) || /hair/i.test(o.material?.name ?? '');
@@ -207,7 +207,7 @@ export class Humanoid {
         const flat = !!o.geometry.attributes.color;
         const tone = TRAVELLER_PALETTE[TRAVELLER_TONES[source.name]];
         const color = flat ? '#ffffff' : tone ?? source.color;
-        o.material = makeMaterial({ color, map: source.map, glass, glassCenter, glow: glass ? 0.35 : 0, vertexColors: flat, palette: flat ? Object.values(TRAVELLER_PALETTE) : null,
+        o.material = makeMaterial({ figure: true, color, map: source.map, glass, glassCenter, glow: glass ? 0.35 : 0, vertexColors: flat, palette: flat ? Object.values(TRAVELLER_PALETTE) : null,
           creases: flat && o.isSkinnedMesh ? limbSegments(o) : null, headBall: portrait ? HEAD_BALL : undefined });
         if (portrait) {
           const uniforms = o.material.uniforms;
@@ -341,7 +341,7 @@ export class Humanoid {
     for (const h of this.hood) h.visible = kind === 'hood';
     if (kind === 'hood') return;
     const A = this.headAnchor;
-    const mat = (c, o = {}) => makeMaterial({ color: c, ...o });
+    const mat = (c, o = {}) => makeMaterial({ color: c, figure: true, ...o });
     const add = (geo, m, x = 0, y = 0, z = 0) => { const mesh = new THREE.Mesh(geo, m); mesh.position.set(x, y, z); mesh.userData.noCollide = true; A.add(mesh); return mesh; };
     // short hair under any hat, a fuller cut for bare heads
     const cap = new THREE.SphereGeometry(0.118, 16, 10, 0, Math.PI * 2, 0, Math.PI * 0.58);
@@ -414,8 +414,8 @@ export class Humanoid {
       body.parent.add(mesh);
       this._costume.push(mesh);
     };
-    make(base.main, makeMaterial({ color: '#ffffff', vertexColors: true, side: THREE.DoubleSide }));
-    make(base.glow, makeMaterial({ color: '#ffffff', vertexColors: true, glow: 0.85, side: THREE.DoubleSide }));
+    make(base.main, makeMaterial({ color: '#ffffff', vertexColors: true, side: THREE.DoubleSide, figure: true }));
+    make(base.glow, makeMaterial({ color: '#ffffff', vertexColors: true, glow: 0.85, side: THREE.DoubleSide, figure: true }));
   }
 
   /** The costume's merged geometry in this model's bind space (cached per body kind and look; colours added per person). */

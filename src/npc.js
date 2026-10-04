@@ -182,7 +182,7 @@ export class NPC {
       : null;
     if (this.cape && this.pooled) this.cape.mesh.visible = false;
     // the cape's rolled collar in the cape's own colour
-    c.root.traverse((o) => { if (o.isMesh && o.geometry.type === 'TorusGeometry' && o.parent === c.capeAnchor) { o.visible = !!this.cape; o.material = makeMaterial({ color: s.cloak }); } });
+    c.root.traverse((o) => { if (o.isMesh && o.geometry.type === 'TorusGeometry' && o.parent === c.capeAnchor) { o.visible = !!this.cape; o.material = makeMaterial({ color: s.cloak, figure: true }); } });
   }
 
   /** Stilled by a 'stun' glob: frozen mid-move for a few seconds (nobody can talk to them meanwhile). */
