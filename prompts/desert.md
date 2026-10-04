@@ -1,0 +1,23 @@
+# The Desert
+
+Golden dunes, giant skeletons and Qanat, a terraced city of pilgrims around a burning tree.
+
+## Nour, the eldest of Qanat
+
+Character exploration sheet for the frail, upright eldest of a desert city of pilgrims in a surreal science fiction adventure. Tiny and straight-backed, long saffron robe layered over cream linen, a tall woven straw hat with a wide brim and a hanging veil of beads, a carved walking staff topped with a three-dot glyph, sandals, a ring of keys and small clay jars on a cord at her waist, deep wrinkles and very bright eyes. Six distinct variations exploring hat shape, robe layers, staff design and ceremonial ornaments. Full body, readable silhouettes, restrained detail, warm cream background. Franco-Belgian science fiction comic, ligne claire ink drawing, thin precise contours, flat pastel colors, subtle paper texture, sparse crosshatching, whimsical industrial design, quiet mystery. Preserve the handmade illustrated feeling of the reference. No text, no photorealism, no heavy black shadows. Moebius style.
+
+## Sefa, the oud player
+
+Character exploration sheet for a travelling musician of the desert caravans in a surreal science fiction adventure. A lean woman in a violet hooded cloak with a dark lining, cream undertunic, slate trousers, teal cap, long dark hair in one braid, carrying a pear-shaped oud with a painted soundboard and a strap of woven ribbons, little bells sewn on the hem. Six distinct variations exploring cloak drape, instrument design, seated and walking poses, and travel gear. Full body, readable silhouettes, restrained detail, warm cream background. Franco-Belgian science fiction comic, ligne claire ink drawing, thin precise contours, flat pastel colors, subtle paper texture, sparse crosshatching, whimsical industrial design, quiet mystery. Preserve the handmade illustrated feeling of the reference. No text, no photorealism, no heavy black shadows. Moebius style.
+
+## Bako, the ney player
+
+Character exploration sheet for an old reed-flute player who hums more than he speaks, in a surreal science fiction adventure. Stooped, long teal robe over a brown tunic, a cream turban wound loosely, grey stubble, a long reed ney flute held across the chest, a satchel of spare reeds, a cushion tied to his back for sitting by the fire. Six distinct variations exploring posture, turban shapes, robe layers, and how he carries the flute. Full body, readable silhouettes, restrained detail, warm cream background. Franco-Belgian science fiction comic, ligne claire ink drawing, thin precise contours, flat pastel colors, subtle paper texture, sparse crosshatching, whimsical industrial design, quiet mystery. Preserve the handmade illustrated feeling of the reference. No text, no photorealism, no heavy black shadows. Moebius style.
+
+## The Speaker of the procession
+
+Character exploration sheet for the leader of a slow pilgrim procession that circles a desert city, in a surreal science fiction adventure. Tall, solemn, robed in layered ochre and rust with a stiff high collar, a towering hat like a stepped mesa, a long pole with a hanging bell and ribbon streamers, a mask of beaten copper pushed up on the forehead, bare dusty feet. Six distinct variations exploring hat silhouette, the bell staff, collar shapes and processional ornaments. Full body, readable silhouettes, restrained detail, warm cream background. Franco-Belgian science fiction comic, ligne claire ink drawing, thin precise contours, flat pastel colors, subtle paper texture, sparse crosshatching, whimsical industrial design, quiet mystery. Preserve the handmade illustrated feeling of the reference. No text, no photorealism, no heavy black shadows. Moebius style.
+
+## Marrow, salvager and liar
+
+Character exploration sheet for a cheerful desert scavenger who digs through giant bones and crashed machines, in a surreal science fiction adventure. Wiry, patched cream duster coat with a hundred pockets, goggles with mismatched lenses, a scarf over the mouth, a hand-cart of bone fragments and machine parts, a long hooked probe, boots wrapped in rags, a grin missing one tooth. Six distinct variations exploring coat patches, the cart, goggles and salvage tools. Full body, readable silhouettes, restrained detail, warm cream background. Franco-Belgian science fiction comic, ligne claire ink drawing, thin precise contours, flat pastel colors, subtle paper texture, sparse crosshatching, whimsical industrial design, quiet mystery. Preserve the handmade illustrated feeling of the reference. No text, no photorealism, no heavy black shadows. Moebius style.

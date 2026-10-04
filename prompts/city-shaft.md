@@ -1,0 +1,23 @@
+# The City-Shaft
+
+A city stacked down a 600 m pit: rich villas on the rim, dark crowded levels below, flying taxis, and the Lodestar turning above the palace.
+
+## Nima, who sweeps the high terrace
+
+Character exploration sheet for a patient street sweeper of a vertical city stacked down a giant pit, in a surreal science fiction adventure. Slim, lilac work smock over a cream undershirt, sleeves rolled, a long-handled broom of stiff blue bristles, a dustpan on a chain at the hip, a small round cap, a rag tucked in the belt, always glancing up at a great light in the sky. Six distinct variations exploring smock cut, broom designs, cap shapes and sweeping poses. Full body, readable silhouettes, restrained detail, warm cream background. Franco-Belgian science fiction comic, ligne claire ink drawing, thin precise contours, flat pastel colors, subtle paper texture, sparse crosshatching, whimsical industrial design, quiet mystery. Preserve the handmade illustrated feeling of the reference. No text, no photorealism, no heavy black shadows. Moebius style.
+
+## Corvin Sale, of the rim
+
+Character exploration sheet for a vain aristocrat of the sunny rim of a pit city, in a surreal science fiction adventure. Tall and soft, an elegant pale coat with a huge stiff collar and pastel stripes, a tiny parasol hat, gloves, a cane with a jewelled top, a little floating drone carrying his shopping bags, a bored expression. Six distinct variations exploring collar shapes, coat patterns, hats and accessories. Full body, readable silhouettes, restrained detail, warm cream background. Franco-Belgian science fiction comic, ligne claire ink drawing, thin precise contours, flat pastel colors, subtle paper texture, sparse crosshatching, whimsical industrial design, quiet mystery. Preserve the handmade illustrated feeling of the reference. No text, no photorealism, no heavy black shadows. Moebius style.
+
+## Ossa, keeper of the Upward Shrine
+
+Character exploration sheet for a devout keeper of a shrine at the dark bottom of a pit city, in a surreal science fiction adventure. Heavy layered robes in smoky grey and rust, a hood with a ring of small lamps sewn around its rim, a bronze bowl held up toward the far light, prayer cords wound round the arms, soot on the hems, kind tired eyes. Six distinct variations exploring hood lamps, robe layers, the offering bowl and devotional poses. Full body, readable silhouettes, restrained detail, warm cream background. Franco-Belgian science fiction comic, ligne claire ink drawing, thin precise contours, flat pastel colors, subtle paper texture, sparse crosshatching, whimsical industrial design, quiet mystery. Preserve the handmade illustrated feeling of the reference. No text, no photorealism, no heavy black shadows. Moebius style.
+
+## Wren, the taxi driver who still stops
+
+Character exploration sheet for a flying-taxi driver in a vertical pit city, in a surreal science fiction adventure. Stocky, a yellow quilted jacket with a checked band, leather flying cap with ear flaps and round goggles, a headset with a curly cord, fingerless gloves, a coin box on the belt, a fold-out map in a pocket, a dented license plate badge. Six distinct variations exploring jacket cut, cap and goggles, badges and driving poses. Full body, readable silhouettes, restrained detail, warm cream background. Franco-Belgian science fiction comic, ligne claire ink drawing, thin precise contours, flat pastel colors, subtle paper texture, sparse crosshatching, whimsical industrial design, quiet mystery. Preserve the handmade illustrated feeling of the reference. No text, no photorealism, no heavy black shadows. Moebius style.
+
+## Dov, guard at the palace gate
+
+Character exploration sheet for a weary ceremonial guard at a palace at the top of a pit city, in a surreal science fiction adventure. Tall, a long stiff white tunic with a gold sash, a towering crested helmet like a chess piece, a long ceremonial halberd with a glowing tip, polished boots, a small lunch tin hidden behind the back, a drooping moustache. Six distinct variations exploring helmet crests, tunic trims, the halberd and stances. Full body, readable silhouettes, restrained detail, warm cream background. Franco-Belgian science fiction comic, ligne claire ink drawing, thin precise contours, flat pastel colors, subtle paper texture, sparse crosshatching, whimsical industrial design, quiet mystery. Preserve the handmade illustrated feeling of the reference. No text, no photorealism, no heavy black shadows. Moebius style.
