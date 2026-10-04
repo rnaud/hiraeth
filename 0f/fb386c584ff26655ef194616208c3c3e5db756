@@ -1,0 +1,29 @@
+src/levels/buried.js
+  s_1fd8d0e7b02dcf::t_45ce471fd9ff6e 60,63-75,817-835
+src/story/buried-data.js
+  s_1fd8d0e7b02dcf::t_1e37b93f08a7ad 13-14,134,141,390,395
+src/story/buried.js
+  s_1fd8d0e7b02dcf::t_1bb50b80596521 19-20,35-36,145,212-214,227,290,294,398-433,454,457
+src/world.js
+  s_1fd8d0e7b02dcf::t_22738f575280f4 167-212
+tests/buried.test.js
+  s_1fd8d0e7b02dcf::t_c4217633502ca0 88-111
+tests/story-buried.test.js
+  s_1fd8d0e7b02dcf::t_dffde50120841a 16,123-124,126,128-137,194-212
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0ffb386c584ff26655ef194616208c3c3e5db756",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
