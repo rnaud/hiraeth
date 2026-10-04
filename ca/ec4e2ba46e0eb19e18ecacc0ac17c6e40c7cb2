@@ -1,0 +1,27 @@
+src/levels/bazaar.js
+  s_1fd8d0e7b02dcf::t_9e884a5482d3f9 195,197-199,201,258
+src/levels/incal.js
+  s_1fd8d0e7b02dcf::t_d27265798729a3 335,343,569-572,585-587,590,593,602,605,613,617,627,738
+src/story/bazaar.js
+  s_1fd8d0e7b02dcf::t_99d34cd922aec2 72-75,88,171,181-182,186-194,260-261,264-269,304-311
+src/story/incal.js
+  s_1fd8d0e7b02dcf::t_5f0b0c2f16b148 6-7,159-170,172-180,182,193-195,284-285
+tests/story-bazaar.test.js
+  s_1fd8d0e7b02dcf::t_ef24cad587c939 116,118,132
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "caec4e2ba46e0eb19e18ecacc0ac17c6e40c7cb2",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
