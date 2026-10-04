@@ -1,0 +1,35 @@
+src/boxes/placements.js
+  s_1fd8d0e7b02dcf::t_bf0f2ee6e51a5d 32-35
+src/levels/incal.js
+  s_1fd8d0e7b02dcf::t_9e240cdaf313b0 25-26,650,723-735
+TODO.md
+  s_6c52e0c9718413::t_2644eeb5c04e94 168-171
+changelog.md
+  s_6c52e0c9718413::t_027fcde59b8283 12
+src/changelog.js
+  s_6c52e0c9718413::t_b43ef1facc987b 12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "cdc05d118965de4858f014a4b42d1be0cb8b2d51",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_6c52e0c9718413": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aeea0fb0371b31885",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
