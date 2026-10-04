@@ -750,6 +750,11 @@ for (const event of ['keydown', 'pointerdown', 'touchstart']) window.addEventLis
 /** The whole pipeline for one view: shadows, G-buffer, composite, overlays. */
 const _subj = new THREE.Vector3(), _subjUp = new THREE.Vector3(0, 1, 0);
 function renderFrame() {
+  // the scene graph's matrices once per frame, not once per pass: renderer.render() walks the
+  // whole scene to update them every call, and a frame makes four or five calls (~1 ms of CPU)
+  scene.matrixWorldAutoUpdate = true;
+  scene.updateMatrixWorld();
+  scene.matrixWorldAutoUpdate = false;
   // 1. shadow maps (the wide cascade only refreshes every 3rd frame)
   const lightDir = sharedUniforms.uSunDir.value;
   // far pebbles and shrubs are skipped in every pass; only what is shown now is hidden, then restored
@@ -805,6 +810,7 @@ function renderFrame() {
   renderer.setRenderTarget(null);
   renderer.render(blit.scene, post.camera);
   for (const o of farHidden) o.visible = true;
+  scene.matrixWorldAutoUpdate = true;   // (anything else that renders the scene keeps the usual behaviour)
 }
 
 /** Render the scene from another viewpoint and grab it as an image (comic panels, sketches). */
