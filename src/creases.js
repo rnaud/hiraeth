@@ -67,12 +67,11 @@ float outfitCreases(vec3 p, vec3 n, float dark) {
 }
 `;
 
-// the outfit rig's names, and the people's skeleton's (the traveller now wears the outfit on it: outfit.js)
+// the old outfit rig's names, and the people's skeleton's (the traveller's suit is painted on the people's body: traveller.js)
 const LIMBS = ['upper_arm', 'forearm', 'hand', 'thigh', 'shin', 'foot'];
 const HUMAN = ['upperarm_', 'lowerarm_', 'hand_', 'thigh_', 'calf_', 'foot_'];
 /**
- * Bind-pose limb segments (upper arms, forearms, thighs, shins) of a skin, in its own geometry's
- * coordinates (an outfit fitted through its inverse bind matrices gets its own rig's joints back).
+ * Bind-pose limb segments (upper arms, forearms, thighs, shins) of a skin, in its own geometry's coordinates.
  */
 export function limbSegments(skinned) {
   const { bones, boneInverses } = skinned.skeleton;
