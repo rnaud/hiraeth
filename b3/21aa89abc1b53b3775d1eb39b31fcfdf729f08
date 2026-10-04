@@ -1,0 +1,27 @@
+src/levels/garage.js
+  s_1fd8d0e7b02dcf::t_579507bde1f830 31,79-80,91
+src/story/arzach-data.js
+  s_1fd8d0e7b02dcf::t_341b9d5b8246d7 36
+src/story/arzach2.js
+  s_1fd8d0e7b02dcf::t_24da0d8bddc3ec 25-26
+src/story/garage.js
+  s_1fd8d0e7b02dcf::t_67f6a980e2283e 94,97,99
+tests/story-garage.test.js
+  s_1fd8d0e7b02dcf::t_9c582195d1c18c 132
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b321aa89abc1b53b3775d1eb39b31fcfdf729f08",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
