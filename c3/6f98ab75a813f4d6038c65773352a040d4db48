@@ -1,0 +1,69 @@
+README.md
+  s_1fd8d0e7b02dcf::t_03865ad0cca753 1292-1332
+TODO.md
+  s_1fd8d0e7b02dcf::t_6a350f5a8b387a 107
+index.html
+  s_1fd8d0e7b02dcf::t_2441126c877a50 14,71,285,321-322,423
+src/audio.js
+  s_1fd8d0e7b02dcf::t_4aedf04042affa 70-112,187-190,209,211-212,244-247,258,261,265,270,306-375,402,882,979
+src/boot.js
+  s_1fd8d0e7b02dcf::t_2ecd47cb52423b 1-16
+src/controller.js
+  s_1fd8d0e7b02dcf::t_79d01687f18c87 39-43
+src/game-state.js
+  s_1fd8d0e7b02dcf::t_ccafed69d95621 56-58,61
+src/levels/content.js
+  s_1fd8d0e7b02dcf::t_5622dc647ec558 22-23
+src/levels/index.js
+  s_1fd8d0e7b02dcf::t_15a0254a5206f8 1,20,26,32,38,44,50,56,62,68,74,80,86,93
+src/main.js
+  s_1fd8d0e7b02dcf::t_e523ff5db6aa38 49,170-172,359-360,364-368,558-561,564-569,571-580,587-592,631,635,753,771-773,986-987,995,997-1000,1131-1142,1207
+src/menus.css
+  s_1fd8d0e7b02dcf::t_63208f8c6cce0e 1-161
+src/quest.js
+  s_1fd8d0e7b02dcf::t_959a66563c7630 3,11,22,29,36
+src/reactive-world.js
+  s_1fd8d0e7b02dcf::t_527b3e067c7f22 5,121
+src/save-slots.js
+  s_1fd8d0e7b02dcf::t_48f0293114d713 1-181
+src/ship/prologue.js
+  s_1fd8d0e7b02dcf::t_a584a6d29c385e 21
+src/ship/ship.js
+  s_1fd8d0e7b02dcf::t_711d99292e5260 581
+src/title.js
+  s_1fd8d0e7b02dcf::t_02f9258b3ff7e9 1-283
+src/ui.js
+  s_1fd8d0e7b02dcf::t_9e0f6f866322c6 2,43-50,52,54-55,57-58,60-95,100,107,110-116,118-119,121-122,124-127,129-139,143-147,150-155,157-158,304,306-308
+tests/controller.test.js
+  s_1fd8d0e7b02dcf::t_df9588dfd236f4 71-80
+tests/menus.test.js
+  s_1fd8d0e7b02dcf::t_da0ee065da6e61 1-55
+tests/save-slots.test.js
+  s_1fd8d0e7b02dcf::t_3dc80e2458737b 1-140
+src/levels/names.js
+  s_6c52e0c9718413::t_28f9f324efdb5c 1-22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c36f98ab75a813f4d6038c65773352a040d4db48",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_6c52e0c9718413": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aeea0fb0371b31885",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
