@@ -31,6 +31,7 @@ import { FluidTool, bindToolMouse } from './fluid-tool.js';
 import { ORDER } from './levels/content.js';
 import { createStory } from './story/index.js';
 import { registerInteractable, PRIORITY } from './interact.js';
+import { Ship } from './ship/ship.js';
 import { game } from './game-state.js';
 
 // Loading: each stage updates the inked loading screen, then yields a frame
@@ -170,6 +171,7 @@ const query = new URLSearchParams(location.search);
 const levelParam = query.get('level');
 const viaEdge = query.get('via') === 'edge';
 const viaGate = query.get('via') === 'gate' || viaEdge;
+const viaShip = query.get('via') === 'ship';
 const meta = levelById(levelParam) ?? LEVELS[0];
 const levelId = meta.id;
 const content = CONTENT[levelId];
@@ -185,6 +187,11 @@ const t0 = performance.now();
 const physics = await Physics.create(scene, level.ground.heightAt ? level.ground : null);
 console.info(`collision: ${physics.triangles.toLocaleString()} triangles in ${(performance.now() - t0).toFixed(0)} ms (BVH in a worker)`);
 level.init?.(physics);
+// the traveller's ship at this world's arrival point (src/ship/); a new game opens with the prologue
+// (no ?level and prologue.done unset, or ?prologue=1 to replay it)
+const playPrologue = levelId === 'desert' && !viaGate && !viaShip && (query.get('prologue') === '1' || (!levelParam && !game.flag('prologue.done')));
+const ship = new Ship({ scene, physics, level, levelId, content, prologue: playPrologue });
+level.ship ??= { pos: ship.rampFoot.clone() };   // quests that say "return to the ship" point at its ramp
 const reactiveWorld = new ReactiveWorld(scene, level, physics, content);
 window.addEventListener('pagehide', () => reactiveWorld.flush());
 // tile world-spanning meshes so each pass only draws what it can see
@@ -309,6 +316,14 @@ const scout = new Scout({ scene, player, physics, sound, label: document.getElem
 });
 // wildlife: two or three small species per world, each with a surprise (src/wildlife.js)
 const wildlife = new Wildlife(scene, level, physics, { content, sound });
+ship.attach({ player, rig, camera, sound, journal, post, story, wind, levels: LEVELS, order: ORDER, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])) });
+if (viaShip) {
+  const a = ship.arrivalSpot();
+  player.respawn(a.pos);
+  player.heading = a.heading;
+  rig.yaw = a.heading + Math.PI;
+  history.replaceState(null, '', `?level=${levelId}`);
+}
 if (viaGate) {
   const a = gate.arrival();
   player.respawn(a.pos);
@@ -357,7 +372,7 @@ function edgeTravel() {
 }
 // continue where you left off (same world, not arriving through a gate)
 const saved = SaveGame.load();
-if (!viaGate && saved?.level === levelId && saved.pos) {
+if (!viaGate && !viaShip && !playPrologue && saved?.level === levelId && saved.pos) {
   const p = new THREE.Vector3(...saved.pos);
   player.respawn(p);
   if (saved.up) player.frame.set(new THREE.Vector3(...saved.up), new THREE.Vector3(...saved.fwd));
@@ -368,8 +383,8 @@ const writeSave = () => SaveGame.write({
   level: levelId, pos: player.pos.toArray(), heading: player.heading, yaw: rig.yaw, hour: sky.hour,
   up: player.frame.up.toArray(), fwd: player.frame.fwd.toArray(),
 });
-setInterval(() => { if (!player.riding && player.onGround) writeSave(); }, 5000);
-window.addEventListener('beforeunload', () => { if (!player.riding) writeSave(); });
+setInterval(() => { if (!player.riding && player.onGround && !ship.playing) writeSave(); }, 5000);
+window.addEventListener('beforeunload', () => { if (!player.riding && !ship.playing) writeSave(); });
 
 // footsteps: prints in the sand + a sound
 const onStepPrint = player.onStep;
@@ -526,8 +541,8 @@ const changelog = new Changelog();
 const menu = new SettingsMenu(settings, {
   sound,
   onNews: () => changelog.toggle(true),
-  isBusy: () => story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || photo.on || storyRt.busy(),
-  onResetProgress: () => { reactiveWorld.clear(); localStorage.removeItem('moebius.journal.v1'); SaveGame.clear(); location.search = '?level=desert'; },
+  isBusy: () => story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || photo.on || storyRt.busy() || ship.busy(),
+  onResetProgress: () => { reactiveWorld.clear(); localStorage.removeItem('moebius.journal.v1'); SaveGame.clear(); game.reset(); location.href = location.pathname; },   // a new game: the prologue
 });
 if (isTouch) new TouchControls(input, rig);
 
@@ -559,7 +574,7 @@ function showPicker(on) {
   picker.classList.toggle('open', on);
   if (on) document.exitPointerLock?.();
 }
-showPicker(!levelParam);
+showPicker(!levelParam && !playPrologue);   // L stays a developer shortcut; in play, worlds are chosen on the ship's galactic map
 picker.querySelector('.close').addEventListener('click', () => showPicker(false));
 window.addEventListener('keydown', (e) => {
   if (e.code === 'KeyL') showPicker(!picker.classList.contains('open'));
@@ -641,10 +656,14 @@ function updateHud() {
     else if (near) parts.push(`E ${near.kind === 'taxi' ? 'get in the taxi' : 'ride the ' + (level.mountName ?? near.kind)}`);
     else if (player.mount) parts.push(`E whistle for the ${level.mountName}`);
     else if (level.features.taxis) parts.push('E hail a taxi');
+    const shipHint = ship.hud();   // inside the ship and at its ramp, E is the ship's
+    if (shipHint) { for (let i = parts.length - 1; i >= 0; i--) if (parts[i].startsWith('E ')) parts.splice(i, 1); parts.unshift(shipHint); }
     if (!parts.length) parts.push('push into a wall to climb it');
   }
-  const goal = expedition?.state.started && !expedition.state.returned ? expedition.hud(player)
-    : storyRt.hud() ?? (expedition && !expedition.state.returned ? expedition.hud(player) : story.hud());
+  // a tracked quest's line wins; otherwise the ship's objective (set by the prologue) and the world's story
+  const objective = game.flag('objective');
+  const questLine = expedition?.state.started && !expedition.state.returned ? expedition.hud(player) : storyRt.hud();
+  const goal = questLine ?? [objective && `◆ ${objective}`, expedition && !expedition.state.returned ? expedition.hud(player) : story.hud()].filter(Boolean).join(' · ');
   const edgeHint = edgeTravel();
   let text = `${atmo.name} · ${parts.join(' · ')}` +
     `\n${goal ? goal + ' · ' : ''}${errands.hud() ? errands.hud() + ' · ' : ''}relics ${journal.relicCount(levelId)}/${content.relics.names.length} · Q ping · R tool · H help` +
@@ -655,7 +674,7 @@ function updateHud() {
 }
 
 
-const busy = () => story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || menu.open || endingOpen || storyRt.busy();
+const busy = () => story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || menu.open || endingOpen || storyRt.busy() || ship.busy();
 const noInput = {};
 let controllerActive = false;
 const controllerHint = document.createElement('div');
@@ -801,7 +820,7 @@ function frame() {
     : photo.on ? 'Left stick fly · right stick look · LB/RB down/up · A / × save · B / ○ exit'
     : 'A / × jump (again in the air: boost) · X / □ use · Y / △ ping · RT / R2 run · LT aim (+ RT shoot) · B / ○ push · ↑ worlds · ↓ photo · View sketchbook · Menu settings';
   const mergedInput = mergeControls(input, padInput);
-  const ctl = busy() ? noInput : mergedInput;
+  const ctl = busy() ? noInput : ship.input(mergedInput);   // the ship's E and its autopilot
 
   if (sky.speed > 0) sky.hour = (sky.hour + (sky.speed / 60) * dt) % 24;
   // region fog / horizon follow the player smoothly (the field itself is smooth)
@@ -825,6 +844,7 @@ function frame() {
     rig.update(player.pos, dt, player.frame);
     storyRt.frameCamera(camera);   // the two-shot while talking
   }
+  ship.update(dt, t, mergedInput, { photo: photo.on });   // inside / outside, its scenes and their camera
   tool.update(dt, ctl, busy() || photo.on);
   scout.update(dt, busy() || photo.on);
   if (!busy() && !photo.on) scout.placeLabel(camera);
@@ -972,7 +992,7 @@ requestAnimationFrame((t) => {
   ld?.classList.add('done');
   setTimeout(() => ld?.remove(), 900);
   if (viaGate) arriveFromPage(meta.title);
-  else story.start();
+  ship.start({ via: viaShip ? 'ship' : viaGate ? 'gate' : null, prologue: playPrologue, onReady: () => { if (!viaGate) story.start(); } });
   if (changelog.fresh) setTimeout(() => {   // after an update: point at what changed, once
     const t = document.getElementById('toast');
     t.textContent = `Updated to v${VERSION} · press N to see what's new`;
@@ -982,4 +1002,4 @@ requestAnimationFrame((t) => {
 
 // handy for debugging from the console
 Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, gate, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife,
-  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, game });
+  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game });
