@@ -1131,7 +1131,6 @@ export class Player {
     this.frame.quaternion(this.heading, this.object.quaternion);
     const H = this.humanoid;
     if (H) {
-      H.face?.update(dt, { speed: hs, climbing: this.climbing || !!this.mantle });
       H.update();
       if (this.animator && !this.ride && !this.gliding && !this.thrusting) H.poseHands(this.animator);
       const U = this.frame.up;
@@ -1145,6 +1144,8 @@ export class Player {
       // the hand-off: both hands on the tank while it swings between the back and the socket
       const hk = this.handoffGrip();
       if (hk > 0.01 && this.handoff?.handPoint) H.handOff?.(this.handoff.handPoint(_g1), hk, U);
+      // the eyes glance about and blink, as everyone's do (eyes.js)
+      H.updateEyes?.(dt);
     }
     // climbing on: over the last part of the hand-off, a hop from where you stand onto the seat
     if (this.boarding && this.boarding.k > 0.66 && this.boarding.v.seatTransform) {

@@ -1,14 +1,13 @@
-import { FaceExpression } from './face.js';
 import { limbSegments } from './creases.js';
-import { TRAVELLER_PALETTE, TRAVELLER_TONES } from './traveller-style.js';
+import { TRAVELLER_PALETTE } from './traveller-style.js';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 import { makeMaterial, MODE_OUTFIT, MODE_EYE } from './materials.js';
-import { EyeLook, EYE_WHITE, EYE_TILT, eyeballOf } from './eyes.js';
+import { EyeLook, EYE_WHITE, EYE_TILT, TRAVELLER_IRIS, eyeballOf } from './eyes.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { lookPieces, roleColor, BUILDS } from './costumes.js';
-import { fitOutfit } from './outfit.js';
+import { suitGeometry, travellerKit, TRAVELLER } from './traveller.js';
 
 // A real human body (Quaternius' Universal Base Characters, CC0) dressed in
 // the rider's clothes by our inked material, driven every frame by the
@@ -245,9 +244,6 @@ const _kq = new THREE.Quaternion(), _kq2 = new THREE.Quaternion(), _kq3 = new TH
 // held props: the idle clip's wrist tilts the hanging-arm frame back and out; this turns it upright again
 const HAND_GRIP = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(-0.45, 0.79, 0.41).normalize());
 
-// The face lights as one rounded volume (bind-pose centre, normal blend).
-const HEAD_BALL = [0, 1.8, 0.03, 0.8];
-
 export class Humanoid {
   /**
    * @param template loadHuman() result
@@ -257,9 +253,9 @@ export class Humanoid {
   constructor(template, char, kind = 'm', { skin = '#e8c6a8', hair = '#8a6a55', gloves = null, suit = false, outfit = null, build = null } = {}) {
     this.char = char;
     this.kind = kind;
-    // the traveller: the same body and skeleton as everyone, with its outfit (traveller.glb) fitted on top (outfit.js)
+    // the traveller: the same body, skeleton and face as everyone, its suit painted on and its gear worn on top (traveller.js)
     this.outfit = !!outfit;
-    if (outfit) this.face = new FaceExpression();
+    if (outfit) ({ skin, hair } = { skin: TRAVELLER_PALETTE.skin, hair: TRAVELLER_PALETTE.brow });
     this.noShadow = [];
     const model = cloneSkinned(template);
     this.model = model;
@@ -269,7 +265,7 @@ export class Humanoid {
     // the eyes (eyes.js): white, an iris (each person's own colour: NPC.restyle) that follows the gaze, blinking lids
     let eyeball = null;
     model.traverse((o) => { if (o.isMesh && /eye/i.test(o.name) && !/brow/i.test(o.name) && !eyeball) eyeball = o.userData.eyeball ?? null; });
-    const eyes = makeMaterial({ color: EYE_WHITE, color2: '#5e3a24', mode: MODE_EYE, skin, eye: eyeball ? { ...eyeball, iris: 0.4 } : undefined, figure: true });
+    const eyes = makeMaterial({ color: EYE_WHITE, color2: outfit ? TRAVELLER_IRIS : '#5e3a24', mode: MODE_EYE, skin, eye: eyeball ? { ...eyeball, iris: 0.4 } : undefined, figure: true });
     this.eyeLook = new EyeLook();
     const brows = makeMaterial({ color: hair, figure: true });
     model.traverse((o) => {
@@ -341,10 +337,11 @@ export class Humanoid {
     const c = this.char, B = this.b;
     const keep = new Set();
     // anchors at the head and shoulders, oriented like the character
-    const anchor = (bone, charPos, scale = 1) => {
+    const anchor = (bone, charPos, q = null, scale = null) => {
       const g = new THREE.Group();
       g.position.copy(charPos);
-      g.scale.setScalar(scale);
+      if (q) g.quaternion.copy(q);
+      if (scale) g.scale.copy(scale);
       c.root.add(g);
       c.root.updateMatrixWorld(true);
       bone.attach(g);     // keeps its character-space placement at the rest pose
@@ -352,23 +349,18 @@ export class Humanoid {
     };
     this.update(true);  // make sure the skeleton is at rest before anchoring
     const restHead = this.rest.get(B.Head).p;
-    const fit = this.outfitFit;
-    if (fit) {
-      // where the outfit rig had them (its head centre, its chest frame), carried over by the fit
-      this.headAnchor = anchor(B.Head, new THREE.Vector3(0, 1.75, 0.01).applyMatrix4(fit.head.W), fit.head.scale);
-      this.chestAnchor = anchor(B.spine_03, new THREE.Vector3(0, 0.73, 0).applyMatrix4(fit.pack));
-      // the right forearm in the outfit rig's frame (+y toward the hand, -x the thumb side): the bracer straps on here
+    this.headAnchor = anchor(B.Head, new THREE.Vector3(0, restHead.y + 0.1, restHead.z + 0.01));
+    const kit = this.kit;
+    if (kit) {
+      // the traveller: the chest frame behind the pack's front (the tank and the scout's dock sit there),
+      // and on each forearm the bracer's frame (+y toward the hand, -x the thumb's side, out round the sleeve)
+      this.chestAnchor = anchor(B.spine_03, new THREE.Vector3(0, kit.chestY, kit.chestZ));
       this.forearm = Object.fromEntries(['l', 'r'].map((s) => {
-        const o = new THREE.Object3D();
+        const f = kit.forearm[s], o = anchor(B[`lowerarm_${s}`], f.position, f.quaternion, f.scale);
         o.name = `forearm frame ${s}`;
-        fit.forearm[s].decompose(o.position, o.quaternion, o.scale);
-        B[`lowerarm_${s}`].add(o);
         return [s, o];
       }));
-    } else {
-      this.headAnchor = anchor(B.Head, new THREE.Vector3(0, restHead.y + 0.1, restHead.z + 0.01));
-      this.chestAnchor = anchor(B.spine_03, new THREE.Vector3(0, this.rest.get(B.neck_01).p.y - 0.74 - 0.02, 0));
-    }
+    } else this.chestAnchor = anchor(B.spine_03, new THREE.Vector3(0, this.rest.get(B.neck_01).p.y - 0.74 - 0.02, 0));
     const move = (obj, parent, pos) => { parent.add(obj); if (pos) obj.position.copy(pos); obj.traverse((o) => keep.add(o)); };
     this.hood = [];
     if (this.outfit) {
@@ -415,44 +407,46 @@ export class Humanoid {
   }
 
   /**
-   * Put the traveller's outfit (traveller.glb) on this body: every piece is skinned to this
-   * skeleton through the fit in outfit.js, and the body itself, wholly covered, is hidden.
+   * Dress this body as the traveller (traveller.js): the suit painted on a baggy copy of the body
+   * (the same vertices, weights and skeleton), the gear of traveller.glb (`scene`) and the extras
+   * built on the suit, every piece skinned to this body's own bones like a costume.
    */
   wearOutfit(scene) {
-    const fits = (scene.userData.fits ??= new Map());
-    const key = `${this.kind}|${this.body.geometry.uuid}`;
-    if (!fits.has(key)) fits.set(key, fitOutfit(scene, this.body));
-    const fit = (this.outfitFit = fits.get(key));
-    for (const o of [...this.model.children]) o.traverse((m) => { if (m.isMesh) m.visible = false; });
-    const bones = this.body.skeleton.bones;
-    const skeletons = { body: new THREE.Skeleton(bones, fit.inverses.body.map((m) => m.clone())), rigid: new THREE.Skeleton(bones, fit.inverses.rigid.map((m) => m.clone())) };
+    const body = this.body;
+    body.userData.baseGeometry ??= body.geometry;
+    body.geometry = suitGeometry(body);
+    const kit = (this.kit = travellerKit(scene, body));
+    const P = TRAVELLER_PALETTE;
+    body.material = makeMaterial({ color: P.suit, color2: P.suit, color3: P.boot, mode: MODE_OUTFIT, skin: P.skin, outfit: TRAVELLER.outfit,
+      face: faceAfterReshape(this.kind), gloves: P.glove, creases: limbSegments(body) });
+    // one skinned mesh per colour (the radio pack and the glass apart: the tank hides the one, the other is see-through)
+    const groups = new Map();
+    for (const p of kit.pieces) {
+      const k = p.glass ? 'glass' : `${p.color}|${p.pack ? 'pack' : ''}`;
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k).push(p);
+    }
     this.outfitMeshes = [];
-    for (const { source, geometry, rigid } of fit.meshes) {
-      const o = new THREE.SkinnedMesh(geometry, source.material);
-      o.name = source.name;
-      o.bind(skeletons[rigid ? 'rigid' : 'body'], new THREE.Matrix4());
-      const mat = source.material;
-      const glass = mat.name === 'Clear bubble';
-      const portrait = mat.name === 'Traveller peach skin';
-      if (['Traveller facial ink', 'Traveller warm facial lines'].includes(mat.name)) o.visible = false;
-      geometry.boundingBox ?? geometry.computeBoundingBox();
-      const glassCenter = glass ? geometry.boundingBox.getCenter(new THREE.Vector3()) : undefined;
-      // the suit is flat printed colour (baked vertex zones); the shader draws its folds
-      const flat = !!geometry.attributes.color;
-      const tone = TRAVELLER_PALETTE[TRAVELLER_TONES[mat.name]];
-      o.material = makeMaterial({ figure: true, color: flat ? '#ffffff' : tone ?? mat.color, map: mat.map, glass, glassCenter, glow: glass ? 0.35 : 0, vertexColors: flat,
-        palette: flat ? Object.values(TRAVELLER_PALETTE) : null, creases: flat ? limbSegments(o) : null, headBall: portrait ? HEAD_BALL : undefined });
-      if (portrait) {
-        const uniforms = o.material.uniforms;
-        o.material = o.material.clone();
-        Object.assign(o.material.uniforms, uniforms, { uMap: { value: null }, uHasMap: { value: 0 } });
-        Object.assign(o.material.uniforms, this.face.uniforms);
-      }
-      if (glass) this.noShadow.push(o);
+    this.radioPack = [];
+    for (const list of groups.values()) {
+      const p = list[0];
+      const geo = list.length > 1 ? mergeGeometries(list.map((q) => q.geometry)) : p.geometry;
+      const mat = p.glass ? makeMaterial({ figure: true, color: p.color, glass: true, glassCenter: p.glass, glow: 0.35 })
+        : makeMaterial({ figure: true, color: p.color, side: THREE.DoubleSide });
+      const o = new THREE.SkinnedMesh(geo, mat);
+      o.name = list.map((q) => q.name).join(' ');
+      // each piece's vertices in the merged mesh: { name: [first, count] }
+      let first = 0;
+      o.userData.pieces = list.map((q) => q.name);
+      o.userData.ranges = Object.fromEntries(list.map((q) => { const n = q.geometry.attributes.position.count; first += n; return [q.name, [first - n, n]]; }));
+      o.position.copy(body.position); o.quaternion.copy(body.quaternion); o.scale.copy(body.scale);
+      o.bind(body.skeleton, body.bindMatrix);
       o.frustumCulled = false;
       o.userData.noCollide = true;
-      this.model.add(o);
+      body.parent.add(o);
       this.outfitMeshes.push(o);
+      if (p.glass) this.noShadow.push(o);
+      if (p.pack) this.radioPack.push(o);
     }
   }
 

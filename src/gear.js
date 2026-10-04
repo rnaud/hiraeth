@@ -163,8 +163,11 @@ export class Gear {
     for (const g of [hs, pack, belt]) g.traverse((o) => { o.userData.noCollide = true; });
     if (humanoid.outfit) {
       hs.visible = false;
-      // Keep the launch socket, but replace all legacy wearable geometry.
+      // Keep the launch socket, but replace all legacy wearable geometry: the traveller wears its own (traveller.js)
       for (const group of [pack, belt]) group.traverse(o => { if (o.isMesh) o.visible = false; });
+      // the scout docks on top of the radio pack (fluid-tool.js moves it to the tank's side once that is worn)
+      if (humanoid.kit?.dock) this.scoutDock.position.copy(humanoid.kit.dock);
+      this.packDock = this.scoutDock.position.clone();
       for (const o of chest.children) if (!originalChest.has(o) && o.isMesh) o.visible = false;
       this.noShadow = [...humanoid.noShadow];
       this.springs = [];

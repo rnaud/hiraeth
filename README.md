@@ -1228,32 +1228,47 @@ In the desert, asking Bako to play emits `music:solo { who: 'bako' }` from his
 conversation (`src/story/desert-data.js`), and `src/story/desert.js` starts it
 at his seat.
 
-## The traveller on the people's skeleton (v0.39)
+## The traveller: a person in a suit (v0.43)
 
-The traveller is now built like everyone else: Quaternius' male human
-(`human_m.glb`, reshaped like the NPCs) with the outfit of `traveller.glb`
-fitted on top (`src/outfit.js`, `Humanoid` option `outfit`). The old 22-bone
-rig is gone; every animation (clips, foot planting, climbing and mantle IK,
-gliding, aiming, kneeling, riding) runs on the same 65 bones, retargeting and
-rest pose as the NPCs. The human's own body, wholly covered, is not drawn.
+The traveller is a normal 3D character: Quaternius' male human (`human_m.glb`,
+reshaped like the NPCs), with the NPCs' own skeleton, bind pose, weights, face
+and eyes, in its natural proportions and idle stance, dressed on top
+(`src/traveller.js`, `Humanoid` option `outfit`, given `traveller.glb` for the
+gear's art). Nothing is re-bound or stretched, so every animation (clips,
+foot planting, climbing and mantle IK, gliding, aiming, kneeling, riding, the
+ragdoll) poses it exactly as it poses an NPC.
 
-- **No geometry changes.** Each outfit mesh is skinned to the human's bones with
-  its own weights renamed (spine → `spine_01`, chest → `spine_03`, shin → `calf`…).
-  The fit lives in the inverse bind matrices: `A⁻¹ · W` per bone, where `A` is the
-  human bent into the outfit's A-pose (arms down along the sleeves) and `W` maps
-  each outfit joint onto the human's, turned onto its limb and scaled to its
-  length and girth (measured from both meshes; `OUTFIT_FIT.bag` keeps the suit
-  baggy). The face shader, the suit's folds (`limbSegments` undoes the warp) and
-  the helmet glass all keep working in the outfit's own coordinates.
-- **Rigid pieces:** the head (helmet, face, headphones, scarf) is scaled to 0.86 on
-  the human's head; gloves are turned so their palms match the human's; boots ride
-  the foot alone, soles on the ground; the radio pack is moved onto the narrower
-  back (its own skeleton copy, so the suit's chest can still be scaled).
-- `Humanoid.headAnchor` / `chestAnchor` carry over the outfit rig's frames, and
-  `Humanoid.forearm.r` is the old forearm frame the bracer was authored in.
-- `tests/traveller.test.js` checks the skeleton is exactly the NPCs', the fit
-  (soles, helmet, gloves), rigid pieces, gait retargeting at 120 phases, wall
-  contact and the face. `/tools/rig-review.html` shows the actual build per clip.
+- **The suit** is painted on the body by the outfit shader (`MODE_OUTFIT`:
+  lavender suit, salmon gloves on the hands, salmon boots, the folds of
+  `src/creases.js` at the human's own joints), on a baggy copy of the body
+  (`suitGeometry`): every vertex stands off along its welded normal by its
+  region's `TRAVELLER.swell` (most on the legs and trunk, gathered into the
+  boots and the glove cuffs, the inner legs less, none on the head or feet).
+  The same vertices and weights as the NPC body, only further out.
+- **The gear** is the rigid art of `traveller.glb`, moved once onto this body
+  and skinned to one bone each, the way costume pieces are: the bubble helmet
+  centred on the head (`TRAVELLER.helmet`, the face inside), the headphones'
+  cups just off the ears, the scarf on the shoulders under the chin, the radio
+  pack (with its pouches and a long antenna) against the suit's back, the
+  boots round the feet with their soles just under the ground (their shafts
+  follow the shin).
+- **The extras** are built on the suit's surface and skinned like the suit
+  beneath them: the gauntlet cuffs of the gloves, the pack's shoulder straps,
+  the belt with its pouches on the hips, the trouser cuffs gathered over the
+  boots. Pieces of one colour share one skinned mesh (`userData.ranges` says
+  which vertices are which piece).
+- **Hooks:** `Humanoid.headAnchor` is the skull's centre, `chestAnchor` sits
+  0.74 below the collar and as far back as the pack moved (the fluid tank and
+  the scout's dock go there), `Humanoid.forearm.r` is the bracer's frame on the
+  forearm (+y to the hand, -x the thumb's side, scaled out round the sleeve).
+  `Humanoid.radioPack` is shown until the fluid tank is found (`fluid-tool.js`);
+  the scout docks on the pack's top, then on the tank's side.
+- `tests/traveller.test.js` checks the body is the NPCs' (skeleton, weights,
+  bind pose, face), the fit (helmet centred, headphones on the ears, cuffs at
+  the wrists, pack on the back, feet in the boots, soles on the ground), the
+  idle and kneel poses bone for bone against an NPC's, rigid pieces, gait
+  retargeting at 120 phases, wall contact and the gear hooks.
+  `/tools/rig-review.html` shows the build per clip.
 
 ## People of every height, build and kind (v0.39)
 

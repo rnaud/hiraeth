@@ -637,20 +637,13 @@ export class FluidTool {
   wear() {
     const p = this.player, H = p?.humanoid;
     if (!H?.chestAnchor) return;
-    // the cream radio pack gives way to the tank (the glb's pack parts are skinned to the chest)
-    if (H.outfit) {
-      H.model.traverse((o) => {
-        if (!o.isSkinnedMesh) return;
-        if (/^Equipment_(blue_metal|cyan_glass)$/.test(o.name)) o.visible = false;
-        else if (o.name === 'Equipment_ivory_radio') o.geometry = withoutBone(o, 'spine_03');
-      });
-    } else for (const o of p.gear?.scoutDock?.parent?.children ?? []) if (o.isMesh) o.visible = false;   // the procedural pack
+    // the cream radio pack gives way to the tank once it is found (update(); the traveller's pack: traveller.js)
+    if (!H.outfit) for (const o of p.gear?.scoutDock?.parent?.children ?? []) if (o.isMesh) o.visible = false;   // the procedural pack
     const tank = (this.tank = buildTank());
     H.chestAnchor.add(tank.group);
     // the scout clings to the tank's left side (the cap would hide the helmet), clear of the glass
     // and the frame: lens out, wings fore and aft (side on, they cut into the tank)
-    const dock = p.gear?.scoutDock;
-    if (dock) { dock.position.set(SCOUT_DOCK_X, TANK.at[1] + TANK.height * 0.62, TANK.at[2] + 0.02); dock.rotation.set(0, Math.PI / 2, 0); }
+    this.placeDock(this.owned);
     const fore = H.forearm?.r ?? H.b.lowerarm_r;
     if (fore) {
       this.bracer = buildBracer();
@@ -675,6 +668,15 @@ export class FluidTool {
     this.jets = new FluidJets(tank.group, this.globMat, metal);
     this.wingU = this.wings.material.uniforms;
     this.chest = H.chestAnchor;
+  }
+
+  /** The scout docks on the tank's side once it is worn, else where the gear put it (on the radio pack). */
+  placeDock(owned) {
+    const dock = this.player?.gear?.scoutDock;
+    this._dockOwned = owned;
+    if (!dock) return;
+    if (owned || !this.player.gear.packDock) { dock.position.set(SCOUT_DOCK_X, TANK.at[1] + TANK.height * 0.62, TANK.at[2] + 0.02); dock.rotation.set(0, Math.PI / 2, 0); }
+    else { dock.position.copy(this.player.gear.packDock); dock.rotation.set(0, 0, 0); }
   }
 
   dispose() {
@@ -1001,6 +1003,9 @@ export class FluidTool {
     const owned = this.owned, visible = owned && p.object?.visible !== false;
     const where = owned ? this.updateDock(dt) : 'back';
     this.tank.group.visible = visible;
+    // the traveller's radio pack is on the back until the tank takes its place
+    for (const o of p.humanoid?.radioPack ?? []) o.visible = !owned;
+    if (this._dockOwned !== owned) this.placeDock(owned);
     if (this.bracer) this.bracer.group.visible = owned;
     this.hose.mesh.visible = visible && where !== 'flight';
     if (owned && this.appear < 1 && where === 'back') {
@@ -1279,18 +1284,3 @@ export class FluidTool {
 }
 
 const _c = new THREE.Color();
-
-/**
- * A copy of a skinned mesh's geometry without the triangles weighted mostly
- * to one bone (the glb's radio pack is skinned to the chest; its boots stay).
- */
-function withoutBone(mesh, boneName) {
-  const g = mesh.geometry, bi = mesh.skeleton.bones.findIndex((b) => b.name === boneName);
-  if (bi < 0 || !g.index) return g;
-  const sk = g.attributes.skinIndex, sw = g.attributes.skinWeight, idx = g.index.array, keep = [];
-  const on = (v) => { let w = 0; for (let k = 0; k < 4; k++) if (sk.getComponent(v, k) === bi) w += sw.getComponent(v, k); return w > 0.5; };
-  for (let i = 0; i < idx.length; i += 3) if (!(on(idx[i]) && on(idx[i + 1]) && on(idx[i + 2]))) keep.push(idx[i], idx[i + 1], idx[i + 2]);
-  const out = g.clone();
-  out.setIndex(keep);
-  return out;
-}
