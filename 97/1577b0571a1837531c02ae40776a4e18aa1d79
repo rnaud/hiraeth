@@ -1,0 +1,71 @@
+docs/story-bible.md
+  s_1fd8d0e7b02dcf::t_d0da11de6da0b2 19,167-184
+src/levels/buried.js
+  s_1fd8d0e7b02dcf::t_c8a36d1f014f9d 6,38-48,58-60,88-89,91-94,98,101,103-105,191-193,198-202,244-247,386,478,536-541,601,604,617-623,696,748-868,882,914-921
+src/levels/content.js
+  s_1fd8d0e7b02dcf::t_2f7f81edc71ab8 15,18,185-187,211
+src/levels/edena.js
+  s_1fd8d0e7b02dcf::t_59fefa1223ddb7 7,19,22-27,29,36-60,64-174,279-281,302-304,306-307,317-321,324-326,412-507,510-512
+src/levels/perdide.js
+  s_1fd8d0e7b02dcf::t_fa40777b4ba6d9 7,18-24,38-40,74-92,135-145,147-150,159,166,173-180,199,201-202,206-209,211-213,215-217,224-226,231,267-268,323-341,344-347,349,379-380,383-386
+src/levels/perdide2.js
+  s_1fd8d0e7b02dcf::t_f560395b01a5e0 7,76-85,155-156,158-161,171,174-175,379,434-435,611,650,654-670,672,685-686,691-693,742-743
+src/levels/spheres.js
+  s_1fd8d0e7b02dcf::t_c08bf08a4f5b31 7,74-75,77-80,93,95-98,161,345,545,559,845,848-854
+src/ship/hull.js
+  s_1fd8d0e7b02dcf::t_27a968ab8311ef 117-118
+src/ship/sites.js
+  s_1fd8d0e7b02dcf::t_9dd3869fbb3a4c 27-28
+src/story/buried-data.js
+  s_1fd8d0e7b02dcf::t_b4fccbe041b03d 1-399
+src/story/buried.js
+  s_1fd8d0e7b02dcf::t_34b52f05a096d6 1-415
+src/story/edena-data.js
+  s_1fd8d0e7b02dcf::t_8bd81ee2105b8b 1-318
+src/story/edena.js
+  s_1fd8d0e7b02dcf::t_1d5a2db9bf2d08 1-199
+src/story/index.js
+  s_1fd8d0e7b02dcf::t_f1fab6427f163a 10-11,15-17,36-39,43-45
+src/story/perdide-data.js
+  s_1fd8d0e7b02dcf::t_b8db9b15689a7d 1-494
+src/story/perdide.js
+  s_1fd8d0e7b02dcf::t_18f1890bd5dd98 1-370
+src/story/perdide2-data.js
+  s_1fd8d0e7b02dcf::t_c357f30bf00443 1-308
+src/story/perdide2.js
+  s_1fd8d0e7b02dcf::t_14df372f73e503 1-285
+src/story/puffs.js
+  s_1fd8d0e7b02dcf::t_d0a47614e60182 1-68
+src/story/spheres-data.js
+  s_1fd8d0e7b02dcf::t_cee42b8caa55d4 1-255
+src/story/spheres.js
+  s_1fd8d0e7b02dcf::t_c1ad2c2820c6c0 1-307
+tests/buried.test.js
+  s_1fd8d0e7b02dcf::t_68b5e8add45a53 4,41-42,63-80
+tests/story-buried.test.js
+  s_1fd8d0e7b02dcf::t_03ad42bdb96e9c 1-182
+tests/story-edena.test.js
+  s_1fd8d0e7b02dcf::t_52e8447a220f23 1-169
+tests/story-perdide.test.js
+  s_1fd8d0e7b02dcf::t_145b6023765f74 1-205
+tests/story-perdide2.test.js
+  s_1fd8d0e7b02dcf::t_07ff0a29a03a68 1-170
+tests/story-spheres.test.js
+  s_1fd8d0e7b02dcf::t_1cdaad56d9d52f 1-151
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "971577b0571a1837531c02ae40776a4e18aa1d79",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
