@@ -3,7 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createNoise2D, fbm, mulberry32, smoothstep } from '../noise.js';
 import { makeMaterial, MODE_TERRAIN, MODE_STRATA, MODE_WATER } from '../materials.js';
 import { Terrain, jitter, soften } from '../world.js';
-import { buildRoom, doorwayPortals } from '../interiors.js';
+import { buildRoom, portalPair } from '../interiors.js';
 import { PEOPLE } from '../story/edena-data.js';
 
 // ---------------------------------------------------------------------------
@@ -71,6 +71,9 @@ export const POND = { x: -120, z: -160, r: 95 };
 // radius 9). crashed.part(k) draws the veil aside (0 closed … 1 open).
 const HULL_R = 9;
 const SCAR = { x: -6, a: 0.96 };   // along the hull, and the angle round it from the top toward +z
+// the hatch: along the hull (toward the nose, where the hull leans into the meadow and its flank
+// stands nearly upright), its opening's half width and half height, and the sill above the grass
+const HATCH = { x: 12, hw: 1.05, hh: 1.55, sill: 0.12 };
 function overgrow(grp, crashed) {
   const rng = mulberry32(77);
   const R = (a, b) => a + rng() * (b - a);
@@ -81,20 +84,38 @@ function overgrow(grp, crashed) {
   const flowerGeo = mergeGeometries([new THREE.CylinderGeometry(0.42, 0.16, 0.14, 7).translate(0, 0.07, 0), new THREE.SphereGeometry(0.15, 6, 4).translate(0, 0.2, 0)].map((g) => g.toNonIndexed()));
   const tubes = [], leaves = [], flowers = [];
   // vines over the hull, avoiding the scar (the veil covers that)
+  // (and the hatch: a vine stops short of its collar)
+  const H = crashed.hatchSpot;
+  const runs = [];
   for (let x = -25; x <= 25; x += R(5, 8)) {
     const nearScar = Math.abs(x - SCAR.x) < 4.5;
-    const a0 = R(1.9, 2.2), a1 = -R(1.7, 2.2), pts = [];
+    const a0 = R(1.9, 2.2), a1 = -R(1.7, 2.2);
+    let pts = [];
     for (let k = 0; k <= 16; k++) {
-      const a = a0 + (a1 - a0) * (k / 16);
+      const a = a0 + (a1 - a0) * (k / 16), vx = x + Math.sin(k * 0.9 + x) * 0.8;
       if (nearScar && a > SCAR.a - 0.6 && a < SCAR.a + 0.7) continue;
-      pts.push(at(x + Math.sin(k * 0.9 + x) * 0.8, a, HULL_R + 0.12));
+      if (H && Math.abs(vx - H.x) < H.hw + 0.9 && a > H.aTop - 0.12) { if (pts.length) runs.push(pts); pts = []; continue; }
+      pts.push(at(vx, a, HULL_R + 0.12));
     }
+    runs.push(pts);
+  }
+  // an arch of flowers over the hatch (Vey: "the hatch is on this flank, under the arch of flowers")
+  if (H) {
+    const pts = [];
+    for (let k = 0; k <= 12; k++) {
+      const t = (k / 12) * Math.PI, u = -Math.cos(t) * (H.hw + 1.25), v = -H.hh - 0.3 + Math.sin(t) * (2 * H.hh + 1.4);
+      pts.push(at(H.x + u, H.aMid - v / H.r, H.r + 0.3));
+    }
+    pts.arch = true;
+    runs.push(pts);
+  }
+  for (const pts of runs) {
     if (pts.length < 4) continue;
     tubes.push(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 40, 0.17, 5).toNonIndexed());
     for (let k = 0; k < pts.length - 1; k++) {
       const p = pts[k].clone().lerp(pts[k + 1], 0.5), n = p.clone().setX(0).normalize();
-      for (let j = 0; j < 2; j++) leaves.push({ p: p.clone().addScaledVector(n, 0.25).add(new THREE.Vector3(R(-0.7, 0.7), 0, 0)), n, c: rng() < 0.5 ? '#7fcfa8' : '#5fa77a', s: R(0.8, 1.3), r: rng() * 6 });
-      if (rng() < 0.3) flowers.push({ p: p.clone().addScaledVector(n, 0.3), n, c: rng() < 0.6 ? '#f2a7b5' : '#f2c54b', s: R(0.8, 1.2) });
+      for (let j = 0; j < 2; j++) leaves.push({ p: p.clone().addScaledVector(n, 0.25).add(new THREE.Vector3(R(-0.7, 0.7) * (pts.arch ? 0.3 : 1), 0, 0)), n, c: rng() < 0.5 ? '#7fcfa8' : '#5fa77a', s: R(0.8, 1.3), r: rng() * 6 });
+      if (rng() < (pts.arch ? 0.85 : 0.3)) flowers.push({ p: p.clone().addScaledVector(n, 0.3), n, c: rng() < 0.6 ? '#f2a7b5' : '#f2c54b', s: R(0.8, 1.2) });
     }
   }
   const orient = (o, it) => { o.position.copy(it.p); o.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), it.n); o.rotateY(it.r ?? 0); o.scale.setScalar(it.s); o.updateMatrix(); };
@@ -169,6 +190,70 @@ function overgrow(grp, crashed) {
   grp.updateMatrixWorld(true);
   crashed.scar = grp.localToWorld(uv(0, 0, 0.3));
   crashed.scarNormal = uv(0, 0, 1).sub(uv(0, 0, 0)).transformDirection(grp.matrixWorld);
+}
+
+// The cabin hatch, built into the hull in the ship group's frame: a teal collar
+// round a dark doorway, its door swung open beside it. It sits round the hull
+// at the angle whose sill clears the grass, so it is always on the flank, never
+// floating beside it. Returns the threshold on the ground and the heading out.
+function hullHatch(grp, hull, terrain, crashed) {
+  const { x: HX, hw, hh, sill } = HATCH;
+  grp.updateMatrixWorld(true);
+  // the hull's real surface radius here (the softened capsule is a little wider than HULL_R)
+  const ray = new THREE.Raycaster(), o = new THREE.Vector3(), d = new THREE.Vector3();
+  const radius = (a) => {
+    o.set(HX, 20 * Math.cos(a), 20 * Math.sin(a)); d.set(0, -Math.cos(a), -Math.sin(a));
+    ray.set(grp.localToWorld(o.clone()), d.transformDirection(grp.matrixWorld));
+    const hit = ray.intersectObject(hull, false)[0];
+    return hit ? 20 - hit.distance : HULL_R;
+  };
+  const surf = (a, r) => grp.localToWorld(new THREE.Vector3(HX, r * Math.cos(a), r * Math.sin(a)));
+  // round from the top toward +z the flank sinks into the meadow: find where the sill clears it
+  const r0 = radius(1.6);
+  const above = (a) => { const p = surf(a, r0); return p.y - terrain.heightAt(p.x, p.z); };
+  let lo = 0.9, hi = 2.6;
+  for (let i = 0; i < 32; i++) { const m = (lo + hi) / 2; if (above(m) > sill) lo = m; else hi = m; }
+  const aSill = lo - 0.35 / r0, aMid = aSill - hh / r0, r = radius(aMid);
+  // the hatch's own frame: x along the hull, y round it toward the top, z out of the hull
+  const h = new THREE.Group();
+  h.position.set(HX, r * Math.cos(aMid), r * Math.sin(aMid));
+  h.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(
+    new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, Math.sin(aMid), -Math.cos(aMid)), new THREE.Vector3(0, Math.cos(aMid), Math.sin(aMid))));
+  const rounded = (w, ht, rad) => {
+    const s = new THREE.Shape();
+    s.moveTo(-w + rad, -ht); s.lineTo(w - rad, -ht); s.quadraticCurveTo(w, -ht, w, -ht + rad);
+    s.lineTo(w, ht - rad); s.quadraticCurveTo(w, ht, w - rad, ht); s.lineTo(-w + rad, ht);
+    s.quadraticCurveTo(-w, ht, -w, ht - rad); s.lineTo(-w, -ht + rad); s.quadraticCurveTo(-w, -ht, -w + rad, -ht);
+    return s;
+  };
+  // the collar stands 0.25 m proud of the hull and reaches well into it (the hull curves away above and below)
+  const collar = rounded(hw + 0.32, hh + 0.32, 0.7);
+  collar.holes.push(rounded(hw, hh, 0.5));
+  h.add(new THREE.Mesh(new THREE.ExtrudeGeometry(collar, { depth: 0.75, bevelEnabled: false, curveSegments: 6 }).translate(0, 0, -0.5),
+    makeMaterial({ color: '#62c3c9', flat: true })));
+  // the dark of the cabin beyond (the portal takes you in; nothing to bump into)
+  const dark = new THREE.Mesh(new THREE.ShapeGeometry(rounded(hw, hh, 0.5), 6).translate(0, 0, 0.04), makeMaterial({ color: '#2b211f' }));
+  dark.userData.noCollide = true;
+  h.add(dark);
+  // the door, swung out on its hinge along the nose-side edge, a porthole in it
+  const door = new THREE.Group();
+  door.position.set(hw + 0.12, 0, 0.25);
+  door.rotation.y = 1.75;
+  door.add(new THREE.Mesh(new THREE.ExtrudeGeometry(rounded(hw - 0.04, hh - 0.04, 0.48), { depth: 0.16, bevelEnabled: false, curveSegments: 6 }).translate(-hw, 0, 0),
+    makeMaterial({ color: '#e6875f', flat: true })));
+  door.add(new THREE.Mesh(new THREE.TorusGeometry(0.36, 0.08, 5, 14).translate(-hw, hh * 0.35, 0.17), makeMaterial({ color: '#62c3c9', flat: true })));
+  door.add(new THREE.Mesh(new THREE.CircleGeometry(0.34, 14).translate(-hw, hh * 0.35, 0.165), makeMaterial({ color: '#9fd6c9', glow: 0.2 })));
+  h.add(door);
+  grp.add(h);
+  grp.updateMatrixWorld(true);
+  // the threshold: on the grass just outside the sill; the way out points away from the hull, level
+  const n = new THREE.Vector3(0, Math.cos(aMid), Math.sin(aMid)).transformDirection(grp.matrixWorld);
+  const heading = Math.atan2(n.x, n.z);
+  const foot = h.localToWorld(new THREE.Vector3(0, -hh, 0.3));
+  foot.addScaledVector(new THREE.Vector3(n.x, 0, n.z).normalize(), 0.35);
+  foot.y = terrain.heightAt(foot.x, foot.z);
+  crashed.hatchSpot = { x: HX, hw, hh, aMid, aTop: aMid - hh / r, r };
+  return { at: foot, heading };
 }
 
 export function createEdena(scene) {
@@ -300,10 +385,9 @@ export function createEdena(scene) {
     grp.position.set(x, terrain.baseAt(x, z, 30) + 4, z);
     grp.rotation.set(0.2, 0.9, -0.28);
     grp.updateMatrixWorld(true);
-    // a hatch beside the hull opens onto the cabin (on the starboard flank, clear of the hull)
+    // a hatch in the hull opens onto the cabin (on the starboard flank, where the hull meets the meadow)
     {
-      const h0 = grp.localToWorld(new THREE.Vector3(4, 0, 12.5)), h1 = grp.localToWorld(new THREE.Vector3(4, 0, 16));
-      const hx = h0.x, hz = h0.z, heading = Math.atan2(h1.x - h0.x, h1.z - h0.z);
+      const { at: hatch, heading } = hullHatch(grp, hull, terrain, crashed);
       const room = buildRoom(scene, {
         pos: new THREE.Vector3(0, 1500, 0), w: 6, d: 16, h: 3.2,
         wall: { color: '#f3ead8', color2: '#e6875f', grid: 0.6 }, floor: '#62c3c9', ceiling: '#e9e3d4',
@@ -313,8 +397,7 @@ export function createEdena(scene) {
         lamp: '#9fd6e8',
       });
       shipRoom = room;
-      const hatch = new THREE.Vector3(hx, terrain.heightAt(hx, hz), hz);
-      shipPortals.push(...doorwayPortals(scene, { at: hatch, heading, room, frame: '#f3ead8' }));
+      shipPortals.push(...portalPair({ at: hatch, heading, room }));
       crashed.hatch = hatch; crashed.hatchHeading = heading;
       crashed.room = room;
       crashed.panel = room.group.localToWorld(new THREE.Vector3(0, 0, -6.4));

@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
+import { isIndoors } from '../src/shelter.js';
 
 // a little DOM for the people's speech balloons (the story never needs a real page)
 const el = () => ({ classList: { add() {}, remove() {}, toggle() {}, contains: () => false }, style: {}, dataset: {}, remove() {}, addEventListener() {}, querySelector: () => null, appendChild() {}, set textContent(v) {}, set innerHTML(v) {} });
@@ -68,7 +69,13 @@ test('the gardeners stand on walkable ground; the errands still find Mira and Li
   assert.ok(ERRANDS.some((e) => e.to[0] === 'edena' && e.to[1] === 0) && ERRANDS.some((e) => e.from[0] === 'edena' && e.from[1] === 3));
 });
 
-test('the hatch stands clear of the hull, and the cabin is reachable through it', () => {
+test('the hatch is in the hull itself, open meadow in front of it, and the cabin is reachable through it', () => {
+  // (players saw the old doorway standing a few metres out from the ship): the hull is right behind the threshold
+  const into = new THREE.Vector3(-Math.sin(S.hatchHeading), 0, -Math.cos(S.hatchHeading));
+  for (const h of [0.6, 1.5, 2.5]) {
+    const d = physics.rayDistance(S.hatch.clone().add(new THREE.Vector3(0, h, 0)), into, 10);
+    assert.ok(d < 1.6, `the hull ${d.toFixed(2)} m behind the threshold, ${h} m up`);
+  }
   // the ground in front of the doorway is open meadow (nothing of the hull over it)
   for (let d = 1.5; d <= 6; d += 1.5) {
     const x = S.hatch.x + Math.sin(S.hatchHeading) * d, z = S.hatch.z + Math.cos(S.hatchHeading) * d;
@@ -79,6 +86,9 @@ test('the hatch stands clear of the hull, and the cabin is reachable through it'
   assert.ok(inn.at.distanceTo(S.hatch) < 1 && inn.to.y > 1400, 'the doorway leads up into the cabin');
   assert.ok(outp.to.distanceTo(S.hatch) < 4, 'and back out');
   stand(S.panel, 'the cabin floor by the cockpit panel', 0.4);
+  // and it never rains in it (players saw the rain fall in the cabin)
+  assert.ok(isIndoors(S.panel.clone().add(new THREE.Vector3(0, 1.6, 0))) && isIndoors(S.room.inside.clone().add(new THREE.Vector3(0, 1.6, 0))), 'the cabin is indoors');
+  assert.ok(!isIndoors(S.hatch.clone().add(new THREE.Vector3(0, 1.6, 0))), 'the meadow by the hatch is not');
 });
 
 test('the main quest: the fallen ship, the log, the flowers drawn aside, the same mark', async () => {

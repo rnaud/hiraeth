@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { Physics } from '../src/physics.js';
-import { CameraRig, tightness, OPEN_DIST, TIGHT_DIST } from '../src/player.js';
+import { CameraRig, tightness, OPEN_DIST, TIGHT_DIST, PITCH_UP_OPEN, PITCH_UP_TIGHT } from '../src/player.js';
 import { buildRoom, inTightRoom } from '../src/interiors.js';
 
 // the rig listens to the mouse and the wheel: inert stand-ins in node
@@ -87,6 +87,32 @@ test('the rig comes in close in a tight tunnel, never clips its walls, and goes 
   let leap = 0;
   for (let i = 1; i < before.length; i++) leap = Math.max(leap, before[i] - before[i - 1]);
   assert.ok(leap < 0.25, `eases back out (largest step ${leap.toFixed(3)} m per frame)`);
+});
+
+// (players: "I should be able to look all the way up at the sky")
+test('looking up: past the zenith in the open, the camera above the grass; as before in a tight tunnel', () => {
+  const { physics } = world();
+  const rig = rigIn(physics);
+  const p = v(0, 0, 0), dt = 1 / 60;
+  for (let i = 0; i < 120; i++) rig.update(p, dt);
+  rig.look(0, -1e5);   // the mouse (or the stick) pushed all the way up
+  assert.equal(rig.pitch, PITCH_UP_OPEN);
+  for (let i = 0; i < 120; i++) rig.update(p, dt);
+  const fwd = rig.camera.getWorldDirection(v());
+  const elev = THREE.MathUtils.radToDeg(Math.asin(fwd.y));
+  assert.ok(elev > 70, `looking ${elev.toFixed(0)}° up`);
+  assert.ok(elev + rig.camera.fov / 2 > 95, 'the top of the frame is past the zenith');
+  assert.ok(rig.camera.position.y >= 0.35, `the camera stays above the grass (${rig.camera.position.y.toFixed(2)} m)`);
+  // walk into the tunnel still looking up: the look eases down to what fits close in, and the camera stays inside
+  for (let i = 0; i < 12 * 60; i++) {
+    p.x = Math.min(50, p.x + 4 * dt);
+    rig.update(p, dt);
+    rig.look(0, -50);   // still pushing up
+    const c = rig.camera.position;
+    if (c.x > 30.2) assert.ok(Math.abs(c.z) < 1.4 - 0.2 && c.y < 3 - 0.2 && c.y > 0.2, `inside the tunnel and clear of its walls: ${c.toArray().map((n) => n.toFixed(2))}`);
+  }
+  assert.ok(rig.tightK > 0.95);
+  assert.ok(Math.abs(rig.pitch - PITCH_UP_TIGHT) < 0.02, `close in, as far up as before (${rig.pitch.toFixed(2)})`);
 });
 
 test('the ship flag and the interiors make it tight at once; a short gap between walls does not let go', () => {

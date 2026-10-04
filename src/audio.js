@@ -237,6 +237,7 @@ export class Sound {
       wind: this.noiseLayer('bandpass', 520, 0.6),
       howl: this.noiseLayer('bandpass', 900, 9),
       rain: this.noiseLayer('highpass', 2600, 0.5),
+      rainRoof: this.noiseLayer('lowpass', 420, 0.8),   // the same rain heard from indoors: a dull drumming on the roof
       cloak: this.noiseLayer('bandpass', 240, 1.2),
       jet: this.noiseLayer('lowpass', 320, 0.7),
     };
@@ -1022,6 +1023,7 @@ export class Sound {
     this.set('howl', (s.gust * 0.012 + s.storm * 0.025 + highWind + (s.altitude > 60 ? 0.02 : 0)) * W, 700 + Math.sin(this.ctx.currentTime * 0.3) * 250);
     this.set('wind', (0.03 + s.gust * 0.05 + s.storm * 0.11 + k * 0.03 + (this.voice.ambience === 'city' ? 0.02 : 0)) * W, 420 + s.gust * 300 + s.storm * 400);
     this.set('rain', s.rain * 0.07);
+    this.set('rainRoof', (s.rainRoof ?? 0) * 0.11);
     this.set('cloak', (s.riding ? 0.04 + k * 0.05 : Math.pow(Math.min(s.speed / 11, 1), 2) * 0.07) * (0.5 + 0.5 * W));
     this.set('jet', s.thrusting ? 0.32 : 0);
     const e = this.engine, t = this.ctx.currentTime;

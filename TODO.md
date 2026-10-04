@@ -80,15 +80,15 @@ Grouped by area. Checked items are done; the changelog says when.
   the dialogue (seen with Nima) but never dismisses the overlay.
 - [ ] Jetpack in the tube/cylinder level: got stuck against the ground and
   could not get out.
-- [ ] The bell rope goes through the building when I ring it.
-- [ ] Edena: the door to the crashed ship sits a few metres away instead of
+- [x] The bell rope goes through the building when I ring it.
+- [x] Edena: the door to the crashed ship sits a few metres away instead of
   being part of the ship; it rains inside the ship. It must never rain indoors.
-- [ ] Perdide: looking inside the tooth flowers you can see through them (no
+- [x] Perdide: looking inside the tooth flowers you can see through them (no
   inside faces / texture).
 - [x] The drone on my back clips into the backpack.
 - [ ] Clipping pass: check that most things don't sink into surfaces.
 - [ ] Building textures and windows flicker when the camera moves.
-- [ ] I can't always look all the way up at the sky: the camera stops short.
+- [x] I can't always look all the way up at the sky: the camera stops short.
 - [ ] Shed / feather site: looking at the stone hand does nothing; unclear
   what to do there.
 

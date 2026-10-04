@@ -1576,6 +1576,14 @@ const PROBE_N = 8;                 // horizontal rays round the player
 
 const ENCLOSED = { ceil: 26, ring: 36, up: 42 };   // m: a shut space (a cave, a dome, a hall), however big
 
+// How far up you can look (the rig's pitch: + looks down from above, - looks up from below).
+// In the open nearly straight up: the camera drops to the grass behind the traveller and the
+// top of the frame passes the zenith. Close in (tight spaces, rooms) as before: the arm is short
+// there, and a steep look up would only fill the view with the ceiling or the traveller.
+export const PITCH_UP_OPEN = -1.36;
+export const PITCH_UP_TIGHT = -0.62;
+export const PITCH_DOWN = 1.3;
+
 const smoothstep = (a, b, x) => { const t = THREE.MathUtils.clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 
 /**
@@ -1661,7 +1669,12 @@ export class CameraRig {
     this._lastMouse = this._now;
     const k = 0.0025 * this.sensitivity;
     this.yaw -= dx * k;
-    this.pitch = THREE.MathUtils.clamp(this.pitch + dy * k * (this.invertY ? -1 : 1), -0.62, 1.3);
+    this.pitch = THREE.MathUtils.clamp(this.pitch + dy * k * (this.invertY ? -1 : 1), this.pitchUpLimit(), PITCH_DOWN);
+  }
+
+  /** The lowest pitch (the steepest look up) right now: nearly straight up in the open, less close in. */
+  pitchUpLimit(k = Math.max(this.tightK, this.indoorK)) {
+    return THREE.MathUtils.lerp(PITCH_UP_OPEN, PITCH_UP_TIGHT, THREE.MathUtils.clamp(k, 0, 1));
   }
 
   /**
@@ -1776,6 +1789,8 @@ export class CameraRig {
     const ik = this.indoorK;
     const tk = this.updateTight(playerPos, dt, U, Fw, Rt);
     const k = Math.max(ik, tk);   // how close-quarters the framing is
+    // closing in (a doorway, an alley): a steep look up eases back down to what fits
+    this.pitch = Math.max(this.pitch, this.pitchUpLimit(k));
     const dist = this.armLength(tk, ak);
     this.target.lerp(playerPos, 1 - Math.exp(-14 * dt));
     if (this.target.lengthSq() === 0) this.target.copy(playerPos);

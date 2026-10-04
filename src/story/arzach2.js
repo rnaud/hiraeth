@@ -121,6 +121,12 @@ export function setupArzach2(ctx) {
   game.on('flag:arzach2.clapper.hung', (v) => { hungClapper.visible = !!v; });
 
   // ---------------------------------------------------------------- the bell, the rope, the cloud
+  // The rope sways after a pull: out from the tower and back to hanging straight (never past it,
+  // so it can't swing in through the wall), and a little sideways along the wall.
+  const ropeSway = (rope, t, decay) => {
+    rope.rotation.x = -0.035 * (1 - Math.cos(t * 5)) * decay;   // <= 0: the foot only ever moves away from the wall (+z)
+    rope.rotation.z = Math.sin(t * 3.1) * 0.025 * decay;
+  };
   const bell = { t: -1, amp: 0, tolls: 0, settle: game.flag('arzach2.bell.rung') ? 1 : 0, dip: 0, ringing: false, next: 75 };
   const toll = (vol = 0.16) => {
     if (!sound.ctx || !sound.instrument) return;
@@ -131,7 +137,6 @@ export function setupArzach2(ctx) {
   };
   const ring = (hard = true) => {
     bell.t = 0; bell.amp = hard ? 0.42 : 0.2; bell.ringing = true; bell.tolls = 0;
-    A.rope.rotation.x = 0.08;
   };
   const pull = () => {
     if (!game.flag('arzach2.clapper.hung')) {
@@ -251,8 +256,8 @@ export function setupArzach2(ctx) {
       const beat = Math.floor((bell.t * w) / Math.PI);
       if (bell.ringing && beat > bell.tolls && decay > 0.15) { bell.tolls = beat; toll(0.16 * decay + 0.03); }
       if (bell.t === dt && bell.ringing) toll(0.2);
-      A.rope.rotation.x = Math.sin(bell.t * 5) * 0.06 * decay;
-      if (decay < 0.02) { bell.t = -1; A.bell.rotation.x = 0; A.rope.rotation.x = 0; }
+      ropeSway(A.rope, bell.t, decay);
+      if (decay < 0.02) { bell.t = -1; A.bell.rotation.x = 0; ropeSway(A.rope, 0, 0); }
     }
     // the cloud settles once the bell has rung (and dips again, a little, each time you ring it)
     if (game.flag('arzach2.bell.rung') && bell.settle < 1) bell.settle = Math.min(1, bell.settle + dt / 12);

@@ -132,6 +132,18 @@ test('the main quest: Aube, the monastery, Calix, the clapper, the bell, the not
   const cloud0 = A.cloud[0].position.y, float0 = A.floaters.position.y;
   use('bellrope', A.ropeFoot.clone().add(V(0.4, -0.9, 0.6)));
   assert.equal(game.flag('arzach2.bell.rung'), true);
+  // (players saw the rope swing in through the tower when they rang it): all the way down, it stays clear
+  const L = A.ropeTop.y - A.ropeFoot.y, dir = V(), foot = V();
+  let swung = 0;
+  for (let i = 0; i < 4 * 60; i++) {
+    step(1, 1 / 60);
+    dir.set(0, -1, 0).applyEuler(A.rope.rotation);
+    foot.copy(A.ropeTop).addScaledVector(dir, L);
+    swung = Math.max(swung, foot.distanceTo(A.ropeFoot));
+    assert.ok(physics.rayDistance(A.ropeTop, dir, L - 0.3) === Infinity, `frame ${i}: the rope passes through the tower`);
+    assert.ok(foot.z > A.bellTower.z + A.bellTower.w / 2 + 0.3, `frame ${i}: the rope's foot ${(foot.z - A.bellTower.z - A.bellTower.w / 2).toFixed(2)} m off the wall`);
+  }
+  assert.ok(swung > 0.5, `the rope does swing (${swung.toFixed(2)} m)`);
   step(15 * 10, 1 / 10);
   assert.ok(A.cloud[0].position.y < cloud0 - 9, `the cloud settled: ${(cloud0 - A.cloud[0].position.y).toFixed(1)} m`);
   assert.ok(A.floaters.position.y < float0 - 3, 'the floating stones came down a little');
