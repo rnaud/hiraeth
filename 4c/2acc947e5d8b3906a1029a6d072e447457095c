@@ -1,0 +1,37 @@
+README.md
+  s_1fd8d0e7b02dcf::t_1585a90a5b125c 1136-1162
+src/creases.js
+  s_1fd8d0e7b02dcf::t_b220c5d357a3d6 70,72-76,79-82,86
+src/fluid-tool.js
+  s_1fd8d0e7b02dcf::t_ab2e7296a7aa4e 473,641,645,654
+src/gear.js
+  s_1fd8d0e7b02dcf::t_2b7e2a82698f95 164
+src/humanoid.js
+  s_1fd8d0e7b02dcf::t_ce73656e871da5 10,23,26-30,164-165,192,195-197,199,201,209-211,215,247-255,273,276,284-300,303,334-375,439,748-749,794-798,803,805,810
+src/main.js
+  s_1fd8d0e7b02dcf::t_4709fcc81d2784 236-238
+src/outfit.js
+  s_1fd8d0e7b02dcf::t_e7618767ab03cb 1-266
+tests/traveller.test.js
+  s_1fd8d0e7b02dcf::t_6a79e096429492 6,11,13-14,16-27,51-148,150,167-168,170-173,177,181-198,206-214,220,231,237-238,255-258,262,266-277,280-286,288-293,300,302,312,314,317-319,325-327,329
+tools/rig-review.html
+  s_1fd8d0e7b02dcf::t_600b2904b86910 5
+tools/rig-review.js
+  s_1fd8d0e7b02dcf::t_dee2186e61aa77 5,8-11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4c2acc947e5d8b3906a1029a6d072e447457095c",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
