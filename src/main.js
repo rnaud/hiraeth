@@ -643,8 +643,8 @@ function updateHud() {
     else if (near) parts.push(`E ${near.kind === 'taxi' ? 'get in the taxi' : 'ride the ' + (level.mountName ?? near.kind)}`);
     else if (player.mount) parts.push(`E whistle for the ${level.mountName}`);
     else if (level.features.taxis) parts.push('E hail a taxi');
-    const shipHint = ship.hud();
-    if (shipHint) parts.unshift(shipHint);
+    const shipHint = ship.hud();   // inside the ship and at its ramp, E is the ship's
+    if (shipHint) { for (let i = parts.length - 1; i >= 0; i--) if (parts[i].startsWith('E ')) parts.splice(i, 1); parts.unshift(shipHint); }
     if (!parts.length) parts.push('push into a wall to climb it');
   }
   const objective = game.flag('objective');

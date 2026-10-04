@@ -229,7 +229,7 @@ export class PrologueDirector {
         const spin = new THREE.Quaternion().setFromAxisAngle(this.T, Math.sin(t * 1.1) * 0.35);
         pk.group.quaternion.copy(spin.multiply(s.restQuat));
         const vel = this.bez(Math.min(1, u + 0.01)).sub(p).normalize();
-        for (let i = 0; i < 3; i++) {
+        for (let i = 0; i < (u < 0.82 ? 3 : 0); i++) {
           const g = 0.55 + Math.random() * 0.25;
           s.smoke.emit(p.clone().addScaledVector(vel, -R * 0.6).add(V((Math.random() - 0.5) * 8, (Math.random() - 0.5) * 8, (Math.random() - 0.5) * 8)), V(0, 5, 0), 3 + Math.random() * 2.5, 2.4 + Math.random() * 1.2, new THREE.Color(g, g * 0.96, g * 0.93));
           s.flame.emit(p.clone().addScaledVector(vel, R * 0.75 + Math.random() * 3).add(V((Math.random() - 0.5) * 9, (Math.random() - 0.5) * 9, (Math.random() - 0.5) * 9)), vel.clone().multiplyScalar(-30), 3 + Math.random() * 3, 0.35 + Math.random() * 0.25, pickOf(FIRE));
