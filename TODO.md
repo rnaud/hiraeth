@@ -165,8 +165,10 @@ Grouped by area. Checked items are done; the changelog says when.
 - [x] Much bigger boxes.
 - [x] They levitate before opening, dissolve into nothing with a shader, and the
   item levitates in the centre.
-- [ ] Hidden at interesting, hard-to-reach places (except on level 1). On level
-  2 one is just outside the ship.
+- [x] Hidden at interesting, hard-to-reach places (except on level 1). On level
+  2 one is just outside the ship. (City-Shaft: now on a makers' pillar on the rim. The
+  other worlds' boxes were already on climbs; the safety-net boxes by the ship only
+  appear when you arrive without something the world needs.)
 
 ## World, levels and materials
 

@@ -22,6 +22,8 @@ const TOP = 200;        // rim / surface level
 const BOTTOM = -380;    // acid lake
 const LEVELS = [150, 92, 36, -24, -86, -150, -218, -290];
 const SPIRE_R = 24;
+/** The makers' pillar on the rim (the jets' box sits on it): its angle round the shaft, radius and height (m). */
+export const PILLAR = { a: 0.45, r: 286, h: 14 };
 const SPIRE_RING = 48;
 // the story's corners (src/story/incal.js): the Upward Shrine and the call-lamp on the bottom
 // terrace (world angles), Nima's corner a little way along the high terrace
@@ -645,6 +647,7 @@ export function createIncal(scene) {
     const x = Math.cos(a) * rad, z = Math.sin(a) * rad + (rng() - 0.5) * 20;
     if (Math.abs(z) < 16 && x < R + 40) continue;     // keep the view from the spawn open
     if (x > R + 30 && x < R + 60 && Math.abs(z) < 42) continue;   // and the walk-in villas clear
+    if (Math.hypot(x - Math.cos(PILLAR.a) * PILLAR.r, z - Math.sin(PILLAR.a) * PILLAR.r) < 8) continue;   // and round the makers' pillar
     trees.push([x, TOP, z, 0.8 + rng() * 0.8]);
   }
   // ---------------------------------------------------------- trees: cypresses and round olives
@@ -716,6 +719,19 @@ export function createIncal(scene) {
     const roof = new THREE.Mesh(new THREE.ConeGeometry(8.2, 3.2, 4).rotateY(Math.PI / 4).scale(1.05, 1, 0.95), makeMaterial({ color: ROOFS[Math.floor(rng() * 4)], flat: true, pattern: 'tiles' }));
     roof.position.set(R + 44, TOP + 4.6 + 1.6 + 0.3, vz);
     scene.add(roof);
+  }
+  // the makers' pillar: a lone stone column on the rim, 130 m round from the ship, its dark blue
+  // capital carved with the glyph ring. The jets' box waits on top (src/boxes/placements.js): a climb.
+  {
+    const a = PILLAR.a, px = Math.cos(a) * PILLAR.r, pz = Math.sin(a) * PILLAR.r, H = PILLAR.h;
+    const stone = makeMaterial({ color: '#ddd3bf', color2: '#cbbfa6', flat: true, pattern: 'cracks', key: 'incal.pillar' });
+    const blue = makeMaterial({ color: '#25386c', flat: true, key: 'incal.pillar.cap' });
+    const pale = makeMaterial({ color: '#9fbfdc', flat: true, glow: 0.2, key: 'incal.pillar.carve' });
+    const plinth = new THREE.Mesh(new THREE.CylinderGeometry(3.6, 4.0, 1.2, 8).translate(0, 0.6, 0), stone);
+    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 3.0, H - 2.0, 8).translate(0, 1.2 + (H - 2.0) / 2, 0), stone);
+    const cap = new THREE.Mesh(new THREE.CylinderGeometry(3.3, 2.7, 0.8, 8).translate(0, H - 0.4, 0), blue);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(2.9, 0.07, 4, 32).rotateX(Math.PI / 2).translate(0, H - 0.75, 0), pale);
+    for (const m of [plinth, shaft, cap, ring]) { m.position.set(px, TOP, pz); m.rotation.y = Math.PI / 8; scene.add(m); }
   }
   // a railing and cypresses at the spawn, looking out over the town (as in the plate)
   {

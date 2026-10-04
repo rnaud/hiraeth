@@ -29,9 +29,10 @@ export const PLACEMENTS = {
       note: 'A house roof just inside the main gate of the old city; climb its wall.' },
   ],
   incal: [
-    // the first jetpack world: the jets wait on the rim, behind the walk-in villas by the ship (no jetpack needed)
-    { id: 'incal.jetpack', item: 'jetpack', at: [314, 200.5, -12], toward: [331, -10], beacon: true,
-      note: 'On the rim behind the villas, a few steps from the ship; you need the jets for the shaft.' },
+    // the first jetpack world: the jets wait on the makers' pillar, a lone stone column on the rim 130 m
+    // round from the ship (src/levels/incal.js PILLAR): a 14 m climb, no jetpack needed (you need them for the shaft)
+    { id: 'incal.jetpack', item: 'jetpack', at: [Math.cos(0.45) * 286, 216, Math.sin(0.45) * 286], toward: [274, 0], beacon: true,
+      note: 'On top of the makers’ pillar on the rim, round from the ship: climb the column.' },
   ],
   arzach: [
     // the nearest capped needle spire, 240 m north: a long climb or a landing on the bird
