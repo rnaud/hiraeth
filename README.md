@@ -1107,3 +1107,17 @@ Pocket. Their built-in controls work through the Gamepad API.
   versionCode, version, APK URL). It offers newer builds and hands them to the
   system installer; the same key keeps the save.
 
+### Alien voices and the translator
+- `src/story/voice.js` plans each line's syllables (pitch path, formants, timing), the
+  same alien syllables for the same word in a given tongue; `src/audio.js` renders them
+  on a `voices` bus. Dialogue syllables play as the text reveals; balloons and crowd
+  shouts play short versions (at most two at once, silent past 26 m); calls are voiced
+  through the one hook in `cinema.say`.
+- **Tones** (`src/story/tone.js`): every line is tagged, `'~sad~ …'` or `{ text, tone }`,
+  from `neutral, happy, sad, angry, scared, surprised, curious, tired, solemn, playful,
+  whisper, shout`. Tags are stripped wherever text is shown, and `tests/tone.test.js`
+  checks every line in the game has one.
+- **Tongues** (`LANGUAGES`, by level id): Qanati, Shaft cant, the Arzach hush, cloud-monk
+  chant, Garage clatter and so on, each with its own glyph script. The traveller's
+  translator shows "translating · <tongue>" and resolves the glyphs at the caret.
+
