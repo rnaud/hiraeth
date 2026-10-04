@@ -338,7 +338,7 @@ const gate = (() => {
 })();
 levelLights.push(gate.light);
 // ---- story: conversations, quests, the world's people and places (src/story/, src/interact.js)
-const showToast = (text) => { const el = document.getElementById('toast'); el.textContent = text; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); };
+const showToast = (text) => ship.cinema.toast(text);   // queued, and held while a scene has the screen dark (src/ship/cinema.js)
 player.onNotice = showToast;   // "It needs power." (a vehicle without the backpack)
 const storyRt = createStory({ levelId, scene, physics, level, player, npcs, crowd, sound, journal, story, lib, humans: humanT, toast: showToast, tool,
   capture: (e, l, w, h) => captureView(e, l, w, h) });
@@ -615,9 +615,7 @@ const menu = new SettingsMenu(settings, {
 if (isTouch) new TouchControls(input, rig);
 // controller A/B swap (settings), and the Android app: build label, update toast, pause/resume
 settings.on((k) => { if (!k || k === 'swapAB') setSwapAB(settings.swapAB); });
-installAppShell({ sound, label: () => document.getElementById('app-build'), toast: (text) => {
-  const t = document.getElementById('toast'); t.textContent = text; t.classList.remove('show'); void t.offsetWidth; t.classList.add('show');
-} });
+installAppShell({ sound, label: () => document.getElementById('app-build'), toast: showToast });   // (queued with the rest, src/ship/cinema.js)
 
 // ------------------------------------------------------------------ level picker
 const picker = document.getElementById('picker');
@@ -1122,11 +1120,7 @@ requestAnimationFrame((t) => {
   setTimeout(() => ld?.remove(), 900);
   if (viaGate) arriveFromPage(meta.title);
   ship.start({ via: viaShip ? 'ship' : viaGate ? 'gate' : null, prologue: playPrologue, homecoming: playHomecoming, onReady: () => { if (playHomecoming) journal.markSeen(levelId); else if (!viaGate) story.start(); } });   // the homecoming is its own page
-  if (changelog.fresh) setTimeout(() => {   // after an update: point at what changed, once
-    const t = document.getElementById('toast');
-    t.textContent = `Updated to v${VERSION} · press N to see what's new`;
-    t.classList.remove('show'); void t.offsetWidth; t.classList.add('show');
-  }, 4000);
+  if (changelog.fresh) setTimeout(() => showToast(`Updated to v${VERSION} · press N to see what's new`), 4000);   // after an update: point at what changed, once
 });
 
 // handy for debugging from the console

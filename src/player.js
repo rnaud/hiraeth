@@ -4,6 +4,7 @@ import { Cape } from './cape.js';
 import { Gear } from './gear.js';
 import { items as sharedItems } from './items.js';
 import { HANDOFF } from './fluid-kit.js';
+import { inTightRoom } from './interiors.js';
 
 const RADIUS = 0.45;
 const STEP = 0.6;    // obstacles lower than this are stepped onto
@@ -185,6 +186,7 @@ const Y = new THREE.Vector3(0, 1, 0);
 const _zAxis = new THREE.Vector3(0, 0, 1);
 const _shoulder = new THREE.Vector3(), _head = new THREE.Vector3(), _toCam = new THREE.Vector3(), _chest = new THREE.Vector3();
 const _qId = new THREE.Quaternion();
+const _pc = new THREE.Vector3(), _pd = new THREE.Vector3(), _cr = new THREE.Vector3(), _cu2 = new THREE.Vector3();
 const _xAxis = new THREE.Vector3(1, 0, 0);
 
 /**
@@ -1560,17 +1562,62 @@ export class Player {
   }
 }
 
-const INDOOR_PITCH = 0.5;   // rad: how far the camera looks down in tight rooms
+const INDOOR_PITCH = 0.3;        // rad: how far the camera looks down in the ship's rooms, over the shoulder
+const INDOOR_PITCH_NEAR = 0.55;  // rad: ... and once a wall has pulled it right in (so the head never fills the screen)
+
+// The follow camera's arm. Out in the open it hangs back (OPEN_DIST, the wheel
+// zooms it); in tight spaces it comes in close over the right shoulder, like
+// Uncharted: the ship, rooms, the giant's chest, alleys, canyons, low ceilings.
+export const OPEN_DIST = 9.5;
+export const TIGHT_DIST = 2.6;     // m, at the default zoom (scaled with the wheel)
+const TIGHT_SIDE = 0.75;           // m: the look point off the right shoulder when close
+const PROBE_EVERY = 0.12;          // s between clearance probes
+const PROBE_N = 8;                 // horizontal rays round the player
+
+const ENCLOSED = { ceil: 26, ring: 36, up: 42 };   // m: a shut space (a cave, a dome, a hall), however big
+
+const smoothstep = (a, b, x) => { const t = THREE.MathUtils.clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+
+/**
+ * How tight a spot is, 0 (open) .. 1 (tight), from the clearance probes
+ * (metres from the chest, Infinity where a ray found nothing):
+ * @param ceil  straight up
+ * @param ring  PROBE_N horizontal rays, evenly round (so ring[i] and ring[i + N/2] are opposite)
+ * @param up    rays slanting up and out (a dome or a cave roof catches them; a forest canopy lets most through)
+ */
+export function tightness({ ceil = Infinity, ring = [], up = [] }) {
+  // a low ceiling (1.3 m over the chest is a 2.5 m passage; 5.5 m over it is a hall)
+  const roof = 1 - smoothstep(1.6, 5.5, ceil);
+  // walls on both sides: the narrowest width across (a corridor, an alley, a canyon floor)
+  const half = ring.length >> 1;
+  let width = Infinity, near = 0;
+  for (let i = 0; i < half; i++) width = Math.min(width, ring[i] + ring[i + half]);
+  for (const d of ring) if (d < 4.5) near++;
+  const narrow = 1 - smoothstep(4.5, 9, width);
+  // walls close on most sides: a small room, a cabin, a nook
+  const shut = smoothstep(4, 7, near);
+  // roofed over in every direction and walled round most of the way: inside something,
+  // however big (the giant's chest; its way in and a gap or two may let a ray out)
+  const walled = ring.filter((d) => d < ENCLOSED.ring).length;
+  const enclosed = ceil < ENCLOSED.ceil && up.length > 0 && up.every((d) => d < ENCLOSED.up) && walled >= Math.ceil(ring.length * 0.6);
+  const walls = Math.max(narrow, shut);
+  return THREE.MathUtils.clamp(Math.max(
+    enclosed ? 1 : 0,
+    walls * (Number.isFinite(ceil) ? 1 : 0.8),   // an alley or a canyon under open sky: nearly all the way
+    roof * 0.85,                                 // under a low ceiling the camera can't stand high anyway
+    roof * walls * 1.5,
+  ), 0, 1);
+}
 
 export class CameraRig {
   constructor(camera, dom, physics) {
     this.camera = camera;
     this.physics = physics;
-    this._curDist = 11;
+    this._curDist = OPEN_DIST;
     this._dir = new THREE.Vector3();
     this.yaw = 0;
     this.pitch = 0.22;
-    this.dist = 11;
+    this.dist = OPEN_DIST;
     this.target = new THREE.Vector3();
     this._look = new THREE.Vector3();
     this._dragging = false;
@@ -1582,6 +1629,18 @@ export class CameraRig {
     // under the ceiling looking down over the shoulder, and allowed in close
     this.indoor = false;
     this.indoorK = 0;
+    // tight spaces in general (found by probing round the player, or flagged):
+    // the arm comes in close over the shoulder, and goes back out in the open
+    this.tight = 0;          // an explicit hint from a level (0..1), on top of what the probes find
+    this.tightRaw = 0;       // what the last probe saw
+    this.tightGoal = 0;      // after hysteresis
+    this.tightK = 0;         // eased: what the arm uses
+    this._probeT = 0;
+    this._lowT = 0;
+    this._riding = false;
+    this._lastP = null;
+    this._ring = new Array(PROBE_N).fill(Infinity);
+    this._up = new Array(4).fill(Infinity);
 
     dom.addEventListener('click', () => dom.requestPointerLock?.());
     dom.addEventListener('mousedown', () => (this._dragging = true));
@@ -1629,13 +1688,83 @@ export class CameraRig {
     return best;
   }
 
+  /**
+   * Probe the clearance round the player: up, a ring of horizontal rays at
+   * chest height, and a few slanting up. Returns tightness() of it (0..1).
+   * (A heightfield, the desert's dunes, is no mesh: its walls are sampled.)
+   */
+  probe(playerPos, U = Y, Fw = _zAxis, Rt = _xAxis) {
+    const P = this.physics, chest = _pc.copy(playerPos).addScaledVector(U, 1.2);
+    const ceil = P.rayDistance(chest, U, 30);
+    const base = P.base && U.y > 0.999 ? P.base : null;
+    for (let i = 0; i < PROBE_N; i++) {
+      const a = (i / PROBE_N) * Math.PI * 2, s = Math.sin(a), c = Math.cos(a);
+      _pd.copy(Rt).multiplyScalar(s).addScaledVector(Fw, c);
+      let d = P.rayDistance(chest, _pd, 40);
+      if (base) for (const r of [1.5, 3, 5, 8]) {
+        if (r >= d) break;
+        if (base.heightAt(chest.x + _pd.x * r, chest.z + _pd.z * r) > chest.y + 0.8 + r * 0.35) { d = r; break; }   // (a steep bank, not a dune slope)
+      }
+      this._ring[i] = d;
+      if (i % 2 === 0) {
+        _pd.multiplyScalar(0.7071).addScaledVector(U, 0.7071);
+        this._up[i >> 1] = P.rayDistance(chest, _pd, 50);
+      }
+    }
+    return tightness({ ceil, ring: this._ring, up: this._up });
+  }
+
+  /**
+   * The tight-space blend for this frame: probe now and then, hold the goal
+   * with hysteresis (in quickly, out only once it has been open a while), ease.
+   */
+  updateTight(playerPos, dt, U, Fw, Rt) {
+    const jumped = !this._lastP || this._lastP.distanceToSquared(playerPos) > 36;   // a teleport, a portal, a respawn
+    (this._lastP ??= new THREE.Vector3()).copy(playerPos);
+    this._probeT -= dt;
+    if (this._probeT <= 0 || jumped) {
+      const step = jumped ? 0 : PROBE_EVERY - this._probeT;
+      this._probeT = PROBE_EVERY;
+      // riding or gliding: speed wants room, whatever the walls
+      let raw = this._riding ? 0 : this.probe(playerPos, U, Fw, Rt);
+      raw = Math.max(raw, this.tight || 0, this.indoor ? 1 : 0, inTightRoom(playerPos) ? 1 : 0);
+      this.tightRaw = raw;
+      if (jumped) { this.tightGoal = raw; this._lowT = 0; }
+      else if (raw > this.tightGoal + 0.1) { this.tightGoal = raw; this._lowT = 0; }
+      else if (raw < this.tightGoal - 0.1) {
+        // only let go once it has stayed open for a moment (a doorway, a gap between two stalls)
+        if ((this._lowT += step) > 1.0) { this.tightGoal = raw; this._lowT = 0; }
+      } else this._lowT = 0;
+    }
+    if (jumped) this.tightK = this.tightGoal;
+    const rate = this.tightGoal > this.tightK ? 3.2 : 1.1;
+    this.tightK += (this.tightGoal - this.tightK) * (1 - Math.exp(-rate * dt));
+    return this.tightK;
+  }
+
+  /** Jump straight to the current tight / open state (after placing the player in a scene). */
+  snapTight(playerPos) {
+    this._lastP = null;
+    if (playerPos) this.updateTight(playerPos, 0, Y, _zAxis, _xAxis);
+    this.indoorK = this.indoor ? 1 : 0;
+  }
+
   /** While riding: swing behind the bike unless the mouse moved recently. */
   follow(heading, dt, riding) {
+    this._riding = !!riding;
     this._distBoost += ((riding ? 6 : 0) - this._distBoost) * (1 - Math.exp(-2 * dt));
     if (!riding || this._now - this._lastMouse < 1.5) return;
     let d = heading + Math.PI - this.yaw;
     d = Math.atan2(Math.sin(d), Math.cos(d));
     this.yaw += d * (1 - Math.exp(-2.2 * dt));
+  }
+
+  /** The arm's length before walls pull it in: open, tight (over the shoulder) or aiming. */
+  armLength(tk = this.tightK, ak = this.aimK ?? 0) {
+    const open = this.dist + this._distBoost;
+    // the close arm follows the wheel too (zoomed out a little further, in a little nearer)
+    const close = THREE.MathUtils.clamp(TIGHT_DIST * this.dist / OPEN_DIST, 1.9, 4.5);
+    return THREE.MathUtils.lerp(THREE.MathUtils.lerp(open, Math.min(open, close), tk), 3.4, ak);
   }
 
   /** @param frame the player's local frame (up / fwd / right) */
@@ -1645,20 +1774,31 @@ export class CameraRig {
     const ak = this.aimK ?? 0;   // aiming the tool: in close, over the right shoulder
     this.indoorK += ((this.indoor ? 1 : 0) - this.indoorK) * (1 - Math.exp(-5 * dt));
     const ik = this.indoorK;
-    const dist = THREE.MathUtils.lerp(this.dist + this._distBoost, 3.4, ak);
+    const tk = this.updateTight(playerPos, dt, U, Fw, Rt);
+    const k = Math.max(ik, tk);   // how close-quarters the framing is
+    const dist = this.armLength(tk, ak);
     this.target.lerp(playerPos, 1 - Math.exp(-14 * dt));
     if (this.target.lengthSq() === 0) this.target.copy(playerPos);
-    // indoors the view tips down from under the ceiling, so the head never fills the screen
-    const pitch = THREE.MathUtils.lerp(this.pitch, Math.max(this.pitch, INDOOR_PITCH), ik * (1 - ak));
+    // in the ship the view tips down a little from under the ceiling; more when a wall has
+    // pulled the camera right in, so the head never fills the screen
+    const floor = THREE.MathUtils.lerp(INDOOR_PITCH_NEAR, INDOOR_PITCH, smoothstep(1.0, 2.3, this._curDist));
+    const pitch = THREE.MathUtils.lerp(this.pitch, Math.max(this.pitch, floor), ik * (1 - ak));
     const cp = Math.cos(pitch);
     const cam = this.camera.position;
     // looking up from low down: aim higher so the sky and clouds fill the view
-    this._look.copy(this.target).addScaledVector(U, 1.8 + Math.max(0, -pitch) * 1.4 * (1 - ak) - 0.1 * ak - 0.3 * ik);
+    // (close in, at the shoulders rather than over the head)
+    this._look.copy(this.target).addScaledVector(U, 1.8 + Math.max(0, -pitch) * 1.4 * (1 - ak) - 0.1 * ak - 0.3 * k);
     this._dir.copy(Rt).multiplyScalar(Math.sin(this.yaw) * cp)
       .addScaledVector(U, Math.sin(pitch))
       .addScaledVector(Fw, Math.cos(this.yaw) * cp);
-    const side = Math.max(0.85 * ak, 0.4 * ik);
-    if (side > 0) this._look.addScaledVector(_shoulder.crossVectors(U, this._dir).normalize(), side);
+    // over the right shoulder (aiming, and close in), but never past a wall beside you
+    let side = Math.max(0.85 * ak, TIGHT_SIDE * k);
+    if (side > 0.01) {
+      _shoulder.crossVectors(U, this._dir).normalize();
+      const room = this.physics.rayDistance(this._look, _shoulder, side + 0.45);
+      side = Math.max(0, Math.min(side, room - 0.45));
+      this._look.addScaledVector(_shoulder, side);
+    }
 
     // Line of sight: pull the camera in front of any wall between it and the
     // player (snap in, ease back out).
@@ -1666,24 +1806,27 @@ export class CameraRig {
     // otherwise clip the floor and yank the camera in)
     const rolling = this.camera.up.dot(U) < 0.985;
     const hit = rolling ? Infinity : this.physics.rayDistance(this._look, this._dir, dist + 0.5);
-    // (indoors it may come right in: a floor of 1.5 m would put it through a corridor wall)
-    let allowed = Math.max(Math.min(dist, hit - THREE.MathUtils.lerp(0.6, 0.35, ik)), THREE.MathUtils.lerp(1.5, 0.45, ik));
+    // (close in it may come right in: a floor of 1.5 m would put it through a corridor wall)
+    let allowed = Math.max(Math.min(dist, hit - THREE.MathUtils.lerp(0.6, 0.4, k)), THREE.MathUtils.lerp(1.5, 0.45, k));
     // the ground limits the arm too (so you can drop low and look at the sky):
     // the longest arm whose end stays 0.4 m above the ground, found by
     // bisection, folded into the same target so the two can't fight
     if (U.y > 0.999) {
-      // (indoors from just above the camera: from 3 m up, the ceiling's top reads as "ground")
-      const lift = this.indoor ? 0.25 : 3;
-      const clear = (d) => { cam.copy(this._look).addScaledVector(this._dir, d); return cam.y >= this.physics.groundAt(cam.x, cam.y + lift, cam.z) + 0.4; };
+      // (from just under whatever is overhead: from 3 m up, a ceiling's top reads as "ground")
+      const clear = (d) => {
+        cam.copy(this._look).addScaledVector(this._dir, d);
+        const lift = k > 0.05 || this.indoor ? Math.max(0.25, Math.min(3, this.physics.rayDistance(cam, Y, 3) - 0.1)) : 3;
+        return cam.y >= this.physics.groundAt(cam.x, cam.y + lift, cam.z) + 0.4;
+      };
       if (!clear(allowed)) {
         let lo = 0.8, hi = allowed;
-        for (let k = 0; k < 8; k++) { const m = (lo + hi) / 2; if (clear(m)) lo = m; else hi = m; }
+        for (let i = 0; i < 8; i++) { const m = (lo + hi) / 2; if (clear(m)) lo = m; else hi = m; }
         allowed = lo;
       }
     }
-    // indoors the look point sits off the shoulder: also keep the head itself in sight
+    // close in, the look point sits off the shoulder: also keep the head itself in sight
     // (a bunk or a doorframe between the camera and the head, but not the look point)
-    if (ik > 0.5) {
+    if (k > 0.5) {
       _head.copy(this.target).addScaledVector(U, 1.55);
       cam.copy(this._look).addScaledVector(this._dir, allowed);
       _toCam.subVectors(cam, _head);
@@ -1695,6 +1838,9 @@ export class CameraRig {
     if (allowed < this._curDist - 0.02) this._curDist = allowed;
     else this._curDist += (allowed - this._curDist) * (1 - Math.exp(-3 * dt));
     cam.copy(this._look).addScaledVector(this._dir, this._curDist);
+    // keep the lens clear of walls beside, above and below it (its near plane
+    // reaches ~0.35 m off the axis: a wall that close would be cut open)
+    if (k > 0.05 && !rolling) this.unclip(cam, U);
     this.constrain?.(cam);
     // roll the camera with gravity (smoothly, so portals don't snap the view)
     // (a quaternion turn, so even a 180° flip rotates instead of collapsing)
@@ -1703,5 +1849,16 @@ export class CameraRig {
       this.camera.up.applyQuaternion(_q1).normalize();
     }
     this.camera.lookAt(this._look);
+  }
+
+  /** Push the camera off any surface closer than `r` to its sides, top or bottom. */
+  unclip(cam, U = Y, r = 0.42) {
+    _cr.crossVectors(U, this._dir).normalize();          // the camera's right (or left: both are tried)
+    _cu2.crossVectors(this._dir, _cr).normalize();       // its up
+    for (const [v, s] of [[_cr, 1], [_cr, -1], [_cu2, 1], [_cu2, -1]]) {
+      _pd.copy(v).multiplyScalar(s);
+      const d = this.physics.rayDistance(cam, _pd, r);
+      if (d < r) cam.addScaledVector(_pd, -(r - d));
+    }
   }
 }

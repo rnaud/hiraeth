@@ -10,6 +10,22 @@ import { makeMaterial, MODE_STRATA } from './materials.js';
 
 const Y = new THREE.Vector3(0, 1, 0);
 
+// Every room is a tight space for the camera (src/player.js CameraRig pulls in
+// over the shoulder while you stand in one). Rooms register their box here.
+const ROOMS = [];
+const _lp = new THREE.Vector3();
+
+/** Is this world point inside a built room (with a little margin round its walls)? */
+export function inTightRoom(p, margin = 0.6) {
+  for (let i = ROOMS.length - 1; i >= 0; i--) {
+    const r = ROOMS[i];
+    if (!r.group.parent) { ROOMS.splice(i, 1); continue; }   // gone with its level
+    _lp.copy(p).applyMatrix4(r.inv);
+    if (Math.abs(_lp.x) < r.w / 2 + margin && Math.abs(_lp.z) < r.d / 2 + margin && _lp.y > -1 && _lp.y < r.h + 0.5) return true;
+  }
+  return false;
+}
+
 /** Boxes for a wall of length L, height H and thickness T with rectangular holes {x0,x1,y0,y1} (x along the wall). */
 function wallWithHoles(L, H, T, holes) {
   const xs = [0, L, ...holes.flatMap((h) => [h.x0, h.x1])].sort((a, b) => a - b);
@@ -87,10 +103,13 @@ export function buildRoom(scene, {
   grp.add(lampMesh);
   scene.add(grp);
   grp.updateMatrixWorld(true);
+  grp.userData.tight = true;   // the camera's tight-space mode (src/player.js CameraRig)
+  ROOMS.push({ group: grp, inv: grp.matrixWorld.clone().invert(), w, d, h });
   const wp = (x, y, z) => grp.localToWorld(new THREE.Vector3(x, y, z));
   const lp = wp(0, h - 0.6, 0);
   return {
     group: grp,
+    tight: true,
     inside: wp(door.x, 0.05, d / 2 - 1.6),
     doorIn: wp(door.x, 0, d / 2 - 0.3),
     doorOut: wp(door.x, 0, d / 2 + 1.1),
