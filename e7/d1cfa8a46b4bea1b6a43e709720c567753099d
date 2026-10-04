@@ -1,0 +1,33 @@
+src/fluid-tool.js
+  s_1fd8d0e7b02dcf::t_cc1861a4081273 427-428,650-653
+TODO.md
+  s_f58488c48f6966::t_c66dd63c287de6 88
+changelog.md
+  s_f58488c48f6966::t_81e0dabf634e32 12
+src/changelog.js
+  s_f58488c48f6966::t_df3af28f42aa1f 12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e7d1cfa8a46b4bea1b6a43e709720c567753099d",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_f58488c48f6966": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ae98874367e8f0bb2",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
