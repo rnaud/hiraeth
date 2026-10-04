@@ -1,0 +1,55 @@
+README.md
+  s_1fd8d0e7b02dcf::t_141dcd92fa6270 348-350,413-420
+src/audio.js
+  s_1fd8d0e7b02dcf::t_953e9dd60404d8 240,1026
+src/interiors.js
+  s_1fd8d0e7b02dcf::t_249a59d504f19c 4,19-21,143-152
+src/levels/arzach2.js
+  s_1fd8d0e7b02dcf::t_df9f43bbf495be 631-634,636-644
+src/levels/edena.js
+  s_1fd8d0e7b02dcf::t_3a6950e23e0288 6,74-76,87-89,92-93,95,97-98,100-112,117-118,195-258,388,390,400
+src/levels/perdide.js
+  s_1fd8d0e7b02dcf::t_391324903db1ff 92-118,161,165
+src/main.js
+  s_1fd8d0e7b02dcf::t_16eac02673ddd3 24,280-281,1006,1008-1013,1016,1052,1156
+src/player.js
+  s_1fd8d0e7b02dcf::t_c3895f51512b8d 1579-1586,1672-1677,1792-1793
+src/post.js
+  s_1fd8d0e7b02dcf::t_176dc92b94b259 105,608-610,663
+src/shelter.js
+  s_1fd8d0e7b02dcf::t_748849446f8343 1-94
+src/story/arzach2.js
+  s_1fd8d0e7b02dcf::t_4fba7a55b05573 124-129,259-260
+tests/camera.test.js
+  s_1fd8d0e7b02dcf::t_bc52b9cec0fcc3 5,92-117
+tests/perdide-plants.test.js
+  s_1fd8d0e7b02dcf::t_ebf21699e14886 1-29
+tests/shelter.test.js
+  s_1fd8d0e7b02dcf::t_95d7553d18f19e 1-65
+tests/story-arzach2.test.js
+  s_1fd8d0e7b02dcf::t_346ac8c6f51ad9 135-146
+tests/story-edena.test.js
+  s_1fd8d0e7b02dcf::t_1a400e36507858 4,72-78,89-91
+TODO.md
+  s_1fd8d0e7b02dcf::t_d78f9ba899d937 83-84,86,91
+changelog.md
+  s_1fd8d0e7b02dcf::t_c0bf1a4d38c580 12-15
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_cf4f426bcf4f35 12-15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6c614b68f77f25a797effda42aae3cc8c1abc79d",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
