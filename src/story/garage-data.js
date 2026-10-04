@@ -217,7 +217,13 @@ export const LOCALS = [
   {
     id: 'malvina', name: 'Malvina', title: 'who remembers the Major', color: '#e6875f', voice: 1.05,
     talk: {
+      entry: [{ if: { flag: 'garage.note.read' }, node: 'note' }, { node: 'hello' }],
       nodes: {
+        note: {
+          say: ['You found his desk. I can tell; you have the look of somebody who has read his handwriting. “That is the point.” Yes. That sounds like him.', 'He never did know what he wanted it for. I think that was the only way he could bear to build something so big: not knowing, and doing it anyway, carefully.'],
+          choices: [{ text: 'And the wheel under the sand?', goto: 'wheel' }, { text: 'Thank you, Malvina.', end: true }],
+        },
+        wheel: { say: ['Ah. The wheel. A machine somewhere out under a desert that turns one tooth a year; people there time their lives by it, he said. He went to see it once, and came back very quiet. If you go, tell it the Garage is still turning.'], choices: [{ text: 'I will.', end: true }] },
         hello: {
           say: ['Up is a matter of opinion here. Down is a matter of habit.', 'I knew the Major. Knew him before he built all this, when he was just a man with a pencil and too many ideas. He built it all, and then he forgot.'],
           choices: [
