@@ -97,6 +97,7 @@ const fragmentShader = /* glsl */ `
   uniform vec4 uSubject;      // the player on screen: uv, view depth, radius (uv units, y)
   uniform float uAerial;      // distant layers lose saturation and drift to the sky colour
   uniform float uLineVary;    // thick silhouettes / thin interior lines / pen pressure
+  uniform float uPostLite;    // 1 = one ink-line kernel instead of two (the handheld preset)
   uniform float uSkyFlat;     // flat printed sky (vs gradient)
   uniform float uSkyDots;     // stipple dots in the sky
   uniform float uCumulus;     // puffy cloud bank on the horizon
@@ -497,8 +498,15 @@ const fragmentShader = /* glsl */ `
     silW = mix(silW, 0.65, heroNear);
     euv = mix(euv, uv, heroNear);
     float nearD2;
-    vec4 eS = inkLines(euv, silW * uPixelRatio, false, nearD);
-    vec4 eI = inkLines(euv, inW * uPixelRatio, true, nearD2);
+    vec4 eS, eI;
+    if (uPostLite > 0.5) {
+      // handheld: one kernel between the two weights serves silhouettes and interior lines (half the taps)
+      eI = inkLines(euv, mix(silW, inW, 0.5) * uPixelRatio, true, nearD2);
+      eS = eI; nearD = nearD2;
+    } else {
+      eS = inkLines(euv, silW * uPixelRatio, false, nearD);
+      eI = inkLines(euv, inW * uPixelRatio, true, nearD2);
+    }
     nearD = min(nearD, nearD2);
     // interior lines break up like quick pen strokes; gaps are anchored in the world
     vec3 wpL = uCamWorld[3].xyz + rd * min(probeD, 5000.0) / max(dot(rd, -uCamWorld[2].xyz), 0.2);
@@ -640,6 +648,7 @@ export function createPost() {
     uHazeBands: { value: 0.6 },
     uRays: { value: 1 },
     uLineVary: { value: 1 },
+    uPostLite: { value: 0 },
     uSubject: { value: new THREE.Vector4(0, 0, 0, -1) },
     uAerial: { value: 1 },
     uSkyFlat: { value: 0 },

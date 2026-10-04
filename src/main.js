@@ -14,7 +14,8 @@ import { Player, CameraRig } from './player.js';
 import { applyTimeOfDay, colourScript } from './timeofday.js';
 import { WindStreaks } from './wind.js';
 import { Physics } from './physics.js';
-import { tileScene, cullFar } from './perf.js';
+import { tileScene, cullFar, fitBounds, SmallCuller, RoomCuller, resolveQuality, detectHandheld, GpuTimer } from './perf.js';
+import { Cascade, ShadowCuller, shadowDirection } from './shadows.js';
 import { Trail } from './trail.js';
 import { Flock, Motes, Footprints } from './life.js';
 import { Sound } from './audio.js';
@@ -27,7 +28,7 @@ import { loadAnimationLibrary, Animator } from './animator.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { loadHuman, Humanoid } from './humanoid.js';
 import { Changelog, VERSION } from './changelog.js';
-import { Settings, SettingsMenu, TouchControls, SaveGame, isTouch, ToolHud } from './ui.js';
+import { Settings, SettingsMenu, TouchControls, SaveGame, isTouch, isNativeApp, ToolHud } from './ui.js';
 import { FluidTool, bindToolMouse } from './fluid-tool.js';
 import { ORDER } from './levels/content.js';
 import { createStory } from './story/index.js';
@@ -80,54 +81,17 @@ const gbuffer = new THREE.WebGLRenderTarget(1, 1, {
   depthBuffer: true,
 });
 
-// Sun shadow maps: two orthographic cascades that follow the player.
-// near = sharp shadows around the player, far = mesas shadowing distant dunes.
+// Sun shadow maps: three orthographic cascades that follow the player (src/shadows.js).
+// fine = crisp character shadows, near = the street around you, far = mesas shadowing distant dunes.
+// Sizes come from the graphics preset (applyQuality); bias and normal offset are in texels.
 const shadowOverride = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, colorWrite: false });
-
-function makeCascade(size, extent, depth, biasWorld, mapU, matrixU, biasU) {
-  const rt = new THREE.WebGLRenderTarget(size, size, {
-    format: THREE.RedFormat,
-    depthBuffer: true,
-    depthTexture: new THREE.DepthTexture(size, size),
-  });
-  const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 1, 2);
-  mapU.value = rt.depthTexture;
-  biasU.value = biasWorld / depth;
-  const ls = new THREE.Vector3();
-  return {
-    rt,
-    // Fixed orientation looking along the light; translate the ortho window in
-    // light space and snap it to texels so shadows don't shimmer when moving.
-    update(center, dir) {
-      cam.position.copy(dir).multiplyScalar(10);
-      cam.up.set(0, 1, 0);
-      if (Math.abs(dir.y) > 0.99) cam.up.set(0, 0, 1);
-      cam.lookAt(0, 0, 0);
-      cam.updateMatrixWorld();
-      ls.copy(center).applyMatrix4(cam.matrixWorldInverse);
-      const texel = (extent * 2) / size;
-      ls.x = Math.round(ls.x / texel) * texel;
-      ls.y = Math.round(ls.y / texel) * texel;
-      cam.left = ls.x - extent;
-      cam.right = ls.x + extent;
-      cam.bottom = ls.y - extent;
-      cam.top = ls.y + extent;
-      cam.near = -ls.z - depth / 2;
-      cam.far = -ls.z + depth / 2;
-      cam.updateProjectionMatrix();
-      matrixU.value.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse);
-    },
-    render(scene) {
-      renderer.setRenderTarget(rt);
-      renderer.clear();
-      renderer.render(scene, cam);
-    },
-  };
-}
 const SU = sharedUniforms;
-const fineShadow = makeCascade(2048, 12, 1600, 0.04, SU.uShadowMap0, SU.uShadowMatrix0, SU.uShadowBias0);
-const nearShadow = makeCascade(4096, 220, 1600, 0.25, SU.uShadowMap, SU.uShadowMatrix, SU.uShadowBias);
-const farShadow = makeCascade(2048, 1150, 3200, 2.5, SU.uShadowMap2, SU.uShadowMatrix2, SU.uShadowBias2);
+const cascades = {
+  fine: new Cascade({ name: 'fine', size: 2048, extent: 12, depth: 1600, bias: 3.4, offset: 2.6, uniforms: { map: SU.uShadowMap0, matrix: SU.uShadowMatrix0, bias: SU.uShadowBias0, offset: SU.uShadowNormalOffset0 } }),
+  near: new Cascade({ name: 'near', size: 4096, extent: 220, depth: 1600, bias: 2.3, offset: 3.2, uniforms: { map: SU.uShadowMap, matrix: SU.uShadowMatrix, bias: SU.uShadowBias, offset: SU.uShadowNormalOffset } }),
+  far: new Cascade({ name: 'far', size: 2048, extent: 1150, depth: 3200, bias: 2.2, offset: 2.4, uniforms: { map: SU.uShadowMap2, matrix: SU.uShadowMatrix2, bias: SU.uShadowBias2, offset: SU.uShadowNormalOffset2 } }),
+};
+const shadowTexels = () => SU.uShadowTexel.value.set(cascades.fine.texel, cascades.near.texel, cascades.far.texel);
 
 const post = createPost();
 post.uniforms.tAlbedo.value = gbuffer.textures[0];
@@ -137,8 +101,14 @@ post.uniforms.tHatch.value = gbuffer.textures[2];
 // Render at the selected resolution, then smooth the final colour with FXAA.
 // The G-buffer stays nearest-filtered so depth and surface boundaries stay exact.
 const settings = new Settings();
-const QUALITY = { low: 0.7, medium: 1, high: pixelRatio >= 2 ? 1 : 1.5, auto: 1 };
-const quality = { renderScale: QUALITY[settings.quality] ?? 1 };
+// the graphics preset (perf.js QUALITY_PRESETS); Auto runs the handheld recipe on the Android app and mobile GPUs
+const gpuName = (() => {
+  const gl = renderer.getContext(), ext = gl.getExtension('WEBGL_debug_renderer_info');
+  try { return String(gl.getParameter(ext ? ext.UNMASKED_RENDERER_WEBGL : gl.RENDERER) ?? ''); } catch { return ''; }
+})();
+const handheld = detectHandheld({ native: isNativeApp, touch: isTouch, gpu: gpuName });
+let preset = resolveQuality(settings.quality, { handheld, hiDPI: pixelRatio >= 2 });
+const quality = { renderScale: preset.scale };
 const composeRT = new THREE.WebGLRenderTarget(1, 1, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, depthBuffer: false });
 const blit = (() => {
   const material = new THREE.ShaderMaterial({
@@ -554,32 +524,54 @@ applyPreset(params.preset);
 gui.close();   // collapsed by default; click the title to open
 
 // ------------------------------------------------------------------ settings, touch
+// The graphics preset (perf.js QUALITY_PRESETS, resolveQuality): render scale and dynamic
+// resolution, shadow map sizes and refresh rates, PCF taps, crease shading, cloud shadows,
+// NPC detail and crowd range, how far small props are drawn, the lighter ink pass.
 let lastQuality = settings.quality;
-// Low-detail mode (Low, or Auto once it has had to drop resolution on a slow device):
-// no crease shading, no cloud shadows, the near shadow cascade at half rate, fewer far NPC updates.
 const baseAO = U.uAO.value, baseCloudSh = sharedUniforms.uCloudShadows.value;
-const adapt = { scale: QUALITY.auto, slow: 0, fast: 0, dropped: false };
-const lowDetail = () => settings.quality === 'low' || (settings.quality === 'auto' && (isTouch || adapt.dropped));
+const crowdRange = crowd ? { ...crowd.range } : null;
+const adapt = { slow: 0, fast: 0, dropped: false };
+// low detail: the preset's, or a desktop Auto once it has had to drop resolution
+const lowDetail = () => preset.lowDetail || (preset.key === 'auto' && adapt.dropped);
 function applyDetail() {
   const low = lowDetail();
-  U.uAO.value = low ? 0 : baseAO;
-  sharedUniforms.uCloudShadows.value = low ? 0 : baseCloudSh;
+  U.uAO.value = preset.ao && !low ? baseAO : 0;
+  sharedUniforms.uCloudShadows.value = preset.cloudShadows && !low ? baseCloudSh : 0;
+  sharedUniforms.uShadowTaps.value = preset.taps;
+  U.uPostLite.value = preset.postLite ? 1 : 0;
   for (const n of npcs) n.lowDetail = low;
+  if (crowd) {
+    const mid = preset.crowdMid ?? crowdRange.midIn;
+    Object.assign(crowd.range, { far: Math.min(preset.crowdFar ?? Infinity, crowdRange.far), midIn: Math.min(mid, crowdRange.midIn), midOut: Math.min(mid + 7, crowdRange.midOut), shadow: Math.min(crowdRange.shadow, mid * 0.5) });
+  }
 }
-/** Mobile Auto aims for 30 fps and keeps at least 1.5 pixels per CSS pixel on HiDPI. */
+function applyQuality() {
+  preset = resolveQuality(settings.quality, { handheld, hiDPI: pixelRatio >= 2 });
+  quality.renderScale = preset.scale;
+  adapt.slow = adapt.fast = 0; adapt.dropped = false;
+  const S = preset.shadow;
+  cascades.fine.configure(S.fine || 256, cascades.fine.extent);
+  if (!S.fine) cascades.fine.disable();
+  cascades.near.configure(S.near, preset.nearExtent);
+  cascades.far.configure(S.far, cascades.far.extent);
+  for (const c of Object.values(cascades)) c.prime(renderer);
+  shadowTexels();
+  resize();
+  applyDetail();
+}
+/** Dynamic resolution: the render scale follows the frame rate, inside the preset's range (Auto, Handheld). */
 function adaptQuality(fps) {
-  if (settings.quality !== 'auto' || document.hidden || busy() || photo.on) return;
-  const minScale = isTouch ? 0.75 : 0.5;
-  const slowFps = isTouch ? 28 : 40;
-  const fastFps = isTouch ? 34 : 56;
-  if (fps < slowFps) { adapt.slow++; adapt.fast = 0; } else if (fps > fastFps) { adapt.fast++; adapt.slow = 0; } else adapt.slow = adapt.fast = 0;
-  if (adapt.slow >= 6 && quality.renderScale > minScale) {
-    quality.renderScale = Math.max(minScale, +(quality.renderScale - 0.1).toFixed(2));
+  const D = preset.dynamic;
+  if (!D || document.hidden || busy() || photo.on) return;
+  if (fps < D.low) { adapt.slow++; adapt.fast = 0; } else if (fps > D.high) { adapt.fast++; adapt.slow = 0; } else adapt.slow = adapt.fast = 0;
+  if (adapt.slow >= 3 && quality.renderScale > D.min) {
+    const step = fps < D.low * 0.7 ? 0.1 : 0.05;   // well under: a bigger step
+    quality.renderScale = Math.max(D.min, +(quality.renderScale - step).toFixed(2));
     adapt.slow = 0;
     if (!adapt.dropped) { adapt.dropped = true; applyDetail(); }
     resize();
-  } else if (adapt.fast >= 16 && quality.renderScale < QUALITY.auto) {
-    quality.renderScale = Math.min(QUALITY.auto, +(quality.renderScale + 0.1).toFixed(2));
+  } else if (adapt.fast >= 12 && quality.renderScale < D.max) {
+    quality.renderScale = Math.min(D.max, +(quality.renderScale + 0.05).toFixed(2));
     adapt.fast = 0;
     resize();
   }
@@ -590,8 +582,8 @@ settings.on((k) => {
   sound.setVolumes(settings.music, settings.effects);
   gui.domElement.style.display = settings.devPanel ? '' : 'none';
   document.body.classList.toggle('nofps', !settings.showFps);
-  if (settings.quality !== lastQuality) { lastQuality = settings.quality; quality.renderScale = QUALITY[settings.quality] ?? 1; adapt.slow = adapt.fast = 0; adapt.dropped = false; resize(); }
-  applyDetail();
+  if (settings.quality !== lastQuality || k === null) { lastQuality = settings.quality; applyQuality(); }
+  else applyDetail();
 });
 const changelog = new Changelog();
 const menu = new SettingsMenu(settings, {
@@ -817,41 +809,76 @@ function tinyShadowCasters() {
   return list;
 }
 
+// Self-lit things (flames, embers, smoke, lamps: glow >= 0.8) give light; they don't block it.
+// Their shadows were the ones crawling over Qanat's walls: the burning tree's smoke column and
+// flames, animated every frame, swept moving shadows across the city.
+let glowCache = null;
+function glowCasters() {
+  if (glowCache && glowCache.n === scene.children.length) return glowCache.list;
+  const list = [];
+  scene.traverse((o) => { if (o.isMesh && !Array.isArray(o.material) && (o.material?.uniforms?.uGlow?.value ?? 0) >= 0.8) list.push(o); });
+  glowCache = { n: scene.children.length, list };
+  return list;
+}
+
+// What each pass draws (perf.js, shadows.js): beyond the camera's frustum culling, small props
+// under a pixel or two, rooms off the map you aren't in, and in the shadow passes the casters
+// whose shadow can't reach the view or that are smaller than about a texel of that cascade.
+const shadowCull = new ShadowCuller(scene);
+const smallCull = new SmallCuller(scene);
+let roomCull = null;
+const shadowDir = new THREE.Vector3();
+const frameStats = { calls: 0, tris: 0, n: 0, culled: 0 };
+renderer.info.autoReset = false;   // one frame's draw calls over all its passes (the F readout)
+
+/** One shadow pass: place the cascade, hide what it doesn't need, render, show it again. */
+function shadowPass(c, reach, hide = []) {
+  c.place(player.pos);
+  const off = shadowCull.hide(reach, c.texel, c.depth, 0.75, hide);
+  c.render(renderer, scene);
+  frameStats.culled += off.length;
+  for (const o of off) o.visible = true;
+}
+
 /** The whole pipeline for one view: shadows, G-buffer, composite, overlays. */
 const _subj = new THREE.Vector3(), _subjUp = new THREE.Vector3(0, 1, 0);
 function renderFrame() {
+  renderer.info.reset();
   // the scene graph's matrices once per frame, not once per pass: renderer.render() walks the
   // whole scene to update them every call, and a frame makes four or five calls (~1 ms of CPU)
   scene.matrixWorldAutoUpdate = true;
   scene.updateMatrixWorld();
   scene.matrixWorldAutoUpdate = false;
-  // 1. shadow maps (the wide cascade only refreshes every 3rd frame)
-  const lightDir = sharedUniforms.uSunDir.value;
-  // far pebbles and shrubs are skipped in every pass; only what is shown now is hidden, then restored
-  const farHidden = cullFar(tiled.small, camera);
+  // hidden in every pass of this frame (then shown again): far pebbles and shrubs, props under
+  // a pixel or two on screen, rooms off the map while the camera is elsewhere
+  camera.updateMatrixWorld();
+  const frameHidden = cullFar(tiled.small, camera, preset.propFar);
+  smallCull.hide(camera, gbuffer.height / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)), preset.propPx, frameHidden);
+  (roomCull ??= new RoomCuller(scene, offMapRooms, { keep: [player.object, player.mount?.object, ...player.vehicles.map((v) => v.object ?? v.mesh), ...npcs.map((n) => n.object)] })).hide(camera, frameHidden);
+
+  // 1. shadow maps. The light direction is quantised (a moving sun turns the maps in rare tiny
+  // steps); when it turns, every cascade refreshes together so their hand-over stays seamless.
+  // Otherwise the near map refreshes every nearEvery-th frame, the wide one every farEvery-th.
+  shadowDirection(sharedUniforms.uSunDir.value, shadowDir);
+  let turned = false;
+  for (const c of Object.values(cascades)) turned = c.aim(shadowDir) || turned;
   scene.overrideMaterial = shadowOverride;
-  for (const o of level.noShadow ?? []) o.visible = false;
-  for (const o of player.gear?.noShadow ?? []) o.visible = false;
-  const tinyOn = tinyShadowCasters().filter((o) => o.visible);
-  for (const o of tinyOn) o.visible = false;
-  fineShadow.update(player.pos, lightDir);
-  fineShadow.render(scene);
-  // low detail: the near cascade every other frame (it follows you smoothly enough)
-  if (!lowDetail() || frameNo % 2 === 0) {
-    nearShadow.update(player.pos, lightDir);
-    nearShadow.render(scene);
+  const shadowHidden = [];
+  for (const list of [level.noShadow ?? [], player.gear?.noShadow ?? [], tinyShadowCasters(), glowCasters()])
+    for (const o of list) if (o.visible) { o.visible = false; shadowHidden.push(o); }
+  shadowCull.begin(camera, shadowDir, { vertical: !level.gravityAt });
+  const camToPlayer = camera.position.distanceTo(player.pos);
+  if (cascades.fine.enabled) shadowPass(cascades.fine, camToPlayer + cascades.fine.extent * 1.8);
+  if (turned || frameNo % preset.nearEvery === 0) shadowPass(cascades.near, camToPlayer + cascades.near.extent * 1.8);
+  if (turned || frameNo % preset.farEvery === (preset.nearEvery > 1 ? 1 : 0)) {
+    const small = tiled.small.filter((o) => o.visible);
+    for (const o of small) o.visible = false;   // pebbles and bushes don't need km-wide shadows
+    shadowPass(cascades.far, camera.far);
+    for (const o of small) o.visible = true;
   }
-  if (frameNo++ % 3 === 0 || sky.speed > 0) {
-    const shown = tiled.small.filter((o) => o.visible);
-    for (const o of shown) o.visible = false;   // pebbles and bushes don't need km-wide shadows
-    farShadow.update(player.pos, lightDir);
-    farShadow.render(scene);
-    for (const o of shown) o.visible = true;
-  }
+  frameNo++;
   scene.overrideMaterial = null;
-  for (const o of level.noShadow ?? []) o.visible = true;
-  for (const o of player.gear?.noShadow ?? []) o.visible = true;
-  for (const o of tinyOn) o.visible = true;
+  for (const o of shadowHidden) o.visible = true;
 
   // 2. G-buffer (clearing to 0 marks sky pixels with depth 0)
   camera.updateMatrixWorld();
@@ -882,7 +909,8 @@ function renderFrame() {
   // 5. smooth edges and scale the completed frame to the display
   renderer.setRenderTarget(null);
   renderer.render(blit.scene, post.camera);
-  for (const o of farHidden) o.visible = true;
+  for (const o of frameHidden) o.visible = true;
+  frameStats.calls += renderer.info.render.calls; frameStats.tris += renderer.info.render.triangles; frameStats.n++;
   scene.matrixWorldAutoUpdate = true;   // (anything else that renders the scene keeps the usual behaviour)
 }
 
@@ -906,17 +934,28 @@ function captureView(eye, look, w, h) {
   return grabCanvas.toDataURL('image/jpeg', 0.82);
 }
 
+// F: frame rate, frame time (and the CPU's and, where the browser can time it, the GPU's share),
+// render scale, draw calls and triangles per frame over all passes, and the running preset:
+// one line to screenshot when something is slow.
 const fpsEl = document.getElementById('fps');
-let fpsN = 0, fpsT = performance.now();
+const gpuTimer = new GpuTimer(renderer.getContext());
+let fpsN = 0, fpsT = performance.now(), cpuMs = 0;
 window.addEventListener('keydown', (e) => { if (e.code === 'KeyF' && !photo.on) settings.set('showFps', !settings.showFps); });
+function frameReadout(fps) {
+  const n = Math.max(frameStats.n, 1), gpu = gpuTimer.take();
+  return `${Math.round(fps)} fps · ${(1000 / fps).toFixed(1)} ms (cpu ${(cpuMs / fpsN).toFixed(1)}${gpu !== null ? ` gpu ${gpu.toFixed(1)}` : ''})`
+    + ` · ${quality.renderScale}× · ${Math.round(frameStats.calls / n)} calls · ${Math.round(frameStats.tris / n / 1000)}k tris · ${preset.key}`;
+}
 function frame() {
-  if (++fpsN, performance.now() - fpsT > 500) {
-    const now = performance.now();
-    const fps = (fpsN * 1000) / (now - fpsT);
-    fpsEl.textContent = `${Math.round(fps)} fps${settings.quality === 'auto' ? ` · ${quality.renderScale}×` : ''}`;
+  const tFrame = performance.now();
+  if (++fpsN, tFrame - fpsT > 500) {
+    const fps = (fpsN * 1000) / (tFrame - fpsT);
+    if (settings.showFps) fpsEl.textContent = frameReadout(fps);
     adaptQuality(fps);
-    fpsN = 0; fpsT = now;
+    fpsN = 0; fpsT = tFrame; cpuMs = 0;
+    frameStats.calls = frameStats.tris = frameStats.n = frameStats.culled = 0;
   }
+  gpuTimer.enabled = settings.showFps;
   timer.update();
   const dt = Math.min(timer.getDelta(), 1 / 20);
   const t = timer.getElapsed();
@@ -1052,8 +1091,11 @@ function frame() {
   U.uTime.value = t;
   U.uDebug.value = params.debug;
 
+  gpuTimer.begin();
   renderFrame();
+  gpuTimer.end();
   if (photo.capture) savePhoto();
+  cpuMs += performance.now() - tFrame;
 
   requestAnimationFrame(frame);
 }
@@ -1104,6 +1146,8 @@ async function warmShaders(targetScene, targetCamera) {
   ]);
   clearTimeout(timer);
 }
+// instanced props left unculled (rocks, flowers, story props) get real bounds, so every pass can cull them
+console.info(`bounds: ${fitBounds(scene)} instanced meshes made cullable`);
 await warmShaders(scene, camera);
 await warmShaders(post.scene, post.camera);
 stage('ready'); console.info(`load: total ${(performance.now() - tLoad).toFixed(0)} ms (after module load)`);
@@ -1123,4 +1167,4 @@ requestAnimationFrame((t) => {
 
 // handy for debugging from the console
 Object.assign(window, { items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, gate, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife,
-  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, boxes, devMenu });
+  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, boxes, devMenu, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats });
