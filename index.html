@@ -153,6 +153,8 @@
         border-top-color: #2b211f; border-bottom: 0; border-left: 0;
       }
       .balloon.show { opacity: 1; }
+      /* nobody else's chatter while you talk to someone: it landed on top of the choices */
+      body.talking .balloon { opacity: 0; transition: none; }
 
       /* conversations (src/story/dialogue.js): a comic panel along the bottom */
       #dialogue {

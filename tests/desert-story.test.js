@@ -78,6 +78,29 @@ test('the city, its camps, the giant and the cave stand on solid ground, 300–6
   assert.ok(physics.rayDistance(V(pool.x, pool.y + 2, pool.z), V(0, 1, 0), 60) < 30, 'the dome closes over the pool');
 });
 
+test('the roofs are solid where they are drawn: domes, bulbs and flat roofs hold you up', () => {
+  // from above the city: wherever a roof is drawn (well over the street), the feet land on it, not inside it
+  const C = Q.city, meshes = [];
+  Q.root.traverse((o) => { if (o.isMesh && o.visible && !/collision/.test(o.name) && o.geometry?.attributes.position && !o.isInstancedMesh) meshes.push(o); });
+  const rc = new THREE.Raycaster(), bad = [];
+  let roofs = 0;
+  for (let x = -60; x <= 60; x += 1.3) for (let z = -60; z <= 60; z += 1.3) {
+    if (Math.hypot(x, z) < 28 || Math.hypot(x, z) > 58) continue;              // (the tree and its terraces: own tests)
+    const w = C.local(x, 60, z);
+    rc.set(w, V(0, -1, 0)); rc.far = 90;
+    const hit = rc.intersectObjects(meshes, false)[0];
+    if (!hit) continue;
+    const street = physics.groundAt(w.x, C.center.y + 0.6, w.z, 3);
+    if (!Number.isFinite(street) || hit.point.y - street < 2.5) continue;   // not a roof
+    if (hit.face && hit.face.normal.clone().transformDirection(hit.object.matrixWorld).y < 0.35) continue;   // a wall's edge, a needle
+    roofs++;
+    const g = physics.groundAt(w.x, hit.point.y + 0.5, w.z, 1.5);
+    if (!Number.isFinite(g) || hit.point.y - g > 0.25) bad.push(`${x.toFixed(1)},${z.toFixed(1)} (${hit.object.name}): ${Number.isFinite(g) ? (hit.point.y - g).toFixed(2) + ' m into it' : 'hollow'}`);
+  }
+  assert.ok(roofs > 200, `roofs sampled (${roofs})`);
+  assert.ok(bad.length < roofs * 0.03, `you sink into ${bad.length} of ${roofs} roof spots: ${bad.slice(0, 6).join('; ')}`);
+});
+
 test('feet stand on what is drawn: the terraces round the tree, the plaza, the avenue, and the trunk', () => {
   // the drawn surfaces (render meshes, never collided) against the ground the feet are planted on (physics)
   const C = Q.city, meshes = [];

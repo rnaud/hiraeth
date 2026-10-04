@@ -764,8 +764,9 @@ export class Player {
     if (this.boarding || this.unboarding || this.ride) return;
     if (this.opts.canSummon && !this.opts.canSummon()) return;   // e.g. in a room off the map
     if (this.mount?.dormant) return;   // nothing to whistle for yet: it hasn't been found
-    if (this.mount && this.needsPower(this.mount) && !this.has('backpack')) return this.notice('It needs power.');   // the whistle wakes nothing
+    if (this.mount && this.needsPower(this.mount) && !this.has('backpack')) { this.opts.onWhistle?.('mount'); return this.notice('It needs power.'); }   // the whistle wakes nothing
     if (this.mount) {
+      this.opts.onWhistle?.('mount');
       const d = this.frame.dir(this.heading, _v1);
       const airborne = !this.onGround && !this.climbing && this.physics.heightAbove(this.pos, this.frame.up) > 3;
       return this.mount.summon(this.pos.x + d.z * 3 + d.x * 2, this.pos.z - d.x * 3 + d.z * 2, this.heading, this.pos,
@@ -777,7 +778,7 @@ export class Player {
       const d = v.pos.distanceTo(this.pos);
       if (d < bd) { best = v; bd = d; }
     }
-    best?.hail(this.pos, this.heading);
+    if (best) { this.opts.onWhistle?.('taxi'); best.hail(this.pos, this.heading); }
   }
 
   update(dt, input, camYaw) {

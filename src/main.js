@@ -217,6 +217,7 @@ const player = new Player(physics, {
   onHurt: (k) => { shipSfx.rumble(sound, 0.35 + k * 0.4, 0.25 + k * 0.5); hpShown = 3; },
   onKnockdown: (dead) => { shipSfx.rumble(sound, dead ? 0.95 : 0.6, dead ? 0.9 : 0.45); hpShown = 3; },
   onKnockout: (why) => { knockedOut = why; },
+  onWhistle: (kind) => sound.whistle(kind),   // calling the bike, the bird or a taxi
   onRestart: () => { ship.cinema?.fade(1, true, 0.05); setTimeout(() => ship.cinema?.fade(0, true, 0.9), 120); },
 });
 // the health bar (index.html #health): only while you're hurt, and a moment after

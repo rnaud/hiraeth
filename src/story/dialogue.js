@@ -238,6 +238,7 @@ export class Dialogue {
         if (src) { img.src = src; img.hidden = false; if (shot.background) chip.style.background = shot.background; }
       } catch { /* no sketch */ }
       this.el.classList.add('open');
+      document.body.classList.add('talking');
       document.exitPointerLock?.();
       this.render();
     }
@@ -270,6 +271,7 @@ export class Dialogue {
     this.open = false;
     this.closedAt = typeof performance !== 'undefined' ? performance.now() : 0;
     this.el?.classList.remove('open');
+    if (typeof document !== 'undefined') document.body.classList.remove('talking');
     this.game.emit('dialogue:end', { npc: this.npc, id: this.person.id });
     this.onClose(this.person, this.npc);
   }

@@ -89,6 +89,9 @@ Grouped by area. Checked items are done; the changelog says when.
 - [x] Perdide: looking inside the tooth flowers you can see through them (no
   inside faces / texture).
 - [x] The drone on my back clips into the backpack.
+- [x] Qanat's domed roofs: you sank into them (they had no real collider); now solid.
+- [x] Chatter balloons drew over the dialogue choices; hidden while you talk.
+- [x] A whistle when calling the mount or hailing a taxi.
 - [x] Clipping pass: check that most things don't sink into surfaces. (`clipAudit()`; 139 offenders → 85 across the worlds)
 - [x] Building textures and windows flicker when the camera moves.
 - [x] I can't always look all the way up at the sky: the camera stops short.

@@ -10,6 +10,9 @@ export const CHANGELOG = [
     'On handhelds, the picture lowers its resolution as soon as frames start to hitch, rather than staying put while the game stutters every few frames.',
     'Sun shadows close to you update a little less often on the Handheld setting, which takes a big load off the Retroid and phones.',
     'The City-Shaft draws its trees more efficiently: the same trees, less work for your device.',
+    'You can walk on the desert city’s domed roofs: the domes, the tower bulbs and the flat roofs hold you up instead of letting you sink inside them.',
+    'Other people’s chatter balloons no longer cover the dialogue choices while you’re talking to someone.',
+    'Calling your mount (the hoverbike, the bird) or hailing a taxi now comes with a whistle.',
   ] },
   { v: '0.43', date: '2026-10-04', items: [
     'People no longer shake or spin when you walk into them or talk to them up close: they turn to you and hold still, and crowd folk step round you instead of jittering on the spot.',
