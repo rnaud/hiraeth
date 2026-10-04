@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v0.44 — 2026-10-04
 
+- The traveller is a real person again: normal proportions and a natural stance, in a baggy lavender suit with salmon gloves and boots, the bubble helmet sitting right round their head, headphones on their ears, a scarf, a belt of pouches and the radio pack strapped on their back.
+- Before you find the fluid backpack, the traveller carries the old radio pack with its long antenna, and the scout drone rides on top of it.
 - Conversations keep a clear view: the camera finds a spot with no wall, tree, rock or passer-by in the way, even in narrow streets, the ship and Viridel’s cabin.
 - Looking at something now shows it over your shoulder, and the traveller turns to face it (and to whoever they talk to).
 - Fewer things clip: trees no longer grow through houses, crowds don’t stand inside walls, boxes sit flat on ledges and stones, and capes and your bracer no longer pass through bodies.
