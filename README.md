@@ -1161,4 +1161,11 @@ Pocket. Their built-in controls work through the Gamepad API.
   toasts, objective card, subtitle and skip bar each get their own place and never
   overlap each other, the HUD, the touch buttons, a conversation or the box card. Toasts
   queue and wait while the screen is dark or a panel is open.
+- **Update status** (v0.38): `WebBundles` records each update check (`check`: checking,
+  current, downloading, ready, apk, offline, error; `latest`: the newest build seen) and
+  `AppShell.info` reports it; `updateStatus()` in `src/native-app.js` shows it under the
+  build label in the settings. `NATIVE_API` went to 3 for this.
+- **The changelog** is `src/changelog.js`; `changelog.md` is generated from it with
+  `node scripts/changelog-md.mjs` and `tests/changelog.test.js` keeps them in sync (see
+  CLAUDE.md).
 

@@ -27,6 +27,8 @@ public class AppShellPlugin extends Plugin {
             ret.put("bundle", b.fromBundle());
             ret.put("ready", b.ready());
             ret.put("readyVersion", b.readyVersion());
+            ret.put("check", b.check());
+            ret.put("latest", b.latest());
         }
         call.resolve(ret);
     }

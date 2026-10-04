@@ -3,6 +3,9 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.38', date: '2026-10-04', items: [
+    'The settings now say plainly whether you have the newest game: “Up to date (build 16)”, “Build 17 available, downloading…”, or “downloaded: restart to play it”. This needs the new app once; accept the app update when it is offered.',
+  ] },
   { v: '0.37', date: '2026-10-04', items: [
     'The Android app now updates the game by itself: when you are online it downloads the newest game in the background and uses it from the next launch (or right away with “restart now” in the settings). No new APK needed. If an update ever fails to start, the app goes back to the game it shipped with. Your saves are kept either way.',
     'People on every world now dress like it: pilgrim robes and straw hats in the desert, beaked monks’ cowls in Arzach, antenna helmets and overalls in the Garage, reed capes in Perdide, turbans and patterned coats in the Signal Market. The City-Shaft’s rim and bottom dress apart.',

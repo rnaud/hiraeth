@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { markBooted, buildLabel, installAppShell } from '../src/native-app.js';
+import { markBooted, buildLabel, updateStatus, installAppShell } from '../src/native-app.js';
 
 test('the boot heartbeat flag is set after the first frame', () => {
   const win = {};
@@ -23,6 +23,15 @@ test('the build label', () => {
   assert.equal(buildLabel({ web: 12, app: 12, bundle: false }), 'web build 12 (built in) · app 12');
   assert.equal(buildLabel({ web: 14, app: 12, bundle: true, ready: 15, readyVersion: '0.37' }), 'web build 14 · app 12 · update v0.37 (build 15) ready');
   assert.equal(buildLabel(null), '');
+});
+
+test('the update status says plainly whether this is the newest game', () => {
+  assert.equal(updateStatus({ web: 16, app: 14, check: 'current', latest: 16 }), 'Up to date (build 16)');
+  assert.equal(updateStatus({ web: 16, app: 14, check: 'downloading', latest: 17 }), 'Build 17 available, downloading…');
+  assert.equal(updateStatus({ web: 16, app: 14, check: 'ready', ready: 17, latest: 17 }), 'Build 17 downloaded: restart to play it');
+  assert.match(updateStatus({ web: 16, app: 14, check: 'offline' }), /^Offline/);
+  assert.match(updateStatus({ web: 16, app: 14, check: 'apk', latest: 20 }), /newer app/);
+  assert.equal(updateStatus({ web: 16, app: 14 }), '', 'older apps report no check: no line');
 });
 
 function fakeApp(info) {

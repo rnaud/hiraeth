@@ -33,6 +33,25 @@ export function buildLabel(info) {
 }
 
 /**
+ * Whether this is the newest game, from the app's last update check (apps from
+ * v0.38 on report it; older ones don't, and get no line).
+ */
+export function updateStatus(info) {
+  if (!info?.web || !info.check) return '';
+  const latest = info.latest || 0;
+  switch (info.check) {
+    case 'ready': return `Build ${info.ready || latest} downloaded: restart to play it`;
+    case 'downloading': return `Build ${latest} available, downloading…`;
+    case 'current': return `Up to date (build ${info.web})`;
+    case 'checking': return 'Checking for updates…';
+    case 'apk': return `Build ${latest} needs a newer app: accept the app update when it is offered`;
+    case 'offline': return `Offline: can't check for updates (playing build ${info.web})`;
+    case 'error': return `Couldn't check for updates (playing build ${info.web})`;
+    default: return '';
+  }
+}
+
+/**
  * @param {{ sound?: { ctx?: AudioContext, start(): void }, label?: () => HTMLElement | null, toast?: (text: string) => void }} hooks
  */
 export function installAppShell({ sound, label = () => null, toast = () => {} } = {}, win = globalThis.window) {
@@ -43,6 +62,8 @@ export function installAppShell({ sound, label = () => null, toast = () => {} } 
     if (!el || !info) return;
     el.hidden = false;
     el.textContent = buildLabel(info);
+    const st = updateStatus(info);
+    if (st) { const s = win.document.createElement('div'); s.className = 'update-status'; s.textContent = st; el.append(s); }
     if (info.ready) {
       const b = win.document.createElement('button');
       b.type = 'button'; b.textContent = 'restart now'; b.style.marginLeft = '8px';

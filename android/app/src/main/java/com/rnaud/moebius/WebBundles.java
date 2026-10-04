@@ -52,7 +52,7 @@ import java.util.zip.ZipInputStream;
 final class WebBundles extends WebViewListener {
     /** The native bridge's level. Bump it whenever the Java side changes in a way the web side relies on
      *  (GamepadBridge, AppShellPlugin, the events below): web bundles built after that need this APK. */
-    static final int NATIVE_API = 2;
+    static final int NATIVE_API = 3;   // 3: info reports the update check (check, latest)
 
     static final String MANIFEST = "https://github.com/rnaud/moebius/releases/latest/download/web.json";
     static final long BOOT_TIMEOUT_MS = 30000;   // (the full game boots in ~7-18 s on a software-GL emulator)
@@ -72,6 +72,9 @@ final class WebBundles extends WebViewListener {
     private boolean booted, resumed = true, ticking;
     private long waited;
     private int page;
+    // the last update check, for the settings: idle, checking, current, downloading, ready, apk, offline, error, off
+    private volatile String check = "idle";
+    private volatile int latest;
 
     WebBundles(Activity activity) {
         this.activity = activity;
@@ -236,12 +239,20 @@ final class WebBundles extends WebViewListener {
 
     /** Fetch web.json and stage a newer bundle. Quiet when offline or on any error. */
     void update() {
-        if (!enabled()) return;
+        if (!enabled()) { status("off", 0); return; }
+        boolean reached = false;
+        status("checking", latest);
         try {
             JSONObject m = new JSONObject(new String(Updater.fetch(manifestUrl, 64 * 1024), "UTF-8"));
+            reached = true;
             int build = m.getInt("build"), minNative = m.optInt("minNative", NATIVE_API);
             int current = Math.max(builtin, Math.max(prefs.getInt("active", 0), ready()));
-            if (!"stage".equals(decide(build, minNative, NATIVE_API, current, isBad(build)))) return;
+            String what = decide(build, minNative, NATIVE_API, current, isBad(build));
+            if (!"stage".equals(what)) {
+                status("apk".equals(what) ? "apk" : ready() >= build ? "ready" : "current", build);
+                return;
+            }
+            status("downloading", build);
             String version = m.optString("version", "");
             File zip = new File(activity.getCacheDir(), "web-" + build + ".zip");
             try {
@@ -258,15 +269,29 @@ final class WebBundles extends WebViewListener {
                 zip.delete();
             }
             prefs.edit().putInt("pending", build).putInt("pendingMin", minNative).putString("pendingVersion", version).commit();
+            check = "ready";
             ui.post(() -> {
                 cleanup();
                 if (bridge != null) bridge.eval("window.dispatchEvent(new CustomEvent('moebius:webupdate',{detail:{build:" + build
                     + ",version:" + JSONObject.quote(version) + "}}))", null);
             });
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            status(reached ? "error" : "offline", latest);
             // offline, rate-limited, interrupted or a bad download: try again next launch
             // (a half-unpacked <build>.part is removed by the next cleanup)
         }
+    }
+
+    String check() { return check; }
+    int latest() { return latest; }
+
+    /** Record the update check's state and tell the page (the settings show it). */
+    private void status(String state, int build) {
+        check = state;
+        if (build > 0) latest = build;
+        ui.post(() -> {
+            if (bridge != null) bridge.eval("window.dispatchEvent(new CustomEvent('moebius:webupdate',{detail:{check:" + JSONObject.quote(state) + "}}))", null);
+        });
     }
 
     /** Stream a URL to a file. @return its sha256 in hex */

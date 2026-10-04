@@ -2,6 +2,37 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.38 — 2026-10-04
+
+- The settings now say plainly whether you have the newest game: “Up to date (build 16)”, “Build 17 available, downloading…”, or “downloaded: restart to play it”. This needs the new app once; accept the app update when it is offered.
+
+## v0.37 — 2026-10-04
+
+- The Android app now updates the game by itself: when you are online it downloads the newest game in the background and uses it from the next launch (or right away with “restart now” in the settings). No new APK needed. If an update ever fails to start, the app goes back to the game it shipped with. Your saves are kept either way.
+- People on every world now dress like it: pilgrim robes and straw hats in the desert, beaked monks’ cowls in Arzach, antenna helmets and overalls in the Garage, reed capes in Perdide, turbans and patterned coats in the Signal Market. The City-Shaft’s rim and bottom dress apart.
+- The camera comes in close over your shoulder in the ship, caves and narrow alleys. The walk to the cockpit is yours, at your own pace. Subtitles, hints and messages no longer overlap.
+- Swap A/B in the settings, for handhelds whose confirm button is on the other side. The prompts follow.
+- Leaving the app pauses the game and its sound, and coming back restores fullscreen. On a handheld the sound now starts with the first button press.
+
+## v0.36 — 2026-10-04
+
+- The backpack now waits in Qanat. After the crash, follow the smoke to the city: in a shrine by the dry well stands a makers’ box that has not opened in living memory. Opening it brings the villagers and Nour, the eldest, who sends you on the rest of your search for power.
+- Every item box is now an artifact of the makers, the people of the three-dot glyph, left for whoever comes a long way. People in each world have their own name for them.
+- The Retroid Pocket’s built-in sticks and buttons now work, and every prompt uses its button names (A, B, X, Y, L1, R1, L2, R2, Select, Start). This also fixes being stuck after the crash on Android.
+- Everyone now speaks: every line has a mumbled alien voice in its own world’s tongue, with a tone that fits it (happy, sad, angry, whispered…). Your translator turns it into words as you read. Voice volume and an alien voices toggle are in the settings.
+- With a controller, the button list now shows for a few seconds and then fades (it stays in menus), and the status box no longer stretches across the screen on handhelds.
+- The Android app updates itself from GitHub releases: when a newer build is out, it offers to install it and keeps your progress.
+- Fixed a gap between the ship’s floor and its ramp that you could fall through. The burning tree’s smoke is one soft continuous trail, and the wind is quieter.
+
+## v0.35 — 2026-10-04
+
+- You start without the backpack. It was thrown out in the crash: find its box near the ship. Item boxes glow and shudder as you come near; open one to kneel over it while light pours out and the item rises in front of you.
+- Boxes in every world hold new things: fluid jets in the City-Shaft, fluid wings in Arzach II, stilling and ember modes for the wrist nozzle, a fourth chamber, a quick coil, a lantern charm, a glyph lens, a bell-note whistle and a pale star.
+- Everything runs on the backpack. The jets burn its fluid, the wings bloom out of it, and X switches between shoot, stilling (freezes) and ember (lights lamps and fires, burns brambles). Vehicles need it too: you slot the tank into the hoverbike or skiff to ride.
+- The ship now crashes facing Qanat, so the city stands on the horizon when you step out. A long trail of smoke rises from the burning tree, visible across the whole desert.
+- A developer menu (the ` key): toggle every item, open or reset boxes, jump to any world.
+- An Android version: install the APK from the GitHub release page and play offline.
+
 ## v0.34 — 2026-10-04
 
 - Calls home now react to what you found and who you met. After the Signal Market, ask about Ilen.
