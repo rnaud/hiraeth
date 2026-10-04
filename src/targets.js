@@ -11,8 +11,17 @@ import * as THREE from 'three';
 // modes (fluid-tool.js):
 //   'shoot'  a glob of magical fluid landed on it (point: where; dir: the glob's flight)
 //   'push'   it was inside the push cone (dir: away from the traveller, the way to shove it)
-// info: { colours: ['#52c8cf', …] } the fluid's current tones; push only: strength (1 close, 0 at the
-//       cone's reach) and shove (metres to knock people back at full strength)
+//   'stun'   a stilling glob (the 'stun' item): cold and still, it freezes creatures and people
+//   'fire'   an ember glob (the 'fire' item): it lights lamps and fuses, burns brambles, never hurts
+// A target only gets 'stun' or 'fire' if it lists them in `accepts` (e.g. accepts: ['fire']);
+// otherwise those globs arrive as plain 'shoot' (they are still fluid: they splash, wake
+// scenery, turn lenses, light the story's pools), so every puzzle works in every mode.
+// info: { colours: ['#52c8cf', …] } the fluid's current tones (the mode's tones for stun / fire);
+//       mode: the glob's real mode (also when it arrived as 'shoot'); push only: strength (1 close,
+//       0 at the cone's reach) and shove (metres to knock people back at full strength)
+//
+// kind: 'flammable' (src/flammable.js) marks camp fires, lanterns, braziers and brambles that
+// answer an ember glob.
 
 const targets = new Set();
 const _oc = new THREE.Vector3();
@@ -66,6 +75,15 @@ export function targetsInCone(origin, dir, range, angle, physics = null) {
   return out.sort((a, b) => a.distance - b.distance);
 }
 
-export function hitTarget(hit, mode, dir, info) { hit?.target.onHit?.(mode, hit.point, dir, info); return !!hit; }
+/** Modes every target understands; the others must be listed in target.accepts. */
+export const BASE_MODES = ['shoot', 'push'];
+/** The mode a target gets for a glob of `mode`: its own if it accepts it, else 'shoot'. */
+export const modeFor = (target, mode) => (BASE_MODES.includes(mode) || target?.accepts?.includes(mode) ? mode : 'shoot');
+
+export function hitTarget(hit, mode, dir, info) {
+  const t = hit?.target;
+  t?.onHit?.(modeFor(t, mode), hit.point, dir, { ...info, mode });
+  return !!hit;
+}
 export const allTargets = () => [...targets];
 export function clearTargets() { targets.clear(); }

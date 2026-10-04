@@ -5,6 +5,11 @@ import { sweepCapsule, unbury } from './physics.js';
 // A Sable-like hoverbike. Controls when riding: W throttle, S brake/reverse,
 // A/D steer, Shift boost, Space hop. It hovers on a spring above the dunes,
 // banks into turns and pitches with the ground.
+//
+// It runs on the traveller's magic-fluid backpack (powered: true; the skiff
+// too): boarding swings the tank into the socket behind the seat (player.js,
+// fluid-tool.js), a hose clicks into the engine's port, and the fluid lights
+// the pods' caps and the hover trails. Without the backpack it won't start.
 
 const HOVER = 1.15;
 const MAX = 34;      // m/s
@@ -13,6 +18,7 @@ const RADIUS = 0.85;
 const LIMIT = 1900;
 
 const _c = new THREE.Vector3();
+const _tone = new THREE.Color();
 
 function part(geo, color, opts = {}) {
   return new THREE.Mesh(geo, makeMaterial({ color, ...opts }));
@@ -37,7 +43,7 @@ function buildBike() {
   bar.rotation.z = Math.PI / 2;
   bar.position.set(0, 0.64, 0.65);
   const fin = part(new THREE.BoxGeometry(0.06, 0.6, 0.65), cream, { flat: true });
-  fin.position.set(0, 0.45, -1.15);
+  fin.position.set(0, 0.45, -1.36);   // set back to make room for the tank's socket
   fin.rotation.x = -0.35;
   body.add(chassis, nose, seat, stem, bar, fin);
   for (const side of [-1, 1]) {
@@ -58,8 +64,41 @@ function buildBike() {
   const seatAnchor = new THREE.Group();
   seatAnchor.position.set(0, -0.56, -0.4);
   body.add(seatAnchor);
-  return { root, body, seatAnchor };
+  // the backpack's socket: a brass cradle behind the seat, the engine's port under it
+  const { socket, port } = buildSocket(body, { at: [0, 0.21, -1.0], port: [0.2, 0.05, -0.62] });
+  return { root, body, seatAnchor, socket, port };
 }
+
+/**
+ * A cradle for the backpack's tank on a vehicle's body: a brass ring and two
+ * clamps; `socket` is where the tank's glass bottom sits (its +z toward the
+ * vehicle's front), `port` the engine inlet the hose clicks into.
+ */
+export function buildSocket(body, { at = [0, 0.25, -1.4], port = [0.22, 0.05, -1.0] } = {}) {
+  const socket = new THREE.Group();
+  socket.position.set(...at);
+  body.add(socket);
+  const brass = '#e2b552', dark = '#5f86bf';
+  const ring = part(new THREE.TorusGeometry(0.2, 0.025, 5, 20).rotateX(Math.PI / 2).scale(1.2, 1, 1), brass);
+  ring.position.y = -0.02;
+  const plate = part(new THREE.CylinderGeometry(0.21, 0.23, 0.05, 16).scale(1.2, 1, 1), dark, { flat: true });
+  plate.position.y = -0.045;
+  socket.add(ring, plate);
+  for (const sx of [-1, 1]) {
+    const clamp = part(new THREE.BoxGeometry(0.04, 0.16, 0.06), brass, { flat: true });
+    clamp.position.set(sx * 0.26, 0.06, 0);
+    socket.add(clamp);
+  }
+  const p = new THREE.Group();
+  p.position.set(...port);
+  body.add(p);
+  const nub = part(new THREE.CylinderGeometry(0.03, 0.04, 0.06, 8), brass);
+  p.add(nub);
+  for (const o of [socket, p]) o.traverse((m) => { m.userData.noCollide = true; });
+  return { socket, port: p };
+}
+
+let powerId = 0;
 
 export { buildBike };
 
@@ -78,6 +117,13 @@ export class Hoverbike {
     this.object = b.root;
     this.body = b.body;
     this.seat = b.seatAnchor;
+    // it runs on the backpack: the tank sits in the socket while ridden
+    this.powered = opts.powered ?? true;
+    if (this.powered) {
+      const sk = b.socket ? b : buildSocket(this.body, opts.socket ?? { at: [0, 0.25, -1.45], port: [0.25, 0.1, -1.05] });
+      this.socket = sk.socket; this.port = sk.port;
+      this.powerLights = this.makePowerLights();
+    }
     this.pos = new THREE.Vector3(8, 0, 4);
     this.pos.y = this.groundAt(8, 1e4, 4) + HOVER;
     this.vel = new THREE.Vector3();
@@ -146,6 +192,35 @@ export class Hoverbike {
     return false;
   }
 
+  /**
+   * The parts the fluid lights while the tank sits in the socket: the pods'
+   * caps (bike) or the socket's ring, each with its own material.
+   */
+  makePowerLights() {
+    const id = powerId++, lights = [];
+    const caps = [];
+    this.body.traverse((o) => { if (o.isMesh && o.geometry?.type === 'CylinderGeometry' && Math.abs((o.geometry.parameters.height ?? 1) - 0.06) < 1e-6 && Math.abs(o.position.z) > 1) caps.push(o); });
+    const add = (o, i) => {
+      o.material = makeMaterial({ color: '#f2e6cc', key: `power.${id}.${i}` });
+      lights.push({ mesh: o, base: new THREE.Color('#f2e6cc') });
+    };
+    caps.forEach(add);
+    if (!caps.length) this.socket.children.slice(0, 1).forEach((o, i) => add(o, 10 + i));
+    return lights;
+  }
+
+  /** k 0..1: how much the fluid powers it now; tones: the fluid's colours (fluid-tool.js). */
+  setPower(k, tones = [], time = 0) {
+    this.powerK = k;
+    if (!this.powerLights) return;
+    const pulse = 0.75 + 0.25 * Math.sin(time * (4 + Math.abs(this.speed) * 0.25));
+    this.powerLights.forEach((L, i) => {
+      const u = L.mesh.material.uniforms, tone = tones[(i + Math.floor(time * 1.5)) % Math.max(1, tones.length)] ?? '#f2e6cc';
+      u.uColor.value.copy(L.base).lerp(_tone.set(tone), k);
+      u.uGlow.value = 0.95 * k * pulse;
+    });
+  }
+
   /** Where the rider sits (world space). */
   seatTransform(pos, quat) {
     this.seat.getWorldPosition(pos);
@@ -190,7 +265,7 @@ export class Hoverbike {
     const max = boost ? BOOST : MAX;
     if (throttle > 0) this.speed += (max - this.speed) * (1 - Math.exp(-(boost ? 0.9 : 0.6) * dt));
     else if (throttle < 0) this.speed = Math.max(this.speed - 40 * dt, -8);
-    else if (!recalling) this.speed *= Math.exp(-0.5 * dt);
+    else if (!recalling) this.speed *= Math.exp(-((this.powered && !ridden && (this.powerK ?? 0) < 0.5) ? 2.5 : 0.5) * dt);   // its tank taken out: it powers down and stops
 
     // steering: right = decreasing heading; tighter at low speed
     const grip = THREE.MathUtils.clamp(Math.abs(this.speed) / 14, 0.35, 1);

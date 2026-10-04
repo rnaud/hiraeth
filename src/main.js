@@ -34,6 +34,8 @@ import { registerInteractable, PRIORITY } from './interact.js';
 import { Ship } from './ship/ship.js';
 import { birdAnswers, promisedBird } from './bird.js';
 import { game } from './game-state.js';
+import { items, ITEMS } from './items.js';
+import { Flammables, flammableSpots } from './flammable.js';
 
 // Loading: each stage updates the inked loading screen, then yields a frame
 // so it can paint (its pen animation runs on the compositor meanwhile).
@@ -169,6 +171,15 @@ resize();
 
 // ------------------------------------------------------------------ world
 const query = new URLSearchParams(location.search);
+// items (src/items.js), for development: ?items=all grants everything, ?items=none takes it all
+// away, ?items=backpack,glider owns exactly those (the dev menu toggles them one by one)
+{
+  const want = query.get('items');
+  if (want) {
+    const ids = want === 'all' ? Object.keys(ITEMS) : want === 'none' ? [] : want.split(',');
+    for (const id of Object.keys(ITEMS)) if (ids.includes(id)) items.grant(id); else items.revoke(id);
+  }
+}
 const levelParam = query.get('level');
 const viaEdge = query.get('via') === 'edge';
 const viaGate = query.get('via') === 'gate' || viaEdge;
@@ -280,6 +291,9 @@ rig.constrain = level.constrainCamera;
 const sound = new Sound(levelId);
 // the magic-fluid backpack: shoot, boost and push on three shared charges (fluid-tool.js)
 const tool = new FluidTool({ scene, player, physics, camera, rig, sound, level, hud: new ToolHud(), noShadow: (level.noShadow ??= []) });
+tool.powerTrails(trails);   // the hover trails run in the fluid's tones
+// what an ember glob sets alight: the camp fires, the market's lamps, dry brambles (flammable.js)
+const flammables = new Flammables(scene, flammableSpots(level), { lights: levelLights, sound });
 const weather = new Weather(content.weather);
 {
   const stormColor = { desert: '#e3c58f', arzach: '#e8dfcb' }[levelId];
@@ -315,12 +329,13 @@ const gate = (() => {
 levelLights.push(gate.light);
 // ---- story: conversations, quests, the world's people and places (src/story/, src/interact.js)
 const showToast = (text) => { const el = document.getElementById('toast'); el.textContent = text; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); };
+player.onNotice = showToast;   // "It needs power." (a vehicle without the backpack)
 const storyRt = createStory({ levelId, scene, physics, level, player, npcs, crowd, sound, journal, story, lib, humans: humanT, toast: showToast, tool,
   capture: (e, l, w, h) => captureView(e, l, w, h) });
 // E: boarding a vehicle and turning a lens share the interact button with talking (nearest wins)
 registerInteractable({ id: 'vehicle', priority: PRIORITY.vehicle, range: 6, at: () => player.nearestVehicle()?.pos,
-  prompt: () => { const v = player.nearestVehicle(); return v?.kind === 'taxi' ? 'get in the taxi' : `ride the ${level.mountName ?? v?.kind ?? 'mount'}`; },
-  distance: (p) => { const v = p.nearestVehicle(); return v ? v.pos.distanceTo(p.pos) : Infinity; }, use: () => player.interact() });
+  prompt: () => { const v = player.nearestVehicle(); return v?.kind === 'taxi' ? 'get in the taxi' : v?.powered && !items.has('backpack') ? `ride the ${level.mountName ?? v?.kind} (it needs power)` : `ride the ${level.mountName ?? v?.kind ?? 'mount'}`; },
+  distance: (p) => { const v = p.nearestVehicle(); return v && !p.boarding && !p.unboarding ? v.pos.distanceTo(p.pos) : Infinity; }, use: () => player.interact() });
 if (expedition) registerInteractable({ id: 'lens', priority: PRIORITY.use, range: 1, prompt: 'turn the lens', distance: (p) => (expedition.nearby(p) >= 0 ? 0 : Infinity), use: () => {} });
 const scout = new Scout({ scene, player, physics, sound, label: document.getElementById('scout-label'),
   getTarget: () => nextObjective({ player, expedition, story, relics, gate, level, quest: () => storyRt.objective() }),
@@ -360,7 +375,7 @@ if (viaEdge && EDGE) {
   player.respawn(pos);
   player.heading = axis === 'x' ? (sgn > 0 ? Math.PI / 2 : -Math.PI / 2) : (sgn > 0 ? 0 : Math.PI);
   rig.yaw = player.heading;
-  if (query.get('ride') === '1' && player.mount) {
+  if (query.get('ride') === '1' && player.mount && (!player.mount.powered || items.has('backpack'))) {
     if (player.mount.place) player.mount.place(x, z, player.heading, pos);
     else player.mount.pos.copy(pos);
     player.mount_(player.mount);
@@ -680,12 +695,17 @@ function updateHud() {
   else {
     if (player.climbing) parts.push(`climbing ${gauge(player.stamina)} · SPACE jump off`);
     else if (player.stamina < 0.99) parts.push(`stamina ${gauge(player.stamina)}`);
-    if (level.features.jetpack) parts.push(`jetpack ${gauge(player.fuel)}`);
+    // the jets burn the tank: a gauge while it's not full (or in the air)
+    if (player.canJet && (player.thrusting || tool.jetBurnt)) parts.push(`jets ${gauge(player.jetFuel)}`);
+    if (tool.modes.length > 1 && !player.ride) parts.push(`${controllerActive ? 'D-pad ← →' : 'X'} mode: ${tool.modeName}`);
     const near = player.nearestVehicle();
+    const unpowered = (v) => v?.powered && !items.has('backpack');   // hoverbikes and skiffs run on the backpack
     if (storyRt.prompt) parts.push(`E ${storyRt.prompt}`);
     else if (expedition?.nearby(player) >= 0) parts.push('observatory lenses');
+    else if (player.boarding) parts.push('slotting the backpack in…');
+    else if (near && unpowered(near)) parts.push(`the ${level.mountName ?? near.kind} needs power`);
     else if (near) parts.push(`E ${near.kind === 'taxi' ? 'get in the taxi' : 'ride the ' + (level.mountName ?? near.kind)}`);
-    else if (player.mount && !inOffMapRoom()) parts.push(`E whistle for the ${level.mountName}`);
+    else if (player.mount && !inOffMapRoom() && !unpowered(player.mount)) parts.push(`E whistle for the ${level.mountName}`);
     else if (level.features.taxis && !inOffMapRoom()) parts.push('E hail a taxi');
     const shipHint = ship.hud();   // inside the ship and at its ramp, E is the ship's
     // (and while one of its scenes plays, E does nothing at all: no whistling from orbit)
@@ -701,8 +721,9 @@ function updateHud() {
   let text = `${atmo.name} · ${parts.join(' · ')}` +
     `\n${goal ? goal + ' · ' : ''}${errands.hud() ? errands.hud() + ' · ' : ''}relics ${journal.relicCount(levelId)}/${content.relics.names.length} · Q ping · R tool · H help` +
     (gate.near ? ` · walk through the gate to ${nextTitle}` : '') + (edgeHint ? ` · ${edgeHint}` : '');
-  if (isTouch && !controllerActive) text = text.replace(' · Q ping · R tool · H help', '');   // the buttons say it
-  if (controllerActive) text = text.replaceAll('SPACE', 'A / ×').replaceAll('SHIFT', 'RT / R2').replaceAll('W/S', 'left stick').replaceAll('A/D', 'left stick').replace(/\bE\b/g, 'X / □').replace('Q ping · R tool · H help', 'Y / △ ping · LT tool · Menu settings');
+  if (!tool.owned) text = text.replace(' · R tool', '');   // no backpack yet: no tool
+  if (isTouch && !controllerActive) text = text.replace(' · Q ping · R tool · H help', '').replace(' · Q ping · H help', '');   // the buttons say it
+  if (controllerActive) text = text.replaceAll('SPACE', 'A / ×').replaceAll('SHIFT', 'RT / R2').replaceAll('W/S', 'left stick').replaceAll('A/D', 'left stick').replace(/\bE\b/g, 'X / □').replace('Q ping · R tool · H help', 'Y / △ ping · LT tool · Menu settings').replace('Q ping · H help', 'Y / △ ping · Menu settings');
   audioCfg.mute = sound.muted;
   if (text !== lastStatus) { status.textContent = text; lastStatus = text; }
 }
@@ -880,7 +901,8 @@ function frame() {
   document.body.classList.toggle('controller', controllerActive);
   controllerHint.textContent = busy() ? 'D-pad / left stick select · A / × confirm · B / ○ back · right stick scroll'
     : photo.on ? 'Left stick fly · right stick look · LB/RB down/up · A / × save · B / ○ exit'
-    : 'A / × jump (again in the air: boost) · X / □ use · Y / △ ping · RT / R2 run · LT aim (+ RT shoot) · B / ○ push · ↑ worlds · ↓ photo · View sketchbook · Menu settings';
+    : tool.owned ? `A / × jump (again in the air: boost) · X / □ use · Y / △ ping · RT / R2 run · LT aim (+ RT shoot) · B / ○ push${tool.modes.length > 1 ? ' · ← → mode' : ''} · ↑ worlds · ↓ photo · View sketchbook · Menu settings`
+    : 'A / × jump · X / □ use · Y / △ ping · RT / R2 run · ↑ worlds · ↓ photo · View sketchbook · Menu settings';
   const mergedInput = mergeControls(latchedInput(), padInput);
   wasBusy = busy();
   if (wasBusy && mergedInput.KeyE) eBlocked = true;
@@ -912,6 +934,7 @@ function frame() {
   }
   ship.update(dt, t, mergedInput, { photo: photo.on });   // inside / outside, its scenes and their camera
   tool.update(dt, ctl, busy() || photo.on);
+  flammables.update(dt, t, player.pos);
   scout.update(dt, busy() || photo.on);
   if (!busy() && !photo.on) scout.placeLabel(camera);
   else if (scout.label) scout.label.hidden = true;
@@ -1068,5 +1091,5 @@ requestAnimationFrame((t) => {
 });
 
 // handy for debugging from the console
-Object.assign(window, { THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, gate, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife,
+Object.assign(window, { items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, gate, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife,
   storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game });

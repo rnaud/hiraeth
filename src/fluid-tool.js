@@ -1,8 +1,10 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { makeMaterial, markHero } from './materials.js';
+import { makeMaterial, markHero, MODE_RIBBON } from './materials.js';
 import { raycastTargets, hitTarget, registerTarget, targetsInCone } from './targets.js';
 import { game as sharedGame } from './game-state.js';
+import { items as sharedItems } from './items.js';
+import { MODES, STUN_SECONDS, FluidWings, FluidJets, HANDOFF, handoffPose, nextMode, ownedModes } from './fluid-kit.js';
 
 // The magic-fluid backpack: the traveller's signature tool. A glass tank of
 // shifting, lava-lamp fluid rides on the back; a ribbed hose runs from its cap
@@ -15,9 +17,25 @@ import { game as sharedGame } from './game-state.js';
 //          and loose things away (targets in the cone: onHit('push', point, dir, info))
 //   boost  a powered jump: press jump again in the air for a strong burst up
 //          (and a little forward) on a spray of fluid. Holding jump after it
-//          still opens the paraglider once you fall. On jetpack levels holding
-//          jump thrusts as before, and a quick double tap boosts.
+//          still opens the wings once you fall (with the glider). With the
+//          jets, holding jump thrusts instead, and a quick double tap boosts.
 // Five seconds after the last use, all three charges refill at once.
+//
+// Everything runs on the backpack (src/items.js): without items.has('backpack')
+// the tank, hose and bracer are not worn and nothing fires. The other items
+// grow out of it (fluid-kit.js):
+//   jetpack  two nozzles under the tank. Thrust burns the same reserve as a
+//            smooth gauge (FLUID.jet.drain charges a second: a full tank is
+//            ten seconds of flight); a shot needs a whole charge left. The
+//            refill clock waits until you land after a burn, then the usual
+//            five seconds refill everything.
+//   glider   fluid wings bloom out of the tank while gliding (hold jump while falling)
+//   stun / fire   gun modes (X, D-pad left / right, the touch ◐ button): the glob
+//            stills (onHit 'stun') or burns ('fire') instead of splashing; all
+//            modes share the three charges (targets.js: who accepts which mode)
+// Vehicles run on it too: boarding a powered vehicle swings the tank off the back into
+// its socket (the player's boarding / unboarding timers, HANDOFF), and back on when you
+// step off. While it is in a socket the tool is unavailable.
 // The tank shows the fill as three stacked bands of colour; the bracer has
 // three rings that light for the charges left. Magical water (the desert's
 // cave) refills it and adds a colour band for good: tool.refill({ addColour: true }).
@@ -28,9 +46,12 @@ import { game as sharedGame } from './game-state.js';
 //   tool.colours          colour bands added to the fluid (game flag tool.colours, 1 at the start)
 //   tool.tones            the tones in the blend, hex strings
 //   tool.enabled          false: put away, nothing fires (the ship prologue, cutscenes)
+//   tool.owned            the backpack is found (items.has('backpack'))
+//   tool.mode / tool.modes / tool.setMode(id) / tool.cycleMode(±1)   'shoot' | 'stun' | 'fire'
 //   tool.refill({ addColour, tone })   fill now; addColour adds a band (tone: its colour, optional)
 //   game.emit('tool:refill', { addColour: true }) · game.emit('tool:enable', { on: false })
-//   emits 'tool:fire' { mode, point } and 'tool:refilled' { charges, colours, added }
+//   emits 'tool:fire' { mode, point } (mode: shoot / stun / fire / push / boost / jet start),
+//   'tool:refilled' { charges, colours, added }, 'tool:mode' { mode }, 'tool:dock' { vehicle, on }
 
 /** Every tuning value in one place. */
 export const FLUID = {
@@ -40,6 +61,7 @@ export const FLUID = {
   shoot: { speed: 30, gravity: 8, range: 42, cooldown: 0.28, splatLife: 5, splatSize: 0.75 },
   push: { range: 6, angle: 0.62, cooldown: 0.4, shove: 2.4, recoil: 2.2 },    // angle: cone half-angle (rad, ~35°); shove: metres people are knocked back (info.shove)
   boost: { up: 15, forward: 4, keep: 0.35, doubleTap: 0.35 },              // keep: share of a rising jump's speed kept
+  jet: { drain: 0.3, min: 0.02 },  // charges burnt per second of thrust (3 = 10 s); min: the gauge that still lights them
 };
 
 // The fluid's tones, in the order bands are added (written into the shader's uFluidTones).
@@ -54,6 +76,8 @@ export function toolInput(c = {}) {
     aim: !!(c.KeyR || c.MouseRight || c.PadAim),
     shoot: !!(c.KeyG || c.MouseLeft || c.PadFire),
     push: !!(c.KeyC || c.MouseMiddle || c.PadPush),
+    mode: !!(c.KeyX || c.PadModeNext),     // the next owned gun mode
+    modeBack: !!c.PadModePrev,             // the previous one (D-pad left)
   };
 }
 
@@ -69,29 +93,41 @@ export function bindToolMouse(dom, input) {
 }
 
 /**
- * The shared reserve: use() spends a charge if there is one; update(dt)
- * counts the time since the last use and refills all of them at once after
- * FLUID.refillDelay (returns true on that frame).
+ * The shared reserve: a gauge of `max` charges. use() spends a whole charge
+ * if there is one; drain(amount) burns part of one (the jets); update(dt)
+ * counts the time since the last use and refills everything at once after
+ * FLUID.refillDelay (returns true on that frame). hold() keeps the clock at 0.
  */
 export class Reserve {
   constructor(max = FLUID.charges, delay = FLUID.refillDelay) {
-    this.max = max; this.delay = delay; this.charges = max; this.since = Infinity;
+    this.max = max; this.delay = delay; this.level = max; this.since = Infinity;
   }
+  /** Whole charges left. */
+  get charges() { return Math.floor(this.level + 1e-6); }
+  set charges(n) { this.level = n; }
   use() {
-    if (this.charges <= 0) return false;
-    this.charges--; this.since = 0;
+    if (this.level < 1 - 1e-6) return false;
+    this.level = Math.max(0, this.level - 1); this.since = 0;
     return true;
   }
+  /** Burn up to `amount` of the gauge; returns what was burnt. */
+  drain(amount) {
+    if (this.level <= 0) return 0;
+    const d = Math.min(this.level, amount);
+    this.level -= d; this.since = 0;
+    return d;
+  }
+  hold() { if (this.level < this.max) this.since = 0; }
   update(dt) {
-    if (this.charges >= this.max) return false;
+    if (this.level >= this.max) return false;
     this.since += dt;
     if (this.since < this.delay - 1e-9) return false;
-    this.charges = this.max;
+    this.level = this.max;
     return true;
   }
   /** Seconds until the refill (0 when full). */
-  get refillIn() { return this.charges >= this.max ? 0 : Math.max(0, this.delay - this.since); }
-  fill() { this.charges = this.max; this.since = Infinity; }
+  get refillIn() { return this.level >= this.max ? 0 : Math.max(0, this.delay - this.since); }
+  fill() { this.level = this.max; this.since = Infinity; }
 }
 
 const _d = new THREE.Vector3(), _rp = new THREE.Vector3();
@@ -520,6 +556,7 @@ class Hose {
 const _o = new THREE.Vector3(), _f = new THREE.Vector3(), _m = new THREE.Vector3(), _a = new THREE.Vector3(), _y = new THREE.Vector3(0, 1, 0);
 const _t1 = new THREE.Vector3(), _t2 = new THREE.Vector3(), _t3 = new THREE.Vector3(), _q = new THREE.Quaternion();
 const smooth = (k) => k * k * (3 - 2 * k);
+const range01 = (k, a, b) => THREE.MathUtils.clamp((k - a) / (b - a), 0, 1);
 
 export class FluidTool {
   /**
@@ -530,13 +567,16 @@ export class FluidTool {
    * @param o.hud       optional ToolHud (crosshair, charges)
    * @param o.noShadow  array of objects hidden from the shadow passes
    * @param o.state     the game-state store (game-state.js; tests pass their own)
+   * @param o.items     the item registry (items.js; what the traveller owns)
    */
-  constructor({ scene, player, physics, camera, rig = null, sound = null, level = null, hud = null, noShadow = null, state = sharedGame }) {
-    Object.assign(this, { scene, player, physics, camera, rig, sound, hud, state });
+  constructor({ scene, player, physics, camera, rig = null, sound = null, level = null, hud = null, noShadow = null, state = sharedGame, items = sharedItems }) {
+    Object.assign(this, { scene, player, physics, camera, rig, sound, hud, state, items });
     this.reserve = new Reserve();
     this.k = 0; this.camK = 0; this.cooldown = 0; this.quick = 0; this.quickShoot = false;
     this.pending = null; this.time = 0; this._enabled = true;
-    this.held = { shoot: false, push: false };
+    this.held = { shoot: false, push: false, mode: false, modeBack: false };
+    this.mode = 'shoot'; this.modeFlash = 0; this.fluidTime = 0; this.rate = 1;
+    this.appear = items.has('backpack') ? 1 : 0; this.jetBurnt = false; this.where = 'back'; this.power = new Map();
     this.aimPoint = new THREE.Vector3(); this.aimDir = new THREE.Vector3(0, 0, -1);
     this.globs = [];
     this.fill = 1; this.flash = 0; this.wave = 0; this.slosh = 0; this.pulse = 2; this.lastHit = null; this.ringLit = [1, 1, 1];
@@ -551,7 +591,7 @@ export class FluidTool {
     this.arc = new Dots(fx, 48, flatMat('#ffffff'));
     this.splats = new Splats(fx);
     this.rings = new Rings(fx);
-    const globMat = makeMaterial({ color: '#ffffff', fluid: 'glob', glow: 0.8, fluidBox: [-1, 1, 1, 0], fluidTones: FLUID_TONES });
+    const globMat = (this.globMat = makeMaterial({ color: '#ffffff', fluid: 'glob', glow: 0.8, fluidBox: [-1, 1, 1, 0], fluidTones: FLUID_TONES }));
     this.globU = globMat.uniforms;
     this.globMeshes = Array.from({ length: 6 }, () => { const m = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 2), globMat); m.visible = false; m.userData.noCollide = true; fx.add(m); return m; });
     this.wear();
@@ -581,8 +621,14 @@ export class FluidTool {
     // the story drives it through the shared bus too
     this.offs.push(state.on('tool:refill', (o) => this.refill(o ?? {})));
     this.offs.push(state.on('tool:enable', (o) => { this.enabled = o?.on ?? true; }));
-    // boost: the player asks on a fresh press of jump in the air (player.js)
-    if (player) player.onAirJump = (since) => this.boost(since);
+    // found (a box, a quest, the dev menu): the tank appears with a shimmer; a lost mode falls back to shoot
+    this.offs.push(items.on((id, owned) => {
+      if (id === 'backpack' && owned) this.shimmer();
+      if (!owned && !this.modes.includes(this.mode)) this.mode = 'shoot';
+    }));
+    // boost: the player asks on a fresh press of jump in the air (player.js); the jets
+    // burn the reserve (fuelSource) and boarding a vehicle swings the tank into it (handoff)
+    if (player) { player.onAirJump = (since) => this.boost(since); player.fuelSource = this; player.handoff = this; }
   }
 
   /** Put the tank, hose and bracer on the traveller (needs the humanoid's chest anchor and arm bones). */
@@ -605,12 +651,6 @@ export class FluidTool {
       this.bracer = buildBracer();
       fore.add(this.bracer.group);
     }
-    // jetpack levels: its twin canisters move out to flank the tank instead of hiding it
-    const jet = p.char?.jetpack;
-    if (jet) {
-      jet.position.set(0, TANK.at[1] + 0.26, TANK.at[2] + 0.03);
-      for (const o of jet.children) o.position.x = Math.sign(o.position.x) * 0.31;
-    }
     // the handheld device stays in the gear but the bracer replaces it in the hand
     for (const o of p.gear?.device?.children ?? []) o.visible = false;
     this.hose = new Hose(this.scene ?? tank.group);
@@ -623,18 +663,58 @@ export class FluidTool {
     this.tankU = tank.glass.material.uniforms;
     this.hoseU = this.hose.mesh.material.uniforms;
     this.hosePts = Array.from({ length: 6 }, () => new THREE.Vector3());
+    // the wings bloom from the cap (inked at full strength, like the fluid in the glass)
+    this.wings = new FluidWings(tank.group, FLUID_TONES);
+    // the fluid jets clip under the tank (the old canisters are gone, player.js); their flames are the globs' fluid
+    const metal = { brass: flatMat(BRASS), dark: flatMat(STEEL_DARK), brassOpen: flatMat(BRASS, { side: THREE.DoubleSide }), core: makeMaterial({ color: '#fff6dc', flat: true, glow: 1 }) };
+    this.jets = new FluidJets(tank.group, this.globMat, metal);
+    this.wingU = this.wings.material.uniforms;
+    this.chest = H.chestAnchor;
   }
 
   dispose() {
     this.offs.forEach((off) => off()); this.offs = [];
     this.fx.removeFromParent(); this.tank?.group.removeFromParent(); this.bracer?.group.removeFromParent(); this.hose?.mesh.removeFromParent();
-    if (this.player?.onAirJump) this.player.onAirJump = null;
+    const p = this.player;
+    if (p?.onAirJump) p.onAirJump = null;
+    if (p?.fuelSource === this) p.fuelSource = null;
+    if (p?.handoff === this) p.handoff = null;
   }
 
   // ------------------------------------------------------------ the story API
   get charges() { return this.reserve.charges; }
   get colours() { return THREE.MathUtils.clamp(this.state.flag('tool.colours') ?? 1, 1, FLUID.maxColours); }
+  /** The fluid's own blend (colour bands from magical water). */
   get tones() { return fluidTones(this.colours, this.state.flag('tool.tones')); }
+  /** What the tank, the globs and the splashes show now: the current mode's tones (stun cold blue, fire ember). */
+  get modeTones() { return MODES[this.mode]?.tones ?? this.tones; }
+  /** The backpack is found. */
+  get owned() { return this.items.has('backpack'); }
+  /** The tank is on the traveller's back (not in a vehicle's socket, nor swinging between). */
+  get worn() { const p = this.player; return this.owned && !p?.ride && !p?.boarding && !p?.unboarding; }
+  /** The gun modes the traveller owns ('shoot' first); none without the backpack. */
+  get modes() { return ownedModes((id) => this.items.has(id)); }
+  get modeName() { return MODES[this.mode]?.name ?? 'fluid'; }
+  /** Switch to an owned mode: the tank and bracer retint, the HUD says so. Returns true if it changed. */
+  setMode(mode) {
+    if (!this.modes.includes(mode) || mode === this.mode) return false;
+    this.mode = mode;
+    this.modeFlash = 1; this.flash = Math.max(this.flash, 0.8); this.slosh = Math.max(this.slosh, 0.6);
+    this.sound?.fluidMode?.(mode);
+    if (this.tank && this.player?.object?.visible !== false) {
+      const tones = this.modeTones, at = this.tank.group.localToWorld(_o.set(0, TANK.height * 0.6, 0)), up = this.player.frame.up;
+      for (let i = 0; i < 12; i++) this.glow.add({ pos: at, vel: _a.randomDirection().multiplyScalar(0.9).addScaledVector(up, 0.6), drag: 3, size: 0.03, life: 0.5 + Math.random() * 0.3, color: tones[i % tones.length], grow: true });
+    }
+    this.state.emit('tool:mode', { mode });
+    return true;
+  }
+  /** The next (dir 1) or previous (-1) owned mode. */
+  cycleMode(dir = 1) { return this.setMode(nextMode(this.mode, this.modes, dir)); }
+  /** The tank appears on the back (the backpack was just found). */
+  shimmer() {
+    this.appear = 0; this.flash = 1; this.wave = 1; this.slosh = 1;
+    this.sound?.fluidRefill?.(true);
+  }
   get enabled() { return this._enabled; }
   set enabled(on) {
     this._enabled = !!on;
@@ -659,10 +739,10 @@ export class FluidTool {
 
   get aiming() { return this.k > 0.5; }
 
-  /** Can the arm come up right now? Not while riding, gliding, climbing, on the jetpack, in menus and photo mode. */
+  /** Can the arm come up right now? Not without the backpack (or with it in a vehicle), while gliding, climbing, on the jets, in menus and photo mode. */
   allowed(paused) {
     const p = this.player;
-    return !paused && this._enabled && !!p && !p.ride && !p.gliding && !p.climbing && !p.mantle && !p.thrusting && p.object?.visible !== false;
+    return !paused && this._enabled && !!p && this.worn && !p.gliding && !p.climbing && !p.mantle && !p.thrusting && p.object?.visible !== false;
   }
 
   /** World position of the nozzle's mouth (or the chest if the traveller has no bracer). */
@@ -695,7 +775,12 @@ export class FluidTool {
     const p = this.player, input = toolInput(paused ? {} : ctl);
     const ok = this.allowed(paused);
     const shootPress = input.shoot && !this.held.shoot, pushPress = input.push && !this.held.push;
-    this.held.shoot = input.shoot; this.held.push = input.push;
+    const modePress = input.mode && !this.held.mode, modeBackPress = input.modeBack && !this.held.modeBack;
+    this.held.shoot = input.shoot; this.held.push = input.push; this.held.mode = input.mode; this.held.modeBack = input.modeBack;
+    // X / D-pad right (left: back) / the touch button: the next owned gun mode (also while not aiming, and riding)
+    if (!paused && this._enabled && this.owned && (modePress || modeBackPress)) this.cycleMode(modeBackPress ? -1 : 1);
+    if (!this.modes.includes(this.mode)) this.mode = 'shoot';
+    this.modeFlash = Math.max(0, this.modeFlash - dt / 1.6);
     if (ok && (shootPress || pushPress)) {
       if (this.reserve.charges <= 0) this.sputter();
       else if (shootPress) { this.pending = 'shoot'; if (!input.aim) { this.quick = 0.9; this.quickShoot = true; } }
@@ -712,6 +797,9 @@ export class FluidTool {
     this.camK += (camWant - this.camK) * (1 - Math.exp(-(camWant ? 11 : 7) * dt));
 
     this.cooldown = Math.max(0, this.cooldown - dt);
+    // the jets' fluid recovers once you land: after a burn the refill clock waits for the ground
+    if (p?.onGround || p?.ride || p?.climbing) this.jetBurnt = false;
+    if (this.jetBurnt) this.reserve.hold();
     if (this.reserve.update(dt)) this.onRefilled(false);
 
     if (this.k > 0 && p) {
@@ -728,14 +816,147 @@ export class FluidTool {
     this.drops.update(dt, up); this.glow.update(dt, up);
     this.splats.update(dt); this.rings.update(dt);
     this.updateWorn(dt);
-    this.hud?.update({ on: this.k > 0.5 && this.camK > 0.3, charges: this.reserve.charges, max: this.reserve.max, refillIn: this.reserve.refillIn, ready: this.cooldown === 0 && this.reserve.charges > 0, aimKind: this.aimKind, hit: this.lastHit, tones: this.tones });
+    this.hud?.update({ on: this.k > 0.5 && this.camK > 0.3, charges: this.reserve.charges, max: this.reserve.max, refillIn: this.reserve.refillIn, ready: this.cooldown === 0 && this.reserve.charges > 0, aimKind: this.aimKind, hit: this.lastHit, tones: this.modeTones,
+      owned: this.owned, mode: this.mode, modeName: this.modeName, modes: this.modes.length, modeFlash: this.modeFlash });
     this.lastHit = null;
+  }
+
+  // ------------------------------------------------------------ the jets (player.fuelSource)
+  /** The jets own the item and the tank is on the back. */
+  get canJet() { return this.worn && this.items.has('jetpack'); }
+  /** The gauge the jets burn, 0..1 of the tank. */
+  jetLevel() { return this.reserve.level / this.reserve.max; }
+  /** A frame of thrust: burns FLUID.jet.drain charges a second; false when there's nothing left to burn. */
+  burnJet(dt) {
+    if (!this.canJet || this.reserve.level <= FLUID.jet.min * 0.5) return false;
+    if (!this.jetBurnt) { this.jetBurnt = true; this.state.emit('tool:fire', { mode: 'jet', point: this.player.pos.clone() }); }
+    this.reserve.drain(FLUID.jet.drain * dt);
+    this.pulse = Math.min(this.pulse, 0.4);
+    return true;
+  }
+
+  /** While thrusting: fluid flames spit from the two nozzles, drops falling off them in the tank's tones. */
+  updateJets(dt) {
+    const J = this.jets, p = this.player;
+    if (!J) return;
+    const on = this.canJet && p.object?.visible !== false;
+    J.update(dt, { on, thrusting: !!p.thrusting, time: this.time });
+    if (!on || J.thrust < 0.2) return;
+    const tones = this.modeTones, U = p.frame.up, mouths = J.mouths(this._mouths ??= [new THREE.Vector3(), new THREE.Vector3()]);
+    this._jetAcc = (this._jetAcc ?? 0) + dt;
+    while (this._jetAcc > 1 / 60) {
+      this._jetAcc -= 1 / 60;
+      for (const m of mouths) {
+        const v = _a.copy(U).multiplyScalar(-(5 + Math.random() * 5)).add(_t1.randomDirection().multiplyScalar(1.2)).addScaledVector(p.vel, 0.6);
+        this.drops.add({ pos: m, vel: v, drag: 3, grav: 4, size: 0.016 + Math.random() * 0.02, stretch: 3, life: 0.3 + Math.random() * 0.25, color: tones[(Math.random() * tones.length) | 0] });
+      }
+    }
+  }
+
+  /** The wings follow the player's glide (player.wingK: 0 folded, 1 open). */
+  updateWings(dt) {
+    const W = this.wings, p = this.player;
+    if (!W) return;
+    const open = this.worn && p.object?.visible !== false ? (p.wingK ?? 0) : 0;
+    W.update(dt, { open, turn: p.glideTurn ?? 0, wind: p.wind?.length() ?? 0, time: this.fluidTime, fill: this.fill });
+  }
+
+  // ------------------------------------------------------------ powering vehicles (player.handoff)
+  /**
+   * Where the tank is this frame follows from the player's state alone, so
+   * nothing can strand it: on the back; swinging off it into the socket of the
+   * vehicle being boarded (player.boarding.k); in the socket while riding a
+   * powered vehicle; swinging back onto the back after stepping off
+   * (player.unboarding.k). Returns 'back' | 'flight' | 'socket'.
+   */
+  updateDock(dt) {
+    const p = this.player, T = this.tank;
+    if (!T || !p) return 'back';
+    const B = p.boarding?.v?.socket ? p.boarding : null, U = !B && p.unboarding?.v?.socket ? p.unboarding : null;
+    const R = !B && !U && p.ride?.powered && p.ride.socket ? p.ride : null;
+    const v = B?.v ?? R ?? U?.v ?? null;
+    let where = 'back', u = 0;
+    if (B) { u = range01(B.k, HANDOFF.lift, HANDOFF.seat); where = u >= 1 ? 'socket' : u > 0 ? 'flight' : 'back'; }
+    else if (R) { u = 1; where = 'socket'; }
+    else if (U) { u = 1 - range01(U.k, HANDOFF.grab, HANDOFF.worn); where = u <= 0 ? 'back' : u < 1 ? 'flight' : 'socket'; }
+    const was = this.where;
+    this.where = where;
+    this.dockVehicle = where === 'socket' ? v : null;
+    const g = T.group, chest = this.chest;
+    // the back's pose and the socket's, in world space
+    const back = this._back ??= { p: new THREE.Vector3(), q: new THREE.Quaternion(), s: new THREE.Vector3() };
+    chest.updateWorldMatrix(true, false);
+    chest.localToWorld(back.p.set(...TANK.at)); chest.getWorldQuaternion(back.q); chest.getWorldScale(back.s);
+    if (where === 'back') {
+      if (g.parent !== chest) chest.add(g);
+      g.position.set(...TANK.at); g.quaternion.identity(); g.scale.setScalar(1);
+      if (was === 'flight') this.onDocked(null, false);
+      return where;
+    }
+    const sock = v.socket;
+    sock.updateWorldMatrix(true, false);
+    const ss = sock.getWorldScale(_t3);
+    if (where === 'socket') {
+      if (g.parent !== sock) sock.add(g);
+      g.position.set(0, 0, 0); g.quaternion.identity();
+      g.scale.set(back.s.x / ss.x, back.s.y / ss.y, back.s.z / ss.z);
+      if (was !== 'socket') this.onDocked(v, true);
+      return where;
+    }
+    // in flight: in the scene, along an arc from the back to the socket
+    const S = this._sock ??= { p: new THREE.Vector3(), q: new THREE.Quaternion(), s: new THREE.Vector3() };
+    sock.getWorldPosition(S.p); sock.getWorldQuaternion(S.q); S.s.copy(back.s);
+    const host = this.scene ?? chest;
+    if (g.parent !== host) host.add(g);
+    const out = handoffPose(u, back, S, p.frame.up, this._pose2 ??= { p: new THREE.Vector3(), q: new THREE.Quaternion(), s: new THREE.Vector3() });
+    if (host === this.scene) { g.position.copy(out.p); g.quaternion.copy(out.q); g.scale.copy(out.s); }
+    if (was === 'socket') this.onDocked(v, false);
+    return where;
+  }
+
+  /** The click of the tank going into a socket (on) or leaving it. */
+  onDocked(v, on) {
+    this.flash = 1; this.slosh = 1; this.pulse = 0;
+    this.sound?.fluidDock?.(on);
+    const at = this.tank.group.localToWorld(_o.set(0, 0.1, 0)), up = this.player.frame.up, tones = this.modeTones;
+    this.rings.add({ from: at, dir: up, reach: 0.05, r0: 0.12, r1: on ? 0.9 : 0.5, life: 0.35, color: tones[0], thick: 1 });
+    for (let i = 0; i < (on ? 18 : 8); i++) this.glow.add({ pos: at, vel: _a.randomDirection().multiplyScalar(1.6).addScaledVector(up, 0.8), drag: 3, size: 0.035, life: 0.5 + Math.random() * 0.3, color: tones[i % tones.length], grow: true });
+    if (v) this.state.emit('tool:dock', { vehicle: v, on });
+  }
+
+  /** Where the traveller's hands hold the tank during a hand-off (the tank's middle). */
+  handPoint(out = new THREE.Vector3()) {
+    return this.tank ? this.tank.group.localToWorld(out.set(0, TANK.height * 0.45, 0)) : out.copy(this.player.pos);
+  }
+
+  /** The vehicles' engines glow in the fluid's tones while the tank sits in their socket. */
+  updatePower(dt) {
+    for (const v of this.player?.vehicles ?? []) {
+      if (!v.powered) continue;
+      const want = v === this.dockVehicle ? 1 : 0;
+      const k = THREE.MathUtils.damp(this.power.get(v) ?? 0, want, want ? 3.5 : 6, dt);
+      this.power.set(v, k);
+      v.setPower?.(k, this.modeTones, this.time);
+    }
+    if (this.trails) for (const tr of this.trails) {
+      const U = tr.mesh.material.uniforms;
+      if (U.uFluidTones && this._trailKey !== this._tonesKey) U.uFluidTones.value.forEach((c, i) => c.set(this.modeTones[i] ?? FLUID_TONES[i]));
+      if (U.uFluidA) U.uFluidA.value.y = this.modeTones.length;
+    }
+    if (this.trails) this._trailKey = this._tonesKey;
+  }
+
+  /** The hover trails take the fluid's tones (the vehicle runs on it). */
+  powerTrails(trails) {
+    this.trails = trails ?? null;
+    for (const tr of trails ?? []) tr.mesh.material = makeMaterial({ color: '#ffffff', mode: MODE_RIBBON, glow: 1, fluid: 'trail', fluidTones: FLUID_TONES, key: 'fluid-trail' });
+    this._trailKey = null;
   }
 
   /** The tank, hose and bracer follow the body; the fluid level eases to the charges left. */
   updateWorn(dt) {
     const p = this.player;
-    const target = this.reserve.charges / this.reserve.max;
+    const target = this.reserve.level / this.reserve.max;
     // drains quickly; refills with a rise and a little overshoot
     const rate = target > this.fill ? 4.2 : 9;
     this.fill += (target - this.fill) * (1 - Math.exp(-rate * dt));
@@ -747,20 +968,47 @@ export class FluidTool {
       if (this._hasVel) this.slosh = Math.max(this.slosh * Math.exp(-2.2 * dt), Math.min(1, _a.subVectors(p.vel, this._lastVel).length() / dt / 70));
       this._lastVel.copy(p.vel); this._hasVel = true;
     }
-    const tones = this.tones, n = tones.length, key = tones.join();
+    // the mode's look: its tones, and how the lava moves (stilling: nearly still; ember: boiling)
+    const look = MODES[this.mode] ?? MODES.shoot;
+    this.rate += (look.rate - this.rate) * (1 - Math.exp(-4 * dt));
+    this.fluidTime += dt * this.rate;
+    const tones = this.modeTones, n = tones.length, key = tones.join();
     const retone = key !== this._tonesKey;
     this._tonesKey = key;
-    for (const U of [this.tankU, this.hoseU, this.globU]) {
+    for (const U of [this.tankU, this.hoseU, this.globU, this.wingU]) {
       if (!U) continue;
       if (retone) U.uFluidTones.value.forEach((c, i) => c.set(tones[i] ?? FLUID_TONES[i]));
-      U.uFluidA.value.x = this.fill; U.uFluidA.value.y = n; U.uFluidA.value.z = this.time;
-      U.uFluidB.value.set(this.flash, this.wave, this.pulse, this.slosh);
+      U.uFluidA.value.x = this.fill; U.uFluidA.value.y = n; U.uFluidA.value.z = U === this.globU ? this.time * Math.max(this.rate, 0.4) : this.fluidTime;
+      if (U === this.wingU) { U.uFluidB.value.x = this.flash; continue; }
+      U.uFluidB.value.set(this.flash, this.wave, this.pulse, this.slosh * Math.min(1, this.rate));
     }
     if (!this.tank) return;
-    const visible = p.object?.visible !== false;
+    if (retone && this.bracer) this.bracer.lens.material.uniforms.uColor.value.set(tones[0]);
+    // found: it grows onto the back with a little overshoot and a shimmer of fluid
+    if (this.appear < 1) {
+      const was = this.appear;
+      this.appear = Math.min(1, this.appear + dt / 0.9);
+      if (was === 0 && this.player?.object?.visible !== false) {
+        const at = this.tank.group.localToWorld(_o.set(0, TANK.height * 0.5, 0)), up = p.frame.up;
+        for (let i = 0; i < 26; i++) this.glow.add({ pos: _t1.copy(at).add(_a.randomDirection().multiplyScalar(0.3)), vel: _a.randomDirection().multiplyScalar(0.8).addScaledVector(up, 0.7), drag: 2, size: 0.04, life: 0.9 + Math.random() * 0.5, color: tones[i % tones.length], grow: true });
+      }
+    }
+    const owned = this.owned, visible = owned && p.object?.visible !== false;
+    const where = owned ? this.updateDock(dt) : 'back';
     this.tank.group.visible = visible;
-    this.hose.mesh.visible = visible;
+    if (this.bracer) this.bracer.group.visible = owned;
+    this.hose.mesh.visible = visible && where !== 'flight';
+    if (owned && this.appear < 1 && where === 'back') {
+      const e = this.appear, sc = 0.25 + 0.75 * e + Math.sin(Math.PI * e) * 0.18;
+      this.tank.group.scale.setScalar(sc);
+      this.flash = Math.max(this.flash, 1 - e);
+    }
+    this.updateJets(dt);
+    this.updateWings(dt);
+    this.updatePower(dt);
     if (!visible) return;
+    if (where === 'socket') return this.layHoseToPort();
+    if (where === 'flight') return;
     // the bracer's rings light for the charges left (in sequence as it refills)
     this.bracer?.rings.forEach((ring, i) => {
       const lit = this.reserve.charges > i ? 1 : 0;
@@ -769,7 +1017,7 @@ export class FluidTool {
       u.uColor.value.set(INK).lerp(_c.set(tones[i % tones.length]), k);
       u.uGlow.value = 0.95 * k;
     });
-    if (this.bracer) this.bracer.lens.scale.setScalar(this.reserve.charges ? 1 + this.flash * 0.8 : 0.6);
+    if (this.bracer) this.bracer.lens.scale.setScalar(this.reserve.charges ? 1 + this.flash * 0.8 + (this.mode !== 'shoot' ? 0.35 : 0) : 0.6);
     // the hose: up out of the cap, over the right shoulder, down the outside of the arm to the bracer
     const H = p.humanoid, B = H.b;
     const P = this.hosePts;
@@ -792,16 +1040,31 @@ export class FluidTool {
     this.hose.set(P);
   }
 
+  /** In a socket: the hose runs from the cap down into the vehicle's engine (its port). */
+  layHoseToPort() {
+    const v = this.dockVehicle, P = this.hosePts, tg = this.tank.group;
+    tg.updateWorldMatrix(true, false);
+    tg.localToWorld(P[0].copy(this.tank.outlet));
+    if (v.port) { v.port.updateWorldMatrix(true, false); v.port.getWorldPosition(P[5]); }
+    else tg.localToWorld(P[5].set(-0.1, -0.05, 0.2));
+    const up = _o.set(0, 1, 0).applyQuaternion(tg.getWorldQuaternion(_q));
+    P[1].copy(P[0]).addScaledVector(up, 0.07);
+    P[2].lerpVectors(P[0], P[5], 0.3).addScaledVector(up, 0.12);
+    P[3].lerpVectors(P[0], P[5], 0.6).addScaledVector(up, 0.06);
+    P[4].lerpVectors(P[0], P[5], 0.85).addScaledVector(up, 0.03);
+    this.hose.set(P);
+  }
+
   /** A press with the tank empty: a dribble from the nozzle and a dry click. */
   sputter() {
     this.lastHit = 'empty';
     this.sound?.fluidEmpty?.();
     const from = this.muzzle(_m), up = this.player.frame.up;
-    for (let i = 0; i < 4; i++) this.drops.add({ pos: from, vel: _a.copy(up).multiplyScalar(-0.5 - Math.random()).add(_t1.randomDirection().multiplyScalar(0.4)), grav: 9, size: 0.018, life: 0.45, color: this.tones[i % 2] });
+    for (let i = 0; i < 4; i++) this.drops.add({ pos: from, vel: _a.copy(up).multiplyScalar(-0.5 - Math.random()).add(_t1.randomDirection().multiplyScalar(0.4)), grav: 9, size: 0.018, life: 0.45, color: this.modeTones[i % 2] });
   }
 
   /** The tones as hex strings, for targets (info.colours). */
-  info(strength = 1) { return { colours: this.tones, strength, shove: FLUID.push.shove, tool: this }; }
+  info(strength = 1) { return { colours: this.modeTones, strength, shove: FLUID.push.shove, tool: this }; }
 
   /** Fire a glob at the crosshair now (the arm is assumed to be up). */
   shoot() {
@@ -816,10 +1079,11 @@ export class FluidTool {
     glob.mesh = this.globMeshes.find((m) => !m.visible) ?? this.globs.shift()?.mesh ?? this.globMeshes[0];
     glob.mesh.visible = true;
     glob.tone = Math.floor(Math.random() * 6);
+    glob.mode = this.mode;               // 'shoot' | 'stun' | 'fire': what it does where it lands
     this.globs.push(glob);
-    this.used('shoot', from);
-    this.sound?.fluidShoot?.();
-    const tones = this.tones;
+    this.used('shoot', from, { glob: glob.mode });
+    this.sound?.fluidShoot?.(glob.mode);
+    const tones = this.modeTones;
     for (let i = 0; i < 7; i++) this.drops.add({ pos: from, vel: _a.copy(dir).multiplyScalar(3 + i * 1.2).add(_t1.randomDirection().multiplyScalar(1.1)), drag: 6, grav: 6, size: 0.022, life: 0.35, color: tones[i % tones.length] });
     return { kind: 'glob', glob };
   }
@@ -842,7 +1106,7 @@ export class FluidTool {
     // recoil: a small step back (on the ground)
     if (p.vel && p.onGround) p.vel.addScaledVector(_a.copy(dir).addScaledVector(U, -dir.dot(U)), -FLUID.push.recoil);
     // the shock front: three rings in the fluid's tones, and a fan of spray
-    const from = this.muzzle(_m).clone(), tones = this.tones, tan = Math.tan(FLUID.push.angle);
+    const from = this.muzzle(_m).clone(), tones = this.modeTones, tan = Math.tan(FLUID.push.angle);
     for (let i = 0; i < 3; i++) this.rings.add({ from, dir, reach: FLUID.push.range * (0.75 + i * 0.12), r0: 0.15, r1: FLUID.push.range * tan * (0.7 + i * 0.12), life: 0.32 + i * 0.07, delay: i * 0.05, color: tones[i % tones.length], thick: 0.9 });
     for (let i = 0; i < 42; i++) {
       const v = _a.copy(dir).add(_t1.randomDirection().multiplyScalar(tan * 0.9)).normalize().multiplyScalar(9 + Math.random() * 9);
@@ -856,20 +1120,20 @@ export class FluidTool {
   /**
    * Called by the player on a fresh press of jump in the air (since: seconds
    * since the previous press). Spends a charge on a boost; returns true if it
-   * did (the player then skips its glide for this press). On jetpack levels
+   * did (the player then skips its glide for this press). With the jets
    * only a quick double tap boosts, so holding jump still thrusts.
    */
   boost(since = Infinity) {
     const p = this.player;
-    if (!p || !this._enabled || p.ride || p.climbing || p.mantle || p.object?.visible === false) return false;
-    if (p.opts?.jetpack && since > FLUID.boost.doubleTap) return false;
+    if (!p || !this._enabled || !this.worn || p.climbing || p.mantle || p.object?.visible === false) return false;
+    if (this.canJet && since > FLUID.boost.doubleTap) return false;
     if (!this.reserve.use()) { this.sputter(); return false; }
     const U = p.frame.up, fwd = p.frame.dir(p.heading, _f);
     boostVelocity(p.vel, U, fwd);
     this.used('boost', p.pos);
     this.sound?.fluidBoost?.();
     // a spray of fluid down from the tank and under the boots, and a ring where it leaves
-    const tones = this.tones;
+    const tones = this.modeTones;
     const base = this.tank ? this.tank.group.localToWorld(_o.set(0, -0.05, 0)) : _o.copy(p.pos).addScaledVector(U, 0.9);
     for (let i = 0; i < 34; i++) {
       const fromTank = i % 4 === 0;
@@ -885,10 +1149,10 @@ export class FluidTool {
     return true;
   }
 
-  /** Bookkeeping for every use: the hose pulse, the tank's flash and slosh, the story event. */
-  used(mode, point) {
+  /** Bookkeeping for every use: the hose pulse, the tank's flash and slosh, the story event (globs: mode 'shoot', glob: the gun mode). */
+  used(mode, point, extra = null) {
     this.pulse = 0; this.flash = 1; this.slosh = 1;
-    this.state.emit('tool:fire', { mode, point: point.clone() });
+    this.state.emit('tool:fire', { mode, point: point.clone(), ...extra });
   }
 
   onRefilled(added) {
@@ -896,16 +1160,42 @@ export class FluidTool {
     this.ringLit = this.ringLit.map((v, i) => Math.min(v, -i * 0.6));   // the rings light up one after another
     this.sound?.fluidRefill?.(added);
     if (this.tank && this.player?.object?.visible !== false) {
-      const tones = this.tones, at = this.tank.group.localToWorld(_o.set(0, TANK.height + 0.1, 0)), up = this.player.frame.up;
+      const tones = this.modeTones, at = this.tank.group.localToWorld(_o.set(0, TANK.height + 0.1, 0)), up = this.player.frame.up;
       for (let i = 0; i < 14; i++) this.glow.add({ pos: at, vel: _a.copy(up).multiplyScalar(1 + Math.random() * 1.5).add(_t1.randomDirection().multiplyScalar(0.8)), drag: 2, size: 0.035, life: 0.7 + Math.random() * 0.4, color: tones[i % tones.length], grow: true });
     }
     this.state.emit('tool:refilled', { charges: this.reserve.charges, colours: this.colours, added });
   }
 
-  /** Droplets and a ring burst where fluid meets something (normal: away from the surface). */
-  splash(point, normal, scale = 1) {
-    const tones = this.tones;
+  /**
+   * Droplets and a ring burst where fluid meets something (normal: away from
+   * the surface), in the glob's mode: a splash of fluid; a stilling burst
+   * (cold shards that hang in the air, a pale ring); or an ember burst (sparks
+   * rising, a flash of flame). onTarget: it hit someone or something.
+   */
+  splash(point, normal, scale = 1, mode = 'shoot', onTarget = false) {
+    const tones = MODES[mode]?.tones ?? this.tones;
     const sc = (this.camera ? THREE.MathUtils.clamp(point.distanceTo(this.camera.position) / 14, 1, 2.5) : 1) * scale;
+    if (mode === 'stun') {
+      // shards fly out and stop dead, hanging a moment like frost in the air
+      for (let i = 0; i < 26; i++) {
+        const v = _a.randomDirection().addScaledVector(normal, 0.6).normalize().multiplyScalar((4 + Math.random() * 5) * sc);
+        this.drops.add({ pos: point, vel: v, drag: 9, grav: 0.3, size: (0.03 + Math.random() * 0.035) * sc, stretch: 3.5, life: 0.9 + Math.random() * 0.6, color: tones[i % tones.length] });
+      }
+      for (let i = 0; i < (onTarget ? 22 : 8); i++) this.glow.add({ pos: _t1.copy(point).add(_a.randomDirection().multiplyScalar(0.5 * sc)), vel: _a.randomDirection().multiplyScalar(0.25), drag: 1.5, size: 0.06 * sc, life: onTarget ? STUN_SECONDS * (0.4 + Math.random() * 0.6) : 1.1, color: i % 3 ? '#f2fbff' : tones[1], grow: true });
+      for (let i = 0; i < 2; i++) this.rings.add({ from: point, dir: normal, reach: 0.02, r0: 0.1 * sc, r1: (1.3 + i * 0.5) * sc, life: 0.5 + i * 0.15, delay: i * 0.08, color: i ? '#f2fbff' : tones[1], thick: 0.6 });
+      return;
+    }
+    if (mode === 'fire') {
+      // sparks leap up and drift, a puff of flame, a hot ring
+      const up = this.player?.frame.up ?? _y;
+      for (let i = 0; i < 30; i++) {
+        const v = _a.randomDirection().addScaledVector(normal, 0.9).addScaledVector(up, 1.1).normalize().multiplyScalar((2.5 + Math.random() * 5) * sc);
+        this.drops.add({ pos: point, vel: v, drag: 2.6, grav: -1.8, size: (0.03 + Math.random() * 0.04) * sc, stretch: 1.6, life: 0.6 + Math.random() * 0.7, color: tones[i % tones.length] });
+      }
+      for (let i = 0; i < 9; i++) this.glow.add({ pos: _t1.copy(point).addScaledVector(normal, 0.1), vel: _a.randomDirection().multiplyScalar(0.8 * sc).addScaledVector(up, 1.8 * sc), drag: 2.5, size: (0.1 + Math.random() * 0.08) * sc, life: 0.45 + Math.random() * 0.25, color: tones[i % 3], grow: true });
+      this.rings.add({ from: point, dir: normal, reach: 0.05, r0: 0.2 * sc, r1: 1.1 * sc, life: 0.28, color: tones[1], thick: 1 });
+      return;
+    }
     for (let i = 0; i < 28; i++) {
       const v = _a.randomDirection().addScaledVector(normal, 1.2).normalize().multiplyScalar((3 + Math.random() * 6) * sc);
       this.drops.add({ pos: point, vel: v, drag: 2.2, grav: 9, size: (0.045 + Math.random() * 0.05) * sc, stretch: 2.5, life: 0.55 + Math.random() * 0.4, color: tones[i % tones.length] });
@@ -922,20 +1212,31 @@ export class FluidTool {
         for (let i = 0; i < n && g.state === 'fly'; i++) {
           const e = g.step(dt / n, { physics: this.physics, up });
           if (!e) continue;
+          const gm = g.mode ?? 'shoot', gTones = MODES[gm]?.tones ?? this.tones;
           if (e.type === 'target') {
-            hitTarget(e.hit, 'shoot', e.dir, this.info());
+            hitTarget(e.hit, gm, e.dir, { ...this.info(), colours: gTones });
+            this.lastTarget = e.hit.target;   // (for the story and debugging: what the last glob landed on)
             this.lastHit = 'target';
-            this.sound?.fluidSplash?.(true);
-            this.splash(e.hit.point, e.dir.clone().negate(), 1);
+            this.sound?.fluidSplash?.(true, gm);
+            this.splash(e.hit.point, e.dir.clone().negate(), 1, gm, true);
           } else if (e.type === 'world') {
             this.lastHit = this.lastHit ?? 'world';
-            this.sound?.fluidSplash?.(false);
-            this.splash(e.point, e.normal, 0.8);
-            const tones = this.tones;
-            this.splats.add(e.point, e.normal, tones[g.tone % tones.length], tones[(g.tone + 1) % tones.length]);
+            this.sound?.fluidSplash?.(false, gm);
+            this.splash(e.point, e.normal, 0.8, gm);
+            // a splat: fluid; frost (pale, lingering); scorch (dark, with an ember rim, quick)
+            if (gm === 'fire') this.splats.add(e.point, e.normal, '#3a2622', gTones[1], 0.6, 2.4);
+            else if (gm === 'stun') this.splats.add(e.point, e.normal, gTones[0], '#f2fbff', 0.7, FLUID.shoot.splatLife + 1.5);
+            else this.splats.add(e.point, e.normal, gTones[g.tone % gTones.length], gTones[(g.tone + 1) % gTones.length]);
           }
         }
-        if ((g.wake = (g.wake ?? 0) + dt) > 0.03) { g.wake = 0; const tones = this.tones; this.drops.add({ pos: g.pos, vel: _a.copy(g.vel).multiplyScalar(0.1), grav: 4, size: 0.035, life: 0.4, color: tones[(g.tone + (this.time * 20 | 0)) % tones.length] }); }
+        if ((g.wake = (g.wake ?? 0) + dt) > 0.03) {
+          g.wake = 0;
+          const gm = g.mode ?? 'shoot', tones = MODES[gm]?.tones ?? this.tones, c = tones[(g.tone + (this.time * 20 | 0)) % tones.length];
+          // the wake: dripping fluid; glittering frost that hangs; sparks that rise
+          if (gm === 'stun') this.glow.add({ pos: g.pos, vel: _a.randomDirection().multiplyScalar(0.2), drag: 4, size: 0.03, life: 0.7, color: (this.time * 30 | 0) % 2 ? '#f2fbff' : c });
+          else if (gm === 'fire') this.drops.add({ pos: g.pos, vel: _a.copy(g.vel).multiplyScalar(0.05).add(_t1.randomDirection().multiplyScalar(0.6)), grav: -2.5, drag: 1.5, size: 0.04, life: 0.55, color: c });
+          else this.drops.add({ pos: g.pos, vel: _a.copy(g.vel).multiplyScalar(0.1), grav: 4, size: 0.035, life: 0.4, color: c });
+        }
       }
       const m = g.mesh;
       if (g.state !== 'fly') { m.visible = false; g.dead = true; continue; }
@@ -958,7 +1259,7 @@ export class FluidTool {
     else launchDir(from, this.aimPoint, FLUID.shoot.speed, FLUID.shoot.gravity, this.player.frame.up, dir);
     const { points, end } = predictArc(from, dir.multiplyScalar(FLUID.shoot.speed), { physics: this.physics, up: this.player.frame.up }, this._arc ??= []);
     this.arc.list.length = 0;
-    const tones = this.tones;
+    const tones = this.modeTones;
     for (let i = 2; i < points.length; i++) this.arc.list.push({ pos: points[i], vel: new THREE.Vector3(), drag: 0, grav: 0, stretch: 1, size: 0.03 * this.k, life: 1, age: 0, color: end?.type === 'target' ? tones[0] : INK });
     if (end) this.arc.list.push({ pos: end.type === 'target' ? end.hit.point : end.point, vel: new THREE.Vector3(), drag: 0, grav: 0, stretch: 1, size: 0.08 * this.k, life: 1, age: 0, color: end.type === 'target' ? tones[1] : INK });
     this.arc.update(0, _y);
@@ -967,10 +1268,11 @@ export class FluidTool {
   /** One line for the HUD while aiming. */
   hudText(pad = false) {
     const pips = '◆'.repeat(this.reserve.charges) + '◇'.repeat(this.reserve.max - this.reserve.charges);
-    const wait = this.reserve.charges < this.reserve.max ? ` refill ${Math.ceil(this.reserve.refillIn)}s` : '';
+    const wait = this.reserve.level < this.reserve.max ? ` refill ${Math.ceil(this.reserve.refillIn)}s` : '';
     const touch = globalThis.document?.body?.classList.contains('touch');
     const keys = pad ? 'RT / R2 shoot · B / ○ push · A / × in the air boost' : touch ? '✺ shoot · ✋ push · ⤒ ⤒ boost' : 'click / G shoot · C push · SPACE in the air boost';
-    return `fluid ${pips}${wait} · ${keys}`;
+    const modes = this.modes.length > 1 ? ` · ${pad ? 'D-pad ← →' : touch ? '◐' : 'X'} mode` : '';
+    return `${this.modeName} ${pips}${wait} · ${keys}${modes}`;
   }
 }
 

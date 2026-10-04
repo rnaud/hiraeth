@@ -61,6 +61,8 @@ export class Controller {
         h.PadAim = down(6);
         if (h.PadAim) { h.PadFire = down(7); h.ShiftLeft = down(10); }
         h.PadPush = down(1);
+        // D-pad right / left: the next / previous gun mode of the fluid tool (fluid-tool.js)
+        h.PadModeNext = down(15); h.PadModePrev = down(14);
         if (down(4) || down(5)) this.action(down(4) ? 'zoomOut' : 'zoomIn', dt);
         if (press(3)) this.action('ping');
         if (press(9)) this.action('settings');

@@ -458,19 +458,40 @@ export class Sound {
     o.start(t); o.stop(t + dur + 0.02);
   }
 
-  /** Shoot: a wet, rising bloop as a glob leaves the nozzle. */
-  fluidShoot() {
+  /** Shoot: a wet, rising bloop as a glob leaves the nozzle (stilling: a glassy ping; ember: a crackling whoosh). */
+  fluidShoot(mode = 'shoot') {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
+    if (mode === 'stun') { this.sweep(t, 1400, 2600, 0.14, 0.08, 'sine'); this.sweep(t + 0.03, 2100, 900, 0.2, 0.04, 'triangle'); return; }
+    if (mode === 'fire') { this.burst(t, { dur: 0.22, type: 'bandpass', freq: 600, q: 0.6, vol: 0.2, rate: 0.7 }); this.sweep(t, 180, 520, 0.16, 0.1, 'sawtooth'); return; }
     this.sweep(t, 260, 720, 0.11, 0.16);
     this.sweep(t + 0.02, 520, 1500, 0.08, 0.05, 'triangle');
     this.burst(t, { dur: 0.09, type: 'bandpass', freq: 1100, q: 1.1, vol: 0.14, rate: 0.8 });
   }
 
-  /** A glob lands: a splat on the world, and a bright two-note pop when it lands on someone or something. */
-  fluidSplash(target = false) {
+  /** The gun mode switches: a click and a rising (stilling: high, glassy; ember: low, warm) chirp. */
+  fluidMode(mode = 'shoot') {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
+    this.burst(t, { dur: 0.03, type: 'highpass', freq: 3000, q: 1, vol: 0.06 });
+    const f = mode === 'stun' ? [1500, 2400] : mode === 'fire' ? [300, 700] : [600, 1100];
+    this.sweep(t + 0.02, f[0], f[1], 0.12, 0.06, mode === 'fire' ? 'triangle' : 'sine');
+  }
+
+  /** The backpack clicks into a vehicle's socket (on) and comes back out: a clack and a hum rising or falling. */
+  fluidDock(on = true) {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    this.burst(t, { dur: 0.05, type: 'bandpass', freq: 2200, q: 2, vol: 0.12 });
+    this.sweep(t + 0.03, on ? 110 : 260, on ? 260 : 110, 0.35, 0.08, 'triangle');
+  }
+
+  /** A glob lands: a splat on the world, and a bright two-note pop when it lands on someone or something. */
+  fluidSplash(target = false, mode = 'shoot') {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    if (mode === 'stun') { this.sweep(t, 2600, 1800, 0.3, 0.05, 'sine'); if (target) [11, 14].forEach((d, i) => this.pluck(this.freq(d, 2), t + 0.03 + i * 0.09, 0.06, 'sine', this.fx)); return; }
+    if (mode === 'fire') { this.burst(t, { dur: 0.35, type: 'lowpass', freq: 900, q: 0.5, vol: 0.2, rate: 0.6 }); this.burst(t + 0.05, { dur: 0.25, type: 'highpass', freq: 3000, q: 0.4, vol: 0.05, rate: 1.5 }); return; }
     this.burst(t, { dur: 0.16, type: 'lowpass', freq: 1500, q: 0.7, vol: 0.16, rate: 0.9 });
     this.sweep(t, 620, 150, 0.12, 0.08);
     if (target) [4, 9].forEach((d, i) => this.pluck(this.freq(d, 2), t + 0.04 + i * 0.07, 0.07, 'triangle', this.fx));

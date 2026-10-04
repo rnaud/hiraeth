@@ -338,6 +338,20 @@
       #touch .b-aim.on { background: #9fd6e8; }
       #touch .b-fire { right: calc(200px + var(--safe-right)); bottom: calc(60px + var(--safe-bottom)); width: 74px; height: 74px; font-size: 26px; }
       #touch .b-push { right: calc(206px + var(--safe-right)); bottom: calc(228px + var(--safe-bottom)); width: 54px; height: 54px; font-size: 22px; }
+      #touch .b-mode { right: calc(282px + var(--safe-right)); bottom: calc(96px + var(--safe-bottom)); width: 50px; height: 50px; font-size: 22px; }
+      body:not(.modes) #touch .b-mode { display: none; }
+      /* no backpack yet: no tool buttons, no tool hints (ui.js ToolHud sets .no-tool) */
+      body.no-tool #touch .b-aim, body.no-tool #touch .b-fire, body.no-tool #touch .b-push, body.no-tool #touch .b-mode, body.no-tool #hud .fluid-help { display: none; }
+      /* the gun modes: the label and the crosshair's dot take the mode's colour */
+      body.modeflash #tool { display: block; }
+      body.modeflash:not(.aiming) #tool .cross { visibility: hidden; }
+      body.modeflash:not(.aiming) #tool .mode { animation: modeflash 1.6s ease-out forwards; }
+      @keyframes modeflash { 0% { transform: translateX(-50%) scale(1.35); } 15% { transform: translateX(-50%) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; } }
+      #tool.m-stun .mode b { color: #3d74c4; }
+      #tool.m-fire .mode b { color: #cf4f2c; }
+      #tool.m-stun .cross::after { background: #7fb6e6; }
+      #tool.m-fire .cross::after { background: #ef7a3c; }
+      #touch .b-mode { color: #2b211f; }
     </style>
   </head>
   <body>
@@ -375,8 +389,8 @@
     <div id="hud">
       <span class="help"><b>MOEBIUS PoC</b><br />
       click to capture mouse · WASD move · SHIFT run<br />
-      SPACE jump · SPACE again in the air: fluid boost · hold SPACE in air to glide · push into walls to climb · wheel zoom · Q ping scout · L worlds · P photo · O settings<br />
-      fluid tool (3 charges, refill 5 s after the last use): hold right mouse / R aim · left click / G shoot · C / middle click push<br />
+      SPACE jump · <span class="fluid-help">SPACE again in the air: fluid boost · hold SPACE in the air: jets / wings (when found) · </span>push into walls to climb · wheel zoom · Q ping scout · L worlds · P photo · O settings<br />
+      <span class="fluid-help">fluid tool (3 charges, refill 5 s after the last use): hold right mouse / R aim · left click / G shoot · C / middle click push · X mode<br /></span>
       </span><span id="status"></span>
     </div>
     <script type="module" src="/src/main.js"></script>

@@ -57,6 +57,9 @@ export const STARTLE_LINES = ['Hey!', 'Ow! What was that?', 'Who threw that?', '
 // what people say when a glob of fluid splashes them, and when the push shoves them
 export const SPLASH_LINES = ['Hey! I\u2019m soaked!', 'Ugh, it\u2019s all colours!', 'Who threw that?', 'Was that you?', 'My good cloak!', 'Hey, not funny!'];
 export const SHOVE_LINES = ['Whoa! Watch it!', 'Oof! Hey!', 'Mind where you push!', 'Easy, traveller!', 'What was that for?'];
+// an ember glob (it never burns) and a stilling glob's few seconds (fluid-kit.js STUN_SECONDS)
+export const SINGE_LINES = ['Hot! Hot!', 'Yow! Sparks!', 'My cloak! …it doesn’t burn?', 'Who’s throwing fire?'];
+const STUN_FOR = 3.5;
 /** A shove's displacement over time (0..1): knocked back fast, held a moment, then they walk back to their place. */
 export const shoveCurve = (s) => (s < 0 || s > 3.6 ? 0 : s < 0.35 ? 1 - (1 - s / 0.35) ** 3 : s < 1.8 ? 1 : 1 - THREE.MathUtils.smoothstep(s, 1.8, 3.6));
 export const GREET_LINES = ['Fresh figs! Fresh figs!', 'Mind the edge, it\u2019s a long way down.', 'The taxis never stop for us lower folk.',
@@ -309,7 +312,7 @@ export function buildPeople(physics, spots, { seed = 7, clear = [] } = {}) {
       pos: o.pos.clone(), home: o.pos.clone(), heading: o.heading, homeHeading: o.heading,
       pose: POSE[o.pose ?? 'stand'], group: null, walk: null, seed: rng(),
       phase: rng(), cadence: 0, speed: 0, headYaw: 0, headPitch: 0, talk: 0,
-      startleT: -1e9, stumbleUntil: -1e9, stumbleT: 0, lookUntil: -1e9, faceUntil: -1e9, greetT: -1, speaking: false, say: '',
+      startleT: -1e9, stumbleUntil: -1e9, stunUntil: -1e9, stumbleT: 0, lookUntil: -1e9, faceUntil: -1e9, greetT: -1, speaking: false, say: '',
       offset: new THREE.Vector3(), tier: TIER.off, npc: null, unreg: null, chestV: new THREE.Vector3(),
       lines: o.lines ?? spots.lines ?? GREET_LINES, lineIdx: Math.floor(rng() * 20), shoutUntil: -1e9,
       role: o.role ?? null, spot: o.spot ?? null,
@@ -831,7 +834,7 @@ export class Crowd {
       const want = p.tier >= TIER.mid && p.pos.distanceToSquared(pp) < R2;
       if (want && !p.unreg) {
         p.unreg = registerTarget({
-          kind: 'npc', radius: 0.45, person: p,
+          kind: 'npc', radius: 0.45, person: p, accepts: ['stun', 'fire'],
           position: () => this.chest(p),
           onHit: (mode, point, dir, info) => this.hit(p, mode, dir, info),
         });
@@ -857,6 +860,13 @@ export class Crowd {
     if (t < p.stumbleUntil) return;
     const pick = (a) => a[Math.floor(this.rng() * a.length)];
     const upright = p.pose === POSE.stand || p.pose === POSE.walk || p.pose === POSE.wall || !!p.walk;
+    if (mode === 'stun') {
+      // stilled: frozen where they are, mid-gesture, for a few seconds; the others look round and jump
+      p.stunUntil = p.stumbleUntil = t + STUN_FOR; p.stumbleT = t; p.talk = 0; p.shoutUntil = -1;
+      p.lookUntil = t + STUN_FOR;
+      for (const m of p.group?.members ?? []) if (m !== p && t >= m.stumbleUntil) { m.lookUntil = t + 3.5; m.startleT = t + 0.1 + this.rng() * 0.25; }
+      return;
+    }
     if (mode === 'push' && upright) {
       this.shove(p, dir, (info?.shove ?? 2.4) * (0.6 + 0.4 * (info?.strength ?? 1)));
       p.stumbleUntil = t + 0.9; p.stumbleT = t; p.talk = 0;
@@ -866,7 +876,7 @@ export class Crowd {
     } else {
       p.startleT = t;
       p.faceUntil = upright ? t + 2.5 : -1e9;
-      p.say = pick(mode === 'push' ? SHOVE_LINES : SPLASH_LINES);
+      p.say = pick(mode === 'push' ? SHOVE_LINES : mode === 'fire' ? SINGE_LINES : SPLASH_LINES);
       p.shoutUntil = t + 2.2;
     }
     p.lookUntil = t + 3.5;

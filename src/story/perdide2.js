@@ -124,9 +124,9 @@ export function setupPerdide2(ctx) {
     return true;
   };
   for (const P of pools) {
-    registerTarget({ kind: 'pool', radius: 2.9, position: () => P.c, enabled: () => !P.on && flat(player.pos, P.c) < 120,
+    registerTarget({ kind: 'pool', radius: 2.9, accepts: ['fire'], position: () => P.c, enabled: () => !P.on && flat(player.pos, P.c) < 120,
       onHit: (mode) => {
-        if (mode === 'shoot') return light(P);
+        if (mode === 'shoot' || mode === 'fire') return light(P);   // the lamp pools take an ember glob too
         if (!P.pushed) { P.pushed = true; toast('The push ripples the dark water, and it settles. It wants your fluid itself: shoot it.'); }
         return true;
       } });

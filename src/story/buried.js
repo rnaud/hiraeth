@@ -193,10 +193,10 @@ export function setupBuried(ctx) {
     sound.whoosh?.(); sound.chime?.();
     return true;
   };
-  registerTarget({ kind: 'wick', radius: 3, position: () => K.centre.clone().setY(K.bowlY + 0.5), enabled: () => !lit() && flat(player.pos, K.centre) < 80,
+  registerTarget({ kind: 'wick', radius: 3, accepts: ['fire'], position: () => K.centre.clone().setY(K.bowlY + 0.5), enabled: () => !lit() && flat(player.pos, K.centre) < 80,
     onHit: (mode) => {
-      if (!valveOpen()) { toast('The fluid hisses on the dry wick and runs off. There’s no oil in the dish yet.'); return true; }
-      if (mode === 'shoot') return light();
+      if (!valveOpen()) { toast(mode === 'fire' ? 'The ember glob flares on the dry wick and dies. There’s no oil in the dish yet.' : 'The fluid hisses on the dry wick and runs off. There’s no oil in the dish yet.'); return true; }
+      if (mode === 'shoot' || mode === 'fire') return light();
       toast('The oil shivers. The wick wants a spark, not a shove.');
       return true;
     } });
