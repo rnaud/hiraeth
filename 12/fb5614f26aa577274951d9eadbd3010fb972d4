@@ -1,0 +1,61 @@
+README.md
+  s_1fd8d0e7b02dcf::t_e020e7a5b15930 194,1474-1508
+TODO.md
+  s_1fd8d0e7b02dcf::t_1d08ce5cf35537 187-188
+changelog.md
+  s_1fd8d0e7b02dcf::t_d7d997bde46fb7 16-18
+src/bike.js
+  s_1fd8d0e7b02dcf::t_076b53a6cfe348 2,4,16-17,32-43,48-57,59-63,65-101,108-115,128-135,175-176,182,184-186,259,262-265,267-268,272-297,318,420
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_bda22a35a1bd80 16-18
+src/desert-landmarks.js
+  s_1fd8d0e7b02dcf::t_36e5ed0e5c40c2 73-74,76-79
+src/desert-sites.js
+  s_1fd8d0e7b02dcf::t_4414e3d9c1d34f 35
+src/dev-menu.js
+  s_1fd8d0e7b02dcf::t_1a91bc0b64dd9d 115
+src/fluid-tool.js
+  s_1fd8d0e7b02dcf::t_5ba858e4717f6a 613
+src/levels/content.js
+  s_1fd8d0e7b02dcf::t_20f7b6ee7dfdc7 113-119
+src/levels/index.js
+  s_1fd8d0e7b02dcf::t_cb950050eae86a 22
+src/levels/perdide.js
+  s_1fd8d0e7b02dcf::t_4fbcb36fc061cb 6-7,47-55,59-131,134-153
+src/main.js
+  s_1fd8d0e7b02dcf::t_354846e73a0ba4 258
+src/player.js
+  s_1fd8d0e7b02dcf::t_3fc170841bdc36 561,662
+src/story/desert-bike.js
+  s_1fd8d0e7b02dcf::t_86a577b0155205 1-171
+src/story/desert-data.js
+  s_1fd8d0e7b02dcf::t_199818f673b081 84-94,520-525,532,536-546
+src/story/desert.js
+  s_1fd8d0e7b02dcf::t_90e4f96f431057 12,226-229,587,591
+src/story/incal.js
+  s_1fd8d0e7b02dcf::t_73b3348d35f934 89
+src/taxi.js
+  s_1fd8d0e7b02dcf::t_fc9aa92863c407 4,21-85,87-112,114-133,136-137,147,150-153,197,202-232,254,272,275
+src/vehicle-kit.js
+  s_1fd8d0e7b02dcf::t_9a5b1706402751 1-87
+src/world.js
+  s_1fd8d0e7b02dcf::t_cc8840a717159c 257
+tests/hoverbike-quest.test.js
+  s_1fd8d0e7b02dcf::t_40ff148c6a3a76 1-169
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "12fb5614f26aa577274951d9eadbd3010fb972d4",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
