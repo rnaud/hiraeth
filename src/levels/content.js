@@ -133,11 +133,12 @@ export const CONTENT = {
   },
   arzach: {
     weather: ['storm'],
+    // the story is a quest (src/story/arzach-data.js): this page closes when the bird has made her promise
     story: {
-      title: 'THE LONE TOWER',
-      intro: 'Ride the bird to the window.',
-      outro: 'No one answers. The bird waits.',
-      label: 'the lone tower', goal: [260, 'top', -420], drop: 40, radius: 30,   // the spike tip is ~40 m above the window room
+      title: 'THE WAITING BIRD',
+      intro: 'Nobody here says much. A bird waits beside you, and keeps turning to look at a lone tower.',
+      outro: 'The rider is not coming back. The bird has chosen to come when you call.',
+      label: 'the lone tower', goal: [260, 'top', -420], drop: 40, radius: 30, manual: true,   // the spike tip is ~40 m above the window room
     },
     relics: {
       spots: [[170, -260], [-150, -210], [300, 100], [-250, -80], [60, 300]],

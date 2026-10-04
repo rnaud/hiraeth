@@ -31,17 +31,26 @@ const TOWER = { x: 70, z: -1500 };
 const AQ1 = { a: [52, -58], b: [150, -178], y: 40 };              // start plateau -> needle plateau
 const plainEdge = (x) => PLAIN_EDGE + nA(x * 0.004, 3.1) * 40 + nB(x * 0.013, 9) * 10;
 const AQ2 = { a: [215, -325], b: [215, plainEdge(215) - 30], y: 40 };   // needle plateau -> the plain
+// the story's places (src/story/arzach2.js)
+const BELL = { x: -228, z: -239, w: 7.5, h: 30 };                 // the monastery's bell tower (its open belfry)
+// sky stones climbing from the great table's east rim: each a boost-jump above the last
+const SKY = [[33, -446, 67.2, 2.7], [36.5, -439.5, 70.2, 2.4], [34, -433, 73.2, 2.8], [39.5, -429, 76.2, 2.4], [45, -432.5, 79.2, 2.4],
+  [49, -437.5, 82.2, 2.8], [51.5, -444, 85.2, 2.4], [48.5, -450, 88.2, 2.4], [42.5, -452.5, 91.2, 3.4]];
+const CAIRN = { x: -18, z: -438 };                                 // on the great table, toward the stones
+const CLAPPER = { x: 226, z: -510 };                               // on the floating island, before the church door
+const FACE = {};                                                   // filled in when the tower is built
 
 const tableTop = (t, r = 0) => t.top + t.dome * (1 - Math.min((r / t.R) ** 2, 1));
 const aq1Mid = [(AQ1.a[0] + AQ1.b[0]) / 2, (AQ1.a[1] + AQ1.b[1]) / 2];
 
 export const ARZACH2_CONTENT = {
   weather: [],
+  // the story is a quest (src/story/arzach2-data.js): this page closes when the bell has rung and Calix has given you its note
   story: {
-    title: 'THE SKY STONES',
-    intro: 'The stones float above the cloud. Ride the bird to the peach plain and its lone tower.',
-    outro: 'Someone lived in the tower once. Now only the wind goes in.',
-    label: 'the lone tower', goal: [TOWER.x, 'ground', TOWER.z], radius: 30,
+    title: 'THE BELL UNDER THE CLOUD',
+    intro: 'The stones float above a sea of cloud. On the rose cliff, a monastery bell has been silent for thirty years.',
+    outro: 'The bell rang. The cloud settled a hand’s width, and the floating stones came down a little. Nobody can say which caused which.',
+    label: 'the lone tower', goal: [TOWER.x, 'ground', TOWER.z], radius: 30, manual: true,
   },
   relics: {
     spots: [
@@ -51,7 +60,7 @@ export const ARZACH2_CONTENT = {
       { at: [aq1Mid[0], AQ1.y + 1.1, aq1Mid[1]], snap: true },
       { at: [ISLAND.x - 12, tableTop(ISLAND, 12) + 1.1, ISLAND.z + 8], snap: true },
     ],
-    names: ['Monastery bell clapper', 'Egg-stone pebble', 'Mushroom-cap seed', 'Aqueduct keystone', 'Island prayer bead'],
+    names: ['Bell-rope tassel', 'Egg-stone pebble', 'Mushroom-cap seed', 'Aqueduct keystone', 'Island prayer bead'],
   },
   gate: { at: [28, 34], heading: Math.PI },
   npcs: [
@@ -520,11 +529,23 @@ export function createArzach2(scene) {
     building.walls.push(place(round ? new THREE.CylinderGeometry(w * 0.6, w * 0.6, 0.5, 14) : new THREE.BoxGeometry(w * 1.15, 0.5, w * 1.15), x, y + h + 0.25, z));
     building.domes.push(place(new THREE.SphereGeometry(w * 0.52, 14, 7, 0, TAU, 0, Math.PI / 2), x, y + h + 0.5, z, 0, 1, round ? 0.9 : 0.75, 1));
   };
+  // the monastery's tower: an open belfry on four piers, so the bell shows (and swings)
+  const openBelfry = (x, y, z, w, h) => {
+    const b = y + h - w * 1.25;
+    box(building.plain, x, y - 2, z, w, b - y + 2, w);
+    box(building.walls, x, b - 0.4, z, w * 1.12, 0.8, w * 1.12);
+    for (const [dx, dz] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) box(building.plain, x + dx * w * 0.4, b, z + dz * w * 0.4, w * 0.2, h - (b - y), w * 0.2);
+    box(building.walls, x, y + h - 0.6, z, w * 1.05, 0.9, w * 1.05);
+    box(building.dark, x + w * 0.5, y + h * 0.4, z, 0.3, w * 0.4, w * 0.22);
+    building.walls.push(place(new THREE.BoxGeometry(w * 1.15, 0.5, w * 1.15), x, y + h + 0.25, z));
+    building.domes.push(place(new THREE.SphereGeometry(w * 0.52, 14, 7, 0, TAU, 0, Math.PI / 2), x, y + h + 0.5, z, 0, 1, 0.75, 1));
+    return b;
+  };
   const cypress = (x, y, z, h) => building.trees.push(place(new THREE.ConeGeometry(h * 0.16, h, 7), x, y + h / 2, z));
   {
     // the white monastery on the rose cliff, facing the start
     const y = MONASTERY.top + 0.3, x = MONASTERY.x - 10, z = MONASTERY.z - 6;
-    belltower(x + 22, y, z - 18, 7.5, 30);
+    BELL.y = y; BELL.floor = openBelfry(BELL.x, y, BELL.z, BELL.w, BELL.h);
     house(x, y, z, 16, 9, 26, 0.35);
     domed(x - 16, y, z + 8, 7, 9);
     building.walls.push(place(new THREE.BoxGeometry(16, 10, 16), x - 16, y - 2 + 5, z + 8));
@@ -575,10 +596,46 @@ export function createArzach2(scene) {
       const a = i * TAU / 4 + 0.4;
       add(M.dark, place(new THREE.BoxGeometry(2.2, 4, 1), x + Math.cos(a) * 7.9, base + H - 6, z + Math.sin(a) * 7.9, -a + Math.PI / 2));
     }
+    // a masked face carved into the plinth's north side, eyes shut, the glyph on its brow
+    // (the same calm face sleeps in the desert's southern dunes)
+    {
+      const fz = z + 15.4, fy = base + 6.5;
+      add(M.tower, place(new THREE.BoxGeometry(9, 9.5, 7), x, fy - 0.25, fz - 3.5));                      // a slab against the shaft
+      add(M.tower, place(new THREE.SphereGeometry(3.6, 14, 10), x, fy, fz, 0, 1, 1.25, 0.55));
+      add(M.tower, place(new THREE.BoxGeometry(5.6, 0.7, 1.2), x, fy + 1.6, fz + 1.4));                    // the brow
+      add(M.tower, place(new THREE.ConeGeometry(0.75, 2.6, 4), x, fy - 0.2, fz + 1.9, 0, 1, 1, 1, Math.PI / 2 + 0.25)); // the nose
+      for (const sx of [-1, 1]) add(M.dark, place(new THREE.BoxGeometry(1.5, 0.22, 0.3), x + sx * 1.35, fy + 0.85, fz + 1.95), null); // shut eyes
+      add(M.dark, place(new THREE.BoxGeometry(1.8, 0.2, 0.3), x, fy - 1.9, fz + 1.7), null);                // the mouth
+      for (const dx of [-0.9, 0, 0.9]) add(M.dark, place(new THREE.SphereGeometry(0.26, 8, 6), x + dx, fy + 2.85 + (dx ? 0 : 0.25), fz + 1.75), null);
+      add(M.dark, place(new THREE.TorusGeometry(1.2, 0.12, 4, 12, Math.PI), x, fy + 2.0, fz + 1.75, 0, 1, 0.5, 1), null);
+      FACE.x = x; FACE.y = base; FACE.z = fz + 4;
+    }
     // low ruins at its foot
     add(M.plainWall, place(new THREE.BoxGeometry(14, 4, 8), x + 22, base - 1 + 2, z + 6, 0.3));
     add(M.plainWall, place(new THREE.BoxGeometry(6, 2.5, 6), x - 20, base - 1 + 1.25, z - 4, 0.8));
   }
+
+  // ---------------------------------------------------------- the bell in its open belfry, and its rope
+  const bell = new THREE.Group();
+  bell.userData.noCollide = true;
+  {
+    const prof = [[0.12, 0], [0.5, 0.04], [0.62, 0.3], [0.7, 0.62], [0.86, 0.86], [1.0, 0.98], [0.96, 1.02], [0, 1.02]].map(([r, y]) => new THREE.Vector2(r * 2.1, -y * 3.0));
+    const body = new THREE.Mesh(new THREE.LatheGeometry(prof, 18), makeMaterial({ color: '#c99a52', color2: '#b3843f', color3: '#e0b66a', mode: MODE_STRATA, strataSize: 0.8, side: DS }));
+    const yoke = new THREE.Mesh(new THREE.BoxGeometry(BELL.w * 0.86, 0.5, 0.6), M.dark);
+    yoke.position.y = 0.35;
+    // the three notes over the bell's rim: the glyph, in bronze relief
+    const glyph = mergeGeometries([-0.62, 0, 0.62].map((dx) => new THREE.SphereGeometry(0.16, 6, 4).translate(dx, -1.35 + (dx ? 0 : 0.12), 1.48)).concat([new THREE.TorusGeometry(0.85, 0.07, 4, 12, Math.PI).translate(0, -2.05, 1.62)]));
+    bell.add(body, yoke, new THREE.Mesh(glyph, M.dark));
+    bell.position.set(BELL.x, BELL.y + BELL.h - 1.4, BELL.z);
+    scene.add(bell);
+  }
+  const ropeTop = new THREE.Vector3(BELL.x, BELL.floor + 0.4, BELL.z + BELL.w * 0.5 + 0.35);
+  const ropeFoot = new THREE.Vector3(BELL.x, BELL.y + 0.9, ropeTop.z);
+  const rope = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, ropeTop.y - ropeFoot.y, 5).translate(0, -(ropeTop.y - ropeFoot.y) / 2, 0), makeMaterial({ color: '#8a5a3a', flat: true }));
+  rope.add(new THREE.Mesh(new THREE.SphereGeometry(0.22, 7, 5).scale(1, 1.6, 1).translate(0, -(ropeTop.y - ropeFoot.y), 0), makeMaterial({ color: '#c8483a', flat: true })));
+  rope.position.copy(ropeTop);
+  rope.userData.noCollide = true;
+  scene.add(rope);
 
   // ---------------------------------------------------------- floating stones (gently bobbing, not collidable)
   const floaters = new THREE.Group();
@@ -610,6 +667,21 @@ export function createArzach2(scene) {
   floater(20, 120, -1020, 5, 2.8, 0.1, 7, 3);
   floater(-40, 100, -760, 4.5, 2.2, 0.1, 8, 3);
   floater(160, 140, -820, 6, 0.5, 0, 9, 1, true);
+
+  // ---------------------------------------------------------- the sky stones by the great table (they fell up)
+  // little flat-topped stones hanging over the cloud, each with a pebble or two below it
+  SKY.forEach(([x, z, top, r], i) => {
+    const t = table({ x, z, R: r, stalk: r * 0.3, top, base: top - r * 1.5, capT: r * 0.32, under: r * 0.3, dome: r * 0.06, seed: 80 + i * 1.3,
+      rib: r * 0.05, ribK: 16, seg: 40, colSeg: 10, flute: 0.1, fluteK: 7, foot: 0.8, neckR: 1.1, waist: 0.1 });
+    add(M.bone, t.vis, t.col);
+    add(M.bone, place(boulder(r * 0.22, 1, 1.3, 1, 0.1, 90 + i), 0.3, top - r * 1.5 - r * 0.5, 0.2).translate(x, 0, z), null);
+  });
+  // the cairn's footing stone on the great table
+  {
+    const y = tableTop(TABLE, Math.hypot(CAIRN.x - TABLE.x, CAIRN.z - TABLE.z));
+    add(M.bone, place(boulder(1.5, 1.2, 0.5, 1.1, 0, 95), CAIRN.x, y + 0.35, CAIRN.z), place(boulder(1.5, 1.2, 0.5, 1.1, 0, 95, false), CAIRN.x, y + 0.35, CAIRN.z));
+    CAIRN.y = y + 1.05;
+  }
 
   // ---------------------------------------------------------- merge everything per material
   for (const [mat, geos] of vis) {
@@ -672,6 +744,7 @@ export function createArzach2(scene) {
   }
 
   // ---------------------------------------------------------- the sea of cloud
+  const cloud = [];
   {
     const PAL = ['#fffbf4', '#f8e4d6', '#d8dbee'];
     const puffGeo = (detail) => {
@@ -726,6 +799,7 @@ export function createArzach2(scene) {
       im.frustumCulled = false;
       scene.add(im);
       noShadow.push(im);
+      cloud.push(im);
     }
     // a flat cloud deck between the puffs, hiding the floor of the chasm
     const deck = new THREE.Mesh(new THREE.PlaneGeometry(4200, 4200).rotateX(-Math.PI / 2), makeMaterial({ color: '#e6e2ef', glow: 0.5 }));
@@ -733,6 +807,7 @@ export function createArzach2(scene) {
     deck.userData.noCollide = true;
     scene.add(deck);
     noShadow.push(deck);
+    cloud.push(deck);
   }
 
   const spawn = new THREE.Vector3(0, 0, 22);
@@ -772,6 +847,21 @@ export function createArzach2(scene) {
     smallProps,
     noShadow,
     topAt,
+    // the story's handles (src/story/arzach2.js): the bell and its rope, the cloud sea (it settles when the
+    // bell rings), the floating stones, the sky stones and the cairn, the clapper's island, the tower's face
+    arzach2: {
+      bell, bellTower: { ...BELL }, rope, ropeTop, ropeFoot,
+      cloud, cloudY: CLOUD_Y, floaters,
+      sky: SKY.map(([x, z, top, r]) => ({ pos: new THREE.Vector3(x, top, z), r })),
+      cairn: new THREE.Vector3(CAIRN.x, CAIRN.y, CAIRN.z),
+      table: new THREE.Vector3(TABLE.x, tableTop(TABLE), TABLE.z),
+      clapper: new THREE.Vector3(CLAPPER.x, topAt(CLAPPER.x, CLAPPER.z, ISLAND.top + 20), CLAPPER.z),
+      island: new THREE.Vector3(ISLAND.x, ISLAND.top, ISLAND.z),
+      monastery: new THREE.Vector3(MONASTERY.x, MONASTERY.top, MONASTERY.z),
+      face: new THREE.Vector3(FACE.x, FACE.y, FACE.z),
+      tower: new THREE.Vector3(TOWER.x, terrain.heightAt(TOWER.x, TOWER.z), TOWER.z),
+      plainEdge: PLAIN_EDGE,
+    },
     atmo: (x, z) => ({ tint: [1.02, 0.99, 0.96], fog: 0.65, name: z < PLAIN_EDGE - 40 ? 'Arzach II · the peach plain' : 'Arzach II · the sky stones' }),
     update(dt, t) { for (const m of movers) m(t); },
   };
