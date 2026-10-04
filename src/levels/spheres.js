@@ -4,6 +4,7 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import { createNoise2D, fbm, mulberry32, smoothstep } from '../noise.js';
 import { makeMaterial, MODE_TERRAIN, MODE_WATER } from '../materials.js';
 import { Terrain, jitter, soften } from '../world.js';
+import { PEOPLE } from '../story/spheres-data.js';
 
 // ---------------------------------------------------------------------------
 // The Garden of Spheres, after Le Monde d'Edena (Moebius): a calm meadow under
@@ -67,15 +68,16 @@ function height(x, z) {
 // light direction the spheres' printed crescents are drawn for (morning sun from +x)
 const CRESCENT = new THREE.Vector3(0.75, 0.42, 0.5).normalize();
 
-const P = (cloak, cloth, legs, extra = {}) => ({ cloak, lining: '#2b211f', cloth, legs, ...extra });
 
 export const SPHERES_CONTENT = {
   weather: [],
+  // the story is a quest (src/story/spheres-data.js): this page opens on the first visit
+  // and closes when the pole has sung the spheres' three sounds back together
   story: {
-    title: 'THE GARDEN OF SPHERES',
-    intro: 'Beyond the sphere-arch, an avenue of cypresses leads to a round stone plaza. Walk there while the great sphere is still on the horizon.',
-    outro: 'At the centre of the rings the pole hums softly. On the horizon the great sphere answers, and the whole garden holds still.',
-    label: 'the round plaza', goal: [LAYOUT.plaza.x, 'ground', LAYOUT.plaza.z], radius: 14,
+    title: 'WHAT THE SPHERES REMEMBER',
+    intro: 'The spheres came down long ago, and each one remembers one sound. Beyond the sphere-arch, the pole on the round plaza hums while the great sphere is on the horizon.',
+    outro: 'A glass bell, far voices and a walking drum, sounding together at the pole. On the horizon the great sphere answered, and the whole garden held still.',
+    label: 'the round plaza', goal: [LAYOUT.plaza.x, 'ground', LAYOUT.plaza.z], radius: 14, manual: true,
   },
   relics: {
     spots: [
@@ -88,15 +90,12 @@ export const SPHERES_CONTENT = {
     names: ['Canopy seed', 'Pyramid key', 'Sphere pearl', 'White step stone', 'Android eye'],
   },
   gate: { at: [24, 30], heading: Math.PI },
+  // the level's people (talk: src/story/spheres-data.js); Ume at the plaza is the story's
   npcs: [
-    { at: [12, 14], radius: 3, palette: P('#f3efe2', '#9fd0c8', '#7f9a90', { face: '#e8dcc8' }),
-      lines: ['The spheres came down long ago. Nobody minds them now.', 'Follow the pale path. It goes through the arch.'] },
-    { at: [178, -44], radius: 4, palette: P('#a9c9c4', '#f6efd0', '#5a6a6a'),
-      lines: ['Look into the lake. The garden is twice as large there.'] },
-    { at: [-212, -52], radius: 4, palette: P('#f2c5b0', '#4f6b3a', '#3a3a3a'),
-      lines: ['Climb the white hill. From the middle terrace you can step out onto the great canopy.'], shy: true },
-    { at: [7, -350], radius: 3, palette: P('#b7c46a', '#f3efe2', '#4a5a3a'),
-      lines: ['The cypresses lead to the rings.', 'Walk slowly. It is that kind of road.'] },
+    { at: [12, 14], radius: 3, ...PEOPLE.aube },
+    { at: [178, -44], radius: 4, ...PEOPLE.nell },
+    { at: [-212, -52], radius: 4, ...PEOPLE.ivo, shy: true },
+    { at: [7, -350], radius: 3, ...PEOPLE.cael },
   ],
 };
 
@@ -159,6 +158,7 @@ export function createSpheres(scene) {
   const proxy = (geo) => proxies.push(prep(geo, false));
   const reflect = [];   // far-shore geometry mirrored onto the lake
   const shrubs = [];    // {x, y, z, s, sy, color}
+  const orbs = [];      // every sphere: { x, z, R, y (centre), yellow } (the story listens at three)
   const avoid = [];     // [x, z, r] keep scatter away
 
   const M = {
@@ -342,6 +342,7 @@ export function createSpheres(scene) {
     if (collide) proxy(new THREE.SphereGeometry(Rs, 20, 12).translate(x, cy, z));
     if (reflectIt) reflect.push({ geo: new THREE.SphereGeometry(Rs, 32, 20).translate(x, cy, z), key: 'sphere' });
     avoid.push([x, z, Rs * 1.05]);
+    orbs.push({ x, z, R: Rs, y: cy, yellow });
     return cy;
   }
   // a sphere with a round tunnel through it; the ground cuts the tunnel into a horseshoe arch
@@ -541,6 +542,7 @@ export function createSpheres(scene) {
   // the sphere-arch, the avenue and the round plaza
   // ==========================================================================
   const A = LAYOUT.arch, Av = LAYOUT.avenue, Pz = LAYOUT.plaza;
+  const plaza = { x: Pz.x, z: Pz.z, r: Pz.r };
   sphereArch(A.x, A.z, A.R);
   path([[0, 8], [0, -60], [3, -150], [0, -250], [0, -350]], 3.4);
   path([[0, -335], [0, Av.z1 + 4]], 6);
@@ -554,6 +556,7 @@ export function createSpheres(scene) {
     const rings = [[Pz.r, 0.32, M.stone], [Pz.r * 0.8, 0.46, M.stone2], [Pz.r * 0.74, 0.5, M.stone], [Pz.r * 0.46, 0.62, M.stone2], [Pz.r * 0.4, 0.66, M.stone], [4, 0.8, M.stone2]];
     for (const [r, h, m] of rings) add(m, new THREE.CylinderGeometry(r, r, h + 0.5, 72, 1).translate(Pz.x, by + h / 2 - 0.25, Pz.z), true);
     add(M.pole, new THREE.CylinderGeometry(0.18, 0.3, 16, 8).translate(Pz.x, by + 8.8, Pz.z), true);
+    plaza.ground = by; plaza.top = by + 17.2; plaza.inner = by + 0.8;
     add(M.cream, crescentSphere(0.7, 16, 10, '#f6efd0').translate(Pz.x, by + 17.2, Pz.z));
     avoid.push([Pz.x, Pz.z, Pz.r + 4]);
     // the great sphere setting on the horizon behind the plaza
@@ -839,8 +842,16 @@ export function createSpheres(scene) {
 
   const unsafe = (p) => terrain.heightAt(p.x, p.z) < W - 1.1 && p.y < W + 0.4;
 
+  const orb = (x, z) => orbs.find((o) => Math.hypot(o.x - x, o.z - z) < 1);
   return {
     id: 'spheres',
+    // the story's handles (src/story/spheres.js): the spheres that remember, the plaza and its pole,
+    // the great sphere on the horizon, the lake, the avenue
+    spheres: {
+      orbs, plaza, lake: { ...LAYOUT.lake, level: W }, avenue: { ...LAYOUT.avenue }, arch: { ...LAYOUT.arch },
+      listen: { bell: orb(LAYOUT.pearl.x, LAYOUT.pearl.z), chant: orb(-120, -262), drum: orb(380, -320) },
+      great: orb(0, -1320),
+    },
     ground: terrain,
     spawn: new THREE.Vector3(0, H(0, 0), 0),
     spawnHeading: Math.PI,
