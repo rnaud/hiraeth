@@ -328,7 +328,7 @@ const BODY_VERT = /* glsl */ `
 const BODY_FRAG = /* glsl */ `
   precision highp float;
   uniform vec3 uPal[5];
-  uniform float uTime, uK, uSeed, uShell;
+  uniform float uTime, uK, uSeed, uShell, uTorn;
   in vec3 vWorld;
   in vec3 vNormalW;
   in vec3 vObj;
@@ -345,6 +345,7 @@ const BODY_FRAG = /* glsl */ `
     // the outer shells are torn open, more toward the top: tongues split apart and the hotter
     // layers show through (the red outside the most, the body less, the heart never)
     float open = uShell < 0.5 ? 0.0 : (uShell > 1.5 ? 0.3 + 0.55 * smoothstep(0.1, 0.9, y) : 0.12 + 0.45 * smoothstep(0.2, 0.95, y));
+    open *= uShell > 1.5 ? uTorn : mix(1.0, 0.3, step(uTorn, 0.99));   // (the outside torn as asked; the body kept nearly whole when the flame must hide what burns)
     if (n < open) discard;
     // which tone: hotter toward the heart (inner shells) and low down, cooler up and at the edges
     float heat = (2.0 - uShell) * 0.42 + (1.0 - y) * 0.35 + (n - 0.5) * 0.7 + 0.08 * (uK - 1.0);
@@ -359,13 +360,16 @@ const BODY_FRAG = /* glsl */ `
     gHatch = vec4(0.0, 0.0, 0.0, 1.0);                    // self-lit, no hatching
   }`;
 
-/** A unit flame shape: a full belly low down drawn up into a point (y 0..1). */
-function flameProfile(n = 28) {
+/**
+ * A unit flame shape (y 0..1): a full belly drawn up into a point. belly: how high the widest
+ * part reaches (a crown fire that swallows a whole tree holds its width higher up).
+ */
+export function flameProfile(n = 28, belly = 0.32) {
   const pts = [];
   for (let i = 0; i <= n; i++) {
     const y = i / n;
-    const bulb = Math.pow(Math.sin(Math.min(y / 0.32, 1) * Math.PI / 2), 0.55);
-    const taper = Math.pow(Math.max(0, 1 - Math.max(0, y - 0.28) / 0.72), 0.95);
+    const bulb = Math.pow(Math.sin(Math.min(y / belly, 1) * Math.PI / 2), 0.55);
+    const taper = Math.pow(Math.max(0, 1 - Math.max(0, y - belly * 0.9) / (1 - belly * 0.9)), 0.95);
     pts.push(new THREE.Vector2(Math.max(0.002, 0.5 * bulb * taper), y));
   }
   return pts;
@@ -376,7 +380,10 @@ export class FlameBody {
    * @param parent  the group to hang it in
    * @param o { at: Vector3 (the base, in parent space), width, height (m), palette, seed }
    */
-  constructor(parent, { at, width = 40, height = 50, palette = FIRE, seed = 0 } = {}) {
+  constructor(parent, { at, width = 40, height = 50, palette = FIRE, seed = 0, belly = 0.32, pace = 0.5, torn = 1, cover = 0 } = {}) {
+    // cover: 0 the inner layers sit low in the heart; 1 they fill nearly the whole flame (so what the
+    // torn outside shows is more fire, not what burns inside it: the tree's limbs)
+    this.pace = pace;   // how fast the fire runs (1: lively; a great slow fire is about half)
     this.palA = palette.map((c) => new THREE.Color(c));
     this.palB = this.palA.map((c) => c.clone());
     this.pal = this.palA.map((c) => c.clone());
@@ -386,14 +393,14 @@ export class FlameBody {
     this.group.position.copy(at);
     this.group.userData.noCollide = true;
     parent.add(this.group);
-    const geo = new THREE.LatheGeometry(flameProfile(), 40);
-    this.uniforms = { uPal: { value: this.pal.map((c) => c.clone()) }, uTime: { value: 0 }, uK: { value: 1 } };
+    const geo = new THREE.LatheGeometry(flameProfile(28, belly), 40);
+    this.uniforms = { uPal: { value: this.pal.map((c) => c.clone()) }, uTime: { value: 0 }, uK: { value: 1 }, uTorn: { value: torn } };
     this.materials = [];
     // the shells: outside (0, red, open at the top), body (1), heart (2, low and pale)
-    for (const [shell, sw, sh] of [[0, 1, 1], [1, 0.78, 0.8], [2, 0.5, 0.52]]) {
+    for (const [shell, sw, sh] of [[0, 1, 1], [1, 0.9 * cover + 0.78 * (1 - cover), 0.92 * cover + 0.8 * (1 - cover)], [2, 0.66 * cover + 0.5 * (1 - cover), 0.62 * cover + 0.52 * (1 - cover)]]) {
       const m = new THREE.ShaderMaterial({
         glslVersion: THREE.GLSL3, vertexShader: BODY_VERT, fragmentShader: BODY_FRAG, side: THREE.DoubleSide,
-        uniforms: { uPal: this.uniforms.uPal, uTime: this.uniforms.uTime, uK: this.uniforms.uK,
+        uniforms: { uPal: this.uniforms.uPal, uTime: this.uniforms.uTime, uK: this.uniforms.uK, uTorn: this.uniforms.uTorn,
           uSeed: { value: seed * 1.37 + shell * 2.1 }, uShell: { value: 2 - shell }, uGlow: { value: 1 } },
       });
       const mesh = new THREE.Mesh(geo, m);
@@ -428,7 +435,7 @@ export class FlameBody {
     for (let i = 0; i < 5; i++) P[i].copy(this.pal[Math.min(i, this.pal.length - 1)]);
     // the flare rises fast and settles slowly; the fire runs faster and grows when it is high
     this._k += (this.intensity - this._k) * (1 - Math.exp(-(this.intensity > this._k ? 4 : 1.5) * dt));
-    this.time += dt * (0.8 + 0.35 * this._k);
+    this.time += dt * (0.8 + 0.35 * this._k) * this.pace;
     this.uniforms.uTime.value = this.time;
     this.uniforms.uK.value = this._k;
     const g = 0.9 + 0.1 * this._k;

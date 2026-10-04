@@ -377,7 +377,9 @@ export function buildDesertCity(scene, terrain) {
     const treeGroup = new THREE.Group();
     treeGroup.position.copy(treeOrigin); treeGroup.quaternion.setFromAxisAngle(UP, C.yaw);
     root.add(treeGroup);
-    const flames = new FlameBody(treeGroup, { at: V(TREE.x, top + 12 * S, TREE.z), width: 24 * S, height: 46 * S, seed: 7 });
+    // (wide enough, and wide high enough, to swallow every limb: the tips reach 14 m out and 36 m up;
+    // whole low down, torn into tongues only over the crown; a great fire, so it runs slow)
+    const flames = new FlameBody(treeGroup, { at: V(TREE.x, top + 13 * S, TREE.z), width: 36 * S, height: 50 * S, seed: 7, belly: 0.5, pace: 0.45, torn: 1.1, cover: 1 });
     const crown = city.world(TREE.x, top + 30 * S, TREE.z);
     const embers = new Embers(root, [...limbs.map((p) => city.world(p.x, p.y + 5 * S, p.z)), crown], { count: 70, rise: 2.4, life: 6, spread: 3, size: 0.6, color: '#fff3c4' });
     embers.mesh.boundingSphere = new THREE.Sphere(crown.clone(), 45); embers.mesh.frustumCulled = true;
