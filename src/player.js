@@ -1647,10 +1647,10 @@ export class Player {
   }
 }
 
-// (from up under the ceiling: the arm's reach along the floor is shorter, so it fits the ship's
-// curved corridor and small rooms without crushing in against walls and bunks)
-const INDOOR_PITCH = 0.48;       // rad: how far the camera looks down in the ship's rooms, over the shoulder
-const INDOOR_PITCHES = [INDOOR_PITCH, 0.78, 1.08];   // rad: ... steeper where a wall is close behind (so the head never fills the screen)
+// Indoors the camera is Uncharted's: close over the right shoulder at the traveller's own
+// height, looking level. It starts level when you step inside and is then yours to tilt (the
+// stick or the mouse); where a wall is close behind, the arm comes in rather than climbing.
+const INDOOR_PITCH = 0.1;        // rad: a touch down from level, at shoulder height
 
 // The follow camera's arm. Out in the open it hangs back (OPEN_DIST, the wheel
 // zooms it); in tight spaces it comes in close over the right shoulder, like
@@ -1955,20 +1955,11 @@ export class CameraRig {
     // climbs instead, up under the ceiling looking down over the traveller, rather than crushing
     // in against the back of the head. The steepness is chosen for the room it gives, and eased
     // (it used to follow the arm's snaps frame by frame and bob the view up and down).
-    if (ik > 0.5 && ak < 0.5 && U.y > 0.999) {
-      let goal = INDOOR_PITCHES[0], best = -Infinity, keep = -Infinity;
-      for (const pc of INDOOR_PITCHES) {
-        const room = this.armRoom(this.yaw, Math.max(this.pitch, pc), dist, k, U, Fw, Rt);
-        if (pc === this._floorGoal) keep = room;
-        if (room > best + 0.25) { best = room; goal = pc; }
-        if (room >= dist - 0.3) break;   // the lowest that fits wins
-      }
-      if (this._floorGoal !== undefined && keep > best - 0.2) goal = this._floorGoal;   // no flapping between two
-      this._floorGoal = goal;
-    } else this._floorGoal = INDOOR_PITCH;
-    this._floor = this._floor === undefined ? this._floorGoal : this._floor + (this._floorGoal - this._floor) * (1 - Math.exp(-2.2 * dt));
-    const floor = this._floor;
-    const pitch = THREE.MathUtils.lerp(this.pitch, Math.max(this.pitch, floor), ik * (1 - ak));
+    // stepping inside: the view comes level once (from the steep look down of the open, or up at
+    // the sky), then the stick and the mouse tilt it as anywhere else
+    if (this.indoor && !this._wasIndoor && Math.abs(this.pitch - INDOOR_PITCH) > 0.25) this.pitch = INDOOR_PITCH;
+    this._wasIndoor = this.indoor;
+    const pitch = this.pitch;
     if (ik > 0.5 && ak < 0.5 && U.y > 0.999) this.swingClear(dt, dist, pitch, k, U, Fw, Rt);
     const cp = Math.cos(pitch);
     const cam = this.camera.position;

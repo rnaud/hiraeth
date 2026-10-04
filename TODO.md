@@ -138,6 +138,9 @@ Grouped by area. Checked items are done; the changelog says when.
 
 ## Camera
 
+- [x] Prologue: a normal queen bed, not a bunk; the camera at the traveller's level like
+  Uncharted (not up under the ceiling pointing at the floor), and free to tilt.
+
 - [ ] When the camera pans out for a dialogue, make sure nothing is in the way.
 - [ ] If the character looks at something, the camera goes behind them looking
   at it.
@@ -175,6 +178,10 @@ Grouped by area. Checked items are done; the changelog says when.
   appear when you arrive without something the world needs.)
 
 ## World, levels and materials
+
+- [ ] Plants react to the wind (sway with the world's wind direction and strength, gusts).
+- [ ] The desert tree's flame: a 3D shape (not a flat card) with a glowing, living fire
+  shader on it.
 
 - [x] The burning tree is one large flame, drawn with a flame shader rather than
   3D geometry.

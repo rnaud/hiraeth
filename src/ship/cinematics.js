@@ -188,7 +188,7 @@ export class PrologueDirector {
     switch (id) {
       case 'black':
       case 'wake': {
-        // lying in the bunk: the drawing taped under the top bunk, then sitting up
+        // lying in bed: the drawing taped under the shelf over the pillows, then sitting up
         const eye = this.pt('wakeEye'), look = this.pt('wakeLook');
         const up = id === 'wake' ? smooth(seg(t, 4.6, 6.8)) : 0;
         const sit = eye.clone().lerp(eye.clone().add(V(0, 0.4, 0)).lerp(this.pt('bunkStand'), 0.35).setY(DECK + 1.25), up);
@@ -207,8 +207,8 @@ export class PrologueDirector {
           this.risen = true;
           C.releaseLids(); C.lids(false); C.bars(true); C.say(null);
           s.showPlayer(true);
-          // (swung off the back if the top bunk or its ladder would be between the camera and you)
-          s.rig.pitch = 0.18; s.rig.indoor = true;
+          // (swung off the back if the headboard's shelf would be between the camera and you)
+          s.rig.pitch = 0.1; s.rig.indoor = true; s.rig._wasIndoor = true;   // level, at your height (the camera's indoor rule, src/player.js)
           s.rig.yaw = s.rig.clearYaw(s.player.pos, s.player.heading + Math.PI, { want: 3 });
           s.rig.target.copy(s.player.pos); s.rig.snapTight?.(s.player.pos); s.rig._curDist = 2.5;
           s.release(0); s.blend = null;
