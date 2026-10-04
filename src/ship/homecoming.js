@@ -58,6 +58,9 @@ const CSS = `
 #credits { position: fixed; inset: 0; z-index: 8200; pointer-events: none; opacity: 0; transition: opacity 1.4s; overflow: hidden;
   background: linear-gradient(rgba(43, 33, 31, .55), rgba(43, 33, 31, .35)); }
 #credits.on { opacity: 1; }
+/* a phone held upright: the panel across the screen, clear of the subtitles; no keyboard hint on touch */
+@media (max-width: 600px) { #homeward { left: 4vw; right: 4vw; width: auto; top: calc(11vh + 8px); bottom: calc(11vh + 150px); } }
+body.touch #homeward footer span { display: none; }
 #credits .roll { position: absolute; left: 50%; top: 0; width: min(560px, 86vw); margin-left: calc(min(560px, 86vw) / -2); padding: 48px 40px 70px; box-sizing: border-box;
   background: #f7ecd2; color: #2b211f; border-left: 2px solid #2b211f; border-right: 2px solid #2b211f; box-shadow: 8px 0 0 #2b211f;
   font: 13px/1.5 ui-monospace, Menlo, monospace; text-align: center; will-change: transform;
