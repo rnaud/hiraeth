@@ -80,6 +80,31 @@ test('the people stand on the plain, and the tower’s balcony, steps and sill c
   for (const f of W.feathers.filter((x) => !x.held)) stand(f.g.position.clone().setY(f.g.position.y - 0.35), 'a feather on a spire cap', 0.6);
 });
 
+
+// a real traveller: run at the next stone, jump, and (if asked) jump again in the air for the fluid boost
+const { Player } = await import('../src/player.js');
+const { boostVelocity } = await import('../src/fluid-tool.js');
+function hop(from, to, boost) {
+  const P = new Player(physics, { unsafe: level.unsafe });
+  P.onAirJump = () => { boostVelocity(P.vel, P.frame.up, P.frame.dir(P.heading, new THREE.Vector3())); return true; };
+  P.respawn(from.clone());
+  P.heading = Math.atan2(to.x - from.x, to.z - from.z);
+  let phase = 0;
+  for (let i = 0; i < 360; i++) {
+    const input = { KeyW: Math.hypot(to.x - P.pos.x, to.z - P.pos.z) > 0.6 };
+    if (phase === 0 && i > 5) { input.Space = true; phase = 1; } else if (phase === 1 && !P.onGround && P.vel.y < 3) phase = 2; else if (phase === 2 && boost) { input.Space = true; phase = 3; }
+    P.update(1 / 60, input, Math.atan2(to.x - P.pos.x, to.z - P.pos.z) + Math.PI);
+    if (phase >= 2 && P.onGround && i > 30) break;
+  }
+  return Math.abs(P.pos.y - to.y) < 0.6 && Math.hypot(P.pos.x - to.x, P.pos.z - to.z) < 3.5;
+}
+
+test('the tower’s steps are boost-jumps from the balcony up to the sill', () => {
+  const T = A.tower;
+  const pts = [V(T.x + Math.sin(1.25) * 17.5, T.floor, T.z + Math.cos(1.25) * 17.5), ...T.steps, T.sill];
+  for (let i = 0; i < pts.length - 1; i++) assert.equal(hop(pts[i], pts[i + 1], true), true, `step ${i + 1} is in a boost's reach`);
+});
+
 test('the main quest: Oïa, the bird, the tower, the window, the whistle, the promise', () => {
   assert.equal(quests.stage('arzach.bird'), 'watcher');
   talk(PEOPLE.oia, ['Who lived', 'And the bird', 'I’ve seen that mark', 'I’ll go']);

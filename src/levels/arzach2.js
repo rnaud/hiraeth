@@ -34,7 +34,7 @@ const AQ2 = { a: [215, -325], b: [215, plainEdge(215) - 30], y: 40 };   // needl
 // the story's places (src/story/arzach2.js)
 const BELL = { x: -228, z: -239, w: 7.5, h: 30 };                 // the monastery's bell tower (its open belfry)
 // sky stones climbing from the great table's east rim: each a boost-jump above the last
-const SKY = [[33, -446, 67.2, 2.7], [36.5, -439.5, 70.2, 2.4], [34, -433, 73.2, 2.8], [39.5, -429, 76.2, 2.4], [45, -432.5, 79.2, 2.4],
+const SKY = [[32, -446.3, 66.6, 2.7], [36.5, -439.5, 70.2, 2.4], [34, -433, 73.2, 2.8], [39.5, -429, 76.2, 2.4], [45, -432.5, 79.2, 2.4],
   [49, -437.5, 82.2, 2.8], [51.5, -444, 85.2, 2.4], [48.5, -450, 88.2, 2.4], [42.5, -452.5, 91.2, 3.4]];
 const CAIRN = { x: -18, z: -438 };                                 // on the great table, toward the stones
 const CLAPPER = { x: 251, z: -503 };                               // on the floating island, before the church door

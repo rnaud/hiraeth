@@ -62,6 +62,24 @@ const use = (id, p) => {
 };
 const [aube, calix, ondine] = LOCALS;
 
+// a real traveller: run at the next stone, jump, and (if asked) jump again in the air for the fluid boost
+const { Player } = await import('../src/player.js');
+const { boostVelocity } = await import('../src/fluid-tool.js');
+function hop(from, to, boost) {
+  const P = new Player(physics, { unsafe: level.unsafe });
+  P.onAirJump = () => { boostVelocity(P.vel, P.frame.up, P.frame.dir(P.heading, new THREE.Vector3())); return true; };
+  P.respawn(from.clone());
+  P.heading = Math.atan2(to.x - from.x, to.z - from.z);
+  let phase = 0;
+  for (let i = 0; i < 360; i++) {
+    const input = { KeyW: Math.hypot(to.x - P.pos.x, to.z - P.pos.z) > 0.6 };
+    if (phase === 0 && i > 5) { input.Space = true; phase = 1; } else if (phase === 1 && !P.onGround && P.vel.y < 3) phase = 2; else if (phase === 2 && boost) { input.Space = true; phase = 3; }
+    P.update(1 / 60, input, Math.atan2(to.x - P.pos.x, to.z - P.pos.z) + Math.PI);
+    if (phase >= 2 && P.onGround && i > 30) break;
+  }
+  return Math.abs(P.pos.y - to.y) < 0.6 && Math.hypot(P.pos.x - to.x, P.pos.z - to.z) < 3.5;
+}
+
 test('the people, the bell rope, the clapper, the cairn and the sky stones stand on solid stone above the cloud', () => {
   for (const [id, n] of Object.entries(W.people)) solid(n.pos, id, 1.6);
   solid(A.ropeFoot.clone().setY(A.ropeFoot.y - 0.9), 'the foot of the bell rope');
@@ -80,6 +98,15 @@ test('the people, the bell rope, the clapper, the cairn and the sky stones stand
   assert.ok(physics.triangles < 60000, `collision budget: ${physics.triangles}`);
 });
 function flatDist(a, b) { return Math.hypot(a.x - b.x, a.z - b.z); }
+
+test('the sky stones are boost-jumps: a plain jump falls short, jump and boost lands on the next', () => {
+  const rim = V(26.5, physics.groundAt(26.5, 90, -447.6), -447.6);
+  const pts = [rim, ...A.sky.map((s) => s.pos)];
+  for (let i = 0; i < pts.length - 1; i++) {
+    assert.equal(hop(pts[i], pts[i + 1], false), false, `stone ${i + 1} is out of a plain jump's reach`);
+    assert.equal(hop(pts[i], pts[i + 1], true), true, `stone ${i + 1} is in a boost's reach`);
+  }
+});
 
 test('the main quest: Aube, the monastery, Calix, the clapper, the bell, the note; the cloud settles', () => {
   assert.equal(quests.stage('arzach2.bell'), 'aube');
