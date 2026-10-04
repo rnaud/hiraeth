@@ -99,7 +99,7 @@ Grouped by area. Checked items are done; the changelog says when.
   I carry), Start options menu, Y call my mount, X ping.
 - [ ] Action and call-out/ping must be different buttons.
 - [ ] Mounts and taxis: R2 moves forward, the stick tilts up/down/left/right.
-- [ ] Hover car: deadzone on steering when driving forward; it turns too
+- [x] Hover car: deadzone on steering when driving forward; it turns too
   easily now.
 
 ## HUD, menus and prompts
@@ -114,8 +114,8 @@ Grouped by area. Checked items are done; the changelog says when.
   background, not the environment.
 - [ ] Special places, hints and objectives are coloured in dialogue more often.
 - [ ] Clearer in the menu when a quest is complete.
-- [ ] Level screenshots (level select) should be smaller.
-- [ ] Don't show the "updated" screen on every level.
+- [x] Level screenshots (level select) should be smaller.
+- [x] Don't show the "updated" screen on every level.
 - [ ] Select and Start screens pause the game, full screen, with their own
   menu music.
 - [ ] Health bar and fall damage.
@@ -155,7 +155,7 @@ Grouped by area. Checked items are done; the changelog says when.
   large faces to test and refine them.
 - [ ] Ragdoll when falling, or when pushing people with the gun.
 - [ ] Hologram of the parents: a true hologram, not a 2D drawn render.
-- [ ] Most animals are too small and hard to notice: make them bigger.
+- [x] Most animals are too small and hard to notice: make them bigger.
 
 ## Gift boxes
 
@@ -186,11 +186,11 @@ Grouped by area. Checked items are done; the changelog says when.
 - [ ] Garden of spheres: if the spheres play music, make them play, and trigger
   them by shooting at them rather than looking.
 - [ ] Rename the Incal: nothing in the game named after Moebius works.
-- [ ] The recharge wait once on the ground is 2 seconds.
+- [x] The recharge wait once on the ground is 2 seconds.
 
 ## Audio
 
-- [ ] The man who says he plays music should actually play an eerie tune.
+- [x] The man who says he plays music should actually play an eerie tune.
 
 ## Quests and story
 

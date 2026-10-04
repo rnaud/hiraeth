@@ -383,6 +383,13 @@ export function setupDesert(ctx) {
     { id: 'tree', pos: city.treeBase, radius: 110, parts: ['chant', 'bell'], mode: open() ? 'feast' : 'play', vol: 0.55, duck: 0.4 },
   ]);
   game.on('flag:desert.teo.drumming', (v) => { const b = sound.band('camp'); if (v && b && !b.parts.includes('drum')) b.parts.push('drum'); });
+  // Bako plays his ney for you when you ask: the one song it knows, slow and strange (sound.solo)
+  game.on('music:solo', ({ who } = {}) => {
+    const n = people[who];
+    if (!n || !sound.solo) return;
+    const len = sound.solo(() => V(n.pos.x, n.pos.y + 1.4, n.pos.z));
+    if (len) n.shout = { text: '~solemn~ ♪  ♪', until: n.time + len };
+  });
 
   // ---------------------------------------------------------------- the tree notices you
   const treeTarget = registerTarget({ kind: 'tree', radius: 14, position: () => city.crown, onHit: () => { st.flare = Math.max(st.flare, 1); return true; } });

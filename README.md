@@ -1040,6 +1040,17 @@ walkthroughs and local names; each data file's header lists its flags.
 - **The bird's promise:** with `bird.promise` set, the whistle calls the Arzach
   bird in worlds with open sky and no mount (Edena, the Garden of Spheres, Home).
 
+## Musicians' solos (v0.39)
+
+Bands (`sound.setBands`) play on the score's beat around a place. A solo is
+free-time: `sound.solo(pos)` (`src/audio.js`) plays `SOLO_TUNE`, three breaths
+in a hijaz mode on one reed voice that glides into each note from a quarter
+tone under, over a low drone, with a lot of reverb. It joins the bands for
+distance and panning, and hushes the other bands and the score while it lasts.
+In the desert, asking Bako to play emits `music:solo { who: 'bako' }` from his
+conversation (`src/story/desert-data.js`), and `src/story/desert.js` starts it
+at his seat.
+
 ## Android (offline APK)
 The game is also packaged as an Android app, for handhelds such as the Retroid
 Pocket. Their built-in controls work through the Gamepad API.

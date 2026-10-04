@@ -235,11 +235,11 @@ export const PEOPLE = {
       nodes: {
         hello: {
           say: ['~neutral~ Hm. You’re the one from the ball. The ball with the burn on it.'],
-          choices: [{ text: '~surprised~ You saw the burn?', goto: 'burn' }, { text: '~curious~ What’s that flute?', goto: 'ney' }, { text: '~neutral~ (leave him to his music)', end: true }],
+          choices: [{ text: '~surprised~ You saw the burn?', goto: 'burn' }, { text: '~curious~ What’s that flute?', goto: 'ney' }, { text: '~curious~ Will you play something?', do: { emit: ['music:solo', { who: 'bako' }] }, end: true }, { text: '~neutral~ (leave him to his music)', end: true }],
         },
         burn: { say: ['~curious~ Three dots over a curve. {glyph} Like between the giant’s eyes, out past the back gate. Like on the old stones. Hm. Somebody signs their work.'], choices: [{ text: '~curious~ Who?', goto: 'who' }, { text: '~neutral~ Thank you.', end: true }] },
         who: { say: ['~playful~ If I knew that I wouldn’t need a flute. Hm-hm.'], choices: [{ text: '~neutral~ (leave him to his music)', end: true }] },
-        ney: { say: ['~neutral~ A ney. Reed from the oasis at the salt. It only knows one song, and every year it plays it differently.'], choices: [{ text: '~happy~ Play it for me.', end: true }] },
+        ney: { say: ['~neutral~ A ney. Reed from the oasis at the salt. It only knows one song, and every year it plays it differently.'], choices: [{ text: '~happy~ Play it for me.', do: { emit: ['music:solo', { who: 'bako' }] }, end: true }] },
       },
     },
   },

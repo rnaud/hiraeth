@@ -8,6 +8,7 @@ export const CHANGELOG = [
     'Animals are bigger and easier to spot.',
     'The hoverbike and the skiff no longer swerve when the stick drifts a little as you drive forward: small pushes turn gently, a full turn needs the stick well over.',
     'The “Updated to …” and “Update ready” notes show once, not again on every world you visit. The worlds list has smaller pictures.',
+    'Ask Bako, the ney player by the desert fire, to play, and he does: a slow, eerie tune over a low drone, while the rest of the camp falls quiet.',
   ] },
   { v: '0.38', date: '2026-10-04', items: [
     'Villagers keep the same little walks on every visit, and no longer wander onto steep banks.',

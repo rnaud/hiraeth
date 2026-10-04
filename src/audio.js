@@ -11,6 +11,15 @@
 
 import { bindVoice, languageOf } from './story/voice.js';
 
+// Bako's ney solo (AudioEngine.solo): three breaths in a hijaz mode, [semitones from the tonic, seconds].
+// (0 D, 1 E♭, 4 F♯, 5 G, 7 A, 8 B♭, 10 C) The augmented second (1 -> 4) and the slow falls back to the tonic
+// make it sound old and far away.
+export const SOLO_TUNE = [
+  [[0, 2.4], [1, 0.8], [4, 1.6], [5, 0.6], [1, 0.7], [0, 3.0]],
+  [[7, 2.0], [8, 0.7], [7, 0.6], [4, 1.3], [5, 0.5], [4, 0.5], [1, 1.0], [0, 3.4]],
+  [[12, 2.2], [13, 0.5], [12, 0.5], [10, 0.6], [8, 0.7], [7, 1.6], [8, 0.4], [7, 0.4], [4, 0.9], [5, 0.8], [1, 1.3], [0, 4.5]],
+];
+
 // How loud the ambient wind (its whoosh and the high howl) is against everything else.
 export const AMBIENT_WIND = 0.4;
 
@@ -740,6 +749,8 @@ export class Sound {
     if (!this.ctx || !this.bands) return;
     const t = this.ctx.currentTime;
     let near = 0;
+    this.bands = this.bands.filter((b) => !b.solo || b.until > t);
+    const hush = this.soloing ? 0.2 : 1;
     for (const b of this.bands) {
       const p = typeof b.pos === 'function' ? b.pos() : b.pos;
       if (!p) { b.level = 0; b.gain.gain.setTargetAtTime(0, t, 0.3); continue; }
@@ -747,7 +758,7 @@ export class Sound {
       const k = Math.max(0, 1 - d / b.radius);
       b.level = k * k * (b.vol ?? 1);
       near = Math.max(near, Math.max(0, 1 - d / (b.radius * 0.45)) * (b.duck ?? 1));
-      b.gain.gain.setTargetAtTime(this.muted ? 0 : b.level * 0.9 * this.musicVol, t, 0.25);
+      b.gain.gain.setTargetAtTime(this.muted ? 0 : b.level * 0.9 * this.musicVol * (b.solo ? 1 : hush), t, b.solo ? 0.25 : 0.8);
       if (b.pan) {
         // the camera looks along -z turned by yaw: its right is +x turned by yaw
         const rx = Math.cos(yaw), rz = -Math.sin(yaw);
@@ -806,6 +817,76 @@ export class Sound {
         if (Math.random() < (feast ? 0.6 : 0.25)) this.instrument('bell', this.freq(chord + [0, 4, 7][beat % 3], 2), t + (beat % 2) * spb * 0.5, 1, 0.05 * v, D);
       }
     }
+  }
+  // ------------------------------------------------------------------ a musician's solo
+  /**
+   * A musician plays for you (Bako's ney): a slow, eerie tune in a hijaz mode,
+   * gliding between its notes over a low drone, from `pos` (a Vector3 or a
+   * function returning one). It joins the bands, so it fades with distance and
+   * pans like them, and the score and the other bands step back while it plays.
+   * Returns its length in seconds (0 without sound).
+   */
+  solo(pos, { root = 293.66, radius = 70, vol = 1 } = {}) {
+    if (!this.ctx) return 0;
+    if (!this.bands) this.makeBands();
+    this.bands = this.bands.filter((b) => !b.solo);
+    const ctx = this.ctx, t0 = ctx.currentTime + 0.4;
+    const input = ctx.createGain(), gain = ctx.createGain(), pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+    gain.gain.value = 0;
+    input.connect(gain);
+    (pan ? gain.connect(pan) : gain).connect(this.master);
+    const send = ctx.createGain(); send.gain.value = 0.7; gain.connect(send).connect(this.reverb);   // a lot of room: it carries over the dunes
+    let t = t0;
+    for (const phrase of SOLO_TUNE) { this.soloPhrase(phrase, root, t, input, 0.16 * vol); t += phrase.reduce((a, [, d]) => a + d, 0) + 1.3; }
+    const len = t - t0;
+    this.soloDrone(root / 2, t0 - 0.3, len + 1, input, 0.05 * vol);
+    this.bands.push({ id: 'solo', solo: true, pos, radius, parts: [], vol: 1.2, duck: 1, input, gain, pan, level: 0, mode: 'play', phrase: 0, until: t0 + len + 2 });
+    return len + 0.4;
+  }
+  /** Is a solo playing (other bands hush under it)? */
+  get soloing() { return !!this.bands?.some((b) => b.solo && b.until > (this.ctx?.currentTime ?? 0)); }
+  /** One breath of the solo: one reed voice gliding from note to note, falling into each from a little below. */
+  soloPhrase(notes, root, t, dest, vol) {
+    const ctx = this.ctx, f = (n) => root * Math.pow(2, n / 12);
+    const len = notes.reduce((a, [, d]) => a + d, 0);
+    const o = ctx.createOscillator(), o2 = ctx.createOscillator(), g = ctx.createGain(), g2 = ctx.createGain();
+    o.type = 'triangle'; o2.type = 'sine'; g2.gain.value = 0.18;
+    const lfo = ctx.createOscillator(), lg = ctx.createGain(); lfo.frequency.value = 4.2; lg.gain.value = 0;
+    lfo.connect(lg); lg.connect(o.frequency); lg.connect(o2.frequency);
+    const n = ctx.createBufferSource(); n.buffer = this.noiseBuf; n.loop = true;
+    const nb = ctx.createBiquadFilter(); nb.type = 'bandpass'; nb.Q.value = 2.2;
+    const ng = ctx.createGain(); ng.gain.value = 0.32;
+    o.connect(g); o2.connect(g2).connect(g); n.connect(nb).connect(ng).connect(g); g.connect(dest);
+    g.gain.setValueAtTime(0, t);
+    let at = t;
+    notes.forEach(([semi, d], i) => {
+      const hz = f(semi);
+      // a quarter tone under, then up into the note (the first one sets the pitch outright)
+      if (i === 0) { o.frequency.setValueAtTime(hz * 0.985, at); o2.frequency.setValueAtTime(hz * 2 * 0.985, at); }
+      o.frequency.setTargetAtTime(hz, at, 0.07); o2.frequency.setTargetAtTime(hz * 2, at, 0.07);
+      nb.frequency.setValueAtTime(hz * 1.6, at);
+      // each note swells a little; the long ones grow a slow vibrato
+      g.gain.setTargetAtTime(vol * (d > 1.5 ? 1 : 0.8), at, d > 1.5 ? 0.35 : 0.08);
+      lg.gain.setValueAtTime(0, at);
+      if (d > 1) lg.gain.linearRampToValueAtTime(hz * 0.014, at + d * 0.8);
+      at += d;
+    });
+    g.gain.setTargetAtTime(0, at - 0.5, 0.25);
+    for (const x of [o, o2, lfo]) { x.start(t); x.stop(t + len + 2); }
+    n.start(t, Math.random() * 1.5); n.stop(t + len + 2);
+  }
+  /** The drone under the solo: the tonic and its fifth, low, breathing slowly. */
+  soloDrone(hz, t, len, dest, vol) {
+    const ctx = this.ctx, lp = ctx.createBiquadFilter(), g = ctx.createGain();
+    lp.type = 'lowpass'; lp.frequency.value = 520; lp.connect(g).connect(dest);
+    for (const [k, type] of [[1, 'sawtooth'], [1.5, 'triangle'], [0.5, 'sine']]) {
+      const o = ctx.createOscillator(); o.type = type; o.frequency.value = hz * k; o.detune.value = (Math.random() - 0.5) * 8;
+      o.connect(lp); o.start(t); o.stop(t + len + 3);
+    }
+    const lfo = ctx.createOscillator(), lg = ctx.createGain(); lfo.frequency.value = 0.09; lg.gain.value = vol * 0.4;
+    lfo.connect(lg).connect(g.gain); lfo.start(t); lfo.stop(t + len + 3);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + 3);
+    g.gain.setValueAtTime(vol, t + len - 1); g.gain.linearRampToValueAtTime(0, t + len + 2.5);
   }
   dum(t, vol, dest) {
     const ctx = this.ctx, o = ctx.createOscillator(), g = ctx.createGain();
