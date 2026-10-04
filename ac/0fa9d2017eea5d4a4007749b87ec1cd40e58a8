@@ -1,0 +1,21 @@
+src/ship/model.js
+  s_1fd8d0e7b02dcf::t_82d9bea5115140 133-135
+src/ship/ship.js
+  s_1fd8d0e7b02dcf::t_aaba018611fc55 523-531
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ac0fa9d2017eea5d4a4007749b87ec1cd40e58a8",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
