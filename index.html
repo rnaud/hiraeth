@@ -165,7 +165,7 @@
       #dialogue .dlg-chip img[hidden] { display: none; }
       #dialogue .dlg-chip img:not([hidden]) + span { display: none; }
       #dialogue .dlg-chip span { font-size: 34px; font-weight: bold; color: #fffaf0; text-shadow: 2px 2px 0 #2b211f; }
-      #dialogue .dlg-who > div:last-child { background: #2b211f; color: #fffaf0; padding: 3px 10px 4px; margin-bottom: 30px; transform: rotate(-1deg); white-space: nowrap; }
+      #dialogue .dlg-who > div:last-child { background: #2b211f; color: #fffaf0; padding: 3px 10px 4px; margin-bottom: 50px; transform: rotate(-1deg); white-space: nowrap; }
       #dialogue .dlg-name { letter-spacing: 0.14em; text-transform: uppercase; font-size: 13px; }
       #dialogue .dlg-title { font-size: 11px; opacity: 0.75; margin-left: 8px; }
       #dialogue .dlg-text { margin: 4px 0 8px; min-height: 2.9em; }
@@ -198,6 +198,8 @@
       #prompt b { display: inline-block; background: #2b211f; color: #fffaf0; padding: 0 5px; margin-right: 4px; }
       #prompt.show { opacity: 1; }
       body.talking #hud, body.talking .balloon, body.talking #scout-label { visibility: hidden; }
+      /* the conversation is answered by tapping the panel: the game buttons would sit under and round it */
+      body.talking #touch { visibility: hidden; }
       #touch .b-use.talk { font-size: 13px; }
       /* the quest log in the sketchbook */
       #journal .quests .quest { border-left: 3px solid #2b211f; padding: 2px 0 2px 12px; margin: 0 0 12px; cursor: pointer; max-width: 640px; }

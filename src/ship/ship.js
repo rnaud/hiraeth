@@ -3,6 +3,7 @@ import { game } from '../game-state.js';
 import { buildShipModel, buildSpace } from './model.js';
 import { R, RI, DECK, CEIL, LIFT, HATCH_A, HINGE_R, WINDOW, HATCH, LEG_A, SCAR } from './hull.js';
 import { polar } from './geo.js';
+import { CONSOLE_R } from './interior.js';
 import { findShipSite, siteAvoid, decorAvoid } from './sites.js';
 import { buildCrashSite } from './crash.js';
 import { Puffs } from './fx.js';
@@ -13,7 +14,7 @@ import { endingUnlocked, HOME_ID } from '../story/ending.js';
 import { HomecomingDirector } from './homecoming.js';
 import * as sfx from './sfx.js';
 import { Prologue } from './prologue.js';
-import { PrologueDirector, ArrivalDirector, TakeoffDirector, CallDirector } from './cinematics.js';
+import { PrologueDirector, ArrivalDirector, TakeoffDirector, CallDirector, OBJECTIVE } from './cinematics.js';
 
 // The traveller's ship: a big round ball, home between worlds.
 //
@@ -64,8 +65,12 @@ export class Ship {
     if (prologue) this.buildSpaceCopy();
     this.cinema = new Cinema();
     this.warp = new Warp();
-    game.on('flag:ship.powered', (v) => this.setPower(v ? 'on' : 'emergency'));
+    game.on('flag:ship.powered', (v) => { this.setPower(v ? 'on' : 'emergency'); if (v) this.clearObjective(); });
+    if (game.flag('ship.powered')) this.clearObjective();
   }
+
+  /** The prologue's "Find a new source of power." is done once the ship has power (it stayed on the HUD). */
+  clearObjective() { if (game.flag('objective') === OBJECTIVE) game.set('objective', null); }
 
   // ------------------------------------------------------------------ placement
   groundAt(x, z, fromY) {
@@ -322,7 +327,7 @@ export class Ship {
     const m = this.modelOf(this.player.pos);
     if (!m) return false;
     const l = this.local(m, this.player.pos), c = m.interior.points.cockpit;
-    return Math.hypot(l.x - c.x, l.z - c.z) < 1.7;
+    return Math.hypot(l.x - c.x, l.z - c.z) < CONSOLE_R;
   }
 
   atHatchInside() {
@@ -382,7 +387,8 @@ export class Ship {
     const c = this.cinematic;
     if (c && !c.done) return { ...ctl, KeyE: false };   // nothing to use while a scene plays
     // E belongs to the ship inside it and at the hatch
-    const inShip = this.inside || this.atRampFoot();
+    // (not while riding up to it: then E gets you off, as the HUD says)
+    const inShip = this.inside || (this.atRampFoot() && !this.player.ride);
     if (inShip && ctl.KeyE) {
       if (!this._eHeld) this.use();
       this._eHeld = true;
@@ -456,7 +462,7 @@ export class Ship {
       if (this.atHatchInside()) return 'E step outside';
       return 'aboard the ship';
     }
-    if (this.atRampFoot()) return 'E go aboard';
+    if (this.atRampFoot() && !this.player.ride) return 'E go aboard';
     return null;
   }
 
@@ -471,7 +477,8 @@ export class Ship {
 
   applyCamera(dt) {
     const cam = this.camera;
-    const base = cam.userData.baseFov ?? (cam.userData.baseFov = cam.fov);
+    const base0 = cam.userData.baseFov ?? (cam.userData.baseFov = cam.fov);
+    const base = base0 + 10 * (this.rig?.indoorK ?? 0);   // a wider lens in the rooms
     let fov = base;
     if (this.cam) {
       cam.position.copy(this.cam.pos);
@@ -514,7 +521,8 @@ export class Ship {
       this.inside = inside;
       game.emit(inside ? 'ship:enter' : 'ship:exit', { level: this.levelId });
       // a closer camera in the rooms, and no climbing the curved walls of home
-      if (inside) { this._dist = this.rig.dist; this.rig.dist = Math.min(this.rig.dist, 5.5); this._climb = P.opts.climb; P.opts.climb = false; }
+      this.rig.indoor = inside;   // the camera's tight-room mode (src/player.js CameraRig)
+      if (inside) { this._dist = this.rig.dist; this.rig.dist = Math.min(this.rig.dist, 4.2); this._climb = P.opts.climb; P.opts.climb = false; }
       else {
         if (this._dist) { this.rig.dist = this._dist; this._dist = null; }
         if (this._climb !== undefined) { P.opts.climb = this._climb; this._climb = undefined; }

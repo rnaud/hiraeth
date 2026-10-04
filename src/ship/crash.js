@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { makeMaterial, MODE_TERRAIN } from '../materials.js';
 import { R } from './hull.js';
+import { biomeWeights, BIOMES } from '../biome.js';
 
 // The desert crash site: sand heaped up against the hull (more at the bow,
 // never over the hatch or the cockpit window), the furrow it ploughed
@@ -12,22 +13,39 @@ const smooth = (t) => t * t * (3 - 2 * t);
 const hash = (x) => { const s = Math.sin(x * 127.1) * 43758.5453; return s - Math.floor(s); };
 
 function gridMesh(rows, cols, at, mat) {
-  // rows x cols vertices from at(i, j) -> Vector3; triangles row by row (so drawRange reveals rows in order)
-  const pos = [];
+  // rows x cols vertices from at(i, j) -> Vector3; triangles row by row (so drawRange reveals rows in order).
+  // Indexed, so the normals are shared and the sand shades smoothly (one normal per
+  // triangle drew the heaps as a mosaic of flat, separately lit and inked facets).
+  const pos = new Float32Array(rows * cols * 3);
   const P = [];
-  for (let i = 0; i < rows; i++) { P.push([]); for (let j = 0; j < cols; j++) P[i].push(at(i, j)); }
+  for (let i = 0; i < rows; i++) { P.push([]); for (let j = 0; j < cols; j++) { const p = at(i, j); P[i].push(p); pos.set([p.x, p.y, p.z], (i * cols + j) * 3); } }
+  const idx = [];
+  const _ab = new THREE.Vector3(), _ad = new THREE.Vector3(), _n = new THREE.Vector3();
   for (let i = 0; i < rows - 1; i++) for (let j = 0; j < cols - 1; j++) {
-    const a = P[i][j], b = P[i][j + 1], c = P[i + 1][j + 1], d = P[i + 1][j];
-    const n = new THREE.Vector3().crossVectors(new THREE.Vector3().subVectors(b, a), new THREE.Vector3().subVectors(d, a));
-    const tri = n.y >= 0 ? [a, b, c, a, c, d] : [a, c, b, a, d, c];
-    for (const p of tri) pos.push(p.x, p.y, p.z);
+    const a = i * cols + j, b = a + 1, c = a + cols + 1, d = a + cols;
+    _n.crossVectors(_ab.subVectors(P[i][j + 1], P[i][j]), _ad.subVectors(P[i + 1][j], P[i][j]));
+    if (_n.y >= 0) idx.push(a, b, c, a, c, d); else idx.push(a, c, b, a, d, c);
   }
   const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  g.setIndex(idx);
   g.computeVertexNormals();
   const m = new THREE.Mesh(g, mat);
   m.userData.trisPerRow = (cols - 1) * 2;
   return m;
+}
+
+function heapMaterial(src, C) {
+  const U = src?.uniforms;
+  if (!U?.uColor) return src;
+  let c1 = U.uColor.value.clone(), c2 = (U.uColor2?.value ?? U.uColor.value).clone();
+  if (U.uBiomes?.value > 0.5) {
+    const w = biomeWeights(C.x, C.z), d = 1 - w.rose - w.salt;
+    const mix = (k) => new THREE.Color(0, 0, 0).add(new THREE.Color(BIOMES.dunes.ground[k]).multiplyScalar(d))
+      .add(new THREE.Color(BIOMES.rose.ground[k]).multiplyScalar(w.rose)).add(new THREE.Color(BIOMES.salt.ground[k]).multiplyScalar(w.salt));
+    c1 = mix(0); c2 = mix(1);
+  }
+  return makeMaterial({ color: '#' + c1.getHexString(), color2: '#' + c2.getHexString(), color3: '#' + c1.getHexString(), mode: MODE_TERRAIN, ripples: true, sandInk: true });
 }
 
 /**
@@ -41,7 +59,10 @@ export function buildCrashSite(o) {
   const N = new THREE.Vector3(T.z, 0, -T.x);
   const group = new THREE.Group();
   group.name = 'crash-site';
-  const sand = o.sandMat;
+  // heaped sand: the terrain's own look, but no "rock" tone on steep faces (the heaps and the
+  // furrow's ridges are steep, and came out as orange shards); the region's palette is
+  // taken at the crash site, as the terrain's shader would there
+  const sand = heapMaterial(o.sandMat, C);
   const scorched = makeMaterial({ color: '#e2be86', color2: '#d8b27c', color3: '#c99f6c', mode: MODE_TERRAIN, sandInk: true });
 
   // ---- the berm heaped round the hull
@@ -108,11 +129,15 @@ export function buildCrashSite(o) {
     const wob = Math.sin(d * 0.09) * 1.2 * s;
     const x = C.x - T.x * d + N.x * (u + wob), z = C.z - T.z * d + N.z * (u + wob);
     const edge = Math.abs(j / 6 - 0.5) * 2;
-    return new THREE.Vector3(x, H(x, z) + (edge > 0.9 ? 0.02 : 0.09), z);
+    return new THREE.Vector3(x, H(x, z) + (edge > 0.9 ? 0.06 : 0.16), z);
   }, scorched);
   group.add(furrow, trough);
   // scrape marks: a few long dark strokes along the trough, like pen lines
   const scrapeMat = makeMaterial({ color: '#b48a5e', flat: true });
+  // the scorch and the scrapes lie on the sand like decals: the terrain's 7 m triangles bulge up
+  // through a mesh sampled at other points, cutting it into shards with straight edges, so they
+  // sit a little higher and win the depth test against the sand just under them
+  for (const m of [scorched, scrapeMat]) Object.assign(m, { polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -6 });
   const scrapes = [];
   for (const [u0, len, w0] of [[-0.3, 0.95, 0.35], [0.05, 0.8, 0.28], [0.32, 0.9, 0.3], [-0.12, 0.55, 0.22], [0.2, 0.45, 0.2]]) {
     const m = gridMesh(ROWS, 2, (i, j) => {
@@ -122,7 +147,7 @@ export function buildCrashSite(o) {
       const wob = Math.sin(d * 0.09) * 1.2 * Math.min(s, len);
       const u = u0 * w + (j - 0.5) * w0 * (1 - Math.min(s, len) * 0.6);
       const x = C.x - T.x * d + N.x * (u + wob), z = C.z - T.z * d + N.z * (u + wob);
-      return new THREE.Vector3(x, H(x, z) + 0.13, z);
+      return new THREE.Vector3(x, H(x, z) + 0.2, z);
     }, scrapeMat);
     scrapes.push(m);
     group.add(m);

@@ -96,7 +96,7 @@ export function createStory(o) {
   function talkable(npc, def) {
     npc.def = def;
     return registerInteractable({
-      id: `talk.${def.id}`, priority: PRIORITY.talk, range: def.range ?? 3.4,
+      id: `talk.${def.id}`, priority: PRIORITY.talk, range: def.range ?? 3.4, npc,
       prompt: `talk to ${def.name.replace(/^The /, 'the ')}`,
       at: () => _p.copy(npc.pos).addScaledVector(UP, (npc.seat ? 1.4 : 2.15) * npc.object.scale.y),
       enabled: () => npc.object.visible && !npc.stunned?.(),
@@ -140,7 +140,9 @@ export function createStory(o) {
   }
 
   const promptEl = typeof document !== 'undefined' ? document.getElementById('prompt') : null;
-  const useBtn = typeof document !== 'undefined' ? document.querySelector('#touch .b-use') : null;
+  // (looked up when needed: the touch controls are built after the story)
+  let useBtn = null;
+  const useButton = () => (useBtn ??= typeof document !== 'undefined' ? document.querySelector('#touch .b-use') : null);
   const rt = {
     quests, dialogue, marker, world, portrait, prompt: null, promptAt: null,
     busy: () => dialogue.open,
@@ -168,6 +170,7 @@ export function createStory(o) {
       const r = paused || dialogue.open || player.hidden ? { prompt: null, handled: false } : updateInteract(player, fresh);
       if (ePressed && !fresh) r.handled = true;
       rt.prompt = r.prompt;
+      rt.promptEntry = r.entry ?? null;
       rt.promptAt = r.entry?.at?.() ?? null;
       const ob = rt.objective();
       marker.update(dt, t, ob, player, camera, paused || dialogue.open);
@@ -175,7 +178,7 @@ export function createStory(o) {
         camera.getWorldDirection(_d);
         sound.listen?.(camera.position, Math.atan2(-_d.x, -_d.z));
       }
-      if (useBtn) { const label = r.prompt ? r.prompt.split(' ')[0] : 'E'; if (useBtn.dataset.label !== label) { useBtn.dataset.label = label; useBtn.textContent = label === 'E' ? 'E' : label; useBtn.classList.toggle('talk', label !== 'E'); } }
+      if (useButton()) { const label = r.prompt ? r.prompt.split(' ')[0] : 'E'; if (useBtn.dataset.label !== label) { useBtn.dataset.label = label; useBtn.textContent = label === 'E' ? 'E' : label; useBtn.classList.toggle('talk', label !== 'E'); } }
       return r;
     },
     /** The floating "E talk to Ama" tag, over whoever it's for. */

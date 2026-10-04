@@ -7,8 +7,9 @@ import { GameState } from '../src/game-state.js';
 import { Ship } from '../src/ship/ship.js';
 import { DECK, R } from '../src/ship/hull.js';
 import { polar } from '../src/ship/geo.js';
+import { CONSOLE_R } from '../src/ship/interior.js';
 import { findShipSite, siteAvoid, probeSite, SITE_OVERRIDES } from '../src/ship/sites.js';
-import { consoleAction, mapEntries } from '../src/ship/starmap.js';
+import { consoleAction, mapEntries, StarMap } from '../src/ship/starmap.js';
 import { pendingCall, callLines, completedWorlds, applyCall, CALL_COUNT, ILEN_CALL, PROLOGUE_CALL } from '../src/story/calls.js';
 import { Prologue, PROLOGUE_STAGES } from '../src/ship/prologue.js';
 import { LEVELS } from '../src/levels/index.js';
@@ -61,6 +62,40 @@ test('the ship builds, with a walkable floor, a solid hull and a cockpit you can
   assert.ok(Math.hypot(P.pos.x, P.pos.z) < R, 'within the hull');
 });
 
+test('walking straight from the corridor at the console gets you to it (the pilot seat stands in the way)', () => {
+  const { physics, ship } = flatWorld();
+  const m = ship.parked;
+  ship.player = new Player(physics);
+  const P = ship.player;
+  P.opts.climb = false;
+  P.pos.copy(ship.world(m, polar(2.4, Math.PI - 0.3, DECK + 0.05)));
+  const target = ship.world(m, m.interior.points.cockpit);
+  for (let i = 0; i < 60 * 8 && !ship.atConsole(); i++) {
+    const h = Math.atan2(target.x - P.pos.x, target.z - P.pos.z);
+    P.update(1 / 60, { KeyW: true }, h + Math.PI);
+  }
+  assert.ok(ship.atConsole(), `at the console: ${ship.local(m, P.pos).toArray().map((n) => n.toFixed(2))}`);
+  // and with room to spare: keep walking into the seat, and you are well inside the reach
+  for (let i = 0; i < 120; i++) { const h = Math.atan2(target.x - P.pos.x, target.z - P.pos.z); P.update(1 / 60, { KeyW: true }, h + Math.PI); }
+  const l = ship.local(m, P.pos), c = m.interior.points.cockpit;
+  assert.ok(Math.hypot(l.x - c.x, l.z - c.z) < CONSOLE_R - 0.3, `stopped ${Math.hypot(l.x - c.x, l.z - c.z).toFixed(2)} m from the cockpit point`);
+});
+
+test('at the foot of the ramp E goes aboard on foot, but gets you off a vehicle first', () => {
+  const { physics, ship } = flatWorld();
+  ship.player = new Player(physics);
+  ship.player.pos.copy(ship.rampFoot);
+  ship.player.ride = { kind: 'bike', pos: ship.rampFoot.clone() };
+  assert.equal(ship.hud(), null, 'no "go aboard" while riding');
+  const out = ship.input({ KeyE: true });
+  assert.ok(out.KeyE && !ship.auto, 'E passes through to the player (dismount)');
+  ship.input({});
+  ship.player.ride = null;
+  assert.equal(ship.hud(), 'E go aboard');
+  const out2 = ship.input({ KeyE: true });
+  assert.ok(!out2.KeyE && ship.auto, 'on foot, E walks you aboard');
+});
+
 test('the ramp reaches the ground and the hatch is open to walk through', () => {
   const { physics, ship } = flatWorld();
   assert.ok(Math.abs(ship.rampFoot.y) < 0.2, `ramp foot on the ground: ${ship.rampFoot.y.toFixed(2)}`);
@@ -95,6 +130,22 @@ test('a flat, clear spot is found near the spawn in real levels', () => {
   }
 });
 
+test('the site search does not hang on float noise (the browser and node found different Garage spots)', () => {
+  const meta = LEVELS.find((l) => l.id === 'garage');
+  const scene = new THREE.Scene();
+  const level = quiet(() => meta.create(scene));
+  const physics = new Physics(scene, level.ground.heightAt ? level.ground : null);
+  level.init?.(physics);
+  const avoid = siteAvoid({ level, content: CONTENT.garage });
+  const a = findShipSite({ level, physics, levelId: 'garage', avoid });
+  // the same collision, give or take 1e-12 m of noise
+  const g = physics.groundAt.bind(physics);
+  let seed = 1;
+  physics.groundAt = (...args) => g(...args) + (((seed = (seed * 16807) % 2147483647) / 2147483647) - 0.5) * 2e-12;
+  const b = findShipSite({ level, physics, levelId: 'garage', avoid });
+  assert.deepEqual([b.x, b.z, b.heading], [a.x, a.z, a.heading]);
+});
+
 test('the desert crash site is on open sand 40-80 m from the spawn, dug in and tilted', () => {
   const s = SITE_OVERRIDES.desert;
   const d = Math.hypot(s.x, s.z);
@@ -116,6 +167,23 @@ test('the console: a waiting call first; the galactic map is locked without powe
   assert.ok(by.arzach.visited && !by.arzach.done);
   assert.ok(!by.bazaar.visited);
   assert.equal(by.incal.title, LEVELS.find((l) => l.id === 'incal').title);
+});
+
+test('the galactic map spaces its worlds so no two discs or names overlap, clear of the info panel', () => {
+  const pts = new StarMap({}).layout(ORDER.length);
+  const W = 1100, H = 680;   // the chart at its full size
+  for (let i = 0; i < pts.length; i++) for (let j = i + 1; j < pts.length; j++) {
+    const dx = ((pts[i][0] - pts[j][0]) / 100) * W, dy = ((pts[i][1] - pts[j][1]) / 100) * H;
+    assert.ok(Math.abs(dx) > 92 || Math.abs(dy) > 105, `worlds ${i} and ${j} overlap (${dx.toFixed(0)}, ${dy.toFixed(0)} px)`);
+  }
+  for (const [x, y] of pts) assert.ok(x > 5 && x < 64 && y > 12 && y < 88, `on the chart, left of the panel: ${x.toFixed(0)}%, ${y.toFixed(0)}%`);
+  // a phone held upright: a 353 x 700 px chart, the panel along its bottom fifth
+  const P = new StarMap({}).layout(ORDER.length, { portrait: true });
+  for (let i = 0; i < P.length; i++) for (let j = i + 1; j < P.length; j++) {
+    const dx = ((P[i][0] - P[j][0]) / 100) * 353, dy = ((P[i][1] - P[j][1]) / 100) * 700;
+    assert.ok(Math.abs(dx) > 98 || Math.abs(dy) > 100, `portrait: worlds ${i} and ${j} overlap (${dx.toFixed(0)}, ${dy.toFixed(0)} px)`);
+  }
+  for (const [x, y] of P) assert.ok(x > 10 && x < 90 && y > 10 && y < 64, `portrait: above the panel: ${x.toFixed(0)}%, ${y.toFixed(0)}%`);
 });
 
 test('calls home: one per completed world, each heard once, the mother from the third', () => {

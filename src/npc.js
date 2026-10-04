@@ -231,7 +231,7 @@ export class NPC {
     const mover = player.ride ?? player;
     const playerSpeed = Math.hypot(mover.vel.x, mover.vel.z);
     const greetR = player.riding ? 18 : 9;
-    let speed = 0, face = null;
+    let speed = 0, face = null, fol = null;
     const startled = this.time - this.startleAt < 2.4 && this.faceTo !== undefined;
 
     // a vehicle bearing down on them: jump aside (perpendicular to its path)
@@ -262,25 +262,28 @@ export class NPC {
       this.move(_w, speed, dt);
       face = Math.atan2(_w.x, _w.z);
       this.greeted = 0;
+    } else if ((fol = this.follow?.()) && fol.pos && Math.hypot(fol.pos.x - this.pos.x, fol.pos.z - this.pos.z) > (fol.near ?? 1.2)) {
+      // walk toward a moving target, matching its pace (before greeting: a follower near you
+      // used to stop to wave whenever you were within 9 m, so Oum and Ilo trailed 9 m behind
+      // and the Speaker dropped out of his procession as you came up)
+      this.greeted = 0;
+      _w.subVectors(fol.pos, this.pos); _w.y = 0;
+      const d = _w.length(), near = fol.near ?? 1.2;
+      if (d > 40) { this.pos.copy(fol.pos); }           // fell far behind (a teleport, a long fall): catch up
+      else {
+        _w.divideScalar(d);
+        speed = Math.min((fol.speed ?? this.speed) + (d - near) * 0.6, fol.max ?? 4.5);
+        this.move(_w, speed, dt);
+        face = Math.atan2(_w.x, _w.z);
+      }
     } else if (dist < greetR) {
       // stop, face the player, wave once
       face = Math.atan2(toPlayer.x, toPlayer.z);
       if (!this.greeted) { this.greeted = this.time; this.lineIdx = (this.lineIdx + 1) % this.lines.length; }
-    } else if (this.follow) {
-      // walk toward a moving target, matching its pace; wait when close enough
+    } else if (fol) {
+      // arrived where they were going: waiting, facing their way
       this.greeted = 0;
-      const f = this.follow();
-      if (f?.pos) {
-        _w.subVectors(f.pos, this.pos); _w.y = 0;
-        const d = _w.length(), near = f.near ?? 1.2;
-        if (d > 40) { this.pos.copy(f.pos); }           // fell far behind (a teleport, a long fall): catch up
-        else if (d > near) {
-          _w.divideScalar(d);
-          speed = Math.min((f.speed ?? this.speed) + (d - near) * 0.6, f.max ?? 4.5);
-          this.move(_w, speed, dt);
-          face = Math.atan2(_w.x, _w.z);
-        } else if (f.face !== undefined) face = f.face;
-      }
+      if (fol.face !== undefined) face = fol.face;
     } else {
       this.greeted = 0;
       if (this.pause > 0) this.pause -= dt;
@@ -325,11 +328,17 @@ export class NPC {
     // cloth only near the camera
     const camD = camera.position.distanceTo(this.pos);
     if (this.cape) this.cape.mesh.visible = camD < (this.lowDetail ? 120 : 220);
-    if (this.cape && camD < (this.lowDetail ? 30 : 70)) {
+    // (every frame up close; every 2nd / 3rd frame further off, where a camp full of people
+    // spent ~0.7 ms a frame on cloth nobody could see move)
+    this._clothDt = (this._clothDt ?? 0) + dt;
+    const every = camD < 12 ? 1 : camD < 35 ? 2 : 3;
+    this._clothN = ((this._clothN ?? 0) + 1) % every;
+    if (this.cape && camD < (this.lowDetail ? 30 : 70) && (this._clothN === 0 || !this.cape.ready)) {
       this.object.updateMatrixWorld(true);
       this.vel.set(Math.sin(this.heading) * speed, 0, Math.cos(this.heading) * speed);
-      this.cape.update(dt, { up: Y, vel: this.vel, wind: player.wind, floor: this.pos, capsules: this.humanoid ? this.humanoid.capsules() : this.capsules() });
-    }
+      this.cape.update(Math.min(this._clothDt, 1 / 20), { up: Y, vel: this.vel, wind: player.wind, floor: this.pos, capsules: this.humanoid ? this.humanoid.capsules() : this.capsules() });
+      this._clothDt = 0;
+    } else if (!this.cape || camD >= (this.lowDetail ? 30 : 70)) this._clothDt = 0;
 
     // speech balloon: placed by placeBalloon() after the camera has moved this frame
     this.talking = !this.talkTo && this.greeted && this.time - this.greeted > 0.6 && dist < greetR;
@@ -438,7 +447,8 @@ export class NPC {
   }
 
   /** Put the balloon over the head (call after the camera update; only for the one that talks). */
-  placeBalloon(camera, show) {
+  /** @param lift extra pixels up (the E prompt hangs over this person's head) */
+  placeBalloon(camera, show, lift = 0) {
     if (!show || !this.talking) { this.balloon.classList.remove('show'); return; }
     const head = this.humanoid?.b?.Head;
     if (head) head.getWorldPosition(_w).add(_v.set(0, 0.62, 0));
@@ -448,7 +458,10 @@ export class NPC {
     if (on) {
       const text = this.shout && this.time < this.shout.until ? this.shout.text : this.lines[this.lineIdx];
       if (this.balloon.textContent !== text) this.balloon.textContent = text;
-      this.balloon.style.transform = `translate(${((_w.x * 0.5 + 0.5) * window.innerWidth).toFixed(1)}px, ${((-_w.y * 0.5 + 0.5) * window.innerHeight).toFixed(1)}px) translate(-22px, calc(-100% - 12px))`;
+      // kept on the screen (on a phone a balloon over someone near the edge ran off it)
+      const w = this.balloon.offsetWidth || 200;
+      const x = THREE.MathUtils.clamp((_w.x * 0.5 + 0.5) * window.innerWidth - 22, 6, Math.max(6, window.innerWidth - w - 6));
+      this.balloon.style.transform = `translate(${x.toFixed(1)}px, ${((-_w.y * 0.5 + 0.5) * window.innerHeight - lift).toFixed(1)}px) translate(0, calc(-100% - 12px))`;
     }
     this.balloon.classList.toggle('show', on);
   }

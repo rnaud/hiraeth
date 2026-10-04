@@ -209,6 +209,12 @@ const player = new Player(physics, {
   gravityAt: level.gravityAt, unsafe: level.unsafe, dynamic: level.dynamic,
 });
 player.vehicles.push(...(level.vehicles ?? []));
+// rooms off the map, reached through doorways (the desert's chambers and the cave in the
+// giant's chest, ~1 km up): no whistling the mount or hailing a taxi into them; it would
+// come to the same x, z on the dunes far below and wait there
+const offMapRooms = (level.portals ?? []).filter((p) => p.to && !p.toUp && p.to.y - (terrain.heightAt?.(p.to.x, p.to.z) ?? p.to.y) > 200).map((p) => p.to);
+const inOffMapRoom = () => offMapRooms.some((r) => r.distanceToSquared(player.pos) < 90 * 90);
+player.opts.canSummon = () => !inOffMapRoom();
 const lib = await animLib;
 if (lib) {
   player.animator = player._animator = new Animator(lib, player.char);
@@ -398,13 +404,22 @@ player.onStep = (p, heading, up, i) => {
   sound.step(Math.hypot(player.vel.x, player.vel.z));
 };
 
-const input = {};
+// Every press is seen for at least one frame: a quick tap (keydown and keyup between two
+// frames, easy at 20 fps or with a touch button) used to vanish, and E did nothing.
+const tapped = new Set();
+const input = new Proxy({}, { set(o, k, v) { if (v) tapped.add(k); o[k] = v; return true; } });
+const latchedInput = () => { const o = { ...input }; for (const k of tapped) o[k] = true; tapped.clear(); return o; };
 window.addEventListener('keydown', (e) => {
   input[e.code] = true;
-  if (e.code === 'KeyQ' && !e.repeat && !busy() && !photo.on) scout.ping();
+  if (e.code === 'KeyQ' && !e.repeat && !busy() && !photo.on && !ship.playing) scout.ping();
   if (e.code === 'Space') e.preventDefault();
 });
 window.addEventListener('keyup', (e) => (input[e.code] = false));
+// The E that closes a story page, a conversation or the ending (their own keydown handlers,
+// which run first) must not also act in the world: it walked you up the ship's ramp or
+// whistled the mount. E pressed while something was open is ignored until it is released.
+let eBlocked = false, wasBusy = false;
+window.addEventListener('keydown', (e) => { if (e.code === 'KeyE' && (wasBusy || busy())) eBlocked = true; });
 bindToolMouse(renderer.domElement, input);   // right button aims, left shoots, middle pushes
 window.addEventListener('blur', () => Object.keys(input).forEach((k) => (input[k] = false)));
 
@@ -546,9 +561,19 @@ const changelog = new Changelog();
 const menu = new SettingsMenu(settings, {
   sound,
   onNews: () => changelog.toggle(true),
-  isBusy: () => story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || photo.on || storyRt.busy() || ship.busy(),
+  // (Esc during the ship's scenes is "hold to skip", even in the parts you walk through)
+  isBusy: () => story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || photo.on || storyRt.busy() || ship.busy() || ship.playing,
   onResetProgress: () => { reactiveWorld.clear(); localStorage.removeItem('moebius.journal.v1'); SaveGame.clear(); game.reset(); location.href = location.pathname; },   // a new game: the prologue
 });
+// one panel at a time: J over the open settings drew the sketchbook's quest log under the
+// settings card (and O over the sketchbook the other way round)
+{
+  const panels = [menu, journal, changelog];
+  for (const p of panels) {
+    const toggle = p.toggle.bind(p);
+    p.toggle = (on = !p.open, ...rest) => { if (on) for (const q of panels) if (q !== p && q.open) q.toggle(false); return toggle(on, ...rest); };
+  }
+}
 if (isTouch) new TouchControls(input, rig);
 
 // ------------------------------------------------------------------ level picker
@@ -576,6 +601,7 @@ picker.querySelector('.cards').innerHTML = LEVELS.map((l, i) => l.hidden && !com
     </div>
   </a>`).join('');
 function showPicker(on) {
+  if (on) for (const q of [menu, journal, changelog]) if (q.open) q.toggle(false);
   picker.classList.toggle('open', on);
   if (on) document.exitPointerLock?.();
 }
@@ -659,20 +685,23 @@ function updateHud() {
     if (storyRt.prompt) parts.push(`E ${storyRt.prompt}`);
     else if (expedition?.nearby(player) >= 0) parts.push('observatory lenses');
     else if (near) parts.push(`E ${near.kind === 'taxi' ? 'get in the taxi' : 'ride the ' + (level.mountName ?? near.kind)}`);
-    else if (player.mount) parts.push(`E whistle for the ${level.mountName}`);
-    else if (level.features.taxis) parts.push('E hail a taxi');
+    else if (player.mount && !inOffMapRoom()) parts.push(`E whistle for the ${level.mountName}`);
+    else if (level.features.taxis && !inOffMapRoom()) parts.push('E hail a taxi');
     const shipHint = ship.hud();   // inside the ship and at its ramp, E is the ship's
-    if (shipHint) { for (let i = parts.length - 1; i >= 0; i--) if (parts[i].startsWith('E ')) parts.splice(i, 1); parts.unshift(shipHint); }
+    // (and while one of its scenes plays, E does nothing at all: no whistling from orbit)
+    if (shipHint || ship.playing) { for (let i = parts.length - 1; i >= 0; i--) if (parts[i].startsWith('E ')) parts.splice(i, 1); if (shipHint) parts.unshift(shipHint); }
     if (!parts.length) parts.push('push into a wall to climb it');
   }
   // a tracked quest's line wins; otherwise the ship's objective (set by the prologue) and the world's story
   const objective = game.flag('objective');
-  const questLine = expedition?.state.started && !expedition.state.returned ? expedition.hud(player) : storyRt.hud();
-  const goal = questLine ?? [objective && `◆ ${objective}`, expedition && !expedition.state.returned ? expedition.hud(player) : story.hud()].filter(Boolean).join(' · ');
+  // (none during the ship's scenes: in orbit the camps are "1.1 km through the doorway")
+  const questLine = ship.playing ? null : expedition?.state.started && !expedition.state.returned ? expedition.hud(player) : storyRt.hud();
+  const goal = ship.playing ? '' : questLine ?? [objective && `◆ ${objective}`, expedition && !expedition.state.returned ? expedition.hud(player) : story.hud()].filter(Boolean).join(' · ');
   const edgeHint = edgeTravel();
   let text = `${atmo.name} · ${parts.join(' · ')}` +
     `\n${goal ? goal + ' · ' : ''}${errands.hud() ? errands.hud() + ' · ' : ''}relics ${journal.relicCount(levelId)}/${content.relics.names.length} · Q ping · R tool · H help` +
     (gate.near ? ` · walk through the gate to ${nextTitle}` : '') + (edgeHint ? ` · ${edgeHint}` : '');
+  if (isTouch && !controllerActive) text = text.replace(' · Q ping · R tool · H help', '');   // the buttons say it
   if (controllerActive) text = text.replaceAll('SPACE', 'A / ×').replaceAll('SHIFT', 'RT / R2').replaceAll('W/S', 'left stick').replaceAll('A/D', 'left stick').replace(/\bE\b/g, 'X / □').replace('Q ping · R tool · H help', 'Y / △ ping · LT tool · Menu settings');
   audioCfg.mute = sound.muted;
   if (text !== lastStatus) { status.textContent = text; lastStatus = text; }
@@ -718,15 +747,39 @@ const controller = new Controller({
     if (name === 'worlds') showPicker(true);
     if (name === 'photo') setPhoto(!photo.on);
     if (name === 'capture') photo.capture = true;
-    if (name === 'ping') scout.ping();
+    if (name === 'ping' && !ship.playing) scout.ping();
   },
 });
 for (const event of ['keydown', 'pointerdown', 'touchstart']) window.addEventListener(event, () => { controllerActive = false; });
 
 
+// People's eyes, brows and small gear (under 7 cm) cast no visible shadow but cost a draw call
+// in each of the three shadow passes (~60 a frame by a camp fire): they skip the shadow passes.
+let tinyCache = null;
+function tinyShadowCasters() {
+  if (tinyCache && tinyCache.n === npcs.length) return tinyCache.list;
+  const list = [], s = new THREE.Vector3();
+  for (const root of [player.object, ...npcs.map((n) => n.object)]) {
+    root?.updateMatrixWorld(true);
+    root?.traverse((o) => {
+      if (!o.isMesh || !o.geometry?.attributes?.position) return;
+      if (!o.geometry.boundingSphere) o.geometry.computeBoundingSphere();
+      const r = (o.geometry.boundingSphere?.radius ?? 1) * o.getWorldScale(s).x;
+      if (r < 0.07) list.push(o);
+    });
+  }
+  tinyCache = { n: npcs.length, list };
+  return list;
+}
+
 /** The whole pipeline for one view: shadows, G-buffer, composite, overlays. */
 const _subj = new THREE.Vector3(), _subjUp = new THREE.Vector3(0, 1, 0);
 function renderFrame() {
+  // the scene graph's matrices once per frame, not once per pass: renderer.render() walks the
+  // whole scene to update them every call, and a frame makes four or five calls (~1 ms of CPU)
+  scene.matrixWorldAutoUpdate = true;
+  scene.updateMatrixWorld();
+  scene.matrixWorldAutoUpdate = false;
   // 1. shadow maps (the wide cascade only refreshes every 3rd frame)
   const lightDir = sharedUniforms.uSunDir.value;
   // far pebbles and shrubs are skipped in every pass; only what is shown now is hidden, then restored
@@ -734,6 +787,8 @@ function renderFrame() {
   scene.overrideMaterial = shadowOverride;
   for (const o of level.noShadow ?? []) o.visible = false;
   for (const o of player.gear?.noShadow ?? []) o.visible = false;
+  const tinyOn = tinyShadowCasters().filter((o) => o.visible);
+  for (const o of tinyOn) o.visible = false;
   fineShadow.update(player.pos, lightDir);
   fineShadow.render(scene);
   // low detail: the near cascade every other frame (it follows you smoothly enough)
@@ -751,6 +806,7 @@ function renderFrame() {
   scene.overrideMaterial = null;
   for (const o of level.noShadow ?? []) o.visible = true;
   for (const o of player.gear?.noShadow ?? []) o.visible = true;
+  for (const o of tinyOn) o.visible = true;
 
   // 2. G-buffer (clearing to 0 marks sky pixels with depth 0)
   camera.updateMatrixWorld();
@@ -782,6 +838,7 @@ function renderFrame() {
   renderer.setRenderTarget(null);
   renderer.render(blit.scene, post.camera);
   for (const o of farHidden) o.visible = true;
+  scene.matrixWorldAutoUpdate = true;   // (anything else that renders the scene keeps the usual behaviour)
 }
 
 /** Render the scene from another viewpoint and grab it as an image (comic panels, sketches). */
@@ -824,8 +881,12 @@ function frame() {
   controllerHint.textContent = busy() ? 'D-pad / left stick select · A / × confirm · B / ○ back · right stick scroll'
     : photo.on ? 'Left stick fly · right stick look · LB/RB down/up · A / × save · B / ○ exit'
     : 'A / × jump (again in the air: boost) · X / □ use · Y / △ ping · RT / R2 run · LT aim (+ RT shoot) · B / ○ push · ↑ worlds · ↓ photo · View sketchbook · Menu settings';
-  const mergedInput = mergeControls(input, padInput);
-  const ctl = busy() ? noInput : ship.input(mergedInput);   // the ship's E and its autopilot
+  const mergedInput = mergeControls(latchedInput(), padInput);
+  wasBusy = busy();
+  if (wasBusy && mergedInput.KeyE) eBlocked = true;
+  if (!mergedInput.KeyE) eBlocked = false;
+  if (eBlocked) mergedInput.KeyE = false;
+  const ctl = wasBusy ? noInput : ship.input(mergedInput);   // the ship's E and its autopilot
 
   if (sky.speed > 0) sky.hour = (sky.hour + (sky.speed / 60) * dt) % 24;
   // region fog / horizon follow the player smoothly (the field itself is smooth)
@@ -836,7 +897,7 @@ function frame() {
   for (const v of player.vehicles) if (v !== player.ride) v.update(dt, null, t);
   // E goes to the nearest person / thing / vehicle first (src/interact.js); only then to the player's whistle
   const ePressed = !!ctl.KeyE && !eWasDown && !photo.on; eWasDown = !!ctl.KeyE;
-  const interacted = storyRt.update(dt, t, { camera, ePressed, paused: busy() || photo.on }).handled;
+  const interacted = storyRt.update(dt, t, { camera, ePressed, paused: busy() || photo.on || ship.playing }).handled;
   if (photo.on) {
     if (!busy()) photoUpdate(dt, mergedInput);
   } else {
@@ -894,7 +955,8 @@ function frame() {
     camera.updateMatrixWorld();   // project with this frame's camera, not last frame's
     let best = null, bd = Infinity;
     for (const n of npcs) if (n.talking) { const d = n.pos.distanceTo(player.pos); if (d < bd) { bd = d; best = n; } }
-    for (const n of npcs) n.placeBalloon(camera, n === best);
+    const prompted = storyRt.prompt && storyRt.promptEntry?.npc;
+    for (const n of npcs) n.placeBalloon(camera, n === best, n === prompted ? 30 : 0);
     if (!busy() && !photo.on) storyRt.placePrompt(camera, controllerActive); else storyRt.placePrompt(camera, false);
   }
   relics.update(dt, t, player);
