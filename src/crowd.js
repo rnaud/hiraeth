@@ -250,6 +250,8 @@ export function standable(physics, x, y, z, { clear = 0.45, avoid = null, pad = 
     _o.set(x, g + h, z);
     for (let i = 0; i < 8; i += h < 0.9 ? 2 : 1) if (physics.rayDistance(_o, DIRS8[i], clear) < clear) return NaN;
   }
+  // not inside something big and solid (a bridge's abutment on the spire ring: its walls are further than `clear`)
+  if (physics.embedded?.(_o.set(x, g + 1.0, z))) return NaN;
   if (edge) for (let i = 1; i < 8; i += 2) {
     const gx = physics.groundAt(x + DIRS8[i].x * 0.32, g + 0.8, z + DIRS8[i].z * 0.32, 1.5);
     if (!Number.isFinite(gx) || Math.abs(gx - g) > 0.22) return NaN;
@@ -308,7 +310,8 @@ export function walkablePath(physics, pts, { avoid = null, clear = 1.3, lateral 
   const samples = [];
   const src = loop ? [...pts, pts[0]] : pts;
   for (let i = 0; i < src.length - 1; i++) {
-    const a = src[i], b = src[i + 1], len = a.distanceTo(b), n = Math.max(1, Math.ceil(len / 2.5));
+    // (every 1.5 m: a pillar or a stall's post between two samples used to be walked through)
+    const a = src[i], b = src[i + 1], len = a.distanceTo(b), n = Math.max(1, Math.ceil(len / 1.5));
     for (let k = 0; k < n; k++) samples.push(a.clone().lerp(b, k / n));
   }
   if (!loop) samples.push(src[src.length - 1].clone());
@@ -321,6 +324,9 @@ export function walkablePath(physics, pts, { avoid = null, clear = 1.3, lateral 
       const x = p.x - dz / l * s, z = p.z + dx / l * s;
       const gs = physics.groundAt(x, g + 0.8, z, 1.5);
       if (!Number.isFinite(gs) || Math.abs(gs - g) > 0.25 || avoid?.blocked(x, g, z, 0.3)) return false;
+      // and nothing standing in the side lane: a walker stepping aside must not pass through it
+      _d.set(-dz / l * Math.sign(s), 0, dx / l * Math.sign(s));
+      for (const h of [0.5, 1.4]) if (physics.rayDistance(_o.set(p.x, g + h, p.z), _d, lateral + 0.35) < lateral + 0.35) return false;
     }
     p.y = g;
     return true;

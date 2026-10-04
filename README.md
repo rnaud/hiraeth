@@ -1416,3 +1416,32 @@ to the new pick, and pulls the camera in along a line it was scored on if someth
 cuts it. A thing whose `at` is only where you stand (the foot of the stone hand) passes the
 part to look at as `dialogue.start(def, null, at, look)`. While a conversation is open
 `player.faceToward` turns the traveller to the person or the thing.
+
+### The clipping audit
+
+`src/clip-audit.js` lists what sinks into the ground, floats above it or stands in a wall.
+In the running game, `await clipAudit()` prints a report for the world you are in
+(`clipAudit({ print: false })` returns it: `{ checked, counts, offenders }`);
+`tests/clip-audit.test.js` runs it on made-up scenes and on the Signal Market. It checks:
+people (story NPCs and the crowd: feet on the ground, the body out of walls, not inside a
+solid), boxes (all four corners of the footprint on the ground), relics and the things you
+look at (not inside a solid), and every small prop the level and its story placed (a unit is
+the largest group under 25 m across; each instance of an instanced mesh is one). A prop must
+be held by something: a thin slab just outside one of its faces has to touch the collision
+BVH, the terrain, any drawn mesh (moss pads, a hanging city's roof: `drawnBVH`) or another
+prop; a walk-through prop (noCollide) must not stand inside a solid, judged by its middle
+when it is a trunk or a post, otherwise only when wholly inside (by its own axis for a leaning
+blade or a tumbled rock). Effects (see-through, animated: `userData.dynamic`), motes under
+12 cm and things marked `userData.floats` (bobbing orbs, floating stones, the sea of cloud,
+Incal's landing pads) are left out. "Inside a solid" uses `physics.buried(p)`: `embedded()`
+and an odd number of surfaces crossed on the way out, and not over a solid whose floor is
+under the terrain (a landmark half sunk in the dunes).
+
+What it found is fixed at the source: `dropBuriedFlora(scene, physics)` (called once the
+physics exists) drops instances of walk-through flora buried in a solid or wholly under the
+terrain (Incal's terrace trees also round their crowns, `dropBuriedInstances(..., { ring })`);
+crowd spots must not be inside a solid (`standable`), and a crowd route is sampled every
+1.5 m with the side lanes checked for posts and pillars; a box placed on a ledge or a rounded
+stone is moved (up to 1.2 m, `settle` in `src/boxes/index.js`) to where all four corners meet
+the ground. Known and left: the Garage's upside-down quarter (its props "float" by world down),
+the ship's interior seen from outside, and props resting on water.

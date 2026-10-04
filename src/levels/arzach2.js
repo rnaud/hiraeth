@@ -651,6 +651,7 @@ export function createArzach2(scene) {
   // ---------------------------------------------------------- floating stones (gently bobbing, not collidable)
   const floaters = new THREE.Group();
   floaters.userData.noCollide = true;
+  floaters.userData.floats = true;   // (the clipping audit: meant to hang in the air)
   scene.add(floaters);
   const floatGeo = [];
   const floater = (x, y, z, r, sy, egg, seed, pebbles = 3, mushroom = false) => {
@@ -807,6 +808,7 @@ export function createArzach2(scene) {
         im.setMatrixAt(i, dummy.matrix);
       });
       im.userData.noCollide = true;
+      im.userData.floats = true;   // (a cloud: the clipping audit leaves it be)
       im.frustumCulled = false;
       scene.add(im);
       noShadow.push(im);

@@ -677,5 +677,6 @@ export function buildWorld(scene, terrain) {
     scene.add(m);
   }
 
+  for (const f of floaters) f.obj.userData.floats = true;   // (the clipping audit: meant to hang in the air)
   return { floaters, banners, lights, doors };
 }

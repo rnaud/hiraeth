@@ -15,7 +15,7 @@ import { LEVELS, levelById } from './levels/index.js';
 import { Player, CameraRig } from './player.js';
 import { applyTimeOfDay, colourScript } from './timeofday.js';
 import { WindStreaks } from './wind.js';
-import { Physics } from './physics.js';
+import { Physics, dropBuriedFlora } from './physics.js';
 import { tileScene, cullFar, fitBounds, SmallCuller, RoomCuller, resolveQuality, detectHandheld, GpuTimer } from './perf.js';
 import { Cascade, ShadowCuller, shadowDirection } from './shadows.js';
 import { Trail } from './trail.js';
@@ -185,13 +185,17 @@ const t0 = performance.now();
 const physics = await Physics.create(scene, level.ground.heightAt ? level.ground : null);
 console.info(`collision: ${physics.triangles.toLocaleString()} triangles in ${(performance.now() - t0).toFixed(0)} ms (BVH in a worker)`);
 level.init?.(physics);
+// trees and shrubs that landed inside a house or a rock are left out (src/physics.js; window.clipAudit lists the rest)
+const buriedFlora = dropBuriedFlora(scene, physics);
+if (buriedFlora) console.info(`flora: ${buriedFlora} buried instances left out`);
 // the traveller's ship at this world's arrival point (src/ship/); a new game opens with the prologue
 // (no ?level and prologue.done unset, or ?prologue=1 to replay it)
 const playPrologue = levelId === 'desert' && !viaShip && (query.get('prologue') === '1' || (!levelParam && !game.flag('prologue.done')));
 // coming home by ship ends the story (src/ship/homecoming.js); ?ending=1 replays it
 const playHomecoming = levelId === 'home' && ((viaShip && !game.flag('ending.done')) || query.get('ending') === '1');
 const ship = new Ship({ scene, physics, level, levelId, content, prologue: playPrologue || playHomecoming });
-level.ship ??= { pos: ship.rampFoot.clone() };   // quests that say "return to the ship" point at its ramp
+level.ship ??= { pos: ship.rampFoot.clone() };
+const auditRoots = scene.children.slice();   // the level and the ship: what the clipping audit looks over (window.clipAudit)   // quests that say "return to the ship" point at its ramp
 const reactiveWorld = new ReactiveWorld(scene, level, physics, content);
 window.addEventListener('pagehide', () => reactiveWorld.flush());
 // tile world-spanning meshes so each pass only draws what it can see
@@ -329,8 +333,10 @@ const expedition = level.observatory ? new ObservatoryQuest({ model: level.obser
 // ---- story: conversations, quests, the world's people and places (src/story/, src/interact.js)
 const showToast = (text) => ship.cinema.toast(text);   // queued, and held while a scene has the screen dark (src/ship/cinema.js)
 player.onNotice = showToast;   // "It needs power." (a vehicle without the backpack)
+const preStory = new Set(scene.children);
 const storyRt = createStory({ levelId, scene, physics, level, player, npcs, crowd, sound, journal, story, lib, humans: humanT, toast: showToast, tool,
   capture: (e, l, w, h, o) => captureView(e, l, w, h, o) });
+for (const c of scene.children) if (!preStory.has(c)) auditRoots.push(c);   // (and what the world's story placed)
 story.waitFor = () => storyRt.dialogue.open;   // a story page never opens over a conversation: it waits for its end
 // E: boarding a vehicle and turning a lens share the interact button with talking (nearest wins)
 registerInteractable({ id: 'vehicle', priority: PRIORITY.vehicle, range: 6, at: () => player.nearestVehicle()?.pos,
@@ -1231,5 +1237,15 @@ requestAnimationFrame((t) => {
 });
 
 // handy for debugging from the console
+/** Dev: what sinks, floats or stands in a wall in this world (src/clip-audit.js); prints a report. */
+window.clipAudit = async (o = {}) => {
+  const { auditClipping, formatAudit } = await import('./clip-audit.js');
+  const { allInteractables } = await import('./interact.js');
+  const things = allInteractables().filter((e) => !/^(talk\.|box\.)/.test(e.id) && !['vehicle', 'lens'].includes(e.id));
+  const exclude = [player.object, ...npcs.flatMap((n) => [n.object, n.cape?.mesh]), ...player.vehicles.map((v) => v.object), ...relics.items.map((r) => r.grp), ...boxes.list.map((b) => b.parts?.root), ship.parked?.group];
+  const r = auditClipping({ physics, scene, roots: auditRoots, npcs, crowd, relics, boxes, things, exclude, ...o });
+  if (o.print !== false) console.log(formatAudit(r));
+  return r;
+};
 Object.assign(window, { shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife,
   storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, boxes, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats });

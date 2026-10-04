@@ -198,6 +198,7 @@ export class Puffs {
     this.mesh = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 1), makeMaterial({ color, glow }), count);
     this.mesh.frustumCulled = false;
     this.mesh.userData.noCollide = true;
+    this.mesh.userData.dynamic = true;   // (moved every frame: tileScene and the clipping audit leave it be)
     scene.add(this.mesh);
     this.items = Array.from({ length: count }, () => ({ pos: area(Math.random), age: Math.random() * life }));
   }

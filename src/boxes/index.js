@@ -90,7 +90,43 @@ export function resolvePlacement(p, { physics, level, anchor = null }) {
   // the front faces `face` (a heading), or back toward where you come from
   const toward = p.toward ?? [level.spawn.x, level.spawn.z];
   const yaw = p.face ?? Math.atan2(toward[0] - x, toward[1] - z);
-  return { pos: V(x, g + (p.lift ?? 0), z), yaw };
+  if (p.lift) return { pos: V(x, g + p.lift, z), yaw };
+  const s = settle(physics, x, z, g, yaw);
+  return { pos: V(s.x, s.y, s.z), yaw };
+}
+
+/**
+ * A box's spot made good: on the edge of a ledge or a boulder, one corner of
+ * the footprint hangs in the air (and another digs in on a slope). Look
+ * within a metre or so, on the same level, for where all four corners meet
+ * the ground; on a gentle slope, sit it down a little so the low corner touches.
+ */
+export function settle(physics, x, z, g, yaw, { reach = 1.2 } = {}) {
+  const hw = (BOX.w / 2) * BOX_SCALE, hd = (BOX.d / 2) * BOX_SCALE, c = Math.cos(yaw), s = Math.sin(yaw);
+  const corners = (cx, cz, gy) => {
+    let lo = Infinity, hi = -Infinity;
+    for (const [lx, lz] of [[-hw, -hd], [hw, -hd], [-hw, hd], [hw, hd]]) {
+      const h = physics.groundAt(cx + lx * c + lz * s, gy + 1, cz - lx * s + lz * c, 3);
+      if (!Number.isFinite(h)) return null;
+      lo = Math.min(lo, h); hi = Math.max(hi, h);
+    }
+    return { lo, hi };
+  };
+  let best = null;
+  const tryAt = (cx, cz, d) => {
+    const gc = d ? physics.groundAt(cx, g + 1, cz, 3) : g;
+    if (!Number.isFinite(gc) || Math.abs(gc - g) > 0.6) return false;
+    const k = corners(cx, cz, gc);
+    if (!k) return false;
+    const spread = Math.max(k.hi, gc) - Math.min(k.lo, gc), score = spread + d * 0.05;
+    if (!best || score < best.score) best = { x: cx, z: cz, y: gc - Math.min(Math.max(0, gc - k.lo - 0.05), 0.12), score, spread };   // (down a little on a slope)
+    return spread <= 0.08;
+  };
+  if (tryAt(x, z, 0)) return best;
+  for (let r = 0.3; r <= reach + 1e-6; r += 0.3) {
+    for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; if (tryAt(x + Math.cos(a) * r, z + Math.sin(a) * r, r)) return best; }
+  }
+  return best ?? { x, z, y: g };
 }
 
 /** This world's placements, with the fallbacks it needs right now. */
