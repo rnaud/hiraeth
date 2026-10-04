@@ -31,7 +31,6 @@ const CSS = `
 @media (max-width: 600px) { #boxcard { font-size: 13px; padding: 12px 14px 10px; bottom: calc(11vh + 10px); } #boxcard h2 { font-size: 20px; } }
 `;
 
-const touch = () => typeof matchMedia === 'function' && (matchMedia('(pointer: coarse)').matches || 'ontouchstart' in globalThis);
 // the glyph (three dots over an arch, as in src/story/dialogue.js MOTIFS)
 const GLYPH = '<svg viewBox="0 0 24 16" aria-hidden="true"><circle cx="5" cy="5" r="2"/><circle cx="12" cy="3.2" r="2"/><circle cx="19" cy="5" r="2"/><path d="M3 15 Q12 6 21 15" fill="none" stroke-width="2"/></svg>';
 const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
@@ -46,10 +45,10 @@ export class BoxCard {
     }
     const el = (this.el = document.createElement('div'));
     el.id = 'boxscene';
-    el.innerHTML = `<button class="skip" type="button">${touch() ? 'skip' : 'ESC skip'}</button>
+    el.innerHTML = `<button class="skip" type="button">skip</button>
       <div id="boxcard" role="dialog" aria-live="polite"><div class="k">${GLYPH}AN ARTIFACT OF THE MAKERS</div><h2><i class="star"></i><span class="name"></span></h2>
       <p class="what"><b>What it is</b><span class="text"></span></p><p class="does"><b>What it does</b><span class="use"></span></p><p class="left">Left by the makers for one who has come a long way.</p>
-      <button class="go" type="button">E · continue</button></div>`;
+      <button class="go" type="button">continue</button></div>`;
     document.body.appendChild(el);
     this.card = el.querySelector('#boxcard');
     this.go = el.querySelector('.go');
@@ -59,7 +58,7 @@ export class BoxCard {
   }
   /** The scene is playing (catch clicks, show the skip button). */
   scene(on) { if (this.dom) this.el.classList.toggle('on', on); if (!on) this.hide(); }
-  show(def, hint = touch() ? 'tap to continue' : 'E · continue') {
+  show(def, hint = 'continue') {   // (no key named: a press, a click or a tap all go on)
     this.shown = true;
     if (!this.dom) return;
     this.card.querySelector('.name').textContent = def.name;

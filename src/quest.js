@@ -153,7 +153,7 @@ export class Relics {
     if (k >= 0) this.lights.splice(k, 1);
     this.journal.addRelic(this.levelId, it.i, { name, img, t: Date.now() });
     this.sound.chime();
-    toast(`Found: ${name} · ${this.journal.relicCount(this.levelId)}/${this.total} · J to open the sketchbook`);
+    toast(`Found: ${name} · ${this.journal.relicCount(this.levelId)}/${this.total}`);
   }
 }
 
@@ -176,6 +176,8 @@ export class Story {
     this.goal = new THREE.Vector3(gx, (Number.isFinite(y) ? y : 0) - (def.drop ?? 0), gz);
     this.done = journal.storyDone(levelId);
     this.page = document.getElementById('page');
+    this.pageOpen = false;
+    this.pending = null;   // a page waiting for a conversation to end (showPage)
     this.page.addEventListener('click', () => this.closePage());
     window.addEventListener('keydown', (e) => { if (this.pageOpen && (e.code === 'Enter' || e.code === 'KeyE' || e.code === 'Escape')) this.closePage(); });
     // beacon: a tall thin column of light over the goal
@@ -218,6 +220,8 @@ export class Story {
       const k = Math.max(1, d * 0.0038);
       this.beam.scale.set(k, 1, k);
     }
+    // a page held back by a conversation opens once it has ended
+    if (this.pending && !this.pageOpen && !this.waitFor?.()) this.openPage(this.pending.which, this.pending.html);
     if (this.done || this.pageOpen || this.def.manual) return;
     const r = this.def.radius ?? 12, p = this.player.pos;
     if (Math.hypot(p.x - this.goal.x, p.z - this.goal.z) < r && Math.abs(p.y - this.goal.y) < (this.def.verticalRadius ?? Math.max(r, 20))) {
@@ -267,26 +271,39 @@ export class Story {
     return { ...shot, eye: from.clone().addScaledVector(to, Math.max(1.5, hit - 1.2)) };
   }
 
+  /**
+   * Draw a page (its panels rendered now) and open it. Never over a conversation: while `waitFor()`
+   * holds (main.js: someone is talking to you) the page waits, and opens once the talk ends. A
+   * world's closing page comes a moment after its last line, often while that talk is still open.
+   */
   showPage(which) {
     const d = this.def;
     const imgs = this.shots(which).map((s, i) => { s = this.clear(s); return this.capture(s.eye, s.look, i === 0 ? 900 : 440, i === 0 ? 380 : 300); });
     const caption = which === 'intro' ? d.intro : d.outro;
-    this.page.innerHTML = `
+    const html = `
       <div class="sheet">
         <div class="p p1"><img src="${imgs[0]}" alt=""><div class="cap">${which === 'intro' ? `<b>${d.title}</b><br>` : ''}${caption}</div></div>
         <div class="p p2"><img src="${imgs[1]}" alt=""></div>
         <div class="p p3"><img src="${imgs[2]}" alt=""></div>
-        <div class="hint">click / E to continue</div>
+        <div class="hint" aria-label="continue">▸</div>
       </div>`;
+    if (which === 'outro') {
+      // kept in the sketchbook at once, even if the page is still waiting to open
+      this.beacon.visible = false;
+      this.journal.addStory(this.levelId, { img: imgs[0], t: Date.now() });
+    }
+    if (this.waitFor?.()) { this.pending = { which, html }; return; }
+    this.openPage(which, html);
+  }
+
+  openPage(which, html) {
+    this.pending = null;
+    this.page.innerHTML = html;
     this.page.classList.add('open');
     this.pageOpen = true;
     document.exitPointerLock?.();
     this.sound.page();
-    if (which === 'outro') {
-      this.beacon.visible = false;
-      this.journal.addStory(this.levelId, { img: imgs[0], t: Date.now() });
-      this.sound.chime();
-    }
+    if (which === 'outro') this.sound.chime();
   }
 
   closePage() {

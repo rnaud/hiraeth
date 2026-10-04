@@ -1121,7 +1121,7 @@ Pocket. Their built-in controls work through the Gamepad API.
   checks every line in the game has one.
 - **Tongues** (`LANGUAGES`, by level id): Qanati, Shaft cant, the Arzach hush, cloud-monk
   chant, Garage clatter and so on, each with its own glyph script. The traveller's
-  translator shows "translating · <tongue>" and resolves the glyphs at the caret.
+  translator resolves the glyphs at the caret into your words (no label: the effect says it).
 
 ### Over-the-air updates and the handheld pass (v0.37)
 - **Game updates without an APK** (`android/.../WebBundles.java`, `src/native-app.js`):
@@ -1188,3 +1188,31 @@ Pocket. Their built-in controls work through the Gamepad API.
   per frame than before despite fewer draws (still over 200 fps here); the desert and the
   City-Shaft are about 1 ms faster.
 
+### A quieter screen: conversations and prompts
+- **No button reminders.** The status box (`updateHud` in `src/main.js`) shows the place,
+  gauges, the objective and relics, and a prompt only for what is right here (the ship's
+  hatch and console, a lens); a ride's controls show for six seconds after you get on.
+  The controller's button bar is gone except in photo mode; the full controls live in the
+  settings (and H for the keyboard's). Story pages, item cards and toasts name no keys.
+- **A controller means no touch buttons.** `body.controller` hides `#touch` and the gear.
+  A connected pad (the Retroid's own controls via `native-pad.js`) counts as in use until
+  the screen or the keys are touched, so a handheld starts with a clean screen.
+- **Round button badges** (`src/prompt-keys.js`): `keyBadge('E')` is
+  `<b class="key">E</b>`, a small ink circle (a pill for "X / □"); `badgeLine()` badges the
+  button at the start of each " · " part of a status line. The badge holds the plain
+  button name, so `native-pad.js` still renames it in place.
+- **Conversations** (`src/story/dialogue.js`): the speaker's name sits in a caption box
+  across the panel's top edge next to the portrait, larger on a 1080p screen; no hint
+  line, no translator tag (the glyphs resolving at the caret remain), and a small pointer
+  when a press turns the page. While talking, the status box, floating prompt, button bar
+  and gear are hidden.
+- **Portraits** (`src/story/portrait-bg.js`): the sketch is the person alone (`isolate()`
+  hides everything else for the shot), against one flat colour: the world's own pastel
+  tone, or another of that world's tones when they wear something close to it
+  (`backdropFor`). `captureView(…, { keep, backdrop, fov })` draws it; the composite's
+  `uBackdrop` uniform (`src/post.js`) paints the sky pixels flat.
+- **Story pages wait for the talk to end** (`Story.showPage` in `src/quest.js`): a world's
+  closing page, which comes a moment after the last line, used to open over the
+  conversation and stay up while A turned the pages under it. It is now drawn and kept in
+  the sketchbook at once, and opens when the conversation closes (`story.waitFor`); a
+  controller press goes to whatever is on top (`menuRoot`).

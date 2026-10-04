@@ -171,9 +171,11 @@ export class Dialogue {
     this._eye = new THREE.Vector3(); this._look = new THREE.Vector3(); this._q = new THREE.Quaternion();
     this._m = new THREE.Matrix4();
     if (this.el) {
-      this.el.innerHTML = `<div class="dlg-panel"><div class="dlg-who"><div class="dlg-chip"><img alt=""><span></span></div><div><b class="dlg-name"></b><i class="dlg-title"></i></div></div>
-        <p class="dlg-text"></p><div class="dlg-choices"></div><div class="dlg-hint"></div>
-        <div class="dlg-tr" title="Your translator: you hear their tongue, and read it in yours"><i></i><span></span></div></div>`;
+      // the speaker's name in a caption tab along the panel's top edge, their portrait at its corner;
+      // no button hints and no translator tag: the words resolving out of their script say it all
+      this.el.innerHTML = `<div class="dlg-panel"><div class="dlg-who"><div class="dlg-chip"><img alt=""><span></span></div></div>
+        <div class="dlg-tag"><b class="dlg-name"></b><i class="dlg-title"></i></div>
+        <p class="dlg-text"></p><div class="dlg-choices"></div><i class="dlg-more" aria-hidden="true"></i></div>`;
       this.q = (s) => this.el.querySelector(s);
       this.el.addEventListener('click', (e) => {
         const b = e.target.closest('button[data-i]');
@@ -222,7 +224,11 @@ export class Dialogue {
       this.q('.dlg-chip span').textContent = person.name[0];
       const img = this.q('.dlg-chip img');
       img.hidden = true;
-      try { const src = this.portrait?.(person, npc); if (src) { img.src = src; img.hidden = false; } } catch { /* no sketch */ }
+      // the portrait: a data URL, or { src, background } (just them against a flat colour: src/story/portrait-bg.js)
+      try {
+        const shot = this.portrait?.(person, npc), src = typeof shot === 'string' ? shot : shot?.src;
+        if (src) { img.src = src; img.hidden = false; if (shot.background) chip.style.background = shot.background; }
+      } catch { /* no sketch */ }
       this.el.classList.add('open');
       document.exitPointerLock?.();
       this.render();
@@ -287,14 +293,6 @@ export class Dialogue {
     const fresh = glyphs ? [...full.slice(cut, n)].map((c) => glyphOf(c, glyphs)).join('') : '';
     this.q('.dlg-text').innerHTML = formatText(shown.replace(/\{\w*$/, '').replace(/\*([^*]*)$/, (m, w) => ((shown.match(/\*/g)?.length ?? 0) % 2 ? w : m)))   // hide only a star still waiting for its pair
       + (fresh ? `<span class="dlg-alien">${fresh.replace(/[&<>]/g, '')}</span>` : '') + (revealing ? '<span class="dlg-caret">▍</span>' : '');
-    // the translator: a small mark in the corner while someone speaks another tongue
-    const tr = this.q('.dlg-tr');
-    if (tr) {
-      tr.hidden = !plan.foreign;
-      tr.classList.toggle('busy', revealing);
-      const label = `${revealing ? 'translating' : 'translated'} · ${LANGUAGES[plan.lang]?.name ?? ''}`;
-      if (tr.lastChild.textContent !== label) tr.lastChild.textContent = label;
-    }
     this.q('.dlg-text').classList.toggle('player', r.speaker === 'player');
     const done = this.revealed >= full.length;
     const choices = done ? r.choices() : [];
@@ -304,11 +302,8 @@ export class Dialogue {
       box.innerHTML = html; box.dataset.html = html;
       if (choices.length && document.body.classList.contains('controller')) box.querySelector('button')?.focus();
     }
-    const touch = typeof document !== 'undefined' && document.body.classList.contains('touch');
-    const pad = typeof document !== 'undefined' && document.body.classList.contains('controller');
-    this.q('.dlg-hint').textContent = pad ? (!done ? 'A / × skip' : choices.length ? 'D-pad choose · A / × answer · B / ○ leave' : 'A / × continue · B / ○ leave')
-      : touch ? (!done ? 'tap: skip' : choices.length ? 'tap an answer' : 'tap: continue')
-      : !done ? 'E / click: skip' : choices.length ? '1–4 or click to answer · Esc leave' : 'E / click: continue · Esc leave';
+    // a small mark at the panel's corner when the line is done and the next press turns the page
+    this.el.classList.toggle('more', done && !choices.length);
   }
 
   /** Per frame: reveal text, voice blips, keep the speaker turned to you. */

@@ -184,7 +184,7 @@ function shown(e) {
   return r.width > 1 && r.height > 1 ? { x0: r.left, y0: r.top, x1: r.right, y1: r.bottom } : null;
 }
 const HOLD_TOASTS = '#homeward.open, #starmap.open, #page.open, #journal.open, #warp.on';
-const OBSTACLES = ['#hud', '#gear', '#fps', '#touch button', '#controller-hint', '#dialogue.open .dlg-panel', '#dialogue.open .dlg-who', '#boxscene.card #boxcard', '#boxscene.on .skip'];
+const OBSTACLES = ['#hud', '#gear', '#fps', '#touch button', '#controller-hint', '#dialogue.open .dlg-panel', '#dialogue.open .dlg-who', '#dialogue.open .dlg-tag', '#boxscene.card #boxcard', '#boxscene.on .skip'];
 
 export class Cinema {
   constructor() {
