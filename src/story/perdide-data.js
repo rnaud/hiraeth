@@ -64,7 +64,7 @@ const P = (cloak, cloth, extra = {}) => ({ cloak, lining: '#2b211f', cloth, legs
 // order matters (the errands use it) and so does their kind (spawnNPCs: even m, odd f).
 export const LANDING = [
   {
-    at: [-10, -14], radius: 2, palette: P('#8a6fb8', '#3f5a4a'),
+    at: [-10, -14], radius: 2, palette: P('#8a6fb8', '#3f5a4a'), look: { prop: 'basket' },
     lines: ['Don’t feed the plants.', 'The crystals hum when it rains.', 'Mind the eggs. They’re warm for a reason.'],
     id: 'wendel', name: 'Wendel', title: 'egg-warden', color: '#8a6fb8', voice: 0.85,
     talk: {
@@ -249,7 +249,7 @@ export const LANDING = [
 export const PEOPLE = {
   saba: {
     id: 'saba', name: 'Saba', title: 'the Listener', color: '#c7a6f2', voice: 0.8, kind: 'f',
-    palette: { cloak: '#c7a6f2', lining: '#2b211f', cloth: '#4a4566', legs: '#2f3a4f', hat: '#f3ead8', hair: '#d8d0ea' }, head: 'wrap', cape: 1.45,
+    palette: { cloak: '#c7a6f2', lining: '#2b211f', cloth: '#4a4566', legs: '#2f3a4f', hat: '#f3ead8', hair: '#d8d0ea' }, head: 'wrap', cape: 1.45, look: { body: 'reedcape', prop: 'staff' },
     lines: ['Shh. Listening.', 'Phrase forty-one. Again.', 'Your pack is humming.'],
     talk: {
       entry: [
@@ -381,7 +381,7 @@ export const PEOPLE = {
 
   ysse: {
     id: 'ysse', name: 'Ysse', title: 'keeper of the crystal cave', color: '#7fe0d0', voice: 1.1, kind: 'f',
-    palette: { cloak: '#7fe0d0', lining: '#2b211f', cloth: '#34405e', legs: '#2f3a4f', hat: '#c7a6f2', hair: '#2b211f' }, head: 'hood', cape: 1.45,
+    palette: { cloak: '#7fe0d0', lining: '#2b211f', cloth: '#34405e', legs: '#2f3a4f', hat: '#c7a6f2', hair: '#2b211f' }, head: 'hood', cape: 1.45, look: { prop: 'lantern' },
     lines: ['Mind your elbows.', 'Dust makes them deaf.', 'Don’t touch. Unless you have to.'],
     talk: {
       entry: [

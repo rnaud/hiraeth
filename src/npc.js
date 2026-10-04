@@ -5,6 +5,7 @@ import { Animator } from './animator.js';
 import { Humanoid } from './humanoid.js';
 import { makeMaterial, sharedUniforms, MODE_OUTFIT } from './materials.js';
 import { registerTarget } from './targets.js';
+import { namedLook, costumeWorld, TRIM_IDS } from './costumes.js';
 
 // People of the world: they walk a looping route, pause and look around,
 // turn and wave when you come close, then say a line in a comic speech
@@ -19,6 +20,10 @@ import { registerTarget } from './targets.js';
 // The player's fluid tool: hit(mode). A glob splashes and startles them (a
 // jump, a turn to the shooter, a short line); the push shoves them back a
 // couple of metres, stumbling with their arms flung up.
+//
+// What they wear comes from their world (costumes.js): a named person keeps the
+// colours the story gives them, dressed in the world's style; a crowd body is
+// dressed exactly like the crowd figure it stands in for.
 //
 // Story people (src/story/): `follow` walks them toward a moving target
 // (the head of a procession, the player), `seat` sits them on a cushion at
@@ -38,8 +43,10 @@ export class NPC {
    * @param o.palette colours for buildCharacter
    * @param o.lines   things they say
    * @param o.pooled  a crowd's near-tier body (hidden until assign())
+   * @param o.head / o.cape / o.look  the story's headwear, cape length and costume overrides (costumes.js dressFor)
+   * @param o.world   the world they are dressed for (default: the current level's)
    */
-  constructor(scene, physics, { route, palette, lines, speed = 1.25, shy = false, scale = 1, lib = null, human = null, kind = 'm', pooled = false, follow = null, seat = null, head = null, cape = null, def = null }) {
+  constructor(scene, physics, { route, palette = {}, lines, speed = 1.25, shy = false, scale = 1, lib = null, human = null, kind = 'm', pooled = false, follow = null, seat = null, head = null, cape = null, def = null, look = null, world = null }) {
     this.physics = physics;
     this.follow = follow;   // () => { pos, speed, near } | null: walk there instead of the route
     this.seat = seat;       // sit on something this high (m) instead of walking
@@ -58,24 +65,20 @@ export class NPC {
     this.lines = lines;
     this.speed = speed * (0.85 + Math.random() * 0.3);
     this.shy = shy;
-    this.char = buildCharacter(palette);
-    this.char.pack.visible = !pooled && Math.random() < 0.5;
+    // their costume: seeded by who they are, so they look the same every visit
+    const at = route[0];
+    const dress = pooled ? null : namedLook({ world: world ?? costumeWorld(), id: def?.id ?? `${kind}:${Math.round(at.x)},${Math.round(at.z)}`,
+      palette, head, cape, look: look ?? def?.look ?? {}, pos: at });
+    this.char = buildCharacter(dress ? { ...palette, cloak: dress.cloak, cloth: dress.cloth, legs: dress.legs } : palette);
+    this.char.pack.visible = !pooled && !dress?.robe && Math.random() < 0.5;
     this.object = this.char.root;
-    this.object.scale.setScalar(scale);
+    this.object.scale.setScalar(scale * (dress?.size ?? 1));
     this.object.userData.noCollide = true;
     scene.add(this.object);
-    const pick = (a) => a[Math.floor(Math.random() * a.length)];
-    const SKINS = ['#e9cfb4', '#d9a98a', '#b07a5a', '#f1dccb', '#8a5a40'];
-    const HAIR = ['#2b211f', '#4a3226', '#6e4a32', '#b0a89a', '#a8552e', '#e8dcc0'];
-    this.humanoid = human ? new Humanoid(human, this.char, kind, { skin: pick(SKINS) }) : null;
-    // costume: headwear and a cape from shoulder-short to floor-length (or none)
-    head = pooled ? 'hood' : head ?? pick(['hood', 'hat', 'hat', 'wrap', 'hair', 'hair']);
-    if (!pooled) this.humanoid?.setHeadwear(head, { color: palette.hat ?? pick(['#d8a24a', '#e6875f', '#f3ead8', '#62c3c9', '#a99be0']), hair: palette.hair ?? pick(HAIR), accent: this.char.colors.cloak });
-    const capeLen = pooled ? 0 : cape ?? (head === 'hood' ? 1.45 : pick([0, 0.55, 0.9, 1.25, 1.45]));
-    this.cape = capeLen > 0
-      ? new Cape(scene, this.char.capeAnchor ?? this.char.torso, { color: this.char.colors.cloak, cols: 10, rows: capeLen > 1 ? 8 : 6, length: capeLen, bottom: 0.25 + capeLen * 0.17 })
-      : null;
-    if (!this.cape) this.char.root.traverse((o) => { if (o.isMesh && o.geometry.type === 'TorusGeometry' && o.parent === this.char.capeAnchor) o.visible = false; });
+    this.humanoid = human ? new Humanoid(human, this.char, kind, { skin: dress?.skin ?? '#e8c6a8' }) : null;
+    this.cape = null;
+    if (dress) this.restyle(dress);
+    else this.char.root.traverse((o) => { if (o.isMesh && o.geometry.type === 'TorusGeometry' && o.parent === this.char.capeAnchor) o.visible = false; });
     this.animator = lib ? new Animator(lib, this.char) : null;
     this.pos = route[0].clone();
     this.heading = 0;
@@ -127,10 +130,15 @@ export class NPC {
     this.hide();
   }
 
-  /** Re-dress: tunic / trousers / skin on the body, headwear, and a cape of the right colour and length. */
+  /**
+   * Dress in a look (costumes.js): tunic / trousers / skin and the printed pattern on the body,
+   * the costume pieces (headwear, mask, shoulder piece, prop, robe) and a cape of the right
+   * colour, length and width. A crowd body takes its person's look, so it matches the crowd figure.
+   */
   restyle(s) {
     if (this._style === s) return;
     this._style = s;
+    this.look = s;
     const h = this.humanoid, c = this.char;
     Object.assign(c.colors, { cloak: s.cloak, cloth: s.cloth, legs: s.legs });
     if (h) {
@@ -139,38 +147,39 @@ export class NPC {
         this._mats = new Map();
         const ink = new THREE.Color(c.colors.ink).getHex();
         h.model.traverse((o) => {
-          if (!o.isSkinnedMesh || !o.material?.uniforms) return;   // body, eyes, brows (not the headwear on the bones)
+          if (!o.isSkinnedMesh || !o.material?.uniforms || h._costume?.includes(o)) return;   // body, eyes, brows (not the costume)
           if (!this._mats.has(o.material)) {
             const m = o.material.clone();
             Object.assign(m.uniforms, sharedUniforms);
             m.userData.role = m.uniforms.uMode.value === MODE_OUTFIT ? 'body' : m.uniforms.uColor.value.getHex() === ink ? 'eyes' : 'brows';
+            m.userData.wrist = m.uniforms.uOutfit.value.w;
             this._mats.set(o.material, m);
           }
           o.material = this._mats.get(o.material);
         });
       }
+      const trim = Math.max(0, TRIM_IDS.indexOf(s.trim ?? 'none'));
       for (const m of this._mats.values()) {
         const u = m.uniforms;
-        if (m.userData.role === 'body') { u.uColor.value.set(s.cloth); u.uColor2.value.set(s.legs); u.uSkin.value.set(s.skin); u.uGlove.value.w = 0; }   // bare hands, like the crowd figures
-        else if (m.userData.role === 'brows') u.uColor.value.set(s.hair);
+        if (m.userData.role === 'body') {
+          u.uColor.value.set(s.cloth); u.uColor2.value.set(s.legs); u.uSkin.value.set(s.skin); u.uGlove.value.w = 0;   // bare hands, like the crowd figures
+          const t = new THREE.Color(s.accent ?? s.cloak);
+          u.uTrim.value.set(t.r, t.g, t.b, trim);
+          u.uSuit.value = (s.bulk ?? 0) >= 2 ? 1 : 0;                       // the dome people's padded suits
+          u.uOutfit.value.w = s.sleeveless ? 0.2 : m.userData.wrist;      // bare arms in the garden
+        } else if (m.userData.role === 'brows') u.uColor.value.set(s.hair);
       }
-      // headwear: drop what setHeadwear added last time, then dress again
-      const A = h.headAnchor;
-      for (const o of this._headwear ?? []) { A.remove(o); o.traverse((m) => m.geometry?.dispose()); }
-      const before = new Set(A.children);
-      h.setHeadwear(s.head, { color: s.hat, hair: s.hair, accent: s.accent });
-      this._headwear = A.children.filter((o) => !before.has(o));
-      for (const part of h.hood) part.traverse((o) => {
-        if (o.isMesh) o.material = makeMaterial({ color: s.cloak, ...(o.material.side === THREE.DoubleSide ? { side: THREE.DoubleSide } : {}) });
-      });
+      h.dress(s);
     }
-    // the cape: the same colour and length as the crowd figure
+    // the cape: the same colour, length and width as the crowd figure
     this.cape?.dispose(this.scene);
+    const wide = s.capeWide ?? 1;
     this.cape = s.capeLen > 0
-      ? new Cape(this.scene, c.capeAnchor ?? c.torso, { color: s.cloak, cols: 10, rows: s.capeLen > 1 ? 8 : 6, length: s.capeLen, bottom: 0.25 + s.capeLen * 0.17 })
+      ? new Cape(this.scene, c.capeAnchor ?? c.torso, { color: s.cloak, cols: 10, rows: s.capeLen > 1 ? 8 : 6, length: s.capeLen, bottom: (0.25 + s.capeLen * 0.17) * wide })
       : null;
-    if (this.cape) this.cape.mesh.visible = false;
-    c.root.traverse((o) => { if (o.isMesh && o.geometry.type === 'TorusGeometry' && o.parent === c.capeAnchor) o.visible = !!this.cape; });
+    if (this.cape && this.pooled) this.cape.mesh.visible = false;
+    // the cape's rolled collar in the cape's own colour
+    c.root.traverse((o) => { if (o.isMesh && o.geometry.type === 'TorusGeometry' && o.parent === c.capeAnchor) { o.visible = !!this.cape; o.material = makeMaterial({ color: s.cloak }); } });
   }
 
   /** Stilled by a 'stun' glob: frozen mid-move for a few seconds (nobody can talk to them meanwhile). */
@@ -596,7 +605,7 @@ export function spawnNPCs(scene, physics, spots, { fromY = 1e4, lib = null, huma
     }
     const kind = k % 2 ? 'f' : 'm';
     const npc = new NPC(scene, physics, { route, palette: s.palette, lines: s.lines, shy: s.shy, speed: s.speed, lib,
-      human: humans ? humans[kind === 'm' ? 0 : 1] : null, kind, def: s.talk ? s : null, head: s.head ?? null, cape: s.cape ?? null });
+      human: humans ? humans[kind === 'm' ? 0 : 1] : null, kind, def: s.talk ? s : null, head: s.head ?? null, cape: s.cape ?? null, look: s.look ?? null });
     return npc;
   });
 }

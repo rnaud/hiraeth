@@ -67,7 +67,7 @@ const ON_AIR = { flag: 'bazaar.broadcast.on' };
 export const PEOPLE = {
   sel: {
     id: 'sel', name: 'Madame Sel', title: 'who kept the silent tower', color: '#88b4b5', voice: 0.75, kind: 'f', scale: 0.96,
-    palette: { cloak: '#88b4b5', lining: '#465c65', cloth: '#f5dfab', legs: '#465c65', hat: '#f0a083', hair: '#e8dcc0' }, head: 'wrap', cape: 1.4,
+    palette: { cloak: '#88b4b5', lining: '#465c65', cloth: '#f5dfab', legs: '#465c65', hat: '#f0a083', hair: '#e8dcc0' }, head: 'wrap', cape: 1.4, look: { body: 'badge', robe: 0.12 },
     lines: ['Mind the cables, love.', 'Forty years I ran that tower.', 'Listen. No. Listen properly.'],
     talk: {
       entry: [
@@ -193,7 +193,7 @@ export const PEOPLE = {
 
   ferro: {
     id: 'ferro', name: 'Ferro', title: 'who rigs the antenna', color: '#c99758', voice: 1.0, kind: 'f',
-    palette: { cloak: '#c99758', lining: '#3a535b', cloth: '#3a535b', legs: '#465c65', hat: '#88b4b5', hair: '#2b211f' }, head: 'hat', cape: 0.4,
+    palette: { cloak: '#c99758', lining: '#3a535b', cloth: '#3a535b', legs: '#465c65', hat: '#88b4b5', hair: '#2b211f' }, head: 'hat', cape: 0.4, look: { prop: 'wrench', mask: 'browgoggles' },
     lines: ['Don’t touch that. That’s live.', 'Three bulbs. Three!', 'Hold still, you beautiful idiot of an antenna.'],
     talk: {
       entry: [{ if: { flag: 'bazaar.antenna.tuned' }, node: 'tuned' }, { node: 'hello' }],

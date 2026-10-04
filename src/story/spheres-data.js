@@ -64,7 +64,7 @@ export const QUESTS = [
 export const PEOPLE = {
   aube: {
     id: 'aube', name: 'Aube', title: 'the listener', color: '#9fd0c8', voice: 1.0, kind: 'f',
-    palette: { cloak: '#f3efe2', lining: '#2b211f', cloth: '#9fd0c8', legs: '#7f9a90', hat: '#f6efd0', hair: '#3d2a22', face: '#e8dcc8' }, head: 'wrap', cape: 1.2,
+    palette: { cloak: '#f3efe2', lining: '#2b211f', cloth: '#9fd0c8', legs: '#7f9a90', hat: '#f6efd0', hair: '#3d2a22', face: '#e8dcc8' }, head: 'wrap', cape: 1.2, look: { prop: 'parasol' },
     lines: ['The spheres came down long ago. Nobody minds them now.', 'Follow the pale path. It goes through the arch.', 'Shh. Stand still.'],
     talk: {
       entry: [
@@ -202,7 +202,7 @@ export const PEOPLE = {
 
   ume: {
     id: 'ume', name: 'Ume', title: 'who keeps the pole', color: '#f6efd0', voice: 0.8, kind: 'f', scale: 0.96,
-    palette: { cloak: '#f6efd0', lining: '#2b211f', cloth: '#a9c9c4', legs: '#5a6a6a', hat: '#e0d4bc', hair: '#e8dcc0' }, head: 'wrap', cape: 1.45,
+    palette: { cloak: '#f6efd0', lining: '#2b211f', cloth: '#a9c9c4', legs: '#5a6a6a', hat: '#e0d4bc', hair: '#e8dcc0' }, head: 'wrap', cape: 1.45, look: { prop: 'staff', body: 'ruff' },
     lines: ['Hear it? The pole hums while the great sphere is up.', 'Bring it something to sing.', 'Hm-mm-mm.'],
     talk: {
       entry: [

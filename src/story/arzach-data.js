@@ -60,7 +60,7 @@ export const QUESTS = [
 export const PEOPLE = {
   oia: {
     id: 'oia', name: 'Oïa', title: 'who watches the tower', color: '#d8c7a6', voice: 0.8, kind: 'f',
-    palette: { cloak: '#d8c7a6', lining: '#8a7a66', cloth: '#f4efe2', legs: '#8a7a66', hat: '#f4efe2', hair: '#2b211f' }, head: 'hood', cape: 1.45,
+    palette: { cloak: '#d8c7a6', lining: '#8a7a66', cloth: '#f4efe2', legs: '#8a7a66', hat: '#f4efe2', hair: '#2b211f' }, head: 'hood', cape: 1.45, look: { mask: 'beak', body: 'scarf', prop: 'staff' },
     lines: ['…', '(she watches the tower)', '(she nods)'],
     talk: {
       entry: [

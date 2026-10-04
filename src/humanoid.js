@@ -5,6 +5,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 import { makeMaterial, MODE_OUTFIT } from './materials.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { lookPieces, roleColor } from './costumes.js';
 
 // A real human body (Quaternius' Universal Base Characters, CC0) dressed in
 // the rider's clothes by our inked material, driven every frame by the
@@ -167,6 +169,9 @@ const _wq1 = new THREE.Quaternion(), _wq2 = new THREE.Quaternion(), _wq3 = new T
 const _k1 = new THREE.Vector3(), _k2 = new THREE.Vector3(), _k3 = new THREE.Vector3(), _k4 = new THREE.Vector3(), _k5 = new THREE.Vector3(), _k6 = new THREE.Vector3();
 const _kq = new THREE.Quaternion(), _kq2 = new THREE.Quaternion(), _kq3 = new THREE.Quaternion(), _km = new THREE.Matrix4();
 
+// held props: the idle clip's wrist tilts the hanging-arm frame back and out; this turns it upright again
+const HAND_GRIP = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(-0.45, 0.79, 0.41).normalize());
+
 // The face lights as one rounded volume (bind-pose centre, normal blend).
 const HEAD_BALL = [0, 1.8, 0.03, 0.8];
 
@@ -178,6 +183,7 @@ export class Humanoid {
    */
   constructor(template, char, kind = 'm', { skin = '#e8c6a8', hair = '#8a6a55', gloves = null, suit = false, imported = false } = {}) {
     this.char = char;
+    this.kind = kind;
     this.imported = imported;
     if (imported) this.face = new FaceExpression();
     this.noShadow = [];
@@ -210,7 +216,11 @@ export class Humanoid {
           Object.assign(o.material.uniforms, this.face.uniforms);
         }
         if (glass) this.noShadow.push(o);
-      } else o.material = isBrow ? brows : /eye/i.test(o.name) ? eyes : body;
+      } else {
+        o.material = isBrow ? brows : /eye/i.test(o.name) ? eyes : body;
+        // the body itself: costumes (dress()) are skinned onto its skeleton
+        if (o.isSkinnedMesh && o.material === body && (!this.body || o.geometry.attributes.position.count > this.body.geometry.attributes.position.count)) this.body = o;
+      }
       o.frustumCulled = false;
       o.userData.noCollide = true;
     });
@@ -375,6 +385,130 @@ export class Humanoid {
       const tail = add(new THREE.BoxGeometry(0.07, 0.32, 0.01), mat(color, { side: THREE.DoubleSide }), 0.02, -0.08, -0.12);
       tail.rotation.set(0.25, 0.3, 0.1);
     }
+  }
+
+  /**
+   * Dress the body in a costume look (costumes.js): headwear, mask, shoulder piece, held prop and
+   * robe, merged into one skinned mesh on this body's own skeleton (one draw call; a second only
+   * for glowing lanterns), coloured per vertex from the look. Replaces the rig's hood.
+   */
+  dress(look) {
+    for (const m of this._costume ?? []) { m.removeFromParent(); m.geometry.dispose(); }
+    this._costume = [];
+    for (const h of this.hood) h.visible = false;
+    if (!look || this.imported || !this.body) return;
+    const base = this.costumeGeometry(look);
+    const col = new THREE.Color();
+    const make = (src, mat) => {
+      if (!src) return;
+      const geo = src.geo.clone();
+      const c = new Float32Array(src.roles.length * 3);
+      for (let i = 0; i < src.roles.length; i++) { col.set(roleColor(look, src.roles[i])); c[i * 3] = col.r; c[i * 3 + 1] = col.g; c[i * 3 + 2] = col.b; }
+      geo.setAttribute('color', new THREE.BufferAttribute(c, 3));
+      const mesh = new THREE.SkinnedMesh(geo, mat);
+      const body = this.body;
+      mesh.position.copy(body.position); mesh.quaternion.copy(body.quaternion); mesh.scale.copy(body.scale);
+      mesh.bind(body.skeleton, body.bindMatrix);
+      mesh.frustumCulled = false;
+      mesh.userData.noCollide = true;
+      body.parent.add(mesh);
+      this._costume.push(mesh);
+    };
+    make(base.main, makeMaterial({ color: '#ffffff', vertexColors: true, side: THREE.DoubleSide }));
+    make(base.glow, makeMaterial({ color: '#ffffff', vertexColors: true, glow: 0.85, side: THREE.DoubleSide }));
+  }
+
+  /** The costume's merged geometry in this model's bind space (cached per body kind and look; colours added per person). */
+  costumeGeometry(look) {
+    const robe = look.robe > 0 ? `${look.robe.toFixed(2)}/${(look.flare ?? 0.3).toFixed(2)}` : '-';
+    const key = `${this.kind}|${look.head}|${look.mask}|${look.body}|${look.prop}|${robe}`;
+    const cache = (this.constructor._costumes ??= new Map());
+    if (cache.has(key)) return cache.get(key);
+    const B = this.b, bones = this.body.skeleton.bones;
+    const bi = (name) => Math.max(0, bones.indexOf(B[name]));
+    const restHead = this.rest.get(B.Head).p;
+    const handDir = this.restDir('lowerarm_r', 'hand_r');
+    const frames = {
+      head: { bone: bi('Head'), m: new THREE.Matrix4().makeTranslation(0, restHead.y + 0.1, restHead.z + 0.01) },
+      chest: { bone: bi('spine_03'), m: new THREE.Matrix4().makeTranslation(0, this.rest.get(B.neck_01).p.y - 0.76, 0) },
+      // the hand frame: the arm hanging down; turned so a staff stands upright in the idle clip's grip
+      hand: { bone: bi('hand_r'), m: new THREE.Matrix4().compose(this.rest.get(B.hand_r).p,
+        new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), handDir).multiply(HAND_GRIP), new THREE.Vector3(1, 1, 1)) },
+    };
+    const out = { main: [], glow: [] };
+    const push = (geo, role, joints, weights) => {
+      for (const k of Object.keys(geo.attributes)) if (k !== 'position' && k !== 'normal') geo.deleteAttribute(k);
+      if (!geo.index) geo.setIndex([...Array(geo.attributes.position.count).keys()]);
+      const n = geo.attributes.position.count;
+      const J = new Uint16Array(n * 4), W = new Float32Array(n * 4);
+      for (let i = 0; i < n; i++) { const [j, w] = joints(i, geo); J.set(j, i * 4); W.set(w, i * 4); }
+      geo.setAttribute('skinIndex', new THREE.BufferAttribute(J, 4));
+      geo.setAttribute('skinWeight', new THREE.BufferAttribute(W, 4));
+      (role === 'lamp' ? out.glow : out.main).push({ geo, role, n });
+    };
+    const pieces = lookPieces(look, 1);
+    for (const [f, list] of Object.entries(pieces)) {
+      const F = frames[f], rigid = () => [[F.bone, 0, 0, 0], [1, 0, 0, 0]];
+      for (const pc of list) push(pc.geo.applyMatrix4(F.m), pc.role, rigid);
+    }
+    if (look.robe > 0) for (const part of this.robeGeometry(look.robe, look.flare ?? 0.3)) push(part.geo, part.role, part.joints);
+    const merged = (list) => {
+      if (!list.length) return null;
+      const roles = [];
+      for (const p of list) for (let i = 0; i < p.n; i++) roles.push(p.role);
+      return { geo: mergeGeometries(list.map((p) => p.geo)), roles };
+    };
+    const r = { main: merged(out.main), glow: merged(out.glow) };
+    cache.set(key, r);
+    return r;
+  }
+
+  /**
+   * A robe from the belt to `hem` (m above the ground), flaring to `flare` (m): kept clear of this
+   * body's hips and legs at rest, the lower part following the thighs as they swing.
+   */
+  robeGeometry(hem, flare) {
+    const B = this.b, bones = this.body.skeleton.bones;
+    const belt = OUTFIT[this.kind][1] - 0.005;
+    // the body's extent at each height (bind pose), so the robe never cuts into the hips
+    const ext = (this._robeExt ??= (() => {
+      const P = this.body.geometry.attributes.position, rows = [];
+      for (let k = 0; k < 24; k++) rows.push({ x: 0, z0: 0, z1: 0 });
+      for (let i = 0; i < P.count; i++) {
+        const y = P.getY(i);
+        if (y > 1.15 || y < 0) continue;
+        const r = rows[Math.min(23, Math.floor(y / 0.05))];
+        r.x = Math.max(r.x, Math.abs(P.getX(i))); r.z0 = Math.min(r.z0, P.getZ(i)); r.z1 = Math.max(r.z1, P.getZ(i));
+      }
+      return rows;
+    })());
+    const at = (y) => ext[THREE.MathUtils.clamp(Math.floor(y / 0.05), 0, 23)];
+    const left = Math.sign(this.rest.get(B.thigh_l).p.x) || 1;
+    const jp = Math.max(0, bones.indexOf(B.pelvis)), jl = Math.max(0, bones.indexOf(B.thigh_l)), jr = Math.max(0, bones.indexOf(B.thigh_r));
+    const ts = [0, 0.15, 0.32, 0.5, 0.7, 0.88];
+    const cols = 18, len = belt - hem;
+    const ring = (t) => {
+      const y = belt - t * len, e = at(y), k = Math.pow(t, 0.85);
+      const zc = (e.z0 + e.z1) / 2;
+      return { y, zc: THREE.MathUtils.lerp(zc, zc - 0.02, t), rx: Math.max(THREE.MathUtils.lerp(0.165, flare, k), e.x + 0.03), rz: Math.max(THREE.MathUtils.lerp(0.14, flare * 0.86, k), (e.z1 - e.z0) / 2 + 0.03) };
+    };
+    const band = (t0, t1, steps) => {
+      const pos = [], idx = [], rows = [];
+      for (let r = 0; r <= steps; r++) rows.push(ring(t0 + (t1 - t0) * (r / steps)));
+      rows.forEach((R) => { for (let c = 0; c <= cols; c++) { const a = (c / cols) * Math.PI * 2; pos.push(Math.sin(a) * R.rx, R.y, R.zc + Math.cos(a) * R.rz); } });
+      for (let r = 0; r < steps; r++) for (let c = 0; c < cols; c++) { const a = r * (cols + 1) + c, b = a + 1, d = a + cols + 1, e = d + 1; idx.push(a, d, b, b, d, e); }
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+      g.setIndex(idx);
+      g.computeVertexNormals();
+      return g;
+    };
+    const joints = (i, g) => {
+      const P = g.attributes.position, t = (belt - P.getY(i)) / len;
+      const wl = THREE.MathUtils.smoothstep(P.getX(i) * left, -0.12, 0.12), follow = 0.75 * THREE.MathUtils.smoothstep(t, 0, 0.5);
+      return [[jp, jl, jr, 0], [1 - follow, follow * wl, follow * (1 - wl), 0]];
+    };
+    return [{ geo: band(0, 0.88, ts.length - 1), role: 'cloth', joints }, { geo: band(0.88, 1, 1), role: 'accent', joints }];
   }
 
   /** Aim the skeleton along the rig (call after the rig's pose for this frame). */

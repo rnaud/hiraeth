@@ -288,7 +288,7 @@ export const PEOPLE = {
 
   speaker: {
     id: 'speaker', name: 'The Speaker', title: 'who leads the procession', color: '#f3ead8', voice: 0.7, kind: 'm', scale: 1.08,
-    palette: { cloak: '#f3ead8', lining: '#c8483a', cloth: '#e2d3b4', legs: '#5a4a40', hat: '#c8483a', hair: '#e8dcc0' }, head: 'hat', cape: 1.45,
+    palette: { cloak: '#f3ead8', lining: '#c8483a', cloth: '#e2d3b4', legs: '#5a4a40', hat: '#c8483a', hair: '#e8dcc0' }, head: 'hat', cape: 1.45, look: { prop: 'staff', body: 'mantle', robe: 0.08 },
     lines: ['Round, and round, and round.', 'Keep the step.', 'The tree is patient. So are we.'],
     talk: {
       entry: [
@@ -351,7 +351,7 @@ export const PEOPLE = {
 
   oum: {
     id: 'oum', name: 'Oum', title: 'who fell behind', color: '#b7a0cf', voice: 0.85, kind: 'f', scale: 0.94,
-    palette: { cloak: '#b7a0cf', lining: '#2b211f', cloth: '#e2d3b4', legs: '#5a4a40', hat: '#f3ead8', hair: '#e8dcc0' }, head: 'wrap', cape: 1.45,
+    palette: { cloak: '#b7a0cf', lining: '#2b211f', cloth: '#e2d3b4', legs: '#5a4a40', hat: '#f3ead8', hair: '#e8dcc0' }, head: 'wrap', cape: 1.45, look: { prop: 'staff' },
     lines: ['Eh? Who’s there?', 'My feet are older than the city.', 'Wait for me!'],
     talk: {
       entry: [
@@ -388,7 +388,7 @@ export const PEOPLE = {
   // the eldest of Qanat, Hessa's grandmother, who has kept the makers' chest under the Givers' shrine for sixty years
   nour: {
     id: 'nour', name: 'Nour', title: 'the eldest of Qanat', color: '#3b4f8a', voice: 0.72, kind: 'f', scale: 0.93,
-    palette: { cloak: '#2f437a', lining: '#dcecf2', cloth: '#e2d3b4', legs: '#5a4a40', hat: '#f3ead8', hair: '#ece4d2' }, head: 'wrap', cape: 1.45,
+    palette: { cloak: '#2f437a', lining: '#dcecf2', cloth: '#e2d3b4', legs: '#5a4a40', hat: '#f3ead8', hair: '#ece4d2' }, head: 'wrap', cape: 1.45, look: { mask: 'veil', prop: 'staff', robe: 0.06 },
     lines: ['Mind the chest, child.', 'Sixty years I have sat with it.', 'It hums more when you are near. Did you notice?'],
     talk: {
       entry: [
@@ -470,7 +470,7 @@ export const PEOPLE = {
 
   hessa: {
     id: 'hessa', name: 'Hessa', title: 'keeper of the well', color: '#62c3c9', voice: 0.95, kind: 'f',
-    palette: { cloak: '#62c3c9', lining: '#2b211f', cloth: '#f3ead8', legs: '#2b2f45', hat: '#f3ead8', hair: '#4a3226' }, head: 'hood', cape: 1.45,
+    palette: { cloak: '#62c3c9', lining: '#2b211f', cloth: '#f3ead8', legs: '#2b2f45', hat: '#f3ead8', hair: '#4a3226' }, head: 'hood', cape: 1.45, look: { prop: 'basket' },
     lines: ['The well is dry. Don’t lean on it.', 'Every year I sweep the well for the water. Every year.', 'The stele tells it better than me.'],
     talk: {
       entry: [{ if: { flag: 'desert.channel.open' }, node: 'full' }, { node: 'hello' }],

@@ -99,7 +99,7 @@ export const PEOPLE = {
   },
   ottla: {
     id: 'ottla', name: 'Ottla', title: 'mechanic of everything', color: '#e6875f', voice: 0.9, kind: 'f',
-    palette: { cloak: '#e6875f', lining: '#2b211f', cloth: '#3f8f8a', legs: '#34405e', hat: '#d8a24a', hair: '#a8552e' }, head: 'wrap', cape: 0,
+    palette: { cloak: '#e6875f', lining: '#2b211f', cloth: '#3f8f8a', legs: '#34405e', hat: '#d8a24a', hair: '#a8552e' }, head: 'wrap', cape: 0, look: { prop: 'wrench', body: 'toolbelt', mask: 'browgoggles' },
     lines: ['Hand me that… no. That one.', 'It’s not broken. It’s thinking.', 'Three of them. All at once. In one night.'],
     talk: {
       entry: [
@@ -136,7 +136,7 @@ export const PEOPLE = {
   },
   lune: {
     id: 'lune', name: 'Lune', title: 'who reads the signal', color: '#a99be0', voice: 1.1, kind: 'f',
-    palette: { cloak: '#a99be0', lining: '#2b211f', cloth: '#f3ead8', legs: '#34405e', hat: '#f2c54b', hair: '#e8dcc0' }, head: 'hood', cape: 1.25,
+    palette: { cloak: '#a99be0', lining: '#2b211f', cloth: '#f3ead8', legs: '#34405e', hat: '#f2c54b', hair: '#e8dcc0' }, head: 'hood', cape: 1.25, look: { mask: 'goggles' },
     lines: ['Look up. No, the other up.', 'The light comes in through the slit at noon.', 'Everything here is down, just a different down.'],
     talk: {
       entry: [

@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, sharedUniforms } from './materials.js';
-import { CROWD_GLSL, CROWD_POSES as POSE, CROWD_ZONES as Z, CROWD_PARTS as P } from './crowd-shader.js';
+import { CROWD_GLSL, CROWD_POSES as POSE, CROWD_ZONES as Z, CROWD_PARTS as P, CROWD_SLOTS as SLOT } from './crowd-shader.js';
+import { COSTUMES, HEADS as HEADWEAR, MASKS, BODIES, PROPS, HEAD_IDS, MASK_IDS, BODY_IDS, PROP_IDS, CROWD_FRAMES, hairCap, crowdLook, packDress, costumeWorld } from './costumes.js';
 import { registerTarget } from './targets.js';
 import { mulberry32 } from './noise.js';
 
@@ -44,6 +45,7 @@ const wrapA = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 const damp = (k, dt) => 1 - Math.exp(-k * dt);
 
 // ------------------------------------------------------------------ looks
+// (what people wear comes from their world: costumes.js)
 export const CROWD_STYLE = {
   cloaks: ['#c8483a', '#5fb7ad', '#d8a24a', '#8a6fb8', '#e6875f', '#f3ead8', '#62c3c9', '#e88fa6', '#697a98', '#dca273', '#84bab3', '#c3a9cc'],
   tunics: ['#343a56', '#5a4a3a', '#3f6f6a', '#6a3a4a', '#e2d3b4', '#4a5a3a'],
@@ -52,7 +54,6 @@ export const CROWD_STYLE = {
   hair: ['#2b211f', '#4a3226', '#6e4a32', '#b0a89a', '#a8552e', '#e8dcc0'],
   hats: ['#d8a24a', '#e6875f', '#f3ead8', '#62c3c9', '#a99be0'],
 };
-const HEADS = ['hood', 'hat', 'wrap', 'hair'];
 export const STARTLE_LINES = ['Hey!', 'Ow! What was that?', 'Who threw that?', 'Watch it!', 'Was that you?', 'Hey, not funny!'];
 // what people say when a glob of fluid splashes them, and when the push shoves them
 export const SPLASH_LINES = ['Hey! I\u2019m soaked!', 'Ugh, it\u2019s all colours!', 'Who threw that?', 'Was that you?', 'My good cloak!', 'Hey, not funny!'];
@@ -66,19 +67,17 @@ export const GREET_LINES = ['Fresh figs! Fresh figs!', 'Mind the edge, it\u2019s
   'Have you seen the light above the palace?', 'Laundry dries fast up here.', 'My grandmother never saw the sky.', 'Lovely hat.', 'Excuse me.', 'Busy day.'];
 
 const hexOf = (c) => new THREE.Color(c).getHex();
-export function crowdStyle(rng, palette = {}) {
-  const S = { ...CROWD_STYLE, ...palette };
-  const pick = (a) => a[Math.floor(rng() * a.length)];
-  const head = pick(['hood', 'hat', 'hat', 'wrap', 'hair', 'hair']);
-  const capeLen = head === 'hood' ? 1.4 : pick([0, 0.5, 0.9, 1.2, 1.4]);
-  return { cloak: pick(S.cloaks), cloth: pick(S.tunics), legs: pick(S.legs), skin: pick(S.skins), hair: pick(S.hair),
-    hat: pick(S.hats), accent: pick(S.cloaks), head, capeLen };
+/** A crowd person's look: their world's costume (costumes.js) over the level's crowd colours. */
+export function crowdStyle(rng, palette = {}, { world = costumeWorld(), spot = null, pos = null } = {}) {
+  return crowdLook(rng, { world, lists: palette, spot, pos });
 }
-function packLook(s) {
-  const head = HEADS.indexOf(s.head);
+/** The per-instance colour and costume attributes: aLook0, aLook1, aDress (crowd-shader.js). */
+export function packLook(s) {
+  const d = packDress(s);
   return [
     new Float32Array([hexOf(s.cloak), hexOf(s.cloth), hexOf(s.legs), hexOf(s.skin)]),
-    new Float32Array([hexOf(s.hat), hexOf(s.accent), hexOf(s.hair), head + 4 * Math.round(s.capeLen * 10)]),
+    new Float32Array([hexOf(s.hat), hexOf(s.accent), hexOf(s.hair), d.w]),
+    new Float32Array(d.dress),
   ];
 }
 
@@ -96,7 +95,7 @@ function capeGeometry(cols, rows, gap = 0.42) {
   const pos = [], nrm = [], rig = [], idx = [];
   for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
     const a = gap + (c / (cols - 1)) * (TAU - gap * 2), t = r / (rows - 1);
-    pos.push(Math.sin(a), 0, Math.cos(a)); nrm.push(Math.sin(a), 0, Math.cos(a)); rig.push(P.cape, Z.cloak, 6, t);
+    pos.push(Math.sin(a), 0, Math.cos(a)); nrm.push(Math.sin(a), 0, Math.cos(a)); rig.push(P.cape, Z.cloak, SLOT.cape * 64, t);
   }
   for (let r = 0; r < rows - 1; r++) for (let c = 0; c < cols - 1; c++) {
     const a = r * cols + c, b = a + 1, d = a + cols, e = d + 1;
@@ -109,14 +108,66 @@ function capeGeometry(cols, rows, gap = 0.42) {
   g.setIndex(idx);
   return g;
 }
+/** The robe as parameters, like the cape: xz = direction round the body, aRig.w = 0 belt → 1 hem; the last band is the accent hem. */
+function robeGeometry(cols, rows) {
+  const pos = [], nrm = [], rig = [], idx = [];
+  const ts = rows <= 2 ? [0, 0.88, 0.88, 1] : [0, 0.3, 0.62, 0.88, 0.88, 1];
+  ts.forEach((t, r) => {
+    const zone = r >= ts.length - 2 ? Z.accent : Z.cloth;
+    for (let c = 0; c <= cols; c++) {
+      const a = (c / cols) * TAU;
+      pos.push(Math.sin(a), 0, Math.cos(a)); nrm.push(Math.sin(a), 0, Math.cos(a)); rig.push(P.robe, zone, SLOT.robe * 64, t);
+    }
+  });
+  for (let r = 0; r < ts.length - 1; r++) {
+    if (ts[r] === ts[r + 1]) continue;   // the seam between the cloth and its hem band
+    for (let c = 0; c < cols; c++) {
+      const a = r * (cols + 1) + c, b = a + 1, d = a + cols + 1, e = d + 1;
+      idx.push(a, d, b, b, d, e);
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3));
+  g.setAttribute('aRig', new THREE.Float32BufferAttribute(rig, 4));
+  g.setIndex(idx);
+  return g;
+}
 const at = (g, x, y, z) => g.translate(x, y, z);
+const ROLE_ZONE = { skin: Z.skin, cloak: Z.cloak, cloth: Z.cloth, legs: Z.legs, hat: Z.hat, accent: Z.accent, hair: Z.hair, lining: Z.lining,
+  dark: Z.dark, metal: Z.metal, wood: Z.wood, lamp: Z.lamp };
+const LEGACY = { heads: ['hood', 'hat', 'wrap', 'hair'], masks: [], bodies: [], props: [], robe: false };
+/** The pieces a world's crowd can wear (every tribe's), for its figure. */
+export function worldPieces(world) {
+  const set = COSTUMES[world];
+  if (!set) return LEGACY;
+  const keys = (k) => [...new Set(set.tribes.flatMap((t) => Object.entries(t[k]).filter(([id, w]) => w > 0 && id !== 'none').map(([id]) => id)))];
+  return { heads: keys('heads'), masks: keys('masks'), bodies: keys('body'), props: keys('props'), robe: set.tribes.some((t) => t.robe > 0) };
+}
 
-/** Low-poly figure for the instanced tiers; 'mid' (~0.9k tris incl. costume variants) or 'far' (~0.15k). */
-export function figureGeometry(detail = 'mid') {
+/**
+ * Low-poly figure for the instanced tiers; 'mid' (~0.6k tris plus the world's costume pieces) or
+ * 'far' (~0.15k plus the big shapes). Only the world's own costume pieces are baked in (costumes.js).
+ */
+export function figureGeometry(detail = 'mid', world = null) {
   const C = THREE;
   const parts = [];
   const add = (g, part, zone, variant = 0) => parts.push(tag(g, part, zone, variant));
-  if (detail === 'far') {
+  const W = worldPieces(world);
+  const far = detail === 'far', q = far ? 0.3 : 0.5;
+  const F = CROWD_FRAMES;
+  const frame = (g, f) => f === 'head' ? g.scale(F.head.s, F.head.s, F.head.s).translate(0, F.head.y, F.head.z)
+    : f === 'chest' ? g.translate(0, F.chest.y, 0) : g.translate(F.hand.x, F.hand.y, F.hand.z);
+  const partOf = { head: P.head, chest: P.torso, hand: P.foreR };
+  const costume = (list, f, slot, id) => { for (const pc of list) if (!far || pc.far) add(frame(pc.geo, f), partOf[f], ROLE_ZONE[pc.role] ?? Z.cloak, slot * 64 + id); };
+  // the world's headwear, masks, shoulder pieces and props (the shader keeps the ones each person wears)
+  for (const id of W.heads) costume(HEADWEAR[id].parts(q), 'head', SLOT.head, HEAD_IDS.indexOf(id));
+  if (W.heads.some((id) => HEADWEAR[id].cap)) costume([hairCap(q)], 'head', SLOT.hairCap, 0);
+  if (!far) for (const id of W.masks) costume(MASKS[id](q), 'head', SLOT.mask, MASK_IDS.indexOf(id));
+  for (const id of W.bodies) costume(BODIES[id](q), 'chest', SLOT.body, BODY_IDS.indexOf(id));
+  for (const id of W.props) costume(PROPS[id](q), 'hand', SLOT.prop, PROP_IDS.indexOf(id));
+  if (W.robe) parts.push(robeGeometry(far ? 6 : 10, far ? 2 : 4));
+  if (far) {
     for (const s of [1, -1]) {
       add(at(new C.BoxGeometry(0.11, 0.5, 0.13), s * 0.09, 0.72, 0), s > 0 ? P.thighL : P.thighR, Z.legs);
       add(at(new C.BoxGeometry(0.1, 0.5, 0.12), s * 0.09, 0.25, 0.01), s > 0 ? P.shinL : P.shinR, Z.legs);
@@ -124,11 +175,6 @@ export function figureGeometry(detail = 'mid') {
     }
     add(at(new C.CylinderGeometry(0.135, 0.165, 0.62, 6, 1, true), 0, 1.16, 0), P.torso, Z.cloth);
     add(at(new C.SphereGeometry(0.105, 6, 4).scale(0.92, 1.2, 1), 0, 1.64, 0), P.head, Z.skin);
-    add(at(new C.ConeGeometry(0.16, 0.42, 6), 0, 1.73, -0.03), P.head, Z.cloak, 1);
-    add(at(new C.CylinderGeometry(0.3, 0.3, 0.02, 8), 0, 1.775, 0), P.head, Z.hat, 2);
-    add(at(new C.CylinderGeometry(0.09, 0.115, 0.17, 6, 1), 0, 1.86, 0), P.head, Z.hat, 2);
-    add(at(new C.CylinderGeometry(0.1, 0.125, 0.14, 6, 1), 0, 1.75, 0), P.head, Z.hat, 3);
-    add(at(new C.SphereGeometry(0.11, 6, 2, 0, TAU, 0, Math.PI * 0.5), 0, 1.66, -0.01), P.head, Z.hair, 4);
     parts.push(capeGeometry(6, 2));
     return finish(parts);
   }
@@ -150,19 +196,9 @@ export function figureGeometry(detail = 'mid') {
   add(at(new C.CylinderGeometry(0.045, 0.05, 0.13, 6, 1, true), 0, 1.5, 0), P.head, Z.skin);
   add(at(new C.SphereGeometry(0.1, 8, 6).scale(0.92, 1.22, 1.02), 0, 1.64, 0.005), P.head, Z.skin);
   add(at(new C.ConeGeometry(0.022, 0.12, 4).rotateX(Math.PI / 2 + 0.4), 0, 1.625, 0.105), P.head, Z.skin);
-  // headwear variants (the shader keeps the one each person wears)
-  add(at(new C.SphereGeometry(0.15, 10, 6, Math.PI / 2 + 0.75, TAU - 1.5).scale(1, 1.25, 1.15), 0, 1.68, -0.02), P.head, Z.cloak, 1);
-  add(at(new C.ConeGeometry(0.065, 0.26, 6).translate(0, 0.12, 0).rotateX(-1.15), 0, 1.83, -0.09), P.head, Z.cloak, 1);
-  add(at(new C.CylinderGeometry(0.3, 0.3, 0.016, 14), 0, 1.775, 0), P.head, Z.hat, 2);
-  add(at(new C.CylinderGeometry(0.075, 0.115, 0.17, 10), 0, 1.86, 0), P.head, Z.hat, 2);
-  add(at(new C.CylinderGeometry(0.117, 0.12, 0.03, 10, 1, true), 0, 1.79, 0), P.head, Z.accent, 2);
-  [[0.125, 1.712, Z.hat], [0.115, 1.752, Z.accent], [0.095, 1.79, Z.hat]].forEach(([r, y, z]) =>
-    add(at(new C.CylinderGeometry(r * 0.88, r, 0.045, 10, 1, true), 0, y, -0.01), P.head, z, 3));
-  add(at(new C.SphereGeometry(0.05, 6, 4), 0, 1.775, -0.075), P.head, Z.hair, 4);
-  add(at(new C.SphereGeometry(0.108, 8, 4, 0, TAU, 0, Math.PI * 0.56).scale(1, 1.08, 1.1).rotateX(-0.3), 0, 1.655, -0.012), P.head, Z.hair, 5);
   // the cape and its collar
   parts.push(capeGeometry(9, 4));
-  add(at(new C.TorusGeometry(0.19, 0.03, 4, 10).rotateX(Math.PI / 2), 0, 1.45, 0), P.torso, Z.lining, 6);
+  add(at(new C.TorusGeometry(0.19, 0.03, 4, 10).rotateX(Math.PI / 2), 0, 1.45, 0), P.torso, Z.cloak, SLOT.cape * 64);
   return finish(parts);
 }
 function finish(parts) {
@@ -303,10 +339,13 @@ export function buildPeople(physics, spots, { seed = 7, clear = [] } = {}) {
   const rng = mulberry32(seed);
   const avoid = new ClearMap([...(spots.avoid ?? []), ...(spots.clear ?? []), ...clear]);
   const people = [], groups = [], routes = [];
-  const style = () => crowdStyle(rng, spots.palette);
+  // looks come from their own random stream (the placement draws stay what they were)
+  const world = spots.costume ?? costumeWorld(), lookRng = mulberry32(seed * 7919 + 13);
+  const oldDraws = () => { if (Math.floor(rng() * 6) !== 0) rng(); for (let i = 0; i < 7; i++) rng(); };
   const person = (o) => {
     const kind = rng() < 0.5 ? 'm' : 'f';
-    const s = style(), size = 0.95 + rng() * 0.1;
+    oldDraws();
+    const s = crowdStyle(lookRng, spots.palette, { world, spot: o.spot ?? null, pos: o.pos }), size = (0.95 + rng() * 0.1) * s.size;
     const p = {
       id: people.length, kind, style: s, look: packLook(s), size, scale: size * (kind === 'm' ? 1.03 : 1.0),
       pos: o.pos.clone(), home: o.pos.clone(), heading: o.heading, homeHeading: o.heading,
@@ -433,7 +472,7 @@ class Tier {
     this.max = max;
     this.geometry = geometry;
     this.attrs = {};
-    for (const k of ['aAnim', 'aReact', 'aLook0', 'aLook1']) {
+    for (const k of ['aAnim', 'aReact', 'aLook0', 'aLook1', 'aDress']) {
       const a = new THREE.InstancedBufferAttribute(new Float32Array(max * 4), 4);
       a.setUsage(THREE.DynamicDrawUsage);
       geometry.setAttribute(k, a);
@@ -462,6 +501,7 @@ class Tier {
     re[j] = p.headYaw; re[j + 1] = p.headPitch; re[j + 2] = p.talk; re[j + 3] = stumbling ? p.stumbleT : p.startleT;
     A.aLook0.array.set(p.look[0], j);
     A.aLook1.array.set(p.look[1], j);
+    A.aDress.array.set(p.look[2], j);
   }
   commit(n) {
     this.n = n;
@@ -506,8 +546,9 @@ export class Crowd {
     this.rng = mulberry32(seed + 1);
     const n = this.people.length;
     const material = makeMaterial({ color: '#ffffff', crowd: true, side: THREE.DoubleSide });
-    this.mid = new Tier(figureGeometry('mid'), material, Math.max(n, 1));
-    this.far = new Tier(figureGeometry('far'), material, Math.max(n, 1));
+    this.world = spots.costume ?? costumeWorld();
+    this.mid = new Tier(figureGeometry('mid', this.world), material, Math.max(n, 1));
+    this.far = new Tier(figureGeometry('far', this.world), material, Math.max(n, 1));
     // the shadow caster shares the mid tier's buffers, but draws only the closest, only in shadow passes
     this.shadow = new THREE.InstancedMesh(this.mid.geometry, crowdDepthMaterial(), Math.max(n, 1));
     this.shadow.instanceMatrix = this.mid.mesh.instanceMatrix;

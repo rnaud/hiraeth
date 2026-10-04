@@ -814,7 +814,7 @@ export function desertCrowdSpots(terrain, story) {
     groups.push({ at: V3(p.x, p.z), n: 2 + (k % 2), lines: story.lines.gate, id: 'gate' });
   }
   return {
-    groups, walks, edges, farMax: 520,
+    groups, walks, edges, farMax: 520, costume: 'desert',
     palette: { cloaks: ['#c8483a', '#5fb7ad', '#d8a24a', '#8a6fb8', '#e6875f', '#f3ead8', '#62c3c9', '#e88fa6', '#dca273', '#c3a9cc', '#f3ead8', '#f3ead8'], hats: ['#d8a24a', '#e6875f', '#f3ead8', '#c8483a', '#f3ead8'] },
   };
 }

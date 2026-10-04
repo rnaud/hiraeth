@@ -5,10 +5,9 @@
 // surface just below y; { at: [x, y, z] } floats exactly there.
 // Story goal y: a number, 'ground' (terrain height) or 'top' (highest surface).
 
-const TUNICS = ['#343a56', '#5a4a3a', '#3f6f6a', '#6a3a4a', '#e2d3b4', '#4a5a3a'];
-const TROUSERS = ['#2b2f45', '#4a3a2a', '#2f3f3a', '#5a4a40', '#3a3a3a'];
-const any = (a) => a[Math.floor(Math.random() * a.length)];
-const pal = (cloak, extra = {}) => ({ cloak, lining: extra.lining ?? '#2b211f', cloth: any(TUNICS), legs: any(TROUSERS), ...extra });
+// a person's own colours: the cloak (and any given here); the tunic, trousers, skin and hat
+// come from their world's costumes when not set (src/costumes.js)
+const pal = (cloak, extra = {}) => ({ cloak, lining: extra.lining ?? '#2b211f', ...extra });
 
 import { ARZACH2_CONTENT } from './arzach2.js';
 import { BURIED_CONTENT } from './buried.js';
