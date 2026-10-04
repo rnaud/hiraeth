@@ -1,0 +1,39 @@
+TODO.md
+  s_1fd8d0e7b02dcf::t_8e0c305ac6ca56 92-94
+changelog.md
+  s_1fd8d0e7b02dcf::t_893e4ab598ef19 13-15
+index.html
+  s_1fd8d0e7b02dcf::t_7b8efee94328a5 156-157
+src/audio.js
+  s_1fd8d0e7b02dcf::t_0202f748eca663 814-840
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_dcf4059058c78a 13-15
+src/desert-city.js
+  s_1fd8d0e7b02dcf::t_eed6c31cb05557 45-46,232,240,280,287-288,295
+src/main.js
+  s_1fd8d0e7b02dcf::t_efb96275ed01c2 220
+src/player.js
+  s_1fd8d0e7b02dcf::t_68035968dd3c59 767,769,781
+src/story/dialogue.js
+  s_1fd8d0e7b02dcf::t_a08b3e74d487c3 241,274
+tests/abilities.test.js
+  s_1fd8d0e7b02dcf::t_6aae81556f6ea8 408-426
+tests/desert-story.test.js
+  s_1fd8d0e7b02dcf::t_3518229c3f5f65 81-103
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "34e3fb8e02fb89587f3ae8f827f9289ed8d2b7ca",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
