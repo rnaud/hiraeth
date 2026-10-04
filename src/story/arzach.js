@@ -85,7 +85,8 @@ export function setupArzach(ctx) {
     use: use ?? (() => dialogue.start(def, null, at)),
   });
   const windowAt = T.sill.clone().add(V(0, 1.2, 0));
-  thing(THINGS.window, windowAt, { range: 3.6, prompt: () => (game.flag('arzach.window.seen') ? 'look into the room' : 'look through the window') });
+  thing(THINGS.window, windowAt, { range: 3.6, prompt: () => (game.flag('arzach.window.seen') ? 'look into the room' : 'look through the window'),
+    enabled: () => quests.stage('arzach.bird') !== 'call' });   // with the whistle in hand, E blows it, even on the sill
   thing(THINGS.drawing, drawing.position, { range: 1.8, enabled: () => drawing.visible });
   const palmFoot = H.palm.clone().addScaledVector(V(H.normal.x, 0, H.normal.z).normalize(), 9);
   palmFoot.y = ground(palmFoot.x, palmFoot.z, H.palm.y + 10);
@@ -267,9 +268,10 @@ export function setupArzach(ctx) {
   };
   // the rider's whistle: E anywhere (while you carry it and haven't blown it)
   const call = { state: game.flag('arzach.bird.called') && !game.flag('arzach.bird.promise') ? 'coming' : null, t: 0 };
-  registerInteractable({ id: 'whistle', priority: PRIORITY.use, range: 1, prompt: 'blow the rider’s whistle',
+  // (it sits just inside talking range: someone right beside you, or the bird, still comes first)
+  registerInteractable({ id: 'whistle', priority: PRIORITY.use, range: 3, prompt: 'blow the rider’s whistle',
     enabled: () => quests.stage('arzach.bird') === 'call' && quests.has('whistle') && !player.riding,
-    distance: () => 0,
+    distance: () => 2.9,
     use: () => {
       game.set('arzach.bird.called', true);
       call.state = 'coming'; call.t = 0;
