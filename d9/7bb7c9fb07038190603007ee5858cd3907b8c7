@@ -1,0 +1,27 @@
+src/ground-ink.js
+  s_1fd8d0e7b02dcf::t_a449e155d4b3e1 1-153
+src/humanoid.js
+  s_1fd8d0e7b02dcf::t_a2cf3d2eb61491 194-195,210,344,417-418
+src/materials.js
+  s_1fd8d0e7b02dcf::t_9d487522dd98dc 6,76,140-145,205,218,310,314-324,421-422,425-426,463-470,472,474,477-487,489-500,509-510,561,757,760-765,819-820,862,910-926,929,976,1023,1065
+src/npc.js
+  s_1fd8d0e7b02dcf::t_e6834869a1a6b9 185
+src/post.js
+  s_1fd8d0e7b02dcf::t_637503e6595632 451-453,459,461-462,523-548,581-582,597
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d97bb7c9fb07038190603007ee5858cd3907b8c7",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
