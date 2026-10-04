@@ -1,0 +1,57 @@
+docs/story-bible.md
+  s_1fd8d0e7b02dcf::t_e36001712aad98 26-53,74-77,81-115,243-255
+src/boxes/card.js
+  s_1fd8d0e7b02dcf::t_6529015d608d22 1-3,18-20,35-36,50-51
+src/boxes/index.js
+  s_1fd8d0e7b02dcf::t_771796415de136 5,10-13,30,32,40-46,49-58,65-70,151,174,186,273,284-285,301-302
+src/boxes/model.js
+  s_1fd8d0e7b02dcf::t_2bf609e81c9b47 9-18,25,42-73,78,82,88,101,103-112,114-132,145,148-151,156,158-159,167
+src/boxes/placements.js
+  s_1fd8d0e7b02dcf::t_536803a4634490 2-4,13-15,22-26
+src/desert-city.js
+  s_1fd8d0e7b02dcf::t_5ea0d77a7ef930 185-187,415-454,462,728-737
+src/items.js
+  s_1fd8d0e7b02dcf::t_a49efe568596a1 19-21,26,31,36,41,46,52,57,62,67,72,77
+src/story/arzach-data.js
+  s_1fd8d0e7b02dcf::t_0f4cabe643bcf5 94
+src/story/arzach2-data.js
+  s_1fd8d0e7b02dcf::t_822f5dc80fd131 195
+src/story/buried-data.js
+  s_1fd8d0e7b02dcf::t_9c9f3332d0a5d5 127
+src/story/desert-data.js
+  s_1fd8d0e7b02dcf::t_45ac4bb3e9ff0b 10-17,31-38,45-53,105,112,117-124,129,136,141,144,153,298,302-305,311,318,324-328,334,388-470,479,483,487-493,577-605
+src/story/desert.js
+  s_1fd8d0e7b02dcf::t_34e7adeff75366 10,19-22,26-35,46-61,68,117-138,319,391-497,517,519-523,578
+src/story/edena-data.js
+  s_1fd8d0e7b02dcf::t_950b096f0f1474 186
+src/story/garage-data.js
+  s_1fd8d0e7b02dcf::t_4be10471cb9d96 121
+src/story/incal-data.js
+  s_1fd8d0e7b02dcf::t_9eb98040721abf 192
+src/story/perdide-data.js
+  s_1fd8d0e7b02dcf::t_ccce6e431518a3 121
+src/story/perdide2-data.js
+  s_1fd8d0e7b02dcf::t_46cd345c761e7f 89
+src/story/spheres-data.js
+  s_1fd8d0e7b02dcf::t_e6ef77b9c86e2c 156
+tests/boxes.test.js
+  s_1fd8d0e7b02dcf::t_3f6dac67ba9332 100,102,104,106-137,154,162,227,229-234,239
+tests/desert-story.test.js
+  s_1fd8d0e7b02dcf::t_db8a4fb6b28dd3 31,41-42,46-47,184,187-208,211,213-227,231-253,257,259-263,265-266,272-273,308-354
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b0fddc3f0ab2d67d0a54bc4514b095d6f1779e54",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
