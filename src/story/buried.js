@@ -16,7 +16,8 @@ import { QUESTS, PEOPLE, THINGS, ITEMS, AMBER } from './buried-data.js';
 //                (push it open, then shoot the wick); the warm window above
 //   the wheel    east of the domes; once the Wick is lit and you stand
 //                before it, it turns one tooth: the hanging city rocks, every
-//                chimney puffs, and a sliver of the tooth drops at its foot
+//                chimney puffs, and a sliver of the tooth drops at its foot;
+//                its sand slides off into a long hollow and it keeps turning
 //
 // Flags (game-state.js): buried.wen.heard, buried.hask.asked,
 // buried.canyon.seen, buried.oculus.seen, buried.valve.open,
@@ -31,6 +32,8 @@ const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const TAU = Math.PI * 2;
 const ease = (t) => t * t * (3 - 2 * t);
 export const TURN_TIME = 7;   // s for the wheel's one tooth
+// once it has turned, the sand slides off it (CLEAR_TIME s, from the lurch on) and it keeps turning at SPIN rad/s
+export const CLEAR_TIME = 9, CLEAR_FROM = 1.0, SPIN = 0.045;
 
 export function setupBuried(ctx) {
   const { level, physics, player, quests, dialogue, game, sound, story, spawn, scene, toast, npcs } = ctx;
@@ -139,7 +142,7 @@ export function setupBuried(ctx) {
   // ---------------------------------------------------------------- the Wick: valve, oil, flame, the light going up
   const lit = () => !!game.flag('buried.oculus.lit');
   const valveOpen = () => !!game.flag('buried.valve.open');
-  const st = { valveT: valveOpen() ? 1 : 0, oil: valveOpen() ? 1 : 0, lightK: lit() ? 1 : 0, wobble: 0, turnT: 0, turning: false, wait: 0, sway: 0, swayT: 0, idle: 3, hello: false, amberIn: false, dropT: 0 };
+  const st = { spin: 0, clearT: -1, valveT: valveOpen() ? 1 : 0, oil: valveOpen() ? 1 : 0, lightK: lit() ? 1 : 0, wobble: 0, turnT: 0, turning: false, wait: 0, sway: 0, swayT: 0, idle: 3, hello: false, amberIn: false, dropT: 0 };
   const toolHasPush = () => !!(ctx.tool && typeof ctx.tool.push === 'function');
   // the oil: a dark amber disc rising in the dish
   const oilMat = ownMaterial({ color: '#7a4a1e', flat: true, glow: 0 });
@@ -206,7 +209,9 @@ export function setupBuried(ctx) {
   // ---------------------------------------------------------------- the wheel and the tooth it sheds
   const toothStep = TAU / W.teeth;
   const turned = () => !!game.flag('buried.wheel.turned');
-  if (turned()) W.spin.rotation.z = -toothStep;
+  // the hollow it shakes its sand into: the tooth lands on the sand as it sinks
+  const dropOnSand = () => { W.drop.y = level.ground.heightAt(W.drop.x, W.drop.z); };
+  if (turned()) { W.spin.rotation.z = -toothStep; W.clear?.(1); dropOnSand(); }
   const tooth = new THREE.Group();
   {
     const g = new THREE.CylinderGeometry(0.22, 0.5, 0.85, 4, 1).rotateY(Math.PI / 4).scale(1, 1, 0.55);
@@ -219,6 +224,7 @@ export function setupBuried(ctx) {
     scene.add(tooth);
   }
   const toothLight = new THREE.Vector4(W.drop.x, W.drop.y + 1, W.drop.z, tooth.visible ? 6 : 0);
+  const dust = new Puffs(scene, { color: '#eadcb8', max: 160, glow: 0.3 });
   level.lights.push(toothLight);
   registerInteractable({ id: 'tooth', priority: PRIORITY.use, range: 3, prompt: 'pick up the warm tooth', at: () => tooth.position, enabled: () => tooth.visible && st.dropT <= 0,
     distance: (p) => (Math.abs(p.pos.y - W.drop.y) < 4 ? flat(p.pos, W.drop) : Infinity),
@@ -281,11 +287,11 @@ export function setupBuried(ctx) {
   // ---------------------------------------------------------------- music
   sound.setBands?.([
     { id: 'domes', pos: dome.clone().add(V(0, 2, 0)), radius: 70, parts: ['ney', 'oud'], mode: turned() ? 'feast' : 'play', vol: 0.55, duck: 0.4 },
-    { id: 'wheel', pos: watchAt.clone().lerp(W.centre, 0.6).setY(W.ground + 8), radius: 140, parts: turned() ? ['chant', 'bell'] : ['chant'], mode: 'play', vol: 0.5, duck: 0.3 },
+    { id: 'wheel', pos: watchAt.clone().lerp(W.centre, 0.6).setY(W.ground + 8), radius: 140, parts: turned() ? ['chant', 'bell', 'drum'] : ['chant'], mode: 'play', vol: 0.5, duck: 0.3 },
   ]);
 
   // ---------------------------------------------------------------- per frame
-  const camF = V(0, 0, 0), toW = V(0, 0, 0), _p = V(0, 0, 0);
+  const camF = V(0, 0, 0), toW = V(0, 0, 0), _p = V(0, 0, 0), _d = V(0, 0, 0);
   const update = (dt, t, { camera } = {}) => {
     const pp = player.pos;
     // arrivals
@@ -389,6 +395,42 @@ export function setupBuried(ctx) {
       }
       if (u >= 1) finishTurn();
     }
+    // the sand slides off: the heap and a long hollow along its plane sink away in a haze of dust
+    if (st.turning && st.clearT < 0 && st.turnT >= CLEAR_FROM) st.clearT = 0;
+    if (st.clearT >= 0 && W.clear) {
+      const k0 = W.cleared;
+      st.clearT += dt;
+      const k = ease(Math.min(1, st.clearT / CLEAR_TIME));
+      W.clear(k);
+      dropOnSand();
+      toothLight.y = W.drop.y + 1;
+      // dust blown off where the sand is going fastest, out and away from the iron
+      const rate = (k - k0) / Math.max(dt, 1e-3);
+      if (W.sand?.length && Math.random() < dt * 30 * Math.min(1, rate * 6)) {
+        for (let n = 0; n < 2; n++) {
+          const v = W.sand[Math.floor(Math.random() * W.sand.length)];
+          if (v.s < 1.5) continue;
+          const side = Math.sign((v.x - W.centre.x) * W.face.x + (v.z - W.centre.z) * W.face.z) || 1;
+          _p.set(v.x + (Math.random() - 0.5) * 6, level.ground.heightAt(v.x, v.z) + 0.6, v.z + (Math.random() - 0.5) * 6);
+          dust.burst(_p, { n: 2, rise: 1.4 + Math.random() * 2, size: 1.6 + v.s * 0.25, spread: 1.6, life: 3.2, dir: _d.set(W.face.x * side * 2.2, 0, W.face.z * side * 2.2) });
+        }
+      }
+      if (st.clearT >= CLEAR_TIME) {
+        st.clearT = -2;   // (done: the flag keeps it cleared on the next visit)
+        toast('The sand has slid off the great wheel in long sighs, and it does not stop. It keeps on turning.');
+      }
+    }
+    // ever after, it keeps turning: easing up to speed, sand trickling off the teeth as they come up
+    if (turned() && !st.turning) {
+      st.spin += (SPIN - st.spin) * (1 - Math.exp(-dt / 2.5));
+      W.spin.rotation.z -= st.spin * dt;
+      if (flat(camera?.position ?? pp, W.centre) < 400 && Math.random() < dt * 4) {
+        const side = Math.random() < 0.5 ? -1 : 1, depth = level.ground.heightAt(W.centre.x, W.centre.z) - W.centre.y, along = Math.sqrt(Math.max(0, (W.R + 2) ** 2 - depth * depth));
+        _p.set(W.centre.x + side * along * W.face.z, W.centre.y + depth + 1 + Math.random() * 5, W.centre.z - side * along * W.face.x);
+        _p.lerp(V(W.centre.x, W.top - 1, W.centre.z), Math.random() * 0.5);
+        sand.burst(_p, { n: 2, rise: -0.5, size: 0.8, spread: 0.6, life: 2.4, gravity: 5 });
+      }
+    }
     // the falling tooth
     if (st.dropT > 0) {
       st.dropT = Math.max(0, st.dropT - dt);
@@ -409,7 +451,8 @@ export function setupBuried(ctx) {
 
     smoke.update(dt, null);
     sand.update(dt, null);
+    dust.update(dt, null);
   };
 
-  return { people, update, state: st, turn: () => startTurn() };
+  return { people, update, state: st, turn: () => startTurn(), tooth };
 }

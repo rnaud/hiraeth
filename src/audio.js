@@ -20,6 +20,10 @@ export const SOLO_TUNE = [
   [[12, 2.2], [13, 0.5], [12, 0.5], [10, 0.6], [8, 0.7], [7, 1.6], [8, 0.4], [7, 0.4], [4, 0.9], [5, 0.8], [1, 1.3], [0, 4.5]],
 ];
 
+// The Garden of Spheres’ tune (Sound.spheresSong): [scale degree, eighths] in its pentatonic
+// scale; it climbs through the three remembered sounds and comes home an octave up.
+export const SPHERES_SONG = [[0, 1], [2, 1], [4, 2], [5, 2], [4, 1], [2, 1], [1, 2], [2, 1], [4, 1], [7, 2], [5, 4], [null, 1], [4, 1], [2, 1], [5, 5]];
+
 // How loud the ambient wind (its whoosh and the high howl) is against everything else.
 export const AMBIENT_WIND = 0.4;
 
@@ -651,6 +655,96 @@ export class Sound {
     [0, 2, 4, 7].forEach((d, i) => this.pluck(this.freq(d, 2), t + i * 0.12, 0.12, 'sine', this.fx));
   }
 
+  // ------------------------------------------------------------------ the singing spheres (Garden of Spheres)
+  /** Where a sound at `pos` sits for the listener (the camera, from listen): { gain 0..1 by distance, pan -1..1 }. */
+  placeAt(pos, reach = 140) {
+    const e = this._ear;
+    if (!e || !pos) return { gain: 1, pan: 0 };
+    const dx = pos.x - e.x, dz = pos.z - e.z, d = Math.hypot(dx, dz, (pos.y - e.y) * 0.5);
+    const rx = Math.cos(e.yaw), rz = -Math.sin(e.yaw);
+    return { gain: Math.max(0, 1 - d / reach) ** 1.5, pan: Math.max(-0.85, Math.min(0.85, (dx * rx + dz * rz) / Math.max(d, 1) * 0.9)) };
+  }
+  /** A little bus for one sound at a place: panned, into the world and a good deal of its room. */
+  spot(pos, { vol = 1, reach = 140, room = 0.6, until = 12 } = {}) {
+    const ctx = this.ctx, { gain, pan } = this.placeAt(pos, reach);
+    if (gain * vol < 0.004) return null;
+    const g = ctx.createGain();
+    g.gain.value = gain * vol * this.musicVol;
+    const p = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+    if (p) { p.pan.value = pan; g.connect(p).connect(this.world); } else g.connect(this.world);
+    const send = ctx.createGain(); send.gain.value = room; g.connect(send).connect(this.reverb);
+    setTimeout(() => { try { g.disconnect(); send.disconnect(); p?.disconnect(); } catch { /* gone */ } }, until * 1000);
+    return g;
+  }
+  /**
+   * A great sphere touched by the fluid: one glass note that rings on, like a
+   * struck bowl (a degree of the world's scale, from its middle octave; size
+   * 0..1, its girth: the big ones ring longer, with a low hum under them).
+   * `soft` for a shove instead of a splash.
+   */
+  orbNote(degree, pos, { vol = 1, size = 0.5, soft = false } = {}) {
+    if (!this.ctx) return;
+    const ctx = this.ctx, t = ctx.currentTime + 0.01, ring = 2.6 + size * 5, f = this.freq(degree, 0);
+    const out = this.spot(pos, { vol: vol * (soft ? 0.55 : 1), until: ring + 1 });
+    if (!out) return;
+    for (const [m, v, d, beat] of [[1, 0.12, 1, 0.9], [2, 0.045, 0.6, 1.7], [3.01, 0.022, 0.42, 0], [4.23, 0.01, 0.25, 0], [0.5, 0.06 * size, 1.15, 0]]) {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'sine'; o.frequency.value = f * m;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + (soft ? 0.05 : 0.006)); g.gain.exponentialRampToValueAtTime(0.0005, t + ring * d);
+      o.connect(g).connect(out); o.start(t); o.stop(t + ring * d + 0.1);
+      if (beat) {   // a slow shimmer: a twin a breath away in pitch, so the note beats like glass
+        const o2 = ctx.createOscillator(), g2 = ctx.createGain();
+        o2.type = 'sine'; o2.frequency.value = f * m + beat;
+        g2.gain.setValueAtTime(0, t); g2.gain.linearRampToValueAtTime(v * 0.45, t + 0.02); g2.gain.exponentialRampToValueAtTime(0.0005, t + ring * d * 0.9);
+        o2.connect(g2).connect(out); o2.start(t); o2.stop(t + ring * d + 0.1);
+      }
+    }
+    if (!soft) this.noiseHit(t, 0.03, 'bandpass', Math.min(f * 5, 7000), 0.05, out);   // the tap of the splash
+  }
+  /**
+   * One of the three spheres that remember plays its sound at `pos`, as a
+   * short phrase in the world's scale: 'bell' (a glass bell, falling),
+   * 'chant' (far voices on one note, then a fifth), 'drum' (dum, tek-dum).
+   */
+  remembered(kind, pos, { vol = 1 } = {}) {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime + 0.05, out = this.spot(pos, { vol, reach: 180, until: 9 });
+    if (!out) return;
+    if (kind === 'bell') {
+      for (const [deg, at] of [[4, 0], [2, 0.42], [0, 0.84], [5, 1.5]]) this.instrument('bell', this.freq(deg, 1), t + at, 1.6, at > 1 ? 0.24 : 0.19, out);
+    } else if (kind === 'chant') {
+      this.instrument('chant', this.freq(0, 0), t, 3.4, 0.17, out);
+      this.instrument('chant', this.freq(0, -1), t + 0.3, 3.1, 0.11, out);
+      this.instrument('chant', this.freq(3, 0), t + 1.8, 2.4, 0.13, out);
+    } else if (kind === 'drum') {
+      const s = 0.21;
+      [[0, 2], [2, 1], [3, 2], [5, 1], [6, 2], [8, 2], [10, 1], [11, 2]].forEach(([k, hit]) => (hit === 2 ? this.dum(t + k * s, 0.5, out) : this.tek(t + k * s, 0.22, out)));
+    }
+  }
+  /**
+   * The pole sings the three back as one little tune (the Garden of Spheres'
+   * chord, solved): the glass bell carries the melody over the far voices and
+   * the walking drum, with the lake's breath (ney) answering if the pebble is
+   * set. Returns its length in seconds.
+   */
+  spheresSong(pos, { ney = false } = {}) {
+    if (!this.ctx) return 0;
+    const e = 0.3, t = this.ctx.currentTime + 0.1, out = this.spot(pos, { vol: 1.1, reach: 220, until: 14 });
+    if (!out) return 0;
+    const tune = SPHERES_SONG;
+    let at = 0;
+    for (const [deg, n] of tune) { if (deg !== null) this.instrument('bell', this.freq(deg, 1), t + at * e, Math.max(1.2, n * e * 1.4), 0.12, out); at += n; }
+    const len = at * e;
+    this.instrument('chant', this.freq(0, 0), t, len * 0.5, 0.07, out);
+    this.instrument('chant', this.freq(3, -1), t + 0.2, len * 0.5, 0.05, out);
+    this.instrument('chant', this.freq(3, 0), t + len * 0.5, len * 0.5 + 1, 0.06, out);
+    this.instrument('chant', this.freq(0, 0), t + len * 0.5, len * 0.5 + 1.5, 0.07, out);
+    for (let k = 0; k < at; k++) { const hit = [2, 0, 1, 2, 1, 0, 2, 1][k % 8]; if (hit === 2) this.dum(t + k * e, 0.34, out); else if (hit === 1) this.tek(t + k * e, 0.14, out); }
+    this.dum(t + len, 0.5, out);
+    if (ney) { let a2 = 0; for (const [deg, n] of tune) { if (deg !== null && n >= 2) this.instrument('ney', this.freq(deg, 1), t + (a2 + 1) * e, n * e, 0.07, out); a2 += n; } }
+    return len + 2;
+  }
+
   // ------------------------------------------------------------------ item boxes (src/boxes/)
   /** A box nearby hums: k 0..1 (how close the nearest unopened box is). A soft fifth that beats slowly. */
   boxHum(k = 0) {
@@ -888,6 +982,7 @@ export class Sound {
   setBandMode(id, mode) { const b = this.band(id); if (b) b.mode = mode; }
   /** Per frame: levels and panning from the listener (the camera) and the player. */
   listen(pos, yaw) {
+    this._ear = { x: pos.x, y: pos.y, z: pos.z, yaw };   // (the singing spheres place their notes by it)
     if (!this.ctx || !this.bands) return;
     const t = this.ctx.currentTime;
     let near = 0;

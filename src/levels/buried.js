@@ -57,8 +57,21 @@ function dunes(x, z) {
   h += smoothstep(950, 1500, r) * (90 + fbm(nA, x * 0.003, z * 0.003, 3) * 60);   // horizon swells
   // sand heaped against both faces of the great wheel where it breaks the surface
   const [across, along] = wheelLocal(x, z);
-  if (Math.abs(across) < 26 && Math.abs(along) < 60) h += 3.2 * smoothstep(24, 3, Math.abs(across)) * smoothstep(52, 30, Math.abs(along));
+  if (Math.abs(across) < 26 && Math.abs(along) < 60) h += wheelHeap(across, along);
   return h;
+}
+const wheelHeap = (across, along) => 3.2 * smoothstep(24, 3, Math.abs(across)) * smoothstep(52, 30, Math.abs(along));
+/**
+ * How much sand the great wheel throws off once it turns (src/story/buried.js):
+ * the heap against its faces, and a long hollow dug along its plane, deepest
+ * against the iron, so more of the rim and the spokes stand clear. Stays inside
+ * the strip the props keep out of (|across| < 26, |along| < 58).
+ */
+export const WHEEL_DIG = 7;
+export function wheelSand(x, z) {
+  const [across, along] = wheelLocal(x, z);
+  if (Math.abs(across) >= 26 || Math.abs(along) >= 58) return 0;
+  return wheelHeap(across, along) + WHEEL_DIG * smoothstep(25, 6, Math.abs(across)) * smoothstep(57, 34, Math.abs(along));
 }
 function canyonMask(x, z) {
   const d = Math.abs(x - cx(z));
@@ -801,7 +814,25 @@ export function createBuried(scene) {
     const face = new THREE.Vector3(ax, 0, az);
     const drop = centre.clone().addScaledVector(face, T / 2 + 6);
     drop.y = H(drop.x, drop.z);
-    Object.assign(wheel, { spin, holder, centre, R, tooth, teeth: N, T, face, drop, top: centre.y + R + tooth, ground });
+    // the sand round it: k 0 (heaped, as it has lain for a year) .. 1 (slid away into a long hollow)
+    const sandVerts = [];
+    {
+      const r = 62, a = terrain.vertexAt(WHEEL.x - r, WHEEL.z - r), b = terrain.vertexAt(WHEEL.x + r, WHEEL.z + r);
+      for (let iz = a.iz; iz <= b.iz; iz++) for (let ix = a.ix; ix <= b.ix; ix++) {
+        const i = iz * terrain.n + ix, x = -terrain.size / 2 + ix * terrain.step, z = -terrain.size / 2 + iz * terrain.step;
+        const s = wheelSand(x, z);
+        if (s > 0.01) sandVerts.push({ i, h: terrain.heights[i], s, x, z });
+      }
+    }
+    let sandK = 0;
+    const clear = (k) => {
+      k = clamp01(k);
+      if (Math.abs(k - sandK) < 1e-4) return;
+      sandK = k;
+      terrain.setHeights(sandVerts.map((v) => [v.i, v.h - v.s * k]));
+    };
+    Object.assign(wheel, { spin, holder, centre, R, tooth, teeth: N, T, face, drop, top: centre.y + R + tooth, ground, clear, sand: sandVerts });
+    Object.defineProperty(wheel, 'cleared', { get: () => sandK });
   }
 
   // ======================================================== the pressure gauges (shoot them: the needles stick)

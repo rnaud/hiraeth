@@ -78,7 +78,7 @@ Grouped by area. Checked items are done; the changelog says when.
   around during the crash.
 - [x] Achievement overlay stays up during a conversation: pressing A advances
   the dialogue (seen with Nima) but never dismisses the overlay.
-- [ ] Jetpack in the tube/cylinder level: got stuck against the ground and
+- [x] Jetpack in the tube/cylinder level: got stuck against the ground and
   could not get out.
 - [x] The bell rope goes through the building when I ring it.
 - [x] Edena: the door to the crashed ship sits a few metres away instead of
@@ -190,10 +190,10 @@ Grouped by area. Checked items are done; the changelog says when.
   reuse), and plants grow in clusters instead of being scattered (as in Edena).
 - [x] Level 2: the area of the man by the trees is crowded and hard to see; the
   trees are too low.
-- [ ] The great wheel: when it turns, it clears the sand around it, then keeps
+- [x] The great wheel: when it turns, it clears the sand around it, then keeps
   turning.
 - [x] Airtight level: walking into the portals animates off and feels jarring.
-- [ ] Garden of spheres: if the spheres play music, make them play, and trigger
+- [x] Garden of spheres: if the spheres play music, make them play, and trigger
   them by shooting at them rather than looking.
 - [x] Rename the Incal: nothing in the game named after Moebius works. (The Lodestar; Arzach →
   Vael, Edena → Viridel, Perdide → Lorn, the Airtight Garage → the Sealed Hangar, Major

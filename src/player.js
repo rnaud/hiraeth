@@ -26,6 +26,8 @@ const JET_REFILL = 0.55;
  * After FALL.wait s without a hurt it comes back at FALL.regen a second.
  */
 export const FALL = { safe: 17, lethal: 38, wait: 4, regen: 0.12 };
+/** Wedged in mid-air (Player.unhang): never more than `reach` m from where it began for `time` s, while nothing held you up. */
+export const HANG = { time: 1.0, reach: 0.35 };
 /** The share of the health bar a landing at `speed` (m/s into the ground) takes. */
 export const fallDamage = (speed) => Math.min(1, Math.max(0, (speed - FALL.safe) / (FALL.lethal - FALL.safe)));
 
@@ -501,7 +503,12 @@ export class Player {
     if (!to) {
       this.heading = this.opts.spawnHeading ?? Math.PI;
       this.frame.set(this.opts.spawnUp ?? Y, this.opts.spawnFwd ?? new THREE.Vector3(0, 0, 1));
+    } else if (this.opts.gravityAt) {
+      // back where you stood, standing the way that place is up (the Hangar's ring: up turns with the floor)
+      this.frame.set(this.opts.gravityAt(this.pos));
     }
+    this._hang = null;
+    this.mantle = null;
     this.onGround = false;
     this.climbing = false;
     this.fuel = 1;
@@ -843,7 +850,7 @@ export class Player {
 
     // Still ended up inside solid geometry (a moving taxi, a teleport, a
     // vehicle): step out to the nearest free spot, or back to the last one.
-    const stuck = this.unstick();
+    const stuck = this.unstick() || this.unhang(dt);
 
     // deep water and other unsafe places put you back where you last stood safely
     if (this.opts.unsafe && this.opts.unsafe(this.pos)) this.respawn(this.lastSafe);
@@ -938,11 +945,38 @@ export class Player {
     if (!P.embedded(centre)) return false;
     const free = P.escape?.(centre, RADIUS, U, half);
     if (free) this.pos.copy(free).addScaledVector(U, -half);
-    else this.pos.copy(this.lastSafe);
+    else this.backToSafe();
     this.vel.set(0, 0, 0);
     this.onGround = false;
     this.climbing = false;
     return true;
+  }
+
+  /**
+   * Hung in the air: off the ground, not held up by the jets or the wings, and
+   * yet not falling, for HANG.time s (wedged between the faces of something,
+   * which pushes the capsule back up every step). Nothing holds a body up like
+   * that, so it goes back where you last stood safely. Returns true if it did.
+   */
+  unhang(dt) {
+    if (this.onGround || this.thrusting || this.gliding || this.climbing || this.mantle || this.ride || this.boarding) { this._hang = null; return false; }
+    // (net movement from where it began: wedged bodies jitter in place, so the path length can grow)
+    const H = this._hang ??= { t: 0, from: this.pos.clone() };
+    H.t += dt;
+    if (H.from.distanceTo(this.pos) > HANG.reach) { this._hang = null; return false; }
+    if (H.t < HANG.time) return false;
+    this.backToSafe();
+    return true;
+  }
+
+  /** Back to the last place you stood safely, standing the way that place is up. */
+  backToSafe() {
+    this.pos.copy(this.lastSafe);
+    this.vel.set(0, 0, 0);
+    if (this.opts.gravityAt) this.frame.set(this.opts.gravityAt(this.pos));
+    this._hang = null;
+    this.onGround = false;
+    this.climbing = false;
   }
 
   finishFrame(dt, hs) {
