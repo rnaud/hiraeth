@@ -257,7 +257,9 @@ export class Dialogue {
       if (choices.length && document.body.classList.contains('controller')) box.querySelector('button')?.focus();
     }
     const touch = typeof document !== 'undefined' && document.body.classList.contains('touch');
-    this.q('.dlg-hint').textContent = touch ? (!done ? 'tap: skip' : choices.length ? 'tap an answer' : 'tap: continue')
+    const pad = typeof document !== 'undefined' && document.body.classList.contains('controller');
+    this.q('.dlg-hint').textContent = pad ? (!done ? 'A / × skip' : choices.length ? 'D-pad choose · A / × answer · B / ○ leave' : 'A / × continue · B / ○ leave')
+      : touch ? (!done ? 'tap: skip' : choices.length ? 'tap an answer' : 'tap: continue')
       : !done ? 'E / click: skip' : choices.length ? '1–4 or click to answer · Esc leave' : 'E / click: continue · Esc leave';
   }
 
