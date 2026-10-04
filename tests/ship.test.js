@@ -7,6 +7,7 @@ import { GameState } from '../src/game-state.js';
 import { Ship } from '../src/ship/ship.js';
 import { DECK, R } from '../src/ship/hull.js';
 import { polar } from '../src/ship/geo.js';
+import { CONSOLE_R } from '../src/ship/interior.js';
 import { findShipSite, siteAvoid, probeSite, SITE_OVERRIDES } from '../src/ship/sites.js';
 import { consoleAction, mapEntries } from '../src/ship/starmap.js';
 import { pendingCall, callLines, completedWorlds, CALL_COUNT, PROLOGUE_CALL } from '../src/story/calls.js';
@@ -59,6 +60,25 @@ test('the ship builds, with a walkable floor, a solid hull and a cockpit you can
   // (the hull curves up from the floor like a bowl, so you can lean a little way up it, never through it)
   assert.ok(P.pos.y > deckY - 0.1 && P.pos.y < deckY + 3, `on the floor or the foot of the wall: ${P.pos.y.toFixed(2)} vs ${deckY.toFixed(2)}`);
   assert.ok(Math.hypot(P.pos.x, P.pos.z) < R, 'within the hull');
+});
+
+test('walking straight from the corridor at the console gets you to it (the pilot seat stands in the way)', () => {
+  const { physics, ship } = flatWorld();
+  const m = ship.parked;
+  ship.player = new Player(physics);
+  const P = ship.player;
+  P.opts.climb = false;
+  P.pos.copy(ship.world(m, polar(2.4, Math.PI - 0.3, DECK + 0.05)));
+  const target = ship.world(m, m.interior.points.cockpit);
+  for (let i = 0; i < 60 * 8 && !ship.atConsole(); i++) {
+    const h = Math.atan2(target.x - P.pos.x, target.z - P.pos.z);
+    P.update(1 / 60, { KeyW: true }, h + Math.PI);
+  }
+  assert.ok(ship.atConsole(), `at the console: ${ship.local(m, P.pos).toArray().map((n) => n.toFixed(2))}`);
+  // and with room to spare: keep walking into the seat, and you are well inside the reach
+  for (let i = 0; i < 120; i++) { const h = Math.atan2(target.x - P.pos.x, target.z - P.pos.z); P.update(1 / 60, { KeyW: true }, h + Math.PI); }
+  const l = ship.local(m, P.pos), c = m.interior.points.cockpit;
+  assert.ok(Math.hypot(l.x - c.x, l.z - c.z) < CONSOLE_R - 0.3, `stopped ${Math.hypot(l.x - c.x, l.z - c.z).toFixed(2)} m from the cockpit point`);
 });
 
 test('the ramp reaches the ground and the hatch is open to walk through', () => {

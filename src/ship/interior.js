@@ -15,6 +15,9 @@ import { familyDrawing, motherNote, homePhoto, starChart } from './art.js';
 
 const PI = Math.PI;
 export const CORE_R = 1.35, RING_R = 3.4;
+// how near the cockpit point counts as "at the console": the pilot's seat stands on the
+// way in (r 5.2-6.7), so walking straight at the dash stops about 1.7 m short of it
+export const CONSOLE_R = 2.3;
 export const ROOM = { bunk: 0, hall: HATCH_A, cockpit: PI, galley: PI * 1.5 };
 const rAt = (r, y) => Math.sqrt(Math.max(r * r - y * y, 0));
 const H = (h) => DECK + h;

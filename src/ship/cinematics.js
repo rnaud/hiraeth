@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { game } from '../game-state.js';
 import { polar } from './geo.js';
 import { R, DECK, HATCH_A } from './hull.js';
+import { CONSOLE_R } from './interior.js';
 import { PROLOGUE_CALL } from '../story/calls.js';
 import { callTimeline } from './prologue.js';
 import * as sfx from './sfx.js';
@@ -174,7 +175,9 @@ export class PrologueDirector {
           this.risen = true;
           C.releaseLids(); C.lids(false); C.bars(true); C.say(null);
           s.showPlayer(true);
-          s.rig.yaw = s.player.heading + Math.PI; s.rig.pitch = 0.18;
+          // (swung off the back if the top bunk or its ladder would be between the camera and you)
+          s.rig.pitch = 0.18; s.rig.indoor = true;
+          s.rig.yaw = s.rig.clearYaw(s.player.pos, s.player.heading + Math.PI, { want: 3 });
           s.rig.target.copy(s.player.pos); s.rig._curDist = 2.5;
           s.release(0); s.blend = null;
           C.fade(0, false, 0.5);
@@ -299,7 +302,7 @@ export class PrologueDirector {
     const s = this.s;
     if (id === 'walk') {
       const l = s.local(this.sp, s.player.pos), c = this.pt('cockpit');
-      return s.isInside(this.sp, s.player.pos) && Math.hypot(l.x - c.x, l.z - c.z) < 1.5;
+      return s.isInside(this.sp, s.player.pos) && Math.hypot(l.x - c.x, l.z - c.z) < CONSOLE_R;
     }
     if (id === 'stepout') return !s.auto;
     return true;
