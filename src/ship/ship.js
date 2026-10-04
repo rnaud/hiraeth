@@ -378,7 +378,8 @@ export class Ship {
     const c = this.cinematic;
     if (c && !c.done) return { ...ctl, KeyE: false };   // nothing to use while a scene plays
     // E belongs to the ship inside it and at the hatch
-    const inShip = this.inside || this.atRampFoot();
+    // (not while riding up to it: then E gets you off, as the HUD says)
+    const inShip = this.inside || (this.atRampFoot() && !this.player.ride);
     if (inShip && ctl.KeyE) {
       if (!this._eHeld) this.use();
       this._eHeld = true;
@@ -450,7 +451,7 @@ export class Ship {
       if (this.atHatchInside()) return 'E step outside';
       return 'aboard the ship';
     }
-    if (this.atRampFoot()) return 'E go aboard';
+    if (this.atRampFoot() && !this.player.ride) return 'E go aboard';
     return null;
   }
 
