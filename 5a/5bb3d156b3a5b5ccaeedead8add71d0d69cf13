@@ -1,0 +1,57 @@
+src/game-state.js
+  s_1fd8d0e7b02dcf::t_4e877e6eb0e7a5 14-20,25-26,40-42
+src/main.js
+  s_1fd8d0e7b02dcf::t_36c8f88345feb0 34,174,190-194,319-326,375,386-387,544-545,577,659-660,663-666,677,823,847,995,1005
+src/physics.js
+  s_1fd8d0e7b02dcf::t_8b69182dd8fe50 77-110,273-302
+src/ship/art.js
+  s_1fd8d0e7b02dcf::t_1f2fa0aac8c9ca 1-92
+src/ship/cinema.js
+  s_1fd8d0e7b02dcf::t_1794c8d8696d73 1-152
+src/ship/cinematics.js
+  s_1fd8d0e7b02dcf::t_3d58b3914df54c 1-532
+src/ship/crash.js
+  s_1fd8d0e7b02dcf::t_69ce65a88d94a3 1-171
+src/ship/fx.js
+  s_1fd8d0e7b02dcf::t_a34d6d14ede9d0 1-67
+src/ship/geo.js
+  s_1fd8d0e7b02dcf::t_3b6396a5669a76 1-274
+src/ship/hull.js
+  s_1fd8d0e7b02dcf::t_369ce930fe8287 1-175
+src/ship/interior.js
+  s_1fd8d0e7b02dcf::t_94d9e9ca195312 1-365
+src/ship/model.js
+  s_1fd8d0e7b02dcf::t_32dd6ae5e95fd6 1-178
+src/ship/portrait.js
+  s_1fd8d0e7b02dcf::t_5c0c221afc8862 1-225
+src/ship/prologue.js
+  s_1fd8d0e7b02dcf::t_b30858a9301808 1-111
+src/ship/sfx.js
+  s_1fd8d0e7b02dcf::t_2d0eafce2e8199 1-121
+src/ship/ship.js
+  s_1fd8d0e7b02dcf::t_891808f8418a27 1-568
+src/ship/sites.js
+  s_1fd8d0e7b02dcf::t_6c5336ed1408f7 1-164
+src/ship/starmap.js
+  s_1fd8d0e7b02dcf::t_ab366c133f4224 1-165
+src/story/calls.js
+  s_1fd8d0e7b02dcf::t_f486e79f59e314 1-154
+tests/ship.test.js
+  s_1fd8d0e7b02dcf::t_68bccf1ec2cbad 1-182
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5a5bb3d156b3a5b5ccaeedead8add71d0d69cf13",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
