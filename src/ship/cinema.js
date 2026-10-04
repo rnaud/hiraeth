@@ -2,6 +2,7 @@
 // UI: letterbox bars, subtitles (speaker + line), "hold to skip", a fade,
 // eyelids, a red alarm wash, the objective card and the warp streaks of
 // travel. Built on demand (no index.html changes); inert in node.
+import { speakLine } from '../story/voice.js';   // the mumbled voice under each subtitle
 
 const CSS = `
 #cine { position: fixed; inset: 0; z-index: 8000; pointer-events: none; }
@@ -74,6 +75,7 @@ export class Cinema {
   releaseLids() { if (this.dom) for (const b of this.el.querySelectorAll('.bar')) { b.style.transition = ''; b.style.height = ''; } }
 
   say(line) {
+    speakLine(line);
     if (!this.dom) return;
     if (!line) { this.sub.classList.remove('show'); return; }
     const who = { father: 'FATHER', mother: 'MOTHER', ship: 'SHIP' }[line.who] ?? '';

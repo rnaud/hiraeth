@@ -31,6 +31,7 @@ import * as spheres from './spheres-data.js';
 import * as perdide from './perdide-data.js';
 import * as perdide2 from './perdide2-data.js';
 import * as bazaar from './bazaar-data.js';
+import { spoken } from './tone.js';
 
 /** How many worlds must be done before home is on the map. */
 export const ENDING_WORLDS = 6;
@@ -89,56 +90,57 @@ export function quoteOf(k) {
 
 // ------------------------------------------------------------------ the parents' reaction
 
-const F = (text) => ({ who: 'father', text }), M = (text) => ({ who: 'mother', text }), S = (text) => ({ who: 'scene', text });
+// each line carries its tone ('~sad~ …': src/story/tone.js), read off by spoken()
+const F = (text) => spoken('father', text), M = (text) => spoken('mother', text), S = (text) => spoken('scene', text);
 
 /** The father's words, by the kind of thing you brought. */
 export const FATHER_HOME = {
   thing: (k) => [
-    S(`(You put ${k.name.replace(/^A /, 'the ').replace(/^An /, 'the ')} in his hands. He weighs it, the way he weighs everything.)`),
-    F('Good. Solid. Something a man can hold. It is exactly what I asked you for.'),
-    F('…It is lighter than I thought it would be.'),
+    S(`~solemn~ (You put ${k.name.replace(/^A /, 'the ').replace(/^An /, 'the ')} in his hands. He weighs it, the way he weighs everything.)`),
+    F('~happy~ Good. Solid. Something a man can hold. It is exactly what I asked you for.'),
+    F('~sad~ …It is lighter than I thought it would be.'),
   ],
   song: (k) => [
-    S(`(You hum it for him: ${k.name.replace(/^The /, 'the ')}. Badly, then less badly.)`),
-    F('Again.'),
-    S('(He does not sing. But the third time through, his foot keeps the beat.)'),
+    S(`~playful~ (You hum it for him: ${k.name.replace(/^The /, 'the ')}. Badly, then less badly.)`),
+    F('~curious~ Again.'),
+    S('~happy~ (He does not sing. But the third time through, his foot keeps the beat.)'),
   ],
   word: (k) => k.id === 'bazaar.word' ? [
-    S('(You start to tell him the words from the tower. He knows them before you finish.)'),
-    F('Those were mine.'),
-    F('I sent them a long way, to someone else. I am glad they found somebody.'),
+    S('~solemn~ (You start to tell him the words from the tower. He knows them before you finish.)'),
+    F('~sad~ Those were mine.'),
+    F('~solemn~ I sent them a long way, to someone else. I am glad they found somebody.'),
   ] : [
-    S(`(You tell him what was said to you, out there: “${quoteOf(k)}”)`),
-    F('Someone said that to you? To you, and meant it?'),
-    F('Then they saw you properly. Good. Somebody should have, sooner.'),
+    S(`~solemn~ (You tell him what was said to you, out there: “${quoteOf(k)}”)`),
+    F('~surprised~ Someone said that to you? To you, and meant it?'),
+    F('~happy~ Then they saw you properly. Good. Somebody should have, sooner.'),
   ],
   person: (k) => [
-    S(`(You tell him about ${k.name.replace(/^The /, 'the ')}: someone out there who wants you to come back.)`),
-    F('Someone is waiting for you, out there.'),
-    F('So were we. We should have said that first, at the port, instead of all the rest.'),
+    S(`~solemn~ (You tell him about ${k.name.replace(/^The /, 'the ')}: someone out there who wants you to come back.)`),
+    F('~sad~ Someone is waiting for you, out there.'),
+    F('~sad~ So were we. We should have said that first, at the port, instead of all the rest.'),
   ],
   knowing: (k) => [
-    S(`(You try to explain it: ${k.text ?? k.name})`),
-    F('I don’t understand it.'),
-    F('Explain it to me again tomorrow. And the day after. We have time now.'),
+    S(`~curious~ (You try to explain it: ${k.text ?? k.name})`),
+    F('~tired~ I don’t understand it.'),
+    F('~happy~ Explain it to me again tomorrow. And the day after. We have time now.'),
   ],
   nothing: (k, ctx = {}) => [
-    S('(Your hands are empty. You hold them up so he can see.)'),
-    F('Nothing.'),
+    S('~sad~ (Your hands are empty. You hold them up so he can see.)'),
+    F('~tired~ Nothing.'),
     ctx.ilen
-      ? F('That is what I told Ilen to bring, in the end. Nothing. Only herself. I said it too late, to the wrong sky.')
-      : F('Good. That is the only thing I ever wanted back. I did not know how to ask for it.'),
+      ? F('~sad~ That is what I told Ilen to bring, in the end. Nothing. Only herself. I said it too late, to the wrong sky.')
+      : F('~solemn~ Good. That is the only thing I ever wanted back. I did not know how to ask for it.'),
   ],
 };
 
 /** The mother's words: always the same, and about you, not the gift. */
 export const MOTHER_HOME = [
-  M('Let me look at you.'),
-  M('You’re taller. No, you’re not. You stand differently. Like someone who has been listened to.'),
-  M('Come inside. There’s something warm on the stove. There always was.'),
+  M('~happy~ Let me look at you.'),
+  M('~happy~ You’re taller. No, you’re not. You stand differently. Like someone who has been listened to.'),
+  M('~happy~ Come inside. There’s something warm on the stove. There always was.'),
 ];
 
-export const CLOSING = S('Something of value. You brought it home on your own two feet.');
+export const CLOSING = S('~solemn~ Something of value. You brought it home on your own two feet.');
 
 /**
  * Everything said at the door, in order.
@@ -148,8 +150,8 @@ export const CLOSING = S('Something of value. You brought it home on your own tw
 export function reactionLines(k, ctx = {}) {
   const pick = k ?? NOTHING;
   const father = (FATHER_HOME[pick.kind] ?? FATHER_HOME.thing)(pick, ctx);
-  const lines = [F('You’re home.'), ...father, ...MOTHER_HOME];
-  if (ctx.ilen && !ctx.ilenTold) lines.push(M('There is someone we should tell you about. Tomorrow. Tonight you are home.'));
+  const lines = [F('~happy~ You’re home.'), ...father, ...MOTHER_HOME];
+  if (ctx.ilen && !ctx.ilenTold) lines.push(M('~whisper~ There is someone we should tell you about. Tomorrow. Tonight you are home.'));
   lines.push(CLOSING);
   return lines;
 }

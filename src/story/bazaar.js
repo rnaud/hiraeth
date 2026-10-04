@@ -185,10 +185,10 @@ export function setupBazaar(ctx) {
 
   // what the story's people say in passing follows the story
   const say = () => {
-    if (tuned()) people.ferro.lines = onAir() ? ['Clear as a bell!', 'Good antenna. Good, good antenna.'] : ['Listen to it hum!', 'The console’s right there.'];
-    if (game.flag('bazaar.kip.gave')) people.kip.lines = onAir() ? ['Everybody stopped! Even the fish man!', 'Messages! Real ones!'] : ['Did you play it yet?', 'Is it still singing?'];
-    if (onAir()) people.sel.lines = ['It’s talking again, love.', 'Listen. No. Listen properly.', 'Forty years on the way.'];
-    if (game.flag('bazaar.oldsign.awake')) people.brush.lines = ['WE HEARD YOU. Sixty-one signs so far.', 'Look in the corners.'];
+    if (tuned()) people.ferro.lines = onAir() ? ['~happy~ Clear as a bell!', '~happy~ Good antenna. Good, good antenna.'] : ['~surprised~ Listen to it hum!', '~neutral~ The console’s right there.'];
+    if (game.flag('bazaar.kip.gave')) people.kip.lines = onAir() ? ['~surprised~ Everybody stopped! Even the fish man!', '~shout~ Messages! Real ones!'] : ['~curious~ Did you play it yet?', '~curious~ Is it still singing?'];
+    if (onAir()) people.sel.lines = ['~happy~ It’s talking again, love.', '~solemn~ Listen. No. Listen properly.', '~solemn~ Forty years on the way.'];
+    if (game.flag('bazaar.oldsign.awake')) people.brush.lines = ['~happy~ WE HEARD YOU. Sixty-one signs so far.', '~playful~ Look in the corners.'];
   };
   say();
   game.on('flag', ({ name }) => { if (name.startsWith('bazaar.')) say(); });
@@ -325,7 +325,7 @@ export function setupBazaar(ctx) {
       const list = onAir() && (z === 'square' || p.seed < 0.5) ? CROWD_TALK.onAir : CROWD_TALK[z];
       if (!list) return null;
       const base = list[Math.floor(p.seed * 997) % list.length];
-      return { id: `crowd.bazaar.${z}`, color: p.style?.cloak ?? '#d8a24a', voice: p.kind === 'f' ? 1.2 : 0.9, ...base };
+      return { id: `crowd.bazaar.${z}`, color: p.style?.cloak ?? '#d8a24a', kind: p.kind, seed: `crowd:${p.id}`, scale: p.size, ...base }   // a voice of their own (src/story/voice.js voiceOf hashes the seed);
     },
   };
 }

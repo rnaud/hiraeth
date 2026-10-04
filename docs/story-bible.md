@@ -62,6 +62,38 @@ exacting, and grows terser when keepsakes are quiet ones. The mother joins from
 the third call and asks different questions ("Who did you meet?"). The last
 call depends on the player's choice.
 
+**The translator.** Nobody out there speaks the traveller's language. The
+traveller wears a small translator at the ear, a thing from home, so they
+*hear* each world's own tongue (a mumble of syllables) and *read* it in their
+own words. In the dialogue panel the last few letters still show in the
+speaker's script as they come in, and a small tag on the panel's edge says
+"translating · Qanati" (or Shaft cant, Perdide burble…). It is diegetic and
+light-touch:
+- the father mentions it in the prologue call ("Keep the translator at your
+  ear. Nobody out there talks like us…");
+- Nour notices it ("I hear you, child: clicks and hums, like a pot coming to
+  the boil. Then that little thing at your ear hums back at me…");
+- at home it says nothing: the parents speak the home tongue, warm and
+  familiar, and the tag stays hidden.
+
+Each world's tongue (src/story/voice.js `LANGUAGES`) has its own sound:
+- the desert is breathy and low;
+- the City-Shaft is fast and clipped;
+- Arzach is almost silent, leaving words out;
+- the cloud monks chant;
+- the Garage clanks like a voice-box;
+- the buried city rumbles;
+- Edena lilts upward like birds;
+- the spheres ring like glass;
+- Perdide is watery (bloops and wobbles);
+- the Signal Market patters through a speaker grille.
+
+Every line carries a tone (`'~sad~ …'`, src/story/tone.js) that colours how it
+is said. Narration and stage directions in brackets are silent; recordings
+and broadcasts voice only their *quoted* words (the Signal Market's broadcast
+in the father's own voice). The sound can be turned off: *Alien voices* in
+the settings.
+
 ## World by world
 
 ### 1. The Desert — "The Tree That Drinks"
