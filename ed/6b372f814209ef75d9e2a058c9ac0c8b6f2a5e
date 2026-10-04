@@ -1,0 +1,23 @@
+src/ship/cinematics.js
+  s_1fd8d0e7b02dcf::t_282456e83c5f33 233-234,258
+src/ship/interior.js
+  s_1fd8d0e7b02dcf::t_0a041de28b4f23 107
+src/ship/sites.js
+  s_1fd8d0e7b02dcf::t_78362d72b3a767 143,153-155
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ed6b372f814209ef75d9e2a058c9ac0c8b6f2a5e",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
