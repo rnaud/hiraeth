@@ -59,20 +59,14 @@ export function tileScene(scene, { tile = 260, propTile = 110 } = {}) {
   return { small };
 }
 
-// Tall meshes (Incal's shaft, a city stacked in levels) are cut in height too, so a tile is
-// a block rather than a column several hundred metres high that is never off-screen.
-const tallerThan = (g, size) => { if (!g.boundingBox) g.computeBoundingBox(); return g.boundingBox.max.y - g.boundingBox.min.y > size; };
-
 function tileTriangles(mesh, size) {
   const g = mesh.geometry, P = g.attributes.position;
   const idx = g.index ? g.index.array : Array.from({ length: P.count }, (_, i) => i);
-  const tall = tallerThan(g, size);
   const buckets = new Map();
   for (let i = 0; i < idx.length; i += 3) {
     const a = idx[i], b = idx[i + 1], c = idx[i + 2];
     const cx = (P.getX(a) + P.getX(b) + P.getX(c)) / 3, cz = (P.getZ(a) + P.getZ(b) + P.getZ(c)) / 3;
-    const cy = tall ? Math.floor((P.getY(a) + P.getY(b) + P.getY(c)) / 3 / size) : 0;
-    const k = `${Math.floor(cx / size)},${Math.floor(cz / size)},${cy}`;
+    const k = `${Math.floor(cx / size)},${Math.floor(cz / size)}`;
     let arr = buckets.get(k);
     if (!arr) buckets.set(k, (arr = []));
     arr.push(a, b, c);
@@ -94,14 +88,11 @@ function tileTriangles(mesh, size) {
 }
 
 function tileInstances(mesh, size) {
-  let y0 = Infinity, y1 = -Infinity;
-  for (let i = 0; i < mesh.count; i++) { mesh.getMatrixAt(i, _m); _p.setFromMatrixPosition(_m); y0 = Math.min(y0, _p.y); y1 = Math.max(y1, _p.y); }
-  const tall = y1 - y0 > size;
   const buckets = new Map();
   for (let i = 0; i < mesh.count; i++) {
     mesh.getMatrixAt(i, _m);
     _p.setFromMatrixPosition(_m);
-    const k = `${Math.floor(_p.x / size)},${Math.floor(_p.z / size)},${tall ? Math.floor(_p.y / size) : 0}`;
+    const k = `${Math.floor(_p.x / size)},${Math.floor(_p.z / size)}`;
     let arr = buckets.get(k);
     if (!arr) buckets.set(k, (arr = []));
     arr.push(i);
