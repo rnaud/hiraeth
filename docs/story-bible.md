@@ -16,7 +16,7 @@ and the player decides at the end what they bring home.
 *word* (something a person said), *person* (someone who asks to come along, or
 a promise to return), *knowing* (an understanding of how the world works).
 
-**The glyph**: three dots over an arc. It is scorched into the ship's hull from
+**The glyph**: three dots over an arc that bows upward (∩), never a smile. It is scorched into the ship's hull from
 the impact. It recurs on the reactive scenery's three apertures in every world,
 on the giants' bones, on the Incal's facets, on the Major's machine, on the
 android ruins of Edena and on the oldest market sign. Locals each have a
@@ -164,3 +164,21 @@ call depends on the player's choice.
 ## The ending (not built)
 At the ship's cockpit after enough worlds, the player chooses one keepsake to
 bring home. The father's reaction depends on its kind; the mother's does not.
+
+## Local names (as built)
+| World | The glyph | The singing light |
+|---|---|---|
+| Desert | the mark between the giant's eyes | the singing light that turned (Oum) |
+| Arzach | the bird's track (Oïa) | heard in the stones (Senn) |
+| Arzach II | the Three Notes (Calix) | the bell hummed by itself for it |
+| Garage | the maker's rivets (Ottla), the Major's thumbprint (Malvina) | seen through the ring's slit (Lune); three machines stopped that night |
+| Buried Machine | the Maker's Thumb | the Tuning Star (Hask, Dun) |
+| Edena | the Builders' mark (Oro) | the Singer (Atan's word, Sol) |
+| Garden of Spheres | the Footprint, under every sphere (Ivo) | an Answerer (Ume) |
+
+Built details beyond the bible: the bird's promise (`bird.promise`) could later
+let her answer a whistle in other worlds; Arzach II's clapper "fell up"; the
+Major once visited the wheel and wrote "FOUND IT. NOW WHAT?" on the drum wall;
+Stel and Atan left in the saucer for the deep wood where the lamps are kept;
+each sphere remembers the last sound it heard before falling.
+

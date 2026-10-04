@@ -24,6 +24,8 @@ export const SITE_OVERRIDES = {
       sink: 6,            // how far below its parked height it is dug in (clamped so the deck stays clear of the sand)
     },
   },
+  // the search's own pick crowded the pearl sphere, a listening spot of the main quest
+  spheres: { x: 38, z: 81, heading: -2.7 },
 };
 
 const TAU = Math.PI * 2;
