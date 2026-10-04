@@ -1,0 +1,65 @@
+index.html
+  s_1fd8d0e7b02dcf::t_f2b0a559805fcf 341-354,392-393
+src/audio.js
+  s_1fd8d0e7b02dcf::t_4d7b1b9375c7ed 461-462,465-466,472-488,490,493-494
+src/bike.js
+  s_1fd8d0e7b02dcf::t_1e3d9591563607 8-12,21,46,67-69,72-102,120-126,195-223,268
+src/controller.js
+  s_1fd8d0e7b02dcf::t_b440f9ebd824a9 64-65
+src/crowd.js
+  s_1fd8d0e7b02dcf::t_f6a68fe0278970 60-62,315,837,863-869,879
+src/flammable.js
+  s_1fd8d0e7b02dcf::t_28a0f3f076920e 1-167
+src/fluid-kit.js
+  s_1fd8d0e7b02dcf::t_b456409560e45c 1-241
+src/fluid-tool.js
+  s_1fd8d0e7b02dcf::t_6e72fb9e5c776a 3,6-7,20-21,23-38,49-50,53-54,64,79-80,96-99,103,105-107,109-110,113-120,122,125,129-130,559,570,572-573,577-579,594,624-631,666-672,678-681,687,689-717,742,745,778-783,800-802,819-820,824-955,959,971-975,978,981-983,986-997,999-1008,1010-1011,1020,1043-1057,1063,1067,1082,1084-1086,1109,1123,1128-1129,1136,1152-1153,1155,1163,1169-1176,1178-1198,1215,1217-1218,1220-1221,1224-1229,1232-1239,1262,1271,1274-1275
+src/humanoid.js
+  s_1fd8d0e7b02dcf::t_7d74abd4f1b816 648-679
+src/levels/bazaar.js
+  s_1fd8d0e7b02dcf::t_83ef5741d46b9d 109,125,274
+src/levels/perdide.js
+  s_1fd8d0e7b02dcf::t_ef6d42dc6d6251 349-350,388-390
+src/main.js
+  s_1fd8d0e7b02dcf::t_ec6d53e25f475d 37-38,174-182,294-296,332,337-338,378,698-700,702,705-706,708,724-726,904-905,937,1094
+src/materials.js
+  s_1fd8d0e7b02dcf::t_6482601d51898a 632-644,687-690,766-770,928,984
+src/npc.js
+  s_1fd8d0e7b02dcf::t_46544dc2611b92 32-33,53,176-183,185-186,189-193,195-199,245,380,425,437,614
+src/player.js
+  s_1fd8d0e7b02dcf::t_c2474d3ad1cf06 5-6,20,155-156,316-319,359-368,371,380-391,394,485-486,501-502,529,531,535-563,572-573,609,612,614,674-693,737-745,750,754-756,897-898,900-901,924-934,965-968,971,973,975-978,981-988
+src/story/buried.js
+  s_1fd8d0e7b02dcf::t_6e339f26a32fe2 196,198-199
+src/story/perdide2.js
+  s_1fd8d0e7b02dcf::t_cacd9746873617 127,129
+src/targets.js
+  s_1fd8d0e7b02dcf::t_793c83c598e4a9 14-24,78-87
+src/ui.js
+  s_1fd8d0e7b02dcf::t_c24e04e19075eb 119-120,191-194,204-205,207,209-216,218,221-222
+src/wildlife.js
+  s_1fd8d0e7b02dcf::t_fd73ddd654ad15 11-15,17,222,280-289,291-294
+tests/abilities.test.js
+  s_1fd8d0e7b02dcf::t_4cb9e57eedf750 1-389
+tests/fluid-tool.test.js
+  s_1fd8d0e7b02dcf::t_0f71e5c0aa05a0 11-14,72-79,204-205,229,234-236,241-243,246-247,249,251
+tests/touch.test.js
+  s_1fd8d0e7b02dcf::t_97810662b38e3d 26
+tests/wildlife.test.js
+  s_1fd8d0e7b02dcf::t_30ad678a320618 82,94-95,122-132
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a3be2b9772c38b5a6d7d3be5da5c02fc18cadbd0",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
