@@ -12,6 +12,7 @@ const pal = (cloak, extra = {}) => ({ cloak, lining: extra.lining ?? '#2b211f', 
 
 import { ARZACH2_CONTENT } from './arzach2.js';
 import { BURIED_CONTENT } from './buried.js';
+import { EDENA_CONTENT } from './edena.js';
 import { SPHERES_CONTENT } from './spheres.js';
 import { PERDIDE2_CONTENT } from './perdide2.js';
 
@@ -169,26 +170,7 @@ export const CONTENT = {
       { at: [120, -110], palette: pal('#f2c54b'), lines: ['The ring? Walk far enough and you’re back.'], shy: true },
     ],
   },
-  edena: {
-    weather: ['rain'],
-    story: {
-      title: 'STEL AND ATAN',
-      intro: 'Their ship fell in the meadow. Find it.',
-      outro: 'The garden has already begun to grow over it.',
-      label: 'the crashed ship', goal: [40, 'ground', -210], radius: 28,
-    },
-    relics: {
-      spots: [[60, -80], [-200, 220], [180, 120], [-300, 50], [240, -300]],
-      names: ['Canopy blossom', 'Pyramid seed', 'Android sprocket', 'Glyph tablet', 'Ship rivet'],
-    },
-    gate: { at: [26, 34], heading: Math.PI },
-    npcs: [
-      { at: [30, 30], palette: pal('#f7f4ec', { cloth: '#62c3c9', face: '#dfe8ec' }), lines: ['We tend the garden. The garden tends us.'] },
-      { at: [-60, 60], palette: pal('#9fd6c9', { cloth: '#f7f4ec' }), lines: ['Stel? Atan? They left in the ship.'] },
-      { at: [150, 100], palette: pal('#f2a7b5'), lines: ['The pyramids are older than the androids.'], shy: true },
-      { at: [-170, 190], palette: pal('#b5a7e6'), lines: ['Climb the trees. The view is worth it.'] },
-    ],
-  },
+  edena: EDENA_CONTENT,
   perdide: {
     weather: ['rain', 'fog'],
     story: {
