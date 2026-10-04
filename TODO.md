@@ -268,8 +268,8 @@ To start after the current work lands. Ordered from easiest to most complex.
   tank shots.)
 - [ ] Spaceship: the floor is flat, so the traveller doesn't bob up and down walking the deck.
 - [ ] Spaceship: the texture at the entrance shimmers.
-- [ ] The desert's big tree: you can see inside the roots (missing faces / open trunk).
-- [ ] Taxis: why are the riders giants? A taxi that comes to pick you up arrives empty.
+- [x] The desert's big tree: you can see inside the roots (missing faces / open trunk).
+- [x] Taxis: why are the riders giants? A taxi that comes to pick you up arrives empty.
 - [ ] Dialogue choices: 3 at most, usually 1 or 2 (with a test that checks every node).
 - [ ] Highlight "Bring back something of value", the father's first major quest: it is the
   heart of the game (in the journal, the HUD and the moment it's given).

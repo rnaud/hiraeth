@@ -9,6 +9,11 @@ export const CHANGELOG = [
     'The ship mentions the signature after the crash, the first time the map opens, and on first arrival at each world; newly charted worlds say it reads there too.',
     'A few people across the worlds now notice the strange pull the light left on compasses and metal.',
     'Odile and Talo’s names are now right on the saucer’s console and on Talo’s note.',
+    'The roots and branches of Qanat’s burning tree are solid now: up close, from the terraces, the stairs or while climbing, you see bark, never the inside.',
+    'The giant’s arm in the dunes and the ribs and roots in the cave under it are solid too.',
+    'Taxi drivers and passengers are the size of people again, not giants twice your height.',
+    'A taxi you call comes empty, and the seat is yours. Cabs with a passenger aboard turn off their “for hire” lamps, and a free cab answers your call first.',
+    'The bazaar’s taxis are as big as the City-Shaft’s, so you fit under the awning.',
   ] },
   { v: '0.44', date: '2026-10-04', items: [
     'The traveller is a real person again: normal proportions and a natural stance, in a baggy lavender suit with salmon gloves and boots, the bubble helmet sitting right round their head, headphones on their ears, a scarf, a belt of pouches and the radio pack strapped on their back.',
