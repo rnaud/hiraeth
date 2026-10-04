@@ -33,7 +33,7 @@ export const QUESTS = [
     stages: [
       { id: 'watcher', text: 'Someone sits by the bird, watching the lone tower. Sit with her', label: 'Oïa, watching the tower', flag: 'arzach.watcher.met', at: 'oia' },
       { id: 'ride', text: 'The bird keeps turning toward the lone tower. Ride her (E beside her)', label: 'The bird', flag: 'arzach.rode', at: 'bird' },
-      { id: 'tower', text: 'Fly to the lone tower and land on its balcony (Space flaps, S pulls up)', label: 'The tower’s balcony', goto: 'balcony', radius: 21, vertical: 7, at: 'balcony' },
+      { id: 'tower', text: 'Fly to the lone tower and land on its balcony (Space flaps, S pulls up)', label: 'The tower’s balcony', goto: 'balcony', radius: 21, vertical: 12, at: 'balcony' },
       { id: 'window', text: 'Climb the stone steps round the tower to its one window', label: 'The window', flag: 'arzach.window.seen', at: 'window' },
       { id: 'call', text: 'Blow the rider’s whistle (E)', label: 'The bird', flag: 'arzach.bird.called', at: 'bird' },
       { id: 'promise', text: 'The bird is coming. Wait for her', label: 'The bird', flag: 'arzach.bird.promise', at: 'bird' },

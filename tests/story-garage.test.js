@@ -129,7 +129,7 @@ test('side quests: three machines restart when shot, and Pip’s ball crosses fr
   talk(PEOPLE.pip, ['I’ll push it', 'Up the curve']);
   assert.equal(quests.stage('garage.ball'), 'push');
   const ballT = allTargets().find((t) => t.kind === 'ball');
-  const portal = G.portals.find((p) => p.label === 'A');
+  const portal = G.portals.find((p) => p.zone === 'A');
   let pushes = 0;
   for (let i = 0; i < 40 && !game.flag('garage.ball.through'); i++) {
     const b = W.ball.pos;

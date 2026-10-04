@@ -22,8 +22,8 @@ import { QUESTS, PEOPLE, LOCALS, THINGS, ITEMS, CAIRN_STONES } from './arzach2-d
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const angleTo = (from, to) => Math.atan2(to.x - from.x, to.z - from.z);
-const SETTLE = 11;          // m the cloud sinks when the bell rings
-const STONES_DOWN = 5;      // m the floating stones come down
+const SETTLE = 16;          // m the cloud sinks when the bell rings
+const STONES_DOWN = 6;      // m the floating stones come down
 
 // ------------------------------------------------------------------ the bell's note, from the tank
 // A low FM bell. In Arzach II it plays through the level's Sound; elsewhere the

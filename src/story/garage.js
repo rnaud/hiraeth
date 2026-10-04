@@ -91,12 +91,12 @@ export function setupGarage(ctx) {
   });
 
   // ---------------------------------------------------------------- Pip's ball
-  const ball = { r: 0.85, mode: 'ring', x: 0, phi: 0, vx: 0, vt: 0, pos: V(0, 0, 0), vel: V(0, 0, 0), spin: new THREE.Quaternion(), back: 0 };
+  const ball = { r: 1.1, mode: 'ring', x: 0, phi: 0, vx: 0, vt: 0, pos: V(0, 0, 0), vel: V(0, 0, 0), spin: new THREE.Quaternion(), back: 0 };
   const START = { x: 3040, phi: -Math.PI / 2 - 0.08 };
   const Rb = R - ball.r;
-  const portalA = G.portals.find((p) => p.label === 'A');          // the ring's portal, on the -z wall
+  const portalA = G.portals.find((p) => p.zone === 'A');          // the ring's portal, on the -z wall
   const portalFoot = portalA ? portalA.pos.clone().sub(C).setX(0).setLength(R).add(C).setX(portalA.pos.x) : V(3060, 0, -150);
-  const ballMesh = new THREE.Mesh(new THREE.IcosahedronGeometry(ball.r, 2), makeMaterial({ color: '#e88fa6', color2: '#f2c54b', flat: true, grid: 1.2 }));
+  const ballMesh = new THREE.Mesh(new THREE.IcosahedronGeometry(ball.r, 2), makeMaterial({ color: '#f2c54b', flat: true, grid: 0.9, glow: 0.2 }));
   ballMesh.userData.noCollide = true;
   scene.add(ballMesh);
   const ringPlace = () => ball.pos.set(ball.x, C.y + Math.sin(ball.phi) * Rb, C.z + Math.cos(ball.phi) * Rb);

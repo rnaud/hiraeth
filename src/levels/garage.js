@@ -28,7 +28,7 @@ const ringDir = (phi) => new THREE.Vector3(0, Math.sin(phi), Math.cos(phi));
 // the story's places (src/story/garage.js), kept clear of the random buildings
 const BOARD = new THREE.Vector3(-13, 0, 98);          // A: the signal board by the path from the start
 const B_RELAY = new THREE.Vector3(9, 0, 14);          // B: slab-local (y down into the quarter): the relay box
-const B_DESK = new THREE.Vector3(-112, 0, 58);        // B: slab-local: the Major's old desk
+const B_DESK = new THREE.Vector3(-140, 0, 72);        // B: slab-local: the Major's old desk, out near the edge
 const B_PUMP = new THREE.Vector3(42, 0, -18);         // B: slab-local: the lamp pump
 const C_TURBINE = new THREE.Vector3(2905, 0, -22);    // C: on the ring floor near its entrance (x, -, z)
 
@@ -76,7 +76,8 @@ export function createGarage(scene) {
     return m;
   }
 
-  function portal(pos, up, facing, to, toUp, toFwd, label) {
+  function portal(pos, up, facing, to, toUp, toFwd, zone) {
+    const label = { A: 'portal to the plateau', B: 'portal to the upside-down', C: 'portal to the ring' }[zone];   // "Through the …" on the HUD
     const ring = new THREE.Mesh(new THREE.TorusGeometry(5, 0.7, 8, 32), makeMaterial({ color: '#f2c54b', glow: 1 }));
     const inner = new THREE.Mesh(new THREE.CircleGeometry(4.3, 32), makeMaterial({ color: '#62c3c9', glow: 0.8, side: THREE.DoubleSide }));
     const grp = new THREE.Group();
@@ -87,7 +88,7 @@ export function createGarage(scene) {
     grp.position.copy(pos).addScaledVector(up, 5.5);
     grp.userData.noCollide = true;
     scene.add(grp);
-    portals.push({ pos: grp.position.clone(), to, toUp, toFwd, label });
+    portals.push({ pos: grp.position.clone(), to, toUp, toFwd, label, zone });
     movers.push((t) => { inner.rotation.z = t * 0.6; ring.scale.setScalar(1 + Math.sin(t * 3) * 0.03); });
   }
 
