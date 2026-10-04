@@ -1,0 +1,71 @@
+docs/game-brief.md
+  s_1fd8d0e7b02dcf::t_329d0fe694b505 118,121-126
+index.html
+  s_1fd8d0e7b02dcf::t_89c7459b2c949c 341-355,393-394
+src/audio.js
+  s_1fd8d0e7b02dcf::t_240c25c07e5893 539-540,543-544,550-566,568,571-572
+src/bike.js
+  s_1fd8d0e7b02dcf::t_4c46d40181c3f9 8-12,21,46,67-69,72-102,120-126,195-223,268
+src/controller.js
+  s_1fd8d0e7b02dcf::t_6c75544c102958 64-65
+src/crowd.js
+  s_1fd8d0e7b02dcf::t_eaab46f7150ec7 60-62,315,837,863-869,879
+src/flammable.js
+  s_1fd8d0e7b02dcf::t_379399ecb229ca 1-172
+src/fluid-kit.js
+  s_1fd8d0e7b02dcf::t_134379923f80f6 1-247
+src/fluid-tool.js
+  s_1fd8d0e7b02dcf::t_d4ca1167e73713 3,6-7,20-21,23-38,49-50,53-54,64,79-80,96-99,103,105-107,109-110,113-120,122,125,129-130,559,570,572-573,577-579,594,624-631,666-672,678-681,687,689-717,742,745,778-783,800-802,819-820,824-955,959,971-975,978,981-983,986-997,999-1008,1010-1011,1020,1043-1057,1063,1067,1082,1084-1086,1109,1123,1128-1129,1136,1152-1153,1155,1163,1169-1176,1178-1198,1215,1217-1218,1220-1221,1224-1229,1232-1239,1262,1271,1274-1275
+src/humanoid.js
+  s_1fd8d0e7b02dcf::t_e4bb293d959210 709-740
+src/levels/bazaar.js
+  s_1fd8d0e7b02dcf::t_35f2811f52449b 109,125,274
+src/levels/perdide.js
+  s_1fd8d0e7b02dcf::t_9042e71c6adc5b 349-350,388-390
+src/main.js
+  s_1fd8d0e7b02dcf::t_dc184884545258 37-38,177-186,298-300,336,341-342,394,715-717,719,722-723,725,741-743,922-923,957,1114-1115
+src/materials.js
+  s_1fd8d0e7b02dcf::t_ae0f02288decd6 632-644,687-690,766-770,928,984
+src/npc.js
+  s_1fd8d0e7b02dcf::t_810f1e644f5833 32-33,53,176-183,185-186,189-193,195-199,245,380,425,437,614
+src/player.js
+  s_1fd8d0e7b02dcf::t_91e071aa649eb9 5-6,20,155-156,316-319,359-368,371,380-391,394,485-486,501,528,530,534-562,571-572,608,611,613,673-692,736-744,749,753-755,896-897,899-900,923-933,964-967,970,972,974-977,980-987
+src/story/buried.js
+  s_1fd8d0e7b02dcf::t_d6d37804029b4e 196,198-199
+src/story/desert.js
+  s_1fd8d0e7b02dcf::t_e57cf1350f4392 178-179
+src/story/perdide2.js
+  s_1fd8d0e7b02dcf::t_a3cff87c53fa9c 127,129
+src/targets.js
+  s_1fd8d0e7b02dcf::t_329b02c4ae7645 14-24,78-87
+src/ui.js
+  s_1fd8d0e7b02dcf::t_0cecbc6bc4bbd2 121-122,193-196,206-207,209,211-218,220,223-224
+src/wildlife.js
+  s_1fd8d0e7b02dcf::t_92ec4ad2ff4035 11-15,17,222,280-289,291-294
+tests/abilities.test.js
+  s_1fd8d0e7b02dcf::t_89bec38dfb3912 1-389
+tests/controller.test.js
+  s_1fd8d0e7b02dcf::t_874d1fa689914c 60-63
+tests/fluid-tool.test.js
+  s_1fd8d0e7b02dcf::t_238756a387c3e8 11-14,72-79,204-205,229,234-236,241-243,246-247,249,251
+tests/touch.test.js
+  s_1fd8d0e7b02dcf::t_09c3c1e2becc3f 26
+tests/wildlife.test.js
+  s_1fd8d0e7b02dcf::t_c6b24c300f9f28 82,94-95,122-132
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "81cb4725a18c55ebcd7fe91cdb00a83a7e5b58b1",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
