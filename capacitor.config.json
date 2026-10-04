@@ -3,6 +3,10 @@
   "appName": "Moebius",
   "webDir": "dist",
   "backgroundColor": "#f7ecd2",
+  "server": {
+    "androidScheme": "https",
+    "hostname": "localhost"
+  },
   "android": {
     "backgroundColor": "#f7ecd2",
     "allowMixedContent": false,

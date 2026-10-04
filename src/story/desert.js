@@ -168,7 +168,7 @@ export function setupDesert(ctx) {
       oum.seat = null;
       const far = flat(player.pos, oum.pos) > 22 || player.pos.y > 600;
       oumWaitT -= dt;
-      if (far && oumWaitT <= 0 && flat(player.pos, oum.pos) < 60) { oum.shout = { text: 'Wait for me!', until: oum.time + 2.2 }; oumWaitT = 9; }
+      if (far && oumWaitT <= 0 && flat(player.pos, oum.pos) < 60) { oum.shout = { text: '~shout~ Wait for me!', until: oum.time + 2.2 }; oumWaitT = 9; }
       const d = _w.set(oum.pos.x - player.pos.x, 0, oum.pos.z - player.pos.z).normalize();
       oumFollow.copy(player.pos).addScaledVector(d, 2.2);
       oum.follow = () => (far ? null : { pos: oumFollow, speed: 1.1, near: 1.2, max: 1.6 });
@@ -412,7 +412,7 @@ export function setupDesert(ctx) {
     let k = 0;
     for (const n of [...villagers, people.hessa]) {
       if (flat(n.pos, boxAt) > 30) continue;
-      const line = n === people.hessa ? 'Grandmother! The sky-stranger is at the chest!' : pick(MURMURS.near, k);
+      const line = n === people.hessa ? '~shout~ Grandmother! The sky-stranger is at the chest!' : pick(MURMURS.near, k);
       later(0.3 + k++ * 0.9, () => say(n, line, 3));
     }
     crowd?.lookAt(boxAt.clone().setY(boxAt.y + 1), 6, { near: boxAt, r: 60 });
@@ -430,7 +430,7 @@ export function setupDesert(ctx) {
       walkPath(n, n.below ? [...stairs, spot] : [spot], { speed: n.below ? 1.6 : 1.2, face: faceBox(spot) });
       later(0.6 + i * 0.75, () => say(n, pick(MURMURS.gather, i), 3.2));
     });
-    later(1.2, () => say(people.hessa, 'Grandmother! It opened!', 3));
+    later(1.2, () => say(people.hessa, '~shout~ Grandmother! It opened!', 3));
     // Nour: up off her bench, to you
     sh.nour = { t: 0, talked: false };
     nour.seat = null;
@@ -514,12 +514,12 @@ export function setupDesert(ctx) {
         if (!p.walk && Math.random() < 0.4 && d < 22) { p.faceUntil = now + 1.5 + Math.random(); p.greetT = now; }
       }
       for (const n of [people.ama, people.ilo]) n.greeted = 0;
-      if (early()) { say(people.ama, 'To the city, sky-stranger! Up to the tree!', 3.5); later(1.4, () => say(people.ilo, 'Nour’s chest is humming! Go and see!', 3)); }
+      if (early()) { say(people.ama, '~shout~ To the city, sky-stranger! Up to the tree!', 3.5); later(1.4, () => say(people.ilo, '~shout~ Nour’s chest is humming! Go and see!', 3)); }
     } else if (dCamps > 60) st.campsIn = false;
     // into the city: the walls are round it
     if (!game.flag('desert.city.entered') && flat(pp, city.center) < 60 && Math.abs(pp.y - city.center.y) < 30) game.set('desert.city.entered', true);
     // the Speaker waves you on too, as you come up to the procession
-    if (early() && !st.speakerWaved && flat(pp, people.speaker.pos) < 14) { st.speakerWaved = true; say(people.speaker, 'Qanat is ahead, little star. Up to the tree!', 3.5); }
+    if (early() && !st.speakerWaved && flat(pp, people.speaker.pos) < 14) { st.speakerWaved = true; say(people.speaker, '~happy~ Qanat is ahead, little star. Up to the tree!', 3.5); }
     updateShrine(dt, pp);
     if (pp.distanceTo(cave.origin) < 80 && !game.flag('desert.cave.seen')) game.set('desert.cave.seen', true);
     updateFollowers(dt);
@@ -582,7 +582,7 @@ export function setupDesert(ctx) {
       const list = (id === 'procession' && st.drinking ? CROWD_TALK.drinking : CROWD_TALK[id]) ?? null;
       if (!list) return null;
       const base = list[Math.floor(p.seed * list.length) % list.length];
-      return { id: `crowd.${id}`, color: p.style?.cloak ?? '#d8a24a', voice: p.kind === 'f' ? 1.2 : 0.9, ...base };
+      return { id: `crowd.${id}`, color: p.style?.cloak ?? '#d8a24a', kind: p.kind, seed: `crowd:${p.id}`, scale: p.size, ...base }   // a voice of their own (src/story/voice.js voiceOf hashes the seed);
     },
     onTalk(person, npc, on) {
       // the procession stops for you while you talk with someone in it (or its Speaker)

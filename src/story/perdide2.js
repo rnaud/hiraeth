@@ -63,7 +63,7 @@ export function setupPerdide2(ctx) {
     h.atCave = true;
     h.route = [hollinEnd.clone(), at(hollinEnd.x + 1.5, hollinEnd.z - 1)]; h.wp = 0;
     h.pos.copy(hollinEnd);
-    h.lines = ['Look at them. Every pool, lit.', 'I walked all the way down. My knees will tell me about it tomorrow.'];
+    h.lines = ['~happy~ Look at them. Every pool, lit.', '~tired~ I walked all the way down. My knees will tell me about it tomorrow.'];
   };
   if (quests.reached(Q, 'tell') || quests.isDone(Q)) moveHollin();
 

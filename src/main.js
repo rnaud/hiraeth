@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { ReactiveWorld } from './reactive-world.js';
 import { Controller, mergeControls, menuNavigate } from './controller.js';
-import { installNativePad, watchLabels } from './native-pad.js';
+import { installNativePad, watchLabels, setSwapAB } from './native-pad.js';
+import { installAppShell, markBooted } from './native-app.js';
 import { ObservatoryQuest } from './observatory.js';
 import { Scout, nextObjective } from './scout.js';
 import { Wildlife } from './wildlife.js';
@@ -307,7 +308,7 @@ const gate = (() => {
 })();
 levelLights.push(gate.light);
 // ---- story: conversations, quests, the world's people and places (src/story/, src/interact.js)
-const showToast = (text) => { const el = document.getElementById('toast'); el.textContent = text; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); };
+const showToast = (text) => ship.cinema.toast(text);   // queued, and held while a scene has the screen dark (src/ship/cinema.js)
 player.onNotice = showToast;   // "It needs power." (a vehicle without the backpack)
 const storyRt = createStory({ levelId, scene, physics, level, player, npcs, crowd, sound, journal, story, lib, humans: humanT, toast: showToast, tool,
   capture: (e, l, w, h) => captureView(e, l, w, h) });
@@ -605,6 +606,9 @@ const menu = new SettingsMenu(settings, {
   }
 }
 if (isTouch) new TouchControls(input, rig);
+// controller A/B swap (settings), and the Android app: build label, update toast, pause/resume
+settings.on((k) => { if (!k || k === 'swapAB') setSwapAB(settings.swapAB); });
+installAppShell({ sound, label: () => document.getElementById('app-build'), toast: showToast });   // (queued with the rest, src/ship/cinema.js)
 
 // ------------------------------------------------------------------ level picker
 const picker = document.getElementById('picker');
@@ -765,6 +769,7 @@ const controller = new Controller({
   context: () => busy() ? 'menu' : photo.on ? 'photo' : 'game',
   look: (x, y) => { if (x || y) rig.look(x, y); },
   activity: () => { controllerActive = true; },
+  swapAB: () => settings.swapAB,
   navigate: (x, y) => menuNavigate(menuRoot(), x, y),
   scroll: amount => { const root = menuRoot(); (root.querySelector('.list, .panel, .sheet') ?? root).scrollTop += amount; },
   action: (name, dt) => {
@@ -1154,16 +1159,13 @@ await warmShaders(post.scene, post.camera);
 stage('ready'); console.info(`load: total ${(performance.now() - tLoad).toFixed(0)} ms (after module load)`);
 requestAnimationFrame((t) => {
   frame(t);
+  markBooted();   // the heartbeat: the Android app keeps a downloaded web build only once it gets here (native-app.js)
   const ld = document.getElementById('loading');
   ld?.classList.add('done');
   setTimeout(() => ld?.remove(), 900);
   if (viaGate) arriveFromPage(meta.title);
   ship.start({ via: viaShip ? 'ship' : viaGate ? 'gate' : null, prologue: playPrologue, homecoming: playHomecoming, onReady: () => { if (playHomecoming) journal.markSeen(levelId); else if (!viaGate) story.start(); } });   // the homecoming is its own page
-  if (changelog.fresh) setTimeout(() => {   // after an update: point at what changed, once
-    const t = document.getElementById('toast');
-    t.textContent = `Updated to v${VERSION} · press N to see what's new`;
-    t.classList.remove('show'); void t.offsetWidth; t.classList.add('show');
-  }, 4000);
+  if (changelog.fresh) setTimeout(() => showToast(`Updated to v${VERSION} · press N to see what's new`), 4000);   // after an update: point at what changed, once
 });
 
 // handy for debugging from the console

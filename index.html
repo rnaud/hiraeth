@@ -182,6 +182,16 @@
       #dialogue .dlg-choices button:hover, #dialogue .dlg-choices button:focus { background: #fff6dc; transform: translate(-1px, -1px); box-shadow: 3px 3px 0 #2b211f; outline: none; }
       #dialogue .dlg-choices button span { display: inline-block; width: 1.4em; font-weight: bold; color: #c8483a; }
       #dialogue .dlg-hint { text-align: right; font-size: 10.5px; opacity: 0.55; margin-top: 6px; }
+      /* the translator (src/story/dialogue.js): their own script at the caret, and a small tag on the panel's edge */
+      #dialogue .dlg-alien { color: #3aa6a8; letter-spacing: 0.05em; opacity: 0.85; }
+      #dialogue .dlg-tr { position: absolute; right: 14px; top: -12px; display: flex; align-items: center; gap: 6px; padding: 1px 8px 2px;
+        background: #fffaf0; border: 2px solid #2b211f; font-size: 10px; letter-spacing: 0.08em; text-transform: lowercase; color: #34405e; }
+      #dialogue .dlg-tr[hidden] { display: none; }
+      #dialogue .dlg-tr i { width: 9px; height: 9px; border-radius: 50%; border: 2px solid #3aa6a8; box-sizing: border-box; position: relative; }
+      #dialogue .dlg-tr i::after { content: ''; position: absolute; inset: -5px; border-radius: 50%; border: 1.5px solid #3aa6a8; opacity: 0; }
+      #dialogue .dlg-tr.busy i { background: #3aa6a8; }
+      #dialogue .dlg-tr.busy i::after { animation: dlg-tr 0.9s ease-out infinite; }
+      @keyframes dlg-tr { from { transform: scale(0.5); opacity: 0.9; } to { transform: scale(1.4); opacity: 0; } }
       @media (max-width: 600px) {
         #dialogue { font-size: 13px; bottom: calc(150px + var(--safe-bottom)); }
         #dialogue .dlg-panel { padding: 30px 12px 10px 12px; }
@@ -218,6 +228,10 @@
         box-shadow: 4px 4px 0 #2b211f; opacity: 0; pointer-events: none;
       }
       #toast.show { animation: toast 4.5s forwards; }
+      /* the toast is placed in the stack of things written on the screen (src/ship/cinema.js layoutCinema):
+         one line where it can, centred, and over the letterbox's frame during a scene, below its top bar */
+      #toast { width: max-content; max-width: calc(100vw - 32px); box-sizing: border-box; text-align: center; transition: top 0.3s; }
+      body.cine-on #toast { z-index: 8050; }
       @keyframes toast { 0% { opacity: 0; transform: translate(-50%, -8px); } 8%, 80% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; } }
 
       #page {
