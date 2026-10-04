@@ -2,8 +2,22 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.44 — 2026-10-04
+
+- Conversations keep a clear view: the camera finds a spot with no wall, tree, rock or passer-by in the way, even in narrow streets, the ship and Viridel’s cabin.
+- Looking at something now shows it over your shoulder, and the traveller turns to face it (and to whoever they talk to).
+- Fewer things clip: trees no longer grow through houses, crowds don’t stand inside walls, boxes sit flat on ledges and stones, and capes and your bracer no longer pass through bodies.
+- On handhelds, the picture lowers its resolution as soon as frames start to hitch, rather than staying put while the game stutters every few frames.
+- Sun shadows close to you update a little less often on the Handheld setting, which takes a big load off the Retroid and phones.
+- The City-Shaft draws its trees more efficiently: the same trees, less work for your device.
+- You can walk on the desert city’s domed roofs: the domes, the tower bulbs and the flat roofs hold you up instead of letting you sink inside them.
+- Other people’s chatter balloons no longer cover the dialogue choices while you’re talking to someone.
+- Calling your mount (the hoverbike, the bird) or hailing a taxi now comes with a whistle.
+
 ## v0.43 — 2026-10-04
 
+- People no longer shake or spin when you walk into them or talk to them up close: they turn to you and hold still, and crowd folk step round you instead of jittering on the spot.
+- Capes hang properly on people seen from afar instead of floating where they were, and no longer drop into place as you come near.
 - Fall from too high and you tumble over limp, lie a moment and get back up; falls hurt much less now. Only a really long fall (about 36 m or more) is fatal, and the game then asks you to Restart from where you last stood (Enter, A / ×, or a tap).
 - A close push from your fluid gun knocks people right off their feet; they pick themselves up and glare at you.
 - In the desert city, the first makers’ box now waits on a little wooden ledge up the burning tree’s trunk, out in the open where you can see it from the stairs: climb the big root to reach it. Qanat gathers at the tree’s foot to watch, and Nour waits there for you to come down.

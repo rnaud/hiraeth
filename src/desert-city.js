@@ -42,6 +42,8 @@ function T(geo, p = [0, 0, 0], r = [0, 0, 0], s = 1) {
   return geo.applyMatrix4(_m.compose(V(...p), _q, typeof s === 'number' ? V(s, s, s) : V(...s)));
 }
 const lathe = (pts, seg = 20) => new THREE.LatheGeometry(pts.map(([r, y]) => new THREE.Vector2(Math.max(r, 0.001), y)), seg);
+/** A dome's collider: the same half-sphere, coarser (you walk on the roofs; they were hollow). */
+const domeSolid = (r, at, sy = 1) => T(new THREE.SphereGeometry(r, 16, 7, 0, Math.PI * 2, 0, Math.PI / 2), at, [0, 0, 0], [1, sy, 1]);
 const dome = (r, seg = 16, rings = 6) => new THREE.SphereGeometry(r, Math.max(seg, 16), Math.max(rings, 9), 0, Math.PI * 2, 0, Math.PI / 2);
 
 /** A tube whose radius tapers from r0 to r1 along the curve. */
@@ -227,7 +229,7 @@ export function buildDesertCity(scene, terrain) {
       const [sx, sz] = angOf(a), h = 14 + (i % 3) * 2.5;
       const tw = new THREE.CylinderGeometry(3.6, 4, h, 14);
       city.both(M.wall, T(tw, [sx * R, h / 2 - 1, sz * R]), new THREE.CylinderGeometry(3.8, 4, h, 8).translate(sx * R, h / 2 - 1, sz * R));
-      city.add(i % 3 === 1 ? M.dTeal : i % 2 ? M.dPink : M.dWhite, T(dome(3.9, 14, 6), [sx * R, h - 1, sz * R], [0, 0, 0], [1, 1.25, 1]));
+      city.both(i % 3 === 1 ? M.dTeal : i % 2 ? M.dPink : M.dWhite, T(dome(3.9, 14, 6), [sx * R, h - 1, sz * R], [0, 0, 0], [1, 1.25, 1]), domeSolid(3.86, [sx * R, h - 1, sz * R], 1.25));
       city.add(M.ink, new THREE.CylinderGeometry(0.08, 0.08, 4, 4).translate(sx * R, h + 5.5, sz * R));
       city.add(M.dark, T(new THREE.BoxGeometry(0.7, 1.6, 0.4), [sx * (R + 3.9), h * 0.62, sz * (R + 3.9)], [0, a, 0]));
     }
@@ -235,7 +237,7 @@ export function buildDesertCity(scene, terrain) {
     const gz = R;
     for (const s of [-1, 1]) {
       city.both(M.wall, new THREE.BoxGeometry(6, 18, 7).translate(s * 8.2, 8, gz));
-      city.add(M.dWhite, T(dome(3.2, 12, 5), [s * 8.2, 17, gz], [0, 0, 0], [1, 1.4, 1]));
+      city.both(M.dWhite, T(dome(3.2, 12, 5), [s * 8.2, 17, gz], [0, 0, 0], [1, 1.4, 1]), domeSolid(3.17, [s * 8.2, 17, gz], 1.4));
       city.add(M.red, new THREE.BoxGeometry(0.4, 9, 2.2).translate(s * 8.2, 9, gz + 3.55));   // painted bands
     }
     city.both(M.wallGlyph, new THREE.BoxGeometry(22.4, 4.2, 7.4).translate(0, 15, gz), new THREE.BoxGeometry(22.4, 4.2, 7.4).translate(0, 15, gz));
@@ -275,22 +277,22 @@ export function buildDesertCity(scene, terrain) {
         // a round house under a dome
         const h = 3 + rng() * 2.5;
         city.both(wm, new THREE.CylinderGeometry(r, r * 1.04, h, 16).translate(x, h / 2, z), new THREE.CylinderGeometry(r, r, h, 8).translate(x, h / 2, z));
-        city.both(dm, T(dome(r * 1.02, 16, 6), [x, h, z], [0, 0, 0], [1, 0.75 + rng() * 0.5, 1]), new THREE.CylinderGeometry(r * 0.7, r, r * 0.6, 8).translate(x, h + r * 0.3, z));
+        { const sy = 0.75 + rng() * 0.5; city.both(dm, T(dome(r * 1.02, 16, 6), [x, h, z], [0, 0, 0], [1, sy, 1]), domeSolid(r * 1.01, [x, h, z], sy)); }
         city.add(M.dark, T(new THREE.BoxGeometry(1.3, 2.1, 0.3), [x + fx * r * 0.98, 1.05, z + fz * r * 0.98], [0, face, 0]));
       } else if (kind < 0.75) {
         // a block house, flat roof, a small dome and a parapet
         const h = 3.5 + rng() * 3.5;
         const g = T(new THREE.BoxGeometry(r * 1.7, h, r * 1.7), [x, h / 2, z], [0, face, 0]);
         city.both(wm, g);
-        city.add(wm, T(new THREE.BoxGeometry(r * 1.8, 0.5, r * 1.8), [x, h + 0.25, z], [0, face, 0]));
-        if (rng() < 0.7) city.add(dm, T(dome(r * 0.55, 12, 5), [x - fx * r * 0.2, h + 0.4, z - fz * r * 0.2]));
+        city.both(wm, T(new THREE.BoxGeometry(r * 1.8, 0.5, r * 1.8), [x, h + 0.25, z], [0, face, 0]));   // (the roof slab: you stand on it, not in it)
+        if (rng() < 0.7) { const at = [x - fx * r * 0.2, h + 0.4, z - fz * r * 0.2]; city.both(dm, T(dome(r * 0.55, 12, 5), at), domeSolid(r * 0.54, at)); }
         city.add(M.dark, T(new THREE.BoxGeometry(1.2, 2, 0.3), [x + fx * r * 0.86, 1, z + fz * r * 0.86], [0, face, 0]));
         for (const s of [-1, 1]) city.add(M.dark, T(new THREE.BoxGeometry(0.6, 0.8, 0.3), [x + fx * r * 0.86 + fz * s * r * 0.5, h * 0.7, z + fz * r * 0.86 - fx * s * r * 0.5], [0, face, 0]));
       } else {
         // a tower-house: a tall shaft, a bulb and a needle (the reference pages' spires)
         const h = 10 + rng() * 9;
         city.both(wm, new THREE.CylinderGeometry(r * 0.75, r, h, 12).translate(x, h / 2, z), new THREE.CylinderGeometry(r * 0.8, r, h, 8).translate(x, h / 2, z));
-        city.add(dm, T(new THREE.SphereGeometry(r * 1.25, 18, 12), [x, h + r * 0.6, z], [0, 0, 0], [1, 0.8, 1]));
+        city.both(dm, T(new THREE.SphereGeometry(r * 1.25, 18, 12), [x, h + r * 0.6, z], [0, 0, 0], [1, 0.8, 1]), T(new THREE.SphereGeometry(r * 1.24, 14, 8), [x, h + r * 0.6, z], [0, 0, 0], [1, 0.8, 1]));
         city.add(M.ink, new THREE.CylinderGeometry(0.07, 0.12, 5, 4).translate(x, h + r * 1.6 + 2.5, z));
         city.add(M.dark, T(new THREE.BoxGeometry(0.9, 1.9, 0.3), [x + fx * r * 0.98, 0.95, z + fz * r * 0.98], [0, face, 0]));
         city.add(M.dark, T(new THREE.BoxGeometry(0.6, 1.0, 0.3), [x + fx * r * 0.8, h * 0.75, z + fz * r * 0.8], [0, face, 0]));

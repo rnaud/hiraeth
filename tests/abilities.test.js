@@ -405,3 +405,22 @@ test('a controller keeps interacting and calling the mount apart: its interact n
   assert.ok(bike.auto, 'the keyboard\'s E still falls back to the whistle');
   tool.dispose();
 });
+
+test('calling the mount whistles (also when it has no power to come); a dormant one, not yet found, hears nothing', () => {
+  own('backpack');
+  const physics = ground(), bike = new Hoverbike(physics);
+  bike.pos.set(40, 1.15, 0);
+  const { p } = setup({ physics, mount: bike });
+  const heard = [];
+  p.opts.onWhistle = (k) => heard.push(k);
+  p.callMount();
+  assert.deepEqual(heard, ['mount']);
+  assert.ok(bike.auto, 'the bike is on its way');
+  own();
+  p.callMount();
+  assert.deepEqual(heard, ['mount', 'mount'], 'no power: a whistle all the same');
+  bike.dormant = true;
+  p.callMount();
+  assert.equal(heard.length, 2);
+  own();
+});

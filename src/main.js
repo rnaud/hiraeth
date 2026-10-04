@@ -17,8 +17,8 @@ import { Player, CameraRig } from './player.js';
 import { applyTimeOfDay, colourScript } from './timeofday.js';
 import { WindStreaks } from './wind.js';
 import { HOLO } from './ship/hologram.js';
-import { Physics } from './physics.js';
-import { tileScene, cullFar, fitBounds, SmallCuller, RoomCuller, resolveQuality, detectHandheld, GpuTimer } from './perf.js';
+import { Physics, dropBuriedFlora } from './physics.js';
+import { tileScene, cullFar, fitBounds, SmallCuller, RoomCuller, resolveQuality, detectHandheld, GpuTimer, adaptScale } from './perf.js';
 import { buildFlora, floraKeep } from './flora.js';
 import { Cascade, ShadowCuller, shadowDirection } from './shadows.js';
 import { Trail } from './trail.js';
@@ -189,13 +189,17 @@ const t0 = performance.now();
 const physics = await Physics.create(scene, level.ground.heightAt ? level.ground : null);
 console.info(`collision: ${physics.triangles.toLocaleString()} triangles in ${(performance.now() - t0).toFixed(0)} ms (BVH in a worker)`);
 level.init?.(physics);
+// trees and shrubs that landed inside a house or a rock are left out (src/physics.js; window.clipAudit lists the rest)
+const buriedFlora = dropBuriedFlora(scene, physics);
+if (buriedFlora) console.info(`flora: ${buriedFlora} buried instances left out`);
 // the traveller's ship at this world's arrival point (src/ship/); a new game opens with the prologue
 // (no ?level and prologue.done unset, or ?prologue=1 to replay it)
 const playPrologue = levelId === 'desert' && !viaShip && (query.get('prologue') === '1' || (!levelParam && !game.flag('prologue.done')));
 // coming home by ship ends the story (src/ship/homecoming.js); ?ending=1 replays it
 const playHomecoming = levelId === 'home' && ((viaShip && !game.flag('ending.done')) || query.get('ending') === '1');
 const ship = new Ship({ scene, physics, level, levelId, content, prologue: playPrologue || playHomecoming });
-level.ship ??= { pos: ship.rampFoot.clone() };   // quests that say "return to the ship" point at its ramp
+level.ship ??= { pos: ship.rampFoot.clone() };
+const auditRoots = scene.children.slice();   // the level and the ship: what the clipping audit looks over (window.clipAudit)   // quests that say "return to the ship" point at its ramp
 const reactiveWorld = new ReactiveWorld(scene, level, physics, content);
 window.addEventListener('pagehide', () => reactiveWorld.flush());
 // tile world-spanning meshes so each pass only draws what it can see
@@ -213,6 +217,7 @@ const player = new Player(physics, {
   onHurt: (k) => { shipSfx.rumble(sound, 0.35 + k * 0.4, 0.25 + k * 0.5); hpShown = 3; },
   onKnockdown: (dead) => { shipSfx.rumble(sound, dead ? 0.95 : 0.6, dead ? 0.9 : 0.45); hpShown = 3; },
   onKnockout: (why) => { knockedOut = why; },
+  onWhistle: (kind) => sound.whistle(kind),   // calling the bike, the bird or a taxi
   onRestart: () => { ship.cinema?.fade(1, true, 0.05); setTimeout(() => ship.cinema?.fade(0, true, 0.9), 120); },
 });
 // the health bar (index.html #health): only while you're hurt, and a moment after
@@ -373,8 +378,10 @@ const expedition = level.observatory ? new ObservatoryQuest({ model: level.obser
 // ---- story: conversations, quests, the world's people and places (src/story/, src/interact.js)
 const showToast = (text) => ship.cinema.toast(text);   // queued, and held while a scene has the screen dark (src/ship/cinema.js)
 player.onNotice = showToast;   // "It needs power." (a vehicle without the backpack)
+const preStory = new Set(scene.children);
 const storyRt = createStory({ levelId, scene, physics, level, player, npcs, crowd, sound, journal, story, lib, humans: humanT, toast: showToast, tool,
   capture: (e, l, w, h, o) => captureView(e, l, w, h, o) });
+for (const c of scene.children) if (!preStory.has(c)) auditRoots.push(c);   // (and what the world's story placed)
 story.waitFor = () => storyRt.dialogue.open;   // a story page never opens over a conversation: it waits for its end
 // E: boarding a vehicle and turning a lens share the interact button with talking (nearest wins)
 registerInteractable({ id: 'vehicle', priority: PRIORITY.vehicle, range: 6, at: () => player.nearestVehicle()?.pos,
@@ -570,7 +577,7 @@ gui.close();   // collapsed by default; click the title to open
 let lastQuality = settings.quality;
 const baseAO = U.uAO.value, baseCloudSh = sharedUniforms.uCloudShadows.value;
 const crowdRange = crowd ? { ...crowd.range } : null;
-const adapt = { slow: 0, fast: 0, dropped: false };
+const adapt = { slow: 0, fast: 0, hold: 0, dropped: false };
 // low detail: the preset's, or a desktop Auto once it has had to drop resolution
 const lowDetail = () => preset.lowDetail || (preset.key === 'auto' && adapt.dropped);
 function applyDetail() {
@@ -589,7 +596,7 @@ function applyDetail() {
 function applyQuality() {
   preset = resolveQuality(settings.quality, { handheld, hiDPI: pixelRatio >= 2 });
   quality.renderScale = preset.scale;
-  adapt.slow = adapt.fast = 0; adapt.dropped = false;
+  adapt.slow = adapt.fast = adapt.hold = 0; adapt.dropped = false;
   const S = preset.shadow;
   cascades.fine.configure(S.fine || 256, cascades.fine.extent);
   if (!S.fine) cascades.fine.disable();
@@ -600,22 +607,15 @@ function applyQuality() {
   resize();
   applyDetail();
 }
-/** Dynamic resolution: the render scale follows the frame rate, inside the preset's range (Auto, Handheld). */
-function adaptQuality(fps) {
+/** Dynamic resolution: the render scale follows the frame rate, inside the preset's range (Auto, Handheld; perf.js adaptScale). */
+function adaptQuality(fps, missed) {
   const D = preset.dynamic;
   if (!D || document.hidden || busy() || photo.on) return;
-  if (fps < D.low) { adapt.slow++; adapt.fast = 0; } else if (fps > D.high) { adapt.fast++; adapt.slow = 0; } else adapt.slow = adapt.fast = 0;
-  if (adapt.slow >= 3 && quality.renderScale > D.min) {
-    const step = fps < D.low * 0.7 ? 0.1 : 0.05;   // well under: a bigger step
-    quality.renderScale = Math.max(D.min, +(quality.renderScale - step).toFixed(2));
-    adapt.slow = 0;
-    if (!adapt.dropped) { adapt.dropped = true; applyDetail(); }
-    resize();
-  } else if (adapt.fast >= 12 && quality.renderScale < D.max) {
-    quality.renderScale = Math.min(D.max, +(quality.renderScale + 0.05).toFixed(2));
-    adapt.fast = 0;
-    resize();
-  }
+  const { scale, dropped } = adaptScale(adapt, { fps, missed }, D, quality.renderScale);
+  if (scale === quality.renderScale) return;
+  quality.renderScale = scale;
+  if (dropped && !adapt.dropped) { adapt.dropped = true; applyDetail(); }
+  resize();
 }
 settings.on((k) => {
   rig.sensitivity = settings.sensitivity;
@@ -1059,7 +1059,15 @@ function captureView(eye, look, w, h, { keep = null, backdrop = null, fov = null
 // one line to screenshot when something is slow.
 const fpsEl = document.getElementById('fps');
 const gpuTimer = new GpuTimer(renderer.getContext());
-let fpsN = 0, fpsT = performance.now(), cpuMs = 0;
+let fpsN = 0, fpsT = performance.now(), cpuMs = 0, lastFrameT = 0;
+const gaps = [];   // this window's frame intervals (ms): the missed refreshes, for dynamic resolution
+/** Frames in this window that missed a refresh: over 1.5x the window's quickest interval. */
+function missedFrames() {
+  let quick = Infinity, n = 0;
+  for (const g of gaps) quick = Math.min(quick, g);
+  for (const g of gaps) if (g > quick * 1.5) n++;
+  return n;
+}
 window.addEventListener('keydown', (e) => { if (e.code === 'KeyF' && !photo.on) settings.set('showFps', !settings.showFps); });
 function frameReadout(fps) {
   const n = Math.max(frameStats.n, 1), gpu = gpuTimer.take();
@@ -1068,11 +1076,13 @@ function frameReadout(fps) {
 }
 function frame() {
   const tFrame = performance.now();
+  if (lastFrameT && gaps.length < 200) gaps.push(tFrame - lastFrameT);
+  lastFrameT = tFrame;
   if (++fpsN, tFrame - fpsT > 500) {
     const fps = (fpsN * 1000) / (tFrame - fpsT);
     if (settings.showFps) fpsEl.textContent = frameReadout(fps);
-    adaptQuality(fps);
-    fpsN = 0; fpsT = tFrame; cpuMs = 0;
+    adaptQuality(fps, missedFrames());
+    fpsN = 0; fpsT = tFrame; cpuMs = 0; gaps.length = 0;
     frameStats.calls = frameStats.tris = frameStats.n = frameStats.culled = 0;
   }
   gpuTimer.enabled = settings.showFps;
@@ -1312,5 +1322,15 @@ requestAnimationFrame((t) => {
 });
 
 // handy for debugging from the console
+/** Dev: what sinks, floats or stands in a wall in this world (src/clip-audit.js); prints a report. */
+window.clipAudit = async (o = {}) => {
+  const { auditClipping, formatAudit } = await import('./clip-audit.js');
+  const { allInteractables } = await import('./interact.js');
+  const things = allInteractables().filter((e) => !/^(talk\.|box\.)/.test(e.id) && !['vehicle', 'lens'].includes(e.id));
+  const exclude = [player.object, ...npcs.flatMap((n) => [n.object, n.cape?.mesh]), ...player.vehicles.map((v) => v.object), ...relics.items.map((r) => r.grp), ...boxes.list.map((b) => b.parts?.root), ship.parked?.group];
+  const r = auditClipping({ physics, scene, roots: auditRoots, npcs, crowd, relics, boxes, things, exclude, ...o });
+  if (o.print !== false) console.log(formatAudit(r));
+  return r;
+};
 Object.assign(window, { flora, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife,
-  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, boxes, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats });
+  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, boxes, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame });

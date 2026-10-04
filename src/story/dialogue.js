@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { parseLine, stripTone } from './tone.js';
+import { pickTwoShot, pickLookShot, pullIn } from './shot.js';
 import { planLine, voiceOf, PLAYER_VOICE, LANGUAGES, REVEAL_CPS, isQuote } from './voice.js';
+const _ac = new THREE.Vector3(), _bq = new THREE.Vector3();
 
 // Conversations. People are data:
 //
@@ -170,7 +172,7 @@ export class Dialogue {
     this.open = false;
     this.blend = 0;          // the two-shot camera's weight
     this.el = typeof document !== 'undefined' ? document.getElementById('dialogue') : null;
-    this._eye = new THREE.Vector3(); this._look = new THREE.Vector3(); this._q = new THREE.Quaternion();
+    this._eye = new THREE.Vector3(); this._look = new THREE.Vector3(); this._eyeC = new THREE.Vector3(); this._q = new THREE.Quaternion();
     this._m = new THREE.Matrix4();
     if (this.el) {
       // the speaker's name in a caption tab along the panel's top edge, their portrait at its corner;
@@ -201,10 +203,14 @@ export class Dialogue {
     }
   }
 
-  /** Talk to `person` (data) embodied by `npc` (an NPC, or a crowd person's puppet). */
-  start(person, npc = null, at = null) {
+  /**
+   * Talk to `person` (data) embodied by `npc` (an NPC, or a crowd person's puppet);
+   * or look at a thing (no npc) at `at`, `look` being the part to look at when
+   * `at` is only where you stand to see it (the foot of a statue).
+   */
+  start(person, npc = null, at = null, look = null) {
     if (this.open) return false;
-    this.person = person; this.npc = npc; this.at = at;
+    this.person = person; this.npc = npc; this.at = at; this.look = look;
     const ctx = this.ctx = {
       game: this.game, quests: this.quests, person, npc,
       onGive: (item) => this.toast(`Received: ${this.quests.itemName?.(item) ?? item}`),
@@ -232,6 +238,7 @@ export class Dialogue {
         if (src) { img.src = src; img.hidden = false; if (shot.background) chip.style.background = shot.background; }
       } catch { /* no sketch */ }
       this.el.classList.add('open');
+      document.body.classList.add('talking');
       document.exitPointerLock?.();
       this.render();
     }
@@ -264,6 +271,7 @@ export class Dialogue {
     this.open = false;
     this.closedAt = typeof performance !== 'undefined' ? performance.now() : 0;
     this.el?.classList.remove('open');
+    if (typeof document !== 'undefined') document.body.classList.remove('talking');
     this.game.emit('dialogue:end', { npc: this.npc, id: this.person.id });
     this.onClose(this.person, this.npc);
   }
@@ -311,6 +319,7 @@ export class Dialogue {
 
   /** Per frame: reveal text, voice blips, keep the speaker turned to you. */
   update(dt) {
+    this._dt = dt;
     const target = this.open ? 1 : 0;
     this.blend += (target - this.blend) * (1 - Math.exp(-(this.open ? 3.2 : 4.5) * dt));
     if (!this.open) return;
@@ -331,39 +340,51 @@ export class Dialogue {
   }
 
   /**
-   * The two-shot: both faces in frame, the camera off to the side of the
-   * line between them, a little behind the traveller's shoulder. Blended
-   * over the follow camera by `blend`.
+   * The conversation camera, blended over the follow camera by `blend`:
+   * talking to someone, the two-shot (both faces in frame, off to the side of
+   * the line between them); looking at a thing (o.look), over the traveller's
+   * shoulder at it. The shot is picked so that nothing stands in the way
+   * (src/story/shot.js): walls, trees, rocks, the ground (o.sight) and
+   * bystanders (`avoid`: feet positions, or a function returning them). It is
+   * looked at again every so often (people walk into it) and eased over.
+   * @param o.sight         sightOf(physics), or null (no level geometry)
+   * @param o.faceA/faceB   the faces (default: over the feet)
+   * @param o.look          the thing looked at (no two-shot)
+   * @param o.facing        which way the traveller faces (for a thing right overhead)
    */
-  frameCamera(camera, player, npcPos, up = new THREE.Vector3(0, 1, 0), avoid = []) {
-    if (this.blend < 0.002 || !npcPos) { this._side = 0; return; }
-    const a = player.pos, b = npcPos;
-    const mid = this._look.copy(a).lerp(b, 0.5).addScaledVector(up, 1.45);
-    const across = new THREE.Vector3().subVectors(b, a); across.addScaledVector(up, -across.dot(up));
-    const sep = Math.max(across.length(), 0.8);
-    across.normalize();
-    const side = new THREE.Vector3().crossVectors(up, across).normalize();
-    // (pulled back on a portrait screen, where the horizontal view is narrow: both still in frame)
-    const dist = (2.0 + sep * 1.0) * THREE.MathUtils.clamp(1.25 / (camera.aspect || 1.6), 1, 2.3);
-    const eyeOn = (s, out) => out.copy(mid).addScaledVector(side, s * dist).addScaledVector(across, -sep * 0.3).addScaledVector(up, 0.4);
-    if (!this._side) {
-      // pick the side once per conversation: the one with nobody standing in the shot,
-      // else the one the camera is already on (a shorter move)
-      const block = (s) => {
-        const e = eyeOn(s, new THREE.Vector3()), seg = new THREE.Line3(e, mid), q = new THREE.Vector3();
-        let n = 0;
-        for (const p of avoid) { seg.closestPointToPoint(p, true, q); const d = Math.hypot(q.x - p.x, q.z - p.z); if (d < 0.9 && Math.abs(q.y - p.y - 1.1) < 1.3) n += 1 - d / 0.9; }
-        return n;
-      };
-      const here = side.dot(new THREE.Vector3().subVectors(camera.position, mid)) < 0 ? -1 : 1;
-      const bh = block(here), bo = block(-here);
-      this._side = bo + 0.05 < bh ? -here : here;
+  frameCamera(camera, player, npcPos, up = new THREE.Vector3(0, 1, 0), avoid = [], o = {}) {
+    if (this.blend < 0.002 || !(npcPos || o.look)) { this._side = 0; this._shot = null; this._across = null; return; }
+    const dt = Math.min(this._dt ?? 1 / 60, 0.1);
+    this._shotT = (this._shotT ?? 0) - dt;
+    if (!this._shot || (this.open && this._shotT <= 0)) {
+      // pick (or check again) the shot: the one with nothing in the way, near the one the camera is already on
+      const people = typeof avoid === 'function' ? avoid() : avoid;
+      const args = { a: player.pos, up, aspect: camera.aspect, fov: camera.fov, from: this._shot ? null : camera.position, sight: o.sight ?? null, people, prefer: this._shot };
+      // (standing nose to nose the line between you is a few cm long and its way is noise: keep the
+      // last good one rather than let it swing the shot about)
+      let b = npcPos;
+      if (b && !o.look) {
+        const ac = _ac.subVectors(b, player.pos); ac.addScaledVector(up, -ac.dot(up));
+        if (ac.lengthSq() > 0.3 * 0.3) (this._across ??= new THREE.Vector3()).copy(ac).normalize();
+        else if (this._across) b = _bq.copy(player.pos).addScaledVector(this._across, 0.3).addScaledVector(up, up.dot(_ac.subVectors(npcPos, player.pos)));
+      }
+      const pick = o.look
+        ? pickLookShot({ ...args, head: o.faceA, target: o.look, facing: o.facing })
+        : pickTwoShot({ ...args, b, faceA: o.faceA, faceB: o.faceB });
+      if (!this._shot) { this._eye.copy(pick.eye); this._look.copy(pick.look); }
+      this._shot = pick;
+      this._side = pick.side;
+      this._shotT = 0.6;
     }
-    const eye = eyeOn(this._side, this._eye);
+    // eased toward the pick (it moves when people move), and never through a wall on the way
+    const e = 1 - Math.exp(-3 * dt);
+    this._eye.lerp(this._shot.eye, e);
+    this._look.lerp(this._shot.look, e);
+    const eye = this._eyeC.copy(this._eye);
+    if (o.sight) pullIn(eye, this._shot.anchor, o.sight, 0.3);
     const k = THREE.MathUtils.smoothstep(this.blend, 0, 1);
     camera.position.lerp(eye, k);
-    // aim a little low, so both faces sit in the upper half, clear of the panel
-    this._m.lookAt(camera.position, mid.addScaledVector(across, 0.06 * sep).addScaledVector(up, -0.75), up);
+    this._m.lookAt(camera.position, this._look, up);
     this._q.setFromRotationMatrix(this._m);
     camera.quaternion.slerp(this._q, k);
     camera.updateMatrixWorld();

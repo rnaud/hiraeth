@@ -198,16 +198,16 @@ export function setupDesert(ctx) {
   };
 
   // ---------------------------------------------------------------- things to look at
-  const thing = (def, at, { range = 3, prompt, enabled = () => true, use } = {}) => registerInteractable({
+  const thing = (def, at, { range = 3, prompt, enabled = () => true, look = null, use } = {}) => registerInteractable({
     id: def.id, priority: PRIORITY.use, range, prompt: prompt ?? `look at ${def.name.replace(/^The /, 'the ')}`,
     at: () => at, enabled, distance: (p) => (Math.abs(p.pos.y - at.y) < 4 ? flat(p.pos, at) : Infinity),
-    use: use ?? (() => dialogue.start(def, null, at)),
+    use: use ?? (() => dialogue.start(def, null, at, look)),
   });
   thing(THINGS.well, city.wellLook, { range: 3.4, prompt: 'look into the well' });
-  thing(THINGS.stele, city.stele, { range: 3.2, prompt: 'read the stele' });
+  thing(THINGS.stele, city.stele, { range: 3.2, prompt: 'read the stele', look: city.stele.clone().add(V(0, 2.4, 0)) });
   const browAt = Q.giant.door.clone().add(V(Math.sin(Q.giant.yaw) * 3, 0, Math.cos(Q.giant.yaw) * 3));
-  thing(THINGS.brow, browAt, { range: 4, prompt: 'look up at the skull' });
-  thing(THINGS.mural, cave.mural.clone().setY(cave.origin.y), { range: 4, prompt: 'look at the mural' });
+  thing(THINGS.brow, browAt, { range: 4, prompt: 'look up at the skull', look: Q.giant.brow });
+  thing(THINGS.mural, cave.mural.clone().setY(cave.origin.y), { range: 4, prompt: 'look at the mural', look: cave.local(-17.5, 3.2, 20.5) });
 
   // ---------------------------------------------------------------- the drum
   let drum = null;

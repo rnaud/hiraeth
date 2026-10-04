@@ -3,6 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { mulberry32 } from '../noise.js';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
 import { Taxi } from '../taxi.js';
+import { dropBuriedInstances } from '../physics.js';
 import { soften } from '../world.js';
 import { Banner, Puffs } from '../life.js';
 import { buildRoom } from '../interiors.js';
@@ -317,6 +318,7 @@ export function createIncal(scene) {
     ]);
     const m = new THREE.Mesh(g, makeMaterial({ color: pick(PASTELS), flat: true, grid: 2 }));
     m.position.set(Math.cos(a) * rad, y, Math.sin(a) * rad);
+    m.userData.floats = true;   // (the clipping audit: meant to hang in the air)
     scene.add(m);
   }
 
@@ -652,6 +654,7 @@ export function createIncal(scene) {
     trees.push([x, TOP, z, 0.8 + rng() * 0.8]);
   }
   // ---------------------------------------------------------- trees: cypresses and round olives
+  const treeMeshes = [];   // (init drops the ones a clump put inside a house)
   {
     const dummy = new THREE.Object3D(), color = new THREE.Color();
     // cypress: a tall flame, widest a third of the way up, tip pointed
@@ -673,24 +676,36 @@ export function createIncal(scene) {
     const pine = mergeGeometries(pineParts.map((g) => g.toNonIndexed()));
     pine.computeVertexNormals();
     const kindOf = (i) => { const h = hash01(i); return h < 0.5 ? cypress : h < 0.82 ? olive : pine; };
+    // one mesh per terrace, kind and eighth of the ring: a whole terrace's trees in one mesh
+    // went round the shaft, so neither the view nor the shadow map could leave any of them out
+    // (up to 1.2 M triangles in the near shadow pass, most of them behind you or across the pit)
+    const SECTORS = 8;
+    const sectorOf = (x, z) => Math.floor((Math.atan2(z, x) / TAU + 1) * SECTORS) % SECTORS;
     for (const grp of groups) for (const geo of [cypress, olive, pine]) {
       const list = trees.filter((t, i) => t[4] === grp && kindOf(i) === geo);
       if (!list.length) continue;
-      const mesh = new THREE.InstancedMesh(geo, treeMat, list.length);
-      list.forEach(([x, y, z, s], i) => {
+      // (each tree's turn, height and green drawn in the same order as ever: the world stays as it was)
+      const placed = list.map(([x, y, z, s]) => {
         dummy.position.set(x, y, z);
         dummy.rotation.set(0, rng() * TAU, 0);
         dummy.scale.set(s, s * (geo === cypress ? 0.9 + rng() * 0.8 : 1), s);
         dummy.updateMatrix();
-        mesh.setMatrixAt(i, dummy.matrix);
-        mesh.setColorAt(i, color.set(pick(greens)));
+        return { m: dummy.matrix.clone(), c: color.set(pick(greens)).clone(), sec: sectorOf(x, z) };
       });
-      mesh.userData.noCollide = true;
-      mesh.userData.tiled = true;           // already grouped; tileScene leaves it alone
-      mesh.computeBoundingSphere();
-      lod.push({ obj: mesh, y: list[0][5], far: 260 });
-      small.push(mesh);
-      scene.add(mesh);
+      for (let sec = 0; sec < SECTORS; sec++) {
+        const part = placed.filter((p) => p.sec === sec);
+        if (!part.length) continue;
+        const mesh = new THREE.InstancedMesh(geo, treeMat, part.length);
+        part.forEach((p, i) => { mesh.setMatrixAt(i, p.m); mesh.setColorAt(i, p.c); });
+        mesh.userData.noCollide = true;
+        mesh.userData.tiled = true;           // already grouped; tileScene leaves it alone
+        mesh.userData.drawFar = Infinity;     // (seen right across the shaft: not dropped with the small props, perf.js cullFar)
+        mesh.computeBoundingSphere();
+        lod.push({ obj: mesh, y: list[0][5], far: 260 });
+        treeMeshes.push(mesh);
+        small.push(mesh);
+        scene.add(mesh);
+      }
     }
   }
 
@@ -760,6 +775,8 @@ export function createIncal(scene) {
     shaft: { R, TOP, BOTTOM, LEVELS, SPIRE_R, SPIRE_RING, terraces, bridges, stallSpots, viaducts, billboards, incal: incalRig, places },
     // called once the physics exists: spawn the taxis (they collide when driven)
     init(physics) {
+      // trees a clump put inside a house (or a crown through a wall) are left out
+      for (const m of treeMeshes) dropBuriedInstances(m, physics, [1, 3.5, 6], { ring: 0.9 });
       for (const spec of taxiSpecs) {
         const taxi = new Taxi(physics, spec.color, spec.scale, spec.lane);
         taxi.update(0, null, 0);

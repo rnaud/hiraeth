@@ -745,5 +745,6 @@ export function buildWorld(scene, terrain) {
 
   // the flora (src/flora.js) keeps off the story's places and everything the props keep clear of
   const floraAvoid = (x, z, r = 0) => story(x, z, r) || footprints.some((c) => (c.x - x) ** 2 + (c.z - z) ** 2 < (c.r + r + 2) ** 2);
+  for (const f of floaters) f.obj.userData.floats = true;   // (the clipping audit: meant to hang in the air)
   return { floaters, banners, lights, doors, floraAvoid };
 }

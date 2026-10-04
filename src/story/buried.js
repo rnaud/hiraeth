@@ -88,16 +88,16 @@ export function setupBuried(ctx) {
   });
 
   // ---------------------------------------------------------------- things to look at
-  const thing = (def, at, { range = 3.2, prompt, enabled = () => true, use, dy = 4 } = {}) => registerInteractable({
+  const thing = (def, at, { range = 3.2, prompt, enabled = () => true, look = null, use, dy = 4 } = {}) => registerInteractable({
     id: def.id, priority: PRIORITY.use, range, prompt: prompt ?? `look at ${def.name.replace(/^The /, 'the ')}`,
     at: () => at, enabled, distance: (p) => (Math.abs(p.pos.y - at.y) < dy ? flat(p.pos, at) : Infinity),
-    use: use ?? (() => dialogue.start(def, null, at)),
+    use: use ?? (() => dialogue.start(def, null, at, look)),
   });
   thing(THINGS.wick, K.centre.clone().setY(K.rim), { range: 5.5, prompt: () => (game.flag('buried.oculus.lit') ? 'look at the Wick' : 'look at the lamp'), dy: 6 });
   thing(THINGS.window, windowAt, { range: 4.5, prompt: 'lay your hand on the window', dy: 3 });
   const numbersAt = V(O.x - 10.5, O.floor + 1.6, O.z + O.r - 3.5);
   thing(THINGS.numbers, numbersAt, { range: 3.2, prompt: 'read the scratched numbers' });
-  thing(THINGS.wheel, watchAt.clone().lerp(W.drop, 0.75), { range: 9, prompt: 'look at the great wheel', dy: 8 });
+  thing(THINGS.wheel, watchAt.clone().lerp(W.drop, 0.75), { range: 9, prompt: 'look at the great wheel', dy: 8, look: W.centre });
   // the numbers: scratched rows on the drum wall by the doorway
   {
     const parts = [];

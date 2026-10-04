@@ -811,6 +811,33 @@ export class Sound {
     [12, 19].forEach((s, i) => this.pluck(392 * Math.pow(2, s / 12), t + i * 0.09, 0.05 * vol, 'sine', this.fx));
   }
 
+  /**
+   * Calling the mount: a two-fingered whistle, a quick rise then a long falling note
+   * (a taxi gets a shorter, flatter hail). A pure tone sliding about 2-3 kHz, with a little
+   * vibrato and breath noise round it.
+   */
+  whistle(kind = 'mount') {
+    if (!this.ctx) return;
+    const ctx = this.ctx, t = ctx.currentTime;
+    const notes = kind === 'taxi'
+      ? [[0, 0.16, 2100, 2500, 2400]]
+      : [[0, 0.13, 1700, 2600, 2600], [0.2, 0.42, 2900, 3000, 1900]];
+    for (const [at, dur, f0, f1, f2] of notes) {
+      const s = t + at, o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(f0, s);
+      o.frequency.exponentialRampToValueAtTime(f1, s + Math.min(0.06, dur * 0.4));
+      o.frequency.exponentialRampToValueAtTime(f2, s + dur);
+      const vib = ctx.createOscillator(), vg = ctx.createGain();
+      vib.frequency.value = 7; vg.gain.value = 18; vib.connect(vg).connect(o.frequency);
+      g.gain.setValueAtTime(0, s); g.gain.linearRampToValueAtTime(0.11, s + 0.02);
+      g.gain.setValueAtTime(0.11, s + dur * 0.7); g.gain.exponentialRampToValueAtTime(0.0005, s + dur + 0.06);
+      o.connect(g).connect(this.fx);
+      o.start(s); o.stop(s + dur + 0.1); vib.start(s); vib.stop(s + dur + 0.1);
+      this.burst(s, { dur: dur + 0.05, type: 'bandpass', freq: f1, q: 4, vol: 0.025, rate: 1 });   // (the breath)
+    }
+  }
+
   /** The bell-note whistle: one clear note with a bell's inharmonic partials. */
   bell() {
     if (!this.ctx) return;

@@ -1300,6 +1300,34 @@ it, so everyone looks the same on every visit:
   both kinds). `tests/people.test.js` covers the mix, the seeding, the pieces and
   the builds.
 
+## Capes at a distance, and people up close (v0.39)
+
+- **Capes hang at rest far off** (`src/cape.js`). Cloth is only simulated near the
+  camera (70 m, 30 m on the Handheld preset); further off a cape used to stay in
+  the air where it was last simulated, and drop from its stiff cut as you came
+  near. Now each cape has a *drape*: the cloth at rest on that body, in the
+  collar's space. Out of range the cloth eases onto it over half a second and the
+  mesh is parented to the collar (`Cape.rest` / `hang`), so it walks with its
+  wearer at no cost. Coming close, the simulation starts from the drape
+  (`reset`). The drape is baked by letting the cloth settle, heavily damped
+  (`Cape.bake`, ~1 ms, one a frame), shared by capes of one cut on one kind of
+  body (`NPC.drapeKey`: kind, build, standing or seated), and refreshed from the
+  simulation while the wearer stands still and the cloth is at rest. A crowd
+  person promoted to a full NPC gets the shared drape, so their cloth no longer
+  drops in front of you. The capsule collisions are plain arithmetic now, a third
+  cheaper and with the same result.
+- **Nobody shakes when you walk into them or talk nose to nose.** Nothing stops
+  you walking into people, and the way to you was an atan2 of a few centimetres:
+  every small step swung them round and back. `holdAim` (`src/crowd.js`, also used
+  by `src/npc.js`) follows you from 0.7 m out and holds its way inside 0.25 m.
+  A standing crowd person steps out of your way round you, not through you (the
+  offset turns, its way held while you stand on their spot), and their pace is
+  smoothed so the walk doesn't flicker on and off. A walker keeping clear of you
+  judges the lane from where they'd walk without the step, along their path rather
+  than their heading (turned to greet you, that is you), so they step aside once.
+  The two-shot keeps its last good line between you when you stand too close for
+  one. `tests/close-contact.test.js` and `tests/cape.test.js` cover them.
+
 ## Android (offline APK)
 The game is also packaged as an Android app, for handhelds such as the Retroid
 Pocket. Their built-in controls work through the Gamepad API.
@@ -1460,6 +1488,68 @@ Pocket. Their built-in controls work through the Gamepad API.
 - Known: on desktop Metal (ANGLE), Lorn II and the Buried Machine run about 1 ms slower
   per frame than before despite fewer draws (still over 200 fps here); the desert and the
   City-Shaft are about 1 ms faster.
+
+### Measured on the Retroid Pocket Nova
+The handheld itself: Snapdragon QCS8550, Adreno 740 (up to 680 MHz), a 1280×960
+60 Hz screen at 2× (640×480 CSS px). Measured in the device's Chrome 154 (ANGLE on
+OpenGL ES), Handheld preset, with the game served from a Mac over USB. Note: the app
+itself runs in the system WebView, which on this unit is still version 109; it was not
+measured (a release build can't be inspected, and no side-by-side debug build was installed).
+
+Before this pass (build `1cecfda`), 20 s each, walking forward while the camera sweeps
+left and right; load is navigation to first frame:
+
+| Where | Load | Median ms | 95th % | 99th % | fps | Draws | Triangles | Scale | GPU busy |
+|---|---|---|---|---|---|---|---|---|---|
+| Title screen (3D view) | 0.1 s | its 30 fps cap, 1.2 ms CPU a frame | | | | | | 834×598 px | 26 % |
+| Ship interior (prologue) | 5.7 s | 16.7 | 18.1 | 18.8 | 60 | 214 | 0.40 M | 0.9 | 77 % |
+| Desert, open dunes | 5.5 s | 16.8 | 18.3 | 19.6 | 60 | 540 | 0.74 M | 0.85–0.9 | 69 % |
+| Desert, Qanat streets | 5.8 s | 16.8 | 19.7 | 34.3 | 59 | 349 | 0.81 M | 0.8–0.9 | 90–99 % |
+| City-Shaft rim | 6.4 s | 16.4 | 22.4 | 37.3 | 57 | 1057 | 3.3 M | 0.75 | 99 % |
+| City-Shaft, bottom terrace | 6.5 s | 16.5 | 33.9 | 37.5 | 57 | 902 | 2.6 M | 0.7 | 99 % |
+| Vael | 4.3 s | 16.5 | 19.0 | 19.7 | 60 | 423 | 0.54 M | 0.75 | 67 % |
+| Vael II | 4.5 s | 16.7 | 19.1 | 35.8 | 58 | 439 | 0.86 M | 0.8–0.85 | 99 % |
+| Hangar | 4.1 s | 16.6 | 18.3 | 19.3 | 60 | 581 | 0.56 M | 0.75 | 65 % |
+| Buried Machine | 4.3 s | 16.6 | 18.4 | 19.5 | 60 | 402 | 0.84 M | 0.8–0.85 | 75 % |
+| Viridel | 4.1 s | 16.6 | 18.5 | 19.2 | 60 | 503 | 0.67 M | 0.75 | 70 % |
+| Spheres | 4.9 s | 16.6 | 19.1 | 20.4 | 60 | 507 | 1.0 M | 0.8–0.85 | 81 % |
+| Lorn | 4.7 s | 16.6 | 19.1 | 20.0 | 60 | 472 | 0.64 M | 0.8–0.9 | 76 % |
+| Lorn II | 5.2 s | 16.8 | 35.0 | 36.3 | 54 | 491 | 1.5 M | 0.75 | 99 % |
+| Bazaar | 4.4 s | 16.6 | 18.5 | 19.7 | 60 | 481 | 0.79 M | 0.75–0.8 | 78 % |
+
+No world throttled in these runs (thermal status 0 throughout; the GPU reached 72–74 °C and
+held 680 MHz). Where the 95th percentile sits at ~34 ms, every few frames missed the 60 Hz
+refresh while the average stayed over 54 fps, so dynamic resolution kept the scale (or even
+raised it): a steady stutter.
+
+What costs what (`bench.mjs`: the frame timed in a tight loop at a fixed 0.75 scale; relative
+numbers): on the bottom terrace the near shadow map was 7 of 29 ms (about 550 draws and
+1.6 M triangles, every frame) and the far map (every 4th frame) 1–2 ms; the ink pass, flora, crowd, NPCs
+and the ground ink were each within the noise (≤ 1 ms); 0.5× instead of 0.75× saved 5 ms.
+In Qanat: near shadows 4 of 31 ms, the ink pass ~1.7 ms, resolution 0.5× −7 ms (fill rate).
+
+Changed for the Handheld preset:
+- **Dynamic resolution counts missed refreshes** (`adaptScale` in `perf.js`, `steady` / `hold`
+  in the preset): three or more frames in half a second over 1.5× the quickest is "too slow"
+  however high the average; it climbs only through windows with none, and after such a drop
+  waits 20 s before trying higher. Bottom terrace: 95th percentile 33.9 → 20.3 ms (settling at 0.65).
+- **The near shadow map refreshes every other frame** (`nearEvery: 2`, as Low already did;
+  never on the far map's frame): half its cost on average.
+- **The City-Shaft's trees** (all presets) were one mesh per terrace and kind, each a full ring
+  round the shaft, so no pass could leave any out; they are now split into eighths of the ring
+  (same trees: placements, sizes and colours unchanged, `tests/incal-trees.test.js`), still drawn
+  right across the shaft (`userData.drawFar`). At the bottom terrace: 0.13 M fewer triangles in
+  the view and 0.18 M fewer in the near shadow pass.
+
+To repeat (`scripts/handheld-perf/`): enable USB debugging on the device, then
+`adb reverse tcp:5219 tcp:5219`, `adb forward tcp:9339 localabstract:chrome_devtools_remote`,
+`npx vite build && npx vite preview --port 5219 --strictPort --host`, open
+`http://localhost:5219/` in the device's Chrome (`adb shell am start -a android.intent.action.VIEW
+-d http://localhost:5219/ com.android.chrome`), and run
+`node scripts/handheld-perf/measure.mjs <label> [desert,qanat,...] [seconds]` (one JSON line per
+place) or `node scripts/handheld-perf/bench.mjs <place> [base,noNear,...]`. `ANDROID_SERIAL`
+picks the device. The tab keeps its own storage (not the app's saves). Afterwards
+`adb reverse --remove-all` and `adb forward --remove-all`.
 
 ### The galactic map and the route (v0.38)
 - **The route** (`src/story/route.js`, `knownWorlds`): the worlds open up in `ORDER`. The
@@ -1847,3 +1937,57 @@ a distance (or in the 160 px dialogue portrait) still has eyes.
   segment by segment with a draw range), and the pool fills the basin from its lowest point,
   widening up its sides (its radius follows the basin's profile, `cave.basinR`). A save with
   the channel already open finds it full (`tests/desert-cave.test.js`).
+
+### The conversation camera keeps a clear view
+
+`src/story/shot.js` picks where the camera stands while you talk to someone or look at
+something, so nothing comes between it and what it frames. `pickTwoShot` (talking) and
+`pickLookShot` (a thing: no two-shot, the camera behind the traveller's shoulder looking past
+them at it) each try a fan of candidate eyes: both sides, several angles round the pair,
+distances and heights, and over the shoulder as a last resort. Each is scored by
+`sightOf(physics)`: rays from the eye to the faces (or the thing) against the level's BVH and
+the heightfield, a ball test for an eye pressed into a wall, bystanders' capsules (NPCs and
+crowd people near you) and the two people's own bodies (the traveller's back must not hide
+the other face or the thing); every step away from the ideal framing costs a little. The
+cheapest wins. `Dialogue.frameCamera` asks again every 0.6 s (people walk into shots), eases
+to the new pick, and pulls the camera in along a line it was scored on if something still
+cuts it. A thing whose `at` is only where you stand (the foot of the stone hand) passes the
+part to look at as `dialogue.start(def, null, at, look)`. While a conversation is open
+`player.faceToward` turns the traveller to the person or the thing.
+
+### The clipping audit
+
+`src/clip-audit.js` lists what sinks into the ground, floats above it or stands in a wall.
+In the running game, `await clipAudit()` prints a report for the world you are in
+(`clipAudit({ print: false })` returns it: `{ checked, counts, offenders }`);
+`tests/clip-audit.test.js` runs it on made-up scenes and on the Signal Market. It checks:
+people (story NPCs and the crowd: feet on the ground, the body out of walls, not inside a
+solid), boxes (all four corners of the footprint on the ground), relics and the things you
+look at (not inside a solid), and every small prop the level and its story placed (a unit is
+the largest group under 25 m across; each instance of an instanced mesh is one). A prop must
+be held by something: a thin slab just outside one of its faces has to touch the collision
+BVH, the terrain, any drawn mesh (moss pads, a hanging city's roof: `drawnBVH`) or another
+prop; a walk-through prop (noCollide) must not stand inside a solid, judged by its middle
+when it is a trunk or a post, otherwise only when wholly inside (by its own axis for a leaning
+blade or a tumbled rock). Effects (see-through, animated: `userData.dynamic`), motes under
+12 cm and things marked `userData.floats` (bobbing orbs, floating stones, the sea of cloud,
+Incal's landing pads) are left out. "Inside a solid" uses `physics.buried(p)`: `embedded()`
+and an odd number of surfaces crossed on the way out, and not over a solid whose floor is
+under the terrain (a landmark half sunk in the dunes).
+
+What it found is fixed at the source: `dropBuriedFlora(scene, physics)` (called once the
+physics exists) drops instances of walk-through flora buried in a solid or wholly under the
+terrain (Incal's terrace trees also round their crowns, `dropBuriedInstances(..., { ring })`);
+crowd spots must not be inside a solid (`standable`), and a crowd route is sampled every
+1.5 m with the side lanes checked for posts and pillars; a box placed on a ledge or a rounded
+stone is moved (up to 1.2 m, `settle` in `src/boxes/index.js`) to where all four corners meet
+the ground. Known and left: the Hangar's upside-down quarter (its props "float" by world down),
+props resting on water, and stones buried inside Vael II's mesas (unseen). Across the twelve
+worlds the audit went from 139 offenders to 85 (crowd 21 to 1; Incal 34 to 4, the Buried City
+15 to 4, Viridel 19 to 8).
+
+The traveller's own kit, checked in idle, walk, run and jump poses (by
+sampling of the arm bones against the tank's profile): the arms never reach into the tank;
+the right hand, with the bracer, hung into the hip in the idle sway and now hangs a little
+out (`idleLayer`). NPC capes collide with the traveller's body capsules when they stand
+within 2.2 m (`NPC.clothCapsules`), so a seated elder's cape no longer drapes through your legs.

@@ -452,6 +452,7 @@ export class Embers {
     this.rise = rise; this.life = life; this.spread = spread;
     this.mesh = new THREE.InstancedMesh(new THREE.OctahedronGeometry(size, 0), makeMaterial({ color, glow: 1, flat: true }), count);
     this.mesh.userData.noCollide = true;
+    this.mesh.userData.dynamic = true;   // (moved every frame)
     this.mesh.frustumCulled = false;
     parent.add(this.mesh);
     this.items = Array.from({ length: count }, (_, i) => this.spawn({ age: Math.random() * life }, i));
@@ -492,6 +493,7 @@ export class Smoke {
     this.at = at.clone(); this.height = height; this.size = size; this.lean = lean.clone().normalize();
     this.mesh = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 1), makeMaterial({ color, glow: 0.8, flat: true }), count);
     this.mesh.userData.noCollide = true;
+    this.mesh.userData.dynamic = true;   // (moved every frame)
     this.mesh.frustumCulled = false;
     parent.add(this.mesh);
     this.items = Array.from({ length: count }, (_, i) => ({ u: i / count, ph: Math.random() * 10, s: 0.6 + Math.random() * 0.8, o: (Math.random() - 0.5) * 0.8 }));
