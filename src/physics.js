@@ -227,6 +227,28 @@ export class Physics {
   }
 
   /**
+   * embedded(), and sure of it: also an odd number of surfaces crossed on the
+   * way out, up and sideways. (A mesh with its faces turned inside out, or an
+   * overhang above an open slope, can look like solid to embedded() alone:
+   * the faces' sides lie, the count does not.) For deciding to remove things.
+   */
+  buried(p, far = 1000) {
+    if (!this.embedded(p)) return false;
+    // above the terrain, over a solid whose floor is under it: a landmark half sunk in the dunes,
+    // whose inside is out in the open air here (the terrain is not in the BVH)
+    if (this.base && p.y > this.base.heightAt(p.x, p.z) && p.y - this.rayDistance(p, AXES[5], far) < this.base.heightAt(p.x, p.z)) return false;
+    for (const d of [AXES[0], AXES[1]]) {
+      _ray.origin.copy(p);
+      _ray.direction.copy(d);
+      const hits = this.bvh.raycast(_ray, THREE.DoubleSide, 0, far).map((h) => h.distance).sort((a, b) => a - b);
+      let n = 0, last = -1;
+      for (const t of hits) { if (t - last > 1e-3) n++; last = t; }   // (coplanar twins and shared edges count once)
+      if (n % 2 === 0) return false;
+    }
+    return true;
+  }
+
+  /**
    * The nearest free spot outside the solid that `centre` is buried in:
    * walks out along the horizontal directions (and up, onto the top) to where
    * a capsule of radius r (half-height `half`) fits. Returns the new centre,
@@ -347,4 +369,82 @@ export function unbury(v, from, r) {
   else v.pos.copy(P.escape(_ub, r, _Y, r) ?? from);
   v.vel.set(0, 0, 0);
   v.speed = 0;
+}
+
+const _dbM = new THREE.Matrix4(), _dbW = new THREE.Matrix4(), _dbX = new THREE.Vector3(), _dbB = new THREE.Box3();
+const SIDES = [new THREE.Vector3(1, 0, 0), new THREE.Vector3(-1, 0, 0), new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, -1)];
+
+/** Is the solid around p only `box`'s own collider (an invisible trunk inside a drawn tree)? */
+function ownCollider(physics, p, box) {
+  for (const d of SIDES) {
+    const h = physics.rayHit(p, d, 80);
+    if (!h || !box.containsPoint(h.point)) return false;
+  }
+  return true;
+}
+
+/**
+ * Instances of a walk-through mesh (trees in a town, shrubs in a garden)
+ * that stand inside something solid, a tree planted in a house, are dropped
+ * (scaled to nothing). Each is tested at `heights` (in the geometry's own y,
+ * on its axis): dropped when any of them (or, with all: true, every one) is
+ * inside a solid that is not just its own collider. Returns how many.
+ */
+export function dropBuriedInstances(mesh, physics, heights, { all = false, ring = 0 } = {}) {
+  let n = 0;
+  mesh.updateMatrixWorld();
+  const gb = geoBox(mesh.geometry);
+  const cx = (gb.min.x + gb.max.x) / 2, cz = (gb.min.z + gb.max.z) / 2;
+  for (let i = 0; i < mesh.count; i++) {
+    mesh.getMatrixAt(i, _dbM);
+    _dbW.multiplyMatrices(mesh.matrixWorld, _dbM);
+    if (Math.abs(_dbW.determinant()) < 1e-9) continue;   // (already gone)
+    _dbB.copy(gb).applyMatrix4(_dbW).expandByScalar(0.15);
+    const at = (x, h, z) => { _dbX.set(x, h, z).applyMatrix4(_dbW); return (physics.buried ?? physics.embedded).call(physics, _dbX) && !ownCollider(physics, _dbX, _dbB); };
+    // (on its axis; with a ring, also round it: a crown pushed through a wall beside its trunk)
+    const inside = (h) => at(cx, h, cz) || (ring > 0 && (at(cx + ring, h, cz) || at(cx - ring, h, cz) || at(cx, h, cz + ring) || at(cx, h, cz - ring)));
+    // (or wholly under the terrain, which is not in the BVH: a rock under a mesa)
+    const top = _dbB.max.y - 0.15, H = (x, z) => physics.base.heightAt(x, z) - 0.6 > top;   // (the drawn terrain is a coarser mesh than heightAt: a margin)
+    const under = !!physics.base && H((_dbB.min.x + _dbB.max.x) / 2, (_dbB.min.z + _dbB.max.z) / 2) && H(_dbB.min.x, _dbB.min.z) && H(_dbB.max.x, _dbB.min.z) && H(_dbB.min.x, _dbB.max.z) && H(_dbB.max.x, _dbB.max.z);
+    // (a leaning blade or a tumbled rock: only when buried root, middle and tip, along its own axis)
+    const e = _dbW.elements, upright = e[5] / Math.hypot(e[4], e[5], e[6]) > 0.95;
+    if (!under && !((upright || (all && heights.length > 2)) && heights.length && (all ? heights.every(inside) : heights.some(inside)))) continue;
+    _dbM.elements[0] = _dbM.elements[1] = _dbM.elements[2] = _dbM.elements[4] = _dbM.elements[5] = _dbM.elements[6] = _dbM.elements[8] = _dbM.elements[9] = _dbM.elements[10] = 0;   // (scaled to nothing where it stood)
+    mesh.setMatrixAt(i, _dbM);
+    n++;
+  }
+  if (n) mesh.instanceMatrix.needsUpdate = true;
+  return n;
+}
+
+/**
+ * Walk-through instanced things (trees, shrubs, tufts: noCollide, static)
+ * buried in a solid are dropped: a clump of trees that landed on a house
+ * (the tall ones by their trunk and middle), a tuft inside a pyramid (the
+ * short ones only when wholly inside: a rock half sunk in a slope stays).
+ * Returns how many.
+ */
+export function dropBuriedFlora(scene, physics, { minHeight = 2, maxCount = 6000 } = {}) {
+  let n = 0;
+  const meshes = [];
+  scene.traverse((o) => {
+    if (!o.isInstancedMesh || o.userData.dynamic || o.userData.keepBuried || o.instanceMatrix.usage === THREE.DynamicDrawUsage || !isExcluded(o)) return;
+    const gb = geoBox(o.geometry);
+    if (o.count <= maxCount && gb.max.y - gb.min.y > 0.05) meshes.push(o);
+  });
+  for (const o of meshes) {
+    const b = geoBox(o.geometry), h = b.max.y - b.min.y;
+    // (a tree by its trunk and middle; a tuft, a blade or a stone only when buried root to tip)
+    const fr = h >= minHeight ? [0.3, 0.55] : [0.35, 0.65, 0.95];
+    n += dropBuriedInstances(o, physics, fr.map((f) => b.min.y + h * f), { all: true });
+  }
+  return n;
+}
+
+const _geoBoxes = new WeakMap();
+/** A geometry's own box, from its vertices (a stored boundingBox may have been widened, e.g. for swaying grass). */
+export function geoBox(geo) {
+  let b = _geoBoxes.get(geo);
+  if (!b) { b = new THREE.Box3().setFromBufferAttribute(geo.attributes.position); _geoBoxes.set(geo, b); }
+  return b;
 }

@@ -3,6 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { mulberry32 } from '../noise.js';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
 import { Taxi } from '../taxi.js';
+import { dropBuriedInstances } from '../physics.js';
 import { soften } from '../world.js';
 import { Banner, Puffs } from '../life.js';
 import { buildRoom } from '../interiors.js';
@@ -317,6 +318,7 @@ export function createIncal(scene) {
     ]);
     const m = new THREE.Mesh(g, makeMaterial({ color: pick(PASTELS), flat: true, grid: 2 }));
     m.position.set(Math.cos(a) * rad, y, Math.sin(a) * rad);
+    m.userData.floats = true;   // (the clipping audit: meant to hang in the air)
     scene.add(m);
   }
 
@@ -652,6 +654,7 @@ export function createIncal(scene) {
     trees.push([x, TOP, z, 0.8 + rng() * 0.8]);
   }
   // ---------------------------------------------------------- trees: cypresses and round olives
+  const treeMeshes = [];   // (init drops the ones a clump put inside a house)
   {
     const dummy = new THREE.Object3D(), color = new THREE.Color();
     // cypress: a tall flame, widest a third of the way up, tip pointed
@@ -689,6 +692,7 @@ export function createIncal(scene) {
       mesh.userData.tiled = true;           // already grouped; tileScene leaves it alone
       mesh.computeBoundingSphere();
       lod.push({ obj: mesh, y: list[0][5], far: 260 });
+      treeMeshes.push(mesh);
       small.push(mesh);
       scene.add(mesh);
     }
@@ -760,6 +764,8 @@ export function createIncal(scene) {
     shaft: { R, TOP, BOTTOM, LEVELS, SPIRE_R, SPIRE_RING, terraces, bridges, stallSpots, viaducts, billboards, incal: incalRig, places },
     // called once the physics exists: spawn the taxis (they collide when driven)
     init(physics) {
+      // trees a clump put inside a house (or a crown through a wall) are left out
+      for (const m of treeMeshes) dropBuriedInstances(m, physics, [1, 3.5, 6], { ring: 0.9 });
       for (const spec of taxiSpecs) {
         const taxi = new Taxi(physics, spec.color, spec.scale, spec.lane);
         taxi.update(0, null, 0);

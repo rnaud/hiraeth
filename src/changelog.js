@@ -3,6 +3,11 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.44', date: '2026-10-04', items: [
+    'Conversations keep a clear view: the camera finds a spot with no wall, tree, rock or passer-by in the way, even in narrow streets, the ship and Viridel’s cabin.',
+    'Looking at something now shows it over your shoulder, and the traveller turns to face it (and to whoever they talk to).',
+    'Fewer things clip: trees no longer grow through houses, crowds don’t stand inside walls, boxes sit flat on ledges and stones, and capes and your bracer no longer pass through bodies.',
+  ] },
   { v: '0.43', date: '2026-10-04', items: [
     'People no longer shake or spin when you walk into them or talk to them up close: they turn to you and hold still, and crowd folk step round you instead of jittering on the spot.',
     'Capes hang properly on people seen from afar instead of floating where they were, and no longer drop into place as you come near.',

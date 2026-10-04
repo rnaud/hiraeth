@@ -89,7 +89,7 @@ Grouped by area. Checked items are done; the changelog says when.
 - [x] Perdide: looking inside the tooth flowers you can see through them (no
   inside faces / texture).
 - [x] The drone on my back clips into the backpack.
-- [ ] Clipping pass: check that most things don't sink into surfaces.
+- [x] Clipping pass: check that most things don't sink into surfaces. (`clipAudit()`; 139 offenders → 85 across the worlds)
 - [x] Building textures and windows flicker when the camera moves.
 - [x] I can't always look all the way up at the sky: the camera stops short.
 - [x] Shed / feather site: looking at the stone hand does nothing; unclear
@@ -146,8 +146,8 @@ Grouped by area. Checked items are done; the changelog says when.
 - [x] Prologue: a normal queen bed, not a bunk; the camera at the traveller's level like
   Uncharted (not up under the ceiling pointing at the floor), and free to tilt.
 
-- [ ] When the camera pans out for a dialogue, make sure nothing is in the way.
-- [ ] If the character looks at something, the camera goes behind them looking
+- [x] When the camera pans out for a dialogue, make sure nothing is in the way.
+- [x] If the character looks at something, the camera goes behind them looking
   at it.
 
 ## Drone

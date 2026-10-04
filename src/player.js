@@ -975,6 +975,15 @@ export class Player {
       let d = F.headingOf(tvel) - this.heading;
       d = Math.atan2(Math.sin(d), Math.cos(d));
       this.heading += d * (1 - Math.exp(-12 * dt));
+    } else if (this.faceToward && !this.gliding) {
+      // standing still in a conversation, or looking at something: turned toward it
+      const to = _v1.subVectors(this.faceToward, this.pos);
+      to.addScaledVector(U, -to.dot(U));
+      if (to.lengthSq() > 0.09) {
+        let d = F.headingOf(to) - this.heading;
+        d = Math.atan2(Math.sin(d), Math.cos(d));
+        this.heading += d * (1 - Math.exp(-5 * dt));
+      }
     }
     this.finishFrame(dt, hs);
   }
@@ -1685,10 +1694,12 @@ export class Player {
       rot(c.knees[i], 0.3 * free, 0, 0);
     }
     // soft arms, a slow sway, one hand hooks the belt while the weight is on that side
+    // (the right one, with the tank's bracer on its wrist, hangs a little out from the hip: the cuff sank into it)
+    const cuffed = this.has('backpack');
     for (let i = 0; i < 2; i++) {
-      const side = i === 0 ? 1 : -1;
-      const hook = THREE.MathUtils.smoothstep(w * side, 0.4, 0.95) * 0.6;
-      rot(c.arms[i], 0.06 + breath * 0.01 - hook * 0.25, 0, side * (0.1 + hook * 0.35));
+      const side = i === 0 ? 1 : -1, cuff = cuffed && i === 0;
+      const hook = THREE.MathUtils.smoothstep(w * side, 0.4, 0.95) * (cuff ? 0.3 : 0.6);
+      rot(c.arms[i], 0.06 + breath * 0.01 - hook * 0.25, 0, side * ((cuff ? -0.06 : 0.1) + hook * 0.35));
       rot(c.elbows[i], -0.28 - hook * 0.9, 0, 0);
     }
     // glances: hold, turn the head, hold

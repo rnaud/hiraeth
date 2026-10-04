@@ -1860,3 +1860,57 @@ a distance (or in the 160 px dialogue portrait) still has eyes.
   segment by segment with a draw range), and the pool fills the basin from its lowest point,
   widening up its sides (its radius follows the basin's profile, `cave.basinR`). A save with
   the channel already open finds it full (`tests/desert-cave.test.js`).
+
+### The conversation camera keeps a clear view
+
+`src/story/shot.js` picks where the camera stands while you talk to someone or look at
+something, so nothing comes between it and what it frames. `pickTwoShot` (talking) and
+`pickLookShot` (a thing: no two-shot, the camera behind the traveller's shoulder looking past
+them at it) each try a fan of candidate eyes: both sides, several angles round the pair,
+distances and heights, and over the shoulder as a last resort. Each is scored by
+`sightOf(physics)`: rays from the eye to the faces (or the thing) against the level's BVH and
+the heightfield, a ball test for an eye pressed into a wall, bystanders' capsules (NPCs and
+crowd people near you) and the two people's own bodies (the traveller's back must not hide
+the other face or the thing); every step away from the ideal framing costs a little. The
+cheapest wins. `Dialogue.frameCamera` asks again every 0.6 s (people walk into shots), eases
+to the new pick, and pulls the camera in along a line it was scored on if something still
+cuts it. A thing whose `at` is only where you stand (the foot of the stone hand) passes the
+part to look at as `dialogue.start(def, null, at, look)`. While a conversation is open
+`player.faceToward` turns the traveller to the person or the thing.
+
+### The clipping audit
+
+`src/clip-audit.js` lists what sinks into the ground, floats above it or stands in a wall.
+In the running game, `await clipAudit()` prints a report for the world you are in
+(`clipAudit({ print: false })` returns it: `{ checked, counts, offenders }`);
+`tests/clip-audit.test.js` runs it on made-up scenes and on the Signal Market. It checks:
+people (story NPCs and the crowd: feet on the ground, the body out of walls, not inside a
+solid), boxes (all four corners of the footprint on the ground), relics and the things you
+look at (not inside a solid), and every small prop the level and its story placed (a unit is
+the largest group under 25 m across; each instance of an instanced mesh is one). A prop must
+be held by something: a thin slab just outside one of its faces has to touch the collision
+BVH, the terrain, any drawn mesh (moss pads, a hanging city's roof: `drawnBVH`) or another
+prop; a walk-through prop (noCollide) must not stand inside a solid, judged by its middle
+when it is a trunk or a post, otherwise only when wholly inside (by its own axis for a leaning
+blade or a tumbled rock). Effects (see-through, animated: `userData.dynamic`), motes under
+12 cm and things marked `userData.floats` (bobbing orbs, floating stones, the sea of cloud,
+Incal's landing pads) are left out. "Inside a solid" uses `physics.buried(p)`: `embedded()`
+and an odd number of surfaces crossed on the way out, and not over a solid whose floor is
+under the terrain (a landmark half sunk in the dunes).
+
+What it found is fixed at the source: `dropBuriedFlora(scene, physics)` (called once the
+physics exists) drops instances of walk-through flora buried in a solid or wholly under the
+terrain (Incal's terrace trees also round their crowns, `dropBuriedInstances(..., { ring })`);
+crowd spots must not be inside a solid (`standable`), and a crowd route is sampled every
+1.5 m with the side lanes checked for posts and pillars; a box placed on a ledge or a rounded
+stone is moved (up to 1.2 m, `settle` in `src/boxes/index.js`) to where all four corners meet
+the ground. Known and left: the Hangar's upside-down quarter (its props "float" by world down),
+props resting on water, and stones buried inside Vael II's mesas (unseen). Across the twelve
+worlds the audit went from 139 offenders to 85 (crowd 21 to 1; Incal 34 to 4, the Buried City
+15 to 4, Viridel 19 to 8).
+
+The traveller's own kit, checked in idle, walk, run and jump poses (by
+sampling of the arm bones against the tank's profile): the arms never reach into the tank;
+the right hand, with the bracer, hung into the hip in the idle sway and now hangs a little
+out (`idleLayer`). NPC capes collide with the traveller's body capsules when they stand
+within 2.2 m (`NPC.clothCapsules`), so a seated elder's cape no longer drapes through your legs.
