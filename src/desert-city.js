@@ -6,7 +6,7 @@ import { STORY, processionLoop } from './desert-sites.js';
 import { cityFloor } from './desert-landmarks.js';
 import { Banner } from './life.js';
 import { Flames, Embers, Smoke, FIRE, COOL_FIRE } from './story/flames.js';
-import { magicMaterial, magicDisc, animateMagic, setMagicPalette, withColor, MAGIC_PALETTE, DIM_PALETTE } from './story/magic-water.js';
+import { magicMaterial, magicPool, magicStream } from './story/magic-water.js';
 
 // The desert's story places (references/IMG_3772-3775: pale rose domes,
 // cream walls, bone, flat sky):
@@ -395,11 +395,9 @@ export function buildDesertCity(scene, terrain) {
     city.both(M.stone, lathe([[2.0, 0], [2.6, 0], [2.6, 1.0], [2.25, 1.15], [2.0, 1.0], [2.0, 0]], 24).translate(WELL.x, top, WELL.z),
       new THREE.CylinderGeometry(2.6, 2.6, 1.1, 10).translate(WELL.x, top + 0.55, WELL.z));
     city.add(M.dry, new THREE.CylinderGeometry(2.02, 2.02, 0.1, 24).translate(WELL.x, top + 0.06, WELL.z));
-    const wellWaterGeo = magicDisc(2.0, 4, 24);
     const wellMat = magicMaterial(21);
-    const wellWater = new THREE.Mesh(wellWaterGeo, wellMat);
+    const wellWater = magicPool(2.0, wellMat, { rings: 4, segs: 24 });
     wellWater.position.copy(city.world(WELL.x, top + 0.12, WELL.z));
-    wellWater.userData.noCollide = true;
     wellWater.visible = false;
     root.add(wellWater);
     // the stele: kneeling giants carry water to a burning tree, the glyph above
@@ -598,14 +596,11 @@ export function buildDesertCity(scene, terrain) {
     }
     cave.add(M.ink, T(new THREE.BoxGeometry(0.6, 4.5, 3.2), [29.6, 3.6, -6.4], [0, chYaw, 0]));   // the crack it comes from
     // water standing behind the bone, and the stream that will run once it's clear
-    const streamGeo = withColor(new THREE.PlaneGeometry(1.6, chLen, 2, 24));
-    streamGeo.rotateX(-Math.PI / 2);
-    const sm = new THREE.Matrix4().compose(along(0.5, -1.0), new THREE.Quaternion().setFromEuler(new THREE.Euler(chPitch, chYaw, 0, 'YXZ')), V(1, 1, 1));
-    const streamMat = magicMaterial(23);
-    const stream = new THREE.Mesh(streamGeo, streamMat);
-    stream.applyMatrix4(new THREE.Matrix4().makeTranslation(O.x, O.y, O.z).multiply(sm));
-    stream.userData.noCollide = true;
-    root.add(stream);
+    const streamMat = magicMaterial(23, { aspect: 0.25 });
+    const w = (u) => cave.world(...along(u, -1.0).toArray());
+    const pond = magicStream(w(0), w(0.4), 1.6, streamMat, { segs: 10 });     // stands behind the rib
+    const stream = magicStream(w(0.42), w(1), 1.6, streamMat, { segs: 16 });  // runs once it's clear
+    root.add(pond, stream);
     // the fallen rib across the channel (it moves, so it never collides)
     const boneAt = along(0.42, -0.45);
     const bonePivot = new THREE.Group();
@@ -618,11 +613,9 @@ export function buildDesertCity(scene, terrain) {
     bonePivot.add(Object.assign(new THREE.Mesh(T(glyphGeometry(0.5), [0, 1.05, 0.55], [-0.4, 0, 0]), M.glyph), { userData: { noCollide: true } }));
     root.add(bonePivot);
     // the pool: shifting colours, low (and dim) until the channel runs again
-    const poolGeo = magicDisc(POOL - 0.4, 10, 56);
-    const poolMat = magicMaterial(22, DIM_PALETTE);
-    const pool = new THREE.Mesh(poolGeo, poolMat);
+    const poolMat = magicMaterial(22);
+    const pool = magicPool(POOL - 0.4, poolMat, { rings: 10, segs: 56 });
     pool.position.copy(cave.world(0, -1.25, 0));
-    pool.userData.noCollide = true;
     root.add(pool);
     // the mural: giants lying down, the water running out of them to a tree
     cave.add(M.mural, T(new THREE.BoxGeometry(9, 4.6, 0.5), [-17.5, 3.4, 20.5], [0, Math.PI * 0.8, 0]));
@@ -636,10 +629,10 @@ export function buildDesertCity(scene, terrain) {
     const entryLight = cave.world(0, 4, ROOM + 2);
     lights.push(poolLight, new THREE.Vector4(chLight.x, chLight.y, chLight.z, 10), new THREE.Vector4(entryLight.x, entryLight.y, entryLight.z, 12));
     Object.assign(cv, {
-      origin: O, poolCenter: cave.world(0, -1.25, 0), local: (x, y, z) => cave.world(x, y, z), poolR: POOL - 1, pool, poolMat, poolGeo, poolLight,
+      origin: O, poolCenter: cave.world(0, -1.25, 0), local: (x, y, z) => cave.world(x, y, z), poolR: POOL - 1, pool, poolMat, poolLight,
       bone: bonePivot, boneAt: bonePivot.position.clone(), boneRest: { pos: bonePivot.position.clone(), rot: bonePivot.rotation.clone() },
       boneAside: cave.world(boneAt.x - chDir.z * 3.4, -0.1, boneAt.z + chDir.x * 3.4),
-      stream, streamGeo, streamMat, chDir, rootTips, mural: cave.world(-17.5, 0, 20.5).add(V(Math.sin(Math.PI * 0.8) * 2.5, 0, Math.cos(Math.PI * 0.8) * 2.5)),
+      stream, pond, streamMat, chDir, rootTips, mural: cave.world(-17.5, 0, 20.5).add(V(Math.sin(Math.PI * 0.8) * 2.5, 0, Math.cos(Math.PI * 0.8) * 2.5)),
       inside: cave.world(0, 0.05, ROOM + 5.5), exit: cave.world(0, 0, ROOM + 9.3), group: cave.group, root,
       levels: { low: -1.25, high: -0.35 },
     });
@@ -673,7 +666,7 @@ export function buildDesertCity(scene, terrain) {
     if (dCity < 500 && seen(out.city.crown, 40)) out.city.embers.update(dt, t, player?.wind);
     // the cave: drawn only when you're down there
     const inCave = _cam.distanceTo(O) < 300;
-    cv.group.visible = inCave; cv.pool.visible = inCave; cv.stream.visible = inCave && cv.streamOn; cv.bone.visible = inCave;
+    cv.group.visible = inCave; cv.pool.visible = inCave; cv.stream.visible = inCave && cv.streamOn; cv.pond.visible = inCave; cv.bone.visible = inCave;
   };
   return out;
 }
@@ -762,4 +755,4 @@ export function desertCrowdSpots(terrain, story) {
   };
 }
 
-export { FIRE, COOL_FIRE, MAGIC_PALETTE, DIM_PALETTE, animateMagic, setMagicPalette };
+export { FIRE, COOL_FIRE };

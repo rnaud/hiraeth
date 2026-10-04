@@ -167,8 +167,8 @@ test('the main quest runs from the dead ship to a powered one', () => {
   // the fallen rib: the tool's push clears it
   const bone = allTargets().find((t) => t.kind === 'bone');
   assert.ok(bone?.enabled(), 'the rib is a target while it blocks the channel');
-  bone.onHit('dart');
-  assert.equal(game.flag('desert.channel.open'), undefined, 'a dart only rocks it');
+  bone.onHit('shoot');
+  assert.equal(game.flag('desert.channel.open'), undefined, 'a shot only rocks it');
   bone.onHit('push');
   assert.equal(game.flag('desert.channel.open'), true, 'a push rolls it off');
   step(90, 1 / 10);   // the rib rolls, the pool rises

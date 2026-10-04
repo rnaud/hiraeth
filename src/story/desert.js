@@ -6,7 +6,7 @@ import { registerInteractable, PRIORITY } from '../interact.js';
 import { Banner } from '../life.js';
 import { STORY } from '../desert-sites.js';
 import { COOL_FIRE, FIRE } from './flames.js';
-import { animateMagic, setMagicPalette, MAGIC_PALETTE, DIM_PALETTE } from './magic-water.js';
+import { setMagic } from './magic-water.js';
 import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK } from './desert-data.js';
 
 // The desert's story, alive: who stands where, what reacts to you, and the
@@ -182,12 +182,12 @@ export function setupDesert(ctx) {
     sound.whoosh?.();
     sound.chime();
   };
-  // the tool's push clears it (src/targets.js); a dart or a ray only rocks it
+  // the tool's push clears it (src/targets.js); a shot only rocks it
   const boneTarget = registerTarget({ kind: 'bone', radius: 2.6, position: () => cave.bone.position, enabled: () => !open() && player.pos.distanceTo(cave.origin) < 200,
     onHit: (mode) => {
       if (mode === 'push') { clearChannel('push'); return true; }
       st.wobble = 1;
-      if (!st.hinted) { st.hinted = true; toast('The rib rocks, and settles. Something stronger than a dart: a push.'); }
+      if (!st.hinted) { st.hinted = true; toast('The rib rocks, and settles. It needs a shove: push it (C, middle click, or B / ○).'); }
       return true;
     } });
   void boneTarget;
@@ -219,8 +219,8 @@ export function setupDesert(ctx) {
       if (!open()) toast('The water is shallow and dull, barely moving. It’s waiting for something.');
       else {
         const addColour = !game.flag('desert.pool.tinted');
-        game.emit('tool:refill', { addColour, colour: '#e88fa6', source: 'desert' });
-        tool?.refill?.({ addColour });
+        // the fluid tool listens for this (fluid-tool.js): a full tank, and for good a new colour band
+        game.emit('tool:refill', { addColour });
         if (addColour) { game.set('desert.pool.tinted', true); toast('The water climbs your hose. The tank takes its colours.'); }
         if (quests.has('jar') && !game.flag('desert.jar.filled')) {
           quests.take('jar'); quests.give('water');
@@ -384,13 +384,14 @@ export function setupDesert(ctx) {
     cave.poolLight.w = 14 + 16 * st.drink;
     const inCave = camPos.distanceTo(cave.origin) < 300;
     if (inCave) {
-      setMagicPalette(cave.poolMat, DIM_PALETTE, MAGIC_PALETTE, st.drink);
-      animateMagic(cave.poolGeo, t, { scale: 3.2, speed: 0.4 + st.drink * 0.8 });
-      if (cave.streamOn) { setMagicPalette(cave.streamMat, MAGIC_PALETTE); animateMagic(cave.streamGeo, t, { scale: 1.2, speed: 2.5, flow: cave.chDir.clone().multiplyScalar(0.6) }); }
+      // the same fluid as the tank: dull and slow while the channel is blocked, alive once the water runs
+      st.poolT = (st.poolT ?? 0) + dt * (0.35 + 0.65 * st.drink);
+      setMagic(cave.poolMat, st.poolT, { bright: 0.25 + 0.75 * st.drink, tones: st.drink > 0.5 ? 6 : 4 });
+      setMagic(cave.streamMat, t * (open() ? 2.2 : 0.4), { bright: open() ? 1 : 0.55, tones: 6 });
     }
     if (city.wellWater.visible && flat(camPos, city.well) < 250) {
       city.wellWater.position.y = Math.min(city.well.y + 0.95, city.wellWater.position.y + dt * 0.25);
-      animateMagic(city.wellWater.geometry, t, { scale: 1.1, speed: 1 });
+      setMagic(city.wellMat, t, { bright: 1, tones: 6 });
     }
 
     // the musicians pick up your tune when you stand with them

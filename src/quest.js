@@ -325,7 +325,7 @@ export class Gate {
     this.side = new THREE.Vector3(Math.cos(heading), 0, -Math.sin(heading));
     this.light = new THREE.Vector4(pos.x, pos.y + 4, pos.z, 14);
     this._prevSide = null;
-    // the glyph rings like a bell when a foam dart (or the ray) touches the gate
+    // the glyph rings like a bell when the fluid tool touches the gate (a glob or the push)
     this.ringT = 0;
     this.offTarget = registerTarget({ kind: 'gate', radius: 3.4, position: () => glyph.getWorldPosition(this._glyphAt ??= new THREE.Vector3()).lerp(this.pos, 0.45), onHit: () => this.ring() });
   }

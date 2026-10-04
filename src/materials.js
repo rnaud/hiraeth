@@ -591,6 +591,75 @@ const fragmentShader = /* glsl */ `
     return (float(m[i]) + 0.5) / 16.0;
   }
 
+  #ifdef FLUID
+  // The traveller's magical fluid (fluid-tool.js; makeMaterial({ fluid })): a
+  // lava lamp in flat print tones. Only materials made with o.fluid compile this.
+  uniform vec4 uFluidA;    // fill 0..1 · tones in the blend (2..6) · time (s) · kind: 0 tank, 1 hose, 2 glob
+  uniform vec4 uFluidB;    // flash 0..1 · refill 0..1 (0 = none) · hose pulse head (0 tank -> 1 hand) · slosh 0..1
+  uniform vec4 uFluidBox;  // object space: glass bottom y, top y, radius, highlight angle (rad, about +y)
+  uniform vec3 uFluidTones[6];   // the fluid's tones in the order they join the blend (fluid-tool.js sets them)
+  vec3 fluidTone(int i) { return uFluidTones[i - 6 * (i / 6)]; }
+  // Round a vertical axis (angle a, height h 0..1, aspect = radius / height):
+  // three stacked bands of one tone each, with metaball blobs of the other
+  // tones rising, sinking and merging through them. Flat tones, so the post
+  // pass inks every boundary.
+  vec3 fluidLava(float a, float h, float aspect, float t, int n, bool banded) {
+    float F[6] = float[6](0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+    // a slow warp keeps every edge organic
+    float wa = a + 0.16 * sin(h * 8.0 + t * 0.7);
+    float wh = h + 0.03 * sin(a * 3.0 - t * 0.9);
+    for (int i = 0; i < 12; i++) {
+      float fi = float(i);
+      float ph = 6.2831 * (0.06 + 0.05 * fract(fi * 0.618)) * t + fi * 2.13;
+      float cy = 0.5 + 0.56 * sin(ph);                       // a little past the ends: blobs pool and break away
+      float ca = fi * 2.39996 + 0.9 * sin(t * 0.13 + fi * 1.7);
+      float r = 0.115 + 0.045 * sin(t * 0.43 + fi * 1.31);
+      float da = abs(mod(wa - ca + 3.14159, 6.28318) - 3.14159) * aspect;
+      float dy = (wh - cy) / (1.0 + 0.6 * abs(cos(ph)));      // stretched while it rises or sinks
+      F[i - n * (i / n)] += r * r / max(da * da + dy * dy, 1e-5);
+    }
+    float hb = h + 0.035 * sin(a * 2.0 + t * 0.6) + 0.02 * sin(a * 5.0 - t * 1.4);
+    int base = banded ? int(clamp(floor(hb * 3.0), 0.0, 2.0)) : int(step(0.5 + 0.25 * sin(a * 2.0 + t * 0.5), h));
+    base -= n * (base / n);
+    int pick = base;
+    float best = 1.0;
+    for (int c = 0; c < 6; c++) { if (c >= n) break; if (c != base && F[c] > best) { best = F[c]; pick = c; } }
+    return fluidTone(pick);
+  }
+  vec3 fluidAlbedo(vec3 base) {
+    float t = uFluidA.z, kind = uFluidA.w;
+    int n = int(uFluidA.y + 0.5);
+    if (kind > 0.5 && kind < 1.5) {
+      // the hose: rubber, with a slug of fluid running down it when the tool is used
+      float u = vFold.x, head = uFluidB.z;
+      if (u < head && u > head - 0.3) return fluidTone(int(mod(floor(u * 7.0 - t * 3.0), float(n))));
+      return base;
+    }
+    float H = uFluidBox.y - uFluidBox.x;
+    float h = (vBind.y - uFluidBox.x) / H;
+    float a = atan(vBind.z, vBind.x);
+    vec3 col = fluidLava(a, h, uFluidBox.z / H, kind > 1.5 ? t * 4.0 : t, n, kind < 1.5);
+    if (kind > 1.5) return col;   // a glob in flight: blobs churning, no bands
+    // the tank: the fluid stands at the fill level (three charges = three bands), sloshing; empty glass above
+    float fill = uFluidA.x;
+    float surf = max(fill, 0.07) + (0.012 + 0.05 * uFluidB.w) * sin(a + t * 6.0) * min(1.0, fill * 8.0);
+    float w = uFluidB.y;
+    if (w > 0.0 && h < surf) {
+      // refilling: bubbles stream up through it
+      vec2 g = vec2(a * uFluidBox.z / H * 10.0, h * 10.0 - t * 5.0);
+      vec2 c = fract(g) - 0.5;
+      if (hash(floor(g)) > 0.55 && dot(c, c) < 0.07) col = mix(col, vec3(1.0), 0.75 * w);
+    }
+    if (h > surf) col = vec3(0.855, 0.925, 0.945);
+    else if (h > surf - 0.04) col = mix(col, vec3(1.0), 0.35 + 0.4 * w);   // the meniscus
+    col = mix(col, vec3(1.0), uFluidB.x * 0.45);
+    // a highlight streak down the glass
+    float dh = abs(mod(a - uFluidBox.w + 3.14159, 6.28318) - 3.14159);
+    if (dh < 0.14 && h > 0.1 && h < 0.86) col = mix(col, vec3(1.0), h > surf ? 0.9 : 0.5);
+    return col;
+  }
+  #endif
+
   void main() {
     // the hover trail dissolves into dots over its last stretch
     // glass (the bubble helmet): see-through except at the grazing rim and a curved highlight
@@ -693,6 +762,9 @@ const fragmentShader = /* glsl */ `
       float w = vnoise(vWorldPos.xz * 0.012 + uTime * 0.01);
       albedo = w > 0.55 ? uColor2 : uColor;
     }
+    #ifdef FLUID
+      albedo = fluidAlbedo(albedo);
+    #endif
     float patInk = 0.0;
     if (uPattern == 1) patInk = facade(vWorldPos, n, albedo);
     else if (uPattern == 2) patInk = roofTiles(vWorldPos);
@@ -831,6 +903,11 @@ const cache = new Map();
  * @param {THREE.Side} [o.side]
  * @param {boolean} [o.crowd]   instanced crowd figures: the vertex shader poses and colours each
  *                              instance from its attributes (crowd-shader.js); no other mode changes
+ * @param {string}  [o.fluid]   'tank' | 'hose' | 'glob': the traveller's magical fluid (fluid-tool.js).
+ *                              Compiles the FLUID block (a lava-lamp albedo in flat tones) and adds
+ *                              uFluidA / uFluidB / uFluidBox; materials without it are unchanged
+ * @param {number[]} [o.fluidBox] [glass bottom y, top y, radius, highlight angle] in object space
+ * @param {string[]} [o.fluidTones] the six tones (uFluidTones; the tool rewrites them as colours are added)
  */
 export function makeMaterial(o) {
   const key = JSON.stringify({ ...o, map: o.map?.uuid });
@@ -880,6 +957,13 @@ export function makeMaterial(o) {
   });
   mat.vertexColors = !!o.vertexColors;
   if (o.crowd) mat.defines = { CROWD: 1 };
+  if (o.fluid) {
+    mat.defines = { ...mat.defines, FLUID: 1 };
+    mat.uniforms.uFluidA = { value: new THREE.Vector4(1, 2, 0, { tank: 0, hose: 1, glob: 2 }[o.fluid] ?? 0) };
+    mat.uniforms.uFluidB = { value: new THREE.Vector4() };
+    mat.uniforms.uFluidBox = { value: new THREE.Vector4(...(o.fluidBox ?? [-1, 1, 1, 0])) };
+    mat.uniforms.uFluidTones = { value: Array.from({ length: 6 }, (_, i) => new THREE.Color(o.fluidTones?.[i] ?? '#ffffff')) };
+  }
   cache.set(key, mat);
   return mat;
 }

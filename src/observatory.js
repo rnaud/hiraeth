@@ -87,10 +87,10 @@ export class ObservatoryQuest {
     this.pendingPage = this.state.done && !this.state.illustrated;
     this.refreshTraveler();
     this.draw(0);
-    // A foam dart turns a lens from afar too, once you're up on the tower (no skipping the climb).
+    // A glob of fluid turns a lens from afar too, once you're up on the tower (no skipping the climb).
     this.offTargets = model.dials.map((d, i) => registerTarget({ kind: 'lens', radius: 1.5, position: () => d.getWorldPosition(d.userData.at ??= new THREE.Vector3()),
       enabled: () => this.state.started && !this.state.done && !!this.player && this.player.pos.distanceTo(d.getWorldPosition(new THREE.Vector3())) < 30,
-      onHit: (mode) => mode === 'dart' && this.turn(i) }));
+      onHit: (mode) => mode === 'shoot' && this.turn(i) }));
   }
   dispose() { this.offTargets.forEach((off) => off()); }
   /** Turn lens i a quarter: the same as pressing E beside it. */

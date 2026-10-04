@@ -455,54 +455,60 @@ export class Sound {
     o.start(t); o.stop(t + dur + 0.02);
   }
 
-  /** The paralyze ray: a bright falling whine over a fizz of static. */
-  zap() {
+  /** Shoot: a wet, rising bloop as a glob leaves the nozzle. */
+  fluidShoot() {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
-    this.sweep(t, 1900, 380, 0.24, 0.07);
-    this.sweep(t, 2850, 720, 0.18, 0.025, 'triangle');
-    this.burst(t, { dur: 0.16, type: 'highpass', freq: 4200, q: 0.5, vol: 0.05, rate: 1.4 });
+    this.sweep(t, 260, 720, 0.11, 0.16);
+    this.sweep(t + 0.02, 520, 1500, 0.08, 0.05, 'triangle');
+    this.burst(t, { dur: 0.09, type: 'bandpass', freq: 1100, q: 1.1, vol: 0.14, rate: 0.8 });
   }
 
-  /** A foam dart leaving the barrel: a soft pneumatic puff. */
-  puff() {
+  /** A glob lands: a splat on the world, and a bright two-note pop when it lands on someone or something. */
+  fluidSplash(target = false) {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
-    this.burst(t, { dur: 0.13, type: 'bandpass', freq: 850, q: 0.9, vol: 0.28, rate: 0.7 });
-    this.sweep(t, 190, 70, 0.09, 0.12);
+    this.burst(t, { dur: 0.16, type: 'lowpass', freq: 1500, q: 0.7, vol: 0.16, rate: 0.9 });
+    this.sweep(t, 620, 150, 0.12, 0.08);
+    if (target) [4, 9].forEach((d, i) => this.pluck(this.freq(d, 2), t + 0.04 + i * 0.07, 0.07, 'triangle', this.fx));
   }
 
-  /** Something was hit: a round pop, a woody tick and two bright notes. */
-  pop(mode = 'dart') {
+  /** Push: a deep whump with a rush of spray. */
+  fluidPush() {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
-    this.sweep(t, mode === 'stun' ? 1300 : 900, 160, 0.09, 0.22);
-    this.burst(t, { dur: 0.035, type: 'bandpass', freq: 2600, q: 1.5, vol: 0.18 });
-    const notes = mode === 'stun' ? [7, 11] : [4, 9];
-    notes.forEach((d, i) => this.pluck(this.freq(d, 2), t + 0.04 + i * 0.07, 0.08, mode === 'stun' ? 'sine' : 'triangle', this.fx));
+    this.sweep(t, 160, 48, 0.28, 0.3);
+    this.burst(t, { dur: 0.32, type: 'bandpass', freq: 700, q: 0.6, vol: 0.24, rate: 0.6 });
+    this.burst(t + 0.04, { dur: 0.25, type: 'highpass', freq: 2600, q: 0.5, vol: 0.07, rate: 1.2 });
   }
 
-  /** Nothing living was hit: a gentle tap (dart) or a soft hiss (ray) on the world. */
-  tap(mode = 'dart') {
+  /** Boost: a pressurised gush going up. */
+  fluidBoost() {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
-    if (mode === 'dart') this.burst(t, { dur: 0.07, type: 'lowpass', freq: 700, q: 0.7, vol: 0.12 });
-    else this.burst(t + 0.05, { dur: 0.22, type: 'bandpass', freq: 3400, q: 0.8, vol: 0.04 });
+    this.burst(t, { dur: 0.4, type: 'bandpass', freq: 900, q: 0.7, vol: 0.26, rate: 0.7 });
+    this.sweep(t, 140, 420, 0.3, 0.14, 'triangle');
+    this.sweep(t + 0.05, 600, 1800, 0.22, 0.03);
   }
 
-  /** The ray ran out into the open air. */
-  fizzle() {
-    if (!this.ctx) return;
-    this.burst(this.ctx.currentTime + 0.08, { dur: 0.3, type: 'highpass', freq: 5000, q: 0.4, vol: 0.025 });
-  }
-
-  /** Switching mode (high = dart), or an empty gauge. */
-  toolClick(high = false, empty = false) {
+  /** The tank refills: a quick bubbling run up the scale (a longer, brighter one when a colour is added). */
+  fluidRefill(added = false) {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
-    if (empty) { this.sweep(t, 300, 180, 0.08, 0.06, 'square'); return; }
-    this.sweep(t, high ? 1500 : 1100, high ? 1700 : 900, 0.04, 0.06);
-    this.sweep(t + 0.05, high ? 1900 : 800, high ? 2100 : 700, 0.04, 0.05);
+    const notes = added ? [0, 2, 4, 7, 9, 11, 14] : [0, 4, 7, 11];
+    notes.forEach((d, i) => {
+      this.pluck(this.freq(d, 1), t + i * 0.07, 0.07, 'sine', this.fx);
+      this.sweep(t + i * 0.07, 380 + i * 90, 900 + i * 160, 0.05, 0.03);   // bubbles
+    });
+    this.burst(t, { dur: 0.35, type: 'bandpass', freq: 1800, q: 1.2, vol: 0.05, rate: 1.3 });
+  }
+
+  /** A press with the tank empty: a dry, sputtering click. */
+  fluidEmpty() {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    this.sweep(t, 300, 180, 0.08, 0.06, 'square');
+    this.burst(t + 0.03, { dur: 0.06, type: 'bandpass', freq: 900, q: 2, vol: 0.06 });
   }
 
   // ------------------------------------------------------------------ musicians in the world

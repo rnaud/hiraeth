@@ -55,9 +55,9 @@ export class SettingsMenu {
           <button data-a="news">What's new (N)</button>
           <button data-a="close">Close</button>
         </div>
-        <p class="keys">Controller: left stick move · right stick look · A/× jump · X/□ interact · Y/△ ping · RT/R2 run or boost · LT/L2 aim the tool, RT/R2 fire, D-pad ←/→ ray or dart · ↑ worlds · ↓ photo · View sketchbook · Menu settings. In menus: D-pad select, left/right adjust, A/× confirm, B/○ back, right stick scroll.</p>
+        <p class="keys">Controller: left stick move · right stick look · A/× jump · X/□ interact · Y/△ ping · RT/R2 run · LT/L2 aim the fluid tool, RT/R2 shoot · B/○ push · A/× again in the air boost · ↑ worlds · ↓ photo · View sketchbook · Menu settings. In menus: D-pad select, left/right adjust, A/× confirm, B/○ back, right stick scroll.</p>
         <p class="keys install-tip">Play full screen on iPhone: open in Safari, tap Share → Add to Home Screen, then enable Open as Web App if shown.</p>
-        <p class="keys">WASD move · SHIFT run · SPACE jump / glide / jetpack · E interact · Q ping scout · hold right mouse or R aim the tool · left click or G fire · X or middle click switch paralyze ray / foam dart · J sketchbook · L worlds · P photo · H help · O settings · N what's new</p>
+        <p class="keys">WASD move · SHIFT run · SPACE jump / glide / jetpack (SPACE again in the air: fluid boost) · E interact · Q ping scout · hold right mouse or R aim the fluid tool · left click or G shoot · C or middle click push · J sketchbook · L worlds · P photo · H help · O settings · N what's new</p>
       </div>`;
     const sync = () => {
       for (const c of el.querySelectorAll('[data-k]')) {
@@ -113,9 +113,9 @@ export class TouchControls {
       <button data-press="KeyQ" class="b-ping" aria-label="Ping next objective">ping</button>
       <button data-press="KeyJ" class="b-book">❏</button>
       <button data-press="KeyL" class="b-map">◫</button>
-      <button data-toggle="KeyR" class="b-aim" aria-label="Aim the tool">◎</button>
-      <button data-key="KeyG" class="b-fire" aria-label="Fire the tool">✺</button>
-      <button data-key="KeyX" class="b-mode" aria-label="Switch ray / dart">⇄</button>`;
+      <button data-toggle="KeyR" class="b-aim" aria-label="Aim the fluid tool">◎</button>
+      <button data-key="KeyG" class="b-fire" aria-label="Shoot fluid">✺</button>
+      <button data-key="KeyC" class="b-push" aria-label="Push">✋</button>`;
     const stick = root.querySelector('.stick'), nub = root.querySelector('.nub');
     let stickId = null, lookId = null, sx = 0, sy = 0, lx = 0, ly = 0;
     const R = 60;
@@ -182,31 +182,33 @@ export class TouchControls {
 }
 
 /**
- * The tool's HUD while aiming: a small inked crosshair at the centre of the
- * screen, the mode's name and the ray's gauge under it. The crosshair opens
- * when it sits on something the tool can touch and kicks on a hit.
+ * The fluid tool's HUD while aiming: a small inked crosshair at the centre of
+ * the screen, and under it the three charges as pips in the fluid's tones
+ * (with the seconds to the refill when some are spent). The crosshair opens
+ * when it sits on something the tool can touch and kicks on a hit; it
+ * shakes when the tank is empty.
  */
 export class ToolHud {
   constructor(el = document.getElementById('tool')) {
     this.el = el;
     if (!el) return;
-    el.innerHTML = '<div class="cross"><i></i><i></i><i></i><i></i></div><div class="mode"><b></b><span class="gauge"></span></div>';
-    this.name = el.querySelector('.mode b');
-    this.gauge = el.querySelector('.gauge');
+    el.innerHTML = '<div class="cross"><i></i><i></i><i></i><i></i></div><div class="mode"><b>fluid</b><span class="pips"><u></u><u></u><u></u></span><span class="wait"></span></div>';
+    this.pips = [...el.querySelectorAll('.pips u')];
+    this.wait = el.querySelector('.wait');
     this.cross = el.querySelector('.cross');
     this.last = '';
   }
-  update({ on, mode, name, energy, ready, aimKind, hit }) {
+  update({ on, charges = 3, max = 3, refillIn = 0, ready, aimKind, hit, tones = [] }) {
     if (!this.el) return;
     document.body.classList.toggle('aiming', on);
     if (!on) return;
-    const n = Math.round(energy * 5);
-    const key = `${mode}|${n}|${ready}|${aimKind}`;
+    const secs = charges < max ? Math.ceil(refillIn) : 0;
+    const key = `${charges}|${secs}|${ready}|${aimKind}|${tones.length}`;
     if (key !== this.last) {
       this.last = key;
-      this.el.className = `${mode}${ready ? '' : ' wait'}${aimKind === 'target' ? ' lock' : ''}`;
-      this.name.textContent = name;
-      this.gauge.textContent = mode === 'stun' ? '▮'.repeat(n) + '▯'.repeat(5 - n) : '';
+      this.el.className = `fluid${ready ? '' : ' wait'}${aimKind === 'target' ? ' lock' : ''}${charges ? '' : ' empty'}`;
+      this.pips.forEach((u, i) => { u.style.background = i < charges ? tones[i % tones.length] ?? '' : ''; u.classList.toggle('on', i < charges); });
+      this.wait.textContent = secs ? `${secs}s` : '';
     }
     if (hit === 'target' || hit === 'empty') {
       const c = this.cross;
