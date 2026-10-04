@@ -1099,6 +1099,8 @@ function frame() {
     const [wx, wz] = wind.windDir;
     const k = (level.features.wind ? 2.5 : 1.2) * (1 + Wx.storm * 3.5 + Wx.rain * 0.6) * (1 - 0.8 * shelter.indoor);
     player.wind.set(wx * k, 0, wz * k);
+    // the plants feel the same wind: its direction, its strength (storms bend them hard), its gusts
+    sharedUniforms.uWind.value.set(wx, wz, (level.features.wind ? 1 : 0.55) * (1 + Wx.storm * 2 + Wx.rain * 0.4), wind.gust());
   }
   // doorways into interiors (and back out)
   portalCool = Math.max(portalCool - dt, 0);

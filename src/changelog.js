@@ -13,6 +13,7 @@ export const CHANGELOG = [
     'Five save slots: each shows its world, how far you’ve come, the time played and when you last played. Start a new game in an empty slot, or delete a save after a confirmation. Your current progress is kept in the first slot.',
     'Start and Select now open full-screen menus that pause the game, with their own calm music over the hushed world. Quit to title is in the Start menu, and restarting from the prologue only starts over the save you’re playing.',
     'Places to go, the next thing to do and the hints that solve a puzzle now stand out in colour in conversations, in every world, far more often than before. Speech balloons show these highlights too, instead of stray stars.',
+    'Plants feel the wind: they lean downwind, gusts roll across the meadows as a wave, and a storm bends them hard.',
     'The traveller is rebuilt on the same body and skeleton as everyone else, with the suit, helmet and pack on top: walking, climbing, gliding, aiming and riding no longer bend joints the wrong way.',
     'People now come in all heights and builds, slim to broad to heavy, men and women alike: long hair, buns and beards, and the same face in the crowd every time you visit.',
     'Your bed in the ship is a proper bed now, not a bunk: a wide bed with a headboard, two pillows and a shelf over them, where the family drawing is taped.',

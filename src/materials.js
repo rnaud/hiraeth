@@ -52,6 +52,9 @@ export const sharedUniforms = {
   uShadowTexel: { value: new THREE.Vector3(0.0117, 0.107, 1.12) },
   uShadowTaps: { value: 9 },      // PCF taps: 9 (a smooth 4x4-texel tent) or 4 (3x3, the handheld preset)
   uTime: { value: 0 },
+  // the world's wind for the plants (flora.js sway): x, z downwind direction, strength (0 still,
+  // 1 a fresh breeze, up to ~3 in a storm), gust 0..1 (main.js sets it from wind.js every frame)
+  uWind: { value: new THREE.Vector4(1, 0, 0.6, 0.4) },
   // Shared with the post pass (same uniform objects).
   uToon: { value: 0.5 },
   uHatch: { value: 1 },
@@ -89,6 +92,7 @@ const vertexShader = /* glsl */ `
   #ifdef SWAY
     uniform float uTime;
     uniform float uSway;
+    uniform vec4 uWind;
   #endif
 
   void main() {
@@ -104,11 +108,22 @@ const vertexShader = /* glsl */ `
       crowdAnimate(transformed, objectNormal, crowdColor);   // instanced crowd: pose + colour zones per instance
     #endif
     #if defined(SWAY) && defined(USE_INSTANCING)
-      // instanced plants (flora.js): the top sways in the breeze, the base stays put; each plant its own phase
+      // instanced plants (flora.js): the top bends with the world's wind, the base stays put. They
+      // lean downwind as it blows, flutter with their own phase, and gusts roll across the field as
+      // a wave travelling downwind (so a clump bows together, then the next one)
       vec3 swayAt = instanceMatrix[3].xyz;
       float swayK = uSway * max(position.y, 0.0) * max(position.y, 0.0);
-      transformed.x += sin(uTime * 1.3 + swayAt.x * 0.37 + swayAt.z * 0.21) * swayK;
-      transformed.z += sin(uTime * 1.05 + swayAt.z * 0.41 - swayAt.x * 0.13) * swayK * 0.6;
+      vec2 wd = uWind.xy;
+      float str = uWind.z, along = dot(swayAt.xz, wd);
+      float wave = 0.5 + 0.5 * sin(uTime * 1.7 - along * 0.09);                 // the gust front
+      float push = str * (0.35 + 0.65 * uWind.w * wave);                         // the lean downwind
+      float flutter = (0.45 + 0.55 * str) * sin(uTime * (1.3 + 0.9 * str) + swayAt.x * 0.37 + swayAt.z * 0.21);
+      vec2 side = vec2(-wd.y, wd.x);
+      vec2 bend = wd * (push * 3.0 + flutter * 1.2) + side * sin(uTime * 1.05 + swayAt.z * 0.41 - swayAt.x * 0.13) * 0.6 * (0.5 + 0.5 * str);
+      // (in object space: turn the world bend by the instance's own rotation)
+      mat3 iRot = mat3(instanceMatrix);
+      vec3 b = transpose(iRot) * vec3(bend.x, 0.0, bend.y);
+      transformed += b * swayK / max(dot(iRot[0], iRot[0]), 1e-4);   // (transpose / scale²: the inverse of a scaled rotation)
     #endif
     #ifdef USE_SKINNING
       #include <skinbase_vertex>

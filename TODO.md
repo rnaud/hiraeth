@@ -161,7 +161,10 @@ Grouped by area. Checked items are done; the changelog says when.
   Moebius-style face shader. Redo the face shaders to look more like Moebius; add a level with very
   large faces to test and refine them. (The giant faces are in `?level=lab`; the shader
   is still to do.)
-- [ ] Ragdoll when falling, or when pushing people with the gun.
+- [ ] Ragdoll when falling, or when pushing people with the gun. Falls: ragdoll first,
+  less damage; only a really high fall kills, then ask to "Restart".
+- [ ] People shake uncontrollably when pushed while walking, or when you talk to them
+  too close.
 - [x] Hologram of the parents: a true hologram, not a 2D drawn render.
 - [x] Most animals are too small and hard to notice: make them bigger.
 
@@ -180,7 +183,7 @@ Grouped by area. Checked items are done; the changelog says when.
 
 ## World, levels and materials
 
-- [ ] Plants react to the wind (sway with the world's wind direction and strength, gusts).
+- [x] Plants react to the wind (sway with the world's wind direction and strength, gusts).
 - [x] The desert tree's flame: a 3D shape (not a flat card) with a glowing, living fire
   shader on it.
 
