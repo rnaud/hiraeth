@@ -263,6 +263,9 @@ To start after the current work lands. Ordered from easiest to most complex.
 
 ## Quick fixes
 
+- [ ] The traveller's face inside the helmet is the plain male face the people use, and reads gaunt and
+  older: give them their own, younger face. (A white star shape also pokes above the helmet in some
+  tank shots.)
 - [ ] Spaceship: the floor is flat, so the traveller doesn't bob up and down walking the deck.
 - [ ] Spaceship: the texture at the entrance shimmers.
 - [ ] The desert's big tree: you can see inside the roots (missing faces / open trunk).
