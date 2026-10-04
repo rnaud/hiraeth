@@ -6,6 +6,7 @@ import { STORY, processionLoop } from './desert-sites.js';
 import { cityFloor } from './desert-landmarks.js';
 import { Banner } from './life.js';
 import { Flames, FlameBody, Embers, Smoke, SmokeColumn, FIRE, COOL_FIRE } from './story/flames.js';
+import { registerHazard, flameHazard } from './hazards.js';
 import { magicMaterial, magicPool, magicStream } from './story/magic-water.js';
 
 // The desert's story places (references/IMG_3772-3775: pale rose domes,
@@ -380,6 +381,9 @@ export function buildDesertCity(scene, terrain) {
     // (wide enough, and wide high enough, to swallow every limb: the tips reach 14 m out and 36 m up;
     // whole low down, torn into tongues only over the crown; a great fire, so it runs slow)
     const flames = new FlameBody(treeGroup, { at: V(TREE.x, top + 13 * S, TREE.z), width: 36 * S, height: 50 * S, seed: 7, belly: 0.5, pace: 0.45, torn: 1.1, cover: 1 });
+    // climb into it and it burns (src/hazards.js): its volume, from just over the fork to the tip
+    { const lo = city.world(TREE.x, top + 14 * S, TREE.z), hi = city.world(TREE.x, top + 62 * S, TREE.z);
+      registerHazard(flameHazard({ x: lo.x, z: lo.z, y0: lo.y, y1: hi.y, rMax: 15 * S, belly: 0.4, dps: 0.3 })); }
     const crown = city.world(TREE.x, top + 30 * S, TREE.z);
     const embers = new Embers(root, [...limbs.map((p) => city.world(p.x, p.y + 5 * S, p.z)), crown], { count: 70, rise: 2.4, life: 6, spread: 3, size: 0.6, color: '#fff3c4' });
     embers.mesh.boundingSphere = new THREE.Sphere(crown.clone(), 45); embers.mesh.frustumCulled = true;
@@ -702,9 +706,10 @@ export function buildDesertCity(scene, terrain) {
     const dCity = _cam.distanceTo(out.city.center);
     for (const s of smokes) if (s.at.distanceToSquared(_cam) < 700 * 700 && seen(s.mid, 18)) s.update(dt, t, player?.wind);
     for (const u of updaters) if (_cam.distanceTo(u.near) < u.r && seen(u.near, 60)) u.f(dt, t);
+    // the flame is only a few uniforms to update: every frame, so it runs at one steady pace at any
+    // distance (thinning it out far away made it judder, and look faster or slower as you ran)
     treeDt += dt;
-    const every = dCity < 250 ? 1 : dCity < 700 ? 2 : 4;
-    if (dCity < 1500 && frameNo % every === 0 && seen(out.city.crown, 45)) { out.city.flames.update(treeDt, t); treeDt = 0; }
+    if (dCity < 1500 && seen(out.city.crown, 80)) { out.city.flames.update(treeDt, t); treeDt = 0; }
     // sparks are a close-up detail (far away they'd read as specks of ink)
     out.city.embers.mesh.visible = dCity < 220;
     if (dCity < 220 && seen(out.city.crown, 40)) out.city.embers.update(dt, t, player?.wind);

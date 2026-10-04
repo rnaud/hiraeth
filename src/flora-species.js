@@ -13,6 +13,7 @@ import { seeded, merge, put, paint, dome, cyl, cone, ball, ell, lathe, box, disc
 //   patch        [min, max] plants in a clump of it; spread: the clump's radius (m); spacing: between plants (m)
 //   weight       how often it leads a patch; with: species that grow at its feet
 //   sway         how far the tip moves in the breeze (m); shadow: false for ground cover
+//   hurts        'spikes': brushing or climbing it pricks you (src/hazards.js)
 //   glow         self-lit (the swamps' lanterns and bulbs)
 //   wade         may stand this deep in water (m); slope: steepest ground (rise / run)
 //   build()      the geometry, standing on y = 0, h tall
@@ -34,7 +35,7 @@ const DESERT = [
       parts.push(cone(0.12, 0.5, '#f3ead8', 6, [0, y, 0]), ball(0.09, '#c8483a', [0, y + 0.5, 0]));
       return merge(parts);
     } },
-  { id: 'desert.sentinel', name: 'Sand candelabra', h: 5.4, size: [4, 7], large: true, collide: [0.5, 4.2], patch: [1, 3], spread: 10, spacing: 5, weight: 0.5, with: ['desert.whip', 'desert.star'],
+  { id: 'desert.sentinel', name: 'Sand candelabra', h: 5.4, size: [4, 7], large: true, hurts: 'spikes', collide: [0.5, 4.2], patch: [1, 3], spread: 10, spacing: 5, weight: 0.5, with: ['desert.whip', 'desert.star'],
     build: () => {
       const parts = [ribbed([[0.38, 0], [0.46, 0.6], [0.44, 3.8], [0.36, 4.9], [0.1, 5.25]], 10, 0.06, '#6f9a7a', 20)];
       for (const [side, y0, up] of [[1, 1.8, 3.6], [-1, 2.6, 4.3]]) {
@@ -219,7 +220,7 @@ const ARZACH2 = [
 
 // ======================================================================= Brask's plateau (the Sealed Hangar): ochre, teal, amber, steel
 const GARAGE = [
-  { id: 'garage.bolt', name: 'Bolt cactus', h: 4.3, size: [3, 5.4], large: true, collide: [0.58, 3.4], patch: [2, 4], spread: 8, spacing: 3.5, weight: 0.8, with: ['garage.cog', 'garage.spring'],
+  { id: 'garage.bolt', name: 'Bolt cactus', h: 4.3, size: [3, 5.4], large: true, hurts: 'spikes', collide: [0.58, 3.4], patch: [2, 4], spread: 8, spacing: 3.5, weight: 0.8, with: ['garage.cog', 'garage.spring'],
     build: () => {
       const parts = []; let y = 0;
       for (const r of [0.55, 0.5, 0.45, 0.38]) {

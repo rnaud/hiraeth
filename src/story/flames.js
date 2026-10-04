@@ -304,7 +304,9 @@ const BODY_VERT = /* glsl */ `
     float r = length(out_);
     vec3 dir = r > 1e-4 ? out_ / r : vec3(0.0);
     // rising turbulence: bulges and tongues climbing the sides, faster when it flares
-    float speed = 0.9 + 0.45 * uK;
+    // (a constant rate here: the flare speeds the fire up by running uTime faster on the CPU;
+    // scaling the whole elapsed time by a changing speed would make it lurch and race)
+    float speed = 1.2;
     float ang = atan(p.z, p.x);
     // around the flame several tongues (noise in the angle), climbing (noise in height minus time)
     vec3 q = vec3(cos(ang) * 1.6 + uSeed, y * 2.8 - t * speed, sin(ang) * 1.6 - uSeed);
@@ -341,7 +343,7 @@ const BODY_FRAG = /* glsl */ `
     float y = vObj.y, t = uTime;
     float a = atan(vObj.z, vObj.x);
     // flicker: bands climbing the surface, broken by noise
-    float n = fbm3(vec3(cos(a) * 2.2 + uSeed, y * 3.6 - t * (1.5 + 0.5 * uK), sin(a) * 2.2));
+    float n = fbm3(vec3(cos(a) * 2.2 + uSeed, y * 3.6 - t * 2.0, sin(a) * 2.2));
     // the outer shells are torn open, more toward the top: tongues split apart and the hotter
     // layers show through (the red outside the most, the body less, the heart never)
     float open = uShell < 0.5 ? 0.0 : (uShell > 1.5 ? 0.3 + 0.55 * smoothstep(0.1, 0.9, y) : 0.12 + 0.45 * smoothstep(0.2, 0.95, y));

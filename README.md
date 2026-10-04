@@ -1094,6 +1094,16 @@ stays ahead on a bike or a bird instead of trailing. It faces the goal itself
 `Trail` that dissolves once it is home. It only gives up and flies back when
 it is more than 27 m from you.
 
+## Hazards: fire and spines (v0.39)
+
+`src/hazards.js` keeps the things that hurt while you touch them: volumes with a
+kind and a damage rate (share of the health bar a second). `updateHazards` (main.js,
+once a frame) takes that rate from the traveller in small bites through
+`player.hurt`, says what it is the first time ("It burns!"), and spines push you
+back out. The burning tree registers its flame's volume (`flameHazard`, from just
+over the fork to the tip); flora species with `hurts: 'spikes'` (the desert's sand
+candelabra, the Hangar's bolt cactus) register a cylinder round each plant.
+
 ## Health and falls (v0.39)
 
 The traveller has a health bar (`player.health`, 0..1). Landing faster than
