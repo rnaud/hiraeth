@@ -46,13 +46,13 @@ export function setupGarage(ctx) {
   people.pip = spawn(PEOPLE.pip, { route: [pipAt.clone(), V(3042, floorY(-2), -2)], speed: 0.9 });
 
   // ---------------------------------------------------------------- things
-  const thing = (def, at, { range = 3, prompt, enabled = () => true, use, height = 4 } = {}) => registerInteractable({
+  const thing = (def, at, { range = 3, prompt, enabled = () => true, look = null, use, height = 4 } = {}) => registerInteractable({
     id: def.id, priority: PRIORITY.use, range, prompt: prompt ?? `look at ${def.name.replace(/^The /, 'the ')}`,
     at: () => at, enabled, distance: (p) => (Math.abs(p.pos.y - at.y) < height ? flat(p.pos, at) : Infinity),
-    use: use ?? (() => dialogue.start(def, null, at)),
+    use: use ?? (() => dialogue.start(def, null, at, look)),
   });
-  thing(THINGS.relay, G.relay.foot, { range: 3.2, prompt: () => (quests.has('signal') && !game.flag('garage.signal.stamped') ? 'post the signal in the relay box' : 'look at the relay box') });
-  thing(THINGS.note, G.desk.foot, { range: 3, prompt: () => (game.flag('garage.note.read') ? 'look at the Major’s desk' : 'read the paper on the desk') });
+  thing(THINGS.relay, G.relay.foot, { range: 3.2, look: G.relay.pos, prompt: () => (quests.has('signal') && !game.flag('garage.signal.stamped') ? 'post the signal in the relay box' : 'look at the relay box') });
+  thing(THINGS.note, G.desk.foot, { range: 3, look: G.desk.pos, prompt: () => (game.flag('garage.note.read') ? 'look at the Major’s desk' : 'read the paper on the desk') });
 
   // ---------------------------------------------------------------- the three stopped machines
   const lampGlow = makeMaterial({ color: '#f2c54b', glow: 0.6 });   // the upside-down quarter's lamp posts (garage.js)

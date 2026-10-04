@@ -100,14 +100,14 @@ export function setupPerdide(ctx) {
   }
 
   // ---------------------------------------------------------------- things to look at
-  const thing = (def, p, { range = 3, prompt, enabled = () => true, use, whileRiding = false } = {}) => registerInteractable({
+  const thing = (def, p, { range = 3, prompt, enabled = () => true, look = null, use, whileRiding = false } = {}) => registerInteractable({
     id: def.id, priority: PRIORITY.use, range, prompt: prompt ?? `look at ${def.name.replace(/^The /, 'the ')}`, whileRiding,
     at: () => p, enabled, distance: (pl) => (Math.abs(pl.pos.y - p.y) < 4 ? flat(pl.pos, p) : Infinity),
-    use: use ?? (() => dialogue.start(def, null, p)),
+    use: use ?? (() => dialogue.start(def, null, p, look)),
   });
   thing(THINGS.hush, hushAt, { range: 3.2, prompt: 'look at the root stone' });
   const crystalLook = foot(13);
-  thing(THINGS.crystal, crystalLook, { range: 4, prompt: 'look up at the crystal' });
+  thing(THINGS.crystal, crystalLook, { range: 4, prompt: 'look up at the crystal', look: C.center });
 
   // ---------------------------------------------------------------- the song
   const st = { k: 0, until: -1, clock: 0, hits: [], phraseT: 0, near: false, flash: 0 };

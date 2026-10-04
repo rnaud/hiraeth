@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { game } from '../game-state.js';
 import { Quests, QuestMarker } from './quests.js';
 import { Dialogue } from './dialogue.js';
+import { sightOf } from './shot.js';
 import { registerInteractable, updateInteract, PRIORITY } from '../interact.js';
 import { NPC, registerNPCTargets } from '../npc.js';
 import { makeMaterial } from '../materials.js';
@@ -60,7 +61,7 @@ export function createStory(o) {
     game, quests, sound, toast,
     portrait: (person, npc) => npc && capture ? portrait(npc, person) : null,
     onOpen: (person, npc) => {
-      talking = { person, npc, at: dialogue.at };
+      talking = { person, npc, at: dialogue.at, look: dialogue.look };
       if (npc) npc.talkTo = { speaking: true };
       world?.onTalk?.(person, npc, true);
       if (typeof document !== 'undefined') document.body.classList.add('talking');
@@ -144,6 +145,32 @@ export function createStory(o) {
     }
   }
 
+  // ---------------------------------------------------------------- the conversation camera
+  // (src/story/shot.js: a shot with no wall, tree, rock or bystander between it and the faces)
+  const sight = physics ? sightOf(physics) : null;
+  const _fa = new THREE.Vector3(), _fb = new THREE.Vector3(), _fw = new THREE.Vector3();
+  /** What the camera frames: a person (the two-shot), or a thing (over the shoulder, at `look`). */
+  function shotOf(t) {
+    if (t.npc) return { npc: t.npc };
+    const up = player.frame?.up ?? UP;
+    let look = t.look ?? t.at;
+    // a thing given by where you stand to see it (on the ground): look at it, not at your feet
+    if (!t.look && look && _d.subVectors(look, player.pos).dot(up) < 0.5) look = look.clone().addScaledVector(up, 0.6);
+    return { at: t.at, look };
+  }
+  function faceOf(npc, up, out) {
+    const head = npc.humanoid?.b?.Head;
+    if (head && npc.object.visible) return head.getWorldPosition(out).addScaledVector(up, 0.08 * npc.object.scale.y);
+    return out.copy(npc.pos).addScaledVector(up, (npc.seat ? 1.0 : 1.55) * npc.object.scale.y);
+  }
+  /** Bystanders the shot should not look through (asked again whenever the shot is). */
+  const bystanders = () => {
+    const out = [];
+    for (const n of npcs) if (n !== talking?.npc && n.object.visible && n.pos.distanceToSquared(player.pos) < 400) out.push(n.pos);
+    if (crowd) for (const p of crowd.people) if (p !== talking?.crowd && p.pos.distanceToSquared(player.pos) < 225) out.push(p.pos);
+    return out;
+  };
+
   const promptEl = typeof document !== 'undefined' ? document.getElementById('prompt') : null;
   // (looked up when needed: the touch controls are built after the story)
   let useBtn = null;
@@ -169,6 +196,8 @@ export function createStory(o) {
       }
       if (talking?.npc?.talkTo) talking.npc.talkTo.speaking = dialogue.runner?.speaker === 'npc' && dialogue.revealed < (dialogue.runner?.text.length ?? 0);
       dialogue.update(dt);
+      // the traveller turns to whoever they talk to, or to what they look at
+      player.faceToward = talking && dialogue.open ? (talking.npc?.pos ?? (rt._shot?.of === talking ? rt._shot.look : talking.look ?? talking.at)) : null;
       // the press that closed a conversation must not open the next one (or whistle the mount)
       const now = typeof performance !== 'undefined' ? performance.now() : 0;
       const fresh = ePressed && now - (dialogue.closedAt ?? -1e9) > 400;
@@ -203,16 +232,12 @@ export function createStory(o) {
     /** The two-shot during a conversation (after the rig has placed the camera). */
     frameCamera(camera) {
       world?.frameCamera?.(camera);   // a world's own camera moment (the Lodestar flaring, the broadcast)
-      const at = talking?.npc?.pos ?? talking?.at ?? rt._lastAt;
-      if (at) rt._lastAt = at;
-      if (dialogue.blend < 0.002) { rt._lastAt = null; return; }
-      // bystanders the two-shot should not look through
-      if (!dialogue._side) {
-        rt._avoid = [];
-        for (const n of npcs) if (n !== talking?.npc && n.object.visible && n.pos.distanceToSquared(player.pos) < 400) rt._avoid.push(n.pos);
-        if (crowd) for (const p of crowd.people) if (p.pos.distanceToSquared(player.pos) < 225 && p !== talking?.crowd) rt._avoid.push(p.pos);
-      }
-      dialogue.frameCamera(camera, player, at, player.frame?.up ?? UP, rt._avoid ?? []);
+      if (talking && (talking.npc || talking.at) && rt._shot?.of !== talking) rt._shot = { ...shotOf(talking), of: talking };   // (kept while the camera blends back)
+      if (dialogue.blend < 0.002 || !rt._shot) { rt._shot = null; return; }
+      const S = rt._shot, up = player.frame?.up ?? UP;
+      const o = { sight, faceA: _fa.copy(player.pos).addScaledVector(up, 1.58), look: S.look, facing: player.frame?.dir?.(player.heading, _fw) ?? null };
+      if (S.npc) o.faceB = faceOf(S.npc, up, _fb);
+      dialogue.frameCamera(camera, player, S.npc?.pos ?? S.at, up, bystanders, o);
     },
   };
   return rt;

@@ -1399,3 +1399,20 @@ Pocket. Their built-in controls work through the Gamepad API.
   (I-V-vi-IV), a music box arpeggio and a falling melody every 32 beats, flute then bell
   (`MENU_SCORE`, `menuBeat(b)`). The title screen plays it on a `Sound('title', { score: false })`
   that fades out and closes as the game loads.
+
+### The conversation camera keeps a clear view
+
+`src/story/shot.js` picks where the camera stands while you talk to someone or look at
+something, so nothing comes between it and what it frames. `pickTwoShot` (talking) and
+`pickLookShot` (a thing: no two-shot, the camera behind the traveller's shoulder looking past
+them at it) each try a fan of candidate eyes: both sides, several angles round the pair,
+distances and heights, and over the shoulder as a last resort. Each is scored by
+`sightOf(physics)`: rays from the eye to the faces (or the thing) against the level's BVH and
+the heightfield, a ball test for an eye pressed into a wall, bystanders' capsules (NPCs and
+crowd people near you) and the two people's own bodies (the traveller's back must not hide
+the other face or the thing); every step away from the ideal framing costs a little. The
+cheapest wins. `Dialogue.frameCamera` asks again every 0.6 s (people walk into shots), eases
+to the new pick, and pulls the camera in along a line it was scored on if something still
+cuts it. A thing whose `at` is only where you stand (the foot of the stone hand) passes the
+part to look at as `dialogue.start(def, null, at, look)`. While a conversation is open
+`player.faceToward` turns the traveller to the person or the thing.

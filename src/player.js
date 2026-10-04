@@ -854,6 +854,15 @@ export class Player {
       let d = F.headingOf(tvel) - this.heading;
       d = Math.atan2(Math.sin(d), Math.cos(d));
       this.heading += d * (1 - Math.exp(-12 * dt));
+    } else if (this.faceToward && !this.gliding) {
+      // standing still in a conversation, or looking at something: turned toward it
+      const to = _v1.subVectors(this.faceToward, this.pos);
+      to.addScaledVector(U, -to.dot(U));
+      if (to.lengthSq() > 0.09) {
+        let d = F.headingOf(to) - this.heading;
+        d = Math.atan2(Math.sin(d), Math.cos(d));
+        this.heading += d * (1 - Math.exp(-5 * dt));
+      }
     }
     this.finishFrame(dt, hs);
   }

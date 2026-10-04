@@ -79,10 +79,10 @@ export function setupArzach(ctx) {
   }
 
   // ---------------------------------------------------------------- things to look at
-  const thing = (def, at, { range = 3, prompt, enabled = () => true, use, height = 4 } = {}) => registerInteractable({
+  const thing = (def, at, { range = 3, prompt, enabled = () => true, look = null, use, height = 4 } = {}) => registerInteractable({
     id: def.id, priority: PRIORITY.use, range, prompt: prompt ?? `look at ${def.name.replace(/^The /, 'the ').replace(/^A /, 'a ')}`,
     at: () => at, enabled, distance: (p) => (Math.abs(p.pos.y - at.y) < height ? flat(p.pos, at) : Infinity),
-    use: use ?? (() => dialogue.start(def, null, at)),
+    use: use ?? (() => dialogue.start(def, null, at, look)),
   });
   const windowAt = T.sill.clone().add(V(0, 1.2, 0));
   thing(THINGS.window, windowAt, { range: 3.6, prompt: () => (game.flag('arzach.window.seen') ? 'look into the room' : 'look through the window'),
@@ -90,7 +90,7 @@ export function setupArzach(ctx) {
   thing(THINGS.drawing, drawing.position, { range: 1.8, enabled: () => drawing.visible });
   const palmFoot = H.palm.clone().addScaledVector(V(H.normal.x, 0, H.normal.z).normalize(), 9);
   palmFoot.y = ground(palmFoot.x, palmFoot.z, H.palm.y + 10);
-  thing(THINGS.palm, palmFoot, { range: 6, prompt: 'look at the stone hand' });
+  thing(THINGS.palm, palmFoot, { range: 6, prompt: 'look at the stone hand', look: H.palm });
 
   // the window lights up warm once you've looked in: you can see it from the plain
   const winLit = new THREE.Mesh(new THREE.BoxGeometry(4.6, 6.6, 0.4), makeMaterial({ color: '#f6cf8a', glow: 0.85 }));

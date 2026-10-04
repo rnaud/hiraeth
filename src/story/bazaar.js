@@ -58,10 +58,10 @@ export function setupBazaar(ctx) {
   quests.locate('ummu', () => P.ummu);
 
   // ---------------------------------------------------------------- things to look at and use
-  const thing = (def, at, { range = 3, prompt, enabled = () => true, use } = {}) => registerInteractable({
+  const thing = (def, at, { range = 3, prompt, enabled = () => true, look = null, use } = {}) => registerInteractable({
     id: def.id, priority: PRIORITY.use, range, prompt: prompt ?? `look at ${def.name.replace(/^The /, 'the ')}`,
     at: () => at, enabled, distance: (p) => (Math.abs(p.pos.y - at.y) < 3 ? flat(p.pos, at) : Infinity),
-    use: use ?? (() => dialogue.start(def, null, at)),
+    use: use ?? (() => dialogue.start(def, null, at, look)),
   });
   const ready = () => quests.has('recording') && tuned() && !onAir() && !st.cast;
   thing(THINGS.console, P.console, { range: 2.8, prompt: () => (ready() ? 'play the recording' : 'look at the console'), use: () => (ready() ? play() : dialogue.start(THINGS.console, null, P.console)) });
@@ -72,7 +72,7 @@ export function setupBazaar(ctx) {
   // the oldest sign, seen from the street right under it: you have to look up
   const underSign = V(P.oldSign.x, 0, P.oldSign.z + 2.5);
   registerInteractable({ id: 'oldSign', priority: PRIORITY.use, range: 3.5, prompt: 'look up at the old sign', at: () => underSign.clone().setY(2.2),
-    distance: (p) => (p.pos.y < 3 ? flat(p.pos, underSign) : Infinity), use: () => dialogue.start(THINGS.oldSign, null, underSign) });
+    distance: (p) => (p.pos.y < 3 ? flat(p.pos, underSign) : Infinity), use: () => dialogue.start(THINGS.oldSign, null, underSign, P.oldSign) });
   const ummuAt = P.ummu.clone().add(V(0, 1.2, 0));
   thing(THINGS.ummu, ummuAt, { range: 3, prompt: 'listen to Ummu' });
   if (quests.has('bowl') || quests.isDone('bazaar.bowl')) G.bowl.visible = false;
