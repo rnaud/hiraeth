@@ -1,11 +1,13 @@
 import * as THREE from 'three';
 import { makeMaterial, markHero } from './materials.js';
 import { sweepCapsule } from './physics.js';
+import { Trail } from './trail.js';
 
 const RADIUS = 0.25;     // the drone's collision sphere
 const CLEAR = 0.9;       // air it keeps below itself while flying
 const MIN_CLEAR = 0.35;  // never lower than this over the ground
 const STEER = 6;         // velocity response (1/s): smooth, no jitter
+const LEAD = { min: 6, perSpeed: 0.4, max: 15 };   // how far ahead of you it leads (m): further the faster you go
 const _d = new THREE.Vector3(), _w = new THREE.Vector3(), _a = new THREE.Vector3(), _n = new THREE.Vector3(), _f = new THREE.Vector3();
 const _s = new THREE.Vector3(), _p = new THREE.Vector3(), _o = new THREE.Vector3(), _m = new THREE.Matrix4(), _q = new THREE.Quaternion();
 
@@ -73,6 +75,9 @@ export function viaPortal(start, target, portals) {
   return best < 0 ? target : objective(`portal-${best}-${target.id}`, `Through the ${links[best].label}`, links[best].from);
 }
 
+/** How far ahead of you the scout leads (m) at your speed (m/s). */
+export const guideLead = (speed) => Math.min(LEAD.max, LEAD.min + speed * LEAD.perSpeed);
+
 /** Small physical guide: undocks, leads within sight, waits, then comes home. */
 export class Scout {
   constructor({ scene, player, physics, getTarget, sound, label = null }) {
@@ -92,7 +97,13 @@ export class Scout {
     }
     this.ring = new THREE.Mesh(new THREE.TorusGeometry(0.27, 0.018, 5, 24), lamp);
     this.ring.rotation.x = Math.PI / 2; this.object.add(this.ring);
+    // the pointer: a lit beak off the lens, aimed at the goal (up and down too) while guiding
+    this.pointer = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.34, 8).rotateX(Math.PI / 2).translate(0, 0, 0.4), lamp);
+    this.pointer.visible = false; this.object.add(this.pointer);
     markHero(this.object);
+    // a thin glowing trail behind it, so it's easy to follow by eye
+    this.trail = new Trail(scene, { radius: 0.07, life: 1.5, offset: 1.2 });
+    this.trail.mesh.visible = false;
     this.previousPlayer = player.pos.clone();
     this.dock();
   }
@@ -103,7 +114,7 @@ export class Scout {
   }
   dock() {
     this.phase = 'docked'; this.vel.set(0, 0, 0); this.stuck = this.over = 0; this.overUsed = false; this.fade = null; this.object.position.copy(this.anchor()); this.object.scale.setScalar(0.5);
-    this.ring.visible = false; if (this.label) this.label.hidden = true;
+    this.ring.visible = false; if (this.pointer) this.pointer.visible = false; if (this.label) this.label.hidden = true;
   }
   ping() {
     const target = this.getTarget();
@@ -137,12 +148,14 @@ export class Scout {
    * no progress for a moment it glides straight up and over; still boxed in,
    * it reports `true` so the caller can recall it.
    */
-  fly(destination, maxSpeed, up, dt) {
+  fly(destination, maxSpeed, up, dt, carry = null) {
     if (dt <= 0) return false;
     const pos = this.object.position, vel = this.vel;
     const to = _d.subVectors(destination, pos), dist = to.length();
     // arrive: full speed far away, slowing down inside the last couple of metres
+    // (carry: the destination's own motion, e.g. yours, so it keeps pace instead of trailing)
     const want = _w.copy(to).multiplyScalar(dist > 1e-4 ? Math.min(maxSpeed, dist * 3.2) / dist : 0);
+    if (carry) want.add(carry);
     if (this.over > 0) {
       // boxed in: rise up and over whatever is in the way
       this.over -= dt;
@@ -192,10 +205,11 @@ export class Scout {
       const vu = vel.dot(up);
       if (vu < 0) vel.addScaledVector(up, -vu);
     }
-    // facing: turn smoothly toward the flight direction
-    const face = vel.lengthSq() > 0.09 ? vel : to;
+    // facing: turn smoothly toward the flight direction (or what it points at: this.aim)
+    const face = this.aim ?? (vel.lengthSq() > 0.09 ? vel : to);
     if (face.lengthSq() > 1e-6) {
-      _m.lookAt(_o.set(0, 0, 0), _n.copy(face).normalize().negate(), up);
+      _n.copy(face).normalize();
+      _m.lookAt(_o.set(0, 0, 0), _n.negate(), Math.abs(_n.dot(up)) > 0.98 ? _a.set(1, 0, 0) : up);   // (straight up or down: any other up will do)
       _q.setFromRotationMatrix(_m);
       this.object.quaternion.slerp(_q, 1 - Math.exp(-8 * dt));
     }
@@ -222,6 +236,9 @@ export class Scout {
     if (this.player.pos.distanceTo(this.previousPlayer) > 45) this.dock();
     this.previousPlayer.copy(this.player.pos);
     this.object.visible = !this.player.hidden;
+    // the trail: laid while it flies, left to dissolve once it is home
+    this.trail.update(dt, this.phase !== 'docked' && this.fade === null && !this.player.hidden ? this.object.position : null);
+    if (this.phase === 'docked' && !this.trail.samples.length) this.trail.mesh.visible = false;
     if (this.phase === 'docked') {
       this.object.position.copy(this.anchor());
       this.player.gear?.scoutDock?.getWorldQuaternion(this.object.quaternion);
@@ -242,23 +259,30 @@ export class Scout {
       }
       return;
     }
+    const pv = this.player.ride?.vel ?? this.player.vel ?? _o.set(0, 0, 0), pSpeed = pv.length();
+    this.aim = null;
     if (this.phase === 'launch') {
       const k = Math.min(1, this.age / 0.8);
-      this.fly(this.origin.clone().addScaledVector(up, 1.4), 2.5, up, dt);
+      this.origin.addScaledVector(pv, dt);   // it lifts off your shoulder as you go, not where you were
+      this.fly(this.origin.clone().addScaledVector(up, 1.4), 2.5 + pSpeed, up, dt, pv);
       this.object.scale.setScalar(0.5 + k * 0.5);
       if (k === 1) this.phase = 'guide';
     } else if (this.phase === 'guide') {
+      // it leads a few metres towards the goal from where you are, keeping
+      // your pace (walking, driving or flying): ahead of you on the way, never far off
+      const lead = guideLead(pSpeed);
       const from = this.player.pos.clone().addScaledVector(up, 2.2);
       const goal = this.target.position.clone().addScaledVector(up, 1.4);
       const delta = goal.clone().sub(from), range = delta.length();
-      const ahead = from.clone().addScaledVector(delta.normalize(), Math.min(9, range));
+      const ahead = from.clone().addScaledVector(delta.normalize(), Math.min(lead, range));
       ahead.addScaledVector(up, Math.sin(this.elapsed * 3) * 0.15);
-      const speed = Math.max(7, (this.player.ride?.vel ?? this.player.vel)?.length() + 4 || 7);
-      if (this.fly(ahead, speed, up, dt)) this.recall();
-      if (this.object.position.distanceTo(this.player.pos) > 18) this.phase = 'return';
+      // and it points at the goal itself, up or down as well
+      this.aim = _p.subVectors(this.target.position, this.object.position);
+      if (this.fly(ahead, Math.max(7, pSpeed + 6), up, dt, pv)) this.recall();
+      if (this.object.position.distanceTo(this.player.pos) > LEAD.max + 12) this.phase = 'return';   // (lost you: home)
     } else {
       const home = this.anchor();
-      const boxed = this.fly(home, 10, up, dt);
+      const boxed = this.fly(home, 10 + pSpeed, up, dt, pv);
       const d = this.object.position.distanceTo(home);
       this.object.scale.setScalar(Math.min(1, 0.5 + d));
       if (d < 0.4) this.dock();
@@ -266,7 +290,8 @@ export class Scout {
       // Recall safely if a closed doorway prevents a physical return.
       else if (this.age > 6.5) { this.object.scale.setScalar(Math.max(0, (7 - this.age) * 2) * 0.5); if (this.age >= 7) this.dock(); }
     }
-    this.ring.visible = this.phase === 'guide'; this.ring.rotation.z += dt * 2;
+    this.ring.visible = this.pointer.visible = this.phase === 'guide'; this.ring.rotation.z += dt * 2;
+    this.pointer.scale.setScalar(1 + Math.sin(this.elapsed * 6) * 0.12);
     this.wings.forEach((w, i) => { w.rotation.z = Math.sin(this.elapsed * 12 + i * Math.PI) * 0.25; });
   }
   placeLabel(camera) {

@@ -1040,6 +1040,16 @@ walkthroughs and local names; each data file's header lists its flags.
 - **The bird's promise:** with `bird.promise` set, the whistle calls the Arzach
   bird in worlds with open sky and no mount (Edena, the Garden of Spheres, Home).
 
+## The scout keeps pace (v0.39)
+
+While guiding, the scout (`src/scout.js`) leads `guideLead(speed)` metres
+towards the goal from where you are (6 m standing, up to 15 m flat out), and
+`fly(dest, max, up, dt, carry)` adds your velocity as a feed-forward, so it
+stays ahead on a bike or a bird instead of trailing. It faces the goal itself
+(`aim`, pitch included) with a lit cone off the lens, and lays a thin glowing
+`Trail` that dissolves once it is home. It only gives up and flies back when
+it is more than 27 m from you.
+
 ## Sound from the first frame (v0.39)
 
 Each world is a new page, and browsers only let a page's sound start after a

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { Scout, nextObjective, viaPortal } from '../src/scout.js';
+import { Scout, guideLead, nextObjective, viaPortal } from '../src/scout.js';
 import { makeMaterial, markHero, sharedUniforms } from '../src/materials.js';
 const v = (x=0,y=0,z=0) => new THREE.Vector3(x,y,z);
 
@@ -37,7 +37,7 @@ function fixture(physics={rayDistance:()=>Infinity}) {
 test('scout undocks, waits ahead, pauses, refreshes on ping and returns to its dock', () => {
   const {scout}=fixture(); assert.equal(scout.phase,'docked'); scout.ping();
   for(let i=0;i<60;i++)scout.update(.05);
-  assert.equal(scout.phase,'guide'); assert.ok(scout.object.position.x>8);
+  assert.equal(scout.phase,'guide'); assert.ok(scout.object.position.x>guideLead(0)-1);
   const age=scout.age; scout.update(2,true); assert.equal(scout.age,age);
   scout.ping(); assert.equal(scout.age,0);
   scout.age=4.99; scout.update(.01); assert.equal(scout.phase,'return');
@@ -115,4 +115,25 @@ test('hero tagging isolates cached materials while preserving live scene uniform
   assert.equal(a.material,b.material); assert.notEqual(a.material,shared);
   assert.equal(a.material.uniforms.uHero.value,1);
   for(const key of Object.keys(sharedUniforms))assert.equal(a.material.uniforms[key],sharedUniforms[key]);
+});
+
+test('scout keeps your pace: it leads further the faster you go, stays near, and points at the goal', () => {
+  const {scout,player}=fixture();
+  assert.ok(guideLead(30)>guideLead(1.5)&&guideLead(30)<=15);
+  scout.getTarget=()=>({id:'far',label:'Far',position:v(5000)});
+  scout.ping();
+  for(let i=0;i<40;i++)scout.update(1/30);
+  player.vel.set(25,0,0);   // on the bike, flat out towards the goal
+  let far=0;
+  for(let i=0;i<150;i++){ player.pos.addScaledVector(player.vel,1/30); scout.age=1; scout.update(1/30); far=Math.max(far,scout.object.position.distanceTo(player.pos)); }
+  assert.equal(scout.phase,'guide','still guiding at speed');
+  assert.ok(scout.object.position.x>player.pos.x,'ahead of you, not trailing behind');
+  assert.ok(far<guideLead(25)+6,`stays around you: ${far.toFixed(1)} m`);
+  // the goal high above: the pointer tilts up at it
+  scout.getTarget=()=>({id:'up',label:'Up',position:scout.object.position.clone().add(v(3,40,0))});
+  player.vel.set(0,0,0);
+  for(let i=0;i<60;i++){ scout.age=1; scout.update(1/30); }
+  const nose=new THREE.Vector3(0,0,1).applyQuaternion(scout.object.quaternion);
+  assert.ok(nose.y>0.8,`points up at it: ${nose.y.toFixed(2)}`);
+  assert.ok(scout.pointer.visible&&scout.trail.samples.length>3,'pointer lit, trail laid');
 });

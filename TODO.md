@@ -141,9 +141,9 @@ Grouped by area. Checked items are done; the changelog says when.
 
 ## Drone
 
-- [ ] The drone points where we're going, up and down as well, with a trail so
+- [x] The drone points where we're going, up and down as well, with a trail so
   it's easier not to lose it.
-- [ ] It matches my speed walking, driving and flying: it heads towards the goal
+- [x] It matches my speed walking, driving and flying: it heads towards the goal
   but stays around me.
 
 ## Characters
