@@ -3,10 +3,16 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.37', date: '2026-10-04', items: [
+    'The Android app now updates the game by itself: when you are online it downloads the newest game in the background and uses it from the next launch (or right away with “restart now” in the settings). No new APK needed. If an update ever fails to start, the app goes back to the game it shipped with. Your saves are kept either way.',
+    'Swap A/B in the settings, for handhelds whose confirm button is on the other side. The prompts follow.',
+    'Leaving the app pauses the game and its sound, and coming back restores fullscreen. On a handheld the sound now starts with the first button press.',
+  ] },
   { v: '0.36', date: '2026-10-04', items: [
     'The backpack now waits in Qanat. After the crash, follow the smoke to the city: in a shrine by the dry well stands a makers’ box that has not opened in living memory. Opening it brings the villagers and Nour, the eldest, who sends you on the rest of your search for power.',
     'Every item box is now an artifact of the makers, the people of the three-dot glyph, left for whoever comes a long way. People in each world have their own name for them.',
     'The Retroid Pocket’s built-in sticks and buttons now work, and every prompt uses its button names (A, B, X, Y, L1, R1, L2, R2, Select, Start). This also fixes being stuck after the crash on Android.',
+    'Everyone now speaks: every line has a mumbled alien voice in its own world’s tongue, with a tone that fits it (happy, sad, angry, whispered…). Your translator turns it into words as you read. Voice volume and an alien voices toggle are in the settings.',
     'With a controller, the button list now shows for a few seconds and then fades (it stays in menus), and the status box no longer stretches across the screen on handhelds.',
     'The Android app updates itself from GitHub releases: when a newer build is out, it offers to install it and keeps your progress.',
     'Fixed a gap between the ship’s floor and its ramp that you could fall through. The burning tree’s smoke is one soft continuous trail, and the wind is quieter.',

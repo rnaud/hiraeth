@@ -45,9 +45,9 @@ export const CONTENT = {
     gate: {at:[-11,121],heading:Math.PI},
     // the market's own people; the story's (Sel, Kip, Ferro, Brush, Ummu) are in src/story/bazaar-data.js
     npcs: [
-      {at:[12,105],radius:2,palette:pal('#dca273'),lines:['Welcome to the Signal Market. The broadcast tower is straight ahead.','Climb its blue ledges, use your jetpack, or take the parked taxi.'],...BAZAAR_STREET.doss},
-      {at:[-17,42],radius:1,palette:pal('#84bab3'),lines:['Every lantern holds a little sun.','Somebody dropped a lantern seed on the other side of the street.'],...BAZAAR_STREET.oyo},
-      {at:[14,-203],radius:1,palette:pal('#c3a9cc'),lines:['The cream balcony has the old transmitter.','The taxis can take you above the bridges.'],...BAZAAR_STREET.teb},
+      {at:[12,105],radius:2,palette:pal('#dca273'),lines:['~happy~ Welcome to the Signal Market. The broadcast tower is straight ahead.','~neutral~ Climb its blue ledges, use your jetpack, or take the parked taxi.'],...BAZAAR_STREET.doss},
+      {at:[-17,42],radius:1,palette:pal('#84bab3'),lines:['~shout~ Every lantern holds a little sun.','~whisper~ Somebody dropped a lantern seed on the other side of the street.'],...BAZAAR_STREET.oyo},
+      {at:[14,-203],radius:1,palette:pal('#c3a9cc'),lines:['~neutral~ The cream balcony has the old transmitter.','~neutral~ The taxis can take you above the bridges.'],...BAZAAR_STREET.teb},
     ],
   },
   atelier: {
@@ -62,7 +62,7 @@ export const CONTENT = {
     gate: { at: [0, 110], heading: 0 },
     npcs: [
       { at: [22, 26], radius: 3, palette: { cloak: '#2b211f', cloth: '#f3ead8', legs: '#2b2f45' },
-        lines: ['Ah, you found the atelier.', 'I only draw the deserts. You walked them.', 'Every line starts as a wander.'] },
+        lines: ['~happy~ Ah, you found the atelier.', '~playful~ I only draw the deserts. You walked them.', '~solemn~ Every line starts as a wander.'] },
     ],
   },
   desert: {
@@ -83,39 +83,39 @@ export const CONTENT = {
     // the people near the start (indices matter: errands and the observatory use them);
     // the camps' people are in src/story/desert-data.js
     npcs: [
-      { at: [30, 12], palette: pal('#d8a24a', { cloth: '#5a4a3a' }), lines: ['The wind took my tracks again.', 'Every dune remembers a city.'],
+      { at: [30, 12], palette: pal('#d8a24a', { cloth: '#5a4a3a' }), lines: ['~tired~ The wind took my tracks again.', '~solemn~ Every dune remembers a city.'],
         id: 'ysa', name: 'Ysa', title: 'dune walker', color: '#d8a24a', talk: { nodes: {
-          hello: { say: ['The wind took my tracks again. Every morning I walk out, every evening the dunes pretend I never did.'], choices: [
-            { text: 'Where is everyone?', goto: 'where' }, { text: 'What do the dunes remember?', goto: 'city' }, { text: 'Bye, Ysa.', end: true }] },
-          where: { say: ['At Qanat, the old city, north-east past the low dunes. You can see the tree burning from here, look. The pilgrims are camped at its gate, waiting for the drinking.'], choices: [{ text: 'Thanks.', end: true }] },
-          city: { say: ['Every dune remembers a city. Walls under the sand, everywhere. Qanat is the one that didn’t sink: the tree holds it up by the roots, the old people say.'], choices: [{ text: 'Thanks.', end: true }] },
+          hello: { say: ['~tired~ The wind took my tracks again. Every morning I walk out, every evening the dunes pretend I never did.'], choices: [
+            { text: '~curious~ Where is everyone?', goto: 'where' }, { text: '~curious~ What do the dunes remember?', goto: 'city' }, { text: '~neutral~ Bye, Ysa.', end: true }] },
+          where: { say: ['~neutral~ At Qanat, the old city, north-east past the low dunes. You can see the tree burning from here, look. The pilgrims are camped at its gate, waiting for the drinking.'], choices: [{ text: '~happy~ Thanks.', end: true }] },
+          city: { say: ['~solemn~ Every dune remembers a city. Walls under the sand, everywhere. Qanat is the one that didn’t sink: the tree holds it up by the roots, the old people say.'], choices: [{ text: '~happy~ Thanks.', end: true }] },
         } } },
-      { at: [-140, -80], palette: pal('#5fb7ad'), lines: ['The mask sleeps. Don’t wake it.', 'I counted the ribs once. Forty.'],
+      { at: [-140, -80], palette: pal('#5fb7ad'), lines: ['~whisper~ The mask sleeps. Don’t wake it.', '~neutral~ I counted the ribs once. Forty.'],
         id: 'pell', name: 'Pell', title: 'counter of bones', color: '#5fb7ad', talk: { nodes: {
-          hello: { say: ['I counted the ribs once. The big beast south of here: forty. The giant under Qanat must have more, but you can’t count what you’re standing on.'], choices: [
-            { text: 'There’s a giant under the city?', goto: 'giant' }, { text: 'What sleeps in the south?', goto: 'mask' }, { text: 'Bye, Pell.', end: true }] },
-          giant: { say: ['Its head sticks out by the back gate. The rest of it is the hill the city stands on. Big things lie down and become places. Give it time.'], choices: [{ text: 'And the south?', goto: 'mask' }, { text: 'Bye.', end: true }] },
-          mask: { say: ['The mask sleeps, past the ribs, face to the sky. Don’t wake it. Or do; I don’t think it can.'], do: { start: 'desert.mask' }, choices: [{ text: 'I’ll look at it.', end: true }] },
+          hello: { say: ['~playful~ I counted the ribs once. The big beast south of here: forty. The giant under Qanat must have more, but you can’t count what you’re standing on.'], choices: [
+            { text: '~surprised~ There’s a giant under the city?', goto: 'giant' }, { text: '~curious~ What sleeps in the south?', goto: 'mask' }, { text: '~neutral~ Bye, Pell.', end: true }] },
+          giant: { say: ['~solemn~ Its head sticks out by the back gate. The rest of it is the hill the city stands on. Big things lie down and become places. Give it time.'], choices: [{ text: '~curious~ And the south?', goto: 'mask' }, { text: '~neutral~ Bye.', end: true }] },
+          mask: { say: ['~whisper~ The mask sleeps, past the ribs, face to the sky. Don’t wake it. Or do; I don’t think it can.'], do: { start: 'desert.mask' }, choices: [{ text: '~neutral~ I’ll look at it.', end: true }] },
         } } },
-      { at: [110, -150], palette: pal('#8a6fb8', { face: '#e6d3b8' }), lines: ['Have you seen my bike? It wanders off.'], shy: true,
+      { at: [110, -150], palette: pal('#8a6fb8', { face: '#e6d3b8' }), lines: ['~curious~ Have you seen my bike? It wanders off.'], shy: true,
         id: 'rook', name: 'Rook', title: 'who lost a bike', color: '#8a6fb8', talk: { nodes: {
-          hello: { say: ['Have you seen my bike? It wanders off. Yours comes when you whistle, I saw. Mine has opinions.'], choices: [{ text: 'What does yours think?', goto: 'op' }, { text: 'Good luck, Rook.', end: true }] },
-          op: { say: ['That I walk too slowly and talk too much. It went to see the procession, I bet. Everyone goes to see the procession.'], choices: [{ text: 'Good luck.', end: true }] },
+          hello: { say: ['~playful~ Have you seen my bike? It wanders off. Yours comes when you whistle, I saw. Mine has opinions.'], choices: [{ text: '~playful~ What does yours think?', goto: 'op' }, { text: '~happy~ Good luck, Rook.', end: true }] },
+          op: { say: ['~tired~ That I walk too slowly and talk too much. It went to see the procession, I bet. Everyone goes to see the procession.'], choices: [{ text: '~happy~ Good luck.', end: true }] },
         } } },
-      { at: [-120, 34], palette: pal('#e6875f'), lines: ['The salt flats are that way. Bring water.', 'At night the moon throws shadows too.'],
+      { at: [-120, 34], palette: pal('#e6875f'), lines: ['~neutral~ The salt flats are that way. Bring water.', '~solemn~ At night the moon throws shadows too.'],
         id: 'ennor', name: 'Ennor', title: 'guide to the salt', color: '#e6875f', talk: { nodes: {
-          hello: { say: ['The salt flats are west. Bring water. Bring two waters. At night the moon throws shadows too, and they don’t always point away from it.'], choices: [{ text: 'Where can I find water?', goto: 'water' }, { text: 'Bye.', end: true }] },
-          water: { say: ['Ha. Ask the pilgrims at Qanat; they’ve been waiting eleven days for water themselves. The tree gets the first drink. Always has.'], choices: [{ text: 'Thanks, Ennor.', end: true }] },
+          hello: { say: ['~neutral~ The salt flats are west. Bring water. Bring two waters. At night the moon throws shadows too, and they don’t always point away from it.'], choices: [{ text: '~curious~ Where can I find water?', goto: 'water' }, { text: '~neutral~ Bye.', end: true }] },
+          water: { say: ['~playful~ Ha. Ask the pilgrims at Qanat; they’ve been waiting eleven days for water themselves. The tree gets the first drink. Always has.'], choices: [{ text: '~happy~ Thanks, Ennor.', end: true }] },
         } } },
-      { at: [10, -200], palette: pal('#f3ead8', { cloth: '#7a4a35' }), lines: ['The stones hum when a storm comes.'],
+      { at: [10, -200], palette: pal('#f3ead8', { cloth: '#7a4a35' }), lines: ['~neutral~ The stones hum when a storm comes.'],
         id: 'tamsin', name: 'Tamsin', title: 'listener to stones', color: '#f3ead8', talk: { nodes: {
-          hello: { say: ['The stones hum when a storm comes. Three nights ago they hummed with no storm at all, and a light went over, singing the same note.'], choices: [{ text: 'The same note?', goto: 'note' }, { text: 'Bye, Tamsin.', end: true }] },
-          note: { say: ['Low, then rising. Like a question. The stones answered it. I didn’t like the answer, and I don’t speak stone.'], choices: [{ text: 'Bye.', end: true }] },
+          hello: { say: ['~curious~ The stones hum when a storm comes. Three nights ago they hummed with no storm at all, and a light went over, singing the same note.'], choices: [{ text: '~curious~ The same note?', goto: 'note' }, { text: '~neutral~ Bye, Tamsin.', end: true }] },
+          note: { say: ['~scared~ Low, then rising. Like a question. The stones answered it. I didn’t like the answer, and I don’t speak stone.'], choices: [{ text: '~neutral~ Bye.', end: true }] },
         } } },
-      { at: [-18, 18], radius: 2, palette: pal('#697a98'), lines: ['A sleeping observatory stands east of camp.'],
+      { at: [-18, 18], radius: 2, palette: pal('#697a98'), lines: ['~neutral~ A sleeping observatory stands east of camp.'],
         id: 'traveller', name: 'The traveller', title: 'sketching', color: '#697a98', talk: { nodes: {
-          hello: { say: ['A sleeping observatory stands east of camp: a tower crowned by a brass ring. I’ve drawn it a hundred times. I’ve never seen it awake.'], choices: [{ text: 'How do I wake it?', goto: 'how' }, { text: 'Bye.', end: true }] },
-          how: { say: ['Climb its six ledges. Turn the three lenses toward the heart. Then come back and tell me; I’m too old for ledges.'], choices: [{ text: 'I will.', end: true }] },
+          hello: { say: ['~sad~ A sleeping observatory stands east of camp: a tower crowned by a brass ring. I’ve drawn it a hundred times. I’ve never seen it awake.'], choices: [{ text: '~curious~ How do I wake it?', goto: 'how' }, { text: '~neutral~ Bye.', end: true }] },
+          how: { say: ['~playful~ Climb its six ledges. Turn the three lenses toward the heart. Then come back and tell me; I’m too old for ledges.'], choices: [{ text: '~happy~ I will.', end: true }] },
         } } },
     ],
   },
@@ -137,9 +137,9 @@ export const CONTENT = {
     // the rim's people, and Nima on the high terrace (index 3: the desert's errand of
     // singing sand is for her); the rest of the city's people are in src/story/incal-data.js
     npcs: [
-      { at: [300, -40], y: 200, palette: pal('#e88fa6', { cloth: '#3a3f5a' }), lines: ['Level −86? Never been below the smog.', 'The Incal? A story for tourists.'], ...INCAL_RIM.corvin },
-      { at: [330, 40], y: 200, palette: pal('#62c3c9'), lines: ['Mind the taxis. They don’t stop.'], ...INCAL_RIM.lio },
-      { at: [290, 110], y: 200, palette: pal('#f2c54b', { cloth: '#5a3a3a' }), lines: ['I sell views of the abyss. Cheap.'], shy: true, ...INCAL_RIM.hask },
+      { at: [300, -40], y: 200, palette: pal('#e88fa6', { cloth: '#3a3f5a' }), lines: ['~angry~ Level −86? Never been below the smog.', '~tired~ The Incal? A story for tourists.'], ...INCAL_RIM.corvin },
+      { at: [330, 40], y: 200, palette: pal('#62c3c9'), lines: ['~playful~ Mind the taxis. They don’t stop.'], ...INCAL_RIM.lio },
+      { at: [290, 110], y: 200, palette: pal('#f2c54b', { cloth: '#5a3a3a' }), lines: ['~shout~ I sell views of the abyss. Cheap.'], shy: true, ...INCAL_RIM.hask },
       { ...INCAL_PEOPLE.nima, at: [112.1, 165.8], y: 150, radius: 1.8, speed: 0.45 },
     ],
   },
@@ -158,9 +158,9 @@ export const CONTENT = {
     },
     gate: { at: [26, 32], heading: Math.PI },
     npcs: [
-      { at: [40, 44], palette: pal('#f4efe2', { cloth: '#8a7a66' }), lines: ['…'], shy: true },
-      { at: [-60, -40], palette: pal('#d8c7a6'), lines: ['The bird knows the way.', 'She has waited in the tower a long time.'] },
-      { at: [120, -100], palette: pal('#b0705a'), lines: ['Even the stone hand was alive, once.'] },
+      { at: [40, 44], palette: pal('#f4efe2', { cloth: '#8a7a66' }), lines: ['~tired~ …'], shy: true },
+      { at: [-60, -40], palette: pal('#d8c7a6'), lines: ['~solemn~ The bird knows the way.', '~sad~ She has waited in the tower a long time.'] },
+      { at: [120, -100], palette: pal('#b0705a'), lines: ['~sad~ Even the stone hand was alive, once.'] },
     ],
   },
   garage: {
@@ -178,9 +178,9 @@ export const CONTENT = {
     },
     gate: { at: [-60, 112], heading: Math.PI },
     npcs: [
-      { at: [40, 60], palette: pal('#e6875f', { cloth: '#3f8f8a' }), lines: ['Up is a matter of opinion here.', 'The Major built all of this. Then he forgot.'] },
-      { at: [-80, -20], palette: pal('#62c3c9'), lines: ['Don’t lean on the gears.'] },
-      { at: [120, -110], palette: pal('#f2c54b'), lines: ['The ring? Walk far enough and you’re back.'], shy: true },
+      { at: [40, 60], palette: pal('#e6875f', { cloth: '#3f8f8a' }), lines: ['~playful~ Up is a matter of opinion here.', '~tired~ The Major built all of this. Then he forgot.'] },
+      { at: [-80, -20], palette: pal('#62c3c9'), lines: ['~angry~ Don’t lean on the gears.'] },
+      { at: [120, -110], palette: pal('#f2c54b'), lines: ['~playful~ The ring? Walk far enough and you’re back.'], shy: true },
     ],
   },
   edena: EDENA_CONTENT,
@@ -193,27 +193,27 @@ export const CONTENT = {
 // (npc index into that world's `npcs`) delivers it. A loop through every world.
 export const ERRANDS = [
   { id: 'sand', item: 'a jar of singing sand', from: ['desert', 1], to: ['incal', 3],
-    ask: 'My cousin sweeps the high terraces of the city. Take her this jar of singing sand?',
-    wait: 'The terraces, up by the palace. She sweeps there.',
-    thanks: 'Sand from home! It still hums. Thank you, traveller.' },
+    ask: '~curious~ My cousin sweeps the high terraces of the city. Take her this jar of singing sand?',
+    wait: '~neutral~ The terraces, up by the palace. She sweeps there.',
+    thanks: '~happy~ Sand from home! It still hums. Thank you, traveller.' },
   { id: 'token', item: 'a taxi token', from: ['incal', 1], to: ['arzach', 1],
-    ask: 'Someone out in the bone country wants a ride. Give them this token.',
-    wait: 'Arzach’s country. Past the gate, past the bones.',
-    thanks: 'A token for a city I’ll never see. I’ll keep it anyway.' },
+    ask: '~neutral~ Someone out in the bone country wants a ride. Give them this token.',
+    wait: '~neutral~ Arzach’s country. Past the gate, past the bones.',
+    thanks: '~sad~ A token for a city I’ll never see. I’ll keep it anyway.' },
   { id: 'feather', item: 'a feather from the bird', from: ['arzach', 2], to: ['garage', 0],
-    ask: 'The Major collects feathers. Bring this one to his people in the Garage.',
-    wait: 'The hollow world. Someone there will know the Major.',
-    thanks: 'Ha! The Major will pretend he never asked for it.' },
+    ask: '~neutral~ The Major collects feathers. Bring this one to his people in the Garage.',
+    wait: '~neutral~ The hollow world. Someone there will know the Major.',
+    thanks: '~playful~ Ha! The Major will pretend he never asked for it.' },
   { id: 'gear', item: 'a brass gear', from: ['garage', 1], to: ['edena', 0],
-    ask: 'A gardener in Edena needs a gear for her water clock. Don’t lean on it.',
-    wait: 'Edena. The garden with the white pyramids.',
-    thanks: 'It fits. The garden can keep time again.' },
+    ask: '~playful~ A gardener in Edena needs a gear for her water clock. Don’t lean on it.',
+    wait: '~neutral~ Edena. The garden with the white pyramids.',
+    thanks: '~happy~ It fits. The garden can keep time again.' },
   { id: 'seed', item: 'a glass seed', from: ['edena', 3], to: ['perdide', 0],
-    ask: 'Carry this seed to the egg-warden in the swamp. He knows where it grows.',
-    wait: 'Perdide. Follow the glow.',
-    thanks: 'We don’t feed the plants. But this one we will plant.' },
+    ask: '~neutral~ Carry this seed to the egg-warden in the swamp. He knows where it grows.',
+    wait: '~whisper~ Perdide. Follow the glow.',
+    thanks: '~solemn~ We don’t feed the plants. But this one we will plant.' },
   { id: 'crystal', item: 'a humming crystal', from: ['perdide', 2], to: ['desert', 0],
-    ask: 'Bring this crystal to the dune walker. It hums before storms.',
-    wait: 'The golden dunes, near where you first woke.',
-    thanks: 'Now I’ll hear the storms before they find me. Thank you.' },
+    ask: '~neutral~ Bring this crystal to the dune walker. It hums before storms.',
+    wait: '~neutral~ The golden dunes, near where you first woke.',
+    thanks: '~happy~ Now I’ll hear the storms before they find me. Thank you.' },
 ];

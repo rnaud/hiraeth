@@ -159,12 +159,12 @@ export function setupIncal(ctx) {
   // what the story's people say in passing follows the story
   const say = () => {
     if (lit()) {
-      people.nima.lines = ['Once a day.', 'Did you look up today?', 'The steps went gold.'];
-      people.ossa.lines = ['Eyes open, face up.', 'It came all the way down.', 'It doesn’t sting.'];
-      people.dov.lines = ['I looked. On duty.', 'Worth it.', 'Eyes on the visitors. Mostly.'];
-      people.pip.lines = ['I SAW IT!', 'Twelve seconds! More!', 'It’s still there!'];
-    } else if (quests.has('splinter')) people.ossa.lines = ['Up, all the way up.', 'Hold it higher.'];
-    if (game.flag('incal.wren.met') && people.wren) people.wren.lines = ['Need a lift?', 'Space to climb, Shift to drop.', 'She knows the way home.'];
+      people.nima.lines = ['~happy~ Once a day.', '~playful~ Did you look up today?', '~happy~ The steps went gold.'];
+      people.ossa.lines = ['~solemn~ Eyes open, face up.', '~surprised~ It came all the way down.', '~happy~ It doesn’t sting.'];
+      people.dov.lines = ['~playful~ I looked. On duty.', '~happy~ Worth it.', '~playful~ Eyes on the visitors. Mostly.'];
+      people.pip.lines = ['~shout~ I SAW IT!', '~happy~ Twelve seconds! More!', '~surprised~ It’s still there!'];
+    } else if (quests.has('splinter')) people.ossa.lines = ['~solemn~ Up, all the way up.', '~neutral~ Hold it higher.'];
+    if (game.flag('incal.wren.met') && people.wren) people.wren.lines = ['~curious~ Need a lift?', '~neutral~ Space to climb, Shift to drop.', '~happy~ She knows the way home.'];
   };
   say();
   game.on('flag', ({ name }) => { if (name.startsWith('incal.')) say(); });
@@ -228,7 +228,7 @@ export function setupIncal(ctx) {
       near.forEach((p, i) => { p.say = LINES.shout[i % LINES.shout.length]; p.shoutUntil = crowd.time + 3 + i * 0.4; });
       if (near[0]) crowd.shout = near[0];
     }
-    for (const n of Object.values(people)) if (n) n.shout = { text: n === people.dov ? '…' : 'Look!', until: n.time + 3 };
+    for (const n of Object.values(people)) if (n) n.shout = { text: n === people.dov ? '~solemn~ …' : '~shout~ Look!', until: n.time + 3 };
     toast('The Incal flares. Light pours down the shaft, level after level, all the way to the bottom.');
   };
   // sending messages home: once it burns, the HUD objective is to tell Nima (quest stage 'tell')
@@ -319,7 +319,7 @@ export function setupIncal(ctx) {
       const list = lit() && (z === 'lower' || z === 'middle' || p.seed < 0.35) ? CROWD_TALK.lit : CROWD_TALK[z];
       if (!list) return null;
       const base = list[Math.floor(p.seed * 997) % list.length];
-      return { id: `crowd.incal.${z}`, color: p.style?.cloak ?? '#d8a24a', voice: p.kind === 'f' ? 1.2 : 0.9, ...base };
+      return { id: `crowd.incal.${z}`, color: p.style?.cloak ?? '#d8a24a', kind: p.kind, seed: `crowd:${p.id}`, scale: p.size, ...base }   // a voice of their own (src/story/voice.js voiceOf hashes the seed);
     },
   };
 }

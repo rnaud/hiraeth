@@ -23,7 +23,7 @@ final class GamepadBridge {
     private final boolean[] hat = new boolean[4];    // up, down, left, right from the hat axes
     private float lt, rt;                            // analog triggers
     private String name = "Android gamepad";
-    private boolean scheduled;
+    private boolean scheduled, live;
 
     GamepadBridge(WebView web) { this.web = web; }
 
@@ -92,6 +92,17 @@ final class GamepadBridge {
         return true;
     }
 
+    /** Let go of everything (the app is leaving the screen: the key-ups would go elsewhere and the buttons stay held). */
+    void reset() {
+        java.util.Arrays.fill(axes, 0f);
+        java.util.Arrays.fill(keys, 0f);
+        java.util.Arrays.fill(hat, false);
+        lt = rt = 0f;
+        ui.removeCallbacksAndMessages(null);
+        scheduled = false;
+        if (live) send();
+    }
+
     // at most one update per frame
     private void schedule() {
         if (scheduled) return;
@@ -101,6 +112,7 @@ final class GamepadBridge {
 
     private void send() {
         scheduled = false;
+        live = true;
         StringBuilder s = new StringBuilder("window.__nativePad&&window.__nativePad(").append(JSONObject.quote(name)).append(",[");
         for (int i = 0; i < 4; i++) s.append(i > 0 ? "," : "").append(round(axes[i]));
         s.append("],[");

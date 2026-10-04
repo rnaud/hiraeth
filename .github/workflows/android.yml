@@ -3,8 +3,11 @@ name: Android release
 # Every push to main builds a signed APK (the web game wrapped with Capacitor,
 # fully offline) and publishes it to the GitHub release for the newest version
 # in src/changelog.js, e.g. v0.34. Pushes within one version replace that
-# release's APK; a new changelog entry makes a new release. The app checks the
-# latest release's latest.json on launch and offers to install newer builds.
+# release's files; a new changelog entry makes a new release. Next to the APK:
+# - latest.json: the APK and its native bridge level. The app offers an APK
+#   update only when the native side changed (Updater.java).
+# - web.zip + web.json: the game itself (dist/), which the app downloads and
+#   switches to by itself, without an APK (WebBundles.java).
 
 on:
   push:
@@ -68,6 +71,19 @@ jobs:
           ./gradlew --no-daemon assembleRelease
           cp app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/moebius-v${APP_VERSION_NAME}.apk"
 
+      - name: Web bundle
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+          BUILD: ${{ github.run_number }}
+        run: |
+          # the same dist/ as in the APK, for over-the-air updates (android/.../WebBundles.java)
+          (cd dist && zip -q -r -X "$RUNNER_TEMP/web.zip" .)
+          BASE="https://github.com/$GITHUB_REPOSITORY/releases/download/v$VERSION"
+          node scripts/release-info.mjs web-json "$BUILD" "$RUNNER_TEMP/web.zip" "$BASE/web.zip" > "$RUNNER_TEMP/web.json"
+          # what the APK updater reads (android/.../Updater.java): this build's versionCode, its APK and native level
+          node scripts/release-info.mjs latest-json "$BUILD" "$BASE/moebius-v$VERSION.apk" > "$RUNNER_TEMP/latest.json"
+          cat "$RUNNER_TEMP/web.json" "$RUNNER_TEMP/latest.json"
+
       - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -75,14 +91,14 @@ jobs:
         run: |
           TAG="v$VERSION"
           APK="$RUNNER_TEMP/moebius-v$VERSION.apk"
-          # what the in-app updater reads (android/.../Updater.java): this build's versionCode and its APK
-          printf '{"code": %s, "name": "%s", "apk": "https://github.com/%s/releases/download/%s/moebius-v%s.apk"}\n' \
-            "${{ github.run_number }}" "$VERSION" "$GITHUB_REPOSITORY" "$TAG" "$VERSION" > "$RUNNER_TEMP/latest.json"
+          # the files first, the manifests that point at them last
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "$APK" "$RUNNER_TEMP/latest.json" --clobber
+            gh release upload "$TAG" "$APK" "$RUNNER_TEMP/web.zip" --clobber
+            gh release upload "$TAG" "$RUNNER_TEMP/latest.json" "$RUNNER_TEMP/web.json" --clobber
             gh release edit "$TAG" --notes-file "$RUNNER_TEMP/notes.md" --latest
           else
-            gh release create "$TAG" "$APK" "$RUNNER_TEMP/latest.json" --target "$GITHUB_SHA" --title "Moebius v$VERSION" --notes-file "$RUNNER_TEMP/notes.md" --latest
+            gh release create "$TAG" "$APK" "$RUNNER_TEMP/web.zip" --target "$GITHUB_SHA" --title "Moebius v$VERSION" --notes-file "$RUNNER_TEMP/notes.md" --latest
+            gh release upload "$TAG" "$RUNNER_TEMP/latest.json" "$RUNNER_TEMP/web.json" --clobber
           fi
 
       - uses: actions/upload-artifact@v5
