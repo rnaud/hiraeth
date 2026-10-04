@@ -183,9 +183,6 @@ function materials() {
     glyph: makeMaterial({ color: '#70e7df', glow: 0.85, flat: true }),
     dry: paint('#5a4a40'),
     boneMesh: makeMaterial({ color: '#f2ead6' }),
-    // the makers' colours: the item boxes' dark blue and pale star (src/boxes/model.js)
-    makers: paint('#25386c', { smooth: true }), makersFlat: paint('#25386c'), makersDark: paint('#18254b'),
-    paleStar: makeMaterial({ color: '#dcecf2', glow: 0.7, flat: true }),
   };
 }
 
@@ -251,9 +248,9 @@ export function buildDesertCity(scene, terrain) {
     city.both(M.wall, new THREE.BoxGeometry(14.8, 3, 5.4).translate(0, 11.5, -R));
     city.add(M.glyph, glyphGeometry(1.0).translate(0, 11.4, -R - 2.75).rotateY(0));
 
-    // paving in the avenue and round the terraces
-    city.add(M.paving, new THREE.BoxGeometry(11, 0.12, 40).translate(0, 0.04, 45));
-    city.add(M.paving, new THREE.CylinderGeometry(30, 30, 0.1, 40).translate(0, 0.03, 0));
+    // paving in the avenue and round the terraces (flush with the ground you walk on: 2 cm proud)
+    city.add(M.paving, new THREE.BoxGeometry(11, 0.12, 40).translate(0, -0.04, 45));
+    city.add(M.paving, new THREE.CylinderGeometry(30, 30, 0.1, 40).translate(0, -0.03, 0));
 
     // houses: domes, cubes and tall tower-houses between the wall and the terraces
     const HOUSE_MATS = [M.white, M.white, M.pink, M.ochre, M.wall];
@@ -303,9 +300,11 @@ export function buildDesertCity(scene, terrain) {
 
     // the terraces round the tree: three tiers, stairs toward both gates
     const TIERS = [[25, 2.2], [17.5, 4.4], [11.5, 6.6]];
+    // (the lip is a band round the edge, flush with the top: the feet stand where the paving is drawn,
+    // and the collider is as round and as wide as the lip, so you don't drop off its edge early)
     for (const [r, h] of TIERS) {
-      city.both(M.terrace, new THREE.CylinderGeometry(r, r + 0.4, h, 40).translate(0, h / 2, 0), new THREE.CylinderGeometry(r, r + 0.4, h, 20).translate(0, h / 2, 0));
-      city.add(M.wall, new THREE.CylinderGeometry(r + 0.25, r + 0.25, 0.35, 40).translate(0, h + 0.05, 0));   // a lip
+      city.both(M.terrace, new THREE.CylinderGeometry(r, r + 0.4, h, 40).translate(0, h / 2, 0), new THREE.CylinderGeometry(r + 0.25, r + 0.4, h, 40).translate(0, h / 2, 0));
+      city.add(M.wall, new THREE.CylinderGeometry(r + 0.25, r + 0.25, 0.35, 40).translate(0, h - 0.155, 0));   // a lip
     }
     // stairs: 0.37 m steps up each tier, on the gate side and the back
     for (const dir of [1, -1]) {
@@ -343,21 +342,33 @@ export function buildDesertCity(scene, terrain) {
     const top = TIERS[2][1];
     const TREE = { x: 0, z: -3 }, S = 1.45;   // S: the tree's size (the limbs and flames scale with it)
     // a gnarled trunk: a lathe, twisted and roughened, flaring into roots
-    const tr = lathe([[5.8, -0.3], [4.6, 0.8], [3.9, 2.5], [3.6, 6 * S], [3.2, 10 * S], [2.9, 14 * S], [3.0, 17 * S], [3.4, 19.5 * S]], 18);
-    {
-      const p = tr.attributes.position;
+    const PROFILE = [[5.8, -0.3], [4.6, 0.8], [3.9, 2.5], [3.6, 6 * S], [3.2, 10 * S], [2.9, 14 * S], [3.0, 17 * S], [3.4, 19.5 * S]];
+    const gnarl = (y, th) => 1 + 0.12 * Math.sin(th * 5 + y * 0.4) + 0.06 * Math.sin(y * 1.3);
+    const twist = (g) => {
+      const p = g.attributes.position;
       for (let i = 0; i < p.count; i++) {
         const x = p.getX(i), y = p.getY(i), z = p.getZ(i), tw = y * 0.045;
-        const n = 1 + 0.12 * Math.sin(Math.atan2(z, x) * 5 + y * 0.4) + 0.06 * Math.sin(y * 1.3);
+        const n = gnarl(y, Math.atan2(z, x));
         p.setXYZ(i, (x * Math.cos(tw) - z * Math.sin(tw)) * n, y, (x * Math.sin(tw) + z * Math.cos(tw)) * n);
       }
-      tr.computeVertexNormals();
-    }
-    tr.translate(TREE.x, top, TREE.z);
-    city.both(M.bark, tr, new THREE.CylinderGeometry(3.2, 4.6, 19 * S, 10).translate(TREE.x, top + 9.5 * S, TREE.z));
-    // roots over the terrace, some curling down its sides
+      g.computeVertexNormals();
+      return g.translate(TREE.x, top, TREE.z);
+    };
+    // the bark's radius at angle th (atan2(z, x) round the axis) and height y over the terrace
+    const profileR = (y) => {
+      for (let i = 1; i < PROFILE.length; i++) if (y <= PROFILE[i][1]) { const [r0, y0] = PROFILE[i - 1], [r1, y1] = PROFILE[i]; return r0 + (r1 - r0) * THREE.MathUtils.clamp((y - y0) / (y1 - y0), 0, 1); }
+      return PROFILE[PROFILE.length - 1][0];
+    };
+    const barkR = (th, y) => profileR(y) * gnarl(y, th - y * 0.045);
+    // collision is the bark itself (it used to be a plain cone, up to 0.7 m proud of it, so a
+    // climber's hands hung in the air), minus the foot's flare, which is drawn over the roots
+    city.both(M.bark, twist(lathe(PROFILE, 18)), twist(lathe([[4.75, -0.3], ...PROFILE.slice(1)], 18)));
+    // the makers' ledge (below): a shelf on a buttress root, up the trunk toward the old shrine's corner
+    const LEDGE = { phi: -0.5, H: 3.2, W: 2.4 };
+    // roots over the terrace, some curling down its sides (none where the ledge's buttress stands)
     for (let k = 0; k < 7; k++) {
       const a = k / 7 * Math.PI * 2 + 0.4, ca = Math.sin(a), sa = Math.cos(a);
+      if (Math.abs(Math.atan2(Math.sin(a - LEDGE.phi), Math.cos(a - LEDGE.phi))) < 0.4) continue;
       const pts = [V(TREE.x + ca * 3, top + 1.2, TREE.z + sa * 3), V(TREE.x + ca * 6.5, top + 0.4, TREE.z + sa * 6.5), V(TREE.x + ca * 10.5, top - 0.2, TREE.z + sa * 10.5), V(TREE.x + ca * 12.2, top - 2.5, TREE.z + sa * 12.2)];
       city.add(M.bark, taper(pts, 1.1, 0.35, 12, 6));
     }
@@ -410,44 +421,70 @@ export function buildDesertCity(scene, terrain) {
     city.add(M.ink, mural(3.0, 3.0).applyMatrix4(new THREE.Matrix4().compose(V(ST.x, top + 2.0, ST.z), new THREE.Quaternion().setFromAxisAngle(UP, -0.35), V(1, 1, 1)).multiply(new THREE.Matrix4().makeTranslation(0, 0, 0.31))));
     city.add(M.glyph, glyphGeometry(0.55).applyMatrix4(new THREE.Matrix4().compose(V(ST.x, top + 3.9, ST.z), new THREE.Quaternion().setFromAxisAngle(UP, -0.35), V(1, 1, 1)).multiply(new THREE.Matrix4().makeTranslation(0, 0, 0.32))));
 
-    // the Givers' shrine, the stele's twin on the other side of the well: a small dark blue dome
-    // on four pillars, a pale star on its spire, the glyph on its lintel. Under it, on the paving,
-    // the makers' chest that holds the backpack (src/boxes/placements.js: 'desert.backpack').
-    // Open on every side (the box's opening scene films it from behind and from the right).
-    const SH = { x: -5.8, z: 7.2 };
-    const shYaw = Math.atan2(0 - SH.x, 11.5 - SH.z);   // its front looks at the top of the main stairs
-    const shM = new THREE.Matrix4().compose(V(SH.x, top, SH.z), new THREE.Quaternion().setFromAxisAngle(UP, shYaw), V(1, 1, 1));
-    const sh = (g) => g.applyMatrix4(shM);
-    const shToCity = (x, y, z) => V(x, y, z).applyMatrix4(shM);
-    const PW = 1.25, PD = 1.05, PH = 3.0;   // pillar half-spacing (across, front-back) and height
-    const starGlow = M.paleStar;
-    city.add(M.stone, sh(new THREE.CylinderGeometry(1.95, 2.05, 0.05, 24).translate(0, 0.025, 0)));   // a worn round slab under it
-    for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
-      const x = sx * PW, z = sz * PD;
-      city.both(M.white, sh(new THREE.CylinderGeometry(0.15, 0.19, PH, 8).translate(x, PH / 2, z)));
-      city.add(M.stone, sh(new THREE.BoxGeometry(0.5, 0.22, 0.5).translate(x, 0.11, z)));        // a base
-      city.add(M.makersFlat, sh(new THREE.BoxGeometry(0.46, 0.2, 0.46).translate(x, PH - 0.1, z)));   // a capital
+    // the makers' ledge: a little plank shelf jutting out of the trunk a few metres up, on a buttress
+    // root that rises out of the terrace to carry it. On it, the makers' chest that holds the backpack
+    // (src/boxes/placements.js: 'desert.backpack'), out in the open where you see it from the stairs.
+    // You climb the root's face (push into it) and pull yourself up over the shelf's edge; the shelf
+    // reaches far enough past the chest for the climb to end in front of it (player.js tryMantle).
+    // Ledge frame L: x across, y up from the terrace, z out from the tree's axis (toward phi).
+    const { phi, H, W } = LEDGE;
+    const lM = new THREE.Matrix4().compose(V(TREE.x, top, TREE.z), new THREE.Quaternion().setFromAxisAngle(UP, phi), V(1, 1, 1));
+    const lg = (g) => g.applyMatrix4(lM);
+    const lToCity = (x, y, z) => V(x, y, z).applyMatrix4(lM);
+    // the bark's reach along the shelf (the twist and the knots), so the chest sits just clear of it
+    const reach = (x, z, y) => { const p = lToCity(x, 0, z); return Math.hypot(p.x - TREE.x, p.z - TREE.z) - barkR(Math.atan2(p.z - TREE.z, p.x - TREE.x), y); };
+    let sBack = 2.5;
+    for (; sBack < 6; sBack += 0.05) {
+      let clear = true;
+      for (let x = -0.85; x <= 0.85 && clear; x += 0.17) for (let y = H; y <= H + 1.4 && clear; y += 0.35) if (reach(x, sBack, y) < 0.12) clear = false;
+      if (clear) break;
     }
-    // the lintels, a roof slab (you can stand on it) and the dome
-    city.both(M.white, sh(new THREE.BoxGeometry(PW * 2 + 0.6, 0.4, PD * 2 + 0.6).translate(0, PH + 0.2, 0)));
-    city.add(M.makersDark, sh(new THREE.BoxGeometry(PW * 2 + 0.7, 0.08, PD * 2 + 0.7).translate(0, PH + 0.42, 0)));
-    city.add(M.makers, sh(T(dome(1.45, 18, 8), [0, PH + 0.44, 0], [0, 0, 0], [1, 1.25, 1])));
-    city.add(M.ink, sh(new THREE.CylinderGeometry(0.035, 0.05, 1.1, 5).translate(0, PH + 0.44 + 1.8 + 0.5, 0)));
-    // the pale star on the spire (facing the stairs) and the glyph on the front lintel
-    const spire = new THREE.ExtrudeGeometry(starOutline(0.42, 0.13), { depth: 0.05, bevelEnabled: false }).translate(0, 0, -0.025);
-    city.add(starGlow, sh(spire.translate(0, PH + 0.44 + 1.8 + 1.2, 0)));
-    city.add(M.glyph, sh(glyphGeometry(0.22).translate(0, PH + 0.2, PD + 0.31)));
-    for (const s of [-1, 1]) city.add(starGlow, sh(new THREE.ExtrudeGeometry(starOutline(0.1, 0.032), { depth: 0.02, bevelEnabled: false }).translate(s * 0.75, PH + 0.2, PD + 0.31)));
-    // a stone bench beside it, under the tree's arm: where Nour keeps the chest company
-    const BENCH = { x: -7.33, z: 2.22 }, benchYaw = Math.atan2(SH.x - BENCH.x, SH.z - BENCH.z);
+    const BOX_HALF = 0.53;                 // half the chest's depth (src/boxes/model.js BOX.d * BOX_SCALE / 2)
+    const sC = sBack + BOX_HALF;           // the chest's centre
+    const sF = sC + 2.0;                   // the shelf's front edge: room to stand, and for the climb's last reach
+    const sIn = sBack - 1.1;               // well into the bark
+    // the shelf: planks over two beams (the collider is one slab, its top the planks' top)
+    city.solid(lg(new THREE.BoxGeometry(W, 0.3, sF - sIn).translate(0, H - 0.15, (sF + sIn) / 2)));
+    const plankM = [M.wood, paint('#9a6a48'), M.wood, paint('#7e5236'), M.wood];
+    for (let i = 0; i < 5; i++) {
+      const x = -W / 2 + (i + 0.5) * (W / 5), d = sF - sIn + 0.06 + ((i * 37) % 5) * 0.03;
+      city.add(plankM[i], lg(new THREE.BoxGeometry(W / 5 - 0.03, 0.12, d).translate(x, H - 0.06, sIn + d / 2)));
+    }
+    for (const s of [-1, 1]) city.add(paint('#5e3c28'), lg(new THREE.BoxGeometry(0.22, 0.26, sF - sIn + 0.28).translate(s * (W / 2 - 0.35), H - 0.25, sIn + (sF - sIn + 0.28) / 2)));
+    // the buttress root under it: a flat-faced wall of bark you can climb, flaring a little at its foot
+    const BW = 2.0, bIn = sIn - 0.4, bD = sF - bIn;
+    city.solid(lg(new THREE.BoxGeometry(BW, H - 0.38 + 0.3, bD).translate(0, (H - 0.38 - 0.3) / 2, bIn + bD / 2)));
+    {
+      const b = new THREE.BoxGeometry(BW, H - 0.38 + 0.3, bD, 6, 8, 5).translate(0, (H - 0.38 - 0.3) / 2, bIn + bD / 2);
+      const p = b.attributes.position;
+      for (let i = 0; i < p.count; i++) {
+        let x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+        const foot = THREE.MathUtils.clamp((0.6 - y) / 0.9, 0, 1);             // the flare at the foot
+        const side = Math.abs(Math.abs(x) - BW / 2) < 0.01, front = Math.abs(z - sF) < 0.01;
+        if (side) x += Math.sign(x) * (0.08 * Math.sin(y * 3.1 + z * 2.3) + 0.35 * foot * foot);
+        if (front) z += 0.04 * Math.sin(x * 4.1 + y * 2.7);                      // (the climbing face stays flat)
+        p.setXYZ(i, x, y, z);
+      }
+      b.computeVertexNormals();
+      city.add(M.bark, lg(b));
+      // two roots twisting down its sides into the terrace
+      for (const s of [-1, 1]) city.add(M.bark, lg(taper([V(s * 0.9, H - 0.7, sF - 1.4), V(s * 1.25, H * 0.5, sF - 0.9), V(s * 1.5, 0.15, sF - 0.6), V(s * 1.7, -0.25, sF - 0.3)], 0.42, 0.2, 10, 6)));
+      // the makers' mark on its face, and offering cloths tied to the shelf's corners
+      city.add(M.glyph, lg(glyphGeometry(0.42).translate(0, 1.75, sF + 0.06)));
+      [[-1, 0, 1.25], [1, 1, 0.95]].forEach(([s, c, len]) => city.add(M.cloth[c], lg(new THREE.PlaneGeometry(0.2, len).translate(s * (W / 2 - 0.08), H - 0.3 - len / 2, sF - 0.02))));
+    }
+    // a stone bench on the terrace below, under the tree's arm: where Nour keeps the chest company
+    const BENCH = { x: -7.33, z: 2.22 }, footC = lToCity(0, 0, sF + 0.8), benchYaw = Math.atan2(footC.x - BENCH.x, footC.z - BENCH.z);
     city.both(M.stone, T(new THREE.BoxGeometry(1.5, 0.42, 0.5), [BENCH.x, 0.21 + top, BENCH.z], [0, benchYaw, 0]));
     city.add(M.cloth[1], T(new THREE.BoxGeometry(1.2, 0.04, 0.44), [BENCH.x, 0.44 + top, BENCH.z], [0, benchYaw, 0]));
-    const shrine = {
-      box: city.world(SH.x, top, SH.z), yaw: city.heading(shYaw),
-      front: (d = 2.5, side = 0) => { const p = shToCity(side, 0, d); return city.world(p.x, p.y, p.z); },
-      at: (x, y, z) => { const p = shToCity(x, y, z); return city.world(p.x, p.y, p.z); },
+    const toWorld = (x, y, z) => { const p = lToCity(x, y, z); return city.world(p.x, p.y, p.z); };
+    // (ledge-local points: x across, y up from the terrace, z out from the chest's centre)
+    const ledge = {
+      box: toWorld(0, H, sC), yaw: city.heading(phi), height: H,
+      at: (x, y, z) => toWorld(x, y, sC + z),
+      foot: toWorld(0, 0, sF + 0.8),        // on the terrace in front of the buttress: push into it and climb
+      face: sF - sC,                        // the climbing face, metres in front of the chest
       bench: { at: city.world(BENCH.x, top + 0.42, BENCH.z), heading: city.heading(benchYaw) },
-      star: (() => { const p = shToCity(0, PH + 0.44 + 1.8 + 1.2, 0); return city.world(p.x, p.y, p.z); })(),
     };
 
     city.flush();
@@ -457,7 +494,7 @@ export function buildDesertCity(scene, terrain) {
       wellLook: city.world(WELL.x, top, WELL.z + 3.4), treeBase: city.world(TREE.x, top, TREE.z), crown,
       flames, embers, smoke, light: treeLight, light2: treeLight2, wellWater, wellMat, yaw: C.yaw,
       plinthStair: city.world(0, 0, 31), local: (x, y, z) => city.world(x, y, z), top: city.world(0, top, 0).y,
-      stairTop: city.world(0, top, 12.6), shrine,
+      stairTop: city.world(0, top, 12.6), ledge,
     };
   }
 
@@ -598,6 +635,44 @@ export function buildDesertCity(scene, terrain) {
     cave.both(M.caveFloor, fl, lathe(prof.slice(1), 18));
     // the pool's bed as one flat disc (a lathe's centre is a needle a ray can slip through)
     cave.solid(new THREE.CylinderGeometry(POOL - 1.5, POOL - 1.5, 0.3, 16).translate(0, -1.75, 0));
+    // the basin's floor height at radius r, and its radius at height y (where water standing at y meets it)
+    const floorAt = (r) => { for (let i = 1; i < prof.length; i++) if (r <= prof[i][0]) { const [r0, y0] = prof[i - 1], [r1, y1] = prof[i]; return y0 + (y1 - y0) * (r - r0) / (r1 - r0); } return 0; };
+    const basinR = (y) => { for (let i = 1; i < 4; i++) if (y <= prof[i][1]) { const [r0, y0] = prof[i - 1], [r1, y1] = prof[i]; return r0 + (r1 - r0) * THREE.MathUtils.clamp((y - y0) / (y1 - y0), 0, 1); } return POOL + 2.2; };
+    // dry until the channel runs: damp stains in the bowl, and a pale tide line where the water stood
+    // (drawn just over the floor, following its slope)
+    const stain = (cx, cz, R, seed, rings = 3, segs = 22) => {
+      const pos = [], idx = [];
+      const at = (x, z) => pos.push(x, floorAt(Math.hypot(x, z)) + 0.02, z);
+      at(cx, cz);
+      for (let r = 1; r <= rings; r++) for (let k = 0; k < segs; k++) {
+        const a = (k / segs) * Math.PI * 2, rr = R * (r / rings) * (1 + 0.22 * Math.sin(3 * a + seed) + 0.1 * Math.sin(7 * a + seed * 2.3));
+        at(cx + Math.cos(a) * rr, cz + Math.sin(a) * rr);
+      }
+      for (let k = 0; k < segs; k++) idx.push(0, 1 + ((k + 1) % segs), 1 + k);
+      for (let r = 1; r < rings; r++) for (let k = 0; k < segs; k++) {
+        const a = 1 + (r - 1) * segs + k, b = 1 + (r - 1) * segs + ((k + 1) % segs);
+        idx.push(a, b + segs, a + segs, a, b, b + segs);
+      }
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+      g.setIndex(idx);
+      return g;
+    };
+    const damp = paint('#66546f', { side: THREE.DoubleSide }), salt = paint('#c4b6c6', { side: THREE.DoubleSide });
+    cave.add(damp, stain(0.6, -0.4, 6.8, 1.3, 4, 30));
+    for (const [x, z, r, sd] of [[8.6, -2.4, 2.4, 2.1], [6.0, 3.6, 1.6, 4.4], [-5.4, -4.2, 1.9, 0.7], [-2.6, 6.1, 1.2, 3.3]]) cave.add(damp, stain(x, z, r, sd));
+    {
+      const rTide = basinR(-0.35) - 0.05, ring = [], ix = [], n = 72;
+      for (let k = 0; k <= n; k++) {
+        const a = (k / n) * Math.PI * 2, w = 0.09 + 0.05 * Math.sin(a * 5);
+        for (const r of [rTide - w, rTide + w]) ring.push(Math.cos(a) * r, floorAt(r) + 0.025, Math.sin(a) * r);
+      }
+      for (let k = 0; k < n; k++) { const a = k * 2; ix.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.Float32BufferAttribute(ring, 3));
+      g.setIndex(ix);
+      cave.add(salt, g);
+    }
     // the dome, inside out, rough: the giant's chest
     const door = (x, y, z) => Math.abs(x) < 3.0 && y < 5.2 && z > 15;   // the opening to the passage
     const d = cut(inward(rough(new THREE.SphereGeometry(ROOM + 1, 30, 16, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.62, 1), 1.2, 0.18, 5)), door);
@@ -640,12 +715,28 @@ export function buildDesertCity(scene, terrain) {
       cave.both(M.bone, new THREE.CylinderGeometry(0.7, 0.95, h, 8).translate(p.x, g + h / 2, p.z));   // vertebrae carry it
     }
     cave.add(M.ink, T(new THREE.BoxGeometry(0.6, 4.5, 3.2), [29.6, 3.6, -6.4], [0, chYaw, 0]));   // the crack it comes from
-    // water standing behind the bone, and the stream that will run once it's clear
+    // a damp streak down the dry gutter (the water's old bed)
+    {
+      const pos = [], ix = [], n = 24;
+      const side = V(-chDir.z, 0, chDir.x).normalize();
+      for (let k = 0; k <= n; k++) {
+        const u = k / n, c = along(u, -1.27), w = 0.32 + 0.08 * Math.sin(u * 17);
+        for (const sgn of [-1, 1]) pos.push(c.x + side.x * w * sgn, c.y + 0.03 + Math.abs(w * sgn) * 0.04, c.z + side.z * w * sgn);
+      }
+      for (let k = 0; k < n; k++) { const a = k * 2; ix.push(a, a + 2, a + 1, a + 1, a + 2, a + 3); }
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+      g.setIndex(ix);
+      cave.add(damp, g);
+    }
+    // the stream: none until the rib is clear, then it runs out of the crack and down to the pool
+    // (desert.js reveals it along the channel, segment by segment: cv.flow 0..1)
     const streamMat = magicMaterial(23, { aspect: 0.25 });
     const w = (u) => cave.world(...along(u, -1.0).toArray());
-    const pond = magicStream(w(0), w(0.4), 1.6, streamMat, { segs: 10 });     // stands behind the rib
-    const stream = magicStream(w(0.42), w(1), 1.6, streamMat, { segs: 16 });  // runs once it's clear
-    root.add(pond, stream);
+    const STREAM_SEGS = 40;
+    const stream = magicStream(w(0), w(1), 1.6, streamMat, { segs: STREAM_SEGS });
+    stream.geometry.setDrawRange(0, 0);
+    root.add(stream);
     // the fallen rib across the channel (it moves, so it never collides)
     const boneAt = along(0.42, -0.45);
     const bonePivot = new THREE.Group();
@@ -657,10 +748,12 @@ export function buildDesertCity(scene, terrain) {
     bonePivot.add(ribMesh);
     bonePivot.add(Object.assign(new THREE.Mesh(T(glyphGeometry(0.5), [0, 1.05, 0.55], [-0.4, 0, 0]), M.glyph), { userData: { noCollide: true } }));
     root.add(bonePivot);
-    // the pool: shifting colours, low (and dim) until the channel runs again
+    // the pool: none while the channel is blocked; it fills once the stream reaches it, widening
+    // up the basin's sides as it rises (desert.js sets cv.level; the update below lays it there)
     const poolMat = magicMaterial(22);
-    const pool = magicPool(POOL - 0.4, poolMat, { rings: 10, segs: 56 });
-    pool.position.copy(cave.world(0, -1.25, 0));
+    const pool = magicPool(1, poolMat, { rings: 10, segs: 56 });
+    pool.position.copy(cave.world(0, -1.7, 0));
+    pool.visible = false;
     root.add(pool);
     // the mural: giants lying down, the water running out of them to a tree
     cave.add(M.mural, T(new THREE.BoxGeometry(9, 4.6, 0.5), [-17.5, 3.4, 20.5], [0, Math.PI * 0.8, 0]));
@@ -677,9 +770,19 @@ export function buildDesertCity(scene, terrain) {
       origin: O, poolCenter: cave.world(0, -1.25, 0), local: (x, y, z) => cave.world(x, y, z), poolR: POOL - 1, pool, poolMat, poolLight,
       bone: bonePivot, boneAt: bonePivot.position.clone(), boneRest: { pos: bonePivot.position.clone(), rot: bonePivot.rotation.clone() },
       boneAside: cave.world(boneAt.x - chDir.z * 3.4, -0.1, boneAt.z + chDir.x * 3.4),
-      stream, pond, streamMat, chDir, rootTips, mural: cave.world(-17.5, 0, 20.5).add(V(Math.sin(Math.PI * 0.8) * 2.5, 0, Math.cos(Math.PI * 0.8) * 2.5)),
+      stream, streamMat, chDir, rootTips, mural: cave.world(-17.5, 0, 20.5).add(V(Math.sin(Math.PI * 0.8) * 2.5, 0, Math.cos(Math.PI * 0.8) * 2.5)),
       inside: cave.world(0, 0.05, ROOM + 5.5), exit: cave.world(0, 0, ROOM + 9.3), group: cave.group, root,
-      levels: { low: -1.25, high: -0.35 },
+      // the water (desert.js drives these): dry (the bed) until the channel opens, then up to high
+      levels: { dry: -1.7, high: -0.35 }, level: -1.7, flow: 0, basinR,
+      /** Lay the stream (flow 0..1 of the way from the crack) and the pool (standing at `level`) as they are. */
+      setWater(flow, level) {
+        cv.flow = flow; cv.level = level;
+        stream.geometry.setDrawRange(0, Math.round(THREE.MathUtils.clamp(flow, 0, 1) * STREAM_SEGS) * 8 * 6);
+        const r = basinR(level) - 0.1;
+        cv.wet = level > cv.levels.dry + 0.02 && r > 0.3;
+        pool.position.y = O.y + level;
+        pool.scale.set(Math.max(r, 0.01), 1e-3, Math.max(r, 0.01));
+      },
     });
   }
   out.cave = cv;
@@ -719,19 +822,9 @@ export function buildDesertCity(scene, terrain) {
     if (frameNo % sEvery === 0 && seen(smokeMid.copy(sm.at).addScaledVector(sm.wind, sm.drift * sm.windK * 0.35).setY(sm.at.y + sm.height * 0.6), sm.height * 0.75)) { sm.update(smokeDt, t, player?.wind); smokeDt = 0; }
     // the cave: drawn only when you're down there
     const inCave = _cam.distanceTo(O) < 300;
-    cv.group.visible = inCave; cv.pool.visible = inCave; cv.stream.visible = inCave && cv.streamOn; cv.pond.visible = inCave; cv.bone.visible = inCave;
+    cv.group.visible = inCave; cv.pool.visible = inCave && cv.wet; cv.stream.visible = inCave && cv.flow > 0; cv.bone.visible = inCave;
   };
   return out;
-}
-
-/** The makers' pale star, as on every box lid: four long points with concave sides (facing +z). */
-function starOutline(R = 1, r = 0.3) {
-  const s = new THREE.Shape();
-  for (let i = 0; i <= 8; i++) {
-    const a = (i / 8) * Math.PI * 2 + Math.PI / 2, rad = i % 2 === 0 ? R : r;
-    if (i === 0) s.moveTo(Math.cos(a) * rad, Math.sin(a) * rad); else s.lineTo(Math.cos(a) * rad, Math.sin(a) * rad);
-  }
-  return s;
 }
 
 /** The recurring glyph: three dots over an arc, as flat shapes (facing +z). */

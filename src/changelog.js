@@ -4,6 +4,9 @@
 
 export const CHANGELOG = [
   { v: '0.43', date: '2026-10-04', items: [
+    'In the desert city, the first makers’ box now waits on a little wooden ledge up the burning tree’s trunk, out in the open where you can see it from the stairs: climb the big root to reach it. Qanat gathers at the tree’s foot to watch, and Nour waits there for you to come down.',
+    'Your feet no longer sink into the terraces around the burning tree, and climbing the trunk puts your hands on the bark.',
+    'The cave in the giant’s chest is dry until you push the fallen rib off the channel; then the stream runs down and the pool fills before your eyes.',
     'People’s eyes are no longer black: everyone has eye whites, an iris of their own colour (brown, hazel, green, grey or blue) and a pupil, their eyes follow you when you talk to them, and they blink, in the crowds too. The traveller’s eyes match.',
     'For testing: a Debug entry on the title screen and in the Start menu opens the worlds list, and in the Lab [ and ] (L3 and R3 on a pad) hop from one world’s room to the next without walking to the doors.',
     'The Lab (in the worlds list, L) has a door for every world: step through to a little copy of each one, with its own ground, sky and light, rocks and buildings, plants, creatures and people in their own clothes. Each room has a door home behind you, and wandering off its edge brings you back to it.',

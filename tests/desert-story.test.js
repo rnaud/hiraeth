@@ -78,6 +78,45 @@ test('the city, its camps, the giant and the cave stand on solid ground, 300–6
   assert.ok(physics.rayDistance(V(pool.x, pool.y + 2, pool.z), V(0, 1, 0), 60) < 30, 'the dome closes over the pool');
 });
 
+test('feet stand on what is drawn: the terraces round the tree, the plaza, the avenue, and the trunk', () => {
+  // the drawn surfaces (render meshes, never collided) against the ground the feet are planted on (physics)
+  const C = Q.city, meshes = [];
+  Q.root.traverse((o) => { if (o.isMesh && o.visible && !/collision/.test(o.name) && o.geometry?.attributes.position) meshes.push(o); });
+  const rc = new THREE.Raycaster();
+  const drawnBelow = (p) => { rc.set(p, V(0, -1, 0)); rc.far = 40; return rc.intersectObjects(meshes, false)[0]; };
+  const T = C.top - C.center.y;
+  let checked = 0, total = 0;
+  const bad = [];
+  // rings on each tier (between the stairs), the plaza round the terraces, the avenue to the gate
+  const spots = [];
+  for (const [r0, r1, h] of [[19, 24.6, 2.2], [12.5, 17.1, 4.4], [6, 11.2, T]]) for (let r = r0; r <= r1; r += 1.4) for (let a = 0.35; a < Math.PI * 2 - 0.35; a += 0.21) if (Math.abs(a - Math.PI) > 0.35) spots.push([Math.sin(a) * r, h, Math.cos(a) * r]);
+  for (let r = 26; r <= 29.5; r += 1.5) for (let a = 0.4; a < Math.PI * 2 - 0.4; a += 0.3) spots.push([Math.sin(a) * r, 0, Math.cos(a) * r]);
+  for (let z = 27; z <= 62; z += 2.5) for (const x of [-1.5, 1.5]) spots.push([x, 0, z]);
+  for (const [x, h, z] of spots) {
+    const w = C.local(x, h + 3, z);
+    if (Math.hypot(w.x - C.treeBase.x, w.z - C.treeBase.z) < 6.6) continue;     // the trunk's foot and its flare
+    total++;
+    const g = physics.groundAt(w.x, w.y, w.z, 10), hit = drawnBelow(w);
+    if (!hit || Math.abs(hit.point.y - g) > 0.5) continue;                     // a root, a bench, a prop over it
+    checked++;
+    if (Math.abs(hit.point.y - g) > 0.04) bad.push(`${x.toFixed(1)},${z.toFixed(1)}: drawn ${(hit.point.y - g).toFixed(3)} m off`);
+  }
+  assert.ok(checked > total * 0.8, `most of the paving checked (${checked} of ${total})`);
+  assert.deepEqual(bad.slice(0, 6), [], `the drawn paving is where the feet stand (${bad.length} off)`);
+  // the trunk: its collider is the bark, so climbing hands and feet touch what you see
+  let n = 0;
+  for (let y = 1.5; y < 17.5; y += 1.6) for (let a = 0; a < Math.PI * 2; a += 0.45) {   // (under the crown's flame)
+    const d = V(Math.sin(a), 0, Math.cos(a)), from = C.treeBase.clone().addScaledVector(d, 9).setY(C.top + y);
+    const dir = d.clone().negate(), solid = physics.rayDistance(from, dir, 9);
+    rc.set(from, dir); rc.far = 9;
+    const hit = rc.intersectObjects(meshes, false).find((h) => h.object.material?.uniforms && h.distance > 0);
+    if (!hit || !Number.isFinite(solid) || Math.abs(hit.distance - solid) > 1) continue;   // (the ledge, a limb)
+    n++;
+    assert.ok(Math.abs(hit.distance - solid) < 0.22, `the bark at ${y.toFixed(1)} m, angle ${a.toFixed(2)}: drawn ${hit.distance.toFixed(2)}, solid ${solid.toFixed(2)}`);
+  }
+  assert.ok(n > 40, `the trunk checked all round (${n})`);
+});
+
 test('you can walk from the camps through the gate, up the stairs to the well, and out of the back gate', () => {
   const path = [Q.camps.center, Q.city.gate, Q.city.plinthStair, Q.city.wellLook];
   // round the trunk on the top terrace, down the back stairs, out through the back gate
@@ -200,22 +239,23 @@ test('a new game steps out with a bare back: no early step needs the tool; walk 
   // through the gate: inside the walls
   at(Q.city.plinthStair); step(2);
   assert.equal(quests.stage('desert.power'), 'box');
-  assert.equal(quests.current('desert.power').label, 'The humming by the tree');
+  assert.equal(quests.current('desert.power').label, 'The ledge on the tree');
 });
 
-test('the makers’ chest is in the city; opening it gathers Qanat, flares the tree and brings Nour', async () => {
+test('the makers’ chest is on its ledge up the tree; opening it gathers Qanat at the foot, flares the tree and brings Nour', async () => {
   const { items } = await import('../src/items.js');
   const { createBoxes } = await import('../src/boxes/index.js');
   const boxes = createBoxes({ levelId: 'desert', scene, physics, level, player, quests });
   const box = boxes.list.find((b) => b.item === 'backpack');
-  assert.ok(box.pos.distanceTo(Q.city.shrine.box) < 0.05, 'under the Givers’ shrine');
+  const L = Q.city.ledge;
+  assert.ok(box.pos.distanceTo(L.box) < 0.05, 'on the makers’ ledge');
   assert.ok(quests.objective().position.distanceTo(box.pos) < 0.01, 'the marker stands on the box');
   const W = rt.world, nour = W.people.nour;
-  assert.ok(nour.seat !== null && nour.pos.distanceTo(Q.city.shrine.bench.at) < 0.5, 'Nour sits on her bench by the shrine');
+  assert.ok(nour.seat !== null && nour.pos.distanceTo(L.bench.at) < 0.5, 'Nour sits on her bench under the ledge');
   // first sight of it: the people on the terrace turn and murmur, the tree flares
   W.state.flare = 0;
   at(Q.city.stairTop); step(40);
-  assert.ok(W.shrine.noticed, 'the chest is noticed');
+  assert.ok(W.ledge.noticed, 'the chest is noticed');
   assert.ok(W.state.flare > 0.5, 'the tree flares');
   assert.ok([...W.villagers, W.people.hessa].some((n) => n.shout && /sky|hum|fell|tree|Grandmother/.test(n.shout.text)), 'a murmur');
   // Nour, before it opens: it has not opened in living memory; it opens for one who fell from the sky
@@ -234,8 +274,14 @@ test('the makers’ chest is in the city; opening it gathers Qanat, flares the t
   assert.ok(W.state.flare > 2, 'the tree flares high');
   assert.ok(W.gatherSpots.length >= W.villagers.length, `room for everyone to gather (${W.gatherSpots.length} spots)`);
   for (const p of W.gatherSpots) stand(p, 'a gathering spot');
-  // they walk over (the ones in the avenue up the main stairs), Nour gets up and comes to you, and talks
+  // they walk over (the ones in the avenue up the main stairs); Nour gets up and waits at the tree's foot
+  // while you're still up on the ledge, calling you down; once you're down, she comes to you and talks
   assert.equal(nour.seat, null, 'Nour stands');
+  for (let i = 0; i < 12 * 30; i += 10) step(10, 1 / 30, { people: true });
+  assert.ok(!rt.dialogue.open, 'not while you are up there');
+  assert.ok(flat(nour.pos, L.foot) < 3 && Math.abs(nour.pos.y - L.foot.y) < 0.6, 'she waits at the foot of the ledge');
+  assert.match(nour.shout?.text ?? '', /Come down/, 'and calls you down');
+  at(L.foot.clone().addScaledVector(V(Math.sin(L.yaw), 0, Math.cos(L.yaw)), 1.5));
   for (let i = 0; i < 40 * 30 && !rt.dialogue.open; i += 10) step(10, 1 / 30, { people: true });
   assert.ok(rt.dialogue.open && rt.dialogue.person.id === 'nour', 'Nour reaches you and speaks');
   assert.equal(rt.dialogue.runner.nodeId, 'opened');
@@ -243,7 +289,7 @@ test('the makers’ chest is in the city; opening it gathers Qanat, flares the t
   rt.dialogue.close();
   step(30 * 30, 1 / 30, { people: true });
   const near = W.villagers.filter((n) => flat(n.pos, box.pos) < 7).length;
-  assert.ok(near >= 4, `Qanat gathers round the shrine (${near} of ${W.villagers.length})`);
+  assert.ok(near >= 4, `Qanat gathers at the tree’s foot under the ledge (${near} of ${W.villagers.length})`);
   // a real conversation, with choices
   const r = talk(PEOPLE.nour, ['Who are the Givers?', 'Why a star?', 'My ship has no power', 'Why me?', 'All right', 'The well']);
   assert.equal(game.flag('desert.elder.heard'), true);

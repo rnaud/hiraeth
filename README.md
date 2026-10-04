@@ -1768,3 +1768,26 @@ a distance (or in the 160 px dialogue portrait) still has eyes.
   `uGaze`, ringed by a fine line once the face is large enough.
 - `tests/eyes.test.js` covers the colours, the gaze clamping, the blink timing, the eyeballs
   and the aim through the skeleton, and the crowd's eye triangles.
+
+### Qanat's tree ledge, solid terraces, and the dry cave
+- **The makers' ledge** (`src/desert-city.js`, `city.ledge`): the backpack's box no longer
+  stands under the little blue shrine; it sits on a plank shelf jutting out of the burning
+  tree's trunk 3.2 m over the top terrace, left of the dry well, on a buttress root whose flat
+  face you climb (push into it). The shelf reaches 2 m past the chest's centre, so the climb's
+  last reach (`player.js` `tryMantle`, a 1.6 m ray at head height) clears the chest and ends in a
+  pull-up onto the planks in front of it. `ledge.box` / `ledge.yaw` place the box
+  (`src/boxes/placements.js`), `ledge.foot` is where you start the climb, `ledge.at(x, y, z)`
+  is ledge-local (x across, z out from the chest), `ledge.bench` is Nour's bench below it.
+  When it opens, Qanat gathers at the tree's foot looking up; Nour waits there while you are
+  still up on the shelf (and calls you down), then comes to you (`src/story/desert.js`).
+- **Feet on the paving**: the terraces' lips were full discs 22 cm over the colliders, so feet
+  sank into every tier; they are now flush bands, and the colliders are as round and as wide
+  as the lip. The plaza and avenue paving sit 2 cm proud of the ground. The trunk's collider
+  is the bark itself (it was a cone up to 0.7 m outside it). `tests/desert-story.test.js`
+  raycasts the drawn surfaces against the ground.
+- **The dry cave**: the giant's chest has no water until the rib is pushed off the channel:
+  damp stains in the basin and the gutter, a pale tide line where the pool stood. Then the
+  stream runs out of the crack down the channel (`cave.setWater(flow, level)` reveals it
+  segment by segment with a draw range), and the pool fills the basin from its lowest point,
+  widening up its sides (its radius follows the basin's profile, `cave.basinR`). A save with
+  the channel already open finds it full (`tests/desert-cave.test.js`).

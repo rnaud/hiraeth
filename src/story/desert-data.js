@@ -8,9 +8,9 @@
 // Ama gave you fills with living water: power for the ship.
 //
 // It starts in the city. The traveller steps out of a dark ship with nothing
-// on their back and follows the smoke to Qanat. Beside the dry well stands
-// the Givers' shrine, and under it the makers' chest that has not opened in
-// living memory ("it opens for one who fell from the sky"). It opens for the
+// on their back and follows the smoke to Qanat. Beside the dry well, a few
+// metres up the burning tree's trunk, a ledge juts out, and on it sits the
+// makers' chest that has not opened in living memory ("it opens for one who fell from the sky"). It opens for the
 // traveller: the backpack. Qanat gathers, the tree flares, and Nour, the
 // eldest, who has kept the chest for sixty years, sends them on: the well,
 // Ama's jar, the Speaker's old words, the way down.
@@ -44,15 +44,15 @@ export const QUESTS = [
     stages: [
       // the ship is dark and the traveller's back is bare: past the camps and the procession, into the city
       { id: 'city', text: 'The ship is dark. Follow the smoke to the city', label: 'Qanat, under the smoke', flag: 'desert.city.entered', at: 'cityGate' },
-      // the makers' chest under the Givers' shrine, beside the dry well (src/boxes/placements.js): the backpack
-      { id: 'box', text: 'Something by the burning tree is humming. Find it', label: 'The humming by the tree', flag: 'item.backpack', at: 'box.desert.backpack' },
+      // the makers' chest on its ledge up the burning tree's trunk, beside the dry well (src/boxes/placements.js): the backpack
+      { id: 'box', text: 'Something is humming on a ledge up the burning tree’s trunk. Climb up to it', label: 'The ledge on the tree', flag: 'item.backpack', at: 'box.desert.backpack' },
       // Qanat gathers; Nour, the eldest, comes to see who opened it (src/story/desert.js, the reaction)
       { id: 'elder', text: 'The chest opened. Speak with Nour, the eldest of Qanat', label: 'Nour, the eldest', flag: 'desert.elder.heard', at: 'nour' },
       { id: 'well', text: 'Listen at the dry well, as Nour asked', label: 'The dry well', flag: 'desert.well.seen', at: 'well' },
       { id: 'ama', text: 'Ask Ama at the camp fires for the drinking jar', label: 'Ama, keeper of the fires', flag: 'desert.jar.given', at: 'ama' },
       { id: 'speaker', text: 'Find the Speaker at the head of the procession: the old words know the way down', label: 'The Speaker', flag: 'desert.speaker.heard', at: 'speaker' },
       { id: 'down', text: 'Find the way beneath the giant, outside the back gate', label: 'The giant’s skull', flag: 'desert.cave.seen', at: 'caveIn' },
-      { id: 'channel', text: 'The pool is low: something blocks the channel. Push it clear', label: 'The blocked channel', flag: 'desert.channel.open', at: 'bone' },
+      { id: 'channel', text: 'The pool is dry: something blocks the channel. Push it clear', label: 'The blocked channel', flag: 'desert.channel.open', at: 'bone' },
       { id: 'fill', text: 'Fill Ama’s jar in the risen pool', label: 'The pool', flag: 'desert.jar.filled', at: 'pool' },
       { id: 'ship', text: 'Bring the living water to the ship', label: 'Your ship', flag: 'desert.ship.fed', at: 'ship' },
     ],
@@ -126,7 +126,7 @@ export const PEOPLE = {
           ],
         },
         early: {
-          say: ['~playful~ Power? Not at my fires, sky-stranger. I only have fire.', '~neutral~ Go into *the city*, under the smoke, up *the steps to the tree*. *Old Nour* sits there beside a chest nobody can open. It has been humming since the night the light sang. Whatever a sky-ball needs, she’ll know where to start.'],
+          say: ['~playful~ Power? Not at my fires, sky-stranger. I only have fire.', '~neutral~ Go into *the city*, under the smoke, up *the steps to the tree*. *Old Nour* sits there, under a chest nobody can open, up on the trunk. It has been humming since the night the light sang. Whatever a sky-ball needs, she’ll know where to start.'],
           choices: [{ text: '~neutral~ I’ll go to the city.', end: true }, { text: '~curious~ Who are all these people?', goto: 'who' }],
         },
         sent: {
@@ -284,7 +284,8 @@ export const PEOPLE = {
         tell: {
           say: ['~curious~ You went! What’s down there? Tell me tell me tell me.'],
           choices: [
-            { text: '~solemn~ A pool of water in every colour, inside the giant’s chest. The tree’s roots drink from it.', do: [{ advance: 'desert.ilo' }, { set: { 'desert.ilo.told': 'true' } }], goto: 'truth' },
+            { text: '~solemn~ A pool of water in every colour, inside the giant’s chest. The tree’s roots drink from it.', if: { flag: 'desert.channel.open' }, do: [{ advance: 'desert.ilo' }, { set: { 'desert.ilo.told': 'true' } }], goto: 'truth' },
+            { text: '~solemn~ A pool inside the giant’s chest, dry as the well, and a fallen rib across the channel. The tree’s roots hang into it, waiting.', if: { not: { flag: 'desert.channel.open' } }, do: [{ advance: 'desert.ilo' }, { set: { 'desert.ilo.told': 'true' } }], goto: 'truth' },
             { text: '~playful~ A sleeping monster. It sniffed me.', do: [{ advance: 'desert.ilo' }, { set: { 'desert.ilo.told': 'monster' } }], goto: 'monster' },
             { text: '~whisper~ It’s a secret. You’ll see it yourself when you’re older.', do: [{ advance: 'desert.ilo' }, { set: { 'desert.ilo.told': 'secret' } }], goto: 'secret' },
           ],
@@ -396,7 +397,7 @@ export const PEOPLE = {
     },
   },
 
-  // the eldest of Qanat, Hessa's grandmother, who has kept the makers' chest under the Givers' shrine for sixty years
+  // the eldest of Qanat, Hessa's grandmother, who has kept the makers' chest company from her bench under its ledge for sixty years
   nour: {
     id: 'nour', name: 'Nour', title: 'the eldest of Qanat', color: '#3b4f8a', voice: 0.72, kind: 'f', scale: 0.93,
     palette: { cloak: '#2f437a', lining: '#dcecf2', cloth: '#e2d3b4', legs: '#5a4a40', hat: '#f3ead8', hair: '#ece4d2' }, head: 'wrap', cape: 1.45, look: { mask: 'veil', prop: 'staff', robe: 0.06 },
@@ -419,12 +420,12 @@ export const PEOPLE = {
             { text: '~neutral~ I’ll leave it be.', end: true },
           ],
         },
-        fell: { say: ['~tired~ So you did. The whole desert saw the smoke. And the night before, a light crossed the sky singing, and this chest sang back all night long. I did not sleep. Neither did it.', '~playful~ Well. Go on, then. *Try it*. If it bites you, I will say I warned you.'], choices: [{ text: '~neutral~ (try the chest)', end: true }] },
+        fell: { say: ['~tired~ So you did. The whole desert saw the smoke. And the night before, a light crossed the sky singing, and this chest sang back all night long. I did not sleep. Neither did it.', '~playful~ Well. Go on, then. *Climb up and try it*. If it bites you, I will say I warned you.'], choices: [{ text: '~neutral~ (try the chest)', end: true }] },
         // it opened: the reaction (desert.js brings her over and opens this on her own)
         opened: {
           say: [
-            { if: { flag: 'desert.shrine.gathered' }, text: '~surprised~ It opened. It opened! Sixty years I have sat beside that chest, and my mother before me, and it never once so much as creaked.' },
-            { if: { not: { flag: 'desert.shrine.gathered' } }, text: '~playful~ The chest stands open, and empty, and you walk in wearing what was in it. So. It opened for you, and nobody was there to see. That is just like the Givers.' },
+            { if: { flag: 'desert.shrine.gathered' }, text: '~surprised~ It opened. It opened! Sixty years I have sat under that chest, and my mother before me, and it never once so much as creaked.' },
+            { if: { not: { flag: 'desert.shrine.gathered' } }, text: '~playful~ The chest stands open, and empty, and you climb down wearing what was in it. So. It opened for you, and nobody was there to see. That is just like the Givers.' },
             '~solemn~ The old words say: “The Givers’ chest opens for one who fell from the sky.” We took it for a riddle. Then a light crossed the sky singing, the chest hummed all night, and in the morning your ball came down burning.',
           ],
           choices: [
@@ -494,14 +495,14 @@ export const PEOPLE = {
           choices: [
             { text: '~curious~ Where does the water come from?', goto: 'from' },
             { text: '~curious~ What’s the mark above the carving?', goto: 'glyph' },
-            { text: '~curious~ What is the little blue shrine?', goto: 'chest' },
+            { text: '~curious~ What is up on the tree’s trunk?', goto: 'chest' },
             { text: '~neutral~ I’ll let you sweep.', end: true },
           ],
         },
         chest: {
-          say: [{ if: { not: { flag: 'item.backpack' } }, text: '~playful~ The Givers’ shrine. The chest under it was here before the city; we built the city round the tree, and the tree round… well. My grandmother Nour keeps the chest. I keep the well. Neither of them does anything.' },
+          say: [{ if: { not: { flag: 'item.backpack' } }, text: '~playful~ The Givers’ ledge. The chest on it was here before the city; we built the city round the tree, and the tree grew up round the ledge… well. My grandmother Nour keeps the chest. I keep the well. Neither of them does anything.' },
             { if: { not: { flag: 'item.backpack' } }, text: '~tired~ It has hummed every night since the light sang. Grandmother says it’s waiting for someone. Grandmother says a lot of things.' },
-            { if: { flag: 'item.backpack' }, text: '~playful~ The Givers’ shrine. Sixty years my grandmother sat beside that chest, and it opened for you on a Tuesday. She’ll be insufferable.' }],
+            { if: { flag: 'item.backpack' }, text: '~playful~ The Givers’ ledge. Sixty years my grandmother sat under that chest, and it opened for you on a Tuesday. She’ll be insufferable.' }],
           choices: [{ text: '~curious~ Where does the water come from?', goto: 'from' }, { text: '~happy~ Thank you, Hessa.', end: true }],
         },
         from: { say: ['~neutral~ From below. From the giant. Its head lies outside the back gate; its heart lies under our feet. The old keepers went down *through its mouth* to clean the channel, so my grandmother Nour says; she saw them go when she was a girl. Nobody has gone down in my lifetime.'], choices: [{ text: '~surprised~ Through its mouth?', goto: 'mouth' }] },
@@ -593,7 +594,7 @@ export const THINGS = {
   bone: {
     id: 'bone', name: 'The fallen rib', title: 'across the channel', color: '#f2ead6', voice: 0.6,
     talk: { nodes: { look: {
-      say: ['~neutral~ A rib, as long as three people, has broken from the arch above and fallen across the stone channel. Behind it, water stands bright and trapped; in front of it, the channel is dry.', '~neutral~ It’s far too heavy to lift by hand. But it might roll, with a strong enough shove of the fluid. (*Push*: C, middle click, or RB / R1.)'],
+      say: ['~neutral~ A rib, as long as three people, has broken from the arch above and fallen across the stone channel. The channel runs back from it into a crack in the wall. It is dry, but the stone under the rib is dark and damp.', '~neutral~ It’s far too heavy to lift by hand. But it might roll, with a strong enough shove of the fluid. (*Push*: C, middle click, or RB / R1.)'],
       choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
   },
@@ -610,7 +611,7 @@ export const LINES = {
   waveOn: {
     camp: ['~shout~ The city’s that way, sky-stranger. *Follow the smoke*!', '~happy~ Go on in! Nour will want to see you.', '~neutral~ Through the big gate and *up to the tree*.', '~surprised~ You’re the one from the ball? The tree’s been flaring all morning.'],
     procession: ['~shout~ Qanat’s ahead, stranger, under the smoke!', '~angry~ Keep the step, or go on to the city. Not both!', '~solemn~ The tree is waiting. Something is.'],
-    gate: ['~neutral~ Go on up to *the tree*. Something there is humming.', '~neutral~ Nour is up *by the well*. Mind the steps.', '~happy~ Up the stairs, stranger. Everyone’s waiting to see.'],
+    gate: ['~neutral~ Go on up to *the tree*. Something there is humming.', '~neutral~ Nour is up *under the tree*. Mind the steps.', '~happy~ Up the stairs, stranger. Everyone’s waiting to see.'],
   },
 };
 
@@ -627,12 +628,12 @@ export const VILLAGERS = [
 export const MURMURS = {
   near: ['~whisper~ Look, the one from the sky-ball.', '~whisper~ It’s humming louder. Listen.', '~curious~ Is that the one who fell?', '~surprised~ The tree, look at the tree!'],
   gather: ['~shout~ It opened!', '~surprised~ The Givers’ chest… it’s open!', '~shout~ Fetch Nour! Somebody wake Nour!', '~solemn~ For the sky-stranger. It opened for the sky-stranger.', '~playful~ Sixty years and it opens on a Tuesday.', '~curious~ Did you see the light come out?'],
-  nour: ['~surprised~ Eh? What—', '~angry~ Let me through. Let an old woman through.', '~surprised~ It opened. It opened!'],
+  nour: ['~surprised~ Eh? What—', '~angry~ Let me through. Let an old woman through.', '~surprised~ It opened. It opened!', '~shout~ Come down, child! Come down and let an old woman look at you.'],
 };
 export const VILLAGER_TALK = {
   name: 'Someone from Qanat', title: 'of Qanat', color: '#e6875f', voice: 1.0,
   talk: { entry: [{ if: { flag: 'item.backpack' }, node: 'open' }, { node: 'shut' }], nodes: {
-    shut: { say: ['~playful~ That’s *the Givers’ chest, under the little blue dome*. It never opens. Nour sits with it, in case. Go and look, if you like; it hums at people.'], choices: [{ text: '~neutral~ Thanks.', end: true }] },
+    shut: { say: ['~playful~ That’s *the Givers’ chest, on the tree’s ledge*. It never opens. Nour sits under it, in case. Climb up and look, if you like; it hums at people.'], choices: [{ text: '~neutral~ Thanks.', end: true }] },
     open: { say: ['~playful~ I was there when it opened! Well. Near. I heard it. Everyone heard it. My grandmother is going to say she saw it, and she was asleep.'], choices: [{ text: '~happy~ (smile)', end: true }] },
   } },
 };

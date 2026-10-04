@@ -72,6 +72,9 @@ Grouped by area. Checked items are done; the changelog says when.
 
 ## Bugs
 
+- [x] The skull's cave has no water until the passage is unblocked; feet no longer sink into
+  the tree's platform; the first box sits on a ledge up the tree, not in a gazebo.
+
 - [x] Prologue camera clips into everything at the start and glitches while
   moving around.
 - [x] Crash landing on the first planet: the planet's shader keeps sliding
