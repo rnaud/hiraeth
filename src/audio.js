@@ -23,6 +23,7 @@ const PROFILES = {
   spheres: { root: 220.0, scale: [0, 2, 4, 7, 9], tempo: 64, pad: 'triangle', arp: 'sine', prog: [0, 4, 3, 2], density: 0.42, ground: 'grass' },
   perdide2: { root: 155.56, scale: [0, 1, 3, 5, 7, 8, 10], tempo: 52, pad: 'sine', arp: 'triangle', prog: [0, 5, 1, 0], density: 0.3, ground: 'grass' },
   atelier: { root: 130.81, scale: [0, 2, 4, 5, 7, 9, 11], tempo: 60, pad: 'sine', arp: 'sine', prog: [0, 3, 5, 4], density: 0.3, ground: 'stone' },
+  home:    { root: 138.59, scale: [0, 2, 4, 5, 7, 9, 11], tempo: 54, pad: 'triangle', arp: 'sine', prog: [0, 3, 4, 0], density: 0.3, ground: 'grass' },
 };
 
 // Each world's own voice: the lead instrument, its recurring melody (a phrase
@@ -48,6 +49,8 @@ const VOICES = {
   perdide2: { lead: 'bell', pluck: 'bell', ambience: 'swamp', melody: [[0, 3], [2, 1], [1, 2], [5, 2], [null, 2], [4, 1], [0, 4]] },
   atelier: { lead: 'flute', pluck: 'celesta', ambience: 'paper',
     melody: [[0, 2], [2, 1], [4, 1], [7, 3], [6, 1], [4, 4]] },
+  // home: a phrase that climbs and comes back to rest
+  home: { lead: 'strings', pluck: 'kalimba', ambience: 'birds', melody: [[0, 2], [2, 1], [4, 1], [5, 3], [null, 1], [4, 1], [2, 1], [0, 4]] },
 };
 
 export class Sound {

@@ -4,6 +4,11 @@
 // (visited / discovery made / you are here). Without power it is locked.
 //
 // Pure helpers (consoleAction, mapEntries) are used by the tests.
+//
+// Home sits at the centre, where the route begins; it is a destination once
+// enough worlds are done (src/story/ending.js).
+
+import { homeEntry } from '../story/ending.js';
 
 /** What the console does when you press E: a pending call first, then the map, which needs power. */
 export function consoleAction({ powered, pendingCall }) {
@@ -11,14 +16,17 @@ export function consoleAction({ powered, pendingCall }) {
   return powered ? 'map' : 'locked';
 }
 
-/** The list of worlds on the chart. */
-export function mapEntries({ order, levels, flag, journal, current }) {
-  return order.map((id, i) => {
+/** The list of worlds on the chart; Home is last, once the ending is open (src/story/ending.js). */
+export function mapEntries({ order, levels, flag, journal, current, home }) {
+  const out = order.map((id, i) => {
     const L = levels.find((l) => l.id === id) ?? { id, title: id };
     const done = !!(flag?.(`world.${id}.done`) || journal?.storyDone?.(id));
     const visited = !!(journal?.seen?.(id) || id === current || done);
     return { id, i, title: L.title, source: L.source ?? '', blurb: L.blurb ?? '', visited, done, current: id === current };
   });
+  const h = homeEntry({ unlocked: typeof home === 'function' ? home() : !!home, current });
+  if (h) out.push({ ...h, i: out.length });
+  return out;
 }
 
 const CSS = `
@@ -42,6 +50,9 @@ const CSS = `
 #starmap .world.done .tag { color: #f2c54b; }
 #starmap .world.unvisited .disc { filter: grayscale(.8) brightness(.7); border-style: dashed; }
 #starmap .world.current .disc { border-color: #e6875f; box-shadow: 0 0 0 3px #1f2747, 0 0 0 6px #e6875f; }
+#starmap .world.home .disc { position: relative; width: 50px; height: 50px; background: radial-gradient(circle at 50% 70%, #f6c89a 0 34%, #f2c54b 35% 38%, #4a5a8a 39%); border-color: #f2c54b; }
+#starmap .world.home .disc::after { content: '⌂'; position: absolute; inset: 0; display: grid; place-items: center; font-size: 30px; color: #2b211f; }
+#starmap .world.home .tag { color: #f2c54b; }
 #starmap .world.sel .disc, #starmap .world:hover .disc, #starmap .world:focus .disc { transform: scale(1.18); border-color: #f2c54b; }
 #starmap .world:focus { outline: none; }
 #starmap .panel { position: absolute; right: 18px; top: 18px; width: 270px; padding: 12px 14px; background: #f7ecd2; color: #2b211f; border: 2px solid #2b211f; box-shadow: 4px 4px 0 #2b211f; }
@@ -93,18 +104,21 @@ export class StarMap {
   render() {
     const o = this.o;
     this.entries = mapEntries(o);
-    const pts = this.layout(this.entries.length);
+    const worlds = this.entries.filter((e) => !e.home);
+    const pts = this.layout(worlds.length);
     const path = pts.map(([x, y], i) => `${i ? 'L' : 'M'}${x} ${y}`).join(' ');
+    pts.push(...this.entries.filter((e) => e.home).map(() => [38.5, 59]));   // home: just under the centre the route spirals out from
     this.el.innerHTML = `<div class="chart">
       <svg viewBox="0 0 100 100" preserveAspectRatio="none">
         <ellipse cx="38" cy="52" rx="2.6" ry="4" fill="#f2c54b" stroke="#2b211f" stroke-width=".3"/>
         ${[0.3, 0.55, 0.8, 1.02].map((r) => `<ellipse cx="38" cy="52" rx="${r * 29}" ry="${r * 37}" fill="none" stroke="rgba(247,236,210,.18)" stroke-width=".15"/>`).join('')}
         <path d="${path}" fill="none" stroke="#e6875f" stroke-width=".35" stroke-dasharray="1 1.2" vector-effect="non-scaling-stroke"/>
+        ${worlds.length < pts.length ? `<path d="M${pts[pts.length - 1].join(' ')} L38 52 L${pts[0].join(' ')}" fill="none" stroke="#f2c54b" stroke-width=".35" stroke-dasharray=".6 1" vector-effect="non-scaling-stroke"/>` : ''}
       </svg>
-      <h1>GALACTIC MAP</h1><div class="sub">${this.entries.filter((e) => e.done).length} of ${this.entries.length} worlds · discoveries made</div>
-      ${this.entries.map((e, i) => `<button class="world${e.done ? ' done' : ''}${e.visited ? '' : ' unvisited'}${e.current ? ' current' : ''}" data-i="${i}" style="left:${pts[i][0]}%;top:${pts[i][1]}%">
-          <span class="disc"><img src="thumbs/${e.id}.jpg" alt="" onerror="this.style.visibility='hidden'"></span>
-          <span class="name">${e.title}</span><span class="tag">${e.current ? 'you are here' : e.done ? '✦ discovery made' : e.visited ? 'visited' : '· · ·'}</span></button>`).join('')}
+      <h1>GALACTIC MAP</h1><div class="sub">${worlds.filter((e) => e.done).length} of ${worlds.length} worlds · discoveries made</div>
+      ${this.entries.map((e, i) => `<button class="world${e.done ? ' done' : ''}${e.visited ? '' : ' unvisited'}${e.current ? ' current' : ''}${e.home ? ' home' : ''}" data-i="${i}" style="left:${pts[i][0]}%;top:${pts[i][1]}%">
+          <span class="disc">${e.home ? '' : `<img src="thumbs/${e.id}.jpg" alt="" onerror="this.style.visibility='hidden'">`}</span>
+          <span class="name">${e.title}</span><span class="tag">${e.current ? 'you are here' : e.home ? 'they are waiting' : e.done ? '✦ discovery made' : e.visited ? 'visited' : '· · ·'}</span></button>`).join('')}
       <div class="panel"></div>
       <div class="keys">← → choose · ENTER travel · ESC close</div>
       <div class="locked"><div><b>NO POWER</b>The ship cannot fly.<br>Find a new source of power.</div></div>
@@ -123,7 +137,7 @@ export class StarMap {
     for (const b of this.el.querySelectorAll('button.world')) b.classList.toggle('sel', +b.dataset.i === i);
     const p = this.el.querySelector('.panel');
     p.innerHTML = `<h2>${e.title}</h2><div class="src">${e.source}</div><p>${e.blurb}</p>
-      <div class="state">${e.current ? 'THE SHIP IS HERE' : e.done ? 'DISCOVERY MADE' : e.visited ? 'VISITED' : 'NOT YET VISITED'}</div>
+      <div class="state">${e.current ? 'THE SHIP IS HERE' : e.home ? 'HOME' : e.done ? 'DISCOVERY MADE' : e.visited ? 'VISITED' : 'NOT YET VISITED'}</div>
       <button class="go"${e.current || !this.o.powered() ? ' disabled' : ''}>${e.current ? 'you are here' : 'Travel ▶'}</button>`;
     p.querySelector('.go').addEventListener('click', () => this.go());
   }
@@ -142,8 +156,9 @@ export class StarMap {
     if (on) {
       this.render();
       const cur = this.entries.findIndex((e) => e.current);
-      const next = this.entries.findIndex((e, i) => i > cur && !e.done);
-      this.select(next >= 0 ? next : (cur + 1) % this.entries.length);
+      const next = this.entries.findIndex((e, i) => i > cur && !e.done && !e.home);
+      const home = this.o.flag?.('ending.done') ? -1 : this.entries.findIndex((e) => e.home && !e.current);   // they are waiting
+      this.select(home >= 0 ? home : next >= 0 ? next : (cur + 1) % this.entries.length);
       document.exitPointerLock?.();
     }
     this.el.classList.toggle('open', on);

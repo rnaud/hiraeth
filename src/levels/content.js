@@ -16,6 +16,7 @@ import { EDENA_CONTENT } from './edena.js';
 import { SPHERES_CONTENT } from './spheres.js';
 import { PERDIDE2_CONTENT } from './perdide2.js';
 import { PERDIDE_CONTENT } from './perdide.js';
+import { HOME_CONTENT } from './home.js';
 import { RIM as INCAL_RIM, PEOPLE as INCAL_PEOPLE } from '../story/incal-data.js';
 import { STREET as BAZAAR_STREET } from '../story/bazaar-data.js';
 
@@ -27,6 +28,7 @@ export const CONTENT = {
   buried: BURIED_CONTENT,
   spheres: SPHERES_CONTENT,
   perdide2: PERDIDE2_CONTENT,
+  home: HOME_CONTENT,   // src/levels/home.js: the parents at the door
   bazaar: {
     weather: [],
     // the Signal Market's story is a quest (src/story/bazaar-data.js): this page opens on the

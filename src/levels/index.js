@@ -10,6 +10,7 @@ import { createArzach2 } from './arzach2.js';
 import { createBuried } from './buried.js';
 import { createSpheres } from './spheres.js';
 import { createPerdide2 } from './perdide2.js';
+import { createHome } from './home.js';
 
 // Level registry: shown in the picker and the panel, loaded with ?level=<id>.
 export const LEVELS = [
@@ -84,6 +85,14 @@ export const LEVELS = [
     title: 'The Atelier', source: 'the last page',
     blurb: 'A blank page where every world you crossed is sketched in pencil. Someone is still drawing. Pale paper-like growths stir when you look at them.',
     moves: 'unlocked by finishing every world',
+  },
+  {
+    // where the route begins: on the galactic map once enough worlds are done (src/story/ending.js)
+    id: 'home', create: createHome, hidden: true,
+    title: 'Home', source: 'where the route begins',
+    blurb: 'A small round house on a small round hill, a lamp in the window, and two moons over it. They are waiting.',
+    moves: 'walk · the bird, if she promised',
+    lock: { text: 'Come home when you are ready: the ship’s map shows the way once six worlds are done.', moves: 'the way home' },
   },
 ];
 

@@ -8,7 +8,9 @@ import { buildCrashSite } from './crash.js';
 import { Puffs } from './fx.js';
 import { Cinema, Warp } from './cinema.js';
 import { StarMap, consoleAction } from './starmap.js';
-import { pendingCall, completedWorlds, callLines, callContext } from '../story/calls.js';
+import { pendingCall, completedWorlds, callLines, callContext, applyCall, ILEN_CALL } from '../story/calls.js';
+import { endingUnlocked, HOME_ID } from '../story/ending.js';
+import { HomecomingDirector } from './homecoming.js';
 import * as sfx from './sfx.js';
 import { Prologue } from './prologue.js';
 import { PrologueDirector, ArrivalDirector, TakeoffDirector, CallDirector } from './cinematics.js';
@@ -250,6 +252,7 @@ export class Ship {
     this.map = new StarMap({
       order: deps.order, levels: deps.levels, journal: deps.journal, current: this.levelId,
       flag: (k) => game.flag(k), powered: () => !!game.flag('ship.powered'),
+      home: () => endingUnlocked(this.completed()) || this.levelId === HOME_ID,   // src/story/ending.js
       onTravel: (id) => this.travel(id),
     });
     globalThis.addEventListener?.('keydown', (e) => { if (e.code === 'Escape') this._esc = true; this._keyT = performance.now(); });
@@ -258,8 +261,14 @@ export class Ship {
   }
 
   /** Called when the world is ready. via: 'ship' | 'gate' | 'edge' | null. */
-  start({ via, prologue, onReady }) {
+  start({ via, prologue, homecoming, onReady }) {
     this.onReady = onReady;
+    if (homecoming && this.spaceCopy) {
+      // the end: out of the jump over home, the choice in the cockpit, the landing, the door (src/ship/homecoming.js)
+      this.cinematic = new HomecomingDirector(this);
+      this.cinematic.start();
+      return;
+    }
     if (prologue && this.spaceCopy) {
       const director = new PrologueDirector(this);
       this.prologue = new Prologue({ director, game });
@@ -404,8 +413,10 @@ export class Ship {
     const n = pendingCall({ flag: (k) => game.flag(k), completed: this.completed().length });
     const action = consoleAction({ powered: !!game.flag('ship.powered'), pendingCall: n });
     if (action === 'call') {
-      const lines = callLines(n, callContext(game, { titles: this.titles, lastWorld: this.completed().slice(-1)[0] }));
-      this.cinematic = new CallDirector(this, { n, lines, onDone: () => { game.set(`calls.${n}`, true); game.emit('call', { n }); } });
+      const done = this.completed();
+      const lines = callLines(n, callContext(game, { titles: this.titles, completed: done, lastWorld: done.slice(-1)[0] }));
+      this.cinematic = new CallDirector(this, { n, lines, who: n === ILEN_CALL ? 'mother' : undefined,
+        onDone: () => { applyCall(game, lines); game.set(`calls.${n}`, true); game.emit('call', { n }); } });
       this.cinematic.start();
       return;
     }

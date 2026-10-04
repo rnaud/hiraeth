@@ -161,9 +161,24 @@ call depends on the player's choice.
 - **Keepsake**: *word*: the broadcast's message.
 - **Clue**: the broadcast was sent from the traveller's home system.
 
-## The ending (not built)
-At the ship's cockpit after enough worlds, the player chooses one keepsake to
-bring home. The father's reaction depends on its kind; the mother's does not.
+## The ending (built: src/story/ending.js, src/ship/homecoming.js, src/levels/home.js)
+After six worlds (`ENDING_WORLDS`), the call home that follows asks the
+traveller to come home, and the galactic map shows **Home** just under its
+centre. Choosing it flies there. Out of the jump, in orbit, the ship asks for a
+cargo check: the traveller chooses one keepsake to bring home (every keepsake,
+with its words and kind, or **nothing**). The ship lands on the ring by a small
+round house on a small round hill at dusk (a cream dome with a lamp in its
+round window, an umbrella tree, a washing line in the backpack's colours, two
+moons). The parents wait at the door. The father's words depend on the kind
+(a thing: "It is lighter than I thought it would be"; a song: he keeps the
+beat; words: "Then they saw you properly"; a person: "So were we"; a knowing:
+"Explain it again tomorrow"; nothing: "the only thing I ever wanted back", or,
+if you know about Ilen, "what I told Ilen to bring, in the end"). The mother's
+are always the same, about the traveller. A closing line ("Something of value.
+You brought it home on your own two feet."), then the credits: a paper page of
+the worlds and their people (the ones you met in ink, the others in pencil).
+`ending.keepsake` keeps the choice; the game goes on, and calls home after that
+are calls from home.
 
 ## Local names (as built)
 | World | The glyph | The singing light |
@@ -196,6 +211,18 @@ sold there was an answer.
 **Open thread: Ilen.** The Signal Market's broadcast is the father, years
 younger, speaking to a child called Ilen, with the same words he said to his
 own son. Sel offers two readings: he once had someone else to call home, or he
-lent his voice to another family through the old relays. Later calls home, and
-the mother, could pick this up.
+lent his voice to another family through the old relays.
+
+**Ilen (as built, src/story/calls.js).** The first reading, made plain: Ilen was
+the traveller's elder sister, grown and gone before the traveller was born. She
+went out the same way; at the port the father told her to make them proud and
+bring back something of value. She never came home, and nobody found out why.
+The broadcast is the message he sent after her every night for a year, until
+the mother asked him to stop. The call after the broadcast, the traveller says
+the name and the father deflects (relays cross voices). Once the ship has flown
+on, the mother calls on her own and tells the truth. The last thing that came
+back from Ilen's ship was not a voice but a sound like singing: the parents
+have heard the singing light too, and the father will not talk about it. After
+that he says it himself ("I said the same words to you at the port that I said
+to her"), and stops weighing what you bring.
 

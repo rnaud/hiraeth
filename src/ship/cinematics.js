@@ -30,11 +30,11 @@ function callShot(ship, model, t = 0) {
 }
 
 /** Lines on a timeline: subtitles and the speaking mouth. */
-function playLines(ship, model, timeline, t, { both = false } = {}) {
+function playLines(ship, model, timeline, t, { both = false, who = both ? 'both' : 'father' } = {}) {
   const cur = timeline.lines.find((l) => t >= l.t0 && t < l.t1) ?? null;
   if (cur !== ship._line) { ship._line = cur; ship.cinema.say(cur ? cur.line : null); }
   const talk = cur && t < cur.t0 + (cur.t1 - cur.t0) * 0.9 ? 1 : 0;
-  model.callScreen?.set({ who: both ? 'both' : 'father', talk, speaker: cur?.line.who ?? 'father' });
+  model.callScreen?.set({ who, talk, speaker: cur?.line.who ?? 'father' });
 }
 
 // ---------------------------------------------------------------------------
@@ -368,8 +368,8 @@ class Sequence {
 
 /** A call home at the console. */
 export class CallDirector extends Sequence {
-  constructor(ship, { n, lines, onDone }) {
-    const m = ship.parked, both = n >= 3;
+  constructor(ship, { n, lines, onDone, who: onScreen }) {
+    const m = ship.parked, who = onScreen ?? (n >= 3 ? 'both' : 'father');
     const tl = callTimeline(lines);
     const C = ship.cinema;
     super(ship, [
@@ -378,13 +378,13 @@ export class CallDirector extends Sequence {
         enter: () => {
           C.hud(false); C.bars(true);
           ship.placePlayer(ship.world(m, m.interior.points.cockpit), ship.worldHeading(m, Math.PI), true);
-          m.callScreen?.set({ who: both ? 'both' : 'father', statik: 1 });
+          m.callScreen?.set({ who, statik: 1 });
           sfx.ring(ship.sound);
         },
         frame: (t) => {
           ship.shot(callShot(ship, m, t));
           m.callScreen?.set({ statik: Math.max(0, 1 - t / 0.8) });
-          playLines(ship, m, tl, t, { both });
+          playLines(ship, m, tl, t, { who });
           ship.player.heading = ship.worldHeading(m, Math.PI);
         },
       },
