@@ -75,14 +75,14 @@ export const ARZACH2_CONTENT = {
 // ---------------------------------------------------------------- geometry helpers
 
 /** Keep only positions (non-indexed) so everything merges. */
-function clean(g) {
+export function clean(g) {
   const n = g.index ? g.toNonIndexed() : g;
   const out = new THREE.BufferGeometry();
   out.setAttribute('position', n.getAttribute('position').clone());
   return out;
 }
 const _m4 = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler();
-function place(g, x, y, z, ry = 0, sx = 1, sy = sx, sz = sx, rx = 0, rz = 0) {
+export function place(g, x, y, z, ry = 0, sx = 1, sy = sx, sz = sx, rx = 0, rz = 0) {
   _q.setFromEuler(_e.set(rx, ry, rz));
   return g.applyMatrix4(_m4.compose(new THREE.Vector3(x, y, z), _q, new THREE.Vector3(sx, sy, sz)));
 }
@@ -134,7 +134,7 @@ function solid(rings, seg, shape, { top = null, bottom = null } = {}) {
  * ribbed (radiating) underside, a rounded rim and a gently domed top.
  * off shifts the cap relative to the stalk for one-sided overhangs.
  */
-function table(o) {
+export function table(o) {
   const { x, z, R, stalk, top, base = -120, dome = 1, seed = 0, rib = 0, ribK = 24, flute = 0.08, fluteK = 11,
     outline = 0.14, waist = 0.12, foot = 1.25, neckR = 1, seg = 112, colSeg = 18, ledges = 0 } = o;
   const capT = o.capT ?? R * 0.16, under = o.under ?? R * 0.22, off = o.off ?? [0, 0];
@@ -182,7 +182,7 @@ function table(o) {
 }
 
 /** A needle spire: slender, lumpy, vertically fluted, with shoulders. */
-function needle(o) {
+export function needle(o) {
   const { x, y, z, H, R, seed = 0, seg = 16, rings = 24, flute = 0.16, lean = 0.06 } = o;
   const rng = mulberry32(Math.floor(seed * 1000) + 7);
   const k = 4 + Math.floor(rng() * 4);
@@ -218,7 +218,7 @@ function needle(o) {
 }
 
 /** Rounded boulder / egg. */
-function boulder(r, sx, sy, sz, egg = 0, seed = 0, detail = true) {
+export function boulder(r, sx, sy, sz, egg = 0, seed = 0, detail = true) {
   const g = detail ? new THREE.SphereGeometry(1, 14, 10) : new THREE.IcosahedronGeometry(1, 0);
   const p = g.attributes.position;
   for (let i = 0; i < p.count; i++) {
@@ -234,7 +234,7 @@ function boulder(r, sx, sy, sz, egg = 0, seed = 0, detail = true) {
  * Aqueduct / natural arch: a deck from a to b at deckY(u), with arches
  * opening below it and piers dropping into the cloud.
  */
-function bridge(o) {
+export function bridge(o) {
   const { a, b, y0, y1 = y0, W = 9, bays = 4, pier = 0.28, rise = 1, thick = 4, bottom = -120, seed = 0, rough = 0.5, ends = 0.06, flare = 0, step = 1.1, bulge = 0 } = o;
   const dx = b[0] - a[0], dz = b[1] - a[1], L = Math.hypot(dx, dz), ux = dx / L, uz = dz / L, px = -uz, pz = ux;
   const n = Math.ceil(L / step), sp = (L * (1 - 2 * ends)) / bays, half = (sp * (1 - pier)) / 2;

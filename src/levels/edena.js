@@ -57,8 +57,8 @@ export const EDENA_CONTENT = {
   ],
 };
 
-const LEAVES = ['#7fcfa8', '#f2a7b5', '#9fd6c9', '#f6c7a0', '#b5a7e6'];
-const TRUNK = ['#c98a76', '#d9a5a0', '#b98aa8'];
+export const LEAVES = ['#7fcfa8', '#f2a7b5', '#9fd6c9', '#f6c7a0', '#b5a7e6'];
+export const TRUNK = ['#c98a76', '#d9a5a0', '#b98aa8'];
 
 // the tallest tree in the garden (Talo's lookout is on its crown) and the pond
 export const TALL_TREE = { x: -118, z: 150, h: 92 };
@@ -256,6 +256,72 @@ function hullHatch(grp, hull, terrain, crashed) {
   return { at: foot, heading };
 }
 
+/** A giant umbrella tree: a pinched trunk, a few branches, one to three flat canopies. kit: { scene, terrain, rng, pick } (createEdena; the Lab's Viridel room) */
+export function edenaTree({ scene, terrain, rng, pick }, x, z, s) {
+  const base = terrain.baseAt(x, z, 6 * s);
+  const h = (55 + rng() * 60) * s;
+  const trunk = new THREE.CylinderGeometry(2.8 * s, 5.5 * s, h, 10, 10);
+  trunk.translate(0, h / 2, 0);
+  jitter(trunk, 0.1, 0.05, rng() * 50);
+  soften(trunk, -0.12);   // pinched waist, flaring at root and crown
+  const parts = [trunk.toNonIndexed()];
+  // a couple of branches
+  for (let b = 0; b < 3; b++) {
+    const a = rng() * Math.PI * 2, y0 = h * (0.45 + rng() * 0.3), len = (12 + rng() * 14) * s;
+    const p0 = new THREE.Vector3(0, y0, 0);
+    const p1 = new THREE.Vector3(Math.cos(a) * len, y0 + len * 0.6, Math.sin(a) * len);
+    parts.push(new THREE.TubeGeometry(new THREE.LineCurve3(p0, p1), 4, 1.3 * s, 6).toNonIndexed());
+  }
+  const trunkMesh = new THREE.Mesh(mergeGeometries(parts), makeMaterial({ color: pick(TRUNK), flat: true }));
+  trunkMesh.position.set(x, base - 1, z);
+  scene.add(trunkMesh);
+  const leaf = pick(LEAVES);
+  const layers = 1 + Math.floor(rng() * 3);
+  for (let l = 0; l < layers; l++) {
+    const r = (18 + rng() * 16) * s * (1 - l * 0.25);
+    const g = new THREE.CylinderGeometry(r, r * 0.92, 3.5 * s, 18);
+    jitter(g, 0.08, 0.2, rng() * 30);
+    const disc = new THREE.Mesh(g, makeMaterial({ color: leaf, color2: pick(LEAVES), flat: true }));
+    disc.position.set(x + (rng() - 0.5) * 6, base + h * (0.82 + l * 0.12), z + (rng() - 0.5) * 6);
+    scene.add(disc);
+  }
+}
+
+/** A white step pyramid (same kit as edenaTree). */
+export function edenaPyramid({ scene, terrain, rng }, x, z, size) {
+  const steps = 6 + Math.floor(rng() * 5);
+  const parts = [];
+  const sh = size * 0.12;
+  for (let i = 0; i < steps; i++) {
+    const w = size * (1 - i / steps);
+    parts.push(new THREE.BoxGeometry(w, sh, w).translate(0, sh * (i + 0.5), 0));
+  }
+  parts.push(new THREE.BoxGeometry(size * 0.12, sh * 1.6, size * 0.12).translate(0, sh * (steps + 0.8), 0));
+  const m = new THREE.Mesh(mergeGeometries(parts), makeMaterial({ color: '#f3ead8', color2: '#f2c5b0', color3: '#e7d8b6', mode: MODE_STRATA, strataSize: sh, flat: true, grid: sh }));
+  m.position.set(x, terrain.baseAt(x, z, size * 0.5) - 1, z);
+  m.rotation.y = rng() * Math.PI;
+  scene.add(m);
+}
+
+/** Android ruins: leaning white slabs and a fallen ring (same kit, and the ruins' two materials). */
+export function edenaRuins({ scene, terrain, rng, ruinMat, accent }, cx, cz) {
+  for (let i = 0; i < 8 + Math.floor(rng() * 8); i++) {
+    const x = cx + (rng() - 0.5) * 120, z = cz + (rng() - 0.5) * 120;
+    const h = 8 + rng() * rng() * 70, w = 4 + rng() * 12;
+    const g = new THREE.BoxGeometry(w, h, 2 + rng() * 6);
+    g.translate(0, h / 2, 0);
+    const m = new THREE.Mesh(g, rng() < 0.85 ? ruinMat : accent);
+    m.position.set(x, terrain.baseAt(x, z, w * 0.6) - 2, z);
+    m.rotation.set((rng() - 0.5) * 0.15, rng() * Math.PI, (rng() - 0.5) * 0.15);
+    scene.add(m);
+  }
+  // a fallen ring
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(14 + rng() * 10, 2, 8, 32), ruinMat);
+  ring.position.set(cx, terrain.heightAt(cx, cz) + 4, cz);
+  ring.rotation.set(Math.PI / 2 - 0.3, 0, rng() * 3);
+  scene.add(ring);
+}
+
 export function createEdena(scene) {
   const rng = mulberry32(1983);
   const pick = (a) => a[Math.floor(rng() * a.length)];
@@ -280,35 +346,8 @@ export function createEdena(scene) {
   // ---------------------------------------------------------- giant umbrella trees
   // The trunk pierces a stack of flat canopies; climb the trunk and you come
   // out standing on top of a canopy.
-  function tree(x, z, s) {
-    const base = terrain.baseAt(x, z, 6 * s);
-    const h = (55 + rng() * 60) * s;
-    const trunk = new THREE.CylinderGeometry(2.8 * s, 5.5 * s, h, 10, 10);
-    trunk.translate(0, h / 2, 0);
-    jitter(trunk, 0.1, 0.05, rng() * 50);
-    soften(trunk, -0.12);   // pinched waist, flaring at root and crown
-    const parts = [trunk.toNonIndexed()];
-    // a couple of branches
-    for (let b = 0; b < 3; b++) {
-      const a = rng() * Math.PI * 2, y0 = h * (0.45 + rng() * 0.3), len = (12 + rng() * 14) * s;
-      const p0 = new THREE.Vector3(0, y0, 0);
-      const p1 = new THREE.Vector3(Math.cos(a) * len, y0 + len * 0.6, Math.sin(a) * len);
-      parts.push(new THREE.TubeGeometry(new THREE.LineCurve3(p0, p1), 4, 1.3 * s, 6).toNonIndexed());
-    }
-    const trunkMesh = new THREE.Mesh(mergeGeometries(parts), makeMaterial({ color: pick(TRUNK), flat: true }));
-    trunkMesh.position.set(x, base - 1, z);
-    scene.add(trunkMesh);
-    const leaf = pick(LEAVES);
-    const layers = 1 + Math.floor(rng() * 3);
-    for (let l = 0; l < layers; l++) {
-      const r = (18 + rng() * 16) * s * (1 - l * 0.25);
-      const g = new THREE.CylinderGeometry(r, r * 0.92, 3.5 * s, 18);
-      jitter(g, 0.08, 0.2, rng() * 30);
-      const disc = new THREE.Mesh(g, makeMaterial({ color: leaf, color2: pick(LEAVES), flat: true }));
-      disc.position.set(x + (rng() - 0.5) * 6, base + h * (0.82 + l * 0.12), z + (rng() - 0.5) * 6);
-      scene.add(disc);
-    }
-  }
+  const kit = { scene, terrain, rng, pick };
+  const tree = (x, z, s) => edenaTree(kit, x, z, s);
   tree(60, -80, 0.6);
   tree(-60, 70, 0.8);
   for (let i = 0; i < 46; i++) {
@@ -318,43 +357,14 @@ export function createEdena(scene) {
   }
 
   // ---------------------------------------------------------- step pyramids
-  function pyramid(x, z, size) {
-    const steps = 6 + Math.floor(rng() * 5);
-    const parts = [];
-    const sh = size * 0.12;
-    for (let i = 0; i < steps; i++) {
-      const w = size * (1 - i / steps);
-      parts.push(new THREE.BoxGeometry(w, sh, w).translate(0, sh * (i + 0.5), 0));
-    }
-    parts.push(new THREE.BoxGeometry(size * 0.12, sh * 1.6, size * 0.12).translate(0, sh * (steps + 0.8), 0));
-    const m = new THREE.Mesh(mergeGeometries(parts), makeMaterial({ color: '#f3ead8', color2: '#f2c5b0', color3: '#e7d8b6', mode: MODE_STRATA, strataSize: sh, flat: true, grid: sh }));
-    m.position.set(x, terrain.baseAt(x, z, size * 0.5) - 1, z);
-    m.rotation.y = rng() * Math.PI;
-    scene.add(m);
-  }
+  const pyramid = (x, z, size) => edenaPyramid(kit, x, z, size);
   pyramid(-200, 220, 90);
   for (let i = 0; i < 8; i++) pyramid((rng() * 2 - 1) * 1200, (rng() * 2 - 1) * 1200, 50 + rng() * 90);
 
   // ---------------------------------------------------------- android ruins (clean white, gridded)
   const ruinMat = makeMaterial({ color: '#f7f4ec', flat: true, grid: 3, glyphs: true });
   const accent = makeMaterial({ color: '#62c3c9', flat: true, grid: 3 });
-  function ruins(cx, cz) {
-    for (let i = 0; i < 8 + Math.floor(rng() * 8); i++) {
-      const x = cx + (rng() - 0.5) * 120, z = cz + (rng() - 0.5) * 120;
-      const h = 8 + rng() * rng() * 70, w = 4 + rng() * 12;
-      const g = new THREE.BoxGeometry(w, h, 2 + rng() * 6);
-      g.translate(0, h / 2, 0);
-      const m = new THREE.Mesh(g, rng() < 0.85 ? ruinMat : accent);
-      m.position.set(x, terrain.baseAt(x, z, w * 0.6) - 2, z);
-      m.rotation.set((rng() - 0.5) * 0.15, rng() * Math.PI, (rng() - 0.5) * 0.15);
-      scene.add(m);
-    }
-    // a fallen ring
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(14 + rng() * 10, 2, 8, 32), ruinMat);
-    ring.position.set(cx, terrain.heightAt(cx, cz) + 4, cz);
-    ring.rotation.set(Math.PI / 2 - 0.3, 0, rng() * 3);
-    scene.add(ring);
-  }
+  const ruins = (cx, cz) => edenaRuins({ ...kit, ruinMat, accent }, cx, cz);
   ruins(180, 120);
   for (let i = 0; i < 7; i++) ruins((rng() * 2 - 1) * 1200, (rng() * 2 - 1) * 1200);
 

@@ -282,6 +282,128 @@ function strataMat(rng, size) {
   return makeMaterial({ color: p[0], color2: p[1], color3: p[2], mode: MODE_STRATA, flat: true, strataSize: size });
 }
 
+// ------------------------------------------------------------------ rock shapes
+// ---------------------------------------------------------- mesas
+/** A terraced strata mesa. kit: { rng, terrain, add(mesh, x, z, r), mark(x, z, r) } (buildWorld; the Lab's desert room) */
+export function desertMesa({ rng, terrain, add, mark = () => {} }, x, z, radius, height) {
+  const geo = new THREE.CylinderGeometry(radius * 0.8, radius, height, 13, 8);
+  terrace(geo, height, 3 + Math.floor(rng() * 3), 0.25 + rng() * 0.2);
+  jitter(geo, 0.16, 0.012, rng() * 100);
+  const m = new THREE.Mesh(geo, strataMat(rng, 3 + rng() * 4));
+  const base = terrain.baseAt(x, z, radius);
+  m.position.set(x, base + height / 2 - 2, z);
+  m.rotation.y = rng() * Math.PI;
+  add(m, x, z, radius);
+  mark(x, z, radius * 1.02);
+}
+
+// ---------------------------------------------------------- mushroom rocks
+/** A mushroom rock (same kit as desertMesa). */
+export function desertMushroom({ rng, terrain, add, mark = () => {} }, x, z, s) {
+  const stemH = 18 * s + rng() * 14 * s;
+  const stem = new THREE.CylinderGeometry(2.2 * s, 4.5 * s, stemH, 9, 5);
+  stem.translate(0, stemH / 2, 0);
+  jitter(stem, 0.2, 0.08, rng() * 100);
+  const capR = (8 + rng() * 6) * s, capH = (4 + rng() * 3) * s;
+  const cap = new THREE.CylinderGeometry(capR * 0.85, capR * 0.55, capH, 11, 2);
+  jitter(cap, 0.18, 0.1, rng() * 100);
+  cap.translate((rng() - 0.5) * 2 * s, stemH + capH / 2 - 0.5, (rng() - 0.5) * 2 * s);
+  const g = mergeGeometries([stem, cap]);
+  const m = new THREE.Mesh(g, strataMat(rng, 1.6 + rng() * 2));
+  m.position.set(x, terrain.baseAt(x, z, 4 * s) - 1, z);
+  m.rotation.set((rng() - 0.5) * 0.12, rng() * Math.PI, (rng() - 0.5) * 0.12);
+  add(m, x, z, capR);
+  mark(x, z, 4.2 * s);
+}
+
+// ---------------------------------------------------------- arches
+/** A natural stone arch, thick in the legs (same kit as desertMesa). */
+export function desertArch({ rng, terrain, add, mark = () => {} }, x, z, R, tube) {
+  const g = new THREE.TorusGeometry(R, tube, 7, 22, Math.PI);
+  // Thicker legs, thinner keystone.
+  const p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) {
+    const vx = p.getX(i), vy = p.getY(i), vz = p.getZ(i);
+    const a = Math.atan2(vy, vx);
+    const cx = Math.cos(a) * R, cy = Math.sin(a) * R;
+    const k = 1.35 - 0.6 * Math.sin(Math.max(a, 0));
+    p.setXYZ(i, cx + (vx - cx) * k, cy + (vy - cy) * k, vz * k);
+  }
+  g.computeVertexNormals();
+  const m = new THREE.Mesh(g, strataMat(rng, 2.5 + rng() * 2));
+  const rot = rng() * Math.PI;
+  m.position.set(x, terrain.baseAt(x, z, R) - tube, z);
+  m.rotation.y = rot;
+  add(m, x, z, R + tube);
+  const ca = Math.cos(rot), sa = Math.sin(rot);
+  mark(x + ca * R, z - sa * R, tube * 1.35);
+  mark(x - ca * R, z + sa * R, tube * 1.35);
+}
+
+// ---------------------------------------------------------- giant ribcage
+/** A giant skeleton: spine, ribs, skull and tusks (same kit, and its bone material). */
+export function desertRibcage({ terrain, add, mark = () => {}, bone }, x, z, s, rot) {
+  const geos = [];
+  const len = 120 * s;
+  const ribs = 11;
+  const spinePts = [];
+  for (let i = 0; i <= 12; i++) {
+    const t = i / 12;
+    spinePts.push(new THREE.Vector3((t - 0.5) * len, 40 * s * Math.sin(Math.PI * (0.15 + t * 0.7)) + 4 * s, 0));
+  }
+  const spine = new THREE.CatmullRomCurve3(spinePts);
+  geos.push(new THREE.TubeGeometry(spine, 60, 2.8 * s, 8, false));
+  for (let i = 0; i < ribs; i++) {
+    const t = 0.12 + (i / (ribs - 1)) * 0.76;
+    const top = spine.getPoint(t);
+    const k = Math.sin(Math.PI * t) * 0.8 + 0.2;
+    for (const side of [-1, 1]) {
+      const curve = new THREE.CatmullRomCurve3([
+        top.clone(),
+        new THREE.Vector3(top.x, top.y * 0.92, side * 16 * s * k),
+        new THREE.Vector3(top.x - 3 * s, top.y * 0.55, side * 26 * s * k),
+        new THREE.Vector3(top.x - 5 * s, -3 * s, side * 24 * s * k),
+      ]);
+      geos.push(new THREE.TubeGeometry(curve, 24, 1.6 * s * (0.6 + k * 0.5), 6, false));
+    }
+    // vertebra
+    const v = new THREE.SphereGeometry(4 * s, 8, 6);
+    v.scale(0.7, 1, 1.1);
+    v.translate(top.x, top.y + 2.5 * s, 0);
+    geos.push(v);
+  }
+  // skull + tusks at the head end
+  const head = spine.getPoint(1);
+  const skull = new THREE.SphereGeometry(12 * s, 12, 9);
+  skull.scale(1.5, 0.8, 0.9);
+  skull.translate(head.x + 14 * s, head.y - 2 * s, 0);
+  geos.push(skull);
+  for (const side of [-1, 1]) {
+    const tusk = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(head.x + 22 * s, head.y - 6 * s, side * 6 * s),
+      new THREE.Vector3(head.x + 38 * s, head.y - 14 * s, side * 14 * s),
+      new THREE.Vector3(head.x + 52 * s, head.y - 4 * s, side * 12 * s),
+      new THREE.Vector3(head.x + 56 * s, head.y + 10 * s, side * 6 * s),
+    ]);
+    geos.push(new THREE.TubeGeometry(tusk, 20, 1.8 * s, 6, false));
+  }
+  const m = new THREE.Mesh(mergeGeometries(geos), bone);
+  m.position.set(x, terrain.baseAt(x, z, 30 * s) - 1, z);
+  m.rotation.y = rot;
+  add(m, x, z, 70 * s);
+  // footprints of the rib feet
+  const ca = Math.cos(rot), sa = Math.sin(rot);
+  for (let i = 0; i < ribs; i++) {
+    const t = 0.12 + (i / (ribs - 1)) * 0.76;
+    const k = Math.sin(Math.PI * t) * 0.8 + 0.2;
+    const lx = (t - 0.5) * len - 5 * s;
+    for (const side of [-1, 1]) {
+      const lz = side * 24 * s * k;
+      mark(x + lx * ca + lz * sa, z - lx * sa + lz * ca, 2 * s);
+    }
+  }
+}
+
 // ------------------------------------------------------------------ world
 
 export function buildWorld(scene, terrain) {
@@ -330,123 +452,13 @@ export function buildWorld(scene, terrain) {
   const canyon = (w) => 0.35 + 0.65 * w.rose - 0.25 * w.salt;   // mesas, arches, mushrooms
   const flats = (w) => 0.3 + 0.7 * w.salt;                       // monoliths, skeletons
 
-  // ---------------------------------------------------------- mesas
-  function mesa(x, z, radius, height) {
-    const geo = new THREE.CylinderGeometry(radius * 0.8, radius, height, 13, 8);
-    terrace(geo, height, 3 + Math.floor(rng() * 3), 0.25 + rng() * 0.2);
-    jitter(geo, 0.16, 0.012, rng() * 100);
-    const m = new THREE.Mesh(geo, strataMat(rng, 3 + rng() * 4));
-    const base = terrain.baseAt(x, z, radius);
-    m.position.set(x, base + height / 2 - 2, z);
-    m.rotation.y = rng() * Math.PI;
-    addProp(m, x, z, radius);
-    footprints.push({ x, z, r: radius * 1.02 });
-  }
-
-  // ---------------------------------------------------------- mushroom rocks
-  function mushroom(x, z, s) {
-    const stemH = 18 * s + rng() * 14 * s;
-    const stem = new THREE.CylinderGeometry(2.2 * s, 4.5 * s, stemH, 9, 5);
-    stem.translate(0, stemH / 2, 0);
-    jitter(stem, 0.2, 0.08, rng() * 100);
-    const capR = (8 + rng() * 6) * s, capH = (4 + rng() * 3) * s;
-    const cap = new THREE.CylinderGeometry(capR * 0.85, capR * 0.55, capH, 11, 2);
-    jitter(cap, 0.18, 0.1, rng() * 100);
-    cap.translate((rng() - 0.5) * 2 * s, stemH + capH / 2 - 0.5, (rng() - 0.5) * 2 * s);
-    const g = mergeGeometries([stem, cap]);
-    const m = new THREE.Mesh(g, strataMat(rng, 1.6 + rng() * 2));
-    m.position.set(x, terrain.baseAt(x, z, 4 * s) - 1, z);
-    m.rotation.set((rng() - 0.5) * 0.12, rng() * Math.PI, (rng() - 0.5) * 0.12);
-    addProp(m, x, z, capR);
-    footprints.push({ x, z, r: 4.2 * s });
-  }
-
-  // ---------------------------------------------------------- arches
-  function arch(x, z, R, tube) {
-    const g = new THREE.TorusGeometry(R, tube, 7, 22, Math.PI);
-    // Thicker legs, thinner keystone.
-    const p = g.attributes.position;
-    for (let i = 0; i < p.count; i++) {
-      const vx = p.getX(i), vy = p.getY(i), vz = p.getZ(i);
-      const a = Math.atan2(vy, vx);
-      const cx = Math.cos(a) * R, cy = Math.sin(a) * R;
-      const k = 1.35 - 0.6 * Math.sin(Math.max(a, 0));
-      p.setXYZ(i, cx + (vx - cx) * k, cy + (vy - cy) * k, vz * k);
-    }
-    g.computeVertexNormals();
-    const m = new THREE.Mesh(g, strataMat(rng, 2.5 + rng() * 2));
-    const rot = rng() * Math.PI;
-    m.position.set(x, terrain.baseAt(x, z, R) - tube, z);
-    m.rotation.y = rot;
-    addProp(m, x, z, R + tube);
-    const ca = Math.cos(rot), sa = Math.sin(rot);
-    footprints.push({ x: x + ca * R, z: z - sa * R, r: tube * 1.35 });
-    footprints.push({ x: x - ca * R, z: z + sa * R, r: tube * 1.35 });
-  }
-
-  // ---------------------------------------------------------- giant ribcage
+  // the desert's rock shapes (module-level above, so the Lab's desert room grows the same ones)
+  const kit = { rng, terrain, add: addProp, mark: (x, z, r) => footprints.push({ x, z, r }) };
+  const mesa = (x, z, radius, height) => desertMesa(kit, x, z, radius, height);
+  const mushroom = (x, z, s) => desertMushroom(kit, x, z, s);
+  const arch = (x, z, R, tube) => desertArch(kit, x, z, R, tube);
   const boneMat = makeMaterial({ color: '#f2ead6' });
-  function ribcage(x, z, s, rot) {
-    const geos = [];
-    const len = 120 * s;
-    const ribs = 11;
-    const spinePts = [];
-    for (let i = 0; i <= 12; i++) {
-      const t = i / 12;
-      spinePts.push(new THREE.Vector3((t - 0.5) * len, 40 * s * Math.sin(Math.PI * (0.15 + t * 0.7)) + 4 * s, 0));
-    }
-    const spine = new THREE.CatmullRomCurve3(spinePts);
-    geos.push(new THREE.TubeGeometry(spine, 60, 2.8 * s, 8, false));
-    for (let i = 0; i < ribs; i++) {
-      const t = 0.12 + (i / (ribs - 1)) * 0.76;
-      const top = spine.getPoint(t);
-      const k = Math.sin(Math.PI * t) * 0.8 + 0.2;
-      for (const side of [-1, 1]) {
-        const curve = new THREE.CatmullRomCurve3([
-          top.clone(),
-          new THREE.Vector3(top.x, top.y * 0.92, side * 16 * s * k),
-          new THREE.Vector3(top.x - 3 * s, top.y * 0.55, side * 26 * s * k),
-          new THREE.Vector3(top.x - 5 * s, -3 * s, side * 24 * s * k),
-        ]);
-        geos.push(new THREE.TubeGeometry(curve, 24, 1.6 * s * (0.6 + k * 0.5), 6, false));
-      }
-      // vertebra
-      const v = new THREE.SphereGeometry(4 * s, 8, 6);
-      v.scale(0.7, 1, 1.1);
-      v.translate(top.x, top.y + 2.5 * s, 0);
-      geos.push(v);
-    }
-    // skull + tusks at the head end
-    const head = spine.getPoint(1);
-    const skull = new THREE.SphereGeometry(12 * s, 12, 9);
-    skull.scale(1.5, 0.8, 0.9);
-    skull.translate(head.x + 14 * s, head.y - 2 * s, 0);
-    geos.push(skull);
-    for (const side of [-1, 1]) {
-      const tusk = new THREE.CatmullRomCurve3([
-        new THREE.Vector3(head.x + 22 * s, head.y - 6 * s, side * 6 * s),
-        new THREE.Vector3(head.x + 38 * s, head.y - 14 * s, side * 14 * s),
-        new THREE.Vector3(head.x + 52 * s, head.y - 4 * s, side * 12 * s),
-        new THREE.Vector3(head.x + 56 * s, head.y + 10 * s, side * 6 * s),
-      ]);
-      geos.push(new THREE.TubeGeometry(tusk, 20, 1.8 * s, 6, false));
-    }
-    const m = new THREE.Mesh(mergeGeometries(geos), boneMat);
-    m.position.set(x, terrain.baseAt(x, z, 30 * s) - 1, z);
-    m.rotation.y = rot;
-    addProp(m, x, z, 70 * s);
-    // footprints of the rib feet
-    const ca = Math.cos(rot), sa = Math.sin(rot);
-    for (let i = 0; i < ribs; i++) {
-      const t = 0.12 + (i / (ribs - 1)) * 0.76;
-      const k = Math.sin(Math.PI * t) * 0.8 + 0.2;
-      const lx = (t - 0.5) * len - 5 * s;
-      for (const side of [-1, 1]) {
-        const lz = side * 24 * s * k;
-        footprints.push({ x: x + lx * ca + lz * sa, z: z - lx * sa + lz * ca, r: 2 * s });
-      }
-    }
-  }
+  const ribcage = (x, z, s, rot) => desertRibcage({ ...kit, bone: boneMat }, x, z, s, rot);
 
   // ---------------------------------------------------------- monolith rings
   const stoneMats = [

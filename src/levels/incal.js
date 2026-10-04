@@ -32,7 +32,7 @@ const SHRINE_A = 3.155, LAMP_A = 3.2, NIMA_DA = 0.045;
 const TAU = Math.PI * 2;
 
 // Annular sector slab, top face at y = 0, thickness t (world angle = atan2(z, x)).
-function sectorGeometry(r0, r1, a0, a1, t) {
+export function sectorGeometry(r0, r1, a0, a1, t) {
   const shape = new THREE.Shape();
   shape.moveTo(Math.cos(a0) * r1, Math.sin(a0) * r1);
   shape.absarc(0, 0, r1, a0, a1, false);
@@ -44,10 +44,10 @@ function sectorGeometry(r0, r1, a0, a1, t) {
 }
 
 // a Mediterranean hill-town on blue-grey viaducts (after the reference plate)
-const PASTELS = ['#f1e6cf', '#ead7b5', '#f3ead8', '#e6cfae', '#efe2c8', '#dcc6a4'];   // cream / ochre walls
-const RUST = ['#d9c3a0', '#cdb38e', '#e2cfb0', '#c9b596', '#d6bfa0'];               // warmer, dustier lower down
-const ROOFS = ['#d9784f', '#c8673f', '#e08a5c', '#b9603e'];                         // terracotta
-const STEEL = { color: '#9fb2c6', color2: '#8aa0b8', color3: '#b3c3d3' };            // blue-grey structure
+export const PASTELS = ['#f1e6cf', '#ead7b5', '#f3ead8', '#e6cfae', '#efe2c8', '#dcc6a4'];   // cream / ochre walls
+export const RUST = ['#d9c3a0', '#cdb38e', '#e2cfb0', '#c9b596', '#d6bfa0'];               // warmer, dustier lower down
+export const ROOFS = ['#d9784f', '#c8673f', '#e08a5c', '#b9603e'];                         // terracotta
+export const STEEL = { color: '#9fb2c6', color2: '#8aa0b8', color3: '#b3c3d3' };            // blue-grey structure
 
 export function createIncal(scene) {
   const rng = mulberry32(1977);

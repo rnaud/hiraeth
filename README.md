@@ -1115,6 +1115,38 @@ Behind the spawn, four villagers stand 4× life size on plinths (`LAB_FACES`,
 `content.js`; `spawnNPCs` passes `scale`) and turn to face you, for working on
 faces close up. Add a surface to `LAB_MATERIALS` to see it beside the others.
 
+**Biome rooms.** Behind the faces an arc of little doorways (`LAB_DOORS`), one per
+world with its name on a board over the lintel and a veil in that world's sky
+colour, leads to a compact sample of each world (`src/levels/lab-rooms.js`,
+`ROOMS`): ~190 m across, with that world's ground (its terrain material on a 420 m
+heightfield, or its own meshes: the Hangar's floating plateau, the Sky Stones'
+tables over a sea of cloud), rock formations and landmarks, a few buildings and
+props, its flora (`level.flora`: one part per room, the world's species in clumps
+over the room's disc, `flora.js` `buildFlora`), up to four of each of its creatures
+(`level.wildlife`, passed to `Wildlife` as `defs`, anchored on the room) and two
+or three of its people dressed for their world (`LAB_PEOPLE`, `world` on the NPC
+spot). Where a world's builders stand alone they are called with the room's group
+and ground (`desertMesa`/`desertArch`/`desertMushroom`/`desertRibcage` in
+`world.js`, `hangarHouse`/`hangarTower`/`hangarMachine` in `garage.js`,
+`edenaTree`/`edenaPyramid`/`edenaRuins` in `edena.js`, the Sky Stones' `table`,
+`needle`, `boulder` and `bridge`, the Deep Wood's `shroomParts`/`lathe`, Lorn's
+`jawShell`, the City-Shaft's `sectorGeometry`, the Buried Machine's
+`cylBetween`/`elbow`, the Garden's `paintFaces`/`CRESCENT`; they were hoisted out of
+their levels unchanged); the rest are sketches in the world's own colours.
+A room is built with a `RoomKit` (`src/levels/lab-kit.js`) that merges its static
+geometry per material, so a room is a few dozen draw calls.
+
+The rooms lie on a ring 2.6 km round the hub (`ROOM_RING`, ~1.5 km apart). Only the
+room you are in is drawn (the others' groups and the hub are hidden; their plants
+and creatures are past their drawing and sleeping distances, their people past
+260 m). Walking into a door is the Hangar's portal pass: a quick fade, out the
+other side at your own pace, 11 m in front of the door so the camera clears it.
+Each room's atmosphere switches as you enter: `level.atmo` hands main.js its
+colour script (`atmo.script`) and haze, and `level.zoneAt` its ink preset, look,
+planets and hour (main.js applies a zone's `look`, `planets` and `hour` when the
+zone changes). Straying over a room's banks or off its edge puts you back at its
+door. `tests/lab.test.js` walks through every door and back.
+
 ## Sound from the first frame (v0.39)
 
 Each world is a new page, and browsers only let a page's sound start after a
