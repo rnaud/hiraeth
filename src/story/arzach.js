@@ -67,10 +67,11 @@ export function setupArzach(ctx) {
     const arc = new THREE.TorusGeometry(0.42, 0.03, 3, 14, Math.PI).rotateX(-Math.PI / 2).translate(0, 0, 0.32);
     parts.push(arc.toNonIndexed());
     drawing.add(new THREE.Mesh(mergeGeometries(parts), ink));
-    const at = oiaAt.clone().addScaledVector(V(Math.sin(angleTo(oiaAt, T)), 0, Math.cos(angleTo(oiaAt, T))), 1.2);
+    const at = oiaAt.clone().addScaledVector(V(Math.sin(angleTo(oiaAt, T)), 0, Math.cos(angleTo(oiaAt, T))), 2.0);
     at.y = ground(at.x, at.z, at.y + 3) + 0.03;
     drawing.position.copy(at);
     drawing.rotation.y = angleTo(oiaAt, T) + Math.PI;
+    drawing.scale.setScalar(2.4);
     drawing.userData.noCollide = true;
     drawing.visible = !!game.flag('arzach.glyph.drawn');
     scene.add(drawing);
@@ -103,13 +104,13 @@ export function setupArzach(ctx) {
 
   // ---------------------------------------------------------------- the feathers
   const featherMat = makeMaterial({ color: '#fbf6ea', glow: 0.55, side: THREE.DoubleSide });
-  const featherGeo = featherGeometry(1.4, 0.36);
+  const featherGeo = featherGeometry(2.2, 0.5);
   const feathers = [];
   const addFeather = (i, at) => {
     if (game.flag(`arzach.feather.${i}`)) return null;
     const g = new THREE.Group();
     const m = new THREE.Mesh(featherGeo, featherMat);
-    m.rotation.set(-0.5, 0, 0.3); m.position.z = 0.7;
+    m.rotation.set(-0.5, 0, 0.3); m.position.z = 1.1;
     g.add(m);
     g.position.copy(at);
     g.userData.noCollide = true;
