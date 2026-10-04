@@ -1,0 +1,12 @@
+{
+  "appId": "com.rnaud.moebius",
+  "appName": "Moebius",
+  "webDir": "dist",
+  "backgroundColor": "#f7ecd2",
+  "android": {
+    "backgroundColor": "#f7ecd2",
+    "allowMixedContent": false,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false
+  }
+}

@@ -64,12 +64,12 @@ export class Flames {
   setPalette(p, instant = false) {
     this.palA = this.pal.map((c) => c.clone());
     this.palB = p.map((c) => new THREE.Color(c));
-    this.mix = instant ? 1 : 0;
+    this.mix = 0; this.snap = instant;   // instant: the next update lands on the new palette at once
   }
 
   update(dt, t) {
     if (this.mix < 1) {
-      this.mix = Math.min(1, this.mix + dt / 3);
+      this.mix = this.snap ? 1 : Math.min(1, this.mix + dt / 3);
       const P = this.material.uniforms.uPalette.value;
       for (let i = 0; i < this.pal.length; i++) { this.pal[i].copy(this.palA[i]).lerp(this.palB[i], this.mix); P[i].copy(this.pal[i]); }
       this.material.uniforms.uPaletteSize.value = this.pal.length;
@@ -175,5 +175,164 @@ export class Smoke {
       this.mesh.setMatrixAt(i, d.matrix);
     });
     this.mesh.instanceMatrix.needsUpdate = true;
+  }
+}
+
+// The burning tree's landmark smoke: pale, slightly warm greys by day; when the
+// tree drinks, the pale cool tints of its new fire.
+export const SMOKE_WARM = ['#f5efe3', '#ece4d5', '#e2d9c8', '#d8cebd'];
+export const SMOKE_COOL = ['#f2f8f2', '#d9f1ee', '#cfe6ee', '#e3dcf5', '#f6e1ea', '#fff4e2'];
+
+const _p = new THREE.Vector3(), _s = new THREE.Vector3(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _m = new THREE.Matrix4();
+const RISE = 0.62;   // the share of the path that climbs; the rest is the drifting plume
+const smooth = (a, b, x) => { const t = Math.min(Math.max((x - a) / (b - a), 0), 1); return t * t * (3 - 2 * t); };
+
+/**
+ * A landmark: a tall column of light smoke rising hundreds of metres from a
+ * fire, bending gently downwind and flattening into a long thin drifting
+ * plume at altitude, so the fire can be found from anywhere on the plain.
+ *
+ * One instanced mesh of inked puffs. Each puff runs along the column's path
+ * (s = 0 at the fire, 1 at the end of the plume), swelling as it rises and
+ * shrinking away at the end (the G-buffer has no transparency, so smoke fades
+ * by size). The path is a function of the (smoothed) wind, so nothing is
+ * rebuilt per frame: only the instance matrices (and, while the colours
+ * change, the instance colours) are written.
+ *
+ * Far shading: the column's material writes a compressed view depth into the
+ * G-buffer past `farNear` metres, so the distance fog and the line fade
+ * (post.js) treat it as if it stood a few hundred metres away and it stays
+ * readable from kilometres off. The real depth buffer is untouched, so it
+ * still hides behind dunes and walls.
+ */
+export class SmokeColumn {
+  constructor(parent, at, { count = 230, height = 430, drift = 520, base = 3, top = 22, period = 170, palette = SMOKE_WARM, tint = FIRE[1], farNear = 260, farScale = 0.2, glow = 0.36 } = {}) {
+    this.at = at.clone();
+    this.height = height; this.drift = drift; this.base = base; this.top = top; this.period = period;
+    const mat = makeMaterial({ color: '#ffffff', glow, tag: 'smoke-column' });
+    if (!mat.uniforms.uFarScale) {
+      const fs = mat.fragmentShader;
+      const patched = fs.replace('void main() {', 'uniform float uFarNear;\n  uniform float uFarScale;\n  void main() {')
+        .replace('gNormalDepth = vec4(n, vViewDepth);', 'gNormalDepth = vec4(n, vViewDepth < uFarNear ? vViewDepth : uFarNear + (vViewDepth - uFarNear) * uFarScale);');
+      mat.userData.farDepth = patched.includes('(vViewDepth - uFarNear) * uFarScale') && patched.includes('uniform float uFarScale;');
+      if (mat.userData.farDepth) mat.fragmentShader = patched;
+      else console.warn('SmokeColumn: the far-shading patch no longer matches materials.js; the column will fog like the rest');
+      mat.uniforms.uFarNear = { value: farNear };
+      mat.uniforms.uFarScale = { value: farScale };
+    }
+    this.material = mat;
+    this.mesh = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 2), mat, count);
+    this.mesh.name = 'Smoke column';
+    this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    this.mesh.userData.noCollide = true;
+    this.mesh.userData.dynamic = true;
+    this.mesh.frustumCulled = false;   // it spans half a kilometre; desert-city.js skips its update when it's out of view
+    this.mesh.castShadow = false; this.mesh.receiveShadow = false;
+    parent.add(this.mesh);
+    // u: how far along the path (0..1, advancing with time); tone: which smoke colour; oa/ob/oc: scatter round the path
+    // The fire breathes the smoke out in billows of PER puffs (one big, the rest smaller and further out):
+    // near the fire they rise apart with sky between them, aloft they swell and merge into one line.
+    const PER = 5, billows = Math.ceil(count / PER);
+    this.items = Array.from({ length: count }, (_, i) => {
+      const b = Math.floor(i / PER), k = i % PER;
+      return {
+        u: (b + Math.random() * 0.3) / billows + k * 0.0025, tone: Math.random(),
+        size: k === 0 ? 1.05 + Math.random() * 0.3 : 0.45 + Math.random() * 0.5, spread: k === 0 ? 0.35 : 1.25,
+        oa: (Math.random() - 0.5) * 2, ob: (Math.random() - 0.5) * 2, oc: (Math.random() - 0.5) * 2, ph: Math.random() * 10,
+      };
+    });
+    // the wind: a direction on the ground and a gentle strength, eased slowly so the column swings like a real one
+    this.wind = new THREE.Vector3(0.83, 0, 0.56);
+    this.windK = 1;
+    this.palA = palette.map((c) => new THREE.Color(c));
+    this.palB = this.palA;
+    this.mixT = Infinity;
+    // the fire lights the smoke just above it (and, at night, that is the part that glows)
+    this.tint = new THREE.Color(tint);
+    for (const it of this.items) it.c = new THREE.Color();
+    for (let i = 0; i < count; i++) this.mesh.setColorAt(i, _a.copy(this.palA[0]));
+    this.colour();
+    this.update(0, 0);
+  }
+
+  /** The column's centre line at s (0 = the fire, 1 = the end of the plume), into out. */
+  pathAt(s, out, t = 0) {
+    const wx = this.wind.x, wz = this.wind.z, H = this.height, k = this.windK;
+    let y, d;
+    if (s < RISE) {
+      // the column: straight up, leaning a little downwind as it goes
+      const q = s / RISE;
+      y = H * 0.9 * q * (1 - 0.12 * q) / 0.88;
+      d = H * 0.14 * k * q * q;
+    } else {
+      // the plume: it meets the still air aloft, levels off and drifts away downwind in a long thin line
+      const r = (s - RISE) / (1 - RISE);
+      y = H * (0.9 + 0.1 * (1 - Math.pow(1 - r, 3)));
+      d = H * 0.14 * k + this.drift * k * (0.35 * r + 0.65 * r * r) + H * 0.05 * Math.sin(Math.min(r * 4, 1) * Math.PI / 2);
+    }
+    // a slow meander across the wind, growing with height
+    const m = (Math.sin(s * 5.5 + t * 0.03) * 9 + Math.sin(s * 13 + t * 0.05 + 1.3) * 3) * s;
+    return out.set(this.at.x + wx * d - wz * m, this.at.y + y, this.at.z + wz * d + wx * m);
+  }
+
+  /**
+   * Move toward another set of smoke colours and fire tint (setPalette(SMOKE_COOL, false, COOL_FIRE[1]));
+   * the change rises up the column from the fire.
+   */
+  setPalette(p, instant = false, tint = null) {
+    this.palA = this.palB;
+    this.palB = p.map((c) => new THREE.Color(c));
+    this.tintA = this.tint.clone();
+    this.tintB = new THREE.Color(tint ?? this.tint);
+    this.mixT = instant ? Infinity : 0;
+    if (instant) { this.palA = this.palB; this.tint.copy(this.tintB); }
+    this.colour();
+  }
+
+  /** Each puff's own smoke colour (only while the colours change). */
+  colour() {
+    const A = this.palA, B = this.palB;
+    for (const it of this.items) {
+      gradient(A, it.tone, it.c);
+      // the smoke nearest the fire changes first, the plume aloft last
+      if (A !== B) it.c.lerp(gradient(B, it.tone, _b), smooth(0, 1, (this.mixT - it.u * 24) / 5));
+    }
+    if (this.tintB && A !== B) this.tint.copy(this.tintA).lerp(this.tintB, smooth(0, 4, this.mixT));
+  }
+
+  update(dt, t, wind = null) {
+    if (wind && (wind.x || wind.z)) {
+      const l = Math.hypot(wind.x, wind.z), e = 1 - Math.exp(-dt / 25);
+      this.wind.lerp(_p.set(wind.x / l, 0, wind.z / l), e).normalize();
+      this.windK += (Math.min(Math.max(0.55 + 0.45 * l / 2.5, 0.5), 1.5) - this.windK) * e;
+    }
+    if (this.mixT < 30) {
+      this.mixT += dt;
+      if (this.mixT >= 30) this.palA = this.palB;
+      this.colour();
+    }
+    const yaw = Math.atan2(this.wind.x, this.wind.z), cy = Math.cos(yaw), sy = Math.sin(yaw);
+    for (let i = 0; i < this.items.length; i++) {
+      const it = this.items[i];
+      it.u += dt / this.period;
+      if (it.u >= 1) { it.u -= Math.floor(it.u); it.oa = (Math.random() - 0.5) * 2; it.ob = (Math.random() - 0.5) * 2; }
+      const s = 1 - Math.pow(1 - it.u, 1.35);   // quick off the fire, slowing aloft
+      this.pathAt(s, _p, t);
+      // the column widens as it rises; the plume flattens and stretches along the wind, then thins away
+      const pr = s < RISE ? 0 : (s - RISE) / (1 - RISE), pl = smooth(0, 0.3, pr);
+      const r = it.size * smooth(0, 0.02, s) * (s < RISE ? this.base + (this.top - this.base) * Math.pow(s / RISE, 1.1) : this.top * (1 - 0.6 * pr)) * (1 - smooth(0.72, 1, pr));
+      // scatter round the centre line: little near the fire, more aloft (the column frays), widest in the plume
+      const sc = r * (0.5 + 0.5 * Math.min(s / RISE, 1) + 0.6 * pl), sw = Math.sin(t * 0.21 + it.ph + s * 9) * r * 0.25;
+      const across = it.oa * sc * it.spread + sw, along = it.ob * sc * it.spread * 0.6;
+      _p.x += across * cy + along * sy;
+      _p.z += -across * sy + along * cy;
+      _p.y += it.oc * sc * it.spread * (0.45 - 0.35 * pl);
+      _s.set(r * (1 - 0.1 * pl), r * (0.85 - 0.5 * pl), r * (1 + 1.6 * pl));
+      _q.setFromEuler(_e.set(it.ph * 0.3 * (1 - pl), yaw + it.oc * 0.25, it.ob * 0.2));
+      this.mesh.setMatrixAt(i, _m.compose(_p, _q, _s));
+      this.mesh.setColorAt(i, _a.copy(it.c).lerp(this.tint, 0.5 * (1 - smooth(0.01, 0.13, s))));
+    }
+    this.mesh.instanceMatrix.needsUpdate = true;
+    this.mesh.instanceColor.needsUpdate = true;
   }
 }

@@ -1,0 +1,87 @@
+name: Android release
+
+# Every push to main builds a signed APK (the web game wrapped with Capacitor,
+# fully offline) and publishes it to the GitHub release for the newest version
+# in src/changelog.js, e.g. v0.34. Pushes within one version replace that
+# release's APK; a new changelog entry makes a new release.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android-release
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Build the web game
+        run: |
+          npm ci
+          npm run build
+
+      - name: Release metadata
+        id: meta
+        run: |
+          echo "version=$(node scripts/release-info.mjs version)" >> "$GITHUB_OUTPUT"
+          node scripts/release-info.mjs notes > "$RUNNER_TEMP/notes.md"
+
+      - name: Copy the game into the Android project
+        run: npx cap sync android
+
+      - name: Signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then echo "::error::ANDROID_KEYSTORE_BASE64 secret is missing"; exit 1; fi
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.p12"
+
+      - name: Build the APK
+        working-directory: android
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/release.p12
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          APP_VERSION_NAME: ${{ steps.meta.outputs.version }}
+          APP_VERSION_CODE: ${{ github.run_number }}
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleRelease
+          cp app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/moebius-v${APP_VERSION_NAME}.apk"
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          TAG="v$VERSION"
+          APK="$RUNNER_TEMP/moebius-v$VERSION.apk"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" --clobber
+            gh release edit "$TAG" --notes-file "$RUNNER_TEMP/notes.md" --latest
+          else
+            gh release create "$TAG" "$APK" --target "$GITHUB_SHA" --title "Moebius v$VERSION" --notes-file "$RUNNER_TEMP/notes.md" --latest
+          fi
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: moebius-apk
+          path: ${{ runner.temp }}/moebius-v${{ steps.meta.outputs.version }}.apk

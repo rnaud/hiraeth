@@ -5,7 +5,7 @@ import { mulberry32 } from './noise.js';
 import { STORY, processionLoop } from './desert-sites.js';
 import { cityFloor } from './desert-landmarks.js';
 import { Banner } from './life.js';
-import { Flames, Embers, Smoke, FIRE, COOL_FIRE } from './story/flames.js';
+import { Flames, Embers, Smoke, SmokeColumn, FIRE, COOL_FIRE } from './story/flames.js';
 import { magicMaterial, magicPool, magicStream } from './story/magic-water.js';
 
 // The desert's story places (references/IMG_3772-3775: pale rose domes,
@@ -386,6 +386,9 @@ export function buildDesertCity(scene, terrain) {
     const crown = city.world(TREE.x, top + 30 * S, TREE.z);
     const embers = new Embers(root, [...limbs.map((p) => city.world(p.x, p.y + 5 * S, p.z)), crown], { count: 70, rise: 2.4, life: 6, spread: 3, size: 0.6, color: '#fff3c4' });
     embers.mesh.boundingSphere = new THREE.Sphere(crown.clone(), 45); embers.mesh.frustumCulled = true;
+    // the landmark: a tall column of light smoke from the crown flame, high over the horizon haze,
+    // bending downwind into a long drifting plume, so the city can be found from anywhere on the plain
+    const smoke = new SmokeColumn(root, crown);
     const treeLight = new THREE.Vector4(crown.x, crown.y - 12, crown.z, 90);
     const treeLight2 = new THREE.Vector4(crown.x, top + floor + 6, crown.z, 58);   // the plaza and the nearest roofs, warm at night
     lights.push(treeLight, treeLight2);
@@ -411,7 +414,7 @@ export function buildDesertCity(scene, terrain) {
       center: city.world(0, 0, 0), gate: city.world(0, 0, R + 6), backGate: city.world(0, 0, -R - 4),
       top: city.world(0, top, 0), well: city.world(WELL.x, top, WELL.z), stele: city.world(ST.x, top, ST.z + 1.2),
       wellLook: city.world(WELL.x, top, WELL.z + 3.4), treeBase: city.world(TREE.x, top, TREE.z), crown,
-      flames, embers, light: treeLight, light2: treeLight2, wellWater, wellMat, yaw: C.yaw,
+      flames, embers, smoke, light: treeLight, light2: treeLight2, wellWater, wellMat, yaw: C.yaw,
       plinthStair: city.world(0, 0, 31), local: (x, y, z) => city.world(x, y, z), top: city.world(0, top, 0).y,
     };
   }
@@ -650,7 +653,8 @@ export function buildDesertCity(scene, terrain) {
   // what moves is only animated when it's in view, and less often far away
   const frustum = new THREE.Frustum(), _pm = new THREE.Matrix4(), _sph = new THREE.Sphere();
   const seen = (p, r) => frustum.intersectsSphere(_sph.set(p, r));
-  let frameNo = 0, treeDt = 0;
+  let frameNo = 0, treeDt = 0, smokeDt = 0;
+  const smokeMid = V(0, 0, 0);
   out.update = (dt, t, { camera, player }) => {
     _cam.copy(camera.position);
     camera.updateMatrixWorld();
@@ -666,6 +670,10 @@ export function buildDesertCity(scene, terrain) {
     // sparks are a close-up detail (far away they'd read as specks of ink)
     out.city.embers.mesh.visible = dCity < 220;
     if (dCity < 220 && seen(out.city.crown, 40)) out.city.embers.update(dt, t, player?.wind);
+    // the smoke column: always drawn (it is the way to the city), animated while in view, less often far away
+    smokeDt += dt;
+    const sm = out.city.smoke, sEvery = dCity < 400 ? 1 : 2;
+    if (frameNo % sEvery === 0 && seen(smokeMid.copy(sm.at).addScaledVector(sm.wind, sm.drift * sm.windK * 0.35).setY(sm.at.y + sm.height * 0.6), sm.height * 0.75)) { sm.update(smokeDt, t, player?.wind); smokeDt = 0; }
     // the cave: drawn only when you're down there
     const inCave = _cam.distanceTo(O) < 300;
     cv.group.visible = inCave; cv.pool.visible = inCave; cv.stream.visible = inCave && cv.streamOn; cv.pond.visible = inCave; cv.bone.visible = inCave;

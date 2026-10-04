@@ -5,7 +5,7 @@ import { registerTarget } from '../targets.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { Banner } from '../life.js';
 import { STORY } from '../desert-sites.js';
-import { COOL_FIRE, FIRE } from './flames.js';
+import { COOL_FIRE, FIRE, SMOKE_COOL } from './flames.js';
 import { setMagic } from './magic-water.js';
 import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK } from './desert-data.js';
 
@@ -200,6 +200,7 @@ export function setupDesert(ctx) {
   const applyOpen = (instant) => {
     // the tree drinks: cool fire, a full well, a bright pool, a feast
     city.flames.setPalette(COOL_FIRE, instant);
+    city.smoke?.setPalette(SMOKE_COOL, instant, COOL_FIRE[1]);
     city.wellWater.visible = true;
     cave.streamOn = true;
     if (crowd) for (const p of crowd.people) if (p.spot?.id === 'procession') p.lines = LINES.drinking;
@@ -207,6 +208,8 @@ export function setupDesert(ctx) {
     st.drinking = true;
     if (instant) { st.level = cave.levels.high; st.boneT = 1; st.drink = 1; }
   };
+  // the smoke column casts no shadow across the city (the renderer hides level.noShadow in its shadow passes)
+  if (city.smoke) (level.noShadow ??= []).push(city.smoke.mesh);
   if (open()) applyOpen(true);
   game.on('flag:desert.channel.open', (v) => { if (v) applyOpen(false); });
 
