@@ -530,6 +530,12 @@ when you mount.
 
 A world can tweak its default preset with `defaults.look` (post uniforms).
 
+## Steam Deck
+
+A Linux package with automatic updates and Steam library integration is built by
+[the Steam Deck workflow](.github/workflows/steam-deck.yml). See the
+[installation and release guide](docs/steam-deck.md).
+
 ## Changelog
 
 Press **N**, or use the button in settings, for what's new in each version
