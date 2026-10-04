@@ -37,9 +37,10 @@ test('the single save from before the slots becomes slot 1, once, and the old ke
   assert.equal(st.getItem(slotKey('moebius.game.v1', 1)), '{"flags":{}}');
 });
 
-test('a fresh install has five empty slots and nothing to continue', () => {
+test('a fresh install has three empty slots and nothing to continue', () => {
   const slots = new SlotStore(mem());
   assert.equal(slots.migrate(), false);
+  assert.equal(slots.list().length, 3);
   assert.ok(slots.list().every((s) => s.empty));
   assert.equal(slots.latest(), null);
   assert.equal(slots.firstEmpty(), 1);
@@ -81,11 +82,11 @@ test('each slot is its own game: the game state reads and writes the active slot
 });
 
 test('the active slot is pinned for the page: another tab choosing a slot does not move it', () => {
-  const st = mem({ [SLOT_KEY]: '4' });
+  const st = mem({ [SLOT_KEY]: '3' });
   const slots = new SlotStore(st);
-  assert.equal(slots.active, 4);
+  assert.equal(slots.active, 3);
   st.setItem(SLOT_KEY, '1');
-  assert.equal(slots.active, 4);
+  assert.equal(slots.active, 3);
   assert.equal(new SlotStore(mem({ [SLOT_KEY]: 'nonsense' })).active, 1);
 });
 
@@ -112,16 +113,16 @@ test('deleting a slot forgets it, and leaves the others and the settings alone',
 
 test('Continue picks the slot played last', () => {
   const slots = new SlotStore(mem());
-  for (const [n, t] of [[1, 100], [2, 300], [4, 200]]) { slots.setActive(n); new GameState(slots.view()).set('prologue.done', true); slots.touch(n, { now: t }); }
+  for (const [n, t] of [[1, 100], [2, 300]]) { slots.setActive(n); new GameState(slots.view()).set('prologue.done', true); slots.touch(n, { now: t }); }
   assert.equal(slots.latest(), 2);
   assert.equal(slots.firstEmpty(), 3);
 });
 
 test('a new game in a slot reads as the prologue until it is played through', () => {
   const slots = new SlotStore(mem());
-  slots.setActive(5);
+  slots.setActive(3);
   new GameState(slots.view()).set('objective', 'Find a new source of power.');
-  const s = slots.summary(5);
+  const s = slots.summary(3);
   assert.equal(s.empty, false);
   assert.equal(s.prologue, true);
   assert.equal(s.world, 'The Desert');

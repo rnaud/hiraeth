@@ -18,7 +18,7 @@
 
 import { TITLES, ORDER } from './levels/names.js';
 
-export const SLOT_COUNT = 5;
+export const SLOT_COUNT = 3;
 export const SLOT_KEY = 'moebius.slot';
 export const SLOTS_VERSION_KEY = 'moebius.slots.v';
 // the progress kept per slot (src/game-state.js, src/quest.js, src/ui.js SaveGame, src/reactive-world.js)

@@ -170,3 +170,41 @@
   .fullmenu .saved { display: none; }
   .fullmenu select, .fullmenu input[type=range] { width: 50%; }
 }
+
+/* ------------------------------------------------------------------ the title, light and airy (v0.39)
+   (after the comic-box styles above: the name and its menu are thin capitals over the sky, no boxes) */
+#title .main-menu { align-items: center; gap: clamp(6px, 1.6vh, 14px); width: min(420px, 86vw); }
+#title .main-menu button {
+  position: relative; text-align: center; background: none; border: 0; box-shadow: none;
+  padding: clamp(4px, 1vh, 10px) 18px; color: #2b211f;
+  font: 400 clamp(16px, 2.6vh, 23px)/1.2 'Avenir Next', Futura, 'Futura PT', 'Helvetica Neue', Roboto, sans-serif;
+  letter-spacing: 0.42em; text-transform: uppercase; text-indent: 0.42em;
+  text-shadow: 0 0 2px #fffaf0, 0 0 6px #fffaf0, 0 0 14px rgba(255, 250, 240, 0.95); transition: opacity 0.2s, letter-spacing 0.25s;
+  opacity: 0.9;
+}
+#title .main-menu button small { margin-top: 3px; font-size: 0.55em; letter-spacing: 0.14em; text-indent: 0; text-transform: none; opacity: 0.8; }
+#title .main-menu button::after {
+  content: ''; position: absolute; left: 50%; bottom: 0; width: 0; height: 1px; background: #2b211f;
+  box-shadow: 0 0 6px rgba(255, 250, 240, 0.9); transform: translateX(-50%); transition: width 0.25s;
+}
+#title .main-menu button::before {
+  content: ''; position: absolute; left: 50%; bottom: -3px; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%;
+  background: #f2c54b; opacity: 0; transition: opacity 0.2s;
+}
+#title .main-menu button:hover, #title .main-menu button:focus { background: none; transform: none; box-shadow: none; opacity: 1; letter-spacing: 0.48em; }
+#title .main-menu button:hover::after, #title .main-menu button:focus::after { width: 60%; }
+#title .main-menu button:focus::before { opacity: 1; }
+#title .main-menu .primary { border: 0; }
+/* the saves and the confirm card: translucent paper, hairlines, no hard shadows */
+#title .saves { background: rgba(251, 246, 234, 0.82); border: 1px solid rgba(43, 33, 31, 0.35); box-shadow: 0 10px 40px rgba(43, 33, 31, 0.18); border-radius: 6px; backdrop-filter: blur(3px); }
+#title .saves h2 { font-weight: 300; letter-spacing: 0.4em; }
+#title .saves .head button, #title .slot .pick, #title .slot .del, #title .confirm button {
+  background: rgba(255, 252, 244, 0.6); border: 1px solid rgba(43, 33, 31, 0.3); box-shadow: none; border-radius: 4px; font-weight: normal;
+}
+#title .saves .head button:hover, #title .saves .head button:focus, #title .slot .pick:hover, #title .slot .pick:focus, #title .confirm button:hover, #title .confirm button:focus {
+  background: #fffaf0; transform: none; box-shadow: 0 2px 10px rgba(43, 33, 31, 0.15); border-color: #2b211f;
+}
+#title .slot .del:hover, #title .slot .del:focus { background: #c8483a; color: #fff6dc; transform: none; box-shadow: none; }
+#title .confirm .card { border: 1px solid rgba(43, 33, 31, 0.35); box-shadow: 0 10px 40px rgba(43, 33, 31, 0.25); border-radius: 6px; }
+#title .main-menu { padding: clamp(10px, 2vh, 20px) clamp(18px, 3vw, 40px); border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 250, 240, 0.7), rgba(255, 250, 240, 0.4) 65%, rgba(255, 250, 240, 0)); }

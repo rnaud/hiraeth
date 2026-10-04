@@ -4,7 +4,7 @@
 // director and fake time.
 //
 //   black   → the screen is dark, the ship hums
-//   wake    → eyes open in bed: the drawing taped under the shelf over the pillows
+//   wake    → eyes open in bed, the ceiling overhead
 //   rise    → standing beside the bunk
 //   walk    → you walk to the cockpit, in your own time (gentle lights on the
 //             floor and a hint point the way; nothing walks you there)

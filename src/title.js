@@ -72,14 +72,21 @@ export const BACKDROP = `
   </g>
 </svg>`;
 
-/** The name in comic lettering: thick ink outline, a hard shadow, letters set a little askew. */
+/** The name, light and airy: thin capitals spaced wide, cream with a hairline of ink and a soft glow. */
 export const LOGO = `
 <svg class="logo" viewBox="0 0 1000 250" role="img" aria-label="Memento">
-  <g font-family="Futura, 'Futura PT', 'Avenir Next', 'Roboto', 'Arial Black', sans-serif" font-weight="900" font-size="200" text-anchor="middle">
-    <text x="512" y="200" rotate="-5 3 -2 4 -3 2 -4" textLength="860" lengthAdjust="spacingAndGlyphs" fill="#2b211f" stroke="#2b211f" stroke-width="16" stroke-linejoin="round">MEMENTO</text>
-    <text x="500" y="188" rotate="-5 3 -2 4 -3 2 -4" textLength="860" lengthAdjust="spacingAndGlyphs" fill="#f2c54b" stroke="#2b211f" stroke-width="14" stroke-linejoin="round" paint-order="stroke">MEMENTO</text>
+  <defs>
+    <filter id="logo-glow" x="-10%" y="-40%" width="120%" height="180%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="7" result="b"/>
+      <feFlood flood-color="#2b211f" flood-opacity="0.22"/><feComposite in2="b" operator="in" result="s"/>
+      <feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <g font-family="'Avenir Next', Futura, 'Futura PT', 'Helvetica Neue', 'Roboto', sans-serif" font-weight="200" font-size="128" text-anchor="middle" filter="url(#logo-glow)">
+    <text x="500" y="170" textLength="820" lengthAdjust="spacing" fill="#fffaf0" stroke="#2b211f" stroke-width="1.4" stroke-opacity="0.75" paint-order="stroke">MEMENTO</text>
   </g>
-  <path d="M190 226 C380 210 640 214 820 230" fill="none" stroke="#c8483a" stroke-width="9" stroke-linecap="round"/>
+  <path d="M330 206 L670 206" fill="none" stroke="#fffaf0" stroke-width="1.6" stroke-linecap="round" opacity="0.85"/>
+  <circle cx="500" cy="206" r="3" fill="#f2c54b" stroke="#2b211f" stroke-width="0.8"/>
 </svg>`;
 
 function slotHtml(s) {
@@ -117,13 +124,12 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
     const fullscreen = !isNativeApp && doc.fullscreenEnabled;
     root.innerHTML = `${BACKDROP}<div class="veil" aria-hidden="true"></div>
       <div class="front">
-        <header>${LOGO}<p class="tag">a traveller, a fallen ship, and worlds drawn in ink</p></header>
+        <header>${LOGO}</header>
         <nav class="screen main-menu" data-screen="main"></nav>
         <section class="screen saves" data-screen="saves" hidden>
           <div class="head"><h2>SAVES</h2><button data-a="back">Back</button></div>
           <ol class="slots"></ol>
         </section>
-        <p class="hint"><span class="pad">A / × choose · B / ○ back</span><span class="keys">Enter choose · Esc back · Delete removes a save</span></p>
         <p class="version">v${VERSION}</p>
       </div>
       <div class="confirm" hidden><div class="card" role="alertdialog" aria-labelledby="title-confirm-q">
@@ -143,9 +149,9 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
     const renderMain = () => {
       const last = store.latest(), s = last ? store.summary(last) : null;
       mainNav.innerHTML = `${s
-        ? `<button data-a="continue" class="primary">Continue<small>Save ${s.n} · ${esc(s.world)} · ${esc(progressLine(s))}</small></button>`
-        : '<button data-a="new" class="primary">New game<small>The story begins with the prologue</small></button>'}
-        <button data-a="saves">Saves<small>${SLOT_COUNT} slots: continue one, start anew, or delete one</small></button>
+        ? `<button data-a="continue" class="primary">Continue<small>${esc(s.world)}</small></button>`
+        : '<button data-a="new" class="primary">New game</button>'}
+        <button data-a="saves">Saves</button>
         <button data-a="settings">Settings</button>
         ${fullscreen ? `<button data-a="fullscreen">${doc.fullscreenElement ? 'Leave full screen' : 'Full screen'}</button>` : ''}`;
     };

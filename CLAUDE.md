@@ -18,6 +18,11 @@ version, in `README.md`.
   (`{ v: '0.38', date: 'YYYY-MM-DD', items: [...] }`) makes the next push create
   a new GitHub release `v0.38`. Smaller follow-ups go into the current entry, and
   each push rebuilds that release (APK and web bundle) with a higher build number.
+- **Bump the version often.** Start a new entry after every few significant
+  features (a new system, a reworked world, a new screen), roughly every
+  10–15 changelog lines, or whenever a batch of work lands. Never let one
+  version collect dozens of changes: each version should read as one release
+  a player can take in. Group the lines of a version by theme.
 - Earlier entries are history: leave them as they were released.
 
 ## Working rules

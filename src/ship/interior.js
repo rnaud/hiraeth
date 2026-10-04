@@ -93,8 +93,8 @@ export function buildInterior(batch, group, o = {}) {
   const bed = placeAt(7.75, bunkA, DECK);
   {
     const B = (g) => g.applyMatrix4(bed);
-    // a queen bed: a low wooden frame, a thick mattress, two pillows, the blanket kicked off at the
-    // foot, a headboard at the head end (-x) with a little shelf over the pillows
+    // a queen bed, unmade: a low wooden frame, a thick mattress, two pillows, the blanket kicked
+    // off at the foot, a headboard at the head end (-x)
     batch.add('wood', B(box(2.15, 0.36, 1.7)));
     batch.add('cream', B(box(2.02, 0.22, 1.6, 0.02, 0.36)));
     batch.add('blanket', B(box(1.3, 0.1, 1.64, 0.3, 0.56).rotateY(0.04)));
@@ -102,19 +102,10 @@ export function buildInterior(batch, group, o = {}) {
     batch.add('pillow', B(box(0.48, 0.15, 0.66, -0.74, 0.6, -0.38)));
     batch.add('pillow', B(box(0.48, 0.15, 0.66, -0.76, 0.6, 0.4).rotateY(0.04)));
     batch.add('wood', B(box(0.1, 1.15, 1.76, -1.1, 0, 0)));                 // the headboard
-    batch.add('wood', B(box(0.62, 0.05, 1.5, -0.8, 1.46, 0)));              // the shelf over the pillows
-    for (const z of [-0.72, 0.72]) batch.add('wood', B(box(0.05, 0.3, 0.05, -1.03, 1.16, z)));   // its brackets
-    batch.add('toy', B(new THREE.SphereGeometry(0.16, 10, 8).translate(-0.85, 1.65, 0.5)));    // a plush on the shelf
-    batch.add('toy', B(new THREE.SphereGeometry(0.09, 8, 6).translate(-0.85, 1.86, 0.5)));
-    batch.add('crate', B(box(0.36, 0.26, 0.3, -0.8, 1.49, -0.45)));          // a box of tapes
+    // unmade: the sheet rucked up, a pillow knocked askew
+    batch.add('cream', B(box(0.9, 0.06, 0.7, 0.05, 0.58, -0.3).rotateY(0.25)));
+    batch.add('blanket', B(box(0.55, 0.12, 0.5, -0.1, 0.62, 0.45).rotateY(-0.35).rotateZ(0.08)));
     for (const [x, z] of [[1.0, -0.78], [1.0, 0.78]]) batch.add('wood', B(box(0.08, 0.5, 0.08, x, 0, z)));   // the foot posts
-    // the drawing taped under the shelf over the pillows, seen from the pillow
-    const under = familyDrawing();
-    const dm = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.38).rotateX(PI / 2).rotateY(PI / 2), makeMaterial({ color: '#ffffff', map: under ?? undefined, flat: true, glow: 0.65 }));
-    dm.applyMatrix4(new THREE.Matrix4().makeTranslation(-0.72, 1.43, 0));
-    dm.applyMatrix4(bed);
-    dm.userData.noCollide = true;
-    deco.add(dm);
   }
   const bedPt = (x, y, z) => new THREE.Vector3(x, y, z).applyMatrix4(bed);
   // the desk with a lamp, books and a toy model of the ship
@@ -351,7 +342,7 @@ export function buildInterior(batch, group, o = {}) {
     screen: { centre: scr.c, normal: screenNormal, radius: scr.r - 0.03, tilt: scr.tilt, a: cA },
     points: {
       wakeEye: bedPt(-0.62, 0.86, 0.05),
-      wakeLook: bedPt(-0.72, 1.43, 0.0),   // (the drawing under the shelf)
+      wakeLook: bedPt(0.6, 1.6, 0.9),   // (up at the ceiling and the room, from the pillow)
       bunkStand: bedPt(0.2, 0, -1.45),
       bunkStandHeading: Math.atan2(-Math.sin(bunkA), -Math.cos(bunkA)),
       cockpit: polar(6.55, PI, DECK),

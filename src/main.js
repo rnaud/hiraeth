@@ -642,8 +642,8 @@ if (cont?.level && levelById(cont.level)) {
   picker.querySelector('header').after(btn);
 }
 // only the worlds you know of (src/story/route.js): the rest open as you go. ?level=<id> and the dev menu go anywhere.
-const pickable = LEVELS.filter((l) => l.dev || l.hidden || !ORDER.includes(l.id) || l.id === levelId || knownBefore.includes(l.id));   // (dev worlds such as the Lab: always listed, for testing)
-picker.querySelector('.cards').innerHTML = pickable.map((l, i) => l.hidden && !l.dev && !completed() ? `
+const pickable = LEVELS;   // the worlds list (L) is a debug tool: every world, open, whatever you've found (play travels by the ship's map)
+picker.querySelector('.cards').innerHTML = pickable.map((l, i) => false ? `
   <div class="card locked"><div class="lock">?</div><div class="txt"><div class="num">${i + 1}</div><h2>???</h2>
     <p>${l.lock?.text ?? `Find every story page and every relic in all ${ORDER.length} worlds.`}</p><div class="moves">${l.lock?.moves ?? 'the final page'}</div></div></div>` : `
   <a class="card${l.id === levelId ? ' current' : ''}" href="?level=${l.id}">
