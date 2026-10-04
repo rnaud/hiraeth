@@ -1,0 +1,45 @@
+src/levels/arzach.js
+  s_1fd8d0e7b02dcf::t_2cef83d0cd2b3b 58,62,69,115,135-144,148,173,192,197,206-213,217,227,284-285
+src/levels/arzach2.js
+  s_1fd8d0e7b02dcf::t_4ba32a8ab59c8b 34-41,48,50-53,63,532-543,548,599-612,618-639,671-685,747,802,810,850-864
+src/levels/content.js
+  s_1fd8d0e7b02dcf::t_e9cb606bcbb3a0 137,139-142,157,159-162
+src/levels/garage.js
+  s_1fd8d0e7b02dcf::t_38a83019a00799 28-34,40,79-80,91,130,204-223,251-260,274,282-283,286-337,342,353-359,384-407,468-473,483-488
+src/story/arzach-data.js
+  s_1fd8d0e7b02dcf::t_61f1e8e2b880b0 1-243
+src/story/arzach.js
+  s_1fd8d0e7b02dcf::t_c5592eebaa12f1 1-387
+src/story/arzach2-data.js
+  s_1fd8d0e7b02dcf::t_8cc8e9a4da0de4 1-292
+src/story/arzach2.js
+  s_1fd8d0e7b02dcf::t_6ebbce5e828f0e 1-285
+src/story/garage-data.js
+  s_1fd8d0e7b02dcf::t_57a451ffa97f97 1-309
+src/story/garage.js
+  s_1fd8d0e7b02dcf::t_7f85f8ed68d98e 1-237
+src/story/index.js
+  s_1fd8d0e7b02dcf::t_125e13f0abac1c 12-14,35-37
+tests/story-arzach.test.js
+  s_1fd8d0e7b02dcf::t_19e550c747840f 1-189
+tests/story-arzach2.test.js
+  s_1fd8d0e7b02dcf::t_4a4e556370f5db 1-175
+tests/story-garage.test.js
+  s_1fd8d0e7b02dcf::t_9aad49cebaf804 1-156
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2ef01e57412fd8f2edc000311eee9612c75df9e8",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
