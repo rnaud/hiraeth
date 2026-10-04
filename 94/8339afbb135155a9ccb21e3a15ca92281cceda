@@ -1,0 +1,55 @@
+src/audio.js
+  s_1fd8d0e7b02dcf::t_ba6fccdfce1cbf 26,52-53
+src/bird.js
+  s_1fd8d0e7b02dcf::t_797c784c7f8367 305-330
+src/main.js
+  s_1fd8d0e7b02dcf::t_a78af9fb564fd7 35,194-196,204-205,324,567,1000
+src/ship/cinematics.js
+  s_1fd8d0e7b02dcf::t_b654a70ab24e67 33,37,371-372,381,387
+src/ship/homecoming.js
+  s_1fd8d0e7b02dcf::t_46f79e10fd75d0 1-471
+src/ship/portrait.js
+  s_1fd8d0e7b02dcf::t_bcadcc69a0552e 25,99-100
+src/ship/ship.js
+  s_1fd8d0e7b02dcf::t_bd6d8d0218de40 11-13,255,264,266-271,416-419
+src/story/calls.js
+  s_1fd8d0e7b02dcf::t_e4b6f1dc63cdaf 7-8,10-32,34-35,37-40,43,54-59,61-65,67-68,74,80,83,86,92,98,110-274,277-279,282-339,342-343,345-346,351-354,361-367,370-374,376-378,380,382-388,393-396,403-409,411-413,416,422,425-430
+src/story/ending.js
+  s_1fd8d0e7b02dcf::t_9746525fb9dc92 1-216
+tests/ending.test.js
+  s_1fd8d0e7b02dcf::t_2327ea1ea0cef2 1-230
+src/levels/home.js
+  s_1580f654170c9a::t_427b82c5f319c1 1-270
+src/ship/starmap.js
+  s_1580f654170c9a::t_8b094734a9abf5 7-11,19-21,27-29,53-55,107-108,110,117-120,139,158-160
+src/levels/content.js
+  s_1fd8d0e7b02dcf::t_ff7dd2726aed94 19,31
+src/levels/index.js
+  s_1fd8d0e7b02dcf::t_eefd1db598b65b 13,89-96
+src/reactive-world.js
+  s_1fd8d0e7b02dcf::t_48654964d7deea 23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "948339afbb135155a9ccb21e3a15ca92281cceda",
+  "prompts": {},
+  "sessions": {
+    "s_1580f654170c9a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a82e8413b13bd56f2",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
