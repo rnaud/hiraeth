@@ -1,0 +1,59 @@
+.github/workflows/android.yml
+  s_1fd8d0e7b02dcf::t_b2c95e61269a80 6-10,74-86,94,96-97,100-101
+android/app/src/main/AndroidManifest.xml
+  s_1fd8d0e7b02dcf::t_7536babc2de66c 10-11,13
+android/app/src/main/java/com/rnaud/moebius/AppShellPlugin.java
+  s_1fd8d0e7b02dcf::t_1c3474255290e2 1-43
+android/app/src/main/java/com/rnaud/moebius/GamepadBridge.java
+  s_1fd8d0e7b02dcf::t_1689f57a8b893c 26,95-105,115
+android/app/src/main/java/com/rnaud/moebius/MainActivity.java
+  s_1fd8d0e7b02dcf::t_26e217802e061f 3,9,11,18-19,24-27,30-31,35-53,55-56,59-60,62-63,65-88,107
+android/app/src/main/java/com/rnaud/moebius/Updater.java
+  s_1fd8d0e7b02dcf::t_ef95755a093915 26-33,37,40,44,48-54,58-59,107-122,131-132
+android/app/src/main/java/com/rnaud/moebius/WebBundles.java
+  s_1fd8d0e7b02dcf::t_6ec442bccee8ce 1-305
+capacitor.config.json
+  s_1fd8d0e7b02dcf::t_40ef99aad20e1b 6-9
+src/controller.js
+  s_1fd8d0e7b02dcf::t_bc3cfe841ed2c5 10-11,26
+src/main.js
+  s_1fd8d0e7b02dcf::t_3c3734a3458fac 4-5,616-620,781,1119
+src/native-app.js
+  s_1fd8d0e7b02dcf::t_b7709f036b5574 1-70
+src/native-pad.js
+  s_1fd8d0e7b02dcf::t_70cbd34a7f0386 14-17,57-72,77-78,81-83,85,92,94-97,107-108
+src/ui.js
+  s_1fd8d0e7b02dcf::t_939a76eedbd7e2 14,49,62
+tests/ab-swap.test.js
+  s_1fd8d0e7b02dcf::t_7bcaa56935e5de 1-65
+tests/android-ota.test.js
+  s_1fd8d0e7b02dcf::t_e14d9fc6b3b362 1-83
+tests/native-app.test.js
+  s_1fd8d0e7b02dcf::t_04c167c2879210 1-69
+scripts/release-info.mjs
+  s_9a9b68c7b864b1::t_f68d13ee9abc05 2-9,12-18,20-54
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a30aac13b632b7d3a813149ad07083c8b3a4d2be",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9a9b68c7b864b1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ae0d03cf1793660db",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
