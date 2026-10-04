@@ -194,7 +194,7 @@ const _mat = new THREE.Matrix4();
 const _q1 = new THREE.Quaternion();
 const Y = new THREE.Vector3(0, 1, 0);
 const _zAxis = new THREE.Vector3(0, 0, 1);
-const _shoulder = new THREE.Vector3();
+const _shoulder = new THREE.Vector3(), _head = new THREE.Vector3(), _toCam = new THREE.Vector3(), _chest = new THREE.Vector3();
 const _qId = new THREE.Quaternion();
 const _xAxis = new THREE.Vector3(1, 0, 0);
 
@@ -1524,6 +1524,8 @@ export class Player {
   }
 }
 
+const INDOOR_PITCH = 0.5;   // rad: how far the camera looks down in tight rooms
+
 export class CameraRig {
   constructor(camera, dom, physics) {
     this.camera = camera;
@@ -1540,6 +1542,10 @@ export class CameraRig {
     this._now = 0;
     this._distBoost = 0;
     this.aimK = 0;           // set by the fluid tool while aiming (0..1)
+    // tight rooms (the ship sets this indoors): a lower look point, the camera up
+    // under the ceiling looking down over the shoulder, and allowed in close
+    this.indoor = false;
+    this.indoorK = 0;
 
     dom.addEventListener('click', () => dom.requestPointerLock?.());
     dom.addEventListener('mousedown', () => (this._dragging = true));
@@ -1563,6 +1569,30 @@ export class CameraRig {
     this.pitch = THREE.MathUtils.clamp(this.pitch + dy * k * (this.invertY ? -1 : 1), -0.62, 1.3);
   }
 
+  /**
+   * Of yaws near `yaw`, the first (nearest) whose camera arm is clear for `want`
+   * metres, else the clearest: for placing the camera in a small room.
+   * (Level ground frame only: up is +y.)
+   */
+  clearYaw(playerPos, yaw, { want = this.dist, offsets = [0, -0.5, 0.5, -1, 1, -1.6, 1.6, -2.3, 2.3, Math.PI] } = {}) {
+    const pitch = this.indoor ? Math.max(this.pitch, INDOOR_PITCH) : this.pitch, cp = Math.cos(pitch);
+    const look = _head.copy(playerPos).addScaledVector(Y, this.indoor ? 1.5 : 1.8);
+    let best = yaw, bd = -1;
+    for (const o of offsets) {
+      const a = yaw + o;
+      _toCam.set(Math.sin(a) * cp, Math.sin(pitch), Math.cos(a) * cp);
+      let d = Math.min(want, this.physics.rayDistance(look, _toCam, want + 0.5) - 0.4);
+      // and the body in sight from there (not just the head: a top bunk hides the rest)
+      _shoulder.copy(look).addScaledVector(_toCam, d);
+      const chest = _chest.copy(playerPos).addScaledVector(Y, 0.9);
+      const to = _shoulder.sub(chest), L = to.length();
+      if (L > 0.1 && this.physics.rayDistance(chest, to.divideScalar(L), L) < L) d *= 0.3;
+      if (d >= want - 0.05) return a;
+      if (d > bd + 0.05) { bd = d; best = a; }
+    }
+    return best;
+  }
+
   /** While riding: swing behind the bike unless the mouse moved recently. */
   follow(heading, dt, riding) {
     this._distBoost += ((riding ? 6 : 0) - this._distBoost) * (1 - Math.exp(-2 * dt));
@@ -1577,17 +1607,22 @@ export class CameraRig {
     this._now += dt;
     const U = frame ? frame.up : Y, Fw = frame ? frame.fwd : _zAxis, Rt = frame ? frame.right : _xAxis;
     const ak = this.aimK ?? 0;   // aiming the tool: in close, over the right shoulder
+    this.indoorK += ((this.indoor ? 1 : 0) - this.indoorK) * (1 - Math.exp(-5 * dt));
+    const ik = this.indoorK;
     const dist = THREE.MathUtils.lerp(this.dist + this._distBoost, 3.4, ak);
     this.target.lerp(playerPos, 1 - Math.exp(-14 * dt));
     if (this.target.lengthSq() === 0) this.target.copy(playerPos);
-    const cp = Math.cos(this.pitch);
+    // indoors the view tips down from under the ceiling, so the head never fills the screen
+    const pitch = THREE.MathUtils.lerp(this.pitch, Math.max(this.pitch, INDOOR_PITCH), ik * (1 - ak));
+    const cp = Math.cos(pitch);
     const cam = this.camera.position;
     // looking up from low down: aim higher so the sky and clouds fill the view
-    this._look.copy(this.target).addScaledVector(U, 1.8 + Math.max(0, -this.pitch) * 1.4 * (1 - ak) - 0.1 * ak);
+    this._look.copy(this.target).addScaledVector(U, 1.8 + Math.max(0, -pitch) * 1.4 * (1 - ak) - 0.1 * ak - 0.3 * ik);
     this._dir.copy(Rt).multiplyScalar(Math.sin(this.yaw) * cp)
-      .addScaledVector(U, Math.sin(this.pitch))
+      .addScaledVector(U, Math.sin(pitch))
       .addScaledVector(Fw, Math.cos(this.yaw) * cp);
-    if (ak > 0) this._look.addScaledVector(_shoulder.crossVectors(U, this._dir).normalize(), 0.85 * ak);
+    const side = Math.max(0.85 * ak, 0.4 * ik);
+    if (side > 0) this._look.addScaledVector(_shoulder.crossVectors(U, this._dir).normalize(), side);
 
     // Line of sight: pull the camera in front of any wall between it and the
     // player (snap in, ease back out).
@@ -1595,17 +1630,30 @@ export class CameraRig {
     // otherwise clip the floor and yank the camera in)
     const rolling = this.camera.up.dot(U) < 0.985;
     const hit = rolling ? Infinity : this.physics.rayDistance(this._look, this._dir, dist + 0.5);
-    let allowed = Math.max(Math.min(dist, hit - 0.6), 1.5);
+    // (indoors it may come right in: a floor of 1.5 m would put it through a corridor wall)
+    let allowed = Math.max(Math.min(dist, hit - THREE.MathUtils.lerp(0.6, 0.35, ik)), THREE.MathUtils.lerp(1.5, 0.45, ik));
     // the ground limits the arm too (so you can drop low and look at the sky):
     // the longest arm whose end stays 0.4 m above the ground, found by
     // bisection, folded into the same target so the two can't fight
     if (U.y > 0.999) {
-      const clear = (d) => { cam.copy(this._look).addScaledVector(this._dir, d); return cam.y >= this.physics.groundAt(cam.x, cam.y + 3, cam.z) + 0.4; };
+      // (indoors from just above the camera: from 3 m up, the ceiling's top reads as "ground")
+      const lift = this.indoor ? 0.25 : 3;
+      const clear = (d) => { cam.copy(this._look).addScaledVector(this._dir, d); return cam.y >= this.physics.groundAt(cam.x, cam.y + lift, cam.z) + 0.4; };
       if (!clear(allowed)) {
         let lo = 0.8, hi = allowed;
         for (let k = 0; k < 8; k++) { const m = (lo + hi) / 2; if (clear(m)) lo = m; else hi = m; }
         allowed = lo;
       }
+    }
+    // indoors the look point sits off the shoulder: also keep the head itself in sight
+    // (a bunk or a doorframe between the camera and the head, but not the look point)
+    if (ik > 0.5) {
+      _head.copy(this.target).addScaledVector(U, 1.55);
+      cam.copy(this._look).addScaledVector(this._dir, allowed);
+      _toCam.subVectors(cam, _head);
+      const L = _toCam.length();
+      const h = L > 0.3 ? this.physics.rayDistance(_head, _toCam.divideScalar(L), L) : Infinity;
+      if (h < L) allowed = Math.max(0.45, allowed * Math.max(0, h - 0.3) / L);
     }
     // snap in, ease back out; tiny changes are ignored so it can't jitter
     if (allowed < this._curDist - 0.02) this._curDist = allowed;

@@ -396,7 +396,7 @@ player.onStep = (p, heading, up, i) => {
 const input = {};
 window.addEventListener('keydown', (e) => {
   input[e.code] = true;
-  if (e.code === 'KeyQ' && !e.repeat && !busy() && !photo.on) scout.ping();
+  if (e.code === 'KeyQ' && !e.repeat && !busy() && !photo.on && !ship.playing) scout.ping();
   if (e.code === 'Space') e.preventDefault();
 });
 window.addEventListener('keyup', (e) => (input[e.code] = false));
@@ -657,13 +657,15 @@ function updateHud() {
     else if (player.mount) parts.push(`E whistle for the ${level.mountName}`);
     else if (level.features.taxis) parts.push('E hail a taxi');
     const shipHint = ship.hud();   // inside the ship and at its ramp, E is the ship's
-    if (shipHint) { for (let i = parts.length - 1; i >= 0; i--) if (parts[i].startsWith('E ')) parts.splice(i, 1); parts.unshift(shipHint); }
+    // (and while one of its scenes plays, E does nothing at all: no whistling from orbit)
+    if (shipHint || ship.playing) { for (let i = parts.length - 1; i >= 0; i--) if (parts[i].startsWith('E ')) parts.splice(i, 1); if (shipHint) parts.unshift(shipHint); }
     if (!parts.length) parts.push('push into a wall to climb it');
   }
   // a tracked quest's line wins; otherwise the ship's objective (set by the prologue) and the world's story
   const objective = game.flag('objective');
-  const questLine = expedition?.state.started && !expedition.state.returned ? expedition.hud(player) : storyRt.hud();
-  const goal = questLine ?? [objective && `◆ ${objective}`, expedition && !expedition.state.returned ? expedition.hud(player) : story.hud()].filter(Boolean).join(' · ');
+  // (none during the ship's scenes: in orbit the camps are "1.1 km through the doorway")
+  const questLine = ship.playing ? null : expedition?.state.started && !expedition.state.returned ? expedition.hud(player) : storyRt.hud();
+  const goal = ship.playing ? '' : questLine ?? [objective && `◆ ${objective}`, expedition && !expedition.state.returned ? expedition.hud(player) : story.hud()].filter(Boolean).join(' · ');
   const edgeHint = edgeTravel();
   let text = `${atmo.name} · ${parts.join(' · ')}` +
     `\n${goal ? goal + ' · ' : ''}${errands.hud() ? errands.hud() + ' · ' : ''}relics ${journal.relicCount(levelId)}/${content.relics.names.length} · Q ping · R tool · H help` +
@@ -713,7 +715,7 @@ const controller = new Controller({
     if (name === 'worlds') showPicker(true);
     if (name === 'photo') setPhoto(!photo.on);
     if (name === 'capture') photo.capture = true;
-    if (name === 'ping') scout.ping();
+    if (name === 'ping' && !ship.playing) scout.ping();
   },
 });
 for (const event of ['keydown', 'pointerdown', 'touchstart']) window.addEventListener(event, () => { controllerActive = false; });
@@ -831,7 +833,7 @@ function frame() {
   for (const v of player.vehicles) if (v !== player.ride) v.update(dt, null, t);
   // E goes to the nearest person / thing / vehicle first (src/interact.js); only then to the player's whistle
   const ePressed = !!ctl.KeyE && !eWasDown && !photo.on; eWasDown = !!ctl.KeyE;
-  const interacted = storyRt.update(dt, t, { camera, ePressed, paused: busy() || photo.on }).handled;
+  const interacted = storyRt.update(dt, t, { camera, ePressed, paused: busy() || photo.on || ship.playing }).handled;
   if (photo.on) {
     if (!busy()) photoUpdate(dt, mergedInput);
   } else {
