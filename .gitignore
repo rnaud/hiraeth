@@ -6,3 +6,6 @@ __pycache__/
 output/character-local/
 output/character-tripo/
 .claude/worktrees/
+
+# reference images sorted into world folders: kept local for now (slow uploads); add them back later
+references/*/
