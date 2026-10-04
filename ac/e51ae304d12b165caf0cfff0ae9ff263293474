@@ -1,0 +1,21 @@
+src/npc.js
+  s_1fd8d0e7b02dcf::t_a2b49b9cfa3e5f 234,265-278,283-284,286
+tests/followers.test.js
+  s_1fd8d0e7b02dcf::t_922e83a1f591c4 1-31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ace51ae304d12b165caf0cfff0ae9ff263293474",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
