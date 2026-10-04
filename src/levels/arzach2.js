@@ -62,7 +62,6 @@ export const ARZACH2_CONTENT = {
     ],
     names: ['Bell-rope tassel', 'Egg-stone pebble', 'Mushroom-cap seed', 'Aqueduct keystone', 'Island prayer bead'],
   },
-  gate: { at: [28, 34], heading: Math.PI },
   npcs: [
     { at: [-14, 30], y: START.top, radius: 5, palette: { cloak: '#b9a7d8', lining: '#2b211f', cloth: '#e2d3b4', legs: '#2b2f45' },
       lines: ['~solemn~ The stones fell up, long ago. Some of them never came down.', '~neutral~ Whistle and the bird will come. She does not like the cloud.'] },

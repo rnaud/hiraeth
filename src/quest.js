@@ -1,16 +1,13 @@
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { makeMaterial, MODE_STRATA } from './materials.js';
-import { registerTarget } from './targets.js';
+import { makeMaterial } from './materials.js';
 
-// Story, collectibles, the sketchbook journal and the gates between worlds.
+// Story, collectibles and the sketchbook journal (worlds are reached by the ship: src/ship/).
 //  - Story: one quiet goal per level, marked by a beacon. Arriving opens a
 //    wordless comic page whose panels are rendered live from the game.
 //  - Relics: five per level, often on top of things you have to climb.
 //    Picking one up sketches the moment into your journal.
 //  - Journal (J): a sketchbook with every relic and story page found, kept
 //    in localStorage.
-//  - Gate: a standing stone frame that turns the page to the next world.
 //  - A story with `manual: true` (the desert's) has no beacon and doesn't
 //    finish on arrival: its quest calls story.complete() (src/story/).
 //  - journal.sections: functions returning extra HTML for the sketchbook
@@ -57,7 +54,8 @@ export class Journal {
   render() {
     const body = this.el.querySelector('.pages');
     const extra = this.sections.map((f) => { try { return f() ?? ''; } catch (e) { console.warn(e); return ''; } }).join('');
-    body.innerHTML = extra + this.levels.filter((L) => !L.hidden || this.data.completed).map((L) => {
+    // (only the worlds you know of: `known`, set by main.js from src/story/route.js)
+    body.innerHTML = extra + this.levels.filter((L) => (!L.hidden || this.data.completed) && (!this.known || this.known(L.id))).map((L) => {
       const relics = (L.relicNames ?? []).map((name, i) => {
         const e = this.data.relics[L.id]?.[i];
         return e
@@ -294,102 +292,13 @@ export class Story {
     this.page.classList.remove('open');
     this.pageOpen = false;
     this.sound.page();
-    if (this.done && this.def.next) toast(`The gate to ${this.def.next} hums nearby.`);
+    // finishing a world names the next one on the ship's map (def.next: main.js, src/story/route.js)
+    const next = this.done && (typeof this.def.next === 'function' ? this.def.next() : this.def.next);
+    if (next) toast(next);
   }
 }
 
 // ---------------------------------------------------------------------------
-
-/** A standing stone frame with a glowing veil: walk through it to change world. */
-export class Gate {
-  constructor(scene, { pos, heading, dest, destTitle, sound, onTravel }) {
-    this.pos = pos.clone();
-    this.heading = heading;
-    this.dest = dest;
-    this.destTitle = destTitle;
-    this.sound = sound;
-    this.onTravel = onTravel;
-    const stone = makeMaterial({ color: '#efe4cf', color2: '#d9c7a6', color3: '#c9b8a0', mode: MODE_STRATA, strataSize: 1.4, flat: true, grid: 1.2, glyphs: true });
-    const W = 5, H = 9;
-    const frame = mergeGeometries([
-      new THREE.BoxGeometry(1.2, H, 1.4).translate(-W / 2 - 0.6, H / 2, 0),
-      new THREE.BoxGeometry(1.2, H, 1.4).translate(W / 2 + 0.6, H / 2, 0),
-      new THREE.BoxGeometry(W + 3.6, 1.3, 1.8).translate(0, H + 0.65, 0),
-    ]);
-    const grp = new THREE.Group();
-    grp.add(new THREE.Mesh(frame, stone));
-    this.veil = new THREE.Mesh(new THREE.PlaneGeometry(W, H), makeMaterial({ color: '#9fd6e8', glow: 0.85, side: THREE.DoubleSide }));
-    this.veil.position.y = H / 2;
-    this.veil.userData.noCollide = true;
-    const glyph = new THREE.Mesh(new THREE.OctahedronGeometry(0.6, 0), makeMaterial({ color: '#f2c54b', glow: 1, flat: true }));
-    glyph.position.y = H + 2.4;
-    glyph.userData.noCollide = true;
-    grp.add(this.veil, glyph);
-    this.glyph = glyph;
-    grp.position.copy(pos);
-    grp.rotation.y = heading;
-    scene.add(grp);
-    this.group = grp;
-    this.normal = new THREE.Vector3(Math.sin(heading), 0, Math.cos(heading));
-    this.side = new THREE.Vector3(Math.cos(heading), 0, -Math.sin(heading));
-    this.light = new THREE.Vector4(pos.x, pos.y + 4, pos.z, 14);
-    this._prevSide = null;
-    // the glyph rings like a bell when the fluid tool touches the gate (a glob or the push)
-    this.ringT = 0;
-    this.offTarget = registerTarget({ kind: 'gate', radius: 3.4, position: () => glyph.getWorldPosition(this._glyphAt ??= new THREE.Vector3()).lerp(this.pos, 0.45), onHit: () => this.ring() });
-  }
-
-  ring() {
-    if (this.ringT < 0.5) this.sound.chime();
-    this.ringT = 1.6;
-    return true;
-  }
-
-  /** Where you arrive when coming through this gate: in front of it, facing away. */
-  arrival() {
-    return { pos: this.pos.clone().addScaledVector(this.normal, 5), heading: this.heading };
-  }
-
-  update(dt, t, player) {
-    this.ringT = Math.max(0, this.ringT - dt);
-    const r = Math.min(1, this.ringT);
-    this.spin = (this.spin ?? 0) + dt * (0.8 + r * r * 14);
-    this.glyph.rotation.y = this.spin;
-    this.glyph.position.y = 11.4 + Math.sin(t * 1.3) * 0.25 + Math.sin(this.ringT * 18) * 0.15 * r;
-    this.glyph.scale.setScalar(1 + 0.5 * r);
-    this.light.w = 14 + 22 * r;
-    const rel = player.pos.clone().sub(this.pos);
-    const along = rel.dot(this.side), across = rel.dot(this.normal), height = rel.y;
-    const sideNow = Math.sign(across);
-    // crossing the veil plane between the pillars
-    if (this._prevSide !== null && sideNow !== this._prevSide && Math.abs(along) < 2.6 && height > -1 && height < 9 && !this.travelling) {
-      this.travelling = true;
-      this.sound.whoosh();
-      this.onTravel(this.dest, this.destTitle);
-    }
-    this._prevSide = sideNow;
-    this.near = player.pos.distanceTo(this.pos) < 25;
-  }
-}
-
-/** Page-turn transition between worlds. */
-export function turnPage(title, then) {
-  const el = document.getElementById('travel');
-  el.querySelector('.title').textContent = title;
-  el.classList.remove('out');
-  el.classList.add('in');
-  setTimeout(then, 1100);
-}
-
-export function arriveFromPage(title) {
-  const el = document.getElementById('travel');
-  el.querySelector('.title').textContent = title;
-  el.classList.add('in', 'instant');
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    el.classList.remove('instant');
-    setTimeout(() => { el.classList.remove('in'); el.classList.add('out'); }, 500);
-  }));
-}
 
 /**
  * Errands between worlds (levels/content.js ERRANDS). Watches this world's

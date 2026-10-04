@@ -26,10 +26,6 @@ test('spawn stands on the solid start plateau, above the cloud sea', () => {
   assert.ok(Math.abs(g - y) < 0.3, `spawn ground ${g} vs ${y}`);
   assert.ok(y > 30, 'spawn is on the plateau, not the chasm floor');
   assert.ok(!level.unsafe(level.spawn));
-  // the gate stands on the plateau too
-  const [gx, gz] = ARZACH2_CONTENT.gate.at;
-  const gy = physics.groundAt(gx, 1e4, gz, 2e4);
-  assert.ok(Math.abs(gy - y) < 4, `gate ground ${gy}`);
 });
 
 test('five relics sit on reachable surfaces', () => {

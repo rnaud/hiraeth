@@ -288,15 +288,6 @@
       #journal .tile.empty div { display: grid; place-items: center; border-style: dashed; opacity: 0.45; font-size: 28px; }
       #journal figcaption { margin-top: 4px; font-size: 11px; }
 
-      #travel {
-        position: fixed; inset: 0; z-index: 8500; display: grid; place-items: center; pointer-events: none;
-        background: #f7ecd2; transform: translateX(105%); transition: transform 1s cubic-bezier(0.7, 0, 0.3, 1);
-        box-shadow: -14px 0 0 #2b211f;
-      }
-      #travel.in { transform: translateX(0); pointer-events: auto; }
-      #travel.out { transform: translateX(-105%); }
-      #travel.instant { transition: none; }
-      #travel .title { font: 34px ui-monospace, Menlo, monospace; letter-spacing: 0.2em; color: #2b211f; text-transform: uppercase; }
       /* The canvas fills the screen; interactive UI stays inside iOS safe areas. */
       #hud { left: calc(16px + var(--safe-left)); bottom: calc(16px + var(--safe-bottom)); }
       #gear { right: calc(14px + var(--safe-right)); bottom: calc(14px + var(--safe-bottom)); }
@@ -390,7 +381,6 @@
     <div id="toast"></div>
     <div id="dialogue"></div>
     <div id="prompt"></div>
-    <div id="travel"><div class="title"></div></div>
     <div id="settings"></div>
     <div id="touch"></div>
     <div id="scout-label" hidden></div>
@@ -401,7 +391,7 @@
     <div id="picker">
       <header>
         <h1>MOEBIUS — choose a world</h1>
-        <span>press 1–7 · L to toggle this screen <button class="close">close ✕</button></span>
+        <span>press a number · L to toggle this screen <button class="close">close ✕</button></span>
       </header>
       <div class="cards"></div>
     </div>

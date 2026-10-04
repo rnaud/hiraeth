@@ -122,12 +122,12 @@ Grouped by area. Checked items are done; the changelog says when.
 
 ## Galactic map and travel
 
-- [ ] Confirm before travelling to another planet.
-- [ ] Simplify the map: don't show what the worlds look like.
-- [ ] The description text overlaps the place names; fix the layout.
-- [ ] Only the next world is known; worlds unlock as you go (maybe two at first
+- [x] Confirm before travelling to another planet.
+- [x] Simplify the map: don't show what the worlds look like.
+- [x] The description text overlaps the place names; fix the layout.
+- [x] Only the next world is known; worlds unlock as you go (maybe two at first
   so there's a choice).
-- [ ] Remove the teleport doors to other levels now that we have the ship.
+- [x] Remove the teleport doors to other levels now that we have the ship.
 - [ ] The cutscene between levels shows the approach to the planet from space.
 - [x] The landing cutscene has no sound at all; add it.
 - [ ] Ship take-off and landing: the smoke comes from the wrong places.

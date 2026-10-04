@@ -265,7 +265,7 @@ export class Ship {
     globalThis.addEventListener?.('blur', () => { this._esc = false; });
   }
 
-  /** Called when the world is ready. via: 'ship' | 'gate' | 'edge' | null. */
+  /** Called when the world is ready. via: 'ship' (arriving by ship) | null. */
   start({ via, prologue, homecoming, onReady }) {
     this.onReady = onReady;
     if (homecoming && this.spaceCopy) {

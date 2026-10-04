@@ -170,7 +170,6 @@ export const PERDIDE2_CONTENT = {
     ],
     names: ['Spore cap', 'Dome moss', 'Saucer beacon', 'Root-arch knot', 'Ember from the cave'],
   },
-  gate: { at: [14, 14], heading: Math.PI },
   // Hollin on the island, Pim by the moss domes, Bram at the cave mouth (with their conversations)
   npcs: KEEPERS,
 };

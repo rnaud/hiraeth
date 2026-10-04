@@ -79,9 +79,9 @@ test('scattered props keep clear of the landmarks and still sit on the ground', 
   }
 });
 
-test('desert story, relics, people and gate are clear of the landmarks', () => {
+test('desert story, relics and people are clear of the landmarks', () => {
   const d = CONTENT.desert;
-  const points = [...d.relics.spots, d.gate.at, ...d.npcs.map((n) => n.at), [d.story.goal[0], d.story.goal[2]]];
+  const points = [...d.relics.spots, ...d.npcs.map((n) => n.at), [d.story.goal[0], d.story.goal[2]]];
   for (const [x, z] of points) for (const [name, s] of Object.entries(SITES)) assert.ok(Math.hypot(x - s.x, z - s.z) > s.r, `${x},${z} inside the ${name}`);
 });
 

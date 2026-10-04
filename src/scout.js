@@ -19,7 +19,7 @@ const objective = (id, label, position) => ({ id, label, position: position.clon
  * function returning it; src/story/quests.js). It comes first, except while
  * the observatory expedition is under way.
  */
-export function nextObjective({ player, expedition, story, relics, gate, level, quest = null }) {
+export function nextObjective({ player, expedition, story, relics, ship = null, level, quest = null }) {
   let target;
   const q = typeof quest === 'function' ? quest() : quest;
   const expeditionUnderWay = expedition && expedition.state.started && !expedition.state.returned;
@@ -49,7 +49,7 @@ export function nextObjective({ player, expedition, story, relics, gate, level, 
   else {
     const remaining = (relics?.items ?? []).filter((r) => !r.done).sort((a, b) => player.pos.distanceToSquared(a.pos) - player.pos.distanceToSquared(b.pos));
     target = remaining.length ? objective(`relic-${remaining[0].i}`, 'An undiscovered relic', remaining[0].pos)
-      : gate ? objective('gate', `Gate to ${gate.destTitle}`, gate.pos) : null;
+      : ship?.pos ? objective('ship', 'Back to the ship', ship.pos) : null;
   }
   return target && viaPortal(player.pos, target, level.navigationPortals ?? level.portals ?? []);
 }

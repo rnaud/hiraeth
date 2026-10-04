@@ -63,8 +63,6 @@ test('the lit path leads dry or wadeable to the cave goal', () => {
     const p = curve.getPointAt(u);
     assert.ok(level.ground.heightAt(p.x, p.z) > -1.5, `path wadeable at ${p.x.toFixed(0)},${p.z.toFixed(0)}`);
   }
-  const gate = PERDIDE2_CONTENT.gate.at;
-  assert.ok(level.ground.heightAt(gate[0], gate[1]) > 1, 'gate on the island');
 });
 
 test('the skiff waits at the cave mouth and the collision budget holds', () => {

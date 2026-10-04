@@ -97,7 +97,6 @@ export const BURIED_CONTENT = {
     spots: [HERO_DOME, [(HERO_PIPE.x0 + HERO_PIPE.x1) / 2, HERO_PIPE.z], TOWER, [LEDGE_X, LEDGE_Z], [cx(WALLS[1]), WALLS[1]]],
     names: ['Chimney bell', 'Pressure gauge', 'Derrick beacon', 'Oil-lamp wick', 'Oval-window shard'],
   },
-  gate: { at: [22, 86], heading: Math.PI },
   // the level's people (talk: src/story/buried-data.js); the domes' others are spawned by the story
   npcs: [
     { at: [14, 40], radius: 5, ...PEOPLE.pim },

@@ -76,7 +76,7 @@ portal routes, with local obstacle avoidance. **L** opens the level picker. Each
 **X** (or middle click) to switch modes. On a gamepad, LT aims, RT fires while
 aiming and the D-pad switches; on touch, use **◎ ✺ ⇄**. The paralyze ray
 freezes wildlife and people briefly. Foam darts activate things from afar:
-reactive scenery, observatory lenses within 30 m, the world gate, cruising
+reactive scenery, observatory lenses within 30 m, cruising
 taxis and Perdide's carnivorous plants.
 
 ## Controller
@@ -130,7 +130,9 @@ presets (Moebius / Sable / Animated ink) and debug views of each G-buffer channe
 ## Levels
 
 Opening the page with no `?level=` shows a **level picker**. Press **L** to
-reopen it at any time, or **1–9** while it's open (later worlds are clicked). Each level is a module in
+reopen it at any time, or **1–9** while it's open (later worlds are clicked).
+It lists only the worlds you know of (see "The galactic map and the route"
+below); `?level=<id>` and the dev menu still open any world. Each level is a module in
 `src/levels/`, registered in `src/levels/index.js`.
 
 | # | Level | After | Getting around |
@@ -374,9 +376,8 @@ poses update at 12 fps ("stop-motion anim") while movement stays smooth.
     colours, with simulated cloaks near the camera;
   - they walk their routes, stop to look at you, wave, and say a line in a
     speech balloon; shy ones run away if you charge at them.
-- **Travel:** every world has a stone gate. Walk through it and the page
-  turns to the next world, where you step out of its gate (desert → city →
-  Arzach → Garage → Edena → Perdide → desert).
+- **Travel:** by the ship (its galactic map, `src/ship/starmap.js`). The
+  stone gates and the walk off the edge of a world are gone (v0.38).
 - **Sound** (`src/audio.js`): everything is synthesised with Web Audio, with
   no audio files.
   - Each world has its own lead instrument and a recurring melody, played
@@ -397,7 +398,7 @@ poses update at 12 fps ("stop-motion anim") while movement stays smooth.
     flutter.
   - The jetpack roar, an engine for the bike, skiff and taxis, and bird
     flaps.
-  - Chimes for relics, page turns, and a whoosh at the gates.
+  - Chimes for relics and page turns.
   - Sound starts on your first click, and **M** mutes.
 - **Weather** (`src/weather.js`): each world alternates clear spells with
   its own weather, ramping in and out over a few seconds. You can force it
@@ -553,12 +554,9 @@ update, a note points to it once. The same release notes are in
   parcel, and the HUD shows what you're carrying. Greeting the receiver
   delivers it and puts a sketch of them in the sketchbook (J, "Errands").
   The errands are defined in `ERRANDS` in `levels/content.js`.
-- **Seamless travel:** walk, ride or glide off the edge of a world (past
-  ~1850 m) and the page turns into the neighbouring world: the next one
-  across the +x/+z edges, the previous one across −x/−z. You arrive at the
-  matching edge, at the same place along it, heading inward, and still on
-  the mount if you were riding and that world has one. The HUD warns you
-  as you get close. The Garage (a ring world) and the Atelier have no edges.
+- **Travel between worlds** is by ship only (v0.38): the gates and the
+  seamless edge crossings were removed. The edge of a world is a wall now
+  (`player.opts.limit`).
 
 ## The Sleeping Observatory (v0.16)
 
@@ -766,7 +764,6 @@ above the street; use the jetpack, climb the blue resting ledges, or hail a taxi
 Reaching the console completes **The Last Broadcast**. Five relics are spread
 between the market, a stall roof, two bridges and the balcony. The scout, saves,
 sketchbook, controller and touch controls use the existing game systems.
-The gate leads back to the desert; Perdide now leads into the market.
 
 Geometry is merged by street block and material for culling. Collision tests
 cover the avenue, bridge decks, climbing ledges, relic platforms and quest
@@ -965,7 +962,7 @@ Every system talks through it, and its header lists the flags and events.
   spawn). In the desert it lies crashed at (58, 48), with a furrow behind it.
   E at the cockpit console plays a waiting call home, or opens the galactic map
   (`starmap.js`). The map is locked until `ship.powered`. Travel loads
-  `?level=<id>&via=ship`, and the gates still work.
+  `?level=<id>&via=ship`.
 - **The prologue** (`prologue.js` state machine, `cinematics.js` director)
   plays on a new game: waking in the bunk, the father's call, the impact, the
   crash landing seen from outside, stepping out. `?prologue=1` replays it; hold
@@ -1228,3 +1225,28 @@ Pocket. Their built-in controls work through the Gamepad API.
   per frame than before despite fewer draws (still over 200 fps here); the desert and the
   City-Shaft are about 1 ms faster.
 
+### The galactic map and the route (v0.38)
+- **The route** (`src/story/route.js`, `knownWorlds`): the worlds open up in `ORDER`. The
+  desert (the crash) is always known, then the next `AHEAD` (2) worlds that are not done,
+  so there is always a choice of two. Finishing a world (`world.<id>.done` or its story
+  page) brings in the next one, and the closing page's toast names it ("New on the ship's
+  map: …"). Worlds you have visited, or stand in, stay known. Home opens on its own
+  (`src/story/ending.js`). The level picker (L) and the sketchbook (J) apply the same rule; `?level=<id>` and the
+  dev menu bypass it.
+- **The map** (`src/ship/starmap.js`): unknown worlds are faint unnamed dots along the
+  route. Known worlds are drawn planets in flat colours (`src/ship/planets.js`, no
+  screenshots): a shadow crescent, an ink outline and one mark each (dunes, bands,
+  craters, a ring, a moon, lit windows); ✦ marks a discovery, a dashed ring a world not yet
+  visited. The chart is a grid: the field (the route) and a side column with the info
+  panel (under the field on a phone held upright), so the panel never covers a name.
+  `chartLayout(n, W, H)` places the worlds in pixels for the field's size: a ring round
+  home when it fits at 80% scale or more, else a snake of rows. The tests check that no
+  two footprints (disc, two lines of name, a tag) overlap at the measured field sizes.
+- **Travel asks first:** choosing a world opens "Travel to X?" with Yes / No (Enter / Esc,
+  a click, A / × and B / ○). The press that asks never answers: held keys repeat
+  (`e.repeat`), the pad needs a fresh A, and a Yes within 150 ms of the question is ignored.
+  B or Esc in the question says no and leaves the map open.
+- **The gates are gone:** the stone gates (`Gate` in `quest.js`), the page-turn transition
+  and the edge crossings (`via=gate`, `via=edge`) were removed; the scout's last objective is
+  "Back to the ship". Ship sites no longer keep clear of the old gate spots; the City-Shaft and the market,
+  where that moved the ship, pin it where it stood (`SITE_OVERRIDES`).
