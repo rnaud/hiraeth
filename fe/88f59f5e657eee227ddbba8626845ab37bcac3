@@ -1,0 +1,21 @@
+src/crowd.js
+  s_1fd8d0e7b02dcf::t_225d1f0e28eb6d 644-648,650-654,657
+src/perf.js
+  s_1fd8d0e7b02dcf::t_04bbe5122bfe7a 62-65,69,74-75,97-99,104
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fe88f59f5e657eee227ddbba8626845ab37bcac3",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
