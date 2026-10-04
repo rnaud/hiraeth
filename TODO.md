@@ -72,9 +72,9 @@ Grouped by area. Checked items are done; the changelog says when.
 
 ## Bugs
 
-- [ ] Prologue camera clips into everything at the start and glitches while
+- [x] Prologue camera clips into everything at the start and glitches while
   moving around.
-- [ ] Crash landing on the first planet: the planet's shader keeps sliding
+- [x] Crash landing on the first planet: the planet's shader keeps sliding
   around during the crash.
 - [x] Achievement overlay stays up during a conversation: pressing A advances
   the dialogue (seen with Nima) but never dismisses the overlay.
@@ -131,10 +131,10 @@ Grouped by area. Checked items are done; the changelog says when.
 - [x] Only the next world is known; worlds unlock as you go (maybe two at first
   so there's a choice).
 - [x] Remove the teleport doors to other levels now that we have the ship.
-- [ ] The cutscene between levels shows the approach to the planet from space.
+- [x] The cutscene between levels shows the approach to the planet from space.
 - [x] The landing cutscene has no sound at all; add it.
-- [ ] Ship take-off and landing: the smoke comes from the wrong places.
-- [ ] The door opening outside the spaceship animates oddly; fix it.
+- [x] Ship take-off and landing: the smoke comes from the wrong places.
+- [x] The door opening outside the spaceship animates oddly; fix it.
 
 ## Camera
 
@@ -176,7 +176,7 @@ Grouped by area. Checked items are done; the changelog says when.
 
 ## World, levels and materials
 
-- [ ] The burning tree is one large flame, drawn with a flame shader rather than
+- [x] The burning tree is one large flame, drawn with a flame shader rather than
   3D geometry.
 - [ ] Dry sand looks low resolution and pops in while moving and driving;
   redo the shader with a different look by distance.

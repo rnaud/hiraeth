@@ -92,7 +92,7 @@ test('the city’s people and places stand on walkable ground', () => {
   for (const k of [0, 1, 2]) assert.ok(Math.abs(npcs[k].pos.y - S.TOP) < 0.5, `rim person ${k} stands on the rim (${npcs[k].pos.y})`);
   // the cab's parking spot is over the void beside the lamp, with nothing in the way
   assert.ok(!Number.isFinite(physics.groundAt(P.cab.x, P.cab.y + 1, P.cab.z, 20)), 'the cab hovers over the void');
-  // the Incal can be seen from the palace landing (nothing overhead in the way)
+  // the Lodestar can be seen from the palace landing (nothing overhead in the way)
   const eye = P.palace.landing.clone().add(V(0, 1.6, 0)), to = S.incal.pos.clone().sub(eye);
   assert.ok(physics.rayDistance(eye, to.clone().normalize(), to.length()) >= to.length() - 20, 'a clear line from the landing up to the light');
 });
@@ -160,7 +160,7 @@ test('the main quest: from the rim, down to the shrine, up to the palace, and th
   assert.ok(!quests.has('splinter'));
   assert.equal(quests.stage('incal.light'), 'tell');
   step(200, 1 / 20);
-  assert.ok(S.incal.k > 0.9, `the Incal brightens (${S.incal.k.toFixed(2)})`);
+  assert.ok(S.incal.k > 0.9, `the Lodestar brightens (${S.incal.k.toFixed(2)})`);
   // the city looks up: heads turned to the light, the lines changed
   const looking = crowd.people.filter((p) => p.gazeAt && p.gazeUntil > crowd.time).length;
   assert.ok(looking > crowd.people.length * 0.9, `${looking} of ${crowd.people.length} look up`);

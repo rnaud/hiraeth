@@ -5,7 +5,7 @@ import { mulberry32 } from './noise.js';
 import { STORY, processionLoop } from './desert-sites.js';
 import { cityFloor } from './desert-landmarks.js';
 import { Banner } from './life.js';
-import { Flames, Embers, Smoke, SmokeColumn, FIRE, COOL_FIRE } from './story/flames.js';
+import { Flames, FlameSheet, Embers, Smoke, SmokeColumn, FIRE, COOL_FIRE } from './story/flames.js';
 import { magicMaterial, magicPool, magicStream } from './story/magic-water.js';
 
 // The desert's story places (references/IMG_3772-3775: pale rose domes,
@@ -361,7 +361,6 @@ export function buildDesertCity(scene, terrain) {
       city.add(M.bark, taper(pts, 1.1, 0.35, 12, 6));
     }
     // limbs: a candelabrum of six arms reaching up and out, each ending in a flame
-    const tongues = [];
     const limbs = [];
     for (let k = 0; k < 6; k++) {
       const a = k / 6 * Math.PI * 2 + 0.2, ca = Math.sin(a), sa = Math.cos(a), reach = (9 + (k % 2) * 4) * S, rise = (13 + (k % 3) * 3) * S, fork = 17 * S;
@@ -372,20 +371,13 @@ export function buildDesertCity(scene, terrain) {
       city.add(M.bark, taper([p0, p1, p2, p3], 1.5 * S, 0.55 * S, 18, 7));
       city.solid(taper([p0, p1, p2, p3], 1.3 * S, 0.5 * S, 6, 5));
       limbs.push(p3);
-      tongues.push({ at: p3.clone().sub(V(0, 0.6 * S, 0)), h: (9 + (k % 3) * 1.5) * S, r: 2.1 * S, phase: k * 2.1 });
-      tongues.push({ at: p3.clone().sub(V(0, 0.2 * S, 0)), h: 5.5 * S, r: 1.1 * S, phase: k * 2.1 + 0.5, core: 1 });
-      // a smaller flame halfway along
-      const mid = new THREE.CatmullRomCurve3([p0, p1, p2, p3]).getPointAt(0.55);
-      tongues.push({ at: mid.clone().add(V(0, 0.6 * S, 0)), h: 3.6 * S, r: 0.8 * S, phase: k * 1.3 + 4 });
     }
-    // and a central crown flame, the tallest
-    tongues.push({ at: V(TREE.x, top + 18.5 * S, TREE.z), h: 15 * S, r: 3.1 * S, phase: 0.3 });
-    tongues.push({ at: V(TREE.x, top + 18.8 * S, TREE.z), h: 9 * S, r: 1.7 * S, phase: 1.1, core: 1 });
+    // the fire: one great flame over the whole crown, its arms reaching into it (a shader, story/flames.js FlameSheet)
     const treeOrigin = city.world(0, 0, 0);
     const treeGroup = new THREE.Group();
     treeGroup.position.copy(treeOrigin); treeGroup.quaternion.setFromAxisAngle(UP, C.yaw);
     root.add(treeGroup);
-    const flames = new Flames(treeGroup, tongues, { seed: 7 });
+    const flames = new FlameSheet(treeGroup, { at: V(TREE.x, top + 14.5 * S, TREE.z), width: 33 * S, height: 36 * S, seed: 7 });
     const crown = city.world(TREE.x, top + 30 * S, TREE.z);
     const embers = new Embers(root, [...limbs.map((p) => city.world(p.x, p.y + 5 * S, p.z)), crown], { count: 70, rise: 2.4, life: 6, spread: 3, size: 0.6, color: '#fff3c4' });
     embers.mesh.boundingSphere = new THREE.Sphere(crown.clone(), 45); embers.mesh.frustumCulled = true;

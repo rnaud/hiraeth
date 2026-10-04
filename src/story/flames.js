@@ -107,6 +107,173 @@ export class Flames {
   }
 }
 
+// ---------------------------------------------------------------------------
+// One great flame, drawn by a shader rather than built of meshes: the burning
+// tree's fire. A single upright card that turns to face the camera (about the
+// vertical only, so it never tips over), on which a fragment shader paints a
+// flame as Moebius would: a few flat bands of colour from a pale core out to a
+// deep red rim, an inked outline, tongues that lick upward and break off near
+// the top. The bands' edges are a noise field scrolled up the flame and bent by
+// a slow sway, so the fire never repeats.
+//
+// The card writes the G-buffer like any surface (self-lit, so night does not
+// dim it), with a depth that bulges toward the camera in the flame's middle:
+// the tree's limbs pass into the fire instead of being cut by a flat plane.
+//
+// The same interface as Flames: setPalette(COOL_FIRE) eases the colours over,
+// `intensity` (1 calm .. ~3 a high flare) makes it taller, wider, hotter and
+// faster, update(dt, t) animates it.
+
+const SHEET_VERT = /* glsl */ `
+  uniform float uWidth, uHeight, uK;
+  out vec2 vUv;
+  out vec3 vView;
+  out vec3 vWorld;
+  void main() {
+    vec3 base = (modelMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+    vec3 up = vec3(0.0, 1.0, 0.0);
+    vec3 toCam = cameraPosition - base; toCam.y = 0.0;
+    vec3 right = normalize(cross(up, length(toCam) > 1e-3 ? normalize(toCam) : vec3(0.0, 0.0, 1.0)));
+    // taller and a little wider when it flares
+    float w = uWidth * (0.9 + 0.1 * uK), h = uHeight * (0.82 + 0.18 * uK);
+    vUv = vec2(position.x * 2.0, position.y);           // x -1..1 across, y 0..1 up
+    vec3 world = base + right * position.x * w + up * position.y * h;
+    vWorld = world;
+    vec4 mv = viewMatrix * vec4(world, 1.0);
+    vView = mv.xyz;
+    gl_Position = projectionMatrix * mv;
+  }`;
+
+const SHEET_FRAG = /* glsl */ `
+  precision highp float;
+  uniform vec3 uPal[5];
+  uniform vec3 uInk;
+  uniform float uTime, uK, uSeed, uBulge, uWidth;
+  uniform mat4 projectionMatrix;   // (three only declares it for the vertex stage)
+  in vec2 vUv;
+  in vec3 vView;
+  in vec3 vWorld;
+  layout(location = 0) out highp vec4 gAlbedoLight;
+  layout(location = 1) out highp vec4 gNormalDepth;
+  layout(location = 2) out highp vec4 gHatch;
+
+  float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+  float vnoise(vec2 p) {
+    vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+    return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y);
+  }
+  float fbm(vec2 p) { float s = 0.0, a = 0.5; for (int i = 0; i < 4; i++) { s += a * vnoise(p); p = p * 2.07 + 13.3; a *= 0.5; } return s; }
+
+  // The flame's field at (x, y): > 0 inside, ~1 at the hot heart. Its outline is a bulb low down
+  // (wide enough to swallow the tree's crown) drawn up into one licking tip.
+  float field(vec2 uv, float t) {
+    float y = uv.y;
+    float sway = (sin(t * 0.9 + uSeed) * 0.09 + sin(t * 2.3 + y * 4.0 + uSeed * 2.0) * 0.04) * y * y;
+    float x = uv.x - sway;
+    // a full belly low down (it swallows the crown), drawn up into a long licking point
+    float bulb = pow(sin(clamp(y / 0.3, 0.0, 1.0) * 1.5708), 0.6);
+    float taper = 1.0 - pow(max(y - 0.26, 0.0) / 0.74, 0.85);
+    float w = mix(0.5, 1.0, bulb) * max(taper, 0.0) * 0.9;
+    // turbulence scrolled up the flame: tongues licking up the sides, breaking off at the top
+    float speed = 0.6 + 0.3 * uK;
+    vec2 q = vec2(x * 2.8, y * 2.1 - t * speed);
+    float n = fbm(q + vec2(uSeed, 0.0) + 0.7 * vec2(fbm(q * 0.6 + 3.1 - t * 0.25), 0.0));
+    float lick = (n - 0.5) * (0.3 + 1.25 * y);
+    // separate tongues: ridges running up the flame, rising and splitting as they go
+    float tongues = sin(x * 8.5 + (n - 0.5) * 5.0 + sin(y * 3.0 - t * 1.7) * 1.2) * smoothstep(0.25, 0.9, y) * 0.32;
+    float f = (w - abs(x)) / max(w, 0.05) + lick * 1.3 + tongues;
+    f -= smoothstep(0.82, 1.0, y) * 1.0;   // the tip thins out
+    // a rounded foot, not a cut: the sides curl in under the belly
+    return f - (1.0 - smoothstep(0.0, 0.12, y - 0.09 * x * x)) * 1.4;
+  }
+
+  void main() {
+    float t = uTime;
+    float f = field(vUv, t);
+    if (f <= 0.0) discard;
+    // bands, the hot core sitting low (the heart of the fire is near its base)
+    float g = f - vUv.y * 0.62 + 0.1 * (uK - 1.0);
+    float fw = fwidth(g) + 1e-4;
+    float b1 = smoothstep(0.12 - fw, 0.12 + fw, g), b2 = smoothstep(0.32 - fw, 0.32 + fw, g), b3 = smoothstep(0.52 - fw, 0.52 + fw, g), b4 = smoothstep(0.7 - fw, 0.7 + fw, g);
+    vec3 col = uPal[4];
+    col = mix(col, uPal[3], b1);
+    col = mix(col, uPal[2], b2);
+    col = mix(col, uPal[1], b3);
+    col = mix(col, uPal[0], b4);
+    // ink: a firm line round the outside, finer ones on the outer bands' edges
+    float ff = fwidth(f) + 1e-4;
+    float rim = 1.0 - smoothstep(ff * 1.2, ff * 2.6, f);
+    float inner = (1.0 - smoothstep(fw * 0.6, fw * 1.6, abs(g - 0.12))) * 0.7 + (1.0 - smoothstep(fw * 0.6, fw * 1.6, abs(g - 0.32))) * 0.35;
+    col = mix(col, uInk, clamp(max(rim, inner * smoothstep(0.1, 0.4, vUv.y)), 0.0, 1.0));
+    // a volume, not a card: the middle stands out toward the camera (the limbs go into the fire)
+    float bulge = uBulge * uWidth * sqrt(clamp(f, 0.0, 1.0)) * (1.0 - abs(vUv.x) * 0.5);
+    vec3 v = vView + normalize(-vView) * min(bulge, -vView.z - 0.5);
+    vec4 clip = projectionMatrix * vec4(v, 1.0);
+    gl_FragDepth = clamp(clip.z / clip.w * 0.5 + 0.5, 0.0, 1.0);
+    vec3 n = normalize(cameraPosition - vWorld);
+    gAlbedoLight = vec4(col, 1.0);
+    gNormalDepth = vec4(n, -v.z);
+    gHatch = vec4(0.0, 0.0, 0.0, 1.0);   // self-lit
+  }`;
+
+export class FlameSheet {
+  /**
+   * @param parent  the group to hang it in
+   * @param o { at: Vector3 (the base, in parent space), width, height (m), palette, seed, bulge (share of the width) }
+   */
+  constructor(parent, { at, width = 40, height = 50, palette = FIRE, seed = 0, bulge = 0.35 } = {}) {
+    const g = new THREE.PlaneGeometry(1, 1, 1, 1).translate(0, 0.5, 0);   // x -0.5..0.5, y 0..1
+    this.palA = palette.map((c) => new THREE.Color(c));
+    this.palB = this.palA.map((c) => c.clone());
+    this.pal = this.palA.map((c) => c.clone());
+    this.mix = 1;
+    this.material = new THREE.ShaderMaterial({
+      glslVersion: THREE.GLSL3,
+      vertexShader: SHEET_VERT, fragmentShader: SHEET_FRAG,
+      side: THREE.DoubleSide,
+      uniforms: {
+        uPal: { value: this.pal.map((c) => c.clone()) }, uInk: { value: new THREE.Color('#2b211f') },
+        uTime: { value: 0 }, uK: { value: 1 }, uSeed: { value: seed * 1.37 }, uBulge: { value: bulge },
+        uWidth: { value: width }, uHeight: { value: height },
+        uGlow: { value: 1 },   // (read by the shadow pass: self-lit things cast no shadow)
+      },
+    });
+    this.mesh = new THREE.Mesh(g, this.material);
+    this.mesh.name = 'Flame sheet';
+    this.mesh.position.copy(at);
+    this.mesh.userData.noCollide = true;
+    this.mesh.userData.dynamic = true;
+    this.mesh.frustumCulled = false;   // it turns to the camera in its shader: the plane's own bounds mean nothing
+    parent.add(this.mesh);
+    this.width = width; this.height = height;
+    this.intensity = 1;
+    this._k = 1;
+    this.time = seed * 3.1;
+    this.update(0, 0);
+  }
+
+  /** Move toward another palette over time (setPalette(COOL_FIRE)); instant lands on it at once. */
+  setPalette(p, instant = false) {
+    this.palA = this.pal.map((c) => c.clone());
+    this.palB = p.map((c) => new THREE.Color(c));
+    this.mix = 0; this.snap = instant;
+  }
+
+  update(dt, t) {
+    if (this.mix < 1) {
+      this.mix = this.snap ? 1 : Math.min(1, this.mix + dt / 3);
+      for (let i = 0; i < this.pal.length; i++) this.pal[i].copy(this.palA[i]).lerp(this.palB[i], this.mix);
+    }
+    const P = this.material.uniforms.uPal.value;
+    for (let i = 0; i < 5; i++) P[i].copy(this.pal[Math.min(i, this.pal.length - 1)]);
+    // the flare rises fast and settles slowly; the fire runs faster when it is high
+    this._k += (this.intensity - this._k) * (1 - Math.exp(-(this.intensity > this._k ? 4 : 1.5) * dt));
+    this.time += dt * (0.8 + 0.35 * this._k);
+    this.material.uniforms.uTime.value = this.time;
+    this.material.uniforms.uK.value = this._k;
+  }
+}
+
 /** Glowing motes drifting up from points (the tree's crown, a camp fire). */
 export class Embers {
   constructor(parent, sources, { count = 120, color = '#f9d36a', rise = 2.2, life = 5, spread = 1.5, size = 0.12 } = {}) {

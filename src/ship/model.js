@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
-import { Batch, shell, polar } from './geo.js';
+import { Batch, shell, polar, sector } from './geo.js';
 import { buildHull, doorGeometry, rampGeometry, R, RI, DECK, HATCH, HATCH_A, HINGE_R, WINDOW } from './hull.js';
 import { buildInterior } from './interior.js';
 import { CallScreen } from './portrait.js';
@@ -8,6 +8,8 @@ import { CallScreen } from './portrait.js';
 // Assembles one ship (hull + interior + moving parts) in ship-local space.
 
 let SERIAL = 0;
+/** The invisible skirting's height (m): over a step, under the camera's line of sight. */
+export const SKIRT = 1.1;
 
 export function shipMaterials(tag, { space = false } = {}) {
   const o = {
@@ -76,6 +78,12 @@ export function buildShipModel(o = {}) {
   const interior = buildInterior(batch, group, { tag });
   // glass you can't walk through: an invisible skin over the cockpit window
   batch.add('collider', shell({ r: RI + 0.12, patch: { a0: WINDOW.a0, a1: WINDOW.a1, y0: WINDOW.y0 - 0.1, y1: WINDOW.y1 + 0.1 }, tSeg: 60 }));
+  // and an invisible skirting round the floor's edge, where the inner hull curves up like a bowl: without it
+  // the step-up walked you up the curve of the wall (open at the hatch)
+  {
+    const r1 = Math.sqrt(RI * RI - DECK * DECK), gap = 0.03;
+    batch.add('collider', sector({ r0: r1 - 0.25, r1: r1 + 0.1, a0: HATCH.a1 + gap, a1: HATCH.a0 - gap + Math.PI * 2, y0: DECK - 0.05, y1: DECK + SKIRT, seg: 72 }));
+  }
   const flags = Object.fromEntries(NO_COLLIDE.map((k) => [k, { noCollide: true }]));
   flags.collider = { visible: false };
   const meshes = batch.build(group, flags);
@@ -96,24 +104,38 @@ export function buildShipModel(o = {}) {
   door.userData.dynamic = true;
   group.add(door);
 
-  // the telescoping ramp, hinged at the outer edge of the threshold
+  // the telescoping ramp, hinged at the outer edge of the threshold: nested sections, each a little
+  // narrower and lower than the one before, that slide out of one another (see poseRamp)
   let ramp = null;
   if (o.ramp) {
-    const r = rampGeometry(o.ramp.length);
+    const L = o.ramp.length, n = rampSections(L), step = L / n;
     ramp = new THREE.Group();
     ramp.position.copy(polar(HINGE_R, HATCH_A, DECK));
-    const plank = new THREE.Mesh(r.plank, mats.trim);
-    const rails = new THREE.Mesh(mergeAll(r.rails), mats.dark);
-    const stripes = new THREE.Mesh(mergeAll(r.stripes), mats.fruitA);
-    rails.userData.noCollide = true;
-    stripes.userData.noCollide = true;
-    ramp.add(plank, rails, stripes);
+    const sections = [];
+    for (let i = 0; i < n; i++) {
+      const len = i < n - 1 ? step + RAMP_OVERLAP : step;
+      const r = rampGeometry(len, 1.9 - 0.1 * i);
+      const sec = new THREE.Group();
+      sec.position.y = -0.035 * i;
+      const plank = new THREE.Mesh(r.plank, mats.trim);
+      const rails = new THREE.Mesh(mergeAll(r.rails), mats.dark);
+      const stripes = new THREE.Mesh(mergeAll(r.stripes), mats.fruitA);
+      rails.userData.noCollide = true;
+      stripes.userData.noCollide = true;
+      sec.add(plank, rails, stripes);
+      sec.userData.reach = i * step;     // where it starts once out
+      ramp.add(sec);
+      sections.push(sec);
+    }
     // local +x of the ramp rotated onto its direction; the plank is in the
     // hatch's plane (the ship's x-y plane), so the minimal rotation has no roll
     ramp.userData.deployed = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(Math.sin(HATCH_A), 0, Math.cos(HATCH_A)), o.ramp.dir.clone().normalize());
-    ramp.userData.length = o.ramp.length;
+    ramp.userData.length = L;
+    ramp.userData.sections = sections;
+    ramp.userData.stow = step + RAMP_OVERLAP;   // the nested stack's length
+    ramp.userData.hinge = ramp.position.clone();
     ramp.userData.dynamic = true;
-    ramp.quaternion.copy(ramp.userData.deployed);
+    poseRamp(ramp, 1);   // (the colliders are taken as it stands now: deployed)
     group.add(ramp);
   }
 
@@ -146,6 +168,50 @@ function mergeAll(geos) {
   return m;
 }
 
+const RAMP_OVERLAP = 0.4;   // m: how far each section stays inside the one before when out
+/** How many sections a ramp of length L telescopes in (each about 3 m). */
+export const rampSections = (L) => Math.max(2, Math.min(5, Math.round(L / 3)));
+
+const ease = (t) => { t = Math.min(Math.max(t, 0), 1); return t * t * (3 - 2 * t); };
+const span = (k, a, b) => Math.min(Math.max((k - a) / (b - a), 0), 1);
+
+/**
+ * The ramp's motion, k 0 (stowed) .. 1 (down on the ground), as a machine would do it:
+ *   0    .. 0.3   the nested stack slides out of the doorway, level, over the sill
+ *   0.3  .. 0.55  it tips down on its hinge to the ground's slope
+ *   0.55 .. 1     the sections telescope out one after another, the last one onto the ground
+ * Each phase eases in and out. Returns { slide, tilt, ext: [per section 0..1] }.
+ */
+export function rampPhases(k, n) {
+  const slide = ease(span(k, 0, 0.3)), tilt = ease(span(k, 0.3, 0.55));
+  const ext = [];
+  for (let i = 1; i < n; i++) {
+    // each one starts a little after the one before, and they overlap (a chain of pistons)
+    const a = 0.55 + ((i - 1) / (n - 1)) * 0.3, b = a + 0.45 / (n - 1) + 0.15 / n;
+    ext.push(ease(span(k, a, Math.min(1, b))));
+  }
+  return { slide, tilt, ext };
+}
+
+/** Lay the ramp's sections out for k (see rampPhases). */
+export function poseRamp(ramp, k) {
+  const U = ramp.userData, secs = U.sections, n = secs.length;
+  const { slide, tilt, ext } = rampPhases(k, n);
+  ramp.visible = k > 0.001;
+  ramp.quaternion.identity().slerp(U.deployed, tilt);
+  // slid in, the stack lies inside the doorway, over the threshold
+  _out.set(Math.sin(HATCH_A), 0, Math.cos(HATCH_A)).applyQuaternion(ramp.quaternion);
+  ramp.position.copy(U.hinge).addScaledVector(_out, -U.stow * (1 - slide));
+  // each section rides out of the one before it (so the last moves the furthest)
+  let x = 0;
+  for (let i = 1; i < n; i++) {
+    x += (secs[i].userData.reach - secs[i - 1].userData.reach) * ext[i - 1];
+    secs[i].position.x = x;
+  }
+  ramp.updateMatrix();
+}
+const _out = new THREE.Vector3();
+
 /** Deep space around the ship in the prologue: a dark dome of stars, the desert planet below, a small moon. */
 export function buildSpace({ radius = 900 } = {}) {
   const g = new THREE.Group();
@@ -165,7 +231,7 @@ export function buildSpace({ radius = 900 } = {}) {
   }
   g.add(stars);
   const planet = new THREE.Mesh(new THREE.SphereGeometry(330, 48, 32),
-    makeMaterial({ color: '#efd29b', color2: '#dca57a', color3: '#f5e1b6', mode: MODE_STRATA, strataSize: 36 }));
+    makeMaterial({ color: '#efd29b', color2: '#dca57a', color3: '#f5e1b6', mode: MODE_STRATA, strataSize: 36, strataObject: true }));
   planet.position.set(0, -310, -560);
   g.add(planet);
   const moon = new THREE.Mesh(new THREE.SphereGeometry(28, 24, 16), makeMaterial({ color: '#ece4d2', flat: true }));

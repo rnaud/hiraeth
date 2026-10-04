@@ -196,6 +196,7 @@ const _shoulder = new THREE.Vector3(), _head = new THREE.Vector3(), _toCam = new
 const _qId = new THREE.Quaternion();
 const _pc = new THREE.Vector3(), _pd = new THREE.Vector3(), _cr = new THREE.Vector3(), _cu2 = new THREE.Vector3();
 const _xAxis = new THREE.Vector3(1, 0, 0);
+const _cn = new THREE.Vector3(), _cd = new THREE.Vector3(), _ce = new THREE.Vector3(), _sw = new THREE.Vector3(), _ct = new THREE.Vector3();
 
 /**
  * A scarf tail simulated as a Verlet chain and drawn as a ribbon in world
@@ -1610,8 +1611,10 @@ export class Player {
   }
 }
 
-const INDOOR_PITCH = 0.3;        // rad: how far the camera looks down in the ship's rooms, over the shoulder
-const INDOOR_PITCH_NEAR = 0.55;  // rad: ... and once a wall has pulled it right in (so the head never fills the screen)
+// (from up under the ceiling: the arm's reach along the floor is shorter, so it fits the ship's
+// curved corridor and small rooms without crushing in against walls and bunks)
+const INDOOR_PITCH = 0.48;       // rad: how far the camera looks down in the ship's rooms, over the shoulder
+const INDOOR_PITCHES = [INDOOR_PITCH, 0.78, 1.08];   // rad: ... steeper where a wall is close behind (so the head never fills the screen)
 
 // The follow camera's arm. Out in the open it hangs back (OPEN_DIST, the wheel
 // zooms it); in tight spaces it comes in close over the right shoulder, like
@@ -1621,6 +1624,8 @@ export const TIGHT_DIST = 2.6;     // m, at the default zoom (scaled with the wh
 const TIGHT_SIDE = 0.75;           // m: the look point off the right shoulder when close
 const PROBE_EVERY = 0.12;          // s between clearance probes
 const PROBE_N = 8;                 // horizontal rays round the player
+const LENS_R = 0.36;               // m: the room the lens needs round it (its near plane is 0.3 m out)
+const SWING = [0.4, -0.4, 0.8, -0.8, 1.2, -1.2, 1.6, -1.6];   // rad: the turns tried when a wall is behind you indoors
 
 const ENCLOSED = { ceil: 26, ring: 36, up: 42 };   // m: a shut space (a cave, a dome, a hall), however big
 
@@ -1697,6 +1702,8 @@ export class CameraRig {
     this._lastP = null;
     this._ring = new Array(PROBE_N).fill(Infinity);
     this._up = new Array(4).fill(Infinity);
+    this._side = 0;          // the look point's offset off the shoulder, eased (it snapped and shook the view by walls)
+    this._swing = 0;         // indoors: the turn the camera is easing through to get clear of a wall behind you
 
     dom.addEventListener('click', () => dom.requestPointerLock?.());
     dom.addEventListener('mousedown', () => (this._dragging = true));
@@ -1820,6 +1827,70 @@ export class CameraRig {
     this.yaw += d * (1 - Math.exp(-2.2 * dt));
   }
 
+  /**
+   * How far the camera can hang back from `from` along `dir` (up to `far`) with its lens clear:
+   * the centre ray and four round it, spreading to `r` at the far end, so a bunk post or a
+   * table leg slipping between two rays still stops it (a cheap cone cast). Metres along `dir`.
+   */
+  coneClear(from, dir, far, U = Y, r = 0.32) {
+    const P = this.physics;
+    let d = P.rayDistance(from, dir, far);
+    _cn.crossVectors(U, dir);
+    if (_cn.lengthSq() < 1e-6) _cn.set(1, 0, 0);
+    _cn.normalize();
+    _cd.crossVectors(dir, _cn).normalize();
+    for (let i = 0; i < 4; i++) {
+      const s = i & 1 ? -1 : 1;
+      _ce.copy(dir).multiplyScalar(far).addScaledVector(i < 2 ? _cn : _cd, s * r);
+      const L = _ce.length();
+      const h = P.rayDistance(from, _ce.divideScalar(L), L);
+      if (h < L) d = Math.min(d, (h * far) / L);
+    }
+    return d;
+  }
+
+  /**
+   * Indoors (the ship's rooms): with a wall, a bunk or the reactor right behind the traveller the arm
+   * would crush in against the back of the head (and pump in and out as you move). Instead the
+   * camera swings round, easing, to the nearest side with room for the whole arm, like a camera
+   * sliding along the wall. Never while you are turning it yourself.
+   */
+  swingClear(dt, want, pitch, k, U, Fw, Rt) {
+    if (this._now - this._lastMouse < 0.8 || this.noSwing) { this._swing = 0; return; }
+    const here = this.armRoom(this.yaw, pitch, want, k, U, Fw, Rt);
+    let best = 0;
+    if (here < want - 0.4) {
+      let bestD = here + 0.35;   // only for a real gain
+      for (const o of SWING) {
+        const d = this.armRoom(this.yaw + o, pitch, want, k, U, Fw, Rt) - Math.abs(o) * 0.3;   // the nearer turn wins a tie
+        if (d > bestD) { bestD = d; best = o; }
+      }
+    }
+    this._swing += (best - this._swing) * (1 - Math.exp(-5 * dt));
+    this.yaw += this._swing * (1 - Math.exp(-1.6 * dt));
+  }
+
+  /**
+   * The arm the camera would get at this yaw (close in): clear of walls from the look point off the
+   * shoulder (a cone), and with the head in sight from its end (as update() keeps them).
+   */
+  armRoom(yaw, pitch, want, k, U, Fw, Rt) {
+    const cp = Math.cos(pitch);
+    const dir = _toCam.copy(Rt).multiplyScalar(Math.sin(yaw) * cp).addScaledVector(U, Math.sin(pitch)).addScaledVector(Fw, Math.cos(yaw) * cp);
+    const look = _sw.copy(this.target).addScaledVector(U, 1.8 - 0.3 * k);
+    _shoulder.crossVectors(U, dir).normalize();
+    const side = Math.max(0, Math.min(TIGHT_SIDE * k, this.physics.rayDistance(look, _shoulder, TIGHT_SIDE * k + 0.45) - 0.45));
+    look.addScaledVector(_shoulder, side);
+    let d = Math.min(want, this.coneClear(look, dir, want + 0.5, U) - 0.4);
+    const head = _chest.copy(this.target).addScaledVector(U, 1.55);
+    const to = _ct.copy(look).addScaledVector(dir, Math.max(d, 0)).sub(head), L = to.length();
+    if (L > 0.3) {
+      const h = this.physics.rayDistance(head, to.divideScalar(L), L);
+      if (h < L) d *= Math.max(0, h - 0.3) / L;
+    }
+    return d;
+  }
+
   /** The arm's length before walls pull it in: open, tight (over the shoulder) or aiming. */
   armLength(tk = this.tightK, ak = this.aimK ?? 0) {
     const open = this.dist + this._distBoost;
@@ -1844,8 +1915,25 @@ export class CameraRig {
     if (this.target.lengthSq() === 0) this.target.copy(playerPos);
     // in the ship the view tips down a little from under the ceiling; more when a wall has
     // pulled the camera right in, so the head never fills the screen
-    const floor = THREE.MathUtils.lerp(INDOOR_PITCH_NEAR, INDOOR_PITCH, smoothstep(1.0, 2.3, this._curDist));
+    // Where a wall cuts the arm short (the curved corridor, a corner by the bunk), the camera
+    // climbs instead, up under the ceiling looking down over the traveller, rather than crushing
+    // in against the back of the head. The steepness is chosen for the room it gives, and eased
+    // (it used to follow the arm's snaps frame by frame and bob the view up and down).
+    if (ik > 0.5 && ak < 0.5 && U.y > 0.999) {
+      let goal = INDOOR_PITCHES[0], best = -Infinity, keep = -Infinity;
+      for (const pc of INDOOR_PITCHES) {
+        const room = this.armRoom(this.yaw, Math.max(this.pitch, pc), dist, k, U, Fw, Rt);
+        if (pc === this._floorGoal) keep = room;
+        if (room > best + 0.25) { best = room; goal = pc; }
+        if (room >= dist - 0.3) break;   // the lowest that fits wins
+      }
+      if (this._floorGoal !== undefined && keep > best - 0.2) goal = this._floorGoal;   // no flapping between two
+      this._floorGoal = goal;
+    } else this._floorGoal = INDOOR_PITCH;
+    this._floor = this._floor === undefined ? this._floorGoal : this._floor + (this._floorGoal - this._floor) * (1 - Math.exp(-2.2 * dt));
+    const floor = this._floor;
     const pitch = THREE.MathUtils.lerp(this.pitch, Math.max(this.pitch, floor), ik * (1 - ak));
+    if (ik > 0.5 && ak < 0.5 && U.y > 0.999) this.swingClear(dt, dist, pitch, k, U, Fw, Rt);
     const cp = Math.cos(pitch);
     const cam = this.camera.position;
     // looking up from low down: aim higher so the sky and clouds fill the view
@@ -1855,20 +1943,23 @@ export class CameraRig {
       .addScaledVector(U, Math.sin(pitch))
       .addScaledVector(Fw, Math.cos(this.yaw) * cp);
     // over the right shoulder (aiming, and close in), but never past a wall beside you
+    // (eased out, snapped in: a wall beside you used to flick it on and off, shaking the view)
     let side = Math.max(0.85 * ak, TIGHT_SIDE * k);
-    if (side > 0.01) {
+    if (side > 0.01 || this._side > 0.01) {
       _shoulder.crossVectors(U, this._dir).normalize();
       const room = this.physics.rayDistance(this._look, _shoulder, side + 0.45);
       side = Math.max(0, Math.min(side, room - 0.45));
-      this._look.addScaledVector(_shoulder, side);
-    }
+      this._side = side < this._side ? side : this._side + (side - this._side) * (1 - Math.exp(-4 * dt));
+      this._look.addScaledVector(_shoulder, this._side);
+    } else this._side = 0;
 
     // Line of sight: pull the camera in front of any wall between it and the
     // player (snap in, ease back out).
     // (skipped while gravity is rolling the view: the swinging ray would
     // otherwise clip the floor and yank the camera in)
     const rolling = this.camera.up.dot(U) < 0.985;
-    const hit = rolling ? Infinity : this.physics.rayDistance(this._look, this._dir, dist + 0.5);
+    // (close in, a cone of rays: a single one slips past bunk posts and table legs, and the lens ends up inside them)
+    const hit = rolling ? Infinity : k > 0.5 ? this.coneClear(this._look, this._dir, dist + 0.5, U, 0.32 * Math.min(1, (k - 0.5) * 4)) : this.physics.rayDistance(this._look, this._dir, dist + 0.5);
     // (close in it may come right in: a floor of 1.5 m would put it through a corridor wall)
     let allowed = Math.max(Math.min(dist, hit - THREE.MathUtils.lerp(0.6, 0.4, k)), THREE.MathUtils.lerp(1.5, 0.45, k));
     // the ground limits the arm too (so you can drop low and look at the sky):
@@ -1903,7 +1994,11 @@ export class CameraRig {
     cam.copy(this._look).addScaledVector(this._dir, this._curDist);
     // keep the lens clear of walls beside, above and below it (its near plane
     // reaches ~0.35 m off the axis: a wall that close would be cut open)
-    if (k > 0.05 && !rolling) this.unclip(cam, U);
+    if (k > 0.05 && !rolling) {
+      this.unclip(cam, U);
+      // and off anything else that close (a bunk's edge just under the lens, a corner): a sphere pushed out
+      this.physics.pushCapsule?.(cam, LENS_R, -LENS_R, LENS_R, _ct, U);
+    }
     this.constrain?.(cam);
     // roll the camera with gravity (smoothly, so portals don't snap the view)
     // (a quaternion turn, so even a 180° flip rotates instead of collapsing)

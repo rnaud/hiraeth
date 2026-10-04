@@ -289,6 +289,7 @@ const fragmentShader = /* glsl */ `
   // cloud cover) decides whether it is shaded.
   float cloudShadow(vec3 wp) {
     if (uCloudShadows <= 0.0 || uClouds <= 0.0) return 1.0;
+    if (wp.y > 900.0) return 1.0;   // far above the cloud layer (the ship's scenes in orbit): no drifting shadows on the planet
     vec2 onLayer = wp.xz + uSunDir.xz / max(uSunDir.y, 0.15) * (300.0 - wp.y);
     vec2 q = onLayer / 260.0 + vec2(uTime * 0.012, uTime * 0.003);
     float f = 0.0, a = 0.5;
@@ -801,7 +802,11 @@ const fragmentShader = /* glsl */ `
                     blobs(vWorldPos.xz, fwp, 34.0, 3.2, 0.22, 97.0)));
       if (uSandInk < 0.5) albedo *= mix(vec3(1.0), vec3(0.945, 0.935, 0.965), b);
     } else if (uMode == ${MODE_STRATA}) {
+      #ifdef STRATA_OBJECT
+      albedo = strata(vObjPos);     // bands fixed to the object (a planet seen turning past a window)
+      #else
       albedo = strata(vWorldPos);
+      #endif
     } else if (uMode == ${MODE_RIBBON}) {
       // flat print bands of colour, fixed along the path so they don't crawl
       // colours blend smoothly from one band into the next
@@ -972,6 +977,7 @@ const cache = new Map();
  * @param {number} [o.mode]
  * @param {boolean} [o.flat]
  * @param {number} [o.strataSize]
+ * @param {boolean} [o.strataObject]  the bands fixed to the object, not the world (it moves)
  * @param {number} [o.grid] spacing of drawn grid lines (0 = none)
  * @param {boolean} [o.glyphs] draw alien glyphs in the grid cells
  * @param {boolean} [o.biomes]  terrain: desert region palettes
@@ -1039,6 +1045,8 @@ export function makeMaterial(o) {
   });
   mat.vertexColors = !!o.vertexColors;
   if (o.crowd) mat.defines = { CROWD: 1 };
+  // strata bands in the object's own space, so they move with it (a moving or turning thing; mesas keep world bands)
+  if (o.strataObject) mat.defines = { ...mat.defines, STRATA_OBJECT: 1 };
   if (o.fluid) {
     mat.defines = { ...mat.defines, FLUID: 1 };
     mat.uniforms.uFluidA = { value: new THREE.Vector4(1, 2, 0, { tank: 0, hose: 1, glob: 2, wing: 3, trail: 4 }[o.fluid] ?? 0) };

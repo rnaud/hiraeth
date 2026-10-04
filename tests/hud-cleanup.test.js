@@ -28,7 +28,7 @@ test('the badge\'s text is still rewritten to the handheld\'s button names (nati
 // ---- portraits: the person alone against a flat colour
 
 test('a portrait\'s backdrop is the world\'s own tone, unless the person wears something close to it', () => {
-  // Nima wears lilac in the Incal, whose own tone is lilac: she gets another of its tones
+  // Nima wears lilac in the Lodestar, whose own tone is lilac: she gets another of its tones
   const nima = { color: '#a99be0', palette: { cloak: '#a99be0', cloth: '#e2d3b4' } };
   const bd = backdropFor(nima, 'incal');
   assert.notEqual(bd, BACKDROPS.incal[0]);
