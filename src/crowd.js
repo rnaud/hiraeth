@@ -543,6 +543,17 @@ export class Crowd {
     if (r?.column) r.column.holdUntil = Math.max(r.column.holdUntil, this.time + seconds);
     for (const g of this.groups) if (g.tag === id) { g.pauseUntil = Math.max(g.pauseUntil, this.time + seconds); g.lookUntil = Math.max(g.lookUntil, this.time + seconds); }
   }
+  /**
+   * Everyone (or everyone within `r` of `near`) looks at `point` for `seconds`, heads turned and
+   * tilted toward it, unless you stop right beside them: a light in the sky, a broadcast.
+   */
+  lookAt(point, seconds = 10, { near = null, r = Infinity } = {}) {
+    const until = this.time + seconds, r2 = r * r;
+    for (const p of this.people) {
+      if (near && p.pos.distanceToSquared(near) > r2) continue;
+      p.gazeAt = point; p.gazeUntil = until + (p.seed - 0.5) * 2;
+    }
+  }
   /** The point at distance u along a route (wrapping on loops), and its heading. */
   routePoint(route, u, out = new THREE.Vector3()) {
     const R = route, pts = R.pts, cum = R.cum;
@@ -672,6 +683,7 @@ export class Crowd {
     if (p.greetT >= 0) { lookAt = pp; if (p.pose !== POSE.sit && p.pose !== POSE.kerb && p.pose !== POSE.rail) face = Math.atan2(_v.x, _v.z); }
     if (t < p.faceUntil && !stumbling) face = Math.atan2(_v.x, _v.z);
     if (t < p.lookUntil || (g && t < g.lookUntil) || (sameLevel && dPlayer < 4 && playerSpeed > 0.3)) lookAt = pp;
+    if (p.gazeAt && t < p.gazeUntil && !close) lookAt = p.gazeAt;   // everyone looking at something (crowd.lookAt)
 
     if (p.walk && !stumbling) {
       const w = p.walk;

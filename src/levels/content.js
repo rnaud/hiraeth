@@ -12,8 +12,12 @@ const pal = (cloak, extra = {}) => ({ cloak, lining: extra.lining ?? '#2b211f', 
 
 import { ARZACH2_CONTENT } from './arzach2.js';
 import { BURIED_CONTENT } from './buried.js';
+import { EDENA_CONTENT } from './edena.js';
 import { SPHERES_CONTENT } from './spheres.js';
 import { PERDIDE2_CONTENT } from './perdide2.js';
+import { PERDIDE_CONTENT } from './perdide.js';
+import { RIM as INCAL_RIM, PEOPLE as INCAL_PEOPLE } from '../story/incal-data.js';
+import { STREET as BAZAAR_STREET } from '../story/bazaar-data.js';
 
 export const ORDER = ['desert', 'incal', 'arzach', 'arzach2', 'garage', 'buried', 'edena', 'spheres', 'perdide', 'perdide2', 'bazaar'];
 export const nextLevel = (id) => ORDER[(ORDER.indexOf(id) + 1) % ORDER.length];
@@ -25,21 +29,24 @@ export const CONTENT = {
   perdide2: PERDIDE2_CONTENT,
   bazaar: {
     weather: [],
+    // the Signal Market's story is a quest (src/story/bazaar-data.js): this page opens on the
+    // first visit and closes when the tower has spoken and Sel has read where it came from
     story: {
-      title: 'THE LAST BROADCAST',
-      intro: 'A thousand signs are speaking. One tower has fallen silent. Follow the avenue, then climb the blue ledges or hail a taxi to its cream balcony.',
-      outro: 'A voice crosses the square: you are not alone. For a moment, everyone stops to listen.',
-      label: 'the broadcast balcony', goal: [0, 45, -234], radius: 5, verticalRadius: 5,
+      title: 'YOU ARE NOT ALONE',
+      intro: 'A thousand signs are speaking. One tower has fallen silent. Somebody at its foot is waiting for someone to care.',
+      outro: 'A voice crossed the square: you are not alone. For a moment, everyone stopped to listen. Something of value? Someone was listening.',
+      label: 'the broadcast balcony', goal: [0, 45, -234], radius: 5, verticalRadius: 5, manual: true,
     },
     relics: {
       spots: [{at:[18,1.1,48]}, {at:[-29,6.2,-35]}, {at:[0,26.1,-90]}, {at:[12,45.1,-232]}, {at:[0,65.1,-330]}],
-      names: ['Lantern seed', 'Market stamp', 'Skybridge ticket', 'Unsent recording', 'Antenna tuning fork'],
+      names: ['Lantern seed', 'Market stamp', 'Skybridge ticket', 'Cracked valve', 'Pigeon’s message ring'],
     },
     gate: {at:[-11,121],heading:Math.PI},
+    // the market's own people; the story's (Sel, Kip, Ferro, Brush, Ummu) are in src/story/bazaar-data.js
     npcs: [
-      {at:[12,105],radius:2,palette:pal('#dca273'),lines:['Welcome to the Signal Market. The broadcast tower is straight ahead.','Climb its blue ledges, use your jetpack, or take the parked taxi.']},
-      {at:[-17,42],radius:1,palette:pal('#84bab3'),lines:['Every lantern holds a little sun.','Somebody dropped a lantern seed on the other side of the street.']},
-      {at:[14,-203],radius:1,palette:pal('#c3a9cc'),lines:['The cream balcony has the old transmitter.','The taxis can take you above the bridges.']},
+      {at:[12,105],radius:2,palette:pal('#dca273'),lines:['Welcome to the Signal Market. The broadcast tower is straight ahead.','Climb its blue ledges, use your jetpack, or take the parked taxi.'],...BAZAAR_STREET.doss},
+      {at:[-17,42],radius:1,palette:pal('#84bab3'),lines:['Every lantern holds a little sun.','Somebody dropped a lantern seed on the other side of the street.'],...BAZAAR_STREET.oyo},
+      {at:[14,-203],radius:1,palette:pal('#c3a9cc'),lines:['The cream balcony has the old transmitter.','The taxis can take you above the bridges.'],...BAZAAR_STREET.teb},
     ],
   },
   atelier: {
@@ -113,31 +120,36 @@ export const CONTENT = {
   },
   incal: {
     weather: ['fog'],
+    // the City-Shaft's story is a quest (src/story/incal-data.js): this page opens on
+    // the first visit and closes when the light burns again and Nima has been told
     story: {
-      title: 'THE LIGHT IN THE SHAFT',
-      intro: 'Above the palace, the Incal turns. Hail a taxi.',
-      outro: 'For a moment, every level of the city looks up.',
-      label: 'the Incal', goal: [0, 450, 0], radius: 34,
+      title: 'THE LIGHT NOBODY LOOKS AT',
+      intro: 'Above the palace, the Incal turns, dimmer than it should be. Nobody here looks up.',
+      outro: 'For a moment, every level of the city looked up. Something of value? Look up once a day.',
+      label: 'the Incal', goal: [0, 450, 0], radius: 34, manual: true,
     },
     relics: {
       spots: [{ at: [320, 200, -80], snap: true }, { at: [-210, 150, 30], snap: true }, { at: [150, 36, -150], snap: true }, { at: [-60, -86, 205], snap: true }, { at: [205, -218, -40], snap: true }],
-      names: ['Taxi token', 'Palace key', 'Smog lantern', 'Lower-levels ration', 'Incal splinter'],
+      names: ['Taxi token', 'Palace key', 'Smog lantern', 'Smog-cabbage seed', 'Prayer bead'],
     },
     gate: { at: [300, 60], heading: -Math.PI / 2 },
+    // the rim's people, and Nima on the high terrace (index 3: the desert's errand of
+    // singing sand is for her); the rest of the city's people are in src/story/incal-data.js
     npcs: [
-      { at: [300, -40], palette: pal('#e88fa6', { cloth: '#3a3f5a' }), lines: ['Level −86? Never been below the smog.', 'The Incal? A story for tourists.'] },
-      { at: [330, 40], palette: pal('#62c3c9'), lines: ['Mind the taxis. They don’t stop.'] },
-      { at: [290, 110], palette: pal('#f2c54b', { cloth: '#5a3a3a' }), lines: ['I sell views of the abyss. Cheap.'], shy: true },
-      { at: [-30, 150], y: 150, radius: 8, palette: pal('#a99be0'), lines: ['The rich live up here. Me, I just sweep.'] },
+      { at: [300, -40], y: 200, palette: pal('#e88fa6', { cloth: '#3a3f5a' }), lines: ['Level −86? Never been below the smog.', 'The Incal? A story for tourists.'], ...INCAL_RIM.corvin },
+      { at: [330, 40], y: 200, palette: pal('#62c3c9'), lines: ['Mind the taxis. They don’t stop.'], ...INCAL_RIM.lio },
+      { at: [290, 110], y: 200, palette: pal('#f2c54b', { cloth: '#5a3a3a' }), lines: ['I sell views of the abyss. Cheap.'], shy: true, ...INCAL_RIM.hask },
+      { ...INCAL_PEOPLE.nima, at: [112.1, 165.8], y: 150, radius: 1.8, speed: 0.45 },
     ],
   },
   arzach: {
     weather: ['storm'],
+    // the story is a quest (src/story/arzach-data.js): this page closes when the bird has made her promise
     story: {
-      title: 'THE LONE TOWER',
-      intro: 'Ride the bird to the window.',
-      outro: 'No one answers. The bird waits.',
-      label: 'the lone tower', goal: [260, 'top', -420], drop: 40, radius: 30,   // the spike tip is ~40 m above the window room
+      title: 'THE WAITING BIRD',
+      intro: 'Nobody here says much. A bird waits beside you, and keeps turning to look at a lone tower.',
+      outro: 'The rider is not coming back. The bird has chosen to come when you call.',
+      label: 'the lone tower', goal: [260, 'top', -420], drop: 40, radius: 30, manual: true,   // the spike tip is ~40 m above the window room
     },
     relics: {
       spots: [[170, -260], [-150, -210], [300, 100], [-250, -80], [60, 300]],
@@ -152,11 +164,12 @@ export const CONTENT = {
   },
   garage: {
     weather: ['rain'],
+    // the story is a quest (src/story/garage-data.js): this page closes when the Major's note is found
     story: {
-      title: 'THE MAJOR’S MACHINE',
-      intro: 'Climb to the crown of the great machine.',
-      outro: 'Somewhere, Major Grubert smiles.',
-      label: 'the great machine', goal: [90, 86, -60], radius: 12,
+      title: 'THE MAJOR FORGOT',
+      intro: 'Major Grubert built this pocket universe, and forgot why. His people keep the machines turning, and pass round a signal nobody can read.',
+      outro: '“I built it to see what I would do with it. I still don’t know. That is the point.” Somewhere, Major Grubert smiles.',
+      label: 'the great machine', goal: [90, 86, -60], radius: 12, manual: true,
     },
     relics: {
       spots: [[0, -40], [-120, 60], [150, 40], { at: [60, 898.8, 2940] }, { at: [2940, -148.8, 0] }],
@@ -169,45 +182,9 @@ export const CONTENT = {
       { at: [120, -110], palette: pal('#f2c54b'), lines: ['The ring? Walk far enough and you’re back.'], shy: true },
     ],
   },
-  edena: {
-    weather: ['rain'],
-    story: {
-      title: 'STEL AND ATAN',
-      intro: 'Their ship fell in the meadow. Find it.',
-      outro: 'The garden has already begun to grow over it.',
-      label: 'the crashed ship', goal: [40, 'ground', -210], radius: 28,
-    },
-    relics: {
-      spots: [[60, -80], [-200, 220], [180, 120], [-300, 50], [240, -300]],
-      names: ['Canopy blossom', 'Pyramid seed', 'Android sprocket', 'Glyph tablet', 'Ship rivet'],
-    },
-    gate: { at: [26, 34], heading: Math.PI },
-    npcs: [
-      { at: [30, 30], palette: pal('#f7f4ec', { cloth: '#62c3c9', face: '#dfe8ec' }), lines: ['We tend the garden. The garden tends us.'] },
-      { at: [-60, 60], palette: pal('#9fd6c9', { cloth: '#f7f4ec' }), lines: ['Stel? Atan? They left in the ship.'] },
-      { at: [150, 100], palette: pal('#f2a7b5'), lines: ['The pyramids are older than the androids.'], shy: true },
-      { at: [-170, 190], palette: pal('#b5a7e6'), lines: ['Climb the trees. The view is worth it.'] },
-    ],
-  },
-  perdide: {
-    weather: ['rain', 'fog'],
-    story: {
-      title: 'THE GREAT CRYSTAL',
-      intro: 'Cross the swamp. Follow the hum.',
-      outro: 'The crystal sings. The plants fall silent.',
-      label: 'the Great Crystal', goal: [120, 'ground', -150], radius: 30,
-    },
-    relics: {
-      spots: [{ at: [-170, 3.6, 140], snap: true }, [-14, -30], [40, -70], [200, 60], [-90, -260]],
-      names: ['Cave lantern', 'Egg shell', 'Crystal splinter', 'Plant tooth', 'Skiff charm'],
-    },
-    gate: { at: [22, 24], heading: Math.PI },
-    npcs: [
-      { at: [10, -18], radius: 7, palette: pal('#8a6fb8', { cloth: '#3f5a4a' }), lines: ['Don’t feed the plants.', 'The crystals hum when it rains.'] },
-      { at: [-24, 12], radius: 6, palette: pal('#62c3c9', { cloth: '#3a3f5a' }), lines: ['The cave glows all night.'], shy: true },
-      { at: [-150, 120], radius: 10, palette: pal('#d6ff9a', { cloth: '#3a3f5a' }), lines: ['Fireflies, or something else?'] },
-    ],
-  },
+  edena: EDENA_CONTENT,
+  // the swamp's story and its people: src/levels/perdide.js, src/story/perdide-data.js
+  perdide: PERDIDE_CONTENT,
 };
 
 // Errands: villagers asking you to carry something to someone in another
@@ -231,7 +208,7 @@ export const ERRANDS = [
     wait: 'Edena. The garden with the white pyramids.',
     thanks: 'It fits. The garden can keep time again.' },
   { id: 'seed', item: 'a glass seed', from: ['edena', 3], to: ['perdide', 0],
-    ask: 'Carry this seed to the keeper in the swamp. She knows where it grows.',
+    ask: 'Carry this seed to the egg-warden in the swamp. He knows where it grows.',
     wait: 'Perdide. Follow the glow.',
     thanks: 'We don’t feed the plants. But this one we will plant.' },
   { id: 'crystal', item: 'a humming crystal', from: ['perdide', 2], to: ['desert', 0],

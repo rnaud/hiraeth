@@ -985,3 +985,24 @@ Every system talks through it, and its header lists the flags and events.
   the channel; the tree drinks and the water refills the tank with a new colour.
   Bringing the water to the ship powers it. There are three side quests.
 
+### Every world's story (v0.33)
+Each world has a story module (`src/story/<world>.js` and `<world>-data.js`,
+registered in `WORLDS` in `src/story/index.js`). Each has named people with
+conversations, a main quest that ends in a keepsake and sets `world.<id>.done`,
+two side quests, reactions and a clue to another world. Story pages are
+`manual: true` and close when the main quest does. The story bible has the
+walkthroughs and local names; each data file's header lists its flags.
+
+| World | Main quest | Keepsake |
+|---|---|---|
+| Arzach | climb the tower with boost-jumps, blow the rider's whistle | the bird's promise (person) |
+| Arzach II | fetch the clapper from the floating island, ring the bell: the cloud sinks 16 m | the bell's note (song; it then sounds when you shoot) |
+| Garage | carry the signal through all three zones to the Major's desk | the Major's note (knowing) |
+| Buried Machine | push the oil valve, shoot the wick, stand in the light (amber band); the wheel turns a tooth | a rust gear tooth (thing) |
+| Edena | open Stel and Atan's overgrown ship, play their log, part the flowers over the scorch | Mira's words (word) |
+| Garden of Spheres | listen at three spheres, then at the plaza's pole | the chord of the spheres (song) |
+| Perdide | make the Great Crystal sing (rain or three shots), carry its splinter to the cave (violet band) | a singing splinter (thing) |
+| Perdide II | relight three dark pools; the saucer answers; it is Stel and Atan's pod | Hollin's lamps (person) |
+| City-Shaft | carry the splinter from the bottom to the palace; the Incal brightens | "Look up once a day" (word) |
+| Signal Market | tune the antenna (three shots at once), play the recording: the father's voice | "You are not alone" (word) |
+

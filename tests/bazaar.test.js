@@ -37,10 +37,12 @@ test('taxis initialize and the crowd walks the avenue, sidewalks and skybridges'
  const triangles=physics.triangles;assert.ok(triangles<30000,`static collision budget: ${triangles}`);
 });
 
-test('broadcast completes at the balcony, not underneath it', async()=>{
+test('the broadcast page closes with the story (the quest), not on arriving at the balcony', async()=>{
  const {Story}=await import('../src/quest.js');
  let completed=0;
  const story={def:CONTENT.bazaar.story,goal:new THREE.Vector3(0,45,-234),player:{pos:new THREE.Vector3(0,27,-234)},halo:{scale:{setScalar(){}}},showPage(){completed++;}};
+ assert.equal(CONTENT.bazaar.story.manual,true,'the Signal Market story is a quest (src/story/bazaar.js)');
  Story.prototype.update.call(story,.016,0);assert.equal(completed,0);
- story.player.pos.y=44;Story.prototype.update.call(story,.016,0);assert.equal(completed,1);
+ story.player.pos.y=44;Story.prototype.update.call(story,.016,0);assert.equal(completed,0,'standing on the balcony is not enough');
+ Story.prototype.complete.call(story);assert.equal(completed,1,'the quest closes it');
 });

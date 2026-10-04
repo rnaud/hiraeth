@@ -574,7 +574,7 @@ export function spawnNPCs(scene, physics, spots, { fromY = 1e4, lib = null, huma
     }
     const kind = k % 2 ? 'f' : 'm';
     const npc = new NPC(scene, physics, { route, palette: s.palette, lines: s.lines, shy: s.shy, speed: s.speed, lib,
-      human: humans ? humans[kind === 'm' ? 0 : 1] : null, kind, def: s.talk ? s : null });
+      human: humans ? humans[kind === 'm' ? 0 : 1] : null, kind, def: s.talk ? s : null, head: s.head ?? null, cape: s.cape ?? null });
     return npc;
   });
 }

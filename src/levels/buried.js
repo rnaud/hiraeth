@@ -3,6 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createNoise2D, fbm, mulberry32, smoothstep } from '../noise.js';
 import { makeMaterial, MODE_TERRAIN, MODE_STRATA } from '../materials.js';
 import { Terrain } from '../world.js';
+import { PEOPLE } from '../story/buried-data.js';
 
 // ---------------------------------------------------------------------------
 // The Buried Machine (after Moebius): pale cream dunes under a sage sky, with
@@ -34,7 +35,17 @@ const cx = canyonX;
 const OX = cx(OZ);
 const clamp01 = (t) => Math.min(Math.max(t, 0), 1);
 const rampT = (z) => { const t = clamp01((CZ0 - z) / (CZ0 - CZ1)); return t * t * (3 - 2 * t); };
-const floorAt = (z) => 4 + (FLOOR - 4) * rampT(z);
+export const floorAt = (z) => 4 + (FLOOR - 4) * rampT(z);
+
+// The great wheel (src/story/buried.js turns it one tooth a year): a colossal
+// cog sunk to its axle in the dunes east of the canyon, its face turned to the
+// domes. Its plane passes through WHEEL.x, WHEEL.z; `axle` is its normal.
+export const WHEEL = { x: 98, z: -168, R: 44, tooth: 3.4, teeth: 40, T: 6, sink: 15 };
+WHEEL.axle = (() => { const a = Math.atan2(-0.45, 0.89); return [Math.sin(a), Math.cos(a)]; })();   // toward the domes
+WHEEL.along = [WHEEL.axle[1], -WHEEL.axle[0]];
+const wheelLocal = (x, z) => { const dx = x - WHEEL.x, dz = z - WHEEL.z; return [dx * WHEEL.axle[0] + dz * WHEEL.axle[1], dx * WHEEL.along[0] + dz * WHEEL.along[1]]; };
+// three pressure gauges on posts along the canyon floor: [z, wall side]
+export const GAUGES = [[-118, 1], [-228, -1], [-318, 1]];
 
 function dunes(x, z) {
   const soft = 6 + fbm(nA, x * 0.0035, z * 0.0035, 4) * 5 + Math.sin(x * 0.03 + nB(x * 0.01, z * 0.01) * 2) * 1.6;
@@ -44,6 +55,9 @@ function dunes(x, z) {
   h = soft + (h - soft) * smoothstep(40, 150, Math.hypot(x, z - 60));      // a calm hollow round the start
   const r = Math.hypot(x - RING_C.x, z - RING_C.z);
   h += smoothstep(950, 1500, r) * (90 + fbm(nA, x * 0.003, z * 0.003, 3) * 60);   // horizon swells
+  // sand heaped against both faces of the great wheel where it breaks the surface
+  const [across, along] = wheelLocal(x, z);
+  if (Math.abs(across) < 26 && Math.abs(along) < 60) h += 3.2 * smoothstep(24, 3, Math.abs(across)) * smoothstep(52, 30, Math.abs(along));
   return h;
 }
 function canyonMask(x, z) {
@@ -71,24 +85,24 @@ export const OCULUS = { x: OX, z: OZ, r: OR, balcony: BALCONY, top: OTOP };
 
 export const BURIED_CONTENT = {
   weather: [],
+  // the story is a quest (src/story/buried-data.js): this page opens on the first
+  // visit and closes when the wheel has turned and Wen has counted the tooth
   story: {
-    title: 'THE BURIED MACHINE',
-    intro: 'Under the dunes, something still turns. Follow the pipes down into the rust canyon, find the oculus, and climb to the window that glows.',
-    outro: 'The porthole is warm. Far below the sand, a great wheel shifts by one tooth, and the hanging city sways.',
-    label: 'the oculus window', goal: [OX, 'top', OZ - 31], radius: 5, verticalRadius: 5,
+    title: 'ONE TOOTH A YEAR',
+    intro: 'Under the dunes a great wheel turns one tooth a year, and the dome people count their lives by it. Today is Tooth Day. The lamp in the oculus is dark.',
+    outro: 'The Wick burned, the wheel turned one tooth, and the hanging city rocked like a cradle. Wen says you are one tooth old.',
+    label: 'the great wheel', goal: [WHEEL.x, 'ground', WHEEL.z], radius: 20, manual: true,
   },
   relics: {
     spots: [HERO_DOME, [(HERO_PIPE.x0 + HERO_PIPE.x1) / 2, HERO_PIPE.z], TOWER, [LEDGE_X, LEDGE_Z], [cx(WALLS[1]), WALLS[1]]],
-    names: ['Dome-keeper’s key', 'Pressure gauge', 'Derrick beacon', 'Rust gear tooth', 'Oval-window shard'],
+    names: ['Chimney bell', 'Pressure gauge', 'Derrick beacon', 'Oil-lamp wick', 'Oval-window shard'],
   },
   gate: { at: [22, 86], heading: Math.PI },
+  // the level's people (talk: src/story/buried-data.js); the domes' others are spawned by the story
   npcs: [
-    { at: [14, 40], radius: 5, palette: { cloak: '#e9c9a8', lining: '#2b211f', cloth: '#5f7488', legs: '#3a3a3a' },
-      lines: ['The domes are only the chimneys. The machine is all underneath.', 'Follow the sand slope down. The canyon walls are pipes, not stone.'] },
-    { at: [cx(-200), -200], radius: 7, palette: { cloak: '#7f93a3', lining: '#2b211f', cloth: '#c8643f', legs: '#2b2f45' },
-      lines: ['Listen. The walls are still warm.', 'Past the oval doors there is a room with no ceiling.'] },
-    { at: [OX, OZ + 60], radius: 4, palette: { cloak: '#c9d4b8', lining: '#2b211f', cloth: '#2f5a5e', legs: '#4a3a2a' },
-      lines: ['Inside, look up. The lit window is on the balcony.', 'The city up there? It has always hung like that.'], shy: true },
+    { at: [14, 40], radius: 5, ...PEOPLE.pim },
+    { at: [cx(-200), -200], radius: 7, ...PEOPLE.ossa },
+    { at: [OX, OZ + 60], radius: 4, ...PEOPLE.tull, shy: true },
   ],
 };
 
@@ -174,12 +188,18 @@ export function createBuried(scene) {
   const avoid = (x, z, r) => (z < CZ0 + 30 && Math.abs(x - cx(z)) < W + 18 + r) || Math.hypot(x - OX, z - OZ) < OR + 20 + r
     || Math.hypot(x, z - 60) < 14 + r || Math.hypot(x - 22, z - 86) < 10 + r
     || Math.hypot(x - HERO_DOME[0], z - HERO_DOME[1]) < 8 + r || Math.hypot(x - TOWER[0], z - TOWER[1]) < 18 + r
-    || (Math.abs(z - HERO_PIPE.z) < 6 + r && x > HERO_PIPE.x0 - 6 - r && x < HERO_PIPE.x1 + 6 + r);
+    || (Math.abs(z - HERO_PIPE.z) < 6 + r && x > HERO_PIPE.x0 - 6 - r && x < HERO_PIPE.x1 + 6 + r)
+    || (() => { const [a, b] = wheelLocal(x, z); return Math.abs(a) < 26 + r && Math.abs(b) < 58 + r; })();
+  const chimneys = [];   // chimney tops of the domes near the start (they puff: src/story/buried.js)
   {
     const body = new THREE.CylinderGeometry(4, 4.15, 5.4, 14, 1).translate(0, 0.5, 0).toNonIndexed();
     const band = new THREE.CylinderGeometry(4.35, 4.35, 0.5, 14, 1).translate(0, 3.25, 0).toNonIndexed();
     const dome = new THREE.SphereGeometry(4.05, 14, 6, 0, TAU, 0, Math.PI / 2).translate(0, 3.2, 0).toNonIndexed();
-    const hutGeo = mergeGeometries([body, band, dome].map((g) => { g.deleteAttribute('uv'); return g; }));
+    // a stubby chimney through the dome, with a lip
+    const CH = [-1.7, 8.7, -1.1];
+    const chim = new THREE.CylinderGeometry(0.42, 0.5, 3.0, 8).translate(CH[0], CH[1] - 1.5, CH[2]).toNonIndexed();
+    const lip = new THREE.CylinderGeometry(0.6, 0.6, 0.35, 8).translate(CH[0], CH[1] - 0.1, CH[2]).toNonIndexed();
+    const hutGeo = mergeGeometries([body, band, dome, chim, lip].map((g) => { g.deleteAttribute('uv'); return g; }));
     const winParts = [];
     for (const a of [0.3, 2.4, 4.3]) winParts.push(new THREE.BoxGeometry(1.1, 0.8, 0.4).translate(0, 1.7, 4.05).rotateY(a).toNonIndexed());
     winParts.push(new THREE.BoxGeometry(1.4, 2.2, 0.4).translate(0, 0.6, 4.05).rotateY(1.3).toNonIndexed());
@@ -221,6 +241,10 @@ export function createBuried(scene) {
     for (const h of huts) { h.y = terrain.baseAt(h.x, h.z, 4 * h.s) - (h === huts[0] ? 0.4 : 0.4 + rng() * 1.6); h.rot = rng() * TAU; h.c = pick(COLORS); }
     for (const p of pods) { p.y = terrain.baseAt(p.x, p.z, 4 * p.s) - 1.5 - rng() * 1.5; p.rot = rng() * TAU; p.c = pick(COLORS); }
     const placeHut = (h, d) => { d.position.set(h.x, h.y, h.z); d.rotation.set(0, h.rot, 0); d.scale.setScalar(h.s); };
+    for (const h of huts.slice(0, 11)) {
+      const c = Math.cos(h.rot), s = Math.sin(h.rot);
+      chimneys.push(new THREE.Vector3(h.x + (CH[0] * c + CH[2] * s) * h.s, h.y + CH[1] * h.s, h.z + (-CH[0] * s + CH[2] * c) * h.s));
+    }
     inst(hutGeo, M.white, huts, placeHut, (h) => h.c);
     inst(winGeo, M.hatch, huts, placeHut).userData.noCollide = true;
     const ant = inst(antGeo, M.ink, huts.filter((h) => h.ant), placeHut);
@@ -359,7 +383,7 @@ export function createBuried(scene) {
         const f = floorAt(z), top = rimY(z, s), wallH = top - f;
         if (wallH < 3) continue;
         const nearLedge = s < 0 && Math.abs(z - LEDGE_Z) < 9;
-        const nearWall = WALLS.some((wz) => Math.abs(z - wz) < 6);
+        const nearWall = WALLS.some((wz) => Math.abs(z - wz) < 6) || GAUGES.some(([gz, gs]) => gs === s && Math.abs(z - gz) < 7);
         const at = (y, inset = 0) => cx(z) + s * (wallD(y, z, s) + inset);
         const shallow = wallH < 16 || z > CZ1;                 // the ramp: all blue-grey strata
         const band0 = shallow ? f + 0.5 : top - 11;
@@ -451,6 +475,7 @@ export function createBuried(scene) {
   }
 
   // ======================================================== the oculus: a teal drum open to the sky
+  const porthole = {};
   {
     const g = Math.asin(10 / OR);                 // half-angle of the doorway (faces +z, back up the canyon)
     const h = OTOP - (FLOOR - 2);
@@ -508,7 +533,12 @@ export function createBuried(scene) {
         const a = (k / 8) * TAU;
         put(M.tealFlat, new THREE.BoxGeometry(0.5, 2.2, 1).translate(Math.cos(a) * 8.4, Math.sin(a) * 8.4, 0).rotateZ(0).translate(c.x, c.y, c.z + 0.3), { solid: false });
       }
-      lights.push(new THREE.Vector4(c.x, c.y, c.z + 4, 16));
+      porthole.light = new THREE.Vector4(c.x, c.y, c.z + 4, 16);
+      porthole.centre = c.clone();
+      lights.push(porthole.light);
+      // the maker's mark cast in the rim, above the glass: three dots over an arc
+      for (const k of [-1, 0, 1]) put(M.tealFlat, new THREE.CylinderGeometry(0.5, 0.5, 0.5, 10).rotateX(Math.PI / 2).translate(c.x + k * 1.6, c.y + 10.5 + (k ? 0 : 0.35), c.z + 0.5), { solid: false });
+      put(M.tealFlat, new THREE.TorusGeometry(2.2, 0.28, 5, 18, Math.PI * 0.6).rotateZ(Math.PI * 0.2).translate(c.x, c.y + 7.3, c.z + 0.5), { solid: false });
     }
     // vertical pipes up the inner wall, tanks on the floor
     for (let k = 0; k < 16; k++) {
@@ -568,8 +598,10 @@ export function createBuried(scene) {
     movers.push((t) => { grp.position.y = base + Math.sin(t * 0.25 + ph) * 3; grp.rotation.y = t * sp; });
   }
   // tall chimney stacks with platforms on the dunes
+  const stacks = [];
   for (const [x, z, hh] of [[-150, -90, 64], [140, -260, 80], [-190, -420, 70], [110, 140, 52]]) {
     const b = terrain.baseAt(x, z, 4) - 2;
+    stacks.push(new THREE.Vector3(x, b + hh + 3, z));
     put(M.steel, new THREE.CylinderGeometry(2.4, 3.2, hh, 12).translate(x, b + hh / 2, z));
     put(M.rustDark, new THREE.CylinderGeometry(3, 2.6, 3, 12).translate(x, b + hh + 1.5, z));
     for (const f of [0.45, 0.78]) {
@@ -582,6 +614,13 @@ export function createBuried(scene) {
   }
 
   // ======================================================== overhead: the inverted city
+  // hung from a pivot above its top, so the whole city can sway when the wheel turns
+  const city = new THREE.Group(), cityInner = new THREE.Group();
+  city.position.set(CITY_C.x, CITY_Y + 60, CITY_C.z);
+  cityInner.position.set(-CITY_C.x, -(CITY_Y + 60), -CITY_C.z);
+  city.add(cityInner);
+  city.userData.noCollide = true;
+  scene.add(city);
   {
     const tag = 'city';
     const add = (i, g) => put(M.city[i], g, { solid: false, tag });
@@ -654,7 +693,7 @@ export function createBuried(scene) {
       const win = new THREE.Mesh(new THREE.BoxGeometry(3, 1.5, 0.4).translate(0, -l - 5, 6), M.peach);
       grp.add(win);
       grp.userData.noCollide = true;
-      scene.add(grp);
+      cityInner.add(grp);
       noShadow.push(grp);
       const ph = rng() * 10;
       movers.push((t) => { grp.rotation.z = Math.sin(t * 0.21 + ph) * 0.025; grp.rotation.x = Math.cos(t * 0.17 + ph) * 0.02; });
@@ -706,6 +745,127 @@ export function createBuried(scene) {
     noShadow.push(town);
   }
 
+  // ======================================================== the great wheel, sunk to its axle in the dunes
+  // One extruded gear (rim, teeth, spokes and hub in one shape) that the story
+  // turns by one tooth; its collision is a plain static disc, so it can turn.
+  const wheel = {};
+  {
+    const { R, tooth, teeth: N, T, sink } = WHEEL;
+    const [ax, az] = WHEEL.axle;
+    const ground = H(WHEEL.x, WHEEL.z);
+    const centre = new THREE.Vector3(WHEEL.x, ground - sink, WHEEL.z);
+    const gear = new THREE.Shape();
+    for (let i = 0; i < N; i++) {
+      const a = (i / N) * TAU, w = TAU / N;
+      const pts = [[a, R], [a + w * 0.18, R], [a + w * 0.28, R + tooth], [a + w * 0.62, R + tooth], [a + w * 0.72, R]];
+      pts.forEach(([b, r], k) => (i === 0 && k === 0 ? gear.moveTo(Math.cos(b) * r, Math.sin(b) * r) : gear.lineTo(Math.cos(b) * r, Math.sin(b) * r)));
+    }
+    gear.closePath();
+    const S = 7, rIn = R - 6.5, rHub = 9;
+    for (let k = 0; k < S; k++) {
+      const a0 = (k / S) * TAU + 0.16, a1 = ((k + 1) / S) * TAU - 0.16;
+      const hole = new THREE.Path();
+      hole.absarc(0, 0, rIn, a1, a0, true);
+      hole.absarc(0, 0, rHub + 2, a0 + 0.12, a1 - 0.12, false);
+      hole.closePath();
+      gear.holes.push(hole);
+    }
+    const body = new THREE.ExtrudeGeometry(gear, { depth: T, bevelEnabled: false, curveSegments: 6 }).translate(0, 0, -T / 2);
+    const bodyMat = makeMaterial({ color: '#c0603e', color2: '#b35a3a', flat: true });
+    const darkMat = makeMaterial({ color: '#8a4430', flat: true });
+    const spin = new THREE.Group();
+    spin.add(new THREE.Mesh(body, bodyMat));
+    // a heavy lip round the rim on both faces, rivets, and the boss with the maker's mark
+    const trim = [];
+    for (const f of [-1, 1]) {
+      trim.push(new THREE.TorusGeometry(R - 0.7, 0.7, 5, 96).translate(0, 0, f * T / 2));
+      trim.push(new THREE.TorusGeometry(rIn + 0.4, 0.5, 5, 80).translate(0, 0, f * T / 2));
+      for (let k = 0; k < 56; k++) { const a = (k / 56) * TAU; trim.push(new THREE.CylinderGeometry(0.32, 0.32, 0.5, 6).rotateX(Math.PI / 2).translate(Math.cos(a) * (R - 3.1), Math.sin(a) * (R - 3.1), f * T / 2)); }
+    }
+    trim.push(new THREE.CylinderGeometry(rHub, rHub, T + 2.4, 24).rotateX(Math.PI / 2));
+    spin.add(new THREE.Mesh(mergeGeometries(trim.map((g) => { const n = g.toNonIndexed(); n.deleteAttribute('uv'); return n; })), darkMat));
+    // the maker's mark on the boss, facing the domes (it is underground: only the story's lore sees it)
+    const steel = makeMaterial({ color: '#7f93a3', flat: true });
+    spin.add(new THREE.Mesh(new THREE.CylinderGeometry(4, 4, T + 3.2, 20).rotateX(Math.PI / 2), steel));
+    const holder = new THREE.Group();
+    holder.position.copy(centre);
+    holder.rotation.y = Math.atan2(ax, az);   // local +z = the axle, toward the domes
+    holder.add(spin);
+    holder.userData.noCollide = true;
+    scene.add(holder);
+    // collision: a still disc the size of the rim (the teeth turn freely past it)
+    const proxy = new THREE.Mesh(new THREE.CylinderGeometry(R + tooth * 0.5, R + tooth * 0.5, T, 40).rotateX(Math.PI / 2), new THREE.MeshBasicMaterial());
+    proxy.position.copy(centre); proxy.rotation.y = holder.rotation.y;
+    proxy.visible = false;
+    scene.add(proxy);
+    // where a shed tooth lands: on the sand in front of the face, below the top of the arc
+    const face = new THREE.Vector3(ax, 0, az);
+    const drop = centre.clone().addScaledVector(face, T / 2 + 6);
+    drop.y = H(drop.x, drop.z);
+    Object.assign(wheel, { spin, holder, centre, R, tooth, teeth: N, T, face, drop, top: centre.y + R + tooth, ground });
+  }
+
+  // ======================================================== the pressure gauges (shoot them: the needles stick)
+  const gauges = [];
+  for (const [gz, s] of GAUGES) {
+    const f = floorAt(gz), x0 = cx(gz) + s * (W + 1.6), y = f + 6;
+    const post = new THREE.Vector3(x0, f, gz);
+    put(M.rustGrid, new THREE.CylinderGeometry(0.55, 0.75, 6.4, 8).translate(x0, f + 3.0, gz));
+    put(M.rustDark, new THREE.CylinderGeometry(1.1, 1.3, 0.8, 8).translate(x0, f + 0.3, gz));
+    // a feed pipe into the wall
+    put(M.steel, cylBetween(new THREE.Vector3(x0, f + 4.2, gz), new THREE.Vector3(x0 + s * 9, f + 4.2, gz), 0.45, 0.45, 8));
+    const c = new THREE.Vector3(x0 - s * 0.8, y, gz);
+    const dial = mergeGeometries([new THREE.CylinderGeometry(2.1, 2.1, 0.6, 28).rotateZ(Math.PI / 2).translate(c.x + s * 0.3, c.y, c.z)].map((g) => g.toNonIndexed()));
+    put(M.steelFlat, dial);
+    put(M.rustDark, new THREE.TorusGeometry(2.05, 0.22, 6, 28).rotateY(Math.PI / 2).translate(c.x - s * 0.02, c.y, c.z), { solid: false });
+    put(M.white, new THREE.CircleGeometry(1.85, 28).rotateY(-s * Math.PI / 2).translate(c.x - s * 0.04, c.y, c.z), { solid: false });
+    // ticks round the upper arc, and the red mark near the top
+    for (let k = 0; k <= 10; k++) {
+      const a = -Math.PI * 0.75 + (k / 10) * Math.PI * 1.5;
+      const tick = new THREE.BoxGeometry(0.06, k % 5 ? 0.25 : 0.45, 0.08).translate(0, 1.5, 0).rotateZ(-a);
+      tick.rotateY(-s * Math.PI / 2).translate(c.x - s * 0.08, c.y, c.z);
+      put(k >= 8 ? M.peach : M.ink, tick, { solid: false });
+    }
+    // the maker's mark, small, under the hub
+    for (const k of [-1, 0, 1]) put(M.ink, new THREE.CircleGeometry(0.1, 8).rotateY(-s * Math.PI / 2).translate(c.x - s * 0.09, c.y - 0.75 + (k ? 0 : 0.06), c.z + k * 0.26), { solid: false });
+    put(M.ink, new THREE.TorusGeometry(0.36, 0.04, 3, 10, Math.PI * 0.6).rotateZ(Math.PI * 0.2).rotateY(-s * Math.PI / 2).translate(c.x - s * 0.09, c.y - 1.25, c.z), { solid: false });
+    // the needle: its own mesh, pivoting at the hub (local z = the dial's axis)
+    const needle = new THREE.Group();
+    needle.position.set(c.x - s * 0.14, c.y, c.z);
+    needle.rotation.y = -s * Math.PI / 2;
+    const arm = new THREE.Mesh(mergeGeometries([new THREE.BoxGeometry(0.12, 1.55, 0.06).translate(0, 0.62, 0).toNonIndexed(), new THREE.CylinderGeometry(0.16, 0.16, 0.12, 8).rotateX(Math.PI / 2).toNonIndexed()]), M.ink);
+    arm.rotation.z = Math.PI * 0.72;   // stuck low, at the start of the scale
+    needle.add(arm);
+    needle.userData.noCollide = true;
+    scene.add(needle);
+    gauges.push({ z: gz, side: s, centre: c, post, needle: arm, stand: new THREE.Vector3(cx(gz), f, gz) });
+  }
+
+  // ======================================================== the oculus lamp ("the Wick") and its oil valve
+  const wick = {};
+  {
+    const f = FLOOR, c = new THREE.Vector3(OX, f, OZ);
+    put(M.rustGrid, new THREE.CylinderGeometry(1.3, 1.9, 2.4, 12).translate(c.x, f + 1.2, c.z));
+    // the bowl: a shallow open dish on the pedestal
+    const bowl = new THREE.LatheGeometry([[0.01, 0], [1.6, 0.05], [2.9, 0.55], [3.25, 1.25], [3.0, 1.32], [2.65, 0.8], [1.4, 0.38], [0.01, 0.32]].map(([r, y]) => new THREE.Vector2(r, y)), 28).translate(c.x, f + 2.35, c.z);
+    put(M.steel, bowl);
+    put(M.rustDark, new THREE.TorusGeometry(3.15, 0.18, 5, 28).rotateX(Math.PI / 2).translate(c.x, f + 3.62, c.z), { solid: false });
+    // the oil feed: a pipe across the floor from the valve to the pedestal
+    const vAt = new THREE.Vector3(OX + 7.5, f + 1.3, OZ + 7.5);
+    put(M.steel, cylBetween(new THREE.Vector3(vAt.x, f + 0.45, vAt.z), new THREE.Vector3(c.x + 1.5, f + 0.45, c.z + 1.5), 0.42, 0.42, 8), { solid: false });
+    put(M.steel, cylBetween(new THREE.Vector3(vAt.x, f, vAt.z), new THREE.Vector3(vAt.x, f + 1.3, vAt.z), 0.5, 0.5, 8));
+    put(M.rustDark, new THREE.CylinderGeometry(0.75, 0.75, 0.6, 10).translate(vAt.x, f + 1.0, vAt.z));
+    // the valve's handwheel (turned by the story when pushed)
+    const hand = new THREE.Group();
+    hand.position.copy(vAt).add(new THREE.Vector3(0, 0.55, 0));
+    hand.rotation.x = -Math.PI / 2;   // lying flat, a wheel on the stem
+    hand.add(new THREE.Mesh(mergeGeometries([new THREE.TorusGeometry(1.2, 0.14, 6, 20).toNonIndexed(),
+      ...[0, 1, 2].map((k) => new THREE.BoxGeometry(2.4, 0.14, 0.14).rotateZ((k / 3) * Math.PI).toNonIndexed())]), M.rustDark));
+    hand.userData.noCollide = true;
+    scene.add(hand);
+    Object.assign(wick, { centre: c, bowlY: f + 2.75, rim: f + 3.6, valve: { at: vAt.clone().add(new THREE.Vector3(0, 0.6, 0)), wheel: hand } });
+  }
+
   // ---------------------------------------------------------- merge the buckets
   for (const { mat, solid, tag, geos } of buckets.values()) {
     const list = geos.map((g) => {
@@ -719,7 +879,7 @@ export function createBuried(scene) {
     const m = new THREE.Mesh(g, mat);
     if (!solid) m.userData.noCollide = true;
     if (tag) { m.userData.tiled = true; noShadow.push(m); }
-    scene.add(m);
+    (tag === 'city' ? cityInner : scene).add(m);
   }
 
   // ---------------------------------------------------------- level description
@@ -751,6 +911,14 @@ export function createBuried(scene) {
     killY: -Infinity,
     noShadow,
     lights,
+    // the story's handles (src/story/buried.js): the wheel, the hanging city's pivot, the domes'
+    // chimneys, the gauges, the oculus lamp and its valve, the warm porthole
+    buried: {
+      wheel, city, chimneys, stacks, gauges, wick, porthole, floorAt, canyonX: cx,
+      oculus: { x: OX, z: OZ, r: OR, floor: FLOOR, balcony: BALCONY, top: OTOP },
+      walls: WALLS, ledge: new THREE.Vector3(LEDGE_X, LEDGE_Y, LEDGE_Z), heroDome: new THREE.Vector3(HERO_DOME[0], H(HERO_DOME[0], HERO_DOME[1]), HERO_DOME[1]),
+      tower: new THREE.Vector3(TOWER[0], H(TOWER[0], TOWER[1]) + 30, TOWER[1]),
+    },
     // down in the canyon and the drum, the sun comes in steeper so the floor is lit
     lightAt(p, dir) {
       if ((inCanyon(p.x, p.z, p.y) || (inOculus(p.x, p.z) && p.y < OTOP)) && dir.y > 0.05) { dir.y += 0.8; dir.normalize(); }

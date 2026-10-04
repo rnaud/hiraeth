@@ -3,6 +3,12 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.33', date: '2026-10-04', items: [
+    'Every world now has a story. Each one has people to talk to, a main quest that ends in a keepsake, and two side quests. Each also holds a clue about the singing light that struck your ship.',
+    'Ring the monastery bell to settle the cloud in Arzach II. Make the Great Crystal sing in Perdide. Watch the buried wheel turn one tooth, and relight the lamps in the deep wood.',
+    'Edena and Perdide II reveal that you were not the first. In the City-Shaft the Incal brightens when someone finally looks up, and the Signal Market’s silent tower plays a voice you know.',
+    'The ship’s scorch mark now matches the symbol seen in every world.',
+  ] },
   { v: '0.32', date: '2026-10-04', items: [
     'A new game opens aboard the traveller’s round ship. You wake in your bunk, take a call from your father, and then something strikes the ship and it crash-lands in the desert.',
     'The magic-fluid backpack: a lava-lamp tank of shifting colours feeds a hose to your wrist. Shoot, push, and boost-jump share three charges, and all three refill five seconds after the last use.',

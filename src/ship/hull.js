@@ -114,7 +114,8 @@ export function buildHull(batch, o = {}) {
     batch.add('scorch', surfacePoly(T, blob(4.2, 3.1, 28, 0.32, 2.1), 0.035));
     batch.add('soot', surfacePoly(T, blob(3.1, 2.3, 24, 0.28, 4.7), 0.05));
     for (const [u, v] of [[-1.25, 1.0], [0, 1.45], [1.25, 1.0]]) batch.add('ink', surfacePoly(T, blob(0.42, 0.42, 14, 0.12, u * 3 + 1), 0.07));
-    const [outer, inner] = arcStroke(0, 1.4, 2.1, Math.PI * 1.18, Math.PI * 1.82, 0.5, 24);
+    // the arc bows up under the dots (∩), as the glyph is drawn everywhere else, not a smile
+    const [outer, inner] = arcStroke(0, -1.6, 2.1, Math.PI * 0.18, Math.PI * 0.82, 0.5, 24);
     batch.add('ink', surfaceRibbon(T, outer, inner, 0.07));
     for (const [u, len, w] of [[-2.6, 2.4, 0.18], [2.4, 1.8, 0.14], [-0.6, 1.6, 0.12]]) {
       const o2 = [[u - w, -0.8], [u - w * 0.4, -0.8 - len]], i2 = [[u + w, -0.8], [u + w * 0.4, -0.8 - len]];

@@ -7,6 +7,16 @@ import { NPC, registerNPCTargets } from '../npc.js';
 import { makeMaterial } from '../materials.js';
 import { viaPortal } from '../scout.js';
 import { setupDesert } from './desert.js';
+import { setupPerdide } from './perdide.js';
+import { setupPerdide2 } from './perdide2.js';
+import { setupArzach } from './arzach.js';
+import { setupArzach2 } from './arzach2.js';
+import { setupGarage } from './garage.js';
+import { setupBuried } from './buried.js';
+import { setupEdena } from './edena.js';
+import { setupSpheres } from './spheres.js';
+import { setupIncal } from './incal.js';
+import { setupBazaar } from './bazaar.js';
 
 // The story runtime for a world: quests, conversations, the objective
 // marker, the E prompt, and the world's own story (src/story/<world>.js).
@@ -23,7 +33,19 @@ import { setupDesert } from './desert.js';
 //   storyRt.dialogue    start(person, npc) (src/story/dialogue.js)
 //   registerInteractable(...) for anything E should use (src/interact.js)
 
-const WORLDS = { desert: setupDesert };
+const WORLDS = {
+  desert: setupDesert,
+  perdide: setupPerdide,
+  perdide2: setupPerdide2,
+  arzach: setupArzach,
+  arzach2: setupArzach2,
+  garage: setupGarage,
+  buried: setupBuried,
+  edena: setupEdena,
+  spheres: setupSpheres,
+  incal: setupIncal,
+  bazaar: setupBazaar,
+};
 const UP = new THREE.Vector3(0, 1, 0);
 const _p = new THREE.Vector3(), _d = new THREE.Vector3();
 
@@ -174,6 +196,7 @@ export function createStory(o) {
     },
     /** The two-shot during a conversation (after the rig has placed the camera). */
     frameCamera(camera) {
+      world?.frameCamera?.(camera);   // a world's own camera moment (the Incal flaring, the broadcast)
       const at = talking?.npc?.pos ?? talking?.at ?? rt._lastAt;
       if (at) rt._lastAt = at;
       if (dialogue.blend < 0.002) { rt._lastAt = null; return; }
