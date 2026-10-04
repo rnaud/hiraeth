@@ -10,6 +10,7 @@
 // letterbox and whatever HUD, buttons, conversation or box card is showing.
 // Subtitles replace each other cleanly, one at a time (Subtitles: a line can
 // also be timed, or queued behind the one showing).
+import { speakLine } from '../story/voice.js';   // the mumbled voice under each subtitle
 
 const CSS = `
 #cine { position: fixed; inset: 0; z-index: 8000; pointer-events: none; }
@@ -248,6 +249,7 @@ export class Cinema {
   }
 
   _showLine() {
+    speakLine(this.subs.line);   // the voice under the line now up (src/story/voice.js; null hushes it)
     if (!this.dom) return;
     const line = this.subs.line;
     if (!line) { this.sub.classList.remove('show', 'in'); this._seen('sub', false); this.layout(); return; }

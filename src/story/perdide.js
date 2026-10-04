@@ -226,7 +226,7 @@ export function setupPerdide(ctx) {
       pat.fed = fed;
       if (pat.t > 0.5 || inBed) toast('A jaw gulps your fluid and snaps for more. They think you’re a feeder now. Start again: feed them nothing.');
       pat.t = 0; level.calm = false;
-      if (people.corm) people.corm.shout = { text: 'Ha! See? They love it!', until: people.corm.time + 2.5 };
+      if (people.corm) people.corm.shout = { text: '~shout~ Ha! See? They love it!', until: people.corm.time + 2.5 };
       return;
     }
     if (!inBed) {

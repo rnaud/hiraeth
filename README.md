@@ -1046,7 +1046,9 @@ Pocket. Their built-in controls work through the Gamepad API.
   `android/`) and builds a signed release APK. The APK is published to the
   GitHub release for the newest version in `src/changelog.js` (`v0.34` and so
   on, via `scripts/release-info.mjs`). Pushes within one version replace that
-  release's APK; adding a changelog entry starts a new release. Download
+  release's APK; adding a changelog entry starts a new release. Next to the APK the release gets `latest.json` (APK URL, versionCode,
+  native level) and `web.zip` + `web.json` (the game itself: version, build = run
+  number, sha256, URL, `minNative`), all from `scripts/release-info.mjs`. Download
   `moebius-v<version>.apk` from the repository's Releases page and open it on
   the device to install. Allow installing from your browser or file manager
   the first time.
@@ -1106,4 +1108,43 @@ Pocket. Their built-in controls work through the Gamepad API.
   `latest.json` from the newest release (uploaded by the workflow with the APK:
   versionCode, version, APK URL). It offers newer builds and hands them to the
   system installer; the same key keeps the save.
+
+### Alien voices and the translator
+- `src/story/voice.js` plans each line's syllables (pitch path, formants, timing), the
+  same alien syllables for the same word in a given tongue; `src/audio.js` renders them
+  on a `voices` bus. Dialogue syllables play as the text reveals; balloons and crowd
+  shouts play short versions (at most two at once, silent past 26 m); calls are voiced
+  through the one hook in `cinema.say`.
+- **Tones** (`src/story/tone.js`): every line is tagged, `'~sad~ …'` or `{ text, tone }`,
+  from `neutral, happy, sad, angry, scared, surprised, curious, tired, solemn, playful,
+  whisper, shout`. Tags are stripped wherever text is shown, and `tests/tone.test.js`
+  checks every line in the game has one.
+- **Tongues** (`LANGUAGES`, by level id): Qanati, Shaft cant, the Arzach hush, cloud-monk
+  chant, Garage clatter and so on, each with its own glyph script. The traveller's
+  translator shows "translating · <tongue>" and resolves the glyphs at the caret.
+
+### Over-the-air updates and the handheld pass (v0.37)
+- **Game updates without an APK** (`android/.../WebBundles.java`, `src/native-app.js`):
+  - On launch, when online, the app reads `web.json` from the newest release in
+    the background.
+  - It downloads a newer build that this app can run, checks it against its
+    sha256 and unpacks it to the app's files (`web/<build>/`).
+  - The new build is used from the next launch, or right away with *restart now*
+    in the settings. The settings also show what's running (`web build 14 · app 12`).
+  - Capacitor serves it at the same `https://localhost` origin, so saves are shared.
+  - A build that doesn't reach its first frame (`window.__moebiusBooted`) within
+    30 s falls back to the game in the APK and is never tried again.
+  - Old builds are deleted.
+- **APK updates** (`Updater.java`) are offered only when the native side changed,
+  that is when `latest.json`'s `native` is above the app's `WebBundles.NATIVE_API`.
+  - Bump `NATIVE_API` whenever the Java bridge changes. From then on, web builds
+    need that APK (`minNative`), and the APK offer comes first.
+  - Apps older than this one still get the APK offer once.
+- **Swap A/B (confirm/back)** in the settings: B confirms and jumps, A goes back and
+  pushes, and the prompts follow.
+- **Pause and resume:** leaving the app (home, recents, power) releases the
+  controls, stops the sound and pauses the page. Coming back restores fullscreen
+  and the sound. On a handheld the sound starts with the first controller input.
+- **Testing a debug build:** `adb shell am start -n com.rnaud.moebius/.MainActivity
+  --es webManifest <url>`. Debug builds otherwise skip over-the-air updates.
 

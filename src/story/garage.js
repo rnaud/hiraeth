@@ -151,7 +151,7 @@ export function setupGarage(ctx) {
       const fb = fromBottom();
       if (!quests.isDone('garage.ball') && (fb > 0.9 || fb < -2.3 || Math.abs(ball.x - START.x) > 150) && sp < 6) {
         ball.back += dt;
-        if (ball.back > 2) { ball.back = 0; resetBall(); const p = people.pip; if (p) p.shout = { text: 'Again!', until: p.time + 2 }; }
+        if (ball.back > 2) { ball.back = 0; resetBall(); const p = people.pip; if (p) p.shout = { text: '~shout~ Again!', until: p.time + 2 }; }
       } else ball.back = 0;
       _n.copy(C).setX(ball.x).sub(ball.pos).normalize();   // up, here: toward the axis
     } else {
@@ -225,8 +225,8 @@ export function setupGarage(ctx) {
     const z = G.zoneId(pp);
     if (z !== st.zone) {
       const from = st.zone; st.zone = z;
-      if (z === 'C' && people.lune && pp.distanceTo(people.lune.pos) < 80) people.lune.shout = { text: from === 'B' ? 'Welcome round!' : 'Mind your feet, down moves here!', until: people.lune.time + 2.5 };
-      if (z === 'A' && from === 'C' && people.ambroise && pp.distanceTo(people.ambroise.pos) < 60) people.ambroise.shout = { text: 'Round you come!', until: people.ambroise.time + 2.5 };
+      if (z === 'C' && people.lune && pp.distanceTo(people.lune.pos) < 80) people.lune.shout = { text: from === 'B' ? '~shout~ Welcome round!' : '~shout~ Mind your feet, down moves here!', until: people.lune.time + 2.5 };
+      if (z === 'A' && from === 'C' && people.ambroise && pp.distanceTo(people.ambroise.pos) < 60) people.ambroise.shout = { text: '~shout~ Round you come!', until: people.ambroise.time + 2.5 };
       if (z === 'B' && !st.bSeen) { st.bSeen = true; if (!game.flag('garage.b.seen')) { game.set('garage.b.seen', true); toast('Down is up here. The slab is your floor now; the sky is under your feet.'); } }
     }
     // the great machine glows at the crown once the Major's note is read
