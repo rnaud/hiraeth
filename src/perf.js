@@ -113,7 +113,7 @@ function tileInstances(mesh, size) {
 }
 
 /** Hide small-prop tiles far from the camera in every pass: beyond this they are
- * sub-pixel pebbles and shrubs under the haze. Call once a frame before rendering;
+ * sub-pixel pebbles and shrubs under the haze (a tile's userData.drawFar, if set, is its own distance). Call once a frame before rendering;
  * returns what it hid, to be shown again after the frame (a level's own hiding is kept). */
 export function cullFar(tiles, camera, distance = 520, hidden = []) {
   const cam = camera.position;
@@ -128,7 +128,7 @@ export function cullFar(tiles, camera, distance = 520, hidden = []) {
       c = t.userData.cullCentre = s.center.clone().applyMatrix4(t.matrixWorld);
       t.userData.cullRadius = s.radius * t.matrixWorld.getMaxScaleOnAxis();
     }
-    if (cam.distanceTo(c) - t.userData.cullRadius > distance) { t.visible = false; hidden.push(t); }
+    if (cam.distanceTo(c) - t.userData.cullRadius > (t.userData.drawFar ?? distance)) { t.visible = false; hidden.push(t); }
   }
   return hidden;
 }
@@ -236,7 +236,9 @@ export class RoomCuller {
  * (NPC detail, how far the crowd is drawn) and props (how far / how small).
  *  - scale: render resolution × device pixels (0.75 = 75 %)
  *  - dynamic: { min, max, low, high } adapt the scale between min and max, aiming
- *    to keep the frame rate between low and high fps
+ *    to keep the frame rate between low and high fps; steady / hold: also step down for
+ *    missed refreshes (that many in half a second) and wait that many half-seconds before
+ *    climbing back (adaptScale)
  *  - shadow: map size per cascade (fine 24 m, near, far 2.3 km), 0 = no such cascade;
  *    nearExtent: half-size of the near map (m)
  *  - nearEvery / farEvery: refresh the near / far map every n-th frame
@@ -249,14 +251,44 @@ export class RoomCuller {
 const FULL = { dynamic: null, shadow: { fine: 2048, near: 4096, far: 2048 }, nearExtent: 220, nearEvery: 1, farEvery: 3, taps: 9, ao: true, cloudShadows: true, lowDetail: false, crowdFar: null, crowdMid: null, propFar: 520, propPx: 1, postLite: false, floraFar: 1, floraDensity: 1 };
 export const QUALITY_PRESETS = {
   auto:     { ...FULL, label: 'Auto (adapts to keep it smooth)', scale: 1, dynamic: { min: 0.5, max: 1, low: 40, high: 56 } },
-  handheld: { label: 'Handheld (Retroid, phones)', scale: 0.75, dynamic: { min: 0.5, max: 0.9, low: 34, high: 55 },
-    shadow: { fine: 0, near: 2048, far: 2048 }, nearExtent: 160, nearEvery: 1, farEvery: 4, taps: 4,
+  handheld: { label: 'Handheld (Retroid, phones)', scale: 0.75, dynamic: { min: 0.5, max: 0.9, low: 34, high: 55, steady: 3, hold: 40 },
+    shadow: { fine: 0, near: 2048, far: 2048 }, nearExtent: 160, nearEvery: 2, farEvery: 4, taps: 4,
     ao: false, cloudShadows: false, lowDetail: true, crowdFar: 220, crowdMid: 40, propFar: 320, propPx: 2, postLite: true, floraFar: 0.65, floraDensity: 0.55 },
   low:      { ...FULL, label: 'Low (fast)', scale: 0.7, shadow: { fine: 1024, near: 2048, far: 2048 }, nearEvery: 2, taps: 4,
     ao: false, cloudShadows: false, lowDetail: true, crowdFar: 300, crowdMid: 45, propFar: 420, propPx: 1.5, floraFar: 0.8, floraDensity: 0.75 },
   medium:   { ...FULL, label: 'Medium', scale: 1 },
   high:     { ...FULL, label: 'High (smooth lines)', scale: 1.5 },
 };
+
+/**
+ * Dynamic resolution, one step per measuring window (~0.5 s): the render scale to use next.
+ * Too slow (fps under D.low) three windows running: down a step (a bigger one when well under).
+ * Fast (over D.high) for twelve windows: up 0.05. With D.steady set (the handheld), frames that
+ * missed the display's refresh count too: `missed` of them in a window (frames over 1.5x the
+ * window's quickest) is slow however high the average, it only climbs through windows with
+ * none, and after a drop for missed frames it holds for D.hold windows before trying higher
+ * again (a 60 Hz screen that drops one frame in four reads as 45 fps: smooth on paper, a stutter
+ * in the hand).
+ * @param s  state { slow, fast, hold }, updated in place
+ * @returns { scale, dropped } (dropped: this step went down)
+ */
+export function adaptScale(s, { fps, missed = 0 }, D, scale) {
+  const jerky = D.steady ? missed >= D.steady : false;
+  const clean = !D.steady || missed === 0;
+  if (s.hold > 0) s.hold--;
+  if (fps < D.low || jerky) { s.slow++; s.fast = 0; } else if (fps > D.high && clean) { s.fast++; s.slow = 0; } else s.slow = s.fast = 0;
+  if (s.slow >= 3 && scale > D.min) {
+    const step = fps < D.low * 0.7 ? 0.1 : 0.05;   // well under: a bigger step
+    s.slow = 0;
+    if (jerky && fps >= D.low) s.hold = D.hold ?? 0;
+    return { scale: Math.max(D.min, +(scale - step).toFixed(2)), dropped: true };
+  }
+  if (s.fast >= 12 && scale < D.max && !(s.hold > 0)) {
+    s.fast = 0;
+    return { scale: Math.min(D.max, +(scale + 0.05).toFixed(2)), dropped: false };
+  }
+  return { scale, dropped: false };
+}
 
 /**
  * A handheld or a weak GPU: the Android app (Capacitor), a mobile or software GPU, or an
