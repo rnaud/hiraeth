@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { ReactiveWorld } from './reactive-world.js';
 import { Controller, mergeControls, menuNavigate } from './controller.js';
-import { installNativePad, watchLabels } from './native-pad.js';
+import { installNativePad, watchLabels, setSwapAB } from './native-pad.js';
+import { installAppShell, markBooted } from './native-app.js';
 import { ObservatoryQuest } from './observatory.js';
 import { Scout, nextObjective } from './scout.js';
 import { Wildlife } from './wildlife.js';
@@ -612,6 +613,11 @@ const menu = new SettingsMenu(settings, {
   }
 }
 if (isTouch) new TouchControls(input, rig);
+// controller A/B swap (settings), and the Android app: build label, update toast, pause/resume
+settings.on((k) => { if (!k || k === 'swapAB') setSwapAB(settings.swapAB); });
+installAppShell({ sound, label: () => document.getElementById('app-build'), toast: (text) => {
+  const t = document.getElementById('toast'); t.textContent = text; t.classList.remove('show'); void t.offsetWidth; t.classList.add('show');
+} });
 
 // ------------------------------------------------------------------ level picker
 const picker = document.getElementById('picker');
@@ -772,6 +778,7 @@ const controller = new Controller({
   context: () => busy() ? 'menu' : photo.on ? 'photo' : 'game',
   look: (x, y) => { if (x || y) rig.look(x, y); },
   activity: () => { controllerActive = true; },
+  swapAB: () => settings.swapAB,
   navigate: (x, y) => menuNavigate(menuRoot(), x, y),
   scroll: amount => { const root = menuRoot(); (root.querySelector('.list, .panel, .sheet') ?? root).scrollTop += amount; },
   action: (name, dt) => {
@@ -1109,6 +1116,7 @@ await warmShaders(post.scene, post.camera);
 stage('ready'); console.info(`load: total ${(performance.now() - tLoad).toFixed(0)} ms (after module load)`);
 requestAnimationFrame((t) => {
   frame(t);
+  markBooted();   // the heartbeat: the Android app keeps a downloaded web build only once it gets here (native-app.js)
   const ld = document.getElementById('loading');
   ld?.classList.add('done');
   setTimeout(() => ld?.remove(), 900);

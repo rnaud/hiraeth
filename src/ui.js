@@ -11,6 +11,7 @@ const DEFAULTS = {
   quality: isTouch ? 'auto' : 'high',   // auto | low | medium | high
   sensitivity: 1,
   invertY: false,
+  swapAB: false,   // controller: B confirms and jumps, A goes back (native-pad.js)
   music: 0.8,
   effects: 1,
   voices: 0.8,          // the mumbled alien voices (src/story/voice.js)
@@ -47,6 +48,7 @@ export class SettingsMenu {
         ${row('Graphics', `<select data-k="quality"><option value="auto">Auto (adapts to keep it smooth)</option><option value="low">Low (fast)</option><option value="medium">Medium</option><option value="high">High (smooth lines)</option></select>`)}
         ${row('Camera sensitivity', `<input data-k="sensitivity" type="range" min="0.3" max="3" step="0.05">`)}
         ${row('Invert camera Y', `<input data-k="invertY" type="checkbox">`)}
+        ${row('Swap A/B (confirm/back)', `<input data-k="swapAB" type="checkbox">`)}
         ${row('Music', `<input data-k="music" type="range" min="0" max="1" step="0.05">`)}
         ${row('Effects', `<input data-k="effects" type="range" min="0" max="1" step="0.05">`)}
         ${row('Voices', `<input data-k="voices" type="range" min="0" max="1" step="0.05">`)}
@@ -61,6 +63,7 @@ export class SettingsMenu {
           <button data-a="close">Close</button>
         </div>
         <p class="keys">Controller: left stick move · right stick look · A/× jump · X/□ interact · Y/△ ping · RT/R2 run · LT/L2 aim the fluid tool, RT/R2 shoot · B/○ push · A/× again in the air boost · ↑ worlds · ↓ photo · View sketchbook · Menu settings. In menus: D-pad select, left/right adjust, A/× confirm, B/○ back, right stick scroll.</p>
+        <p class="keys" id="app-build" hidden></p>
         <p class="keys install-tip">Play full screen on iPhone: open in Safari, tap Share → Add to Home Screen, then enable Open as Web App if shown.</p>
         <p class="keys">WASD move · SHIFT run · SPACE jump / glide / jetpack (SPACE again in the air: fluid boost) · E interact · Q ping scout · hold right mouse or R aim the fluid tool · left click or G shoot · C or middle click push · J sketchbook · L worlds · P photo · H help · O settings · N what's new</p>
       </div>`;
