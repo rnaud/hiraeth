@@ -1,0 +1,19 @@
+changelog.md
+  s_6457fa49057b23::t_cbf7858a95939a 1-218
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "955814267c3bb3cd12081639e6d78ac45956656d",
+  "prompts": {},
+  "sessions": {
+    "s_6457fa49057b23": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a105d7-6746-7643-a6b7-da41f67274a1",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
