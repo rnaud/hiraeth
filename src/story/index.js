@@ -7,6 +7,9 @@ import { NPC, registerNPCTargets } from '../npc.js';
 import { makeMaterial } from '../materials.js';
 import { viaPortal } from '../scout.js';
 import { setupDesert } from './desert.js';
+import { setupArzach } from './arzach.js';
+import { setupArzach2 } from './arzach2.js';
+import { setupGarage } from './garage.js';
 import { setupBuried } from './buried.js';
 import { setupEdena } from './edena.js';
 import { setupSpheres } from './spheres.js';
@@ -27,6 +30,9 @@ import { setupSpheres } from './spheres.js';
 //   registerInteractable(...) for anything E should use (src/interact.js)
 
 const WORLDS = { desert: setupDesert,
+  arzach: setupArzach,
+  arzach2: setupArzach2,
+  garage: setupGarage,
   buried: setupBuried,
   edena: setupEdena,
   spheres: setupSpheres,

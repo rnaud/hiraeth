@@ -13,8 +13,9 @@
 // sliver of the tooth that turned; Wen gives it to you to keep.
 //
 // The glyph is "the Maker's Thumb" here, pressed into every plate and gauge.
-// A man in a tall helmet once came down with numbers from "a Major" (the
-// Garage's signal led here). Conversations: src/story/dialogue.js; quests:
+// The Major himself (a man in a tall helmet) once came down to see the wheel,
+// left numbers on the drum wall and went back up very quiet (the Garage's
+// note led him here, and leads you; tell the wheel the Garage is still turning). Conversations: src/story/dialogue.js; quests:
 // src/story/quests.js. Flags (game-state.js): buried.* below.
 
 const Q = 'buried.tooth';
@@ -330,7 +331,7 @@ export const PEOPLE = {
           choices: [{ text: 'I’ll climb up and see.', do: { start: 'buried.window' }, end: true }, { text: 'Has anyone else come down here?', goto: 'helmet' }],
         },
         helmet: {
-          say: ['Once, when I was young. A man in a tall helmet came down the ramp with a box that ticked. He scratched numbers on the drum wall by the doorway and said a Major had sent him to find the wheel.', 'He didn’t say why. I don’t think he knew. He stood in front of the Wick for a long time, laughed once, and went back up. The numbers are still there.'],
+          say: ['Once, when I was young. A man in a tall helmet came down the ramp with a box that ticked. He called himself a Major. He said he had built a whole world of his own and forgotten why, and he wanted to see a machine that had never once forgotten what it was for.', 'He scratched numbers on the drum wall by the doorway, stood in front of the Wick for a long time, laughed once, and went back up very quiet. The numbers are still there.'],
           do: { set: { 'clue.buried.garage': true } },
           choices: [{ text: 'I’ll look at them.', end: true }, { text: 'What’s behind the window?', goto: 'behind' }],
         },
@@ -389,8 +390,9 @@ export const THINGS = {
     talk: {
       entry: [{ if: { flag: 'buried.wheel.turned' }, node: 'after' }, { node: 'look' }],
       nodes: {
-        look: { say: ['Each tooth is taller than you, worn smooth on one face. Sand runs off them in thin streams. Deep inside, too low to hear with your ears, something hums.'], choices: [{ text: '(step back)', end: true }] },
-        after: { say: ['One tooth further round than this morning. The worn face has moved on, and a new one waits for next year.'], choices: [{ text: '(step back)', end: true }] },
+        look: { say: ['Each tooth is taller than you, worn smooth on one face. Sand runs off them in thin streams. Deep inside, too low to hear with your ears, something hums.'], choices: [{ text: '(tell it the Garage is still turning)', if: { all: [{ flag: 'clue.garage.buried' }, { not: { flag: 'buried.told.garage' } }] }, goto: 'garage' }, { text: '(step back)', end: true }] },
+        after: { say: ['One tooth further round than this morning. The worn face has moved on, and a new one waits for next year.'], choices: [{ text: '(tell it the Garage is still turning)', if: { all: [{ flag: 'clue.garage.buried' }, { not: { flag: 'buried.told.garage' } }] }, goto: 'garage' }, { text: '(step back)', end: true }] },
+        garage: { say: ['You say it out loud, to a wheel, feeling foolish: the Garage is still turning.', 'Deep inside, the hum changes, very slightly, for about as long as it takes to say it back.'], do: { set: { 'buried.told.garage': true } }, choices: [{ text: '(step back)', end: true }] },
       },
     },
   },
