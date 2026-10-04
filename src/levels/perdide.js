@@ -90,6 +90,33 @@ export const PERDIDE_CONTENT = {
   npcs: LANDING,
 };
 
+/**
+ * One jaw of a carnivorous plant: a half shell, open side down (-y), with an
+ * inside. The outer skin, a pale lip round the rim and a darker throat facing
+ * in (its own faces, so the ink and the light read it as the inside of a
+ * mouth, and you can't see through it to the swamp). Coloured per vertex, so
+ * it is still one mesh with one material.
+ */
+export const JAW = { r: 2.2, wall: 0.14, skin: '#d9506a', lip: '#ee93a2', throat: '#93304a' };
+export function jawShell({ r, wall, skin, lip, throat } = JAW) {
+  const paint = (g, hex) => {
+    const c = new THREE.Color(hex), n = g.attributes.position.count, a = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) c.toArray(a, i * 3);
+    g.setAttribute('color', new THREE.BufferAttribute(a, 3));
+    return g;
+  };
+  const outer = new THREE.SphereGeometry(r, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2);
+  // the inside: the same half shell a wall's thickness in, turned inside out (faces and normals point in)
+  const inner = new THREE.SphereGeometry(r - wall, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2);
+  const idx = inner.index.array;
+  for (let i = 0; i < idx.length; i += 3) { const t = idx[i + 1]; idx[i + 1] = idx[i + 2]; idx[i + 2] = t; }
+  const nrm = inner.attributes.normal;
+  for (let i = 0; i < nrm.count; i++) nrm.setXYZ(i, -nrm.getX(i), -nrm.getY(i), -nrm.getZ(i));
+  // the lip joining them round the rim, facing down out of the mouth
+  const rim = new THREE.RingGeometry(r - wall, r, 12, 1).rotateX(Math.PI / 2);
+  return mergeGeometries([paint(outer, skin), paint(inner, throat), paint(rim, lip)]);
+}
+
 export function createPerdide(scene) {
   const rng = mulberry32(1982);
   const pick = (a) => a[Math.floor(rng() * a.length)];
@@ -132,11 +159,11 @@ export function createPerdide(scene) {
 
   // ---------------------------------------------------------- carnivorous plants (they snap when you come close)
   const plants = [];
-  const stalkMat = makeMaterial({ color: '#6f9a5a' }), jawMat = makeMaterial({ color: '#d9506a' }), teethMat = makeMaterial({ color: '#f3ead8', flat: true });
+  const stalkMat = makeMaterial({ color: '#6f9a5a' }), jawMat = makeMaterial({ color: '#ffffff', vertexColors: true }), teethMat = makeMaterial({ color: '#f3ead8', flat: true });
   // a jaw is its shell and its ring of teeth: two meshes (shared geometry), not eight
   const jawGeo = {}, teethGeo = {}, stalks = [];
   for (const side of [-1, 1]) {
-    jawGeo[side] = new THREE.SphereGeometry(2.2, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2).rotateX(side > 0 ? 0 : Math.PI);
+    jawGeo[side] = jawShell().rotateX(side > 0 ? 0 : Math.PI);
     teethGeo[side] = mergeGeometries(Array.from({ length: 7 }, (_, t) => {
       const a = (t / 7) * Math.PI * 2;
       return new THREE.ConeGeometry(0.2, 0.8, 4).rotateX(side > 0 ? Math.PI : 0).translate(Math.cos(a) * 1.8, side * -0.3, Math.sin(a) * 1.8).toNonIndexed();

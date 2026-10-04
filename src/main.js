@@ -21,6 +21,7 @@ import { Trail } from './trail.js';
 import { Flock, Motes, Footprints } from './life.js';
 import { Sound } from './audio.js';
 import { Weather, WEATHER_KINDS } from './weather.js';
+import { Shelter, addIndoors } from './shelter.js';
 import { spawnNPCs, pooledNPC, registerNPCTargets } from './npc.js';
 import { Crowd } from './crowd.js';
 import { Journal, Relics, Story, Gate, Errands, turnPage, arriveFromPage } from './quest.js';
@@ -275,6 +276,8 @@ tool.powerTrails(trails);   // the hover trails run in the fluid's tones
 // what an ember glob sets alight: the camp fires, the market's lamps, dry brambles (flammable.js)
 const flammables = new Flammables(scene, flammableSpots(level), { lights: levelLights, sound });
 const weather = new Weather(content.weather);
+const shelter = new Shelter(physics);   // the weather stays outdoors: rooms, the ship, under roofs (src/shelter.js)
+addIndoors((p) => !!ship.modelOf(p));   // the traveller's own ship
 {
   const stormColor = { desert: '#e3c58f', arzach: '#e8dfcb' }[levelId];
   if (stormColor) post.uniforms.uStormColor.value.set(stormColor);
@@ -1020,14 +1023,17 @@ function frame() {
   footprints?.update(dt);
   updateLights();
   // weather: wind, haze, rain and storm feed the shader, the cloth and the sound
+  // (none of it indoors, and no rain drawn under a roof with you: src/shelter.js)
   const W = weather.update(dt);
-  U.uRain.value = W.rain;
-  U.uStorm.value = W.storm;
-  U.uFogMul.value *= 1 + W.fog * 2.6 + W.storm * 2.2 + W.rain * 0.6;
-  wind.boost = W.storm;
+  const Wx = shelter.update(dt, camera.position, camera.up, [player.pos]).apply(W);
+  U.uRain.value = Wx.rain;
+  U.uRainNear.value = Wx.dryNear;
+  U.uStorm.value = Wx.storm;
+  U.uFogMul.value *= 1 + W.fog * 2.6 + Wx.storm * 2.2 + Wx.rain * 0.6;
+  wind.boost = Wx.storm;
   {
     const [wx, wz] = wind.windDir;
-    const k = (level.features.wind ? 2.5 : 1.2) * (1 + W.storm * 3.5 + W.rain * 0.6);
+    const k = (level.features.wind ? 2.5 : 1.2) * (1 + Wx.storm * 3.5 + Wx.rain * 0.6) * (1 - 0.8 * shelter.indoor);
     player.wind.set(wx * k, 0, wz * k);
   }
   // doorways into interiors (and back out)
@@ -1064,7 +1070,7 @@ function frame() {
   const rideK = player.ride?.kind;
   if (rideK === 'bird' && ctl.Space && (flapT -= dt) <= 0) { sound.flap(); flapT = 0.5; }
   sound.update({
-    speed: player.riding ? 0 : Math.hypot(player.vel.x, player.vel.z), gust: wind.gust(), storm: W.storm, rain: W.rain,
+    speed: player.riding ? 0 : Math.hypot(player.vel.x, player.vel.z), gust: wind.gust(), storm: Wx.storm, rain: Wx.rainOut, rainRoof: Wx.rainRoof,
     thrusting: player.thrusting, riding: player.riding, rideKind: rideK, rideSpeed: player.ride?.speed ?? 0,
     altitude: player.pos.y - (terrain.heightAt ? terrain.heightAt(player.pos.x, player.pos.z) : player.pos.y),
   });
@@ -1169,5 +1175,5 @@ requestAnimationFrame((t) => {
 });
 
 // handy for debugging from the console
-Object.assign(window, { items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, gate, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife,
+Object.assign(window, { shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, gate, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife,
   storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, boxes, devMenu, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats });

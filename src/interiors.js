@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, MODE_STRATA } from './materials.js';
+import { addIndoors } from './shelter.js';
 
 // Small inked interiors. Rooms are real geometry (walls with door and window
 // openings, so the sun's shadow map throws light patches through them), with
@@ -14,6 +15,9 @@ const Y = new THREE.Vector3(0, 1, 0);
 // over the shoulder while you stand in one). Rooms register their box here.
 const ROOMS = [];
 const _lp = new THREE.Vector3();
+
+// and every room is indoors for the weather (src/shelter.js): no rain falls in it
+addIndoors((p) => inTightRoom(p, 0.1));
 
 /** Is this world point inside a built room (with a little margin round its walls)? */
 export function inTightRoom(p, margin = 0.6) {
@@ -136,6 +140,16 @@ export function doorwayPortals(scene, { at, heading, room, frame = '#e9dcc0', vo
   veil.userData.noCollide = true;
   grp.add(veil);
   scene.add(grp);
+  return portalPair({ at, heading, room });
+}
+
+/**
+ * The two portal entries for a way into a room elsewhere, without any doorway
+ * geometry (for doors that are part of something else: Edena's crashed ship
+ * has its hatch in its hull). `at` is the threshold on the ground, `heading`
+ * points out of the door.
+ */
+export function portalPair({ at, heading, room }) {
   const fwd = new THREE.Vector3(Math.sin(heading), 0, Math.cos(heading));
   return [
     // stepping into the doorway from outside: inside the room, facing in

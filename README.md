@@ -341,7 +341,9 @@ poses update at 12 fps ("stop-motion anim") while movement stays smooth.
   - **City:** three villas behind the spawn you walk straight into.
   - **Desert:** a carved doorway in front of the masked head leads to a
     glyph chamber under an oculus.
-  - **Edena:** a hatch beside the crashed ship opens onto its cabin.
+  - **Edena:** a hatch in the crashed ship's hull, under an arch of flowers,
+    opens onto its cabin (`hullHatch` places it round the hull where its
+    sill clears the meadow; `portalPair` gives the way in without a doorway).
   - Rooms that can't fit inside their building are built high above the
     map and reached through doorway portals.
 - **City street life:**
@@ -405,6 +407,14 @@ poses update at 12 fps ("stop-motion anim") while movement stays smooth.
   - Rain: slanted ink strokes falling over the scene.
   - Fog banks in the city-shaft and on Perdide.
   - Weather drives the wind on the cloak and the sound.
+  - **Shelter** (`src/shelter.js`): the weather stays outdoors. Every
+    `interiors.js` room and the traveller's ship are registered interiors
+    (`addIndoors(test)` adds more); with the camera or the player in one, no
+    rain or sand is drawn and the rain is a muffled drumming on the roof
+    (the `rainRoof` sound layer). Under a roof (a ray straight up from the
+    camera hits something within 30 m) the rain strokes skip everything
+    nearer than `dryReach(roof height)` (`uRainNear` in the post pass), so
+    the rain still falls out past the edge.
 - **Loading:** the world is built in stages behind an animated inked loading
   screen, and every shader is compiled before the first frame, so there's no
   hitch when it appears.

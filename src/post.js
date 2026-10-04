@@ -102,6 +102,7 @@ const fragmentShader = /* glsl */ `
   uniform float uSkyDots;     // stipple dots in the sky
   uniform float uCumulus;     // puffy cloud bank on the horizon
   uniform float uRain;        // weather: ink rain 0..1
+  uniform float uRainNear;    // m: under a roof, no rain is drawn nearer than this (src/shelter.js)
   uniform float uStorm;       // weather: sandstorm 0..1
   uniform vec3 uStormColor;
   uniform vec4 uPlanet[3];        // xyz = direction, w = angular radius (0 = none)
@@ -602,7 +603,9 @@ const fragmentShader = /* glsl */ `
       float v = fract((rp.y + h2 * 900.0) / (len * 6.0));
       float stroke = (1.0 - smoothstep(0.0, 0.16, v)) * step(0.35, h1);
       float w = 1.0 - smoothstep(0.35, 0.9, abs(fract(rp.x / 11.0) - 0.5) * 11.0);
-      col = mix(col, uInk, stroke * w * uRain * 0.5);
+      // under a roof the rain falls out past its edge, not over what's under it with you
+      float wet = uRainNear > 0.0 ? smoothstep(uRainNear * 0.7, uRainNear, depth) : 1.0;
+      col = mix(col, uInk, stroke * w * uRain * 0.5 * wet);
     }
 
     // ---- 6. paper
@@ -655,6 +658,7 @@ export function createPost() {
     uSkyDots: { value: 0 },
     uCumulus: { value: 0 },
     uRain: { value: 0 },
+    uRainNear: { value: 0 },
     uStorm: { value: 0 },
     uStormColor: { value: new THREE.Color('#e3c58f') },
     uPlanet: { value: [new THREE.Vector4(), new THREE.Vector4(), new THREE.Vector4()] },

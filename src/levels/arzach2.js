@@ -629,8 +629,20 @@ export function createArzach2(scene) {
     bell.position.set(BELL.x, BELL.y + BELL.h - 1.4, BELL.z);
     scene.add(bell);
   }
-  const ropeTop = new THREE.Vector3(BELL.x, BELL.floor + 0.4, BELL.z + BELL.w * 0.5 + 0.35);
+  // the rope comes over the belfry's ledge on a little pulley at the end of an iron arm, clear of
+  // the ledge (it sticks out w * 0.06 past the wall) and of the wall below, and swings only outward
+  // (src/story/arzach2.js), so it never passes through the tower
+  const ropeTop = new THREE.Vector3(BELL.x, BELL.floor + 0.3, BELL.z + BELL.w * 0.56 + 0.22);
   const ropeFoot = new THREE.Vector3(BELL.x, BELL.y + 0.9, ropeTop.z);
+  {
+    const arm = new THREE.Mesh(mergeGeometries([
+      new THREE.BoxGeometry(0.12, 0.12, 0.5).translate(0, 0.06, -0.18),                              // the arm, out over the ledge's lip
+      new THREE.TorusGeometry(0.16, 0.05, 4, 10).rotateY(Math.PI / 2).translate(0, 0.16, 0),            // the pulley
+    ]), M.dark);
+    arm.position.set(ropeTop.x, BELL.floor, ropeTop.z);
+    arm.userData.noCollide = true;
+    scene.add(arm);
+  }
   const rope = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, ropeTop.y - ropeFoot.y, 5).translate(0, -(ropeTop.y - ropeFoot.y) / 2, 0), makeMaterial({ color: '#8a5a3a', flat: true }));
   rope.add(new THREE.Mesh(new THREE.SphereGeometry(0.22, 7, 5).scale(1, 1.6, 1).translate(0, -(ropeTop.y - ropeFoot.y), 0), makeMaterial({ color: '#c8483a', flat: true })));
   rope.position.copy(ropeTop);
