@@ -325,11 +325,17 @@ export class NPC {
     // cloth only near the camera
     const camD = camera.position.distanceTo(this.pos);
     if (this.cape) this.cape.mesh.visible = camD < (this.lowDetail ? 120 : 220);
-    if (this.cape && camD < (this.lowDetail ? 30 : 70)) {
+    // (every frame up close; every 2nd / 3rd frame further off, where a camp full of people
+    // spent ~0.7 ms a frame on cloth nobody could see move)
+    this._clothDt = (this._clothDt ?? 0) + dt;
+    const every = camD < 12 ? 1 : camD < 35 ? 2 : 3;
+    this._clothN = ((this._clothN ?? 0) + 1) % every;
+    if (this.cape && camD < (this.lowDetail ? 30 : 70) && (this._clothN === 0 || !this.cape.ready)) {
       this.object.updateMatrixWorld(true);
       this.vel.set(Math.sin(this.heading) * speed, 0, Math.cos(this.heading) * speed);
-      this.cape.update(dt, { up: Y, vel: this.vel, wind: player.wind, floor: this.pos, capsules: this.humanoid ? this.humanoid.capsules() : this.capsules() });
-    }
+      this.cape.update(Math.min(this._clothDt, 1 / 20), { up: Y, vel: this.vel, wind: player.wind, floor: this.pos, capsules: this.humanoid ? this.humanoid.capsules() : this.capsules() });
+      this._clothDt = 0;
+    } else if (!this.cape || camD >= (this.lowDetail ? 30 : 70)) this._clothDt = 0;
 
     // speech balloon: placed by placeBalloon() after the camera has moved this frame
     this.talking = !this.talkTo && this.greeted && this.time - this.greeted > 0.6 && dist < greetR;
