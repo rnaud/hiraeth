@@ -4,6 +4,7 @@ import { createNoise2D, fbm, mulberry32, smoothstep } from '../noise.js';
 import { makeMaterial, MODE_TERRAIN, MODE_WATER } from '../materials.js';
 import { Terrain, jitter } from '../world.js';
 import { Hoverbike } from '../bike.js';
+import { LANDING } from '../story/perdide-data.js';
 
 // ---------------------------------------------------------------------------
 // Perdide, from Les Maîtres du temps (René Laloux, 1982, designed by Moebius):
@@ -14,7 +15,13 @@ import { Hoverbike } from '../bike.js';
 
 const WATER = 0;
 const DEEP = -1.6;              // deeper than this is unsafe on foot
-const CAVE = { x: -170, z: 140, len: 130, r: 12, rot: 0.6 };
+export const CAVE = { x: -170, z: 140, len: 130, r: 12, rot: 0.6, y: 1.6 };
+// the story's places (src/story/perdide.js): the Great Crystal on its island east over the
+// ford, the snapping bed on the landing's north shore, the fireflies' isle in the channel
+// between the landing and the cave island
+export const GREAT = { x: 120, z: -150 };
+export const BED = { x: -6, z: 16, r: 4.5 };
+export const ISLE = { x: -50, z: 112, r: 15 };
 const noise = createNoise2D(1982);
 const noiseB = createNoise2D(44);
 
@@ -28,6 +35,9 @@ function height(x, z) {
   h = Math.max(h, THREE.MathUtils.lerp(-10, 2.2, smoothstep(70, 15, Math.hypot(x, z))));
   const cd = Math.hypot(x - CAVE.x, z - CAVE.z);
   h = THREE.MathUtils.lerp(h, 1.6, smoothstep(110, 70, cd));
+  // the fireflies' isle: a low hummock in the channel, only reached by skiff
+  const di = Math.hypot(x - ISLE.x, z - ISLE.z);
+  h = Math.max(h, THREE.MathUtils.lerp(-6, 1.3 + noise(x * 0.05, z * 0.05) * 0.3, smoothstep(ISLE.r + 12, ISLE.r - 3, di)));
   const edge = Math.max(Math.abs(x), Math.abs(z));
   h += smoothstep(1200, 1900, edge) * (150 + fbm(noise, x * 0.004, z * 0.004, 3) * 120);
   return h;
@@ -60,6 +70,25 @@ function buildSkiff() {
 }
 
 const CRYSTAL = ['#a99be0', '#62c3c9', '#c7a6f2', '#7fe0d0'];
+
+// the level's content (levels/content.js): the story is a quest (src/story/perdide-data.js),
+// so the page opens on the first visit and closes when the splinter sings in the cave
+export const PERDIDE_CONTENT = {
+  weather: ['rain', 'fog'],
+  story: {
+    title: 'THE GREAT CRYSTAL',
+    intro: 'Somewhere east of the landing, something hums. The swamp people will know what.',
+    outro: 'The crystal sang the song of the light that struck your ship. A splinter of it hums with your tank.',
+    label: 'the Great Crystal', goal: [GREAT.x, 'ground', GREAT.z], radius: 30, manual: true,
+  },
+  relics: {
+    spots: [{ at: [CAVE.x, 3.6, CAVE.z], snap: true }, [-13, -25], [40, -70], [BED.x, BED.z], [ISLE.x + 4, ISLE.z - 4]],
+    names: ['Cave lantern', 'Egg shell', 'Grove shard', 'Plant tooth', 'Skiff charm'],
+  },
+  gate: { at: [22, 24], heading: Math.PI },
+  // Wendel, Sedge and Ivo, with their conversations (the errands count on this order)
+  npcs: LANDING,
+};
 
 export function createPerdide(scene) {
   const rng = mulberry32(1982);
@@ -103,45 +132,52 @@ export function createPerdide(scene) {
 
   // ---------------------------------------------------------- carnivorous plants (they snap when you come close)
   const plants = [];
-  function plant(x, z) {
+  const stalkMat = makeMaterial({ color: '#6f9a5a' }), jawMat = makeMaterial({ color: '#d9506a' }), teethMat = makeMaterial({ color: '#f3ead8', flat: true });
+  // a jaw is its shell and its ring of teeth: two meshes (shared geometry), not eight
+  const jawGeo = {}, teethGeo = {}, stalks = [];
+  for (const side of [-1, 1]) {
+    jawGeo[side] = new THREE.SphereGeometry(2.2, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2).rotateX(side > 0 ? 0 : Math.PI);
+    teethGeo[side] = mergeGeometries(Array.from({ length: 7 }, (_, t) => {
+      const a = (t / 7) * Math.PI * 2;
+      return new THREE.ConeGeometry(0.2, 0.8, 4).rotateX(side > 0 ? Math.PI : 0).translate(Math.cos(a) * 1.8, side * -0.3, Math.sin(a) * 1.8).toNonIndexed();
+    }));
+  }
+  function plant(x, z, { bed = false, h: hh = null, r = rng } = {}) {
     const base = terrain.heightAt(x, z);
-    const h = 6 + rng() * 8;
-    const p0 = new THREE.Vector3(0, 0, 0), p1 = new THREE.Vector3((rng() - 0.5) * 3, h * 0.6, (rng() - 0.5) * 3), p2 = new THREE.Vector3(0, h, 0);
-    const stalk = new THREE.Mesh(new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(p0, p1, p2), 12, 0.45, 6), makeMaterial({ color: '#6f9a5a' }));
+    const h = hh ?? 6 + r() * 8;
+    const p0 = new THREE.Vector3(0, 0, 0), p1 = new THREE.Vector3((r() - 0.5) * 3, h * 0.6, (r() - 0.5) * 3), p2 = new THREE.Vector3(0, h, 0);
+    // the stalks don't move: one mesh for all of them (below)
+    stalks.push(new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(p0, p1, p2), 12, 0.45, 6).translate(x, base, z).toNonIndexed());
     const grp = new THREE.Group();
     grp.position.set(x, base, z);
-    grp.add(stalk);
     const head = new THREE.Group();
     head.position.copy(p2);
     head.userData.noCollide = true;
-    const jawMat = makeMaterial({ color: '#d9506a' });
-    const teethMat = makeMaterial({ color: '#f3ead8', flat: true });
     const jaws = [];
     for (const side of [-1, 1]) {
       const jaw = new THREE.Group();
-      const shell = new THREE.Mesh(new THREE.SphereGeometry(2.2, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2), jawMat);
-      shell.rotation.x = side > 0 ? 0 : Math.PI;
-      jaw.add(shell);
-      for (let t = 0; t < 7; t++) {
-        const a = (t / 7) * Math.PI * 2;
-        const tooth = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.8, 4), teethMat);
-        tooth.position.set(Math.cos(a) * 1.8, side * -0.3, Math.sin(a) * 1.8);
-        tooth.rotation.x = side > 0 ? Math.PI : 0;
-        jaw.add(tooth);
-      }
+      jaw.add(new THREE.Mesh(jawGeo[side], jawMat), new THREE.Mesh(teethGeo[side], teethMat));
       head.add(jaw);
       jaws.push({ jaw, side });
     }
     head.rotation.z = Math.PI / 2;
     grp.add(head);
     scene.add(grp);
-    plants.push({ jaws, pos: new THREE.Vector3(x, base + h, z), open: 1 });
+    plants.push({ jaws, pos: new THREE.Vector3(x, base + h, z), base: new THREE.Vector3(x, base, z), open: 1, bed, fed: 0 });
   }
   for (let i = 0; i < 40; i++) {
     const x = (rng() * 2 - 1) * 900, z = (rng() * 2 - 1) * 900;
     if (terrain.heightAt(x, z) > 0.3 && Math.hypot(x, z) > 25) plant(x, z);
   }
   plant(22, 18);
+  // the snapping bed by the landing: a ring of low jaws round a patch of bare mud
+  // (its own random stream, so the rest of the swamp is laid out as before)
+  const bedRng = mulberry32(516);
+  for (let k = 0; k < 5; k++) {
+    const a = 0.5 + (k / 5) * Math.PI * 2;
+    plant(BED.x + Math.sin(a) * BED.r, BED.z + Math.cos(a) * BED.r, { bed: true, h: 3.4 + (k % 3) * 0.5, r: bedRng });
+  }
+  scene.add(new THREE.Mesh(mergeGeometries(stalks), stalkMat));
 
   // ---------------------------------------------------------- glowing egg clutches
   function eggs(cx, cz) {
@@ -160,8 +196,9 @@ export function createPerdide(scene) {
   }
 
   // ---------------------------------------------------------- hero: the Great Crystal
+  let crystal = null;
   {
-    const gx = 120, gz = -150, base = terrain.heightAt(gx, gz);
+    const gx = GREAT.x, gz = GREAT.z, base = terrain.heightAt(gx, gz);
     const parts = [];
     for (let i = 0; i < 9; i++) {
       const h = 35 + rng() * 60, r = 5 + rng() * 7;
@@ -170,18 +207,23 @@ export function createPerdide(scene) {
       g.translate((rng() - 0.5) * 16, -2, (rng() - 0.5) * 16);
       parts.push(g.toNonIndexed());
     }
-    const cr = new THREE.Mesh(mergeGeometries(parts), makeMaterial({ color: '#c7a6f2', flat: true, glow: 0.8 }));
+    // its own material: the story brightens it while it sings
+    const crMat = makeMaterial({ color: '#c7a6f2', flat: true, glow: 0.8, greatCrystal: true });
+    const cr = new THREE.Mesh(mergeGeometries(parts), crMat);
     cr.position.set(gx, base, gz);
     scene.add(cr);
     const ring = new THREE.Mesh(new THREE.TorusGeometry(34, 3, 8, 48), makeMaterial({ color: '#8a7f8f', color2: '#6f6a80', color3: '#a99bb0', mode: 2, strataSize: 1.5, flat: true }));
     ring.position.set(gx, base + 26, gz);
     ring.rotation.set(1.2, 0.3, 0.2);
     scene.add(ring);
-    lights.push(new THREE.Vector4(gx, base + 20, gz, 60));
+    const light = new THREE.Vector4(gx, base + 20, gz, 60);
+    lights.push(light);
+    crystal = { mesh: cr, mat: crMat, ring, light, pos: new THREE.Vector3(gx, base, gz), center: new THREE.Vector3(gx, base + 18, gz) };
   }
 
   // ---------------------------------------------------------- the crystal cave
   // A thick rock arch corridor: dark inside, lit by its own crystals.
+  let caveMat = null;
   {
     const grp = new THREE.Group();
     grp.position.set(CAVE.x, 1.6, CAVE.z);
@@ -217,7 +259,8 @@ export function createPerdide(scene) {
       g.translate(nx * CAVE.r * 0.97, ny * CAVE.r * 0.97, zz);
       inside.push(g.toNonIndexed());
     }
-    grp.add(new THREE.Mesh(mergeGeometries(inside), makeMaterial({ color: '#7fe0d0', flat: true, glow: 1 })));
+    caveMat = makeMaterial({ color: '#7fe0d0', flat: true, glow: 1, caveCrystals: true });   // its own: they answer the splinter
+    grp.add(new THREE.Mesh(mergeGeometries(inside), caveMat));
     scene.add(grp);
   }
 
@@ -272,10 +315,33 @@ export function createPerdide(scene) {
     scene.add(reeds);
   }
 
+  // ---------------------------------------------------------- the fireflies' isle
+  // a clutch of eggs under one broad cap: where the fireflies go at dusk (and come from)
+  const nest = new THREE.Vector3(ISLE.x + 2, 0, ISLE.z - 1);
+  nest.y = terrain.heightAt(nest.x, nest.z);
+  eggs(nest.x, nest.z);
+  {
+    const prof = [[0, 0], [2.6, 0], [3.8, 0.07], [3.2, 0.2], [1.5, 0.45], [1.25, 0.7], [1.9, 0.79], [8.5, 0.83], [9.5, 0.88], [7.0, 0.96], [0, 1]];
+    const x = ISLE.x - 4, z = ISLE.z + 3, g0 = terrain.heightAt(x, z), s = 1.4, H = 19;
+    const geo = new THREE.LatheGeometry(prof.map(([pr, py]) => new THREE.Vector2(pr * s, py * H)), 14);
+    jitter(geo, 0.12, 0.03, 77);
+    geo.rotateZ(0.08).translate(x, g0 - 0.6, z);
+    const pos = geo.attributes.position, cut = g0 - 0.6 + H * 0.8, idx = geo.index.array, st = [], cp = [];
+    for (let t = 0; t < idx.length; t += 3) (Math.max(pos.getY(idx[t]), pos.getY(idx[t + 1]), pos.getY(idx[t + 2])) > cut ? cp : st).push(idx[t], idx[t + 1], idx[t + 2]);
+    const part = (list) => { const g = geo.clone(); g.setIndex(list); return g; };
+    scene.add(new THREE.Mesh(part(st), makeMaterial({ color: '#8a6fb8', flat: true })));
+    scene.add(new THREE.Mesh(part(cp), makeMaterial({ color: '#7fe0d0', flat: true, glow: 0.3 })));
+    lights.push(new THREE.Vector4(x, g0 + H * 0.75, z, 16));
+  }
+
   return {
     id: 'perdide',
+    // for the story (src/story/perdide.js): the Great Crystal, the cave's crystals, the plants
+    // (`fed` counts the globs each has swallowed), the fireflies' nest; silence 0..1 shuts every
+    // jaw (the crystal is singing), tame stops them snapping at you, calm only the bed's
+    crystal, caveMat, plants, nest, silence: 0, tame: false, calm: false,
     // a glob of the traveller's fluid makes a plant snap shut from afar (the push just rattles it)
-    targets: plants.map((p) => ({ kind: 'plant', radius: 2.2, position: () => p.pos, onHit: (mode) => { p.snap = mode === 'shoot' ? 2.5 : 0.8; return true; } })),
+    targets: plants.map((p) => ({ kind: 'plant', radius: 2.2, position: () => p.pos, onHit: (mode) => { p.snap = mode === 'shoot' ? 2.5 : 0.8; if (mode === 'shoot') p.fed++; return true; } })),
     ground: terrain,
     spawn: new THREE.Vector3(0, terrain.heightAt(0, 0), 0),
     spawnHeading: Math.PI,
@@ -305,12 +371,14 @@ export function createPerdide(scene) {
     update(dt, t, ctx) {
       for (const m of movers) m(t);
       // carnivorous plants snap shut when the player comes close
-      const pp = ctx?.player?.pos;
+      // while the crystal sings they all shut, slowly, and hold still; tamed, they let you by
+      const pp = ctx?.player?.pos, quiet = this.silence ?? 0;
       for (const p of plants) {
         p.snap = Math.max(0, (p.snap ?? 0) - dt);
-        const near = (pp && pp.distanceTo(p.pos) < 7) || p.snap > 0;
-        p.open += ((near ? 0.05 : 1) - p.open) * (1 - Math.exp(-(near ? 14 : 2) * dt));
-        const breathe = Math.sin(t * 1.5 + p.pos.x) * 0.06;
+        const near = (!this.tame && !(p.bed && this.calm) && pp && pp.distanceTo(p.pos) < 7) || p.snap > 0;
+        const want = near ? 0.05 : 1 - 0.92 * quiet;
+        p.open += (want - p.open) * (1 - Math.exp(-(near ? 14 : 2 - quiet * 1.4) * dt));
+        const breathe = Math.sin(t * 1.5 + p.pos.x) * 0.06 * (1 - quiet);
         for (const j of p.jaws) j.jaw.rotation.z = j.side * (p.open * 0.75 + breathe);
       }
     },

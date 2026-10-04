@@ -4,6 +4,7 @@ import { createNoise2D, fbm, mulberry32, smoothstep } from '../noise.js';
 import { makeMaterial, MODE_TERRAIN, MODE_WATER } from '../materials.js';
 import { Terrain, jitter } from '../world.js';
 import { Hoverbike } from '../bike.js';
+import { KEEPERS } from '../story/perdide2-data.js';
 
 // ---------------------------------------------------------------------------
 // Perdide II: the Deep Wood. The far side of the swamp planet from
@@ -72,6 +73,16 @@ export const ARCHES = [0.2, 0.33, 0.47, 0.6, 0.72, 0.85].map((u, k) => {
 });
 // the relic mushroom and its stepping-stool cluster
 export const HERO_SHROOM = { x: -30, z: -40, H: 13.5, capR: 8, sr: 1.3, dome: 0.12 };
+// the story's places (src/story/perdide2.js): three pools that went dark the night the sky rang,
+// on the dry bank of the path (the side away from the stream), the far dome's landing stage where
+// old Fen lives, and where Hollin waits at the end, by the cave mouth
+export const DARK_POOLS = [0.264, 0.699, 0.916].map((u) => {
+  const i = Math.round(u * N_PATH), p = pathPts[i], n = pathNrm[i], side = -Math.sign(streamOff(i / N_PATH)) || 1;
+  return { x: p.x + n.x * side * 3.2, z: p.z + n.z * side * 3.2, r: 2.3, u };
+});
+export const FEN = { dome: 4, x: 36, z: -300 };
+export const HOLLIN_END = { x: -14, z: -402 };
+export const PATH_POINTS = pathPts;
 
 function height(x, z) {
   // swamp floor: shallow mud flats and pools, with deeper channels for the skiff
@@ -141,11 +152,13 @@ const lathe = (pts, seg) => new THREE.LatheGeometry(pts.map(([r, y]) => new THRE
 
 export const PERDIDE2_CONTENT = {
   weather: ['fog'],
+  // the story is a quest (src/story/perdide2-data.js): this page opens on the first visit and
+  // closes when Hollin, waiting at the root cave, asks you to come back one day
   story: {
-    title: 'THE ROOT CAVE',
-    intro: 'Under the pale mushrooms the swamp keeps its lamps lit. Follow the glowing pools, under the root arches, to the cave where the skiff waits.',
-    outro: 'The cave breathes warm light. The skiff hums awake in the shallows, ready for wherever the water goes next.',
-    label: 'the root cave', goal: [CAVE.x, 'ground', CAVE.mouth - 8], radius: 9,
+    title: 'THE LAMPS ARE KEPT',
+    intro: 'Under the pale mushrooms someone keeps the pools lit, all the way to the root cave. For whom?',
+    outro: 'Every pool on the path is lit. Somebody came, at last, and somebody is asked to come back.',
+    label: 'the root cave', goal: [CAVE.x, 'ground', CAVE.mouth - 8], radius: 9, manual: true,
   },
   relics: {
     spots: [
@@ -155,17 +168,11 @@ export const PERDIDE2_CONTENT = {
       { at: [ARCHES[2].x, ARCHES[2].apex + ARCHES[2].r + 1.1, ARCHES[2].z], snap: true },
       { at: [CAVE.x, CAVE.y + 1.1, CAVE.z - 6] },
     ],
-    names: ['Spore cap', 'Moss-dome latch', 'Saucer beacon', 'Root-arch knot', 'Ember from the cave'],
+    names: ['Spore cap', 'Dome moss', 'Saucer beacon', 'Root-arch knot', 'Ember from the cave'],
   },
   gate: { at: [14, 14], heading: Math.PI },
-  npcs: [
-    { at: [-8, 10], radius: 5, palette: { cloak: '#b9b3d9', lining: '#2b211f', cloth: '#3e5a6a', legs: '#2f3a4f' },
-      lines: ['The lit pools lead to the cave. Keep to them after dark.', 'The eggs are warm. Don’t ask what’s inside.'] },
-    { at: [-26, -140], radius: 6, palette: { cloak: '#3f6a6a', lining: '#2b211f', cloth: '#a49cc8', legs: '#2f3a4f' },
-      lines: ['We live in the domes. The moss keeps them cool.', 'Someone left their latch on the big roof again.'], shy: true },
-    { at: [-20, -396], radius: 4, palette: { cloak: '#f2a07a', lining: '#2b211f', cloth: '#3a4560', legs: '#2f3a4f' },
-      lines: ['The skiff is moored in the shallows by the cave.', 'Whistle and it will come. It knows the deep water.'] },
-  ],
+  // Hollin on the island, Pim by the moss domes, Bram at the cave mouth (with their conversations)
+  npcs: KEEPERS,
 };
 
 export function createPerdide2(scene) {
@@ -369,6 +376,7 @@ export function createPerdide2(scene) {
   }
 
   // ---------------------------------------------------------- glowing eggs and light pools
+  let poolMesh = null, poolList = [];   // the coral pools, for the story (the lamp-keepers brighten them as you pass)
   {
     const egg = new THREE.SphereGeometry(1, 12, 9).scale(1, 1.35, 1);
     const eggs = [];
@@ -423,7 +431,8 @@ export function createPerdide2(scene) {
       const s = R(0.5, 1.4);
       pools.push([place(x, Math.max(H(x, z), WATER) + 0.05, z, s * 1.4, 1, s, 0, rng() * 6, 0), pick(['#f2a07a', '#f6c09a'])]);
     }
-    inst(disc, makeMaterial({ color: '#ffffff', glow: 1 }), pools);
+    poolMesh = inst(disc, makeMaterial({ color: '#ffffff', glow: 1 }), pools);
+    poolList = pools.map(([m, c]) => ({ pos: new THREE.Vector3().setFromMatrixPosition(m), color: new THREE.Color(c), k: 0 }));
   }
 
   // ---------------------------------------------------------- lily pads, moss bushes
@@ -599,6 +608,7 @@ export function createPerdide2(scene) {
   }
 
   // ---------------------------------------------------------- moss domes
+  const domeDoors = [];   // where each round door is and which way it faces
   {
     const doorMat = makeMaterial({ color: '#9fe0d0', glow: 0.95 });
     const frameMat = makeMaterial({ color: '#2a4248', flat: true });
@@ -637,10 +647,29 @@ export function createPerdide2(scene) {
         scene.add(r);
       }
       lights.push(new THREE.Vector4(px + dx * 2, py, pz + dz * 2, 8));
+      domeDoors.push({ pos: new THREE.Vector3(px, py, pz), out: new THREE.Vector3(dx, 0, dz), ground: g0 + 0.15, top: g0 + D.R * 0.72, door, R: D.R });
     }
   }
 
+  // ---------------------------------------------------------- old Fen's landing stage
+  // a raft of root-wood moored at the far dome's door, out on the deep water: the skiff's way only
+  let fenLanding = null;
+  {
+    const D = domeDoors[FEN.dome], c = D.pos.clone().addScaledVector(D.out, 3.4);
+    const wood = makeMaterial({ color: '#4a3f3a', flat: true, pattern: 'cracks' });
+    const deck = new THREE.Mesh(new THREE.CylinderGeometry(3.4, 3.8, 1.4, 12).translate(0, -0.1, 0), wood);   // top 0.6 above the water
+    deck.position.set(c.x, 0, c.z);
+    const plank = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.25, 3.2).translate(0, 0.5, -1.4), wood);   // a step up to the door
+    plank.position.set(c.x, 0, c.z);
+    plank.rotation.y = Math.atan2(-D.out.x, -D.out.z);
+    plank.position.addScaledVector(D.out, -1.2);
+    scene.add(deck, plank);
+    lights.push(new THREE.Vector4(c.x, 1.6, c.z, 7));
+    fenLanding = new THREE.Vector3(c.x, 0.6, c.z);
+  }
+
   // ---------------------------------------------------------- the crashed saucer pod
+  let saucer = null;
   {
     const grp = new THREE.Group();
     grp.position.set(SAUCER.x, SAUCER.y, SAUCER.z);
@@ -653,12 +682,15 @@ export function createPerdide2(scene) {
     const hatch = new THREE.Mesh(new THREE.TorusGeometry(1.6, 0.12, 5, 20).rotateX(Math.PI / 2), makeMaterial({ color: '#3a8f8a', flat: true }));
     hatch.position.set(0, SAUCER.r * 0.33, -1.6);
     hatch.userData.noCollide = true;
-    const light = new THREE.Mesh(new THREE.SphereGeometry(0.35, 8, 6), makeMaterial({ color: '#f2a07a', glow: 1 }));
+    // its own material: the story makes it blink an answer to the relit pools
+    const light = new THREE.Mesh(new THREE.SphereGeometry(0.35, 8, 6), makeMaterial({ color: '#f2a07a', glow: 1, saucerLight: true }));
     light.position.set(SAUCER.r * 0.75, SAUCER.r * 0.12, 0);
     light.userData.noCollide = true;
     grp.add(hull, rim, slot, hatch, light);
     scene.add(grp);
-    lights.push(new THREE.Vector4(SAUCER.x, 1.5, SAUCER.z, 14));
+    const glow = new THREE.Vector4(SAUCER.x, 1.5, SAUCER.z, 14);
+    lights.push(glow);
+    saucer = { group: grp, light, glow, hull };
   }
 
   for (const [c, l] of Object.entries(rootParts)) if (l.length) {
@@ -707,6 +739,8 @@ export function createPerdide2(scene) {
     unsafe,
     lights,
     archTops,
+    // for the story (src/story/perdide2.js)
+    poolMesh, poolList, domeDoors, saucer, fenLanding,
     life: {
       flocks: [{ count: 8, color: '#1f2236', size: 1.0, radius: 45, height: [14, 40], speed: 0.22, seed: 21 }],
       motes: { count: 220, color: '#ffd6a0', size: 0.07, glow: 1, rise: 0.04, wind: [0.08, 0.05] },
