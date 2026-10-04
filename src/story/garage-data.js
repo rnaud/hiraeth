@@ -52,7 +52,7 @@ export const QUESTS = [
     id: 'garage.ball', title: 'Pip’s Ball', world: 'garage',
     outro: 'The ball went where down stays down.',
     stages: [
-      { id: 'push', text: 'Push Pip’s ball up the ring’s curve and through the portal on the wall (C, middle click, or B / ○)', label: 'Pip’s ball', flag: 'garage.ball.through', at: 'ball' },
+      { id: 'push', text: 'Push Pip’s ball up the ring’s curve and through the portal on the wall (C, middle click, or RB / R1)', label: 'Pip’s ball', flag: 'garage.ball.through', at: 'ball' },
       { id: 'tell', text: 'Tell Pip her ball got through', label: 'Pip', talk: 'pip', at: 'pip' },
     ],
   },

@@ -157,7 +157,7 @@ export function setupBuried(ctx) {
     onHit: (mode) => {
       if (mode === 'push') { openValve('push'); return true; }
       st.wobble = 1;
-      if (!st.hinted) { st.hinted = true; toast('The handwheel rings, and doesn’t move. It needs a shove: push it (C, middle click, or B / ○).'); }
+      if (!st.hinted) { st.hinted = true; toast('The handwheel rings, and doesn’t move. It needs a shove: push it (C, middle click, or RB / R1).'); }
       return true;
     } });
   registerInteractable({ id: 'valve', priority: PRIORITY.use, range: 3.4, at: () => K.valve.at, enabled: () => !valveOpen(),

@@ -564,7 +564,7 @@ export const THINGS = {
   bone: {
     id: 'bone', name: 'The fallen rib', title: 'across the channel', color: '#f2ead6', voice: 0.6,
     talk: { nodes: { look: {
-      say: ['~neutral~ A rib, as long as three people, has broken from the arch above and fallen across the stone channel. Behind it, water stands bright and trapped; in front of it, the channel is dry.', '~neutral~ It’s far too heavy to lift by hand. But it might roll, with a strong enough shove of the fluid. (*Push*: C, middle click, or B / ○.)'],
+      say: ['~neutral~ A rib, as long as three people, has broken from the arch above and fallen across the stone channel. Behind it, water stands bright and trapped; in front of it, the channel is dry.', '~neutral~ It’s far too heavy to lift by hand. But it might roll, with a strong enough shove of the fluid. (*Push*: C, middle click, or RB / R1.)'],
       choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
   },

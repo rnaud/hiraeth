@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { ReactiveWorld } from './reactive-world.js';
 import { Controller, mergeControls, menuNavigate } from './controller.js';
-import { installNativePad, watchLabels, setSwapAB } from './native-pad.js';
+import { installNativePad, watchLabels, setFaces, padFaces, confirmKey, backKey } from './native-pad.js';
 import { installAppShell, markBooted } from './native-app.js';
 import { ObservatoryQuest } from './observatory.js';
 import { Scout, nextObjective } from './scout.js';
@@ -39,7 +39,7 @@ import { registerInteractable, PRIORITY } from './interact.js';
 import { Ship } from './ship/ship.js';
 import { birdAnswers, promisedBird } from './bird.js';
 import { game } from './game-state.js';
-import { items, ITEMS } from './items.js';
+import { items, ITEMS, gearHtml } from './items.js';
 import { Flammables, flammableSpots } from './flammable.js';
 import { createBoxes, migrateSave } from './boxes/index.js';
 import { createItemEffects } from './boxes/effects.js';
@@ -207,7 +207,7 @@ player.vehicles.push(...(level.vehicles ?? []));
 // come to the same x, z on the dunes far below and wait there
 const offMapRooms = (level.portals ?? []).filter((p) => p.to && !p.toUp && p.to.y - (terrain.heightAt?.(p.to.x, p.to.z) ?? p.to.y) > 200).map((p) => p.to);
 const inOffMapRoom = () => offMapRooms.some((r) => r.distanceToSquared(player.pos) < 90 * 90);
-player.opts.canSummon = () => !inOffMapRoom();
+player.opts.canSummon = () => !inOffMapRoom() && !ship?.inside;   // (nor from inside the ship)
 const lib = await animLib;
 if (lib) {
   player.animator = player._animator = new Animator(lib, player.char);
@@ -327,6 +327,7 @@ const boxes = createBoxes({ levelId, scene, physics, level, player, sound, quest
   anchor: () => ship.arrivalSpot(),
   cam: { shot: (s) => ship.shot(s), release: (b) => ship.release(b), hud: (on) => ship.cinema.hud(on), bars: (on) => ship.cinema.bars(on) } });
 const itemFx = createItemEffects({ player, tool, level, sound, toast: showToast, isNight: () => sky.hour < 6.4 || sky.hour > 19.3 });
+journal.sections.unshift(() => gearHtml(items.owned(), { mode: tool.owned && tool.modes.length > 1 ? tool.modeName : null }));   // Select / View opens on your gear
 journal.sections.push(() => boxes.journalHtml(Object.fromEntries(LEVELS.map((l) => [l.id, l.title]))));
 const devMenu = new DevMenu({ levelId, levels: LEVELS, boxes, quests: storyRt.quests, story });
 window.addEventListener('keydown', (e) => {
@@ -562,8 +563,8 @@ const menu = new SettingsMenu(settings, {
   }
 }
 if (isTouch) new TouchControls(input, rig);
-// controller A/B swap (settings), and the Android app: build label, update toast, pause/resume
-settings.on((k) => { if (!k || k === 'swapAB') setSwapAB(settings.swapAB); });
+// where the controller's printed letters are (settings), and the Android app: build label, update toast, pause/resume
+settings.on((k) => { if (!k || k === 'padFaces') { setFaces(settings.padFaces); menu.syncControls?.(); } });
 installAppShell({ sound, label: () => document.getElementById('app-build'), toast: showToast });   // (queued with the rest, src/ship/cinema.js)
 
 // ------------------------------------------------------------------ level picker
@@ -662,15 +663,23 @@ let lastStatus = '';
 // No standing list of buttons (the settings carry the full controls, H shows the keyboard's);
 // a button in a prompt is drawn as a round badge (src/prompt-keys.js).
 const RIDE_HINT_MS = 6000;   // a ride's controls show for a few seconds after you get on, then go
+const RIDE_KEYS = {
+  taxi: 'E get out · W/S throttle · A/D steer · SPACE up · SHIFT down',
+  bird: 'E jump off · A/D bank · W dive · S pull up · SPACE flap',
+  bike: 'E dismount · W/S throttle · A/D steer · SHIFT boost',
+  skiff: 'E step off · W/S throttle · A/D steer · SHIFT boost',
+};
+// a pad rides on the triggers: RT goes, the stick steers (and tilts a flyer: forward dives, back climbs)
+const RIDE_PAD = {
+  taxi: 'B / ○ get out · RT / R2 go · LT / L2 brake · left stick steer, forward down, back up · A / × up',
+  bird: 'B / ○ jump off · RT / R2 fly on · left stick bank, forward dive, back climb · A / × flap',
+  bike: 'B / ○ dismount · RT / R2 go · LT / L2 brake · left stick steer · RB / R1 boost · A / × hop',
+  skiff: 'B / ○ step off · RT / R2 go · LT / L2 brake · left stick steer · RB / R1 boost · A / × hop',
+};
 const rideHint = { kind: null, at: 0 };
 function updateHud() {
   const gauge = (v) => { const n = Math.round(v * 10); return `[${'■'.repeat(n)}${'·'.repeat(10 - n)}]`; };
-  const RIDE = {
-    taxi: 'E get out · W/S throttle · A/D steer · SPACE up · SHIFT down',
-    bird: 'E jump off · A/D bank · W dive · S pull up · SPACE flap',
-    bike: 'E dismount · W/S throttle · A/D steer · SHIFT boost',
-    skiff: 'E step off · W/S throttle · A/D steer · SHIFT boost',
-  };
+  const RIDE = controllerActive ? RIDE_PAD : RIDE_KEYS;
   const parts = [];
   const now = performance.now();
   if (player.ride) {
@@ -700,7 +709,8 @@ function updateHud() {
   const goal = ship.playing ? '' : questLine ?? [objective && `◆ ${objective}`, expedition && !expedition.state.returned ? expedition.hud(player) : story.hud()].filter(Boolean).join(' · ');
   let text = [atmo.name, ...parts].join(' · ') +
     `\n${goal ? goal + ' · ' : ''}${errands.hud() ? errands.hud() + ' · ' : ''}relics ${journal.relicCount(levelId)}/${content.relics.names.length}`;
-  if (controllerActive) text = text.replaceAll('SPACE', 'A / ×').replaceAll('SHIFT', 'RT / R2').replaceAll('W/S', 'left stick').replaceAll('A/D', 'left stick').replace(/\bE\b/g, 'X / □');
+  // the pad's names by position: bottom jumps, the right button uses (native-pad.js prints them as the pad does)
+  if (controllerActive) text = text.replaceAll('SPACE', 'A / ×').replaceAll('SHIFT', 'L3').replaceAll('W/S', 'left stick').replaceAll('A/D', 'left stick').replace(/\bE\b/g, 'B / ○');
   audioCfg.mute = sound.muted;
   if (text !== lastStatus) { status.innerHTML = badgeLine(text); lastStatus = text; }
 }
@@ -728,10 +738,10 @@ const closeControllerMenu = () => {
   else pageEl.click();
 };
 const controller = new Controller({
-  context: () => busy() ? 'menu' : photo.on ? 'photo' : 'game',
+  context: () => busy() ? (menuRoot() === storyRt.dialogue.el ? 'talk' : 'menu') : photo.on ? 'photo' : player.ride ? 'ride' : 'game',
+  faces: () => padFaces(),
   look: (x, y) => { if (x || y) rig.look(x, y); },
   activity: () => { controllerActive = true; screenInput = false; sound.start(); },   // (where a pad press may start sound: the Android app)
-  swapAB: () => settings.swapAB,
   navigate: (x, y) => menuNavigate(menuRoot(), x, y),
   scroll: amount => { const root = menuRoot(); (root.querySelector('.list, .panel, .sheet') ?? root).scrollTop += amount; },
   action: (name, dt) => {
@@ -753,6 +763,8 @@ const controller = new Controller({
     if (name === 'photo') setPhoto(!photo.on);
     if (name === 'capture') photo.capture = true;
     if (name === 'ping' && !ship.playing) scout.ping();
+    if (name === 'call' && !ship.playing) player.callMount();   // the pad's own button for it (the keyboard's E still falls back to it)
+    if (name === 'bell') itemFx.ring();   // R3: the bell-note whistle (V)
   },
 });
 // The keyboard, the mouse or a finger takes over from the controller (and back on its next use). A pad
@@ -957,7 +969,7 @@ function frame() {
   document.body.classList.toggle('controller', controllerActive);
   // No button list on the screen while playing, talking or in menus (the settings list the controls);
   // only photo mode, a tool few find by chance, keeps its own. Set only when it changes (the label rewrite watches the page).
-  const hintText = photo.on ? 'Left stick fly · right stick look · LB/RB down/up · A / × save · B / ○ exit' : '';
+  const hintText = photo.on ? `Left stick fly · right stick look · LB/RB down/up · ${confirmKey()} save · ${backKey()} exit` : '';
   if (hintText !== hintShown.text) { controllerHint.textContent = hintText; hintShown.text = hintText; hintShown.at = t; }
   document.body.classList.toggle('controller-hint', controllerActive && photo.on);
   const mergedInput = mergeControls(latchedInput(), padInput);
@@ -1047,7 +1059,7 @@ function frame() {
   relics.update(dt, t, player);
   story.update(dt, t, camera);
   const rideK = player.ride?.kind;
-  if (rideK === 'bird' && ctl.Space && (flapT -= dt) <= 0) { sound.flap(); flapT = 0.5; }
+  if (rideK === 'bird' && (ctl.Space || ctl.Throttle > 0.3) && (flapT -= dt) <= 0) { sound.flap(); flapT = 0.5; }
   sound.update({
     speed: player.riding ? 0 : Math.hypot(player.vel.x, player.vel.z), gust: wind.gust(), storm: Wx.storm, rain: Wx.rainOut, rainRoof: Wx.rainRoof,
     thrusting: player.thrusting, riding: player.riding, rideKind: rideK, rideSpeed: player.ride?.speed ?? 0,

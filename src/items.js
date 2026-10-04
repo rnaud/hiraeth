@@ -39,12 +39,12 @@ export const ITEMS = {
   stun: {
     name: 'Stilling mode', kind: 'mode', needs: 'backpack',
     text: 'A lens for the wrist nozzle, cut with the glyph, that turns the fluid cold and still.',
-    use: 'Switch modes with X. A stilling burst freezes creatures and people for a few seconds.',
+    use: 'Switch modes with X (on a controller, the D-pad left or right). A stilling burst freezes creatures and people for a few seconds.',
   },
   fire: {
     name: 'Ember mode', kind: 'mode', needs: 'backpack',
     text: 'A flint ring for the wrist nozzle. The fluid comes out burning, but the makers’ fire does not hurt.',
-    use: 'Switch modes with X. Ember bursts light lamps, braziers and fuses, and burn away dry brambles.',
+    use: 'Switch modes with X (on a controller, the D-pad left or right). Ember bursts light lamps, braziers and fuses, and burn away dry brambles.',
   },
   // ---- special items, found in boxes across the worlds (src/boxes/placements.js; effects in src/boxes/effects.js)
   cell: {
@@ -70,7 +70,7 @@ export const ITEMS = {
   bell: {
     name: 'Bell-note whistle', kind: 'charm',
     text: 'A bone whistle that plays one clear bell note, the same note in every world. The makers’ chests know it.',
-    use: 'Press V to sound it. Unopened boxes nearby answer with a chime from where they hide.',
+    use: 'Press V (on a controller, click the right stick, R3) to sound it. Unopened boxes nearby answer with a chime from where they hide.',
   },
   star: {
     name: 'Pale star', kind: 'cosmetic',
@@ -103,3 +103,18 @@ export const items = {
   owned() { return Object.keys(ITEMS).filter((id) => this.has(id)); },
   on(fn) { listeners.add(fn); return () => listeners.delete(fn); },
 };
+
+const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const KIND_ORDER = ['core', 'movement', 'mode', 'upgrade', 'charm', 'cosmetic'];
+
+/**
+ * The gear you carry, for the top of the sketchbook (J, or View / Select on a
+ * controller): each item's name and what it does, the backpack first.
+ * @param owned item ids (items.owned()) · mode: the gun mode in use, when there is a choice
+ */
+export function gearHtml(owned = [], { mode = null } = {}) {
+  const list = owned.filter((id) => ITEMS[id]).sort((a, b) => KIND_ORDER.indexOf(ITEMS[a].kind) - KIND_ORDER.indexOf(ITEMS[b].kind));
+  const rows = list.map((id) => `<li><b>${esc(ITEMS[id].name)}</b> · ${esc(ITEMS[id].use)}</li>`).join('');
+  const body = rows ? `<ul>${rows}</ul>${mode ? `<p class="qhint">gun mode: ${esc(mode)}</p>` : ''}` : '<p class="qhint">Nothing yet: the makers’ boxes hold what a traveller needs.</p>';
+  return `<section class="quests gear"><h2>Gear <span>${list.length}</span></h2>${body}</section>`;
+}

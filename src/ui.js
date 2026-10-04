@@ -1,4 +1,5 @@
 import { VERSION } from './changelog.js';
+import { confirmKey, backKey } from './native-pad.js';
 // Player-facing UI: settings (saved), the settings menu, touch controls and
 // the save file for "continue where you left off".
 
@@ -14,7 +15,7 @@ const DEFAULTS = {
   quality: isNativeApp ? 'handheld' : isTouch ? 'auto' : 'high',   // auto | handheld | low | medium | high
   sensitivity: 1,
   invertY: false,
-  swapAB: false,   // controller: B confirms and jumps, A goes back (native-pad.js)
+  padFaces: 'auto',   // controller: where the printed A B X Y are (native-pad.js setFaces): auto | xbox | nintendo | nintendo-xbox
   music: 0.8,
   effects: 1,
   voices: 0.8,          // the mumbled alien voices (src/story/voice.js)
@@ -39,6 +40,19 @@ export class Settings {
   on(f) { this.listeners.push(f); f(null); }
 }
 
+/**
+ * The controller's buttons, for the settings (written in Xbox / PlayStation form, by
+ * position: native-pad.js prints them as the pad does). See controller.js for the layout.
+ */
+export function padControls(ok = confirmKey(), back = backKey()) {
+  return 'Controller, walking: left stick move (click it, L3, to run) · right stick look (hold LB / L1 to zoom) · '
+    + 'A / × jump (again in the air: boost) · B / ○ interact, talk, get on · X / □ call your mount or a taxi · Y / △ ping · '
+    + 'LT / L2 aim the fluid tool · RT / R2 shoot · RB / R1 push · D-pad left / right gun mode, up worlds, down photo · '
+    + 'View gear and sketchbook · Menu settings. '
+    + 'Riding: RT / R2 go · LT / L2 brake · left stick steer (flying: forward dives, back climbs) · A / × hop, flap, rise · RB / R1 boost · B / ○ get off. '
+    + `In menus: D-pad select, left / right adjust, ${ok} confirm, ${back} back, right stick scroll.`;
+}
+
 /** The settings menu: O, Esc (when nothing else is open) or the gear button. */
 export class SettingsMenu {
   constructor(settings, { sound, onResetProgress, isBusy, onNews, onDev }) {
@@ -51,7 +65,7 @@ export class SettingsMenu {
         ${row('Graphics', `<select data-k="quality"><option value="auto">Auto (adapts to keep it smooth)</option><option value="handheld">Handheld (Retroid, phones)</option><option value="low">Low (fast)</option><option value="medium">Medium</option><option value="high">High (smooth lines)</option></select>`)}
         ${row('Camera sensitivity', `<input data-k="sensitivity" type="range" min="0.3" max="3" step="0.05">`)}
         ${row('Invert camera Y', `<input data-k="invertY" type="checkbox">`)}
-        ${row('Swap A/B (confirm/back)', `<input data-k="swapAB" type="checkbox">`)}
+        ${row('Controller buttons', `<select data-k="padFaces"><option value="auto">Auto</option><option value="xbox">A at the bottom (Xbox, PlayStation)</option><option value="nintendo">A on the right (Retroid, Nintendo)</option><option value="nintendo-xbox">A on the right, Retroid set to Xbox style</option></select>`)}
         ${row('Music', `<input data-k="music" type="range" min="0" max="1" step="0.05">`)}
         ${row('Effects', `<input data-k="effects" type="range" min="0" max="1" step="0.05">`)}
         ${row('Voices', `<input data-k="voices" type="range" min="0" max="1" step="0.05">`)}
@@ -65,12 +79,15 @@ export class SettingsMenu {
           <button data-a="news">What's new (N)</button>
           <button data-a="close">Close</button>
         </div>
-        <p class="keys">Controller: left stick move · right stick look · A/× jump · X/□ interact · Y/△ ping · RT/R2 run · LT/L2 aim the fluid tool, RT/R2 shoot · B/○ push · A/× again in the air boost · ↑ worlds · ↓ photo · View sketchbook · Menu settings. In menus: D-pad select, left/right adjust, A/× confirm, B/○ back, right stick scroll.</p>
+        <p class="keys pad-keys">${padControls()}</p>
         <p class="keys" id="app-build" hidden></p>
         <p class="keys install-tip">Play full screen on iPhone: open in Safari, tap Share → Add to Home Screen, then enable Open as Web App if shown.</p>
         <p class="keys">WASD move · SHIFT run · SPACE jump / glide / jetpack (SPACE again in the air: fluid boost) · E interact · Q ping scout · hold right mouse or R aim the fluid tool · left click or G shoot · C or middle click push · J sketchbook · L worlds · P photo · H help · O settings · N what's new</p>
       </div>`;
+    // the controls list names the menu's confirm / back buttons, which follow the "Controller buttons" setting
+    this.syncControls = () => { const p = el.querySelector('.pad-keys'); if (p) p.textContent = padControls(); };
     const sync = () => {
+      this.syncControls();
       for (const c of el.querySelectorAll('[data-k]')) {
         const k = c.dataset.k;
         const v = k === 'mute' ? sound.muted : this.s[k];

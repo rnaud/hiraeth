@@ -30,7 +30,7 @@ import { MODES, STUN_SECONDS, FluidWings, FluidJets, HANDOFF, handoffPose, nextM
 //            refill clock waits until you land after a burn, then the usual
 //            two seconds refill everything.
 //   glider   fluid wings bloom out of the tank while gliding (hold jump while falling)
-//   stun / fire   gun modes (X, D-pad left / right, the touch ◐ button): the glob
+//   stun / fire   gun modes (X, the pad's D-pad left / right, the touch ◐ button): the glob
 //            stills (onHit 'stun') or burns ('fire') instead of splashing; all
 //            modes share the three charges (targets.js: who accepts which mode)
 // Vehicles run on it too: boarding a powered vehicle swings the tank off the back into

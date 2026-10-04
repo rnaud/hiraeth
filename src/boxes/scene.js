@@ -15,7 +15,7 @@ import { buildItemModel, buildSparkles, fluidMaterials, BOX, BOX_SCALE, ITEM_SCA
 //   card      what it is, what it does: E, click or tap to go on
 //   out       the item is granted and flies to the traveller; the camera blends back
 //
-// Esc (or the skip button, or B / ○) jumps straight to the card; on the card
+// Esc (or the skip button, or the pad's back button) jumps straight to the card; on the card
 // it dismisses it. Nothing here can trap the player: every way of pressing on
 // ends it, and an error ends it too (the item is still granted).
 //

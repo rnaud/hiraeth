@@ -357,7 +357,7 @@ export const THINGS = {
       entry: [{ if: { flag: 'buried.oculus.lit' }, node: 'lit' }, { if: { flag: 'buried.valve.open' }, node: 'oil' }, { node: 'dry' }],
       nodes: {
         dry: {
-          say: ['~neutral~ A shallow iron dish on a pedestal, black with old oil. A wick as thick as your arm lies coiled in it, dry.', '~neutral~ Beside it a valve stands on a stem, its handwheel rusted fast. A good shove might turn it. (*Push*: C, middle click, or B / ○.)'],
+          say: ['~neutral~ A shallow iron dish on a pedestal, black with old oil. A wick as thick as your arm lies coiled in it, dry.', '~neutral~ Beside it a valve stands on a stem, its handwheel rusted fast. A good shove might turn it. (*Push*: C, middle click, or RB / R1.)'],
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
         oil: { say: ['~neutral~ Oil has risen in the dish, dark and slow, smelling of warm iron. The wick drinks it. It only wants a spark. (*Shoot*: click, G, or RT.)'], choices: [{ text: '~neutral~ (step back)', end: true }] },

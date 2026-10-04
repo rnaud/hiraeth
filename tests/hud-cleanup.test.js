@@ -21,7 +21,8 @@ test('the badge\'s text is still rewritten to the handheld\'s button names (nati
   // the text node inside the badge is exactly the button's name
   const inner = keyBadge('X / □').match(/>([^<]*)</)[1];
   assert.equal(padText(inner, 'android'), 'X');
-  assert.equal(padText(keyBadge('A / ×').match(/>([^<]*)</)[1], 'android', true), 'B', 'and A/B swapped when asked');
+  assert.equal(padText(keyBadge('A / ×').match(/>([^<]*)</)[1], 'android', 'nintendo'), 'B', 'and the bottom button is B on a Retroid');
+  assert.equal(badgeLine('B / ○ dismount · RB / R1 boost'), '<b class="key">B / ○</b> dismount · <b class="key">RB / R1</b> boost');
 });
 
 // ---- portraits: the person alone against a flat colour

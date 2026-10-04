@@ -13,6 +13,7 @@ import { pendingCall, completedWorlds, callLines, callContext, applyCall, ILEN_C
 import { endingUnlocked, HOME_ID } from '../story/ending.js';
 import { HomecomingDirector } from './homecoming.js';
 import * as sfx from './sfx.js';
+import { padIndex } from '../native-pad.js';
 import { Prologue } from './prologue.js';
 import { PrologueDirector, ArrivalDirector, TakeoffDirector, CallDirector, OBJECTIVE } from './cinematics.js';
 
@@ -578,7 +579,7 @@ const _p = new THREE.Vector3(), _l = new THREE.Vector3(), _l2 = new THREE.Vector
 
 function padSkip() {
   if (typeof navigator === 'undefined' || !navigator.getGamepads) return false;
-  for (const gp of navigator.getGamepads()) if (gp && (gp.buttons[1]?.pressed || gp.buttons[9]?.pressed)) return true;
+  for (const gp of navigator.getGamepads()) if (gp && (gp.buttons[padIndex('back')]?.pressed || gp.buttons[9]?.pressed)) return true;   // printed B, or Menu / Start
   return false;
 }
 

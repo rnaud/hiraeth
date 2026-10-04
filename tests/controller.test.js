@@ -1,12 +1,17 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { Controller, mergeControls, stick } from '../src/controller.js';
-function setup() {
+import { Controller, mergeControls, stick, toPositions, padRide } from '../src/controller.js';
+// positions (Standard Gamepad): 0 bottom, 1 right, 2 left, 3 top
+const BOTTOM = 0, RIGHT = 1, LEFT = 2, TOP = 3, LB = 4, RB = 5, LT = 6, RT = 7, VIEW = 8, MENU = 9, L3 = 10, R3 = 11;
+function setup({ faces = 'xbox', byLabel = false } = {}) {
   const pad = { index: 0, connected: true, mapping: 'standard', axes: [0, 0, 0, 0], buttons: Array.from({length:17}, () => ({pressed:false,value:0})) };
   const actions = [], moves = [], looks = [];
   let context = 'game';
-  const c = new Controller({ pads: () => [pad], context: () => context, action: a => actions.push(a), look: (...v) => looks.push(v), navigate: (...v) => moves.push(v), scroll: () => {} });
-  return { c, pad, actions, moves, looks, context: v => context = v, button: (i, down) => { pad.buttons[i] = {pressed:down,value:+down}; } };
+  const c = new Controller({ pads: () => [pad], context: () => context, action: (a, v) => actions.push(a), look: (...v) => looks.push(v), navigate: (...v) => moves.push(v), scroll: () => {},
+    faces: () => ({ faces, byLabel }) });
+  return { c, pad, actions, moves, looks, context: v => context = v,
+    button: (i, down, value = +down) => { pad.buttons[i] = {pressed:down,value}; },
+    tap(i) { this.button(i, true); this.c.update(.016); this.button(i, false); this.c.update(.016); } };
 }
 test('radial deadzone removes drift and preserves analog range', () => {
   assert.deepEqual(stick(.1,.1), {x:0,y:0});
@@ -14,13 +19,24 @@ test('radial deadzone removes drift and preserves analog range', () => {
   assert.ok(stick(.5,0).x > 0 && stick(.5,0).x < .5);
   assert.ok(Math.hypot(...Object.values(stick(1,1))) <= 1.000001);
 });
-test('gameplay holds map to shared walking, climbing and vehicle controls', () => {
-  const t=setup(); t.pad.axes=[.6,-1,.5,0]; [0,2,7].forEach(i=>t.button(i,true));
+test('walking: bottom jumps, right interacts, left calls the mount, top pings', () => {
+  const t=setup(); t.pad.axes=[.6,-1,.5,0]; [BOTTOM,RIGHT].forEach(i=>t.button(i,true));
   const input=t.c.update(1/60);
-  assert.ok(input.KeyW && input.KeyD && input.Space && input.KeyE && input.ShiftLeft);
+  assert.ok(input.KeyW && input.KeyD && input.Space && input.KeyE && input.PadE);
   assert.ok(input.stick.y>0 && t.looks[0][0]>0);
-  t.button(3,true); t.c.update(.016); t.c.update(.016);
-  assert.deepEqual(t.actions,['ping']);
+  assert.ok(!input.ShiftLeft, 'the stick alone walks');
+  [BOTTOM,RIGHT].forEach(i=>t.button(i,false));
+  t.tap(LEFT); t.tap(TOP);
+  assert.deepEqual(t.actions,['call','ping']);
+  t.tap(R3); assert.equal(t.actions.at(-1), 'bell');
+});
+test('run: click the left stick, and you run until you let the stick go', () => {
+  const t=setup(); t.pad.axes=[0,-1,0,0];
+  assert.ok(!t.c.update(.016).ShiftLeft);
+  t.button(L3,true); assert.ok(t.c.update(.016).ShiftLeft);
+  t.button(L3,false); assert.ok(t.c.update(.016).ShiftLeft, 'still running after the click');
+  t.pad.axes=[0,0,0,0]; assert.ok(!t.c.update(.016).ShiftLeft, 'the stick back to the centre: a walk again');
+  t.pad.axes=[0,-1,0,0]; assert.ok(!t.c.update(.016).ShiftLeft);
 });
 test('disconnect and background clear controls without releasing keyboard input', () => {
   const t=setup(); t.button(0,true); assert.ok(t.c.update(.016).Space);
@@ -28,6 +44,7 @@ test('disconnect and background clear controls without releasing keyboard input'
   t.pad.connected=false; assert.deepEqual(t.c.update(.016),{});
   assert.ok(mergeControls({Space:true}, {Space:false}).Space);
   assert.deepEqual(mergeControls({stick:{x:.5,y:0}}, {stick:{x:0,y:0}}).stick,{x:.5,y:0});
+  assert.equal(mergeControls({}, {Throttle:.4}).Throttle, .4, 'analog values stay analog');
 });
 test('confirm does not become a jump when returning to play', () => {
   const t=setup(); t.context('menu'); t.button(0,true); t.c.update(.016);
@@ -35,6 +52,17 @@ test('confirm does not become a jump when returning to play', () => {
   t.context('game'); assert.equal(t.c.update(.016).Space,false);
   t.button(0,false); t.c.update(.016); t.button(0,true);
   assert.equal(t.c.update(.016).Space,true);
+});
+test('menus: printed A confirms and B goes back, wherever the pad prints them', () => {
+  const x=setup(); x.context('menu'); x.tap(BOTTOM); x.tap(RIGHT); x.tap(VIEW); x.tap(MENU);
+  assert.deepEqual(x.actions,['confirm','back','back','back'], 'Xbox: A at the bottom confirms, B on the right goes back');
+  const n=setup({ faces: 'nintendo' }); n.context('menu'); n.tap(RIGHT); n.tap(BOTTOM);
+  assert.deepEqual(n.actions,['confirm','back'], 'Retroid: A on the right confirms, B at the bottom goes back');
+  // talking: the interact button (right) carries the conversation on, also where it is B
+  const xt=setup(); xt.context('talk'); xt.tap(RIGHT); xt.tap(BOTTOM); xt.tap(MENU);
+  assert.deepEqual(xt.actions,['confirm','confirm','back']);
+  const nt=setup({ faces: 'nintendo' }); nt.context('talk'); nt.tap(RIGHT); nt.tap(BOTTOM);
+  assert.deepEqual(nt.actions,['confirm','back']);
 });
 test('menu directions repeat with a delay and never move the player', () => {
   const t=setup(); t.context('menu'); t.button(13,true);
@@ -47,24 +75,61 @@ test('photo controls capture once and use shoulders for altitude', () => {
   assert.deepEqual(t.actions,['capture']); t.button(1,true); t.c.update(.016);
   assert.deepEqual(t.actions,['capture','photo']);
 });
-test('the fluid tool: LT aims, RT shoots only while aiming (instead of running), B pushes', () => {
-  const t=setup(); t.button(7,true);
+test('the fluid tool: LT aims, RT shoots (a quick shot without LT), RB pushes, the D-pad changes the mode', () => {
+  const t=setup(); t.button(RT,true);
   let input=t.c.update(.016);
-  assert.ok(input.ShiftLeft && !input.PadFire && !input.PadAim, 'RT alone still runs');
-  t.button(6,true); input=t.c.update(.016);
-  assert.ok(input.PadAim && input.PadFire && !input.ShiftLeft);
-  t.button(10,true); assert.ok(t.c.update(.016).ShiftLeft, 'L3 can still run while aiming');
-  t.button(1,true); assert.ok(t.c.update(.016).PadPush, 'B pushes');
-  const b=setup(); b.button(1,true); input=b.c.update(.016);
-  assert.ok(input.PadPush && !input.PadAim, 'B pushes without aiming too');
-  b.button(1,false); b.button(14,true); input=b.c.update(.016);
-  assert.ok(!input.PadPush && input.PadModePrev && !input.PadModeNext, 'D-pad left: the previous gun mode');
+  assert.ok(input.PadFire && !input.PadAim && !input.ShiftLeft, 'RT alone shoots (quick shot), it no longer runs');
+  t.button(LT,true); input=t.c.update(.016);
+  assert.ok(input.PadAim && input.PadFire);
+  t.button(RB,true); assert.ok(t.c.update(.016).PadPush, 'RB pushes');
+  const b=setup(); b.button(RIGHT,true); input=b.c.update(.016);
+  assert.ok(!input.PadPush && input.KeyE, 'the right button interacts now, it does not push');
+  b.button(RIGHT,false); b.button(14,true); input=b.c.update(.016);
+  assert.ok(input.PadModePrev && !input.PadModeNext, 'D-pad left: the previous gun mode');
   b.button(14,false); b.button(15,true); input=b.c.update(.016);
   assert.ok(input.PadModeNext && !input.PadModePrev, 'D-pad right: the next one');
   // a light squeeze of LT is enough to aim
-  const s=setup(); s.pad.buttons[6]={pressed:false,value:.35}; assert.ok(s.c.update(.016).PadAim);
+  const s=setup(); s.pad.buttons[LT]={pressed:false,value:.35}; assert.ok(s.c.update(.016).PadAim);
   // no aiming or firing from menus
-  const m=setup(); m.context('menu'); [6,7,1].forEach(i=>m.button(i,true)); assert.deepEqual(m.c.update(.016),{});
+  const m=setup(); m.context('menu'); [LT,RT,RB].forEach(i=>m.button(i,true)); assert.deepEqual(m.c.update(.016),{});
   assert.ok(mergeControls({KeyR:true},{PadAim:false}).KeyR);
   assert.ok(mergeControls({},{PadFire:true}).PadFire);
+});
+test('LB held: the right stick zooms instead of looking', () => {
+  const t=setup(); t.button(LB,true); t.pad.axes=[0,0,0,.8];
+  t.c.update(.016);
+  assert.deepEqual(t.actions,['zoomOut']); assert.equal(t.looks.length,0);
+  t.pad.axes=[0,0,0,-.8]; t.c.update(.016); assert.equal(t.actions.at(-1),'zoomIn');
+});
+test('riding: RT is an analog throttle, LT brakes, the stick steers and tilts but never drives on', () => {
+  const t=setup(); t.context('ride');
+  t.button(RT,true,.5); t.pad.axes=[-.7,-.8,0,0];
+  let h=t.c.update(.016);
+  assert.ok(h.PadRide && h.Throttle > .4 && h.Throttle < .6, `half a squeeze, half the throttle (${h.Throttle})`);
+  assert.ok(!h.KeyW && !h.KeyA, 'the stick is not W/A while riding');
+  assert.ok(h.stick.x < -.5 && h.stick.y > .5);
+  assert.ok(!h.PadFire && !h.PadAim, 'the triggers drive, they do not shoot');
+  const r=padRide(h); assert.ok(r.throttle > .4 && r.x < -.5 && r.y > .5 && !r.boost);
+  t.button(LT,true,1); t.button(RB,true); t.button(BOTTOM,true); t.button(RIGHT,true);
+  h=t.c.update(.016);
+  assert.ok(h.Brake > .9 && h.Boost && h.Space && h.KeyE);
+  assert.equal(padRide({ KeyW: true }), null, 'keyboard riding is untouched');
+  // stepping off with RT still held: it does not fire as you land
+  t.context('game'); [LT,RB,BOTTOM,RIGHT].forEach(i=>t.button(i,false));
+  assert.ok(!t.c.update(.016).PadFire, 'the held RT is ignored until released');
+  t.button(RT,false); t.c.update(.016); t.button(RT,true); assert.ok(t.c.update(.016).PadFire);
+});
+test('a pad reporting printed letters with Nintendo labels is read by position', () => {
+  assert.deepEqual(toPositions(['A','B','X','Y','LB']), ['B','A','Y','X','LB']);
+  // Android, the Retroid: index 1 is KEYCODE_BUTTON_B, the bottom button
+  const t=setup({ faces: 'nintendo', byLabel: true });
+  t.button(1,true); let h=t.c.update(.016);
+  assert.ok(h.Space && !h.KeyE, 'printed B (bottom) jumps');
+  t.button(1,false); t.button(0,true); h=t.c.update(.016);
+  assert.ok(h.KeyE && !h.Space, 'printed A (right) interacts');
+  t.button(0,false); t.c.update(.016);
+  t.tap(3); t.tap(2);
+  assert.deepEqual(t.actions,['call','ping'], 'printed Y (left) calls the mount, printed X (top) pings');
+  t.context('menu'); t.tap(0); t.tap(1);
+  assert.deepEqual(t.actions.slice(2),['confirm','back'], 'menus: printed A confirms, printed B goes back');
 });

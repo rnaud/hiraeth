@@ -1,4 +1,29 @@
-// Standard Gamepad mapping (Xbox / PlayStation / compatible controllers).
+// Gamepads (Standard Gamepad mapping: Xbox / PlayStation / compatible controllers, and
+// the Android handhelds through native-pad.js). The layout is by position, so the same
+// thumb does the same thing on every pad (README "The controller layout"):
+//
+//   walking   bottom jump (again in the air: boost) · right interact, talk, get on
+//             · left call the mount (whistle it, hail a taxi) · top ping
+//             · LT aim · RT shoot (aimed while LT is held, a quick shot without)
+//             · RB push · L3 (click the left stick) run until you stop
+//             · LB + right stick zoom · D-pad ←/→ gun mode, ↑ worlds, ↓ photo
+//             · R3 (click the right stick) the bell-note whistle, once found
+//             · View the sketchbook (gear first) · Menu the settings
+//   riding    RT throttle (analog) · LT brake / reverse · left stick steer, and on
+//             flyers dive (forward) / climb (back) · bottom hop / flap / rise
+//             · RB or L3 boost · right get off
+//   menus     the button printed A confirms, B goes back (Xbox: bottom / right; a
+//             Retroid, letters Nintendo-style: right / bottom) · View, Menu close
+//   talking   as menus; the interact button also goes on (so on Xbox, B talks and
+//             B carries on rather than walking away)
+//   photo     stick fly · LB / RB down / up · confirm saves · back or ↓ leaves
+//
+// Positions: 0 bottom, 1 right, 2 left, 3 top. A pad that reports its buttons by
+// printed letter with Nintendo labels (Android, the Retroid: 0 is A on the right)
+// is moved to positions first (faces().byLabel, see native-pad.js padFaces).
+export const SOUTH = 0, EAST = 1, WEST = 2, NORTH = 3;
+const LB = 4, RB = 5, LT = 6, RT = 7, VIEW = 8, MENU = 9, L3 = 10, R3 = 11, UP = 12, DOWN = 13, LEFT = 14, RIGHT = 15;
+
 export function stick(x = 0, y = 0, deadzone = 0.18) {
   const length = Math.hypot(x, y);
   if (length <= deadzone) return { x: 0, y: 0 };
@@ -6,11 +31,24 @@ export function stick(x = 0, y = 0, deadzone = 0.18) {
   return { x: x * scale, y: y * scale };
 }
 
+/** Letters (0 A, 1 B, 2 X, 3 Y) of a Nintendo-labelled pad → positions (0 bottom B, 1 right A, 2 left Y, 3 top X). */
+export function toPositions(list) {
+  const out = list.slice();
+  [out[SOUTH], out[EAST], out[WEST], out[NORTH]] = [list[1], list[0], list[3], list[2]];
+  return out;
+}
+
+const trigger = (v) => (v > 0.05 ? Math.min(1, (v - 0.05) / 0.9) : 0);
+
 export class Controller {
-  constructor({ pads = () => navigator.getGamepads?.() ?? [], context, action, look, navigate, scroll, activity = () => {}, swapAB = () => false }) {
-    Object.assign(this, { pads, context, action, look, navigate, scroll, activity, swapAB });
+  /**
+   * @param o.context () => 'menu' | 'talk' | 'photo' | 'ride' | 'game'
+   * @param o.faces   () => ({ faces: 'xbox' | 'nintendo', byLabel }) (native-pad.js padFaces)
+   */
+  constructor({ pads = () => navigator.getGamepads?.() ?? [], context, action, look, navigate, scroll, activity = () => {}, faces = () => ({ faces: 'xbox', byLabel: false }) }) {
+    Object.assign(this, { pads, context, action, look, navigate, scroll, activity, faces });
     this.previous = []; this.held = {}; this.index = null; this.repeat = 0;
-    this.blocked = new Set(); this.lastContext = null;
+    this.blocked = new Set(); this.lastContext = null; this.running = false;
   }
   update(dt, enabled = true) {
     // standard-mapped pads first; a pad without the mapping (an unrecognised handheld) is read as standard rather than ignored
@@ -19,13 +57,15 @@ export class Controller {
     const used = p => p.buttons.some(b => b.pressed) || p.axes.some(a => Math.abs(a) > 0.22);
     const pad = pads.find(p => p.index === this.index && used(p)) ?? pads.find(used) ?? pads.find(p => p.index === this.index) ?? pads[0];
     this.held = {};
-    if (!pad) { this.previous = []; this.index = null; this.lastContext = null; return this.held; }
+    if (!pad) { this.previous = []; this.index = null; this.lastContext = null; this.running = false; return this.held; }
     if (this.index !== pad.index) { this.previous = []; this.blocked.clear(); }
     this.index = pad.index;
-    const buttons = pad.buttons.map((b, i) => b.pressed || b.value > (i === 6 ? 0.3 : 0.5));   // LT aims from a light squeeze
-    if (this.swapAB()) [buttons[0], buttons[1]] = [buttons[1], buttons[0]];   // the setting "Swap A/B": B confirms and jumps, A goes back
+    const { faces, byLabel } = this.faces();
+    let buttons = pad.buttons.map((b, i) => b.pressed || b.value > (i === LT ? 0.3 : 0.5));   // LT aims from a light squeeze
+    if (byLabel) buttons = toPositions(buttons);
+    const value = i => { const b = pad.buttons[i]; return b ? (b.value > 0 ? b.value : b.pressed ? 1 : 0) : 0; };   // (the triggers: analog)
     const ctx = this.context();
-    // A held confirm/jump must never leak through when a menu closes.
+    // A held confirm/jump must never leak through when a menu closes (nor RT fire as you step off a bike).
     if (ctx !== this.lastContext) {
       buttons.forEach((b, i) => { if (b && this.previous[i]) this.blocked.add(i); });
       this.repeat = 0; this.direction = '';
@@ -35,11 +75,14 @@ export class Controller {
     const press = i => down(i) && !this.previous[i];
     const left = stick(pad.axes[0], pad.axes[1]), right = stick(pad.axes[2], pad.axes[3]);
     if (used(pad)) this.activity();
-    if (ctx === 'menu') {
-      if (press(1) || press(9) || press(8)) this.action('back');
-      else if (press(0) || press(2)) this.action('confirm');
-      const x = down(15) ? 1 : down(14) ? -1 : Math.abs(left.x) > 0.5 ? Math.sign(left.x) : 0;
-      const y = down(13) ? 1 : down(12) ? -1 : Math.abs(left.y) > 0.5 ? Math.sign(left.y) : 0;
+    // menus: printed A confirms, B goes back (A is at the bottom on Xbox, on the right with Nintendo letters)
+    const ok = faces === 'nintendo' ? EAST : SOUTH, no = faces === 'nintendo' ? SOUTH : EAST;
+    if (ctx === 'menu' || ctx === 'talk') {
+      const talkOn = ctx === 'talk' && press(EAST);   // the interact button carries a conversation on
+      if (press(VIEW) || press(MENU) || (press(no) && !(ctx === 'talk' && no === EAST))) this.action('back');
+      else if (press(ok) || talkOn) this.action('confirm');
+      const x = down(RIGHT) ? 1 : down(LEFT) ? -1 : Math.abs(left.x) > 0.5 ? Math.sign(left.x) : 0;
+      const y = down(DOWN) ? 1 : down(UP) ? -1 : Math.abs(left.y) > 0.5 ? Math.sign(left.y) : 0;
       const direction = y ? `y${y}` : x ? `x${x}` : '';
       this.repeat -= dt;
       if (direction && (direction !== this.direction || this.repeat <= 0)) {
@@ -47,31 +90,49 @@ export class Controller {
       }
       this.direction = direction;
       if (right.y) this.scroll(right.y * dt * 650);
+      this.running = false;
     } else {
-      this.look(right.x * dt * 900, right.y * dt * 900);
       const h = this.held;
+      // LB held: the right stick zooms (pull back: out) instead of looking
+      if (down(LB) && ctx !== 'photo') { if (right.y) this.action(right.y > 0 ? 'zoomOut' : 'zoomIn', dt * Math.abs(right.y) * 1.6); }
+      else this.look(right.x * dt * 900, right.y * dt * 900);
       h.stick = { x: left.x, y: -left.y };
-      h.KeyW = left.y < -0.15; h.KeyS = left.y > 0.15;
-      h.KeyA = left.x < -0.15; h.KeyD = left.x > 0.15;
-      h.ShiftLeft = down(7) || down(10);
       if (ctx === 'photo') {
-        h.KeyE = down(5); h.KeyQ = down(4);
-        if (press(0)) this.action('capture');
-        if (press(1) || press(13) || press(9)) this.action('photo');
+        h.KeyW = left.y < -0.15; h.KeyS = left.y > 0.15;
+        h.KeyA = left.x < -0.15; h.KeyD = left.x > 0.15;
+        h.ShiftLeft = down(RT) || down(L3);
+        h.KeyE = down(RB); h.KeyQ = down(LB);
+        if (press(ok)) this.action('capture');
+        if (press(no) || press(DOWN) || press(MENU)) this.action('photo');
+      } else if (ctx === 'ride') {
+        // RT is the throttle; the stick only steers (and pitches a flyer): pushing it never drives on
+        h.PadRide = true;
+        h.Throttle = trigger(value(RT)); h.Brake = trigger(value(LT));
+        h.Boost = down(RB) || down(L3);
+        h.Space = down(SOUTH); h.KeyE = down(EAST); h.PadE = h.KeyE;
+        this.running = false;
       } else {
-        h.Space = down(0); h.KeyE = down(2);
-        // the fluid tool: hold LT to aim, RT shoots while aiming (instead of running), B pushes; A in the air boosts (it's jump)
-        h.PadAim = down(6);
-        if (h.PadAim) { h.PadFire = down(7); h.ShiftLeft = down(10); }
-        h.PadPush = down(1);
+        h.KeyW = left.y < -0.15; h.KeyS = left.y > 0.15;
+        h.KeyA = left.x < -0.15; h.KeyD = left.x > 0.15;
+        // run: click the left stick; you keep running until you let the stick go
+        if (press(L3)) this.running = true;
+        else if (!left.x && !left.y) this.running = false;
+        h.ShiftLeft = this.running;
+        h.Space = down(SOUTH);
+        h.KeyE = down(EAST); h.PadE = h.KeyE;   // (the pad's interact never whistles: that's the left button's)
+        // the fluid tool: hold LT to aim, RT shoots (a quick shot without LT), RB pushes; jump in the air boosts
+        h.PadAim = down(LT); h.PadFire = down(RT); h.PadPush = down(RB);
         // D-pad right / left: the next / previous gun mode of the fluid tool (fluid-tool.js)
-        h.PadModeNext = down(15); h.PadModePrev = down(14);
-        if (down(4) || down(5)) this.action(down(4) ? 'zoomOut' : 'zoomIn', dt);
-        if (press(3)) this.action('ping');
-        if (press(9)) this.action('settings');
-        else if (press(8)) this.action('journal');
-        else if (press(12)) this.action('worlds');
-        else if (press(13)) this.action('photo');
+        h.PadModeNext = down(RIGHT); h.PadModePrev = down(LEFT);
+        if (press(WEST)) this.action('call');
+        if (press(NORTH)) this.action('ping');
+      }
+      if (ctx !== 'photo') {
+        if (press(R3)) this.action('bell');   // the bell-note whistle, once found (V on the keyboard)
+        if (press(MENU)) this.action('settings');
+        else if (press(VIEW)) this.action('journal');
+        else if (press(UP)) this.action('worlds');
+        else if (press(DOWN)) this.action('photo');
       }
     }
     this.previous = buttons; this.lastContext = ctx;
@@ -79,10 +140,20 @@ export class Controller {
   }
 }
 
+/**
+ * The pad's riding controls (Controller, context 'ride'), or null for the keyboard and touch:
+ * throttle / brake 0..1 from the triggers, x the stick's steer, y > 0 pushed forward (a flyer dives).
+ */
+export function padRide(input) {
+  if (!input?.PadRide) return null;
+  return { throttle: +input.Throttle || 0, brake: +input.Brake || 0, x: input.stick?.x ?? 0, y: input.stick?.y ?? 0, boost: !!input.Boost };
+}
+
 export function mergeControls(keyboard, gamepad) {
   const merged = { ...keyboard };
   for (const [key, value] of Object.entries(gamepad)) {
     if (key === 'stick') { if (value.x || value.y) merged.stick = value; }
+    else if (typeof value === 'number') merged[key] = Math.max(+keyboard[key] || 0, value);
     else merged[key] = !!keyboard[key] || value;
   }
   return merged;
