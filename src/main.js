@@ -595,6 +595,7 @@ const menu = new SettingsMenu(settings, {
   onNews: () => changelog.toggle(true),
   onDev: () => devMenu.toggle(true),
   onBook: () => journal.toggle(true),
+  onDebug: () => showPicker(true),
   onQuit: () => quitToTitle(),
   // where you are, at the top of the Start menu
   where: () => `<b>Save ${slots.active}</b>${meta.title} · ${formatPlaytime((slots.meta().playtime ?? 0) + playClock)} played`,
@@ -667,7 +668,7 @@ function showPicker(on) {
   picker.classList.toggle('open', on);
   if (on) document.exitPointerLock?.();
 }
-showPicker(false);   // L is a developer shortcut; in play, worlds are chosen on the ship's galactic map (and saves on the title screen)
+showPicker(query.get('worlds') === '1');   // (the title's and the Start menu's Debug entry) L is a developer shortcut; in play, worlds are chosen on the ship's galactic map (and saves on the title screen)
 picker.querySelector('.close').addEventListener('click', () => showPicker(false));
 window.addEventListener('keydown', (e) => {
   if (e.code === 'KeyL') showPicker(!picker.classList.contains('open'));
@@ -836,7 +837,9 @@ const controller = new Controller({
     if (name === 'capture') photo.capture = true;
     if (name === 'ping' && !ship.playing) scout.ping();
     if (name === 'call' && !ship.playing) player.callMount();   // the pad's own button for it (the keyboard's E still falls back to it)
-    if (name === 'bell') itemFx.ring();   // R3: the bell-note whistle (V)
+    if (name === 'bell' && level.jump) level.jump(1);   // in the Lab, R3 / L3 hop to the next / previous world's room
+    else if (name === 'bell') itemFx.ring();   // R3: the bell-note whistle (V)
+    if (name === 'l3' && level.jump) level.jump(-1);
   },
 });
 // The keyboard, the mouse or a finger takes over from the controller (and back on its next use). A pad

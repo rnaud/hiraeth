@@ -298,11 +298,19 @@ export function createLab(scene) {
   };
   show(null);
 
-  let passing = null, cooldown = 0;
+  let passing = null, cooldown = 0, hop = 0;
+  // [ and ] (L3 and R3 on a pad) hop between the hub and the rooms without walking to the doors
+  if (typeof window !== 'undefined') window.addEventListener('keydown', (e) => {
+    if (e.repeat || e.target?.closest?.('input, textarea, select')) return;
+    if (e.code === 'BracketRight') hop = 1;
+    else if (e.code === 'BracketLeft') hop = -1;
+  });
   return {
     id: 'lab',
     ground,
     spawn: new THREE.Vector3(0, 0, 4),
+    /** Hop to the next (+1) or previous (-1) room, the hub between the last and the first ([ ], L3 / R3). */
+    jump: (d) => { hop = d; },
     spawnHeading: Math.PI,   // facing the materials
     camYaw: 0,
     features: { mount: false, wind: false, jetpack: true, climb: true },
@@ -363,6 +371,12 @@ export function createLab(scene) {
             break;
           }
         }
+      }
+      // a hop: the next (or previous) room in the list, the hub before the first and after the last
+      if (hop && !passing) {
+        const n = rooms.length, i = here ? rooms.indexOf(here) : n, j = (i + hop + n + 1) % (n + 1);
+        hop = 0;
+        if (j === n) go(new THREE.Vector3(0, 0, 4), Math.PI); else go(rooms[j].arrive, rooms[j].heading);
       }
       // strayed off a room (over its banks, or off its edge into the cloud): back at its door
       if (!passing && here && (Math.hypot(p.x - here.centre.x, p.z - here.centre.z) > ROOM_REACH || p.y - here.centre.y < here.killY)) go(here.arrive, here.heading);

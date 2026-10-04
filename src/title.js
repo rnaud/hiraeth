@@ -153,6 +153,7 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
         : '<button data-a="new" class="primary">New game</button>'}
         <button data-a="saves">Saves</button>
         <button data-a="settings">Settings</button>
+        <button data-a="debug">Debug</button>
         ${fullscreen ? `<button data-a="fullscreen">${doc.fullscreenElement ? 'Leave full screen' : 'Full screen'}</button>` : ''}`;
     };
     const renderSaves = () => { root.querySelector('.slots').innerHTML = store.list().map(slotHtml).join(''); };
@@ -204,6 +205,12 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
       else if (a === 'saves') show('saves', '.slot .pick');
       else if (a === 'back') back();
       else if (a === 'settings') settingsMenu.toggle(true);
+      else if (a === 'debug') {
+        // the worlds list (any world, open): straight into the save played last (or the first), on
+        // the Lab, with the list up (main.js ?worlds=1)
+        store.setActive(store.latest() ?? 1);
+        win.location.href = `${win.location.pathname}?level=lab&worlds=1`;
+      }
       else if (a === 'fullscreen') {
         const p = doc.fullscreenElement ? doc.exitFullscreen?.() : doc.documentElement.requestFullscreen?.();
         Promise.resolve(p).catch(() => {}).finally(() => setTimeout(() => { if (screen === 'main') show('main', '[data-a="fullscreen"]'); }, 150));

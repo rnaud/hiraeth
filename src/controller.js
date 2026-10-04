@@ -119,7 +119,7 @@ export class Controller {
         h.KeyW = left.y < -0.15; h.KeyS = left.y > 0.15;
         h.KeyA = left.x < -0.15; h.KeyD = left.x > 0.15;
         // run: click the left stick; you keep running until you let the stick go
-        if (press(L3)) this.running = true;
+        if (press(L3)) { this.running = true; this.action('l3'); }   // (the Lab: the previous world's room)
         else if (!left.x && !left.y) this.running = false;
         h.ShiftLeft = this.running;
         h.Space = down(SOUTH);

@@ -124,3 +124,21 @@ test('every room stands on solid ground at its door, its world\'s plants grow in
   assert.equal(level.ground.heightAt(desert.centre.x + 5, desert.centre.z - 3), desert.ground.heightAt(5, -3));
   assert.equal(level.ground.heightAt(0, 4), 0);
 });
+
+test('the Lab: jump hops through every room and back to the hub, without walking to the doors', async () => {
+  const THREE_ = await import('three');
+  const { createLab } = await import('../src/levels/lab.js');
+  const level = createLab(new THREE_.Scene());
+  const player = { pos: level.spawn.clone(), vel: new THREE_.Vector3(), heading: 0, riding: false, teleport(p) { this.pos.copy(p); } };
+  const seen = [];
+  for (let k = 0; k <= level.rooms.length; k++) {
+    level.jump(1);
+    for (let i = 0; i < 40; i++) level.update(1 / 30, i / 30, { player });
+    seen.push(level.zoneAt(player.pos).name);
+  }
+  assert.equal(new Set(seen.slice(0, -1)).size, level.rooms.length, 'every room once');
+  assert.ok(player.pos.length() < 50, 'and back at the hub');
+  level.jump(-1);
+  for (let i = 0; i < 40; i++) level.update(1 / 30, i / 30, { player });
+  assert.equal(level.zoneAt(player.pos).name, seen.at(-2), 'backwards: the last room');
+});

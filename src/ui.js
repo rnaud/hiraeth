@@ -63,7 +63,7 @@ export function padControls(ok = confirmKey(), back = backKey()) {
  * (no game entries, no keys of its own).
  */
 export class SettingsMenu {
-  constructor(settings, { sound, onResetProgress, isBusy = () => false, onNews, onDev, onQuit, onBook, where, el = document.getElementById('settings'), title = false }) {
+  constructor(settings, { sound, onResetProgress, isBusy = () => false, onNews, onDev, onQuit, onBook, onDebug, where, el = document.getElementById('settings'), title = false }) {
     this.s = settings;
     this.el = el;
     this.where = where;
@@ -79,6 +79,7 @@ export class SettingsMenu {
             <button data-a="close" class="primary">${game ? 'Resume' : 'Back'}</button>
             ${game ? `<button data-a="book">Sketchbook</button>
             <button data-a="news">What's new</button>
+            <button data-a="debug">Debug: worlds</button>
             <button data-a="title">Quit to title</button>` : ''}
           </nav>
           <p class="saved">${game ? 'Your progress is saved as you play.' : ''}</p>
@@ -137,6 +138,7 @@ export class SettingsMenu {
       if (a === 'news') { this.toggle(false); onNews?.(); }
       if (a === 'book') { this.toggle(false); onBook?.(); }
       if (a === 'title') onQuit?.();
+      if (a === 'debug') { this.toggle(false); onDebug?.(); }
       if (a === 'dev') { e.preventDefault(); this.toggle(false); onDev?.(); }
       // (an inline question, not confirm(): a controller can answer it)
       if (a === 'reset') this.askReset(true);

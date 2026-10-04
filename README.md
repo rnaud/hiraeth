@@ -1118,6 +1118,11 @@ player from great heights pass `health: false`.
 
 ## The Lab (v0.39)
 
+In the Lab, `[` and `]` (L3 and R3 on a pad) call `level.jump(∓1)`: a fade, then the
+previous or next world's room, the hub between the last and the first. The title's and the
+Start menu's **Debug** entry opens the worlds list (`?level=lab&worlds=1` from the title).
+
+
 `?level=lab` (`src/levels/lab.js`) is a developer's world (`dev: true` in
 `src/levels/index.js`): always in the worlds list (L) for testing, never on the route. A
 row of pedestals shows every surface `makeMaterial` can draw (`LAB_MATERIALS`:
