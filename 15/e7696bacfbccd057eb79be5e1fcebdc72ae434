@@ -1,0 +1,39 @@
+README.md
+  s_1fd8d0e7b02dcf::t_09c581998c09dc 1093-1109
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_7efaae8fc2f766 6-12
+src/quest.js
+  s_1fd8d0e7b02dcf::t_19d6b8e4d9ff7e 172,262-269,272
+src/ship/cinematics.js
+  s_1fd8d0e7b02dcf::t_36e5751d25cfa6 15-16,341
+src/ship/hull.js
+  s_6457fa49057b23::t_107d72e9c92949 149-150,152-153
+src/story/dialogue.js
+  s_1fd8d0e7b02dcf::t_8be50b53e7950d 249
+tests/ship.test.js
+  s_6457fa49057b23::t_fdc33c9ddb3cdf 165-189
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "15e7696bacfbccd057eb79be5e1fcebdc72ae434",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_6457fa49057b23": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a105d7-6746-7643-a6b7-da41f67274a1",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
