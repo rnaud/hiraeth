@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v0.43 — 2026-10-04
 
+- Plants part round you as you walk through them, leaning away from your legs, more when you hurry.
 - The title screen is calmer: the name in thin, airy capitals, no subtitle or key hints, and the menu as light lettering over the view.
 - Plants feel the wind: they lean downwind, gusts roll across the meadows as a wave, and a storm bends them hard.
 - The traveller is rebuilt on the same body and skeleton as everyone else, with the suit, helmet and pack on top: walking, climbing, gliding, aiming and riding no longer bend joints the wrong way.

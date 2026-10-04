@@ -55,6 +55,8 @@ export const sharedUniforms = {
   // the world's wind for the plants (flora.js sway): x, z downwind direction, strength (0 still,
   // 1 a fresh breeze, up to ~3 in a storm), gust 0..1 (main.js sets it from wind.js every frame)
   uWind: { value: new THREE.Vector4(1, 0, 0.6, 0.4) },
+  // the traveller brushing through the plants: x, y, z of the feet, and how fast they move (m/s)
+  uBrush: { value: new THREE.Vector4(0, -1e4, 0, 0) },
   // Shared with the post pass (same uniform objects).
   uToon: { value: 0.5 },
   uHatch: { value: 1 },
@@ -93,6 +95,7 @@ const vertexShader = /* glsl */ `
     uniform float uTime;
     uniform float uSway;
     uniform vec4 uWind;
+    uniform vec4 uBrush;
   #endif
 
   void main() {
@@ -120,10 +123,21 @@ const vertexShader = /* glsl */ `
       float flutter = (0.45 + 0.55 * str) * sin(uTime * (1.3 + 0.9 * str) + swayAt.x * 0.37 + swayAt.z * 0.21);
       vec2 side = vec2(-wd.y, wd.x);
       vec2 bend = wd * (push * 3.0 + flutter * 1.2) + side * sin(uTime * 1.05 + swayAt.z * 0.41 - swayAt.x * 0.13) * 0.6 * (0.5 + 0.5 * str);
+      // the traveller walking through: plants close by bend away from them, more when they hurry
+      vec2 away = swayAt.xz - uBrush.xz;
+      float dB = length(away);
+      float brush = (1.0 - smoothstep(0.4, 1.8, dB)) * step(abs(swayAt.y - uBrush.y), 2.5) * (0.6 + 0.25 * min(uBrush.w, 6.0));
+      vec2 shove = (dB > 1e-3 ? away / dB : vec2(0.0)) * brush;
       // (in object space: turn the world bend by the instance's own rotation)
       mat3 iRot = mat3(instanceMatrix);
+      float iS2 = max(dot(iRot[0], iRot[0]), 1e-4);
       vec3 b = transpose(iRot) * vec3(bend.x, 0.0, bend.y);
-      transformed += b * swayK / max(dot(iRot[0], iRot[0]), 1e-4);   // (transpose / scale²: the inverse of a scaled rotation)
+      transformed += b * swayK / iS2;   // (transpose / scale²: the inverse of a scaled rotation)
+      // the brush is a lean of the lower part (about knee to chest high), whatever the plant's size,
+      // so a big plant's trunk stays put while its low leaves part round your legs
+      vec3 sh = transpose(iRot) * vec3(shove.x, 0.0, shove.y);
+      float wy = max(position.y, 0.0) * sqrt(iS2);   // (the height in metres)
+      transformed += sh * 0.45 * min(wy, 1.4) / iS2;
     #endif
     #ifdef USE_SKINNING
       #include <skinbase_vertex>

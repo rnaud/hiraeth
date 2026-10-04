@@ -188,6 +188,7 @@ Grouped by area. Checked items are done; the changelog says when.
 - [x] Climbing into the flame burns, losing health while you stay; same for spikes and cacti.
 - [x] The flame runs at one steady pace (it raced and juddered with distance and the flare).
 
+- [x] Plants react to the player walking through them (they part and lean away).
 - [x] Plants react to the wind (sway with the world's wind direction and strength, gusts).
 - [x] The desert tree's flame: a 3D shape (not a flat card) with a glowing, living fire
   shader on it.
