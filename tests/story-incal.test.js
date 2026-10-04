@@ -111,6 +111,18 @@ test('the crowd is talkable by where they live, and the lower levels pray', () =
   for (const id of ['corvin', 'lio', 'hask']) assert.ok(new DialogueRunner(RIM[id], { game, quests }).text.length > 10);
 });
 
+test('every conversation’s links lead somewhere', () => {
+  const all = [...Object.values(PEOPLE), ...Object.values(THINGS), ...Object.values(RIM), ...Object.values(CROWD_TALK).flat()];
+  for (const p of all) {
+    const nodes = p.talk.nodes;
+    for (const e of p.talk.entry ?? []) assert.ok(nodes[e.node], `${p.name}: entry to a missing node ${e.node}`);
+    for (const [id, n] of Object.entries(nodes)) {
+      if (n.next) assert.ok(nodes[n.next], `${p.name}.${id}: next ${n.next}`);
+      for (const c of n.choices ?? []) if (c.goto) assert.ok(nodes[c.goto], `${p.name}.${id}: goto ${c.goto}`);
+    }
+  }
+});
+
 test('the main quest: from the rim, down to the shrine, up to the palace, and the light burns', () => {
   assert.equal(quests.stage('incal.light'), 'nima');
   assert.match(rt.hud(), /Nima/);

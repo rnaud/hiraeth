@@ -84,6 +84,18 @@ test('the market’s people and places stand on walkable ground', () => {
   for (const id of ['doss', 'oyo', 'teb']) assert.ok(new DialogueRunner(STREET[id], { game, quests }).text.length > 10);
 });
 
+test('every conversation’s links lead somewhere', () => {
+  const all = [...Object.values(PEOPLE), ...Object.values(THINGS), ...Object.values(STREET), ...Object.values(CROWD_TALK).flat()];
+  for (const p of all) {
+    const nodes = p.talk.nodes;
+    for (const e of p.talk.entry ?? []) assert.ok(nodes[e.node], `${p.name}: entry to a missing node ${e.node}`);
+    for (const [id, n] of Object.entries(nodes)) {
+      if (n.next) assert.ok(nodes[n.next], `${p.name}.${id}: next ${n.next}`);
+      for (const c of n.choices ?? []) if (c.goto) assert.ok(nodes[c.goto], `${p.name}.${id}: goto ${c.goto}`);
+    }
+  }
+});
+
 test('the main quest: Sel, Kip’s recording, the antenna, the broadcast, and where it came from', () => {
   assert.equal(quests.stage('bazaar.signal'), 'sel');
   assert.ok(quests.objective().position.distanceTo(W.people.sel.pos) < 0.01);

@@ -57,6 +57,7 @@ export const QUESTS = [
 ];
 
 const LOOKED = { flag: 'incal.lit' };
+const EARLY = { quest: Q, stage: ['nima', 'ossa'] };   // before the splinter is in your hands
 
 // ------------------------------------------------------------------ the people
 // palettes: cloak / lining / cloth / legs / hat / hair (buildCharacter + Humanoid)
@@ -97,12 +98,13 @@ export const PEOPLE = {
           say: ['Something went over the shaft, low and slow, singing. Like the rim of a glass when you wet your finger and go round. Every window in the city hummed with it.',
             'And the Incal answered. I swear it did. It rang back, and a piece of it came away: a splinter of light, falling down the middle of the shaft. Past me. Past every level. Singing all the way to the bottom.'],
           do: { set: { 'incal.rumour.light': true } },
-          choices: [{ text: 'Something struck my ship that night.', goto: 'ship' }, { text: 'Where did the piece land?', goto: 'where' }],
+          choices: [{ text: 'Something struck my ship that night.', goto: 'ship' }, { text: 'Where did the piece land?', if: EARLY, goto: 'where' },
+            { text: 'I have it. Ossa gave it to me.', if: { has: 'splinter' }, goto: 'carry' }],
         },
         ship: {
           say: ['Did it now. Then it’s been busy, whatever it is: a falling light that sings, and breaks things.',
             'Up here they called it fireworks. Nobody asked the bottom what fell on them.'],
-          choices: [{ text: 'Where did the piece land?', goto: 'where' }],
+          choices: [{ text: 'Where did the piece land?', if: EARLY, goto: 'where' }, { text: 'I’ll take it up to the light.', if: { not: EARLY }, end: true }],
         },
         where: {
           say: ['At the bottom. Where else does anything land? The lower levels catch everything that falls off the top: soup, rain, rich men’s hats.',
@@ -135,7 +137,7 @@ export const PEOPLE = {
         carry: {
           say: [{ if: { has: 'splinter' }, text: 'Is that it? It’s humming. It’s leaning up, like a plant at a window. Take it to the palace. The guard there is called Dov; he’s not as stiff as he stands.' },
             { if: { not: { has: 'splinter' } }, text: 'Up to the palace, then. The guard there is called Dov. He’s not as stiff as he stands.' }],
-          choices: [{ text: 'I will.', end: true }],
+          choices: [{ text: 'What happened, the night the sky rang?', if: { not: { flag: 'incal.rumour.light' } }, goto: 'rang' }, { text: 'I will.', end: true }],
         },
         told: {
           say: ['I saw it. I was sweeping and the steps went gold. I looked up, and so did, oh, everyone. The rich, the guards, the cab drivers. A man dropped his whole lunch over the rail.',
@@ -357,6 +359,7 @@ export const PEOPLE = {
         },
         ride: {
           say: ['Take her, then. She knows the way home: leave her anywhere and she’ll come back to this lamp. W to go, Space to climb, Shift to drop. Mind the laundry.',
+            'The palace? Straight up the middle, past the rings, and set her down on the landing by the gate. The guards hate that. Do it anyway.',
             'And if you hail a cab down here, it’ll be me. Nobody else is coming.'],
           do: [{ advance: ['incal.wren', 'wren'] }, { set: { 'incal.wren.met': true } }],
           choices: [{ text: 'Thank you, Wren.', end: true }],
