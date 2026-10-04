@@ -16,7 +16,7 @@ export function mapEntries({ order, levels, flag, journal, current }) {
   return order.map((id, i) => {
     const L = levels.find((l) => l.id === id) ?? { id, title: id };
     const done = !!(flag?.(`world.${id}.done`) || journal?.storyDone?.(id));
-    const visited = !!(journal?.seen?.(id) || flag?.(`world.${id}.visited`) || id === current || done);
+    const visited = !!(journal?.seen?.(id) || id === current || done);
     return { id, i, title: L.title, source: L.source ?? '', blurb: L.blurb ?? '', visited, done, current: id === current };
   });
 }
@@ -84,8 +84,8 @@ export class StarMap {
     const out = [];
     for (let i = 0; i < n; i++) {
       const k = i / Math.max(1, n - 1);
-      const a = -2.4 + k * Math.PI * 2.35, r = 0.12 + k * 0.3;
-      out.push([37 + Math.cos(a) * r * 100 * 1.08, 53 + Math.sin(a) * r * 100 * 0.95]);
+      const a = -2.4 + k * Math.PI * 2.35, r = 0.28 + k * 0.72;
+      out.push([38 + Math.cos(a) * r * 29, 52 + Math.sin(a) * r * 37]);
     }
     return out;
   }
@@ -97,8 +97,8 @@ export class StarMap {
     const path = pts.map(([x, y], i) => `${i ? 'L' : 'M'}${x} ${y}`).join(' ');
     this.el.innerHTML = `<div class="chart">
       <svg viewBox="0 0 100 100" preserveAspectRatio="none">
-        <ellipse cx="37" cy="53" rx="3" ry="4" fill="#f2c54b" stroke="#2b211f" stroke-width=".3"/>
-        ${[14, 24, 34, 44].map((r) => `<ellipse cx="37" cy="53" rx="${r * 1.08}" ry="${r * 0.95}" fill="none" stroke="rgba(247,236,210,.18)" stroke-width=".15"/>`).join('')}
+        <ellipse cx="38" cy="52" rx="2.6" ry="4" fill="#f2c54b" stroke="#2b211f" stroke-width=".3"/>
+        ${[0.3, 0.55, 0.8, 1.02].map((r) => `<ellipse cx="38" cy="52" rx="${r * 29}" ry="${r * 37}" fill="none" stroke="rgba(247,236,210,.18)" stroke-width=".15"/>`).join('')}
         <path d="${path}" fill="none" stroke="#e6875f" stroke-width=".35" stroke-dasharray="1 1.2" vector-effect="non-scaling-stroke"/>
       </svg>
       <h1>GALACTIC MAP</h1><div class="sub">${this.entries.filter((e) => e.done).length} of ${this.entries.length} worlds · discoveries made</div>

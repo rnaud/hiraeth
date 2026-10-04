@@ -11,16 +11,23 @@
 //
 // Well-known flags (add more freely, document them here):
 //   prologue.done         the opening cinematic has played (skip it next time)
-//   ship.powered          the ship can fly; the galactic map is unlocked
-//   ship.level            id of the world the ship is parked on
+//   ship.powered          the ship can fly; the galactic map is unlocked (set by the desert story
+//                         when the power source is brought back; src/ship/ship.js listens)
+//   ship.level            id of the world the ship last flew to (set on travel and by the prologue)
+//   ship.launched         the ship has taken off at least once since the crash (the desert then shows
+//                         it standing on its legs, not dug into the dune)
+//   objective             the current main objective, shown in the HUD (string; the prologue sets
+//                         'Find a new source of power.'; the story clears or replaces it)
 //   tool.colours          number of colour bands in the backpack fluid (1 at start)
-//   calls.<n>             call n home has been heard
+//   calls.<n>             call n home has been heard (src/story/calls.js; call n waits at the
+//                         cockpit console once n worlds are complete)
 //   quest.<id>            a quest's stage (string); see src/story/quests.js
 //   world.<id>.done       that world's discovery is made
 //
 // Well-known events:
-//   'ship:enter' / 'ship:exit'     the player walks into / out of the ship
-//   'travel' { to }                the galactic map chose a destination
+//   'ship:enter' / 'ship:exit' { level }  the player walks into / out of the ship
+//   'travel' { to }                the galactic map chose a destination (take-off follows)
+//   'call' { n }                   call n home has just been heard
 //   'dialogue:start' / 'dialogue:end' { npc, id }
 //   'quest' { id, stage }          a quest advanced
 //   'tool:fire' { mode, point }    the fluid tool was used (mode: 'shoot' | 'boost' | 'push')

@@ -432,7 +432,7 @@ export class ArrivalDirector extends Sequence {
               const a = Math.random() * Math.PI * 2, r = R * (0.6 + Math.random() * 0.6);
               const at = ship.restPos.clone().add(V(Math.sin(a) * r, 0, Math.cos(a) * r));
               at.y = ship.groundAt(at.x, at.z) + 0.8;
-              ship.dust.emit(at, V(Math.sin(a) * 12, 2 + Math.random() * 3, Math.cos(a) * 12), 1.6 + Math.random() * 1.8, 2.2, new THREE.Color(pickOf(SAND)));
+              ship.dust.emit(at, V(Math.sin(a) * 12, 2 + Math.random() * 3, Math.cos(a) * 12), 0.9 + Math.random() * 1.1, 2.0, new THREE.Color(pickOf(SAND)));
             }
           }
           if (t > 3.9 && !this.thud) { this.thud = true; ship.shake(0.8); sfx.rumble(ship.sound, 0.8, 0.5); sfx.engines(ship.sound, 0); m.mats.thrust.uniforms.uGlow.value = 0; }
@@ -515,11 +515,11 @@ export class TakeoffDirector extends Sequence {
           cam.y = ship.groundAt(cam.x, cam.z) + 4;
           look.lerp(m.group.position, t < 0.05 ? 1 : 1 - Math.exp(-4 * dt));
           ship.shot({ pos: cam, look, fov: 52 + k * 8 });
-          if (t < 2.4) for (let i = 0; i < 3; i++) {
+          if (t < 2.4 && Math.random() < 0.6) for (let i = 0; i < 2; i++) {
             const a = Math.random() * Math.PI * 2, r = R * (0.5 + Math.random() * 0.8);
             const at = ship.restPos.clone().add(V(Math.sin(a) * r, 0, Math.cos(a) * r));
             at.y = ship.groundAt(at.x, at.z) + 0.8;
-            ship.dust.emit(at, V(Math.sin(a) * 16, 3 + Math.random() * 3, Math.cos(a) * 16), 1.8 + Math.random() * 2, 2.4, new THREE.Color(pickOf(SAND)));
+            ship.dust.emit(at, V(Math.sin(a) * 16, 3 + Math.random() * 3, Math.cos(a) * 16), 0.9 + Math.random() * 1.1, 2.2, new THREE.Color(pickOf(SAND)));
           }
           ship.shake(0.5 * (1 - k));
           if (t > 3.0 && !this.warped) { this.warped = true; ship.warp.start(title); }

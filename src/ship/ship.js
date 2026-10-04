@@ -3,7 +3,7 @@ import { game } from '../game-state.js';
 import { buildShipModel, buildSpace } from './model.js';
 import { R, RI, DECK, CEIL, LIFT, HATCH_A, HINGE_R, WINDOW, HATCH, LEG_A, SCAR } from './hull.js';
 import { polar } from './geo.js';
-import { findShipSite, siteAvoid } from './sites.js';
+import { findShipSite, siteAvoid, decorAvoid } from './sites.js';
 import { buildCrashSite } from './crash.js';
 import { Puffs } from './fx.js';
 import { Cinema, Warp } from './cinema.js';
@@ -47,7 +47,8 @@ export class Ship {
     this.lights = level.lights ?? (level.lights = []);
     this.noShadow = level.noShadow ?? (level.noShadow = []);
     this.heightAt = level.ground?.heightAt ? (x, z) => level.ground.heightAt(x, z) : null;
-    const site = (this.site = findShipSite({ level, physics, levelId, avoid: siteAvoid({ level, content }) }) ?? { x: level.spawn.x + 30, z: level.spawn.z, heading: -Math.PI / 2, ground: level.spawn.y, source: 'fallback' });
+    const avoid = [...siteAvoid({ level, content }), ...decorAvoid(scene, level, { near: level.spawn }).filter((d) => d.y1 > level.spawn.y - 20 && d.y0 < level.spawn.y + 40)];
+    const site = (this.site = findShipSite({ level, physics, levelId, avoid }) ?? { x: level.spawn.x + 30, z: level.spawn.z, heading: -Math.PI / 2, ground: level.spawn.y, source: 'fallback' });
     this.crashed = !!site.crash && !game.flag('ship.launched');
     this.inside = false;
     this.cam = null;          // a cinematic camera, or null to leave the rig alone

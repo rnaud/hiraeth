@@ -46,6 +46,41 @@ export function siteAvoid({ level, content, gate, npcs }) {
   for (const p of level?.portals ?? []) add(p.at.x, p.at.z, 12);
   for (const v of level?.vehicles ?? []) if (v.pos) add(v.pos.x, v.pos.z, 14);
   if (level?.spawn) add(level.spawn.x, level.spawn.z, 17);
+  // the reactive scenery's clusters (src/reactive-world.js seeds them along a line from the spawn)
+  if (level?.spawn) {
+    if (level.id === 'bazaar') for (let i = 0; i < 8; i++) add(i % 2 ? 23 : -23, 95 - i * 54, 9);
+    else for (let i = 1; i <= 5; i++) add(level.spawn.x + (i % 2 ? 12 : -12) + 3, level.spawn.z - i * 30 - 6, 9);
+  }
+  return out;
+}
+
+/**
+ * Scenery that doesn't collide (trees, crystals, columns drawn for looks)
+ * still mustn't stand through the hull: circles round every sizeable
+ * non-colliding mesh or instance near the ground.
+ */
+export function decorAvoid(scene, level, { near = null, reach = 260 } = {}) {
+  const out = [];
+  const skip = new Set([level.ground?.mesh].filter(Boolean));
+  const s = new THREE.Sphere(), m = new THREE.Matrix4();
+  const isOff = (o) => { for (let p = o; p; p = p.parent) if (p.userData.noCollide) return true; return false; };
+  scene.updateMatrixWorld(true);
+  scene.traverse((o) => {
+    if (!o.isMesh || skip.has(o) || o.isSkinnedMesh || !isOff(o) || !o.geometry?.attributes?.position) return;
+    if (!o.geometry.boundingSphere) o.geometry.computeBoundingSphere();
+    const g = o.geometry.boundingSphere;
+    if (!g || !Number.isFinite(g.radius)) return;
+    const add = (mat) => {
+      s.copy(g).applyMatrix4(mat);
+      if (s.radius < 1.2 || s.radius > 60) return;
+      if (near && Math.hypot(s.center.x - near.x, s.center.z - near.z) > reach) return;
+      out.push({ x: s.center.x, z: s.center.z, r: s.radius * 0.8, y0: s.center.y - s.radius, y1: s.center.y + s.radius });
+    };
+    if (o.isInstancedMesh) {
+      if (g.radius < 1.2 && o.count > 50) return;
+      for (let i = 0; i < o.count; i++) { o.getMatrixAt(i, m); add(m.premultiply(o.matrixWorld)); }
+    } else add(o.matrixWorld);
+  });
   return out;
 }
 
@@ -53,29 +88,42 @@ export function siteAvoid({ level, content, gate, npcs }) {
  * How well the ship fits at (x, z): the ground under its feet, hull and ramp.
  * Returns null if it doesn't fit, else { ground, spread, ... }.
  */
-export function probeSite(physics, x, z, heading, { refY = 0, tolerance = 2.6 } = {}) {
+export function probeSite(physics, x, z, heading, { refY = 0, tolerance = 2.6, unsafe = null } = {}) {
   const from = refY + 60;
   const G = (px, pz) => physics.groundAt(px, from, pz, 400);
   const pts = [[0, 0]];
-  for (let k = 0; k < 10; k++) { const a = (k / 10) * TAU; pts.push([Math.sin(a) * 8, Math.cos(a) * 8], [Math.sin(a) * 15.5, Math.cos(a) * 15.5]); }
+  for (const [r, n] of [[4, 6], [8, 10], [12, 14], [15.5, 16]]) for (let k = 0; k < n; k++) { const a = (k / n) * TAU + r; pts.push([Math.sin(a) * r, Math.cos(a) * r]); }
   let lo = Infinity, hi = -Infinity;
   for (const [dx, dz] of pts) {
     const g = G(x + dx, z + dz);
     if (!Number.isFinite(g) || Math.abs(g - refY) > 45) return null;
+    if (unsafe?.(new THREE.Vector3(x + dx, g, z + dz))) return null;   // deep water, lava…
     lo = Math.min(lo, g); hi = Math.max(hi, g);
   }
   if (hi - lo > tolerance) return null;
   // open sky over the hull (no arches, roofs or floating rocks)
   const up = new THREE.Vector3(0, 1, 0), o = new THREE.Vector3();
-  for (const [dx, dz] of [[0, 0], [9, 0], [-9, 0], [0, 9], [0, -9]]) {
+  for (const [dx, dz] of [[0, 0], [9, 0], [-9, 0], [0, 9], [0, -9], [6, 6], [-6, 6], [6, -6], [-6, -6]]) {
     o.set(x + dx, hi + 1.5, z + dz);
     if (physics.rayDistance(o, up, LIFT + R + 12) < Infinity) return null;
+  }
+  // nothing standing inside the hull's volume (trunks, pillars, overhangs)
+  const cy = hi + LIFT, d = new THREE.Vector3();
+  for (const dy of [-9, -4, 0, 5, 10]) {
+    const reach = Math.sqrt(R * R - dy * dy) + 1.5;
+    for (let k = 0; k < 12; k++) {
+      const a = (k / 12) * TAU;
+      o.set(x, cy + dy, z);
+      d.set(Math.sin(a), 0, Math.cos(a));
+      if (physics.rayDistance(o, d, reach) < reach) return null;
+    }
   }
   // the ramp: from the hatch outward, the ground must be reachable and not climb
   const [hx, hz] = dirOf(heading);
   for (let d = 12; d <= 24; d += 3) {
     const g = G(x + hx * d, z + hz * d);
     if (!Number.isFinite(g) || g > hi + 1.2 || g < lo - 4) return null;
+    if (unsafe?.(new THREE.Vector3(x + hx * d, g, z + hz * d))) return null;
   }
   return { ground: hi, spread: hi - lo, lo };
 }
@@ -102,9 +150,9 @@ export function findShipSite({ level, physics, levelId, avoid = [], spawn }) {
       if (!clear(x, z)) continue;
       // hatch toward the spawn, so you step out facing where you came in
       const heading = Math.atan2(S.x - x, S.z - z);
-      const p = probeSite(physics, x, z, heading, { refY: S.y });
+      const p = probeSite(physics, x, z, heading, { refY: S.y, unsafe: level.unsafe });
       if (!p) continue;
-      const score = d + p.spread * 14 + Math.abs(p.ground - S.y) * 1.5;
+      const score = d + p.spread * 14 + Math.abs(p.ground - S.y) * 1.5 + Math.max(0, S.y - 1.5 - p.ground) * 12;   // not down in a hollow (or a pond)
       if (!best || score < best.score) best = { x, z, heading, ground: p.ground, spread: p.spread, score, source: 'search' };
     }
     if (best && d > best.score) break;   // nothing further out can beat it
