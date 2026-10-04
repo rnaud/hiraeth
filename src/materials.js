@@ -3,6 +3,7 @@ import { PORTRAIT_GLSL } from './face.js';
 import { CREASE_GLSL } from './creases.js';
 import { BIOME_GLSL } from './biome.js';
 import { CROWD_GLSL, TRIM_GLSL } from './crowd-shader.js';
+import { GROUND_GLSL } from './ground-ink.js';
 
 // ---------------------------------------------------------------------------
 // G-buffer surface material.
@@ -72,6 +73,7 @@ const vertexShader = /* glsl */ `
   out float vViewDepth;
   out vec3 vObjPos;
   out vec3 vObjNormal;
+  out vec3 vObjRel;
   out vec3 vBind;
   in vec2 aFold;          // cloth: (across, down) 0..1; (0,0) on everything else
   out vec2 vFold;
@@ -135,6 +137,12 @@ const vertexShader = /* glsl */ `
       vObjPos = transformed * scl;     // strokes stay on the moving limbs
       vObjNormal = objectNormal / scl;
     #endif
+    // The same point measured from the camera (in the object's frame): small numbers near
+    // the camera. Facet normals come from the screen derivatives of this one, so they stay
+    // exact on geometry merged far from the origin (a city 460 m out), where derivatives of
+    // vObjPos lose their low bits and the hatching on flat walls broke up into noise.
+    vec3 camL = cameraPosition - M[3].xyz;
+    vObjRel = vObjPos - vec3(dot(M[0].xyz, camL) / scl.x, dot(M[1].xyz, camL) / scl.y, dot(M[2].xyz, camL) / scl.z);
 
     vec4 world = modelMatrix * pos;
     vWorldPos = world.xyz;
@@ -194,6 +202,7 @@ const fragmentShader = /* glsl */ `
   in float vViewDepth;
   in vec3 vObjPos;
   in vec3 vObjNormal;
+  in vec3 vObjRel;
   in vec3 vBind;
   in vec2 vFold;
   in vec2 vTextureUV;
@@ -206,6 +215,7 @@ const fragmentShader = /* glsl */ `
   uniform vec3 uSkin;
   uniform vec4 uGlove;    // rgb, a = 1: gloved hands
   uniform float uHero;    // player-only flag, packed above the glow range in gHatch.a
+  uniform float uFigure;  // a person (NPC, crowd, costume parts): +4 in gHatch.a, post.js thins their ink with projected size
   uniform float uSuit;    // puffy-suit crease lines at the joints
   uniform vec3 uGlassCenter;
   uniform float uGlass;   // glass: only the rim and a highlight streak are drawn
@@ -298,12 +308,20 @@ const fragmentShader = /* glsl */ `
     return 1.0 - smoothstep(th - 0.015, th + 0.015, f) * uCloudShadows;
   }
 
-  vec3 strata(vec3 wp) {
-    // Horizontal bands of colour, slightly wavy — the classic Moebius mesa.
-    float y = wp.y + (vnoise(wp.xz * 0.04) - 0.5) * uStrataSize * 0.9;
-    float band = floor(y / uStrataSize);
+  vec3 strataBand(float band) {
     float t = fract(sin(band * 12.9898) * 43758.5453);
     return t < 0.4 ? uColor : (t < 0.75 ? uColor2 : uColor3);
+  }
+  vec3 strata(vec3 wp) {
+    // Horizontal bands of colour, slightly wavy — the classic Moebius mesa.
+    // Once the bands are thinner than a few pixels (a far tower's storeys) they give
+    // way to their average colour: no stripes flickering in and out as the camera
+    // moves. (The edges stay hard: post.js inks them as one solid line.) Uniform control flow.
+    float t = (wp.y + (vnoise(wp.xz * 0.04) - 0.5) * uStrataSize * 0.9) / uStrataSize;
+    float gt = max(length(vec2(dFdx(t), dFdy(t))), 1e-6);     // bands per px
+    vec3 c = strataBand(floor(t));
+    vec3 mean = uColor * 0.4 + uColor2 * 0.35 + uColor3 * 0.25;
+    return mix(mean, c, smoothstep(2.5, 5.0, 1.0 / gt));
   }
 
   // ---------------------------------------------------------------- hatching
@@ -401,10 +419,12 @@ const fragmentShader = /* glsl */ `
 
   // Drawn grid lines on architecture (Sable's "gridded lines"), ~1px pen,
   // fading out once the grid gets denser than a few pixels.
+  // Once the cells shrink under ~14 px the lines hand over to their average tone (by
+  // ~7 px they are only that tone): a far gridded tower keeps its value without moiré.
   float gridLines(vec3 q, vec3 fq, vec3 w) {
     vec3 d = abs(fract(q + 0.5) - 0.5) / max(fq, vec3(1e-6));      // px to nearest line
-    vec3 l = (1.0 - smoothstep(0.4 * uPixelRatio, 0.4 * uPixelRatio + 1.0, d))
-           * (1.0 - smoothstep(0.08, 0.25, fq));
+    vec3 res = 1.0 - smoothstep(0.07, 0.15, fq);
+    vec3 l = mix(vec3(0.1), 1.0 - smoothstep(0.4 * uPixelRatio, 0.4 * uPixelRatio + 1.0, d), res);
     return max(w.x * max(l.y, l.z), max(w.y * max(l.x, l.z), w.z * max(l.x, l.y)));
   }
 
@@ -441,26 +461,44 @@ const fragmentShader = /* glsl */ `
   // ---------------------------------------------------------------- drawn patterns
   // Windows on a wall: frames (some arched), dark glass, sills, painted shutters,
   // a cornice line per storey. Coordinates run along the face, so they stick.
-  float facade(vec3 wp, vec3 n, inout vec3 alb) {
+  //  - the wall's direction comes from the interpolated vertex normal (nv), not the
+  //    facet normal from screen derivatives: those carry rounding noise that, times a
+  //    coordinate hundreds of metres from the origin, made the windows jitter
+  //  - glass and shutters are anti-aliased (edges in px from each axis' gradient), and
+  //    once a window is only a few pixels they fade into the wall's average tint, so far
+  //    façades stop sparkling (and stop growing flickering colour-edge ink in post.js)
+  //  - frames and sills go before the windows get crowded
+  float facade(vec3 wp, vec3 n, vec3 nv, inout vec3 alb) {
     float vert = 1.0 - smoothstep(0.25, 0.4, abs(n.y));
-    vec2 dirH = normalize(vec2(-n.z, n.x) + 1e-5);
+    vec2 dirH = normalize(vec2(-nv.z, nv.x) + 1e-5);
     vec2 q = vec2(dot(wp.xz, dirH), wp.y) / vec2(3.0, 3.3);
-    vec2 fq = max(fwidth(q), vec2(1e-5));
+    vec2 gq = max(vec2(length(vec2(dFdx(q.x), dFdy(q.x))), length(vec2(dFdx(q.y), dFdy(q.y)))), vec2(1e-5));   // cells per px
     vec2 id = floor(q), f = fract(q);
     float h = hash(id + 3.7), h2 = hash(id + 9.1);
-    float ink = inkLine(abs(f.y - 0.03) / fq.y, 0.8) * 0.6;                    // cornice
-    if (h > 0.22) {
-      vec2 c = f - vec2(0.5, 0.48), hf = vec2(0.17, 0.22);
-      vec2 d2 = abs(c) - hf;
-      float box = max(d2.x, d2.y);
-      if (h2 > 0.5 && c.y > hf.y - hf.x) box = length(vec2(c.x, c.y - (hf.y - hf.x))) - hf.x;   // arched top
-      if (box < 0.0) alb = mix(alb, vec3(0.36, 0.43, 0.56), vert);
-      ink = max(ink, inkLine(abs(box) / fq.x, 1.0));
-      if (abs(c.x) < hf.x + 0.05) ink = max(ink, inkLine(abs(c.y + hf.y + 0.03) / fq.y, 1.3));  // sill
-      if (h2 > 0.55 && h2 < 0.88 && abs(abs(c.x) - hf.x - 0.075) < 0.065 && abs(c.y) < hf.y)     // shutters
-        alb = mix(alb, h > 0.6 ? vec3(0.37, 0.55, 0.5) : vec3(0.36, 0.47, 0.62), vert);
+    float cellPx = 1.0 / max(gq.x, gq.y);
+    float lodInk = smoothstep(10.0, 20.0, cellPx), lodFill = smoothstep(5.0, 12.0, cellPx);
+    float ink = inkLine(abs(f.y - 0.03) / gq.y, 0.8) * 0.6 * smoothstep(5.0, 10.0, 1.0 / gq.y);   // cornice
+    float win = step(0.22, h);
+    vec2 c = f - vec2(0.5, 0.48), hf = vec2(0.17, 0.22);
+    vec2 d2 = abs(c) - hf;
+    float boxPx = max(d2.x / gq.x, d2.y / gq.y);                 // px outside the window (< 0 inside)
+    if (h2 > 0.5 && c.y > hf.y - hf.x) {                         // arched top
+      vec2 ca = c - vec2(0.0, hf.y - hf.x);
+      float L = max(length(ca), 1e-5);
+      boxPx = (L - hf.x) / max(length(ca / L * gq), 1e-6);
     }
-    return ink * vert * (1.0 - smoothstep(0.06, 0.16, max(fq.x, fq.y)));
+    float glassK = (1.0 - smoothstep(-0.5, 0.5, boxPx)) * win;
+    float shutK = (1.0 - smoothstep(-0.5, 0.5, max((abs(abs(c.x) - hf.x - 0.075) - 0.065) / gq.x, (abs(c.y) - hf.y) / gq.y)))
+                * win * step(0.55, h2) * step(h2, 0.88);
+    const vec3 glass = vec3(0.36, 0.43, 0.56);
+    vec3 shutter = h > 0.6 ? vec3(0.37, 0.55, 0.5) : vec3(0.36, 0.47, 0.62);
+    vec3 nearC = mix(mix(alb, glass, glassK), shutter, shutK);
+    // the average: ~12 % of a façade is glass, ~3 % shutters
+    vec3 farC = alb * 0.85 + glass * 0.12 + vec3(0.365, 0.51, 0.56) * 0.03;
+    alb = mix(alb, mix(farC, nearC, lodFill), vert);
+    ink = max(ink, inkLine(abs(boxPx), 1.0) * win * lodInk);
+    if (abs(c.x) < hf.x + 0.05) ink = max(ink, inkLine(abs(c.y + hf.y + 0.03) / gq.y, 1.3) * win * lodInk);   // sill
+    return ink * vert;
   }
 
   // Roof tiles: rows with staggered joints.
@@ -469,7 +507,8 @@ const fragmentShader = /* glsl */ `
     float fv = max(fwidth(v), 1e-5), fu = max(fwidth(u), 1e-5);
     float row = abs(fract(v + 0.5) - 0.5) / fv;
     float joint = abs(fract(u + floor(v) * 0.5 + 0.5) - 0.5) / fu;
-    return max(inkLine(row, 0.8), inkLine(joint, 0.7) * 0.7) * (1.0 - smoothstep(0.15, 0.4, max(fv, fu)));
+    float res = 1.0 - smoothstep(0.1, 0.2, max(fv, fu));
+    return mix(0.12, max(inkLine(row, 0.8), inkLine(joint, 0.7) * 0.7), res);   // dense rows: their average tone
   }
 
   // Leaves: little scalloped arcs on the foliage, more of them in shade.
@@ -520,18 +559,7 @@ const fragmentShader = /* glsl */ `
   ${PORTRAIT_GLSL}
   ${CREASE_GLSL}
 
-  // Wind ripples on sand: broken wavy lines across the prevailing wind, in patches.
-  float sandRipples(vec2 p, float fwu, float slope) {
-    const vec2 across = vec2(0.82, 0.57);
-    float sp = 1.6;
-    float u = dot(p, across) / sp + (vnoise(p * 0.11) - 0.5) * 2.4 + (vnoise(p * 0.5) - 0.5) * 0.25;
-    float along = dot(p, vec2(-across.y, across.x));
-    float d = abs(fract(u + 0.5) - 0.5) / max(fwu, 1e-6);          // device px
-    float patchMask = smoothstep(0.55, 0.7, vnoise(p * 0.025 + 3.0));
-    float broken = smoothstep(0.35, 0.55, vnoise(vec2(along * 0.35, floor(u) * 7.1)));
-    float vis = 1.0 - smoothstep(0.12, 0.3, fwu);
-    return inkLine(d, 0.9) * patchMask * broken * vis * (1.0 - smoothstep(0.06, 0.16, slope));
-  }
+  ${GROUND_GLSL}
 
   // Sparse, surface-anchored pen strokes. Their physical length stays fixed;
   // fade subpixel strokes away instead of enlarging them into screen-space dots.
@@ -547,15 +575,6 @@ const fragmentShader = /* glsl */ `
     float resolved = smoothstep(3.0, 7.0, halfLength * 2.0 / max(fwidth(q.x), 1e-5));
     float scuffPatch = smoothstep(0.40, 0.70, vnoise(p * 0.045 + 13.0));
     return stroke * step(0.65, seed) * scuffPatch * resolved * 0.55;
-  }
-
-  // Dried-mud cracks: Voronoi borders, jittered, with some segments missing.
-  float mudCracks(vec2 p, float fwc) {
-    vec2 q = p / 5.5;
-    q += (vec2(vnoise(p * 0.7), vnoise(p * 0.7 + 9.0)) - 0.5) * 0.12;
-    float d = voronoiBorder(q) / max(fwc, 1e-6);
-    float gaps = smoothstep(0.25, 0.45, vnoise(p * 0.35 + 20.0));
-    return inkLine(d, 1.0) * gaps * (1.0 - smoothstep(0.08, 0.2, fwc));
   }
 
   // Vertical fissures on rock: wavy lines down the faces, in short runs.
@@ -736,9 +755,15 @@ const fragmentShader = /* glsl */ `
     if (uFluidA.w > 2.5 && uFluidA.w < 3.5 && bayer4(gl_FragCoord.xy / max(uPixelRatio, 1.0) * 0.5) < smoothstep(0.9, 1.02, vBind.y) * 0.5 + uFluidB.y * (0.3 + 0.7 * smoothstep(0.2, 1.0, vBind.y))) discard;
     #endif
     // stroke coordinates + derivatives first, in uniform control flow
-    vec3 on = uFlat > 0.5 ? cross(dFdx(vObjPos), dFdy(vObjPos)) : vObjNormal;
+    vec3 on = uFlat > 0.5 ? cross(dFdx(vObjRel), dFdy(vObjRel)) : vObjNormal;
     vec3 tw = pow(abs(normalize(on)), vec3(3.0));
     tw /= (tw.x + tw.y + tw.z);
+    if (uFlat > 0.5) {
+      // a facet takes one projection, as an inker would do: blending them multiplies any
+      // rounding in the weights by coordinates that can be hundreds of metres (noise)
+      vec3 a = abs(on);
+      tw = a.x > a.y && a.x > a.z ? vec3(1.0, 0.0, 0.0) : (a.y > a.z ? vec3(0.0, 1.0, 0.0) : vec3(0.0, 0.0, 1.0));
+    }
     if (uMode == ${MODE_TERRAIN}) tw = vec3(0.0, 1.0, 0.0);
     vec2 ce1 = strokeCoord(tw, vec2(0.766, 0.643));
     vec2 ce2 = strokeCoord(tw, vec2(0.83, -0.56));
@@ -756,8 +781,6 @@ const fragmentShader = /* glsl */ `
     float foldFw = fwidth(foldU);
     float fwBind = max(fwidth(vBind.y), fwidth(vBind.x)) / max(uPixelRatio, 1e-3);
     // drawn-detail coordinates + derivatives (uniform control flow)
-    float rippleFw = fwidth(dot(vWorldPos.xz, vec2(0.82, 0.57)) / 1.6);
-    float crackFw = max(fwp.x, fwp.y) / 5.5;
     float faceX = abs(on.x) > abs(on.z) ? vObjPos.z : vObjPos.x;     // horizontal coord on a side face
     float fissFw = fwidth(faceX) / 9.0;
     vec2 glyphUV = gw.x > max(gw.y, gw.z) ? gq.zy : (gw.y > gw.z ? gq.xz : gq.xy);
@@ -794,6 +817,8 @@ const fragmentShader = /* glsl */ `
         biomeGround(bw, c1, c2, c3);
       }
       float patches = vnoise(vWorldPos.xz * 0.011) * 0.65 + vnoise(vWorldPos.xz * 0.045) * 0.35;
+      // (hard tone edges on purpose: post.js inks them as one solid line; blended, the
+      //  edge test would catch them only here and there, a dotted line that crawls)
       albedo = patches > 0.6 ? c2 : c1;
       if (slope > 0.42) albedo = c3;
       else if (slope > 0.30 && patches < 0.45) albedo = mix(c1, c3, 0.5);
@@ -839,7 +864,7 @@ const fragmentShader = /* glsl */ `
       albedo = fluidAlbedo(albedo);
     #endif
     float patInk = 0.0;
-    if (uPattern == 1) patInk = facade(vWorldPos, n, albedo);
+    if (uPattern == 1) patInk = facade(vWorldPos, n, normalize(vNormal), albedo);
     else if (uPattern == 2) patInk = roofTiles(vWorldPos);
     else if (uPattern == 3) patInk = leaves(vObjPos);
     else if (uPattern == 4) patInk = rockCracks(vObjPos);
@@ -887,11 +912,26 @@ const fragmentShader = /* glsl */ `
     if (uGrid > 0.0) detail = gridLines(gq, gfw, gw);
     if (uGlyphs > 0.0) detail = max(detail, glyphs(glyphUV, glyphFw));
     if (uMode == ${MODE_TERRAIN}) {
-      if (uRipples > 0.5) detail = max(detail, sandRipples(vWorldPos.xz, rippleFw, slope) * (1.0 - bw.y));
-      if (bw.y > 0.0 && slope < 0.2) detail = max(detail, mudCracks(vWorldPos.xz, crackFw) * smoothstep(0.3, 0.8, bw.y));
+      // ground ink by distance (src/ground-ink.js); derivatives first, in uniform control flow
+      vec2 gp = vWorldPos.xz;
+      float gm = max(length(dFdx(gp)), length(dFdy(gp)));        // metres per px, the longer footprint
+      float sandK = 1.0 - bw.y;
+      if (uRipples > 0.5) {
+        detail = max(detail, sandRipples(gp, slope) * sandK);
+        // grains close up; in the dotted print style, coarser dots that last further out
+        float grains = sandGrains(gp, gm, 0.25, 0.12, 0.005, 0.01, 71.0) * 0.55;
+        if (uDots > 0.0) grains = max(grains, sandGrains(gp, gm, 0.4 * uDots, 0.55, 0.03, 0.06, 13.0) * 0.8);
+        detail = max(detail, grains * sandK * (1.0 - smoothstep(0.35, 0.6, slope)));
+      }
+      if (uBiomes > 0.5) {
+        vec2 q1 = crackCoord(gp, 5.5), q2 = crackCoord(gp + 31.0, 1.6);
+        vec4 j1 = vec4(dFdx(q1), dFdy(q1)), j2 = vec4(dFdx(q2), dFdy(q2));
+        float k = smoothstep(0.3, 0.8, bw.y) * (1.0 - smoothstep(0.14, 0.22, slope));
+        if (k > 0.0) detail = max(detail, mudCracks(gp, q1, j1, q2, j2) * k);
+      }
       if (uTicks > 0.5 && slope < 0.35) detail = max(detail, grassTicks(vWorldPos.xz, fwp) * 0.8);
       if (uSandInk > 0.5) detail = max(detail, sandScuffs(vWorldPos.xz) * (1.0 - bw.y));
-      if (uDots > 0.0 && uSandInk < 0.5) {
+      if (uDots > 0.0 && uSandInk < 0.5 && uRipples < 0.5) {
         // pen dotting: patchy, denser in hollows, a few bigger pebble dots
         float patchy = 0.45 + 0.55 * smoothstep(0.3, 0.75, vnoise(vWorldPos.xz * 0.06 + 7.0));
         float dots = stipple(ce1, fwd, 8.5 * mix(0.7, 1.45, smoothstep(5.0, 220.0, vViewDepth)), 0.32);
@@ -938,7 +978,7 @@ const fragmentShader = /* glsl */ `
     }
     detail = max(detail, patInk);
     gHatch.b = detail;
-    gHatch.a = max(uGlow, smoothstep(0.15, 0.6, local) * 0.6) + 2.0 * uHero;
+    gHatch.a = max(uGlow, smoothstep(0.15, 0.6, local) * 0.6) + 2.0 * uHero + 4.0 * uFigure;
     #ifdef DISSOLVE
     gHatch.a = max(gHatch.a, dEdge);
     #endif
@@ -986,6 +1026,7 @@ const cache = new Map();
  * @param {boolean} [o.ticks]   terrain: inked grass ticks
  * @param {number}  [o.glow]    0..1 self-lit
  * @param {THREE.Side} [o.side]
+ * @param {boolean} [o.figure]  part of a person: post.js draws its outline and inner ink by its size on screen
  * @param {boolean} [o.crowd]   instanced crowd figures: the vertex shader poses and colours each
  *                              instance from its attributes (crowd-shader.js); no other mode changes
  * @param {string}  [o.fluid]   'tank' | 'hose' | 'glob' | 'wing' | 'trail': the traveller's magical fluid (fluid-tool.js, fluid-kit.js).
@@ -1027,6 +1068,7 @@ export function makeMaterial(o) {
       uSkin: { value: new THREE.Color(o.skin ?? '#e8c6a8') },
       uGlove: { value: o.gloves ? new THREE.Vector4(...new THREE.Color(o.gloves).toArray(), 1) : new THREE.Vector4(0, 0, 0, 0) },   // w = 1 means gloved: bare hands by default
       uHero: { value: 0 },
+      uFigure: { value: o.figure || o.crowd || o.mode === MODE_OUTFIT ? 1 : 0 },
       uPortrait: { value: 0 },
       uExpression: { value: new THREE.Vector4() },
       uGaze: { value: new THREE.Vector2() },

@@ -87,7 +87,7 @@ Grouped by area. Checked items are done; the changelog says when.
   inside faces / texture).
 - [x] The drone on my back clips into the backpack.
 - [ ] Clipping pass: check that most things don't sink into surfaces.
-- [ ] Building textures and windows flicker when the camera moves.
+- [x] Building textures and windows flicker when the camera moves.
 - [x] I can't always look all the way up at the sky: the camera stops short.
 - [x] Shed / feather site: looking at the stone hand does nothing; unclear
   what to do there.
@@ -178,9 +178,9 @@ Grouped by area. Checked items are done; the changelog says when.
 
 - [x] The burning tree is one large flame, drawn with a flame shader rather than
   3D geometry.
-- [ ] Dry sand looks low resolution and pops in while moving and driving;
+- [x] Dry sand looks low resolution and pops in while moving and driving;
   redo the shader with a different look by distance.
-- [ ] Cracked ground looks fuzzy in the distance and pops in while walking;
+- [x] Cracked ground looks fuzzy in the distance and pops in while walking;
   make it a shader.
 - [x] A test level for materials: metal, rock, clouds, etc. (`?level=lab`; a real metal
   surface is still to do)
@@ -224,7 +224,7 @@ Grouped by area. Checked items are done; the changelog says when.
 
 ## Performance
 
-- [ ] Outlines of distant characters on the Retroid keep the same line width, so
+- [x] Outlines of distant characters on the Retroid keep the same line width, so
   far figures turn into dark silhouettes: thin and lighten lines with distance.
 
 - [ ] Performance pass on the Retroid Pocket, with it connected for testing.
