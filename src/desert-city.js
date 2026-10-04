@@ -5,7 +5,7 @@ import { mulberry32 } from './noise.js';
 import { STORY, processionLoop } from './desert-sites.js';
 import { cityFloor } from './desert-landmarks.js';
 import { Banner } from './life.js';
-import { Flames, FlameSheet, Embers, Smoke, SmokeColumn, FIRE, COOL_FIRE } from './story/flames.js';
+import { Flames, FlameBody, Embers, Smoke, SmokeColumn, FIRE, COOL_FIRE } from './story/flames.js';
 import { magicMaterial, magicPool, magicStream } from './story/magic-water.js';
 
 // The desert's story places (references/IMG_3772-3775: pale rose domes,
@@ -372,12 +372,12 @@ export function buildDesertCity(scene, terrain) {
       city.solid(taper([p0, p1, p2, p3], 1.3 * S, 0.5 * S, 6, 5));
       limbs.push(p3);
     }
-    // the fire: one great flame over the whole crown, its arms reaching into it (a shader, story/flames.js FlameSheet)
+    // the fire: one great 3D flame over the whole crown, its arms reaching into it (story/flames.js FlameBody)
     const treeOrigin = city.world(0, 0, 0);
     const treeGroup = new THREE.Group();
     treeGroup.position.copy(treeOrigin); treeGroup.quaternion.setFromAxisAngle(UP, C.yaw);
     root.add(treeGroup);
-    const flames = new FlameSheet(treeGroup, { at: V(TREE.x, top + 14.5 * S, TREE.z), width: 33 * S, height: 36 * S, seed: 7 });
+    const flames = new FlameBody(treeGroup, { at: V(TREE.x, top + 12 * S, TREE.z), width: 24 * S, height: 46 * S, seed: 7 });
     const crown = city.world(TREE.x, top + 30 * S, TREE.z);
     const embers = new Embers(root, [...limbs.map((p) => city.world(p.x, p.y + 5 * S, p.z)), crown], { count: 70, rise: 2.4, life: 6, spread: 3, size: 0.6, color: '#fff3c4' });
     embers.mesh.boundingSphere = new THREE.Sphere(crown.clone(), 45); embers.mesh.frustumCulled = true;

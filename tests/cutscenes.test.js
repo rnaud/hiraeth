@@ -11,7 +11,7 @@ import { THRUSTERS, exhaust, blast, BLAST_H } from '../src/ship/exhaust.js';
 import { buildApproach, planetMaterial, MARK_IDS } from '../src/ship/approach.js';
 import { PLANETS } from '../src/ship/planets.js';
 import { ArrivalDirector, APPROACH } from '../src/ship/cinematics.js';
-import { FlameSheet, FIRE, COOL_FIRE } from '../src/story/flames.js';
+import { FlameBody, FIRE, COOL_FIRE } from '../src/story/flames.js';
 
 // The ship's cutscenes and the desert's burning tree, from player feedback:
 // the planet's pattern swam during the crash; take-off and landing smoke came from
@@ -171,13 +171,14 @@ test('arriving by ship opens with a short approach from space, and holding skip 
   assert.equal(ship.parked.doorK, 1);
 });
 
-test('the burning tree is one flame drawn by a shader, and still flares and turns cool for the feast', () => {
+test('the burning tree is one great 3D flame with a living fire shader, and still flares and turns cool for the feast', () => {
   const group = new THREE.Group();
-  const f = new FlameSheet(group, { at: v(0, 20, 0), width: 40, height: 50 });
-  assert.equal(group.children.length, 1, 'one card');
-  assert.equal(f.mesh.geometry.attributes.position.count, 4, 'a quad: the flame is in the shader');
-  assert.equal(f.material.uniforms.uGlow.value, 1, 'self-lit: no shadow card');
-  assert.ok(f.material.fragmentShader.includes('gl_FragDepth'), 'a depth with volume, so the limbs go into it');
+  const f = new FlameBody(group, { at: v(0, 20, 0), width: 40, height: 50 });
+  assert.equal(group.children.length, 1, 'one flame');
+  assert.equal(f.group.children.length, 3, 'three nested shells: the red outside, the body, the pale heart');
+  for (const m of f.group.children) assert.ok(m.geometry.attributes.position.count > 400, 'a real shape, not a card');
+  assert.equal(f.material.uniforms.uGlow.value, 1, 'self-lit: it glows and casts no shadow');
+  assert.ok(f.material.vertexShader.includes('fbm3') && f.material.fragmentShader.includes('discard'), 'tongues lifted by noise, opening at the top');
   f.intensity = 2.6;
   for (let i = 0; i < 60; i++) f.update(1 / 60, i / 60);
   assert.ok(f.material.uniforms.uK.value > 2.2, 'a flare makes it bigger and hotter');

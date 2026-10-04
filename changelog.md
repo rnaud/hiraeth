@@ -34,7 +34,7 @@ The same release notes shown in the game (press **N** or open settings).
 - Arriving on a new world now starts in space: the planet grows ahead in its own colours, the ship dives into the air in a burst of fire, then falls through the sky to land.
 - The ship’s engines fire from the thrusters under the hull and blow dust out along the ground. The hatch pops out and slides up the hull, and the ramp slides out, tips down and telescopes to the ground.
 - The camera inside the ship no longer clips through walls and bunks: in tight spots it rises and looks down over your shoulder, and it no longer jumps about as you walk. You can’t walk up the curved walls any more.
-- The burning tree in Qanat is now one great drawn flame. The planet seen through the window during the crash keeps its pattern instead of swimming.
+- The burning tree in Qanat is now one great 3D flame: red, orange and white-gold tongues lick up and sway around the crown, glowing from within. The planet seen through the window during the crash keeps its pattern instead of swimming.
 - Every world’s hidden makers’ box now has its own quest: a few seconds after you land it appears in your sketchbook with where to look, tracking it sends the scout there, and opening the box finishes it.
 - In the sketchbook, finished quests are plain to see: they move under “Completed” with a green ✓ Complete stamp and how they ended, below the ones still under way.
 - The City-Shaft’s rim is easier to see across: its olive trees hold their crowns high on tall trunks, and the grove by the ship is lighter, so the people among them stand out.

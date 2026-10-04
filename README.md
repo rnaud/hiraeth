@@ -1438,7 +1438,7 @@ Pocket. Their built-in controls work through the Gamepad API.
   bands, dunes, craters, continents, windows, a ring or a moon, a rim of air), the ship dives
   into the air in a sheet of fire and a white flash, falls through the world's own sky, and
   then lands as before. Hold to skip, as ever.
-- **The burning tree** (`FlameSheet` in `src/story/flames.js`): one great flame drawn by a
+- **The burning tree** (`FlameBody (3D: three nested noise-displaced shells, torn open toward the top; was FlameSheet, a card)` in `src/story/flames.js`): one great flame drawn by a
   fragment shader on a card that turns to the camera: flat bands from a pale core to a red
   rim, inked, tongues scrolled up a noise field. It writes a depth that bulges toward the
   camera, so the tree's limbs reach into the fire. Same interface as `Flames`

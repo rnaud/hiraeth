@@ -180,7 +180,7 @@ Grouped by area. Checked items are done; the changelog says when.
 ## World, levels and materials
 
 - [ ] Plants react to the wind (sway with the world's wind direction and strength, gusts).
-- [ ] The desert tree's flame: a 3D shape (not a flat card) with a glowing, living fire
+- [x] The desert tree's flame: a 3D shape (not a flat card) with a glowing, living fire
   shader on it.
 
 - [x] The burning tree is one large flame, drawn with a flame shader rather than

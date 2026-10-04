@@ -274,6 +274,168 @@ export class FlameSheet {
   }
 }
 
+// ------------------------------------------------------------------ the great flame, in 3D
+// A real volume: three nested teardrop shells (the red outside, the orange body, the pale
+// white-gold heart low down). The vertex shader lifts and bends them with rising noise into
+// tongues that lick up and sway; the fragment shader paints flat comic bands that climb and
+// flicker, and opens holes in the outer shells toward the top so the tongues split apart and the
+// hotter layers show through. Self-lit in the G-buffer (it glows, casts no shadow, and the ink
+// pass outlines each shell like everything else).
+const BODY_NOISE = /* glsl */ `
+  float hash3(vec3 p) { return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
+  float noise3(vec3 p) {
+    vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+    return mix(mix(mix(hash3(i), hash3(i + vec3(1, 0, 0)), f.x), mix(hash3(i + vec3(0, 1, 0)), hash3(i + vec3(1, 1, 0)), f.x), f.y),
+               mix(mix(hash3(i + vec3(0, 0, 1)), hash3(i + vec3(1, 0, 1)), f.x), mix(hash3(i + vec3(0, 1, 1)), hash3(i + vec3(1, 1, 1)), f.x), f.y), f.z);
+  }
+  float fbm3(vec3 p) { float s = 0.0, a = 0.5; for (int i = 0; i < 4; i++) { s += a * noise3(p); p = p * 2.03 + 7.7; a *= 0.5; } return s; }`;
+
+const BODY_VERT = /* glsl */ `
+  uniform float uTime, uK, uSeed, uShell;
+  out vec3 vWorld;
+  out vec3 vNormalW;
+  out vec3 vObj;
+  out float vViewDepth;
+  ${BODY_NOISE}
+  void main() {
+    vec3 p = position;                       // a unit teardrop: y 0..1, radius under 0.5
+    float y = clamp(p.y, 0.0, 1.0), t = uTime;
+    vec3 out_ = vec3(p.x, 0.0, p.z);
+    float r = length(out_);
+    vec3 dir = r > 1e-4 ? out_ / r : vec3(0.0);
+    // rising turbulence: bulges and tongues climbing the sides, faster when it flares
+    float speed = 0.9 + 0.45 * uK;
+    float ang = atan(p.z, p.x);
+    // around the flame several tongues (noise in the angle), climbing (noise in height minus time)
+    vec3 q = vec3(cos(ang) * 1.6 + uSeed, y * 2.8 - t * speed, sin(ang) * 1.6 - uSeed);
+    float n = fbm3(q);
+    float ridge = 1.0 - abs(fbm3(q * 1.9 + 4.2) * 2.0 - 1.0);   // sharp crests: separate tongues
+    float lick = (n - 0.45) * (0.2 + 0.9 * y) + (ridge - 0.5) * 0.35 * y;
+    p.xz += dir.xz * lick * 0.5;
+    p.y += max(0.0, n - 0.48) * 1.1 * y * y + max(0.0, ridge - 0.6) * 0.45 * y;   // tongues reach up past the tip
+    // the whole flame sways, more at the top, and leans with the flare
+    float sway = (sin(t * 0.9 + uSeed) * 0.07 + sin(t * 2.4 + y * 4.0 + uSeed * 2.0) * 0.035) * y * y;
+    p.x += sway; p.z += sway * 0.6 * cos(uSeed);
+    vObj = vec3(position.x, y, position.z);
+    vec4 world = modelMatrix * vec4(p, 1.0);
+    vWorld = world.xyz;
+    vNormalW = normalize(mat3(modelMatrix) * normalize(normal + vec3(dir.x, 0.0, dir.z) * lick * 1.5));
+    vec4 mv = viewMatrix * world;
+    vViewDepth = -mv.z;
+    gl_Position = projectionMatrix * mv;
+  }`;
+
+const BODY_FRAG = /* glsl */ `
+  precision highp float;
+  uniform vec3 uPal[5];
+  uniform float uTime, uK, uSeed, uShell;
+  in vec3 vWorld;
+  in vec3 vNormalW;
+  in vec3 vObj;
+  in float vViewDepth;
+  layout(location = 0) out highp vec4 gAlbedoLight;
+  layout(location = 1) out highp vec4 gNormalDepth;
+  layout(location = 2) out highp vec4 gHatch;
+  ${BODY_NOISE}
+  void main() {
+    float y = vObj.y, t = uTime;
+    float a = atan(vObj.z, vObj.x);
+    // flicker: bands climbing the surface, broken by noise
+    float n = fbm3(vec3(cos(a) * 2.2 + uSeed, y * 3.6 - t * (1.5 + 0.5 * uK), sin(a) * 2.2));
+    // the outer shells are torn open, more toward the top: tongues split apart and the hotter
+    // layers show through (the red outside the most, the body less, the heart never)
+    float open = uShell < 0.5 ? 0.0 : (uShell > 1.5 ? 0.3 + 0.55 * smoothstep(0.1, 0.9, y) : 0.12 + 0.45 * smoothstep(0.2, 0.95, y));
+    if (n < open) discard;
+    // which tone: hotter toward the heart (inner shells) and low down, cooler up and at the edges
+    float heat = (2.0 - uShell) * 0.42 + (1.0 - y) * 0.35 + (n - 0.5) * 0.7 + 0.08 * (uK - 1.0);
+    float fw = fwidth(heat) + 1e-4;
+    vec3 col = uPal[4];
+    col = mix(col, uPal[3], smoothstep(0.18 - fw, 0.18 + fw, heat));
+    col = mix(col, uPal[2], smoothstep(0.4 - fw, 0.4 + fw, heat));
+    col = mix(col, uPal[1], smoothstep(0.62 - fw, 0.62 + fw, heat));
+    col = mix(col, uPal[0], smoothstep(0.84 - fw, 0.84 + fw, heat));
+    gAlbedoLight = vec4(col, 1.0);                         // full light: it is the light
+    gNormalDepth = vec4(normalize(gl_FrontFacing ? vNormalW : -vNormalW), vViewDepth);
+    gHatch = vec4(0.0, 0.0, 0.0, 1.0);                    // self-lit, no hatching
+  }`;
+
+/** A unit flame shape: a full belly low down drawn up into a point (y 0..1). */
+function flameProfile(n = 28) {
+  const pts = [];
+  for (let i = 0; i <= n; i++) {
+    const y = i / n;
+    const bulb = Math.pow(Math.sin(Math.min(y / 0.32, 1) * Math.PI / 2), 0.55);
+    const taper = Math.pow(Math.max(0, 1 - Math.max(0, y - 0.28) / 0.72), 0.95);
+    pts.push(new THREE.Vector2(Math.max(0.002, 0.5 * bulb * taper), y));
+  }
+  return pts;
+}
+
+export class FlameBody {
+  /**
+   * @param parent  the group to hang it in
+   * @param o { at: Vector3 (the base, in parent space), width, height (m), palette, seed }
+   */
+  constructor(parent, { at, width = 40, height = 50, palette = FIRE, seed = 0 } = {}) {
+    this.palA = palette.map((c) => new THREE.Color(c));
+    this.palB = this.palA.map((c) => c.clone());
+    this.pal = this.palA.map((c) => c.clone());
+    this.mix = 1;
+    this.group = new THREE.Group();
+    this.group.name = 'Flame';
+    this.group.position.copy(at);
+    this.group.userData.noCollide = true;
+    parent.add(this.group);
+    const geo = new THREE.LatheGeometry(flameProfile(), 40);
+    this.uniforms = { uPal: { value: this.pal.map((c) => c.clone()) }, uTime: { value: 0 }, uK: { value: 1 } };
+    this.materials = [];
+    // the shells: outside (0, red, open at the top), body (1), heart (2, low and pale)
+    for (const [shell, sw, sh] of [[0, 1, 1], [1, 0.78, 0.8], [2, 0.5, 0.52]]) {
+      const m = new THREE.ShaderMaterial({
+        glslVersion: THREE.GLSL3, vertexShader: BODY_VERT, fragmentShader: BODY_FRAG, side: THREE.DoubleSide,
+        uniforms: { uPal: this.uniforms.uPal, uTime: this.uniforms.uTime, uK: this.uniforms.uK,
+          uSeed: { value: seed * 1.37 + shell * 2.1 }, uShell: { value: 2 - shell }, uGlow: { value: 1 } },
+      });
+      const mesh = new THREE.Mesh(geo, m);
+      mesh.scale.set(width * sw, height * sh, width * sw);
+      mesh.userData.noCollide = true; mesh.userData.dynamic = true;
+      mesh.frustumCulled = false;   // displaced in the shader
+      this.group.add(mesh);
+      this.materials.push(m);
+    }
+    this.mesh = this.group;
+    this.material = this.materials[0];   // (shared uniforms: uPal, uTime, uK)
+    this.width = width; this.height = height;
+    this.intensity = 1;
+    this._k = 1;
+    this.time = seed * 3.1;
+    this.update(0, 0);
+  }
+
+  /** Move toward another palette over time (setPalette(COOL_FIRE)); instant lands on it at once. */
+  setPalette(p, instant = false) {
+    this.palA = this.pal.map((c) => c.clone());
+    this.palB = p.map((c) => new THREE.Color(c));
+    this.mix = 0; this.snap = instant;
+  }
+
+  update(dt) {
+    if (this.mix < 1) {
+      this.mix = this.snap ? 1 : Math.min(1, this.mix + dt / 3);
+      for (let i = 0; i < this.pal.length; i++) this.pal[i].copy(this.palA[i]).lerp(this.palB[i], this.mix);
+    }
+    const P = this.uniforms.uPal.value;
+    for (let i = 0; i < 5; i++) P[i].copy(this.pal[Math.min(i, this.pal.length - 1)]);
+    // the flare rises fast and settles slowly; the fire runs faster and grows when it is high
+    this._k += (this.intensity - this._k) * (1 - Math.exp(-(this.intensity > this._k ? 4 : 1.5) * dt));
+    this.time += dt * (0.8 + 0.35 * this._k);
+    this.uniforms.uTime.value = this.time;
+    this.uniforms.uK.value = this._k;
+    const g = 0.9 + 0.1 * this._k;
+    this.group.scale.set(g, 0.82 + 0.18 * this._k, g);
+  }
+}
+
 /** Glowing motes drifting up from points (the tree's crown, a camp fire). */
 export class Embers {
   constructor(parent, sources, { count = 120, color = '#f9d36a', rise = 2.2, life = 5, spread = 1.5, size = 0.12 } = {}) {
