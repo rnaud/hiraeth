@@ -7,6 +7,7 @@ test('the boot heartbeat flag is set after the first frame', () => {
   const win = {};
   markBooted(win);
   assert.equal(win.__moebiusBooted, true);
+  assert.equal(typeof win.__moebiusBootedAt, 'number');
   // main.js: right after the first frame(t), in the requestAnimationFrame that ends the loading
   const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
   assert.match(main, /import \{[^}]*\bmarkBooted\b[^}]*\} from '\.\/native-app\.js';/);
@@ -26,6 +27,7 @@ test('the build label', () => {
 
 function fakeApp(info) {
   const win = new EventTarget();
+  win.__moebiusBootedAt = -1e9;   // the game has been up for a while
   win.document = Object.assign(new EventTarget(), { hidden: false, createElement: () => ({ style: {}, addEventListener(t, f) { this.click = f; } }) });
   const calls = [];
   win.Capacitor = { isNativePlatform: () => true, nativePromise: (plugin, method) => { calls.push(`${plugin}.${method}`); return Promise.resolve(method === 'info' ? info : undefined); } };
@@ -36,7 +38,7 @@ function fakeApp(info) {
   installAppShell({ sound, label: () => label, toast: (t) => toasts.push(t) }, win);
   return { win, calls, label, log, toasts };
 }
-const tick = () => new Promise((r) => setTimeout(r, 0));
+const tick = () => new Promise((r) => setTimeout(r, 5));
 
 test('in the app: the label, the update toast and restart now', async () => {
   const a = fakeApp({ native: 2, app: 12, web: 14, bundle: true, ready: 15, readyVersion: '0.37' });

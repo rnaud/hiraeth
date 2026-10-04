@@ -55,7 +55,7 @@ final class WebBundles extends WebViewListener {
     static final int NATIVE_API = 2;
 
     static final String MANIFEST = "https://github.com/rnaud/moebius/releases/latest/download/web.json";
-    static final long BOOT_TIMEOUT_MS = 20000;
+    static final long BOOT_TIMEOUT_MS = 30000;   // (the full game boots in ~7-18 s on a software-GL emulator)
     private static final int MAX_TRIES = 2;
     private static final int ZIP_LIMIT = 300 * 1024 * 1024;
 

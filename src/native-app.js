@@ -20,7 +20,9 @@ const ask = (win, method) => shell(win)?.nativePromise('AppShell', method).catch
 
 /** The heartbeat the app waits for (call it after the first frame). */
 export function markBooted(win = globalThis.window) {
-  if (win) win.__moebiusBooted = true;
+  if (!win) return;
+  win.__moebiusBooted = true;
+  win.__moebiusBootedAt = win.performance?.now?.() ?? 0;
 }
 
 /** "web build 14 · app 12" (+ the update waiting for the next launch). */
@@ -48,10 +50,17 @@ export function installAppShell({ sound, label = () => null, toast = () => {} } 
       el.append(b);
     }
   };
+  // the toast waits for the game to be up, and for the "Updated to …" toast of a fresh version to pass
+  const later = (f) => {
+    const at = win.__moebiusBootedAt;
+    if (at === undefined) return setTimeout(() => later(f), 2000);
+    setTimeout(f, Math.max(0, at + 9000 - (win.performance?.now?.() ?? Infinity)));
+  };
   const ready = () => {
     if (!info?.ready || told === info.ready) return;
     told = info.ready;
-    toast(`Update ready${info.readyVersion ? ` (v${info.readyVersion})` : ''} — restart to apply`);
+    const text = `Update ready${info.readyVersion ? ` (v${info.readyVersion})` : ''} — restart to apply`;
+    later(() => toast(text));
   };
   const refresh = () => ask(win, 'info').then((i) => { if (i) { info = i; show(); ready(); } });
   refresh();
