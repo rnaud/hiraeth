@@ -1,0 +1,47 @@
+src/levels/content.js
+  s_1fd8d0e7b02dcf::t_32cd57c289c7b8 102-103,109
+src/story/arzach-data.js
+  s_1fd8d0e7b02dcf::t_8407aeb9e6ef4d 137,169
+src/story/arzach2-data.js
+  s_1fd8d0e7b02dcf::t_dc781f398547ee 92,98,277-278
+src/story/bazaar-data.js
+  s_1fd8d0e7b02dcf::t_2500340f5fd8ba 92,97,242,279,290
+src/story/buried-data.js
+  s_1fd8d0e7b02dcf::t_2292485049c881 104,339
+src/story/desert-data.js
+  s_1fd8d0e7b02dcf::t_86cedfd3c6e091 161,228,230,246,249-250,275,317,319,342,346,425,433,438-440,442-443,497,535
+src/story/edena-data.js
+  s_1fd8d0e7b02dcf::t_cfec8438565823 83,125
+src/story/garage-data.js
+  s_1fd8d0e7b02dcf::t_db88bdba415113 119
+src/story/incal-data.js
+  s_1fd8d0e7b02dcf::t_0f36a33c1fb509 94,101,186,246,377,379,392
+src/story/perdide-data.js
+  s_1fd8d0e7b02dcf::t_8c9666a848989a 82,164,209
+src/story/perdide2-data.js
+  s_1fd8d0e7b02dcf::t_a4a1de854580ce 155,198
+src/story/spheres-data.js
+  s_1fd8d0e7b02dcf::t_a12e2cd31bf65c 94
+tests/dialogue-choices.test.js
+  s_1fd8d0e7b02dcf::t_35e1b14a56bc1b 1-159
+tests/solo.test.js
+  s_1fd8d0e7b02dcf::t_32b33692ac6b86 17
+tests/story-perdide.test.js
+  s_1fd8d0e7b02dcf::t_6a23eaaf012045 132
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "06268aa95a37b5e559526300cf56ae813a5de8f7",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
