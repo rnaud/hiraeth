@@ -1,0 +1,41 @@
+README.md
+  s_1fd8d0e7b02dcf::t_1a40edfb3f4b9e 1402-1418
+src/player.js
+  s_1fd8d0e7b02dcf::t_909c2337307137 857-865
+src/story/arzach.js
+  s_1fd8d0e7b02dcf::t_bbae3ab3d8c1c6 82,85,93
+src/story/bazaar.js
+  s_1fd8d0e7b02dcf::t_50306c5f1a7324 61,64,75
+src/story/buried.js
+  s_1fd8d0e7b02dcf::t_30b866cb9b57eb 88,91,97
+src/story/desert.js
+  s_1fd8d0e7b02dcf::t_46315a7bbee0f1 189,192,195,197-198
+src/story/dialogue.js
+  s_1fd8d0e7b02dcf::t_03b6eb2b166723 3,174,205-210,212,319,340-350,352-366,368-373,376
+src/story/garage.js
+  s_1fd8d0e7b02dcf::t_4009cb0b5091a3 49,52,54-55
+src/story/index.js
+  s_1fd8d0e7b02dcf::t_dd1bed1bf7e7f4 5,64,148-173,199-200,235-240
+src/story/perdide.js
+  s_1fd8d0e7b02dcf::t_e7214462e8884e 103,106,110
+src/story/shot.js
+  s_1fd8d0e7b02dcf::t_af456fa863550e 1-258
+tests/shot.test.js
+  s_1fd8d0e7b02dcf::t_e37df4536619c0 1-98
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c3912ae794a01920918f8306605d4dab0aa73900",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
