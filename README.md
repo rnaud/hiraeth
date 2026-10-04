@@ -1006,3 +1006,28 @@ walkthroughs and local names; each data file's header lists its flags.
 | City-Shaft | carry the splinter from the bottom to the palace; the Incal brightens | "Look up once a day" (word) |
 | Signal Market | tune the antenna (three shots at once), play the recording: the father's voice | "You are not alone" (word) |
 
+### The ending (v0.34)
+- **Calls home** (`src/story/calls.js`): 11 calls, one per finished world. Each
+  call reacts to what happened, and each reaction is heard once
+  (`calls.beat.<id>`): the world just finished, clues, the bell's note, the
+  bird's promise, the people met, and quiet keepsakes compared with things.
+  After the broadcast the father deflects "Ilen"; later the mother tells the
+  truth in a call of her own.
+- **Homecoming** (`src/story/ending.js`, `src/ship/homecoming.js`): after
+  `ENDING_WORLDS` (6) worlds, a call asks you home and the galactic map shows
+  Home. The sequence:
+  1. Take off and come out of the jump in orbit.
+  2. Choose one keepsake (or nothing) at the cargo check.
+  3. Descend and land at home.
+  4. The parents react: the father according to the keepsake's kind, the mother
+     always the same.
+  5. Credits list every world and the people you met.
+
+  The choice is stored as `ending.*`, and play continues afterwards.
+  `?level=home&ending=1` replays it.
+- **Home** (`src/levels/home.js`, hidden): a dusk dome house under two moons,
+  with an umbrella tree, a washing line in the backpack's colours, and a landing
+  ring painted with the glyph. The parents are there to talk to.
+- **The bird's promise:** with `bird.promise` set, the whistle calls the Arzach
+  bird in worlds with open sky and no mount (Edena, the Garden of Spheres, Home).
+
