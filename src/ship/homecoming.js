@@ -5,6 +5,7 @@ import { R, DECK, HATCH_A } from './hull.js';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
 import { callTimeline } from './prologue.js';
 import * as sfx from './sfx.js';
+import { exhaust, footPuffs } from './exhaust.js';
 import { choiceList, chooseKeepsake, reactionLines, credits, creditsHtml, KIND_LABEL } from '../story/ending.js';
 import { HOME_SPOTS } from '../levels/home.js';
 import { CONTENT, ORDER } from '../levels/content.js';
@@ -272,7 +273,7 @@ export class HomecomingDirector {
         sfx.hum(s.sound, 1);
         // the planet outside is home: peach hills under a dusk-blue sea
         const planet = s.spaceCopy?.space.userData.planet;
-        if (planet) planet.material = makeMaterial({ color: '#eebd8e', color2: '#7f8fc8', color3: '#f2c49a', mode: MODE_STRATA, strataSize: 44 });
+        if (planet) planet.material = makeMaterial({ color: '#eebd8e', color2: '#7f8fc8', color3: '#f2c49a', mode: MODE_STRATA, strataSize: 44, strataObject: true });
         for (const n of [this.npc(0), this.npc(1)]) if (n) n.talkTo = { speaking: false };   // waiting at the door, turned to the sky
         break;
       }
@@ -391,20 +392,16 @@ export class HomecomingDirector {
         this.look.lerp(_aim, t < 0.05 ? 1 : 1 - Math.exp(-5 * dt));
         s.shot({ pos: cam, look: this.look, fov: 56 });
         const h = pk.group.position.y - s.restPos.y;
-        if (h < 26 && Math.random() < 0.45) {   // a little dust off the ring: home is grass, not sand
-          const a = Math.random() * Math.PI * 2, r = R * (0.6 + Math.random() * 0.6);
-          const at = s.restPos.clone().add(V(Math.sin(a) * r, 0, Math.cos(a) * r));
-          at.y = s.groundAt(at.x, at.z) + 0.8;
-          s.dust.emit(at, V(Math.sin(a) * 11, 2 + Math.random() * 3, Math.cos(a) * 11), 0.8 + Math.random(), 2.0, new THREE.Color(GRASS[Math.floor(Math.random() * GRASS.length)]));
-        }
-        if (t > 5.8 && !this.thud) { this.thud = true; s.shake(0.6); sfx.rumble(s.sound, 0.8, 0.4); sfx.engines(s.sound, 0); pk.mats.thrust.uniforms.uGlow.value = 0; }
+        // the jets out of the bells, a little dust blown off the ring from under them: home is grass, not sand (src/ship/exhaust.js)
+        if (!this.thud) exhaust(s, pk, dt, { power: 0.8, palette: GRASS, rate: 18 });
+        if (t > 5.8 && !this.thud) { this.thud = true; footPuffs(s, pk, { palette: GRASS, n: 4 }); s.shake(0.6); sfx.rumble(s.sound, 0.8, 0.4); sfx.engines(s.sound, 0); pk.mats.thrust.uniforms.uGlow.value = 0; }
         break;
       }
       case 'hatch': {
         const cam = this.at(-7.5, 1.7, HOME_SPOTS.door.z - 7);
         s.shot({ pos: cam, look: s.hinge.clone().lerp(s.rampFoot, 0.4).add(V(0, 1.2, 0)), fov: 46 });
-        s.setDoor(pk, smooth(seg(t, 0, 1)));
-        s.setRamp(pk, smooth(seg(t, 0.8, 2.8)));
+        s.setDoor(pk, seg(t, 0, 1.1));      // (each eases itself: it unseals and slides up, then the ramp slides out,
+        s.setRamp(pk, seg(t, 1.05, 2.95));  // tips down and telescopes to the ground)
         break;
       }
       case 'walk': {

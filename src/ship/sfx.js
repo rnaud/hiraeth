@@ -119,3 +119,20 @@ export function engines(s, k) {
   e.f.frequency.setTargetAtTime(200 + 1600 * k, t, 0.4);
   e.o.frequency.setTargetAtTime(40 + 50 * k, t, 0.4);
 }
+
+/** Out of the jump: a soft rushing swell as the planet comes up (space has no air; the cartoon does). */
+export function approach(s, dur = 2.8) {
+  if (!ok(s)) return;
+  const t = s.ctx.currentTime;
+  s.sweep(t, 60, 95, dur, 0.12, 'sine');
+  s.burst(t + 0.1, { dur, type: 'bandpass', freq: 520, q: 0.9, vol: 0.08, rate: 0.5 });
+}
+
+/** Into the air: the roar of entry, the hull crackling with fire, a deep buffeting. */
+export function reentry(s, dur = 2.2) {
+  if (!ok(s)) return;
+  const t = s.ctx.currentTime;
+  roar(s, dur + 0.6);
+  rumble(s, dur, 0.5);
+  for (let i = 0; i < 16; i++) s.burst(t + Math.random() * dur, { dur: 0.04 + Math.random() * 0.05, type: 'bandpass', freq: 1400 + Math.random() * 2600, q: 4, vol: 0.05 + Math.random() * 0.05 });
+}

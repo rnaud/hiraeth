@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 import { game } from '../game-state.js';
-import { buildShipModel, buildSpace } from './model.js';
+import { buildShipModel, buildSpace, poseRamp } from './model.js';
 import { R, RI, DECK, CEIL, LIFT, HATCH_A, HINGE_R, WINDOW, HATCH, LEG_A, SCAR } from './hull.js';
 import { polar } from './geo.js';
 import { CONSOLE_R } from './interior.js';
 import { findShipSite, siteAvoid, decorAvoid } from './sites.js';
 import { buildCrashSite } from './crash.js';
+import { buildApproach } from './approach.js';
 import { Puffs } from './fx.js';
 import { Cinema, Warp } from './cinema.js';
 import { StarMap, consoleAction } from './starmap.js';
@@ -38,6 +39,11 @@ import { PrologueDirector, ArrivalDirector, TakeoffDirector, CallDirector, OBJEC
 const Y = new THREE.Vector3(0, 1, 0);
 const rAt = (r, y) => Math.sqrt(Math.max(r * r - y * y, 0));
 const SPACE_Y = 2600;
+const DOOR_POP = 0.14;       // m the door comes out of its frame before it slides
+const DOOR_TRAVEL = 0.27;    // rad up the hull: clear of the opening
+const ease = (t) => { t = Math.min(Math.max(t, 0), 1); return t * t * (3 - 2 * t); };
+/** The door's motion for k 0 (shut) .. 1 (open): it pops out (0 .. 0.25), then slides up (0.2 .. 1), easing. */
+export function doorPhases(k) { return { pop: ease(k / 0.25), slide: ease((k - 0.2) / 0.8) }; }
 export const SMOKE = ['#f3ede0', '#e6dfd0', '#d9d1c2', '#cdc4b4'];
 
 export class Ship {
@@ -76,6 +82,19 @@ export class Ship {
   groundAt(x, z, fromY) {
     const g = this.physics.groundAt(x, fromY ?? (this.site.ground ?? 0) + 60, z, 600);
     return Number.isFinite(g) ? g : this.heightAt?.(x, z) ?? this.site.ground;
+  }
+
+  /**
+   * The ground itself at (x, z), under the parked ship as well: groundAt() from above finds the
+   * ship's own hull there (its collider stays where it is parked, even while it flies).
+   */
+  floorAt(x, z) {
+    const r = Math.hypot(x - this.restPos.x, z - this.restPos.z);
+    if (r > R + 4) return this.groundAt(x, z);
+    // from just under the hull's belly and the thrust ring (or a little above the ground near its rim)
+    const from = this.restPos.y - Math.max(r < R ? rAt(R, r) + 0.15 : 0, r < 4.4 ? 13.05 : 0, LIFT - 2.5);
+    const g = this.physics.groundAt(x, from, z, 60);
+    return Number.isFinite(g) ? g : this.heightAt?.(x, z) ?? this.groundAt(x, z);
   }
 
   place() {
@@ -159,8 +178,8 @@ export class Ship {
     if (this.crashSite) this.colliders.push(this.physics.addCollider(this.crashSite.group));
     // smoke, dust and flame
     this.smoke = new Puffs(this.scene, { count: 150, glow: 0.35, tag: 'ship-smoke', noShadow: this.noShadow });
-    this.flame = new Puffs(this.scene, { count: 70, glow: 1, tag: 'ship-flame', noShadow: this.noShadow });
-    this.dust = new Puffs(this.scene, { count: 140, glow: 0.55, tag: 'ship-dust', noShadow: this.noShadow });
+    this.flame = new Puffs(this.scene, { count: 120, glow: 1, tag: 'ship-flame', noShadow: this.noShadow });
+    this.dust = new Puffs(this.scene, { count: 220, glow: 0.55, tag: 'ship-dust', noShadow: this.noShadow });
     this.dust.drag = 1.4;
     this.smoke.lift = 0.5;
     this.smokeT = 0;
@@ -196,6 +215,37 @@ export class Ship {
     this.spaceCopy = null;
   }
 
+  /** Space round the parked ship for an arrival's approach, high over the site, with the destination planet (src/ship/approach.js). */
+  buildApproach() {
+    if (this.approach) return this.approach;
+    const a = buildApproach(this.levelId);
+    a.centre = new THREE.Vector3(this.site.x, SPACE_Y, this.site.z);
+    a.group.position.copy(a.centre);
+    this.scene.add(a.group);
+    this.noShadow.push(a.group);
+    this.approach = a;
+    return a;
+  }
+
+  removeApproach() {
+    const a = this.approach;
+    if (!a) return;
+    a.group.removeFromParent();
+    const k = this.noShadow.indexOf(a.group);
+    if (k >= 0) this.noShadow.splice(k, 1);
+    this.approach = null;
+  }
+
+  /** The ground's own colours, lightened a little: for the dust the engines raise. */
+  dustColors() {
+    if (this._dust) return this._dust;
+    const U = this.level.ground?.mesh?.material?.uniforms;
+    const base = U?.uColor ? [U.uColor.value, U.uColor2?.value ?? U.uColor.value, U.uColor3?.value ?? U.uColor.value] : null;
+    const white = new THREE.Color('#fff6e4');
+    this._dust = base ? [...base, base[0]].map((c, i) => '#' + c.clone().lerp(white, 0.3 + 0.08 * i).getHexString()) : ['#e3c58f', '#d8b884', '#efd29b', '#cfa877'];
+    return this._dust;
+  }
+
   syncLights(model, on = !model.lightsOff) {
     model.group.updateMatrixWorld(true);
     for (const v of model.lightVecs) {
@@ -227,26 +277,23 @@ export class Ship {
     if (model === this.parked) this.powerState = state;
   }
 
-  /** k = 0 shut .. 1 open (slid up the hull). */
+  /**
+   * k = 0 shut .. 1 open. The door first unseals, popping a hand's width out of the frame
+   * (its inner skin then sits inside the hull's thickness), then slides up over the curve of
+   * the hull on its track (a turn about the ship's axis, so it never passes through the hull).
+   */
   setDoor(model, k) {
-    model.door.rotation.z = 0.25 * k;
+    const { pop, slide } = doorPhases(k);
+    const a = DOOR_TRAVEL * slide, out = DOOR_POP * pop;
+    model.door.rotation.z = a;
+    model.door.position.set(Math.cos(a) * out, Math.sin(a) * out, 0);
     model.doorK = k;
   }
 
-  /** k = 0 stowed .. 0.5 slid out level .. 1 lowered to the ground. */
+  /** k = 0 stowed .. 1 lowered to the ground: it slides out, tips down, telescopes out (src/ship/model.js poseRamp). */
   setRamp(model, k) {
-    const r = model.ramp;
-    if (!r) return;
-    r.visible = k > 0.01;
-    const L = r.userData.length;
-    if (k < 0.5) {
-      r.quaternion.identity();
-      r.scale.set(Math.max(0.02, k * 2), 1, 1);
-    } else {
-      r.scale.set(1, 1, 1);
-      r.quaternion.identity().slerp(r.userData.deployed, (k - 0.5) * 2);
-    }
-    void L;
+    if (!model.ramp) return;
+    poseRamp(model.ramp, k);
     model.rampK = k;
   }
 

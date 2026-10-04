@@ -1289,3 +1289,36 @@ Pocket. Their built-in controls work through the Gamepad API.
   conversation and stay up while A turned the pages under it. It is now drawn and kept in
   the sketchbook at once, and opens when the conversation closes (`story.waitFor`); a
   controller press goes to whatever is on top (`menuRoot`).
+
+### The ship's cutscenes and the burning tree
+- **The close camera in the ship** (`CameraRig` in `src/player.js`): close in, the arm is
+  checked with a cone of five rays (`coneClear`), not one, so it can't slip between a bunk's
+  posts; the lens is then pushed out of anything within `LENS_R` (a sphere cast with
+  `physics.pushCapsule`). Where a wall cuts the arm short the camera climbs up under the
+  ceiling and looks down (`INDOOR_PITCHES`, picked for the room each gives, eased), and when
+  you aren't turning it, it swings round to the nearest side with room (`swingClear`). The
+  shoulder offset and the pitch are eased, so walls beside you no longer shake the view. An
+  invisible skirting at the foot of the curved hull (`SKIRT`, `src/ship/model.js`) stops the
+  step-up walking you up the wall. `tests/ship-camera.test.js` turns round at spots aboard.
+- **Planets that turn** (`strataObject` in `src/materials.js`): strata bands in the object's
+  own space, for the prologue's planet seen through the window as the ship tumbles.
+- **Engines** (`src/ship/exhaust.js`): flame out of the three bells under the hull
+  (`THRUSTERS`) and, where the jets meet the ground, dust in the ground's own colours blown
+  flat out from under the ship, stronger the lower it is (`blast`); a puff under each foot
+  on touchdown and lift-off. `Ship.floorAt` finds the ground from under the hull (from above,
+  the parked ship's own collider is in the way).
+- **The hatch** (`setDoor`, `setRamp`): the door pops out of its frame, then slides up the
+  hull on its track (a turn about the ship's axis, so it never passes through it); the ramp
+  is nested sections that slide out of the doorway, tip down on the hinge, then telescope to
+  the ground one after another (`rampPhases`, `poseRamp`). Each phase eases.
+- **The approach from space** (`ArrivalDirector`, `src/ship/approach.js`): an arrival opens
+  with ~7 s (`APPROACH`) out in space: the destination planet grows ahead in the galactic
+  map's colours and mark (a shader writing the G-buffer: flat body, a hatched crescent,
+  bands, dunes, craters, continents, windows, a ring or a moon, a rim of air), the ship dives
+  into the air in a sheet of fire and a white flash, falls through the world's own sky, and
+  then lands as before. Hold to skip, as ever.
+- **The burning tree** (`FlameSheet` in `src/story/flames.js`): one great flame drawn by a
+  fragment shader on a card that turns to the camera: flat bands from a pale core to a red
+  rim, inked, tongues scrolled up a noise field. It writes a depth that bulges toward the
+  camera, so the tree's limbs reach into the fire. Same interface as `Flames`
+  (`intensity` for the flares, `setPalette(COOL_FIRE)` for the feast).
