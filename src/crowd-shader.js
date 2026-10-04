@@ -1,3 +1,6 @@
+import * as THREE from 'three';
+import { EYE_WHITE } from './eyes.js';
+
 // GPU-animated crowd figures: the vertex shader poses each instance from a few
 // per-instance attributes, so hundreds of people walk, talk, lean and sit
 // without any CPU skinning. Used by the G-buffer material (makeMaterial({ crowd: true }))
@@ -18,18 +21,19 @@
 //   aLook1  hat, accent, hair, body = bulk (0..3) + 4 * sleeveless + 8 * cloth pattern (TRIM_IDS) + 128 * robe hem radius (cm)
 //   aDress  headwear + 32 * short hair under it, mask + 8 * chest piece + 128 * prop,
 //           cape length (m) + 2 * cape width (tenths), robe length (m below the belt, 0 none) — costumes.js packDress
-//   aBody   female (0 / 1), shoulder width, girth (costumes.js packBody: the build); the height is the instance scale
+//   aBody   female (0 / 1), shoulder width, girth (costumes.js packBody: the build), iris colour 0xRRGGBB; the height is the instance scale
 // A piece that isn't worn collapses to a point (zero-area triangles): every world bakes only its own
 // pieces into its figure (crowd.js figureGeometry), so the vertex count stays small.
 
 export const CROWD_POSES = { stand: 0, walk: 1, rail: 2, sit: 3, kerb: 4, stumble: 5, wall: 6 };
-export const CROWD_ZONES = { skin: 0, cloak: 1, cloth: 2, legs: 3, boots: 4, hat: 5, accent: 6, hair: 7, lining: 8, belt: 9, cuff: 10, dark: 11, metal: 12, wood: 13, lamp: 14 };
+export const CROWD_ZONES = { skin: 0, cloak: 1, cloth: 2, legs: 3, boots: 4, hat: 5, accent: 6, hair: 7, lining: 8, belt: 9, cuff: 10, dark: 11, metal: 12, wood: 13, lamp: 14, eye: 15 };
 export const CROWD_PARTS = { torso: 0, head: 1, thighL: 2, thighR: 3, shinL: 4, shinR: 5, armL: 6, armR: 7, foreL: 8, foreR: 9, cape: 10, robe: 11 };
 /** aRig.z slots (see above). */
 export const CROWD_SLOTS = { always: 0, head: 1, mask: 2, body: 3, prop: 4, cape: 5, robe: 6, hairCap: 7 };
 /** Joint pivots in figure space (metres, scale 1). */
 export const CROWD_JOINTS = { hip: 0.95, hipX: 0.09, knee: 0.5, shoulder: 1.43, shoulderX: 0.2, elbow: 1.13, neck: 1.5, collar: 1.45 };
 
+const eyeWhite = (() => { const c = new THREE.Color(EYE_WHITE); return `vec3(${c.r.toFixed(4)}, ${c.g.toFixed(4)}, ${c.b.toFixed(4)})`; })();
 export const CROWD_GLSL = /* glsl */ `
   in vec4 aRig;
   in vec4 aAnim;
@@ -40,6 +44,7 @@ export const CROWD_GLSL = /* glsl */ `
   in vec4 aBody;
   uniform float uTime;
   flat out vec4 vCrowdTrim;   // the tunic's printed pattern: accent colour, pattern id (0 none)
+  flat out vec4 vCrowdEye;    // the eyes: iris colour, w = 1 (open; the fragment shader draws them, eyes.js), 0 not an eye
 
   vec3 crowdRGB(float f) {
     float r = floor(f / 65536.0); f -= r * 65536.0;
@@ -238,7 +243,12 @@ export const CROWD_GLSL = /* glsl */ `
       : zone == 4 ? vec3(0.431, 0.247, 0.172) : zone == 5 ? crowdRGB(aLook1.x) : zone == 6 ? crowdRGB(aLook1.y)
       : zone == 7 ? crowdRGB(aLook1.z) : zone == 8 ? vec3(0.169, 0.129, 0.122) : zone == 9 ? legs * 0.6 + vec3(0.33, 0.24, 0.1)
       : zone == 10 ? cloak * 0.75 : zone == 11 ? vec3(0.169, 0.129, 0.122) : zone == 12 ? vec3(0.663, 0.643, 0.576)
-      : zone == 13 ? vec3(0.541, 0.376, 0.251) : vec3(1.0, 0.851, 0.541);
+      : zone == 13 ? vec3(0.541, 0.376, 0.251) : zone == 15 ? ${eyeWhite} : vec3(1.0, 0.851, 0.541);
+    // the eyes: a white almond with the iris on it, or shut (skin) while they blink, every few seconds
+    float blinkT = mod(uTime + seed * 37.0, 2.6 + seed * 3.4);
+    bool shut = zone == 15 && blinkT < 0.13;
+    if (shut) col = skin;
+    vCrowdEye = vec4(aBody.w > 0.5 ? crowdRGB(aBody.w) : vec3(0.37, 0.23, 0.14), zone == 15 && !shut ? 1.0 : 0.0);
     // the pattern on the tunic (drawn by the fragment shader: TRIM_GLSL)
     vCrowdTrim = vec4(crowdRGB(aLook1.y), zone == 2 && part == 0 && slot == 0 ? trim : 0.0);
   }

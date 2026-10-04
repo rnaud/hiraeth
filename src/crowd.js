@@ -192,7 +192,8 @@ export function figureGeometry(detail = 'mid', world = null) {
     add(at(new C.CylinderGeometry(0.036, 0.03, 0.25, 5, 1, true), s * 0.2, 1.005, 0), L ? P.foreL : P.foreR, Z.cloth);
     add(at(new C.CylinderGeometry(0.04, 0.04, 0.05, 5, 1, true), s * 0.2, 0.9, 0), L ? P.foreL : P.foreR, Z.cuff);
     add(at(new C.SphereGeometry(0.044, 5, 4), s * 0.2, 0.845, 0.005), L ? P.foreL : P.foreR, Z.skin);
-    add(at(new C.BoxGeometry(0.034, 0.011, 0.012).rotateZ(s * 0.18), s * 0.031, 1.672, 0.092), P.head, Z.lining);
+    // an eye: a flat almond lying on the face, tilted up at the outer corner (the shader draws the white and the iris, eyes.js)
+    add(at(new C.CircleGeometry(1, 10).scale(0.017, 0.0068, 1).rotateZ(s * 0.18).rotateY(s * 0.45), s * 0.031, 1.672, 0.0935), P.head, Z.eye);
   }
   // tunic: a long figure, slim waist, a short flare over the trousers
   const prof = [[0.158, 0.86], [0.15, 0.95], [0.132, 1.03], [0.15, 1.22], [0.165, 1.35], [0.12, 1.465], [0.05, 1.49]].map(([r, y]) => new C.Vector2(r, y));

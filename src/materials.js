@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { PORTRAIT_GLSL } from './face.js';
+import { EYE_TILT } from './eyes.js';
 import { CREASE_GLSL } from './creases.js';
 import { BIOME_GLSL } from './biome.js';
 import { CROWD_GLSL, TRIM_GLSL } from './crowd-shader.js';
@@ -29,6 +30,7 @@ export const MODE_STRATA = 2;
 export const MODE_WATER = 3;
 export const MODE_OUTFIT = 4;
 export const MODE_RIBBON = 5;   // hover trail: flat colour bands along aFold.x   // skinned people: clothes by body region (rest pose)
+export const MODE_EYE = 6;      // a person's eyeballs: white, iris (uColor2) and pupil following uEyeLook, lids (uSkin) blinking (eyes.js)
 
 export const sharedUniforms = {
   uSunDir: { value: new THREE.Vector3(0.5, 0.6, 0.3).normalize() },
@@ -266,6 +268,12 @@ const fragmentShader = /* glsl */ `
   #endif
   ${TRIM_GLSL}
   uniform vec4 uFace;     // eyeY, eyeX, noseY, chinY (rest pose)
+  uniform vec4 uEyeC;     // MODE_EYE: eyeball centre (|x|, y, z, bind space), w = the iris radius on the unit eye
+  uniform vec4 uEyeR;     // MODE_EYE: eyeball radii: x, above the centre, below it, z
+  uniform vec4 uEyeLook;  // MODE_EYE: where the eyes look (unit, bind space; +z ahead), w = blink (0 open, 1 shut)
+  #ifdef CROWD
+    flat in vec4 vCrowdEye;   // the crowd's almond eyes: iris colour, w = 1 (open) / 0 (not an eye)
+  #endif
   uniform vec3 uPalette[12];
   uniform int uPaletteSize;
 
@@ -599,6 +607,36 @@ const fragmentShader = /* glsl */ `
   ${PORTRAIT_GLSL}
   ${CREASE_GLSL}
 
+  // A person's eyeball (MODE_EYE): the point's direction on the round eye, measured in the frame
+  // of the gaze, places the iris; the lid comes down from the top as they blink.
+  vec3 eyeball(vec3 b, vec3 white, vec3 iris, vec3 skin) {
+    float side = b.x < 0.0 ? -1.0 : 1.0;
+    vec3 q = b - vec3(side * uEyeC.x, uEyeC.y, uEyeC.z);
+    vec3 d = normalize(q / vec3(uEyeR.x, q.y > 0.0 ? uEyeR.y : uEyeR.z, uEyeR.w));
+    vec3 g = normalize(uEyeLook.xyz);
+    vec3 gx = normalize(vec3(g.z, 0.0, -g.x)), gy = cross(g, gx);
+    vec2 e = vec2(dot(d, gx), dot(d, gy)) / uEyeC.w;
+    float px = max(length(vec2(dFdx(e.x), dFdy(e.x))), length(vec2(dFdx(e.y), dFdy(e.y))));
+    vec4 ir = eyeIris(e, px, iris, white);
+    vec3 c = mix(white, ir.rgb, ir.a * step(0.0, dot(d, g)));
+    // a pixel or so across: the whole eye one dark mark
+    c = mix(mix(iris, EYE_INK, 0.7), c, smoothstep(0.8, 1.8, 1.0 / max(px, 1e-4)));
+    // blinking: the lid (skin) closes from the top, its edge inked
+    // (the model's lids open on the lower part of the ball: from d.y 0.15 down to -0.55)
+    float lid = mix(0.18, -0.62, uEyeLook.w), dy = d.y - lid, fy = max(fwidth(d.y), 1e-4);
+    c = mix(c, skin, smoothstep(-fy * 0.5, fy * 0.5, dy));
+    c = mix(c, EYE_INK, (1.0 - smoothstep(fy * 0.7, fy * 1.7, abs(dy))) * step(0.02, uEyeLook.w));
+    return c;
+  }
+  #ifdef CROWD
+  // The crowd's eyes: a small almond (figure space, mirrored: x = |x|), a dot of the iris on the white.
+  vec3 crowdEye(vec2 l, float px, vec3 white, vec3 iris) {
+    vec4 ir = eyeIris(l / 0.0058, px / 0.0058, iris, white);
+    vec3 c = mix(white, ir.rgb, ir.a);
+    return mix(mix(iris, EYE_INK, 0.7), c, smoothstep(0.7, 1.6, 0.0058 / max(px, 1e-5)));
+  }
+  #endif
+
   ${GROUND_GLSL}
 
   // Sparse, surface-anchored pen strokes. Their physical length stays fixed;
@@ -820,6 +858,12 @@ const fragmentShader = /* glsl */ `
     float foldU = vFold.x * uFolds;
     float foldFw = fwidth(foldU);
     float fwBind = max(fwidth(vBind.y), fwidth(vBind.x)) / max(uPixelRatio, 1e-3);
+    #ifdef CROWD
+      // the crowd's eye almond, in its own frame (crowd.js: tilted 0.18 rad up at the outer corner)
+      vec2 crowdL = mat2(0.9838, -0.1790, 0.1790, 0.9838) * vec2(abs(vBind.x) - 0.031, vBind.y - 1.672);
+      crowdL.x *= vBind.x < 0.0 ? -1.0 : 1.0;   // unmirrored: the highlight on the same side in both
+      float crowdPx = max(fwidth(crowdL.x), fwidth(crowdL.y));
+    #endif
     // drawn-detail coordinates + derivatives (uniform control flow)
     float faceX = abs(on.x) > abs(on.z) ? vObjPos.z : vObjPos.x;     // horizontal coord on a side face
     float fissFw = fwidth(faceX) / 9.0;
@@ -895,6 +939,8 @@ const fragmentShader = /* glsl */ `
       else if (b.y < uOutfit.y) albedo = uColor2;
       else if (ax > uOutfit.w - 0.05) albedo = uColor * 0.75;     // cuffs
       else albedo = uTrim.w > 0.5 ? outfitTrim(uColor, uTrim.rgb, uTrim.w, b) : uColor;
+    } else if (uMode == ${MODE_EYE}) {
+      albedo = eyeball(vBind, uColor, uColor2, uSkin);
     } else if (uMode == ${MODE_WATER}) {
       // two flat tones drifting slowly
       float w = vnoise(vWorldPos.xz * 0.012 + uTime * 0.01);
@@ -911,7 +957,10 @@ const fragmentShader = /* glsl */ `
     albedo *= instColor;
     #ifdef CROWD
       if (vCrowdTrim.w > 0.5) albedo = outfitTrim(albedo, vCrowdTrim.rgb, vCrowdTrim.w, vBind);
+      if (vCrowdEye.w > 0.5) albedo = crowdEye(crowdL, crowdPx, albedo, vCrowdEye.rgb);
     #endif
+    // the traveller's drawn eyes: the white and the iris inside the lids (face.js)
+    if (uPortrait > 0.5) albedo = portraitEyes(vBind, albedo);
     // cloth: the colour runs from the collar (uColor) down to the hem (uColor2)
     // cloth in flat blocks of colour, like a printed plate: the body colour, then a hem band
     if (uFolds > 0.0) albedo = (vFold.y < 0.62 ? uColor : uColor2) * vInstColor;
@@ -1067,6 +1116,8 @@ const cache = new Map();
  * @param {number}  [o.glow]    0..1 self-lit
  * @param {THREE.Side} [o.side]
  * @param {boolean} [o.figure]  part of a person: post.js draws its outline and inner ink by its size on screen
+ * @param {object}  [o.eye]     MODE_EYE: the eyeballs (eyes.js eyeballOf: { center, radii }, iris: its radius on the unit eye)
+ * @param {string}  [o.iris]    the traveller's portrait face: its iris colour (face.js)
  * @param {number}  [o.sway]    instanced plants: the tip moves this much (m) per metre² of height (the base stays put)
  * @param {boolean} [o.crowd]   instanced crowd figures: the vertex shader poses and colours each
  *                              instance from its attributes (crowd-shader.js); no other mode changes
@@ -1113,6 +1164,10 @@ export function makeMaterial(o) {
       uPortrait: { value: 0 },
       uExpression: { value: new THREE.Vector4() },
       uGaze: { value: new THREE.Vector2() },
+      uIris: { value: new THREE.Color(o.iris ?? '#4f7896') },
+      uEyeC: { value: new THREE.Vector4(...(o.eye?.center ?? [0.034, 1.7, 0.066]), o.eye?.iris ?? 0.44) },
+      uEyeR: { value: new THREE.Vector4(...(o.eye?.radii ?? [0.015, 0.015, 0.015, 0.015])) },
+      uEyeLook: { value: new THREE.Vector4(0, -Math.sin(EYE_TILT), Math.cos(EYE_TILT), 0) },
       uHeadBall: { value: new THREE.Vector4(...(o.headBall ?? [0, 0, 0, 0])) },
       uCreases: { value: o.creases ? 1 : 0 },
       uPalette: { value: Array.from({ length: 12 }, (_, i) => new THREE.Color(o.palette?.[i] ?? 0)) },
@@ -1159,7 +1214,7 @@ export function markHero(root, copies = new Map()) {
         Object.assign(copy.uniforms, sharedUniforms);
         copy.uniforms.uHero.value = 1;
         if (material.uniforms.uPortrait.value) {
-          for (const key of ['uPortrait', 'uExpression', 'uGaze']) copy.uniforms[key] = material.uniforms[key];
+          for (const key of ['uPortrait', 'uExpression', 'uGaze', 'uIris']) copy.uniforms[key] = material.uniforms[key];
         }
         copies.set(material, copy);
       }

@@ -3,7 +3,7 @@ import { buildCharacter } from './player.js';
 import { Cape } from './cape.js';
 import { Animator } from './animator.js';
 import { Humanoid } from './humanoid.js';
-import { makeMaterial, sharedUniforms, MODE_OUTFIT } from './materials.js';
+import { makeMaterial, sharedUniforms, MODE_OUTFIT, MODE_EYE } from './materials.js';
 import { registerTarget } from './targets.js';
 import { mulberry32 } from './noise.js';
 import { namedLook, costumeWorld, TRIM_IDS, BUILDS } from './costumes.js';
@@ -39,6 +39,14 @@ export const SPLASHED = ['~angry~ Hey! I\u2019m soaked!', '~surprised~ Ugh, it\u
 export const SHOVED = ['~surprised~ Whoa! Watch it!', '~angry~ Oof! Hey!', '~angry~ Mind where you push!', '~scared~ Easy, traveller!'];
 export const SINGED = ['~shout~ Hot! Hot!', '~surprised~ Yow! That’s warm!', '~surprised~ My cloak! …oh. It doesn’t burn?', '~angry~ Sparks! Who’s throwing sparks?'];
 const STUN_FOR = 3.5;   // seconds a stilling glob holds them (fluid-kit.js STUN_SECONDS)
+
+const _face = new THREE.Vector3();
+/** Where the player's eyes are (the traveller's head, or about there), for people to look at. */
+function faceOf(player) {
+  const head = player.humanoid?.b?.Head;
+  if (head) return head.getWorldPosition(_face).addScaledVector(player.frame?.up ?? Y, 0.09);
+  return _face.copy(player.pos).addScaledVector(player.frame?.up ?? Y, 1.6);
+}
 
 export class NPC {
   /**
@@ -156,7 +164,8 @@ export class NPC {
           if (!this._mats.has(o.material)) {
             const m = o.material.clone();
             Object.assign(m.uniforms, sharedUniforms);
-            m.userData.role = m.uniforms.uMode.value === MODE_OUTFIT ? 'body' : m.uniforms.uColor.value.getHex() === ink ? 'eyes' : 'brows';
+            const mode = m.uniforms.uMode.value;
+            m.userData.role = mode === MODE_OUTFIT ? 'body' : mode === MODE_EYE || m.uniforms.uColor.value.getHex() === ink ? 'eyes' : 'brows';
             m.userData.wrist = m.uniforms.uOutfit.value.w;
             this._mats.set(o.material, m);
           }
@@ -173,6 +182,7 @@ export class NPC {
           u.uSuit.value = (s.bulk ?? 0) >= 2 ? 1 : 0;                       // the dome people's padded suits
           u.uOutfit.value.w = s.sleeveless ? 0.2 : m.userData.wrist;      // bare arms in the garden
         } else if (m.userData.role === 'brows') u.uColor.value.set(s.hair);
+        else if (m.userData.role === 'eyes' && s.eyes) { u.uColor2.value.set(s.eyes); u.uSkin.value.set(s.skin); }   // their own iris; the lids in their skin
       }
       h.setBuild(s.build);   // a crowd body takes its person's build
       h.dress(s);
@@ -361,6 +371,8 @@ export class NPC {
       this.object.position.y += (0.05 - 0.95) * s;
     }
     if (camera.position.distanceTo(this.pos) < 160) this.humanoid?.update();
+    // the eyes: on the player's face when they are near (or talking), else looking around
+    if (this.humanoid && camera.position.distanceTo(this.pos) < 40) this.humanoid.updateEyes(dt, this.talkTo || dist < 10 * Math.max(1, this.object.scale.x) ? faceOf(player) : null);
 
     // cloth only near the camera
     const camD = camera.position.distanceTo(this.pos);
@@ -416,6 +428,7 @@ export class NPC {
       this.object.position.y += ((p.pose === 3 ? 0.03 : 0.05) - 0.95) * p.size;
     }
     this.humanoid?.update();
+    this.humanoid?.updateEyes(dt, dist < 8 ? faceOf(player) : null);
     const camD = camera.position.distanceTo(p.pos);
     if (this.cape) this.cape.mesh.visible = true;
     // the cloth is the costly part: every other frame unless right by the camera
