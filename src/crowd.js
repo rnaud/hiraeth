@@ -3,6 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, sharedUniforms } from './materials.js';
 import { CROWD_GLSL, CROWD_POSES as POSE, CROWD_ZONES as Z, CROWD_PARTS as P, CROWD_SLOTS as SLOT } from './crowd-shader.js';
 import { COSTUMES, HEADS as HEADWEAR, MASKS, BODIES, PROPS, HEAD_IDS, MASK_IDS, BODY_IDS, PROP_IDS, CROWD_FRAMES, hairCap, crowdLook, packDress, packBody, costumeWorld } from './costumes.js';
+import { KNOCKOVER } from './ragdoll.js';
 import { registerTarget } from './targets.js';
 import { mulberry32 } from './noise.js';
 import { formatText } from './story/dialogue.js';
@@ -848,7 +849,8 @@ export class Crowd {
     active.sort((a, b) => b.person._dCam - a.person._dCam);
     for (const e of active) {
       if (budget.n <= 0) break;
-      if (e.person._dCam > nearOut || active.filter((x) => x.person).length > cap) { this.demote(e); budget.n--; }
+      // (someone knocked over keeps their body until they are up again, unless it is far away: no popping up mid-fall)
+      if (e.npc.down ? e.person._dCam > nearOut + 12 : e.person._dCam > nearOut || active.filter((x) => x.person).length > cap) { this.demote(e); budget.n--; }
     }
     if (budget.n <= 0 || !this.pool.length) return;
     // promote: the closest candidates first
@@ -925,7 +927,14 @@ export class Crowd {
       for (const m of p.group?.members ?? []) if (m !== p && t >= m.stumbleUntil) { m.lookUntil = t + 3.5; m.startleT = t + 0.1 + this.rng() * 0.25; }
       return;
     }
-    if (mode === 'push' && upright) {
+    if (mode === 'push' && upright && p.npc && (info?.strength ?? 1) >= KNOCKOVER.strength && p.npc.knockDown?.(dir, info)) {
+      // close by, with a body of their own (the near tier): knocked right over (npc.js, a ragdoll);
+      // they stay "stumbling" until it has them back up (holdShove)
+      p.stumbleUntil = t + 30; p.stumbleT = t; p.talk = 0;
+      p.faceUntil = t + 30;
+      p.say = pick(SHOVE_LINES);
+      p.shoutUntil = t + 3.5;
+    } else if (mode === 'push' && upright) {
       this.shove(p, dir, (info?.shove ?? 2.4) * (0.6 + 0.4 * (info?.strength ?? 1)));
       p.stumbleUntil = t + 0.9; p.stumbleT = t; p.talk = 0;
       p.faceUntil = t + 3.6;
@@ -950,6 +959,25 @@ export class Crowd {
     }
     if (p.walk?.partner) p.walk.partner.lookUntil = t + 3;
     if (!p.npc && p.say) this.shout = p;
+  }
+
+  /**
+   * A near-tier body knocked over (npc.js knockDown) keeps its person where it
+   * lies: the shove offset is held at the body's place `at` while `down`; once
+   * it is up again the offset eases away as usual (they walk back to their
+   * place) and they glare at the traveller a moment.
+   */
+  holdShove(p, at, down, heading) {
+    const t = this.time;
+    if (heading !== undefined) p.heading = heading;
+    const home = _w.copy(p.pos);
+    if (p.shoved) home.sub(p.shoved);
+    const d = _d.subVectors(at, home); d.y = 0;
+    const L = d.length();
+    p.shoveDir = (p.shoveDir ?? new THREE.Vector3()).copy(L > 1e-4 ? d.divideScalar(L) : d.set(1, 0, 0));
+    p.shoveDist = L;
+    if (down) { p.shoveT = t - 1; p.stumbleUntil = t + 30; p.faceUntil = t + 30; }
+    else { p.shoveT = t - 1.8; p.stumbleUntil = t; p.faceUntil = t + 2.5; }
   }
 
   /** Knock someone dist metres along dir (flattened), never into a wall. */

@@ -747,7 +747,7 @@ export class FluidTool {
   /** Can the arm come up right now? Not without the backpack (or with it in a vehicle), while gliding, climbing, on the jets, in menus and photo mode. */
   allowed(paused) {
     const p = this.player;
-    return !paused && this._enabled && !!p && this.worn && !p.gliding && !p.climbing && !p.mantle && !p.thrusting && p.object?.visible !== false;
+    return !paused && this._enabled && !!p && this.worn && !p.gliding && !p.climbing && !p.mantle && !p.thrusting && !p.down && p.object?.visible !== false;   // (nor knocked down)
   }
 
   /** World position of the nozzle's mouth (or the chest if the traveller has no bracer). */

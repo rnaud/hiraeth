@@ -5,6 +5,7 @@ import { Gear } from './gear.js';
 import { items as sharedItems } from './items.js';
 import { HANDOFF } from './fluid-kit.js';
 import { inTightRoom } from './interiors.js';
+import { Knockdown, toppleVelocities } from './ragdoll.js';
 
 const RADIUS = 0.45;
 const STEP = 0.6;    // obstacles lower than this are stepped onto
@@ -21,15 +22,19 @@ const JET_MAX_UP = 15;
 const JET_DRAIN = 0.1;     // fuel per second (~10 s of thrust), when no backpack tool burns its fluid (tests)
 const JET_REFILL = 0.55;
 /**
- * Health and falls. Landing faster than FALL.safe (m/s into the ground, about a
- * 4.5 m drop) hurts, up to the whole bar at FALL.lethal (about a 22 m drop).
- * After FALL.wait s without a hurt it comes back at FALL.regen a second.
+ * Health and falls (speeds in m/s into the ground: a drop of h m lands at
+ * about √(64 h)). Up to
+ * FALL.tumble (~10 m) a landing costs nothing; harder ones knock you over into
+ * a ragdoll tumble (src/ragdoll.js), you lie a moment and get up, and the bar
+ * takes a little (fallDamage, never all of it). Only FALL.lethal (~36 m) or
+ * more is fatal: you lie there and the game asks to restart. After FALL.wait s
+ * without a hurt the bar comes back at FALL.regen a second.
  */
-export const FALL = { safe: 17, lethal: 38, wait: 4, regen: 0.12 };
+export const FALL = { tumble: 26, lethal: 48, worst: 0.6, wait: 4, regen: 0.12 };
 /** Wedged in mid-air (Player.unhang): never more than `reach` m from where it began for `time` s, while nothing held you up. */
 export const HANG = { time: 1.0, reach: 0.35 };
-/** The share of the health bar a landing at `speed` (m/s into the ground) takes. */
-export const fallDamage = (speed) => Math.min(1, Math.max(0, (speed - FALL.safe) / (FALL.lethal - FALL.safe)));
+/** The share of the health bar a landing at `speed` (m/s into the ground) takes: nothing short of a tumble, up to FALL.worst, all of it at FALL.lethal. */
+export const fallDamage = (speed) => speed >= FALL.lethal ? 1 : FALL.worst * Math.max(0, (speed - FALL.tumble) / (FALL.lethal - FALL.tumble)) ** 2;
 
 function part(geo, color, opts = {}) {
   return new THREE.Mesh(geo, makeMaterial({ color, ...opts }));
@@ -497,6 +502,7 @@ export class Player {
 
   respawn(to) {
     if (this.ride) this.dismount(true);
+    this.down = null;
     this.boarding = this.unboarding = null;
     this.pos.copy(to ?? this.opts.spawn);
     this.vel.set(0, 0, 0);
@@ -516,35 +522,126 @@ export class Player {
   }
 
   /**
-   * Take a hurt (0..1 of the bar). At nothing left you are knocked out: back where you
-   * last stood safely, whole again (opts.onKnockout). opts.onHurt(amount, why) hears every one.
+   * Take a hurt (0..1 of the bar). At nothing left you are knocked out: you
+   * go limp where you are (a ragdoll, src/ragdoll.js) and stay down until
+   * restart() (the game asks: main.js), which puts you back where you last
+   * stood safely, whole again. opts.onHurt(amount, why) hears every hurt,
+   * opts.onKnockout(why) the knockout. Nothing hurts the dead.
    */
   hurt(amount, why = 'hit') {
-    if (!(amount > 0) || this.opts.health === false) return;
+    if (!(amount > 0) || this.opts.health === false || this.down?.dead) return;
     this.health = Math.max(0, (this.health ?? 1) - amount);
     this.hurtAt = this._clock ?? 0;
     this.opts.onHurt?.(amount, why);
-    if (this.health <= 0) this._knockout = why;   // (handled at the start of the next frame, not mid-landing)
+    if (this.health <= 0) {
+      if (this.down) { this.down.dead = true; this.opts.onKnockout?.(why); }
+      else this._knockout = why;   // (handled at the start of the next frame, not mid-landing)
+    }
   }
 
-  /** Knocked out: back where you last stood safely, whole again. */
-  wake() {
-    const why = this._knockout;
+  /** Lying knocked out (a fatal fall, or the bar run out): waiting for restart(). */
+  get dead() { return !!this.down?.dead; }
+
+  /**
+   * Knocked down: the body goes limp, keeping its way of going (vel: m/s at
+   * the moment, e.g. the landing), its top tipping over that way. dead: it
+   * stays down. Riding, nothing knocks you down.
+   */
+  knockDown(vel, { dead = false, why = 'fall' } = {}) {
+    if (this.ride) return false;
+    const H = this.humanoid?.b?.pelvis ? this.humanoid : null;
+    const U = this.frame.up, vu = vel.dot(U);
+    const flat = _g1.copy(vel).addScaledVector(U, -vu);
+    const along = flat.length();
+    const dir = along > 1 ? flat.divideScalar(along) : this.frame.dir(this.heading, flat);
+    // the legs stop, the top keeps going: it topples over (with a little twist, never the same twice)
+    const vels = toppleVelocities(dir, U, { carry: Math.min(along, 14) * 0.45, rise: Math.max(vu, -40) * 0.2, tip: 2.6 + Math.min(along, 14) * 0.18 });
+    this.down = new Knockdown(H, { dead }).start(vels);
+    this.gliding = this.thrusting = this.climbing = false;
+    this.mantle = null; this._hang = null; this.boarding = this.unboarding = null;
+    this.wingK = 0;
+    this.vel.set(0, 0, 0);
+    this.onGround = false;
+    this.humanoid?.resetFeet();
+    this.opts.onKnockdown?.(dead, why);
+    if (dead) this.opts.onKnockout?.(why);
+    return true;
+  }
+
+  /** Knocked out: get up where you last stood safely, whole again (main.js asks first). */
+  restart() {
     this._knockout = null;
+    this.down = null;
     this.health = 1;
+    this.hurtAt = -1e9;
     this.respawn(this.lastSafe.lengthSq() || !this.opts.spawn ? this.lastSafe.clone() : undefined);
-    this.opts.onKnockout?.(why);
+    this.opts.onRestart?.();
   }
 
-  /** Per frame: health comes back once you have not been hurt for a while. */
+  /** (the old name) */
+  wake() { this.restart(); }
+
+  /** Per frame: health comes back once you have not been hurt for a while (not while knocked out). */
   heal(dt) {
     this._clock = (this._clock ?? 0) + dt;
+    if (this.down?.dead) return;
     if ((this.health ?? 1) < 1 && this._clock - (this.hurtAt ?? -1e9) > FALL.wait) this.health = Math.min(1, this.health + FALL.regen * dt);
+  }
+
+  /**
+   * A frame knocked down: the ragdoll falls and lies (the player's place is the
+   * ground under its pelvis, so the camera follows it), then gets up, turned the
+   * way the body lay, through a kneel back to standing; then you have control.
+   */
+  updateDown(dt) {
+    const D = this.down, U = this.frame.up, H = D.H;
+    if (D.phase !== 'rise') {
+      const up = D.update(dt, this.physics, U);
+      if (H) D.rag.groundSpot(this.physics, U, this.pos);
+      if (this.pos.dot(U) < this.opts.killY || (this.opts.unsafe && this.opts.unsafe(this.pos))) {
+        // (into deep water, off the world): back where you last stood safely, as anywhere
+        this.down = null;
+        if (this.health <= 0) this.restart(); else this.respawn(this.lastSafe);
+        return;
+      }
+      if (up) {
+        // get up facing the way you lay (toward the feet from the back, toward the head from the front)
+        if (H) this.heading = this.frame.headingOf(D.rag.riseDir(U, _g1));
+        this.unstick();
+        this.physics.pushCapsule(this.pos, RADIUS, STEP, HEIGHT, this._push, U);
+        D.beginRise();
+      } else {
+        if (!H) { this.object.position.copy(this.pos); this.frame.quaternion(this.heading, this.object.quaternion); }
+        this.finishDown(dt);
+        return;
+      }
+    }
+    // the rise: the standing pose, down on one knee at first, blended in from lying there
+    this.onGround = true; this._wasAir = false;
+    this.animate(dt, 0);
+    this.object.position.copy(this.pos);
+    this.frame.quaternion(this.heading, this.object.quaternion);
+    if (H) {
+      H.update();
+      if (this.animator) H.poseHands(this.animator);
+      H.kneel(D.kneel, { up: U, fwd: this.frame.dir(this.heading, _g1).clone(), ground: this.pos.dot(U) });
+    }
+    if (D.rise(dt, U)) { this.down = null; this._safeTimer = 0; this.humanoid?.resetFeet(); }
+    this.finishDown(dt);
+  }
+
+  /** The body's extras while down: the face, the gear, the cloth. */
+  finishDown(dt) {
+    const H = this.humanoid;
+    H?.face?.update(dt, { speed: 0, climbing: false });
+    if (this.gear) this.gear.update(dt, _g4.set(0, 0, 0), this.phase ?? 0, 0, this.object.visible);
+    this.updateCloth(dt);
   }
 
   /** Jump to another place, e.g. through a portal, with a new "up" (speed: carry on walking along fwd). */
   teleport(pos, up, fwd, { speed = 0 } = {}) {
-    this.boarding = this.unboarding = null;   // the pack is simply back on (fluid-tool.js follows the state)
+    this.boarding = this.unboarding = null;
+    if (this.down && !this.down.dead) this.down = null;   // (the dead stay down: the game asks to restart)   // the pack is simply back on (fluid-tool.js follows the state)
     this.pos.copy(pos);
     this.vel.set(0, 0, 0);
     if (speed > 0 && fwd) this.vel.copy(fwd).normalize().multiplyScalar(speed);
@@ -685,8 +782,10 @@ export class Player {
 
   update(dt, input, camYaw) {
     this.time += dt;
-    if (this._knockout) this.wake();
+    if (this._knockout) { const why = this._knockout; this._knockout = null; if (!this.down) this.knockDown(this.vel, { dead: true, why }); else this.down.dead = true; }
     this.heal(dt);
+    // knocked down: no control until you are back on your feet (the dead wait for restart())
+    if (this.down) { this._jumpHeld = !!input.Space; this._eHeld = !!input.KeyE; this.updateDown(dt); return; }
     // the bird caught up with you in mid-air: you're on its back
     const M = this.mount;
     if (M && M.mode === 'catching' && !this.ride && M.catchDist < 2.6) {
@@ -839,9 +938,21 @@ export class Player {
     for (let k = 0; k < steps; k++) {
       carrier = this.moveStep(sdt, U, move);
       if (this._pushedStep) pushed = true;
-      if (this.climbing || this._respawned) break;
+      if (this.climbing || this._respawned || this._landing) break;
     }
     this._respawned = false;
+    if (this._landing) {
+      // a hard landing: over you go (the ragdoll starts from this frame's pose, next frame)
+      const L = this._landing;
+      this._landing = null;
+      const dead = this.health <= 0;
+      if (dead) this._knockout = null;
+      this.knockDown(L.vel, { dead, why: 'fall' });
+      if (!this.down) { this.finishFrame(dt, 0); return; }
+      this.object.position.copy(this.pos);
+      this.finishDown(dt);
+      return;
+    }
     if (!pushed) this._press = 0;
     if (this.climbing) { this.finishFrame(dt, 0); return; }
     if (this.onGround) this.stamina = Math.min(this.stamina + 0.5 * dt, 1);
@@ -922,7 +1033,7 @@ export class Player {
     if (this.pos.y < this.opts.killY) { this.respawn(); this._respawned = true; return null; }
     const vu = this.vel.dot(U);
     if (h <= 0 || (this.onGround && h < 0.8 && vu <= 0)) {
-      if (!this.onGround && !this.ride && vu < -FALL.safe) this.hurt(fallDamage(-vu), 'fall');
+      if (!this.onGround && !this.ride && vu < -FALL.tumble) this.landHard(-vu);
       this.pos.addScaledVector(U, -h);
       this.vel.addScaledVector(U, -vu);
       this.onGround = true;
@@ -930,6 +1041,19 @@ export class Player {
       this.onGround = h <= 0.01;
     }
     return carrier;
+  }
+
+  /**
+   * Landing at `speed` m/s, faster than FALL.tumble: a knockdown (after this
+   * sub-step loop) and a little hurt (fallDamage), which never takes the last
+   * of the bar unless the fall was fatal (FALL.lethal).
+   */
+  landHard(speed) {
+    if (this.opts.health === false || this._landing) return;
+    const fatal = speed >= FALL.lethal;
+    const dmg = fatal ? 1 : Math.min(fallDamage(speed), Math.max(0, (this.health ?? 1) - 0.1));
+    this._landing = { vel: this.vel.clone(), speed };
+    this.hurt(dmg, 'fall');
   }
 
   /**
@@ -1722,6 +1846,8 @@ export class CameraRig {
     this._now = 0;
     this._distBoost = 0;
     this.aimK = 0;           // set by the fluid tool while aiming (0..1)
+    this.down = false;       // the traveller knocked down (main.js): the view follows the body on the ground, lower and softer
+    this.downK = 0;
     // tight rooms (the ship sets this indoors): a lower look point, the camera up
     // under the ceiling looking down over the shoulder, and allowed in close
     this.indoor = false;
@@ -1947,7 +2073,8 @@ export class CameraRig {
     // closing in (a doorway, an alley): a steep look up eases back down to what fits
     this.pitch = Math.max(this.pitch, this.pitchUpLimit(k));
     const dist = this.armLength(tk, ak);
-    this.target.lerp(playerPos, 1 - Math.exp(-14 * dt));
+    this.downK += ((this.down ? 1 : 0) - this.downK) * (1 - Math.exp(-3 * dt));
+    this.target.lerp(playerPos, 1 - Math.exp(-THREE.MathUtils.lerp(14, 5, this.downK) * dt));
     if (this.target.lengthSq() === 0) this.target.copy(playerPos);
     // in the ship the view tips down a little from under the ceiling; more when a wall has
     // pulled the camera right in, so the head never fills the screen
@@ -1965,7 +2092,7 @@ export class CameraRig {
     const cam = this.camera.position;
     // looking up from low down: aim higher so the sky and clouds fill the view
     // (close in, at the shoulders rather than over the head)
-    this._look.copy(this.target).addScaledVector(U, 1.8 + Math.max(0, -pitch) * 1.4 * (1 - ak) - 0.1 * ak - 0.3 * k);
+    this._look.copy(this.target).addScaledVector(U, 1.8 + Math.max(0, -pitch) * 1.4 * (1 - ak) - 0.1 * ak - 0.3 * k - 0.9 * this.downK);
     this._dir.copy(Rt).multiplyScalar(Math.sin(this.yaw) * cp)
       .addScaledVector(U, Math.sin(pitch))
       .addScaledVector(Fw, Math.cos(this.yaw) * cp);

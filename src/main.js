@@ -207,17 +207,54 @@ const player = new Player(physics, {
   mount: level.mount, jetpack: level.features.jetpack, climb: level.features.climb ?? true,
   killY: level.killY, limit: level.limit ?? 1900, spawn: level.spawn, spawnHeading: level.spawnHeading,
   gravityAt: level.gravityAt, unsafe: level.unsafe, dynamic: level.dynamic,
-  // a hurt: a thud; knocked out: a white flash and you come round where you last stood
+  // a hurt: a thud; knocked over (a hard landing: the ragdoll, src/ragdoll.js): a heavier one;
+  // knocked out: the screen dims and asks to restart (updateRestart below)
   onHurt: (k) => { shipSfx.rumble(sound, 0.35 + k * 0.4, 0.25 + k * 0.5); hpShown = 3; },
-  onKnockout: () => { ship.cinema?.fade(1, true, 0.05); setTimeout(() => ship.cinema?.fade(0, true, 0.9), 120); showToast('You come round where you last stood.'); },
+  onKnockdown: (dead) => { shipSfx.rumble(sound, dead ? 0.95 : 0.6, dead ? 0.9 : 0.45); hpShown = 3; },
+  onKnockout: (why) => { knockedOut = why; },
+  onRestart: () => { ship.cinema?.fade(1, true, 0.05); setTimeout(() => ship.cinema?.fade(0, true, 0.9), 120); },
 });
 // the health bar (index.html #health): only while you're hurt, and a moment after
 const hpEl = document.getElementById('health'), hpFill = hpEl?.firstElementChild;
 let hpShown = 0;
+// Knocked out (a fatal fall, or the bar run out): you lie there a moment, then the screen
+// dims and a small panel asks to restart, from where you last stood safely. Its button is
+// the one thing in focus: Enter (or Space, E), A / × on a pad (the panel counts as a menu:
+// busy()), a click or a tap.
+const restartEl = document.getElementById('restart');
+let restartOpen = false, knockedOut = null, deadFor = 0;
+function updateRestart(dt) {
+  deadFor = player.dead ? deadFor + dt : 0;
+  const want = player.dead && deadFor > 1.4 && !ship.playing;
+  if (want === restartOpen || !restartEl) return;
+  restartOpen = want;
+  restartEl.classList.toggle('open', want);
+  if (want) {
+    restartEl.querySelector('p').textContent = knockedOut === 'fall' ? 'That was too far a fall.' : 'You were knocked out.';
+    restartEl.querySelector('small').textContent = controllerActive ? `${confirmKey()} restart` : isTouch ? 'tap to restart' : 'Enter to restart';
+    if (document.pointerLockElement) document.exitPointerLock?.();
+    restartEl.querySelector('button').focus({ preventScroll: true });
+  }
+}
+function restartNow() {
+  if (!player.dead) return;
+  restartOpen = false; deadFor = 0; knockedOut = null;
+  restartEl?.classList.remove('open');
+  document.activeElement?.blur?.();
+  player.restart();
+  rig.target.copy(player.pos);
+}
+restartEl?.querySelector('button').addEventListener('click', (e) => { e.stopPropagation(); restartNow(); });
+window.addEventListener('keydown', (e) => {
+  if (!restartOpen || !['Enter', 'NumpadEnter', 'Space', 'KeyE'].includes(e.code)) return;
+  e.preventDefault(); e.stopImmediatePropagation();
+  restartNow();
+}, true);
 function updateHealth(dt) {
+  updateRestart(dt);
   if (!hpEl) return;
   const h = player.health ?? 1;
-  hpShown = h < 0.999 ? 3 : Math.max(0, hpShown - dt);
+  hpShown = h < 0.999 || player.down ? 3 : Math.max(0, hpShown - dt);
   hpEl.classList.toggle('on', hpShown > 0 && !ship.playing);
   hpEl.classList.toggle('low', h < 0.3);
   hpFill.style.width = `${(h * 100).toFixed(1)}%`;
@@ -778,7 +815,7 @@ function updateHud() {
 }
 
 
-const busy = () => story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || menu.open || endingOpen || storyRt.busy() || ship.busy() || boxes.busy();
+const busy = () => restartOpen || story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || menu.open || endingOpen || storyRt.busy() || ship.busy() || boxes.busy();
 const noInput = {};
 let controllerActive = false;
 const hintShown = { text: '', at: -1e9, active: false };
@@ -788,8 +825,9 @@ document.body.appendChild(controllerHint);
 // what a controller press goes to: the topmost thing open (a story page sits over a conversation)
 const pageEl = document.getElementById('page');
 const pageUp = () => pageEl.classList.contains('open');
-const menuRoot = () => boxes.busy() && boxes.card.el ? boxes.card.el : menu.open ? menu.el : changelog.open ? changelog.el : pageUp() ? pageEl : storyRt.dialogue.open ? storyRt.dialogue.el : journal.open ? journal.el : picker.classList.contains('open') ? picker : pageEl;
+const menuRoot = () => restartOpen ? restartEl : boxes.busy() && boxes.card.el ? boxes.card.el : menu.open ? menu.el : changelog.open ? changelog.el : pageUp() ? pageEl : storyRt.dialogue.open ? storyRt.dialogue.el : journal.open ? journal.el : picker.classList.contains('open') ? picker : pageEl;
 const closeControllerMenu = () => {
+  if (restartOpen) return;   // (only confirm restarts: there is nothing to go back to)
   if (boxes.busy()) boxes.skip();
   else if (menu.open) menu.back();
   else if (changelog.open) changelog.toggle(false);
@@ -1059,7 +1097,7 @@ function frame() {
 
   for (const v of player.vehicles) if (v !== player.ride) v.update(dt, null, t);
   // E goes to the nearest person / thing / vehicle first (src/interact.js); only then to the player's whistle
-  const ePressed = !!ctl.KeyE && !eWasDown && !photo.on; eWasDown = !!ctl.KeyE;
+  const ePressed = !!ctl.KeyE && !eWasDown && !photo.on && !player.down; eWasDown = !!ctl.KeyE;   // (no talking while knocked down)
   const interacted = storyRt.update(dt, t, { camera, ePressed, paused: busy() || photo.on || ship.playing }).handled;
   if (photo.on) {
     if (!busy()) photoUpdate(dt, mergedInput);
@@ -1070,6 +1108,7 @@ function frame() {
     if (interacted) player._eHeld = true;
     player.update(dt, busy() ? noInput : ctl, rig.yaw);
     rig.follow(player.ride?.heading ?? player.heading, dt, player.riding || player.gliding);
+    rig.down = !!player.down;   // knocked down: the camera follows the body on the ground, lower and softer
     rig.update(player.pos, dt, player.frame);
     storyRt.frameCamera(camera);   // the two-shot while talking
   }
@@ -1104,7 +1143,7 @@ function frame() {
   }
   // doorways into interiors (and back out)
   portalCool = Math.max(portalCool - dt, 0);
-  if (!portalCool && !player.riding && level.portals) {
+  if (!portalCool && !player.riding && !player.dead && level.portals) {
     for (const pt of level.portals) {
       if (player.pos.distanceTo(pt.at) < pt.r) {
         player.teleport(pt.to, new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1));
