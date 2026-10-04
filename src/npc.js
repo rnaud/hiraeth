@@ -5,6 +5,7 @@ import { Animator } from './animator.js';
 import { Humanoid } from './humanoid.js';
 import { makeMaterial, sharedUniforms, MODE_OUTFIT } from './materials.js';
 import { registerTarget } from './targets.js';
+import { mulberry32 } from './noise.js';
 import { namedLook, costumeWorld, TRIM_IDS } from './costumes.js';
 import { stripTone } from './story/tone.js';
 import { speakBalloon } from './story/voice.js';
@@ -608,13 +609,28 @@ export function spawnNPCs(scene, physics, spots, { fromY = 1e4, lib = null, huma
   return spots.map((s, k) => {
     const cx = s.at[0], cz = s.at[1];
     const r = s.radius ?? 14;
+    // the same loop on every visit (seeded by where they stand), on gentle ground only:
+    // a point on a steep bank or a wall is tried again closer in, and at worst the centre is used
+    const rand = mulberry32(((Math.round(cx * 7.3) * 73856093) ^ (Math.round(cz * 7.3) * 19349663) ^ (k * 83492791)) >>> 0);
+    const from = s.y !== undefined ? s.y + 2 : fromY;
+    const ground = (x, z) => {
+      const y = physics.groundAt(x, from, z);
+      if (!Number.isFinite(y)) return null;
+      const nrm = physics.groundNormal?.(x, y + 1, z);
+      return nrm && nrm.y < 0.8 ? null : y;
+    };
     const route = [];
-    const n = 3 + Math.floor(Math.random() * 2);
+    const n = 3 + Math.floor(rand() * 2);
     for (let i = 0; i < n; i++) {
-      const a = (i / n) * Math.PI * 2 + Math.random() * 0.8;
-      const x = cx + Math.cos(a) * r * (0.5 + Math.random() * 0.5), z = cz + Math.sin(a) * r * (0.5 + Math.random() * 0.5);
-      const y = physics.groundAt(x, s.y !== undefined ? s.y + 2 : fromY, z);
-      route.push(new THREE.Vector3(x, Number.isFinite(y) ? y : 0, z));
+      const a = (i / n) * Math.PI * 2 + rand() * 0.8;
+      let p = null;
+      for (let t = 0; t < 6 && !p; t++) {
+        const d = r * (0.5 + rand() * 0.5) * (1 - t / 6);
+        const x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d, y = ground(x, z);
+        if (y !== null) p = new THREE.Vector3(x, y, z);
+      }
+      if (!p) { const y = physics.groundAt(cx, from, cz); p = new THREE.Vector3(cx, Number.isFinite(y) ? y : 0, cz); }
+      route.push(p);
     }
     const kind = k % 2 ? 'f' : 'm';
     const npc = new NPC(scene, physics, { route, palette: s.palette, lines: s.lines, shy: s.shy, speed: s.speed, lib,
