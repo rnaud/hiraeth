@@ -84,18 +84,17 @@ export const PEOPLE = {
           choices: [
             { text: '~curious~ Why did it go quiet?', goto: 'quiet' },
             { text: '~curious~ Voices from where?', goto: 'where' },
-            { text: '~curious~ What do the other signs say?', goto: 'others' },
           ],
         },
         others: {
           say: ['~angry~ Buy. Eat. Win. Love this, fear that, buy the cure. A thousand signs talking at once, and not one of them talking to you.',
             '~solemn~ The market says the silent tower was the only sign that ever told the truth. It only ever said one thing, in a thousand voices: *somebody out there is talking to you*.'],
-          choices: [{ text: '~curious~ Why did it go quiet?', goto: 'quiet' }, { text: '~curious~ Voices from where?', goto: 'where' }],
+          choices: [{ text: '~curious~ Why did it go quiet?', goto: 'quiet' }],
         },
         where: {
           say: ['~neutral~ From anywhere. Ships, colonies, lighthouses, people a long way from home. They send a message and it crosses the dark for years, and when it reaches us the tower plays it to whoever is in the square.',
             '~happy~ Most of them aren’t for anyone here. People stop and listen anyway. That’s what a market is for, in the end: listening to strangers.'],
-          choices: [{ text: '~curious~ Why did it go quiet?', goto: 'quiet' }],
+          choices: [{ text: '~curious~ Why did it go quiet?', goto: 'quiet' }, { text: '~curious~ What do the other signs say?', goto: 'others' }],
         },
         quiet: {
           say: ['~solemn~ The night the sky rang. Something went over the market, low and singing, and every sign in the street showed the same picture at once: three dots over an arc. Then the tower caught one last message, and went dumb.',
@@ -240,7 +239,7 @@ export const PEOPLE = {
       nodes: {
         hello: {
           say: ['~playful~ Careful, wet paint. Everything in this market is wet paint; it’s the only way to keep up.', '~tired~ Brush. I repaint the signs. A thousand of them. By the time I finish the last one, the first needs doing again.'],
-          choices: [{ text: '~curious~ Which is the oldest sign?', goto: 'oldest' }, { text: '~curious~ What’s the mark on the old shop?', goto: 'glyph', once: true }, { text: '~neutral~ Goodbye.', end: true }],
+          choices: [{ text: '~curious~ Which is the oldest sign?', goto: 'oldest' }, { text: '~curious~ What’s the mark on the old shop?', goto: 'glyph', once: true }],
         },
         glyph: {
           say: ['~angry~ {glyph} Sel says three customers at a counter. Rubbish. It’s three listeners and the edge of the world: three heads, and the horizon they’re listening past.', '~solemn~ Nobody painted it. It was here when the first painters came. We just keep it fresh.'],
@@ -277,7 +276,7 @@ export const STREET = {
     talk: { nodes: {
       hello: {
         say: ['~happy~ Welcome to the Signal Market! A thousand signs, a thousand voices, and one of them quiet.'],
-        choices: [{ text: '~curious~ Which one is quiet?', goto: 'quiet' }, { text: '~curious~ How do I get up high?', goto: 'up' }, { text: '~neutral~ Goodbye.', end: true }],
+        choices: [{ text: '~curious~ Which one is quiet?', goto: 'quiet' }, { text: '~neutral~ Goodbye.', end: true }],
       },
       quiet: { say: ['~sad~ *The broadcast tower*, at the end of the avenue. It went silent the night the sky rang. *Madame Sel* sits at its foot, waiting for someone to care.'], choices: [{ text: '~curious~ How do I get up there?', goto: 'up' }, { text: '~neutral~ Thanks.', end: true }] },
       up: { say: ['~neutral~ *Blue ledges up the front of the tower*, or the parked cab right here, or that pack on your back. The skybridges are for walking; mind the gaps.'], choices: [{ text: '~happy~ Thanks.', end: true }] },
@@ -288,7 +287,7 @@ export const STREET = {
     talk: { nodes: {
       hello: {
         say: ['~shout~ Every lantern holds a little sun. Fresh suns, cheap!', '~surprised~ The night the sky rang, every lantern on my stall went out at once. Then they lit again one by one, in a colour I’ve never sold.'],
-        choices: [{ text: '~curious~ What colour?', goto: 'colour' }, { text: '~curious~ Any other rumours?', goto: 'rumours' }, { text: '~neutral~ Goodbye.', end: true }],
+        choices: [{ text: '~curious~ What colour?', goto: 'colour' }, { text: '~curious~ Any other rumours?', goto: 'rumours' }],
       },
       colour: { say: ['~playful~ The colour of a bruise when it’s healing. I sold them all by morning. People like a story.'], do: { set: { 'bazaar.rumour.light': true } }, choices: [{ text: '~neutral~ Goodbye.', end: true }] },
       rumours: { say: ['~playful~ They say the silent tower was the only one that told the truth. They say the quiet ones can hear thoughts. They say the noodle man is three noodle men in a coat. One of those is true.'], choices: [{ text: '~neutral~ Goodbye.', end: true }] },

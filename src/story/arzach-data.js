@@ -132,10 +132,9 @@ export const LOCALS = [
           choices: [
             { text: '~happy~ (wave)', goto: 'wave' },
             { text: '~neutral~ (point at the tower)', goto: 'tower' },
-            { text: '~curious~ Can you talk?', goto: 'talk' },
           ],
         },
-        wave: { say: ['~happy~ (He waves back enormously, with both arms, then points behind you at the bird and flaps.)'], choices: [{ text: '~playful~ (flap back)', end: true }] },
+        wave: { say: ['~happy~ (He waves back enormously, with both arms, then points behind you at the bird and flaps.)'], choices: [{ text: '~playful~ (flap back)', end: true }, { text: '~curious~ Can you talk?', goto: 'talk' }] },
         tower: { say: ['~scared~ (He shakes his head hard, hugs himself and shivers. Too high. Too cold.)', '~playful~ (Then he points at the stone hand out on the plain and taps his own knuckles, quickly, in no order at all, and laughs.)'], choices: [{ text: '~happy~ (laugh)', end: true }] },
         talk: { say: ['~playful~ (He opens his mouth very wide and says nothing at all, very loudly.)'], choices: [{ text: '~happy~ (clap)', end: true }] },
       },
@@ -151,7 +150,6 @@ export const LOCALS = [
           choices: [
             { text: '~curious~ What light?', goto: 'light' },
             { text: '~curious~ The bird knows the way?', goto: 'bird' },
-            { text: '~neutral~ (leave her to listen)', end: true },
           ],
         },
         light: {
@@ -168,7 +166,7 @@ export const LOCALS = [
         bird: { say: ['~sad~ (She nods toward the tower.) Waited there. Long time. Now she waits here, and looks there.'], choices: [{ text: '~curious~ What light? You said the stones hum.', goto: 'light' }, { text: '~neutral~ (leave her to listen)', end: true }] },
         again: {
           say: ['~neutral~ (Senn lifts her ear from the stone, listens to you instead, and nods.)'],
-          choices: [{ text: '~curious~ Tell me about the light again.', goto: 'light' }, { text: '~curious~ Where are the feathers?', if: { quest: 'arzach.feathers', active: true }, goto: 'cried' }, { text: '~neutral~ (leave her to listen)', end: true }],
+          choices: [{ text: '~curious~ Tell me about the light again.', if: { not: { quest: 'arzach.feathers', active: true } }, goto: 'light' }, { text: '~curious~ Where are the feathers?', if: { quest: 'arzach.feathers', active: true }, goto: 'cried' }, { text: '~neutral~ (leave her to listen)', end: true }],
         },
         after: { say: ['~happy~ (She touches the feathers in her own hair, then points at the bird.) Bright. Good.', '~happy~ (The stone under her hand is humming. She smiles.)'], choices: [{ text: '~whisper~ (listen with her)', end: true }] },
       },
@@ -184,7 +182,6 @@ export const LOCALS = [
           choices: [
             { text: '~curious~ Rang?', goto: 'rang' },
             { text: '~curious~ Whose hand was it?', goto: 'whose' },
-            { text: '~neutral~ (leave him be)', end: true },
           ],
         },
         whose: { say: ['~whisper~ (He points at the long stone body lying in the sand beyond it, the face turned to the sky. Then he shrugs.) Sleeping.'], choices: [{ text: '~curious~ You said it rang.', goto: 'rang' }] },

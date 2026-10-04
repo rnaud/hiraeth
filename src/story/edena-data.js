@@ -76,12 +76,11 @@ export const PEOPLE = {
           say: ['~surprised~ A ball fell into the meadow and a person came out of it. That is twice in my life. I’m Mira. I keep the water clock, which mostly means I keep it company.', '~happy~ You’ll want to know where you are. This is the garden. We tend it. That is all there is to know, and it takes a lifetime.'],
           choices: [
             { text: '~surprised~ Twice? Something else fell here?', goto: 'twice' },
-            { text: '~curious~ Who tends it?', goto: 'who' },
             { text: '~neutral~ I’m looking for something of value.', goto: 'value' },
           ],
         },
         who: { say: ['~playful~ The gardeners. Us. And the garden, which tends us back. There were others before us, the white builders who left the ruins and the pedestals. They tended it with straight lines. We prefer curved ones.'], choices: [{ text: '~curious~ Something else fell here, you said?', goto: 'twice' }] },
-        value: { say: ['~solemn~ Then you’ve come to the wrong garden, or the right one. We don’t keep anything. Everything here is on its way to being something else.'], choices: [{ text: '~curious~ You said something else fell here?', goto: 'twice' }] },
+        value: { say: ['~solemn~ Then you’ve come to the wrong garden, or the right one. We don’t keep anything. Everything here is on its way to being something else.'], choices: [{ text: '~curious~ You said something else fell here?', goto: 'twice' }, { text: '~curious~ Who tends it?', goto: 'who' }] },
         twice: {
           say: ['~neutral~ A ship, long ago, when I was small. Odile and Talo’s. It came down in *the south meadow*, burning, and ploughed a furrow you can still see from the tall trees.', '~solemn~ They lived. We gave them tea. They stayed one spring, and then they left, and we let the garden take the ship. We don’t dig up what falls. It fell; it belongs to the ground now.'],
           do: { set: { 'edena.mira.heard': true } },
@@ -98,7 +97,6 @@ export const PEOPLE = {
             { if: { not: { flag: 'edena.log.read' } }, text: '~neutral~ *South, past the pond, where the meadow dips*. Vey will be with the vines.' },
           ],
           choices: [
-            { text: '~curious~ What is the water clock for?', goto: 'clock', once: true },
             { text: '~curious~ Where did Odile and Talo go?', goto: 'went' },
             { text: '~happy~ See you, Mira.', end: true },
           ],
@@ -124,7 +122,7 @@ export const PEOPLE = {
           next: 'carry',
         },
         carry: { say: ['~happy~ Take that with you. It isn’t heavy. It fits in any ship.'], choices: [{ text: '~happy~ Thank you, Mira.', end: true }] },
-        after: { say: ['~happy~ The clock rang while you were away. Time to water. It’s always time to water.'], choices: [{ text: '~playful~ I’ll let you water.', end: true }] },
+        after: { say: ['~happy~ The clock rang while you were away. Time to water. It’s always time to water.'], choices: [{ text: '~curious~ What is the water clock for?', goto: 'clock', once: true }, { text: '~playful~ I’ll let you water.', end: true }] },
       },
     },
   },
@@ -140,7 +138,6 @@ export const PEOPLE = {
           say: ['~curious~ Odile? Talo? They left in the ship. The little one, I mean; the big one stayed. You’re not them, are you? No. They’d have brought cake.', '~playful~ I’m Sol. I knew them, when I was young enough to follow them about. Talo let me hold his tools. Odile let me hold Talo, when he fell off things.'],
           choices: [
             { text: '~curious~ Are they coming back?', goto: 'back' },
-            { text: '~curious~ Have you seen anything strange lately?', goto: 'strange' },
             { text: '~curious~ What does the garden believe?', goto: 'believe' },
           ],
         },

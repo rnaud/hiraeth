@@ -121,7 +121,6 @@ export const PEOPLE = {
           say: ['~happy~ A stranger, walking in from where the sky-ball fell. Sit. Nobody goes thirsty at my fires.', '~neutral~ I am Ama. I keep the fires for the pilgrims while they walk the circuit.'],
           choices: [
             { text: '~neutral~ My ship has no power. I need to find some.', goto: 'early' },
-            { text: '~curious~ Who are all these people?', goto: 'who' },
             { text: '~surprised~ What is that tree? It’s burning.', goto: 'tree' },
           ],
         },
@@ -159,12 +158,11 @@ export const PEOPLE = {
             { text: '~happy~ I’ll bring it back full.', end: true },
           ],
         },
-        where: { say: ['~neutral~ Walking the circuit round the walls, like everyone. *Follow the banners*. Listen for the drum.'], choices: [{ text: '~happy~ Thank you.', end: true }] },
+        where: { say: ['~neutral~ Walking the circuit round the walls, like everyone. *Follow the banners*. Listen for the drum.'], choices: [{ text: '~curious~ Who is that boy staring at the fire?', if: { quest: 'desert.drum', started: false }, goto: 'teo' }, { text: '~happy~ Thank you.', end: true }] },
         again: {
           say: [{ if: { has: 'water' }, text: '~happy~ Your jar is heavy. Full? Then go, wake your ball. And thank you.' }, { if: { not: { has: 'water' } }, text: '~neutral~ Still looking? The Speaker walks the circuit. *The giant’s head* is out past *the back gate*.' }],
           choices: [
             { text: '~curious~ Have you seen anything strange lately?', goto: 'rumour', once: true },
-            { text: '~curious~ Who is that boy staring at the fire?', if: { quest: 'desert.drum', started: false }, goto: 'teo' },
             { text: '~happy~ See you, Ama.', end: true },
           ],
         },
@@ -201,7 +199,6 @@ export const PEOPLE = {
           choices: [
             { text: '~happy~ I’ll look for it.', do: { start: 'desert.drum' }, goto: 'thanks' },
             { text: '~curious~ Can’t you play something else?', goto: 'else' },
-            { text: '~sad~ Sorry, Teo.', end: true },
           ],
         },
         else: { say: ['~angry~ Sefa says I can tap on a jar. A jar! The procession walks to the drum. Without it they walk out of step and step on each other’s heels.'], choices: [{ text: '~neutral~ I’ll look for your drum.', do: { start: 'desert.drum' }, goto: 'thanks' }, { text: '~neutral~ Bye.', end: true }] },
@@ -228,9 +225,9 @@ export const PEOPLE = {
       nodes: {
         hello: {
           say: ['~playful~ You stopped to listen. Most people walk past musicians as if we were weather.', '~whisper~ I play what the listener is missing. Hear that? That’s your tune, not mine. You brought it with you.'],
-          choices: [{ text: '~curious~ My tune?', goto: 'tune' }, { text: '~curious~ What do you play for the drinking?', goto: 'drinking' }, { text: '~happy~ Keep playing.', end: true }],
+          choices: [{ text: '~curious~ My tune?', goto: 'tune' }, { text: '~happy~ Keep playing.', end: true }],
         },
-        tune: { say: ['~sad~ Everyone has one. Yours is a long way from home, and it keeps looking over its shoulder.'], choices: [{ text: '~sad~ Maybe it does.', end: true }] },
+        tune: { say: ['~sad~ Everyone has one. Yours is a long way from home, and it keeps looking over its shoulder.'], choices: [{ text: '~curious~ What do you play for the drinking?', goto: 'drinking' }, { text: '~sad~ Maybe it does.', end: true }] },
         drinking: { say: ['~playful~ When the tree drinks we play all night, every song we know, in every colour. Bako cries every year, and says it’s the smoke.'], choices: [{ text: '~neutral~ I hope it drinks.', end: true }] },
         again: { say: ['~playful~ Back for more? Sit. Bako’s about to get it wrong in a beautiful way.'], choices: [{ text: '~neutral~ (listen)', end: true }] },
         feast: { say: ['~happy~ Can you hear it? The tree is drinking, and the songs are all coming back at once.'], choices: [{ text: '~neutral~ (listen)', end: true }] },
@@ -246,11 +243,11 @@ export const PEOPLE = {
       nodes: {
         hello: {
           say: ['~neutral~ Hm. You’re the one from the ball. The ball with the burn on it.'],
-          choices: [{ text: '~surprised~ You saw the burn?', goto: 'burn' }, { text: '~curious~ What’s that flute?', goto: 'ney' }, { text: '~curious~ Will you play something?', do: { emit: ['music:solo', { who: 'bako' }] }, end: true }, { text: '~neutral~ (leave him to his music)', end: true }],
+          choices: [{ text: '~surprised~ You saw the burn?', goto: 'burn' }, { text: '~curious~ What’s that flute?', goto: 'ney' }],
         },
         burn: { say: ['~curious~ Three dots over a curve. {glyph} Like between the giant’s eyes, out past the back gate. Like on the old stones. Hm. Somebody signs their work.'], choices: [{ text: '~curious~ Who?', goto: 'who' }, { text: '~neutral~ Thank you.', end: true }] },
-        who: { say: ['~playful~ If I knew that I wouldn’t need a flute. Hm-hm.'], choices: [{ text: '~neutral~ (leave him to his music)', end: true }] },
-        ney: { say: ['~neutral~ A ney. Reed from the oasis at the salt. It only knows one song, and every year it plays it differently.'], choices: [{ text: '~happy~ Play it for me.', do: { emit: ['music:solo', { who: 'bako' }] }, end: true }] },
+        who: { say: ['~playful~ If I knew that I wouldn’t need a flute. Hm-hm.'], choices: [{ text: '~curious~ Will you play something?', do: { emit: ['music:solo', { who: 'bako' }] }, end: true }, { text: '~neutral~ (leave him to his music)', end: true }] },
+        ney: { say: ['~neutral~ A ney. Reed from the oasis at the salt. It only knows one song, and every year it plays it differently.'], choices: [{ text: '~happy~ Play it for me.', do: { emit: ['music:solo', { who: 'bako' }] }, end: true }, { text: '~neutral~ (leave him to his music)', end: true }] },
       },
     },
   },
@@ -273,10 +270,9 @@ export const PEOPLE = {
           choices: [
             { text: '~neutral~ Come with me, then. Stay close.', do: [{ start: 'desert.ilo' }, { set: { 'desert.ilo.following': true } }], goto: 'yes' },
             { text: '~curious~ Wet? Where exactly?', goto: 'where' },
-            { text: '~neutral~ Better ask your parents.', goto: 'parents' },
           ],
         },
-        where: { say: ['~happy~ In its mouth! *Under the giant’s head, outside the back gate*. The one with the three-dot mark on its forehead.'], choices: [{ text: '~neutral~ Come with me, then.', do: [{ start: 'desert.ilo' }, { set: { 'desert.ilo.following': true } }], goto: 'yes' }, { text: '~happy~ Thanks, Ilo.', end: true }] },
+        where: { say: ['~happy~ In its mouth! *Under the giant’s head, outside the back gate*. The one with the three-dot mark on its forehead.'], choices: [{ text: '~neutral~ Come with me, then.', do: [{ start: 'desert.ilo' }, { set: { 'desert.ilo.following': true } }], goto: 'yes' }, { text: '~neutral~ Better ask your parents.', goto: 'parents' }] },
         parents: { say: ['~angry~ My mother is walking the circuit. She’ll walk until the tree drinks. That could be FOREVER.'], choices: [{ text: '~neutral~ All right. Come with me.', do: [{ start: 'desert.ilo' }, { set: { 'desert.ilo.following': true } }], goto: 'yes' }, { text: '~sad~ Sorry, Ilo.', end: true }] },
         yes: { say: ['~happy~ Yes! Yes yes. I’ll be quiet. I’m very quiet. Go, go!'], choices: [{ text: '~neutral~ (go)', end: true }] },
         come: { say: ['~happy~ Keep going! The back gate is *through the city, past the tree*. I’m right behind you.'], choices: [{ text: '~neutral~ (go)', end: true }] },
@@ -318,9 +314,9 @@ export const PEOPLE = {
         hello: {
           say: ['~solemn~ Walk with me a moment; the circuit doesn’t stop for strangers. Though for you, it seems, it does.', '~sad~ You want to know why we walk. Everyone asks. We walk because the tree is thirsty, and walking is the only thing we know how to do about it.'],
           choices: [
-            { text: '~curious~ Why is the tree thirsty?', goto: 'old' },
-            { text: '~neutral~ Ama says you know the old words.', goto: 'old' },
+            { text: '~curious~ Why is the tree thirsty?', if: { not: { flag: 'desert.elder.heard' } }, goto: 'old' },
             { text: '~neutral~ Nour says the old words know the way down to the water.', if: { flag: 'desert.elder.heard' }, goto: 'old' },
+            { text: '~neutral~ Walk on, Speaker.', end: true },
           ],
         },
         old: {
@@ -328,8 +324,6 @@ export const PEOPLE = {
           do: { set: { 'desert.speaker.heard': true } },
           choices: [
             { text: '~curious~ Is there a way down to the water?', goto: 'way' },
-            { text: '~curious~ Where does the water come up?', goto: 'well' },
-            { text: '~curious~ The swamp of lights?', goto: 'swamp' },
             { text: '~scared~ What happens if it never drinks?', goto: 'never' },
           ],
         },
@@ -345,11 +339,11 @@ export const PEOPLE = {
           choices: [
             { text: '~neutral~ Tell me the line about the giant’s mouth again.', goto: 'way' },
             { text: '~curious~ Have you seen an old woman who fell behind?', if: { quest: 'desert.oum', done: false }, goto: 'oum' },
-            { text: '~curious~ Have you heard of a masked head in the sand?', if: { quest: 'desert.mask', started: false }, goto: 'mask' },
+            { text: '~curious~ Have you heard of a masked head in the sand?', if: { all: [{ quest: 'desert.oum', done: true }, { quest: 'desert.mask', started: false }] }, goto: 'mask' },
             { text: '~neutral~ Walk on, Speaker.', end: true },
           ],
         },
-        oum: { say: ['~playful~ Oum. She walks the circuit at her own pace, which is no pace at all. *West, in the dunes.* Bring her if you can; the drinking needs everyone.'], do: { start: 'desert.oum' }, choices: [{ text: '~neutral~ I’ll find her.', end: true }] },
+        oum: { say: ['~playful~ Oum. She walks the circuit at her own pace, which is no pace at all. *West, in the dunes.* Bring her if you can; the drinking needs everyone.'], do: { start: 'desert.oum' }, choices: [{ text: '~curious~ And a masked head in the sand?', if: { quest: 'desert.mask', started: false }, goto: 'mask' }, { text: '~neutral~ I’ll find her.', end: true }] },
         mask: { say: ['~solemn~ *The sleeping face, south, past the bones.* Another giant, they say, who lay down face up so it could watch the sky. It does not wake. Go and look at it, if you like being looked at.'], do: { start: 'desert.mask' }, choices: [{ text: '~neutral~ I will.', end: true }] },
         drinking: {
           say: ['~happy~ It drinks. It drinks! Listen: every drum in the circuit has found the same step.', '~solemn~ You went beneath the giant. I can see the colours on your hands. Don’t tell me what you saw. I’d rather keep the old words a little longer.'],
@@ -417,7 +411,6 @@ export const PEOPLE = {
           choices: [
             { text: '~playful~ I fell from the sky. This morning.', goto: 'fell' },
             { text: '~curious~ Who are the Givers?', goto: 'givers' },
-            { text: '~neutral~ I’ll leave it be.', end: true },
           ],
         },
         fell: { say: ['~tired~ So you did. The whole desert saw the smoke. And the night before, a light crossed the sky singing, and this chest sang back all night long. I did not sleep. Neither did it.', '~playful~ Well. Go on, then. *Climb up and try it*. If it bites you, I will say I warned you.'], choices: [{ text: '~neutral~ (try the chest)', end: true }] },
@@ -429,28 +422,25 @@ export const PEOPLE = {
             '~solemn~ The old words say: “The Givers’ chest opens for one who fell from the sky.” We took it for a riddle. Then a light crossed the sky singing, the chest hummed all night, and in the morning your ball came down burning.',
           ],
           choices: [
+            { text: '~curious~ What is this thing on my back?', goto: 'pack' },
             { text: '~curious~ Who are the Givers?', goto: 'givers' },
-            { text: '~angry~ I didn’t fall. Something struck my ship.', goto: 'struck', once: true },
-            { text: '~curious~ What is this thing on my back?', goto: 'pack', once: true },
-            { text: '~curious~ How is it I understand you?', goto: 'ear', once: true },
             { text: '~scared~ My ship has no power. Can you help me?', goto: 'power' },
           ],
         },
         givers: {
           say: ['~solemn~ The ones who made the giants walk. Everything they made, they marked: three dots over an arch. {glyph} On the giants’ brows, on the stele, on that chest.', '~solemn~ Nobody has seen a Giver. We have only what they left behind, and what they left behind is mostly gifts: the water, the giants who carried it, and *chests with a star on the lid*, for travellers who would come a long way after them.'],
           choices: [
-            { text: '~curious~ Why a star?', goto: 'star', once: true },
-            { text: '~curious~ Are there other chests?', goto: 'others', once: true },
+            { text: '~curious~ Why a star?', goto: 'star' },
             { text: '~scared~ My ship has no power. Can you help me?', if: { flag: 'item.backpack' }, goto: 'power' },
             { text: '~playful~ I fell from the sky, you know.', if: { not: { flag: 'item.backpack' } }, goto: 'fell' },
           ],
         },
-        star: { say: ['~sad~ Because that is what a traveller looks like from far off: a small light, a long way from home. The chest waits for one. You look like one, too. Lost, and shining a little.'], choices: [{ text: '~curious~ Are there other chests?', goto: 'others', once: true }, { text: '~neutral~ My ship has no power.', if: { flag: 'item.backpack' }, goto: 'power' }, { text: '~neutral~ (back)', goto: 'givers' }] },
-        others: { say: ['~solemn~ The old words say the Givers walked further than the desert, further than walking. If there are other places, there are other chests, wherever their giants lay down. *Look for the star*. It looks for you, too.'], choices: [{ text: '~neutral~ My ship has no power.', if: { flag: 'item.backpack' }, goto: 'power' }, { text: '~neutral~ (back)', goto: 'givers' }] },
-        struck: { say: ['~neutral~ Struck, fell. The sky does not care which. Marrow says there is a mark burned on your ball: three dots over an arch. The Givers’ mark.', '~curious~ Whatever struck you knew their sign. Or it was one of their gifts, too, and lost its way. I am too old to know which, and too curious to stop wondering.'], choices: [{ text: '~curious~ What is this thing on my back?', goto: 'pack', once: true }, { text: '~scared~ My ship has no power. Can you help me?', goto: 'power' }] },
+        star: { say: ['~sad~ Because that is what a traveller looks like from far off: a small light, a long way from home. The chest waits for one. You look like one, too. Lost, and shining a little.'], choices: [{ text: '~curious~ Are there other chests?', goto: 'others' }, { text: '~neutral~ My ship has no power.', if: { flag: 'item.backpack' }, goto: 'power' }, { text: '~neutral~ (back)', if: { not: { flag: 'item.backpack' } }, goto: 'givers' }] },
+        others: { say: ['~solemn~ The old words say the Givers walked further than the desert, further than walking. If there are other places, there are other chests, wherever their giants lay down. *Look for the star*. It looks for you, too.'], choices: [{ text: '~neutral~ My ship has no power.', if: { flag: 'item.backpack' }, goto: 'power' }, { text: '~neutral~ (back)', if: { not: { flag: 'item.backpack' } }, goto: 'givers' }] },
+        struck: { say: ['~neutral~ Struck, fell. The sky does not care which. Marrow says there is a mark burned on your ball: three dots over an arch. The Givers’ mark.', '~curious~ Whatever struck you knew their sign. Or it was one of their gifts, too, and lost its way. I am too old to know which, and too curious to stop wondering.'], choices: [{ text: '~curious~ Who are the Givers?', goto: 'givers' }, { text: '~scared~ My ship has no power. Can you help me?', goto: 'power' }] },
         // the traveller's translator: she notices it (docs/story-bible.md, "The translator")
-        ear: { say: ['~curious~ Do you? I hear you, child: clicks and hums, like a pot coming to the boil. Then that little thing at your ear hums back at me, and somehow we both know what was meant.', '~playful~ Your people made a thing that listens for you. The Givers would have liked them. Keep it close. Out here everybody talks, and nobody talks like you.'], choices: [{ text: '~curious~ What is this thing on my back?', goto: 'pack', once: true }, { text: '~scared~ My ship has no power. Can you help me?', goto: 'power' }] },
-        pack: { say: ['~playful~ A tank of living water. Look at it move. The same water the giants carried, I would wager my teeth, and I have four left.', '~neutral~ The Givers made it to be worn. Try it. *It will push what your arms cannot*, and where the water is, it fills.'], choices: [{ text: '~curious~ Who are the Givers?', goto: 'givers' }, { text: '~scared~ My ship has no power. Can you help me?', goto: 'power' }] },
+        ear: { say: ['~curious~ Do you? I hear you, child: clicks and hums, like a pot coming to the boil. Then that little thing at your ear hums back at me, and somehow we both know what was meant.', '~playful~ Your people made a thing that listens for you. The Givers would have liked them. Keep it close. Out here everybody talks, and nobody talks like you.'], choices: [{ text: '~angry~ I didn’t fall. Something struck my ship.', goto: 'struck' }, { text: '~scared~ My ship has no power. Can you help me?', goto: 'power' }] },
+        pack: { say: ['~playful~ A tank of living water. Look at it move. The same water the giants carried, I would wager my teeth, and I have four left.', '~neutral~ The Givers made it to be worn. Try it. *It will push what your arms cannot*, and where the water is, it fills.'], choices: [{ text: '~curious~ How is it I understand you?', goto: 'ear' }, { text: '~scared~ My ship has no power. Can you help me?', goto: 'power' }] },
         power: {
           say: ['~solemn~ Power. For your ball. Hm. In this desert there is one power: the water that rises under the tree once a year, and makes it drink. When it rises, everything wakes: the fire, the people, the old stones.', '~curious~ This year it has not risen, and the pilgrims walk round and round the walls, waiting. Perhaps the chest knew. Perhaps it opened now because the water needs someone to fetch it.'],
           choices: [
@@ -473,7 +463,6 @@ export const PEOPLE = {
           say: ['~playful~ *The well, Ama’s jar, the Speaker’s old words.* In that order, if you like order. I never did.'],
           choices: [
             { text: '~neutral~ Tell me about the Givers again.', goto: 'givers' },
-            { text: '~curious~ Are there other chests?', goto: 'others' },
             { text: '~neutral~ Goodbye, Nour.', end: true },
           ],
         },
@@ -495,8 +484,6 @@ export const PEOPLE = {
           choices: [
             { text: '~curious~ Where does the water come from?', goto: 'from' },
             { text: '~curious~ What’s the mark above the carving?', goto: 'glyph' },
-            { text: '~curious~ What is up on the tree’s trunk?', goto: 'chest' },
-            { text: '~neutral~ I’ll let you sweep.', end: true },
           ],
         },
         chest: {
@@ -507,7 +494,7 @@ export const PEOPLE = {
         },
         from: { say: ['~neutral~ From below. From the giant. Its head lies outside the back gate; its heart lies under our feet. The old keepers went down *through its mouth* to clean the channel, so my grandmother Nour says; she saw them go when she was a girl. Nobody has gone down in my lifetime.'], choices: [{ text: '~surprised~ Through its mouth?', goto: 'mouth' }] },
         mouth: { say: ['~whisper~ Propped open with carved stones. Children dare each other to touch the teeth. Don’t tell Ilo I told you.'], choices: [{ text: '~playful~ I won’t.', end: true }] },
-        glyph: { say: ['~neutral~ {glyph} The keepers call it the Giver’s mark. The pilgrims from the salt call it the Eye That Fell. The children call it the bird. Nobody knows who put it there first.'], choices: [{ text: '~curious~ Where does the water come from?', goto: 'from' }, { text: '~happy~ Thank you, Hessa.', end: true }] },
+        glyph: { say: ['~neutral~ {glyph} The keepers call it the Giver’s mark. The pilgrims from the salt call it the Eye That Fell. The children call it the bird. Nobody knows who put it there first.'], choices: [{ text: '~curious~ And what is up on the tree’s trunk?', goto: 'chest' }, { text: '~curious~ Where does the water come from?', goto: 'from' }] },
         full: { say: ['~happy~ Look at it. Look! It came up through the roots in every colour, like it used to. I didn’t even have time to finish sweeping.'], choices: [{ text: '~happy~ It was waiting for someone to clear the way.', end: true }] },
       },
     },
@@ -529,7 +516,6 @@ export const PEOPLE = {
           say: ['~playful~ Sky-person! I’ve been out to your ball already. Don’t look like that, I didn’t take anything. Much.', '~whisper~ There’s a burn on the side of it. Not a scrape; a burn, in a shape. Three dots over a curve. {glyph}'],
           choices: [
             { text: '~curious~ What does it mean?', goto: 'mean' },
-            { text: '~curious~ What do you sell?', goto: 'sell' },
             { text: '~curious~ Got anything faster than walking?', if: { all: [{ quest: 'desert.bike', started: false }, { not: { flag: 'desert.bike.found' } }] }, goto: 'bike' },
             { text: '~angry~ Stay away from my ship.', end: true },
           ],
@@ -546,7 +532,7 @@ export const PEOPLE = {
         bikeWhere: { say: ['~neutral~ *The hollow with the red rag*, between the camps and your ball. Pull the tarp off. If it won’t wake, it’s hungry, not dead.'], choices: [{ text: '~neutral~ Thanks, Marrow.', end: true }, { text: '~curious~ What do you sell?', goto: 'sell' }] },
         bikeAfter: { say: ['~happy~ I heard it from here! Like a kettle with ambitions. Look after it; it’s the most honest thing I ever found.'], do: { set: { 'desert.marrow.bike': true } }, choices: [{ text: '~playful~ It has opinions.', end: true }, { text: '~curious~ What do you sell?', goto: 'sell' }] },
         mean: { say: ['~solemn~ It means somebody signs their work. The same mark is on the giants, on the old stones, on the gates. I’ve seen it on things that fell out of the sky before, too. Never on anything that was still warm.'], choices: [{ text: '~curious~ Things that fell before?', goto: 'before' }, { text: '~neutral~ Thanks, Marrow.', end: true }] },
-        before: { say: ['~playful~ Bits, mostly. A shard of glass that hums when it rains. A bowl that rings by itself. Things that sing don’t fall by accident, sky-person. That’s my professional opinion, free of charge.'], choices: [{ text: '~neutral~ Thanks, Marrow.', end: true }] },
+        before: { say: ['~playful~ Bits, mostly. A shard of glass that hums when it rains. A bowl that rings by itself. Things that sing don’t fall by accident, sky-person. That’s my professional opinion, free of charge.'], choices: [{ text: '~curious~ What do you sell, then?', goto: 'sell' }, { text: '~neutral~ Thanks, Marrow.', end: true }] },
         sell: { say: ['~playful~ Today? Rumours. The tree hasn’t drunk because the giant’s holding its breath. The water’s late because the Speaker walks the wrong way round. The ball fell because you sneezed. Pick one.'], choices: [{ text: '~tired~ I’ll pass.', end: true }] },
       },
     },

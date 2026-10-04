@@ -76,7 +76,6 @@ export const KEEPERS = [
           say: ['~surprised~ …A traveller? On the path? Stand still, let me look at you.', '~happy~ Forty-one years I’ve kept the pools lit for travellers, and you’re the first who ever came. I’m Hollin. I don’t know what to do with my hands.'],
           choices: [
             { text: '~curious~ Why light pools for nobody?', goto: 'why' },
-            { text: '~curious~ Who were you expecting?', goto: 'why' },
             { text: '~neutral~ I’m just passing through.', goto: 'passing' },
           ],
         },
@@ -151,10 +150,9 @@ export const KEEPERS = [
           choices: [
             { text: '~curious~ Why not?', goto: 'latch' },
             { text: '~curious~ What are the domes?', goto: 'domes' },
-            { text: '~curious~ Have you seen anything strange?', goto: 'strange' },
           ],
         },
-        domes: { say: ['~neutral~ Houses. Old ones. Nobody built them; we found them, and moved in, and put moss on them to keep them cool. The glass one down the path has ribs like a fish. Nobody lives in that one. Too bright.'], choices: [{ text: '~curious~ And your door?', goto: 'latch' }, { text: '~neutral~ Bye, Pim.', end: true }] },
+        domes: { say: ['~neutral~ Houses. Old ones. Nobody built them; we found them, and moved in, and put moss on them to keep them cool. The glass one down the path has ribs like a fish. Nobody lives in that one. Too bright.'], choices: [{ text: '~curious~ And your door?', goto: 'latch' }, { text: '~curious~ Have you seen anything strange?', goto: 'strange' }] },
         latch: {
           say: ['~sad~ I climbed the big roof to watch the lights, *the glass dome further down the path*, and I put my latch down to hold on, and then I came down without it.', '~scared~ I’m not climbing up there again. It’s very high and very round.'],
           choices: [{ text: '~neutral~ I’ll fetch it.', do: { start: 'perdide2.latch' }, goto: 'thanks' }, { text: '~sad~ That’s a shame.', end: true }],
@@ -183,13 +181,11 @@ export const KEEPERS = [
           choices: [
             { text: '~curious~ Whose skiff is that?', goto: 'skiff' },
             { text: '~curious~ What’s in the cave?', goto: 'cave' },
-            { text: '~curious~ Where did the two travellers go?', goto: 'two' },
           ],
         },
         again: {
           say: ['~tired~ Still here. The cave’s still here. The roots haven’t moved.'],
           choices: [
-            { text: '~curious~ Whose skiff is that?', goto: 'skiff' },
             { text: '~curious~ Where did the two travellers go?', goto: 'two' },
             { text: '~neutral~ Bye, Bram.', end: true },
           ],
@@ -199,7 +195,7 @@ export const KEEPERS = [
           do: { start: 'perdide2.skiff' },
           choices: [{ text: '~neutral~ I’ll ask him.', end: true }],
         },
-        cave: { say: ['~playful~ Warm light, all the way to the back. It glows on its own. Hollin says the two travellers slept in there before they went on. I say it’s a cave.'], choices: [{ text: '~curious~ Whose skiff is that?', goto: 'skiff' }, { text: '~neutral~ Bye, Bram.', end: true }] },
+        cave: { say: ['~playful~ Warm light, all the way to the back. It glows on its own. Hollin says the two travellers slept in there before they went on. I say it’s a cave.'], choices: [{ text: '~curious~ Whose skiff is that?', goto: 'skiff' }, { text: '~curious~ Where did the two travellers go?', goto: 'two' }] },
         two: { say: ['~neutral~ Out of the wood, the long way, through the cave and out the other side. That’s the story. Nobody’s been through since; the roots have grown over the far end.'], choices: [{ text: '~curious~ Whose skiff is that?', goto: 'skiff' }, { text: '~neutral~ Bye, Bram.', end: true }] },
       },
     },

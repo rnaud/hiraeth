@@ -86,17 +86,16 @@ export const PEOPLE = {
           choices: [
             { text: '~curious~ Why not?', goto: 'why' },
             { text: '~curious~ Where is your sister?', goto: 'where' },
-            { text: '~curious~ What happened to the bell?', goto: 'bell' },
           ],
         },
         why: { say: ['~tired~ Because she left, and I stayed, and we each thought the other was wrong. Then the cloud rose and the aqueduct was the only way across, and I am too old for aqueducts.'], choices: [{ text: '~happy~ I could carry one.', goto: 'carry' }, { text: '~curious~ Where is she?', goto: 'where' }] },
-        where: { say: ['~sad~ Ondine walked out onto *the peach plain, toward the lone tower*. She said the tower was older than the monastery, and she wanted to know by how much. She is still out there. She waves, some evenings. I can see her from the wall.'], choices: [{ text: '~happy~ I could carry a letter.', goto: 'carry' }, { text: '~neutral~ Goodbye, Mother.', end: true }] },
+        where: { say: ['~sad~ Ondine walked out onto *the peach plain, toward the lone tower*. She said the tower was older than the monastery, and she wanted to know by how much. She is still out there. She waves, some evenings. I can see her from the wall.'], choices: [{ text: '~happy~ I could carry a letter.', goto: 'carry' }, { text: '~curious~ What happened to the bell?', goto: 'bell' }] },
         carry: {
           say: ['~happy~ You would? Then take this one; it is the shortest. It says what all the others said, with fewer words.', '~playful~ *Across the long aqueduct*, from the needle plateau to the plain. Don’t read it. Well. Read it if you must, but don’t tell me.'],
           do: [{ give: 'letter' }, { start: 'arzach2.letter' }],
           choices: [{ text: '~neutral~ I’ll bring it to her.', end: true }],
         },
-        bell: { say: ['~playful~ *Ask Brother Calix*; it is his bell, he says, though it belongs to the whole cliff. It stopped the night the cloud rose. Or the cloud rose the night it stopped. We argue about that at supper.'], choices: [{ text: '~curious~ Where is your sister?', goto: 'where' }, { text: '~happy~ Thank you.', end: true }] },
+        bell: { say: ['~playful~ *Ask Brother Calix*; it is his bell, he says, though it belongs to the whole cliff. It stopped the night the cloud rose. Or the cloud rose the night it stopped. We argue about that at supper.'], choices: [{ text: '~happy~ I could carry a letter to your sister.', goto: 'carry' }, { text: '~happy~ Thank you.', end: true }] },
         waiting: { say: ['~scared~ You still have it? Good. I mean: go on, then. *The long aqueduct is past the needles*.'], choices: [{ text: '~neutral~ On my way.', end: true }] },
         answered: { say: ['~happy~ You gave it to her? What did she… no. Don’t tell me. I saw her wave tonight, with both arms. That is enough.'], choices: [{ text: '~happy~ She laughed.', goto: 'laughed' }, { text: '~happy~ (smile)', end: true }] },
         laughed: { say: ['~happy~ She always did, at the wrong moments. Thank you, child. Next winter I will send one myself. Perhaps.'], choices: [{ text: '~neutral~ Goodbye, Mother.', end: true }] },
@@ -120,7 +119,6 @@ export const PEOPLE = {
           choices: [
             { text: '~curious~ Up where?', goto: 'where' },
             { text: '~playful~ Stones don’t fall up.', goto: 'dont' },
-            { text: '~happy~ Good luck, Tiv.', end: true },
           ],
         },
         dont: { say: ['~angry~ Tell that to them! (He points past the table’s edge.) Look: *the little sky stones*, one above the other, all the way up. My three are up there. Brother Calix says when the bell stopped, everything forgot which way was down.'], choices: [{ text: '~neutral~ I’ll fetch them.', goto: 'fetch' }, { text: '~curious~ Up where?', goto: 'where' }] },
@@ -276,7 +274,8 @@ export const THINGS = {
             { text: '~neutral~ Set down the wide flat stone.', if: { has: 'cairn.wide' }, do: { emit: ['arzach2:cairn', 'cairn.wide'] }, goto: 'result' },
             { text: '~neutral~ Set down the round stone.', if: { has: 'cairn.round' }, do: { emit: ['arzach2:cairn', 'cairn.round'] }, goto: 'result' },
             { text: '~whisper~ Set down the little egg.', if: { has: 'cairn.egg' }, do: { emit: ['arzach2:cairn', 'cairn.egg'] }, goto: 'result' },
-            { text: '~neutral~ (step back)', end: true },
+            // (holding all three, the stones are the only answers: B / Esc still steps back)
+            { text: '~neutral~ (step back)', if: { not: { all: [{ has: 'cairn.wide' }, { has: 'cairn.round' }, { has: 'cairn.egg' }] } }, end: true },
           ],
         },
         result: {

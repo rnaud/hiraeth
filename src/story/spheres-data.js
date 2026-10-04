@@ -83,7 +83,6 @@ export const PEOPLE = {
           choices: [
             { text: '~curious~ How do you hear it?', goto: 'how' },
             { text: '~curious~ What sounds do they remember?', goto: 'what' },
-            { text: '~curious~ Where did they come from?', goto: 'from' },
           ],
         },
         how: {
@@ -92,7 +91,7 @@ export const PEOPLE = {
           choices: [{ text: '~curious~ And then?', goto: 'then' }, { text: '~neutral~ I’ll go and listen.', end: true }],
         },
         then: { say: ['~neutral~ Then carry what you heard *down the avenue to the round plaza*. The pole there hums while the great sphere is on the horizon. *Ume* keeps it. She says if you bring it three sounds, it will play them back together.'], choices: [{ text: '~neutral~ I’ll go and listen.', end: true }] },
-        what: { say: ['~playful~ Each one something different. A bell. Singing. One of them remembers a drum, which is strange: nobody here has ever owned a drum. We whistle.'], choices: [{ text: '~curious~ How do I hear them?', goto: 'how' }] },
+        what: { say: ['~playful~ Each one something different. A bell. Singing. One of them remembers a drum, which is strange: nobody here has ever owned a drum. We whistle.'], choices: [{ text: '~curious~ How do I hear them?', goto: 'how' }, { text: '~curious~ Where did they come from?', goto: 'from' }] },
         from: { say: ['~curious~ From the sky. From the great one on the horizon, some say: seeds it dropped. From somewhere with bells and drums, I’d say, which is not here.'], choices: [{ text: '~curious~ How do I hear them?', goto: 'how' }] },
         again: {
           say: [
@@ -152,7 +151,6 @@ export const PEOPLE = {
           say: ['~happy~ *Climb the white hill*! From the middle terrace you can step right out onto the great canopy. Nobody believes me until they do it.', '~curious~ I’m Ivo. I climb things. Have you ever looked under a sphere?'],
           choices: [
             { text: '~curious~ Under a sphere?', goto: 'under' },
-            { text: '~curious~ Seen anything strange lately?', goto: 'strange' },
             { text: '~neutral~ I’ll climb the hill.', end: true },
           ],
         },

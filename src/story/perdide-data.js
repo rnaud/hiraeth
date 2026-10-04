@@ -78,10 +78,8 @@ export const LANDING = [
         hello: {
           say: ['~playful~ You came down out of the sky in a ball and you didn’t land in the deep water. That’s more sense than most visitors show.', '~happy~ I’m Wendel. I keep the eggs warm and the plants hungry.'],
           choices: [
-            { text: '~curious~ What eggs?', goto: 'eggs' },
-            { text: '~curious~ Why keep the plants hungry?', goto: 'plants' },
-            { text: '~neutral~ Something is humming, out east.', goto: 'hum' },
             { text: '~neutral~ I’m looking for something of value.', goto: 'value' },
+            { text: '~curious~ Why keep the plants hungry?', goto: 'plants' },
           ],
         },
         eggs: {
@@ -94,7 +92,6 @@ export const LANDING = [
           choices: [
             { text: '~curious~ What do you mean, the patient?', goto: 'patience', if: { quest: 'perdide.patience', started: false } },
             { text: '~curious~ What hums in the east?', goto: 'hum' },
-            { text: '~neutral~ Goodbye, Wendel.', end: true },
           ],
         },
         patience: {
@@ -107,7 +104,6 @@ export const LANDING = [
           do: { set: { 'perdide.wendel.heard': true } },
           choices: [
             { text: '~curious~ Fell from where?', goto: 'fell' },
-            { text: '~curious~ What’s that mark on your staff?', goto: 'glyph' },
             { text: '~neutral~ I’ll go and see.', end: true },
           ],
         },
@@ -127,9 +123,7 @@ export const LANDING = [
             { if: { quest: Q, stage: 'sing' }, text: '~playful~ Saba wants rain? Then she’ll wait. *Unless you’ve got some on your back*.' },
             { if: { quest: Q, reached: 'listen' }, text: '~surprised~ It sang? I saw the jaws shut from here, all at once, like a door closing. The whole swamp held its breath.' }],
           choices: [
-            { text: '~curious~ What do you mean, the patient?', goto: 'patience', if: { quest: 'perdide.patience', started: false } },
             { text: '~curious~ Tell me about the eggs.', goto: 'eggs' },
-            { text: '~curious~ What’s that mark on your staff?', goto: 'glyph', if: { not: { flag: 'perdide.glyph.heard' } } },
             { text: '~happy~ See you, Wendel.', end: true },
           ],
         },
@@ -143,7 +137,6 @@ export const LANDING = [
         after: {
           say: ['~solemn~ You stood under it while it sang, and walked off with a piece of it. You’ll carry that sound for the rest of your life, I expect.', '~playful~ It’s not a bad thing to carry. Lighter than eggs.'],
           choices: [
-            { text: '~curious~ What did you mean, the patient are never eaten?', goto: 'patience', if: { quest: 'perdide.patience', started: false } },
             { text: '~curious~ Tell me about the eggs.', goto: 'eggs' },
             { text: '~happy~ Keep them warm, Wendel.', end: true },
           ],
@@ -162,16 +155,13 @@ export const LANDING = [
           say: ['~neutral~ Mm. Hello. Mind the reeds, they cut.', '~playful~ I’m Sedge. I cut them, they cut me. It’s a fair arrangement.'],
           choices: [
             { text: '~curious~ What’s out in the water?', goto: 'water' },
-            { text: '~curious~ Is there a boat?', goto: 'skiff' },
             { text: '~curious~ You look like you’ve seen something.', goto: 'light' },
-            { text: '~neutral~ Sorry to bother you.', end: true },
           ],
         },
         again: {
           say: ['~playful~ Back? The reeds are still sharp.'],
           choices: [
-            { text: '~curious~ Tell me about the deep water.', goto: 'water' },
-            { text: '~curious~ How do I get across?', goto: 'skiff' },
+            { text: '~curious~ How do I get across the water?', goto: 'water' },
             { text: '~curious~ The light you saw…', goto: 'light', if: { flag: 'perdide.rumour.light' } },
             { text: '~curious~ You look like you’ve seen something.', goto: 'light', if: { not: { flag: 'perdide.rumour.light' } } },
             { text: '~neutral~ Bye, Sedge.', end: true },
@@ -212,12 +202,11 @@ export const LANDING = [
           choices: [
             { text: '~neutral~ I’ll follow them.', goto: 'go' },
             { text: '~curious~ What are they?', goto: 'what' },
-            { text: '~curious~ How did you get over here?', goto: 'here' },
           ],
         },
         what: {
           say: ['~playful~ Wendel says they’re sparks off the Great Crystal. Corm says they’re plant breath. Ysse says they’re none of my business.', '~curious~ I think they’re going home. Everything goes home at dusk.'],
-          choices: [{ text: '~happy~ Let’s find out. I’ll follow them.', goto: 'go' }, { text: '~neutral~ Maybe they are.', end: true }],
+          choices: [{ text: '~happy~ Let’s find out. I’ll follow them.', goto: 'go' }, { text: '~curious~ How did you get over here?', goto: 'here' }],
         },
         here: { say: ['~tired~ Ysse rows me over. She keeps the crystal cave and I help. Mostly I’m not allowed to touch anything.'], choices: [{ text: '~neutral~ I’ll follow your fireflies.', goto: 'go' }, { text: '~neutral~ Bye, Ivo.', end: true }] },
         go: {
@@ -265,7 +254,6 @@ export const PEOPLE = {
           choices: [
             { text: '~surprised~ It hums louder because of me?', goto: 'you' },
             { text: '~curious~ Why does it sing?', goto: 'why' },
-            { text: '~neutral~ Wendel says it fell.', goto: 'fell' },
           ],
         },
         you: {
@@ -343,7 +331,6 @@ export const PEOPLE = {
         hello: {
           say: ['~scared~ Careful! Don’t step on Margit. Or Big Ollo. Or the little one, she hasn’t got a name yet; she bites.', '~angry~ My plants. I feed them. Nobody else does.'],
           choices: [
-            { text: '~neutral~ Wendel says not to feed them.', goto: 'wendel' },
             { text: '~curious~ What do you feed them?', goto: 'feed' },
             { text: '~curious~ What do you think the Great Crystal is?', goto: 'crystal' },
           ],
@@ -395,7 +382,6 @@ export const PEOPLE = {
           say: ['~angry~ Mind your head. And your feet. And your elbows.', '~neutral~ I keep the cave. I clean the crystals so they can hear. Dust makes them deaf.'],
           choices: [
             { text: '~curious~ Hear what?', goto: 'hear' },
-            { text: '~curious~ What’s the hollow in the middle?', goto: 'hollow' },
             { text: '~curious~ Is there anywhere else like this?', goto: 'far' },
           ],
         },

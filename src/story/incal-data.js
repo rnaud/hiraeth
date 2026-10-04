@@ -82,7 +82,6 @@ export const PEOPLE = {
           choices: [
             { text: '~curious~ What is it, the light?', goto: 'what' },
             { text: '~neutral~ It looks dim.', goto: 'dim' },
-            { text: '~curious~ Who do you sweep for?', goto: 'sweep' },
           ],
         },
         what: {
@@ -92,14 +91,14 @@ export const PEOPLE = {
         },
         dim: {
           say: ['~sad~ It is. It used to throw shadows at noon. Since the night the sky rang it gutters, like a lamp nobody trims.'],
-          choices: [{ text: '~curious~ The night the sky rang?', goto: 'rang' }],
+          choices: [{ text: '~curious~ The night the sky rang?', goto: 'rang' }, { text: '~curious~ Who do you sweep for?', goto: 'sweep' }],
         },
         rang: {
           say: ['~solemn~ Something went over the shaft, low and slow, singing. Like the rim of a glass when you wet your finger and go round. Every window in the city hummed with it.',
             '~surprised~ And the Lodestar answered. I swear it did. It rang back, and a piece of it came away: a splinter of light, falling down the middle of the shaft. Past me. Past every level. Singing all the way to the bottom.'],
           do: { set: { 'incal.rumour.light': true } },
           choices: [{ text: '~neutral~ Something struck my ship that night.', goto: 'ship' }, { text: '~curious~ Where did the piece land?', if: EARLY, goto: 'where' },
-            { text: '~neutral~ I have it. Ossa gave it to me.', if: { has: 'splinter' }, goto: 'carry' }],
+            { text: '~neutral~ I have it. Ossa gave it to me.', if: { all: [{ has: 'splinter' }, { not: EARLY }] }, goto: 'carry' }],
         },
         ship: {
           say: ['~playful~ Did it now. Then it’s been busy, whatever it is: a falling light that sings, and breaks things.',
@@ -179,13 +178,12 @@ export const PEOPLE = {
           choices: [
             { text: '~curious~ What came down?', goto: 'splinter' },
             { text: '~curious~ Why “Upward”?', goto: 'upward' },
-            { text: '~curious~ What’s the mark on your floor?', goto: 'glyph', once: true },
           ],
         },
         upward: {
           say: ['~neutral~ Because everything down here faces up. Rain comes from up, soup comes from up, rich men’s hats. The light came from up too, once, before the smog got thick.',
             '~angry~ We pray to it with our eyes shut, because the smog stings. Up at the top they keep their eyes open, and look at the adverts.'],
-          choices: [{ text: '~curious~ What came down?', goto: 'splinter' }],
+          choices: [{ text: '~curious~ What came down?', goto: 'splinter' }, { text: '~curious~ What’s the mark on your floor?', goto: 'glyph' }],
         },
         glyph: {
           say: ['~solemn~ {glyph} The Three Who Look Up. Three of us, over the hill of the world, looking up.',
@@ -241,12 +239,11 @@ export const PEOPLE = {
           choices: [
             { text: '~neutral~ I’m going up to the palace.', if: { has: 'splinter' }, goto: 'take' },
             { text: '~curious~ Why doesn’t he come down?', goto: 'why' },
-            { text: '~curious~ What’s it like, down here?', goto: 'here' },
           ],
         },
         why: {
           say: ['~sad~ Mum says when you go up, you’re not allowed to be from down. You have to take it off, like a coat.'],
-          choices: [{ text: '~happy~ I could take him something from you.', goto: 'take' }, { text: '~happy~ Bye, Pip.', end: true }],
+          choices: [{ text: '~happy~ I could take him something from you.', goto: 'take' }, { text: '~curious~ What’s it like, down here?', goto: 'here' }],
         },
         take: {
           say: ['~happy~ You would? Take him this! It’s *a ration tin*; Mum makes them. Smog-cabbage and the good bread. He used to eat three.',
@@ -287,8 +284,6 @@ export const PEOPLE = {
           choices: [
             { text: '~curious~ Nobody looks at the light?', goto: 'rule' },
             { text: '~curious~ The night the sky rang: were you on duty?', goto: 'night', once: true },
-            { text: '~curious~ Where are you from?', goto: 'from' },
-            { text: '~neutral~ Fine.', end: true },
           ],
         },
         rule: { say: ['~neutral~ It’s a light show. It’s for the people below. Guards keep their eyes on the visitors.', '~neutral~ (He keeps his eyes very carefully on you.)'], choices: [{ text: '~curious~ Where are you from?', goto: 'from' }, { text: '~tired~ Fine.', end: true }] },
@@ -379,9 +374,9 @@ export const RIM = {
       nodes: {
         hello: {
           say: ['~playful~ Admiring the view? Everybody does, the first day. Then you stop seeing it. That’s how you know you live here.', '~neutral~ Corvin Sale. Of the rim. Third generation.'],
-          choices: [{ text: '~curious~ What is the light above the palace?', goto: 'incal' }, { text: '~curious~ What’s down there?', goto: 'down' }, { text: '~curious~ What’s that mark on the cabs?', goto: 'glyph', once: true }, { text: '~neutral~ Goodbye.', end: true }],
+          choices: [{ text: '~curious~ What is the light above the palace?', goto: 'incal' }, { text: '~neutral~ Goodbye.', end: true }],
         },
-        incal: { say: ['~tired~ The Lodestar? A light show. A story for tourists, and for the lower levels, who need stories. The palace pays for it out of the taxi tax.', '~playful~ Dimming, is it? Then the palace is economising. Good.'], choices: [{ text: '~curious~ What’s down there?', goto: 'down' }, { text: '~neutral~ Goodbye.', end: true }] },
+        incal: { say: ['~tired~ The Lodestar? A light show. A story for tourists, and for the lower levels, who need stories. The palace pays for it out of the taxi tax.', '~playful~ Dimming, is it? Then the palace is economising. Good.'], choices: [{ text: '~curious~ What’s down there?', goto: 'down' }, { text: '~curious~ What’s that mark on the cabs?', goto: 'glyph' }] },
         down: { say: ['~angry~ Level minus eighty-six? I’ve never been below the smog. Why would I? Everything I need comes up.'], choices: [{ text: '~neutral~ Goodbye.', end: true }] },
         glyph: { say: ['~neutral~ {glyph} The palace seal. It’s on every cab licence, every permit, every gate. It means *approved*.'], choices: [{ text: '~neutral~ Goodbye.', end: true }] },
         lit: { say: ['~surprised~ I looked up. I didn’t mean to. Everybody did; it would have been rude not to.', '~whisper~ Don’t tell anyone I said it was beautiful.'], choices: [{ text: '~playful~ Your secret is safe.', end: true }] },
@@ -394,7 +389,7 @@ export const RIM = {
       nodes: {
         hello: {
           say: ['~playful~ Mind the taxis. They don’t stop. Well: up here they stop for you. You’ve got the face for it.', '~neutral~ I dispatch. Every lane, every cab, every fare. Nine hundred cabs, and not one of them stops below the smog.'],
-          choices: [{ text: '~curious~ Why not?', goto: 'why' }, { text: '~curious~ Seen anything strange lately?', goto: 'strange' }, { text: '~neutral~ Goodbye.', end: true }],
+          choices: [{ text: '~curious~ Why not?', goto: 'why' }, { text: '~curious~ Seen anything strange lately?', goto: 'strange' }],
         },
         why: { say: ['~neutral~ No fares down there. Well, no fares that pay. There’s a story about one driver who still stops at the bottom, if you *light the old lamp*. Wren, they call her. Drivers tell it to each other to feel bad.'], choices: [{ text: '~neutral~ Goodbye.', end: true }] },
         strange: { say: ['~scared~ The night the sky rang, every cab in the shaft lost its compass at once. Nine hundred cabs, spinning like leaves in a drain. I haven’t slept properly since.'], do: { set: { 'incal.rumour.light': true } }, choices: [{ text: '~neutral~ Goodbye.', end: true }] },
