@@ -9,6 +9,8 @@ import { mulberry32 } from './noise.js';
 import { namedLook, costumeWorld, TRIM_IDS, BUILDS } from './costumes.js';
 import { formatText } from './story/dialogue.js';
 import { speakBalloon } from './story/voice.js';
+import { Knockdown, toppleVelocities, KNOCKOVER } from './ragdoll.js';
+export { KNOCKOVER };
 
 // People of the world: they walk a looping route, pause and look around,
 // turn and wave when you come close, then say a line in a comic speech
@@ -22,7 +24,9 @@ import { speakBalloon } from './story/voice.js';
 //
 // The player's fluid tool: hit(mode). A glob splashes and startles them (a
 // jump, a turn to the shooter, a short line); the push shoves them back a
-// couple of metres, stumbling with their arms flung up.
+// couple of metres, stumbling with their arms flung up, and a close, hard one
+// knocks them right over (a ragdoll, src/ragdoll.js): they lie a moment, get
+// up and glare at you.
 //
 // What they wear comes from their world (costumes.js): a named person keeps the
 // colours the story gives them, dressed in the world's style; a crowd body is
@@ -39,6 +43,7 @@ export const SPLASHED = ['~angry~ Hey! I\u2019m soaked!', '~surprised~ Ugh, it\u
 export const SHOVED = ['~surprised~ Whoa! Watch it!', '~angry~ Oof! Hey!', '~angry~ Mind where you push!', '~scared~ Easy, traveller!'];
 export const SINGED = ['~shout~ Hot! Hot!', '~surprised~ Yow! That’s warm!', '~surprised~ My cloak! …oh. It doesn’t burn?', '~angry~ Sparks! Who’s throwing sparks?'];
 const STUN_FOR = 3.5;   // seconds a stilling glob holds them (fluid-kit.js STUN_SECONDS)
+let knockedDown = 0;   // bodies down at once (KNOCKOVER.most)
 
 const _face = new THREE.Vector3();
 /** Where the player's eyes are (the traveller's head, or about there), for people to look at. */
@@ -134,11 +139,14 @@ export class NPC {
     this.lines = [person.lines[person.lineIdx % person.lines.length]];
     this.lineIdx = 0;
     this._frozen = false;
+    this.endDown();
     if (this.animator) this.animator.phase = person.phase;
     if (this.cape) this.cape.ready = false;   // the cloth drops into place at the new spot
   }
 
   release() {
+    if (this.down && this.person) this.crowd?.holdShove?.(this.person, this.pos, false, this.heading);
+    this.endDown();
     this.person = null;
     this.hide();
   }
@@ -209,7 +217,7 @@ export class NPC {
   hit(mode, dir, info) {
     // a crowd member standing in for someone: the crowd keeps their state
     if (this.pooled && this.person && this.crowd?.hit) return this.crowd.hit(this.person, mode, dir, info);
-    if (this.time < this.stumbleUntil) return;
+    if (this.time < this.stumbleUntil || this.down) return;
     const pick = (a) => a[Math.floor(Math.random() * a.length)];
     if (mode === 'stun') {
       this.stunUntil = this.stumbleUntil = this.time + STUN_FOR; this._frozen = false;
@@ -222,6 +230,10 @@ export class NPC {
       this.shout = { text: pick(SINGED), until: this.time + 2.4 };
       return;
     }
+    if (mode === 'push' && dir && (info?.strength ?? 1) >= KNOCKOVER.strength && this.knockDown(dir, info)) {
+      this.shout = { text: pick(SHOVED), until: this.time + 3.5 };
+      return;
+    }
     if (mode === 'push') {
       this.stumbleUntil = this.time + 0.9; this._frozen = false;
       if (dir) this.knock.set(dir.x, 0, dir.z).normalize().multiplyScalar(4 * (info?.shove ?? 2.4) * (0.6 + 0.4 * (info?.strength ?? 1)));   // dies away at 4/s: ~shove metres
@@ -231,6 +243,61 @@ export class NPC {
     }
     this.startleAt = this.time;
     this.shout = { text: pick(SPLASHED), until: this.time + 2.2 };
+  }
+
+  /**
+   * Knocked over by a push along dir: the body goes limp and tumbles back
+   * (src/ragdoll.js), lies a moment and gets up. Not seated or talking people,
+   * nor anyone without a body; at most KNOCKOVER.most at once. Returns true if it happened.
+   */
+  knockDown(dir, info) {
+    if (!this.humanoid || this.down || this.seat || this.talkTo || !this.object.visible || knockedDown >= KNOCKOVER.most) return false;
+    const d = _d.set(dir.x, 0, dir.z);
+    if (d.lengthSq() < 1e-6) return false;
+    d.normalize();
+    const k = (info?.strength ?? 1), s = this.object.scale.y;
+    this.down = new Knockdown(this.humanoid).start(toppleVelocities(d, Y, { carry: (2.2 + 2.2 * k) * Math.sqrt(s), rise: 1.6 + k, tip: 3 + 2 * k }));
+    knockedDown++;
+    this.faceTo = Math.atan2(-dir.x, -dir.z);
+    this.greeted = 0; this.knock.set(0, 0, 0); this._frozen = false;
+    return true;
+  }
+
+  /** Back on their feet (or the knockdown cut short): the ragdoll's place is theirs. */
+  endDown() {
+    if (!this.down) return;
+    this.down = null;
+    knockedDown = Math.max(0, knockedDown - 1);
+    this.humanoid?.resetFeet();
+  }
+
+  /**
+   * A frame knocked down: the ragdoll falls and lies, then the get-up (the
+   * idle pose, down on one knee at first, blended in from lying there).
+   * Returns true while still down.
+   */
+  updateDown(dt, player) {
+    const D = this.down, H = this.humanoid;
+    if (D.phase !== 'rise') {
+      const up = D.update(dt, this.physics, Y);
+      D.rag.groundSpot(this.physics, Y, this.pos);
+      if (!up) return true;
+      const f = D.rag.riseDir(Y, _w);
+      this.heading = Math.atan2(f.x, f.z);
+      this.physics.pushCapsule(this.pos, 0.4, 0.6, 2.0, _push);
+      D.beginRise();
+    }
+    this.pose(dt, 0, -1, 99, player, null);
+    this.object.position.copy(this.pos);
+    this.object.quaternion.setFromAxisAngle(Y, this.heading);
+    H.update();
+    H.kneel(D.kneel, { up: Y, fwd: _w.set(Math.sin(this.heading), 0, Math.cos(this.heading)), ground: this.pos.y });
+    if (D.rise(dt, Y)) {
+      this.endDown();
+      this.startleAt = this.time - 0.9;   // up again: they stand and glare at you a moment (the startled turn, no hop)
+      return false;
+    }
+    return true;
   }
 
   /** Where the tool aims: the chest. */
@@ -259,6 +326,13 @@ export class NPC {
     if (camD0 > 110) { this._skip = ((this._skip ?? 0) + 1) % 4; this._acc = (this._acc ?? 0) + dt; if (this._skip) return; dt = this._acc; this._acc = 0; }
     else this._acc = 0;
     this.time += dt;
+    // knocked over: the ragdoll, then getting up
+    if (this.down) {
+      this.talking = !!this.shout && this.time < this.shout.until;
+      this.updateDown(dt, player);
+      this.updateCape(dt, player, camera, 0);
+      return;
+    }
     // shoved: knocked back (not through walls), stumbling with the arms flung up
     if (this.time < this.stumbleUntil) {
       this.greeted = 0;
@@ -374,7 +448,15 @@ export class NPC {
     // the eyes: on the player's face when they are near (or talking), else looking around
     if (this.humanoid && camera.position.distanceTo(this.pos) < 40) this.humanoid.updateEyes(dt, this.talkTo || dist < 10 * Math.max(1, this.object.scale.x) ? faceOf(player) : null);
 
-    // cloth only near the camera
+    this.updateCape(dt, player, camera, speed);
+
+    // speech balloon: placed by placeBalloon() after the camera has moved this frame
+    this.talking = !this.talkTo && this.greeted && this.time - this.greeted > 0.6 && dist < greetR;
+    if (this.shout && this.time < this.shout.until) this.talking = true;
+  }
+
+  /** The cloak's cloth, only near the camera (speed: how fast they walk, for the airflow). */
+  updateCape(dt, player, camera, speed) {
     const camD = camera.position.distanceTo(this.pos);
     if (this.cape) this.cape.mesh.visible = camD < (this.lowDetail ? 120 : 220);
     // (every frame up close; every 2nd / 3rd frame further off, where a camp full of people
@@ -388,10 +470,6 @@ export class NPC {
       this.cape.update(Math.min(this._clothDt, 1 / 20), { up: Y, vel: this.vel, wind: player.wind, floor: this.pos, capsules: this.humanoid ? this.humanoid.capsules() : this.capsules() });
       this._clothDt = 0;
     } else if (!this.cape || camD >= (this.lowDetail ? 30 : 70)) this._clothDt = 0;
-
-    // speech balloon: placed by placeBalloon() after the camera has moved this frame
-    this.talking = !this.talkTo && this.greeted && this.time - this.greeted > 0.6 && dist < greetR;
-    if (this.shout && this.time < this.shout.until) this.talking = true;
   }
 
   /** The near tier of a crowd: mirror the simulated person (crowd.js does the thinking). */
@@ -399,6 +477,17 @@ export class NPC {
     this.time += dt;
     const now = this.crowd?.time ?? 0;
     this.show(true);
+    if (this.down) {
+      // knocked over (crowd.hit): this body tumbles; the person's place follows it (a shove held
+      // over their spot, so getting up leaves them right there, and they then walk back home)
+      const still = this.updateDown(dt, player);
+      this.crowd?.holdShove?.(p, this.pos, still, this.heading);
+      this.updateCape(dt, player, camera, 0);
+      const line = now < (p.shoutUntil ?? -1) ? p.say : p.lines[p.lineIdx % p.lines.length];
+      if (this.lines[0] !== line) { this.lines = [line]; this.lineIdx = 0; }
+      this.talking = now < (p.shoutUntil ?? -1);
+      return;
+    }
     this.pos.copy(p.pos);
     this.heading = p.heading;
     _v.subVectors(player.pos, this.pos); _v.y = 0;

@@ -1106,15 +1106,56 @@ candelabra, the Hangar's bolt cactus) register a cylinder round each plant.
 
 ## Health and falls (v0.39)
 
-The traveller has a health bar (`player.health`, 0..1). Landing faster than
-`FALL.safe` (17 m/s into the ground, about a 4.5 m drop) takes `fallDamage(speed)`,
-up to the whole bar at `FALL.lethal` (38 m/s, about 22 m); riding, gliding and
-the jets land softly enough not to. `player.hurt(k, why)` is the one way in
-(`opts.onHurt`); at nothing left you are knocked out and, on the next frame,
-wake where you last stood safely, whole again (`opts.onKnockout`: a white
-flash and a toast). After `FALL.wait` s without a hurt it refills. The bar
-(`#health`, top left) only shows while you are hurt. Physics tests that drop the
-player from great heights pass `health: false`.
+The traveller has a health bar (`player.health`, 0..1). Landings are judged by
+their speed into the ground (a drop of h m lands at about √(64 h) m/s); riding,
+gliding and the jets land softly enough not to count. Up to `FALL.tumble`
+(26 m/s, about 10 m) a landing costs nothing. Harder ones knock you over
+(`player.knockDown`): the body goes limp into a ragdoll tumble, lies a moment
+and gets up, and `fallDamage(speed)` takes a little of the bar (at most
+`FALL.worst`, and a fall that isn't fatal never takes the last of it). Only
+`FALL.lethal` (48 m/s, about 36 m) or more is fatal. `player.hurt(k, why)` is
+the way in for every other hurt (`opts.onHurt`; the desert's fire and spines
+take small bites); whatever empties the bar knocks you out (`opts.onKnockout`):
+you go limp and stay down (`player.dead`), the screen dims and a small panel
+asks to **Restart** (`#restart`, main.js; Enter / Space / E, A / × on a pad,
+a click or a tap), which puts you back where you last stood safely, whole again
+(`player.restart()`, `opts.onRestart`). After `FALL.wait` s without a hurt the
+bar refills (not while knocked out). The bar (`#health`, top left) only shows
+while you are hurt or down. While down you have no control, the fluid tool is
+put away and the camera follows the body on the ground, lower and softer
+(`rig.down`). Physics tests that drop the player from great heights pass
+`health: false` (no hurts, no knockdowns).
+
+### Ragdolls (`src/ragdoll.js`)
+
+A ragdoll for the people's skeleton (`humanoid.js`), cheap enough for the
+handheld: fifteen joint particles (pelvis, chest, head, hips, knees, ankles,
+shoulders, elbows, wrists) moved by position-based dynamics in sub-steps of at
+most 1/90 s. The trunk is held rigid, the limbs by their bone lengths, with a
+few limits (knees bend forward only, thighs don't swing far behind the hips,
+the head stays on the neck, elbows and knees never fold flat). Each particle
+lands on the ground under it (one `heightAbove` ray per sub-step, from where it
+was, so nothing overhead counts as ground, along any "up"), with friction that
+lets it come to rest on slopes up to ~20°; the trunk is pushed out of walls as
+a capsule once a frame. `apply(humanoid)` turns the whole body with the trunk
+and aims neck, legs and arms along their segments; `snapshot` / `blend` blend
+any two poses.
+
+`Knockdown` is the whole of being knocked over, for the traveller and for
+people: the limp fall (blended in from the pose they had over 0.12 s), lying
+a moment once still (`KNOCK.lie`), and the get-up (`KNOCK.rise`: a blend from
+lying there into `Humanoid.kneel` that rises to standing, facing the way the
+body lay). `toppleVelocities` starts it: everything carries on along the way it
+was going and the top tips over that way, with a random little twist.
+
+People: the fluid tool's push knocks a full NPC right over when it is close and
+hard (`KNOCKOVER.strength`, the push's strength 1 point-blank .. 0 at the
+cone's reach; at most `KNOCKOVER.most` bodies down at once); from further off
+they stumble as before. Crowd people with a body of their own (the near tier)
+go over too: `crowd.holdShove` keeps the person's place on the body while it
+lies there, and once it is up they walk back to their spot. The instanced crowd
+further off keeps its cheap stumble. Nobody seated or in conversation is
+knocked over.
 
 ## The Lab (v0.39)
 
