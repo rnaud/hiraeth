@@ -1,0 +1,61 @@
+README.md
+  s_1fd8d0e7b02dcf::t_a2f31de9e43172 1131-1162
+TODO.md
+  s_1fd8d0e7b02dcf::t_98f8ecce20b6cc 239
+changelog.md
+  s_1fd8d0e7b02dcf::t_a3ed5175fcd282 7
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_7f15f7a16dd6ae 7
+src/flora.js
+  s_1fd8d0e7b02dcf::t_a9523047a62577 217-220,222-235,249,287
+src/levels/arzach.js
+  s_1fd8d0e7b02dcf::t_7fdb94bc682d22 30
+src/levels/arzach2.js
+  s_1fd8d0e7b02dcf::t_4162031ae8e59c 77
+src/levels/buried.js
+  s_1fd8d0e7b02dcf::t_681f718dbdd5cd 135,142
+src/levels/content.js
+  s_1fd8d0e7b02dcf::t_f97cf3f1830fdb 13,54-55,58,60,66
+src/levels/edena.js
+  s_1fd8d0e7b02dcf::t_91ecc60f2985da 60-61,259-324,349-350,360,367
+src/levels/garage.js
+  s_1fd8d0e7b02dcf::t_ad07700eb914b4 22,49-74,84
+src/levels/incal.js
+  s_1fd8d0e7b02dcf::t_ddbbe8bd9c0583 35,47-50
+src/levels/lab-kit.js
+  s_1fd8d0e7b02dcf::t_69132f1cf61df0 1-94
+src/levels/lab-rooms.js
+  s_1fd8d0e7b02dcf::t_dfab257482029f 1-1112
+src/levels/lab.js
+  s_1fd8d0e7b02dcf::t_0f8c34e55dde6b 6-9,12-14,21-31,58-92,94-96,98,101,105,120,124,129,142,145,160,165,171,174-301,304,311-320,328-369
+src/levels/perdide.js
+  s_1fd8d0e7b02dcf::t_3f08c4cc5d0240 156
+src/levels/perdide2.js
+  s_1fd8d0e7b02dcf::t_002b990e6f1f53 143,151
+src/levels/spheres.js
+  s_1fd8d0e7b02dcf::t_b6729050173d26 69,103,114
+src/main.js
+  s_1fd8d0e7b02dcf::t_c08704bb7ebc5e 374,434-448,1175-1182,1211
+src/npc.js
+  s_1fd8d0e7b02dcf::t_29c3324c12c764 640
+src/world.js
+  s_1fd8d0e7b02dcf::t_8f21c5ab465c4f 285-406,455-459,461
+tests/lab.test.js
+  s_1fd8d0e7b02dcf::t_7523fa9a723678 6-32,38,41-42,45-126
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1cecfdaa5f653bb2a48b4519f9d31ff04f516e70",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
