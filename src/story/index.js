@@ -7,6 +7,8 @@ import { NPC, registerNPCTargets } from '../npc.js';
 import { makeMaterial } from '../materials.js';
 import { viaPortal } from '../scout.js';
 import { setupDesert } from './desert.js';
+import { setupPerdide } from './perdide.js';
+import { setupPerdide2 } from './perdide2.js';
 import { setupArzach } from './arzach.js';
 import { setupArzach2 } from './arzach2.js';
 import { setupGarage } from './garage.js';
@@ -29,7 +31,10 @@ import { setupSpheres } from './spheres.js';
 //   storyRt.dialogue    start(person, npc) (src/story/dialogue.js)
 //   registerInteractable(...) for anything E should use (src/interact.js)
 
-const WORLDS = { desert: setupDesert,
+const WORLDS = {
+  desert: setupDesert,
+  perdide: setupPerdide,
+  perdide2: setupPerdide2,
   arzach: setupArzach,
   arzach2: setupArzach2,
   garage: setupGarage,

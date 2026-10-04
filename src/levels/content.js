@@ -15,6 +15,7 @@ import { BURIED_CONTENT } from './buried.js';
 import { EDENA_CONTENT } from './edena.js';
 import { SPHERES_CONTENT } from './spheres.js';
 import { PERDIDE2_CONTENT } from './perdide2.js';
+import { PERDIDE_CONTENT } from './perdide.js';
 
 export const ORDER = ['desert', 'incal', 'arzach', 'arzach2', 'garage', 'buried', 'edena', 'spheres', 'perdide', 'perdide2', 'bazaar'];
 export const nextLevel = (id) => ORDER[(ORDER.indexOf(id) + 1) % ORDER.length];
@@ -173,25 +174,8 @@ export const CONTENT = {
     ],
   },
   edena: EDENA_CONTENT,
-  perdide: {
-    weather: ['rain', 'fog'],
-    story: {
-      title: 'THE GREAT CRYSTAL',
-      intro: 'Cross the swamp. Follow the hum.',
-      outro: 'The crystal sings. The plants fall silent.',
-      label: 'the Great Crystal', goal: [120, 'ground', -150], radius: 30,
-    },
-    relics: {
-      spots: [{ at: [-170, 3.6, 140], snap: true }, [-14, -30], [40, -70], [200, 60], [-90, -260]],
-      names: ['Cave lantern', 'Egg shell', 'Crystal splinter', 'Plant tooth', 'Skiff charm'],
-    },
-    gate: { at: [22, 24], heading: Math.PI },
-    npcs: [
-      { at: [10, -18], radius: 7, palette: pal('#8a6fb8', { cloth: '#3f5a4a' }), lines: ['Don’t feed the plants.', 'The crystals hum when it rains.'] },
-      { at: [-24, 12], radius: 6, palette: pal('#62c3c9', { cloth: '#3a3f5a' }), lines: ['The cave glows all night.'], shy: true },
-      { at: [-150, 120], radius: 10, palette: pal('#d6ff9a', { cloth: '#3a3f5a' }), lines: ['Fireflies, or something else?'] },
-    ],
-  },
+  // the swamp's story and its people: src/levels/perdide.js, src/story/perdide-data.js
+  perdide: PERDIDE_CONTENT,
 };
 
 // Errands: villagers asking you to carry something to someone in another
@@ -215,7 +199,7 @@ export const ERRANDS = [
     wait: 'Edena. The garden with the white pyramids.',
     thanks: 'It fits. The garden can keep time again.' },
   { id: 'seed', item: 'a glass seed', from: ['edena', 3], to: ['perdide', 0],
-    ask: 'Carry this seed to the keeper in the swamp. She knows where it grows.',
+    ask: 'Carry this seed to the egg-warden in the swamp. He knows where it grows.',
     wait: 'Perdide. Follow the glow.',
     thanks: 'We don’t feed the plants. But this one we will plant.' },
   { id: 'crystal', item: 'a humming crystal', from: ['perdide', 2], to: ['desert', 0],
