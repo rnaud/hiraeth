@@ -9,6 +9,7 @@ import { viaPortal } from '../scout.js';
 import { setupDesert } from './desert.js';
 import { setupBuried } from './buried.js';
 import { setupEdena } from './edena.js';
+import { setupSpheres } from './spheres.js';
 
 // The story runtime for a world: quests, conversations, the objective
 // marker, the E prompt, and the world's own story (src/story/<world>.js).
@@ -28,6 +29,7 @@ import { setupEdena } from './edena.js';
 const WORLDS = { desert: setupDesert,
   buried: setupBuried,
   edena: setupEdena,
+  spheres: setupSpheres,
 };
 const UP = new THREE.Vector3(0, 1, 0);
 const _p = new THREE.Vector3(), _d = new THREE.Vector3();
