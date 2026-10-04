@@ -21,6 +21,7 @@
 import { homeEntry } from '../story/ending.js';
 import { knownWorlds } from '../story/route.js';
 import { planetSvg } from './planets.js';
+import { padIndex, confirmKey, backKey } from '../native-pad.js';
 
 /** What the console does when you press E: a pending call first, then the map, which needs power. */
 export function consoleAction({ powered, pendingCall }) {
@@ -245,7 +246,7 @@ export class StarMap {
       </div>
       <div class="side">
         <div class="panel"></div>
-        <div class="keys">${{ touch: 'tap a world, then Travel', pad: 'D-pad choose · A / × travel · B / ○ close', keys: '← → choose · Enter travel · Esc close' }[this.hints]}</div>
+        <div class="keys">${{ touch: 'tap a world, then Travel', pad: `D-pad choose · ${confirmKey()} travel · ${backKey()} close`, keys: '← → choose · Enter travel · Esc close' }[this.hints]}</div>
       </div>
       <div class="confirm"><div class="card"></div></div>
       <div class="locked"><div><b>NO POWER</b>The ship cannot fly.<br>Find a new source of power.</div></div>
@@ -314,7 +315,7 @@ export class StarMap {
     card.innerHTML = `${e.home ? '' : planetSvg(e.id, { cls: 'mini' })}<h3>Travel to ${e.title}?</h3>
       <div class="what">${e.home ? 'The ship will take you home.' : 'The ship will take off and fly there.'}</div>
       <div class="row"><button class="yes">Yes, fly ▶</button><button class="no">No</button></div>
-      <div class="hint">${{ touch: '', pad: 'A / × yes · B / ○ no', keys: 'Enter yes · Esc no' }[this.hints]}</div>`;
+      <div class="hint">${{ touch: '', pad: `${confirmKey()} yes · ${backKey()} no`, keys: 'Enter yes · Esc no' }[this.hints]}</div>`;
     card.querySelector('.yes').addEventListener('click', () => this.answer(true));
     card.querySelector('.no').addEventListener('click', () => this.answer(false));
     this.el.classList.add('asking');
@@ -365,7 +366,7 @@ export class StarMap {
     const b = (i) => !!gp.buttons[i]?.pressed;
     const x = (b(15) || b(13) ? 1 : 0) - (b(14) || b(12) ? 1 : 0) || Math.round(gp.axes[0] ?? 0);
     const now = performance.now();
-    const A = b(0), B = b(1), pressA = A && !this._padA, pressB = B && !this._padB;
+    const A = b(padIndex('ok')), B = b(padIndex('back')), pressA = A && !this._padA, pressB = B && !this._padB;   // printed A / B (native-pad.js)
     this._padA = A; this._padB = B;
     if (this.asking) {
       if (x && now - (this._padT ?? 0) > 220) { this._padT = now; this.focusAnswer(this._yes ? 'no' : 'yes'); }

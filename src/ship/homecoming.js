@@ -5,6 +5,7 @@ import { R, DECK, HATCH_A } from './hull.js';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
 import { callTimeline } from './prologue.js';
 import * as sfx from './sfx.js';
+import { padIndex } from '../native-pad.js';
 import { choiceList, chooseKeepsake, reactionLines, credits, creditsHtml, KIND_LABEL } from '../story/ending.js';
 import { HOME_SPOTS } from '../levels/home.js';
 import { CONTENT, ORDER } from '../levels/content.js';
@@ -143,8 +144,9 @@ class ChoicePanel {
     const y = (b(13) ? 1 : 0) - (b(12) ? 1 : 0) || Math.round(gp.axes[1] ?? 0);
     const now = performance.now();
     if (y && now - (this._padT ?? 0) > 220) { this._padT = now; this.select((this.sel + y + this.items.length) % this.items.length); }
-    if (b(0) && this._padA === false) this.choose();
-    this._padA = b(0);
+    const A = b(padIndex('ok'));   // printed A (native-pad.js)
+    if (A && this._padA === false) this.choose();
+    this._padA = A;
   }
   remove() {
     if (!this.el) return;

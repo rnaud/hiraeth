@@ -1,9 +1,11 @@
 import * as THREE from 'three';
 import { makeMaterial } from './materials.js';
 import { sweepCapsule, unbury } from './physics.js';
+import { padRide } from './controller.js';
 
 // A Sable-like hoverbike. Controls when riding: W throttle, S brake/reverse,
-// A/D steer, Shift boost, Space hop. It hovers on a spring above the dunes,
+// A/D steer, Shift boost, Space hop; on a controller RT throttle (analog), LT
+// brake / reverse, the stick steers, RB or L3 boost, the bottom button hops. It hovers on a spring above the dunes,
 // banks into turns and pitches with the ground.
 //
 // It runs on the traveller's magic-fluid backpack (powered: true; the skiff
@@ -268,15 +270,19 @@ export class Hoverbike {
     }
     if (ridden) {
       throttle = (input.KeyW || input.ArrowUp ? 1 : 0) - (input.KeyS || input.ArrowDown ? 1 : 0);
-      steer = input.stick && (input.stick.x || input.stick.y) ? bikeSteer(input.stick.x, throttle > 0)
+      const pad = padRide(input);
+      // the pad: RT goes, LT brakes; the stick only steers (its own forward push is ignored, so less deadzone)
+      if (pad) throttle = THREE.MathUtils.clamp(throttle + pad.throttle - pad.brake, -1, 1);
+      steer = input.stick && (input.stick.x || input.stick.y) ? bikeSteer(input.stick.x, pad ? Math.abs(input.stick.y) > 0.6 : throttle > 0)
         : (input.KeyD || input.ArrowRight ? 1 : 0) - (input.KeyA || input.ArrowLeft ? 1 : 0);
-      boost = input.ShiftLeft || input.ShiftRight;
+      boost = input.ShiftLeft || input.ShiftRight || !!pad?.boost;
     }
     const recalling = !ridden && !!this.auto;
     const oldPos = this.pos.clone();
     const max = boost ? BOOST : MAX;
-    if (throttle > 0) this.speed += (max - this.speed) * (1 - Math.exp(-(boost ? 0.9 : 0.6) * dt));
-    else if (throttle < 0) this.speed = Math.max(this.speed - 40 * dt, -8);
+    // (an analog throttle aims at its share of the top speed)
+    if (throttle > 0) this.speed += (max * throttle - this.speed) * (1 - Math.exp(-(boost ? 0.9 : 0.6) * dt));
+    else if (throttle < 0) this.speed = Math.max(this.speed + 40 * throttle * dt, -8);
     else if (!recalling) this.speed *= Math.exp(-((this.powered && !ridden && (this.powerK ?? 0) < 0.5) ? 2.5 : 0.5) * dt);   // its tank taken out: it powers down and stops
 
     // steering: right = decreasing heading; tighter at low speed

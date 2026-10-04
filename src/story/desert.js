@@ -240,7 +240,7 @@ export function setupDesert(ctx) {
     onHit: (mode) => {
       if (mode === 'push') { clearChannel('push'); return true; }
       st.wobble = 1;
-      if (!st.hinted) { st.hinted = true; toast('The rib rocks, and settles. It needs a shove: push it (C, middle click, or B / ○).'); }
+      if (!st.hinted) { st.hinted = true; toast('The rib rocks, and settles. It needs a shove: push it (C, middle click, or RB / R1).'); }
       return true;
     } });
   void boneTarget;

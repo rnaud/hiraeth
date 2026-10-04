@@ -387,3 +387,21 @@ test('rotated gravity: the jets push along up, the wings glide, the hand-off sta
   tool.dispose();
   own();
 });
+
+test('a controller keeps interacting and calling the mount apart: its interact never whistles, the call button does', () => {
+  own('backpack');
+  const physics = ground();
+  const bike = new Hoverbike(physics);
+  bike.place(80, 80, 0, v(80, 1, 80)); for (let i = 0; i < 5; i++) bike.update(DT, null);
+  const { p, tool, step } = setup({ physics, mount: bike });
+  step(2);
+  p.update(DT, { KeyE: true, PadE: true }, 0);
+  assert.equal(bike.auto ?? null, null, 'the pad\'s interact with nothing near: no whistle');
+  p.update(DT, {}, 0);
+  p.callMount();
+  assert.ok(bike.auto, 'the call button whistles it over');
+  bike.auto = null;
+  p.update(DT, { KeyE: true }, 0);
+  assert.ok(bike.auto, 'the keyboard\'s E still falls back to the whistle');
+  tool.dispose();
+});

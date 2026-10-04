@@ -13,8 +13,9 @@ import org.json.JSONObject;
 // Standard Gamepad (src/native-pad.js). The WebView's own Gamepad API often
 // misses built-in controllers, or reports them without the standard mapping,
 // so the game would see nothing. Android key codes map to the standard
-// button indices by their names, so the button printed "A" is A in the game's
-// prompts too.
+// button indices by their names (KEYCODE_BUTTON_A is 0): on a Retroid, whose
+// letters are Nintendo-style, 0 is then the right button, not the bottom one;
+// the page moves them to their positions (native-pad.js padFaces, controller.js).
 final class GamepadBridge {
     private final WebView web;
     private final Handler ui = new Handler(Looper.getMainLooper());

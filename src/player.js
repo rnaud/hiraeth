@@ -607,12 +607,19 @@ export class Player {
     return spot;
   }
 
-  // E: get off; get on a vehicle close by; otherwise whistle the mount or hail a taxi.
-  interact() {
+  // E: get off; get on a vehicle close by; otherwise (call: the keyboard's E) whistle the mount or hail a taxi.
+  // A pad keeps the two apart: its interact button never whistles, the left face button calls (callMount).
+  interact({ call = true } = {}) {
     if (this.boarding || this.unboarding) return;
     if (this.ride) return this.dismount();
     const near = this.nearestVehicle();
     if (near) return this.board(near);
+    if (call) return this.callMount();
+  }
+
+  /** Whistle the mount (the bike drives over, the bird flies down), or else hail the nearest taxi. Not while riding. */
+  callMount() {
+    if (this.boarding || this.unboarding || this.ride) return;
     if (this.opts.canSummon && !this.opts.canSummon()) return;   // e.g. in a room off the map
     if (this.mount && this.needsPower(this.mount) && !this.has('backpack')) return this.notice('It needs power.');   // the whistle wakes nothing
     if (this.mount) {
@@ -640,7 +647,7 @@ export class Player {
       M.speed = Math.max(18, Math.hypot(this.vel.x, this.vel.z));
       this.gliding = false;
     }
-    if (input.KeyE && !this._eHeld) this.interact();
+    if (input.KeyE && !this._eHeld) this.interact({ call: !input.PadE });
     this._eHeld = !!input.KeyE;
 
     if (this.ride) {

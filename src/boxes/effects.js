@@ -69,7 +69,7 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
   keys?.addEventListener?.('keydown', onKey);
   const off = items.on((id, owned) => {
     applyTank();
-    if (owned && id === 'bell') setTimeout(() => toast('The bell-note whistle: press V to sound it.'), 1800);
+    if (owned && id === 'bell') setTimeout(() => toast('The bell-note whistle: press V (or click the right stick, R3) to sound it.'), 1800);
   });
   applyTank();
 

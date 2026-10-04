@@ -82,16 +82,46 @@ taxis and Perdide's carnivorous plants.
 ## Controller
 
 Connect a standard Xbox, PlayStation or compatible gamepad, then press a button
-while the game is focused. Keyboard and touch remain available.
+while the game is focused. Keyboard and touch remain available (unchanged).
 
-- Left stick: move, climb, steer; right stick: camera.
-- A / ×: jump, glide, flap or ascend; X / □: interact, whistle, mount/dismount.
-- Y / △: scout ping; RT / R2 or left-stick click: run/boost (descend in taxis).
-- LB/RB: zoom out/in. D-pad up: worlds; down: photo mode.
-- View / Share: sketchbook; Menu / Options: settings.
-- Menus: D-pad or left stick selects; left/right adjusts settings; A / × confirms;
-  B / ○ returns; right stick scrolls.
-- Photo: sticks fly/look, LB/RB lower/raise, A / × saves, B / ○ exits.
+The layout is by **position**, so a Retroid Pocket (letters printed Nintendo-style:
+B at the bottom, A on the right, Y left, X top) and an Xbox pad put the same action
+under the same thumb (`src/controller.js`, from a Retroid player's feedback):
+
+| | bottom (Xbox A, Retroid B) | right (Xbox B, Retroid A) | left (Xbox X, Retroid Y) | top (Xbox Y, Retroid X) |
+|---|---|---|---|---|
+| walking | jump (again in the air: boost; hold: jets / wings) | interact, talk, get on | call the mount (whistle, hail a taxi) | ping |
+| riding | hop / flap / rise | get off | | |
+
+- **Walking:** left stick moves; click it (L3) to run, until you let the stick go.
+  Right stick looks; hold LB / L1 and the right stick zooms. LT / L2 aims the fluid
+  tool, RT / R2 shoots (an aimed shot while LT is held, a quick shot without), RB / R1
+  pushes, D-pad left / right changes the gun mode, up the worlds, down photo mode,
+  R3 sounds the bell-note whistle. View / Select opens the sketchbook on your **gear**
+  (every item and what it does, `gearHtml` in `src/items.js`); Menu / Start the settings.
+- **The pad's interact never whistles.** On the keyboard E still falls back to the
+  whistle when nothing is near; on a pad that is the left button's (`player.callMount`).
+- **Riding** (context `'ride'`, `padRide()`): RT / R2 is an analog throttle, LT / L2
+  brakes and reverses, the left stick steers (pushing it forward does not drive), and on
+  the bird and the taxi it tilts too: forward dives / goes down, back climbs. RB / R1 or
+  L3 boosts the hoverbike and skiff. On the ground a squeeze of RT lifts the bird off.
+- **Menus** confirm with the button printed **A** and go back with **B**, each platform's
+  habit: Xbox bottom / right, Retroid right / bottom. View and Menu close too. While
+  **talking**, the interact button also carries the conversation on (so on Xbox, B to
+  talk and B again does not walk away). Photo: sticks fly / look, LB / RB lower / raise,
+  confirm saves, back or D-pad down leaves.
+- **Where the letters are** (`src/native-pad.js` `padFaces`): Android reports buttons by
+  printed letter (KEYCODE_BUTTON_A is index 0), so on a Nintendo-labelled handheld
+  index 0 is the right button; `toPositions()` moves them to the standard positions.
+  Auto picks Nintendo letters for the Android app and handhelds (Retroid, Anbernic,
+  AYN), Xbox for Xbox / PlayStation pads and computers. The setting **Controller
+  buttons** overrides it: A at the bottom (Xbox, PlayStation), A on the right (Retroid,
+  Nintendo), or A on the right with a Retroid switched to its own Xbox style (letters
+  Nintendo, reported by position). It replaces the old Swap A/B.
+- **Prompts** are written by position in Xbox / PlayStation form ("A / ×" is the bottom
+  button); `padText()` prints the pad's own letter (a Retroid's bottom button reads "B").
+  Menu prompts use `confirmKey()` / `backKey()`, and code reading raw pad buttons (the
+  galactic map, the homecoming, skipping a scene) uses `padIndex('ok' | 'back')`.
 
 On browsers that require a touch or click to enable audio, tap the page once.
 Controller logic and browser integration are tested with simulated standard pads;
@@ -1200,7 +1230,8 @@ Pocket. Their built-in controls work through the Gamepad API.
     need that APK (`minNative`), and the APK offer comes first.
   - Apps older than this one still get the APK offer once.
 - **Swap A/B (confirm/back)** in the settings: B confirms and jumps, A goes back and
-  pushes, and the prompts follow.
+  pushes, and the prompts follow. (Replaced by the positional layout and the "Controller buttons"
+  setting, see Controller.)
 - **Pause and resume:** leaving the app (home, recents, power) releases the
   controls, stops the sound and pauses the page. Coming back restores fullscreen
   and the sound. On a handheld the sound starts with the first controller input.

@@ -11,8 +11,8 @@ export const escapeHtml = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&
 /** One button as a round badge. */
 export const keyBadge = (label) => `<b class="key">${escapeHtml(label)}</b>`;
 
-// a button name at the start of a prompt: "E go aboard", "X / □ step outside", "A / × …"
-const LEAD = /^(E|X \/ □|A \/ ×|B \/ ○|Y \/ △|RT \/ R2|LT \/ L2) (?=\S)/;
+// a button name at the start of a prompt: "E go aboard", "B / ○ step outside", "A / × …"
+const LEAD = /^(E|X \/ □|A \/ ×|B \/ ○|Y \/ △|RT \/ R2|LT \/ L2|RB \/ R1|LB \/ L1|L3) (?=\S)/;
 
 /**
  * A status line as HTML: every " · "-separated part that starts with a

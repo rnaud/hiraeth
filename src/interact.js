@@ -1,4 +1,4 @@
-// One interact button (E / gamepad X-□ / the touch "E" button), many uses:
+// One interact button (E / the pad's right face button / the touch "E" button), many uses:
 // talking to people, the ship's hatch and console, the mount's whistle, a
 // stuck bone you can heave. Systems register what they offer and this picks
 // ONE per frame, so nobody fights over the key.

@@ -1,4 +1,4 @@
-// Controllers on Android, and button labels for them.
+// Controllers on Android, where their face buttons are, and button labels for them.
 //
 // In the Android app (android/.../GamepadBridge.java) the activity reads the
 // handheld's built-in controls itself and calls window.__nativePad(name, axes,
@@ -7,27 +7,40 @@
 // state is served as a Standard Gamepad from navigator.getGamepads(), so
 // controller.js works unchanged.
 //
-// Prompts in the game are written for Xbox / PlayStation ("A / ×", "RT / R2",
-// "View", "Menu"). On Android handhelds such as the Retroid Pocket the buttons
-// are printed A B X Y, L1 R1 L2 R2, Select and Start: padText() rewrites
-// prompts to those names, and watchLabels() applies it to all text on the page.
+// Face buttons. The game's layout is by position (controller.js): bottom
+// jump, right interact, left call the mount, top ping. A Standard Gamepad
+// puts them at 0 bottom, 1 right, 2 left, 3 top. But Android reports buttons by
+// their printed letter (KEYCODE_BUTTON_A is 0, B is 1, X 2, Y 3), and the
+// Retroid Pocket prints them Nintendo-style: A right, B bottom, X top, Y left.
+// So on such a handheld index 0 is the right button. padFaces() says which:
+//   faces   'xbox' (A at the bottom: Xbox, PlayStation) or 'nintendo' (A on the right)
+//   byLabel the indices are letters, not positions (Android with Nintendo labels):
+//           Controller moves them to their positions (controller.js toPositions)
+// The setting "Controller buttons" (setFaces) picks one when Auto guesses wrong:
+// 'auto', 'xbox', 'nintendo', or 'nintendo-xbox' (a Retroid switched to its
+// own "Xbox style": Nintendo letters printed, but reported by position).
 //
-// "Swap A/B" in the settings (setSwapAB) trades the two buttons for players
-// who expect the other one to confirm and jump (Controller swaps the button
-// indices, see controller.js); the prompts then name the other letter too.
+// Prompts in the game are written for Xbox / PlayStation, by position ("A / ×"
+// is the bottom button, "B / ○" the right one; "RT / R2", "View", "Menu"). On
+// Android handhelds the buttons are printed A B X Y, L1 R1 L2 R2, Select and
+// Start, and with Nintendo labels the bottom button is B: padText() rewrites
+// prompts to those names, and watchLabels() applies it to all text on the page.
+// Menus confirm with the button printed A and go back with B, whatever the
+// layout (each platform's own habit): confirmKey() / backKey() name them.
 
 let native = null;
 
 export function installNativePad(win = globalThis.window) {
   if (!win || win.__nativePad) return;
   win.__nativePad = (id, axes, buttons) => {
-    const first = !native;
+    const first = !native || native.id !== id;
     native = {
       id, index: 0, connected: true, mapping: 'standard', timestamp: win.performance?.now?.() ?? Date.now(),
       axes, buttons: buttons.map((v) => ({ pressed: v > 0.5, touched: v > 0.05, value: v })),
     };
-    if (first) { win.dispatchEvent?.(new Event('nativepadconnected')); applyLayout(win); }
+    if (first) { memo = null; win.dispatchEvent?.(new Event('nativepadconnected')); applyLayout(win); }
   };
+  win.addEventListener?.('gamepadconnected', () => { memo = null; applyLayout(win); });   // (a Retroid's name, an Xbox pad's)
   const nav = win.navigator;
   if (!nav) return;
   const original = nav.getGamepads?.bind(nav);
@@ -41,34 +54,78 @@ export function padLayout(win = globalThis.window) {
   const forced = new URLSearchParams(win?.location?.search ?? '').get('pad') ?? safe(() => win.localStorage.getItem('moebius.pad'));
   if (forced === 'android' || forced === 'standard') return forced;
   if (win?.Capacitor?.isNativePlatform?.() || native) return 'android';
-  const pads = safe(() => Array.from(win.navigator.getGamepads?.() ?? [])) ?? [];
-  return pads.some((p) => p && /retroid|odin|anbernic|ayn/i.test(p.id)) ? 'android' : 'standard';
+  return padIds(win).some((id) => /retroid|odin|anbernic|ayn/i.test(id)) ? 'android' : 'standard';
 }
 const safe = (f) => { try { return f(); } catch { return null; } };
+const padIds = (win) => (safe(() => Array.from(win.navigator.getGamepads?.() ?? [])) ?? []).filter(Boolean).map((p) => p.id ?? '');
 
+// pads that print their letters where Xbox does, even on Android
+const XBOX_LIKE = /xbox|x-box|microsoft|playstation|dualsense|dualshock|sony|wireless controller/i;
+
+let facesSetting = 'auto';
+let memo = null;   // { at, value } for the page's own window: padFaces() is asked every frame
+/** The "Controller buttons" setting: 'auto' | 'xbox' | 'nintendo' | 'nintendo-xbox'. */
+export function setFaces(value, win = globalThis.window) {
+  const v = ['xbox', 'nintendo', 'nintendo-xbox'].includes(value) ? value : 'auto';
+  if (v === facesSetting) return;
+  facesSetting = v; memo = null;
+  relabel(win);
+}
+export const facesChoice = () => facesSetting;
+
+/** Where the printed letters are, and whether the pad's indices are letters rather than positions (see the top). */
+export function padFaces(win = globalThis.window, setting = facesSetting) {
+  const page = win && win === globalThis.window && setting === facesSetting;
+  const now = Date.now();
+  if (page && memo && now - memo.at < 1000) return memo.value;
+  const android = padLayout(win) === 'android';
+  let faces;
+  if (setting === 'xbox') faces = 'xbox';
+  else if (setting === 'nintendo' || setting === 'nintendo-xbox') faces = 'nintendo';
+  else if (!android) faces = 'xbox';
+  else {
+    const ids = native ? [native.id] : padIds(win);
+    faces = ids.length && ids.every((id) => XBOX_LIKE.test(id)) ? 'xbox' : 'nintendo';   // the Retroid and its kind
+  }
+  const value = { faces, byLabel: faces === 'nintendo' && android && setting !== 'nintendo-xbox' };
+  if (page) memo = { at: now, value };
+  return value;
+}
+
+/** The raw button index (as navigator.getGamepads() has it) that confirms ('ok', printed A) or goes back ('back', printed B) in menus. */
+export function padIndex(role, win = globalThis.window) {
+  const { faces, byLabel } = padFaces(win);
+  const aRaw = faces === 'nintendo' && !byLabel ? 1 : 0;   // printed A: index 0, unless the pad reports positions with A on the right
+  return role === 'ok' ? aRaw : 1 - aRaw;
+}
+
+/** The menu's confirm / back buttons as a prompt names them (by position, Xbox form: padText makes them "A" / "B"). */
+export const confirmKey = (win = globalThis.window) => (padFaces(win).faces === 'nintendo' ? 'B / ○' : 'A / ×');
+export const backKey = (win = globalThis.window) => (padFaces(win).faces === 'nintendo' ? 'A / ×' : 'B / ○');
+
+// the face buttons by position (Xbox / PlayStation form) → the printed letter
+const FACE = /\b([ABXY])( ?\/ ?)([×○□△])/g;
+const LETTER = {
+  xbox: { A: 'A', B: 'B', X: 'X', Y: 'Y' },
+  nintendo: { A: 'B', B: 'A', X: 'Y', Y: 'X' },   // bottom B, right A, left Y, top X
+};
 const ANDROID = [
-  [/\bA ?\/ ?×/g, 'A'], [/\bB ?\/ ?○/g, 'B'], [/\bX ?\/ ?□/g, 'X'], [/\bY ?\/ ?△/g, 'Y'],
   [/\bLT ?\/ ?L2\b/g, 'L2'], [/\bRT ?\/ ?R2\b/g, 'R2'], [/\bLB ?\/ ?L1\b/g, 'L1'], [/\bRB ?\/ ?R1\b/g, 'R1'],
   [/\bLB ?\/ ?RB\b/g, 'L1/R1'],
   [/\bLT\b/g, 'L2'], [/\bRT\b/g, 'R2'], [/\bLB\b/g, 'L1'], [/\bRB\b/g, 'R1'],
-  [/\bView\b(?= (?:sketchbook|journal))/g, 'Select'], [/\bMenu\b(?= (?:settings|menu))/g, 'Start'],
+  [/\bView\b(?= (?:gear|sketchbook|journal))/g, 'Select'], [/\bMenu\b(?= (?:settings|menu|options))/g, 'Start'],
 ];
 
-let swapped = false;
-/** Swap A and B (confirm / back, jump / push) and their names in the prompts. */
-export function setSwapAB(on, win = globalThis.window) {
-  if (swapped === !!on) return;
-  swapped = !!on;
-  relabel(win);
-}
-export const swapAB = () => swapped;
+let labelFaces = 'xbox';   // what watchLabels() last found
 
-const SWAP = /\b([AB])( ?\/ ?)([×○])/g;
-
-/** A prompt in the given layout's button names (and with A and B traded when swapped). */
-export function padText(text, layout = 'android', swap = swapped) {
+/** A prompt in the given layout's button names ('android': the handheld's) and face letters ('nintendo': B at the bottom). */
+export function padText(text, layout = 'android', faces = labelFaces) {
   if (!text) return text;
-  let out = swap ? text.replace(SWAP, (_, l, sep) => (l === 'A' ? `B${sep}○` : `A${sep}×`)) : text;
+  let out = text;
+  if (faces === 'nintendo' || layout === 'android') {
+    const letters = LETTER[faces] ?? LETTER.xbox;
+    out = out.replace(FACE, (_, l) => letters[l]);
+  }
   if (layout !== 'android') return out;
   for (const [re, to] of ANDROID) out = out.replace(re, to);
   return out;
@@ -89,12 +146,13 @@ function rewrite(node) {
   for (const c of node.childNodes) rewrite(c);
 }
 
-/** Keep every prompt on the page in Android button names, and A/B swapped when set (else a no-op). */
+/** Keep every prompt on the page in the pad's own button names (else a no-op). */
 export function watchLabels(win = globalThis.window) {
   if (!win?.document?.body) return;
   layout = padLayout(win);
+  labelFaces = padFaces(win).faces;
   if (observer) { rewrite(win.document.body); return; }
-  if (layout !== 'android' && !swapped) return;
+  if (layout !== 'android' && labelFaces !== 'nintendo') return;
   rewrite(win.document.body);
   observer = new win.MutationObserver((list) => {
     for (const m of list) {

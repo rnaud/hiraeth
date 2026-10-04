@@ -3,10 +3,13 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { featherGeometry } from './avian.js';
 import { makeMaterial } from './materials.js';
 import { sweepCapsule, unbury } from './physics.js';
+import { padRide } from './controller.js';
 
 // Arzach's bird: a long-beaked, feathered soaring mount. Controls when riding:
 // A/D bank and turn, W dive (gain speed), S pull up (trade speed for height),
 // Space flap (climb). Touching down slowly lands it; Space on the ground takes off.
+// A controller: RT flies on (thrust, analog; squeezed on the ground, she takes off),
+// the stick banks (left / right) and dives (forward) or climbs (back), the bottom button flaps.
 
 const MIN_SPEED = 9;
 const MAX_SPEED = 55;
@@ -229,20 +232,22 @@ export class Bird {
   }
 
   fly(dt, input) {
-    const steer = (input.KeyD || input.ArrowRight ? 1 : 0) - (input.KeyA || input.ArrowLeft ? 1 : 0);
-    const dive = (input.KeyW || input.ArrowUp ? 1 : 0) - (input.KeyS || input.ArrowDown ? 1 : 0);
+    let steer = (input.KeyD || input.ArrowRight ? 1 : 0) - (input.KeyA || input.ArrowLeft ? 1 : 0);
+    let dive = (input.KeyW || input.ArrowUp ? 1 : 0) - (input.KeyS || input.ArrowDown ? 1 : 0);
     const flapping = input.Space;
+    const pad = padRide(input), thrust = pad ? pad.throttle : 0;
+    if (pad) { if (pad.x) steer = pad.x; if (pad.y) dive = pad.y; }
 
     if (this.landed) {
       this.idle(dt);
       // walk the bird around slowly, take off with Space
       this.heading -= steer * 1.5 * dt;
-      if (dive > 0) {
+      if (dive > 0 || thrust > 0) {
         const [fx, fz] = this.forward;
         this.pos.x += fx * 5 * dt;
         this.pos.z += fz * 5 * dt;
       }
-      if (flapping) { this.landed = false; this.speed = 16; this.pos.y += 1; this.vel.set(0, 10, 0); this.flapPower = 1; }
+      if (flapping || thrust > 0.5) { this.landed = false; this.speed = 16; this.pos.y += 1; this.vel.set(0, 10, 0); this.flapPower = 1; }
       return;
     }
 
@@ -255,7 +260,7 @@ export class Bird {
     // energy: diving speeds up, climbing slows down, drag, flaps add thrust
     // drag only bites above cruising speed, so a level glide keeps its momentum
     const drag = this.speed > 22 ? (this.speed - 22) * 0.35 : 0.25;
-    this.speed += (Math.sin(this.pitch) * 22 - drag + (flapping ? 12 : 0)) * dt;
+    this.speed += (Math.sin(this.pitch) * 22 - drag + (flapping ? 12 : 0) + thrust * 12) * dt;   // (RT: the flaps' thrust, without their lift)
     this.speed = THREE.MathUtils.clamp(this.speed, MIN_SPEED, MAX_SPEED);
     const lift = flapping ? 9 : 0;
     // a level glide holds height from 16 m/s; slower it sinks
@@ -266,7 +271,7 @@ export class Bird {
     this.vel.set(fx * cp * this.speed, -Math.sin(this.pitch) * this.speed + lift - sink, fz * cp * this.speed);
     const from = _from.copy(this.pos);
     this.pos.addScaledVector(this.vel, dt);
-    this.flapPower += ((flapping ? 1 : 0.15) - this.flapPower) * (1 - Math.exp(-5 * dt));
+    this.flapPower += ((flapping ? 1 : Math.max(0.15, thrust * 0.8)) - this.flapPower) * (1 - Math.exp(-5 * dt));
 
     // swept: a 55 m/s dive covers several body lengths in a slow frame
     if (sweepCapsule(this.physics, this.pos, from, 1.4, -1.0, 1.4, this._push)) this.speed *= 0.85;

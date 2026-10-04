@@ -2,12 +2,14 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from './materials.js';
 import { sweepCapsule, unbury } from './physics.js';
+import { padRide } from './controller.js';
 
 // A flying taxi (John Difool drives one in L'Incal). Modes:
 //   lane    follows its circular traffic lane (set by the level)
 //   hail    flies to where the player whistled, then parks
 //   parked  hovers in place, waiting
-//   driven  W/S throttle, A/D steer, Space up, Shift down
+//   driven  W/S throttle, A/D steer, Space up, Shift down; a controller: RT throttle,
+//           LT brake, the stick steers and tilts (back: up, forward: down), the bottom button up
 // Taxis are excluded from the static collision (they move), but collide with
 // the level themselves while driven.
 
@@ -170,12 +172,18 @@ export class Taxi {
 
   drive(dt, input) {
     const s = this.scale;
-    const throttle = (input.KeyW || input.ArrowUp ? 1 : 0) - (input.KeyS || input.ArrowDown ? 1 : 0);
-    const steer = (input.KeyD || input.ArrowRight ? 1 : 0) - (input.KeyA || input.ArrowLeft ? 1 : 0);
-    const lift = (input.Space ? 1 : 0) - (input.ShiftLeft || input.ShiftRight ? 1 : 0);
+    let throttle = (input.KeyW || input.ArrowUp ? 1 : 0) - (input.KeyS || input.ArrowDown ? 1 : 0);
+    let steer = (input.KeyD || input.ArrowRight ? 1 : 0) - (input.KeyA || input.ArrowLeft ? 1 : 0);
+    let lift = (input.Space ? 1 : 0) - (input.ShiftLeft || input.ShiftRight ? 1 : 0);
+    const pad = padRide(input);
+    if (pad) {
+      throttle = THREE.MathUtils.clamp(throttle + pad.throttle - pad.brake, -1, 1);
+      if (pad.x) steer = pad.x;
+      lift = THREE.MathUtils.clamp(lift - pad.y, -1, 1);   // pull back to climb
+    }
 
-    if (throttle > 0) this.speed += (MAX - this.speed) * (1 - Math.exp(-0.8 * dt));
-    else if (throttle < 0) this.speed = Math.max(this.speed - 30 * dt, -10);
+    if (throttle > 0) this.speed += (MAX * throttle - this.speed) * (1 - Math.exp(-0.8 * dt));
+    else if (throttle < 0) this.speed = Math.max(this.speed + 30 * throttle * dt, -10);
     else this.speed *= Math.exp(-0.6 * dt);
 
     this.yawRate += (-steer * 1.5 - this.yawRate) * (1 - Math.exp(-5 * dt));

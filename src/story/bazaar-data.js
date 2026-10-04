@@ -332,7 +332,7 @@ export const THINGS = {
   crates: {
     id: 'crates', name: 'The fallen crates', title: 'in the alley mouth', color: '#c99758', voice: 0.6,
     talk: { nodes: { look: {
-      say: ['~neutral~ Crates of seven-moon fruit, fallen in a heap against the shop front. Under them something brass catches the light.', '~neutral~ Far too heavy to shift by hand. A good shove of the fluid might do it. (*Push*: C, middle click, or B / ○.)'],
+      say: ['~neutral~ Crates of seven-moon fruit, fallen in a heap against the shop front. Under them something brass catches the light.', '~neutral~ Far too heavy to shift by hand. A good shove of the fluid might do it. (*Push*: C, middle click, or RB / R1.)'],
       choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
   },
@@ -359,7 +359,7 @@ export const THINGS = {
           choices: [{ text: '~neutral~ I’ll move the boxes.', end: true }],
         },
         waiting: {
-          say: ['~playful~ UNDER THE BOXES. PUSH. YOU HAVE A PUSH. WE HEARD IT.', '~neutral~ (*Push*: C, middle click, or B / ○.)'],
+          say: ['~playful~ UNDER THE BOXES. PUSH. YOU HAVE A PUSH. WE HEARD IT.', '~neutral~ (*Push*: C, middle click, or RB / R1.)'],
           do: { emit: ['bazaar:ummu', 'PUSH'] },
           choices: [{ text: '~neutral~ All right.', end: true }],
         },
