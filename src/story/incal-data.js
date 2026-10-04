@@ -373,7 +373,7 @@ export const PEOPLE = {
 // The rim's people (content.js npcs 0–2): who they are, what they say.
 export const RIM = {
   corvin: {
-    id: 'corvin', name: 'Corvin Sale', title: 'of the rim, third generation', color: '#e88fa6',
+    id: 'corvin', name: 'Corvin Sale', title: 'of the rim, third generation', color: '#e88fa6', head: 'hat', cape: 0,
     talk: {
       entry: [{ if: LOOKED, node: 'lit' }, { node: 'hello' }],
       nodes: {
@@ -389,7 +389,7 @@ export const RIM = {
     },
   },
   lio: {
-    id: 'lio', name: 'Lio', title: 'cab dispatcher', color: '#62c3c9',
+    id: 'lio', name: 'Lio', title: 'cab dispatcher', color: '#62c3c9', head: 'hat', cape: 0,
     talk: {
       nodes: {
         hello: {
@@ -402,7 +402,7 @@ export const RIM = {
     },
   },
   hask: {
-    id: 'hask', name: 'Hask', title: 'seller of views', color: '#f2c54b',
+    id: 'hask', name: 'Hask', title: 'seller of views', color: '#f2c54b', head: 'hair', cape: 0,
     talk: {
       nodes: {
         hello: {

@@ -186,7 +186,7 @@ export function createBazaar(scene) {
     const story = (o) => { o.userData.noCollide = true; o.traverse?.((c) => { c.userData.noCollide = true; }); scene.add(o); return o; };
     const places = {
       sel: V3(-4.6, 0, -230.6), selSeat: V3(-4.6, 0, -230.6),
-      kip: V3(-24, 25, -89.4), ferro: V3(6.5, 44, -231.2), brush: V3(-20.9, .3, -37.5),
+      kip: V3(-24, 25, -89.4), ferro: V3(6.5, 44, -231.2), brush: V3(-20.9, .3, -164.5),
       ummu: V3(-20.7, .3, -222.2), crates: V3(-21.4, .3, -216.4), console: V3(0, 45.4, -236.9),
       antenna: V3(12, 61.4, -237.5), oldSign: V3(-20, 20.6, -86.1), square: V3(0, 0, -222), towerTop: V3(0, 98, -240),
     };

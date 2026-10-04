@@ -247,7 +247,7 @@ export const PEOPLE = {
           choices: [{ text: 'Which is the oldest sign?', goto: 'oldest' }],
         },
         oldest: {
-          say: ['The oldest sign in the market isn’t one of mine. Nobody paints it. It hangs under the second skybridge, dark as a slate, and everybody walks under it every day and nobody looks up.',
+          say: ['The oldest sign in the market isn’t one of mine. Nobody paints it. It hangs under the second skybridge, back up the avenue, dark as a slate; everybody walks under it every day and nobody looks up.',
             'They say it was the first sign ever hung here, before the market was a market. If you could wake it… a drop of something bright on its face, maybe. Those old plates drink light.'],
           do: { start: 'bazaar.oldsign' },
           choices: [{ text: 'I’ll try.', end: true }],
