@@ -6,7 +6,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 import { makeMaterial, MODE_OUTFIT } from './materials.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { lookPieces, roleColor } from './costumes.js';
+import { lookPieces, roleColor, BUILDS } from './costumes.js';
 import { fitOutfit } from './outfit.js';
 
 // A real human body (Quaternius' Universal Base Characters, CC0) dressed in
@@ -161,7 +161,66 @@ function reshape(scene, kind) {
   for (const m of meshes) { m.bind(m.skeleton, m.matrixWorld); m.skeleton.calculateInverses(); }
 }
 
-function bodyOf(template) { return template; }
+// ---------------------------------------------------------------------------
+// Builds (costumes.js BUILDS): the same skeleton, the body mesh made slimmer,
+// broader or heavier around its bones, the way reshape() slims it (weighted,
+// so joints stay smooth). Per bone: radial factor sideways, forward and back.
+// The head, hands and feet keep their size, so headwear and masks still fit.
+const BUILD_SHAPE = {
+  slim: [[/^spine_0[123]$|^pelvis$/, 0.88, 0.88, 0.9], [/^clavicle_/, 0.94, 0.94, 0.94], [/^(upper|lower)arm_/, 0.86, 0.86, 0.86], [/^(thigh|calf)_/, 0.87, 0.87, 0.87], [/^neck_01$/, 0.9, 0.9, 0.9]],
+  broad: [[/^spine_03$/, 1.24, 1.14, 1.12], [/^clavicle_/, 1.16, 1.1, 1.1], [/^spine_02$/, 1.14, 1.1, 1.08], [/^spine_01$|^pelvis$/, 1.06, 1.05, 1.05],
+    [/^upperarm_/, 1.22, 1.22, 1.22], [/^lowerarm_/, 1.12, 1.12, 1.12], [/^thigh_/, 1.1, 1.1, 1.1], [/^calf_/, 1.06, 1.06, 1.06], [/^neck_01$/, 1.18, 1.18, 1.18]],
+  heavy: [[/^spine_01$/, 1.42, 1.8, 1.2], [/^spine_02$/, 1.34, 1.62, 1.15], [/^spine_03$/, 1.16, 1.25, 1.08], [/^pelvis$/, 1.3, 1.4, 1.28], [/^clavicle_/, 1.06, 1.08, 1.08],
+    [/^upperarm_/, 1.26, 1.26, 1.26], [/^lowerarm_/, 1.12, 1.12, 1.12], [/^thigh_/, 1.3, 1.3, 1.3], [/^calf_/, 1.12, 1.12, 1.12], [/^neck_01$/, 1.25, 1.25, 1.25]],
+};
+const builds = new WeakMap();
+/** The body geometry for a build (cached per source geometry). */
+export function buildGeometry(body, build) {
+  const rules = BUILD_SHAPE[build];
+  if (!rules) return body.userData.baseGeometry ?? body.geometry;
+  const base = body.userData.baseGeometry ?? body.geometry;
+  const cache = builds.get(base) ?? new Map();
+  builds.set(base, cache);
+  if (cache.has(build)) return cache.get(build);
+  const bones = body.skeleton.bones, idx = new Map(bones.map((b, i) => [b.name, i]));
+  const toGeo = body.bindMatrix.clone().invert();
+  const bindPos = body.skeleton.boneInverses.map((m) => new THREE.Vector3().setFromMatrixPosition(m.clone().invert()).applyMatrix4(toGeo));
+  const seg = bones.map((b, i) => {
+    const rule = rules.find(([re]) => re.test(b.name));
+    const next = NEXT[b.name] !== undefined ? idx.get(NEXT[b.name]) : undefined;
+    if (!rule || next === undefined) return null;
+    return { a: bindPos[i], b: bindPos[next], fx: rule[1], ff: rule[2], fb: rule[3], vertical: /spine|pelvis|neck|clavicle/.test(b.name) };   // (collarbones widen the shoulders outward)
+  });
+  const g = base.clone();
+  const P = g.attributes.position, J = g.attributes.skinIndex, W = g.attributes.skinWeight;
+  const v = new THREE.Vector3(), out = new THREE.Vector3(), c = new THREE.Vector3(), ab = new THREE.Vector3();
+  for (let i = 0; i < P.count; i++) {
+    v.fromBufferAttribute(P, i);
+    out.set(0, 0, 0);
+    let wsum = 0;
+    for (let k = 0; k < 4; k++) {
+      const j = J.getComponent(i, k), w = W.getComponent(i, k);
+      if (w <= 0) continue;
+      wsum += w;
+      const sg = seg[j];
+      if (!sg) { out.addScaledVector(v, w); continue; }
+      ab.subVectors(sg.b, sg.a);
+      const t = THREE.MathUtils.clamp(c.subVectors(v, sg.a).dot(ab) / ab.lengthSq(), 0, 1);
+      c.copy(sg.a).addScaledVector(ab, t);
+      if (sg.vertical) c.x = sg.a.x;
+      const dz = v.z - c.z;
+      out.x += (c.x + (v.x - c.x) * sg.fx) * w;
+      out.y += (sg.vertical ? v.y : c.y + (v.y - c.y) * sg.fx) * w;
+      out.z += (c.z + dz * (dz > 0 ? sg.ff : sg.fb)) * w;
+    }
+    if (wsum > 0) P.setXYZ(i, out.x / wsum, out.y / wsum, out.z / wsum);
+  }
+  P.needsUpdate = true;
+  g.computeVertexNormals();
+  g.computeBoundingSphere();
+  cache.set(build, g);
+  return g;
+}
 
 // rest-pose regions per model (metres): bootTop, beltY, neckY, wristX
 const OUTFIT = { m: [0.13, 0.97, 1.47, 0.64], f: [0.12, 0.95, 1.44, 0.58] };
@@ -196,9 +255,9 @@ export class Humanoid {
     this.outfit = !!outfit;
     if (outfit) this.face = new FaceExpression();
     this.noShadow = [];
-    const model = cloneSkinned(build ? bodyOf(template, kind, build) : template);
+    const model = cloneSkinned(template);
     this.model = model;
-    this.build = build;
+    this.build = 'average';
     const C = char.colors;
     const body = makeMaterial({ color: C.cloth, color2: C.legs, color3: C.boot ?? '#6e3f2c', mode: MODE_OUTFIT, skin, outfit: OUTFIT[kind], face: faceAfterReshape(kind), gloves, suit });
     const eyes = makeMaterial({ color: C.ink });
@@ -213,6 +272,7 @@ export class Humanoid {
       o.userData.noCollide = true;
     });
     if (outfit) this.wearOutfit(outfit);
+    else if (build) this.setBuild(build);
     char.root.add(model);
     char.root.updateMatrixWorld(true);
     const rootInv = char.root.matrixWorld.clone().invert();
@@ -329,6 +389,18 @@ export class Humanoid {
     });
     // the cape pins under the human's collar
     c.capeAnchor = this.chestAnchor;
+  }
+
+  /** Slim, average, broad or heavy (costumes.js BUILDS): the body mesh swaps to that shape; the skeleton stays. */
+  setBuild(build = 'average') {
+    if (!this.body || this.outfit) return;
+    build = BUILDS[build] ? build : 'average';
+    if (build === this.build) return;
+    this.body.userData.baseGeometry ??= this.body.geometry;
+    this.body.geometry = buildGeometry(this.body, build);
+    this.build = build;
+    this._robeExt = null;   // the robe measures the body again
+    this._caps = null; this._spec = null;
   }
 
   /**
@@ -461,7 +533,7 @@ export class Humanoid {
   /** The costume's merged geometry in this model's bind space (cached per body kind and look; colours added per person). */
   costumeGeometry(look) {
     const robe = look.robe > 0 ? `${look.robe.toFixed(2)}/${(look.flare ?? 0.3).toFixed(2)}` : '-';
-    const key = `${this.kind}|${look.head}|${look.mask}|${look.body}|${look.prop}|${robe}`;
+    const key = `${this.kind}|${this.build}|${look.head}|${look.mask}|${look.body}|${look.prop}|${robe}`;
     const cache = (this.constructor._costumes ??= new Map());
     if (cache.has(key)) return cache.get(key);
     const B = this.b, bones = this.body.skeleton.bones;
@@ -470,7 +542,8 @@ export class Humanoid {
     const handDir = this.restDir('lowerarm_r', 'hand_r');
     const frames = {
       head: { bone: bi('Head'), m: new THREE.Matrix4().makeTranslation(0, restHead.y + 0.1, restHead.z + 0.01) },
-      chest: { bone: bi('spine_03'), m: new THREE.Matrix4().makeTranslation(0, this.rest.get(B.neck_01).p.y - 0.76, 0) },
+      // (shoulder and chest pieces widen with the build)
+      chest: { bone: bi('spine_03'), m: new THREE.Matrix4().makeTranslation(0, this.rest.get(B.neck_01).p.y - 0.76, 0).multiply(new THREE.Matrix4().makeScale(BUILDS[this.build].width, 1, Math.sqrt(BUILDS[this.build].girth))) },
       // the hand frame: the arm hanging down; turned so a staff stands upright in the idle clip's grip
       hand: { bone: bi('hand_r'), m: new THREE.Matrix4().compose(this.rest.get(B.hand_r).p,
         new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), handDir).multiply(HAND_GRIP), new THREE.Vector3(1, 1, 1)) },
@@ -913,7 +986,8 @@ export class Humanoid {
       ['upperarm_l', 'lowerarm_l', 0.08], ['lowerarm_l', 'hand_l', 0.07],
       ['upperarm_r', 'lowerarm_r', 0.08], ['lowerarm_r', 'hand_r', 0.07],
     ].filter(([a, b]) => B[a] && B[b]);
-    if (!this._caps) this._caps = spec.map(([, , r]) => ({ a: new THREE.Vector3(), b: new THREE.Vector3(), r }));
+    const g = BUILDS[this.build]?.girth ?? 1;   // fuller bodies, wider colliders (the trunk and thighs most)
+    if (!this._caps) this._caps = spec.map(([a, , r]) => ({ a: new THREE.Vector3(), b: new THREE.Vector3(), r: r * (/spine|pelvis|clavicle|thigh/.test(a) ? g : Math.sqrt(g)) }));
     spec.forEach(([a, b], i) => { B[a].getWorldPosition(this._caps[i].a); B[b].getWorldPosition(this._caps[i].b); });
     return this._caps;   // the jetpack sits on top of the cloth, so it isn't a collider
   }

@@ -24,8 +24,8 @@ import { mulberry32 } from './noise.js';
 
 // ------------------------------------------------------------------ ids (shared with crowd-shader.js)
 export const HEAD_IDS = ['hood', 'hat', 'wrap', 'hair', 'wizard', 'short', 'tail', 'headcloth', 'sunhat', 'tophat', 'spire', 'raghood',
-  'cowl', 'antenna', 'padded', 'flowers', 'orb', 'lamphat', 'reeds', 'turban', 'fez', 'cap', 'band', 'beret'];
-export const MASK_IDS = ['none', 'veil', 'beak', 'breather', 'goggles', 'browgoggles'];
+  'cowl', 'antenna', 'padded', 'flowers', 'orb', 'lamphat', 'reeds', 'turban', 'fez', 'cap', 'band', 'beret', 'long', 'bun'];
+export const MASK_IDS = ['none', 'veil', 'beak', 'breather', 'goggles', 'browgoggles', 'beard'];
 export const BODY_IDS = ['none', 'collar', 'scarf', 'pauldrons', 'mantle', 'reedcape', 'garland', 'badge', 'toolbelt', 'ruff', 'tatters'];
 export const PROP_IDS = ['none', 'staff', 'lantern', 'basket', 'wrench', 'parasol', 'lamppole', 'bell', 'flower'];
 /** Cloth patterns printed on the tunic (materials.js outfitTrim, the crowd's fragment hook). */
@@ -55,7 +55,7 @@ const tribe = (o) => ({ ...DEFAULT, ...o, palette: { ...DEFAULT.palette, ...o.pa
 export const COSTUMES = {
   desert: { tribes: [tribe({
     name: 'pilgrims of the dunes',
-    heads: { headcloth: 4, sunhat: 3, wrap: 2, hair: 0.6 }, as: { hood: 'headcloth', hat: 'sunhat', wrap: 'wrap' },
+    heads: { headcloth: 4, sunhat: 3, wrap: 2, hair: 0.6 }, headsF: { headcloth: 4, wrap: 2.5, sunhat: 1.5, long: 1, bun: 0.6 }, as: { hood: 'headcloth', hat: 'sunhat', wrap: 'wrap' },
     masks: { none: 5, veil: 2 }, body: { mantle: 2, none: 3 }, props: { none: 6, staff: 2, basket: 1 }, trim: { sash: 3, none: 2, stripes: 1 },
     capes: [0, 0, 0.9, 1.25, 1.45], wide: [1, 1.25], robe: 0.85, robes: [0.1, 0.22, 0.38], flare: [0.3, 0.4], size: [0.95, 1.06],
     palette: {
@@ -71,7 +71,7 @@ export const COSTUMES = {
   incal: { tribes: [
     tribe({
       name: 'the rim', when: (c) => zoneIncal(c) === 'rim' || zoneIncal(c) === 'upper',
-      heads: { tophat: 4, spire: 3, hair: 1 }, as: { hat: 'tophat', hood: 'spire', wrap: 'spire' },
+      heads: { tophat: 4, spire: 3, hair: 1 }, headsF: { spire: 3, tophat: 2, bun: 1.5, long: 1 }, as: { hat: 'tophat', hood: 'spire', wrap: 'spire' },
       masks: { none: 1 }, body: { collar: 5, none: 1 }, props: { none: 5, parasol: 2 }, trim: { yoke: 1 },
       capes: [0, 0, 0.55, 0.9], wide: [0.9, 1], robe: 0.5, robes: [0.45], flare: [0.24, 0.26], size: [1.0, 1.08],
       palette: {
@@ -236,7 +236,7 @@ export const COSTUMES = {
   })] },
   bazaar: { tribes: [tribe({
     name: 'the market',
-    heads: { turban: 4, fez: 2, wrap: 1, hair: 1 }, as: { wrap: 'turban', hat: 'fez', hood: 'turban' },
+    heads: { turban: 4, fez: 2, wrap: 1, hair: 1 }, headsF: { turban: 3, wrap: 2, fez: 1, long: 1.2, bun: 0.8 }, as: { wrap: 'turban', hat: 'fez', hood: 'turban' },
     masks: { none: 1 }, body: { badge: 4, none: 1 }, props: { basket: 2, none: 4 }, trim: { diamonds: 2, stripes: 2 },
     capes: [0, 0.5, 0.9], robe: 0.6, robes: [0.4, 0.5], flare: [0.26, 0.29], size: [0.95, 1.05],
     palette: {
@@ -325,7 +325,7 @@ export function tribeOf(world, ctx = {}) {
  * @param o.cape    their cape length (m), if the story sets it
  * @param o.look    story overrides: { head, mask, body, prop, robe (hem height, 0 none), trim, flare }
  */
-export function dressFor(world, rng, { palette = {}, lists = {}, head = null, cape = null, look = {}, spot = null, pos = null } = {}) {
+export function dressFor(world, rng, { palette = {}, lists = {}, head = null, cape = null, look = {}, spot = null, pos = null, kind = null } = {}) {
   const T = tribeOf(world, { spot, pos });
   const L = { ...DEFAULT.palette, ...lists, ...T.palette };
   const accents = L.accents ?? L.cloaks;
@@ -339,7 +339,7 @@ export function dressFor(world, rng, { palette = {}, lists = {}, head = null, ca
     hat: palette.hat ?? pick(rng, L.hats),
     accent: palette.accent ?? pick(rng, accents),
   };
-  let h = look.head ?? (head ? T.as[head] ?? head : weighted(rng, T.heads));
+  let h = look.head ?? (head ? T.as[head] ?? head : weighted(rng, (kind === 'f' && T.headsF) || (kind === 'm' && T.headsM) || T.heads));
   if (!HEAD_IDS.includes(h)) h = 'hood';
   s.head = h;
   s.mask = look.mask ?? weighted(rng, T.masks);
@@ -354,17 +354,49 @@ export function dressFor(world, rng, { palette = {}, lists = {}, head = null, ca
   s.bulk = T.bulk ?? 0;
   s.sleeveless = !!T.sleeveless;
   s.size = range(rng, T.size);
+  // the body (drawn after everything above, so the rest of a look is what it was): a man or a
+  // woman, a build and a height, all seeded with the look
+  const female = kind === 'f';
+  s.kind = kind;
+  s.build = look.build ?? weighted(rng, female ? BUILD_ODDS.f : BUILD_ODDS.m);
+  s.height = look.height ?? THREE.MathUtils.clamp((1 + (rng() + rng() - 1) * HEIGHT.spread) * (female ? HEIGHT.f : 1), HEIGHT.min, HEIGHT.max);
+  const rh = rng(), rb = rng();
+  // bare heads: women mostly wear their hair long or up; some men have a beard
+  if (female && !look.head && (s.head === 'hair' || s.head === 'short')) s.head = rh < 0.45 ? 'long' : rh < 0.8 ? 'bun' : 'tail';
+  if (!female && kind && !look.mask && s.mask === 'none' && rb < BEARDS) s.mask = 'beard';
   return s;
 }
 
+// ------------------------------------------------------------------ bodies
+/**
+ * Builds: how wide the shoulders are and how full the body is, relative to the plain figure.
+ * The full NPCs reshape their body mesh (humanoid.js buildGeometry), the crowd figures their
+ * vertices (crowd-shader.js, aBody); the head, hands and feet stay as they are.
+ */
+export const BUILDS = {
+  slim: { width: 0.93, girth: 0.9 },
+  average: { width: 1, girth: 1 },
+  broad: { width: 1.12, girth: 1.06 },
+  heavy: { width: 1.08, girth: 1.3 },
+};
+const BUILD_ODDS = { m: { slim: 2, average: 4, broad: 2.5, heavy: 1.5 }, f: { slim: 3, average: 4, broad: 1, heavy: 2 } };
+/** Heights: 1 ± spread (a triangle, most people near the middle), women a little shorter; the tribe's size on top. */
+export const HEIGHT = { spread: 0.14, f: 0.95, min: 0.85, max: 1.15 };
+const BEARDS = 0.3;
+/** The crowd shader's per-instance body: female (0 / 1), shoulder width, girth. */
+export function packBody(s) {
+  const b = BUILDS[s.build] ?? BUILDS.average;
+  return [s.kind === 'f' ? 1 : 0, b.width, b.girth, 0];
+}
+
 /** A crowd person's look (crowd.js): the world's costume over the level's crowd colours. */
-export function crowdLook(rng, { world = costumeWorld(), lists = {}, spot = null, pos = null } = {}) {
-  return dressFor(world, rng, { lists, spot, pos });
+export function crowdLook(rng, { world = costumeWorld(), lists = {}, spot = null, pos = null, kind = null } = {}) {
+  return dressFor(world, rng, { lists, spot, pos, kind });
 }
 
 /** A named person's look: seeded by who they are, so they look the same every visit. */
-export function namedLook({ world = costumeWorld(), id = '', palette = {}, head = null, cape = null, look = {}, pos = null } = {}) {
-  return dressFor(world, mulberry32(hashSeed(`${world}:${id}`)), { palette, head, cape, look, pos });
+export function namedLook({ world = costumeWorld(), id = '', palette = {}, head = null, cape = null, look = {}, pos = null, kind = null } = {}) {
+  return dressFor(world, mulberry32(hashSeed(`${world}:${id}`)), { palette, head, cape, look, pos, kind });
 }
 
 /** The ids a look shows, in a comparable form (tests; a promoted NPC must match its crowd figure). */
@@ -426,6 +458,10 @@ export const HEADS = {
   short: { cap: true, parts: () => [] },
   hair: { cap: true, parts: (q) => [P('hair', sphere(0.045, q, 10, 8).translate(0, 0.12, -0.06))] },
   tail: { cap: true, parts: (q) => [P('hair', new THREE.CapsuleGeometry(0.03, 0.18, sg(4, q), sg(8, q)).rotateX(0.35).translate(0, -0.06, -0.12))] },
+  // long hair falling to the shoulders, open at the face
+  long: { cap: true, parts: (q) => [P('hair', cyl(0.122, 0.15, 0.27, q, 12, true, 1.15, Math.PI * 2 - 2.3).translate(0, -0.1, -0.022), true)] },
+  // hair gathered in a bun at the back
+  bun: { cap: true, parts: (q) => [P('hair', sphere(0.052, q, 8, 6).scale(1, 0.9, 0.85).translate(0, 0.06, -0.125), true)] },
   hood: { cap: false, parts: (q) => [
     P('cloak', sphere(0.163, q, 14, 10, Math.PI / 2 + 0.75, Math.PI * 2 - 1.5).scale(1, 1.22, 1.15).translate(0, 0.02, -0.02), true),
     P('cloak', cone(0.07, 0.28, q, 6).translate(0, 0.13, 0).rotateX(-1.15).translate(0, 0.19, -0.1), true),
@@ -562,6 +598,11 @@ export const MASKS = {
   ],
   goggles: (q) => goggles(q, 0.008, 0),
   browgoggles: (q) => goggles(q, 0.075, -0.35),
+  // a beard round the jaw (some of the men: dressFor)
+  beard: (q) => [
+    P('hair', cyl(0.104, 0.07, 0.085, q, 8, true, -1.25, 2.5).translate(0, -0.112, 0.008)),
+    P('hair', sphere(0.042, q, 6, 5).scale(1.25, 1, 0.8).translate(0, -0.148, 0.07)),
+  ],
 };
 function goggles(q, y, tilt) {
   const out = [];

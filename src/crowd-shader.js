@@ -18,6 +18,7 @@
 //   aLook1  hat, accent, hair, body = bulk (0..3) + 4 * sleeveless + 8 * cloth pattern (TRIM_IDS) + 128 * robe hem radius (cm)
 //   aDress  headwear + 32 * short hair under it, mask + 8 * chest piece + 128 * prop,
 //           cape length (m) + 2 * cape width (tenths), robe length (m below the belt, 0 none) — costumes.js packDress
+//   aBody   female (0 / 1), shoulder width, girth (costumes.js packBody: the build); the height is the instance scale
 // A piece that isn't worn collapses to a point (zero-area triangles): every world bakes only its own
 // pieces into its figure (crowd.js figureGeometry), so the vertex count stays small.
 
@@ -36,6 +37,7 @@ export const CROWD_GLSL = /* glsl */ `
   in vec4 aLook0;
   in vec4 aLook1;
   in vec4 aDress;
+  in vec4 aBody;
   uniform float uTime;
   flat out vec4 vCrowdTrim;   // the tunic's printed pattern: accent colour, pattern id (0 none)
 
@@ -161,12 +163,14 @@ export const CROWD_GLSL = /* glsl */ `
     // ---- skeleton, children first
     const float HIP = ${0.95}, HIPX = ${0.09}, KNEE = ${0.5}, SHY = ${1.43}, SHX = ${0.2}, ELB = ${1.13}, NECK = ${1.5}, COLLAR = ${1.45};
     float side = (part % 2 == 0) ? 1.0 : -1.0;   // even parts are the left (+x) side
+    float fem = aBody.x, bw = aBody.y, bg = aBody.z;
+    float shx = SHX * bw * (1.0 - 0.07 * fem), hipx = HIPX * (1.0 + 0.1 * fem);   // where the shoulders and hips now are
     if (part == 10) {
       // the cape, rebuilt from its parameters: a flared, open-fronted cone hanging from the shoulders
       float t = aRig.w;
       // shoulders are wider than deep; the cloth falls a little behind the body
       float k = pow(t, 0.8);
-      vec2 rad = mix(vec2(0.2, 0.135), (vec2(0.25, 0.2) + capeLen * 0.05) * capeWide, k);
+      vec2 rad = mix(vec2(0.2, 0.135), (vec2(0.25, 0.2) + capeLen * 0.05) * capeWide, k) * vec2(bw * (1.0 - 0.06 * fem), mix(1.0, bg, 0.5));
       vec3 dir = normalize(vec3(p.x, 0.0, p.z) + vec3(0.0, 0.0, 1e-5));
       p = vec3(dir.x * rad.x, COLLAR - t * capeLen, dir.z * rad.y - 0.02 - 0.05 * t);
       n = normalize(vec3(dir.x / rad.x, 0.0, dir.z / rad.y));
@@ -180,7 +184,7 @@ export const CROWD_GLSL = /* glsl */ `
       // the robe: a bell from the belt to its hem, swinging with the thighs
       float t = aRig.w;
       vec3 dir = normalize(vec3(p.x, 0.0, p.z) + vec3(0.0, 0.0, 1e-5));
-      vec2 rad = mix(vec2(0.165, 0.14), vec2(flare, flare * 0.86), pow(t, 0.85));
+      vec2 rad = mix(vec2(0.165, 0.14), vec2(flare, flare * 0.86), pow(t, 0.85)) * (1.0 + (bg - 1.0) * 0.7 + 0.08 * fem);
       p = vec3(dir.x * rad.x, HIP + 0.01 - t * robeLen, dir.z * rad.y - 0.01);
       n = normalize(vec3(dir.x / rad.x, 0.25, dir.z / rad.y));
       float wl = smoothstep(-0.7, 0.7, dir.x);
@@ -189,16 +193,34 @@ export const CROWD_GLSL = /* glsl */ `
     }
     // a padded suit: the clothes swell along their normals (not the head, hands or costume pieces)
     if (bulk > 0.0 && slot == 0 && part != 1 && part < 10 && (zone == 2 || zone == 3 || zone == 9 || zone == 10)) p += n * bulk * 0.014;
+    // the body (costumes.js BUILDS, packBody): a woman's narrower shoulders, fuller hips and bust;
+    // a build's shoulder width and girth (the belly most, forward). Heads, hands and feet keep their size.
+    if (part == 0 && slot != 5) {
+      float y = p.y;
+      float belly = exp(-pow((y - 1.06) / 0.16, 2.0)), bust = exp(-pow((y - 1.29) / 0.08, 2.0)), hips = exp(-pow((y - 0.93) / 0.09, 2.0));
+      p.x *= mix(1.0, bw * (1.0 - 0.06 * fem), smoothstep(1.12, 1.38, y)) * (1.0 + (bg - 1.0) * 0.8 * belly) * (1.0 + 0.1 * fem * hips);
+      p.z *= p.z > 0.0 ? 1.0 + (bg - 1.0) * 1.5 * belly + 0.3 * fem * bust : 1.0 + (bg - 1.0) * 0.5 * belly + 0.12 * fem * hips;
+    } else if (part == 0) {
+      p.x *= bw * (1.0 - 0.06 * fem);   // the cape's collar sits on the shoulders
+    } else if (part >= 2 && part <= 5) {
+      float k = slot == 0 ? 1.0 + (bg - 1.0) * (part <= 3 ? 0.6 : 0.3) + (part <= 3 ? 0.05 * fem : 0.0) : 1.0;
+      p.x = side * hipx + (p.x - side * HIPX) * k;
+      p.z *= k;
+    } else if (part >= 6 && part <= 9) {
+      float k = slot == 0 ? 1.0 + (bg - 1.0) * 0.45 : 1.0;
+      p.x = side * shx + (p.x - side * SHX) * k;
+      p.z *= k;
+    }
     if (part == 4 || part == 5) {
       int i = part - 4;
-      crowdTurn(p, n, vec3(side * HIPX, KNEE, 0.0), crowdRotX(i == 0 ? knee.x : knee.y));
-      crowdTurn(p, n, vec3(side * HIPX, HIP, 0.0), crowdRotX(-(i == 0 ? hip.x : hip.y)));
+      crowdTurn(p, n, vec3(side * hipx, KNEE, 0.0), crowdRotX(i == 0 ? knee.x : knee.y));
+      crowdTurn(p, n, vec3(side * hipx, HIP, 0.0), crowdRotX(-(i == 0 ? hip.x : hip.y)));
     } else if (part == 2 || part == 3) {
-      crowdTurn(p, n, vec3(side * HIPX, HIP, 0.0), crowdRotX(-(part == 2 ? hip.x : hip.y)));
+      crowdTurn(p, n, vec3(side * hipx, HIP, 0.0), crowdRotX(-(part == 2 ? hip.x : hip.y)));
     } else if (part != 0 && part != 10 && part != 1) {
       bool left = part == 6 || part == 8;
-      vec3 sh = vec3(side * SHX, SHY, 0.0);
-      if (part >= 8) crowdTurn(p, n, vec3(side * SHX, ELB, 0.0), crowdRotY(-side * (left ? elbIn.x : elbIn.y)) * crowdRotX(-(left ? elb.x : elb.y)));
+      vec3 sh = vec3(side * shx, SHY, 0.0);
+      if (part >= 8) crowdTurn(p, n, vec3(side * shx, ELB, 0.0), crowdRotY(-side * (left ? elbIn.x : elbIn.y)) * crowdRotX(-(left ? elb.x : elb.y)));
       crowdTurn(p, n, sh, crowdRotZ(side * (left ? shA.x : shA.y)) * crowdRotX(-(left ? shF.x : shF.y)));
     } else if (part == 1) {
       crowdTurn(p, n, vec3(0.0, NECK, 0.0), crowdRotY(clamp(hY, -1.3, 1.3)) * crowdRotX(hP));

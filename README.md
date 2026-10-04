@@ -1160,6 +1160,36 @@ rest pose as the NPCs. The human's own body, wholly covered, is not drawn.
   (soles, helmet, gloves), rigid pieces, gait retargeting at 120 phases, wall
   contact and the face. `/tools/rig-review.html` shows the actual build per clip.
 
+## People of every height, build and kind (v0.39)
+
+The body is part of a person's look (`dressFor` in `src/costumes.js`), drawn
+after everything else so the rest of each look is what it was, and seeded like
+it, so everyone looks the same on every visit:
+
+- **Kind** (`'m'` / `'f'`): crowds draw it per person, level NPCs alternate (or take
+  `kind` from their data), story people use `def.kind`. Women's bare heads get long
+  hair, a bun or a tail (`HEADS.long`, `HEADS.bun`); about a third of the men a beard
+  (`MASKS.beard`, only on a bare face). Tribes can weight headwear per kind
+  (`headsF` / `headsM`: the desert, the rim, the bazaar). Story people whose kind
+  isn't given get no hair swap or beard.
+- **Build** (`BUILDS`: slim, average, broad, heavy; women and men have their own odds).
+  Full NPCs reshape their body mesh round its bones (`buildGeometry` in
+  `src/humanoid.js`, cached per build; `Humanoid.setBuild` swaps it on a pooled
+  body); the skeleton, head, hands and feet stay as they are, so headwear, masks
+  and the foot planting still fit. Shoulder pieces widen with the build, robes
+  measure the body they hang on, cape colliders grow with the girth.
+- **Height** (`HEIGHT`: 0.85–1.15, a triangle round 1, women ×0.95) on top of the
+  tribe's size; people leaning on a railing keep nearly its height. Bodies scale
+  from their feet. A story person with `scale` keeps exactly that.
+- **The GPU crowd** gets the same body from a per-instance `aBody` (female, shoulder
+  width, girth: `packBody`): the shader narrows a woman's shoulders, widens her
+  hips and adds a bust, widens and fills the torso (the belly forward), thickens
+  limbs and moves the shoulder and hip pivots; capes and robes follow.
+- `/tools/people-review.html?world=bazaar` shows a row of a world's people as full
+  NPCs with the same looks as crowd figures behind (`&builds=1`: every build of
+  both kinds). `tests/people.test.js` covers the mix, the seeding, the pieces and
+  the builds.
+
 ## Android (offline APK)
 The game is also packaged as an Android app, for handhelds such as the Retroid
 Pocket. Their built-in controls work through the Gamepad API.
