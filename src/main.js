@@ -542,7 +542,8 @@ function applyDetail() {
   for (const n of npcs) n.lowDetail = low;
   if (crowd) {
     const mid = preset.crowdMid ?? crowdRange.midIn;
-    Object.assign(crowd.range, { far: Math.min(preset.crowdFar ?? Infinity, crowdRange.far), midIn: Math.min(mid, crowdRange.midIn), midOut: Math.min(mid + 7, crowdRange.midOut), shadow: Math.min(crowdRange.shadow, mid * 0.5) });
+    Object.assign(crowd.range, { far: Math.min(preset.crowdFar ?? Infinity, crowdRange.far), midIn: Math.min(mid, crowdRange.midIn), midOut: Math.min(mid + 7, crowdRange.midOut),
+      shadow: preset.crowdMid ? Math.min(crowdRange.shadow, mid * 0.5) : crowdRange.shadow });
   }
 }
 function applyQuality() {
