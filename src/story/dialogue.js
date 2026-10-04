@@ -246,7 +246,7 @@ export class Dialogue {
     const r = this.runner, full = r.text;
     // reveal letter by letter, keeping the motifs whole
     const shown = full.slice(0, Math.floor(this.revealed));
-    this.q('.dlg-text').innerHTML = formatText(shown.replace(/\{\w*$/, '').replace(/\*([^*]*)$/, '$1')) + (this.revealed < full.length ? '<span class="dlg-caret">▍</span>' : '');
+    this.q('.dlg-text').innerHTML = formatText(shown.replace(/\{\w*$/, '').replace(/\*([^*]*)$/, (m, w) => ((shown.match(/\*/g)?.length ?? 0) % 2 ? w : m)))   // hide only a star still waiting for its pair + (this.revealed < full.length ? '<span class="dlg-caret">▍</span>' : '');
     this.q('.dlg-text').classList.toggle('player', r.speaker === 'player');
     const done = this.revealed >= full.length;
     const choices = done ? r.choices() : [];

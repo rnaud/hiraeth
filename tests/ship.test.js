@@ -162,6 +162,31 @@ test('the desert crash site faces Qanat, and the city shows on the horizon from 
   }
 });
 
+test('the floor is continuous from the entry hall over the threshold onto the ramp: no gap to fall through', () => {
+  const { physics, ship } = flatWorld();
+  const h = ship.hinge, out = ship.rampFoot.clone().sub(h).setY(0).normalize(), side = v(-out.z, 0, out.x);
+  const run = ship.rampFoot.clone().sub(h).setY(0).length(), slope = (h.y - ship.rampFoot.y) / run;
+  // from 1.5 m inside the hinge to 1 m down the ramp, across the doorway's width
+  for (let d = -1.5; d <= 1.0; d += 0.05) for (let w = -0.8; w <= 0.8; w += 0.2) {
+    const p = h.clone().addScaledVector(out, d).addScaledVector(side, w);
+    const g = physics.groundAt(p.x, h.y + 1, p.z, 30);
+    const want = h.y - Math.max(0, d) * slope;   // the deck and threshold are level; the ramp descends from the hinge
+    assert.ok(Math.abs(g - want) < 0.25, `floor at ${d.toFixed(2)} m from the hinge, ${w.toFixed(1)} m across: ${(g - want).toFixed(2)}`);
+  }
+  // and the traveller walks out over it without dropping
+  const P = new Player(physics);
+  P.opts.climb = false;
+  P.pos.copy(h).addScaledVector(out, -1.5).add(v(0, 0.05, 0));
+  const heading = Math.atan2(out.x, out.z);
+  let lowest = Infinity;
+  for (let i = 0; i < 90 && P.pos.clone().sub(h).dot(out) < 0.6; i++) {
+    P.update(1 / 60, { KeyW: true }, heading + Math.PI);
+    if (P.pos.clone().sub(h).dot(out) < 0.2) lowest = Math.min(lowest, P.pos.y);   // over the deck and the threshold
+  }
+  assert.ok(P.pos.clone().sub(h).dot(out) >= 0.6, 'out past the hinge onto the ramp');
+  assert.ok(lowest > h.y - 0.3, `no fall at the threshold: lowest ${(lowest - h.y).toFixed(2)} m`);
+});
+
 test('the console: a waiting call first; the galactic map is locked without power', () => {
   assert.equal(consoleAction({ powered: false, pendingCall: null }), 'locked');
   assert.equal(consoleAction({ powered: true, pendingCall: null }), 'map');

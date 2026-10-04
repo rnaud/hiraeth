@@ -146,9 +146,11 @@ export function buildHull(batch, o = {}) {
     }
   }
 
-  // threshold under the hatch, out to the hinge
+  // threshold under the hatch: from inside the deck's edge (the inner hull's radius at deck height, not
+  // the hull's own radius) out to the hinge, so there is no gap to fall through between deck and ramp
   {
-    const g = sector({ r0: RI - 0.5, r1: HINGE_R, a0: HATCH.a0 - 0.01, a1: HATCH.a1 + 0.01, y0: DECK - 0.3, y1: DECK, seg: 4 });
+    const deckEdge = Math.sqrt(RI * RI - DECK * DECK);
+    const g = sector({ r0: deckEdge - 0.6, r1: HINGE_R, a0: HATCH.a0 - 0.01, a1: HATCH.a1 + 0.01, y0: DECK - 0.3, y1: DECK, seg: 4 });
     batch.add('floorDark', g);
   }
   return { feet };

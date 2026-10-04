@@ -169,6 +169,7 @@ export class Story {
     this.journal = journal;
     this.sound = sound;
     this.capture = capture;
+    this.physics = physics;
     const [gx, gy, gz] = def.goal;
     const y = gy === 'top' ? physics.groundAt(gx, 1e4, gz, 2e4)
       : gy === 'ground' ? (ground?.heightAt ? ground.heightAt(gx, gz) : physics.groundAt(gx, 1e4, gz, 2e4)) : gy;
@@ -258,9 +259,17 @@ export class Story {
     ];
   }
 
+  /** Keep a panel's camera on the open side of anything solid between it and what it looks at (the ship's hull, a wall). */
+  clear(shot) {
+    const from = shot.look, to = shot.eye.clone().sub(from), d = to.length();
+    const hit = d > 1 ? this.physics?.rayDistance?.(from, to.multiplyScalar(1 / d), d) : Infinity;
+    if (!(hit < d)) return shot;
+    return { ...shot, eye: from.clone().addScaledVector(to, Math.max(1.5, hit - 1.2)) };
+  }
+
   showPage(which) {
     const d = this.def;
-    const imgs = this.shots(which).map((s, i) => this.capture(s.eye, s.look, i === 0 ? 900 : 440, i === 0 ? 380 : 300));
+    const imgs = this.shots(which).map((s, i) => { s = this.clear(s); return this.capture(s.eye, s.look, i === 0 ? 900 : 440, i === 0 ? 380 : 300); });
     const caption = which === 'intro' ? d.intro : d.outro;
     this.page.innerHTML = `
       <div class="sheet">

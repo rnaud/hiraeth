@@ -12,8 +12,8 @@ import * as sfx from './sfx.js';
 // shorter scenes (a call home, arriving, taking off) are Sequences here.
 
 export const OBJECTIVE = 'Find a new source of power.';
-/** A new game steps out without the backpack: it was thrown out in the crash (src/boxes/, the desert's first stage). */
-export const FIRST_OBJECTIVE = 'Find what fell from the ship.';
+/** A new game steps out without the backpack: it waits in a makers' box in Qanat, under the smoke (src/boxes/, the desert's first stage). */
+export const FIRST_OBJECTIVE = 'Follow the smoke to the city.';
 const stepOutObjective = () => (game.flag('item.backpack') ? OBJECTIVE : FIRST_OBJECTIVE);
 const STEP_OUT_YAW = 0.34;   // rad off straight-behind when the traveller first steps out
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
@@ -338,7 +338,7 @@ export class PrologueDirector {
     }
     game.set('objective', OBJECTIVE);
     game.set('ship.level', 'desert');
-    setTimeout(() => s.onReady?.(), skipped ? 2500 : 5000);
+    setTimeout(() => s.onReady?.(), 6800);   // after the objective card (6.5 s) has faded, never on top of it
   }
 }
 

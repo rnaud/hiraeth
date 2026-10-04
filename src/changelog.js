@@ -3,6 +3,13 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.36', date: '2026-10-04', items: [
+    'The backpack now waits in Qanat. After the crash, follow the smoke to the city: in a shrine by the dry well stands a makers’ box that has not opened in living memory. Opening it brings the villagers and Nour, the eldest, who sends you on the rest of your search for power.',
+    'Every item box is now an artifact of the makers, the people of the three-dot glyph, left for whoever comes a long way. People in each world have their own name for them.',
+    'The Retroid Pocket’s built-in sticks and buttons now work, and every prompt uses its button names (A, B, X, Y, L1, R1, L2, R2, Select, Start). This also fixes being stuck after the crash on Android.',
+    'The Android app updates itself from GitHub releases: when a newer build is out, it offers to install it and keeps your progress.',
+    'Fixed a gap between the ship’s floor and its ramp that you could fall through. The burning tree’s smoke is one soft continuous trail, and the wind is quieter.',
+  ] },
   { v: '0.35', date: '2026-10-04', items: [
     'You start without the backpack. It was thrown out in the crash: find its box near the ship. Item boxes glow and shudder as you come near; open one to kneel over it while light pours out and the item rises in front of you.',
     'Boxes in every world hold new things: fluid jets in the City-Shaft, fluid wings in Arzach II, stilling and ember modes for the wrist nozzle, a fourth chamber, a quick coil, a lantern charm, a glyph lens, a bell-note whistle and a pale star.',

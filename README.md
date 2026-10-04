@@ -1090,3 +1090,20 @@ Pocket. Their built-in controls work through the Gamepad API.
 - **Dev menu** (`src/dev-menu.js`, the backquote key or settings): items,
   boxes, flags, teleport. Also `?items=all|none|a,b`.
 
+### The makers' boxes, Android controls and updates (v0.36)
+- **The boxes** are artifacts of the makers, the people of the glyph (see "The
+  boxes" in the story bible). The backpack's box stands in the Givers' shrine
+  in Qanat (231, 391). Opening it brings six villagers and Nour, the eldest,
+  whose conversation sends you on the rest of `desert.power` (stages `city →
+  box → elder → well → ama → speaker → down → …`). Saves are migrated: `items.v`
+  2 marks the box open for anyone who has the backpack, and `desert.quest.v` 2
+  maps the old stages.
+- **Android controls** (`android/.../GamepadBridge.java`, `src/native-pad.js`):
+  the activity reads the built-in controller and hands it to the page as a
+  Standard Gamepad. With it the prompts use Android button names (A B X Y, L1
+  R1 L2 R2, Select, Start); `?pad=android` forces them in a browser.
+- **Updates** (`android/.../Updater.java`): on launch the app reads
+  `latest.json` from the newest release (uploaded by the workflow with the APK:
+  versionCode, version, APK URL). It offers newer builds and hands them to the
+  system installer; the same key keeps the save.
+
