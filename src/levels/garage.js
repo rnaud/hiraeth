@@ -25,11 +25,19 @@ const Y = new THREE.Vector3(0, 1, 0);
 /** Radial frame of the ring at an angle phi around the x axis (phi = 0 -> +z, pi/2 -> +y). */
 const ringDir = (phi) => new THREE.Vector3(0, Math.sin(phi), Math.cos(phi));
 
+// the story's places (src/story/garage.js), kept clear of the random buildings
+const BOARD = new THREE.Vector3(-13, 0, 98);          // A: the signal board by the path from the start
+const B_RELAY = new THREE.Vector3(9, 0, 14);          // B: slab-local (y down into the quarter): the relay box
+const B_DESK = new THREE.Vector3(-140, 0, 72);        // B: slab-local: the Major's old desk, out near the edge
+const B_PUMP = new THREE.Vector3(42, 0, -18);         // B: slab-local: the lamp pump
+const C_TURBINE = new THREE.Vector3(2905, 0, -22);    // C: on the ring floor near its entrance (x, -, z)
+
 export function createGarage(scene) {
   const rng = mulberry32(1976);
   const pick = (a) => a[Math.floor(rng() * a.length)];
   const movers = [];
   const portals = [];
+  const machines = {};   // stopped until the story starts them: { pos, radius, speed, target, spin(angle) }
   const noShadow = [];
   const stone = (size = 3) => makeMaterial({ color: pick(PALETTE), color2: pick(PALETTE), color3: '#f3ead8', mode: MODE_STRATA, strataSize: size, flat: true });
 
@@ -68,7 +76,8 @@ export function createGarage(scene) {
     return m;
   }
 
-  function portal(pos, up, facing, to, toUp, toFwd, label) {
+  function portal(pos, up, facing, to, toUp, toFwd, zone) {
+    const label = { A: 'portal to the plateau', B: 'portal to the upside-down', C: 'portal to the ring' }[zone];   // "Through the …" on the HUD
     const ring = new THREE.Mesh(new THREE.TorusGeometry(5, 0.7, 8, 32), makeMaterial({ color: '#f2c54b', glow: 1 }));
     const inner = new THREE.Mesh(new THREE.CircleGeometry(4.3, 32), makeMaterial({ color: '#62c3c9', glow: 0.8, side: THREE.DoubleSide }));
     const grp = new THREE.Group();
@@ -79,7 +88,7 @@ export function createGarage(scene) {
     grp.position.copy(pos).addScaledVector(up, 5.5);
     grp.userData.noCollide = true;
     scene.add(grp);
-    portals.push({ pos: grp.position.clone(), to, toUp, toFwd, label });
+    portals.push({ pos: grp.position.clone(), to, toUp, toFwd, label, zone });
     movers.push((t) => { inner.rotation.z = t * 0.6; ring.scale.setScalar(1 + Math.sin(t * 3) * 0.03); });
   }
 
@@ -118,7 +127,7 @@ export function createGarage(scene) {
     blades.userData.noCollide = true;
     mill.add(blades);
     scene.add(mill);
-    movers.push((t) => { blades.rotation.z = t * 0.5; });
+    machines.mill = { group: mill, pos: new THREE.Vector3(-90, 30, 65), radius: 17, speed: 0, target: 0, spin: (a) => { blades.rotation.z = a * 0.5; } };
     // stepping-stone islands around the plateau
     for (let i = 0; i < 10; i++) {
       const a = rng() * Math.PI * 2, r = 230 + rng() * 120;
@@ -192,6 +201,26 @@ export function createGarage(scene) {
     scene.add(cm);
   }
 
+  // ---------------------------------------------------------- the signal board: nine lamps that blink the signal
+  const board = { lamps: [], pos: BOARD.clone() };
+  {
+    const ink = makeMaterial({ color: '#34405e', flat: true });
+    const parts = [new THREE.BoxGeometry(0.3, 5.2, 0.3).translate(-1.6, 2.6, 0), new THREE.BoxGeometry(0.3, 5.2, 0.3).translate(1.6, 2.6, 0),
+      new THREE.BoxGeometry(3.8, 3.2, 0.4).translate(0, 4.6, 0), new THREE.CylinderGeometry(0.1, 0.1, 2.2, 5).translate(1.2, 7.3, 0)];
+    const g = new THREE.Mesh(mergeGeometries(parts.map((q) => q.toNonIndexed())), ink);
+    g.position.copy(BOARD); g.rotation.y = 0.5;
+    scene.add(g);
+    for (let i = 0; i < 9; i++) {
+      const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.32, 8, 6), makeMaterial({ color: '#70858c', flat: true }));
+      lamp.position.set(((i % 3) - 1) * 1.05, 4.6 + (1 - Math.floor(i / 3)) * 0.95, 0.3);
+      lamp.userData.noCollide = true;
+      g.add(lamp);
+      board.lamps.push(lamp);
+    }
+    board.face = new THREE.Vector3(Math.sin(0.5), 0, Math.cos(0.5));
+  }
+  let glyphAt = null;
+
   // ---------------------------------------------------------- hero: the great machine
   // A cathedral of gears turning round a column, pistons pumping at its base.
   {
@@ -219,6 +248,16 @@ export function createGarage(scene) {
       const sp = (i % 2 ? -1 : 1) * (0.15 + rng() * 0.15);
       movers.push((t) => { gear.rotation.y = t * sp; });
     }
+    // the Major's mark on the column: three rivets over an arc, on a brass plate
+    {
+      const plate = [new THREE.CylinderGeometry(2.6, 2.6, 0.4, 20).rotateX(Math.PI / 2)];
+      for (const dx of [-1.1, 0, 1.1]) plate.push(new THREE.SphereGeometry(0.34, 8, 6).translate(dx, 0.7 + (dx ? 0 : 0.25), 0.3));
+      plate.push(new THREE.TorusGeometry(1.35, 0.16, 5, 14, Math.PI).translate(0, -1.1, 0.25));
+      const pm = new THREE.Mesh(mergeGeometries(plate.map((g) => g.toNonIndexed())), makeMaterial({ color: '#34405e', flat: true }));
+      pm.position.set(mx, 22, mz + 8.4);
+      scene.add(pm);
+      glyphAt = pm.position.clone().add(new THREE.Vector3(0, -22, 4));
+    }
     for (let k = 0; k < 6; k++) { // pistons
       const a = (k / 6) * Math.PI * 2, px = mx + Math.cos(a) * 20, pz = mz + Math.sin(a) * 20;
       const housing = new THREE.Mesh(new THREE.CylinderGeometry(2.5, 3, 8, 8).translate(0, 4, 0), stone(2));
@@ -232,6 +271,7 @@ export function createGarage(scene) {
   }
 
   // ======================================================== B: the upside-down quarter
+  const relay = {}, deskInfo = {};
   // Built upright in a group, then flipped: its floor faces down, gravity pulls up.
   {
     const grp = new THREE.Group();
@@ -239,13 +279,67 @@ export function createGarage(scene) {
       makeMaterial({ color: '#a99be0', color2: '#e88fa6', color3: '#f3ead8', mode: MODE_STRATA, strataSize: 2.5, flat: true, grid: 6 }));
     grp.add(slab);
     noShadow.push(slab); // otherwise the slab would shade the whole quarter
+    // (the same random draws as ever; the few that land on the story's spots are taken away again)
+    const bClear = (p) => [B_RELAY, B_DESK, B_PUMP].some((c) => Math.hypot(p.x - c.x, p.z - c.z) < 14) || (Math.abs(p.x) < 12 && p.z > -75 && p.z < 160);
     for (let i = 0; i < 46; i++) {
       const a = rng() * Math.PI * 2, r = 25 + rng() * 150;
-      build(new THREE.Vector3(Math.cos(a) * r, 0, Math.sin(a) * r), Y, grp);
+      const m = build(new THREE.Vector3(Math.cos(a) * r, 0, Math.sin(a) * r), Y, grp);
+      if (bClear(m.position)) grp.remove(m);
+    }
+    // the relay box, hanging (to us: standing) by the path to the next portal: a slot, a stamp, a lamp
+    {
+      const ink = makeMaterial({ color: '#34405e', flat: true }), brass = makeMaterial({ color: '#d8a24a', flat: true });
+      const box = new THREE.Mesh(mergeGeometries([new THREE.BoxGeometry(2.2, 2.6, 1.6).translate(0, 1.3, 0), new THREE.CylinderGeometry(0.5, 0.7, 0.5, 10).translate(0, 2.85, 0)].map((q) => q.toNonIndexed())), stone(2));
+      box.position.copy(B_RELAY);
+      grp.add(box);
+      const slot = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.18, 0.1), ink);
+      slot.position.set(B_RELAY.x, 1.9, B_RELAY.z + 0.82); slot.userData.noCollide = true; grp.add(slot);
+      const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 6), makeMaterial({ color: '#f2c54b', glow: 0.8 }));
+      lamp.position.set(B_RELAY.x, 3.3, B_RELAY.z); lamp.userData.noCollide = true; grp.add(lamp);
+      relay.lamp = lamp;
+      const stamp = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.9, 8), brass);
+      stamp.position.set(B_RELAY.x + 0.6, 2.95, B_RELAY.z + 0.3); stamp.userData.noCollide = true; grp.add(stamp);
+      relay.stamp = stamp;
+    }
+    // the Major's old desk, at the slab's far edge, where nobody looks: a chair, a lamp, a sheet of paper
+    {
+      const wood = makeMaterial({ color: '#8a5a3a', flat: true }), paper = makeMaterial({ color: '#fff6dc', flat: true, glow: 0.25 });
+      const d = B_DESK;
+      const parts = [new THREE.BoxGeometry(2.6, 0.12, 1.3).translate(0, 1.0, 0)];
+      for (const [x, z] of [[-1.15, -0.5], [1.15, -0.5], [-1.15, 0.5], [1.15, 0.5]]) parts.push(new THREE.BoxGeometry(0.12, 1, 0.12).translate(x, 0.5, z));
+      parts.push(new THREE.BoxGeometry(0.7, 0.08, 0.7).translate(0, 0.6, 1.1), new THREE.BoxGeometry(0.7, 0.9, 0.08).translate(0, 1.05, 1.45));
+      for (const [x, z] of [[-0.3, 0.8], [0.3, 0.8], [-0.3, 1.4], [0.3, 1.4]]) parts.push(new THREE.BoxGeometry(0.06, 0.6, 0.06).translate(x, 0.3, z));
+      const desk = new THREE.Mesh(mergeGeometries(parts.map((q) => q.toNonIndexed())), wood);
+      desk.position.copy(d); desk.rotation.y = 0.4; desk.userData.noCollide = true;
+      grp.add(desk);
+      const lampPost = new THREE.Mesh(mergeGeometries([new THREE.CylinderGeometry(0.03, 0.05, 0.7, 5).translate(0, 0.35, 0).toNonIndexed(), new THREE.ConeGeometry(0.25, 0.3, 8, 1, true).translate(0, 0.75, 0).toNonIndexed()]), makeMaterial({ color: '#f2c54b', glow: 0.7 }));
+      lampPost.position.set(-0.9, 1.06, -0.3); lampPost.userData.noCollide = true; desk.add(lampPost);
+      const sheet = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.02, 0.75), paper);
+      sheet.position.set(0.2, 1.08, 0); sheet.rotation.y = -0.2; sheet.userData.noCollide = true; desk.add(sheet);
+      deskInfo.mesh = desk;
+      deskInfo.sheet = sheet;
+    }
+    // the lamp pump: a squat housing, a flywheel and a piston, all stopped
+    {
+      const housing = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.6, 4, 10).translate(0, 2, 0), stone(2));
+      housing.position.copy(B_PUMP);
+      grp.add(housing);
+      const wheel = new THREE.Group();
+      wheel.position.set(B_PUMP.x + 2.9, 3.4, B_PUMP.z);
+      const wm = makeMaterial({ color: '#d9643a', flat: true, grid: 2 });
+      wheel.add(new THREE.Mesh(new THREE.TorusGeometry(2.4, 0.3, 6, 20).rotateY(Math.PI / 2), wm));
+      wheel.add(new THREE.Mesh(mergeGeometries([0, 1, 2].map((k) => new THREE.BoxGeometry(0.2, 4.8, 0.3).rotateX(k * Math.PI / 3).toNonIndexed())), makeMaterial({ color: '#34405e', flat: true })));
+      wheel.userData.noCollide = true;
+      grp.add(wheel);
+      const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 3, 8), makeMaterial({ color: '#f3ead8', flat: true }));
+      rod.position.set(B_PUMP.x, 5, B_PUMP.z); rod.userData.noCollide = true;
+      grp.add(rod);
+      machines.pump = { group: housing, local: B_PUMP.clone().add(new THREE.Vector3(1.4, 3, 0)), radius: 4.5, speed: 0, target: 0, spin: (a) => { wheel.rotation.x = a * 1.4; rod.position.y = 5 + Math.max(0, Math.sin(a * 1.4)) * 1.6; } };
     }
     // lamp posts hanging "up" into the sky
     for (let i = 0; i < 20; i++) {
       const a = rng() * Math.PI * 2, r = 20 + rng() * 160;
+      if (bClear({ x: Math.cos(a) * r, z: Math.sin(a) * r })) continue;
       const post = new THREE.Mesh(mergeGeometries([
         new THREE.CylinderGeometry(0.4, 0.5, 9, 6).translate(0, 4.5, 0),
         new THREE.SphereGeometry(1.2, 8, 6).translate(0, 9.5, 0),
@@ -256,6 +350,13 @@ export function createGarage(scene) {
     grp.rotation.x = Math.PI;
     grp.position.copy(B_POS);
     scene.add(grp);
+    grp.updateMatrixWorld(true);
+    const toWorld = (v) => grp.localToWorld(v.clone());
+    relay.pos = toWorld(B_RELAY.clone().setY(1.9));
+    relay.foot = toWorld(B_RELAY.clone().add(new THREE.Vector3(0, 0, 2.2)));
+    deskInfo.pos = toWorld(B_DESK.clone().setY(1.08));
+    deskInfo.foot = toWorld(B_DESK.clone().add(new THREE.Vector3(0.9, 0, -1.2)));
+    machines.pump.pos = toWorld(machines.pump.local);
   }
 
   // ======================================================== C: the ring
@@ -280,7 +381,30 @@ export function createGarage(scene) {
       const xa = (rng() - 0.5) * (RING_L - 60);
       const d = ringDir(phi);
       const pos = C_POS.clone().add(new THREE.Vector3(xa, 0, 0)).addScaledVector(d, RING_R);
-      build(pos, d.clone().negate());
+      const m = build(pos, d.clone().negate());
+      // the entrance, the turbine and the ball's way up the curve to the portal stay clear
+      const cx = C_POS.x + xa, fromBottom = Math.atan2(Math.cos(phi), -Math.sin(phi));   // 0 at the bottom, -pi/2 at the -z wall
+      if (cx < C_POS.x + 95 && cx > C_POS.x - 190 && fromBottom > -1.8 && fromBottom < 0.35) m.removeFromParent();
+    }
+    // the ring's turbine: a paddle wheel on the floor near the entrance, turning about the ring's axis
+    {
+      const fy = C_POS.y - Math.sqrt(RING_R * RING_R - C_TURBINE.z * C_TURBINE.z);
+      const frame = new THREE.Mesh(mergeGeometries([
+        new THREE.BoxGeometry(0.8, 9, 0.8).translate(-2, 4.5, 0), new THREE.BoxGeometry(0.8, 9, 0.8).translate(2, 4.5, 0),
+        new THREE.BoxGeometry(5.5, 1.2, 3).translate(0, 0.6, 0)].map((q) => q.toNonIndexed())), stone(3));
+      frame.position.set(C_TURBINE.x, fy, C_TURBINE.z);
+      scene.add(frame);
+      const wheel = new THREE.Group();
+      wheel.position.set(C_TURBINE.x, fy + 8, C_TURBINE.z);
+      const pm = makeMaterial({ color: '#62c3c9', flat: true, grid: 2 });
+      const paddles = [];
+      for (let k = 0; k < 8; k++) paddles.push(new THREE.BoxGeometry(2.6, 0.3, 2.4).translate(0, 5.6, 0).rotateX(k * Math.PI / 4).toNonIndexed());
+      paddles.push(new THREE.CylinderGeometry(0.6, 0.6, 3.4, 10).rotateZ(Math.PI / 2).toNonIndexed());
+      for (let k = 0; k < 4; k++) paddles.push(new THREE.BoxGeometry(0.3, 11, 0.3).rotateX(k * Math.PI / 4).toNonIndexed());
+      wheel.add(new THREE.Mesh(mergeGeometries(paddles), pm));
+      wheel.userData.noCollide = true;
+      scene.add(wheel);
+      machines.turbine = { group: frame, pos: wheel.position.clone(), radius: 6.5, speed: 0, target: 0, spin: (a) => { wheel.rotation.x = -a * 0.8; } };
     }
   }
 
@@ -341,6 +465,12 @@ export function createGarage(scene) {
     },
     navigationPortals: portals,
     gravityAt,
+    // the story's handles (src/story/garage.js)
+    garage: {
+      B_POS, C_POS, RING_R, RING_L, SLIT, ringDir, zoneId: (p) => zoneId(p), inRing: (p) => inRing(p), inB: (p) => inB(p),
+      aSpawn, bSpawn, cSpawn, portals, machines, board, relay, desk: deskInfo, glyph: glyphAt,
+      greatMachine: new THREE.Vector3(90, 0, -60),
+    },
     // the hanging city faces down: mirror the sun so it's lit, not cross-hatched
     lightAt: (p, dir) => { if (inB(p)) dir.y = -dir.y; },
     zoneAt: (p) => ZONES[zoneId(p)],
@@ -350,6 +480,12 @@ export function createGarage(scene) {
     },
     update(dt, t, ctx) {
       for (const m of movers) m(t);
+      // the stopped machines: they ease up to speed once started (and keep their own angle)
+      for (const m of Object.values(machines)) {
+        m.speed += (m.target - m.speed) * (1 - Math.exp(-(m.target > m.speed ? 0.9 : 2) * dt));
+        m.angle = (m.angle ?? 0) + m.speed * dt;
+        m.spin(m.angle);
+      }
       const player = ctx?.player;
       if (!player) return;
       cooldown = Math.max(cooldown - dt, 0);

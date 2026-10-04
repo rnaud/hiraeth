@@ -9,6 +9,9 @@ import { viaPortal } from '../scout.js';
 import { setupDesert } from './desert.js';
 import { setupPerdide } from './perdide.js';
 import { setupPerdide2 } from './perdide2.js';
+import { setupArzach } from './arzach.js';
+import { setupArzach2 } from './arzach2.js';
+import { setupGarage } from './garage.js';
 
 // The story runtime for a world: quests, conversations, the objective
 // marker, the E prompt, and the world's own story (src/story/<world>.js).
@@ -29,6 +32,9 @@ const WORLDS = {
   desert: setupDesert,
   perdide: setupPerdide,
   perdide2: setupPerdide2,
+  arzach: setupArzach,
+  arzach2: setupArzach2,
+  garage: setupGarage,
 };
 const UP = new THREE.Vector3(0, 1, 0);
 const _p = new THREE.Vector3(), _d = new THREE.Vector3();
