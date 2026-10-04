@@ -4,6 +4,7 @@ import { createNoise2D, fbm, mulberry32, smoothstep } from '../noise.js';
 import { makeMaterial, MODE_TERRAIN, MODE_STRATA, MODE_WATER } from '../materials.js';
 import { Terrain, jitter, soften } from '../world.js';
 import { buildRoom, doorwayPortals } from '../interiors.js';
+import { PEOPLE } from '../story/edena-data.js';
 
 // ---------------------------------------------------------------------------
 // Le Monde d'Edena (Moebius, 1983-2001): a paradise planet with pale meadows,
@@ -15,20 +16,161 @@ import { buildRoom, doorwayPortals } from '../interiors.js';
 const noise = createNoise2D(83);
 const noiseB = createNoise2D(5);
 
-function height(x, z) {
+function rolling(x, z) {
   let h = fbm(noise, x * 0.0016, z * 0.0016, 4) * 40;
   h += fbm(noiseB, x * 0.006, z * 0.006, 2) * 4;
-  // a pond basin near the start
+  return h * THREE.MathUtils.lerp(0.3, 1, smoothstep(30, 200, Math.hypot(x, z)));
+}
+const POND_LEVEL = rolling(-120, -160);
+function height(x, z) {
+  let h = rolling(x, z);
+  // a pond basin near the start, in a level stretch of meadow (so the water sits in a bowl, not on a slope)
   const pd = Math.hypot(x + 120, z + 160);
+  h = THREE.MathUtils.lerp(h, POND_LEVEL, smoothstep(150, 100, pd));
   h -= smoothstep(90, 0, pd) * 10;
-  h *= THREE.MathUtils.lerp(0.3, 1, smoothstep(30, 200, Math.hypot(x, z)));
   const edge = Math.max(Math.abs(x), Math.abs(z));
   h += smoothstep(1300, 1950, edge) * (160 + fbm(noise, x * 0.004, z * 0.004, 3) * 120);
   return h;
 }
 
+// The level's people, story and relics (src/levels/content.js). The order of
+// the people matters: errands deliver to the first and start from the fourth.
+export const EDENA_CONTENT = {
+  weather: ['rain'],
+  // the story is a quest (src/story/edena-data.js): this page opens on the first
+  // visit and closes when you have looked under the flowers and told Mira
+  story: {
+    title: 'THE GARDEN GROWS OVER',
+    intro: 'Long ago another ship fell into this meadow. The gardeners let the garden have it. They say nothing that falls should be dug up again.',
+    outro: 'Under the flowers, the same mark as on your own hull. You were not the first. We tend the garden; the garden tends us.',
+    label: 'the fallen ship', goal: [40, 'ground', -210], radius: 28, manual: true,
+  },
+  relics: {
+    spots: [[60, -80], [-200, 220], [180, 120], [-300, 50], [240, -300]],
+    names: ['Canopy blossom', 'Pyramid capstone', 'Android sprocket', 'Glyph tablet', 'Ship rivet'],
+  },
+  gate: { at: [26, 34], heading: Math.PI },
+  npcs: [
+    { at: [30, 30], ...PEOPLE.mira },
+    { at: [-60, 60], ...PEOPLE.sol },
+    { at: [150, 100], ...PEOPLE.oro, shy: true },
+    { at: [-170, 190], ...PEOPLE.lio },
+  ],
+};
+
 const LEAVES = ['#7fcfa8', '#f2a7b5', '#9fd6c9', '#f6c7a0', '#b5a7e6'];
 const TRUNK = ['#c98a76', '#d9a5a0', '#b98aa8'];
+
+// the tallest tree in the garden (Atan's lookout is on its crown) and the pond
+export const TALL_TREE = { x: -118, z: 150, h: 92 };
+export const POND = { x: -120, z: -160, r: 95 };
+
+// ---------------------------------------------------------------------------
+// The garden growing over Stel and Atan's ship: vines draped over the hull,
+// leaves and flowers, and a thick veil of them over the scorch on the
+// starboard flank. All in the ship group's own frame (hull axis = local x,
+// radius 9). crashed.part(k) draws the veil aside (0 closed … 1 open).
+const HULL_R = 9;
+const SCAR = { x: -6, a: 0.96 };   // along the hull, and the angle round it from the top toward +z
+function overgrow(grp, crashed) {
+  const rng = mulberry32(77);
+  const R = (a, b) => a + rng() * (b - a);
+  const at = (x, a, r = HULL_R) => new THREE.Vector3(x, r * Math.cos(a), r * Math.sin(a));
+  const vine = makeMaterial({ color: '#4f8a5a', flat: true });
+  const leafM = makeMaterial({ color: '#ffffff', flat: true });
+  const leafGeo = new THREE.IcosahedronGeometry(0.5, 0).scale(1.1, 0.35, 0.7);
+  const flowerGeo = mergeGeometries([new THREE.CylinderGeometry(0.42, 0.16, 0.14, 7).translate(0, 0.07, 0), new THREE.SphereGeometry(0.15, 6, 4).translate(0, 0.2, 0)].map((g) => g.toNonIndexed()));
+  const tubes = [], leaves = [], flowers = [];
+  // vines over the hull, avoiding the scar (the veil covers that)
+  for (let x = -25; x <= 25; x += R(5, 8)) {
+    const nearScar = Math.abs(x - SCAR.x) < 4.5;
+    const a0 = R(1.9, 2.2), a1 = -R(1.7, 2.2), pts = [];
+    for (let k = 0; k <= 16; k++) {
+      const a = a0 + (a1 - a0) * (k / 16);
+      if (nearScar && a > SCAR.a - 0.6 && a < SCAR.a + 0.7) continue;
+      pts.push(at(x + Math.sin(k * 0.9 + x) * 0.8, a, HULL_R + 0.12));
+    }
+    if (pts.length < 4) continue;
+    tubes.push(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 40, 0.17, 5).toNonIndexed());
+    for (let k = 0; k < pts.length - 1; k++) {
+      const p = pts[k].clone().lerp(pts[k + 1], 0.5), n = p.clone().setX(0).normalize();
+      for (let j = 0; j < 2; j++) leaves.push({ p: p.clone().addScaledVector(n, 0.25).add(new THREE.Vector3(R(-0.7, 0.7), 0, 0)), n, c: rng() < 0.5 ? '#7fcfa8' : '#5fa77a', s: R(0.8, 1.3), r: rng() * 6 });
+      if (rng() < 0.3) flowers.push({ p: p.clone().addScaledVector(n, 0.3), n, c: rng() < 0.6 ? '#f2a7b5' : '#f2c54b', s: R(0.8, 1.2) });
+    }
+  }
+  const orient = (o, it) => { o.position.copy(it.p); o.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), it.n); o.rotateY(it.r ?? 0); o.scale.setScalar(it.s); o.updateMatrix(); };
+  const inst = (geo, mat, list) => {
+    const m = new THREE.InstancedMesh(geo, mat, list.length), d = new THREE.Object3D(), c = new THREE.Color();
+    list.forEach((it, i) => { orient(d, it); m.setMatrixAt(i, d.matrix); m.setColorAt(i, c.set(it.c)); });
+    m.userData.noCollide = true;
+    grp.add(m);
+    return m;
+  };
+  const vines = new THREE.Mesh(mergeGeometries(tubes), vine);
+  vines.userData.noCollide = true;
+  grp.add(vines);
+  inst(leafGeo, leafM, leaves);
+  inst(flowerGeo, leafM, flowers);
+
+  // the scorch: a halo, soot, three dots over an arch (the glyph), soot streaks running down, as on the traveller's own hull
+  const uv = (u, v, lift) => { const a = SCAR.a - v / HULL_R; return at(SCAR.x + u, a, HULL_R + lift); };
+  const onHull = (shape, lift, seg = 12) => {
+    const g = new THREE.ShapeGeometry(shape, seg), p = g.attributes.position;
+    for (let i = 0; i < p.count; i++) { const q = uv(p.getX(i), p.getY(i), lift); p.setXYZ(i, q.x, q.y, q.z); }
+    g.computeVertexNormals();
+    return g;
+  };
+  const blob = (rx, ry, n, wob, seed) => { const s = new THREE.Shape(); for (let i = 0; i <= n; i++) { const a = (i / n) * Math.PI * 2, k = 1 + wob * Math.sin(a * 3 + seed) * Math.cos(a * 2 - seed); const x = Math.cos(a) * rx * k, y = Math.sin(a) * ry * k; i ? s.lineTo(x, y) : s.moveTo(x, y); } return s; };
+  const disc = (x, y, r) => { const s = new THREE.Shape(); s.absarc(x, y, r, 0, Math.PI * 2, false); return s; };
+  const arc = (cx, cy, r, w, a0, a1) => { const s = new THREE.Shape(); s.absarc(cx, cy, r + w / 2, a0, a1, false); s.absarc(cx, cy, r - w / 2, a1, a0, true); return s; };
+  const streak = (u, len, w) => { const s = new THREE.Shape(); s.moveTo(u - w, -0.8); s.lineTo(u + w, -0.8); s.lineTo(u + w * 0.4, -0.8 - len); s.lineTo(u - w * 0.4, -0.8 - len); return s; };
+  const scar = new THREE.Group();
+  scar.add(new THREE.Mesh(onHull(blob(3.6, 2.7, 28, 0.3, 2.1), 0.05), makeMaterial({ color: '#9a7458', flat: true })));
+  scar.add(new THREE.Mesh(mergeGeometries([onHull(blob(2.7, 2.0, 24, 0.26, 4.7), 0.08), ...[[-2.4, 2.2, 0.16], [2.2, 1.6, 0.13], [-0.5, 1.5, 0.11]].map(([u, l, w]) => onHull(streak(u, l, w), 0.09, 1))]), makeMaterial({ color: '#54433b', flat: true })));
+  scar.add(new THREE.Mesh(mergeGeometries([...[[-1.2, 1.3], [0, 1.65], [1.2, 1.3]].map(([u, v]) => onHull(disc(u, v, 0.38), 0.11)), onHull(arc(0, -1.1, 1.8, 0.45, Math.PI * 0.17, Math.PI * 0.83), 0.11, 20)]), makeMaterial({ color: '#2b211f', flat: true })));
+  scar.traverse((o) => { o.userData.noCollide = true; });
+  grp.add(scar);
+
+  // the veil: a thick mat of leaves, a few flowers and three vines over the scorch
+  const veilItems = [];
+  for (let i = 0; i < 90; i++) {
+    const u = R(-3.6, 3.6), v = R(-2.8, 2.8);
+    if ((u / 3.8) ** 2 + (v / 3.0) ** 2 > 1) continue;
+    veilItems.push({ u, v, lift: R(0.25, 0.6), s: R(0.9, 1.5), r: rng() * 6, c: rng() < 0.5 ? '#7fcfa8' : rng() < 0.5 ? '#5fa77a' : '#9fd6c9' });
+  }
+  const veilFlowers = Array.from({ length: 9 }, (_, i) => ({ u: R(-2.8, 2.8), v: R(-2, 2), lift: 0.7, s: R(0.9, 1.4), r: 0, c: i % 3 ? '#f2a7b5' : '#f2c54b' }));
+  const vleaves = new THREE.InstancedMesh(leafGeo, leafM, veilItems.length), vflowers = new THREE.InstancedMesh(flowerGeo, leafM, veilFlowers.length);
+  vleaves.instanceMatrix.setUsage(THREE.DynamicDrawUsage); vflowers.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  for (const m of [vleaves, vflowers]) { m.userData.noCollide = true; m.userData.dynamic = true; grp.add(m); }
+  const veilVines = [-1.6, 0.2, 1.9].map((u0, i) => {
+    const pts = []; for (let k = 0; k <= 8; k++) { const v = -3.2 + k * 0.8; pts.push(uv(u0 + Math.sin(k + i) * 0.5, v, 0.35)); }
+    const m = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 16, 0.2, 5), vine);
+    m.userData.noCollide = true; grp.add(m);
+    return { m, u0 };
+  });
+  const d = new THREE.Object3D(), col = new THREE.Color(), hullAxis = new THREE.Vector3(1, 0, 0);
+  const place = (mesh, list, k, bloom) => {
+    list.forEach((it, i) => {
+      // drawn aside: out from the centre along the hull and round it, shrinking at the edges
+      const f = 1 + 1.7 * k, u = it.u * f + Math.sign(it.u || 1) * 1.2 * k, v = it.v * (1 + 0.9 * k);
+      const p = uv(u, v, it.lift + 0.2 * k), n = p.clone().setX(0).normalize();
+      d.position.copy(p); d.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), n); d.rotateY(it.r + k * 1.5);
+      d.scale.setScalar(it.s * (bloom ? 0.55 + 0.9 * k : 1 - 0.55 * k * Math.min(1, Math.abs(u) / 4)));
+      d.updateMatrix(); mesh.setMatrixAt(i, d.matrix); mesh.setColorAt(i, col.set(it.c));
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+  };
+  crashed.part = (k) => {
+    place(vleaves, veilItems, k, false);
+    place(vflowers, veilFlowers, k, true);
+    for (const { m, u0 } of veilVines) { m.position.copy(hullAxis).multiplyScalar(Math.sign(u0) * 3.4 * k * k); m.scale.setScalar(1 - 0.3 * k); }
+  };
+  crashed.part(0);
+  grp.updateMatrixWorld(true);
+  crashed.scar = grp.localToWorld(uv(0, 0, 0.3));
+  crashed.scarNormal = uv(0, 0, 1).sub(uv(0, 0, 0)).transformDirection(grp.matrixWorld);
+}
 
 export function createEdena(scene) {
   const rng = mulberry32(1983);
@@ -134,6 +276,9 @@ export function createEdena(scene) {
 
   // ---------------------------------------------------------- hero: the crashed ship
   // Stel and Atan's retro spaceship, nose-down in the meadow where the story begins.
+  // The garden has begun to grow over it (overgrow, below); under the flowers on
+  // its starboard flank is the scorch of what struck it (src/story/edena.js).
+  const crashed = {};
   {
     const grp = new THREE.Group();
     const hullMat = makeMaterial({ color: '#f3ead8', color2: '#e6875f', color3: '#f3ead8', mode: MODE_STRATA, strataSize: 3.5, grid: 3 });
@@ -154,9 +299,12 @@ export function createEdena(scene) {
     grp.add(dome);
     const x = 40, z = -210;
     grp.position.set(x, terrain.baseAt(x, z, 30) + 4, z);
-    // a hatch beside the hull opens onto the cabin
+    grp.rotation.set(0.2, 0.9, -0.28);
+    grp.updateMatrixWorld(true);
+    // a hatch beside the hull opens onto the cabin (on the starboard flank, clear of the hull)
     {
-      const sx = Math.cos(0.9) * 14, sz = -Math.sin(0.9) * 14, hx = x + sx, hz = z + sz;
+      const h0 = grp.localToWorld(new THREE.Vector3(4, 0, 12.5)), h1 = grp.localToWorld(new THREE.Vector3(4, 0, 16));
+      const hx = h0.x, hz = h0.z, heading = Math.atan2(h1.x - h0.x, h1.z - h0.z);
       const room = buildRoom(scene, {
         pos: new THREE.Vector3(0, 1500, 0), w: 6, d: 16, h: 3.2,
         wall: { color: '#f3ead8', color2: '#e6875f', grid: 0.6 }, floor: '#62c3c9', ceiling: '#e9e3d4',
@@ -166,10 +314,16 @@ export function createEdena(scene) {
         lamp: '#9fd6e8',
       });
       shipRoom = room;
-      shipPortals.push(...doorwayPortals(scene, { at: new THREE.Vector3(hx, terrain.heightAt(hx, hz), hz), heading: Math.atan2(sx, sz), room, frame: '#f3ead8' }));
+      const hatch = new THREE.Vector3(hx, terrain.heightAt(hx, hz), hz);
+      shipPortals.push(...doorwayPortals(scene, { at: hatch, heading, room, frame: '#f3ead8' }));
+      crashed.hatch = hatch; crashed.hatchHeading = heading;
+      crashed.room = room;
+      crashed.panel = room.group.localToWorld(new THREE.Vector3(0, 0, -6.4));
     }
-    grp.rotation.set(0.2, 0.9, -0.28);
     scene.add(grp);
+    crashed.group = grp;
+    crashed.centre = grp.position.clone();
+    overgrow(grp, crashed);
     // debris scattered behind it
     for (let i = 0; i < 18; i++) {
       const d = new THREE.Mesh(new THREE.BoxGeometry(1 + rng() * 4, 0.6 + rng() * 2, 1 + rng() * 3), makeMaterial({ color: pick(['#f3ead8', '#e6875f', '#62c3c9']), flat: true }));
@@ -255,8 +409,107 @@ export function createEdena(scene) {
     for (const [mat, list] of byMat) scene.add(new THREE.Mesh(mergeGeometries(list), mat));
   }
 
+  // ---------------------------------------------------------- the tallest tree, and Atan's lookout on its crown
+  // Climb the trunk to the two canopies; the crown floats above the upper one on
+  // thin branches: a fluid boost from the upper canopy's rim lands you on it.
+  const tall = {};
+  {
+    const r2 = mulberry32(915);
+    const { x, z, h } = TALL_TREE;
+    const base = terrain.baseAt(x, z, 9);
+    const trunkMat = makeMaterial({ color: '#c98a76', flat: true });
+    const top2 = 0.86 * h;   // the upper canopy
+    const trunk = new THREE.CylinderGeometry(3.6, 7.5, top2 + 1, 12, 12).translate(0, (top2 + 1) / 2, 0);
+    jitter(trunk, 0.08, 0.05, 31);
+    soften(trunk, -0.1);
+    const parts = [trunk.toNonIndexed()];
+    for (let b = 0; b < 4; b++) {
+      const a = b * 1.7 + 0.4, y0 = h * (0.4 + b * 0.1), len = 16 + r2() * 8;
+      parts.push(new THREE.TubeGeometry(new THREE.LineCurve3(new THREE.Vector3(0, y0, 0), new THREE.Vector3(Math.cos(a) * len, y0 + len * 0.55, Math.sin(a) * len)), 4, 1.5, 6).toNonIndexed());
+    }
+    const tm = new THREE.Mesh(mergeGeometries(parts), trunkMat);
+    tm.position.set(x, base - 1, z);
+    scene.add(tm);
+    // shelf fungus up the trunk: somewhere to stand and get your breath back on the long climb
+    const shelfR = (y) => 7.5 - (3.9 * y) / (top2 + 1);
+    const shelves = [[16, 2.3], [31, 3.1], [45, 2.0], [66, 2.6]].map(([y, a]) => {
+      const r = shelfR(y) + 4.2;
+      const g = new THREE.CylinderGeometry(r, r * 0.86, 0.9, 18, 1, false, a - 1.1, 2.2).translate(0, y, 0);
+      return g.toNonIndexed();
+    });
+    const fungus = new THREE.Mesh(mergeGeometries(shelves), makeMaterial({ color: '#f6c7a0', color2: '#f2a7b5', flat: true }));
+    fungus.position.set(x, base - 1, z);
+    scene.add(fungus);
+    tall.shelves = [[16, 2.3], [31, 3.1], [45, 2.0], [66, 2.6]].map(([y, a]) => { const r = shelfR(y) + 2.6; return new THREE.Vector3(x + Math.sin(a) * r, base - 1 + y + 0.45, z + Math.cos(a) * r); });
+    const canopy = (r, y, c1, c2, ox = 0, oz = 0) => {
+      const g = new THREE.CylinderGeometry(r, r * 0.92, 3.5, 22);
+      jitter(g, 0.06, 0.2, r * 7);
+      const m = new THREE.Mesh(g, makeMaterial({ color: c1, color2: c2, flat: true }));
+      m.position.set(x + ox, base + y, z + oz);
+      scene.add(m);
+      return new THREE.Vector3(x + ox, base + y + 1.75, z + oz);
+    };
+    tall.c1 = canopy(31, 0.6 * h, '#7fcfa8', '#9fd6c9');
+    tall.c2 = canopy(22, top2, '#f2a7b5', '#f6c7a0', 1.5, -1);
+    // the crown: floating on thin branches, offset over the upper canopy's eastern half
+    const cr = { ox: 7, oz: -3, y: top2 + 8.5 };
+    tall.crown = canopy(10, cr.y, '#b5a7e6', '#f2a7b5', cr.ox, cr.oz);
+    tall.crownR = 10;
+    const twigs = [];
+    for (let k = 0; k < 5; k++) {
+      const a = (k / 5) * Math.PI * 2;
+      twigs.push(new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(new THREE.Vector3(0, top2 + 1.5, 0), new THREE.Vector3(cr.ox * 0.5 + Math.cos(a) * 3, top2 + 7, cr.oz * 0.5 + Math.sin(a) * 3), new THREE.Vector3(cr.ox + Math.cos(a) * 6, cr.y - 1.2, cr.oz + Math.sin(a) * 6)), 8, 0.35, 5).toNonIndexed());
+    }
+    const tw = new THREE.Mesh(mergeGeometries(twigs), trunkMat);
+    tw.position.set(x, base - 1, z);
+    tw.userData.noCollide = true;
+    scene.add(tw);
+    // Atan's lookout: a bench, a post with the glyph carved in it, and a folded note
+    const L = tall.crown;
+    const wood = makeMaterial({ color: '#8a5a3c', flat: true });
+    const bench = new THREE.Mesh(mergeGeometries([new THREE.BoxGeometry(2.4, 0.18, 0.7).translate(0, 0.5, 0), new THREE.BoxGeometry(0.18, 0.5, 0.6).translate(-1, 0.25, 0), new THREE.BoxGeometry(0.18, 0.5, 0.6).translate(1, 0.25, 0)].map((g) => g.toNonIndexed())), wood);
+    bench.position.copy(L).add(new THREE.Vector3(-2, 0, 1.5)); bench.rotation.y = 0.6;
+    scene.add(bench);
+    const post = new THREE.Mesh(new THREE.BoxGeometry(0.5, 2.4, 0.5).translate(0, 1.2, 0), wood);
+    post.position.copy(L).add(new THREE.Vector3(1.5, 0, -1));
+    scene.add(post);
+    const mark = new THREE.Mesh(mergeGeometries([[-0.13, 2.14], [0, 2.21], [0.13, 2.14]].map(([u, v]) => new THREE.CylinderGeometry(0.045, 0.045, 0.05, 8).rotateX(Math.PI / 2).translate(u, v, 0.26).toNonIndexed())
+      .concat([new THREE.TorusGeometry(0.17, 0.022, 3, 12, Math.PI * 0.7).rotateZ(Math.PI * 0.15).translate(0, 1.88, 0.26).toNonIndexed()])), makeMaterial({ color: '#2b211f', flat: true }));
+    mark.position.copy(post.position);
+    mark.userData.noCollide = true;
+    scene.add(mark);
+    const note = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.5, 0.04).translate(0, 1.35, 0.27), makeMaterial({ color: '#fbf8f0', flat: true }));
+    note.position.copy(post.position); note.userData.noCollide = true;
+    scene.add(note);
+    tall.lookout = post.position.clone().add(new THREE.Vector3(0, 0, 1.2));
+    tall.base = new THREE.Vector3(x, base, z);
+  }
+  const pondY = terrain.heightAt(POND.x, POND.z) + 6;
+
+  // ---------------------------------------------------------- the furrow the ship ploughed, grown over greener than the meadow
+  {
+    const from = new THREE.Vector3(crashed.centre.x - 34, 0, crashed.centre.z - 2), len = 150, dir = new THREE.Vector3(-0.92, 0, -0.4).normalize();
+    const side = new THREE.Vector3(dir.z, 0, -dir.x), pos = [], idx = [];
+    const n = Math.ceil(len / 4);
+    for (let i = 0; i <= n; i++) {
+      const t = i / n, w = 9 * (1 - t * 0.7) * (0.85 + 0.15 * Math.sin(i * 1.3));
+      const c = from.clone().addScaledVector(dir, t * len).addScaledVector(side, Math.sin(t * 5) * 3);
+      for (const s of [-1, 0, 1]) { const p = c.clone().addScaledVector(side, s * w); pos.push(p.x, terrain.heightAt(p.x, p.z) + 0.07 + (s ? 0 : 0.03), p.z); }
+      if (i) for (let k = 0; k < 2; k++) { const a = (i - 1) * 3 + k, b = a + 1, c2 = a + 3, d = c2 + 1; idx.push(a, c2, b, b, c2, d); }
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    g.setIndex(idx); g.computeVertexNormals();
+    const furrow = new THREE.Mesh(g, makeMaterial({ color: '#8cc77e', color2: '#7fbd76', color3: '#9fd08a', mode: MODE_TERRAIN, ticks: true }));
+    furrow.userData.noCollide = true;
+    scene.add(furrow);
+  }
+
   return {
     id: 'edena',
+    // the story's handles (src/story/edena.js): the crashed ship (hatch, cabin panel, the scorch
+    // and the veil over it), the tallest tree and its lookout, the pond
+    edena: { crashed, tall, pond: { ...POND, y: pondY } },
     ground: terrain,
     spawn: new THREE.Vector3(0, terrain.heightAt(0, 0), 0),
     spawnHeading: Math.PI,

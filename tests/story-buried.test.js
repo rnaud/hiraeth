@@ -1,0 +1,182 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import * as THREE from 'three';
+
+// a little DOM for the people's speech balloons (the story never needs a real page)
+const el = () => ({ classList: { add() {}, remove() {}, toggle() {}, contains: () => false }, style: {}, dataset: {}, remove() {}, addEventListener() {}, querySelector: () => null, appendChild() {}, set textContent(v) {}, set innerHTML(v) {} });
+globalThis.document ??= { createElement: el, body: el(), getElementById: () => null, querySelector: () => null };
+
+const { createBuried } = await import('../src/levels/buried.js');
+const { Physics } = await import('../src/physics.js');
+const { spawnNPCs } = await import('../src/npc.js');
+const { createStory } = await import('../src/story/index.js');
+const { game } = await import('../src/game-state.js');
+const { DialogueRunner } = await import('../src/story/dialogue.js');
+const { PEOPLE, THINGS, AMBER } = await import('../src/story/buried-data.js');
+const { TURN_TIME } = await import('../src/story/buried.js');
+const { clearInteractables, bestInteractable } = await import('../src/interact.js');
+const { allTargets, clearTargets } = await import('../src/targets.js');
+const { CONTENT } = await import('../src/levels/content.js');
+
+game.reset();
+clearInteractables(); clearTargets();
+const scene = new THREE.Scene();
+const level = createBuried(scene);
+const physics = new Physics(scene, level.ground);
+const B = level.buried;
+const V = (x, y, z) => new THREE.Vector3(x, y, z);
+
+const player = { pos: level.spawn.clone(), vel: V(), heading: 0, riding: false, frame: { up: V(0, 1, 0), dir: (h, out) => out.set(Math.sin(h), 0, Math.cos(h)) } };
+const at = (p) => { player.pos.copy(p); return player; };
+const sound = { setBands() {}, setBandMode() {}, band: () => null, chime() {}, listen() {}, whoosh() {} };
+const toasts = [];
+const camera = new THREE.PerspectiveCamera();
+let storyDone = false;
+const npcs = spawnNPCs(scene, physics, CONTENT.buried.npcs);
+const rt = createStory({ levelId: 'buried', scene, physics, level, player, npcs, crowd: null, sound, journal: { sections: [], el: { addEventListener() {} } }, story: { complete: () => { storyDone = true; } },
+  capture: null, lib: null, humans: null, toast: (t) => toasts.push(t), tool: null });
+const { quests } = rt;
+let clock = 0;
+const step = (n = 1, dt = 1 / 30) => { for (let i = 0; i < n; i++) { clock += dt; camera.position.copy(player.pos).add(V(0, 2, 4)); camera.lookAt(player.pos); camera.updateMatrixWorld(); rt.update(dt, clock, { camera }); } };
+const talk = (person, choices) => {
+  const r = new DialogueRunner(person, { game, quests });
+  for (const c of choices) {
+    while (!r.lastPage) r.advance();
+    const pick = r.choices().find((x) => (typeof c === 'number' ? x.index === c : x.text.startsWith(c)));
+    assert.ok(pick, `${person.name}: no choice "${c}" in ${JSON.stringify(r.choices().map((x) => x.text))} at ${r.nodeId}`);
+    r.choose(pick.index);
+    while (!r.ended && r.advance());
+  }
+  return r;
+};
+const target = (kind, i = 0) => allTargets().filter((t) => t.kind === kind)[i];
+const stand = (p, label, tol = 1.2) => {
+  const g = physics.groundAt(p.x, p.y + 3, p.z, 8);
+  assert.ok(Number.isFinite(g) && Math.abs(g - p.y) < tol, `${label} has solid ground (${g?.toFixed?.(2)} vs ${p.y.toFixed(2)})`);
+};
+
+test('the people of the domes, the canyon and the oculus stand on walkable ground', () => {
+  const W = rt.world.people;
+  for (const id of ['wen', 'hask', 'dun', 'pim', 'ossa', 'tull']) assert.ok(W[id], `${id} is in the world`);
+  for (const [id, n] of Object.entries(W)) {
+    for (const [k, p] of n.route.entries()) {
+      stand(p, `${id}'s route point ${k}`);
+      // a gentle place to stand: not on a dome's shoulder or a pipe
+      const nrm = physics.groundNormal(p.x, p.y + 1, p.z);
+      assert.ok(nrm.y > 0.8, `${id} stands on level ground (n.y ${nrm.y.toFixed(2)})`);
+    }
+  }
+  // the places the quest sends you to are reachable surfaces
+  stand(B.wick.valve.at.clone().add(V(2, 0, 0)).setY(B.oculus.floor), 'the floor by the valve', 0.3);
+  for (const g of B.gauges) stand(g.stand, `the canyon floor by the gauge at z ${g.z}`, 0.3);
+  stand(B.wheel.drop, 'the sand at the wheel’s foot', 0.6);
+  const balcony = physics.groundAt(B.oculus.x, 10, B.oculus.z - B.oculus.r + 3, 30);
+  assert.ok(Math.abs(balcony - B.oculus.balcony) < 0.05, 'the balcony under the warm window');
+});
+
+test('the main quest: Tooth Day, the Wick lit, the wheel turns one tooth, Wen counts it', async () => {
+  const Q = 'buried.tooth';
+  assert.equal(quests.stage(Q), 'wen');
+  talk(PEOPLE.wen, ['What wheel?', 'And it turns today?']);
+  step(2);
+  assert.equal(quests.stage(Q), 'hask');
+  talk(PEOPLE.hask, ['Why not this year?', 'Then let me light it.']);
+  assert.equal(game.flag('buried.rumour.light'), true, 'Hask saw the Tuning Star');
+  step(2);
+  assert.equal(quests.stage(Q), 'down');
+  at(V(B.canyonX(-180), B.floorAt(-180), -180)); step(2);
+  assert.equal(quests.stage(Q), 'oculus');
+  at(V(B.oculus.x - 4, B.oculus.floor, B.oculus.z + 12)); step(2);
+  assert.equal(quests.stage(Q), 'valve');
+  // the valve: a shot only rings it; a push turns it
+  const valve = target('valve');
+  assert.ok(valve?.enabled(), 'the valve is a target');
+  valve.onHit('shoot');
+  assert.equal(game.flag('buried.valve.open'), undefined);
+  // a shot on the dry wick does nothing
+  target('wick').onHit('shoot');
+  assert.equal(game.flag('buried.oculus.lit'), undefined, 'no oil, no flame');
+  valve.onHit('push');
+  assert.equal(game.flag('buried.valve.open'), true);
+  step(10);
+  assert.equal(quests.stage(Q), 'light');
+  target('wick').onHit('shoot');
+  assert.equal(game.flag('buried.oculus.lit'), true);
+  step(2);
+  assert.equal(quests.stage(Q), 'watch');
+  // stand in the Wick's light: the tank fills and takes the amber band
+  const refills = [];
+  game.on('tool:refill', (e) => refills.push(e));
+  step(150, 1 / 30);   // the light comes up
+  at(B.wick.centre.clone().add(V(2.5, 0, 0))); step(2);
+  assert.deepEqual(refills.map((e) => [e.addColour, e.tone]), [[true, AMBER]], 'the oil-light adds an amber band, once');
+  at(B.wick.centre.clone().add(V(20, 0, 0))); step(2);
+  at(B.wick.centre.clone().add(V(2, 0, 0))); step(2);
+  assert.equal(refills.length, 2); assert.equal(refills[1].addColour, false, 'later visits just refill');
+  // nothing turns while you're down in the canyon
+  step(60, 0.1);
+  assert.equal(game.flag('buried.wheel.turned'), undefined);
+  // in front of the wheel: it turns, the city rocks, the tooth drops
+  const W = B.wheel;
+  at(W.drop.clone().addScaledVector(W.face, 20));
+  const before = W.spin.rotation.z;
+  step(Math.ceil((TURN_TIME + 3) / 0.1), 0.1);
+  assert.equal(game.flag('buried.wheel.turned'), true);
+  assert.ok(Math.abs(W.spin.rotation.z - before + Math.PI * 2 / W.teeth) < 1e-6, 'exactly one tooth round');
+  assert.ok(Math.abs(B.city.rotation.z) > 0.002 || Math.abs(B.city.rotation.x) > 0.002, 'the hanging city sways');
+  assert.equal(quests.stage(Q), 'tooth');
+  at(W.drop.clone()); step(20, 0.1);
+  const e = bestInteractable(player);
+  assert.equal(e?.entry.id, 'tooth');
+  e.entry.use(player);
+  assert.ok(quests.has('tooth'));
+  step(2);
+  assert.equal(quests.stage(Q), 'count');
+  talk(PEOPLE.wen, []);
+  assert.equal(quests.isDone(Q), true);
+  assert.equal(game.flag('world.buried.done'), true);
+  const k = game.keepsakes().find((x) => x.id === 'buried.thing');
+  assert.ok(k && k.kind === 'thing', 'the keepsake: a rust gear tooth');
+  await new Promise((r) => setTimeout(r, 1300));
+  assert.ok(storyDone, 'the main quest closed the world’s story page');
+});
+
+test('side quests: Dun’s key off the floating derrick, the three gauges, the warm window', () => {
+  // the key
+  talk(PEOPLE.dun, ['Up where?', 'I’ll fetch it.']);
+  assert.equal(quests.stage('buried.key'), 'find');
+  const hook = quests.where(quests.current('buried.key'));
+  at(hook.clone().add(V(1, -1.5, 0)));
+  let e = bestInteractable(player);
+  assert.equal(e?.entry.id, 'key');
+  e.entry.use(player);
+  assert.equal(quests.stage('buried.key'), 'return');
+  talk(PEOPLE.dun, []);
+  assert.equal(quests.isDone('buried.key'), true);
+  assert.equal(game.flag('buried.chimneys.open'), true);
+  // the gauges: a push only rattles a needle, a shot reads it
+  talk(PEOPLE.ossa, ['What do they say?', 'I’ll read them']);
+  assert.equal(quests.stage('buried.gauges'), 'read');
+  at(B.gauges[0].stand);
+  target('gauge', 0).onHit('push');
+  assert.equal(game.flag('buried.gauge.0'), undefined);
+  for (let i = 0; i < 3; i++) target('gauge', i).onHit('shoot');
+  step(60, 1 / 30);
+  assert.ok(Math.abs(B.gauges[1].needle.rotation.z - -0.47 * Math.PI) < 0.02, 'the needle settles on ninety-one');
+  assert.equal(quests.stage('buried.gauges'), 'tell');
+  talk(PEOPLE.ossa, []);
+  assert.equal(quests.isDone('buried.gauges'), true);
+  assert.equal(game.flag('clue.buried.mark'), true, 'the Maker’s Thumb is the glyph');
+  // the window, and the numbers by the doorway (the clue back to the Garage)
+  talk(PEOPLE.tull, ['What’s behind the window?', 'I’ll climb up']);
+  assert.equal(quests.stage('buried.window'), 'climb');
+  at(V(B.oculus.x, B.oculus.balcony, B.oculus.z - B.oculus.r + 3));
+  e = bestInteractable(player);
+  assert.equal(e?.entry.id, 'window');
+  talk(THINGS.window, [0]);
+  step(2);
+  assert.equal(quests.isDone('buried.window'), true);
+  talk(THINGS.numbers, [0]);
+  assert.equal(game.flag('clue.buried.garage'), true);
+  clearInteractables(); clearTargets();
+});
