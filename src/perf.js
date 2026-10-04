@@ -115,10 +115,10 @@ function tileInstances(mesh, size) {
 /** Hide small-prop tiles far from the camera in every pass: beyond this they are
  * sub-pixel pebbles and shrubs under the haze. Call once a frame before rendering;
  * returns what it hid, to be shown again after the frame (a level's own hiding is kept). */
-export function cullFar(tiles, camera, distance = 520) {
-  const cam = camera.position, hidden = [];
+export function cullFar(tiles, camera, distance = 520, hidden = []) {
+  const cam = camera.position;
   for (const t of tiles) {
-    if (!t.visible) continue;
+    if (!t.visible || t.userData.dynamic) continue;   // (refilled meshes keep their own distance: flora.js)
     let c = t.userData.cullCentre;
     if (!c) {
       if (!t.boundingSphere) t.computeBoundingSphere?.();
@@ -243,15 +243,17 @@ export class RoomCuller {
  *  - crowdFar: crowd figures drawn up to (m); crowdMid: full-figure range (m)
  *  - propFar: pebbles and shrubs drawn up to (m); propPx: props smaller than this on screen (px) are skipped
  *  - postLite: one ink-line pass instead of two
+ *  - floraFar: plants drawn up to this share of their own distance (flora.js); floraDensity: how many
+ *    small plants grow in a clump (read when the world loads; large plants always grow)
  */
-const FULL = { dynamic: null, shadow: { fine: 2048, near: 4096, far: 2048 }, nearExtent: 220, nearEvery: 1, farEvery: 3, taps: 9, ao: true, cloudShadows: true, lowDetail: false, crowdFar: null, crowdMid: null, propFar: 520, propPx: 1, postLite: false };
+const FULL = { dynamic: null, shadow: { fine: 2048, near: 4096, far: 2048 }, nearExtent: 220, nearEvery: 1, farEvery: 3, taps: 9, ao: true, cloudShadows: true, lowDetail: false, crowdFar: null, crowdMid: null, propFar: 520, propPx: 1, postLite: false, floraFar: 1, floraDensity: 1 };
 export const QUALITY_PRESETS = {
   auto:     { ...FULL, label: 'Auto (adapts to keep it smooth)', scale: 1, dynamic: { min: 0.5, max: 1, low: 40, high: 56 } },
   handheld: { label: 'Handheld (Retroid, phones)', scale: 0.75, dynamic: { min: 0.5, max: 0.9, low: 34, high: 55 },
     shadow: { fine: 0, near: 2048, far: 2048 }, nearExtent: 160, nearEvery: 1, farEvery: 4, taps: 4,
-    ao: false, cloudShadows: false, lowDetail: true, crowdFar: 220, crowdMid: 40, propFar: 320, propPx: 2, postLite: true },
+    ao: false, cloudShadows: false, lowDetail: true, crowdFar: 220, crowdMid: 40, propFar: 320, propPx: 2, postLite: true, floraFar: 0.65, floraDensity: 0.55 },
   low:      { ...FULL, label: 'Low (fast)', scale: 0.7, shadow: { fine: 1024, near: 2048, far: 2048 }, nearEvery: 2, taps: 4,
-    ao: false, cloudShadows: false, lowDetail: true, crowdFar: 300, crowdMid: 45, propFar: 420, propPx: 1.5 },
+    ao: false, cloudShadows: false, lowDetail: true, crowdFar: 300, crowdMid: 45, propFar: 420, propPx: 1.5, floraFar: 0.8, floraDensity: 0.75 },
   medium:   { ...FULL, label: 'Medium', scale: 1 },
   high:     { ...FULL, label: 'High (smooth lines)', scale: 1.5 },
 };

@@ -710,6 +710,7 @@ export function createPerdide2(scene) {
 
   return {
     id: 'perdide2',
+    floraAvoid: (x, z, r) => !clear(x, z, r + 2) || pathDist(x, z) < 3.6 + r,   // off the lit path and the keep-outs (src/flora.js)
     ground: terrain,
     spawn: new THREE.Vector3(0, spawnY, 0),
     spawnHeading: Math.PI,

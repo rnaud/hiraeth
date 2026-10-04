@@ -1399,3 +1399,41 @@ Pocket. Their built-in controls work through the Gamepad API.
   (I-V-vi-IV), a music box arpeggio and a falling melody every 32 beats, flute then bell
   (`MENU_SCORE`, `menuBeat(b)`). The title screen plays it on a `Sound('title', { score: false })`
   that fades out and closes as the game loads.
+
+### Flora: every world's own plants, in clumps
+- **Species** (`src/flora-species.js`, built with the small kit in `src/flora-kit.js`): each world
+  has five or six plants of its own, drawn in its palette and never shared (the desert's bell
+  totems and sand candelabras, the rim's lantern agaves and fan palms, Arzach's spiral horns and
+  pod lanterns, the Sky Stones' pagoda reeds and sky bladders, the plateau's bolt cacti and
+  periscope trees, the Buried Machine's chimney stalks and ash gourds, Edena's parasol leaves
+  and bulb towers, the Garden of Spheres' orb lilies and bead trees, Perdide's stilt fungi and
+  organ pipes, the Deep Wood's lantern pods and candelabras, the Signal Market's potted strap
+  palms and lamp flowers, plus the small flowers, cushions and tufts at their feet). A plant is one
+  geometry painted one flat colour per part (vertex colours), so it is one instance; the tall
+  stems sway (`makeMaterial({ sway })`, the tip moves, the base stays). Large plants (3–8 m) are
+  solid: a cylinder per trunk goes into the collision (`physics.addCollider`), so you bump into
+  and can climb them; small ones you walk through.
+- **Placement** (`clusterScatter`, pure, in `src/flora.js`): clump centres are darts thrown over
+  the world's regions (`FLORA_WORLDS`), kept apart and thinned by a slow noise; each clump is a
+  dense patch of one species, thickest at its heart, with a few companions (`with`) round its
+  rim; the large plants stand in small groves with their companions at their feet; a few loners
+  grow between. The desert also prefers species by region (totems in the rose canyons, salt
+  stars on the flats).
+- **Where nothing grows** (`buildFlora`, run in `main.js` once the collision, the ship and the
+  people exist): a plant needs gentle open ground (the heightfield, or a ray onto the real
+  geometry on the rim, the plateau, the stone tables and the pavements); not on a rock or a
+  roof, not under anything, not in deep water (reeds and swamp plants may wade), not on the
+  places a level lists in `level.floraAvoid` (paths, the pond, the canyon, the lake, the city's
+  paving), and not on `floraKeep`'s spots: the spawn, the ship's site and ramp, everyone's
+  standing place, the crowd, the boxes, the relics, the story's goal, portals and the reactive
+  plants.
+- **Drawing**: one InstancedMesh per species. Plants are filed by 32 m cell, and each frame
+  `Flora.update` keeps the cells in view within the species' distance (60 m for ground cover
+  up to 420 m for the large plants), plus those just behind you for their shadows; the mesh is
+  only refilled when that set changes. So a world's flora is about six draw calls per pass,
+  wherever you are. Ground cover casts no shadow; small plants stay out of the far cascade.
+  The presets: `floraFar` (Handheld 0.65, Low 0.8) shortens the distances and `floraDensity`
+  (Handheld 0.55, Low 0.75) grows fewer small plants per clump when the world loads.
+- Edena's even scatter of 3500 identical flowers is gone, and the desert's ochre scrub now
+  grows in thickets; both keep their old random draws, so everything placed after them stays
+  where it was.

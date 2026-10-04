@@ -416,48 +416,10 @@ export function createEdena(scene) {
     }
   }
 
-  // ---------------------------------------------------------- flowers (walk-through)
-  {
-    const N = 3500, dummy = new THREE.Object3D(), color = new THREE.Color();
-    const g = mergeGeometries([
-      new THREE.CylinderGeometry(0.05, 0.06, 1.0, 4).translate(0, 0.5, 0),
-      new THREE.CylinderGeometry(0.35, 0.2, 0.12, 7).translate(0, 1.05, 0),
-    ]);
-    const flowers = new THREE.InstancedMesh(g, makeMaterial({ color: '#ffffff' }), N);
-    const data = [];
-    for (let i = 0; i < N; i++) {
-      // clustered in meadows, denser near the start
-      const near = i < N * 0.4;
-      const cx = near ? (rng() * 2 - 1) * 260 : (rng() * 2 - 1) * 1400, cz = near ? (rng() * 2 - 1) * 260 : (rng() * 2 - 1) * 1400;
-      const d = { x: cx, y: terrain.heightAt(cx, cz), z: cz, yaw: rng() * 6, tilt: (rng() - 0.5) * 0.3, s: 0.7 + rng() * 1.2, ph: rng() * 6 };
-      data.push(d);
-      dummy.position.set(d.x, d.y, d.z);
-      dummy.rotation.set(d.tilt, d.yaw, 0);
-      dummy.scale.setScalar(d.s);
-      dummy.updateMatrix();
-      flowers.setMatrixAt(i, dummy.matrix);
-      flowers.setColorAt(i, color.set(pick(['#f2a7b5', '#f2c54b', '#f3ead8', '#b5a7e6'])));
-    }
-    flowers.frustumCulled = false;
-    flowers.userData.noCollide = true;
-    flowers.userData.dynamic = true;   // they sway: keep as one mesh
-    scene.add(flowers);
-    // sway in the breeze (only the ones near the player, every other frame)
-    let flip = 0;
-    movers.push((t, focus) => {
-      if (!focus || (flip ^= 1)) return;
-      for (let i = 0; i < N; i++) {
-        const d = data[i];
-        if (Math.abs(d.x - focus.x) > 120 || Math.abs(d.z - focus.z) > 120) continue;
-        dummy.position.set(d.x, d.y, d.z);
-        dummy.rotation.set(d.tilt + Math.sin(t * 1.8 + d.ph + d.x * 0.05) * 0.25, d.yaw, Math.cos(t * 1.3 + d.ph) * 0.12);
-        dummy.scale.setScalar(d.s);
-        dummy.updateMatrix();
-        flowers.setMatrixAt(i, dummy.matrix);
-      }
-      flowers.instanceMatrix.needsUpdate = true;
-    });
-  }
+  // ---------------------------------------------------------- the meadow's flowers
+  // grow in clumps now, species by species (src/flora.js, after the level is built). The old
+  // scatter's random draws are still taken, so everything placed after it stays where it was.
+  for (let i = 0; i < 3500 * 7; i++) rng();
 
   // ---------------------------------------------------------- the android garden
   // Edena's perfect geometry: great smooth spheres half-sunk in the meadow,
@@ -592,6 +554,9 @@ export function createEdena(scene) {
     // the story's handles (src/story/edena.js): the crashed ship (hatch, cabin panel, the scorch
     // and the veil over it), the tallest tree and its lookout, the pond
     edena: { crashed, tall, pond: { ...POND, y: pondY } },
+    // no flora in the pond, round the crashed ship or at the foot of the tallest tree (src/flora.js)
+    floraAvoid: (x, z, r) => Math.hypot(x - POND.x, z - POND.z) < POND.r + 6 + r || crashed.centre.distanceTo(new THREE.Vector3(x, crashed.centre.y, z)) < 26 + r
+      || Math.hypot(x - tall.base.x, z - tall.base.z) < 14 + r,
     ground: terrain,
     spawn: new THREE.Vector3(0, terrain.heightAt(0, 0), 0),
     spawnHeading: Math.PI,

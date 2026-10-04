@@ -367,6 +367,9 @@ export function createPerdide(scene) {
 
   return {
     id: 'perdide',
+    // the flora (src/flora.js) leaves the Great Crystal, the snapping bed and the fireflies' isle their own
+    floraAvoid: (x, z, r) => Math.hypot(x - GREAT.x, z - GREAT.z) < 22 + r || Math.hypot(x - BED.x, z - BED.z) < BED.r + 5 + r
+      || Math.hypot(x - ISLE.x, z - ISLE.z) < ISLE.r * 0.6 + r,
     // for the story (src/story/perdide.js): the Great Crystal, the cave's crystals, the plants
     // (`fed` counts the globs each has swallowed), the fireflies' nest; silence 0..1 shuts every
     // jaw (the crystal is singing), tame stops them snapping at you, calm only the bed's

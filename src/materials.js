@@ -84,6 +84,10 @@ const vertexShader = /* glsl */ `
   #ifdef CROWD
     ${CROWD_GLSL}
   #endif
+  #ifdef SWAY
+    uniform float uTime;
+    uniform float uSway;
+  #endif
 
   void main() {
     vec3 transformed = position;
@@ -96,6 +100,13 @@ const vertexShader = /* glsl */ `
     #ifdef CROWD
       vec3 crowdColor;
       crowdAnimate(transformed, objectNormal, crowdColor);   // instanced crowd: pose + colour zones per instance
+    #endif
+    #if defined(SWAY) && defined(USE_INSTANCING)
+      // instanced plants (flora.js): the top sways in the breeze, the base stays put; each plant its own phase
+      vec3 swayAt = instanceMatrix[3].xyz;
+      float swayK = uSway * max(position.y, 0.0) * max(position.y, 0.0);
+      transformed.x += sin(uTime * 1.3 + swayAt.x * 0.37 + swayAt.z * 0.21) * swayK;
+      transformed.z += sin(uTime * 1.05 + swayAt.z * 0.41 - swayAt.x * 0.13) * swayK * 0.6;
     #endif
     #ifdef USE_SKINNING
       #include <skinbase_vertex>
@@ -980,6 +991,7 @@ const cache = new Map();
  * @param {boolean} [o.ticks]   terrain: inked grass ticks
  * @param {number}  [o.glow]    0..1 self-lit
  * @param {THREE.Side} [o.side]
+ * @param {number}  [o.sway]    instanced plants: the tip moves this much (m) per metre² of height (the base stays put)
  * @param {boolean} [o.crowd]   instanced crowd figures: the vertex shader poses and colours each
  *                              instance from its attributes (crowd-shader.js); no other mode changes
  * @param {string}  [o.fluid]   'tank' | 'hose' | 'glob' | 'wing' | 'trail': the traveller's magical fluid (fluid-tool.js, fluid-kit.js).
@@ -1039,6 +1051,7 @@ export function makeMaterial(o) {
   });
   mat.vertexColors = !!o.vertexColors;
   if (o.crowd) mat.defines = { CROWD: 1 };
+  if (o.sway) { mat.defines = { ...mat.defines, SWAY: 1 }; mat.uniforms.uSway = { value: o.sway }; }
   if (o.fluid) {
     mat.defines = { ...mat.defines, FLUID: 1 };
     mat.uniforms.uFluidA = { value: new THREE.Vector4(1, 2, 0, { tank: 0, hose: 1, glob: 2, wing: 3, trail: 4 }[o.fluid] ?? 0) };

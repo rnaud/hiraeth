@@ -442,6 +442,8 @@ export function createGarage(scene) {
 
   return {
     id: 'garage',
+    // the plateau's flora (src/flora.js) keeps off the path from the start to the keep
+    floraAvoid: (x, z, r) => Math.abs(x) < 18 + r && z > 14 - r && z < 175 + r,
     ground: { heightAt: () => -Infinity },
     spawn: aSpawn,
     spawnHeading: Math.PI,

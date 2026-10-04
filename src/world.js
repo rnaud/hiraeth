@@ -621,14 +621,21 @@ export function buildWorld(scene, terrain) {
     const N = 1040;
     const bushes = new THREE.InstancedMesh(geo, makeMaterial({ color: '#ffffff', scrub: true }), N);
     const tones = ['#d9a441', '#c98a3a', '#e0b85a', '#c6743a', '#b9a24a'];
+    // in thickets, not evenly spread: each bush joins one of a few hundred clumps (their own
+    // random source, so the desert's other draws, and everything placed after, stay the same)
+    const crng = mulberry32(1040);
+    const clumps = Array.from({ length: 150 }, (_, k) => (k < 14 ? [(crng() * 2 - 1) * 150, (crng() * 2 - 1) * 150] : [(crng() * 2 - 1) * 1450, (crng() * 2 - 1) * 1450]));
     for (let i = 0; i < N; i++) {
       const near = i < 90;
       const cx = near ? (rng() * 2 - 1) * 160 : (rng() * 2 - 1) * 1450, cz = near ? (rng() * 2 - 1) * 160 : (rng() * 2 - 1) * 1450;
       if (near && Math.hypot(cx, cz) < 9) { dummy.scale.setScalar(0); dummy.updateMatrix(); bushes.setMatrixAt(i, dummy.matrix); continue; }
       const s = 0.6 + Math.pow(rng(), 2) * 1.3;
-      dummy.position.set(cx, terrain.heightAt(cx, cz) - 0.15 * s, cz);
+      const [kx, kz] = clumps[near ? i % 14 : 14 + (i % 136)], ka = crng() * Math.PI * 2, kd = 2 + Math.pow(crng(), 1.6) * 16;
+      const bx = kx + Math.cos(ka) * kd, bz = kz + Math.sin(ka) * kd;
+      dummy.position.set(bx, terrain.heightAt(bx, bz) - 0.15 * s, bz);
       dummy.rotation.set((rng() - 0.5) * 0.2, rng() * 6, (rng() - 0.5) * 0.2);
       dummy.scale.set(s * (0.9 + rng() * 0.4), s * (0.6 + rng() * 0.35), s * (0.9 + rng() * 0.4));
+      if (story(bx, bz, 1) || Math.hypot(bx, bz) < 9) dummy.scale.setScalar(0);   // not on the city's paving, the procession's way or the spawn
       dummy.updateMatrix();
       bushes.setMatrixAt(i, dummy.matrix);
       bushes.setColorAt(i, color.set(tones[Math.floor(rng() * tones.length)]));
@@ -677,5 +684,7 @@ export function buildWorld(scene, terrain) {
     scene.add(m);
   }
 
-  return { floaters, banners, lights, doors };
+  // the flora (src/flora.js) keeps off the story's places and everything the props keep clear of
+  const floraAvoid = (x, z, r = 0) => story(x, z, r) || footprints.some((c) => (c.x - x) ** 2 + (c.z - z) ** 2 < (c.r + r + 2) ** 2);
+  return { floaters, banners, lights, doors, floraAvoid };
 }

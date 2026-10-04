@@ -844,6 +844,7 @@ export function createSpheres(scene) {
   const orb = (x, z) => orbs.find((o) => Math.hypot(o.x - x, o.z - z) < 1);
   return {
     id: 'spheres',
+    floraAvoid: (x, z, r) => !clear(x, z, r + 1),   // the flora keeps off the lake, the paths and the stones (src/flora.js)
     // the story's handles (src/story/spheres.js): the spheres that remember, the plaza and its pole,
     // the great sphere on the horizon, the lake, the avenue
     spheres: {

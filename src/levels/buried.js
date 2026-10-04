@@ -887,6 +887,7 @@ export function createBuried(scene) {
   const inCanyon = (x, z, y) => y < floorAt(z) + 30 && canyonMask(x, z) > 0.5 && z < CZ0 - 30;
   return {
     id: 'buried',
+    floraAvoid: avoid,   // the flora keeps off the canyon, the oculus, the hollow and the hero props (src/flora.js)
     ground: terrain,
     spawn,
     spawnHeading: Math.PI,
