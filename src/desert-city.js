@@ -102,6 +102,20 @@ function rough(g, amount, freq = 0.3, seed = 0) {
   return g;
 }
 
+// Plain colours are "paint": every plain-coloured part of a place is drawn by
+// one vertex-coloured mesh (flat or smooth, one- or two-sided), instead of a
+// mesh per colour. The textured materials (strata, grids, glows) batch by
+// material as usual.
+const PAINT = {};
+const paintMaterial = (smooth, side) => PAINT[`${smooth}${side}`] ??= makeMaterial({ color: '#ffffff', vertexColors: true, ...(smooth ? {} : { flat: true }), ...(side === THREE.DoubleSide ? { side } : {}) });
+const paint = (color, { smooth = false, side = THREE.FrontSide } = {}) => ({ paint: new THREE.Color(color), smooth, side });
+function painted(geo, c) {
+  const n = geo.attributes.position.count, a = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) { a[i * 3] = c.r; a[i * 3 + 1] = c.g; a[i * 3 + 2] = c.b; }
+  geo.setAttribute('color', new THREE.BufferAttribute(a, 3));
+  return geo;
+}
+
 /** A place with its own frame: batched render meshes and hidden colliders. */
 class Kit {
   constructor(root, name, origin, yaw = 0) {
@@ -114,8 +128,10 @@ class Kit {
   local(p) { return p.clone().applyMatrix4(this.frame.clone().invert()); }
   heading(h) { return h + this.yaw; }
   add(mat, geo) {
+    let g = prep(geo).applyMatrix4(this.frame);
+    if (mat.paint) { g = painted(g, mat.paint); mat = paintMaterial(mat.smooth, mat.side); }
     if (!this.batches.has(mat)) this.batches.set(mat, []);
-    this.batches.get(mat).push(prep(geo).applyMatrix4(this.frame));
+    this.batches.get(mat).push(g);
     return this;
   }
   solid(geo) { this.proxies.push(prep(geo).applyMatrix4(this.frame)); return this; }
@@ -144,32 +160,28 @@ function materials() {
     wallGlyph: makeMaterial({ color: '#efd8c4', color2: '#e3bfa8', color3: '#f6e6d6', mode: MODE_STRATA, strataSize: 1.2, flat: true, grid: 1.4, glyphs: true }),
     terrace: makeMaterial({ color: '#ead2bc', color2: '#dfbea4', color3: '#f3e1cd', mode: MODE_STRATA, strataSize: 1.1, flat: true }),
     paving: makeMaterial({ color: '#e9d6bf', grid: 2.2, flat: true }),
-    white: makeMaterial({ color: '#f6efe0', flat: true }),
-    pink: makeMaterial({ color: '#e9a99a', flat: true }),
-    rose: makeMaterial({ color: '#dd8f86', flat: true }),
-    ochre: makeMaterial({ color: '#e6b86f', flat: true }),
-    teal: makeMaterial({ color: '#5fb7ad', flat: true }),
-    lav: makeMaterial({ color: '#b7a0cf', flat: true }),
+    white: paint('#f6efe0'), pink: paint('#e9a99a'), rose: paint('#dd8f86'), ochre: paint('#e6b86f'), teal: paint('#5fb7ad'), lav: paint('#b7a0cf'),
     // domes are smooth (no facets on the shadow line)
-    dWhite: makeMaterial({ color: '#f6efe0' }), dPink: makeMaterial({ color: '#e9a99a' }), dRose: makeMaterial({ color: '#dd8f86' }),
-    dTeal: makeMaterial({ color: '#5fb7ad' }), dLav: makeMaterial({ color: '#b7a0cf' }), dOchre: makeMaterial({ color: '#e6b86f' }),
-    dark: makeMaterial({ color: '#34405e', flat: true }),
-    ink: makeMaterial({ color: '#2b211f', flat: true }),
+    dWhite: paint('#f6efe0', { smooth: true }), dPink: paint('#e9a99a', { smooth: true }), dRose: paint('#dd8f86', { smooth: true }),
+    dTeal: paint('#5fb7ad', { smooth: true }), dLav: paint('#b7a0cf', { smooth: true }), dOchre: paint('#e6b86f', { smooth: true }),
+    dark: paint('#34405e'),
+    ink: paint('#2b211f'),
     bark: makeMaterial({ color: '#4a3a42', color2: '#5a4650', color3: '#3e3038', mode: MODE_STRATA, strataSize: 0.9, flat: true }),
-    char: makeMaterial({ color: '#2f2830', flat: true }),
-    bone: makeMaterial({ color: '#f2ead6' }),
-    boneDark: makeMaterial({ color: '#d9cdb2' }),
-    stone: makeMaterial({ color: '#c9b8a0', flat: true }),
-    stoneDS: makeMaterial({ color: '#c9b8a0', flat: true, side: THREE.DoubleSide }),
-    wood: makeMaterial({ color: '#8a5a3c', flat: true }),
-    rope: makeMaterial({ color: '#716c70', flat: true }),
-    red: makeMaterial({ color: '#c8483a', flat: true }),
-    cloth: ['#c8483a', '#5fb7ad', '#d8a24a', '#8a6fb8', '#e6875f', '#f3ead8', '#62c3c9', '#e88fa6'].map((c) => makeMaterial({ color: c, flat: true, side: THREE.DoubleSide })),
+    char: paint('#2f2830'),
+    bone: paint('#f2ead6', { smooth: true }),
+    boneDark: paint('#d9cdb2', { smooth: true }),
+    stone: paint('#c9b8a0'),
+    stoneDS: paint('#c9b8a0', { side: THREE.DoubleSide }),
+    wood: paint('#8a5a3c'),
+    rope: paint('#716c70'),
+    red: paint('#c8483a'),
+    cloth: ['#c8483a', '#5fb7ad', '#d8a24a', '#8a6fb8', '#e6875f', '#f3ead8', '#62c3c9', '#e88fa6'].map((c) => paint(c, { side: THREE.DoubleSide })),
     cave: makeMaterial({ color: '#7d6a8a', color2: '#6d5b7c', color3: '#8f7c9a', mode: MODE_STRATA, strataSize: 1.6, flat: true }),
     caveFloor: makeMaterial({ color: '#8a7890', color2: '#7a6880', color3: '#9a88a0', mode: MODE_STRATA, strataSize: 0.6, flat: true, side: THREE.DoubleSide }),
     mural: makeMaterial({ color: '#e9dcc0', flat: true, grid: 0.9 }),
     glyph: makeMaterial({ color: '#70e7df', glow: 0.85, flat: true }),
-    dry: makeMaterial({ color: '#5a4a40', flat: true }),
+    dry: paint('#5a4a40'),
+    boneMesh: makeMaterial({ color: '#f2ead6' }),
   };
 }
 
@@ -373,6 +385,7 @@ export function buildDesertCity(scene, terrain) {
     const flames = new Flames(treeGroup, tongues, { seed: 7 });
     const crown = city.world(TREE.x, top + 30 * S, TREE.z);
     const embers = new Embers(root, [...limbs.map((p) => city.world(p.x, p.y + 5 * S, p.z)), crown], { count: 140, rise: 2.4, life: 6, spread: 3, size: 0.32 });
+    embers.mesh.boundingSphere = new THREE.Sphere(crown.clone(), 45); embers.mesh.frustumCulled = true;
     const treeLight = new THREE.Vector4(crown.x, crown.y - 12, crown.z, 90);
     const treeLight2 = new THREE.Vector4(crown.x, top + floor + 4, crown.z, 34);
     lights.push(treeLight, treeLight2);
@@ -423,7 +436,10 @@ export function buildDesertCity(scene, terrain) {
       lights.push(new THREE.Vector4(fp.x, fp.y, fp.z, f.big ? 16 : 11));
       out.fires.push(fp);
       const sp = camp.world(f.x, 2.5, f.z);
-      smokes.push(new Smoke(root, sp, { count: f.big ? 26 : 18, height: f.big ? 26 : 16, size: f.big ? 0.9 : 0.65 }));
+      const smoke = new Smoke(root, sp, { count: f.big ? 26 : 18, height: f.big ? 26 : 16, size: f.big ? 0.9 : 0.65 });
+      smoke.mid = sp.clone().add(V(0, f.big ? 13 : 8, 0));
+      smoke.mesh.boundingSphere = new THREE.Sphere(smoke.mid.clone(), f.big ? 22 : 15); smoke.mesh.frustumCulled = true;
+      smokes.push(smoke);
       // log benches round the fire, 0.3 m high: people sit on them facing the flames
       const nb = f.big ? 6 : 4, br = f.big ? 4.4 : 3.4;
       for (let i = 0; i < nb; i++) {
@@ -596,7 +612,7 @@ export function buildDesertCity(scene, terrain) {
     bonePivot.position.copy(cave.world(boneAt.x, boneAt.y, boneAt.z));
     bonePivot.rotation.y = chYaw + Math.PI / 2;
     const ribCurve = [V(-4.4, -0.2, 0), V(-2, 0.5, 0.3), V(1.5, 0.55, 0.2), V(4.6, -0.3, -0.3)];
-    const ribMesh = new THREE.Mesh(taper(ribCurve, 0.85, 0.6, 14, 8), M.bone);
+    const ribMesh = new THREE.Mesh(taper(ribCurve, 0.85, 0.6, 14, 8), M.boneMesh);
     ribMesh.userData.noCollide = true;
     bonePivot.add(ribMesh);
     bonePivot.add(Object.assign(new THREE.Mesh(T(glyphGeometry(0.5), [0, 1.05, 0.55], [-0.4, 0, 0]), M.glyph), { userData: { noCollide: true } }));
@@ -638,14 +654,23 @@ export function buildDesertCity(scene, terrain) {
 
   // ---------------------------------------------------------------- per frame
   const _cam = V(0, 0, 0);
+  // what moves is only animated when it's in view, and less often far away
+  const frustum = new THREE.Frustum(), _pm = new THREE.Matrix4(), _sph = new THREE.Sphere();
+  const seen = (p, r) => frustum.intersectsSphere(_sph.set(p, r));
+  let frameNo = 0, treeDt = 0;
   out.update = (dt, t, { camera, player }) => {
     _cam.copy(camera.position);
-    for (const b of banners) if (b.mesh.position.distanceToSquared(_cam) < 400 * 400) b.update(t);
+    camera.updateMatrixWorld();
+    frustum.setFromProjectionMatrix(_pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+    frameNo++;
+    for (const b of banners) if (b.mesh.position.distanceToSquared(_cam) < 160 * 160 && seen(b.mesh.position, 6)) b.update(t);
     const dCity = _cam.distanceTo(out.city.center);
-    for (const s of smokes) if (s.at.distanceToSquared(_cam) < 900 * 900) s.update(dt, t, player?.wind);
-    for (const u of updaters) if (_cam.distanceTo(u.near) < u.r) u.f(dt, t);
-    if (dCity < 1400) out.city.flames.update(dt, t);
-    if (dCity < 700) out.city.embers.update(dt, t, player?.wind);
+    for (const s of smokes) if (s.at.distanceToSquared(_cam) < 700 * 700 && seen(s.mid, 18)) s.update(dt, t, player?.wind);
+    for (const u of updaters) if (_cam.distanceTo(u.near) < u.r && seen(u.near, 60)) u.f(dt, t);
+    treeDt += dt;
+    const every = dCity < 250 ? 1 : dCity < 700 ? 2 : 4;
+    if (dCity < 1500 && frameNo % every === 0 && seen(out.city.crown, 45)) { out.city.flames.update(treeDt, t); treeDt = 0; }
+    if (dCity < 500 && seen(out.city.crown, 40)) out.city.embers.update(dt, t, player?.wind);
     // the cave: drawn only when you're down there
     const inCave = _cam.distanceTo(O) < 300;
     cv.group.visible = inCave; cv.pool.visible = inCave; cv.stream.visible = inCave && cv.streamOn; cv.bone.visible = inCave;

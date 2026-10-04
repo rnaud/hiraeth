@@ -52,11 +52,12 @@ export class Flames {
     this.material = makeMaterial({ color: '#ffffff', glow: 1, flat: true, vertexColors: true, palette, side: THREE.DoubleSide, flames: seed });
     this.mesh = new THREE.Mesh(g, this.material);
     this.mesh.userData.noCollide = true;
-    this.mesh.frustumCulled = false;
     parent.add(this.mesh);
     this.intensity = 1;
     this.update(0, 0);
+    // the tongues sway a little: a generous bound once, so the mesh can still be culled
     g.computeBoundingSphere();
+    g.boundingSphere.radius *= 1.4;
   }
 
   /** Move toward another palette over time (setPalette(COOL_FIRE)). */

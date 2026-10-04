@@ -87,8 +87,15 @@ export class NPC {
     if (pooled) this.hide();
   }
 
+  /** Shown bodies are in the scene; hidden ones leave it, so their hundred bones skip every pass's matrix update. */
+  show(on) {
+    this.object.visible = on;
+    if (on && !this.object.parent) this.scene.add(this.object);
+    else if (!on && this.object.parent) this.object.removeFromParent();
+  }
+
   hide() {
-    this.object.visible = false;
+    this.show(false);
     if (this.cape) this.cape.mesh.visible = false;
     this.talking = false;
     this.balloon.classList.remove('show');
@@ -182,7 +189,7 @@ export class NPC {
     }
     // far away: hidden past 260 m, updated at a quarter rate past 110 m
     const camD0 = camera.position.distanceTo(this.pos);
-    this.object.visible = camD0 < 260;
+    this.show(camD0 < 260);
     if (this.cape) this.cape.mesh.visible = camD0 < 220;
     if (camD0 > 110 && this.follow) {
       // far away a follower simply keeps up (no walking simulation)
@@ -319,7 +326,7 @@ export class NPC {
   updatePuppet(dt, player, camera, p) {
     this.time += dt;
     const now = this.crowd?.time ?? 0;
-    this.object.visible = true;
+    this.show(true);
     this.pos.copy(p.pos);
     this.heading = p.heading;
     _v.subVectors(player.pos, this.pos); _v.y = 0;

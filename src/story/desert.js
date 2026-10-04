@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
@@ -148,10 +149,12 @@ export function setupDesert(ctx) {
   let drum = null;
   if (!quests.isDone('desert.drum') && !quests.has('drum')) {
     const g = new THREE.Group();
-    const red = makeMaterial({ color: '#c8483a', flat: true }), skin = makeMaterial({ color: '#f3ead8', flat: true }), shell = makeMaterial({ color: '#fff6dc', flat: true });
+    const red = makeMaterial({ color: '#c8483a', flat: true }), skin = makeMaterial({ color: '#f3ead8', flat: true });
     g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.22, 16), red));
-    const top = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.02, 16), skin); top.position.y = 0.12; g.add(top);
-    for (let i = 0; i < 8; i++) { const s = new THREE.Mesh(new THREE.SphereGeometry(0.05, 6, 4), shell); s.position.set(Math.sin(i * 0.785) * 0.43, 0, Math.cos(i * 0.785) * 0.43); g.add(s); }
+    // the skin and its ring of shells, one mesh
+    const parts = [new THREE.CylinderGeometry(0.4, 0.4, 0.02, 16).translate(0, 0.12, 0)];
+    for (let i = 0; i < 8; i++) parts.push(new THREE.SphereGeometry(0.05, 6, 4).translate(Math.sin(i * 0.785) * 0.43, 0, Math.cos(i * 0.785) * 0.43));
+    g.add(new THREE.Mesh(mergeGeometries(parts.map((p) => p.toNonIndexed())), skin));
     const p = V(STORY.drum.x, 0, STORY.drum.z); p.y = level.ground.heightAt(p.x, p.z) + 0.3;
     g.position.copy(p); g.rotation.set(1.2, 0.4, 0.3);
     g.traverse((o) => { o.userData.noCollide = true; });
@@ -273,15 +276,14 @@ export function setupDesert(ctx) {
       const g = new THREE.Group();
       g.userData.noCollide = true;
       let banner = null, light = null;
+      const one = (list) => mergeGeometries(list.map((x) => (x.index ? x.toNonIndexed() : x)));
       if (p.role === 'banner') {
-        g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.045, 4.4, 5).translate(0, 2.2, 0), pole));
-        g.add(new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.06, 0.06).translate(0, 4.3, 0), pole));
+        g.add(new THREE.Mesh(one([new THREE.CylinderGeometry(0.035, 0.045, 4.4, 5).translate(0, 2.2, 0), new THREE.BoxGeometry(1.5, 0.06, 0.06).translate(0, 4.3, 0)]), pole));
         banner = new Banner(scene, V(0, 0, 0), 0, { width: 1.3, height: 2.6, color: colours[ci++ % colours.length] });
       } else if (p.role === 'lantern') {
-        g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.04, 3.2, 5).translate(0, 1.6, 0), pole));
-        g.add(new THREE.Mesh(new THREE.TorusGeometry(0.35, 0.03, 4, 10, Math.PI).rotateZ(-Math.PI / 2).translate(0.3, 3.2, 0), pole));
-        const l = new THREE.Mesh(new THREE.OctahedronGeometry(0.22, 0).scale(1, 1.4, 1).translate(0.62, 2.85, 0), lamp);
-        g.add(l, new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.2, 0.08, 6).translate(0.62, 3.15, 0), brass));
+        g.add(new THREE.Mesh(one([new THREE.CylinderGeometry(0.03, 0.04, 3.2, 5).translate(0, 1.6, 0),
+          new THREE.TorusGeometry(0.35, 0.03, 4, 10, Math.PI).rotateZ(-Math.PI / 2).translate(0.3, 3.2, 0), new THREE.CylinderGeometry(0.12, 0.2, 0.08, 6).translate(0.62, 3.15, 0)]), brass));
+        g.add(new THREE.Mesh(new THREE.OctahedronGeometry(0.22, 0).scale(1, 1.4, 1).translate(0.62, 2.85, 0), lamp));
         light = new THREE.Vector4(0, -1e5, 0, 9);
         level.lights.push(light);
       } else if (p.role === 'drum') {
@@ -295,7 +297,7 @@ export function setupDesert(ctx) {
   const drummer = crowd?.people.find((p) => p.role === 'drum');
   const updateProps = (t, camPos) => {
     for (const pr of props) {
-      const p = pr.p, far = p.pos.distanceToSquared(camPos) > 560 * 560;
+      const p = pr.p, far = p.pos.distanceToSquared(camPos) > 300 * 300;
       pr.g.visible = !far;
       if (pr.banner) pr.banner.mesh.visible = !far;
       if (far) { if (pr.light) pr.light.set(0, -1e5, 0, 0); continue; }
@@ -306,7 +308,7 @@ export function setupDesert(ctx) {
       if (pr.banner) {
         pr.banner.mesh.position.copy(pr.g.position).add(_v.set(0, 4.28, 0));
         pr.banner.mesh.rotation.y = h + Math.PI / 2;
-        if (p.pos.distanceToSquared(camPos) < 200 * 200) pr.banner.update(t);
+        if (p.pos.distanceToSquared(camPos) < 120 * 120) pr.banner.update(t);
       }
       if (pr.light) pr.light.set(pr.g.position.x + rx * 0.62, pr.g.position.y + 2.9, pr.g.position.z + rz * 0.62, 9);
     }

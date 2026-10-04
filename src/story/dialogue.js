@@ -269,7 +269,7 @@ export class Dialogue {
       const before = Math.floor(this.revealed);
       this.revealed = Math.min(len, this.revealed + dt * REVEAL);
       const now = Math.floor(this.revealed);
-      if (now !== before && now % 3 === 0 && /\w/.test(this.runner.text[now] ?? '')) this.sound?.voice?.(this.runner.speaker === 'player' ? 1.5 : (this.person.voice ?? 1));
+      if (now !== before && now % 3 === 0 && /\w/.test(this.runner.text[now] ?? '')) this.sound?.blip?.(this.runner.speaker === 'player' ? 1.5 : (this.person.voice ?? 1));
       this.render();
     }
   }
@@ -279,21 +279,34 @@ export class Dialogue {
    * line between them, a little behind the traveller's shoulder. Blended
    * over the follow camera by `blend`.
    */
-  frameCamera(camera, player, npcPos, up = new THREE.Vector3(0, 1, 0)) {
-    if (this.blend < 0.002 || !npcPos) return;
+  frameCamera(camera, player, npcPos, up = new THREE.Vector3(0, 1, 0), avoid = []) {
+    if (this.blend < 0.002 || !npcPos) { this._side = 0; return; }
     const a = player.pos, b = npcPos;
-    const mid = this._look.copy(a).lerp(b, 0.5).addScaledVector(up, 1.5);
+    const mid = this._look.copy(a).lerp(b, 0.5).addScaledVector(up, 1.45);
     const across = new THREE.Vector3().subVectors(b, a); across.addScaledVector(up, -across.dot(up));
     const sep = Math.max(across.length(), 0.8);
     across.normalize();
     const side = new THREE.Vector3().crossVectors(up, across).normalize();
-    // keep the side the camera is already on, so the cut is short
-    if (side.dot(new THREE.Vector3().subVectors(camera.position, mid)) < 0) side.negate();
-    const dist = 2.6 + sep * 1.15;
-    const eye = this._eye.copy(mid).addScaledVector(side, dist).addScaledVector(across, -sep * 0.35).addScaledVector(up, 0.25);
+    const dist = 2.0 + sep * 1.0;
+    const eyeOn = (s, out) => out.copy(mid).addScaledVector(side, s * dist).addScaledVector(across, -sep * 0.3).addScaledVector(up, 0.4);
+    if (!this._side) {
+      // pick the side once per conversation: the one with nobody standing in the shot,
+      // else the one the camera is already on (a shorter move)
+      const block = (s) => {
+        const e = eyeOn(s, new THREE.Vector3()), seg = new THREE.Line3(e, mid), q = new THREE.Vector3();
+        let n = 0;
+        for (const p of avoid) { seg.closestPointToPoint(p, true, q); const d = Math.hypot(q.x - p.x, q.z - p.z); if (d < 0.9 && Math.abs(q.y - p.y - 1.1) < 1.3) n += 1 - d / 0.9; }
+        return n;
+      };
+      const here = side.dot(new THREE.Vector3().subVectors(camera.position, mid)) < 0 ? -1 : 1;
+      const bh = block(here), bo = block(-here);
+      this._side = bo + 0.05 < bh ? -here : here;
+    }
+    const eye = eyeOn(this._side, this._eye);
     const k = THREE.MathUtils.smoothstep(this.blend, 0, 1);
     camera.position.lerp(eye, k);
-    this._m.lookAt(camera.position, mid.addScaledVector(across, 0.08 * sep), up);
+    // aim a little low, so both faces sit in the upper half, clear of the panel
+    this._m.lookAt(camera.position, mid.addScaledVector(across, 0.06 * sep).addScaledVector(up, -0.75), up);
     this._q.setFromRotationMatrix(this._m);
     camera.quaternion.slerp(this._q, k);
     camera.updateMatrixWorld();
