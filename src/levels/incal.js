@@ -6,6 +6,8 @@ import { Taxi } from '../taxi.js';
 import { soften } from '../world.js';
 import { Banner, Puffs } from '../life.js';
 import { buildRoom } from '../interiors.js';
+import { glyphGeometry, textGeometry } from '../story/sign-text.js';
+import { LINES } from '../story/incal-data.js';
 
 // ---------------------------------------------------------------------------
 // "La Cité-Puits": the city-shaft from Jodorowsky & Moebius' L'Incal.
@@ -21,6 +23,9 @@ const BOTTOM = -380;    // acid lake
 const LEVELS = [150, 92, 36, -24, -86, -150, -218, -290];
 const SPIRE_R = 24;
 const SPIRE_RING = 48;
+// the story's corners (src/story/incal.js): the Upward Shrine and the call-lamp on the bottom
+// terrace (world angles), Nima's corner a little way along the high terrace
+const SHRINE_A = 3.155, LAMP_A = 3.2, NIMA_DA = 0.045;
 
 const TAU = Math.PI * 2;
 
@@ -57,7 +62,11 @@ export function createIncal(scene) {
   // buckets are also split by terrace sector (curGroup), so each piece can be culled
   const buckets = new Map();
   let curGroup = 'misc', curY = TOP;
+  let skip = false;            // a house in one of the story's clearings: built (same random draws) but not kept
+  const clearZones = [];
+  const nearClear = (x, y, z) => clearZones.some((c) => Math.abs(c.y - y) < 1 && Math.hypot(c.x - x, c.z - z) < c.r);
   const bucket = (key, mat) => {
+    if (skip) return [];
     const k = key + '@' + curGroup;
     if (!buckets.has(k)) buckets.set(k, { mat, geos: [], y: curY });
     return buckets.get(k).geos;
@@ -83,7 +92,7 @@ export function createIncal(scene) {
       bucket('roof' + ri, roofMat(ri)).push(placed(new THREE.SphereGeometry(r * 1.05, 14, 8, 0, TAU, 0, Math.PI / 2).translate(0, h + 2, 0), x, y, z, rot));
     } else {
       bucket('wall' + wi, wallMat(wi)).push(placed(new THREE.BoxGeometry(w + 0.4, 0.9, d + 0.4).translate(0, h + 0.45, 0), x, y, z, rot));
-      trees.push([x, y + h + 0.9, z, 0.6]);    // a little roof garden
+      trees.push([x, y + h + 0.9, z, skip ? 0 : 0.6]);    // a little roof garden
     }
     // silhouette details: an arched door, a balcony, a chimney
     const face = rng() < 0.5 ? 1 : -1;
@@ -173,7 +182,7 @@ export function createIncal(scene) {
     const m = new THREE.Mesh(mergeGeometries(parts), mat);
     m.position.set(x, baseY, z);
     m.rotation.y = rng() * TAU;
-    scene.add(m);
+    if (!skip) scene.add(m);
     return baseY + y;
   }
 
@@ -190,6 +199,8 @@ export function createIncal(scene) {
     for (let s = 0; s < nSectors; s++) {
       const span = TAU / nSectors - gap;
       const a0 = a, a1 = a + span;
+      if (s === 0 && li === 0) clearZones.push({ x: Math.cos(a0 + NIMA_DA) * (r0 + 6), y, z: Math.sin(a0 + NIMA_DA) * (r0 + 6), r: 9 });
+      if (s === 0 && li === LEVELS.length - 1) clearZones.push({ x: Math.cos(SHRINE_A) * (r0 + 8), y, z: Math.sin(SHRINE_A) * (r0 + 8), r: 12.5 });
       curGroup = `t${li}`; curY = y;
       const slab = new THREE.Mesh(sectorGeometry(r0, R, a0, a1, 7),
         strata(STEEL.color, STEEL.color2, STEEL.color3, 1.4, { flat: true, grid: 3 }));
@@ -225,12 +236,14 @@ export function createIncal(scene) {
         const rad = r0 + 13 + rng() * (width - 19);   // leaves a promenade along the edge
         const x = Math.cos(ang) * rad, z = Math.sin(ang) * rad;
         const roll = rng();
+        skip = nearClear(x, y, z);
         if (roll < 0.52) house(x, y, z);
         else if (roll < 0.57) tower(x, z, y, maxH * (0.45 + rng() * 0.5), 3 + rng() * 4, palette, { roof: true });
         else {   // trees grow in clumps
           const n = 1 + Math.floor(rng() * 4);
           for (let q = 0; q < n; q++) trees.push([x + (rng() - 0.5) * 6, y, z + (rng() - 0.5) * 6, 0.7 + rng() * 0.9]);
         }
+        skip = false;
       }
       // a row of cypresses along the terrace edge, like a garden balustrade
       for (let k = 0; k < span * 60; k++) {
@@ -243,6 +256,7 @@ export function createIncal(scene) {
   });
 
   curGroup = 'misc'; curY = TOP;
+  const bridges = [];   // spire ring → terrace: { y, phi, r0 } (for the story's routes)
   // ---------------------------------------------------------- central spire
   {
     const height = TOP + 120 - BOTTOM;
@@ -285,6 +299,7 @@ export function createIncal(scene) {
         m.position.set(Math.cos(phi) * mid, y - 1.25, Math.sin(phi) * mid);
         m.rotation.y = -phi;
         scene.add(m);
+        bridges.push({ y, phi, r0: t.r0 });
       }
     });
   }
@@ -328,22 +343,62 @@ export function createIncal(scene) {
 
   // ---------------------------------------------------------- hero: the Incal
   // The light Incal and its dark twin, turning slowly high above the palace.
+  // Its story (src/story/incal.js) drives `incalRig.k`: 0 dim and flickering
+  // (it has been dimming since "the night the sky rang"), 1 burning bright;
+  // `flare` is a passing flash. The glyph is cut into its four lower facets,
+  // the ones the city sees from below.
+  const incalRig = { k: 0, flare: 0, pos: new THREE.Vector3(0, TOP + 250, 0) };
   {
     const grp = new THREE.Group();
-    grp.position.set(0, TOP + 250, 0);
+    grp.position.copy(incalRig.pos);
     grp.userData.noCollide = true;
-    const light = new THREE.Mesh(new THREE.OctahedronGeometry(14, 0).scale(1, 1.3, 1), makeMaterial({ color: '#fff8e8', flat: true, glow: 1 }));
+    const lightMat = makeMaterial({ color: '#fff8e8', flat: true, glow: 1, key: 'incal.light' });
+    const haloMat = makeMaterial({ color: '#f2c54b', glow: 1, key: 'incal.halo' });
+    const light = new THREE.Mesh(new THREE.OctahedronGeometry(14, 0).scale(1, 1.3, 1), lightMat);
     const dark = new THREE.Mesh(new THREE.OctahedronGeometry(7, 0).scale(1, 1.3, 1), makeMaterial({ color: '#2b211f', flat: true }));
-    const halo = new THREE.Mesh(new THREE.TorusGeometry(26, 0.5, 6, 64), makeMaterial({ color: '#f2c54b', glow: 1 }));
+    const halo = new THREE.Mesh(new THREE.TorusGeometry(26, 0.5, 6, 64), haloMat);
     halo.rotation.x = Math.PI / 2;
-    grp.add(light, dark, halo);
+    const halo2 = new THREE.Mesh(new THREE.TorusGeometry(34, 0.35, 6, 72), haloMat);
+    halo2.visible = false;
+    // the glyph on the lower facets: centred on each face, lying in its plane
+    {
+      const parts = [], n = new THREE.Vector3(), q = new THREE.Quaternion(), Z = new THREE.Vector3(0, 0, 1);
+      for (const [sx, sz] of [[1, 1], [-1, 1], [1, -1], [-1, -1]]) {
+        n.set(sx / 14, -1 / 18.2, sz / 14).normalize();
+        const c = new THREE.Vector3(sx * 14 / 3, -18.2 / 3, sz * 14 / 3).addScaledVector(n, 0.08);
+        q.setFromUnitVectors(Z, n);
+        // keep the arc's "down" toward the tip below
+        const g = glyphGeometry(6.5, 0.12);
+        const m = new THREE.Matrix4().compose(c, q, new THREE.Vector3(1, 1, 1));
+        const up = new THREE.Vector3(0, 1, 0).applyQuaternion(q), want = new THREE.Vector3(0, 1, 0).projectOnPlane(n).normalize();
+        const roll = Math.atan2(new THREE.Vector3().crossVectors(up, want).dot(n), up.dot(want));
+        g.applyMatrix4(new THREE.Matrix4().makeRotationZ(roll)).applyMatrix4(m);
+        parts.push(g);
+      }
+      light.add(new THREE.Mesh(mergeGeometries(parts), makeMaterial({ color: '#8a6a3a', flat: true })));
+    }
+    grp.add(light, dark, halo, halo2);
     scene.add(grp);
+    const dim = new THREE.Color('#b9b2a2'), bright = new THREE.Color('#fff8e8');
+    const haloDim = new THREE.Color('#9c8a5e'), haloBright = new THREE.Color('#f2c54b');
     movers.push({ update: (t) => {
-      light.rotation.y = t * 0.3;
+      const k = incalRig.k, f = incalRig.flare;
+      light.rotation.y = t * (0.3 + 0.25 * k);
       dark.position.set(Math.cos(t * 0.5) * 32, Math.sin(t * 0.7) * 8, Math.sin(t * 0.5) * 32);
       dark.rotation.y = -t * 0.6;
       halo.rotation.z = t * 0.2;
-      grp.position.y = TOP + 250 + Math.sin(t * 0.4) * 4;
+      halo2.rotation.set(Math.PI / 2 + Math.sin(t * 0.3) * 0.5, 0, -t * 0.15);
+      grp.position.y = incalRig.pos.y + Math.sin(t * 0.4) * 4;
+      // dim: a tired, uneven glow that sometimes gutters; bright: steady, bigger, a second halo
+      const gutter = k < 0.6 ? (1 - k) * Math.max(0, Math.sin(t * 2.3) * Math.sin(t * 0.71 + 1) - 0.55) * 1.6 : 0;
+      lightMat.uniforms.uColor.value.copy(dim).lerp(bright, Math.min(1, k + f));
+      lightMat.uniforms.uGlow.value = THREE.MathUtils.clamp(0.42 + 0.58 * k + f - gutter, 0, 1);
+      haloMat.uniforms.uColor.value.copy(haloDim).lerp(haloBright, Math.min(1, k + f));
+      haloMat.uniforms.uGlow.value = THREE.MathUtils.clamp(0.3 + 0.7 * k + f, 0, 1);
+      light.scale.setScalar(0.9 + 0.22 * k + 0.12 * f + (k > 0.5 ? Math.sin(t * 1.1) * 0.015 : 0));
+      halo.scale.setScalar(0.85 + 0.3 * k + 0.2 * f);
+      halo2.visible = k > 0.3;
+      halo2.scale.setScalar(0.6 + 0.4 * k);
     } });
   }
 
@@ -481,9 +536,103 @@ export function createIncal(scene) {
       new THREE.CylinderGeometry(70, 30, 60, 24).translate(0, -50, 0),
     ];
     const m = new THREE.Mesh(mergeGeometries(parts), steel);
-    m.position.set(-230, TOP + 175, 40);   // over the far side: framed when you look across
+    m.position.set(-290, TOP + 175, 40);   // over the far side: framed when you look across (and clear of the Incal, seen from the palace)
     m.userData.noCollide = true;
     scene.add(m);
+  }
+
+  // ---------------------------------------------------------- the story's places (src/story/incal.js)
+  // The high terrace where Nima sweeps; the palace landing under the Incal
+  // (a ring round the dome, a gate facing the rim, a crown round the needle);
+  // the Upward Shrine on the bottom terrace, where the splinter fell, and the
+  // dead taxi call-lamp at the edge beside it.
+  const P3 = (a, rad, y) => new THREE.Vector3(Math.cos(a) * rad, y, Math.sin(a) * rad);
+  const places = {};
+  {
+    const top = terraces.find((t) => t.y === LEVELS[0]), low = terraces.find((t) => t.y === LEVELS[LEVELS.length - 1]);
+    const PY = TOP + 120;
+    places.nima = P3(top.a0 + NIMA_DA, top.r0 + 6, top.y);
+    places.palace = { y: PY, landing: P3(0, 46, PY), dov: P3(0.07, 47.5, PY), gate: P3(0, 51.5, PY), crown: new THREE.Vector3(0, PY + 35, 0), taxi: P3(0, 58, PY + 1.5) };
+    const sa = SHRINE_A, la = LAMP_A;
+    places.shrine = P3(sa, low.r0 + 7, low.y);
+    places.ossa = P3(sa + 0.012, low.r0 + 10.2, low.y);
+    places.pip = P3(sa - 0.03, low.r0 + 6, low.y);
+    places.lamp = P3(la, low.r0 + 1.8, low.y);
+    places.cab = P3(la, low.r0 - 5.5, low.y + 2.4);
+    places.wren = P3(la + 0.012, low.r0 + 3.4, low.y);
+    places.bottom = low;
+    places.lights = [];   // warm lamps along the lower terraces, lit when the Incal is (Vector4s: the story moves them in)
+    const gold = makeMaterial({ color: '#f2c54b', grid: 5 }), steelM = strata(STEEL.color, STEEL.color2, '#f1e6cf', 1.5, { flat: true, grid: 3 });
+    const cream = makeMaterial({ color: '#f3ead8', flat: true }), ink = makeMaterial({ color: '#34405e', flat: true });
+    // the palace landing: a ring round the dome, a parapet with a gap at the gate
+    const landing = new THREE.Mesh(sectorGeometry(35, 52, 0, TAU, 2.2), steelM);
+    landing.position.y = PY;
+    scene.add(landing);
+    const par = [];
+    for (let i = 0; i < 24; i++) {
+      if (i === 0 || i === 23) continue;
+      const a0 = (i / 24) * TAU, a1 = a0 + TAU / 24 * 0.92;
+      par.push(sectorGeometry(51.2, 52, a0, a1, 1.1).translate(0, PY + 1.1, 0));
+    }
+    // the gate: two pylons and a lintel, a seal on top
+    for (const s of [-1, 1]) par.push(new THREE.BoxGeometry(1.8, 7, 1.8).translate(51.6, PY + 3.5, s * 6));
+    scene.add(new THREE.Mesh(mergeGeometries(par.map((g) => (g.index ? g.toNonIndexed() : g)).map((g) => { g.deleteAttribute('uv'); return g; })), cream));
+    const lintel = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.3, 14).translate(51.6, PY + 7.6, 0), gold);
+    scene.add(lintel);
+    const seal = new THREE.Mesh(glyphGeometry(4, 0.3).rotateY(Math.PI / 2).translate(52.9, PY + 7.7, 0), ink);
+    seal.userData.noCollide = true;
+    scene.add(seal);
+    // the crown: a small round terrace at the top of the dome, round the needle
+    scene.add(new THREE.Mesh(new THREE.CylinderGeometry(6.5, 6.5, 1, 24).translate(0, PY + 34.5, 0), gold));
+    const rail = new THREE.Mesh(new THREE.TorusGeometry(6.4, 0.08, 4, 40).rotateX(Math.PI / 2).translate(0, PY + 36, 0), cream);
+    rail.userData.noCollide = true;
+    scene.add(rail);
+
+    // the Upward Shrine: a round dais, a bowl held up to the light, candles, the glyph on the floor
+    const S = places.shrine, face = Math.atan2(-S.x, -S.z);   // facing the void (and the Incal, far above)
+    const stone = makeMaterial({ color: '#cdb38e', flat: true }), bowlM = makeMaterial({ color: '#b5862f', flat: true });
+    const dais = [new THREE.CylinderGeometry(2.6, 2.8, 0.34, 18).translate(0, 0.17, 0), new THREE.CylinderGeometry(0.28, 0.4, 1.0, 8).translate(0, 0.84, 0)];
+    const bowl = new THREE.LatheGeometry([[0.08, 0], [0.5, 0.08], [0.78, 0.3], [0.82, 0.42], [0.74, 0.4], [0.45, 0.16], [0, 0.12]].map(([r, y]) => new THREE.Vector2(r, y)), 14).translate(0, 1.32, 0);
+    const m1 = new THREE.Mesh(mergeGeometries(dais.map((g) => g.toNonIndexed())), stone);
+    m1.position.copy(S); m1.rotation.y = face;
+    scene.add(m1);
+    const m2 = new THREE.Mesh(bowl, bowlM);
+    m2.position.copy(S); m2.userData.noCollide = true;
+    scene.add(m2);
+    const candles = [], flames = [];
+    for (let i = 0; i < 11; i++) {
+      const a = (i / 11) * TAU, r = 2.15 + (i % 2) * 0.2, h = 0.18 + (i % 3) * 0.08;
+      candles.push(new THREE.CylinderGeometry(0.06, 0.07, h, 6).translate(Math.cos(a) * r, 0.34 + h / 2, Math.sin(a) * r));
+      flames.push(new THREE.OctahedronGeometry(0.06, 0).scale(1, 1.8, 1).translate(Math.cos(a) * r, 0.34 + h + 0.1, Math.sin(a) * r));
+    }
+    const cm = new THREE.Mesh(mergeGeometries(candles), cream), fm = new THREE.Mesh(mergeGeometries(flames), makeMaterial({ color: '#ffd27a', glow: 1, flat: true }));
+    for (const m of [cm, fm]) { m.position.copy(S); m.userData.noCollide = true; scene.add(m); }
+    const floorGlyph = new THREE.Mesh(glyphGeometry(2.6, 0.02).rotateX(-Math.PI / 2).rotateY(face + Math.PI).translate(0, 0.36, 0.0), ink);
+    floorGlyph.position.copy(S).add(new THREE.Vector3(Math.sin(face) * 1.35, 0, Math.cos(face) * 1.35));
+    floorGlyph.userData.noCollide = true;
+    scene.add(floorGlyph);
+    places.bowlTop = S.clone().add(new THREE.Vector3(0, 1.62, 0));
+    // the taxi call-lamp: a tall post at the edge, a round lamp gone dark, a sign that says so
+    const L = places.lamp, lf = Math.atan2(-L.x, -L.z);
+    const post = new THREE.Mesh(mergeGeometries([
+      new THREE.CylinderGeometry(0.12, 0.18, 4.6, 6).translate(0, 2.3, 0),
+      new THREE.BoxGeometry(1.4, 0.12, 0.12).translate(0.55, 4.5, 0),
+      new THREE.CylinderGeometry(0.42, 0.42, 0.14, 10).translate(1.15, 4.42, 0),
+    ].map((g) => g.toNonIndexed())), ink);
+    post.position.copy(L); post.rotation.y = lf - Math.PI / 2;
+    scene.add(post);
+    const lampMat = makeMaterial({ color: '#5d574b', flat: true, key: 'incal.lamp' });
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.36, 12, 8), lampMat);
+    head.position.set(1.15, 4.1, 0);
+    head.userData.noCollide = true;
+    post.add(head);
+    const sign = new THREE.Mesh(textGeometry('TAXI', { width: 1.1, depth: 0.05 }), makeMaterial({ color: '#d9784f', flat: true, key: 'incal.lampSign' }));
+    sign.position.set(0, 3.3, 0.2);
+    sign.userData.noCollide = true;
+    post.add(sign);
+    places.lampHead = { mesh: head, mat: lampMat, signMat: sign.material };
+    // keep the trees off the shrine and the lamp
+    for (const t of trees) for (const [c, r] of [[S, 9], [L, 3], [places.nima, 4]]) if (Math.abs(t[1] - c.y) < 1 && Math.hypot(t[0] - c.x, t[2] - c.z) < r) t[3] = 0;
   }
 
   // trees on the rim around the spawn
@@ -581,6 +730,8 @@ export function createIncal(scene) {
     camYaw: Math.PI / 2,
     features: { mount: false, wind: false, jetpack: true, climb: true, taxis: true },
     vehicles,
+    // the city's shape, for its story (src/story/incal.js): terraces, bridges, the palace and the Incal
+    shaft: { R, TOP, BOTTOM, LEVELS, SPIRE_R, SPIRE_RING, terraces, bridges, stallSpots, viaducts, incal: incalRig, places },
     // called once the physics exists: spawn the taxis (they collide when driven)
     init(physics) {
       for (const spec of taxiSpecs) {
@@ -604,9 +755,11 @@ export function createIncal(scene) {
     atmo(x, z, y = TOP) {
       const inside = Math.hypot(x, z) < R;
       const d = inside ? THREE.MathUtils.clamp((TOP - y) / (TOP - BOTTOM), 0, 1) : 0;
-      const tint = [1.0 - 0.08 * d, 0.92 + 0.06 * d, 0.95 - 0.12 * d];
+      // once the Incal burns bright again (its story), its light reaches further down: less smog, warmer
+      const lit = incalRig.k;
+      const tint = [1.0 - 0.08 * d + 0.05 * d * lit, 0.92 + 0.06 * d, 0.95 - 0.12 * d - 0.02 * d * lit];
       const name = !inside ? 'The rim' : d < 0.3 ? 'Upper levels' : d < 0.65 ? 'Middle levels' : 'The depths';
-      return { tint, fog: 1.6 + d * 1.6, name };
+      return { tint, fog: 1.6 + d * 1.6 * (1 - 0.35 * lit), name };
     },
     life: {
       flocks: [{ count: 12, color: '#f3ead8', size: 1.8, radius: 90, height: [15, 50], seed: 3 },
@@ -678,7 +831,14 @@ export function createIncal(scene) {
       }
       for (const z of [-34, 34]) walks.push({ path: [V(R + 6, TOP, z), V(R + 36, TOP, z)], n: 2, pair: 0.6 });
       walks.push({ path: [V(R + 9, TOP, -60), V(R + 9, TOP, 60)], n: 4, pair: 0.5 });
-      return { groups, walks, edges, avoid, farMax: 600, clear: [{ x: spawn.x, y: TOP, z: spawn.z, r: 4 }] };
+      // who they are depends on how far down they live: the rim and the upper terraces call the
+      // Incal a tourist story, the depths pray to it (src/story/incal-data.js; the story talks to them by zone)
+      const zoneOf = (y) => (y >= TOP - 1 ? 'rim' : y >= LEVELS[1] - 1 ? 'upper' : y >= LEVELS[4] - 1 ? 'middle' : 'lower');
+      for (const s of [...groups, ...walks, ...edges]) { s.id = zoneOf(s.at?.y ?? s.path[0].y); s.lines = LINES[s.id]; }
+      // the story's places stay clear: the shrine and its keeper, the call-lamp, the sweeper's corner
+      const keep = [[places.shrine, 3.6], [places.ossa, 1.6], [places.pip, 1.2], [places.lamp, 1.2], [places.wren, 1.4], [places.nima, 2.5]];
+      for (const [p, rr] of keep) avoid.push({ x: p.x, y: p.y, z: p.z, r: rr });
+      return { groups, walks, edges, avoid, farMax: 600, clear: [{ x: spawn.x, y: TOP, z: spawn.z, r: 4 }, ...keep.map(([p, rr]) => ({ x: p.x, y: p.y, z: p.z, r: rr + 1 }))] };
     },
     update(dt, t, ctx) {
       if (ctx?.player) Taxi.playerPos = ctx.player.pos;

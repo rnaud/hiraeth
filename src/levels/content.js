@@ -14,6 +14,8 @@ import { ARZACH2_CONTENT } from './arzach2.js';
 import { BURIED_CONTENT } from './buried.js';
 import { SPHERES_CONTENT } from './spheres.js';
 import { PERDIDE2_CONTENT } from './perdide2.js';
+import { RIM as INCAL_RIM, PEOPLE as INCAL_PEOPLE } from '../story/incal-data.js';
+import { STREET as BAZAAR_STREET } from '../story/bazaar-data.js';
 
 export const ORDER = ['desert', 'incal', 'arzach', 'arzach2', 'garage', 'buried', 'edena', 'spheres', 'perdide', 'perdide2', 'bazaar'];
 export const nextLevel = (id) => ORDER[(ORDER.indexOf(id) + 1) % ORDER.length];
@@ -25,21 +27,24 @@ export const CONTENT = {
   perdide2: PERDIDE2_CONTENT,
   bazaar: {
     weather: [],
+    // the Signal Market's story is a quest (src/story/bazaar-data.js): this page opens on the
+    // first visit and closes when the tower has spoken and Sel has read where it came from
     story: {
-      title: 'THE LAST BROADCAST',
-      intro: 'A thousand signs are speaking. One tower has fallen silent. Follow the avenue, then climb the blue ledges or hail a taxi to its cream balcony.',
-      outro: 'A voice crosses the square: you are not alone. For a moment, everyone stops to listen.',
-      label: 'the broadcast balcony', goal: [0, 45, -234], radius: 5, verticalRadius: 5,
+      title: 'YOU ARE NOT ALONE',
+      intro: 'A thousand signs are speaking. One tower has fallen silent. Somebody at its foot is waiting for someone to care.',
+      outro: 'A voice crossed the square: you are not alone. For a moment, everyone stopped to listen. Something of value? Someone was listening.',
+      label: 'the broadcast balcony', goal: [0, 45, -234], radius: 5, verticalRadius: 5, manual: true,
     },
     relics: {
       spots: [{at:[18,1.1,48]}, {at:[-29,6.2,-35]}, {at:[0,26.1,-90]}, {at:[12,45.1,-232]}, {at:[0,65.1,-330]}],
-      names: ['Lantern seed', 'Market stamp', 'Skybridge ticket', 'Unsent recording', 'Antenna tuning fork'],
+      names: ['Lantern seed', 'Market stamp', 'Skybridge ticket', 'Cracked valve', 'Pigeon’s message ring'],
     },
     gate: {at:[-11,121],heading:Math.PI},
+    // the market's own people; the story's (Sel, Kip, Ferro, Brush, Ummu) are in src/story/bazaar-data.js
     npcs: [
-      {at:[12,105],radius:2,palette:pal('#dca273'),lines:['Welcome to the Signal Market. The broadcast tower is straight ahead.','Climb its blue ledges, use your jetpack, or take the parked taxi.']},
-      {at:[-17,42],radius:1,palette:pal('#84bab3'),lines:['Every lantern holds a little sun.','Somebody dropped a lantern seed on the other side of the street.']},
-      {at:[14,-203],radius:1,palette:pal('#c3a9cc'),lines:['The cream balcony has the old transmitter.','The taxis can take you above the bridges.']},
+      {at:[12,105],radius:2,palette:pal('#dca273'),lines:['Welcome to the Signal Market. The broadcast tower is straight ahead.','Climb its blue ledges, use your jetpack, or take the parked taxi.'],...BAZAAR_STREET.doss},
+      {at:[-17,42],radius:1,palette:pal('#84bab3'),lines:['Every lantern holds a little sun.','Somebody dropped a lantern seed on the other side of the street.'],...BAZAAR_STREET.oyo},
+      {at:[14,-203],radius:1,palette:pal('#c3a9cc'),lines:['The cream balcony has the old transmitter.','The taxis can take you above the bridges.'],...BAZAAR_STREET.teb},
     ],
   },
   atelier: {
@@ -113,22 +118,26 @@ export const CONTENT = {
   },
   incal: {
     weather: ['fog'],
+    // the City-Shaft's story is a quest (src/story/incal-data.js): this page opens on
+    // the first visit and closes when the light burns again and Nima has been told
     story: {
-      title: 'THE LIGHT IN THE SHAFT',
-      intro: 'Above the palace, the Incal turns. Hail a taxi.',
-      outro: 'For a moment, every level of the city looks up.',
-      label: 'the Incal', goal: [0, 450, 0], radius: 34,
+      title: 'THE LIGHT NOBODY LOOKS AT',
+      intro: 'Above the palace, the Incal turns, dimmer than it should be. Nobody here looks up.',
+      outro: 'For a moment, every level of the city looked up. Something of value? Look up once a day.',
+      label: 'the Incal', goal: [0, 450, 0], radius: 34, manual: true,
     },
     relics: {
       spots: [{ at: [320, 200, -80], snap: true }, { at: [-210, 150, 30], snap: true }, { at: [150, 36, -150], snap: true }, { at: [-60, -86, 205], snap: true }, { at: [205, -218, -40], snap: true }],
-      names: ['Taxi token', 'Palace key', 'Smog lantern', 'Lower-levels ration', 'Incal splinter'],
+      names: ['Taxi token', 'Palace key', 'Smog lantern', 'Smog-cabbage seed', 'Prayer bead'],
     },
     gate: { at: [300, 60], heading: -Math.PI / 2 },
+    // the rim's people, and Nima on the high terrace (index 3: the desert's errand of
+    // singing sand is for her); the rest of the city's people are in src/story/incal-data.js
     npcs: [
-      { at: [300, -40], palette: pal('#e88fa6', { cloth: '#3a3f5a' }), lines: ['Level −86? Never been below the smog.', 'The Incal? A story for tourists.'] },
-      { at: [330, 40], palette: pal('#62c3c9'), lines: ['Mind the taxis. They don’t stop.'] },
-      { at: [290, 110], palette: pal('#f2c54b', { cloth: '#5a3a3a' }), lines: ['I sell views of the abyss. Cheap.'], shy: true },
-      { at: [-30, 150], y: 150, radius: 8, palette: pal('#a99be0'), lines: ['The rich live up here. Me, I just sweep.'] },
+      { at: [300, -40], y: 200, palette: pal('#e88fa6', { cloth: '#3a3f5a' }), lines: ['Level −86? Never been below the smog.', 'The Incal? A story for tourists.'], ...INCAL_RIM.corvin },
+      { at: [330, 40], y: 200, palette: pal('#62c3c9'), lines: ['Mind the taxis. They don’t stop.'], ...INCAL_RIM.lio },
+      { at: [290, 110], y: 200, palette: pal('#f2c54b', { cloth: '#5a3a3a' }), lines: ['I sell views of the abyss. Cheap.'], shy: true, ...INCAL_RIM.hask },
+      { ...INCAL_PEOPLE.nima, at: [112.1, 165.8], y: 150, radius: 1.8, speed: 0.45 },
     ],
   },
   arzach: {

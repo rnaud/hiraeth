@@ -7,6 +7,8 @@ import { NPC, registerNPCTargets } from '../npc.js';
 import { makeMaterial } from '../materials.js';
 import { viaPortal } from '../scout.js';
 import { setupDesert } from './desert.js';
+import { setupIncal } from './incal.js';
+import { setupBazaar } from './bazaar.js';
 
 // The story runtime for a world: quests, conversations, the objective
 // marker, the E prompt, and the world's own story (src/story/<world>.js).
@@ -24,6 +26,8 @@ import { setupDesert } from './desert.js';
 //   registerInteractable(...) for anything E should use (src/interact.js)
 
 const WORLDS = { desert: setupDesert };
+WORLDS.incal = setupIncal;
+WORLDS.bazaar = setupBazaar;
 const UP = new THREE.Vector3(0, 1, 0);
 const _p = new THREE.Vector3(), _d = new THREE.Vector3();
 
@@ -171,6 +175,7 @@ export function createStory(o) {
     },
     /** The two-shot during a conversation (after the rig has placed the camera). */
     frameCamera(camera) {
+      world?.frameCamera?.(camera);   // a world's own camera moment (the Incal flaring, the broadcast)
       const at = talking?.npc?.pos ?? talking?.at ?? rt._lastAt;
       if (at) rt._lastAt = at;
       if (dialogue.blend < 0.002) { rt._lastAt = null; return; }
