@@ -2,6 +2,16 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.54 — 2026-10-05
+
+- Every world now has a makers’ temple.
+- The Sealed Hangar’s First Garage: a stair-house on the plateau’s rim with a stopped clock over its door. Ride the escapement, roll the counterweight, wake banks of six eyes in one breath, and set the Clockwork Foreman right. Afterwards the Hangar keeps time again, and the great cogs in the cliff turn.
+- Viridel’s Builders’ Greenhouse, under a dome of glass north of the white ruins: open flower-doors, grow a vine bridge and a vine up a wall of glass, and calm the Gardener, a moss giant gone bare. Afterwards the white ruins all over the garden are in flower.
+- The Signal Market’s Undertower, through an old doorway in the back of the silent tower: carry the singing stones’ notes to the doors that listen for them, and give the First Sign its words back. Afterwards the silent tower speaks, once a night.
+- Bloom mode: a fourth gun mode, leaf green and petal pink in the tank. It makes the makers’ plants grow, and leaves a few flowers wherever it lands.
+- The echo shell keeps the last note sung near you and plays it back, together with the bell-note whistle if you carry one.
+- The quick coil now waits inside the First Garage. The keep’s wall holds a new gift, the brass level, which shows how the floor lies when down has turned. If you already had the coil, its chest is open for you.
+
 ## v0.53 — 2026-10-05
 
 - The makers’ temples: great buildings in eight worlds, each with rooms of puzzles, a gift found halfway that opens the rest, and a guardian at the end. Living guardians are calmed, never killed; broken machines can be stopped.

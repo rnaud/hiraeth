@@ -360,7 +360,7 @@ To start after the current work lands. Ordered from easiest to most complex.
   - Beating it changes something in the world: the temple covered in plants, crops growing
     again, the grove pulsing with light…
   - Built in 8 worlds (desert, City-Shaft, Vael, Vael II, Buried Machine, Spheres, Lorn, Lorn II).
-- [ ] Temples still to build: the Sealed Hangar (coil, a Clockwork Foreman; its portal list needs
+- [x] Temples still to build: the Sealed Hangar (coil, a Clockwork Foreman; its portal list needs
   adapting), Viridel (needs the bloom mode), the Signal Market (needs the echo shell).
 
 ---
