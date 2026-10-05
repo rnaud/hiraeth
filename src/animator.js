@@ -365,7 +365,10 @@ export class Animator {
         // keep the boot level side-to-side: build a basis from forward + parent up
         _z.copy(local).normalize();
         _y.set(0, 1, 0);
-        _x.crossVectors(_y, _z).normalize();
+        _x.crossVectors(_y, _z);
+        // (toes pointing straight down or up: the side axis from the parent's instead, so the boot doesn't spin)
+        if (_x.lengthSq() < 0.04) _x.set(1, 0, 0).addScaledVector(_z, -_z.x);
+        _x.normalize();
         _y.crossVectors(_z, _x);
         m.j.quaternion.setFromRotationMatrix(_m.makeBasis(_x, _y, _z));
       } else {

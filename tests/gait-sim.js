@@ -22,7 +22,7 @@ export async function loadAssets() {
   return assets;
 }
 
-/** Ground for the walk: a flat floor, a 12° ramp up and a flight of 18 cm stairs (all along +z from z = 30). */
+/** Ground for the walk: a flat floor, a 12° ramp up (x = -20) and 18 cm stairs up and down again (x = 20), along +z from z = 30. */
 export function course({ ramp = true, stairs = true } = {}) {
   const scene = new THREE.Scene();
   const floor = new THREE.Mesh(new THREE.BoxGeometry(400, 1, 400));
@@ -35,10 +35,14 @@ export function course({ ramp = true, stairs = true } = {}) {
     r.position.set(-20, Math.sin(a) * len / 2 - 0.2 / Math.cos(a), 30 + Math.cos(a) * len / 2);
     scene.add(r);
   }
-  if (stairs) for (let i = 0; i < 8; i++) {
-    const s = new THREE.Mesh(new THREE.BoxGeometry(6, 0.18 * (i + 1), 0.32));
-    s.position.set(20, 0.09 * (i + 1), 30 + i * 0.32);
-    scene.add(s);
+  if (stairs) {
+    // eight 18 cm steps up from z = 30, a 3 m landing, eight steps down
+    const step = (h, z) => { const s = new THREE.Mesh(new THREE.BoxGeometry(6, h, 0.32)); s.position.set(20, h / 2, z); scene.add(s); };
+    for (let i = 0; i < 8; i++) step(0.18 * (i + 1), 30.16 + i * 0.32);
+    const top = new THREE.Mesh(new THREE.BoxGeometry(6, 1.44, 3));
+    top.position.set(20, 0.72, 32.56 + 1.5);
+    scene.add(top);
+    for (let i = 0; i < 8; i++) step(0.18 * (8 - i), 35.56 + 0.16 + i * 0.32);
   }
   scene.updateMatrixWorld(true);
   return scene;
@@ -105,15 +109,18 @@ export function drive(p, script, { fps = 60, camYaw = CAM_PLUS_Z } = {}) {
  *  slide: for each contact (the ball within 3 cm of the ground below it and moving down or level),
  *         how far it moved over the ground while in contact (m): max and mean
  *  sink:  the deepest the ball or the heel went under the ground (m)
- *  jitter: the pelvis and head's acceleration flips (3rd difference) RMS, m/s^3 / 1000
+ *  jitter: the pelvis and head's jerk (3rd difference of their world position) RMS, km/s^3
+ *  maxTurn: the most any bone turned (its local rotation) from one frame to the next (rad)
+ * (the first `warm` seconds are left out: the body settling from its bind pose)
  */
-export function measure(frames, H, dt) {
+export function measure(frames, H, dt, warm = 0.3) {
   const ballRest = H.rest.get(H.b.ball_l).p.y, ankleRest = H.rest.get(H.b.foot_l).p.y;
   let maxSlide = 0, sumSlide = 0, contacts = 0, sink = 0;
   const slides = [];
   for (const s of ['l', 'r']) {
     let run = null;
     for (let i = 1; i < frames.length; i++) {
+      if (frames[i].t < warm) continue;
       const f = frames[i].feet[s], g = frames[i - 1].feet[s];
       const h = f.ball.y - ballRest - f.gBall;
       if (Number.isFinite(f.gBall)) sink = Math.max(sink, -h);
@@ -134,16 +141,15 @@ export function measure(frames, H, dt) {
   const jerk = (key) => {
     let s = 0, n = 0;
     for (let i = 3; i < frames.length; i++) {
+      if (frames[i - 3].t < warm) continue;
       const p = (k) => frames[i - k][key];
+      // (in the world: what the eye sees, the root's own steps on a stair included)
       const j = new THREE.Vector3().copy(p(0)).addScaledVector(p(1), -3).addScaledVector(p(2), 3).addScaledVector(p(3), -1);
-      // relative to the root (the walk's own motion is smooth; what's measured is the pose's)
-      const r = new THREE.Vector3().copy(frames[i].pos).addScaledVector(frames[i - 1].pos, -3).addScaledVector(frames[i - 2].pos, 3).addScaledVector(frames[i - 3].pos, -1);
-      j.sub(r);
       s += j.lengthSq(); n++;
     }
     return Math.sqrt(s / Math.max(n, 1)) / dt ** 3 / 1000;
   };
-  const maxTurn = Math.max(...frames.map((f) => f.maxTurn));
+  const maxTurn = Math.max(...frames.filter((f) => f.t >= warm).map((f) => f.maxTurn));
   return { maxSlide, meanSlide: contacts ? sumSlide / contacts : 0, contacts, slides, sink, jitterPelvis: jerk('pelvis'), jitterHead: jerk('head'), maxTurn };
 }
 
