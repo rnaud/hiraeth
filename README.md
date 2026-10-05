@@ -2694,7 +2694,7 @@ beside it (the details, how to run it and what is missing: `unity/README.md`).
 Each world gets one great building of the makers, a Zelda-style dungeon with a
 gadget half-way through and a keeper at its heart (LORE.md, "Temples", has the
 design and the plan for every world). Built so far: the desert's **Givers'
-House** and the City-Shaft's **Warden's Well**. Everything lives in `src/temples/`:
+House**, the City-Shaft's **Warden's Well** and Vael II's **Founders' Belfry**. Everything lives in `src/temples/`:
 
 - **`kit.js`**: the architecture. `TempleKit` batches render meshes per material
   (noCollide) and hidden collision proxies, in a local frame; pieces: `hall` (walls
@@ -2732,11 +2732,15 @@ House** and the City-Shaft's **Warden's Well**. Everything lives in `src/temples
   (from `src/story/index.js`: the temple's quest, its local, the locators).
   `TEMPLES` and `GADGETS` (the 50/50 plan). **`migrate.js`**: whoever already owns
   a temple's gadget finds its chest open. Per world: `desert.js` + `desert-data.js`,
-  `incal.js` + `incal-data.js` (layout, logic, guardian, outside, change, words).
+  `incal.js` + `incal-data.js`, `arzach2.js` + `arzach2-data.js` (layout, logic,
+  guardian, outside, change, words; a change may have a `late` step, run after
+  the level's own movers).
 - **Items**: `fire` moved into the Givers' House, `jetpack` into the Warden's
-  Well; new gifts in the open: `resin` (the Buried Machine's chimney ring:
-  climbing tires you half as fast, `player.climbK`) and `soles` (the City-Shaft's
-  pillar: `player.fallGuard`).
+  Well, `bell` into the Founders' Belfry; new gifts in the open: `resin` (the
+  Buried Machine's chimney ring: climbing tires you half as fast,
+  `player.climbK`), `soles` (the City-Shaft's pillar: `player.fallGuard`) and
+  `hush` (Vael's spire: creatures don't hear you walk up, `player.hush`, read by
+  `src/wildlife.js`).
 - **Tests**: `tests/temples.test.js` checks the logic, the solver (every built
   temple solved, its gadget mid-way and needed for every later room), the
   guardians, the 50/50, the migration, the words' tones, the buildings in their

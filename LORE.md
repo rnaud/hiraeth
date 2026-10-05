@@ -955,8 +955,8 @@ ATAN" (old names) and now says ODILE and TALO; Talo's lookout note was signed
 ## 11. Temples (the makers' houses, their keepers, and the gifts inside)
 
 *Built in this pass (`src/temples/`); decided while the author was away, change
-freely. Two worlds have theirs (the desert, the City-Shaft); the rest are
-designed below and wait their turn. Section 9's "A Makers' temple in every
+freely. Three worlds have theirs (the desert, the City-Shaft, Vael II); the rest
+are designed below and wait their turn. Section 9's "A Makers' temple in every
 world" and the "Makers' temples with bosses" note above are what this answers.*
 
 ### What a temple is
@@ -1015,8 +1015,8 @@ then the world's box stays as it was):
 |---|---|---|---|
 | Desert | Ember mode (moved from the Buried Machine) | the backpack (the story's), the pale star | **built** |
 | City-Shaft | Fluid jets (moved from the rim pillar) | Soft-fall soles (new, on the rim pillar) | **built** |
-| Vael | Fluid wings (from Vael II's stack) | Hush-cloth (new: steps the wildlife doesn't hear) | planned |
-| Vael II | Bell-note whistle (from Vael's spire; it belongs to the bell world) | Updraft feather (new: the wings sink slower) | planned |
+| Vael | Fluid wings (from Vael II's stack) | Hush-cloth (new: steps the wildlife doesn't hear; on the spire now) | hush-cloth built; temple planned |
+| Vael II | Bell-note whistle (moved from Vael's spire: it belongs to the bell world) | Fluid wings for now (on the balanced stack); the Updraft feather (new: the wings sink slower) once the wings move to Vael's temple | **built** |
 | Hangar | Quick coil | Brass level (new: shows which way down is, in the ring) | planned |
 | Buried Machine | Fourth chamber (from Lorn II) | Climber's resin (new, on the chimney ring: climbing tires you half as fast) | resin built |
 | Viridel | Bloom mode (new gun mode: a seed glob grows a climbable vine) | Seed pouch (new); the lantern moves to Lorn II | planned |
@@ -1025,10 +1025,13 @@ then the world's box stays as it was):
 | Lorn II | Lantern charm (from Viridel) | Glow-moss pin (new) | planned |
 | Signal Market | Echo shell (new: records a note, plays it back) | (the market has no chest) | planned |
 
-What moved for players already on their way: whoever owns ember mode or the
-jets finds the desert's or the City-Shaft's temple chest open and counted as
-found (`src/temples/migrate.js`); the Buried Machine's chimney ring and the
-City-Shaft's pillar now hold the resin and the soles, new boxes for everyone.
+What moved for players already on their way: whoever owns ember mode, the jets
+or the bell-note whistle finds that temple's chest open and counted as found
+(`src/temples/migrate.js`); the Buried Machine's chimney ring, the City-Shaft's
+pillar and Vael's spire now hold the resin, the soles and the hush-cloth, new
+boxes for everyone. (This also settles a loose end of section 10: the bell-note
+whistle is found in the bell world now, and Vael has only the rider's bone
+whistle.)
 Ember mode now comes in the first world, which suits it: the desert's camp
 fires and dry brambles were always there to be lit. The City-Shaft is the one
 world you can hardly cross without your temple's gadget: its quest starts as
@@ -1096,18 +1099,42 @@ down: a well of the makers turned on its end.
   of rising air (pale rings drifting up it) carries anyone who steps into it
   from the bottom terrace up past every level and sets them down on the rim.
 
+### The Founders' Belfry (Vael II)
+A round tower of bone-white stone rising straight out of the cloud west of the
+starting plateau, a bridge from the plateau's rim to a gallery round its door,
+an open belfry on top with a great bell in it and stones that fell up hanging
+round it. The monks say the founders built it before the monastery to keep the
+stones down: a bell in every room, and the stones stayed where they were put.
+The bells stopped; the stones fell up; something in the top of the tower cries
+every evening "like a bell with nothing to ring it".
+- **The local: Ysel**, who keeps the founders' bridge (a quiet job: nobody
+  crosses it). Afterwards: the stones coming down all over the sky, one on the
+  monastery's kitchen roof ("Brother Calix laughed. I have never heard him
+  laugh"); the Cloud-Mother swimming away over the cloud.
+- **Inside**: the Threshold; the Hall of Stones (two stone balls in two
+  grooves, both pushed onto their plates); the Stone Stair (a round well, two
+  discs that ride up and down, a ledge between them); the Bell Chamber (**the
+  bell-note whistle**, a silent bell hanging in the oculus; the door on is
+  bell-tuned: sound the whistle by it); the Hall of Echoes (a chasm under the
+  stones of its own bridge, hanging high where they fell up: sound the bell at
+  its edge and they come down into place; a second bell door beyond, that only
+  hears you close); the Cloud-Mother's Hall, open to the sky.
+- **The Cloud-Mother** (organic): a great pale sky-whale, fins like sails, a
+  fringe of cloud along her back, glyphs on her flanks dim while she is afraid.
+  The founders kept her to carry the cloud away in the mornings; she rose with
+  the stones and never came down. She gusts and dives, and later wails; each
+  time she sinks low and cries, sound the bell near her (fluid only frightens
+  her). Worn out, she lies on the floor of her hall: lay a hand on her brow.
+- **After**: the stones that fell up come down all over Vael II, the floating
+  stones settling onto what lies under them or into the cloud, and the stones
+  round the belfry onto its gallery.
+
 ### The other temples (designed, not built)
 - **Vael**: the House of the First Walkers among the floating ruins, its halls
   joined by glides; key: the fluid wings. Its keeper: an old stone-winged bird,
   the bird's elder, afraid to fly since its rider left; calm it by gliding
   alongside it and blowing the rider's bone whistle. After: the floating ruins
   settle into a walkable chain toward the lone tower.
-- **Vael II**: the Founders' Belfry, hung from the needle plateau's spires;
-  key: the bell-note whistle (bell-tuned doors; ringing near the stones that
-  fell up brings them down into bridges). Its keeper: the Cloud-Mother, a great
-  pale sky-whale that rose with the stones and cannot come down; ring the bell
-  each time it cries. After: the stones that fell up come down, and the cloud
-  sinks a little more.
 - **Hangar**: the Major's First Garage, under the plateau; key: the quick coil
   (doors that want three shots inside three seconds). Its keeper: the Clockwork
   Foreman (robot), wound wrong; break it, or set it to the right time. After:
