@@ -1,13 +1,16 @@
-# Memento in Unity: the desert, a proof of concept
+# Memento in Unity: every world, by ship
 
-`unity/Memento` is a Unity 6 (6000.6, URP 17) port of the web game's first
-world, the desert, built from the web game itself: a Node script builds the
-desert headlessly exactly as the game does at load and exports it; Unity reads
-the export and draws it through the same G-buffer and ink composite as
-`src/materials.js` and `src/post.js`, ported to HLSL. It plays from the ship's
-prologue through the opening quest, "The Tree That Drinks", to the ship that
-hums, with the people dressed and animated as on the web, the fluid backpack,
-the makers' boxes, sound and voices, wildlife, weather and saves.
+`unity/Memento` is a Unity 6 (6000.6, URP 17) port of the web game, built from the web game
+itself: a Node script builds each world headlessly exactly as the game does at load and exports
+it; Unity reads the export and draws it through the same G-buffer and ink composite as
+`src/materials.js` and `src/post.js`, ported to HLSL. It plays from the ship's prologue through
+the desert's opening quest, "The Tree That Drinks", to the ship that hums; then the galactic map
+flies to the other worlds (the City-Shaft, Vael, Vael II, the Sealed Hangar, the Buried Machine,
+Viridel, the Garden of Spheres, Lorn, Lorn II, the Signal Market and, once it opens, home), each
+built from its own export with its look, its people and its story: the takeoff, the approach
+from space, the landing at that world's ship site (see [The other worlds](#the-other-worlds)).
+The people are dressed and animated as on the web, with the fluid backpack, the makers' boxes,
+sound and voices, wildlife, weather and saves.
 
 The same viewpoints, web game (left) and Unity (right), rendered headlessly
 (`views.mjs`, `Batch.Shots`):
@@ -54,20 +57,21 @@ The holo table, the rain, the sun rays, the observatory awake (web left, Unity r
 
 ## Run it
 
-1. Export the desert (from the repository root; needs the web game's
-   `node_modules`):
+1. Export the worlds (from the repository root; needs the web game's `node_modules`):
 
    ```sh
-   node scripts/unity-export/export-desert.mjs
+   node scripts/unity-export/export-all.mjs            # every world (one process each), about 35 s
+   node scripts/unity-export/export-world.mjs incal    # or one world
    ```
 
-   This writes `unity/Memento/Assets/StreamingAssets/desert/` (world.json,
-   world.bin, story.json, about 400 MB, not committed) and copies the
-   characters (`public/anim/*.glb`) to `StreamingAssets/anim/`. Run it again
-   whenever the desert changes on the web side.
-   The sounds are recorded from the web game in a second step (headless Chrome
-   against a dev server on its own port; writes `StreamingAssets/sound/`, also
-   not committed):
+   This writes `unity/Memento/Assets/StreamingAssets/<world>/` (world.json, world.bin, story.json)
+   for each world, the shared store `StreamingAssets/shared/` (what every world shares: the
+   traveller, the people's bodies and clips, the ship, the boxes) and copies the characters
+   (`public/anim/*.glb`) to `StreamingAssets/anim/`: about 3.6 GB in all, none of it committed.
+   Run it again whenever a world changes on the web side (`--clean` starts the shared store afresh).
+   The sounds are recorded from the web game in a second step (headless Chrome against a dev
+   server on its own port; writes `StreamingAssets/sound/`, every effect and each world's score,
+   also not committed):
 
    ```sh
    npx vite --port 5238 --strictPort &
@@ -78,7 +82,7 @@ The holo table, the rain, the sun rays, the observatory awake (web left, Unity r
 3. Once, or after pulling: menu **Memento → Set up project** (URP settings, the
    ink renderer feature, the scenes). Already done in the committed project.
 4. Open `Assets/Memento/Scenes/Title.unity` (or `Desert.unity`) and press Play.
-   Loading the export takes a few seconds.
+   Loading the export takes a few seconds; another world, about one.
 
 ### Controls (as in the web game)
 
@@ -100,6 +104,8 @@ The holo table, the rain, the sun rays, the observatory awake (web left, Unity r
 | pause menu (settings) | Esc, P | Menu |
 | controls in the status box | H | |
 | hoverbike | W / S go and brake, A / D steer, Shift boost | left stick, RT / R2 go |
+| the bird (Vael) | Space take off and flap, A / D bank, W dive, S pull up | A / ×, left stick, RT / R2 thrust |
+| the galactic map (at the console, the ship powered) | ← → choose, Enter travel | D-pad, A / × |
 
 ### From the command line
 
@@ -111,7 +117,10 @@ cameras render on Metal) and prints the log's errors and `Memento:` lines:
 scripts/unity-export/unity-batch.sh Setup                 # project settings, renderer feature, scenes
 node scripts/unity-export/views.mjs > /tmp/views.json      # fixed viewpoints, web coordinates
 scripts/unity-export/unity-batch.sh Shots -shots /tmp/views.json -out /tmp/shots   # PNGs of the world
-scripts/unity-export/unity-batch.sh Play -out /tmp/play    # the scripted play-through (below)
+scripts/unity-export/unity-batch.sh Play -out /tmp/play    # the scripted play-through (below): the desert, then by ship to the City-Shaft and Vael
+scripts/unity-export/unity-batch.sh Play -noTitle -start incal -worlds arzach2,garage,home -out /tmp/trip   # start in a world, fly on
+node scripts/unity-export/views-worlds.mjs > /tmp/views.json                                    # viewpoints over every world
+scripts/unity-export/unity-batch.sh Play -noTitle -tour /tmp/views.json -out /tmp/tour            # those views in play, world by world
 scripts/unity-export/unity-batch.sh Probe                  # collision checks at the story's places
 scripts/unity-export/unity-batch.sh UiKit -out /tmp/kit    # the UI kit alone (shapes, text, spacing) on a canvas
 ```
@@ -138,8 +147,9 @@ masked head's chamber, a relic and the sketchbook with them, and the rain, the
 fog and the sun rays. Along
 the way it runs the box scenes, the tank, a shot and a splat, the stun mode, a
 boost, the wings, the wildlife, the star box and Nour back on her bench, counts
-the sounds played, and writes a save and reads it back. It saves a frame at
-each step and exits 0 only if the quest is done. The EditMode tests also check
+the sounds played, and writes a save and reads it back. Then it flies on (`-worlds incal,arzach` by default, `-worlds none` to stop
+there; [The other worlds](#the-other-worlds)). It saves a frame at
+each step and exits 0 only if the quest is done and every world's opening step was played. The EditMode tests also check
 the voices' syllable plans against `voice.js`, the people's dress against the
 export, the boxes and the recorded sounds; `UiTests` the portraits' backdrops,
 the star chart's layout, the planets and the region names against the web's.
@@ -305,9 +315,9 @@ the star chart's layout, the planets and the region names against the web's.
   rows on a small screen), the orbits, each world a drawn planet (`PlanetArt`,
   `planets.js`: body, shadow, its mark, the highlight, rings and moons) with its
   name, its tag, the strike's signature badge and the done star; the chosen
-  world's panel, the signature legend, and "Travel to …?" (the other worlds
-  are not in this port). `HoloTable` (`holotable.js`): over the deck's table the
-  desert turns, drawn by `Shaders/Planet.shader` (approach.js planetMaterial:
+  world's panel, the signature legend, and "Travel to …?", which flies there
+  (`ShipTravel.cs`, below). `HoloTable` (`holotable.js`): over the deck's table the
+  world the ship is at turns, drawn by `Shaders/Planet.shader` (approach.js planetMaterial:
   the dune stripes, the hatched crescent, the highlight, self-lit), with its teal
   rim and two scan rings; it flickers on emergency power, stutters in the
   alarm, dies in the fall.
@@ -430,6 +440,125 @@ and the batch play-through can too.
 |---|---|
 | ![](docs/play-charge.jpg) the father's charge, lettered over the crash | ![](docs/play-boxcard.jpg) the makers' box card |
 
+## The other worlds
+
+Every world of the web game (`src/levels/index.js`, on the route of `src/levels/names.js` ORDER, and home)
+is exported and can be flown to from the ship's galactic map, as on the web.
+
+### Their exports (`scripts/unity-export/`)
+
+- `build-world.mjs` builds any level as `main.js` does: the level and its physics, its water
+  (`water.js` Waters), the ship at its site (`ship/sites.js`), the crowd, the people near the start,
+  the story (`createStory`: the world's own script runs, its people spawn, its quests start), the
+  makers' boxes, the mount, the flora and the grass fields. `export-world.mjs <id>` writes the same
+  format for each (`export-desert.mjs` is a wrapper); `export-all.mjs` runs every world in its own
+  process (a world's story listens on the shared game state).
+- What each world needs and the desert did not: no heightfield where the ground is all geometry
+  (the shaft, the hangar, the market; `WorldLoader.HeightAt` casts down instead); the **metals**
+  (`METALS`: kind, brushed, reflectivity, highlight) and the **new water** (`water-shader.js`: its
+  options, its bed's colour); every **body of water** (its surface and box); the **grass fields**;
+  the **taxis' lanes** (taxi.js `lane`, sampled for two minutes); the **Hangar's gravity** shapes and
+  portals; the **air by place** (`level.atmo` and `level.lightAt` sampled on a 40 × 16 × 40 grid: a
+  tint, the fog, the region's name, the sun turned); the **story's locators** (where each quest
+  marker stands); what **E can use** (each thing tried once on a scratch copy of the state: the
+  conversation it opens, the flags it raises) and what **the fluid can hit** (each target tried with
+  a shot and a push: what it raises, what it says); the **start flags** (what the world's script did
+  as it started: its quests begun); the people's **words as the story gave them** (a world's locals,
+  a temple's keeper); a stage's `when` read into **data** (a counter, every one of a few flags);
+  the crowd's **conversations** (`world.crowdTalk`); the **story page**; the level's own **handles**
+  (`level.shaft`, `level.garage`…: their points, for each world's script). Each world's **score** is
+  recorded (`record-sounds.mjs`), and each world's **tongue** is in `Voice.cs`.
+- **Shared assets** go once into `StreamingAssets/shared/shared.bin`, a content-addressed store kept
+  across exports (`index.json`: a blob's hash → its offset): the traveller, the people's bodies,
+  clothes and clips, the parents' hologram, the item models, the ship, the boxes, the mount.
+  world.json refers to them with negative offsets (`-1 - offset`); `WorldLoader.Slice` / `Copy` read
+  either store.
+
+### Travel (`Game.Travel`, `ShipTravel.cs`, `Route.cs`, `UI/StarMap.cs`)
+
+- **The map** (`starmap.js` mapEntries, `route.js` knownWorlds): the first world, the worlds done
+  (`world.<id>.done`, or its story page reached) or seen (`seen.<id>`), and the next two not done
+  along the route; home at the centre once `ending.js` homeOpen holds (six worlds done and the last
+  recording heard, `calls.home` / `calls.6`, or the ending played). "Travel to …?" Yes flies there.
+- **The takeoff** (`cinematics.js` TakeoffDirector): "Course set: …", the lift-off on its jets in a
+  storm of the ground's dust (`exhaust.js`: a flame from each bell, the blast blown out along the
+  ground, the feet's puffs), climbing faster and faster, then **the jump** (`cinema.js` Warp: the
+  streaks rushing out on the paper, the world's name).
+- **The loading page** ("sketching the city-shaft…"): `Game.SwitchWorldNow` lets the old world go
+  (its objects, meshes and materials, its people, crowd, story, things to use and targets, the
+  quests' definitions; the flags stay) and builds the next from its export, keeping the save, the
+  traveller (his meshes and materials kept), his gear, the HUD and the sound. About a second.
+- **The arrival** (ArrivalDirector, `approach.js`): out of the jump the planet grows ahead, drawn as
+  the map draws it (`Planet.shader`: its body, its mark, the hatched crescent, its rim, ring or moon)
+  under a dome of stars, the ship reading the strike's signature the first time
+  (`signature.js` arrivalLine); the fire of entry streaming off its belly, a white flash; the fall
+  through the world's sky trailing smoke; down on its jets over the site, the dust blowing out; the
+  door; you walk out down the ramp. Hold Back to skip. A save continued in another world goes
+  straight there, no cinematics.
+
+### Each world, played (`WorldStory.cs`, `Mechanics.cs`)
+
+- `WorldStory` runs any world from its export: its quests defined and started as its script starts
+  them (a quest tracked in another world gives way to this one's), its people where the web puts
+  them (routes, seats, their palettes and dress) and their conversations through the dialogue
+  runner, the quest markers on the script's locators (a name that is someone follows them), the
+  things to look at and to pick up, the targets the fluid can hit (counters count up; a flag every
+  target of a kind raises waits for all of them), the boxes (the backpack and the jets beside the
+  ship for whoever lacks them, as the web's fallbacks; a temple's gadget waits there too, the temples
+  not being ported), the story page, the main quest's end (`world.<id>.done`, its outro card).
+- `Crowd.BuildPool`: a city's crowd (the shaft's 1359, the market's 574): everyone where `crowd.js`
+  put them, walking their routes, the nearest 36 given full bodies dressed as the web dresses them,
+  the rest the instanced figures; B / ○ talks to whoever is nearest (their conversation by where they
+  live). `Traffic`: the cabs on their lanes. `Waters`: swimming and wading (`swim.js`, on the surface),
+  and the bed under each body baked from the collision for the water shader (300 m round you on
+  Lorn's swamp). `Grass`: the blades round the camera, with their soft ink. `Atmo`: the haze, the
+  tint, the region and the sun by place.
+- `WorldMechanics` (each world's own script, beyond the data): the City-Shaft's splinter and the
+  Lodestar (its main quest to its end), the Garden's three spheres, the Hangar's turned gravity
+  (`Player.UpdateFramed`: a capsule swept along the traveller's own frame, the camera's arm turned
+  with it) and its portals, Vael's bird (`BirdMount`, `bird.js`) and its first ride.
+
+The flight (`Play`, desert → the City-Shaft → Vael) and the worlds in play:
+
+| | |
+|---|---|
+| ![](docs/worlds/travel-map.jpg) the map from the City-Shaft: the next two worlds | ![](docs/worlds/travel-warp.jpg) the jump |
+| ![](docs/worlds/travel-approach.jpg) out of the jump: Vael ahead | ![](docs/worlds/travel-entry.jpg) the fire of entry |
+| ![](docs/worlds/travel-falling.jpg) the fall through its sky | ![](docs/worlds/travel-landing.jpg) down on its jets |
+| ![](docs/worlds/travel-walkout.jpg) out down the ramp | ![](docs/worlds/play-incal-ossa.jpg) the bottom of the shaft: Ossa, the splinter |
+| ![](docs/worlds/play-incal-splinter.jpg) on the palace, looking up: the splinter climbs home | ![](docs/worlds/play-incal-end.jpg) "The Light Nobody Looks At", done |
+| ![](docs/worlds/play-garage-upside-down.jpg) the Hangar's upside-down quarter, walked upside down | ![](docs/worlds/play-arzach-bird.jpg) on the bird's back over Vael |
+
+| web (three.js) | Unity (URP), the same viewpoint in play (`views-worlds.mjs`, `Play -tour`) |
+|---|---|
+| ![](docs/worlds/web-desert.jpg) | ![](docs/worlds/unity-desert.jpg) |
+| ![](docs/worlds/web-incal.jpg) | ![](docs/worlds/unity-incal.jpg) |
+| ![](docs/worlds/web-arzach.jpg) | ![](docs/worlds/unity-arzach.jpg) |
+| ![](docs/worlds/web-arzach2.jpg) | ![](docs/worlds/unity-arzach2.jpg) |
+| ![](docs/worlds/web-garage.jpg) | ![](docs/worlds/unity-garage.jpg) |
+| ![](docs/worlds/web-buried.jpg) | ![](docs/worlds/unity-buried.jpg) |
+| ![](docs/worlds/web-edena.jpg) | ![](docs/worlds/unity-edena.jpg) |
+| ![](docs/worlds/web-spheres.jpg) | ![](docs/worlds/unity-spheres.jpg) |
+| ![](docs/worlds/web-perdide.jpg) | ![](docs/worlds/unity-perdide.jpg) |
+| ![](docs/worlds/web-perdide2.jpg) | ![](docs/worlds/unity-perdide2.jpg) |
+| ![](docs/worlds/web-bazaar.jpg) | ![](docs/worlds/unity-bazaar.jpg) |
+| ![](docs/worlds/web-home.jpg) | ![](docs/worlds/unity-home.jpg) |
+
+Per world (what plays in the port; what of the web's own scripts is still missing):
+
+- **The Desert** (`desert`): the prologue, "The Tree That Drinks" to its end, the observatory, the errands, the relics (the first passes). Missing: the errands of the people near the start, the reactive flowers, the scout drone, the Givers’ House (its temple).
+- **The City-Shaft** (`incal`): its main quest "The Light Nobody Looks At" to its end: Nima, Ossa’s splinter at the bottom, Dov at the palace, looking up at the Lodestar (the splinter climbs home), Nima again; the keepsake. 1359 in the crowd (pooled), their conversations; 81 cabs on their lanes; the haze thickening down the shaft, the steeper sun inside it; the call-lamp lit by a shot. Missing: riding the cabs (hailing, Wren’s cab), the goods hoist’s swing, the Lodestar’s own glow and the city’s lamps coming on, the crowd looking up, the Warden’s Well.
+- **Vael** (`arzach`): Oïa (the opening), the bird to ride (take off, bank, dive, flap, land), the lone tower’s balcony; the feathers to pick up. Missing: the bird’s wing strokes, the rider’s whistle and her promise, the stone hand’s knuckles, the paper fronds.
+- **Vael II** (`arzach2`): Sister Aube (the opening), the bird to the monastery, the cairn’s stones as data. Missing: the bell and its rope, the lamp, the tiles, the cairn’s placing, the Founders’ Belfry.
+- **The Sealed Hangar** (`garage`): Ambroise (the opening), the turned gravity of the upside-down quarter and the ring, the portals between them, the signal posted in the relay box; the machines restarted by shots. Missing: each quarter’s own preset, the signal board’s glyph, the machines’ turning, the First Garage.
+- **The Buried Machine** (`buried`): Wen (the opening), the gauges cleared and the valve and jib by the fluid. Missing: the wheel turning, the crane, the key, the oculus, the canyon’s lifts.
+- **Viridel** (`edena`): Mira (the opening), grass blades, the new water with its bed, the seed and the sprout. Missing: the terraces’ flood, the water clock, the fallen ship’s log, the flowers answering.
+- **The Garden of Spheres** (`spheres`): Aube (the opening), the three spheres that remember (splashed), on to the plaza. Missing: the spheres’ sounds and the chord, the pebble and its glint, the mirror lake’s print.
+- **Lorn** (`perdide`): Wendel (the opening), the swamp’s water (its bed baked round you), wading and swimming. Missing: the hover-skiff, the crystals’ hum, the hush, the caves.
+- **Lorn II** (`perdide2`): Hollin (the opening), the three dark pools relit by shots, the moss and fen lamps. Missing: the skiff home, Pim’s door, the dome doors, the saucer.
+- **The Signal Market** (`bazaar`): Sel (the opening), 574 in the crowd with their conversations, the cabs, the sign and the crates by the fluid, the overhead sun of the street. Missing: the reactive screens, riding the cabs, the broadcast, the lanterns.
+- **Home** (`home`): opens by the web’s rule (six worlds done and the last recording, or the ending played); the round house, Lou and Tove, the things in the yard. Missing: the homecoming (the cockpit’s choice, the landing, the door, the stone); the recordings (the reel’s calls) that open it.
+
 ## A standalone build
 
 ```sh
@@ -478,24 +607,24 @@ writes the player's back buffer itself (`_TargetFlip`).
 
 ## What is missing (next steps)
 
-- **The traveller**: thrusting on the jets keeps the jump's pose (the web's
-  rig leans into the flight).
-- **The people**: the far figures have no brows (too small to see on the web too).
-- **The ship**: the map's other worlds can be chosen but not travelled to; the
-  ship's interior reads brighter than the web's (washed white round the table).
-- **The desert's smaller things**: the errands of the people near the start
-  (Ysa's crystal, Pell's sand: `quest.js` Errands), the reactive flowers
-  (`reactive-world.js`), the scout drone, the hover trails, swimming, the crowd's
-  own short conversations, the cactus spines, the sand puffs of the drum and the
-  mask. The story's intro and outro pages (the ending is a card).
-- **Not ported**: the dev menu, the other worlds, an Android build (what it
-  would need: above). The web title's own vista scene (the desert stands
-  in for it); mouse clicks on the menus (they take the keyboard and the pad).
-- **The look**: shadows are URP's, with a filter close to the web's
-  hand-rolled cascades but not the same. (Sun rays are in the composite,
-  `_Rays`, off in the desert's "Moebius print" preset as on the web;
-  `MementoLook.rays` is the web panel's slider.) The crowd's mid-distance
-  figures cast their shadows (the shadow pass poses them as the G-buffer does).
+- **The worlds' own scripts** beyond their main quests' data: see the list per world above. Most
+  worlds' opening steps and the fluid's stages play; the City-Shaft's main quest plays to its end.
+  The mounts other than the bird (Lorn's hover-skiff), riding the cabs, the temples (the gadgets wait
+  by the ship instead), the reel's recordings at the console (`calls.js`: they open home), the
+  homecoming, the reactive scenery (`reactive-world.js`), the scout drone.
+- **The ship**: its door and ramp are drawn lowered through the flights (one rigid export); the
+  interior reads brighter than the web's.
+- **The look**: the Hangar's quarters keep one preset (the web switches to "Animated ink" upside
+  down); the water's sparkle and its rings; the world's lamps and the Lodestar's glow driven by
+  their scripts; shadows are URP's, with a filter close to the web's hand-rolled cascades.
+- **The traveller**: thrusting on the jets keeps the jump's pose; swimming keeps the walk (no
+  strokes, no diving or breath).
+- **The people**: a few seated people stand (their seat); the far figures have no brows.
+- **The desert's smaller things**: the errands of the people near the start (`quest.js` Errands),
+  the cactus spines, the sand puffs of the drum and the mask; the story's intro pages.
+- **Not ported**: the dev menu, an Android build (what it would need: above; the exports are now
+  3.6 GB: an install-time asset pack per world, or streamed). The standalone build still packs the
+  desert scene (every world's export travels in its StreamingAssets). Mouse clicks on the menus.
 
 ## Connecting an MCP client to the editor
 
