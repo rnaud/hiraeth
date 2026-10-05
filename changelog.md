@@ -10,6 +10,7 @@ The same release notes shown in the game (press **N** or open settings).
 - Shadows on faces and necks are warm skin tones instead of blue-violet, and the whites of the eyes stay warm in shade.
 - Every people now has its own range of faces, rounder, longer or lined, with the odd freckled face in the crowd.
 - Your parents’ holograms look gentler too.
+- Every world now writes in its own script: the desert’s joined, flowing letters read right to left, the City-Shaft scratches runes, Vael barely writes at all, the Hangar stamps its letters, Lorn ties knots on a cord, the Spheres draw round signs, and so on. In a conversation each word appears in the speaker’s script as it is said and turns into your words a moment later, as the translator catches up, without the line jumping about.
 
 ## v0.58 — 2026-10-05
 
@@ -23,7 +24,6 @@ The same release notes shown in the game (press **N** or open settings).
 - Smoother frame rate everywhere, most of all close to metal, cracked rock and other detailed surfaces; nothing looks different.
 - No more stutter the first time you walk into a new place or turn to something new: everything is prepared while the world loads, and worlds load faster.
 - Grassy places no longer waste time redrawing every blade of grass each frame; stepping through a door no longer stalls while the grass appears.
-- Every world now writes in its own script: the desert’s joined, flowing letters read right to left, the City-Shaft scratches runes, Vael barely writes at all, the Hangar stamps its letters, Lorn ties knots on a cord, the Spheres draw round signs, and so on. In a conversation each word appears in the speaker’s script as it is said and turns into your words a moment later, as the translator catches up, without the line jumping about.
 
 ## v0.56 — 2026-10-05
 
