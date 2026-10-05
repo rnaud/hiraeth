@@ -133,7 +133,7 @@ for (const world of WORLDS) {
   const gaps = L.frames.filter(([at]) => at < L.booted).map(([, dt]) => dt);
   const r = {
     world, bootMs, booted: L.booted, long: before.length, over50: before.filter((l) => l.ms > 50).length, longMs: before.reduce((s, l) => s + l.ms, 0),
-    longest: top.map((l) => ({ ms: l.ms, at: l.at, stage: stageOf(l.at) })),
+    longest: top.map((l) => ({ ms: l.ms, at: l.at, stage: stageOf(l.at) })), longTasks: before,
     frames: gaps.length, maxGap: Math.max(0, ...gaps), stages: L.stages.map(([at, s]) => `${at} ${s}`),
     after: L.long.filter((l) => l.at >= L.booted).map((l) => l.ms),
     trace: L.frames.filter(([at]) => at < L.booted + 3000),

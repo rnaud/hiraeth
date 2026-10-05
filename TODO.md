@@ -276,6 +276,13 @@ Grouped by area. Checked items are done; the changelog says when.
   resolution, near shadows every other frame, City-Shaft trees split. Still to do with the device:
   re-measure every world, a thermal soak, and measure inside the app's own WebView 109.)
 
+- [x] The cave with the fluid always has bad FPS, though it's a small space. (The rooms reached through
+  portals are built a kilometre over the map and the whole desert below was still drawn behind the walls:
+  in the cave 425 draws and 0.47 M triangles, 0.27 M of them terrain smaller than a pixel. Now a room off
+  the map draws only itself (perf.js InteriorCuller, every world's temples and chambers): 87 draws and
+  0.09 M triangles; the passage hides the dome behind it; the fluid's shader without a scratch array.
+  README, "Rooms off the map draw only themselves". To confirm on the Retroid: the cave at 60 with the rest.)
+
 ---
 
 # Player feedback backlog, part 2 (2026-10-04)
@@ -478,6 +485,20 @@ All of this is for the web game; the Unity port follows later if we move to Unit
 - [ ] Switch the base bodies to MakeHuman (docs/makehuman.md, "What a full switch would take"): one
   parametric body with the macro targets, the face ink and hair fitted to it, the crowd figure and the
   levels of detail matched; animations and motion data kept.
+  - [x] Stage 1 (behind the studio's Body source and the game's `?mh=1`; the default people stay
+    Quaternius): one parametric body for everyone (`public/anim/mh/body.json` + `.bin`, 1.7 MB, 1.0
+    gzipped: MakeHuman's macro corners compressed, made into anyone on load, `src/makehuman/`); each
+    world's people by age, build and their world's proportions; MakeHuman's own ten CC0 hairstyles as
+    closed shells of a few locks with strand lines, and a beard from the jaw's skin, fitted to every
+    head; eyes opened and a little bigger; the Moebius face as MakeHuman targets (resting smile, finer
+    brows, warm shade and a child's bare face kept); the skinned levels of detail for shape-keyed
+    bodies. Comparison images in docs/makehuman/.
+  - [ ] Stage 2: costumes re-checked per body (hats, masks, robes on the heavy and the children), the
+    traveller's suit and gear (`suitGeometry`, `traveller.glb`) re-fitted or kept on the Quaternius
+    body, the GPU crowd figure's proportions (`packBody`) matched and a promoted crowd person given
+    their nearest MakeHuman body (age, build), the ragdoll's capsules and the cape colliders against the
+    new girths, the Unity export, the Lab's faces gallery, then the flip world by world (`?mh=1` the
+    default per world).
 
 ---
 
@@ -603,6 +624,64 @@ All of this is for the web game; the Unity port follows later if we move to Unit
     - The `grid` pattern on the hull reads as a regular lattice; the panel's plating is irregular.
     - The water draws even ripple strokes and pale ellipses everywhere; the panel's lake is large pale
       shallow shapes, inked round, darker in the cliff's shadow.
+  - Shader pass after the review (2026-10-05, for review; README "Shade and hatching by surface",
+    "Weathered walls", "Sand banked against things"):
+    - Fixed: a shade per surface (`makeMaterial({ shade, shadeHue })`, `SHADE`): a lift and an own
+      hue packed over the hatch strokes, a half-tone on forms turned from the sun and the ground's
+      bounce under overhangs (`uHalftone`, `uBounce`, `uShadeKeep`: Moebius print only). The desert
+      look no longer turns bone and sand blue; the tower cap's underside is a light half-tone.
+    - Fixed: hatching by surface (`hatch`: metal and sand fewer, the views' bones and sails flat), no
+      cross-hatching on lifted shades, strata rock with runs of strokes along its beds in the light.
+    - Fixed: rarer ripple patches and wind lines, the print's coarse dots only in patches, fissures on
+      bare rock ground (terrain `pattern: 'cracks'`: the lake's pink rock).
+    - Fixed: the print preset's lines thinner and broken (1.0 / 0.55), dune crests only where the slope
+      breaks (`uNormalThresh` 0.3), solid ink in the deepest crevices (`uCrevice`).
+    - Fixed: the flat sky's tint down to a narrow band on the horizon, its dots a grain, the paper's
+      tooth (`uPaper`).
+    - Fixed: plating (`plates: true`) on the views' and the desert's hulls, its station, the ship.
+    - Fixed: the water's crests in wind patches, gone far off (`WATER_INK`); the lake view's broad pale
+      shallows.
+    - Added (the author's two): weathered walls (`weathered`: cracks from storeys' tops and feet and
+      window corners, plaster patches; on for house fronts, Qanat's walls, the views' huts; never
+      metal, glass or the makers' work), and sand banked against things (`src/sand-drifts.js`: the
+      desert's and the views' solids, a fillet higher facing the wind, collided, its meeting line
+      drawn softly).
+    - Left: the print preset keeps its cumulus bank and clouds (the worlds' own; the views turn them
+      off). The half-tone can't tell a back wall inside another's cast shadow (it reads as half-tone,
+      the panel's is full shadow). Paper grain is screen-fixed, kept light (`uPaper` 0.7). Drifts are
+      in the desert, Vael, the Buried Machine and the views (the desert's are only outside Qanat's
+      paved streets); weathering is on the desert city, house fronts and the views, not yet on
+      home's or the Market's walls. The gorge panels' walls are in cast shadow from the
+      rim; ours are form-shaded (lighter now, with the half-tone).
+  - The other desert sheets (IMG_3772: 6 panels, IMG_3773: 8, IMG_3774: 7) are views 7–27
+    (`src/levels/reference-desert.js`, builders in `reference-kit.js`); compositions are sketches
+    (the umbrellas' undersides, the helmets' machinery, the blue heads' plating are simpler than
+    drawn). New shader-level differences they show:
+    - Shaded dune slip faces (IMG_3774 p3, IMG_3773 p1) are a dark flat tone covered in dense
+      directional strokes; our sand now hatches little in shade (`hatch` 0.55), right for the flat
+      dunes of IMG_3775 but too little for a slip face. A slope-dependent sand hatch would cover both.
+    - Canyon and cliff walls (IMG_3774 p5, IMG_3773 p3, IMG_3772 p3) are drawn with many vertical
+      cracks and strokes down the face; our strata draw horizontal beds with sparse fissures
+      (`fissures`: one run per 9 m). A denser, varied vertical crack mark for strata.
+    - IMG_3774's cast shadows are near-black ink masses with a hard edge; ours are the shadow tint
+      (a view could darken its tint; a world-level "ink shadow" option is missing).
+    - Far dunes on the horizon are a pale lilac-cream band (IMG_3774 p1, p7): aerial perspective
+      that turns the far ground toward a light warm tone, not the sky's.
+  - Done from that list (for review): slip faces hatched again (`SHADE.slip`), the desert's far haze a
+    pale warm band (`uHaze`, `DESERT_LOOK`), its cumulus bank and clouds off.
+  - The City-Shaft (IMG_3778–3782: 1 + 5 + 5 + 5 + 7 panels) are views 28–50 (`reference-shaft.js`).
+    - Shader-level, done: flat printed shadows (`uShadowFlat`, the views use it), the façades' window
+      share (`windows`), views at a pitch and roll. On the world: fewer windows, less hatching, no
+      cumulus.
+    - Shader-level, left: flat shadow per material (the world's trees go grey-blue with it on, so the
+      world doesn't use it yet); the sheets' faces carry fine vertical cracks and pipes (weathering is
+      sparse beside them); the deep shaft views fade to a pale blue haze with depth (our fog is by
+      distance, not by depth down the shaft); a few lit faces at grazing angles show a dotted
+      texture (to look into).
+    - Scene-level: the game's City-Shaft is a round cream-and-blue pit with a spire, terraces and a
+      hill-town, the sheets' a canyon of pink and cream stacked houses with water below; the views'
+      houses are boxes (no pipes, balconies, laundry or the plating under the overhangs), the
+      cabs and blimps simple capsules.
 
 # Transitions and moments (2026-10-05, web)
 
@@ -619,5 +698,32 @@ All of this is for the web game; the Unity port follows later if we move to Unit
   24 ms with the main thread given back between them; the first frame's uploads are done behind the
   loading screen. The pen already turned on the compositor: checked through a 900 ms task.
   `scripts/transition-perf/loading.mjs`.)
-- [ ] A few moments deserve a little cinematic: the first time the magic water flows into the basin in
+- [x] A few moments deserve a little cinematic: the first time the magic water flows into the basin in
   the cave, and the first time you fill the tank and discover what it does.
+  *Done: a reusable moment helper (`src/story/moment.js`: panels, eases, holds, the letterbox, a
+  skip with B / Menu / Esc / a tap, once per save, falling back to the old behaviour), and the
+  desert's two (`src/story/desert-moments.js`): the rib rolling off, the crack, the water down the
+  gutter and spreading over the basin, his face, to the world's motif; the empty tank filling in
+  three colours, the bracer's rings, a first glob, his face, to the father's theme, then the
+  controls. README, "Moments: first times, filmed".*
+
+# HUD (2026-10-05, web)
+
+- [x] No persistent icon or text on the screen: the status box (place, objective, distance,
+  relics, gauges) is gone. Health shows while hurt or healing, stamina while not full, the tank's
+  pips beside the traveller while aiming, shooting, using the jets, refilling or switching mode,
+  each fading after; the FPS readout is off by default (a setting, F, `?fps=1`); the gear only on
+  touch, small and faint; the keyboard help is the menu's Controls page. Prompts only near
+  something usable (the cue line for the ones with nothing to float over), toasts as before.
+  *Done: `src/hud.js`, README "Nothing on the screen; the scout finds the objective".*
+- [x] The drone finds the quest: Q / Y / △ / touch ping (on foot, riding, flying) sends the scout
+  a little way towards the objective (or over it when near); it hovers, points its lens beam at
+  it, drops a flare there for a few seconds, chirps, names it and the distance on the cue, then
+  docks. Nothing to find: a shrug, "Nothing to find here". *Done: `Scout.ping` / `FIND`,
+  `Flare`; it finds the tracked or main quest's step, the observatory, the story goal, the ship.*
+- [x] The quest log in the menu: a Quests page (where to go, the father's charge, current quests
+  and their steps, done ones struck through, failed ones marked), reachable by controller, a
+  quest chosen there tracked. The sketchbook is unchanged. *Done: `SettingsMenu.page('quests')`.*
+- [x] The world's beacon: kept (it is in the world, a landmark, and the only sign of a goal in a
+  world without step-by-step quests); the cyan quest marker, which did hang in the air, now shows
+  only for a while after the drone has found the objective (`QuestMarker.reveal`).

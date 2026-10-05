@@ -737,6 +737,15 @@ export const MURMURS = {
   // the spark-stone in the well: the tree catches (src/story/desert.js)
   lit: ['~shout~ It burns! It burns!', '~surprised~ Look at the colours!', '~happy~ It’s cool! The fire’s cool, feel it!', '~shout~ Ring the bells! Somebody ring the bells!', '~solemn~ It came back. It came back.', '~playful~ I said it would. I said so.'],
 };
+/**
+ * The traveller's own words in the desert's two first times, filmed (src/story/desert.js, src/story/moment.js):
+ * the water running into the giant's basin, and the empty tank filling in it.
+ */
+export const MOMENT_LINES = {
+  flow: '~surprised~ It’s running. Out of the wall, down the gutter, into the basin… like the giants on the mural.',
+  fill: '~whisper~ It’s filling…',
+  full: '~happy~ Full. So that’s what it was waiting for.',
+};
 
 // People outside the quests only talk, and you only listen (src/story/dialogue.js pickListen): one
 // entry a talk, the next one the next time; an `after` is news, said first once it holds.

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, MODE_STRATA } from './materials.js';
+import { SandDrifts } from './sand-drifts.js';
 import { mulberry32 } from './noise.js';
 import { STORY, processionLoop } from './desert-sites.js';
 import { cityFloor } from './desert-landmarks.js';
@@ -148,7 +149,7 @@ class Kit {
     this.batches.get(mat).push(g);
     return this;
   }
-  solid(geo) { this.proxies.push(prep(geo).applyMatrix4(this.frame)); return this; }
+  solid(geo) { const g = prep(geo).applyMatrix4(this.frame); this.proxies.push(g); SandDrifts.current?.addGeometry(g); return this; }
   both(mat, geo, proxy) { this.add(mat, geo); this.solid(proxy ?? geo.clone()); return this; }
   flush() {
     const meshes = [];
@@ -170,9 +171,9 @@ class Kit {
 // ------------------------------------------------------------------ materials
 function materials() {
   return {
-    wall: makeMaterial({ color: '#f0d7c3', color2: '#e8c4ae', color3: '#f6e6d6', mode: MODE_STRATA, strataSize: 2.4, flat: true }),
+    wall: makeMaterial({ color: '#f0d7c3', color2: '#e8c4ae', color3: '#f6e6d6', mode: MODE_STRATA, strataSize: 2.4, flat: true, weathered: true }),
     wallGlyph: makeMaterial({ color: '#efd8c4', color2: '#e3bfa8', color3: '#f6e6d6', mode: MODE_STRATA, strataSize: 1.2, flat: true, grid: 1.4, glyphs: true }),
-    terrace: makeMaterial({ color: '#ead2bc', color2: '#dfbea4', color3: '#f3e1cd', mode: MODE_STRATA, strataSize: 1.1, flat: true }),
+    terrace: makeMaterial({ color: '#ead2bc', color2: '#dfbea4', color3: '#f3e1cd', mode: MODE_STRATA, strataSize: 1.1, flat: true, weathered: 0.8 }),
     paving: makeMaterial({ color: '#e9d6bf', grid: 2.2, flat: true }),
     white: paint('#f6efe0'), pink: paint('#e9a99a'), rose: paint('#dd8f86'), ochre: paint('#e6b86f'), teal: paint('#5fb7ad'), lav: paint('#b7a0cf'),
     // domes are smooth (no facets on the shadow line)
@@ -661,6 +662,15 @@ export function buildDesertCity(scene, terrain) {
   const cv = {};
   {
     const POOL = 12.5, ROOM = 30;
+    // the entrance passage on the +z side (the way back to the skull). First into the batches: from the
+    // passage its walls hide the dome's far side and the room's floor, and drawn before them they keep
+    // the GPU from painting those first (a third more fragments in the passage)
+    cave.both(M.cave, new THREE.BoxGeometry(2.2, 6, 12).translate(-3.6, 3, ROOM + 4), new THREE.BoxGeometry(2.2, 6, 12).translate(-3.6, 3, ROOM + 4));
+    cave.both(M.cave, new THREE.BoxGeometry(2.2, 6, 12).translate(3.6, 3, ROOM + 4), new THREE.BoxGeometry(2.2, 6, 12).translate(3.6, 3, ROOM + 4));
+    cave.both(M.cave, new THREE.BoxGeometry(9.4, 1.5, 12).translate(0, 5.6, ROOM + 4));
+    cave.both(M.caveFloor, new THREE.BoxGeometry(5, 0.5, 12).translate(0, -0.25, ROOM + 4));
+    cave.add(M.ink, new THREE.PlaneGeometry(5, 4.8).rotateY(Math.PI).translate(0, 2.4, ROOM + 9.9));
+    cave.solid(new THREE.BoxGeometry(6, 6, 0.5).translate(0, 3, ROOM + 10.2));
     // the floor: a shallow basin in the middle
     const prof = [[0, -1.7], [POOL - 2, -1.6], [POOL, -1.1], [POOL + 2.2, 0], [ROOM + 2, 0], [ROOM + 2, -1]];
     const fl = lathe(prof.map(([r, y]) => [r, y]), 36);
@@ -726,13 +736,6 @@ export function buildDesertCity(scene, terrain) {
       rootTips.push(cave.world(tip.x, tip.y + 0.5, tip.z));
     }
     cave.add(M.bark, taper([V(0, 19, 0), V(0.8, 13, -0.6), V(-0.5, 6, 0.5), V(0.2, -0.9, 0)], 1.25, 0.3, 18, 8));
-    // the entrance passage on the +z side (the way back to the skull)
-    cave.both(M.cave, new THREE.BoxGeometry(2.2, 6, 12).translate(-3.6, 3, ROOM + 4), new THREE.BoxGeometry(2.2, 6, 12).translate(-3.6, 3, ROOM + 4));
-    cave.both(M.cave, new THREE.BoxGeometry(2.2, 6, 12).translate(3.6, 3, ROOM + 4), new THREE.BoxGeometry(2.2, 6, 12).translate(3.6, 3, ROOM + 4));
-    cave.both(M.cave, new THREE.BoxGeometry(9.4, 1.5, 12).translate(0, 5.6, ROOM + 4));
-    cave.both(M.caveFloor, new THREE.BoxGeometry(5, 0.5, 12).translate(0, -0.25, ROOM + 4));
-    cave.add(M.ink, new THREE.PlaneGeometry(5, 4.8).rotateY(Math.PI).translate(0, 2.4, ROOM + 9.9));
-    cave.solid(new THREE.BoxGeometry(6, 6, 0.5).translate(0, 3, ROOM + 10.2));
     // the channel: a stone gutter on vertebrae, from a crack in the wall down to the pool
     const CH = { from: V(27.5, 3.4, -6), to: V(POOL - 0.6, -0.3, -2.6) };
     const chDir = CH.to.clone().sub(CH.from), chLen = chDir.length(); chDir.normalize();
@@ -803,7 +806,9 @@ export function buildDesertCity(scene, terrain) {
       origin: O, poolCenter: cave.world(0, -1.25, 0), local: (x, y, z) => cave.world(x, y, z), poolR: POOL - 1, pool, poolMat, poolLight,
       bone: bonePivot, boneAt: bonePivot.position.clone(), boneRest: { pos: bonePivot.position.clone(), rot: bonePivot.rotation.clone() },
       boneAside: cave.world(boneAt.x - chDir.z * 3.4, -0.1, boneAt.z + chDir.x * 3.4),
-      stream, streamMat, chDir, rootTips, mural: cave.world(-17.5, 0, 20.5).add(V(Math.sin(Math.PI * 0.8) * 2.5, 0, Math.cos(Math.PI * 0.8) * 2.5)),
+      stream, streamMat, chDir, rootTips,
+      // the stream's way: its head at u (0 the crack, 1 the pool's edge), and the crack it runs out of (a moment frames them: desert.js)
+      streamAt: (u, out = V(0, 0, 0)) => out.copy(cave.world(...along(THREE.MathUtils.clamp(u, 0, 1), -1.0).toArray())), crack: cave.world(29.6, 3.6, -6.4), mural: cave.world(-17.5, 0, 20.5).add(V(Math.sin(Math.PI * 0.8) * 2.5, 0, Math.cos(Math.PI * 0.8) * 2.5)),
       inside: cave.world(0, 0.05, ROOM + 5.5), exit: cave.world(0, 0, ROOM + 9.3), group: cave.group, root,
       // the water (desert.js drives these): dry (the bed) until the channel opens, then up to high
       levels: { dry: -1.7, high: -0.35 }, level: -1.7, flow: 0, basinR,

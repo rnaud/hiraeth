@@ -19,7 +19,9 @@ globalThis.document ??= { createElement: el, body: el(), getElementById: () => n
 const { Humanoid, prepareHuman } = await import('../../src/humanoid.js');
 const { buildCharacter } = await import('../../src/player.js');
 const { libraryFrom, Animator } = await import('../../src/animator.js');
-const { prepareMakeHuman } = await import('../../src/makehuman/body.js');
+const { parseBody } = await import('../../src/makehuman/body.js');
+const { personTemplate } = await import('../../src/makehuman/people.js');
+const { MH_PRESETS } = await import('../../src/studio/makehuman.js');
 
 const parse = async (path) => {
   const b = await readFile(new URL(`../../public/${path}`, import.meta.url));
@@ -32,12 +34,14 @@ const JOINTS = {
 const CLIPS = ['Walk_Loop', 'Sprint_Loop', 'Climb_Up_Loop', 'ClimbLedge', 'Jump_Start', 'Idle_Loop'];
 
 const lib = libraryFrom(await parse('anim/ual.glb'));
-const manifest = JSON.parse(await readFile(new URL('../../public/anim/mh/people.json', import.meta.url), 'utf8'));
+const bin = await readFile(new URL('../../public/anim/mh/body.bin', import.meta.url));
+const data = parseBody(JSON.parse(await readFile(new URL('../../public/anim/mh/body.json', import.meta.url), 'utf8')), bin.buffer.slice(bin.byteOffset, bin.byteOffset + bin.byteLength));
 const bodies = [
   { name: 'Quaternius m', kind: 'm', template: prepareHuman((await parse('anim/human_m.glb')).scene, 'm') },
   { name: 'Quaternius f', kind: 'f', template: prepareHuman((await parse('anim/human_f.glb')).scene, 'f') },
 ];
-for (const e of manifest.people) bodies.push({ name: `MakeHuman ${e.id}`, kind: e.kind, template: prepareMakeHuman((await parse(`anim/mh/${e.id}.glb`)).scene, e) });
+// the MakeHuman parametric body (src/makehuman/), as the studio's presets
+for (const e of MH_PRESETS) bodies.push({ name: `MakeHuman ${e.id}`, kind: e.kind, template: personTemplate(data, e) });
 
 function audit({ template, kind }) {
   const char = buildCharacter();

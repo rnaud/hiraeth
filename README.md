@@ -311,7 +311,10 @@ Three passes per frame (`src/main.js`):
      are offset by a noise field for a hand-inked wobble. "Line boil"
      re-rolls that noise at 8 fps.
    - **Two-tone cel shading.** Lit areas show the pure albedo. Shadowed
-     areas show albedo × a lavender shadow tint, a very Moebius choice.
+     areas show albedo × a lavender shadow tint, a very Moebius choice;
+     each surface lifts and warms it its own way (a half-tone on forms
+     turned from the sun, the bounce under overhangs: "Shade and hatching
+     by surface").
    - **Hatching** takes the surface-anchored strokes from `RT2`: pen strokes
      in the shade, and cross-hatching in the darkest areas. Hatching fades
      out with distance. The panel's "hatch anchoring" option switches back
@@ -410,8 +413,10 @@ poses update at 12 fps ("stop-motion anim") while movement stays smooth.
 - **Story** (`src/quest.js`, `src/levels/content.js`):
   - each world has one quiet goal, marked by a beam of light, with its
     distance in the HUD;
-  - a first visit opens a wordless three-panel comic page, rendered live
-    from the game, and reaching the goal opens the closing page.
+  - a first visit says the world's title and opening words as a toast, and
+    reaching the goal its closing words (the closing moment is drawn into the
+    sketchbook); until October 2026 these were three-panel comic pages that held
+    the screen. A long toast stays up longer (`toastSeconds`, up to 9 s).
 - **Relics:** five per world, often on rooftops, mesas or trees you have to
   climb. Picking one up sketches the moment into your **sketchbook**: press
   **J** to open it. Progress is saved in `localStorage`.
@@ -463,7 +468,7 @@ Modelled on a classic Moebius desert plate:
   cumulus sitting on the horizon;
 - pen-dotted sand with pebbles, ochre scrub bushes, and blue-grey hatched
   shadows;
-- fine, even ink lines, and fold lines drawn down the cape;
+- fine, broken ink lines, solid ink in the deepest crevices, and fold lines drawn down the cape;
 - the wide-brimmed pointed hat;
 - a saucer tower and a pale spired city on the horizon;
 - an open plain around the desert start, with landmarks set back from it;
@@ -613,7 +618,7 @@ rest; three carry fragments of the keeper's story. In the open chamber,
 stand beside each lens and press **E** (or tap the touch E button) to turn it.
 Aim all three beams at the central receiver. Each aligned beam lights a ring
 and illuminates the room. The roof unfolds over five seconds, a constellation
-appears, and a comic page records the moment. Glide back to the traveler to
+appears, and the moment goes into the sketchbook. Glide back to the traveler to
 finish the expedition.
 
 The existing masked-head story remains available. The new expedition keeps
@@ -1426,7 +1431,19 @@ panel, so the shaders can be checked against the look they are after. It starts 
 panels of `references/The Desert/environement/IMG_3775.JPG` (`REFERENCE_VIEWS` in
 `src/levels/reference-views.js`): the bones in the dunes, the fluted tower and its dishes, the
 rope bridges over the gorge, the sail tents, the turquoise lake under the violet cliffs, the
-buried hull.
+buried hull. Then the desert's three other environment sheets, panel by panel
+(`src/levels/reference-desert.js`, `DESERT_VIEWS`): IMG_3772 (six: the ribs on the dune crest,
+the blue saucers over the spired city, the rope bridge over the ochre gorge, the petal station,
+the salt lake under the violet table, the station of domes and masts), IMG_3773 (eight: the
+ribcage between the dunes, the pink umbrella city, the bridge over the shaded canyon, the poles
+on the pink plain, the fallen pod, the lagoons under the violet mesas, the stream in the red
+canyon, the two buried helmets) and IMG_3774 (seven: the ribcage in the dune's hollow, the pink
+dishes over the blue domes, the bridge over the dunes, the dish station, the slot canyon, the
+turquoise pool in the violet cliffs, the buried blue heads): 27 views, `[ ]` cycling through them
+sheet after sheet. The shapes the sheets draw again and again (ribcages, dishes on stems, gorge
+walls, bridges, domes, petals, machine heads, table cliffs) are builders in
+`src/levels/reference-kit.js`. The views lie on a square grid 3.3 km apart (`VIEW_SPACING`), so
+neighbours stay over 3 km apart.
 
 - **A view** is a panel: its crop of the sheet, its ground (a height function drawn as rings round
   the camera, fine underfoot and coarse at the horizon), what stands on it (built with the Lab's
@@ -1438,7 +1455,7 @@ buried hull.
   and high): the view's hour is the morning hour of that elevation (`sunHour`) and its group is
   turned about the vertical so the sun of that hour stands on that side (`sunTurn`). Nothing in the
   renderer is special-cased: the views are scenery, colour scripts, hours and presets.
-- **The views** lie on a ring 4.5 km out (`VIEW_RING`); only the one you are in is drawn.
+- **The views** lie on a square grid, 3.3 km apart (`VIEW_SPACING`); only the one you are in is drawn.
   `[` and `]` (L3 / R3 on a pad) fade to the previous / next view and hold the camera on its
   panel (the traveller hidden where the camera stands); walk or look and the camera is yours
   again. `?view=<n>` opens on view n. The frame keeps the panel's proportions: on a screen
@@ -1449,8 +1466,114 @@ buried hull.
   cropped with CSS (`cropStyle`).
 - `?look=desert` draws every view in the desert's own palette and plain Moebius print preset
   (blue-grey shadow tint, cumulus bank, clouds), to see what the shaders do unaided.
-- `tests/references.test.js`: the level registers as a dev level, IMG_3775 has six views whose
+- `tests/references.test.js`: the level registers as a dev level, the four sheets have their 6, 6, 8 and 7 views (in order, not overlapping), whose
   cameras put the horizon where the panel has it, each sun comes from its side, `[ ]` and `\` work.
+
+### Shade and hatching by surface (after the references)
+
+The review of IMG_3775's six panels against their rebuilt views found what the shaders couldn't do;
+all of it is in the game's own materials and post pass (every world uses it), not in the level.
+
+- **Each surface its own shade** (`SHADE`, `shadeOf` in `src/materials.js`): post.js used to shade
+  everything as albedo × the world's one shadow tint, so the desert's blue-grey turned bone and sand
+  blue. Now a shaded pixel carries a *lift* (how far toward its lit colour) and a *hue* (how much
+  of its own colour it keeps: the tint's darkness, a little warm). The material gives its own
+  (`makeMaterial({ shade, shadeHue })`; metal and sand keep more of their hue by default), and the
+  light's geometry adds two: a **half-tone** on a form turned from the sun under no cast shadow
+  (`uHalftone`, less on its far side past `SHADE.band`), and the **ground's bounce** on faces turned
+  down (`uBounce`: a cap's underside is a soft half-tone, the ground under it the full shadow). The
+  presets set them with `uShadeKeep`, the hue where a material doesn't say (only Moebius print has
+  them; every preset lists them, so switching zones never keeps the last one's). They travel packed
+  over the hatch strokes: `gHatch.r += 2 × (1 + hue step)`, `gHatch.g += 2 × lift step` (15 and 8
+  steps; the strokes stay 0..1, the half-float buffer holds it under 32), and a pixel with nothing
+  packed (other shaders, grass) takes the defaults. A face keeps its own warm shade (`FACE_SHADE`).
+- **Hatching by surface**: `hatch` (0..1) scales a material's shadow strokes (metal 0.35 and sand
+  0.55 by default, the references' bones and sails fewer); a lifted shade gets fewer strokes and no
+  cross-hatching (a whole wall in half-tone is no longer a field of crossed lines); strata rock
+  (`strataHatch`, on by default) keeps runs of strokes along its beds in the light.
+- **Calmer ground** (`GROUND` in `src/ground-ink.js`): rarer ripple patches, fewer long wind lines,
+  the print look's coarse dots only in patches (`GROUND.dots`), and bare rock ground (terrain with
+  `pattern: 'cracks'`) draws long fissures and a finer broken net close by (`rockFissures`) instead of
+  dots.
+- **Lines**: the print preset's ink is thinner and more broken (`uLineWidth` 1.0, `uLineVary`
+  0.55), soft dune crests are left uninked unless the slope breaks (`uNormalThresh` 0.3), and the
+  deepest crevices (between ribs, into a hull's machinery) are filled solid (`uCrevice`, from the
+  crease shading).
+- **Sky and paper**: the flat printed sky keeps its tint down to a narrow band on the horizon; its
+  dots are a grain (anywhere in their cell, several sizes and weights, thicker and thinner in
+  drifts) rather than a screen; the paper has a tooth (`uPaper`: a fine mottle and pits, on the light
+  colours).
+- **Plating** (`makeMaterial({ grid, plates: true })`, `S_PLATES`): the grid drawn as rows of plates
+  of uneven widths, staggered joints, the odd joint or seam left out, each plate a shade apart (under
+  the colour-edge threshold). On the desert's hulls, its station domes, the ship's hull, the
+  reference wreck.
+- **Water** (`WATER_INK`, `src/water-shader.js`): the wave crests only in the patches the wind
+  ruffles (drifting downwind), the rest flat, and gone far off; the lake view's bed makes broad pale
+  shallows, which post.js inks round.
+- `tests/shade.test.js`: the packing round trip, the materials' defaults, every preset's tones, the
+  ground marks, weathering's rules; `tests/surface-spec.test.js` the new defines.
+- **Cost** (M4 Pro, ANGLE Metal, 1280 × 720, the camera pinned at spawn and turned, three runs each
+  alternating with the build before; throughput: six frames back to back to a one-pixel read):
+  desert High 6.3 → 6.0 ms and 6.7 → 5.6 ms, City-Shaft High 8.7 → 9.3 and 5.2 → 6.5, desert
+  Handheld 3.2 → 3.3 and 3.1 → 2.9, City-Shaft Handheld 8.6 → 7.8 and 5.9 → 6.8 (the machine's
+  run-to-run spread is ±30 %). The new work is behind defines (weathering, plating) or cheap
+  branches (crevices, paper, the strata strokes only lit and near); the handheld's paper is one tap.
+
+### The City-Shaft's sheets, and three desert touches
+
+- **The views** (`src/levels/reference-shaft.js`, `SHAFT_VIEWS`): IMG_3778 (one plate) and IMG_3779
+  to 3782 (5, 5, 5 and 7 panels), 23 views after the desert's 27, grouped by world (the label names
+  the world, the sheet and the panel). One scene builder (`shaftScene`) does them all: walls of
+  stacked houses jutting out by their own amounts, free stacks with houses clinging to their faces,
+  overhanging slabs, awnings, walkways, cables, flying cabs, the shaft's water. Many look steeply up
+  or down: a view's camera may give `pitch` and `roll` (deg) instead of a horizon. The blocks cast
+  no shadow and a wall turned from the sun casts none of its slabs, so a street stays in the sun as
+  on the sheets. The views lie on a grid now (`VIEW_SPACING`), and `?view=n` opens on that view's
+  own hour.
+- **Flat printed shadows** (`uShadowFlat`, post.js): 0 is albedo × the shadow tint; 1 is the tint
+  itself at the surface's value, the way the sheets print the shaft's shade in one blue whatever
+  the wall's colour. Off in every preset; the views' `SHAFT_LOOK` uses it. (Tried on the City-Shaft
+  world: its trees turn grey-blue, so it stays off there until it can be set per material.)
+- **Windows** (`makeMaterial({ windows })`): the share of a façade's cells with a window (0.78 as
+  before); the sheets' houses and the City-Shaft's have fewer.
+- **Far haze** (`uHaze`: rgb, amount): the colour distant ground fades to, instead of the sky's
+  horizon. The desert's look (`DESERT_LOOK` in `desert-sites.js`, also `?look=desert`) sets a pale
+  warm band and turns the print preset's cumulus bank and clouds off, as its plates.
+- **Slip faces**: sand's few shadow strokes (`hatch` 0.55) go back to full on steep slopes
+  (`SHADE.slip`), so a shaded slip face is hatched and flat sand isn't.
+- A zone's touches (`zone.look`) now start from the preset each time, so one view's never carry
+  into the next.
+
+### Weathered walls
+
+The reference cities look old and lived in. `makeMaterial({ weathered })` (0..1, `S_WEATHER`,
+`weatherInk` in `src/materials.js`; `WEATHER`, `weatheredOf`): on upright faces, in cells of the wall
+anchored in the world (so each building has its own), the odd crack runs down from a storey's top
+or up from its foot, jagged and thinning, with a branch now and then; a crack runs out from the
+corner of the odd window (house fronts, `pattern: 'facade'`); and a few patches where the plaster
+has gone, a shade apart, edged with a broken pen line. They fade out once under a pixel. On by
+default for house fronts and on the desert city's walls and terraces and the references' huts;
+never on metal, glass, lights or the makers' work (their inscriptions).
+
+### Sand banked against things
+
+In a sandy world what stands on the ground sits in it (`src/sand-drifts.js`). While a world is
+built, `SandDrifts.open()` collects the solids its builders add (the desert's Kits in
+`desert-city.js` and `desert-landmarks.js`, the Lab kit `RoomKit` in the references): each is cut at
+its foot (the vertices in its bottom band, joined by the triangles they share, so an arch's two feet
+stay apart and no drift runs across its passage), each part's convex hull a footprint (posts,
+crates, slabs and anything off the ground skipped). Round each, a drift: `rise` at the wall (higher
+facing the wind, `SAND_WIND`, wandering along the wall), falling off along (1 − u)² to nothing
+`reach` × rise out, so it meets the ground tangent and never steepens into the terrain's rock colour
+(`maxSlope`); a share of corners carry a bigger drift. The skirts are one mesh per 160 m square
+(culled by the view), drawn in the ground's own material (`driftMaterial`: same marks, same
+patches) with a polygon offset, and collided (you walk up them). Their pixels carry +32 in
+`gHatch.a`; post.js draws the line where they meet a wall in a darker shade of the sand and lighter.
+Where there's no drift (past its reach, or a `mask`: none in Qanat's paved streets) no skirt is
+built. A world that builds its meshes its own way hands the whole scene over after it is built
+(`addScene`: every collided mesh in world space, a merged mesh's parts apart; render copies that a
+hidden collider stands for are skipped): Vael and the Buried Machine. In the desert 206 footprints
+(57 k triangles), Vael 214 (102 k), the Buried Machine 231 (138 k). `tests/sand-drifts.test.js`.
 
 ## Sound from the first frame (v0.39)
 
@@ -1768,6 +1891,53 @@ meshes that have them). In the studio: *Who → Body source: MakeHuman* and *Lin
 to Quaternius*. Only the studio uses them, and the build leaves `anim/mh/` out (`MAKEHUMAN=1` keeps
 it). The licences, the measurements (triangles, sizes, `skin-audit.mjs`'s skin weights in the
 clips), the screenshots and the recommendation: docs/makehuman.md. `tests/makehuman.test.js`.
+(The eight baked people are gone: stage 1 below makes them, and anyone else, from one body.)
+
+### MakeHuman bodies, stage 1: one parametric body, MakeHuman's own hair (`?mh=1`)
+
+The switch to MakeHuman goes in stages; stage 1 is in, behind the studio's *Body source* and the
+game's `?mh=1` (the game's default people stay Quaternius, the traveller always: his suit and gear
+are fitted to his body). docs/makehuman.md has the numbers, the pictures and what is left.
+
+- **One body for everyone** (`scripts/makehuman/build.sh`: `build.py` in Blender's background mode,
+  MPFB driving MakeHuman; `public/anim/mh/body.json` + `body.bin`, 1.7 MB, 1.0 gzipped, against 6.4 MB
+  for the prototype's eight people). The reference person is decimated once (12 000 triangles, the
+  head and now the hands kept finer) and every other shape of the full mesh maps onto that low mesh.
+  MakeHuman blends its macro targets multilinearly between corners (gender × age 1/11/25/90 ×
+  muscle × weight, height and proportions leaning each gender and age), so the build samples exactly
+  those 100 corners and packs their principal components (27, int16 then int8: no head point off by
+  more than 4 mm at any corner); a few targets of the reference go as sparse deltas (a belly, hips and
+  waist for the heavy, the face's targets). `src/makehuman/shape.js` turns who someone is into
+  MakeHuman's sliders (`personParams`: kind, years, build `MH_BUILDS`, their world's proportions
+  `WORLD_BODIES`) and those into the corners' weights (`nodeWeights`); `src/makehuman/body.js`
+  (`makeBody`, ~10 ms) makes the points, the skeleton (each bone at this person's joints, turned as
+  the reference's), the skinned body, eyes and brows with the face keys as morph targets, measures
+  the landmarks the face ink, the outfit and the hats need (`measure`), and hands Humanoid a profile.
+- **The game's people** (`src/makehuman/people.js`): `main.js` passes `[man, woman]` templates where it
+  passed the Quaternius pair; `NPC` asks the family for the person's own (`templateFor`: a story
+  child or elder by `def.age`, an elder's face, their build; their world). A pooled crowd body is a
+  grown-up of average build that takes each person's build as it goes (`profile.buildGeometry`, the
+  MakeHuman shape on the same skeleton). A child stands as tall as the story says (`heightFix`), keeps
+  only the ink of a Quaternius face morph (`filterFace`), and its face is drawn bare (`profile.young`).
+- **Hair** (`scripts/makehuman/hair.py`, `src/makehuman/hair.js`): MakeHuman's ten CC0 hairstyles,
+  fitted by MPFB, their alpha cards cut to the strands, thickened and voxel-remeshed into closed
+  shells with the style's cut, smoothed, decimated (2 000–3 300 triangles); the cards grouped into a
+  few big locks, a shallow groove along each border and, in the game, each lock its own normals there,
+  turned into the groove (`creaseNormals`): the ink pass draws the borders as a few strand lines. The
+  beard is the same kind of shell made from the jaw's own skin (the lips clear). Each shell vertex is
+  bound to the low body (triangle, barycentric weights, offset), fitted on load to any head, weighted
+  to the head, neck and upper spine only. The game's hairstyles map to the nearest one (`MH_HAIR`; the
+  topknots, buns and crest keep the game's own pieces on top; hats keep the game's cap under them).
+- **Faces**: MakeHuman's eyes opened (the upper lids lifted, the eyeballs 5% bigger, its eye-scale
+  target) so they read at a distance; the Moebius face as MakeHuman targets on grown-ups
+  (`MOEBIUS_FACE`: a longer chin, lean cheeks under clear cheekbones, a long straight narrow nose, a
+  firmer brow); the warmer faces kept (the resting smile on the shape keys, the brows tapered, the warm
+  shade, a child's bare face).
+- **Levels of detail** (`src/skinned-lod.js`): shape-keyed bodies get levels too, built without the
+  keys (far off a face has no expression to show); up close the full mesh, keys and all.
+- **The studio**: *Lineup → MakeHuman: every age and build* (`&mh=child,elder` for some ages) and
+  *every hairstyle* (and the beard), *Outfit* `l.mhHair` forces a style; the pairs lineup is the
+  presets of `src/studio/makehuman.js` (`MH_PRESETS`). `tests/makehuman.test.js`.
 
 ### Hands (`src/hands.js`)
 
@@ -1855,7 +2025,9 @@ vertical folds held the cloth out flat like a board, so the lower half lay sprea
 
 ## Android (offline APK)
 The game is also packaged as an Android app, for handhelds such as the Retroid
-Pocket. Their built-in controls work through the Gamepad API.
+Pocket. Their built-in controls work through the Gamepad API. Since NATIVE_API 6 the app runs
+the game in its own engine, GeckoView, and in the system WebView only where that can't run
+(see "The engine: GeckoView").
 - **Release workflow** (`.github/workflows/android.yml`): every push to `main`
   builds the web game, wraps it with Capacitor (`capacitor.config.json`,
   `android/`) and builds a signed release APK. The APK is published to the
@@ -1878,7 +2050,7 @@ Pocket. Their built-in controls work through the Gamepad API.
   and plays sound without an extra tap. `versionName` is the game version and
   `versionCode` is the build number (`release-info.mjs build`: the commit count; up to 117 it was
   the workflow run number).
-- **Local build** (needs JDK 21 and the Android SDK):
+- **Local build** (needs JDK 21 and the Android SDK with the API 37.0 platform, for GeckoView):
   ```
   npm run build && npx cap sync android && (cd android && ./gradlew assembleDebug)
   ```
@@ -2032,6 +2204,48 @@ updates now come from the Cloudflare site that serves the web game:
   `docs/steam-deck.md`).
 - Tests: `tests/web-update.test.js`, `tests/android-ota.test.js`, `tests/updates.test.js`,
   `UpdateRulesTest.java`, `tests/test_steam_deck.py`. The flip itself: `docs/cloudflare.md`.
+
+### The engine: GeckoView (NATIVE_API 6)
+The app ships its own browser engine now: GeckoView (Mozilla's, `org.mozilla.geckoview`, release
+channel, arm64), instead of the system WebView. On handhelds whose firmware pins an old WebView
+(the Retroid Pocket Nova: Chromium 109) the game missed 23–50 % of the refreshes in busy places
+(30–45 fps); in GeckoView 157 the same build misses 1–15 % (51–60 fps, a third less JS per frame) and
+loads in 12 s instead of 21 (docs/benchmark-web-vs-unity.md, "On the Retroid: GeckoView"). Chrome 154
+does better still, but the app can't use it.
+- **Two activities.** `MainActivity` (the launcher, so home-screen icons keep working) runs the game
+  in GeckoView. Where GeckoView can't run (not arm64, Android before 8, or GeckoView failed to start
+  here once: `MainActivity.usable`) it hands over to `WebViewActivity`, the Capacitor app as before.
+  `--ez webview true` forces the WebView (debug and bench builds).
+- **The page's origin** is `http://127.0.0.1:41730` (`MainActivity.ORIGIN`), served by the app's
+  loopback server (`AssetServer`): GeckoView can't intercept requests the way Capacitor serves
+  `https://localhost`, and pages from `resource://android/` get no content scripts. The port is
+  fixed for good (the saves are stored under the origin); if another app holds it, that launch runs
+  in the WebView. The server serves the APK's `assets/public/` or a downloaded bundle
+  (`WebBundles.Host.serve`), revalidated by ETags made of the build served.
+- **The bridge.** GeckoView has no `addJavascriptInterface` / `evaluateJavascript`: a built-in
+  WebExtension (`assets/memento-ext/`, a content script at `document_start` with a native port)
+  gives the page `window.Capacitor` (`isNativePlatform`, `nativePromise` → `AppShell.java`, shared
+  with `AppShellPlugin`), the controls (`GamepadBridge` → `window.__nativePad`), the app's events
+  (`moebius:pause` / `resume` / `webupdate`) and answers WebBundles' boot heartbeat. The page side
+  (`src/native-app.js`, `src/native-pad.js`) is unchanged.
+- **Saves, once** (`SaveImport`): on the first launch in GeckoView a hidden WebView opens a page of
+  Capacitor's origin that hands its localStorage to the app, and the game's next page starts with a
+  script that writes those keys into GeckoView's storage (keys already there are kept) and marks it
+  done (`moebius.imported.v1`). The WebView's storage is only read: the WebView fallback still has
+  the saves as they were.
+- **Gecko settings** (its config file, `writeConfig`): autoplay allowed (sound without a tap), no
+  slow-script stop (`dom.max_script_run_time` 0, and `onSlowScript` → CONTINUE: GeckoView's default
+  stops a script after ~10 s, which left the page dead), no pinch zoom, full-precision timers. Links
+  elsewhere open in the system browser.
+- **The build:** `geckoviewVersion` in `android/variables.gradle`; GeckoView 157 compiles against
+  API 37 (`compileSdkVersion` 37, `android.suppressUnsupportedCompileSdk=37` for the Android Gradle
+  plugin 8.13) and its androidx.core 1.19 would need the plugin 9.1, so the app forces the 1.17 it
+  had. Gecko's libraries are compressed in the APK (`useLegacyPackaging`): 9.5 → ~100 MB to download.
+  CI keeps the AAR in setup-java's Gradle cache and the API 37 platform in an `actions/cache`.
+- **Testing on a device:** a debug build takes `--es url http://localhost:6253/…` (the bench's
+  server) and has GeckoView's remote debugging on (Firefox's protocol, not DevTools). The bench's
+  harness drives the page itself instead (`scripts/bench/gecko-bridge.mjs`).
+- Tests: `tests/android-gecko.test.js`, `tests/native-app.test.js`, `tests/android-ota.test.js`.
 
 ### Updates that arrive, and the update section in the settings (NATIVE_API 4)
 Why updates used to arrive at random, and what changed:
@@ -2226,6 +2440,51 @@ game loaded from `http://localhost:5253/`, no APK updater; Gradle on Unity's JDK
 5253 / 9333, opens and closes its own Chrome tab, stops the perf app between runs, and never touches
 `com.rnaud.moebius`) and `node scripts/bench/android-engines-summary.mjs <raw dir>`. Afterwards
 `adb uninstall com.rnaud.moebius.perf`.
+
+### Rooms off the map draw only themselves (`InteriorCuller`, `src/perf.js`)
+The desert's cave was the one place the Retroid stuttered in every engine (GPU 96–99 % busy, a small
+room). The cause: the rooms reached through portals are built a kilometre or more over the map, and from
+in there the camera's frustum (5 km deep, looking level or a little down) takes in the desert below.
+Behind the cave's walls the game still drew it: in the passage 344 draws and 0.37 M triangles of terrain,
+city and flora, more than the open dunes draw in all (0.27 M). The 110 terrain tiles came first (their
+material sorts before the cave's), ~2 km away at under a quarter of a pixel a metre: 0.27 M triangles
+smaller than a pixel, each set up and shaded (in 2 × 2 quads) before the cave covered them. An Apple GPU
+hides most of that (hidden-surface removal); the handheld's Adreno doesn't.
+
+- **The fix** (all worlds): while the camera is inside a room off the map (`offMapRooms` in `main.js`:
+  portal destinations 200 m over the ground), `InteriorCuller` hides every mesh, point cloud and line whose
+  bounds don't reach the room, in every pass of that frame, then shows them again. A room's extent is found
+  once: the static meshes within 60 m of its door that stand 150 m clear of the ground, grown by 30 m at a
+  time (a temple's rooms in a row). The traveller, the drone and whoever is in the room stay; people, mounts
+  and anything left outside are hidden. Rooms only open onto the sky (oculi, door veils, windows over a
+  kilometre of air), so the picture is unchanged (screenshots of every room, both ways, with and without).
+- **In the cave**: 425 → 87 draws and 0.47 → 0.09 M triangles (Handheld; High 577 → 118, 0.57 → 0.13 M).
+  The passage's walls now go first into the cave's batches, so they hide the dome's far side instead of
+  being painted over it (fragments shaded in the G-buffer: 1.84 → 1.18 a pixel in the passage, 1.60 → 1.25
+  in the room, against 0.92 on the dunes). The fluid's lava (the pool, the stream, the tank) sums its blobs
+  tone by tone instead of into a local array indexed at run time (slow scratch memory on mobile GPUs; the
+  same picture, bit for bit), and the sun's sparkle pass no longer runs full-screen for the magic pool,
+  which has no glints to draw.
+- **Elsewhere** (`rooms.mjs`, Handheld, draws and triangles a frame, looking in from the door / back out
+  through it): every temple and chamber off the map gains, most where the world below fills the view. The
+  Hearth's hall 91 → 73 / 321 → 59 draws (445 → 63 k triangles looking out); the masked head's chamber
+  99 → 65 / 80 → 63; Edena's room 134 → 76 / 95 → 66; the temples 3–25 % fewer draws and 1–45 % fewer
+  triangles (the Givers' House 212 → 195 / 82 → 65 draws, 202 → 134 / 153 → 86 k triangles; the Aerie
+  252 → 203 / 107 → 63; the Hush-House 226 → 216 / 93 → 66). The ship parked on the dunes and the houses at
+  home stand on the map, with windows and an open hatch: what's outside is really seen there, so they keep
+  drawing it.
+- **On the Mac** (M4 Pro, Metal, 1280 × 720, `web-bench.mjs`): Handheld, the cave 3.0 → 2.1 ms a frame
+  (GPU 1.70 → 1.06 ms) against the dunes' 2.5–2.8 (GPU 1.4–1.5); High, 3.4 → 2.3 ms (GPU 4.6 → 3.2) against
+  3.3–3.6. With the GPU the bottleneck and its hidden-surface removal defeated (`passes.mjs --scale 3
+  --nohsr 1`, culling on and off in turns): the passage 14.9 → 11.6 ms, the room with the pool full
+  14.2 → 11.0, against the dunes' 16–17.
+
+To measure: `node scripts/bench/passes.mjs --url http://localhost:<port>/ --preset handheld --only
+cave,cave-room,cave-pool,dunes [--wet 1] [--scale 3 --nohsr 1] [--toggles base,noInterior,noShadow,…]
+[--eval snippet.js]` (each `renderer.render()` timed with the GPU timer, which on Metal mostly measures its
+own overhead, then the A/B toggles in turns; `--nohsr` adds a never-taken `discard` to every surface shader
+so an Apple GPU shades in draw order like the Adreno); `node scripts/bench/rooms.mjs --url … --shots dir`
+for every world's rooms off the map, culled and not. Tests: `tests/interior-cull.test.js`.
 
 ### Levels of detail far away (`src/lod.js`, `src/lod-core.js`)
 A distant building, rock or plant is drawn with a coarser copy of itself, never coarser than the
@@ -2584,7 +2843,7 @@ The course, the runs and the measures moved from `tests/gait-sim.js` into `src/g
   at the Great Crystal). `tests/signature.test.js` checks that every destination carries it.
 
 ### A quieter screen: conversations and prompts
-- **No button reminders.** The status box (`updateHud` in `src/main.js`) shows the place,
+- **No button reminders.** (Since v0.62 there is no status box at all: "Nothing on the screen" below.) The status box (`updateHud` in `src/main.js`) showed the place,
   gauges, the objective and relics, and a prompt only for what is right here (the ship's
   hatch and console, a lens); a ride's controls show for six seconds after you get on.
   The controller's button bar is gone except in photo mode; the full controls live in the
@@ -3649,6 +3908,232 @@ From the author's notes (TODO.md, "Feel and look"). Tests: `tests/feel.test.js`.
   on the edge right in front of you (`EdgeInk`, drawn with the wisps' material, depth-tested
   against the G-buffer), and the first lean of a session shows a line (`EDGE_HINTS`, per world,
   or the level's own `edgeHint`).
+
+### Nothing on the screen; the scout finds the objective (v0.62)
+
+The author's rule: no icon or text stays on the screen while you play. To find the quest you send
+the drone; for the quest log you open the menu. Tests: `tests/hud.test.js`, `tests/scout.test.js`.
+
+- **No status box** (`#hud` / `#status` and `updateHud`'s status line are gone; `src/hud.js`). The
+  world's name, the objective and its distance, relics x/5, the charge line and the gauges no
+  longer sit in the bottom-left corner. What is left comes only when it matters, then fades:
+  - **the cue** (`#cue`, `cueText`, `Cue`): one short line at the bottom (at the top on a phone,
+    where the toasts make room for it: cinema.js `OBSTACLES`) for what the use button does right
+    here when it has nothing to float over (the ship's ramp, hatch and console, a lens, the
+    backpack slotting in), a ride's controls for `RIDE_HINT_MS` after you get on, what the scout
+    just found, and a region's name as you cross into it (`PlaceName`: it must hold 1.5 s, and
+    the name where you arrive is not shown). Prompts with a place still float over it (`#prompt`).
+  - **health** (`#health`): while hurt or healing (`Fader(3)`), then fades; **stamina** as before.
+  - **the tank** (`ToolHud.gaugeShown`, `body.tool-gauge`): the crosshair and the pips while
+    aiming; without aiming, the pips alone beside the traveller (main.js `placeToolGauge`, left of
+    the shoulders as the stamina wheel is right) while the tank is short (a shot, a boost, the
+    jets burning: the pip being burnt shows what is left of it, until the refill), on a mode
+    switch, and an empty tank for `GAUGE_DRY` s; `GAUGE_LINGER` s after, it fades.
+  - **the frame readout** is off by default (`showFps: false`; settings saved before `hudV: 1`
+    lose the old default once, `migrateSettings`); F, the settings or `?fps=1` (this session
+    only) turn it on. `scripts/handheld-perf` sets it.
+  - **the menu's button** (`#gear`): only on a touch screen, small (30 px) and faint at 45 %
+    opacity; the keyboard has O / Esc, a pad Menu. The touch worlds button is gone (the menu's
+    Debug entry has it), and the keyboard help (H) is the menu's Controls page.
+  - The scout's floating label (`#scout-label`) is gone: the cue says what it found.
+- **The scout finds the objective** (`Scout.ping`, `FIND` in `src/scout.js`): Q, Y / △ on a pad
+  (on foot and now riding or flying too: controller.js sends `ping` from the top button in the
+  ride context), the touch "ping". It hops off its dock as before, flies to a lookout (`lookout`:
+  `FIND.out` m towards the objective from over your head, a little more at speed, carried with
+  your velocity; right over it when it is nearer than `FIND.near`), hovers and points its beak and
+  a thin lit **lens beam** at it (`updateBeam`: out to the objective or the first thing in the
+  way, at most `FIND.beam` m), drops a **flare** on the spot (`Flare`: a column of its light
+  shooting up and a ring that rings out, sized by the distance so it reads from far away, gone
+  after `FLARE.life` s), chirps (`sound.drone('found')`) and calls `onFind(target, metres)`:
+  main.js puts "◆ Madame Sel, under the silent tower · 320 m" on the cue for 5 s (`findText`,
+  `roughDistance`) and shows the quest marker for `MARKER_SECONDS`. After `FIND.point` s it comes
+  home and docks as before (`returnT` drives the safe recall now). Phases: docked → launch → seek →
+  point → return. Nothing to find (`getTarget()` null): `shrug()`, the eye opens, it lifts a few
+  centimetres off the dock and shakes itself (`FIND.shrug` s), "Nothing to find here".
+- **What it finds** (`nextObjective`): the tracked quest's objective (or the main quest's, or the
+  first active one: `Quests.objective`), routed through doorways; while the observatory expedition
+  is under way its steps first; then the world's story goal (its beacon); once the story is told,
+  the ship from more than 25 m away; else nothing. It never points at a relic any more: they are
+  yours to find. A quest with `background: true` (the makers' boxes, offered on arrival) is only
+  tracked when nothing else is or when you choose it, so a box doesn't take the scout from the
+  quest you are on.
+- **The quest marker** (`QuestMarker`, the cyan diamond over the tracked objective) no longer hangs
+  in the air all the time: `reveal()` shows it for `MARKER_SECONDS` after a find, then it fades.
+  **The world's beacon** (the gold column over a world's story goal, `Story.beacon`) stays: it is
+  part of the landscape, not the screen (a lighthouse you see across the dunes, drawn in the
+  world's ink and light), it is the one way a world without step-by-step quests shows its goal
+  before you think of asking, and it goes when the story is told.
+- **The menu's pages** (`SettingsMenu.page`): Quests, Settings (where it opens) and Controls, from
+  the side column. **Quests** (`o.quests()`, `questsPageHtml`): "Where to" (what the scout would
+  find, and how far), the father's charge and the quest log (the sketchbook's own sections:
+  `chargeJournalHtml`, `quests.journalHtml()`, steps done struck through, finished ones stamped,
+  failed ones under their own heading), and what you carry. Active quests are focusable
+  (`data-nav`, which `menuNavigate` steps onto): confirm or a click tracks one (`o.onTrack`).
+  **Controls** (`controlsList`, `controlsHtml`): every control for the pad (in Xbox / PlayStation
+  form), the keyboard and touch, the one in your hands first; H opens the menu there. B / ○ or
+  Esc on a page goes back to the settings, then out. The title's settings have Controls too.
+  The sketchbook (View, J) is unchanged.
+
+### Moments: first times, filmed (`src/story/moment.js`)
+A moment is a short cinematic (6–12 s) for a first time that deserves one, composed like a comic
+page: a few panels, the letterbox, a line or two, the traveller's face and hands in the line's
+tone, a swell of the world's score, then back to you.
+- **The helper.** `MomentStage` (one per world, `storyRt.moments`, handed to each world's setup
+  as `ctx.moments`) plays one `Moment` at a time on the ship's cinematic camera and its Cinema
+  (the same `ship.shot` / `ship.release` the box scene uses, the letterbox, the subtitles).
+  `moments.play({ id, flag, shots, beats, onStart, onFrame, onEnd })` returns the moment, or
+  null when it can't play (no ship's camera, a scene, a conversation or a story page up, the
+  traveller riding or down, its flag already set): the caller then does what it always did.
+  A shot is `{ dur, from, to?, ease?, clear? }`; `from` / `to` are frames `{ pos, look, fov }`,
+  Vector3s or functions of the shot's time (to follow a stream's head, a face); no `to` holds.
+  `shotAt(shots, t)` is pure (tested). Beats `{ t, line?, secs?, run? }` say a line (`spoken()`,
+  with its tone: the traveller's face and hands take it) or run a cue. `m.face` / `m.eyes` turn
+  him and his eyes; `m.look` holds a tone on his face; `faceOf(humanoid)` gives where his face
+  is and looks as posed, for close-ups that never catch an ear. While one plays the idle's
+  look-around waits, the game's toasts wait (`cinema.held`), input is cut (`storyRt.busy()`).
+- **Once, skippable, never in the way.** Its flag is set as it starts. B / ○, the Menu button,
+  Esc or a tap on the corner tag skips it, after a 0.6 s grace (the press that started it,
+  mashed, doesn't end it) and on the next frame (the key opens nothing else). An error in a
+  frame ends it at once; `onEnd(m, skipped)` always runs, and the state a moment shows is
+  applied by its caller for sure there (and on its beats), so a skip or a failure lands the
+  same as watching it. Nothing is compiled mid-shot: a moment only moves the camera and what
+  already exists (measured: `renderer.info.programs` unchanged through both, High and Handheld).
+- **Sound**: `sound.swell(kind, pos)` plays a phrase of the world's score over a growing pad
+  while the score and the bands step back: `'motif'` the world's leitmotif on its lead,
+  `'father'` the father's theme in the world's mode on its voice for it.
+- **The desert's two** (`src/story/desert-moments.js`):
+  - *the water's first run* (`desert.moment.flow`), when the rib comes off the channel: A, high
+    beyond the gutter, the rib rolling clear past the post and the traveller; B, a long lens up
+    the gutter from past its end, the crack lighting and the water coming down it (the flow
+    waits for this panel, `st.flowDelay`); C, high over the gutter's end across the basin, the
+    pool spreading over the dry bed round the roots, its light coming up; D, his face,
+    three-quarter, lit from below: "It's running… like the giants on the mural." The world's
+    motif swells over it; its toast comes after.
+  - *the empty tank's first fill* (`desert.moment.fill`), the first wade with the dry tank: A,
+    over the water at him standing in the pool; B, over his shoulder on the glass as the water
+    climbs into it slowly in three colours (`tool.fillTo` holds the glass's level), its glow on
+    his back; C, beside him: he lifts the bracer, its rings light one by one, and a first glob
+    (`tool.spark(dir)`, spending nothing) splashes out across the pool; D, his face: "Full. So
+    that's what it was waiting for." To the father's theme. The jar fills and the controls are
+    said (RT / R2, RB / R1) at its end.
+  - Tests: `tests/moment.test.js` (the shots, a play through, the skip and its grace, a failure,
+    the stage's refusals, and both desert moments in the story: once, skipped, without a ship).
+
+### Hand-overs and loads without a hitch (October 2026)
+
+From the author's notes (TODO.md, "Transitions and moments"). Measured with `scripts/transition-perf/`
+(headless Chrome on ANGLE Metal, muted, the game's sound at 0; see the scripts' headers).
+Tests: `tests/passage.test.js`, `tests/load-steps.test.js`.
+
+**Doors, caves and portals** (`src/passage.js`). Every way into another space goes through one
+hand-over: the doorways, cave mouths, temple doors and Viridel's hatch (`level.portals`, main.js),
+the Lab's doors and the Hangar's portals (their levels call `ctx.passage.go`). It used to be a hard
+cut: the traveller landed at a dead stop (`teleport` zeroes the velocity), the heading jumped (the
+locomotion layer read it as a turn: a bank and a pivot), the feet let go, and the camera was snapped
+in to 2 m and eased back out over a second (`rig._curDist = 2`). Now:
+- **ahead of time**, the destination is drawn once, unseen (`WarmDraw`): every mesh round each way
+  through (and the ship's cabins, and what the first frame sees) into 4 × 4 targets of the real
+  passes' formats (the G-buffer's, a shadow map's), so its geometry and textures are on the GPU and
+  the driver has built its pipelines (a mobile GLES driver compiles a shader for real only at its
+  first draw). A batch is drawn as the children of a scene of its own (shared, not moved), so a
+  draw costs the batch, not a walk over the world. At load for every destination; as you come
+  within `PASSAGE.near` of a way through, anything new there, a slice a frame. Every program's first
+  use (three's `getUniforms`: a wait on the GPU process, 100-250 ms behind a busy GPU) is done at
+  load too.
+- **the cover** (`PassageCover`): a sheet of paper with a ragged inked edge sweeps across the screen
+  (0.22 s), a CSS transform transition, so the compositor keeps it moving through a long frame;
+  the page sound plays with it.
+- **the move**, behind it (`carryAcross`): one rigid transform from where you stand, facing the way
+  you face, to the arrival, facing its way (`passageTransform`; a portal into another gravity turns
+  up too). The velocity turns with you (or the portal's own speed), the animation's memory of the
+  heading (`_lastHeading`, `loco.lastHeading`), the steering and the gear's last velocity turn too,
+  `onGround` is kept, the planted feet, a step under way and the hands' swing are carried, and the
+  camera keeps its place behind you, its look, its lag and its angle off your back; it finds the new
+  walls on its next frame, still covered.
+- **a few frames held** (at least `PASSAGE.holdMin`, at most `holdMax`) while the new place settles:
+  its grass's new patch placed (`Grass.placing`) and two frames in a row back to pace (`calmDt`: the
+  first frames there, its levels of detail switching, are the slow ones, and stay under the paper);
+  then the sheet sweeps on, off the far side.
+- Stepping into the ship or a house (no move: the rooms are real), the camera's indoor framing used
+  to set the pitch level in one frame; it eases there now (`CameraRig._levelTo`).
+
+| worst frame, ms (frames over 33 ms) | High | after | Handheld, CPU ×4 | after | High, no vsync | after |
+|---|---|---|---|---|---|---|
+| Desert: the carved doorway, in | 17 | 17 | 50 (13 > 33) | 33 (0 > 33) | 8 | 9 |
+| Desert: the doorway, out | 17 | 17 | 83 (17 > 33) | 33 (1 > 33) | 31 | 12 |
+| Desert: the giant's mouth (cave), in | 33 | 33 | 67 (29 > 33) | 34 (10 > 33) | 9 | 12 |
+| Desert: the cave, out | 17 | 17 | 67 (19 > 33) | 33 (1 > 33) | 112 | 17 |
+| Desert: the Givers' Hearth, in | 17 | 17 | 34 (14 > 33) | 33 (9 > 33) | 8 | 12 |
+| Desert: the Hearth, out | 33 | 17 | 50 (29 > 33) | 33 (27 > 33) | 9 | 12 |
+| Desert: the Givers' House (temple), in | 17 | 17 | 33 (7 > 33) | 33 (10 > 33) | 7 | 10 |
+| Desert: the temple, out | 17 | 17 | 50 (9 > 33) | 33 (24 > 33) | 32 | 33 |
+| Desert: boarding the ship | 33 | 83 | 67 (21 > 33) | 83 (44 > 33) | 11 | 14 |
+| Desert: leaving the ship | 33 | 50 | 67 (77 > 33) | 67 (91 > 33) | 10 | 12 |
+| City-Shaft: the makers' tower, in | 17 | 67 | 67 (17 > 33) | 50 (10 > 33) | 10 | 11 |
+| City-Shaft: the tower, out | 34 | 33 | 67 (18 > 33) | 100 (36 > 33) | 153 | 43 |
+| Viridel: the crashed ship's hatch, in | 33 | 17 | 50 (11 > 33) | 50 (2 > 33) | 9 | 10 |
+| Viridel: the hatch, out | 33 | 17 | 50 (6 > 33) | 50 (10 > 33) | 175 | 15 |
+| Lab: a door to a room | 83 | 17 | 250 (11 > 33) | 117 (3 > 33) | 104 | 19 |
+| Lab: back to the hub | 17 | 33 | 83 (14 > 33) | 67 (13 > 33) | 121 | 26 |
+| Lab: another room | 17 | 17 | 150 (16 > 33) | 67 (8 > 33) | 40 | 14 |
+| Home: into the small house | 17 | 17 | 50 (14 > 33) | 50 (6 > 33) | 10 | 28 |
+| Home: out of it | 17 | 33 | 50 (1 > 33) | 83 (19 > 33) | 23 | 28 |
+| Hangar: a portal into the upside-down | 17 | 17 | 17 (0 > 33) | 17 (0 > 33) | 10 | 10 |
+| Lorn: the Hush-House, in | 17 | 33 | 33 (3 > 33) | 33 (2 > 33) | 76 | 13 |
+| Lorn: the Hush-House, out | 17 | 33 | 33 (0 > 33) | 33 (2 > 33) | 90 | 15 |
+
+Paced (vsync on, as in a player's browser), High on this Mac had little to win on frame time: a
+single 33-83 ms frame here and there in either column came from other work on the machine (runs
+repeated quietly give 16.8 ms throughout, before and after). The stalls show with no vsync, where a
+wait on the GPU process waits for every queued frame (the first use of a program: 100-175 ms) and on
+the handheld recipe with the CPU slowed four times; the slowest frame after is the move itself, under
+the paper.
+
+The traveller now lands still walking: 3.8 m/s before the door and 3.8 after it (0 before), the
+camera 3.5-4 m behind (it was snapped to 2.8 m and drawn back out over a second).
+
+**Loading** (`src/load-steps.js`). A world's build was one long task after another: in the desert (on High, the
+shipped bundle) the people 1.0 s, the terrain and city 840 ms, the modules' own start 820 ms; in the
+City-Shaft the check for trees inside houses 5.8 s; the shader warm-up and the first frame a few
+hundred ms more, and two to four times all that on the handheld recipe. The loading screen's pen turns on the compositor (a CSS transform animation: checked
+through a 900 ms task with a screencast, `loading.mjs --pen`), but nothing else could happen. Now
+a build is a generator: `yield` between its parts and in its long loops, `runSteps` straight
+through (tests, the studio), `runStepsAsync(gen, slicer())` a slice at a time in the game: the
+main thread is given back once `LOAD_BUDGET` (24 ms) has run, by a `MessageChannel` message (no
+`setTimeout` clamping, no `scheduler.yield`: the Android WebView 109 lacks it).
+- every level's `create` is `stepped(build)`: the build yields at its sections and once per pass of
+  its top-level loops (`LEVELS[i].build`); `Terrain.make` and the dune relief yield by rows;
+- `Physics.create(scene, base, slice)` bakes the collision a mesh a step and copies the triangles
+  into one buffer by hand (`concatPositions`: what `mergeGeometries` made); the BVH is still built
+  in its worker;
+- `level.initSteps` (the City-Shaft's trees in houses, `dropBuriedInstancesSteps`), the buried
+  flora, the crowd's placement (`buildPeopleSteps`) and its pool, the people (`spawnNPCsSteps`), the
+  flora (`buildFloraSteps`, `Flora.make`: its far copies are simplifications), the responsive world
+  (`ReactiveWorld.make`) and the scene's tiling (`tileSceneSteps`) go a piece at a time;
+- the shader warm-up compiles one object per kind of program (its material and what of the mesh is
+  in a program's key) between yields, against an empty scene for the key (no lights, fog or
+  environment, as the world's own), then polls the driver; the first frame's uploads (`WarmDraw`),
+  the grass's first patch, the room culler and the levels of detail are done behind the loading
+  screen, so the first frame is an ordinary one;
+- the Lab's people (`labPeople()`) are worked out only when the Lab asks for them: every world paid
+  ~70 ms for them as the modules loaded (the desert room's dune relief).
+
+| longest task, ms (tasks over 50 ms), first frame at | High | after | Handheld, CPU ×4 | after |
+|---|---|---|---|---|
+| desert | 1003 (7 > 50), 19.2 s | 112 (9 > 50), 3.2 s | 1978 (8 > 50), 7.3 s | 486 (25 > 50), 10.5 s |
+| incal | 5798 (6 > 50), 11.9 s | 96 (13 > 50), 9.6 s | 16060 (8 > 50), 22.7 s | 334 (43 > 50), 25.5 s |
+| arzach | 305 (6 > 50), 3.0 s | 71 (6 > 50), 1.8 s | 633 (7 > 50), 3.2 s | 307 (12 > 50), 3.9 s |
+| garage | 395 (6 > 50), 2.7 s | 87 (4 > 50), 1.7 s | 751 (9 > 50), 3.5 s | 234 (10 > 50), 3.3 s |
+| edena | 426 (6 > 50), 2.7 s | 87 (7 > 50), 2.3 s | 977 (7 > 50), 4.9 s | 258 (15 > 50), 4.2 s |
+| perdide | 353 (6 > 50), 2.8 s | 100 (7 > 50), 2.2 s | 729 (7 > 50), 3.2 s | 234 (14 > 50), 3.9 s |
+| home | 190 (5 > 50), 1.5 s | 126 (5 > 50), 1.8 s | 644 (7 > 50), 2.8 s | 297 (14 > 50), 3.6 s |
+| spheres | 309 (5 > 50), 1.5 s | 115 (8 > 50), 3.9 s | 1765 (9 > 50), 6.4 s | 311 (19 > 50), 6.2 s |
+| buried | 444 (5 > 50), 1.5 s | 97 (6 > 50), 3.4 s | 1322 (7 > 50), 3.6 s | 306 (16 > 50), 6.7 s |
+| lab | 489 (5 > 50), 2.8 s | 114 (5 > 50), 3.3 s | 1681 (8 > 50), 4.9 s | 319 (17 > 50), 6.6 s |
+
+(The shipped bundle, `vite preview`; the first-frame times move by a second or more from run to run
+with what else the machine is doing: repeated quietly, the Garden of Spheres 1.1-1.7 s before and
+1.2-1.4 s after, the Buried Machine 1.1-1.4 s and 1.0-1.3 s.)
 
 ## The makers' temples
 

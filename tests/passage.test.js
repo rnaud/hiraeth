@@ -119,6 +119,16 @@ test('Passage: covered, the destination drawn, then the move; held while it sett
   assert.equal(passage.moves, 1);
 });
 
+test('Passage: held while the first frames at the new place are slow, revealed once they are back to pace', () => {
+  const { log, passage } = harness({ meshes: 0 });
+  passage.go({ to: 'room' });
+  while (!log.some((e) => e[0] === 'move')) passage.update(DT);
+  for (let i = 0; i < 4; i++) passage.update(0.05);   // (dt is clamped to 1/20 s: a long frame)
+  assert.ok(!log.some((e) => e[0] === 'reveal'), 'still covered through the slow frames');
+  passage.update(DT); passage.update(DT);
+  assert.ok(log.some((e) => e[0] === 'reveal'), 'revealed after two at pace');
+});
+
 test('Passage: the reveal waits for the new place to settle (its grass placed), but not for ever', () => {
   let placing = true;
   const { log, passage } = harness({ meshes: 0, busy: () => placing });

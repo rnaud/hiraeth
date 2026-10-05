@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { sharedUniforms } from './materials.js';
+import { sharedUniforms, SHADE } from './materials.js';
 
 // ---------------------------------------------------------------------------
 // Moebius / Sable composite pass.
@@ -120,6 +120,11 @@ const fragmentShader = /* glsl */ `
   uniform vec4 uPlanetColor[3];   // rgb, a = ring (0 none, else ring tilt)
   uniform vec3 uPlanetCraters;    // per planet: 1 = cratered, 0 = a plain printed disc
   uniform vec4 uBackdrop;         // rgb, a = 1: one flat colour instead of the sky (a conversation's portrait)
+  uniform float uCrevice;         // the deepest crevices filled with ink (0..1)
+  uniform float uPaper;           // the paper's tooth (0..1)
+  uniform float uShadowFlat;      // shadows printed in their own colour (0: albedo × tint .. 1: the tint at the surface's value)
+  uniform vec4 uHaze;             // the far ground's haze colour, a = how much (0: the sky's horizon)
+  uniform float uShadeKeep;       // how much of its own hue a shade keeps where its material doesn't say (materials.js SHADE)
 
   in vec2 vUv;
   out highp vec4 fragColor;
@@ -154,7 +159,8 @@ const fragmentShader = /* glsl */ `
     // posterised into flat bands, like a printed gradient
     float tb = (floor(t * 5.0) + smoothstep(0.46, 0.54, fract(t * 5.0))) / 5.0;
     vec3 c = mix(uSkyHorizon, uSkyTop, mix(t, tb, uSkyBands));
-    c = mix(c, mix(uSkyHorizon, uSkyTop, smoothstep(0.0, 0.07, h)), uSkyFlat);
+    // flat printed sky: one tint down to the horizon, only a narrow paler band right on it
+    c = mix(c, mix(uSkyHorizon, uSkyTop, mix(0.45, 1.0, smoothstep(0.0, 0.03, h))), uSkyFlat);
     float sd = max(dot(rd, uSunDisc), 0.0);
     c = mix(c, uSkyHorizon * vec3(1.03, 1.0, 0.96), pow(sd, 8.0) * 0.5 * (1.0 - h) * (1.0 - uNight));
     return c;
@@ -379,13 +385,17 @@ const fragmentShader = /* glsl */ `
       float pxA = clamp(sqrt(det), 1e-6, 0.02);
       float lvl = log2(pxA * 5.0 * uPixelRatio);
       float dots = 0.0;
+      // a grain, not a screen: dots anywhere in their cell, of several sizes and weights, thicker
+      // and thinner in drifts (a slow noise on the dome), the same density down to the horizon
+      float drift = smoothstep(0.25, 0.75, vnoise(sp * 9.0 + 3.0));
       for (int L = 0; L < 2; L++) {
         float cell = exp2(floor(lvl) + float(L));
         vec2 g = sp / cell, id = floor(g);
-        vec2 o = vec2(hash(id + 1.3), hash(id + 7.1)) * 0.6 + 0.2;
-        float present = step(hash(id + 4.4), mix(0.18, 0.42, smoothstep(0.05, 0.6, rd.y)));
+        vec2 o = vec2(hash(id + 1.3), hash(id + 7.1)) * 0.9 + 0.05;
+        float present = step(hash(id + 4.4), mix(0.16, 0.38, drift));
+        float size = mix(0.3, 0.75, hash(id + 2.9));
         float dpx = length(Ji * ((fract(g) - o) * cell));      // true screen pixels: round dots
-        float d = (1.0 - smoothstep(0.5 * uPixelRatio, 0.5 * uPixelRatio + 0.5, dpx)) * present;
+        float d = (1.0 - smoothstep(size * uPixelRatio, size * uPixelRatio + 0.5, dpx)) * present * mix(0.55, 1.0, hash(id + 6.2));
         dots += d * (L == 0 ? 1.0 - fract(lvl) : fract(lvl));
       }
       col = mix(col, uSkyTop * 0.72, clamp(dots, 0.0, 1.0) * smoothstep(0.65, 1.6, uPixelRatio) * uSkyDots * (1.0 - uNight * 0.5));
@@ -459,8 +469,16 @@ const fragmentShader = /* glsl */ `
     vec4 N = texture(tNormal, uv);
     bool isSky = N.w <= 0.0;
     vec4 surface = texture(tHatch, uv);
+    // the shade's tone, packed over the strokes (materials.js SHADE): r += 2 (1 + hue step), g += 2 lift step
+    vec2 shadeQ = floor(surface.rg * 0.5);
+    surface.rg -= 2.0 * shadeQ;
+    float shadeLift = shadeQ.y / ${SHADE.lifts}.0;
+    float shadeHue = shadeQ.x > 0.5 ? (shadeQ.x - 1.0) / ${SHADE.hues}.0 : uShadeKeep;
     // gHatch.a packs glow (0..1) + 2 hero (the player) + 4 figure (any other person) + 8 soft ink (grass blades)
     // + 16 a face (its skin and eyes: flat colour and one shadow tone, no line round the shade, no crease shading)
+    // + 32 sand banked against something (sand-drifts.js: the line where it meets a wall drawn softly)
+    float drift = step(31.5, surface.a);
+    surface.a -= 32.0 * drift;
     float face = step(15.5, surface.a);
     surface.a -= 16.0 * face;
     float soft = step(7.5, surface.a);
@@ -553,12 +571,14 @@ const fragmentShader = /* glsl */ `
     // how much inner ink (lines, drawn detail, hatching) a person keeps here
     float innerK = figure > 0.5 && hero < 0.5 ? smoothstep(70.0, 260.0, 1.8 * uRes.y * 0.5 * uProj11 / max(depth, 0.1)) : 1.0;
     float softNear = soft;   // a grass blade under this pixel's ink kernel (soft ink)
+    float driftNear = drift; // banked sand under this pixel's ink kernel
     vec2 grassNear = grassInk;   // its pen line's share and its outline's fade (the blade's own, or the nearest blade's)
     if (ink > 0.02 && hero < 0.5 && !isSky) {
       vec2 fo = max(silW * uPixelRatio, 1.0) / uRes;
       vec4 t1 = texture(tHatch, euv + vec2(fo.x, 0)), t2 = texture(tHatch, euv - vec2(fo.x, 0)),
            t3 = texture(tHatch, euv + vec2(0, fo.y)), t4 = texture(tHatch, euv - vec2(0, fo.y));
       vec4 fa = vec4(t1.a, t2.a, t3.a, t4.a);
+      driftNear = max(drift, max(max(step(31.5, fa.x), step(31.5, fa.y)), max(step(31.5, fa.z), step(31.5, fa.w))));
       fa = mod(fa, 16.0);
       vec4 faSoft = step(vec4(7.5), fa);
       fa -= 8.0 * faSoft;
@@ -604,8 +624,17 @@ const fragmentShader = /* glsl */ `
       // a face's shade (its skin, its eyes' whites) is a warm darker tone of itself, not the world's
       // blue-violet shadow: the shadow tint's own darkness, turned warm (less so at night)
       vec3 shadowTint = uShadowTint;
-      if (face > 0.5) shadowTint = mix(shadowTint, dot(shadowTint, vec3(0.3, 0.55, 0.15)) * ${FACE_SHADE.tone}, ${FACE_SHADE.warm} * (1.0 - ${FACE_SHADE.night} * uNight));
-      vec3 shade = mix(albedo * shadowTint, albedo * uLightTint, uFlatten);
+      // each surface's own shade (materials.js SHADE): the tint's darkness in its own hue, a little
+      // warm, as much as it keeps; then lifted toward the light (a half-tone, the ground's bounce)
+      float tintV = dot(uShadowTint, vec3(0.3, 0.55, 0.15));
+      shadowTint = mix(shadowTint, tintV * vec3(${SHADE.warm.join(', ')}), shadeHue * (1.0 - 0.6 * uNight));
+      if (face > 0.5) shadowTint = mix(uShadowTint, dot(uShadowTint, vec3(0.3, 0.55, 0.15)) * ${FACE_SHADE.tone}, ${FACE_SHADE.warm} * (1.0 - ${FACE_SHADE.night} * uNight));
+      vec3 shadeC = albedo * shadowTint;
+      // a flat printed shadow (uShadowFlat): the shadow's own colour at the surface's value, not the
+      // surface's colour darkened (the City-Shaft's pink walls go blue in shade, not dark pink)
+      if (uShadowFlat > 0.0 && face < 0.5) shadeC = mix(shadeC, shadowTint * (0.45 + 0.7 * dot(albedo, vec3(0.3, 0.55, 0.15))), uShadowFlat);
+      shadeC = mix(shadeC, albedo * uLightTint, face > 0.5 ? 0.0 : shadeLift);
+      vec3 shade = mix(shadeC, albedo * uLightTint, uFlatten);
       // self-lit surfaces (gHatch.a) keep their colour at night and glow a little
       float glow = surface.a - 2.0 * hero;
       col = mix(shade, albedo * mix(uLightTint, vec3(1.12), glow), lit);
@@ -639,6 +668,8 @@ const fragmentShader = /* glsl */ `
         float ao = creaseAO(uv, N.xyz, depth, fc) * (1.0 - smoothstep(80.0, 260.0, depth)) * uAO * (1.0 - emitHere);
         col = mix(col, col * uShadowTint * 0.85, smoothstep(0.15, 0.7, ao) * 0.55);
         ink = max(ink, smoothstep(0.6, 0.9, ao) * 0.45 * innerK);
+        // the deepest crevices (between ribs, into a hull's machinery) filled solid, as an inker does
+        col = mix(col, uInk * 1.15, smoothstep(0.72, 0.97, ao) * uCrevice * (1.0 - L * 0.5) * innerK);
       }
 
       // ---- 4. atmospheric perspective, in flat layers like a printed background
@@ -647,6 +678,9 @@ const fragmentShader = /* glsl */ `
       float fogQ = (floor(fb) + smoothstep(0.42, 0.58, fract(fb))) / 4.0;
       fog = mix(fog, fogQ, uHazeBands);
       vec3 skyC = skyBase(rd);
+      // the far ground's own haze (uHaze: rgb, a = how much): a pale band of far land under the sky
+      // (the desert's warm lilac-cream dunes), not the sky's colour
+      if (uHaze.a > 0.0) skyC = mix(skyC, uHaze.rgb, uHaze.a * (1.0 - uNight));
       // aerial perspective: mid-distance layers go greyer and paler before the fog takes them
       float aer = smoothstep(0.0, 0.55, fog) * uAerial;
       float luma = dot(col, vec3(0.3, 0.55, 0.15));
@@ -666,6 +700,8 @@ const fragmentShader = /* glsl */ `
       //  fading out with distance, where the blades blend into the ground)
       ink = (soft > 0.5 ? min(ink, eS.x) * mix(0.75, 1.0, grassNear.x) : ink * mix(0.22, 1.0, grassNear.x)) * (1.0 - grassNear.y);
     }
+    // where banked sand meets a wall: a light line in a darker shade of the sand, not a hard contact line
+    if (driftNear > 0.5 && softNear < 0.5) { inkC = mix(uInk, col * 0.6, 0.55); ink *= 0.45; }
     col = mix(col, inkC, ink);
 
     // ---- 4b. light: a halo round glowing things, in flat rings like a printed glow, and a
@@ -717,6 +753,14 @@ const fragmentShader = /* glsl */ `
     float grain = 0.0;
     float fibre = vnoise(fc * 0.55) * 0.5 + vnoise(fc * 0.21 + 7.0) * 0.5;   // isotropic: no streaks
     col *= 1.0 + uGrain * (grain * 0.5 + (fibre - 0.5) * 0.6);
+    // the paper's tooth: a fine mottle and its pits, strongest in the light colours (ink sits on it)
+    if (uPaper > 0.0) {
+      // (the handheld: one octave and no pits, one noise tap instead of four)
+      float tooth = uPostLite > 0.5 ? vnoise(fc * 0.9 + 3.1) : vnoise(fc * 0.9 + 3.1) * 0.55 + vnoise(fc * 0.37 + 11.0) * 0.3 + vnoise(fc * 0.09 + 5.0) * 0.15;
+      float pits = uPostLite > 0.5 ? 0.0 : smoothstep(0.78, 0.92, vnoise(fc * 1.7 + 17.0));
+      float onLight = smoothstep(0.25, 0.75, dot(col, vec3(0.3, 0.55, 0.15)));
+      col *= 1.0 + uPaper * onLight * ((tooth - 0.5) * 0.11 - pits * 0.05);
+    }
     vec2 q = uv - 0.5;
     col *= 1.0 - 0.28 * pow(length(q) * 1.25, 3.0);
 
@@ -793,6 +837,14 @@ export function createPost() {
     uDots: sharedUniforms.uDots,
     uHighlight: { value: 0.0 },
     uClouds: sharedUniforms.uClouds,
+    // the shade's tones (materials.js SHADE: the surface shader packs them, the presets set them)
+    uHalftone: sharedUniforms.uHalftone,
+    uBounce: sharedUniforms.uBounce,
+    uShadeKeep: sharedUniforms.uShadeKeep,
+    uCrevice: { value: 0 },
+    uPaper: { value: 0 },
+    uShadowFlat: { value: 0 },
+    uHaze: { value: [1, 1, 1, 0] },
     uGrain: { value: 0.1 },
     uDebug: { value: 0 },
   };
@@ -914,41 +966,50 @@ export const PRESETS = {
     uLineWidth: 1.5, uLineVary: 1, uDepthThresh: 0.07, uNormalThresh: 0.22, uAlbedoEdges: 1, uShadowEdges: 1,
     uWobble: 1.0, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 5.5, uHighlight: 0, uGrain: 0.1, uClouds: 0.6,
     uFogDensity: 0.0011, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0],
   },
   // Sable: a fine, almost uniform pen line, flat colour, sparse dotting
   Sable: {
     uLineWidth: 1.25, uLineVary: 0.25, uDepthThresh: 0.07, uNormalThresh: 0.3, uAlbedoEdges: 0, uShadowEdges: 0,
     uWobble: 0.0, uBoil: 0, uHatch: 0.6, uShadeStyle: 1, uHatchSpacing: 8, uHighlight: 0.05, uGrain: 0.04, uClouds: 0.5,
     uFogDensity: 0.0009, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0],
   },
   // a Moebius print: flat stippled sky, cumulus on the horizon, dotted ground,
   // fine even ink, dense fine hatching in blue shadow
   'Moebius print': {
-    uLineWidth: 1.15, uLineVary: 0.35, uDepthThresh: 0.07, uNormalThresh: 0.24, uAlbedoEdges: 1, uShadowEdges: 0.8,
+    uLineWidth: 1.0, uLineVary: 0.55, uDepthThresh: 0.07, uNormalThresh: 0.3, uAlbedoEdges: 1, uShadowEdges: 0.8,
     uWobble: 0.35, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 3.6, uHighlight: 0, uGrain: 0.05, uClouds: 0.45,
     uFogDensity: 0.0009, uSkyFlat: 1, uSkyDots: 1, uCumulus: 1, uSkyBands: 0, uHazeBands: 0.5, uRays: 0, uDots: 1,
+    // the shade in three tones: a form turned from the sun a half-tone, faces turned down lifted by
+    // the ground's light, cast shadows the full tint; shades keep some of their own hue
+    uHalftone: 0.35, uBounce: 0.4, uShadeKeep: 0.3, uCrevice: 0.85, uPaper: 0.7, uShadowFlat: 0, uHaze: [1, 1, 1, 0],
   },
   // high-key, bone-white, heavy cast shadows, few lines
   Vael: {
     uLineWidth: 1.35, uLineVary: 0.9, uDepthThresh: 0.08, uNormalThresh: 0.35, uAlbedoEdges: 0.4, uShadowEdges: 1,
     uWobble: 1.2, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 4.5, uHighlight: 0, uGrain: 0.12, uClouds: 0.25,
     uFogDensity: 0.0008, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0],
   },
   // Moebius at his cleanest: flat colour, thin lines, light dotting only
   Viridel: {
     uLineWidth: 1.05, uLineVary: 0.6, uDepthThresh: 0.07, uNormalThresh: 0.28, uAlbedoEdges: 1, uShadowEdges: 0.4,
     uWobble: 0.4, uBoil: 0, uHatch: 0.5, uShadeStyle: 1, uHatchSpacing: 8, uHighlight: 0.06, uGrain: 0.05, uClouds: 0.7,
     uFogDensity: 0.0008, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0],
   },
   // twilight swamp: dense hatching, glowing crystals carry the light
   Lorn: {
     uLineWidth: 1.45, uLineVary: 1, uDepthThresh: 0.07, uNormalThresh: 0.24, uAlbedoEdges: 1, uShadowEdges: 1,
     uWobble: 1.0, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 5, uHighlight: 0, uGrain: 0.1, uClouds: 0.5,
     uFogDensity: 0.0012, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0],
   },
   'Animated ink': {
     uLineWidth: 1.7, uLineVary: 1, uDepthThresh: 0.07, uNormalThresh: 0.2, uAlbedoEdges: 1, uShadowEdges: 1,
     uWobble: 1.6, uBoil: 1, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 5, uHighlight: 0, uGrain: 0.14, uClouds: 0.7,
     uFogDensity: 0.0011, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0],
   },
 };

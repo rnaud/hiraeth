@@ -13,6 +13,9 @@ import { buildDesertCity, desertCrowdSpots } from '../desert-city.js';
 import { LINES } from '../story/desert-data.js';
 import { attachTemple } from '../temples/index.js';
 import { buildDesertHearth } from '../desert-hearth.js';
+import { SandDrifts, driftMaterial } from '../sand-drifts.js';
+import { STORY, DESERT_LOOK } from '../desert-sites.js';
+import { smoothstep } from '../noise.js';
 
 // The original open desert: dunes, mesas, regions, hoverbike and wind.
 // (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
@@ -23,6 +26,10 @@ export function* buildDesert(scene) {
   yield;
   const vistas = buildDesertVistas(scene, terrain);
   yield;
+  // sand banked against what stands on it: the landmarks', the city's and the camps' solids feed it
+  // (none inside Qanat's walls: its streets and plaza are paved)
+  const inQanat = (x, z) => Math.hypot(x - STORY.city.x, z - STORY.city.z);
+  const sand = SandDrifts.open({ heightAt: (x, z) => terrain.heightAt(x, z), seed: 3, mask: (x, z) => smoothstep(57, 61, inQanat(x, z)) });
   const landmarks = buildDesertLandmarks(scene, terrain);
   yield;
   // inside the masked head: a glyph-carved chamber under an oculus, built high above the map
@@ -60,6 +67,9 @@ export function* buildDesert(scene) {
   lights.push(...hearth.lights);
   portals.push(...hearth.portals);
   yield;
+  const drifts = sand.close().build(driftMaterial(makeMaterial, terrain.materialOptions));
+  if (drifts) scene.add(drifts);
+  sand.raise(terrain);   // (from here on the ground's height is the sand's, drifts and all)
   // the Givers' House in the eastern dunes, and its rooms far overhead (src/temples/desert.js)
   return attachTemple('desert', scene, {
     id: 'desert',
@@ -76,7 +86,8 @@ export function* buildDesert(scene) {
     features: { mount: true, wind: true, jetpack: false, climb: true },
     mount: (physics) => new Hoverbike(physics),
     mountName: 'hoverbike',
-    defaults: { hour: 9.5, preset: 'Moebius print' },
+    // (as the desert's plates: a clean sky, no cloud bank; the far dunes a pale warm band under it)
+    defaults: { hour: 9.5, preset: 'Moebius print', look: DESERT_LOOK },
     lights,
     portals,
     // the procession, the camps and the people waiting at the gate (crowd.js)

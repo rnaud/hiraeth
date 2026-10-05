@@ -3,8 +3,9 @@ import { makeMaterial } from './materials.js';
 import { slotStorage } from './save-slots.js';
 
 // Story, collectibles and the sketchbook journal (worlds are reached by the ship: src/ship/).
-//  - Story: one quiet goal per level, marked by a beacon. Arriving opens a
-//    wordless comic page whose panels are rendered live from the game.
+//  - Story: one quiet goal per level, marked by a beacon. A first visit and
+//    arriving say the world's words as a toast (the closing moment is drawn
+//    into the sketchbook).
 //  - Relics: five per level, often on top of things you have to climb.
 //    Picking one up sketches the moment into your journal.
 //  - Journal (J): a sketchbook with every relic and story page found, kept
@@ -81,9 +82,13 @@ export class Journal {
 
 // ---------------------------------------------------------------------------
 
+/** How long a toast stays up: 4.5 s, longer for a long line (a world's opening words), at most 9 s. */
+export const toastSeconds = (text) => Math.min(9, Math.max(4.5, String(text ?? '').length / 16));
+
 function toast(text) {
   const t = document.getElementById('toast');
   t.textContent = text;
+  t.style.animationDuration = `${toastSeconds(text)}s`;
   t.classList.remove('show');
   void t.offsetWidth;
   t.classList.add('show');
@@ -162,8 +167,9 @@ export class Story {
   /**
    * @param def { title, intro, outro, goal: [x, y, z], radius, label }
    */
-  constructor(scene, { levelId, def, journal, sound, capture, player, physics, ground }) {
+  constructor(scene, { levelId, def, journal, sound, capture, player, physics, ground, say = toast }) {
     this.def = def;
+    this.say = say;   // a toast (main.js: the queued one, src/ship/cinema.js)
     this.levelId = levelId;
     this.journal = journal;
     this.sound = sound;
@@ -174,11 +180,8 @@ export class Story {
       : gy === 'ground' ? (ground?.heightAt ? ground.heightAt(gx, gz) : physics.groundAt(gx, 1e4, gz, 2e4)) : gy;
     this.goal = new THREE.Vector3(gx, (Number.isFinite(y) ? y : 0) - (def.drop ?? 0), gz);
     this.done = journal.storyDone(levelId);
-    this.page = document.getElementById('page');
-    this.pageOpen = false;
-    this.pending = null;   // a page waiting for a conversation to end (showPage)
-    this.page.addEventListener('click', () => this.closePage());
-    window.addEventListener('keydown', (e) => { if (this.pageOpen && (e.code === 'Enter' || e.code === 'KeyE' || e.code === 'Escape')) this.closePage(); });
+    this.pageOpen = false;   // (the comic pages are gone: nothing holds the screen any more)
+    this.pending = null;     // words waiting for a conversation to end (showPage)
     // beacon: a tall thin column of light over the goal
     // from the ground below the goal to well above it, so it reads from far
     // below a high goal (Vael's tower) as well as across a plain
@@ -219,9 +222,9 @@ export class Story {
       const k = Math.max(1, d * 0.0038);
       this.beam.scale.set(k, 1, k);
     }
-    // a page held back by a conversation opens once it has ended
-    if (this.pending && !this.pageOpen && !this.waitFor?.()) this.openPage(this.pending.which, this.pending.html);
-    if (this.done || this.pageOpen || this.def.manual) return;
+    // words held back by a conversation come once it has ended
+    if (this.pending && !this.waitFor?.()) this.openPage(this.pending);
+    if (this.done || this.def.manual) return;
     const r = this.def.radius ?? 12, p = this.player.pos;
     if (Math.hypot(p.x - this.goal.x, p.z - this.goal.z) < r && Math.abs(p.y - this.goal.y) < (this.def.verticalRadius ?? Math.max(r, 20))) {
       this.done = true;
@@ -271,49 +274,35 @@ export class Story {
   }
 
   /**
-   * Draw a page (its panels rendered now) and open it. Never over a conversation: while `waitFor()`
-   * holds (main.js: someone is talking to you) the page waits, and opens once the talk ends. A
-   * world's closing page comes a moment after its last line, often while that talk is still open.
+   * A world's opening or closing words, as a toast (until October 2026 a three-panel comic page that
+   * held the screen). Never over a conversation: while `waitFor()` holds (main.js: someone is talking
+   * to you) they wait, and come once the talk ends; a world's closing words come a moment after its
+   * last line, often while that talk is still open. The closing moment is drawn into the sketchbook.
    */
   showPage(which) {
     const d = this.def;
-    const imgs = this.shots(which).map((s, i) => { s = this.clear(s); return this.capture(s.eye, s.look, i === 0 ? 900 : 440, i === 0 ? 380 : 300); });
-    const caption = which === 'intro' ? d.intro : d.outro;
-    const html = `
-      <div class="sheet">
-        <div class="p p1"><img src="${imgs[0]}" alt=""><div class="cap">${which === 'intro' ? `<b>${d.title}</b><br>` : ''}${caption}</div></div>
-        <div class="p p2"><img src="${imgs[1]}" alt=""></div>
-        <div class="p p3"><img src="${imgs[2]}" alt=""></div>
-        <div class="hint" aria-label="continue">▸</div>
-      </div>`;
+    const text = which === 'intro' ? [d.title, d.intro].filter(Boolean).join(' · ') : d.outro;
     if (which === 'outro') {
-      // kept in the sketchbook at once, even if the page is still waiting to open
+      // kept in the sketchbook at once, even if the words are still waiting
       this.beacon.visible = false;
-      this.journal.addStory(this.levelId, { img: imgs[0], t: Date.now() });
+      const s = this.clear(this.shots('outro')[0]);
+      this.journal.addStory(this.levelId, { img: this.capture(s.eye, s.look, 900, 380), t: Date.now() });
     }
-    if (this.waitFor?.()) { this.pending = { which, html }; return; }
-    this.openPage(which, html);
+    if (this.waitFor?.()) { this.pending = { which, text }; return; }
+    this.openPage({ which, text });
   }
 
-  openPage(which, html) {
+  openPage({ which, text }) {
     this.pending = null;
-    this.page.innerHTML = html;
-    this.page.classList.add('open');
-    this.pageOpen = true;
-    document.exitPointerLock?.();
-    this.sound.page();
-    if (which === 'outro') this.sound.chime();
-  }
-
-  closePage() {
-    if (!this.pageOpen) return;
-    this.page.classList.remove('open');
-    this.pageOpen = false;
-    this.sound.page();
+    if (text) this.say(text);
+    if (which !== 'outro') return;
+    this.sound.chime();
     // finishing a world names the next one on the ship's map (def.next: main.js, src/story/route.js)
     const next = this.done && (typeof this.def.next === 'function' ? this.def.next() : this.def.next);
-    if (next) toast(next);
+    if (next) this.say(next);
   }
+
+  closePage() {}
 }
 
 // ---------------------------------------------------------------------------

@@ -4,6 +4,8 @@ import { makeMaterial, MODE_TERRAIN } from '../materials.js';
 import { RoomKit } from './lab-kit.js';
 import { REFERENCE_VIEWS, REFERENCE_SHEETS } from './reference-views.js';
 import { stepped } from '../load-steps.js';
+import { SandDrifts, driftMaterial } from '../sand-drifts.js';
+import { DESERT_LOOK } from '../desert-sites.js';
 
 // ---------------------------------------------------------------------------
 // The references: a developer's level (?level=references, or the worlds list, L)
@@ -22,7 +24,7 @@ import { stepped } from '../load-steps.js';
 //               the panel over the frame, half seen through → the panel over the
 //               left half of the frame → off
 //
-// The views lie far apart on a ring (VIEW_RING) and only the one you are in is
+// The views lie far apart on a grid (VIEW_SPACING) and only the one you are in is
 // drawn, as with the Lab's rooms. Each is authored in its own frame, looking
 // down -z from its camera; its group is turned about the vertical so the sun of
 // the view's hour comes from the side the panel is lit from (sunTurn). Nothing
@@ -30,8 +32,12 @@ import { stepped } from '../load-steps.js';
 // and ink presets.
 // ---------------------------------------------------------------------------
 
-/** The views' centres lie on a ring this far from the origin (m): far apart, only one is drawn. */
-export const VIEW_RING = 4500;
+/** The views' centres lie on a square grid this far apart (m): only the one you are in is drawn. */
+export const VIEW_SPACING = 3300;
+/** Cells per side (even: no view at the origin, where the ship's site is). */
+const GRID = 2 * Math.ceil(Math.sqrt(REFERENCE_VIEWS.length) / 2);
+/** How far out the grid reaches (m): its farthest centre on either axis. */
+export const VIEW_EXTENT = ((GRID - 1) / 2) * VIEW_SPACING;
 /** Past this far from a view's centre (m) you are put back at its camera. */
 const VIEW_REACH = 1100;
 const Y = new THREE.Vector3(0, 1, 0), Z = new THREE.Vector3(0, 0, 1);
@@ -39,10 +45,7 @@ const PASS = { in: 0.18, out: 0.45 };   // s: the fade between views
 const DEG = Math.PI / 180;
 
 /** A view's centre in the world. */
-export const viewCentre = (i) => {
-  const a = (i / REFERENCE_VIEWS.length) * Math.PI * 2;
-  return new THREE.Vector3(Math.sin(a) * VIEW_RING, 0, Math.cos(a) * VIEW_RING);
-};
+export const viewCentre = (i) => new THREE.Vector3(((i % GRID) - (GRID - 1) / 2) * VIEW_SPACING, 0, (Math.floor(i / GRID) - (GRID - 1) / 2) * VIEW_SPACING);
 
 // the sun of timeofday.js: up from 6 to 18, at most 62° high, from azimuth 30° (6:00) round to 210° (18:00)
 const SUN_MAX_EL = 62, AZ_OFFSET = 30;
@@ -67,11 +70,12 @@ export function sunTurn(sun, yaw = 0) {
  * crosses the frame), fov (vertical, deg, for the panel's own proportions) }
  */
 export function viewCamera(cam) {
-  const pitch = Math.atan((cam.horizon - 0.5) * 2 * Math.tan((cam.fov * DEG) / 2));   // horizon below the centre: looking up
+  // horizon below the centre: looking up; or a pitch given outright (deg: steep views up or down a shaft)
+  const pitch = cam.pitch !== undefined ? cam.pitch * DEG : Math.atan((cam.horizon - 0.5) * 2 * Math.tan((cam.fov * DEG) / 2));
   const yaw = (cam.yaw ?? 0) * DEG;
   const eye = new THREE.Vector3(...cam.eye);
   const dir = new THREE.Vector3(Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch));
-  return { eye, target: eye.clone().addScaledVector(dir, 50), pitch, fov: cam.fov };
+  return { eye, target: eye.clone().addScaledVector(dir, 50), pitch, fov: cam.fov, roll: (cam.roll ?? 0) * DEG };
 }
 
 /**
@@ -164,8 +168,13 @@ export function* buildReferences(scene) {
     group.add(groundMesh);
     const H = (x, z) => def.ground.height(x, z);
     const kit = new RoomKit({ group, ground: { heightAt: H, baseAt: (x, z, r) => { let m = H(x, z); for (let k = 0; k < 8; k++) m = Math.min(m, H(x + Math.cos(k * 0.785) * r, z + Math.sin(k * 0.785) * r)); return m; } }, centre, seed: 3775 + i * 17 });
+    // sand banks against what stands on a sandy ground (sand-drifts.js: the kit's solids feed it)
+    const sandy = def.ground.material.ripples || def.ground.material.sandInk;
+    const sand = sandy ? SandDrifts.open({ heightAt: H, seed: 3775 + i }) : null;
     def.build(kit, def);
     kit.finish();
+    const drifts = sand?.close().build(driftMaterial(makeMaterial, { mode: MODE_TERRAIN, ...def.ground.material }));
+    if (drifts) group.add(drifts);
     noShadow.push(...kit.noShadow);
     movers.push(...kit.movers.map((fn) => (t) => { if (group.visible) fn(t); }));
     group.updateMatrixWorld(true);
@@ -185,7 +194,7 @@ export function* buildReferences(scene) {
         const dx = x - centre.x, dz = z - centre.z, a = group.rotation.y, c = Math.cos(a), s = Math.sin(a);
         return [dx * c - dz * s, dx * s + dz * c];
       },
-      zone: { name: `References · ${def.title}`, preset: def.preset ?? 'Moebius print', look: asDesert ? {} : def.look ?? {}, planets: [], hour },
+      zone: { name: `References · ${def.title}`, preset: def.preset ?? 'Moebius print', look: asDesert ? DESERT_LOOK : def.look ?? {}, planets: [], hour },
       atmo: { tint: [1, 1, 1], fog: def.fog ?? 0.35, name: `References · ${def.title}`, script },
     };
   });
@@ -321,9 +330,10 @@ export function* buildReferences(scene) {
     spawnHeading: views[0].heading,
     camYaw: views[0].heading + Math.PI,
     features: { mount: false, wind: false, jetpack: true, climb: true },
-    defaults: { hour: views[0].hour, preset: 'Moebius print', cloudShadows: 0 },
+    // (the hour of the view you open on: ?view=n frames it on the first frame, before any zone change sets it)
+    defaults: { hour: (views[Number(typeof location !== 'undefined' ? new URLSearchParams(location.search).get('view') : 0) - 1] ?? views[0]).hour, preset: 'Moebius print', cloudShadows: 0 },
     killY: -Infinity,
-    limit: VIEW_RING + 1600,
+    limit: VIEW_EXTENT + 1600,
     shipSite: { x: 0, z: 0, heading: 0 },   // at the origin, far from every view
     lights, noShadow,
     reactions: false,   // (no responsive flowers in the panels: reactive-world.js)
@@ -380,6 +390,7 @@ export function* buildReferences(scene) {
         camera.position.copy(v.eye);
         camera.up.copy(Y);
         camera.lookAt(v.target);
+        if (v.cam.roll) camera.rotateZ(v.cam.roll);   // (a panel drawn at a slant)
         if (Math.abs(camera.fov - box.fov) > 1e-6) { camera.fov = box.fov; camera.updateProjectionMatrix(); }
         setHidden(player, true);
       }

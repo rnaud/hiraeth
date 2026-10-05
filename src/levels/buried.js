@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createNoise2D, fbm, mulberry32, smoothstep } from '../noise.js';
 import { makeMaterial, MODE_TERRAIN, MODE_STRATA } from '../materials.js';
+import { SandDrifts, driftMaterial } from '../sand-drifts.js';
 import { Terrain } from '../world.js';
 import { PEOPLE } from '../story/buried-data.js';
 import { attachTemple } from '../temples/index.js';
@@ -950,6 +951,12 @@ export function* buildBuried(scene) {
   const inCanyon = (x, z, y) => y < floorAt(z) + 30 && canyonMask(x, z) > 0.5 && z < CZ0 - 30;
   // the Engine-House on the dunes west of the domes, and its rooms far overhead (src/temples/buried.js)
   yield;
+  // sand banked against what stands on the sand: every collided mesh built so far (sand-drifts.js)
+  // (none round the great wheel: its sand slides away, story/buried.js)
+  const sand = new SandDrifts({ heightAt: (x, z) => terrain.heightAt(x, z), seed: 7, mask: (x, z) => smoothstep(WHEEL.R + 25, WHEEL.R + 40, Math.hypot(x - WHEEL.x, z - WHEEL.z)) }).addScene(scene);
+  const drifts = sand.build(driftMaterial(makeMaterial, terrain.materialOptions));
+  if (drifts) scene.add(drifts);
+  sand.raise(terrain);   // (from here on the ground's height is the sand's, drifts and all)
   return attachTemple('buried', scene, {
     id: 'buried',
     floraAvoid: avoid,   // the flora keeps off the canyon, the oculus, the hollow and the hero props (src/flora.js)

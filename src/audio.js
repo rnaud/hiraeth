@@ -10,7 +10,7 @@
 // up the world's melody), 'feast' (the holy event: double-time and claps).
 
 import { bindVoice, languageOf } from './story/voice.js';
-import { scoreFor, scoreBeat, chordAt, CALM_ACT } from './score.js';
+import { scoreFor, scoreBeat, chordAt, CALM_ACT, fatherIn } from './score.js';
 import { playVoice, playColour, hit } from './score-voices.js';
 
 // Bako's ney solo (AudioEngine.solo): three breaths in a hijaz mode, [semitones from the tonic, seconds].
@@ -859,6 +859,41 @@ export class Sound {
     }
   }
 
+  /**
+   * A moment's swell (src/story/moment.js): a phrase of the world's own score, over a pad that
+   * grows under it, while the score and the bands step back. kind 'motif': the world's
+   * leitmotif on its lead (the first water running); 'father': the father's theme in the
+   * world's mode, on the world's voice for it (the duduk in the desert), as when he gave his
+   * charge. From `pos` (a Vector3 or a function), like a band. Returns its length (s).
+   */
+  swell(kind = 'motif', pos = null, { spb = kind === 'father' ? 0.82 : 0.62, vol = 1 } = {}) {
+    if (!this.ctx) return 0;
+    if (!this.bands) this.makeBands();
+    this.bands = this.bands.filter((b) => !b.solo);
+    const ctx = this.ctx, t0 = ctx.currentTime + 0.25, S = this.S;
+    const input = ctx.createGain(), gain = ctx.createGain();
+    gain.gain.value = 0;
+    input.connect(gain).connect(this.world);
+    const send = ctx.createGain(); send.gain.value = 0.75; gain.connect(send).connect(this.reverb);
+    const phrase = kind === 'father' ? fatherIn(S) : S.motif;
+    const voice = kind === 'father' ? S.pal.father ?? 'duduk' : S.pal.lead ?? 'flute';
+    let t = t0;
+    for (const [deg, beats] of phrase) {
+      if (deg !== null) this.instrument(voice, this.freq(deg, 1), t, beats * spb * 1.05, 0.11 * vol, input);
+      t += beats * spb;
+    }
+    const len = t - t0;
+    // the pad: the tonic, then the chord the phrase lands on, swelling in and holding past the last note
+    for (const [i, d] of [0, kind === 'father' ? 4 : 3, 0].entries()) {
+      const at = t0 + (i * len) / 3;
+      this.instrument('strings', this.freq(d, -1), at, len / 3 + 0.9, 0.06 * vol, input);
+      this.instrument('strings', this.freq(d + 2, 0), at + 0.15, len / 3 + 0.7, 0.035 * vol, input);
+    }
+    this._swellUntil = t0 + len + 1;
+    this.bands.push({ id: 'solo', solo: true, pos: pos ?? (() => (this._ear ? { x: this._ear.x, y: this._ear.y, z: this._ear.z } : null)), radius: 80, parts: [], vol: 1, duck: 1, input, gain, pan: null, level: 0, mode: 'play', phrase: 0, until: t0 + len + 1.5 });
+    return len + 0.25;
+  }
+
   /** An unopened box answers the bell: a small far chime (vol 0..1 by distance). */
   boxAnswer(vol = 1) {
     if (!this.ctx) return;
@@ -1040,6 +1075,18 @@ export class Sound {
     this.burst(t + 0.03, { dur: 0.06, type: 'bandpass', freq: 900, q: 2, vol: 0.06 });
   }
 
+  /**
+   * The scout's voice (src/scout.js): 'go' a little rising blip as it hops off the dock;
+   * 'found' two bright chirps as it points at the objective; 'shrug' a falling "uh-uh", nothing to find.
+   */
+  drone(kind = 'go') {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    if (kind === 'found') { this.sweep(t, 1500, 2600, 0.07, 0.045); this.sweep(t + 0.11, 1900, 3200, 0.09, 0.05); this.pluck(this.freq(7, 2), t + 0.11, 0.05, 'sine', this.fx); }
+    else if (kind === 'shrug') { this.sweep(t, 900, 760, 0.12, 0.04, 'triangle'); this.sweep(t + 0.17, 760, 520, 0.16, 0.04, 'triangle'); }
+    else this.sweep(t, 700, 1400, 0.1, 0.035);
+  }
+
   // ------------------------------------------------------------------ water (src/water.js)
   /** Going in, coming out, a big drop: a wet slap and a falling hiss, bigger with k (0..2). */
   splash(k = 1) {
@@ -1134,7 +1181,9 @@ export class Sound {
       }
     }
     // the score steps back when you stand among musicians
-    this.music.gain.setTargetAtTime(0.62 * this.musicVol * (1 - 0.7 * Math.min(near, 1)), t, 0.5);
+    // (and under a moment's swell: src/story/moment.js, swell())
+    const swell = (this._swellUntil ?? 0) > t ? 0.3 : 1;
+    this.music.gain.setTargetAtTime(0.62 * this.musicVol * (1 - 0.7 * Math.min(near, 1)) * swell, t, swell < 1 ? 0.35 : 0.8);
   }
   /** One beat of a band, scheduled with the score's beat. */
   bandBeat(b, t, spb) {

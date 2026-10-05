@@ -1,7 +1,12 @@
 import * as THREE from 'three';
 import { MODE_STRATA, MODE_WATER, MODE_TERRAIN } from '../materials.js';
-import { createNoise2D, smoothstep } from '../noise.js';
-import { put } from './lab-kit.js';
+import { createNoise2D } from '../noise.js';
+import {
+  TAU, V, tube, lathe, sagPts, n2, n3, ridged, gauss, r2, smoothstep, put, dome, PERSON, CLEAN_SKY,
+  sailGeo, groundRibbon, radioDish, groundPatch,
+} from './reference-kit.js';
+import { DESERT_SHEETS, DESERT_VIEWS } from './reference-desert.js';
+import { SHAFT_SHEETS, SHAFT_VIEWS } from './reference-shaft.js';
 
 // ---------------------------------------------------------------------------
 // The references' views (src/levels/references.js): one per panel of a reference
@@ -33,95 +38,11 @@ export const REFERENCE_SHEETS = {
     name: 'The Desert / IMG_3775.JPG', size: [1024, 1024],
     url: new URL('../../references/The Desert/environement/IMG_3775.JPG', import.meta.url).href,
   },
+  // the other desert environment sheets (reference-desert.js)
+  ...DESERT_SHEETS,
+  // the City-Shaft's (reference-shaft.js)
+  ...SHAFT_SHEETS,
 };
-
-const TAU = Math.PI * 2;
-const V = (x, y, z) => new THREE.Vector3(x, y, z);
-const tube = (pts, r, seg = 16, radial = 6) => new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), seg, r, radial, false);
-const lathe = (pts, seg = 24) => new THREE.LatheGeometry(pts.map(([r, y]) => new THREE.Vector2(Math.max(r, 0.001), y)), seg);
-const sagPts = (a, b, sag, n = 10) => Array.from({ length: n + 1 }, (_, i) => { const t = i / n; return a.clone().lerp(b, t).add(V(0, -sag * Math.sin(Math.PI * t), 0)); });
-const n1 = createNoise2D(37751), n2 = createNoise2D(37752), n3 = createNoise2D(37753);
-/** Dunes with sharp crests (ridged noise): the crease between the two slopes is inked. */
-const ridged = (x, z, f, seed = 0) => 1 - Math.abs(n1(x * f + seed, z * f * 1.7 - seed));
-const gauss = (x, z, cx, cz, s) => Math.exp(-((x - cx) ** 2 + (z - cz) ** 2) / (2 * s * s));
-const r2 = (x, z) => Math.hypot(x, z);
-/** A dome: half a sphere, squashed. */
-const dome = (r, sy = 1, seg = 18) => new THREE.SphereGeometry(r, seg, Math.ceil(seg / 2), 0, TAU, 0, Math.PI / 2).scale(1, sy, 1);
-const PERSON = { cloak: '#b48ccf', lining: '#8d6aae', cloth: '#a688c4', legs: '#7e62a0', hat: '#b48ccf' };
-
-// a bat-wing sail: a membrane between fingers fanned from a base point, scalloped between the
-// tips and billowed along the sector's normal (after the desert's sail tents, desert-landmarks.js)
-function sailGeo(B, fingers, bulge) {
-  const pos = [], idx = [], n = 14, m = 10;
-  for (let f = 0; f < fingers.length - 1; f++) {
-    const A = fingers[f].clone().sub(B), C = fingers[f + 1].clone().sub(B), nrm = A.clone().cross(C).normalize();
-    const base = pos.length / 3;
-    for (let i = 0; i <= n; i++) for (let j = 0; j <= m; j++) {
-      const u = i / n, t = j / m;
-      const p = A.clone().lerp(C, t).multiplyScalar(u * (1 - 0.09 * Math.sin(Math.PI * t) * u ** 3)).add(B);
-      p.addScaledVector(nrm, bulge * Math.sin(Math.PI * t) * Math.sin(Math.PI * 0.5 * u));
-      pos.push(p.x, p.y, p.z);
-    }
-    for (let i = 0; i < n; i++) for (let j = 0; j < m; j++) { const a = base + i * (m + 1) + j; idx.push(a, a + m + 1, a + 1, a + 1, a + m + 1, a + m + 2); }
-  }
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-  g.setIndex(idx);
-  g.computeVertexNormals();
-  return g;
-}
-
-/** A ribbon lying on the ground along a path (local x, z points), `w` wide: tracks, drawn as a tone. */
-function groundRibbon(H, pts, w, lift = 0.03) {
-  const curve = new THREE.CatmullRomCurve3(pts.map(([x, z]) => V(x, 0, z)));
-  const n = Math.max(8, Math.round(curve.getLength() / 0.8)), pos = [], idx = [];
-  for (let i = 0; i <= n; i++) {
-    const p = curve.getPoint(i / n), t = curve.getTangent(i / n), sx = -t.z, sz = t.x;
-    for (const e of [-1, 1]) { const x = p.x + sx * w * 0.5 * e, z = p.z + sz * w * 0.5 * e; pos.push(x, H(x, z) + lift, z); }
-    if (i < n) { const a = i * 2; idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3); }
-  }
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-  g.setIndex(idx);
-  g.computeVertexNormals();
-  return g;
-}
-
-/** A dish on a yoke: paraboloid, rim, feed on four struts; `el` tilts its face up from the horizon, `az` turns it. */
-function radioDish(kit, mat, rope, x, y, z, R, el, az) {
-  const depth = 0.34 * R, f = 0.62 * R;
-  const orient = (g) => g.rotateX(Math.PI / 2 - el).rotateY(az).translate(x, y, z);
-  kit.add(mat, orient(lathe(Array.from({ length: 14 }, (_, i) => { const r = (i / 13) * R; return [r, depth * (r / R) ** 2]; }), 56)));
-  kit.add(rope, orient(new THREE.TorusGeometry(R, R * 0.018, 5, 56).rotateX(Math.PI / 2).translate(0, depth, 0)));
-  for (let i = 0; i < 4; i++) {
-    const a = i * Math.PI / 2 + Math.PI / 4;
-    kit.add(rope, orient(tube([V(Math.cos(a) * R * 0.92, depth * 0.85, Math.sin(a) * R * 0.92), V(0, f, 0)], R * 0.012, 1, 4)), { solid: false });
-  }
-  kit.add(mat, orient(new THREE.CylinderGeometry(R * 0.05, R * 0.08, R * 0.16, 10).translate(0, f, 0)));
-  // the ribs on its back and a hub
-  kit.add(rope, orient(new THREE.CylinderGeometry(R * 0.1, R * 0.12, R * 0.12, 10).translate(0, -R * 0.04, 0)));
-  for (let i = 0; i < 8; i++) {
-    const a = i * Math.PI / 4;
-    kit.add(rope, orient(tube([V(0, -R * 0.02, 0), V(Math.cos(a) * R * 0.5, depth * 0.2, Math.sin(a) * R * 0.5), V(Math.cos(a) * R * 0.96, depth * 0.93, Math.sin(a) * R * 0.96)], R * 0.01, 6, 3)), { solid: false });
-  }
-}
-
-/** The ink preset's touches every view shares: the panels' skies are clean, no cloud on them. */
-const CLEAN_SKY = { uCumulus: 0, uClouds: 0 };
-
-/** A grid of ground-hugging triangles over local x0..x1 and a far edge zFar(x) to zNear: a patch of another tone. */
-function groundPatch(H, x0, x1, zNear, zFar, nx = 60, nz = 24, lift = 0.04) {
-  const pos = [], idx = [];
-  for (let j = 0; j <= nz; j++) for (let i = 0; i <= nx; i++) {
-    const x = x0 + ((x1 - x0) * i) / nx, z = zNear + ((zFar(x) - zNear) * j) / nz;
-    pos.push(x, H(x, z) + lift, z);
-  }
-  for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) { const a = j * (nx + 1) + i; idx.push(a, a + 1, a + nx + 1, a + 1, a + nx + 2, a + nx + 1); }
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-  g.setIndex(idx); g.computeVertexNormals();
-  return g;
-}
 
 // ===========================================================================
 export const REFERENCE_VIEWS = [
@@ -149,8 +70,9 @@ export const REFERENCE_VIEWS = [
       material: { color: '#f4c27a', color2: '#ecb05f', color3: '#e09a52', ripples: true, sandInk: true },
     },
     build(kit) {
-      const bone = kit.mat({ color: '#ede2ca' });
-      const boneShade = kit.mat({ color: '#d9c6a6' });
+      // (bone: its own hue in shade, a flat tone, no strokes)
+      const bone = kit.mat({ color: '#ede2ca', shadeHue: 0.9, hatch: 0 });
+      const boneShade = kit.mat({ color: '#d9c6a6', shadeHue: 0.9, hatch: 0 });
       const hollow = kit.mat({ color: '#7d5f48', flat: true });
       const H = (x, z) => kit.H(x, z);
       // the near dune: a band of deeper orange up to its crest (the panel's foreground tone)
@@ -210,9 +132,9 @@ export const REFERENCE_VIEWS = [
       const H = (x, z) => kit.H(x, z);
       const tower = kit.mat({ color: '#e3ad7c' });
       const cap = kit.mat({ color: '#d69c68', side: THREE.DoubleSide });
-      const hut = [kit.mat({ color: '#e4c6a6', flat: true }), kit.mat({ color: '#d6b08c', flat: true }), kit.mat({ color: '#efd8bd' }), kit.mat({ color: '#c99d78' })];
+      const hut = [kit.mat({ color: '#e4c6a6', flat: true, weathered: 0.8 }), kit.mat({ color: '#d6b08c', flat: true, weathered: 0.8 }), kit.mat({ color: '#efd8bd', weathered: 0.6 }), kit.mat({ color: '#c99d78', weathered: 0.6 })];
       const dark = kit.mat({ color: '#6a4c3a', flat: true });
-      const dish = kit.mat({ color: '#f6dcbd', side: THREE.DoubleSide });
+      const dish = kit.mat({ color: '#f6dcbd', side: THREE.DoubleSide, shade: 0.45, hatch: 0.2 });
       const rope = kit.mat({ color: '#8c7a68', flat: true });
       // the tower: a fluted trumpet stem flaring into a ribbed cap overhead
       const TX = -12, TZ = -86, flutes = 84, y0 = H(TX, TZ);
@@ -373,9 +295,10 @@ export const REFERENCE_VIEWS = [
     people: [{ at: [21, -55], facing: 2.6, palette: PERSON, head: 'hood' }],
     build(kit) {
       const H = (x, z) => kit.H(x, z);
-      const sail = kit.mat({ color: '#e2a46e', side: THREE.DoubleSide });
-      const sail2 = kit.mat({ color: '#dc9a62', side: THREE.DoubleSide });
-      const sailPale = kit.mat({ color: '#efd6ae', side: THREE.DoubleSide });
+      // (cloth: a light shade with few strokes, the panel's sails are toned, barely hatched)
+      const sail = kit.mat({ color: '#e2a46e', side: THREE.DoubleSide, shade: 0.25, hatch: 0.3 });
+      const sail2 = kit.mat({ color: '#dc9a62', side: THREE.DoubleSide, shade: 0.25, hatch: 0.3 });
+      const sailPale = kit.mat({ color: '#efd6ae', side: THREE.DoubleSide, shade: 0.25, hatch: 0.3 });
       const spar = kit.mat({ color: '#7a5c44', flat: true });
       const domeM = kit.mat({ color: '#dcbb8c' });
       const domeFar = kit.mat({ color: '#e2c398' });
@@ -435,11 +358,12 @@ export const REFERENCE_VIEWS = [
         const ledges = 0.9 * smoothstep(-0.05, 0.12, n3(x * 0.035, z * 0.05)) + 0.6 * smoothstep(0.05, 0.22, n2(x * 0.07 + 9, z * 0.09));   // steps in the rock: inked edges
         const rock = 1.6 + 10.2 * smoothstep(28, 0, d) + 24 * smoothstep(5, -70, x + 0.25 * d) * smoothstep(250, 130, d) + 0.8 * n2(x * 0.06, z * 0.06) + ledges;
         const e = r2((x - 55) / 155, (d - 148) / 96) + 0.1 * n3(x * 0.02, z * 0.02);   // the lake's outline: < 1 inside
-        const bed = -2.4 + 2.1 * smoothstep(0.3, 0.75, n2(x * 0.018 + 4, z * 0.024)) + 0.5 * n3(x * 0.06, z * 0.06);   // shallows show pale
+        // broad pale shallows on the near and left side, the deep water off to the right under the cliff
+        const bed = -2.3 + 2.0 * smoothstep(-0.15, 0.45, n2(x * 0.008 + 4, z * 0.013) - 0.004 * (x - 40)) + 0.3 * n3(x * 0.03, z * 0.03);
         const k = smoothstep(1.0, 0.88, e);
         return rock * (1 - k) + bed * k;
       },
-      material: { color: '#dba9b4', color2: '#d79fac', color3: '#c98f9d' },
+      material: { color: '#dba9b4', color2: '#d79fac', color3: '#c98f9d', pattern: 'cracks' },
       rings: { r1: 1500 },
     },
     people: [{ at: [7.3, -30], facing: 3.0, palette: PERSON, head: 'hood' }],
@@ -492,7 +416,7 @@ export const REFERENCE_VIEWS = [
     people: [{ at: [7, -43], facing: -0.3, palette: PERSON, head: 'hood' }],
     build(kit) {
       const H = (x, z) => kit.H(x, z);
-      const hull = kit.mat({ color: '#ddd5c3', grid: 4.5 });
+      const hull = kit.mat({ color: '#ddd5c3', grid: 4.5, plates: true });
       const hullDark = kit.mat({ color: '#b2ab9c', flat: true });
       const dark = kit.mat({ color: '#4c4440', flat: true });
       const mast = kit.mat({ color: '#8a8278', flat: true });
@@ -534,4 +458,8 @@ export const REFERENCE_VIEWS = [
       }
     },
   },
+  // the other desert environment sheets, in order: IMG_3772, IMG_3773, IMG_3774 (reference-desert.js)
+  ...DESERT_VIEWS,
+  // the City-Shaft's sheets, IMG_3778 … IMG_3782 (reference-shaft.js)
+  ...SHAFT_VIEWS,
 ];

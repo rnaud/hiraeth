@@ -6,7 +6,8 @@ import { Controller, mergeControls, menuNavigate } from './controller.js';
 import { installNativePad, watchLabels, setFaces, padFaces, confirmKey, backKey } from './native-pad.js';
 import { installAppShell, markBooted } from './native-app.js';
 import { ObservatoryQuest } from './observatory.js';
-import { Scout, nextObjective } from './scout.js';
+import { Scout, nextObjective, findText, roughDistance } from './scout.js';
+import { cueText, Cue, PlaceName, Fader, questsPageHtml } from './hud.js';
 import { Wildlife } from './wildlife.js';
 import { createGBuffer, createComposeTarget, createBlit, setSubject } from './pipeline.js';
 import GUI from 'lil-gui';
@@ -19,7 +20,7 @@ import { WindStreaks } from './wind.js';
 import { EDGE_HINTS, EdgeInk } from './edge.js';
 import { HOLO } from './ship/hologram.js';
 import { Physics, dropBuriedFloraSteps } from './physics.js';
-import { tileSceneSteps, cullFar, fitBounds, SmallCuller, RoomCuller, resolveQuality, detectHandheld, GpuTimer, adaptScale } from './perf.js';
+import { tileSceneSteps, cullFar, fitBounds, SmallCuller, RoomCuller, InteriorCuller, resolveQuality, detectHandheld, GpuTimer, adaptScale, engineLabel } from './perf.js';
 import { LodManager, lodView } from './lod.js';
 import { skinnedLods } from './skinned-lod.js';
 import { buildFloraSteps, floraKeep, FLORA_WORLDS } from './flora.js';
@@ -39,6 +40,7 @@ import { loadAnimationLibrary, Animator } from './animator.js';
 import { loadMotionLibrary, matchingSetting } from './motion-match.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { loadHuman, Humanoid } from './humanoid.js';
+import { loadPeople } from './makehuman/people.js';
 import { talkFaces, TALK_FACE } from './talk-face.js';
 import { updateHands } from './hands.js';
 import { Changelog, VERSION } from './changelog.js';
@@ -58,7 +60,6 @@ import { createBoxes, migrateSave } from './boxes/index.js';
 import { createItemEffects } from './boxes/effects.js';
 import { DevMenu } from './dev-menu.js';
 import { isolate, restore, portraitPixelRatio } from './story/portrait-bg.js';
-import { badgeLine } from './prompt-keys.js';
 import { chargeState, chargeHud, chargeJournalHtml, showChargeCard, GIVEN as CHARGE_GIVEN, CARD as CHARGE_CARD } from './story/charge.js';
 import { slots, formatPlaytime } from './save-slots.js';
 import { Waters, BreathMeter } from './water.js';
@@ -240,6 +241,7 @@ const player = new Player(physics, {
 // the health bar (index.html #health): only while you're hurt, and a moment after
 const hpEl = document.getElementById('health'), hpFill = hpEl?.firstElementChild;
 let hpShown = 0;
+const hpFade = new Fader(3);   // (src/hud.js: while hurt or healing, and 3 s after)
 // Knocked out (a fatal fall, or the bar run out): you lie there a moment, then the screen
 // dims and a small panel asks to restart, from where you last stood safely. Its button is
 // the one thing in focus: Enter (or Space, E), A / × on a pad (the panel counts as a menu:
@@ -299,8 +301,9 @@ function updateHealth(dt) {
   updateStamina(dt);
   if (!hpEl) return;
   const h = player.health ?? 1;
-  hpShown = h < 0.999 || player.down ? 3 : Math.max(0, hpShown - dt);
-  hpEl.classList.toggle('on', hpShown > 0 && !ship.playing);
+  if (hpShown > 0) { hpFade.update(0, true); hpShown = 0; }   // (a hurt, a knockdown: at once)
+  const hpOn = hpFade.update(dt, h < 0.999 || !!player.down);
+  hpEl.classList.toggle('on', hpOn && !ship.playing && !photo.on);
   hpEl.classList.toggle('low', h < 0.3);
   hpFill.style.width = `${(h * 100).toFixed(1)}%`;
 }
@@ -322,6 +325,11 @@ if (lib) {
   loadMotionLibrary(lib, { matching }).then(() => { if (player.animator) player.animator.matching = matching && !!lib.motion?.db; });
 }
 const humanT = await humans;
+// ?mh=1: the people on MakeHuman bodies (src/makehuman/people.js, docs/makehuman.md: each by their age,
+// build and world); the traveller stays on his own body. Without the files (a build without them), as before.
+const peopleT = query.get('mh') === '1' && humanT
+  ? await loadPeople(import.meta.env.BASE_URL, levelId).then((p) => p.humans()).catch((e) => { console.warn('MakeHuman bodies unavailable', e); return humanT; })
+  : humanT;
 const travellerTemplate = await traveller;
 if (humanT && travellerTemplate) {
   // the traveller: the people's own body and skeleton, the suit painted on, the gear of traveller.glb worn on top (src/traveller.js)
@@ -407,7 +415,7 @@ addIndoors((p) => !!ship.modelOf(p));   // the traveller's own ship
   const stormColor = { desert: '#e3c58f', arzach: '#e8dfcb' }[levelId];
   if (stormColor) post.uniforms.uStormColor.value.set(stormColor);
 }
-const npcs = await runStepsAsync(spawnNPCsSteps(scene, physics, content.npcs, { lib, humans: humanT }), slice);
+const npcs = await runStepsAsync(spawnNPCsSteps(scene, physics, content.npcs, { lib, humans: peopleT }), slice);
 await slice();
 // city crowds: hundreds of GPU-animated people, the nearest few promoted to full NPCs (crowd.js)
 const crowdSpots = level.crowdSpots ? { lines: level.crowdLines, ...level.crowdSpots() } : null;
@@ -416,11 +424,11 @@ const crowdT0 = performance.now();
 const crowdBuilt = crowdSpots ? await runStepsAsync(buildPeopleSteps(physics, crowdSpots, { seed: 11, clear: crowdClear }), slice) : null;
 // (the near tier's bodies one at a time: each is a person built and dressed)
 const crowdPool = [];
-if (crowdSpots) for (let i = 0; i < CROWD_BUDGET.pool; i++) { crowdPool.push(pooledNPC(scene, physics, { kind: i % 2 ? 'f' : 'm', lib, humans: humanT })); await slice(); }
+if (crowdSpots) for (let i = 0; i < CROWD_BUDGET.pool; i++) { crowdPool.push(pooledNPC(scene, physics, { kind: i % 2 ? 'f' : 'm', lib, humans: peopleT })); await slice(); }
 const crowd = level.crowdSpots ? new Crowd(scene, physics, {
   spots: crowdSpots, built: crowdBuilt, pooled: crowdPool,
   clear: crowdClear,
-  makeNPC: (kind) => pooledNPC(scene, physics, { kind, lib, humans: humanT }),
+  makeNPC: (kind) => pooledNPC(scene, physics, { kind, lib, humans: peopleT }),
 }) : null;
 if (crowd) { npcs.push(...crowd.npcs); console.info(`crowd: ${crowd.people.length} people in ${crowd.groups.length} groups, placed in ${(performance.now() - crowdT0).toFixed(0)} ms`); }
 registerNPCTargets(npcs);   // the fluid tool can splash or shove anyone
@@ -440,14 +448,14 @@ const revealed = () => {
   return revealNote(fresh.map((id) => levelById(id).title));   // "New on the ship's map: …", and the signature reads there too
 };
 journal.known = (id) => !ORDER.includes(id) || known().includes(id);   // the sketchbook leaves out worlds you don't know yet
-const story = new Story(scene, { levelId, def: { ...content.story, next: revealed }, journal, sound, capture, player, physics, ground: level.ground.heightAt ? level.ground : null });
+const story = new Story(scene, { levelId, def: { ...content.story, next: revealed }, journal, sound, capture, player, physics, ground: level.ground.heightAt ? level.ground : null, say: (t) => showToast(t) });
 const expedition = level.observatory ? new ObservatoryQuest({ model: level.observatory, journal, traveler: npcs[5], story, capture, sound }) : null;
 await slice();
 // ---- story: conversations, quests, the world's people and places (src/story/, src/interact.js)
 const showToast = (text) => ship.cinema.toast(text);   // queued, and held while a scene has the screen dark (src/ship/cinema.js)
 player.onNotice = showToast;   // "It needs power." (a vehicle without the backpack)
 const preStory = new Set(scene.children);
-const storyRt = createStory({ levelId, scene, physics, level, player, npcs, crowd, sound, journal, story, lib, humans: humanT, toast: showToast, tool,
+const storyRt = createStory({ levelId, scene, physics, level, player, npcs, crowd, sound, journal, story, lib, humans: peopleT, toast: showToast, tool,
   isNight: () => sky.hour < 6.4 || sky.hour > 19.3,
   ship, drone: (out) => (scout && scout.phase !== 'docked' ? out.copy(scout.object.position) : null),   // (home: the scenes wait for the ship's; the dog barks at the drone)
   capture: (e, l, w, h, o) => captureView(e, l, w, h, o) });
@@ -459,8 +467,15 @@ registerInteractable({ id: 'vehicle', priority: PRIORITY.vehicle, range: 6, at: 
   prompt: () => { const v = player.nearestVehicle(); return v?.kind === 'taxi' ? 'get in the taxi' : v?.powered && !items.has('backpack') ? `ride the ${level.mountName ?? v?.kind} (it needs power)` : `ride the ${level.mountName ?? v?.kind ?? 'mount'}`; },
   distance: (p) => { const v = p.nearestVehicle(); return v && !p.boarding && !p.unboarding ? v.pos.distanceTo(p.pos) : Infinity; }, use: () => player.interact() });
 if (expedition) registerInteractable({ id: 'lens', priority: PRIORITY.use, range: 1, prompt: 'turn the lens', distance: (p) => (expedition.nearby(p) >= 0 ? 0 : Infinity), use: () => {} });
-const scout = new Scout({ scene, player, physics, sound, label: document.getElementById('scout-label'),
-  getTarget: () => nextObjective({ player, expedition, story, relics, ship: level.ship, level, quest: () => storyRt.objective() }),
+// the scout finds the objective (Q, Y / △, the touch "ping"; src/scout.js): the cue names it and
+// how far, at once (a toast would wait its turn), and the quest marker over it shows for a while
+// (src/story/quests.js QuestMarker.reveal)
+const scoutSaid = { text: '', until: 0 };
+const scoutSays = (text, secs) => { scoutSaid.text = text; scoutSaid.until = performance.now() + secs * 1000; };
+const scout = new Scout({ scene, player, physics, sound,
+  getTarget: () => nextObjective({ player, expedition, story, ship: level.ship, level, quest: () => storyRt.objective() }),
+  onFind: (target, d) => { scoutSays(`◆ ${findText(target, d)}`, 5); storyRt.marker.reveal(); },
+  onShrug: () => scoutSays('Nothing to find here', 2.5),
 });
 // ---- item boxes (src/boxes/): they notice you; E opens one (a Zelda-style scene on the ship's cinematic camera)
 const boxes = createBoxes({ levelId, scene, physics, level, player, sound, quests: storyRt.quests, toast: showToast,
@@ -475,8 +490,8 @@ journal.sections.push(() => boxes.journalHtml(Object.fromEntries(LEVELS.map((l) 
 const charge = () => chargeState({ flag: (f) => game.flag(f), keepsakes: game.keepsakes(), completed: ship.completed().length,
   failed: Object.entries(game.data.flags).filter(([k, v]) => k.startsWith('failed.') && v).map(([, v]) => v) });   // (quests that went wrong: src/story/quests.js)
 journal.sections.unshift(() => chargeJournalHtml(charge()));
-let chargeKept = null;   // a keepsake just earned: the HUD says what the charge gained, for a while
-game.on('keepsake', (k) => { chargeKept = { name: k.name, until: performance.now() + 9000 }; });
+// a keepsake just earned: a toast says what the father's charge gained
+game.on('keepsake', (k) => { const line = chargeHud(charge(), { kept: k.name }); if (line) showToast(line); });
 // a save from before the charge had its card: letter it once, at the first quiet moment
 if (game.flag('prologue.done') && !game.flag(CHARGE_CARD) && !playPrologue && !playHomecoming) {
   game.set(CHARGE_GIVEN, true);
@@ -523,7 +538,7 @@ await slice();
 // wildlife: two or three small species per world, each with a surprise (src/wildlife.js)
 const wildlife = new Wildlife(scene, level, physics, { content, sound, defs: level.wildlife });   // (a level may bring its own list: the Lab's rooms)
 await slice();
-ship.attach({ player, rig, camera, sound, journal, post, story, wind, npcs, lib, humans: humanT, levels: LEVELS, order: ORDER, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])) });
+ship.attach({ player, rig, camera, sound, journal, post, story, wind, npcs, lib, humans: peopleT, levels: LEVELS, order: ORDER, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])) });
 if (viaShip) {
   const a = ship.arrivalSpot();
   player.respawn(a.pos);
@@ -727,6 +742,7 @@ function adaptQuality(fps, missed) {
   if (dropped && !adapt.dropped) { adapt.dropped = true; applyDetail(); }
   resize();
 }
+if (query.get('fps') === '1') settings.showFps = true;   // (the frame readout for this session, not saved: measuring on a handheld)
 settings.on((k) => {
   rig.sensitivity = settings.sensitivity;
   rig.invertY = settings.invertY;
@@ -743,6 +759,9 @@ const menu = new SettingsMenu(settings, {
   onDev: () => devMenu.toggle(true),
   onBook: () => journal.toggle(true),
   onDebug: () => showPicker(true),
+  // the Quests page: where to go now (what the scout would find), the father's charge, the quest log (the sketchbook's own sections)
+  quests: () => { const ob = scout.getTarget(); return questsPageHtml({ objective: ob?.label, distance: ob ? roughDistance(player.pos.distanceTo(ob.position)) : '', charge: chargeJournalHtml(charge()), quests: storyRt.quests.journalHtml(), carrying: errands.hud() }); },
+  onTrack: (id) => storyRt.quests.track(id),
   onQuit: () => quitToTitle(),
   // an update restarts the game (at the title, in the new build): the position and the time played first
   onBeforeRestart: () => { if (!player.riding && !ship.playing) writeSave(); flushPlay(); reactiveWorld.flush(); },
@@ -831,11 +850,9 @@ window.addEventListener('keydown', (e) => {
 // H toggles the panel, ENTER saves a PNG of the frame.
 const photo = { on: false, capture: false, pos: new THREE.Vector3() };
 const photoHint = document.getElementById('photo');
-const hud = document.getElementById('hud');
 function setPhoto(on) {
   photo.on = on;
   if (on) photo.pos.copy(camera.position);
-  hud.style.display = on ? 'none' : '';
   gui.domElement.style.display = on ? 'none' : '';
   photoHint.classList.toggle('open', on);
 }
@@ -866,7 +883,6 @@ function savePhoto() {
   });
 }
 window.addEventListener('keydown', (e) => {
-  if (e.code === 'KeyH' && !photo.on) document.body.classList.toggle('help');   // controls help, off by default
   if (e.code === 'KeyP') setPhoto(!photo.on);
   if (photo.on && e.code === 'KeyH') gui.domElement.style.display = gui.domElement.style.display === 'none' ? '' : 'none';
   if (photo.on && e.code === 'Enter') photo.capture = true;
@@ -876,65 +892,36 @@ window.addEventListener('keydown', (e) => {
 const timer = new THREE.Timer();
 let frameNo = 0;
 
-const status = document.getElementById('status');
-let lastStatus = '';
-// The status box: where you are, your gauges, and only the prompts for what is right here.
-// No standing list of buttons (the settings carry the full controls, H shows the keyboard's);
-// a button in a prompt is drawn as a round badge (src/prompt-keys.js).
-const RIDE_HINT_MS = 6000;   // a ride's controls show for a few seconds after you get on, then go
-const RIDE_KEYS = {
-  taxi: 'E get out · W/S throttle · A/D steer · SPACE up · SHIFT down',
-  bird: 'E jump off · A/D bank · W dive · S pull up · SPACE flap',
-  bike: 'E dismount (moving: jump off) · W/S throttle · A/D steer · SHIFT boost · SPACE hop',
-  skiff: 'E step off (moving: jump off) · W/S throttle · A/D steer · SHIFT boost',
-};
-// a pad rides on the triggers: RT goes, the stick steers (and tilts a flyer: forward dives, back climbs);
-// the bottom button jumps off (player.jumpOff), the left one is the vehicle's own hop / flap / rise
-const RIDE_PAD = {
-  taxi: 'A / × jump off · B / ○ get out · RT / R2 go · LT / L2 brake · left stick steer, forward down, back up · X / □ up',
-  bird: 'A / × jump off · RT / R2 fly on · left stick bank, forward dive, back climb · X / □ flap',
-  bike: 'A / × jump off · B / ○ dismount · RT / R2 go · LT / L2 brake · left stick steer · RB / R1 boost · X / □ hop',
-  skiff: 'A / × jump off · B / ○ step off · RT / R2 go · LT / L2 brake · left stick steer · RB / R1 boost · X / □ hop',
-};
+// Nothing on the screen at rest (src/hud.js): no status box. The cue says what the use button does
+// right here when it has nothing to float over (the ship's hatch and console, a lens), a ride's
+// controls for a few seconds after you get on, and a region's name as you cross into it.
+const cue = new Cue(), placeName = new PlaceName();
 const rideHint = { kind: null, at: 0 };
 function updateHud() {
-  const gauge = (v) => { const n = Math.round(v * 10); return `[${'■'.repeat(n)}${'·'.repeat(10 - n)}]`; };
-  const RIDE = controllerActive ? RIDE_PAD : RIDE_KEYS;
-  const parts = [];
   const now = performance.now();
-  if (player.ride) {
-    if (rideHint.kind !== player.ride.kind) { rideHint.kind = player.ride.kind; rideHint.at = now; }
-    if (now - rideHint.at < RIDE_HINT_MS) parts.push(RIDE[player.ride.kind] ?? RIDE.bike);
-  } else {
-    rideHint.kind = null;
-    if (tool.aiming) parts.push(tool.hudText());
-    else {
-      // (the stamina has its wheel beside the traveller: updateStamina)
-      // the jets burn the tank: a gauge while it's not full (or in the air)
-      if (player.canJet && (player.thrusting || tool.jetBurnt)) parts.push(`jets ${gauge(player.jetFuel)}`);
-      // what the use button does right here (a prompt with a place to hang floats over it instead: placePrompt)
-      if (storyRt.prompt && !storyRt.promptAt) parts.push(`E ${storyRt.prompt}`);
-      else if (!storyRt.prompt && expedition?.nearby(player) >= 0) parts.push('observatory lenses');
-      else if (player.boarding) parts.push('slotting the backpack in…');
-      const shipHint = ship.hud();   // inside the ship and at its ramp, E is the ship's
-      // (and while one of its scenes plays, E does nothing at all)
-      if (shipHint || ship.playing) { for (let i = parts.length - 1; i >= 0; i--) if (parts[i].startsWith('E ')) parts.splice(i, 1); if (shipHint) parts.unshift(shipHint); }
-    }
-  }
-  // a tracked quest's line wins; otherwise the ship's objective (set by the prologue) and the world's story
-  const objective = game.flag('objective');
-  // (none during the ship's scenes: in orbit the camps are "1.1 km through the doorway")
-  const questLine = ship.playing ? null : expedition?.state.started && !expedition.state.returned ? expedition.hud(player) : storyRt.hud();
-  // the father's charge (✦, gold): what a new keepsake added to it, for a while; otherwise whenever nothing nearer is asked
-  const kept = chargeKept && now < chargeKept.until ? chargeKept.name : null;
-  const chargeLine = ship.playing ? null : chargeHud(charge(), { kept });
-  const goal = ship.playing ? '' : (kept && chargeLine) || questLine || [objective && `◆ ${objective}`, expedition && !expedition.state.returned ? expedition.hud(player) : story.hud()].filter(Boolean).join(' · ') || chargeLine || '';
-  let text = [atmo.name, ...parts].join(' · ') +
-    `\n${goal ? goal + ' · ' : ''}${errands.hud() ? errands.hud() + ' · ' : ''}relics ${journal.relicCount(levelId)}/${content.relics.names.length}`;
-  // the pad's names by position: bottom jumps, the right button uses (native-pad.js prints them as the pad does)
-  if (controllerActive) text = text.replaceAll('SPACE', 'A / ×').replaceAll('SHIFT', 'L3').replaceAll('W/S', 'left stick').replaceAll('A/D', 'left stick').replace(/\bE\b/g, 'B / ○');
+  if (player.ride) { if (rideHint.kind !== player.ride.kind) { rideHint.kind = player.ride.kind; rideHint.at = now; } }
+  else rideHint.kind = null;
+  const quiet = busy() || photo.on || player.dead;
+  const lens = !player.ride && expedition?.state.started && !expedition.state.done && expedition.nearby(player) >= 0 ? expedition.hud(player) : null;
+  const text = cueText({ quiet, ride: player.ride?.kind ?? null, rideFor: now - rideHint.at, aiming: tool.aiming, shipHint: ship.hud(), shipPlaying: ship.playing,
+    prompt: storyRt.prompt, promptAt: storyRt.promptAt, lens, boarding: player.boarding, controller: controllerActive });
+  const place = quiet || ship.playing || ship.inside ? '' : placeName.update(atmo?.name, now);
+  const found = !quiet && now < scoutSaid.until ? scoutSaid.text : '';   // (what the scout found, a moment)
+  cue.set(found || text || place, found || text ? '' : 'place');
+  // (the tank's gauge, when it shows without the crosshair, sits beside the traveller: left of the shoulders)
+  placeToolGauge();
   audioCfg.mute = sound.muted;
-  if (text !== lastStatus) { status.innerHTML = badgeLine(text); lastStatus = text; }
+}
+const toolEl = document.getElementById('tool'), _tgP = new THREE.Vector3(), _tgR = new THREE.Vector3();
+function placeToolGauge() {
+  if (!toolEl) return;
+  const b = document.body.classList, free = !b.contains('aiming') && (b.contains('tool-gauge') || b.contains('modeflash'));
+  if (!free) { if (toolEl.style.left) toolEl.style.left = toolEl.style.top = ''; return; }
+  _tgR.setFromMatrixColumn(camera.matrixWorld, 0);
+  _tgP.copy(player.object?.position ?? player.pos).addScaledVector(player.frame.up, 1.45).addScaledVector(_tgR, -0.75).project(camera);
+  if (_tgP.z > 1) return;
+  toolEl.style.left = `${((_tgP.x * 0.5 + 0.5) * innerWidth).toFixed(1)}px`;
+  toolEl.style.top = `${((-_tgP.y * 0.5 + 0.5) * innerHeight - 40).toFixed(1)}px`;
 }
 
 
@@ -951,7 +938,8 @@ const pageUp = () => pageEl.classList.contains('open');
 const menuRoot = () => restartOpen ? restartEl : boxes.busy() && boxes.card.el ? boxes.card.el : menu.open ? menu.el : changelog.open ? changelog.el : pageUp() ? pageEl : storyRt.dialogue.open ? storyRt.dialogue.el : journal.open ? journal.el : picker.classList.contains('open') ? picker : pageEl;
 const closeControllerMenu = () => {
   if (restartOpen) return;   // (only confirm restarts: there is nothing to go back to)
-  if (boxes.busy()) boxes.skip();
+  if (storyRt.moments.playing) storyRt.moments.skip();   // B / ○ skips a moment (src/story/moment.js)
+  else if (boxes.busy()) boxes.skip();
   else if (menu.open) menu.back();
   else if (changelog.open) changelog.toggle(false);
   else if (pageUp()) pageEl.click();
@@ -966,12 +954,12 @@ const controller = new Controller({
   look: (x, y) => { if (x || y) rig.look(x, y); },
   activity: () => { controllerActive = true; screenInput = false; sound.start(); },   // (where a pad press may start sound: the Android app)
   navigate: (x, y) => menuNavigate(menuRoot(), x, y),
-  scroll: amount => { const root = menuRoot(); (root.querySelector('.list, .panel, .sheet') ?? root).scrollTop += amount; },
+  scroll: amount => { const root = menuRoot(); (root.querySelector('.list, .panel:not([hidden]), .sheet') ?? root).scrollTop += amount; },
   action: (name, dt) => {
     if (name === 'zoomOut' || name === 'zoomIn') rig.dist = THREE.MathUtils.clamp(rig.dist * Math.exp((name === 'zoomOut' ? 1 : -1) * dt), 4, 60);
     if (name === 'back') closeControllerMenu();
     // (in a menu, a conversation or a scene: Start toggles the Start menu, Select the sketchbook)
-    if (name === 'start') menu.toggle(!menu.open);
+    if (name === 'start') { if (storyRt.moments.playing && !menu.open) storyRt.moments.skip(); else menu.toggle(!menu.open); }   // (Menu skips a moment too)
     if (name === 'select') journal.toggle(!journal.open);
     if (name === 'confirm') {
       const root = menuRoot();
@@ -1042,6 +1030,8 @@ const shadowCull = new ShadowCuller(scene);
 const smallCull = new SmallCuller(scene);
 let roomCull = null;
 const makeRoomCull = () => new RoomCuller(scene, offMapRooms, { keep: [player.object, player.mount?.object, ...player.vehicles.map((v) => v.object ?? v.mesh), ...npcs.map((n) => n.object)] });
+// and the other way round: inside one of those rooms, the whole map outside it (perf.js InteriorCuller)
+const interiorCull = new InteriorCuller(scene, offMapRooms, { ground: (x, z) => terrain.heightAt?.(x, z) ?? 0 });
 // levels of detail (lod.js): distant static meshes drawn coarser, by no more than the preset's
 // lodPx pixels; never the terrain (dug into at runtime) or anything that moves with a person
 let lod = null;
@@ -1079,6 +1069,7 @@ function renderFrame() {
   cullFar(tiled.small, camera, preset.propFar, frameHidden);
   smallCull.hide(camera, pxPerRad, preset.propPx, frameHidden);
   (roomCull ??= makeRoomCull()).hide(camera, frameHidden);
+  interiorCull.hide(camera, frameHidden);
   lodView.pxPerRad = pxPerRad; lodView.px = preset.lodPx ?? 0;
   skinnedLods.update(camera, pxPerRad, preset.lodPx ?? 0);   // the people far off: simpler bodies (skinned-lod.js)
   (lod ??= makeLod()).update(camera, pxPerRad, preset.lodPx ?? 0);
@@ -1226,9 +1217,11 @@ function missedFrames() {
   return n;
 }
 window.addEventListener('keydown', (e) => { if (e.code === 'KeyF' && !photo.on) settings.set('showFps', !settings.showFps); });
+// (first the engine, and a benchmark's label when it sets one: window.__benchLabel, e.g. "camps r2/3")
+const ENGINE = window.__fpsEngine = engineLabel(navigator.userAgent, location.search, window.Capacitor);
 function frameReadout(fps) {
   const n = Math.max(frameStats.n, 1), gpu = gpuTimer.take();
-  return `${Math.round(fps)} fps · ${(1000 / fps).toFixed(1)} ms (cpu ${(cpuMs / fpsN).toFixed(1)}${gpu !== null ? ` gpu ${gpu.toFixed(1)}` : ''})`
+  return `${ENGINE}${window.__benchLabel ? ` ${window.__benchLabel}` : ''} · ${Math.round(fps)} fps · ${(1000 / fps).toFixed(1)} ms (cpu ${(cpuMs / fpsN).toFixed(1)}${gpu !== null ? ` gpu ${gpu.toFixed(1)}` : ''})`
     + ` · ${quality.renderScale}× · ${Math.round(frameStats.calls / n)} calls · ${Math.round(frameStats.tris / n / 1000)}k tris · ${preset.key}`;
 }
 function frame() {
@@ -1295,9 +1288,8 @@ function frame() {
   ship.update(dt, t, mergedInput, { photo: photo.on });   // inside / outside, its scenes and their camera
   tool.update(dt, ctl, busy() || photo.on);
   flammables.update(dt, t, player.pos);
+  scout.flare.eye = camera.position;
   scout.update(dt, busy() || photo.on);
-  if (!busy() && !photo.on) scout.placeLabel(camera);
-  else if (scout.label) scout.label.hidden = true;
   // flocks circle the player (also in photo mode, so you can fly up to them)
   for (const f of flocks) f.update(dt, t, player.pos, camera.position);
   motes?.update(dt, t, camera.position);
@@ -1392,7 +1384,8 @@ function frame() {
     if (zone.preset !== params.preset) { params.preset = zone.preset; applyPreset(zone.preset); }
     // a zone may also carry its world's own look, planets and hour (the Lab's biome rooms)
     if (zone !== lastZone) {
-      if (zone.look) { for (const [k, v] of Object.entries(zone.look)) if (U[k]) U[k].value = v; gui.controllersRecursive().forEach((c) => c.updateDisplay()); }
+      // (from the preset afresh: a zone's touches never carry over into the next zone's)
+      if (zone.look) { if (lastZone?.look) applyPreset(params.preset); for (const [k, v] of Object.entries(zone.look)) if (U[k]) U[k].value = v; gui.controllersRecursive().forEach((c) => c.updateDisplay()); }
       else if (lastZone?.look) applyPreset(params.preset);
       if (zone.planets || lastZone?.planets) setPlanets(zone.planets ?? level.sky?.planets ?? []);
       if (zone.hour !== undefined && lastZone) sky.hour = zone.hour;
@@ -1585,4 +1578,4 @@ window.clipAudit = async (o = {}) => {
   return r;
 };
 Object.assign(window, { waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife,
-  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, passage, warmDraw, boxes, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame, lod: () => lod, skinnedLods });
+  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, passage, warmDraw, boxes, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame, lod: () => lod, skinnedLods, interiorCull });

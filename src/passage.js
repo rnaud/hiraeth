@@ -21,6 +21,7 @@ export const PASSAGE = {
   reveal: 0.4,       // s: and goes on off the far side
   holdMin: 2,        // frames drawn at the destination, still covered, before it goes
   holdMax: 0.6,      // s: the longest it waits for the new place to settle
+  calmDt: 0.042,     // s: a frame quicker than this is back to pace (two in a row, and it goes)
   warmMax: 0.5,      // s: the longest the move waits for the destination's last meshes
   perFrame: 32,      // meshes drawn a frame while warming ahead (the rest, if any, once covered)
   near: 12,          // m: this close to a way through, its destination is warmed ahead
@@ -356,7 +357,10 @@ export class Passage {
         c.phase = 'hold'; c.t = 0; c.frames = 0;
       }
     } else if (c.phase === 'hold') {
-      if (++c.frames >= PASSAGE.holdMin && (!this.busy() || c.t >= PASSAGE.holdMax)) {
+      // (and the frames back to their pace: the new place's first frames, its levels of detail
+      // switching, its people waking, are the slow ones, and they stay behind the paper)
+      c.calm = dt < PASSAGE.calmDt ? (c.calm ?? 0) + 1 : 0;
+      if (++c.frames >= PASSAGE.holdMin && ((!this.busy() && c.calm >= 2) || c.t >= PASSAGE.holdMax)) {
         this.cover?.reveal(PASSAGE.reveal);
         c.phase = 'reveal'; c.t = 0;
       }
