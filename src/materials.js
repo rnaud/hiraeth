@@ -1096,27 +1096,35 @@ const fragmentShader = /* glsl */ `
   // three stacked bands of one tone each, with metaball blobs of the other
   // tones rising, sinking and merging through them. Flat tones, so the post
   // pass inks every boundary.
+  // (blob i joins tone i mod n. Summed tone by tone, blob by blob in the same order, rather than into
+  // an array indexed by i mod n: a local array with a computed index lives in slow scratch memory
+  // on mobile GPUs, and the pool and the stream fill much of the screen in the desert's cave)
+  float fluidBlob(int i, float wa, float wh, float aspect, float t) {
+    float fi = float(i);
+    float ph = 6.2831 * (0.06 + 0.05 * fract(fi * 0.618)) * t + fi * 2.13;
+    float cy = 0.5 + 0.56 * sin(ph);                       // a little past the ends: blobs pool and break away
+    float ca = fi * 2.39996 + 0.9 * sin(t * 0.13 + fi * 1.7);
+    float r = 0.115 + 0.045 * sin(t * 0.43 + fi * 1.31);
+    float da = abs(mod(wa - ca + 3.14159, 6.28318) - 3.14159) * aspect;
+    float dy = (wh - cy) / (1.0 + 0.6 * abs(cos(ph)));      // stretched while it rises or sinks
+    return r * r / max(da * da + dy * dy, 1e-5);
+  }
   vec3 fluidLava(float a, float h, float aspect, float t, int n, bool banded) {
-    float F[6] = float[6](0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
     // a slow warp keeps every edge organic
     float wa = a + 0.16 * sin(h * 8.0 + t * 0.7);
     float wh = h + 0.03 * sin(a * 3.0 - t * 0.9);
-    for (int i = 0; i < 12; i++) {
-      float fi = float(i);
-      float ph = 6.2831 * (0.06 + 0.05 * fract(fi * 0.618)) * t + fi * 2.13;
-      float cy = 0.5 + 0.56 * sin(ph);                       // a little past the ends: blobs pool and break away
-      float ca = fi * 2.39996 + 0.9 * sin(t * 0.13 + fi * 1.7);
-      float r = 0.115 + 0.045 * sin(t * 0.43 + fi * 1.31);
-      float da = abs(mod(wa - ca + 3.14159, 6.28318) - 3.14159) * aspect;
-      float dy = (wh - cy) / (1.0 + 0.6 * abs(cos(ph)));      // stretched while it rises or sinks
-      F[i - n * (i / n)] += r * r / max(da * da + dy * dy, 1e-5);
-    }
     float hb = h + 0.035 * sin(a * 2.0 + t * 0.6) + 0.02 * sin(a * 5.0 - t * 1.4);
     int base = banded ? int(clamp(floor(hb * 3.0), 0.0, 2.0)) : int(step(0.5 + 0.25 * sin(a * 2.0 + t * 0.5), h));
+    n = max(n, 1);
     base -= n * (base / n);
     int pick = base;
     float best = 1.0;
-    for (int c = 0; c < 6; c++) { if (c >= n) break; if (c != base && F[c] > best) { best = F[c]; pick = c; } }
+    for (int c = 0; c < 6; c++) {
+      if (c >= n) break;
+      float f = 0.0;
+      for (int i = c; i < 12; i += n) f += fluidBlob(i, wa, wh, aspect, t);
+      if (c != base && f > best) { best = f; pick = c; }
+    }
     return fluidTone(pick);
   }
   vec3 fluidAlbedo(vec3 base) {

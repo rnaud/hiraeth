@@ -662,6 +662,15 @@ export function buildDesertCity(scene, terrain) {
   const cv = {};
   {
     const POOL = 12.5, ROOM = 30;
+    // the entrance passage on the +z side (the way back to the skull). First into the batches: from the
+    // passage its walls hide the dome's far side and the room's floor, and drawn before them they keep
+    // the GPU from painting those first (a third more fragments in the passage)
+    cave.both(M.cave, new THREE.BoxGeometry(2.2, 6, 12).translate(-3.6, 3, ROOM + 4), new THREE.BoxGeometry(2.2, 6, 12).translate(-3.6, 3, ROOM + 4));
+    cave.both(M.cave, new THREE.BoxGeometry(2.2, 6, 12).translate(3.6, 3, ROOM + 4), new THREE.BoxGeometry(2.2, 6, 12).translate(3.6, 3, ROOM + 4));
+    cave.both(M.cave, new THREE.BoxGeometry(9.4, 1.5, 12).translate(0, 5.6, ROOM + 4));
+    cave.both(M.caveFloor, new THREE.BoxGeometry(5, 0.5, 12).translate(0, -0.25, ROOM + 4));
+    cave.add(M.ink, new THREE.PlaneGeometry(5, 4.8).rotateY(Math.PI).translate(0, 2.4, ROOM + 9.9));
+    cave.solid(new THREE.BoxGeometry(6, 6, 0.5).translate(0, 3, ROOM + 10.2));
     // the floor: a shallow basin in the middle
     const prof = [[0, -1.7], [POOL - 2, -1.6], [POOL, -1.1], [POOL + 2.2, 0], [ROOM + 2, 0], [ROOM + 2, -1]];
     const fl = lathe(prof.map(([r, y]) => [r, y]), 36);
@@ -727,13 +736,6 @@ export function buildDesertCity(scene, terrain) {
       rootTips.push(cave.world(tip.x, tip.y + 0.5, tip.z));
     }
     cave.add(M.bark, taper([V(0, 19, 0), V(0.8, 13, -0.6), V(-0.5, 6, 0.5), V(0.2, -0.9, 0)], 1.25, 0.3, 18, 8));
-    // the entrance passage on the +z side (the way back to the skull)
-    cave.both(M.cave, new THREE.BoxGeometry(2.2, 6, 12).translate(-3.6, 3, ROOM + 4), new THREE.BoxGeometry(2.2, 6, 12).translate(-3.6, 3, ROOM + 4));
-    cave.both(M.cave, new THREE.BoxGeometry(2.2, 6, 12).translate(3.6, 3, ROOM + 4), new THREE.BoxGeometry(2.2, 6, 12).translate(3.6, 3, ROOM + 4));
-    cave.both(M.cave, new THREE.BoxGeometry(9.4, 1.5, 12).translate(0, 5.6, ROOM + 4));
-    cave.both(M.caveFloor, new THREE.BoxGeometry(5, 0.5, 12).translate(0, -0.25, ROOM + 4));
-    cave.add(M.ink, new THREE.PlaneGeometry(5, 4.8).rotateY(Math.PI).translate(0, 2.4, ROOM + 9.9));
-    cave.solid(new THREE.BoxGeometry(6, 6, 0.5).translate(0, 3, ROOM + 10.2));
     // the channel: a stone gutter on vertebrae, from a crack in the wall down to the pool
     const CH = { from: V(27.5, 3.4, -6), to: V(POOL - 0.6, -0.3, -2.6) };
     const chDir = CH.to.clone().sub(CH.from), chLen = chDir.length(); chDir.normalize();

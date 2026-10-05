@@ -276,6 +276,13 @@ Grouped by area. Checked items are done; the changelog says when.
   resolution, near shadows every other frame, City-Shaft trees split. Still to do with the device:
   re-measure every world, a thermal soak, and measure inside the app's own WebView 109.)
 
+- [x] The cave with the fluid always has bad FPS, though it's a small space. (The rooms reached through
+  portals are built a kilometre over the map and the whole desert below was still drawn behind the walls:
+  in the cave 425 draws and 0.47 M triangles, 0.27 M of them terrain smaller than a pixel. Now a room off
+  the map draws only itself (perf.js InteriorCuller, every world's temples and chambers): 87 draws and
+  0.09 M triangles; the passage hides the dome behind it; the fluid's shader without a scratch array.
+  README, "Rooms off the map draw only themselves". To confirm on the Retroid: the cave at 60 with the rest.)
+
 ---
 
 # Player feedback backlog, part 2 (2026-10-04)
