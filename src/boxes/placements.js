@@ -14,7 +14,8 @@
 //   beacon   a pale column over it, seen from afar (the boxes you must find); a number: only
 //            within that many metres (it rises out of a city, not over the whole desert)
 //   hint     the box's own quest (src/boxes/index.js): where it is, in the player's words; the quest
-//            starts when you arrive and leads the scout there (the desert's first box is the story's)
+//            starts when you arrive (once you have found a box of your own) and leads the scout there
+//            (the desert's first box is the story's)
 //   note     where it is and how you get there (for people, not the code)
 //   temple   the box stands inside that world's temple (src/temples/): the gadget there is the key to
 //            the temple's later rooms; no box quest of its own (the temple's quest leads to it)
@@ -26,11 +27,12 @@
 
 export const PLACEMENTS = {
   desert: [
-    // the makers' ledge in Qanat: a plank shelf jutting out of the burning tree's trunk 3 m up, on a
-    // buttress root you climb (src/desert-city.js builds it), above the terrace beside the dry well. Up
-    // the main stairs from the gate, on the left of the well; the box's pale column shows the way.
+    // the makers' pedestal in Qanat: a carved stone dais high on the burning tree's trunk (7 m up), on
+    // a stone pier standing on a buttress root's shoulder: two pitches to climb (src/desert-city.js
+    // builds it), above the terrace beside the dry well. Up the main stairs from the gate, on the left
+    // of the well; the box's pale column shows the way.
     { id: 'desert.backpack', item: 'backpack', site: (level) => level.qanat?.city.ledge && { at: level.qanat.city.ledge.box.toArray(), face: level.qanat.city.ledge.yaw }, beacon: 170,
-      note: 'In Qanat, on the makers’ ledge up the burning tree’s trunk, left of the dry well: climb the buttress root. The first find, and the elder’s.' },
+      note: 'In Qanat, on the makers’ pedestal high on the burning tree’s trunk, left of the dry well: climb the buttress root, then the stone pier. The first find, and the elder’s.' },
     // Qanat: on the flat roof of a domeless house inside the main gate (a 6 m climb)
     { id: 'desert.star', item: 'star', at: [246.9, 7.6, 363.6], lift: 0.5, toward: [230, 330],
       hint: 'A makers’ box sits on a flat roof just inside Qanat’s main gate. Climb the house wall',

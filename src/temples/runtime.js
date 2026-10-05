@@ -5,7 +5,7 @@ import { addIndoors } from '../shelter.js';
 import { rumble } from '../ship/sfx.js';
 import { TempleKit, templeMaterials } from './kit.js';
 import { TempleLogic, flagStore } from './logic.js';
-import { Guardian } from './boss.js';
+import { Guardian, guardianBar } from './boss.js';
 import { Mark, Pit } from './pieces.js';
 
 // One temple, alive: its rooms (built by the world's layout with the kit and
@@ -196,8 +196,9 @@ export class TempleRuntime {
   }
 
   /**
-   * The guardian's meter on the screen while it is awake: a printed bar at the top, its name and
-   * what the meter is (calm for a living guardian, damage for a machine), in the health bar's style.
+   * The guardian's bar on the screen while it is awake: a printed bar at the bottom, its name and what
+   * the bar is (a machine's health, a living guardian's unrest), in the health bar's style: full at
+   * the start, going down as the fight goes your way (boss.js guardianBar).
    */
   meterHud() {
     const G = this.guardian;
@@ -206,16 +207,16 @@ export class TempleRuntime {
     if (!el) {
       el = this.meterEl = document.createElement('div');
       el.className = 'temple-meter';
-      el.style.cssText = 'position:fixed;left:50%;bottom:calc(26px + var(--safe-bottom, 0px));transform:translateX(-50%);z-index:30;pointer-events:none;'
+      el.style.cssText = 'position:fixed;left:50%;bottom:calc(62px + var(--safe-bottom, 0px));transform:translateX(-50%);z-index:30;pointer-events:none;'
         + 'font:700 11px/1.2 ui-monospace,Menlo,monospace;letter-spacing:.14em;color:#2b211f;text-transform:uppercase;text-align:center;opacity:0;transition:opacity .6s;';
-      const robot = G.def.kind === 'robot';
+      const bar0 = guardianBar(G.def, G.meter);
       const label = document.createElement('div');
       label.style.cssText = 'margin-bottom:4px;text-shadow:0 0 3px #f7ecd2';
-      label.textContent = `${G.def.name} · ${robot ? 'damage' : 'calm'}`;
+      label.textContent = bar0.label;
       const bar = document.createElement('div');
       bar.style.cssText = 'width:260px;height:11px;border:2px solid #2b211f;background:#f7ecd2;box-shadow:2px 2px 0 #2b211f;border-radius:6px;overflow:hidden';
       const fill = document.createElement('i');
-      fill.style.cssText = `display:block;height:100%;width:0%;background:${robot ? '#d9503f' : '#62c3c9'};border-right:2px solid #2b211f;transition:width .35s`;
+      fill.style.cssText = `display:block;height:100%;width:${(bar0.fill * 100).toFixed(1)}%;background:${bar0.color};border-right:2px solid #2b211f;transition:width .35s`;
       bar.appendChild(fill);
       el.appendChild(label); el.appendChild(bar);
       document.body.appendChild(el);
@@ -223,7 +224,7 @@ export class TempleRuntime {
     }
     const on = G.awake && !this.player?.dead && !!this.player && this.inside(this.player.pos) && !document.body.classList?.contains?.('talking');
     el.style.opacity = on ? '1' : '0';
-    if (on && this.meterFill?.style) this.meterFill.style.width = `${(G.meter * 100).toFixed(1)}%`;
+    if (on && this.meterFill?.style) this.meterFill.style.width = `${(guardianBar(G.def, G.meter).fill * 100).toFixed(1)}%`;
   }
 
   dispose() {

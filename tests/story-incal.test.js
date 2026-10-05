@@ -233,3 +233,53 @@ test('side quests: the call-lamp and Wren, Pip’s ration for Dov', async () => 
   assert.ok(storyDone, 'the main quest closed the story page');
   clearInteractables();
 });
+
+test('the cabs ignore you without a pass: Lio writes one for the fare Hask owes him', async () => {
+  const { Taxi, CAB_PASS } = await import('../src/taxi.js');
+  const { Player } = await import('../src/player.js');
+  const { items, gearHtml } = await import('../src/items.js');
+  game.set(`item.${CAB_PASS}`, undefined);
+  const cab = level.vehicles.find((v) => v.kind === 'taxi' && v !== W.cab);
+  const p = new Player(physics, { health: false });
+  p.respawn(level.spawn.clone());
+  const notes = [];
+  p.onNotice = (t) => notes.push(t);
+  p.vehicles = [cab];
+  // hailing from the rim: the cab flies on, and says who writes the passes
+  cab.mode = 'lane'; Taxi._refusedAt = -1e9;
+  p.callMount();
+  assert.equal(cab.mode, 'lane', 'no pass: it does not come');
+  assert.match(notes.at(-1) ?? '', /PASS HOLDERS ONLY.*Lio/);
+  assert.equal(quests.stage('incal.pass'), 'lio', 'the refusal starts the errand');
+  cab.hail(p.pos, 0);
+  assert.equal(cab.mode, 'lane', 'not even a direct hail');
+  // one waiting right beside you won't take you either
+  cab.mode = 'parked'; cab.pos.copy(p.pos).add(V(2, 1, 0)); cab.parkY = cab.pos.y; Taxi._refusedAt = -1e9;
+  assert.equal(p.board(cab), false);
+  assert.equal(p.ride ?? null, null);
+  assert.match(notes.at(-1) ?? '', /PASS HOLDERS ONLY/);
+  // Wren stops for anyone
+  assert.equal(W.cab.refuses(p), false);
+  // Lio, then Hask's coin, then Lio again: the pass
+  talk(RIM.lio, ['How do I get a pass']);
+  assert.equal(quests.stage('incal.pass'), 'fare');
+  const h = new DialogueRunner(RIM.hask, { game, quests });
+  assert.match(h.text, /Lio sent you/);
+  while (!h.ended && h.advance());
+  assert.ok(quests.has('fare'), 'Hask’s coin');
+  assert.equal(quests.stage('incal.pass'), 'back');
+  const r = new DialogueRunner(RIM.lio, { game, quests });
+  assert.equal(r.nodeId, 'paid');
+  while (!r.ended && r.advance());
+  assert.ok(!quests.has('fare'));
+  assert.ok(quests.has(CAB_PASS) && items.has(CAB_PASS), 'the cab pass, in hand');
+  assert.equal(quests.isDone('incal.pass'), true);
+  assert.match(gearHtml(items.owned()), /Cab pass/, 'listed in the gear');
+  // now it stops, and lets you in
+  cab.mode = 'lane';
+  p.callMount();
+  assert.equal(cab.mode, 'hail', 'with the pass, the cab comes');
+  cab.mode = 'parked'; cab.pos.copy(p.pos).add(V(2, 1, 0));
+  assert.equal(p.board(cab), true);
+  game.set(`item.${CAB_PASS}`, undefined);
+});

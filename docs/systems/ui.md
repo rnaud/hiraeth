@@ -133,11 +133,8 @@ the drone; for the quest log you open the menu. Tests: `tests/hud.test.js`, `tes
     just found, and a region's name as you cross into it (`PlaceName`: it must hold 1.5 s, and
     the name where you arrive is not shown). Prompts with a place still float over it (`#prompt`).
   - **health** (`#health`): while hurt or healing (`Fader(3)`), then fades; **stamina** as before.
-  - **the tank** (`ToolHud.gaugeShown`, `body.tool-gauge`): the crosshair and the pips while
-    aiming; without aiming, the pips alone beside the traveller (main.js `placeToolGauge`, left of
-    the shoulders as the stamina wheel is right) while the tank is short (a shot, a boost, the
-    jets burning: the pip being burnt shows what is left of it, until the refill), on a mode
-    switch, and an empty tank for `GAUGE_DRY` s; `GAUGE_LINGER` s after, it fades.
+  - **the tank**: the crosshair while aiming; no pips any more (the tank's level shows on the
+    backpack itself, October 2026), only an "empty" notice for 3 s when it runs dry.
   - **the frame readout** is off by default (`showFps: false`; settings saved before `hudV: 1`
     lose the old default once, `migrateSettings`); F, the settings or `?fps=1` (this session
     only) turn it on. `scripts/handheld-perf` sets it.
@@ -149,9 +146,9 @@ the drone; for the quest log you open the menu. Tests: `tests/hud.test.js`, `tes
   (on foot and now riding or flying too: controller.js sends `ping` from the top button in the
   ride context), the touch "ping". It hops off its dock as before, flies to a lookout (`lookout`:
   `FIND.out` m towards the objective from over your head, a little more at speed, carried with
-  your velocity; right over it when it is nearer than `FIND.near`), hovers and points its beak and
-  a thin lit **lens beam** at it (`updateBeam`: out to the objective or the first thing in the
-  way, at most `FIND.beam` m), drops a **flare** on the spot (`Flare`: a column of its light
+  your velocity; right over it when it is nearer than `FIND.near`), hovers facing it (no beak or beam
+  on a find since October 2026: its heading is the pointer; the beam is kept for boss hints,
+  docs/systems/boss-hints.md), drops a **flare** on the spot (`Flare`: a column of its light
   shooting up and a ring that rings out, sized by the distance so it reads from far away, gone
   after `FLARE.life` s), chirps (`sound.drone('found')`) and calls `onFind(target, metres)`:
   main.js puts "◆ Madame Sel, under the silent tower · 320 m" on the cue for 5 s (`findText`,

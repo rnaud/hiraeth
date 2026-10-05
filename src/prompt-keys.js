@@ -6,6 +6,27 @@
 // native-pad.js, which rewrites text nodes, still turns it into the
 // handheld's own letter ("X") and swaps A and B when asked.
 
+import { backKey } from './native-pad.js';
+
+/** What the player holds now: 'pad' (a controller is in use), 'touch', or 'keys' (the body's classes: main.js, ui.js). */
+export function inputKind(doc = typeof document !== 'undefined' ? document : null) {
+  const b = doc?.body?.classList;
+  if (b?.contains?.('controller')) return 'pad';
+  if (b?.contains?.('touch')) return 'touch';
+  return 'keys';
+}
+
+/**
+ * A panel's "how to close it", for the hands on the game: the keyboard's keys ("J or Esc to close"),
+ * the pad's back button ("B / ○ close": native-pad.js prints it as the pad does), nothing on a touch
+ * screen (its ✕ button says it).
+ */
+export function closeHint(keys, kind = inputKind(), back = backKey()) {
+  if (kind === 'pad') return `${back} close`;
+  if (kind === 'touch') return '';
+  return `${keys} to close`;
+}
+
 export const escapeHtml = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 /** One button as a round badge. */

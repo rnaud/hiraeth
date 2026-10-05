@@ -42,6 +42,8 @@ const TIER = { off: 0, far: 1, mid: 2, near: 3 };
 export const CROWD_TIER = TIER;
 export const CROWD_RANGE = { nearIn: 9, nearOut: 12.5, midIn: 65, midOut: 72, shadow: 35, target: 60, far: 420, dist: Infinity };
 export const CROWD_DIST_CELL = 0.1;   // m: the distant figure's detail (lod.js simplify)
+/** The figures' cape rows (0 collar → 1 hem): one just under the shoulders, then down to the hem. */
+export const CAPE_ROWS = { mid: [0, 0.12, 0.33, 0.6, 1], far: [0, 0.25, 1] };
 export const CROWD_BUDGET = { pool: 4, swapsPerFrame: 2 };   // full NPCs cost ~0.3 ms of CPU each
 
 const TAU = Math.PI * 2;
@@ -110,11 +112,14 @@ function tag(geo, part, zone, variant = 0) {
   if (!geo.index) geo.setIndex([...Array(n).keys()]);
   return geo;
 }
-/** The cape as parameters: xz = direction round the body, aRig.w = 0 collar → 1 hem (the shader places it). */
-function capeGeometry(cols, rows, gap = 0.42) {
-  const pos = [], nrm = [], rig = [], idx = [];
+/**
+ * The cape as parameters: xz = direction round the body, aRig.w = 0 collar → 1 hem (the shader places it),
+ * in rows at `ts` (one just under the shoulders, where the cloth widens over them and the arms).
+ */
+function capeGeometry(cols, ts, gap = 0.42) {
+  const pos = [], nrm = [], rig = [], idx = [], rows = ts.length;
   for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
-    const a = gap + (c / (cols - 1)) * (TAU - gap * 2), t = r / (rows - 1);
+    const a = gap + (c / (cols - 1)) * (TAU - gap * 2), t = ts[r];
     pos.push(Math.sin(a), 0, Math.cos(a)); nrm.push(Math.sin(a), 0, Math.cos(a)); rig.push(P.cape, Z.cloak, SLOT.cape * 64, t);
   }
   for (let r = 0; r < rows - 1; r++) for (let c = 0; c < cols - 1; c++) {
@@ -198,7 +203,7 @@ export function figureGeometry(detail = 'mid', world = null) {
     }
     add(at(new C.CylinderGeometry(0.135, 0.165, 0.62, 6, 1, true), 0, 1.16, 0), P.torso, Z.cloth);
     add(at(new C.SphereGeometry(0.105, 6, 4).scale(0.92, 1.2, 1), 0, 1.64, 0), P.head, Z.skin);
-    parts.push(capeGeometry(6, 2));
+    parts.push(capeGeometry(6, CAPE_ROWS.far));
     return finish(parts);
   }
   for (const s of [1, -1]) {
@@ -221,7 +226,7 @@ export function figureGeometry(detail = 'mid', world = null) {
   add(at(new C.SphereGeometry(0.1, 8, 6).scale(0.92, 1.22, 1.02), 0, 1.64, 0.005), P.head, Z.skin);
   add(at(new C.ConeGeometry(0.022, 0.12, 4).rotateX(Math.PI / 2 + 0.4), 0, 1.625, 0.105), P.head, Z.skin);
   // the cape and its collar
-  parts.push(capeGeometry(9, 4));
+  parts.push(capeGeometry(9, CAPE_ROWS.mid));
   add(at(new C.TorusGeometry(0.19, 0.03, 4, 10).rotateX(Math.PI / 2), 0, 1.45, 0), P.torso, Z.cloak, SLOT.cape * 64);
   return finish(parts);
 }

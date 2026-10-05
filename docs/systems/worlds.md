@@ -13,22 +13,23 @@ in [story.md](story.md)); `?level=<id>` and the dev menu still open any world. E
 | # | Level | Tagline | Getting around |
 |---|---|---|---|
 | 1 | **The Desert** (`desert`) | after *Sable* (Shedworks) | walk, climb, glide, hoverbike |
-| 2 | **The City-Shaft** (`incal`) | a city stacked down a pit | jetpack, climb, flying taxis |
-| 3 | **Vael** (`arzach`) | a silent world of needles | the flying bird, climb |
-| 4 | **The Sealed Hangar** (`garage`) | a pocket universe that keeps turning | portals, shifting gravity, jetpack |
-| 5 | **Viridel** (`edena`) | a garden that keeps what falls | climbing with stamina |
-| 6 | **Lorn** (`perdide`) | a twilight swamp that hums | hover-skiff, wading, caves |
-| – | **Vael II: The Sky Stones** (`arzach2`) | stones that fell up | the flying bird, climb |
-| – | **The Buried Machine** (`buried`) | a machine under the dunes | climb, jetpack |
-| – | **The Garden of Spheres** (`spheres`) | spheres that answer | walk, climb |
-| – | **Lorn II: The Deep Wood** (`perdide2`) | the wood under the swamp | hover-skiff, wading, caves |
+| 2 | **Vael** (`arzach`) | a silent world of needles | the wings, the flying bird (after her call), climb |
+| 3 | **Vael II: The Sky Stones** (`arzach2`) | stones that fell up | the flying bird, climb |
+| 4 | **Lorn** (`perdide`) | a twilight swamp that hums | hover-skiff, wading, caves |
+| 5 | **Lorn II: The Deep Wood** (`perdide2`) | the wood under the swamp | hover-skiff, wading, caves |
+| 6 | **Viridel** (`edena`) | a garden that keeps what falls | climbing with stamina |
+| 7 | **The City-Shaft** (`incal`) | a city stacked down a pit | jetpack, climb, flying taxis (with a pass) |
+| 8 | **The Sealed Hangar** (`garage`) | a pocket universe that keeps turning | portals, shifting gravity, jetpack |
+| 9 | **The Buried Machine** (`buried`) | a machine under the dunes | climb, jetpack |
+| 10 | **The Garden of Spheres** (`spheres`) | spheres that answer | walk, climb |
+| 11 | **The Signal Market** (`bazaar`) | a market where everything talks | walk, taxis (with a pass) |
 
 Nothing in the game is named after a Moebius work (v0.39): the worlds, people and
 places all have names of their own. The level ids (`arzach`, `edena`, `garage`,
 `perdide`, `incal`, …) are only internal and stay as they were, so saves keep working.
 
 The picker lists worlds in the order of `LEVELS`. Each second take sits after
-its original, and progression follows `ORDER` in `src/levels/content.js`.
+its original, and progression follows `ORDER` in `src/levels/names.js` (wings before jets since October 2026: docs/systems/progression.md).
 The reference pages for the four v0.30 worlds are in `references/`
 (IMG_3783–3800).
 
@@ -49,14 +50,14 @@ The reference pages for the four v0.30 worlds are in `references/`
   - a central spire with rings, bridges and a golden palace on top;
   - flying taxis, landing pads, cables and an acid lake at the bottom;
   - **jetpack:** hold Space in the air for about 10 s of thrust; you lean forward into the flight when steering;
-  - **E** hails a taxi, then gets in. Driving: W/S throttle, A/D steer,
+  - **E** hails a taxi, then gets in (once Lio has written you a pass: docs/systems/progression.md). Driving: W/S throttle, A/D steer,
     Space up, Shift down.
   - taxis are solid: you bump into their sides, and you can land on a roof
     and ride along; a taxi left idle for 30 s flies back into traffic.
 - **Vael:**
   - a bone-white world of needle spires, stone arches, floating ruins and a
     lone tower;
-  - **E** whistles for the bird. Flying: A/D bank, W dive to gain speed, S
+  - **E** whistles for the bird (once you've played her call on the tower's flute). Flying: A/D bank, W dive to gain speed, S
     pull up, Space flap.
 - **The Sealed Hangar:** three zones joined by glowing portals. Each has its
   own gravity, and the ink style switches when you cross between them:

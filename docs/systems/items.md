@@ -6,7 +6,9 @@ What the traveller carries and the boxes that give it.
 - **Items** (`src/items.js`): the backpack, fluid jets, fluid wings, the stilling
   and ember modes, and the boxes' special items. Each is stored as a game flag
   `item.<id>`. `items.has/grant/revoke` take effect live.
-- **Boxes** (`src/boxes/`): a dark blue chest with a pale star, after
+- **Boxes** (`src/boxes/`): since October 2026 a smooth, edgeless dark-blue shell with a
+  travelling line of light, wobbling before it dissolves, and no box quest before the first
+  is found (docs/systems/boxes.md); before that a dark blue chest with a pale star, after
   `references/box-opening.webp`. It glows, hums and shudders as you approach,
   and E opens it. Since v0.39 the chests are set down `BOX_SCALE` (1.9×) larger,
   and the opening scene (`scene.js`) has them wake, lift `LIFT` metres off the

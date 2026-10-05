@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { Physics, dropBuriedInstances, dropBuriedFlora } from '../src/physics.js';
 import { auditClipping, formatAudit } from '../src/clip-audit.js';
 import { settle } from '../src/boxes/index.js';
+import { BOX, BOX_SCALE } from '../src/boxes/model.js';
 import { createBazaar } from '../src/levels/bazaar.js';
 import { buildPeople } from '../src/crowd.js';
 
@@ -72,8 +73,9 @@ test('a box on the edge of a ledge moves back onto the ledge, all four corners o
   box(scene, [0, 1, 0, 4, 2, 4]);                                          // a ledge 2 m up, edges at x, z = ±2
   const physics = new Physics(scene);
   const s = settle(physics, 1.6, 0, 2, 0);                                  // its +x half hangs over the edge
-  assert.ok(Math.abs(s.y - 2) < 0.01 && s.x + 0.76 <= 2.01, `on the ledge: ${JSON.stringify(s)}`);
-  for (const [lx, lz] of [[-0.76, -0.52], [0.76, -0.52], [-0.76, 0.52], [0.76, 0.52]]) assert.ok(Math.abs(physics.groundAt(s.x + lx, 3, s.z + lz) - 2) < 0.01, 'every corner on it');
+  const hw = (BOX.w / 2) * BOX_SCALE, hd = (BOX.d / 2) * BOX_SCALE;   // (the box's footprint)
+  assert.ok(Math.abs(s.y - 2) < 0.01 && s.x + hw <= 2.01, `on the ledge: ${JSON.stringify(s)}`);
+  for (const [lx, lz] of [[-hw, -hd], [hw, -hd], [-hw, hd], [hw, hd]]) assert.ok(Math.abs(physics.groundAt(s.x + lx, 3, s.z + lz) - 2) < 0.01, 'every corner on it');
 });
 
 test('the Signal Market: its crowd stands clear of walls, nothing floats or is buried', () => {

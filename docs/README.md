@@ -48,6 +48,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [audio.md](systems/audio.md) | sound from the first frame, musicians' solos, the score world by world |
 | [android.md](systems/android.md) | the APK, signing, over-the-air updates, updates from the site, GeckoView |
 | [platforms.md](systems/platforms.md) | installing on iPhone, the Steam Deck |
+| [app-icon.md](systems/app-icon.md) | the app icon: a capture of a reference view, every size made from it |
 | [references.md](systems/references.md) | the References level: the reference sheets rebuilt as views |
 | [dev-tools.md](systems/dev-tools.md) | the Lab, the clipping audit |
 | [unity.md](systems/unity.md) | the desert in Unity, and the web-against-Unity benchmark |

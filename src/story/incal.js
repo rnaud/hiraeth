@@ -5,7 +5,7 @@ import { registerInteractable, PRIORITY } from '../interact.js';
 import { Taxi } from '../taxi.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { glyphGeometry, textGeometry } from './sign-text.js';
-import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK } from './incal-data.js';
+import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, PASS_REFUSAL } from './incal-data.js';
 
 // The City-Shaft's story, alive (incal-data.js has the words).
 //
@@ -21,8 +21,10 @@ import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK } from './incal-data.j
 // looks up with you: the crowd's heads turn up, the lines change, lamps come on
 // down the lower terraces and the smog thins.
 //
-// The cabs don't stop in the depths (below −200) until you have lit the
-// call-lamp and met Wren; after that, hailing down there brings her cab.
+// The cabs don't stop for you at all without a cab pass (src/taxi.js): the first refusal starts
+// Lio's errand (incal.pass); Hask's fare buys the pass. With it, they still don't stop in the
+// depths (below −200) until you have lit the call-lamp and met Wren; after that, hailing down
+// there brings her cab (hers is free: she stops for anyone).
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
@@ -86,7 +88,7 @@ export function setupIncal(ctx) {
   const lampHead = P.lampHead, lampWorld = V(0, 0, 0);
   const lampLight = new THREE.Vector4(0, -1e5, 0, 0);
   level.lights.push(lampLight);
-  const cab = new Taxi(physics, '#f2c54b', 2.1, null, { fares: false });   // (she circles for a fare that never calls: no one aboard)
+  const cab = new Taxi(physics, '#f2c54b', 2.1, null, { fares: false, free: true });   // (she circles for a fare that never calls: no one aboard; she stops for anyone, pass or none)
   cab.driverOut = () => !!people.wren;   // Wren drives it until she steps out by the lamp
   const cabHome = P.cab.clone(), cabHeading = facing(P.cab, P.lamp) + Math.PI / 2;
   // before the lamp: she circles low in the depths, looking for a fare that never calls
@@ -226,6 +228,11 @@ export function setupIncal(ctx) {
     }
   };
 
+  // no pass, no cab: the City-Shaft's cabs say who writes the passes, and the first refusal starts his errand
+  Taxi.refusal = ({ how }) => PASS_REFUSAL[how] ?? PASS_REFUSAL.hail;
+  Taxi.onRefuse = () => { if (!quests.isStarted('incal.pass')) quests.start('incal.pass'); };
+  for (const id of ['lio', 'hask']) { const n = npcs.find((x) => x.def?.id === id); if (n) quests.locate(id, () => n.pos); }
+
   // the cabs don't stop in the depths; after Wren, hailing down there brings her
   const refuse = () => {
     const now = performance.now?.() ?? 0;
@@ -236,7 +243,9 @@ export function setupIncal(ctx) {
   const cabHail = cab.hail.bind(cab);
   for (const v of level.vehicles) {
     if (v.kind !== 'taxi') continue;
-    const own = v.hail.bind(v);
+    const own = v.hail.bind(v), ownRefuses = v.refuses?.bind(v);
+    // (in the depths, once you know Wren, a whistle is for her: she comes, pass or none)
+    if (ownRefuses) v.refuses = (who, how) => (how === 'hail' && who?.pos && who.pos.y <= DEPTHS && game.flag('incal.wren.met') ? false : ownRefuses(who, how));
     v.hail = (p, h) => {
       if (p.y > DEPTHS) return own(p, h);
       if (game.flag('incal.wren.met')) return cabHail(p, h);

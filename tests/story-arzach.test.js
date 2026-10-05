@@ -13,7 +13,8 @@ const { NPC } = await import('../src/npc.js');
 const { createStory } = await import('../src/story/index.js');
 const { game } = await import('../src/game-state.js');
 const { DialogueRunner } = await import('../src/story/dialogue.js');
-const { PEOPLE, LOCALS, THINGS, KNUCKLE_ORDER } = await import('../src/story/arzach-data.js');
+const { PEOPLE, LOCALS, THINGS, KNUCKLE_ORDER, RIDER_CALL, QUESTS } = await import('../src/story/arzach-data.js');
+const { windContains, windLift } = await import('../src/story/arzach.js');
 const { clearInteractables, bestInteractable } = await import('../src/interact.js');
 const { allTargets, clearTargets } = await import('../src/targets.js');
 const { CONTENT } = await import('../src/levels/content.js');
@@ -106,48 +107,96 @@ test('the tower’s steps are boost-jumps from the balcony up to the sill', () =
   for (let i = 0; i < pts.length - 1; i++) assert.equal(hop(pts[i], pts[i + 1], true), true, `step ${i + 1} is in a boost's reach`);
 });
 
-test('the main quest: Oïa, the bird, the tower, the window, the whistle, the promise', () => {
+test('the main quest: Oïa, the wind up the tower, the flute on the sill, her call, the promise', () => {
   // it doesn't just appear: it waits for its first talk, and till then the scout finds who to ask
   assert.equal(quests.stage('arzach.bird'), undefined);
   assert.equal(quests.openerObjective()?.id, `opener-${'arzach.bird'}`);
+  // the bird is nowhere to be seen until her call is played: not drawn, not to be ridden, deaf to a plain whistle
+  assert.equal(bird.dormant, true, 'not to be ridden');
+  assert.equal(bird.object.visible, false, 'not seen');
+  assert.equal(W.shown(), false);
+  // older saves: one that rode her before she was hidden keeps her in sight; one on the old ride stage goes on from the wind
+  game.set('arzach.rode', true);
+  assert.equal(W.shown(), true);
+  game.set('arzach.rode', undefined);
+  game.set('quest.arzach.bird', 'ride');
+  assert.equal(quests.stage('arzach.bird'), 'tower');
+  game.set('quest.arzach.bird', undefined);   // (back to a new game: the quest waits for Oïa)
   talk(PEOPLE.oia, ['Who lived', 'And the bird', 'I’ve seen that mark', 'I’ll go']);
   assert.equal(game.flag('arzach.glyph.drawn'), true, 'she draws the glyph in the sand');
   step(2);
-  assert.equal(quests.stage('arzach.bird'), 'ride');
-  // the bird keeps turning to the tower while she waits
-  bird.heading = 0; step(120, 1 / 20);
-  const toTower = Math.atan2(A.tower.x - bird.pos.x, A.tower.z - bird.pos.z);
-  assert.ok(Math.abs(Math.atan2(Math.sin(bird.heading - toTower), Math.cos(bird.heading - toTower))) < 0.2, 'she looks at the lone tower');
-  // ride her to the tower
-  player.riding = true; player.ride = bird; bird.board(); step(2);
-  assert.equal(quests.stage('arzach.bird'), 'tower');
-  player.riding = false; player.ride = null; bird.leave();
-  at(A.tower.balcony.clone().add(V(0, 1.2, 0))); bird.pos.copy(A.tower.balcony).add(V(4, 1.4, 2)); step(2);
+  assert.equal(quests.stage('arzach.bird'), 'tower', 'next: the wind at the tower');
+  assert.ok(quests.objective().position.distanceTo(W.wind.foot) < 1, 'the marker stands at the wind’s foot');
+  assert.equal(bird.object.visible, false, 'still unseen');
+  // up the wind, onto the balcony
+  at(A.tower.balcony.clone().add(V(0, 1.2, 0))); step(2);
   assert.equal(quests.stage('arzach.bird'), 'window');
+  // on the sill: the flute, a thing to pick up (no window to read)
   at(A.tower.sill.clone());
-  const e = bestInteractable(player);
-  assert.equal(e?.entry.id, 'window', 'E looks through the window from the sill');
-  talk(THINGS.window, ['(take']);
-  assert.ok(quests.has('whistle'), 'the rider’s whistle');
-  assert.equal(game.flag('clue.arzach.arzach2'), true, 'the map of the sky stones: the clue to Vael II');
+  const f = bestInteractable(player);
+  assert.equal(f?.entry.id, 'flute', 'E takes the rider’s flute from the sill');
+  assert.equal(W.flute.visible, true, 'it lies there, modelled');
+  f.entry.use(player);
+  assert.ok(quests.has('whistle'), 'the rider’s flute, in hand');
+  assert.equal(W.flute.visible, false);
+  assert.equal(game.flag('clue.arzach.arzach2'), true, 'the map of the sky stones on the wall: the clue to Vael II');
+  assert.match(toasts.at(-1), /flute.*map/);
   step(2);
   assert.equal(quests.stage('arzach.bird'), 'call');
-  // blow the whistle down on the plain: she flies to you, lands and bows
-  at(V(40, physics.groundAt(40, 1e4, -30), -30)); bird.pos.copy(A.tower.balcony).add(V(0, 1.4, 0));
+  assert.equal(bird.dormant, true, 'not until it is played');
+  // play it on the tower: the call, and she comes down out of the haze to the balcony
+  const tunes = [];
+  sound.tune = (notes) => { tunes.push(notes); return true; };
   const w = bestInteractable(player);
   assert.equal(w?.entry.id, 'whistle');
+  assert.match(w.entry.prompt, /flute/);
   w.entry.use(player);
+  assert.deepEqual(tunes, [RIDER_CALL], 'five notes on the flute');
+  assert.ok(RIDER_CALL.length === 5 && RIDER_CALL.every(([hz, beats]) => hz > 200 && hz < 2000 && beats > 0));
+  assert.equal(bird.dormant, false, 'she can be ridden now');
+  assert.equal(bird.object.visible, true, 'and seen');
+  assert.ok(bird.pos.y > A.tower.floor + 100, 'from high over the haze');
   step(2);
   assert.equal(quests.stage('arzach.bird'), 'promise');
   assert.equal(bird.mode, 'summoned');
   step(30 * 30, 1 / 30);
-  assert.ok(bird.pos.distanceTo(player.pos) < 12, `she came: ${bird.pos.distanceTo(player.pos).toFixed(1)} m`);
+  assert.ok(bird.pos.distanceTo(A.tower.balcony) < 12, `she landed on the balcony: ${bird.pos.distanceTo(A.tower.balcony).toFixed(1)} m`);
   assert.equal(game.flag('arzach.bird.promise'), true, 'she bowed');
   assert.equal(quests.isDone('arzach.bird'), true);
   assert.equal(game.flag('world.arzach.done'), true);
   assert.equal(game.flag('bird.promise'), true);
   const k = game.keepsakes().find((x) => x.id === 'arzach.person');
   assert.ok(k && k.kind === 'person', 'the keepsake: the bird’s promise');
+  // after: she waits on the plain for you to ride (brought down there for the side quests)
+  bird.pos.set(30, physics.groundAt(30, 1e4, 10) + 1.4, 10); bird.mode = 'idle'; bird.landed = true;
+});
+
+test('the wind up the tower’s side lifts open wings to the balcony; without wings it only says so', async () => {
+  const { Player } = await import('../src/player.js');
+  const { items } = await import('../src/items.js');
+  const T = A.tower, wnd = W.wind;
+  assert.ok(Math.abs(physics.groundAt(wnd.foot.x, wnd.foot.y + 20, wnd.foot.z) - wnd.foot.y) < 1.5, 'its foot is on the sand');
+  assert.ok(Math.hypot(wnd.foot.x - T.x, wnd.foot.z - T.z) - wnd.r > 20, 'it rises clear of the balcony’s rim');
+  const ride = (own) => {
+    for (const id of ['backpack', 'glider', 'jetpack']) if (own.includes(id)) items.grant(id); else items.revoke(id);
+    const P = new Player(physics, { health: false });
+    P.respawn(wnd.foot.clone().add(V(0, 0.6, 0)));
+    let up = 0, onBalcony = false;
+    for (let i = 0; i < 60 * 45; i++) {
+      const input = { Space: i > 2 && i < 6 ? true : i > 30 };   // jump, then hold it as you fall: the wings
+      P.update(1 / 60, input, 0);
+      if (windContains(wnd, P.pos) && P.gliding) windLift(wnd, P, 1 / 60, T.balcony);
+      up = Math.max(up, P.pos.y);
+      if (P.onGround && Math.abs(P.pos.y - T.floor) < 1 && Math.hypot(P.pos.x - T.x, P.pos.z - T.z) < 21) { onBalcony = true; break; }
+      if (P.onGround && i > 60 && P.pos.y < wnd.foot.y + 3 && !own.includes('glider')) break;
+    }
+    return { onBalcony, up, P };
+  };
+  const winged = ride(['backpack', 'glider']);
+  assert.ok(winged.onBalcony, `carried up and set down on the balcony (${winged.P.pos.toArray().map((v) => v.toFixed(1))}, up to ${winged.up.toFixed(1)}; floor ${T.floor.toFixed(1)})`);
+  const bare = ride(['backpack']);
+  assert.ok(!bare.onBalcony && bare.up < wnd.foot.y + 6, 'no wings: it only tugs at you');
+  for (const id of ['backpack', 'glider', 'jetpack']) items.revoke(id);
 });
 
 test('side quests: the stone hand rings small to tall, and the three feathers go back to the bird', async () => {
@@ -180,6 +229,7 @@ test('side quests: the stone hand rings small to tall, and the three feathers go
   step(2);
   assert.equal(quests.stage('arzach.feathers'), 'give');
   at(bird.pos.clone().add(V(2, -1.4, 0)));
+  assert.equal(bird.dormant, false);
   const g = bestInteractable(player);
   assert.equal(g?.entry.id, 'feathers.give');
   g.entry.use(player);

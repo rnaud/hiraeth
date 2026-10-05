@@ -1,6 +1,7 @@
 import test from 'node:test';
+import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
-import { knownWorlds, newlyKnown, AHEAD } from '../src/story/route.js';
+import { knownWorlds, newlyKnown, AHEAD, AFTER } from '../src/story/route.js';
 import { mapEntries, StarMap } from '../src/ship/starmap.js';
 import { planetSvg, PLANETS } from '../src/ship/planets.js';
 import { LEVELS } from '../src/levels/index.js';
@@ -11,15 +12,15 @@ const set = (...ids) => (id) => ids.includes(id);
 
 test('the route: the desert and the next two worlds at first, one more for each world done', () => {
   assert.equal(AHEAD, 2);
-  assert.deepEqual(knownWorlds({ order: ORDER }), ['desert', 'incal', 'arzach'], 'a new game: the crash site and a choice of two');
+  assert.deepEqual(knownWorlds({ order: ORDER }), ['desert', 'arzach', 'perdide'], 'a new game: the crash site and a choice of two (Vael II waits for Vael)');
   // the desert done (the ship has power): still two to choose from
-  assert.deepEqual(knownWorlds({ order: ORDER, done: set('desert'), current: 'desert' }), ['desert', 'incal', 'arzach']);
-  // the City-Shaft done: Vael II joins Vael
-  assert.deepEqual(knownWorlds({ order: ORDER, done: set('desert', 'incal') }), ['desert', 'incal', 'arzach', 'arzach2']);
-  // the other one done instead
-  assert.deepEqual(knownWorlds({ order: ORDER, done: set('desert', 'arzach') }), ['desert', 'incal', 'arzach', 'arzach2']);
+  assert.deepEqual(knownWorlds({ order: ORDER, done: set('desert'), current: 'desert' }), ['desert', 'arzach', 'perdide']);
+  // Vael done: Vael II, its sequel, is charted next
+  assert.deepEqual(knownWorlds({ order: ORDER, done: set('desert', 'arzach') }), ['desert', 'arzach', 'arzach2', 'perdide']);
+  // Lorn done instead: Lorn II joins Vael (Vael II still waits for Vael)
+  assert.deepEqual(knownWorlds({ order: ORDER, done: set('desert', 'perdide') }), ['desert', 'arzach', 'perdide', 'perdide2']);
   // visiting is not finishing: no new world
-  assert.deepEqual(knownWorlds({ order: ORDER, done: set('desert'), visited: set('incal') }), ['desert', 'incal', 'arzach']);
+  assert.deepEqual(knownWorlds({ order: ORDER, done: set('desert'), visited: set('perdide') }), ['desert', 'arzach', 'perdide']);
   // always two unfinished worlds ahead, until the route runs out
   const done = new Set(['desert']);
   for (const id of ORDER.slice(1)) {
@@ -29,27 +30,50 @@ test('the route: the desert and the next two worlds at first, one more for each 
     done.add(id);
   }
   assert.deepEqual(knownWorlds({ order: ORDER, done: () => true }), ORDER, 'all done: all known');
+  // a world that follows another (AFTER) is skipped while that one is unfinished, then charted
+  assert.equal(AFTER.arzach2, 'arzach');
+  assert.deepEqual(knownWorlds({ order: ['a', 'b', 'c', 'd'], after: { b: 'c' } }), ['a', 'c', 'd']);
+  assert.deepEqual(knownWorlds({ order: ['a', 'b', 'c', 'd'], after: { b: 'c' }, done: set('a', 'c') }), ['a', 'b', 'c', 'd']);
+});
+
+test('the wings come first and the jets in the later half: no world before the jets’ own wants them', () => {
+  const wings = ORDER.indexOf('arzach'), jets = ORDER.indexOf('incal');
+  assert.equal(wings, 1, 'Vael (the wings in its Aerie) is the second world');
+  assert.ok(jets >= Math.ceil(ORDER.length / 2), `the City-Shaft (the jets) is in the later half: world ${jets + 1} of ${ORDER.length}`);
+  // the earliest the City-Shaft is charted: with this many worlds done
+  const done = new Set(['desert']);
+  for (const id of ORDER.slice(1)) { if (knownWorlds({ order: ORDER, done: (x) => done.has(x) }).includes('incal')) break; done.add(id); }
+  assert.ok(done.size >= 5, `it waits until ${done.size} worlds are done`);
+  // the worlds before it never ask for the jets: a world that wants them (features.jetpack) gets the
+  // safety-net box of jets by the ship (src/boxes/placements.js FALLBACKS), and none of them comes earlier
+  const wants = (id) => /features:\s*\{[^}]*jetpack:\s*true/.test(readFileSync(new URL(`../src/levels/${id}.js`, import.meta.url), 'utf8'));
+  for (const id of ORDER.slice(0, jets)) assert.equal(wants(id), false, `${id} comes before the jets and doesn't want them`);
+  assert.equal(wants('incal'), true);
+  for (const id of ORDER.filter(wants)) assert.ok(ORDER.indexOf(id) >= jets, `${id} wants the jets: after the City-Shaft`);
 });
 
 test('the route: worlds you have been to stay known, and so does the one you stand in (?level=, the dev menu)', () => {
-  const k = knownWorlds({ order: ORDER, done: set('desert'), visited: set('perdide'), current: 'bazaar' });
-  assert.deepEqual(k, ['desert', 'incal', 'arzach', 'perdide', 'bazaar']);
+  const k = knownWorlds({ order: ORDER, done: set('desert'), visited: set('incal'), current: 'bazaar' });
+  assert.deepEqual(k, ['desert', 'arzach', 'perdide', 'incal', 'bazaar']);
   assert.ok(knownWorlds({ order: ORDER, current: HOME_ID }).every((id) => ORDER.includes(id)), 'home is not on the route');
-  assert.deepEqual(newlyKnown(['desert', 'incal', 'arzach'], ['desert', 'incal', 'arzach', 'arzach2']), ['arzach2']);
+  assert.deepEqual(newlyKnown(['desert', 'arzach', 'perdide'], ['desert', 'arzach', 'arzach2', 'perdide']), ['arzach2']);
   assert.deepEqual(newlyKnown(['a'], ['a']), []);
+  // an old save that went to the City-Shaft second keeps it on the chart, and its other worlds
+  const old = knownWorlds({ order: ORDER, done: set('desert', 'incal'), visited: set('incal') });
+  assert.ok(old.includes('incal') && old.includes('arzach'));
 });
 
 test('the galactic map names only the worlds you know; home still opens after six worlds', () => {
   const journal = (done, seen = []) => ({ storyDone: (id) => done.includes(id), seen: (id) => seen.includes(id) || done.includes(id) });
   const first = mapEntries({ order: ORDER, levels: LEVELS, journal: journal(['desert']), current: 'desert', flag: () => undefined });
   assert.equal(first.length, ORDER.length, 'every world has its place on the route');
-  assert.deepEqual(first.filter((e) => e.known).map((e) => e.id), ['desert', 'incal', 'arzach']);
-  const later = mapEntries({ order: ORDER, levels: LEVELS, journal: journal(ORDER.slice(0, 6)), current: 'buried', flag: () => undefined, home: () => true });
+  assert.deepEqual(first.filter((e) => e.known).map((e) => e.id), ['desert', 'arzach', 'perdide']);
+  const later = mapEntries({ order: ORDER, levels: LEVELS, journal: journal(ORDER.slice(0, 6)), current: 'edena', flag: () => undefined, home: () => true });
   assert.ok(later.find((e) => e.id === HOME_ID)?.known, 'home is known when it opens');
   assert.deepEqual(later.filter((e) => e.known && !e.home).map((e) => e.id), ORDER.slice(0, 8));
   // world.<id>.done flags count too
-  const flags = { 'world.incal.done': true };
-  const f = mapEntries({ order: ORDER, levels: LEVELS, journal: journal(['desert']), current: 'incal', flag: (k) => flags[k] });
+  const flags = { 'world.arzach.done': true };
+  const f = mapEntries({ order: ORDER, levels: LEVELS, journal: journal(['desert']), current: 'arzach', flag: (k) => flags[k] });
   assert.ok(f.find((e) => e.id === 'arzach2').known);
   assert.ok(!f.find((e) => e.id === 'garage').known);
 });
@@ -87,10 +111,10 @@ function openMap({ powered = true } = {}) {
 
 test('choosing a world asks first: yes travels once, no stays on the map', () => {
   const { map, travelled } = openMap();
-  const incal = map.entries.findIndex((e) => e.id === 'incal');
-  map.select(incal);
+  const lorn = map.entries.findIndex((e) => e.id === 'perdide');
+  map.select(lorn);
   map.go();
-  assert.equal(map.asking?.id, 'incal', 'Travel to The City-Shaft?');
+  assert.equal(map.asking?.id, 'perdide', 'Travel to Lorn?');
   assert.deepEqual(travelled, [], 'nothing happens before the answer');
   map.answer(true);
   assert.deepEqual(travelled, [], 'the tap that asked is not also the answer');
@@ -103,7 +127,7 @@ test('choosing a world asks first: yes travels once, no stays on the map', () =>
   map._askT -= 1000;
   map.answer(true);
   map.answer(true);
-  assert.deepEqual(travelled, ['incal'], 'yes: one trip');
+  assert.deepEqual(travelled, ['perdide'], 'yes: one trip');
   assert.ok(!map.open, 'the map closes for the take-off');
   // unknown worlds and the one you are in cannot be chosen
   const { map: m2, travelled: t2 } = openMap();
@@ -115,7 +139,7 @@ test('choosing a world asks first: yes travels once, no stays on the map', () =>
   assert.deepEqual(t2, []);
   // without power: no question at all
   const { map: m3 } = openMap({ powered: false });
-  m3.select(m3.entries.findIndex((e) => e.id === 'incal'));
+  m3.select(m3.entries.findIndex((e) => e.id === 'perdide'));
   m3.go();
   assert.equal(m3.asking, null);
 });
