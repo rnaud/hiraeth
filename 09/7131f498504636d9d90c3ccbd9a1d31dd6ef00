@@ -1,0 +1,55 @@
+unity/Memento/Assets/Memento/Rendering/MementoFeature.cs
+  s_1fd8d0e7b02dcf::t_7d2d1dac1d8e0f 119,124-126,188,197,205,209
+unity/Memento/Assets/Memento/Shaders/Composite.shader
+  s_1fd8d0e7b02dcf::t_f7f2240bcb3868 47,59
+unity/Memento/Assets/Memento/Shaders/FXAA.shader
+  s_1fd8d0e7b02dcf::t_15c85c4947c92d 19,28
+unity/Memento/Assets/Settings/PC_Renderer.asset
+  s_1fd8d0e7b02dcf::t_5d9b22c0949a82 29,72-73
+unity/Memento/ProjectSettings/ProjectSettings.asset
+  s_1fd8d0e7b02dcf::t_c70b3b92a3c71a 15,44-45,90,104,116,152,174
+unity/README.md
+  s_1fd8d0e7b02dcf::t_1d4159469befda 410-419,449
+unity/Memento/Assets/Memento/Editor/Batch.cs
+  s_bb75d8948267c1::t_7ed516cc63ea4e 77-94
+unity/Memento/Assets/Settings/DefaultVolumeProfile.asset
+  s_6010c9cde65fd3::t_987c77b1fd23e3 382-384
+unity/Memento/Assets/Settings/PC_RPAsset.asset
+  s_6010c9cde65fd3::t_281b46f0993eba 104-105,107,109-110,113,115-116,121,123,127-130,133,135-136,141
+unity/Memento/Assets/Settings/UniversalRenderPipelineGlobalSettings.asset
+  s_6010c9cde65fd3::t_9adb4fdb372279 75-90
+unity/Memento/ProjectSettings/GraphicsSettings.asset
+  s_6010c9cde65fd3::t_75d55520e2f376 37-47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "097131f498504636d9d90c3ccbd9a1d31dd6ef00",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_6010c9cde65fd3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a481651582336e460",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_bb75d8948267c1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ae630ee41ae0117ed",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
