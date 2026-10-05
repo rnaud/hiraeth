@@ -123,8 +123,8 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 - [ ] Recreate every reference sheet as views (`?level=references`, `[` / `]`, L3 / R3; docs/systems/references.md, "The
   References"). Done: the desert (views 1–27), the City-Shaft (28–50), Vael II (51–81) and the Buried Machine
-  (82–103) and the Garden of Spheres (104–125), DONE.md; Vael has no sheets (`references/Vael/` is empty). In
-  progress, one world at a time: Lorn II → the Signal Market.
+  (82–103) the Garden of Spheres (104–125) and Lorn II (126–148), DONE.md; Vael has no sheets (`references/Vael/`
+  is empty). In progress: the Signal Market.
   - Shader findings left:
     - Spot blacks (`uSpot`) fill the shaded pockets our scenes have; the sheets' interiors are dense small
       machinery at every scale, so most of their black masses have no geometry to sit in here yet.
@@ -167,6 +167,9 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
     foliage as clusters of small inked leaf masses (ours smooth lumps); the white stone's shade a flat pale
     blue with almost no strokes; the spheres' printed crescent whatever the sun. Scene-level: the white hill's
     sculpted rock, the ruins' arcades, the robot, the hedges' fruit, the plaza's paving are sketches.
+  - Lorn II, shader-level left: the reeds' outlines dominate their pale blades (an outline weight per
+    material); the far wood's layered mist (fog by distance gives one tint); roots and bushes as dense hatched
+    masses. Scene-level: the nest in the great cap, the caves' framing, the roots' tangle, the banks' bushes.
   - Buried Machine, scene-level: the trench's pipe mass, the city's clustered hanging towers, the drum's
     interior machinery and arcades, the oval tunnel's interior, the moon cave and the rock ledge are sketches.
   - Scene-level: the game's City-Shaft is a round cream-and-blue pit with a spire, terraces and a hill-town,

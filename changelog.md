@@ -6,6 +6,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 - Old buildings look worn by time: dirt streaks run down their walls from the tops and sills, patches of plaster have broken away with a little shadow under the edge, longer cracks have a shadow side, and dust darkens the foot of the walls. Each building wears differently. You see it on the desert’s city and domes, the Signal Market’s shops, the houses at home and of the City-Shaft.
 - Faceted shapes far from the middle of a world no longer break into fuzzy dots where the sun grazes them.
+- In Lorn II the giant mushrooms stay pale even on their shaded side, as in the drawings, glowing against the dark wood.
+- The References scenes now include Lorn II: twenty-three views from its four sheets, the giant mushrooms, the egg heaps and coral pools, the moss domes, the root arches and caves, the saucer and the skiff. The glowing eggs, pools and doors in these scenes now light what is around them.
 
 ## v0.68 — 2026-10-05
 

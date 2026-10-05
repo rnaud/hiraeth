@@ -9,6 +9,8 @@ export const CHANGELOG = [
   { v: '0.69', date: '2026-10-06', items: [
     'Old buildings look worn by time: dirt streaks run down their walls from the tops and sills, patches of plaster have broken away with a little shadow under the edge, longer cracks have a shadow side, and dust darkens the foot of the walls. Each building wears differently. You see it on the desert’s city and domes, the Signal Market’s shops, the houses at home and of the City-Shaft.',
     'Faceted shapes far from the middle of a world no longer break into fuzzy dots where the sun grazes them.',
+    'In Lorn II the giant mushrooms stay pale even on their shaded side, as in the drawings, glowing against the dark wood.',
+    'The References scenes now include Lorn II: twenty-three views from its four sheets, the giant mushrooms, the egg heaps and coral pools, the moss domes, the root arches and caves, the saucer and the skiff. The glowing eggs, pools and doors in these scenes now light what is around them.',
   ] },
   { v: '0.68', date: '2026-10-05', items: [
     'In the desert the quest no longer just appears when you land: Marrow the salvager is at your ship, looking over the scar on its hull, and calls you over. Talk to him and he tells you the only fire that could wake your ship is the great tree’s, in Qanat, and to ask old Nour; the quest begins then. Until you have talked to someone, your drone finds the one to ask.',

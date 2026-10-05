@@ -235,3 +235,25 @@ test('the Garden of Spheres\' sheets after the Buried Machine\'s, panel by panel
   const { WORLD_LOOKS } = await import('../src/levels/references.js');
   assert.ok(WORLD_LOOKS.spheres, '?look=spheres');
 });
+
+test('Lorn II\'s sheets after the Garden of Spheres\', panel by panel, named for the quick menu; their lights reach the shader', async () => {
+  const counts = { IMG_3797: 6, IMG_3798: 6, IMG_3799: 5, IMG_3800: 6 };
+  for (const [s, n] of Object.entries(counts)) {
+    const views = REFERENCE_VIEWS.filter((v) => v.sheet === s);
+    assert.equal(views.length, n, `${s}: ${n} panels`);
+    assert.deepEqual(views.map((v) => v.panel), Array.from({ length: n }, (_, i) => i + 1));
+    assert.equal(REFERENCE_SHEETS[s].name, `Lorn II / ${s}.JPG`, 'the quick menu groups by the name\'s world');
+    for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+      const [ax, ay, aw, ah] = views[i].crop, [bx, by, bw, bh] = views[j].crop;
+      assert.ok(ax + aw <= bx || bx + bw <= ax || ay + ah <= by || by + bh <= ay, `${s}: panels ${i + 1} and ${j + 1} apart`);
+    }
+  }
+  const world = REFERENCE_VIEWS.map((v) => REFERENCE_SHEETS[v.sheet].name.split(' / ')[0]);
+  assert.deepEqual([...new Set(world)].slice(0, 6), ['The Desert', 'The City-Shaft', 'Vael II, the Sky Stones', 'The Buried Machine', 'The Garden of Spheres', 'Lorn II']);
+  assert.equal(world.filter((w) => w === 'Lorn II').length, 23);
+  const { level } = refs();
+  assert.ok(level.lights.length > 20, 'the views\' glowing eggs, pools and doors light what is near');
+  for (const l of level.lights) assert.ok(level.viewAt(l.x, l.z), 'each light in its own view (turned with it)');
+  const { WORLD_LOOKS } = await import('../src/levels/references.js');
+  assert.ok(WORLD_LOOKS.lorn2, '?look=lorn2');
+});
