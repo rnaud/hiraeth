@@ -71,11 +71,20 @@ namespace Memento
                 }
                 postures[kind] = d;
             }
+            // what the boxes keep is shown later, after world.bin is let go: its meshes now
+            var items = data.O("items");
+            if (items != null) foreach (var (_, it) in items) foreach (var m in it.L("meshes")) MeshOf(m.I("geo"), m.Has("bind") ? m.I("bind") : -1, m.L("bones")?.Count ?? 0);
         }
 
         float[] Floats(int at, int n) { var a = new float[n]; System.Buffer.BlockCopy(world.Bin, at, a, 0, n * 4); return a; }
 
         public Dictionary<string, object> Person(string id) => id != null && byId.TryGetValue(id, out var p) ? p : null;
+        /// <summary>What a makers' box keeps (boxes/model.js buildItemModel), as a figure record.</summary>
+        public Dictionary<string, object> Item(string id) => data?.O("items")?.O(id);
+        /// <summary>items.js: name, text (what it is), use (what it does).</summary>
+        public Dictionary<string, object> ItemDef(string id) => data?.O("itemDefs")?.O(id);
+        /// <summary>boxes/scene.js: the chest's size, where the traveller stands, the lift, the phases' times.</summary>
+        public Dictionary<string, object> BoxDims => data?.O("boxScene");
         public Dictionary<string, object> CrowdPerson(int i) => byCrowd.TryGetValue(i, out var p) ? p : null;
 
         /// <summary>One shared mesh per geometry and bind poses: positions, normals, colours, the rest pose in uv3 / uv4, weights.</summary>
@@ -167,6 +176,7 @@ namespace Memento
                 t.localPosition = nd.V3("p");
                 var q = nd.L("q"); t.localRotation = new Quaternion(Json.Num(q[0]), Json.Num(q[1]), Json.Num(q[2]), Json.Num(q[3]));
                 t.localScale = nd.V3("s");
+                if (nd.I("hidden") == 1) t.gameObject.SetActive(false);
                 T[i] = t;
             }
             fig.nodes = T;

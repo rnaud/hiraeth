@@ -196,6 +196,16 @@ Shader "Memento/Surface"
           if (fr < 0.72 && streak < 0.5) discard;
         }
         float fwBind = max(fwidth(i.bind.y), fwidth(i.bind.x));
+        // a makers' box coming apart (boxes/scene.js): eaten from the top down, the edge burning bright
+        float dEdge = 0.0;
+        if (_Dissolve.x > 0.0)
+        {
+          float dh = saturate((i.worldPos.y - _Dissolve.z) / max(_Dissolve.w - _Dissolve.z, 1e-3));
+          float dn = vnoise(i.worldPos.xz * 6.0 + i.worldPos.y * 2.3) * 0.42 + vnoise(i.worldPos.zy * 15.0 + 3.1) * 0.18 + (1.0 - dh) * 0.4;
+          float dth = _Dissolve.x * 1.15 - 0.08;
+          if (dn < dth) discard;
+          dEdge = 1.0 - smoothstep(0.0, _Dissolve.y, dn - dth);
+        }
         // stroke coordinates + derivatives first, in uniform control flow
         float3 facetO = cross(ddx(i.objRel), ddy(i.objRel));
         float3 on = _Flat > 0.5 ? facetO : i.objNormal;
@@ -272,6 +282,7 @@ Shader "Memento/Surface"
         else if (pattern == 2) patInk = roofTiles(i.worldPos);
         else if (pattern == 3) patInk = leaves(i.objPos);
         else if (pattern == 4) patInk = rockCracks(i.objPos);
+        if (_Fluid > 0.5) albedo = fluidAlbedo(albedo, i.bind, i.fold);
         albedo *= instColor;
         if (i.crowdTrim.w > 0.5) albedo = outfitTrim(albedo, i.crowdTrim.rgb, i.crowdTrim.w, i.bind);
         if (_Folds > 0.0) albedo = (i.fold.y < 0.62 ? _Color.rgb : _Color2.rgb) * i.instColor;
@@ -298,6 +309,8 @@ Shader "Memento/Surface"
         }
         L = max(L, lerp(L, 0.97, smoothstep(0.15, 0.5, local)));
 
+        albedo = lerp(albedo, _DissolveColor.rgb, dEdge);
+        L = lerp(L, 1.0, dEdge);
         GBufferOut o;
         o.albedoLight = float4(albedo, L);
         o.normalDepth = float4(n, i.viewDepth);
@@ -354,7 +367,7 @@ Shader "Memento/Surface"
         }
         detail = max(detail, patInk);
         o.hatch.b = detail;
-        o.hatch.a = max(_Glow, smoothstep(0.15, 0.6, local) * 0.6) + 2.0 * _Hero + 4.0 * _Figure;
+        o.hatch.a = max(max(_Glow, smoothstep(0.15, 0.6, local) * 0.6), dEdge) + 2.0 * _Hero + 4.0 * _Figure;
 
         // hatching in the shade (finer close to the camera, coarser far away)
         float dark = clamp((_Toon - L) / _Toon, 0.0, 1.0);

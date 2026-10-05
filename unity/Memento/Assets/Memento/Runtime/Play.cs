@@ -59,6 +59,8 @@ namespace Memento
                 game.bike.Init(game, drawn, tarp);
             }
             portals = game.world.World.L("portals");
+            game.tool = gameObject.AddComponent<FluidTool>();
+            game.tool.Init(game);
             game.world.ReleaseBin();
             // the father's charge (src/story/charge.js): the words he left, on a card, before you step out
             game.hud.ShowCard("My son,", "“make us proud. Bring back something of value.”\n\n<size=18>The ship is dark. Its power is gone. Somewhere out there, smoke rises from a city.</size>", 1.0f);
@@ -89,11 +91,7 @@ namespace Memento
                 if (best != null) best.use();
                 else if (game.prompt != null && game.bike) game.bike.Whistle();
             }
-            if (Pad.PushDown() && !pl.riding && game.quests.Has("backpack"))
-            {
-                game.story.Push(pl.transform.position, pl.transform.forward);
-                game.hud.Toast("The fluid shoves out of the backpack's nozzle.");
-            }
+            // (the backpack's shoot, push and boost: FluidTool.cs)
             // portals: the skull's mouth and the passage, the masked head's doorway
             portalCooldown -= Time.deltaTime;
             if (portals != null && portalCooldown <= 0 && !pl.riding)

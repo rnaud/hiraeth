@@ -211,4 +211,86 @@ float outfitCreases(float3 p, float3 n, float dark)
   ink = max(ink, inkLine(segDist(q, float2(0.19, 1.37), float2(0.12, 1.27)) / fx, 0.85) * smoothstep(0.1, 0.4, n.z) * 0.8);
   return ink * (1.0 - smoothstep(0.0035, 0.007, fx));
 }
+
+// ------------------------------------------------------------------ the magic fluid (materials.js FLUID)
+// a lava lamp in flat print tones: three bands of one tone each, metaball blobs of the others
+// rising, sinking and merging through them; the tank shows its fill (three charges = three bands),
+// sloshing, empty glass above, a highlight streak; a glob churns; a wing is a pale soap film
+float _Fluid;
+float4 _FluidA;    // fill · tones in the blend · time · kind (0 tank, 1 hose, 2 glob, 3 wing)
+float4 _FluidB;    // flash · refill · hose pulse head · slosh
+float4 _FluidBox;  // object space: glass bottom y, top y, radius, highlight angle
+float4 _FluidTones[6];
+float3 fluidTone(int i) { return _FluidTones[i - 6 * (i / 6)].rgb; }
+float fmod2(float x, float y) { return x - y * floor(x / y); }
+float3 fluidLava(float a, float h, float aspect, float t, int n, bool banded)
+{
+  float F[6] = { 0, 0, 0, 0, 0, 0 };
+  float wa = a + 0.16 * sin(h * 8.0 + t * 0.7);
+  float wh = h + 0.03 * sin(a * 3.0 - t * 0.9);
+  [unroll] for (int i = 0; i < 12; i++)
+  {
+    float fi = float(i);
+    float ph = 6.2831 * (0.06 + 0.05 * frac(fi * 0.618)) * t + fi * 2.13;
+    float cy = 0.5 + 0.56 * sin(ph);
+    float ca = fi * 2.39996 + 0.9 * sin(t * 0.13 + fi * 1.7);
+    float r = 0.115 + 0.045 * sin(t * 0.43 + fi * 1.31);
+    float da = abs(fmod2(wa - ca + 3.14159, 6.28318) - 3.14159) * aspect;
+    float dy = (wh - cy) / (1.0 + 0.6 * abs(cos(ph)));
+    F[i - n * (i / n)] += r * r / max(da * da + dy * dy, 1e-5);
+  }
+  float hb = h + 0.035 * sin(a * 2.0 + t * 0.6) + 0.02 * sin(a * 5.0 - t * 1.4);
+  int base = banded ? (int)clamp(floor(hb * 3.0), 0.0, 2.0) : (int)step(0.5 + 0.25 * sin(a * 2.0 + t * 0.5), h);
+  base -= n * (base / n);
+  int pick = base; float best = 1.0;
+  [unroll] for (int c = 0; c < 6; c++) { if (c < n && c != base && F[c] > best) { best = F[c]; pick = c; } }
+  return fluidTone(pick);
+}
+float3 fluidAlbedo(float3 base, float3 b, float2 fold)
+{
+  float t = _FluidA.z, kind = _FluidA.w;
+  int n = max(1, (int)(_FluidA.y + 0.5));
+  if (kind > 3.5) return base;
+  if (kind > 2.5)
+  {
+    float y = b.y, wy = max(0.5 * pow(sin(3.14159 * min(1.0, pow(max(y, 0.0), 0.8) * 0.97 + 0.03)), 0.85), 0.02);
+    float u = b.x / wy;
+    float3 col = fluidLava(b.x * 5.0 + 0.6 * y, y, 0.4, t * 0.8, n, false);
+    col = lerp(col, 1.0, 0.3 + 0.22 * y + _FluidB.x * 0.3);
+    float vein = min(abs(u), min(abs(u - 0.55 * (1.0 - y * 0.3)), abs(u + 0.55 * (1.0 - y * 0.3))));
+    if (vein < 0.03 * (1.2 - y) && y < 0.9) col = lerp(col, float3(0.17, 0.13, 0.12), 0.55);
+    if (abs(u) > 0.88) col = lerp(col, 1.0, 0.6);
+    return col;
+  }
+  if (kind > 0.5 && kind < 1.5)
+  {
+    float u = fold.x, head = _FluidB.z;
+    if (u < head && u > head - 0.3) return fluidTone((int)fmod2(floor(u * 7.0 - t * 3.0), float(n)));
+    return base;
+  }
+  float H = _FluidBox.y - _FluidBox.x;
+  float h = (b.y - _FluidBox.x) / H;
+  float a = atan2(b.z, b.x);
+  float3 col = fluidLava(a, h, _FluidBox.z / H, kind > 1.5 ? t * 4.0 : t, n, kind < 1.5);
+  if (kind > 1.5) return col;
+  float fill = _FluidA.x;
+  float surf = max(fill, 0.07) + (0.012 + 0.05 * _FluidB.w) * sin(a + t * 6.0) * min(1.0, fill * 8.0);
+  float w = _FluidB.y;
+  if (w > 0.0 && h < surf)
+  {
+    float2 g = float2(a * _FluidBox.z / H * 10.0, h * 10.0 - t * 5.0);
+    float2 c = frac(g) - 0.5;
+    if (hash(floor(g)) > 0.55 && dot(c, c) < 0.07) col = lerp(col, 1.0, 0.75 * w);
+  }
+  if (h > surf) col = float3(0.855, 0.925, 0.945);
+  else if (h > surf - 0.04) col = lerp(col, 1.0, 0.35 + 0.4 * w);
+  col = lerp(col, 1.0, _FluidB.x * 0.45);
+  float dh = abs(fmod2(a - _FluidBox.w + 3.14159, 6.28318) - 3.14159);
+  if (dh < 0.14 && h > 0.1 && h < 0.86) col = lerp(col, 1.0, h > surf ? 0.9 : 0.5);
+  return col;
+}
+
+// ------------------------------------------------------------------ a makers' box coming apart (materials.js DISSOLVE)
+float4 _Dissolve;        // amount 0..1 · edge width · bottom y · top y (world, three space)
+float4 _DissolveColor;   // the burning edge
 #endif

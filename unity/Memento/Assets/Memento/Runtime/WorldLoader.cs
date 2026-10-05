@@ -115,7 +115,22 @@ namespace Memento
                 for (int i = 0; i < l.Count && i < 4; i++) v[i] = Json.Num(l[i]);
                 mat.SetVector(p, v);
             }
-            foreach (var (k, p) in new[] { ("creases", "_Creases"), ("glass", "_Glass"), ("hero", "_Hero") }) if (m.Has(k)) mat.SetFloat(p, m.F(k));
+            foreach (var (k, p) in new[] { ("creases", "_Creases"), ("glass", "_Glass"), ("hero", "_Hero"), ("fluid", "_Fluid") }) if (m.Has(k)) mat.SetFloat(p, m.F(k));
+            foreach (var (k, p) in new[] { ("fluidA", "_FluidA"), ("fluidB", "_FluidB"), ("fluidBox", "_FluidBox"), ("dissolveColor", "_DissolveColor") })
+            {
+                var l = m.L(k);
+                if (l == null) continue;
+                var v = new Vector4(0, 0, 0, 0);
+                for (int i = 0; i < l.Count && i < 4; i++) v[i] = Json.Num(l[i]);
+                mat.SetVector(p, v);
+            }
+            var tones = m.L("fluidTones");
+            if (tones != null && tones.Count >= 3)
+            {
+                var arr = new Vector4[6];
+                for (int i = 0; i < 6; i++) { int j = (i % (tones.Count / 3)) * 3; arr[i] = new Vector4(Json.Num(tones[j]), Json.Num(tones[j + 1]), Json.Num(tones[j + 2]), 1); }
+                mat.SetVectorArray("_FluidTones", arr);
+            }
             var limbs = m.L("limbs");
             if (limbs != null && limbs.Count >= 48)
             {

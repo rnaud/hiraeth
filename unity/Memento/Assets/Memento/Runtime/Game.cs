@@ -25,6 +25,7 @@ namespace Memento
         public Crowd crowd;
         public DesertStory story;
         public Bike bike;
+        public FluidTool tool;
         public readonly System.Collections.Generic.List<Npc> npcs = new();
         public string prompt;
 

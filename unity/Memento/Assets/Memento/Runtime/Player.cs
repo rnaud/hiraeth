@@ -28,6 +28,8 @@ namespace Memento
         float climbF, climbS;
         public Transform camYaw;         // the camera rig (moves are relative to its yaw)
         public System.Action<string> toast = _ => { };
+        public System.Func<bool> onAirJump;   // the fluid tool's boost (FluidTool.cs)
+        public float glideSpeed, glideTurn;
         public float SpeedXZ => new Vector2(vel.x, vel.z).magnitude;
         public Transform HeadTransform => figure ? (headT ??= figure.Bone("Head")) : null;
         Transform headT;
@@ -92,8 +94,30 @@ namespace Memento
             if (wish.sqrMagnitude > 0.01f) heading = Mathf.MoveTowardsAngle(heading, Mathf.Atan2(wish.x, wish.z) * Mathf.Rad2Deg, 720 * dt);
 
             coyote = onGround ? 0.12f : coyote - dt;
-            if (Pad.JumpDown() && coyote > 0) { vel.y = JumpSpeed; coyote = 0; onGround = false; }
+            bool jumpDown = Pad.JumpDown();
+            if (jumpDown && coyote > 0) { vel.y = JumpSpeed; coyote = 0; onGround = false; jumpDown = false; }
+            // a fresh press in the air: the fluid's boost (fluid-tool.js)
+            if (jumpDown && !onGround && onAirJump != null && onAirJump()) { }
             vel.y -= Gravity * dt;
+            // the fluid wings (with the glider): hold jump while falling (player.js): forward along the heading,
+            // A / D bank and turn, W dives, S flares
+            var tool = FluidTool.Instance;
+            bool wantGlide = tool && tool.CanGlide && !onGround && Pad.Jump();
+            bool wasGliding = tool && tool.gliding;
+            if (tool) tool.gliding = wantGlide && (vel.y < 0 || wasGliding);
+            if (tool && tool.gliding)
+            {
+                if (!wasGliding) glideSpeed = Mathf.Max(new Vector2(vel.x, vel.z).magnitude, 11);
+                float target = mv.y > 0.3f ? 30 : mv.y < -0.3f ? 7 : 15;
+                glideSpeed += (target - glideSpeed) * (1 - Mathf.Exp(-(mv.y > 0.3f ? 0.9f : 0.6f) * dt));
+                float sink = mv.y > 0.3f ? 7 : mv.y < -0.3f ? 1.3f : 2.4f;
+                glideTurn = Mathf.Lerp(glideTurn, mv.x * 1.25f, 1 - Mathf.Exp(-4 * dt));
+                heading += glideTurn * Mathf.Rad2Deg * dt;
+                var fw = Quaternion.Euler(0, heading, 0) * Vector3.forward * glideSpeed;
+                vel.x = fw.x; vel.z = fw.z;
+                vel.y += Gravity * dt;
+                vel.y += (-sink - vel.y) * (1 - Mathf.Exp(-3 * dt));
+            }
             float fallSpeed = -vel.y;
             var flags = cc.Move(vel * dt);
             bool wasGround = onGround;

@@ -20,7 +20,10 @@ namespace Memento
         readonly Dictionary<string, Npc> people = new();
         Vector3 cityCenter, caveOrigin, poolCenter, fire, ship, ledgeBox, giantDoor;
         float poolR, flare;
-        GameObject bone, pool, stream, wellWater, drum, chest, tarp;
+        GameObject bone, pool, stream, wellWater, drum, chest, tarp, starBox;
+        public BoxScene boxScene;
+        float BoxYaw(string id) { foreach (var b in P.L("boxes")) if (b.S("id") == id) return b.F("yaw"); return 0; }
+        Vector3 BoxAt(string id) { foreach (var b in P.L("boxes")) if (b.S("id") == id) return b.V3("pos"); return Vector3.zero; }
         Vector3 boneFrom; Quaternion boneRotFrom; float boneT = -1;
         float poolLevel, poolDry, poolHigh, poolY0;
         public Flame treeFlame;
@@ -51,8 +54,7 @@ namespace Memento
             if (pool) { poolY0 = pool.transform.position.y; pool.SetActive(false); }
             if (stream) stream.SetActive(false);
             if (wellWater) wellWater.SetActive(false);
-            // the other makers' box (the star) waits for a later version of the port
-            if (game.world.Objects.TryGetValue("box:desert.star", out var star)) star.SetActive(false);
+            game.world.Objects.TryGetValue("box:desert.star", out starBox);
 
             if (!Q.IsStarted("desert.power")) Q.Start("desert.power");
             Q.onDone["desert.power"] = () =>
@@ -179,14 +181,40 @@ namespace Memento
                 prompt = () => "open the makers' chest",
                 use = () =>
                 {
-                    Q.Give("backpack");
-                    G.Set("box.desert.backpack", true);
-                    if (chest) chest.SetActive(false);
-                    game.hud.ShowCard("The makers' chest", "It has not opened in living memory. It opens for you.\n\nInside: <b>the backpack</b>, its tank swirling with every colour.\n\n<i>Push with C, middle click or RB / R1.</i>", 1.2f);
-                    flare = 2.4f;
-                    G.Emit("box:opened", "desert.backpack");
+                    // the box scene (boxes/scene.js): it wakes, rises and comes apart into light; the backpack is yours at the end
+                    void Grant()
+                    {
+                        Q.Give("backpack");
+                        G.Set("box.desert.backpack", true);
+                        flare = 2.4f;
+                        G.Emit("box:opened", "desert.backpack");
+                    }
+                    if (chest && FigureLibrary.Instance?.BoxDims != null) boxScene = BoxScene.Play(game, chest, BoxYaw("desert.backpack"), "backpack", Grant);
+                    else { Grant(); if (chest) chest.SetActive(false); }
                 },
             });
+            // the other makers' box, on the dune south-west of the city: the pale star (a keepsake)
+            if (starBox)
+            {
+                var starAt = BoxAt("desert.star");
+                Interact.Add(new Interactable
+                {
+                    id = "box.desert.star", at = () => starAt + Vector3.up * 0.5f, range = 2.8f, priority = 1,
+                    enabled = () => !G.Is("box.desert.star") && starBox.activeSelf,
+                    prompt = () => "open the makers' chest",
+                    use = () =>
+                    {
+                        void Grant()
+                        {
+                            Q.Give("star"); G.Set("box.desert.star", true);
+                            G.AddKeepsake(new Dictionary<string, object> { ["id"] = "desert.star", ["name"] = FigureLibrary.Instance?.ItemDef("star")?.S("name") ?? "Pale star", ["text"] = FigureLibrary.Instance?.ItemDef("star")?.S("text") ?? "" });
+                            G.Emit("box:opened", "desert.star");
+                        }
+                        if (FigureLibrary.Instance?.BoxDims != null) boxScene = BoxScene.Play(game, starBox, BoxYaw("desert.star"), "star", Grant);
+                        else { Grant(); starBox.SetActive(false); }
+                    },
+                });
+            }
             // the drum, blown under the ribcage south of the start
             if (drum)
                 Interact.Add(new Interactable
@@ -329,6 +357,8 @@ namespace Memento
             {
                 if (!G.Is("desert.channel.open")) game.hud.Toast("The basin is dry. Damp stains on the stone, a pale line where water stood. Something has stopped it coming.");
                 else if (Q.Has("jar") && !G.Is("desert.jar.filled")) { Q.Take("jar"); Q.Give("water"); G.Set("desert.jar.filled", true); game.hud.Toast($"Ama’s jar fills: {Q.ItemName("water")}"); }
+                // the living water fills the backpack's tank too, and adds a colour to it for good
+                if (G.Is("desert.channel.open") && game.tool && game.tool.Owned && !G.Is("desert.tank.coloured")) { G.Set("desert.tank.coloured", true); game.tool.Refill(true); game.hud.Toast("The tank drinks the living water: a new colour swirls in it."); }
             }
             wasInPool = inPool;
 

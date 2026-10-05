@@ -107,7 +107,15 @@ namespace Memento
                 Play(sp > 2.2f ? "Jog_Fwd_Loop" : "Walk_Loop", Mathf.Clamp(sp / (sp > 2.2f ? 3.2f : 1.3f), 0.5f, 1.6f));
             }
             else if (!talking) Play("Idle_Loop");
+            if (Stunned) { talking = false; return; }
+            if (knock.sqrMagnitude > 0.01f)
+            {
+                pos += knock * dt; knock *= Mathf.Exp(-4 * dt);
+                if (Physics.Raycast(pos + Vector3.up * 2f, Vector3.down, out var kh, 5f)) pos.y = kh.point.y;
+            }
             transform.position = pos;
+            float st = Time.time - startleAt;
+            if (st < 0.8f) transform.position += Vector3.up * 0.3f * Mathf.Sin(Mathf.PI * Mathf.Min(st / 0.45f, 1));
             transform.rotation = Quaternion.Euler(0, heading, 0);
             if (figure) Animate(dt, sp, player);
 
@@ -151,6 +159,14 @@ namespace Memento
             figure.lookTarget = ph && (talking || Vector3.Distance(player.transform.position, pos) < 10 * Mathf.Max(1, scale)) ? ph : null;
         }
         public bool hudSpeaking;
+        float stunUntil = -1, startleAt = -99; Vector3 knock;
+        /// <summary>A stilling glob: frozen mid-move a few seconds.</summary>
+        public void Stun(float secs) { stunUntil = Time.time + secs; if (figure) figure.culled = true; }
+        public bool Stunned => Time.time < stunUntil;
+        /// <summary>Splashed or singed: a little jump and a turn to the shooter.</summary>
+        public void Startle() { startleAt = Time.time; }
+        /// <summary>The push: shoved back (dying away at 4/s), stumbling.</summary>
+        public void Shove(Vector3 v) { knock = v * 4f; startleAt = Time.time; }
         string shoutTone;
 
         public void Say(string line, float secs) { var t = Text.Parse(line); shout = t.text; shoutTone = t.tone; shoutUntil = Time.time + secs; }

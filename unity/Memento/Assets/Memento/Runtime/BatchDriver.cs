@@ -167,9 +167,54 @@ namespace Memento
             if (Interact.Best(game.player.transform.position)?.id != "box.desert.backpack") { Put(box + (box - game.world.Places.V3("ledgeFoot")).normalized * -1.2f + Vector3.up * 0.1f, 0); yield return Wait(0.5f); }
             yield return Shoot("the_chest_on_the_ledge");
             var chest = Interact.All.First(i => i.id == "box.desert.backpack"); chest.use();
-            yield return Wait(1.5f); yield return Shoot("the_chest_opens");
-            yield return Pulse(v => pad.confirm = v); yield return Wait(0.5f);
-            Log($"backpack: {game.quests.Has("backpack")}, stage {Stage}");
+            // the box scene (boxes/scene.js): it wakes, rises, comes apart into light, the backpack hovers, the card
+            yield return Wait(0.9f); yield return Shoot("the_chest_wakes");
+            yield return Wait(1.3f); yield return Shoot("the_chest_rises");
+            yield return Wait(1.6f); yield return Shoot("the_chest_comes_apart");
+            yield return Wait(1.1f); yield return Shoot("the_backpack_hovers");
+            yield return Wait(1.2f);
+            Log($"box card: '{game.hud.card?.Substring(0, Mathf.Min(40, game.hud.card?.Length ?? 0))}'");
+            yield return Pulse(v => pad.confirm = v); yield return Wait(1.8f);
+            Log($"backpack: {game.quests.Has("backpack")}, stage {Stage}, tank shown {game.tool && game.player.figure && game.player.figure.Bone("Fluid tank").gameObject.activeInHierarchy}");
+            yield return CloseUp("the_tank_on_his_back", game.player.transform, -1.6f, 0.5f, 0.15f);
+
+            // the fluid tool: a shot, a boost in the air, the stilling mode, the wings
+            var tool = game.tool;
+            Put(game.world.Places.V3("camps") + new Vector3(24, 0, 18), 200); yield return Wait(1.2f);
+            game.rig.pitch = 12;
+            yield return Pulse(v => pad.shoot = v); yield return Wait(0.12f);
+            yield return Shoot("a_glob_in_flight");
+            yield return Wait(1.2f);
+            yield return Shoot("the_splat");
+            Log($"tool: {tool.shots} shot, charges {tool.charges:0.0}");
+            game.state.Set("item.stun", true); game.state.Set("item.glider", true);
+            pad.mode = 1; yield return Wait(0.2f);
+            Log($"tool mode: {tool.mode} (of {string.Join(", ", tool.Modes())})");
+            yield return CloseUp("the_tank_in_stilling", game.player.transform, -1.2f, 0.6f, 0.1f);
+            pad.mode = -1; yield return Wait(0.2f);
+            yield return Wait(2.2f);   // (the charges come back)
+            Put(game.world.Places.V3("camps") + new Vector3(30, 0, 30), 45); yield return Wait(1f);   // (open ground)
+            yield return Pulse(v => pad.jump = v); yield return Wait(0.35f);
+            float yb = game.player.transform.position.y;
+            yield return Pulse(v => pad.jump = v); yield return Wait(0.3f);
+            Log($"boost: {tool.boosts}, up {game.player.transform.position.y - yb:0.0} m");
+            pad.jump = true; yield return Wait(0.9f);
+            Log($"gliding: {tool.gliding}, wings {tool.wingK:0.00}");
+            yield return CloseUp("gliding", game.player.transform, -3.5f, 0.8f, 0.25f);
+            pad.jump = false; yield return Wait(2f);
+            game.state.Set("item.stun", false); game.state.Set("item.glider", false);
+
+            // the other makers' box: the pale star
+            var starAt = game.world.Places.L("boxes").First(b => b.S("id") == "desert.star").V3("pos");
+            PutNear(starAt, 2f); yield return Wait(0.5f);
+            var starBox = Interact.All.FirstOrDefault(i => i.id == "box.desert.star");
+            if (starBox != null)
+            {
+                starBox.use(); yield return Wait(4.6f); yield return Shoot("the_star_hovers");
+                float tw = 0; while (game.hud.card == null && tw < 6) { tw += Time.deltaTime; yield return null; }
+                yield return Wait(0.9f); yield return Pulse(v => pad.confirm = v); yield return Wait(1.8f);
+            }
+            Log($"star: {game.quests.Has("star")}");
 
             // Nour, then the well, Ama's jar, the Speaker
             var nour = Person("nour");

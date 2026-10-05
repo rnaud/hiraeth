@@ -69,11 +69,15 @@ function materialOf(m) {
   // tunic's print, the face's landmarks / expression / drawing, the eyeballs, the suit's creases, glass, metal
   for (const [k, name] of [['outfit', 'uOutfit'], ['skin', 'uSkin'], ['glove', 'uGlove'], ['trim', 'uTrim'], ['face', 'uFace'], ['mood', 'uMood'], ['mood2', 'uMood2'],
     ['faceKit', 'uFaceKit'], ['faceKit2', 'uFaceKit2'], ['eyeC', 'uEyeC'], ['eyeR', 'uEyeR'], ['eyeLook', 'uEyeLook'], ['creases', 'uCreases'], ['limbs', 'uLimbs'],
-    ['glass', 'uGlass'], ['glassCenter', 'uGlassCenter'], ['metal', 'uMetal'], ['hero', 'uHero']]) {
+    ['glass', 'uGlass'], ['glassCenter', 'uGlassCenter'], ['metal', 'uMetal'], ['hero', 'uHero'],
+    // the fluid (FLUID: the tank, the hose, a glob, the wings) and a makers' box coming apart (DISSOLVE)
+    ['fluidA', 'uFluidA'], ['fluidB', 'uFluidB'], ['fluidBox', 'uFluidBox'], ['fluidTones', 'uFluidTones'], ['dissolve', 'uDissolve'], ['dissolveColor', 'uDissolveColor']]) {
     const x = u[name]?.value;
     if (x === undefined || x === null) continue;
     e[k] = typeof x === 'number' ? x : Array.isArray(x) ? x.flatMap((q) => q.toArray()).map((v) => +v.toFixed(5)) : x.isColor ? col(x) : x.toArray().map((v) => +v.toFixed(5));
   }
+  if (m.defines?.FLUID) e.fluid = 1;
+  if (m.defines?.DISSOLVE) e.dissolveOn = 1;
   materials.push(e); matIds.set(m, e.id);
   return e.id;
 }

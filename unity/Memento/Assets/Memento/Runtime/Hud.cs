@@ -28,7 +28,8 @@ namespace Memento
         static readonly Color Paper = new(0.97f, 0.94f, 0.86f, 0.96f), Ink = new(0.17f, 0.13f, 0.12f), Accent = new(0.72f, 0.26f, 0.25f);
 
         public void Toast(string t) { if (!string.IsNullOrEmpty(t)) toasts.Enqueue((Text.Plain(t), 3.6f)); }
-        public bool Busy => talk != null || journalOpen || card != null;
+        public bool cinematic;                       // a scene has the camera (a makers' box opening): no prompts
+        public bool Busy => talk != null || journalOpen || card != null || cinematic;
 
         public void StartTalk(Dictionary<string, object> person, Npc npc, string displayName, string title)
         {
