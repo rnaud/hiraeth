@@ -1,8 +1,8 @@
 # Motion data: sources, terms, what is shipped
 
 The game's own clips are Quaternius' Universal Animation Library (CC0, `public/anim/ual.glb`,
-see README "Credits"). On top of it come motion-captured takes from two sources, converted by
-`scripts/mocap/` (README "Motion capture") into two compact files:
+see docs/credits.md). On top of it come motion-captured takes from two sources, converted by
+`scripts/mocap/` (docs/systems/animation.md, "Motion capture") into two compact files:
 
 | File | What | Size | Loaded |
 |---|---|---|---|
@@ -35,7 +35,7 @@ takes again, and the Mixamo files are downloaded by hand (docs/mixamo-shopping-l
   and in the FAQ (http://mocap.cs.cmu.edu/faqs.php), "How can I use this data?": *"The motion
   capture data may be copied, modified, or redistributed without permission."* The home page
   also says the dataset "is free for all uses". The acknowledgment text is in the game's credits
-  (README "Credits") and in the files' own `extras.credits`.
+  (docs/credits.md) and in the files' own `extras.credits`.
 - **Shipped** (in the two files above, retargeted, cleaned, resampled to 30 fps and quantised):
 
   The matching database (`mm` in `cmu-takes.json`):

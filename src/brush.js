@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-// The traveller brushing past plants and through grass (README, "Brushing past plants").
+// The traveller brushing past plants and through grass (docs/systems/living-world.md, "Brushing past plants").
 //
 // A plant touched as you pass leans a little away from you and springs back with a light,
 // damped wobble. Each plant is a damped spring driven by the touch: x'' + 2ζω x' + ω² x = ω² F(t),

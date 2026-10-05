@@ -1,4 +1,4 @@
-// A world's load, timed (README: "Loading without a stall"): headless Chrome on ANGLE Metal, muted, the
+// A world's load, timed (docs/systems/performance.md, "Loading"): headless Chrome on ANGLE Metal, muted, the
 // game's sound at 0, paced (vsync on). Per world: a fresh page of ?level=<id>, the main thread's long
 // tasks from the first byte to a few seconds after the first frame (PerformanceObserver), the frames
 // the page managed meanwhile (requestAnimationFrame from the first script: a gap is a frame the loading

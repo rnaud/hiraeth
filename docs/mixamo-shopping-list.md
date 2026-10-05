@@ -3,7 +3,7 @@
 What to download from https://www.mixamo.com/ (your Adobe login) to fill what the CMU takes lack:
 clean starts, stops, turns on the spot and pivots, idles, talking gestures, kneeling and sitting,
 climbing and ledges, carrying, swimming, falling and gliding, petting the dog, laying something
-down. The pipeline (`scripts/mocap/`, README "Motion capture") picks the files up from
+down. The pipeline (`scripts/mocap/`, docs/systems/animation.md, "Motion capture") picks the files up from
 `data/mocap/mixamo/` (git-ignored) and converts them with the rest; the terms are in
 docs/motion-data.md.
 
@@ -29,7 +29,7 @@ a clip of its own for later work (listed in the character studio), *ref* convert
 ## Starts, stops and turns (the matcher's gaps)
 
 The CMU takes start and stop slower than the game's controller and have no quick turns at a
-run; these are the clips the matcher lacks most (README "Motion capture", the results).
+run; these are the clips the matcher lacks most (docs/systems/animation.md, "Motion capture", the results).
 
 | file | name | description | In Place | use |
 |---|---|---|---|---|
