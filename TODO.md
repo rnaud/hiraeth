@@ -172,6 +172,10 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
   - Scene-level: the game's City-Shaft is a round cream-and-blue pit with a spire, terraces and a hill-town,
     the sheets' a canyon of pink and cream stacked houses with water below; the views' houses are boxes (no
     pipes, balconies, laundry or plating under the overhangs), the cabs and blimps simple capsules.
+- [x] A quick menu to jump to any reference, with a tiny picture of its panel. (`src/levels/reference-picker.js`:
+  every view grouped by world and sheet, thumbnails cut from the sheets with each view's crop on a canvas,
+  built on the first opening; Tab, X / □ on a pad or the "views" button opens it, B / ○ or Esc closes;
+  mouse, arrows and Enter, d-pad or stick and A / ×; docs/systems/references.md, "The quick menu of views".)
 
 ## MakeHuman bodies
 

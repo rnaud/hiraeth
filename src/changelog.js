@@ -23,6 +23,7 @@ export const CHANGELOG = [
     'The References scenes now include the Buried Machine: twenty-two views from its four sheets, the domes and pipes in the dunes, the rust canyon and its ovals, the teal drum open to the sky, the hanging city and the ring of arches.',
     'The Garden of Spheres looks more like its drawings: the undersides of the great umbrella trees and the thickets are a deep, dark green, the white stone’s shade is a clean pale blue, and the darkest pockets of shade turn deep green instead of grey.',
     'The References scenes now include the Garden of Spheres: twenty-two views from its four sheets, the umbrella groves, the pyramids, the giant spheres and their arches, the white hill, the lake and the olive avenue to the round plaza.',
+    'The References scenes have a quick menu: press Tab (X / □ on a controller, or the small “views” button at the top left) to see every view, grouped by world and sheet, each with a tiny picture of its panel, its number and its title. The one you are in is marked; move with the mouse, the arrows or the d-pad and choose one to go straight there. B / ○ or Esc closes it.',
   ] },
   { v: '0.67', date: '2026-10-05', items: [
     'The traveller dresses more casually: an everyday canvas rucksack, with a lid, buckled straps, pockets and a rolled bedroll, replaces the old radio box, and nothing of the space suit is left: soft desert boots without seams or buckles, a loose cotton scarf instead of the ringed collar.',
