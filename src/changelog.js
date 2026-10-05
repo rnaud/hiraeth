@@ -14,6 +14,7 @@ export const CHANGELOG = [
     'Lorn’s Hush-House on the cave island: sing its crystals low to high, still the jaws and the pendulums, and calm the Mother Snapper. The stilling mode is found inside now; afterwards every snapping plant wears a ring of flowers.',
     'Lorn II’s Lamp-House: the lantern charm inside; calm the Lampless and the lamp’s beam turns over the wood again.',
     'Half the gifts are in the temples now, half out in the worlds; new gifts in the open include the breathing reed (twice the breath under water) and the wind-silk scarf (the wings sink slower). Gifts you already own leave their temple chests open.',
+    'People sitting on benches, ledges and steps no longer have capes sticking out like wings: the cloth falls down their back, over the edge of the seat and onto the ground.',
   ] },
   { v: '0.52', date: '2026-10-05', items: [
     'People’s faces are drawn the way Moebius draws them: flat colour with one clean shadow, a crisp eyelid line, a nose drawn as one line ending in a hook at the nostril, a mouth with small ticks at its corners, curled ears, and only a few fine strokes of hatching in the eye sockets and under the cheekbones.',

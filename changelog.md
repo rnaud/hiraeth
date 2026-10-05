@@ -14,6 +14,7 @@ The same release notes shown in the game (press **N** or open settings).
 - Lorn’s Hush-House on the cave island: sing its crystals low to high, still the jaws and the pendulums, and calm the Mother Snapper. The stilling mode is found inside now; afterwards every snapping plant wears a ring of flowers.
 - Lorn II’s Lamp-House: the lantern charm inside; calm the Lampless and the lamp’s beam turns over the wood again.
 - Half the gifts are in the temples now, half out in the worlds; new gifts in the open include the breathing reed (twice the breath under water) and the wind-silk scarf (the wings sink slower). Gifts you already own leave their temple chests open.
+- People sitting on benches, ledges and steps no longer have capes sticking out like wings: the cloth falls down their back, over the edge of the seat and onto the ground.
 
 ## v0.52 — 2026-10-05
 
