@@ -1417,6 +1417,41 @@ planets and hour (main.js applies a zone's `look`, `planets` and `hour` when the
 zone changes). Straying over a room's banks or off its edge puts you back at its
 door. `tests/lab.test.js` walks through every door and back.
 
+## The References: the reference pages rebuilt (v0.57)
+
+`?level=references` (`src/levels/references.js`, a `dev` level like the Lab: in the worlds list,
+never on the route or the star map) rebuilds the scenes of the reference pages in `references/`
+with the game's own materials, sky, light and ink, each seen from a fixed camera framed like its
+panel, so the shaders can be checked against the look they are after. It starts with the six
+panels of `references/The Desert/environement/IMG_3775.JPG` (`REFERENCE_VIEWS` in
+`src/levels/reference-views.js`): the bones in the dunes, the fluted tower and its dishes, the
+rope bridges over the gorge, the sail tents, the turquoise lake under the violet cliffs, the
+buried hull.
+
+- **A view** is a panel: its crop of the sheet, its ground (a height function drawn as rings round
+  the camera, fine underfoot and coarse at the horizon), what stands on it (built with the Lab's
+  `RoomKit`), its colours (the colour script's five, read off the panel: sky, shadow tint, light,
+  the same at every hour), its ink touches (`look`) and its people (small violet figures:
+  ordinary NPCs, `REFERENCE_PEOPLE` in content.js). Its camera is `{ eye, yaw, fov, horizon }`:
+  `horizon` is where eye level crosses the frame (0 top, 1 bottom), the pitch follows from it.
+- **The sun** is given as the panel shows it, `{ side, el }` (degrees right of the line of sight,
+  and high): the view's hour is the morning hour of that elevation (`sunHour`) and its group is
+  turned about the vertical so the sun of that hour stands on that side (`sunTurn`). Nothing in the
+  renderer is special-cased: the views are scenery, colour scripts, hours and presets.
+- **The views** lie on a ring 4.5 km out (`VIEW_RING`); only the one you are in is drawn.
+  `[` and `]` (L3 / R3 on a pad) fade to the previous / next view and hold the camera on its
+  panel (the traveller hidden where the camera stands); walk or look and the camera is yours
+  again. `?view=<n>` opens on view n. The frame keeps the panel's proportions: on a screen
+  narrower than the panel the field of view widens so its width still fits (`frameBox`).
+- **Comparing:** `\` (View on a pad) cycles off → the panel in a corner → the panel over the frame,
+  half seen through → the panel over the left half of the frame (a wipe). A label names the view,
+  its sheet and its panel. The sheet is bundled by Vite (`new URL(…, import.meta.url)`) and
+  cropped with CSS (`cropStyle`).
+- `?look=desert` draws every view in the desert's own palette and plain Moebius print preset
+  (blue-grey shadow tint, cumulus bank, clouds), to see what the shaders do unaided.
+- `tests/references.test.js`: the level registers as a dev level, IMG_3775 has six views whose
+  cameras put the horizon where the panel has it, each sun comes from its side, `[ ]` and `\` work.
+
 ## Sound from the first frame (v0.39)
 
 Each world is a new page, and browsers only let a page's sound start after a

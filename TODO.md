@@ -567,3 +567,33 @@ All of this is for the web game; the Unity port follows later if we move to Unit
 - [ ] A level called "references" that recreates the reference images' scenes exactly, to check the
   shaders against the intended look; `[` and `]` (L3 / R3 on device) switch between them. First
   `references/The Desert/environement/IMG_3775.JPG` (six panels), then stop and review.
+  - Done so far (for review): `?level=references` (worlds list), the six panels of IMG_3775 as views
+    (`src/levels/reference-views.js`) framed like their panels, `\` / View compares (corner, overlay,
+    left-half wipe), `?view=<n>`, `?look=desert` (the desert's own palette and preset). README "The
+    References". Composition is close; the scenes are sketches (the skull, the tower's cap, the sails'
+    membranes, the hull's machinery are simpler than drawn).
+  - Shader findings (what the panels do that materials.js / post.js can't yet):
+    - One shadow tint multiplies every albedo. The panels' shadows are near-neutral (×0.55–0.7 of the
+      lit colour, a touch warm on sand), and each surface gets its own: the tower cap's underside is a
+      soft half-tone (×0.85) where the ground under it goes to ×0.4. The desert's blue-grey tint
+      (#93a6cf) turns bone and sand blue (`?look=desert`). A per-material shadow tone, or a half-tone
+      between light and shadow, would do it.
+    - Hatching appears only in shadow and thickens with darkness, so every large shaded area (the
+      cap's underside, the hull's shade, the dishes' backs) becomes a field of strokes. The panels
+      hatch rock as a texture along its strata (the gorge walls, lit or not) and never hatch sand,
+      bone or metal in shade (flat tone). A per-material hatch amount (and hatching on lit rock) is
+      missing.
+    - Ground marks: the sand ripples draw dense parallel wavy lines over every mid-distance dune and
+      the print preset's pen dotting scatters coarse dots over all sand and rock. The panels' sand is
+      flat colour with a few long crest lines and sparse scuffs; their pink rock has crack lines, not
+      dots (terrain mode has no crack/fissure mark).
+    - Lines: our outlines are heavier and even; the panels' are thin and broken, with solid black
+      accents in crevices (between the ribs, inside the hull). Crest lines on soft dunes only appear
+      where the slope breaks sharply.
+    - Sky: the print preset's cumulus bank and flat clouds are on by default (the panels' skies are
+      clean, the views turn them off); our sky dots read as a regular screen and the flat sky still
+      lightens just above the horizon, where the panels' skies are an even grainy tint down to it.
+      The paper grain is much weaker than the panels'.
+    - The `grid` pattern on the hull reads as a regular lattice; the panel's plating is irregular.
+    - The water draws even ripple strokes and pale ellipses everywhere; the panel's lake is large pale
+      shallow shapes, inked round, darker in the cliff's shadow.

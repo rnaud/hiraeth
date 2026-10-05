@@ -13,6 +13,7 @@ import { createBuried } from './buried.js';
 import { createSpheres } from './spheres.js';
 import { createPerdide2 } from './perdide2.js';
 import { createHome } from './home.js';
+import { createReferences } from './references.js';
 
 // Level registry: shown in the picker and the panel, loaded with ?level=<id>.
 export const LEVELS = [
@@ -93,6 +94,13 @@ export const LEVELS = [
     id: 'lab', create: createLab, hidden: true, dev: true,
     title: 'The Lab', source: 'for looking closely',
     blurb: 'Every surface the game draws, on pedestals in a row, and four giant villagers to study faces by.',
+    moves: 'walk · jetpack',
+  },
+  {
+    // a developer's world: the reference pages' scenes rebuilt in the game's ink, each framed like its panel (in the worlds list, L; never on the route)
+    id: 'references', create: createReferences, hidden: true, dev: true,
+    title: 'The References', source: 'the pages it is drawn after',
+    blurb: 'The scenes of the reference pages rebuilt with the game’s own surfaces and ink, each seen as its panel frames it, the panel beside it to compare. [ and ] change the view.',
     moves: 'walk · jetpack',
   },
   {

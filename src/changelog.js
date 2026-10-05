@@ -43,6 +43,7 @@ export const CHANGELOG = [
     'Smoother frame rate everywhere, most of all close to metal, cracked rock and other detailed surfaces; nothing looks different.',
     'No more stutter the first time you walk into a new place or turn to something new: everything is prepared while the world loads, and worlds load faster.',
     'Grassy places no longer waste time redrawing every blade of grass each frame; stepping through a door no longer stalls while the grass appears.',
+    'A new place in the worlds list (Debug on the title screen): The References, six desert scenes rebuilt from the drawings the game is made after, each seen the way its drawing frames it. [ and ] (L3 / R3) change scene, \\ (View) puts the drawing beside or over the picture.',
   ] },
   { v: '0.56', date: '2026-10-05', items: [
     'The settings now have an Updates section in the Android app: see the version you’re playing, check for updates, read what the new one brings, and download it with a progress bar. The game restarts at the title screen with your saves kept.',
