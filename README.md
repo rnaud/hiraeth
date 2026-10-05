@@ -880,8 +880,17 @@ cap, the average (at most two) and that no node was stranded by the trimming.
 "Bring back something of value", the father's last words on the prologue's
 recording, is the journey's own quest (`src/story/charge.js`). Its state is read
 off the save: given (`charge.given`, or any save past the prologue), out in the
-worlds, home on the map (after six worlds), brought home (`ending.done`). It has
+worlds, home on the map, brought home (`ending.done`). It has
 its own mark (✦, gold; a world's main quest is ◆, an errand ◇):
+
+- **When home opens** (`homeOpen`, `src/story/ending.js`): one rule for the ship's
+  map, this card and the ending. Any six worlds of the eleven, in any order, and
+  the last recording on the reel heard ("Come home", `calls.home`; older saves:
+  `calls.6`), or the ending already played. The console plays a waiting
+  recording before it opens the map, so the two arrive together; between them the
+  card says a recording is waiting. Past six the card counts on ("8 worlds done"),
+  and the remaining worlds stay open, before home or after (their recordings come
+  from the reel's oldest side).
 
 - a title card when it is given, as the dust settles over the crash: the words
   SOMETHING OF VALUE lettered on a band of paper with a pen line and a gold dot,
@@ -1086,11 +1095,11 @@ walkthroughs and local names; each data file's header lists its flags.
 | Hangar | carry the signal through all three zones to the Major's desk | the Major's note (knowing) |
 | Buried Machine | push the oil valve, shoot the wick, stand in the light (amber band); the wheel turns a tooth | a rust gear tooth (thing) |
 | Viridel | open Odile and Talo's overgrown ship, play their log, part the flowers over the scorch | Mira's words (word) |
-| Garden of Spheres | listen at three spheres, then at the plaza's pole | the chord of the spheres (song) |
+| Garden of Spheres | splash the three spheres that remember, then the plaza's pole | the chord of the spheres (song) |
 | Lorn | make the Great Crystal sing (rain or three shots), carry its splinter to the cave (violet band) | a singing splinter (thing) |
 | Lorn II | relight three dark pools; the saucer answers; it is Odile and Talo's pod | Hollin's lamps (person) |
 | City-Shaft | carry the splinter from the bottom to the palace; the Lodestar brightens | "Look up once a day" (word) |
-| Signal Market | tune the antenna (three shots at once), play the recording: the father's voice | "You are not alone" (word) |
+| Signal Market | tune the antenna (three shots at once), play the recording: the father's voice; Oyo's last lantern pours into the tank (yellow-green band, `bazaar.tank.lantern`) | "You are not alone" (word) |
 
 ### The ending (v0.34)
 - **Calls home** (`src/story/calls.js`): 11 calls, one per finished world. Each

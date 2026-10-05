@@ -194,3 +194,24 @@ test('side quests: the oldest sign, and Ummu’s bowl under the crates', async (
   assert.ok(storyDone, 'the main quest closed the story page');
   clearInteractables();
 });
+
+test('Oyo’s last lantern: its little sun goes into the tank as a band of its own colour, once', async () => {
+  const { LANTERN_TONE, LANTERN_FLAG } = await import('../src/story/bazaar-data.js');
+  const { FLUID } = await import('../src/fluid-tool.js');
+  const refills = [];
+  const off = game.on('tool:refill', (o) => refills.push(o));
+  game.set('item.backpack', false);
+  let r = talk(STREET.oyo, ['What colour?']);
+  assert.ok(!r.choices().some((c) => /for my tank/.test(c.text)), 'no tank, nothing to pour it into');
+  game.set('item.backpack', true);
+  talk(STREET.oyo, ['What colour?', 'All of them?']);
+  assert.equal(game.flag(LANTERN_FLAG), true);
+  assert.deepEqual(refills, [{ addColour: true, tone: LANTERN_TONE }], 'the tank takes the lantern’s colour');
+  assert.ok(toasts.some((t) => /lantern’s little sun/.test(t)));
+  r = talk(STREET.oyo, ['What colour?']);
+  assert.ok(!r.choices().some((c) => /for my tank/.test(c.text)), 'he only had the one');
+  assert.equal(refills.length, 1);
+  off();
+  // the desert's water, the buried machine's oil-light, the Great Crystal and the market's lantern: four bands, room for all
+  assert.ok(FLUID.maxColours >= 1 + 4, 'every world’s source has room in the tank');
+});

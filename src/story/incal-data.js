@@ -3,8 +3,9 @@
 // The Lodestar turns above the palace. The rim and the upper terraces call it a
 // tourist story; the bottom levels pray to it, with their eyes shut, because
 // the smog stings. Nima, who sweeps the high terrace, has looked up at it once
-// a day for forty years, and says it has been dimming since "the night the sky
-// rang": something passed over the shaft, low and singing, the Lodestar rang
+// a day for forty years: it has faded a little every year of her life, as the
+// city stopped looking up, and since "the night the sky rang" it has been going
+// out: something passed over the shaft, low and singing, the Lodestar rang
 // back, and a splinter of it fell down the middle of the city to the bottom.
 // The bottom caught it, as it catches everything, and built the Upward Shrine
 // round it. Ossa, who keeps the shrine, knows why the light is going out: a
@@ -88,7 +89,7 @@ export const PEOPLE = {
         },
         what: {
           say: ['~neutral~ The Lodestar. Up here they’ll tell you it’s a palace light show, paid for out of the taxi tax. Down at the bottom they pray to it.',
-            '~sad~ I don’t know what it is. I know it was brighter when I was a girl, and I know it’s been going out since the night the sky rang.'],
+            '~sad~ I don’t know what it is. I know it was brighter when I was a girl, and a little dimmer every year since, as people stopped looking up. And since the night the sky rang, it’s been going out.'],
           choices: [{ text: '~curious~ The night the sky rang?', goto: 'rang' }, { text: '~neutral~ It does look dim.', goto: 'dim' }],
         },
         dim: {

@@ -11,7 +11,7 @@ import { LEVELS } from '../src/levels/index.js';
 import { CONTENT, ORDER } from '../src/levels/content.js';
 import { HOME_SPOTS, tombSlots, SLAB, tokenModel } from '../src/levels/home.js';
 import {
-  ENDING_WORLDS, HOME_ID, NOTHING, ALL, endingUnlocked, homeEntry, tokenList, tokenLine, leaveTokens, chosenKeepsake,
+  ENDING_WORLDS, HOME_ID, NOTHING, ALL, endingUnlocked, homeOpen, homeEntry, tokenList, tokenLine, leaveTokens, chosenKeepsake,
   tombLines, FINAL_RECORDING, TOKEN_ITEMS, credits, creditsHtml, peopleOf,
 } from '../src/story/ending.js';
 import { callLines, callContext, pendingCall, applyCall, completedWorlds, ILEN_CALL } from '../src/story/calls.js';
@@ -80,7 +80,40 @@ test('Home appears on the galactic map once the ending is open, at the centre of
   ship.attach({ order: ORDER, levels: LEVELS, journal: { storyDone: (id) => done.has(id), seen: () => false }, titles });
   assert.ok(!mapEntries({ ...ship.map.o }).some((e) => e.home), 'five worlds: no home yet');
   done.add(ORDER[5]);
-  assert.ok(mapEntries({ ...ship.map.o }).some((e) => e.home), 'six worlds: home');
+  game.set('calls.home', false);
+  assert.ok(!mapEntries({ ...ship.map.o }).some((e) => e.home), 'six worlds, the last recording not heard yet: not yet');
+  game.set('calls.home', true);
+  assert.ok(mapEntries({ ...ship.map.o }).some((e) => e.home), 'six worlds and “Come home”: home');
+  game.set('calls.home', false);
+});
+
+test('one rule for home: six worlds and the last recording, the same on the map, the charge and the reel', () => {
+  const at = (o) => (k) => o[k];
+  assert.equal(homeOpen({ flag: at({}), completed: ENDING_WORLDS }), false, 'six worlds alone: the recording comes first');
+  assert.equal(homeOpen({ flag: at({ 'calls.home': true }), completed: ENDING_WORLDS - 1 }), false, 'not before six worlds');
+  assert.equal(homeOpen({ flag: at({ 'calls.home': true }), completed: ORDER.slice(0, ENDING_WORLDS) }), true);
+  assert.equal(homeOpen({ flag: at({ [`calls.${ENDING_WORLDS}`]: true }), completed: ENDING_WORLDS }), true, 'an older save that heard it');
+  assert.equal(homeOpen({ flag: at({ 'ending.done': true }), completed: 0 }), true, 'after the ending, always');
+  // the console will not open the map while a recording waits: the last recording plays first, then home is there
+  const { game: g } = memory();
+  const done = ORDER.slice(0, ENDING_WORLDS);
+  for (const id of done) g.set(`world.${id}.done`, true);
+  const flag = (k) => g.flag(k);
+  assert.equal(pendingCall({ flag, completed: done.length }), 1);
+  assert.equal(consoleAction({ powered: true, pendingCall: pendingCall({ flag, completed: done.length }) }), 'call');
+  hearAll(g, done);
+  assert.equal(homeOpen({ flag, completed: done }), true, 'heard: home is open');
+  // past six, the rest of the route plays the reel's oldest side, and says home is waiting
+  const more = ORDER.slice(0, ENDING_WORLDS + 1);
+  g.set(`world.${more.at(-1)}.done`, true);
+  const later = hearAll(g, more).at(-1);
+  assert.equal(later.n, ENDING_WORLDS + 1);
+  assert.ok(later.lines.some((l) => /oldest side/.test(l.text)) && later.lines.some((l) => /Home is on the map/.test(l.text)));
+  // the worlds list says the same as the ship's map
+  const L = LEVELS.find((l) => l.id === HOME_ID);
+  assert.equal(L.blurb, homeEntry({ unlocked: true }).blurb);
+  assert.match(L.lock.text, /six worlds/);
+  assert.match(L.lock.text, /last recording/);
 });
 
 test('everything goes on the stone: the keepsakes, then the makers’ small gifts (not the backpack, jets or wings)', () => {

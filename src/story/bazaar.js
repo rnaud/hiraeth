@@ -4,7 +4,7 @@ import { makeMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { textGeometry, glyphGeometry } from './sign-text.js';
-import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, KEEPSAKE } from './bazaar-data.js';
+import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, KEEPSAKE, LANTERN_TONE, LANTERN_FLAG } from './bazaar-data.js';
 
 // The Signal Market's story, alive (bazaar-data.js has the words).
 //
@@ -36,6 +36,13 @@ export function setupBazaar(ctx) {
   quests.itemNames = { ...(quests.itemNames ?? {}), ...ITEMS };
   if (!quests.isStarted(Q)) quests.start(Q);
   if (!quests.def(quests.tracked() ?? '')) quests.track(quests.isActive(Q) ? Q : quests.active().find((d) => d.world === 'bazaar')?.id);
+
+  // Oyo's last lantern (his talk, bazaar-data.js): its little sun runs down the hose, and the tank takes its colour for good
+  game.on(`flag:${LANTERN_FLAG}`, (v) => {
+    if (!v) return;
+    game.emit('tool:refill', { addColour: true, tone: LANTERN_TONE });
+    toast('The lantern’s little sun runs down your hose. The tank takes its colour: a bruise, healing.');
+  });
 
   const onAir = () => !!game.flag('bazaar.broadcast.on');
   const tuned = () => !!game.flag('bazaar.antenna.tuned');
