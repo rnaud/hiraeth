@@ -1,0 +1,47 @@
+TODO.md
+  s_1fd8d0e7b02dcf::t_76da06dee0c1f5 59-69
+changelog.md
+  s_1fd8d0e7b02dcf::t_45d7536266d408 15-19
+docs/systems/controls.md
+  s_1fd8d0e7b02dcf::t_29572d77ba87f6 95-101
+docs/systems/movement-and-camera.md
+  s_1fd8d0e7b02dcf::t_ed62856dba8cec 1-62
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_80aab06f2918f8 18-22
+src/items.js
+  s_1fd8d0e7b02dcf::t_2b31dbfc431590 32
+src/jump-shadow.js
+  s_1fd8d0e7b02dcf::t_2a281693e6bb50 1-101
+src/main.js
+  s_1fd8d0e7b02dcf::t_b4980221a11da7 34,365-366,1293,1310
+src/player.js
+  s_1fd8d0e7b02dcf::t_7d5a48c9351cee 29-38,40-68,258,678-680,925,1017-1018,1025-1031,1038-1041,1045-1046,1053-1055,1086-1091,1266-1273,1663,1710,1717-1720,1722-1729,1819,2070-2072,2075,2170-2173,2352-2354,2357-2359
+src/ragdoll.js
+  s_1fd8d0e7b02dcf::t_c8c0917c5ca2c6 28,78-80,106,126-131,137,194,197,201-205,392-398,429-430
+src/ui.js
+  s_1fd8d0e7b02dcf::t_915e9dce2e9a48 61,71
+tests/camera.test.js
+  s_1fd8d0e7b02dcf::t_ea6c6eff38ff99 5,118-141
+tests/controls.test.js
+  s_1fd8d0e7b02dcf::t_3956f394ede4b9 10-11,19,21-22,24,26-31,34,36,39,44,46-55,57-64,71-72,75-76,78-96
+tests/jump-shadow.test.js
+  s_1fd8d0e7b02dcf::t_d78c7cc15898c6 1-72
+tests/ragdoll.test.js
+  s_1fd8d0e7b02dcf::t_52c399a614fe51 158-206
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6e377ce95b2a4d6d0e0a6f7182a8e6b74dc84d4b",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
