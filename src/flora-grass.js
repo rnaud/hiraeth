@@ -10,7 +10,7 @@ import { mulberry32, createNoise2D } from './noise.js';
 // camera moves the tufts that fall off one side reappear on the other, a whole patch further
 // on (wrapPatch). So a blade stays where it is in the world while you walk, and only the tufts
 // that wrapped this frame are placed again (heightAt, the slope, the paths, the water, and a
-// 2 m mask of where something is built: a single ray down per cell, cached).
+// 1 m mask of where something is built: a single ray down per cell, cached).
 // The vertex shader (grass-shader.js) bends them with the wind and round the traveller's feet,
 // thins them with distance and sinks them into the ground towards the patch's edge, where the
 // ground's own inked ticks take over. They cast no shadow and are one draw call.
@@ -57,6 +57,8 @@ export function grassFields(level) {
 }
 
 const _o = new THREE.Vector3(), _dir = new THREE.Vector3(), DOWN = new THREE.Vector3(0, -1, 0);
+/** The built-on mask's cell (m). */
+const MASK = 1;
 /** The patch's centre lies this many radii ahead of the camera. */
 const AHEAD = 0.45;
 
@@ -66,8 +68,9 @@ export class Grass {
    * @param o.quality  GRASS_QUALITY entry: radius (m), density (tufts per m²)
    * @param o.physics  ray casts for the built-on mask (optional)
    */
-  constructor({ scene, fields, quality, physics = null, avoid = null, water = -Infinity, height = 0.38, seed = 5 }) {
+  constructor({ scene, fields, quality, physics = null, avoid = null, keep = [], water = -Infinity, height = 0.38, seed = 5 }) {
     this.fields = fields;
+    this.keep = keep.filter(Boolean);   // [{ x, z, r }]: the ship's footprint and the like
     this.physics = physics;
     this.avoid = avoid;
     this.water = water;
@@ -113,16 +116,16 @@ export class Grass {
     this.placed = 0;
   }
 
-  /** Something built covers this 2 m cell (a rock, a floor, a roof): no grass. Cached. */
+  /** Something built covers this 1 m cell (a rock, a floor, a roof): no grass. Cached. */
   built(x, z, y) {
     if (!this.physics) return false;
-    const ix = Math.floor(x / 2), iz = Math.floor(z / 2), key = ix * 100003 + iz;
+    const ix = Math.floor(x / MASK), iz = Math.floor(z / MASK), key = ix * 100003 + iz;
     let v = this.mask.get(key);
     if (v === undefined) {
-      if (this.mask.size > 40000) this.mask.clear();
-      const cx = ix * 2 + 1, cz = iz * 2 + 1, base = this.field.heightAt(cx, cz);
+      if (this.mask.size > 60000) this.mask.clear();
+      const cx = (ix + 0.5) * MASK, cz = (iz + 0.5) * MASK, base = this.field.heightAt(cx, cz);
       const hit = this.physics.rayHit(_o.set(cx + 1.3e-4, base + 6, cz + 2.7e-4), DOWN, 6.5);
-      v = !!hit && hit.point.y > base + 0.05;   // (the heightfield isn't in the collision: any hit is something built, a path, a slab)
+      v = !!hit && hit.point.y > base - 0.03;   // (the heightfield isn't in the collision: any hit is something built, a path, a slab, a pad)
       this.mask.set(key, v);
     }
     return v;
@@ -137,6 +140,7 @@ export class Grass {
     if (y < (F.water ?? this.water) + 0.12) return [0, y];
     const avoid = F.avoid ?? this.avoid;
     if (avoid?.(x, z, 0.2)) return [0, y];
+    for (const k of this.keep) if ((x - k.x) ** 2 + (z - k.z) ** 2 < k.r * k.r) return [0, y];
     // meadows: taller in some places, cropped in others, bare here and there
     const m = this.noise(x * 0.07, z * 0.07) * 0.6 + this.noise(x * 0.23 + 40, z * 0.23) * 0.4;
     if (m < -0.45) return [0, y];
@@ -196,9 +200,9 @@ export class Grass {
 }
 
 /** Grass for this level, if it has grassy ground and the preset grows blades (main.js). */
-export function buildGrass({ scene, level, physics, presetKey = 'medium', water }) {
+export function buildGrass({ scene, level, physics, presetKey = 'medium', water, keep = [] }) {
   const quality = GRASS_QUALITY[presetKey] ?? GRASS_QUALITY.medium;
   const fields = grassFields(level);
   if (!fields.length || !quality) return null;
-  return new Grass({ scene, fields, quality, physics, avoid: level.floraAvoid ?? null, water });
+  return new Grass({ scene, fields, quality, physics, avoid: level.floraAvoid ?? null, keep, water });
 }

@@ -427,7 +427,8 @@ blades.grow = () => {
   if (blades.key === preset.key) return;
   blades.key = preset.key;
   if (blades.grass) { blades.grass.dispose(); level.noShadow = level.noShadow.filter((o) => o !== blades.grass.mesh); }
-  blades.grass = buildGrass({ scene, level, physics, presetKey: preset.key, water: FLORA_WORLDS[levelId]?.water });
+  blades.grass = buildGrass({ scene, level, physics, presetKey: preset.key, water: FLORA_WORLDS[levelId]?.water,
+    keep: [ship.site && { x: ship.site.x, z: ship.site.z, r: 9 }, ship.rampFoot && { x: ship.rampFoot.x, z: ship.rampFoot.z, r: 3 }] });   // (not through the ship's floor and ramp)
   if (blades.grass) (level.noShadow ??= []).push(blades.grass.mesh);
 };
 blades.grow();

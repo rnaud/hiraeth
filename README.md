@@ -2240,7 +2240,7 @@ shimmered, the reactor column filled the middle, the deck felt too big for one p
   covers a square patch round the camera. Each tuft has its offset in the patch; as the camera
   moves the ones falling off one side reappear a patch further on (`wrapPatch`), so blades stay
   put in the world and only those that wrapped are placed again (the height, the slope, the
-  paths, the water, and a 2 m mask of where something is built: one ray down per cell, cached).
+  paths, the water, and a 1 m mask of where something is built: one ray down per cell, cached).
   The vertex shader bends them with the wind (the plants' gust front) and parts them round the
   traveller's feet (`uBrush`), thins them with distance and sinks them into the ground towards
   the patch's edge, where the ground's own inked ticks take over. Lit like the ground (no crease

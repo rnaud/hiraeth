@@ -160,7 +160,7 @@ test('grass: something built over a cell (a slab, a path, a roof) keeps the blad
   const physics = { rayHit: (o) => (o.x > 0 ? { point: new THREE.Vector3(o.x, 0.3, o.z) } : null) };
   const grass = new Grass({ scene, fields: [flatField()], quality: { radius: 8, density: 2 }, physics });
   grass.update(cam(0, 0));
-  for (let i = 0; i < grass.count; i++) if (Math.floor(grass.at[i * 4] / 2) * 2 + 1 > 0) assert.equal(grass.at[i * 4 + 3], 0);
+  for (let i = 0; i < grass.count; i++) if (Math.floor(grass.at[i * 4]) + 0.5 > 0) assert.equal(grass.at[i * 4 + 3], 0);
 });
 
 test('grass: the presets grow fewer, closer blades on the handheld; grassy grounds are the ones drawn with ticks', () => {
