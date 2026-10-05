@@ -511,7 +511,7 @@ export const CROWD_TALK = {
   middle: [
     { name: 'A cable mender', title: 'between the levels', talk: { listen: [
       '~tired~ I mend the cables between the levels. Up a level, down a level. Nobody is from the middle; we’re all just passing through.',
-      { if: { not: { quest: 'incal.ration', done: true } }, say: ['~neutral~ The old goods hoist, down low? There’s a rusted pin in it. *Knock the pin out* and it swings free.', '~neutral~ Then push the weight round its post. Round, mind. Not toward the edge.'] },
+      { if: { not: { quest: 'incal.ration', done: true } }, say: ['~neutral~ The old goods hoist, down low? There’s a rusted pin in it. *Shoot the pin out* and it swings free.', '~neutral~ Then push the weight round its post. Round, mind. Not toward the edge.'] },
       '~angry~ I’m on a cable. You’re on my cable. One of us has to move, and I’m working.',
       '~solemn~ Everything in this city hangs from something. Don’t think about what the top one hangs from.',
     ] } },
