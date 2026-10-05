@@ -2,14 +2,14 @@ import * as THREE from 'three';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
 import { Batch, shell, polar, sector } from './geo.js';
 import { buildHull, doorGeometry, rampGeometry, R, RI, DECK, HATCH, HATCH_A, HINGE_R, WINDOW } from './hull.js';
-import { buildInterior } from './interior.js';
+import { buildInterior, BLOCK_H } from './interior.js';
 import { CallScreen } from './portrait.js';
 
 // Assembles one ship (hull + interior + moving parts) in ship-local space.
 
 let SERIAL = 0;
 /** The invisible skirting's height (m): over a step, under the camera's line of sight. */
-export const SKIRT = 1.1;
+export const SKIRT = BLOCK_H;
 
 export function shipMaterials(tag, { space = false } = {}) {
   const o = {
@@ -31,7 +31,6 @@ export function shipMaterials(tag, { space = false } = {}) {
     floor: { color: '#c9a27a', grid: 0.9, flat: true },
     floorDark: { color: '#7f6250', flat: true, grid: 0.6 },
     ceiling: { color: '#e9dcc0', flat: true, grid: 1.6 },
-    ringWall: { color: '#e6875f', flat: true },
     wall: { color: '#efe2c4', flat: true, grid: 1.2 },
     core: { color: '#4a6a78', glow: 0.15, tag: `${tag}-core` },
     wood: { color: '#a8754f', flat: true },
@@ -46,6 +45,8 @@ export function shipMaterials(tag, { space = false } = {}) {
     fruitA: { color: '#e6875f' },
     fruitB: { color: '#7fa86a' },
     panel: { color: '#5a7a8a', flat: true, grid: 0.5 },
+    locker: { color: '#6f9aa6', flat: true },
+    metal: { color: '#b9b4a6', flat: true },
     btnA: { color: '#f2c54b', glow: 1, tag: `${tag}-btnA` },
     btnB: { color: '#5fd0c6', glow: 1, tag: `${tag}-btnB` },
     btnC: { color: '#e6503a', glow: 1, tag: `${tag}-btnC` },
@@ -59,7 +60,7 @@ export function shipMaterials(tag, { space = false } = {}) {
   return Object.fromEntries(Object.entries(o).map(([k, v]) => [k, makeMaterial(v)]));
 }
 
-const INTERIOR = ['wallIn', 'floor', 'floorDark', 'ceiling', 'ringWall', 'wall', 'wood', 'cream', 'blanket', 'pillow', 'cushion', 'toy', 'crate', 'rug', 'rugInner', 'fruitA', 'fruitB', 'panel', 'pot', 'leaf'];
+const INTERIOR = ['wallIn', 'floor', 'floorDark', 'ceiling', 'wall', 'wood', 'cream', 'blanket', 'pillow', 'cushion', 'toy', 'crate', 'rug', 'rugInner', 'fruitA', 'fruitB', 'panel', 'locker', 'metal', 'pot', 'leaf'];
 
 // thin, small or decorative: drawn, not collided with
 const NO_COLLIDE = ['seam', 'glowRed', 'glowTeal', 'thrust', 'portGlass', 'portIn', 'scorch', 'soot', 'ink', 'teal', 'rug', 'rugInner', 'fruitA', 'fruitB', 'btnA', 'btnB', 'btnC', 'lamp', 'toy', 'leaf'];
@@ -153,7 +154,7 @@ export function buildShipModel(o = {}) {
   group.add(screen);
 
   // what only shows from inside (hidden when the camera is far away: fewer draw calls)
-  const indoor = [interior.deco, screen, ...['core', 'lamp', 'btnA', 'btnB', 'btnC', 'portIn', ...INTERIOR].map((k) => meshes[k]).filter(Boolean)];
+  const indoor = [interior.deco, interior.props, screen, ...['core', 'lamp', 'btnA', 'btnB', 'btnC', 'portIn', ...INTERIOR].map((k) => meshes[k]).filter(Boolean)];
   return { tag, group, meshes, mats, door, ramp, interior, hull, screen, callScreen, indoor };
 }
 

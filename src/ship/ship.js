@@ -7,6 +7,7 @@ import { CONSOLE_R } from './interior.js';
 import { findShipSite, siteAvoid, decorAvoid } from './sites.js';
 import { buildCrashSite } from './crash.js';
 import { buildApproach } from './approach.js';
+import { HoloTable } from './holotable.js';
 import { Puffs } from './fx.js';
 import { Cinema, Warp } from './cinema.js';
 import { StarMap, consoleAction } from './starmap.js';
@@ -151,6 +152,7 @@ export class Ship {
     model.group.quaternion.copy(q);
     this.scene.add(model.group);
     this.parked = model;
+    this.addHoloTable(model);
     this.rampFoot = foot.clone().addScaledVector(out, 1.6);
     this.rampFoot.y = this.groundAt(this.rampFoot.x, this.rampFoot.z, foot.y + 5);
     this.hinge = hinge;
@@ -189,12 +191,20 @@ export class Ship {
     this.setPower(this.powerState, model);
   }
 
+  /** The holo table's planet: the world the ship is at (in the prologue, the one below it). */
+  addHoloTable(model) {
+    model.holoTable = new HoloTable(model, this.levelId);
+    model.indoor.push(model.holoTable.object);
+    this.noShadow.push(model.holoTable.object);
+  }
+
   /** The prologue's ship, in orbit high above the map, wrapped in a dome of stars. */
   buildSpaceCopy() {
     const model = buildShipModel({ space: true, legs: 'up', ramp: null });
     const pos = new THREE.Vector3(this.site.x, SPACE_Y, this.site.z);
     model.group.position.copy(pos);
     this.scene.add(model.group);
+    this.addHoloTable(model);
     this.setDoor(model, 0);
     const space = buildSpace();
     space.position.copy(pos);
@@ -213,6 +223,8 @@ export class Ship {
     s.model.group.removeFromParent();
     s.space.removeFromParent();
     for (const v of s.model.lightVecs) { const i = this.lights.indexOf(v); if (i >= 0) this.lights.splice(i, 1); }
+    const h = this.noShadow.indexOf(s.model.holoTable?.object);
+    if (h >= 0) this.noShadow.splice(h, 1);
     const k = this.noShadow.indexOf(s.space);
     if (k >= 0) this.noShadow.splice(k, 1);
     this.spaceCopy = null;
@@ -275,6 +287,7 @@ export class Ship {
       M[k].uniforms.uGlow.value = state === 'on' || state === 'alarm' || k === 'btnC' ? 1 : 0;
     }
     M.portIn.uniforms.uGlow.value = 1;
+    model.holoTable?.power(state);
     if (model.lightVecs) this.syncLights(model, !model.lightsOff);
     model.callScreen?.set({ who: state === 'on' ? 'idle' : state === 'emergency' ? 'locked' : 'off', power: state === 'dead' ? 0 : 1 });
     if (model === this.parked) this.powerState = state;
@@ -625,6 +638,8 @@ export class Ship {
     this.dust.update(dt);
     this.flame.update(dt);
     if (!photo) this.applyCamera(dt);
+    // (after the camera is placed: the holo table's planet turns its lit face to it, a cinematic's shot too)
+    for (const m of [this.parked, this.spaceCopy?.model]) if (m?.indoorShown) m.holoTable?.update(dt, this.camera);
   }
 }
 
