@@ -1512,6 +1512,12 @@ all of it is in the game's own materials and post pass (every world uses it), no
   shallows, which post.js inks round.
 - `tests/shade.test.js`: the packing round trip, the materials' defaults, every preset's tones, the
   ground marks, weathering's rules; `tests/surface-spec.test.js` the new defines.
+- **Cost** (M4 Pro, ANGLE Metal, 1280 × 720, the camera pinned at spawn and turned, three runs each
+  alternating with the build before; throughput: six frames back to back to a one-pixel read):
+  desert High 6.3 → 6.0 ms and 6.7 → 5.6 ms, City-Shaft High 8.7 → 9.3 and 5.2 → 6.5, desert
+  Handheld 3.2 → 3.3 and 3.1 → 2.9, City-Shaft Handheld 8.6 → 7.8 and 5.9 → 6.8 (the machine's
+  run-to-run spread is ±30 %). The new work is behind defines (weathering, plating) or cheap
+  branches (crevices, paper, the strata strokes only lit and near); the handheld's paper is one tap.
 
 ### Weathered walls
 
