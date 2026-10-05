@@ -308,6 +308,15 @@ namespace Memento
             Log($"at the ship: stage {Stage}, done {game.quests.IsDone("desert.power")}, powered {game.state.Is("ship.powered")}");
             yield return Shoot("the_ship_hums");
             Log($"sound: {Sounds.Instance?.ClipCount ?? 0} recorded clips, {Sounds.Instance?.played ?? 0} played");
+            // the save: written, read back into a fresh state, the same flags
+            {
+                var path = Save.Write(game, "batch");
+                var d = Save.Read("batch"); var fresh = new GameState(); Save.Apply(d, fresh);
+                int a = game.state.Keys.Count(), b = fresh.Keys.Count(), same = game.state.Keys.Count(k => Equals(game.state.Flag(k), fresh.Flag(k)));
+                Log($"save: {a} flags written to {Path.GetFileName(path)}, {b} read back, {same} the same, quest {fresh.Flag("quest.desert.power")}, {fresh.keepsakes.Count} keepsakes");
+                Save.Erase("batch");
+            }
+            Log($"ambient: weather {game.ambient?.kind} {game.ambient?.intensity:0.00}, gust {game.ambient?.Gust:0.00}");
             File.WriteAllLines(Path.Combine(outDir, "play.log"), log);
             Pad.Script = null;
             Finished?.Invoke(game.quests.IsDone("desert.power"));

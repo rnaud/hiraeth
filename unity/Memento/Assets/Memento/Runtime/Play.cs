@@ -23,7 +23,9 @@ namespace Memento
             game.quests = new Quests(game.state);
             game.hud = gameObject.AddComponent<Hud>();
             game.hud.game = game;
-            game.quests.toast = t => { game.hud.Toast(t); Sounds.Instance?.Play("chime"); };
+            game.quests.toast = t => { game.hud.Toast(t); Sounds.Instance?.Play("chime"); dirty = true; };
+            // a saved game: its flags before anything starts (Save.cs)
+            if (Game.useSaves) { game.loaded = Save.Read(); Save.Apply(game.loaded, game.state); }
 
             // the sound (audio.js): the web game's recorded effects and score, the wind and the engine synthesised
             Sounds.Create(game.cam.gameObject);
@@ -66,9 +68,19 @@ namespace Memento
             game.ship.transform.SetParent(transform, false);
             game.ship.Init(game, storyData);
             gameObject.AddComponent<FireFx>().Build(game.world.World.O("fx"));
+            game.ambient = gameObject.AddComponent<Ambient>();
+            game.ambient.Init(game);
             game.tool = gameObject.AddComponent<FluidTool>();
             game.tool.Init(game);
             game.world.ReleaseBin();
+            if (game.loaded != null)
+            {
+                game.story.Restore();
+                var pp = game.loaded.L("player");
+                if (pp != null && game.state.Is("prologue.done")) { game.player.Teleport(new Vector3(Json.Num(pp[0]), Json.Num(pp[1]), Json.Num(pp[2])), Json.Num(pp[3])); game.rig.yaw = game.player.heading; }
+                if (game.loaded.Has("colours")) game.tool.colours = (int)game.loaded.F("colours", 1);
+                game.hud.Toast("Welcome back.");
+            }
             Cursor.lockState = Application.isEditor ? CursorLockMode.None : CursorLockMode.Locked;
             // the father's charge (src/story/charge.js): the words he left, on a card, before you step out
             if (Game.playPrologue && !game.state.Is("prologue.done")) { game.ship.StartPrologue(); return; }
@@ -77,9 +89,15 @@ namespace Memento
             Cursor.lockState = Application.isEditor ? CursorLockMode.None : CursorLockMode.Locked;
         }
 
+        bool dirty; float saveT;
+        void OnApplicationQuit() { if (Game.useSaves && game != null && game.state.Is("prologue.done")) Save.Write(game); }
+
         void Update()
         {
             if (game == null || game.player == null) return;
+            // autosave: every 20 s of play and when a quest moves on (not in the middle of a scene)
+            saveT += Time.deltaTime;
+            if (Game.useSaves && (saveT > 20 || dirty) && !game.hud.Busy && !(game.ship && game.ship.PrologueActive) && !game.player.riding) { Save.Write(game); saveT = 0; dirty = false; }
             var pl = game.player;
             bool busy = game.hud.Busy;
             pl.frozen = busy && !(game.ship && game.ship.PlayerFree);
@@ -93,7 +111,8 @@ namespace Memento
             // the wind, the cloak, the engine, the fires (audio.js update)
             float fireNear = 0;
             foreach (var f in game.story ? game.story.FirePlaces : System.Array.Empty<Vector3>()) fireNear = Mathf.Max(fireNear, 1 - Vector3.Distance(f, pl.transform.position) / 9f);
-            Sounds.Instance?.Layers(pl.riding ? 0 : pl.SpeedXZ, 0.5f + 0.5f * Mathf.Sin(Time.time * 0.23f) * Mathf.Sin(Time.time * 0.071f + 1), pl.riding, game.bike ? game.bike.Speed : 0, Mathf.Clamp01(fireNear));
+            float gust = game.ambient ? game.ambient.Gust : 0.5f, storm = game.ambient ? game.ambient.Storm : 0;
+            Sounds.Instance?.Layers(pl.riding ? 0 : pl.SpeedXZ, gust, pl.riding, game.bike ? game.bike.Speed : 0, Mathf.Clamp01(fireNear), storm);
             game.prompt = null;
             if (busy || pl.down) return;
             var best = Interact.Best(pl.transform.position);

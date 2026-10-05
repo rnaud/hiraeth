@@ -24,7 +24,10 @@ Shader "Hidden/Memento/Composite"
       #pragma fragment frag
       #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
-      Texture2D _GAlbedo, _GNormal, _GHatch;
+      Texture2D _GAlbedo, _GNormal, _GHatch, _GBloom, _GBloom2;
+      SamplerState sampler_linear_clamp;
+      float _Bloom;                    // the glow's strength (post.js uBloom; 0 none)
+      float _Storm; float3 _StormColor; // weather: a sandstorm 0..1 (post.js uStorm)
 
       float4 _Res;          // width, height, 1/width, 1/height
       float4x4 _InvProj;    // inverse GL projection (view space: three's)
@@ -398,6 +401,35 @@ Shader "Hidden/Memento/Composite"
         }
         if (dbg == 6) col = float3(0.97, 0.94, 0.86);
         col = lerp(col, _Ink, ink);
+
+        // ---- 4b. light: a halo round glowing things in flat rings, a wash of their colour on what is near
+        float emitHere = isSky ? 0.0 : smoothstep(0.62, 0.9, surface.a - 2.0 * hero);
+        if (_Bloom > 0.0)
+        {
+          float3 b = _GBloom.SampleLevel(sampler_linear_clamp, uv, 0).rgb, w = _GBloom2.SampleLevel(sampler_linear_clamp, uv, 0).rgb;
+          float bl = max(b.r, max(b.g, b.b)), wl = max(w.r, max(w.g, w.b));
+          if (wl > 0.003 || bl > 0.003)
+          {
+            float k = _Bloom * lerp(0.6, 1.0, _Night);
+            float3 light = lerp((b + w) / max(bl + wl, 1e-4), 1.0, 0.45);
+            float r1 = smoothstep(0.14, 0.16, bl), r2 = max(r1, smoothstep(0.05, 0.058, wl));
+            float out1 = 1.0 - emitHere;
+            col = lerp(col, light, (r1 * 0.5 + (r2 - r1) * 0.22) * k * out1);
+            col += w * (0.4 + 0.6 * _Night) * _Bloom * out1;
+          }
+        }
+        // ---- 5. weather, drawn on the page like the rest: a sandstorm's haze and its streaks of blown sand
+        if (_Storm > 0.0)
+        {
+          float nearK = isSky ? 1.0 : smoothstep(4.0, 90.0, depth);
+          col = lerp(col, _StormColor, _Storm * (0.25 + 0.55 * nearK));
+          float2 sp = float2(fc.x * 0.6 - _MTime * 900.0, fc.y);
+          float row = floor(sp.y / 6.0);
+          float hr = hash(float2(row, 3.7));
+          float dash = smoothstep(0.82, 0.86, frac(sp.x / (180.0 + hr * 260.0) + hr * 7.0)) * step(0.55, hr);
+          float thin = 1.0 - smoothstep(0.6, 1.2, abs(frac(sp.y / 6.0) - 0.5) * 6.0);
+          col = lerp(col, _Ink * 0.6 + _StormColor * 0.4, dash * thin * _Storm * 0.45);
+        }
 
         // ---- 6. paper
         float fibre = vnoise(fc * 0.55) * 0.5 + vnoise(fc * 0.21 + 7.0) * 0.5;

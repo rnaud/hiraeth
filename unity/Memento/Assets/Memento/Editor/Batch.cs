@@ -50,6 +50,8 @@ namespace Memento.EditorTools
             so.FindProperty("m_MainLightShadowmapResolution").intValue = 4096;
             so.FindProperty("m_Cascade4Split").vector3Value = new Vector3(0.02f, 0.08f, 0.3f);
             so.FindProperty("m_SoftShadowsSupported").boolValue = true;
+            // (the web game's own maps: a few taps of PCF, close to hard: URP's low soft quality)
+            var q = so.FindProperty("m_SoftShadowQuality"); if (q != null) q.intValue = 1;
             so.FindProperty("m_RequireDepthTexture").boolValue = false;
             so.FindProperty("m_RequireOpaqueTexture").boolValue = false;
             so.ApplyModifiedPropertiesWithoutUndo();

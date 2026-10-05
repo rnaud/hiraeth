@@ -252,7 +252,14 @@ export async function exportPeople({ W, blob, materialOf }) {
   const boxScene = { d: BOX.d, w: BOX.w, h: BOX.h + BOX.lid, scale: BOX_SCALE, item: ITEM_SCALE, standAt: SC.STAND_AT, lift: SC.LIFT, times: SC.TIMES, out: SC.OUT_TIME, cardMin: SC.CARD_MIN };
   const itemModels = {};
   for (const id of ['backpack', 'star']) { const m = buildItemModel(id); const { nodes, meshes } = treeOf(m); itemModels[id] = { id: `item:${id}`, kind: 'item', nodes, meshes }; }
+  // ---- the birds wheeling over the desert (life.js Flock): their body and wings, as the game builds them
+  const { Flock } = await import('../../src/life.js');
+  const flocks = (W.level.life?.flocks ?? []).map((cfg) => {
+    const f = new Flock(new THREE.Scene(), cfg);
+    const col = (m) => '#' + (m.uniforms?.uColor?.value ?? m.color).getHexString();
+    return { cfg, body: geometryOf(f.bodies.geometry), bodyColor: col(f.bodies.material), wings: f.wings.map((w) => geometryOf(w.geometry)), wingColor: col(f.wings[0].material) };
+  });
   const { ITEMS } = await import('../../src/items.js');
   const itemDefs = Object.fromEntries(Object.entries(ITEMS).map(([k, d]) => [k, { name: d.name, kind: d.kind, text: d.text ?? '', use: d.use ?? '' }]));
-  return { people, geometries, poses, anims, crowdFigures, crowdLooks, items: itemModels, itemDefs, boxScene, holo, holoInfo };
+  return { people, geometries, poses, anims, crowdFigures, crowdLooks, items: itemModels, itemDefs, boxScene, holo, holoInfo, flocks };
 }

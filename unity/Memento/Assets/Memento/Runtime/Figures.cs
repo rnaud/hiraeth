@@ -80,6 +80,8 @@ namespace Memento
 
         float[] Floats(int at, int n) { var a = new float[n]; System.Buffer.BlockCopy(world.Bin, at, a, 0, n * 4); return a; }
 
+        /// <summary>An exported geometry as a plain mesh (birds, props), built while world.bin is loaded.</summary>
+        public Mesh GeometryMesh(int geo) => MeshOf(geo, -1, 0);
         public Dictionary<string, object> Person(string id) => id != null && byId.TryGetValue(id, out var p) ? p : null;
         /// <summary>The parents on the recordings (hologram.js HoloFigure): holo:father, holo:mother.</summary>
         public Dictionary<string, object> Holo(string id) => data?.O("holo")?.O(id);

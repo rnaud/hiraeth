@@ -282,7 +282,13 @@ namespace Memento
                 figure.Drive(dt, fs);
                 // footsteps: a foot comes down twice a gait cycle (audio.js step, in the sand)
                 float ph = figure.Phase;
-                if (onGround && !riding && !climbing && SpeedXZ > 0.8f && (Mathf.Floor(ph * 2) != Mathf.Floor(lastPhase * 2))) Sounds.Instance?.Play(SpeedXZ > 6 ? "step_sand_run" : "step_sand_walk");
+                if (onGround && !riding && !climbing && SpeedXZ > 0.8f && (Mathf.Floor(ph * 2) != Mathf.Floor(lastPhase * 2)))
+                {
+                    Sounds.Instance?.Play(SpeedXZ > 6 ? "step_sand_run" : "step_sand_walk");
+                    // and a print where the foot came down (life.js Footprints), left and right in turn
+                    float side = Mathf.Floor(ph * 2) % 2 == 0 ? 1 : -1;
+                    Game.Instance?.ambient?.Step(transform.position + transform.right * 0.11f * side, heading);
+                }
                 lastPhase = ph;
                 return;
             }

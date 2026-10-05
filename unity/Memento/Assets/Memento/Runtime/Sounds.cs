@@ -97,12 +97,12 @@ namespace Memento
         public void StopLoop(string name) { if (loops.TryGetValue(name, out var s)) { s.Stop(); Destroy(s); loops.Remove(name); } }
 
         /// <summary>The layers this frame (main.js sound.update): speed, gust 0..1, riding and the bike's speed, fires near.</summary>
-        public void Layers(float speed, float gust, bool riding, float rideSpeed, float fireNear)
+        public void Layers(float speed, float gust, bool riding, float rideSpeed, float fireNear, float storm = 0)
         {
             const float W = 0.4f;   // AMBIENT_WIND
             float k = Mathf.Min(speed / 11, 1.5f), t = Time.time;
-            howlGain = gust * 0.012f * W; howlFreq = 700 + Mathf.Sin(t * 0.3f) * 250;
-            windGain = (0.03f + gust * 0.05f + k * 0.03f) * W; windFreq = 420 + gust * 300;
+            howlGain = (gust * 0.012f + storm * 0.025f) * W; howlFreq = 700 + Mathf.Sin(t * 0.3f) * 250;
+            windGain = (0.03f + gust * 0.05f + storm * 0.11f + k * 0.03f) * W; windFreq = 420 + gust * 300 + storm * 400;
             cloakGain = (riding ? 0.04f + k * 0.05f : Mathf.Pow(Mathf.Min(speed / 11, 1), 2) * 0.07f) * (0.5f + 0.5f * W);
             engineGain = Mathf.Lerp(engineGain, riding ? 0.035f : 0, 1 - Mathf.Exp(-5 * Time.deltaTime));
             engineHz = 38 + Mathf.Abs(rideSpeed) * 2.2f; engineCut = 250 + Mathf.Abs(rideSpeed) * 25;

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -27,7 +28,10 @@ namespace Memento
         public Bike bike;
         public FluidTool tool;
         public ShipScene ship;
-        public static bool playPrologue = true;   // a new game opens in the ship, out in space (Batch: -noPrologue)
+        public Ambient ambient;
+        public static bool playPrologue = true;
+        public static bool useSaves => !Application.isBatchMode;   // (a batch run starts fresh; Batch.Play tests the saves itself)
+        public Dictionary<string, object> loaded;   // a new game opens in the ship, out in space (Batch: -noPrologue)
         public readonly System.Collections.Generic.List<Npc> npcs = new();
         public string prompt;
 

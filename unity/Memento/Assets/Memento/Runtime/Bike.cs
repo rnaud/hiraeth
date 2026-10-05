@@ -54,6 +54,14 @@ namespace Memento
             });
         }
 
+        /// <summary>A loaded game: uncovered, awake.</summary>
+        public void Restore()
+        {
+            var G = game.state;
+            if (G.Is("desert.bike.uncovered")) { tarpT = 1; if (tarp) tarp.SetActive(false); }
+            if (G.Is("desert.bike.found")) dormant = false;
+        }
+
         public void Mount()
         {
             ridden = true;

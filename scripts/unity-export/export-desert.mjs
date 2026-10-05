@@ -31,7 +31,7 @@ const OUT = resolve(process.argv[2] ?? resolve(here, '../../unity/Memento/Assets
 const TILE = 256;
 const t0 = Date.now();
 const W = await buildDesertWorld();
-const { THREE, scene, level, physics, ship, npcs, rt, boxes, crowd, bike, flora } = W;
+const { THREE, scene, level, physics, ship, npcs, rt, boxes, crowd, bike, flora, CONTENT } = W;
 const Q = level.qanat;
 console.log(`built the desert in ${Date.now() - t0} ms`);
 
@@ -372,6 +372,8 @@ const world = {
   version: 1, exported: new Date().toISOString(), tile: TILE,
   frame: 'Unity: x mirrored from three.js (x -> -x), y up, metres; headings are Unity yaw in radians',
   materials, chunks: statics, collision, terrain: terrainOut, objects, look, places, people, crowd: crowdOut, fires, lights, fx,
+  // the weather it can have (content.js; main.js: a sandstorm in the desert) and the life in it (motes, footprints)
+  weather: { kinds: CONTENT.desert.weather ?? [], stormColor: '#e3c58f' }, life: { motes: level.life?.motes ?? null, footprints: level.life?.footprints ?? null },
   // walking into one puts you at its other end (the skull's mouth and the cave passage, doorways into rooms)
   portals: (level.portals ?? []).filter((p) => p.at && p.to).map((p) => ({ at: V3(p.at), r: p.r ?? 1.5, to: V3(p.to), heading: -(p.heading ?? 0), label: p.label ?? '' })),
   ship: { site: places.shipSite, ramp: places.shipRamp, ...shipOut },

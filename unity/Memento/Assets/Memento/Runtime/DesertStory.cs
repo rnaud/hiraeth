@@ -279,6 +279,23 @@ namespace Memento
             G.Set("desert.channel.open", true);
             game.hud.Toast(how == "push" ? "The fluid shoves the rib: it rolls off the channel. Water runs." : "You heave. The rib grinds, tips, and rolls off the channel. Water runs.");
         }
+        /// <summary>A loaded game: the desert as its flags say (the rib aside, the water up, the chests opened).</summary>
+        public void Restore()
+        {
+            if (G.Is("desert.channel.open"))
+            {
+                OpenChannel();
+                boneT = 1;
+                if (bone) { var aside = P.Get("boneAside") != null ? P.V3("boneAside") : boneFrom + bone.transform.right * 2.5f; bone.transform.position = aside; bone.transform.rotation = boneRotFrom * Quaternion.Euler(150f, 0, 23f); }
+                poolLevel = poolHigh;
+            }
+            if (G.Is("box.desert.backpack") && chest) chest.SetActive(false);
+            if (G.Is("box.desert.star") && starBox) starBox.SetActive(false);
+            if ((Q.Has("drum") || Q.IsDone("desert.drum")) && drum) drum.SetActive(false);
+            if (G.Is("desert.tank.coloured") && game.tool) game.tool.colours = Mathf.Max(game.tool.colours, 2);
+            game.bike?.Restore();
+        }
+
         void OpenChannel()
         {
             boneT = 0;
