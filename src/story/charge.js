@@ -7,11 +7,12 @@
 // It is not one of a world's quests (those live and die with their world): its
 // state is read off the save, so it stands the same everywhere.
 //
-//   chargeState({ flag, keepsakes, completed, failed })   → { stage, worlds, kept, names, lost }
+//   chargeState({ flag, keepsakes, completed, failed })   → { stage, worlds, waiting, kept, names, lost }
 //     failed: the titles of quests that went wrong (flags failed.<id>, src/story/quests.js); the
 //     card keeps them too, quietly, under what you carry: it isn't a mark against you, it's
 //     what happened
 //     stage: null (not given yet) · 'out' (find it) · 'home' (home is on the map) · 'done'
+//     waiting: six worlds done, the last recording not heard yet (the console plays it first)
 //   chargeHud(state)          the HUD's line for it: '✦ …' (main.js shows it in its own colour)
 //   chargeJournalHtml(state)  the card pinned at the top of the sketchbook
 //   showChargeCard({ sound }) the title card when it is given (after the crash, or once on an
@@ -20,7 +21,7 @@
 // Flags: charge.given (the father's words have been heard), charge.card (its title card shown).
 // Its mark is ✦, gold: a world's main quest is ◆, an errand ◇.
 
-import { ENDING_WORLDS, endingUnlocked } from './ending.js';
+import { ENDING_WORLDS, endingUnlocked, homeOpen } from './ending.js';
 import { escapeHtml } from '../prompt-keys.js';
 
 export const CHARGE = {
@@ -37,12 +38,14 @@ export const CARD = 'charge.card';
 export function chargeState({ flag, keepsakes = [], completed = 0, failed = [] }) {
   const worlds = Array.isArray(completed) ? completed.length : completed;
   const given = !!(flag(GIVEN) || flag('prologue.done'));
-  const stage = !given ? null : flag('ending.done') ? 'done' : endingUnlocked(worlds) ? 'home' : 'out';
-  return { stage, worlds, of: ENDING_WORLDS, kept: keepsakes.length, names: keepsakes.map((k) => k.name), lost: [...failed] };
+  // (home is on the map by the same rule the map uses: six worlds and the last recording heard, src/story/ending.js)
+  const stage = !given ? null : flag('ending.done') ? 'done' : homeOpen({ flag, completed: worlds }) ? 'home' : 'out';
+  return { stage, worlds, of: ENDING_WORLDS, waiting: stage === 'out' && endingUnlocked(worlds), kept: keepsakes.length, names: keepsakes.map((k) => k.name), lost: [...failed] };
 }
 
 /** What to do about it now, in a few words. */
 export function chargeStep(st) {
+  if (st.stage === 'out' && st.waiting) return 'A recording is waiting at the ship’s console';
   if (st.stage === 'out') return st.kept ? 'Keep looking, out in the worlds' : 'Find it, out in the worlds';
   if (st.stage === 'home') return 'Home is on the map: take it home';
   if (st.stage === 'done') return 'You brought it home on your own two feet.';
@@ -61,7 +64,8 @@ export function chargeHud(st, { kept = null } = {}) {
 export function chargeJournalHtml(st) {
   if (!st?.stage) return '';
   const done = st.stage === 'done';
-  const worlds = `${Math.min(st.worlds, st.of)} of ${st.of} worlds`;
+  // six worlds open the way home; past six, the count goes on (the route has eleven, and they stay open)
+  const worlds = st.worlds >= st.of ? `${st.worlds} worlds done` : `${st.worlds} of ${st.of} worlds before home`;
   const steps = [
     st.stage !== 'out' && `<li class="done">${worlds}</li>`,
     `<li class="now">${escapeHtml(chargeStep(st))}${st.stage === 'out' ? ` <span>${worlds}</span>` : ''}</li>`,

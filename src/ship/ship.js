@@ -13,7 +13,7 @@ import { Cinema, Warp } from './cinema.js';
 import { StarMap, consoleAction } from './starmap.js';
 import { pendingCall, completedWorlds, callLines, callContext, applyCall, recordingLabel } from '../story/calls.js';
 import { Hologram } from './hologram.js';
-import { endingUnlocked, HOME_ID } from '../story/ending.js';
+import { homeOpen, HOME_ID } from '../story/ending.js';
 import { MAP_LINE } from '../story/signature.js';
 import { HomecomingDirector } from './homecoming.js';
 import * as sfx from './sfx.js';
@@ -323,7 +323,7 @@ export class Ship {
     this.map = new StarMap({
       order: deps.order, levels: deps.levels, journal: deps.journal, current: this.levelId,
       flag: (k) => game.flag(k), powered: () => !!game.flag('ship.powered'),
-      home: () => endingUnlocked(this.completed()) || this.levelId === HOME_ID,   // src/story/ending.js
+      home: () => homeOpen({ flag: (k) => game.flag(k), completed: this.completed() }) || this.levelId === HOME_ID,   // src/story/ending.js
       onTravel: (id) => this.travel(id),
     });
     globalThis.addEventListener?.('keydown', (e) => { if (e.code === 'Escape') this._esc = true; this._keyT = performance.now(); });

@@ -28,7 +28,6 @@ import { QUESTS, PEOPLE, THINGS, ITEMS, SOUNDS, orbDegree } from './spheres-data
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
-const ease = (t) => t * t * (3 - 2 * t);
 
 export function setupSpheres(ctx) {
   const { level, physics, player, quests, dialogue, game, sound, story, spawn, scene, toast, npcs } = ctx;
@@ -72,7 +71,7 @@ export function setupSpheres(ctx) {
     scene.add(ring);
     // three ripples that run out over the meadow when it remembers
     const pulses = [0, 1, 2].map(() => { const m = new THREE.Mesh(new THREE.TorusGeometry(rr, 0.2, 4, 96).rotateX(Math.PI / 2), ringMat('#fff6dc')); m.position.copy(ring.position); m.visible = false; m.userData.noCollide = true; scene.add(m); return m; });
-    return { id, o, centre, ring, mat, pulses, k: 0, voice: heard(id) ? 0.3 : 0, pulseT: -1, near: false, hinted: false, footY };
+    return { id, o, centre, ring, mat, pulses, voice: heard(id) ? 0.3 : 0, pulseT: -1, near: false, hinted: false, footY };
   });
   quests.locate('sphere', () => {
     let best = null, bd = Infinity;
@@ -82,7 +81,7 @@ export function setupSpheres(ctx) {
   });
   const remember = (s) => {
     game.set(`spheres.heard.${s.id}`, true);
-    s.pulseT = 0; s.voice = 1; s.voiceT = 14; s.k = 1;
+    s.pulseT = 0; s.voice = 1; s.voiceT = 14;
     toast(`The sphere remembers: ${SOUNDS[s.id].text}.`);
     if (s.id === 'drum') {
       game.set('clue.spheres.desert', true);
@@ -122,7 +121,7 @@ export function setupSpheres(ctx) {
   halo.position.set(Gr.x, Gr.y, Gr.z);
   halo.visible = false; halo.userData.noCollide = true;
   scene.add(halo);
-  const st = { pole: 0, poleHinted: false, chordT: game.flag('spheres.chord.heard') ? 99 : -1, still: 0, walk: null, walkBest: 0, bellsDirty: true };
+  const st = { pole: 0, poleHinted: false, chordT: game.flag('spheres.chord.heard') ? 99 : -1, walk: null, walkBest: 0, bellsDirty: true };
   const chord = () => {
     game.set('spheres.chord.heard', true);
     st.chordT = 0;
@@ -244,21 +243,19 @@ export function setupSpheres(ctx) {
     const pp = player.pos;
     const speed = Math.hypot(player.vel?.x ?? 0, player.vel?.z ?? 0);
     const grounded = player.onGround ?? true;
-    const still = speed < 0.45 && grounded && !player.climbing && !player.riding && !dialogue.open;
-    st.still = still ? st.still + dt : 0;
 
     // the spheres that remember: the ring round its foot flares when the fluid lands, and closes as it remembers
+    // (standing still beside one does nothing: it wants the fluid, Aube's "give one a splash")
     for (const s of L) {
       const d = flat(pp, s.centre), inRange = d < s.o.R + 30 && pp.y < s.centre.y + s.o.R + 3;
       if (inRange && !s.near && !heard(s.id) && !s.hinted && game.flag('spheres.aube.heard')) { s.hinted = true; toast('Give it a splash of your fluid, and listen.'); }
       s.near = inRange;
       s.flash = Math.max(0, (s.flash ?? 0) - dt * 0.8);
-      if (!heard(s.id) && s.k > 0 && s.k < 1) s.k = Math.max(0, s.k - dt * 0.3);
-      // the ring: closing round the foot while you listen; faintly lit once it has remembered; brightening near you
-      const lit = Math.max(s.flash, heard(s.id) ? 0.35 + 0.4 * THREE.MathUtils.clamp(1 - d / (s.o.R + 40), 0, 1) : s.k);
+      // the ring: wide and dark until it has remembered, then closed round the foot, faintly lit, brightening near you
+      const lit = Math.max(s.flash, heard(s.id) ? 0.35 + 0.4 * THREE.MathUtils.clamp(1 - d / (s.o.R + 40), 0, 1) : 0);
       s.mat.uniforms.uGlow.value = lit;
       s.ring.visible = lit > 0.02 && flat(camera?.position ?? pp, s.centre) < 600;
-      s.ring.scale.setScalar(heard(s.id) ? 1 + 0.12 * s.flash : 1.6 - 0.6 * ease(s.k));
+      s.ring.scale.setScalar(heard(s.id) ? 1 + 0.12 * s.flash : 1.6);
       // the ripples
       if (s.pulseT >= 0) {
         s.pulseT += dt;

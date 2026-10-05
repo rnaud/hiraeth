@@ -407,8 +407,9 @@ now, it seems". Errands start here (a jar of singing sand for the City-Shaft).
 A city stacked down a 600 m pit: the rich on the sunny rim, the poor in the
 depths over an acid lake, flying taxis between. The **Lodestar**, a light and
 its dark twin, turns over the palace; the rim calls it a tourist story, the
-bottom prays to it. It has been dimming since "the night the sky rang". The
-rule here: a light nobody looks at goes out.
+bottom prays to it. It has faded a little every year for as long as Nima can
+remember, and since "the night the sky rang" (when a splinter of it fell) it has
+been going out. The rule here: a light nobody looks at goes out.
 
 People:
 - **Nima**, who sweeps the high terrace: has looked up once a day for forty years; Pell's cousin.
@@ -455,7 +456,7 @@ whistle); blow it; the bird bows and promises.
 
 Side quests: three feathers she shed the night the light went over; ring the
 stone hand's knuckles small to tall (the third feather falls). Errand: a
-feather for the Major.
+feather for the Major (Hollin gives it with his hands and two words).
 
 Keepsake: *person* "The bird's promise" (wherever there is sky, call, and she
 will come). Chest: the bell-note whistle.
@@ -465,8 +466,9 @@ Ties: the map in the tower points to Vael II; the stones answered the light.
 ### 4. Vael II: "The Bell Under the Cloud" (The Sky Stones)
 Needles and balanced stones rise from a sea of cloud; cliff-top monasteries,
 broken aqueducts, a floating island, a peach plain with a lone tower. The
-monastery bell has not rung in thirty years; the monks believe the stones fell
-*up* when it stopped.
+monastery bell has not rung in thirty years; the monks believe its ringing kept
+the world down, and that when it stopped everything loose fell *up*. The sky
+stones themselves are older ("since my mother's day").
 
 People:
 - **Sister Aube**, hermit of the edge: "You came down out of the sky, then. That is almost as rude."
@@ -739,7 +741,7 @@ People:
 - **Ferro**, who rigs the antenna: "Nobody has three hands and a long enough ladder."
 - **Brush**, who repaints the signs: "A thousand signs. One brush."
 - **Ummu**, one of the quiet ones, speaking through a screen: "YOU ARE LOUD. WE LIKE IT."
-- **Doss**, who welcomes everyone; **Oyo**, who sells lanterns (they relit in a colour he has never sold); **Teb**, cab tout.
+- **Doss**, who welcomes everyone; **Oyo**, who sells lanterns (they relit in a colour he has never sold, "a bruise when it's healing"; he kept one back, and pours its little sun into your tank: the market's colour band); **Teb**, cab tout.
 
 Main quest (`bazaar.signal`): Sel; Kip's recording; tune the antenna (three
 bulbs, quick); play it at the console: the father's voice, years younger, to a
@@ -764,8 +766,9 @@ Lorn), a humming crystal (Lorn to the desert).
 
 ## 7. Home and the ending
 
-After six worlds the last recording asks him home and the map shows **Home**
-at its centre: "A small round house on a small round hill, and two moons over
+After any six worlds (of the eleven, in any order) the last recording asks him
+home and, once it has played, the map shows **Home** at its centre (one rule for
+the map, the charge card and the ending: `homeOpen`, `src/story/ending.js`): "A small round house on a small round hill, and two moons over
 it. Nobody lives in the round house now; there is a stone in its yard. Across
 the yard, a smaller house with its lamp lit."
 
@@ -957,22 +960,51 @@ ATAN" (old names) and now says ODILE and TALO; Talo's lookout note was signed
   Wick (a lamp); Ferro (market) and Ferrol (Hangar). Different names, kept.
 - **How one light crossed worlds a journey apart in one night** is not
   explained, on purpose.
+- **Home after six worlds, eleven on the route** (decided while the author was
+  away): kept. Any six worlds, in any order, open the way home; the other five
+  stay open, before home or after. The "last recording" is the last thing the
+  parents recorded, not the last world: after it the reel turns over to its
+  oldest side ("Home is on the map, whenever you are ready"). One rule now
+  serves the map, the charge card and the ending (`homeOpen`,
+  `src/story/ending.js`): six worlds done and the last recording heard
+  (`calls.home`, or `calls.6` on older saves), or the ending already played.
+  The charge card no longer says "Home is on the map" while that recording is
+  still waiting at the console (it says a recording is waiting), counts on past
+  six ("8 worlds done", not "6 of 6"), and reads "N of 6 worlds before home"
+  until then. The worlds list's Home card now matches the map (the round house
+  dark, the small house lit; it said "a lamp in the window… They are waiting").
+- **The Signal Market's lantern band**: built, as the bible described. Oyo, who
+  sold every relit lantern by morning, kept one back; ask him for it (with the
+  tank on your back) and he pours its little sun into your hose: a sallow
+  yellow-green band, "the colour of a bruise when it's healing"
+  (`bazaar.tank.lantern`, `LANTERN_TONE`). The tank's five bands are now the
+  two it starts with, the desert's water, the buried machine's oil-light, the
+  Great Crystal and the market's lantern.
+- **The Spheres' stillness timer**: removed. Listening by standing still was
+  the first design (the bible still said "stand still nearby"); the game moved
+  to splashing the spheres (Aube: "give one a splash"), and the test already
+  says standing does nothing. The timer and the ring that would have closed
+  while you stood are gone; the bible now says "splash each with the fluid".
+- **The Vael feather errand**: Hollin gives it the Vael way, with his hands and
+  two words ("(…draws a ring in the air: a world hollow as a cup.) The
+  Major."); asked again, he only draws the ring. Senn's thanks for the taxi
+  token are a gesture and "A city." The test checks that Vael's errand lines say
+  three words at most outside brackets.
+- **Vael II's stones and the bell**: the sky stones and the floating island are
+  older than the bell's silence ("since my mother's day", "long ago"). What the
+  monks blame on the silent bell is the night the cloud rose, thirty years ago,
+  when everything *loose* fell up (tiles, pebbles, a goat, the clapper). Aube
+  now says "the bell kept the world down… everything loose fell up", and of the
+  stones "long before the bell stopped, whatever the brothers say". Tiv, a
+  child, could not have built his cairn thirty years ago: his stones fell up the
+  night the light went over, when the bell hummed by itself.
+- **The Lodestar and Nima**: both true. It has faded a little every year of
+  Nima's life, as the city stopped looking up (Ossa's rule: a light nobody looks
+  at goes out), and since the night the sky rang, when a splinter of it fell, it
+  has been going out. Nima now says so; the bible and section 6 match.
 
 ### Still open
-- **Home after six worlds, eleven worlds on the route**: recordings 7 to 11
-  come from the oldest side; the arc's "last recording" lands mid-journey.
-  Intended, but worth a look once there are temples.
-- **The bazaar's lantern colour band** is not built (the bible lists it as
-  planned): it needs a source in the market.
-- **The Spheres' unused stillness timer** is still in `spheres.js`.
-- **The Vael feather errand's giver** talks freely in a silent world (Oïa says
-  three words).
-- **Vael II**: the stones "fell up long ago" / "since my mother's day", older
-  than the thirty-year silence the monks blame. (Calix's fallback line "Nobody
-  goes there", about the plain where Ondine lives, is now "Only Ondine lives out
-  there, and nobody goes to see her".)
-- **The City-Shaft's Lodestar** dims "since the night the sky rang", but Nima
-  says it was brighter when she was a girl. Soft.
+- Nothing from the lists above. New ones go here.
 
 ### Planned additions that touch the existing story
 - **Coloured busts** replace the full-length teal holograms (`src/ship/hologram.js`); the stone scene's hologram of "the three of them" over the stone would become busts too.

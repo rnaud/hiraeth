@@ -1,10 +1,13 @@
 // Vael II's story as data: "The Bell Under the Cloud" (docs/story-bible.md).
 //
 // The monastery bell on the rose cliff has not rung since the cloud rose.
-// The monks believe the stones fell *up* when the bell stopped: the floating
-// stones, the sky stones, the island with its church. When the cloud rose,
-// the bell's clapper fell up too, out of the belfry, and the floating island
-// took it. Bring it back, ring the bell, and the cloud settles a little,
+// The sky stones and the floating island have hung over the cloud for longer
+// than anyone remembers ("since my mother's day", Aube says; "long ago"). The
+// monks believe the bell's ringing kept everything else down: thirty years ago,
+// the night the cloud rose, the bell stopped and everything loose fell *up*
+// (tiles, pebbles, a goat, the bell's own clapper, which the floating island
+// took). The night the light went over, the bell hummed by itself and the
+// little things fell up again (Tiv's cairn). Bring it back, ring the bell, and the cloud settles a little,
 // and the floating stones come down a little; nobody can say which caused
 // which. The bell's one note is the keepsake (a *song*): it sounds from the
 // tank when you shoot, in every world, from then on.
@@ -124,7 +127,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~scared~ Careful! Don’t breathe on it. That’s the footing stone; it’s all that’s left of my cairn.', '~surprised~ I built it as high as my head, out here on the great table, for the brothers to see from the cliff. Then the cloud rose, and the stones fell off it. *Up.* They fell up.'],
+          say: ['~scared~ Careful! Don’t breathe on it. That’s the footing stone; it’s all that’s left of my cairn.', '~surprised~ I built it as high as my head, out here on the great table, for the brothers to see from the cliff. Then the night the light went over, the bell hummed, and the stones fell off it. *Up.* They fell up.'],
           choices: [
             { text: '~curious~ Up where?', goto: 'where' },
             { text: '~playful~ Stones don’t fall up.', goto: 'dont' },
@@ -163,11 +166,11 @@ export const LOCALS = [
           ],
         },
         why: {
-          say: ['~solemn~ The brothers on the cliff say: the monastery bell stopped, and the stones fell *up*, and the cloud rose to fill the space they left. *Ring the bell*, they say, and it will all settle.', '~tired~ Nobody has rung it in thirty years. *Brother Calix* will tell you why, if you can get up there. The bird can. I can’t.'],
+          say: ['~solemn~ The brothers on the cliff say the bell kept the world down. It stopped, and everything loose fell *up*, and the cloud rose to fill the space it left. *Ring the bell*, they say, and it will all settle.', '~tired~ Nobody has rung it in thirty years. *Brother Calix* will tell you why, if you can get up there. The bird can. I can’t.'],
           do: { set: { 'arzach2.aube.heard': true } },
           choices: [{ text: '~neutral~ I’ll go up to the monastery.', goto: 'go' }, { text: '~curious~ What are the floating stones?', goto: 'stones' }],
         },
-        stones: { say: ['~curious~ Stones that forgot which way was down. That one over the needles has been drifting since my mother’s day. Some evenings it turns, very slowly, as if it heard something.'], choices: [{ text: '~curious~ Why is the cloud higher?', goto: 'why' }] },
+        stones: { say: ['~curious~ Stones that forgot which way was down, long before the bell stopped, whatever the brothers say. That one over the needles has been drifting since my mother’s day. Some evenings it turns, very slowly, as if it heard something.'], choices: [{ text: '~curious~ Why is the cloud higher?', goto: 'why' }] },
         go: { say: ['~neutral~ *Whistle and the bird will come*. She doesn’t like the cloud; nor do I. The monastery is *the white one, on the rose cliff, west*.'], choices: [{ text: '~happy~ Thank you, Sister.', end: true }] },
         again: { say: ['~playful~ *The white monastery, on the rose cliff, west*. Brother Calix keeps the bell. Or the bell keeps him; it has been thirty years.'], choices: [{ text: '~happy~ Thank you.', end: true }] },
         after: { say: ['~surprised~ Look at it. Look! It has gone down a whole hand since this morning. I can see the stalks of the tables again.', '~solemn~ Ring it again some day, when you pass. The cloud remembers.'], choices: [{ text: '~neutral~ I will.', end: true }] },

@@ -20,7 +20,11 @@ test('its stages come from the save: not given, out in the worlds, home on the m
   assert.equal(chargeState({ flag: flags({ 'prologue.done': true }) }).stage, 'out', 'a save from before the charge has it too');
   const out = chargeState({ flag: flags({ [GIVEN]: true }), keepsakes: K, completed: 2 });
   assert.deepEqual([out.worlds, out.kept, out.names], [2, 2, K.map((k) => k.name)]);
-  assert.equal(chargeState({ flag: flags({ [GIVEN]: true }), completed: ENDING_WORLDS }).stage, 'home');
+  const six = chargeState({ flag: flags({ [GIVEN]: true }), completed: ENDING_WORLDS });
+  assert.equal(six.stage, 'out', 'six worlds: the last recording waits at the console first');
+  assert.ok(six.waiting);
+  assert.match(chargeStep(six), /recording is waiting/);
+  assert.equal(chargeState({ flag: flags({ [GIVEN]: true, 'calls.home': true }), completed: ENDING_WORLDS }).stage, 'home');
   assert.equal(chargeState({ flag: flags({ [GIVEN]: true, 'ending.done': true }), completed: ENDING_WORLDS }).stage, 'done');
   for (const stage of ['out', 'home', 'done']) assert.ok(chargeStep({ stage, kept: 0 }).length > 5);
 });
@@ -46,6 +50,10 @@ test('the journal card: pinned, his words, what you carry', () => {
   for (const k of K) assert.ok(html.includes(k.name.replace('’', '’')), k.name);
   assert.match(chargeJournalHtml(chargeState({ flag: flags({ [GIVEN]: true }) })), /nothing yet/);
   assert.match(chargeJournalHtml(chargeState({ flag: flags({ [GIVEN]: true, 'ending.done': true }), completed: 6 })), /Brought home/);
+  // past six the count goes on (eleven worlds on the route), it doesn't stop at “6 of 6”
+  const eight = chargeJournalHtml(chargeState({ flag: flags({ [GIVEN]: true, 'calls.home': true }), completed: 8 }));
+  assert.ok(eight.includes('8 worlds done') && !eight.includes('of 6'));
+  assert.ok(html.includes('1 of 6 worlds before home'));
 });
 
 test('the title card sounds even without a page (and resolves)', async () => {

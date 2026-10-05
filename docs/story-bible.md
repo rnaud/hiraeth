@@ -65,8 +65,8 @@ wings, its lenses and rings, little charms. Each gift waits in a chest:
 
 **The colours**: the backpack fluid starts two-tone (cyan and violet). Each
 world that has a "source" (desert water, Lorn crystal, the buried machine's
-oil-light; a band from the bazaar's lantern sun is planned, not built) can add a
-colour band. By the end the
+oil-light, the Signal Market's lantern sun: Oyo's last lantern, poured into the
+hose) can add a colour band. By the end the
 tank holds the colours of every world: the tool itself becomes a record of the
 journey.
 
@@ -180,7 +180,8 @@ the settings.
 ### 2. The City-Shaft (incal) — "The Light Nobody Looks At"
 - **Local story**: The Lodestar turns above the palace; the upper city calls it a
   tourist story, the lower levels pray to it. A sweeper on the high terraces
-  says it has been dimming since "the night the sky rang".
+  says it has faded a little every year since she was a girl (nobody looks up),
+  and has been going out since "the night the sky rang".
 - **Quests**: deliver a ration from the lower levels to the palace guard (who
   is from the lower levels himself); find the taxi driver who still stops for
   the poor; carry a message up the shaft.
@@ -197,9 +198,11 @@ the settings.
 - **Clue**: the tower's room has a map of the sky stones → Vael II.
 
 ### 4. Vael II — "The Bell Under the Cloud"
-- **Local story**: The monastery bell has not rung since the cloud rose; the
-  monks believe the stones fell *up* when the bell stopped. Ring it and the
-  cloud will settle.
+- **Local story**: The monastery bell has not rung since the cloud rose,
+  thirty years ago; the monks believe its ringing kept the world down, and
+  that when it stopped everything loose fell *up* (the sky stones themselves
+  are far older: they have hung there since before anyone's mother). Ring it
+  and the cloud will settle.
 - **Quests**: retrieve the clapper from the floating island; carry a monk's
   letter across the aqueduct to the plain; balance the cairn stones.
 - **Keepsake**: *song*: the bell's single note, which plays from the tank
@@ -247,7 +250,7 @@ the settings.
 ### 8. The Garden of Spheres — "What the Spheres Remember"
 - **Local story**: The spheres came down long ago; each "remembers" one
   sound. The round plaza's pole hums when the great sphere is on the horizon.
-- **Quests**: listen at three spheres (stand still nearby); carry a lake
+- **Quests**: listen at three spheres (splash each with the fluid); carry a lake
   reflection (a mirrored pebble) to the plaza; walk the avenue slowly.
 - **Keepsake**: *song*: the chord the three spheres make together.
 - **Clue**: one sphere's sound is the desert's procession drum.
@@ -275,7 +278,8 @@ the settings.
   believes the silent tower was the only one that told the truth.
 - **Quests**: deliver the unsent recording; tune the antenna; restart the
   broadcast. The broadcast, once restarted, is the father's voice, a recording
-  from long ago, sent to someone else's child.
+  from long ago, sent to someone else's child. Oyo's last lantern, relit the
+  night the sky rang, adds the market's colour band to the tank.
 - **Keepsake**: *word*: the broadcast's message.
 - **Clue**: the broadcast was sent from the traveller's home system.
 
