@@ -1066,9 +1066,10 @@ export class FluidTool {
   /** The tank, hose and bracer follow the body; the fluid level eases to the charges left. */
   updateWorn(dt) {
     const p = this.player;
-    const target = this.reserve.level / this.reserve.max;
+    // (fillTo: a scene holds the glass at its own level, the first fill rising slowly: src/story/desert.js)
+    const target = this.fillTo ?? this.reserve.level / this.reserve.max;
     // drains quickly; refills with a rise and a little overshoot
-    const rate = target > this.fill ? 4.2 : 9;
+    const rate = this.fillTo != null ? 12 : target > this.fill ? 4.2 : 9;
     this.fill += (target - this.fill) * (1 - Math.exp(-rate * dt));
     this.flash = Math.max(0, this.flash - dt * 3);
     this.wave = Math.max(0, this.wave - dt * 0.9);
@@ -1204,6 +1205,27 @@ export class FluidTool {
     const tones = this.modeTones;
     for (let i = 0; i < 7; i++) this.drops.add({ pos: from, vel: _a.copy(dir).multiplyScalar(3 + i * 1.2).add(_t1.randomDirection().multiplyScalar(1.1)), drag: 6, grav: 6, size: 0.022, life: 0.35, color: tones[i % tones.length] });
     return { kind: 'glob', glob };
+  }
+
+  /**
+   * A first spark (a scene shows what the tank does): one glob out of the nozzle along `dir`,
+   * slower than a shot and spending nothing, with its spray, its sound and its splash where it
+   * lands. Returns the glob (null without the tank on).
+   */
+  spark(dir, { speed = FLUID.shoot.speed * 0.55 } = {}) {
+    if (!this.owned || !this.tank) return null;
+    const from = this.muzzle(_m).clone(), d = _f.copy(dir).normalize();
+    const glob = new Glob(from, d.clone().multiplyScalar(speed));
+    glob.mesh = this.globMeshes.find((m) => !m.visible) ?? this.globMeshes[0];
+    glob.mesh.visible = true;
+    glob.tone = 0; glob.mode = 'shoot';
+    this.globs.push(glob);
+    this.pulse = 0; this.flash = 1; this.slosh = 1;
+    this.sound?.fluidShoot?.('shoot');
+    const tones = this.modeTones;
+    for (let i = 0; i < 9; i++) this.drops.add({ pos: from, vel: _a.copy(d).multiplyScalar(2.5 + i).add(_t1.randomDirection().multiplyScalar(1)), drag: 6, grav: 6, size: 0.024, life: 0.4, color: tones[i % tones.length] });
+    this.rings.add({ from, dir: d, reach: 0.4, r0: 0.05, r1: 0.35, life: 0.3, color: tones[0], thick: 0.8 });
+    return glob;
   }
 
   /** The push: a cone of fluid shock from the hand. Returns the targets it touched. */

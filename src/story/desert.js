@@ -8,6 +8,7 @@ import { STORY } from '../desert-sites.js';
 import { COOL_FIRE, SMOKE_COOL, Embers } from './flames.js';
 import { setMagic } from './magic-water.js';
 import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, STAGE_MIGRATION, SPARK_STAGES, VILLAGERS, MURMURS, VILLAGER_TALK } from './desert-data.js';
+import { setupDesertMoments } from './desert-moments.js';
 import { items } from '../items.js';
 import { setupHoverbike } from './desert-bike.js';
 import { setupDrum, setupMask } from './desert-errands.js';
@@ -99,7 +100,7 @@ export function migrateDesertQuest(game) {
 }
 
 export function setupDesert(ctx) {
-  const { level, physics, player, crowd, quests, dialogue, game, sound, story, spawn, talkable, scene, toast, tool } = ctx;
+  const { level, physics, player, crowd, quests, dialogue, game, sound, story, spawn, talkable, scene, toast, tool, moments = null } = ctx;
   const Q = level.qanat;
   if (!Q) return null;
   const city = Q.city, camps = Q.camps, cave = Q.cave;
@@ -280,10 +281,14 @@ export function setupDesert(ctx) {
     if (open()) return;
     game.set('desert.channel.open', true);
     st.boneT = 0.001;
-    toast(how === 'push' ? 'The fluid shoves the rib: it rolls off the channel. Water runs.' : how === 'lever' ? 'You lean on the pole with all your weight. The rib tips up off the channel, rolls, and falls clear. Water runs.' : 'You heave. The rib grinds, tips, and rolls off the channel. Water runs.');
+    const said = how === 'push' ? 'The fluid shoves the rib: it rolls off the channel. Water runs.' : how === 'lever' ? 'You lean on the pole with all your weight. The rib tips up off the channel, rolls, and falls clear. Water runs.' : 'You heave. The rib grinds, tips, and rolls off the channel. Water runs.';
     sound.whoosh?.();
     sound.chime();
+    // the first time the water runs, filmed (src/story/desert-moments.js); it says its toast at the end. Else at once.
+    if (!film.flow(said)) toast(said);
   };
+  // the desert's first times, filmed (src/story/desert-moments.js; set up below, once what they show exists)
+  let film = { flow: () => false, fill: () => false };
   // the tool's push clears it (src/targets.js); a shot only rocks it
   const boneTarget = registerTarget({ kind: 'bone', radius: 2.6, position: () => cave.bone.position, enabled: () => !open() && player.pos.distanceTo(cave.origin) < 200,
     onHit: (mode) => {
@@ -431,6 +436,25 @@ export function setupDesert(ctx) {
   }
 
   // wading: the empty tank fills (and takes a colour, the first time); the jar fills
+  /** The pool fills the tank (an empty one for good, a colour band the first time). Returns what changed. */
+  const fillTank = () => {
+    const wasDry = dry();
+    const addColour = !game.flag('desert.pool.tinted') && items.has('backpack');   // (no tank, nothing to tint yet)
+    // the fluid tool listens for this (fluid-tool.js): a full tank (an empty one fills for good), and a new colour band
+    game.emit('tool:refill', { addColour });
+    if (game.flag('tool.empty')) game.set('tool.empty', false);   // (no tool here, e.g. tests: the flag is the tank)
+    if (addColour) game.set('desert.pool.tinted', true);
+    return { wasDry, addColour };
+  };
+  const FILLED = 'The water climbs your hose, and the empty tank fills: cyan, violet, and the coral of the giant’s pool. Now it shoots (aim with R or LT / L2, then G or RT / R2) and pushes (C, or RB / R1).';
+  /** Ama's jar fills at the pool too. */
+  const fillJar = () => {
+    if (!quests.has('jar') || game.flag('desert.jar.filled')) return;
+    quests.take('jar'); quests.give('water');
+    game.set('desert.jar.filled', true);
+    toast(`Ama’s jar fills: ${ITEMS.water}`);
+    sound.chime();
+  };
   let wasIn = false;
   const wade = () => {
     const c = cave.poolCenter;
@@ -440,25 +464,19 @@ export function setupDesert(ctx) {
     const inPool = open() ? wet : inBasin;
     if (inPool && !wasIn) {
       if (!open()) toast('The basin is dry. Damp stains on the stone, a pale line where water stood. Something has stopped it coming.');
+      // the empty tank's first fill, filmed (src/story/desert-moments.js): it fills on a beat and says the rest at its end
+      else if (dry() && film.fill()) { /* (playing) */ }
       else {
-        const wasDry = dry();
-        const addColour = !game.flag('desert.pool.tinted') && items.has('backpack');   // (no tank, nothing to tint yet)
-        // the fluid tool listens for this (fluid-tool.js): a full tank (an empty one fills for good), and a new colour band
-        game.emit('tool:refill', { addColour });
-        if (game.flag('tool.empty')) game.set('tool.empty', false);   // (no tool here, e.g. tests: the flag is the tank)
-        if (addColour) game.set('desert.pool.tinted', true);
-        if (wasDry) toast('The water climbs your hose, and the empty tank fills: cyan, violet, and the coral of the giant’s pool. Now it shoots (aim with R or LT / L2, then G or RT / R2) and pushes (C, or RB / R1).');
+        const { wasDry, addColour } = fillTank();
+        if (wasDry) toast(FILLED);
         else if (addColour) toast('The water climbs your hose. The tank takes its colours.');
-        if (quests.has('jar') && !game.flag('desert.jar.filled')) {
-          quests.take('jar'); quests.give('water');
-          game.set('desert.jar.filled', true);
-          toast(`Ama’s jar fills: ${ITEMS.water}`);
-          sound.chime();
-        }
+        fillJar();
       }
     }
     wasIn = inPool;
   };
+
+  film = setupDesertMoments(ctx, { cave, st, tool, moments, fillTank, fillJar, FILLED });
 
   // ---------------------------------------------------------------- the ship
   const shipPos = () => {
@@ -859,12 +877,12 @@ export function setupDesert(ctx) {
     if (open() && st.level < cave.levels.high) {
       // the stream runs out of the crack as the rib rolls clear, reaches the pool, and the pool fills
       st.flowT += dt;
-      if (st.flowT > 0.5) st.flow = Math.min(1, st.flow + dt / 2.6);
+      if (st.flowT > (st.flowDelay ?? 0.5)) st.flow = Math.min(1, st.flow + dt / 2.6);   // (a moment holds it back for its first panel)
       if (st.flow >= 1) st.level = Math.min(cave.levels.high, st.level + dt * (st.level < cave.levels.dry + 0.12 ? 0.06 : 0.15));
       st.drink = THREE.MathUtils.clamp((st.level - cave.levels.dry) / (cave.levels.high - cave.levels.dry), 0, 1);
       cave.setWater(st.flow, st.level);
     }
-    cave.poolLight.w = 10 + 20 * st.drink;
+    cave.poolLight.w = 10 + 20 * st.drink + (st.glow ?? 0);   // (st.glow: a moment's light cue)
     const inCave = camPos.distanceTo(cave.origin) < 300;
     if (inCave) {
       // the same fluid as the tank: dull and slow while the channel is blocked, alive once the water runs
@@ -910,7 +928,7 @@ export function setupDesert(ctx) {
   };
 
   return {
-    people, update, state: st, villagers, ledge: sh, gatherSpots, hollow, drum, mask, lever, hearth, rise, lighting, setStone, applyLit,
+    people, update, state: st, villagers, ledge: sh, gatherSpots, hollow, drum, mask, lever, hearth, rise, lighting, setStone, applyLit, film,
     /** E on a crowd person: their short conversation (by where they stand). */
     crowdTalk(p) {
       const id = p.spot?.id, zone = id === 'procession' && st.drinking ? 'drinking' : id;
