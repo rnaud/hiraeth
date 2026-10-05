@@ -145,15 +145,20 @@ export const AGE = {
     you: '~whisper~ (I remember that day. I was seven.)',
     log: '~neutral~ Recording logged nineteen years ago.', label: 'LOGGED 19 YEARS AGO',
   },
+  // an old one, made for him at ten, the summer he was sent to his grandfather's (the recordings
+  // are numbered from the first after the prologue: 1..5 here, then the last one at ENDING_WORLDS)
   4: {
-    open: [F('~tired~ Report, then. Your mother says I should say something nice first.'), F('~tired~ …Report.')],
+    open: [
+      F('~tired~ You have been at your grandfather’s a week and we have not had one word. Your mother says I should say something nice first.'),
+      F('~tired~ …Report, then. Like a pilot. Where you went, what you saw. Then come back to the recorder and tell us.'),
+    ],
     close: (f) => [
       S('~neutral~ (The tape is worn here. A few words go under the hiss.)'),
       F('~solemn~ …when you are older, you will understand why I…'),
       F(f.shifted ? '~happy~ Call your mother. Never mind what it costs.' : '~angry~ Keep it short. These spools cost.'),
     ],
     you: '~whisper~ I know what it says. I just want to hear it.',
-    log: '~neutral~ Logged sixteen years ago. The tape is wearing thin on this side.', label: 'LOGGED 16 YEARS AGO',
+    log: '~neutral~ Logged sixteen years ago. You were ten, and away for the summer. The tape is wearing thin on this side.', label: 'LOGGED 16 YEARS AGO',
   },
   5: {
     open: [

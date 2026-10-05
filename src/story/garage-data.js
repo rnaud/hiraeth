@@ -93,7 +93,7 @@ export const PEOPLE = {
           choices: [{ text: '~curious~ What does the board show?', goto: 'board' }, { text: '~happy~ See you, Ambroise.', end: true }],
         },
         board: { say: ['~tired~ The signal, as it goes. Nine lamps. On, off, on. I’ve watched it for eleven years and I could draw it with my eyes shut, and I still couldn’t tell you what it means.'], choices: [{ text: '~neutral~ See you.', end: true }] },
-        after: { say: ['~happy~ The board stopped blinking the signal, and now it just shows that mark. Three dots, a curve. Like a face smiling with its eyes shut. I quite like it.', '~happy~ The round goes on, of course. Out of habit. But now we know we’re doing it on purpose.'], choices: [{ text: '~happy~ On purpose is good.', end: true }] },
+        after: { say: ['~happy~ The board stopped blinking the signal, and now it just shows that mark. Three dots over an arc. Like a doorway with three lamps lit over it. I quite like it.', '~happy~ The round goes on, of course. Out of habit. But now we know we’re doing it on purpose.'], choices: [{ text: '~happy~ On purpose is good.', end: true }] },
       },
     },
   },
@@ -154,9 +154,9 @@ export const PEOPLE = {
           ],
         },
         light: {
-          say: ['~whisper~ The slit sang. The night before you came. I was lying on my back by the turbine, looking up at the stars through it, and a light went across, slow, slow, singing like a glass rubbed with a wet finger.', '~scared~ Then it turned. Lights don’t turn. And in the morning the turbine had stopped, and so had two other machines, Ottla says.'],
+          say: ['~whisper~ The slit sang. The night the light passed. I was lying on my back by the turbine, looking up at the stars through it, and a light went across, slow, slow, singing like a glass rubbed with a wet finger.', '~scared~ Then it turned. Lights don’t turn. And in the morning the turbine had stopped, and so had two other machines, Ottla says.'],
           do: { set: { 'garage.rumour.light': true } },
-          choices: [{ text: '~neutral~ My ship fell that night.', goto: 'ship' }, { text: '~neutral~ (look up at the slit)', end: true }],
+          choices: [{ text: '~neutral~ My ship was struck that night.', goto: 'ship' }, { text: '~neutral~ (look up at the slit)', end: true }],
         },
         ship: { say: ['~curious~ Then the light was looking for something that fell. Or something fell because it looked. The Major would know. The Major would have forgotten.', '~curious~ It left something in the slit’s rim, too. Every compass in the ring still points at the place where it turned, and so does your ship’s scar. I checked.'], choices: [{ text: '~neutral~ (look up at the slit)', end: true }] },
         unstamped: { say: ['~surprised~ That’s the signal! But it isn’t stamped. It has to go through *the relay in the upside-down* first, or the light won’t come through it right. Don’t ask me why. Habit.'], choices: [{ text: '~tired~ Back to the upside-down, then.', end: true }] },
@@ -287,7 +287,7 @@ export const THINGS = {
         read: {
           say: ['~solemn~ A desk at the very edge of the slab, upside down to the whole universe and the right way up to you. The lamp on it is still lit. A chair, pushed back as if someone had just stood up. One sheet of paper, held down by a cog.',
             '~solemn~ In a careful hand: *I built it to see what I would do with it. I still don’t know. That is the point.*',
-            '~surprised~ On the back, in a hurried hand, sums: nine ticks, a row of numbers, a sketch of a great wheel half under sand with one tooth marked, and: *turns one tooth a year — go and see it turn.*'],
+            '~surprised~ On the back, in a hurried hand, sums: nine ticks, a row of numbers, a sketch of a great wheel half under sand with one tooth marked, and: *turns one tooth a year — go and see it turn.* Under it, in another pencil, later: *went. saw. came back.*'],
           do: [{ set: { 'garage.note.read': true, 'clue.garage.buried': true } },
             { keepsake: { id: 'garage.knowing', level: 'garage', name: 'The Major’s note', kind: 'knowing', text: '“I built it to see what I would do with it. I still don’t know. That is the point.”' } }],
           choices: [{ text: '~solemn~ (fold it, and keep it)', end: true }],
@@ -299,7 +299,7 @@ export const THINGS = {
 };
 
 /** The glyph on the signal board's nine lamps: three dots over an arc. */
-export const BOARD_GLYPH = [1, 1, 1, 1, 0, 1, 0, 1, 0];
+export const BOARD_GLYPH = [1, 1, 1, 0, 1, 0, 1, 0, 1];   // (the arc bows up, ∩: its top in the middle row, its feet below)
 /** The signal itself, as the board blinks it: nine lamps per beat, a loop of beats. */
 export const SIGNAL = [
   [1, 0, 1, 0, 1, 0, 1, 0, 1], [0, 1, 0, 1, 0, 1, 0, 1, 0], [1, 1, 0, 0, 1, 0, 0, 1, 1], [0, 0, 1, 1, 0, 1, 1, 0, 0],

@@ -4,7 +4,8 @@
 // them in, gave them tea and a great deal of advice about not digging, and
 // let the garden take the ship: they believe nothing that falls should be dug
 // up again. Odile and Talo left one spring in their little saucer, "toward the
-// deep wood where the lamps are kept" (Lorn II, where the saucer lies).
+// deep wood on the far side of the swamp of lights", the way the light went
+// (Lorn II, where the saucer lies: it struck them again there).
 //
 // The reveal, kept quiet and in the traveller's own hands: the ship's last
 // log (a singing light paced them, turned, and struck), Talo's request ("look
@@ -115,7 +116,7 @@ export const PEOPLE = {
           do: { set: { 'clue.edena.struck': true } },
           choices: [{ text: '~curious~ Where did they go to ask?', goto: 'where' }, { text: '~curious~ What does it want?', goto: 'want' }],
         },
-        where: { say: ['~sad~ Toward *the deep wood where the lamps are kept*, Talo said. Where the pools are lit for travellers who never come. I’ve never been. Nobody here has.'], do: { set: { 'clue.edena.pod': true } }, choices: [{ text: '~curious~ What does it want?', goto: 'want' }] },
+        where: { say: ['~sad~ Toward *the deep wood on the far side of the swamp of lights*, Talo said. The way it went when it turned, he said; he worked it out from the stars, up on the tall tree. I’ve never been. Nobody here has.'], do: { set: { 'clue.edena.pod': true } }, choices: [{ text: '~curious~ What does it want?', goto: 'want' }] },
         want: {
           say: ['~solemn~ I don’t know. Nobody here does. I don’t think the light is ours to know.', '~solemn~ But I know what we do with the things that fall on us. We tend the garden. The garden tends us.'],
           do: [{ advance: [Q, 'tell'] }, { keepsake: KEEPSAKE }, { set: { 'clue.edena.pod': true } }],
@@ -144,7 +145,7 @@ export const PEOPLE = {
         back: { say: ['~happy~ Of course. They said they’d be back for the tea, and nobody says that about tea unless they mean it. It’s been a long time, I grant you. Tea keeps.'], choices: [{ text: '~curious~ Have you seen anything strange lately?', goto: 'strange' }, { text: '~neutral~ Goodbye, Sol.', end: true }] },
         believe: { say: ['~playful~ That nothing that falls should be dug up again. Leaves, seeds, ships, old men. You let it lie and the garden makes something of it. Vey believes it hardest. I believe it on Tuesdays.'], choices: [{ text: '~curious~ Have you seen anything strange lately?', goto: 'strange' }] },
         strange: {
-          say: ['~whisper~ Three nights ago, a light went over, very high. Singing. A long note, like a finger round a glass. And every flower in the meadow turned to follow it, all at once, in the dark.', '~playful~ Talo had a name for a light like that. The Singer. He said it the way you’d say the name of someone who owes you money.'],
+          say: ['~whisper~ The night the light passed. It went over very high, singing. A long note, like a finger round a glass. And every flower in the meadow turned to follow it, all at once, in the dark.', '~playful~ Talo had a name for a light like that. The Singer. He said it the way you’d say the name of someone who owes you money.'],
           do: { set: { 'edena.rumour.light': true } },
           choices: [{ text: '~neutral~ It struck my ship.', goto: 'struck' }, { text: '~neutral~ Goodbye, Sol.', end: true }],
         },
@@ -180,7 +181,7 @@ export const PEOPLE = {
           choices: [{ text: '~happy~ I’ll look for it.', do: { start: 'edena.seed' }, goto: 'thanks' }, { text: '~neutral~ Maybe later.', end: true }],
         },
         androids: {
-          say: ['~neutral~ The white builders. They made the ruins and the pedestals and the perfect spheres, and then they stopped. Nobody knows why. They found the pyramids already here and copied them, badly, with straight lines.', '~solemn~ They carved one mark on every ruin. {glyph} Three dots over an arc. We call it the Builders’ mark. They left nothing else written. Just that, everywhere, like a signature. Or an apology.', '~whisper~ Nothing else but the gifts: *blue chests with a pale star*, *up in the canopies* where only a climber goes. Builders’ gifts, we call them. The garden grows round them and never over.'],
+          say: ['~neutral~ The white builders. They made the ruins and the pedestals, and then they stopped. Nobody knows why. They found the pyramids already here and copied them, badly, with straight lines. The great spheres in the meadow were here before them too: those came down out of the sky, the old gardeners said, and the builders laid their garden out round them.', '~solemn~ They carved one mark on every ruin. {glyph} Three dots over an arc. We call it the Builders’ mark, though I think they copied it too: it is under every one of the spheres. They left nothing else written. Just that, everywhere, like a signature. Or an apology.', '~whisper~ Nothing else but the gifts: *blue chests with a pale star*, *up in the canopies* where only a climber goes. Builders’ gifts, we call them. The garden grows round them and never over.'],
           choices: [{ text: '~curious~ Pyramids grow from seeds, you said?', goto: 'seeds' }],
         },
         thanks: { say: ['~happy~ You will? *It glows a little when someone is near*; seeds like company. Bring it back and we’ll plant it together.'], choices: [{ text: '~happy~ Back soon.', end: true }] },
@@ -222,11 +223,11 @@ export const PEOPLE = {
         tell: {
           say: ['~surprised~ You went up! You went UP! What was there?'],
           choices: [
-            { text: '~neutral~ A bench, and a note from Talo. He watched the sky from up there.', do: { advance: ['edena.tree', 'tell'] }, goto: 'atan' },
+            { text: '~neutral~ A bench, and a note from Talo. He watched the sky from up there.', do: { advance: ['edena.tree', 'tell'] }, goto: 'bench' },
             { text: '~neutral~ The whole garden, and the furrow the ship cut across it.', do: { advance: ['edena.tree', 'tell'] }, goto: 'view' },
           ],
         },
-        atan: { say: ['~surprised~ A bench! He took a BENCH up there? Talo was the best climber in the world and nobody told me. I’m going to practise jumping until I can sit on it.'], choices: [{ text: '~happy~ You will.', end: true }] },
+        bench: { say: ['~surprised~ A bench! He took a BENCH up there? Talo was the best climber in the world and nobody told me. I’m going to practise jumping until I can sit on it.'], choices: [{ text: '~happy~ You will.', end: true }] },
         view: { say: ['~curious~ The furrow! You can see it from up there? Like a long green stitch. That’s what Sol says. He says it’s the garden sewing up the cut.'], choices: [{ text: '~neutral~ It does look like that.', end: true }] },
         after: { say: ['~playful~ I jumped this high today. Well. This high. Still practising.'], choices: [{ text: '~happy~ Keep going.', end: true }] },
       },
@@ -276,11 +277,11 @@ export const THINGS = {
   log: {
     id: 'log', name: 'The ship’s log', title: 'at the cockpit panel', color: '#34405e', voice: 0.75,
     talk: { nodes: {
-      stel: {
+      odile: {
         say: ['~tired~ The panel wakes when you touch it, slowly, as if from a long sleep. A woman’s voice, tired and amused: *Odile’s log. Day ninety-one of the crossing.*', '~curious~ *Talo says the hull is ringing. There’s a light pacing us off the port bow, and it’s… singing. I can hear it through the walls. It’s beautiful, actually. Talo doesn’t think so.*', '~scared~ *It’s turning. It’s coming about toward us. Talo, are you…* The recording stops.'],
-        next: 'atan',
+        next: 'talo',
       },
-      atan: {
+      talo: {
         say: ['~happy~ A second entry, later. A man’s voice, with birds behind it: *Talo. We’re down, both of us, alive. The people here are gardeners. They’ve given us tea and a great deal of advice about not digging.*', '~curious~ *Odile wants to mend the ship. I want to understand what hit us. It left a mark on the hull where it struck. I’ve seen that mark before, on the white ruins in the meadow.*', '~solemn~ *We’re taking the little saucer. If it comes back, we’d rather meet it than wait for it. Whoever finds this: look under the flowers on the flank. Look, and then let it be.*'],
         do: { set: { 'edena.log.read': true } },
         choices: [{ text: '~whisper~ (let the panel sleep)', end: true }],

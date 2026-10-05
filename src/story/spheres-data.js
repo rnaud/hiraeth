@@ -155,11 +155,11 @@ export const PEOPLE = {
           ],
         },
         under: {
-          say: ['~whisper~ Where they touch the ground. I crawled under the pearl by the lake once, flat on my back. There’s a mark there, pressed into it, like where a foot came down. {glyph}', '~playful~ Three dots over an arc. We call it the Footprint. Every sphere has one, underneath, where nobody looks. Except me.', '~playful~ Sometimes there’s *a blue box near a Footprint*, with a star on the lid. A left-behind. Ume says they’re presents. Ume says everything is a present.'],
+          say: ['~whisper~ Where they touch the ground. I crawled under the pearl by the lake once, flat on my back. There’s a mark there, pressed into it, like where a foot came down. {glyph}', '~playful~ Three dots over an arc. We call it the Footprint. Every sphere has one, underneath, where nobody looks. Except me.', '~playful~ There’s a blue box with a star on the lid, too, *up on the grove’s umbrella tree*, with Footprints all round its sides. A left-behind. Ume says they’re presents. Ume says everything is a present.'],
           choices: [{ text: '~curious~ Whose footprint?', goto: 'whose' }],
         },
         whose: { say: ['~curious~ Something that walked through the sky putting spheres down, I suppose, the way you’d put down cups. Some say the great one on the horizon, and that one day it will come back and collect them.'], choices: [{ text: '~curious~ Seen anything strange lately?', goto: 'strange' }, { text: '~happy~ Thanks, Ivo.', end: true }] },
-        strange: { say: ['~playful~ *Ask Ume, at the plaza*. She says the pole hummed on its own three nights ago, with the great sphere dark. She doesn’t say things like that. I say things like that.'], choices: [{ text: '~happy~ Thanks, Ivo.', end: true }] },
+        strange: { say: ['~playful~ *Ask Ume, at the plaza*. She says the pole hummed on its own the night the light passed, with the great sphere dark. She doesn’t say things like that. I say things like that.'], choices: [{ text: '~happy~ Thanks, Ivo.', end: true }] },
       },
     },
   },
@@ -224,7 +224,7 @@ export const PEOPLE = {
         },
         why: { say: ['~neutral~ Because the great sphere is there, the way a bowl hums when you set another bowl beside it. When the great sphere sets, it stops. Mostly.'], choices: [{ text: '~curious~ Mostly?', goto: 'strange' }] },
         strange: {
-          say: ['~whisper~ Three nights ago it hummed with the great sphere set and dark. I came out to see why. A light was going over, very high, singing: singing the pole’s own note, exactly. The old listeners had a name for such a thing: an Answerer.', '~scared~ It turned. Right over the plaza, it turned, as if the pole had answered it and it wanted to know who. Then it went on. I haven’t slept well since.'],
+          say: ['~whisper~ The night the light passed, it hummed with the great sphere set and dark. I came out to see why. A light was going over, very high, singing: singing the pole’s own note, exactly. The old listeners had a name for such a thing: an Answerer.', '~scared~ It turned. Right over the plaza, it turned, as if the pole had answered it and it wanted to know who. Then it went on. I haven’t slept well since.'],
           do: { set: { 'spheres.rumour.light': true } },
           choices: [{ text: '~neutral~ It struck my ship.', goto: 'struck' }, { text: '~neutral~ I’ll bring the pole three sounds.', end: true }],
         },
