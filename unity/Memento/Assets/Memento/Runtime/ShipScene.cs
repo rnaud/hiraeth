@@ -18,7 +18,7 @@ namespace Memento
     /// entry hall out again; at the cockpit console the galactic map (locked until the ship has power).
     /// The cinema (Composite.shader): fades, eyelids, the letterbox, the alarm's red; subtitles over it.
     /// </summary>
-    public class ShipScene : MonoBehaviour
+    public partial class ShipScene : MonoBehaviour
     {
         Game game;
         Dictionary<string, object> data, story;
@@ -39,7 +39,7 @@ namespace Memento
         public void SkipNow() { if (PrologueActive) Finish(true); }
         public string Stage => stage >= 0 && stage < stages.Count ? stages[stage].S("id") : null;
         /// <summary>The prologue's stages you play yourself: the walk to the cockpit, stepping out.</summary>
-        public bool PlayerFree => PrologueActive && (Stage == "walk" || Stage == "stepout");
+        public bool PlayerFree => (PrologueActive && (Stage == "walk" || Stage == "stepout")) || FlightStage == "walkout";
         public bool PrologueActive => stage >= 0 && stage < (stages?.Count ?? 0);
         public bool insideSpace;
         readonly HashSet<string> once = new();
@@ -441,6 +441,7 @@ namespace Memento
         void Update()
         {
             float dt = Time.deltaTime;
+            if (Flying) { UpdateFlight(dt); return; }
             if (PrologueActive)
             {
                 skipHeld = Pad.BackHeld() ? skipHeld + dt : 0;

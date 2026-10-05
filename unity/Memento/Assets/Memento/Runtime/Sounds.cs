@@ -47,6 +47,15 @@ namespace Memento
         }
 
         public int ClipCount => clips.Count;
+        /// <summary>The tongue the people of this world speak (voice.js languageOf), for their voices.</summary>
+        public string language = "desert";
+        /// <summary>A new world: its score (music_&lt;id&gt;, recorded by record-sounds.mjs; the desert's if it has none) and its people's tongue.</summary>
+        public void World(string id)
+        {
+            language = Voice.HasLanguage(id) ? id : "desert";
+            var key = clips.ContainsKey("music_" + id) ? "music_" + id : "music_desert";
+            if (clips.TryGetValue(key, out var m) && music && music.clip != m) { music.clip = m; music.volume = musicVol; music.Play(); }
+        }
 
         /// <summary>The settings' volumes (music, effects, voices) and mute.</summary>
         public void SetVolumes(float m, float f, float v, bool mute)
@@ -79,7 +88,7 @@ namespace Memento
             float k = 1;
             if (at.HasValue) k = Mathf.Max(0, 1 - Vector3.Distance(transform.position, at.Value) / range);
             if (k <= 0.05f) return null;
-            var (clip, plan) = Voice.Line(text, tone, v, "desert", max);
+            var (clip, plan) = Voice.Line(text, tone, v, language, max);
             voice.PlayOneShot(clip, k * k * voiceVol * 1.25f); played++;
             return plan;
         }

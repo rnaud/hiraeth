@@ -25,7 +25,7 @@ namespace Memento
         {
             var d = new Dictionary<string, object>
             {
-                ["version"] = 1.0, ["world"] = "desert", ["saved"] = System.DateTime.UtcNow.ToString("o"),
+                ["version"] = 1.0, ["world"] = g.Level, ["saved"] = System.DateTime.UtcNow.ToString("o"),
                 ["flags"] = Flags(g.state), ["keepsakes"] = g.state.keepsakes,
             };
             if (g.player) { var p = g.player.transform.position; d["player"] = new List<object> { (double)p.x, (double)p.y, (double)p.z, (double)g.player.heading }; }

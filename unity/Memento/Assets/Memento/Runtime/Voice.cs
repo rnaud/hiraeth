@@ -63,7 +63,32 @@ namespace Memento
             // the ship's own voice: a small chirping computer (ring-modulated, its pitch on a whole-tone grid)
             ["ship"] = new Language { wave = "square", pitch = 1.5f, rate = 1.3f, len = 0.55f, gain = 0.55f, breath = 0, clip = 0.9f, glide = 0, formant = 1.2f, density = 0.7f, mech = true, cons = new[] { "t", "p", "d", "" }, vowels = new[] { "i", "e" } },
             ["desert"] = new Language { wave = "triangle", pitch = 0.86f, rate = 0.9f, len = 1.15f, gain = 0.95f, breath = 0.42f, clip = 0, glide = -0.9f, formant = 0.88f, density = 0.8f, cons = new[] { "h", "kh", "s", "r", "n", "m", "d", "q", "" }, vowels = new[] { "a", "a", "o", "u", "i" } },
+            // the other worlds' tongues (voice.js LANGUAGES)
+            // Shaft cant
+            ["incal"] = new Language { wave = "square", pitch = 1.08f, rate = 1.38f, len = 0.58f, gain = 0.85f, breath = 0.04f, clip = 1.0f, glide = 0.5f, formant = 1.08f, density = 0.95f, cons = new[] { "k", "t", "p", "ts", "ch", "tk", "n" }, vowels = new[] { "i", "e", "a", "i" } },
+            // Vael hush
+            ["arzach"] = new Language { wave = "sine", pitch = 0.9f, rate = 0.62f, len = 1.5f, gain = 0.32f, breath = 0.85f, clip = 0.0f, glide = -0.5f, formant = 0.9f, density = 0.35f, cons = new[] { "h", "sh", "f", "" }, vowels = new[] { "o", "u", "a" } },
+            // cloud-monk chant
+            ["arzach2"] = new Language { wave = "sine", pitch = 0.8f, rate = 0.7f, len = 1.45f, gain = 0.8f, breath = 0.25f, clip = 0.0f, glide = 0.0f, formant = 0.85f, density = 0.6f, ring = 0.25f, cons = new[] { "m", "n", "ng", "h", "l", "" }, vowels = new[] { "o", "u", "a", "o" } },
+            // Hangar clatter
+            ["garage"] = new Language { wave = "square", pitch = 1.0f, rate = 1.15f, len = 0.75f, gain = 0.8f, breath = 0.0f, clip = 0.7f, glide = 0.0f, formant = 1.0f, density = 0.9f, mech = true, cons = new[] { "t", "k", "d", "g", "z", "tk", "b" }, vowels = new[] { "e", "i", "o", "a" } },
+            // Deep-wheel tongue
+            ["buried"] = new Language { wave = "sawtooth", pitch = 0.82f, rate = 0.85f, len = 1.0f, gain = 0.8f, breath = 0.15f, clip = 0.4f, glide = -0.6f, formant = 0.82f, density = 0.8f, cons = new[] { "g", "d", "r", "b", "m", "k" }, vowels = new[] { "o", "u", "a", "oe" } },
+            // Edenic
+            ["edena"] = new Language { wave = "sine", pitch = 1.1f, rate = 1.02f, len = 0.95f, gain = 0.95f, breath = 0.08f, clip = 0.1f, glide = 2.2f, formant = 1.1f, density = 0.85f, cons = new[] { "l", "w", "y", "f", "m", "n", "" }, vowels = new[] { "i", "e", "a", "ae", "u" } },
+            // Sphere-song
+            ["spheres"] = new Language { wave = "sine", pitch = 1.16f, rate = 0.88f, len = 1.25f, gain = 0.85f, breath = 0.05f, clip = 0.0f, glide = 0.4f, formant = 1.12f, density = 0.75f, ring = 0.6f, cons = new[] { "l", "n", "m", "y", "" }, vowels = new[] { "i", "e", "y", "a" } },
+            // Lorn burble
+            ["perdide"] = new Language { wave = "sine", pitch = 0.96f, rate = 0.92f, len = 1.1f, gain = 0.95f, breath = 0.1f, clip = 0.0f, glide = -3.2f, formant = 0.8f, density = 0.85f, cons = new[] { "bl", "gl", "w", "l", "b", "m", "p" }, vowels = new[] { "u", "o", "oe", "a" } },
+            // lamp-keeper burble
+            ["perdide2"] = new Language { wave = "triangle", pitch = 0.9f, rate = 0.82f, len = 1.2f, gain = 0.9f, breath = 0.12f, clip = 0.0f, glide = -2.2f, formant = 0.82f, density = 0.8f, cons = new[] { "gl", "l", "w", "m", "n", "b" }, vowels = new[] { "o", "u", "a" } },
+            // Market patter
+            ["bazaar"] = new Language { wave = "sawtooth", pitch = 1.04f, rate = 1.22f, len = 0.75f, gain = 1.1f, breath = 0.06f, clip = 0.5f, glide = 0.8f, formant = 1.04f, density = 0.9f, cons = new[] { "b", "d", "z", "r", "sh", "p", "y", "n" }, vowels = new[] { "a", "e", "o", "i", "ae" } },
+            // pen-and-paper
+            ["atelier"] = new Language { wave = "triangle", pitch = 1.0f, rate = 0.95f, len = 0.9f, gain = 0.8f, breath = 0.3f, clip = 0.2f, glide = 0.3f, formant = 1.0f, density = 0.75f, cons = new[] { "s", "f", "sh", "l", "t" }, vowels = new[] { "e", "i", "a" } },
         };
+
+        public static bool HasLanguage(string id) => id != null && Languages.ContainsKey(id);
 
         /// <summary>voice.js hash01: FNV-1a over the code points, 0..1.</summary>
         public static float Hash01(string s)

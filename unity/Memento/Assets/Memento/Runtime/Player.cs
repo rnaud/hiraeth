@@ -20,6 +20,8 @@ namespace Memento
         public float heading;            // Unity yaw (deg)
         public bool onGround, climbing, mantling, down, dead, riding, frozen, thrusting;
         public float health = 1f, stamina = Stamina;
+        /// <summary>Below this you are put back where you last stood safely (level.killY: the shaft's acid lake; the desert's -200).</summary>
+        public float killY = -200;
         float hurtT = 99, downT, mantleT, coyote, climbCooldown;
         Vector3 wallN, mantleFrom, mantleTo, lastSafe;
         public Transform model;          // the traveller, dressed (Figures.cs)
@@ -94,7 +96,12 @@ namespace Memento
             if (mantling) { UpdateMantle(dt); return; }
             if (climbing) { UpdateClimb(dt, mv, run); return; }
 
-            float speed = (run ? Run : Walk) * Mathf.Lerp(0.35f, 1, Mathf.Clamp01(mv.magnitude));
+            // in the water (swim.js): wading slows the walk; past chest-deep you float and swim
+            float? surf = waterAt?.Invoke(transform.position);
+            if (surf.HasValue && UpdateSwim(dt, surf.Value, wish, mv, run)) return;
+            swimming = false;
+            float wade = surf.HasValue ? Mathf.Lerp(1, SwimWadeSlow, Mathf.InverseLerp(SwimWade, SwimFloat, surf.Value - transform.position.y)) : 1;
+            float speed = (run ? Run : Walk) * wade * Mathf.Lerp(0.35f, 1, Mathf.Clamp01(mv.magnitude));
             Vector3 targetV = wish.sqrMagnitude > 0.001f ? wish.normalized * speed * Mathf.Clamp01(mv.magnitude / 0.9f + 0.1f) : Vector3.zero;
             float accel = onGround ? 14f : 3f;
             vel.x = Mathf.MoveTowards(vel.x, targetV.x, accel * speed * dt);
@@ -156,11 +163,49 @@ namespace Memento
                 climbing = true; wallN = wn; vel = Vector3.zero; stamina = Stamina;
                 heading = Mathf.Atan2(-wn.x, -wn.z) * Mathf.Rad2Deg;
             }
-            if (transform.position.y < -200) Respawn();
+            if (transform.position.y < killY) Respawn();
             Animate(dt, SpeedXZ);
         }
 
         bool Grounded() => Physics.SphereCast(transform.position + Vector3.up * 0.5f, 0.35f, Vector3.down, out _, 0.25f);
+
+        // ------------------------------------------------------------ swimming (swim.js, simplified: on the surface)
+        public const float SwimWade = 0.25f, SwimWadeSlow = 0.5f, SwimFloat = 1.3f, SwimStand = 1.1f, SwimRide = 1.28f, SwimSpeed = 2.5f, SwimSprint = 4.6f, SwimAccel = 2.6f, SwimHop = 7.5f;
+        /// <summary>The water's surface over a point (Waters.cs), or null: dry.</summary>
+        public System.Func<Vector3, float?> waterAt;
+        public bool swimming;
+        public System.Action<string> onSwim;
+        bool UpdateSwim(float dt, float surface, Vector3 wish, Vector2 mv, bool run)
+        {
+            var p = transform.position;
+            float over = surface - p.y;
+            if (!swimming)
+            {
+                // walked in past the chest, or fell in
+                bool deep = over >= SwimFloat && (!onGround || !Physics.Raycast(p + Vector3.up * 0.3f, Vector3.down, 0.6f));
+                if (!(over >= SwimFloat && (deep || onGround)) && !(vel.y < 0 && !onGround && over >= 0.35f && !Physics.Raycast(p, Vector3.down, SwimFloat))) return false;
+                swimming = true; onSwim?.Invoke("enter"); Sounds.Instance?.Play("splash", 0.6f);
+            }
+            // where the bed comes up close under the surface, you stand again
+            if (Physics.Raycast(p + Vector3.up * 0.3f, Vector3.down, out var bed, 3f) && surface - bed.point.y < SwimStand) { swimming = false; onSwim?.Invoke("exit"); return false; }
+            float sp = run ? SwimSprint : SwimSpeed;
+            var target = wish.sqrMagnitude > 0.001f ? wish.normalized * sp * Mathf.Clamp01(mv.magnitude / 0.9f + 0.1f) : Vector3.zero;
+            float k = 1 - Mathf.Exp(-SwimAccel * dt);
+            vel.x += (target.x - vel.x) * k; vel.z += (target.z - vel.z) * k;
+            vel.y = (surface - SwimRide - p.y) * 3.5f + Mathf.Sin(Time.time * 2.1f) * 0.08f;
+            if (wish.sqrMagnitude > 0.01f) heading = Mathf.MoveTowardsAngle(heading, Mathf.Atan2(wish.x, wish.z) * Mathf.Rad2Deg, 300 * dt);
+            // Space at the surface: a kick up (onto a low ledge, out of the water)
+            if (Pad.JumpDown()) { vel.y = SwimHop; swimming = false; onSwim?.Invoke("hop"); cc.Move(vel * dt); return true; }
+            var flags = cc.Move(vel * dt);
+            onGround = false;
+            transform.rotation = Quaternion.Euler(0, heading, 0);
+            // a ledge at the surface: pushing into it pulls you out (the mantle)
+            if (mv.y > 0.5f && WallAhead(out var wn)) { swimming = false; climbing = true; wallN = wn; vel = Vector3.zero; stamina = Stamina; heading = Mathf.Atan2(-wn.x, -wn.z) * Mathf.Rad2Deg; }
+            lastSafeWater = p;
+            Animate(dt, SpeedXZ * 0.6f);
+            return true;
+        }
+        Vector3 lastSafeWater;
 
         bool WallAhead(out Vector3 n)
         {

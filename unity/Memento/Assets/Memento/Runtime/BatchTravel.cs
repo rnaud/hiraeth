@@ -1,0 +1,203 @@
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using UnityEngine;
+
+namespace Memento
+{
+    /// <summary>
+    /// The play-through's travels (Batch.Play -worlds incal,arzach): from the world it is in, aboard the
+    /// ship, the console, the map's "Travel to …?" for each world in turn (as A / × does), the takeoff,
+    /// the jump, the loading page, the approach from space, the fall, the landing and the walk out; then
+    /// in each world its opening quest step (the main quest's first stage) played as a player would:
+    /// to the person it names, talking with the choices that lead on (found through the conversation's
+    /// own nodes), the quest checked to have moved on. Frames at every step.
+    /// </summary>
+    public partial class BatchDriver
+    {
+        public static List<string> worlds = new() { "incal", "arzach" };
+        public static string startIn;
+        readonly Dictionary<string, bool> opened = new();
+        public bool TravelsOk => worlds.All(w => opened.TryGetValue(w, out var ok) && ok);
+
+        /// <summary>A tour of fixed viewpoints in play (-tour views.json: views-worlds.mjs, web coordinates, each with its world):
+        /// the world switched in (no cinematics), its people and crowd about, the camera pinned at each eye.</summary>
+        public static string tour;
+        IEnumerator Tour()
+        {
+            var views = Json.Parse(File.ReadAllText(tour)) as List<object>;
+            string cur = null;
+            foreach (var v in views)
+            {
+                var w = v.S("world") ?? "desert";
+                if (!Game.CanTravelTo(w)) continue;
+                if (w != cur)
+                {
+                    if (game.Level != w) { game.SwitchWorldNow(w); game.ship?.ArrivedQuietly(); }
+                    cur = w;
+                    yield return Wait(1.5f);
+                    Log($"tour: {w}, {game.npcs.Count} people, crowd {game.crowd?.persons?.Count ?? 0} ({game.crowd?.Promoted ?? 0} with bodies)");
+                }
+                var eye = MementoLook.Three(v.V3("eye")); var target = MementoLook.Three(v.V3("target"));
+                // the traveller out of the frame, near the eye (the lights and the crowd's bodies follow him)
+                game.player.Teleport(eye + Vector3.down * 1.0f, 0);
+                game.player.frozen = true;
+                if (game.player.figure) game.player.figure.SetVisible(false);
+                game.rig.enabled = false; game.hud.hidden = true;
+                game.cam.transform.position = eye; game.cam.transform.rotation = Quaternion.LookRotation(target - eye, Vector3.up);
+                game.cam.fieldOfView = v.F("fov", 55);
+                for (int i = 0; i < 40; i++) { game.cam.transform.position = eye; game.cam.transform.rotation = Quaternion.LookRotation(target - eye, Vector3.up); yield return null; }
+                yield return Shoot(v.S("name"));
+            }
+            if (game.player.figure) game.player.figure.SetVisible(true);
+            game.rig.enabled = true; game.hud.hidden = false; game.player.frozen = false; game.cam.fieldOfView = 55;
+        }
+
+        IEnumerator Travels()
+        {
+            foreach (var to in worlds)
+            {
+                if (!Game.CanTravelTo(to)) { Log($"travel: {to} not exported"); opened[to] = false; continue; }
+                string from = game.Level;
+                // aboard, at the console, the map: the world chosen and the question answered
+                Interact.All.FirstOrDefault(i => i.id == "ship.board")?.use(); yield return Wait(0.8f);
+                Interact.All.FirstOrDefault(i => i.id == "ship.console")?.use(); yield return Wait(1.0f);
+                var dests = Route.Destinations(game.ship.Story.L("order").ConvertAll(x => x as string), game.state, game.Level);
+                Log($"map in {from}: open {game.hud.map.open}, can fly to [{string.Join(", ", dests)}]");
+                yield return Shoot($"map_from_{from}");
+                if (!dests.Contains(to)) { Log($"travel: {to} is not on the route from {from} yet (route.js): charted for the batch"); game.state.Set($"seen.{to}", true); }
+                bool chosen = game.hud.map.Choose(to);
+                Log($"travel: {from} -> {to}, chosen {chosen}");
+                if (!chosen) { opened[to] = false; game.hud.map.Toggle(false); continue; }
+                // the takeoff, the jump
+                float w = 0;
+                while (game.ship && game.ship.FlightStage != "liftoff" && w < 6) { w += Time.deltaTime; yield return null; }
+                yield return Wait(1.6f); yield return Shoot($"takeoff_{from}");
+                w = 0; while (game.ship && game.ship.warpTitle == null && w < 6) { w += Time.deltaTime; yield return null; }
+                yield return Wait(0.5f); yield return Shoot($"warp_to_{to}");
+                // the new world, built
+                w = 0; while ((game.Level != to || game.Switching) && w < 90) { w += Time.unscaledDeltaTime; yield return null; }
+                Log($"travel: in {game.Level} after {w:0.0} s, {game.npcs.Count} people, {Interact.All.Count} things to use, quest {game.quests.Tracked()}");
+                // the arrival
+                IEnumerator UntilFlight(string stage, float after, float limit = 20)
+                {
+                    float u = 0; while (game.ship && game.ship.Flying && game.ship.FlightStage != stage && u < limit) { u += Time.deltaTime; yield return null; }
+                    yield return Wait(after);
+                }
+                yield return UntilFlight("space", 1.6f); yield return Shoot($"approach_{to}");
+                yield return UntilFlight("entry", 1.2f); yield return Shoot($"entry_{to}");
+                yield return UntilFlight("sky", 0.8f); yield return Shoot($"falling_to_{to}");
+                yield return UntilFlight("landing", 2.6f); yield return Shoot($"landing_{to}");
+                yield return UntilFlight("walkout", 1.0f); yield return Shoot($"walking_out_{to}");
+                w = 0; while (game.ship && game.ship.Flying && w < 20) { w += Time.deltaTime; yield return null; }
+                yield return Wait(1.0f);
+                Log($"arrived: {game.Level}, at {game.player.transform.position}, ramp {game.world.Places.V3("shipRamp")}, flying {game.ship.Flying}");
+                yield return Shoot($"arrived_{to}");
+                yield return Opening(to);
+            }
+        }
+
+        /// <summary>The world's opening quest step: its main quest's first stage, done as a player would.</summary>
+        IEnumerator Opening(string world)
+        {
+            var ws = game.worldStory;
+            var q = ws ? ws.MainQuest : null;
+            if (q == null) { Log($"{world}: no main quest"); opened[world] = false; yield break; }
+            var st = game.quests.Current(q);
+            string stage0 = game.quests.Stage(q);
+            Log($"{world}: quest {q} at '{stage0}': {Text.Plain(st?.S("text"))}");
+            yield return Wait(0.5f);
+            string who = st?.S("talk") ?? st?.S("at");
+            var npc = who != null ? ws.Person(who) : null;
+            if (!npc)
+            {
+                // (a stage that points at a place: go there)
+                var p = st != null ? game.quests.Where(st) : null;
+                if (p.HasValue) { Put(p.Value, 0); yield return Wait(1f); }
+                Log($"{world}: no one to talk to for '{stage0}' ({who})");
+            }
+            else
+            {
+                PutNear(npc.pos, 2.2f); yield return Wait(1.2f);
+                yield return Shoot($"{world}_{who}_near");
+                Log($"{world}: beside {npc.displayName} at {npc.pos}, prompt '{game.prompt}'");
+                var def = ws.Def(who);
+                for (int round = 0; round < 3 && game.quests.Stage(q) == stage0; round++)
+                {
+                    var path = PathTo(def, st);
+                    Log($"{world}: talking to {who}: [{string.Join(" | ", path)}]");
+                    // the press that talks (B / ○ on the prompt), then the choices
+                    yield return Pulse(v => pad.interact = v); yield return Wait(0.9f);
+                    if (game.hud.talk == null) game.hud.StartTalk(def, npc, npc.displayName, npc.title);
+                    yield return Shoot($"{world}_talking_to_{who}_{round}");
+                    var r = game.hud.talk;
+                    foreach (var c in path)
+                    {
+                        if (r == null || r.ended) break;
+                        while (!r.ended && (!r.LastPage || r.Choices().Count == 0) && r.Advance()) { }
+                        var list = r.Choices();
+                        var pick = list.FirstOrDefault(x => x.text == c);
+                        if (pick.text == null) { Log($"no choice '{c}' in [{string.Join(" | ", list.Select(x => x.text))}] at {r.nodeId}"); break; }
+                        r.Choose(pick.index);
+                        yield return Wait(0.2f);
+                    }
+                    if (r != null) { while (!r.ended && r.Advance()) { } }
+                    yield return Shoot($"{world}_{who}_said");
+                    if (game.hud.talk != null) game.hud.talk.ended = true;
+                    yield return Wait(0.6f);
+                }
+            }
+            game.quests.Update(game.player.transform.position);
+            yield return Wait(0.5f);
+            var now = game.quests.Stage(q);
+            bool ok = now != stage0;
+            opened[world] = ok;
+            Log($"{world}: opening step {(ok ? "done" : "NOT done")}: {q} '{stage0}' -> '{now}' ({Text.Plain(game.quests.Current(q)?.S("text"))})");
+            yield return Shoot($"{world}_next_objective");
+        }
+
+        /// <summary>The choices that lead, from the conversation's entry, to the node (or choice) that moves the stage on: its `talk` advanced, its flag set.</summary>
+        List<string> PathTo(Dictionary<string, object> person, Dictionary<string, object> stage)
+        {
+            var res = new List<string>();
+            if (person == null || stage == null) return res;
+            var nodes = person.O("talk")?.O("nodes");
+            if (nodes == null) return res;
+            string q = game.quests.Tracked() ?? "", sid = stage.S("id"), flag = stage.S("flag");
+            bool Moves(object effects)
+            {
+                if (effects == null) return false;
+                var j = Save.Stringify(effects);
+                return (flag != null && j.Contains($"\"{flag}\"")) || (j.Contains("advance") && j.Contains($"\"{sid}\"")) || (j.Contains("stage") && j.Contains(q));
+            }
+            var real = new DialogueRunner(person, game.state, game.quests, dry: true);
+            string first = real.nodeId;
+            // breadth first over the nodes, through the choices whose conditions hold now
+            var prev = new Dictionary<string, (string from, string text)>();
+            var queue = new Queue<string>(); queue.Enqueue(first); prev[first] = (null, null);
+            string goal = null; string goalChoice = null;
+            while (queue.Count > 0 && goal == null)
+            {
+                var id = queue.Dequeue();
+                var n = nodes.O(id);
+                if (n == null) continue;
+                if (Moves(n.Get("do"))) { goal = id; break; }
+                var cs = n.L("choices") ?? new List<object>();
+                foreach (var c in cs)
+                {
+                    if (!real.Check(c.Get("if"))) continue;
+                    var text = Text.Parse(c.S("text")).text;
+                    if (Moves(c.Get("do"))) { goal = id; goalChoice = text; break; }
+                    var to = c.S("goto");
+                    if (to != null && !prev.ContainsKey(to)) { prev[to] = (id, text); queue.Enqueue(to); }
+                }
+                if (goal == null && n.S("next") is { } nx && !prev.ContainsKey(nx)) { prev[nx] = (id, null); queue.Enqueue(nx); }
+            }
+            if (goal == null) return res;
+            for (var at = goal; at != null && prev.TryGetValue(at, out var p) && p.from != null; at = p.from) if (p.text != null) res.Insert(0, p.text);
+            if (goalChoice != null) res.Add(goalChoice);
+            return res;
+        }
+    }
+}

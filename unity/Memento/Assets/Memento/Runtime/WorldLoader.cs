@@ -7,11 +7,14 @@ using UnityEngine.Rendering;
 namespace Memento
 {
     /// <summary>
-    /// Builds the desert from the web game's export (scripts/unity-export/export-desert.mjs):
-    /// StreamingAssets/desert/world.json + world.bin. Static surfaces come merged by material
-    /// and by 256 m tile; the terrain is rebuilt from its heightfield; the collision mesh and
-    /// the terrain become MeshColliders; the moving things (the hoverbike, the makers' chests,
-    /// the fallen rib, the water…) are their own objects, found by name in <see cref="Objects"/>.
+    /// Builds a world from the web game's export (scripts/unity-export/export-world.mjs):
+    /// StreamingAssets/&lt;id&gt;/world.json + world.bin, and the blobs every world shares
+    /// (StreamingAssets/shared/shared.bin: the traveller, the clips, the ship, the boxes; negative
+    /// offsets in world.json). Static surfaces come merged by material and by 256 m tile; the
+    /// terrain is rebuilt from its heightfield (a world that is all geometry, the City-Shaft or
+    /// the Hangar, has none); the collision mesh and the terrain become MeshColliders; the moving
+    /// things (the mount, the makers' chests, the ship, what the story placed…) are their own
+    /// objects, found by name in <see cref="Objects"/>. <see cref="Unload"/> lets a world go.
     /// </summary>
     public class WorldLoader : MonoBehaviour
     {
@@ -28,19 +31,68 @@ namespace Memento
         public void ReleaseBin() { bin = null; }
         public bool keepBin;
         Shader surface;
+        /// <summary>The store every world's export shares (read once, kept: the next world needs it too).</summary>
+        static byte[] shared;
+        readonly List<Mesh> built = new();
+        /// <summary>The level's settings (world.json "level": features, gravity, limits, its title).</summary>
+        public Dictionary<string, object> Level => World?.O("level");
+        public string Id => Level?.S("id") ?? folder;
 
         public static string DataPath(string folder) => Path.Combine(Application.streamingAssetsPath, folder);
+        public static bool Exported(string id) => File.Exists(Path.Combine(DataPath(id), "world.json"));
+
+        /// <summary>Copy `bytes` bytes at `at` (world.bin; a negative offset: the shared store) into `dst`.</summary>
+        public void Copy(int at, System.Array dst, int bytes)
+        {
+            if (at < 0) System.Buffer.BlockCopy(Shared(), -1 - at, dst, 0, bytes);
+            else System.Buffer.BlockCopy(bin, at, dst, 0, bytes);
+        }
+        static byte[] Shared()
+        {
+            if (shared == null)
+            {
+                var p = Path.Combine(DataPath("shared"), "shared.bin");
+                shared = File.Exists(p) ? File.ReadAllBytes(p) : new byte[0];
+            }
+            return shared;
+        }
+
+        /// <summary>The ground under (x, z): the heightfield where there is one, else the highest surface below `from`.</summary>
+        public float HeightAt(float x, float z, float from = 1e4f)
+        {
+            if (Ground != null) return Ground.HeightAt(x, z);
+            return Physics.Raycast(new Vector3(x, from, z), Vector3.down, out var h, from + 2e4f, ~0, QueryTriggerInteraction.Ignore) ? h.point.y : 0;
+        }
+        /// <summary>The ground under a point a little above it (a floor in a city of floors: the shaft's terraces).</summary>
+        public float GroundBelow(Vector3 p, float above = 2, float reach = 60)
+        {
+            if (Physics.Raycast(p + Vector3.up * above, Vector3.down, out var h, reach, ~0, QueryTriggerInteraction.Ignore)) return h.point.y;
+            return Ground != null ? Ground.HeightAt(p.x, p.z) : p.y;
+        }
+
+        /// <summary>Let the world go: its objects, meshes and materials (the shared store stays).</summary>
+        public void Unload(ICollection<Material> keep = null)
+        {
+            for (int i = transform.childCount - 1; i >= 0; i--) { var c = transform.GetChild(i).gameObject; c.SetActive(false); Destroy(c); }
+            foreach (var m in built) if (m) Destroy(m);
+            built.Clear();
+            if (Ground?.mesh) Destroy(Ground.mesh);
+            foreach (var m in Materials) if (m && (keep == null || !keep.Contains(m))) Destroy(m);
+            Objects.Clear(); Materials.Clear();
+            World = null; bin = null; Ground = null;
+        }
 
         public bool Build()
         {
             var dir = DataPath(folder);
-            if (!File.Exists(Path.Combine(dir, "world.json"))) { Debug.LogError($"Memento: no export in {dir}. Run: node scripts/unity-export/export-desert.mjs"); return false; }
+            if (!File.Exists(Path.Combine(dir, "world.json"))) { Debug.LogError($"Memento: no export in {dir}. Run: node scripts/unity-export/export-all.mjs"); return false; }
             World = Json.Parse(File.ReadAllText(Path.Combine(dir, "world.json"))) as Dictionary<string, object>;
             bin = File.ReadAllBytes(Path.Combine(dir, "world.bin"));
+            Shared();
             surface = Shader.Find("Memento/Surface");
             Physics.queriesHitBackfaces = true;
             for (int i = transform.childCount - 1; i >= 0; i--) DestroyImmediate(transform.GetChild(i).gameObject);
-            Objects.Clear(); Materials.Clear();
+            Objects.Clear(); Materials.Clear(); Ground = null;
 
             foreach (var m in World.L("materials")) Materials.Add(MakeMaterial(m as Dictionary<string, object>));
 
@@ -48,16 +100,20 @@ namespace Memento
             int n = 0;
             foreach (var c in World.L("chunks")) { var go = Chunk(c as Dictionary<string, object>, statics, $"chunk {n++}"); go.isStatic = true; }
 
-            Ground = new Terrain3(World.O("terrain"), bin);
-            var tgo = new GameObject("Terrain");
-            tgo.transform.SetParent(transform, false);
-            tgo.AddComponent<MeshFilter>().sharedMesh = Ground.mesh;
-            tgo.AddComponent<MeshRenderer>().sharedMaterial = Materials[World.O("terrain").I("material")];
-            tgo.isStatic = true;
+            GameObject tgo = null;
+            if (World.O("terrain") != null)
+            {
+                Ground = new Terrain3(World.O("terrain"), bin);
+                tgo = new GameObject("Terrain");
+                tgo.transform.SetParent(transform, false);
+                tgo.AddComponent<MeshFilter>().sharedMesh = Ground.mesh;
+                tgo.AddComponent<MeshRenderer>().sharedMaterial = Materials[World.O("terrain").I("material")];
+                tgo.isStatic = true;
+            }
 
             if (colliders)
             {
-                tgo.AddComponent<MeshCollider>().sharedMesh = Ground.mesh;
+                if (tgo) tgo.AddComponent<MeshCollider>().sharedMesh = Ground.mesh;
                 var cgo = new GameObject("Collision"); cgo.transform.SetParent(transform, false);
                 cgo.isStatic = true;
                 foreach (var col in World.L("collision"))
@@ -138,6 +194,19 @@ namespace Memento
                 for (int i = 0; i < 16; i++) arr[i] = new Vector4(Json.Num(limbs[i * 3]), Json.Num(limbs[i * 3 + 1]), Json.Num(limbs[i * 3 + 2]), 0);
                 mat.SetVectorArray("_Limbs", arr);
             }
+            // the metals (materials.js METALS): kind, brushed, reflectivity, highlight; the brush's axis (three, object)
+            var metal = m.L("metal");
+            if (metal != null && metal.Count >= 4) mat.SetVector("_Metal", new Vector4(Json.Num(metal[0]), Json.Num(metal[1]), Json.Num(metal[2]), Mathf.Max(Json.Num(metal[3]), 1e-3f)));
+            var ax = m.L("brushAxis");
+            if (ax != null && ax.Count >= 3) mat.SetVector("_BrushAxis", new Vector4(Json.Num(ax[0]), Json.Num(ax[1]), Json.Num(ax[2]), 0));
+            // the water (water-shader.js): its bed's colour, its options (fallback depth, printed, clarity, sparkle); Waters.cs bakes its bed
+            var water = m.O("water");
+            if (water != null)
+            {
+                var wo = water.L("uWaterOpt"); var wb = water.L("uWaterBed");
+                if (wo != null && wo.Count >= 4) mat.SetVector("_WaterOpt", new Vector4(Mathf.Max(Json.Num(wo[0]), 0.01f), Json.Num(wo[1]), Json.Num(wo[2]), Json.Num(wo[3])));
+                if (wb != null && wb.Count >= 3) mat.SetVector("_WaterBed", new Vector4(Json.Num(wb[0]), Json.Num(wb[1]), Json.Num(wb[2]), 1));
+            }
             int side = m.I("side");
             mat.SetFloat("_Cull", side == 2 ? (float)CullMode.Off : side == 1 ? (float)CullMode.Front : (float)CullMode.Back);
             return mat;
@@ -159,7 +228,8 @@ namespace Memento
             var size = System.Runtime.InteropServices.Marshal.SizeOf<T>();
             var arr = new NativeArray<T>(count, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             var bytes = arr.Reinterpret<byte>(size);
-            NativeArray<byte>.Copy(bin, at, bytes, 0, count * size);
+            if (at < 0) NativeArray<byte>.Copy(Shared(), -1 - at, bytes, 0, count * size);
+            else NativeArray<byte>.Copy(bin, at, bytes, 0, count * size);
             return arr;
         }
 
@@ -167,6 +237,7 @@ namespace Memento
         {
             int nv = c.I("vertices"), ni = c.I("indices");
             var mesh = new Mesh { indexFormat = IndexFormat.UInt32 };
+            built.Add(mesh);
             using (var p = Slice<Vector3>(c.I("pos"), nv)) mesh.SetVertices(p);
             if (full)
             {
@@ -187,7 +258,7 @@ namespace Memento
         }
     }
 
-    /// <summary>The desert's heightfield (src/world.js Terrain), in Unity's frame, with its exact lookup.</summary>
+    /// <summary>A world's heightfield (src/world.js Terrain), in Unity's frame, with its exact lookup.</summary>
     public class Terrain3
     {
         public readonly float size, step; public readonly int seg, n;
@@ -209,7 +280,7 @@ namespace Memento
                 idx[k++] = a; idx[k++] = b; idx[k++] = c;   // (three's a, c, b, mirrored)
                 idx[k++] = b; idx[k++] = d; idx[k++] = c;
             }
-            mesh = new Mesh { indexFormat = IndexFormat.UInt32, name = "Desert terrain" };
+            mesh = new Mesh { indexFormat = IndexFormat.UInt32, name = "Terrain" };
             mesh.vertices = v; mesh.triangles = idx;
             var cols = new Color[v.Length]; for (int i = 0; i < cols.Length; i++) cols[i] = Color.white;
             mesh.colors = cols;

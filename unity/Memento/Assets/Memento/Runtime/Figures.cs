@@ -18,6 +18,7 @@ namespace Memento
     {
         public static FigureLibrary Instance;
         readonly WorldLoader world;
+        public WorldLoader World => world;
         readonly Dictionary<string, object> data;
         readonly List<object> geometries;
         readonly Dictionary<string, Mesh> meshes = new();
@@ -73,15 +74,25 @@ namespace Memento
             }
             // what the boxes keep is shown later, after world.bin is let go: its meshes now
             var items = data.O("items");
-            if (items != null) foreach (var (_, it) in items) foreach (var m in it.L("meshes")) MeshOf(m.I("geo"), m.Has("bind") ? m.I("bind") : -1, m.L("bones")?.Count ?? 0);
+            if (items != null) foreach (var (_, it) in items) foreach (var m in it.L("meshes")) MeshOf(m.I("geo"), m.Has("bind") ? m.I("bind") : NoBind, m.L("bones")?.Count ?? 0);
             var holo = data.O("holo");
-            if (holo != null) foreach (var (_, it) in holo) foreach (var m in it.L("meshes")) MeshOf(m.I("geo"), m.Has("bind") ? m.I("bind") : -1, m.L("bones")?.Count ?? 0);
+            if (holo != null) foreach (var (_, it) in holo) foreach (var m in it.L("meshes")) MeshOf(m.I("geo"), m.Has("bind") ? m.I("bind") : NoBind, m.L("bones")?.Count ?? 0);
         }
 
-        float[] Floats(int at, int n) { var a = new float[n]; System.Buffer.BlockCopy(world.Bin, at, a, 0, n * 4); return a; }
+        /// <summary>No bind poses (a rigid mesh). Offsets can be negative: the shared store's.</summary>
+        const int NoBind = int.MinValue;
+        /// <summary>Every mesh this library built (let go with the world: <see cref="Release"/>), but those the keep list still shows.</summary>
+        public void Release(System.Collections.Generic.ICollection<Mesh> keep)
+        {
+            foreach (var m in meshes.Values) if (m && (keep == null || !keep.Contains(m))) Object.Destroy(m);
+            meshes.Clear();
+            if (Instance == this) Instance = null;
+        }
+
+        float[] Floats(int at, int n) { var a = new float[n]; world.Copy(at, a, n * 4); return a; }
 
         /// <summary>An exported geometry as a plain mesh (birds, props), built while world.bin is loaded.</summary>
-        public Mesh GeometryMesh(int geo) => MeshOf(geo, -1, 0);
+        public Mesh GeometryMesh(int geo) => MeshOf(geo, NoBind, 0);
         public Dictionary<string, object> Person(string id) => id != null && byId.TryGetValue(id, out var p) ? p : null;
         /// <summary>The parents on the recordings (hologram.js HoloFigure): holo:father, holo:mother.</summary>
         public Dictionary<string, object> Holo(string id) => data?.O("holo")?.O(id);
@@ -119,7 +130,7 @@ namespace Memento
             if (g.Has("fold")) using (var f = world.Slice<Vector2>(g.I("fold"), n)) mesh.SetUVs(1, f);
             int ni = g.I("indices");
             var idx = new int[ni];
-            System.Buffer.BlockCopy(world.Bin, g.I("idx"), idx, 0, ni * 4);
+            world.Copy(g.I("idx"), idx, ni * 4);
             var groups = g.L("groups");
             if (groups != null && groups.Count > 1)
             {
@@ -133,11 +144,11 @@ namespace Memento
                 }
             }
             else mesh.SetTriangles(idx, 0);
-            if (g.Has("joints") && bindAt >= 0)
+            if (g.Has("joints") && bindAt != NoBind)
             {
                 var J = new ushort[n * 4]; var W = new float[n * 4];
-                System.Buffer.BlockCopy(world.Bin, g.I("joints"), J, 0, n * 8);
-                System.Buffer.BlockCopy(world.Bin, g.I("weights"), W, 0, n * 16);
+                world.Copy(g.I("joints"), J, n * 8);
+                world.Copy(g.I("weights"), W, n * 16);
                 var per = new NativeArray<byte>(n, Allocator.Temp);
                 var list = new List<BoneWeight1>(n * 2);
                 var tmp = new List<BoneWeight1>(4);
@@ -155,7 +166,7 @@ namespace Memento
                 per.Dispose(); all.Dispose();
                 var bp = new Matrix4x4[boneCount];
                 var e = new float[boneCount * 16];
-                System.Buffer.BlockCopy(world.Bin, bindAt, e, 0, e.Length * 4);
+                world.Copy(bindAt, e, e.Length * 4);
                 for (int b = 0; b < boneCount; b++) { var m = new Matrix4x4(); for (int k = 0; k < 16; k++) m[k] = e[b * 16 + k]; bp[b] = m; }
                 mesh.bindposes = bp;
             }
@@ -219,7 +230,7 @@ namespace Memento
                 }
                 else
                 {
-                    node.gameObject.AddComponent<MeshFilter>().sharedMesh = MeshOf(m.I("geo"), -1, 0);
+                    node.gameObject.AddComponent<MeshFilter>().sharedMesh = MeshOf(m.I("geo"), NoBind, 0);
                     var mr = node.gameObject.AddComponent<MeshRenderer>();
                     mr.sharedMaterials = mats;
                     mr.shadowCastingMode = shadow ? ShadowCastingMode.On : ShadowCastingMode.Off;
@@ -234,7 +245,7 @@ namespace Memento
                 var anchor = T[cape.I("node")];
                 var cgo = new GameObject("cape");
                 cgo.transform.SetParent(anchor, false);
-                cgo.AddComponent<MeshFilter>().sharedMesh = Object.Instantiate(MeshOf(cape.I("geo"), -1, 0));
+                cgo.AddComponent<MeshFilter>().sharedMesh = Object.Instantiate(MeshOf(cape.I("geo"), NoBind, 0));
                 var cmr = cgo.AddComponent<MeshRenderer>();
                 cmr.sharedMaterial = world.Materials[cape.I("mat")];
                 cmr.shadowCastingMode = ShadowCastingMode.On;

@@ -13,7 +13,7 @@ namespace Memento
     /// tests/desert-story.test.js, plays the desert's main quest end to end and saves a frame
     /// at every step (-out folder). Logs "Memento: stage …" as the quest moves on.
     /// </summary>
-    public class BatchDriver : MonoBehaviour
+    public partial class BatchDriver : MonoBehaviour
     {
         public static event Action<bool> Finished;
         public string outDir = "Shots";
@@ -132,6 +132,28 @@ namespace Memento
                 Log($"title: settings closed {!game.title || game.title.Open}");
                 game.title.Pick("NEW GAME");
                 yield return null; yield return null;
+            }
+            if (startIn != null)
+            {
+                float s0 = Time.time;
+                while (game.player.model == null && Time.time - s0 < 30) yield return null;
+                yield return Wait(1.5f);
+                Log($"started in {game.Level}: {game.npcs.Count} people, quest {game.quests.Tracked()}");
+                if (tour != null)
+                {
+                    yield return Tour();
+                    File.WriteAllLines(Path.Combine(outDir, "play.log"), log);
+                    Pad.Script = null;
+                    Finished?.Invoke(true);
+                    yield break;
+                }
+                yield return Shoot($"start_{game.Level}");
+                if (game.worldStory) yield return Opening(game.Level);
+                if (worlds.Count > 0) yield return Travels();
+                File.WriteAllLines(Path.Combine(outDir, "play.log"), log);
+                Pad.Script = null;
+                Finished?.Invoke((game.worldStory == null || opened.GetValueOrDefault(startIn)) && TravelsOk);
+                yield break;
             }
             float t0 = Time.time;
             while ((game.player.model == null || game.npcs.Count(n => n && n.GetComponentInChildren<SkinnedMeshRenderer>() != null) < 10) && Time.time - t0 < 30) yield return null;
@@ -577,9 +599,12 @@ namespace Memento
                 Save.Erase("batch");
             }
             Log($"ambient: weather {game.ambient?.kind} {game.ambient?.intensity:0.00}, gust {game.ambient?.Gust:0.00}");
+            bool desertOk = game.quests.IsDone("desert.power");
+            // ---- the other worlds, by ship (-worlds incal,arzach): the travels and each world's opening step
+            if (worlds.Count > 0) yield return Travels();
             File.WriteAllLines(Path.Combine(outDir, "play.log"), log);
             Pad.Script = null;
-            Finished?.Invoke(game.quests.IsDone("desert.power"));
+            Finished?.Invoke(desertOk && (worlds.Count == 0 || TravelsOk));
         }
     }
 }

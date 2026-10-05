@@ -43,6 +43,8 @@ namespace Memento
         public Quests(GameState g) { game = g; }
 
         public void Define(Dictionary<string, object> d) => defs[d.S("id")] = d;
+        /// <summary>A new world: its quests replace the last one's (the flags stay: progress is kept).</summary>
+        public void Clear() { defs.Clear(); locators.Clear(); onDone.Clear(); itemNames = new Dictionary<string, object>(); }
         public string Stage(string id) => game.Flag("quest." + id) as string;
         public bool IsStarted(string id) => Stage(id) != null;
         public bool IsDone(string id) => Stage(id) == Done;
@@ -163,9 +165,11 @@ namespace Memento
         public int page;
         public Action<string> onGive = _ => { };
 
-        public DialogueRunner(Dictionary<string, object> person, GameState game, Quests quests, Action<string> onGive = null)
+        /// <summary>No effects (a look at where a conversation goes, the batch's): conditions only.</summary>
+        public readonly bool dry;
+        public DialogueRunner(Dictionary<string, object> person, GameState game, Quests quests, Action<string> onGive = null, bool dry = false)
         {
-            this.person = person; this.game = game; this.quests = quests;
+            this.person = person; this.game = game; this.quests = quests; this.dry = dry;
             if (onGive != null) this.onGive = onGive;
             var talk = person.O("talk"); var nodes = talk.O("nodes");
             string first = nodes.Keys.First();
@@ -226,7 +230,7 @@ namespace Memento
             pages = lines.Where(s => !(s is Dictionary<string, object> d && d.Has("if")) || Check((s as Dictionary<string, object>).Get("if"))).Select(Text.Parse).ToList();
             if (pages.Count == 0) pages.Add(("", "neutral"));
             page = 0;
-            Apply(node.Get("do"));
+            if (!dry) Apply(node.Get("do"));
         }
         public string TextNow => pages[Mathf.Clamp(page, 0, pages.Count - 1)].text;
         public string Tone => pages[Mathf.Clamp(page, 0, pages.Count - 1)].tone;

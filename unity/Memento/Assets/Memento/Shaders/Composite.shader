@@ -40,7 +40,8 @@ Shader "Hidden/Memento/Composite"
       float _Toon, _HatchOn, _HatchSpacing, _Highlight, _Clouds, _Grain, _Proj11, _AO;
       float _SkyBands, _HazeBands, _Aerial, _LineVary, _SkyFlat, _SkyDots, _Cumulus;
       float4 _Subject;      // the player on screen: uv, view depth, radius
-      float4 _Planet0, _PlanetColor0;
+      float4 _Planet0, _PlanetColor0, _Planet1, _PlanetColor1, _Planet2, _PlanetColor2;
+      float4 _PlanetCraters;   // per planet: 1 cratered, 0 a plain printed disc
       float _Debug;
       float _CineRed, _CineLids, _CineBars, _CineFade; float4 _CineFadeColor;   // the cinema (Cinema.cs)
       float4 _Backdrop;     // rgb, a = 1: one flat colour instead of the sky (a conversation's portrait, post.js uBackdrop)
@@ -166,7 +167,9 @@ Shader "Hidden/Memento/Composite"
       }
 
       // a flat printed planet low in the sky (post.js drawPlanet, without rings)
-      void drawPlanet(float3 rd, float4 P, float4 C, inout float3 col, inout float ink)
+      // big flat bodies hanging in the sky (post.js drawPlanet): toon-lit by the sun, hatched on the night side,
+      // a few craters, an optional ring (C.a: its tilt), all inked
+      void drawPlanet(float3 rd, float4 P, float4 C, float craters, inout float3 col, inout float ink)
       {
         if (P.w <= 0.0) return;
         float3 dir = normalize(P.xyz);
@@ -175,14 +178,41 @@ Shader "Hidden/Memento/Composite"
         float2 q = float2(dot(rd, e1), dot(rd, e2)) / tan(P.w);
         float r = length(q);
         float fw = min(fwidth(r), 0.5);
+        float2 rq0 = float2(q.x, q.y / max(C.a, 1e-3));
+        float ringFw = min(fwidth(length(rq0)), 0.5);
         if (dot(rd, dir) < 0.0) return;
+        float px = _PixelRatio;
+        bool hasRing = C.a > 0.0;
+        float ringR = 0.0, ringMask = 0.0;
+        if (hasRing) {
+          float2 rq = float2(q.x, q.y / C.a);
+          ringR = length(rq);
+          ringMask = smoothstep(1.45, 1.45 + ringFw * 2.0, ringR) - smoothstep(2.1 - ringFw * 2.0, 2.1, ringR);
+        }
+        bool front = q.y < 0.0;
+        if (hasRing && !front && r < 1.0) ringMask = 0.0;
         if (r < 1.0 + fw) {
           float3 nrm = normalize(q.x * e1 + q.y * e2 - sqrt(max(1.0 - r * r, 0.0)) * dir);
           float lit = smoothstep(-0.02, 0.02, dot(nrm, _SunDisc));
           float3 pc = lerp(C.rgb * _ShadowTint * 0.9, C.rgb * lerp(float3(1, 1, 1), _LightTint, 0.3), lit);
+          float2 cq = q * 4.0;
+          float2 cid = floor(cq);
+          float ch = hash(cid + 3.1);
+          float cr = length(frac(cq) - 0.5 - (float2(hash(cid), hash(cid + 1.7)) - 0.5) * 0.4);
+          float crater = step(0.7, ch) * (1.0 - smoothstep(0.18, 0.2, cr)) * craters;
+          pc = lerp(pc, pc * 0.86, crater);
           float disc = 1.0 - smoothstep(1.0 - fw, 1.0 + fw, r);
           col = lerp(col, pc, disc);
-          ink = max(ink, (1.0 - smoothstep(0.0, fw * 1.4 * _PixelRatio, abs(r - 1.0))) * 0.95);
+          float hc = dot(q, float2(0.8, 0.6)) * 22.0;
+          float hl = 1.0 - smoothstep(0.0, fwidth(hc) * 1.2 * px, abs(frac(hc) - 0.5) * 2.0 - 0.6);
+          col = lerp(col, _Ink, hl * (1.0 - lit) * disc * 0.35 * _HatchOn);
+          ink = max(ink, (1.0 - smoothstep(0.0, fw * 1.4 * px, abs(r - 1.0))) * 0.95);
+          ink = max(ink, (1.0 - smoothstep(0.0, fwidth(cr) * 1.2 * px, abs(cr - 0.19))) * step(0.7, ch) * disc * 0.5 * craters);
+        }
+        if (hasRing && ringMask > 0.0) {
+          float3 rc = lerp(C.rgb * 1.15, float3(0.97, 0.94, 0.86), 0.5);
+          col = lerp(col, rc, ringMask);
+          ink = max(ink, (1.0 - smoothstep(0.0, ringFw * 1.3 * px, min(abs(ringR - 1.45), abs(ringR - 2.1)))) * 0.85);
         }
       }
 
@@ -218,7 +248,9 @@ Shader "Hidden/Memento/Composite"
           col = lerp(col, lerp(float3(0.96, 0.94, 0.88), _SkyTop * 1.2, crescent * 0.85), disc * _MoonVis);
           ink = max(ink, _MoonVis * (1.0 - smoothstep(0.0, mw * 1.2 * px, abs(ma - mr))));
         }
-        drawPlanet(rd, _Planet0, _PlanetColor0, col, ink);
+        drawPlanet(rd, _Planet0, _PlanetColor0, _PlanetCraters.x, col, ink);
+        drawPlanet(rd, _Planet1, _PlanetColor1, _PlanetCraters.y, col, ink);
+        drawPlanet(rd, _Planet2, _PlanetColor2, _PlanetCraters.z, col, ink);
 
         // the printed sky's dots, on the dome (azimuth / elevation; a projected cap overhead)
         float el = asin(clamp(rd.y, -1.0, 1.0));

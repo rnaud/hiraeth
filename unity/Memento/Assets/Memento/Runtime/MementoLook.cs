@@ -29,6 +29,8 @@ namespace Memento
         /// <summary>The ambient wind as a velocity (Unity space), for the cloth.</summary>
         public float fogOverride = -1;
         public float rays = -1;          // sun rays 0..1 over the preset's (the web's beauty panel), -1: the preset's
+        /// <summary>The air by place (level.atmo, Game.Atmo): the fog's multiplier (-1: the preset's) and the horizon's tint (timeofday.js applyTimeOfDay).</summary>
+        public float atmoFog = -1; public Color atmoTint = Color.white;
         public float fogScale = 1;       // the weather thickens the haze (main.js: × 1 + storm × 2.2)   // >= 0: the fog's multiplier (0 out in space: post.js uFogMul)
         public Vector3 WindVector => new Vector3(-windDir.x, 0, windDir.y) * wind * 4f;
         readonly List<Vector4> localLights = new();
@@ -38,6 +40,7 @@ namespace Memento
         {
             look = lookData;
             hours.Clear();
+            atmoFog = -1; atmoTint = Color.white;
             foreach (var h in look.L("hours")) hours.Add(h as Dictionary<string, object>);
             hour = look.F("hour", 9.5f);
             localLights.Clear();
@@ -73,6 +76,7 @@ namespace Memento
             foreach (var kv in SharedKeys) { var p = kv.Split(':'); Shader.SetGlobalFloat(p[1], shared.F(p[0], post.F(p[0]))); }
             foreach (var kv in PostKeys) { var p = kv.Split(':'); Shader.SetGlobalFloat(p[1], post.F(p[0])); }
             if (fogOverride >= 0) Shader.SetGlobalFloat("_FogMul", fogOverride);
+            else if (atmoFog >= 0) Shader.SetGlobalFloat("_FogMul", atmoFog * fogScale);
             else if (fogScale != 1) Shader.SetGlobalFloat("_FogMul", post.F("uFogMul", 1) * fogScale);
             // sun rays (post.js uRays): the preset's (0 in the "Moebius print"), or the beauty panel's slider (rays >= 0)
             Shader.SetGlobalFloat("_Rays", rays >= 0 ? rays : post.F("uRays", 0));
@@ -84,6 +88,8 @@ namespace Memento
             Shader.SetGlobalFloat("_PixelRatio", 1f);
             Shader.SetGlobalFloat("_Debug", debugView);
             Shader.SetGlobalVector("_Ink", post.C("ink"));
+            // what the metals see below the horizon: the world's ground (materials.js setEnvGround)
+            Shader.SetGlobalVector("_EnvGround", look.Get("envGround") != null ? (Vector4)look.C("envGround") : new Vector4(0.79f, 0.66f, 0.47f, 1));
 
             // the palette: between the two table rows round this hour (timeofday.js keys every 0.25 h here)
             float h = ((hour % 24f) + 24f) % 24f;
@@ -94,7 +100,7 @@ namespace Memento
             Vector3 D(string k) => Vector3.Slerp(a.V3(k), b.V3(k), t).normalized;   // Unity space
             float Fl(string k) => Mathf.Lerp(a.F(k), b.F(k), t);
             Shader.SetGlobalVector("_SkyTop", C("skyTop"));
-            Shader.SetGlobalVector("_SkyHorizon", C("skyHorizon"));
+            Shader.SetGlobalVector("_SkyHorizon", C("skyHorizon") * atmoTint);
             Shader.SetGlobalVector("_ShadowTint", C("shadowTint"));
             Shader.SetGlobalVector("_LightTint", C("lightTint"));
             Shader.SetGlobalVector("_SunColor", C("sunColor"));
@@ -108,16 +114,21 @@ namespace Memento
             Shader.SetGlobalVector("_MoonDisc", Three(moonDisc));
             if (sun != null) sun.transform.rotation = Quaternion.LookRotation(-light, Vector3.up);
 
-            // a printed planet (level.sky.planets: az / el in degrees, size)
+            // the printed planets (level.sky.planets: az / el in degrees, size, ring tilt, craters; main.js setPlanets)
             var planets = look.L("planets");
-            if (planets != null && planets.Count > 0)
+            var craters = new Vector4(1, 1, 1, 0);
+            for (int pi = 0; pi < 3; pi++)
             {
-                var p = planets[0];
+                var p = planets != null && pi < planets.Count ? planets[pi] : null;
+                if (p == null) { Shader.SetGlobalVector("_Planet" + pi, new Vector4(0, -1, 0, 0)); continue; }
                 float az = p.F("az") * Mathf.Deg2Rad, el = p.F("el") * Mathf.Deg2Rad;
                 var dir = new Vector3(Mathf.Cos(el) * Mathf.Sin(az), Mathf.Sin(el), Mathf.Cos(el) * Mathf.Cos(az));
-                Shader.SetGlobalVector("_Planet0", new Vector4(dir.x, dir.y, dir.z, p.F("size", 3) * Mathf.Deg2Rad));
-                Shader.SetGlobalVector("_PlanetColor0", Json.Hex(p.S("color", "#ece4d2")));
+                Shader.SetGlobalVector("_Planet" + pi, new Vector4(dir.x, dir.y, dir.z, p.F("size", 3) * Mathf.Deg2Rad));
+                var pc = Json.Hex(p.S("color", "#ece4d2"));
+                Shader.SetGlobalVector("_PlanetColor" + pi, new Vector4(pc.r, pc.g, pc.b, p.F("ring", 0)));
+                craters[pi] = p.Get("craters") is bool cb && !cb ? 0 : 1;
             }
+            Shader.SetGlobalVector("_PlanetCraters", craters);
             float time = Application.isPlaying ? Time.time : 0f;
             Shader.SetGlobalFloat("_MTime", time);
             Shader.SetGlobalVector("_Wind", new Vector4(windDir.x, windDir.y, wind, gust));

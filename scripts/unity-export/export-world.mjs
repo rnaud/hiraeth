@@ -377,6 +377,8 @@ const look = {
   planets: level.sky?.planets ?? [],
   biomes: (await import('../../src/biome.js')).BIOMES,
   cloudShadows: level.defaults?.cloudShadows ?? 1,
+  // what the metals see below the horizon (main.js setEnvGround: the world's ground colour)
+  envGround: col(level.envGround ? new THREE.Color(level.envGround) : level.ground?.mesh?.material?.uniforms?.uColor?.value ?? new THREE.Color('#b9a98c')),
 };
 for (const k of Object.keys(preset)) look.shared[k] = preset[k] ?? look.shared[k];
 look.shared.uCloudShadows = look.cloudShadows;
@@ -416,7 +418,7 @@ if (desert) {
   }
   if (errMask) places.maskEyes = { mid: V3(errMask.mid), aims: errMask.eyes.map((e) => V3(e.aim)), root: V3(errMask.root.position) };
 } else if (bike) places.bike = V3(bike.pos), places.bikeHeading = -(bike.heading ?? 0);
-places.boxes = boxes.list.map((b) => ({ id: b.id, item: b.item, pos: V3(b.pos), yaw: -b.yaw, name: b.def?.name ?? b.item }));
+places.boxes = boxes.list.map((b) => ({ id: b.id, item: b.item, pos: V3(b.pos), yaw: -b.yaw, name: b.def?.name ?? b.item, fallback: b.fallback ? 1 : 0, temple: b.place?.temple ?? null }));
 // the relics (levels/content.js, quest.js Relics): on the highest surface over each spot
 {
   const R = content.relics;
@@ -474,9 +476,20 @@ const people = npcs.map((n) => ({
   visible: n.object ? n.object.visible !== false : true, near: n.contentNpc ? 1 : 0,
 }));
 const proc = crowd?.route?.('procession');
+// who in the crowd has a word for you (story world.crowdTalk: by where they live), each conversation once
+const crowdTalks = [], crowdTalkIds = new Map();
+const crowdTalkOf = (p) => {
+  let d = null; try { d = rt.world?.crowdTalk?.(p) ?? null; } catch { d = null; }
+  if (!d) return -1;
+  const j = JSON.stringify(d, (k, v) => (typeof v === 'function' ? undefined : k === 'seed' || k === 'scale' || k === 'color' || k === 'kind' ? undefined : v));
+  if (!crowdTalkIds.has(j)) { crowdTalkIds.set(j, crowdTalks.length); crowdTalks.push(JSON.parse(j)); }
+  return crowdTalkIds.get(j);
+};
 const crowdOut = crowd ? {
   people: crowd.people.map((p) => ({ pos: V3(p.pos), heading: -(p.heading ?? 0), spot: p.spot?.id ?? null, role: p.role ?? null, kind: p.kind ?? null, pose: p.pose ?? null,
+    talk: crowdTalkOf(p), color: p.style?.cloak ?? null,
     walk: p.walk ? { route: crowd.routes.indexOf(p.walk.route), u: p.walk.u, side: p.walk.side, dir: p.walk.dir, speed: p.walk.speed } : null })),
+  talks: crowdTalks,
   routes: crowd.routes.map((r) => ({ id: r.id, points: r.pts.map(V3), loop: !!r.loop, total: r.total, keepRight: r.keepRight, column: r.column ? { speed: r.column.speed, lead: r.column.lead, lanes: r.column.lanes, gap: r.column.gap } : null })),
   procession: proc ? crowd.routes.indexOf(proc) : -1,
 } : { people: [], routes: [], procession: -1 };
@@ -592,6 +605,27 @@ const handles = {};
     if (w !== undefined) handles[k] = w;
   }
 }
+// the air by place (level.atmo(x, z, y): a tint, the fog's thickness, the region's name), sampled on a grid over
+// the world (the shaft's haze thickening as you go down, the Hangar's quarters, the swamp's): Unity reads it trilinearly
+const atmo = (() => {
+  if (!level.atmo) return null;
+  let mn = [1e9, 1e9, 1e9], mx = [-1e9, -1e9, -1e9];
+  // (over what you can stand on: the collision)
+  for (let i = 0; i < colP.length; i += 3) for (let k = 0; k < 3; k++) { mn[k] = Math.min(mn[k], colP[i + k]); mx[k] = Math.max(mx[k], colP[i + k]); }
+  if (terrainOut) { const h = terrain.size / 2; mn[0] = Math.min(mn[0], -h); mx[0] = Math.max(mx[0], h); mn[2] = Math.min(mn[2], -h); mx[2] = Math.max(mx[2], h); }
+  // (no further than the play goes: 1.2 km round the middle)
+  for (const k of [0, 2]) { mn[k] = Math.max(mn[k], -1200); mx[k] = Math.min(mx[k], 1200); }
+  mn[1] = Math.max(mn[1], -800); mx[1] = Math.min(mx[1], 2600);
+  const nx = 40, ny = 16, nz = 40, names = [], S = [];
+  for (let iy = 0; iy < ny; iy++) for (let iz = 0; iz < nz; iz++) for (let ix = 0; ix < nx; ix++) {
+    const ux = mn[0] + (mx[0] - mn[0]) * ix / (nx - 1), y = mn[1] + (mx[1] - mn[1]) * iy / (ny - 1), z = mn[2] + (mx[2] - mn[2]) * iz / (nz - 1);
+    let a = null; try { a = level.atmo(-ux, z, y); } catch { a = null; }
+    const t = a?.tint ?? [1, 1, 1];
+    let ni = names.indexOf(a?.name ?? ''); if (ni < 0) { names.push(a?.name ?? ''); ni = names.length - 1; }
+    S.push(+t[0].toFixed(3), +t[1].toFixed(3), +t[2].toFixed(3), +(a?.fog ?? 1).toFixed(3), ni);
+  }
+  return { min: mn, max: mx, n: [nx, ny, nz], names, samples: S };
+})();
 const levelOut = {
   id: levelId, title: W.meta.title, features: level.features ?? {}, killY: level.killY ?? null, limit: level.limit ?? null,
   camYaw: level.camYaw !== undefined ? -level.camYaw : null, camPitch: level.camPitch ?? null, defaults: level.defaults ?? {},
@@ -609,7 +643,7 @@ const world = {
   portals: (level.portals ?? []).filter((p) => p.at && p.to).map((p) => ({ at: V3(p.at), r: p.r ?? 1.5, to: V3(p.to), heading: -(p.heading ?? 0), label: p.label ?? '' })),
   ship: { site: places.shipSite, ramp: places.shipRamp, ...shipOut },
   flora: { count: flora?.count ?? 0 },
-  locators, interactables, storyPage, gravity, waters, grass, lanes, handles,
+  locators, interactables, storyPage, gravity, waters, grass, lanes, handles, atmo,
 };
 
 // ---------------------------------------------------------------- the people, dressed (people.mjs)
