@@ -2297,7 +2297,14 @@ export class CameraRig {
     // (it used to follow the arm's snaps frame by frame and bob the view up and down).
     // stepping inside: the view comes level once (from the steep look down of the open, or up at
     // the sky), then the stick and the mouse tilt it as anywhere else
-    if (this.indoor && !this._wasIndoor && Math.abs(this.pitch - INDOOR_PITCH) > 0.25) this.pitch = INDOOR_PITCH;
+    // (eased over a few tenths of a second: set at once, it jumped the view as you stepped through
+    // the ship's hatch or a house's door; turning the camera yourself takes over)
+    if (this.indoor && !this._wasIndoor && Math.abs(this.pitch - INDOOR_PITCH) > 0.25) this._levelTo = INDOOR_PITCH;
+    if (!this.indoor || this._now - this._lastMouse < 0.05) this._levelTo = null;
+    if (this._levelTo != null) {
+      this.pitch += (this._levelTo - this.pitch) * (1 - Math.exp(-8 * dt));
+      if (Math.abs(this.pitch - this._levelTo) < 0.01) { this.pitch = this._levelTo; this._levelTo = null; }
+    }
     this._wasIndoor = this.indoor;
     const pitch = this.pitch;
     if (ik > 0.5 && ak < 0.5 && U.y > 0.999) this.swingClear(dt, dist, pitch, k, U, Fw, Rt);

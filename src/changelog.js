@@ -8,6 +8,10 @@ export const CHANGELOG = [
     'Steep dune faces in shade are hatched again with dense strokes, while flat sand in shade stays a calm tone.',
     'The City-Shaft is drawn with fewer hatch strokes and a clean sky, and its houses have fewer, smaller windows.',
     'The References scenes now include the City-Shaft: twenty-three views from its five sheets, up and down the shaft, after the desert’s.',
+    'Walking through a door, into a cave, a temple or the crashed ship’s hatch, through the Lab’s doors or the Hangar’s portals is smooth now: a sheet of paper sweeps across and you walk on out of the far side at the pace you had, mid-stride, the camera still where it was behind you, instead of stopping dead with the view snapped in close.',
+    'The rooms, caves and halls behind every door, and the ship’s cabins, are made ready while the world loads, so the first step inside no longer hitches.',
+    'Stepping into the ship or a house, the camera comes level gently instead of jumping.',
+    'A world loads without freezing the page: it is built a piece at a time behind the loading screen, so the pen keeps turning smoothly and the first moments in the world no longer stutter while the rest settles in.',
   ] },
   { v: '0.62', date: '2026-10-05', items: [
     'Nothing stays on the screen while you play any more: the box in the corner with the place, the objective and the relics is gone. Your health shows while you are hurt or healing, the stamina wheel while you are tired, the tank beside you while it refills or the jets burn, and each fades away after. A short line at the bottom says what the use button does when there is something to use, and a region’s name as you cross into it.',

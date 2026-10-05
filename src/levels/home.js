@@ -12,6 +12,7 @@ import { Cloths, HangingCloth } from '../hanging-cloth.js';
 import { buildParentsHouse, buildFamilyHouse } from './home-houses.js';
 import { buildGarden, flowerGeometry, GARDEN } from './home-garden.js';
 import { drawingMesh, DRAWN } from './home-drawings.js';
+import { stepped } from '../load-steps.js';
 
 // ---------------------------------------------------------------------------
 // Home: where the route begins (src/story/ending.js). Hidden, like the
@@ -268,8 +269,9 @@ function buildTomb(scene, mat) {
   };
 }
 
-export function createHome(scene) {
-  const terrain = new Terrain({
+// (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
+export function* buildHome(scene) {
+  const terrain = yield* Terrain.make({
     size: 1800, seg: 225, height,
     material: { color: '#eebd8e', color2: '#e3a97c', color3: '#c99a7c', mode: MODE_TERRAIN, ticks: true },
   });
@@ -284,9 +286,11 @@ export function createHome(scene) {
   const teal = mat('#5fb7ad'), tealDark = mat('#3f8f8a'), lilac = mat('#b9a3c9', { flat: true });
 
   // ---------------------------------------------------------- the round house (the parents'): walked into, dark and still
+  yield;
   const parents = buildParentsHouse(scene, { centre: HOME_SPOTS.house.clone().setY(H(HOME_SPOTS.house.x, HOME_SPOTS.house.z)), doorZ: HOME_SPOTS.door.z, mat });
   lights.push(...parents.lights);
   movers.push((t) => parents.dust(t));
+  yield;
   {
     const { x, z } = HOME_SPOTS.house;
     // the lamp by the door (Tove keeps it lit)
@@ -305,6 +309,7 @@ export function createHome(scene) {
   }
 
   // ---------------------------------------------------------- the small house (Lou's and Tove's, and yours), lit
+  yield;
   const small = buildFamilyHouse(scene, { centre: HOME_SPOTS.small.clone().setY(H(HOME_SPOTS.small.x, HOME_SPOTS.small.z)), heading: HOME_SPOTS.smallFacing, mat });
   lights.push(...small.lights);
   // the fire breathes
@@ -328,6 +333,7 @@ export function createHome(scene) {
 
   // ---------------------------------------------------------- the yard
   // the landing ring, where the ship stands
+  yield;
   {
     const { x, z } = HOME_SPOTS.ship;
     add(new THREE.CylinderGeometry(17, 17.4, 0.3, 48), mat('#efe2c4', { flat: true }), x, 0.0, z);
@@ -340,13 +346,16 @@ export function createHome(scene) {
     }
   }
   // the stone path, from the ring to the door
+  yield;
   for (let i = 0; i < 9; i++) {
+    yield;
     const k = i / 8, z = -4 + k * 27.5, x = Math.sin(k * 3) * 0.8;
     const s = add(new THREE.CylinderGeometry(0.9 + (i % 3) * 0.12, 1, 0.16, 10), stone, x + (i % 2 ? 0.5 : -0.5), 0.05, z);
     s.rotation.y = i;
     smallProps.push(s);
   }
   // and a smaller one from the garden's gate to the small house's door
+  yield;
   {
     const a = new THREE.Vector3(12.6, 0, 25.2), b = small.doorOut;
     for (let i = 1; i <= 7; i++) {
@@ -357,6 +366,7 @@ export function createHome(scene) {
     }
   }
   // a low curved wall round the yard, open towards the ring
+  yield;
   {
     const parts = [];
     const r = 26, c = HOME_SPOTS.house;
@@ -366,12 +376,15 @@ export function createHome(scene) {
     add(mergeGeometries(parts), stone);
   }
   // ---------------------------------------------------------- the garden (src/levels/home-garden.js)
+  yield;
   const garden = buildGarden(scene, { ground: H });
 
   // ---------------------------------------------------------- cloth: the washing, the bunting, the flag, the curtain, the scarf
+  yield;
   const cloths = new Cloths({ near: 60 });
   const ground = (x, z) => H(x, z);
   // the washing line: a sheet, a shirt, Lou's dress, a towel, pegged to the line
+  yield;
   {
     const p0 = new THREE.Vector3(-12, 0, 18), p1 = new THREE.Vector3(-20, 0, 30), Y = 3.3;
     for (const p of [p0, p1]) add(new THREE.CylinderGeometry(0.1, 0.12, 3.4, 6), mat('#8a5a3c', { flat: true }), p.x, 1.7, p.z);
@@ -390,6 +403,7 @@ export function createHome(scene) {
     }
   }
   // Lou's bunting: from the small house's chimney to the round house's mast, pennants all along
+  yield;
   {
     const A = small.room.localToWorld(new THREE.Vector3(0, 3.0 + 2.6, -4.8 + 1.0)), B = new THREE.Vector3(HOME_SPOTS.house.x - 1.35, 9.4, HOME_SPOTS.house.z + 1);
     const sag = (t) => -2.2 * Math.sin(Math.PI * t);
@@ -405,6 +419,7 @@ export function createHome(scene) {
     }
   }
   // the flag on the landing ring's mast: it shows which way the wind blows
+  yield;
   {
     const m = new THREE.Vector3(HOME_SPOTS.ship.x + 12.5, 0, HOME_SPOTS.ship.z + 8.5);
     add(new THREE.CylinderGeometry(0.06, 0.09, 6.2, 6), mat('#f3ead8', { metal: 'painted' }), m.x, 3.1, m.z);
@@ -414,6 +429,7 @@ export function createHome(scene) {
   }
   // the curtain in the small house, in front of the beds: two panels on the rod
   const indoorCloths = new Set();
+  yield;
   {
     const { a, b, floor } = small.curtain;
     const mid = a.clone().lerp(b, 0.5), d = b.clone().sub(a).normalize();
@@ -423,6 +439,7 @@ export function createHome(scene) {
     }
   }
   // the mother's scarf on the coat stand in the round house: still, until you brush past it
+  yield;
   {
     const t = parents.spots.scarfTop, side = new THREE.Vector3(0.13, 0, 0);
     const c = cloths.add(new HangingCloth(scene, { a: t.clone().sub(side), b: t.clone().add(side), length: 1.15, cols: 4, rows: 10, color: '#5fb7ad', color2: '#e6875f', pins: [1, 2], droop: 0.02, floor: parents.floor, name: 'scarf' }));
@@ -431,6 +448,7 @@ export function createHome(scene) {
 
   // the parents' stone in the front yard, and what lies on it
   const tomb = buildTomb(scene, mat);
+  yield;
   {
     const laid = laidTokens();
     if (laid.length || game.flag('ending.done')) tomb.fill(laid);
@@ -439,13 +457,16 @@ export function createHome(scene) {
     if (game.flag('home.lou.drawing')) tomb.addDrawing();
   }
   // shrubs, round as the house
+  yield;
   for (const [x, z, r, c] of [[-9.5, 22.5, 1.4, teal], [-15, 40, 1.8, tealDark], [-4, 45, 2.0, teal], [22, 10, 1.2, lilac], [-22, 8, 1.5, teal], [9, 46, 1.4, lilac], [24.5, 30, 1.1, tealDark]]) {
+    yield;
     const g = new THREE.SphereGeometry(r, 14, 10);
     jitter(g, 0.12 * r, 1.4, x * 7 + z);
     smallProps.push(add(g, c, x, H(x, z) + r * 0.7, z));
   }
 
   // ---------------------------------------------------------- the umbrella tree
+  yield;
   {
     const x = -13, z = 36, y = H(x, z);
     const trunk = new THREE.CatmullRomCurve3([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0.6, 7, 0.2), new THREE.Vector3(-0.4, 14, -0.3), new THREE.Vector3(0.8, 21, 0)]);
@@ -460,6 +481,7 @@ export function createHome(scene) {
   }
 
   // ---------------------------------------------------------- far away: mesas, lilac with distance
+  yield;
   {
     const parts = [];
     for (let i = 0; i < 11; i++) {
@@ -472,9 +494,11 @@ export function createHome(scene) {
   }
 
   // ---------------------------------------------------------- indoors: no weather, and the camera comes in close
+  yield;
   const indoorAt = (p) => (parents.indoor(p) ? 'parents' : small.indoor(p) ? 'small' : null);
   const offIndoors = addIndoors((p) => parents.indoor(p, 0.3) || small.indoor(p, 0.3));
   void offIndoors;   // (gone with the page: a level lives as long as it)
+  yield;
   for (const c of cloths.list) c.indoor = indoorCloths.has(c);
   let wasIn = null;
   const level = {
@@ -529,5 +553,7 @@ export function createHome(scene) {
       cloths.update(dt, { camera, player, gust: 0.4 + 0.4 * Math.sin(t * 0.7) * Math.sin(t * 0.23), windAt: (c) => (c.indoor ? 0.04 : 1) });
     },
   };
+  yield;
   return level;
 }
+export const createHome = stepped(buildHome);

@@ -6,6 +6,7 @@ import { makeMaterial, MODE_TERRAIN, MODE_WATER } from '../materials.js';
 import { Terrain, jitter } from '../world.js';
 import { Hoverbike } from '../bike.js';
 import { KEEPERS } from '../story/perdide2-data.js';
+import { stepped } from '../load-steps.js';
 
 // ---------------------------------------------------------------------------
 // Lorn II: the Deep Wood. The far side of the swamp planet from
@@ -175,11 +176,12 @@ export const PERDIDE2_CONTENT = {
   npcs: KEEPERS,
 };
 
-export function createPerdide2(scene) {
+// (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
+export function* buildPerdide2(scene) {
   const rng = mulberry32(3798);
   const R = (a, b) => a + rng() * (b - a);
   const pick = (a) => a[Math.floor(rng() * a.length)];
-  const terrain = new Terrain({
+  const terrain = yield* Terrain.make({
     size: 1800, seg: 360, height,
     material: { color: '#46686e', color2: '#517676', color3: '#55588a', mode: MODE_TERRAIN, ticks: true },   // teal moss, violet mud
   });
@@ -209,6 +211,7 @@ export function createPerdide2(scene) {
   };
 
   // ---------------------------------------------------------- water
+  yield;
   {
     const water = new THREE.Mesh(new THREE.PlaneGeometry(1800, 1800, 1, 1).rotateX(-Math.PI / 2),
       makeMaterial({ color: '#4f8a8f', color2: '#5f9a9a', mode: MODE_WATER }));
@@ -219,6 +222,7 @@ export function createPerdide2(scene) {
 
   // ---------------------------------------------------------- cathedral trunks
   // very tall, dark, straight trunks rising out of frame
+  yield;
   {
     const parts = { '#2f3a4f': [], '#3a4560': [], '#28324a': [] };
     const coll = [];
@@ -250,6 +254,7 @@ export function createPerdide2(scene) {
   }
 
   // ---------------------------------------------------------- giant pale mushrooms
+  yield;
   const shroomGeo = { stalk: {}, under: {}, top: {} };
   const STALK = ['#b9b3d9', '#a49cc8', '#c3bde2'];
   function shroom(x, z, s, { glow = false, sink = 0.6, tilt = 0.12, seed = 0 } = {}) {
@@ -277,7 +282,9 @@ export function createPerdide2(scene) {
   }
   // the relic mushroom and a spiral of stepping caps up to it
   shroom(HERO_SHROOM.x, HERO_SHROOM.z, HERO_SHROOM, { glow: true, sink: 0.2, tilt: 0, seed: 1 });
+  yield;
   for (let k = 0; k < 5; k++) {
+    yield;
     const a = 0.4 + k * 0.62, d = HERO_SHROOM.capR + 2.2;
     const x = HERO_SHROOM.x + Math.cos(a) * d, z = HERO_SHROOM.z + Math.sin(a) * d;
     const top = 2.0 + k * 2.2;
@@ -287,6 +294,7 @@ export function createPerdide2(scene) {
     shroom(x, z, s, { glow: k % 2 === 1, sink: 0.2, tilt: 0, seed: 10 + k });
   }
   // the forest of giants
+  yield;
   {
     let n = 0;
     for (let tries = 0; tries < 3000 && n < 46; tries++) {
@@ -320,6 +328,7 @@ export function createPerdide2(scene) {
   }
 
   // small mushrooms clustered at the feet of the giants and along the banks
+  yield;
   {
     const p = shroomParts({ sr: 0.12, capR: 0.5, H: 1, dome: 0.4 });
     const g = mergeGeometries([lathe(p.stalk, 7), lathe(p.under, 7), lathe(p.top, 7)].map((x) => { x.deleteAttribute('uv'); return x.toNonIndexed(); }));
@@ -338,6 +347,7 @@ export function createPerdide2(scene) {
 
   // ---------------------------------------------------------- crystal reeds
   // dense stands of tall, thin, pale lavender shards
+  yield;
   {
     const reed = new THREE.ConeGeometry(0.22, 1, 3).translate(0, 0.5, 0);
     const shard = new THREE.CylinderGeometry(0, 1, 1, 6).translate(0, 0.5, 0);
@@ -376,7 +386,9 @@ export function createPerdide2(scene) {
   }
 
   // ---------------------------------------------------------- glowing eggs and light pools
+  yield;
   let poolMesh = null, poolList = [];   // the coral pools, for the story (the lamp-keepers brighten them as you pass)
+  yield;
   {
     const egg = new THREE.SphereGeometry(1, 12, 9).scale(1, 1.35, 1);
     const eggs = [];
@@ -436,6 +448,7 @@ export function createPerdide2(scene) {
   }
 
   // ---------------------------------------------------------- lily pads, moss bushes
+  yield;
   {
     const pad = new THREE.CircleGeometry(1, 9, 0.3, Math.PI * 2 - 0.6).rotateX(-Math.PI / 2);
     const pads = [];
@@ -463,6 +476,7 @@ export function createPerdide2(scene) {
 
   // ---------------------------------------------------------- root arches
   // enormous twisting roots arching over path and stream
+  yield;
   const rootParts = { '#2f4a55': [], '#34505a': [], '#2b3f50': [] };
   const tube = (pts, r, tubular, radial, seed, collide = true) => {
     const curve = new THREE.CatmullRomCurve3(pts);
@@ -520,7 +534,9 @@ export function createPerdide2(scene) {
     lights.push(new THREE.Vector4(A.x, 2, A.z, 10));
   });
   // gnarled roots sprawling along the banks
+  yield;
   for (let i = 0; i < 26; i++) {
+    yield;
     const k = Math.floor(R(0.08, 0.95) * N_PATH), q = pathPts[k], nn = pathNrm[k], side = rng() < 0.5 ? -1 : 1;
     const s0 = side * R(10, 18), s1 = side * R(22, 40), y = R(2, 6), f = R(-12, 12);
     const p0 = q.clone().addScaledVector(nn, s0), p2 = q.clone().addScaledVector(nn, s1);
@@ -533,6 +549,7 @@ export function createPerdide2(scene) {
 
   // ---------------------------------------------------------- the root cave
   // a dark mouth in a giant root mass, glowing coral inside, stalactite fringe
+  yield;
   {
     const grp = new THREE.Group();
     grp.position.set(CAVE.x, CAVE.y, CAVE.z);
@@ -608,7 +625,9 @@ export function createPerdide2(scene) {
   }
 
   // ---------------------------------------------------------- moss domes
+  yield;
   const domeDoors = [];   // where each round door is and which way it faces
+  yield;
   {
     const doorMat = makeMaterial({ color: '#9fe0d0', glow: 0.95 });
     const frameMat = makeMaterial({ color: '#2a4248', flat: true });
@@ -653,7 +672,9 @@ export function createPerdide2(scene) {
 
   // ---------------------------------------------------------- old Fen's landing stage
   // a raft of root-wood moored at the far dome's door, out on the deep water: the skiff's way only
+  yield;
   let fenLanding = null;
+  yield;
   {
     const D = domeDoors[FEN.dome], c = D.pos.clone().addScaledVector(D.out, 3.4);
     const wood = makeMaterial({ color: '#4a3f3a', flat: true, pattern: 'cracks' });
@@ -669,7 +690,9 @@ export function createPerdide2(scene) {
   }
 
   // ---------------------------------------------------------- the crashed saucer pod
+  yield;
   let saucer = null;
+  yield;
   {
     const grp = new THREE.Group();
     grp.position.set(SAUCER.x, SAUCER.y, SAUCER.z);
@@ -693,13 +716,16 @@ export function createPerdide2(scene) {
     saucer = { group: grp, light, glow, hull };
   }
 
+  yield;
   for (const [c, l] of Object.entries(rootParts)) if (l.length) {
+    yield;
     const m = new THREE.Mesh(mergeGeometries(l), makeMaterial({ color: c, flat: true, pattern: 'cracks' }));
     m.userData.noCollide = true;
     scene.add(m);
   }
 
   // collision stand-ins
+  yield;
   {
     const m = new THREE.Mesh(mergeGeometries(proxies.map((g) => { const n = g.index ? g.toNonIndexed() : g, o = new THREE.BufferGeometry(); o.setAttribute('position', n.attributes.position); return o; })), makeMaterial({ color: '#000000' }));
     m.visible = false;
@@ -710,6 +736,7 @@ export function createPerdide2(scene) {
   const spawnY = H(0, 0);
 
   // the Lamp-House in the shallows east of the root cave, and its rooms far overhead (src/temples/perdide2.js)
+  yield;
   return attachTemple('perdide2', scene, {
     id: 'perdide2',
     floraAvoid: (x, z, r) => !clear(x, z, r + 2) || pathDist(x, z) < 3.6 + r,   // off the lit path and the keep-outs (src/flora.js)
@@ -752,3 +779,4 @@ export function createPerdide2(scene) {
     update() {},
   });
 }
+export const createPerdide2 = stepped(buildPerdide2);

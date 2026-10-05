@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { runSteps } from './load-steps.js';
 
 // Split world-spanning meshes into tiles so frustum culling can skip what's
 // off-screen in each pass (main view and each shadow cascade). Without this
@@ -21,7 +22,9 @@ function spread(o) {
   return g.boundingSphere.radius * Math.max(o.scale.x, o.scale.y, o.scale.z);
 }
 
-export function tileScene(scene, { tile = 260, propTile = 110 } = {}) {
+export function tileScene(scene, o = {}) { return runSteps(tileSceneSteps(scene, o)); }
+/** tileScene a mesh a step (src/load-steps.js: the terrain-sized ones are cut a few thousand triangles a step). */
+export function* tileSceneSteps(scene, { tile = 260, propTile = 110 } = {}) {
   const small = [];   // tiles of small props (excluded from the far shadow pass)
   const todo = [];
   scene.traverse((o) => {
@@ -36,8 +39,9 @@ export function tileScene(scene, { tile = 260, propTile = 110 } = {}) {
     }
   });
   for (const o of todo) {
+    yield;
     const size = !o.isInstancedMesh && triangleCount(o.geometry) >= 150000 ? tile : propTile;
-    const tiles = o.isInstancedMesh ? tileInstances(o, size) : tileTriangles(o, size);
+    const tiles = o.isInstancedMesh ? tileInstances(o, size) : yield* tileTriangles(o, size);
     if (tiles.length < 2) continue;
     for (const t of tiles) {
       t.userData = { ...o.userData, tiled: true };
@@ -59,11 +63,12 @@ export function tileScene(scene, { tile = 260, propTile = 110 } = {}) {
   return { small };
 }
 
-function tileTriangles(mesh, size) {
+function* tileTriangles(mesh, size) {
   const g = mesh.geometry, P = g.attributes.position;
   const idx = g.index ? g.index.array : Array.from({ length: P.count }, (_, i) => i);
   const buckets = new Map();
   for (let i = 0; i < idx.length; i += 3) {
+    if (i % 30000 === 0) yield;
     const a = idx[i], b = idx[i + 1], c = idx[i + 2];
     const cx = (P.getX(a) + P.getX(b) + P.getX(c)) / 3, cz = (P.getZ(a) + P.getZ(b) + P.getZ(c)) / 3;
     const k = `${Math.floor(cx / size)},${Math.floor(cz / size)}`;
@@ -73,6 +78,7 @@ function tileTriangles(mesh, size) {
   }
   const out = [];
   for (const arr of buckets.values()) {
+    yield;
     const tg = new THREE.BufferGeometry();
     for (const [name, attr] of Object.entries(g.attributes)) tg.setAttribute(name, attr);
     tg.setIndex(new THREE.BufferAttribute(new Uint32Array(arr), 1));

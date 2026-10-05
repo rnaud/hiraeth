@@ -19,11 +19,11 @@ import { applyTimeOfDay, colourScript } from './timeofday.js';
 import { WindStreaks } from './wind.js';
 import { EDGE_HINTS, EdgeInk } from './edge.js';
 import { HOLO } from './ship/hologram.js';
-import { Physics, dropBuriedFlora } from './physics.js';
-import { tileScene, cullFar, fitBounds, SmallCuller, RoomCuller, InteriorCuller, resolveQuality, detectHandheld, GpuTimer, adaptScale, engineLabel } from './perf.js';
+import { Physics, dropBuriedFloraSteps } from './physics.js';
+import { tileSceneSteps, cullFar, fitBounds, SmallCuller, RoomCuller, InteriorCuller, resolveQuality, detectHandheld, GpuTimer, adaptScale, engineLabel } from './perf.js';
 import { LodManager, lodView } from './lod.js';
 import { skinnedLods } from './skinned-lod.js';
-import { buildFlora, floraKeep, FLORA_WORLDS } from './flora.js';
+import { buildFloraSteps, floraKeep, FLORA_WORLDS } from './flora.js';
 import { buildGrass } from './flora-grass.js';
 import { BrushTrail } from './brush.js';
 import { Cascade, ShadowCuller, shadowDirection, farPassSkips, selfLitSkips } from './shadows.js';
@@ -32,8 +32,8 @@ import { Flock, Motes, Footprints } from './life.js';
 import { Sound } from './audio.js';
 import { Weather, WEATHER_KINDS } from './weather.js';
 import { Shelter, addIndoors } from './shelter.js';
-import { spawnNPCs, pooledNPC, registerNPCTargets } from './npc.js';
-import { Crowd, CROWD_DIST_CELL } from './crowd.js';
+import { spawnNPCsSteps, pooledNPC, registerNPCTargets } from './npc.js';
+import { Crowd, CROWD_DIST_CELL, CROWD_BUDGET, buildPeopleSteps } from './crowd.js';
 import { Journal, Relics, Story, Errands } from './quest.js';
 import { CONTENT, ERRANDS } from './levels/content.js';
 import { loadAnimationLibrary, Animator } from './animator.js';
@@ -63,6 +63,8 @@ import { isolate, restore, portraitPixelRatio } from './story/portrait-bg.js';
 import { chargeState, chargeHud, chargeJournalHtml, showChargeCard, GIVEN as CHARGE_GIVEN, CARD as CHARGE_CARD } from './story/charge.js';
 import { slots, formatPlaytime } from './save-slots.js';
 import { Waters, BreathMeter } from './water.js';
+import { Passage, PassageCover, WarmDraw, warmPasses, carryAcross, PASSAGE } from './passage.js';
+import { slicer, runStepsAsync } from './load-steps.js';
 import { waterShared } from './water-shader.js';
 
 // Android: the handheld's controls come from the app (native-pad.js), and prompts use its button names
@@ -74,11 +76,14 @@ watchLabels();
 const loadMsg = document.querySelector('#loading .msg');
 const tLoad = performance.now();
 let tStage = tLoad, lastMsg = 'start';
+// Between stages, the build gives the main thread back every LOAD_BUDGET ms (src/load-steps.js:
+// await slice() as often as you like; a world's own build yields from inside itself)
+const slice = slicer();
 const stage = (msg) => {
   console.info(`load: ${lastMsg} ${(performance.now() - tStage).toFixed(0)} ms`);
   tStage = performance.now(); lastMsg = msg;
   if (loadMsg) loadMsg.textContent = msg;
-  return new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0)));
+  return new Promise((r) => requestAnimationFrame(() => setTimeout(() => { slice.reset(); r(); }, 0)));
 };
 
 // We author every colour as a display value and output it untouched.
@@ -183,21 +188,25 @@ const animLib = loadAnimationLibrary().catch((e) => { console.warn('animation li
 const traveller = new GLTFLoader().loadAsync(`${import.meta.env.BASE_URL}anim/traveller.glb`).then(g => g.scene).catch(e => { console.warn('Traveller unavailable; using the original explorer.', e); return null; });
 const humans = Promise.all([loadHuman('m'), loadHuman('f')]).catch((e) => { console.warn('human models failed to load', e); return null; });
 await stage(`sketching ${meta.title.toLowerCase()}…`);
-const level = meta.create(scene);
+const level = meta.build ? await runStepsAsync(meta.build(scene), slice) : meta.create(scene);
 const terrain = level.ground;
 // what the metals see below the horizon: the world's ground (materials.js)
 setEnvGround(level.envGround ?? level.ground?.mesh?.material?.uniforms?.uColor?.value);
+await slice();
 await stage('inking the collisions…');
 // Collision against the real level geometry (built before the player / vehicles join the scene).
 const t0 = performance.now();
-const physics = await Physics.create(scene, level.ground.heightAt ? level.ground : null);
+const physics = await Physics.create(scene, level.ground.heightAt ? level.ground : null, slice);
 console.info(`collision: ${physics.triangles.toLocaleString()} triangles in ${(performance.now() - t0).toFixed(0)} ms (BVH in a worker)`);
-level.init?.(physics);
+if (level.initSteps) await runStepsAsync(level.initSteps(physics), slice); else level.init?.(physics);
+await slice();
 // every body of water: its look (bed maps, ripples) and swimming in it (src/water.js, src/swim.js)
 const waters = new Waters(scene, { physics });
+await slice();
 // trees and shrubs that landed inside a house or a rock are left out (src/physics.js; window.clipAudit lists the rest)
-const buriedFlora = dropBuriedFlora(scene, physics);
+const buriedFlora = await runStepsAsync(dropBuriedFloraSteps(scene, physics), slice);
 if (buriedFlora) console.info(`flora: ${buriedFlora} buried instances left out`);
+await slice();
 // the traveller's ship at this world's arrival point (src/ship/); a new game opens with the prologue
 // (no ?level and prologue.done unset, or ?prologue=1 to replay it)
 const playPrologue = levelId === 'desert' && !viaShip && (query.get('prologue') === '1' || (!levelParam && !game.flag('prologue.done')));
@@ -205,12 +214,15 @@ const playPrologue = levelId === 'desert' && !viaShip && (query.get('prologue') 
 const playHomecoming = levelId === 'home' && ((viaShip && !game.flag('ending.done')) || query.get('ending') === '1');
 const ship = new Ship({ scene, physics, level, levelId, content, prologue: playPrologue || playHomecoming });
 level.ship ??= { pos: ship.rampFoot.clone() };
+await slice();
 const auditRoots = scene.children.slice();   // the level and the ship: what the clipping audit looks over (window.clipAudit)   // quests that say "return to the ship" point at its ramp
-const reactiveWorld = new ReactiveWorld(scene, level, physics, content);
+const reactiveWorld = await runStepsAsync(ReactiveWorld.make(scene, level, physics, content), slice);
 window.addEventListener('pagehide', () => reactiveWorld.flush());
+await slice();
 // tile world-spanning meshes so each pass only draws what it can see
-const tiled = tileScene(scene);
+const tiled = await runStepsAsync(tileSceneSteps(scene), slice);
 tiled.small.push(...(level.smallProps ?? []));
+await slice();
 await stage('waking the people…');
 // the bird's promise: under open sky, in a world with no mount of its own, the whistle calls her down (src/bird.js)
 if (birdAnswers(levelId, level, (k) => game.flag(k))) { level.mount = (p) => promisedBird(p, level.spawn); level.mountName = 'bird'; }
@@ -302,6 +314,7 @@ player.vehicles.push(...(level.vehicles ?? []));
 const offMapRooms = (level.portals ?? []).filter((p) => p.to && !p.toUp && p.to.y - (terrain.heightAt?.(p.to.x, p.to.z) ?? p.to.y) > 200).map((p) => p.to);
 const inOffMapRoom = () => offMapRooms.some((r) => r.distanceToSquared(player.pos) < 90 * 90);
 player.opts.canSummon = () => !inOffMapRoom() && !ship?.inside;   // (nor from inside the ship)
+await slice();
 const lib = await animLib;
 if (lib) {
   player.animator = player._animator = new Animator(lib, player.char);
@@ -326,10 +339,12 @@ if (humanT && travellerTemplate) {
   player.humanoid.setHeadwear('short', { hair: '#8a5638' });
 }
 player.attach(scene);
+await slice();
 const heroMaterials = markHero(player.char.root);
 markHero(player.gear?.device, heroMaterials);
 markHero(player.cape?.mesh, heroMaterials);
 if (player.mount) scene.add(player.mount.object);
+await slice();
 
 // ambient life
 const lifeCfg = level.life ?? {};
@@ -378,6 +393,7 @@ const rig = new CameraRig(camera, renderer.domElement, physics);
 rig.yaw = level.camYaw;
 rig.pitch = level.camPitch ?? rig.pitch;
 rig.constrain = level.constrainCamera;
+await slice();
 
 // ------------------------------------------------------------------ sound, weather, people, story
 const sound = new Sound(levelId);
@@ -388,6 +404,7 @@ for (const v of player.vehicles) if (v.groundAt && !v.surface) v.surface = (x, y
 const breathMeter = new BreathMeter();
 // the magic-fluid backpack: shoot, boost and push on three shared charges (fluid-tool.js)
 const tool = new FluidTool({ scene, player, physics, camera, rig, sound, level, hud: new ToolHud(), noShadow: (level.noShadow ??= []) });
+await slice();
 tool.powerTrails(trails);   // the hover trails run in the fluid's tones
 // what an ember glob sets alight: the camp fires, the market's lamps, dry brambles (flammable.js)
 const flammables = new Flammables(scene, flammableSpots(level), { lights: levelLights, sound });
@@ -398,19 +415,29 @@ addIndoors((p) => !!ship.modelOf(p));   // the traveller's own ship
   const stormColor = { desert: '#e3c58f', arzach: '#e8dfcb' }[levelId];
   if (stormColor) post.uniforms.uStormColor.value.set(stormColor);
 }
-const npcs = spawnNPCs(scene, physics, content.npcs, { lib, humans: peopleT });
+const npcs = await runStepsAsync(spawnNPCsSteps(scene, physics, content.npcs, { lib, humans: peopleT }), slice);
+await slice();
 // city crowds: hundreds of GPU-animated people, the nearest few promoted to full NPCs (crowd.js)
+const crowdSpots = level.crowdSpots ? { lines: level.crowdLines, ...level.crowdSpots() } : null;
+const crowdClear = content.npcs.map((s) => ({ x: s.at[0], y: s.y, z: s.at[1], r: 3 }));
+const crowdT0 = performance.now();
+const crowdBuilt = crowdSpots ? await runStepsAsync(buildPeopleSteps(physics, crowdSpots, { seed: 11, clear: crowdClear }), slice) : null;
+// (the near tier's bodies one at a time: each is a person built and dressed)
+const crowdPool = [];
+if (crowdSpots) for (let i = 0; i < CROWD_BUDGET.pool; i++) { crowdPool.push(pooledNPC(scene, physics, { kind: i % 2 ? 'f' : 'm', lib, humans: peopleT })); await slice(); }
 const crowd = level.crowdSpots ? new Crowd(scene, physics, {
-  spots: { lines: level.crowdLines, ...level.crowdSpots() },
-  clear: content.npcs.map((s) => ({ x: s.at[0], y: s.y, z: s.at[1], r: 3 })),
+  spots: crowdSpots, built: crowdBuilt, pooled: crowdPool,
+  clear: crowdClear,
   makeNPC: (kind) => pooledNPC(scene, physics, { kind, lib, humans: peopleT }),
 }) : null;
-if (crowd) { npcs.push(...crowd.npcs); console.info(`crowd: ${crowd.people.length} people in ${crowd.groups.length} groups, placed in ${crowd.buildMs.toFixed(0)} ms`); }
+if (crowd) { npcs.push(...crowd.npcs); console.info(`crowd: ${crowd.people.length} people in ${crowd.groups.length} groups, placed in ${(performance.now() - crowdT0).toFixed(0)} ms`); }
 registerNPCTargets(npcs);   // the fluid tool can splash or shove anyone
+await slice();
 const journal = new Journal(LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, relicNames: CONTENT[l.id].relics.names, storyTitle: CONTENT[l.id].story.title })));
 const errands = new Errands({ levelId, defs: ERRANDS, npcs, journal, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])), capture: (e, l, w, h) => captureView(e, l, w, h), sound });
 const capture = (eye, look, w, h) => captureView(eye, look, w, h);
 const relics = new Relics(scene, physics, { levelId, spots: content.relics.spots, names: content.relics.names, journal, sound, capture, lights: levelLights });
+await slice();
 // the route: the worlds you know of (src/story/route.js); finishing this one names the next on the ship's map
 const worldDone = (id) => !!(game.flag(`world.${id}.done`) || journal.storyDone(id));
 const known = () => knownWorlds({ order: ORDER, done: worldDone, visited: (id) => journal.seen(id), current: levelId });
@@ -423,6 +450,7 @@ const revealed = () => {
 journal.known = (id) => !ORDER.includes(id) || known().includes(id);   // the sketchbook leaves out worlds you don't know yet
 const story = new Story(scene, { levelId, def: { ...content.story, next: revealed }, journal, sound, capture, player, physics, ground: level.ground.heightAt ? level.ground : null, say: (t) => showToast(t) });
 const expedition = level.observatory ? new ObservatoryQuest({ model: level.observatory, journal, traveler: npcs[5], story, capture, sound }) : null;
+await slice();
 // ---- story: conversations, quests, the world's people and places (src/story/, src/interact.js)
 const showToast = (text) => ship.cinema.toast(text);   // queued, and held while a scene has the screen dark (src/ship/cinema.js)
 player.onNotice = showToast;   // "It needs power." (a vehicle without the backpack)
@@ -433,6 +461,7 @@ const storyRt = createStory({ levelId, scene, physics, level, player, npcs, crow
   capture: (e, l, w, h, o) => captureView(e, l, w, h, o) });
 for (const c of scene.children) if (!preStory.has(c)) auditRoots.push(c);   // (and what the world's story placed)
 story.waitFor = () => storyRt.dialogue.open;   // a story page never opens over a conversation: it waits for its end
+await slice();
 // E: boarding a vehicle and turning a lens share the interact button with talking (nearest wins)
 registerInteractable({ id: 'vehicle', priority: PRIORITY.vehicle, range: 6, at: () => player.nearestVehicle()?.pos,
   prompt: () => { const v = player.nearestVehicle(); return v?.kind === 'taxi' ? 'get in the taxi' : v?.powered && !items.has('backpack') ? `ride the ${level.mountName ?? v?.kind} (it needs power)` : `ride the ${level.mountName ?? v?.kind ?? 'mount'}`; },
@@ -454,6 +483,7 @@ const boxes = createBoxes({ levelId, scene, physics, level, player, sound, quest
   quiet: () => ship.playing || storyRt.dialogue.open,   // box quests wait for the landing, the recordings and talk to be over
   cam: { shot: (s) => ship.shot(s), release: (b) => ship.release(b), hud: (on) => ship.cinema.hud(on), bars: (on) => ship.cinema.bars(on) } });
 const itemFx = createItemEffects({ player, tool, level, sound, camera, toast: showToast, isNight: () => sky.hour < 6.4 || sky.hour > 19.3 });
+await slice();
 journal.sections.unshift(() => gearHtml(items.owned(), { mode: tool.owned && tool.modes.length > 1 ? tool.modeName : null }));   // Select / View opens on your gear
 journal.sections.push(() => boxes.journalHtml(Object.fromEntries(LEVELS.map((l) => [l.id, l.title]))));
 // the father's charge (src/story/charge.js): the journey's own quest, pinned above everything
@@ -485,13 +515,15 @@ window.addEventListener('keydown', (e) => {
 });
 // flora: the world's own plants in clumps, clear of the people, the boxes, the relics, the ship and
 // the story's places (src/flora.js); the large ones are solid
-const flora = buildFlora({ scene, level, levelId, physics, density: preset.floraDensity ?? 1, keep: floraKeep({ level, content, ship, npcs, crowd, boxes, reactiveWorld }) });
+await slice();
+const flora = await runStepsAsync(buildFloraSteps({ scene, level, levelId, physics, density: preset.floraDensity ?? 1, keep: floraKeep({ level, content, ship, npcs, crowd, boxes, reactiveWorld }) }), slice);
 if (flora) {
   tiled.small.push(...flora.small);
   (level.noShadow ??= []).push(...flora.noShadow);
   if (flora.collider) physics.addCollider(flora.collider);
   console.info(`flora: ${flora.count} plants (${flora.largeCount} large) of ${flora.sets.length} species, ${flora.buildMs.toFixed(0)} ms`);
 }
+await slice();
 // grass blades round the camera on the grassy grounds (src/flora-grass.js), by the graphics preset
 blades.grow = () => {
   if (blades.key === preset.key) return;
@@ -502,8 +534,10 @@ blades.grow = () => {
   if (blades.grass) (level.noShadow ??= []).push(...blades.grass.meshes);
 };
 blades.grow();
+await slice();
 // wildlife: two or three small species per world, each with a surprise (src/wildlife.js)
 const wildlife = new Wildlife(scene, level, physics, { content, sound, defs: level.wildlife });   // (a level may bring its own list: the Lab's rooms)
+await slice();
 ship.attach({ player, rig, camera, sound, journal, post, story, wind, npcs, lib, humans: peopleT, levels: LEVELS, order: ORDER, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])) });
 if (viaShip) {
   const a = ship.arrivalSpot();
@@ -995,11 +1029,13 @@ function glowCasters() {
 const shadowCull = new ShadowCuller(scene);
 const smallCull = new SmallCuller(scene);
 let roomCull = null;
+const makeRoomCull = () => new RoomCuller(scene, offMapRooms, { keep: [player.object, player.mount?.object, ...player.vehicles.map((v) => v.object ?? v.mesh), ...npcs.map((n) => n.object)] });
 // and the other way round: inside one of those rooms, the whole map outside it (perf.js InteriorCuller)
 const interiorCull = new InteriorCuller(scene, offMapRooms, { ground: (x, z) => terrain.heightAt?.(x, z) ?? 0 });
 // levels of detail (lod.js): distant static meshes drawn coarser, by no more than the preset's
 // lodPx pixels; never the terrain (dug into at runtime) or anything that moves with a person
 let lod = null;
+const makeLod = () => new LodManager(scene, { keep: [...movers(), terrain?.mesh] });
 const movers = () => [player.object, player.mount?.object, ...player.vehicles.map((v) => v.object ?? v.mesh), ...npcs.map((n) => n.object), ...(crowd?.pool ?? []).map((e) => e.npc?.object)];
 const shadowDir = new THREE.Vector3();
 const frameStats = { calls: 0, tris: 0, n: 0, culled: 0 };
@@ -1032,11 +1068,11 @@ function renderFrame() {
   blades.grass?.update(camera);
   cullFar(tiled.small, camera, preset.propFar, frameHidden);
   smallCull.hide(camera, pxPerRad, preset.propPx, frameHidden);
-  (roomCull ??= new RoomCuller(scene, offMapRooms, { keep: [player.object, player.mount?.object, ...player.vehicles.map((v) => v.object ?? v.mesh), ...npcs.map((n) => n.object)] })).hide(camera, frameHidden);
+  (roomCull ??= makeRoomCull()).hide(camera, frameHidden);
   interiorCull.hide(camera, frameHidden);
   lodView.pxPerRad = pxPerRad; lodView.px = preset.lodPx ?? 0;
   skinnedLods.update(camera, pxPerRad, preset.lodPx ?? 0);   // the people far off: simpler bodies (skinned-lod.js)
-  (lod ??= new LodManager(scene, { keep: [...movers(), terrain?.mesh] })).update(camera, pxPerRad, preset.lodPx ?? 0);
+  (lod ??= makeLod()).update(camera, pxPerRad, preset.lodPx ?? 0);
   if (crowd) crowd.range.dist = preset.lodPx ? (CROWD_DIST_CELL * pxPerRad) / preset.lodPx : Infinity;   // the crowd's distant figure, by the same rule
 
   // 1. shadow maps. The light direction is quantised (a moving sun turns the maps in rare tiny
@@ -1233,6 +1269,7 @@ function frame() {
   // E goes to the nearest person / thing / vehicle first (src/interact.js); only then to the player's whistle
   const ePressed = !!ctl.KeyE && !eWasDown && !photo.on && !player.down; eWasDown = !!ctl.KeyE;   // (no talking while knocked down)
   const interacted = storyRt.update(dt, t, { camera, ePressed, paused: busy() || photo.on || ship.playing }).handled;
+  passage.update(dt);   // a hand-over under way: the move happens here, before the traveller and the camera do
   if (photo.on) {
     if (!busy()) photoUpdate(dt, mergedInput);
   } else {
@@ -1276,18 +1313,17 @@ function frame() {
     brushTrail.update(dt, player.riding ? null : player.pos, Math.hypot(player.vel.x, player.vel.z));
     sharedUniforms.uWind.value.set(wx, wz, (level.features.wind ? 1 : 0.55) * (1 + Wx.storm * 2 + Wx.rain * 0.4), wind.gust());
   }
-  // doorways into interiors (and back out)
+  // doorways into interiors (and back out): the hand-over (src/passage.js): its destination drawn
+  // ahead as you come near, then the paper sweeps across, you walk on out of the far side
   portalCool = Math.max(portalCool - dt, 0);
-  if (!portalCool && !player.riding && !player.dead && level.portals) {
+  if (!portalCool && !passage.active && !player.riding && !player.dead && level.portals) {
     for (const pt of level.portals) {
-      if (player.pos.distanceTo(pt.at) < pt.r) {
-        player.teleport(pt.to, new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1));
-        player.heading = pt.heading;
-        rig.yaw = pt.heading + Math.PI;
-        rig.target.copy(pt.to);
-        rig._curDist = 2;
+      const d = player.pos.distanceTo(pt.at);
+      if (d < pt.r + PASSAGE.near) passage.prepare(pt.to);
+      if (d < pt.r) {
+        passage.go({ to: pt.to, heading: pt.heading });
         sound.page();
-        portalCool = 1.2;
+        portalCool = 1.2 + PASSAGE.cover + PASSAGE.reveal;
         break;
       }
     }
@@ -1339,7 +1375,7 @@ function frame() {
   updateHud();
   if (!busy() && !ship.playing) updateHazards(dt, player, { notice: showToast });   // fire and spines (src/hazards.js)
   updateHealth(dt);
-  level.update(dt, t, { player, rig, camera, fade: (k, secs) => ship.cinema?.fade(k, true, secs) });
+  level.update(dt, t, { player, rig, camera, passage, fade: (k, secs) => ship.cinema?.fade(k, true, secs) });
   reactiveWorld.update(dt, t, player, camera, busy() || photo.on);
   wildlife.update(dt, t, player, camera, busy() || photo.on);
   // levels with zones (the Hangar) switch ink style as you cross between them
@@ -1441,20 +1477,84 @@ async function warmShaders(targetScene, targetCamera, target = null) {
   renderer.setRenderTarget(prev);
   clearTimeout(timer);
 }
+// The world's own surfaces, a slice at a time: compile() for the whole scene at once built every
+// program's source and key in one task (100-500 ms, far longer on a handheld). One object stands
+// for each kind of program (its material, and what of the mesh goes into the key: instanced,
+// skinned, points or lines, its optional attributes), compiled between yields; then the wait for
+// the driver, polled. (A combination missed here compiles at first sight, as it always would.)
+const programKind = (o, m) => `${m.id}|${o.isInstancedMesh ? 1 : 0}${o.instanceColor ? 1 : 0}${o.isSkinnedMesh ? 1 : 0}${o.isBatchedMesh ? 1 : 0}${o.isPoints ? 1 : 0}${o.isLine ? 1 : 0}${o.isSprite ? 1 : 0}|${Object.keys(o.geometry?.morphAttributes ?? {}).length}|${['color', 'uv1', 'uv2', 'uv3', 'tangent'].map((a) => (o.geometry?.attributes?.[a] ? 1 : 0)).join('')}`;
+// (the scene a program's key is taken from: no lights, fog or environment, as the world's own; an
+// empty one, so each compile doesn't walk the whole world looking for lights)
+const keyScene = new THREE.Scene();
+async function warmShadersSliced(targetScene, targetCamera, target = null, { wear = null } = {}) {
+  const reps = new Map();
+  targetScene.traverse((o) => {
+    if (!o.material || !(o.isMesh || o.isPoints || o.isLine || o.isSprite)) return;
+    for (const m of [wear ?? o.material].flat()) { const k = programKind(o, m); if (!reps.has(k)) reps.set(k, o); }
+  });
+  const prev = renderer.getRenderTarget(), mats = new Set();
+  for (const o of reps.values()) {
+    const own = o.material;
+    if (wear) o.material = wear;
+    try {
+      renderer.setRenderTarget(target);
+      for (const m of renderer.compile(o, targetCamera, keyScene)) mats.add(m);
+    } finally { if (wear) o.material = own; }
+    await slice();
+  }
+  renderer.setRenderTarget(prev);
+  // the driver compiles in parallel (KHR_parallel_shader_compile): wait for it a while, yielding
+  const pending = () => [...mats].filter((m) => { const p = renderer.properties.get(m).currentProgram; return p && !p.isReady(); }).length;
+  const t0 = performance.now();
+  while (pending() && performance.now() - t0 < 2000) await new Promise((r) => setTimeout(r, 10));
+  return reps.size;
+}
 // instanced props left unculled (rocks, flowers, story props) get real bounds, so every pass can cull them
 console.info(`bounds: ${fitBounds(scene)} instanced meshes made cullable`);
-await warmShaders(scene, camera, gbuffer);
-await warmShaders(post.scene, post.camera, composeRT);
-{ const wp = waters.warmPass?.(); if (wp) await warmShaders(wp.scene, wp.camera, composeRT); }   // the water's sparkle pass
-// the shadow passes draw everything with one depth-only material, a program per kind of mesh
-// (instanced, skinned, which attributes): compiled now too, each mesh wearing it for the moment
-// (a person or a plant first seen in a shadow had stalled a frame on its compile)
+await slice();
 {
-  const worn = [];
-  scene.traverse((o) => { if (o.isMesh && o.material) { worn.push([o, o.material]); o.material = shadowOverride; } });
-  const rt = Object.values(cascades).find((c) => c.enabled && c.rt)?.rt ?? null;
-  try { await warmShaders(scene, camera, rt); } finally { for (const [o, m] of worn) o.material = m; }
+  const t0 = performance.now();
+  const n = await warmShadersSliced(scene, camera, gbuffer);
+  console.info(`shaders: ${n} kinds of surface, ${renderer.info.programs.length} programs, ${(performance.now() - t0).toFixed(0)} ms`);
 }
+await warmShaders(post.scene, post.camera, composeRT);
+await slice();
+{ const wp = waters.warmPass?.(); if (wp) await warmShaders(wp.scene, wp.camera, composeRT); }   // the water's sparkle pass
+await slice();
+// the shadow passes draw everything with one depth-only material, a program per kind of mesh
+// (instanced, skinned, which attributes): compiled now too, each kind wearing it for the moment
+// (a person or a plant first seen in a shadow had stalled a frame on its compile)
+await warmShadersSliced(scene, camera, Object.values(cascades).find((c) => c.enabled && c.rt)?.rt ?? null, { wear: shadowOverride });
+// The ways through, drawn once ahead (src/passage.js): every room, cave and hall a door or a portal
+// leads to, and the ship's rooms, with their geometry and textures on the GPU and the driver's
+// pipelines built before the first frame (they used to arrive with the first sight of them); and
+// what the first frame will see, so its uploads are spread over the load, a slice at a time,
+// instead of all landing in the first frame.
+const warmDraw = new WarmDraw(renderer, scene, { passes: warmPasses({ makeGBuffer: createGBuffer, shadowOverride }), lodFull: (o) => lod?.fullOf?.(o) });
+{
+  const t0 = performance.now();
+  scene.updateMatrixWorld();
+  rig.update(player.pos, 0, player.frame);   // (the first frame's camera)
+  camera.updateMatrixWorld();
+  const dests = [...(level.portals ?? []), ...(level.navigationPortals ?? [])].map((p) => p.to).filter(Boolean);
+  const view = new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+  const inView = (o) => { try { return !o.frustumCulled || view.intersectsObject(o); } catch { return false; } };
+  const seen = warmDraw.meshes().filter((o) => o.visible !== false && (!o.isInstancedMesh || o.count > 0) && inView(o));
+  const todo = [...warmDraw.near(dests), ...warmDraw.of(...(ship.parked?.indoor ?? [])), ...warmDraw.near([player.pos], 120), ...seen];
+  let n = 0;
+  for (let i = 0; i < todo.length; i += 24) { n += warmDraw.draw(todo.slice(i, i + 24)); await slice(); }
+  // what the first frame would set up for itself: the rooms off the map, the levels of detail
+  roomCull ??= makeRoomCull();
+  await slice();
+  (lod ??= makeLod()).collect();
+  await slice();
+  // the grass round the first view, placed a few milliseconds at a time (at once, it was a 60-80 ms first frame)
+  if (blades.grass) { blades.grass.placedOnce = true; if (blades.grass.far) blades.grass.far.placedOnce = true; for (let i = 0; i < 400; i++) { blades.grass.update(camera); await slice(); if (!blades.grass.placing) break; } }
+  // (a program's first use asks the GPU process for its uniforms and log, a wait on everything queued: done now)
+  for (const p of renderer.info.programs) { p.getUniforms?.(); await slice(); }
+  console.info(`passage warm-up: ${n} meshes in ${(performance.now() - t0).toFixed(0)} ms`);
+}
+const passage = new Passage({ cover: new PassageCover(), warm: warmDraw, carry: (c) => carryAcross(player, rig, camera, c), busy: () => !!blades.grass?.placing });
 stage('ready'); console.info(`load: total ${(performance.now() - tLoad).toFixed(0)} ms (after module load)`);
 requestAnimationFrame((t) => {
   frame(t);
@@ -1478,4 +1578,4 @@ window.clipAudit = async (o = {}) => {
   return r;
 };
 Object.assign(window, { waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife,
-  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, boxes, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame, lod: () => lod, skinnedLods, interiorCull });
+  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, passage, warmDraw, boxes, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame, lod: () => lod, skinnedLods, interiorCull });

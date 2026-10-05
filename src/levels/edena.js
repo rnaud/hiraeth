@@ -6,6 +6,7 @@ import { Terrain, jitter, soften } from '../world.js';
 import { buildRoom, portalPair } from '../interiors.js';
 import { PEOPLE } from '../story/edena-data.js';
 import { attachTemple } from '../temples/index.js';
+import { stepped } from '../load-steps.js';
 
 // ---------------------------------------------------------------------------
 // Viridel: a paradise planet with pale meadows,
@@ -332,10 +333,11 @@ export function edenaRuins({ scene, terrain, rng, ruinMat, accent, ruins = null 
   scene.add(ring);
 }
 
-export function createEdena(scene) {
+// (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
+export function* buildEdena(scene) {
   const rng = mulberry32(1983);
   const pick = (a) => a[Math.floor(rng() * a.length)];
-  const terrain = new Terrain({
+  const terrain = yield* Terrain.make({
     size: 4000, seg: 420, height,
     material: { color: '#b4d896', color2: '#c9e4a8', color3: '#e2d3a8', mode: MODE_TERRAIN, ticks: true },
   });
@@ -345,6 +347,7 @@ export function createEdena(scene) {
   const shipPortals = [];
 
   // ---------------------------------------------------------- pond
+  yield;
   {
     const pond = new THREE.Mesh(new THREE.CircleGeometry(95, 48).rotateX(-Math.PI / 2),
       makeMaterial({ color: '#7fc4d0', color2: '#9ad3d9', mode: MODE_WATER }));
@@ -356,34 +359,43 @@ export function createEdena(scene) {
   // ---------------------------------------------------------- giant umbrella trees
   // The trunk pierces a stack of flat canopies; climb the trunk and you come
   // out standing on top of a canopy.
+  yield;
   const kit = { scene, terrain, rng, pick };
   const tree = (x, z, s) => edenaTree(kit, x, z, s);
   tree(60, -80, 0.6);
   tree(-60, 70, 0.8);
+  yield;
   for (let i = 0; i < 46; i++) {
+    yield;
     const x = (rng() * 2 - 1) * 1300, z = (rng() * 2 - 1) * 1300;
     if (Math.hypot(x, z) < 60 || Math.hypot(x + 120, z + 160) < 110) continue;
     tree(x, z, 0.6 + rng() * 0.9);
   }
 
   // ---------------------------------------------------------- step pyramids
+  yield;
   const pyramid = (x, z, size) => edenaPyramid(kit, x, z, size);
   pyramid(-200, 220, 90);
+  yield;
   for (let i = 0; i < 8; i++) pyramid((rng() * 2 - 1) * 1200, (rng() * 2 - 1) * 1200, 50 + rng() * 90);
 
   // ---------------------------------------------------------- android ruins (clean white, gridded)
+  yield;
   const ruinMat = makeMaterial({ color: '#f7f4ec', flat: true, grid: 3, glyphs: true });
   const accent = makeMaterial({ color: '#62c3c9', flat: true, grid: 3 });
   const ruinSlabs = [];
   const ruins = (cx, cz) => edenaRuins({ ...kit, ruinMat, accent, ruins: ruinSlabs }, cx, cz);
   ruins(180, 120);
+  yield;
   for (let i = 0; i < 7; i++) ruins((rng() * 2 - 1) * 1200, (rng() * 2 - 1) * 1200);
 
   // ---------------------------------------------------------- hero: the crashed ship
   // Odile and Talo's retro spaceship, nose-down in the meadow where the story begins.
   // The garden has begun to grow over it (overgrow, below); under the flowers on
   // its starboard flank is the scorch of what struck it (src/story/edena.js).
+  yield;
   const crashed = {};
+  yield;
   {
     const grp = new THREE.Group();
     const hullMat = makeMaterial({ color: '#f3ead8', color2: '#e6875f', color3: '#f3ead8', mode: MODE_STRATA, strataSize: 3.5, grid: 3, metal: 'painted' });
@@ -440,12 +452,14 @@ export function createEdena(scene) {
   // ---------------------------------------------------------- the meadow's flowers
   // grow in clumps now, species by species (src/flora.js, after the level is built). The old
   // scatter's random draws are still taken, so everything placed after it stays where it was.
+  yield;
   for (let i = 0; i < 3500 * 7; i++) rng();
 
   // ---------------------------------------------------------- the android garden
   // Viridel's perfect geometry: great smooth spheres half-sunk in the meadow,
   // and little ornaments on white pedestals (spheres, cones, diamonds) in flat
   // pastel colours with no texture at all.
+  yield;
   {
     const white = makeMaterial({ color: '#fbf8f0' });
     const ACC = ['#f2a7b5', '#62c3c9', '#f6c7a0', '#b5a7e6', '#f2c54b', '#7fcfa8'];
@@ -477,7 +491,9 @@ export function createEdena(scene) {
   // ---------------------------------------------------------- the tallest tree, and Talo's lookout on its crown
   // Climb the trunk to the two canopies; the crown floats above the upper one on
   // thin branches: a fluid boost from the upper canopy's rim lands you on it.
+  yield;
   const tall = {};
+  yield;
   {
     const r2 = mulberry32(915);
     const { x, z, h } = TALL_TREE;
@@ -552,6 +568,7 @@ export function createEdena(scene) {
   const pondY = terrain.heightAt(POND.x, POND.z) + 6;
 
   // ---------------------------------------------------------- the furrow the ship ploughed, grown over greener than the meadow
+  yield;
   {
     const from = new THREE.Vector3(crashed.centre.x - 34, 0, crashed.centre.z - 2), len = 150, dir = new THREE.Vector3(-0.92, 0, -0.4).normalize();
     const side = new THREE.Vector3(dir.z, 0, -dir.x), pos = [], idx = [];
@@ -571,6 +588,7 @@ export function createEdena(scene) {
   }
 
   // (the white builders' Greenhouse in the hollow north of the ruins: src/temples/edena.js)
+  yield;
   return attachTemple('edena', scene, {
     id: 'edena',
     // the story's handles (src/story/edena.js): the crashed ship (hatch, cabin panel, the scorch
@@ -607,3 +625,4 @@ export function createEdena(scene) {
     update(dt, t, ctx) { for (const m of movers) m(t, ctx?.player?.pos); },
   });
 }
+export const createEdena = stepped(buildEdena);

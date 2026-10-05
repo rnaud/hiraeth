@@ -10,6 +10,7 @@ import { ROOMS } from './lab-rooms.js';
 import { FACE_PRESETS } from '../morph.js';
 import { TONE_EXPRESSIONS } from '../expression.js';
 import { TRAVELLER } from '../traveller.js';
+import { stepped } from '../load-steps.js';
 
 // ---------------------------------------------------------------------------
 // The Lab: a developer's world for looking at the game's surfaces, faces and
@@ -119,25 +120,31 @@ export const LAB_DOORS = ROOMS.map((room, i) => {
   return { id: room.id, title: room.title, x: Math.sin(a) * R, z: Math.cos(a) * R, heading: a + Math.PI };   // its front faces the hub's centre
 });
 const hubHeight = (x, z) => Math.max(0, Math.hypot(x, z) - 160) * 0.08;   // a shallow bowl beyond the galleries
-/** A room's people, in the world (content.js puts them in the Lab, dressed for their world). */
-export const LAB_PEOPLE = ROOMS.flatMap((room, i) => {
+/**
+ * A room's people, in the world (content.js puts them in the Lab, dressed for their world). Worked out
+ * the first time they are asked for: their heights come from the rooms' grounds (the desert room's
+ * reads the dune relief, ~70 ms to build), which every world used to pay for as the game loaded.
+ */
+let labPeopleList = null;
+export const labPeople = () => (labPeopleList ??= ROOMS.flatMap((room, i) => {
   const c = roomCentre(i);
   return room.people.map((p) => ({
     at: [c.x + p.at[0], c.z + p.at[1]], y: c.y + (p.y ?? room.ground?.height(p.at[0], p.at[1]) ?? room.floor ?? 0), world: room.id,
     radius: p.radius ?? 3, palette: p.palette ?? {}, head: p.head, lines: p.lines,
   }));
-});
+}));
 
 const Y = new THREE.Vector3(0, 1, 0), Z = new THREE.Vector3(0, 0, 1);
 const PASS = { in: 0.18, out: 0.45 };   // s: the fade into a door, and out of it
 const HUB_ZONE = { name: 'The Lab', preset: 'Viridel', hour: 11 };
 const HUB_ATMO = { tint: [1, 1, 1], fog: 0.35, name: 'The Lab' };
 
-export function createLab(scene) {
+// (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
+export function* buildLab(scene) {
   const hub = new THREE.Group();
   hub.name = 'Lab hub';
   scene.add(hub);
-  const terrain = new Terrain({
+  const terrain = yield* Terrain.make({
     size: 1200, seg: 60, height: hubHeight,
     material: { color: FLOOR, color2: '#cfccc4', color3: '#c4c0b6', mode: MODE_TERRAIN },
   });
@@ -148,6 +155,7 @@ export function createLab(scene) {
   const lights = [], noShadow = [];
 
   // ---- the materials row: a pedestal, a sphere, a cube and a knot each, the name on the plinth
+  yield;
   const shapes = [
     new THREE.SphereGeometry(1, 32, 20).translate(0, 1, 0),
     new THREE.BoxGeometry(1.5, 1.5, 1.5).translate(0, 0.75, 0),
@@ -178,6 +186,7 @@ export function createLab(scene) {
   // its rim, a beach to wade in at the near end, 3.8 m of water at the far end, a rock breaking the
   // surface and one just under it, a low wall to climb out over and a high one to climb, and a
   // tower in the deep corner to jump from (a 10 m drop into the deep end)
+  yield;
   {
     const PX = 86, PZ = -30, HW = 14, HD = 10, WY = 4.0;
     const box = (w, h, d, x, y, z, rz = 0, mat = stone) => {
@@ -214,8 +223,10 @@ export function createLab(scene) {
     hub.add(label);
   }
   // ---- grass: a meadow beyond the pool, its blades round the camera (src/flora-grass.js)
+  yield;
   const meadowAt = { x: ((LAB_MATERIALS.length + 1) / 2) * SPACING + 22, z: -24, w: 16, d: 11, h: 0.3 };
   const meadowMat = { color: '#9cc57a', color2: '#b4d38c', color3: '#8fae55', mode: MODE_TERRAIN, ticks: true, key: 'lab.meadow' };
+  yield;
   {
     const M = meadowAt;
     const plot = new THREE.Mesh(new THREE.BoxGeometry(M.w, M.h, M.d).translate(0, M.h / 2, 0), makeMaterial(meadowMat));
@@ -226,6 +237,7 @@ export function createLab(scene) {
     hub.add(label);
   }
   // ---- a cloud: lobes in flat white, floating over the start of the row
+  yield;
   {
     const lobes = [];
     for (let k = 0; k < 9; k++) {
@@ -249,11 +261,14 @@ export function createLab(scene) {
   // and a walkway at the height of their faces in front of them (FACE_WALK), up a ramp from the
   // hub, with a low rail on both sides: walk along it face to face with each, its face and
   // expression written on the walkway in front of it
+  yield;
   for (const g of LAB_FACES) {
+    yield;
     const p = new THREE.Mesh(new THREE.CylinderGeometry(3.2, 3.4, 0.4, 24).translate(0, 0.2, 0), stone);
     p.position.set(g.at[0], 0, g.at[1]);
     hub.add(p);
   }
+  yield;
   {
     const W = FACE_WALK, mid = (W.inner + W.outer) / 2, wide = W.outer - W.inner;
     const arc = (a0, a1) => {
@@ -308,6 +323,7 @@ export function createLab(scene) {
   // ---- doorways: posts, a lintel and a glowing veil, the name on a board above (front faces local +z).
   // A set of doors is merged into a few meshes (frames, boards, names, veils), so the hub's eleven
   // cost four draw calls, not forty-four.
+  yield;
   const frameMat = makeMaterial({ color: '#e9dcc0', color2: '#d8c7a6', color3: '#c9b8a0', mode: MODE_STRATA, strataSize: 0.8, flat: true, grid: 0.6, glyphs: true });
   const boardMat = makeMaterial({ color: '#f6f1e6', flat: true });
   const veilMat = makeMaterial({ color: '#ffffff', vertexColors: true, glow: 0.85, side: THREE.DoubleSide });
@@ -341,16 +357,18 @@ export function createLab(scene) {
   const hubDoors = doors();
 
   // ---- the biome rooms, far out on their ring, and the doors between them and the hub
+  yield;
   const rooms = [], portals = [], flora = [], wildlife = [];
   // a point k m behind a hub door's threshold (negative: in front of it, toward the hub's centre)
   const hubDoorAt = (d, k) => new THREE.Vector3(d.x - Math.sin(d.heading) * k, 0, d.z - Math.cos(d.heading) * k);
-  ROOMS.forEach((def, i) => {
+  for (const [i, def] of ROOMS.entries()) {
+    yield;
     const centre = roomCentre(i);
     const group = new THREE.Group();
     group.name = `Lab room: ${def.title}`;
     group.position.copy(centre);
     scene.add(group);
-    const ground = def.ground ? new Terrain({ size: ROOM_SIZE, seg: 120, height: def.ground.height, material: def.ground.material }) : null;
+    const ground = def.ground ? yield* Terrain.make({ size: ROOM_SIZE, seg: 120, height: def.ground.height, material: def.ground.material }) : null;
     if (ground) group.add(ground.mesh);
     const kit = new RoomKit({ group, ground, centre, seed: 7001 + i * 31 });
     def.build(kit, def);
@@ -396,7 +414,7 @@ export function createLab(scene) {
       const p = new THREE.Vector3(centre.x, centre.y + anchorY, centre.z + (def.stands ? 18 : 0));
       wildlife.push({ ...sp, count: Math.min(sp.count, 4), anchors: () => [{ p, r: def.id === 'incal' ? [50, 88] : [10, def.stands ? 55 : 80], w: 1 }] });
     }
-  });
+  }
 
   buildDoors(hubDoors, hub);
 
@@ -429,7 +447,9 @@ export function createLab(scene) {
     inside: (x, z) => !roomAt(x, z) && Math.abs(x - meadowAt.x) < 70 && Math.abs(z - meadowAt.z) < 70,
     mask: false,   // (the plot is in the collision: no built-on mask)
   }];
+  yield;
   for (const r of rooms) {
+    yield;
     const u = r.ground?.mesh.material.uniforms;
     if (!u?.uTicks.value) continue;
     grassFields.push({
@@ -458,6 +478,7 @@ export function createLab(scene) {
     }
   };
   freeze(hub);
+  yield;
   for (const r of rooms) freeze(r.group);
   show(null);
 
@@ -468,6 +489,7 @@ export function createLab(scene) {
     if (e.code === 'BracketRight') hop = 1;
     else if (e.code === 'BracketLeft') hop = -1;
   });
+  yield;
   return {
     id: 'lab',
     ground,
@@ -506,7 +528,10 @@ export function createLab(scene) {
       const p = player.pos, here = roomAt(p.x, p.z);
       show(here);
       cooldown = Math.max(cooldown - dt, 0);
-      // through a door: a quick fade, then out the other side at your own pace, the camera behind you
+      // through a door: the hand-over (src/passage.js): the paper sweeps across and you walk on out of
+      // the far side, still walking, the camera where it was behind you
+      const P = ctx.passage;
+      if (P?.active) return;
       if (passing) {
         passing.t += dt;
         if (!passing.done && passing.t >= PASS.in) {
@@ -523,15 +548,20 @@ export function createLab(scene) {
         return;
       }
       const go = (to, heading, speed = 0) => {
-        passing = { to, heading, t: 0, done: false, speed };
+        cooldown = 1.4;
+        // (speed null: the one you had, kept through the door)
+        if (P) { P.go({ to, heading, speed, onMove: () => show(roomAt(to.x, to.z)) }); return; }
+        passing = { to, heading, t: 0, done: false, speed: speed ?? Math.min(4, Math.max(2, Math.hypot(player.vel.x, player.vel.z))) };
         ctx.fade?.(0.95, PASS.in);
         if (!ctx.fade) passing.t = PASS.in;   // (no screen to fade: straight through)
         cooldown = 1.4;
       };
       if (cooldown === 0 && !player.riding) {
         for (const po of portals) {
-          if (Math.hypot(p.x - po.at.x, p.z - po.at.z) < 1.3 && Math.abs(p.y - po.at.y) < 2.6) {
-            go(po.to, po.heading, Math.min(4, Math.max(2, Math.hypot(player.vel.x, player.vel.z))));
+          const d = Math.hypot(p.x - po.at.x, p.z - po.at.z);
+          if (d < 12 && Math.abs(p.y - po.at.y) < 6) P?.prepare(po.to);
+          if (d < 1.3 && Math.abs(p.y - po.at.y) < 2.6) {
+            go(po.to, po.heading, null);
             break;
           }
         }
@@ -547,3 +577,4 @@ export function createLab(scene) {
     },
   };
 }
+export const createLab = stepped(buildLab);

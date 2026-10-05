@@ -6,6 +6,7 @@ import { mulberry32, createNoise2D } from './noise.js';
 import { biomeWeights } from './biome.js';
 import { SPECIES } from './flora-species.js';
 import { farLevel, farSide } from './lod.js';
+import { runSteps } from './load-steps.js';
 
 // Flora: every world's own plants, growing in clumps (src/flora-species.js draws them).
 //
@@ -216,7 +217,9 @@ function prepare(list) {
  * @param o.density  the preset's floraDensity
  * @returns {Flora|null}
  */
-export function buildFlora({ scene, level, levelId, physics, keep = [], density = 1 }) {
+export function buildFlora(o) { return runSteps(buildFloraSteps(o)); }
+/** buildFlora a part and a species a step (src/load-steps.js). */
+export function* buildFloraSteps({ scene, level, levelId, physics, keep = [], density = 1 }) {
   // a level may grow several worlds' flora (level.flora: [{ world, regions, patches, sparse, seed, water, zone }],
   // the Lab's biome rooms); otherwise it is the world's own (FLORA_WORLDS)
   const parts = (level.flora ?? (FLORA_WORLDS[levelId] ? [{ ...FLORA_WORLDS[levelId], world: levelId }] : [])).filter((p) => SPECIES[p.world]?.length);
@@ -226,9 +229,11 @@ export function buildFlora({ scene, level, levelId, physics, keep = [], density 
   for (const part of parts) {
     const own = prepare(SPECIES[part.world]);
     species.push(...own);
+    yield;
     plants.push(...growPart({ part, species: own, level, physics, keep, density, why }));
+    yield;
   }
-  const flora = new Flora(scene, species, plants);
+  const flora = yield* Flora.make(scene, species, plants);
   flora.buildMs = performance.now() - t0;
   flora.why = why;
   return flora;
@@ -302,7 +307,16 @@ const _fr = new THREE.Frustum(), _pm = new THREE.Matrix4(), _sph = new THREE.Sph
  * triangles).
  */
 export class Flora {
-  constructor(scene, species, plants) {
+  constructor(scene, species, plants) { runSteps(this.steps(scene, species, plants)); }
+
+  /** Built a species a step: `yield* Flora.make(...)` (its far copy is a simplification, the slow part). */
+  static *make(scene, species, plants) {
+    const f = Object.create(Flora.prototype);
+    yield* f.steps(scene, species, plants);
+    return f;
+  }
+
+  *steps(scene, species, plants) {
     this.root = new THREE.Group();
     this.root.name = 'Flora';
     this.root.userData.noCollide = true;
@@ -318,6 +332,7 @@ export class Flora {
     for (const p of plants) bySp.get(p.sp).push(p);
     for (const [sp, list] of bySp) {
       if (!list.length) continue;
+      yield;
       const n = list.length, M = new Float32Array(n * 16), C = new Float32Array(n * 3), cells = new Map();
       list.forEach((p, i) => {
         const k = p.height / sp.h;
@@ -350,6 +365,7 @@ export class Flora {
       const set = { sp, mesh, M, C, cells: [...cells.values()], far: farFor((sp.size[0] + sp.size[1]) / 2, sp.large), behind: sp.large ? 110 : 40, key: '', lod: null };
       this.sets.push(set);
       // the far copy: at most 55 % of the triangles, from detail no bigger than a twelfth of the plant
+      yield;
       const lv = farLevel(sp.geo, { maxCell: Math.max(sp.size[0], sp.size[1]) / 12 });
       if (lv) {
         const far = new THREE.InstancedMesh(lv.geometry, sp.mat, n);
@@ -369,6 +385,7 @@ export class Flora {
     }
     // collision: a cylinder round each large plant's trunk (small ones you walk through);
     // spiny ones (sp.hurts) prick you if you brush them or try to climb them (src/hazards.js)
+    yield;
     const cols = [];
     this.hazards = [];
     for (const p of plants) {
