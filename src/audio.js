@@ -248,7 +248,9 @@ export class Sound {
     // the world's sound (music, effects, voices and their room) on one bus, hushed under a menu
     this.world = ctx.createGain();
     this.world.gain.value = this.menuOn ? MENU_HUSH : 1;
-    this.world.connect(this.master);
+    // (under water everything goes through a low-pass: underwater())
+    this.muffle = ctx.createBiquadFilter(); this.muffle.type = 'lowpass'; this.muffle.frequency.value = 22000; this.muffle.Q.value = 0.5;
+    this.world.connect(this.muffle).connect(this.master);
 
     // reverb: a generated decaying-noise impulse
     this.reverb = ctx.createConvolver();
@@ -1007,6 +1009,55 @@ export class Sound {
     const t = this.ctx.currentTime;
     this.sweep(t, 300, 180, 0.08, 0.06, 'square');
     this.burst(t + 0.03, { dur: 0.06, type: 'bandpass', freq: 900, q: 2, vol: 0.06 });
+  }
+
+  // ------------------------------------------------------------------ water (src/water.js)
+  /** Going in, coming out, a big drop: a wet slap and a falling hiss, bigger with k (0..2). */
+  splash(k = 1) {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime, K = Math.min(k, 2);
+    this.burst(t, { dur: 0.12 + 0.2 * K, type: 'lowpass', freq: 900 + 500 * K, q: 0.6, vol: 0.1 + 0.12 * K, rate: 0.7 });
+    this.burst(t + 0.03, { dur: 0.25 + 0.4 * K, type: 'highpass', freq: 2400, q: 0.5, vol: 0.03 + 0.05 * K, rate: 1.3 });
+    if (K > 0.8) this.sweep(t, 180, 70, 0.18 + 0.1 * K, 0.06 * K);
+  }
+
+  /** A swimming stroke: a soft wash (the crawl's is quicker, brighter). */
+  stroke(crawl = 0) {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime;
+    this.burst(t, { dur: 0.22 - 0.08 * crawl, type: 'bandpass', freq: 700 + 500 * crawl + Math.random() * 200, q: 0.8, vol: 0.06 + 0.03 * crawl, rate: 0.8 });
+  }
+
+  /** A step in shallow water: a slosh, deeper in deeper water (deep 0..1). */
+  wade(deep = 0.5) {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime;
+    this.burst(t, { dur: 0.1 + 0.12 * deep, type: 'lowpass', freq: 1500 - 600 * deep + Math.random() * 300, q: 0.9, vol: 0.06 + 0.07 * deep, rate: 0.9 });
+  }
+
+  /** Bubbles: a few rising blips (diving, a stroke under water, out of air). */
+  bubbles(k = 1) {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime, n = Math.round(2 + 3 * k);
+    for (let i = 0; i < n; i++) {
+      const f = 380 + Math.random() * 520;
+      this.sweep(t + i * (0.05 + Math.random() * 0.06), f, f * 1.9, 0.05, 0.025 * k, 'sine');
+    }
+  }
+
+  /** Breaking the surface after a long time under: a gasp. */
+  gasp() {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime;
+    this.burst(t, { dur: 0.32, type: 'bandpass', freq: 1300, q: 1.4, vol: 0.07, rate: 1.1 });
+  }
+
+  /** Under water (k 1) the world's sound goes dull and close; back out (k 0), bright again. */
+  underwater(k = 0) {
+    if (!this.ctx || !this.muffle || this._under === k) return;
+    this._under = k;
+    const t = this.ctx.currentTime;
+    this.muffle.frequency.setTargetAtTime(k ? 520 : 22000, t, k ? 0.06 : 0.15);
   }
 
   // ------------------------------------------------------------------ musicians in the world
