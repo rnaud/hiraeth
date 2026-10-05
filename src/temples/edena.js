@@ -104,7 +104,9 @@ function syncBeds(g) {
   if (n * 0.1 > g.meter + 1e-6) { g.add(n * 0.1 - g.meter, 'beds'); if (g.phaseIndex === 0) g.rt.notice(['', 'It stops, and turns its stone face to the bed in flower.', 'A second bed. It sways, watching the flowers open.', 'Three. A little green comes up through its bare patches.'][n] ?? null); }
 }
 
-function gardenerHit(g, part, mode) {
+function gardenerHit(g, part, mode, info) {
+  // (its targets take fire and stilling as theirs; a bloom glob reaches them as plain fluid, its own mode in info)
+  if (info?.mode === 'bloom') mode = 'bloom';
   if (mode === 'push') { g.add(-0.04, 'push'); g.rt.notice('It flinches from the shove and roars, more frightened.', 'gd.push'); return true; }
   if (mode === 'fire') { g.add(-0.05, 'fire'); g.rt.notice('It shrinks from the ember, beating at the sparks in its moss. Not fire, never fire, in a garden.', 'gd.fire'); return true; }
   if (mode === 'stun') return false;   // (the stilling lens stops a strike, as anywhere)

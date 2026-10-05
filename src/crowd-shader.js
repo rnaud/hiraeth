@@ -38,6 +38,21 @@ export const CROWD_SLOTS = { always: 0, head: 1, mask: 2, body: 3, prop: 4, cape
  * (crowd.js: the full bodies stand as tall, profile.heightFix).
  */
 export const CROWD_BODY = { shoulderF: 0.12, chestF: 0.1, hips: 1.17 };
+/**
+ * The figures' cape against the full people's cloth (npc.js, cape.js: its drape, measured on them):
+ * half-width at the collar, over the shoulders (from 16 cm below the collar) and a little wider than
+ * the cut's hem at the bottom (`spread`), depth against width, how far it streams back walking (m at
+ * the hem, at a stride's amplitude of 1) and the arms' clearance under it (m round the arm's line).
+ */
+export const CROWD_CAPE = { collar: 0.19, shoulders: 0.29, spread: 0.04, depth: 0.82, stream: 0.06, arm: 0.06 };
+/** The figures' cape half-width (m, before the build's width) `t` of the way down a cape `len` long (the shader's, standing still). */
+export function crowdCapeHalfWidth(t, len, wide = 1) {
+  const C = CROWD_CAPE, lerp = (a, b, k) => a + (b - a) * k, k = Math.pow(t, 0.8);
+  const s = Math.min(1, Math.max(0, (t * len) / 0.16)), sm = s * s * (3 - 2 * s);
+  return Math.max(lerp(C.collar, (0.25 + len * 0.17) * wide, k) + C.spread * t, lerp(C.collar, C.shoulders, sm));
+}
+/** The figures' robe on the thighs' swing (crowdRobeTurn): how much of it, and of a thigh's swing back. */
+export const CROWD_ROBE = { follow: 0.65, back: 0.7 };
 /** Joint pivots in figure space (metres, scale 1). */
 export const CROWD_JOINTS = { hip: 0.95, hipX: 0.09, knee: 0.5, shoulder: 1.43, shoulderX: 0.2, elbow: 1.13, neck: 1.5, collar: 1.45 };
 
@@ -63,6 +78,12 @@ export const CROWD_GLSL = /* glsl */ `
   mat3 crowdRotY(float a) { float c = cos(a), s = sin(a); return mat3(c, 0.0, -s, 0.0, 1.0, 0.0, s, 0.0, c); }
   mat3 crowdRotZ(float a) { float c = cos(a), s = sin(a); return mat3(c, s, 0.0, -s, c, 0.0, 0.0, 0.0, 1.0); }
   void crowdTurn(inout vec3 p, inout vec3 n, vec3 pivot, mat3 R) { p = pivot + R * (p - pivot); n = R * n; }
+  // how far the robe turns with the thighs (hip: their swing) at side x (-1..1 round the body) and t (belt 0 → hem 1):
+  // as the full people's skinned robe does on their captured walk (it swung out behind like a skirt in the wind)
+  float crowdRobeTurn(vec2 hip, float x, float t) {
+    float a = mix(hip.y, hip.x, smoothstep(-0.7, 0.7, x));
+    return (a > 0.0 ? a : a * ${CROWD_ROBE.back.toFixed(3)}) * ${CROWD_ROBE.follow.toFixed(3)} * smoothstep(0.0, 0.5, t);
+  }
 
   // Poses p (out: the joint angles) — all in radians.
   //   hip / knee per leg (hip > 0 swings the thigh forward, knee > 0 folds the shin back)
@@ -180,19 +201,51 @@ export const CROWD_GLSL = /* glsl */ `
     // where the shoulders and hips now are (CROWD_BODY: the full bodies' joints, MakeHuman's and the Quaternius ones', at the figure's height)
     float shx = SHX * bw * (1.0 - ${CROWD_BODY.shoulderF.toFixed(3)} * fem), hipx = HIPX * ${CROWD_BODY.hips.toFixed(3)};
     if (part == 10) {
-      // the cape, rebuilt from its parameters: a flared, open-fronted cone hanging from the shoulders
+      // the cape, rebuilt from its parameters: the open-fronted bell the full people's cloth hangs in
+      // (npc.js: its hem as wide as theirs, over the shoulders and the arms hanging under it; a slim
+      // cone here had the arms out through its sides, and the cloth jump wider as people came near)
       float t = aRig.w;
-      // shoulders are wider than deep; the cloth falls a little behind the body
-      float k = pow(t, 0.8);
-      vec2 rad = mix(vec2(0.2, 0.135), (vec2(0.25, 0.2) + capeLen * 0.05) * capeWide, k) * vec2(bw * (1.0 - ${CROWD_BODY.chestF.toFixed(3)} * fem), mix(1.0, bg, 0.5));
+      float k = pow(t, 0.8), below = t * capeLen;
+      float wx = max(mix(${CROWD_CAPE.collar.toFixed(3)}, (0.25 + capeLen * 0.17) * capeWide, k) + ${CROWD_CAPE.spread.toFixed(3)} * t,
+        mix(${CROWD_CAPE.collar.toFixed(3)}, ${CROWD_CAPE.shoulders.toFixed(3)}, smoothstep(0.0, 0.16, below)));
+      vec2 rad = vec2(wx, wx * ${CROWD_CAPE.depth.toFixed(3)}) * vec2(bw * (1.0 - ${CROWD_BODY.chestF.toFixed(3)} * fem), mix(1.0, bg, 0.5));
       vec3 dir = normalize(vec3(p.x, 0.0, p.z) + vec3(0.0, 0.0, 1e-5));
-      p = vec3(dir.x * rad.x, COLLAR - t * capeLen, dir.z * rad.y - 0.02 - 0.05 * t);
+      p = vec3(dir.x * rad.x, COLLAR - below, dir.z * rad.y - 0.02);
       n = normalize(vec3(dir.x / rad.x, 0.0, dir.z / rad.y));
-      // flares out behind when walking, sways with the steps
-      p.z -= t * t * 0.28 * amp;
+      // heavy wool: barely streams out behind when walking, sways with the steps (it flew out like a flag)
+      p.z -= t * t * ${CROWD_CAPE.stream.toFixed(3)} * amp;
       p.x += sin(ph) * 0.035 * t * amp;
-      p.y += t * t * 0.08 * amp;
+      p.y += t * t * 0.02 * amp;
       if (pose == 3 || pose == 4) p.z -= t * t * 0.3;
+      // the arms under it: a point of the cloth at an arm's height, on its side, is pushed out round
+      // the body to clear it (as the full people's cloth lies over theirs: they swing, gesture, cross
+      // or rest on the hips under it), unless the arm is out through the opening in front
+      float sd = p.x >= 0.0 ? 1.0 : -1.0;
+      bool lft = sd > 0.0;
+      vec3 sh = vec3(sd * shx, SHY, 0.0);
+      mat3 Rs = crowdRotZ(sd * (lft ? shA.x : shA.y)) * crowdRotX(-(lft ? shF.x : shF.y));
+      mat3 Re = crowdRotY(-sd * (lft ? elbIn.x : elbIn.y)) * crowdRotX(-(lft ? elb.x : elb.y));
+      vec3 el = sh + Rs * vec3(0.0, ELB - SHY, 0.0);
+      vec3 ha = sh + Rs * (vec3(0.0, ELB - SHY, 0.0) + Re * vec3(0.0, -0.3, 0.0));
+      float ar = ${CROWD_CAPE.arm.toFixed(3)} * (1.0 + (bg - 1.0) * 0.45);
+      vec2 q = p.xz - vec2(0.0, -0.02);
+      float L = max(length(q), 1e-4), want = L, av = atan(q.x, q.y);
+      for (int i = 0; i < 4; i++) {
+        vec3 s = i == 0 ? mix(sh, el, 0.5) : i == 1 ? el : i == 2 ? mix(el, ha, 0.5) : ha;
+        vec2 qs = s.xz - vec2(0.0, -0.02);
+        float aS = atan(qs.x, qs.y), da = abs(atan(sin(av - aS), cos(av - aS)));
+        float w = (1.0 - smoothstep(0.55, 0.95, da)) * (1.0 - smoothstep(0.25, 0.5, abs(s.y - p.y))) * smoothstep(0.75, 1.1, abs(aS));
+        want = max(want, mix(L, min(length(qs) + ar, L + 0.15), w));
+      }
+      // and over the robe, where it swings back with the legs (the full people's cloth lies on theirs: humanoid.js robeCones)
+      float tr = (HIP + 0.01 - p.y) / max(robeLen, 1e-3);
+      if (robeLen > 0.01 && pose != 3 && pose != 4 && tr > 0.0 && tr < 1.0) {
+        vec2 rr = mix(vec2(0.165, 0.14), vec2(flare, flare * 0.86), pow(tr, 0.85)) * (1.0 + (bg - 1.0) * 0.7 + 0.08 * fem);
+        vec3 pr = vec3(dir.x * rr.x, p.y, dir.z * rr.y - 0.01);
+        pr = vec3(0.0, HIP, 0.0) + crowdRotX(-crowdRobeTurn(hip, dir.x, tr)) * (pr - vec3(0.0, HIP, 0.0));
+        want = max(want, length(pr.xz - vec2(0.0, -0.02)) + 0.03);
+      }
+      p.xz = vec2(0.0, -0.02) + q * (want / L);
     }
     if (part == 11) {
       // the robe: a bell from the belt to its hem, swinging with the thighs
@@ -201,9 +254,7 @@ export const CROWD_GLSL = /* glsl */ `
       vec2 rad = mix(vec2(0.165, 0.14), vec2(flare, flare * 0.86), pow(t, 0.85)) * (1.0 + (bg - 1.0) * 0.7 + 0.08 * fem);
       p = vec3(dir.x * rad.x, HIP + 0.01 - t * robeLen, dir.z * rad.y - 0.01);
       n = normalize(vec3(dir.x / rad.x, 0.25, dir.z / rad.y));
-      float wl = smoothstep(-0.7, 0.7, dir.x);
-      float follow = 0.75 * smoothstep(0.0, 0.5, t);
-      crowdTurn(p, n, vec3(0.0, HIP, 0.0), crowdRotX(-mix(hip.y, hip.x, wl) * follow));
+      crowdTurn(p, n, vec3(0.0, HIP, 0.0), crowdRotX(-crowdRobeTurn(hip, dir.x, t)));
     }
     // a padded suit: the clothes swell along their normals (not the head, hands or costume pieces)
     if (bulk > 0.0 && slot == 0 && part != 1 && part < 10 && (zone == 2 || zone == 3 || zone == 9 || zone == 10)) p += n * bulk * 0.014;

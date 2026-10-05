@@ -141,9 +141,31 @@ export function* buildArzach(scene) {
       makeMaterial({ color: '#f6f0e2', color2: '#e9d9bd', color3: '#d8a24a', mode: MODE_STRATA, strataSize: 12, flat: true }));
     tower.position.set(x, base - 2, z);
     scene.add(tower);
-    // a single dark window
-    const win = new THREE.Mesh(new THREE.BoxGeometry(5, 7, 1), makeMaterial({ color: '#34405e', flat: true }));
+    // a single window: an arched opening in a deep stone frame (jambs, an arch, a keystone), the room's
+    // shadowed back wall set in behind it, so it reads as a way in and not as a flat dark panel
+    const win = new THREE.Group();
     win.position.set(x, base + H + 7, z + 15.5);
+    {
+      const frameMat = makeMaterial({ color: '#efe6d2', color2: '#e0d2b8', color3: '#d8a24a', mode: MODE_STRATA, strataSize: 3, flat: true });
+      const W2 = 1.6, low = -3.3, spring = 0.9;   // half the opening's width; its foot and where the arch springs (from the window's centre)
+      const frame = [
+        new THREE.BoxGeometry(0.7, spring - low, 1.5).translate(-W2 - 0.35, (spring + low) / 2, 0.3),
+        new THREE.BoxGeometry(0.7, spring - low, 1.5).translate(W2 + 0.35, (spring + low) / 2, 0.3),
+        new THREE.TorusGeometry(W2 + 0.35, 0.35, 6, 14, Math.PI).scale(1, 1, 2.1).translate(0, spring, 0.3),
+        new THREE.BoxGeometry(0.55, 0.7, 1.7).translate(0, spring + W2 + 0.45, 0.35),   // the keystone
+      ].map((g) => (g.index ? g.toNonIndexed() : g));
+      win.add(new THREE.Mesh(mergeGeometries(frame), frameMat));
+      // the opening: the room's back wall in shadow, a step behind the frame, warm where the light falls in
+      const back = new THREE.Shape();
+      back.moveTo(-W2, low); back.lineTo(W2, low); back.lineTo(W2, spring); back.absarc(0, spring, W2, 0, Math.PI, false); back.lineTo(-W2, low);
+      const hole = new THREE.Mesh(new THREE.ShapeGeometry(back, 10), makeMaterial({ color: '#2a2128', color2: '#241c22', flat: true }));
+      hole.position.z = -0.25;
+      win.add(hole);
+      const glow = new THREE.Mesh(new THREE.PlaneGeometry(W2 * 1.4, 1.1), makeMaterial({ color: '#6e5040', flat: true, glow: 0.18 }));
+      glow.position.set(0.15, low + 0.75, -0.2);
+      win.add(glow);
+    }
+    win.traverse((o) => { if (o.isMesh) o.userData.noCollide = true; });
     scene.add(win);
     // a stone sill under the window, and three corbels climbing to it round the
     // room from the balcony: each a jump (or a boost) above the last

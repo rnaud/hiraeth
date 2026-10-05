@@ -2,7 +2,58 @@
 // from the settings menu; after an update a note points you to it once.
 // Add an entry at the top for every release.
 
+import { inputKind } from './prompt-keys.js';
+import { backKey } from './native-pad.js';
+
 export const CHANGELOG = [
+  { v: '0.67', date: '2026-10-05', items: [
+    'The traveller dresses more casually: an everyday canvas rucksack, with a lid, buckled straps, pockets and a rolled bedroll, replaces the old radio box, and nothing of the space suit is left: soft desert boots without seams or buckles, a loose cotton scarf instead of the ringed collar.',
+    'The fluid tank is a slim, flat glass flask now, set into the rucksack and held by leather bands. It sticks out far less from your back, and its three coloured bands still show your charges from behind. When the flask goes into a vehicle, the rucksack stays on your back.',
+    'The drone perches on top of the flask’s leather upright, beside its neck and clear of your swinging arms; before you have the flask it rides on the rucksack’s lid. The lantern hangs just below it.',
+    'His face is leaner, with thinner cheeks and a narrower chin, and his hair is a scruffier, curly mop of broken locks.',
+    'Capes and robes stay on people at every distance: they no longer stream out behind walkers or let legs and arms through until you come close, a robe no longer shows through the cape over it, and the people farther off in a crowd wear capes as wide as the ones up close, over their arms, so nothing changes as they come near.',
+  ] },
+  { v: '0.66', date: '2026-10-05', items: [
+    'The worlds come in a new order. After the desert, Vael is first: you find the fluid wings in its Aerie and learn to ride the winds. The fluid jets come much later, in the City-Shaft, the seventh world, and no world before it needs them. Saves that already have the jets keep them.',
+    'Vael II is charted once you have finished Vael, since it needs the bird you meet there.',
+    'In Vael the great bird stays hidden in the sky, and can’t be ridden, until you learn her call. A column of rising wind climbs the lone tower’s side: open your wings in it and it carries you up to the balcony.',
+    'The lone tower’s window is a deep stone arch now. On its sill lies a little bone flute with a feather tied to it. Pick it up and play it: five notes, and the bird comes down to you for the first time. From then on, calling her plays that tune.',
+    'The bird walks on the ground: her legs step in turn, her body bobs and her wings stay folded. Taking off, she crouches, leaps, and only starts to beat her wings at the top of the leap.',
+    'Right after you find the jets in the Warden’s Well, a line tells you what to do with them, the drone flies up to show the way, and pale rings rise through the round opening in the ceiling you fly up through.',
+    'The City-Shaft’s cabs ignore you until you have a cab pass. Lio, the dispatcher on the rim, writes one if you collect the fare Hask owes him. The pass is listed with your gear. Wren still stops for anyone at her lamp.',
+    'The makers’ boxes have a new look: one smooth dark blue box with no edges, a pale star on top and a ring on each side, and a thin ray of light that keeps travelling across its surface. Come close and the ray crosses it more often and the star brightens.',
+    'Opening a box: it floats up off the ground, wobbles two or three times with little pauses in between, as if deciding, then comes apart into light.',
+    'In Qanat, the box on the great tree now waits much higher up, on a carved stone pedestal of the makers with lamps and a ring of light: climb the big root, then the stone pier above it.',
+    'Nobody tells you about the makers’ boxes before you have found one yourself: the hints for a world’s other boxes only start once you have opened your first.',
+    'A new app icon, taken from the game itself: the big pink dish on its stem over the blue domes of the desert city, under a clear sky. It shows on the Android home screen (with a themed version on Android 13 and later), on the start screen before Android 12, in the browser tab, when you add the game to a phone’s home screen, and on the Steam Deck.',
+  ] },
+  { v: '0.65', date: '2026-10-05', items: [
+    'On a controller the sketchbook, what’s new and the other panels no longer say “J to close”: they name the controller’s own back button (B on a Retroid), and that button closes them. In the menu, B closes it from any page, Quests and Controls too, and the sketchbook opened over a conversation closes before the conversation does.',
+    'The skip tags of the game’s little scenes name the controller’s back button too, the one printed B on your handheld.',
+    'No more row of pills for the tank beside the traveller or under the crosshair: the tank on your backpack shows how full it is. Only an empty tank still says “empty”, for a moment.',
+    'The drone no longer carries a second pointer: no lit beak, no beam on a find. It flies out the way to go, faces what it found and drops its flare there. It also really faces it now (it used to look the way it was flying).',
+    'A guardian’s bar is what is left of it: full when the fight starts, going down as it goes your way. A machine’s is its health; a living guardian’s is its unrest, since it is calmed, never hurt. The bar sits above the line at the bottom of the screen.',
+    'The warden in the Warden’s Well: once it shuts its sides, the hatch on its crown visibly swings up and a column of its glow rises out of it every time it opens, so you can see from the floor that it is still opening, and it says so. In its first phase a shot into any of its side vents counts, not only the one in front.',
+    'In a guardian’s fight, ping the drone (Q, Y / △, or ping on a touch screen) for a hint: it chirps, rises over your shoulder, turns its lens on the weak point or the thing to use with a short beam, and the line at the bottom says what to do. Ping again and it says it more plainly. Every guardian has its own hints, the gentle way first.',
+    'The Gardener in the Builders’ Greenhouse can be calmed again: a bloom shot on its bare back used to count as plain water.',
+    'The jets fly like Superman: hold RT / R2 (or the left mouse button) and push the stick to fly where you look. Look up to climb, look down to dive, straight down to drop head first. Let go of the stick to hover in place, and hold A / × as well to rise straight up. The traveller stretches out flat along the flight, arms ahead.',
+    'Flying low on the jets over rising ground skims along it at full speed instead of stumbling into a walk, and diving into the ground lands you.',
+    'Aiming the fluid tool, you can now look straight up anywhere, including the tight rooms of the temples, where the view used to stop partway up. The shot goes where the reticle points.',
+    'Knocked limp off a ledge into a long drop, the traveller now stays limp all the way down and gets up only on the ground. Before, the fall could stop and the traveller would stand up in mid-air. The landing at the bottom hurts like any hard fall, and the camera keeps up with the body.',
+    'While you jump, fall, glide or fly, a small patch of shadow sits on the ground right under you, so you can judge a landing even when the sun’s shadow falls to one side. It shrinks the higher you are.',
+  ] },
+  { v: '0.64', date: '2026-10-05', items: [
+    'Vael II, the Sky Stones, looks more like its drawings: the shade on its rock, its plain and its monasteries is one flat grey-blue whatever their colour, the needles keep a clean light side with few strokes in shade, the undersides of the mushroom caps are the darkest places, and the sky is clear, with no bank of clouds on the horizon. Its flowers and its people keep their own colours in shade.',
+    'Cliffs, needles and rock faces everywhere are hatched with strokes running down the face, as an inker draws rock, and the shade under a cap or an overhang no longer curls into wood grain.',
+    'The References scenes now include Vael II: thirty-one views from its six sheets, the needles on peach and aqua skies, the balanced eggs, the monasteries on their cliffs and floating islands, the mushrooms over the sea of cloud and the plain with its lone tower.',
+    'Starting a conversation, the camera cuts straight to the view of you both instead of swinging round to it, and cuts straight back to you when it ends. If someone steps into the view mid-talk, it cuts to a new angle rather than sweeping across.',
+    'Start talking to someone while standing right on top of them and you are a comfortable step apart when the conversation opens, already turned to face them. It works with children and with people sitting down, and you are never put into a wall, off a ledge or onto someone else.',
+    'Alien speech turns into English more than twice as fast: each word becomes readable a moment after it is said, and the whole line is in English a fraction of a second after the last word.',
+    'Waking up on the ship, no lights or stripes on the floor lead you to the cockpit any more: the voicemail button on the console blinks, the round screen above it glows with “1 new message”, and when you walk up to it a prompt says to press it.',
+    'The holo table in the middle of the deck now opens the galactic map. The cockpit console is the voicemail: its button blinks while a message is waiting, and pressing it plays the message.',
+    'The ship no longer tells you that you are playing a recording: it says you have a new message. What the messages really are, you find out as they go on.',
+    'Flying to another world is a landing now, not a crash: the ship brakes into the air, comes down through the clouds upright on its jets and settles gently onto its feet, dust blowing out from under it, with no fire and no shaking. Coming home lands the same way. Only the first arrival in the desert is a crash.',
+  ] },
   { v: '0.63', date: '2026-10-05', items: [
     'The desert’s sky is clear now, as in its drawings: no bank of clouds on the horizon, and the far dunes fade into a pale warm band.',
     'Steep dune faces in shade are hatched again with dense strokes, while flat sand in shade stays a calm tone.',
@@ -585,6 +636,9 @@ export class Changelog {
   toggle(on = !this.open) {
     this.open = on;
     if (on) { document.exitPointerLock?.(); this.onOpen?.(); this.markSeen(); }
+    // its button names the way out for the hands on the game: N, a controller's back button, a tap
+    const b = on && this.el.querySelector('[data-a="close"]'), kind = inputKind();
+    if (b) b.textContent = kind === 'keys' ? 'Close (N)' : kind === 'pad' ? `Close (${backKey()})` : 'Close';
     this.el.classList.toggle('open', on);
   }
 }

@@ -808,6 +808,15 @@ export class Sound {
     this.burst(t + 0.1, { dur: 0.7, type: 'bandpass', freq: 1800, q: 0.5, vol: 0.06, rate: 0.6 });
   }
 
+  /** A floating box rocks (the i-th wobble): a hollow knock and a little rising chime, a step higher each time. */
+  boxWobble(i = 0) {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    this.burst(t, { dur: 0.09, type: 'lowpass', freq: 320, q: 1.2, vol: 0.12, rate: 1 });
+    this.sweep(t, 140 + i * 18, 90 + i * 12, 0.18, 0.03, 'triangle');
+    this.pluck(587 * Math.pow(2, (i * 4) / 12), t + 0.03, 0.035, 'sine', this.fx);
+  }
+
   /** The light pours out: a bright rising shimmer. */
   boxBurst() {
     if (!this.ctx) return;
@@ -926,6 +935,17 @@ export class Sound {
       o.start(s); o.stop(s + dur + 0.1); vib.start(s); vib.stop(s + dur + 0.1);
       this.burst(s, { dur: dur + 0.05, type: 'bandpass', freq: f1, q: 4, vol: 0.025, rate: 1 });   // (the breath)
     }
+  }
+
+  /**
+   * A short tune on an instrument, on the effects bus (something you play, not the score):
+   * notes [[Hz, beats]], a beat `beat` s. Vael's rider's call on the flute (src/story/arzach-data.js).
+   */
+  tune(notes, beat = 0.22, kind = 'flute', vol = 0.16) {
+    if (!this.ctx) return false;
+    let t = this.ctx.currentTime + 0.05;
+    for (const [f, beats] of notes) { const d = beats * beat; this.instrument(kind, f, t, d, vol, this.fx); t += d; }
+    return true;
   }
 
   /** The bell-note whistle: one clear note with a bell's inharmonic partials. */
@@ -1077,12 +1097,14 @@ export class Sound {
 
   /**
    * The scout's voice (src/scout.js): 'go' a little rising blip as it hops off the dock;
-   * 'found' two bright chirps as it points at the objective; 'shrug' a falling "uh-uh", nothing to find.
+   * 'found' two bright chirps as it points at the objective; 'shrug' a falling "uh-uh", nothing to find;
+   * 'hint' (a guardian's fight) a low "hm" then a little rising "look!", as it turns its lens on the weak point.
    */
   drone(kind = 'go') {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
     if (kind === 'found') { this.sweep(t, 1500, 2600, 0.07, 0.045); this.sweep(t + 0.11, 1900, 3200, 0.09, 0.05); this.pluck(this.freq(7, 2), t + 0.11, 0.05, 'sine', this.fx); }
+    else if (kind === 'hint') { this.sweep(t, 620, 560, 0.1, 0.035, 'triangle'); this.sweep(t + 0.14, 1100, 2100, 0.08, 0.045); this.sweep(t + 0.24, 1600, 2900, 0.07, 0.04); }
     else if (kind === 'shrug') { this.sweep(t, 900, 760, 0.12, 0.04, 'triangle'); this.sweep(t + 0.17, 760, 520, 0.16, 0.04, 'triangle'); }
     else this.sweep(t, 700, 1400, 0.1, 0.035);
   }

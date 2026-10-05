@@ -136,3 +136,14 @@ export function reentry(s, dur = 2.2) {
   rumble(s, dur, 0.5);
   for (let i = 0; i < 16; i++) s.burst(t + Math.random() * dur, { dur: 0.04 + Math.random() * 0.05, type: 'bandpass', freq: 1400 + Math.random() * 2600, q: 4, vol: 0.05 + Math.random() * 0.05 });
 }
+
+/** Coming down under control: a soft rush of air over the hull, rising and fading (no roar, no crackle). */
+export function descent(s, dur = 4) {
+  if (!ok(s)) return;
+  const ctx = s.ctx, t = ctx.currentTime;
+  const src = ctx.createBufferSource(); src.buffer = s.noiseBuf; src.loop = true;
+  const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 0.6;
+  f.frequency.setValueAtTime(380, t); f.frequency.exponentialRampToValueAtTime(700, t + dur * 0.5); f.frequency.exponentialRampToValueAtTime(320, t + dur);
+  const g = ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.14, t + dur * 0.4); g.gain.linearRampToValueAtTime(0, t + dur);
+  src.connect(f).connect(g).connect(s.fx); src.start(t); src.stop(t + dur + 0.1);
+}

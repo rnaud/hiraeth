@@ -11,7 +11,7 @@
 //
 // Where it shows (all short, all the ship's voice):
 //  - after the crash, as the emergency power comes on (src/ship/cinematics.js, the prologue's hatch);
-//  - the first time the map opens with power (src/ship/ship.js useConsole, flag `signature.told`);
+//  - the first time the map opens with power (src/ship/ship.js useTable, flag `signature.told`);
 //  - on the map: a mark on every signature world, its reading in the panel, a line of
 //    explanation beside the chart (src/ship/starmap.js);
 //  - when finishing a world names new ones (revealNote, the toast; main.js);

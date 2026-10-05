@@ -6,8 +6,10 @@ import { Controller, mergeControls, menuNavigate } from './controller.js';
 import { installNativePad, watchLabels, setFaces, padFaces, confirmKey, backKey } from './native-pad.js';
 import { installAppShell, markBooted } from './native-app.js';
 import { ObservatoryQuest } from './observatory.js';
-import { Scout, nextObjective, findText, roughDistance } from './scout.js';
+import { Scout, nextObjective, findText, roughDistance, HINT } from './scout.js';
+import { guardianHint } from './temples/hints.js';
 import { cueText, Cue, PlaceName, Fader, questsPageHtml } from './hud.js';
+import { closeHint, inputKind } from './prompt-keys.js';
 import { Wildlife } from './wildlife.js';
 import { createGBuffer, createComposeTarget, createBlit, setSubject } from './pipeline.js';
 import GUI from 'lil-gui';
@@ -29,6 +31,7 @@ import { BrushTrail } from './brush.js';
 import { Cascade, ShadowCuller, shadowDirection, farPassSkips, selfLitSkips } from './shadows.js';
 import { Trail } from './trail.js';
 import { Flock, Motes, Footprints } from './life.js';
+import { JumpShadow } from './jump-shadow.js';
 import { Sound } from './audio.js';
 import { Weather, WEATHER_KINDS } from './weather.js';
 import { Shelter, addIndoors } from './shelter.js';
@@ -53,6 +56,7 @@ import { revealNote } from './story/signature.js';
 import { registerInteractable, PRIORITY } from './interact.js';
 import { Ship } from './ship/ship.js';
 import { birdAnswers, promisedBird } from './bird.js';
+import { RIDER_CALL, RIDER_CALL_BEAT } from './story/arzach-data.js';
 import { game } from './game-state.js';
 import { items, ITEMS, gearHtml } from './items.js';
 import { Flammables, flammableSpots } from './flammable.js';
@@ -238,7 +242,7 @@ const player = new Player(physics, {
   onHurt: (k) => { shipSfx.rumble(sound, 0.35 + k * 0.4, 0.25 + k * 0.5); hpShown = 3; },
   onKnockdown: (dead) => { shipSfx.rumble(sound, dead ? 0.95 : 0.6, dead ? 0.9 : 0.45); hpShown = 3; },
   onKnockout: (why) => { knockedOut = why; },
-  onWhistle: (kind) => sound.whistle(kind),   // calling the bike, the bird or a taxi
+  onWhistle: (kind) => (kind === 'mount' && level.mountName === 'bird' ? sound.tune(RIDER_CALL, RIDER_CALL_BEAT) : sound.whistle(kind)),   // calling the bike, the bird (the rider's call, on the flute) or a taxi
   onRestart: () => { ship.cinema?.fade(1, true, 0.05); setTimeout(() => ship.cinema?.fade(0, true, 0.9), 120); },
 });
 // the health bar (index.html #health): only while you're hurt, and a moment after
@@ -359,6 +363,8 @@ const trailGround = (x, y, z) => (player.mount.groundAt ? player.mount.groundAt(
 const trails = player.mount && player.mount.kind !== 'bird' ? [new Trail(scene, { offset: 0, physics, ground: trailGround }), new Trail(scene, { offset: 2.5, physics, ground: trailGround })] : null;
 const JETS = player.mount?.jets ?? [new THREE.Vector3(0.66, -0.08, -1.18), new THREE.Vector3(-0.66, -0.08, -1.18)];   // the jets' rear caps (the vehicle's own, if it says)
 const footprints = new Footprints(scene);   // prints take the colour of whatever they land on
+const jumpShadow = new JumpShadow(scene);    // off the ground: a patch of shade straight under you (src/jump-shadow.js)
+(level.noShadow ??= []).push(jumpShadow.mesh);
 resize();
 if (footprints) player.onStep = (p, heading, up) => footprints.add(p, heading, up);
 
@@ -478,7 +484,12 @@ const scout = new Scout({ scene, player, physics, sound,
   getTarget: () => nextObjective({ player, expedition, story, ship: level.ship, level, quest: () => storyRt.objective() }),
   onFind: (target, d) => { scoutSays(`◆ ${findText(target, d)}`, 5); storyRt.marker.reveal(); },
   onShrug: () => scoutSays('Nothing to find here', 2.5),
+  // in a guardian's fight the ping is a hint: the lens on the weak point, the line on the cue (src/temples/hints.js)
+  getHint: () => guardianHint(level.temple),
+  onHint: (line) => scoutSays(`◇ ${line}`, HINT.say),
 });
+// a world that wants to show you the way at once (the City-Shaft's jets, just found: up through the ceiling)
+game.on('scout:ping', () => { if (!ship.playing && !storyRt.dialogue.open) scout.ping(); });
 // ---- item boxes (src/boxes/): they notice you; E opens one (a Zelda-style scene on the ship's cinematic camera)
 const boxes = createBoxes({ levelId, scene, physics, level, player, sound, quests: storyRt.quests, toast: showToast,
   anchor: () => ship.arrivalSpot(),
@@ -836,7 +847,7 @@ picker.querySelector('.cards').innerHTML = pickable.map((l, i) => false ? `
 function showPicker(on) {
   if (on) for (const q of [menu, journal, changelog]) if (q.open) q.toggle(false);
   picker.classList.toggle('open', on);
-  if (on) document.exitPointerLock?.();
+  if (on) { document.exitPointerLock?.(); const h = picker.querySelector('header .hint'); if (h) h.textContent = inputKind() === 'keys' ? 'press a number · L to toggle this screen' : closeHint(''); }
 }
 showPicker(query.get('worlds') === '1');   // (the title's and the Start menu's Debug entry) L is a developer shortcut; in play, worlds are chosen on the ship's galactic map (and saves on the title screen)
 picker.querySelector('.close').addEventListener('click', () => showPicker(false));
@@ -937,17 +948,20 @@ document.body.appendChild(controllerHint);
 // what a controller press goes to: the topmost thing open (a story page sits over a conversation)
 const pageEl = document.getElementById('page');
 const pageUp = () => pageEl.classList.contains('open');
-const menuRoot = () => restartOpen ? restartEl : boxes.busy() && boxes.card.el ? boxes.card.el : menu.open ? menu.el : changelog.open ? changelog.el : pageUp() ? pageEl : storyRt.dialogue.open ? storyRt.dialogue.el : journal.open ? journal.el : picker.classList.contains('open') ? picker : pageEl;
+// (in the order they stack on the screen: what's new, the Start menu, the sketchbook over a box's card, the
+// worlds, a story page, a conversation; B / ○ closes the one on top, so the sketchbook opened over a
+// conversation or a moment closes first)
+const menuRoot = () => restartOpen ? restartEl : changelog.open ? changelog.el : menu.open ? menu.el : journal.open ? journal.el : boxes.busy() && boxes.card.el ? boxes.card.el : picker.classList.contains('open') ? picker : pageUp() ? pageEl : storyRt.dialogue.open ? storyRt.dialogue.el : pageEl;
 const closeControllerMenu = () => {
   if (restartOpen) return;   // (only confirm restarts: there is nothing to go back to)
-  if (storyRt.moments.playing) storyRt.moments.skip();   // B / ○ skips a moment (src/story/moment.js)
-  else if (boxes.busy()) boxes.skip();
+  if (changelog.open) changelog.toggle(false);
   else if (menu.open) menu.back();
-  else if (changelog.open) changelog.toggle(false);
+  else if (journal.open) journal.toggle(false);
+  else if (storyRt.moments.playing) storyRt.moments.skip();   // B / ○ skips a moment (src/story/moment.js)
+  else if (boxes.busy()) boxes.skip();
+  else if (picker.classList.contains('open')) showPicker(false);
   else if (pageUp()) pageEl.click();
   else if (storyRt.dialogue.open) storyRt.dialogue.close();
-  else if (journal.open) journal.toggle(false);
-  else if (picker.classList.contains('open')) showPicker(false);
   else pageEl.click();
 };
 const controller = new Controller({
@@ -1279,7 +1293,7 @@ function frame() {
     const usingLens = expedition?.update(dt, player, ctl, busy());
     if (usingLens && ctl.KeyE) player._eHeld = true; // the same press must not whistle after the last turn
     if (interacted) player._eHeld = true;
-    player.update(dt, busy() ? noInput : ctl, rig.yaw);
+    player.update(dt, busy() ? noInput : ctl, rig.yaw, rig.pitch);   // (the pitch: the jets fly where the camera looks)
     rig.follow(player.ride?.heading ?? player.heading, dt, player.riding || player.gliding);
     rig.down = !!player.down;   // knocked down: the camera follows the body on the ground, lower and softer
     rig.update(player.pos, dt, player.frame);
@@ -1296,6 +1310,7 @@ function frame() {
   for (const f of flocks) f.update(dt, t, player.pos, camera.position);
   motes?.update(dt, t, camera.position);
   footprints?.update(dt);
+  jumpShadow.update(player, physics);
   updateLights();
   // weather: wind, haze, rain and storm feed the shader, the cloth and the sound
   // (none of it indoors, and no rain drawn under a roof with you: src/shelter.js)

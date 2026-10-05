@@ -11,6 +11,8 @@
 // Subtitles replace each other cleanly, one at a time (Subtitles: a line can
 // also be timed, or queued behind the one showing).
 import { speakLine } from '../story/voice.js';
+import { inputKind } from '../prompt-keys.js';
+import { backKey } from '../native-pad.js';
 import { toastSeconds } from '../quest.js';   // a long toast stays up longer   // the mumbled voice under each subtitle
 
 const CSS = `
@@ -55,6 +57,8 @@ const CSS = `
 #warp.on .title { opacity: 1; }
 `;
 
+/** The hold-to-skip tag's words: a controller's back button (printed B), else Esc. */
+export const holdToSkip = (kind = inputKind()) => (kind === 'pad' ? `hold ${backKey()} to skip` : 'hold ESC to skip');
 const hasDOM = () => typeof document !== 'undefined' && !!document.body;
 
 /** Seconds a line of `text` needs on screen (as the calls time theirs). */
@@ -274,11 +278,13 @@ export class Cinema {
     this.hintEl.classList.toggle('show', !!text);
   }
 
-  /** Show only the touch controls (the HUD stays hidden): a scene you walk through. */
+  /** Show only the touch controls and the use prompt (the rest of the HUD stays hidden): a scene you walk through. */
   controls(show) {
     if (!this.dom) return;
-    const e = document.getElementById('touch');
-    if (e) e.style.visibility = show ? '' : 'hidden';
+    const t = document.getElementById('touch');
+    if (t) t.style.visibility = show ? '' : 'hidden';
+    const c = document.getElementById('cue');   // (over the letterbox's rule that hides it, index.html)
+    if (c) c.style.visibility = show ? 'visible' : 'hidden';
     this.layout();
   }
 
@@ -295,7 +301,7 @@ export class Cinema {
   skip(k, show, label = null) {
     this.skipK = k;
     if (!this.dom) return;
-    const txt = label ?? 'hold ESC to skip', node = this.skipEl.firstChild;
+    const txt = label ?? holdToSkip(), node = this.skipEl.firstChild;
     if (node && node.nodeType === 3 && node.nodeValue !== txt && (show || !label)) node.nodeValue = txt;
     this.skipEl.classList.toggle('press', !!label && show);
     const was = this.skipEl.classList.contains('show');

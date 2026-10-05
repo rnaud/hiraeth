@@ -1,29 +1,31 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { TRAVELLER_PALETTE as PAL, TRAVELLER_TONES } from './traveller-style.js';
 import { scalp, skullPoint } from './costumes.js';
 
-// The traveller wears the reference sheets' coral overshirt, cream trousers and
-// round satchel. Clothes follow the people's original skeleton and weights so
-// locomotion, climbing and equipment anchors keep their existing behaviour.
-// traveller.glb supplies the radio and worn boots; the coat, hair and bag are
-// built here in bind space, then skinned onto that same animation rig.
+// The traveller wears the reference sheets' coral overshirt, cream trousers,
+// round satchel and an ordinary canvas rucksack (the fluid flask sits in its
+// outer face, fluid-tool.js). Clothes follow the people's original skeleton and
+// weights so locomotion, climbing and equipment anchors keep their existing
+// behaviour. traveller.glb supplies only the soft boots; the coat, hair, scarf
+// and bags are built here in bind space, then skinned onto that same rig.
 
 /** Fit settings, in metres on the body's bind pose (the T-pose, feet at 0, facing +z). */
 export const TRAVELLER = {
   // MODE_OUTFIT zones: cropped trouser hem, waist, neck, rolled sleeve end
   outfit: [0.27, 0.97, 1.47, 0.52],
   // the baggy suit: how far it stands off the body
-  swell: { torso: 0.012, arm: 0.018, forearm: 0.012, clavicle: 0.015, leg: 0.035, hand: 0 },
+  swell: { torso: 0.012, arm: 0.018, forearm: 0.012, clavicle: 0.015, leg: 0.05, hand: 0 },   // (loose, baggy trousers, as on the sheets)
   backGap: 0.025,        // the tank clears the loose jacket
   boot: { margin: 0.014, sole: -0.012 },   // room round the foot; the sole's bottom (the foot's own pokes 1 cm under 0)
-  // his own face (morph.js FACE_MORPHS, Humanoid.setFace): about twenty-six, so younger and warmer than the
-  // people's modelled face (gaunt, long, hollow-cheeked): fuller cheeks, a shorter lower face and nose, a
-  // softer brow and jaw, larger eyes, hardly a line on it, a few freckles
-  // (on the people's gentler modelled face, humanoid.js reshape: the same face he had on the gaunt one;
-  // `young` keeps his ink as it was, a little over half a child's: face-ink.js faceYouth)
-  face: { cheeks: 0.45, faceLength: 0.94, noseLength: 0.72, noseWidth: 0.94, jaw: 1.1, chin: -0.5, browRidge: -0.8, eyeSize: 1.15, eyeHeight: 0.15,
-    lines: 0.1, lidWeight: 0.9, mouthWidth: 0.96, freckles: 0.35, young: 0.57 },
+  // his own face (morph.js FACE_MORPHS, Humanoid.setFace): about twenty-six, a lean young face after the
+  // coral-jacket sheets: slim cheeks under the cheekbones, a narrow jaw and a small pointed chin, the
+  // face a little long and narrow, a straight nose, a soft brow, bright eyes, hardly a line on it, a few
+  // freckles (on the people's gentler modelled face, humanoid.js reshape; `young` keeps his ink a
+  // little over half a child's: face-ink.js faceYouth)
+  face: { cheeks: -0.3, faceLength: 1.02, headWidth: 0.95, noseLength: 0.86, noseWidth: 0.9, jaw: 0.9, chin: 0.25, browRidge: -0.4, eyeSize: 1.1, eyeHeight: 0.1,
+    lines: 0.12, lidWeight: 0.95, mouthWidth: 0.94, freckles: 0.3, young: 0.55 },
   // and at rest the corners of his mouth a little up (src/expression.js; the conversations go from there)
   rest: { smile: 0.2 },
 };
@@ -227,35 +229,137 @@ function reach(pts, from, dir, r = 0.03) {
 }
 
 // ------------------------------------------------------------------ his hair
+/** A deterministic 0..1 hash (the hair's locks are the same on every load, in the studio and the portraits). */
+const hash = (k, s = 0) => { const x = Math.sin(k * 127.1 + s * 311.7) * 43758.5453; return x - Math.floor(x); };
 /**
- * Tousled dark hair in the head frame: a ragged scalp, swept fringe and uneven crown locks.
+ * One lock of hair: a flat, tapering blade from `root` (head frame) leaving along `dir`, curling
+ * toward `curl` as it goes (its end bends by `bend`, m), `w` wide at the root, `len` long.
+ */
+function lock(root, dir, curl, len, w, bend, flat = 0.32, tip = 0.3) {
+  const g = new THREE.CylinderGeometry(w * tip, w, len, 6, 4, true).translate(0, len / 2, 0);   // the wide root at 0, the blunt tip at +len
+  const Y = dir.clone().normalize(), C = curl.clone().addScaledVector(Y, -curl.dot(Y)).normalize();
+  const X = new THREE.Vector3().crossVectors(Y, C), P = g.attributes.position, v = new THREE.Vector3();
+  const tint = new Float32Array(P.count * 3);
+  for (let i = 0; i < P.count; i++) {
+    v.fromBufferAttribute(P, i);
+    const t = v.y / len, r = w * (1 - (1 - tip) * t);
+    // the lock's two edges print lighter (dark hair's strand lines would vanish in its own ink: humanoid.js HAIR_EDGE)
+    tint.fill(1 + HAIR_EDGE_LIFT * Math.min(1, Math.abs(v.x) / r) ** 3, i * 3, i * 3 + 3);
+    // flattened across (a lock is a blade, not a spike), bent along its length
+    v.set(0, 0, 0).addScaledVector(X, P.getX(i)).addScaledVector(C, P.getZ(i) * flat).addScaledVector(Y, P.getY(i)).addScaledVector(C, bend * t * t).add(root);
+    P.setXYZ(i, v.x, v.y, v.z);
+  }
+  g.deleteAttribute('uv'); g.deleteAttribute('normal');
+  g.setAttribute('color', new THREE.BufferAttribute(tint, 3));
+  g.computeVertexNormals();
+  return g;
+}
+/** How much lighter a lock's edges print than its middle (a multiple of the hair's colour). */
+const HAIR_EDGE_LIFT = 0.9;
+/**
+ * Scruffy dark hair in the head frame, after the coral-jacket sheets: a ragged scalp under a
+ * mop of broken, tousled locks: a fringe falling unevenly over the brow, curls lifting off the crown
+ * at odd angles, a few strays standing up, shaggy over the ears and ragged at the nape.
  */
 export function travellerHair() {
-  const parts = [scalp(1, { kind: 'm', t: 0.016, front: 25, side: -22, back: -43, crown: 0.018, quiff: 0.014, jag: 5, bump: 0.004 })];
-  const X = new THREE.Vector3(), Y = new THREE.Vector3(), Z = new THREE.Vector3(), m = new THREE.Matrix4();
-  for (let k = 0; k < 7; k++) {
-    const az = -45 + k * 15, sway = (k % 2 ? 1 : -1) * 4 + (k - 3) * 2.5;
-    const p0 = new THREE.Vector3(...skullPoint('m', az, 46, 0.011)), p1 = new THREE.Vector3(...skullPoint('m', az + sway, 15 + ((k * 5) % 7) * 1.6 + Math.abs(k - 3) * 2.5, 0.012));
-    Y.subVectors(p1, p0);
-    const len = Y.length();
-    Y.normalize();
-    Z.copy(p0).add(p1).normalize();                    // out from the skull
-    Z.addScaledVector(Y, -Z.dot(Y)).normalize();
-    X.crossVectors(Y, Z);
-    const g = new THREE.ConeGeometry(0.022 - Math.abs(k - 3) * 0.0015, len, 5).rotateX(Math.PI).scale(1, 1, 0.3);
-    g.applyMatrix4(m.makeBasis(X, Y, Z).setPosition(p0.clone().add(p1).multiplyScalar(0.5)));
-    g.deleteAttribute('uv');
-    parts.push(g);
+  const parts = [scalp(1, { kind: 'm', t: 0.018, front: 24, side: -20, back: -42, crown: 0.02, quiff: 0.012, jag: 7, bump: 0.007 })];
+  const S = (az, el, t) => new THREE.Vector3(...skullPoint('m', az, el, t));
+  const out = (az, el) => S(az, el, 0.05).sub(S(az, el, 0)).normalize();
+  const down = new THREE.Vector3(0, -1, 0), fwd = new THREE.Vector3(0, 0, 1);
+  // the fringe: uneven locks falling forward and down over the brow, swept a little to his right
+  for (let k = 0; k < 10; k++) {
+    const az = -54 + k * 12 + (hash(k, 1) - 0.5) * 6, el = 50 + hash(k, 2) * 10;
+    const n = out(az, el);
+    const dir = n.clone().multiplyScalar(0.3).addScaledVector(fwd, 0.5).addScaledVector(down, 0.85).add(new THREE.Vector3(-0.25 + (hash(k, 3) - 0.5) * 0.6, 0, 0));
+    // (the ends curl back in toward the brow rather than poking out)
+    parts.push(lock(S(az, el, 0.012), dir, n.clone().negate(), 0.042 + hash(k, 4) * 0.026 + (Math.abs(az) < 24 ? 0.02 : 0), 0.026 + hash(k, 5) * 0.008, 0.012 + hash(k, 6) * 0.01, 0.4));
   }
-  // Uneven overlapping locks make the outline shaggy without a spherical helmet of hair.
-  for (let k = 0; k < 28; k++) {
-    const az = k * 137.5, el = 15 + ((k * 17) % 65);
-    const p = new THREE.Vector3(...skullPoint('m', az, el, 0.025));
-    const lock = new THREE.SphereGeometry(1, 7, 5).scale(0.024, 0.018, 0.04)
-      .rotateX(0.3 + k * 0.37).rotateY(az * Math.PI / 180).rotateZ(k * 0.73).translate(p.x, p.y, p.z);
-    lock.deleteAttribute('uv'); parts.push(lock);
+  // the mop: thick curls lifting off the skull every which way (golden-angle spread, jittered),
+  // each arcing out and back over toward the head, so the outline is broken into round bumps
+  for (let k = 0; k < 56; k++) {
+    const az = k * 137.5 + (hash(k, 7) - 0.5) * 30, el = Math.max(16 + hash(k, 8) * 68, Math.cos(az * Math.PI / 180) > 0.4 ? 40 : 0);   // (behind the hairline over the brow)
+    const n = out(az, el), side = new THREE.Vector3(-n.z, 0, n.x).normalize();
+    // (over the face the locks lift up and back off the brow, so none falls in front of the eyes: the fringe does that)
+    const front = Math.max(0, Math.cos(az * Math.PI / 180)) ** 2 * (el < 62 ? 1 : 0.3);
+    const dir = n.clone().multiplyScalar(0.6 + hash(k, 9) * 0.4).addScaledVector(side, (hash(k, 10) - 0.5) * 2.2 * (1 - front * 0.6)).addScaledVector(down, 0.2 * (1 - front)).addScaledVector(fwd, -front * 0.5).add(new THREE.Vector3(0, front * 0.35, 0));
+    const len = (0.038 + hash(k, 11) ** 2 * 0.045) * (el > 66 ? 0.7 : 1);   // (shorter on the crown: a mop, not a crest)
+    parts.push(lock(S(az, el, 0.012), dir, n.clone().negate().addScaledVector(side, hash(k, 24) - 0.5), len, 0.028 + hash(k, 12) * 0.013, len * (0.45 + hash(k, 13) * 0.3), 0.5, 0.6));
   }
-  return mergeGeometries(parts);
+  // a few thin strays standing up and off the crown
+  for (let k = 0; k < 4; k++) {
+    const az = 160 + k * 55 + hash(k, 14) * 20, el = 62 + hash(k, 15) * 16;
+    const n = out(az, el);
+    parts.push(lock(S(az, el, 0.02), n.clone().add(new THREE.Vector3(0, 0.6, 0)), new THREE.Vector3(hash(k, 16) - 0.5, -0.3, hash(k, 17) - 0.5), 0.032 + hash(k, 18) * 0.02, 0.008, 0.018, 0.5, 0.2));
+  }
+  // shaggy over the tops of the ears and ragged down the nape
+  for (let k = 0; k < 14; k++) {
+    const nape = k >= 6, az = nape ? 140 + (k - 6) * 11 + hash(k, 19) * 5 : (k < 3 ? 1 : -1) * (88 + (k % 3) * 16), el = nape ? -18 - hash(k, 20) * 16 : 2 + hash(k, 21) * 10;
+    const n = out(az, el);
+    parts.push(lock(S(az, el, 0.012), n.clone().multiplyScalar(0.35).addScaledVector(down, 1), n.clone().negate(), 0.035 + hash(k, 22) * 0.025, 0.022, 0.01 + hash(k, 23) * 0.008, 0.4, 0.4));
+  }
+  return mergeGeometries(parts.map((g) => {
+    for (const k of Object.keys(g.attributes)) if (!['position', 'normal', 'color'].includes(k)) g.deleteAttribute(k);
+    if (!g.attributes.color) g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(g.attributes.position.count * 3).fill(1), 3));
+    return g;
+  }));
+}
+
+// ------------------------------------------------------------------ his rucksack
+/**
+ * The rucksack, in the chest anchor's frame (y 0 at the hips, the collar at 0.76, +z forward; the
+ * fluid tank's frame, fluid-tool.js TANK): body, lid, buckled lid straps and a side pocket, plus an
+ * outer pocket the flask hides when it sits there. Soft canvas, an ordinary traveller's bag.
+ */
+export const RUCKSACK = {
+  back: -0.145,             // its back face, against the jacket
+  depth: 0.105,             // front to back (the flask sinks into its outer face, TANK.at)
+  width: 0.31, bottom: 0.25, top: 0.705,
+};
+function rucksack(chestY, chestZ) {
+  const R = RUCKSACK, hw = R.width / 2, cz = R.back - R.depth / 2, out = R.back - R.depth, cy = (R.bottom + R.top) / 2, hh = (R.top - R.bottom) / 2;
+  const toBind = new THREE.Matrix4().makeTranslation(0, chestY, chestZ);
+  const soft = (w, h, d, r, x, y, z, shape = () => {}) => {
+    const g = new RoundedBoxGeometry(w, h, d, 3, r), P = g.attributes.position, v = new THREE.Vector3();
+    for (let i = 0; i < P.count; i++) { v.fromBufferAttribute(P, i); shape(v, w / 2, h / 2, d / 2); P.setXYZ(i, v.x + x, v.y + y, v.z + z); }
+    g.computeVertexNormals();
+    return plain(g, toBind);
+  };
+  // the body: soft canvas, a little narrower at the top, bellied on its outer face and sagging at the bottom
+  const body = soft(R.width, hh * 2, R.depth, 0.04, 0, cy, cz, (v, a, b, c) => {
+    const u = (v.y / b + 1) / 2;
+    v.x *= 1 - 0.07 * u;
+    if (v.z < 0) v.z -= 0.012 * (1 - (v.x / a) ** 2) * (1 - (v.y / b) ** 2);
+    v.x += 0.004 * Math.sin(v.y * 40);
+    if (u < 0.15) v.x *= 1 + 0.04 * (1 - u / 0.15);
+  });
+  // the lid: a soft flap over the top, overhanging all round, its front lip turned down
+  const lid = soft(R.width + 0.01, 0.06, R.depth + 0.018, 0.026, 0, R.top - 0.012, cz - 0.004, (v, a, b, c) => {
+    v.y -= 0.022 * (v.z / c < -0.4 ? (-v.z / c - 0.4) / 0.6 : 0) + 0.01 * (v.x / a) ** 2;
+  });
+  // two leather straps down the lid's front to buckles on the body (either side of the flask's neck)
+  const straps = [], buckles = [];
+  for (const sx of [-1, 1]) {
+    const x = sx * 0.133;
+    straps.push(plain(new THREE.BoxGeometry(0.026, 0.13, 0.006).translate(x, R.top - 0.06, out - 0.012), toBind));
+    buckles.push(plain(new THREE.TorusGeometry(0.012, 0.0035, 4, 8).scale(1, 0.8, 1).translate(x, R.top - 0.12, out - 0.016), toBind));
+  }
+  // a bulging side pocket on his right, a rolled bedroll strapped under the bag
+  const pocket = soft(0.04, 0.17, 0.08, 0.018, -hw - 0.012, R.bottom + 0.12, cz, (v) => { v.x -= 0.006 * (1 - (v.y / 0.085) ** 2); });
+  const roll = plain(new THREE.CylinderGeometry(0.038, 0.038, R.width + 0.04, 12).rotateZ(Math.PI / 2).translate(0, R.bottom - 0.02, R.back - 0.043), toBind);
+  const rollEnds = plain(mergeGeometries([-1, 1].map((s) => new THREE.TorusGeometry(0.037, 0.007, 4, 12).rotateY(Math.PI / 2).translate(s * (R.width / 2 - 0.03), R.bottom - 0.02, R.back - 0.043))), toBind);
+  // the outer pocket (hidden while the flask sits over it)
+  const front = soft(0.21, 0.2, 0.036, 0.016, 0, R.bottom + 0.17, out - 0.008, (v, a, b, c) => { if (v.z < 0) v.z -= 0.006 * (1 - (v.x / a) ** 2); });
+  const frontFlap = soft(0.215, 0.06, 0.04, 0.014, 0, R.bottom + 0.255, out - 0.01);
+  const P = PAL;
+  return {
+    top: R.top + 0.018, bottom: R.bottom - 0.062, dockX: -0.03, dockZ: cz - 0.04,
+    parts: [
+      ['Rucksack', body, P.canvas], ['Rucksack_lid', lid, P.canvasShade], ['Rucksack_lid_straps', mergeGeometries(straps), P.leather],
+      ['Rucksack_buckles', mergeGeometries(buckles), P.dark], ['Rucksack_side_pocket', pocket, P.canvasShade],
+      ['Bedroll', roll, P.lavender], ['Bedroll_ties', rollEnds, P.leather],
+      ['Rucksack_pocket', front, P.canvasShade, { pack: true }], ['Rucksack_pocket_flap', frontFlap, P.canvas, { pack: true }],
+    ],
+  };
 }
 
 // ------------------------------------------------------------------ the kit
@@ -274,7 +378,7 @@ const toneOf = (mesh) => {
 /**
  * Everything the traveller wears on a body (pure data, cached per outfit scene and body geometry):
  * { pieces: [{ name, geometry (skinned to the body's bones, bind space), color, glass?, pack? }],
- *   chestZ (the chest anchor's offset to the pack's front), dock (where the scout's foot rests on the pack,
+ *   chestZ (the chest anchor's offset), dock (where the scout's foot rests on the rucksack's lid,
  *   chest anchor frame), forearm: { r, l } (bracer frames: { position, quaternion, scale } in
  *   bind space), head: { centre, half } }.
  */
@@ -287,7 +391,6 @@ export function travellerKit(scene, body) {
   const [bootTop, beltY, neckY, wristX] = F.outfit;
   const pieces = [];
   const add = (name, geometry, color, o = {}) => pieces.push({ name, geometry, color, ...o });
-  const glbGeo = (name, m) => { const src = glb.get(name); return src ? plain(src.geometry, new THREE.Matrix4().multiplyMatrices(m, src.bindMatrix ?? new THREE.Matrix4())) : null; };
 
   // ---- the head: centre and size of the human's, from its own vertices
   const headPts = points(base, onBones(base, body, /^Head$/));
@@ -295,58 +398,68 @@ export function travellerKit(scene, body) {
   const Head = bi('Head');
   const anchorHead = new THREE.Vector3(0, bindPos(body, 'Head').y + 0.1, bindPos(body, 'Head').z + 0.01);
   const anchorM = new THREE.Matrix4().makeTranslation(anchorHead.x, anchorHead.y, anchorHead.z);
-  add('Traveller_hair', rigid(plain(travellerHair(), anchorM), Head), PAL.hair);
+  const hair = travellerHair(), hairGeo = plain(hair, anchorM);
+  hairGeo.setAttribute('color', hair.attributes.color);   // (each lock's lighter edges: lock())
+  add('Traveller_hair', rigid(hairGeo, Head), PAL.hair);
 
   // ---- the scarf round the neck, on the chest (the head turns inside it)
   const neck = bindPos(body, 'neck_01'), chest = bi('spine_03');
   const neckPts = points(suit, (p) => Math.abs(p.y - (neck.y + 0.02)) < 0.03 && Math.abs(p.x) < 0.13);
   const neckZ = neckPts.length ? (Math.min(...neckPts.map((p) => p.z)) + Math.max(...neckPts.map((p) => p.z))) / 2 : neck.z;
-  for (let k = 0; k < 3; k++) {
-    const fold = new THREE.TorusGeometry(0.076 + k * 0.006, 0.021, 7, 24).rotateX(Math.PI / 2)
-      .scale(1.08, 0.64, 1.16).rotateZ(0.1 - k * 0.08).translate(0, neck.y - 0.026 - k * 0.022, neckZ + 0.008);
-    add(`Scarf_fold_${k}`, rigid(plain(fold), chest), PAL.scarf);
+  // a loose cowl of soft cotton bunched round the neck (not stacked rings): rows of uneven folds, lying
+  // wider on the shoulders, dipping a little at the front, its top edge turned in against the neck
+  {
+    const rows = [[-0.004, 0.071, 0], [-0.024, 0.086, 0.004], [-0.048, 0.097, 0.01], [-0.072, 0.104, 0.018], [-0.09, 0.1, 0.024], [-0.098, 0.084, 0.024]];
+    const cols = 30;
+    const ring = ([dy, r, dip], j) => Array.from({ length: cols }, (_, k) => {
+      const a = (k / cols) * Math.PI * 2, front = Math.max(0, Math.cos(a));
+      const fold = 0.008 * Math.sin(a * 7 + j * 1.9) + 0.005 * Math.sin(a * 12 - j * 2.7) + (j > 0 && j < rows.length - 1 ? 0.004 : 0);
+      return new THREE.Vector3(Math.sin(a) * (r + fold) * 1.06, neck.y + dy - dip * front ** 2 + 0.006 * Math.sin(a * 5 + j), neckZ + 0.008 + Math.cos(a) * (r + fold) * 1.14);
+    });
+    add('Scarf_cowl', rigid(band(rows.map(ring)), chest), PAL.scarf);
   }
-  const scarfTail = [new THREE.Vector3(-0.03, neck.y - 0.08, 0.105), new THREE.Vector3(-0.04, neck.y - 0.14, 0.12), new THREE.Vector3(-0.025, neck.y - 0.25, 0.145)];
-  add('Scarf_tail', conform(ribbon(scarfTail, scarfTail.map(() => new THREE.Vector3(0, 0, 1)), 0.042, 0.004), suit, body, /^spine_0[123]$/, chest), PAL.scarf);
+  // its loose end, tucked under the cowl and hanging a little down his left chest
+  const scarfTail = [new THREE.Vector3(0.035, neck.y - 0.085, 0.108), new THREE.Vector3(0.045, neck.y - 0.13, 0.122), new THREE.Vector3(0.035, neck.y - 0.2, 0.14)];
+  add('Scarf_tail', conform(ribbon(scarfTail, scarfTail.map(() => new THREE.Vector3(0, 0, 1)), 0.05, 0.004), suit, body, /^spine_0[123]$/, chest), PAL.scarf);
   // The translator remains a small earpiece from home, almost lost in his hair.
-  add('Translator', rigid(plain(new THREE.SphereGeometry(1, 8, 6).scale(0.009, 0.017, 0.012).translate(-headHalf.x - 0.003, headC.y - 0.008, headC.z)), Head), PAL.teal);
+  add('Translator', rigid(plain(new THREE.SphereGeometry(1, 8, 6).scale(0.007, 0.012, 0.009).translate(-headHalf.x - 0.002, headC.y - 0.012, headC.z + 0.004)), Head), PAL.earpiece);
 
-  // ---- the radio pack, its front on the suit's back
+  // ---- the canvas rucksack on the back (the chest frame: the flask, the scout's dock and the lantern hang off it)
   const backPts = points(suit, (p) => p.y > neck.y - 0.24 && p.y < neck.y - 0.07 && Math.abs(p.x) < 0.1);
   const backZ = Math.min(...backPts.map((p) => p.z));
-  // the glb's suit back, and its chest frame's origin (y 0.74 below the collar): the chest anchor
-  // goes as far behind the human's neck as the pack must move, so the tank keeps its place too
-  const glbBackZ = -0.14, glbCollar = 0.73;
+  // the chest frame's origin, 0.76 below the collar and as far behind the human's neck as the old radio
+  // pack's front stood (traveller.glb's suit back at -0.14): the flask and every hook keep their places
+  const glbBackZ = -0.14;
   const chestY = neck.y - 0.76, chestZ = backZ - F.backGap - glbBackZ;
-  const packM = new THREE.Matrix4().makeTranslation(0, chestY - glbCollar, chestZ);
-  const radio = glb.get('Equipment_ivory_radio');
-  const tri = (pred) => (geo) => (a, b, c) => pred(geo, a) && pred(geo, b) && pred(geo, c);
-  const onGlbBone = (mesh, re) => (geo, v) => { const J = geo.attributes.skinIndex, W = geo.attributes.skinWeight; for (let k = 0; k < 4; k++) if (W.getComponent(v, k) > 0.5) return re.test(mesh.skeleton.bones[J.getComponent(v, k)].name); return false; };
-  const radioPack = pick(radio.geometry, tri(onGlbBone(radio, /^chest$/))(radio.geometry));
-  const radioM = new THREE.Matrix4().multiplyMatrices(packM, radio.bindMatrix);
-  add('Equipment_ivory_radio', rigid(plain(radioPack, radioM), chest), toneOf(radio), { pack: true });
-  for (const n of ['Equipment_blue_metal', 'Equipment_cyan_glass']) add(n, rigid(glbGeo(n, packM), chest), toneOf(glb.get(n)), { pack: true });
-  // the scout's place: the point on the radio's flat top its foot rests on, towards the back (clear of his hair)
-  const radioBox = boxOf(points(plain(radioPack, radioM), () => true));
-  const dock = new THREE.Vector3(0, radioBox.max.y - chestY, radioBox.min.z + 0.085 - chestZ);
+  const sack = rucksack(chestY, chestZ);
+  for (const [name, geo, color, o] of sack.parts) add(name, rigid(geo, chest), color, o);
+  // the scout's place when there is no flask: the rucksack's lid, toward its outer side (clear of his hair) and a
+  // little to his right (from there it glides over to the flask's upright when the flask is found, scout.js)
+  const dock = new THREE.Vector3(sack.dockX, sack.top, sack.dockZ);
 
-  // ---- the shoulder straps: from the pack over the shoulders, down the front to the belt
+  // ---- the shoulder straps: from the rucksack's top over the shoulders, down the chest, then under
+  // each arm back to its lower corners (a rucksack's, not a harness down to the belt)
   const torso = points(suit, onBones(suit, body, /^(pelvis|spine|clavicle|neck)/, 0.5));
   const strapPath = (sx) => {
-    const x = sx * 0.105, pts = [], nrm = [];
+    const x = sx * 0.1, pts = [], nrm = [];
     const at = (from, dir) => from.clone().addScaledVector(dir, reach(torso, from, dir, 0.025) + 0.004);
-    pts.push(new THREE.Vector3(x, neck.y - 0.12, backZ - 0.01)); nrm.push(new THREE.Vector3(0, 0, -1));
+    pts.push(new THREE.Vector3(x, neck.y - 0.1, backZ - 0.012)); nrm.push(new THREE.Vector3(0, 0, -1));
     pts.push(at(new THREE.Vector3(x, neck.y - 0.25, -0.03), new THREE.Vector3(0, 1, -0.6))); nrm.push(new THREE.Vector3(0, 1, -0.6).normalize());
     pts.push(at(new THREE.Vector3(x, neck.y - 0.25, 0.0), new THREE.Vector3(0, 1, 0))); nrm.push(new THREE.Vector3(0, 1, 0));
     pts.push(at(new THREE.Vector3(x, neck.y - 0.25, 0.02), new THREE.Vector3(0, 1, 0.8))); nrm.push(new THREE.Vector3(0, 1, 0.8).normalize());
-    for (const y of [neck.y - 0.12, neck.y - 0.24, neck.y - 0.36, neck.y - 0.46, beltY + 0.06]) {
-      pts.push(at(new THREE.Vector3(x * (y < neck.y - 0.3 ? 1.06 : 1), y, 0), new THREE.Vector3(0, 0, 1))); nrm.push(new THREE.Vector3(0, 0, 1));
+    for (const [y, k] of [[neck.y - 0.12, 1], [neck.y - 0.22, 1.04], [neck.y - 0.3, 1.18]]) {
+      pts.push(at(new THREE.Vector3(x * k, y, 0), new THREE.Vector3(0, 0, 1))); nrm.push(new THREE.Vector3(0, 0, 1));
     }
+    // round the ribs under the arm, to the rucksack's bottom corner
+    for (const [y, d] of [[neck.y - 0.37, new THREE.Vector3(sx * 0.75, 0, 0.66)], [neck.y - 0.43, new THREE.Vector3(sx, 0, 0)], [neck.y - 0.47, new THREE.Vector3(sx * 0.7, 0, -0.71)]]) {
+      pts.push(at(new THREE.Vector3(0, y, 0), d.normalize())); nrm.push(d);
+    }
+    pts.push(new THREE.Vector3(sx * 0.13, sack.bottom + chestY + 0.04, backZ - 0.03)); nrm.push(new THREE.Vector3(0, 0, -1));
     return [pts, nrm];
   };
   for (const sx of [-1, 1]) {
     const [pts, nrm] = strapPath(sx);
-    add(`Strap_${sx}`, conform(ribbon(pts, nrm, 0.045, 0.01), suit, body, /^(pelvis|spine_0[123]|clavicle_[lr])$/, chest), PAL.strap);
+    add(`Strap_${sx}`, conform(ribbon(pts, nrm, 0.036, 0.008), suit, body, /^(pelvis|spine_0[123]|clavicle_[lr])$/, chest), PAL.strap);
   }
 
   // ---- the open overshirt: shoulder/sleeve shells and an open, thigh-length body.
@@ -393,19 +506,19 @@ export function travellerKit(scene, body) {
   const diagonal = [new THREE.Vector3(-0.14, 1.425, 0.11), new THREE.Vector3(-0.08, 1.32, 0.157), new THREE.Vector3(0.01, 1.19, 0.166), new THREE.Vector3(0.115, 1.04, 0.19)];
   add('Satchel_strap', conform(ribbon(diagonal, diagonal.map(() => new THREE.Vector3(0, 0, 1)), 0.028, 0.005), suit, body, /^(pelvis|spine_0[123]|clavicle_[lr])$/, chest), PAL.strap);
 
-  // Faded cloth ties drape beside the pack, over the jacket's back.
-  for (const [x, color, length] of [[0.18, PAL.teal, 0.55], [-0.17, PAL.lavender, 0.49]]) {
-    const path = [new THREE.Vector3(x, 1.4, backZ - 0.015), new THREE.Vector3(x * 1.18, 1.25, backZ - 0.045), new THREE.Vector3(x * 1.05, 1.06, backZ - 0.035), new THREE.Vector3(x * 1.2, 1.4 - length, backZ - 0.05)];
-    add(`Pack_cloth_${x}`, conform(ribbon(path, path.map(() => new THREE.Vector3(0, 0, -1)), 0.043, 0.003), suit, body, /^(pelvis|spine_0[123])$/, chest), color);
+  // Faded cloth ties knotted to the rucksack's top corners, hanging down its sides.
+  for (const [sx, color, length] of [[1, PAL.teal, 0.5], [-1, PAL.lavender, 0.43]]) {
+    const z = chestZ + RUCKSACK.back - RUCKSACK.depth * 0.6, y = chestY + RUCKSACK.top - 0.02;
+    const path = [new THREE.Vector3(sx * 0.145, y, z), new THREE.Vector3(sx * 0.168, y - 0.1, z - 0.005), new THREE.Vector3(sx * 0.172, y - 0.28, z + 0.01), new THREE.Vector3(sx * 0.18, y - length, z + 0.02)];
+    add(`Pack_cloth_${sx}`, conform(ribbon(path, path.map(() => new THREE.Vector3(sx, 0, 0)), 0.04, 0.003), suit, body, /^(pelvis|spine_0[123])$/, chest), color);
   }
 
-  // ---- the boots: the glb's, on each foot, the soles just under the ground
+  // ---- the boots: the glb's soft desert boots on each foot (no suit seams or buckles), the soles just under the ground
   for (const [s, S, sign] of [['l', 'L', 1], ['r', 'R', -1]]) {
     const footPts = points(base, ((on) => (p, i) => p.x * sign > 0 && on(p, i))(onBones(base, body, new RegExp(`^(foot|ball)_${s}$`))));
     const fb = boxOf(footPts), fc = fb.getCenter(new THREE.Vector3()), fs = fb.getSize(new THREE.Vector3());
-    const parts = ['Equipment_dusty_pink_boots', 'Equipment_rubber_soles', 'Equipment_seam_ink'].map((n) => [n, glb.get(n)]).filter(([, m]) => m);
-    parts.push(['Boot_buckles', radio]);
-    const side = (m) => (geo) => (a, b, c) => [a, b, c].every((v) => geo.attributes.position.getX(v) * sign > 0) && (m !== radio || tri(onGlbBone(radio, /^foot/))(geo)(a, b, c));
+    const parts = ['Equipment_dusty_pink_boots', 'Equipment_rubber_soles'].map((n) => [n, glb.get(n)]).filter(([, m]) => m);
+    const side = () => (geo) => (a, b, c) => [a, b, c].every((v) => geo.attributes.position.getX(v) * sign > 0);
     const bootBox = new THREE.Box3();
     for (const [, m] of parts.slice(0, 2)) bootBox.union(boxOf(points(pick(m.geometry, side(m)(m.geometry)), () => true)));
     const bc = bootBox.getCenter(new THREE.Vector3()), bs = bootBox.getSize(new THREE.Vector3());
@@ -440,6 +553,12 @@ export function travellerKit(scene, body) {
     }); };
     const y0 = bootTop + 0.005, y1 = bootTop + 0.045;
     add(`Trouser_cuff_${s}`, rigid(mergeGeometries([band([cuff(y0, 0.006), cuff(y1, 0.004)]), band([cuff(y1, 0.004), cuff(y1, -0.01)])]), calfB), PAL.suit);
+    // the soft boot's slouched, turned-down top
+    const rim = (y, out) => { const c = legAxis(y); return Array.from({ length: 20 }, (_, k) => {
+      const a = (k / 20) * Math.PI * 2, d = new THREE.Vector3(Math.sin(a), 0, Math.cos(a));
+      return c.clone().addScaledVector(d, reach(shaft.filter((p) => Math.abs(p.y - bootTopY) < 0.04), c.clone().setY(bootTopY - 0.015), d, 0.04) + out + 0.004 * Math.sin(a * 5 + sign));
+    }); };
+    add(`Boot_cuff_${s}`, rigid(mergeGeometries([band([rim(bootTopY - 0.04, 0.004), rim(bootTopY - 0.002, 0.009)]), band([rim(bootTopY - 0.002, 0.009), rim(bootTopY - 0.004, -0.003)])]), calfB), PAL.boot);
     // The overshirt rolls up just below the elbow, leaving the forearm bare.
     const arm = bindPos(body, `lowerarm_${s}`), hand = bindPos(body, `hand_${s}`), along = hand.clone().sub(arm).normalize();
     const armPts = points(suit, ((on) => (p, i) => p.x * sign > 0 && on(p, i))(onBones(suit, body, new RegExp(`^lowerarm_${s}|^hand_${s}$`), 0.3)));

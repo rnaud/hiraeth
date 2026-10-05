@@ -317,7 +317,7 @@ export class HomecomingDirector {
         break;
       case 'dive':
         C.say(null);
-        sfx.roar(s.sound, 2.8); sfx.hum(s.sound, 0.3);
+        sfx.descent(s.sound, 2.8); sfx.hum(s.sound, 0.3);   // (down under control: no roar, no shaking)
         setTimeout(() => C.fade(1, true, 0.9), 1300);
         break;
       case 'descend': {
@@ -468,7 +468,7 @@ export class HomecomingDirector {
         const dive = id === 'dive' ? smooth(t / 2.6) : 0;
         if (s.spaceCopy) s.spaceCopy.space.rotation.x = 0.12 * k + 0.5 * dive;
         const back = id === 'cargo' ? 0.6 : 0;
-        s.shot({ pos: this.W(V(-0.5 - back * 0.6, DECK + 1.8, -7.6 + (1 - k) * 1.2 + back)), look: this.W(V(0.4, DECK + 1.3 - dive * 0.5, -14)), fov: 60 - k * 4, roll: dive * 0.06 * Math.sin(t * 3) });
+        s.shot({ pos: this.W(V(-0.5 - back * 0.6, DECK + 1.8, -7.6 + (1 - k) * 1.2 + back)), look: this.W(V(0.4, DECK + 1.3 - dive * 0.5, -14)), fov: 60 - k * 4 });
         s.player.heading = s.worldHeading(sp, Math.PI);
         if (id === 'approach') {
           if (t > 1.6 && !this.said) { this.said = true; C.say({ who: 'ship', text: 'Out of the jump. Home is below us.' }); }
@@ -478,7 +478,6 @@ export class HomecomingDirector {
           this.panel?.pad();
           if (t > 3.6 && !this.chosen && !this.quiet) { this.quiet = true; C.say(null); }   // the panel asks the rest
         }
-        if (dive) s.shake(0.4 * dive);
         break;
       }
       case 'descend': {
@@ -491,7 +490,7 @@ export class HomecomingDirector {
         const h = pk.group.position.y - s.restPos.y;
         // the jets out of the bells, a little dust blown off the ring from under them: home is grass, not sand (src/ship/exhaust.js)
         if (!this.thud) exhaust(s, pk, dt, { power: 0.8, palette: GRASS, rate: 18 });
-        if (t > 5.8 && !this.thud) { this.thud = true; footPuffs(s, pk, { palette: GRASS, n: 4 }); s.shake(0.6); sfx.rumble(s.sound, 0.8, 0.4); sfx.engines(s.sound, 0); pk.mats.thrust.uniforms.uGlow.value = 0; }
+        if (t > 5.8 && !this.thud) { this.thud = true; footPuffs(s, pk, { palette: GRASS, n: 4 }); sfx.rumble(s.sound, 0.5, 0.15); sfx.engines(s.sound, 0); pk.mats.thrust.uniforms.uGlow.value = 0; }
         break;
       }
       case 'hatch': {

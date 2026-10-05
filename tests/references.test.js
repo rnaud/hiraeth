@@ -148,13 +148,42 @@ test('the City-Shaft\'s sheets after the desert\'s, grouped by world, each panel
       assert.ok(ax + aw <= bx || bx + bw <= ax || ay + ah <= by || by + bh <= ay, `${s}: panels ${i + 1} and ${j + 1} apart`);
     }
   }
-  // grouped by world: every desert sheet before every City-Shaft one
+  // grouped by world: every desert sheet before every City-Shaft one (and the worlds after them)
   const world = REFERENCE_VIEWS.map((v) => REFERENCE_SHEETS[v.sheet].name.split(' / ')[0]);
-  assert.deepEqual([...new Set(world)], ['The Desert', 'The City-Shaft']);
+  assert.deepEqual([...new Set(world)].slice(0, 2), ['The Desert', 'The City-Shaft']);
   for (let i = 1; i < world.length; i++) assert.ok(world[i] === world[i - 1] || !world.slice(0, i).includes(world[i]), 'a world\'s views together');
   // the views up or down the shaft frame with a roll and a pitch
   const steep = REFERENCE_VIEWS.filter((v) => v.camera.pitch !== undefined);
   assert.ok(steep.length >= 8);
   const c = viewCamera({ eye: [0, 0, 0], fov: 60, pitch: -60, roll: 10 });
   assert.ok(Math.abs(c.pitch + Math.PI / 3) < 1e-9 && c.target.y < -40 && Math.abs(c.roll - Math.PI / 18) < 1e-9);
+});
+
+test('Vael II\'s sheets after the City-Shaft\'s, panel by panel, framed and labelled; ?look=vael2 draws them in the world\'s own look', async () => {
+  const counts = { IMG_3783: 5, IMG_3784: 5, IMG_3785: 5, IMG_3786: 6, IMG_3787: 6, IMG_3788: 4 };
+  for (const [s, n] of Object.entries(counts)) {
+    const views = REFERENCE_VIEWS.filter((v) => v.sheet === s);
+    assert.equal(views.length, n, `${s}: ${n} panels`);
+    assert.deepEqual(views.map((v) => v.panel), Array.from({ length: n }, (_, i) => i + 1), `${s}: its panels in order`);
+    assert.ok(REFERENCE_SHEETS[s].name.startsWith('Vael II, the Sky Stones / '), 'the label names the world and the sheet');
+    assert.match(REFERENCE_SHEETS[s].url, new RegExp(`Vael%20II-%20The%20Sky%20Stones/${s}\\.JPG$`));
+    for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+      const [ax, ay, aw, ah] = views[i].crop, [bx, by, bw, bh] = views[j].crop;
+      assert.ok(ax + aw <= bx || bx + bw <= ax || ay + ah <= by || by + bh <= ay, `${s}: panels ${i + 1} and ${j + 1} apart`);
+    }
+  }
+  const world = REFERENCE_VIEWS.map((v) => REFERENCE_SHEETS[v.sheet].name.split(' / ')[0]);
+  assert.deepEqual([...new Set(world)].slice(0, 3), ['The Desert', 'The City-Shaft', 'Vael II, the Sky Stones']);
+  const vael = REFERENCE_VIEWS.filter((v) => world[REFERENCE_VIEWS.indexOf(v)].startsWith('Vael II'));
+  assert.equal(vael.length, 31);
+  // the sheets' look: shade printed flat, no bounce under the caps, a clean sky
+  for (const v of vael) assert.ok(v.look.uShadowFlat > 0.5 && v.look.uBounce === 0 && v.look.uCumulus === 0, `${v.id}: the sheets' print`);
+  // its views build (the scene builder's pieces: needles, tables, stones, islands, monasteries, aqueducts, cloud, the tower, the bird)
+  const { level } = refs();
+  for (const v of level.views.filter((x) => vael.includes(x.def))) assert.ok(v.group.children.length > 1, `${v.def.id}: something stands in it`);
+  const { WORLD_LOOKS } = await import('../src/levels/references.js');
+  const { SKY_STONES_LOOK, SKY_STONES_DAY } = await import('../src/levels/arzach2.js');
+  assert.equal(WORLD_LOOKS.vael2.sky, SKY_STONES_DAY);
+  assert.ok(WORLD_LOOKS.vael2.look.uShadowFlat > 0 && WORLD_LOOKS.vael2.look.uCumulus === SKY_STONES_LOOK.uCumulus, 'the world\'s own look, its flat print carried for the views');
+  assert.ok(WORLD_LOOKS.desert, '?look=desert still');
 });

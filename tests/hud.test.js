@@ -77,21 +77,21 @@ test('the health bar and the stamina wheel show while it matters and fade a mome
   assert.match(main, /hpFade\.update\(dt, h < 0\.999 \|\| !!player\.down\)/, 'hurt or healing (health below full), or knocked down');
 });
 
-test('the tank\'s gauge shows while the tank is short or the jets burn, a moment after, and an empty tank only briefly', async () => {
-  const { ToolHud, GAUGE_LINGER, GAUGE_DRY } = await ui();
+test('no charge pips on the screen (the backpack\'s tank shows the level): only an empty tank says so, briefly', async () => {
+  const { ToolHud, GAUGE_DRY } = await ui();
   const g = new ToolHud(null);
-  const at = (o, now) => g.gaugeShown({ owned: true, level: 3, max: 3, jets: false, dry: false, now, ...o });
+  const at = (o, now) => g.gaugeShown({ owned: true, dry: false, now, ...o });
   assert.equal(at({}, 0), false, 'a full tank: nothing');
-  assert.equal(at({ level: 2 }, 1), true, 'a shot spent a charge: it shows while the tank refills');
-  assert.equal(at({ level: 2 }, 4), true);
-  assert.equal(at({}, 4 + GAUGE_LINGER - 0.1), true, 'refilled: a moment more');
-  assert.equal(at({}, 4 + GAUGE_LINGER + 0.1), false, 'and gone');
-  assert.equal(at({ jets: true, level: 2.6 }, 10), true, 'the jets burning');
-  assert.equal(at({ level: 0, dry: true }, 20), true, 'the tank ran dry: it says so');
-  assert.equal(at({ level: 0, dry: true }, 20 + GAUGE_DRY + 0.1), false, 'then lets it be (it waits for magical water)');
-  assert.equal(g.gaugeShown({ owned: false, level: 0, max: 3, now: 30 }), false, 'no backpack, no gauge');
-  // the fluid tool hands it the tank's level, the jets and the empty tank
-  assert.match(src('src/fluid-tool.js'), /level: this\.reserve\.level, jets: !!p\?\.thrusting && this\.canJet, dry \}/);
+  assert.equal(at({ level: 2 }, 1), false, 'a shot spent a charge: still nothing beside the traveller');
+  assert.equal(at({ jets: true, level: 2.6 }, 10), false, 'the jets burning: nothing either');
+  assert.equal(at({ dry: true }, 20), true, 'the tank ran dry: it says so');
+  assert.equal(at({ dry: true }, 20 + GAUGE_DRY + 0.1), false, 'then lets it be (it waits for magical water)');
+  assert.equal(g.gaugeShown({ owned: false, dry: true, now: 30 }), false, 'no backpack, no notice');
+  // the crosshair's label holds the mode's name alone: no pips, no refill seconds
+  const ui_ = src('src/ui.js'), html = src('index.html');
+  assert.doesNotMatch(ui_, /class="pips"|class="wait"/, 'no pips in the tool\'s HUD');
+  assert.doesNotMatch(html, /#tool \.pips/, 'nor their style');
+  assert.match(src('src/fluid-tool.js'), /modeName: dry \? 'empty' : this\.modeName/, 'the empty tank names itself');
 });
 
 test('the frame readout is off unless asked for (F, the settings, ?fps=1), and older settings lose the old default once', async () => {

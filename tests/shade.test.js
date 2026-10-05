@@ -4,7 +4,7 @@ import { SHADE, shadeOf, packShade, unpackShade, makeMaterial, sharedUniforms, M
 import { PRESETS } from '../src/post.js';
 import { GROUND } from '../src/ground-ink.js';
 
-// Shade and hatching by surface (README): each material's shade has its own lift and hue, the light's
+// Shade and hatching by surface (docs/systems/materials.md): each material's shade has its own lift and hue, the light's
 // geometry adds a half-tone and the ground's bounce, packed over the hatch strokes for post.js.
 
 test('the shade packs over the strokes and comes back out (lift, hue, strokes)', () => {
@@ -20,7 +20,43 @@ test('the shade packs over the strokes and comes back out (lift, hue, strokes)',
     else assert.ok(Math.abs(h - hue) <= 0.5 / SHADE.hues + 1e-9, `hue ${hue} -> ${h}`);
   }
   // a pixel written by another shader (strokes 0..1, nothing packed) is the world's default, unlifted
-  assert.deepEqual(unpackShade(0.8, 1).slice(2), [0, -1]);
+  assert.deepEqual(unpackShade(0.8, 1).slice(2), [0, -1, -1]);
+});
+
+test("a material's own flat print (shadeFlat) packs past the hues and comes back out; it keeps the world's hue", () => {
+  for (const h1 of [0, 0.6, 1]) for (const flat of [0, 0.4, 0.85, 1]) {
+    const [, hue] = shadeOf({ color: '#fff', shadeFlat: flat });
+    assert.equal(hue, 2 + flat, 'shadeOf carries it as 2 + the print');
+    const [r, g] = packShade(h1, 0.5, 0.3, hue);
+    assert.ok(r < 32 && g < 32, `packed ${r}`);
+    const q = (v) => Math.round(v * 64) / 64;
+    const [a, , , h, f] = unpackShade(q(r), q(g));
+    assert.ok(Math.abs(a - h1) < 0.02, 'the strokes');
+    assert.equal(h, -1, "the world's hue");
+    assert.ok(Math.abs(f - flat) <= 0.5 / SHADE.flats + 1e-9, `flat ${flat} -> ${f}`);
+  }
+  // a hue kept says nothing of the print (the world's)
+  assert.equal(unpackShade(...packShade(0, 0, 0, 0.5))[4], -1);
+  // the shaders agree: the surface packs the print in SHADE.flats steps, post.js reads it past the hues
+  const m = makeMaterial({ color: '#d0c0a0', shadeFlat: 0.85, key: 't.shade.flat' });
+  assert.equal(m.uniforms.uShade.value.y, 2.85);
+  assert.ok(m.fragmentShader.includes(`* ${SHADE.flats}.0 + 0.5`));
+});
+
+test('Vael II prints its rock, plain and buildings flat per material, its people and flowers keep their shade', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const src = await readFile(new URL('../src/levels/arzach2.js', import.meta.url), 'utf8');
+  const { SKY_STONES_FLAT, SKY_STONES_LOOK } = await import('../src/levels/arzach2.js');
+  assert.ok(SKY_STONES_FLAT > 0.5 && SKY_STONES_FLAT <= 1);
+  assert.ok(src.includes('const PRINT = { shadeFlat: SKY_STONES_FLAT }') && (src.match(/\.\.\.PRINT/g) ?? []).length >= 9, 'the terrain, the rock and the buildings');
+  assert.ok(!('uShadowFlat' in SKY_STONES_LOOK), 'not the world\'s: its flowers and people keep their own shade');
+  assert.ok(SKY_STONES_LOOK.uCumulus === 0 && SKY_STONES_LOOK.uClouds === 0 && SKY_STONES_LOOK.uBounce === 0, 'a clean sky, dark undersides');
+});
+
+test('rock in strata is hatched down its faces; cross-hatched rings only on upright faces', () => {
+  const m = makeMaterial({ color: '#d0c0a0', mode: MODE_STRATA, key: 't.strata.dir' });
+  assert.ok(m.fragmentShader.includes(`uMode == ${MODE_STRATA} ? vec2(0.99, 0.14)`), 'strata strokes run down the face');
+  assert.ok(/bool rings = [^;]*abs\(n\.y\) < 0\.6/.test(m.fragmentShader), 'no rings under a cap');
 });
 
 test("a material's shade: metal keeps its tones and few strokes, sand few strokes, strata hatched along its beds", () => {
@@ -46,6 +82,7 @@ test('the shaders read and write the same packing', async () => {
   const { readFile } = await import('node:fs/promises');
   const post = await readFile(new URL('../src/post.js', import.meta.url), 'utf8');
   assert.ok(post.includes('floor(surface.rg * 0.5)'), 'post.js unpacks before the strokes are read');
+  assert.ok(post.includes('bool ownFlat = shadeQ.x > ${SHADE.hues + 1}.5'), 'post.js reads a material\'s own flat print past the hues');
   const m = makeMaterial({ color: '#808080', key: 't.shade.frag' });
   assert.ok(m.fragmentShader.includes(`* ${SHADE.lifts}.0 + 0.5`), 'the surface shader packs the lift in SHADE.lifts steps');
 });

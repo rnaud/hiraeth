@@ -4,6 +4,7 @@ import { makeMaterial } from './materials.js';
 import { Paint, paintMaterial, plate, spindle } from './vehicle-kit.js';
 import { sweepCapsule, unbury } from './physics.js';
 import { padRide } from './controller.js';
+import { game } from './game-state.js';
 
 // A flying taxi (the City-Shaft's cabs). Modes:
 //   lane    follows its circular traffic lane (set by the level)
@@ -13,6 +14,11 @@ import { padRide } from './controller.js';
 //           LT brake, the stick steers and tilts (back: up, forward: down), the left button up (the bottom one jumps off)
 // Taxis are excluded from the static collision (they move), but collide with
 // the level themselves while driven.
+//
+// No pass, no cab: a cab neither answers your whistle nor lets you aboard until you carry a
+// cab pass (the item `cabpass`, flag item.cabpass: Lio, the City-Shaft's dispatcher, writes it,
+// src/story/incal-data.js). Until then it flies on and says why (Taxi.refusal; the City-Shaft
+// names Lio). A `free` cab (Wren's, who stops for anyone at her lamp) never asks.
 
 const MAX = 40;
 const _q = new THREE.Quaternion();
@@ -150,17 +156,33 @@ function buildTaxi(color, { driver = true, fares = true, scale = 1 } = {}) {
   return { root: grp, tail, glow, lamps, cabbie, pax, near: [tail, cabbie, pax].filter(Boolean), mid: [glow, lamps] };
 }
 
+/** The cab pass's item id (quests.give: a flag item.cabpass; src/items.js lists it in the gear). */
+export const CAB_PASS = 'cabpass';
+/** What a cab says when it won't stop for you, by what you tried: hailing it, or getting in. */
+export const PASS_REFUSAL = {
+  hail: 'The cab slides past without slowing. A card in its window reads: PASS HOLDERS ONLY.',
+  board: 'The driver taps a card on the dash: PASS HOLDERS ONLY. No pass, no ride.',
+};
+
 export class Taxi {
   // set by the level each frame so idle taxis don't leave while you're beside them
   static playerPos = null;
+  /** Do you carry a cab pass? */
+  static hasPass = () => !!game.flag(`item.${CAB_PASS}`);
+  /** The refusal's words ({ taxi, how: 'hail' | 'board' }); a world may set its own. */
+  static refusal = ({ how }) => PASS_REFUSAL[how] ?? PASS_REFUSAL.hail;
+  /** Called on a refusal (taxi, how): the City-Shaft starts the pass's errand. */
+  static onRefuse = null;
 
   /**
    * @param lane  (t, taxi) => void, writes taxi.pos / heading / bank / pitch
    * @param fares false: a cab that never carries anyone but you (Wren's)
+   * @param free  true: it stops for you with or without a pass (Wren's)
    */
-  constructor(physics, color, scale, lane, { driver = true, fares = true } = {}) {
+  constructor(physics, color, scale, lane, { driver = true, fares = true, free = false } = {}) {
     this.physics = physics;
     this.kind = 'taxi';
+    this.free = free;
     const b = buildTaxi(color, { driver, fares, scale });
     this.object = b.root;
     this.parts = b;
@@ -189,8 +211,23 @@ export class Taxi {
     return [Math.sin(this.heading), Math.cos(this.heading)];
   }
 
+  /**
+   * No pass, no cab: true when it won't stop for you (or take you aboard), and then, now and
+   * again, the refusal as a notice to `who` (the player). False for a free cab, or with a pass.
+   */
+  refuses(who = null, how = 'hail') {
+    if (this.free || Taxi.hasPass()) return false;
+    const now = Date.now();
+    if (now - (Taxi._refusedAt ?? -1e9) > 3500) {
+      Taxi._refusedAt = now;
+      who?.notice?.(Taxi.refusal({ taxi: this, how }));
+      Taxi.onRefuse?.(this, how);
+    }
+    return true;
+  }
+
   hail(playerPos, playerHeading) {
-    if (this.mode === 'driven') return;
+    if (this.mode === 'driven' || !(this.free || Taxi.hasPass())) return;
     this.fare = false;   // it's coming for you: no one else aboard
     // stop beside the player, slightly above, facing the same way
     const fx = Math.sin(playerHeading), fz = Math.cos(playerHeading);

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { Scout, nextObjective, viaPortal, FIND, FLARE, Flare, roughDistance, findText } from '../src/scout.js';
+import { Scout, nextObjective, viaPortal, FIND, HINT, FLARE, Flare, roughDistance, findText } from '../src/scout.js';
 import { makeMaterial, markHero, sharedUniforms } from '../src/materials.js';
 const v = (x=0,y=0,z=0) => new THREE.Vector3(x,y,z);
 
@@ -53,18 +53,21 @@ function fixture(physics={rayDistance:()=>Infinity}, target=v(100)) {
   const scout=new Scout({scene:new THREE.Scene(),player,physics,getTarget:()=>target&&({id:'test',label:'Test',position:target}),onFind:(t,d)=>finds.push([t.label,d]),onShrug:()=>shrugs.push(1)});
   return {scout,player,finds,shrugs};
 }
-test('ping: the scout flies a little way towards the objective, hovers, points its beam at it, drops a flare, comes home and docks', () => {
+const forward=(scout)=>new THREE.Vector3(0,0,1).applyQuaternion(scout.object.quaternion);
+test('ping: the scout flies a little way towards the objective, hovers facing it (no second pointer: no beak, no beam), drops a flare, comes home and docks', () => {
   const {scout,finds}=fixture(); assert.equal(scout.phase,'docked'); scout.ping();
-  const seen=new Set(); let beamAt=0, farthest=0, flareSeen=false;
+  const seen=new Set(); let beamAt=0, farthest=0, flareSeen=false, facing=-1;
+  assert.equal(scout.pointer,undefined,'no beak on the drone');
   for(let i=0;i<60*12;i++){
     scout.update(1/60); seen.add(scout.phase);
     farthest=Math.max(farthest,scout.object.position.x);
-    if(scout.phase==='point'){ beamAt=Math.max(beamAt,scout.beamLen); assert.ok(scout.pointer.visible,'the beak lit'); }
+    if(scout.phase==='point'){ beamAt=Math.max(beamAt,scout.beamLen); facing=Math.max(facing,forward(scout).x); }
     if(scout.flare.on) flareSeen=true;
   }
   assert.deepEqual([...seen],['launch','seek','point','return','docked']);
   assert.ok(farthest>FIND.out-1.5&&farthest<FIND.out+1.5,`a little way towards it (${farthest.toFixed(1)} m), not all the way`);
-  assert.ok(beamAt>FIND.beam-2,`the beam reaches out at it: ${beamAt.toFixed(1)} m`);
+  assert.equal(beamAt,0,'no beam: the drone itself points the way');
+  assert.ok(facing>0.9,`it faces the objective: ${facing.toFixed(2)}`);
   assert.ok(flareSeen,'a flare on the spot');
   assert.deepEqual(finds,[['Test',100]],'found once: the toast names it and how far');
   assert.equal(scout.phase,'docked'); assert.ok(scout.object.position.distanceTo(scout.anchor())<.01,'back on its dock');
@@ -84,9 +87,7 @@ test('a near objective: the scout flies right over it and points down at it', ()
   for(let i=0;i<60*3.5;i++)scout.update(1/60);
   assert.equal(scout.phase,'point');
   assert.ok(Math.hypot(scout.object.position.x-6,scout.object.position.z-3)<1,`over it: ${scout.object.position.toArray().map(x=>x.toFixed(1))}`);
-  scout.object.updateMatrixWorld(true);
-  const nose=new THREE.Vector3(0,0,1).applyQuaternion(scout.pointer.getWorldQuaternion(new THREE.Quaternion()));
-  assert.ok(nose.y<-0.8,`looking down at it: ${nose.y.toFixed(2)}`);
+  assert.ok(forward(scout).y<-0.3,`nose down at it: ${forward(scout).y.toFixed(2)}`);
   assert.equal(finds.length,1);
 });
 test('nothing to find: the scout shrugs on its dock (a hop and a shake), says so, and stays home', () => {
@@ -185,15 +186,63 @@ test('scout keeps your pace riding: it looks out ahead of you, stays near, and p
   assert.ok(scout.phase==='seek'||scout.phase==='point','still out at speed');
   assert.ok(scout.object.position.x>player.pos.x,'ahead of you, not trailing behind');
   assert.ok(far<FIND.out+25*0.4+8,`stays around you: ${far.toFixed(1)} m`);
-  // the goal high above: the pointer tilts up at it
+  // the goal high above: the drone tilts up at it
   scout.getTarget=()=>({id:'up',label:'Up',position:scout.object.position.clone().add(v(3,40,0))});
   player.vel.set(0,0,0);
   for(let i=0;i<60;i++){ scout.age=1; if(scout.phase==='point')scout.pointT=0; scout.update(1/30); }
-  // (the body stays near level, a drone; its lit beak turns the rest of the way)
-  scout.object.updateMatrixWorld(true);
-  const nose=new THREE.Vector3(0,0,1).applyQuaternion(scout.pointer.getWorldQuaternion(new THREE.Quaternion()));
-  assert.ok(nose.y>0.8,`points up at it: ${nose.y.toFixed(2)}`);
+  // (the body stays near level, a drone: it noses up as far as it can)
+  assert.ok(forward(scout).y>0.3,`nose up at it: ${forward(scout).y.toFixed(2)}`);
   const body=new THREE.Vector3(0,1,0).applyQuaternion(scout.object.quaternion);
   assert.ok(body.y>Math.cos(0.75),`the body near level: ${body.y.toFixed(2)}`);
-  assert.ok(scout.pointer.visible&&scout.trail.samples.length>3,'pointer lit, trail laid');
+  assert.ok(scout.trail.samples.length>3,'trail laid');
+});
+
+test('in a guardian\'s fight a ping is a hint: the lens beam on the weak point, a chirp, the line, plainer each time, no flare', () => {
+  const weak=v(9,4,0); let hint={id:'incal.0',lines:['nudge','plainer','plainest'],at:()=>weak};
+  const dock=new THREE.Object3D(); dock.position.set(0,2,0);
+  const player={pos:v(),vel:v(),frame:{up:v(0,1)},gear:{scoutDock:dock}};
+  const said=[], finds=[], chirps=[];
+  const scout=new Scout({scene:new THREE.Scene(),player,physics:{rayDistance:()=>Infinity},sound:{drone:(k)=>chirps.push(k)},
+    getTarget:()=>({id:'quest',label:'Quest',position:v(200)}),getHint:()=>hint,onFind:(t)=>finds.push(t.label),onHint:(line,n)=>said.push([line,n])});
+  const run=(secs)=>{ let beam=0, far=0; for(let i=0;i<60*secs;i++){ scout.update(1/60); beam=Math.max(beam,scout.beamLen); far=Math.max(far,scout.object.position.distanceTo(player.pos)); } return {beam,far}; };
+  scout.ping();
+  const r=run(10);
+  assert.deepEqual(said,[['nudge',0]],'the first line, once it is out');
+  assert.ok(chirps.includes('hint'),'its own chirp');
+  assert.equal(finds.length,0,'not a find');
+  assert.equal(scout.flare.on,false,'no flare on a guardian');
+  const toWeak=weak.distanceTo(v(0,HINT.rise,0));
+  assert.ok(r.beam>toWeak-3,`the lens beam reaches the weak point (${r.beam.toFixed(1)} of ${toWeak.toFixed(1)} m)`);
+  assert.ok(r.far<HINT.out+HINT.rise+2,`it stays by you: ${r.far.toFixed(1)} m`);
+  assert.equal(scout.phase,'docked','and comes home');
+  scout.ping(); run(8); scout.ping(); run(8); scout.ping(); run(8);
+  assert.deepEqual(said.map(([l])=>l),['nudge','plainer','plainest','plainest'],'asked again: plainer, then the plainest stays');
+  // a new phase starts over
+  hint={...hint,id:'incal.1',lines:['crown']}; scout.ping(); run(8);
+  assert.equal(said.at(-1)[0],'crown');
+  // the weak point moves: the beam follows it
+  scout.ping(); for(let i=0;i<60*3.2;i++) scout.update(1/60);
+  weak.set(-9,4,0); for(let i=0;i<60*0.8;i++) scout.update(1/60);
+  assert.equal(scout.phase,'point'); assert.ok(scout.target.position.x<-8,'it follows the weak point');
+  // the fight over (no hint): a ping finds the objective again
+  hint=null; run(8); scout.ping(); run(10);
+  assert.deepEqual(finds,['Quest']);
+});
+
+test('with the game\'s physics (a capsule sweep each step) the drone still faces what it found, and a hint\'s beam still points at the weak point', () => {
+  // (the capsule sweep writes its push into a scratch vector: the aim must not share it)
+  const physics={rayDistance:()=>Infinity,pushCapsule:()=>null};
+  const {scout}=fixture(physics,v(0,0,100)); scout.ping();
+  let facing=-1; for(let i=0;i<60*5;i++){ scout.update(1/60); if(scout.phase==='point') facing=Math.max(facing,new THREE.Vector3(0,0,1).applyQuaternion(scout.object.quaternion).z); }
+  assert.ok(facing>0.9,`it faces the objective (+z): ${facing.toFixed(2)}`);
+  const weak=v(-8,6,3);
+  const dock=new THREE.Object3D(); dock.position.set(0,2,0);
+  const player={pos:v(),vel:v(),frame:{up:v(0,1)},gear:{scoutDock:dock}};
+  const s2=new Scout({scene:new THREE.Scene(),player,physics,getTarget:()=>null,getHint:()=>({id:'x.0',lines:['look'],at:()=>weak})});
+  s2.ping(); for(let i=0;i<60*3;i++) s2.update(1/60);
+  assert.equal(s2.phase,'point');
+  s2.object.updateMatrixWorld(true);
+  const from=s2.lens.getWorldPosition(new THREE.Vector3()), along=new THREE.Vector3(0,0,1).applyQuaternion(s2.lens.getWorldQuaternion(new THREE.Quaternion()));
+  const want=weak.clone().sub(from).normalize();
+  assert.ok(along.dot(want)>0.97,`the beam on the weak point: ${along.dot(want).toFixed(3)}`);
 });

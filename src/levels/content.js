@@ -183,8 +183,8 @@ export const CONTENT = {
     // the story is a quest (src/story/arzach-data.js): this page closes when the bird has made her promise
     story: {
       title: 'THE WAITING BIRD',
-      intro: 'Nobody here says much. A bird waits beside you, and keeps turning to look at a lone tower.',
-      outro: "The rider left a whistle and a map. When you called, the bird came. A new promise, freely given.",
+      intro: 'Nobody here says much. Somewhere over the haze a great bird waits for a call nobody has played since her rider left the lone tower.',
+      outro: "The rider left a little flute and a map. When you played her call, the bird came down. A new promise, freely given.",
       label: 'the lone tower', goal: [260, 'top', -420], drop: 40, radius: 30, manual: true,   // the spike tip is ~40 m above the window room
     },
     relics: {
@@ -193,7 +193,7 @@ export const CONTENT = {
     },
     npcs: [
       { at: [40, 44], palette: pal('#f4efe2', { cloth: '#8a7a66' }), lines: ['~tired~ …'], shy: true },
-      { at: [-60, -40], palette: pal('#d8c7a6'), lines: ["~solemn~ Ride the bird. She knows the tower.", "~sad~ Her rider left. She keeps watching the tower."] },
+      { at: [-60, -40], palette: pal('#d8c7a6'), lines: ["~solemn~ The wind climbs the tower. Wings climb with it.", "~sad~ Her rider left. She keeps to the sky now."] },
       { at: [120, -100], palette: pal('#b0705a'), lines: ["~sad~ That stone hand once moved. They say."] },
     ],
   },

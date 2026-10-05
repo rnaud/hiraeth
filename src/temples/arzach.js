@@ -5,6 +5,7 @@ import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, T, box, lathe, annulus } from './kit.js';
 import { Door, Switch, Gust, Updraft, Platform, Mark, Pit } from './pieces.js';
 import { elderModel } from './guardians.js';
+import { items } from '../items.js';
 
 // Vael's temple: the Aerie, a great white house of the makers on the plain
 // west of the landing, two drums of bone-white stone and a crown of stone
@@ -310,6 +311,9 @@ export const ARZACH_TEMPLE = {
   local: { person: 'lark', out: 16, side: 7 },
   enterLine: 'Inside the Aerie it is bright and white and the wind never stops. Far overhead, something heavy shifts its feathers.',
   pitLine: 'You climb back up to the last glyph stone.',
+  // the wings come first: Vael's tower is climbed on the wind with them, so the quest starts when you land without them
+  startsOnArrival: () => !items.has('glider'),
+  arrivalLine: 'The makers left a pair of wings in Vael: in the Aerie, the white house on the plain west of the landing.',
   onResolved(rt) { rt.notice('Out over the plain the great birds are coming back to the Aerie.', 'resolved.out'); },
   // she will not fly alone: ride the wind beside her while she looks up, afraid
   onConnect(rt) {

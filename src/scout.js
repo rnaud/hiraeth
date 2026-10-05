@@ -9,8 +9,11 @@ const CLEAR = 0.9;       // air it keeps below itself while flying
 const MIN_CLEAR = 0.35;  // never lower than this over the ground
 const STEER = 6;         // velocity response (1/s): smooth, no jitter
 // Finding the objective (ping: Q, Y / △, the touch "ping"): it flies a little way towards it
-// (or over it, when it is close), hovers there and points its lens beam at it, drops a flare on
-// the spot, chirps, and comes home. Nothing to find: a shrug on the dock.
+// (or over it, when it is close), hovers there facing it (its own heading is the pointer: no beak,
+// no beam), drops a flare on the spot, chirps, and comes home. Nothing to find: a shrug on the dock.
+// In a guardian's fight the ping asks it for a hint instead (HINT): it rises over your shoulder,
+// turns its lens on the weak point (or the thing to use) with a short beam, chirps, and the cue says
+// what to do; asked again, it says it more plainly (src/temples/boss.js guardianHint).
 export const FIND = {
   near: 14,       // m: closer than this, it flies right over the objective
   out: 7,         // m: otherwise this far towards it (plus a little for your speed), from where you are
@@ -18,10 +21,17 @@ export const FIND = {
   seek: 3.2,      // s at most to get there
   point: 2.6,     // s hovering with the beam on it
   max: 9,         // s from the ping to heading home, whatever happens
-  beam: 48,       // m: the longest the lens beam reaches
   shrug: 1.0,     // s: the little wobble on the dock
 };
-const PITCH = 0.4;       // the body's most nose-up or nose-down (rad); the pointer aims the rest of the way
+/** A hint in a guardian's fight: from just over your shoulder, the lens on the weak point for a while. */
+export const HINT = {
+  out: 1.6,       // m towards it from over your head (it stays by you: the fight is all round)
+  rise: 2.6,      // m over your head
+  point: 4.2,     // s with the beam on the weak point
+  beam: 40,       // m: the longest the hint's beam reaches
+  say: 7,         // s the line stays on the cue
+};
+const PITCH = 0.4;       // the body's most nose-up or nose-down (rad); the lens (its beam, in a hint) turns the rest of the way
 const LEAN = { perSpeed: 0.03, max: 0.3 };   // it leans into its speed (rad per m/s, at most)
 // Launching and docking (the drone folds: src/drone.js). It hops off the dock
 // folded, straight out along OUT, then blooms and flies; coming home it folds
@@ -117,34 +127,36 @@ export function viaPortal(start, target, portals) {
 /**
  * The scout: a small folding drone on your pack. ping() sends it to find the objective
  * (FIND): it hops off its dock, flies a little way towards it (or right over it), hovers
- * and points its lens beam at it, drops a flare on the spot and calls onFind(target, metres)
+ * and faces it, drops a flare on the spot and calls onFind(target, metres)
  * (main.js: a toast with the name and the distance), then comes home and docks. With
  * nothing to find it shrugs on the dock and calls onShrug().
+ * getHint() (main.js: the temple's guardian in a fight, src/temples/boss.js guardianHint) returns
+ * { id, lines: [first, plainer, plainest], at: () => Vector3 } or null: while it gives one, a ping is
+ * a hint (HINT) and calls onHint(line, n): each ping on the same id says the next, plainer line.
  * Phases: docked → launch → seek → point → return → docked (and shrug, from the dock).
  */
 export class Scout {
-  constructor({ scene, player, physics, getTarget, sound, onFind = () => {}, onShrug = () => {} }) {
-    Object.assign(this, { player, physics, getTarget, sound, onFind, onShrug });
+  constructor({ scene, player, physics, getTarget, getHint = () => null, sound, onFind = () => {}, onShrug = () => {}, onHint = () => {} }) {
+    Object.assign(this, { player, physics, getTarget, getHint, sound, onFind, onShrug, onHint });
+    this.hintAsked = new Map();   // hint id -> how many times asked (the next ping says it more plainly)
     this.phase = 'docked'; this.age = 0; this.elapsed = 0;
     this.vel = new THREE.Vector3(); this.stuck = 0; this.over = 0; this.fade = null;
     this.object = new THREE.Group(); this.object.userData.noCollide = true; scene.add(this.object);
-    // the drone (folding: src/drone.js), a glowing ring under it while it is out, and the pointer
+    // the drone (folding: src/drone.js), a glowing ring under it while it is out, and its lens' beam (hints)
     this.drone = new Drone(); this.fold = new DroneFold();
     this.object.add(this.drone.object);
     const lamp = makeMaterial({ color: '#70e7df', glow: 1 });
     this.ring = new THREE.Mesh(new THREE.TorusGeometry(0.14, 0.01, 5, 28), lamp);
     this.ring.rotation.x = Math.PI / 2; this.ring.position.y = -0.14; this.object.add(this.ring);
-    // the pointer: a lit beak off the lens, aimed at the goal (up and down too) while it is out
+    // the lens' pivot, aimed at the goal (up and down too) while it is out: the body keeps near level,
+    // the lens turns all the way up or down (no beak on it: the drone's own heading points the way)
     const eye = this.drone.eye.at;
-    // (on a pivot at the lens: the body keeps near level, the beak turns all the way up or down)
-    this.pointerPivot = new THREE.Group(); this.pointerPivot.position.copy(eye); this.object.add(this.pointerPivot);
-    this.pointer = new THREE.Mesh(new THREE.ConeGeometry(0.036, 0.24, 8).rotateX(Math.PI / 2).translate(0, 0, 0.2), lamp);
-    this.pointer.visible = false; this.pointerPivot.add(this.pointer);
-    // the lens beam: a thin lit line from the beak to the objective (cut short where something is in the way)
+    this.lens = new THREE.Group(); this.lens.position.copy(eye); this.object.add(this.lens);
+    // the lens beam, in a hint only: a thin lit line from the lens to the weak point (cut short where something is in the way)
     this.beam = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.022, 1, 6, 1, true).rotateX(Math.PI / 2).translate(0, 0, 0.5), makeMaterial({ color: '#70e7df', glow: 1, side: THREE.DoubleSide }));
-    this.beam.position.z = 0.3; this.beam.visible = false; this.beam.scale.set(1, 1, 1e-3); this.pointerPivot.add(this.beam);
+    this.beam.position.z = 0.3; this.beam.visible = false; this.beam.scale.set(1, 1, 1e-3); this.lens.add(this.beam);
     this.beamLen = 0;
-    for (const o of [this.ring, this.pointer, this.beam]) o.userData.dynamic = true;
+    for (const o of [this.ring, this.beam]) o.userData.dynamic = true;
     markHero(this.object);
     // a thin glowing trail behind it, so it's easy to follow by eye
     this.trail = new Trail(scene, { radius: 0.07, life: 1.5, offset: 1.2 });
@@ -171,21 +183,32 @@ export class Scout {
     this.object.position.copy(this.anchor()); this.dockQuaternion(this.object.quaternion); this.object.scale.setScalar(1);
     if (snap) this.fold.snap(false);
     this.drone.pose(this.fold);
-    this.ring.visible = false; if (this.pointer) this.pointer.visible = false; if (this.beam) { this.beam.visible = false; this.beamLen = 0; }
+    this.ring.visible = false; if (this.beam) { this.beam.visible = false; this.beamLen = 0; }
   }
   /**
    * Find the objective: out, a look, a flare, home. Pressed again while it is out it starts
    * over with the objective as it is now. Nothing to find: a shrug (false).
    */
   ping() {
-    const target = this.getTarget();
+    const hint = this.getHint?.();
+    const target = hint ? this.hintTarget(hint) : this.getTarget();
     if (!target) { this.shrug(); return false; }
+    this.hinting = hint ?? null;
     this.target = target; this.age = 0; this.relaunched = false; this.found = false; this.seekT = this.pointT = 0; this.returnT = 0;
     if (this.phase === 'docked' || this.phase === 'shrug') { this.dock(false); this.launch(); }
     else if (this.phase === 'launch') { /* already on its way out */ }
     else if (this.settleT == null || this.settleT < DOCKING.settle * 0.5) { this.phase = 'seek'; this.settleT = null; this.object.scale.setScalar(1); }
     else this.relaunch = true;   // nearly home: it lands, then hops straight back out
     this.sound?.drone?.('go'); return true;
+  }
+  /** The hint's line for this ping (each ping on the same id a plainer one), as a target to point at. */
+  hintTarget(hint) {
+    const lines = hint.lines?.filter(Boolean) ?? [];
+    const at = hint.at?.();
+    if (!lines.length || !at) return null;
+    const n = this.hintAsked.get(hint.id) ?? 0;
+    this.hintAsked.set(hint.id, n + 1);
+    return { id: `hint.${hint.id}`, label: lines[Math.min(n, lines.length - 1)], position: at.clone(), hint: true, n };
   }
   /** Nothing to find: on the dock it wakes, hops a little and shakes itself, no; out already, it just comes home. */
   shrug() {
@@ -198,14 +221,14 @@ export class Scout {
   home() { if (this.phase !== 'docked' && this.phase !== 'return' && this.phase !== 'shrug') { this.phase = 'return'; this.settleT = null; this.returnT = 0; } }
   /** Where it looks from: a little way towards the objective, over your head; right over it when it is near. */
   lookout(out, up, pSpeed = 0) {
-    const goal = this.target.position;
-    if (this.player.pos.distanceTo(goal) < FIND.near) return out.copy(goal).addScaledVector(up, 2.2);
-    const from = _lk.copy(this.player.pos).addScaledVector(up, FIND.rise);
+    const goal = this.target.position, hint = !!this.target.hint;
+    if (!hint && this.player.pos.distanceTo(goal) < FIND.near) return out.copy(goal).addScaledVector(up, 2.2);
+    const from = _lk.copy(this.player.pos).addScaledVector(up, hint ? HINT.rise : FIND.rise);
     const flat = _lk2.subVectors(goal, from), rise = flat.dot(up);
     flat.addScaledVector(up, -rise);
     const range = flat.length();
     if (range < 1e-3) return out.copy(from);   // (straight above or below you: it rises over your head)
-    const reach = Math.max(0, Math.min(range - 2, FIND.out + pSpeed * 0.4));
+    const reach = Math.max(0, Math.min(range - 2, (hint ? HINT.out : FIND.out) + pSpeed * 0.4));
     return out.copy(from).addScaledVector(flat.divideScalar(range), reach);
   }
   /** Height above whatever is below along -up (meshes and the heightfield), Infinity if nothing. */
@@ -290,7 +313,7 @@ export class Scout {
       if (vu < 0) vel.addScaledVector(up, -vu);
     }
     // facing: turn smoothly toward the flight direction (or what it points at: this.aim). A
-    // drone keeps near level: it pitches at most PITCH toward it (the pointer takes the rest,
+    // drone keeps near level: it pitches at most PITCH toward it (the lens takes the rest,
     // update()) and leans into its own speed, its top tilting the way it goes
     const face = this.aim ?? (vel.lengthSq() > 0.09 ? vel : to);
     if (face.lengthSq() > 1e-6) {
@@ -338,7 +361,7 @@ export class Scout {
     if (this.phase === 'docked' && !this.trail.samples.length) this.trail.mesh.visible = false;
     if (this.phase === 'docked') {
       const home = this.anchor(), body = this.player.humanoid?.chestAnchor;
-      // the dock itself moved on the body (the radio pack gave way to the tank): glide over to it, folded
+      // the dock itself moved on the body (the flask was found: from the rucksack's lid to the flask's upright): glide over to it, folded
       const onBody = body ? body.worldToLocal(_l.copy(home)) : null;
       const moved = onBody && this.dockOnBody && onBody.distanceTo(this.dockOnBody) > 0.25;   // (more than its own hops and the tank's swing make in a frame)
       if (onBody) (this.dockOnBody ??= new THREE.Vector3()).copy(onBody);
@@ -367,7 +390,11 @@ export class Scout {
       return;
     }
     this.age += dt; this.elapsed += dt;
-    this.target = this.getTarget();
+    if (this.hinting) {
+      // a hint follows its weak point (the guardian moves); the fight over, it comes home
+      const h = this.getHint?.(), at = h && h.id === this.hinting.id ? h.at?.() : null;
+      if (at && this.target?.hint) this.target.position.copy(at); else if (this.phase !== 'return') this.home();
+    } else this.target = this.getTarget();
     if (this.phase !== 'return' && (this.age >= FIND.max || !this.target)) this.home();
     if (this.fade !== null) {
       this.fade -= dt;
@@ -404,14 +431,14 @@ export class Scout {
       // the beak and the beam on the objective, up or down as well
       const spot = this.lookout(_d2, up, pSpeed);
       if (this.phase === 'point') spot.addScaledVector(up, Math.sin(this.elapsed * 3) * 0.12);
-      this.aim = _p.subVectors(this.target.position, this.object.position);
+      this.aim = (this._aim ??= new THREE.Vector3()).subVectors(this.target.position, this.object.position);   // (its own vector: fly() uses _p for the capsule sweep)
       if (this.fly(spot, Math.max(8, pSpeed + 7), up, dt, pv)) this.recall();
       if (this.phase === 'seek') {
         this.seekT += dt;
         if (this.object.position.distanceTo(spot) < 0.8 || this.seekT >= FIND.seek) this.arrive();
       } else {
-        this.pointT += dt; beam = true;
-        if (this.pointT >= FIND.point) this.home();
+        this.pointT += dt; beam = !!this.target.hint;   // (a find has no beam: the drone faces it, the flare marks it)
+        if (this.pointT >= (this.target.hint ? HINT.point : FIND.point)) this.home();
       }
       if (this.object.position.distanceTo(this.player.pos) > FIND.near + FIND.out + 20) this.home();   // (lost you: home)
     } else if (this.settleT != null) {
@@ -448,33 +475,33 @@ export class Scout {
     // the antenna sways with the drone's own accelerations (in its frame)
     const acc = _a.subVectors(this.vel, lastVel).divideScalar(Math.max(dt, 1e-3)).applyQuaternion(_q3.copy(this.object.quaternion).invert());
     this.drone.pose(this.fold, dt, _lean.set(acc.x, acc.z));
-    this.ring.visible = this.pointer.visible = this.phase === 'seek' || this.phase === 'point'; this.ring.rotation.z += dt * 2;
-    this.pointer.scale.setScalar(1 + Math.sin(this.elapsed * 6) * 0.12);
+    this.ring.visible = this.phase === 'seek' || this.phase === 'point'; this.ring.rotation.z += dt * 2;
     if (this.aim && this.aim.lengthSq() > 1e-6) {
-      // the beak at the goal, in the drone's frame
+      // the lens at the goal, in the drone's frame
       const local = _n.copy(this.aim).normalize().applyQuaternion(_q3.copy(this.object.quaternion).invert());
-      this.pointerPivot.quaternion.slerp(_qt.setFromUnitVectors(_z, local), 1 - Math.exp(-10 * dt));
+      this.lens.quaternion.slerp(_qt.setFromUnitVectors(_z, local), 1 - Math.exp(-10 * dt));
     }
     this.updateBeam(dt, beam);
   }
-  /** At the lookout: the beam comes on, the flare goes down on the objective, a chirp, and onFind. */
+  /** At the lookout: the flare goes down on the objective, a chirp, and onFind (a hint: the beam on the weak point, its chirp, onHint). */
   arrive() {
     this.phase = 'point'; this.pointT = 0;
     if (this.found) return;
     this.found = true;
+    if (this.target.hint) { this.sound?.drone?.('hint'); this.onHint(this.target.label, this.target.n); return; }
     const d = this.player.pos.distanceTo(this.target.position);
     this.flare.drop(this.target.position, this.player.frame.up);
     this.sound?.drone?.('found');
     this.onFind(this.target, d);
   }
-  /** The lens beam: grows out to the objective (or the first thing in the way, at most FIND.beam) while pointing, and draws back. */
+  /** The lens beam (a hint's): grows out to the weak point (or the first thing in the way, at most HINT.beam) while pointing, and draws back. */
   updateBeam(dt, on) {
     let want = 0;
     if (on && this.target) {
-      this.pointerPivot.updateWorldMatrix(true, false);
-      const from = this.pointerPivot.getWorldPosition(_bm), dir = _lk2.subVectors(this.target.position, from), far = dir.length();
+      this.lens.updateWorldMatrix(true, false);
+      const from = this.lens.getWorldPosition(_bm), dir = _lk2.subVectors(this.target.position, from), far = dir.length();
       dir.divideScalar(Math.max(far, 1e-6));
-      want = Math.min(far, FIND.beam);
+      want = Math.min(far, HINT.beam);
       const hit = want > 1 ? this.obstacle(_lk.copy(from).addScaledVector(dir, 0.6), dir, want - 0.6) : null;
       if (hit) want = Math.min(want, hit.distance + 0.6);
     }

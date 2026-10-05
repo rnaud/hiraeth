@@ -10,7 +10,8 @@ import { Gear } from '../src/gear.js';
 import { MODE_OUTFIT, MODE_EYE } from '../src/materials.js';
 import { TRAVELLER_PALETTE } from '../src/traveller-style.js';
 import { TRAVELLER_IRIS } from '../src/eyes.js';
-import { TRAVELLER } from '../src/traveller.js';
+import { TRAVELLER, travellerHair as TRAVELLER_HAIR } from '../src/traveller.js';
+import { skullPoint as SKULL_POINT } from '../src/costumes.js';
 
 // The traveller is a normal 3D character: the people's own body, skeleton and face (Quaternius'
 // human, as every NPC), in its natural proportions, with the suit painted on a baggy copy of the
@@ -128,8 +129,10 @@ test('the fit at rest: bare head, rolled sleeves, open jacket, satchel, cropped 
   const head = h.body.skeleton.bones.indexOf(h.b.Head);
   for (let i = 0; i < P.count; i++) if (J.getX(i) === head && W.getX(i) > 0.6) headBox.expandByPoint(h.body.localToWorld(h.body.getVertexPosition(i, V())));
   const hair = boxOf(h, /^Traveller_hair$/);
-  assert.ok(hair.max.y > headBox.max.y && hair.max.y < headBox.max.y + 0.1, 'loose hair above the crown');
-  for (const n of ['Bubble_helmet', 'Helmet_liner', 'Headphone_1', 'Backpack_antenna']) assert.equal(piece(h, n), undefined, n + ' removed');
+  assert.ok(hair.max.y > headBox.max.y && hair.max.y < headBox.max.y + 0.1, `loose hair above the crown (${(hair.max.y - headBox.max.y).toFixed(3)} m)`);
+  // casual clothes: nothing of the old space suit is worn (helmet, headset, radio pack, suit seams, boot buckles, ringed collar)
+  for (const n of ['Bubble_helmet', 'Helmet_liner', 'Headphone_1', 'Backpack_antenna', 'Equipment_ivory_radio', 'Equipment_blue_metal', 'Equipment_cyan_glass',
+    'Equipment_seam_ink_l', 'Boot_buckles_l', 'Boot_buckles_r', 'Scarf_fold_0', 'Equipment_tan_pouches']) assert.equal(piece(h, n), undefined, n + ' removed');
   for (const side of ['l', 'r']) {
     const cuff = boxOf(h, new RegExp(`^Rolled_sleeve_${side}$`));
     const elbow = at(h.b[`lowerarm_${side}`]), wrist = at(h.b[`hand_${side}`]);
@@ -140,10 +143,11 @@ test('the fit at rest: bare head, rolled sleeves, open jacket, satchel, cropped 
   const jacket = boxOf(h, /^Coral_overshirt$/), bag = boxOf(h, /^Round_satchel$/);
   assert.ok(jacket.min.y < 0.8 && jacket.max.y > 1.4, 'overshirt reaches the thighs');
   assert.ok(bag.max.z > jacket.max.z && bag.getCenter(V()).y < 1.05, 'satchel outside the jacket at the hip');
-  // the pack on the back: behind the suit, touching it, centred
-  const pack = boxOf(h, /^Equipment_(ivory_radio|blue_metal)$/), back = h.kit.backZ;
-  assert.ok(pack.max.z <= back + 0.012 && pack.max.z > back - 0.045, `the pack against the back (${pack.max.z.toFixed(3)} / ${back.toFixed(3)})`);
-  assert.ok(Math.abs(pack.getCenter(V()).x) < 0.03 && pack.min.y > 0.9 && pack.max.y < 1.75);
+  // the canvas rucksack on the back: behind the jacket, touching it, centred, between the waist and the shoulders
+  const pack = boxOf(h, /^Rucksack$/), back = jacket.min.z;
+  assert.ok(pack.max.z <= back + 0.012 && pack.max.z > back - 0.04, `the rucksack against the back (${pack.max.z.toFixed(3)} / ${back.toFixed(3)})`);
+  assert.ok(Math.abs(pack.getCenter(V()).x) < 0.03 && pack.min.y > 0.9 && pack.max.y < h.rest.get(h.b.neck_01).p.y);
+  assert.ok(pack.max.z - pack.min.z < 0.13, `a slim rucksack (${(pack.max.z - pack.min.z).toFixed(3)} m deep)`);
   // boots round the feet, soles just under the ground; no part of the body below them
   const soles = boxOf(h, /^Equipment_rubber_soles/), boots = boxOf(h, /^Equipment_dusty_pink_boots/);
   assert.ok(soles.min.y > -0.03 && soles.min.y < 0.0, `soles on the ground (${soles.min.y.toFixed(3)})`);
@@ -196,7 +200,7 @@ test('rigid pieces stay rigid in any pose: hair, pack and boots', () => {
     const n = m.geometry.attributes.position.count;
     return [0, 1, 2, 3].map((k) => m.getVertexPosition(Math.floor(k * n / 4), V()).distanceTo(m.getVertexPosition(Math.floor(k * n / 4 + n / 8), V())));
   };
-  const names = ['Traveller_hair', 'Equipment_blue_metal', 'Equipment_rubber_soles_l'];
+  const names = ['Traveller_hair', 'Rucksack', 'Equipment_rubber_soles_l'];
   h.update();
   const before = names.map(spans);
   char.head.rotation.set(0.5, 0.8, 0.2); char.arms[0].rotation.set(-1.2, 0.3, 0); char.elbows[0].rotation.x = -1.4; char.torso.rotation.set(0.3, 0.4, 0);
@@ -257,10 +261,10 @@ test('the gear hooks: the head and chest anchors, the scout on the pack, the bra
   assert.equal(g.springs.length, 0);
   assert.deepEqual(g.noShadow, []);
   assert.ok(at(h.headAnchor).distanceTo(boxOf(h, /^Traveller_hair$/).getCenter(V())) < 0.1, 'head anchor remains in the skull');
-  // the scout docks on top of the radio pack
-  const pack = boxOf(h, /^Equipment_ivory_radio$/), dock = at(g.scoutDock);
-  assert.ok(dock.y > pack.max.y && dock.y < pack.max.y + 0.15 && dock.z > pack.min.z && dock.z < pack.max.z, 'the scout on the pack');
-  assert.equal(h.radioPack.length, 3);
+  // the scout docks on the rucksack's lid; the outer pocket is apart (the flask hides it)
+  const pack = boxOf(h, /^Rucksack_lid$/), dock = at(g.scoutDock);
+  assert.ok(dock.y > pack.max.y && dock.y < pack.max.y + 0.15 && dock.z > pack.min.z && dock.z < pack.max.z, 'the scout on the lid');
+  assert.deepEqual(h.packPocket.flatMap((m) => m.userData.pieces).sort(), ['Rucksack_pocket', 'Rucksack_pocket_flap']);
   // the bracer's frame: +y down the forearm, -x toward the thumb, scaled out round the sleeve
   const f = h.forearm.r;
   assert.equal(f.parent, h.b.lowerarm_r);
@@ -332,4 +336,76 @@ test('dark scruffy hair leaves the eyes clear; the earned star attaches to the c
   assert.ok(star.position.equals(TRAVELLER_STAR.at));
   assert.ok(boxOf(h, /^Lapel/).distanceToPoint(star.getWorldPosition(V())) < 0.08, 'star sits on the lapel');
   effects.dispose();
+});
+
+// The third round of the author's notes: more casual (no space suit), a backpack as at first with the fluid
+// tank slimmer, and closer to the coral-jacket sheets (thinner cheeks, scruffier hair).
+test('an ordinary canvas rucksack with the slim fluid flask sunk into its outer face, the three bands in view from behind', async () => {
+  const { TANK, TANK_RAIL, tankRadiusAt } = await import('../src/fluid-tool.js');
+  const { RUCKSACK } = await import('../src/traveller.js');
+  const h = traveller(); h.update(true); h.model.updateMatrixWorld(true);
+  const inChest = (re) => {
+    const out = new THREE.Box3(), inv = h.chestAnchor.matrixWorld.clone().invert();
+    for (const m of h.outfitMeshes) for (const [name, [first, count]] of Object.entries(m.userData.ranges)) {
+      if (!re.test(name)) continue;
+      for (let i = first; i < first + count; i++) out.expandByPoint(m.localToWorld(m.getVertexPosition(i, V())).applyMatrix4(inv));
+    }
+    return out;
+  };
+  const sack = inChest(/^Rucksack$/), coat = inChest(/^Coral_overshirt$/);
+  for (const n of ['Rucksack_lid', 'Rucksack_lid_straps', 'Rucksack_buckles', 'Bedroll', 'Rucksack_pocket']) assert.ok(piece(h, n), n);
+  assert.equal(piece(h, 'Rucksack').material.uniforms.uColor.value.getHexString(), TRAVELLER_PALETTE.canvas.slice(1), 'canvas, not a radio box');
+  // the flask (TANK, chest frame): flat and narrower than the rucksack, half sunk into its outer face
+  const R = Math.max(...TANK.profile.map(([r]) => r)) * TANK.scale;
+  const halfW = R * TANK.squash, halfD = R * TANK.depth, [, y0, z0] = TANK.at;
+  assert.ok(halfD < 0.08 && halfW < 0.12, `a slim flask (${(2 * halfW).toFixed(2)} × ${(2 * halfD).toFixed(2)} m)`);
+  assert.ok(halfW < (sack.max.x - sack.min.x) / 2 - 0.02, 'the canvas shows either side of it');
+  const outer = RUCKSACK.back - RUCKSACK.depth;
+  assert.ok(z0 + halfD > outer + 0.02 && z0 < outer, 'half sunk into the rucksack\'s outer face');
+  assert.ok(coat.min.z - (z0 - halfD) < 0.24, `the whole pack stands ${(coat.min.z - (z0 - halfD)).toFixed(3)} m off his back (the old tank: 0.34)`);
+  assert.ok(y0 > sack.min.y - 0.05 && y0 + TANK.height * TANK.scale < sack.max.y + 0.03, 'the glass within the rucksack\'s height, its neck out over the lid');
+  // from behind, nothing of the rucksack, its lid or the flask's straps hides the glass between its first and its full mark
+  for (const y of [0.02, TANK.full / 6, TANK.full / 2, TANK.full * 5 / 6, TANK.full - 0.03]) assert.ok(z0 - tankRadiusAt(y) * TANK.depth * TANK.scale < outer - 0.03, `the glass stands out of the rucksack at ${y.toFixed(2)}`);
+  for (const y of [TANK.full / 6, TANK.full / 2, TANK.full * 5 / 6]) for (const s of TANK.straps) assert.ok(Math.abs(s - y) > 0.05, `a leather band over the middle of a charge's band at ${y.toFixed(2)}`);
+  assert.ok(TANK.straps.every((s) => s < 0.06 || s > TANK.full - 0.015), 'the leather bands below the fluid and at its brim');
+  // the uprights stand at the flask's sides, on the rucksack
+  assert.ok(TANK_RAIL.x * TANK.scale < (sack.max.x - sack.min.x) / 2 + 0.01);
+});
+
+test('scruffier hair: broken, tousled locks with lighter edges; a leaner face with thinner cheeks', () => {
+  // the outline: how far the hair reaches round the skull, sample to sample, is uneven
+  const g = TRAVELLER_HAIR(), rel = [], around = [];
+  const mesh = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ side: THREE.DoubleSide })), ray = new THREE.Raycaster();
+  for (let el = 20; el <= 70; el += 10) for (let az = 0; az < 360; az += 10) {
+    const s = new THREE.Vector3(...SKULL_POINT('m', az, el, 0));
+    ray.set(V(), s.clone().normalize());
+    const far = Math.max(0, ...ray.intersectObject(mesh).map((x) => x.distance)) / s.length();   // the hair's outermost surface
+    rel.push(far);
+    if (az >= 60 && az <= 300) around.push(far);
+  }
+  let bump = 0, n = 0;
+  for (let i = 1; i < rel.length; i++) if (i % 36) { bump += Math.abs(rel[i] - rel[i - 1]); n++; }
+  assert.ok(bump / n > 0.075, `a broken outline, not a cap of hair (${(bump / n).toFixed(3)}; the tidier mop was 0.060)`);
+  assert.ok(Math.min(...around) > 1.05, `hair all over the top, the sides and the back (${Math.min(...around).toFixed(3)} at ${around.indexOf(Math.min(...around))})`);
+  // each lock's edges print lighter than its middle (dark hair loses its own ink lines)
+  const C = g.attributes.color;
+  let lit = 0;
+  for (let i = 0; i < C.count; i++) { assert.ok(C.getX(i) >= 1); if (C.getX(i) > 1.5) lit++; }
+  assert.ok(lit > 100, `lighter lock edges (${lit} vertices)`);
+  const h = traveller();
+  assert.ok(piece(h, 'Traveller_hair').material.vertexColors, 'the outfit\'s hair takes them');
+  // the face: thinner cheeks, a narrower jaw, a little longer
+  const F = TRAVELLER.face;
+  assert.ok(F.cheeks < 0 && F.jaw < 1 && F.faceLength >= 1, 'a lean young face');
+  const n_ = npc(), width = (x) => {
+    // the face's half-width at the cheeks: the head's own vertices a third of the way up from the chin, in front
+    const A = x.body.geometry.attributes.position, J = x.body.geometry.attributes.skinIndex, W = x.body.geometry.attributes.skinWeight;
+    const head = x.body.skeleton.bones.findIndex((b) => b.name === 'Head'), ids = [], box = new THREE.Box3();
+    for (let i = 0; i < A.count; i++) if (J.getX(i) === head && W.getX(i) > 0.99) { ids.push(i); box.expandByPoint(V().fromBufferAttribute(A, i)); }
+    const y = box.min.y + (box.max.y - box.min.y) * 0.3, zc = (box.min.z + box.max.z) / 2;
+    let w = 0;
+    for (const i of ids) if (Math.abs(A.getY(i) - y) < 0.01 && A.getZ(i) > zc) w = Math.max(w, Math.abs(A.getX(i)));
+    return w;
+  };
+  assert.ok(width(h) < width(n_) - 0.005, `cheeks narrower than the people's own face (${width(h).toFixed(3)} / ${width(n_).toFixed(3)})`);
 });

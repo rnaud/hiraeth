@@ -53,3 +53,28 @@ test('the full-screen menus pause the game and bring in the menu music', () => {
   assert.match(ui, /data-a="title">Quit to title</);
   assert.doesNotMatch(ui, /[^.\w]confirm\('/, 'no browser confirm(): a controller cannot answer it');
 });
+
+test('no keyboard-only "J to close" on a controller: every panel says how to close it with the hands on the game, and B / ○ closes it', async () => {
+  const { closeHint, inputKind } = await import('../src/prompt-keys.js');
+  const { padText } = await import('../src/native-pad.js');
+  const doc = (...cls) => ({ body: { classList: { contains: (c) => cls.includes(c) } } });
+  assert.equal(inputKind(doc('controller')), 'pad'); assert.equal(inputKind(doc('touch')), 'touch'); assert.equal(inputKind(doc()), 'keys');
+  assert.equal(closeHint('J or Esc', 'keys'), 'J or Esc to close');
+  assert.equal(closeHint('J or Esc', 'pad', 'B / ○'), 'B / ○ close', 'an Xbox pad: B');
+  assert.equal(padText(closeHint('J or Esc', 'pad', 'A / ×'), 'android', 'nintendo'), 'B close', 'a Retroid (B at the bottom): its own B');
+  assert.equal(closeHint('J or Esc', 'touch'), '', 'a touch screen: the ✕ says it');
+  // the sketchbook, what's new and the worlds picker take theirs when they open; the skip tags too
+  assert.doesNotMatch(readFileSync(new URL('../index.html', import.meta.url), 'utf8'), />J to close</);
+  assert.match(src('quest.js'), /closeHint\('J or Esc'\)/);
+  assert.match(src('changelog.js'), /Close \(\$\{backKey\(\)\}\)/);
+  assert.match(src('story/moment.js'), /`\$\{backKey\(\)\} skip`/, 'a moment\'s skip tag names the button printed B');
+  const { holdToSkip } = await import('../src/ship/cinema.js');
+  assert.match(holdToSkip('pad'), /^hold (B \/ ○|A \/ ×) to skip$/); assert.equal(holdToSkip('keys'), 'hold ESC to skip');
+  // B / ○ closes the Start menu from any page (Quests, Controls), not back to Settings first
+  const ui = src('ui.js'), at = ui.indexOf('  back() {'), back = ui.slice(at, at + 260);
+  assert.doesNotMatch(back, /this\.page\('settings'\)/);
+  assert.match(back, /else this\.toggle\(false\)/);
+  // the controller's back closes the panel on top first: the sketchbook over a conversation or a moment
+  const main = src('main.js'), close = main.slice(main.indexOf('const closeControllerMenu'), main.indexOf('const controller = new Controller'));
+  assert.ok(close.indexOf('journal.open') < close.indexOf('storyRt.dialogue.open') && close.indexOf('journal.open') < close.indexOf('moments.playing'), 'the sketchbook before what is under it');
+});
