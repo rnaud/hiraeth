@@ -1,0 +1,47 @@
+TODO.md
+  s_1fd8d0e7b02dcf::t_cc31c46fd1d28b 81
+changelog.md
+  s_1fd8d0e7b02dcf::t_e9375ab5065102 22-26
+docs/systems/aliens.md
+  s_1fd8d0e7b02dcf::t_3fe5179c7ed536 1-89
+src/aliens/alien.js
+  s_1fd8d0e7b02dcf::t_4cc70caf3b5338 1-673
+src/aliens/bodies.js
+  s_1fd8d0e7b02dcf::t_6bb94ce09289cc 1-342
+src/aliens/index.js
+  s_1fd8d0e7b02dcf::t_b5ace0a3d23c78 1-61
+src/aliens/species.js
+  s_1fd8d0e7b02dcf::t_4d2f0b129065c6 1-71
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_f55f3fb5795cad 22-26
+src/main.js
+  s_1fd8d0e7b02dcf::t_49b0fe82baf2ce 36,424,438
+src/story/aliens-data.js
+  s_1fd8d0e7b02dcf::t_4e8aba823d9e23 1-209
+src/story/index.js
+  s_1fd8d0e7b02dcf::t_465c4771ad3dae 94-95,97,101-102,117,176,220
+src/story/scripts.js
+  s_1fd8d0e7b02dcf::t_0bf2591dc08576 677-803
+src/story/shot.js
+  s_1fd8d0e7b02dcf::t_47bd60e6a9d67b 153-155,161
+src/story/voice.js
+  s_1fd8d0e7b02dcf::t_1f47c79556a18d 108-120,301-309,353
+tests/aliens.test.js
+  s_1fd8d0e7b02dcf::t_204a9e8c49939b 1-242
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9f13d4a0069210d1ef98892b509783c3ce46d7e8",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
