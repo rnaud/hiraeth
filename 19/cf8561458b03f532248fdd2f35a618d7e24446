@@ -1,0 +1,31 @@
+README.md
+  s_1fd8d0e7b02dcf::t_f8abb9932fa9db 2199-2221
+unity/Memento/Assets/Memento/Editor/Batch.cs
+  s_1fd8d0e7b02dcf::t_ffb3641f771a7c 106-115
+unity/Memento/Assets/Memento/Editor/Tests/StoryTests.cs
+  s_1fd8d0e7b02dcf::t_e4493e57e82639 88-89
+unity/Memento/Assets/Memento/Runtime/Flame.cs
+  s_1fd8d0e7b02dcf::t_4630e43c4de9bd 67-70
+unity/Memento/Packages/manifest.json
+  s_1fd8d0e7b02dcf::t_692c82b2dd30ff 46-47
+unity/Memento/Packages/packages-lock.json
+  s_1fd8d0e7b02dcf::t_8357f4194954cb 3-19,102-108
+unity/README.md
+  s_1fd8d0e7b02dcf::t_96f8719c5a6d00 10-12,15-27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "19cf8561458b03f532248fdd2f35a618d7e24446",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
