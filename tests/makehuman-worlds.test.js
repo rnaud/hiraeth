@@ -376,3 +376,10 @@ test("The References' walkers are MakeHuman bodies", async () => {
   assert.ok(MH_WORLDS.has('references'));
   assert.ok(usesMakeHuman('references') && !usesMakeHuman('references', '0'));
 });
+
+test("The atelier's artist is a MakeHuman body: every level's people are", async () => {
+  assert.ok(MH_WORLDS.has('atelier'));
+  assert.ok(usesMakeHuman('atelier'));
+  const { COSTUME_WORLDS } = await import('../src/costumes.js');
+  for (const w of COSTUME_WORLDS) assert.ok(MH_WORLDS.has(w), `${w} on MakeHuman bodies`);
+});

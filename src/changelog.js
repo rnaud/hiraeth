@@ -23,6 +23,7 @@ export const CHANGELOG = [
     'At home, Lou, your aunt Tove and the neighbours have the new bodies too.',
     'The Lab’s giants, its gallery of faces, have the new bodies and faces too, so the faces you study there are the ones people wear.',
     'The small robed walkers in the References scenes have the new bodies too.',
+    'The artist in the atelier has the new body too: every world’s people now do, except the traveller, who keeps his own.',
     'The traveller dresses more casually: an everyday canvas rucksack, with a lid, buckled straps, pockets and a rolled bedroll, replaces the old radio box, and nothing of the space suit is left: soft desert boots without seams or buckles, a loose cotton scarf instead of the ringed collar.',
     'The fluid tank is a slim, flat glass flask now, set into the rucksack and held by leather bands. It sticks out far less from your back, and its three coloured bands still show your charges from behind. When the flask goes into a vehicle, the rucksack stays on your back.',
     'The drone perches on top of the flask’s leather upright, beside its neck and clear of your swinging arms; before you have the flask it rides on the rucksack’s lid. The lantern hangs just below it.',
