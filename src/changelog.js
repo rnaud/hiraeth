@@ -8,6 +8,7 @@ export const CHANGELOG = [
     'Grass no longer pops in or stops at a line: the blades fade out tuft by tuft with distance, shorter and in the colour of the ground, and sparse low tufts carry the meadow about twice as far before it melts into the ground. Turning the camera no longer makes the grass in front of you jump.',
     'Flowers that open no longer push their petals into walls, rocks or each other: they lean a little away from what is close and open only as far as there is room, and those squeezed into a tight corner grow a step further out.',
     'Game updates for the Android app and the Steam Deck now come from the game’s own site. Accept the new Android app when it is offered, once, to keep getting them; your saves are kept.',
+    'A new place in the worlds list (Debug on the title screen): The References, six desert scenes rebuilt from the drawings the game is made after, each seen the way its drawing frames it. [ and ] (L3 / R3) change scene, \\ (View) puts the drawing beside or over the picture.',
   ] },
   { v: '0.60', date: '2026-10-05', items: [
     'Every world has music of its own now, with its own instruments, scale and short tune: ney, oud and frame drum in the desert; a muted horn, vibes and a walking bass down the City-Shaft; wind and breath on Vael; the monks and their far bell over Vael II’s clouds; a ticking, unresolved machine in the Sealed Hangar; low brass and struck metal in the Buried Machine.',
@@ -43,7 +44,6 @@ export const CHANGELOG = [
     'Smoother frame rate everywhere, most of all close to metal, cracked rock and other detailed surfaces; nothing looks different.',
     'No more stutter the first time you walk into a new place or turn to something new: everything is prepared while the world loads, and worlds load faster.',
     'Grassy places no longer waste time redrawing every blade of grass each frame; stepping through a door no longer stalls while the grass appears.',
-    'A new place in the worlds list (Debug on the title screen): The References, six desert scenes rebuilt from the drawings the game is made after, each seen the way its drawing frames it. [ and ] (L3 / R3) change scene, \\ (View) puts the drawing beside or over the picture.',
   ] },
   { v: '0.56', date: '2026-10-05', items: [
     'The settings now have an Updates section in the Android app: see the version you’re playing, check for updates, read what the new one brings, and download it with a progress bar. The game restarts at the title screen with your saves kept.',
