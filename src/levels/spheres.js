@@ -67,6 +67,15 @@ function height(x, z) {
   return h;
 }
 
+/**
+ * The world's touches on the print preset (its reference sheets): thin even lines, little hatching,
+ * no dots; the white stone's shade the world's pale blue (no warm grey kept); the umbrella canopies' undersides and the thickets the darkest places (no bounce lifting
+ * them), their spot blacks a deep green.
+ */
+/** The day's colours: sky top, horizon, shadow, light, sun. */
+export const SPHERES_DAY = ['#9cc4dc', '#f1d9cb', '#a9c3cf', '#fffdf4', '#fff8e0'];
+export const SPHERES_LOOK = { uLineWidth: 1.0, uLineVary: 0.1, uWobble: 0.12, uHatch: 0.5, uDots: 0, uSkyDots: 0.3, uBounce: 0, uShadeKeep: 0, uSpotTone: [0.1, 0.17, 0.11, 0.5] };
+
 // light direction the spheres' printed crescents are drawn for (morning sun from +x)
 export const CRESCENT = new THREE.Vector3(0.75, 0.42, 0.5).normalize();
 
@@ -901,11 +910,11 @@ export function* buildSpheres(scene) {
     features: { mount: false, wind: false, jetpack: false, climb: true },
     defaults: {
       hour: 8.5, preset: 'Moebius print', cloudShadows: 0,
-      look: { uLineWidth: 1.0, uLineVary: 0.1, uWobble: 0.12, uHatch: 0.5, uDots: 0, uSkyDots: 0.3 },
+      look: SPHERES_LOOK,
     },
     sky: {
       script: {
-        day: ['#9cc4dc', '#f1d9cb', '#a9c3cf', '#fffdf4', '#fff8e0'],     // pale blue over a blush horizon
+        day: SPHERES_DAY,     // pale blue over a blush horizon
         dusk: ['#a9b4d8', '#f6c4ae', '#9b9cc8', '#ffe6d0', '#fff0d6'],
         night: ['#1c2a50', '#3c4f80', '#34407a', '#9ab0d8', '#f2f0e6'],
       },

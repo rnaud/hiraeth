@@ -17,6 +17,8 @@ export const CHANGELOG = [
     'Shadows have a third, darkest tone, as in the drawings: deep pockets in shade, between ribs and pipes, inside machines and under overhangs, fill with a near-black mass of the world’s darkest colour, and long shadows thrown by big masses go a little deeper. Lit areas stay clean; faces and people never go black.',
     'The Buried Machine’s deep machinery and the rust canyon’s shadows are darker and richer, rust-brown and deep teal, as in its drawings.',
     'The References scenes now include the Buried Machine: twenty-two views from its four sheets, the domes and pipes in the dunes, the rust canyon and its ovals, the teal drum open to the sky, the hanging city and the ring of arches.',
+    'The Garden of Spheres looks more like its drawings: the undersides of the great umbrella trees and the thickets are a deep, dark green, the white stone’s shade is a clean pale blue, and the darkest pockets of shade turn deep green instead of grey.',
+    'The References scenes now include the Garden of Spheres: twenty-two views from its four sheets, the umbrella groves, the pyramids, the giant spheres and their arches, the white hill, the lake and the olive avenue to the round plaza.',
   ] },
   { v: '0.67', date: '2026-10-05', items: [
     'The traveller dresses more casually: an everyday canvas rucksack, with a lid, buckled straps, pockets and a rolled bedroll, replaces the old radio box, and nothing of the space suit is left: soft desert boots without seams or buckles, a loose cotton scarf instead of the ringed collar.',
