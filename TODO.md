@@ -528,7 +528,10 @@ All of this is for the web game; the Unity port follows later if we move to Unit
   *(A small quick lean away that springs back with a light wobble, by how close and how fast you
   pass: each plant a damped spring driven by your last second of steps, summed in the vertex
   shader; ~10 cm walking instead of ~1 m. src/brush.js, README "Brushing past plants".)*
-- [ ] Most structures cast shadows.
+- [x] Most structures cast shadows. (Audited every world: nearly everything already cast; the far
+  map skipped every tile of instanced props, so boulders, globes and pillars past 220 m cast
+  nothing: now only tiles of small ones are skipped. Perdide's great crystal casts though it glows.
+  README "Who casts a shadow".)
 - [x] Grass pops in: in the distance it should fade into something smaller and cheaper, not appear at a line.
   *(Tuft by tuft: shrinking, thinner, into the ground's colour and without outline; a sparse far
   layer of two-blade tufts carries the meadow ~2.2× as far; the patch no longer jumps when the
@@ -537,11 +540,14 @@ All of this is for the web game; the Unity port follows later if we move to Unit
 - [x] Jump animation by phase: take-off, the top, falling back down (it looks static through the whole jump).
   Done: `src/jump.js` blends Jump_Start / Jump_Loop / Jump_Land by the vertical speed and the time to the
   ground (push, tuck, the top, the fall with the arms out, reaching for the ground), plus a landing squash.
-- [ ] The gun's blob impact follows the surface it hits, not a flat decal floating in front of it.
+- [x] The gun's blob impact follows the surface it hits, not a flat decal floating in front of it.
+  (Projected onto the drawn triangles round the hit, wrapped over steps, rocks and trunks:
+  `splat-decal.js`.)
 - [x] Hands are stiff and flat: give them the natural arc of a relaxed hand, and let them move.
   (`src/hands.js`: the fingers were never posed; a relaxed arc at rest, poses by context (running,
   climbing, riding, the gun, props), gestures in the line's tone, blended, with a little drift and lag.)
-- [ ] The faces in the dialogue box's portrait are badly aliased.
+- [x] The faces in the dialogue box's portrait are badly aliased. (Drawn at the circle's size,
+  supersampled and shrunk by halves, saved as PNG.)
 - [x] The alien text in the dialogue box lacks variety: it should look like a real written language
   (each world its own script) before it turns into English. Done: `src/story/scripts.js`, a script
   a world (an abjad, runes, an abugida, knots, logograms…, some right to left), drawn as inline SVG

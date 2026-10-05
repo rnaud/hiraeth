@@ -3336,6 +3336,43 @@ Found in the Lab, where some materials looked slow; all of it applies to every w
   behind the fade (it had been a 60 ms frame).
 - **The Lab's hidden rooms** skip the frame's matrix update (each is brought up to date as it hides).
 
+### Who casts a shadow, paint that sticks, sharp portraits
+- **Casters** (`shadows.js`, main.js `renderFrame`): there are no `castShadow` flags; the shadow
+  passes draw every visible mesh in one depth material, minus a level's `noShadow` list, people's
+  tiny parts, self-lit things (`selfLitSkips`: glow ≥ 0.8, flames, lamps, glowing inscriptions; a
+  glowing solid opts in with `userData.castShadow = true`, as Perdide's great crystal does, and any
+  mesh opts out with `false`) and, in the far pass only, small props (`farPassSkips`). An audit of
+  every world found the rest casting already; the gap was that last rule: it left out *every* tile
+  of instanced props, so boulders up to 9 m across, the Spheres' globes and the like cast nothing
+  past the near map (220 m, 160 on Handheld) while the buildings beside them did. Now a tile is left
+  out only if all it holds is under two far texels (2.2 m) across (`largestInstance`, kept per tile).
+  Cost, far pass (refreshed every 3rd frame, every 4th on Handheld), same page A/B, M4 Pro: desert
+  +36–57 draws and +6–18 k triangles on High (+21–27 / +3–11 k Handheld), GPU time within the noise
+  (0.35–0.43 ms either way); the Spheres +38–45 draws, +0.2 M triangles, +0.07 ms on High
+  (Handheld +13–17 draws, +0.08–0.13 M, +0.03–0.27 ms); Arzach +8–10 draws, no change in time.
+- **Fluid splats are decals on the drawn surface** (`splat-decal.js`, fluid-tool.js `Splats`): the
+  glob still stops on the collision, but the splat is cut from the triangles drawn there: the
+  scene's static meshes round the hit (`DrawnSurfaces`: not skinned, plants, water, lights or
+  anything that has moved since it was found; hidden collision stand-ins left out, so a dome's or a
+  trunk's coarser collider doesn't swallow it) and the terrain's own grid triangles
+  (`heightfieldTriangles`); the collision BVH only where nothing is drawn. Each triangle is clipped
+  to the splat's box (Sutherland-Hodgman, like three's DecalGeometry), cast halfway between the
+  surface's normal and back along the shot (a step's riser facing you takes paint as well as its
+  tread). A one-sided face turned away (a thin wall's far side) is left out by its winding;
+  double-sided ones are tested for what hides them, piece by piece. Each corner keeps its spot in
+  the splat's plane at its true distance from the hit, so the blob keeps its size over folds and
+  curves instead of stretching to the box. The shape (blob, inner tone, drops) is drawn in the
+  shader (`splatMaterial`: two patches of the surface shader, checked by the tests), grown and
+  shrunk by age, so the geometry is built once a shot (0.5–2 ms here); every splat shares one
+  mesh, rewritten only when one comes or goes. The faces lie exactly on the surface: polygon offset,
+  not a lift, keeps them in front.
+- **The conversation portrait** (main.js `captureView` with `css`, `story/portrait-bg.js`): it was the
+  frame's middle shrunk in one step to 160 px and saved as a JPEG, so lines a pixel or two wide broke
+  into jagged dots. Now it is drawn as if the frame were the circle's size (`portraitPixelRatio`: the
+  ink, hatching and grain in its pixels, at half the world's ink weight), at full resolution, shrunk
+  by halves (each a 2 × 2 average) to the circle's pixels on this screen (`portraitSize`), and kept
+  as a PNG.
+
 ## The desert in Unity (a proof of concept)
 `unity/Memento` is a Unity 6 (URP) port of the desert, built from this game rather than
 beside it (the details, how to run it and what is missing: `unity/README.md`).
