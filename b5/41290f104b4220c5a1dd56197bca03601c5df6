@@ -1,0 +1,25 @@
+docs/benchmark-web-vs-unity.md
+  s_1fd8d0e7b02dcf::t_c2a57a0129088d 191-320
+scripts/bench/gecko-app/app/src/main/java/com/rnaud/memento/gecko/AssetServer.java
+  s_1fd8d0e7b02dcf::t_c28f1bb48c523d 21
+scripts/bench/report.mjs
+  s_1fd8d0e7b02dcf::t_5720eb714972d6 14-15,17-19
+scripts/bench/results/android-gecko.json
+  s_1fd8d0e7b02dcf::t_6adfdb31deaaab 1-8653
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b541290f104b4220c5a1dd56197bca03601c5df6",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
