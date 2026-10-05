@@ -239,7 +239,8 @@ function applyLook() {
 function applyBody() {
   const one = !state.lineup;
   for (const p of people) {
-    p.morph = p.h.setMorph(one ? state.b : null);
+    // (the person's own body, a story person's def.morph: Humanoid.ownMorph, under the sliders)
+    p.morph = p.h.setMorph(one ? { ...(p.h.ownMorph ?? {}), ...state.b } : p.h.ownMorph ?? null);
   }
 }
 function applyFace() {

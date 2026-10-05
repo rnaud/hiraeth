@@ -38,17 +38,19 @@ export const BODY_MORPHS = [
   { key: 'arms', label: 'Arm thickness', min: 0.7, max: 1.45, def: 1 },
   { key: 'legs', label: 'Leg thickness', min: 0.7, max: 1.45, def: 1 },
   { key: 'neck', label: 'Neck thickness', min: 0.75, max: 1.35, def: 1 },
-  { key: 'neckLength', label: 'Neck length', min: 0.6, max: 1.6, def: 1 },
-  { key: 'armLength', label: 'Arm length', min: 0.85, max: 1.15, def: 1 },
-  { key: 'legLength', label: 'Leg length', min: 0.85, max: 1.18, def: 1 },
-  { key: 'headSize', label: 'Head size', min: 0.82, max: 1.22, def: 1 },
+  { key: 'neckLength', label: 'Neck length', min: 0.4, max: 1.6, def: 1 },
+  // (the low ends of torso, arm and leg length and the high end of head size are a child's: home's Lou)
+  { key: 'torsoLength', label: 'Torso length', min: 0.75, max: 1.2, def: 1 },
+  { key: 'armLength', label: 'Arm length', min: 0.72, max: 1.15, def: 1 },
+  { key: 'legLength', label: 'Leg length', min: 0.68, max: 1.18, def: 1 },
+  { key: 'headSize', label: 'Head size', min: 0.82, max: 1.55, def: 1 },
   { key: 'handSize', label: 'Hand size', min: 0.8, max: 1.3, def: 1 },
   { key: 'footSize', label: 'Foot size', min: 0.8, max: 1.3, def: 1 },
 ];
 
 /** The face sliders: geometry (warpFace) and ink (faceInk uniforms: uFaceKit). */
 export const FACE_MORPHS = [
-  { key: 'eyeSize', label: 'Eye size', min: 0.8, max: 1.3, def: 1 },
+  { key: 'eyeSize', label: 'Eye size', min: 0.8, max: 1.45, def: 1 },
   { key: 'eyeSpacing', label: 'Eye spacing', min: -1, max: 1, def: 0 },
   { key: 'eyeHeight', label: 'Eye height', min: -1, max: 1, def: 0 },
   { key: 'noseLength', label: 'Nose length', min: 0.5, max: 1.7, def: 1 },
@@ -57,8 +59,8 @@ export const FACE_MORPHS = [
   { key: 'chin', label: 'Chin', min: -1, max: 1, def: 0 },
   { key: 'cheeks', label: 'Cheeks (hollow – full)', min: -1, max: 1, def: 0 },
   { key: 'browRidge', label: 'Brow ridge', min: -1, max: 1, def: 0 },
-  { key: 'faceLength', label: 'Face length', min: 0.9, max: 1.14, def: 1 },
-  { key: 'headWidth', label: 'Head width', min: 0.9, max: 1.12, def: 1 },
+  { key: 'faceLength', label: 'Face length', min: 0.82, max: 1.14, def: 1 },
+  { key: 'headWidth', label: 'Head width', min: 0.9, max: 1.18, def: 1 },
   // ink only (no geometry)
   { key: 'lines', label: 'Age lines', min: 0, max: 2, def: 1, ink: true },
   { key: 'mouthWidth', label: 'Mouth width', min: 0.7, max: 1.4, def: 1, ink: true },
@@ -133,7 +135,8 @@ export function boneMorph(morph, { legSpan = 0.885, ankle = 0.086 } = {}) {
     hand_l: m.handSize / m.armLength, hand_r: m.handSize / m.armLength,
   };
   // positions along the parent bone: the neck's length, the shoulders' breadth
-  const position = { Head: m.neckLength, upperarm_l: 1 + (m.shoulders - 1) * 0.9, upperarm_r: 1 + (m.shoulders - 1) * 0.9 };
+  // (the torso's length: each spine bone sits nearer the one below it)
+  const position = { Head: m.neckLength, upperarm_l: 1 + (m.shoulders - 1) * 0.9, upperarm_r: 1 + (m.shoulders - 1) * 0.9, spine_02: m.torsoLength, spine_03: m.torsoLength, neck_01: m.torsoLength };
   const lift = (m.legLength - 1) * legSpan + (m.footSize - 1) * ankle;
   return { scale, position, lift, height: m.height };
 }

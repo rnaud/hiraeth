@@ -37,8 +37,8 @@ const lerp = THREE.MathUtils.lerp;
 const pick = (list, k) => list[((k % list.length) + list.length) % list.length];
 
 /** A seven-year-old on the people's body (morph.js): a bigger head, shorter limbs, a round face. */
-export const LOU_MORPH = { headSize: 1.22, legLength: 0.86, armLength: 0.88, neckLength: 0.65, shoulders: 0.84, chest: 0.85, hips: 0.88, belly: 1.08, arms: 0.85, legs: 0.9, handSize: 0.9, footSize: 0.85 };
-export const LOU_FACE = { eyeSize: 1.28, noseLength: 0.6, noseWidth: 0.85, jaw: 0.86, chin: -0.6, cheeks: 0.8, faceLength: 0.92, browRidge: -0.8, lines: 0, freckles: 0.7, mouthWidth: 0.9 };
+export const LOU_MORPH = PEOPLE.lou.morph;
+export const LOU_FACE = PEOPLE.lou.face;
 
 // ------------------------------------------------------------------ poses laid over the clip (player.overlay)
 
@@ -147,8 +147,7 @@ export function setupHome(ctx) {
   const louHome = onGround(HOME_SPOTS.lou);
   const louRoute = [louHome, onGround(V(11.4, 0, 21.6)), onGround(garden.spots.gateN), onGround(small.doorOut), onGround(V(-11.6, 0, 37.8)), onGround(V(-4.6, 0, 19.2)), onGround(V(5.2, 0, 21.0))];
   const lou = spawn(PEOPLE.lou, { route: louRoute, speed: 1.2 });
-  lou.humanoid?.setMorph?.(LOU_MORPH);
-  try { lou.humanoid?.setFace?.(LOU_FACE); } catch { /* the face kit may be mid-change */ }
+  // (her child's body and face come with her: PEOPLE.lou.morph / .face, src/npc.js)
   lou.heading = Math.PI;
   // (on the bench itself: the ground the NPC finds there is its seat, so `seat` is only a hair)
   const tove = spawn(PEOPLE.tove, { route: [onGround(garden.spots.bench)], seat: 0.01, heading: garden.spots.benchHeading });

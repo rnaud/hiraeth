@@ -2587,8 +2587,17 @@ beside it (the details, how to run it and what is missing: `unity/README.md`).
   between the two houses, the flag, the curtain in front of the beds and the scarf (both
   indoors: a breath of wind at most, until you brush past).
 - **Lou, Tove and Moustache** (`src/story/home.js`, `home-data.js`, `src/dog.js`): Lou is a full
-  NPC with a child's proportions (`LOU_MORPH`, `LOU_FACE`: morph.js on the people's body, scale
-  0.72, a dotted dress). Once a visit she runs to meet you and asks what you brought; what she
+  NPC built as a child (her def's `morph`, `face`, `rest`, `gait`, `body`, `brows`, which
+  `src/npc.js` applies to any story person; the studio shows them, `?who=npc&world=home&npc=lou`):
+  about 1.2 m and five heads tall in the studio's count (Tove is 6.6), a head 1.3 times the size on
+  short arms and legs (the morph's child ranges: `torsoLength` shortens the spine by moving its
+  bones closer, `headSize` up to 1.55, leg and arm length down to 0.68 / 0.72), a round, soft,
+  waistless middle on the people's slighter, flatter body (`body: 'm'`) while her voice stays a
+  girl's (`kind: 'f'`, `age: 'child'`), a round face with a short lower face, big low-set eyes, a
+  small nose, no lines, light brows and a ready smile at rest, two buns, a dotted dress. She walks
+  with short quick steps and breaks into a run early (`gait.stride`, `gait.pace` scale the clips'
+  stride and thresholds) and never stands still (`gait.fidget`: shifting from foot to foot,
+  swinging her arms, twisting, bouncing on her toes). Once a visit she runs to meet you and asks what you brought; what she
   says follows how many keepsakes you have (`keepsakeBand`) and the newest world you wrote to
   her from (`DRAWING_LINES`); she sees a flower in your hand. Then she goes about her day (the
   border, the swing, the stone, her door). Tove sits on the garden bench. Moustache, a scruffy
