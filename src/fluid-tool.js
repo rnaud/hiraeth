@@ -478,15 +478,20 @@ class Rings {
 
 // The tank, in its own frame (y up the glass from its bottom, +z toward the
 // wearer's back), placed in the chest anchor's frame (y = 0 at the hips,
-// 0.74 at the collar, +z forward, the character's right at -x).
+// 0.74 at the collar, +z forward, the character's right at -x). A slim, flat
+// glass flask: it sits in the outer face of the traveller's canvas rucksack
+// (traveller.js), held by two leather bands and two leather-bound side staves,
+// its neck and valve out over the rucksack's lid.
 export const TANK = {
-  at: [0, 0.25, -0.35],      // glass bottom, behind the shoulder blades
-  scale: 0.8,              // a compact shoulder-to-waist pack on the adult body
+  at: [0, 0.28, -0.283],    // glass bottom, half sunk into the rucksack's outer face
+  scale: 0.8,              // a compact shoulder-to-waist flask on the adult body
   height: 0.52,             // glass
   full: 0.5,                // fluid height at three charges (a sliver of air on top)
-  squash: 1.2,              // wider than deep
+  squash: 0.85,             // across the back (x), of the round profile (the canvas shows either side)
+  depth: 0.55,              // front to back (z): a flat flask, not a drum
+  straps: [0.012, 0.49],    // the leather bands round the glass: on the brass foot and at its brim, so the three bands show whole
   profile: [[0.12, 0], [0.153, 0.05], [0.167, 0.14], [0.162, 0.26], [0.147, 0.38], [0.121, 0.47], [0.098, 0.52]],
-  outlet: [-0.11, 0.6, 0.03],      // where the hose leaves: the cap's fitting, on the wearer's right
+  outlet: [-0.1, 0.6, 0.02],      // where the hose leaves: the cap's fitting, on the wearer's right
   highlight: -1.05,         // streak angle (atan2(z, x) in tank space): on the back, to one side
   inked: true,              // blobs inked at full strength (not the player's softer interior lines)
 };
@@ -497,15 +502,17 @@ function radiusAt(y) {
   for (let i = 0; i < 18; i++) { const m = (lo + hi) / 2; if (profileCurve.getPoint(m).y < y) lo = m; else hi = m; }
   return profileCurve.getPoint((lo + hi) / 2).x;
 }
-/** The glass's radius at height y (tank frame, before the squash). */
+/** The glass's radius at height y (tank frame, before the flattening: x × TANK.squash, z × TANK.depth). */
 export const tankRadiusAt = radiusAt;
 /**
  * The scout's dock on the tank, in the tank's frame (it rides with the tank, into a vehicle's
- * socket too): clamped by its foot to the frame's left side rail (the wearer's left), high up,
- * just under the rail's top bracket (the lantern hangs from the rail below it), off the glass.
+ * socket too): clamped by its foot to the top of the flask's left upright (the wearer's left),
+ * beside the neck and above the shoulder, over the upright's top bracket (the lantern hangs from
+ * the upright below), off the glass. (The rucksack is slim: lower down the swinging arms would
+ * reach it.)
  */
-export const TANK_RAIL = { x: TANK.profile.reduce((m, [r]) => Math.max(m, r), 0) * TANK.squash + 0.018, r: 0.012, z: -0.12 };
-export const SCOUT_DOCK_Y = TANK.height * 0.83;
+export const TANK_RAIL = { x: TANK.profile.reduce((m, [r]) => Math.max(m, r), 0) * TANK.squash + 0.018, r: 0.012, z: -0.03, top: TANK.height * 1.24, brackets: [0.04, TANK.height - 0.07] };
+export const SCOUT_DOCK_Y = TANK.height * 1.2;
 export const SCOUT_DOCK_X = TANK_RAIL.x + TANK_RAIL.r + DRONE_BELLY / TANK.scale + 0.002;
 export const SCOUT_DOCK_Z = TANK_RAIL.z;
 /**
@@ -523,10 +530,12 @@ export function scoutDockPose(k, pos, quat) {
   return pos;
 }
 
+const LEATHER = '#5e4b37';
 function buildTank() {
   const g = new THREE.Group();
   g.name = 'Fluid tank';
-  const add = (geo, m, x = 0, y = 0, z = 0, sq = true) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); if (sq) o.scale.x = TANK.squash; g.add(o); return o; };
+  // (sq: the part takes the flask's flattening, across and front to back)
+  const add = (geo, m, x = 0, y = 0, z = 0, sq = true) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); if (sq) { o.scale.x = TANK.squash; o.scale.z = TANK.depth; } g.add(o); return o; };
   const R = TANK.profile.reduce((m, [r]) => Math.max(m, r), 0);
   const glass = add(new THREE.LatheGeometry(profileCurve.getPoints(24), 28),
     makeMaterial({ color: '#ffffff', fluid: 'tank', glow: 0.5, fluidBox: [0, TANK.full, R, TANK.highlight], fluidTones: FLUID_TONES }));
@@ -538,18 +547,21 @@ function buildTank() {
   add(new THREE.CylinderGeometry(0.03, 0.036, 0.03, 12), flatMat(STEEL), 0, TANK.height + 0.068, 0, false);
   add(new THREE.TorusGeometry(0.045, 0.008, 4, 16).rotateX(Math.PI / 2), flatMat(INK), 0, TANK.height + 0.086, 0, false);
   add(new THREE.SphereGeometry(0.022, 10, 7), flatMat(BRASS), 0, TANK.height + 0.094, 0, false);
-  // hoops mark the three charge bands
+  // hoops mark the three charge bands (the level reads against them from behind)
   for (const k of [1, 2]) {
     const y = (TANK.full * k) / 3;
     add(new THREE.TorusGeometry(radiusAt(y) + 0.006, 0.01, 5, 30).rotateX(Math.PI / 2), flatMat(INK), 0, y, 0);
   }
-  // side rails and the back plate on the straps
+  // two worn leather bands round the glass, below the fluid and at its brim (clear of the hoops and the bands between)
+  for (const y of TANK.straps) add(new THREE.TorusGeometry(radiusAt(y) + 0.012, 0.014, 4, 30).rotateX(Math.PI / 2).scale(1, 1.2, 1), flatMat(LEATHER), 0, y, 0);
+  // the leather-bound side staves the bands hang from, bracketed into the rucksack (no back plate:
+  // the rucksack is the flask's back)
   const railX = TANK_RAIL.x;
   for (const sx of [-1, 1]) {
-    add(new THREE.CylinderGeometry(TANK_RAIL.r, TANK_RAIL.r, TANK.height + 0.05, 6), flatMat(STEEL_DARK), sx * railX, TANK.height / 2 - 0.01, TANK_RAIL.z, false);
-    for (const y of [0.04, TANK.height - 0.04]) add(new THREE.BoxGeometry(0.03, 0.026, 0.15), flatMat(STEEL_DARK), sx * railX, y, TANK_RAIL.z + 0.07, false);
+    add(new THREE.CylinderGeometry(TANK_RAIL.r, TANK_RAIL.r, TANK_RAIL.top + 0.035, 6), flatMat(LEATHER), sx * railX, (TANK_RAIL.top - 0.035) / 2, TANK_RAIL.z, false);
+    for (const y of TANK_RAIL.brackets) add(new THREE.BoxGeometry(0.03, 0.026, 0.15), flatMat(LEATHER), sx * railX, y, TANK_RAIL.z + 0.07, false);
+    add(new THREE.SphereGeometry(0.018, 8, 6), flatMat(BRASS), sx * railX, TANK_RAIL.top, TANK_RAIL.z, false);   // a brass knob on the upright's top
   }
-  add(new THREE.BoxGeometry(0.36, 0.46, 0.024), flatMat(STEEL_DARK), 0, TANK.height / 2, 0.17, false);
   // the hose's fitting on the cap, leaning toward the right shoulder
   const [ox, oy, oz] = TANK.outlet;
   add(new THREE.CylinderGeometry(0.022, 0.026, 0.07, 10), flatMat(BRASS), ox + 0.02, oy - 0.03, oz, false).rotation.z = 0.55;
@@ -725,7 +737,7 @@ export class FluidTool {
   wear() {
     const p = this.player, H = p?.humanoid;
     if (!H?.chestAnchor) return;
-    // the cream radio pack gives way to the tank once it is found (update(); the traveller's pack: traveller.js)
+    // (the traveller keeps his canvas rucksack, the flask sits in its outer face: traveller.js, updateWorn())
     if (!H.outfit) for (const o of (p.gear?.packDockParent ?? p.gear?.scoutDock?.parent)?.children ?? []) if (o.isMesh) o.visible = false;   // the procedural pack
     const tank = (this.tank = buildTank());
     H.chestAnchor.add(tank.group);
@@ -759,7 +771,7 @@ export class FluidTool {
 
   /**
    * The scout docks on the tank's side once it is worn (parented to the tank, so it goes along into
-   * a vehicle's socket and back), else where the gear put it (on the radio pack's top).
+   * a vehicle's socket and back), else where the gear put it (on the rucksack's lid).
    */
   placeDock(owned) {
     const gear = this.player?.gear, dock = gear?.scoutDock;
@@ -1109,8 +1121,8 @@ export class FluidTool {
     const owned = this.owned, visible = owned && p.object?.visible !== false;
     const where = owned ? this.updateDock(dt) : 'back';
     this.tank.group.visible = visible;
-    // the traveller's radio pack is on the back until the tank takes its place
-    for (const o of p.humanoid?.radioPack ?? []) o.visible = !owned;
+    // the rucksack's outer pocket shows until the flask sits in its place (and again while the flask is in a vehicle)
+    for (const o of p.humanoid?.packPocket ?? []) o.visible = !(owned && where === 'back');
     if (this._dockOwned !== owned) this.placeDock(owned);
     // the scout hops onto the cap while the wings are open, and back onto the rail when they fold
     const capK = THREE.MathUtils.clamp((this.scoutCapK ?? 0) + (owned && (p?.wingK ?? 0) > 0.02 ? 1 : -1) * dt / SCOUT_CAP.hop, 0, 1);

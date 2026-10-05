@@ -338,7 +338,7 @@ export class Scout {
     if (this.phase === 'docked' && !this.trail.samples.length) this.trail.mesh.visible = false;
     if (this.phase === 'docked') {
       const home = this.anchor(), body = this.player.humanoid?.chestAnchor;
-      // the dock itself moved on the body (the radio pack gave way to the tank): glide over to it, folded
+      // the dock itself moved on the body (the flask was found: from the rucksack's lid to the flask's upright): glide over to it, folded
       const onBody = body ? body.worldToLocal(_l.copy(home)) : null;
       const moved = onBody && this.dockOnBody && onBody.distanceTo(this.dockOnBody) > 0.25;   // (more than its own hops and the tank's swing make in a frame)
       if (onBody) (this.dockOnBody ??= new THREE.Vector3()).copy(onBody);

@@ -43,9 +43,14 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 ## The traveller
 
-- [ ] More casual, not a space suit, a backpack as originally. The fluid backpack slimmer.
-- [ ] Build on the new reference (`references/main character/new*.JPG`, the coral-jacket redesign): thinner
-  cheeks, scruffier hair, and whatever else brings him closer to it.
+- [x] More casual, not a space suit, a backpack as originally. The fluid backpack slimmer. (An everyday
+  canvas rucksack always worn, in place of the radio box; the tank is a flat glass flask set into its outer
+  face, 22 cm off the back instead of 34; no suit seams, boot buckles or ringed collar left; the drone docks on
+  the flask's upright, out of the arms' way.)
+- [x] Build on the new reference (`references/main character/new*.JPG`, the coral-jacket redesign): thinner
+  cheeks, scruffier hair, and whatever else brings him closer to it. (A leaner face with slim cheeks and a
+  narrow jaw; a curly mop of broken locks with a parted fringe and lighter lock edges; a bunched cotton cowl,
+  soft slouched desert boots with sand soles, a tiny hidden earpiece.)
 
 ## Movement and camera
 

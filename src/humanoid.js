@@ -733,7 +733,7 @@ export class Humanoid {
     body.material = makeMaterial({ color: P.suit, color2: P.suit, color3: P.skin, mode: MODE_OUTFIT, skin: P.skin, outfit: TRAVELLER.outfit,
       face: faceAfterReshape(this.kind), creases: limbSegments(body) });
     body.material.uniforms.uFaceKit2.value.w = EAR_Z[this.kind];
-    // one skinned mesh per colour (the radio pack and the glass apart: the tank hides the one, the other is see-through)
+    // one skinned mesh per colour (the rucksack's pocket and the glass apart: the flask hides the one, the other is see-through)
     const groups = new Map();
     for (const p of kit.pieces) {
       const k = p.glass ? 'glass' : `${p.color}|${p.pack ? 'pack' : ''}`;
@@ -741,12 +741,12 @@ export class Humanoid {
       groups.get(k).push(p);
     }
     this.outfitMeshes = [];
-    this.radioPack = [];
+    this.packPocket = [];
     for (const list of groups.values()) {
       const p = list[0];
       const geo = list.length > 1 ? mergeGeometries(list.map((q) => q.geometry)) : p.geometry;
       const mat = p.glass ? makeMaterial({ figure: true, color: p.color, glass: true, glassCenter: p.glass, glow: 0.35 })
-        : makeMaterial({ figure: true, color: p.color, side: THREE.DoubleSide });
+        : makeMaterial({ figure: true, color: p.color, side: THREE.DoubleSide, vertexColors: !!geo.attributes.color });   // (vertex colours: the hair's lighter lock edges)
       const o = new THREE.SkinnedMesh(geo, mat);
       o.name = list.map((q) => q.name).join(' ');
       // each piece's vertices in the merged mesh: { name: [first, count] }
@@ -760,7 +760,7 @@ export class Humanoid {
       body.parent.add(o);
       this.outfitMeshes.push(o);
       if (p.glass) this.noShadow.push(o);
-      if (p.pack) this.radioPack.push(o);
+      if (p.pack) this.packPocket.push(o);
     }
   }
 

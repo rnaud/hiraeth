@@ -59,9 +59,11 @@ function setup({ up = null, physics = ground(), mount = null } = {}) {
 test('no backpack: no tank, hose or bracer, nothing fires, nothing throws; found, it shimmers onto the back and works', () => {
   own();
   const { p, tool, step } = setup();
+  const pocket = new THREE.Object3D(); p.humanoid.packPocket = [pocket];   // (the rucksack's outer pocket, traveller.js)
   step(5);
   assert.equal(tool.owned, false);
   assert.equal(tool.tank.group.visible, false, 'a bare back');
+  assert.equal(pocket.visible, true, 'the rucksack keeps its outer pocket');
   assert.equal(tool.hose.mesh.visible, false);
   assert.equal(tool.bracer.group.visible, false);
   assert.deepEqual(tool.modes, [], 'no gun modes');
@@ -79,6 +81,7 @@ test('no backpack: no tank, hose or bracer, nothing fires, nothing throws; found
   assert.ok(tool.glow.list.length > 10, 'a shimmer of fluid');
   step(70);
   assert.ok(Math.abs(tool.tank.group.scale.x - TANK.scale) < 1e-6 && tool.appear === 1);
+  assert.equal(pocket.visible, false, 'the flask sits over the pocket');
   assert.equal(tool.bracer.group.visible, true); assert.equal(tool.hose.mesh.visible, true);
   p.pos.set(0, 0, 0); p.onGround = true; step(5);
   step(1, { KeyC: true }); step(12);
@@ -308,7 +311,10 @@ test('vehicles run on the backpack: refused without it; boarding swings the tank
   const frames = (n, ctl = {}) => { for (let i = 0; i < n; i++) { bike.update(DT, p.ride === bike ? ctl : null); p.update(DT, ctl, 0); p.object.parent?.updateMatrixWorld(); tool.update(DT, ctl); } };
   frames(5);
   const chest = p.humanoid.chestAnchor;
+  const pocket = new THREE.Object3D(); p.humanoid.packPocket = [pocket];
   assert.equal(tool.tank.group.parent, chest);
+  frames(1);
+  assert.equal(pocket.visible, false, 'the flask over the rucksack\'s pocket');
   p.interact();
   assert.ok(p.boarding, 'the hand-off starts');
   assert.equal(p.riding, false);
@@ -319,6 +325,7 @@ test('vehicles run on the backpack: refused without it; boarding swings the tank
   frames(Math.round(HANDOFF.board * 0.4 / DT));
   assert.equal(tool.where, 'socket');
   assert.equal(tool.tank.group.parent, bike.socket, 'slotted into the socket');
+  assert.equal(pocket.visible, true, 'the rucksack stays on, its pocket bare');
   assert.ok(tool.tank.group.getWorldScale(v()).distanceTo(chest.getWorldScale(v()).multiplyScalar(TANK.scale)) < 1e-6, 'compact pack keeps its size in the vehicle socket');
   frames(Math.round(HANDOFF.board * 0.3 / DT) + 2);
   assert.equal(p.riding, true, 'and on');
@@ -336,6 +343,7 @@ test('vehicles run on the backpack: refused without it; boarding swings the tank
   assert.equal(p.unboarding, null);
   assert.equal(tool.where, 'back');
   assert.equal(tool.tank.group.parent, chest, 'on the back again');
+  assert.equal(pocket.visible, false, 'back over the pocket');
   assert.ok(tool.tank.group.position.distanceTo(v(...TANK.at)) < 1e-6);
   assert.ok(tool.tank.group.scale.distanceTo(v(TANK.scale, TANK.scale, TANK.scale)) < 1e-6, 'compact pack keeps its size back on the shoulders');
   assert.equal(tool.allowed(false), true);
