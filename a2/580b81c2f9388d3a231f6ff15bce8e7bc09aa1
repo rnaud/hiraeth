@@ -1,0 +1,75 @@
+src/bike.js
+  s_1fd8d0e7b02dcf::t_c3c53b0fe64d44 76,85,132-133,139
+src/boxes/model.js
+  s_1fd8d0e7b02dcf::t_9a4ee5e42a70fb 246-248
+src/desert-landmarks.js
+  s_1fd8d0e7b02dcf::t_7edccfe6665029 160-161,164-165,179-180
+src/desert-vistas.js
+  s_1fd8d0e7b02dcf::t_bf51a1773ef599 16,18,32
+src/fluid-tool.js
+  s_1fd8d0e7b02dcf::t_19374d506b8a73 258-260
+src/gear.js
+  s_1fd8d0e7b02dcf::t_221d5b6471d7d2 13-19
+src/glyphs.js
+  s_1fd8d0e7b02dcf::t_16d7326debecb1 7-10,35-36,67,69
+src/levels/arzach2.js
+  s_1fd8d0e7b02dcf::t_534cf7b8a4a60c 462
+src/levels/atelier.js
+  s_1fd8d0e7b02dcf::t_10c9d81defb9a1 90
+src/levels/bazaar.js
+  s_1fd8d0e7b02dcf::t_dc5c899c5d1cb4 18,20
+src/levels/buried.js
+  s_1fd8d0e7b02dcf::t_efd10caeac1fb5 169,172-176,178,786-787,800
+src/levels/edena.js
+  s_1fd8d0e7b02dcf::t_c47a60de1bc35a 378,382,386
+src/levels/garage.js
+  s_1fd8d0e7b02dcf::t_93f49e876a2ea2 88-91,167-168,226,250,253,264,275,285,310,348,350,353,391,418
+src/levels/home.js
+  s_1fd8d0e7b02dcf::t_9c01ebaad0f9e3 101,103-104,198,222,225,229-230
+src/levels/incal.js
+  s_1fd8d0e7b02dcf::t_94af8ecf5e27bf 80,227,276,343,384,571,601,756-757
+src/levels/lab-rooms.js
+  s_1fd8d0e7b02dcf::t_b53d67d2a3ec06 393,476-477,490,556,559-562,1023
+src/levels/perdide.js
+  s_1fd8d0e7b02dcf::t_0355c35839924e 124
+src/levels/perdide2.js
+  s_1fd8d0e7b02dcf::t_2c2ca4978572a1 125,676-677
+src/observatory.js
+  s_1fd8d0e7b02dcf::t_f7b006eba5e201 17-18
+src/reactive-world.js
+  s_1fd8d0e7b02dcf::t_42e15242c5c96a 97,101
+src/scout.js
+  s_1fd8d0e7b02dcf::t_2c2caee0d981bb 89
+src/ship/model.js
+  s_1fd8d0e7b02dcf::t_a0675fe4a84323 16,18-21,47-49
+src/story/arzach2.js
+  s_1fd8d0e7b02dcf::t_909d8a77963e3c 87
+src/story/desert.js
+  s_1fd8d0e7b02dcf::t_443741b9652505 354
+src/story/garage.js
+  s_1fd8d0e7b02dcf::t_5786c276610668 200
+src/story/incal.js
+  s_1fd8d0e7b02dcf::t_3312560dd31551 66
+src/taxi.js
+  s_1fd8d0e7b02dcf::t_faec638ffb8dec 121-122,125
+src/trinkets.js
+  s_1fd8d0e7b02dcf::t_cf7732fe0fa16e 11-12
+src/vehicle-kit.js
+  s_1fd8d0e7b02dcf::t_e036cc3dc927be 35-38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a2580b81c2f9388d3a231f6ff15bce8e7bc09aa1",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
