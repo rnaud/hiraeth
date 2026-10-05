@@ -36,7 +36,8 @@ namespace Memento
             game.player.Init(ramp + outDir.normalized * 1.5f, Mathf.Atan2(outDir.x, outDir.z) * Mathf.Rad2Deg);
             game.look.subject = pgo.transform;
 
-            game.rig = gameObject.AddComponent<CameraRig>();
+            // (its own object: the rig turns its transform with the view's yaw)
+            game.rig = new GameObject("Camera rig").AddComponent<CameraRig>();
             game.rig.Init(game.cam, game.player);
             game.player.camYaw = game.rig.transform;
 
@@ -97,6 +98,7 @@ namespace Memento
                     var at = p.V3("at");
                     if (Vector3.Distance(pl.transform.position + Vector3.up * 0.5f, at) < p.F("r", 1.5f) + 0.3f)
                     {
+                        Debug.Log($"Memento: portal {p.S("label")} -> {p.V3("to")}");
                         pl.Teleport(p.V3("to"), p.F("heading") * Mathf.Rad2Deg);
                         game.rig.yaw = pl.heading;
                         portalCooldown = 1.5f;

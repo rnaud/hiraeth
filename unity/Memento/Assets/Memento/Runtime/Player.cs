@@ -95,7 +95,7 @@ namespace Memento
 
             // climbing: pushing into a steep wall (in the air at once, on the ground after a moment)
             climbCooldown -= dt;
-            if (mv.y > 0.5f && climbCooldown <= 0 && WallAhead(out var wn) && (!onGround || (flags & CollisionFlags.Sides) != 0))
+            if (mv.y > 0.5f && climbCooldown <= 0 && WallAhead(out var wn) && (!onGround || (flags & CollisionFlags.Sides) != 0 || SpeedXZ < 0.6f))
             {
                 climbing = true; wallN = wn; vel = Vector3.zero; stamina = Stamina;
                 heading = Mathf.Atan2(-wn.x, -wn.z) * Mathf.Rad2Deg;
@@ -110,7 +110,7 @@ namespace Memento
         {
             var fwd = Quaternion.Euler(0, heading, 0) * Vector3.forward;
             n = Vector3.zero;
-            if (Physics.Raycast(transform.position + Vector3.up * 1.2f, fwd, out var h, 0.9f) && Mathf.Abs(h.normal.y) < 0.55f) { n = Flat(h.normal); return true; }
+            if (Physics.Raycast(transform.position + Vector3.up * 1.2f, fwd, out var h, 1.0f) && Mathf.Abs(h.normal.y) < 0.75f) { n = Flat(h.normal); return true; }
             return false;
         }
         static Vector3 Flat(Vector3 v) { v.y = 0; return v.sqrMagnitude > 1e-6f ? v.normalized : Vector3.forward; }

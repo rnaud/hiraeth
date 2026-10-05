@@ -135,6 +135,22 @@ namespace Memento.EditorTools
             EditorApplication.EnterPlaymode();
         }
 
+        /// <summary>Build the world in edit mode and check the collision at the story's places (rays down at each).</summary>
+        public static void Probe()
+        {
+            EditorSceneManager.OpenScene(ScenePath);
+            var game = UnityEngine.Object.FindAnyObjectByType<Game>();
+            game.BuildForEditor();
+            Physics.SyncTransforms();
+            foreach (var k in new[] { "caveInside", "pool", "bone", "ledgeFoot", "ledgeBox", "wellLook", "giantDoor", "shipRamp", "cityGate" })
+            {
+                var p = game.world.Places.V3(k);
+                bool hit = Physics.Raycast(p + Vector3.up * 2, Vector3.down, out var h, 10);
+                var near = Physics.OverlapSphere(p, 3);
+                Debug.Log($"Memento: probe {k} {p}: ray {hit} {(hit ? h.point.y.ToString("0.00") + " " + h.collider.name : "")}; {near.Length} colliders: {string.Join(", ", near.Select(c => c.name + " " + c.bounds.center))}");
+            }
+        }
+
         public static void Capture(Camera cam, Vector3 eye, Vector3 target, float fov, int w, int h, string path)
         {
             cam.transform.position = eye;

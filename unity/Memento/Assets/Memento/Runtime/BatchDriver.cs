@@ -44,6 +44,16 @@ namespace Memento
             Log($"shot {name} (stage {Stage}, prompt '{game.prompt}', hp {game.player.health:0.00})");
         }
 
+        void Probe(string when)
+        {
+            var inside = game.world.Places.V3("caveInside");
+            var hits = Physics.RaycastAll(inside + Vector3.up * 2, Vector3.down, 10, ~0, QueryTriggerInteraction.Collide);
+            var near = Physics.OverlapSphere(inside, 6, ~0);
+            var all = FindObjectsByType<MeshCollider>(FindObjectsInactive.Include);
+            Log($"colliders {all.Length}, enabled {all.Count(c => c.enabled && c.gameObject.activeInHierarchy)}, high {string.Join(" ", all.Where(c => c.bounds.center.y > 500).Select(c => c.name + c.bounds.center + c.gameObject.activeInHierarchy))}");
+            Log($"probe {when}: {hits.Length} hits [{string.Join(", ", hits.Select(h => h.collider.name + "@" + h.point.y.ToString("0.0")))}], near [{string.Join(", ", near.Select(c => c.name + " " + c.enabled + " " + c.bounds.center + " " + (c is MeshCollider mc && mc.sharedMesh ? mc.sharedMesh.triangles.Length / 3 : -1)))}]");
+        }
+
         IEnumerator Wait(float s) { float t = 0; while (t < s) { t += Time.deltaTime; yield return null; } }
         IEnumerator Pulse(Action<bool> set) { set(true); yield return null; yield return null; set(false); yield return null; }
 
@@ -87,6 +97,7 @@ namespace Memento
             while ((game.player.model == null || game.npcs.Count(n => n && n.GetComponentInChildren<SkinnedMeshRenderer>() != null) < 10) && Time.time - t0 < 30) yield return null;
             yield return Wait(1f);
             Log($"loaded in {Time.time - t0:0.0} s: {game.npcs.Count} people, stage {Stage}");
+            Probe("start");
             yield return Shoot("charge_card");
             yield return Pulse(v => pad.confirm = v);
             yield return Wait(1.0f);
@@ -113,10 +124,11 @@ namespace Memento
             yield return Wait(2f);
             Log($"in the city: stage {Stage}");
             yield return Shoot("the_city_gate");
-            Put(game.world.Places.V3("ledgeFoot"), 0); yield return Wait(1f);
-            // climb the buttress to the ledge: push into the wall
+            // climb the buttress to the ledge: from its foot on the terrace, push into the wall
             var box = game.world.Places.V3("ledgeBox");
-            PutNear(box, 2.4f); var y0 = game.player.transform.position.y;
+            var foot = game.world.Places.V3("ledgeFoot"); var toBox = box - foot; toBox.y = 0;
+            Put(foot, Mathf.Atan2(toBox.x, toBox.z) * Mathf.Rad2Deg); yield return Wait(1f);
+            var y0 = game.player.transform.position.y;
             pad.move = new Vector2(0, 1); yield return Wait(0.6f);
             yield return Shoot("climbing");
             yield return Wait(3f); pad.move = Vector2.zero;
@@ -147,7 +159,12 @@ namespace Memento
 
             // under the giant: the skull's mouth, the cave, the rib
             Put(game.world.Places.V3("giantDoor"), game.world.Places.F("giantYaw") * Mathf.Rad2Deg + 180);
-            yield return Wait(2f);
+            yield return Wait(0.1f);
+            Probe("in the cave");
+            var inside = game.world.Places.V3("caveInside");
+            bool hit = Physics.Raycast(inside + Vector3.up * 2, Vector3.down, out var rh, 10);
+            Log($"  cave floor ray: {hit} {(hit ? rh.point.ToString() + " " + rh.collider.name : "")}; colliders near: {Physics.OverlapSphere(inside, 6).Length}");
+            for (int i = 0; i < 4; i++) { yield return Wait(0.25f); Log($"  at {game.player.transform.position} ground {game.player.onGround}"); }
             Log($"through the skull: stage {Stage}, at {game.player.transform.position}");
             var bone = game.world.Objects["bone"].transform.position;
             PutNear(bone, 3f); yield return Wait(1f);
