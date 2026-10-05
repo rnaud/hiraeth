@@ -5,6 +5,8 @@ A three.js exploration game in ligne claire, formerly the Moebius / Sable shader
 
 **Play it:** https://rnaud.github.io/moebius/
 
+An additional [Cloudflare Workers deployment target](docs/cloudflare.md) serves the same build independently of GitHub Pages.
+
 A third-person exploration world with a "ligne claire" look inspired by Moebius
 and the game *Sable*. Its foundation is a world that feels organic, responsive,
 mysterious and connected.

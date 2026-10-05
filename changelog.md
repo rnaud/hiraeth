@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v0.58 — 2026-10-05
 
+- The browser game has an additional Cloudflare hosting target, alongside GitHub Pages.
 - Conversations across every world now have clearer directions, distinct personalities, and a little more unexpected humour.
 - Family recordings and the homecoming have been rewritten, giving Lou, Tove, and the traveller more room to speak for themselves.
 - Temple guides, journal entries, item descriptions, and errands are easier to follow while keeping the worlds mysterious.

@@ -19,3 +19,11 @@ scripts/bench/results/raw/
 /data/mocap/mixamo/*.FBX
 /data/mocap/cache/
 /data/mocap/tmp/
+
+# Local Cloudflare state and credentials
+.wrangler/
+.dev.vars
+.dev.vars.*
+.env
+.env.*
+!.env.example
