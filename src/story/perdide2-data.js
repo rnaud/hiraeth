@@ -49,6 +49,7 @@ export const QUESTS = [
     stages: [
       { id: 'find', text: 'Find Pim’s latch: “on the big roof”, the glass dome further down the path', label: 'Pim’s latch', bring: 'latch', at: 'latch', to: 'pim' },
       { id: 'return', text: 'Bring the latch back to Pim by the moss domes', label: 'Pim, by the moss domes', bring: 'latch', to: 'pim' },
+      { id: 'shut', text: 'Pim’s door still won’t shut: moss has crept into the frame. Moss shrinks from light, and the moss lamp over her door is asleep. Then push the door to (push: C, middle click, or RB / R1)', label: 'Pim’s door', flag: 'perdide2.pim.door', at: 'pimDoor' },
     ],
   },
   {
@@ -56,6 +57,7 @@ export const QUESTS = [
     outro: 'The skiff is Fen’s, and Fen says it is yours now, for as long as you need it.',
     stages: [
       { id: 'owner', text: 'Find the skiff’s owner: Bram thinks it’s the hermit in the far dome, out on the deep water', label: 'The far dome', talk: 'fen', at: 'fen' },
+      { id: 'home', text: 'Bring the skiff home to its berth by Fen’s landing. His lamp on the mooring post is dark, and the skiff won’t come in to a dark berth; nor will it be sailed in: step off on the landing and nudge it (push: C, middle click, or RB / R1)', label: 'Fen’s berth', flag: 'perdide2.skiff.home', at: 'fenBerth' },
     ],
   },
 ];
@@ -147,6 +149,7 @@ export const KEEPERS = [
       entry: [
         { if: { quest: 'perdide2.latch', done: true }, node: 'after' },
         { if: { has: 'latch' }, node: 'back' },
+        { if: { quest: 'perdide2.latch', stage: 'shut' }, node: 'stuck' },
         { if: { quest: 'perdide2.latch', active: true }, node: 'waiting' },
         { node: 'hello' },
       ],
@@ -167,11 +170,20 @@ export const KEEPERS = [
         waiting: { say: ['~neutral~ *On top of the glass dome*, down the path. Mind the ribs; they’re slippery.'], choices: [{ text: '~neutral~ Going.', end: true }] },
         strange: { say: ['~playful~ Strange? You. Mostly you. And the night the sky rang, the pools went out. Wick saw it. Wick sees everything; she never sleeps.'], choices: [{ text: '~curious~ And your door?', goto: 'latch', if: { quest: 'perdide2.latch', started: false } }, { text: '~neutral~ Bye, Pim.', end: true }] },
         back: {
-          say: ['~surprised~ My latch! You went all the way up?', '~happy~ There. Shut. Open. Shut. Oh, that’s lovely. Listen to that click.', '~happy~ Here, take this. A moss lamp: it lights itself when it’s dark enough. It’s the only thing I’ve got that isn’t a door.'],
-          do: [{ take: 'latch' }, { advance: 'perdide2.latch' }, { give: 'lamp' }],
-          choices: [{ text: '~happy~ Thank you, Pim.', end: true }],
+          say: ['~surprised~ My latch! You went all the way up?', '~happy~ There, on it goes. Now: shut. Shut… Oh, come on.', '~sad~ It won’t swing to. Look at the frame: the moss has crept right into it, all the time the door hung open.'],
+          do: [{ take: 'latch' }, { advance: 'perdide2.latch' }],
+          choices: [{ text: '~curious~ Can’t we pull the moss out?', goto: 'moss' }, { text: '~neutral~ Let me try the door.', end: true }],
         },
-        after: { say: ['~playful~ Shut. Open. Shut. I’ve been doing it all evening.'], choices: [{ text: '~happy~ (smile)', end: true }] },
+        moss: {
+          say: ['~neutral~ Pull it? It only grows back sulking. Moss creeps toward the dark, and it shrinks from light.', '~sad~ My *moss lamp over the door* used to keep it back. It went out the night the sky rang, with the pools, and it hasn’t woken since.', '~playful~ Hollin says the pools wanted water that remembers light. Maybe my lamp does too. Then the door wants *a good shove*. It’s heavy.'],
+          choices: [{ text: '~neutral~ I’ll wake it.', end: true }],
+        },
+        stuck: {
+          say: [{ if: { not: { flag: 'perdide2.pim.lamp' } }, text: '~sad~ Still stuck. The moss won’t let go of the frame while it’s dark, and my *lamp over the door* is fast asleep.' },
+            { if: { flag: 'perdide2.pim.lamp' }, text: '~happy~ My lamp’s awake! Look, the moss is curling back from it. Now *give the door a shove*, a good one.' }],
+          choices: [{ text: '~curious~ Why won’t it shut?', goto: 'moss', if: { not: { flag: 'perdide2.pim.lamp' } } }, { text: '~neutral~ On it.', end: true }],
+        },
+        after: { say: ['~playful~ Shut. Open. Shut. I’ve been doing it all evening.', '~happy~ Keep the moss lamp somewhere dark. It likes that.'], choices: [{ text: '~happy~ (smile)', end: true }] },
       },
     },
   },
@@ -202,7 +214,7 @@ export const KEEPERS = [
           choices: [{ text: '~neutral~ I’ll ask him.', end: true }],
         },
         cave: { say: ['~playful~ Warm light, all the way to the back. It glows on its own. Hollin says the two travellers slept in there, the night before they went on. I say it’s a cave.'], choices: [{ text: '~curious~ Whose skiff is that?', goto: 'skiff' }, { text: '~curious~ Where did the two travellers go?', goto: 'two' }] },
-        two: { say: ['~neutral~ Out of the wood in old Fen’s skiff, across the swamp, toward the singing crystal. They left the skiff moored here, on the far side, for whoever came next. That’s the story. Nobody’s followed them since.'], choices: [{ text: '~curious~ Whose skiff is that?', goto: 'skiff' }, { text: '~neutral~ Bye, Bram.', end: true }] },
+        two: { say: ['~neutral~ Out of the wood in old Fen’s skiff, across the swamp, toward the singing crystal. A few days later the skiff came back on its own and moored itself here, the way it does. That’s the story. Nobody’s followed them since.'], choices: [{ text: '~curious~ Whose skiff is that?', goto: 'skiff' }, { text: '~neutral~ Bye, Bram.', end: true }] },
       },
     },
   },
@@ -247,7 +259,7 @@ export const PEOPLE = {
     palette: { cloak: '#9fe0d0', lining: '#2b211f', cloth: '#4a4f7a', legs: '#2f3a4f', hat: '#3a8f8a', hair: '#e8e2f2' }, head: 'wizard', cape: 1.25,
     lines: ['~surprised~ Visitors! On the deep water!', '~surprised~ Is that my skiff?', '~neutral~ Mind the moss.'],
     talk: {
-      entry: [{ if: { quest: 'perdide2.skiff', done: true }, node: 'after' }, { node: 'hello' }],
+      entry: [{ if: { quest: 'perdide2.skiff', done: true }, node: 'after' }, { if: { quest: 'perdide2.skiff', stage: 'home' }, node: 'waiting' }, { node: 'hello' }],
       nodes: {
         hello: {
           say: ['~surprised~ Visitors! Nobody visits. Nobody can, on account of the deep water. How did you…', '~happy~ Is that my skiff? That’s my skiff! Teal, with the white stripe. I’d know it anywhere. I haven’t seen it in forty years.'],
@@ -271,10 +283,20 @@ export const PEOPLE = {
         },
         back: {
           say: ['~playful~ Back? What would I do with it? I’ve got used to the deep water. It keeps the visitors off. Mostly.', '~happy~ No. You keep it, for as long as you’re here. It likes being used. Whistle, and bring it home to me sometimes so I can see it go by.'],
-          do: [{ advance: 'perdide2.skiff' }],
-          choices: [{ text: '~happy~ Thank you, Fen.', end: true }],
+          do: [{ advance: ['perdide2.skiff', 'owner'] }],
+          choices: [{ text: '~happy~ Thank you, Fen.', goto: 'berth' }],
         },
-        after: { say: ['~happy~ There it goes. Look at it skim. Forty years, and it still turns left better than right.'], choices: [{ text: '~happy~ Goodbye, Fen.', end: true }] },
+        berth: {
+          say: ['~solemn~ Do it once now, would you? Its old berth is there, by my landing, between the two posts.', '~sad~ I kept the lamp on the bow post lit for it a year or two. It came back, but only as far as the cave, and waited there for them. So I let the lamp go out.', '~playful~ *Light it* for me. It won’t come in to a dark berth; it never would. And don’t sail it in: *step off on my landing and give it a nudge*. It likes to come the last bit on its own.'],
+          choices: [{ text: '~happy~ I’ll bring it home.', end: true }],
+        },
+        waiting: {
+          say: [{ if: { not: { flag: 'perdide2.fen.lamp' } }, text: '~neutral~ The lamp on the bow post, there, by the berth. Hollin’s pools took your water. My lamp might too.' },
+            { if: { flag: 'perdide2.fen.lamp' }, text: '~happy~ It’s lit! Look at that. Now bring her in: *step off on my landing and nudge her* into the berth, under the lamp.' }],
+          choices: [{ text: '~curious~ Why won’t it just come in?', goto: 'proud' }, { text: '~neutral~ On it.', end: true }],
+        },
+        proud: { say: ['~playful~ Proud. Always was. It won’t come in to the dark, and it won’t be steered the last bit. A nudge from the landing, and it thinks it was its own idea.'], choices: [{ text: '~neutral~ A nudge, then.', end: true }] },
+        after: { say: [{ if: { flag: 'perdide2.skiff.home' }, text: '~happy~ She came home under the lamp. I’m keeping it lit now, in case.' }, '~happy~ There it goes. Look at it skim. Forty years, and it still turns left better than right.'], choices: [{ text: '~happy~ Goodbye, Fen.', end: true }] },
       },
     },
   },

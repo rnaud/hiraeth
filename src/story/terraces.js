@@ -94,7 +94,7 @@ function stripGeometry(H, path, w, lift, wobble = 0) {
   for (let i = 0; i < path.length; i++) {
     const [x, z] = path[i], [nx, nz] = path[Math.min(i + 1, path.length - 1)], [px, pz] = path[Math.max(i - 1, 0)];
     let dx = nx - px, dz = nz - pz; const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l;
-    const sx = -dz, sz = dx, half = (w / 2) * (1 + wobble * Math.sin(i * 1.7));
+    const sx = dz, sz = -dx, half = (w / 2) * (1 + wobble * Math.sin(i * 1.7));   // (this side keeps the faces up)
     for (const s of [-1, -0.5, 0, 0.5, 1]) { const X = x + sx * s * half, Z = z + sz * s * half; pos.push(X, H(X, Z) + lift, Z); }
     if (i) for (let c = 0; c < 4; c++) { const a = (i - 1) * 5 + c, b = a + 1, d = a + 5, e = d + 1; idx.push(a, d, b, b, d, e); }
   }
@@ -134,8 +134,9 @@ export function setupTerraces(ctx) {
 
   const root = new THREE.Group(); root.name = 'terraces';
   scene.add(root);
-  const earthMat = makeMaterial({ color: '#9a7d52', flat: true });
-  const stoneMat = makeMaterial({ color: '#f7f4ec', flat: true, grid: 3, glyphs: true });
+  const earthMat = makeMaterial({ color: '#9a7d52', flat: true, side: THREE.DoubleSide });
+  const stoneMat = makeMaterial({ color: '#f7f4ec', flat: true, grid: 3, glyphs: true, side: THREE.DoubleSide });
+  const foamMat = makeMaterial({ color: '#cfeef0', color2: '#9ad3d9', flat: true, glow: 0.15 });
   const accent = makeMaterial({ color: '#62c3c9', flat: true, grid: 3 });
   const mudMat = makeMaterial({ color: '#7d5c3c', color2: '#8f6c46', color3: '#6f8a4f', mode: MODE_TERRAIN, ticks: true });
   const waterMat = makeMaterial({ color: '#7fc4d0', color2: '#9ad3d9', mode: MODE_WATER });
@@ -261,7 +262,7 @@ export function setupTerraces(ctx) {
   const path = [];
   for (let x = C.x0 - 0.5; x > T.hollow.x + 4; x -= 1.5) path.push([x, cz + Math.sin(x * 0.11) * 1.2]);
   const mudLane = new THREE.Mesh(stripGeometry(H, path, T.lane.z1 - T.lane.z0 + 2.5, 0.12, 0.08), mudMat);
-  const stream = new THREE.Mesh(stripGeometry(H, path, 1.8, 0.2, 0.25), muddyMat);
+  const stream = new THREE.Mesh(stripGeometry(H, path, 2.8, 0.26, 0.3), makeMaterial({ color: '#9fcfcf', color2: '#c9b48a', flat: true, glow: 0.1 }));
   const fan = new THREE.Mesh(discGeometry(H, T.hollow.x, T.hollow.z, T.hollow.r * 0.85, 0.1, 3), mudMat);
   const pond = new THREE.Mesh(discGeometry(H, T.hollow.x - 4, T.hollow.z + 2, 9, 0.24, 7), muddyMat);
   for (const m of [mudLane, stream, fan, pond]) { m.userData.noCollide = true; after.add(m); }
@@ -313,6 +314,8 @@ export function setupTerraces(ctx) {
   const eskAt = (x, z) => V(x, (physics?.groundAt?.(x, L.topAt(3, z) + 3, z, 8) ?? L.topAt(3, z)), z);
   const k3 = L.steps[3];
   const esk = spawn(PEOPLE.esk, { route: [eskAt(k3.xl + 4, -84.5), eskAt(k3.xl + 7.5, -86)], speed: 0.4 });
+  const quiet = () => { if (esk) { esk.lines = PEOPLE.esk.linesAfter; esk.lineIdx = 0; } };
+  if (flooded()) quiet();
   quests.locate('esk', () => esk.pos);
   quests.locate('clod', () => nextClod().at);
   quests.locate('gate', () => wheelAt);
@@ -376,7 +379,7 @@ export function setupTerraces(ctx) {
   const beat = (t, id, f) => { if (st.flood >= t && !st.beats.has(id)) { st.beats.add(id); f(); } };
   const laneDrop = lane.map(() => ({ k: 0 }));
   const front = () => C.x0 - Math.max(0, (st.flood - 1.6) / 5.2) * (C.x0 - T.hollow.x);   // the water's leading edge (x), going downhill
-  const sheet = new THREE.Mesh(stripGeometry(H, path, T.lane.z1 - T.lane.z0, 0.45, 0.12), waterMat);
+  const sheet = new THREE.Mesh(stripGeometry(H, path, T.lane.z1 - T.lane.z0, 0.45, 0.12), foamMat);
   sheet.userData.noCollide = true; sheet.visible = false;
   root.add(sheet);
   const sheetQuads = sheet.geometry.index.count / (path.length - 1);
@@ -441,6 +444,7 @@ export function setupTerraces(ctx) {
       debris.visible = true;
       if (physics?.addCollider) physics.addCollider(debris);
       game.set('edena.terraces.flooded', true);
+      quiet();
       toast('The water goes quiet. Down the middle of the terraces, where the tea was, there is a long raw slope of mud.');
       shout('~sad~ …');
     });

@@ -99,10 +99,42 @@ test('side quest: Pim’s latch from the big roof', () => {
   assert.equal(e?.entry.id, 'latch');
   e.entry.use(player);
   assert.equal(quests.stage('perdide2.latch'), 'return');
-  talk(KEEPERS[1], []);
+  talk(KEEPERS[1], ['Can’t we pull the moss out?', 'I’ll wake it.']);
+  // the latch is on, but the moss in the frame holds the door open
+  assert.equal(quests.stage('perdide2.latch'), 'shut');
+  assert.ok(!quests.has('latch') && !quests.has('lamp'), 'the latch is on the door; no reward yet');
+  const door = allTargets().find((t) => t.kind === 'pimDoor'), lamp = allTargets().find((t) => t.kind === 'mossLamp');
+  assert.ok(door && lamp, 'Pim’s door and her moss lamp answer the fluid');
+  at(W.pimDoor.doorAt.clone().addScaledVector(level.domeDoors[0].out, 4));
+  assert.ok(door.enabled() && lamp.enabled());
+  assert.ok(quests.objective().position.distanceTo(W.places.pimLamp) < 0.5, 'the marker points at the sleeping lamp');
+  // wrong moves: a push only rocks the stuck door, a shot only splashes it
+  let n = toasts.length;
+  door.onHit('push');
+  step(30);
+  assert.equal(quests.stage('perdide2.latch'), 'shut', 'the moss holds it');
+  assert.match(toasts.slice(n).join(' '), /moss has crept into the frame/);
+  door.onHit('shoot'); lamp.onHit('push');
+  step(5);
+  assert.equal(quests.stage('perdide2.latch'), 'shut');
+  assert.equal(game.flag('perdide2.pim.lamp'), undefined);
+  // wake the lamp: the moss shrinks back from it
+  assert.match(talk(KEEPERS[1], []).nodeId, /stuck/);
+  lamp.onHit('shoot');
+  assert.equal(game.flag('perdide2.pim.lamp'), true);
+  assert.ok(!lamp.enabled(), 'once awake it stays awake');
+  step(60);
+  assert.ok(W.pimDoor.tufts.every((t) => t.scale.x < 0.05), 'the moss has shrunk out of the frame');
+  assert.ok(quests.objective().position.distanceTo(W.pimDoor.doorAt) < 0.5, 'now the marker is on the door');
+  // now the push swings it shut
+  door.onHit('push');
+  step(30);
   assert.equal(quests.isDone('perdide2.latch'), true);
+  assert.equal(game.flag('perdide2.pim.door'), true);
+  assert.ok(W.pimDoor.open < 0.01, 'the door is shut');
   assert.ok(quests.has('lamp') && !quests.has('latch'));
   assert.ok(level.domeDoors[0].warm, 'Pim’s door glows warm');
+  assert.ok(!door.enabled(), 'done: the door takes no more pushes');
 });
 
 test('the main quest: three pools relit, the saucer answers, Hollin asks you to come back', async () => {
@@ -162,9 +194,63 @@ test('side quest: whose skiff? Fen in the far dome', () => {
   talk(KEEPERS[2], ['Whose skiff']);
   assert.equal(quests.stage('perdide2.skiff'), 'owner');
   assert.ok(quests.objective() !== null);
-  talk(PEOPLE.fen, ['It’s yours?', 'Where did they go?', 'Do you want your skiff back?']);
-  assert.equal(quests.isDone('perdide2.skiff'), true);
+  talk(PEOPLE.fen, ['It’s yours?', 'Where did they go?', 'Do you want your skiff back?', 'Thank you, Fen.']);
   assert.equal(game.flag('perdide2.fen.told'), true);
-  talk(PEOPLE.fen, []);
+  // he wants it brought home once, into its berth under his lamp
+  assert.equal(quests.stage('perdide2.skiff'), 'home');
+  assert.equal(talk(PEOPLE.fen, ['Why won’t it just come in?']).nodeId, 'proud', 'talking again does not skip the berth');
+  assert.equal(quests.stage('perdide2.skiff'), 'home');
+  const M = level.mount(physics);
+  player.mount = M;
+  const B = W.places.berth, lamp = allTargets().find((t) => t.kind === 'fenLamp');
+  assert.ok(lamp, 'Fen’s lamp answers the fluid');
+  assert.ok(level.ground.heightAt(B.x, B.z) < -1.6, 'the berth is on deep water, the skiff’s');
+  assert.ok(B.distanceTo(V(level.fenLanding.x, 0, level.fenLanding.z)) < 7, 'beside his landing');
+  at(level.fenLanding.clone());
+  assert.ok(quests.objective().position.distanceTo(W.places.fenLamp) < 0.5, 'the marker points at the dark lamp');
+  // wrong moves: sailed in, he waves you off; into a dark berth it backs out again
+  let n = toasts.length;
+  player.riding = true;
+  M.place(B.x + 0.5, B.z, 0);
+  step(10);
+  assert.match(toasts.slice(n).join(' '), /Not sailed in/);
+  player.riding = false;
+  M.place(B.x + 8, B.z, 0);
+  step(2);
+  n = toasts.length;
+  M.place(B.x + 1, B.z, 0);
+  step(2);
+  assert.match(toasts.slice(n).join(' '), /dark berth/);
+  assert.ok(M.speed < 0, 'it backs out');
+  assert.equal(quests.stage('perdide2.skiff'), 'home');
+  // nudged toward the dark berth from the landing, it shies off
+  const nudge = allTargets().find((t) => t.kind === 'skiffHome');
+  M.place(B.x + 6, B.z, 1.2);
+  step(130);
+  assert.ok(nudge.enabled(), 'the empty skiff near the landing can be nudged');
+  n = toasts.length;
+  nudge.onHit('push');
+  step(30);
+  assert.match(toasts.slice(n).join(' '), /shies off/);
+  assert.equal(quests.stage('perdide2.skiff'), 'home');
+  player.riding = true;
+  assert.ok(!nudge.enabled(), 'not while you ride it');
+  player.riding = false;
+  // light the lamp (a push only sways it), then let it come in on its own
+  lamp.onHit('push');
+  assert.equal(game.flag('perdide2.fen.lamp'), undefined);
+  lamp.onHit('shoot');
+  assert.equal(game.flag('perdide2.fen.lamp'), true);
+  assert.ok(!lamp.enabled(), 'lit, it stays lit');
+  M.place(B.x + 6, B.z, 1.2);
+  step(2);
+  assert.equal(quests.stage('perdide2.skiff'), 'home', 'not in the berth yet');
+  nudge.onHit('push');   // a nudge from the landing: it knows the way now
+  step(90);
+  assert.equal(quests.isDone('perdide2.skiff'), true);
+  assert.equal(game.flag('perdide2.skiff.home'), true);
+  assert.ok(Math.hypot(M.pos.x - B.x, M.pos.z - B.z) < 0.1, 'moored in its berth');
+  assert.equal(talk(PEOPLE.fen, []).nodeId, 'after');
+  player.mount = null;
   clearInteractables();
 });

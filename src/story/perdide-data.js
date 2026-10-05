@@ -176,7 +176,7 @@ export const LANDING = [
           choices: [{ text: '~happy~ Thanks, Sedge.', end: true }],
         },
         light: {
-          say: ['~whisper~ …Nobody believes me. The night before your ball came down, I was out cutting late. A light came over the reeds, low, singing. Like a wet finger round the rim of a bowl.', '~solemn~ It went over the Great Crystal, and the crystal sang back to it, out of a dry sky. Then it climbed and was gone. And every jaw in the swamp stayed shut till morning.'],
+          say: ['~whisper~ …Nobody believes me. The night the light passed, I was out cutting late. A light came over the reeds, low, singing. Like a wet finger round the rim of a bowl.', '~solemn~ It went over the Great Crystal, and the crystal sang back to it, out of a dry sky. Then it climbed and was gone. And every jaw in the swamp stayed shut till morning.'],
           do: { set: { 'perdide.rumour.light': true } },
           choices: [{ text: '~solemn~ I think something like it hit my ship.', goto: 'ship' }, { text: '~happy~ I believe you.', goto: 'believe' }],
         },
@@ -295,7 +295,7 @@ export const PEOPLE = {
         },
         mean: { say: ['~curious~ A new phrase is an answer. Something has sung to it, and it remembers. Have you heard it before, traveller? Your face says you have.'], choices: [{ text: '~solemn~ Yes. Just before something hit my ship.', goto: 'heard' }] },
         heard: {
-          say: ['~solemn~ Then that’s what it was answering. Whatever struck your ship sang the same song as this. They’re the same stuff, child: pieces of the same light.', '~solemn~ One of them fell here long ago, and stuck in the mud. One of them is still falling. You met it on the way down.', '~solemn~ It left its pull in your hull, and the crystal pulls the same way. Iron that has been sung at leans toward the rest of the song. That is how your ship found us, I think.', '~neutral~ Look: the song shook a splinter loose. It’s lying *at the foot of the spires*. Take it. It came off for you.'],
+          say: ['~solemn~ Then that’s what it was answering. Whatever struck your ship sang the same song as this. They’re the same stuff, child: pieces of the same light.', '~solemn~ One of them fell here long ago, and stuck in the mud. The other is still up there, singing, turning, looking. You met it on your way.', '~solemn~ It left its pull in your hull, and the crystal pulls the same way. Iron that has been sung at leans toward the rest of the song. That is how your ship found us, I think.', '~neutral~ Look: the song shook a splinter loose. It’s lying *at the foot of the spires*. Take it. It came off for you.'],
           do: { set: { 'perdide.clue.ship': true } },
           choices: [{ text: '~curious~ What should I do with it?', goto: 'cave' }],
         },
@@ -309,8 +309,16 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ (go)', end: true }],
         },
         after: {
-          say: ['~happy~ Two hundred and thirteen. I wrote it down. Now I’ll be listening for two hundred and fourteen.', '~solemn~ If you meet the rest of it out there, the falling light, sing it this. It might like to know where its other piece is.'],
-          choices: [{ text: '~solemn~ I will, Saba.', end: true }],
+          say: ['~happy~ Two hundred and thirteen. I wrote it down. Now I’ll be listening for two hundred and fourteen.', '~solemn~ If you meet the rest of it out there, the singing light, sing it this. It might like to know where its other piece is.'],
+          choices: [
+            { text: '~solemn~ I will, Saba.', end: true },
+            { text: '~curious~ Did anyone else ever come to ask it? Two travellers, Odile and Talo?', if: { any: [{ flag: 'clue.edena.pod' }, { flag: 'clue.perdide2.edena' }] }, goto: 'two', once: true },
+          ],
+        },
+        // Odile and Talo came this way, from the deep wood in Fen's skiff (src/story/perdide2-data.js), and went on
+        two: {
+          say: ['~solemn~ My first spring here. A man and a woman, in a borrowed skiff, out of the deep wood. They sat where you are sitting, and asked it where the light had gone.', '~sad~ It sang them the same two hundred and twelve phrases it sings everyone. In the morning the skiff had gone back on its own, and they had gone on east, over the reeds. Nobody followed them.'],
+          choices: [{ text: '~sad~ Nobody ever does.', end: true }],
         },
       },
     },
@@ -353,7 +361,7 @@ export const PEOPLE = {
           say: ['~curious~ A tooth. The sky lost a tooth and it landed here. Why else do my plants shut up when it sings?', '~playful~ Professional respect. One set of teeth to another.'],
           choices: [{ text: '~curious~ Have you ever seen it sing?', goto: 'seen' }, { text: '~neutral~ Bye, Corm.', end: true }],
         },
-        seen: { say: ['~playful~ Every rain. And once without rain, the night before your ball fell. Sedge says she saw a light. Sedge sees a lot in the dark, for someone who’s always cutting her thumbs.'], choices: [{ text: '~neutral~ Bye, Corm.', end: true }] },
+        seen: { say: ['~playful~ Every rain. And once without rain, the night the light passed. Sedge says she saw a light. Sedge sees a lot in the dark, for someone who’s always cutting her thumbs.'], choices: [{ text: '~neutral~ Bye, Corm.', end: true }] },
         during: {
           say: ['~angry~ You’re doing the Wendel thing, aren’t you. Standing there. Being boring at them.', '~playful~ Won’t work. One little splash and they’d love you forever. Go on.'],
           choices: [{ text: '~neutral~ (say nothing, and stand still)', end: true }],

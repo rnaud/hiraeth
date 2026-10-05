@@ -331,6 +331,7 @@ export const PEOPLE = {
     id: 'esk', name: 'Esk', title: 'who keeps the tea terraces', color: '#9a7a4a', voice: 0.9, kind: 'f', scale: 0.98,
     palette: { cloak: '#c9a46a', lining: '#2b211f', cloth: '#5f8f5a', legs: '#5a4a3a', hat: '#f3ead8', hair: '#8a8a8a' }, head: 'wrap', cape: 0.8, look: { prop: 'basket' },
     lines: ['~tired~ Mind the bushes. They’re thirsty.', '~neutral~ Top row first. Always top row first.', '~sad~ The tips are going brown.'],
+    linesAfter: ['~tired~ …', '~sad~ The sides held. The sides held.', '~solemn~ It belongs to the ground now.'],   // (after the flood: src/story/terraces.js)
     talk: {
       entry: [
         { if: { quest: 'edena.terraces', failed: true }, node: 'after' },
