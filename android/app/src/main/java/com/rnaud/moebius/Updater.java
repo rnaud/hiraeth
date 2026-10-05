@@ -30,8 +30,11 @@ import java.net.URL;
 // When that APK's native bridge is newer than this one's, it offers to download
 // it and hands it to the system installer. The same signing key lets it install
 // over this one and keep the save. Otherwise the game's own updates come over
-// the air without an APK (WebBundles), which also reports a needed APK in the
-// settings (with a link to its release page). Offline or on any error it stays silent.
+// the air without an APK, from the game's site (WebBundles.MANIFEST), which also
+// reports a needed APK in the settings (with a link to its release page).
+// Offline or on any error it stays silent: once the repository is private this
+// feed is out of reach, and the settings only say they couldn't check for a new
+// app (WebBundles.apkChecked); the game's own updates go on.
 final class Updater {
     static final String LATEST = "https://github.com/rnaud/moebius/releases/latest/download/latest.json";
     private final Activity activity;
@@ -53,8 +56,10 @@ final class Updater {
                     if (web != null) web.apkOffered(name, apk, latest.optString("page", ""));
                     ui.post(() -> offer(name, apk));
                 }
-            } catch (Exception ignored) {
-                // offline, rate-limited or no release yet: play on (the settings can look again)
+                if (web != null) web.apkChecked(null);
+            } catch (Exception e) {
+                // offline, rate-limited, no release yet or out of reach: play on (the settings can look again)
+                if (web != null) web.apkChecked(e);
             }
         }, "moebius-update-check").start();
     }

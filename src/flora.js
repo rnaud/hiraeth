@@ -187,7 +187,7 @@ export function floraKeep({ level = {}, content = {}, ship = null, npcs = [], cr
   if (goal) add(goal[0], goal[2], Math.max(6, (content.story.radius ?? 6) * 0.6));
   for (const p of level.portals ?? []) { if (p.at) add(p.at.x, p.at.z, 6); if (p.to) add(p.to.x, p.to.z, 6); }
   for (const p of level.navigationPortals ?? []) { if (p.at) add(p.at.x, p.at.z, 6); if (p.to) add(p.to.x, p.to.z, 6); }
-  for (const n of reactiveWorld?.nodes ?? []) add(n.pos.x, n.pos.z, 1.6);
+  for (const n of reactiveWorld?.nodes ?? []) add(n.pos.x, n.pos.z, Math.max(1.6, n.reach ?? 0));   // (a flower: its petals' reach awake)
   return keep;
 }
 
@@ -202,7 +202,7 @@ function prepare(list) {
     const geo = sp.build();
     geo.computeBoundingBox();
     const h = geo.boundingBox.max.y;
-    const mat = makeMaterial({ color: '#ffffff', vertexColors: true, ...(sp.glow ? { glow: sp.glow } : {}), ...(sp.sway ? { sway: sp.sway / (h * h) } : {}) });
+    const mat = makeMaterial({ color: '#ffffff', vertexColors: true, ...(sp.glow ? { glow: sp.glow } : {}), ...(sp.sway ? { sway: sp.sway / (h * h), swayH: h, swayLarge: !!sp.large } : {}) });
     // the small ones are drawn a size up: Moebius' meadows are bold, and a 30 cm flower is lost under the ink
     const k = sp.large ? 1 : SMALL;
     return { ...sp, size: sp.size.map((v) => v * k), spacing: sp.spacing * k, spread: sp.spread * (sp.large ? 1 : 1.2), geo, h, mat };

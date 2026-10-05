@@ -72,3 +72,27 @@ export function isolate(keep, root) {
 }
 
 export function restore(hidden) { for (const o of hidden) o.visible = true; }
+
+// ------------------------------------------------------------------ the sharp portrait
+// The circle shows the portrait at PORTRAIT_CSS px (index.html .dlg-chip: 84, 108 on wide screens, 60 on
+// small ones). It used to be the whole frame's middle shrunk in one step to 160 px: ink lines a pixel or
+// two wide in the frame came out as broken, jagged dots, and JPEG rang round them. Now the frame is
+// drawn as if it were the circle's size (portraitPixelRatio: lines, hatching and grain measured in its
+// pixels) at the frame's full resolution, then shrunk by halves (main.js captureView): supersampled.
+
+/** How many pixels the image needs to stay sharp in a circle `css` CSS px across, at a device pixel ratio. */
+export function portraitSize(css = 84, dpr = 1) {
+  return Math.round(Math.min(320, Math.max(96, css * Math.min(Math.max(dpr, 1), 2.5) * 1.25)));
+}
+
+/** The portrait's ink against the world's: half its weight (full-weight lines crowd a face this small). */
+export const PORTRAIT_INK = 0.5;
+
+/**
+ * The pixel ratio to draw the portrait's frame with: the frame's `rows` (render pixels, the crop's
+ * height) over the circle's `css` px, times `ink`, so a line `w` CSS px wide is w × ink CSS px in the
+ * circle. Never below the game's own (`current`).
+ */
+export function portraitPixelRatio(rows, css, current = 1, ink = PORTRAIT_INK) {
+  return Math.max(current, (rows / Math.max(css, 1)) * ink);
+}

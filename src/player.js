@@ -29,11 +29,12 @@ const LIMIT = 1900;
  * The jets (player.update): RT / R2 or the left mouse button (not aiming) fire them, and they
  * fly you where the left stick points (camera-relative, like steering the bird: the body
  * turns and leans into it), at up to JET.speed (JET.run with L3 / Shift), easing in at
- * JET.accel and to a stop at JET.drift. With the stick neutral they hover: the fall is braked
- * to JET.hover m/s. Holding jump as well (and the keyboard's / touch's Space, which is the jets
- * on its own) climbs, to JET_MAX_UP. They only push up, at most JET_THRUST.
+ * JET.accel and to a stop at JET.drift, while they climb at JET.rise (straight up with the stick
+ * neutral, up and that way with it). Holding a pad's jump as well holds the height instead (a
+ * hover: the fall braked to JET.hover m/s). The keyboard's / touch's Space, the jets on its own,
+ * climbs to JET_MAX_UP. They only push up, at most JET_THRUST.
  */
-export const JET = { speed: 8, run: 14, accel: 3, drift: 2.2, hover: 0.3, hold: 4, takeoff: 4 };
+export const JET = { speed: 8, run: 14, accel: 3, drift: 2.2, hover: 0.3, hold: 4, takeoff: 4, rise: 9 };
 const JET_THRUST = 54;     // m/s² upward while thrusting (gravity is 32)
 const JET_MAX_UP = 15;
 const JET_DRAIN = 0.1;     // fuel per second (~10 s of thrust), when no backpack tool burns its fluid (tests)
@@ -1035,8 +1036,9 @@ export class Player {
     // the tank's fluid burns as thrust (fuelSource); without the tool, the old gauge
     if (this.thrusting && this.fuelSource && !this.fuelSource.burnJet(dt)) this.thrusting = false;
     if (this.thrusting) {
-      // hover (brake the fall to JET.hover), or climb with jump held; the jets only push up, at most JET_THRUST
-      const target = input.Space ? JET_MAX_UP : JET.hover;
+      // RT / the mouse climb (JET.rise), a pad's jump held with them hovers (the fall braked to
+      // JET.hover); Space alone climbs to JET_MAX_UP. The jets only push up, at most JET_THRUST
+      const target = jetBtn ? (input.PadJump ? JET.hover : JET.rise) : input.Space ? JET_MAX_UP : JET.hover;
       vu += THREE.MathUtils.clamp((target - vu) * (1 - Math.exp(-JET.hold * dt)) + GRAVITY * dt, 0, JET_THRUST * dt);
       if (!this.fuelSource) this.fuel = Math.max(this.fuel - JET_DRAIN * dt, 0);
       this._autoGlide = false;

@@ -3,9 +3,10 @@
 A three.js exploration game in ligne claire, formerly the Moebius / Sable shader PoC
 (the repository and internal ids keep the old name).
 
-**Play it:** https://rnaud.github.io/moebius/ · [Cloudflare](https://memento.alexandria-rnaud.workers.dev/)
+**Play it:** https://memento.alexandria-rnaud.workers.dev/ (Cloudflare Workers; also at https://rnaud.github.io/moebius/ until the repository goes private)
 
-An additional [Cloudflare Workers deployment target](docs/cloudflare.md) serves the same build independently of GitHub Pages.
+The [Cloudflare deployment](docs/cloudflare.md) serves the game and, next to it, the game's content
+updates for the Android app and the Steam Deck (`/updates/web.json`, see "Game updates from the site").
 
 A third-person exploration world with a "ligne claire" look inspired by Moebius
 and the game *Sable*. Its foundation is a world that feels organic, responsive,
@@ -580,7 +581,9 @@ A world can tweak its default preset with `defaults.look` (post uniforms).
 
 A Linux package with automatic updates and Steam library integration is built by
 [the Steam Deck workflow](.github/workflows/steam-deck.yml). See the
-[installation and release guide](docs/steam-deck.md).
+[installation and release guide](docs/steam-deck.md). The game inside it updates from the
+game's site, like the Android app's (`deck.py` downloads the web bundle, `desktop/main.mjs`
+serves it); the runtime package itself stays on the `steam-deck` GitHub release.
 
 ## Changelog
 
@@ -1414,6 +1417,41 @@ planets and hour (main.js applies a zone's `look`, `planets` and `hour` when the
 zone changes). Straying over a room's banks or off its edge puts you back at its
 door. `tests/lab.test.js` walks through every door and back.
 
+## The References: the reference pages rebuilt (v0.57)
+
+`?level=references` (`src/levels/references.js`, a `dev` level like the Lab: in the worlds list,
+never on the route or the star map) rebuilds the scenes of the reference pages in `references/`
+with the game's own materials, sky, light and ink, each seen from a fixed camera framed like its
+panel, so the shaders can be checked against the look they are after. It starts with the six
+panels of `references/The Desert/environement/IMG_3775.JPG` (`REFERENCE_VIEWS` in
+`src/levels/reference-views.js`): the bones in the dunes, the fluted tower and its dishes, the
+rope bridges over the gorge, the sail tents, the turquoise lake under the violet cliffs, the
+buried hull.
+
+- **A view** is a panel: its crop of the sheet, its ground (a height function drawn as rings round
+  the camera, fine underfoot and coarse at the horizon), what stands on it (built with the Lab's
+  `RoomKit`), its colours (the colour script's five, read off the panel: sky, shadow tint, light,
+  the same at every hour), its ink touches (`look`) and its people (small violet figures:
+  ordinary NPCs, `REFERENCE_PEOPLE` in content.js). Its camera is `{ eye, yaw, fov, horizon }`:
+  `horizon` is where eye level crosses the frame (0 top, 1 bottom), the pitch follows from it.
+- **The sun** is given as the panel shows it, `{ side, el }` (degrees right of the line of sight,
+  and high): the view's hour is the morning hour of that elevation (`sunHour`) and its group is
+  turned about the vertical so the sun of that hour stands on that side (`sunTurn`). Nothing in the
+  renderer is special-cased: the views are scenery, colour scripts, hours and presets.
+- **The views** lie on a ring 4.5 km out (`VIEW_RING`); only the one you are in is drawn.
+  `[` and `]` (L3 / R3 on a pad) fade to the previous / next view and hold the camera on its
+  panel (the traveller hidden where the camera stands); walk or look and the camera is yours
+  again. `?view=<n>` opens on view n. The frame keeps the panel's proportions: on a screen
+  narrower than the panel the field of view widens so its width still fits (`frameBox`).
+- **Comparing:** `\` (View on a pad) cycles off → the panel in a corner → the panel over the frame,
+  half seen through → the panel over the left half of the frame (a wipe). A label names the view,
+  its sheet and its panel. The sheet is bundled by Vite (`new URL(…, import.meta.url)`) and
+  cropped with CSS (`cropStyle`).
+- `?look=desert` draws every view in the desert's own palette and plain Moebius print preset
+  (blue-grey shadow tint, cumulus bank, clouds), to see what the shaders do unaided.
+- `tests/references.test.js`: the level registers as a dev level, IMG_3775 has six views whose
+  cameras put the horizon where the panel has it, each sun comes from its side, `[ ]` and `\` work.
+
 ## Sound from the first frame (v0.39)
 
 Each world is a new page, and browsers only let a page's sound start after a
@@ -1824,8 +1862,9 @@ Pocket. Their built-in controls work through the Gamepad API.
   GitHub release for the newest version in `src/changelog.js` (`v0.34` and so
   on, via `scripts/release-info.mjs`). Pushes within one version replace that
   release's APK; adding a changelog entry starts a new release. Next to the APK the release gets `latest.json` (APK URL, versionCode,
-  native level) and `web-<build>.zip` + `web.json` (the game itself: version, build = run
-  number, sha256, URL, `minNative`), all from `scripts/release-info.mjs`. Download
+  native level) and, for apps up to NATIVE_API 4 only, `web-<build>.zip` + `web.json`, all from
+  `scripts/release-info.mjs`. Newer apps take the game's updates from the site (see "Game updates
+  from the site"). Download
   `moebius-v<version>.apk` from the repository's Releases page and open it on
   the device to install. Allow installing from your browser or file manager
   the first time.
@@ -1837,7 +1876,8 @@ Pocket. Their built-in controls work through the Gamepad API.
   replace the app with an uninstall, which deletes your saves.
 - **The app** runs fullscreen and immersive in landscape, keeps the screen on,
   and plays sound without an extra tap. `versionName` is the game version and
-  `versionCode` is the workflow run number.
+  `versionCode` is the build number (`release-info.mjs build`: the commit count; up to 117 it was
+  the workflow run number).
 - **Local build** (needs JDK 21 and the Android SDK):
   ```
   npm run build && npx cap sync android && (cd android && ./gradlew assembleDebug)
@@ -1966,6 +2006,32 @@ its English fading in under its glyphs over `FADE` more).
   and the sound. On a handheld the sound starts with the first controller input.
 - **Testing a debug build:** `adb shell am start -n com.rnaud.moebius/.MainActivity
   --es webManifest <url>`. Debug builds otherwise skip over-the-air updates.
+
+### Game updates from the site (NATIVE_API 5)
+The repository is going private, and GitHub's release files go with it, so the game's own
+updates now come from the Cloudflare site that serves the web game:
+- **The feed:** `cloudflare.yml` builds the game, then `scripts/web-update.mjs` adds
+  `dist/updates/web-<build>.zip` (the same `dist/` the APK carries, zipped deterministically) and
+  `dist/updates/web.json` (`release-info.mjs webJson`: version, build, sha256, URL, size, notes,
+  `minNative`, `minDesktop`), and one `wrangler deploy` publishes the site and the update
+  together. It owns the Worker: no other workflow deploys it, since a deploy replaces every asset.
+  The previous build's zip is fetched from the live site (checked against the live `web.json`)
+  and deployed again, so a device that read the old manifest can finish its download.
+- **One build number everywhere:** `release-info.mjs build` is the commit count up to HEAD
+  (workflows check out with `fetch-depth: 0`). The APK's versionCode (the build the app carries),
+  the site's web bundle and the Deck package's game all get it from their commit, so an app
+  compares a downloaded bundle with its own. It started above the last run-numbered APK (117).
+- **The app** (`WebBundles.MANIFEST`) reads `https://memento.alexandria-rnaud.workers.dev/updates/web.json`.
+  `NATIVE_API` is 5; the web game still needs only 4 (`WEB_MIN_NATIVE`, the bundle's
+  `minNative`), so apps from before keep their updates from GitHub until the repository is
+  private, while `latest.json`'s `native` 5 offers them the new APK at launch.
+- **APKs stay on GitHub releases**, for the author to install by hand once the repository is
+  private. The launch's APK check then fails, quietly: the settings add *Couldn't check for a new
+  app* (`apkCheck` in `AppShell.info`), and *Check for updates* goes on working for the game.
+- **The Steam Deck** takes the same `web.json` (`deck.py`'s `CONTENT_MANIFEST_URL`, see
+  `docs/steam-deck.md`).
+- Tests: `tests/web-update.test.js`, `tests/android-ota.test.js`, `tests/updates.test.js`,
+  `UpdateRulesTest.java`, `tests/test_steam_deck.py`. The flip itself: `docs/cloudflare.md`.
 
 ### Updates that arrive, and the update section in the settings (NATIVE_API 4)
 Why updates used to arrive at random, and what changed:
@@ -2851,6 +2917,39 @@ The course, the runs and the measures moved from `tests/gait-sim.js` into `src/g
   grows in thickets; both keep their old random draws, so everything placed after them stays
   where it was.
 
+### Brushing past plants (`src/brush.js`)
+Plants used to be shoved aside by the traveller's position and speed this frame: up to a metre
+at chest height when walking, snapping back the moment you were past. Now a plant you pass leans
+a little away from you and springs back with a light wobble, like something brushed.
+- **A damped spring per plant, with no state of its own.** Each plant is a spring
+  (`BRUSH.freq` 2.3 Hz, `damping` ζ 0.4: one small overshoot) driven by the touch of the feet,
+  stronger the closer (`brushTouch`) and the faster (`brushPace`: 3 cm standing in it, about 10 cm
+  walking, 16 cm running, at the tip of a 1.3 m plant). Its lean now is the touch over the last
+  0.9 s convolved with the spring's impulse response. `BrushTrail` keeps the traveller's path (14
+  samples 65 ms apart, the newest following the feet) and gives each sample its pace times the
+  kernel's weight for its age (normalised, so a steady touch is the steady lean and nothing flickers
+  as the samples shift); the vertex shader (`BRUSH_GLSL`, `brushLean`) sums the samples' touch on
+  the plant. Plants further from the path than its circle (`uBrushBound`) skip the loop.
+- **Where it bends:** a small plant from its foot, the tip most (its height from `swayH`, the
+  species' geometry); a large one (`swayLarge`) only parts its low leaves round your legs, the trunk
+  and crown still. Grass blades use the same sum (`GRASS_BRUSH`): they part round the feet and
+  spring back.
+- `tests/brush.test.js` walks past a plant: the peak lean, how quickly it comes, the overshoot,
+  the settling, the steps between frames, closer and faster, standing still, riding.
+
+### Flowers with room to open (`bloomRoom`, `src/reactive-world.js`)
+The waking flowers spread their petals as they wake, and up to about twice as wide again in the
+traveller's fluid; placed near the spawn, the people, the relics and the goal, they opened into
+walls, rocks, the tree in Qanat and each other. Now, where a flower is placed, twelve rays go out
+round its bloom (at the bloom and a little above, for the tips) and one up over it (`bloomRays`).
+`bloomRoom` reads them: the flower leans away from what is close (up to 0.3 rad, `BLOOM.maxTilt`,
+a group under its root), its petals and its stem's growth open only as far as the room left with
+12 cm to spare, and a stirred stem swings less. Once all are placed, each also keeps clear of its
+neighbours (of their petals open awake, or half the way to them: `fitBlooms`). A spot with room
+for less than 60 % of the open flower (`BLOOM.least`; a shy fungus, which rests open, needs all of
+it) is given up after two steps away from the wall. The flora keeps clear of each flower's reach.
+`tests/reactive-world.test.js` puts a wall through a world's flowers and blooms them all.
+
 ### Eyes: a white, an iris, a pupil, and blinking
 
 People's eyes were solid ink: up close, each a black almond. They are now drawn the
@@ -3180,15 +3279,29 @@ shimmered, the reactor column filled the middle, the deck felt too big for one p
   put in the world and only those that wrapped are placed again (the height, the slope, the
   paths, the water, and a 1 m mask of where something is built: one ray down per cell, cached).
   The vertex shader bends them with the wind (the plants' gust front) and parts them round the
-  traveller's feet (`uBrush`), thins them with distance and sinks them into the ground towards
-  the patch's edge, where the ground's own inked ticks take over. Lit like the ground, each tuft
+  traveller's feet (the brush, below), and fades them out with distance (next item). Lit like the ground, each tuft
   a shade darker or lighter than it. **Soft ink**: the blades write +8 in `gHatch.a`, and post.js
   draws their outline in a darker shade of the green instead of black, only on the blade's own
   side (half as wide), with no crease, colour-edge or shadow-edge lines and no hatching on them
   (and the crease shading ignores them, which had greyed the ground between them); one tuft in
-  eight keeps a real pen line, for the hand-drawn feel. One draw call, no shadows.
-  `GRASS_QUALITY`: High 26 m and ~12 k tufts, Medium/Auto 22 m and ~7.7 k, Low 15 m, Handheld
-  13 m and ~2 k tufts (about 18 k triangles).
+  eight keeps a real pen line, for the hand-drawn feel. No shadows.
+- **Grass into the distance, without a line** (`grassLod`, `tuftScale` in `src/grass-shader.js`):
+  the blades used to thin by a step (a whole tuft gone at once) and the patch ended about 35 m out,
+  its centre jumping with every turn of the camera. Now each tuft has a rank; the share kept falls
+  with the distance from the camera and a tuft shrinks to nothing over a metre or more as the share
+  passes its rank. Further out the blades get shorter and thinner, take the ground's own tone under
+  them (its patches, as the terrain draws them) and lose their outline: the blades write their pen
+  line's share in `gHatch.r` and the outline's fade in `gHatch.g` (post.js reads them on soft-ink
+  pixels and on the ground beside them, then clears them before the hatching). Past the near patch
+  a **far layer** takes over (`quality.far`, `FAR_TUFT`): sparse two-blade tufts in a patch about
+  2.5 times as wide, growing in where the near one thins (to the far layer's density, so the field's
+  density only ever falls) and with the same look by distance, so the two meet without a seam; it
+  fades into the ground by its own edge. The patch's lead on the camera follows its look over about
+  a third of a second (`FOLLOW`): turning round slides the fade across. Two draw calls; the far layer
+  shares the near one's built-on mask. `GRASS_QUALITY` (tufts, triangles, reach ahead of the
+  camera), before → now: High 12.1 k tufts, 109 k triangles, 35 m → 8.6 k + 4.1 k far, 102 k, 78 m;
+  Medium 7.7 k, 70 k, 30 m → 5.8 k + 2.4 k, 66 k, 65 m; Low 3.0 k, 27 k, 20 m → 2.5 k + 0.7 k,
+  27 k, 41 m; Handheld 2.0 k, 18 k, 18 m → 1.6 k + 0.4 k, 17 k, 35 m. `tests/grass-fade.test.js`.
 - **The Lab** shows them all: the materials row has steel, brushed, chrome, brass, copper, iron,
   painted, the carved inscriptions and a lamp beside the glow, and a meadow past the water pool.
 
@@ -3222,6 +3335,43 @@ Found in the Lab, where some materials looked slow; all of it applies to every w
   jump (a door, a portal) the new patch is placed over the next frames, `PLACE_MS` at a time,
   behind the fade (it had been a 60 ms frame).
 - **The Lab's hidden rooms** skip the frame's matrix update (each is brought up to date as it hides).
+
+### Who casts a shadow, paint that sticks, sharp portraits
+- **Casters** (`shadows.js`, main.js `renderFrame`): there are no `castShadow` flags; the shadow
+  passes draw every visible mesh in one depth material, minus a level's `noShadow` list, people's
+  tiny parts, self-lit things (`selfLitSkips`: glow ≥ 0.8, flames, lamps, glowing inscriptions; a
+  glowing solid opts in with `userData.castShadow = true`, as Perdide's great crystal does, and any
+  mesh opts out with `false`) and, in the far pass only, small props (`farPassSkips`). An audit of
+  every world found the rest casting already; the gap was that last rule: it left out *every* tile
+  of instanced props, so boulders up to 9 m across, the Spheres' globes and the like cast nothing
+  past the near map (220 m, 160 on Handheld) while the buildings beside them did. Now a tile is left
+  out only if all it holds is under two far texels (2.2 m) across (`largestInstance`, kept per tile).
+  Cost, far pass (refreshed every 3rd frame, every 4th on Handheld), same page A/B, M4 Pro: desert
+  +36–57 draws and +6–18 k triangles on High (+21–27 / +3–11 k Handheld), GPU time within the noise
+  (0.35–0.43 ms either way); the Spheres +38–45 draws, +0.2 M triangles, +0.07 ms on High
+  (Handheld +13–17 draws, +0.08–0.13 M, +0.03–0.27 ms); Arzach +8–10 draws, no change in time.
+- **Fluid splats are decals on the drawn surface** (`splat-decal.js`, fluid-tool.js `Splats`): the
+  glob still stops on the collision, but the splat is cut from the triangles drawn there: the
+  scene's static meshes round the hit (`DrawnSurfaces`: not skinned, plants, water, lights or
+  anything that has moved since it was found; hidden collision stand-ins left out, so a dome's or a
+  trunk's coarser collider doesn't swallow it) and the terrain's own grid triangles
+  (`heightfieldTriangles`); the collision BVH only where nothing is drawn. Each triangle is clipped
+  to the splat's box (Sutherland-Hodgman, like three's DecalGeometry), cast halfway between the
+  surface's normal and back along the shot (a step's riser facing you takes paint as well as its
+  tread). A one-sided face turned away (a thin wall's far side) is left out by its winding;
+  double-sided ones are tested for what hides them, piece by piece. Each corner keeps its spot in
+  the splat's plane at its true distance from the hit, so the blob keeps its size over folds and
+  curves instead of stretching to the box. The shape (blob, inner tone, drops) is drawn in the
+  shader (`splatMaterial`: two patches of the surface shader, checked by the tests), grown and
+  shrunk by age, so the geometry is built once a shot (0.5–2 ms here); every splat shares one
+  mesh, rewritten only when one comes or goes. The faces lie exactly on the surface: polygon offset,
+  not a lift, keeps them in front.
+- **The conversation portrait** (main.js `captureView` with `css`, `story/portrait-bg.js`): it was the
+  frame's middle shrunk in one step to 160 px and saved as a JPEG, so lines a pixel or two wide broke
+  into jagged dots. Now it is drawn as if the frame were the circle's size (`portraitPixelRatio`: the
+  ink, hatching and grain in its pixels, at half the world's ink weight), at full resolution, shrunk
+  by halves (each a 2 × 2 average) to the circle's pixels on this screen (`portraitSize`), and kept
+  as a PNG.
 
 ## The desert in Unity (a proof of concept)
 `unity/Memento` is a Unity 6 (URP) port of the desert, built from this game rather than

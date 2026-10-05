@@ -200,11 +200,14 @@ test('grass: the presets grow fewer, closer blades on the handheld; grassy groun
 
 test('grass: soft ink, the blades flag themselves (+8) and every reader of gHatch.a takes the flag off first', () => {
   const grass = makeMaterial({ color: '#8cc77e', grass: true, key: 't.grass.soft' });
-  assert.ok(grass.fragmentShader.includes('gHatch.a += 8.0 * vGrassSoft'));
+  assert.ok(grass.fragmentShader.includes('gHatch.a += 8.0;'));
+  // (r and g carry the pen line's share and the outline's fade; post.js clears them before the hatching reads them)
+  assert.ok(grass.fragmentShader.includes('gHatch.rgb = vec3(vGrassLook.x, vGrassLook.y, 0.0)'));
   const post = createPost();
   const fs = post.scene.children[0].material.fragmentShader;
   assert.ok(fs.includes('float soft = step(7.5, surface.a)') && fs.includes('hm -= 8.0 * step(vec4(7.5), hm)') && fs.includes('fa -= 8.0 * faSoft'));
   // the figure test comes after the soft flag is taken off (a blade is not a person)
   assert.ok(fs.indexOf('surface.a -= 8.0 * soft') < fs.indexOf('float figure = step(3.5, surface.a)'));
+  assert.ok(fs.indexOf('surface.rgb *= 1.0 - soft') < fs.indexOf('vec3 H = surface.rgb'), 'no hatching read off a blade');
   assert.equal(tuftGeometry().index.count / 3, 9, 'three wide blades a tuft');
 });

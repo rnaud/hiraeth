@@ -326,6 +326,7 @@ export function createPerdide(scene) {
     // its own material: the story brightens it while it sings
     const crMat = makeMaterial({ color: '#c7a6f2', flat: true, glow: 0.8, greatCrystal: true });
     const cr = new THREE.Mesh(mergeGeometries(parts), crMat);
+    cr.userData.castShadow = true;   // it glows, but it is a 95 m spire of solid crystal: it stands in the sun (shadows.js selfLitSkips)
     cr.position.set(gx, base, gz);
     scene.add(cr);
     const ring = new THREE.Mesh(new THREE.TorusGeometry(34, 3, 8, 48), makeMaterial({ color: '#8a7f8f', color2: '#6f6a80', color3: '#a99bb0', mode: 2, strataSize: 1.5, flat: true }));
