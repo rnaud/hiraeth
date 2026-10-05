@@ -101,7 +101,10 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 ## The app
 
-- [ ] A new icon for the app.
+- [x] A new icon for the app. (A capture of the References' dish city, view 22, through the game's ink;
+  `node scripts/icons.mjs all` re-captures it and makes every Android, web and Steam Deck size, with an
+  adaptive foreground, sky background and themed silhouette; four other views kept in `docs/icon/`;
+  docs/systems/app-icon.md.)
 
 # Carried over
 

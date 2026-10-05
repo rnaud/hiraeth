@@ -15,6 +15,7 @@ The same release notes shown in the game (press **N** or open settings).
 - Opening a box: it floats up off the ground, wobbles two or three times with little pauses in between, as if deciding, then comes apart into light.
 - In Qanat, the box on the great tree now waits much higher up, on a carved stone pedestal of the makers with lamps and a ring of light: climb the big root, then the stone pier above it.
 - Nobody tells you about the makers’ boxes before you have found one yourself: the hints for a world’s other boxes only start once you have opened your first.
+- A new app icon, taken from the game itself: the big pink dish on its stem over the blue domes of the desert city, under a clear sky. It shows on the Android home screen (with a themed version on Android 13 and later), on the start screen before Android 12, in the browser tab, when you add the game to a phone’s home screen, and on the Steam Deck.
 
 ## v0.65 — 2026-10-05
 
