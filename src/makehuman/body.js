@@ -169,8 +169,15 @@ function shared(data, name) {
   return out;
 }
 
-/** The face's shape keys on a part (morph targets, relative, scaled to this head). */
+/** The face's shape keys on a part (morph targets, relative, scaled to this head): shared by every body with this head (a template's builds). */
 function keyTargets(data, name, kHead) {
+  const ck = `keys:${name}|${kHead.map((v) => v.toFixed(5)).join(',')}`;
+  if (data.cache.has(ck)) return data.cache.get(ck);
+  const out = keyTargetsOf(data, name, kHead);
+  data.cache.set(ck, out);
+  return out;
+}
+function keyTargetsOf(data, name, kHead) {
   const P = data.meta.parts[name], targets = [], names = [];
   for (const key of Object.keys(data.meta.keys)) {
     const arr = new Float32Array(P.count * 3);

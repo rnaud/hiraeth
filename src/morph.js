@@ -231,12 +231,28 @@ export function warpFaceVertex(v, headW, eye, face, f, eyeball = false) {
 }
 
 /**
+ * A copy of a skinned geometry to reshape: its own positions (and normals, recomputed after), everything
+ * else (the triangles, the skin, the face's shape keys) shared with the source, so the many builds and
+ * faces of one body don't each carry their own (a MakeHuman body's keys are ~0.8 MB of arrays).
+ */
+export function reshapeCopy(geometry) {
+  const g = new THREE.BufferGeometry();
+  for (const [k, a] of Object.entries(geometry.attributes)) g.setAttribute(k, k === 'position' || k === 'normal' ? a.clone() : a);
+  if (geometry.index) g.setIndex(geometry.index);
+  for (const [k, list] of Object.entries(geometry.morphAttributes)) g.morphAttributes[k] = list;
+  g.morphTargetsRelative = geometry.morphTargetsRelative;
+  for (const gr of geometry.groups) g.addGroup(gr.start, gr.count, gr.materialIndex);
+  g.userData = { ...geometry.userData };
+  return g;
+}
+
+/**
  * A copy of a skinned geometry with its head warped by a face morph (only the
  * geometry vertices weighted on the head move; normals recomputed).
  */
 export function warpFace(geometry, headIndex, eye, face, f, { eyeball = false } = {}) {
   const m = { ...NEUTRAL_FACE, ...(f ?? {}) };
-  const g = geometry.clone();
+  const g = reshapeCopy(geometry);
   const P = g.attributes.position, J = g.attributes.skinIndex, W = g.attributes.skinWeight;
   const v = new THREE.Vector3();
   for (let i = 0; i < P.count; i++) {

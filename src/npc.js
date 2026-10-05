@@ -193,7 +193,7 @@ export class NPC {
     this.person = person;
     this.crowd = crowd;
     this.restyle(person.style);
-    this.object.scale.setScalar(person.size);
+    this.object.scale.setScalar(person.size * (this.humanoid?.profile?.heightFix ?? 1));   // (a MakeHuman woman's: as tall as her crowd figure)
     this.pos.copy(person.pos);
     this.heading = person.heading;
     this.lines = [person.lines[person.lineIdx % person.lines.length]];

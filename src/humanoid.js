@@ -10,7 +10,7 @@ import { EyeLook, EYE_WHITE, EYE_TILT, TRAVELLER_IRIS, eyeballOf } from './eyes.
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { lookPieces, roleColor, BUILDS, browColour } from './costumes.js';
 import { suitGeometry, travellerKit, TRAVELLER } from './traveller.js';
-import { BUILD_SHAPE, radialFactors, boneMorph, warpFace, faceLandmarks, browPositions, plainGeometry, morphKey, cleanMorph, isNeutral, FACE_MORPHS, NEUTRAL_FACE } from './morph.js';
+import { BUILD_SHAPE, radialFactors, boneMorph, warpFace, faceLandmarks, browPositions, plainGeometry, reshapeCopy, morphKey, cleanMorph, isNeutral, FACE_MORPHS, NEUTRAL_FACE } from './morph.js';
 import { cleanExpression, NEUTRAL_EXPRESSION, PEOPLE_REST } from './expression.js';
 import { sharedUniforms } from './materials.js';
 import { Hands } from './hands.js';
@@ -267,7 +267,7 @@ export function buildGeometry(body, build, morph = null) {
     if (!f || next === undefined) return null;
     return { a: bindPos[i], b: bindPos[next], fx: f[0], ff: f[1], fb: f[2], vertical: /spine|pelvis|neck|clavicle/.test(b.name) };   // (collarbones widen the shoulders outward)
   });
-  const g = base.clone();
+  const g = reshapeCopy(base);   // (its own positions; the skin and any shape keys shared)
   const P = g.attributes.position, J = g.attributes.skinIndex, W = g.attributes.skinWeight;
   const v = new THREE.Vector3(), out = new THREE.Vector3(), c = new THREE.Vector3(), ab = new THREE.Vector3();
   for (let i = 0; i < P.count; i++) {

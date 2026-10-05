@@ -30,6 +30,14 @@ export const CROWD_ZONES = { skin: 0, cloak: 1, cloth: 2, legs: 3, boots: 4, hat
 export const CROWD_PARTS = { torso: 0, head: 1, thighL: 2, thighR: 3, shinL: 4, shinR: 5, armL: 6, armR: 7, foreL: 8, foreR: 9, cape: 10, robe: 11 };
 /** aRig.z slots (see above). */
 export const CROWD_SLOTS = { always: 0, head: 1, mask: 2, body: 3, prop: 4, cape: 5, robe: 6, hairCap: 7 };
+/**
+ * The figure's body against the full ones it stands in for (docs/makehuman.md): a woman's shoulders and
+ * chest this much narrower than a man's (the MakeHuman woman's shoulder joints are 0.168 m out at her
+ * height, the man's 0.201; the Quaternius ones narrower still), the hip joints this much wider than
+ * CROWD_JOINTS.hipX (MakeHuman's 0.102-0.111 m, the Quaternius 0.111-0.114). Heights: the instance's scale
+ * (crowd.js: the full bodies stand as tall, profile.heightFix).
+ */
+export const CROWD_BODY = { shoulderF: 0.12, chestF: 0.1, hips: 1.17 };
 /** Joint pivots in figure space (metres, scale 1). */
 export const CROWD_JOINTS = { hip: 0.95, hipX: 0.09, knee: 0.5, shoulder: 1.43, shoulderX: 0.2, elbow: 1.13, neck: 1.5, collar: 1.45 };
 
@@ -169,13 +177,14 @@ export const CROWD_GLSL = /* glsl */ `
     const float HIP = ${0.95}, HIPX = ${0.09}, KNEE = ${0.5}, SHY = ${1.43}, SHX = ${0.2}, ELB = ${1.13}, NECK = ${1.5}, COLLAR = ${1.45};
     float side = (part % 2 == 0) ? 1.0 : -1.0;   // even parts are the left (+x) side
     float fem = aBody.x, bw = aBody.y, bg = aBody.z;
-    float shx = SHX * bw * (1.0 - 0.07 * fem), hipx = HIPX * (1.0 + 0.1 * fem);   // where the shoulders and hips now are
+    // where the shoulders and hips now are (CROWD_BODY: the full bodies' joints, MakeHuman's and the Quaternius ones', at the figure's height)
+    float shx = SHX * bw * (1.0 - ${CROWD_BODY.shoulderF.toFixed(3)} * fem), hipx = HIPX * ${CROWD_BODY.hips.toFixed(3)};
     if (part == 10) {
       // the cape, rebuilt from its parameters: a flared, open-fronted cone hanging from the shoulders
       float t = aRig.w;
       // shoulders are wider than deep; the cloth falls a little behind the body
       float k = pow(t, 0.8);
-      vec2 rad = mix(vec2(0.2, 0.135), (vec2(0.25, 0.2) + capeLen * 0.05) * capeWide, k) * vec2(bw * (1.0 - 0.06 * fem), mix(1.0, bg, 0.5));
+      vec2 rad = mix(vec2(0.2, 0.135), (vec2(0.25, 0.2) + capeLen * 0.05) * capeWide, k) * vec2(bw * (1.0 - ${CROWD_BODY.chestF.toFixed(3)} * fem), mix(1.0, bg, 0.5));
       vec3 dir = normalize(vec3(p.x, 0.0, p.z) + vec3(0.0, 0.0, 1e-5));
       p = vec3(dir.x * rad.x, COLLAR - t * capeLen, dir.z * rad.y - 0.02 - 0.05 * t);
       n = normalize(vec3(dir.x / rad.x, 0.0, dir.z / rad.y));
@@ -203,10 +212,10 @@ export const CROWD_GLSL = /* glsl */ `
     if (part == 0 && slot != 5) {
       float y = p.y;
       float belly = exp(-pow((y - 1.06) / 0.16, 2.0)), bust = exp(-pow((y - 1.29) / 0.08, 2.0)), hips = exp(-pow((y - 0.93) / 0.09, 2.0));
-      p.x *= mix(1.0, bw * (1.0 - 0.06 * fem), smoothstep(1.12, 1.38, y)) * (1.0 + (bg - 1.0) * 0.8 * belly) * (1.0 + 0.1 * fem * hips);
+      p.x *= mix(1.0, bw * (1.0 - ${CROWD_BODY.chestF.toFixed(3)} * fem), smoothstep(1.12, 1.38, y)) * (1.0 + (bg - 1.0) * 0.8 * belly) * (1.0 + 0.1 * fem * hips);
       p.z *= p.z > 0.0 ? 1.0 + (bg - 1.0) * 1.5 * belly + 0.3 * fem * bust : 1.0 + (bg - 1.0) * 0.5 * belly + 0.12 * fem * hips;
     } else if (part == 0) {
-      p.x *= bw * (1.0 - 0.06 * fem);   // the cape's collar sits on the shoulders
+      p.x *= bw * (1.0 - ${CROWD_BODY.chestF.toFixed(3)} * fem);   // the cape's collar sits on the shoulders
     } else if (part >= 2 && part <= 5) {
       float k = slot == 0 ? 1.0 + (bg - 1.0) * (part <= 3 ? 0.6 : 0.3) + (part <= 3 ? 0.05 * fem : 0.0) : 1.0;
       p.x = side * hipx + (p.x - side * HIPX) * k;

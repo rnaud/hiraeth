@@ -19,6 +19,7 @@ import { personParams, AGES, paramsKey } from './shape.js';
 import { mhLookPieces, mhStyleOf } from './hair.js';
 import { buildGeometry } from '../humanoid.js';
 import { FACE_MORPHS } from '../morph.js';
+import { HEIGHT } from '../costumes.js';
 
 const INK = new Set(FACE_MORPHS.filter((d) => d.ink).map((d) => d.key));
 
@@ -87,18 +88,28 @@ export function personTemplate(data, { kind = 'm', years = AGES.adult, build = '
   const prof = scene.userData.profile;
   if (prof.buildGeometry) return scene;
   equip(scene, { kind, years, build, world, over });
-  // the game sets everyone's height (the root's scale: a story child's def.scale, a look's height) for a
-  // body as tall as a grown-up's in bind space; a MakeHuman child's is taller there (its hips are scaled
-  // to the grown-ups', its head is bigger): the root's scale corrected so they stand as tall as the game says
-  // (heightFix), or, for the young, as tall as MakeHuman makes someone of their age beside the game's
-  // grown-ups (trueScale: the root's scale itself; a story's child scale was set for a man's body)
+  // The game sets everyone's height as the root's scale (a look's height, HEIGHT.f for a woman, a story's
+  // def.scale) for bodies as tall as the Quaternius ones in bind space. Every MakeHuman sample has its hips
+  // where the Quaternius man's are, so a MakeHuman woman (longer-legged) stands 5 % taller than a man
+  // there: a grown-up's root scale is corrected (heightFix) so a woman is as much shorter than a man of
+  // her world as the Quaternius woman is (Q_TOP), a man as MakeHuman makes him. The young stand as tall
+  // as MakeHuman makes someone of their age beside the grown-ups of their kind (trueScale: the root's
+  // scale itself; a story's child scale was set for a man's body with a big head).
   if (years < 18) {
     const grown = personTemplate(data, { kind, years: AGES.adult, world }).userData.profile;
-    prof.heightFix = grown.measured.height / prof.measured.height;
-    prof.trueScale = prof.size / grown.size;
+    const tall = grown.measured.height * grown.heightFix * (kind === 'f' ? HEIGHT.f : 1);   // the grown-up's height in the game
+    prof.heightFix = (grown.measured.height * grown.heightFix) / prof.measured.height;
+    prof.trueScale = (tall * (prof.size * prof.measured.height) / (grown.size * grown.measured.height)) / prof.measured.height;
+  } else if (kind === 'f') {
+    const man = personTemplate(data, { kind: 'm', years: AGES.adult, world }).userData.profile;
+    const woman = build === 'average' && years === AGES.adult ? prof : personTemplate(data, { kind: 'f', years: AGES.adult, world }).userData.profile;
+    prof.heightFix = (Q_TOP.f / Q_TOP.m) * (man.measured.height / woman.measured.height);
   } else prof.heightFix = 1;
   return scene;
 }
+
+/** The Quaternius bodies' height in bind space (m: the top of the head, as humanoid.js prepareHuman leaves them; tests/makehuman.test.js measures them): the game's heights were set for these. */
+export const Q_TOP = { m: 1.81, f: 1.767 };
 
 export class MakeHumanPeople {
   constructor(data, world = 'default') {
