@@ -1,0 +1,21 @@
+src/aliens/alien.js
+  s_1fd8d0e7b02dcf::t_c4bffb97679437 236-242,368,370,449,569,656
+tests/aliens.test.js
+  s_1fd8d0e7b02dcf::t_052bad90f1fbd6 126-140
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "cc5ac9674c2737429d9f9d2d49b941acac77d2f2",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
