@@ -1,0 +1,53 @@
+src/boxes/effects.js
+  s_1fd8d0e7b02dcf::t_14ab389efc4367 18,109
+src/boxes/placements.js
+  s_1fd8d0e7b02dcf::t_9d4b92a254ef03 58-60,69-72
+src/items.js
+  s_1fd8d0e7b02dcf::t_65c8bf1fdac27c 80-84
+src/levels/arzach2.js
+  s_1fd8d0e7b02dcf::t_261a1e961f5ba0 8,670-671,722
+src/temples/arzach2.js
+  s_1fd8d0e7b02dcf::t_b84ec22a9ab21c 1-314
+src/temples/boss.js
+  s_1fd8d0e7b02dcf::t_f1a0d515e19c38 137,221-230
+src/temples/guardians.js
+  s_1fd8d0e7b02dcf::t_c07aa479aa754d 147-220
+src/temples/index.js
+  s_1fd8d0e7b02dcf::t_95a8ae3b256498 9-10,34,47-48,81
+src/temples/migrate.js
+  s_1fd8d0e7b02dcf::t_6760cd8dbd2b6b 13
+src/temples/pieces.js
+  s_1fd8d0e7b02dcf::t_20108c51a7d42b 422-425,433,464-477,480-483
+src/temples/runtime.js
+  s_1fd8d0e7b02dcf::t_a7defadb6ddd9b 90,104,205
+src/wildlife.js
+  s_1fd8d0e7b02dcf::t_6637513618f316 693
+tests/temples.test.js
+  s_1fd8d0e7b02dcf::t_897729562a5b9b 293,543-641
+src/temples/arzach2-data.js
+  s_5fbfcb86c5b8fd::t_110846a3938453 1-74
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4aa99b6115d4c38b189572f2d916b5e0ca033347",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_5fbfcb86c5b8fd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-af70f9cf164e40c35",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
