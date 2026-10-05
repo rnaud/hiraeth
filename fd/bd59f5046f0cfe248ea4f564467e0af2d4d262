@@ -1,0 +1,39 @@
+TODO.md
+  s_1fd8d0e7b02dcf::t_703d293741610c 30-42
+changelog.md
+  s_1fd8d0e7b02dcf::t_e6950f1e9ac510 17-23
+docs/story-bible.md
+  s_1fd8d0e7b02dcf::t_9534fff252fecc 145-151,162-163
+docs/systems/cinematics.md
+  s_1fd8d0e7b02dcf::t_4b4458e9607260 61-63,82-85,90-95
+docs/systems/story.md
+  s_1fd8d0e7b02dcf::t_9d36bce695886c 309-314,327-353
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_8a88f06dedea06 17-23
+src/desert-city.js
+  s_1fd8d0e7b02dcf::t_65563642972475 804
+src/story/desert-data.js
+  s_1fd8d0e7b02dcf::t_322163c0dd2b54 67
+src/story/desert.js
+  s_1fd8d0e7b02dcf::t_1d28b83bab0207 654-661
+tests/obvious-lines.test.js
+  s_1fd8d0e7b02dcf::t_21d99a4e519cad 1-25
+tests/talk-face.test.js
+  s_1fd8d0e7b02dcf::t_fd3a5155a1daec 142-155
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fdbd59f5046f0cfe248ea4f564467e0af2d4d262",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
