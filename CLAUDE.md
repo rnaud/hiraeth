@@ -3,8 +3,10 @@
 A three.js exploration game called Memento (the repository and internal ids still say
 `moebius`), drawn in the style of Moebius, played in the browser
 (GitHub Pages) and as an Android app (`android/`, Capacitor). Design lives in
-`docs/game-brief.md` and `docs/story-bible.md`; architecture, version by
-version, in `README.md`.
+`docs/game-brief.md` and `docs/story-bible.md`; how each system works in
+`docs/systems/<topic>.md` (indexed in `docs/README.md`; superseded notes and old
+measurements in `docs/archive/`). `README.md` stays short: what the game is,
+running, testing, shipping.
 
 ## The changelog: update it with every user-visible change
 
@@ -31,7 +33,9 @@ version, in `README.md`.
   must pass. Add tests for new systems and for bug fixes.
 - Check visual changes in the running game (headless Chrome screenshots against
   a dev server). Never touch port 5173: that is the user's own dev server.
-- Document new systems in a short README section.
+- Document new systems in a short section of the right `docs/systems/<topic>.md`
+  (or a new file there, added to the index in `docs/README.md`); keep `README.md`
+  short.
 - Android: every push to `main` builds a signed APK and a web bundle and
   publishes them to the release for the newest changelog version. Installed apps
   update the game over the air (`web.json`). Bump `NATIVE_API` in
