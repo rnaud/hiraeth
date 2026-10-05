@@ -320,8 +320,10 @@ export class Dialogue {
       onGive: (item) => this.toast(`Received: ${this.quests.itemName?.(item) ?? item}`),
       onKeepsake: (k) => this.toast(`Keepsake: ${k.name}`),
     };
+    // the world's opening quest, if this is one who opens it: under way before they speak (src/story/quests.js opensWith)
+    this.quests?.opening?.(person.id);
     this.runner = new DialogueRunner(person, ctx);
-    if (this.runner.ended) return false;
+    if (this.runner.ended) { this.quests?.opened?.(); return false; }
     this.open = true;
     this.openedAt = typeof performance !== 'undefined' ? performance.now() : 0;
     this.revealed = 0; this.translated = -LAG;
@@ -384,6 +386,7 @@ export class Dialogue {
     this.el?.classList.remove('open');
     if (typeof document !== 'undefined') document.body.classList.remove('talking');
     this.game.emit('dialogue:end', { npc: this.npc, id: this.person.id });
+    this.quests?.opened?.();   // (the quest this talk opened says so now)
     this.onClose(this.person, this.npc);
   }
 

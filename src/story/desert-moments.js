@@ -1,6 +1,4 @@
 import * as THREE from 'three';
-import { spoken } from './tone.js';
-import { MOMENT_LINES } from './desert-data.js';
 import { TANK } from '../fluid-tool.js';
 import { faceOf } from './moment.js';
 
@@ -14,29 +12,34 @@ import { faceOf } from './moment.js';
 //            (the flow waits for this panel: st.flowDelay)                             2.6–5.3
 //         C  high over the gutter's end, across the basin: the pool spreads over the
 //            dry bed from its lowest point, round the roots, its light coming up       5.3–8.6
-//         D  the traveller's face, three-quarter, lit from below: his line             8.6–11.5
+//         D  the traveller's face, three-quarter, lit from below: he watches, and the
+//            corner of his mouth goes up (a slight smirk; no line)                     8.6–11.5
 //         sound: a low rumble as the rib goes, a splash at the crack and in the basin,
 //         the world's motif swelling over the score (sound.swell('motif'))
 //   fill  wading in with the empty tank (desert.moment.fill)
 //         A  wide, over the water: the traveller stops in the glowing pool              0.0–2.3
 //         B  over his shoulder, close on the tank: the water climbs into the dry glass,
-//            slowly, in three colours, its glow on his back ("It's filling…")           2.3–5.9
+//            slowly, in three colours, its glow on his back                            2.3–5.9
 //         C  beside him: he lifts the bracer, its rings light one by one, and a first
 //            glob leaves the nozzle and splashes out across the pool                    5.9–8.7
-//         D  his face: "Full. So that's what it was waiting for."                       8.7–11.2
+//         D  his face: a slight smirk, nothing said                                    8.7–11.2
 //         sound: the father's theme on the desert's duduk (sound.swell('father')), the
 //         tank's bubbling run, the glob's shot and splash; then the toast with the controls
 //
 // What they show is applied for sure: the channel is open before the flow's first frame (the
 // water runs on its own clock, paced a little); the tank fills on a beat of `fill`, and if that
 // beat never came (skipped, failed) at its end, with the jar; the toasts are said at the end.
+//
+// Show, don't tell: the traveller says nothing in them, and reacts with his face only, a slight
+// smirk at most (m.look 'smirk': worn quietly, no mouth and no hands; src/talk-face.js).
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const UP = V(0, 1, 0);
 const smooth = (t) => { t = Math.min(1, Math.max(0, t)); return t * t * (3 - 2 * t); };
 
-export const FLOW = { A: 2.6, B: 2.7, C: 3.3, D: 2.9, flowDelay: 2.4 };
-export const FILL = { A: 2.3, B: 3.6, C: 2.8, D: 2.5, fillAt: 2.5, fillFor: 2.8, sparkAt: 7.2 };
+// SMIRK: s into the face's panel before the corner of his mouth goes up
+export const FLOW = { A: 2.6, B: 2.7, C: 3.3, D: 2.9, flowDelay: 2.4, SMIRK: 1.1 };
+export const FILL = { A: 2.3, B: 3.6, C: 2.8, D: 2.5, fillAt: 2.5, fillFor: 2.8, sparkAt: 7.2, SMIRK: 0.9 };
 
 export function setupDesertMoments(ctx, { cave, st, tool, moments, fillTank, fillJar, FILLED }) {
   const { player, sound, level, toast } = ctx;
@@ -110,7 +113,6 @@ export function setupDesertMoments(ctx, { cave, st, tool, moments, fillTank, fil
         { t: 0, run: () => { sound.rumble?.(2.8, 0.28); } },
         { t: FLOW.flowDelay, run: () => { sound.splash?.(0.7); sound.swell?.('motif', poolAt.clone()); } },
         { t: FLOW.flowDelay + 2.6, run: () => sound.splash?.(1) },
-        { t: FLOW.A + FLOW.B + FLOW.C + 0.25, line: spoken('you', MOMENT_LINES.flow), secs: FLOW.D - 0.2 },
       ],
       onStart: (mm) => {
         st.flowDelay = FLOW.flowDelay;   // (the water waits for the crack's panel)
@@ -124,7 +126,8 @@ export function setupDesertMoments(ctx, { cave, st, tool, moments, fillTank, fil
         // he turns to the pool as it fills, and watches it
         if (t > FLOW.A) { mm.face = poolAt; mm.eyes = st.flow < 1 ? head(_f) : mouth; }
         if (t > C0) mm.eyes = poolAt;
-        if (t > C0 + FLOW.C - 0.4) mm.look = 'surprised';
+        // his face, at the end: watching, then the corner of his mouth goes up
+        mm.look = t > C0 + FLOW.C + FLOW.SMIRK ? 'smirk' : null;
       },
       onEnd: () => {
         st.flowDelay = undefined; st.glow = 0;
@@ -177,11 +180,9 @@ export function setupDesertMoments(ctx, { cave, st, tool, moments, fillTank, fil
       beats: [
         { t: 0.2, run: () => sound.swell?.('father', P.clone()) },
         { t: FILL.fillAt, run: () => doFill() },
-        { t: FILL.fillAt + 0.5, line: spoken('you', MOMENT_LINES.fill), secs: 2.2 },
         // the bracer's rings light again, one after another, for the shot to see
         { t: FILL.A + FILL.B + 0.2, run: () => { if (tool?.ringLit) tool.ringLit = tool.ringLit.map((_, i) => -i * 0.7); } },
         { t: FILL.sparkAt, run: () => tool?.spark?.(aimDir) },
-        { t: FILL.A + FILL.B + FILL.C + 0.2, line: spoken('you', MOMENT_LINES.full), secs: FILL.D - 0.3 },
       ],
       onStart: (mm) => {
         if (tool) tool.fillTo = 0;   // (the glass stays dry until its beat, then fills slowly)
@@ -193,12 +194,11 @@ export function setupDesertMoments(ctx, { cave, st, tool, moments, fillTank, fil
         if (tool) tool.fillTo = t < FILL.fillAt ? 0 : k;
         // the tank glows on his back as it fills
         if (t > B0 && t < D0 + 0.5) { const tk = tankAt(_h); tankLight.set(tk.x, tk.y + 0.3, tk.z, 7 * k); } else dark(tankLight);
-        if (t > FILL.fillAt && t < C0) mm.look = 'surprised';
         // he lifts the bracer and lets the first glob go
         const lift = t < C0 ? 0 : t < D0 ? smooth((t - C0) / 0.6) * (1 - smooth((t - D0 + 1.0) / 0.6)) : 0;   // (down before his face's panel)
         player.aim = lift > 0.01 ? { k: lift, point: sparkTo, dir: aimDir } : null;
         mm.eyes = t < C0 ? tankAt(_f) : t < D0 ? sparkTo : ahead;
-        if (t > D0) mm.look = 'happy';
+        mm.look = t > D0 + FILL.SMIRK ? 'smirk' : null;
       },
       onEnd: () => {
         if (tool) tool.fillTo = null;

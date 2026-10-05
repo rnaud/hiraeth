@@ -94,8 +94,8 @@ the traveller's words a moment later, as the translator catches up. It is
 diegetic and light-touch:
 - the father mentions it in the prologue's recording, made the day the traveller
   left ("Keep the translator at your ear. Nobody out there talks like us…");
-- Nour notices it ("I hear you, child: clicks and hums, like a pot coming to
-  the boil. Then that little thing at your ear hums back at me…");
+- nobody asks how they understand each other, the traveller least of all: it
+  is obvious (players found the question in Nour's talk fussy, and it went);
 - on the recordings and at home it says nothing: the parents speak the home
   tongue, warm and familiar, and the tag stays hidden.
 

@@ -164,12 +164,15 @@ const KIND_ORDER = ['core', 'movement', 'mode', 'upgrade', 'charm', 'cosmetic'];
 
 /**
  * The gear you carry, for the top of the sketchbook (J, or View / Select on a
- * controller): each item's name and what it does, the backpack first.
+ * controller): each item's name and what it does, the backpack first; then what
+ * you carry in your pack for the quests (the spark-stone, Ama's jar…).
  * @param owned item ids (items.owned()) · mode: the gun mode in use, when there is a choice
+ * · carried: the quest items' names (src/story/quests.js carried())
  */
-export function gearHtml(owned = [], { mode = null } = {}) {
+export function gearHtml(owned = [], { mode = null, carried = [] } = {}) {
   const list = owned.filter((id) => ITEMS[id]).sort((a, b) => KIND_ORDER.indexOf(ITEMS[a].kind) - KIND_ORDER.indexOf(ITEMS[b].kind));
   const rows = list.map((id) => `<li><b>${esc(ITEMS[id].name)}</b> · ${esc(ITEMS[id].use)}</li>`).join('');
   const body = rows ? `<ul>${rows}</ul>${mode ? `<p class="qhint">gun mode: ${esc(mode)}</p>` : ''}` : '<p class="qhint">Nothing yet: the makers’ boxes hold what a traveller needs.</p>';
-  return `<section class="quests gear"><h2>Gear <span>${list.length}</span></h2>${body}</section>`;
+  const pack = carried.length ? `<h4 class="qgroup">In your pack</h4><ul class="pack">${carried.map((n) => `<li><b>${esc(n.replace(/^./, (c) => c.toUpperCase()))}</b></li>`).join('')}</ul>` : '';
+  return `<section class="quests gear"><h2>Gear <span>${list.length + carried.length}</span></h2>${body}${pack}</section>`;
 }

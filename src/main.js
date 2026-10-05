@@ -486,7 +486,7 @@ const boxes = createBoxes({ levelId, scene, physics, level, player, sound, quest
   cam: { shot: (s) => ship.shot(s), release: (b) => ship.release(b), hud: (on) => ship.cinema.hud(on), bars: (on) => ship.cinema.bars(on) } });
 const itemFx = createItemEffects({ player, tool, level, sound, camera, toast: showToast, isNight: () => sky.hour < 6.4 || sky.hour > 19.3 });
 await slice();
-journal.sections.unshift(() => gearHtml(items.owned(), { mode: tool.owned && tool.modes.length > 1 ? tool.modeName : null }));   // Select / View opens on your gear
+journal.sections.unshift(() => gearHtml(items.owned(), { mode: tool.owned && tool.modes.length > 1 ? tool.modeName : null, carried: storyRt.quests.carried() }));   // Select / View opens on your gear
 journal.sections.push(() => boxes.journalHtml(Object.fromEntries(LEVELS.map((l) => [l.id, l.title]))));
 // the father's charge (src/story/charge.js): the journey's own quest, pinned above everything
 const charge = () => chargeState({ flag: (f) => game.flag(f), keepsakes: game.keepsakes(), completed: ship.completed().length,
@@ -762,8 +762,8 @@ const menu = new SettingsMenu(settings, {
   onBook: () => journal.toggle(true),
   onDebug: () => showPicker(true),
   // the Quests page: where to go now (what the scout would find), the father's charge, the quest log (the sketchbook's own sections)
-  quests: () => { const ob = scout.getTarget(); return questsPageHtml({ objective: ob?.label, distance: ob ? roughDistance(player.pos.distanceTo(ob.position)) : '', charge: chargeJournalHtml(charge()), quests: storyRt.quests.journalHtml(), carrying: errands.hud() }); },
-  onTrack: (id) => storyRt.quests.track(id),
+  quests: () => { const ob = scout.getTarget(); return questsPageHtml({ objective: ob?.label, distance: ob ? roughDistance(player.pos.distanceTo(ob.position)) : '', charge: chargeJournalHtml(charge()), quests: storyRt.quests.journalHtml(), carrying: [storyRt.quests.carried().join(', '), errands.hud()].filter(Boolean).join(' · ') }); },
+  onTrack: (id) => storyRt.quests.choose(id),
   onQuit: () => quitToTitle(),
   // an update restarts the game (at the title, in the new build): the position and the time played first
   onBeforeRestart: () => { if (!player.riding && !ship.playing) writeSave(); flushPlay(); reactiveWorld.flush(); },

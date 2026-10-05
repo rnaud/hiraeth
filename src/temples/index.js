@@ -192,7 +192,10 @@ export function setupTempleStory(ctx) {
   // a temple whose gadget this world needs to get about (the City-Shaft's jets): its quest starts on arrival
   if (T.def.startsOnArrival?.() && quests && !quests.isStarted?.(Q.id)) {
     quests.start(Q.id);
-    // (the world's own story stays the tracked one: the temple waits in the sketchbook, and says so)
+    // (the world's own story stays the tracked one: the temple waits in the sketchbook, and says so; and
+    // while the world's own quest waits for its first conversation, the scout finds who to talk to)
+    const qd = quests.def?.(Q.id);
+    if (qd) qd.arrival = true;
     const main = quests.active?.().find((q) => q.main && q.id !== Q.id);
     if (main) quests.track(main.id);
     setTimeout(() => toast?.(T.def.arrivalLine), 9000)?.unref?.();

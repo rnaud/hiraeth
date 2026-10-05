@@ -201,7 +201,7 @@ test('the menu has Quests and Controls pages, reachable by controller, and H ope
   assert.match(ui, /q\.tabIndex = 0; q\.dataset\.nav = '';/, 'active quests are focusable: a pad moves onto them and confirm tracks one');
   assert.match(ui, /e\.code === 'KeyH' && !isBusy\(\)\) \{ if \(this\.open && this\.current === 'controls'\) this\.toggle\(false\); else this\.toggle\(true, 'controls'\); \}/);
   assert.match(main, /quests: \(\) => \{ const ob = scout\.getTarget\(\); return questsPageHtml\(\{[^}]*quests: storyRt\.quests\.journalHtml\(\)/, 'the journal\'s quest-log section');
-  assert.match(main, /onTrack: \(id\) => storyRt\.quests\.track\(id\)/);
+  assert.match(main, /onTrack: \(id\) => storyRt\.quests\.choose\(id\)/);   // (chosen: src/story/quests.js choose)
   // menuNavigate moves onto [data-nav] (the quests) as well as buttons and inputs
   const mk = (name, nav = false) => ({ name, disabled: false, getClientRects: () => [1], focus() { globalThis.document.activeElement = this; }, scrollIntoView() {}, nav });
   const items = [mk('resume'), mk('quest', true)];

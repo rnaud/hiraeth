@@ -2,12 +2,12 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
-import { registerInteractable, PRIORITY } from '../interact.js';
+import { registerInteractable, allInteractables, PRIORITY } from '../interact.js';
 import { Banner } from '../life.js';
 import { STORY } from '../desert-sites.js';
 import { COOL_FIRE, SMOKE_COOL, Embers } from './flames.js';
 import { setMagic } from './magic-water.js';
-import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, STAGE_MIGRATION, SPARK_STAGES, VILLAGERS, MURMURS, VILLAGER_TALK } from './desert-data.js';
+import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, STAGE_MIGRATION, SPARK_STAGES, VILLAGERS, MURMURS, VILLAGER_TALK, CALLS } from './desert-data.js';
 import { setupDesertMoments } from './desert-moments.js';
 import { items } from '../items.js';
 import { setupHoverbike } from './desert-bike.js';
@@ -46,7 +46,9 @@ import { setupHearth } from './desert-spark.js';
 // people on the terrace turn and murmur and the tree flares; when it opens
 // (box:opened), Qanat gathers at the tree's foot under the ledge, the tree
 // flares high, everyone in the avenue looks up, and Nour gets up off her bench
-// and waits for you to climb down, then talks (the 'elder' stage). Until the
+// and waits for you to climb down, comes over and calls you ("Psst. Child."),
+// a little sound and a turn of her head every few seconds, until you talk to her
+// (the 'elder' stage: she never starts talking by herself). Until the
 // chest is open, the camps, the gate and the procession wave you on toward
 // the city.
 //
@@ -107,8 +109,12 @@ export function setupDesert(ctx) {
   migrateDesertQuest(game);
   for (const q of QUESTS) quests.define(q);
   quests.itemNames = ITEMS;
-  // the main quest: power for the ship (unless the ship already has it)
-  if (!quests.isStarted('desert.power') && !game.flag('ship.powered')) quests.start('desert.power');
+  // the main quest: power for the ship (unless the ship already has it). It doesn't just appear: Marrow,
+  // poking at your hull when you step out, tells you where the only fire that could wake a ship is, and
+  // the quest starts in that talk (src/story/quests.js opensWith); or Ama, the Speaker, Nour or Hessa, if
+  // you walk past him. Until then the scout finds Marrow.
+  const opening = () => !quests.isStarted('desert.power') && !game.flag('ship.powered');
+  if (opening()) quests.opensWith('desert.power', ['marrow', 'ama', 'speaker', 'nour', 'hessa'], { label: 'Marrow, by your ship', at: 'marrow' });
   // the tree already burns (a save from before the spark-stone's errand): its stages are passed over
   const lit = () => !!game.flag('desert.tree.lit');
   const skipSpark = () => { if (lit() && SPARK_STAGES.includes(quests.stage('desert.power'))) quests.set('desert.power', 'ship'); };
@@ -132,7 +138,22 @@ export function setupDesert(ctx) {
   const iloRoute = loop(V(iloHome.x, iloHome.y, iloHome.z), 7, 5);
   people.ilo = spawn(PEOPLE.ilo, { route: iloRoute, speed: 2.4 });
   const marrowAt = camps.spot(-19, -14);
-  people.marrow = spawn(PEOPLE.marrow, { route: loop(marrowAt, 1.6, 3), speed: 0.6 });
+  const marrowHome = loop(marrowAt, 1.6, 3);
+  // a new game: he is at your ship when you step out, looking over the scar on its hull (then home to his crates)
+  const ramp = ctx.ship?.arrivalSpot?.() ?? null;
+  const rampAt = ramp?.pos ?? (level.ship?.pos ?? level.spawn).clone();
+  const out = V(Math.sin(ramp?.heading ?? 0), 0, Math.cos(ramp?.heading ?? 0)), side = V(out.z, 0, -out.x);
+  const wreckSpot = onGround(rampAt.clone().addScaledVector(side, 5.2).addScaledVector(out, -2.2));
+  const hull = rampAt.clone().addScaledVector(out, -14);
+  people.marrow = spawn(PEOPLE.marrow, { route: opening() ? [wreckSpot] : marrowHome, speed: 0.6 });
+  if (opening()) { people.marrow.facing = Math.atan2(hull.x - wreckSpot.x, hull.z - wreckSpot.z); people.marrow.heading = people.marrow.facing; }
+  /** Marrow back to his crates: once the quest is under way and you are well away from him. */
+  const marrowGoHome = () => {
+    const m = people.marrow;
+    if (m.route === marrowHome || opening() || flat(m.pos, player.pos) < 60) return;
+    m.route = marrowHome; m.wp = 0; m.facing = null;
+    m.pos.copy(marrowHome[0]);
+  };
   // Hessa sweeps round the well on the top terrace
   const wellC = city.well;
   people.hessa = spawn(PEOPLE.hessa, { route: [0.9, 2.2, 3.6].map((a) => onGround(V(wellC.x + Math.sin(a + city.yaw) * 3.6, wellC.y, wellC.z + Math.cos(a + city.yaw) * 3.6))), speed: 0.5 });
@@ -628,7 +649,8 @@ export function setupDesert(ctx) {
   const boxOpen = () => !!game.flag('box.desert.backpack') || items.has('backpack');
   // where Nour waits for you at the tree's foot, beside the buttress you climb, looking up at the chest
   const nourWait = ledge.at(-1.0, 0, ledge.face + 1.1).setY(terraceY);
-  const nourToFoot = () => ({ pos: nourWait, speed: 0.95, near: 0.4, max: 1.4, face: faceBox(nourWait) });
+  // (waiting there, she turns to you when you're about: a call is no use with her back to you)
+  const nourToFoot = () => ({ pos: nourWait, speed: 0.95, near: 0.4, max: 1.4, face: flat(player.pos, nourWait) < 22 ? Math.atan2(player.pos.x - nourWait.x, player.pos.z - nourWait.z) : faceBox(nourWait) });
   const nourToYou = () => ({ pos: player.pos, speed: 0.95, near: 1.8, max: 1.5 });
   const notice = () => {
     // the first time you come near the closed chest: heads turn, a murmur, the tree flares a little
@@ -688,6 +710,7 @@ export function setupDesert(ctx) {
     for (const tm of sh.timers.filter((x) => x.at <= 0)) { sh.timers.splice(sh.timers.indexOf(tm), 1); tm.fn(); }
     const dBox = flat(pp, boxAt);
     const onTerrace = Math.abs(pp.y - terraceY) < 1.2, up = !onTerrace && pp.y > terraceY;   // (up: on the ledge, or climbing to it)
+    sh.up = up && dBox < 12;
     if (!sh.noticed && !boxOpen() && dBox < 13 && pp.y > terraceY - 1 && pp.y < boxAt.y + 2.5) notice();
     if (sh.gather) {
       sh.gather.t += dt;
@@ -703,17 +726,49 @@ export function setupDesert(ctx) {
         const want = up || dBox > (N.mode === 'you' ? 16 : 12) ? 'foot' : 'you';
         if (want !== N.mode) { N.mode = want; nour.follow = want === 'foot' ? nourToFoot : nourToYou; }
         if (up && !N.called && N.t > 6 && dBox < 6) { N.called = true; say(nour, MURMURS.nour[3], 3.5); }
-        // she reaches you: the conversation opens on its own (once)
-        if (!dialogue.open && onTerrace && flat(nour.pos, pp) < 2.6 && Math.abs(nour.pos.y - pp.y) < 1.2 && !player.riding && N.t > 1.5) {
-          if (dialogue.start(PEOPLE.nour, nour)) N.talked = true;
-        }
+        // (she reaches you and waits by you, calling you over: the talk is yours to start, below)
       }
       if (N.talked && dBox > 30) nourHome();
     }
   };
 
+  // ---------------------------------------------------------------- calling you over
+  // whoever has something for you doesn't start talking by themselves: every few seconds while you're
+  // near and haven't come over, a word (a balloon, said in their own voice), Nour a little "psst"
+  // (sound.psst), and they turn to you. The talk is yours to start, on the usual prompt.
+  const calls = [];
+  const caller = (n, o) => {
+    const c = { n, range: 16, every: 8, wait: 4, t: 4, k: 0, turn: null, ...o };
+    calls.push(c);
+    // while they call you, the prompt is theirs over anyone standing about them (the gathered villagers)
+    const e = allInteractables().find((x) => x.npc === n && x.id?.startsWith('talk.'));
+    if (e) Object.defineProperty(e, 'priority', { get: () => PRIORITY.talk + (c.when() ? 1 : 0), configurable: true });
+    return c;
+  };
+  const updateCalls = (dt, pp) => {
+    const busy = dialogue.open || !!moments?.playing || !!ctx.ship?.playing || !!ctx.ship?.busy?.();
+    for (const c of calls) {
+      const on = c.when(), d = flat(c.n.pos, pp), near = on && d < c.range && Math.abs(c.n.pos.y - pp.y) < 6;
+      c.turn?.(near);
+      if (!on) { c.t = c.wait; continue; }
+      if (busy || !near) { c.t = Math.max(c.t, 1.5); continue; }
+      if ((c.t -= dt) > 0) continue;
+      c.t = c.every;
+      say(c.n, pick(c.lines, c.k++), 2.8);
+      c.calls = (c.calls ?? 0) + 1;
+      if (c.psst) sound.psst?.(V(c.n.pos.x, c.n.pos.y + 1.5 * c.n.object.scale.y, c.n.pos.z));
+    }
+  };
+  // Marrow at your ship, a new game: "Sky-person! Over here!" (he turns from the hull to you)
+  const marrowCall = caller(people.marrow, { lines: CALLS.marrow, range: 30, every: 9, wait: 2.5, when: () => opening() && people.marrow.route !== marrowHome,
+    turn: (near) => { const m = people.marrow; if (m.route === marrowHome) return; m.facing = near ? Math.atan2(player.pos.x - m.pos.x, player.pos.z - m.pos.z) : Math.atan2(hull.x - m.pos.x, hull.z - m.pos.z); } });
+  // Nour, when she has a word for you: the chest opened (she has come over), or the tree drank and stays cold
+  const nourHasWord = () => (sh.nour && !sh.nour.talked) || quests.stage('desert.power') === 'spark';
+  // (not while you're up on the ledge: she has called you down from there already)
+  const nourCall = caller(nour, { lines: CALLS.nour, range: 15, every: 7, wait: 5, psst: true, when: () => nourHasWord() && !sh.up });
+
   // ---------------------------------------------------------------- waved on toward the city
-  const early = () => EARLY.includes(quests.stage('desert.power'));
+  const early = () => opening() || EARLY.includes(quests.stage('desert.power'));
   const setWaveOn = (on) => {
     if (!crowd) return;
     for (const p of crowd.people) {
@@ -762,7 +817,11 @@ export function setupDesert(ctx) {
     if (lit() || !quests.has('stone') || !open()) return;
     quests.take('stone');
     lighting.t = 0;
-    lighting.from.copy(level.hearth?.stone.position ?? player.pos);
+    // out of your pack: in your hand, held out over the water (it was never drawn while you carried it)
+    const hand = player.humanoid?.b?.hand_r;
+    if (hand && player.object?.visible !== false) hand.getWorldPosition(lighting.from);
+    else lighting.from.copy(player.pos).add(V(0, 1.15, 0)).addScaledVector(V(city.well.x - player.pos.x, 0, city.well.z - player.pos.z).normalize(), 0.45);
+    if (level.hearth) level.hearth.stone.userData.placing = true;
     game.set('desert.tree.lit', true);
     sound.chime?.();
     toast('You let the spark-stone down into the well. It sinks, glowing, into the living water…');
@@ -776,12 +835,12 @@ export function setupDesert(ctx) {
     lighting.t += dt;
     const T = lighting.t, H = level.hearth;
     if (T < LIGHT.fly) {
-      // the stone drops from your hand into the water
+      // the stone comes out of your pack and drops from your hand into the water
       const k = T / LIGHT.fly;
       if (H) { H.stone.visible = true; H.stone.position.lerpVectors(lighting.from, sparkPath[0], k).add(V(0, Math.sin(Math.PI * k) * 0.8, 0)); H.stoneLight.set(H.stone.position.x, H.stone.position.y, H.stone.position.z, 10); }
     } else if (T < LIGHT.fly + LIGHT.climb) {
       // a spark climbs out of the water, up the roots and the trunk, to the crown
-      if (H) { H.stone.visible = false; H.stoneLight.w = 0; }
+      if (H) { H.stone.visible = false; H.stoneLight.w = 0; H.stone.userData.placing = false; }
       const k = (T - LIGHT.fly) / LIGHT.climb;
       spark.visible = true;
       sparkCurve.getPointAt(Math.min(1, k * k * (3 - 2 * k)), spark.position);
@@ -841,6 +900,8 @@ export function setupDesert(ctx) {
     // the Speaker waves you on too, as you come up to the procession
     if (early() && !st.speakerWaved && flat(pp, people.speaker.pos) < 14) { st.speakerWaved = true; say(people.speaker, '~happy~ Qanat is ahead, little star. Up to the tree!', 3.5); }
     updateLedge(dt, pp);
+    updateCalls(dt, pp);
+    marrowGoHome();
     if (pp.distanceTo(cave.origin) < 80 && !game.flag('desert.cave.seen')) game.set('desert.cave.seen', true);
     updateFollowers(dt);
     wade();
@@ -928,7 +989,7 @@ export function setupDesert(ctx) {
   };
 
   return {
-    people, update, state: st, villagers, ledge: sh, gatherSpots, hollow, drum, mask, lever, hearth, rise, lighting, setStone, applyLit, film,
+    people, update, state: st, villagers, ledge: sh, gatherSpots, calls: { marrow: marrowCall, nour: nourCall }, hollow, drum, mask, lever, hearth, rise, lighting, setStone, applyLit, film,
     /** E on a crowd person: their short conversation (by where they stand). */
     crowdTalk(p) {
       const id = p.spot?.id, zone = id === 'procession' && st.drinking ? 'drinking' : id;

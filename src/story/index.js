@@ -84,7 +84,7 @@ export function createStory(o) {
   journal.sections.push(() => quests.journalHtml());
   journal.el.addEventListener('click', (e) => {
     const q = e.target.closest?.('[data-quest]');
-    if (q && quests.isActive(q.dataset.quest)) { quests.track(q.dataset.quest); journal.render(); }
+    if (q && quests.isActive(q.dataset.quest)) { quests.choose(q.dataset.quest); journal.render(); }
   });
 
   // a sketch of whoever you're talking to, for the panel: just them (and their cape) against a flat

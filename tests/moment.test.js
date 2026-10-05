@@ -10,7 +10,6 @@ globalThis.document ??= { createElement: el, body: el(), getElementById: () => n
 const { Moment, MomentStage, shotAt, shotIndex, shotsLength, EASE } = await import('../src/story/moment.js');
 const { game } = await import('../src/game-state.js');
 const { parseLine } = await import('../src/story/tone.js');
-const { MOMENT_LINES } = await import('../src/story/desert-data.js');
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 /** A stage that writes down what it is asked. */
@@ -137,8 +136,14 @@ test('the stage: one at a time, once per save, never without the ship’s camera
   assert.ok(ship.log.filter(([k, v]) => k === 'bars' && v === false).length >= 2, 'and the letterbox is down again');
 });
 
-test('the desert’s lines for its moments carry a tone', () => {
-  for (const [k, s] of Object.entries(MOMENT_LINES)) assert.ok(parseLine(s).explicit, k);
+test('show, don’t tell: the desert’s moments give the traveller no lines, and a slight smirk at most', async () => {
+  const data = await import('../src/story/desert-data.js');
+  assert.equal(data.MOMENT_LINES, undefined, 'no lines for him in them');
+  const src = (await import('node:fs')).readFileSync(new URL('../src/story/desert-moments.js', import.meta.url), 'utf8');
+  assert.ok(!/spoken\(\s*'you'/.test(src), 'nothing said in his voice');
+  const looks = [...src.matchAll(/\.look\s*=\s*([^;\n]+)/g)].map((m) => m[1]);
+  assert.ok(looks.length >= 2, 'his face reacts');
+  for (const l of looks) assert.ok(!/'(surprised|happy|shout|scared|playful)'/.test(l), `no big face: ${l}`);
 });
 
 // ------------------------------------------------------------------ the desert's two, in the story
@@ -184,7 +189,7 @@ test('the first run of the water is filmed once: the rib, the crack, the basin, 
   assert.deepEqual(sound.swells, ['motif'], 'the world’s motif swells over it');
   step(Math.round(FLOW.D * 30) + 30);
   assert.ok(!rt.moments.playing, 'then back to you');
-  assert.ok(ship.log.some(([k, v]) => k === 'say' && /It’s running/.test(v ?? '')), 'his line');
+  assert.ok(!ship.log.some(([k, v]) => k === 'say' && v), 'no line: it shows, it doesn’t tell');
   assert.ok(toasts.some((t) => /Water runs/.test(t)), 'and the toast');
   // every panel looked at what it should: the rib (A), the gutter (B), the basin (C), his face (D)
   const shots = ship.shots.slice(n0);

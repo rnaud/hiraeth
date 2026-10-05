@@ -14,8 +14,9 @@ import { THINGS, ITEMS } from './desert-data.js';
 // to the grille. Hands can't move it (E: a look); a shove of fluid (push: the
 // tank was filled at the giant's pool) rolls it down the groove and into the
 // hole: the chain runs and the grille grinds up into the rock. Climb the shelf
-// (the wall's face is plain rock) and take the stone: it lights your way, held
-// at your side, until it goes into Qanat's well.
+// (the wall's face is plain rock) and take the stone: it goes into your pack
+// (the gear page lists it: the quest items you carry), glowing faintly through
+// it in the dark of the hall, and comes out again in your hand at Qanat's well.
 //
 // Flags: desert.hearth.seen (you reached it), desert.hearth.open (the ball has
 // dropped: the grille is up), desert.stone.taken (+ the item 'stone' while you
@@ -69,7 +70,7 @@ export function setupHearth(ctx, { hasPush = () => true, lit = () => false } = {
     quests.give('stone');
     game.set('desert.stone.taken', true);
     sound.chime?.();
-    toast(`You lift ${ITEMS.stone} out of its cup. It is warm, and light, and it breathes in your hands. Bring it to Qanat’s well.`);
+    toast(`You lift ${ITEMS.stone} out of its cup, warm and breathing light, and stow it in your pack. Bring it to Qanat’s well.`);
   };
   registerInteractable({ id: 'hearth.stone', priority: PRIORITY.use, range: 2.9, at: () => H.stone.position, enabled: () => opened() && !taken() && st.roll === Infinity,
     prompt: 'take the spark-stone',
@@ -125,14 +126,15 @@ export function setupHearth(ctx, { hasPush = () => true, lit = () => false } = {
       H.stone.position.copy(H.stoneRest);
       H.stoneLight.set(H.stoneRest.x, H.stoneRest.y + 0.6, H.stoneRest.z + 1.2, (opened() ? 10 : 5) + (opened() ? 8 : 15) * b);
       H.stone.scale.setScalar(0.92 + 0.12 * b);
-    } else if (carrying() && !lit()) {
-      // in your hand at your side: it lights the way out, and the ride home
-      H.stone.visible = true;
+    } else if (carrying() && !lit() && inside()) {
+      // in your pack: nothing floats about you; in the dark of the hall it glows through the cloth a little,
+      // enough to find the way out (out under the sky it is only in your gear)
+      H.stone.visible = false;
       const f = player.frame?.dir ? player.frame.dir(player.heading, _f) : _f.set(Math.sin(player.heading), 0, Math.cos(player.heading));
-      _r.set(f.z, 0, -f.x);
-      H.stone.position.copy(pp).addScaledVector(_r, -0.38).addScaledVector(f, 0.32).add(_f.set(0, player.ride ? 1.5 : 1.0, 0));
-      H.stone.scale.setScalar(0.85 + 0.1 * b);
-      H.stoneLight.set(H.stone.position.x, H.stone.position.y + 0.4, H.stone.position.z, 11 + 3 * b);
+      _r.copy(pp).addScaledVector(f, -0.3);
+      H.stoneLight.set(_r.x, _r.y + 1.3, _r.z, 7 + 2 * b);
+    } else if (H.stone.userData.placing) {
+      // (out of your pack and on its way into the well: src/story/desert.js updateLighting moves it)
     } else {
       H.stone.visible = false;
       H.stoneLight.w = 0;

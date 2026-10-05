@@ -49,7 +49,8 @@ export function setupBuried(ctx) {
   for (const q of QUESTS) quests.define(q);
   quests.itemNames = ITEMS;
   const Q = 'buried.tooth';
-  if (!quests.isStarted(Q)) quests.start(Q);
+  // the main quest doesn't just appear: it starts when you talk to Wen (the scout finds them till then: src/story/quests.js opensWith)
+  if (!quests.isStarted(Q)) quests.opensWith(Q, 'wen');
 
   const ground = (x, z, from = 30) => { const g = physics.groundAt(x, from, z, 400); return Number.isFinite(g) ? g : level.ground.heightAt(x, z); };
   const onGround = (x, z, from) => V(x, ground(x, z, from), z);

@@ -43,7 +43,8 @@ export function setupPerdide2(ctx) {
   if (level.id !== 'perdide2' || !level.saucer) return null;
   for (const q of QUESTS) quests.define(q);
   quests.itemNames = { ...(quests.itemNames ?? {}), ...ITEMS };
-  if (!quests.isStarted(Q) && !game.flag('world.perdide2.done')) quests.start(Q);
+  // the main quest doesn't just appear: it starts when you talk to Hollin (the scout finds them till then: src/story/quests.js opensWith)
+  if (!quests.isStarted(Q) && !game.flag('world.perdide2.done')) quests.opensWith(Q, 'hollin.perdide2', { at: 'hollin' });
 
   const ground = (x, z, up = 3) => { const h = level.ground.heightAt(x, z), g = physics.groundAt(x, h + up, z, up + 4); return Number.isFinite(g) ? g : h; };
   const at = (x, z) => V(x, ground(x, z), z);

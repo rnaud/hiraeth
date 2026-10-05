@@ -28,7 +28,8 @@ export function setupGarage(ctx) {
   const Q = 'garage.signal';
   for (const q of QUESTS) quests.define(q);
   quests.itemNames = { ...(quests.itemNames ?? {}), ...ITEMS };
-  if (!quests.isStarted(Q)) quests.start(Q);
+  // the main quest doesn't just appear: it starts when you talk to Ambroise (the scout finds them till then: src/story/quests.js opensWith)
+  if (!quests.isStarted(Q)) quests.opensWith(Q, 'ambroise');
   const C = G.C_POS, R = G.RING_R;
   const floorY = (z) => C.y - Math.sqrt(R * R - z * z);
   const groundA = (x, z) => { const g = physics.groundAt(x, 40, z, 100); return Number.isFinite(g) ? g : 0; };

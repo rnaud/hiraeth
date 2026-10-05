@@ -38,6 +38,11 @@ export const TONE_EXPRESSIONS = {
   shout: { open: 0.85, brow: -0.5, browTilt: -0.3, squint: 0.3 },
 };
 for (const t of TONES) TONE_EXPRESSIONS[t] ??= {};
+/**
+ * Looks that aren't a line's tone: a face a cinematic gives the traveller without a word (src/story/moment.js
+ * m.look, src/talk-face.js `look`). A smirk: the mouth shut, its corners a little up, the lids a touch narrower.
+ */
+TONE_EXPRESSIONS.smirk = { smile: 0.42, squint: 0.14, brow: 0.06, gaze: [0.05, -0.03] };
 
 /**
  * The people's faces at rest (Humanoid.restExpression): a kind face, not a somber one. The corners

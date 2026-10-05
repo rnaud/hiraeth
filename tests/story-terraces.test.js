@@ -159,7 +159,7 @@ test('the main quest is untouched by it, and the next visit finds the hill as it
   const laneMid = V((T.layout.steps[1].xl + T.layout.steps[1].xu) / 2, 0, -100);
   assert.ok(Math.abs(physics.groundAt(laneMid.x, 40, laneMid.z, 80) - W.level.ground.heightAt(laneMid.x, laneMid.z)) < 0.4, 'no invisible steps left in the lane');
   assert.ok(!targets('clod').some((t) => t.enabled()) && !targets('gate').some((t) => t.enabled()), 'nothing to push any more');
-  assert.equal(quests.stage('edena.garden'), 'mira', 'the world’s own story still waits');
+  assert.ok([undefined, 'mira'].includes(quests.stage('edena.garden')), 'the world’s own story still waits (for Mira)');
 });
 
 test('the father’s charge keeps it quietly; a recording afterwards lands differently', () => {

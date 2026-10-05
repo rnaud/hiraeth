@@ -12,7 +12,7 @@ const { Crowd } = await import('../src/crowd.js');
 const { createStory } = await import('../src/story/index.js');
 const { game } = await import('../src/game-state.js');
 const { DialogueRunner } = await import('../src/story/dialogue.js');
-const { PEOPLE, THINGS, LINES } = await import('../src/story/desert-data.js');
+const { PEOPLE, THINGS, LINES, ITEMS } = await import('../src/story/desert-data.js');
 const { COOL_FIRE } = await import('../src/story/flames.js');
 const { STORY } = await import('../src/desert-sites.js');
 const { clearInteractables, bestInteractable } = await import('../src/interact.js');
@@ -31,7 +31,7 @@ const crowd = new Crowd(scene, physics, { spots: level.crowdSpots(), makeNPC: fa
 // a stand-in player who can be put anywhere
 const player = { pos: V(0, terrain.heightAt(0, 0), 0), vel: V(), wind: V(), heading: 0, riding: false, frame: { up: V(0, 1, 0), dir: (h, out) => out.set(Math.sin(h), 0, Math.cos(h)) } };
 const at = (p) => { player.pos.copy(p); return player; };
-const sound = { setBands() {}, setBandMode() {}, band: () => null, chime() {}, listen() {}, whoosh() {} };
+const sound = { setBands() {}, setBandMode() {}, band: () => null, chime() {}, listen() {}, whoosh() {}, pssts: 0, psst() { this.pssts++; } };
 const toasts = [];
 const camera = new THREE.PerspectiveCamera();
 let storyDone = false;
@@ -42,6 +42,7 @@ const { quests } = rt;
 // people: also walk the story people (main.js does it every frame; most tests don't need them to move)
 const step = (n = 1, dt = 1 / 30, { people = false } = {}) => { for (let i = 0; i < n; i++) { camera.position.copy(player.pos).add(V(0, 2, 4)); rt.update(dt, i * dt, { camera }); crowd.update(dt, i * dt, player, camera); if (people) for (const p of npcs) p.update(dt, player, camera); } };
 const talk = (person, choices) => {
+  quests.opening(person.id);   // (as Dialogue.start does: the main quest starts with its first talk)
   const r = new DialogueRunner(person, { game, quests });
   for (const c of choices) {
     // to the last page of a node with choices (through any `next` chain)
@@ -246,6 +247,40 @@ test('the great tree’s smoke column (once it burns) is a tall landmark that ne
   assert.ok(!Number.isFinite(g) || g < base.y + 40, `the ray through a puff at ${mid.pos.y.toFixed(0)} m lands at ${g}`);
 });
 
+test('a new game: the quest doesn’t just appear; Marrow, at your ship, calls you over and points you to the city', () => {
+  const W = rt.world, m = W.people.marrow;
+  assert.equal(quests.isStarted('desert.power'), false, 'no quest on landing');
+  assert.equal(quests.objective().label, 'Marrow, by your ship', 'the scout finds the one to ask');
+  assert.ok(flat(m.pos, level.spawn) < 12, 'Marrow is at your ship');
+  // he calls you over (a word, every few seconds), and turns to you; he never starts talking himself
+  at(m.pos.clone().add(V(9, 0, 0)));
+  for (let i = 0; i < 12 * 30; i += 10) step(10, 1 / 30, { people: true });
+  assert.ok(W.calls.marrow.calls >= 1 && /Sky-person|Over here/.test(m.shout?.text ?? ''), 'he calls');
+  assert.ok(!rt.dialogue.open, 'no talk on its own');
+  // talk to him (the usual prompt): the quest starts in that talk, in his words
+  at(m.pos.clone().add(V(1.5, 0, 0)));
+  assert.equal(bestInteractable(player)?.entry.id, 'talk.marrow');
+  bestInteractable(player).entry.use(player);
+  assert.ok(rt.dialogue.open && rt.dialogue.runner.nodeId === 'wreck', 'the scar on the hull');
+  assert.equal(quests.stage('desert.power'), 'city', 'under way as he speaks');
+  const r = rt.dialogue.runner;
+  for (let i = 0; i < 12 && rt.dialogue.open; i++) {
+    rt.dialogue.revealed = Infinity;
+    const c = r.choices();
+    if (r.lastPage && c.length && !c.every((x) => x.end)) rt.dialogue.choose((c.find((x) => /no power/.test(x.text)) ?? c[0]).index);
+    else rt.dialogue.next();
+  }
+  if (rt.dialogue.open) rt.dialogue.close();
+  assert.match(r.pages.join(' '), /Qanat/, 'he says where');
+  assert.match(r.pages.join(' '), /Nour/, 'and whom to ask');
+  assert.ok(toasts.some((t) => /^Quest: The Tree That Drinks/.test(t)), 'the quest, said once the talk is over');
+  assert.equal(quests.objective().label, 'Qanat, under the dark tree', 'now the scout finds the city');
+  step(30, 1 / 30, { people: true });
+  const ticks = W.calls.marrow.calls;
+  step(12 * 30, 1 / 30, { people: true });
+  assert.equal(W.calls.marrow.calls, ticks, 'he has said his piece: no more calling');
+});
+
 test('a new game steps out with a bare back to a cold tree: no flame, no smoke, no sparks, no burn; walk to the city past the camps', async () => {
   const { items } = await import('../src/items.js');
   const { updateHazards } = await import('../src/hazards.js');
@@ -274,6 +309,7 @@ test('a new game steps out with a bare back to a cold tree: no flame, no smoke, 
   assert.equal(talk(PEOPLE.speaker, []).nodeId, 'early', 'the Speaker waves you on too');
   at(Q.camps.center); step(3);
   assert.equal(quests.stage('desert.power'), 'city', 'the camps are on the way, not the goal');
+  assert.ok(flat(rt.world.people.marrow.pos, Q.camps.center) < 40, 'Marrow is home by his crates');
   // through the gate: inside the walls
   at(Q.city.plinthStair); step(2);
   assert.equal(quests.stage('desert.power'), 'box');
@@ -314,19 +350,30 @@ test('the makers’ chest is on its ledge up the tree; opening it (its tank empt
   assert.ok(W.gatherSpots.length >= W.villagers.length, `room for everyone to gather (${W.gatherSpots.length} spots)`);
   for (const p of W.gatherSpots) stand(p, 'a gathering spot');
   // they walk over (the ones in the avenue up the main stairs); Nour gets up and waits at the tree's foot
-  // while you're still up on the ledge, calling you down; once you're down, she comes to you and talks
+  // while you're still up on the ledge, calling you down; once you're down, she comes to you and calls you
+  // over (a "psst", every few seconds), but never starts talking herself: that is yours, on the prompt
   assert.equal(nour.seat, null, 'Nour stands');
   for (let i = 0; i < 12 * 30; i += 10) step(10, 1 / 30, { people: true });
   assert.ok(!rt.dialogue.open, 'not while you are up there');
   assert.ok(flat(nour.pos, L.foot) < 3 && Math.abs(nour.pos.y - L.foot.y) < 0.6, 'she waits at the foot of the ledge');
   assert.match(nour.shout?.text ?? '', /Come down/, 'and calls you down');
   at(L.foot.clone().addScaledVector(V(Math.sin(L.yaw), 0, Math.cos(L.yaw)), 1.5));
-  for (let i = 0; i < 40 * 30 && !rt.dialogue.open; i += 10) step(10, 1 / 30, { people: true });
-  assert.ok(rt.dialogue.open && rt.dialogue.person.id === 'nour', 'Nour reaches you and speaks');
+  const p0 = sound.pssts;
+  for (let i = 0; i < 30 * 30 && sound.pssts - p0 < 2; i += 10) step(10, 1 / 30, { people: true });
+  assert.ok(!rt.dialogue.open, 'Nour doesn’t start talking by herself');
+  assert.ok(flat(nour.pos, player.pos) < 3, 'she has come to you');
+  assert.ok(sound.pssts - p0 >= 2, `she calls you, again and again (${sound.pssts - p0})`);
+  assert.match(nour.shout?.text ?? '', /Psst|child/, 'a psst');
+  const turned = Math.atan2(player.pos.x - nour.pos.x, player.pos.z - nour.pos.z) - nour.heading;
+  assert.ok(Math.abs(Math.atan2(Math.sin(turned), Math.cos(turned))) < 0.6, 'turned to you');
+  const prompt = bestInteractable(player);
+  assert.equal(prompt?.entry.id, 'talk.nour', 'the usual prompt');
+  prompt.entry.use(player);
+  assert.ok(rt.dialogue.open && rt.dialogue.person.id === 'nour', 'and you talk');
   assert.equal(rt.dialogue.runner.nodeId, 'opened');
   assert.match(rt.dialogue.runner.pages.join(' '), /opened/);
   rt.dialogue.close();
-  step(30 * 30, 1 / 30, { people: true });
+  step(18 * 30, 1 / 30, { people: true });
   const near = W.villagers.filter((n) => flat(n.pos, box.pos) < 7).length;
   assert.ok(near >= 4, `Qanat gathers at the tree’s foot under the ledge (${near} of ${W.villagers.length})`);
   // a real conversation, with choices
@@ -504,7 +551,8 @@ test('the main quest, end to end: an empty tank, the rib levered off, the tank f
   assert.ok(quests.has('stone') && game.flag('desert.stone.taken'));
   step(2);
   assert.equal(quests.stage('desert.power'), 'light');
-  assert.ok(H.stone.position.distanceTo(player.pos) < 2, 'you carry it, glowing at your side');
+  assert.equal(H.stone.visible, false, 'in your pack: nothing floats about you');
+  assert.ok(quests.carried().includes(ITEMS.stone), 'your gear lists it');
   assert.equal(talk(PEOPLE.nour, []).nodeId, 'stone');
 
   // ---- home to the well: set the stone in the water; the spark climbs the trunk and the tree catches
@@ -515,6 +563,8 @@ test('the main quest, end to end: an empty tank, the rib levered off, the tank f
   assert.equal(setIt?.entry.id, 'well.stone');
   assert.equal(promptOf(setIt), 'set the spark-stone in the well');
   setIt.entry.use(player);
+  step(8);
+  assert.ok(H.stone.visible && H.stone.position.distanceTo(player.pos) < 6, 'out of your pack, from your hand into the well');
   assert.equal(game.flag('desert.tree.lit'), true);
   assert.ok(!quests.has('stone'), 'the stone stays in the well');
   step(30 * 4);
