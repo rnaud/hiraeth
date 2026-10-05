@@ -1,0 +1,27 @@
+changelog.md
+  s_1fd8d0e7b02dcf::t_d1bff239fecc96 18
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_d7dafb7de361e7 21
+src/makehuman/people.js
+  s_1fd8d0e7b02dcf::t_dea7f4baf185cf 166
+src/story/perdide-data.js
+  s_1fd8d0e7b02dcf::t_eb55d662fe1d21 329
+tests/makehuman-worlds.test.js
+  s_1fd8d0e7b02dcf::t_bfe2d375cdecf2 344-349
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c669d49a63240b1dbf6471f2dd6384a4823c8fe3",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
