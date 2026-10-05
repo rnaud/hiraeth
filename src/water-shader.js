@@ -25,6 +25,13 @@ import * as THREE from 'three';
 //                 ripples on it
 // ---------------------------------------------------------------------------
 
+/**
+ * Water marks itself in the G-buffer by the length of its normal (others are unit length):
+ * 1 + WATER_MARK.base, plus WATER_MARK.glint × the sun's sparkle there. post.js only uses
+ * normals' directions, so nothing else notices; water.js reads it back for the sparkle.
+ */
+export const WATER_MARK = { base: 0.012, glint: 0.05 };
+
 /** How many ripple rings the shader draws at once (water.js keeps a ring buffer). */
 export const RINGS = 12;
 
@@ -67,7 +74,7 @@ export const WATER_GLSL = /* glsl */ `
   uniform vec3 uWaterSky[2];
   uniform vec4 uWind;
 
-  struct WaterLook { vec3 albedo; float ink; float lit; };
+  struct WaterLook { vec3 albedo; float ink; float lit; float glint; };
 
   // the water column under p (m), and how sure the bed map is of it (0 outside it / not baked)
   float waterDepth(vec3 p, out float known) {
@@ -133,6 +140,7 @@ export const WATER_GLSL = /* glsl */ `
       W.albedo = mix(shallow, vec3(0.96, 0.98, 0.97), 0.45);
       W.ink = ink * 0.75;
       W.lit = 1.0;
+      W.glint = 0.0;
       return W;
     }
     if (uWaterOpt.y > 0.5) {
@@ -140,6 +148,7 @@ export const WATER_GLSL = /* glsl */ `
       W.albedo = uColor;
       W.ink = ink * 0.6;
       W.lit = 0.0;
+      W.glint = 0.0;
       return W;
     }
 
@@ -171,23 +180,29 @@ export const WATER_GLSL = /* glsl */ `
     ink = max(ink * (1.0 - foam), lap * 0.85);
     col = mix(col, mix(vec3(0.97, 0.98, 0.95), shallow, 0.18), foam);
 
-    // ---- sparkle: dashes of sun toward the sun (horizontal on the page), twinkling
+    // ---- sparkle: dashes of sun toward the sun (horizontal on the page), twinkling. They are
+    // not drawn here (post.js would ink round them, black specks): the glint goes out in the
+    // normal's length (WATER_MARK) and water.js paints it white over the finished page
     float glint = 0.0;
     if (uSunDir.y > 0.02 && uWaterOpt.w > 0.0) {
       vec3 R = vec3(-V.x, V.y, -V.z);
       float path = smoothstep(0.88, 0.995, dot(R, uSunDir));
-      vec2 side = normalize(vec2(-V.z, V.x) + 1e-5);
-      vec2 g = vec2(dot(p.xz, side) / max(px * 26.0, 0.25), dot(p.xz, vec2(side.y, -side.x)) / max(px * 9.0, 0.12));
-      vec2 id = floor(g), f = fract(g) - 0.5;
+      // world-fixed cells (a power of two metres, ~16 px along the view), a dash in each lying
+      // across the view (horizontal on the page)
+      vec3 cf = -vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2]);
+      vec2 side = normalize(vec2(-cf.z, cf.x) + 1e-5), along = vec2(side.y, -side.x);
+      float cs = exp2(floor(log2(max(px * 16.0, 0.05))));
+      vec2 gq = p.xz / cs, id = floor(gq), f = fract(gq) - 0.5 - (hash2(id + 1.3) - 0.5) * 0.3;
+      vec2 fl = vec2(dot(f, side), dot(f, along));
       float h = hash(id + floor(t * 2.3 + hash(id + 3.1) * 7.0) * 0.137);
-      float len = 0.18 + 0.25 * hash(id + 9.7);
-      glint = step(abs(f.y), 0.2) * step(abs(f.x), len) * step(1.0 - path * 0.55 * uWaterOpt.w, h) * (1.0 - foam);
-      col = mix(col, vec3(1.0, 0.99, 0.94), glint);
+      float len = 0.14 + 0.22 * hash(id + 9.7);
+      glint = step(abs(fl.y), 0.08) * step(abs(fl.x), len) * step(1.0 - path * 0.55 * uWaterOpt.w, h) * (1.0 - foam);
     }
 
     W.albedo = col;
     W.ink = ink;
-    W.lit = max(glint, foam * 0.6);
+    W.lit = foam * 0.6;
+    W.glint = glint;
     return W;
   }
 `;

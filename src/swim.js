@@ -158,7 +158,10 @@ export function swimFrame(P, dt, input, camYaw, { f = 0, s = 0, run = false, sti
   let look = 0;
   const cf = P.camFwd;
   if (cf && f > 0.2 && (under || cf.y < -0.55)) look = clamp(cf.y, -0.95, 0.95) * Math.min(f, 1);
-  if ((P.breath ?? 1) <= 0) { rise = 1; look = Math.max(look, 0); }   // out of air: up you go
+  // out of air: up you go, and no diving again until you have your breath back
+  if ((P.breath ?? 1) <= 0) S.gasping = true;
+  else if (S.gasping && P.breath > 0.6) S.gasping = false;
+  if (S.gasping) { rise = 1; look = Math.max(look, 0); }
   if (!under && look > 0) look = 0;
 
   // ---- Space at the surface: up onto a ledge in front, else a kick up out of the water

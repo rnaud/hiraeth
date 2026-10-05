@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { makeMaterial, sharedUniforms, MODE_WATER } from './materials.js';
-import { waterShared, RINGS } from './water-shader.js';
+import { waterShared, RINGS, WATER_MARK } from './water-shader.js';
 
 // ---------------------------------------------------------------------------
 // The world's water (one per level, main.js): every body of water in it, for
@@ -25,7 +25,8 @@ import { waterShared, RINGS } from './water-shader.js';
 //   splashes   white drops and a sound (audio.js) on going in and out, strokes,
 //              wading steps
 //   underwater the camera never sits on the surface (keepCamera); under it, a
-//              tinted pass with banded fog over the composite (renderUnder),
+//              tinted pass with banded fog over the composite (renderOver: it
+//              also paints the sun's sparkle on the water),
 //              the sound muffled, and the breath meter (bubbles under the
 //              health bar) while you hold your breath
 // ---------------------------------------------------------------------------
@@ -335,28 +336,41 @@ export class Waters {
 
   /**
    * After the camera is placed: keep it off the surface (it sees one side or
-   * the other, not a half-and-half lens), and note whether it is under water.
+   * the other, not a half-and-half lens), and note whether it is under water
+   * and whether any water is in view (the sparkle pass runs only then).
    * `prefer`: 'under' when the player is under (the camera follows them down).
    */
   keepCamera(camera, prefer = 'over') {
     const p = camera.position;
     const w = this.surfaceAt(p.x, p.z, p.y, 2);
     this.camUnder = null;
-    if (!w) return null;
-    const band = 0.22;
-    if (Math.abs(p.y - w.y) < band) p.y = prefer === 'under' ? w.y - band : w.y + band;
-    if (p.y < w.y) this.camUnder = { y: w.y, body: w.body };
+    if (w) {
+      const band = 0.22;
+      if (Math.abs(p.y - w.y) < band) p.y = prefer === 'under' ? w.y - band : w.y + band;
+      if (p.y < w.y) this.camUnder = { y: w.y, body: w.body };
+    }
     camera.updateMatrixWorld();
+    _frustum.setFromProjectionMatrix(_pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+    this.inView = this.bodies.some((b) => shownInScene(b.mesh) && b.box.distanceToPoint(p) < WATER_PASS.reach && _frustum.intersectsBox(b.box));
     return this.camUnder;
   }
 
-  /** The underwater look over the composite (after post.js, before FXAA). */
-  renderUnder(renderer, camera, tNormal, target) {
-    if (!this.camUnder) { this.sound?.underwater?.(0); return; }
-    this.sound?.underwater?.(1);
-    (this.under ??= new UnderwaterPass()).render(renderer, camera, tNormal, target, this.camUnder, this.camUnder.body);
+  /**
+   * Over the finished page (after post.js, before FXAA): under water, the tint
+   * and the banded haze; above it, the sun's sparkle on the water (water-shader.js
+   * marks it in the normals' length: drawn here it gets no ink outline).
+   */
+  renderOver(renderer, camera, { tNormal, tAlbedo, target, toon = 0.5 } = {}) {
+    this.sound?.underwater?.(this.camUnder ? 1 : 0);
+    const sun = sharedUniforms.uSunDir.value.y > 0.02;
+    if (!this.camUnder && !(sun && this.inView)) return;
+    (this.pass ??= new WaterPass()).render(renderer, camera, { tNormal, tAlbedo, target, toon, under: this.camUnder });
   }
 }
+
+const _frustum = new THREE.Frustum(), _pm = new THREE.Matrix4();
+/** The over-the-page pass: how far away water still sparkles (m). */
+export const WATER_PASS = { reach: 600 };
 
 // ---------------------------------------------------------------- splash drops
 /** White drops thrown up from the water, falling back (instanced, inked like everything). */
@@ -401,23 +415,27 @@ class Drops {
   }
 }
 
-// ---------------------------------------------------------------- under water
+// ---------------------------------------------------------------- over the page
 /**
- * Over the finished page while the camera is under water: everything sinks
- * into the water's colour in flat bands with distance, a little darker the
- * deeper you look, and the surface overhead stays bright (it's drawn from
- * below by the water shader). Drawn with alpha over the composite.
+ * Drawn with alpha over the finished page. Under water: everything sinks into
+ * the water's colour in flat bands with distance, a little darker the deeper
+ * you look (the surface overhead stays bright: the water shader draws it from
+ * below). Above water: white dashes of sun where the water shader marked a
+ * glint, only where the water is lit, fading with distance.
  */
-class UnderwaterPass {
+class WaterPass {
   constructor() {
     this.material = new THREE.ShaderMaterial({
       glslVersion: THREE.GLSL3,
       depthTest: false, depthWrite: false, transparent: true,
       uniforms: {
         tNormal: { value: null },
+        tAlbedo: { value: null },
         uInvProj: { value: new THREE.Matrix4() },
         uCamWorld: { value: new THREE.Matrix4() },
+        uUnder: { value: 0 },
         uSurf: { value: 0 },
+        uToon: { value: 0.5 },
         uTint: { value: new THREE.Color('#3f8f95') },
         uDeep: { value: new THREE.Color('#1f4f60') },
         uTime: sharedUniforms.uTime,
@@ -428,17 +446,26 @@ class UnderwaterPass {
       `,
       fragmentShader: /* glsl */ `
         precision highp float;
-        uniform sampler2D tNormal;
+        uniform sampler2D tNormal, tAlbedo;
         uniform mat4 uInvProj, uCamWorld;
-        uniform float uSurf, uTime;
+        uniform float uUnder, uSurf, uTime, uToon;
         uniform vec3 uTint, uDeep;
         in vec2 vUv;
         out vec4 fragColor;
         void main() {
           vec4 N = texture(tNormal, vUv);
+          if (uUnder < 0.5) {
+            // the sparkle: the water's mark in the normal's length (water-shader.js WATER_MARK)
+            float len = length(N.xyz);
+            float g = clamp((len - ${(1 + WATER_MARK.base).toFixed(4)}) / ${WATER_MARK.glint.toFixed(4)}, 0.0, 1.0);
+            if (N.w <= 0.0 || g < 0.35) discard;
+            float lit = smoothstep(uToon - 0.02, uToon + 0.02, texture(tAlbedo, vUv).a);
+            float a = lit * (1.0 - smoothstep(180.0, 520.0, N.w));
+            fragColor = vec4(vec3(1.0, 0.99, 0.94), a);
+            return;
+          }
           vec4 pv = uInvProj * vec4(vUv * 2.0 - 1.0, 1.0, 1.0);
-          vec3 rv = pv.xyz / pv.w;
-          vec3 rd = normalize(mat3(uCamWorld) * rv);
+          vec3 rd = normalize(mat3(uCamWorld) * (pv.xyz / pv.w));
           vec3 cam = uCamWorld[3].xyz;
           float fwdK = max(dot(rd, -uCamWorld[2].xyz), 0.05);
           float dist = N.w > 0.0 ? N.w / fwdK : 400.0;
@@ -450,11 +477,10 @@ class UnderwaterPass {
           f = (floor(fb) + smoothstep(0.4, 0.6, fract(fb))) / 3.0;          // flat bands, like a printed haze
           float down = clamp(-rd.y, 0.0, 1.0);
           vec3 col = mix(uTint, uDeep, 0.35 + 0.5 * down);
-          // light from the surface: shafts drifting slowly, only near the top
+          // light from the surface: shafts drifting slowly, only looking up
           float shaft = smoothstep(0.55, 0.9, sin(rd.x * 9.0 + rd.z * 5.0 + uTime * 0.25) * 0.5 + 0.5) * clamp(rd.y + 0.4, 0.0, 1.0) * 0.18;
           col = mix(col, vec3(0.92, 0.98, 0.96), shaft);
-          float a = 0.28 + 0.62 * f;
-          fragColor = vec4(col, a);
+          fragColor = vec4(col, 0.28 + 0.62 * f);
         }
       `,
     });
@@ -464,15 +490,20 @@ class UnderwaterPass {
     this.scene.add(quad);
     this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
   }
-  render(renderer, camera, tNormal, target, under, body) {
+  render(renderer, camera, { tNormal, tAlbedo, target, toon, under }) {
     const U = this.material.uniforms;
     U.tNormal.value = tNormal;
+    U.tAlbedo.value = tAlbedo;
+    U.uToon.value = toon;
     U.uInvProj.value.copy(camera.projectionMatrixInverse);
     U.uCamWorld.value.copy(camera.matrixWorld);
-    U.uSurf.value = under.y;
-    const m = body?.mat?.uniforms;
-    if (m) { U.uTint.value.copy(m.uColor.value); U.uDeep.value.copy(m.uColor.value).multiplyScalar(0.5); }
-    else { U.uTint.value.set('#5aa6a8'); U.uDeep.value.set('#2a5560'); }
+    U.uUnder.value = under ? 1 : 0;
+    if (under) {
+      U.uSurf.value = under.y;
+      const m = under.body?.mat?.uniforms;
+      if (m) { U.uTint.value.copy(m.uColor.value); U.uDeep.value.copy(m.uColor.value).multiplyScalar(0.5); }
+      else { U.uTint.value.set('#5aa6a8'); U.uDeep.value.set('#2a5560'); }
+    }
     renderer.setRenderTarget(target);
     renderer.render(this.scene, this.camera);
   }

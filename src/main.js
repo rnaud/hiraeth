@@ -1005,7 +1005,7 @@ function renderFrame() {
   renderer.setRenderTarget(composeRT);
   renderer.clear();
   renderer.render(post.scene, post.camera);
-  waters.renderUnder(renderer, camera, gbuffer.textures[1], composeRT);   // under water: the tint and the banded haze
+  waters.renderOver(renderer, camera, { tNormal: gbuffer.textures[1], tAlbedo: gbuffer.textures[0], target: composeRT, toon: U.uToon.value });   // the sun's sparkle; under water, the tint and haze
 
   // 4. wind-blown sand and drifting motes, drawn on top (depth-tested against the G-buffer)
   // (not in a portrait shot: just the person against a flat colour)

@@ -5,7 +5,7 @@ import { CREASE_GLSL } from './creases.js';
 import { BIOME_GLSL } from './biome.js';
 import { CROWD_GLSL, TRIM_GLSL } from './crowd-shader.js';
 import { GROUND_GLSL } from './ground-ink.js';
-import { WATER_GLSL, waterMaterial } from './water-shader.js';
+import { WATER_GLSL, WATER_MARK, waterMaterial } from './water-shader.js';
 
 // ---------------------------------------------------------------------------
 // G-buffer surface material.
@@ -1050,6 +1050,9 @@ const fragmentShader = /* glsl */ `
 
     gAlbedoLight = vec4(albedo, L);
     gNormalDepth = vec4(n, vViewDepth);
+    #ifdef WATER
+      if (gl_FrontFacing && uWaterOpt.y < 0.5) gNormalDepth.xyz *= 1.0 + ${WATER_MARK.base} + ${WATER_MARK.glint} * wl.glint;   // (water.js: the sparkle)
+    #endif
 
     gHatch = vec4(0.0);
     float detail = uPortrait > 0.5 ? portraitInk(vBind, clamp((uToon - L) / uToon, 0.0, 1.0)) : 0.0;
