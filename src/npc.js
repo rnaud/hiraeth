@@ -106,6 +106,8 @@ export class NPC {
     this.object.scale.setScalar((scale ?? (dress?.height ?? 1)) * (dress?.size ?? 1));
     this.object.userData.noCollide = true;
     scene.add(this.object);
+    // (?mh=1: a MakeHuman body by who they are, src/makehuman/people.js)
+    if (human?.userData?.mhPeople) { human = human.userData.mhPeople.templateFor({ kind, def, dress, pooled }); this.object.scale.multiplyScalar(human.userData.profile.heightFix ?? 1); }
     this.humanoid = human ? new Humanoid(human, this.char, kind, { skin: dress?.skin ?? '#e8c6a8', build: dress?.build }) : null;
     this.cape = null;
     // a face and a resting expression of their own (the story's, a spawn spot's) win over their look's (restyle)
