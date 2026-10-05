@@ -1,0 +1,21 @@
+src/lod.js
+  s_1fd8d0e7b02dcf::t_ad9fa78bdc69d4 81-85,123-134,139,154-163,166-186,197-199,204-220,227-241
+tests/lod.test.js
+  s_1fd8d0e7b02dcf::t_806234b8aa23de 103-125
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7f50640de7c75edbf2229d2e414413c7cc7fdc44",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
