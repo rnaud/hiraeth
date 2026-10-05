@@ -6,7 +6,7 @@ import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { nativeApi, latestJson, webJson, webDecision, staleWebZips, releasePage, releaseNotes } from '../scripts/release-info.mjs';
+import { nativeApi, webMinNative, desktopApi, gameBuild, LAST_RUN_NUMBER_BUILD, latestJson, webJson, webDecision, staleWebZips, releasePage, releaseNotes } from '../scripts/release-info.mjs';
 import { CHANGELOG } from '../src/changelog.js';
 
 const java = (name) => readFileSync(new URL(`../android/app/src/main/java/com/rnaud/moebius/${name}`, import.meta.url), 'utf8');
@@ -21,7 +21,53 @@ test('the native level comes from WebBundles.NATIVE_API', () => {
   assert.equal(run('native').trim(), String(nativeApi()));
 });
 
-test('web.json: version, run number, the zip\'s sha256, its URL, size, notes and the native level it needs', () => {
+test('the levels: what the app is, what the web game needs (WEB_MIN_NATIVE), what the Deck runtime is', () => {
+  const src = java('WebBundles.java');
+  assert.equal(webMinNative(), +/WEB_MIN_NATIVE = (\d+);/.exec(src)[1]);
+  assert.equal(run('web-min-native').trim(), String(webMinNative()));
+  assert.ok(webMinNative() <= nativeApi(), 'an app runs the web game it carries');
+  assert.ok(nativeApi() >= 5, 'NATIVE_API 5: the updates from the game\'s site');
+  assert.ok(webMinNative() <= 4, 'apps from NATIVE_API 4 keep taking the game\'s updates (from GitHub, until the repository is private)');
+  assert.equal(desktopApi(), +/export const DESKTOP_API = (\d+);/.exec(readFileSync(new URL('../desktop/main.mjs', import.meta.url), 'utf8'))[1]);
+  assert.throws(() => webMinNative('class Nothing {}'));
+});
+
+test('the build number: the commit count, the same in every workflow, above the run-numbered builds', () => {
+  const fake = (shallow, count) => (...a) => (a[0] === 'rev-parse' ? String(shallow) : String(count));
+  assert.equal(gameBuild({ run: fake(false, 541) }), 541);
+  assert.throws(() => gameBuild({ run: fake(true, 541) }), /fetch-depth: 0/, 'a shallow clone would count 1');
+  assert.throws(() => gameBuild({ run: fake(false, LAST_RUN_NUMBER_BUILD) }), /not above/, 'never back below the APKs out there');
+  assert.equal(LAST_RUN_NUMBER_BUILD, 117, 'the last APK numbered by its run (v0.59)');
+  let real;
+  try { real = gameBuild(); } catch (e) { if (!/shallow/.test(e.message)) throw e; }
+  if (real) assert.equal(run('build').trim(), String(real));
+  for (const f of ['android.yml', 'cloudflare.yml', 'steam-deck.yml']) {
+    assert.match(readFileSync(new URL(`../.github/workflows/${f}`, import.meta.url), 'utf8'), /fetch-depth: 0/, `${f} checks out the whole history`);
+  }
+  const yml = readFileSync(new URL('../.github/workflows/android.yml', import.meta.url), 'utf8');
+  assert.match(yml, /echo "build=\$\(node scripts\/release-info\.mjs build\)"/);
+  assert.match(yml, /APP_VERSION_CODE: \$\{\{ steps\.meta\.outputs\.build \}\}/, 'versionCode = the build the app compares a web bundle with');
+  assert.doesNotMatch(yml, /run_number/, 'no run numbers left in the Android build');
+  assert.match(readFileSync(new URL('../.github/workflows/steam-deck.yml', import.meta.url), 'utf8'), /WEB_BUILD=\$\(node scripts\/release-info\.mjs build\)/);
+});
+
+test('the game\'s updates come from its site; the APK still from GitHub releases', () => {
+  const src = java('WebBundles.java'), up = java('Updater.java');
+  assert.match(src, /MANIFEST = "https:\/\/memento\.alexandria-rnaud\.workers\.dev\/updates\/web\.json"/);
+  assert.match(src, /RELEASES = "https:\/\/github\.com\/rnaud\/moebius\/releases\/latest"/);
+  assert.match(up, /LATEST = "https:\/\/github\.com\/rnaud\/moebius\/releases\/latest\/download\/latest\.json"/, 'apps up to NATIVE_API 4 read it here too: it brings them this APK');
+  // the APK feed failing is never an update error: only a quiet note in the settings
+  assert.match(up, /catch \(Exception e\) \{[^}]*web\.apkChecked\(e\);/);
+  assert.match(src, /void apkChecked\(Exception failure\)/);
+  assert.match(src, /ret\.put\("apkCheck", apkCheck\);/);
+  const find = /private void findApk\(\) \{([\s\S]*?)\n {4}\}/.exec(src)?.[1];
+  assert.ok(find);
+  assert.doesNotMatch(find, /status\(|error = /, 'a failed APK lookup leaves the update state alone');
+  const deck = readFileSync(new URL('../scripts/steam-deck/deck.py', import.meta.url), 'utf8');
+  assert.match(deck, /CONTENT_URL = 'https:\/\/memento\.alexandria-rnaud\.workers\.dev\/updates\/'/, 'the Deck reads the same web.json');
+});
+
+test('web.json: version, build number, the zip\'s sha256, its URL, size, notes and the native level it needs', () => {
   const zip = join(mkdtempSync(join(tmpdir(), 'moebius-ota-')), 'web-14.zip');
   writeFileSync(zip, 'not really a zip');
   const sha = createHash('sha256').update('not really a zip').digest('hex');
@@ -30,7 +76,8 @@ test('web.json: version, run number, the zip\'s sha256, its URL, size, notes and
     { version: '0.37', build: 14, sha256: sha, zip: url, minNative: 2, size: 16, notes: ['a', 'b'], page: 'https://example.com/o/r/releases/tag/v0.37' });
   // as the workflow runs it
   assert.deepEqual(JSON.parse(run('web-json', '14', zip, 'https://x/web-14.zip')),
-    { version: CHANGELOG[0].v, build: 14, sha256: sha, zip: 'https://x/web-14.zip', minNative: nativeApi(), size: 16, notes: releaseNotes() });
+    { version: CHANGELOG[0].v, build: 14, sha256: sha, zip: 'https://x/web-14.zip', minNative: webMinNative(), size: 16, notes: releaseNotes() });
+  assert.equal(webJson({ build: 14, version: '1', zip: 'u', file: zip, native: 4, desktop: 2, notes: [] }).minDesktop, 2, 'the Deck runtime level, for the site\'s web.json');
   assert.deepEqual(releaseNotes(), CHANGELOG[0].items.slice(0, 12), 'the newest changelog lines, for the settings');
   assert.deepEqual(JSON.parse(run('latest-json', '14', 'https://x/a.apk')), { code: 14, name: CHANGELOG[0].v, apk: 'https://x/a.apk', native: nativeApi() });
   assert.deepEqual(latestJson({ build: 3, version: '1', apk: 'u', native: 2 }), { code: 3, name: '1', apk: 'u', native: 2 });
@@ -115,6 +162,8 @@ test('the APK updater only asks for native changes', () => {
 
 test('the workflow publishes the web zip and both manifests, never half', () => {
   const yml = readFileSync(new URL('../.github/workflows/android.yml', import.meta.url), 'utf8');
+  // (for apps up to NATIVE_API 4, until the repository is private: docs/cloudflare.md)
+  assert.match(yml, /TRANSITION: remove once the repository is private/);
   assert.match(yml, /zip -q -r -X "\$RUNNER_TEMP\/web-\$BUILD\.zip" \./, 'one zip name per build');
   assert.match(yml, /release-info\.mjs web-json "\$BUILD" "\$RUNNER_TEMP\/web-\$BUILD\.zip" "\$BASE\/web-\$BUILD\.zip"/);
   assert.match(yml, /release-info\.mjs latest-json/);

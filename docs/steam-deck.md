@@ -14,6 +14,7 @@ In Desktop Mode, sign in to Steam at least once. Open Konsole and run:
 curl --fail --location --output /tmp/install-moebius.py https://github.com/rnaud/moebius/releases/download/steam-deck/install-moebius.py && python3 /tmp/install-moebius.py
 ```
 
+(While the repository is public. Once it is private, see "Install by hand" below.)
 The installer downloads the latest package. When it asks, choose **Steam → Exit**
 and leave the installer open. It waits up to five minutes, then adds Moebius to
 each existing local Steam account. Reopen Steam or return to Gaming Mode and
@@ -29,22 +30,58 @@ Steam Play compatibility tool. The game starts fullscreen at a 1280×800 window
 size and uses its existing controller controls. Exit through Steam's **Exit Game**
 command, or Alt+F4 in Desktop Mode.
 
+## Install by hand
+
+Once the repository is private, its release files need a GitHub login. Download the
+package where `gh` is signed in (then copy the folder to the Deck, or run this on the Deck):
+
+```sh
+D=~/Downloads/memento
+gh release download steam-deck -R rnaud/moebius -D $D -p steam-deck.json -p install-moebius.py --clobber
+BUILD=$(python3 -c "import json, sys; print(json.load(open(sys.argv[1]))['build'])" $D/steam-deck.json)
+gh release download steam-deck -R rnaud/moebius -D $D -p "moebius-steam-deck-$BUILD.tar.gz" --clobber
+python3 $D/install-moebius.py --from $D
+```
+
+`--from` installs the package next to `steam-deck.json` (checked against its SHA-256),
+then registers the Steam shortcut as usual. The game inside then keeps itself up to date
+from the game's site.
+
 ## Updates and saves
 
-Each launch starts a background update check. A new build is downloaded into a
-temporary directory, SHA-256 verified, and unpacked before the `current` symlink
-is atomically changed. The running game keeps using its original build; the next
-launch uses the update. Network failures never prevent an installed game from
-starting. Updates include both the runtime and updater. The newest two builds
-and any build still running are retained; older unused builds are removed.
+Each launch starts a background update check, of two things separately (one failing never
+holds back the other; see `update.log`):
 
-The feed is the `steam-deck.json` asset on the dedicated `steam-deck` GitHub release.
-Its build number advances even when the in-game version has not changed.
-The checksum detects incomplete/corrupted downloads; it is not an independent
-signature and trusts the GitHub release publisher and HTTPS.
+- **The game** (content): the same web bundle as the Android app's, from the game's site,
+  https://memento.alexandria-rnaud.workers.dev/updates/web.json (published by
+  `cloudflare.yml`, see `docs/cloudflare.md`). A build newer than the one the runtime
+  carries (`resources/app/content.json`) is downloaded, SHA-256 verified, unpacked to
+  `web/<build>/` and used from the next launch: `deck.py --launch` pins it and passes it to
+  Electron (`MOEBIUS_GAME`), and `desktop/main.mjs` serves it at the same `moebius://game`
+  origin, so the saves are the same. A game that doesn't reach its first frame within 60 s
+  (or crashes first) is marked `.failed`, the packaged game takes over, and that build is
+  never taken again. A build that needs a newer runtime (`minDesktop` above the runtime's
+  `DESKTOP_API`) waits for one. The newest two and any one running are kept.
+- **The runtime** (Electron, `main.mjs`, this updater and a packaged copy of the game): the
+  `steam-deck.json` feed on the dedicated `steam-deck` GitHub release. A new build is
+  downloaded into a temporary directory, SHA-256 verified, and unpacked before the
+  `current` symlink is atomically changed. The newest two builds and any build still running
+  are retained. Its build number (run × 1000 + attempt) advances even when the in-game
+  version has not changed. Once the repository is private this check fails quietly; update
+  the runtime by hand (above) when `DESKTOP_API` changes.
+
+The running game keeps using what it started with; the next launch uses the update. Network
+failures never prevent an installed game from starting. The checksums detect
+incomplete/corrupted downloads; they are not independent signatures and trust the
+publisher and HTTPS.
+
+Runtimes from before content updates update themselves to one that has them (from GitHub,
+while the repository is public): launch the game twice before the repository goes private.
+`build.json` stays exactly `{build, version}`, as those updaters check.
 
 - Game files: `~/.local/share/moebius-deck/`
 - Save data and settings: `~/.config/moebius/` (separate from browser/Android saves)
+- Downloaded game updates: `~/.local/share/moebius-deck/web/<build>/`
 - Update diagnostics: `~/.local/share/moebius-deck/update.log`
 - Desktop launcher: `~/.local/share/applications/moebius.desktop`
 
@@ -61,7 +98,8 @@ python3 ~/.local/share/moebius-deck/current/resources/app/deck.py --register-ste
 dispatch. It tests the installer, builds the web game, packages pinned Electron
 for Linux x86-64, and opens the packaged game under Xvfb with software rendering.
 Only after the game finishes loading does it publish the archive and then the
-update manifest. The separate prerelease channel does not replace Android's
+update manifest. The packaged game's build number (`WEB_BUILD`, `release-info.mjs build`) is
+on the content updates' scale, so it checks out the whole history. The separate prerelease channel does not replace Android's
 latest release. Only GitHub's built-in workflow token is needed.
 
 Build locally with Node 24 and Python 3.10 or newer:

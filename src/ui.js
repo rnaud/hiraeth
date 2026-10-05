@@ -49,7 +49,7 @@ export class Settings {
 export function padControls(ok = confirmKey(), back = backKey()) {
   return 'Controller, walking: left stick move (click it, L3, to run) · right stick look (hold LB / L1 to zoom) · '
     + 'A / × jump (again in the air: boost; hold: wings) · B / ○ interact, talk, get on · X / □ call your mount or a taxi · Y / △ ping · '
-    + 'LT / L2 aim the fluid tool, and RT / R2 shoots while you aim · RT / R2 without aiming: the jets (left stick flies you that way, A / × held climbs) · RB / R1 push · D-pad left / right gun mode, up worlds, down photo · '
+    + 'LT / L2 aim the fluid tool, and RT / R2 shoots while you aim · RT / R2 without aiming: the jets climb (left stick flies you that way, A / × held as well hovers) · RB / R1 push · D-pad left / right gun mode, up worlds, down photo · '
     + 'View gear and sketchbook · Menu settings. '
     + 'Riding: RT / R2 go · LT / L2 brake · left stick steer (flying: forward dives, back climbs) · X / □ hop, flap, rise · RB / R1 boost · A / × jump off · B / ○ get off. '
     + 'Swimming: left stick swim (L3 sprints) · look down and swim forward to dive, under water you swim where you look · A / × rise, at the surface kick up or climb out. '

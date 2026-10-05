@@ -538,23 +538,45 @@ All of this is for the web game; the Unity port follows later if we move to Unit
 
 # Feel and look (2026-10-05, web)
 
-- [ ] Plants move too much when you walk past: a light brush as you pass, not a big shove.
-- [ ] Most structures cast shadows.
-- [ ] Grass pops in: in the distance it should fade into something smaller and cheaper, not appear at a line.
-- [ ] Jump animation by phase: take-off, the top, falling back down (it looks static through the whole jump).
-- [ ] The gun's blob impact follows the surface it hits, not a flat decal floating in front of it.
+- [x] Plants move too much when you walk past: a light brush as you pass, not a big shove.
+  *(A small quick lean away that springs back with a light wobble, by how close and how fast you
+  pass: each plant a damped spring driven by your last second of steps, summed in the vertex
+  shader; ~10 cm walking instead of ~1 m. src/brush.js, README "Brushing past plants".)*
+- [x] Most structures cast shadows. (Audited every world: nearly everything already cast; the far
+  map skipped every tile of instanced props, so boulders, globes and pillars past 220 m cast
+  nothing: now only tiles of small ones are skipped. Perdide's great crystal casts though it glows.
+  README "Who casts a shadow".)
+- [x] Grass pops in: in the distance it should fade into something smaller and cheaper, not appear at a line.
+  *(Tuft by tuft: shrinking, thinner, into the ground's colour and without outline; a sparse far
+  layer of two-blade tufts carries the meadow ~2.2× as far; the patch no longer jumps when the
+  camera turns. Fewer triangles on every preset (High 109 k → 102 k, reach 35 → 78 m). README
+  "Grass into the distance".)*
+- [x] Jump animation by phase: take-off, the top, falling back down (it looks static through the whole jump).
+  Done: `src/jump.js` blends Jump_Start / Jump_Loop / Jump_Land by the vertical speed and the time to the
+  ground (push, tuck, the top, the fall with the arms out, reaching for the ground), plus a landing squash.
+- [x] The gun's blob impact follows the surface it hits, not a flat decal floating in front of it.
+  (Projected onto the drawn triangles round the hit, wrapped over steps, rocks and trunks:
+  `splat-decal.js`.)
 - [x] Hands are stiff and flat: give them the natural arc of a relaxed hand, and let them move.
   (`src/hands.js`: the fingers were never posed; a relaxed arc at rest, poses by context (running,
   climbing, riding, the gun, props), gestures in the line's tone, blended, with a little drift and lag.)
-- [ ] The faces in the dialogue box's portrait are badly aliased.
+- [x] The faces in the dialogue box's portrait are badly aliased. (Drawn at the circle's size,
+  supersampled and shrunk by halves, saved as PNG.)
 - [x] The alien text in the dialogue box lacks variety: it should look like a real written language
   (each world its own script) before it turns into English. Done: `src/story/scripts.js`, a script
   a world (an abjad, runes, an abugida, knots, logograms…, some right to left), drawn as inline SVG
   the English word's width; words turn into English one by one behind the caret; all of them on
   `tools/tongues.html`.
-- [ ] One stamina bar shared by running and climbing; running a little faster.
-- [ ] Flowers that open shouldn't clip into walls and other things.
-- [ ] Make it clear when you hit an invisible wall (the traveller just stutters as you push on).
+- [x] One stamina bar shared by running and climbing; running a little faster.
+  Done: `src/stamina.js` (sprint, climbing and the crawl share it; winded when dry), an inked wheel beside the
+  traveller while it isn't full; the sprint is 8.2 m/s (+14 %).
+- [x] Flowers that open shouldn't clip into walls and other things.
+  *(Rays round each bloom where it's placed: it leans away from what is close and opens only as far
+  as the room left, neighbours included; tight spots move a step or are skipped. README "Flowers
+  with room to open".)*
+- [x] Make it clear when you hit an invisible wall (the traveller just stutters as you push on).
+  Done: the world's edge (`src/edge.js`) takes the outward speed away (a smooth slide, no running on the spot);
+  the traveller faces it and leans into the wind, wisps and ink hatching where you touch it, a line the first time.
 - [x] Each world's music more thematic. (`src/score.js`, `src/score-voices.js`: each world its own
   mode, tempo, metre, instruments, leitmotif and colour; the father's theme in every one; sections in
   seeded arcs, filled by walking and riding, thinned by standing still, roofs and night. Offline
@@ -565,3 +587,40 @@ All of this is for the web game; the Unity port follows later if we move to Unit
 - [ ] A level called "references" that recreates the reference images' scenes exactly, to check the
   shaders against the intended look; `[` and `]` (L3 / R3 on device) switch between them. First
   `references/The Desert/environement/IMG_3775.JPG` (six panels), then stop and review.
+  - Done so far (for review): `?level=references` (worlds list), the six panels of IMG_3775 as views
+    (`src/levels/reference-views.js`) framed like their panels, `\` / View compares (corner, overlay,
+    left-half wipe), `?view=<n>`, `?look=desert` (the desert's own palette and preset). README "The
+    References". Composition is close; the scenes are sketches (the skull, the tower's cap, the sails'
+    membranes, the hull's machinery are simpler than drawn).
+  - Shader findings (what the panels do that materials.js / post.js can't yet):
+    - One shadow tint multiplies every albedo. The panels' shadows are near-neutral (×0.55–0.7 of the
+      lit colour, a touch warm on sand), and each surface gets its own: the tower cap's underside is a
+      soft half-tone (×0.85) where the ground under it goes to ×0.4. The desert's blue-grey tint
+      (#93a6cf) turns bone and sand blue (`?look=desert`). A per-material shadow tone, or a half-tone
+      between light and shadow, would do it.
+    - Hatching appears only in shadow and thickens with darkness, so every large shaded area (the
+      cap's underside, the hull's shade, the dishes' backs) becomes a field of strokes. The panels
+      hatch rock as a texture along its strata (the gorge walls, lit or not) and never hatch sand,
+      bone or metal in shade (flat tone). A per-material hatch amount (and hatching on lit rock) is
+      missing.
+    - Ground marks: the sand ripples draw dense parallel wavy lines over every mid-distance dune and
+      the print preset's pen dotting scatters coarse dots over all sand and rock. The panels' sand is
+      flat colour with a few long crest lines and sparse scuffs; their pink rock has crack lines, not
+      dots (terrain mode has no crack/fissure mark).
+    - Lines: our outlines are heavier and even; the panels' are thin and broken, with solid black
+      accents in crevices (between the ribs, inside the hull). Crest lines on soft dunes only appear
+      where the slope breaks sharply.
+    - Sky: the print preset's cumulus bank and flat clouds are on by default (the panels' skies are
+      clean, the views turn them off); our sky dots read as a regular screen and the flat sky still
+      lightens just above the horizon, where the panels' skies are an even grainy tint down to it.
+      The paper grain is much weaker than the panels'.
+    - The `grid` pattern on the hull reads as a regular lattice; the panel's plating is irregular.
+    - The water draws even ripple strokes and pale ellipses everywhere; the panel's lake is large pale
+      shallow shapes, inked round, darker in the cliff's shadow.
+
+# Transitions and moments (2026-10-05, web)
+
+- [ ] Walking into a building, a cave or the ship (where you're moved into another space) is janky:
+  make the hand-over smooth and free of stutter.
+- [ ] A few moments deserve a little cinematic: the first time the magic water flows into the basin in
+  the cave, and the first time you fill the tank and discover what it does.

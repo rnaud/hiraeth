@@ -6,6 +6,7 @@ import { raycastTargets, hitTarget, registerTarget, targetsInCone } from './targ
 import { game as sharedGame } from './game-state.js';
 import { items as sharedItems } from './items.js';
 import { triggers } from './controller.js';
+import { decalBasis, gatherTriangles, projectSplat, flatSplat, splatMaterial, drawnHit, DrawnSurfaces, SPLAT_REACH } from './splat-decal.js';
 import { MODES, STUN_SECONDS, FluidWings, FluidJets, HANDOFF, handoffPose, nextMode, ownedModes } from './fluid-kit.js';
 
 // The magic-fluid backpack: the traveller's signature tool. A glass tank of
@@ -334,69 +335,110 @@ class Dots {
   }
 }
 
-/** A lumpy splat in the xy plane (facing +z): a blob with a few satellite drops. */
-function splatGeometry(seed = 3) {
-  let s = seed;
-  const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
-  const parts = [];
-  const blob = (cx, cy, r, n, lump) => {
-    const pos = [0, 0, 0], idx = [];
-    const ph = rnd() * 6;
-    for (let i = 0; i < n; i++) {
-      const a = (i / n) * Math.PI * 2, k = 1 + lump * (Math.sin(a * 3 + ph) * 0.5 + Math.sin(a * 5 + ph * 2) * 0.3 + (rnd() - 0.5) * 0.4);
-      pos.push(Math.cos(a) * r * k, Math.sin(a) * r * k, 0);
-      idx.push(0, 1 + i, 1 + ((i + 1) % n));
-    }
+/**
+ * Short-lived colourful splats where globs land: two tones, grown fast, shrinking away. Each one is
+ * projected onto the surface it hit (splat-decal.js): the world's triangles round the hit point,
+ * clipped to the splat's box, so it wraps over curves and edges with no gap and no float. All of
+ * them share one mesh (one draw call), rewritten only when a splat comes or goes; the shader grows
+ * and shrinks each in place by its age.
+ */
+export class Splats {
+  /** physics: the collision (or a function returning it) */
+  constructor(parent, physics = null, { max = 24, maxCorners = 30000 } = {}) {
+    this.physics = physics;
+    this.max = max; this.maxCorners = maxCorners;
+    this.list = []; this.time = 0;
     const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-    g.setIndex(idx);
-    g.translate(cx, cy, 0);
-    parts.push(g);
-  };
-  blob(0, 0, 1, 22, 0.32);
-  for (let i = 0; i < 5; i++) { const a = rnd() * Math.PI * 2, d = 1.25 + rnd() * 0.45; blob(Math.cos(a) * d, Math.sin(a) * d, 0.12 + rnd() * 0.12, 8, 0.15); }
-  const g = mergeGeometries(parts);
-  const n = g.attributes.position.count;
-  g.setAttribute('normal', new THREE.Float32BufferAttribute(new Float32Array(n * 3).map((_, i) => (i % 3 === 2 ? 1 : 0)), 3));
-  return g;
-}
-
-/** Short-lived colourful splats where globs land: two tones, grown fast, shrinking away. */
-class Splats {
-  constructor(parent, max = 36) {
-    this.mesh = new THREE.InstancedMesh(splatGeometry(), makeMaterial({ color: '#ffffff', flat: true, glow: 0.55, side: THREE.DoubleSide }), max);
-    this.mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(max * 3), 3);
-    this.mesh.frustumCulled = false; this.mesh.count = 0; this.mesh.userData.noCollide = true;
+    const attr = (name, size) => { const a = new THREE.BufferAttribute(new Float32Array(maxCorners * size), size); a.setUsage(THREE.DynamicDrawUsage); g.setAttribute(name, a); return a; };
+    this.attrs = { position: attr('position', 3), normal: attr('normal', 3), color: attr('color', 3), aSplat: attr('aSplat', 4), aSplat2: attr('aSplat2', 4) };
+    g.setDrawRange(0, 0);
+    this.material = splatMaterial();
+    this.mesh = new THREE.Mesh(g, this.material);
+    this.mesh.name = 'Fluid splats';
+    // (always shown, an empty draw range when there are none: so the shader warm-up at load compiles it)
+    this.mesh.frustumCulled = false;
+    Object.assign(this.mesh.userData, { noCollide: true, dynamic: true, noLod: true });
     parent.add(this.mesh);
-    this.max = max; this.list = [];
-    this._m = new THREE.Matrix4(); this._q = new THREE.Quaternion(); this._s = new THREE.Vector3(); this._p = new THREE.Vector3(); this._z = new THREE.Vector3(0, 0, 1); this._c = new THREE.Color();
+    this._c = new THREE.Color(); this._u = new THREE.Vector3(); this._v = new THREE.Vector3(); this._n = new THREE.Vector3(); this._d = new THREE.Vector3();
   }
-  /** A splat on a surface (point, unit normal) in two tones. */
-  add(point, normal, toneA, toneB, size = FLUID.shoot.splatSize, life = FLUID.shoot.splatLife) {
-    const q = new THREE.Quaternion().setFromUnitVectors(this._z, normal).multiply(new THREE.Quaternion().setFromAxisAngle(this._z, Math.random() * Math.PI * 2));
-    const sq = 0.8 + Math.random() * 0.35;
-    for (const [tone, k, lift] of [[toneA, 1, 0.03], [toneB, 0.5, 0.045]]) {
-      if (this.list.length >= this.max) this.list.shift();
-      this.list.push({ pos: point.clone().addScaledVector(normal, lift), q, sx: size * k * sq, sy: size * k / sq, color: tone, age: 0, life: life * (k < 1 ? 0.85 : 1) });
+
+  /**
+   * A splat on a surface (point, unit normal) in two tones: projected onto what is there. dir: the
+   * shot's direction (unit), if it came flying: the splat is cast halfway between the surface's normal
+   * and back along the shot, so a step's riser facing you takes paint as well as its tread.
+   */
+  add(point, normal, toneA, toneB, size = FLUID.shoot.splatSize, life = FLUID.shoot.splatLife, dir = null) {
+    const sq = 0.8 + Math.random() * 0.35, n = this._n.copy(normal).normalize(), angle = Math.random() * Math.PI * 2;
+    const basis = decalBasis(n, angle, this._u, this._v);
+    // the box: in front of the hit for what stands proud of it, deep behind it to wrap round curves and edges
+    const sx = size * sq, sy = size / sq, front = Math.max(0.3, size * 0.8), back = Math.max(0.4, SPLAT_REACH * Math.max(sx, sy) * 0.9);
+    const physics = typeof this.physics === 'function' ? this.physics() : this.physics;
+    const drawn = this.drawnSurfaces(physics);
+    let piece = null;
+    if (physics?.bvh || physics?.base?.heightAt || drawn) {
+      // what is drawn round the hit, in any direction the splat may be cast (and a margin: the drawn
+      // surface may lie a little off the collision's)
+      const m = 0.6, R = Math.max(sx * SPLAT_REACH, sy * SPLAT_REACH, front, back) + m;
+      const tris = gatherTriangles(physics, point, basis, R, R, R, R, { drawn });
+      // the glob hit the collision; the splat sits on the drawn surface there (a dome's or a trunk's stand-in can differ)
+      const on = drawnHit(tris, point, n, m);
+      const center = on?.point ?? point;
+      if (on) n.copy(on.normal);
+      if (dir) n.sub(this._d.copy(dir).normalize()).normalize();
+      decalBasis(n, angle, this._u, this._v);
+      piece = projectSplat(tris, { center, basis, sx, sy, front, back });
     }
+    if (!piece?.count) piece = flatSplat({ center: point, basis, sx, sy });   // nothing to project onto: flat, as before
+    this.list.push({ piece, born: this.time, life, a: this._c.set(toneA).toArray(), b: this._c.set(toneB).toArray(), phase: Math.random() * 6.283 });
+    while (this.list.length > this.max || this.corners() > this.maxCorners) this.list.shift();
+    this.rebuild();
   }
+  corners() { let n = 0; for (const s of this.list) n += s.piece.count; return n; }
+
+  /** The scene's static drawn meshes (splat-decal.js), the ground's own left to its exact heightfield. */
+  drawnSurfaces(physics) {
+    const scene = this.mesh.parent?.parent;
+    if (!scene) return null;
+    if (this.drawn?.scene !== scene) {
+      const ground = physics?.base?.mesh?.geometry?.attributes?.position;
+      this.drawn = new DrawnSurfaces(scene, { exclude: (o) => !!ground && o.geometry.attributes.position === ground });
+    }
+    return this.drawn;
+  }
+
   update(dt) {
-    if (!this.list.length && !this.mesh.count) return;
-    this.list = this.list.filter((s) => (s.age += dt) < s.life);
-    let i = 0;
-    for (const s of this.list) {
-      // pops out with a little overshoot, holds, then shrinks away
-      const a = s.age, grow = a < 0.14 ? Math.sin((a / 0.14) * Math.PI * 0.62) / Math.sin(Math.PI * 0.62) * 1.12 : 1.12 - 0.12 * Math.min(1, (a - 0.14) / 0.2);
-      const k = grow * (1 - THREE.MathUtils.smoothstep(a, s.life - 1.1, s.life));
-      this._m.compose(s.pos, s.q, this._s.set(s.sx * k, s.sy * k, 1));
-      this.mesh.setMatrixAt(i, this._m);
-      this.mesh.setColorAt(i, this._c.set(s.color));
-      i++;
-    }
-    this.mesh.count = i;
-    this.mesh.instanceMatrix.needsUpdate = true;
-    this.mesh.instanceColor.needsUpdate = true;
+    this.time += dt;
+    this.material.uniforms.uSplatTime.value = this.time;
+    // the drawn surfaces are found once, a moment after the world is up, not on the first shot
+    if (!this.drawn?.items && this.time > 1.5) this.drawnSurfaces(typeof this.physics === 'function' ? this.physics() : this.physics)?.collect();
+    if (!this.list.length) return;
+    const n = this.list.length;
+    this.list = this.list.filter((s) => this.time - s.born < s.life);
+    if (this.list.length !== n) this.rebuild();
   }
+
+  /** Write every live splat into the shared buffers. */
+  rebuild() {
+    const A = this.attrs;
+    let k = 0;
+    for (const s of this.list) {
+      const { positions, normals, coords, count } = s.piece;
+      A.position.array.set(positions, k * 3);
+      A.normal.array.set(normals, k * 3);
+      for (let i = 0; i < count; i++) {
+        const j = k + i;
+        A.color.array.set(s.a, j * 3);
+        A.aSplat.array[j * 4] = coords[i * 2]; A.aSplat.array[j * 4 + 1] = coords[i * 2 + 1];
+        A.aSplat.array[j * 4 + 2] = s.born; A.aSplat.array[j * 4 + 3] = s.life;
+        A.aSplat2.array[j * 4] = s.phase; A.aSplat2.array[j * 4 + 1] = s.b[0]; A.aSplat2.array[j * 4 + 2] = s.b[1]; A.aSplat2.array[j * 4 + 3] = s.b[2];
+      }
+      k += count;
+    }
+    for (const a of Object.values(A)) { a.clearUpdateRanges(); a.addUpdateRange(0, k * a.itemSize); a.needsUpdate = true; }
+    this.mesh.geometry.setDrawRange(0, k);
+  }
+
+  dispose() { this.mesh.geometry.dispose(); this.material.dispose(); this.mesh.removeFromParent(); }
 }
 
 /** Expanding inked rings: the push's shock front and the boost's ground ring. */
@@ -636,7 +678,7 @@ export class FluidTool {
     noShadow?.push(fx);
     this.drops = new Dots(fx, 360, flatMat('#ffffff', { glow: 0.7 }));
     this.glow = new Dots(fx, 160, makeMaterial({ color: '#ffffff', flat: true, glow: 0.95 }));
-    this.splats = new Splats(fx);
+    this.splats = new Splats(fx, () => this.physics);
     this.rings = new Rings(fx);
     const globMat = (this.globMat = makeMaterial({ color: '#ffffff', fluid: 'glob', glow: 0.8, fluidBox: [-1, 1, 1, 0], fluidTones: FLUID_TONES }));
     this.globU = globMat.uniforms;
@@ -1312,10 +1354,10 @@ export class FluidTool {
             this.sound?.fluidSplash?.(false, gm);
             this.splash(e.point, e.normal, 0.8, gm);
             // a splat: fluid; frost (pale, lingering); scorch (dark, with an ember rim, quick)
-            if (gm === 'fire') this.splats.add(e.point, e.normal, '#3a2622', gTones[1], 0.6, 2.4);
-            else if (gm === 'stun') this.splats.add(e.point, e.normal, gTones[0], '#f2fbff', 0.7, FLUID.shoot.splatLife + 1.5);
-            else if (gm === 'bloom') { this.splats.add(e.point, e.normal, gTones[0], gTones[1], 0.6, FLUID.shoot.splatLife); this.state.emit('tool:bloom', { point: e.point.clone(), normal: e.normal.clone() }); }
-            else this.splats.add(e.point, e.normal, gTones[g.tone % gTones.length], gTones[(g.tone + 1) % gTones.length]);
+            if (gm === 'fire') this.splats.add(e.point, e.normal, '#3a2622', gTones[1], 0.6, 2.4, g.dir);
+            else if (gm === 'stun') this.splats.add(e.point, e.normal, gTones[0], '#f2fbff', 0.7, FLUID.shoot.splatLife + 1.5, g.dir);
+            else if (gm === 'bloom') { this.splats.add(e.point, e.normal, gTones[0], gTones[1], 0.6, FLUID.shoot.splatLife, g.dir); this.state.emit('tool:bloom', { point: e.point.clone(), normal: e.normal.clone() }); }
+            else this.splats.add(e.point, e.normal, gTones[g.tone % gTones.length], gTones[(g.tone + 1) % gTones.length], FLUID.shoot.splatSize, FLUID.shoot.splatLife, g.dir);
           }
         }
         if ((g.wake = (g.wake ?? 0) + dt) > 0.03) {

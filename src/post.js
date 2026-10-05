@@ -465,6 +465,9 @@ const fragmentShader = /* glsl */ `
     surface.a -= 16.0 * face;
     float soft = step(7.5, surface.a);
     surface.a -= 8.0 * soft;
+    // a grass blade carries no hatching: r is its pen line's share, g its outline's fade with distance
+    vec2 grassInk = surface.rg * soft;
+    surface.rgb *= 1.0 - soft;
     float figure = step(3.5, surface.a);
     surface.a -= 4.0 * figure;
     float hero = step(1.5, surface.a);
@@ -550,14 +553,21 @@ const fragmentShader = /* glsl */ `
     // how much inner ink (lines, drawn detail, hatching) a person keeps here
     float innerK = figure > 0.5 && hero < 0.5 ? smoothstep(70.0, 260.0, 1.8 * uRes.y * 0.5 * uProj11 / max(depth, 0.1)) : 1.0;
     float softNear = soft;   // a grass blade under this pixel's ink kernel (soft ink)
+    vec2 grassNear = grassInk;   // its pen line's share and its outline's fade (the blade's own, or the nearest blade's)
     if (ink > 0.02 && hero < 0.5 && !isSky) {
       vec2 fo = max(silW * uPixelRatio, 1.0) / uRes;
-      vec4 fa = vec4(texture(tHatch, euv + vec2(fo.x, 0)).a, texture(tHatch, euv - vec2(fo.x, 0)).a,
-                     texture(tHatch, euv + vec2(0, fo.y)).a, texture(tHatch, euv - vec2(0, fo.y)).a);
+      vec4 t1 = texture(tHatch, euv + vec2(fo.x, 0)), t2 = texture(tHatch, euv - vec2(fo.x, 0)),
+           t3 = texture(tHatch, euv + vec2(0, fo.y)), t4 = texture(tHatch, euv - vec2(0, fo.y));
+      vec4 fa = vec4(t1.a, t2.a, t3.a, t4.a);
       fa = mod(fa, 16.0);
       vec4 faSoft = step(vec4(7.5), fa);
       fa -= 8.0 * faSoft;
       softNear = max(soft, max(max(faSoft.x, faSoft.y), max(faSoft.z, faSoft.w)));
+      if (soft < 0.5 && softNear > 0.5) {
+        // beside a blade: its pen line at most, its outline as faded as the least faded blade round it
+        vec4 pens = vec4(t1.r, t2.r, t3.r, t4.r) * faSoft, fades = mix(vec4(1.0), vec4(t1.g, t2.g, t3.g, t4.g), faSoft);
+        grassNear = vec2(max(max(pens.x, pens.y), max(pens.z, pens.w)), min(min(fades.x, fades.y), min(fades.z, fades.w)));
+      }
       float figHit = max(figure, max(max(step(3.5, fa.x), step(3.5, fa.y)), max(step(3.5, fa.z), step(3.5, fa.w))));
       if (figHit > 0.5) {
         float figPx = 1.8 * uRes.y * 0.5 * uProj11 / max(nearD, 0.1);   // a person's height, render px
@@ -651,9 +661,10 @@ const fragmentShader = /* glsl */ `
     // own side (half as wide); a few tufts keep a real pen line
     vec3 inkC = uInk;
     if (softNear > 0.5) {
-      inkC = mix(uInk, col * 0.62, 0.85);
-      // (on the blade itself only its outline: no crease, colour-edge or shadow-edge lines)
-      ink = soft > 0.5 ? min(ink, eS.x) * 0.75 : ink * 0.22;
+      inkC = mix(mix(uInk, col * 0.62, 0.85), uInk, grassNear.x);
+      // (on the blade itself only its outline: no crease, colour-edge or shadow-edge lines;
+      //  fading out with distance, where the blades blend into the ground)
+      ink = (soft > 0.5 ? min(ink, eS.x) * mix(0.75, 1.0, grassNear.x) : ink * mix(0.22, 1.0, grassNear.x)) * (1.0 - grassNear.y);
     }
     col = mix(col, inkC, ink);
 

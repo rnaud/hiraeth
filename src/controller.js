@@ -159,7 +159,7 @@ export function padRide(input) {
  * What the aim and fire buttons do on foot (the pad's triggers, the mouse, the keys):
  *   aim    LT / L2, the right mouse button, R (touch: the ◎ toggle)
  *   shoot  RT / R2, the left mouse button or G, only while aiming (a fresh press: fluid-tool.js)
- *   jets   RT / R2 or the left mouse button while not aiming (player.js: a hover the stick steers;
+ *   jets   RT / R2 or the left mouse button while not aiming (player.js: a climb the stick steers, jump held hovers;
  *          Space, the keyboard's and touch's own jets key, still climbs on them as before)
  *   quick  the touch ✺ button: a quick shot, aiming for you (touch has no trigger to hold)
  */

@@ -113,7 +113,7 @@ const ANDROID = [
   [/\bLT ?\/ ?L2\b/g, 'L2'], [/\bRT ?\/ ?R2\b/g, 'R2'], [/\bLB ?\/ ?L1\b/g, 'L1'], [/\bRB ?\/ ?R1\b/g, 'R1'],
   [/\bLB ?\/ ?RB\b/g, 'L1/R1'],
   [/\bLT\b/g, 'L2'], [/\bRT\b/g, 'R2'], [/\bLB\b/g, 'L1'], [/\bRB\b/g, 'R1'],
-  [/\bView\b(?= (?:gear|sketchbook|journal))/g, 'Select'], [/\bMenu\b(?= (?:settings|menu|options))/g, 'Start'],
+  [/\bView\b(?= (?:gear|sketchbook|journal|compare))/g, 'Select'], [/\bMenu\b(?= (?:settings|menu|options))/g, 'Start'],
 ];
 
 let labelFaces = 'xbox';   // what watchLabels() last found

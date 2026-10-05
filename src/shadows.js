@@ -257,3 +257,56 @@ export class ShadowCuller {
     return out;
   }
 }
+
+// ------------------------------------------------------------------ who casts
+// Every visible mesh casts in the shadow passes (main.js swaps in one depth-only material), except
+// what a level lists in noShadow, people's tiny parts, self-lit things (selfLitSkips) and, in the far
+// pass, small props (farPassSkips). That last rule used to leave out every tile of instanced props,
+// whatever they held: boulders up to 9 m across, the Spheres' globes, pillars cast nothing past the
+// near map's 220 m (160 m on the handheld) while the buildings beside them did.
+
+const _im = new THREE.Matrix4(), _is = new THREE.Vector3();
+
+/** The largest instance's bounding radius (world m) in a static InstancedMesh, worked out once and kept. */
+export function largestInstance(mesh) {
+  const ud = mesh.userData;
+  if (ud.largest !== undefined && ud.largestOf === mesh.count) return ud.largest;
+  const g = mesh.geometry;
+  if (!g.boundingSphere) g.computeBoundingSphere();
+  let r = 0;
+  for (let i = 0; i < mesh.count; i++) {
+    mesh.getMatrixAt(i, _im);
+    _is.setFromMatrixScale(_im);
+    r = Math.max(r, Math.max(_is.x, _is.y, _is.z));
+  }
+  ud.largest = r * g.boundingSphere.radius * mesh.matrixWorld.getMaxScaleOnAxis();
+  ud.largestOf = mesh.count;
+  return ud.largest;
+}
+
+/**
+ * What the far (km-wide, 1.1 m texel) pass leaves out of the small-prop list: pebbles, shrubs and
+ * plants, and the tiles of instanced props, unless a tile holds something big enough for that map
+ * to show (an instance over `minTexels` of its texels across): those cast like everything else.
+ * (Plants keep their own rule: their instances change with the view.)
+ */
+export function farPassSkips(list, texel, minTexels = 2, out = []) {
+  for (const o of list) {
+    if (!o.visible) continue;
+    if (o.isInstancedMesh && o.userData.tiled && !o.userData.flora && 2 * largestInstance(o) >= texel * minTexels) continue;
+    out.push(o);
+  }
+  return out;
+}
+
+/**
+ * Does a mesh stay out of the shadow passes for being self-lit (glow >= 0.8)? Flames, smoke, embers,
+ * lamps, glowing inscriptions and windows give light rather than block it (and a flame's shadow
+ * crawled over Qanat's walls). A solid structure that happens to glow says so with
+ * userData.castShadow = true (Perdide's great crystal); false keeps anything out.
+ */
+export function selfLitSkips(o) {
+  if (o.userData.castShadow === false) return true;
+  const glow = Array.isArray(o.material) ? 0 : o.material?.uniforms?.uGlow?.value ?? 0;
+  return glow >= 0.8 && o.userData.castShadow !== true;
+}

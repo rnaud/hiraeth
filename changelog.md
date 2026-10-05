@@ -2,6 +2,18 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.61 — 2026-10-05
+
+- Plants no longer get shoved aside as you walk past: they lean a little away from you, as if brushed, and spring back with a small wobble, more the closer and the faster you pass. Grass parts round your feet the same way.
+- Grass no longer pops in or stops at a line: the blades fade out tuft by tuft with distance, shorter and in the colour of the ground, and sparse low tufts carry the meadow about twice as far before it melts into the ground. Turning the camera no longer makes the grass in front of you jump.
+- Flowers that open no longer push their petals into walls, rocks or each other: they lean a little away from what is close and open only as far as there is room, and those squeezed into a tight corner grow a step further out.
+- The jets climb again: hold RT / R2 (without aiming) and you rise, straight up, or up and wherever the left stick points. Hold A / × as well to hover in place.
+- The fluid gun’s paint now lands on what it hits and takes its shape: it wraps over steps, rocks, domes and tree trunks and runs round their edges, instead of a flat disc floating in front of them or cut through by them.
+- Faces in the conversation portrait are sharp: clean outlines instead of jagged, broken lines, on small screens too.
+- Boulders, big globes and pillars far away now cast shadows like the buildings beside them, and Perdide’s great crystal throws its shadow across the island.
+- Game updates for the Android app and the Steam Deck now come from the game’s own site. Accept the new Android app when it is offered, once, to keep getting them; your saves are kept.
+- A new place in the worlds list (Debug on the title screen): The References, six desert scenes rebuilt from the drawings the game is made after, each seen the way its drawing frames it. [ and ] (L3 / R3) change scene, \ (View) puts the drawing beside or over the picture.
+
 ## v0.60 — 2026-10-05
 
 - Every world has music of its own now, with its own instruments, scale and short tune: ney, oud and frame drum in the desert; a muted horn, vibes and a walking bass down the City-Shaft; wind and breath on Vael; the monks and their far bell over Vael II’s clouds; a ticking, unresolved machine in the Sealed Hangar; low brass and struck metal in the Buried Machine.
@@ -13,6 +25,10 @@ The same release notes shown in the game (press **N** or open settings).
 - Hands follow what you do: looser and more open when you run or glide, gripping the holds when you climb, the hoverbike’s handlebars and the bird’s reins, a fist round the fluid gun with the other hand cupped under it. People hold their staffs, lanterns and baskets for real.
 - People talk with their hands, in the tone of what they say: a fist when angry, a pointing finger when curious, open hands when happy, fingers flung wide when surprised, limp hands when sad, beating with the words. Fingers also drift a little on their own and swing as the hand moves.
 - The character studio has a Hands view up close, and every hand pose to pick from.
+- Jumps move now: you push off, tuck your legs as you rise, open up at the top, reach for the ground as it comes up and land in a short crouch, deeper after a long drop. A long fall throws the arms out.
+- Running, climbing and swimming fast share one stamina. Sprinting tires you now, and a small inked wheel beside the traveller shows what is left while it isn’t full. Run it dry and you are winded: no sprint and no new hold on a wall until it has come back. Standing still brings it back fastest.
+- Sprinting is about 14 % faster.
+- At the edge of each world the traveller no longer runs on the spot and stutters: you stop, turn into it and lean against the wind, ink shimmers where you touch it, and the first time a line says what holds you back. Walking along the edge slides smoothly.
 
 ## v0.59 — 2026-10-05
 

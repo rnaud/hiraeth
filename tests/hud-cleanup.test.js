@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { keyBadge, badgeLine, escapeHtml } from '../src/prompt-keys.js';
 import { padText } from '../src/native-pad.js';
-import { backdropFor, isolate, restore, BACKDROPS } from '../src/story/portrait-bg.js';
+import { backdropFor, isolate, restore, BACKDROPS, portraitSize, portraitPixelRatio, PORTRAIT_INK } from '../src/story/portrait-bg.js';
 
 // ---- round button badges in prompts
 
@@ -56,6 +56,22 @@ test('isolate hides everything but the person (and their cape), and restore brin
   restore(hidden);
   assert.ok(ground.visible && tree.visible && other.visible);
   assert.equal(off.visible, false, 'what was hidden before stays hidden');
+});
+
+test('the portrait is drawn at the circle\'s size and supersampled: enough pixels for the screen, ink scaled to the circle', () => {
+  // as many pixels as the circle shows on this screen (a little over, for its tilt), within bounds
+  assert.equal(portraitSize(84, 1), 105);
+  assert.equal(portraitSize(84, 2), 210);
+  assert.equal(portraitSize(60, 1), 96, 'never fewer than 96');
+  assert.ok(portraitSize(108, 3) <= 320, 'never more than 320');
+  // a 720-row frame shown in an 84 px circle: drawn with lines 720 / 84 times as wide (at the portrait's ink weight)
+  assert.ok(Math.abs(portraitPixelRatio(720, 84, 1) - (720 / 84) * PORTRAIT_INK) < 1e-9);
+  // so a line keeps its width once shrunk: w CSS px × ratio render px, over rows / px of shrink, is w × ink × px / css
+  const rows = 408, css = 84, px = portraitSize(css, 1), w = 1.25;
+  const inImage = (w * portraitPixelRatio(rows, css)) / (rows / px);
+  assert.ok(Math.abs(inImage - w * PORTRAIT_INK * (px / css)) < 1e-9);
+  // never thinner than the game draws them
+  assert.equal(portraitPixelRatio(100, 84, 1.5), 1.5);
 });
 
 // ---- a story page never opens over a conversation (it showed over Nima's last lines and stayed)

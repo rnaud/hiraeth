@@ -1,5 +1,10 @@
 name: Deploy to Cloudflare Workers
 
+# The game's site, and its content updates next to it: /updates/web.json and
+# /updates/web-<build>.zip (scripts/web-update.mjs), which the Android app
+# (WebBundles.MANIFEST) and the Steam Deck updater (deck.py) read. This is the only
+# workflow that deploys the Worker: a deploy replaces every asset.
+
 on:
   push:
     branches: [main]
@@ -8,6 +13,7 @@ on:
 permissions:
   contents: read
 
+# Never cancelled once started; pushes meanwhile wait (GitHub keeps the newest one waiting).
 concurrency:
   group: cloudflare-production
   cancel-in-progress: false
@@ -19,6 +25,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0   # the whole history: the build number counts its commits (release-info.mjs build)
       - uses: actions/setup-node@v5
         with:
           node-version: 24
@@ -26,7 +34,14 @@ jobs:
       - run: npm ci
       - name: Test
         run: node --test tests/*.test.js
-      - name: Build and deploy the game
+      - name: Build the game and its content update
+        run: |
+          npm run build
+          # this build's zip and web.json, and the previous build's zip from the live site
+          # (a device that read the old web.json a moment ago can finish its download)
+          node scripts/web-update.mjs --live https://memento.alexandria-rnaud.workers.dev/
+          cat dist/updates/web.json
+      - name: Deploy
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -36,9 +51,10 @@ jobs:
             echo "::error::Set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN in repository Actions secrets. See docs/cloudflare.md."
             exit 1
           fi
-          npm run deploy:cloudflare
+          npx wrangler deploy
       - name: Verify the public deployment
         run: |
+          # every built file, the content update included
           for attempt in 1 2 3; do
             if npm run check:deployment -- https://memento.alexandria-rnaud.workers.dev/; then
               exit 0

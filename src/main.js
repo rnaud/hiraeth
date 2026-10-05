@@ -16,6 +16,7 @@ import { LEVELS, levelById } from './levels/index.js';
 import { Player, CameraRig } from './player.js';
 import { applyTimeOfDay, colourScript } from './timeofday.js';
 import { WindStreaks } from './wind.js';
+import { EDGE_HINTS, EdgeInk } from './edge.js';
 import { HOLO } from './ship/hologram.js';
 import { Physics, dropBuriedFlora } from './physics.js';
 import { tileScene, cullFar, fitBounds, SmallCuller, RoomCuller, resolveQuality, detectHandheld, GpuTimer, adaptScale } from './perf.js';
@@ -23,7 +24,8 @@ import { LodManager, lodView } from './lod.js';
 import { skinnedLods } from './skinned-lod.js';
 import { buildFlora, floraKeep, FLORA_WORLDS } from './flora.js';
 import { buildGrass } from './flora-grass.js';
-import { Cascade, ShadowCuller, shadowDirection } from './shadows.js';
+import { BrushTrail } from './brush.js';
+import { Cascade, ShadowCuller, shadowDirection, farPassSkips, selfLitSkips } from './shadows.js';
 import { Trail } from './trail.js';
 import { Flock, Motes, Footprints } from './life.js';
 import { Sound } from './audio.js';
@@ -56,7 +58,7 @@ import { Flammables, flammableSpots } from './flammable.js';
 import { createBoxes, migrateSave } from './boxes/index.js';
 import { createItemEffects } from './boxes/effects.js';
 import { DevMenu } from './dev-menu.js';
-import { isolate, restore } from './story/portrait-bg.js';
+import { isolate, restore, portraitPixelRatio } from './story/portrait-bg.js';
 import { badgeLine } from './prompt-keys.js';
 import { chargeState, chargeHud, chargeJournalHtml, showChargeCard, GIVEN as CHARGE_GIVEN, CARD as CHARGE_CARD } from './story/charge.js';
 import { slots, formatPlaytime } from './save-slots.js';
@@ -101,6 +103,7 @@ const gbuffer = createGBuffer();   // (src/pipeline.js: shared with the characte
 // Sizes come from the graphics preset (applyQuality); bias and normal offset are in texels.
 const shadowOverride = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, colorWrite: false });
 const SU = sharedUniforms;
+const brushTrail = new BrushTrail(sharedUniforms);   // the plants and the grass feel the traveller pass (src/brush.js)
 const cascades = {
   fine: new Cascade({ name: 'fine', size: 2048, extent: 12, depth: 1600, bias: 3.4, offset: 2.6, uniforms: { map: SU.uShadowMap0, matrix: SU.uShadowMatrix0, bias: SU.uShadowBias0, offset: SU.uShadowNormalOffset0 } }),
   near: new Cascade({ name: 'near', size: 4096, extent: 220, depth: 1600, bias: 2.3, offset: 3.2, uniforms: { map: SU.uShadowMap, matrix: SU.uShadowMatrix, bias: SU.uShadowBias, offset: SU.uShadowNormalOffset } }),
@@ -213,7 +216,7 @@ await stage('waking the people…');
 if (birdAnswers(levelId, level, (k) => game.flag(k))) { level.mount = (p) => promisedBird(p, level.spawn); level.mountName = 'bird'; }
 const player = new Player(physics, {
   mount: level.mount, jetpack: level.features.jetpack, climb: level.features.climb ?? true,
-  killY: level.killY, limit: level.limit ?? 1900, spawn: level.spawn, spawnHeading: level.spawnHeading,
+  killY: level.killY, limit: level.limit ?? 1900, edgeHint: level.edgeHint ?? EDGE_HINTS[levelId] ?? EDGE_HINTS.default, spawn: level.spawn, spawnHeading: level.spawnHeading,
   gravityAt: level.gravityAt, unsafe: level.unsafe, dynamic: level.dynamic, water: waters,
   // a hurt: a thud; knocked over (a hard landing: the ragdoll, src/ragdoll.js): a heavier one;
   // knocked out: the screen dims and asks to restart (updateRestart below)
@@ -259,8 +262,30 @@ window.addEventListener('keydown', (e) => {
   e.preventDefault(); e.stopImmediatePropagation();
   restartNow();
 }, true);
+// the stamina wheel (index.html #stamina, src/stamina.js): beside the traveller, on the screen,
+// while it isn't full and a moment after; red while winded
+const stEl = document.getElementById('stamina'), stArc = stEl?.querySelector('.arc');
+let stShown = 0, stLast = -1;
+const _stP = new THREE.Vector3(), _stR = new THREE.Vector3();
+function updateStamina(dt) {
+  if (!stEl) return;
+  const k = THREE.MathUtils.clamp(player.stamina ?? 1, 0, 1);
+  stShown = k < 0.995 || player.winded ? 0.9 : Math.max(0, stShown - dt);
+  const on = stShown > 0 && !ship.playing && !photo.on && !player.ride && !player.down && !busy();
+  stEl.classList.toggle('on', on);
+  stEl.classList.toggle('winded', !!player.winded);
+  if (Math.abs(k - stLast) > 0.002) { stArc.setAttribute('stroke-dasharray', `${(k * 100).toFixed(1)} 100`); stLast = k; }
+  if (!on && stShown <= 0) return;
+  // a little up and to the right of the shoulders, as the camera sees them
+  _stR.setFromMatrixColumn(camera.matrixWorld, 0);
+  _stP.copy(player.object?.position ?? player.pos).addScaledVector(player.frame.up, 1.75).addScaledVector(_stR, 0.62).project(camera);
+  if (_stP.z > 1) return;
+  const x = (_stP.x * 0.5 + 0.5) * innerWidth, y = (-_stP.y * 0.5 + 0.5) * innerHeight;
+  stEl.style.transform = `translate(${(x - 17).toFixed(1)}px, ${(y - 17).toFixed(1)}px)`;
+}
 function updateHealth(dt) {
   updateRestart(dt);
+  updateStamina(dt);
   if (!hpEl) return;
   const h = player.health ?? 1;
   hpShown = h < 0.999 || player.down ? 3 : Math.max(0, hpShown - dt);
@@ -342,6 +367,9 @@ wind = new WindStreaks();
 wind.uniforms.tNormal.value = gbuffer.textures[1];
 wind.uniforms.uRes.value.copy(post.uniforms.uRes.value);
 wind.uniforms.uInk.value = post.uniforms.uInk.value;
+// the ink where you lean on the world's edge (src/edge.js), drawn with the wisps
+const edgeInk = new EdgeInk(wind.mesh.material);
+wind.scene.add(edgeInk.mesh);
 // the recordings' hologram (src/ship/hologram.js): light drawn over the composite, hidden behind what the G-buffer holds
 HOLO.uniforms.tNormal.value = gbuffer.textures[1];
 const rig = new CameraRig(camera, renderer.domElement, physics);
@@ -459,10 +487,10 @@ if (flora) {
 blades.grow = () => {
   if (blades.key === preset.key) return;
   blades.key = preset.key;
-  if (blades.grass) { blades.grass.dispose(); level.noShadow = level.noShadow.filter((o) => o !== blades.grass.mesh); }
+  if (blades.grass) { const gone = blades.grass.meshes; blades.grass.dispose(); level.noShadow = level.noShadow.filter((o) => !gone.includes(o)); }
   blades.grass = buildGrass({ scene, level, physics, presetKey: preset.key, water: FLORA_WORLDS[levelId]?.water,
     keep: [ship.site && { x: ship.site.x, z: ship.site.z, r: 9 }, ship.rampFoot && { x: ship.rampFoot.x, z: ship.rampFoot.z, r: 3 }] });   // (not through the ship's floor and ramp)
-  if (blades.grass) (level.noShadow ??= []).push(blades.grass.mesh);
+  if (blades.grass) (level.noShadow ??= []).push(...blades.grass.meshes);
 };
 blades.grow();
 // wildlife: two or three small species per world, each with a surprise (src/wildlife.js)
@@ -853,8 +881,7 @@ function updateHud() {
     rideHint.kind = null;
     if (tool.aiming) parts.push(tool.hudText());
     else {
-      if (player.climbing) parts.push(`climbing ${gauge(player.stamina)}`);
-      else if (player.stamina < 0.99) parts.push(`stamina ${gauge(player.stamina)}`);
+      // (the stamina has its wheel beside the traveller: updateStamina)
       // the jets burn the tank: a gauge while it's not full (or in the air)
       if (player.canJet && (player.thrusting || tool.jetBurnt)) parts.push(`jets ${gauge(player.jetFuel)}`);
       // what the use button does right here (a prompt with a place to hang floats over it instead: placePrompt)
@@ -929,7 +956,8 @@ const controller = new Controller({
       else menuNavigate(root, 0, 1);
     }
     if (name === 'settings') menu.toggle(true);
-    if (name === 'journal') journal.toggle(true);
+    if (name === 'journal' && level.compare) level.compare();   // (the references: View compares the render with its panel)
+    else if (name === 'journal') journal.toggle(true);
     if (name === 'worlds') showPicker(true);
     if (name === 'photo') setPhoto(!photo.on);
     if (name === 'capture') photo.capture = true;
@@ -968,12 +996,13 @@ function tinyShadowCasters() {
 
 // Self-lit things (flames, embers, smoke, lamps: glow >= 0.8) give light; they don't block it.
 // Their shadows were the ones crawling over Qanat's walls: the burning tree's smoke column and
-// flames, animated every frame, swept moving shadows across the city.
+// flames, animated every frame, swept moving shadows across the city. (A glowing solid opts back in
+// with userData.castShadow = true, and anything can opt out with false: shadows.js selfLitSkips.)
 let glowCache = null;
 function glowCasters() {
   if (glowCache && glowCache.n === scene.children.length) return glowCache.list;
   const list = [];
-  scene.traverse((o) => { if (o.isMesh && !Array.isArray(o.material) && (o.material?.uniforms?.uGlow?.value ?? 0) >= 0.8) list.push(o); });
+  scene.traverse((o) => { if (o.isMesh && selfLitSkips(o)) list.push(o); });
   glowCache = { n: scene.children.length, list };
   return list;
 }
@@ -1040,8 +1069,9 @@ function renderFrame() {
   if (cascades.fine.enabled) shadowPass(cascades.fine, camToPlayer + cascades.fine.extent * 1.8);
   if (turned || frameNo % preset.nearEvery === 0) shadowPass(cascades.near, camToPlayer + cascades.near.extent * 1.8);
   if (turned || frameNo % preset.farEvery === (preset.nearEvery > 1 ? 1 : 0)) {
-    const small = tiled.small.filter((o) => o.visible);
-    for (const o of small) o.visible = false;   // pebbles and bushes don't need km-wide shadows
+    // pebbles and bushes don't need km-wide shadows (but a tile of boulders, globes or pillars does)
+    const small = farPassSkips(tiled.small, cascades.far.texel);
+    for (const o of small) o.visible = false;
     if (preset.lodPx) lod.shadowPass(cascades.far.texel);   // nor detail finer than a texel of it
     shadowPass(cascades.far, camera.far);
     lod.viewPass();
@@ -1090,8 +1120,30 @@ function renderFrame() {
 const grabCanvas = document.createElement('canvas');
 const _cp = new THREE.Vector3(), _cq = new THREE.Quaternion(), _cu = new THREE.Vector3();
 // o.keep: draw only these objects (a conversation's portrait), with o.backdrop ('#hex') in place of the sky
+// o.css: the size (CSS px) the image is shown at (the portrait's circle). The frame is then drawn as if
+// it were that small (lines, hatching and grain in its pixels: uPixelRatio), at the full render's
+// resolution, and shrunk down by halves: supersampled, so thin ink stays whole instead of breaking
+// into jagged dots, and kept as a PNG (no JPEG ringing round the lines).
 let portraitShot = false;
-function captureView(eye, look, w, h, { keep = null, backdrop = null, fov = null } = {}) {
+const shrinkCanvas = [document.createElement('canvas'), document.createElement('canvas')];
+/** Shrink the source rectangle into `out` (w × h) by halves (each a 2 × 2 average), then the last step. */
+function shrinkInto(src, sx, sy, sw, sh, out, w, h) {
+  let cur = src, cx = sx, cy = sy, cw = sw, ch = sh, k = 0;
+  while (cw >= w * 2 && ch >= h * 2) {
+    const c = shrinkCanvas[k++ % 2], nw = Math.ceil(cw / 2), nh = Math.ceil(ch / 2);
+    if (c.width < nw || c.height < nh) { c.width = Math.max(c.width, nw); c.height = Math.max(c.height, nh); }
+    const g = c.getContext('2d');
+    g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+    g.clearRect(0, 0, nw, nh);
+    g.drawImage(cur, cx, cy, cw, ch, 0, 0, nw, nh);
+    cur = c; cx = 0; cy = 0; cw = nw; ch = nh;
+  }
+  out.width = w; out.height = h;
+  const g = out.getContext('2d');
+  g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+  g.drawImage(cur, cx, cy, cw, ch, 0, 0, w, h);
+}
+function captureView(eye, look, w, h, { keep = null, backdrop = null, fov = null, css = null } = {}) {
   _cp.copy(camera.position); _cq.copy(camera.quaternion); _cu.copy(camera.up);
   camera.position.copy(eye);
   camera.up.copy(player.frame.up);
@@ -1099,16 +1151,19 @@ function captureView(eye, look, w, h, { keep = null, backdrop = null, fov = null
   const fov0 = camera.fov;
   if (fov) { camera.fov = fov; camera.updateProjectionMatrix(); }
   const hidden = keep ? isolate(keep, scene) : [];
-  const weather = [U.uRain.value, U.uStorm.value];
+  const weather = [U.uRain.value, U.uStorm.value], pr = [U.uPixelRatio.value, SU.uPixelRatio.value];
   if (keep) {
     portraitShot = true;
     U.uRain.value = U.uStorm.value = 0;
     if (backdrop) { const c = new THREE.Color(backdrop); U.uBackdrop.value.set(c.r, c.g, c.b, 1); }
   }
+  // drawn at the size it is shown: the crop (the frame's height, a square) is css CSS px across
+  if (css) U.uPixelRatio.value = SU.uPixelRatio.value = portraitPixelRatio(gbuffer.height, css, pr[0]);
   try { renderFrame(); } finally {
     restore(hidden);
     portraitShot = false;
     [U.uRain.value, U.uStorm.value] = weather;
+    [U.uPixelRatio.value, SU.uPixelRatio.value] = pr;
     U.uBackdrop.value.w = 0;
     if (fov) { camera.fov = fov0; camera.updateProjectionMatrix(); }
   }
@@ -1116,11 +1171,14 @@ function captureView(eye, look, w, h, { keep = null, backdrop = null, fov = null
   const aspect = w / h, sw = src.width, sh = src.height;
   let cw = sw, ch = sw / aspect;
   if (ch > sh) { ch = sh; cw = sh * aspect; }
-  grabCanvas.width = w; grabCanvas.height = h;
-  grabCanvas.getContext('2d').drawImage(src, (sw - cw) / 2, (sh - ch) / 2, cw, ch, 0, 0, w, h);
+  if (css) shrinkInto(src, (sw - cw) / 2, (sh - ch) / 2, cw, ch, grabCanvas, w, h);
+  else {
+    grabCanvas.width = w; grabCanvas.height = h;
+    grabCanvas.getContext('2d').drawImage(src, (sw - cw) / 2, (sh - ch) / 2, cw, ch, 0, 0, w, h);
+  }
   camera.position.copy(_cp); camera.quaternion.copy(_cq); camera.up.copy(_cu);
   camera.updateMatrixWorld();
-  return grabCanvas.toDataURL('image/jpeg', 0.82);
+  return css ? grabCanvas.toDataURL('image/png') : grabCanvas.toDataURL('image/jpeg', 0.82);
 }
 
 // F: frame rate, frame time (and the CPU's and, where the browser can time it, the GPU's share),
@@ -1228,7 +1286,8 @@ function frame() {
     const k = (level.features.wind ? 2.5 : 1.2) * (1 + Wx.storm * 3.5 + Wx.rain * 0.6) * (1 - 0.8 * shelter.indoor);
     player.wind.set(wx * k, 0, wz * k);
     // the plants feel the same wind: its direction, its strength (storms bend them hard), its gusts
-    sharedUniforms.uBrush.value.set(player.pos.x, player.riding ? -1e4 : player.pos.y, player.pos.z, Math.hypot(player.vel.x, player.vel.z));
+    // and the traveller brushing past them: their last second of steps (src/brush.js)
+    brushTrail.update(dt, player.riding ? null : player.pos, Math.hypot(player.vel.x, player.vel.z));
     sharedUniforms.uWind.value.set(wx, wz, (level.features.wind ? 1 : 0.55) * (1 + Wx.storm * 2 + Wx.rain * 0.4), wind.gust());
   }
   // doorways into interiors (and back out)
@@ -1282,6 +1341,9 @@ function frame() {
     for (let i = 0; i < Math.abs(b.speed) / 12; i++)
       wind.emit(b.pos.x - fx * 1.8, b.pos.z - fz * 1.8, b.vel.x * 0.25 - fz * (Math.random() - 0.5) * 6, b.vel.z * 0.25 + fx * (Math.random() - 0.5) * 6);
   }
+  // leaning into the world's edge: the wind that holds you back streams in round you (src/edge.js)
+  if (player.edge?.k > 0.03 && !player.ride) wind.edgeGust(dt, player.edge.at, player.edge.n, player.edge.k);
+  edgeInk.update(dt, player.ride ? null : player.edge, player.frame.up, camera, pxScale);   // and the ink shimmers where you touch it
   wind.update(dt, player.pos, camera, terrain, pxScale, world.wind);
   if (trails) {
     const m = player.mount, moving = Math.hypot(m.vel.x, m.vel.z) > 3;
