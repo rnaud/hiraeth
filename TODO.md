@@ -606,7 +606,18 @@ All of this is for the web game; the Unity port follows later if we move to Unit
 
 # Transitions and moments (2026-10-05, web)
 
-- [ ] Walking into a building, a cave or the ship (where you're moved into another space) is janky:
-  make the hand-over smooth and free of stutter.
+- [x] Walking into a building, a cave or the ship (where you're moved into another space) is janky:
+  make the hand-over smooth and free of stutter. (`src/passage.js`: every door, cave mouth, temple
+  door, hatch, Lab door and Hangar portal goes through one hand-over: its destination drawn ahead
+  of time, unseen, at load; a sheet of paper sweeps across; behind it the traveller is carried
+  through still walking, mid-stride, the camera in its place behind; a few frames held while the
+  new place settles. It used to land at a dead stop with the camera snapped in to 2 m. The ship's
+  and the houses' indoor framing eases the camera level instead of jumping. README, "Hand-overs and
+  loads without a hitch"; measured with `scripts/transition-perf/transitions.mjs`.)
+- [x] (added) The loading screen between worlds stutters while the level is built. (`src/load-steps.js`:
+  every world's build, the collision bake, the people, the flora and the warm-up run in slices of
+  24 ms with the main thread given back between them; the first frame's uploads are done behind the
+  loading screen. The pen already turned on the compositor: checked through a 900 ms task.
+  `scripts/transition-perf/loading.mjs`.)
 - [ ] A few moments deserve a little cinematic: the first time the magic water flows into the basin in
   the cave, and the first time you fill the tank and discover what it does.
