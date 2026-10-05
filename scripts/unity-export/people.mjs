@@ -21,7 +21,11 @@ const mirrorM = (m) => {   // S·M·S, S = diag(-1, 1, 1, 1), column-major
 };
 const r6 = (v) => +v.toFixed(6);
 
-export async function exportPeople({ W, blob, materialOf }) {
+export async function exportPeople({ W, blob: worldBlob, sblob = worldBlob, materialOf }) {
+  // what every world shares (the traveller, the clips, the parents' hologram, the items) goes to the shared
+  // store (export-world.mjs: StreamingAssets/shared, negative offsets); the rest to the world's own
+  let shared = false;
+  const blob = (typed) => (shared ? sblob(typed) : worldBlob(typed));
   const { scene, npcs, crowd, humans, lib, travellerTemplate, physics } = W;
   const { Humanoid } = await import('../../src/humanoid.js');
   const { buildCharacter } = await import('../../src/player.js');
@@ -29,9 +33,9 @@ export async function exportPeople({ W, blob, materialOf }) {
   const { pooledNPC, NPC } = await import('../../src/npc.js');
 
   // ------------------------------------------------------------ geometry (shared)
-  const geoIds = new Map(), geometries = [], binds = new Map();
+  const geoIdsW = new Map(), geoIdsS = new Map(), geometries = [], bindsW = new Map(), bindsS = new Map();
   function geometryOf(geo, { swapPos = null } = {}) {
-    const key = swapPos ? null : geo;
+    const key = swapPos ? null : geo, geoIds = shared ? geoIdsS : geoIdsW;
     if (key && geoIds.has(key)) return geoIds.get(key);
     const P = swapPos ?? geo.attributes.position, N = geo.attributes.normal, C = geo.attributes.color, U = geo.attributes.uv, F = geo.attributes.aFold;
     const J = geo.attributes.skinIndex, Wt = geo.attributes.skinWeight;
@@ -90,6 +94,7 @@ export async function exportPeople({ W, blob, materialOf }) {
         o.skeleton.boneInverses.forEach((inv, i) => bind.set(mirrorM(bm.multiplyMatrices(inv, o.bindMatrix)), i * 16));
         // (the same bind poses for many people of one kind: written once)
         const hk = createHash('md5').update(Buffer.from(bind.buffer)).digest('hex');
+        const binds = shared ? bindsS : bindsW;
         if (!binds.has(hk)) binds.set(hk, blob(bind).at);
         m.bones = bones; m.bind = binds.get(hk);
       }
@@ -134,6 +139,7 @@ export async function exportPeople({ W, blob, materialOf }) {
   };
 
   // ---- the traveller (main.js: the people's body as the traveller, the gear of gear.js)
+  shared = true;
   {
     const char = buildCharacter();
     const h = new Humanoid(humans[0], char, 'm', { outfit: travellerTemplate });
@@ -151,6 +157,7 @@ export async function exportPeople({ W, blob, materialOf }) {
     const hidden = [tool.wings?.group, tool.jets?.group].filter(Boolean);
     people.push(personOf(h, char, { id: 'traveller', role: 'traveller', hero: true, hidden, noShadow: [tool.tank?.glass].filter(Boolean) }));
   }
+  shared = false;
   // ---- the story's people
   for (const n of npcs) {
     if (!n.humanoid) continue;
@@ -159,7 +166,7 @@ export async function exportPeople({ W, blob, materialOf }) {
   }
   // ---- the crowd: each person as the near tier dresses them (a pooled NPC given their look)
   const pool = { m: null, f: null };
-  for (const p of crowd.people) {
+  for (const p of crowd?.people ?? []) {
     const npc = pooledNPC(new THREE.Scene(), physics, { kind: p.kind, lib, humans });
     npc.assign(p, crowd);
     npc.object.position.copy(p.pos);
@@ -191,6 +198,7 @@ export async function exportPeople({ W, blob, materialOf }) {
   // place, 30 frames a second, for each kind of body
   const { Animator } = await import('../../src/animator.js');
   const FPS = 30, anims = { native: lib.native, fps: FPS, kinds: {} };
+  shared = true;
   const bakeOne = (h, char) => {
     const A = new Animator(lib, char), out = {};
     const bones = h.order.map((b) => b.name);
@@ -219,13 +227,14 @@ export async function exportPeople({ W, blob, materialOf }) {
     return { bones, clips: out };
   };
   for (const [kind, i] of [['m', 0], ['f', 1]]) { const char = buildCharacter(); anims.kinds[kind] = bakeOne(new Humanoid(humans[i], char, kind), char); }
+  shared = false;
   // ---- the crowd's own figures (crowd.js figureGeometry, posed by crowd-shader.js), for the instanced
   // far tier: figure space as the web has it (left at +x; the shader mirrors after posing), windings
   // flipped for Unity; per person the packed look (aLook0, aLook1, aDress, aBody), seed, pose, scale
   const { figureGeometry } = await import('../../src/crowd.js');
   const crowdFigures = {};
   for (const d of ['mid', 'far']) {
-    const g = figureGeometry(d, 'desert'), P = g.attributes.position, N = g.attributes.normal, R = g.attributes.aRig, n = P.count;
+    const g = figureGeometry(d, W.levelId ?? 'desert'), P = g.attributes.position, N = g.attributes.normal, R = g.attributes.aRig, n = P.count;
     const pos = new Float32Array(n * 3), nrm = new Float32Array(n * 3), rig = new Float32Array(n * 4);
     for (let i = 0; i < n; i++) {
       pos.set([P.getX(i), P.getY(i), P.getZ(i)], i * 3); nrm.set([N.getX(i), N.getY(i), N.getZ(i)], i * 3);
@@ -235,11 +244,12 @@ export async function exportPeople({ W, blob, materialOf }) {
     for (let t = 0; t < src.length; t += 3) { idx[t] = src[t]; idx[t + 1] = src[t + 2]; idx[t + 2] = src[t + 1]; }
     crowdFigures[d] = { vertices: n, indices: idx.length, pos: blob(pos).at, nrm: blob(nrm).at, rig: blob(rig).at, idx: blob(idx).at };
   }
-  const crowdLooks = crowd.people.map((p) => ({ crowd: p.id, look: [...p.look[0], ...p.look[1], ...p.look[2], ...(p.look[3] ?? [0, 1, 1, 0])].map((v) => +(+v).toFixed(4)),
+  const crowdLooks = (crowd?.people ?? []).map((p) => ({ crowd: p.id, look: [...p.look[0], ...p.look[1], ...p.look[2], ...(p.look[3] ?? [0, 1, 1, 0])].map((v) => +(+v).toFixed(4)),
     seed: +p.seed.toFixed(4), pose: p.pose ?? 0, scale: +p.scale.toFixed(4) }));
   // ---- the parents on the recordings (src/ship/hologram.js HoloFigure): dressed bodies cut to a bust, drawn in light
   const { HoloFigure, BUST, HOLO_COLOR } = await import('../../src/ship/hologram.js');
   const holo = {};
+  shared = true;
   for (const who of ['father', 'mother']) {
     const f = new HoloFigure(who, { lib, humans });
     holo[who] = personOf(f.humanoid, f.char, { id: `holo:${who}`, role: 'holo' });
@@ -251,7 +261,11 @@ export async function exportPeople({ W, blob, materialOf }) {
   const SC = await import('../../src/boxes/scene.js');
   const boxScene = { d: BOX.d, w: BOX.w, h: BOX.h + BOX.lid, scale: BOX_SCALE, item: ITEM_SCALE, standAt: SC.STAND_AT, lift: SC.LIFT, times: SC.TIMES, out: SC.OUT_TIME, cardMin: SC.CARD_MIN };
   const itemModels = {};
-  for (const id of ['backpack', 'star']) { const m = buildItemModel(id); const { nodes, meshes } = treeOf(m); itemModels[id] = { id: `item:${id}`, kind: 'item', nodes, meshes }; }
+  for (const id of ['backpack', 'star', ...W.boxes.list.map((b) => b.item)]) {
+    if (itemModels[id]) continue;
+    try { const m = buildItemModel(id); const { nodes, meshes } = treeOf(m); itemModels[id] = { id: `item:${id}`, kind: 'item', nodes, meshes }; } catch { /* (an item with no model) */ }
+  }
+  shared = false;
   // ---- the birds wheeling over the desert (life.js Flock): their body and wings, as the game builds them
   const { Flock } = await import('../../src/life.js');
   const flocks = (W.level.life?.flocks ?? []).map((cfg) => {
@@ -263,7 +277,7 @@ export async function exportPeople({ W, blob, materialOf }) {
   // which hide until the surprise, which stay where they fell), its gait and its surprise's timing; and every
   // creature where the game places it (Wildlife.populate: near the paths, clear of the clutter)
   const { Wildlife } = await import('../../src/wildlife.js');
-  const wl = new Wildlife(new THREE.Scene(), W.level, physics, { content: W.CONTENT.desert });
+  const wl = new Wildlife(new THREE.Scene(), W.level, physics, { content: W.content ?? W.CONTENT.desert, defs: W.level.wildlife });
   const species = wl.herds.map((h) => {
     const d = h.def;
     const keys = ['id', 'name', 'main', 'size', 'height', 'radius', 'gait', 'speed', 'cadence', 'lift', 'stride', 'hopHeight', 'bob', 'turn', 'notice', 'wary', 'backoff', 'roam', 'skittish', 'touch', 'idleRate'];
