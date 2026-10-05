@@ -28,7 +28,8 @@ export function loadAnimationLibrary(url = 'anim/ual.glb') {
   libPromise ??= new GLTFLoader().loadAsync(url).then((gltf) => {
     const clips = {};
     for (const [k, name] of Object.entries(CLIPS)) clips[k] = gltf.animations.find((a) => a.name === name);
-    const lib = { scene: gltf.scene, clips, native: {} };
+    // (all: every clip in the file, for the character studio's clip list)
+    const lib = { scene: gltf.scene, clips, native: {}, all: gltf.animations };
     for (const k of ['walk', 'jog', 'sprint']) lib.native[k] = measureGroundSpeed(lib, clips[k]);
     return lib;
   });

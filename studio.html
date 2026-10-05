@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Memento · Character studio</title>
+<style>
+  :root { --paper: #eee9de; --ink: #2b211f; --line: #cfc6b4; --accent: #c8483a; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--paper); color: var(--ink); font: 13px/1.35 system-ui, sans-serif; }
+  body { display: flex; overflow: hidden; }
+  #panel { width: 340px; flex: none; height: 100%; overflow-y: auto; border-right: 1px solid var(--line); background: #f6f2e8; padding: 8px 10px 40px; }
+  #panel h1 { font-size: 15px; letter-spacing: 0.18em; text-transform: uppercase; margin: 4px 0 2px; }
+  #panel h1 a { color: inherit; text-decoration: none; }
+  #panel .sub { margin: 0 0 8px; opacity: 0.7; font-size: 12px; }
+  details { border-top: 1px solid var(--line); padding: 4px 0; }
+  summary { cursor: pointer; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; font-size: 11.5px; padding: 4px 0; user-select: none; }
+  .row { display: grid; grid-template-columns: 112px 1fr auto; align-items: center; gap: 6px; margin: 3px 0; min-height: 24px; }
+  .row label { font-size: 12px; opacity: 0.85; }
+  .row output { font-variant-numeric: tabular-nums; font-size: 11px; min-width: 38px; text-align: right; opacity: 0.75; }
+  .row.wide { grid-template-columns: 1fr; }
+  select, input, button, textarea { font: inherit; color: inherit; }
+  select { width: 100%; padding: 2px 4px; background: #fffdf8; border: 1px solid var(--line); border-radius: 4px; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  input[type=color] { width: 100%; height: 24px; border: 1px solid var(--line); border-radius: 4px; padding: 0 2px; background: #fffdf8; }
+  input[type=checkbox] { accent-color: var(--accent); justify-self: start; }
+  .row.overridden label { color: var(--accent); }
+  button { background: #fffdf8; border: 1px solid var(--line); border-radius: 4px; padding: 3px 8px; cursor: pointer; }
+  button:hover { border-color: var(--ink); }
+  .buttons { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0; }
+  textarea { width: 100%; height: 120px; font: 11px/1.3 ui-monospace, monospace; background: #fffdf8; border: 1px solid var(--line); border-radius: 4px; }
+  #view { position: relative; flex: 1; height: 100%; min-width: 0; touch-action: none; }
+  #view canvas { display: block; width: 100%; height: 100%; }
+  #status { position: absolute; left: 10px; bottom: 8px; padding: 3px 8px; background: rgba(246, 242, 232, 0.85); border-radius: 4px; font-size: 12px; pointer-events: none; max-width: calc(100% - 20px); }
+  #views { position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+  #views button { background: rgba(255, 253, 248, 0.88); }
+  #views button.on { border-color: var(--ink); font-weight: 600; }
+  #toggle { display: none; }
+  .balloon { display: none !important; }
+  @media (max-width: 760px) {
+    body { flex-direction: column; }
+    #panel { width: 100%; height: 45%; border-right: 0; border-bottom: 1px solid var(--line); order: 2; }
+    #view { height: 55%; flex: none; order: 1; }
+  }
+</style>
+</head>
+<body>
+<aside id="panel">
+  <h1><a href="./index.html" title="Back to the game">Memento</a> · Character studio</h1>
+  <p class="sub">The people, drawn by the game's own ink pass. Drag to orbit, wheel or pinch to zoom.</p>
+  <div id="controls"></div>
+</aside>
+<main id="view">
+  <div id="views"></div>
+  <output id="status">Loading the people…</output>
+</main>
+<script type="module" src="/src/studio/main.js"></script>
+</body>
+</html>
