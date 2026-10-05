@@ -17,6 +17,9 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    // GeckoView's libraries compressed in the APK (libxul.so alone is 152 MB as it is; Android unpacks
+    // them at install), so the download stays near 100 MB
+    packaging { jniLibs { useLegacyPackaging = true } }
     // release signing comes from the environment (GitHub secrets in CI); one fixed key so
     // new builds install over old ones and keep the save
     signingConfigs {
@@ -52,10 +55,21 @@ dependencies {
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     implementation project(':capacitor-android')
+    implementation "org.mozilla.geckoview:geckoview-arm64-v8a:$geckoviewVersion"
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
+}
+
+// GeckoView 157 asks for androidx.core 1.19, which would need the Android Gradle plugin 9.1; the app
+// keeps the plugin 8.13 and its own androidx.core 1.17, with which GeckoView ran on the Retroid (the game,
+// the bridge extension, the controls, pause / resume, the over-the-air bundles). Raise both together.
+configurations.configureEach {
+    resolutionStrategy {
+        force "androidx.core:core:$androidxCoreVersion"
+        force "androidx.core:core-ktx:$androidxCoreVersion"
+    }
 }
 
 apply from: 'capacitor.build.gradle'

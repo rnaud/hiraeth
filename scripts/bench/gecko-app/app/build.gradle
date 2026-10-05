@@ -1,0 +1,27 @@
+plugins { id 'com.android.application' }
+
+// GeckoView: Mozilla's release channel, the arm64 build only (the handhelds this is for)
+def geckoviewVersion = '157.0.20260924084938'
+
+android {
+    namespace = 'com.rnaud.memento.gecko'
+    compileSdk = 37
+    defaultConfig {
+        applicationId 'com.rnaud.moebius.gecko'
+        minSdk 26
+        targetSdk 36
+        versionCode 1
+        versionName "gecko-$geckoviewVersion"
+        ndk { abiFilters 'arm64-v8a' }
+    }
+    // Gecko's libraries compressed in the APK (libxul.so is 152 MB as it is; Android unpacks them at install)
+    packaging { jniLibs { useLegacyPackaging = true } }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation "org.mozilla.geckoview:geckoview-arm64-v8a:$geckoviewVersion"
+}

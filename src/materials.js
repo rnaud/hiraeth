@@ -5,7 +5,7 @@ import { EYE_TILT } from './eyes.js';
 import { CREASE_GLSL } from './creases.js';
 import { BIOME_GLSL } from './biome.js';
 import { CROWD_GLSL, TRIM_GLSL } from './crowd-shader.js';
-import { GROUND_GLSL } from './ground-ink.js';
+import { GROUND_GLSL, GROUND } from './ground-ink.js';
 import { GLYPH_GLSL } from './glyphs.js';
 import { GRASS_VERT_PARS, grassUniforms } from './grass-shader.js';
 import { BRUSH_GLSL, brushUniforms } from './brush.js';
@@ -85,7 +85,51 @@ export const sharedUniforms = {
   uNight: { value: 0 },
   // what a metal sees below the horizon: the world's ground colour (setEnvGround, per level)
   uEnvGround: { value: new THREE.Color('#b9a98c') },
+  // the shade's tones (the ink presets set them, post.js PRESETS; SHADE below): how far a form
+  // turned from the sun is lifted toward its lit colour (the half-tone between light and cast
+  // shadow), how far faces turned down are lifted by the light the ground throws back, and how
+  // much of its own hue a shaded surface keeps instead of the world's shadow tint's
+  uHalftone: { value: 0 },
+  uBounce: { value: 0 },
+  uShadeKeep: { value: 0 },
 };
+
+// ---------------------------------------------------------------------------
+// The shade's tone, per pixel (README "Shade and hatching by surface"). post.js used to shade every
+// surface with albedo × the world's one shadow tint. A material now says how its shade differs
+// (makeMaterial({ shade, shadeHue, hatch })) and the surface shader adds the light's geometry:
+//   lift   0..1, how far the shade is lifted toward the lit colour: the material's own (bone, a
+//          sail's cloth, a dish), the half-tone of a form turned from the sun but under no cast
+//          shadow (uHalftone; less on the far side of the form, past SHADE.band), and the light
+//          the ground throws back up onto faces turned down (uBounce: a cap's underside)
+//   hue    0..1, how much of its own hue the shade keeps: 0 the world's tint, 1 the tint's
+//          darkness only, a little warm (sand, bone and metal stay themselves in shadow)
+// They travel to post.js packed in the hatch channels (gHatch.r += 2 × (1 + hue step), gHatch.g
+// += 2 × lift step: the strokes themselves stay in 0..1); a pixel with nothing packed (other
+// shaders, grass) takes the world's defaults. Hatching thins as the shade is lifted.
+// ---------------------------------------------------------------------------
+export const SHADE = { lifts: 15, hues: 8, band: 0.42, warm: [1.06, 0.98, 0.9] };
+/**
+ * A material's shade: [lift, hue (-1: the world's), hatch amount, strata strokes]. Metal keeps its own
+ * tones and few strokes; sand (terrain with ripples or wind strokes) is shaded in fewer strokes; rock
+ * in strata is hatched along its beds, lit or not (strataHatch: how many of them).
+ */
+export function shadeOf(o) {
+  const metal = !!o.metal, sand = (o.mode ?? MODE_PLAIN) === MODE_TERRAIN && (o.ripples || o.sandInk);
+  const strata = (o.mode ?? MODE_PLAIN) === MODE_STRATA;
+  return [o.shade ?? 0, o.shadeHue ?? (metal ? 0.5 : sand ? 0.55 : -1), o.hatch ?? (metal ? 0.35 : sand ? 0.55 : 1), o.strataHatch ?? (strata ? 0.5 : 0)];
+}
+/** The packing (mirrors the GLSL): strokes h1, h2 in 0..1 with a lift and a hue (or -1) → gHatch.r, g. */
+export function packShade(h1, h2, lift, hue) {
+  const lq = Math.round(Math.min(Math.max(lift, 0), 1) * SHADE.lifts);
+  const hq = hue < 0 ? 0 : 1 + Math.round(Math.min(hue, 1) * SHADE.hues);
+  return [h1 + 2 * hq, h2 + 2 * lq];
+}
+/** post.js' unpacking: [h1, h2, lift, hue (-1: the world's)]. */
+export function unpackShade(r, g) {
+  const hq = Math.floor(r * 0.5), lq = Math.floor(g * 0.5);
+  return [r - 2 * hq, g - 2 * lq, lq / SHADE.lifts, hq > 0 ? (hq - 1) / SHADE.hues : -1];
+}
 
 // ---------------------------------------------------------------------------
 // Metals (makeMaterial({ metal })): ligne-claire metal, drawn as flat shapes.
@@ -190,7 +234,7 @@ export function setEnvGround(color) {
 // The features set this way never change after makeMaterial (their uniforms are only read).
 // ---------------------------------------------------------------------------
 export const SURFACE_FEATURES = ['S_FIGURE', 'S_EYE', 'S_PORTRAIT', 'S_CREASES', 'S_TERRAIN', 'S_BIOMES', 'S_RIPPLES', 'S_TICKS', 'S_SANDINK',
-  'S_STRATA', 'S_RIBBON', 'S_WATERMODE', 'S_FACADE', 'S_TILES', 'S_LEAVES', 'S_CRACKS', 'S_GLYPHS', 'S_GRID', 'S_FOLDS', 'S_SCRUB', 'S_GLASS', 'S_MAP'];
+  'S_STRATA', 'S_RIBBON', 'S_WATERMODE', 'S_FACADE', 'S_TILES', 'S_LEAVES', 'S_CRACKS', 'S_GLYPHS', 'S_GRID', 'S_PLATES', 'S_WEATHER', 'S_FOLDS', 'S_SCRUB', 'S_GLASS', 'S_MAP'];
 const SURFACE_ALL = /* glsl */ `
   #ifndef SURFACE_SPEC
   ${SURFACE_FEATURES.map((f) => `#define ${f}`).join('\n  ')}
@@ -198,6 +242,19 @@ const SURFACE_ALL = /* glsl */ `
   #endif
 `;
 const PATTERNS = { facade: 1, tiles: 2, leaves: 3, cracks: 4 };
+/**
+ * Weathering (S_WEATHER, weatherInk): how worn a material's walls are, 0..1. Asked for with
+ * o.weathered (true: 1), and on by default for house fronts (pattern 'facade'), never on metal,
+ * glass, lights or the makers' work (their inscriptions: glyphs). cell: a crack's cell along and up
+ * the wall (m); cracks: the share of cells with one; patches: of the wall; far: m per px over which
+ * they fade out.
+ */
+export const WEATHER = { cell: [3.7, 3.1], cracks: 0.3, patches: 0.13, far: [0.035, 0.08] };
+export function weatheredOf(o) {
+  if (o.metal || o.glass || o.glyphs || o.glow || o.mode === MODE_TERRAIN || o.mode === MODE_WATER) return 0;
+  const w = o.weathered ?? (o.pattern === 'facade' ? 1 : 0);
+  return w === true ? 1 : +w || 0;
+}
 const PATTERN_DEFINES = { 1: 'S_FACADE', 2: 'S_TILES', 3: 'S_LEAVES', 4: 'S_CRACKS' };
 
 /** The defines a material made with these options compiles: SURFACE_SPEC and the features it uses. */
@@ -218,7 +275,9 @@ export function surfaceDefines(o) {
   on('S_WATERMODE', mode === MODE_WATER);
   on(PATTERN_DEFINES[PATTERNS[o.pattern]], true);
   on('S_GLYPHS', o.glyphs);
-  on('S_GRID', o.grid);
+  on('S_GRID', o.grid || o.plates);
+  on('S_PLATES', o.plates);
+  on('S_WEATHER', weatheredOf(o) > 0);
   on('S_FOLDS', o.folds);
   on('S_SCRUB', o.scrub);
   on('S_GLASS', o.glass);
@@ -442,10 +501,16 @@ const fragmentShader = /* glsl */ `
   uniform float uPixelRatio;
   uniform int uShadeStyle;
   uniform float uGrid;
+  uniform float uPlates;   // the grid drawn as plating (plateLines)
+  uniform float uWeather;  // weathering: cracks and patches on old walls (weatherInk), 0..1
+  uniform float uDrift;    // 1: sand banked against something (sand-drifts.js)
   uniform vec3 uSkyTop;
   uniform vec3 uSkyHorizon;
   uniform vec3 uEnvGround;
   uniform float uNight;
+  uniform vec4 uShade;      // the material's shade: lift, hue (-1: the world's), hatch amount, strata strokes (SHADE, shadeOf)
+  uniform float uHalftone;
+  uniform float uBounce;
 
   in vec3 vWorldPos;
   in vec3 vNormal;
@@ -692,6 +757,32 @@ const fragmentShader = /* glsl */ `
     return max(w.x * max(l.y, l.z), max(w.y * max(l.x, l.z), w.z * max(l.x, l.y)));
   }
 
+  #ifdef S_PLATES
+  // Plating (makeMaterial({ plates })): rows of plates of uneven widths with staggered joints, the
+  // odd joint or seam left out (two plates read as one), each plate a shade lighter or darker (under
+  // the colour-edge threshold: no outline of its own). q in plates (the grid's cell), fq its px.
+  float plates2(vec2 q, vec2 fq, float seed, out float tone) {
+    float row = floor(q.y), hr = hash(vec2(row, seed));
+    float k = 0.55 + 0.9 * hr;                          // this row's plates: narrow or wide
+    float u = q.x * k + hr * 13.0, col = floor(u);
+    tone = hash(vec2(col, row + seed * 3.1)) - 0.5;
+    float du = abs(fract(u + 0.5) - 0.5) / max(fq.x * k, 1e-6), dv = abs(fract(q.y + 0.5) - 0.5) / max(fq.y, 1e-6);
+    float w = 0.4 * uPixelRatio;
+    float joint = (1.0 - smoothstep(w, w + 1.0, du)) * step(0.2, hash(vec2(floor(u + 0.5), row) + 5.3));
+    float seam = (1.0 - smoothstep(w, w + 1.0, dv)) * step(0.25, hash(vec2(floor(u * 0.5), floor(q.y + 0.5)) + 9.1));
+    float res = 1.0 - smoothstep(0.07, 0.15, max(fq.x, fq.y));
+    return mix(0.08, max(joint, seam), res);
+  }
+  float plateLines(vec3 q, vec3 fq, vec3 w, out float tone) {
+    float tx = 0.0, ty = 0.0, tz = 0.0, l = 0.0;
+    if (w.x > 0.05) l = max(l, w.x * plates2(q.zy, fq.zy, 1.0, tx));
+    if (w.y > 0.05) l = max(l, w.y * plates2(q.xz, fq.xz, 2.0, ty));
+    if (w.z > 0.05) l = max(l, w.z * plates2(q.xy, fq.xy, 3.0, tz));
+    tone = w.x * tx + w.y * ty + w.z * tz;
+    return l;
+  }
+  #endif
+
   // ---------------------------------------------------------------- drawn details
   // Procedural "hand-drawn" marks, written as ~1px ink lines into gHatch.b.
   // Each fades out once its pattern gets denser than a few pixels.
@@ -773,9 +864,68 @@ const fragmentShader = /* glsl */ `
     alb = mix(alb, mix(farC, nearC, lodFill), vert);
     emit = glassK * on * lodFill * vert * (1.0 - shutK);
     ink = max(ink, inkLine(abs(boxPx), 1.0) * win * lodInk);
+    #ifdef S_WEATHER
+    if (uWeather > 0.0) {
+      // weathered: a crack running out from a corner of the odd window, jagged, thinning
+      float hc = hash(id + 21.7);
+      if (hc < 0.38 * uWeather && lodInk > 0.0) {
+        vec2 sgn = vec2(hc < 0.19 * uWeather ? 1.0 : -1.0, hash(id + 4.9) > 0.5 ? 1.0 : -1.0);
+        vec2 a = hf * sgn, b = a + vec2(0.1 + 0.12 * hash(id + 6.1), 0.16 + 0.14 * hash(id + 7.3)) * sgn;
+        vec2 ab = b - a, pa = c - a;
+        float tt = clamp(dot(pa, ab) / dot(ab, ab), 0.0, 1.0);
+        vec2 off = pa - ab * tt + vec2(-ab.y, ab.x) / length(ab) * (vnoise(vec2(tt * 9.0, hc * 40.0)) - 0.5) * 0.035;
+        float dpx = length(off / gq);
+        ink = max(ink, inkLine(dpx, mix(0.9, 0.35, tt)) * win * lodInk * step(dot(pa, ab), dot(ab, ab) * 1.0));
+      }
+    }
+    #endif
     if (abs(c.x) < hf.x + 0.05) ink = max(ink, inkLine(abs(c.y + hf.y + 0.03) / gq.y, 1.3) * win * lodInk);   // sill
     return ink * vert;
   }
+
+  #ifdef S_WEATHER
+  // Weathering (makeMaterial({ weathered })): old walls, lived in. On upright faces, in cells of the
+  // wall anchored in the world (so each building has its own), the odd crack runs down from a
+  // storey's top or up from its foot, jagged and thinning, with a branch now and then; and a few
+  // patches where the plaster has gone, their edge a broken pen line, a shade apart inside (under the
+  // colour-edge threshold: the only line is the drawn one). q: (along the wall, up) in metres,
+  // fq: metres per px of each (taken in uniform flow). Nothing is looked up once it is too small to
+  // draw (most of a far city's walls, and the handheld's coarse pixels): the patches' noise and its
+  // pixel gradient (estimated from fq: no derivative needed here) only near.
+  float weatherInk(vec2 q, vec2 fq, inout vec3 alb) {
+    float ink = 0.0;
+    const vec2 cellS = vec2(${WEATHER.cell[0]}, ${WEATHER.cell[1]});
+    float resolved = 1.0 - smoothstep(${WEATHER.far[0]}, ${WEATHER.far[1]}, max(fq.x, fq.y));
+    if (resolved <= 0.0) return 0.0;
+    for (int dy = 0; dy < 2; dy++) {
+      vec2 id = floor(q / cellS) - vec2(0.0, float(dy));
+      if (hash(id + 41.0) > ${WEATHER.cracks} * uWeather) continue;            // most cells: none
+      bool down = hash(id + 2.2) > 0.45;
+      float x0 = (id.x + 0.12 + 0.76 * hash(id + 3.3)) * cellS.x;
+      float y0 = (id.y + (down ? 1.0 : 0.0)) * cellS.y;                     // from the top down, or the foot up
+      float len = cellS.y * (0.4 + 0.75 * hash(id + 8.8));
+      float sAlong = down ? y0 - q.y : q.y - y0, t = sAlong / len;
+      if (t < 0.0 || t > 1.0) continue;
+      float lean = (hash(id + 5.1) - 0.5) * 1.1;
+      float x = x0 + lean * sAlong + (vnoise(vec2(sAlong * 2.3, id.x * 7.0 + id.y)) - 0.5) * 0.32 + (vnoise(vec2(sAlong * 8.0, id.y * 3.0)) - 0.5) * 0.07;
+      ink = max(ink, inkLine(abs(q.x - x) / max(fq.x, 1e-5), mix(1.05, 0.35, t)) * (1.0 - smoothstep(0.8, 1.0, t)));
+      // a branch from part-way down, off to one side
+      float tb = 0.3 + 0.3 * hash(id + 9.4), sb = sAlong - tb * len;
+      if (sb > 0.0 && sb < len * 0.35 && hash(id + 1.9) < 0.6) {
+        float xb = x0 + lean * tb * len + (vnoise(vec2(tb * len * 2.3, id.x * 7.0 + id.y)) - 0.5) * 0.32 + sign(hash(id + 6.6) - 0.5) * sb * 0.9 + (vnoise(vec2(sb * 6.0, id.x)) - 0.5) * 0.06;
+        ink = max(ink, inkLine(abs(q.x - xb) / max(fq.x, 1e-5), mix(0.7, 0.3, sb / (len * 0.35))) * (1.0 - smoothstep(0.7, 1.0, sb / (len * 0.35))));
+      }
+    }
+    // patches: the plaster gone (a shade darker) or a pale repair, the edge broken
+    float pn = vnoise(q * 0.42 + 17.0) * 0.72 + vnoise(q * 1.6) * 0.28;
+    float fpn = 1.1 * max(fq.x, fq.y);   // (the noise's gradient, about 1.1 a metre, times metres per px)
+    float th = 1.0 - ${WEATHER.patches} * uWeather;
+    float inside = step(th, pn);
+    alb *= 1.0 + inside * resolved * (hash(floor(q / 6.0) + 12.0) > 0.4 ? -0.07 : 0.05);
+    float edge = inkLine(abs(pn - th) / max(fpn, 1e-5), 0.8) * smoothstep(0.35, 0.6, vnoise(q * 1.7 + 3.0));
+    return max(ink, edge * 0.8) * resolved;
+  }
+  #endif
 
   // Roof tiles: rows with staggered joints.
   float roofTiles(vec3 wp) {
@@ -1090,6 +1240,22 @@ const fragmentShader = /* glsl */ `
     // drawn-detail coordinates + derivatives (uniform control flow)
     float faceX = abs(on.x) > abs(on.z) ? vObjPos.z : vObjPos.x;     // horizontal coord on a side face
     float fissFw = fwidth(faceX) / 9.0;
+    #ifdef S_WEATHER
+    // the wall's own frame for weathering: along it (from the interpolated normal, as façades) and up
+    vec2 wDir = normalize(vec2(-vNormal.z, vNormal.x) + 1e-5);
+    vec2 wq = vec2(dot(vWorldPos.xz, wDir), vWorldPos.y);
+    vec2 wfq = vec2(length(vec2(dFdx(wq.x), dFdy(wq.x))), length(vec2(dFdx(wq.y), dFdy(wq.y))));
+    #endif
+    #ifdef S_STRATA
+    // strokes along the beds of rock (the strata's own wavy horizontals), lit or not
+    #ifdef STRATA_OBJECT
+    vec3 strataP = vObjPos;
+    #else
+    vec3 strataP = vWorldPos;
+    #endif
+    vec2 strataC = vec2(strataP.y + (vnoise(strataP.xz * 0.04) - 0.5) * uStrataSize * 0.9 + (vnoise(vec2(faceX * 0.05, strataP.y * 0.1)) - 0.5) * 1.6, faceX);
+    float strataFw = fwidth(strataC.x);
+    #endif
     // the makers' inscriptions: on upright faces, in cells of uGlyphs metres (the grid's)
     vec3 gg = vObjPos / max(uGlyphs, 1e-3), ggfw = fwidth(gg);
     vec2 glyphUV = gw.x > gw.z ? gg.zy : gg.xy;
@@ -1221,9 +1387,20 @@ const fragmentShader = /* glsl */ `
     if (uPattern == 3) patInk = leaves(vObjPos);
     #endif
     #ifdef S_CRACKS
-    if (uPattern == 4) patInk = rockCracks(vObjPos);
+    if (uPattern == 4 && uMode != ${MODE_TERRAIN}) patInk = rockCracks(vObjPos);   // (bare rock ground: rockFissures, below)
+    #endif
+    #ifdef S_WEATHER
+    if (uWeather > 0.0 && abs(n.y) < 0.55) patInk = max(patInk, weatherInk(wq, wfq, albedo) * (1.0 - smoothstep(0.35, 0.55, abs(n.y))));
     #endif
     albedo *= instColor;
+    #ifdef S_PLATES
+    float plateInk = 0.0;
+    if (uPlates > 0.5) {
+      float plateTone;
+      plateInk = plateLines(gq, gfw, gw, plateTone);
+      albedo *= 1.0 + 0.09 * plateTone;
+    }
+    #endif
     #ifdef GRASS
     if (vGrassLook.z > 0.0) {
       // further off, the ground's own tone under the tuft (its patches, as the terrain draws them)
@@ -1305,7 +1482,12 @@ const fragmentShader = /* glsl */ `
     if (uCreases > 0.0) detail = max(detail, outfitCreases(vBind, normalize(vObjNormal), clamp((uToon - L) / uToon, 0.0, 1.0)));
     #endif
     #ifdef S_GRID
-    if (uGrid > 0.0) detail = gridLines(gq, gfw, gw);
+    if (uGrid > 0.0) {
+      #ifdef S_PLATES
+      if (uPlates > 0.5) detail = plateInk; else
+      #endif
+      detail = gridLines(gq, gfw, gw);
+    }
     #endif
     detail = max(detail, carve.z * 0.62);
     #ifdef METAL
@@ -1324,7 +1506,9 @@ const fragmentShader = /* glsl */ `
         detail = max(detail, sandRipples(gp, slope) * sandK);
         // grains close up; in the dotted print style, coarser dots that last further out
         float grains = sandGrains(gp, gm, 0.25, 0.12, 0.005, 0.01, 71.0) * 0.55;
-        if (uDots > 0.0) grains = max(grains, sandGrains(gp, gm, 0.4 * uDots, 0.55, 0.03, 0.06, 13.0) * 0.8);
+        // (the print's coarse pen dots: a few, in patches, not a screen over all the sand)
+        if (uDots > 0.0) grains = max(grains, sandGrains(gp, gm, ${GROUND.dots.density} * uDots, 0.55, 0.03, 0.06, 13.0) * 0.8
+                                              * smoothstep(${GROUND.dots.patch[0]}, ${GROUND.dots.patch[1]}, vnoise(gp * 0.04 + 23.0)));
         detail = max(detail, grains * sandK * (1.0 - smoothstep(0.35, 0.6, slope)));
       }
       #endif
@@ -1342,11 +1526,23 @@ const fragmentShader = /* glsl */ `
       #ifdef S_SANDINK
       if (uSandInk > 0.5) detail = max(detail, sandScuffs(vWorldPos.xz) * (1.0 - bw.y));
       #endif
+      float rocky = 0.0;
+      #ifdef S_CRACKS
+      if (uPattern == 4) {
+        // bare rock ground: long fissures and a finer broken net near, few dots (a uniform branch:
+        // its derivatives are fine)
+        vec2 q1 = crackCoord(gp, ${GROUND.fissures.big.toFixed(1)}), q2 = crackCoord(gp + 17.0, ${GROUND.fissures.small.toFixed(1)});
+        vec4 j1 = vec4(dFdx(q1), dFdy(q1)), j2 = vec4(dFdx(q2), dFdy(q2));
+        detail = max(detail, rockFissures(gp, q1, j1, q2, j2) * (1.0 - smoothstep(0.55, 0.8, slope) * 0.5));
+        rocky = 1.0;
+      }
+      #endif
       if (uDots > 0.0 && uSandInk < 0.5 && uRipples < 0.5) {
-        // pen dotting: patchy, denser in hollows, a few bigger pebble dots
-        float patchy = 0.45 + 0.55 * smoothstep(0.3, 0.75, vnoise(vWorldPos.xz * 0.06 + 7.0));
+        // pen dotting: patchy, denser in hollows, a few bigger pebble dots (on cracked rock only the
+        // pebbles, here and there)
+        float patchy = (0.45 + 0.55 * smoothstep(0.3, 0.75, vnoise(vWorldPos.xz * 0.06 + 7.0))) * (1.0 - rocky);
         float dots = stipple(ce1, fwd, 8.5 * mix(0.7, 1.45, smoothstep(5.0, 220.0, vViewDepth)), 0.32);
-        float pebbles = stipple(ce2 * 0.37, fwd * 0.37, 20.0, 0.75) * step(0.5, vnoise(vWorldPos.xz * 0.2));
+        float pebbles = stipple(ce2 * 0.37, fwd * 0.37, 20.0, 0.75) * step(0.5, vnoise(vWorldPos.xz * 0.2)) * (1.0 - 0.7 * rocky);
         detail = max(detail, max(dots * patchy, pebbles) * uDots * 1.6);
       }
     }
@@ -1422,6 +1618,7 @@ const fragmentShader = /* glsl */ `
       facePart = true;
     #endif
     if (facePart) gHatch.a += 16.0;
+    gHatch.a += 32.0 * uDrift;   // sand banked against something (sand-drifts.js): post.js draws its meeting line softly
     #ifdef DISSOLVE
     gHatch.a = max(gHatch.a, dEdge);
     #endif
@@ -1447,6 +1644,17 @@ const fragmentShader = /* glsl */ `
       }
       gHatch.rg = vec2(h1, h2);
     }
+    #ifdef S_STRATA
+    // (lit, upright, and near enough for post.js to draw strokes at all: it fades them out by 700 m)
+    if (uMode == ${MODE_STRATA} && uShade.w > 0.0 && L >= uToon && vViewDepth < 700.0 && abs(normalize(on).y) < 0.7) {
+      // rock in light keeps a texture of strokes: runs of them along its beds (the strata's wavy
+      // horizontals); in shade the hatching is the shading, as on everything
+      float upright = 1.0 - smoothstep(0.45, 0.7, abs(normalize(on).y));
+      float runs = smoothstep(0.42, 0.66, vnoise(vec2(strataC.y * 0.09, strataC.x * 0.55)));
+      float beds = strokes(strataC, strataFw, hsp * 1.25, 0.85) * runs * upright * uShade.w * step(uToon, L);
+      gHatch.r = max(gHatch.r, beds);
+    }
+    #endif
     // a face is flat colour and one shadow tone: its strokes are its own (faceInk)
     #ifdef S_FIGURE
     if (uMode == ${MODE_OUTFIT}) gHatch.rg *= 1.0 - faceFlat(vBind);
@@ -1457,6 +1665,16 @@ const fragmentShader = /* glsl */ `
     #ifdef FACE_PART
       gHatch.rg = vec2(0.0);
     #endif
+    // the shade's tone (SHADE): the material's lift, the half-tone of a form turned from the sun
+    // (no cast shadow on it: those keep the full shadow), the ground's light on faces turned down
+    if (L < uToon) {
+      float turned = ndl < 0.0 ? (ndl > -${SHADE.band} ? 1.0 : 0.6) : 0.0;
+      float lift = 1.0 - (1.0 - uShade.x) * (1.0 - uHalftone * turned) * (1.0 - uBounce * smoothstep(-0.1, -0.7, n.y));
+      // (a lifted shade is a half-tone: few strokes, and no cross-hatching over a whole wall)
+      gHatch.rg *= uShade.z * vec2(1.0 - 0.8 * lift, max(1.0 - 2.5 * lift, 0.0));
+      float hq = uShade.y < 0.0 ? 0.0 : 1.0 + floor(uShade.y * ${SHADE.hues}.0 + 0.5);
+      gHatch.rg = min(gHatch.rg, vec2(1.0)) + 2.0 * vec2(hq, floor(clamp(lift, 0.0, 1.0) * ${SHADE.lifts}.0 + 0.5));
+    }
     #ifdef GRASS
       // blades: no hatching, no drawn detail; soft ink (post.js draws their edges as a darker green,
       // thin), r a pen line's share (a few tufts near by), g the outline's fade with distance
@@ -1478,6 +1696,16 @@ const cache = new Map();
  * @param {number} [o.strataSize]
  * @param {boolean} [o.strataObject]  the bands fixed to the object, not the world (it moves)
  * @param {number} [o.grid] spacing of drawn grid lines (0 = none)
+ * @param {boolean|number} [o.plates] the grid drawn as plating: rows of uneven plates, staggered joints, some left
+ *                              out, each plate a shade apart (a number: the plate's size in metres, else the grid's)
+ * @param {boolean} [o.drift]   ground banked against something (sand-drifts.js): +32 in gHatch.a, post.js draws
+ *                              the line where it meets a wall softly
+ * @param {boolean|number} [o.weathered] old walls: cracks from storeys' tops and feet and from window corners,
+ *                              patches gone from the plaster (0..1; on for façades; never metal or the makers')
+ * @param {number}  [o.shade]   0..1: this surface's shade lifted toward its lit colour (SHADE)
+ * @param {number}  [o.shadeHue] 0..1: how much of its own hue its shade keeps (default: the world's, uShadeKeep)
+ * @param {number}  [o.hatch]   how many hatch strokes its shade gets (1 all, 0 none: a flat tone)
+ * @param {number}  [o.strataHatch] strata rock: runs of strokes along its beds in the light (0..1)
  * @param {boolean|number} [o.glyphs] the makers' carved inscriptions (src/glyphs.js) on upright faces, in
  *                              cells of this many metres (true: the grid's spacing). For the makers' work only
  * @param {string}  [o.metal]   'painted' | 'steel' | 'chrome' | 'brass' | 'copper' | 'iron' (METALS): flat
@@ -1529,7 +1757,10 @@ export function makeMaterial(o) {
       uMode: { value: o.mode ?? MODE_PLAIN },
       uFlat: { value: o.flat ? 1 : 0 },
       uStrataSize: { value: o.strataSize ?? 4.0 },
-      uGrid: { value: o.grid ?? 0 },
+      uPlates: { value: o.plates ? 1 : 0 },
+      uWeather: { value: weatheredOf(o) },
+      uDrift: { value: o.drift ? 1 : 0 },
+      uGrid: { value: o.grid ?? (typeof o.plates === 'number' ? o.plates : o.plates ? 3 : 0) },
       // the inscriptions' cell (m): a number, or the grid's spacing
       uGlyphs: { value: o.glyphs ? (typeof o.glyphs === 'number' ? o.glyphs : o.grid || 1.4) : 0 },
       uBiomes: { value: o.biomes ? 1 : 0 },
@@ -1566,6 +1797,7 @@ export function makeMaterial(o) {
       uMood2: { value: new THREE.Vector4(0, 1, 0, 0) },   // x brow tilt, y the side the nose line goes on (the shade's)
       uFaceKit: { value: new THREE.Vector4(1, 1, 0, 1) },
       uFaceKit2: { value: new THREE.Vector4(1, 1, 0, -0.03) },   // eye size, nose width, cheeks, the ears' z
+      uShade: { value: new THREE.Vector4(...shadeOf(o)) },
     },
   });
   mat.vertexColors = !!o.vertexColors;

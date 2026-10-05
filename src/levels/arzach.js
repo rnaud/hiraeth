@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createNoise2D, fbm, mulberry32, smoothstep } from '../noise.js';
 import { makeMaterial, MODE_TERRAIN, MODE_STRATA } from '../materials.js';
+import { SandDrifts, driftMaterial } from '../sand-drifts.js';
 import { Terrain, jitter } from '../world.js';
 import { Bird } from '../bird.js';
 import { attachTemple } from '../temples/index.js';
@@ -276,6 +277,11 @@ export function createArzach(scene) {
   }
 
   // the Aerie on the plain west of the landing, and its rooms far overhead (src/temples/arzach.js)
+  // sand banked against what stands on the sand: every collided mesh built so far (sand-drifts.js)
+  const sand = new SandDrifts({ heightAt: (x, z) => terrain.heightAt(x, z), seed: 5 }).addScene(scene);
+  const drifts = sand.build(driftMaterial(makeMaterial, terrain.materialOptions));
+  if (drifts) scene.add(drifts);
+  sand.raise(terrain);   // (from here on the ground's height is the sand's, drifts and all)
   return attachTemple('arzach', scene, {
     id: 'arzach',
     ground: terrain,

@@ -311,7 +311,10 @@ Three passes per frame (`src/main.js`):
      are offset by a noise field for a hand-inked wobble. "Line boil"
      re-rolls that noise at 8 fps.
    - **Two-tone cel shading.** Lit areas show the pure albedo. Shadowed
-     areas show albedo × a lavender shadow tint, a very Moebius choice.
+     areas show albedo × a lavender shadow tint, a very Moebius choice;
+     each surface lifts and warms it its own way (a half-tone on forms
+     turned from the sun, the bounce under overhangs: "Shade and hatching
+     by surface").
    - **Hatching** takes the surface-anchored strokes from `RT2`: pen strokes
      in the shade, and cross-hatching in the darkest areas. Hatching fades
      out with distance. The panel's "hatch anchoring" option switches back
@@ -465,7 +468,7 @@ Modelled on a classic Moebius desert plate:
   cumulus sitting on the horizon;
 - pen-dotted sand with pebbles, ochre scrub bushes, and blue-grey hatched
   shadows;
-- fine, even ink lines, and fold lines drawn down the cape;
+- fine, broken ink lines, solid ink in the deepest crevices, and fold lines drawn down the cape;
 - the wide-brimmed pointed hat;
 - a saucer tower and a pale spired city on the horizon;
 - an open plain around the desert start, with landmarks set back from it;
@@ -1428,7 +1431,19 @@ panel, so the shaders can be checked against the look they are after. It starts 
 panels of `references/The Desert/environement/IMG_3775.JPG` (`REFERENCE_VIEWS` in
 `src/levels/reference-views.js`): the bones in the dunes, the fluted tower and its dishes, the
 rope bridges over the gorge, the sail tents, the turquoise lake under the violet cliffs, the
-buried hull.
+buried hull. Then the desert's three other environment sheets, panel by panel
+(`src/levels/reference-desert.js`, `DESERT_VIEWS`): IMG_3772 (six: the ribs on the dune crest,
+the blue saucers over the spired city, the rope bridge over the ochre gorge, the petal station,
+the salt lake under the violet table, the station of domes and masts), IMG_3773 (eight: the
+ribcage between the dunes, the pink umbrella city, the bridge over the shaded canyon, the poles
+on the pink plain, the fallen pod, the lagoons under the violet mesas, the stream in the red
+canyon, the two buried helmets) and IMG_3774 (seven: the ribcage in the dune's hollow, the pink
+dishes over the blue domes, the bridge over the dunes, the dish station, the slot canyon, the
+turquoise pool in the violet cliffs, the buried blue heads): 27 views, `[ ]` cycling through them
+sheet after sheet. The shapes the sheets draw again and again (ribcages, dishes on stems, gorge
+walls, bridges, domes, petals, machine heads, table cliffs) are builders in
+`src/levels/reference-kit.js`. The views' ring (`VIEW_RING`) grows with their number, so
+neighbours stay over 3 km apart.
 
 - **A view** is a panel: its crop of the sheet, its ground (a height function drawn as rings round
   the camera, fine underfoot and coarse at the horizon), what stands on it (built with the Lab's
@@ -1451,8 +1466,89 @@ buried hull.
   cropped with CSS (`cropStyle`).
 - `?look=desert` draws every view in the desert's own palette and plain Moebius print preset
   (blue-grey shadow tint, cumulus bank, clouds), to see what the shaders do unaided.
-- `tests/references.test.js`: the level registers as a dev level, IMG_3775 has six views whose
+- `tests/references.test.js`: the level registers as a dev level, the four sheets have their 6, 6, 8 and 7 views (in order, not overlapping), whose
   cameras put the horizon where the panel has it, each sun comes from its side, `[ ]` and `\` work.
+
+### Shade and hatching by surface (after the references)
+
+The review of IMG_3775's six panels against their rebuilt views found what the shaders couldn't do;
+all of it is in the game's own materials and post pass (every world uses it), not in the level.
+
+- **Each surface its own shade** (`SHADE`, `shadeOf` in `src/materials.js`): post.js used to shade
+  everything as albedo × the world's one shadow tint, so the desert's blue-grey turned bone and sand
+  blue. Now a shaded pixel carries a *lift* (how far toward its lit colour) and a *hue* (how much
+  of its own colour it keeps: the tint's darkness, a little warm). The material gives its own
+  (`makeMaterial({ shade, shadeHue })`; metal and sand keep more of their hue by default), and the
+  light's geometry adds two: a **half-tone** on a form turned from the sun under no cast shadow
+  (`uHalftone`, less on its far side past `SHADE.band`), and the **ground's bounce** on faces turned
+  down (`uBounce`: a cap's underside is a soft half-tone, the ground under it the full shadow). The
+  presets set them with `uShadeKeep`, the hue where a material doesn't say (only Moebius print has
+  them; every preset lists them, so switching zones never keeps the last one's). They travel packed
+  over the hatch strokes: `gHatch.r += 2 × (1 + hue step)`, `gHatch.g += 2 × lift step` (15 and 8
+  steps; the strokes stay 0..1, the half-float buffer holds it under 32), and a pixel with nothing
+  packed (other shaders, grass) takes the defaults. A face keeps its own warm shade (`FACE_SHADE`).
+- **Hatching by surface**: `hatch` (0..1) scales a material's shadow strokes (metal 0.35 and sand
+  0.55 by default, the references' bones and sails fewer); a lifted shade gets fewer strokes and no
+  cross-hatching (a whole wall in half-tone is no longer a field of crossed lines); strata rock
+  (`strataHatch`, on by default) keeps runs of strokes along its beds in the light.
+- **Calmer ground** (`GROUND` in `src/ground-ink.js`): rarer ripple patches, fewer long wind lines,
+  the print look's coarse dots only in patches (`GROUND.dots`), and bare rock ground (terrain with
+  `pattern: 'cracks'`) draws long fissures and a finer broken net close by (`rockFissures`) instead of
+  dots.
+- **Lines**: the print preset's ink is thinner and more broken (`uLineWidth` 1.0, `uLineVary`
+  0.55), soft dune crests are left uninked unless the slope breaks (`uNormalThresh` 0.3), and the
+  deepest crevices (between ribs, into a hull's machinery) are filled solid (`uCrevice`, from the
+  crease shading).
+- **Sky and paper**: the flat printed sky keeps its tint down to a narrow band on the horizon; its
+  dots are a grain (anywhere in their cell, several sizes and weights, thicker and thinner in
+  drifts) rather than a screen; the paper has a tooth (`uPaper`: a fine mottle and pits, on the light
+  colours).
+- **Plating** (`makeMaterial({ grid, plates: true })`, `S_PLATES`): the grid drawn as rows of plates
+  of uneven widths, staggered joints, the odd joint or seam left out, each plate a shade apart (under
+  the colour-edge threshold). On the desert's hulls, its station domes, the ship's hull, the
+  reference wreck.
+- **Water** (`WATER_INK`, `src/water-shader.js`): the wave crests only in the patches the wind
+  ruffles (drifting downwind), the rest flat, and gone far off; the lake view's bed makes broad pale
+  shallows, which post.js inks round.
+- `tests/shade.test.js`: the packing round trip, the materials' defaults, every preset's tones, the
+  ground marks, weathering's rules; `tests/surface-spec.test.js` the new defines.
+- **Cost** (M4 Pro, ANGLE Metal, 1280 × 720, the camera pinned at spawn and turned, three runs each
+  alternating with the build before; throughput: six frames back to back to a one-pixel read):
+  desert High 6.3 → 6.0 ms and 6.7 → 5.6 ms, City-Shaft High 8.7 → 9.3 and 5.2 → 6.5, desert
+  Handheld 3.2 → 3.3 and 3.1 → 2.9, City-Shaft Handheld 8.6 → 7.8 and 5.9 → 6.8 (the machine's
+  run-to-run spread is ±30 %). The new work is behind defines (weathering, plating) or cheap
+  branches (crevices, paper, the strata strokes only lit and near); the handheld's paper is one tap.
+
+### Weathered walls
+
+The reference cities look old and lived in. `makeMaterial({ weathered })` (0..1, `S_WEATHER`,
+`weatherInk` in `src/materials.js`; `WEATHER`, `weatheredOf`): on upright faces, in cells of the wall
+anchored in the world (so each building has its own), the odd crack runs down from a storey's top
+or up from its foot, jagged and thinning, with a branch now and then; a crack runs out from the
+corner of the odd window (house fronts, `pattern: 'facade'`); and a few patches where the plaster
+has gone, a shade apart, edged with a broken pen line. They fade out once under a pixel. On by
+default for house fronts and on the desert city's walls and terraces and the references' huts;
+never on metal, glass, lights or the makers' work (their inscriptions).
+
+### Sand banked against things
+
+In a sandy world what stands on the ground sits in it (`src/sand-drifts.js`). While a world is
+built, `SandDrifts.open()` collects the solids its builders add (the desert's Kits in
+`desert-city.js` and `desert-landmarks.js`, the Lab kit `RoomKit` in the references): each is cut at
+its foot (the vertices in its bottom band, joined by the triangles they share, so an arch's two feet
+stay apart and no drift runs across its passage), each part's convex hull a footprint (posts,
+crates, slabs and anything off the ground skipped). Round each, a drift: `rise` at the wall (higher
+facing the wind, `SAND_WIND`, wandering along the wall), falling off along (1 − u)² to nothing
+`reach` × rise out, so it meets the ground tangent and never steepens into the terrain's rock colour
+(`maxSlope`); a share of corners carry a bigger drift. The skirts are one mesh per 160 m square
+(culled by the view), drawn in the ground's own material (`driftMaterial`: same marks, same
+patches) with a polygon offset, and collided (you walk up them). Their pixels carry +32 in
+`gHatch.a`; post.js draws the line where they meet a wall in a darker shade of the sand and lighter.
+Where there's no drift (past its reach, or a `mask`: none in Qanat's paved streets) no skirt is
+built. A world that builds its meshes its own way hands the whole scene over after it is built
+(`addScene`: every collided mesh in world space, a merged mesh's parts apart; render copies that a
+hidden collider stands for are skipped): Vael and the Buried Machine. In the desert 206 footprints
+(57 k triangles), Vael 214 (102 k), the Buried Machine 231 (138 k). `tests/sand-drifts.test.js`.
 
 ## Sound from the first frame (v0.39)
 
@@ -1904,7 +2000,9 @@ vertical folds held the cloth out flat like a board, so the lower half lay sprea
 
 ## Android (offline APK)
 The game is also packaged as an Android app, for handhelds such as the Retroid
-Pocket. Their built-in controls work through the Gamepad API.
+Pocket. Their built-in controls work through the Gamepad API. Since NATIVE_API 6 the app runs
+the game in its own engine, GeckoView, and in the system WebView only where that can't run
+(see "The engine: GeckoView").
 - **Release workflow** (`.github/workflows/android.yml`): every push to `main`
   builds the web game, wraps it with Capacitor (`capacitor.config.json`,
   `android/`) and builds a signed release APK. The APK is published to the
@@ -1927,7 +2025,7 @@ Pocket. Their built-in controls work through the Gamepad API.
   and plays sound without an extra tap. `versionName` is the game version and
   `versionCode` is the build number (`release-info.mjs build`: the commit count; up to 117 it was
   the workflow run number).
-- **Local build** (needs JDK 21 and the Android SDK):
+- **Local build** (needs JDK 21 and the Android SDK with the API 37.0 platform, for GeckoView):
   ```
   npm run build && npx cap sync android && (cd android && ./gradlew assembleDebug)
   ```
@@ -2081,6 +2179,48 @@ updates now come from the Cloudflare site that serves the web game:
   `docs/steam-deck.md`).
 - Tests: `tests/web-update.test.js`, `tests/android-ota.test.js`, `tests/updates.test.js`,
   `UpdateRulesTest.java`, `tests/test_steam_deck.py`. The flip itself: `docs/cloudflare.md`.
+
+### The engine: GeckoView (NATIVE_API 6)
+The app ships its own browser engine now: GeckoView (Mozilla's, `org.mozilla.geckoview`, release
+channel, arm64), instead of the system WebView. On handhelds whose firmware pins an old WebView
+(the Retroid Pocket Nova: Chromium 109) the game missed 23–50 % of the refreshes in busy places
+(30–45 fps); in GeckoView 157 the same build misses 1–15 % (51–60 fps, a third less JS per frame) and
+loads in 12 s instead of 21 (docs/benchmark-web-vs-unity.md, "On the Retroid: GeckoView"). Chrome 154
+does better still, but the app can't use it.
+- **Two activities.** `MainActivity` (the launcher, so home-screen icons keep working) runs the game
+  in GeckoView. Where GeckoView can't run (not arm64, Android before 8, or GeckoView failed to start
+  here once: `MainActivity.usable`) it hands over to `WebViewActivity`, the Capacitor app as before.
+  `--ez webview true` forces the WebView (debug and bench builds).
+- **The page's origin** is `http://127.0.0.1:41730` (`MainActivity.ORIGIN`), served by the app's
+  loopback server (`AssetServer`): GeckoView can't intercept requests the way Capacitor serves
+  `https://localhost`, and pages from `resource://android/` get no content scripts. The port is
+  fixed for good (the saves are stored under the origin); if another app holds it, that launch runs
+  in the WebView. The server serves the APK's `assets/public/` or a downloaded bundle
+  (`WebBundles.Host.serve`), revalidated by ETags made of the build served.
+- **The bridge.** GeckoView has no `addJavascriptInterface` / `evaluateJavascript`: a built-in
+  WebExtension (`assets/memento-ext/`, a content script at `document_start` with a native port)
+  gives the page `window.Capacitor` (`isNativePlatform`, `nativePromise` → `AppShell.java`, shared
+  with `AppShellPlugin`), the controls (`GamepadBridge` → `window.__nativePad`), the app's events
+  (`moebius:pause` / `resume` / `webupdate`) and answers WebBundles' boot heartbeat. The page side
+  (`src/native-app.js`, `src/native-pad.js`) is unchanged.
+- **Saves, once** (`SaveImport`): on the first launch in GeckoView a hidden WebView opens a page of
+  Capacitor's origin that hands its localStorage to the app, and the game's next page starts with a
+  script that writes those keys into GeckoView's storage (keys already there are kept) and marks it
+  done (`moebius.imported.v1`). The WebView's storage is only read: the WebView fallback still has
+  the saves as they were.
+- **Gecko settings** (its config file, `writeConfig`): autoplay allowed (sound without a tap), no
+  slow-script stop (`dom.max_script_run_time` 0, and `onSlowScript` → CONTINUE: GeckoView's default
+  stops a script after ~10 s, which left the page dead), no pinch zoom, full-precision timers. Links
+  elsewhere open in the system browser.
+- **The build:** `geckoviewVersion` in `android/variables.gradle`; GeckoView 157 compiles against
+  API 37 (`compileSdkVersion` 37, `android.suppressUnsupportedCompileSdk=37` for the Android Gradle
+  plugin 8.13) and its androidx.core 1.19 would need the plugin 9.1, so the app forces the 1.17 it
+  had. Gecko's libraries are compressed in the APK (`useLegacyPackaging`): 9.5 → ~100 MB to download.
+  CI keeps the AAR in setup-java's Gradle cache and the API 37 platform in an `actions/cache`.
+- **Testing on a device:** a debug build takes `--es url http://localhost:6253/…` (the bench's
+  server) and has GeckoView's remote debugging on (Firefox's protocol, not DevTools). The bench's
+  harness drives the page itself instead (`scripts/bench/gecko-bridge.mjs`).
+- Tests: `tests/android-gecko.test.js`, `tests/native-app.test.js`, `tests/android-ota.test.js`.
 
 ### Updates that arrive, and the update section in the settings (NATIVE_API 4)
 Why updates used to arrive at random, and what changed:
@@ -2633,7 +2773,7 @@ The course, the runs and the measures moved from `tests/gait-sim.js` into `src/g
   at the Great Crystal). `tests/signature.test.js` checks that every destination carries it.
 
 ### A quieter screen: conversations and prompts
-- **No button reminders.** The status box (`updateHud` in `src/main.js`) shows the place,
+- **No button reminders.** (Since v0.62 there is no status box at all: "Nothing on the screen" below.) The status box (`updateHud` in `src/main.js`) showed the place,
   gauges, the objective and relics, and a prompt only for what is right here (the ship's
   hatch and console, a lens); a ride's controls show for six seconds after you get on.
   The controller's button bar is gone except in photo mode; the full controls live in the
@@ -3698,6 +3838,116 @@ From the author's notes (TODO.md, "Feel and look"). Tests: `tests/feel.test.js`.
   on the edge right in front of you (`EdgeInk`, drawn with the wisps' material, depth-tested
   against the G-buffer), and the first lean of a session shows a line (`EDGE_HINTS`, per world,
   or the level's own `edgeHint`).
+
+### Nothing on the screen; the scout finds the objective (v0.62)
+
+The author's rule: no icon or text stays on the screen while you play. To find the quest you send
+the drone; for the quest log you open the menu. Tests: `tests/hud.test.js`, `tests/scout.test.js`.
+
+- **No status box** (`#hud` / `#status` and `updateHud`'s status line are gone; `src/hud.js`). The
+  world's name, the objective and its distance, relics x/5, the charge line and the gauges no
+  longer sit in the bottom-left corner. What is left comes only when it matters, then fades:
+  - **the cue** (`#cue`, `cueText`, `Cue`): one short line at the bottom (at the top on a phone,
+    where the toasts make room for it: cinema.js `OBSTACLES`) for what the use button does right
+    here when it has nothing to float over (the ship's ramp, hatch and console, a lens, the
+    backpack slotting in), a ride's controls for `RIDE_HINT_MS` after you get on, what the scout
+    just found, and a region's name as you cross into it (`PlaceName`: it must hold 1.5 s, and
+    the name where you arrive is not shown). Prompts with a place still float over it (`#prompt`).
+  - **health** (`#health`): while hurt or healing (`Fader(3)`), then fades; **stamina** as before.
+  - **the tank** (`ToolHud.gaugeShown`, `body.tool-gauge`): the crosshair and the pips while
+    aiming; without aiming, the pips alone beside the traveller (main.js `placeToolGauge`, left of
+    the shoulders as the stamina wheel is right) while the tank is short (a shot, a boost, the
+    jets burning: the pip being burnt shows what is left of it, until the refill), on a mode
+    switch, and an empty tank for `GAUGE_DRY` s; `GAUGE_LINGER` s after, it fades.
+  - **the frame readout** is off by default (`showFps: false`; settings saved before `hudV: 1`
+    lose the old default once, `migrateSettings`); F, the settings or `?fps=1` (this session
+    only) turn it on. `scripts/handheld-perf` sets it.
+  - **the menu's button** (`#gear`): only on a touch screen, small (30 px) and faint at 45 %
+    opacity; the keyboard has O / Esc, a pad Menu. The touch worlds button is gone (the menu's
+    Debug entry has it), and the keyboard help (H) is the menu's Controls page.
+  - The scout's floating label (`#scout-label`) is gone: the cue says what it found.
+- **The scout finds the objective** (`Scout.ping`, `FIND` in `src/scout.js`): Q, Y / △ on a pad
+  (on foot and now riding or flying too: controller.js sends `ping` from the top button in the
+  ride context), the touch "ping". It hops off its dock as before, flies to a lookout (`lookout`:
+  `FIND.out` m towards the objective from over your head, a little more at speed, carried with
+  your velocity; right over it when it is nearer than `FIND.near`), hovers and points its beak and
+  a thin lit **lens beam** at it (`updateBeam`: out to the objective or the first thing in the
+  way, at most `FIND.beam` m), drops a **flare** on the spot (`Flare`: a column of its light
+  shooting up and a ring that rings out, sized by the distance so it reads from far away, gone
+  after `FLARE.life` s), chirps (`sound.drone('found')`) and calls `onFind(target, metres)`:
+  main.js puts "◆ Madame Sel, under the silent tower · 320 m" on the cue for 5 s (`findText`,
+  `roughDistance`) and shows the quest marker for `MARKER_SECONDS`. After `FIND.point` s it comes
+  home and docks as before (`returnT` drives the safe recall now). Phases: docked → launch → seek →
+  point → return. Nothing to find (`getTarget()` null): `shrug()`, the eye opens, it lifts a few
+  centimetres off the dock and shakes itself (`FIND.shrug` s), "Nothing to find here".
+- **What it finds** (`nextObjective`): the tracked quest's objective (or the main quest's, or the
+  first active one: `Quests.objective`), routed through doorways; while the observatory expedition
+  is under way its steps first; then the world's story goal (its beacon); once the story is told,
+  the ship from more than 25 m away; else nothing. It never points at a relic any more: they are
+  yours to find. A quest with `background: true` (the makers' boxes, offered on arrival) is only
+  tracked when nothing else is or when you choose it, so a box doesn't take the scout from the
+  quest you are on.
+- **The quest marker** (`QuestMarker`, the cyan diamond over the tracked objective) no longer hangs
+  in the air all the time: `reveal()` shows it for `MARKER_SECONDS` after a find, then it fades.
+  **The world's beacon** (the gold column over a world's story goal, `Story.beacon`) stays: it is
+  part of the landscape, not the screen (a lighthouse you see across the dunes, drawn in the
+  world's ink and light), it is the one way a world without step-by-step quests shows its goal
+  before you think of asking, and it goes when the story is told.
+- **The menu's pages** (`SettingsMenu.page`): Quests, Settings (where it opens) and Controls, from
+  the side column. **Quests** (`o.quests()`, `questsPageHtml`): "Where to" (what the scout would
+  find, and how far), the father's charge and the quest log (the sketchbook's own sections:
+  `chargeJournalHtml`, `quests.journalHtml()`, steps done struck through, finished ones stamped,
+  failed ones under their own heading), and what you carry. Active quests are focusable
+  (`data-nav`, which `menuNavigate` steps onto): confirm or a click tracks one (`o.onTrack`).
+  **Controls** (`controlsList`, `controlsHtml`): every control for the pad (in Xbox / PlayStation
+  form), the keyboard and touch, the one in your hands first; H opens the menu there. B / ○ or
+  Esc on a page goes back to the settings, then out. The title's settings have Controls too.
+  The sketchbook (View, J) is unchanged.
+
+### Moments: first times, filmed (`src/story/moment.js`)
+A moment is a short cinematic (6–12 s) for a first time that deserves one, composed like a comic
+page: a few panels, the letterbox, a line or two, the traveller's face and hands in the line's
+tone, a swell of the world's score, then back to you.
+- **The helper.** `MomentStage` (one per world, `storyRt.moments`, handed to each world's setup
+  as `ctx.moments`) plays one `Moment` at a time on the ship's cinematic camera and its Cinema
+  (the same `ship.shot` / `ship.release` the box scene uses, the letterbox, the subtitles).
+  `moments.play({ id, flag, shots, beats, onStart, onFrame, onEnd })` returns the moment, or
+  null when it can't play (no ship's camera, a scene, a conversation or a story page up, the
+  traveller riding or down, its flag already set): the caller then does what it always did.
+  A shot is `{ dur, from, to?, ease?, clear? }`; `from` / `to` are frames `{ pos, look, fov }`,
+  Vector3s or functions of the shot's time (to follow a stream's head, a face); no `to` holds.
+  `shotAt(shots, t)` is pure (tested). Beats `{ t, line?, secs?, run? }` say a line (`spoken()`,
+  with its tone: the traveller's face and hands take it) or run a cue. `m.face` / `m.eyes` turn
+  him and his eyes; `m.look` holds a tone on his face; `faceOf(humanoid)` gives where his face
+  is and looks as posed, for close-ups that never catch an ear. While one plays the idle's
+  look-around waits, the game's toasts wait (`cinema.held`), input is cut (`storyRt.busy()`).
+- **Once, skippable, never in the way.** Its flag is set as it starts. B / ○, the Menu button,
+  Esc or a tap on the corner tag skips it, after a 0.6 s grace (the press that started it,
+  mashed, doesn't end it) and on the next frame (the key opens nothing else). An error in a
+  frame ends it at once; `onEnd(m, skipped)` always runs, and the state a moment shows is
+  applied by its caller for sure there (and on its beats), so a skip or a failure lands the
+  same as watching it. Nothing is compiled mid-shot: a moment only moves the camera and what
+  already exists (measured: `renderer.info.programs` unchanged through both, High and Handheld).
+- **Sound**: `sound.swell(kind, pos)` plays a phrase of the world's score over a growing pad
+  while the score and the bands step back: `'motif'` the world's leitmotif on its lead,
+  `'father'` the father's theme in the world's mode on its voice for it.
+- **The desert's two** (`src/story/desert-moments.js`):
+  - *the water's first run* (`desert.moment.flow`), when the rib comes off the channel: A, high
+    beyond the gutter, the rib rolling clear past the post and the traveller; B, a long lens up
+    the gutter from past its end, the crack lighting and the water coming down it (the flow
+    waits for this panel, `st.flowDelay`); C, high over the gutter's end across the basin, the
+    pool spreading over the dry bed round the roots, its light coming up; D, his face,
+    three-quarter, lit from below: "It's running… like the giants on the mural." The world's
+    motif swells over it; its toast comes after.
+  - *the empty tank's first fill* (`desert.moment.fill`), the first wade with the dry tank: A,
+    over the water at him standing in the pool; B, over his shoulder on the glass as the water
+    climbs into it slowly in three colours (`tool.fillTo` holds the glass's level), its glow on
+    his back; C, beside him: he lifts the bracer, its rings light one by one, and a first glob
+    (`tool.spark(dir)`, spending nothing) splashes out across the pool; D, his face: "Full. So
+    that's what it was waiting for." To the father's theme. The jar fills and the controls are
+    said (RT / R2, RB / R1) at its end.
+  - Tests: `tests/moment.test.js` (the shots, a play through, the skip and its grace, a failure,
+    the stage's refusals, and both desert moments in the story: once, skipped, without a ship).
 
 ## The makers' temples
 

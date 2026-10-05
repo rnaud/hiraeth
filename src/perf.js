@@ -388,6 +388,26 @@ export function adaptScale(s, { fps, missed = 0 }, D, scale) {
 }
 
 /**
+ * The browser engine, first on the frame readout (F), so a screenshot or someone watching a
+ * benchmark can tell them apart: "GECKO 157" (the Android app's GeckoView), "WEBVIEW 109" (the
+ * system WebView), "CHROME 154", "FIREFOX 157", "EDGE 141", "SAFARI 18", "ELECTRON 38", else "WEB".
+ * @param ua      navigator.userAgent
+ * @param search  location.search: ?engine=… overrides it (a benchmark's own name)
+ * @param app     window.Capacitor (the Android app says which engine it runs the page in)
+ */
+export function engineLabel(ua = '', search = '', app = null) {
+  const forced = new URLSearchParams(search).get('engine');
+  if (forced) return forced.toUpperCase();
+  const v = (re) => ua.match(re)?.[1];
+  if (v(/Firefox\/(\d+)/)) return `${app?.engine === 'gecko' ? 'GECKO' : 'FIREFOX'} ${v(/Firefox\/(\d+)/)}`;
+  if (v(/Electron\/(\d+)/)) return `ELECTRON ${v(/Electron\/(\d+)/)}`;
+  if (v(/Edg\w*\/(\d+)/)) return `EDGE ${v(/Edg\w*\/(\d+)/)}`;
+  if (v(/Chrome\/(\d+)/)) return `${/; wv\)/.test(ua) ? 'WEBVIEW' : 'CHROME'} ${v(/Chrome\/(\d+)/)}`;
+  if (v(/Version\/(\d+)[\d.]* (?:Mobile\/\S+ )?Safari/)) return `SAFARI ${v(/Version\/(\d+)/)}`;
+  return 'WEB';
+}
+
+/**
  * A handheld or a weak GPU: the Android app (Capacitor), a mobile or software GPU, or an
  * old integrated one on a touch device.
  * @param o.native  window.Capacitor?.isNativePlatform?.()

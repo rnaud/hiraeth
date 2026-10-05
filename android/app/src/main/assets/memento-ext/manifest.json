@@ -1,0 +1,11 @@
+{
+  "manifest_version": 2,
+  "name": "Memento bridge",
+  "version": "1.0",
+  "description": "The page's way to the app in GeckoView (MainActivity): Capacitor.nativePromise, the gamepad, pause and resume, the boot heartbeat, the save import",
+  "browser_specific_settings": { "gecko": { "id": "bridge@memento.rnaud" } },
+  "content_scripts": [
+    { "matches": ["http://127.0.0.1/*", "http://localhost/*"], "js": ["content.js"], "run_at": "document_start", "all_frames": false }
+  ],
+  "permissions": ["nativeMessaging", "nativeMessagingFromContent", "geckoViewAddons"]
+}

@@ -11,10 +11,12 @@ const S = existsSync(inFile) ? JSON.parse(readFileSync(inFile, 'utf8')) : null;
 const androidFile = resolve(ROOT, opt.android ?? 'scripts/bench/results/android.json');
 const A = existsSync(androidFile) ? JSON.parse(readFileSync(androidFile, 'utf8')) : null;
 const VP = viewpoints();
-// (the WebView-vs-Chrome section is written by hand from android-engines-summary.mjs: kept as it is)
+// (the WebView-vs-Chrome and GeckoView sections are written by hand from android-engines-summary.mjs and
+// android-gecko-summary.mjs: kept as they are)
 const DOC = resolve(ROOT, 'docs/benchmark-web-vs-unity.md');
-const KEEP = '## On the Retroid: WebView 109 vs Chrome 154';
-const kept = (() => { const t = existsSync(DOC) ? readFileSync(DOC, 'utf8') : ''; const i = t.indexOf(KEEP); if (i < 0) return null; const j = t.indexOf('\n## ', i + KEEP.length); return t.slice(i, j < 0 ? undefined : j).trimEnd(); })();
+const KEEP = ['## On the Retroid: WebView 109 vs Chrome 154', '## On the Retroid: GeckoView'];
+const keep = (head) => { const t = existsSync(DOC) ? readFileSync(DOC, 'utf8') : ''; const i = t.indexOf(head); if (i < 0) return null; const j = t.indexOf('\n## ', i + head.length); return t.slice(i, j < 0 ? undefined : j).trimEnd(); };
+const kept = KEEP.map(keep).filter(Boolean).join('\n\n') || null;
 const SIDE = { web: 'web (three.js)', unity: 'Unity player', 'unity-webgl': 'Unity WebGL' };
 const f1 = (x) => (x == null ? '–' : x >= 100 ? x.toFixed(0) : x >= 10 ? x.toFixed(1) : x.toFixed(2));
 const sp = (s, f = f1) => (!s ? '–' : s.n > 1 && s.max - s.min > 0.005 * Math.abs(s.med) ? `${f(s.med)} (${f(s.min)}–${f(s.max)})` : f(s.med));

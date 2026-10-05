@@ -114,3 +114,23 @@ test('the panels\' figures stand on their view\'s ground, in their own clothes',
     assert.ok(p.lines.every((l) => /^~\w+~ /.test(l)), 'every line has a tone');
   }
 });
+
+test('the other desert sheets: IMG_3772, 3773 and 3774 panel by panel, after IMG_3775, in order', () => {
+  const counts = { IMG_3775: 6, IMG_3772: 6, IMG_3773: 8, IMG_3774: 7 };
+  for (const [s, n] of Object.entries(counts)) {
+    const views = REFERENCE_VIEWS.filter((v) => v.sheet === s);
+    assert.equal(views.length, n, `${s}: ${n} panels`);
+    assert.deepEqual(views.map((v) => v.panel), Array.from({ length: n }, (_, i) => i + 1), `${s}: its panels in order`);
+    assert.match(REFERENCE_SHEETS[s].url, new RegExp(`${s}\\.JPG$`));
+    // no two panels of a sheet overlap
+    for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+      const [ax, ay, aw, ah] = views[i].crop, [bx, by, bw, bh] = views[j].crop;
+      assert.ok(ax + aw <= bx || bx + bw <= ax || ay + ah <= by || by + bh <= ay, `${s}: panels ${i + 1} and ${j + 1} apart`);
+    }
+  }
+  // [ ] cycles through all of them, sheet after sheet
+  assert.deepEqual([...new Set(REFERENCE_VIEWS.map((v) => v.sheet))], ['IMG_3775', 'IMG_3772', 'IMG_3773', 'IMG_3774']);
+  assert.equal(new Set(REFERENCE_VIEWS.map((v) => v.id)).size, REFERENCE_VIEWS.length, 'every view its own id');
+  const { level } = refs();
+  assert.equal(level.views.length, 27);
+});

@@ -16,8 +16,14 @@ import org.json.JSONObject;
 // button indices by their names (KEYCODE_BUTTON_A is 0): on a Retroid, whose
 // letters are Nintendo-style, 0 is then the right button, not the bottom one;
 // the page moves them to their positions (native-pad.js padFaces, controller.js).
+// The state goes out through an Out: the WebView's evaluateJavascript (WebViewActivity), or
+// GeckoView's extension port (MainActivity); either way the page's
+// window.__nativePad(name, axes, buttons) gets it.
 final class GamepadBridge {
-    private final WebView web;
+    /** where the controls' state goes: the page's window.__nativePad(name, axes, buttons) */
+    interface Out { void state(String name, float[] axes, float[] buttons); }
+
+    private final Out out;
     private final Handler ui = new Handler(Looper.getMainLooper());
     private final float[] axes = new float[4];
     private final float[] keys = new float[17];      // from key events
@@ -26,7 +32,19 @@ final class GamepadBridge {
     private String name = "Android gamepad";
     private boolean scheduled, live;
 
-    GamepadBridge(WebView web) { this.web = web; }
+    GamepadBridge(Out out) { this.out = out; }
+
+    /** for the WebView: the call evaluated in the page */
+    GamepadBridge(WebView web) {
+        this((name, axes, buttons) -> {
+            StringBuilder s = new StringBuilder("window.__nativePad&&window.__nativePad(").append(JSONObject.quote(name)).append(",[");
+            for (int i = 0; i < axes.length; i++) s.append(i > 0 ? "," : "").append(round(axes[i]));
+            s.append("],[");
+            for (int i = 0; i < buttons.length; i++) s.append(i > 0 ? "," : "").append(round(buttons[i]));
+            s.append("])");
+            web.evaluateJavascript(s.toString(), null);
+        });
+    }
 
     private static int index(int code) {
         switch (code) {
@@ -114,19 +132,18 @@ final class GamepadBridge {
     private void send() {
         scheduled = false;
         live = true;
-        StringBuilder s = new StringBuilder("window.__nativePad&&window.__nativePad(").append(JSONObject.quote(name)).append(",[");
-        for (int i = 0; i < 4; i++) s.append(i > 0 ? "," : "").append(round(axes[i]));
-        s.append("],[");
+        float[] b = new float[17];
         for (int i = 0; i < 17; i++) {
             float v = keys[i];
             if (i == 6) v = Math.max(v, lt);
             if (i == 7) v = Math.max(v, rt);
             if (i >= 12 && i <= 15 && hat[i - 12]) v = 1f;
-            s.append(i > 0 ? "," : "").append(round(v));
+            b[i] = round(v);
         }
-        s.append("])");
-        web.evaluateJavascript(s.toString(), null);
+        float[] a = new float[4];
+        for (int i = 0; i < 4; i++) a[i] = round(axes[i]);
+        out.state(name, a, b);
     }
 
-    private static String round(float v) { return String.valueOf(Math.round(v * 1000f) / 1000f); }
+    static float round(float v) { return Math.round(v * 1000f) / 1000f; }
 }
