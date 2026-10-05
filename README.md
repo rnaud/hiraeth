@@ -410,8 +410,10 @@ poses update at 12 fps ("stop-motion anim") while movement stays smooth.
 - **Story** (`src/quest.js`, `src/levels/content.js`):
   - each world has one quiet goal, marked by a beam of light, with its
     distance in the HUD;
-  - a first visit opens a wordless three-panel comic page, rendered live
-    from the game, and reaching the goal opens the closing page.
+  - a first visit says the world's title and opening words as a toast, and
+    reaching the goal its closing words (the closing moment is drawn into the
+    sketchbook); until October 2026 these were three-panel comic pages that held
+    the screen. A long toast stays up longer (`toastSeconds`, up to 9 s).
 - **Relics:** five per world, often on rooftops, mesas or trees you have to
   climb. Picking one up sketches the moment into your **sketchbook**: press
   **J** to open it. Progress is saved in `localStorage`.
@@ -613,7 +615,7 @@ rest; three carry fragments of the keeper's story. In the open chamber,
 stand beside each lens and press **E** (or tap the touch E button) to turn it.
 Aim all three beams at the central receiver. Each aligned beam lights a ring
 and illuminates the room. The roof unfolds over five seconds, a constellation
-appears, and a comic page records the moment. Glide back to the traveler to
+appears, and the moment goes into the sketchbook. Glide back to the traveler to
 finish the expedition.
 
 The existing masked-head story remains available. The new expedition keeps

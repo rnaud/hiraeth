@@ -10,7 +10,8 @@
 // letterbox and whatever HUD, buttons, conversation or box card is showing.
 // Subtitles replace each other cleanly, one at a time (Subtitles: a line can
 // also be timed, or queued behind the one showing).
-import { speakLine } from '../story/voice.js';   // the mumbled voice under each subtitle
+import { speakLine } from '../story/voice.js';
+import { toastSeconds } from '../quest.js';   // a long toast stays up longer   // the mumbled voice under each subtitle
 
 const CSS = `
 #cine { position: fixed; inset: 0; z-index: 8000; pointer-events: none; }
@@ -337,9 +338,11 @@ export class Cinema {
 
   _pumpToasts() {
     if (!this.dom || !this.toastEl || !this.toasts.length || this._toastT > 0 || this.dark()) return;
-    this.toastEl.textContent = this.toasts.shift();
+    const text = this.toasts.shift(), secs = toastSeconds(text);
+    this.toastEl.textContent = text;
+    this.toastEl.style.animationDuration = `${secs}s`;
     this.toastEl.classList.remove('show');
-    this._toastT = 2.6;   // read before the next may take its place (it fades by itself at 4.5 s)
+    this._toastT = secs * 0.58;   // read before the next may take its place (it fades by itself after secs)
     this._seen('toast', false); this._seen('toast', true);
     this._pending = 'toast'; this.layout(); this._pending = null;
     void this.toastEl.offsetWidth; this.toastEl.classList.add('show');

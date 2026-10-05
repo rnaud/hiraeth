@@ -419,7 +419,7 @@ const revealed = () => {
   return revealNote(fresh.map((id) => levelById(id).title));   // "New on the ship's map: …", and the signature reads there too
 };
 journal.known = (id) => !ORDER.includes(id) || known().includes(id);   // the sketchbook leaves out worlds you don't know yet
-const story = new Story(scene, { levelId, def: { ...content.story, next: revealed }, journal, sound, capture, player, physics, ground: level.ground.heightAt ? level.ground : null });
+const story = new Story(scene, { levelId, def: { ...content.story, next: revealed }, journal, sound, capture, player, physics, ground: level.ground.heightAt ? level.ground : null, say: (t) => showToast(t) });
 const expedition = level.observatory ? new ObservatoryQuest({ model: level.observatory, journal, traveler: npcs[5], story, capture, sound }) : null;
 // ---- story: conversations, quests, the world's people and places (src/story/, src/interact.js)
 const showToast = (text) => ship.cinema.toast(text);   // queued, and held while a scene has the screen dark (src/ship/cinema.js)
