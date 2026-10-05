@@ -1018,8 +1018,8 @@ ATAN" (old names) and now says ODILE and TALO; Talo's lookout note was signed
 ## 11. Temples (the makers' houses, their keepers, and the gifts inside)
 
 *Built in this pass (`src/temples/`); decided while the author was away, change
-freely. Six worlds have theirs (the desert, the City-Shaft, Vael II, the
-Buried Machine, the Garden of Spheres, Lorn II); the rest are designed below
+freely. Seven worlds have theirs (the desert, the City-Shaft, Vael II, the
+Buried Machine, the Garden of Spheres, Lorn II, Lorn); the rest are designed below
 and wait their turn. Section 9's "A Makers' temple in every
 world" and the "Makers' temples with bosses" note above are what this answers.*
 
@@ -1085,17 +1085,18 @@ then the world's box stays as it was):
 | Buried Machine | Fourth chamber (moved from Lorn II) | Climber's resin (new, on the chimney ring: climbing tires you half as fast) | **built** |
 | Viridel | Bloom mode (new gun mode: a seed glob grows a climbable vine) | Seed pouch (new, on the umbrella tree's canopy now: flowers come up in your footsteps) | seed pouch built; temple planned |
 | Spheres | Glyph lens | Listening shell (new, on the grove's canopy: the makers' unopened boxes near you hum back now and then) | **built** |
-| Lorn | Stilling mode | Bog boots (new: wade at a walk) | planned |
+| Lorn | Stilling mode (moved from the mossy rise) | Breathing reed (new, on the mossy rise now: you hold your breath twice as long under water; it replaces the planned bog boots, since swimming came) | **built** |
 | Lorn II | Lantern charm (moved from Viridel's canopy) | Glow-moss pin (new, on the first root arch: a soft light round your feet after dusk) | **built** |
 | Signal Market | Echo shell (new: records a note, plays it back) | (the market has no chest) | planned |
 
 What moved for players already on their way: whoever owns ember mode, the jets,
-the bell-note whistle, the fourth chamber, the glyph lens or the lantern charm
-finds that temple's chest open and counted as found (`src/temples/migrate.js`);
+the bell-note whistle, the fourth chamber, the glyph lens, the lantern charm or
+the stilling mode finds that temple's chest open and counted as found (`src/temples/migrate.js`);
 the Buried Machine's chimney ring, the City-Shaft's pillar, Vael's spire, Lorn
-II's first root arch, the Spheres' grove canopy and Viridel's umbrella canopy
-now hold the resin, the soles, the hush-cloth, the glow-moss pin, the listening
-shell and the seed pouch, new boxes for everyone. (This also settles a loose end of section 10: the bell-note
+II's first root arch, the Spheres' grove canopy, Viridel's umbrella canopy and
+Lorn's mossy rise now hold the resin, the soles, the hush-cloth, the glow-moss
+pin, the listening shell, the seed pouch and the breathing reed, new boxes for
+everyone. (This also settles a loose end of section 10: the bell-note
 whistle is found in the bell world now, and Vael has only the rider's bone
 whistle.)
 Ember mode now comes in the first world, which suits it: the desert's camp
@@ -1278,6 +1279,48 @@ had been a greater lamp.
   on the water round the tower, and a long beam turning slowly over the wood at
   night; inside, the lamp-room's great lamp glows.
 
+### The Hush-House (Lorn)
+A great low dome of violet stone on the cave island, ribbed, an oculus at its
+top with a crystal crown, the swamp's crystals growing up through it and round
+it, a stone porch toward the channel with the Hush cut over the door. The
+makers taught the plants of Lorn not to eat in here (the swamp people's Hush,
+three drops over a shut mouth, is theirs: they paint it on their doors without
+knowing), and grew the first snapper of all to keep the house: the Mother,
+whom every snapping plant on Lorn is seeded from. The night the sky rang the
+house's crystals went out of tune, and she woke frightened and has snapped at
+everything since; you can hear it through the stone.
+- **The local: Teasel**, who cuts reeds round the cave island, never from the
+  dome's shore. Wendel told him the makers had "something cold" for it.
+  Afterwards: the dome in flower, white and blue, and a ring of the same flowers
+  at the foot of every snapper on the swamp ("Wendel laughed till he sat
+  down"); the Mother breathing very slow through the stone. "I always thought
+  it was a warning. It was a lullaby."
+- **Inside**: the Threshold; the Choir (four crystals of four heights: splash
+  them low to high, and out of turn one rings flat and fades); the Bog Well (a
+  disc that climbs over dark water, then a wall of roots to climb); the Stilling
+  Chamber (**the stilling mode**; the way on is a gate of jaws, two great leaves
+  with teeth that snap and half open, snap and half open, and bite whoever
+  tries: a stilling glob stills them, and they forget to close); the Pendulum
+  Gallery (a narrow bridge over a chasm, three crystal pendulums swinging
+  across it that knock you off: still them one by one; at its end a second
+  gate of jaws); the Mother's Hall.
+- **The Mother Snapper** (organic): rooted in the middle of a round hall in a
+  ring of leaves, a neck of green beads, a head of two jaws as big as a cart, a
+  crown of crystal. She does not walk; she lunges along a lane, sweeps low to
+  the sides, rears up and spits seed. Spent after a lunge, her head lies on the
+  floor, jaws agape: a stilling glob in her mouth calms her (plain fluid only
+  startles her, a shove frightens her). Once she has begun to calm, stilling
+  her mid-strike calms her too. Calm, her head comes down by her leaves: lay a
+  hand on it, and she sleeps, and the dome's crystals hum in tune again.
+- **After**: the dome flowers all over (vines and pale bells, glowing at dusk),
+  its crown crystal burns bright, and every snapping plant on Lorn wears a ring
+  of the same white flowers at its foot.
+- *Changed from the first design*: the house is on the cave island, not under
+  the Great Crystal (the crystal's island is the main quest's); she is calmed by
+  stilling, not by standing still (that became the Lampless's way, next door);
+  and the world change is the flowers, not one of Wendel's eggs hatching (left
+  as a loose end).
+
 ### The other temples (designed, not built)
 - **Vael**: the House of the First Walkers among the floating ruins, its halls
   joined by glides; key: the fluid wings. Its keeper: an old stone-winged bird,
@@ -1292,11 +1335,6 @@ had been a greater lamp.
   Its keeper: the Gardener, a vast moss creature gone wild (calm it by blooming
   flowers round it). After: the white ruins flower. (Clear of the tea terraces
   south-east of the landing.)
-- **Lorn**: the Hush, under the Great Crystal; key: stilling mode (freeze the
-  snapping plants and the crystal pendulums). Its keeper: the Mother Snapper,
-  a carnivorous plant as big as a house; calm it by standing still inside its
-  reach ("the patient are never eaten") and stilling its jaws. After: one of
-  Wendel's eggs hatches.
 - **Signal Market**: the foundations of the silent tower, "here before the
   market"; key: the echo shell. Its keeper: the First Sign (robot), the oldest
   broadcasting machine, stuck on one word; retune it, or switch it off. After:
@@ -1316,3 +1354,7 @@ had been a greater lamp.
   Givers' House; Sabri carries that.
 - The City-Shaft's main quest still reads as if you could reach Nima without
   the jets; the temple quest says where they are.
+- Lorn's section 9 still says its chest holds the stilling mode ("the sky-egg"),
+  and the gift list above still puts it on the mossy rise: it is in the
+  Hush-House now, and the rise has the breathing reed. Wendel's egg that was
+  to hatch is free for a later change (or a keepsake).

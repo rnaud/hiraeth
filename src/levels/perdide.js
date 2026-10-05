@@ -6,6 +6,7 @@ import { Terrain, jitter } from '../world.js';
 import { Hoverbike, buildSocket } from '../bike.js';
 import { Paint, painted, paintMaterial, spindle } from '../vehicle-kit.js';
 import { LANDING } from '../story/perdide-data.js';
+import { attachTemple } from '../temples/index.js';
 
 // ---------------------------------------------------------------------------
 // Lorn:
@@ -449,7 +450,8 @@ export function createPerdide(scene) {
     lights.push(new THREE.Vector4(x, g0 + H * 0.75, z, 16));
   }
 
-  return {
+  // the Hush-House on the cave island, and its rooms far overhead (src/temples/perdide.js)
+  return attachTemple('perdide', scene, {
     id: 'perdide',
     // the flora (src/flora.js) leaves the Great Crystal, the snapping bed and the fireflies' isle their own
     floraAvoid: (x, z, r) => Math.hypot(x - GREAT.x, z - GREAT.z) < 22 + r || Math.hypot(x - BED.x, z - BED.z) < BED.r + 5 + r
@@ -503,5 +505,5 @@ export function createPerdide(scene) {
         for (const j of p.jaws) j.jaw.rotation.z = j.side * (p.open * 0.75 + breathe) + shudder;
       }
     },
-  };
+  });
 }

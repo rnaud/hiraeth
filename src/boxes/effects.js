@@ -19,6 +19,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 //   hush     creatures don't hear you walk up (player.hush: src/wildlife.js reads it)
 //   moss     after dusk a soft light round your feet (smaller than the lantern's; the lantern wins)
 //   pouch    small flowers come up in your footsteps where you walk, and fade a while later
+//   reed     you hold your breath twice as long under water (player.breathK: src/swim.js reads it)
 //   shell    every few seconds, unopened boxes within 45 m answer softly, as if to the bell (game event 'bell' { soft })
 //
 //   const fx = createItemEffects({ player, tool, level, sound, isNight: () => bool });
@@ -161,7 +162,7 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
       if (night && player && !player.hidden) light.set(player.pos.x, player.pos.y + (hasLantern ? 1.2 : 0.6), player.pos.z, hasLantern ? 7.5 + Math.sin(t * 7) * 0.3 : 4.2 + Math.sin(t * 1.3) * 0.2);
       else light.set(0, -1e5, 0, 0);
       if (star) star.visible = items.has('star');
-      if (player) { player.climbK = items.has('resin') ? 0.5 : 1; player.fallGuard = items.has('soles') ? 1.3 : 1; player.hush = items.has('hush'); }
+      if (player) { player.climbK = items.has('resin') ? 0.5 : 1; player.fallGuard = items.has('soles') ? 1.3 : 1; player.hush = items.has('hush'); player.breathK = items.has('reed') ? 2 : 1; }
     },
     dispose() { off(); keys?.removeEventListener?.('keydown', onKey); lantern?.grp.removeFromParent(); star?.removeFromParent(); blooms?.mesh.removeFromParent(); },
   };

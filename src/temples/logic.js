@@ -21,6 +21,7 @@
 //     links: [{ a, b, door?: id, needs?: ['jetpack'] }],        rooms you walk between (both ways)
 //     elements: { id: { type, room, needs?: [items], ... } } }
 //   types: plate · drum { plate, plateAt? } · brazier · bramble · switch · bell · gadget { item } · boss
+//          (a latched element may come `after` another: it only takes once that one is lit)
 //          door / bridge { opens: condition, latch? }   (latch: once open, open for good, saved)
 //   conditions: { all: [] } · { any: [] } · { pressed: plate } · { lit: id } · { item: id }
 //               · { drumOn: [drum, plate] } · { open: door } · { gadget: true } · { resolved: true }
@@ -97,7 +98,8 @@ export class TempleLogic {
     return true;
   }
   isLit(id) { return !!this.store.get(`lit.${id}`); }
-  canUse(id) { return (this.el(id)?.needs ?? []).every((it) => this.has(it)); }
+  /** Its items are carried, and the one it comes `after` (a sequence: crystals sung low to high) is lit. */
+  canUse(id) { const e = this.el(id); return (e?.needs ?? []).every((it) => this.has(it)) && (!e?.after || this.isLit(e.after)); }
   takeGadget() {
     if (this.store.get('gadget')) return false;
     this.store.set('gadget', true);

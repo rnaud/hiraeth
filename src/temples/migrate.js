@@ -14,6 +14,7 @@ export const TEMPLE_BOXES = [
   ['spheres.temple.lens', 'lens'],
   ['buried.temple.cell', 'cell'],
   ['perdide2.temple.lantern', 'lantern'],
+  ['perdide.temple.stun', 'stun'],
 ];
 
 export function migrateTemples(g) {

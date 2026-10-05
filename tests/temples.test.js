@@ -903,3 +903,104 @@ test('the Lamp-House on foot: three dark pools, the disc and the root-wall, the 
   game.reset();
   own();
 });
+
+test('the Hush-House on foot: the crystals sung low to high, the climbing disc and the root-wall, the stilling mode, the gates of jaws, the pendulums, the Mother Snapper stilled, the swamp in flower', () => {
+  game.reset();
+  own('backpack');
+  const { level, physics, rt } = world('perdide');
+  const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true, limit: level.limit ?? 1900 });
+  rt.connect({ player: P, toast: () => {} });
+  let t = 0;
+  const L = (x, y, z) => rt.kit.world(x, y, z);
+  const frame = (input = {}, yaw = 0) => { t += DT; rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };
+  const toward = (to) => Math.atan2(-(to.x - P.pos.x), -(to.z - P.pos.z));
+  const flat = (a) => Math.hypot(P.pos.x - a.x, P.pos.z - a.z);
+  const walk = (to, { tol = 0.6, max = 25, run = true, dy = 1.6 } = {}) => {
+    for (let i = 0; i < max / DT; i++) { if (flat(to) < tol && Math.abs(P.pos.y - to.y) < dy) return true; frame({ KeyW: true, ShiftLeft: run }, toward(to)); }
+    return false;
+  };
+  const wait = (s) => { for (let i = 0; i < s / DT; i++) frame(); };
+  const where = () => rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1)).join(', ');
+  wait(0.5);
+  // ---- the Choir: out of turn a crystal rings flat; low to high, the door opens
+  rt.piece('c3').hit('shoot');
+  assert.equal(rt.logic.isLit('c3'), false, 'not before the lower ones');
+  for (const id of ['c1', 'c2', 'c3', 'c4']) rt.piece(id).hit('shoot');
+  wait(2.2);
+  assert.equal(rt.logic.isOpen('d1'), true);
+  // ---- the Bog Well: the disc that climbs over the dark water, then up the root-wall
+  assert.equal(walk(L(0, 0, 49)), true, `to the well (${where()})`);
+  const disc = rt.pieces.find((p) => p.path);
+  for (let i = 0; i < 30 / DT && !(disc.s < 0.2 && disc.wait > 0.6); i++) frame();
+  assert.equal(walk(disc.group.position, { tol: 0.5, run: false, max: 4 }), true, `onto the disc (${where()})`);
+  for (let i = 0; i < 30 / DT && !(disc.s > disc.total - 0.2); i++) frame();
+  assert.ok(rt.kit.local(P.pos).y > 2.5, `carried up on it (${where()})`);
+  let up = false;
+  for (let i = 0; i < 20 / DT; i++) { frame({ KeyW: true }, toward(L(0, 9, 66))); if (P.onGround && rt.kit.local(P.pos).y > 8.5) { up = true; break; } }
+  assert.ok(up, `up the root-wall (${where()})`);
+  // ---- the Stilling Chamber: the gate of jaws snaps at plain fluid and will not let you by
+  assert.equal(walk(L(0, 9, 75)), true, `into the chamber (${where()})`);
+  rt.piece('d2').hit('shoot');
+  assert.equal(walk(L(0, 9, 92), { max: 4 }), false, 'the jaws keep the way');
+  assert.ok(rt.kit.local(P.pos).z < 89, `not through them (${where()})`);
+  items.grant('stun'); game.emit('box:opened', { id: 'perdide.temple.stun' });
+  assert.equal(rt.logic.gadget, true);
+  rt.piece('d2').hit('stun');
+  wait(2.6);
+  assert.equal(rt.logic.isOpen('d2'), true, 'stilled, they rest open');
+  // ---- the Pendulum Gallery: a pendulum knocks you off the bridge; stilled, they let you by
+  assert.equal(walk(L(0, 9, 93.5)), true, `to the bridge (${where()})`);
+  const swings = rt.pieces.filter((p) => p.len && p.arm);
+  assert.equal(swings.length, 3);
+  P.teleport(L(0, 9.05, rt.kit.local(swings[0].group.position).z), V(0, 1, 0), V(0, 0, 1));
+  let knocked = false;
+  for (let i = 0; i < 4 / DT && !knocked; i++) { frame(); knocked = !!P.down; }
+  assert.ok(knocked, `a pendulum knocks you off (${where()})`);
+  for (let i = 0; i < 10 / DT && (P.down || P.dead); i++) frame();
+  wait(1.5);
+  P.teleport(L(0, 9.05, 94.5), V(0, 1, 0), V(0, 0, 1));
+  wait(0.3);
+  for (const s of swings) s.hit('stun');
+  assert.equal(walk(L(0, 9, 120), { max: 6 }), true, `over the bridge between the stilled pendulums (${where()})`);
+  assert.ok(rt.kit.local(P.pos).y > 8, 'on it, not in the chasm');
+  rt.piece('d3').hit('stun');
+  wait(2.6);
+  assert.equal(rt.logic.isOpen('d3'), true);
+  // ---- the Mother's Hall: still her when she lies spent; later, mid-strike
+  assert.equal(walk(L(0, 9, 132)), true, `into the hall (${where()})`);
+  const G = rt.guardian;
+  wait(0.3);
+  assert.notEqual(G.state, 'sleep');
+  P.opts.health = false;
+  const before0 = G.meter;
+  G.hit('mouth', 'shoot');
+  assert.equal(G.meter, before0, 'plain fluid only startles her');
+  let mid = 0;
+  for (let n = 0; n < 16 && G.state !== 'weary'; n++) {
+    let ready = false;
+    for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open' || (G.phaseIndex >= 1 && G.attack && !G.struck && G.at > 0.3)) { ready = true; break; } }
+    assert.ok(ready, `she lies spent, or rears (${n})`);
+    const before = G.meter;
+    if (G.state === 'open') { assert.ok(G.model.mouth.distanceTo(G.model.pos) > 8, 'her head lies out on the floor'); G.hit('mouth', 'stun'); }
+    else { G.hit('body', 'stun'); mid++; assert.equal(G.attack, null, 'stilled mid-strike'); }
+    assert.ok(G.meter > before, `calmer (${n}: ${G.meter.toFixed(2)})`);
+  }
+  assert.equal(G.state, 'weary', `calm (${G.meter.toFixed(2)})`);
+  assert.ok(mid > 0, 'stilled mid-strike at least once');
+  wait(3);
+  const head = G.model.mouth.clone().setY(L(0, 9, 0).y);
+  const out = head.clone().sub(G.model.pos).setY(0).normalize();
+  P.teleport(head.clone().addScaledVector(out, 2.4).add(V(0, 0.1, 0)), V(0, 1, 0), V(0, 0, 1));
+  wait(0.3);
+  const near = bestInteractable(P);
+  assert.equal(near?.entry.id, 'temple.perdide.touch', 'a hand on her head');
+  near.entry.use(P);
+  assert.equal(game.flag('temple.perdide.done'), true);
+  wait(6);
+  assert.equal(rt.change.root.visible, true, 'the dome in flower');
+  const m = new THREE.Matrix4();
+  rt.change.foot.getMatrixAt(0, m);
+  assert.ok(new THREE.Vector3().setFromMatrixScale(m).x > 0.9, 'flowers at the snappers’ feet');
+  game.reset();
+  own();
+});

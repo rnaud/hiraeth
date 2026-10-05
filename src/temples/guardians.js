@@ -10,6 +10,8 @@ import { glyphGeometry } from '../story/sign-text.js';
 //   keeperModel()    the desert's Cistern-Keeper: a great pale beast of the Givers, a shell of bone
 //                    plates on six long legs, a heron's neck and a long soft muzzle. It kept the
 //                    cistern; the water stopped, the dark came, and it is afraid.
+//   snapperModel()   Lorn's Mother Snapper: the swamp's oldest carnivorous plant, rooted in the Hush's
+//                    hall; a neck of beads and a great head of jaws that lunges, sweeps and spits seed
 //   sentinelModel()  the City-Shaft's sentinel: a tall machine of the makers on three legs, a ring
 //                    of vents and a lamp-eye, broken and still guarding (see incal.js)
 //
@@ -341,6 +343,88 @@ export function mothModel({ fur = '#e9dff2', wing = '#d6c8e6', wing2 = '#b9a6d4'
       glowM.uniforms.uGlow.value = 0.12 + 0.75 * calm + (state === 'open' ? 0.15 * Math.sin(t * 8) : 0);
       group.updateMatrixWorld(true);
       mouth.copy(body.localToWorld(_w.set(0, 0, 2.6)));
+    },
+  };
+  return M;
+}
+
+/**
+ * Lorn's Mother Snapper (organic: you calm her): the oldest of the swamp's carnivorous plants, as big as a
+ * house, rooted in the Hush's hall. The makers grew her to keep it; since the night the sky rang she snaps
+ * at everything that moves. A bulb in a ring of broad leaves, a long neck of green beads, a great head of
+ * two jaws ringed with teeth, a crown of crystal on it. She does not walk (her `pos` stays; she turns):
+ * her head lunges along her facing (`reach` metres: the lane of her bite), sweeps low to the sides, or
+ * rears up to spit seed. After a lunge it lies spent on the floor, agape: that is when a stilling glob in
+ * her mouth calms her.
+ */
+export function snapperModel({ stalk = '#3f6a52', stalk2 = '#4c7d5c', leaf = '#5a8f5e', leaf2 = '#47784f', head = '#c94f6a', lip = '#ee93a2', inside = '#93304a', tooth = '#f3ead8', glow = '#a99be0', reach = 12 } = {}) {
+  const group = new THREE.Group();
+  const mat = vc();
+  const glowM = makeMaterial({ color: glow, glow: 0.15, flat: true, key: `snapper.glow.${uid++}` });
+  // the bulb and its leaves (they stay)
+  const leaves = [];
+  for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2 + 0.2; leaves.push(ell([1.5, 0.22, 3.4], i % 2 ? leaf : leaf2, [Math.sin(a) * 3.4, 0.35 + (i % 2) * 0.25, Math.cos(a) * 3.4], [-0.18, a, 0])); }
+  group.add(new THREE.Mesh(merge(ell([2.6, 1.7, 2.6], stalk, [0, 1.0, 0], null, [12, 8]), ell([1.6, 1.0, 1.6], stalk2, [0, 2.2, 0]), leaves), mat));
+  // the neck: beads along a curve from the bulb to the back of the head, set every frame
+  const bead = ell([1, 1, 1], stalk, [0, 0, 0], null, [10, 7]), bead2 = ell([1, 1, 1], stalk2, [0, 0, 0], null, [10, 7]);
+  const beads = [];
+  for (let i = 0; i < 12; i++) { const m = new THREE.Mesh(i % 3 === 1 ? bead2 : bead, mat); const r = 1.05 - i * 0.03; m.scale.setScalar(r); group.add(m); beads.push(m); }
+  // the head: two jaws hinged at the back, teeth round their rims, a crown of crystal on top
+  const H = new THREE.Group();
+  group.add(H);
+  const teeth = (y, down) => { const t = []; for (let i = 0; i < 11; i++) { const a = -1.35 + (i / 10) * 2.7; t.push(cone(0.17, 0.62, tooth, [Math.sin(a) * 2.0, y, 1.6 + Math.cos(a) * 2.2], down ? [Math.PI, 0, 0] : null)); } return t; };
+  const upper = new THREE.Group(), lower = new THREE.Group();
+  upper.position.set(0, 0.05, -1.6); lower.position.set(0, -0.05, -1.6);
+  H.add(upper, lower);
+  upper.add(new THREE.Mesh(merge(dome([2.3, 1.4, 2.5], head, [0, 0, 1.6], null, [16, 6]), ell([2.25, 0.08, 2.45], lip, [0, 0, 1.6], null, [16, 3]), ell([1.9, 0.9, 2.1], inside, [0, -0.02, 1.6], [Math.PI, 0, 0], [12, 5]), teeth(-0.25, true)), mat));
+  lower.add(new THREE.Mesh(merge(dome([2.2, 1.1, 2.4], head, [0, 0, 1.6], [Math.PI, 0, 0], [16, 6]), ell([2.15, 0.08, 2.35], lip, [0, 0, 1.6], null, [16, 3]), ell([1.8, 0.7, 2.0], inside, [0, 0.02, 1.6], null, [12, 5]), teeth(0.25, false)), mat));
+  const crown = [];
+  for (let i = 0; i < 5; i++) { const a = -0.8 + (i / 4) * 1.6; crown.push(new THREE.OctahedronGeometry(1, 0).scale(0.28, 0.9 + (i % 2) * 0.35, 0.28).rotateZ(-a * 0.5).translate(Math.sin(a) * 1.1, 1.55, 1.2 + Math.cos(a) * 0.3).toNonIndexed()); }
+  upper.add(new THREE.Mesh(merge(...crown), glowM));
+  noCollide(group);
+  // where the head goes (group frame), how wide the jaws, its pitch and turn: eased toward these
+  const at = V(0, 3.5, 3), want = V(), ctrl = V(), root = V(0, 2.4, 0), back = V(), f = V(), _w = V();
+  const mouth = V();
+  const M = {
+    group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, rooted: true, reach,
+    mouth, mouthR: 1.9, radius: 3.6, height: 6, bodyR: 2.8, touchR: 1.6,
+    H, upper, lower, beads, glowM, gape: 0, pitch: 0.6, turn: 0, head: at,
+    animate(dt, t, { state, attack, k = 0, meter = 0 }) {
+      const id = attack?.id, struck = !!attack && k >= 1;
+      let gape = 0.12 + 0.06 * Math.sin(t * 2.2), pitch = 0.35, turn = 0, rate = 3.5;
+      want.set(Math.sin(t * 0.7) * 0.6, 8 + Math.sin(t * 1.1) * 0.3, 2.2);
+      if (state === 'sleep') { want.set(0, 3.2, 3.4); gape = 0.04; pitch = 0.9; rate = 1.5; }
+      else if (state === 'weary' || state === 'resolved') { want.set(0, 1.8, 5.2); gape = 0.05; pitch = 0.15; rate = 1.2; }
+      else if (state === 'open') { want.set(0, 1.85, reach - 1.2); gape = 0.55 + 0.08 * Math.sin(t * 3.4); pitch = 0.05; rate = 6; }
+      else if (id === 'lunge') {
+        if (!struck) { want.set(0, 9.6, -1.2); gape = 0.15 + 0.75 * k; pitch = -0.1; rate = 4; }
+        else { want.set(0, 1.85, reach - 1.2); gape = 0; pitch = 0.05; rate = 16; }
+      } else if (id === 'sweep') {
+        if (!struck) { want.set(-5.5, 3.2, 3.5); gape = 0.6 * k; pitch = 0.2; turn = -0.9; rate = 4; }
+        else { want.set(5.5, 2.6, 3.5); gape = 0.1; pitch = 0.2; turn = 0.9; rate = 9; }
+      } else if (id === 'seed') {
+        if (!struck) { want.set(0, 10.5, 0.2); gape = 0.2 + 0.5 * k; pitch = -1.15; rate = 3; }
+        else { want.set(0, 10, 0.8); gape = 0.9; pitch = -0.9; rate = 8; }
+      }
+      const e = Math.min(1, dt * rate);
+      at.lerp(want, e);
+      M.gape += (gape - M.gape) * Math.min(1, dt * (struck && id === 'lunge' ? 30 : 7));
+      M.pitch += (pitch - M.pitch) * e; M.turn += (turn - M.turn) * e;
+      H.position.copy(at);
+      H.rotation.set(M.pitch, M.turn, 0, 'YXZ');
+      upper.rotation.x = -M.gape * 0.85; lower.rotation.x = M.gape * 0.45;
+      // the neck: from the bulb up, then over, into the back of the head
+      f.set(Math.sin(M.turn) * Math.cos(M.pitch), -Math.sin(M.pitch), Math.cos(M.turn) * Math.cos(M.pitch));
+      back.copy(at).addScaledVector(f, -1.4);
+      ctrl.set(back.x * 0.2, Math.max(back.y, 5) + 2.2, back.z * 0.25);
+      for (let i = 0; i < beads.length; i++) {
+        const u = (i + 0.6) / beads.length, a = (1 - u) * (1 - u), b = 2 * u * (1 - u), c = u * u;
+        beads[i].position.set(root.x * a + ctrl.x * b + back.x * c, root.y * a + ctrl.y * b + back.y * c, root.z * a + ctrl.z * b + back.z * c);
+      }
+      const calm = state === 'resolved' ? 1 : meter;
+      glowM.uniforms.uGlow.value = 0.15 + 0.75 * calm + (calm < 0.5 && state !== 'sleep' ? Math.max(0, Math.sin(t * 7)) * 0.12 : 0);
+      group.updateMatrixWorld(true);
+      mouth.copy(H.localToWorld(_w.set(0, 0, 0.7)));
     },
   };
   return M;

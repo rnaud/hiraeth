@@ -110,9 +110,15 @@ export const PLACEMENTS = {
   ],
   perdide: [
     // the swamp of lights: a mossy rise above Wendel’s glowing eggs, where the creatures crowd
-    { id: 'perdide.stun', item: 'stun', at: [30, 6.2, -30], toward: [0, 0],
+    // It held the stilling mode until the Hush-House was built (src/temples/perdide.js): the stilling mode is the
+    // house's key now, and the rise keeps the breathing reed, a gift in the open
+    { id: 'perdide.reed', item: 'reed', at: [30, 6.2, -30], toward: [0, 0],
       hint: 'A makers’ box hides on the mossy rise south-east of the landing, among the creatures',
       note: 'The mossy rise south-east of the landing, among the wildlife.' },
+    // the Hush-House (src/temples/perdide.js): in its round chamber over the bog well. The stilling mode is the key
+    // to the rest: the gates of jaws, the pendulums, the Mother Snapper
+    { id: 'perdide.temple.stun', item: 'stun', temple: 'perdide', site: (level) => level.temple?.gadgetSite,
+      note: 'Inside the Hush-House on the cave island, in the round chamber over the bog well.' },
   ],
   perdide2: [
     // the top of the first root arch over the path

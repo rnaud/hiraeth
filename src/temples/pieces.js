@@ -22,6 +22,8 @@ import { T, box, lathe, prep } from './kit.js';
 //   Switch   a carved eye on a wall: a splash of fluid wakes it for good
 //   Bank     four eyes that wake only together, inside a breath: it wants the fourth chamber
 //   LightEar a lamp that wakes when you stand by it with the lantern charm
+//   Jaw      a gate of snapping jaws: a stilling glob stills them, and they rest open for good
+//   Swing    a crystal pendulum over a bridge: it knocks you off; a stilling glob stops it a while
 //   Platform a disc that rides between points (you ride along on it)
 //   Bridge   stones that rise out of a chasm when their condition holds
 //   Mark     a glyph stone: walk past it and it is where you come back to (a checkpoint)
@@ -346,34 +348,49 @@ export class Bramble {
 
 // ---------------------------------------------------------------------------------------- switches
 export class Switch {
-  /** o: { id, at, yaw (the way it faces), size }: a carved eye that a splash of fluid wakes */
+  /**
+   * o: { id, at, yaw (the way it faces), size, crystal?: height, wrong?: text }: a carved eye that a splash of
+   * fluid wakes. crystal: a singing crystal standing on the floor instead (its foot at `at`, this tall).
+   * wrong: said when a splash does not wake it (it comes `after` another: logic.js).
+   */
   constructor(rt, o) {
-    this.rt = rt; this.id = o.id;
+    this.rt = rt; this.id = o.id; this.o = o;
     const K = rt.kit, M = rt.M, s = o.size ?? 1.4;
     this.group = new THREE.Group();
     this.group.position.copy(K.world(...o.at));
     this.group.rotation.y = K.heading(o.yaw ?? 0);
     rt.root.add(this.group);
-    this.group.add(mesh([T(new THREE.CylinderGeometry(s, s, 0.4, 24), [0, 0, 0], [Math.PI / 2, 0, 0])], M.trimMat));
     this.glow = own({ color: rt.P.glow ?? '#70e7df', glow: 0.08, flat: true });
-    this.group.add(mesh([T(new THREE.SphereGeometry(s * 0.55, 16, 10).scale(1, 0.6, 0.35), [0, 0, 0.2]), T(glyphGeometry(s * 1.3, 0.06), [0, 0, 0.24])], this.glow));
+    if (o.crystal) {
+      // a crystal of the swamp's groves on a ring of stone: it rings when it wakes
+      const h = o.crystal;
+      this.group.add(mesh([lathe([[s * 1.3, 0], [s * 1.3, 0.35], [s * 1.0, 0.5], [0.01, 0.5]], 12)], M.trimMat));
+      this.group.add(mesh([T(new THREE.OctahedronGeometry(1, 0), [0, 0.5 + h / 2, 0], [0, 0.4, 0], [s * 0.7, h / 2, s * 0.7]), T(new THREE.OctahedronGeometry(1, 0), [s * 0.55, 0.5 + h * 0.25, 0.1], [0, 0, -0.35], [s * 0.35, h * 0.24, s * 0.35])], this.glow));
+      this.center = this.group.position.clone().add(V(0, 0.5 + h / 2, 0));
+    } else {
+      this.group.add(mesh([T(new THREE.CylinderGeometry(s, s, 0.4, 24), [0, 0, 0], [Math.PI / 2, 0, 0])], M.trimMat));
+      this.group.add(mesh([T(new THREE.SphereGeometry(s * 0.55, 16, 10).scale(1, 0.6, 0.35), [0, 0, 0.2]), T(glyphGeometry(s * 1.3, 0.06), [0, 0, 0.24])], this.glow));
+      this.center = this.group.position.clone();
+    }
     noCollide(this.group);
-    this.center = this.group.position.clone();
     this.on = rt.logic.isLit(o.id);
     this.hidden = !!o.hidden;
     const seen = () => !this.hidden || rt.logic.has(shownBy(o.hidden));
-    this.off = registerTarget({ kind: 'switch', radius: s, position: () => this.center, enabled: seen, onHit: (mode) => this.hit(mode) });
+    this.off = registerTarget({ kind: 'switch', radius: o.crystal ? Math.max(s, o.crystal * 0.45) : s, position: () => this.center, enabled: seen, onHit: (mode) => this.hit(mode) });
     this.seen = seen;
+    this.flash = 0;
   }
   /** A splash (any mode: it is fluid) wakes it. */
   hit() {
     if (this.rt.logic.light(this.id)) { this.on = true; this.rt.sound?.chime?.(); this.rt.onLit?.(this.id); }
+    else if (!this.on && this.o.wrong) { this.flash = 0.6; this.rt.sound?.critter?.('blip', 0.5); this.rt.notice?.(this.o.wrong, `wrong.${this.id}`); }
     return true;
   }
   update(dt, t) {
     this.on ||= this.rt.logic.isLit(this.id);
     this.group.visible = this.seen();
-    this.glow.uniforms.uGlow.value = this.on ? 0.8 + 0.2 * Math.sin(t * 2.5) : 0.08 + 0.05 * Math.sin(t * 1.3);
+    this.flash = Math.max(0, this.flash - dt);
+    this.glow.uniforms.uGlow.value = this.on ? 0.8 + 0.2 * Math.sin(t * 2.5) : 0.08 + 0.05 * Math.sin(t * 1.3) + this.flash * 0.6;
   }
   dispose() { this.off?.(); }
 }
@@ -460,6 +477,159 @@ export class LightEar {
     if (!this.lit && this.t > this.hold && this.rt.logic.light(this.id)) { this.lit = true; this.rt.sound?.chime?.(); this.rt.onLit?.(this.id); }
     this.glow.uniforms.uGlow.value = this.lit ? 0.9 : near ? 0.2 + 0.7 * Math.min(1, this.t / this.hold) : 0.05 + 0.03 * Math.sin(t * 1.2);
   }
+}
+
+// ---------------------------------------------------------------------------------------- living gates
+const _frost = new THREE.Color('#d6f0fa');
+
+/**
+ * A gate of jaws (Lorn's Hush): two great leaves with teeth, hinged at a doorway's jambs, that snap shut
+ * and half open, shut and half open, never wide enough to pass, and bite whoever tries. A stilling glob
+ * (the 'stun' mode) stills them: element `still` (a 'switch' that needs the stilling mode) is lit, and
+ * the door `id` (which opens on it) eases them wide, for good. Solid while shut.
+ * o: { id (the door), still, at: the doorway's foot, yaw, w, h, seed }
+ */
+export class Jaw {
+  constructor(rt, o) {
+    this.rt = rt; this.id = o.id; this.still = o.still; this.o = o;
+    const K = rt.kit, w = o.w ?? 5, h = o.h ?? 6.2;
+    this.w = w; this.h = h;
+    this.group = new THREE.Group();
+    this.group.position.copy(K.world(...o.at));
+    this.group.rotation.y = K.heading(o.yaw ?? 0);
+    rt.root.add(this.group);
+    this.skin = own({ color: '#c94f6a', flat: true });
+    const lip = own({ color: '#ee93a2', flat: true }), throat = own({ color: '#93304a', flat: true }), tooth = own({ color: '#f3ead8', flat: true });
+    this.halves = [-1, 1].map((side) => {
+      const g = new THREE.Group();
+      g.position.set(side * w / 2, 0, 0);
+      const cx = -side * w / 4;
+      g.add(mesh([new THREE.SphereGeometry(1, 16, 10).scale(w / 4 + 0.15, h / 2, 0.75).translate(cx, h / 2, 0)], this.skin));
+      // the inner edge (where the two meet): pale lips, dark gums, a row of teeth
+      const edge = -side * (w / 2 - 0.1);
+      g.add(mesh([new THREE.SphereGeometry(1, 12, 8).scale(0.7, h / 2 - 0.45, 0.82).translate(edge + side * 0.45, h / 2, 0)], throat));
+      g.add(mesh([new THREE.SphereGeometry(1, 12, 8).scale(0.3, h / 2 - 0.2, 0.9).translate(edge + side * 0.1, h / 2, 0)], lip));
+      const teeth = [];
+      for (let i = 0; i < 9; i++) { const y = 0.7 + (i / 8) * (h - 1.4); teeth.push(T(new THREE.ConeGeometry(0.16, 0.7, 6), [edge, y, i % 2 ? 0.25 : -0.25], [0, 0, side * Math.PI / 2])); }
+      g.add(mesh(teeth, tooth));
+      this.group.add(g);
+      return { g, side };
+    });
+    noCollide(this.group);
+    this.block = new THREE.Mesh(box(w, h, 1.6, 0, h / 2, 0), new THREE.MeshBasicMaterial());
+    this.block.position.copy(this.group.position); this.block.rotation.copy(this.group.rotation);
+    this.center = this.group.position.clone().addScaledVector(UP, h * 0.5);
+    this.open = rt.logic.isOpen(o.id);
+    this.k = this.open ? 1 : 0;   // 0 snapping, 1 wide open
+    this.frost = 0; this.snapT = (o.seed ?? 0) * 0.37; this.ang = 0; this.angry = 0;
+    this.off = registerTarget({ kind: 'jaws', radius: Math.max(w, h) * 0.45, accepts: ['stun'], position: () => this.center, enabled: () => !this.open, onHit: (mode) => this.hit(mode) });
+    this.group.updateMatrixWorld(true);
+    const inv = this.group.matrixWorld.clone().invert(), _l = V(), _o = V();
+    this.offHazard = registerHazard({
+      kind: 'spikes', dps: 0.05,
+      test: (p) => { if (this.open) return false; _l.copy(p).applyMatrix4(inv); return Math.abs(_l.x) < w / 2 && _l.y > -1.6 && _l.y < h && Math.abs(_l.z) < 1.5; },
+      push: (p, out) => { _l.copy(p).applyMatrix4(inv); return out.copy(_o.set(0, 0, Math.sign(_l.z) || -1).transformDirection(this.group.matrixWorld)); },
+    });
+  }
+  init(physics) { this.physics = physics; if (!this.open) this.handle = physics.addCollider?.(this.block) ?? null; }
+  hit(mode) {
+    if (this.open) return false;
+    if (mode === 'stun') {
+      if (this.rt.logic.light(this.still)) { this.frost = 1; this.rt.sound?.chime?.(); this.rt.onLit?.(this.still); this.rt.notice?.(this.o.stilled ?? 'The jaws stop dead, frosted, and ease open. They forget to close.', `stilled.${this.id}`); }
+      return true;
+    }
+    if (mode === 'push') { this.angry = 0.6; return true; }
+    this.angry = 1.2;
+    this.rt.sound?.critter?.('snap', 0.8);
+    this.rt.notice?.(this.o.snaps ?? 'The jaws snap at the splash, and snap, and snap. Something colder might still them.', 'jaws.snap');
+    return true;
+  }
+  setOpen(open, instant = false) {
+    if (open === this.open) return;
+    this.open = open;
+    if (open && this.handle) { this.physics?.removeCollider?.(this.handle); this.handle = null; }
+    if (!open && this.physics && !this.handle) this.handle = this.physics.addCollider?.(this.block) ?? null;
+    if (instant) this.k = open ? 1 : 0;
+    else this.rt.rumble?.(1.2, 0.3);
+  }
+  update(dt) {
+    this.angry = Math.max(0, this.angry - dt);
+    this.frost = Math.max(0, this.frost - dt * 0.25);
+    if (this.open) this.k = Math.min(1, this.k + dt / 2.4);
+    // shut and half open, shut and half open (quicker when splashed): the opening slow, the snap fast
+    this.snapT += dt * (this.angry ? 1.8 : 0.85);
+    const ph = this.snapT % 1, snap = ph < 0.75 ? ease(ph / 0.75) : 1 - (ph - 0.75) / 0.25;
+    const half = 0.12 + 0.38 * snap, k = ease(this.k);
+    this.ang = this.open ? half * (1 - k) + 1.45 * k : half;
+    for (const { g, side } of this.halves) g.rotation.y = side * this.ang;
+    this.skin.uniforms.uColor.value.set('#c94f6a').lerp(_frost, Math.min(1, this.frost * 1.4));
+  }
+  dispose() { this.off?.(); this.offHazard?.(); }
+}
+
+/**
+ * A pendulum of crystal (Lorn's Hush): it hangs from a pivot high over a bridge and swings across it
+ * (along the local x), and knocks whoever it meets off into the chasm. A stilling glob stops it dead
+ * for `stillFor` seconds. o: { at: the pivot, len, amp (rad), period (s), phase (0..1), yaw }
+ */
+export class Swing {
+  constructor(rt, o) {
+    this.rt = rt; this.o = o;
+    const K = rt.kit, len = this.len = o.len ?? 10;
+    this.amp = o.amp ?? 0.9; this.period = o.period ?? 2.8; this.s = (o.phase ?? 0) * this.period; this.stillFor = o.stillFor ?? 6;
+    this.group = new THREE.Group();
+    this.group.position.copy(K.world(...o.at));
+    this.group.rotation.y = K.heading(o.yaw ?? 0);
+    rt.root.add(this.group);
+    this.arm = new THREE.Group();
+    this.group.add(this.arm);
+    this.arm.add(mesh([box(0.18, len - 1.6, 0.18, 0, -(len - 1.6) / 2, 0), new THREE.TorusGeometry(0.45, 0.12, 5, 14)], rt.M.trimMat));
+    this.mat = own({ color: rt.P.glow ?? '#a8e6ee', glow: 0.3, flat: true });
+    this.arm.add(mesh([T(new THREE.OctahedronGeometry(1, 0), [0, -len, 0], [0, 0.6, 0], [1.5, 2.1, 1.5]), T(new THREE.OctahedronGeometry(1, 0), [0.9, -len + 0.6, 0.3], [0, 0, 0.5], [0.6, 1.0, 0.6])], this.mat));
+    noCollide(this.group);
+    this.center = V(); this.still = 0; this.cool = 0; this.theta = 0;
+    this.place();
+    this.off = registerTarget({ kind: 'swing', radius: 1.9, accepts: ['stun'], position: () => this.center, onHit: (mode) => this.hit(mode) });
+  }
+  hit(mode) {
+    if (mode === 'stun') {
+      if (!this.still) this.rt.sound?.chime?.();
+      this.still = this.stillFor;
+      this.rt.notice?.(this.o.stilled ?? 'The crystal stops dead mid-swing, frosted over, and hangs there humming.', 'swing.still');
+      return true;
+    }
+    this.rt.notice?.(this.o.rings ?? 'The crystal rings under the splash, and swings on.', 'swing.ring');
+    return true;
+  }
+  place() {
+    this.arm.rotation.z = this.theta;
+    this.group.updateMatrixWorld(true);
+    this.center.set(0, -this.len, 0).applyMatrix4(this.arm.matrixWorld);
+  }
+  update(dt) {
+    this.cool = Math.max(0, this.cool - dt);
+    const was = this.theta;
+    if (this.still > 0) this.still = Math.max(0, this.still - dt);
+    else this.s += dt;
+    this.theta = this.amp * Math.sin((this.s / this.period) * Math.PI * 2);
+    this.place();
+    const k = this.still > 0 ? Math.min(1, this.still) : 0;
+    this.mat.uniforms.uColor.value.set(this.rt.P.glow ?? '#a8e6ee').lerp(_frost, k);
+    this.mat.uniforms.uGlow.value = 0.3 + 0.5 * k;
+    // it meets you: off the bridge, the way it was swinging
+    const P = this.rt.player;
+    if (!P || P.dead || P.down || this.still > 0 || this.cool > 0) return;
+    const dx = P.pos.x - this.center.x, dy = P.pos.y + 0.9 - this.center.y, dz = P.pos.z - this.center.z;
+    if (dx * dx + dz * dz < 1.9 * 1.9 && Math.abs(dy) < 2.6) {
+      this.cool = 1.5;
+      const dir = Math.sign(this.theta - was) || 1;
+      const out = V(dir, 0, 0).transformDirection(this.group.matrixWorld).multiplyScalar(9).addScaledVector(UP, 4);
+      P.knockDown?.(out, { why: 'guardian' });
+      P.hurt?.(Math.min(0.12, Math.max(0, (P.health ?? 1) - 0.1)), 'guardian');
+      this.rt.rumble?.(0.4, 0.4);
+    }
+  }
+  dispose() { this.off?.(); }
 }
 
 // ---------------------------------------------------------------------------------------- moving floors

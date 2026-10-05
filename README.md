@@ -2871,8 +2871,8 @@ Each world gets one great building of the makers, a Zelda-style dungeon with a
 gadget half-way through and a keeper at its heart (LORE.md, "Temples", has the
 design and the plan for every world). Built so far: the desert's **Givers'
 House**, the City-Shaft's **Warden's Well**, Vael II's **Founders' Belfry**, the
-Buried Machine's **Engine-House**, the Garden of Spheres' **Footprint** and Lorn
-II's **Lamp-House**. Everything lives in `src/temples/`:
+Buried Machine's **Engine-House**, the Garden of Spheres' **Footprint**, Lorn
+II's **Lamp-House** and Lorn's **Hush-House**. Everything lives in `src/temples/`:
 
 - **`kit.js`**: the architecture. `TempleKit` batches render meshes per material
   (noCollide) and hidden collision proxies, in a local frame; pieces: `hall` (walls
@@ -2883,7 +2883,10 @@ II's **Lamp-House**. Everything lives in `src/temples/`:
   lamps on its lintel show how much of its condition is met; `bell: true` for a
   bell-tuned door), `Plate`, `Ball` (a stone ball in a groove the fluid's push rolls:
   the pushable block), `Brazier` (ember only), `Bramble` (thorns: burn them; they
-  prick you back), `Switch` (an eye a splash wakes), `BellEar` (the bell-note
+  prick you back), `Switch` (an eye a splash wakes; `crystal: h` a singing crystal
+  instead, `wrong` what it says when it won't wake), `Jaw` (a gate of snapping jaws:
+  a stilling glob stills it open for good), `Swing` (a crystal pendulum over a
+  bridge that knocks you off; a stilling glob stops it a while), `BellEar` (the bell-note
   whistle sounded near it), `Platform` (a riding disc, a dynamic solid you stand
   on), `Bridge` (stones rise out of a chasm), `Mark` (a checkpoint), `Pit`.
   Moving parts are `userData.dynamic` (no tiling or levels of detail).
@@ -2893,6 +2896,7 @@ II's **Lamp-House**. Everything lives in `src/temples/`:
   `{ resolved }`…), rooms reachable from the entrance, `next()` for the marker and
   the scout. Saved in the save slot's flags under `temple.<id>.*`. `solve(def)`
   plays a temple through as a player would; `withhold` proves its gadget is the key.
+  A latched element may come `after` another (the Hush-House's crystals, low to high).
 - **`boss.js`**: `Guardian`: sleep, wake, fight, open, weary, resolved; a meter in
   phases (`calm` for an organic guardian, `damage` for a robot); attacks
   telegraphed on the floor (`ring`, `cone`, `lane`) then struck: `knockDown` +
@@ -2912,20 +2916,22 @@ II's **Lamp-House**. Everything lives in `src/temples/`:
   a temple's gadget finds its chest open. Per world: `desert.js` + `desert-data.js`,
   `incal.js` + `incal-data.js`, `arzach2.js` + `arzach2-data.js`, `buried.js` +
   `buried-data.js`, `spheres.js` + `spheres-data.js`, `perdide2.js` +
-  `perdide2-data.js` (layout, logic,
+  `perdide2-data.js`, `perdide.js` + `perdide-data.js` (layout, logic,
   guardian, outside, change, words; a change may have a `late` step, run after
   the level's own movers).
 - **Items**: `fire` moved into the Givers' House, `jetpack` into the Warden's
   Well, `bell` into the Founders' Belfry, `cell` into the Engine-House, `lens` into
-  the Footprint, `lantern` into the Lamp-House; new gifts in the open: `resin` (the
+  the Footprint, `lantern` into the Lamp-House, `stun` into the Hush-House; new gifts in the open: `resin` (the
   Buried Machine's chimney ring: climbing tires you half as fast,
   `player.climbK`), `soles` (the City-Shaft's pillar: `player.fallGuard`) and
   `hush` (Vael's spire: creatures don't hear you walk up, `player.hush`, read by
   `src/wildlife.js`) and `shell` (the Spheres' grove canopy: every few seconds
   the unopened boxes within 45 m answer softly, a `'bell'` event with `soft: true`
   that bell-tuned doors ignore), `moss` (Lorn II's root arch: a small light
-  round your feet after dusk) and `pouch` (Viridel's canopy: flowers come up in
-  your footsteps, one recycled instanced pool in `src/boxes/effects.js`).
+  round your feet after dusk), `pouch` (Viridel's canopy: flowers come up in
+  your footsteps, one recycled instanced pool in `src/boxes/effects.js`) and
+  `reed` (Lorn's mossy rise: twice the breath under water, `player.breathK`, read
+  by `src/swim.js`).
 - Pieces can be `hidden` (Door, Switch, Bridge): only the glyph lens shows them.
   (`hidden: 'lantern'`: only the lantern charm's light.) `LightEar`: a lamp that
   wakes when you stand by it with the lantern; a temple with `dark: true` sets
