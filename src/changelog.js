@@ -14,6 +14,9 @@ export const CHANGELOG = [
     'Your father now has a full, trimmed beard; your mother has her long dark hair down, a teal scarf and a lilac top.',
     'Your parents turn to face you while the recording plays: they nod as they speak, glance at each other, and look up at you over the stone at home.',
     'The camera moves in on their faces while the hologram is up and pulls back once it fades.',
+    'A character studio: try on bodies, outfits, faces and expressions for every person of every world, drawn exactly as the game draws them. Open it from the title screen, under Debug.',
+    'New hairstyles for the people (a short crop, shaved, bald, curls, a braid, long hair down) that follow the shape of the head instead of sitting on it like a bowl. For now they are in the character studio.',
+    'Faces can now show feeling: smiles and frowns, an open mouth, raised or knitted brows, narrowed eyes. For now they are in the character studio.',
   ] },
   { v: '0.45', date: '2026-10-05', items: [
     'The ship now has a reason for its route: whatever struck it left a magnetic signature in the scar on the hull, and the ship flies only to worlds that carry the same signature.',

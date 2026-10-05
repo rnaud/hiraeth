@@ -276,7 +276,7 @@ To start after the current work lands. Ordered from easiest to most complex.
 
 ## Tools
 
-- [ ] A character studio page (`studio.html`): people rendered with the game's own ink pass, with
+- [x] A character studio page (`studio.html`): people rendered with the game's own ink pass, with
   dropdowns for bodies, outfits and faces, sliders for morphology, face features, hair and
   expressions, every animation, lineups, and looks saved in the URL. For nailing the character
   designs and the face shaders without loading the game.
@@ -284,7 +284,9 @@ To start after the current work lands. Ordered from easiest to most complex.
 ## Screens and presentation
 
 - [ ] Hair: everyone's hair is the same rounded cap, so it reads as a bowl cut (very visible on the
-  parents' holograms). Real hairstyles.
+  parents' holograms). Real hairstyles. (Six real styles exist in the studio: crop, shaved, bald, curls,
+  braid, flow. Still to do: give them to the tribes and the parents.)
+- [ ] Use the new face expressions in conversations (each line's tone drives the face).
 
 - [x] Redesign the screens that say "Hello", "again", etc.: they feel out of place (find
   which cards these are and give them the airy title-screen look).
