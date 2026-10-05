@@ -7,6 +7,9 @@ import { colourScript } from '../timeofday.js';
 import { WILDLIFE } from '../wildlife/species.js';
 import { RoomKit } from './lab-kit.js';
 import { ROOMS } from './lab-rooms.js';
+import { FACE_PRESETS } from '../morph.js';
+import { TONE_EXPRESSIONS } from '../expression.js';
+import { TRAVELLER } from '../traveller.js';
 
 // ---------------------------------------------------------------------------
 // The Lab: a developer's world for looking at the game's surfaces, faces and
@@ -16,8 +19,9 @@ import { ROOMS } from './lab-rooms.js';
 //   the materials row  pedestals along -z, each with a sphere, a cube and a knot
 //                      in one surface (LAB_MATERIALS), its name cut in the plinth;
 //                      a swimming pool and a cloud at the ends of the row
-//   the faces row      giant villagers (4x) in a ring along +z, standing still,
-//                      so the faces' ink can be studied close up (content.js)
+//   the faces gallery  giant villagers (4x) in an arc along +z, facing the hub, every face
+//                      variant with an expression, its name on the floor (LAB_FACES), so the
+//                      faces' ink can be studied close up (content.js)
 //   the doors          an arc of little doorways behind the faces, one per world,
 //                      its name over the lintel (LAB_DOORS)
 //
@@ -62,8 +66,40 @@ export const LAB_MATERIALS = [
 
 const SPACING = 9;
 
-/** Where the giant faces stand: a gentle arc behind the spawn. */
-export const LAB_FACES = [-27, -9, 9, 27].map((x) => [x, 26 + Math.abs(x) * 0.12]);
+/**
+ * The faces gallery: giant villagers (4x) on plinths in an arc behind the spawn, facing the hub,
+ * every face variant (morph.js FACE_PRESETS and the traveller's own) once, each with an expression
+ * (expression.js TONE_EXPRESSIONS), men and women, so the faces' ink (face-ink.js) can be studied
+ * close up. Their names are on the floor in front of them. { variant, tone, kind, head, palette,
+ * at: [x, z], facing (rad), face, expression }
+ */
+const FACE_RING = { radius: 46, from: -64, to: 64 };
+/** The walkway in front of the giants, at the height of their faces (m): radii, height, the ramp up to it (at a = 0). */
+export const FACE_WALK = { inner: 41.4, outer: 43.9, height: 5.1, ramp: { length: 15, width: 3, half: 2.4 } };
+const SKINS = ['#e8c6a8', '#c58c64', '#f0d2b8', '#8a5a3c', '#d9a98a', '#a8714c'];
+const CLOTHES = [{ cloak: '#d8a24a', cloth: '#f3ead8', legs: '#2b2f45' }, { cloak: '#8a6fb8', cloth: '#e2d3b4', legs: '#2b2f45' },
+  { cloak: '#5fb7ad', cloth: '#5a4a3a', legs: '#3a3a3a' }, { cloak: '#c8483a', cloth: '#f3ead8', legs: '#2b211f' }];
+export const LAB_FACES = [
+  { variant: 'As modelled', tone: 'neutral', kind: 'm', head: 'short' },
+  { variant: 'As modelled', tone: 'happy', kind: 'f', head: 'bob' },
+  { variant: 'Gaunt elder', tone: 'solemn', kind: 'm', head: 'bald' },
+  { variant: 'Round, young', tone: 'playful', kind: 'f', head: 'twin' },
+  { variant: 'Sharp', tone: 'angry', kind: 'm', head: 'crop' },
+  { variant: 'Broad', tone: 'surprised', kind: 'm', head: 'curls' },
+  { variant: 'The traveller\'s', tone: 'curious', kind: 'm', head: 'swept' },
+  { variant: 'Wide-eyed', tone: 'scared', kind: 'f', head: 'long' },
+  { variant: 'Freckled', tone: 'sad', kind: 'f', head: 'bun' },
+  { variant: 'Weathered', tone: 'tired', kind: 'm', head: 'tonsure' },
+  { variant: 'Sharp', tone: 'shout', kind: 'f', head: 'tail' },
+  { variant: 'Gaunt elder', tone: 'whisper', kind: 'f', head: 'braid' },
+].map((g, i, all) => {
+  const a = THREE.MathUtils.degToRad(FACE_RING.from + ((FACE_RING.to - FACE_RING.from) * i) / (all.length - 1)), R = FACE_RING.radius;
+  return {
+    ...g, at: [Math.sin(a) * R, Math.cos(a) * R], facing: a + Math.PI,
+    face: g.variant === 'The traveller\'s' ? TRAVELLER.face : FACE_PRESETS[g.variant], expression: TONE_EXPRESSIONS[g.tone],
+    palette: { ...CLOTHES[i % CLOTHES.length], skin: SKINS[i % SKINS.length] },
+  };
+});
 
 // ---------------------------------------------------------------------------- the rooms' layout
 /** The biome rooms lie on a ring this far from the hub (m): ~1.5 km apart, well past what is drawn. */
@@ -209,11 +245,64 @@ export function createLab(scene) {
     label.rotation.x = -Math.PI / 2;
     hub.add(label);
   }
-  // ---- the faces row: plinths where the giant villagers stand (content.js puts them on them)
-  for (const [x, z] of LAB_FACES) {
-    const p = new THREE.Mesh(new THREE.CylinderGeometry(3.4, 3.6, 0.4, 24).translate(0, 0.2, 0), stone);
-    p.position.set(x, 0, z);
+  // ---- the faces gallery: plinths where the giant villagers stand (content.js puts them on them),
+  // and a walkway at the height of their faces in front of them (FACE_WALK), up a ramp from the
+  // hub, with a low rail on both sides: walk along it face to face with each, its face and
+  // expression written on the walkway in front of it
+  for (const g of LAB_FACES) {
+    const p = new THREE.Mesh(new THREE.CylinderGeometry(3.2, 3.4, 0.4, 24).translate(0, 0.2, 0), stone);
+    p.position.set(g.at[0], 0, g.at[1]);
     hub.add(p);
+  }
+  {
+    const W = FACE_WALK, mid = (W.inner + W.outer) / 2, wide = W.outer - W.inner;
+    const arc = (a0, a1) => {
+      const n = Math.ceil(Math.abs(a1 - a0) / 4);
+      for (let i = 0; i < n; i++) {
+        const a = THREE.MathUtils.degToRad(a0 + ((a1 - a0) * (i + 0.5)) / n), len = (THREE.MathUtils.degToRad(Math.abs(a1 - a0)) / n) * W.outer + 0.15;
+        const seg = (r, w, h, y) => {
+          const m = new THREE.Mesh(new THREE.BoxGeometry(len * (r / W.outer), h, w), stone);
+          m.position.set(Math.sin(a) * r, y, Math.cos(a) * r);
+          m.rotation.y = a;   // (its length along the arc)
+          hub.add(m);
+        };
+        seg(mid, wide, 0.4, W.height - 0.2);                      // the walk
+        seg(W.inner + 0.1, 0.2, 0.9, W.height + 0.45);            // the rails
+        seg(W.outer - 0.1, 0.2, 0.9, W.height + 0.45);
+      }
+    };
+    const end = FACE_RING.to + 4;
+    arc(-end, -W.ramp.half);
+    arc(W.ramp.half, end);
+    // the ramp: straight up from the hub's floor to the walk's inner edge, at a = 0
+    const rl = Math.hypot(W.ramp.length, W.height), ra = Math.atan2(W.height, W.ramp.length);
+    const ramp = new THREE.Mesh(new THREE.BoxGeometry(W.ramp.width, 0.4, rl), stone);
+    ramp.position.set(0, W.height / 2 - 0.2, W.inner - W.ramp.length / 2 + 0.3);
+    ramp.rotation.x = -ra;
+    hub.add(ramp);
+    // where it meets the walk: a landing across the gap the arcs leave
+    const land = new THREE.Mesh(new THREE.BoxGeometry(2 * Math.sin(THREE.MathUtils.degToRad(W.ramp.half)) * W.outer + 0.4, 0.4, wide), stone);
+    land.position.set(0, W.height - 0.2, mid);
+    hub.add(land);
+    const rail = new THREE.Mesh(new THREE.BoxGeometry(land.geometry.parameters.width, 0.9, 0.2), stone);
+    rail.position.set(0, W.height + 0.45, W.outer - 0.1);
+    hub.add(rail);
+    const sign = new THREE.Mesh(textGeometry('faces', { width: 2.6, depth: 0.03 }), ink);
+    sign.rotation.x = -Math.PI / 2;
+    sign.position.set(0, 0.05, W.inner - W.ramp.length - 1.6);
+    sign.rotation.z = Math.PI;   // (read walking up the ramp)
+    hub.add(sign);
+    for (const g of LAB_FACES) {
+      const text = `${g.variant.toLowerCase()} · ${g.tone}`;
+      const label = new THREE.Mesh(textGeometry(text, { width: Math.min(wide - 0.5, text.length * 0.12), depth: 0.02 }), ink);
+      label.rotation.x = -Math.PI / 2;
+      const holder = new THREE.Group();
+      holder.add(label);
+      holder.rotation.y = g.facing;   // (the text's top toward the giant: read from the walk)
+      const a = g.facing - Math.PI;
+      holder.position.set(Math.sin(a) * mid, W.height + 0.02, Math.cos(a) * mid);
+      hub.add(holder);
+    }
   }
 
   // ---- doorways: posts, a lintel and a glowing veil, the name on a board above (front faces local +z).

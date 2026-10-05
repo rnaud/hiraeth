@@ -880,8 +880,17 @@ cap, the average (at most two) and that no node was stranded by the trimming.
 "Bring back something of value", the father's last words on the prologue's
 recording, is the journey's own quest (`src/story/charge.js`). Its state is read
 off the save: given (`charge.given`, or any save past the prologue), out in the
-worlds, home on the map (after six worlds), brought home (`ending.done`). It has
+worlds, home on the map, brought home (`ending.done`). It has
 its own mark (✦, gold; a world's main quest is ◆, an errand ◇):
+
+- **When home opens** (`homeOpen`, `src/story/ending.js`): one rule for the ship's
+  map, this card and the ending. Any six worlds of the eleven, in any order, and
+  the last recording on the reel heard ("Come home", `calls.home`; older saves:
+  `calls.6`), or the ending already played. The console plays a waiting
+  recording before it opens the map, so the two arrive together; between them the
+  card says a recording is waiting. Past six the card counts on ("8 worlds done"),
+  and the remaining worlds stay open, before home or after (their recordings come
+  from the reel's oldest side).
 
 - a title card when it is given, as the dust settles over the crash: the words
   SOMETHING OF VALUE lettered on a band of paper with a pen line and a gold dot,
@@ -1086,11 +1095,11 @@ walkthroughs and local names; each data file's header lists its flags.
 | Hangar | carry the signal through all three zones to the Major's desk | the Major's note (knowing) |
 | Buried Machine | push the oil valve, shoot the wick, stand in the light (amber band); the wheel turns a tooth | a rust gear tooth (thing) |
 | Viridel | open Odile and Talo's overgrown ship, play their log, part the flowers over the scorch | Mira's words (word) |
-| Garden of Spheres | listen at three spheres, then at the plaza's pole | the chord of the spheres (song) |
+| Garden of Spheres | splash the three spheres that remember, then the plaza's pole | the chord of the spheres (song) |
 | Lorn | make the Great Crystal sing (rain or three shots), carry its splinter to the cave (violet band) | a singing splinter (thing) |
 | Lorn II | relight three dark pools; the saucer answers; it is Odile and Talo's pod | Hollin's lamps (person) |
 | City-Shaft | carry the splinter from the bottom to the palace; the Lodestar brightens | "Look up once a day" (word) |
-| Signal Market | tune the antenna (three shots at once), play the recording: the father's voice | "You are not alone" (word) |
+| Signal Market | tune the antenna (three shots at once), play the recording: the father's voice; Oyo's last lantern pours into the tank (yellow-green band, `bazaar.tank.lantern`) | "You are not alone" (word) |
 
 ### The ending (v0.34)
 - **Calls home** (`src/story/calls.js`): 11 calls, one per finished world. Each
@@ -1337,9 +1346,10 @@ flat, smooth, rock strata, cracked, facade, tiles, leaves, brush, grid, glyphs,
 glow, a lamp, the metals: steel, brushed, chrome, brass, copper, iron, painted, and the box dissolve
 breathing in and out) on a
 sphere, a cube and a turning knot, with a water pool, a meadow of grass blades and a cloud at the ends.
-Behind the spawn, four villagers stand 4× life size on plinths (`LAB_FACES`,
-`content.js`; `spawnNPCs` passes `scale`) and turn to face you, for working on
-faces close up. Add a surface to `LAB_MATERIALS` to see it beside the others.
+Behind the spawn, the faces gallery: twelve villagers 4× life size on plinths
+(`LAB_FACES`, `content.js`; `spawnNPCs` passes `scale`, `face`, `expression`, `facing`),
+every face variant with an expression, facing the hub, and a walkway at the height of
+their faces up a ramp, for working on faces close up (see *Faces drawn the Moebius way*). Add a surface to `LAB_MATERIALS` to see it beside the others.
 
 **Biome rooms.** Behind the faces an arc of little doorways (`LAB_DOORS`), one per
 world with its name on a board over the lintel and a veil in that world's sky
@@ -1953,6 +1963,98 @@ Tried and left out, for not paying:
 - **Impostors** for the farthest landmarks: what's left far away is draw calls and the ink pass,
   which a card wouldn't remove, and a card can't keep the ink outline steady as the view turns.
 
+### Locomotion: feet on the ground, starts, stops and turns (`src/feet.js`, `src/locomotion.js`)
+
+The clip library's loops (walk, jog, sprint) blend by speed on one shared gait phase; everything
+below is laid over them procedurally, so no new motion data was needed (see TODO.md).
+
+- **The loops' own feet** (`analyseGait` in `src/animator.js`, once per library: `lib.gait`): for
+  each loop and foot, a contact curve over the phase (on the ground: within 3 cm of its lowest and
+  going back under the pelvis), how far each phase is from the next touchdown, and the loop's true
+  stance speed (the planted ball relative to the pelvis; the old `lib.native`, the ankle's lowest
+  30 %, read the jog and the sprint at half their speed and is kept only for the blend
+  thresholds). `Animator.bindBody(humanoid)` scales them by the body's leg length.
+- **Cadence and stride**: the loops sweep a planted foot back much faster than the game moves the
+  body (the jog's stance is short, with a long flight). Each loop covers `STRIDE_K` of its own
+  stride a step (walk 0.8, jog 0.55, sprint 0.75): ~1.2 cycles a second jogging at 3.8 m/s, ~1.5
+  running at 7.2 (it was 2.4, a blur); `Animator.footSpeed` is the sweep at that cadence, and
+  feet.js warps every foot's reach ahead of / behind the hips by body speed over sweep, so the
+  clip's foot and the planted one move alike.
+- **Planting** (`plantFeet`, by `Animator.contact`): the phase says when a foot is down, with
+  hysteresis (on above 0.6, off under 0.35, and never while the contact is still rising), so a
+  foot never flickers between held and free as poses blend. A foot coming down plants as it meets
+  the real ground (a frame or two before the clip would), stops there at once, and in its last
+  moments before touchdown is held back over the ground (by ≤ 14 cm: the loops' feet skim in); a
+  held foot keeps its place and its way (yaw) and lies along the slope, the ball on the ground and
+  the heel not in it; it lets go when the gait lifts it, when the body has left it out of the
+  leg's reach, or 60 cm from the clip's foot. Letting go far from the clip's foot, it travels in a
+  low arc. A free foot over a stair or kerb clears what is under its ball and heel (two short rays).
+  The legs are solved from their rest pose (`legIK`: thigh and shin aimed as `Humanoid.update`
+  aims them), so a held leg never picks up a sudden twist; the hips come down (≤ 26 cm) to reach a
+  low foot.
+- **Standing**: once the gait is under a quarter of the pose, a foot left too far from where the
+  standing pose wants it (13 cm) or twisted too far (0.6 rad) takes a settling step there, one foot
+  at a time (0.3 s, 7 cm up): the step after a stop mid-stride, the stepping round of a turn on the
+  spot. A fast turn at low speed is a **pivot** (`Locomotion.pivot`: over 3.2 rad/s under 2.6 m/s):
+  both feet stay down whatever the phase says, the more settled one turns on its ball and the other
+  steps round quickly (0.17 s).
+- **The body** (`Locomotion`, after `Animator.apply`): the chest tips forward as the body speeds
+  up and back (the hips dipping) as it brakes, banks into a curve by turn rate × speed, and the
+  head and then the chest turn toward where you steer before the hips get there.
+- **Stairs**: the drawn body follows a sudden change of floor height over ~0.1 s (`StepLag`, the
+  rise between frames along the local up, so turning gravity doesn't trigger it); the feet stay
+  planted on their steps.
+- **Responsiveness**: none of this changes where you go or how fast you turn: velocity and
+  heading are as before (facing back after a sharp turn at a run: 0.30 s, as before).
+
+**The people** (`src/npc.js`): each has a gait style (`gaitStyle`, seeded by who they are, from
+their build, kind and size): stride (heavy shorter, slim longer, now and then an older walker's
+shorter, slower, bent one), the hips' bob and roll, the chest's lean, the chin, the pace, a slow
+drift of the cadence, and where in the cycle their loops start (`Animator.offsetLoops`), so
+people side by side neither step nor breathe in time. Within 22 m (`NPC_DETAIL`) their feet are
+planted and the body leans, banks and looks into its turns; standing, they turn no faster than
+2.6 rad/s and step round as they do. The crowd's near tier gets the same.
+
+**By distance**: a person is posed every frame within 30 m, every 2nd frame to 60 m, every 3rd to
+110 m (they move every frame), past that the whole update a quarter of the time (as before); and
+their body draws a simpler mesh (`src/skinned-lod.js`): the static levels' clustering
+(`lod-core.js`) with each cell's bone weights merged (`mergeSkin`: summed per bone, the four
+strongest kept), so a level is still skinned on the same skeleton and bends with it. Levels are
+picked by the preset's `lodPx` rule (cells of 1/64 to 1/8 m), built in the levels' worker, shared
+per geometry (the builds' shapes are shared); past 1/16 m cells (an eye under half a pixel) the
+eyes and brows are hidden. Anything that reshapes a body (a build, a face, a costume) first puts
+the full meshes back (`Humanoid.lod.reset()`). The body: 12 566 triangles, 8 137 at 1/64 m, 4 500
+at 1/32, 1 437 at 1/16, 513 at 1/8; a dressed bazaar person 13 422 → 8 992 at 30 m, 5 050 at 60 m,
+1 929 at 120 m, which look the same at those distances.
+
+**Measured** (`tests/gait-sim.js` drives a headless traveller through scripted input on a course
+of flat ground, a 12° ramp and 18 cm stairs; `tests/locomotion.test.js`). Before (build `7aafb48`)
+→ after; slide = how far a foot moves over the ground while within 3 cm of it (touchdown and
+lift-off included), held = how far a planted foot moves over its hold, sink = deepest sole under
+the ground, jerk = the head's world jerk (RMS):
+
+| Run | slide max / mean (m) | held (m) | sink (m) | head jerk (km/s³) |
+|---|---|---|---|---|
+| walk → run → 180° turn → stop | 1.96 / 0.49 → 0.16 / 0.05 | 0.009 → 0.003 | 0.10 → 0 | 4.6 → 2.6 |
+| walk, 90° turn, stop | 0.84 / 0.38 → 0.23 / 0.04 | 0.003 → 0.008 | 0.06 → 0.01 | 1.3 → 1.3 |
+| turn round on the spot | 1.16 / 0.47 → 0.07 / 0.02 | 0.004 → 0 | 0.10 → 0 | 3.3 → 1.6 |
+| up the ramp, stand | 0.46 / 0.34 → 0.08 / 0.03 | 0.019 → 0.008 | 0.03 → 0.01 | 1.3 → 1.4 |
+| stairs up, stand, down | 0.62 / 0.39 → 0.11 / 0.03 | 0.031 → 0.004 | 0.14 → 0 | 18.8 → 2.5 |
+
+The biggest bone turn from one frame to the next stays under a radian (0.8 rad at a sprint, as
+before).
+
+The people's animation CPU, in Node (12 walkers from 4 to 150 m, 900 frames, two runs each):
+0.67–0.74 → 0.62 ms a frame; a person within 22 m costs ~85 µs instead of ~65 (the feet, the lean),
+at 40–55 m ~34 instead of ~64, at 70–90 m ~23, past 110 m ~6 instead of ~16. In headless Chrome
+(Metal, 1600 × 900, High, at the spawn, two runs each, alternating builds): the Bazaar (seven people
+shown, six within 60 m, four of them the crowd's near tier) 6.5 / 6.6 → 6.4 / 6.6 ms a frame, the
+people's update 1.0–1.4 → 1.2–1.5 ms (the planted feet of the six near ones; within the run-to-run
+noise of the page); the City-Shaft (two people near, the rest far) 12.9 / 13.4 → 10.0 / 13.2 ms, the
+people's update 0.32 / 0.33 → 0.16 / 0.16 ms, and their bodies 53.9 k → 14.7 k triangles (four of
+eleven on a level). On this Mac the frame is bound by draw calls and fill, so the triangles don't
+show in the frame time; the handheld is still to measure.
+
 ### The galactic map and the route (v0.38)
 - **The route** (`src/story/route.js`, `knownWorlds`): the worlds open up in `ORDER`. The
   desert (the crash) is always known, then the next `AHEAD` (2) worlds that are not done,
@@ -2364,6 +2466,66 @@ a distance (or in the 160 px dialogue portrait) still has eyes.
 - `tests/eyes.test.js` covers the colours, the gaze clamping, the blink timing, the eyeballs
   and the aim through the skeleton, and the crowd's eye triangles.
 
+### Faces drawn the Moebius way
+
+The people's faces were a modelled head with a few faint marks and the same dense surface hatching
+as everything else. They are drawn now the way Moebius draws a face in his ligne-claire work (Vael,
+The Sealed Hangar, The Lodestar, Viridel): flat colour, one shadow tone, very few precise lines.
+
+- **The ink** (`src/face-ink.js`, `FACE_INK_GLSL`, in `materials.js` for the people's skin,
+  `MODE_OUTFIT`): pen strokes in the head's rest coordinates, placed by the face's landmarks
+  (`uFace`, moved by the face morphs) and bent by the expression (`uMood`, `uMood2`), so they ride
+  the skinned head. The eyes: a fine crease over the lid, a flick at the outer corner, a tick under
+  the lower lid and at the tear duct. The nose: one line down the shadow side of the bridge into a
+  hook round the wing (`uMood2.y`, the side turned from the sun: `Humanoid.updateNoseSide`), a
+  lighter hook on the lit side, two dark nostrils. The mouth: a single line with a tick at each
+  corner (down at rest, up with a smile), a lower-lip tick, the dark opening; an arc over the chin.
+  The ears: a curl round the rim and one inside. Sparse hatching that follows the face: the inner
+  socket, under the brow's end, the hollow under the cheekbone (more on hollow cheeks: `uFaceKit2.z`),
+  under the lip, a few dashes along the shadow's edge. Age lines by `lines`: bags, crow's feet, the
+  folds from the nose, a cheekbone line; frown creases and forehead lines with the brow.
+- **Young faces are drawn bare** (`faceYouth`, `uMood2.z`, on the skin and the eyes): an explicit
+  `face.young`, else read from the face's proportions (a short lower face, big eyes, a small nose,
+  a soft brow and chin, a big head), age lines taking it back. A child's face (home's Lou: 1) keeps
+  light lids, a tiny nose hook, a short soft mouth and a few small freckles: no hatching, no folds,
+  no bridge line, no forehead lines, no dashes at the shadow's edge; the traveller (about 0.57)
+  keeps a little of each; every grown face draws as before. The brows are one flat stroke
+  (`facePart`: no surface hatching inside them), and the shadow-edge dashes keep to a narrow band at
+  the terminator (a face turned from the light is flat, not hatched all over).
+- **Constant on screen, thinner with distance.** Widths are CSS pixels (a 1.3 px pen up close,
+  0.7 on a small face); the detail comes in three steps by the face's height on screen
+  (`FACE_LOD`): the mouth and the nose hook from 14 px, the small marks from 40 px, hatching and age
+  lines from 90 px, and hatching only while its strokes are 3.5 px apart or more. On top of that
+  post.js still thins a distant person's inner ink, so a far face is two eye marks, never noise.
+  The face ink is written over 1 in `gHatch.b`: post.js draws it as a pen line (up to 0.92 ink),
+  darker than the rest of the drawn detail.
+- **Flat colour, one shadow tone.** No surface hatching above the chin (`FACE_FLAT_GLSL`; the neck
+  keeps its own), none on the eyeballs. The head is lit as one rounded volume (`FACE_ROUND_GLSL`:
+  the normals blend 0.72 of the way to a tall egg round the face, so the mouth and brow face
+  forward), so its shade is one clean shape split down the nose instead of the low-poly mesh's
+  shards; the ink pass sees the same rounded normals, so the facets draw no creases across it. A face's pixels carry a flag
+  (`gHatch.a` + 16): post.js draws no line round its shade and no crease shading over it (the
+  sockets are hatched instead).
+- **Eyes** (`eyes.js`, `materials.js eyeball`): a crisp lash line along the lid's edge, heavier
+  toward the outer corner, coming down with the blink; the iris a flat colour ringed by a pen
+  circle, a round pupil, a small highlight.
+- **Brows** (`humanoid.js taperBrows`): pulled to their own arched centre line, half as tall as
+  modelled at the inner end, a fifth at the outer: one tapered stroke each.
+- **Anyone can wear a face** (`NPC` options and spawn spots): `face` (morph.js `FACE_MORPHS`),
+  `expression` (worn at rest: `Humanoid.restExpression`), `facing` (stand turned that way).
+- **The studio**: a **Close-up** view (eyes to chin), **Lineup → every world's faces** (the
+  traveller and a story person of each world; the crowd seed picks which), and **Share → Faces
+  sheet**: each person alone, framed on the face, in a grid (`studio.sheet({ cols, w, h, view })`;
+  `zooms: [1, 2, 4, ...]` draws the first person from further and further, at 1:1, each cell
+  giving the face's height on screen: the distance ladder).
+- **The Lab's faces gallery** (`?level=lab`, `LAB_FACES`): twelve giants (4x) in an arc facing
+  the hub, every face variant (`FACE_PRESETS`, now in morph.js, and the traveller's) with an
+  expression, men and women, and a walkway at the height of their faces (`FACE_WALK`), up a ramp,
+  each one's face and expression written on it in front of them.
+- `tests/face-ink.test.js`: the detail steps, the nose's side, the shaders, the uniforms on a body,
+  the brows' taper, an NPC's own face and facing, the gallery (every variant, facing the hub, the
+  walk solid in front of each face, the ramp).
+
 ### Qanat's tree ledge, solid terraces, and the dry cave
 - **The makers' ledge** (`src/desert-city.js`, `city.ledge`): the backpack's box no longer
   stands under the little blue shrine; it sits on a plank shelf jutting out of the burning
@@ -2587,8 +2749,17 @@ beside it (the details, how to run it and what is missing: `unity/README.md`).
   between the two houses, the flag, the curtain in front of the beds and the scarf (both
   indoors: a breath of wind at most, until you brush past).
 - **Lou, Tove and Moustache** (`src/story/home.js`, `home-data.js`, `src/dog.js`): Lou is a full
-  NPC with a child's proportions (`LOU_MORPH`, `LOU_FACE`: morph.js on the people's body, scale
-  0.72, a dotted dress). Once a visit she runs to meet you and asks what you brought; what she
+  NPC built as a child (her def's `morph`, `face`, `rest`, `gait`, `body`, `brows`, which
+  `src/npc.js` applies to any story person; the studio shows them, `?who=npc&world=home&npc=lou`):
+  about 1.2 m and five heads tall in the studio's count (Tove is 6.6), a head 1.3 times the size on
+  short arms and legs (the morph's child ranges: `torsoLength` shortens the spine by moving its
+  bones closer, `headSize` up to 1.55, leg and arm length down to 0.68 / 0.72), a round, soft,
+  waistless middle on the people's slighter, flatter body (`body: 'm'`) while her voice stays a
+  girl's (`kind: 'f'`, `age: 'child'`), a round face with a short lower face, big low-set eyes, a
+  small nose, no lines, light brows and a ready smile at rest, two buns, a dotted dress. She walks
+  with short quick steps and breaks into a run early (`gait.stride`, `gait.pace` scale the clips'
+  stride and thresholds) and never stands still (`gait.fidget`: shifting from foot to foot,
+  swinging her arms, twisting, bouncing on her toes). Once a visit she runs to meet you and asks what you brought; what she
   says follows how many keepsakes you have (`keepsakeBand`) and the newest world you wrote to
   her from (`DRAWING_LINES`); she sees a flower in your hand. Then she goes about her day (the
   border, the swing, the stone, her door). Tove sits on the garden bench. Moustache, a scruffy
@@ -2611,6 +2782,9 @@ beside it (the details, how to run it and what is missing: `unity/README.md`).
   oldest recording asks "Was that you? The little one, waving?". Her lines are subtitled LOU and
   voiced as a child, close by (`CALL_VOICES.lou`, no radio). The credits name Lou, Tove and
   Moustache "in the small house". `tests/home.test.js`, `tests/home-family.test.js`.
+  The reel knows her too, never by name ("the little one"): one line from the mother in
+  recording 5 ("She has your hands, love") and one from the father in the last recording
+  (`src/story/calls.js`; `tests/ending.test.js`).
 
 ### A quest that fails, fewer fetch quests, and the lore made one story
 
@@ -2643,7 +2817,9 @@ beside it (the details, how to run it and what is missing: `unity/README.md`).
   Then Esk blames you, you say sorry, she says it belongs to the ground now, and it fails. Mira,
   Sol and Vey each say a word about it once; a recording afterwards has the father on breaking
   things (`calls.js` beat `broke`), and Viridel's own recording gets a different answer
-  (`REEL.edena.youAfter`). `tests/story-terraces.test.js` runs it end to end and reloads it.
+  (`REEL.edena.youAfter`). At the stone the traveller names it, once, after the space for Ilen
+  (`tombLines(tokens, { broke })`, from `edena.terraces.flooded`).
+  `tests/story-terraces.test.js` runs it end to end and reloads it.
 - **Hands-on steps in the fetch quests** (each one solvable with a plain shot and push; ember
   shots work where lighting fits; existing stage ids kept, so old saves carry on):
   - - *Teo's drum* (desert, `src/story/desert-errands.js`): it stands on its rim under the ribcage,

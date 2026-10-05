@@ -25,15 +25,96 @@ const CLIMB = ['climbIdle', 'climbUp', 'climbDown', 'climbLeft', 'climbRight'];
 let libPromise = null;
 /** Load the clip library once; resolves to { scene, clips, native } (native = ground speed per loop). */
 export function loadAnimationLibrary(url = 'anim/ual.glb') {
-  libPromise ??= new GLTFLoader().loadAsync(url).then((gltf) => {
-    const clips = {};
-    for (const [k, name] of Object.entries(CLIPS)) clips[k] = gltf.animations.find((a) => a.name === name);
-    // (all: every clip in the file, for the character studio's clip list)
-    const lib = { scene: gltf.scene, clips, native: {}, all: gltf.animations };
-    for (const k of ['walk', 'jog', 'sprint']) lib.native[k] = measureGroundSpeed(lib, clips[k]);
-    return lib;
-  });
+  libPromise ??= new GLTFLoader().loadAsync(url).then(libraryFrom);
   return libPromise;
+}
+
+/** The library from a parsed ual.glb (loadAnimationLibrary; tests parse the file themselves). */
+export function libraryFrom(gltf) {
+  const clips = {};
+  for (const [k, name] of Object.entries(CLIPS)) clips[k] = gltf.animations.find((a) => a.name === name);
+  // (all: every clip in the file, for the character studio's clip list)
+  const lib = { scene: gltf.scene, clips, native: {}, all: gltf.animations };
+  for (const k of ['walk', 'jog', 'sprint']) lib.native[k] = measureGroundSpeed(lib, clips[k]);
+  return lib;
+}
+
+// How much of each loop's own stride a step covers in the game: the jog's stance sweeps the foot
+// back fast (it has a long flight) and the sprint's too, so their strides are shortened (Humanoid.
+// plantFeet warps the feet's swing toward the body by the same amount) and their cadence stays
+// human: ~1.2 cycles a second jogging at 3.8 m/s, ~1.5 running at 7.2.
+export const STRIDE_K = { walk: 0.8, jog: 0.55, sprint: 0.75 };
+const CONTACT_N = 64;
+
+/**
+ * The loops' feet, measured once on the library skeleton (lib.gait): each loop's true stance
+ * speed (the ball of the planted foot, relative to the pelvis, in library metres a second at
+ * rate 1), and for each foot a contact curve over the gait phase (1 on the ground, 0 in the air),
+ * which is what plants a foot (Humanoid.plantFeet): the phase says when, not the foot's height
+ * from frame to frame. legLength: the library's hip-to-ankle, for scaling to other bodies.
+ */
+export function analyseGait(lib) {
+  if (lib.gait !== undefined) return lib.gait;
+  const keys = ['walk', 'jog', 'sprint'].filter((k) => lib.clips[k]);
+  if (keys.length < 3) return (lib.gait = null);
+  const s = cloneSkeleton(lib.scene), by = (n) => byName(s, n);
+  const mixer = new THREE.AnimationMixer(s);
+  const at = (n) => by(n).getWorldPosition(new THREE.Vector3());
+  s.updateMatrixWorld(true);
+  const legLength = at('thigh_l').distanceTo(at('calf_l')) + at('calf_l').distanceTo(at('foot_l'));
+  const gait = { legLength, clips: {} };
+  const pel = new THREE.Vector3(), cur = new THREE.Vector3();
+  for (const k of keys) {
+    const clip = lib.clips[k], action = mixer.clipAction(clip);
+    action.play();
+    const N = CONTACT_N, dt = clip.duration / N;
+    const h = { l: new Float32Array(N), r: new Float32Array(N) }, vz = { l: new Float32Array(N), r: new Float32Array(N) };
+    const prev = { l: null, r: null };
+    for (let i = -1; i < N; i++) {
+      mixer.setTime(((i + N) % N) * dt);
+      s.updateMatrixWorld(true);
+      by('pelvis').getWorldPosition(pel);
+      for (const f of ['l', 'r']) {
+        by(`ball_${f}`).getWorldPosition(cur);
+        const z = cur.z - pel.z;
+        if (i >= 0) { h[f][i] = cur.y; vz[f][i] = (z - prev[f]) / dt; }
+        prev[f] = z;
+      }
+    }
+    action.stop();
+    const contact = {}, speeds = [];
+    for (const f of ['l', 'r']) {
+      let min = Infinity;
+      for (const y of h[f]) min = Math.min(min, y);
+      contact[f] = new Float32Array(N);
+      // on the ground: within 3 cm of the foot's lowest, and going back under the body
+      for (let i = 0; i < N; i++) {
+        const c = 1 - THREE.MathUtils.smoothstep(h[f][i] - min, 0.025, 0.05);
+        contact[f][i] = vz[f][i] < 0.05 ? c : 0;
+        if (h[f][i] - min < 0.012) speeds.push(-vz[f][i]);
+      }
+    }
+    // and how far (in phase) each sample is from that foot's next touchdown (0 while it is down)
+    const lead = {};
+    for (const f of ['l', 'r']) {
+      lead[f] = new Float32Array(N);
+      for (let i = 0; i < N; i++) {
+        let j = 0;
+        while (j < N && contact[f][(i + j) % N] < 0.5) j++;
+        lead[f][i] = j / N;
+      }
+    }
+    speeds.sort((a, b) => a - b);
+    gait.clips[k] = { speed: speeds[Math.floor(speeds.length / 2)] ?? 1, duration: clip.duration, contact, lead };
+  }
+  mixer.stopAllAction();
+  return (lib.gait = gait);
+}
+
+/** A contact curve's value at phase p (0..1), interpolated. */
+function contactAt(curve, p) {
+  const N = curve.length, x = (((p % 1) + 1) % 1) * N, i = Math.floor(x) % N, t = x - Math.floor(x);
+  return curve[i] * (1 - t) + curve[(i + 1) % N] * t;
 }
 
 // How fast the ground moves under a planted foot in an in-place loop.
@@ -122,6 +203,33 @@ export class Animator {
     this.w = { idle: 1, walk: 0, jog: 0, sprint: 0, air: 0, drive: 0, talk: 0, jumpLand: 0, look: 0, ledge: 0, climbIdle: 0, climbUp: 0, climbDown: 0, climbLeft: 0, climbRight: 0 };
     this.idleT = 0;
     this.airState = null;
+    // the gait's feet (analyseGait): contact per foot this frame (0..1), how fast the loop sweeps a
+    // planted foot back (m/s on the bound body), and the locomotion loops' share of the pose
+    this.gait = analyseGait(lib);
+    this.legRatio = 1;   // the body's hip-to-ankle over the library's (bindBody)
+    this.contact = { l: 1, r: 1 };
+    this.toContact = { l: 0, r: 0 };   // s until each foot's next touchdown in the gait (Infinity off the ground)
+    this.footSpeed = 0;
+    this.gaitW = 0;
+  }
+
+  /** Start the gait and the standing loops at `k` (0..1) of their cycle: people side by side don't breathe or step in time. */
+  offsetLoops(k) {
+    this.phase = k % 1;
+    for (const key of ['idle', 'talk', 'look', 'drive']) {
+      const a = this.actions[key];
+      if (a) a.time = ((k * 7.31) % 1) * this.lib.clips[key].duration;
+    }
+    return this;
+  }
+
+  /** The body these clips pose (a Humanoid): its legs' length sets the stride and the cadence. */
+  bindBody(humanoid) {
+    const R = humanoid?.rest, B = humanoid?.b;
+    if (!this.gait || !R || !B?.thigh_l) return this;
+    const p = (n) => R.get(B[n]).p;
+    this.legRatio = (p('thigh_l').distanceTo(p('calf_l')) + p('calf_l').distanceTo(p('foot_l'))) / this.gait.legLength;
+    return this;
   }
 
   dir(A, B, out) {
@@ -184,15 +292,40 @@ export class Animator {
     // one shared gait phase: cycles per second = speed / stride, stride from the
     // clip that dominates (each clip's native stride = native speed * duration)
     const gaitKeys = ['walk', 'jog', 'sprint'];
-    let wsum = 0, stride = 0;
-    for (const k of gaitKeys) { wsum += this.w[k]; stride += this.w[k] * N[k] * this.lib.clips[k].duration; }
+    const G = this.gait, size = this.legRatio * (s.scale ?? 1);
+    let wsum = 0, stride = 0, sweep = 0;
+    for (const k of gaitKeys) {
+      const w = this.w[k];
+      wsum += w;
+      if (G) {
+        // the loop's true stance sweep on this body, shortened by STRIDE_K (plantFeet warps the feet to match)
+        const c = G.clips[k], full = c.speed * c.duration * size;
+        sweep += w * full; stride += w * full * STRIDE_K[k];
+      } else stride += w * N[k] * this.lib.clips[k].duration;
+    }
+    this.footSpeed = 0;
+    let cps = 0;
     if (wsum > 0.01) {
-      stride /= wsum;
-      // lengthen the stride a little at game speeds, so cadence stays human
-      const cps = sp / Math.max(stride * s.strideScale, 0.3);
+      stride /= wsum; sweep /= wsum;
+      // (strideScale: a longer or shorter stride than the loop's, for people's own gaits)
+      cps = sp / Math.max(stride * (s.strideScale ?? 1), 0.3);
       this.phase = (this.phase + cps * dt) % 1;
+      this.footSpeed = cps * sweep;
     }
     for (const k of gaitKeys) this.actions[k].time = this.phase * this.lib.clips[k].duration;
+    // which feet are on the ground: the standing poses plant both, the loops by their phase, the air neither
+    let total = 0;
+    for (const k in this.w) total += this.w[k];
+    total = Math.max(total, 1e-3);
+    const still = this.w.idle + this.w.talk + this.w.look + this.w.jumpLand;
+    this.gaitW = wsum / total;
+    for (const f of ['l', 'r']) {
+      let c = still;
+      let lead = 0;
+      if (G) for (const k of gaitKeys) { c += this.w[k] * contactAt(G.clips[k].contact[f], this.phase); lead += this.w[k] * contactAt(G.clips[k].lead[f], this.phase); }
+      this.contact[f] = Math.min(c / total, 1);
+      this.toContact[f] = wsum > 0.01 && cps > 0.05 ? lead / wsum / cps : Infinity;
+    }
     // climbing loops: a little faster than authored, since we climb quickly
     const moving = s.mode === 'climb' && (s.climbF || s.climbS);
     for (const k of CLIMB) {
@@ -242,7 +375,10 @@ export class Animator {
         // keep the boot level side-to-side: build a basis from forward + parent up
         _z.copy(local).normalize();
         _y.set(0, 1, 0);
-        _x.crossVectors(_y, _z).normalize();
+        _x.crossVectors(_y, _z);
+        // (toes pointing straight down or up: the side axis from the parent's instead, so the boot doesn't spin)
+        if (_x.lengthSq() < 0.04) _x.set(1, 0, 0).addScaledVector(_z, -_z.x);
+        _x.normalize();
         _y.crossVectors(_z, _x);
         m.j.quaternion.setFromRotationMatrix(_m.makeBasis(_x, _y, _z));
       } else {

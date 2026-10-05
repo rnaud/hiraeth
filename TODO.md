@@ -31,22 +31,32 @@ these foundations and share animation logic where practical.
 
 - [ ] Gather suitable, licensed motion data: starts, stops, turns, pivots,
   sidesteps, landings, and interactions, in addition to locomotion loops.
-- [ ] Improve the traveller's transitions, foot contact, turning, and responsive
+  *(Open: the author decides on licensing. Everything below was done with the
+  existing CC0 loops plus procedural layers, so new clips can drop in later.)*
+- [x] Improve the traveller's transitions, foot contact, turning, and responsive
   body/head movement. Keep optional stop-motion styling disabled when evaluating
-  smoothness.
-- [ ] Prototype a walk → run → sharp turn → stop sequence. Verify stable planted
-  feet, no abrupt pose changes, and responsive control.
+  smoothness. *(src/feet.js, src/locomotion.js; README "Locomotion")*
+- [x] Prototype a walk → run → sharp turn → stop sequence. Verify stable planted
+  feet, no abrupt pose changes, and responsive control. *(tests/gait-sim.js,
+  tests/locomotion.test.js: slide per contact 1.96 → 0.16 m, sink 10 → 0 cm,
+  turn response unchanged at 0.30 s)*
 - [ ] Add motion matching for locomotion, with procedural terrain corrections.
-- [ ] Extend the system to nearby NPCs, varying gait, timing, posture, and
-  gestures to avoid identical-looking motion.
-- [ ] Scale animation work by distance: detailed motion selection and contact
+  *(Open: needs the motion data above; the terrain corrections, contact curves
+  and stride warp it would use are in place.)*
+- [x] Extend the system to nearby NPCs, varying gait, timing, posture, and
+  gestures to avoid identical-looking motion. *(Gait, timing and posture per
+  person; gestures are still the shared wave and talk clips.)*
+- [x] Scale animation work by distance: detailed motion selection and contact
   solving nearby; shared or baked animation with interpolated playback for
-  distant crowds.
+  distant crowds. *(Feet and lean near, poses every 2nd / 3rd frame further,
+  simplified skinned bodies far: src/skinned-lod.js.)*
 - [ ] Measure frame times, animation CPU cost, loading time, and memory on
   desktop and physical mobile devices with representative crowd sizes.
+  *(Desktop headless Chrome measured in the Bazaar and the City-Shaft (README);
+  the Retroid and loading time / memory still to do.)*
 - [ ] Evaluate ML only if it offers a measured advantage over the conventional
   system. Account for training data, offline tooling, model delivery, and
-  browser runtime compatibility.
+  browser runtime compatibility. *(Open: after motion matching.)*
 
 ### Success criteria
 
@@ -166,7 +176,7 @@ Grouped by area. Checked items are done; the changelog says when.
   animations don't break; put the outfit on top.
 - [x] People of different heights, body types and genders.
 - [x] Faces: proper eyes with a white, an iris and a pupil (not solid black).
-- [ ] Then the Moebius-style face shader. Redo the face shaders to look more like Moebius; add a level with very
+- [x] Then the Moebius-style face shader. Redo the face shaders to look more like Moebius; add a level with very
   large faces to test and refine them. (The giant faces are in `?level=lab`; the shader
   is still to do.)
 - [x] Ragdoll when falling, or when pushing people with the gun. Falls: ragdoll first,

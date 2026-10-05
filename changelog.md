@@ -2,6 +2,21 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.52 — 2026-10-05
+
+- People’s faces are drawn the way Moebius draws them: flat colour with one clean shadow, a crisp eyelid line, a nose drawn as one line ending in a hook at the nostril, a mouth with small ticks at its corners, curled ears, and only a few fine strokes of hatching in the eye sockets and under the cheekbones.
+- Eyebrows are single tapered strokes, and eyes have a ringed iris with a small pupil.
+- Children and young people have young faces: Lou’s is drawn with just her eyes, a tiny nose, a soft mouth and a few freckles, and the traveller keeps a clean young face, while older people keep their lines.
+- Faces keep their lines a steady width on screen and simplify with distance, so people across the street stay clean instead of turning into scribbles.
+- The Lab has a gallery of giant faces: twelve towering villagers, each with a different face and expression, and a walkway that brings you eye to eye with them.
+- Character studio: a close-up view, a lineup of a face from every world, and a faces sheet you can save.
+- The traveller’s feet stay planted: no more skating at a jog or a run, and boots no longer sink into slopes or stairs.
+- Starting off you lean into the stride, braking you lean back; turning, you bank into the curve and your head leads the way.
+- Stopping mid-stride ends with a small settling step; turning on the spot, the feet step round instead of spinning in place; a sharp turn at a run is a plant-and-pivot.
+- Stairs: the feet land on the steps, the body rides them smoothly, and standing on a flight one foot rests a step lower.
+- People walk their own way: stride, bounce, posture and pace vary with build and age, and nobody marches in step with their neighbour. Near you they turn toward you with steps, their feet planted.
+- Far-off people use simpler bodies and less frequent animation, which makes busy streets cheaper to draw.
+
 ## v0.51 — 2026-10-05
 
 - Viridel: help Esk water her tea terraces. You’ll do your best, and it won’t be enough. What happens stays happened.
@@ -14,6 +29,11 @@ The same release notes shown in the game (press **N** or open settings).
 - Lorn II: Pim’s door still sticks with moss: wake the moss lamp over it, then push it shut. And Fen asks you to bring his skiff home: light his berth lamp and nudge it in.
 - Viridel: the brass gear from the Hangar goes on Mira’s water clock. Fit it, then fill the leaking bowl fast enough to ring the bell.
 - Story fixes: every world now remembers the singing light the same way, the night your ship was struck, climbing away. Ilen’s message is thirty years old. Odile and Talo’s journey is told one way everywhere. People who share a name are no longer mixed up in the credits.
+- Your parents’ later recordings now remember your daughter, quietly.
+- At your parents’ stone, if Esk’s tea terraces in Viridel came down, the traveller says so. Aunt Tove’s words about your parents and Lou are a little warmer.
+- The Signal Market: Oyo kept one lantern back from the night the sky rang. Ask him for it and its little sun goes into your tank as a new yellow-green band.
+- Home is on the ship’s map once the last recording on the reel has played; the sketchbook says when a recording is waiting at the console and keeps counting the worlds you finish after six.
+- Small story fixes: in Vael, Hollin hands over the feather with his hands and two words; in Vael II, Sister Aube explains the sky stones floated long before the bell stopped; in the City-Shaft, Nima explains the Lodestar has faded all her life and has been going out since the night the sky rang.
 
 ## v0.50 — 2026-10-05
 
@@ -23,6 +43,7 @@ The same release notes shown in the game (press **N** or open settings).
 - A little garden in the front yard: vegetable beds, a bench, and flowers you can pick.
 - Pay your respects at your parents’ stone: kneel, lay a flower or what you have found since, and stay a moment.
 - At the ending Lou comes to the stone with you and leaves a drawing of her own.
+- Lou looks like a real seven-year-old: a big head, short arms and legs, a round young face, two buns, quick little steps, and she can’t keep still.
 - The washing, the bunting, the flag and the curtains are real cloth now: they blow in the wind and move aside when you walk into them.
 
 ## v0.49 — 2026-10-05

@@ -20,11 +20,15 @@
 //
 // Flags (game-state.js): bazaar.rumour.light, bazaar.kip.gave, bazaar.antenna.tuned,
 // bazaar.broadcast.on (the tower speaks again), bazaar.oldsign.awake,
-// bazaar.crates.clear; clue.bazaar.home. Items: recording, bowl.
+// bazaar.crates.clear; bazaar.tank.lantern (Oyo's last lantern poured into the tank: its colour
+// band); clue.bazaar.home. Items: recording, bowl.
 
 const Q = 'bazaar.signal';
 
 export const ITEMS = { recording: 'the unsent recording', bowl: 'Ummu’s listening bowl' };
+/** Oyo's last lantern, relit the night the sky rang: its little sun goes into the tank as a band (src/story/bazaar.js). */
+export const LANTERN_TONE = '#b9c25a';   // “the colour of a bruise when it’s healing”: a sallow yellow-green
+export const LANTERN_FLAG = 'bazaar.tank.lantern';
 
 /** The broadcast's words, the keepsake: kept here so the calls home can quote it. */
 export const KEEPSAKE = { id: 'bazaar.word', level: 'bazaar', name: 'You are not alone', kind: 'word',
@@ -289,7 +293,12 @@ export const STREET = {
         say: ['~shout~ Every lantern holds a little sun. Fresh suns, cheap!', '~surprised~ The night the sky rang, every lantern on my stall went out at once. Then they lit again one by one, in a colour I’ve never sold.'],
         choices: [{ text: '~curious~ What colour?', goto: 'colour' }, { text: '~curious~ Any other rumours?', goto: 'rumours' }],
       },
-      colour: { say: ['~playful~ The colour of a bruise when it’s healing. I sold them all by morning. People like a story.'], do: { set: { 'bazaar.rumour.light': true } }, choices: [{ text: '~neutral~ Goodbye.', end: true }] },
+      colour: { say: ['~playful~ The colour of a bruise when it’s healing. I sold them all by morning. People like a story.'], do: { set: { 'bazaar.rumour.light': true } },
+        choices: [{ text: '~curious~ All of them? Not one left, for my tank?', if: { all: [{ flag: 'item.backpack' }, { not: { flag: LANTERN_FLAG } }] }, goto: 'tank' }, { text: '~neutral~ Goodbye.', end: true }] },
+      // the market's colour band for the tank (src/story/bazaar.js pours it in when the flag is set)
+      tank: { say: ['~whisper~ One. I kept one back, under the stall. Don’t tell anyone.'], next: 'pour' },
+      pour: { say: ['~playful~ (He unscrews its cap and holds it to your hose.) Go on. A little sun doesn’t mind where it lives.'], do: { set: { [LANTERN_FLAG]: true } },
+        choices: [{ text: '~happy~ Thank you, Oyo.', end: true }] },
       rumours: { say: ['~playful~ They say the silent tower was the only one that told the truth. They say the quiet ones can hear thoughts. They say the noodle man is three noodle men in a coat. One of those is true.'], choices: [{ text: '~neutral~ Goodbye.', end: true }] },
     } },
   },

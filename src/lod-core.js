@@ -160,7 +160,11 @@ export function cluster({ pos: P, tri: T, attrs, lock }, cell, minRatio = 1, dep
     }
   }
   const N = attrs.find((a) => a.name === 'normal' && a.itemSize === 3)?.array ?? null;
-  const others = attrs.filter((a) => a.name !== 'normal');
+  // skinned meshes: the bone weights are merged per cell (every vertex a cell keeps moves with the
+  // same bones, so the simplified skin doesn't tear when it bends), not kept apart like colours
+  const SI = attrs.find((a) => a.name === 'skinIndex' && a.itemSize === 4), SW = attrs.find((a) => a.name === 'skinWeight' && a.itemSize === 4);
+  const skin = SI && SW;
+  const others = attrs.filter((a) => a.name !== 'normal' && !(skin && (a === SI || a === SW)));
 
   // (a rod's vertices go by grid cell like the rest, then by sector round the rod's centre within
   // that cell: a bent or sagging rod keeps its whole cross-section all along, and nothing of it
@@ -336,11 +340,55 @@ export function cluster({ pos: P, tri: T, attrs, lock }, cell, minRatio = 1, dep
       nsum[o * 3] = x / l; nsum[o * 3 + 1] = y / l; nsum[o * 3 + 2] = z / l;
     }
   }
+  const cellSkin = skin ? mergeSkin(SI.array, SW.array, cellOf, nCells) : null;
   const outAttrs = attrs.map((A) => {
     if (A.name === 'normal' && nsum) return { ...A, array: nsum };
+    if (cellSkin && (A === SI || A === SW)) {
+      const src = A === SI ? cellSkin.index : cellSkin.weight, a = new Float32Array(nOut * 4);
+      for (let o = 0; o < nOut; o++) { const c = ocell[o] * 4; a[o * 4] = src[c]; a[o * 4 + 1] = src[c + 1]; a[o * 4 + 2] = src[c + 2]; a[o * 4 + 3] = src[c + 3]; }
+      return { ...A, array: a };
+    }
     const s = A.itemSize, a = new Float32Array(nOut * s);
     for (let o = 0; o < nOut; o++) { const v = rep[o]; for (let i = 0; i < s; i++) a[o * s + i] = A.array[v * s + i]; }
     return { ...A, array: a };
   });
   return { pos, index: nOut < 65536 ? Uint16Array.from(out) : out, attrs: outAttrs, tris: nKeep, cell };
+}
+
+/**
+ * Each cell's bone weights: the weights of all its vertices summed per bone, the four strongest
+ * kept and normalised (skinIndex / skinWeight, four per vertex). Returns { index, weight } per cell.
+ */
+export function mergeSkin(SI, SW, cellOf, nCells) {
+  const K = 8, bones = new Int32Array(nCells * K).fill(-1), wts = new Float32Array(nCells * K);
+  const nV = cellOf.length;
+  for (let v = 0; v < nV; v++) {
+    const c = cellOf[v] * K;
+    for (let k = 0; k < 4; k++) {
+      const w = SW[v * 4 + k];
+      if (!(w > 0)) continue;
+      const b = Math.round(SI[v * 4 + k]);
+      let slot = -1, low = c;
+      for (let i = c; i < c + K; i++) {
+        if (bones[i] === b || bones[i] < 0) { slot = i; break; }
+        if (wts[i] < wts[low]) low = i;
+      }
+      if (slot < 0) { if (wts[low] >= w) continue; slot = low; bones[slot] = b; wts[slot] = 0; }
+      if (bones[slot] < 0) bones[slot] = b;
+      wts[slot] += w;
+    }
+  }
+  const index = new Float32Array(nCells * 4), weight = new Float32Array(nCells * 4);
+  const order = [0, 1, 2, 3, 4, 5, 6, 7];
+  for (let c = 0; c < nCells; c++) {
+    const o = c * K;
+    order.sort((a, b) => wts[o + b] - wts[o + a]);
+    let sum = 0;
+    for (let k = 0; k < 4; k++) if (bones[o + order[k]] >= 0) sum += wts[o + order[k]];
+    for (let k = 0; k < 4; k++) {
+      const i = o + order[k];
+      if (bones[i] >= 0 && sum > 0) { index[c * 4 + k] = bones[i]; weight[c * 4 + k] = wts[i] / sum; }
+    }
+  }
+  return { index, weight };
 }

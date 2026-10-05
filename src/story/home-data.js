@@ -42,8 +42,16 @@ export const DRAWING_LINES = {
 
 export const PEOPLE = {
   lou: {
-    id: 'lou', name: 'Lou', title: 'your daughter, seven and a half', color: '#f2c54b', voice: 1.6, kind: 'f', age: 'child', scale: 0.72,
-    palette: { cloak: '#f2c54b', lining: '#2b211f', cloth: '#f2c54b', legs: '#c8483a', hat: '#e6875f', hair: '#8a5638' }, head: 'curls', cape: 0, look: { trim: 'dots', body: 'none', prop: 'none', mask: 'none', robe: 0.48 },
+    // (her body is the people's slighter, flatter one under a child's morph; her voice is a girl's: body vs kind)
+    id: 'lou', name: 'Lou', title: 'your daughter, seven and a half', color: '#f2c54b', voice: 1.6, kind: 'f', body: 'm', age: 'child', scale: 0.8, brows: '#c9a07e',
+    palette: { cloak: '#f2c54b', lining: '#2b211f', cloth: '#f2c54b', legs: '#c8483a', hat: '#e6875f', hair: '#8a5638' }, head: 'twin', cape: 0, look: { trim: 'dots', body: 'none', prop: 'none', mask: 'none', robe: 0.48, build: 'average' },
+    // a child's body on the people's skeleton (morph.js): a big head on short limbs, a round soft middle, no waist
+    morph: { headSize: 1.3, torsoLength: 0.84, legLength: 0.76, armLength: 0.78, neckLength: 0.42, shoulders: 0.8, chest: 0.8, hips: 0.86, belly: 1.4, arms: 0.92, legs: 1.0, neck: 0.8, handSize: 0.8, footSize: 0.82 },
+    // and a child's face: round, the lower face short, a small nose, big eyes, no lines, soft brows
+    face: { eyeSize: 1.45, eyeHeight: -1, eyeSpacing: 0.35, noseLength: 0.5, noseWidth: 0.76, jaw: 0.8, chin: -1, cheeks: 1, faceLength: 0.82, headWidth: 1.18, browRidge: -1, lines: 0, freckles: 0.6, mouthWidth: 0.8, lidWeight: 0.5 },
+    // short quick steps, a run that starts early, and never quite still
+    gait: { stride: 0.6, pace: 0.62, fidget: 1 },
+    rest: { smile: 0.35, brow: 0.5, browTilt: 0.25 },
     lines: ['~happy~ Moustache! Come here! No, the other way!', '~playful~ Stand still. I’m drawing you.', '~curious~ Is the ship hot? Can I touch it?', '~happy~ I picked the yellow ones. Don’t tell Tove.'],
     talk: {
       entry: [
@@ -132,7 +140,7 @@ export const PEOPLE = {
           choices: [{ text: '~sad~ I should have come back sooner.', goto: 'sooner' }, { text: '~curious~ How has she been?', goto: 'lou' }],
         },
         sooner: {
-          say: ['~solemn~ Yes. And now you have. Both of those are true, love.', '~sad~ They knew about her, you know. Your mother crossed the yard every morning to do her hair. Your father pretended he didn’t watch from the window.',
+          say: ['~solemn~ Yes. And now you have. Both of those are true, love.', '~sad~ They knew her, you know. Not just about her. Your mother crossed the yard every morning to do her hair. Your father pretended he didn’t watch from the window.',
             '~whisper~ Sit with them a while. Then come in and eat.'],
         },
         lou: {

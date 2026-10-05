@@ -9,6 +9,8 @@ import { GameState, game } from '../src/game-state.js';
 import { DialogueRunner } from '../src/story/dialogue.js';
 import { PEOPLE, keepsakeBand, DRAWING_LINES, LOU_AT_STONE } from '../src/story/home-data.js';
 import { Dog } from '../src/dog.js';
+import { BODY_MORPHS, FACE_MORPHS, cleanMorph, boneMorph } from '../src/morph.js';
+import { voiceOf } from '../src/story/voice.js';
 import { setupHome, Moment, kneelPose, LOU_MORPH } from '../src/story/home.js';
 import { createHome, laidTokens, unlaidTokens } from '../src/levels/home.js';
 import { Physics } from '../src/physics.js';
@@ -60,7 +62,21 @@ test('Lou runs to meet you, asks what you brought, and what she says follows how
   assert.equal(r.nodeId, 'drawings');
   assert.ok(r.pages.includes(DRAWING_LINES.bazaar.replace(/^~\w+~ /, '')), 'the tower that listens');
   for (const node of Object.values(PEOPLE.lou.talk.nodes)) assert.ok((node.choices ?? []).length <= 3, 'three choices at most');
-  assert.ok(LOU_MORPH.headSize > 1.1 && LOU_MORPH.legLength < 0.9 && PEOPLE.lou.scale < 0.8, 'a child’s proportions');
+  // a child, unmistakably: a big head on short limbs, a short torso, a round young face, a girl's voice on the slighter body
+  const L = PEOPLE.lou;
+  assert.ok(LOU_MORPH.headSize >= 1.25 && LOU_MORPH.legLength <= 0.8 && LOU_MORPH.armLength <= 0.8 && LOU_MORPH.torsoLength < 0.9 && L.scale <= 0.85, 'a child’s proportions');
+  for (const [list, m] of [[BODY_MORPHS, LOU_MORPH], [FACE_MORPHS, L.face]]) {
+    const c = cleanMorph(m, list);
+    for (const [k, v] of Object.entries(m)) assert.equal(c[k], v, `${k} ${v} is within its range (not clamped)`);
+  }
+  assert.equal(L.face.lines, 0, 'no age lines');
+  assert.ok(L.face.eyeSize > 1.3 && L.face.noseLength <= 0.6 && L.face.faceLength < 0.9, 'big eyes, a small nose, a short lower face');
+  assert.ok(['twin', 'bob', 'curls'].includes(L.head), 'a child’s hairstyle');
+  assert.equal(L.kind, 'f'); assert.equal(L.body, 'm');
+  assert.equal(voiceOf(L).age, 'child', 'a child’s voice');
+  assert.ok(L.gait.stride < 0.8 && L.gait.pace < 0.8 && L.gait.fidget > 0, 'short quick steps, never still');
+  const bm = boneMorph(LOU_MORPH);
+  assert.ok(bm.position.spine_02 < 1 && bm.position.spine_03 < 1 && bm.lift < 0, 'the torso shortened, the legs too');
 });
 
 test('Moustache follows you, keeps a little off, catches up when you run, and barks at the drone', () => {

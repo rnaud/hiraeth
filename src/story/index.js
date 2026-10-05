@@ -116,7 +116,7 @@ export function createStory(o) {
   }
   /** A story person: a full NPC standing, seated or following. */
   function spawn(def, { route, seat = null, heading = null, follow = null, speed = 1.1 }) {
-    const kind = def.kind ?? 'm';
+    const kind = def.body ?? def.kind ?? 'm';   // (def.body: the body, when it isn't the voice's kind: a child)
     const npc = new NPC(scene, physics, {
       route, palette: def.palette, lines: def.lines ?? ['…'], lib, human: humans ? humans[kind === 'm' ? 0 : 1] : null, kind,
       scale: def.scale, seat, follow, head: def.head ?? null, cape: def.cape ?? null, speed, def,

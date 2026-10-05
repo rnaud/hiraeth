@@ -45,6 +45,16 @@ export const HOME_ID = 'home';
 
 export const endingUnlocked = (completed) => (Array.isArray(completed) ? completed.length : completed) >= ENDING_WORLDS;
 
+/**
+ * Is Home on the galactic map? The one rule the map, the charge card and the ending share:
+ * any six worlds done (of the eleven on the route, in any order), and the last recording on
+ * the reel heard ("Come home": `calls.home`, or `calls.<ENDING_WORLDS>` on older saves); or
+ * the ending already played. The console plays a waiting recording before it opens the map,
+ * so in play the two arrive together; the worlds not yet seen stay open, before home or after.
+ */
+export const homeOpen = ({ flag, completed }) => !!flag?.('ending.done')
+  || (endingUnlocked(completed ?? 0) && !!(flag?.('calls.home') || flag?.(`calls.${ENDING_WORLDS}`)));
+
 /** The galactic map's entry for home (null while it is not on the chart). */
 export function homeEntry({ unlocked, current }) {
   if (!unlocked && current !== HOME_ID) return null;
@@ -157,7 +167,8 @@ export const CLOSING = S('~solemn~ Something of value. You brought it home on yo
  * Everything at the stone, in order. Lines that set a token down carry it (`token`); the
  * line that sets the reel down carries `reel: true`; FINAL_RECORDING follows it.
  * @param tokens tokenList() · ctx { ilenTold: the mother's recording about Ilen was heard, lou: Lou is there with you
- *   (she leaves her drawing: the line carries `drawing: true`; and asks about the recording after it) }
+ *   (she leaves her drawing: the line carries `drawing: true`; and asks about the recording after it),
+ *   broke: the tea terraces in Viridel came down (`edena.terraces.flooded`, the quest that fails) }
  */
 export function tombLines(tokens = [], ctx = {}) {
   const lines = [S('~solemn~ (Two rings carved on the stone, overlapping like the two moons. Their names under them.)')];
@@ -166,6 +177,8 @@ export function tombLines(tokens = [], ctx = {}) {
     for (const t of tokens) lines.push({ ...tokenLine(t), token: t });
   } else lines.push(S('~sad~ (Your hands are empty. You hold them up, so the stone can see.)'));
   if (ctx.ilenTold) lines.push(YOU('~whisper~ And this space is for Ilen, wherever she is.'));
+  // the quest that failed (src/story/terraces.js): the father's own advice, kept (calls.js, beat 'broke')
+  if (ctx.broke) lines.push(YOU('~sad~ And Esk’s hill, in the garden, which I could not mend. I said sorry, and I meant it, and then I went.'));
   lines.push(YOU('~whisper~ It isn’t what you asked for. It’s what I have.'));
   if (ctx.lou) lines.push(LOU(LOU_AT_STONE.bring), S(LOU_AT_STONE.drawing, { drawing: true }));
   lines.push(S('~solemn~ (Last, you set the reel down on the stone. It plays by itself.)', { reel: true }));

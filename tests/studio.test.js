@@ -5,7 +5,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DEFAULTS, cleanState, encodeState, decodeState, settingsJSON } from '../src/studio/state.js';
-import { peopleIn, lookFor, BLANK, FACE_PRESETS } from '../src/studio/people.js';
+import { peopleIn, lookFor, BLANK, FACE_PRESETS, STORY_WORLDS, castOf } from '../src/studio/people.js';
 import { BODY_MORPHS, FACE_MORPHS, NEUTRAL_BODY, BUILD_SHAPE, radialFactors, boneMorph, cleanMorph, morphKey, isNeutral, faceLandmarks, browPositions, plainGeometry } from '../src/morph.js';
 import { EXPRESSION_KEYS, TONE_EXPRESSIONS, expressionFor, cleanExpression, mixExpression } from '../src/expression.js';
 import { TONES } from '../src/story/tone.js';
@@ -81,6 +81,15 @@ test('the studio finds the story people of a world and dresses them as the game 
   assert.deepEqual(c1, c2);
   assert.equal(BLANK('f').head, 'long');
   for (const f of Object.values(FACE_PRESETS)) assert.deepEqual(Object.keys(cleanMorph(f, FACE_MORPHS)).sort(), FACE_MORPHS.map((d) => d.key).sort());
+});
+
+test('every world\'s faces: the traveller and a story person of each world, a close-up view, all in the URL', async () => {
+  assert.match(readFileSync(new URL('../studio.html', import.meta.url), 'utf8'), /<link rel="icon"[^>]*icons\/icon-192\.png/, 'its own icon: no 404 for /favicon.ico');
+  const s = decodeState(encodeState({ lineup: 'faces', view: 'close', seed: 2 }));
+  assert.equal(s.lineup, 'faces');
+  assert.equal(s.view, 'close');
+  assert.deepEqual([...STORY_WORLDS].sort(), ['arzach', 'arzach2', 'bazaar', 'buried', 'desert', 'edena', 'garage', 'home', 'incal', 'perdide', 'perdide2', 'spheres']);   // (home: Lou and Aunt Tove)
+  for (const w of STORY_WORLDS) assert.ok((await castOf(w)).length > 0, `${w} has story people to show`);
 });
 
 test('body morphs: neutral is exactly the build; each slider reshapes or rescales', () => {

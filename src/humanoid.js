@@ -1,9 +1,11 @@
 import { limbSegments } from './creases.js';
 import { TRAVELLER_PALETTE } from './traveller-style.js';
 import * as THREE from 'three';
+import { plantFeet, resetFeet } from './feet.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 import { makeMaterial, MODE_OUTFIT, MODE_EYE } from './materials.js';
+import { EAR_Z, noseSide, faceYouth } from './face-ink.js';
 import { EyeLook, EYE_WHITE, EYE_TILT, TRAVELLER_IRIS, eyeballOf } from './eyes.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { lookPieces, roleColor, BUILDS } from './costumes.js';
@@ -53,6 +55,41 @@ const NEXT = { pelvis: 'spine_01', spine_01: 'spine_02', spine_02: 'spine_03', s
   clavicle_r: 'upperarm_r', upperarm_r: 'lowerarm_r', lowerarm_r: 'hand_r' };
 const SHOULDER_IN = { m: 0.045, f: 0.02 };
 
+/**
+ * Eyebrows drawn as one pen stroke each (the Moebius way): pulled toward their own arched centre
+ * line, about half as tall as modelled at the inner end and tapering to a fifth at the outer end.
+ * (In place, on the shared template's geometry; returns the thickness factor's range for tests.)
+ */
+export function taperBrows(g) {
+  const P = g.attributes.position;
+  // the brow's centre line: y = c0 + c1 |x| + c2 |x|^2, least squares over all its vertices
+  const S = [0, 0, 0, 0, 0], T = [0, 0, 0];
+  let x0 = Infinity, x1 = 0;
+  for (let i = 0; i < P.count; i++) {
+    const x = Math.abs(P.getX(i)), y = P.getY(i);
+    let xp = 1;
+    for (let k = 0; k < 5; k++) { S[k] += xp; if (k < 3) T[k] += xp * y; xp *= x; }
+    x0 = Math.min(x0, x); x1 = Math.max(x1, x);
+  }
+  const c = solve3([[S[0], S[1], S[2]], [S[1], S[2], S[3]], [S[2], S[3], S[4]]], T);
+  const span = Math.max(x1 - x0, 1e-6);
+  let kMin = Infinity, kMax = 0;
+  for (let i = 0; i < P.count; i++) {
+    const x = Math.abs(P.getX(i)), cy = c[0] + c[1] * x + c[2] * x * x, u = (x - x0) / span;
+    const k = 0.55 - 0.36 * Math.pow(u, 1.3);
+    kMin = Math.min(kMin, k); kMax = Math.max(kMax, k);
+    P.setY(i, cy + (P.getY(i) - cy) * k);
+  }
+  P.needsUpdate = true;
+  return [kMin, kMax];
+}
+/** Solve a 3x3 linear system (Cramer). */
+function solve3(A, b) {
+  const det = (M) => M[0][0] * (M[1][1] * M[2][2] - M[1][2] * M[2][1]) - M[0][1] * (M[1][0] * M[2][2] - M[1][2] * M[2][0]) + M[0][2] * (M[1][0] * M[2][1] - M[1][1] * M[2][0]);
+  const D = det(A) || 1e-12;
+  return [0, 1, 2].map((j) => det(A.map((row, r) => row.map((v, k) => (k === j ? b[r] : v)))) / D);
+}
+
 /** Landmarks after reshape(): the lower face is 22% longer, x narrowed 10%. */
 function faceAfterReshape(kind) {
   const [eyeY, eyeX, noseY, noseZ, chinY] = FACE[kind];
@@ -90,12 +127,7 @@ function reshape(scene, kind) {
   for (const mesh of meshes) {
     const g = mesh.geometry;
     const isBrow = /hair/i.test(mesh.material?.name ?? '');
-    if (isBrow) {   // eyebrows: half as tall, pulled toward their own centre line
-      g.computeBoundingBox();
-      const cy = (g.boundingBox.min.y + g.boundingBox.max.y) / 2;
-      const Pb = g.attributes.position;
-      for (let i = 0; i < Pb.count; i++) Pb.setY(i, cy + (Pb.getY(i) - cy) * 0.5);
-    }
+    if (isBrow) taperBrows(g);
     const P = g.attributes.position, J = g.attributes.skinIndex, W = g.attributes.skinWeight;
     for (let i = 0; i < P.count; i++) {
       v.fromBufferAttribute(P, i);
@@ -264,12 +296,13 @@ export class Humanoid {
     this.faceRest = faceAfterReshape(kind);
     const C = char.colors;
     const body = makeMaterial({ color: C.cloth, color2: C.legs, color3: C.boot ?? '#6e3f2c', mode: MODE_OUTFIT, skin, outfit: OUTFIT[kind], face: faceAfterReshape(kind), gloves, suit });
+    body.uniforms.uFaceKit2.value.w = EAR_Z[kind];   // (the face ink's ears: face-ink.js)
     // the eyes (eyes.js): white, an iris (each person's own colour: NPC.restyle) that follows the gaze, blinking lids
     let eyeball = null;
     model.traverse((o) => { if (o.isMesh && /eye/i.test(o.name) && !/brow/i.test(o.name) && !eyeball) eyeball = o.userData.eyeball ?? null; });
     const eyes = makeMaterial({ color: EYE_WHITE, color2: outfit ? TRAVELLER_IRIS : '#5e3a24', mode: MODE_EYE, skin, eye: eyeball ? { ...eyeball, iris: 0.4 } : undefined, figure: true });
     this.eyeLook = new EyeLook();
-    const brows = makeMaterial({ color: hair, figure: true });
+    const brows = makeMaterial({ color: hair, figure: true, facePart: true });   // (one flat stroke each: no hatching inside)
     model.traverse((o) => {
       if (!o.isMesh) return;
       const isBrow = /brow/i.test(o.name) || /hair/i.test(o.material?.name ?? '');
@@ -415,6 +448,7 @@ export class Humanoid {
   reshapeBody() {
     const body = this.body;
     if (!body) return;
+    this.lod?.reset();   // (far away the body may be drawing a simpler copy: skinned-lod.js)
     body.userData.baseGeometry ??= body.geometry;
     let g = this.outfit ? this._suitGeometry ?? body.geometry : buildGeometry(body, this.build, this.morph);
     if (this.face) g = this.warped(body, g);
@@ -504,7 +538,12 @@ export class Humanoid {
     if (u?.uFace) {
       u.uFace.value.set(L[0], L[1], L[2], L[4]);
       u.uFaceKit.value.set(f.lines, f.mouthWidth, f.freckles, f.lidWeight);
-      u.uFaceKit2.value.x = f.eyeSize;
+      u.uFaceKit2.value.set(f.eyeSize, f.noseWidth, f.cheeks, EAR_Z[this.kind]);
+      // how young the face reads (face-ink.js faceYouth: a child's all but bare), on the skin and the eyes
+      this.youth = faceYouth({ ...f, young: face?.young }, this.morph?.headSize ?? 1);
+      u.uMood2.value.z = this.youth;
+      const ue = this.eyeMesh?.material.uniforms;
+      if (ue?.uMood2) ue.uMood2.value.z = this.youth;
     }
     this.poseBrows(true);
     this._browPosed = null;
@@ -558,6 +597,7 @@ export class Humanoid {
     const P = TRAVELLER_PALETTE;
     body.material = makeMaterial({ color: P.suit, color2: P.suit, color3: P.boot, mode: MODE_OUTFIT, skin: P.skin, outfit: TRAVELLER.outfit,
       face: faceAfterReshape(this.kind), gloves: P.glove, creases: limbSegments(body) });
+    body.material.uniforms.uFaceKit2.value.w = EAR_Z[this.kind];
     // one skinned mesh per colour (the radio pack and the glass apart: the tank hides the one, the other is see-through)
     const groups = new Map();
     for (const p of kit.pieces) {
@@ -649,6 +689,7 @@ export class Humanoid {
    * for glowing lanterns), coloured per vertex from the look. Replaces the rig's hood.
    */
   dress(look) {
+    this.lod?.reset();
     for (const m of this._costume ?? []) { m.removeFromParent(); m.geometry.dispose(); }
     this._costume = [];
     for (const h of this.hood) h.visible = false;
@@ -788,6 +829,22 @@ export class Humanoid {
     // an expression's gaze (setExpression) holds the eyes there; a squint narrows the lids
     const L = (this.gaze ? EyeLook.fromAngles(this.gaze[0], this.gaze[1], _c) : _c.copy(this.eyeLook.look)).applyAxisAngle(_xAxis, EYE_TILT);
     m.material.uniforms.uEyeLook.value.set(L.x, L.y, L.z, Math.max(this.eyeLook.blink, (this.squint ?? 0) * 0.45));
+    this.updateNoseSide(dt, m, head);
+  }
+
+  /**
+   * The face ink's nose line goes down the shadow side of the nose (face-ink.js, uMood2.y): the
+   * side of the head turned away from the sun. Held while the light is nearly frontal, eased over.
+   */
+  updateNoseSide(dt, m = this.eyeMesh, head = this.b.Head) {
+    const u = this.body?.material.uniforms;
+    if (!u?.uMood2 || !m || !head) return;
+    const i = m.skeleton.bones.indexOf(head);
+    _m4.multiplyMatrices(head.matrixWorld, m.skeleton.boneInverses[i]).multiply(m.bindMatrix).premultiply(m.bindMatrixInverse).premultiply(m.matrixWorld);
+    const toward = _a.set(1, 0, 0).transformDirection(_m4).dot(sharedUniforms.uSunDir.value);   // the +x side's lighting
+    const s = u.uMood2.value;
+    const want = noseSide(toward, s.y);
+    s.y += (want - s.y) * (1 - Math.exp(-5 * Math.max(dt, 0)));
   }
 
   /** Aim the skeleton along the rig (call after the rig's pose for this frame). */
@@ -887,76 +944,14 @@ export class Humanoid {
   }
 
   /**
-   * Plant the feet: a foot that comes down in the clip is locked to the real
-   * ground where it lands and held there while the body moves over it (no
-   * sliding, no sinking); swinging feet are kept above the ground; the pelvis
-   * drops when a locked foot is out of reach. Calls onStep(groundPoint) on
-   * each touchdown.
+   * Plant the feet (src/feet.js): a foot the gait puts down is held on the real ground where it
+   * lands while the body moves over it (no sliding, no sinking), the hips come down when it is out
+   * of reach, and a standing body steps its feet back under it. Calls onStep(groundPoint, side,
+   * normal) on each touchdown. o: { contact, warp, gait, pivot, scale } (feet.js plantFeet).
    */
-  plantFeet(dt, physics, up, rootPos, fwd, onStep) {
-    const B = this.b;
-    const S = (this._feet ??= { l: { locked: false, w: 0, pos: new THREE.Vector3() }, r: { locked: false, w: 0, pos: new THREE.Vector3() }, drop: 0 });
-    const H0 = this.rest.get(B.foot_l).p.y;        // ankle height above the sole at rest
-    const targets = {};
-    let need = 0;
-    for (const s of ['l', 'r']) {
-      const F = S[s];
-      // contact is judged at the ball of the foot (the heel rolls up first)
-      const ankle = B[`foot_${s}`].getWorldPosition(new THREE.Vector3());
-      const ball = B[`ball_${s}`].getWorldPosition(new THREE.Vector3());
-      const ballRest = this.rest.get(B[`ball_${s}`]).p.y;
-      const hBall = _i1.subVectors(ball, rootPos).dot(up);
-      const hClip = _i1.subVectors(ankle, rootPos).dot(up);
-      const rising = F.lastHeight !== undefined && hBall - F.lastHeight > dt * 0.12;
-      const planted = hBall < ballRest + (F.locked ? 0.09 : 0.04) && !rising;
-      F.lastHeight = hBall;
-      const gh = physics.heightAbove(_i2.copy(ball).addScaledVector(up, 1.2), up, 0);
-      const groundH = Number.isFinite(gh) ? 1.2 - gh : -hBall;          // ball -> real ground
-      if (!planted) F.released = false;
-      if (planted && !F.locked && !F.released && Number.isFinite(gh)) {
-        F.locked = true;
-        F.pos.copy(ball).addScaledVector(up, groundH + ballRest);
-        // the slope under the foot: the sole and the footprint lie along it
-        F.n = physics.groundNormal(ball.x, ball.y + 1.2, ball.z, F.n ?? new THREE.Vector3());
-        if (F.n.dot(up) < 0.5) F.n.copy(up);
-        onStep?.(_i3.copy(ball).addScaledVector(up, groundH), s, F.n);
-      } else if (!planted) F.locked = false;
-      if (F.locked && F.pos.distanceTo(ball) > 0.45) { F.locked = false; F.released = true; }
-      F.w += ((F.locked ? 1 : 0) - F.w) * (1 - Math.exp(-28 * dt));
-      // ankle target: keep the clip's heel roll around the locked ball
-      const locked = _i4.copy(F.pos).add(_i5.subVectors(ankle, ball));
-      const swing = ankle.clone().addScaledVector(up, THREE.MathUtils.clamp(groundH + hBall, -0.25, 0.3));
-      const t = swing.lerp(locked, F.w);
-      targets[s] = t;
-      const hip = B[`thigh_${s}`].getWorldPosition(_i4);
-      const reach = hip.distanceTo(t) - (this.legLen ??= this.rest.get(B[`thigh_${s}`]).p.distanceTo(this.rest.get(B[`calf_${s}`]).p) + this.rest.get(B[`calf_${s}`]).p.distanceTo(this.rest.get(B[`foot_${s}`]).p)) * 0.985;
-      need = Math.max(need, reach);
-    }
-    S.drop += (THREE.MathUtils.clamp(need, 0, 0.12) - S.drop) * (1 - Math.exp(-16 * dt));
-    if (S.drop > 0.002) {
-      // lower the pelvis (world down) and refresh the chain
-      const p = B.pelvis;
-      const down = _i5.copy(up).multiplyScalar(-S.drop);
-      const parentInv = _im.copy(p.parent.matrixWorld).invert();
-      const wp = p.getWorldPosition(_i6).add(down).applyMatrix4(parentInv);
-      p.position.copy(wp);
-      p.updateMatrixWorld(true);
-    }
-    for (const s of ['l', 'r']) {
-      const foot = B[`foot_${s}`];
-      const fq = foot.getWorldQuaternion(new THREE.Quaternion());
-      const knee = B[`calf_${s}`].getWorldPosition(new THREE.Vector3());
-      const pole = knee.addScaledVector(fwd, 0.6);
-      this.solveTwoBone(B[`thigh_${s}`], B[`calf_${s}`], foot, targets[s], pole);
-      // the foot keeps the clip's orientation, tilted onto the slope while planted
-      const F = S[s];
-      if (F.n && F.w > 0.01) fq.premultiply(_iq.setFromUnitVectors(up, F.n).slerp(_iq2.identity(), 1 - F.w));
-      foot.quaternion.copy(foot.parent.getWorldQuaternion(_iq3).invert().multiply(fq));
-      foot.updateMatrixWorld(true);
-    }
-  }
+  plantFeet(dt, physics, up, rootPos, fwd, onStep, o) { plantFeet(this, dt, physics, up, rootPos, fwd, onStep, o); }
 
-  resetFeet() { if (this._feet) { this._feet.l.locked = this._feet.r.locked = false; this._feet.l.w = this._feet.r.w = 0; this._feet.drop = 0; this._feet.l.released = this._feet.r.released = false; this._feet.l.lastHeight = this._feet.r.lastHeight = undefined; } }
+  resetFeet() { resetFeet(this); }
 
   /** Match a contact's direction and surface normal, including its rest-pose twist. */
   orientContact(bone, restDirection, restNormal, direction, normal) {

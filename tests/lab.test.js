@@ -39,7 +39,7 @@ test('the lab: a developer world in no menu, every surface on a pedestal, giant 
   assert.equal(level.id, 'lab');
   assert.ok(LAB_MATERIALS.length >= 10 && new Set(LAB_MATERIALS.map((m) => m.name)).size === LAB_MATERIALS.length);
   const giants = CONTENT.lab.npcs.filter((n) => n.scale >= 3);
-  assert.equal(giants.length, LAB_FACES.length, 'the four giants still stand on their plinths');
+  assert.equal(giants.length, LAB_FACES.length, 'every giant of the faces gallery stands on its plinth');
   level.update(1 / 60, 1);   // the samples turn and the dissolve breathes
 });
 

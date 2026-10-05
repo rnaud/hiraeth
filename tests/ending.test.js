@@ -11,7 +11,7 @@ import { LEVELS } from '../src/levels/index.js';
 import { CONTENT, ORDER } from '../src/levels/content.js';
 import { HOME_SPOTS, tombSlots, SLAB, tokenModel } from '../src/levels/home.js';
 import {
-  ENDING_WORLDS, HOME_ID, NOTHING, ALL, endingUnlocked, homeEntry, tokenList, tokenLine, leaveTokens, chosenKeepsake,
+  ENDING_WORLDS, HOME_ID, NOTHING, ALL, endingUnlocked, homeOpen, homeEntry, tokenList, tokenLine, leaveTokens, chosenKeepsake,
   tombLines, FINAL_RECORDING, TOKEN_ITEMS, credits, creditsHtml, peopleOf,
 } from '../src/story/ending.js';
 import { callLines, callContext, pendingCall, applyCall, completedWorlds, ILEN_CALL } from '../src/story/calls.js';
@@ -80,7 +80,40 @@ test('Home appears on the galactic map once the ending is open, at the centre of
   ship.attach({ order: ORDER, levels: LEVELS, journal: { storyDone: (id) => done.has(id), seen: () => false }, titles });
   assert.ok(!mapEntries({ ...ship.map.o }).some((e) => e.home), 'five worlds: no home yet');
   done.add(ORDER[5]);
-  assert.ok(mapEntries({ ...ship.map.o }).some((e) => e.home), 'six worlds: home');
+  game.set('calls.home', false);
+  assert.ok(!mapEntries({ ...ship.map.o }).some((e) => e.home), 'six worlds, the last recording not heard yet: not yet');
+  game.set('calls.home', true);
+  assert.ok(mapEntries({ ...ship.map.o }).some((e) => e.home), 'six worlds and “Come home”: home');
+  game.set('calls.home', false);
+});
+
+test('one rule for home: six worlds and the last recording, the same on the map, the charge and the reel', () => {
+  const at = (o) => (k) => o[k];
+  assert.equal(homeOpen({ flag: at({}), completed: ENDING_WORLDS }), false, 'six worlds alone: the recording comes first');
+  assert.equal(homeOpen({ flag: at({ 'calls.home': true }), completed: ENDING_WORLDS - 1 }), false, 'not before six worlds');
+  assert.equal(homeOpen({ flag: at({ 'calls.home': true }), completed: ORDER.slice(0, ENDING_WORLDS) }), true);
+  assert.equal(homeOpen({ flag: at({ [`calls.${ENDING_WORLDS}`]: true }), completed: ENDING_WORLDS }), true, 'an older save that heard it');
+  assert.equal(homeOpen({ flag: at({ 'ending.done': true }), completed: 0 }), true, 'after the ending, always');
+  // the console will not open the map while a recording waits: the last recording plays first, then home is there
+  const { game: g } = memory();
+  const done = ORDER.slice(0, ENDING_WORLDS);
+  for (const id of done) g.set(`world.${id}.done`, true);
+  const flag = (k) => g.flag(k);
+  assert.equal(pendingCall({ flag, completed: done.length }), 1);
+  assert.equal(consoleAction({ powered: true, pendingCall: pendingCall({ flag, completed: done.length }) }), 'call');
+  hearAll(g, done);
+  assert.equal(homeOpen({ flag, completed: done }), true, 'heard: home is open');
+  // past six, the rest of the route plays the reel's oldest side, and says home is waiting
+  const more = ORDER.slice(0, ENDING_WORLDS + 1);
+  g.set(`world.${more.at(-1)}.done`, true);
+  const later = hearAll(g, more).at(-1);
+  assert.equal(later.n, ENDING_WORLDS + 1);
+  assert.ok(later.lines.some((l) => /oldest side/.test(l.text)) && later.lines.some((l) => /Home is on the map/.test(l.text)));
+  // the worlds list says the same as the ship's map
+  const L = LEVELS.find((l) => l.id === HOME_ID);
+  assert.equal(L.blurb, homeEntry({ unlocked: true }).blurb);
+  assert.match(L.lock.text, /six worlds/);
+  assert.match(L.lock.text, /last recording/);
 });
 
 test('everything goes on the stone: the keepsakes, then the makers’ small gifts (not the backpack, jets or wings)', () => {
@@ -124,6 +157,38 @@ test('at the stone: a line for every token as it is set down, the reel last, its
   const empty = tombLines([]);
   assert.ok(!empty.some((l) => l.token) && empty.some((l) => /empty/.test(l.text)), 'empty hands');
   assert.ok(list.every((t) => tokenLine(t).text.length > 4));
+});
+
+test('at the stone, Esk’s hill: one line if the tea terraces came down, in your voice, before what you have', () => {
+  const list = tokenList([GEAR_TOOTH], ['star']);
+  const esk = (l) => /Esk’s hill/.test(l.text);
+  assert.ok(!tombLines(list).some(esk), 'not if the terraces stand');
+  assert.ok(!tombLines(list, { ilenTold: true, lou: true }).some(esk));
+  for (const tokens of [list, []]) {
+    const lines = tombLines(tokens, { broke: true, ilenTold: true });
+    const i = lines.findIndex(esk);
+    assert.ok(i > 0 && lines.filter(esk).length === 1, 'once');
+    assert.equal(lines[i].who, 'you');
+    assert.equal(lines[i].tone, 'sad');
+    assert.ok(/could not mend/.test(lines[i].text));
+    assert.ok(i > lines.findIndex((l) => /Ilen/.test(l.text)), 'after the space for Ilen');
+    assert.ok(i < lines.findIndex((l) => /what I have/.test(l.text)), 'before “It’s what I have”');
+    assert.ok(i < lines.findIndex((l) => l.reel), 'before the reel');
+    if (tokens.length) assert.ok(i > lines.findIndex((l) => l.token?.id === 'item.star'), 'after the tokens');
+  }
+});
+
+test('the late recordings know Lou, never by name: “She has your hands”, and her drawings in the last one', () => {
+  const ctx = { flag: () => undefined, keepsake: null, keepsakes: [], completed: ORDER.slice(0, 5), lastWorld: ORDER[4] };
+  const lou = (l) => /little one/.test(l.text);
+  for (let n = 1; n <= 4; n++) assert.ok(!callLines(n, ctx).some(lou), `not on recording ${n}: before she came to the hill`);
+  const five = callLines(5, ctx), hands = five.find(lou);
+  assert.ok(hands && hands.who === 'mother' && /She has your hands/.test(hands.text) && hands.tone, 'the mother, four years ago');
+  assert.ok(five.findIndex(lou) > five.findIndex((l) => /old drawings/.test(l.text)), 'after his old drawings');
+  const last = callLines(ENDING_WORLDS, { ...ctx, completed: ORDER.slice(0, ENDING_WORLDS) }), drawn = last.find(lou);
+  assert.ok(drawn && drawn.who === 'father' && /drawings/.test(drawn.text) && drawn.tone, 'the father, in the last recording');
+  assert.ok(last.indexOf(drawn) < last.findIndex((l) => /^Come home\.$/.test(l.text)), 'just before “Come home.”');
+  assert.ok(![...five, ...last].some((l) => /\bLou\b/.test(l.text)), 'never named on the reel');
 });
 
 test('the stone: room on the slab for every token, none on top of another', () => {
