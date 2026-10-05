@@ -2242,6 +2242,47 @@ foot under the next step's riser, and a heel kick flips a shin: 2.9 rad in a fra
 response is the same (0.30 / 0.33 s). So the loops stay the default; the matcher is there to look
 at, and for Mixamo's starts, stops and turns (the shopping list) to fill its gaps.
 
+### The Motion page: the loops against motion matching (`motion.html`, `src/motion/`)
+
+A page of its own to watch the traveller's two ways of moving and the people's walks, and see where
+each wins: `motion.html` (`npm run dev` at `/motion.html`, on GitHub Pages at `…/moebius/motion.html`,
+from the character studio's header, or the dev menu's *Motion* section in the game). It is the third
+entry of the build (`BUILD_INPUT`), drawn by the game's own pipeline (`src/pipeline.js`: shadow
+cascades, the G-buffer materials, the ink pass, FXAA), and loads no world: the test course of the gait
+harness (flat ground with a metre grid, the 12° ramp, the 18 cm stairs) with a few pillars and crates
+to walk round, the people's assets, and the captured motion. It lists and plays whatever
+`anim/locomotion.glb` holds, so Mixamo's clips show up once the library is rebuilt with them.
+
+- **Side by side**: two travellers in two lanes (the loops at +x, matching at -x), driven by the same
+  input at the same time: your keyboard or pad (camera-relative, as in the game), or a scripted run of
+  the harness (the eight of `compare.mjs`, and starts and stops over and over). The controller never
+  depends on the animation, so both bodies move exactly alike; only the poses differ. Split screen (each
+  half follows its own traveller, the other hidden), one view of both, or either alone; from the side,
+  from behind (swinging round after the body) or orbiting.
+- **One, toggled**: one traveller and a loops / motion matching switch, to compare in place, with the
+  matcher's live state (the clip and frame it plays, mirrored or not, the cost against `maxCost`, its
+  share of the pose and why the loops took over, the playback warp, jumps and searches) and on the
+  ground: the stick's predicted trajectory (`MotionMatcher.predict`) now and as it was 1 s ago, the
+  matched clip's own path ahead (the database's trajectory features of the frame playing), the path
+  walked, and each foot planted (filled, with a cross where feet.js holds it and a line if the ball has
+  left it), stepping (a ring) or down by the gait but not held (a faint ring).
+- **People's walks**: a row of walkers (the studio's blank body, no robe over the legs), each on the
+  library's walk or any captured walk (`Animator.useWalk`), with its speed; *Every walk* puts all
+  thirteen at their captured pace. One plain gait style for all unless *their own gait style* is on.
+- **Numbers**, live: the harness's measures (`src/gait-course.js measure`: slide max / mean, held,
+  sink, head jerk, the biggest bone turn) over the run so far and the whole last run (your control:
+  the last 20 s), the better in bold; and how far the stick's prediction and the matched clip's path
+  were, 1/3, 2/3 and 1 s on, from where the body got to. A whole scripted run gives the harness's own
+  numbers (the walk → run → 180° turn: 0.16 / 0.051, 0.003, 0, 2.63 against 0.27 / 0.086, 0.012,
+  0.001, 3.18, as `compare.mjs`): the page steps at the harness's fixed 60 Hz, so slow motion (0.5×,
+  0.25×) shows each step for longer, and *Step* (or `.`) plays one.
+- Every setting is in the URL (`src/motion/state.js`, only what differs from the defaults), e.g.
+  `motion.html?mode=solo&mm=true&run=stairs&rate=0.25&view=behind` or
+  `?mode=people&walkers=library:1.25,cmu_142_07:0.6`.
+
+The course, the runs and the measures moved from `tests/gait-sim.js` into `src/gait-course.js`
+(browser-safe), which the harness, `compare.mjs` and the page share; the harness's output is unchanged.
+
 ### The galactic map and the route (v0.38)
 - **The route** (`src/story/route.js`, `knownWorlds`): the worlds open up in `ORDER`. The
   desert (the crash) is always known, then the next `AHEAD` (2) worlds that are not done,
