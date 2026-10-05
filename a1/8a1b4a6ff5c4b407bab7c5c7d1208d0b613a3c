@@ -1,0 +1,31 @@
+README.md
+  s_1fd8d0e7b02dcf::t_8e8588ca33b2d4 2386-2393,2405
+src/face-ink.js
+  s_1fd8d0e7b02dcf::t_94fa1ad9d6816e 54-69,148-150,168,171,173-174,177-178,188,190-192,194-197,201,206,208,215,217,219,225,229,235,237,239,242,244,252-254,260-261,270
+src/humanoid.js
+  s_1fd8d0e7b02dcf::t_b59ec6c48255cf 7,304,540-544
+src/materials.js
+  s_1fd8d0e7b02dcf::t_ab85edbf4d92e0 758,1105-1106,1229-1233,1262-1264,1299,1374
+studio.html
+  s_1fd8d0e7b02dcf::t_691db049889344 7
+tests/face-ink.test.js
+  s_1fd8d0e7b02dcf::t_28957f006a35d7 14-15,91-113
+tests/studio.test.js
+  s_1fd8d0e7b02dcf::t_ce83118457c728 87
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a18a1b4a6ff5c4b407bab7c5c7d1208d0b613a3c",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
