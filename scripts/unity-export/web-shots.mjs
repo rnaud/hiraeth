@@ -12,7 +12,7 @@ const { chromium } = await import(process.env.PLAYWRIGHT ?? 'playwright-core');
 const [viewsFile, out] = process.argv.slice(2);
 const views = JSON.parse(readFileSync(viewsFile, 'utf8'));
 mkdirSync(out, { recursive: true });
-const browser = await chromium.launch({ executablePath: process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true, args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ executablePath: process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true, args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--mute-audio'] });
 const worlds = [...new Set(views.map((v) => v.world ?? 'desert'))];
 for (const world of worlds) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });

@@ -62,8 +62,25 @@ namespace Memento
         {
             musicVol = m; fxVol = f; voiceVol = v;
             if (music) music.volume = musicVol;
-            AudioListener.volume = mute ? 0 : 1;
+            AudioListener.volume = mute || Silent ? 0 : 1;
         }
+
+        /// <summary>
+        /// Nothing is heard (the sounds still play and are counted): in batch mode (the play-through, the shots),
+        /// in the benchmark (-bench) and with -mute on the command line, from the first frame on.
+        /// </summary>
+        public static bool Silent { get; private set; }
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        static void Quiet()
+        {
+            var a = System.Environment.GetCommandLineArgs();
+            Silent = Application.isBatchMode || System.Array.IndexOf(a, "-mute") >= 0 || System.Array.IndexOf(a, "-bench") >= 0;
+#if UNITY_WEBGL && !UNITY_EDITOR
+            Silent |= Application.absoluteURL.Contains("bench") || Application.absoluteURL.Contains("mute");
+#endif
+            if (Silent) AudioListener.volume = 0;
+        }
+        void LateUpdate() { if (Silent && AudioListener.volume != 0) AudioListener.volume = 0; }
 
         /// <summary>A recorded effect by name (2D), at a volume; variants named name, name2 alternate.</summary>
         public void Play(string name, float vol = 1)
