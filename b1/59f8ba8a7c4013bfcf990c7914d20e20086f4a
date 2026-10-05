@@ -1,0 +1,21 @@
+LORE.md
+  s_1fd8d0e7b02dcf::t_fb8ce70d95b083 1021-1023,1085,1089,1093-1097,1197-1223
+README.md
+  s_1fd8d0e7b02dcf::t_9f0537e7fabf22 2873-2874,2912-2913,2917-2918,2924-2925,2927-2930
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b159f8ba8a7c4013bfcf990c7914d20e20086f4a",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
