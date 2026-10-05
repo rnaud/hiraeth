@@ -1,0 +1,27 @@
+LORE.md
+  s_1fd8d0e7b02dcf::t_759044fabb0cb0 253-256,392,427,454-455,484-485,514-516,545-546,579-580,662-663,690-692,719-720,756-757,838,1008-1016,1020-1023,1027-1032,1082-1083,1091,1093,1097,1101-1102,1105,1107-1108,1372-1509,1525-1540
+README.md
+  s_1fd8d0e7b02dcf::t_52bd3abd516d97 1716-1717,2870,2872,2875-2877,2896-2907,2936-2937,2939-2980,2983-2985,3010-3014
+docs/game-brief.md
+  s_1fd8d0e7b02dcf::t_e474db6a32d0fc 40
+docs/story-bible.md
+  s_1fd8d0e7b02dcf::t_caee848d10b250 429-431
+tests/temples.test.js
+  s_1fd8d0e7b02dcf::t_17025cb9d41e7e 223-227,250-254
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ba11556518609ee4096a1ed3b06155eaff703780",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
