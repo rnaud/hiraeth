@@ -113,11 +113,11 @@ test('grass: the patch wraps round the camera, each tuft staying put in the worl
 });
 
 test('grass: a tuft is a few tapered blades, root at 0, tip at most 1', () => {
-  const g = tuftGeometry({ blades: 4 });
+  const g = tuftGeometry();
   const y = Array.from({ length: g.attributes.position.count }, (_, i) => g.attributes.position.getY(i));
   assert.equal(Math.min(...y), 0);
   assert.ok(Math.max(...y) <= 1 && Math.max(...y) > 0.6);
-  assert.equal(g.index.count / 3, 4 * 3);
+  assert.equal(g.index.count / 3, 3 * 3);
 });
 
 const flatField = (extra = {}) => ({ heightAt: (x, z) => (x > 30 ? (x - 30) * 2 : 0), color: new THREE.Color('#8cc77e'), color2: new THREE.Color('#9fd08a'), inside: () => true, ...extra });
@@ -177,4 +177,15 @@ test('grass: the presets grow fewer, closer blades on the handheld; grassy groun
   const g = buildGrass({ scene: new THREE.Scene(), level: lvl(ticks), presetKey: 'handheld' });
   assert.equal(g.R, GRASS_QUALITY.handheld.radius);
   assert.equal(g.material.defines.GRASS, 1);
+});
+
+test('grass: soft ink, the blades flag themselves (+8) and every reader of gHatch.a takes the flag off first', () => {
+  const grass = makeMaterial({ color: '#8cc77e', grass: true, key: 't.grass.soft' });
+  assert.ok(grass.fragmentShader.includes('gHatch.a += 8.0 * vGrassSoft'));
+  const post = createPost();
+  const fs = post.scene.children[0].material.fragmentShader;
+  assert.ok(fs.includes('float soft = step(7.5, surface.a)') && fs.includes('hm -= 8.0 * step(vec4(7.5), hm)') && fs.includes('fa -= 8.0 * faSoft'));
+  // the figure test comes after the soft flag is taken off (a blade is not a person)
+  assert.ok(fs.indexOf('surface.a -= 8.0 * soft') < fs.indexOf('float figure = step(3.5, surface.a)'));
+  assert.equal(tuftGeometry().index.count / 3, 9, 'three wide blades a tuft');
 });

@@ -21,6 +21,7 @@ export const GRASS_VERT_PARS = /* glsl */ `
   uniform vec4 uBrush;
   float grassT;
   float grassFade;
+  flat out float vGrassSoft;   // 1: soft ink (post.js tints its outline a darker green); a few tufts keep a real pen line
   void grassPlace(inout vec3 p, inout vec3 nrm) {
     vec3 root = aGrass.xyz;
     float d = length(root.xz - uGrassView.xy);
@@ -30,6 +31,7 @@ export const GRASS_VERT_PARS = /* glsl */ `
     float h = aGrass.w * grassFade;
     float t = p.y;
     grassT = t;
+    vGrassSoft = step(0.12, fract(aGrass2.w * 7.31));
     float c = cos(aGrass2.x), s = sin(aGrass2.x);
     vec2 xz = mat2(c, s, -s, c) * p.xz;
     // the wind: a lean downwind as the gust front passes, a flutter of the blade's own
