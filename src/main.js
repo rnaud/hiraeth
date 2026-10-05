@@ -16,6 +16,7 @@ import { LEVELS, levelById } from './levels/index.js';
 import { Player, CameraRig } from './player.js';
 import { applyTimeOfDay, colourScript } from './timeofday.js';
 import { WindStreaks } from './wind.js';
+import { EDGE_HINTS, EdgeInk } from './edge.js';
 import { HOLO } from './ship/hologram.js';
 import { Physics, dropBuriedFlora } from './physics.js';
 import { tileScene, cullFar, fitBounds, SmallCuller, RoomCuller, resolveQuality, detectHandheld, GpuTimer, adaptScale } from './perf.js';
@@ -212,7 +213,7 @@ await stage('waking the people…');
 if (birdAnswers(levelId, level, (k) => game.flag(k))) { level.mount = (p) => promisedBird(p, level.spawn); level.mountName = 'bird'; }
 const player = new Player(physics, {
   mount: level.mount, jetpack: level.features.jetpack, climb: level.features.climb ?? true,
-  killY: level.killY, limit: level.limit ?? 1900, spawn: level.spawn, spawnHeading: level.spawnHeading,
+  killY: level.killY, limit: level.limit ?? 1900, edgeHint: level.edgeHint ?? EDGE_HINTS[levelId] ?? EDGE_HINTS.default, spawn: level.spawn, spawnHeading: level.spawnHeading,
   gravityAt: level.gravityAt, unsafe: level.unsafe, dynamic: level.dynamic, water: waters,
   // a hurt: a thud; knocked over (a hard landing: the ragdoll, src/ragdoll.js): a heavier one;
   // knocked out: the screen dims and asks to restart (updateRestart below)
@@ -258,8 +259,30 @@ window.addEventListener('keydown', (e) => {
   e.preventDefault(); e.stopImmediatePropagation();
   restartNow();
 }, true);
+// the stamina wheel (index.html #stamina, src/stamina.js): beside the traveller, on the screen,
+// while it isn't full and a moment after; red while winded
+const stEl = document.getElementById('stamina'), stArc = stEl?.querySelector('.arc');
+let stShown = 0, stLast = -1;
+const _stP = new THREE.Vector3(), _stR = new THREE.Vector3();
+function updateStamina(dt) {
+  if (!stEl) return;
+  const k = THREE.MathUtils.clamp(player.stamina ?? 1, 0, 1);
+  stShown = k < 0.995 || player.winded ? 0.9 : Math.max(0, stShown - dt);
+  const on = stShown > 0 && !ship.playing && !photo.on && !player.ride && !player.down && !busy();
+  stEl.classList.toggle('on', on);
+  stEl.classList.toggle('winded', !!player.winded);
+  if (Math.abs(k - stLast) > 0.002) { stArc.setAttribute('stroke-dasharray', `${(k * 100).toFixed(1)} 100`); stLast = k; }
+  if (!on && stShown <= 0) return;
+  // a little up and to the right of the shoulders, as the camera sees them
+  _stR.setFromMatrixColumn(camera.matrixWorld, 0);
+  _stP.copy(player.object?.position ?? player.pos).addScaledVector(player.frame.up, 1.75).addScaledVector(_stR, 0.62).project(camera);
+  if (_stP.z > 1) return;
+  const x = (_stP.x * 0.5 + 0.5) * innerWidth, y = (-_stP.y * 0.5 + 0.5) * innerHeight;
+  stEl.style.transform = `translate(${(x - 17).toFixed(1)}px, ${(y - 17).toFixed(1)}px)`;
+}
 function updateHealth(dt) {
   updateRestart(dt);
+  updateStamina(dt);
   if (!hpEl) return;
   const h = player.health ?? 1;
   hpShown = h < 0.999 || player.down ? 3 : Math.max(0, hpShown - dt);
@@ -336,6 +359,9 @@ wind = new WindStreaks();
 wind.uniforms.tNormal.value = gbuffer.textures[1];
 wind.uniforms.uRes.value.copy(post.uniforms.uRes.value);
 wind.uniforms.uInk.value = post.uniforms.uInk.value;
+// the ink where you lean on the world's edge (src/edge.js), drawn with the wisps
+const edgeInk = new EdgeInk(wind.mesh.material);
+wind.scene.add(edgeInk.mesh);
 // the recordings' hologram (src/ship/hologram.js): light drawn over the composite, hidden behind what the G-buffer holds
 HOLO.uniforms.tNormal.value = gbuffer.textures[1];
 const rig = new CameraRig(camera, renderer.domElement, physics);
@@ -847,8 +873,7 @@ function updateHud() {
     rideHint.kind = null;
     if (tool.aiming) parts.push(tool.hudText());
     else {
-      if (player.climbing) parts.push(`climbing ${gauge(player.stamina)}`);
-      else if (player.stamina < 0.99) parts.push(`stamina ${gauge(player.stamina)}`);
+      // (the stamina has its wheel beside the traveller: updateStamina)
       // the jets burn the tank: a gauge while it's not full (or in the air)
       if (player.canJet && (player.thrusting || tool.jetBurnt)) parts.push(`jets ${gauge(player.jetFuel)}`);
       // what the use button does right here (a prompt with a place to hang floats over it instead: placePrompt)
@@ -1276,6 +1301,9 @@ function frame() {
     for (let i = 0; i < Math.abs(b.speed) / 12; i++)
       wind.emit(b.pos.x - fx * 1.8, b.pos.z - fz * 1.8, b.vel.x * 0.25 - fz * (Math.random() - 0.5) * 6, b.vel.z * 0.25 + fx * (Math.random() - 0.5) * 6);
   }
+  // leaning into the world's edge: the wind that holds you back streams in round you (src/edge.js)
+  if (player.edge?.k > 0.03 && !player.ride) wind.edgeGust(dt, player.edge.at, player.edge.n, player.edge.k);
+  edgeInk.update(dt, player.ride ? null : player.edge, player.frame.up, camera, pxScale);   // and the ink shimmers where you touch it
   wind.update(dt, player.pos, camera, terrain, pxScale, world.wind);
   if (trails) {
     const m = player.mount, moving = Math.hypot(m.vel.x, m.vel.z) > 3;

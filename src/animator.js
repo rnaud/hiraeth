@@ -240,7 +240,7 @@ export class Animator {
     this.restHipsQ = this.hips.getWorldQuaternion(new THREE.Quaternion());
     for (const a of Object.values(this.actions)) a.play();
     this.phase = 0;
-    this.w = { idle: 1, walk: 0, jog: 0, sprint: 0, air: 0, drive: 0, talk: 0, jumpLand: 0, look: 0, ledge: 0, climbIdle: 0, climbUp: 0, climbDown: 0, climbLeft: 0, climbRight: 0 };
+    this.w = { idle: 1, walk: 0, jog: 0, sprint: 0, air: 0, jumpStart: 0, drive: 0, talk: 0, jumpLand: 0, look: 0, ledge: 0, climbIdle: 0, climbUp: 0, climbDown: 0, climbLeft: 0, climbRight: 0 };
     this.idleT = 0;
     this.airState = null;
     // the gait's feet (analyseGait): contact per foot this frame (0..1), how fast the loop sweeps a
@@ -308,7 +308,7 @@ export class Animator {
   }
 
   /**
-   * @param s.speed horizontal speed (m/s), s.onGround, s.vy (up velocity),
+   * @param s.speed horizontal speed (m/s), s.onGround, s.vy (up velocity), s.jump (in the air: src/jump.js jumpPhase),
    *          s.mode 'ground' | 'drive' | 'talk' | 'climb' (s.climbF, s.climbS: -1..1) | 'ledge' (s.ledgeT 0..1)
    */
   update(dt, s) {
@@ -316,7 +316,7 @@ export class Animator {
     const N = this.lib.native;
     const sp = s.speed;
     // target weights for the locomotion blend (piecewise between clip speeds)
-    const tw = { idle: 0, walk: 0, jog: 0, sprint: 0, air: 0, drive: 0, talk: 0, jumpLand: 0, look: 0, ledge: 0, climbIdle: 0, climbUp: 0, climbDown: 0, climbLeft: 0, climbRight: 0 };
+    const tw = { idle: 0, walk: 0, jog: 0, sprint: 0, air: 0, jumpStart: 0, drive: 0, talk: 0, jumpLand: 0, look: 0, ledge: 0, climbIdle: 0, climbUp: 0, climbDown: 0, climbLeft: 0, climbRight: 0 };
     // landing from a real fall: play the land clip for a beat
     if (s.onGround && this._wasAir && this._airT > 0.45 && this.actions.jumpLand) { this.landT = 0; this.actions.jumpLand.reset().play(); }
     this._airT = s.onGround ? 0 : (this._airT ?? 0) + dt;
@@ -334,7 +334,17 @@ export class Animator {
       }
     } else if (s.mode === 'ledge') tw.ledge = 1;
     else if (s.mode === 'drive') tw.drive = 1;
-    else if (!s.onGround) tw.air = 1;
+    else if (!s.onGround) {
+      // the jump by its phase (src/jump.js jumpPhase): the push (the late part of Jump_Start), the
+      // tucked loop through the top, and the first frame of Jump_Land as the ground comes up (the
+      // landing clip then carries on from it)
+      const J = s.jump;
+      if (J) {
+        tw.jumpStart = J.takeoff;
+        tw.jumpLand = J.reach * (1 - J.takeoff);
+        tw.air = Math.max(0, 1 - tw.jumpStart - tw.jumpLand);
+      } else tw.air = 1;
+    }
     else if (sp < 0.25) tw[s.mode === 'talk' ? 'talk' : 'idle'] = 1;
     else {
       const stops = [['idle', 0], ['walk', s.walkAt], ['jog', s.jogAt], ['sprint', s.sprintAt]];
@@ -412,6 +422,13 @@ export class Animator {
     // air: start → loop → land
     const air = this.actions.jumpLoop;
     if (air) air.time = (air.time + dt) % this.clips.jumpLoop.duration;
+    if (!s.onGround && s.mode !== 'climb' && s.mode !== 'ledge') {
+      // (the push: from just past the crouch to the tuck over the first third of a second)
+      const st = this.actions.jumpStart;
+      if (st) st.time = THREE.MathUtils.clamp(0.08 + (this._airT ?? 0) * 0.8, 0, 0.6) * this.clips.jumpStart.duration;
+      // (reaching down: Jump_Land just before its touchdown)
+      if (this.actions.jumpLand && !landing) this.actions.jumpLand.time = 0.02 * this.clips.jumpLand.duration;
+    }
 
     for (const [k, a] of Object.entries(this.actions)) {
       const key = k === 'jumpLoop' ? 'air' : k;

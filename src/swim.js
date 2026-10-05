@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { CAPSULE } from './player.js';
+import { STAMINA, spendStamina, restStamina, canSprint } from './stamina.js';
 
 // ---------------------------------------------------------------------------
 // Swimming. The traveller walks into water; past wading depth they float and
@@ -149,8 +150,8 @@ export function swimFrame(P, dt, input, camYaw, { f = 0, s = 0, run = false, sti
   const camR = _v2.copy(F.right).multiplyScalar(Math.cos(camYaw)).addScaledVector(F.fwd, -Math.sin(camYaw));
   const move = _v3.set(0, 0, 0).addScaledVector(camF, f).addScaledVector(camR, s);
   if (move.lengthSq() > 1) move.normalize();
-  const sprint = run && (P.stamina ?? 1) > 0.04 && move.lengthSq() > 0.01;
-  P.stamina = sprint ? Math.max(0, P.stamina - SWIM.sprintCost * dt) : Math.min(1, (P.stamina ?? 1) + 0.25 * dt);
+  const sprint = run && canSprint(P) && move.lengthSq() > 0.01;
+  if (sprint) spendStamina(P, SWIM.sprintCost * dt); else restStamina(P, dt, STAMINA.swim);
   const speed = (sprint ? SWIM.sprint : SWIM.speed) * (stickScale < 1 ? lerp(0.35, 1, stickScale) : 1);
   const under = P.pos.y < rest - SWIM.under;
   let rise = (input.Space ? 1 : 0) - (input.KeyZ || input.ControlLeft || input.ControlRight || input.PadDive ? 1 : 0);
@@ -209,7 +210,7 @@ export function swimFrame(P, dt, input, camYaw, { f = 0, s = 0, run = false, sti
       if (S.push > 0.2 && !under) {
         P.wallN.copy(n);
         if (P.tryMantle(U, _v1.copy(n).negate())) { leaveSwim(P, 'ledge'); return true; }
-        if (P.opts.climb && (P.stamina ?? 1) > 0.1) { leaveSwim(P, 'climb'); P.startClimb(n); return true; }
+        if (P.opts.climb && (P.stamina ?? 1) > 0.1 && !P.winded) { leaveSwim(P, 'climb'); P.startClimb(n); return true; }
       }
     } else S.push = 0;
   } else S.push = 0;

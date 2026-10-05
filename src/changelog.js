@@ -13,6 +13,10 @@ export const CHANGELOG = [
     'Hands follow what you do: looser and more open when you run or glide, gripping the holds when you climb, the hoverbike’s handlebars and the bird’s reins, a fist round the fluid gun with the other hand cupped under it. People hold their staffs, lanterns and baskets for real.',
     'People talk with their hands, in the tone of what they say: a fist when angry, a pointing finger when curious, open hands when happy, fingers flung wide when surprised, limp hands when sad, beating with the words. Fingers also drift a little on their own and swing as the hand moves.',
     'The character studio has a Hands view up close, and every hand pose to pick from.',
+    'Jumps move now: you push off, tuck your legs as you rise, open up at the top, reach for the ground as it comes up and land in a short crouch, deeper after a long drop. A long fall throws the arms out.',
+    'Running, climbing and swimming fast share one stamina. Sprinting tires you now, and a small inked wheel beside the traveller shows what is left while it isn’t full. Run it dry and you are winded: no sprint and no new hold on a wall until it has come back. Standing still brings it back fastest.',
+    'Sprinting is about 14 % faster.',
+    'At the edge of each world the traveller no longer runs on the spot and stutters: you stop, turn into it and lean against the wind, ink shimmers where you touch it, and the first time a line says what holds you back. Walking along the edge slides smoothly.',
   ] },
   { v: '0.59', date: '2026-10-05', items: [
     'People look kinder: most now rest with a slight smile and easy, open eyes, and each has a mood of their own (kind, amused, curious, calm; a few stern, like the palace and Qanat gate guards).',
