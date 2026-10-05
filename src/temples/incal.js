@@ -350,6 +350,7 @@ export const INCAL_TEMPLE = {
   origin: [420, 1400, 140], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,
+  local: { person: 'vell', out: 7, side: 6 },   // (src/temples/index.js: who stands by the door and points you in)
   enterLine: 'Inside the tower it is cool and very tall, and something far overhead hums, round and round.',
   // you can't get about the City-Shaft without the jets, and they are in here: the quest starts when you land
   startsOnArrival: () => !items.has('jetpack'),

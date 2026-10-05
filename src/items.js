@@ -82,6 +82,11 @@ export const ITEMS = {
     text: 'A strip of soft grey cloth to wind round your boots, woven so close it makes no sound at all. The makers walked quietly.',
     use: 'Creatures don’t hear you walking up to them: they only notice you when you are very close.',
   },
+  shell: {
+    name: 'Listening shell', kind: 'charm',
+    text: 'A small white shell, spiralled like the garden’s spheres are smooth. Hold it to your ear and you hear, very faintly, what is hidden nearby.',
+    use: 'Every little while, the makers’ unopened boxes near you hum back, softly, from where they hide.',
+  },
   resin: {
     name: 'Climber’s resin', kind: 'charm',
     text: 'A little tin of amber resin, still soft after who knows how long, the makers’ thumb pressed into the lid. Rub it on your palms.',

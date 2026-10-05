@@ -142,7 +142,8 @@ export class Guardian {
         id: `temple.${rt.def.id}.touch`, priority: PRIORITY.use + 2, range: 3.4, prompt: def.touch ?? 'lay a hand on it',
         at: () => (this._ta ??= V()).copy(model.mouth).addScaledVector(UP, 0.8),
         enabled: () => this.state === 'weary',
-        distance: (p) => Math.hypot(p.pos.x - model.mouth.x, p.pos.z - model.mouth.z),
+        // (from the edge of what you can reach: a big round body keeps you further off: model.touchR)
+        distance: (p) => Math.max(0, Math.hypot(p.pos.x - model.mouth.x, p.pos.z - model.mouth.z) - (model.touchR ?? 0)),
         use: () => this.resolve(),
       }));
     }

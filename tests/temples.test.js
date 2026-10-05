@@ -639,3 +639,88 @@ test('the Founders’ Belfry on foot: two balls on two plates, the riding stair,
   game.reset();
   own();
 });
+
+// ------------------------------------------------------------------ on foot: the Garden of Spheres' Footprint, room by room
+test('the Footprint on foot: two spheres on two plates, the still pool, the lens, the door that is wall without it, the bridge and the eye only it shows, the Echo answered', () => {
+  game.reset();
+  own('backpack');
+  const { level, physics, rt } = world('spheres');
+  const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true });
+  rt.connect({ player: P, toast: () => {} });
+  let t = 0;
+  const L = (x, y, z) => rt.kit.world(x, y, z);
+  const frame = (input = {}, yaw = 0) => { t += DT; rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };
+  const toward = (to) => Math.atan2(-(to.x - P.pos.x), -(to.z - P.pos.z));
+  const flat = (a) => Math.hypot(P.pos.x - a.x, P.pos.z - a.z);
+  const walk = (to, { tol = 0.6, max = 25, run = true, dy = 1.6 } = {}) => {
+    for (let i = 0; i < max / DT; i++) { if (flat(to) < tol && Math.abs(P.pos.y - to.y) < dy) return true; frame({ KeyW: true, ShiftLeft: run }, toward(to)); }
+    return false;
+  };
+  const wait = (s) => { for (let i = 0; i < s / DT; i++) frame(); };
+  const where = () => rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1)).join(', ');
+  wait(0.5);
+  // ---- the Hall of Spheres
+  for (const [id, plate] of [['ball1', 'p1'], ['ball2', 'p2']]) {
+    const ball = rt.piece(id);
+    for (let k = 0; k < 10 && !rt.logic.drumOn(id, plate); k++) {
+      walk(ball.center.clone().addScaledVector(ball.dir, -(ball.r + 1.3)), { tol: 0.5 });
+      ball.hit('push', ball.dir.clone(), { strength: 1 });
+      wait(2.6);
+    }
+    assert.ok(rt.logic.drumOn(id, plate), `${id} on ${plate}`);
+  }
+  wait(2.2);
+  assert.equal(rt.logic.isOpen('d1'), true);
+  // ---- the Still Pool: wake the disc with the eye over the far door, ride it over
+  assert.equal(walk(L(0, 0, 49)), true, `to the pool (${where()})`);
+  rt.piece('s1').hit('shoot');
+  const disc = rt.pieces.find((p) => p.path);
+  for (let i = 0; i < 30 / DT && !(disc.s < 0.2 && disc.wait > 0.6); i++) frame();
+  assert.equal(walk(disc.group.position, { tol: 0.5, run: false, max: 4 }), true, `onto the disc (${where()})`);
+  for (let i = 0; i < 30 / DT && !(disc.s > disc.total - 0.2); i++) frame();
+  assert.equal(walk(L(0, 0, 72), { max: 4 }), true, `over the pool (${where()})`);
+  // ---- the Lens Chamber: the way on is wall until you carry the lens
+  assert.equal(walk(L(0, 0, 92)), true, `into the chamber (${where()})`);
+  assert.equal(walk(L(0, 0, 98.5), { max: 4 }), false, 'a wall');
+  assert.equal(rt.piece('br1').stones.some((s) => s.g.visible), false, 'no bridge to see');
+  assert.equal(rt.piece('s2').seen(), false, 'no eye to see');
+  items.grant('lens'); game.emit('box:opened', { id: 'spheres.temple.lens' });
+  wait(2.2);
+  assert.equal(rt.logic.isOpen('d2'), true, 'with the lens it is a door, and it opens');
+  // ---- the Hall of the Unseen: the bridge the lens shows; the eye the lens shows
+  assert.equal(walk(L(0, 0, 101)), true, `to the chasm (${where()})`);
+  wait(1.5);
+  assert.equal(walk(L(0, 0, 126)), true, `over the unseen bridge (${where()})`);
+  assert.ok(P.pos.y > L(0, -1, 0).y, 'on it, not in the chasm');
+  assert.equal(rt.piece('s2').seen(), true);
+  rt.piece('s2').hit('shoot');
+  wait(2.2);
+  assert.equal(rt.logic.isOpen('d4'), true);
+  // ---- the Echo's Hall: answer each note on the sphere that glows with it
+  assert.equal(walk(L(0, 0, 140)), true, `into the hall (${where()})`);
+  const G = rt.guardian;
+  wait(0.3);
+  assert.notEqual(G.state, 'sleep');
+  P.opts.health = false;
+  for (let n = 0; n < 14 && G.state !== 'weary'; n++) {
+    let open = false;
+    for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open') { open = true; break; } }
+    assert.ok(open, `it sings (${n})`);
+    assert.ok(rt.sing >= 0, 'one sphere glows with its note');
+    if (n === 0) { const m = G.meter; rt.resonators[(rt.sing + 1) % 3].hit('shoot'); assert.ok(G.meter <= m, 'the wrong note does not calm it'); }
+    rt.resonators[rt.sing].hit('shoot');
+  }
+  assert.equal(G.state, 'weary', `calm (${G.meter.toFixed(2)})`);
+  for (let i = 0; i < 20 / DT && Math.hypot(G.model.pos.x - G.model.rest.x, G.model.pos.z - G.model.rest.z) > 0.6; i++) frame();
+  wait(2);
+  P.teleport(G.model.mouth.clone().setY(L(0, 0, 0).y).add(V(0, 0.1, -2.6)), V(0, 1, 0), V(0, 0, 1));
+  wait(0.3);
+  const near = bestInteractable(P);
+  assert.equal(near?.entry.id, 'temple.spheres.touch', 'a hand held out to it');
+  near.entry.use(P);
+  assert.equal(game.flag('temple.spheres.done'), true);
+  wait(8);
+  assert.ok(rt.change.root.visible, 'the Footprint fills, the spheres wear their rings');
+  game.reset();
+  own();
+});

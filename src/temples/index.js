@@ -8,6 +8,8 @@ import { INCAL_TEMPLE } from './incal.js';
 import * as INCAL_WORDS from './incal-data.js';
 import { ARZACH2_TEMPLE } from './arzach2.js';
 import * as ARZACH2_WORDS from './arzach2-data.js';
+import { SPHERES_TEMPLE } from './spheres.js';
+import * as SPHERES_WORDS from './spheres-data.js';
 
 // The makers' temples: one great building in each world, a Zelda-style
 // dungeon of rooms and puzzles in that world's architecture, with a gadget
@@ -32,6 +34,7 @@ export const TEMPLES = {
   desert: { def: DESERT_TEMPLE, words: DESERT_WORDS },
   incal: { def: INCAL_TEMPLE, words: INCAL_WORDS },
   arzach2: { def: ARZACH2_TEMPLE, words: ARZACH2_WORDS },
+  spheres: { def: SPHERES_TEMPLE, words: SPHERES_WORDS },
 };
 
 /**
@@ -49,7 +52,7 @@ export const GADGETS = {
   garage: { temple: 'coil', world: ['level'], built: false },
   buried: { temple: 'cell', world: ['resin'], built: false },         // the fourth chamber moves here from Lorn II
   edena: { temple: 'bloom', world: ['pouch'], built: false },         // a new gun mode; the lantern moves to Lorn II
-  spheres: { temple: 'lens', world: ['shell'], built: false },
+  spheres: { temple: 'lens', world: ['shell'], built: true },
   perdide: { temple: 'stun', world: ['boots'], built: false },
   perdide2: { temple: 'lantern', world: ['moss'], built: false },
   bazaar: { temple: 'echo', world: [], built: false },               // a new tool; the market has no chest of its own
@@ -143,13 +146,15 @@ export function setupTempleStory(ctx) {
     people.push(n);
     quests?.locate?.('sabri', () => n.pos);
   }
-  if (levelId === 'incal' && P.vell && spawn && rt.outside) {
-    // by the tower's forecourt, a little to the side of its door, looking out toward the ship
+  // elsewhere the local stands by the building's door, a little to the side, looking out the way it does
+  const local = T.def.local, person = local && P[local.person];
+  if (person && spawn && rt.outside) {
     const D = rt.outside.door, f = new THREE.Vector3(Math.sin(D.heading), 0, Math.cos(D.heading)), side = new THREE.Vector3(f.z, 0, -f.x);
-    const at = D.at.clone().addScaledVector(f, 7).addScaledVector(side, 6);
-    const n = spawn(P.vell, { route: [at, at.clone().addScaledVector(side, 2.5)], speed: 0.4 });
+    const at = D.at.clone().addScaledVector(f, local.out ?? 7).addScaledVector(side, local.side ?? 6);
+    const g = (p) => { const y = physics?.groundAt?.(p.x, p.y + 3, p.z, 8); return new THREE.Vector3(p.x, Number.isFinite(y) ? y : p.y, p.z); };
+    const n = spawn(person, { route: [g(at), g(at.clone().addScaledVector(side, 2.5))], speed: 0.4 });
     people.push(n);
-    quests?.locate?.('vell', () => n.pos);
+    quests?.locate?.(local.person, () => n.pos);
   }
   // a temple whose gadget this world needs to get about (the City-Shaft's jets): its quest starts on arrival
   if (T.def.startsOnArrival?.() && quests && !quests.isStarted?.(Q.id)) {

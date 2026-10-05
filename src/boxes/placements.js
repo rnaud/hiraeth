@@ -92,9 +92,15 @@ export const PLACEMENTS = {
   ],
   spheres: [
     // the grove's umbrella tree, on its flat canopy
-    { id: 'spheres.lens', item: 'lens', at: [62, 24, -4], toward: [56, 2],
+    // It held the glyph lens until the Footprint was built (src/temples/spheres.js): the lens is its key now, and
+    // the canopy keeps the listening shell, a gift in the open
+    { id: 'spheres.shell', item: 'shell', at: [62, 24, -4], toward: [56, 2],
       hint: 'A makers’ box sits on the canopy of the grove’s umbrella tree, east of the landing. Climb the trunk',
       note: 'On the canopy of the grove’s umbrella tree east of the spawn.' },
+    // the Footprint (src/temples/spheres.js): in the round chamber half-way in. The lens is the key to the rest:
+    // the door that is wall without it, the bridge and the eye only it shows
+    { id: 'spheres.temple.lens', item: 'lens', temple: 'spheres', site: (level) => level.temple?.gadgetSite,
+      note: 'Inside the Footprint north of the grove, in the heel, in the round chamber past the still pool.' },
   ],
   perdide: [
     // the swamp of lights: a mossy rise above Wendel’s glowing eggs, where the creatures crowd

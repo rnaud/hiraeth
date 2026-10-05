@@ -5,6 +5,7 @@ import { createNoise2D, fbm, mulberry32, smoothstep } from '../noise.js';
 import { makeMaterial, MODE_TERRAIN, MODE_WATER } from '../materials.js';
 import { Terrain, jitter, soften } from '../world.js';
 import { PEOPLE } from '../story/spheres-data.js';
+import { attachTemple } from '../temples/index.js';
 
 // ---------------------------------------------------------------------------
 // The Garden of Spheres: a calm meadow under
@@ -842,7 +843,8 @@ export function createSpheres(scene) {
   const unsafe = (p) => terrain.heightAt(p.x, p.z) < W - 1.1 && p.y < W + 0.4;
 
   const orb = (x, z) => orbs.find((o) => Math.hypot(o.x - x, o.z - z) < 1);
-  return {
+  // the Footprint north of the grove, and its rooms far overhead (src/temples/spheres.js)
+  return attachTemple('spheres', scene, {
     id: 'spheres',
     floraAvoid: (x, z, r) => !clear(x, z, r + 1),   // the flora keeps off the lake, the paths and the stones (src/flora.js)
     // the story's handles (src/story/spheres.js): the spheres that remember, the plaza and its pole,
@@ -879,5 +881,5 @@ export function createSpheres(scene) {
     },
     atmo: () => ({ tint: [1.0, 0.99, 1.0], fog: 0.55, name: 'Garden of Spheres' }),
     update() {},
-  };
+  });
 }

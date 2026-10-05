@@ -25,6 +25,9 @@ import { T, box, lathe, prep } from './kit.js';
 //   Mark     a glyph stone: walk past it and it is where you come back to (a checkpoint)
 //   Pit      a volume below a chasm: fall in and you are back at the room's mark
 //
+// Any of Door, Switch and Bridge can be `hidden`: only the glyph lens shows it (src/items.js 'lens'): a hidden
+// door is plain wall until you carry the lens, a hidden eye and a hidden bridge are not there at all.
+//
 // A piece: { id?, update(dt, t), init(physics)?, setOpen(open, instant)?, solid?, dispose() }.
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -32,6 +35,7 @@ const UP = V(0, 1, 0);
 // (the moving parts are dynamic too: never tiled, merged or culled as static props, src/perf.js)
 const noCollide = (o) => { o.traverse((c) => { c.userData.noCollide = true; c.userData.dynamic = true; }); return o; };
 const ease = (k) => k * k * (3 - 2 * k);
+const _dl = new THREE.Vector3(), _dn = new THREE.Vector3();
 let uid = 0;
 /** A material of its own (uniforms it can change without touching other pieces). */
 const own = (o) => makeMaterial({ ...o, key: `temple.${uid++}` });
@@ -68,7 +72,8 @@ export class Door {
       gl.push(T(glyphGeometry(Math.min(w, h) * 0.5, 0.1), [0, h * 0.58, s * (t / 2 + 0.04)], [0, s > 0 ? 0 : Math.PI, 0]));
       for (const y of [0.95, h - 0.95]) gl.push(T(new THREE.BoxGeometry(w * 0.7, 0.09, 0.06), [0, y, s * (t / 2 + 0.03)]));
     }
-    this.slab.add(mesh(gl, this.glow));
+    this.glowMesh = mesh(gl, this.glow);
+    this.slab.add(this.glowMesh);
     if (o.bell) {
       // a bell-tuned door: a bell's outline over the glyph
       const bell = lathe([[0.02, 0], [0.5, 0.05], [0.55, 0.35], [0.38, 0.9], [0.3, 1.25], [0.02, 1.35]], 14);
@@ -81,7 +86,7 @@ export class Door {
       const g = [T(new THREE.SphereGeometry(0.22, 10, 8), [x, h + 0.55, t / 2 + 0.35]), T(new THREE.SphereGeometry(0.22, 10, 8), [x, h + 0.55, -t / 2 - 0.35])];
       const lm = mesh(g, m);
       this.group.add(lm);
-      return { cond, m, on: false };
+      return { cond, m, on: false, mesh: lm };
     });
     noCollide(this.group);
     // solid while shut: an invisible block filling the doorway (added to the physics in init)
@@ -107,6 +112,18 @@ export class Door {
   update(dt, t) {
     const want = this.open ? 1 : 0;
     if (this.k !== want) { this.k = THREE.MathUtils.clamp(this.k + (want ? dt / 1.8 : -dt / 0.9), 0, 1); this.apply(); }
+    // a shut door is not a wall to climb (up it and over the lintel is out of the temple's rooms): you slip off
+    const P = this.rt.player;
+    if (!this.open && P?.climbing) {
+      const l = this.group.worldToLocal(_dl.copy(P.pos));
+      if (Math.abs(l.x) < this.w / 2 + 1.2 && Math.abs(l.z) < 1.6 && l.y > -1 && l.y < this.h + 3) {
+        P.climbing = false;
+        P.vel.copy(_dn.set(0, 0, Math.sign(l.z) || 1).transformDirection(this.group.matrixWorld).multiplyScalar(2.5)).setY(-1);
+        P._climbCooldown = 1.2;
+      }
+    }
+    // hidden: plain wall, no glyph, until the lens shows it
+    if (this.o.hidden) { const seen = this.rt.logic.has('lens'); this.glowMesh.visible = seen; for (const l of this.lamps) l.mesh.visible = seen; if (!seen) return; }
     let met = 0;
     for (const l of this.lamps) {
       const on = this.open || !!this.rt.logic?.check(l.cond);
@@ -338,14 +355,21 @@ export class Switch {
     noCollide(this.group);
     this.center = this.group.position.clone();
     this.on = rt.logic.isLit(o.id);
-    this.off = registerTarget({ kind: 'switch', radius: s, position: () => this.center, onHit: (mode) => this.hit(mode) });
+    this.hidden = !!o.hidden;
+    const seen = () => !this.hidden || rt.logic.has('lens');
+    this.off = registerTarget({ kind: 'switch', radius: s, position: () => this.center, enabled: seen, onHit: (mode) => this.hit(mode) });
+    this.seen = seen;
   }
   /** A splash (any mode: it is fluid) wakes it. */
   hit() {
     if (this.rt.logic.light(this.id)) { this.on = true; this.rt.sound?.chime?.(); this.rt.onLit?.(this.id); }
     return true;
   }
-  update(dt, t) { this.on ||= this.rt.logic.isLit(this.id); this.glow.uniforms.uGlow.value = this.on ? 0.8 + 0.2 * Math.sin(t * 2.5) : 0.08 + 0.05 * Math.sin(t * 1.3); }
+  update(dt, t) {
+    this.on ||= this.rt.logic.isLit(this.id);
+    this.group.visible = this.seen();
+    this.glow.uniforms.uGlow.value = this.on ? 0.8 + 0.2 * Math.sin(t * 2.5) : 0.08 + 0.05 * Math.sin(t * 1.3);
+  }
   dispose() { this.off?.(); }
 }
 
@@ -353,8 +377,8 @@ export class Switch {
 export class BellEar {
   constructor(rt, o) {
     this.rt = rt; this.id = o.id; this.at = rt.kit.world(...o.at); this.reach = o.reach ?? 40;
-    this.off = rt.game?.on?.('bell', ({ pos } = {}) => {
-      if (!pos || pos.distanceTo(this.at) > this.reach) return;
+    this.off = rt.game?.on?.('bell', ({ pos, soft } = {}) => {
+      if (!pos || soft || pos.distanceTo(this.at) > this.reach) return;   // (soft: the listening shell's hum, not a bell)
       if (rt.logic.light(this.id)) { rt.sound?.chime?.(); rt.notice?.('The door answers the bell’s note.'); rt.onLit?.(this.id); }
     });
   }
@@ -437,7 +461,7 @@ export class Bridge {
       const g = new THREE.Group();
       g.position.copy(K.world(c.x, c.y, c.z));
       g.rotation.y = K.heading(yaw);
-      g.add(mesh([box(w, 1.0, L / n - 0.08, 0, -0.5, 0), box(w + 0.3, 0.25, L / n - 0.05, 0, -1.05, 0)], M.floor));
+      g.add(mesh([box(w, 1.0, L / n - 0.08, 0, -0.5, 0), box(w + 0.3, 0.25, L / n - 0.05, 0, -1.05, 0)], o.hidden ? (this.ghost ??= own({ color: rt.P.glow ?? '#a8e6ee', glow: 0.45, flat: true })) : M.floor));
       g.add(mesh([T(glyphGeometry(w * 0.5, 0.04).rotateX(-Math.PI / 2), [0, 0.01, 0])], M.glyph));
       this.root.add(g);
       this.stones.push({ g, y: g.position.y, delay: i * 0.18 });

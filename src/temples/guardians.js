@@ -218,6 +218,75 @@ export function whaleModel({ skin = '#d8d4e6', belly = '#f3ead8', fin = '#c4bedb
   return M;
 }
 
+/**
+ * The Spheres' Echo (organic, after its fashion: a being of sound; you calm it): what an Answerer left when it
+ * turned over the plaza and went on. A pale core with three tilted rings of glass turning round it, a long soft
+ * veil under it; it sings in notes the garden's spheres remember. Floating.
+ */
+export function echoModel({ core = '#fbf3d8', ring = '#d6e6ee', veil = '#e9dff2', glow = '#a8e6ee' } = {}) {
+  const group = new THREE.Group();
+  const mat = vc();
+  const coreM = makeMaterial({ color: core, glow: 0.4, flat: true, key: `echo.core.${uid++}` });
+  const glowM = makeMaterial({ color: glow, glow: 0.2, flat: true, key: `echo.glow.${uid++}` });
+  const body = new THREE.Group();
+  group.add(body);
+  const heart = new THREE.Mesh(merge(ell([1.6, 1.6, 1.6], '#ffffff', [0, 0, 0], null, [16, 12])), coreM);
+  body.add(heart);
+  const rings = [];
+  for (let i = 0; i < 3; i++) {
+    const r = new THREE.Group();
+    r.rotation.set(0.6 + i * 0.9, i * 1.1, 0.3 * i);
+    body.add(r);
+    r.add(new THREE.Mesh(merge(T2(new THREE.TorusGeometry(3.0 + i * 0.7, 0.16, 5, 48), ring)), mat));
+    const marks = [];
+    for (let k = 0; k < 6; k++) { const a = (k / 6) * Math.PI * 2; marks.push(glyphGeometry(0.7, 0.06).rotateY(Math.PI / 2).rotateZ(a).translate(Math.cos(a) * (3.0 + i * 0.7), Math.sin(a) * (3.0 + i * 0.7), 0)); }
+    r.add(new THREE.Mesh(merge(...marks.map((g) => (g.index ? g.toNonIndexed() : g))), glowM));
+    rings.push(r);
+  }
+  // the veil: soft panels hanging under it, swaying
+  const veils = [];
+  for (let i = 0; i < 7; i++) {
+    const v = new THREE.Group();
+    const a = (i / 7) * Math.PI * 2;
+    v.position.set(Math.cos(a) * 1.0, -1.2, Math.sin(a) * 1.0);
+    v.rotation.y = -a;
+    body.add(v);
+    v.add(new THREE.Mesh(merge(ell([0.5, 2.2, 0.08], veil, [0, -2.0, 0])), mat));
+    veils.push(v);
+  }
+  noCollide(group);
+  const mouth = V();
+  const M = {
+    group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, floats: true, hover: 6,
+    mouth, mouthR: 2.0, radius: 3.6, height: 5, bodyR: 2.2, touchR: 3.0,
+    body, rings, veils, coreM, glowM, open: 0, low: 0, spin: 0,
+    animate(dt, t, { state, attack, k = 0, speed = 0, meter = 0 }) {
+      const ease = (cur, want, rate) => cur + (want - cur) * Math.min(1, dt * rate);
+      const asleep = state === 'sleep', weary = state === 'weary', resolved = state === 'resolved';
+      M.low = ease(M.low, weary ? 1 : state === 'open' ? 0.6 : asleep ? 0.3 : 0, 2.2);
+      M.hover = THREE.MathUtils.lerp(6.5, 2.2, M.low) + Math.sin(t * 1.1) * 0.35;
+      M.open = ease(M.open, state === 'open' ? 1 : 0, 4);
+      M.spin += dt * (asleep || weary ? 0.2 : resolved ? 0.4 : 0.9 + (attack ? k * 2.5 : 0));
+      rings.forEach((r, i) => { r.rotation.z = M.spin * (i % 2 ? -1 : 1) * (0.6 + i * 0.25); });
+      veils.forEach((v, i) => { v.rotation.x = Math.sin(t * 1.3 + i) * 0.18 + speed * 0.05; });
+      const calm = resolved ? 1 : meter;
+      coreM.uniforms.uGlow.value = 0.35 + 0.5 * M.open * (0.6 + 0.4 * Math.sin(t * 9)) + 0.15 * calm;
+      glowM.uniforms.uGlow.value = 0.15 + 0.75 * calm;
+      group.updateMatrixWorld(true);
+      mouth.copy(group.position);
+    },
+  };
+  return M;
+}
+const T2 = (g, color) => {
+  const out = g.index ? g.toNonIndexed() : g;
+  for (const k of Object.keys(out.attributes)) if (k !== 'position' && k !== 'normal') out.deleteAttribute(k);
+  const c = new THREE.Color(color), n = out.attributes.position.count, a = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) { a[i * 3] = c.r; a[i * 3 + 1] = c.g; a[i * 3 + 2] = c.b; }
+  out.setAttribute('color', new THREE.BufferAttribute(a, 3));
+  return out;
+};
+
 /** The sentinel (robot: you may break it). parts: a tall body on three legs, a ring of vents, a lamp-eye. */
 export function sentinelModel({ hull = '#9fb2c6', hull2 = '#8aa0b8', dark = '#34405e', brass = '#e2b552', eye = '#f6c84e' } = {}) {
   const group = new THREE.Group();

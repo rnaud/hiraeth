@@ -16,6 +16,7 @@ import { starShape, BOX_COLORS } from './model.js';
 //   resin    climbing tires you half as fast (player.climbK)
 //   soles    a hard landing counts as a slower one (player.fallGuard: the drop it takes to tumble grows by a third)
 //   hush     creatures don't hear you walk up (player.hush: src/wildlife.js reads it)
+//   shell    every few seconds, unopened boxes within 45 m answer softly, as if to the bell (game event 'bell' { soft })
 //
 //   const fx = createItemEffects({ player, tool, level, sound, isNight: () => bool });
 //   fx.update(dt, t)   per frame
@@ -66,8 +67,8 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
     star.visible = false;
     H.headAnchor.add(star);
   }
-  // ---- the bell
-  let bellT = 0;
+  // ---- the bell (and the listening shell's soft hum)
+  let bellT = 0, shellT = 3;
   const ring = () => {
     if (!items.has('bell') || bellT > 0 || !player || player.hidden) return false;
     bellT = 1.2;
@@ -87,6 +88,8 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
     ring,
     update(dt, t) {
       bellT = Math.max(0, bellT - dt);
+      // the listening shell: what the makers hid nearby hums back now and then, softly
+      if (items.has('shell') && player && !player.hidden && (shellT -= dt) <= 0) { shellT = 7; g.emit('bell', { pos: player.pos.clone(), reach: 45, soft: true }); }
       applyTank();   // (cheap; the tool may rebuild its reserve)
       const hasLantern = items.has('lantern');
       const night = hasLantern && isNight();

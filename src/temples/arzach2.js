@@ -306,9 +306,10 @@ export const ARZACH2_TEMPLE = {
   origin: [80, 1600, 150], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,
+  local: { person: 'ysel', out: 29, side: 3.5 },   // (src/temples/index.js: who stands by the door and points you in)
   enterLine: 'Inside the belfry the air is still and white, and somewhere above, something huge is crying.',
   pitLine: 'You climb back up to the last glyph stone.',
   onResolved(rt) { rt.notice('Far below the tower, all over Vael II, the stones that fell up begin to come down.', 'resolved.out'); },
   // her calm comes from the bell: every 'bell' the whistle sounds, she hears
-  onConnect(rt) { rt.offs.push(rt.game.on('bell', ({ pos } = {}) => { if (rt.guardian?.awake) motherBell(rt.guardian, pos); })); },
+  onConnect(rt) { rt.offs.push(rt.game.on('bell', ({ pos, soft } = {}) => { if (!soft && rt.guardian?.awake) motherBell(rt.guardian, pos); })); },
 };
