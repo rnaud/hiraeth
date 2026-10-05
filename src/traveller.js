@@ -1,24 +1,25 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
-import { TRAVELLER_PALETTE as PAL, TRAVELLER_TONES } from './traveller-style.js';
-import { scalp, skullPoint } from './costumes.js';
+import { TRAVELLER_PALETTE as PAL } from './traveller-style.js';
+import { scalp } from './costumes.js';
 
 // The traveller wears the reference sheets' coral overshirt, cream trousers,
 // round satchel and an ordinary canvas rucksack (the fluid flask sits in its
 // outer face, fluid-tool.js). Clothes follow the people's original skeleton and
 // weights so locomotion, climbing and equipment anchors keep their existing
-// behaviour. traveller.glb supplies only the soft boots; the coat, hair, scarf
-// and bags are built here in bind space, then skinned onto that same rig.
+// behaviour. Everything he wears (coat, hair, neckerchief, boots, bags) is
+// built here in bind space and skinned onto that same rig; traveller.glb is no
+// longer drawn (it only keys the kit's cache).
 
 /** Fit settings, in metres on the body's bind pose (the T-pose, feet at 0, facing +z). */
 export const TRAVELLER = {
   // MODE_OUTFIT zones: cropped trouser hem, waist, neck, rolled sleeve end
-  outfit: [0.27, 0.97, 1.47, 0.52],
+  outfit: [0.255, 0.97, 1.47, 0.52],
   // the baggy suit: how far it stands off the body
-  swell: { torso: 0.012, arm: 0.018, forearm: 0.012, clavicle: 0.015, leg: 0.05, hand: 0 },   // (loose, baggy trousers, as on the sheets)
+  swell: { torso: 0.012, arm: 0.026, forearm: 0.012, clavicle: 0.015, leg: 0.052, hand: 0 },   // (loose, baggy trousers, as on the sheets)
   backGap: 0.025,        // the tank clears the loose jacket
-  boot: { margin: 0.014, sole: -0.012 },   // room round the foot; the sole's bottom (the foot's own pokes 1 cm under 0)
+  boot: { margin: 0.006, sole: -0.012, ankle: 0.1, shaft: 0.155, toe: 0.12 },   // room round the foot (close-fitting); the sole's bottom (the foot's own pokes 1 cm under 0); the foot's height under the upper; the shaft's top (just over the ankle bone); the toe's narrowing
   // his own face (morph.js FACE_MORPHS, Humanoid.setFace): about twenty-six, a lean young face after the
   // coral-jacket sheets: slim cheeks under the cheekbones, a narrow jaw and a small pointed chin, the
   // face a little long and narrow, a straight nose, a soft brow, bright eyes, hardly a line on it, a few
@@ -70,7 +71,8 @@ export function suitGeometry(body) {
     const collar = 1 - smooth(y, neckY - 0.07, neckY) * (1 - smooth(ax, 0.1, 0.17));
     // sleeves gather at their rolled ends; trousers narrow toward the cropped hems
     const sleeve = 1 - smooth(ax, wristX - 0.15, wristX - 0.025);
-    const trouser = smooth(y, bootTop - 0.01, bootTop + 0.17);
+    // (fullest round the calves and knees, where they show under the overshirt; less under its skirts, so they stay inside)
+    const trouser = smooth(y, bootTop - 0.01, bootTop + 0.17) * (1 - 0.45 * smooth(y, 0.66, 0.82));
     // the legs' inner sides stand off less, so the trousers don't fuse between the knees
     const inner = THREE.MathUtils.clamp(-n.x * Math.sign(x || 1), 0, 1) * (1 - smooth(y, 0.8, 0.95));
     const d = (S.torso * w.torso + S.clavicle * w.clavicle) * collar + (S.arm * w.arm + S.forearm * w.forearm) * sleeve + S.leg * w.leg * trouser * (1 - 0.65 * inner) + S.hand * w.hand;   // hands stay bare
@@ -231,71 +233,103 @@ function reach(pts, from, dir, r = 0.03) {
 // ------------------------------------------------------------------ his hair
 /** A deterministic 0..1 hash (the hair's locks are the same on every load, in the studio and the portraits). */
 const hash = (k, s = 0) => { const x = Math.sin(k * 127.1 + s * 311.7) * 43758.5453; return x - Math.floor(x); };
+const SKULL_M = { x: 0.088, y: 0.112, front: 0.11, back: 0.11 };   // (costumes.js SKULL.m: the skull egg round the head anchor)
+/** The point on the skull egg (head frame) in the direction of `d`, `t` off it. */
+function onEgg(d, t, out = new THREE.Vector3()) {
+  const S = SKULL_M, rz = d.z > 0 ? S.front : S.back;
+  const az = Math.atan2(d.x / S.x, d.z / rz), el = Math.atan2(d.y / S.y, Math.hypot(d.x / S.x, d.z / rz));
+  return out.set(Math.sin(az) * Math.cos(el) * (S.x + t), Math.sin(el) * (S.y + t), Math.cos(az) * Math.cos(el) * (rz + t));
+}
 /**
- * One lock of hair: a flat, tapering blade from `root` (head frame) leaving along `dir`, curling
- * toward `curl` as it goes (its end bends by `bend`, m), `w` wide at the root, `len` long.
+ * One clump of hair: a broad, flat, leaf-shaped sheet lying along the skull from the direction `from`
+ * (from the head anchor) turning toward `toward`, `len` (m) of arc, `w` wide, narrowing to a point;
+ * its end lifts off the head by `lift` and swings sideways by `swing` (m), a soft ridge down its
+ * middle. Vertex colours draw lighter strand lines along it (dark hair's own ink lines vanish in it).
  */
-function lock(root, dir, curl, len, w, bend, flat = 0.32, tip = 0.3) {
-  const g = new THREE.CylinderGeometry(w * tip, w, len, 6, 4, true).translate(0, len / 2, 0);   // the wide root at 0, the blunt tip at +len
-  const Y = dir.clone().normalize(), C = curl.clone().addScaledVector(Y, -curl.dot(Y)).normalize();
-  const X = new THREE.Vector3().crossVectors(Y, C), P = g.attributes.position, v = new THREE.Vector3();
-  const tint = new Float32Array(P.count * 3);
-  for (let i = 0; i < P.count; i++) {
-    v.fromBufferAttribute(P, i);
-    const t = v.y / len, r = w * (1 - (1 - tip) * t);
-    // the lock's two edges print lighter (dark hair's strand lines would vanish in its own ink: humanoid.js HAIR_EDGE)
-    tint.fill(1 + HAIR_EDGE_LIFT * Math.min(1, Math.abs(v.x) / r) ** 3, i * 3, i * 3 + 3);
-    // flattened across (a lock is a blade, not a spike), bent along its length
-    v.set(0, 0, 0).addScaledVector(X, P.getX(i)).addScaledVector(C, P.getZ(i) * flat).addScaledVector(Y, P.getY(i)).addScaledVector(C, bend * t * t).add(root);
-    P.setXYZ(i, v.x, v.y, v.z);
+function clump(from, toward, len, w, { t = 0.016, base = () => 0, wave = 0, tip = 0.12, lift = 0.01, swing = 0, strands = 2, seed = 0, ridge = 0.2 } = {}) {
+  const R = 0.105, rows = 8, cols = 11;
+  const d0 = from.clone().normalize(), axis = new THREE.Vector3().crossVectors(d0, toward).normalize();
+  if (axis.lengthSq() < 1e-6) axis.set(1, 0, 0);
+  const pos = [], tint = [], idx = [], C = [], N = [];
+  const T = new THREE.Vector3(), side = new THREE.Vector3(), d = new THREE.Vector3();
+  for (let r = 0; r <= rows; r++) {
+    const s = r / rows;
+    d.copy(d0).applyAxisAngle(axis, (len * s) / R);
+    // (a wave: the clump bellies out off the head, then its end curls back in, or for a tuft flicks up)
+    C.push(onEgg(d, base(d) + t + lift * (s * s + wave * Math.sin(Math.PI * s)))); N.push(d.clone().normalize());
   }
-  g.deleteAttribute('uv'); g.deleteAttribute('normal');
-  g.setAttribute('color', new THREE.BufferAttribute(tint, 3));
+  // where the strand lines run across the clump (-1..1)
+  const lines = Array.from({ length: strands }, (_, k) => -0.6 + (1.2 * (k + 0.5 + (hash(seed, k) - 0.5) * 0.6)) / strands);
+  for (let r = 0; r <= rows; r++) {
+    const s = r / rows;
+    T.subVectors(C[Math.min(rows, r + 1)], C[Math.max(0, r - 1)]).normalize();
+    side.crossVectors(N[r], T).normalize();
+    const half = w * Math.sin(Math.PI * (0.18 + 0.82 * Math.min(s, 0.5))) ** 0.7 * (tip + (1 - tip) * (1 - s) ** 0.6);   // a leaf: full near the root, narrowing to the tip (`tip` of its width left there)
+    const c = C[r].clone().addScaledVector(side, swing * s ** 3);   // (the tip hooks to one side: a curl)
+    for (let k = 0; k < cols; k++) {
+      const u = (k / (cols - 1)) * 2 - 1;
+      const p = c.clone().addScaledVector(side, u * half).addScaledVector(N[r], ridge * (1 - u * u) * half);
+      pos.push(p.x, p.y, p.z);
+      const line = Math.max(0, ...lines.map((l) => Math.exp(-(((u - l) / 0.16) ** 2)))) * (0.35 + 0.65 * Math.sin(Math.PI * Math.min(1, s * 1.3)));
+      const v = 1 + HAIR_STRAND_LIFT * line;
+      tint.push(v, v, v);
+    }
+  }
+  for (let r = 0; r < rows; r++) for (let k = 0; k < cols - 1; k++) {
+    const a = r * cols + k, b = a + 1, c = a + cols, e = c + 1;
+    idx.push(a, c, b, b, c, e);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(tint, 3));
+  g.setIndex(idx);
   g.computeVertexNormals();
   return g;
 }
-/** How much lighter a lock's edges print than its middle (a multiple of the hair's colour). */
-const HAIR_EDGE_LIFT = 0.9;
+/** How much lighter the strand lines print than the hair (a multiple of the hair's colour). */
+const HAIR_STRAND_LIFT = 0.65;
+/** A direction from the head anchor at azimuth az (0 the face, +90 his left) and elevation el (degrees). */
+const dirAt = (az, el) => { const a = az * Math.PI / 180, e = el * Math.PI / 180; return new THREE.Vector3(Math.sin(a) * Math.cos(e), Math.sin(e), Math.cos(a) * Math.cos(e)); };
 /**
- * Scruffy dark hair in the head frame, after the coral-jacket sheets: a ragged scalp under a
- * mop of broken, tousled locks: a fringe falling unevenly over the brow, curls lifting off the crown
- * at odd angles, a few strays standing up, shaggy over the ears and ragged at the nape.
+ * Scruffy dark hair in the head frame, after the coral-jacket sheets: a soft, full mass (a thick
+ * scalp shell) under broad clumps that sweep off the crown's whorl and down, each tapering to a
+ * point, each drawn with lighter strand lines along it; a fringe of curls tumbling over the forehead, a few broken tufts
+ * lifting off the crown and the back, short curls flicking out over the ears and at the nape. No ropes or tubes.
  */
 export function travellerHair() {
-  const parts = [scalp(1, { kind: 'm', t: 0.018, front: 24, side: -20, back: -42, crown: 0.02, quiff: 0.012, jag: 7, bump: 0.007 })];
-  const S = (az, el, t) => new THREE.Vector3(...skullPoint('m', az, el, t));
-  const out = (az, el) => S(az, el, 0.05).sub(S(az, el, 0)).normalize();
-  const down = new THREE.Vector3(0, -1, 0), fwd = new THREE.Vector3(0, 0, 1);
-  // the fringe: uneven locks falling forward and down over the brow, swept a little to his right
-  for (let k = 0; k < 10; k++) {
-    const az = -54 + k * 12 + (hash(k, 1) - 0.5) * 6, el = 50 + hash(k, 2) * 10;
-    const n = out(az, el);
-    const dir = n.clone().multiplyScalar(0.3).addScaledVector(fwd, 0.5).addScaledVector(down, 0.85).add(new THREE.Vector3(-0.25 + (hash(k, 3) - 0.5) * 0.6, 0, 0));
-    // (the ends curl back in toward the brow rather than poking out)
-    parts.push(lock(S(az, el, 0.012), dir, n.clone().negate(), 0.042 + hash(k, 4) * 0.026 + (Math.abs(az) < 24 ? 0.02 : 0), 0.026 + hash(k, 5) * 0.008, 0.012 + hash(k, 6) * 0.01, 0.4));
+  const parts = [scalp(1, { kind: 'm', t: 0.015, front: 20, side: -12, back: -38, crown: 0.02, quiff: 0.014, jag: 6, bump: 0.006 })];
+  const whorl = dirAt(175, 66), down = new THREE.Vector3(0, -1, 0);
+  // how thick the scalp's shell is in a direction (roughly: scalp()'s crown and quiff), so the clumps lie on it
+  const base = (d) => 0.008 + 0.03 * Math.sin(THREE.MathUtils.clamp((Math.asin(d.y) * 180 / Math.PI + 25) / 115, 0, 1) * Math.PI / 2);
+  // a direction to turn toward: away from the whorl along the skull, with some gravity
+  const flow = (d, fall = 0.5) => d.clone().sub(whorl.clone().multiplyScalar(d.dot(whorl))).normalize().addScaledVector(down, fall).normalize().add(d);
+  // the mass: broad clumps from the crown outward and down (golden-angle spread, jittered)
+  for (let k = 0; k < 48; k++) {
+    const az = 180 + k * 137.5 + (hash(k, 1) - 0.5) * 24, el = 22 + hash(k, 2) * 58;
+    if (Math.cos(az * Math.PI / 180) > 0.35 && el < 62) continue;   // (the fringe covers the brow)
+    const d = dirAt(az, el), tuft = hash(k, 3) > 0.62;   // a broken tuft lifts off at its end (they break the outline)
+    parts.push(clump(d, flow(d, (0.1 + hash(k, 4) * 0.25) * (el < 45 ? 0.4 : 1)), (0.05 + hash(k, 5) * 0.04) * (el < 50 && Math.abs(Math.sin(az * Math.PI / 180)) > 0.5 ? 0.5 : el < 40 ? 0.7 : 1), 0.034 + hash(k, 6) * 0.014,
+      { base, t: 0.004 + hash(k, 7) * 0.006, wave: tuft ? 0 : 0.6 + hash(k, 10) * 0.6, lift: tuft ? 0.022 + hash(k, 8) * 0.014 : 0.008 + hash(k, 8) * 0.008, swing: (hash(k, 9) < 0.5 ? -1 : 1) * (0.008 + hash(k, 9) * 0.014), strands: 2, seed: k }));
   }
-  // the mop: thick curls lifting off the skull every which way (golden-angle spread, jittered),
-  // each arcing out and back over toward the head, so the outline is broken into round bumps
-  for (let k = 0; k < 56; k++) {
-    const az = k * 137.5 + (hash(k, 7) - 0.5) * 30, el = Math.max(16 + hash(k, 8) * 68, Math.cos(az * Math.PI / 180) > 0.4 ? 40 : 0);   // (behind the hairline over the brow)
-    const n = out(az, el), side = new THREE.Vector3(-n.z, 0, n.x).normalize();
-    // (over the face the locks lift up and back off the brow, so none falls in front of the eyes: the fringe does that)
-    const front = Math.max(0, Math.cos(az * Math.PI / 180)) ** 2 * (el < 62 ? 1 : 0.3);
-    const dir = n.clone().multiplyScalar(0.6 + hash(k, 9) * 0.4).addScaledVector(side, (hash(k, 10) - 0.5) * 2.2 * (1 - front * 0.6)).addScaledVector(down, 0.2 * (1 - front)).addScaledVector(fwd, -front * 0.5).add(new THREE.Vector3(0, front * 0.35, 0));
-    const len = (0.038 + hash(k, 11) ** 2 * 0.045) * (el > 66 ? 0.7 : 1);   // (shorter on the crown: a mop, not a crest)
-    parts.push(lock(S(az, el, 0.012), dir, n.clone().negate().addScaledVector(side, hash(k, 24) - 0.5), len, 0.028 + hash(k, 12) * 0.013, len * (0.45 + hash(k, 13) * 0.3), 0.5, 0.6));
+  // the fringe: a few uneven curls tumbling forward over the forehead, the longest to just above the
+  // brows, gaps of forehead between them, swept a little to his right, shorter over the temples
+  for (let k = 0; k < 8; k++) {
+    const az = -50 + k * 14 + (hash(k, 11) - 0.5) * 8, out = Math.abs(az) / 52, el = 60 + hash(k, 12) * 8 - out * 6;
+    const long = hash(k, 19) > 0.55;
+    const d = dirAt(az, el), to = dirAt(az * 1.1 - 8 + (hash(k, 13) - 0.5) * 16, (long ? 14 : 30) + out * 10 + hash(k, 17) * 6);
+    parts.push(clump(d, to, (long ? 0.075 : 0.055) + hash(k, 14) * 0.015 - out * 0.015, 0.026 + hash(k, 15) * 0.01,
+      { base, t: 0.004, wave: 1.4, tip: 0.2, lift: 0.01 + hash(k, 16) * 0.012, swing: (hash(k, 18) < 0.5 ? -1 : 1) * (0.015 + hash(k, 18) * 0.02), strands: 2, seed: 40 + k }));
   }
-  // a few thin strays standing up and off the crown
-  for (let k = 0; k < 4; k++) {
-    const az = 160 + k * 55 + hash(k, 14) * 20, el = 62 + hash(k, 15) * 16;
-    const n = out(az, el);
-    parts.push(lock(S(az, el, 0.02), n.clone().add(new THREE.Vector3(0, 0.6, 0)), new THREE.Vector3(hash(k, 16) - 0.5, -0.3, hash(k, 17) - 0.5), 0.032 + hash(k, 18) * 0.02, 0.008, 0.018, 0.5, 0.2));
+  // over the tops of the ears and at the nape: short curls, flicking out (no long locks hanging down)
+  for (let k = 0; k < 12; k++) {
+    const nape = k >= 4, az = nape ? 125 + (k - 4) * 15 + hash(k, 21) * 6 : (k < 2 ? 1 : -1) * (80 + (k % 2) * 18), el = nape ? 10 + hash(k, 22) * 10 : 18 + hash(k, 23) * 8;
+    const d = dirAt(az, el), to = dirAt(az + (hash(k, 24) < 0.5 ? -1 : 1) * (12 + hash(k, 24) * 20), el - 14);   // (out and a little down: bushy, not ringlets)
+    parts.push(clump(d, to, 0.026 + hash(k, 25) * 0.014, 0.032 + hash(k, 26) * 0.01, { base, t: 0.002, wave: 0.7, tip: 0.3, lift: 0.016 + hash(k, 27) * 0.01, strands: 1, seed: 60 + k }));
   }
-  // shaggy over the tops of the ears and ragged down the nape
-  for (let k = 0; k < 14; k++) {
-    const nape = k >= 6, az = nape ? 140 + (k - 6) * 11 + hash(k, 19) * 5 : (k < 3 ? 1 : -1) * (88 + (k % 3) * 16), el = nape ? -18 - hash(k, 20) * 16 : 2 + hash(k, 21) * 10;
-    const n = out(az, el);
-    parts.push(lock(S(az, el, 0.012), n.clone().multiplyScalar(0.35).addScaledVector(down, 1), n.clone().negate(), 0.035 + hash(k, 22) * 0.025, 0.022, 0.01 + hash(k, 23) * 0.008, 0.4, 0.4));
+  // a few broken tufts standing off the crown and the back
+  for (let k = 0; k < 6; k++) {
+    const az = 120 + k * 45 + hash(k, 31) * 20, el = 55 + hash(k, 32) * 22, d = dirAt(az, el);
+    parts.push(clump(d, flow(d, -0.2), 0.034 + hash(k, 33) * 0.014, 0.028, { base, t: 0.01, lift: 0.024 + hash(k, 34) * 0.012, swing: (hash(k, 35) - 0.5) * 0.03, strands: 1, seed: 80 + k }));
   }
   return mergeGeometries(parts.map((g) => {
     for (const k of Object.keys(g.attributes)) if (!['position', 'normal', 'color'].includes(k)) g.deleteAttribute(k);
@@ -363,18 +397,6 @@ function rucksack(chestY, chestZ) {
 }
 
 // ------------------------------------------------------------------ the kit
-/** The traveller.glb meshes by name (the gear's art), with their bind-pose geometry. */
-function glbParts(scene) {
-  const out = new Map();
-  scene.updateMatrixWorld(true);
-  scene.traverse((o) => { if (o.isMesh) out.set(o.name, o); });
-  return out;
-}
-const toneOf = (mesh) => {
-  const t = TRAVELLER_TONES[mesh.material.name];
-  return t ? PAL[t] : '#' + mesh.material.color.getHexString();
-};
-
 /**
  * Everything the traveller wears on a body (pure data, cached per outfit scene and body geometry):
  * { pieces: [{ name, geometry (skinned to the body's bones, bind space), color, glass?, pack? }],
@@ -387,7 +409,7 @@ export function travellerKit(scene, body) {
   const cache = (scene.userData.travellerKits ??= new Map());
   if (cache.has(base.uuid)) return cache.get(base.uuid);
   const suit = suitGeometry(body), bones = body.skeleton.bones, bi = (n) => BONE(bones, n);
-  const glb = glbParts(scene), F = TRAVELLER;
+  const F = TRAVELLER;   // (`scene`, traveller.glb, only keys the cache now: everything he wears is built here)
   const [bootTop, beltY, neckY, wristX] = F.outfit;
   const pieces = [];
   const add = (name, geometry, color, o = {}) => pieces.push({ name, geometry, color, ...o });
@@ -406,23 +428,28 @@ export function travellerKit(scene, body) {
   const neck = bindPos(body, 'neck_01'), chest = bi('spine_03');
   const neckPts = points(suit, (p) => Math.abs(p.y - (neck.y + 0.02)) < 0.03 && Math.abs(p.x) < 0.13);
   const neckZ = neckPts.length ? (Math.min(...neckPts.map((p) => p.z)) + Math.max(...neckPts.map((p) => p.z))) / 2 : neck.z;
-  // a loose cowl of soft cotton bunched round the neck (not stacked rings): rows of uneven folds, lying
-  // wider on the shoulders, dipping a little at the front, its top edge turned in against the neck
+  // a little neckerchief, as on the sheets: a soft tan cotton square folded and wrapped snug round
+  // the neck, in a few loose folds, its point hanging in a small bib over the throat (the head turns inside it)
   {
-    const rows = [[-0.004, 0.071, 0], [-0.024, 0.086, 0.004], [-0.048, 0.097, 0.01], [-0.072, 0.104, 0.018], [-0.09, 0.1, 0.024], [-0.098, 0.084, 0.024]];
-    const cols = 30;
+    const rows = [[0.042, 0.056, 0], [0.028, 0.066, 0.004], [0.008, 0.076, 0.01], [-0.014, 0.084, 0.02], [-0.034, 0.086, 0.028], [-0.05, 0.08, 0.034]];
+    const cols = 28;
     const ring = ([dy, r, dip], j) => Array.from({ length: cols }, (_, k) => {
       const a = (k / cols) * Math.PI * 2, front = Math.max(0, Math.cos(a));
-      const fold = 0.008 * Math.sin(a * 7 + j * 1.9) + 0.005 * Math.sin(a * 12 - j * 2.7) + (j > 0 && j < rows.length - 1 ? 0.004 : 0);
-      return new THREE.Vector3(Math.sin(a) * (r + fold) * 1.06, neck.y + dy - dip * front ** 2 + 0.006 * Math.sin(a * 5 + j), neckZ + 0.008 + Math.cos(a) * (r + fold) * 1.14);
+      const fold = 0.005 * Math.sin(a * 6 + j * 2.1) + 0.003 * Math.sin(a * 11 - j * 1.3) + (j % 2 ? 0.004 : 0);
+      return new THREE.Vector3(Math.sin(a) * (r + fold) * 1.06, neck.y + dy - dip * front ** 2, neckZ + 0.006 + Math.cos(a) * (r + fold) * 1.14);
     });
-    add('Scarf_cowl', rigid(band(rows.map(ring)), chest), PAL.scarf);
+    add('Neckerchief', rigid(band(rows.map(ring)), chest), PAL.scarf);
+    // the bib: its point, a small soft triangle from under the wrap over the hollow of the throat
+    const z0 = neckZ + 0.006 + 0.086 * 1.14, y0 = neck.y - 0.045;
+    const bib = openPanel([
+      [new THREE.Vector3(-0.036, y0 + 0.006, z0 - 0.008), new THREE.Vector3(-0.012, y0, z0 + 0.002), new THREE.Vector3(0.012, y0 + 0.001, z0 + 0.002), new THREE.Vector3(0.036, y0 + 0.007, z0 - 0.008)],
+      [new THREE.Vector3(-0.018, y0 - 0.022, z0 + 0.004), new THREE.Vector3(-0.006, y0 - 0.025, z0 + 0.008), new THREE.Vector3(0.008, y0 - 0.024, z0 + 0.008), new THREE.Vector3(0.02, y0 - 0.02, z0 + 0.004)],
+      [new THREE.Vector3(0.0, y0 - 0.042, z0 + 0.008), new THREE.Vector3(0.002, y0 - 0.044, z0 + 0.009), new THREE.Vector3(0.004, y0 - 0.044, z0 + 0.009), new THREE.Vector3(0.006, y0 - 0.042, z0 + 0.008)],
+    ]);
+    add('Neckerchief_bib', conform(bib, suit, body, /^spine_0[23]$/, chest), PAL.scarfShade);
   }
-  // its loose end, tucked under the cowl and hanging a little down his left chest
-  const scarfTail = [new THREE.Vector3(0.035, neck.y - 0.085, 0.108), new THREE.Vector3(0.045, neck.y - 0.13, 0.122), new THREE.Vector3(0.035, neck.y - 0.2, 0.14)];
-  add('Scarf_tail', conform(ribbon(scarfTail, scarfTail.map(() => new THREE.Vector3(0, 0, 1)), 0.05, 0.004), suit, body, /^spine_0[123]$/, chest), PAL.scarf);
   // The translator remains a small earpiece from home, almost lost in his hair.
-  add('Translator', rigid(plain(new THREE.SphereGeometry(1, 8, 6).scale(0.007, 0.012, 0.009).translate(-headHalf.x - 0.002, headC.y - 0.012, headC.z + 0.004)), Head), PAL.earpiece);
+  add('Translator', rigid(plain(new THREE.SphereGeometry(1, 8, 6).scale(0.005, 0.008, 0.006).translate(-headHalf.x + 0.006, headC.y - 0.006, headC.z - 0.004)), Head), PAL.earpiece);
 
   // ---- the canvas rucksack on the back (the chest frame: the flask, the scout's dock and the lantern hang off it)
   const backPts = points(suit, (p) => p.y > neck.y - 0.24 && p.y < neck.y - 0.07 && Math.abs(p.x) < 0.1);
@@ -441,17 +468,18 @@ export function travellerKit(scene, body) {
   // each arm back to its lower corners (a rucksack's, not a harness down to the belt)
   const torso = points(suit, onBones(suit, body, /^(pelvis|spine|clavicle|neck)/, 0.5));
   const strapPath = (sx) => {
-    const x = sx * 0.1, pts = [], nrm = [];
+    const x = sx * 0.125, pts = [], nrm = [];
     const at = (from, dir) => from.clone().addScaledVector(dir, reach(torso, from, dir, 0.025) + 0.004);
     pts.push(new THREE.Vector3(x, neck.y - 0.1, backZ - 0.012)); nrm.push(new THREE.Vector3(0, 0, -1));
     pts.push(at(new THREE.Vector3(x, neck.y - 0.25, -0.03), new THREE.Vector3(0, 1, -0.6))); nrm.push(new THREE.Vector3(0, 1, -0.6).normalize());
     pts.push(at(new THREE.Vector3(x, neck.y - 0.25, 0.0), new THREE.Vector3(0, 1, 0))); nrm.push(new THREE.Vector3(0, 1, 0));
     pts.push(at(new THREE.Vector3(x, neck.y - 0.25, 0.02), new THREE.Vector3(0, 1, 0.8))); nrm.push(new THREE.Vector3(0, 1, 0.8).normalize());
-    for (const [y, k] of [[neck.y - 0.12, 1], [neck.y - 0.22, 1.04], [neck.y - 0.3, 1.18]]) {
+    // only a short way down the front, by the armholes (the open overshirt stays in view), then
+    for (const [y, k] of [[neck.y - 0.1, 1], [neck.y - 0.17, 1.12]]) {
       pts.push(at(new THREE.Vector3(x * k, y, 0), new THREE.Vector3(0, 0, 1))); nrm.push(new THREE.Vector3(0, 0, 1));
     }
     // round the ribs under the arm, to the rucksack's bottom corner
-    for (const [y, d] of [[neck.y - 0.37, new THREE.Vector3(sx * 0.75, 0, 0.66)], [neck.y - 0.43, new THREE.Vector3(sx, 0, 0)], [neck.y - 0.47, new THREE.Vector3(sx * 0.7, 0, -0.71)]]) {
+    for (const [y, d] of [[neck.y - 0.24, new THREE.Vector3(sx * 0.8, 0, 0.6)], [neck.y - 0.3, new THREE.Vector3(sx, 0, 0)], [neck.y - 0.36, new THREE.Vector3(sx * 0.7, 0, -0.71)]]) {
       pts.push(at(new THREE.Vector3(0, y, 0), d.normalize())); nrm.push(d);
     }
     pts.push(new THREE.Vector3(sx * 0.13, sack.bottom + chestY + 0.04, backZ - 0.03)); nrm.push(new THREE.Vector3(0, 0, -1));
@@ -465,21 +493,30 @@ export function travellerKit(scene, body) {
   // ---- the open overshirt: shoulder/sleeve shells and an open, thigh-length body.
   // The front opening grows toward the collar. Rows below the hips take each
   // thigh's weights, so the two skirts part when walking or kneeling.
+  // (oversized, as on the sheets: it hangs straight and loose from the shoulders to the upper thigh; over
+  // the shoulders it is fitted to the body itself, so no shirt shows through between the collar and the sleeves)
+  const COAT = [
+    [0.75, 0.24, 0.17, 0.39], [0.86, 0.228, 0.164, 0.34], [0.98, 0.215, 0.16, 0.31],
+    [1.1, 0.205, 0.158, 0.32], [1.22, 0.215, 0.165, 0.36], [1.34, 0.23, 0.16, 0.43],
+  ];
+  const fitRow = (y, gap, margin) => Array.from({ length: 37 }, (_, k) => {
+    const a = gap + (Math.PI * 2 - 2 * gap) * k / 36, d = new THREE.Vector3(Math.sin(a), 0, Math.cos(a)), from = new THREE.Vector3(0, y, -0.018);
+    return from.addScaledVector(d, Math.max(0.07, reach(torso, from, d, 0.03)) + margin + 0.003 * Math.sin(a * 9 + y * 12));
+  });
   const coatRows = [
-    [0.78, 0.21, 0.155, 0.36], [0.88, 0.205, 0.155, 0.32], [0.98, 0.19, 0.15, 0.3],
-    [1.1, 0.185, 0.15, 0.32], [1.22, 0.20, 0.16, 0.36], [1.34, 0.22, 0.155, 0.43],
-    [1.4, 0.19, 0.13, 0.6], [1.46, 0.105, 0.105, 0.68],
-  ].map(([y, rx, rz, gap]) => Array.from({ length: 37 }, (_, k) => {
-    const a = gap + (Math.PI * 2 - 2 * gap) * k / 36;
-    const fold = 0.004 * Math.sin(a * 9 + y * 12);
-    return new THREE.Vector3(Math.sin(a) * (rx + fold), y + (y < 0.8 ? 0.012 * Math.sin(a * 3) : 0), Math.cos(a) * (rz + fold) - 0.018);
-  }));
+    ...COAT.map(([y, rx, rz, gap]) => Array.from({ length: 37 }, (_, k) => {
+      const a = gap + (Math.PI * 2 - 2 * gap) * k / 36;
+      const fold = 0.005 * Math.sin(a * 9 + y * 12);
+      return new THREE.Vector3(Math.sin(a) * (rx + fold), y + (y < 0.8 ? 0.014 * Math.sin(a * 3) : 0), Math.cos(a) * (rz + fold) - 0.018);
+    })),
+    fitRow(1.41, 0.52, 0.02), fitRow(1.47, 0.6, 0.016), fitRow(1.505, 0.64, 0.013),
+  ];
   // Unlike a belt this is deliberately open: no triangle may bridge the shirt front.
   const coat = openPanel(coatRows);
   add('Coral_overshirt', conform(coat, suit, body, /^(pelvis|spine_0[123]|clavicle_[lr]|thigh_[lr])$/, chest), PAL.jacket);
   const sleeve = pick(suit, (a, b, c) => [a, b, c].every((i) => {
     const x = Math.abs(suit.attributes.position.getX(i));
-    return x > 0.16 && x < wristX + 0.012 && suit.attributes.position.getY(i) > 1.15;
+    return x > 0.11 && x < wristX + 0.012 && suit.attributes.position.getY(i) > 1.15;   // (from the shoulder's top, so no shirt shows between collar and sleeve)
   }));
   for (const name of Object.keys(sleeve.attributes)) if (!['position', 'normal', 'skinIndex', 'skinWeight'].includes(name)) sleeve.deleteAttribute(name);
   const sp = sleeve.attributes.position, sn = sleeve.attributes.normal;
@@ -495,15 +532,31 @@ export function travellerKit(scene, body) {
     ]);
     add(`Lapel_${sign}`, conform(lapel, suit, body, /^(spine_0[123]|clavicle_[lr])$/, chest), PAL.jacketShade);
   }
+  // the overshirt's collar: a stand round the back of the neck (outside the neckerchief), folded
+  // down over the shoulders, its two points lying on the chest either side of the opening
+  {
+    const gap = 0.62, cols = 25;
+    const row = (fn) => Array.from({ length: cols }, (_, k) => {
+      const a = gap + (Math.PI * 2 - 2 * gap) * k / (cols - 1), f = Math.max(0, Math.cos(a)) ** 2;
+      const [rx, rz, y] = fn(f);
+      return new THREE.Vector3(Math.sin(a) * rx, y, neckZ + 0.004 + Math.cos(a) * rz);
+    });
+    const collar = openPanel([
+      row((f) => [0.1 + 0.012 * f, 0.108 + 0.01 * f, 1.5 - 0.02 * f]),           // sewn on round the neckline
+      row((f) => [0.09 + 0.01 * f, 0.1 + 0.012 * f, neck.y + 0.022 - 0.05 * f]),  // the fold along the top of the stand
+      row((f) => [0.128 + 0.035 * f, 0.138 + 0.035 * f, 1.49 - 0.075 * f]),          // its edge, down to the points in front
+    ]);
+    add('Overshirt_collar', rigid(collar, chest), PAL.jacket);
+  }
   for (const y of [0.86, 1.0, 1.14]) add(`Shirt_button_${y}`, conform(plain(new THREE.SphereGeometry(0.005, 6, 4).scale(1, 1, 0.45).translate(-0.074, y, 0.138)), suit, body, /^(pelvis|spine_0[123])$/, chest), PAL.pouch);
 
   // One soft round satchel on a diagonal strap, rather than a utility belt.
-  const bagAt = new THREE.Vector3(0.13, 0.985, 0.17);
+  const bagAt = new THREE.Vector3(-0.1, 0.985, 0.17);   // (on his right hip, the strap over his left shoulder, as on the sheets)
   const bag = plain(new THREE.SphereGeometry(1, 16, 10).scale(0.105, 0.083, 0.044).translate(bagAt.x, bagAt.y, bagAt.z));
   add('Round_satchel', conform(bag, suit, body, /^(pelvis|spine_01)$/, bi('pelvis'), bagAt), PAL.pouch);
   const flap = plain(new THREE.SphereGeometry(1, 16, 8, 0, Math.PI * 2, 0, Math.PI * 0.58).scale(0.109, 0.068, 0.044).translate(bagAt.x, bagAt.y + 0.025, bagAt.z + 0.016));
   add('Satchel_flap', conform(flap, suit, body, /^(pelvis|spine_01)$/, bi('pelvis'), bagAt), PAL.strap);
-  const diagonal = [new THREE.Vector3(-0.14, 1.425, 0.11), new THREE.Vector3(-0.08, 1.32, 0.157), new THREE.Vector3(0.01, 1.19, 0.166), new THREE.Vector3(0.115, 1.04, 0.19)];
+  const diagonal = [new THREE.Vector3(0.14, 1.425, 0.11), new THREE.Vector3(0.08, 1.32, 0.157), new THREE.Vector3(-0.01, 1.19, 0.166), new THREE.Vector3(-0.085, 1.04, 0.19)];
   add('Satchel_strap', conform(ribbon(diagonal, diagonal.map(() => new THREE.Vector3(0, 0, 1)), 0.028, 0.005), suit, body, /^(pelvis|spine_0[123]|clavicle_[lr])$/, chest), PAL.strap);
 
   // Faded cloth ties knotted to the rucksack's top corners, hanging down its sides.
@@ -513,52 +566,67 @@ export function travellerKit(scene, body) {
     add(`Pack_cloth_${sx}`, conform(ribbon(path, path.map(() => new THREE.Vector3(sx, 0, 0)), 0.04, 0.003), suit, body, /^(pelvis|spine_0[123])$/, chest), color);
   }
 
-  // ---- the boots: the glb's soft desert boots on each foot (no suit seams or buckles), the soles just under the ground
-  for (const [s, S, sign] of [['l', 'L', 1], ['r', 'R', -1]]) {
+  // ---- the boots: low, close-fitting suede ankle boots, as on the sheets, built round each foot: a slim
+  // upper lofted along the foot (a rounded toe, a firm heel), a short shaft just over the ankle bone,
+  // a thin sand sole. The foot and toes follow their own bones, the shaft the shin.
+  for (const [s, sign] of [['l', 1], ['r', -1]]) {
     const footPts = points(base, ((on) => (p, i) => p.x * sign > 0 && on(p, i))(onBones(base, body, new RegExp(`^(foot|ball)_${s}$`))));
-    const fb = boxOf(footPts), fc = fb.getCenter(new THREE.Vector3()), fs = fb.getSize(new THREE.Vector3());
-    const parts = ['Equipment_dusty_pink_boots', 'Equipment_rubber_soles'].map((n) => [n, glb.get(n)]).filter(([, m]) => m);
-    const side = () => (geo) => (a, b, c) => [a, b, c].every((v) => geo.attributes.position.getX(v) * sign > 0);
-    const bootBox = new THREE.Box3();
-    for (const [, m] of parts.slice(0, 2)) bootBox.union(boxOf(points(pick(m.geometry, side(m)(m.geometry)), () => true)));
-    const bc = bootBox.getCenter(new THREE.Vector3()), bs = bootBox.getSize(new THREE.Vector3());
-    const sx = (fs.x + 2 * F.boot.margin) / bs.x, sz = Math.max(1, (fs.z + 2 * F.boot.margin) / bs.z);
-    // (centred on the foot; the heel's end kept just behind the human's heel)
-    const bootM = new THREE.Matrix4().makeTranslation(fc.x, F.boot.sole, fb.min.z - F.boot.margin + bs.z * sz / 2)
-      .multiply(new THREE.Matrix4().makeScale(sx, 1, sz)).multiply(new THREE.Matrix4().makeTranslation(-bc.x, -bootBox.min.y, -bc.z));
-    const footB = bi(`foot_${s}`), calfB = bi(`calf_${s}`);
-    for (const [n, m] of parts) {
-      const g = plain(pick(m.geometry, side(m)(m.geometry)), new THREE.Matrix4().multiplyMatrices(bootM, m.bindMatrix));
-      // the glb's own weights: its foot follows the foot, the shaft above the ankle the shin
-      const src = pick(m.geometry, side(m)(m.geometry)), J = src.attributes.skinIndex, W = src.attributes.skinWeight;
-      const n4 = g.attributes.position.count, J2 = new Uint16Array(n4 * 4), W2 = new Float32Array(n4 * 4);
-      for (let i = 0; i < n4; i++) {
-        let shin = 0;
-        for (let k = 0; k < 4; k++) if (/^shin/.test(m.skeleton.bones[J.getComponent(i, k)].name)) shin += W.getComponent(i, k);
-        J2.set([footB, calfB, 0, 0], i * 4); W2.set([1 - shin, shin, 0, 0], i * 4);
-      }
-      g.setAttribute('skinIndex', new THREE.BufferAttribute(J2, 4));
-      g.setAttribute('skinWeight', new THREE.BufferAttribute(W2, 4));
-      add(`${n}_${s}`, g, toneOf(m));
-    }
-    // The rolled trouser hem leaves an ankle-length gap above the boot.
+    const fb = boxOf(footPts);
+    const footB = bi(`foot_${s}`), ballB = bi(`ball_${s}`), calfB = bi(`calf_${s}`), ball = bindPos(body, `ball_${s}`);
     const legAxis = (y) => { const c = bindPos(body, `calf_${s}`), f = bindPos(body, `foot_${s}`); return f.clone().lerp(c, (y - f.y) / (c.y - f.y)); };
-    const bootTopY = F.boot.sole + bs.y;
-    const shaft = points(plain(pick(parts[0][1].geometry, side(parts[0][1])(parts[0][1].geometry)), bootM), () => true);
-    const legPts = points(suit, ((on) => (p, i) => p.x * sign > 0 && on(p, i))(onBones(suit, body, new RegExp(`^(calf|thigh|foot)_${s}$`))));
+    const legPts = points(suit, ((on) => (p, i) => p.x * sign > 0 && on(p, i))(onBones(suit, body, new RegExp(`^(calf|foot)_${s}$`))));
+    const B = F.boot, sole = B.sole, m = B.margin, N = 16, cols = 18;
+    // the foot's cross-sections, heel to toe: its width and height in slabs along z
+    const z0 = fb.min.z - m - 0.012, z1 = fb.max.z + m + 0.016;   // (room for the rounded heel and toe)
+    const sections = Array.from({ length: N + 1 }, (_, i) => {
+      const u = i / N, z = z0 + (z1 - z0) * u;
+      let near = footPts.filter((p) => Math.abs(p.z - z) < 0.014);
+      if (near.length < 3) near = footPts.filter((p) => Math.abs(p.z - z) < 0.03);
+      const bx = boxOf(near.length ? near : footPts);
+      // rounded at the toe and the heel (the ends close in), the toe a little lower
+      const end = Math.sqrt(Math.max(0, 1 - ((u - 0.5) / 0.5) ** 10)), toe = smooth(u, 0.55, 1);
+      const cx = (bx.min.x + bx.max.x) / 2, hw = ((bx.max.x - bx.min.x) / 2 + m) * (0.25 + 0.75 * end) * (1 - B.toe * toe);
+      const top = Math.min(bx.max.y, B.ankle) + m;
+      return { z, cx, hw, top: sole + (top - sole) * (0.3 + 0.7 * end) };
+    });
+    // a section's outline: a rounded box from the sole up to its top (flat underneath)
+    const outline = (sec, out = 0, lo = sole, hi = sec.top) => Array.from({ length: cols }, (_, k) => {
+      const a = (k / cols) * Math.PI * 2, c = Math.cos(a), sn = Math.sin(a);
+      const ex = Math.sign(c) * Math.abs(c) ** 0.5, ey = Math.sign(sn) * Math.abs(sn) ** (sn < 0 ? 0.25 : 0.7);
+      return new THREE.Vector3(sec.cx + ex * (sec.hw + out), (lo + hi) / 2 + ey * ((hi - lo) / 2 + out * 0.5), sec.z);
+    });
+    const cap = (ring, toward) => ring.map((p) => p.clone().lerp(toward, 0.92));
+    const ends = (rings) => { const a = rings[0], b = rings[rings.length - 1], ca = a.reduce((v, p) => v.add(p), new THREE.Vector3()).divideScalar(a.length), cb = b.reduce((v, p) => v.add(p), new THREE.Vector3()).divideScalar(b.length); return [cap(a, ca), ...rings, cap(b, cb)]; };
+    const upper = band(ends(sections.map((sec) => outline(sec, 0, sole + 0.012))));
+    const soleGeo = band(ends(sections.map((sec) => outline(sec, 0.007, sole, sole + 0.02))));
+    // the shaft: rings round the ankle up to just over its bone, fitted to the leg, its top edge rolled a little
+    const shaftRing = (y, out) => { const c = legAxis(y); return Array.from({ length: cols }, (_, k) => {
+      const a = (k / cols) * Math.PI * 2, d = new THREE.Vector3(Math.sin(a), 0, Math.cos(a));
+      return c.clone().addScaledVector(d, Math.max(0.035, reach(legPts, c, d, 0.03)) + out);
+    }); };
+    const top = B.shaft;
+    const shaft = mergeGeometries([band([shaftRing(B.ankle - 0.03, m + 0.008), shaftRing(B.ankle + 0.005, m + 0.004), shaftRing(top - 0.012, m), shaftRing(top, m + 0.004)]), band([shaftRing(top, m + 0.004), shaftRing(top - 0.006, m - 0.004)])]);
+    // weights: the toes follow the ball bone, the shaft the shin (blended over the ankle)
+    const weigh = (g) => {
+      const P = g.attributes.position, n = P.count, J = new Uint16Array(n * 4), W = new Float32Array(n * 4);
+      for (let i = 0; i < n; i++) {
+        const toe = smooth(P.getZ(i), ball.z - 0.02, ball.z + 0.03), shin = smooth(P.getY(i), B.ankle - 0.01, top - 0.01) * (1 - toe);
+        J.set([footB, ballB, calfB, 0], i * 4); W.set([1 - toe - shin, toe, shin, 0], i * 4);
+      }
+      g.deleteAttribute('uv');
+      g.setAttribute('skinIndex', new THREE.BufferAttribute(J, 4));
+      g.setAttribute('skinWeight', new THREE.BufferAttribute(W, 4));
+      return g;
+    };
+    add(`Boot_${s}`, weigh(mergeGeometries([upper, shaft].map((g) => { const h = g.index ? g : g; for (const k of Object.keys(h.attributes)) if (k !== 'position' && k !== 'normal') h.deleteAttribute(k); return h; }))), PAL.boot);
+    add(`Boot_sole_${s}`, weigh(soleGeo), PAL.sole);
+    // The rolled trouser hem leaves a bare ankle above the boot.
     const cuff = (y, out) => { const c = legAxis(y); return Array.from({ length: 20 }, (_, k) => {
       const a = (k / 20) * Math.PI * 2, d = new THREE.Vector3(Math.sin(a), 0, Math.cos(a));
-      const r = Math.max(reach(legPts, c, d, 0.03), reach(shaft.filter((p) => Math.abs(p.y - bootTopY) < 0.05), c.clone().setY(bootTopY - 0.02), d, 0.04));
-      return c.clone().addScaledVector(d, r + out + 0.012 * Math.sin(a * 7) ** 2);
+      return c.clone().addScaledVector(d, reach(legPts, c, d, 0.03) + out + 0.012 * Math.sin(a * 7) ** 2);
     }); };
     const y0 = bootTop + 0.005, y1 = bootTop + 0.045;
     add(`Trouser_cuff_${s}`, rigid(mergeGeometries([band([cuff(y0, 0.006), cuff(y1, 0.004)]), band([cuff(y1, 0.004), cuff(y1, -0.01)])]), calfB), PAL.suit);
-    // the soft boot's slouched, turned-down top
-    const rim = (y, out) => { const c = legAxis(y); return Array.from({ length: 20 }, (_, k) => {
-      const a = (k / 20) * Math.PI * 2, d = new THREE.Vector3(Math.sin(a), 0, Math.cos(a));
-      return c.clone().addScaledVector(d, reach(shaft.filter((p) => Math.abs(p.y - bootTopY) < 0.04), c.clone().setY(bootTopY - 0.015), d, 0.04) + out + 0.004 * Math.sin(a * 5 + sign));
-    }); };
-    add(`Boot_cuff_${s}`, rigid(mergeGeometries([band([rim(bootTopY - 0.04, 0.004), rim(bootTopY - 0.002, 0.009)]), band([rim(bootTopY - 0.002, 0.009), rim(bootTopY - 0.004, -0.003)])]), calfB), PAL.boot);
     // The overshirt rolls up just below the elbow, leaving the forearm bare.
     const arm = bindPos(body, `lowerarm_${s}`), hand = bindPos(body, `hand_${s}`), along = hand.clone().sub(arm).normalize();
     const armPts = points(suit, ((on) => (p, i) => p.x * sign > 0 && on(p, i))(onBones(suit, body, new RegExp(`^lowerarm_${s}|^hand_${s}$`), 0.3)));

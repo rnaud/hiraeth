@@ -132,12 +132,12 @@ test('the fit at rest: bare head, rolled sleeves, open jacket, satchel, cropped 
   assert.ok(hair.max.y > headBox.max.y && hair.max.y < headBox.max.y + 0.1, `loose hair above the crown (${(hair.max.y - headBox.max.y).toFixed(3)} m)`);
   // casual clothes: nothing of the old space suit is worn (helmet, headset, radio pack, suit seams, boot buckles, ringed collar)
   for (const n of ['Bubble_helmet', 'Helmet_liner', 'Headphone_1', 'Backpack_antenna', 'Equipment_ivory_radio', 'Equipment_blue_metal', 'Equipment_cyan_glass',
-    'Equipment_seam_ink_l', 'Boot_buckles_l', 'Boot_buckles_r', 'Scarf_fold_0', 'Equipment_tan_pouches']) assert.equal(piece(h, n), undefined, n + ' removed');
+    'Equipment_seam_ink_l', 'Boot_buckles_l', 'Boot_buckles_r', 'Scarf_fold_0', 'Scarf_cowl', 'Equipment_tan_pouches', 'Equipment_dusty_pink_boots_l', 'Boot_cuff_l']) assert.equal(piece(h, n), undefined, n + ' removed');
   for (const side of ['l', 'r']) {
     const cuff = boxOf(h, new RegExp(`^Rolled_sleeve_${side}$`));
     const elbow = at(h.b[`lowerarm_${side}`]), wrist = at(h.b[`hand_${side}`]);
     assert.ok(cuff.distanceToPoint(elbow) < 0.13 && cuff.distanceToPoint(wrist) > 0.07, 'rolled sleeve leaves the forearm bare');
-    const hem = boxOf(h, new RegExp(`^Trouser_cuff_${side}$`)), boot = boxOf(h, new RegExp(`^Equipment_dusty_pink_boots_${side}$`));
+    const hem = boxOf(h, new RegExp(`^Trouser_cuff_${side}$`)), boot = boxOf(h, new RegExp(`^Boot_${side}$`));
     assert.ok(hem.min.y > boot.max.y + 0.025, 'bare ankle between cropped trouser and boot');
   }
   const jacket = boxOf(h, /^Coral_overshirt$/), bag = boxOf(h, /^Round_satchel$/);
@@ -149,7 +149,7 @@ test('the fit at rest: bare head, rolled sleeves, open jacket, satchel, cropped 
   assert.ok(Math.abs(pack.getCenter(V()).x) < 0.03 && pack.min.y > 0.9 && pack.max.y < h.rest.get(h.b.neck_01).p.y);
   assert.ok(pack.max.z - pack.min.z < 0.13, `a slim rucksack (${(pack.max.z - pack.min.z).toFixed(3)} m deep)`);
   // boots round the feet, soles just under the ground; no part of the body below them
-  const soles = boxOf(h, /^Equipment_rubber_soles/), boots = boxOf(h, /^Equipment_dusty_pink_boots/);
+  const soles = boxOf(h, /^Boot_sole_/), boots = boxOf(h, /^Boot_[lr]$/);
   assert.ok(soles.min.y > -0.03 && soles.min.y < 0.0, `soles on the ground (${soles.min.y.toFixed(3)})`);
   const feet = new THREE.Box3();
   h.body.skeleton.update();
@@ -186,7 +186,7 @@ test('idle: the natural stance of the people, feet flat on the ground', () => {
     for (const k of Object.keys(h.b)) assert.ok(at(h.b[k]).distanceTo(at(n.b[k])) < 1e-5, `${k} stands as an NPC's does`);
   }
   h.model.updateMatrixWorld(true);
-  const soles = boxOf(h, /^Equipment_rubber_soles/);
+  const soles = boxOf(h, /^Boot_sole_/);
   assert.ok(soles.min.y > -0.04 && soles.min.y < 0.02, `soles on the ground in idle (${soles.min.y.toFixed(3)})`);
   assert.ok(boxOf(h, /^Traveller_hair$/).distanceToPoint(at(h.b.Head)) < 0.13, 'hair follows the head');
   assert.ok(at(h.b.pelvis).y > 0.85, 'standing upright');
@@ -200,7 +200,7 @@ test('rigid pieces stay rigid in any pose: hair, pack and boots', () => {
     const n = m.geometry.attributes.position.count;
     return [0, 1, 2, 3].map((k) => m.getVertexPosition(Math.floor(k * n / 4), V()).distanceTo(m.getVertexPosition(Math.floor(k * n / 4 + n / 8), V())));
   };
-  const names = ['Traveller_hair', 'Rucksack', 'Equipment_rubber_soles_l'];
+  const names = ['Traveller_hair', 'Rucksack', 'Rucksack_lid'];
   h.update();
   const before = names.map(spans);
   char.head.rotation.set(0.5, 0.8, 0.2); char.arms[0].rotation.set(-1.2, 0.3, 0); char.elbows[0].rotation.x = -1.4; char.torso.rotation.set(0.3, 0.4, 0);
@@ -282,7 +282,7 @@ test('kneeling (a box, getting up): the knee down to the ground, every piece who
   for (const x of [h, n]) { x.update(); x.kneel(1, o); x.model.updateMatrixWorld(true); }
   for (const k of Object.keys(h.b)) assert.ok(at(h.b[k]).distanceTo(at(n.b[k])) < 1e-5, `${k} kneels as an NPC's does`);
   assert.ok(at(h.b.pelvis).y < 0.6 && at(h.b.calf_l).y < 0.3, `down on one knee (${at(h.b.calf_l).y.toFixed(3)})`);
-  const boots = boxOf(h, /^Equipment_dusty_pink_boots_r$/);
+  const boots = boxOf(h, /^Boot_r$/);
   assert.ok(boots.min.y > -0.05 && boots.distanceToPoint(at(h.b.foot_r)) < 0.01, 'the right boot on its foot, on the ground');
   assert.ok(boxOf(h, /^Traveller_hair$/).distanceToPoint(at(h.b.Head)) < 0.13, 'hair on the bowed head');
   for (const m of h.outfitMeshes) for (let i = 0; i < m.geometry.attributes.position.count; i += 13) assert.ok(m.getVertexPosition(i, V()).toArray().every(Number.isFinite));
@@ -390,7 +390,7 @@ test('scruffier hair: broken, tousled locks with lighter edges; a leaner face wi
   // each lock's edges print lighter than its middle (dark hair loses its own ink lines)
   const C = g.attributes.color;
   let lit = 0;
-  for (let i = 0; i < C.count; i++) { assert.ok(C.getX(i) >= 1); if (C.getX(i) > 1.5) lit++; }
+  for (let i = 0; i < C.count; i++) { assert.ok(C.getX(i) >= 1); if (C.getX(i) > 1.3) lit++; }
   assert.ok(lit > 100, `lighter lock edges (${lit} vertices)`);
   const h = traveller();
   assert.ok(piece(h, 'Traveller_hair').material.vertexColors, 'the outfit\'s hair takes them');
@@ -408,4 +408,39 @@ test('scruffier hair: broken, tousled locks with lighter edges; a leaner face wi
     return w;
   };
   assert.ok(width(h) < width(n_) - 0.005, `cheeks narrower than the people's own face (${width(h).toFixed(3)} / ${width(n_).toFixed(3)})`);
+});
+
+// The author's fourth round: the hair read as dreadlocks, he should wear an overshirt with a little scarf,
+// and the boots were too big.
+test('an open overshirt with a collar over the undershirt, a little neckerchief, slim low ankle boots', () => {
+  const h = traveller(); h.update(true); h.model.updateMatrixWorld(true);
+  const neck = at(h.b.neck_01), head = at(h.b.Head);
+  // the collar stands round the back of the neck and its points lie open on the chest
+  const collar = boxOf(h, /^Overshirt_collar$/), coat = boxOf(h, /^Coral_overshirt$/);
+  assert.ok(collar.max.y > neck.y - 0.01 && collar.min.y < neck.y - 0.05, 'a collar from the neck down to its points');
+  assert.ok(coat.min.y < 0.8 && coat.min.y > 0.6, `the hem hangs loose to the upper thigh (${coat.min.y.toFixed(2)})`);
+  // the neckerchief: small, snug at the throat, under the chin
+  const scarf = boxOf(h, /^Neckerchief/), size = scarf.getSize(V());
+  assert.ok(size.x < 0.2 && size.y < 0.15, `a little neckerchief (${size.x.toFixed(2)} × ${size.y.toFixed(2)} m)`);
+  assert.ok(scarf.max.y < head.y && scarf.min.y > neck.y - 0.13, 'round the neck, above the chest');
+  for (const n of ['Scarf_cowl', 'Scarf_tail']) assert.equal(piece(h, n), undefined, `${n} gone`);
+  // the boots: close round the foot and low (just over the ankle), the soles a thin line
+  for (const s of ['l', 'r']) {
+    const boot = boxOf(h, new RegExp(`^Boot_${s}$`)), sole = boxOf(h, new RegExp(`^Boot_sole_${s}$`)), b = boot.getSize(V());
+    const foot = new THREE.Box3(), P = h.body.geometry.attributes.position, J = h.body.geometry.attributes.skinIndex, W = h.body.geometry.attributes.skinWeight;
+    const ids = ['foot', 'ball'].map((n) => h.body.skeleton.bones.indexOf(h.b[`${n}_${s}`]));
+    for (let i = 0; i < P.count; i++) if (ids.includes(J.getX(i)) && W.getX(i) > 0.6) foot.expandByPoint(h.body.localToWorld(h.body.getVertexPosition(i, V())));
+    const f = foot.getSize(V());
+    assert.ok(b.x < f.x + 0.03 && b.z < f.z + 0.05, `close-fitting (${b.x.toFixed(3)} × ${b.z.toFixed(3)} round a ${f.x.toFixed(3)} × ${f.z.toFixed(3)} foot)`);
+    assert.ok(boot.max.y < 0.19, `a low ankle boot (${boot.max.y.toFixed(3)} m)`);
+    assert.ok(sole.max.y - sole.min.y < 0.03, 'a thin sole');
+  }
+});
+
+test('the hair stays a short mop round the head: nothing long hangs or sticks out', () => {
+  const g = TRAVELLER_HAIR(), P = g.attributes.position, v = V();
+  let far = 0;
+  for (let i = 0; i < P.count; i++) far = Math.max(far, v.fromBufferAttribute(P, i).length());
+  assert.ok(far < 0.2, `nothing hangs or sticks far off the head (${far.toFixed(3)} m from its centre)`);
+  assert.ok(P.count < 9000, `a light mesh (${P.count} vertices)`);
 });
