@@ -3,7 +3,7 @@
 # (docs/benchmark-web-vs-unity.md, "On the Retroid: WebView 109 vs Chrome 154"):
 #   scripts/bench/webview-apk.sh            # builds $WORK/perf-app.apk (default WORK: $TMPDIR/memento-perf-apk)
 #
-# It is the same Capacitor app (android/: MainActivity, the gamepad bridge, the WebView settings) copied
+# It is the same app (android/: WebViewActivity, the gamepad bridge, the WebView settings) copied
 # into $WORK and changed there only, never in android/:
 #   - its own package id com.rnaud.moebius.perf and name "Memento (perf)", so it installs beside the
 #     player's com.rnaud.moebius and never touches it or its saves;
@@ -33,8 +33,14 @@ A=$WORK/android/app
 sed -i '' "s/applicationId \"com.rnaud.moebius\"/applicationId \"$PKG\"/" "$A/build.gradle"
 grep -q "applicationId \"$PKG\"" "$A/build.gradle" || { echo "could not set the package id" >&2; exit 1; }
 sed -i '' 's#<string name="app_name">.*</string>#<string name="app_name">Memento (perf)</string>#; s#<string name="title_activity_main">.*</string>#<string name="title_activity_main">Memento (perf)</string>#' "$A/src/main/res/values/strings.xml"
-sed -i '' 's#^\( *\)new Updater(this, bundles).check();#\1// (perf build: no APK updater)#' "$A/src/main/java/com/rnaud/moebius/MainActivity.java"
-grep -q "new Updater" "$A/src/main/java/com/rnaud/moebius/MainActivity.java" && { echo "could not remove the updater" >&2; exit 1; }
+J=$A/src/main/java/com/rnaud/moebius
+for f in MainActivity WebViewActivity; do
+  sed -i '' 's#^\( *\)new Updater(this, bundles).check();#\1// (perf build: no APK updater)#' "$J/$f.java"
+  grep -q "new Updater" "$J/$f.java" && { echo "could not remove the updater from $f" >&2; exit 1; }
+done
+# always the WebView (the app's own engine is GeckoView since NATIVE_API 6: MainActivity sends this build to WebViewActivity)
+sed -i '' 's#^\( *\)if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return false;#\1if (a != null) return false;   // (perf build: always the WebView)#' "$J/MainActivity.java"
+grep -q "perf build: always the WebView" "$J/MainActivity.java" || { echo "could not keep the perf build in the WebView" >&2; exit 1; }
 # plain http to the bench server (cap sync would set this from server.cleartext)
 sed -i '' 's#<application#<application android:usesCleartextTraffic="true"#' "$A/src/main/AndroidManifest.xml"
 mkdir -p "$A/src/main/assets/public"

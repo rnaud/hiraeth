@@ -20,7 +20,7 @@ import { WindStreaks } from './wind.js';
 import { EDGE_HINTS, EdgeInk } from './edge.js';
 import { HOLO } from './ship/hologram.js';
 import { Physics, dropBuriedFlora } from './physics.js';
-import { tileScene, cullFar, fitBounds, SmallCuller, RoomCuller, resolveQuality, detectHandheld, GpuTimer, adaptScale } from './perf.js';
+import { tileScene, cullFar, fitBounds, SmallCuller, RoomCuller, resolveQuality, detectHandheld, GpuTimer, adaptScale, engineLabel } from './perf.js';
 import { LodManager, lodView } from './lod.js';
 import { skinnedLods } from './skinned-lod.js';
 import { buildFlora, floraKeep, FLORA_WORLDS } from './flora.js';
@@ -1178,9 +1178,11 @@ function missedFrames() {
   return n;
 }
 window.addEventListener('keydown', (e) => { if (e.code === 'KeyF' && !photo.on) settings.set('showFps', !settings.showFps); });
+// (first the engine, and a benchmark's label when it sets one: window.__benchLabel, e.g. "camps r2/3")
+const ENGINE = window.__fpsEngine = engineLabel(navigator.userAgent, location.search, window.Capacitor);
 function frameReadout(fps) {
   const n = Math.max(frameStats.n, 1), gpu = gpuTimer.take();
-  return `${Math.round(fps)} fps · ${(1000 / fps).toFixed(1)} ms (cpu ${(cpuMs / fpsN).toFixed(1)}${gpu !== null ? ` gpu ${gpu.toFixed(1)}` : ''})`
+  return `${ENGINE}${window.__benchLabel ? ` ${window.__benchLabel}` : ''} · ${Math.round(fps)} fps · ${(1000 / fps).toFixed(1)} ms (cpu ${(cpuMs / fpsN).toFixed(1)}${gpu !== null ? ` gpu ${gpu.toFixed(1)}` : ''})`
     + ` · ${quality.renderScale}× · ${Math.round(frameStats.calls / n)} calls · ${Math.round(frameStats.tris / n / 1000)}k tris · ${preset.key}`;
 }
 function frame() {

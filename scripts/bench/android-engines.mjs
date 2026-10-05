@@ -4,11 +4,16 @@
 //   - webview: the app's own engine, the system WebView, in a side-by-side debug build of the app
 //     (com.rnaud.moebius.perf, scripts/bench/webview-apk.sh), reached through
 //     adb forward tcp:9333 localabstract:webview_devtools_remote_<pid>;
-//   - chrome: the device's Chrome, in a tab of our own (adb forward tcp:9333 localabstract:chrome_devtools_remote).
-// Both load http://localhost:5253/ (this Mac, `node scripts/bench/serve.mjs --port 5253`, adb reverse).
+//   - chrome: the device's Chrome, in a tab of our own (adb forward tcp:9333 localabstract:chrome_devtools_remote);
+//   - gecko: GeckoView, Mozilla's engine shipped inside an APK (com.rnaud.moebius.gecko,
+//     scripts/bench/gecko-apk.sh), driven through the page itself (gecko-bridge.mjs: GeckoView's remote
+//     debugging is Firefox's protocol, not DevTools'), so this script serves the game itself (--serve);
+//   - gecko-apk: the same app with the game bundled in its APK (http://127.0.0.1:6281/, its own server).
+// All load http://localhost:5253/ (this Mac, `node scripts/bench/serve.mjs --port 5253`, adb reverse), or
+// with --serve <dist> the build this script serves itself on --port (needed for gecko).
 //
-//   node scripts/bench/android-engines.mjs [--rounds 3] [--modes fixed,dynamic] [--engines webview,chrome]
-//        [--only spawn,camps] [--secs 10] [--startC 45] [--raw dir]
+//   node scripts/bench/android-engines.mjs [--rounds 3] [--modes fixed,dynamic] [--engines webview,chrome,gecko,gecko-apk]
+//        [--only spawn,camps] [--secs 10] [--startC 45] [--raw dir] [--port 5253] [--serve dist] [--resume] [--stall 5]
 // then node scripts/bench/android-engines-summary.mjs <raw dir>.
 //
 // Per run (one engine, one mode): load to the first frame, then every view and path with the page logic
@@ -17,26 +22,34 @@
 // status, the processes' CPU (renderer, the GPU's host process) and memory (dumpsys meminfo), the JS
 // heap, and for mode `dynamic` the render scale the game's dynamic resolution chose. A trace of V8's
 // garbage collector runs alongside (disabled-by-default-v8.gc: only events during a GC) for the pauses
-// on the page's main thread. At the end a shader-compile test: every program the game linked, compiled
+// on the page's main thread (Chromium engines only: Gecko has no DevTools trace here, nor performance.memory). At the end a shader-compile test: every program the game linked, compiled
 // again (made unique, so no cache helps) in a fresh WebGL 2 context, one by one and in parallel.
 // Modes: `fixed` (dynamic resolution off, render scale 0.75 on both: equal pixels), `dynamic` (the
 // Handheld preset as shipped, starting from 0.75).
 //
-// Device rules: it starts, stops and forwards to com.rnaud.moebius.perf only, and never touches
+// Device rules: it starts, stops and forwards to com.rnaud.moebius.perf and .gecko only, and never touches
 // com.rnaud.moebius (the player's app) or a system setting; in Chrome it opens one tab of its own and
 // closes it at the end (other tabs are left alone); it removes its own adb forward / reverse rules.
 import { execFileSync, spawn } from 'node:child_process';
-import { writeFileSync, mkdirSync } from 'node:fs';
+import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { options, viewpoints, sleep, ROOT } from './lib.mjs';
 import { INSTRUMENT } from './browser.mjs';
 import { prepareStorage, conditions, runAll, gpuEstimate } from './web-page.mjs';
 import { Page, thermal, ADB, fullscreen } from '../handheld-perf/lib.mjs';
+import { createServer } from 'node:http';
+import { Bridge, GeckoPage } from './gecko-bridge.mjs';
+import { staticHandler } from './serve.mjs';
 
 const opt = options();
 const PKG = 'com.rnaud.moebius.perf', ACTIVITY = `${PKG}/com.rnaud.moebius.MainActivity`;
+const GPKG = 'com.rnaud.moebius.gecko', GACTIVITY = `${GPKG}/com.rnaud.memento.gecko.MainActivity`;
+const OURS = [PKG, GPKG];
 const PORT = +(opt.port ?? 5253), DTP = +(opt.devtools ?? 9333);
 const BASE = `http://localhost:${PORT}/`, DT = `http://localhost:${DTP}`;
+const APK_BASE = 'http://127.0.0.1:6281/';   // gecko-apk: the game from the APK (the app's AssetServer)
+const baseOf = (engine) => (engine === 'gecko-apk' ? APK_BASE : BASE);
+const isGecko = (engine) => engine.startsWith('gecko');
 const VP = viewpoints();
 const secs = +(opt.secs ?? VP.secs), warmup = +(opt.warmup ?? VP.warmup);
 const rounds = +(opt.rounds ?? 3);
@@ -44,6 +57,9 @@ const modes = String(opt.modes ?? 'fixed,dynamic').split(',');
 const engines = String(opt.engines ?? 'webview,chrome').split(',');
 const only = typeof opt.only === 'string' ? opt.only.split(',') : null;
 const startC = +(opt.startC ?? 45);   // the GPU's temperature to cool down to before a run (°C)
+const lastStep = { at: Date.now(), what: 'start' };
+/** progress (the stall watchdog's): what the run is doing now */
+const step = (what) => { lastStep.at = Date.now(); lastStep.what = what; };
 const RAW = resolve(opt.raw ?? `${ROOT}/scripts/bench/results/raw/android-engines-${new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '')}`);
 mkdirSync(RAW, { recursive: true });
 
@@ -52,7 +68,7 @@ mkdirSync(RAW, { recursive: true });
 function adb(args, { quiet = false } = {}) {
   const line = args.join(' ');
   if (/com\.rnaud\.moebius(?![.\w])/.test(line)) throw new Error(`refusing to touch the player's app: adb ${line}`);
-  if (/\b(settings\s+put|pm\s+(clear|uninstall|disable)|uninstall)\b/.test(line) && !line.includes(PKG)) throw new Error(`refusing: adb ${line}`);
+  if (/\b(settings\s+put|setprop|pm\s+(clear|uninstall|disable)|uninstall)\b/.test(line) && !OURS.some((p) => line.includes(p))) throw new Error(`refusing: adb ${line}`);
   try { return execFileSync(ADB[0], [...ADB.slice(1), ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', quiet ? 'ignore' : 'pipe'] }); } catch (e) { return String(e.stdout ?? ''); }
 }
 const sh = (cmd) => adb(['shell', cmd], { quiet: true });
@@ -81,7 +97,10 @@ function gpuSampler(rendererPid = null, mainTid = null) {
   };
 }
 
-/** the processes worth watching: the app's (WebView: hosts the GPU thread), Chrome's browser and GPU processes, every renderer */
+/**
+ * the processes worth watching: the app's (WebView: hosts the GPU thread), Chrome's browser and GPU processes,
+ * every renderer; GeckoView's parent, its GPU process (WebGL runs there, remoted) and its content processes
+ */
 function processes() {
   const out = sh('ps -A -o PID,NAME');
   const list = [];
@@ -92,6 +111,9 @@ function processes() {
     else if (name === 'com.android.chrome') list.push({ pid, role: 'browser', name });
     else if (name === 'com.android.chrome:privileged_process0') list.push({ pid, role: 'gpu', name });
     else if (/^com\.android\.(chrome|webview):sandboxed_process/.test(name)) list.push({ pid, role: 'renderer', name, engine: name.includes('webview') ? 'webview' : 'chrome' });
+    else if (name === GPKG) list.push({ pid, role: 'app', name, engine: 'gecko' });
+    else if (name.startsWith(GPKG + ':gpu')) list.push({ pid, role: 'gpu', name, engine: 'gecko' });
+    else if (name.startsWith(GPKG + ':tab')) list.push({ pid, role: 'renderer', name, engine: 'gecko' });
   }
   return list;
 }
@@ -115,7 +137,7 @@ async function coolDown(label) {
   const t0 = Date.now();
   let t = temps();
   while (t.gpuC > startC && Date.now() - t0 < 6 * 60000) {
-    console.log(`${label}: GPU ${t.gpuC} °C > ${startC}: cooling…`);
+    console.log(`${label}: GPU ${t.gpuC} °C > ${startC}: cooling…`); step(`${label} cooling`);
     await sleep(30000); t = temps();
   }
   return { ...t, waited: Math.round((Date.now() - t0) / 1000) };
@@ -163,8 +185,33 @@ async function reconnect(targetId) {
   throw new Error('the page is gone');
 }
 
+// the game served here, with the page bridge for Gecko (--serve <dist>)
+const bridge = new Bridge();
+let server = null;
+if (opt.serve) {
+  const dist = resolve(ROOT, String(opt.serve));
+  const files = staticHandler([['/', dist]], { inject: (req) => bridge.tagFor(req) });
+  server = createServer((req, res) => { if (!bridge.handle(req, res)) files(req, res); });
+  await new Promise((r) => server.listen(PORT, r));
+  console.log(`serving ${dist} on ${BASE} (with the Gecko page bridge)`);
+} else if (engines.some(isGecko)) throw new Error('gecko needs --serve <dist> (the page bridge lives in this script)');
+
 async function bringUp(engine) {
   adb(['reverse', `tcp:${PORT}`, `tcp:${PORT}`]);   // (again each run: another adb client may have restarted the server)
+  if (isGecko(engine)) {
+    adb(['shell', 'am', 'force-stop', GPKG]);   // (ours: every run starts with a fresh app process)
+    await sleep(1000);
+    const seen = bridge.seen;
+    const url = engine === 'gecko-apk' ? ['--es', 'url', 'bundled:/bench-blank.html', '--es', 'inject', `${BASE}__bridge/init.js`] : ['--es', 'url', BASE + 'bench-blank.html'];
+    adb(['shell', 'am', 'start', '-n', GACTIVITY, ...url]);
+    let pid = '';
+    for (let i = 0; i < 80 && !pid; i++) { await sleep(250); pid = sh(`pidof ${GPKG}`).trim().split(/\s+/)[0]; }
+    if (!pid) throw new Error('the gecko app did not start');
+    await bridge.waitPage(baseOf(engine), seen);
+    const page = new GeckoPage(bridge);
+    const ua = await page.eval('navigator.userAgent');
+    return { page, version: { Browser: ua.match(/Firefox\/[\d.]+/)?.[0] ?? ua, 'Android-Package': GPKG, 'V8-Version': null, engine: 'Gecko ' + (ua.match(/rv:([\d.]+)/)?.[1] ?? '') }, appPid: +pid };
+  }
   if (engine === 'webview') {
     adb(['shell', 'am', 'force-stop', PKG]);   // (ours: every run starts with a fresh app process)
     await sleep(1000);
@@ -197,7 +244,8 @@ async function bringUp(engine) {
 }
 
 /** a GC trace from the browser target (all processes; the page's own main thread is found by its marks) */
-async function startTrace() {
+async function startTrace(engine) {
+  if (isGecko(engine)) return { error: 'no DevTools trace in GeckoView', stop: async () => null };
   const v = await json('/json/version');
   const ws = new WebSocket(v.webSocketDebuggerUrl);
   await new Promise((r, j) => { ws.addEventListener('open', r); ws.addEventListener('error', j); });
@@ -267,6 +315,17 @@ const EXTRA = `(() => {
   P.attachShader = function (p, s) { (att.get(p) ?? att.set(p, []).get(p)).push(s); return as.call(this, p, s); };
   P.linkProgram = function (p) { if (this === B.gl) { const sh = att.get(p) ?? []; const v = sh.find((s) => this.getShaderParameter(s, this.SHADER_TYPE) === this.VERTEX_SHADER), f = sh.find((s) => this.getShaderParameter(s, this.SHADER_TYPE) === this.FRAGMENT_SHADER); if (v && f) B.programs.push([src.get(v), src.get(f), performance.now()]); } return lp.call(this, p); };
   P.getProgramParameter = function (p, n) { const t = performance.now(); try { return gp.call(this, p, n); } finally { if (this === B.gl && n === this.LINK_STATUS) B.linkMs += performance.now() - t; } };
+  // the engine and the run first on the game's readout (#fps), for whoever watches the device. A game
+  // that writes the engine itself (window.__fpsEngine, from v0.61) shows window.__benchLabel too; for
+  // older builds this does it, watching that one element
+  const ua = navigator.userAgent, ver = (re) => (ua.match(re) || [])[1];
+  const eng = /Firefox\\//.test(ua) ? 'GECKO ' + ver(/Firefox\\/(\\d+)/) : (/; wv\\)/.test(ua) ? 'WEBVIEW ' : 'CHROME ') + ver(/Chrome\\/(\\d+)/);
+  const mark = () => {
+    const el = document.getElementById('fps'); if (!el || window.__fpsEngine || !el.textContent) return;
+    const p = eng + (window.__benchLabel ? ' ' + window.__benchLabel : '') + ' · ';
+    if (!el.textContent.startsWith(p)) el.textContent = p + el.textContent.replace(/^(GECKO|WEBVIEW|CHROME) [^·]*· /, '');
+  };
+  const watch = setInterval(() => { const el = document.getElementById('fps'); if (!el) return; clearInterval(watch); new MutationObserver(mark).observe(el, { childList: true, characterData: true, subtree: true }); }, 1000);
 })();`;
 
 /** compile and link every program the game linked, again, in a fresh context: made unique (a uniform of its own) so no cache can serve it */
@@ -346,16 +405,19 @@ async function run(engine, mode, round) {
   const label = `r${round} ${engine} ${mode}`;
   const cool = await coolDown(label);
   console.log(`${label}: start at GPU ${cool.gpuC} °C, CPU ${cool.cpuC} °C, battery ${cool.batteryC} °C, ${cool.thermal}`);
+  step(`${label} start`);
   let { page, version, appPid } = await bringUp(engine);
+  step(`${label} load`);
   const ev = (fn, arg) => page.eval(fn, arg);
   const errors = [], warnings = [];
   const logTo = (type, t) => { if (type === 'exception' || type === 'error') errors.push(t.slice(0, 200)); else if (type === 'warning') warnings.push(t.slice(0, 200)); };
   page.log = logTo;
   await page.send('Page.addScriptToEvaluateOnNewDocument', { source: INSTRUMENT + '\n' + EXTRA });
-  await page.goto(BASE + 'bench-blank.html');
+  const base = baseOf(engine);
+  if (!isGecko(engine)) await page.goto(base + 'bench-blank.html');   // (Gecko starts there)
   await prepareStorage(ev, 'handheld');
   const tNav = Date.now();
-  await page.goto(BASE + '?level=desert');
+  await page.goto(base + '?level=desert');
   await page.waitFor('!!(window.__moebiusBooted && window.renderFrame && window.player)', 300000, 250);
   const load = await ev(() => {
     const n = performance.getEntriesByType('navigation')[0], res = performance.getEntriesByType('resource');
@@ -383,9 +445,13 @@ async function run(engine, mode, round) {
   let procs = processes(), last = jiffies(procs.map((p) => p.pid)), lastT = Date.now();
   await sleep(2000);
   const busy = jiffies(procs.map((p) => p.pid));
-  const mine = procs.filter((p) => p.role === 'renderer' && p.engine === engine).sort((a, b) => (busy[b.pid] - last[b.pid]) - (busy[a.pid] - last[a.pid]))[0];
-  const gpuHost = procs.find((p) => (engine === 'webview' ? p.role === 'app' : p.role === 'gpu'));
-  const mainTid = mine ? +(sh(`grep -l CrRendererMain /proc/${mine.pid}/task/*/comm`).trim().split('/')[4]) || null : null;
+  const eng = isGecko(engine) ? 'gecko' : engine;
+  const mine = procs.filter((p) => p.role === 'renderer' && p.engine === eng).sort((a, b) => (busy[b.pid] - last[b.pid]) - (busy[a.pid] - last[a.pid]))[0];
+  const isHost = (p) => (engine === 'webview' ? p.role === 'app' && !p.engine : eng === 'gecko' ? p.role === 'gpu' && p.engine === 'gecko' : p.role === 'gpu' && !p.engine);
+  const gpuHost = procs.find(isHost);
+  // the page's main thread: Chromium's CrRendererMain; Gecko's content process main thread is named after the process type
+  const mainName = eng === 'gecko' ? "-E '^(Isolated Web Co|Web Content)'" : 'CrRendererMain';
+  const mainTid = mine ? +(sh(`grep -l ${mainName} /proc/${mine.pid}/task/*/comm`).trim().split('\n')[0].split('/')[4]) || null : null;
   const placement = { mainTid };
   for (const [k, p] of [['renderer', mine], ['host', gpuHost]]) if (p) placement[k] = { pid: p.pid, name: p.name, cgroup: sh(`grep -E 'cpuset|cpu:' /proc/${p.pid}/cgroup`).trim().replace(/\s+/g, ' '), allowed: sh(`grep Cpus_allowed_list /proc/${p.pid}/status`).trim().split(/\s+/)[1] };
   last = busy; lastT = Date.now();
@@ -400,11 +466,12 @@ async function run(engine, mode, round) {
     // CPU since the last reading (the view's warm-up and its recording), cores
     const now = jiffies(procs.map((p) => p.pid)), dt = (Date.now() - lastT) / 1000;
     const cpu = procs.map((p) => ({ ...p, cores: now[p.pid] != null && last[p.pid] != null ? +((now[p.pid] - last[p.pid]) / CLK / dt).toFixed(2) : null }));
-    const renderer = cpu.filter((p) => p.role === 'renderer' && p.engine === engine).sort((a, b) => (b.cores ?? 0) - (a.cores ?? 0))[0];
-    const host = cpu.find((p) => (engine === 'webview' ? p.role === 'app' : p.role === 'gpu'));
+    const renderer = cpu.filter((p) => p.role === 'renderer' && p.engine === eng).sort((a, b) => (b.cores ?? 0) - (a.cores ?? 0))[0];
+    const host = cpu.find(isHost);
+    const parent = eng === 'gecko' ? cpu.find((p) => p.role === 'app' && p.engine === 'gecko') : null;
     const browser = engine === 'chrome' ? cpu.find((p) => p.role === 'browser') : null;
-    const mem = { renderer: renderer ? meminfo(renderer.pid) : null, host: host ? meminfo(host.pid) : null };
-    return { ...g, ...th, ...pageSide, proc: { renderer: renderer && { pid: renderer.pid, cores: renderer.cores }, host: host && { pid: host.pid, cores: host.cores, name: host.name }, browser: browser && { cores: browser.cores } }, mem };
+    const mem = { renderer: renderer ? meminfo(renderer.pid) : null, host: host ? meminfo(host.pid) : null, parent: parent ? meminfo(parent.pid) : null };
+    return { ...g, ...th, ...pageSide, proc: { renderer: renderer && { pid: renderer.pid, cores: renderer.cores }, host: host && { pid: host.pid, cores: host.cores, name: host.name }, browser: browser && { cores: browser.cores }, parent: parent && { pid: parent.pid, cores: parent.cores } }, mem };
   };
   // each view and path on its own, with its own GC trace; when the connection goes (an adb server
   // restart) or the page was sent to the background, that one again (three tries)
@@ -413,11 +480,13 @@ async function run(engine, mode, round) {
   let gs = null;
   for (const name of items) {
     let v = null;
+    step(`${label} ${name}`);
+    await ev((l) => { window.__benchLabel = l; return true; }, `${name} r${round}/${rounds} ${mode}`).catch(() => 0);
     for (let attempt = 1; attempt <= 3; attempt++) {
       let trace = null;
       try {
         if (page.closed) { page = await reconnect(page.targetId); page.log = logTo; if (!(await ev('!!window.__benchSet'))) throw new Error('the page was reloaded'); }
-        trace = await startTrace();
+        trace = await startTrace(engine);
         gs = gpuSampler(mine?.pid, mainTid);
         procs = processes(); last = jiffies(procs.map((p) => p.pid)); lastT = Date.now();
         const one = { ...VP, views: VP.views.filter((x) => x.name === name), paths: VP.paths.filter((x) => x.name === name) };
@@ -431,7 +500,7 @@ async function run(engine, mode, round) {
         if (!v.interrupted) break;
         console.error(`${label} ${name}: interrupted (sent to the background), again`);
         if (engine === 'chrome') { adb(['shell', 'am', 'start', '-n', 'com.android.chrome/com.google.android.apps.chrome.Main']); await sleep(1500); await fetch(`${DT}/json/activate/${page.targetId}`).catch(() => 0); }
-        else adb(['shell', 'am', 'start', '-n', ACTIVITY]);
+        else adb(['shell', 'am', 'start', '-n', isGecko(engine) ? GACTIVITY : ACTIVITY]);
         await sleep(3000);
       } catch (err) {
         gs?.stop();
@@ -450,7 +519,9 @@ async function run(engine, mode, round) {
     }
   };
   // (once per engine and round: it takes the best part of a minute on the WebView)
+  step(`${label} shader test`);
   const shaders = mode === modes[0] ? await safe(() => shaderTest(ev)) : null;
+  step(`${label} js test`);
   // plain JS speed on the page's main thread (three.js math and short-lived objects, as a frame makes), best of 5 × 300 ms
   const js = await safe(() => ev(() => {
     const { THREE } = window, a = new THREE.Matrix4(), b = new THREE.Matrix4().makeRotationY(0.3), v = new THREE.Vector3();
@@ -468,6 +539,7 @@ async function run(engine, mode, round) {
   if (engine === 'chrome') await page.goto(BASE + 'bench-blank.html').catch(() => 0);
   page.close();
   if (engine === 'webview') adb(['shell', 'am', 'force-stop', PKG]);
+  if (isGecko(engine)) adb(['shell', 'am', 'force-stop', GPKG]);
   const result = { engine, mode, round, placement, js, browser: version.Browser, package: version['Android-Package'], v8: version['V8-Version'], features: feat, canvas, load, shaders, gpuEstimate: gpuEst,
     start: cool, end, errors: errors.slice(0, 10), warnings: [...new Set(warnings)].slice(0, 10), time: new Date().toISOString(), appPid, views };
   writeFileSync(`${RAW}/r${round}-${engine}-${mode}.json`, JSON.stringify(result) + '\n');
@@ -479,11 +551,28 @@ async function run(engine, mode, round) {
 /** after a failed run: the perf app stopped, our tab on an empty page */
 async function idle() {
   adb(['shell', 'am', 'force-stop', PKG]);
+  adb(['shell', 'am', 'force-stop', GPKG]);
   try {
     forward('localabstract:chrome_devtools_remote');
     for (const id of opened) { const t = (await json('/json')).find((p) => p.id === id); if (t && !t.url.endsWith('bench-blank.html')) { const pg = await connect(t); await pg.goto(BASE + 'bench-blank.html'); pg.close(); } }
   } catch { /* */ }
 }
+/** ours stopped and our port rules gone, at once (a signal, a stall) */
+function cleanupNow() {
+  for (const p of OURS) adb(['shell', 'am', 'force-stop', p]);
+  adb(['forward', '--remove', `tcp:${DTP}`]);
+  adb(['reverse', '--remove', `tcp:${PORT}`]);
+}
+for (const sig of ['SIGINT', 'SIGTERM', 'SIGHUP']) process.on(sig, () => { console.error(`${sig}: stopping ours`); cleanupNow(); process.exit(130); });
+// a step that makes no progress for --stall minutes (a page that hung): written down, ours stopped, out
+const stallMs = +(opt.stall ?? 5) * 60000;
+setInterval(() => {
+  if (Date.now() - lastStep.at < stallMs) return;
+  const what = { stalledAt: lastStep.what, since: new Date(lastStep.at).toISOString(), minutes: +((Date.now() - lastStep.at) / 60000).toFixed(1) };
+  console.error(`stalled: ${JSON.stringify(what)}`);
+  try { writeFileSync(`${RAW}/stall-${Date.now()}.json`, JSON.stringify(what) + '\n'); } catch { /* */ }
+  cleanupNow(); process.exit(2);
+}, 10000).unref();
 const refresh = sh('dumpsys SurfaceFlinger | grep -m1 refresh-rate').trim();
 console.log(`device ${sh('getprop ro.product.model').trim()}, ${refresh}; raw results in ${RAW}`);
 adb(['reverse', `tcp:${PORT}`, `tcp:${PORT}`]);
@@ -493,6 +582,8 @@ try {
     const order = [];
     for (const m of modes) { const e = r % 2 ? engines : engines.slice().reverse(); for (const x of e) order.push([x, m]); }
     for (const [e, m] of order) {
+      // (--resume: the runs already in the raw directory stay as they are)
+      if (opt.resume && existsSync(`${RAW}/r${r}-${e}-${m}.json`)) { console.log(`r${r} ${e} ${m}: already there`); continue; }
       for (let attempt = 1; attempt <= 3; attempt++) {
         try { await run(e, m, r); break; }
         catch (err) { console.error(`r${r} ${e} ${m} failed (attempt ${attempt}): ${err.stack ?? err}`); if (attempt === 3) failed++; await idle(); }
@@ -503,7 +594,9 @@ try {
   // ours only: the perf app stopped, our Chrome tab closed, our port rules removed
   clearInterval(keeper);
   adb(['shell', 'am', 'force-stop', PKG]);
-  try { forward('localabstract:chrome_devtools_remote'); for (const id of opened) await fetch(`${DT}/json/close/${id}`); } catch { /* */ }
+  adb(['shell', 'am', 'force-stop', GPKG]);
+  server?.close();
+  if (opened.size) try { forward('localabstract:chrome_devtools_remote'); for (const id of opened) await fetch(`${DT}/json/close/${id}`); } catch { /* */ }
   adb(['forward', '--remove', `tcp:${DTP}`]);
   adb(['reverse', '--remove', `tcp:${PORT}`]);
   console.log(`done (${failed} failed runs); node scripts/bench/android-engines-summary.mjs ${RAW}`);

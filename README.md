@@ -1904,7 +1904,9 @@ vertical folds held the cloth out flat like a board, so the lower half lay sprea
 
 ## Android (offline APK)
 The game is also packaged as an Android app, for handhelds such as the Retroid
-Pocket. Their built-in controls work through the Gamepad API.
+Pocket. Their built-in controls work through the Gamepad API. Since NATIVE_API 6 the app runs
+the game in its own engine, GeckoView, and in the system WebView only where that can't run
+(see "The engine: GeckoView").
 - **Release workflow** (`.github/workflows/android.yml`): every push to `main`
   builds the web game, wraps it with Capacitor (`capacitor.config.json`,
   `android/`) and builds a signed release APK. The APK is published to the
@@ -1927,7 +1929,7 @@ Pocket. Their built-in controls work through the Gamepad API.
   and plays sound without an extra tap. `versionName` is the game version and
   `versionCode` is the build number (`release-info.mjs build`: the commit count; up to 117 it was
   the workflow run number).
-- **Local build** (needs JDK 21 and the Android SDK):
+- **Local build** (needs JDK 21 and the Android SDK with the API 37.0 platform, for GeckoView):
   ```
   npm run build && npx cap sync android && (cd android && ./gradlew assembleDebug)
   ```
@@ -2081,6 +2083,48 @@ updates now come from the Cloudflare site that serves the web game:
   `docs/steam-deck.md`).
 - Tests: `tests/web-update.test.js`, `tests/android-ota.test.js`, `tests/updates.test.js`,
   `UpdateRulesTest.java`, `tests/test_steam_deck.py`. The flip itself: `docs/cloudflare.md`.
+
+### The engine: GeckoView (NATIVE_API 6)
+The app ships its own browser engine now: GeckoView (Mozilla's, `org.mozilla.geckoview`, release
+channel, arm64), instead of the system WebView. On handhelds whose firmware pins an old WebView
+(the Retroid Pocket Nova: Chromium 109) the game missed 23–50 % of the refreshes in busy places
+(30–45 fps); in GeckoView 157 the same build misses 1–15 % (51–60 fps, a third less JS per frame) and
+loads in 12 s instead of 21 (docs/benchmark-web-vs-unity.md, "On the Retroid: GeckoView"). Chrome 154
+does better still, but the app can't use it.
+- **Two activities.** `MainActivity` (the launcher, so home-screen icons keep working) runs the game
+  in GeckoView. Where GeckoView can't run (not arm64, Android before 8, or GeckoView failed to start
+  here once: `MainActivity.usable`) it hands over to `WebViewActivity`, the Capacitor app as before.
+  `--ez webview true` forces the WebView (debug and bench builds).
+- **The page's origin** is `http://127.0.0.1:41730` (`MainActivity.ORIGIN`), served by the app's
+  loopback server (`AssetServer`): GeckoView can't intercept requests the way Capacitor serves
+  `https://localhost`, and pages from `resource://android/` get no content scripts. The port is
+  fixed for good (the saves are stored under the origin); if another app holds it, that launch runs
+  in the WebView. The server serves the APK's `assets/public/` or a downloaded bundle
+  (`WebBundles.Host.serve`), revalidated by ETags made of the build served.
+- **The bridge.** GeckoView has no `addJavascriptInterface` / `evaluateJavascript`: a built-in
+  WebExtension (`assets/memento-ext/`, a content script at `document_start` with a native port)
+  gives the page `window.Capacitor` (`isNativePlatform`, `nativePromise` → `AppShell.java`, shared
+  with `AppShellPlugin`), the controls (`GamepadBridge` → `window.__nativePad`), the app's events
+  (`moebius:pause` / `resume` / `webupdate`) and answers WebBundles' boot heartbeat. The page side
+  (`src/native-app.js`, `src/native-pad.js`) is unchanged.
+- **Saves, once** (`SaveImport`): on the first launch in GeckoView a hidden WebView opens a page of
+  Capacitor's origin that hands its localStorage to the app, and the game's next page starts with a
+  script that writes those keys into GeckoView's storage (keys already there are kept) and marks it
+  done (`moebius.imported.v1`). The WebView's storage is only read: the WebView fallback still has
+  the saves as they were.
+- **Gecko settings** (its config file, `writeConfig`): autoplay allowed (sound without a tap), no
+  slow-script stop (`dom.max_script_run_time` 0, and `onSlowScript` → CONTINUE: GeckoView's default
+  stops a script after ~10 s, which left the page dead), no pinch zoom, full-precision timers. Links
+  elsewhere open in the system browser.
+- **The build:** `geckoviewVersion` in `android/variables.gradle`; GeckoView 157 compiles against
+  API 37 (`compileSdkVersion` 37, `android.suppressUnsupportedCompileSdk=37` for the Android Gradle
+  plugin 8.13) and its androidx.core 1.19 would need the plugin 9.1, so the app forces the 1.17 it
+  had. Gecko's libraries are compressed in the APK (`useLegacyPackaging`): 9.5 → ~100 MB to download.
+  CI keeps the AAR in setup-java's Gradle cache and the API 37 platform in an `actions/cache`.
+- **Testing on a device:** a debug build takes `--es url http://localhost:6253/…` (the bench's
+  server) and has GeckoView's remote debugging on (Firefox's protocol, not DevTools). The bench's
+  harness drives the page itself instead (`scripts/bench/gecko-bridge.mjs`).
+- Tests: `tests/android-gecko.test.js`, `tests/native-app.test.js`, `tests/android-ota.test.js`.
 
 ### Updates that arrive, and the update section in the settings (NATIVE_API 4)
 Why updates used to arrive at random, and what changed:

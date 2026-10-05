@@ -1,0 +1,8653 @@
+{
+ "about": "Memento on the Retroid Pocket Nova: the same web build in GeckoView 157 (com.rnaud.moebius.gecko, the game from this Mac, and from its APK: gecko-apk) and in the system WebView 109 (com.rnaud.moebius.perf), same session, rounds alternating; Chrome 154 from the earlier session; Handheld preset; scripts/bench/android-engines.mjs",
+ "from": "scripts/bench/results/raw/android-gecko-main",
+ "apkFrom": "scripts/bench/results/raw/android-gecko-apk",
+ "build": "07af71c",
+ "time": "2026-10-05T18:12:43.940Z",
+ "method": {
+  "secs": 10,
+  "rounds": 3,
+  "modes": {
+   "fixed": "dynamic resolution off, render scale 0.75 on both (equal pixels)",
+   "dynamic": "the Handheld preset as shipped (dynamic resolution 0.5–0.9), starting at 0.75"
+  },
+  "missed": "share of 60 Hz refreshes missed: each frame interval counts round(interval / 16.7) refreshes, all but one missed",
+  "js": "median time of the animation-frame callbacks (the game's whole frame on the main thread)",
+  "gc": "Chromium only (V8 trace); GeckoView has no DevTools trace",
+  "heap": "Chromium only (performance.memory)"
+ },
+ "engines": {
+  "gecko": {
+   "browser": "Firefox/157.0",
+   "v8": null,
+   "ua": "Mozilla/5.0 (Android 13; Mobile; rv:157.0) Gecko/157.0 Firefox/157.0",
+   "gl": {
+    "renderer": "Adreno (TM) 650, or similar",
+    "version": "WebGL 2.0",
+    "view": "640x480",
+    "dpr": 2,
+    "limits": {
+     "MAX_TEXTURE_SIZE": 16384,
+     "MAX_RENDERBUFFER_SIZE": 16384,
+     "MAX_SAMPLES": 4,
+     "MAX_DRAW_BUFFERS": 8,
+     "MAX_COLOR_ATTACHMENTS": 8,
+     "MAX_VERTEX_UNIFORM_VECTORS": 256,
+     "MAX_FRAGMENT_UNIFORM_VECTORS": 256,
+     "MAX_UNIFORM_BLOCK_SIZE": 65536,
+     "MAX_COMBINED_TEXTURE_IMAGE_UNITS": 96,
+     "MAX_3D_TEXTURE_SIZE": 2048,
+     "MAX_ARRAY_TEXTURE_LAYERS": 2048
+    },
+    "extensions": [
+     "EXT_color_buffer_float",
+     "EXT_depth_clamp",
+     "EXT_float_blend",
+     "EXT_texture_compression_bptc",
+     "EXT_texture_compression_rgtc",
+     "EXT_texture_filter_anisotropic",
+     "OES_draw_buffers_indexed",
+     "OES_texture_float_linear",
+     "OVR_multiview2",
+     "WEBGL_compressed_texture_astc",
+     "WEBGL_compressed_texture_etc",
+     "WEBGL_compressed_texture_etc1",
+     "WEBGL_compressed_texture_s3tc",
+     "WEBGL_compressed_texture_s3tc_srgb",
+     "WEBGL_debug_renderer_info",
+     "WEBGL_debug_shaders",
+     "WEBGL_lose_context"
+    ],
+    "contextAttributes": {
+     "alpha": true,
+     "antialias": false,
+     "depth": true,
+     "failIfMajorPerformanceCaveat": false,
+     "powerPreference": "high-performance",
+     "premultipliedAlpha": true,
+     "preserveDrawingBuffer": false,
+     "stencil": false
+    }
+   },
+   "web": {
+    "webgpu": false,
+    "offscreenCanvas": true,
+    "offscreenWebgl2": true,
+    "gamepads": true,
+    "wakeLock": true,
+    "fullscreen": true,
+    "performanceMemory": false,
+    "measureUserAgentSpecificMemory": false,
+    "scheduler": true,
+    "schedulerYield": true,
+    "compressionStreams": true,
+    "structuredClone": true,
+    "arrayFindLast": true,
+    "objectGroupBy": true,
+    "arrayToSorted": true,
+    "promiseWithResolvers": true,
+    "setUnion": true,
+    "iteratorHelpers": true,
+    "cssHas": true,
+    "cssContainer": true,
+    "cssNesting": true,
+    "viewTransitions": true,
+    "popover": true,
+    "dialog": true,
+    "requestVideoFrameCallback": true,
+    "sharedArrayBuffer": false,
+    "crossOriginIsolated": false,
+    "audioWorklet": true,
+    "webAssemblySimd": true,
+    "capacitor": true
+   },
+   "placement": {
+    "mainTid": 32174,
+    "renderer": {
+     "pid": 32152,
+     "name": "com.rnaud.moebius.gecko:tab_disable_art_image_16",
+     "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
+     "allowed": "0-7"
+    },
+    "host": {
+     "pid": 32028,
+     "name": "com.rnaud.moebius.gecko:gpu_disable_art_image_",
+     "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
+     "allowed": "0-7"
+    }
+   },
+   "load": {
+    "firstFrameS": 15.565,
+    "firstFrameRange": [
+     14.24,
+     16.21
+    ],
+    "runs": 6,
+    "transferMB": 9.6,
+    "programsAtFirstFrame": 68
+   },
+   "shaders": {
+    "programs": 75,
+    "sourceKB": 6675,
+    "serialMs": 20843.5,
+    "serialRange": [
+     20749.5,
+     20861.1
+    ],
+    "medianMs": 366.8,
+    "worstMs": 502.7,
+    "againMs": 19671.1,
+    "originalMs": 13736.5,
+    "parallelExt": false,
+    "parallelMs": null,
+    "runs": 3
+   },
+   "jsKIterPerMs": 14.455,
+   "jsRange": [
+    13.87,
+    14.72
+   ],
+   "warnings": [
+    "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+    "THREE.WebGLRenderer: KHR_parallel_shader_compile extension not supported."
+   ],
+   "errors": []
+  },
+  "webview": {
+   "browser": "Chrome/109.0.5414.123",
+   "v8": "10.9.194.10",
+   "ua": "Mozilla/5.0 (Linux; Android 13; Retroid Pocket Nova Build/TKQ1.231222.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/109.0.5414.123 Mobile Safari/537.36",
+   "gl": {
+    "renderer": "Adreno (TM) 740",
+    "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+    "view": "640x480",
+    "dpr": 2,
+    "limits": {
+     "MAX_TEXTURE_SIZE": 4096,
+     "MAX_RENDERBUFFER_SIZE": 16384,
+     "MAX_SAMPLES": 4,
+     "MAX_DRAW_BUFFERS": 8,
+     "MAX_COLOR_ATTACHMENTS": 8,
+     "MAX_VERTEX_UNIFORM_VECTORS": 256,
+     "MAX_FRAGMENT_UNIFORM_VECTORS": 256,
+     "MAX_UNIFORM_BLOCK_SIZE": 65536,
+     "MAX_COMBINED_TEXTURE_IMAGE_UNITS": 96,
+     "MAX_3D_TEXTURE_SIZE": 2048,
+     "MAX_ARRAY_TEXTURE_LAYERS": 2048
+    },
+    "extensions": [
+     "EXT_color_buffer_float",
+     "EXT_color_buffer_half_float",
+     "EXT_float_blend",
+     "EXT_texture_compression_bptc",
+     "EXT_texture_compression_rgtc",
+     "EXT_texture_filter_anisotropic",
+     "EXT_texture_norm16",
+     "OES_texture_float_linear",
+     "WEBGL_compressed_texture_astc",
+     "WEBGL_compressed_texture_etc",
+     "WEBGL_compressed_texture_etc1",
+     "WEBGL_compressed_texture_s3tc",
+     "WEBGL_compressed_texture_s3tc_srgb",
+     "WEBGL_debug_renderer_info",
+     "WEBGL_debug_shaders",
+     "WEBGL_lose_context",
+     "WEBGL_multi_draw"
+    ],
+    "contextAttributes": {
+     "alpha": true,
+     "antialias": false,
+     "depth": true,
+     "desynchronized": false,
+     "failIfMajorPerformanceCaveat": false,
+     "powerPreference": "high-performance",
+     "premultipliedAlpha": true,
+     "preserveDrawingBuffer": false,
+     "stencil": false
+    }
+   },
+   "web": {
+    "webgpu": false,
+    "offscreenCanvas": true,
+    "offscreenWebgl2": true,
+    "gamepads": true,
+    "wakeLock": true,
+    "fullscreen": true,
+    "performanceMemory": true,
+    "measureUserAgentSpecificMemory": false,
+    "scheduler": true,
+    "schedulerYield": false,
+    "compressionStreams": true,
+    "structuredClone": true,
+    "arrayFindLast": true,
+    "objectGroupBy": false,
+    "arrayToSorted": false,
+    "promiseWithResolvers": false,
+    "setUnion": false,
+    "iteratorHelpers": false,
+    "cssHas": true,
+    "cssContainer": true,
+    "cssNesting": true,
+    "viewTransitions": false,
+    "popover": false,
+    "dialog": true,
+    "requestVideoFrameCallback": true,
+    "sharedArrayBuffer": false,
+    "crossOriginIsolated": false,
+    "audioWorklet": true,
+    "webAssemblySimd": true,
+    "capacitor": true
+   },
+   "placement": {
+    "mainTid": 4161,
+    "renderer": {
+     "pid": 4131,
+     "name": "com.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0",
+     "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
+     "allowed": "0-2,5-6"
+    },
+    "host": {
+     "pid": 4099,
+     "name": "com.rnaud.moebius.perf",
+     "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
+     "allowed": "0-7"
+    }
+   },
+   "load": {
+    "firstFrameS": 21.28,
+    "firstFrameRange": [
+     19.29,
+     22.45
+    ],
+    "runs": 6,
+    "transferMB": 9.6,
+    "programsAtFirstFrame": 68
+   },
+   "shaders": {
+    "programs": 75,
+    "sourceKB": 6675,
+    "serialMs": 22468,
+    "serialRange": [
+     22459.7,
+     22468.6
+    ],
+    "medianMs": 395.5,
+    "worstMs": 545.1,
+    "againMs": 21346.8,
+    "originalMs": 16087.3,
+    "parallelExt": false,
+    "parallelMs": null,
+    "runs": 3
+   },
+   "jsKIterPerMs": 17.075,
+   "jsRange": [
+    17,
+    17.13
+   ],
+   "warnings": [
+    "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+    "THREE.WebGLRenderer: KHR_parallel_shader_compile extension not supported."
+   ],
+   "errors": [
+    "Error injecting safe area CSS: TypeError: Cannot read properties of null (reading 'style')\n    at <anonymous>:2:28"
+   ]
+  },
+  "gecko-apk": {
+   "browser": "Firefox/157.0",
+   "v8": null,
+   "ua": "Mozilla/5.0 (Android 13; Mobile; rv:157.0) Gecko/157.0 Firefox/157.0",
+   "gl": {
+    "renderer": "Adreno (TM) 650, or similar",
+    "version": "WebGL 2.0",
+    "view": "640x480",
+    "dpr": 2,
+    "limits": {
+     "MAX_TEXTURE_SIZE": 16384,
+     "MAX_RENDERBUFFER_SIZE": 16384,
+     "MAX_SAMPLES": 4,
+     "MAX_DRAW_BUFFERS": 8,
+     "MAX_COLOR_ATTACHMENTS": 8,
+     "MAX_VERTEX_UNIFORM_VECTORS": 256,
+     "MAX_FRAGMENT_UNIFORM_VECTORS": 256,
+     "MAX_UNIFORM_BLOCK_SIZE": 65536,
+     "MAX_COMBINED_TEXTURE_IMAGE_UNITS": 96,
+     "MAX_3D_TEXTURE_SIZE": 2048,
+     "MAX_ARRAY_TEXTURE_LAYERS": 2048
+    },
+    "extensions": [
+     "EXT_color_buffer_float",
+     "EXT_depth_clamp",
+     "EXT_float_blend",
+     "EXT_texture_compression_bptc",
+     "EXT_texture_compression_rgtc",
+     "EXT_texture_filter_anisotropic",
+     "OES_draw_buffers_indexed",
+     "OES_texture_float_linear",
+     "OVR_multiview2",
+     "WEBGL_compressed_texture_astc",
+     "WEBGL_compressed_texture_etc",
+     "WEBGL_compressed_texture_etc1",
+     "WEBGL_compressed_texture_s3tc",
+     "WEBGL_compressed_texture_s3tc_srgb",
+     "WEBGL_debug_renderer_info",
+     "WEBGL_debug_shaders",
+     "WEBGL_lose_context"
+    ],
+    "contextAttributes": {
+     "alpha": true,
+     "antialias": false,
+     "depth": true,
+     "failIfMajorPerformanceCaveat": false,
+     "powerPreference": "high-performance",
+     "premultipliedAlpha": true,
+     "preserveDrawingBuffer": false,
+     "stencil": false
+    }
+   },
+   "web": {
+    "webgpu": false,
+    "offscreenCanvas": true,
+    "offscreenWebgl2": true,
+    "gamepads": true,
+    "wakeLock": true,
+    "fullscreen": true,
+    "performanceMemory": false,
+    "measureUserAgentSpecificMemory": false,
+    "scheduler": true,
+    "schedulerYield": true,
+    "compressionStreams": true,
+    "structuredClone": true,
+    "arrayFindLast": true,
+    "objectGroupBy": true,
+    "arrayToSorted": true,
+    "promiseWithResolvers": true,
+    "setUnion": true,
+    "iteratorHelpers": true,
+    "cssHas": true,
+    "cssContainer": true,
+    "cssNesting": true,
+    "viewTransitions": true,
+    "popover": true,
+    "dialog": true,
+    "requestVideoFrameCallback": true,
+    "sharedArrayBuffer": false,
+    "crossOriginIsolated": false,
+    "audioWorklet": true,
+    "webAssemblySimd": true,
+    "capacitor": true
+   },
+   "placement": {
+    "mainTid": 32080,
+    "renderer": {
+     "pid": 32056,
+     "name": "com.rnaud.moebius.gecko:tab_disable_art_image_22",
+     "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
+     "allowed": "0-7"
+    },
+    "host": {
+     "pid": 31929,
+     "name": "com.rnaud.moebius.gecko:gpu_disable_art_image_",
+     "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
+     "allowed": "0-7"
+    }
+   },
+   "load": {
+    "firstFrameS": 12.31,
+    "firstFrameRange": [
+     12.31,
+     12.31
+    ],
+    "runs": 1,
+    "transferMB": 9.6,
+    "programsAtFirstFrame": 68
+   },
+   "shaders": {
+    "programs": 75,
+    "sourceKB": 6675,
+    "serialMs": 20881.2,
+    "serialRange": [
+     20881.2,
+     20881.2
+    ],
+    "medianMs": 366.8,
+    "worstMs": 504.2,
+    "againMs": 19562.9,
+    "originalMs": 14726.9,
+    "parallelExt": false,
+    "parallelMs": null,
+    "runs": 1
+   },
+   "jsKIterPerMs": 14.46,
+   "jsRange": [
+    14.46,
+    14.46
+   ],
+   "warnings": [
+    "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+    "THREE.WebGLRenderer: KHR_parallel_shader_compile extension not supported."
+   ],
+   "errors": []
+  }
+ },
+ "chrome": {
+  "browser": "Chrome/154.0.8037.126",
+  "v8": "15.4.80.20",
+  "ua": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
+  "gl": {
+   "renderer": "ANGLE (Qualcomm, Adreno (TM) 740, OpenGL ES 3.2)",
+   "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+   "view": "640x480",
+   "dpr": 2,
+   "limits": {
+    "MAX_TEXTURE_SIZE": 4096,
+    "MAX_RENDERBUFFER_SIZE": 16384,
+    "MAX_SAMPLES": 4,
+    "MAX_DRAW_BUFFERS": 8,
+    "MAX_COLOR_ATTACHMENTS": 8,
+    "MAX_VERTEX_UNIFORM_VECTORS": 256,
+    "MAX_FRAGMENT_UNIFORM_VECTORS": 256,
+    "MAX_UNIFORM_BLOCK_SIZE": 65536,
+    "MAX_COMBINED_TEXTURE_IMAGE_UNITS": 48,
+    "MAX_3D_TEXTURE_SIZE": 2048,
+    "MAX_ARRAY_TEXTURE_LAYERS": 2048
+   },
+   "extensions": [
+    "EXT_clip_control",
+    "EXT_color_buffer_float",
+    "EXT_color_buffer_half_float",
+    "EXT_depth_clamp",
+    "EXT_float_blend",
+    "EXT_polygon_offset_clamp",
+    "EXT_texture_compression_bptc",
+    "EXT_texture_compression_rgtc",
+    "EXT_texture_filter_anisotropic",
+    "EXT_texture_mirror_clamp_to_edge",
+    "EXT_texture_norm16",
+    "NV_shader_noperspective_interpolation",
+    "OES_draw_buffers_indexed",
+    "OES_sample_variables",
+    "OES_shader_multisample_interpolation",
+    "OES_texture_float_linear",
+    "WEBGL_blend_func_extended",
+    "WEBGL_clip_cull_distance",
+    "WEBGL_compressed_texture_astc",
+    "WEBGL_compressed_texture_etc",
+    "WEBGL_compressed_texture_etc1",
+    "WEBGL_compressed_texture_s3tc",
+    "WEBGL_compressed_texture_s3tc_srgb",
+    "WEBGL_debug_renderer_info",
+    "WEBGL_debug_shaders",
+    "WEBGL_lose_context",
+    "WEBGL_multi_draw",
+    "WEBGL_render_shared_exponent",
+    "WEBGL_stencil_texturing"
+   ],
+   "contextAttributes": {
+    "alpha": true,
+    "antialias": false,
+    "depth": true,
+    "desynchronized": false,
+    "failIfMajorPerformanceCaveat": false,
+    "powerPreference": "high-performance",
+    "premultipliedAlpha": true,
+    "preserveDrawingBuffer": false,
+    "stencil": false,
+    "xrCompatible": false
+   }
+  },
+  "web": {
+   "webgpu": true,
+   "offscreenCanvas": true,
+   "offscreenWebgl2": true,
+   "gamepads": true,
+   "wakeLock": true,
+   "fullscreen": true,
+   "performanceMemory": true,
+   "measureUserAgentSpecificMemory": false,
+   "scheduler": true,
+   "schedulerYield": true,
+   "compressionStreams": true,
+   "structuredClone": true,
+   "arrayFindLast": true,
+   "objectGroupBy": true,
+   "arrayToSorted": true,
+   "promiseWithResolvers": true,
+   "setUnion": true,
+   "iteratorHelpers": true,
+   "cssHas": true,
+   "cssContainer": true,
+   "cssNesting": true,
+   "viewTransitions": true,
+   "popover": true,
+   "dialog": true,
+   "requestVideoFrameCallback": true,
+   "sharedArrayBuffer": false,
+   "crossOriginIsolated": false,
+   "audioWorklet": true,
+   "webAssemblySimd": true,
+   "capacitor": false
+  },
+  "placement": {
+   "renderer": {
+    "pid": 9794,
+    "name": "com.android.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:5",
+    "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
+    "allowed": "0-7"
+   },
+   "host": {
+    "pid": 20645,
+    "name": "com.android.chrome:privileged_process0",
+    "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
+    "allowed": "0-7"
+   }
+  },
+  "load": {
+   "firstFrameS": 14.03,
+   "firstFrameRange": [
+    10.39,
+    15.89
+   ],
+   "runs": 6,
+   "transferMB": 9.6,
+   "programsAtFirstFrame": 69
+  },
+  "shaders": {
+   "programs": 75,
+   "sourceKB": 6675,
+   "serialMs": 21512.7,
+   "serialRange": [
+    21441.7,
+    21513.4
+   ],
+   "medianMs": 378.1,
+   "worstMs": 522.8,
+   "againMs": 20178.7,
+   "originalMs": 14427.3,
+   "parallelExt": false,
+   "parallelMs": null,
+   "runs": 3
+  },
+  "jsKIterPerMs": 35.715,
+  "jsRange": [
+   35.25,
+   36.73
+  ],
+  "warnings": [
+   "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+   "THREE.WebGLRenderer: KHR_parallel_shader_compile extension not supported."
+  ],
+  "errors": []
+ },
+ "differences": {
+  "extensionsOnlyGecko": [
+   "EXT_depth_clamp",
+   "OES_draw_buffers_indexed",
+   "OVR_multiview2"
+  ],
+  "extensionsOnlyWebView": [
+   "EXT_color_buffer_half_float",
+   "EXT_texture_norm16",
+   "WEBGL_multi_draw"
+  ],
+  "extensionsOnlyChrome": [
+   "EXT_clip_control",
+   "EXT_color_buffer_half_float",
+   "EXT_polygon_offset_clamp",
+   "EXT_texture_mirror_clamp_to_edge",
+   "EXT_texture_norm16",
+   "NV_shader_noperspective_interpolation",
+   "OES_sample_variables",
+   "OES_shader_multisample_interpolation",
+   "WEBGL_blend_func_extended",
+   "WEBGL_clip_cull_distance",
+   "WEBGL_multi_draw",
+   "WEBGL_render_shared_exponent",
+   "WEBGL_stencil_texturing"
+  ],
+  "extensionsOnlyGeckoVsChrome": [
+   "OVR_multiview2"
+  ],
+  "webGeckoVsWebView": [
+   {
+    "feature": "performanceMemory",
+    "a": false,
+    "b": true
+   },
+   {
+    "feature": "schedulerYield",
+    "a": true,
+    "b": false
+   },
+   {
+    "feature": "objectGroupBy",
+    "a": true,
+    "b": false
+   },
+   {
+    "feature": "arrayToSorted",
+    "a": true,
+    "b": false
+   },
+   {
+    "feature": "promiseWithResolvers",
+    "a": true,
+    "b": false
+   },
+   {
+    "feature": "setUnion",
+    "a": true,
+    "b": false
+   },
+   {
+    "feature": "iteratorHelpers",
+    "a": true,
+    "b": false
+   },
+   {
+    "feature": "viewTransitions",
+    "a": true,
+    "b": false
+   },
+   {
+    "feature": "popover",
+    "a": true,
+    "b": false
+   }
+  ]
+ },
+ "rows": [
+  {
+   "engine": "gecko",
+   "mode": "fixed",
+   "view": "spawn",
+   "kind": "view",
+   "rounds": 3,
+   "median": 16.66,
+   "p95": 16.72,
+   "p95Range": [
+    16.72,
+    16.74
+   ],
+   "p99": 33.32,
+   "p99Range": [
+    33.1,
+    33.32
+   ],
+   "mean": 16.863,
+   "meanRange": [
+    16.861,
+    16.947
+   ],
+   "fps": 59.3,
+   "fpsRange": [
+    59,
+    59.3
+   ],
+   "missed": 1.33,
+   "missedRange": [
+    1.33,
+    1.83
+   ],
+   "over20": 1.35,
+   "over20Range": [
+    1.34,
+    1.86
+   ],
+   "hitches": 4,
+   "hitchesRange": [
+    1,
+    4
+   ],
+   "js": 13.7,
+   "jsRange": [
+    13.62,
+    13.82
+   ],
+   "jsP95": 15.82,
+   "jsP95Range": [
+    15.62,
+    15.94
+   ],
+   "gcMsPerS": null,
+   "gcMax": null,
+   "gcOver4": null,
+   "scavengesPerS": null,
+   "markCompacts": null,
+   "gpuBusy": 86,
+   "gpuBusyRange": [
+    86,
+    88
+   ],
+   "gpuMHz": 680,
+   "gpuC": 63.2,
+   "gpuCRange": [
+    60.1,
+    64.4
+   ],
+   "cpuC": 68.4,
+   "cpuCRange": [
+    63.2,
+    70.4
+   ],
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": null,
+   "rendererMB": 559.2,
+   "rendererMBRange": [
+    558.2,
+    562.6
+   ],
+   "hostMB": 277.1,
+   "hostMBRange": [
+    276.5,
+    278.5
+   ],
+   "hostGraphicsMB": 105.4,
+   "hostGraphicsMBRange": [
+    103.2,
+    105.6
+   ],
+   "parentMB": 186.4,
+   "parentMBRange": [
+    186.1,
+    186.4
+   ],
+   "rendererCores": 0.92,
+   "rendererCoresRange": [
+    0.91,
+    0.93
+   ],
+   "hostCores": 0.43,
+   "hostCoresRange": [
+    0.43,
+    0.45
+   ],
+   "parentCores": 0.11,
+   "draws": 452,
+   "drawsRange": [
+    446,
+    454
+   ],
+   "tris": 567685,
+   "trisRange": [
+    567595,
+    568387
+   ]
+  },
+  {
+   "engine": "gecko",
+   "mode": "fixed",
+   "view": "qanat-tree",
+   "kind": "view",
+   "rounds": 3,
+   "median": 16.66,
+   "p95": 33.32,
+   "p95Range": [
+    33.3,
+    33.34
+   ],
+   "p99": 33.36,
+   "mean": 18.335,
+   "meanRange": [
+    18.109,
+    18.442
+   ],
+   "fps": 54.5,
+   "fpsRange": [
+    54.2,
+    55.2
+   ],
+   "missed": 9.26,
+   "missedRange": [
+    8.13,
+    9.78
+   ],
+   "over20": 10.2,
+   "over20Range": [
+    8.84,
+    10.66
+   ],
+   "hitches": 22,
+   "hitchesRange": [
+    21,
+    28
+   ],
+   "js": 18.24,
+   "jsRange": [
+    17.66,
+    18.54
+   ],
+   "jsP95": 20.5,
+   "jsP95Range": [
+    20.36,
+    20.62
+   ],
+   "gcMsPerS": null,
+   "gcMax": null,
+   "gcOver4": null,
+   "scavengesPerS": null,
+   "markCompacts": null,
+   "gpuBusy": 71,
+   "gpuBusyRange": [
+    70,
+    72
+   ],
+   "gpuMHz": 615,
+   "gpuC": 62.4,
+   "gpuCRange": [
+    60.5,
+    63.6
+   ],
+   "cpuC": 72.8,
+   "cpuCRange": [
+    68,
+    73.6
+   ],
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": null,
+   "rendererMB": 569.3,
+   "rendererMBRange": [
+    563.7,
+    569.4
+   ],
+   "hostMB": 279,
+   "hostMBRange": [
+    278.5,
+    283.7
+   ],
+   "hostGraphicsMB": 107.7,
+   "hostGraphicsMBRange": [
+    107.7,
+    107.9
+   ],
+   "parentMB": 187.3,
+   "parentMBRange": [
+    187,
+    187.3
+   ],
+   "rendererCores": 1.03,
+   "hostCores": 0.38,
+   "hostCoresRange": [
+    0.38,
+    0.39
+   ],
+   "parentCores": 0.11,
+   "draws": 320,
+   "tris": 449732
+  },
+  {
+   "engine": "gecko",
+   "mode": "fixed",
+   "view": "camps",
+   "kind": "view",
+   "rounds": 3,
+   "median": 16.66,
+   "p95": 16.74,
+   "p99": 33.34,
+   "p99Range": [
+    33.16,
+    33.34
+   ],
+   "mean": 17.06,
+   "meanRange": [
+    16.919,
+    17.091
+   ],
+   "fps": 58.6,
+   "fpsRange": [
+    58.5,
+    59.1
+   ],
+   "missed": 2.48,
+   "missedRange": [
+    1.66,
+    2.65
+   ],
+   "over20": 2.54,
+   "over20Range": [
+    1.69,
+    2.73
+   ],
+   "hitches": 7,
+   "hitchesRange": [
+    4,
+    7
+   ],
+   "js": 16.56,
+   "jsRange": [
+    16.08,
+    16.66
+   ],
+   "jsP95": 18.32,
+   "jsP95Range": [
+    17.94,
+    18.8
+   ],
+   "gcMsPerS": null,
+   "gcMax": null,
+   "gcOver4": null,
+   "scavengesPerS": null,
+   "markCompacts": null,
+   "gpuBusy": 80,
+   "gpuBusyRange": [
+    80,
+    81
+   ],
+   "gpuMHz": 680,
+   "gpuC": 66.8,
+   "gpuCRange": [
+    64,
+    67.5
+   ],
+   "cpuC": 74.8,
+   "cpuCRange": [
+    71.6,
+    78
+   ],
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": null,
+   "rendererMB": 507.5,
+   "rendererMBRange": [
+    500.5,
+    511
+   ],
+   "hostMB": 274.2,
+   "hostMBRange": [
+    271.5,
+    276.9
+   ],
+   "hostGraphicsMB": 110.7,
+   "hostGraphicsMBRange": [
+    110.5,
+    111.9
+   ],
+   "parentMB": 187.2,
+   "parentMBRange": [
+    186.9,
+    187.3
+   ],
+   "rendererCores": 1.04,
+   "rendererCoresRange": [
+    1.03,
+    1.04
+   ],
+   "hostCores": 0.46,
+   "hostCoresRange": [
+    0.46,
+    0.47
+   ],
+   "parentCores": 0.11,
+   "draws": 429,
+   "drawsRange": [
+    422,
+    429
+   ],
+   "tris": 531971,
+   "trisRange": [
+    531913,
+    531971
+   ]
+  },
+  {
+   "engine": "gecko",
+   "mode": "fixed",
+   "view": "dunes",
+   "kind": "view",
+   "rounds": 3,
+   "median": 16.66,
+   "p95": 16.72,
+   "p99": 16.74,
+   "mean": 16.639,
+   "meanRange": [
+    16.638,
+    16.666
+   ],
+   "fps": 60.1,
+   "fpsRange": [
+    60,
+    60.1
+   ],
+   "missed": 0,
+   "missedRange": [
+    0,
+    0.17
+   ],
+   "over20": 0,
+   "over20Range": [
+    0,
+    0.17
+   ],
+   "hitches": 0,
+   "hitchesRange": [
+    0,
+    1
+   ],
+   "js": 11.44,
+   "jsRange": [
+    11.02,
+    11.52
+   ],
+   "jsP95": 12.52,
+   "jsP95Range": [
+    12,
+    12.72
+   ],
+   "gcMsPerS": null,
+   "gcMax": null,
+   "gcOver4": null,
+   "scavengesPerS": null,
+   "markCompacts": null,
+   "gpuBusy": 82,
+   "gpuMHz": 615,
+   "gpuC": 59.7,
+   "gpuCRange": [
+    58.1,
+    60.1
+   ],
+   "cpuC": 61.6,
+   "cpuCRange": [
+    56.8,
+    63.6
+   ],
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": null,
+   "rendererMB": 538.8,
+   "rendererMBRange": [
+    527.3,
+    540.6
+   ],
+   "hostMB": 278.5,
+   "hostMBRange": [
+    277.2,
+    282.3
+   ],
+   "hostGraphicsMB": 113.8,
+   "hostGraphicsMBRange": [
+    113.8,
+    114
+   ],
+   "parentMB": 187.8,
+   "parentMBRange": [
+    187.6,
+    188.6
+   ],
+   "rendererCores": 0.72,
+   "rendererCoresRange": [
+    0.71,
+    0.73
+   ],
+   "hostCores": 0.34,
+   "hostCoresRange": [
+    0.33,
+    0.34
+   ],
+   "parentCores": 0.11,
+   "parentCoresRange": [
+    0.11,
+    0.12
+   ],
+   "draws": 200,
+   "tris": 292859
+  },
+  {
+   "engine": "gecko",
+   "mode": "fixed",
+   "view": "cave",
+   "kind": "view",
+   "rounds": 3,
+   "median": 16.66,
+   "p95": 33.34,
+   "p99": 33.36,
+   "p99Range": [
+    33.34,
+    33.36
+   ],
+   "mean": 19.303,
+   "meanRange": [
+    19.298,
+    19.336
+   ],
+   "fps": 51.8,
+   "fpsRange": [
+    51.7,
+    51.8
+   ],
+   "missed": 13.81,
+   "missedRange": [
+    13.79,
+    13.95
+   ],
+   "over20": 15.61,
+   "over20Range": [
+    15.44,
+    15.83
+   ],
+   "hitches": 43,
+   "hitchesRange": [
+    40,
+    48
+   ],
+   "js": 12.42,
+   "jsRange": [
+    12.24,
+    12.56
+   ],
+   "jsP95": 14.4,
+   "jsP95Range": [
+    14.3,
+    14.7
+   ],
+   "gcMsPerS": null,
+   "gcMax": null,
+   "gcOver4": null,
+   "scavengesPerS": null,
+   "markCompacts": null,
+   "gpuBusy": 96,
+   "gpuBusyRange": [
+    96,
+    97
+   ],
+   "gpuMHz": 680,
+   "gpuC": 62,
+   "gpuCRange": [
+    59.7,
+    62.4
+   ],
+   "cpuC": 57.6,
+   "cpuCRange": [
+    57.2,
+    60
+   ],
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": null,
+   "rendererMB": 561.1,
+   "rendererMBRange": [
+    537.8,
+    563
+   ],
+   "hostMB": 282,
+   "hostMBRange": [
+    280.1,
+    285.4
+   ],
+   "hostGraphicsMB": 116.4,
+   "hostGraphicsMBRange": [
+    116.3,
+    116.9
+   ],
+   "parentMB": 187.8,
+   "parentMBRange": [
+    187.6,
+    188.5
+   ],
+   "rendererCores": 0.72,
+   "rendererCoresRange": [
+    0.71,
+    0.73
+   ],
+   "hostCores": 0.32,
+   "hostCoresRange": [
+    0.31,
+    0.32
+   ],
+   "parentCores": 0.1,
+   "draws": 332,
+   "drawsRange": [
+    318,
+    332
+   ],
+   "tris": 401305,
+   "trisRange": [
+    388481,
+    401305
+   ]
+  },
+  {
+   "engine": "gecko",
+   "mode": "fixed",
+   "view": "ride-city",
+   "kind": "path",
+   "rounds": 3,
+   "median": 16.66,
+   "p95": 33.3,
+   "p95Range": [
+    33.28,
+    33.32
+   ],
+   "p99": 33.36,
+   "p99Range": [
+    33.34,
+    33.36
+   ],
+   "mean": 18.015,
+   "meanRange": [
+    17.964,
+    18.033
+   ],
+   "fps": 55.5,
+   "fpsRange": [
+    55.5,
+    55.7
+   ],
+   "missed": 7.65,
+   "missedRange": [
+    7.39,
+    7.73
+   ],
+   "over20": 7.65,
+   "over20Range": [
+    7.62,
+    7.84
+   ],
+   "hitches": 42,
+   "hitchesRange": [
+    40,
+    49
+   ],
+   "js": 15.28,
+   "jsRange": [
+    14.86,
+    15.34
+   ],
+   "jsP95": 21.06,
+   "jsP95Range": [
+    20.76,
+    21.06
+   ],
+   "gcMsPerS": null,
+   "gcMax": null,
+   "gcOver4": null,
+   "scavengesPerS": null,
+   "markCompacts": null,
+   "gpuBusy": 78,
+   "gpuBusyRange": [
+    76,
+    80
+   ],
+   "gpuMHz": 680,
+   "gpuC": 67.5,
+   "gpuCRange": [
+    63.2,
+    68.3
+   ],
+   "cpuC": 74.4,
+   "cpuCRange": [
+    71.6,
+    77.6
+   ],
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": null,
+   "rendererMB": 600.7,
+   "rendererMBRange": [
+    575,
+    608.4
+   ],
+   "hostMB": 286.8,
+   "hostMBRange": [
+    286.3,
+    289.6
+   ],
+   "hostGraphicsMB": 121.6,
+   "hostGraphicsMBRange": [
+    121,
+    121.8
+   ],
+   "parentMB": 188.6,
+   "parentMBRange": [
+    188.4,
+    189.3
+   ],
+   "rendererCores": 0.97,
+   "rendererCoresRange": [
+    0.96,
+    0.98
+   ],
+   "hostCores": 0.44,
+   "hostCoresRange": [
+    0.43,
+    0.44
+   ],
+   "parentCores": 0.11,
+   "parentCoresRange": [
+    0.1,
+    0.11
+   ],
+   "draws": 385,
+   "drawsRange": [
+    382,
+    386
+   ],
+   "tris": 464035,
+   "trisRange": [
+    463355,
+    465131
+   ]
+  },
+  {
+   "engine": "gecko",
+   "mode": "fixed",
+   "view": "walk-camps",
+   "kind": "path",
+   "rounds": 3,
+   "median": 16.66,
+   "p95": 33.34,
+   "p99": 33.36,
+   "mean": 19.681,
+   "meanRange": [
+    19.414,
+    20.173
+   ],
+   "fps": 50.8,
+   "fpsRange": [
+    49.6,
+    51.5
+   ],
+   "missed": 15.46,
+   "missedRange": [
+    14.3,
+    17.52
+   ],
+   "over20": 18.09,
+   "over20Range": [
+    16.59,
+    21.25
+   ],
+   "hitches": 96,
+   "hitchesRange": [
+    94,
+    117
+   ],
+   "js": 19.24,
+   "jsRange": [
+    18.92,
+    19.66
+   ],
+   "jsP95": 21.9,
+   "jsP95Range": [
+    21.72,
+    22.58
+   ],
+   "gcMsPerS": null,
+   "gcMax": null,
+   "gcOver4": null,
+   "scavengesPerS": null,
+   "markCompacts": null,
+   "gpuBusy": 68,
+   "gpuBusyRange": [
+    66,
+    70
+   ],
+   "gpuMHz": 615,
+   "gpuC": 63.6,
+   "gpuCRange": [
+    62.8,
+    64.4
+   ],
+   "cpuC": 74,
+   "cpuCRange": [
+    71.6,
+    76.8
+   ],
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": null,
+   "rendererMB": 590.3,
+   "rendererMBRange": [
+    567.8,
+    597
+   ],
+   "hostMB": 296.1,
+   "hostMBRange": [
+    293.8,
+    297
+   ],
+   "hostGraphicsMB": 126.3,
+   "hostGraphicsMBRange": [
+    125.4,
+    126.9
+   ],
+   "parentMB": 189.3,
+   "parentMBRange": [
+    189,
+    189.5
+   ],
+   "rendererCores": 1.02,
+   "hostCores": 0.44,
+   "hostCoresRange": [
+    0.44,
+    0.45
+   ],
+   "parentCores": 0.1,
+   "draws": 479,
+   "drawsRange": [
+    479,
+    480
+   ],
+   "tris": 562147,
+   "trisRange": [
+    561245,
+    563782
+   ]
+  },
+  {
+   "engine": "webview",
+   "mode": "fixed",
+   "view": "spawn",
+   "kind": "view",
+   "rounds": 3,
+   "median": 16.667,
+   "p95": 33.361,
+   "p95Range": [
+    33.334,
+    33.361
+   ],
+   "p99": 33.366,
+   "p99Range": [
+    33.364,
+    33.369
+   ],
+   "mean": 21.716,
+   "meanRange": [
+    20.95,
+    22.012
+   ],
+   "fps": 46,
+   "fpsRange": [
+    45.4,
+    47.7
+   ],
+   "missed": 23.38,
+   "missedRange": [
+    20.6,
+    24.42
+   ],
+   "over20": 30.52,
+   "over20Range": [
+    25.94,
+    32.31
+   ],
+   "hitches": 37,
+   "hitchesRange": [
+    34,
+    47
+   ],
+   "js": 20.9,
+   "jsRange": [
+    20.3,
+    21.4
+   ],
+   "jsP95": 24.6,
+   "jsP95Range": [
+    23.2,
+    25
+   ],
+   "gcMsPerS": 6.02,
+   "gcMsPerSRange": [
+    5.73,
+    7.75
+   ],
+   "gcMax": 5.89,
+   "gcMaxRange": [
+    2.46,
+    14.26
+   ],
+   "gcOver4": 2,
+   "gcOver4Range": [
+    0,
+    3
+   ],
+   "scavengesPerS": 3.9,
+   "scavengesPerSRange": [
+    3.8,
+    4.3
+   ],
+   "markCompacts": 0,
+   "gpuBusy": 71,
+   "gpuBusyRange": [
+    70,
+    74
+   ],
+   "gpuMHz": 615,
+   "gpuC": 56.1,
+   "gpuCRange": [
+    55.4,
+    58.1
+   ],
+   "cpuC": 59.2,
+   "cpuCRange": [
+    55.2,
+    60
+   ],
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": 177,
+   "rendererMB": 431,
+   "rendererMBRange": [
+    427.1,
+    455.6
+   ],
+   "hostMB": 349,
+   "hostMBRange": [
+    340.4,
+    353.6
+   ],
+   "hostGraphicsMB": 97.7,
+   "hostGraphicsMBRange": [
+    93.3,
+    98.1
+   ],
+   "parentMB": null,
+   "rendererCores": 1.47,
+   "rendererCoresRange": [
+    1.46,
+    1.47
+   ],
+   "hostCores": 0.48,
+   "hostCoresRange": [
+    0.48,
+    0.49
+   ],
+   "parentCores": null,
+   "draws": 454,
+   "drawsRange": [
+    446,
+    454
+   ],
+   "tris": 568387,
+   "trisRange": [
+    567595,
+    568387
+   ]
+  },
+  {
+   "engine": "webview",
+   "mode": "fixed",
+   "view": "qanat-tree",
+   "kind": "view",
+   "rounds": 3,
+   "median": 33.273,
+   "medianRange": [
+    33.16,
+    33.276
+   ],
+   "p95": 33.37,
+   "p95Range": [
+    33.367,
+    33.39
+   ],
+   "p99": 33.394,
+   "p99Range": [
+    33.394,
+    33.397
+   ],
+   "mean": 28.829,
+   "meanRange": [
+    28.212,
+    28.997
+   ],
+   "fps": 34.7,
+   "fpsRange": [
+    34.5,
+    35.4
+   ],
+   "missed": 42.29,
+   "missedRange": [
+    41.03,
+    42.62
+   ],
+   "over20": 72.7,
+   "over20Range": [
+    69.58,
+    73.99
+   ],
+   "hitches": 0,
+   "js": 28.9,
+   "jsRange": [
+    28.2,
+    29.1
+   ],
+   "jsP95": 32.7,
+   "jsP95Range": [
+    31.8,
+    33.3
+   ],
+   "gcMsPerS": 6,
+   "gcMsPerSRange": [
+    5.57,
+    6.77
+   ],
+   "gcMax": 4.01,
+   "gcMaxRange": [
+    2.05,
+    4.84
+   ],
+   "gcOver4": 1,
+   "gcOver4Range": [
+    0,
+    1
+   ],
+   "scavengesPerS": 3.86,
+   "scavengesPerSRange": [
+    3.6,
+    4.2
+   ],
+   "markCompacts": 0,
+   "gpuBusy": 44,
+   "gpuBusyRange": [
+    44,
+    45
+   ],
+   "gpuMHz": 615,
+   "gpuC": 51.8,
+   "gpuCRange": [
+    51.8,
+    53
+   ],
+   "cpuC": 54.4,
+   "cpuCRange": [
+    53.6,
+    56
+   ],
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": 177,
+   "rendererMB": 478.2,
+   "rendererMBRange": [
+    451,
+    486.5
+   ],
+   "hostMB": 353.7,
+   "hostMBRange": [
+    351.4,
+    360.9
+   ],
+   "hostGraphicsMB": 101.4,
+   "hostGraphicsMBRange": [
+    100.5,
+    102.1
+   ],
+   "parentMB": null,
+   "rendererCores": 1.53,
+   "rendererCoresRange": [
+    1.53,
+    1.55
+   ],
+   "hostCores": 0.34,
+   "parentCores": null,
+   "draws": 320,
+   "tris": 449732
+  },
+  {
+   "engine": "webview",
+   "mode": "fixed",
+   "view": "camps",
+   "kind": "view",
+   "rounds": 3,
+   "median": 33.278,
+   "medianRange": [
+    33.272,
+    33.278
+   ],
+   "p95": 33.389,
+   "p95Range": [
+    33.389,
+    33.391
+   ],
+   "p99": 33.397,
+   "p99Range": [
+    33.392,
+    49.938
+   ],
+   "mean": 29.411,
+   "meanRange": [
+    28.828,
+    30.308
+   ],
+   "fps": 34,
+   "fpsRange": [
+    33,
+    34.7
+   ],
+   "missed": 43.43,
+   "missedRange": [
+    42.29,
+    45.11
+   ],
+   "over20": 76.76,
+   "over20Range": [
+    73.28,
+    79.46
+   ],
+   "hitches": 0,
+   "hitchesRange": [
+    0,
+    1
+   ],
+   "js": 28.2,
+   "jsRange": [
+    27.5,
+    28.6
+   ],
+   "jsP95": 31.7,
+   "jsP95Range": [
+    31.5,
+    33.3
+   ],
+   "gcMsPerS": 7.12,
+   "gcMsPerSRange": [
+    6.81,
+    8.61
+   ],
+   "gcMax": 6.83,
+   "gcMaxRange": [
+    2.45,
+    26.2
+   ],
+   "gcOver4": 2,
+   "gcOver4Range": [
+    0,
+    3
+   ],
+   "scavengesPerS": 3.47,
+   "scavengesPerSRange": [
+    3.27,
+    4
+   ],
+   "markCompacts": 0,
+   "markCompactsRange": [
+    0,
+    1
+   ],
+   "gpuBusy": 51,
+   "gpuBusyRange": [
+    50,
+    52
+   ],
+   "gpuMHz": 615,
+   "gpuC": 53.8,
+   "gpuCRange": [
+    52.6,
+    54.2
+   ],
+   "cpuC": 55.2,
+   "cpuCRange": [
+    54.4,
+    55.6
+   ],
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": 177,
+   "rendererMB": 502.7,
+   "rendererMBRange": [
+    493.8,
+    517.1
+   ],
+   "hostMB": 358.4,
+   "hostMBRange": [
+    356.6,
+    363.3
+   ],
+   "hostGraphicsMB": 103.3,
+   "hostGraphicsMBRange": [
+    102.6,
+    103.7
+   ],
+   "parentMB": null,
+   "rendererCores": 1.48,
+   "rendererCoresRange": [
+    1.48,
+    1.5
+   ],
+   "hostCores": 0.36,
+   "hostCoresRange": [
+    0.36,
+    0.37
+   ],
+   "parentCores": null,
+   "draws": 430,
+   "drawsRange": [
+    429,
+    431
+   ],
+   "tris": 532849,
+   "trisRange": [
+    531971,
+    536700
+   ]
+  },
+  {
+   "engine": "webview",
+   "mode": "fixed",
+   "view": "dunes",
+   "kind": "view",
+   "rounds": 3,
+   "median": 16.667,
+   "p95": 16.727,
+   "p95Range": [
+    16.725,
+    16.729
+   ],
+   "p99": 16.729,
+   "p99Range": [
+    16.727,
+    16.731
+   ],
+   "mean": 16.637,
+   "meanRange": [
+    16.636,
+    16.638
+   ],
+   "fps": 60.1,
+   "missed": 0,
+   "over20": 0,
+   "hitches": 0,
+   "js": 12.2,
+   "jsRange": [
+    12.1,
+    12.2
+   ],
+   "jsP95": 13.5,
+   "jsP95Range": [
+    13.5,
+    13.8
+   ],
+   "gcMsPerS": 5.68,
+   "gcMsPerSRange": [
+    4.09,
+    8.01
+   ],
+   "gcMax": 2.83,
+   "gcMaxRange": [
+    2.6,
+    7.73
+   ],
+   "gcOver4": 0,
+   "gcOver4Range": [
+    0,
+    1
+   ],
+   "scavengesPerS": 3,
+   "scavengesPerSRange": [
+    2.7,
+    4.1
+   ],
+   "markCompacts": 0,
+   "gpuBusy": 80,
+   "gpuBusyRange": [
+    79,
+    80
+   ],
+   "gpuMHz": 615,
+   "gpuC": 58.1,
+   "gpuCRange": [
+    57.3,
+    60.1
+   ],
+   "cpuC": 56.8,
+   "cpuCRange": [
+    56.8,
+    57.6
+   ],
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": 177,
+   "rendererMB": 527.6,
+   "rendererMBRange": [
+    476.5,
+    550.9
+   ],
+   "hostMB": 368,
+   "hostMBRange": [
+    366.4,
+    373
+   ],
+   "hostGraphicsMB": 107.6,
+   "hostGraphicsMBRange": [
+    106.7,
+    108.1
+   ],
+   "parentMB": null,
+   "rendererCores": 1.46,
+   "rendererCoresRange": [
+    1.42,
+    1.46
+   ],
+   "hostCores": 0.44,
+   "hostCoresRange": [
+    0.44,
+    0.45
+   ],
+   "parentCores": null,
+   "draws": 200,
+   "tris": 292859
+  },
+  {
+   "engine": "webview",
+   "mode": "fixed",
+   "view": "cave",
+   "kind": "view",
+   "rounds": 3,
+   "median": 16.667,
+   "p95": 33.333,
+   "p95Range": [
+    33.303,
+    33.333
+   ],
+   "p99": 33.393,
+   "p99Range": [
+    33.334,
+    33.398
+   ],
+   "mean": 18.821,
+   "meanRange": [
+    18.749,
+    18.855
+   ],
+   "fps": 53.1,
+   "fpsRange": [
+    53,
+    53.3
+   ],
+   "missed": 11.61,
+   "missedRange": [
+    11.28,
+    11.75
+   ],
+   "over20": 12.38,
+   "over20Range": [
+    11.78,
+    12.95
+   ],
+   "hitches": 12,
+   "hitchesRange": [
+    12,
+    16
+   ],
+   "js": 13.6,
+   "jsRange": [
+    13.5,
+    13.7
+   ],
+   "jsP95": 15.5,
+   "jsP95Range": [
+    15.1,
+    15.8
+   ],
+   "gcMsPerS": 6.86,
+   "gcMsPerSRange": [
+    5.41,
+    13.2
+   ],
+   "gcMax": 21.68,
+   "gcMaxRange": [
+    3.16,
+    22.79
+   ],
+   "gcOver4": 1,
+   "gcOver4Range": [
+    0,
+    6
+   ],
+   "scavengesPerS": 2.87,
+   "scavengesPerSRange": [
+    2.77,
+    3.17
+   ],
+   "markCompacts": 1,
+   "markCompactsRange": [
+    0,
+    2
+   ],
+   "gpuBusy": 99,
+   "gpuMHz": 680,
+   "gpuC": 60.1,
+   "gpuCRange": [
+    59.7,
+    62
+   ],
+   "cpuC": 57.6,
+   "cpuCRange": [
+    57.6,
+    58.4
+   ],
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": 177,
+   "rendererMB": 469.8,
+   "rendererMBRange": [
+    439.8,
+    613.1
+   ],
+   "hostMB": 371,
+   "hostMBRange": [
+    369.3,
+    375.9
+   ],
+   "hostGraphicsMB": 110.3,
+   "hostGraphicsMBRange": [
+    109.7,
+    110.9
+   ],
+   "parentMB": null,
+   "rendererCores": 1.38,
+   "rendererCoresRange": [
+    1.36,
+    1.39
+   ],
+   "hostCores": 0.41,
+   "parentCores": null,
+   "draws": 332,
+   "drawsRange": [
+    318,
+    332
+   ],
+   "tris": 401305,
+   "trisRange": [
+    388481,
+    401305
+   ]
+  },
+  {
+   "engine": "webview",
+   "mode": "fixed",
+   "view": "ride-city",
+   "kind": "path",
+   "rounds": 3,
+   "median": 33.117,
+   "medianRange": [
+    33.089,
+    33.165
+   ],
+   "p95": 33.388,
+   "p95Range": [
+    33.366,
+    33.398
+   ],
+   "p99": 50,
+   "mean": 27.36,
+   "meanRange": [
+    27.154,
+    27.856
+   ],
+   "fps": 36.5,
+   "fpsRange": [
+    35.9,
+    36.8
+   ],
+   "missed": 39.18,
+   "missedRange": [
+    38.74,
+    40.27
+   ],
+   "over20": 58.96,
+   "over20Range": [
+    56.31,
+    59.89
+   ],
+   "hitches": 5,
+   "hitchesRange": [
+    4,
+    5
+   ],
+   "js": 23.9,
+   "jsRange": [
+    23.4,
+    24.4
+   ],
+   "jsP95": 35.3,
+   "jsP95Range": [
+    34.4,
+    35.4
+   ],
+   "gcMsPerS": 11.71,
+   "gcMsPerSRange": [
+    8.93,
+    12.11
+   ],
+   "gcMax": 29.34,
+   "gcMaxRange": [
+    24.29,
+    32.07
+   ],
+   "gcOver4": 4,
+   "gcOver4Range": [
+    2,
+    9
+   ],
+   "scavengesPerS": 4.13,
+   "scavengesPerSRange": [
+    3.83,
+    4.48
+   ],
+   "markCompacts": 2,
+   "gpuBusy": 60,
+   "gpuBusyRange": [
+    60,
+    61
+   ],
+   "gpuMHz": 615,
+   "gpuC": 54.6,
+   "gpuCRange": [
+    53.8,
+    56.1
+   ],
+   "cpuC": 56,
+   "cpuCRange": [
+    54.8,
+    56
+   ],
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": 177,
+   "rendererMB": 395.4,
+   "rendererMBRange": [
+    390.5,
+    408.9
+   ],
+   "hostMB": 390.8,
+   "hostMBRange": [
+    390,
+    395.6
+   ],
+   "hostGraphicsMB": 115.1,
+   "hostGraphicsMBRange": [
+    114.6,
+    115.4
+   ],
+   "parentMB": null,
+   "rendererCores": 1.5,
+   "rendererCoresRange": [
+    1.49,
+    1.52
+   ],
+   "hostCores": 0.4,
+   "hostCoresRange": [
+    0.39,
+    0.4
+   ],
+   "parentCores": null,
+   "draws": 385,
+   "drawsRange": [
+    385,
+    386
+   ],
+   "tris": 464687,
+   "trisRange": [
+    464651,
+    465389
+   ]
+  },
+  {
+   "engine": "webview",
+   "mode": "fixed",
+   "view": "walk-camps",
+   "kind": "path",
+   "rounds": 3,
+   "median": 33.333,
+   "medianRange": [
+    33.277,
+    33.333
+   ],
+   "p95": 49.778,
+   "p95Range": [
+    33.398,
+    49.822
+   ],
+   "p99": 50,
+   "p99Range": [
+    50,
+    50.031
+   ],
+   "mean": 32.973,
+   "meanRange": [
+    32.28,
+    33.085
+   ],
+   "fps": 30.3,
+   "fpsRange": [
+    30.2,
+    31
+   ],
+   "missed": 49.54,
+   "missedRange": [
+    48.46,
+    49.71
+   ],
+   "over20": 89.79,
+   "over20Range": [
+    89.35,
+    91.74
+   ],
+   "hitches": 1,
+   "hitchesRange": [
+    1,
+    2
+   ],
+   "js": 31.3,
+   "jsRange": [
+    30.7,
+    31.4
+   ],
+   "jsP95": 35.9,
+   "jsP95Range": [
+    35.2,
+    36.7
+   ],
+   "gcMsPerS": 8.92,
+   "gcMsPerSRange": [
+    8.55,
+    9.57
+   ],
+   "gcMax": 23.06,
+   "gcMaxRange": [
+    20.09,
+    25.08
+   ],
+   "gcOver4": 4,
+   "gcOver4Range": [
+    4,
+    5
+   ],
+   "scavengesPerS": 3.58,
+   "scavengesPerSRange": [
+    3.33,
+    3.68
+   ],
+   "markCompacts": 1,
+   "gpuBusy": 40,
+   "gpuBusyRange": [
+    40,
+    41
+   ],
+   "gpuMHz": 615,
+   "gpuC": 52.6,
+   "gpuCRange": [
+    52.2,
+    53
+   ],
+   "cpuC": 54,
+   "cpuCRange": [
+    53.6,
+    54.4
+   ],
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": 177,
+   "rendererMB": 427.3,
+   "rendererMBRange": [
+    401.4,
+    432.4
+   ],
+   "hostMB": 398.9,
+   "hostMBRange": [
+    396.9,
+    402.3
+   ],
+   "hostGraphicsMB": 121.8,
+   "hostGraphicsMBRange": [
+    121.6,
+    121.9
+   ],
+   "parentMB": null,
+   "rendererCores": 1.48,
+   "rendererCoresRange": [
+    1.46,
+    1.48
+   ],
+   "hostCores": 0.36,
+   "hostCoresRange": [
+    0.36,
+    0.37
+   ],
+   "parentCores": null,
+   "draws": 479,
+   "drawsRange": [
+    478,
+    479
+   ],
+   "tris": 562253,
+   "trisRange": [
+    561740,
+    562481
+   ]
+  },
+  {
+   "engine": "gecko-apk",
+   "mode": "fixed",
+   "view": "spawn",
+   "kind": "view",
+   "rounds": 1,
+   "median": 16.66,
+   "p95": 16.72,
+   "p99": 33.34,
+   "mean": 16.946,
+   "fps": 59,
+   "missed": 1.82,
+   "over20": 1.85,
+   "hitches": 7,
+   "js": 13.76,
+   "jsP95": 15.82,
+   "gcMsPerS": null,
+   "gcMax": null,
+   "gcOver4": null,
+   "scavengesPerS": null,
+   "markCompacts": null,
+   "gpuBusy": 88,
+   "gpuMHz": 680,
+   "gpuC": 64,
+   "cpuC": 70,
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": null,
+   "rendererMB": 567.5,
+   "hostMB": 280.9,
+   "hostGraphicsMB": 104.6,
+   "parentMB": 181.9,
+   "rendererCores": 0.92,
+   "hostCores": 0.44,
+   "parentCores": 0.11,
+   "draws": 454,
+   "tris": 568387
+  },
+  {
+   "engine": "gecko-apk",
+   "mode": "fixed",
+   "view": "qanat-tree",
+   "kind": "view",
+   "rounds": 1,
+   "median": 16.66,
+   "p95": 33.3,
+   "p99": 33.36,
+   "mean": 18.273,
+   "fps": 54.7,
+   "missed": 8.94,
+   "over20": 9.82,
+   "hitches": 21,
+   "js": 18.3,
+   "jsP95": 20.38,
+   "gcMsPerS": null,
+   "gcMax": null,
+   "gcOver4": null,
+   "scavengesPerS": null,
+   "markCompacts": null,
+   "gpuBusy": 70,
+   "gpuMHz": 615,
+   "gpuC": 62.4,
+   "cpuC": 73.6,
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": null,
+   "rendererMB": 578.2,
+   "hostMB": 285.4,
+   "hostGraphicsMB": 108.5,
+   "parentMB": 180.7,
+   "rendererCores": 1.02,
+   "hostCores": 0.38,
+   "parentCores": 0.11,
+   "draws": 320,
+   "tris": 449732
+  },
+  {
+   "engine": "gecko-apk",
+   "mode": "fixed",
+   "view": "camps",
+   "kind": "view",
+   "rounds": 1,
+   "median": 16.66,
+   "p95": 16.74,
+   "p99": 33.34,
+   "mean": 17.297,
+   "fps": 57.8,
+   "missed": 3.81,
+   "over20": 3.44,
+   "hitches": 7,
+   "js": 16.44,
+   "jsP95": 19.2,
+   "gcMsPerS": null,
+   "gcMax": null,
+   "gcOver4": null,
+   "scavengesPerS": null,
+   "markCompacts": null,
+   "gpuBusy": 80,
+   "gpuMHz": 680,
+   "gpuC": 66.8,
+   "cpuC": 75.2,
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": null,
+   "rendererMB": 583.6,
+   "hostMB": 277.7,
+   "hostGraphicsMB": 110.7,
+   "parentMB": 180.7,
+   "rendererCores": 1.05,
+   "hostCores": 0.46,
+   "parentCores": 0.11,
+   "draws": 429,
+   "tris": 531971
+  },
+  {
+   "engine": "gecko-apk",
+   "mode": "fixed",
+   "view": "dunes",
+   "kind": "view",
+   "rounds": 1,
+   "median": 16.66,
+   "p95": 16.72,
+   "p99": 16.74,
+   "mean": 16.638,
+   "fps": 60.1,
+   "missed": 0,
+   "over20": 0,
+   "hitches": 0,
+   "js": 11.18,
+   "jsP95": 12.38,
+   "gcMsPerS": null,
+   "gcMax": null,
+   "gcOver4": null,
+   "scavengesPerS": null,
+   "markCompacts": null,
+   "gpuBusy": 82,
+   "gpuMHz": 615,
+   "gpuC": 61.6,
+   "cpuC": 58.8,
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": null,
+   "rendererMB": 518.2,
+   "hostMB": 283.4,
+   "hostGraphicsMB": 114.1,
+   "parentMB": 180.8,
+   "rendererCores": 0.72,
+   "hostCores": 0.33,
+   "parentCores": 0.12,
+   "draws": 200,
+   "tris": 292859
+  },
+  {
+   "engine": "gecko-apk",
+   "mode": "fixed",
+   "view": "cave",
+   "kind": "view",
+   "rounds": 1,
+   "median": 16.66,
+   "p95": 33.32,
+   "p99": 33.34,
+   "mean": 19.294,
+   "fps": 51.8,
+   "missed": 13.76,
+   "over20": 15.58,
+   "hitches": 33,
+   "js": 12.64,
+   "jsP95": 14.58,
+   "gcMsPerS": null,
+   "gcMax": null,
+   "gcOver4": null,
+   "scavengesPerS": null,
+   "markCompacts": null,
+   "gpuBusy": 97,
+   "gpuMHz": 680,
+   "gpuC": 61.3,
+   "cpuC": 58,
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": null,
+   "rendererMB": 531.6,
+   "hostMB": 286.7,
+   "hostGraphicsMB": 117,
+   "parentMB": 180.8,
+   "rendererCores": 0.74,
+   "hostCores": 0.32,
+   "parentCores": 0.1,
+   "draws": 332,
+   "tris": 401305
+  },
+  {
+   "engine": "gecko-apk",
+   "mode": "fixed",
+   "view": "ride-city",
+   "kind": "path",
+   "rounds": 1,
+   "median": 16.66,
+   "p95": 33.32,
+   "p99": 33.36,
+   "mean": 18.095,
+   "fps": 55.3,
+   "missed": 8.05,
+   "over20": 8.48,
+   "hitches": 54,
+   "js": 15.32,
+   "jsP95": 21.02,
+   "gcMsPerS": null,
+   "gcMax": null,
+   "gcOver4": null,
+   "scavengesPerS": null,
+   "markCompacts": null,
+   "gpuBusy": 76,
+   "gpuMHz": 615,
+   "gpuC": 66.4,
+   "cpuC": 74.4,
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": null,
+   "rendererMB": 582.7,
+   "hostMB": 290.8,
+   "hostGraphicsMB": 121.2,
+   "parentMB": 181.2,
+   "rendererCores": 0.96,
+   "hostCores": 0.43,
+   "parentCores": 0.11,
+   "draws": 384,
+   "tris": 464593
+  },
+  {
+   "engine": "gecko-apk",
+   "mode": "fixed",
+   "view": "walk-camps",
+   "kind": "path",
+   "rounds": 1,
+   "median": 16.66,
+   "p95": 33.34,
+   "p99": 33.36,
+   "mean": 19.624,
+   "fps": 51,
+   "missed": 15.21,
+   "over20": 17.65,
+   "hitches": 93,
+   "js": 18.98,
+   "jsP95": 22.12,
+   "gcMsPerS": null,
+   "gcMax": null,
+   "gcOver4": null,
+   "scavengesPerS": null,
+   "markCompacts": null,
+   "gpuBusy": 68,
+   "gpuMHz": 615,
+   "gpuC": 64.8,
+   "cpuC": 75.2,
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": null,
+   "rendererMB": 565.1,
+   "hostMB": 297.9,
+   "hostGraphicsMB": 125.8,
+   "parentMB": 181.1,
+   "rendererCores": 1.03,
+   "hostCores": 0.45,
+   "parentCores": 0.1,
+   "draws": 479,
+   "tris": 562389
+  },
+  {
+   "engine": "gecko",
+   "mode": "dynamic",
+   "view": "spawn",
+   "kind": "view",
+   "rounds": 3,
+   "median": 16.66,
+   "p95": 16.72,
+   "p95Range": [
+    16.72,
+    16.74
+   ],
+   "p99": 16.74,
+   "p99Range": [
+    16.74,
+    33.32
+   ],
+   "mean": 16.777,
+   "meanRange": [
+    16.748,
+    16.919
+   ],
+   "fps": 59.6,
+   "fpsRange": [
+    59.1,
+    59.7
+   ],
+   "missed": 0.83,
+   "missedRange": [
+    0.66,
+    1.66
+   ],
+   "over20": 0.84,
+   "over20Range": [
+    0.67,
+    1.69
+   ],
+   "hitches": 3,
+   "hitchesRange": [
+    2,
+    4
+   ],
+   "js": 13.82,
+   "jsRange": [
+    13.66,
+    13.9
+   ],
+   "jsP95": 14.98,
+   "jsP95Range": [
+    14.66,
+    15.12
+   ],
+   "gcMsPerS": null,
+   "gcMax": null,
+   "gcOver4": null,
+   "scavengesPerS": null,
+   "markCompacts": null,
+   "gpuBusy": 88,
+   "gpuMHz": 680,
+   "gpuC": 63.2,
+   "gpuCRange": [
+    62.8,
+    64.8
+   ],
+   "cpuC": 70.4,
+   "cpuCRange": [
+    67.2,
+    70.8
+   ],
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": null,
+   "rendererMB": 559.6,
+   "rendererMBRange": [
+    555.6,
+    566
+   ],
+   "hostMB": 279.1,
+   "hostMBRange": [
+    277.9,
+    290.2
+   ],
+   "hostGraphicsMB": 105.1,
+   "hostGraphicsMBRange": [
+    104.6,
+    105.9
+   ],
+   "parentMB": 187.4,
+   "parentMBRange": [
+    185.6,
+    188.9
+   ],
+   "rendererCores": 0.93,
+   "rendererCoresRange": [
+    0.92,
+    0.94
+   ],
+   "hostCores": 0.44,
+   "hostCoresRange": [
+    0.43,
+    0.44
+   ],
+   "parentCores": 0.11,
+   "draws": 454,
+   "tris": 568387
+  },
+  {
+   "engine": "gecko",
+   "mode": "dynamic",
+   "view": "qanat-tree",
+   "kind": "view",
+   "rounds": 3,
+   "median": 16.66,
+   "p95": 33.3,
+   "p95Range": [
+    33.3,
+    33.32
+   ],
+   "p99": 33.36,
+   "p99Range": [
+    33.34,
+    33.36
+   ],
+   "mean": 18.204,
+   "meanRange": [
+    18.145,
+    18.545
+   ],
+   "fps": 54.9,
+   "fpsRange": [
+    53.9,
+    55.1
+   ],
+   "missed": 8.61,
+   "missedRange": [
+    8.31,
+    10.28
+   ],
+   "over20": 9.42,
+   "over20Range": [
+    9.06,
+    11.46
+   ],
+   "hitches": 21,
+   "hitchesRange": [
+    17,
+    23
+   ],
+   "js": 18.06,
+   "jsRange": [
+    17.6,
+    18.36
+   ],
+   "jsP95": 20.56,
+   "jsP95Range": [
+    20.38,
+    20.76
+   ],
+   "gcMsPerS": null,
+   "gcMax": null,
+   "gcOver4": null,
+   "scavengesPerS": null,
+   "markCompacts": null,
+   "gpuBusy": 71,
+   "gpuBusyRange": [
+    69,
+    72
+   ],
+   "gpuMHz": 615,
+   "gpuC": 62.8,
+   "gpuCRange": [
+    61.3,
+    63.6
+   ],
+   "cpuC": 72.4,
+   "cpuCRange": [
+    72,
+    73.6
+   ],
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": null,
+   "rendererMB": 571.7,
+   "rendererMBRange": [
+    560.3,
+    575.8
+   ],
+   "hostMB": 282.7,
+   "hostMBRange": [
+    281.5,
+    294.5
+   ],
+   "hostGraphicsMB": 108,
+   "hostGraphicsMBRange": [
+    108,
+    109
+   ],
+   "parentMB": 188.2,
+   "parentMBRange": [
+    186.4,
+    189.7
+   ],
+   "rendererCores": 1.03,
+   "rendererCoresRange": [
+    1.03,
+    1.04
+   ],
+   "hostCores": 0.39,
+   "hostCoresRange": [
+    0.38,
+    0.39
+   ],
+   "parentCores": 0.11,
+   "draws": 320,
+   "tris": 449732
+  },
+  {
+   "engine": "gecko",
+   "mode": "dynamic",
+   "view": "camps",
+   "kind": "view",
+   "rounds": 3,
+   "median": 16.66,
+   "p95": 16.74,
+   "p95Range": [
+    16.72,
+    16.74
+   ],
+   "p99": 33.34,
+   "mean": 16.977,
+   "meanRange": [
+    16.918,
+    17.122
+   ],
+   "fps": 58.9,
+   "fpsRange": [
+    58.4,
+    59.1
+   ],
+   "missed": 1.99,
+   "missedRange": [
+    1.66,
+    2.82
+   ],
+   "over20": 2.03,
+   "over20Range": [
+    1.69,
+    2.9
+   ],
+   "hitches": 8,
+   "hitchesRange": [
+    8,
+    9
+   ],
+   "js": 16.5,
+   "jsRange": [
+    16.4,
+    17.2
+   ],
+   "jsP95": 18,
+   "jsP95Range": [
+    17.86,
+    19.62
+   ],
+   "gcMsPerS": null,
+   "gcMax": null,
+   "gcOver4": null,
+   "scavengesPerS": null,
+   "markCompacts": null,
+   "gpuBusy": 80,
+   "gpuBusyRange": [
+    79,
+    83
+   ],
+   "gpuMHz": 680,
+   "gpuC": 66.8,
+   "gpuCRange": [
+    65.2,
+    67.5
+   ],
+   "cpuC": 74.8,
+   "cpuCRange": [
+    73.6,
+    75.6
+   ],
+   "scale": 0.75,
+   "scaleRange": [
+    0.75,
+    0.8
+   ],
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "scaleMaxRange": [
+    0.75,
+    0.8
+   ],
+   "heapMB": null,
+   "rendererMB": 516.4,
+   "rendererMBRange": [
+    503.5,
+    517.8
+   ],
+   "hostMB": 277.4,
+   "hostMBRange": [
+    275.4,
+    284.9
+   ],
+   "hostGraphicsMB": 112.3,
+   "hostGraphicsMBRange": [
+    112.1,
+    112.6
+   ],
+   "parentMB": 188.2,
+   "parentMBRange": [
+    186.3,
+    189.7
+   ],
+   "rendererCores": 1.04,
+   "hostCores": 0.46,
+   "hostCoresRange": [
+    0.46,
+    0.47
+   ],
+   "parentCores": 0.11,
+   "draws": 426,
+   "drawsRange": [
+    424,
+    430
+   ],
+   "tris": 531983,
+   "trisRange": [
+    531299,
+    533309
+   ]
+  },
+  {
+   "engine": "gecko",
+   "mode": "dynamic",
+   "view": "dunes",
+   "kind": "view",
+   "rounds": 3,
+   "median": 16.66,
+   "p95": 16.74,
+   "p95Range": [
+    16.72,
+    16.74
+   ],
+   "p99": 16.74,
+   "mean": 16.636,
+   "meanRange": [
+    16.635,
+    16.639
+   ],
+   "fps": 60.1,
+   "missed": 0,
+   "over20": 0,
+   "hitches": 0,
+   "js": 10.68,
+   "jsRange": [
+    10.58,
+    10.96
+   ],
+   "jsP95": 12.04,
+   "jsP95Range": [
+    11.98,
+    12.18
+   ],
+   "gcMsPerS": null,
+   "gcMax": null,
+   "gcOver4": null,
+   "scavengesPerS": null,
+   "markCompacts": null,
+   "gpuBusy": 81,
+   "gpuBusyRange": [
+    80,
+    81
+   ],
+   "gpuMHz": 680,
+   "gpuC": 64,
+   "gpuCRange": [
+    62,
+    64.4
+   ],
+   "cpuC": 65.6,
+   "cpuCRange": [
+    58.8,
+    66.4
+   ],
+   "scale": 0.8,
+   "scaleMin": 0.75,
+   "scaleMinRange": [
+    0.75,
+    0.8
+   ],
+   "scaleMax": 0.85,
+   "heapMB": null,
+   "rendererMB": 546.7,
+   "rendererMBRange": [
+    528.1,
+    549
+   ],
+   "hostMB": 280.1,
+   "hostMBRange": [
+    279.4,
+    288.5
+   ],
+   "hostGraphicsMB": 114,
+   "hostGraphicsMBRange": [
+    113.3,
+    114.6
+   ],
+   "parentMB": 189.4,
+   "parentMBRange": [
+    186.8,
+    190
+   ],
+   "rendererCores": 0.7,
+   "hostCores": 0.33,
+   "hostCoresRange": [
+    0.31,
+    0.33
+   ],
+   "parentCores": 0.11,
+   "draws": 200,
+   "tris": 292859
+  },
+  {
+   "engine": "gecko",
+   "mode": "dynamic",
+   "view": "cave",
+   "kind": "view",
+   "rounds": 3,
+   "median": 16.66,
+   "p95": 33.1,
+   "p95Range": [
+    16.74,
+    33.32
+   ],
+   "p99": 33.34,
+   "p99Range": [
+    33.16,
+    33.36
+   ],
+   "mean": 17.51,
+   "meanRange": [
+    16.89,
+    18.418
+   ],
+   "fps": 57.1,
+   "fpsRange": [
+    54.3,
+    59.2
+   ],
+   "missed": 4.98,
+   "missedRange": [
+    1.5,
+    9.65
+   ],
+   "over20": 5.24,
+   "over20Range": [
+    1.52,
+    10.5
+   ],
+   "hitches": 13,
+   "hitchesRange": [
+    3,
+    29
+   ],
+   "js": 12.34,
+   "jsRange": [
+    12.12,
+    12.84
+   ],
+   "jsP95": 14.1,
+   "jsP95Range": [
+    13.56,
+    14.32
+   ],
+   "gcMsPerS": null,
+   "gcMax": null,
+   "gcOver4": null,
+   "scavengesPerS": null,
+   "markCompacts": null,
+   "gpuBusy": 96,
+   "gpuBusyRange": [
+    94,
+    97
+   ],
+   "gpuMHz": 680,
+   "gpuC": 60.5,
+   "gpuCRange": [
+    60.1,
+    61.6
+   ],
+   "cpuC": 60,
+   "cpuCRange": [
+    58,
+    66
+   ],
+   "scale": 0.65,
+   "scaleRange": [
+    0.6,
+    0.7
+   ],
+   "scaleMin": 0.6,
+   "scaleMinRange": [
+    0.6,
+    0.65
+   ],
+   "scaleMax": 0.8,
+   "scaleMaxRange": [
+    0.7,
+    0.8
+   ],
+   "heapMB": null,
+   "rendererMB": 570.3,
+   "rendererMBRange": [
+    548.9,
+    584.9
+   ],
+   "hostMB": 284.2,
+   "hostMBRange": [
+    283.6,
+    292.5
+   ],
+   "hostGraphicsMB": 117.5,
+   "hostGraphicsMBRange": [
+    116.7,
+    118.4
+   ],
+   "parentMB": 189.4,
+   "parentMBRange": [
+    186.8,
+    190
+   ],
+   "rendererCores": 0.79,
+   "rendererCoresRange": [
+    0.77,
+    0.81
+   ],
+   "hostCores": 0.33,
+   "hostCoresRange": [
+    0.32,
+    0.33
+   ],
+   "parentCores": 0.1,
+   "draws": 318,
+   "drawsRange": [
+    318,
+    332
+   ],
+   "tris": 388481,
+   "trisRange": [
+    388481,
+    398149
+   ]
+  },
+  {
+   "engine": "gecko",
+   "mode": "dynamic",
+   "view": "ride-city",
+   "kind": "path",
+   "rounds": 3,
+   "median": 16.66,
+   "p95": 33.32,
+   "p95Range": [
+    33.18,
+    33.32
+   ],
+   "p99": 33.36,
+   "mean": 17.967,
+   "meanRange": [
+    17.901,
+    18.034
+   ],
+   "fps": 55.7,
+   "fpsRange": [
+    55.5,
+    55.9
+   ],
+   "missed": 7.4,
+   "missedRange": [
+    7.05,
+    7.74
+   ],
+   "over20": 7.54,
+   "over20Range": [
+    7.23,
+    7.75
+   ],
+   "hitches": 50,
+   "hitchesRange": [
+    41,
+    53
+   ],
+   "js": 15.3,
+   "jsRange": [
+    15.3,
+    15.48
+   ],
+   "jsP95": 21.14,
+   "jsP95Range": [
+    21.04,
+    21.6
+   ],
+   "gcMsPerS": null,
+   "gcMax": null,
+   "gcOver4": null,
+   "scavengesPerS": null,
+   "markCompacts": null,
+   "gpuBusy": 67,
+   "gpuBusyRange": [
+    67,
+    68
+   ],
+   "gpuMHz": 615,
+   "gpuC": 63.6,
+   "gpuCRange": [
+    62.4,
+    64.4
+   ],
+   "cpuC": 72.8,
+   "cpuCRange": [
+    71.2,
+    76
+   ],
+   "scale": 0.6,
+   "scaleMin": 0.55,
+   "scaleMinRange": [
+    0.55,
+    0.6
+   ],
+   "scaleMax": 0.6,
+   "heapMB": null,
+   "rendererMB": 591.9,
+   "rendererMBRange": [
+    586.5,
+    604
+   ],
+   "hostMB": 288.9,
+   "hostMBRange": [
+    287.7,
+    297.5
+   ],
+   "hostGraphicsMB": 121.5,
+   "hostGraphicsMBRange": [
+    120.7,
+    121.6
+   ],
+   "parentMB": 190.2,
+   "parentMBRange": [
+    187.6,
+    190.9
+   ],
+   "rendererCores": 0.98,
+   "hostCores": 0.42,
+   "hostCoresRange": [
+    0.42,
+    0.43
+   ],
+   "parentCores": 0.11,
+   "draws": 380,
+   "drawsRange": [
+    379,
+    382
+   ],
+   "tris": 454552,
+   "trisRange": [
+    454102,
+    455799
+   ]
+  },
+  {
+   "engine": "gecko",
+   "mode": "dynamic",
+   "view": "walk-camps",
+   "kind": "path",
+   "rounds": 3,
+   "median": 16.66,
+   "p95": 33.34,
+   "p99": 33.36,
+   "mean": 19.836,
+   "meanRange": [
+    19.373,
+    19.956
+   ],
+   "fps": 50.4,
+   "fpsRange": [
+    50.1,
+    51.6
+   ],
+   "missed": 16.13,
+   "missedRange": [
+    14.12,
+    16.63
+   ],
+   "over20": 19.23,
+   "over20Range": [
+    16.44,
+    19.64
+   ],
+   "hitches": 114,
+   "hitchesRange": [
+    96,
+    116
+   ],
+   "js": 19.44,
+   "jsRange": [
+    18.74,
+    19.46
+   ],
+   "jsP95": 21.88,
+   "jsP95Range": [
+    21.62,
+    22.02
+   ],
+   "gcMsPerS": null,
+   "gcMax": null,
+   "gcOver4": null,
+   "scavengesPerS": null,
+   "markCompacts": null,
+   "gpuBusy": 53,
+   "gpuBusyRange": [
+    52,
+    54
+   ],
+   "gpuMHz": 615,
+   "gpuC": 61.6,
+   "gpuCRange": [
+    60.1,
+    63.2
+   ],
+   "cpuC": 72.8,
+   "cpuCRange": [
+    72.4,
+    72.8
+   ],
+   "scale": 0.55,
+   "scaleRange": [
+    0.55,
+    0.6
+   ],
+   "scaleMin": 0.55,
+   "scaleMinRange": [
+    0.55,
+    0.6
+   ],
+   "scaleMax": 0.55,
+   "scaleMaxRange": [
+    0.55,
+    0.6
+   ],
+   "heapMB": null,
+   "rendererMB": 581.4,
+   "rendererMBRange": [
+    556.3,
+    611
+   ],
+   "hostMB": 298.7,
+   "hostMBRange": [
+    296.2,
+    306.7
+   ],
+   "hostGraphicsMB": 127.5,
+   "hostGraphicsMBRange": [
+    127.5,
+    127.8
+   ],
+   "parentMB": 190.3,
+   "parentMBRange": [
+    188.5,
+    191
+   ],
+   "rendererCores": 1.03,
+   "rendererCoresRange": [
+    1.02,
+    1.04
+   ],
+   "hostCores": 0.43,
+   "hostCoresRange": [
+    0.43,
+    0.44
+   ],
+   "parentCores": 0.1,
+   "draws": 473,
+   "drawsRange": [
+    472,
+    475
+   ],
+   "tris": 533522,
+   "trisRange": [
+    533448,
+    542441
+   ]
+  },
+  {
+   "engine": "webview",
+   "mode": "dynamic",
+   "view": "spawn",
+   "kind": "view",
+   "rounds": 3,
+   "median": 16.667,
+   "p95": 33.359,
+   "p95Range": [
+    33.334,
+    33.36
+   ],
+   "p99": 33.366,
+   "mean": 21.669,
+   "meanRange": [
+    21.3,
+    21.774
+   ],
+   "fps": 46.1,
+   "fpsRange": [
+    45.9,
+    46.9
+   ],
+   "missed": 23.22,
+   "missedRange": [
+    21.89,
+    23.59
+   ],
+   "over20": 29.59,
+   "over20Range": [
+    28.03,
+    30.65
+   ],
+   "hitches": 44,
+   "hitchesRange": [
+    43,
+    47
+   ],
+   "js": 20.7,
+   "jsRange": [
+    20.6,
+    20.8
+   ],
+   "jsP95": 24.6,
+   "jsP95Range": [
+    23.9,
+    24.8
+   ],
+   "gcMsPerS": 7.16,
+   "gcMsPerSRange": [
+    6.53,
+    8.82
+   ],
+   "gcMax": 9.96,
+   "gcMaxRange": [
+    4.65,
+    23.4
+   ],
+   "gcOver4": 1,
+   "gcOver4Range": [
+    1,
+    2
+   ],
+   "scavengesPerS": 3.8,
+   "scavengesPerSRange": [
+    3.5,
+    4.8
+   ],
+   "markCompacts": 1,
+   "markCompactsRange": [
+    0,
+    1
+   ],
+   "gpuBusy": 67,
+   "gpuBusyRange": [
+    67,
+    71
+   ],
+   "gpuMHz": 615,
+   "gpuC": 56.5,
+   "gpuCRange": [
+    56.1,
+    58.1
+   ],
+   "cpuC": 56.4,
+   "cpuCRange": [
+    56,
+    56.8
+   ],
+   "scale": 0.7,
+   "scaleRange": [
+    0.7,
+    0.75
+   ],
+   "scaleMin": 0.7,
+   "scaleMinRange": [
+    0.7,
+    0.75
+   ],
+   "scaleMax": 0.7,
+   "scaleMaxRange": [
+    0.7,
+    0.75
+   ],
+   "heapMB": 177,
+   "rendererMB": 428.1,
+   "rendererMBRange": [
+    415.4,
+    440.8
+   ],
+   "hostMB": 365.1,
+   "hostMBRange": [
+    347.5,
+    370.2
+   ],
+   "hostGraphicsMB": 97.7,
+   "hostGraphicsMBRange": [
+    97.5,
+    97.9
+   ],
+   "parentMB": null,
+   "rendererCores": 1.49,
+   "rendererCoresRange": [
+    1.47,
+    1.49
+   ],
+   "hostCores": 0.48,
+   "hostCoresRange": [
+    0.48,
+    0.49
+   ],
+   "parentCores": null,
+   "draws": 452,
+   "tris": 566819,
+   "trisRange": [
+    566819,
+    567685
+   ]
+  },
+  {
+   "engine": "webview",
+   "mode": "dynamic",
+   "view": "qanat-tree",
+   "kind": "view",
+   "rounds": 3,
+   "median": 33.273,
+   "medianRange": [
+    33.267,
+    33.273
+   ],
+   "p95": 33.392,
+   "p95Range": [
+    33.386,
+    33.394
+   ],
+   "p99": 33.401,
+   "p99Range": [
+    33.393,
+    49.818
+   ],
+   "mean": 28.455,
+   "meanRange": [
+    28.369,
+    28.947
+   ],
+   "fps": 35.1,
+   "fpsRange": [
+    34.5,
+    35.2
+   ],
+   "missed": 41.53,
+   "missedRange": [
+    41.36,
+    42.52
+   ],
+   "over20": 71.02,
+   "over20Range": [
+    70.54,
+    71.97
+   ],
+   "hitches": 0,
+   "js": 28.4,
+   "jsRange": [
+    28.1,
+    28.8
+   ],
+   "jsP95": 32.7,
+   "jsP95Range": [
+    32.1,
+    33.1
+   ],
+   "gcMsPerS": 6.76,
+   "gcMsPerSRange": [
+    5.53,
+    7.69
+   ],
+   "gcMax": 5.7,
+   "gcMaxRange": [
+    4.92,
+    9.98
+   ],
+   "gcOver4": 2,
+   "gcOver4Range": [
+    1,
+    3
+   ],
+   "scavengesPerS": 3.8,
+   "scavengesPerSRange": [
+    3.5,
+    3.9
+   ],
+   "markCompacts": 0,
+   "markCompactsRange": [
+    0,
+    1
+   ],
+   "gpuBusy": 39,
+   "gpuBusyRange": [
+    35,
+    39
+   ],
+   "gpuMHz": 615,
+   "gpuC": 53.4,
+   "gpuCRange": [
+    51,
+    54.2
+   ],
+   "cpuC": 54,
+   "cpuCRange": [
+    53.6,
+    55.6
+   ],
+   "scale": 0.65,
+   "scaleRange": [
+    0.6,
+    0.65
+   ],
+   "scaleMin": 0.65,
+   "scaleMinRange": [
+    0.6,
+    0.65
+   ],
+   "scaleMax": 0.65,
+   "scaleMaxRange": [
+    0.6,
+    0.65
+   ],
+   "heapMB": 177,
+   "rendererMB": 462.6,
+   "rendererMBRange": [
+    458.7,
+    467.2
+   ],
+   "hostMB": 351.3,
+   "hostMBRange": [
+    349,
+    352.4
+   ],
+   "hostGraphicsMB": 100.9,
+   "hostGraphicsMBRange": [
+    98.9,
+    101.4
+   ],
+   "parentMB": null,
+   "rendererCores": 1.55,
+   "rendererCoresRange": [
+    1.54,
+    1.56
+   ],
+   "hostCores": 0.34,
+   "parentCores": null,
+   "draws": 318,
+   "drawsRange": [
+    316,
+    320
+   ],
+   "tris": 444614,
+   "trisRange": [
+    434976,
+    449732
+   ]
+  },
+  {
+   "engine": "webview",
+   "mode": "dynamic",
+   "view": "camps",
+   "kind": "view",
+   "rounds": 3,
+   "median": 33.273,
+   "medianRange": [
+    33.268,
+    33.275
+   ],
+   "p95": 33.391,
+   "p95Range": [
+    33.388,
+    33.392
+   ],
+   "p99": 33.398,
+   "p99Range": [
+    33.394,
+    33.402
+   ],
+   "mean": 28.86,
+   "meanRange": [
+    28.713,
+    28.946
+   ],
+   "fps": 34.6,
+   "fpsRange": [
+    34.5,
+    34.8
+   ],
+   "missed": 42.36,
+   "missedRange": [
+    42.05,
+    42.52
+   ],
+   "over20": 72.83,
+   "over20Range": [
+    72.29,
+    73.49
+   ],
+   "hitches": 0,
+   "js": 27.5,
+   "jsRange": [
+    27.5,
+    28.4
+   ],
+   "jsP95": 31.7,
+   "jsP95Range": [
+    31.2,
+    33.1
+   ],
+   "gcMsPerS": 6.29,
+   "gcMsPerSRange": [
+    5.91,
+    9.89
+   ],
+   "gcMax": 5.78,
+   "gcMaxRange": [
+    4.7,
+    23.72
+   ],
+   "gcOver4": 1,
+   "gcOver4Range": [
+    1,
+    3
+   ],
+   "scavengesPerS": 3.56,
+   "scavengesPerSRange": [
+    3.3,
+    3.56
+   ],
+   "markCompacts": 0,
+   "markCompactsRange": [
+    0,
+    1
+   ],
+   "gpuBusy": 38,
+   "gpuBusyRange": [
+    36,
+    39
+   ],
+   "gpuMHz": 615,
+   "gpuC": 51.8,
+   "gpuCRange": [
+    51.4,
+    52.6
+   ],
+   "cpuC": 54.4,
+   "cpuCRange": [
+    53.2,
+    54.4
+   ],
+   "scale": 0.5,
+   "scaleRange": [
+    0.5,
+    0.55
+   ],
+   "scaleMin": 0.5,
+   "scaleMinRange": [
+    0.5,
+    0.55
+   ],
+   "scaleMax": 0.5,
+   "scaleMaxRange": [
+    0.5,
+    0.55
+   ],
+   "heapMB": 177,
+   "rendererMB": 476.7,
+   "rendererMBRange": [
+    457.1,
+    504.7
+   ],
+   "hostMB": 353.6,
+   "hostMBRange": [
+    352.8,
+    355.8
+   ],
+   "hostGraphicsMB": 102.5,
+   "hostGraphicsMBRange": [
+    101.6,
+    103.9
+   ],
+   "parentMB": null,
+   "rendererCores": 1.49,
+   "rendererCoresRange": [
+    1.48,
+    1.5
+   ],
+   "hostCores": 0.36,
+   "hostCoresRange": [
+    0.36,
+    0.37
+   ],
+   "parentCores": null,
+   "draws": 416,
+   "drawsRange": [
+    414,
+    421
+   ],
+   "tris": 515711,
+   "trisRange": [
+    515704,
+    518401
+   ]
+  },
+  {
+   "engine": "webview",
+   "mode": "dynamic",
+   "view": "dunes",
+   "kind": "view",
+   "rounds": 3,
+   "median": 16.667,
+   "p95": 16.726,
+   "p95Range": [
+    16.725,
+    16.727
+   ],
+   "p99": 16.729,
+   "p99Range": [
+    16.728,
+    16.729
+   ],
+   "mean": 16.638,
+   "meanRange": [
+    16.638,
+    16.749
+   ],
+   "fps": 60.1,
+   "fpsRange": [
+    59.7,
+    60.1
+   ],
+   "missed": 0,
+   "missedRange": [
+    0,
+    0.66
+   ],
+   "over20": 0,
+   "over20Range": [
+    0,
+    0.67
+   ],
+   "hitches": 0,
+   "hitchesRange": [
+    0,
+    1
+   ],
+   "js": 12.2,
+   "jsRange": [
+    12.1,
+    12.5
+   ],
+   "jsP95": 13.7,
+   "jsP95Range": [
+    13.6,
+    14.2
+   ],
+   "gcMsPerS": 5.89,
+   "gcMsPerSRange": [
+    4.18,
+    11.92
+   ],
+   "gcMax": 4.83,
+   "gcMaxRange": [
+    1.99,
+    29.38
+   ],
+   "gcOver4": 1,
+   "gcOver4Range": [
+    0,
+    3
+   ],
+   "scavengesPerS": 3,
+   "scavengesPerSRange": [
+    2.9,
+    3.5
+   ],
+   "markCompacts": 0,
+   "markCompactsRange": [
+    0,
+    1
+   ],
+   "gpuBusy": 53,
+   "gpuBusyRange": [
+    52,
+    58
+   ],
+   "gpuMHz": 615,
+   "gpuC": 54.2,
+   "gpuCRange": [
+    53.8,
+    54.6
+   ],
+   "cpuC": 54.8,
+   "scale": 0.55,
+   "scaleRange": [
+    0.5,
+    0.55
+   ],
+   "scaleMin": 0.5,
+   "scaleMinRange": [
+    0.5,
+    0.55
+   ],
+   "scaleMax": 0.55,
+   "scaleMaxRange": [
+    0.5,
+    0.55
+   ],
+   "heapMB": 177,
+   "rendererMB": 503.9,
+   "rendererMBRange": [
+    466.7,
+    516.7
+   ],
+   "hostMB": 363.2,
+   "hostMBRange": [
+    362.1,
+    365.3
+   ],
+   "hostGraphicsMB": 106.7,
+   "hostGraphicsMBRange": [
+    105.6,
+    108
+   ],
+   "parentMB": null,
+   "rendererCores": 1.45,
+   "rendererCoresRange": [
+    1.43,
+    1.47
+   ],
+   "hostCores": 0.44,
+   "hostCoresRange": [
+    0.44,
+    0.45
+   ],
+   "parentCores": null,
+   "draws": 200,
+   "tris": 292859
+  },
+  {
+   "engine": "webview",
+   "mode": "dynamic",
+   "view": "cave",
+   "kind": "view",
+   "rounds": 3,
+   "median": 16.667,
+   "p95": 16.725,
+   "p95Range": [
+    16.724,
+    16.725
+   ],
+   "p99": 16.728,
+   "p99Range": [
+    16.728,
+    16.729
+   ],
+   "mean": 16.666,
+   "meanRange": [
+    16.665,
+    16.722
+   ],
+   "fps": 60,
+   "fpsRange": [
+    59.8,
+    60
+   ],
+   "missed": 0.17,
+   "missedRange": [
+    0.17,
+    0.5
+   ],
+   "over20": 0.17,
+   "over20Range": [
+    0.17,
+    0.5
+   ],
+   "hitches": 0,
+   "js": 13.7,
+   "jsRange": [
+    13.3,
+    13.9
+   ],
+   "jsP95": 15,
+   "jsP95Range": [
+    14.9,
+    15.2
+   ],
+   "gcMsPerS": 7.25,
+   "gcMsPerSRange": [
+    5.65,
+    8
+   ],
+   "gcMax": 5.27,
+   "gcMaxRange": [
+    2.78,
+    7.75
+   ],
+   "gcOver4": 3,
+   "gcOver4Range": [
+    0,
+    3
+   ],
+   "scavengesPerS": 3.3,
+   "scavengesPerSRange": [
+    3.2,
+    3.6
+   ],
+   "markCompacts": 0,
+   "markCompactsRange": [
+    0,
+    1
+   ],
+   "gpuBusy": 82,
+   "gpuMHz": 680,
+   "gpuC": 58.1,
+   "gpuCRange": [
+    57.7,
+    58.5
+   ],
+   "cpuC": 57.6,
+   "cpuCRange": [
+    56,
+    59.2
+   ],
+   "scale": 0.55,
+   "scaleRange": [
+    0.5,
+    0.55
+   ],
+   "scaleMin": 0.55,
+   "scaleMinRange": [
+    0.5,
+    0.55
+   ],
+   "scaleMax": 0.55,
+   "scaleMaxRange": [
+    0.55,
+    0.6
+   ],
+   "heapMB": 177,
+   "rendererMB": 502.9,
+   "rendererMBRange": [
+    479.7,
+    568.4
+   ],
+   "hostMB": 368,
+   "hostMBRange": [
+    367,
+    369.6
+   ],
+   "hostGraphicsMB": 110,
+   "hostGraphicsMBRange": [
+    108.9,
+    110.8
+   ],
+   "parentMB": null,
+   "rendererCores": 1.52,
+   "rendererCoresRange": [
+    1.45,
+    1.52
+   ],
+   "hostCores": 0.47,
+   "hostCoresRange": [
+    0.46,
+    0.5
+   ],
+   "parentCores": null,
+   "draws": 332,
+   "drawsRange": [
+    318,
+    332
+   ],
+   "tris": 395273,
+   "trisRange": [
+    382449,
+    395273
+   ]
+  },
+  {
+   "engine": "webview",
+   "mode": "dynamic",
+   "view": "ride-city",
+   "kind": "path",
+   "rounds": 3,
+   "median": 33.102,
+   "medianRange": [
+    33.077,
+    33.111
+   ],
+   "p95": 33.394,
+   "p95Range": [
+    33.391,
+    33.399
+   ],
+   "p99": 50.061,
+   "p99Range": [
+    50.055,
+    66.431
+   ],
+   "mean": 27.39,
+   "meanRange": [
+    27.382,
+    27.506
+   ],
+   "fps": 36.5,
+   "fpsRange": [
+    36.4,
+    36.5
+   ],
+   "missed": 39.27,
+   "missedRange": [
+    39.24,
+    39.52
+   ],
+   "over20": 57.46,
+   "over20Range": [
+    56.58,
+    58.05
+   ],
+   "hitches": 7,
+   "hitchesRange": [
+    5,
+    8
+   ],
+   "js": 24.2,
+   "jsRange": [
+    24,
+    24.2
+   ],
+   "jsP95": 34.8,
+   "jsP95Range": [
+    34.6,
+    36
+   ],
+   "gcMsPerS": 10.57,
+   "gcMsPerSRange": [
+    8.46,
+    10.72
+   ],
+   "gcMax": 16.56,
+   "gcMaxRange": [
+    12.42,
+    27.3
+   ],
+   "gcOver4": 5,
+   "gcOver4Range": [
+    2,
+    8
+   ],
+   "scavengesPerS": 4.13,
+   "scavengesPerSRange": [
+    4.08,
+    4.43
+   ],
+   "markCompacts": 1,
+   "markCompactsRange": [
+    1,
+    2
+   ],
+   "gpuBusy": 46,
+   "gpuBusyRange": [
+    46,
+    48
+   ],
+   "gpuMHz": 615,
+   "gpuC": 51.8,
+   "gpuCRange": [
+    51.4,
+    52.2
+   ],
+   "cpuC": 54.4,
+   "cpuCRange": [
+    53.6,
+    55.2
+   ],
+   "scale": 0.55,
+   "scaleRange": [
+    0.55,
+    0.6
+   ],
+   "scaleMin": 0.5,
+   "scaleMax": 0.55,
+   "scaleMaxRange": [
+    0.55,
+    0.6
+   ],
+   "heapMB": 177,
+   "rendererMB": 413.7,
+   "rendererMBRange": [
+    396.9,
+    473.8
+   ],
+   "hostMB": 388.2,
+   "hostMBRange": [
+    387.1,
+    388.8
+   ],
+   "hostGraphicsMB": 115.1,
+   "hostGraphicsMBRange": [
+    115,
+    115.2
+   ],
+   "parentMB": null,
+   "rendererCores": 1.49,
+   "rendererCoresRange": [
+    1.48,
+    1.51
+   ],
+   "hostCores": 0.4,
+   "parentCores": null,
+   "draws": 377,
+   "drawsRange": [
+    376,
+    382
+   ],
+   "tris": 451994,
+   "trisRange": [
+    451518,
+    453239
+   ]
+  },
+  {
+   "engine": "webview",
+   "mode": "dynamic",
+   "view": "walk-camps",
+   "kind": "path",
+   "rounds": 3,
+   "median": 33.302,
+   "medianRange": [
+    33.279,
+    33.333
+   ],
+   "p95": 33.399,
+   "p95Range": [
+    33.392,
+    49.936
+   ],
+   "p99": 50,
+   "p99Range": [
+    50,
+    50.032
+   ],
+   "mean": 32.28,
+   "meanRange": [
+    32.102,
+    32.73
+   ],
+   "fps": 31,
+   "fpsRange": [
+    30.6,
+    31.2
+   ],
+   "missed": 48.46,
+   "missedRange": [
+    48.17,
+    49.17
+   ],
+   "over20": 88.71,
+   "over20Range": [
+    86.86,
+    89.54
+   ],
+   "hitches": 3,
+   "hitchesRange": [
+    2,
+    4
+   ],
+   "js": 30.8,
+   "jsRange": [
+    30.4,
+    31
+   ],
+   "jsP95": 34.9,
+   "jsP95Range": [
+    34.6,
+    35.8
+   ],
+   "gcMsPerS": 8.94,
+   "gcMsPerSRange": [
+    8.56,
+    9.58
+   ],
+   "gcMax": 26.63,
+   "gcMaxRange": [
+    13.71,
+    32.55
+   ],
+   "gcOver4": 4,
+   "gcOver4Range": [
+    4,
+    5
+   ],
+   "scavengesPerS": 3.58,
+   "scavengesPerSRange": [
+    3.48,
+    3.73
+   ],
+   "markCompacts": 1,
+   "markCompactsRange": [
+    1,
+    2
+   ],
+   "gpuBusy": 29,
+   "gpuBusyRange": [
+    28,
+    29
+   ],
+   "gpuMHz": 615,
+   "gpuC": 51.4,
+   "gpuCRange": [
+    50.6,
+    51.8
+   ],
+   "cpuC": 53.2,
+   "cpuCRange": [
+    53.2,
+    54.8
+   ],
+   "scale": 0.5,
+   "scaleMin": 0.5,
+   "scaleMax": 0.5,
+   "heapMB": 177,
+   "rendererMB": 409.2,
+   "rendererMBRange": [
+    406.6,
+    444.7
+   ],
+   "hostMB": 392.5,
+   "hostMBRange": [
+    392.1,
+    398.2
+   ],
+   "hostGraphicsMB": 121.5,
+   "hostGraphicsMBRange": [
+    121.3,
+    121.6
+   ],
+   "parentMB": null,
+   "rendererCores": 1.46,
+   "rendererCoresRange": [
+    1.46,
+    1.48
+   ],
+   "hostCores": 0.36,
+   "parentCores": null,
+   "draws": 466,
+   "drawsRange": [
+    466,
+    467
+   ],
+   "tris": 522247,
+   "trisRange": [
+    519937,
+    522817
+   ]
+  }
+ ],
+ "chromeRows": [
+  {
+   "engine": "chrome",
+   "mode": "fixed",
+   "view": "spawn",
+   "kind": "view",
+   "rounds": 3,
+   "median": 16.7,
+   "p95": 16.8,
+   "p99": 16.8,
+   "mean": 16.637,
+   "meanRange": [
+    16.636,
+    16.64
+   ],
+   "fps": 60.1,
+   "missed": 0,
+   "over20": 0,
+   "hitches": 0,
+   "js": 12,
+   "jsRange": [
+    11.8,
+    12.4
+   ],
+   "jsP95": 13.7,
+   "jsP95Range": [
+    13.6,
+    14.6
+   ],
+   "gcMsPerS": 1.32,
+   "gcMsPerSRange": [
+    1.19,
+    1.78
+   ],
+   "gcMax": 1.6,
+   "gcMaxRange": [
+    1.46,
+    1.91
+   ],
+   "gcOver4": 0,
+   "scavengesPerS": 1.2,
+   "scavengesPerSRange": [
+    1.1,
+    1.3
+   ],
+   "markCompacts": 0,
+   "gpuBusy": 89,
+   "gpuBusyRange": [
+    88,
+    89
+   ],
+   "gpuMHz": 680,
+   "gpuC": 64,
+   "gpuCRange": [
+    62.4,
+    64.8
+   ],
+   "cpuC": 60.4,
+   "cpuCRange": [
+    58.4,
+    67.6
+   ],
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": 188,
+   "heapMBRange": [
+    188,
+    199
+   ],
+   "rendererMB": 470.7,
+   "rendererMBRange": [
+    468.5,
+    474.4
+   ],
+   "hostMB": 350.2,
+   "hostMBRange": [
+    336.5,
+    362
+   ],
+   "hostGraphicsMB": 157.3,
+   "hostGraphicsMBRange": [
+    133.7,
+    158.2
+   ],
+   "rendererCores": 0.88,
+   "rendererCoresRange": [
+    0.87,
+    0.9
+   ],
+   "hostCores": 0.38,
+   "hostCoresRange": [
+    0.37,
+    0.39
+   ],
+   "draws": 452,
+   "drawsRange": [
+    446,
+    454
+   ],
+   "tris": 567685,
+   "trisRange": [
+    567595,
+    568387
+   ]
+  },
+  {
+   "engine": "chrome",
+   "mode": "fixed",
+   "view": "qanat-tree",
+   "kind": "view",
+   "rounds": 3,
+   "median": 16.7,
+   "p95": 16.8,
+   "p99": 16.8,
+   "mean": 16.637,
+   "meanRange": [
+    16.636,
+    16.639
+   ],
+   "fps": 60.1,
+   "missed": 0,
+   "over20": 0,
+   "hitches": 0,
+   "js": 12.3,
+   "jsRange": [
+    12.1,
+    12.4
+   ],
+   "jsP95": 17.9,
+   "jsP95Range": [
+    17.8,
+    18
+   ],
+   "gcMsPerS": 1.43,
+   "gcMsPerSRange": [
+    1.23,
+    1.52
+   ],
+   "gcMax": 1.43,
+   "gcMaxRange": [
+    1.16,
+    1.66
+   ],
+   "gcOver4": 0,
+   "scavengesPerS": 1.5,
+   "markCompacts": 0,
+   "gpuBusy": 78,
+   "gpuBusyRange": [
+    78,
+    79
+   ],
+   "gpuMHz": 615,
+   "gpuC": 64,
+   "gpuCRange": [
+    63.6,
+    64
+   ],
+   "cpuC": 66,
+   "cpuCRange": [
+    65.6,
+    67.2
+   ],
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": 188,
+   "heapMBRange": [
+    188,
+    199
+   ],
+   "rendererMB": 384.7,
+   "rendererMBRange": [
+    380.6,
+    388
+   ],
+   "hostMB": 340.1,
+   "hostMBRange": [
+    309.9,
+    340.9
+   ],
+   "hostGraphicsMB": 158.7,
+   "hostGraphicsMBRange": [
+    137.9,
+    159.7
+   ],
+   "rendererCores": 0.95,
+   "rendererCoresRange": [
+    0.94,
+    0.95
+   ],
+   "hostCores": 0.37,
+   "hostCoresRange": [
+    0.36,
+    0.38
+   ],
+   "draws": 320,
+   "tris": 449732
+  },
+  {
+   "engine": "chrome",
+   "mode": "fixed",
+   "view": "camps",
+   "kind": "view",
+   "rounds": 3,
+   "median": 16.7,
+   "p95": 16.8,
+   "p95Range": [
+    16.7,
+    16.8
+   ],
+   "p99": 16.8,
+   "mean": 16.637,
+   "meanRange": [
+    16.637,
+    16.638
+   ],
+   "fps": 60.1,
+   "missed": 0,
+   "over20": 0,
+   "hitches": 0,
+   "js": 12.2,
+   "jsRange": [
+    12.1,
+    12.3
+   ],
+   "jsP95": 17.8,
+   "jsP95Range": [
+    17.7,
+    18.2
+   ],
+   "gcMsPerS": 1.12,
+   "gcMsPerSRange": [
+    1.08,
+    1.37
+   ],
+   "gcMax": 1.36,
+   "gcMaxRange": [
+    1.24,
+    1.47
+   ],
+   "gcOver4": 0,
+   "scavengesPerS": 1.4,
+   "scavengesPerSRange": [
+    1.3,
+    1.4
+   ],
+   "markCompacts": 0,
+   "gpuBusy": 85,
+   "gpuBusyRange": [
+    84,
+    85
+   ],
+   "gpuMHz": 680,
+   "gpuC": 66.4,
+   "gpuCRange": [
+    66,
+    66.8
+   ],
+   "cpuC": 66.4,
+   "cpuCRange": [
+    66.4,
+    69.6
+   ],
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": 188,
+   "heapMBRange": [
+    188,
+    199
+   ],
+   "rendererMB": 399.8,
+   "rendererMBRange": [
+    391.4,
+    407.3
+   ],
+   "hostMB": 345.5,
+   "hostMBRange": [
+    322.3,
+    349.2
+   ],
+   "hostGraphicsMB": 163.4,
+   "hostGraphicsMBRange": [
+    145,
+    164.5
+   ],
+   "rendererCores": 0.92,
+   "rendererCoresRange": [
+    0.92,
+    0.93
+   ],
+   "hostCores": 0.42,
+   "hostCoresRange": [
+    0.39,
+    0.42
+   ],
+   "draws": 427,
+   "drawsRange": [
+    427,
+    429
+   ],
+   "tris": 531719,
+   "trisRange": [
+    531719,
+    531971
+   ]
+  },
+  {
+   "engine": "chrome",
+   "mode": "fixed",
+   "view": "dunes",
+   "kind": "view",
+   "rounds": 3,
+   "median": 16.7,
+   "p95": 16.8,
+   "p99": 16.8,
+   "mean": 16.638,
+   "meanRange": [
+    16.637,
+    16.639
+   ],
+   "fps": 60.1,
+   "missed": 0,
+   "over20": 0,
+   "hitches": 0,
+   "js": 7.3,
+   "jsRange": [
+    7.2,
+    7.5
+   ],
+   "jsP95": 8.3,
+   "jsP95Range": [
+    8.2,
+    8.6
+   ],
+   "gcMsPerS": 0.74,
+   "gcMsPerSRange": [
+    0.71,
+    0.87
+   ],
+   "gcMax": 1.47,
+   "gcMaxRange": [
+    1.39,
+    1.51
+   ],
+   "gcOver4": 0,
+   "scavengesPerS": 0.7,
+   "scavengesPerSRange": [
+    0.6,
+    0.7
+   ],
+   "markCompacts": 0,
+   "gpuBusy": 81,
+   "gpuBusyRange": [
+    81,
+    82
+   ],
+   "gpuMHz": 615,
+   "gpuC": 62,
+   "gpuCRange": [
+    62,
+    62.4
+   ],
+   "cpuC": 58.4,
+   "cpuCRange": [
+    58.4,
+    64.8
+   ],
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": 188,
+   "heapMBRange": [
+    188,
+    199
+   ],
+   "rendererMB": 403.9,
+   "rendererMBRange": [
+    394.7,
+    409.7
+   ],
+   "hostMB": 347.4,
+   "hostMBRange": [
+    327.4,
+    350.7
+   ],
+   "hostGraphicsMB": 163.7,
+   "hostGraphicsMBRange": [
+    148.2,
+    164.7
+   ],
+   "rendererCores": 0.55,
+   "rendererCoresRange": [
+    0.54,
+    0.56
+   ],
+   "hostCores": 0.27,
+   "draws": 200,
+   "tris": 292859
+  },
+  {
+   "engine": "chrome",
+   "mode": "fixed",
+   "view": "cave",
+   "kind": "view",
+   "rounds": 3,
+   "median": 16.7,
+   "p95": 33.2,
+   "p95Range": [
+    33.1,
+    33.2
+   ],
+   "p99": 33.4,
+   "p99Range": [
+    33.3,
+    33.4
+   ],
+   "mean": 19.083,
+   "meanRange": [
+    19.079,
+    19.114
+   ],
+   "fps": 52.4,
+   "fpsRange": [
+    52.3,
+    52.4
+   ],
+   "missed": 12.81,
+   "missedRange": [
+    12.79,
+    12.96
+   ],
+   "over20": 14.69,
+   "over20Range": [
+    14.67,
+    14.89
+   ],
+   "hitches": 3,
+   "hitchesRange": [
+    2,
+    3
+   ],
+   "js": 7.9,
+   "jsRange": [
+    7.9,
+    8.2
+   ],
+   "jsP95": 9.7,
+   "jsP95Range": [
+    9.3,
+    9.9
+   ],
+   "gcMsPerS": 0.61,
+   "gcMsPerSRange": [
+    0.6,
+    0.62
+   ],
+   "gcMax": 1.27,
+   "gcMaxRange": [
+    0.98,
+    1.32
+   ],
+   "gcOver4": 0,
+   "scavengesPerS": 0.6,
+   "scavengesPerSRange": [
+    0.6,
+    0.7
+   ],
+   "markCompacts": 0,
+   "gpuBusy": 99,
+   "gpuMHz": 680,
+   "gpuC": 64.4,
+   "gpuCRange": [
+    64,
+    64.8
+   ],
+   "cpuC": 60,
+   "cpuCRange": [
+    60,
+    62.8
+   ],
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": 188,
+   "heapMBRange": [
+    188,
+    199
+   ],
+   "rendererMB": 408.5,
+   "rendererMBRange": [
+    395.1,
+    410.6
+   ],
+   "hostMB": 348.9,
+   "hostMBRange": [
+    331.1,
+    351.9
+   ],
+   "hostGraphicsMB": 164.2,
+   "hostGraphicsMBRange": [
+    150.7,
+    165.3
+   ],
+   "rendererCores": 0.56,
+   "rendererCoresRange": [
+    0.55,
+    0.57
+   ],
+   "hostCores": 0.29,
+   "hostCoresRange": [
+    0.28,
+    0.29
+   ],
+   "draws": 332,
+   "drawsRange": [
+    318,
+    332
+   ],
+   "tris": 401305,
+   "trisRange": [
+    388481,
+    401305
+   ]
+  },
+  {
+   "engine": "chrome",
+   "mode": "fixed",
+   "view": "ride-city",
+   "kind": "path",
+   "rounds": 3,
+   "median": 16.7,
+   "p95": 16.8,
+   "p99": 16.8,
+   "mean": 16.653,
+   "meanRange": [
+    16.651,
+    16.665
+   ],
+   "fps": 60,
+   "fpsRange": [
+    60,
+    60.1
+   ],
+   "missed": 0.08,
+   "missedRange": [
+    0.08,
+    0.17
+   ],
+   "over20": 0.08,
+   "over20Range": [
+    0.08,
+    0.17
+   ],
+   "hitches": 0,
+   "js": 12.7,
+   "jsRange": [
+    12.6,
+    12.7
+   ],
+   "jsP95": 17,
+   "jsP95Range": [
+    16.6,
+    17.1
+   ],
+   "gcMsPerS": 7.27,
+   "gcMsPerSRange": [
+    7.17,
+    8.58
+   ],
+   "gcMax": 24.59,
+   "gcMaxRange": [
+    23.06,
+    24.96
+   ],
+   "gcOver4": 4,
+   "scavengesPerS": 6.25,
+   "scavengesPerSRange": [
+    6.1,
+    7.65
+   ],
+   "markCompacts": 2,
+   "gpuBusy": 81,
+   "gpuBusyRange": [
+    81,
+    82
+   ],
+   "gpuMHz": 680,
+   "gpuC": 68.3,
+   "gpuCRange": [
+    66.8,
+    69.5
+   ],
+   "cpuC": 69.2,
+   "cpuCRange": [
+    67.2,
+    70.4
+   ],
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": 188,
+   "heapMBRange": [
+    188,
+    199
+   ],
+   "rendererMB": 323.2,
+   "rendererMBRange": [
+    322,
+    330.2
+   ],
+   "hostMB": 335.4,
+   "hostMBRange": [
+    325.3,
+    337.9
+   ],
+   "hostGraphicsMB": 155.3,
+   "hostGraphicsMBRange": [
+    149.4,
+    156
+   ],
+   "rendererCores": 0.92,
+   "rendererCoresRange": [
+    0.9,
+    0.93
+   ],
+   "hostCores": 0.38,
+   "hostCoresRange": [
+    0.37,
+    0.39
+   ],
+   "draws": 386,
+   "drawsRange": [
+    383,
+    387
+   ],
+   "tris": 465865,
+   "trisRange": [
+    465297,
+    465875
+   ]
+  },
+  {
+   "engine": "chrome",
+   "mode": "fixed",
+   "view": "walk-camps",
+   "kind": "path",
+   "rounds": 3,
+   "median": 16.7,
+   "p95": 16.8,
+   "p99": 16.8,
+   "mean": 16.639,
+   "meanRange": [
+    16.638,
+    16.651
+   ],
+   "fps": 60.1,
+   "missed": 0,
+   "missedRange": [
+    0,
+    0.08
+   ],
+   "over20": 0,
+   "over20Range": [
+    0,
+    0.08
+   ],
+   "hitches": 0,
+   "js": 12.2,
+   "jsRange": [
+    12.1,
+    12.5
+   ],
+   "jsP95": 18.6,
+   "jsP95Range": [
+    18.2,
+    18.8
+   ],
+   "gcMsPerS": 2.75,
+   "gcMsPerSRange": [
+    2.42,
+    3.4
+   ],
+   "gcMax": 1.51,
+   "gcMaxRange": [
+    1.43,
+    5.03
+   ],
+   "gcOver4": 0,
+   "gcOver4Range": [
+    0,
+    4
+   ],
+   "scavengesPerS": 2.95,
+   "scavengesPerSRange": [
+    2.95,
+    3.35
+   ],
+   "markCompacts": 0,
+   "markCompactsRange": [
+    0,
+    1
+   ],
+   "gpuBusy": 77,
+   "gpuBusyRange": [
+    76,
+    78
+   ],
+   "gpuMHz": 615,
+   "gpuC": 67.1,
+   "gpuCRange": [
+    65.6,
+    67.1
+   ],
+   "cpuC": 73.2,
+   "cpuCRange": [
+    71.6,
+    75.2
+   ],
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": 188,
+   "heapMBRange": [
+    188,
+    199
+   ],
+   "rendererMB": 354,
+   "rendererMBRange": [
+    352.8,
+    359.2
+   ],
+   "hostMB": 343.3,
+   "hostMBRange": [
+    335.9,
+    345.4
+   ],
+   "hostGraphicsMB": 159.1,
+   "hostGraphicsMBRange": [
+    155.4,
+    159.8
+   ],
+   "rendererCores": 0.91,
+   "rendererCoresRange": [
+    0.9,
+    0.91
+   ],
+   "hostCores": 0.43,
+   "hostCoresRange": [
+    0.43,
+    0.44
+   ],
+   "draws": 481,
+   "tris": 564009,
+   "trisRange": [
+    563159,
+    567456
+   ]
+  },
+  {
+   "engine": "chrome",
+   "mode": "dynamic",
+   "view": "spawn",
+   "kind": "view",
+   "rounds": 3,
+   "median": 16.7,
+   "p95": 16.8,
+   "p99": 16.8,
+   "mean": 16.638,
+   "meanRange": [
+    16.637,
+    16.639
+   ],
+   "fps": 60.1,
+   "missed": 0,
+   "over20": 0,
+   "hitches": 0,
+   "js": 12.1,
+   "jsRange": [
+    11.6,
+    12.4
+   ],
+   "jsP95": 13.5,
+   "jsP95Range": [
+    12.9,
+    14.2
+   ],
+   "gcMsPerS": 1.19,
+   "gcMsPerSRange": [
+    1.13,
+    1.36
+   ],
+   "gcMax": 1.65,
+   "gcMaxRange": [
+    1.3,
+    1.98
+   ],
+   "gcOver4": 0,
+   "scavengesPerS": 1.3,
+   "scavengesPerSRange": [
+    1.1,
+    1.3
+   ],
+   "markCompacts": 0,
+   "gpuBusy": 88,
+   "gpuBusyRange": [
+    88,
+    89
+   ],
+   "gpuMHz": 680,
+   "gpuC": 63.6,
+   "gpuCRange": [
+    62.8,
+    64
+   ],
+   "cpuC": 60.4,
+   "cpuCRange": [
+    58.8,
+    63.2
+   ],
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": 188,
+   "heapMBRange": [
+    188,
+    199
+   ],
+   "rendererMB": 454.8,
+   "rendererMBRange": [
+    446.5,
+    460.4
+   ],
+   "hostMB": 361.7,
+   "hostMBRange": [
+    361.3,
+    380.4
+   ],
+   "hostGraphicsMB": 158,
+   "hostGraphicsMBRange": [
+    156,
+    158.5
+   ],
+   "rendererCores": 0.87,
+   "rendererCoresRange": [
+    0.85,
+    0.88
+   ],
+   "hostCores": 0.38,
+   "hostCoresRange": [
+    0.38,
+    0.39
+   ],
+   "draws": 452,
+   "drawsRange": [
+    452,
+    454
+   ],
+   "tris": 567685,
+   "trisRange": [
+    567685,
+    568387
+   ]
+  },
+  {
+   "engine": "chrome",
+   "mode": "dynamic",
+   "view": "qanat-tree",
+   "kind": "view",
+   "rounds": 3,
+   "median": 16.7,
+   "p95": 16.8,
+   "p99": 16.8,
+   "mean": 16.638,
+   "meanRange": [
+    16.637,
+    16.639
+   ],
+   "fps": 60.1,
+   "missed": 0,
+   "over20": 0,
+   "hitches": 0,
+   "js": 12.2,
+   "jsRange": [
+    11.8,
+    12.3
+   ],
+   "jsP95": 17.9,
+   "jsP95Range": [
+    17.6,
+    18.3
+   ],
+   "gcMsPerS": 1.19,
+   "gcMsPerSRange": [
+    1.19,
+    1.22
+   ],
+   "gcMax": 1.17,
+   "gcMaxRange": [
+    1.15,
+    1.22
+   ],
+   "gcOver4": 0,
+   "scavengesPerS": 1.4,
+   "scavengesPerSRange": [
+    1.3,
+    1.5
+   ],
+   "markCompacts": 0,
+   "gpuBusy": 78,
+   "gpuBusyRange": [
+    78,
+    79
+   ],
+   "gpuMHz": 615,
+   "gpuMHzRange": [
+    615,
+    680
+   ],
+   "gpuC": 64,
+   "gpuCRange": [
+    63.6,
+    64.8
+   ],
+   "cpuC": 67.6,
+   "cpuCRange": [
+    66.8,
+    67.6
+   ],
+   "scale": 0.75,
+   "scaleRange": [
+    0.75,
+    0.8
+   ],
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "scaleMaxRange": [
+    0.75,
+    0.8
+   ],
+   "heapMB": 199,
+   "heapMBRange": [
+    188,
+    199
+   ],
+   "rendererMB": 364.9,
+   "rendererMBRange": [
+    363.4,
+    366
+   ],
+   "hostMB": 348.9,
+   "hostMBRange": [
+    341.2,
+    384
+   ],
+   "hostGraphicsMB": 159.3,
+   "hostGraphicsMBRange": [
+    157.3,
+    189.9
+   ],
+   "rendererCores": 0.95,
+   "rendererCoresRange": [
+    0.94,
+    0.95
+   ],
+   "hostCores": 0.37,
+   "hostCoresRange": [
+    0.36,
+    0.37
+   ],
+   "draws": 320,
+   "tris": 449732
+  },
+  {
+   "engine": "chrome",
+   "mode": "dynamic",
+   "view": "camps",
+   "kind": "view",
+   "rounds": 3,
+   "median": 16.7,
+   "p95": 16.8,
+   "p99": 16.8,
+   "mean": 16.637,
+   "fps": 60.1,
+   "missed": 0,
+   "over20": 0,
+   "hitches": 0,
+   "js": 12.1,
+   "jsRange": [
+    11.8,
+    12.2
+   ],
+   "jsP95": 17.7,
+   "jsP95Range": [
+    17.7,
+    18.1
+   ],
+   "gcMsPerS": 1.28,
+   "gcMsPerSRange": [
+    1.21,
+    1.46
+   ],
+   "gcMax": 1.44,
+   "gcMaxRange": [
+    1.16,
+    1.86
+   ],
+   "gcOver4": 0,
+   "scavengesPerS": 1.4,
+   "markCompacts": 0,
+   "gpuBusy": 85,
+   "gpuBusyRange": [
+    84,
+    93
+   ],
+   "gpuMHz": 680,
+   "gpuC": 67.5,
+   "gpuCRange": [
+    66.8,
+    67.9
+   ],
+   "cpuC": 69.6,
+   "cpuCRange": [
+    68.8,
+    72.8
+   ],
+   "scale": 0.75,
+   "scaleRange": [
+    0.75,
+    0.8
+   ],
+   "scaleMin": 0.75,
+   "scaleMinRange": [
+    0.75,
+    0.8
+   ],
+   "scaleMax": 0.75,
+   "scaleMaxRange": [
+    0.75,
+    0.8
+   ],
+   "heapMB": 199,
+   "heapMBRange": [
+    188,
+    199
+   ],
+   "rendererMB": 388.9,
+   "rendererMBRange": [
+    386.3,
+    391.4
+   ],
+   "hostMB": 371.9,
+   "hostMBRange": [
+    356.5,
+    375.2
+   ],
+   "hostGraphicsMB": 179,
+   "hostGraphicsMBRange": [
+    163.9,
+    184.8
+   ],
+   "rendererCores": 0.91,
+   "rendererCoresRange": [
+    0.91,
+    0.92
+   ],
+   "hostCores": 0.42,
+   "hostCoresRange": [
+    0.42,
+    0.44
+   ],
+   "draws": 434,
+   "drawsRange": [
+    430,
+    436
+   ],
+   "tris": 536964,
+   "trisRange": [
+    531983,
+    550167
+   ]
+  },
+  {
+   "engine": "chrome",
+   "mode": "dynamic",
+   "view": "dunes",
+   "kind": "view",
+   "rounds": 3,
+   "median": 16.7,
+   "p95": 16.8,
+   "p99": 16.8,
+   "mean": 16.637,
+   "meanRange": [
+    16.636,
+    16.637
+   ],
+   "fps": 60.1,
+   "missed": 0,
+   "over20": 0,
+   "hitches": 0,
+   "js": 7,
+   "jsRange": [
+    6.9,
+    7.1
+   ],
+   "jsP95": 7.9,
+   "jsP95Range": [
+    7.8,
+    8
+   ],
+   "gcMsPerS": 0.58,
+   "gcMsPerSRange": [
+    0.55,
+    0.82
+   ],
+   "gcMax": 1.32,
+   "gcMaxRange": [
+    1.07,
+    1.58
+   ],
+   "gcOver4": 0,
+   "scavengesPerS": 0.6,
+   "scavengesPerSRange": [
+    0.6,
+    0.7
+   ],
+   "markCompacts": 0,
+   "gpuBusy": 86,
+   "gpuBusyRange": [
+    82,
+    86
+   ],
+   "gpuMHz": 680,
+   "gpuC": 66,
+   "gpuCRange": [
+    64.8,
+    66
+   ],
+   "cpuC": 61.2,
+   "cpuCRange": [
+    60.4,
+    62.4
+   ],
+   "scale": 0.85,
+   "scaleRange": [
+    0.8,
+    0.85
+   ],
+   "scaleMin": 0.8,
+   "scaleMinRange": [
+    0.75,
+    0.85
+   ],
+   "scaleMax": 0.9,
+   "scaleMaxRange": [
+    0.85,
+    0.9
+   ],
+   "heapMB": 199,
+   "heapMBRange": [
+    188,
+    199
+   ],
+   "rendererMB": 391.5,
+   "rendererMBRange": [
+    389.8,
+    393.5
+   ],
+   "hostMB": 380.9,
+   "hostMBRange": [
+    379.3,
+    385
+   ],
+   "hostGraphicsMB": 190.8,
+   "hostGraphicsMBRange": [
+    186.7,
+    193
+   ],
+   "rendererCores": 0.54,
+   "rendererCoresRange": [
+    0.53,
+    0.54
+   ],
+   "hostCores": 0.27,
+   "hostCoresRange": [
+    0.26,
+    0.27
+   ],
+   "draws": 200,
+   "tris": 292859
+  },
+  {
+   "engine": "chrome",
+   "mode": "dynamic",
+   "view": "cave",
+   "kind": "view",
+   "rounds": 3,
+   "median": 16.7,
+   "p95": 33.1,
+   "p99": 33.4,
+   "p99Range": [
+    33.3,
+    33.4
+   ],
+   "mean": 17.983,
+   "meanRange": [
+    17.856,
+    17.985
+   ],
+   "fps": 55.6,
+   "fpsRange": [
+    55.6,
+    56
+   ],
+   "missed": 7.48,
+   "missedRange": [
+    6.82,
+    7.49
+   ],
+   "over20": 8.08,
+   "over20Range": [
+    7.32,
+    8.09
+   ],
+   "hitches": 4,
+   "hitchesRange": [
+    2,
+    4
+   ],
+   "js": 8,
+   "jsRange": [
+    7.9,
+    8
+   ],
+   "jsP95": 9.3,
+   "jsP95Range": [
+    9.3,
+    9.5
+   ],
+   "gcMsPerS": 0.73,
+   "gcMsPerSRange": [
+    0.7,
+    0.74
+   ],
+   "gcMax": 1.32,
+   "gcMaxRange": [
+    1.12,
+    1.35
+   ],
+   "gcOver4": 0,
+   "scavengesPerS": 0.7,
+   "markCompacts": 0,
+   "gpuBusy": 99,
+   "gpuMHz": 680,
+   "gpuC": 64,
+   "gpuCRange": [
+    63.6,
+    64
+   ],
+   "cpuC": 59.6,
+   "cpuCRange": [
+    59.2,
+    62.8
+   ],
+   "scale": 0.7,
+   "scaleMin": 0.7,
+   "scaleMax": 0.75,
+   "scaleMaxRange": [
+    0.7,
+    0.75
+   ],
+   "heapMB": 199,
+   "heapMBRange": [
+    188,
+    199
+   ],
+   "rendererMB": 397.1,
+   "rendererMBRange": [
+    393.5,
+    401.9
+   ],
+   "hostMB": 370.6,
+   "hostMBRange": [
+    365.3,
+    372.5
+   ],
+   "hostGraphicsMB": 177.5,
+   "hostGraphicsMBRange": [
+    176,
+    177.9
+   ],
+   "rendererCores": 0.57,
+   "rendererCoresRange": [
+    0.56,
+    0.58
+   ],
+   "hostCores": 0.3,
+   "hostCoresRange": [
+    0.3,
+    0.31
+   ],
+   "draws": 332,
+   "drawsRange": [
+    318,
+    332
+   ],
+   "tris": 401305,
+   "trisRange": [
+    388481,
+    401305
+   ]
+  },
+  {
+   "engine": "chrome",
+   "mode": "dynamic",
+   "view": "ride-city",
+   "kind": "path",
+   "rounds": 3,
+   "median": 16.7,
+   "p95": 16.8,
+   "p99": 16.8,
+   "mean": 16.652,
+   "meanRange": [
+    16.638,
+    16.652
+   ],
+   "fps": 60.1,
+   "missed": 0.08,
+   "missedRange": [
+    0,
+    0.08
+   ],
+   "over20": 0.08,
+   "over20Range": [
+    0,
+    0.08
+   ],
+   "hitches": 0,
+   "hitchesRange": [
+    0,
+    1
+   ],
+   "js": 12.7,
+   "jsRange": [
+    12.7,
+    12.8
+   ],
+   "jsP95": 16.8,
+   "jsP95Range": [
+    16.7,
+    16.8
+   ],
+   "gcMsPerS": 8.05,
+   "gcMsPerSRange": [
+    2.44,
+    8.18
+   ],
+   "gcMax": 18.45,
+   "gcMaxRange": [
+    7.38,
+    19.04
+   ],
+   "gcOver4": 3,
+   "gcOver4Range": [
+    2,
+    5
+   ],
+   "scavengesPerS": 7.2,
+   "scavengesPerSRange": [
+    1.4,
+    7.3
+   ],
+   "markCompacts": 2,
+   "markCompactsRange": [
+    1,
+    2
+   ],
+   "gpuBusy": 79,
+   "gpuBusyRange": [
+    78,
+    80
+   ],
+   "gpuMHz": 680,
+   "gpuC": 66.4,
+   "gpuCRange": [
+    66,
+    67.1
+   ],
+   "cpuC": 69.6,
+   "cpuCRange": [
+    68,
+    70
+   ],
+   "scale": 0.7,
+   "scaleMin": 0.7,
+   "scaleMax": 0.7,
+   "heapMB": 199,
+   "heapMBRange": [
+    188,
+    199
+   ],
+   "rendererMB": 334.1,
+   "rendererMBRange": [
+    321.8,
+    408.8
+   ],
+   "hostMB": 342.5,
+   "hostMBRange": [
+    336.6,
+    344.8
+   ],
+   "hostGraphicsMB": 154.6,
+   "hostGraphicsMBRange": [
+    152.4,
+    154.6
+   ],
+   "rendererCores": 0.91,
+   "rendererCoresRange": [
+    0.9,
+    0.92
+   ],
+   "hostCores": 0.39,
+   "draws": 382,
+   "drawsRange": [
+    382,
+    385
+   ],
+   "tris": 464354,
+   "trisRange": [
+    464224,
+    464462
+   ]
+  },
+  {
+   "engine": "chrome",
+   "mode": "dynamic",
+   "view": "walk-camps",
+   "kind": "path",
+   "rounds": 3,
+   "median": 16.7,
+   "p95": 16.8,
+   "p99": 16.8,
+   "mean": 16.638,
+   "meanRange": [
+    16.638,
+    16.652
+   ],
+   "fps": 60.1,
+   "missed": 0,
+   "missedRange": [
+    0,
+    0.08
+   ],
+   "over20": 0,
+   "over20Range": [
+    0,
+    0.08
+   ],
+   "hitches": 0,
+   "js": 12.1,
+   "jsRange": [
+    12.1,
+    12.2
+   ],
+   "jsP95": 18.9,
+   "jsP95Range": [
+    18.3,
+    19
+   ],
+   "gcMsPerS": 2.51,
+   "gcMsPerSRange": [
+    1.43,
+    2.53
+   ],
+   "gcMax": 1.88,
+   "gcMaxRange": [
+    1.36,
+    2.01
+   ],
+   "gcOver4": 0,
+   "scavengesPerS": 2.95,
+   "scavengesPerSRange": [
+    1.5,
+    2.95
+   ],
+   "markCompacts": 0,
+   "gpuBusy": 74,
+   "gpuBusyRange": [
+    74,
+    75
+   ],
+   "gpuMHz": 615,
+   "gpuC": 65.2,
+   "gpuCRange": [
+    64,
+    65.2
+   ],
+   "cpuC": 68.4,
+   "cpuCRange": [
+    67.2,
+    70.8
+   ],
+   "scale": 0.7,
+   "scaleRange": [
+    0.65,
+    0.7
+   ],
+   "scaleMin": 0.7,
+   "scaleMinRange": [
+    0.6,
+    0.7
+   ],
+   "scaleMax": 0.7,
+   "heapMB": 199,
+   "heapMBRange": [
+    188,
+    199
+   ],
+   "rendererMB": 358.5,
+   "rendererMBRange": [
+    354,
+    405.3
+   ],
+   "hostMB": 351.9,
+   "hostMBRange": [
+    344.4,
+    360
+   ],
+   "hostGraphicsMB": 157.8,
+   "hostGraphicsMBRange": [
+    156.2,
+    168.1
+   ],
+   "rendererCores": 0.9,
+   "hostCores": 0.44,
+   "hostCoresRange": [
+    0.43,
+    0.44
+   ],
+   "draws": 479,
+   "drawsRange": [
+    479,
+    480
+   ],
+   "tris": 558012,
+   "trisRange": [
+    554688,
+    560320
+   ]
+  }
+ ],
+ "webviewBefore": [
+  {
+   "engine": "webview",
+   "mode": "fixed",
+   "view": "spawn",
+   "kind": "view",
+   "rounds": 3,
+   "median": 16.667,
+   "p95": 33.359,
+   "p95Range": [
+    33.334,
+    33.362
+   ],
+   "p99": 33.364,
+   "p99Range": [
+    33.363,
+    33.365
+   ],
+   "mean": 21.967,
+   "meanRange": [
+    21.821,
+    22.306
+   ],
+   "fps": 45.5,
+   "fpsRange": [
+    44.8,
+    45.8
+   ],
+   "missed": 24.25,
+   "missedRange": [
+    23.75,
+    25.42
+   ],
+   "over20": 32.02,
+   "over20Range": [
+    30.94,
+    34.08
+   ],
+   "hitches": 42,
+   "hitchesRange": [
+    20,
+    48
+   ],
+   "js": 21.3,
+   "jsRange": [
+    21.1,
+    21.6
+   ],
+   "jsP95": 24.1,
+   "jsP95Range": [
+    23.2,
+    24.8
+   ],
+   "gcMsPerS": 5.14,
+   "gcMsPerSRange": [
+    5,
+    6.09
+   ],
+   "gcMax": 2.3,
+   "gcMaxRange": [
+    1.81,
+    2.76
+   ],
+   "gcOver4": 0,
+   "scavengesPerS": 4.3,
+   "scavengesPerSRange": [
+    3.7,
+    4.8
+   ],
+   "markCompacts": 0,
+   "gpuBusy": 71,
+   "gpuBusyRange": [
+    70,
+    71
+   ],
+   "gpuMHz": 615,
+   "gpuC": 60.9,
+   "gpuCRange": [
+    60.5,
+    61.6
+   ],
+   "cpuC": 62.4,
+   "cpuCRange": [
+    60.4,
+    64
+   ],
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": 177,
+   "heapMBRange": [
+    167,
+    188
+   ],
+   "rendererMB": 423.4,
+   "rendererMBRange": [
+    423,
+    432.1
+   ],
+   "hostMB": 344.7,
+   "hostMBRange": [
+    340.9,
+    356.6
+   ],
+   "hostGraphicsMB": 97.7,
+   "hostGraphicsMBRange": [
+    93.3,
+    98.8
+   ],
+   "rendererCores": 1.48,
+   "rendererCoresRange": [
+    1.47,
+    1.5
+   ],
+   "hostCores": 0.47,
+   "hostCoresRange": [
+    0.47,
+    0.48
+   ],
+   "draws": 452,
+   "drawsRange": [
+    446,
+    454
+   ],
+   "tris": 567685,
+   "trisRange": [
+    567595,
+    568387
+   ]
+  },
+  {
+   "engine": "webview",
+   "mode": "fixed",
+   "view": "qanat-tree",
+   "kind": "view",
+   "rounds": 3,
+   "median": 33.276,
+   "medianRange": [
+    33.272,
+    33.278
+   ],
+   "p95": 33.389,
+   "p95Range": [
+    33.383,
+    33.392
+   ],
+   "p99": 49.835,
+   "p99Range": [
+    33.392,
+    49.973
+   ],
+   "mean": 29.163,
+   "meanRange": [
+    28.784,
+    29.51
+   ],
+   "fps": 34.3,
+   "fpsRange": [
+    33.9,
+    34.7
+   ],
+   "missed": 42.95,
+   "missedRange": [
+    42.19,
+    43.62
+   ],
+   "over20": 72.97,
+   "over20Range": [
+    72.7,
+    75.59
+   ],
+   "hitches": 0,
+   "hitchesRange": [
+    0,
+    1
+   ],
+   "js": 28.8,
+   "jsRange": [
+    28.4,
+    28.9
+   ],
+   "jsP95": 33,
+   "jsP95Range": [
+    32.7,
+    33.2
+   ],
+   "gcMsPerS": 8.72,
+   "gcMsPerSRange": [
+    6.25,
+    10.78
+   ],
+   "gcMax": 22.69,
+   "gcMaxRange": [
+    2.57,
+    24.33
+   ],
+   "gcOver4": 2,
+   "gcOver4Range": [
+    0,
+    3
+   ],
+   "scavengesPerS": 3.7,
+   "scavengesPerSRange": [
+    3.47,
+    3.76
+   ],
+   "markCompacts": 1,
+   "markCompactsRange": [
+    0,
+    2
+   ],
+   "gpuBusy": 44,
+   "gpuBusyRange": [
+    43,
+    44
+   ],
+   "gpuMHz": 615,
+   "gpuC": 57.3,
+   "gpuCRange": [
+    56.1,
+    58.1
+   ],
+   "cpuC": 58.4,
+   "cpuCRange": [
+    57.6,
+    59.6
+   ],
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": 177,
+   "heapMBRange": [
+    167,
+    188
+   ],
+   "rendererMB": 451.9,
+   "rendererMBRange": [
+    439.5,
+    481.3
+   ],
+   "hostMB": 354.1,
+   "hostMBRange": [
+    354,
+    356.6
+   ],
+   "hostGraphicsMB": 101.9,
+   "hostGraphicsMBRange": [
+    99.9,
+    102.2
+   ],
+   "rendererCores": 1.55,
+   "rendererCoresRange": [
+    1.54,
+    1.55
+   ],
+   "hostCores": 0.34,
+   "draws": 320,
+   "tris": 449732
+  },
+  {
+   "engine": "webview",
+   "mode": "fixed",
+   "view": "camps",
+   "kind": "view",
+   "rounds": 3,
+   "median": 33.278,
+   "medianRange": [
+    33.278,
+    33.279
+   ],
+   "p95": 33.388,
+   "p95Range": [
+    33.368,
+    33.39
+   ],
+   "p99": 49.84,
+   "p99Range": [
+    33.394,
+    50.001
+   ],
+   "mean": 29.673,
+   "meanRange": [
+    29.636,
+    30.261
+   ],
+   "fps": 33.7,
+   "fpsRange": [
+    33,
+    33.7
+   ],
+   "missed": 43.93,
+   "missedRange": [
+    43.85,
+    45.02
+   ],
+   "over20": 77.51,
+   "over20Range": [
+    77.15,
+    79.46
+   ],
+   "hitches": 0,
+   "js": 29.4,
+   "jsRange": [
+    28.4,
+    30
+   ],
+   "jsP95": 32.5,
+   "jsP95Range": [
+    32.2,
+    33
+   ],
+   "gcMsPerS": 6.94,
+   "gcMsPerSRange": [
+    5.34,
+    7.04
+   ],
+   "gcMax": 6.94,
+   "gcMaxRange": [
+    2.57,
+    17.59
+   ],
+   "gcOver4": 1,
+   "gcOver4Range": [
+    0,
+    1
+   ],
+   "scavengesPerS": 3.56,
+   "scavengesPerSRange": [
+    3.4,
+    3.6
+   ],
+   "markCompacts": 0,
+   "markCompactsRange": [
+    0,
+    1
+   ],
+   "gpuBusy": 50,
+   "gpuBusyRange": [
+    50,
+    51
+   ],
+   "gpuMHz": 615,
+   "gpuC": 58.5,
+   "gpuCRange": [
+    58.1,
+    58.9
+   ],
+   "cpuC": 59.2,
+   "cpuCRange": [
+    57.6,
+    60
+   ],
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": 177,
+   "heapMBRange": [
+    167,
+    188
+   ],
+   "rendererMB": 455.4,
+   "rendererMBRange": [
+    450.8,
+    525
+   ],
+   "hostMB": 358,
+   "hostMBRange": [
+    356.8,
+    359.2
+   ],
+   "hostGraphicsMB": 103.6,
+   "hostGraphicsMBRange": [
+    102.9,
+    104
+   ],
+   "rendererCores": 1.5,
+   "rendererCoresRange": [
+    1.49,
+    1.51
+   ],
+   "hostCores": 0.36,
+   "draws": 427,
+   "drawsRange": [
+    424,
+    428
+   ],
+   "tris": 531719,
+   "trisRange": [
+    531299,
+    531731
+   ]
+  },
+  {
+   "engine": "webview",
+   "mode": "fixed",
+   "view": "dunes",
+   "kind": "view",
+   "rounds": 3,
+   "median": 16.667,
+   "p95": 16.723,
+   "p95Range": [
+    16.721,
+    16.726
+   ],
+   "p99": 16.728,
+   "p99Range": [
+    16.725,
+    16.729
+   ],
+   "mean": 16.639,
+   "meanRange": [
+    16.638,
+    16.695
+   ],
+   "fps": 60.1,
+   "fpsRange": [
+    59.9,
+    60.1
+   ],
+   "missed": 0,
+   "missedRange": [
+    0,
+    0.33
+   ],
+   "over20": 0,
+   "over20Range": [
+    0,
+    0.33
+   ],
+   "hitches": 0,
+   "hitchesRange": [
+    0,
+    1
+   ],
+   "js": 12.2,
+   "jsRange": [
+    12.1,
+    12.8
+   ],
+   "jsP95": 13.8,
+   "jsP95Range": [
+    13.6,
+    14.4
+   ],
+   "gcMsPerS": 5.58,
+   "gcMsPerSRange": [
+    5.08,
+    8.81
+   ],
+   "gcMax": 2.49,
+   "gcMaxRange": [
+    2.26,
+    16.78
+   ],
+   "gcOver4": 0,
+   "gcOver4Range": [
+    0,
+    3
+   ],
+   "scavengesPerS": 3.5,
+   "scavengesPerSRange": [
+    3.4,
+    3.6
+   ],
+   "markCompacts": 0,
+   "markCompactsRange": [
+    0,
+    1
+   ],
+   "gpuBusy": 80,
+   "gpuMHz": 615,
+   "gpuC": 63.2,
+   "gpuCRange": [
+    61.3,
+    64
+   ],
+   "cpuC": 61.2,
+   "cpuCRange": [
+    60.8,
+    62
+   ],
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": 177,
+   "heapMBRange": [
+    167,
+    188
+   ],
+   "rendererMB": 454.6,
+   "rendererMBRange": [
+    448.6,
+    513.8
+   ],
+   "hostMB": 367.8,
+   "hostMBRange": [
+    366.7,
+    369.8
+   ],
+   "hostGraphicsMB": 108.4,
+   "hostGraphicsMBRange": [
+    107.1,
+    108.4
+   ],
+   "rendererCores": 1.45,
+   "rendererCoresRange": [
+    1.41,
+    1.5
+   ],
+   "hostCores": 0.44,
+   "hostCoresRange": [
+    0.44,
+    0.45
+   ],
+   "draws": 200,
+   "tris": 292859
+  },
+  {
+   "engine": "webview",
+   "mode": "fixed",
+   "view": "cave",
+   "kind": "view",
+   "rounds": 3,
+   "median": 16.667,
+   "p95": 33.333,
+   "p99": 33.362,
+   "p99Range": [
+    33.334,
+    33.363
+   ],
+   "mean": 18.755,
+   "meanRange": [
+    18.749,
+    18.758
+   ],
+   "fps": 53.3,
+   "missed": 11.28,
+   "missedRange": [
+    11.26,
+    11.3
+   ],
+   "over20": 12.71,
+   "over20Range": [
+    12.69,
+    12.73
+   ],
+   "hitches": 12,
+   "hitchesRange": [
+    11,
+    22
+   ],
+   "js": 13.8,
+   "jsRange": [
+    13.7,
+    14.4
+   ],
+   "jsP95": 15.6,
+   "jsP95Range": [
+    15.4,
+    16.3
+   ],
+   "gcMsPerS": 4.12,
+   "gcMsPerSRange": [
+    3.87,
+    8.36
+   ],
+   "gcMax": 2.29,
+   "gcMaxRange": [
+    2.09,
+    23.34
+   ],
+   "gcOver4": 0,
+   "gcOver4Range": [
+    0,
+    2
+   ],
+   "scavengesPerS": 3.07,
+   "markCompacts": 0,
+   "markCompactsRange": [
+    0,
+    1
+   ],
+   "gpuBusy": 99,
+   "gpuMHz": 680,
+   "gpuC": 65.2,
+   "gpuCRange": [
+    64.8,
+    65.2
+   ],
+   "cpuC": 61.6,
+   "cpuCRange": [
+    61.2,
+    62
+   ],
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": 177,
+   "heapMBRange": [
+    167,
+    188
+   ],
+   "rendererMB": 481.7,
+   "rendererMBRange": [
+    477.8,
+    507.8
+   ],
+   "hostMB": 370.9,
+   "hostMBRange": [
+    369.9,
+    372.7
+   ],
+   "hostGraphicsMB": 111.1,
+   "hostGraphicsMBRange": [
+    109.9,
+    111.2
+   ],
+   "rendererCores": 1.42,
+   "rendererCoresRange": [
+    1.39,
+    1.46
+   ],
+   "hostCores": 0.41,
+   "hostCoresRange": [
+    0.41,
+    0.42
+   ],
+   "draws": 332,
+   "drawsRange": [
+    318,
+    332
+   ],
+   "tris": 401305,
+   "trisRange": [
+    388481,
+    401305
+   ]
+  },
+  {
+   "engine": "webview",
+   "mode": "fixed",
+   "view": "ride-city",
+   "kind": "path",
+   "rounds": 3,
+   "median": 33.156,
+   "medianRange": [
+    33.126,
+    33.167
+   ],
+   "p95": 33.39,
+   "p95Range": [
+    33.389,
+    33.39
+   ],
+   "p99": 50.027,
+   "p99Range": [
+    50,
+    50.057
+   ],
+   "mean": 27.973,
+   "meanRange": [
+    27.61,
+    28.555
+   ],
+   "fps": 35.7,
+   "fpsRange": [
+    35,
+    36.2
+   ],
+   "missed": 40.52,
+   "missedRange": [
+    39.73,
+    41.73
+   ],
+   "over20": 60.28,
+   "over20Range": [
+    58.21,
+    62.2
+   ],
+   "hitches": 6,
+   "hitchesRange": [
+    4,
+    7
+   ],
+   "js": 24.2,
+   "jsRange": [
+    24,
+    24.6
+   ],
+   "jsP95": 35.4,
+   "jsP95Range": [
+    35.2,
+    35.6
+   ],
+   "gcMsPerS": 11.17,
+   "gcMsPerSRange": [
+    10.31,
+    16.21
+   ],
+   "gcMax": 26.85,
+   "gcMaxRange": [
+    24.74,
+    31.46
+   ],
+   "gcOver4": 8,
+   "gcOver4Range": [
+    3,
+    11
+   ],
+   "scavengesPerS": 4.33,
+   "scavengesPerSRange": [
+    4.08,
+    4.43
+   ],
+   "markCompacts": 2,
+   "markCompactsRange": [
+    1,
+    3
+   ],
+   "gpuBusy": 60,
+   "gpuBusyRange": [
+    59,
+    60
+   ],
+   "gpuMHz": 615,
+   "gpuC": 58.5,
+   "gpuCRange": [
+    57.7,
+    60.5
+   ],
+   "cpuC": 60.4,
+   "cpuCRange": [
+    59.2,
+    60.4
+   ],
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": 177,
+   "heapMBRange": [
+    167,
+    188
+   ],
+   "rendererMB": 404.5,
+   "rendererMBRange": [
+    383.7,
+    425.9
+   ],
+   "hostMB": 390.2,
+   "hostMBRange": [
+    390.2,
+    390.8
+   ],
+   "hostGraphicsMB": 115.1,
+   "hostGraphicsMBRange": [
+    115,
+    115.1
+   ],
+   "rendererCores": 1.51,
+   "rendererCoresRange": [
+    1.51,
+    1.52
+   ],
+   "hostCores": 0.4,
+   "hostCoresRange": [
+    0.39,
+    0.4
+   ],
+   "draws": 383,
+   "drawsRange": [
+    383,
+    386
+   ],
+   "tris": 464701,
+   "trisRange": [
+    464693,
+    464801
+   ]
+  },
+  {
+   "engine": "webview",
+   "mode": "fixed",
+   "view": "walk-camps",
+   "kind": "path",
+   "rounds": 3,
+   "median": 33.333,
+   "p95": 49.841,
+   "p95Range": [
+    49.825,
+    49.914
+   ],
+   "p99": 50.002,
+   "p99Range": [
+    50,
+    50.006
+   ],
+   "mean": 33.445,
+   "meanRange": [
+    33.112,
+    33.583
+   ],
+   "fps": 29.9,
+   "fpsRange": [
+    29.8,
+    30.2
+   ],
+   "missed": 50.25,
+   "missedRange": [
+    49.75,
+    50.46
+   ],
+   "over20": 92.99,
+   "over20Range": [
+    92.22,
+    93.3
+   ],
+   "hitches": 1,
+   "js": 31.7,
+   "jsRange": [
+    31.7,
+    31.9
+   ],
+   "jsP95": 37.4,
+   "jsP95Range": [
+    35.7,
+    37.6
+   ],
+   "gcMsPerS": 8.22,
+   "gcMsPerSRange": [
+    7.64,
+    10.13
+   ],
+   "gcMax": 18.57,
+   "gcMaxRange": [
+    16.43,
+    33.38
+   ],
+   "gcOver4": 5,
+   "gcOver4Range": [
+    2,
+    5
+   ],
+   "scavengesPerS": 3.58,
+   "scavengesPerSRange": [
+    3.58,
+    3.63
+   ],
+   "markCompacts": 1,
+   "gpuBusy": 38,
+   "gpuBusyRange": [
+    38,
+    41
+   ],
+   "gpuMHz": 615,
+   "gpuC": 56.9,
+   "gpuCRange": [
+    55.4,
+    57.7
+   ],
+   "cpuC": 59.6,
+   "cpuCRange": [
+    58,
+    60.8
+   ],
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": 177,
+   "heapMBRange": [
+    167,
+    188
+   ],
+   "rendererMB": 406.7,
+   "rendererMBRange": [
+    403.3,
+    430.7
+   ],
+   "hostMB": 396.6,
+   "hostMBRange": [
+    396,
+    399
+   ],
+   "hostGraphicsMB": 121.9,
+   "hostGraphicsMBRange": [
+    121.9,
+    122.1
+   ],
+   "rendererCores": 1.46,
+   "rendererCoresRange": [
+    1.45,
+    1.47
+   ],
+   "hostCores": 0.36,
+   "draws": 479,
+   "drawsRange": [
+    477,
+    479
+   ],
+   "tris": 562687,
+   "trisRange": [
+    562187,
+    566089
+   ]
+  },
+  {
+   "engine": "webview",
+   "mode": "dynamic",
+   "view": "spawn",
+   "kind": "view",
+   "rounds": 3,
+   "median": 16.667,
+   "p95": 33.361,
+   "p95Range": [
+    33.355,
+    33.364
+   ],
+   "p99": 33.391,
+   "p99Range": [
+    33.362,
+    33.391
+   ],
+   "mean": 21.964,
+   "meanRange": [
+    21.312,
+    22.145
+   ],
+   "fps": 45.5,
+   "fpsRange": [
+    45.2,
+    46.9
+   ],
+   "missed": 24.25,
+   "missedRange": [
+    21.93,
+    24.88
+   ],
+   "over20": 32.02,
+   "over20Range": [
+    27.45,
+    32.23
+   ],
+   "hitches": 51,
+   "hitchesRange": [
+    38,
+    60
+   ],
+   "js": 21.3,
+   "jsRange": [
+    20.5,
+    21.4
+   ],
+   "jsP95": 24.4,
+   "jsP95Range": [
+    23.7,
+    24.8
+   ],
+   "gcMsPerS": 7.73,
+   "gcMsPerSRange": [
+    5.92,
+    10.67
+   ],
+   "gcMax": 19.82,
+   "gcMaxRange": [
+    2.34,
+    35.14
+   ],
+   "gcOver4": 1,
+   "gcOver4Range": [
+    0,
+    2
+   ],
+   "scavengesPerS": 3.9,
+   "scavengesPerSRange": [
+    3.7,
+    4
+   ],
+   "markCompacts": 1,
+   "markCompactsRange": [
+    0,
+    1
+   ],
+   "gpuBusy": 71,
+   "gpuBusyRange": [
+    71,
+    72
+   ],
+   "gpuMHz": 615,
+   "gpuC": 60.9,
+   "gpuCRange": [
+    60.9,
+    61.6
+   ],
+   "cpuC": 60.4,
+   "cpuCRange": [
+    59.2,
+    60.4
+   ],
+   "scale": 0.75,
+   "scaleMin": 0.75,
+   "scaleMax": 0.75,
+   "heapMB": 177,
+   "rendererMB": 418.5,
+   "rendererMBRange": [
+    407.7,
+    426.9
+   ],
+   "hostMB": 344.8,
+   "hostMBRange": [
+    341.8,
+    349
+   ],
+   "hostGraphicsMB": 98.3,
+   "hostGraphicsMBRange": [
+    98.1,
+    98.4
+   ],
+   "rendererCores": 1.48,
+   "rendererCoresRange": [
+    1.47,
+    1.49
+   ],
+   "hostCores": 0.47,
+   "hostCoresRange": [
+    0.47,
+    0.49
+   ],
+   "draws": 452,
+   "drawsRange": [
+    446,
+    452
+   ],
+   "tris": 567685,
+   "trisRange": [
+    567595,
+    567685
+   ]
+  },
+  {
+   "engine": "webview",
+   "mode": "dynamic",
+   "view": "qanat-tree",
+   "kind": "view",
+   "rounds": 3,
+   "median": 33.271,
+   "medianRange": [
+    33.271,
+    33.275
+   ],
+   "p95": 33.39,
+   "p95Range": [
+    33.384,
+    33.39
+   ],
+   "p99": 33.395,
+   "p99Range": [
+    33.391,
+    33.396
+   ],
+   "mean": 28.538,
+   "meanRange": [
+    28.536,
+    28.615
+   ],
+   "fps": 35,
+   "fpsRange": [
+    34.9,
+    35
+   ],
+   "missed": 41.69,
+   "missedRange": [
+    41.69,
+    41.86
+   ],
+   "over20": 71.51,
+   "over20Range": [
+    71.51,
+    72
+   ],
+   "hitches": 0,
+   "js": 27.8,
+   "jsRange": [
+    27.5,
+    28.7
+   ],
+   "jsP95": 32.4,
+   "jsP95Range": [
+    32.4,
+    32.7
+   ],
+   "gcMsPerS": 5.37,
+   "gcMsPerSRange": [
+    5.07,
+    5.6
+   ],
+   "gcMax": 2.4,
+   "gcMaxRange": [
+    2.34,
+    3.69
+   ],
+   "gcOver4": 0,
+   "scavengesPerS": 3.8,
+   "scavengesPerSRange": [
+    3.7,
+    3.9
+   ],
+   "markCompacts": 0,
+   "gpuBusy": 39,
+   "gpuMHz": 615,
+   "gpuC": 55.8,
+   "gpuCRange": [
+    55,
+    57.7
+   ],
+   "cpuC": 56.8,
+   "cpuCRange": [
+    56.4,
+    57.2
+   ],
+   "scale": 0.65,
+   "scaleMin": 0.65,
+   "scaleMax": 0.65,
+   "heapMB": 177,
+   "rendererMB": 449.9,
+   "rendererMBRange": [
+    445.8,
+    458.2
+   ],
+   "hostMB": 351,
+   "hostMBRange": [
+    350.7,
+    359.3
+   ],
+   "hostGraphicsMB": 101.7,
+   "hostGraphicsMBRange": [
+    100,
+    102.5
+   ],
+   "rendererCores": 1.54,
+   "rendererCoresRange": [
+    1.53,
+    1.55
+   ],
+   "hostCores": 0.34,
+   "hostCoresRange": [
+    0.34,
+    0.35
+   ],
+   "draws": 320,
+   "tris": 449732
+  },
+  {
+   "engine": "webview",
+   "mode": "dynamic",
+   "view": "camps",
+   "kind": "view",
+   "rounds": 3,
+   "median": 33.274,
+   "medianRange": [
+    33.27,
+    33.281
+   ],
+   "p95": 33.391,
+   "p95Range": [
+    33.386,
+    33.395
+   ],
+   "p99": 49.94,
+   "p99Range": [
+    33.397,
+    49.974
+   ],
+   "mean": 29.079,
+   "meanRange": [
+    28.954,
+    29.113
+   ],
+   "fps": 34.4,
+   "fpsRange": [
+    34.3,
+    34.5
+   ],
+   "missed": 42.79,
+   "missedRange": [
+    42.52,
+    42.86
+   ],
+   "over20": 73.55,
+   "over20Range": [
+    71.1,
+    73.91
+   ],
+   "hitches": 0,
+   "hitchesRange": [
+    0,
+    1
+   ],
+   "js": 28.4,
+   "jsRange": [
+    28,
+    29
+   ],
+   "jsP95": 31.2,
+   "jsP95Range": [
+    30.8,
+    33.7
+   ],
+   "gcMsPerS": 7.12,
+   "gcMsPerSRange": [
+    7.05,
+    7.47
+   ],
+   "gcMax": 11.04,
+   "gcMaxRange": [
+    10.81,
+    16.65
+   ],
+   "gcOver4": 2,
+   "scavengesPerS": 3.5,
+   "scavengesPerSRange": [
+    3.47,
+    3.56
+   ],
+   "markCompacts": 1,
+   "gpuBusy": 37,
+   "gpuBusyRange": [
+    37,
+    38
+   ],
+   "gpuMHz": 615,
+   "gpuC": 55.8,
+   "gpuCRange": [
+    55,
+    56.1
+   ],
+   "cpuC": 57.6,
+   "cpuCRange": [
+    56.4,
+    58
+   ],
+   "scale": 0.5,
+   "scaleRange": [
+    0.5,
+    0.55
+   ],
+   "scaleMin": 0.5,
+   "scaleMax": 0.5,
+   "scaleMaxRange": [
+    0.5,
+    0.6
+   ],
+   "heapMB": 177,
+   "rendererMB": 466.4,
+   "rendererMBRange": [
+    452.9,
+    471.4
+   ],
+   "hostMB": 354.4,
+   "hostMBRange": [
+    354.1,
+    362
+   ],
+   "hostGraphicsMB": 103.9,
+   "hostGraphicsMBRange": [
+    102,
+    104.2
+   ],
+   "rendererCores": 1.49,
+   "rendererCoresRange": [
+    1.48,
+    1.5
+   ],
+   "hostCores": 0.36,
+   "hostCoresRange": [
+    0.36,
+    0.37
+   ],
+   "draws": 415,
+   "drawsRange": [
+    415,
+    416
+   ],
+   "tris": 515888,
+   "trisRange": [
+    515702,
+    522050
+   ]
+  },
+  {
+   "engine": "webview",
+   "mode": "dynamic",
+   "view": "dunes",
+   "kind": "view",
+   "rounds": 3,
+   "median": 16.667,
+   "p95": 16.724,
+   "p95Range": [
+    16.719,
+    16.727
+   ],
+   "p99": 16.726,
+   "p99Range": [
+    16.722,
+    16.73
+   ],
+   "mean": 16.665,
+   "meanRange": [
+    16.641,
+    16.722
+   ],
+   "fps": 60,
+   "fpsRange": [
+    59.8,
+    60.1
+   ],
+   "missed": 0.17,
+   "missedRange": [
+    0,
+    0.5
+   ],
+   "over20": 0.17,
+   "over20Range": [
+    0,
+    0.33
+   ],
+   "hitches": 1,
+   "hitchesRange": [
+    0,
+    1
+   ],
+   "js": 12.4,
+   "jsRange": [
+    12.2,
+    12.4
+   ],
+   "jsP95": 13.9,
+   "jsP95Range": [
+    13.7,
+    13.9
+   ],
+   "gcMsPerS": 8.81,
+   "gcMsPerSRange": [
+    4.85,
+    11.06
+   ],
+   "gcMax": 13.9,
+   "gcMaxRange": [
+    3.12,
+    44.45
+   ],
+   "gcOver4": 2,
+   "gcOver4Range": [
+    0,
+    3
+   ],
+   "scavengesPerS": 3.5,
+   "markCompacts": 1,
+   "markCompactsRange": [
+    0,
+    1
+   ],
+   "gpuBusy": 52,
+   "gpuMHz": 615,
+   "gpuC": 57.7,
+   "gpuCRange": [
+    56.9,
+    58.5
+   ],
+   "cpuC": 58,
+   "cpuCRange": [
+    57.6,
+    58.4
+   ],
+   "scale": 0.55,
+   "scaleMin": 0.5,
+   "scaleMax": 0.55,
+   "heapMB": 177,
+   "rendererMB": 472.6,
+   "rendererMBRange": [
+    453.3,
+    475.2
+   ],
+   "hostMB": 364,
+   "hostMBRange": [
+    363.7,
+    371.7
+   ],
+   "hostGraphicsMB": 108,
+   "hostGraphicsMBRange": [
+    106,
+    108.2
+   ],
+   "rendererCores": 1.46,
+   "rendererCoresRange": [
+    1.44,
+    1.49
+   ],
+   "hostCores": 0.45,
+   "draws": 200,
+   "tris": 292859
+  },
+  {
+   "engine": "webview",
+   "mode": "dynamic",
+   "view": "cave",
+   "kind": "view",
+   "rounds": 3,
+   "median": 16.667,
+   "p95": 16.726,
+   "p95Range": [
+    16.723,
+    16.726
+   ],
+   "p99": 16.729,
+   "p99Range": [
+    16.727,
+    16.729
+   ],
+   "mean": 16.722,
+   "meanRange": [
+    16.665,
+    16.777
+   ],
+   "fps": 59.8,
+   "fpsRange": [
+    59.6,
+    60
+   ],
+   "missed": 0.5,
+   "missedRange": [
+    0.17,
+    0.83
+   ],
+   "over20": 0.34,
+   "over20Range": [
+    0.17,
+    0.5
+   ],
+   "hitches": 1,
+   "hitchesRange": [
+    0,
+    2
+   ],
+   "js": 13.6,
+   "jsRange": [
+    13.4,
+    13.6
+   ],
+   "jsP95": 15,
+   "jsP95Range": [
+    14.8,
+    15.1
+   ],
+   "gcMsPerS": 10.36,
+   "gcMsPerSRange": [
+    6.03,
+    11.97
+   ],
+   "gcMax": 23.36,
+   "gcMaxRange": [
+    6.31,
+    59.59
+   ],
+   "gcOver4": 2,
+   "scavengesPerS": 3.5,
+   "scavengesPerSRange": [
+    3.4,
+    3.6
+   ],
+   "markCompacts": 1,
+   "markCompactsRange": [
+    0,
+    1
+   ],
+   "gpuBusy": 82,
+   "gpuMHz": 680,
+   "gpuC": 61.3,
+   "cpuC": 60.4,
+   "cpuCRange": [
+    59.6,
+    60.8
+   ],
+   "scale": 0.55,
+   "scaleMin": 0.55,
+   "scaleMax": 0.55,
+   "heapMB": 177,
+   "rendererMB": 480.9,
+   "rendererMBRange": [
+    425.8,
+    490
+   ],
+   "hostMB": 368.7,
+   "hostMBRange": [
+    368.3,
+    376.2
+   ],
+   "hostGraphicsMB": 111,
+   "hostGraphicsMBRange": [
+    109.4,
+    111.1
+   ],
+   "rendererCores": 1.52,
+   "rendererCoresRange": [
+    1.47,
+    1.54
+   ],
+   "hostCores": 0.47,
+   "hostCoresRange": [
+    0.47,
+    0.48
+   ],
+   "draws": 332,
+   "drawsRange": [
+    318,
+    332
+   ],
+   "tris": 395273,
+   "trisRange": [
+    382449,
+    395273
+   ]
+  },
+  {
+   "engine": "webview",
+   "mode": "dynamic",
+   "view": "ride-city",
+   "kind": "path",
+   "rounds": 3,
+   "median": 33.112,
+   "medianRange": [
+    33.112,
+    33.115
+   ],
+   "p95": 33.393,
+   "p95Range": [
+    33.389,
+    33.395
+   ],
+   "p99": 50.028,
+   "p99Range": [
+    50.027,
+    50.028
+   ],
+   "mean": 27.396,
+   "meanRange": [
+    27.344,
+    27.644
+   ],
+   "fps": 36.5,
+   "fpsRange": [
+    36.2,
+    36.6
+   ],
+   "missed": 39.27,
+   "missedRange": [
+    39.15,
+    39.82
+   ],
+   "over20": 57.51,
+   "over20Range": [
+    57.26,
+    58.15
+   ],
+   "hitches": 6,
+   "hitchesRange": [
+    5,
+    7
+   ],
+   "js": 24,
+   "jsRange": [
+    23.8,
+    24.2
+   ],
+   "jsP95": 34.9,
+   "jsP95Range": [
+    34.5,
+    35.3
+   ],
+   "gcMsPerS": 12.1,
+   "gcMsPerSRange": [
+    9.44,
+    13.54
+   ],
+   "gcMax": 23.68,
+   "gcMaxRange": [
+    23.26,
+    26.99
+   ],
+   "gcOver4": 6,
+   "gcOver4Range": [
+    4,
+    11
+   ],
+   "scavengesPerS": 4.18,
+   "scavengesPerSRange": [
+    4.13,
+    4.53
+   ],
+   "markCompacts": 2,
+   "markCompactsRange": [
+    1,
+    2
+   ],
+   "gpuBusy": 45,
+   "gpuBusyRange": [
+    45,
+    46
+   ],
+   "gpuMHz": 615,
+   "gpuC": 56.5,
+   "gpuCRange": [
+    54.6,
+    56.9
+   ],
+   "cpuC": 58.4,
+   "cpuCRange": [
+    56.8,
+    58.4
+   ],
+   "scale": 0.55,
+   "scaleMin": 0.5,
+   "scaleMax": 0.55,
+   "heapMB": 177,
+   "rendererMB": 408.8,
+   "rendererMBRange": [
+    403.2,
+    420
+   ],
+   "hostMB": 387.5,
+   "hostMBRange": [
+    387.1,
+    395.7
+   ],
+   "hostGraphicsMB": 115.1,
+   "hostGraphicsMBRange": [
+    115,
+    115.3
+   ],
+   "rendererCores": 1.49,
+   "rendererCoresRange": [
+    1.47,
+    1.51
+   ],
+   "hostCores": 0.4,
+   "draws": 378,
+   "drawsRange": [
+    377,
+    379
+   ],
+   "tris": 451770,
+   "trisRange": [
+    451770,
+    452096
+   ]
+  },
+  {
+   "engine": "webview",
+   "mode": "dynamic",
+   "view": "walk-camps",
+   "kind": "path",
+   "rounds": 3,
+   "median": 33.333,
+   "p95": 49.774,
+   "p95Range": [
+    49.768,
+    49.777
+   ],
+   "p99": 50,
+   "p99Range": [
+    49.947,
+    50
+   ],
+   "mean": 32.412,
+   "meanRange": [
+    32.335,
+    32.651
+   ],
+   "fps": 30.9,
+   "fpsRange": [
+    30.6,
+    30.9
+   ],
+   "missed": 48.67,
+   "missedRange": [
+    48.55,
+    49.04
+   ],
+   "over20": 88.83,
+   "over20Range": [
+    88.69,
+    90.21
+   ],
+   "hitches": 1,
+   "hitchesRange": [
+    0,
+    1
+   ],
+   "js": 30.9,
+   "jsRange": [
+    30.7,
+    31.1
+   ],
+   "jsP95": 35.4,
+   "jsP95Range": [
+    35.3,
+    35.8
+   ],
+   "gcMsPerS": 7.37,
+   "gcMsPerSRange": [
+    6.77,
+    7.86
+   ],
+   "gcMax": 6.91,
+   "gcMaxRange": [
+    6.47,
+    7.37
+   ],
+   "gcOver4": 2,
+   "gcOver4Range": [
+    1,
+    3
+   ],
+   "scavengesPerS": 3.68,
+   "scavengesPerSRange": [
+    3.63,
+    3.73
+   ],
+   "markCompacts": 0,
+   "gpuBusy": 28,
+   "gpuMHz": 615,
+   "gpuC": 53.8,
+   "gpuCRange": [
+    53.4,
+    55
+   ],
+   "cpuC": 56.8,
+   "scale": 0.5,
+   "scaleMin": 0.5,
+   "scaleMax": 0.5,
+   "heapMB": 177,
+   "rendererMB": 435.2,
+   "rendererMBRange": [
+    432.9,
+    488.5
+   ],
+   "hostMB": 398.9,
+   "hostMBRange": [
+    396.3,
+    404.4
+   ],
+   "hostGraphicsMB": 121.6,
+   "hostGraphicsMBRange": [
+    121.4,
+    121.8
+   ],
+   "rendererCores": 1.47,
+   "rendererCoresRange": [
+    1.47,
+    1.48
+   ],
+   "hostCores": 0.36,
+   "draws": 467,
+   "tris": 522952,
+   "trisRange": [
+    522292,
+    524228
+   ]
+  }
+ ],
+ "runs": [
+  {
+   "engine": "gecko",
+   "mode": "dynamic",
+   "round": 1,
+   "browser": "Firefox/157.0",
+   "v8": null,
+   "time": "2026-10-05T17:33:42.771Z",
+   "load": {
+    "firstFrame": 15.41,
+    "responseEnd": 0.01,
+    "domContentLoaded": 0.05,
+    "resources": 72,
+    "transferMB": 9.6,
+    "programsAtFirstFrame": 68,
+    "wallToBooted": 15.9
+   },
+   "shaders": null,
+   "js": {
+    "kIterPerMs": 14.39,
+    "sink": true
+   },
+   "placement": {
+    "mainTid": 32174,
+    "renderer": {
+     "pid": 32152,
+     "name": "com.rnaud.moebius.gecko:tab_disable_art_image_16",
+     "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
+     "allowed": "0-7"
+    },
+    "host": {
+     "pid": 32028,
+     "name": "com.rnaud.moebius.gecko:gpu_disable_art_image_",
+     "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
+     "allowed": "0-7"
+    }
+   },
+   "start": {
+    "gpuC": 41.2,
+    "cpuC": 40.4,
+    "batteryC": 32,
+    "thermal": "Status: 0",
+    "gpuMHz": 615,
+    "waited": 32
+   },
+   "end": {
+    "gpuC": 60.9,
+    "cpuC": 69.2,
+    "batteryC": 32,
+    "thermal": "Status: 0",
+    "gpuMHz": 615
+   },
+   "gpuEstimate": {
+    "geometryMB": 1997.3,
+    "geometries": 1465,
+    "textures": 86,
+    "programs": 75
+   },
+   "errors": [],
+   "warnings": [
+    "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+    "THREE.WebGLRenderer: KHR_parallel_shader_compile extension not supported."
+   ],
+   "interrupted": []
+  },
+  {
+   "engine": "webview",
+   "mode": "dynamic",
+   "round": 1,
+   "browser": "Chrome/109.0.5414.123",
+   "v8": "10.9.194.10",
+   "time": "2026-10-05T17:37:09.485Z",
+   "load": {
+    "firstFrame": 21.33,
+    "responseEnd": 0.01,
+    "domContentLoaded": 0.05,
+    "resources": 54,
+    "transferMB": 9.6,
+    "programsAtFirstFrame": 68,
+    "wallToBooted": 21.5
+   },
+   "shaders": null,
+   "js": {
+    "kIterPerMs": 17.11,
+    "sink": true
+   },
+   "placement": {
+    "mainTid": 4161,
+    "renderer": {
+     "pid": 4131,
+     "name": "com.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0",
+     "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
+     "allowed": "0-2,5-6"
+    },
+    "host": {
+     "pid": 4099,
+     "name": "com.rnaud.moebius.perf",
+     "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
+     "allowed": "0-7"
+    }
+   },
+   "start": {
+    "gpuC": 42.8,
+    "cpuC": 42.4,
+    "batteryC": 32,
+    "thermal": "Status: 0",
+    "gpuMHz": 615,
+    "waited": 33
+   },
+   "end": {
+    "gpuC": 49.1,
+    "cpuC": 52,
+    "batteryC": 32,
+    "thermal": "Status: 0",
+    "gpuMHz": 615
+   },
+   "gpuEstimate": {
+    "geometryMB": 1996.8,
+    "geometries": 1454,
+    "textures": 86,
+    "programs": 75
+   },
+   "errors": [],
+   "warnings": [
+    "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+    "THREE.WebGLRenderer: KHR_parallel_shader_compile extension not supported."
+   ],
+   "interrupted": []
+  },
+  {
+   "engine": "gecko",
+   "mode": "fixed",
+   "round": 1,
+   "browser": "Firefox/157.0",
+   "v8": null,
+   "time": "2026-10-05T17:25:56.064Z",
+   "load": {
+    "firstFrame": 15.72,
+    "responseEnd": 0.01,
+    "domContentLoaded": 0.04,
+    "resources": 72,
+    "transferMB": 9.6,
+    "programsAtFirstFrame": 68,
+    "wallToBooted": 16.2
+   },
+   "shaders": {
+    "programs": 75,
+    "failed": 0,
+    "serialMs": 20749.5,
+    "medianMs": 364.7,
+    "p95Ms": 431.9,
+    "worstMs": 501.6,
+    "againMs": 20060.6,
+    "originalMs": 13661.3,
+    "parallelMs": null,
+    "parallelExt": false,
+    "sourceKB": 6675,
+    "atLoad": {
+     "programs": 68,
+     "linkStatusWaitMs": 0.3
+    }
+   },
+   "js": {
+    "kIterPerMs": 14.72,
+    "sink": true
+   },
+   "placement": {
+    "mainTid": 26092,
+    "renderer": {
+     "pid": 26071,
+     "name": "com.rnaud.moebius.gecko:tab_disable_art_image_20",
+     "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
+     "allowed": "0-7"
+    },
+    "host": {
+     "pid": 25946,
+     "name": "com.rnaud.moebius.gecko:gpu_disable_art_image_",
+     "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
+     "allowed": "0-7"
+    }
+   },
+   "start": {
+    "gpuC": 36.5,
+    "cpuC": 36,
+    "batteryC": 30,
+    "thermal": "Status: 0",
+    "gpuMHz": 615,
+    "waited": 1
+   },
+   "end": {
+    "gpuC": 59.3,
+    "cpuC": 67.6,
+    "batteryC": 31,
+    "thermal": "Status: 0",
+    "gpuMHz": 615
+   },
+   "gpuEstimate": {
+    "geometryMB": 2002.3,
+    "geometries": 1450,
+    "textures": 88,
+    "programs": 75
+   },
+   "errors": [],
+   "warnings": [
+    "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+    "THREE.WebGLRenderer: KHR_parallel_shader_compile extension not supported."
+   ],
+   "interrupted": []
+  },
+  {
+   "engine": "gecko-apk",
+   "mode": "fixed",
+   "round": 1,
+   "browser": "Firefox/157.0",
+   "v8": null,
+   "time": "2026-10-05T18:12:17.217Z",
+   "load": {
+    "firstFrame": 12.31,
+    "responseEnd": 0.01,
+    "domContentLoaded": 0.06,
+    "resources": 70,
+    "transferMB": 9.6,
+    "programsAtFirstFrame": 68,
+    "wallToBooted": 12.7
+   },
+   "shaders": {
+    "programs": 75,
+    "failed": 0,
+    "serialMs": 20881.2,
+    "medianMs": 366.8,
+    "p95Ms": 433.2,
+    "worstMs": 504.2,
+    "againMs": 19562.9,
+    "originalMs": 14726.9,
+    "parallelMs": null,
+    "parallelExt": false,
+    "sourceKB": 6675,
+    "atLoad": {
+     "programs": 68,
+     "linkStatusWaitMs": 0.2
+    }
+   },
+   "js": {
+    "kIterPerMs": 14.46,
+    "sink": true
+   },
+   "placement": {
+    "mainTid": 32080,
+    "renderer": {
+     "pid": 32056,
+     "name": "com.rnaud.moebius.gecko:tab_disable_art_image_22",
+     "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
+     "allowed": "0-7"
+    },
+    "host": {
+     "pid": 31929,
+     "name": "com.rnaud.moebius.gecko:gpu_disable_art_image_",
+     "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
+     "allowed": "0-7"
+    }
+   },
+   "start": {
+    "gpuC": 41.6,
+    "cpuC": 41.2,
+    "batteryC": 34,
+    "thermal": "Status: 0",
+    "gpuMHz": 615,
+    "waited": 33
+   },
+   "end": {
+    "gpuC": 60.1,
+    "cpuC": 70,
+    "batteryC": 34,
+    "thermal": "Status: 0",
+    "gpuMHz": 615
+   },
+   "gpuEstimate": {
+    "geometryMB": 2002.5,
+    "geometries": 1454,
+    "textures": 88,
+    "programs": 75
+   },
+   "errors": [],
+   "warnings": [
+    "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+    "THREE.WebGLRenderer: KHR_parallel_shader_compile extension not supported."
+   ],
+   "interrupted": []
+  },
+  {
+   "engine": "webview",
+   "mode": "fixed",
+   "round": 1,
+   "browser": "Chrome/109.0.5414.123",
+   "v8": "10.9.194.10",
+   "time": "2026-10-05T17:30:22.453Z",
+   "load": {
+    "firstFrame": 21.27,
+    "responseEnd": 0.01,
+    "domContentLoaded": 0.05,
+    "resources": 54,
+    "transferMB": 9.6,
+    "programsAtFirstFrame": 68,
+    "wallToBooted": 21.4
+   },
+   "shaders": {
+    "programs": 75,
+    "failed": 0,
+    "serialMs": 22468.6,
+    "medianMs": 395.9,
+    "p95Ms": 469.1,
+    "worstMs": 545.1,
+    "againMs": 21464.4,
+    "originalMs": 16087.3,
+    "parallelMs": null,
+    "parallelExt": false,
+    "sourceKB": 6675,
+    "atLoad": {
+     "programs": 68,
+     "linkStatusWaitMs": 20.1
+    }
+   },
+   "js": {
+    "kIterPerMs": 17,
+    "sink": true
+   },
+   "placement": {
+    "mainTid": 29081,
+    "renderer": {
+     "pid": 29053,
+     "name": "com.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0",
+     "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
+     "allowed": "0-2,5-6"
+    },
+    "host": {
+     "pid": 29020,
+     "name": "com.rnaud.moebius.perf",
+     "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
+     "allowed": "0-7"
+    }
+   },
+   "start": {
+    "gpuC": 41.2,
+    "cpuC": 40.8,
+    "batteryC": 31,
+    "thermal": "Status: 0",
+    "gpuMHz": 615,
+    "waited": 33
+   },
+   "end": {
+    "gpuC": 52.6,
+    "cpuC": 52.8,
+    "batteryC": 32,
+    "thermal": "Status: 0",
+    "gpuMHz": 615
+   },
+   "gpuEstimate": {
+    "geometryMB": 2002.3,
+    "geometries": 1445,
+    "textures": 88,
+    "programs": 75
+   },
+   "errors": [],
+   "warnings": [
+    "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+    "THREE.WebGLRenderer: KHR_parallel_shader_compile extension not supported."
+   ],
+   "interrupted": []
+  },
+  {
+   "engine": "gecko",
+   "mode": "dynamic",
+   "round": 2,
+   "browser": "Firefox/157.0",
+   "v8": null,
+   "time": "2026-10-05T17:52:43.041Z",
+   "load": {
+    "firstFrame": 16.21,
+    "responseEnd": 0.01,
+    "domContentLoaded": 0.04,
+    "resources": 72,
+    "transferMB": 9.6,
+    "programsAtFirstFrame": 68,
+    "wallToBooted": 16.7
+   },
+   "shaders": null,
+   "js": {
+    "kIterPerMs": 14.01,
+    "sink": true
+   },
+   "placement": {
+    "mainTid": 16598,
+    "renderer": {
+     "pid": 16569,
+     "name": "com.rnaud.moebius.gecko:tab_disable_art_image_16",
+     "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
+     "allowed": "0-7"
+    },
+    "host": {
+     "pid": 16360,
+     "name": "com.rnaud.moebius.gecko:gpu_disable_art_image_",
+     "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
+     "allowed": "0-7"
+    }
+   },
+   "start": {
+    "gpuC": 41.6,
+    "cpuC": 40.8,
+    "batteryC": 33,
+    "thermal": "Status: 0",
+    "gpuMHz": 615,
+    "waited": 33
+   },
+   "end": {
+    "gpuC": 61.3,
+    "cpuC": 71.6,
+    "batteryC": 33,
+    "thermal": "Status: 0",
+    "gpuMHz": 615
+   },
+   "gpuEstimate": {
+    "geometryMB": 1997.3,
+    "geometries": 1465,
+    "textures": 86,
+    "programs": 75
+   },
+   "errors": [],
+   "warnings": [
+    "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+    "THREE.WebGLRenderer: KHR_parallel_shader_compile extension not supported."
+   ],
+   "interrupted": []
+  },
+  {
+   "engine": "webview",
+   "mode": "dynamic",
+   "round": 2,
+   "browser": "Chrome/109.0.5414.123",
+   "v8": "10.9.194.10",
+   "time": "2026-10-05T17:49:21.407Z",
+   "load": {
+    "firstFrame": 21.29,
+    "responseEnd": 0.01,
+    "domContentLoaded": 0.07,
+    "resources": 54,
+    "transferMB": 9.6,
+    "programsAtFirstFrame": 68,
+    "wallToBooted": 21.4
+   },
+   "shaders": null,
+   "js": {
+    "kIterPerMs": 17.13,
+    "sink": true
+   },
+   "placement": {
+    "mainTid": 13371,
+    "renderer": {
+     "pid": 13344,
+     "name": "com.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0",
+     "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
+     "allowed": "0-2,5-6"
+    },
+    "host": {
+     "pid": 13313,
+     "name": "com.rnaud.moebius.perf",
+     "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
+     "allowed": "0-7"
+    }
+   },
+   "start": {
+    "gpuC": 42.4,
+    "cpuC": 42,
+    "batteryC": 33,
+    "thermal": "Status: 0",
+    "gpuMHz": 615,
+    "waited": 33
+   },
+   "end": {
+    "gpuC": 51.4,
+    "cpuC": 52,
+    "batteryC": 33,
+    "thermal": "Status: 0",
+    "gpuMHz": 615
+   },
+   "gpuEstimate": {
+    "geometryMB": 1997.3,
+    "geometries": 1456,
+    "textures": 86,
+    "programs": 75
+   },
+   "errors": [],
+   "warnings": [
+    "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+    "THREE.WebGLRenderer: KHR_parallel_shader_compile extension not supported."
+   ],
+   "interrupted": []
+  },
+  {
+   "engine": "gecko",
+   "mode": "fixed",
+   "round": 2,
+   "browser": "Firefox/157.0",
+   "v8": null,
+   "time": "2026-10-05T17:45:54.884Z",
+   "load": {
+    "firstFrame": 14.38,
+    "responseEnd": 0.03,
+    "domContentLoaded": 0.07,
+    "resources": 74,
+    "transferMB": 9.6,
+    "programsAtFirstFrame": 68,
+    "wallToBooted": 14.8
+   },
+   "shaders": {
+    "programs": 75,
+    "failed": 0,
+    "serialMs": 20861.1,
+    "medianMs": 367.1,
+    "p95Ms": 432.2,
+    "worstMs": 505.3,
+    "againMs": 19671.1,
+    "originalMs": 13736.5,
+    "parallelMs": null,
+    "parallelExt": false,
+    "sourceKB": 6675,
+    "atLoad": {
+     "programs": 68,
+     "linkStatusWaitMs": 0.2
+    }
+   },
+   "js": {
+    "kIterPerMs": 14.66,
+    "sink": true
+   },
+   "placement": {
+    "mainTid": 10246,
+    "renderer": {
+     "pid": 10225,
+     "name": "com.rnaud.moebius.gecko:tab_disable_art_image_7",
+     "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
+     "allowed": "0-7"
+    },
+    "host": {
+     "pid": 10098,
+     "name": "com.rnaud.moebius.gecko:gpu_disable_art_image_",
+     "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
+     "allowed": "0-7"
+    }
+   },
+   "start": {
+    "gpuC": 41.2,
+    "cpuC": 40.8,
+    "batteryC": 33,
+    "thermal": "Status: 0",
+    "gpuMHz": 615,
+    "waited": 34
+   },
+   "end": {
+    "gpuC": 59.3,
+    "cpuC": 70,
+    "batteryC": 33,
+    "thermal": "Status: 0",
+    "gpuMHz": 615
+   },
+   "gpuEstimate": {
+    "geometryMB": 2002.3,
+    "geometries": 1454,
+    "textures": 88,
+    "programs": 75
+   },
+   "errors": [],
+   "warnings": [
+    "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+    "THREE.WebGLRenderer: KHR_parallel_shader_compile extension not supported."
+   ],
+   "interrupted": []
+  },
+  {
+   "engine": "webview",
+   "mode": "fixed",
+   "round": 2,
+   "browser": "Chrome/109.0.5414.123",
+   "v8": "10.9.194.10",
+   "time": "2026-10-05T17:41:35.847Z",
+   "load": {
+    "firstFrame": 19.29,
+    "responseEnd": 0.01,
+    "domContentLoaded": 0.06,
+    "resources": 54,
+    "transferMB": 9.6,
+    "programsAtFirstFrame": 68,
+    "wallToBooted": 19.5
+   },
+   "shaders": {
+    "programs": 75,
+    "failed": 0,
+    "serialMs": 22459.7,
+    "medianMs": 395.5,
+    "p95Ms": 466.3,
+    "worstMs": 545.9,
+    "againMs": 21241.5,
+    "originalMs": 15163.6,
+    "parallelMs": null,
+    "parallelExt": false,
+    "sourceKB": 6675,
+    "atLoad": {
+     "programs": 68,
+     "linkStatusWaitMs": 21
+    }
+   },
+   "js": {
+    "kIterPerMs": 17.07,
+    "sink": true
+   },
+   "placement": {
+    "mainTid": 7094,
+    "renderer": {
+     "pid": 7070,
+     "name": "com.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0",
+     "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
+     "allowed": "0-2,5-6"
+    },
+    "host": {
+     "pid": 7021,
+     "name": "com.rnaud.moebius.perf",
+     "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
+     "allowed": "0-7"
+    }
+   },
+   "start": {
+    "gpuC": 41.2,
+    "cpuC": 40.4,
+    "batteryC": 32,
+    "thermal": "Status: 0",
+    "gpuMHz": 615,
+    "waited": 33
+   },
+   "end": {
+    "gpuC": 51.8,
+    "cpuC": 54.8,
+    "batteryC": 33,
+    "thermal": "Status: 0",
+    "gpuMHz": 615
+   },
+   "gpuEstimate": {
+    "geometryMB": 2002.4,
+    "geometries": 1447,
+    "textures": 88,
+    "programs": 75
+   },
+   "errors": [],
+   "warnings": [
+    "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+    "THREE.WebGLRenderer: KHR_parallel_shader_compile extension not supported."
+   ],
+   "interrupted": []
+  },
+  {
+   "engine": "gecko",
+   "mode": "dynamic",
+   "round": 3,
+   "browser": "Firefox/157.0",
+   "v8": null,
+   "time": "2026-10-05T18:04:32.393Z",
+   "load": {
+    "firstFrame": 15.73,
+    "responseEnd": 0.01,
+    "domContentLoaded": 0.05,
+    "resources": 72,
+    "transferMB": 9.6,
+    "programsAtFirstFrame": 68,
+    "wallToBooted": 16.2
+   },
+   "shaders": null,
+   "js": {
+    "kIterPerMs": 13.87,
+    "sink": true
+   },
+   "placement": {
+    "mainTid": 26134,
+    "renderer": {
+     "pid": 26115,
+     "name": "com.rnaud.moebius.gecko:tab_disable_art_image_21",
+     "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
+     "allowed": "0-7"
+    },
+    "host": {
+     "pid": 25985,
+     "name": "com.rnaud.moebius.gecko:gpu_disable_art_image_",
+     "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
+     "allowed": "0-7"
+    }
+   },
+   "start": {
+    "gpuC": 43.6,
+    "cpuC": 42.4,
+    "batteryC": 34,
+    "thermal": "Status: 0",
+    "gpuMHz": 615,
+    "waited": 1
+   },
+   "end": {
+    "gpuC": 60.1,
+    "cpuC": 71.2,
+    "batteryC": 34,
+    "thermal": "Status: 0",
+    "gpuMHz": 615
+   },
+   "gpuEstimate": {
+    "geometryMB": 1997.3,
+    "geometries": 1465,
+    "textures": 86,
+    "programs": 75
+   },
+   "errors": [],
+   "warnings": [
+    "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+    "THREE.WebGLRenderer: KHR_parallel_shader_compile extension not supported."
+   ],
+   "interrupted": []
+  },
+  {
+   "engine": "webview",
+   "mode": "dynamic",
+   "round": 3,
+   "browser": "Chrome/109.0.5414.123",
+   "v8": "10.9.194.10",
+   "time": "2026-10-05T18:07:59.956Z",
+   "load": {
+    "firstFrame": 22.45,
+    "responseEnd": 0.01,
+    "domContentLoaded": 0.06,
+    "resources": 54,
+    "transferMB": 9.6,
+    "programsAtFirstFrame": 68,
+    "wallToBooted": 22.6
+   },
+   "shaders": null,
+   "js": {
+    "kIterPerMs": 17.08,
+    "sink": true
+   },
+   "placement": {
+    "mainTid": 29049,
+    "renderer": {
+     "pid": 29025,
+     "name": "com.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0",
+     "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
+     "allowed": "0-2,5-6"
+    },
+    "host": {
+     "pid": 28993,
+     "name": "com.rnaud.moebius.perf",
+     "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
+     "allowed": "0-7"
+    }
+   },
+   "start": {
+    "gpuC": 43.6,
+    "cpuC": 42.8,
+    "batteryC": 34,
+    "thermal": "Status: 0",
+    "gpuMHz": 615,
+    "waited": 33
+   },
+   "end": {
+    "gpuC": 50.6,
+    "cpuC": 52.4,
+    "batteryC": 34,
+    "thermal": "Status: 0",
+    "gpuMHz": 615
+   },
+   "gpuEstimate": {
+    "geometryMB": 1996.8,
+    "geometries": 1454,
+    "textures": 86,
+    "programs": 75
+   },
+   "errors": [],
+   "warnings": [
+    "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+    "THREE.WebGLRenderer: KHR_parallel_shader_compile extension not supported."
+   ],
+   "interrupted": []
+  },
+  {
+   "engine": "gecko",
+   "mode": "fixed",
+   "round": 3,
+   "browser": "Firefox/157.0",
+   "v8": null,
+   "time": "2026-10-05T17:57:00.675Z",
+   "load": {
+    "firstFrame": 14.24,
+    "responseEnd": 0.04,
+    "domContentLoaded": 0.08,
+    "resources": 72,
+    "transferMB": 9.6,
+    "programsAtFirstFrame": 68,
+    "wallToBooted": 14.8
+   },
+   "shaders": {
+    "programs": 75,
+    "failed": 0,
+    "serialMs": 20843.5,
+    "medianMs": 366.8,
+    "p95Ms": 433.1,
+    "worstMs": 502.7,
+    "againMs": 19633.8,
+    "originalMs": 14652,
+    "parallelMs": null,
+    "parallelExt": false,
+    "sourceKB": 6675,
+    "atLoad": {
+     "programs": 68,
+     "linkStatusWaitMs": 0.1
+    }
+   },
+   "js": {
+    "kIterPerMs": 14.52,
+    "sink": true
+   },
+   "placement": {
+    "mainTid": 19771,
+    "renderer": {
+     "pid": 19753,
+     "name": "com.rnaud.moebius.gecko:tab_disable_art_image_33",
+     "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
+     "allowed": "0-7"
+    },
+    "host": {
+     "pid": 19617,
+     "name": "com.rnaud.moebius.gecko:gpu_disable_art_image_",
+     "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
+     "allowed": "0-7"
+    }
+   },
+   "start": {
+    "gpuC": 43.2,
+    "cpuC": 42.8,
+    "batteryC": 33,
+    "thermal": "Status: 0",
+    "gpuMHz": 615,
+    "waited": 33
+   },
+   "end": {
+    "gpuC": 60.5,
+    "cpuC": 71.2,
+    "batteryC": 34,
+    "thermal": "Status: 0",
+    "gpuMHz": 615
+   },
+   "gpuEstimate": {
+    "geometryMB": 2002.3,
+    "geometries": 1452,
+    "textures": 88,
+    "programs": 75
+   },
+   "errors": [],
+   "warnings": [
+    "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+    "THREE.WebGLRenderer: KHR_parallel_shader_compile extension not supported."
+   ],
+   "interrupted": []
+  },
+  {
+   "engine": "webview",
+   "mode": "fixed",
+   "round": 3,
+   "browser": "Chrome/109.0.5414.123",
+   "v8": "10.9.194.10",
+   "time": "2026-10-05T18:01:25.508Z",
+   "load": {
+    "firstFrame": 19.29,
+    "responseEnd": 0.01,
+    "domContentLoaded": 0.06,
+    "resources": 54,
+    "transferMB": 9.6,
+    "programsAtFirstFrame": 68,
+    "wallToBooted": 19.4
+   },
+   "shaders": {
+    "programs": 75,
+    "failed": 0,
+    "serialMs": 22468,
+    "medianMs": 395.4,
+    "p95Ms": 465.9,
+    "worstMs": 545,
+    "againMs": 21346.8,
+    "originalMs": 16314.2,
+    "parallelMs": null,
+    "parallelExt": false,
+    "sourceKB": 6675,
+    "atLoad": {
+     "programs": 68,
+     "linkStatusWaitMs": 23.2
+    }
+   },
+   "js": {
+    "kIterPerMs": 17.07,
+    "sink": true
+   },
+   "placement": {
+    "mainTid": 22981,
+    "renderer": {
+     "pid": 22948,
+     "name": "com.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0",
+     "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
+     "allowed": "0-2,5-6"
+    },
+    "host": {
+     "pid": 22917,
+     "name": "com.rnaud.moebius.perf",
+     "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
+     "allowed": "0-7"
+    }
+   },
+   "start": {
+    "gpuC": 42.8,
+    "cpuC": 42.4,
+    "batteryC": 34,
+    "thermal": "Status: 0",
+    "gpuMHz": 615,
+    "waited": 33
+   },
+   "end": {
+    "gpuC": 51.8,
+    "cpuC": 53.2,
+    "batteryC": 34,
+    "thermal": "Status: 0",
+    "gpuMHz": 615
+   },
+   "gpuEstimate": {
+    "geometryMB": 2002.4,
+    "geometries": 1448,
+    "textures": 88,
+    "programs": 75
+   },
+   "errors": [
+    "Error injecting safe area CSS: TypeError: Cannot read properties of null (reading 'style')\n    at <anonymous>:2:28"
+   ],
+   "warnings": [
+    "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+    "THREE.WebGLRenderer: KHR_parallel_shader_compile extension not supported."
+   ],
+   "interrupted": []
+  }
+ ]
+}

@@ -1,50 +1,29 @@
-package com.rnaud.moebius;
+package com.rnaud.memento.gecko;
 
 import android.os.Handler;
 import android.os.Looper;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
-import android.webkit.WebView;
 
-import org.json.JSONObject;
+import org.json.JSONArray;
 
-// The handheld's built-in controls, read natively and handed to the page as a
-// Standard Gamepad (src/native-pad.js). The WebView's own Gamepad API often
-// misses built-in controllers, or reports them without the standard mapping,
-// so the game would see nothing. Android key codes map to the standard
-// button indices by their names (KEYCODE_BUTTON_A is 0): on a Retroid, whose
-// letters are Nintendo-style, 0 is then the right button, not the bottom one;
-// the page moves them to their positions (native-pad.js padFaces, controller.js).
-// The state goes out through an Out: the WebView's evaluateJavascript (WebViewActivity), or
-// GeckoView's extension port (MainActivity); either way the page's
-// window.__nativePad(name, axes, buttons) gets it.
-final class GamepadBridge {
-    /** where the controls' state goes: the page's window.__nativePad(name, axes, buttons) */
-    interface Out { void state(String name, float[] axes, float[] buttons); }
+// The handheld's built-in controls handed to the page as a Standard Gamepad, as the WebView app's
+// GamepadBridge (android/.../GamepadBridge.java: the same key codes, axes and indices), sent through
+// the bridge extension's port (content.js: window.__nativePad) instead of evaluateJavascript.
+final class PadBridge {
+    interface Sink { void pad(org.json.JSONObject state); }
 
-    private final Out out;
+    private final Sink sink;
     private final Handler ui = new Handler(Looper.getMainLooper());
     private final float[] axes = new float[4];
-    private final float[] keys = new float[17];      // from key events
-    private final boolean[] hat = new boolean[4];    // up, down, left, right from the hat axes
-    private float lt, rt;                            // analog triggers
+    private final float[] keys = new float[17];
+    private final boolean[] hat = new boolean[4];
+    private float lt, rt;
     private String name = "Android gamepad";
     private boolean scheduled, live;
 
-    GamepadBridge(Out out) { this.out = out; }
-
-    /** for the WebView: the call evaluated in the page */
-    GamepadBridge(WebView web) {
-        this((name, axes, buttons) -> {
-            StringBuilder s = new StringBuilder("window.__nativePad&&window.__nativePad(").append(JSONObject.quote(name)).append(",[");
-            for (int i = 0; i < axes.length; i++) s.append(i > 0 ? "," : "").append(round(axes[i]));
-            s.append("],[");
-            for (int i = 0; i < buttons.length; i++) s.append(i > 0 ? "," : "").append(round(buttons[i]));
-            s.append("])");
-            web.evaluateJavascript(s.toString(), null);
-        });
-    }
+    PadBridge(Sink sink) { this.sink = sink; }
 
     private static int index(int code) {
         switch (code) {
@@ -57,7 +36,7 @@ final class GamepadBridge {
             case KeyEvent.KEYCODE_BUTTON_L2: return 6;
             case KeyEvent.KEYCODE_BUTTON_R2: return 7;
             case KeyEvent.KEYCODE_BUTTON_SELECT: return 8;
-            case KeyEvent.KEYCODE_BACK: return 8;            // a handheld's back key: select (back in menus), never quits by accident
+            case KeyEvent.KEYCODE_BACK: return 8;
             case KeyEvent.KEYCODE_BUTTON_START: return 9;
             case KeyEvent.KEYCODE_MENU: return 9;
             case KeyEvent.KEYCODE_BUTTON_THUMBL: return 10;
@@ -78,7 +57,6 @@ final class GamepadBridge {
             || (source & InputDevice.SOURCE_DPAD) == InputDevice.SOURCE_DPAD;
     }
 
-    /** @return true when the event was the controller's and is consumed. */
     boolean onKey(KeyEvent e) {
         int i = index(e.getKeyCode());
         if (i < 0) return false;
@@ -93,7 +71,6 @@ final class GamepadBridge {
         return true;
     }
 
-    /** @return true when the event was a joystick move and is consumed. */
     boolean onMotion(MotionEvent e) {
         if ((e.getSource() & InputDevice.SOURCE_JOYSTICK) != InputDevice.SOURCE_JOYSTICK || e.getAction() != MotionEvent.ACTION_MOVE) return false;
         InputDevice d = e.getDevice();
@@ -111,7 +88,6 @@ final class GamepadBridge {
         return true;
     }
 
-    /** Let go of everything (the app is leaving the screen: the key-ups would go elsewhere and the buttons stay held). */
     void reset() {
         java.util.Arrays.fill(axes, 0f);
         java.util.Arrays.fill(keys, 0f);
@@ -122,7 +98,6 @@ final class GamepadBridge {
         if (live) send();
     }
 
-    // at most one update per frame
     private void schedule() {
         if (scheduled) return;
         scheduled = true;
@@ -132,18 +107,19 @@ final class GamepadBridge {
     private void send() {
         scheduled = false;
         live = true;
-        float[] b = new float[17];
-        for (int i = 0; i < 17; i++) {
-            float v = keys[i];
-            if (i == 6) v = Math.max(v, lt);
-            if (i == 7) v = Math.max(v, rt);
-            if (i >= 12 && i <= 15 && hat[i - 12]) v = 1f;
-            b[i] = round(v);
-        }
-        float[] a = new float[4];
-        for (int i = 0; i < 4; i++) a[i] = round(axes[i]);
-        out.state(name, a, b);
+        try {
+            JSONArray a = new JSONArray(), b = new JSONArray();
+            for (int i = 0; i < 4; i++) a.put(round(axes[i]));
+            for (int i = 0; i < 17; i++) {
+                float v = keys[i];
+                if (i == 6) v = Math.max(v, lt);
+                if (i == 7) v = Math.max(v, rt);
+                if (i >= 12 && i <= 15 && hat[i - 12]) v = 1f;
+                b.put(round(v));
+            }
+            sink.pad(new org.json.JSONObject().put("id", name).put("axes", a).put("buttons", b));
+        } catch (org.json.JSONException ignored) { }
     }
 
-    static float round(float v) { return Math.round(v * 1000f) / 1000f; }
+    private static double round(float v) { return Math.round(v * 1000f) / 1000.0; }
 }

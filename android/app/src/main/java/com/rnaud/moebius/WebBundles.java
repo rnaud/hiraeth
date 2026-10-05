@@ -8,16 +8,12 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.util.Log;
-import android.webkit.WebView;
 import android.widget.Toast;
 
 import androidx.core.content.pm.PackageInfoCompat;
 
-import com.getcapacitor.Bridge;
-import com.getcapacitor.JSObject;
-import com.getcapacitor.WebViewListener;
-
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -57,10 +53,13 @@ import java.util.zip.ZipInputStream;
 // title screen opens (src/boot.js asks for "restart" there), or right away with
 // "Restart now" in the settings.
 //
-// Serving: Capacitor's local server reads files from a base path instead of
-// the APK's assets (ServerPath BASE_PATH / Bridge.setServerBasePath). The page
-// stays at https://localhost either way, so localStorage (the saves) is the
-// same for every bundle. Nothing here touches the WebView's storage.
+// Serving: the engine's Host serves a bundle's directory instead of the APK's
+// assets. In GeckoView (MainActivity) that is the app's loopback server
+// (AssetServer, MainActivity.ORIGIN: http://127.0.0.1:41730); in the WebView fallback
+// (WebViewActivity) Capacitor's local server (ServerPath BASE_PATH /
+// Bridge.setServerBasePath, https://localhost). The page's origin stays the same
+// either way, so localStorage (the saves) is the same for every bundle. Nothing
+// here touches the engine's storage.
 //
 // Safety: a bundle has to set window.__moebiusBooted (title.js, main.js) within
 // BOOT_TIMEOUT_MS of its first page starting, or the app goes back to the built-in
@@ -72,10 +71,20 @@ import java.util.zip.ZipInputStream;
 // process: an activity recreate() gets a new WebBundles and a running download
 // carries on. Every step is logged (logcat tag MoebiusOTA, and the last lines in the
 // settings' update details).
-final class WebBundles extends WebViewListener {
+final class WebBundles {
+    /** The engine the page runs in: GeckoView (MainActivity) or the WebView (WebViewActivity). */
+    interface Host {
+        /** serve this bundle's directory from now on (null: the game built into the APK), and reload the page */
+        void serve(String dir);
+        /** whether the page on screen has set window.__moebiusBooted (answered on the UI thread) */
+        void booted(java.util.function.Consumer<Boolean> answer);
+        /** a DOM event for the page: window.dispatchEvent(new CustomEvent(name, { detail })) */
+        void event(String name, JSONObject detail);
+    }
+
     /** The native bridge's level. Bump it whenever the Java side changes in a way the web side relies on
      *  (GamepadBridge, AppShellPlugin, the events below): web bundles built after that need this APK. */
-    static final int NATIVE_API = 5;   // 5: updates from the game's site, a quiet APK check (info's apkCheck); 4: AppShell check / download / openApk, progress and the update log; 3: info reports the update check
+    static final int NATIVE_API = 6;   // 6: the game in GeckoView (MainActivity; the WebView where it can't run), AppShell.info's engine; 5: updates from the game's site, a quiet APK check (info's apkCheck); 4: AppShell check / download / openApk, progress and the update log; 3: info reports the update check
     /** The oldest bridge the web game needs (web.json's minNative, scripts/release-info.mjs). Raise it to NATIVE_API
      *  when the web side starts relying on a bridge change; a Java-only change (like 5) leaves it, so older apps keep
      *  taking the game's updates while the APK offer (latest.json's native) brings them the new app. */
@@ -107,7 +116,7 @@ final class WebBundles extends WebViewListener {
     private final File root;
     private final Handler ui = new Handler(Looper.getMainLooper());
     private final int builtin;          // the APK's own web build: its versionCode, the commit's build number (release-info.mjs build)
-    private Bridge bridge;
+    private Host host;
     private String manifestUrl = MANIFEST;
     private boolean launched;
 
@@ -171,7 +180,7 @@ final class WebBundles extends WebViewListener {
         return active > 0 ? dir(active).getAbsolutePath() : null;
     }
 
-    void attach(Bridge bridge) { this.bridge = bridge; live = this; }
+    void attach(Host host) { this.host = host; live = this; }
 
     private boolean usable(int build, int minNative) {
         return build > builtin && minNative <= NATIVE_API && !isBad(build) && new File(dir(build), "index.html").isFile();
@@ -220,7 +229,7 @@ final class WebBundles extends WebViewListener {
     String apkPage() { return !apkPage.isEmpty() ? apkPage : UpdateRules.pageFor(apkUrl, !page.isEmpty() ? page : RELEASES); }
 
     /** Everything the settings show (AppShell.info). */
-    void fill(JSObject ret) {
+    void fill(JSONObject ret) throws JSONException {
         ret.put("app", appBuild());
         ret.put("web", webBuild());
         ret.put("bundle", fromBundle());
@@ -245,7 +254,7 @@ final class WebBundles extends WebViewListener {
     /** "Restart now": switch to the pending bundle with a reload (UI thread). The saves stay in the page's storage. */
     boolean applyNow() {
         int p = ready();
-        if (p == 0 || bridge == null) return false;
+        if (p == 0 || host == null) return false;
         SharedPreferences.Editor e = prefs.edit();
         e.putInt("active", p).putInt("activeMin", prefs.getInt("pendingMin", 0))
             .putString("activeVersion", prefs.getString("pendingVersion", ""))
@@ -253,14 +262,14 @@ final class WebBundles extends WebViewListener {
         serving = p;
         if (!UpdateRules.busy(state)) state = latest <= p ? "current" : "idle";
         log("restart: switching to build " + p);
-        bridge.setServerBasePath(dir(p).getAbsolutePath());
+        host.serve(dir(p).getAbsolutePath());
         return true;
     }
 
     // ------------------------------------------------------------------ the boot watchdog
 
-    @Override
-    public void onPageStarted(WebView webView) {
+    /** a page started loading (the engine's progress callback) */
+    void onPageStarted() {
         pageNo++;
         booted = false;
         waited = 0;
@@ -284,13 +293,13 @@ final class WebBundles extends WebViewListener {
     // poll window.__moebiusBooted once a second, counting only while the app is in front,
     // until the build on screen has booted once (from then on it is trusted)
     private void tick(int forPage) {
-        if (serving == 0 || booted || ticking || !resumed || bridge == null) return;
+        if (serving == 0 || booted || ticking || !resumed || host == null) return;
         if (prefs.getInt("good", 0) == serving) { booted = true; return; }
         ticking = true;
-        ui.postDelayed(() -> bridge.getWebView().evaluateJavascript("window.__moebiusBooted===true", (v) -> {
+        ui.postDelayed(() -> host.booted((v) -> {
             ticking = false;
             if (forPage != pageNo) { tick(pageNo); return; }
-            if ("true".equals(v)) {
+            if (Boolean.TRUE.equals(v)) {
                 booted = true;
                 prefs.edit().putInt("good", serving).putInt("tries", 0).apply();
                 log("build " + serving + " started");
@@ -308,7 +317,7 @@ final class WebBundles extends WebViewListener {
         e.putInt("active", 0).commit();
         log("build " + serving + " didn't start within " + (BOOT_TIMEOUT_MS / 1000) + " s: back to the built-in game");
         serving = 0;
-        bridge.setServerAssetPath(Bridge.DEFAULT_WEB_ASSET_DIR);
+        host.serve(null);
         Toast.makeText(activity, "The downloaded update didn't start. Back to the built-in version.", Toast.LENGTH_LONG).show();
     }
 
@@ -495,9 +504,9 @@ final class WebBundles extends WebViewListener {
     private static void notifyPage() {
         WebBundles w = live;
         if (w == null) return;
-        String js = "window.dispatchEvent(new CustomEvent('moebius:webupdate',{detail:{check:" + JSONObject.quote(state)
-            + ",got:" + got + ",total:" + total + "}}))";
-        w.ui.post(() -> { if (w.bridge != null) w.bridge.eval(js, null); });
+        JSONObject detail = new JSONObject();
+        try { detail.put("check", state).put("got", got).put("total", total); } catch (JSONException ignored) { }
+        w.ui.post(() -> { if (w.host != null) w.host.event("moebius:webupdate", detail); });
     }
 
     private void log(String line) {
