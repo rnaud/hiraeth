@@ -214,7 +214,7 @@ function stepWalker(w, dt) {
 
 // ------------------------------------------------------------------ the simulation (fixed 60 Hz steps, as the harness)
 let run = null, runK = 0, runId = '';
-let simT = 0, acc = 0, stepOnce = false;
+let simT = 0, acc = 0, stepOnce = 0;
 function restart() {
   runId = state.run;
   run = runId ? PAGE_RUNS[RUN_IDS[runId]] : null;
@@ -353,7 +353,7 @@ function placeCamera(cam, key, who, dt, aspect) {
     let half = 0;
     for (const o of list) half = Math.max(half, o.pos.distanceTo(c));
     const hfov = 2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(cam.fov) / 2) * aspect);
-    dist = Math.max(dist, ((half + 1.2) / Math.tan(hfov / 2)) * state.zoom);
+    dist = Math.max(dist, ((half + 2) / Math.tan(hfov / 2)) * state.zoom);
   }
   if (aspect < 0.85) dist *= 0.85 / aspect;
   const ty = S.at.y + 0.85;
@@ -524,9 +524,11 @@ function drawOverlay(vs) {
       if (v.walkers || (v.show.length > 1 && o.key)) {
         const head = toScreen(v.cam, v.rect, _v.copy(body.pos).setY(body.pos.y + 2.05 * (body.object.scale?.y ?? 1)));
         if (head) {
-          const name = o.key ? NAMES[o.key] : walkTitle(o.spec.walk);
+          // (a long row: just their numbers, the panel says who is who)
+          const i = walkers.indexOf(o), crowded = v.walkers && v.show.length > 5;
+          const name = o.key ? NAMES[o.key] : crowded ? `${i + 1}` : `${i + 1}. ${walkTitle(o.spec.walk)}`;
           label(head[0], head[1], name, o.key ? COLORS[o.key] : '#2b211f', 'center');
-          if (o.live && v.walkers) label(head[0], head[1] + 18, `slide ${fmt(o.live.maxSlide, 2)} / ${fmt(o.live.meanSlide, 3)} m`, '#2b211f', 'center');
+          if (o.live && v.walkers && !crowded) label(head[0], head[1] + 18, `slide ${fmt(o.live.maxSlide, 2)} / ${fmt(o.live.meanSlide, 3)} m`, '#2b211f', 'center');
         }
       }
     }
@@ -559,7 +561,7 @@ function tick(now) {
   let n = 0;
   while (acc >= DT && n < 6) { simStep(); acc -= DT; n++; }
   if (n === 6) acc = 0;
-  if (stepOnce) { simStep(); stepOnce = false; }
+  for (; stepOnce > 0; stepOnce--) simStep();
   SU.uTime.value = U.uTime.value = simT;
   const vs = views(dt);
   renderer.setRenderTarget(null);
@@ -717,8 +719,14 @@ function renderNumbers() {
   if (!sNums.open) return;
   numsBox.replaceChildren();
   if (state.mode === 'people') {
-    numsBox.append(table(walkers.map((w, i) => ({ name: `${i + 1}`, r: w.live }))));
-    numsBox.append(el('p', { class: 'note' }, walkers.map((w, i) => `${i + 1}. ${walkTitle(w.spec.walk)}`).join(' · ')));
+    // one row a walker (the best of each column in bold)
+    const cols = [['slide max', (r) => r.maxSlide, 2], ['mean', (r) => r.meanSlide, 3], ['held', (r) => r.heldSlide, 3], ['sink', (r) => r.sink, 3], ['jerk', (r) => r.jitterHead, 2]];
+    const t = el('table', { class: 'nums' });
+    t.append(el('tr', {}, el('th', {}, 'walk'), ...cols.map(([n]) => el('th', {}, n))));
+    const best = cols.map(([, get]) => Math.min(...walkers.map((w) => (w.live ? get(w.live) : Infinity))));
+    walkers.forEach((w, i) => t.append(el('tr', {}, el('td', { title: walkTitle(w.spec.walk) }, `${i + 1}. ${shortWalk(w.spec.walk)}`),
+      ...cols.map(([, get, d], k) => { const x = w.live ? get(w.live) : NaN; return el('td', { class: x === best[k] && walkers.length > 1 ? 'win' : '' }, fmt(x, d)); }))));
+    numsBox.append(t);
     return;
   }
   if (state.mode === 'duo') {
@@ -798,6 +806,7 @@ function renderClips() {
 }
 
 // the people lane
+const shortWalk = (name) => (name === 'library' ? 'library' : walkByName(name)?.desc?.replace(/ walk( forward)?$/, '').replace(/^muscular, heavyset person's$/, 'heavyset') ?? name);
 const walkTitle = (name) => (name === 'library' ? 'the library’s walk' : (() => { const w = walkByName(name); return w ? `${w.desc} (${w.name.replace(/^cmu_/, 'CMU ')})` : name; })());
 const sPeople = section('The walkers', true);
 onlyIn(sPeople, 'people');
@@ -836,7 +845,7 @@ sShare.append(el('div', { class: 'buttons' },
 
 // transport, over the picture: play / pause, a frame, slow motion, restart
 function togglePause() { state.paused = !state.paused; saveURL(); transport(); }
-function frameStep() { state.paused = true; stepOnce = true; saveURL(); transport(); }
+function frameStep() { state.paused = true; stepOnce++; saveURL(); transport(); }
 function transport() {
   const box = $('transport');
   box.replaceChildren(
