@@ -652,7 +652,7 @@ export class Player {
   /** The body's extras while down: the face, the gear, the cloth. */
   finishDown(dt) {
     const H = this.humanoid;
-    H?.face?.update(dt, { speed: 0, climbing: false });
+    if (typeof H?.face?.update === 'function') H.face.update(dt, { speed: 0, climbing: false });   // (face is the morph now, a plain object: calling it threw and stopped the game on every knockdown)
     if (this.gear) this.gear.update(dt, _g4.set(0, 0, 0), this.phase ?? 0, 0, this.object.visible);
     this.updateCloth(dt);
   }
@@ -945,7 +945,7 @@ export class Player {
       if (!wasGliding) this.glideSpeed = Math.max(Math.hypot(tv.x, tv.z), 11);
       const target = f > 0 ? 30 : f < 0 ? 7 : 15;
       this.glideSpeed += (target - this.glideSpeed) * (1 - Math.exp(-(f > 0 ? 0.9 : 0.6) * dt));
-      const sink = f > 0 ? 7 : f < 0 ? 1.3 : 2.4;
+      const sink = (f > 0 ? 7 : f < 0 ? 1.3 : 2.4) * (f > 0 ? 1 : this.sinkK ?? 1);   // (the wind-silk scarf: sinkK 0.6)
       this.glideTurn = THREE.MathUtils.lerp(this.glideTurn ?? 0, -s * 1.25, 1 - Math.exp(-4 * dt));
       this.heading += this.glideTurn * dt;
       tv.copy(F.dir(this.heading, _g6)).multiplyScalar(this.glideSpeed);
@@ -1070,7 +1070,8 @@ export class Player {
     if (this.pos.y < this.opts.killY) { this.respawn(); this._respawned = true; return null; }
     const vu = this.vel.dot(U);
     if (h <= 0 || (this.onGround && h < 0.8 && vu <= 0)) {
-      if (!this.onGround && !this.ride && vu < -FALL.tumble && !this.cushioned) this.landHard(-vu);
+      // (fallGuard: the makers' soft-fall soles make a landing count as a slower one)
+      if (!this.onGround && !this.ride && vu < -FALL.tumble * (this.fallGuard ?? 1) && !this.cushioned) this.landHard(-vu / (this.fallGuard ?? 1));
       this.pos.addScaledVector(U, -h);
       this.vel.addScaledVector(U, -vu);
       this.onGround = true;
@@ -1409,7 +1410,7 @@ export class Player {
     this.phase += dt * (f || s ? 7 : 0);
     this._climbF = f; this._climbS = s;
 
-    this.stamina -= (f || s ? 0.045 : 0.02) * dt;   // ~22 s of climbing
+    this.stamina -= (f || s ? 0.045 : 0.02) * dt * (this.climbK ?? 1);   // ~22 s of climbing (climbK: the makers' resin halves it)
     if (input.Space && !this._jumpHeld) {                       // jump off the wall
       this.stopClimb(false);
       this.vel.copy(n).multiplyScalar(6).addScaledVector(U, 8);

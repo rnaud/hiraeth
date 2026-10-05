@@ -5,6 +5,7 @@ import { TAU, nA, nB, nC, clean, place, lumpy, solid, table, needle, boulder } f
 import { makeMaterial, MODE_TERRAIN, MODE_STRATA } from '../materials.js';
 import { Terrain } from '../world.js';
 import { Bird } from '../bird.js';
+import { attachTemple } from '../temples/index.js';
 
 // ---------------------------------------------------------------------------
 // Vael II: The Sky Stones. Bone-white needle clusters, balanced stones and
@@ -666,7 +667,8 @@ export function createArzach2(scene) {
   const spawn = new THREE.Vector3(0, 0, 22);
   spawn.y = topAt(spawn.x, spawn.z);
 
-  return {
+  // the Founders' Belfry out of the cloud west of the plateau, and its rooms far overhead (src/temples/arzach2.js)
+  return attachTemple('arzach2', scene, {
     id: 'arzach2',
     ground: terrain,
     spawn,
@@ -717,5 +719,5 @@ export function createArzach2(scene) {
     },
     atmo: (x, z) => ({ tint: [1.02, 0.99, 0.96], fog: 0.65, name: z < PLAIN_EDGE - 40 ? 'Vael II · the peach plain' : 'Vael II · the sky stones' }),
     update(dt, t) { for (const m of movers) m(t); },
-  };
+  });
 }

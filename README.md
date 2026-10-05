@@ -2864,3 +2864,92 @@ beside it (the details, how to run it and what is missing: `unity/README.md`).
   credits or the mother's "who did you meet". `src/save-migrate.js` brings old saves up once
   (flag `save.migrated`): a "met" carries over to the renamed person if the save has been to
   their world; Clemence's flags move outright. `tests/save-migrate.test.js`.
+
+## The makers' temples
+
+Each world gets one great building of the makers, a Zelda-style dungeon with a
+gadget half-way through and a keeper at its heart (LORE.md, "Temples", has the
+design and the plan for every world). Built so far: the desert's **Givers'
+House**, the City-Shaft's **Warden's Well**, Vael II's **Founders' Belfry**, the
+Buried Machine's **Engine-House**, the Garden of Spheres' **Footprint**, Lorn
+II's **Lamp-House**, Lorn's **Hush-House** and Vael's **Aerie**. Everything lives in `src/temples/`:
+
+- **`kit.js`**: the architecture. `TempleKit` batches render meshes per material
+  (noCollide) and hidden collision proxies, in a local frame; pieces: `hall` (walls
+  with doorways cut in them, an oculus, columns, a glyph frieze), `rotunda` (a round
+  hall, gaps at any height), `stairs`, `ramp`, `bridge`, `shaft`, `slab`, `ledge`,
+  `column`, `glyph`, `frieze`, and `templeMaterials(palette)`.
+- **`pieces.js`**: the parts that move or answer: `Door` (sinks into the floor;
+  lamps on its lintel show how much of its condition is met; `bell: true` for a
+  bell-tuned door), `Plate`, `Ball` (a stone ball in a groove the fluid's push rolls:
+  the pushable block), `Brazier` (ember only), `Bramble` (thorns: burn them; they
+  prick you back), `Switch` (an eye a splash wakes; `crystal: h` a singing crystal
+  instead, `wrong` what it says when it won't wake), `Jaw` (a gate of snapping jaws:
+  a stilling glob stills it open for good), `Swing` (a crystal pendulum over a
+  bridge that knocks you off; a stilling glob stops it a while), `Updraft` (a
+  column of rising wind that lifts the fluid wings, holds you near its middle
+  and lets you go at its top), `Gust` (gusts down a hall that shove you back,
+  but not behind its screens), `BellEar` (the bell-note
+  whistle sounded near it), `Platform` (a riding disc, a dynamic solid you stand
+  on), `Bridge` (stones rise out of a chasm), `Mark` (a checkpoint), `Pit`.
+  Moving parts are `userData.dynamic` (no tiling or levels of detail).
+- **`logic.js`**: the puzzle as pure state (`TempleLogic`): plates and what
+  stands on them, balls on their rails, latched elements, doors and bridges from
+  conditions (`{ all }`, `{ pressed }`, `{ lit }`, `{ drumOn }`, `{ item }`,
+  `{ resolved }`…), rooms reachable from the entrance, `next()` for the marker and
+  the scout. Saved in the save slot's flags under `temple.<id>.*`. `solve(def)`
+  plays a temple through as a player would; `withhold` proves its gadget is the key.
+  A latched element may come `after` another (the Hush-House's crystals, low to high).
+- **`boss.js`**: `Guardian`: sleep, wake, fight, open, weary, resolved; a meter in
+  phases (`calm` for an organic guardian, `damage` for a robot); attacks
+  telegraphed on the floor (`ring`, `cone`, `lane`) then struck: `knockDown` +
+  `hurt`, never emptying a healthy bar (`strikeDamage`); a knockout puts the keeper
+  back to its phase's start. `final: 'touch'` (an interactable: a hand on its brow)
+  or `'break'`. **`guardians.js`**: the Keeper's and the warden's bodies.
+- **`runtime.js`**: one temple alive: builds the rooms (the world's `layout`),
+  the building outside (`exterior`) with its doorway in and the ways out
+  (portals), marks and pits (and a net under the whole temple), the chest's site
+  (the box system places it: `PLACEMENTS` entries with `temple`), the guardian
+  and its meter on screen, and the world change (`change`: `set(on)`, `update`).
+- **`index.js`**: `attachTemple(levelId, scene, level)` (called by the level's
+  `create`: joins portals, lights, `init`, `dynamic`, `update`, clears the
+  world's own trees and rocks round the building) and `setupTempleStory(ctx)`
+  (from `src/story/index.js`: the temple's quest, its local, the locators).
+  `TEMPLES` and `GADGETS` (the 50/50 plan). **`migrate.js`**: whoever already owns
+  a temple's gadget finds its chest open. Per world: `desert.js` + `desert-data.js`,
+  `incal.js` + `incal-data.js`, `arzach2.js` + `arzach2-data.js`, `buried.js` +
+  `buried-data.js`, `spheres.js` + `spheres-data.js`, `perdide2.js` +
+  `perdide2-data.js`, `perdide.js` + `perdide-data.js`, `arzach.js` +
+  `arzach-data.js` (layout, logic,
+  guardian, outside, change, words; a change may have a `late` step, run after
+  the level's own movers).
+- **Items**: `fire` moved into the Givers' House, `jetpack` into the Warden's
+  Well, `bell` into the Founders' Belfry, `cell` into the Engine-House, `lens` into
+  the Footprint, `lantern` into the Lamp-House, `stun` into the Hush-House, `glider` into the Aerie; new gifts in the open: `resin` (the
+  Buried Machine's chimney ring: climbing tires you half as fast,
+  `player.climbK`), `soles` (the City-Shaft's pillar: `player.fallGuard`) and
+  `hush` (Vael's spire: creatures don't hear you walk up, `player.hush`, read by
+  `src/wildlife.js`) and `shell` (the Spheres' grove canopy: every few seconds
+  the unopened boxes within 45 m answer softly, a `'bell'` event with `soft: true`
+  that bell-tuned doors ignore), `moss` (Lorn II's root arch: a small light
+  round your feet after dusk), `pouch` (Viridel's canopy: flowers come up in
+  your footsteps, one recycled instanced pool in `src/boxes/effects.js`) and
+  `reed` (Lorn's mossy rise: twice the breath under water, `player.breathK`, read
+  by `src/swim.js`) and `scarf` (Vael II's balanced stack: the wings sink slower,
+  `player.sinkK`).
+- Pieces can be `hidden` (Door, Switch, Bridge): only the glyph lens shows them.
+  (`hidden: 'lantern'`: only the lantern charm's light.) `LightEar`: a lamp that
+  wakes when you stand by it with the lantern; a temple with `dark: true` sets
+  `player.inDark` inside, and the lantern charm glows there day or night.
+  A shut door can't be climbed (you slip off it). `Bank`: four eyes that wake only
+  together inside a breath (the fourth chamber's key). A `Platform` may start part
+  way along its path (`phase`), and keeps a rider on it as it goes down. A world
+  change may bring moving floors of its own (`solids()`, like the pipe-cart).
+- **Tests**: `tests/temples.test.js` checks the logic, the solver (every built
+  temple solved, its gadget mid-way and needed for every later room), the
+  guardians, the 50/50, the migration, the words' tones, the buildings in their
+  worlds, and plays each temple on foot with a real `Player` in the real level
+  geometry: pushing the ball, riding the discs, climbing, lighting, flying, the
+  keeper calmed or broken, the way out and the world change.
+- In the browser, `temples.<world>` is the runtime (its `logic`, `guardian`,
+  `piece(id)`), for poking at from the console.

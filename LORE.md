@@ -18,6 +18,7 @@ Contents
 8. Recurring motifs
 9. Planned additions (from the author's backlog)
 10. Loose ends and contradictions (and the decisions that settled the rest)
+11. Temples (the makers' houses, their keepers, and the gifts inside)
 
 ---
 
@@ -1013,3 +1014,381 @@ ATAN" (old names) and now says ODILE and TALO; Talo's lookout note was signed
   guardian, a gift gone wrong, something the singing light woke). The builders'
   gate in Viridel is a small precedent: a makers'-era thing that does harm only
   because it is opened after a thousand years.
+
+## 11. Temples (the makers' houses, their keepers, and the gifts inside)
+
+*Built in this pass (`src/temples/`); decided while the author was away, change
+freely. Eight worlds have theirs (the desert, the City-Shaft, Vael, Vael II,
+the Buried Machine, the Garden of Spheres, Lorn II, Lorn); the rest are designed below
+and wait their turn. Section 9's "A Makers' temple in every
+world" and the "Makers' temples with bosses" note above are what this answers.*
+
+### What a temple is
+Each world has one great building of the makers, in that world's own
+architecture and inked like everything else: the house where they kept what
+they gave that world (its water, its breath, its light). Locals know the
+outside and have their own name for it; almost nobody has been in. Inside it is
+a Zelda-style dungeon: three to six rooms of puzzles built from the world's own
+verbs (push, climb, ride, light, splash, fly), one of the makers' chests half-way
+through, and at the heart the thing the makers left to keep the house.
+
+**The keepers.** The makers were gentle, and so is everything they left. What
+waits at the heart of a temple was put there to keep it, and the keeping went
+wrong when the gift stopped (often the night the sky rang):
+- an **organic guardian** has grown wild or afraid. It is never hurt: its
+  meter is *calm*. You soothe it (light for one afraid of the dark, water for a
+  thirsty one, the bell's note, a hand on its brow), and shoving it frightens it
+  more. Calm, it lies down, and the house's gift comes back;
+- a **robot sentinel** is broken: still walking its rounds, guarding nothing,
+  its lamp gone red. Its meter is *damage*; you may break it, and the locals
+  will say a machine is not wicked, only stuck.
+Either kind fights the same way: it moves about its arena and attacks in a
+loop, each attack telegraphed on the floor first (a disc, a fan or a lane that
+fills in warning colours), then struck. A strike knocks you down (the ragdoll)
+and takes a bite of the health bar, but never the last of it from a healthy
+bar; only when you are already low does it knock you out, and then you wake at
+the glyph stone outside the arena and the keeper is back where its current
+phase began. After some attacks it is open for a moment (it pants, its vents
+open): that is when soothing (or a shot) counts. Its meter shows at the top of
+the screen while it is awake.
+
+**The gadget is the key.** The chest half-way through holds one of the makers'
+tools, and every room after it needs that tool: the doors, bridges and the
+keeper's own fight cannot be done without it. A traveller who already carries
+it (an old save, another way) finds the chest open and the doors answer.
+
+**After.** Resolving the keeper changes the world outside, for good (a flag,
+`temple.<world>.done`): water runs, fields grow, a shaft breathes. The local
+who pointed you there says so, and their balloons change.
+
+**Marks and falls.** Each room has a glyph stone (a mark): walk past it and it
+is where you come back to. Fall into a chasm and you climb back to the last
+mark; fall out of the temple altogether (it hangs far over the world) and the
+same. No whistling the mount inside: it would come to the same spot on the
+ground far below.
+
+### Half in the temples, half in the open
+The rule: **the makers kept their tools in their temples and left their small
+gifts in the open.** A temple's chest holds an active tool (a gun mode, a way to
+move, a way to call); the boxes in the open hold the passive gifts (charms,
+upgrades, the star). The whole plan, eleven and eleven (`src/temples/index.js`
+GADGETS; built rows are real, planned rows wait for their temple, and until
+then the world's box stays as it was):
+
+| World | In its temple (the key) | In the open | State |
+|---|---|---|---|
+| Desert | Ember mode (moved from the Buried Machine) | the backpack (the story's), the pale star | **built** |
+| City-Shaft | Fluid jets (moved from the rim pillar) | Soft-fall soles (new, on the rim pillar) | **built** |
+| Vael | Fluid wings (moved from Vael II's stack) | Hush-cloth (new: steps the wildlife doesn't hear; on the spire now) | **built** |
+| Vael II | Bell-note whistle (moved from Vael's spire: it belongs to the bell world) | Wind-silk scarf (new, on the balanced stack now: the wings sink slower; it was to be an "updraft feather", renamed because Vael's feathers are the story's) | **built** |
+| Hangar | Quick coil | Brass level (new: shows which way down is, in the ring) | planned |
+| Buried Machine | Fourth chamber (moved from Lorn II) | Climber's resin (new, on the chimney ring: climbing tires you half as fast) | **built** |
+| Viridel | Bloom mode (new gun mode: a seed glob grows a climbable vine) | Seed pouch (new, on the umbrella tree's canopy now: flowers come up in your footsteps) | seed pouch built; temple planned |
+| Spheres | Glyph lens | Listening shell (new, on the grove's canopy: the makers' unopened boxes near you hum back now and then) | **built** |
+| Lorn | Stilling mode (moved from the mossy rise) | Breathing reed (new, on the mossy rise now: you hold your breath twice as long under water; it replaces the planned bog boots, since swimming came) | **built** |
+| Lorn II | Lantern charm (moved from Viridel's canopy) | Glow-moss pin (new, on the first root arch: a soft light round your feet after dusk) | **built** |
+| Signal Market | Echo shell (new: records a note, plays it back) | (the market has no chest) | planned |
+
+What moved for players already on their way: whoever owns ember mode, the jets,
+the bell-note whistle, the fourth chamber, the glyph lens, the lantern charm,
+the stilling mode or the fluid wings finds that temple's chest open and counted as found (`src/temples/migrate.js`);
+the Buried Machine's chimney ring, the City-Shaft's pillar, Vael's spire, Lorn
+II's first root arch, the Spheres' grove canopy, Viridel's umbrella canopy,
+Lorn's mossy rise and Vael II's balanced stack now hold the resin, the soles,
+the hush-cloth, the glow-moss pin, the listening shell, the seed pouch, the
+breathing reed and the wind-silk scarf, new boxes for everyone. (This also settles a loose end of section 10: the bell-note
+whistle is found in the bell world now, and Vael has only the rider's bone
+whistle.)
+Ember mode now comes in the first world, which suits it: the desert's camp
+fires and dry brambles were always there to be lit. The City-Shaft is the one
+world you can hardly cross without your temple's gadget: its quest starts as
+you land, and the scout knows the way.
+
+### The Givers' House (the Desert)
+A great drum of rose stone, cornice, fins and a low pink dome, half sunk in the
+high dunes east of Qanat (you see it from the walls); its door looks toward the
+city. Qanat calls it the house of the Givers: the water once came from there,
+down channels to the fields round the walls, until one year it stopped and the
+fields went to sand.
+- **The local: Sabri**, who digs wells (every one dry), at the camps' east
+  edge. Her grandmother's stories: the Givers' house, the Keeper "who let the
+  children ride on its shell to the fields", a lamp left lit for it in the
+  fields because it hated the dark. Afterwards: the old channel runs, "I am
+  going to dig a well that has water in it. Just to see what that's like."
+- **Inside**: the Threshold (a stair hall, the first mark, the way out); the
+  Hall of Weights (two plates before a shut door; a stone ball in a groove that
+  the fluid's push rolls onto one; you stand on the other); the Dry Channel (a
+  sand pit crossed by a riding disc, a wall to climb to the gallery); the Chest
+  Chamber (**ember mode** on a dais under the oculus; the door on is between two
+  cold braziers); the Hall of Fires (light the brazier across the chasm and the
+  bridge rises; dry thorns over the far door burn away, and prick you back if
+  you try them); the Cistern.
+- **The Keeper of the cistern** (organic): a great pale beast of the Givers, a
+  shell of bone plates on six long legs, a swan's neck and a long soft muzzle,
+  its shell carved with glyphs that are dim and flickering while it is afraid.
+  It stamps where you stand and sweeps the floor with its head; later it dives
+  into the dry basin and bursts up under you. Calm it in three steps: light the
+  four braziers round the walls (it was afraid of the dark), splash water into
+  its mouth each time it pants (it was thirsty), then lay a hand on its brow
+  when it lies down by the dry spout.
+- **After**: the stone under the spout sweats, the cistern fills with living
+  water, a stream runs out of the house's door and down toward the city, green
+  creepers climb the drum, and round Qanat six old fields come up green in
+  rows, with channels of water between them.
+
+### The Warden's Well (the City-Shaft)
+The makers' tower on the rim, round from the ship: a stepped drum of cream
+stone with steel-blue bands, tall slit windows and a dark blue crown ringed
+with the glyph, like the makers' pillar. The rim calls it a folly; the bottom
+says the makers built it to keep the shaft breathing: once a wind came up the
+pit at night and carried the smog away. It stopped the night the sky rang, and
+since then something walks round and round at the top. Inside it goes up, not
+down: a well of the makers turned on its end.
+- **The local: Vell**, who lights the rim's lamps, by the tower's forecourt.
+  Afterwards: the wind came up the shaft, "warm, smelling of rain that never got
+  down there"; the bottom folk stand along the parapet looking at the sky; she
+  will light the lamp by the warden's door.
+- **Inside**: the Threshold; the Turning Floors (a drop crossed on two riding
+  discs that only wake when you splash the carved eye over the far door); the
+  Climb (a round well whose north half is a block of stone eleven metres high:
+  climb its face, roll the ball onto its plate, the door opens); the Jets'
+  Chamber (**the fluid jets**; the only way on is up through the oculus in its
+  ceiling); the Lamp Gallery (three eyes on the walls of a tall drum, each over
+  a shelf that hides it from the floor: fly up to each and splash it, and the
+  high door opens); the Warden's Hall.
+- **The warden** (robot): a tall machine of the makers on three legs, a ring
+  of side vents and a lamp-eye. It beams along a lane, drops shots where you
+  stand, and slams the floor round itself. After a beam its side vents open:
+  shoot them. Halfway, it shuts its sides; only the vent on its crown opens
+  then, and only a shot from above it counts (fly, or stand on the stone discs
+  round the hall). Broken, it sags and its eye goes dark.
+- **After**: the shaft's breath comes back: beside the Upward Shrine a column
+  of rising air (pale rings drifting up it) carries anyone who steps into it
+  from the bottom terrace up past every level and sets them down on the rim.
+
+### The Founders' Belfry (Vael II)
+A round tower of bone-white stone rising straight out of the cloud west of the
+starting plateau, a bridge from the plateau's rim to a gallery round its door,
+an open belfry on top with a great bell in it and stones that fell up hanging
+round it. The monks say the founders built it before the monastery to keep the
+stones down: a bell in every room, and the stones stayed where they were put.
+The bells stopped; the stones fell up; something in the top of the tower cries
+every evening "like a bell with nothing to ring it".
+- **The local: Ysel**, who keeps the founders' bridge (a quiet job: nobody
+  crosses it). Afterwards: the stones coming down all over the sky, one on the
+  monastery's kitchen roof ("Brother Calix laughed. I have never heard him
+  laugh"); the Cloud-Mother swimming away over the cloud.
+- **Inside**: the Threshold; the Hall of Stones (two stone balls in two
+  grooves, both pushed onto their plates); the Stone Stair (a round well, two
+  discs that ride up and down, a ledge between them); the Bell Chamber (**the
+  bell-note whistle**, a silent bell hanging in the oculus; the door on is
+  bell-tuned: sound the whistle by it); the Hall of Echoes (a chasm under the
+  stones of its own bridge, hanging high where they fell up: sound the bell at
+  its edge and they come down into place; a second bell door beyond, that only
+  hears you close); the Cloud-Mother's Hall, open to the sky.
+- **The Cloud-Mother** (organic): a great pale sky-whale, fins like sails, a
+  fringe of cloud along her back, glyphs on her flanks dim while she is afraid.
+  The founders kept her to carry the cloud away in the mornings; she rose with
+  the stones and never came down. She gusts and dives, and later wails; each
+  time she sinks low and cries, sound the bell near her (fluid only frightens
+  her). Worn out, she lies on the floor of her hall: lay a hand on her brow.
+- **After**: the stones that fell up come down all over Vael II, the floating
+  stones settling onto what lies under them or into the cloud, and the stones
+  round the belfry onto its gallery.
+
+### The Engine-House (the Buried Machine)
+A drum of rust-red iron as tall as the oculus, standing out of the dunes west
+of the domes, banded in blue-grey, a ring window high on its face, pipe elbows
+going into the sand round its foot, a teal cap; its oval door looks toward the
+start hollow. The dome people say the wheel's engine is inside, and the machine
+that minds it: it used to turn the wheel a tooth a day, not a tooth a year, and
+the pipe-cart ran down the canyon to the oculus and back.
+- **The local: Brann**, who greases the Engine-House door every Tooth Day the
+  way his father did ("A door wants grease anyway"). Afterwards: the pipe-cart
+  lifting out of the sand "like it had been asleep"; Pim rode it nine times and
+  says he is ten teeth old now, from the excitement.
+- **Inside**: the Threshold; the Piston Hall (three pistons that rise and fall
+  out of step, still until you splash the valve's eye: ride them up to the
+  gantry; its face can also be climbed); the Counterweight (a stone ball onto its
+  plate); the Fourth Chamber (**the fourth chamber**; the door on is ringed by a
+  bank of four eyes that wake only together, inside one breath: four shots, and
+  the tank holds three without it); the Furnace (a chasm over embers; a second
+  bank of four on the far wall raises the bridge); the Tooth-Warden's Hall.
+- **The Tooth-Warden** (robot): the makers' machine that minds the engine, on
+  four legs, four vents round its drum, a lamp-eye; jammed since the night the
+  sky rang. It beams, drops shots where you stand and slams; when all four vents
+  open at once, hit all four inside a breath (two or three count for nothing).
+  Stopped, it locks up, every joint at once, and the engine catches and runs.
+- **After**: the pipe-cart rides the canyon again, a round iron floor with a
+  brass rail, from the start hollow down the sand ramp to the oculus and back,
+  a pause at each end.
+
+### The Footprint (the Garden of Spheres)
+The one Ivo speaks of, which the garden never had until now (this settles that
+loose end of section 10): north of the umbrella grove the meadow carries an
+enormous three-toed print, its rim of white stone, as if the thing that walked
+through the sky putting the spheres down had stepped here; its heel is a great
+pale sphere, half sunk, with a round-headed door toward the grove.
+- **The local: Tessa**, who walks the Footprint's rim once a day, toes and
+  heel. She has heard the one note under the grass ("as if it had forgotten all
+  the others"). Afterwards: the toes full of still water, "I saw myself in every
+  toe"; the spheres humming together at dusk; "Aube cried".
+- **Inside**: the Threshold; the Hall of Spheres (two white spheres in grooves,
+  both onto their plates); the Still Pool (a sunken pool crossed on a riding
+  disc that wakes when you splash the eye over the far door); the Lens Chamber
+  (**the glyph lens**; the way on is plain wall to anyone without it); the Hall
+  of the Unseen (a chasm crossed by a bridge of pale glass only the lens shows,
+  and an eye only the lens shows, which opens the last door); the Echo's Hall.
+- **The Echo** (organic, after its fashion: a being of sound): what an Answerer
+  left when it turned over the plaza the night the sky rang and went on. A pale
+  heart inside three turning rings of glass, a veil under it; it sings one loud
+  lost note. Each time it sings, one of the three resonant spheres round its hall
+  glows with that note: splash that sphere (the wrong one makes it flinch;
+  fluid on the Echo itself passes through its light). Calm, it sinks to the
+  floor humming: hold out your hand to it.
+- **After**: the Footprint's toes fill with still water, and every sphere in
+  the garden wears a ring of the glyph's light at its foot, breathing in step.
+
+### The Lamp-House (Lorn II)
+A dark tower of the makers standing in the shallows east of the root cave,
+banded, tapering, a glass lamp-room and a cap at the top, a causeway of flat
+stones out to it from the end of the lit path. Its lamp lit the whole wood
+once; the night the sky rang it went out, and three of the pools with it.
+Hollin's people kept their pools lit for forty-one years without knowing there
+had been a greater lamp.
+- **The local: Tamsy**, who counts the lamps every night, all forty-one pools,
+  and writes the number down. She saw something pale and winged come down out of
+  the tower and go back up. Afterwards: the beam going round over the wood; the
+  moth asleep on the lamp "like a cat on a warm stove"; Hollin says it is the
+  forty-second lamp: "Forty-two. I wrote it down."
+- **Inside** (dark: the lantern charm glows in it, day or night): the
+  Threshold; the Hall of Dark Pools (three pool-lamps to splash); the Root Stair
+  (a riding disc over a dark pool, a root-wall to climb); the Lantern Chamber
+  (**the lantern charm**; the door on is a lamp that wakes when you stand by it
+  with the lantern); the Dark Gallery (a chasm crossed by moss-stones only the
+  lantern's light shows, an eye only it shows, a second lamp-door); the
+  Lamp-Room, its great lamp dark in a brass cradle overhead.
+- **The Lampless** (organic): a great pale moth, wings wide as sails with glyph
+  eye-spots, that drank the Lamp-House's light and is still hungry, and afraid
+  of how dark it made everything. It swoops and gusts and later throws its dust;
+  when it hangs low over the floor, searching, stand still by it with your
+  lantern and let it drink (moving makes it flinch; fluid only beads on its fur).
+  Fed, it folds its wings: lay a hand on its back, and it climbs to the lamp, and
+  the lamp catches from it.
+- **After**: the Lamp-House's lamp burns again, gold in its glass room, a light
+  on the water round the tower, and a long beam turning slowly over the wood at
+  night; inside, the lamp-room's great lamp glows.
+
+### The Hush-House (Lorn)
+A great low dome of violet stone on the cave island, ribbed, an oculus at its
+top with a crystal crown, the swamp's crystals growing up through it and round
+it, a stone porch toward the channel with the Hush cut over the door. The
+makers taught the plants of Lorn not to eat in here (the swamp people's Hush,
+three drops over a shut mouth, is theirs: they paint it on their doors without
+knowing), and grew the first snapper of all to keep the house: the Mother,
+whom every snapping plant on Lorn is seeded from. The night the sky rang the
+house's crystals went out of tune, and she woke frightened and has snapped at
+everything since; you can hear it through the stone.
+- **The local: Teasel**, who cuts reeds round the cave island, never from the
+  dome's shore. Wendel told him the makers had "something cold" for it.
+  Afterwards: the dome in flower, white and blue, and a ring of the same flowers
+  at the foot of every snapper on the swamp ("Wendel laughed till he sat
+  down"); the Mother breathing very slow through the stone. "I always thought
+  it was a warning. It was a lullaby."
+- **Inside**: the Threshold; the Choir (four crystals of four heights: splash
+  them low to high, and out of turn one rings flat and fades); the Bog Well (a
+  disc that climbs over dark water, then a wall of roots to climb); the Stilling
+  Chamber (**the stilling mode**; the way on is a gate of jaws, two great leaves
+  with teeth that snap and half open, snap and half open, and bite whoever
+  tries: a stilling glob stills them, and they forget to close); the Pendulum
+  Gallery (a narrow bridge over a chasm, three crystal pendulums swinging
+  across it that knock you off: still them one by one; at its end a second
+  gate of jaws); the Mother's Hall.
+- **The Mother Snapper** (organic): rooted in the middle of a round hall in a
+  ring of leaves, a neck of green beads, a head of two jaws as big as a cart, a
+  crown of crystal. She does not walk; she lunges along a lane, sweeps low to
+  the sides, rears up and spits seed. Spent after a lunge, her head lies on the
+  floor, jaws agape: a stilling glob in her mouth calms her (plain fluid only
+  startles her, a shove frightens her). Once she has begun to calm, stilling
+  her mid-strike calms her too. Calm, her head comes down by her leaves: lay a
+  hand on it, and she sleeps, and the dome's crystals hum in tune again.
+- **After**: the dome flowers all over (vines and pale bells, glowing at dusk),
+  its crown crystal burns bright, and every snapping plant on Lorn wears a ring
+  of the same white flowers at its foot.
+- *Changed from the first design*: the house is on the cave island, not under
+  the Great Crystal (the crystal's island is the main quest's); she is calmed by
+  stilling, not by standing still (that became the Lampless's way, next door);
+  and the world change is the flowers, not one of Wendel's eggs hatching (left
+  as a loose end).
+
+### The Aerie (Vael)
+A great white house of the makers on the plain west of the landing: a broad
+plinth, a great drum and a narrower one on it, banded in ochre, glyph lines up
+the drum like the lines on a wing, and on top a crown of tall stone feathers
+leaning out round a perch. It is where the makers gave Vael's great birds their
+wings; the birds were raised in its roost (so the bird who waits for her rider
+was hatched here, though nobody says so). The oldest of them, the **Elder**, so
+old her feathers have gone to stone, kept the house. The night the light went
+over she stopped flying; the others left; she stayed.
+- **The local: Lark**, who sweeps the great steps, slowly, and speaks in single
+  words like everyone in Vael: "The Aerie. Where the birds were given wings."
+  "She stopped." "Wind, inside. Wait for it." Told the Elder is afraid to fly
+  alone, she holds out her arms and tilts, riding the wind: "Together."
+  Afterwards: she leans her broom against the wall ("No more sand. They fan it
+  off.").
+- **Inside**: the Threshold; the Hall of Winds (gusts blow down it from the far
+  end and shove you back: wait them out behind the stone screens, screen to
+  screen; an eye by the far door opens it); the Feather Stair (a wall to climb,
+  a disc that rides straight up to the landing); the Wing Chamber (**the fluid
+  wings**; its far side opens on nothing); the Gulf (thirty-four metres across to
+  a lower ledge: glide it); the Wind Well (a column of rising wind: open your
+  wings in it and it lifts you round and up to an eye and a balcony); the Roost.
+- **The Elder** (organic): a great bird of stone-white feathers on long ochre
+  legs, a long neck and a longer beak, in the roost under the open sky with a
+  column of wind in its middle. She buffets with her wings, stamps, and later,
+  off the floor and beating hard, dives. After a stamp or a dive she spreads her
+  wings and looks up at the sky, trembling, and does not go: ride the wind
+  beside her (open your wings near her) and she lifts a little. Fluid only
+  beads on her feathers; a shove frightens her. Calm, she folds her wings: lay
+  a hand on her neck, and she rides the wind up out of the roost.
+- **After**: the Elder sits on the Aerie's crown with her wings open, the glyph
+  lines on the drum glow, and a flock of the great birds wheels high over it.
+- *Changed from the first design*: the house stands on the plain, not among the
+  floating ruins (they are too high and too scattered to build in), it is "the
+  Aerie" rather than "the House of the First Walkers", the bone whistle is not
+  needed (it is the main quest's, and the waiting bird's), and the world change
+  is the birds coming back, not the ruins settling into a chain (that is left
+  for later: it would need the ruins reworked).
+
+### The other temples (designed, not built)
+- **Hangar**: the Major's First Garage, under the plateau; key: the quick coil
+  (doors that want three shots inside three seconds). Its keeper: the Clockwork
+  Foreman (robot), wound wrong; break it, or set it to the right time. After:
+  the stopped machines run in rhythm and the signal board reads clearly.
+- **Viridel**: the Builders' Greenhouse in the android wood; key: bloom mode.
+  Its keeper: the Gardener, a vast moss creature gone wild (calm it by blooming
+  flowers round it). After: the white ruins flower. (Clear of the tea terraces
+  south-east of the landing.)
+- **Signal Market**: the foundations of the silent tower, "here before the
+  market"; key: the echo shell. Its keeper: the First Sign (robot), the oldest
+  broadcasting machine, stuck on one word; retune it, or switch it off. After:
+  the silent tower speaks one line, once a night.
+
+### Loose ends the temples leave
+- The temples do not count toward a world's discovery or the route; they are
+  each world's second great quest. Should finishing every temple open
+  something (the Atelier's last page is a candidate)?
+- No keepsake comes out of a temple yet (the father's reactions count
+  keepsakes); a temple could give one (the Keeper's calm, a *person*; the
+  warden's dark lamp, a *thing*).
+- The recordings never mention the temples; a late one could ("Your
+  grandfather swore there was a house in the dunes that the water came from").
+- Ossa (Buried Machine) still says a chest waits "on the chimney ring" (it does:
+  the resin now). Nour's lines about the desert's makers do not mention the
+  Givers' House; Sabri carries that.
+- The City-Shaft's main quest still reads as if you could reach Nima without
+  the jets; the temple quest says where they are.
+- Lorn's section 9 still says its chest holds the stilling mode ("the sky-egg"),
+  and the gift list above still puts it on the mossy rise: it is in the
+  Hush-House now, and the rise has the breathing reed. Wendel's egg that was
+  to hatch is free for a later change (or a keepsake).

@@ -6,6 +6,7 @@ import { buildBox, buildBeacon, BOX, BOX_COLORS, BOX_SCALE } from './model.js';
 import { BoxScene } from './scene.js';
 import { BoxCard } from './card.js';
 import { PLACEMENTS, FALLBACKS, FALLBACK_OFFSETS } from './placements.js';
+import { migrateTemples } from '../temples/migrate.js';
 
 // Item boxes: the makers' chests (docs/story-bible.md, "The boxes"). Dark blue,
 // carved with rings of the glyph, a pale star on the lid, each holding one
@@ -56,6 +57,8 @@ export function migrateSave(g = sharedGame) {
     if (g.flag('item.backpack') && !g.flag('box.desert.backpack')) g.set('box.desert.backpack', true);
     g.set('items.v', 2);
   }
+  // the gadgets that moved into the temples: whoever carries one already finds its temple chest open
+  migrateTemples(g);
   return legacy;
 }
 
@@ -236,13 +239,13 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
   offs.push(items.on(() => { for (const b of list) if (b !== current?.box && spent(b) !== b.isSpent) setSpentLook(b, spent(b)); }));
 
   // ------------------------------------------------------------------ the bell's call (src/boxes/effects.js sounds it)
-  offs.push(g.on('bell', ({ pos } = {}) => {
+  offs.push(g.on('bell', ({ pos, reach = 90, soft = false } = {}) => {
     for (const b of list) {
       if (spent(b) || !pos) continue;
-      const d = flat(pos, b.pos);
-      if (d > 90) continue;
-      b.answer = { at: 0.4 + d / 60, k: 1 };
-      setTimeout(() => sound?.boxAnswer?.(Math.max(0.2, 1 - d / 90)), (0.4 + d / 60) * 1000);
+      const d = flat(pos, b.pos) + (soft ? Math.max(0, Math.abs(pos.y - b.pos.y) - 6) : 0);   // (the shell hears only what is near, up and down too)
+      if (d > reach) continue;
+      b.answer = { at: 0.4 + d / 60, k: soft ? 0.5 : 1 };
+      setTimeout(() => sound?.boxAnswer?.(Math.max(0.2, 1 - d / 90) * (soft ? 0.45 : 1)), (0.4 + d / 60) * 1000);
     }
   }));
 

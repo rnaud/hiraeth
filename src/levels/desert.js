@@ -10,6 +10,7 @@ const makeGlow = () => makeMaterial({ color: '#fffaf0', glow: 1 });
 import { buildRoom, doorwayPortals } from '../interiors.js';
 import { buildDesertCity, desertCrowdSpots } from '../desert-city.js';
 import { LINES } from '../story/desert-data.js';
+import { attachTemple } from '../temples/index.js';
 
 // The original open desert: dunes, mesas, regions, hoverbike and wind.
 export function createDesert(scene) {
@@ -43,7 +44,8 @@ export function createDesert(scene) {
   portals.push(...qanat.portals);
   // the main fire's first benches belong to the musicians and Teo (and Oum, once she's home)
   for (const s of qanat.seats) if (s.fire.big && s.i <= 3) s.reserved = true;
-  return {
+  // the Givers' House in the eastern dunes, and its rooms far overhead (src/temples/desert.js)
+  return attachTemple('desert', scene, {
     id: 'desert',
     floraAvoid,
     observatory,
@@ -88,5 +90,5 @@ export function createDesert(scene) {
         f.obj.rotation.y += f.spin * dt;
       }
     },
-  };
+  });
 }

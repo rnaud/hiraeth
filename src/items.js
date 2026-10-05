@@ -72,6 +72,46 @@ export const ITEMS = {
     text: 'A little whistle of blue-glazed clay, shaped like a bell with a star on its side, that plays one clear bell note, the same note in every world. The makers’ chests know it.',
     use: 'Press V (on a controller, click the right stick, R3) to sound it. Unopened boxes nearby answer with a chime from where they hide.',
   },
+  soles: {
+    name: 'Soft-fall soles', kind: 'charm',
+    text: 'A pair of thin grey soles, light as felt, that slip inside your boots. Under the heel, very small, the makers’ glyph.',
+    use: 'Hard landings hurt less: you can drop much further before a fall knocks you over.',
+  },
+  hush: {
+    name: 'Hush-cloth', kind: 'charm',
+    text: 'A strip of soft grey cloth to wind round your boots, woven so close it makes no sound at all. The makers walked quietly.',
+    use: 'Creatures don’t hear you walking up to them: they only notice you when you are very close.',
+  },
+  shell: {
+    name: 'Listening shell', kind: 'charm',
+    text: 'A small white shell, spiralled like the garden’s spheres are smooth. Hold it to your ear and you hear, very faintly, what is hidden nearby.',
+    use: 'Every little while, the makers’ unopened boxes near you hum back, softly, from where they hide.',
+  },
+  moss: {
+    name: 'Glow-moss pin', kind: 'charm',
+    text: 'A sprig of the deep wood’s moss under a bead of glass, pinned to your collar. It has been glowing, very softly, since before anyone thought to keep it.',
+    use: 'After dusk it lights the ground round your feet, a little.',
+  },
+  pouch: {
+    name: 'Seed pouch', kind: 'charm',
+    text: 'A little linen pouch on a cord, full of seeds so small they look like dust. It never empties. The makers planted as they walked.',
+    use: 'Small flowers come up in your footsteps where you walk, and fade a while after.',
+  },
+  scarf: {
+    name: 'Wind-silk scarf', kind: 'charm',
+    text: 'A long scarf of silk so fine the wind goes through it, white, the makers’ glyph woven in at one end. It lifts at the slightest breath of air.',
+    use: 'Your fluid wings sink more slowly when you glide.',
+  },
+  reed: {
+    name: 'Breathing reed', kind: 'charm',
+    text: 'A short hollow reed of the swamp, sealed at one end with a bead of crystal and cut with the makers’ glyph. Hold it in your teeth and the water seems to wait for you.',
+    use: 'You hold your breath twice as long under water.',
+  },
+  resin: {
+    name: 'Climber’s resin', kind: 'charm',
+    text: 'A little tin of amber resin, still soft after who knows how long, the makers’ thumb pressed into the lid. Rub it on your palms.',
+    use: 'Climbing tires you half as fast: you hang on twice as long.',
+  },
   star: {
     name: 'Pale star', kind: 'cosmetic',
     text: 'A star of pale enamel, the same as the one on every chest lid: the makers’ sign for a traveller, a small light a long way from home.',

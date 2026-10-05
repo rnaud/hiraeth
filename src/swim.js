@@ -90,7 +90,7 @@ export function breathe(P, dt, under) {
   const was = P._underT ?? 0;
   if (under) {
     P._underT = was + dt;
-    P.breath = Math.max(0, (P.breath ?? 1) - dt / SWIM.breath);
+    P.breath = Math.max(0, (P.breath ?? 1) - dt / (SWIM.breath * (P.breathK ?? 1)));   // (the breathing reed: breathK 2)
     if (P.breath > 0) { P._drownT = 0; return null; }
     P._drownT = (P._drownT ?? 0) + dt;
     if (P._drownT < SWIM.every) return null;

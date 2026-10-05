@@ -690,7 +690,7 @@ export class Wildlife {
     const v = player.vel ?? Y;
     const up = player.frame?.up ?? Y;
     const along = v.dot(up);
-    this.playerSpeed = Math.sqrt(Math.max(0, v.lengthSq() - along * along));
+    this.playerSpeed = player.hush ? 0 : Math.sqrt(Math.max(0, v.lengthSq() - along * along));   // (the makers' hush-cloth: your steps go unheard)
     this.playerGround = !!player.onGround || !!player.riding;
     if (!player.riding) {
       if (player.onGround) {
