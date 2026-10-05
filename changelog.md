@@ -11,6 +11,10 @@ The same release notes shown in the game (press **N** or open settings).
 - The bird walks on the ground: her legs step in turn, her body bobs and her wings stay folded. Taking off, she crouches, leaps, and only starts to beat her wings at the top of the leap.
 - Right after you find the jets in the Warden’s Well, a line tells you what to do with them, the drone flies up to show the way, and pale rings rise through the round opening in the ceiling you fly up through.
 - The City-Shaft’s cabs ignore you until you have a cab pass. Lio, the dispatcher on the rim, writes one if you collect the fare Hask owes him. The pass is listed with your gear. Wren still stops for anyone at her lamp.
+- The makers’ boxes have a new look: one smooth dark blue box with no edges, a pale star on top and a ring on each side, and a thin ray of light that keeps travelling across its surface. Come close and the ray crosses it more often and the star brightens.
+- Opening a box: it floats up off the ground, wobbles two or three times with little pauses in between, as if deciding, then comes apart into light.
+- In Qanat, the box on the great tree now waits much higher up, on a carved stone pedestal of the makers with lamps and a ring of light: climb the big root, then the stone pier above it.
+- Nobody tells you about the makers’ boxes before you have found one yourself: the hints for a world’s other boxes only start once you have opened your first.
 
 ## v0.65 — 2026-10-05
 

@@ -43,10 +43,10 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 ## The makers' boxes
 
-- [ ] Don't mention the makers' boxes until I find my first one.
-- [ ] Redesign them: a box with no edges, and a shader with a ray of light travelling across its surface.
-- [ ] Opening: it floats and shakes slightly, like a pokéball, before dissolving.
-- [ ] The tree's pedestal looks bad: higher up (harder to reach) and fancier.
+- [x] Don't mention the makers' boxes until I find my first one. (Nothing about them before a box is opened: the per-world box quests, their toast, the sketchbook's "Item boxes" page, the empty gear page's line and the pilgrim's roof-box line all wait for the first; the world's other boxes are offered a few seconds after it.)
+- [x] Redesign them: a box with no edges, and a shader with a ray of light travelling across its surface. (One smooth rounded shell, inked by its outline only; the star and side compasses painted in its own shader, and a thin glowing line of light that sweeps across and wraps round it, pass after pass, with a short trail.)
+- [x] Opening: it floats and shakes slightly, like a pokéball, before dissolving. (It floats up turning a corner to the camera, then three small wobbles about its heart with rests between, each a knock and a pass of the ray, a still moment, then the dissolve.)
+- [x] The tree's pedestal looks bad: higher up (harder to reach) and fancier. (A carved makers' stone dais 7 m up the trunk on a pier, reached in two climbs: the root to its shoulder, then the pier; a drum ringed with light, two lamps and a stone halo with the glyph.)
 
 ## The traveller
 

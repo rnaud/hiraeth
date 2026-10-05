@@ -2,19 +2,23 @@ import * as THREE from 'three';
 import { game as sharedGame } from '../game-state.js';
 import { items, ITEMS } from '../items.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
-import { buildBox, buildBeacon, BOX, BOX_COLORS, BOX_SCALE } from './model.js';
+import { buildBox, buildBeacon, BOX, BOX_SCALE, RAY_PASS } from './model.js';
 import { BoxScene } from './scene.js';
 import { BoxCard } from './card.js';
 import { PLACEMENTS, FALLBACKS, FALLBACK_OFFSETS } from './placements.js';
 import { migrateTemples } from '../temples/migrate.js';
 
-// Item boxes: the makers' chests (docs/story-bible.md, "The boxes"). Dark blue,
-// carved with rings of the glyph, a pale star on the lid, each holding one
+// Item boxes: the makers' boxes (docs/story-bible.md, "The boxes"). One smooth
+// dark blue shell with no edges, a pale star painted on its top and a compass
+// on each side, a ray of light forever travelling across it; each holds one
 // item (src/items.js), left long ago for a traveller who comes a long way.
-// They notice you: the star and the carvings brighten, light leaks from the
-// lid's seam, the box hums and, close up, shudders. E opens one: the opening
-// scene (scene.js: it lifts off the ground and comes apart into light), then the
-// item is yours. An opened box is gone for good.
+// They notice you: the star and the compasses brighten, the ray quickens, the box
+// hums and, close up, shudders. E opens one: the opening scene (scene.js: it
+// floats up, wobbles two or three times like a caught thing deciding, and
+// comes apart into light), then the item is yours. An opened box is gone for good.
+//
+// Nothing speaks of the boxes before you find your first one yourself
+// (boxesFound): no box quests, no toast, no "Item boxes" page in the sketchbook.
 //
 //   const boxes = createBoxes({ levelId, scene, physics, level, player, sound, quests, toast, cam, anchor });
 //   boxes.update(dt, t, { camera })   per frame, after the player (it poses the kneel) and before the ship (camera)
@@ -23,7 +27,7 @@ import { migrateTemples } from '../temples/migrate.js';
 //   boxes.open(id, { instant })       open one (instant: no scene; tests and the dev menu)
 //   boxes.skip()                      Esc / B: jump to the card, or past it
 //   boxes.reset() / boxes.openAll()   every box closed again / every box opened (dev menu)
-//   boxes.journalHtml()               "Boxes found n/m" per world, for the sketchbook
+//   boxes.journalHtml()               "Boxes found n/m" per world, for the sketchbook ('' before the first)
 //
 // Placement: src/boxes/placements.js (a table keyed by level id). Fallbacks:
 // a world that needs an item you don't have (the jetpack worlds; the backpack
@@ -36,6 +40,15 @@ import { migrateTemples } from '../temples/migrate.js';
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const smoothstep = (a, b, x) => { const t = THREE.MathUtils.clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+
+/**
+ * Has the traveller found a makers' box yet (any box opened, a temple's chest too)? Until then
+ * nothing tells of them: their quests wait, and the sketchbook has no page for them.
+ */
+export function boxesFound(g = sharedGame) {
+  for (const [k, v] of Object.entries(g.data?.flags ?? {})) if (v === true && k.startsWith('box.')) return true;
+  return false;
+}
 
 /**
  * Old saves. v1, from before items existed: anyone who finished the prologue
@@ -191,7 +204,6 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
       b.alwaysBeacon = !!p.beacon;
       b.beaconMax = typeof p.beacon === 'number' ? p.beacon : Infinity;   // (a number: only within that many metres, unless the lens shows it)
       fx.add(b.beacon);
-      noShadow.push(parts.raysWrap);
       b.off = registerInteractable({
         id: `box.${p.id}`, priority: PRIORITY.use + 1, range: 3.2,
         prompt: 'open',
@@ -208,13 +220,7 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
 
   function setSpentLook(b, isSpent) {
     const P = b.parts;
-    P.lid.rotation.z = 0;
-    P.glowFloor.visible = false;
-    P.rays.visible = false;
-    P.mats.star.uniforms.uGlow.value = isSpent ? 0.12 : 0.35;
-    P.mats.carve.uniforms.uGlow.value = isSpent ? 0.04 : 0.12;
-    P.mats.seam.uniforms.uColor.value.set(BOX_COLORS.band);
-    P.mats.seam.uniforms.uGlow.value = 0;
+    P.mats.body.uniforms.uBoxA.value.set(isSpent ? 0 : 0.6, isSpent ? 0.12 : 0.35, 0, b.phase);
     b.light.set(0, -1e5, 0, 0);
     if (b.beacon) b.beacon.visible = false;
     b.isSpent = isSpent;
@@ -230,7 +236,6 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
       b.off?.();
       if (b.collider) physics.removeCollider?.(b.collider);
       const i = lights.indexOf(b.light); if (i >= 0) lights.splice(i, 1);
-      const j = noShadow.indexOf(b.parts.raysWrap); if (j >= 0) noShadow.splice(j, 1);
     }
     list.length = 0;
   }
@@ -252,7 +257,8 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
   // ------------------------------------------------------------------ the boxes' own quests
   // Each hidden box (with a hint) is a small quest in the sketchbook: it starts a few seconds after
   // you arrive while the box is still shut, its step says where to look, tracking it sends the scout
-  // there, and opening the box finishes it (the flag box.<id>).
+  // there, and opening the box finishes it (the flag box.<id>). Not before you have found a box of
+  // your own (boxesFound): then they start a few seconds after that first one opens.
   const boxQuests = [];
   function defineQuests() {
     if (!quests?.define) return;
@@ -268,11 +274,12 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
   function offerQuests(dt) {
     if (questsOffered || !quests?.start) return;
     if (quiet()) return;   // (not over a scene or a recording: the clock starts once they are over)
+    if (!boxesFound(g)) { questClock = 0; return; }   // (nothing about the boxes before the first is found)
     if ((questClock += dt) < BOX_QUEST_DELAY || current) return;
     questsOffered = true;
     let n = 0;
     for (const { b, id } of boxQuests) if (!spent(b) && !quests.isStarted?.(id)) { quests.start(id); n++; }
-    if (n) toast('Someone left a makers’ box in this world. Your sketchbook says where to look.');
+    if (n) toast(n > 1 ? 'There are more makers’ boxes in this world. Your sketchbook says where to look.' : 'There is another makers’ box in this world. Your sketchbook says where to look.');
   }
 
   const api = {
@@ -291,6 +298,7 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
       };
       const finish = () => {
         b.justOpened = true;
+        questClock = 0;   // (the world's other boxes are offered a few seconds after this one)
         setSpentLook(b, true);
         g.emit('box:opened', { id: b.id, item: b.item, level: levelId });
       };
@@ -321,6 +329,7 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
       return out;
     },
     journalHtml(titles = {}) {
+      if (!boxesFound(g)) return '';   // (no page for them before the first is found)
       const c = api.counts();
       const rows = Object.entries(c).filter(([, v]) => v.total).map(([id, v]) => `<li class="${v.found >= v.total ? 'done' : ''}">${titles[id] ?? id} · boxes found ${v.found}/${v.total}</li>`).join('');
       const found = Object.values(c).reduce((s, v) => s + v.found, 0), total = Object.values(c).reduce((s, v) => s + v.total, 0);
@@ -336,11 +345,8 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
         if (!P.root.visible) continue;
         const d = pp ? flat(pp, b.pos) + Math.max(0, Math.abs(pp.y - b.pos.y) - 2) : Infinity;
         if (playing) {
-          // the scene drives the lid; the box pours light
+          // the scene moves the box and winds its ray; the box pours light
           const k = b.sceneLight;
-          M.seam.uniforms.uColor.value.set(BOX_COLORS.seam); M.seam.uniforms.uGlow.value = 1;
-          M.star.uniforms.uGlow.value = 0.6 + 0.4 * k;
-          M.carve.uniforms.uGlow.value = 0.45 + 0.55 * k;
           b.light.set(b.pos.x, P.root.position.y + 0.5 * BOX_SCALE, b.pos.z, 3 + 8 * k);   // (the scene moves and turns the box)
           if (b.beacon) b.beacon.visible = false;
           continue;
@@ -349,12 +355,12 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
         const near = (b.near = smoothstep(22, 3.2, d));
         hum = Math.max(hum, near);
         const pulse = 0.5 + 0.5 * Math.sin(t * 3.2 + b.phase);
-        M.star.uniforms.uGlow.value = 0.35 + 0.65 * near * (0.55 + 0.45 * pulse);
-        // the carved glyph rings wake a moment after the star, a little out of step with it
-        M.carve.uniforms.uGlow.value = 0.12 + 0.6 * smoothstep(0.15, 1, near) * (0.6 + 0.4 * Math.sin(t * 3.2 + b.phase - 0.8));
-        const seam = near * (0.45 + 0.55 * Math.sin(t * 4.1 + b.phase) ** 2);
-        M.seam.uniforms.uColor.value.set(BOX_COLORS.band).lerp(_c.set(BOX_COLORS.seam), Math.min(1, seam * 1.4));
-        M.seam.uniforms.uGlow.value = seam;
+        // the star and the glyphs brighten; the ray of light crosses it more often, and brighter
+        const A = M.body.uniforms.uBoxA.value;
+        A.x = 0.6 + 0.4 * near;
+        A.y = 0.35 + 0.65 * near * (0.55 + 0.45 * pulse);
+        A.w += dt / THREE.MathUtils.lerp(RAY_PASS.far, RAY_PASS.near, near);
+        b.glow = A.y;
         b.light.set(b.pos.x, b.pos.y + 0.7 * BOX_SCALE, b.pos.z, near > 0.01 ? 1.8 + 5 * near * (0.8 + 0.2 * pulse) : 0);
         // close up it shudders, in little fits, the lid knocking
         let shake = 0;
@@ -364,7 +370,6 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
         }
         if (b.answer) { b.answer.at -= dt; if (b.answer.at <= 0) { shake = Math.max(shake, b.answer.k); b.answer.k -= dt * 2; if (b.answer.k <= 0) b.answer = null; } }
         P.root.rotation.set(Math.sin(t * 47) * 0.02 * shake, b.yaw + Math.sin(t * 31) * 0.025 * shake, Math.sin(t * 53) * 0.02 * shake);
-        P.lid.rotation.z = Math.max(0, Math.sin(t * 23)) * 0.06 * shake;
         // the beacon: from afar (always for the boxes that must be found, with the lens for all)
         if (b.beacon) {
           const lens = items.has('lens');
@@ -387,4 +392,3 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
 }
 /** Seconds after you arrive before a world's box quests start (the landing and the first page come first). */
 export const BOX_QUEST_DELAY = 8;
-const _c = new THREE.Color();
