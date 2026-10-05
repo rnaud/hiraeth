@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { QUALITY_PRESETS, resolveQuality, detectHandheld, adaptScale } from '../src/perf.js';
+import { QUALITY_PRESETS, resolveQuality, detectHandheld, adaptScale, engineLabel } from '../src/perf.js';
 
 const FIELDS = ['label', 'scale', 'dynamic', 'shadow', 'nearExtent', 'nearEvery', 'farEvery', 'taps', 'ao', 'cloudShadows', 'lowDetail', 'crowdFar', 'crowdMid', 'propFar', 'propPx', 'postLite'];
 
@@ -99,4 +99,19 @@ test('the handheld refreshes the near shadow map every other frame, never on the
   assert.equal(H.nearEvery, 2);
   // main.js: near on frameNo % nearEvery === 0, far on frameNo % farEvery === (nearEvery > 1 ? 1 : 0)
   for (let f = 0; f < 64; f++) assert.ok(!(f % H.nearEvery === 0 && f % H.farEvery === 1), `frame ${f}`);
+});
+
+test('the frame readout starts with the engine, so a screenshot says which one it was', () => {
+  const gecko = 'Mozilla/5.0 (Android 13; Mobile; rv:157.0) Gecko/157.0 Firefox/157.0';
+  assert.equal(engineLabel(gecko, '', { engine: 'gecko' }), 'GECKO 157', 'the Android app\'s GeckoView');
+  assert.equal(engineLabel(gecko, ''), 'FIREFOX 157');
+  assert.equal(engineLabel('Mozilla/5.0 (Linux; Android 13; Retroid Pocket Nova Build/TKQ1.231222.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/109.0.5414.123 Mobile Safari/537.36'), 'WEBVIEW 109');
+  assert.equal(engineLabel('Mozilla/5.0 (Linux; Android 13; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36'), 'CHROME 154');
+  assert.equal(engineLabel('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.4 Safari/605.1.15'), 'SAFARI 18');
+  assert.equal(engineLabel('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) memento/0.61 Chrome/140.0.0.0 Electron/38.1.0 Safari/537.36'), 'ELECTRON 38');
+  assert.equal(engineLabel('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0'), 'EDGE 141');
+  assert.equal(engineLabel('something else'), 'WEB');
+  assert.equal(engineLabel(gecko, '?level=desert&engine=gecko-apk'), 'GECKO-APK', '?engine= names it');
+  const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
+  assert.match(main, /return `\$\{ENGINE\}\$\{window\.__benchLabel \? ` \$\{window\.__benchLabel\}` : ''\} · \$\{Math\.round\(fps\)\} fps/);
 });

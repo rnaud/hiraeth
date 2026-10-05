@@ -13,7 +13,7 @@
 // with --serve <dist> the build this script serves itself on --port (needed for gecko).
 //
 //   node scripts/bench/android-engines.mjs [--rounds 3] [--modes fixed,dynamic] [--engines webview,chrome,gecko,gecko-apk]
-//        [--only spawn,camps] [--secs 10] [--startC 45] [--raw dir] [--port 5253] [--serve dist]
+//        [--only spawn,camps] [--secs 10] [--startC 45] [--raw dir] [--port 5253] [--serve dist] [--resume] [--stall 5]
 // then node scripts/bench/android-engines-summary.mjs <raw dir>.
 //
 // Per run (one engine, one mode): load to the first frame, then every view and path with the page logic
@@ -31,7 +31,7 @@
 // com.rnaud.moebius (the player's app) or a system setting; in Chrome it opens one tab of its own and
 // closes it at the end (other tabs are left alone); it removes its own adb forward / reverse rules.
 import { execFileSync, spawn } from 'node:child_process';
-import { writeFileSync, mkdirSync } from 'node:fs';
+import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { options, viewpoints, sleep, ROOT } from './lib.mjs';
 import { INSTRUMENT } from './browser.mjs';
@@ -315,6 +315,17 @@ const EXTRA = `(() => {
   P.attachShader = function (p, s) { (att.get(p) ?? att.set(p, []).get(p)).push(s); return as.call(this, p, s); };
   P.linkProgram = function (p) { if (this === B.gl) { const sh = att.get(p) ?? []; const v = sh.find((s) => this.getShaderParameter(s, this.SHADER_TYPE) === this.VERTEX_SHADER), f = sh.find((s) => this.getShaderParameter(s, this.SHADER_TYPE) === this.FRAGMENT_SHADER); if (v && f) B.programs.push([src.get(v), src.get(f), performance.now()]); } return lp.call(this, p); };
   P.getProgramParameter = function (p, n) { const t = performance.now(); try { return gp.call(this, p, n); } finally { if (this === B.gl && n === this.LINK_STATUS) B.linkMs += performance.now() - t; } };
+  // the engine and the run first on the game's readout (#fps), for whoever watches the device. A game
+  // that writes the engine itself (window.__fpsEngine, from v0.61) shows window.__benchLabel too; for
+  // older builds this does it, watching that one element
+  const ua = navigator.userAgent, ver = (re) => (ua.match(re) || [])[1];
+  const eng = /Firefox\\//.test(ua) ? 'GECKO ' + ver(/Firefox\\/(\\d+)/) : (/; wv\\)/.test(ua) ? 'WEBVIEW ' : 'CHROME ') + ver(/Chrome\\/(\\d+)/);
+  const mark = () => {
+    const el = document.getElementById('fps'); if (!el || window.__fpsEngine || !el.textContent) return;
+    const p = eng + (window.__benchLabel ? ' ' + window.__benchLabel : '') + ' · ';
+    if (!el.textContent.startsWith(p)) el.textContent = p + el.textContent.replace(/^(GECKO|WEBVIEW|CHROME) [^·]*· /, '');
+  };
+  const watch = setInterval(() => { const el = document.getElementById('fps'); if (!el) return; clearInterval(watch); new MutationObserver(mark).observe(el, { childList: true, characterData: true, subtree: true }); }, 1000);
 })();`;
 
 /** compile and link every program the game linked, again, in a fresh context: made unique (a uniform of its own) so no cache can serve it */
@@ -470,6 +481,7 @@ async function run(engine, mode, round) {
   for (const name of items) {
     let v = null;
     step(`${label} ${name}`);
+    await ev((l) => { window.__benchLabel = l; return true; }, `${name} r${round}/${rounds} ${mode}`).catch(() => 0);
     for (let attempt = 1; attempt <= 3; attempt++) {
       let trace = null;
       try {
@@ -570,6 +582,8 @@ try {
     const order = [];
     for (const m of modes) { const e = r % 2 ? engines : engines.slice().reverse(); for (const x of e) order.push([x, m]); }
     for (const [e, m] of order) {
+      // (--resume: the runs already in the raw directory stay as they are)
+      if (opt.resume && existsSync(`${RAW}/r${r}-${e}-${m}.json`)) { console.log(`r${r} ${e} ${m}: already there`); continue; }
       for (let attempt = 1; attempt <= 3; attempt++) {
         try { await run(e, m, r); break; }
         catch (err) { console.error(`r${r} ${e} ${m} failed (attempt ${attempt}): ${err.stack ?? err}`); if (attempt === 3) failed++; await idle(); }
