@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { Scout, guideLead, nextObjective, viaPortal } from '../src/scout.js';
+import { Scout, nextObjective, viaPortal, FIND, FLARE, Flare, roughDistance, findText } from '../src/scout.js';
 import { makeMaterial, markHero, sharedUniforms } from '../src/materials.js';
 const v = (x=0,y=0,z=0) => new THREE.Vector3(x,y,z);
 
-test('guide advances through traveler, climb, lenses, return, story, relics and back to the ship', () => {
+test('what the scout finds: the traveler, the climb, the lenses, the return, the story, then the ship; never a relic', () => {
   const ctx = { player: {pos:v()}, level:{}, story:{done:false,def:{label:'Story'},goal:v(50)}, relics:{items:[{i:1,pos:v(20),done:false}]}, ship:{pos:v(90)} };
   ctx.expedition = {state:{started:false,done:false,returned:false},traveler:{pos:v(10)},model:{center:v(100,51),ledges:[v(126,8),v(124,16)],receivers:[{visible:true},{visible:false}],dials:[new THREE.Object3D(),new THREE.Object3D()]}};
   const goal = () => nextObjective(ctx).id;
@@ -15,9 +15,27 @@ test('guide advances through traveler, climb, lenses, return, story, relics and 
   ctx.player.pos.set(100,51,0); assert.equal(goal(),'lens-1');
   ctx.expedition.state.done=true; assert.equal(goal(),'traveler');
   ctx.expedition.state.returned=true; assert.equal(goal(),'story');
-  ctx.story.done=true; assert.equal(goal(),'relic-1');
-  ctx.relics.items[0].done=true; assert.equal(goal(),'ship');
-  ctx.ship=null; assert.equal(nextObjective(ctx),null);
+  ctx.story.done=true; assert.equal(goal(),'ship','the world told: on to the ship (the relics are yours to find)');
+  ctx.player.pos.set(80,0,0); assert.equal(nextObjective(ctx),null,'at the ship already: nothing to find');
+  ctx.player.pos.set(0,0,0); ctx.ship=null; assert.equal(nextObjective(ctx),null);
+});
+
+test('the scout finds the right objective in each kind of world', () => {
+  const player={pos:v()}, story={done:false,def:{label:'The silent tower'},goal:v(300)}, ship={pos:v(-40)};
+  const quest={id:'quest-desert.power-sel',label:'Madame Sel, under the silent tower',position:v(320)};
+  // a world told step by step: the tracked (or main) quest's next step comes first
+  assert.equal(nextObjective({player,story,ship,level:{},quest:()=>quest}).label,'Madame Sel, under the silent tower');
+  // a world with no step-by-step quest: its story goal (the beacon)
+  assert.equal(nextObjective({player,story,ship,level:{},quest:()=>null}).label,'The silent tower');
+  // the observatory under way wins over a quest (the lenses are what is in front of you)
+  const expedition={state:{started:true,done:false,returned:false},traveler:{pos:v(10)},model:{center:v(0,51,0),ledges:[v(26,8)],receivers:[{visible:false}],dials:[new THREE.Object3D()]}};
+  assert.equal(nextObjective({player,story,ship,level:{},quest,expedition}).id,'ledge-0');
+  // through a doorway when it is shorter (the cave, a gravity portal)
+  const o=nextObjective({player,story,ship,level:{portals:[{at:v(5),to:v(299),label:'cave mouth'}]},quest:()=>null});
+  assert.equal(o.label,'Through the cave mouth');
+  // the toast: what it found and roughly how far
+  assert.equal(findText(quest,318),'Madame Sel, under the silent tower · 320 m');
+  assert.equal(roughDistance(7.4),'7 m'); assert.equal(roughDistance(1430),'1.4 km');
 });
 
 test('route chooses the first of chained portals, but keeps nearby objectives direct', () => {
@@ -28,21 +46,60 @@ test('route chooses the first of chained portals, but keeps nearby objectives di
   assert.equal(viaPortal(v(998),target,links),target);
 });
 
-function fixture(physics={rayDistance:()=>Infinity}) {
+function fixture(physics={rayDistance:()=>Infinity}, target=v(100)) {
   const dock=new THREE.Object3D(); dock.position.set(0,2,0);
   const player={pos:v(),vel:v(),frame:{up:v(0,1)},gear:{scoutDock:dock}};
-  const scout=new Scout({scene:new THREE.Scene(),player,physics,getTarget:()=>({id:'test',label:'Test',position:v(100)})});
-  return {scout,player};
+  const finds=[], shrugs=[];
+  const scout=new Scout({scene:new THREE.Scene(),player,physics,getTarget:()=>target&&({id:'test',label:'Test',position:target}),onFind:(t,d)=>finds.push([t.label,d]),onShrug:()=>shrugs.push(1)});
+  return {scout,player,finds,shrugs};
 }
-test('scout undocks, waits ahead, pauses, refreshes on ping and returns to its dock', () => {
-  const {scout}=fixture(); assert.equal(scout.phase,'docked'); scout.ping();
-  for(let i=0;i<60;i++)scout.update(.05);
-  assert.equal(scout.phase,'guide'); assert.ok(scout.object.position.x>guideLead(0)-1);
-  const age=scout.age; scout.update(2,true); assert.equal(scout.age,age);
+test('ping: the scout flies a little way towards the objective, hovers, points its beam at it, drops a flare, comes home and docks', () => {
+  const {scout,finds}=fixture(); assert.equal(scout.phase,'docked'); scout.ping();
+  const seen=new Set(); let beamAt=0, farthest=0, flareSeen=false;
+  for(let i=0;i<60*12;i++){
+    scout.update(1/60); seen.add(scout.phase);
+    farthest=Math.max(farthest,scout.object.position.x);
+    if(scout.phase==='point'){ beamAt=Math.max(beamAt,scout.beamLen); assert.ok(scout.pointer.visible,'the beak lit'); }
+    if(scout.flare.on) flareSeen=true;
+  }
+  assert.deepEqual([...seen],['launch','seek','point','return','docked']);
+  assert.ok(farthest>FIND.out-1.5&&farthest<FIND.out+1.5,`a little way towards it (${farthest.toFixed(1)} m), not all the way`);
+  assert.ok(beamAt>FIND.beam-2,`the beam reaches out at it: ${beamAt.toFixed(1)} m`);
+  assert.ok(flareSeen,'a flare on the spot');
+  assert.deepEqual(finds,[['Test',100]],'found once: the toast names it and how far');
+  assert.equal(scout.phase,'docked'); assert.ok(scout.object.position.distanceTo(scout.anchor())<.01,'back on its dock');
+  assert.equal(scout.beam.visible,false,'the beam off');
+  // the flare fades on its own
+  assert.equal(Flare.k(FLARE.life+0.1),0); assert.ok(Flare.k(FLARE.life/2)>0.99); assert.equal(Flare.k(0),0);
+  // paused (a menu): nothing moves
+  scout.ping(); for(let i=0;i<30;i++)scout.update(1/60);
+  const age=scout.age, at=scout.object.position.clone(); scout.update(2,true);
+  assert.equal(scout.age,age); assert.ok(scout.object.position.equals(at));
+  // pressed again while out: it starts over
   scout.ping(); assert.equal(scout.age,0);
-  scout.age=4.99; scout.update(.01); assert.equal(scout.phase,'return');
-  for(let i=0;i<160;i++)scout.update(.05);
-  assert.equal(scout.phase,'docked'); assert.ok(scout.object.position.distanceTo(scout.anchor())<.01);
+});
+test('a near objective: the scout flies right over it and points down at it', () => {
+  const {scout,finds}=fixture(undefined,v(6,0,3));
+  scout.ping();
+  for(let i=0;i<60*3.5;i++)scout.update(1/60);
+  assert.equal(scout.phase,'point');
+  assert.ok(Math.hypot(scout.object.position.x-6,scout.object.position.z-3)<1,`over it: ${scout.object.position.toArray().map(x=>x.toFixed(1))}`);
+  scout.object.updateMatrixWorld(true);
+  const nose=new THREE.Vector3(0,0,1).applyQuaternion(scout.pointer.getWorldQuaternion(new THREE.Quaternion()));
+  assert.ok(nose.y<-0.8,`looking down at it: ${nose.y.toFixed(2)}`);
+  assert.equal(finds.length,1);
+});
+test('nothing to find: the scout shrugs on its dock (a hop and a shake), says so, and stays home', () => {
+  const {scout,finds,shrugs}=fixture(undefined,null);
+  assert.equal(scout.ping(),false);
+  assert.equal(scout.phase,'shrug'); assert.equal(shrugs.length,1);
+  let far=0, turned=0; const q0=scout.dockQuaternion();
+  for(let i=0;i<60*1.5;i++){ scout.update(1/60); far=Math.max(far,scout.object.position.distanceTo(scout.anchor())); turned=Math.max(turned,scout.object.quaternion.angleTo(q0)); }
+  assert.equal(scout.phase,'docked');
+  assert.ok(far>0.02&&far<0.1,`a little hop off the dock: ${far.toFixed(3)} m`);
+  assert.ok(turned>0.2,`a shake: ${turned.toFixed(2)} rad`);
+  assert.equal(finds.length,0);
+  assert.equal(scout.fold.petals,0,'it never opened');
 });
 // a wall plane at x = 1 and ground given by heightAt (a stand-in for the BVH and heightfield)
 function walled(heightAt=()=>0, wallX=Infinity) {
@@ -117,22 +174,21 @@ test('hero tagging isolates cached materials while preserving live scene uniform
   for(const key of Object.keys(sharedUniforms))assert.equal(a.material.uniforms[key],sharedUniforms[key]);
 });
 
-test('scout keeps your pace: it leads further the faster you go, stays near, and points at the goal', () => {
+test('scout keeps your pace riding: it looks out ahead of you, stays near, and points at the goal', () => {
   const {scout,player}=fixture();
-  assert.ok(guideLead(30)>guideLead(1.5)&&guideLead(30)<=15);
   scout.getTarget=()=>({id:'far',label:'Far',position:v(5000)});
   scout.ping();
   for(let i=0;i<40;i++)scout.update(1/30);
   player.vel.set(25,0,0);   // on the bike, flat out towards the goal
   let far=0;
-  for(let i=0;i<150;i++){ player.pos.addScaledVector(player.vel,1/30); scout.age=1; scout.update(1/30); far=Math.max(far,scout.object.position.distanceTo(player.pos)); }
-  assert.equal(scout.phase,'guide','still guiding at speed');
+  for(let i=0;i<150;i++){ player.pos.addScaledVector(player.vel,1/30); scout.age=1; if(scout.phase==='point')scout.pointT=0; scout.update(1/30); far=Math.max(far,scout.object.position.distanceTo(player.pos)); }
+  assert.ok(scout.phase==='seek'||scout.phase==='point','still out at speed');
   assert.ok(scout.object.position.x>player.pos.x,'ahead of you, not trailing behind');
-  assert.ok(far<guideLead(25)+6,`stays around you: ${far.toFixed(1)} m`);
+  assert.ok(far<FIND.out+25*0.4+8,`stays around you: ${far.toFixed(1)} m`);
   // the goal high above: the pointer tilts up at it
   scout.getTarget=()=>({id:'up',label:'Up',position:scout.object.position.clone().add(v(3,40,0))});
   player.vel.set(0,0,0);
-  for(let i=0;i<60;i++){ scout.age=1; scout.update(1/30); }
+  for(let i=0;i<60;i++){ scout.age=1; if(scout.phase==='point')scout.pointT=0; scout.update(1/30); }
   // (the body stays near level, a drone; its lit beak turns the rest of the way)
   scout.object.updateMatrixWorld(true);
   const nose=new THREE.Vector3(0,0,1).applyQuaternion(scout.pointer.getWorldQuaternion(new THREE.Quaternion()));

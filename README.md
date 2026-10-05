@@ -2633,7 +2633,7 @@ The course, the runs and the measures moved from `tests/gait-sim.js` into `src/g
   at the Great Crystal). `tests/signature.test.js` checks that every destination carries it.
 
 ### A quieter screen: conversations and prompts
-- **No button reminders.** The status box (`updateHud` in `src/main.js`) shows the place,
+- **No button reminders.** (Since v0.62 there is no status box at all: "Nothing on the screen" below.) The status box (`updateHud` in `src/main.js`) showed the place,
   gauges, the objective and relics, and a prompt only for what is right here (the ship's
   hatch and console, a lens); a ride's controls show for six seconds after you get on.
   The controller's button bar is gone except in photo mode; the full controls live in the
@@ -3698,6 +3698,71 @@ From the author's notes (TODO.md, "Feel and look"). Tests: `tests/feel.test.js`.
   on the edge right in front of you (`EdgeInk`, drawn with the wisps' material, depth-tested
   against the G-buffer), and the first lean of a session shows a line (`EDGE_HINTS`, per world,
   or the level's own `edgeHint`).
+
+### Nothing on the screen; the scout finds the objective (v0.62)
+
+The author's rule: no icon or text stays on the screen while you play. To find the quest you send
+the drone; for the quest log you open the menu. Tests: `tests/hud.test.js`, `tests/scout.test.js`.
+
+- **No status box** (`#hud` / `#status` and `updateHud`'s status line are gone; `src/hud.js`). The
+  world's name, the objective and its distance, relics x/5, the charge line and the gauges no
+  longer sit in the bottom-left corner. What is left comes only when it matters, then fades:
+  - **the cue** (`#cue`, `cueText`, `Cue`): one short line at the bottom (at the top on a phone,
+    where the toasts make room for it: cinema.js `OBSTACLES`) for what the use button does right
+    here when it has nothing to float over (the ship's ramp, hatch and console, a lens, the
+    backpack slotting in), a ride's controls for `RIDE_HINT_MS` after you get on, what the scout
+    just found, and a region's name as you cross into it (`PlaceName`: it must hold 1.5 s, and
+    the name where you arrive is not shown). Prompts with a place still float over it (`#prompt`).
+  - **health** (`#health`): while hurt or healing (`Fader(3)`), then fades; **stamina** as before.
+  - **the tank** (`ToolHud.gaugeShown`, `body.tool-gauge`): the crosshair and the pips while
+    aiming; without aiming, the pips alone beside the traveller (main.js `placeToolGauge`, left of
+    the shoulders as the stamina wheel is right) while the tank is short (a shot, a boost, the
+    jets burning: the pip being burnt shows what is left of it, until the refill), on a mode
+    switch, and an empty tank for `GAUGE_DRY` s; `GAUGE_LINGER` s after, it fades.
+  - **the frame readout** is off by default (`showFps: false`; settings saved before `hudV: 1`
+    lose the old default once, `migrateSettings`); F, the settings or `?fps=1` (this session
+    only) turn it on. `scripts/handheld-perf` sets it.
+  - **the menu's button** (`#gear`): only on a touch screen, small (30 px) and faint at 45 %
+    opacity; the keyboard has O / Esc, a pad Menu. The touch worlds button is gone (the menu's
+    Debug entry has it), and the keyboard help (H) is the menu's Controls page.
+  - The scout's floating label (`#scout-label`) is gone: the cue says what it found.
+- **The scout finds the objective** (`Scout.ping`, `FIND` in `src/scout.js`): Q, Y / △ on a pad
+  (on foot and now riding or flying too: controller.js sends `ping` from the top button in the
+  ride context), the touch "ping". It hops off its dock as before, flies to a lookout (`lookout`:
+  `FIND.out` m towards the objective from over your head, a little more at speed, carried with
+  your velocity; right over it when it is nearer than `FIND.near`), hovers and points its beak and
+  a thin lit **lens beam** at it (`updateBeam`: out to the objective or the first thing in the
+  way, at most `FIND.beam` m), drops a **flare** on the spot (`Flare`: a column of its light
+  shooting up and a ring that rings out, sized by the distance so it reads from far away, gone
+  after `FLARE.life` s), chirps (`sound.drone('found')`) and calls `onFind(target, metres)`:
+  main.js puts "◆ Madame Sel, under the silent tower · 320 m" on the cue for 5 s (`findText`,
+  `roughDistance`) and shows the quest marker for `MARKER_SECONDS`. After `FIND.point` s it comes
+  home and docks as before (`returnT` drives the safe recall now). Phases: docked → launch → seek →
+  point → return. Nothing to find (`getTarget()` null): `shrug()`, the eye opens, it lifts a few
+  centimetres off the dock and shakes itself (`FIND.shrug` s), "Nothing to find here".
+- **What it finds** (`nextObjective`): the tracked quest's objective (or the main quest's, or the
+  first active one: `Quests.objective`), routed through doorways; while the observatory expedition
+  is under way its steps first; then the world's story goal (its beacon); once the story is told,
+  the ship from more than 25 m away; else nothing. It never points at a relic any more: they are
+  yours to find. A quest with `background: true` (the makers' boxes, offered on arrival) is only
+  tracked when nothing else is or when you choose it, so a box doesn't take the scout from the
+  quest you are on.
+- **The quest marker** (`QuestMarker`, the cyan diamond over the tracked objective) no longer hangs
+  in the air all the time: `reveal()` shows it for `MARKER_SECONDS` after a find, then it fades.
+  **The world's beacon** (the gold column over a world's story goal, `Story.beacon`) stays: it is
+  part of the landscape, not the screen (a lighthouse you see across the dunes, drawn in the
+  world's ink and light), it is the one way a world without step-by-step quests shows its goal
+  before you think of asking, and it goes when the story is told.
+- **The menu's pages** (`SettingsMenu.page`): Quests, Settings (where it opens) and Controls, from
+  the side column. **Quests** (`o.quests()`, `questsPageHtml`): "Where to" (what the scout would
+  find, and how far), the father's charge and the quest log (the sketchbook's own sections:
+  `chargeJournalHtml`, `quests.journalHtml()`, steps done struck through, finished ones stamped,
+  failed ones under their own heading), and what you carry. Active quests are focusable
+  (`data-nav`, which `menuNavigate` steps onto): confirm or a click tracks one (`o.onTrack`).
+  **Controls** (`controlsList`, `controlsHtml`): every control for the pad (in Xbox / PlayStation
+  form), the keyboard and touch, the one in your hands first; H opens the menu there. B / ○ or
+  Esc on a page goes back to the settings, then out. The title's settings have Controls too.
+  The sketchbook (View, J) is unchanged.
 
 ## The makers' temples
 

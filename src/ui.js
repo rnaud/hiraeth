@@ -23,14 +23,15 @@ const DEFAULTS = {
   voices: 0.8,          // the mumbled alien voices (src/story/voice.js)
   alienVoices: true,    // off: conversations go back to plain soft blips
   devPanel: false,
-  showFps: true,
+  showFps: false,       // the frame readout (F, or ?fps=1 for a session): off, nothing on the screen
+  hudV: 1,              // settings saved before v1 had the frame readout on by default: it goes off once
 };
 
 export class Settings {
   constructor() {
     let saved = {};
     try { saved = JSON.parse(localStorage.getItem(SETTINGS_KEY)) ?? {}; } catch { /* ignore */ }
-    Object.assign(this, DEFAULTS, saved);
+    Object.assign(this, DEFAULTS, migrateSettings(saved));
     this.listeners = [];
   }
   save() {
@@ -42,37 +43,70 @@ export class Settings {
   on(f) { this.listeners.push(f); f(null); }
 }
 
-/**
- * The controller's buttons, for the settings (written in Xbox / PlayStation form, by
- * position: native-pad.js prints them as the pad does). See controller.js for the layout.
- */
-export function padControls(ok = confirmKey(), back = backKey()) {
-  return 'Controller, walking: left stick move (click it, L3, to run) · right stick look (hold LB / L1 to zoom) · '
-    + 'A / × jump (again in the air: boost; hold: wings) · B / ○ interact, talk, get on · X / □ call your mount or a taxi · Y / △ ping · '
-    + 'LT / L2 aim the fluid tool, and RT / R2 shoots while you aim · RT / R2 without aiming: the jets climb (left stick flies you that way, A / × held as well hovers) · RB / R1 push · D-pad left / right gun mode, up worlds, down photo · '
-    + 'View gear and sketchbook · Menu settings. '
-    + 'Riding: RT / R2 go · LT / L2 brake · left stick steer (flying: forward dives, back climbs) · X / □ hop, flap, rise · RB / R1 boost · A / × jump off · B / ○ get off. '
-    + 'Swimming: left stick swim (L3 sprints) · look down and swim forward to dive, under water you swim where you look · A / × rise, at the surface kick up or climb out. '
-    + `In menus: D-pad select, left / right adjust, ${ok} confirm, ${back} back, right stick scroll.`;
+/** Saved settings from an older build, brought up to date (the frame readout was on by default until hudV 1). */
+export function migrateSettings(saved = {}) {
+  const out = { ...saved };
+  if (!(out.hudV >= 1)) { delete out.showFps; out.hudV = 1; }
+  return out;
 }
 
 /**
- * The Start menu: O, Esc (when nothing else is open), the gear button or Menu / Start on a
- * controller. Full screen: on the left Resume, the sketchbook, what's new and Quit to title
- * (with where you are: the save, the world, the time played), on the right the settings.
+ * Every control, for the menu's Controls page: [what, how] pairs by device. Written in Xbox /
+ * PlayStation form for the pad (native-pad.js prints them as the pad does).
+ */
+export function controlsList(ok = confirmKey(), back = backKey()) {
+  return {
+    keyboard: [
+      ['Move · run', 'WASD · SHIFT'], ['Look', 'mouse (click the game to capture it) · wheel zooms'],
+      ['Jump · fluid boost', 'SPACE · SPACE again in the air'], ['Jets / wings (once found)', 'hold SPACE in the air, or left click without aiming (WASD flies)'],
+      ['Climb', 'push into a wall'], ['Use, talk, get on / off', 'E (moving: jump off)'],
+      ['The scout finds your objective', 'Q'], ['Aim the fluid tool · shoot', 'hold right mouse or R · left click or G'],
+      ['Push · gun mode', 'C or middle click · X'], ['Dive · rise (in water)', 'Z or CTRL · SPACE'],
+      ['Sketchbook · menu · this page', 'J · O or Esc · H'], ['Photo mode · frame readout · what\'s new', 'P · F · N'], ['Mute', 'M'],
+    ],
+    pad: [
+      ['Move · run', 'left stick · click it (L3)'], ['Look · zoom', 'right stick · hold LB / L1'],
+      ['Jump · boost · wings', 'A / × · again in the air · hold'], ['Use, talk, get on', 'B / ○'],
+      ['Call your mount or a taxi', 'X / □'], ['The scout finds your objective', 'Y / △ (riding too)'],
+      ['Aim · shoot', 'LT / L2 · RT / R2 while aiming'], ['Jets', 'RT / R2 without aiming (A / × held hovers)'],
+      ['Push · gun mode', 'RB / R1 · D-pad left / right'], ['Photo mode · worlds', 'D-pad down · D-pad up'],
+      ['Gear and sketchbook · menu', 'View · Menu'],
+      ['Riding', 'RT / R2 go · LT / L2 brake · left stick steer (flying: forward dives, back climbs) · X / □ hop, flap, rise · RB / R1 boost · A / × jump off · B / ○ get off'],
+      ['Swimming', 'left stick swim (L3 sprints) · look down and swim forward to dive · A / × rise, climb out'],
+      ['In menus', `D-pad select · left / right adjust · ${ok} confirm · ${back} back · right stick scroll`],
+    ],
+    touch: [
+      ['Move · look', 'drag on the left · drag on the right'], ['Jump · use', '⤒ · the use button (it names what it does)'],
+      ['Run', 'run (a toggle)'], ['The scout finds your objective', 'ping'], ['Aim · shoot · push · gun mode', '◎ · ✺ · ✋ · ◐'],
+      ['Sketchbook · menu', '❏ · the small ⚙ in the corner'],
+    ],
+  };
+}
+
+/**
+ * The Start menu: O, Esc (when nothing else is open), the small gear on a touch screen or Menu /
+ * Start on a controller. Full screen: on the left Resume, Quests, the sketchbook, Settings,
+ * Controls, what's new and Quit to title (with where you are: the save, the world, the time
+ * played); on the right the page: the settings (where it opens), the quest log (o.quests():
+ * the journal's quest-log section, main.js; choosing an active quest tracks it: o.onTrack(id)),
+ * or every control (H opens it there). B / ○ or Esc on a page goes back to the settings, then out.
  * main.js pauses the game and plays the menu music while it is open.
  * The title screen (src/title.js) shows the same settings on its own element: { el, title: true }
- * (no game entries, no keys of its own).
- * In the Android app the panel starts with the game's updates (src/update-panel.js); onBeforeRestart
- * saves the game before an update restarts it.
+ * (no game entries, no keys of its own; Controls is there too).
+ * In the Android app the settings start with the game's updates (src/update-panel.js);
+ * onBeforeRestart saves the game before an update restarts it.
  */
+export const MENU_PAGES = ['settings', 'quests', 'controls'];
 export class SettingsMenu {
-  constructor(settings, { sound, onResetProgress, isBusy = () => false, onNews, onDev, onQuit, onBook, onDebug, onBeforeRestart, where, el = document.getElementById('settings'), title = false }) {
+  constructor(settings, { sound, onResetProgress, isBusy = () => false, onNews, onDev, onQuit, onBook, onDebug, onBeforeRestart, where, quests = null, onTrack = null, el = document.getElementById('settings'), title = false }) {
     this.s = settings;
     this.el = el;
     this.where = where;
+    this.quests = quests; this.onTrack = onTrack;
+    this.current = 'settings';
     const row = (label, control) => `<label class="row"><span>${label}</span>${control}</label>`;
     const game = !title;
+    const go = (page, label) => `<button data-a="page" data-page="${page}">${label}</button>`;
     el.classList.add('fullmenu');
     el.innerHTML = `
       <div class="pause">
@@ -81,14 +115,17 @@ export class SettingsMenu {
           <div class="where"></div>
           <nav class="menu-nav">
             <button data-a="close" class="primary">${game ? 'Resume' : 'Back'}</button>
-            ${game ? `<button data-a="book">Sketchbook</button>
-            <button data-a="news">What's new</button>
+            ${game && quests ? go('quests', 'Quests') : ''}
+            ${game ? '<button data-a="book">Sketchbook</button>' : ''}
+            ${go('settings', 'Settings')}
+            ${go('controls', 'Controls')}
+            ${game ? `<button data-a="news">What's new</button>
             <button data-a="debug">Debug: worlds</button>
             <button data-a="title">Quit to title</button>` : ''}
           </nav>
           <p class="saved">${game ? 'Your progress is saved as you play.' : ''}</p>
         </aside>
-        <section class="panel">
+        <section class="panel" data-page="settings">
           <h1>SETTINGS <span>v${VERSION}</span></h1>
           ${isNativeApp ? '<section class="updates" hidden></section>' : ''}
           ${row('Graphics', `<select data-k="quality"><option value="auto">Auto (adapts to keep it smooth)</option><option value="handheld">Handheld (Retroid, phones)</option><option value="low">Low (fast)</option><option value="medium">Medium</option><option value="high">High (smooth lines)</option></select>`)}
@@ -108,13 +145,16 @@ export class SettingsMenu {
             <div class="ask" hidden><span>Forget every relic, story page and place in this save?</span>
               <button data-a="reset-yes">Yes, start over</button><button data-a="reset-no">No, keep it</button></div>
           </div>` : ''}
-          <p class="keys pad-keys">${padControls()}</p>
           <p class="keys install-tip">Play full screen on iPhone: open in Safari, tap Share → Add to Home Screen, then enable Open as Web App if shown.</p>
-          <p class="keys">WASD move · SHIFT run · SPACE jump / glide / jets (SPACE again in the air: fluid boost) · E interact (riding: get off, jump off when moving) · Q ping scout · hold right mouse or R aim the fluid tool, then left click or G shoots · left click without aiming: the jets (WASD fly, SPACE climbs) · C or middle click push · in water: Z or CTRL dive, SPACE rise / climb out · J sketchbook · L worlds · P photo · H help · O settings · N what's new</p>
         </section>
+        ${game && quests ? '<section class="panel questlog" data-page="quests" hidden></section>' : ''}
+        <section class="panel controls" data-page="controls" hidden></section>
       </div>`;
-    // the controls list names the menu's confirm / back buttons, which follow the "Controller buttons" setting
-    this.syncControls = () => { const p = el.querySelector('.pad-keys'); if (p) p.textContent = padControls(); };
+    // the controls page names the menu's confirm / back buttons, which follow the "Controller buttons" setting
+    this.syncControls = () => {
+      const p = el.querySelector('.panel[data-page="controls"]'), b = typeof document !== 'undefined' ? document.body.classList : null;
+      if (p) p.innerHTML = controlsHtml(controlsList(), b?.contains('controller') ? 'pad' : b?.contains('touch') ? 'touch' : 'keyboard');
+    };
     const sync = () => {
       this.syncControls();
       for (const c of el.querySelectorAll('[data-k]')) {
@@ -137,8 +177,9 @@ export class SettingsMenu {
       else if (ask.contains(document.activeElement)) resetBtn.focus({ preventScroll: true });
     };
     el.addEventListener('click', (e) => {
-      const a = e.target.closest?.('[data-a]')?.dataset.a;
+      const at = e.target.closest?.('[data-a]'), a = at?.dataset.a;
       if (a === 'close') this.toggle(false);
+      if (a === 'page') this.page(at.dataset.page);
       if (a === 'news') { this.toggle(false); onNews?.(); }
       if (a === 'book') { this.toggle(false); onBook?.(); }
       if (a === 'title') onQuit?.();
@@ -148,15 +189,21 @@ export class SettingsMenu {
       if (a === 'reset') this.askReset(true);
       if (a === 'reset-no') this.askReset(false);
       if (a === 'reset-yes') onResetProgress?.();
+      // the quest log: choosing an active quest tracks it (the scout finds it next)
+      const q = !a && e.target.closest?.('.questlog [data-quest]');
+      if (q && q.dataset.nav !== undefined) { this.onTrack?.(q.dataset.quest); this.renderQuests(); el.querySelector(`.questlog [data-quest="${q.dataset.quest}"]`)?.focus({ preventScroll: true }); }
     });
     if (game) {
       window.addEventListener('keydown', (e) => {
         if (e.repeat) return;   // (holding Esc to skip a scene must not open the settings when the scene ends)
         if (e.code === 'KeyO') this.toggle();
+        else if (e.code === 'KeyH' && !isBusy()) { if (this.open && this.current === 'controls') this.toggle(false); else this.toggle(true, 'controls'); }
         else if (e.code === 'Escape') {
           if (this.open) this.back();
           else if (!isBusy()) this.toggle(true);
         }
+        // (a quest in the log, focused: Enter or Space tracks it)
+        else if (this.open && (e.code === 'Enter' || e.code === 'Space') && document.activeElement?.matches?.('.questlog [data-quest][data-nav]')) { e.preventDefault(); document.activeElement.click(); }
       });
       document.getElementById('gear')?.addEventListener('click', () => this.toggle());
     }
@@ -164,32 +211,66 @@ export class SettingsMenu {
     this.updates = new UpdatePanel(el.querySelector('.updates'), { onBeforeRestart });
     settings.on(() => sound?.setVoices?.(this.s.voices, this.s.alienVoices));
   }
-  /** Back (B / ○, Esc): first out of the "start over?" question, then out of the menu. */
+  /** Show a page on the right: 'settings', 'quests' or 'controls'. */
+  page(name = 'settings') {
+    if (!this.el.querySelector(`[data-page="${name}"].panel`)) name = 'settings';
+    this.current = name;
+    for (const p of this.el.querySelectorAll('.panel[data-page]')) p.hidden = p.dataset.page !== name;
+    for (const b of this.el.querySelectorAll('.menu-nav [data-page]')) b.classList.toggle('on', b.dataset.page === name);
+    if (name === 'quests') this.renderQuests();
+    if (name === 'controls') this.syncControls();
+    this.el.querySelector(`.panel[data-page="${name}"]`)?.scrollTo?.(0, 0);
+  }
+  /** The quest log page: the journal's quest-log section (main.js), its active quests focusable. */
+  renderQuests() {
+    const p = this.el.querySelector('.questlog');
+    if (!p) return;
+    let html = '';
+    try { html = this.quests?.() ?? ''; } catch (e) { console.warn(e); }
+    p.innerHTML = `<h1>QUESTS</h1>${html || '<p class="none">Nothing asked of you yet.</p>'}`;
+    for (const q of p.querySelectorAll('.quest[data-quest]:not(.finished)')) { q.tabIndex = 0; q.dataset.nav = ''; }
+  }
+  /** Back (B / ○, Esc): first out of the "start over?" question, then from a page to the settings, then out of the menu. */
   back() {
     const ask = this.el.querySelector('.ask');
-    if (ask && !ask.hidden) this.askReset(false); else this.toggle(false);
+    if (ask && !ask.hidden) this.askReset(false);
+    else if (this.current !== 'settings') { const from = this.current; this.page('settings'); this.el.querySelector(`.menu-nav [data-page="${from}"]`)?.focus({ preventScroll: true }); }
+    else this.toggle(false);
   }
-  toggle(on = !this.open) {
+  /** Open (on a page: 'settings' unless asked) or close. */
+  toggle(on = !this.open, page = 'settings') {
     this.open = on;
     if (on) {
       this.sync(); document.exitPointerLock?.();
       const w = this.el.querySelector('.where');
       if (w) w.innerHTML = this.where?.() ?? '';
       this.askReset(false);
+      this.page(page);
       this.updates?.open();
     } else {
       this.updates?.close();
       if (this.el.contains(document.activeElement)) document.activeElement.blur();
     }
     this.el.classList.toggle('open', on);
-    // (focus once it shows: a hidden element can't take it)
-    if (on) this.el.querySelector('.primary')?.focus({ preventScroll: true });
+    // (focus once it shows: a hidden element can't take it; on a page, its button)
+    if (on) (this.el.querySelector(page !== 'settings' ? `.menu-nav [data-page="${page}"]` : '.primary') ?? this.el.querySelector('.primary'))?.focus({ preventScroll: true });
   }
+}
+
+/** The Controls page: a controller, keyboard and mouse, a touch screen (`first`: the one in your hands). */
+export function controlsHtml(list = controlsList(), first = 'keyboard') {
+  const rows = (l) => l.map(([what, how]) => `<li><span>${what}</span><b>${how}</b></li>`).join('');
+  const names = { pad: 'Controller', keyboard: 'Keyboard and mouse', touch: 'Touch' };
+  const order = [first, ...['pad', 'keyboard', 'touch'].filter((k) => k !== first)];
+  return `<h1>CONTROLS</h1>
+    ${order.map((k) => `<h2>${names[k]}</h2><ul class="ctl">${rows(list[k])}</ul>`).join('\n    ')}
+    <p class="keys">Nothing stays on the screen while you play: the health, the stamina and the tank show when they change, and the use button's prompt when something is near.</p>`;
 }
 
 /**
  * Touch: a virtual stick on the left half, camera drag on the right half,
- * buttons for jump, interact, run, sketchbook, worlds and settings. Writes
+ * buttons for jump, interact, run, the scout's find, the sketchbook and the fluid tool (the
+ * menu is the small faint ⚙ in the corner, index.html #gear). Writes
  * into the same `input` object as the keyboard (input.stick is analog).
  */
 export class TouchControls {
@@ -202,9 +283,8 @@ export class TouchControls {
       <button data-key="Space" class="b-jump">⤒</button>
       <button data-key="KeyE" class="b-use">E</button>
       <button data-toggle="ShiftLeft" class="b-run">run</button>
-      <button data-press="KeyQ" class="b-ping" aria-label="Ping next objective">ping</button>
+      <button data-press="KeyQ" class="b-ping" aria-label="The scout finds your objective">ping</button>
       <button data-press="KeyJ" class="b-book">❏</button>
-      <button data-press="KeyL" class="b-map">◫</button>
       <button data-toggle="KeyR" class="b-aim" aria-label="Aim the fluid tool">◎</button>
       <button data-key="TouchFire" class="b-fire" aria-label="Shoot fluid">✺</button>
       <button data-key="KeyC" class="b-push" aria-label="Push">✋</button>
@@ -295,18 +375,21 @@ export class ToolHud {
     this.name = el.querySelector('.mode b');
     this.last = ''; this.lastBody = '';
   }
-  update({ on, charges = 3, max = 3, refillIn = 0, ready, aimKind, hit, tones = [], owned = true, mode = 'shoot', modeName = 'fluid', modes = 1, modeFlash = 0 }) {
+  update({ on, charges = 3, max = 3, level = charges, refillIn = 0, ready, aimKind, hit, tones = [], owned = true, mode = 'shoot', modeName = 'fluid', modes = 1, modeFlash = 0, jets = false, dry = false, now = performance.now() / 1000 }) {
     if (!this.el) return;
     const flash = modeFlash > 0 && !on;
-    const bodyKey = `${on}|${owned}|${modes > 1}|${flash}`;
+    const gauge = !on && !flash && this.gaugeShown({ owned, level, max, jets, dry, now });
+    const bodyKey = `${on}|${owned}|${modes > 1}|${flash}|${gauge}`;
     if (bodyKey !== this.lastBody) {
       this.lastBody = bodyKey;
       const b = document.body.classList;
-      b.toggle('aiming', on); b.toggle('no-tool', !owned); b.toggle('modes', modes > 1); b.toggle('modeflash', flash);
+      b.toggle('aiming', on); b.toggle('no-tool', !owned); b.toggle('modes', modes > 1); b.toggle('modeflash', flash); b.toggle('tool-gauge', gauge);
     }
-    if (!on && !flash) return;
+    if (!on && !flash && !gauge) return;
     const secs = charges < max ? Math.ceil(refillIn) : 0;
-    const key = `${charges}|${max}|${secs}|${ready}|${aimKind}|${tones.join()}|${mode}`;
+    // the jets burn part of a charge: the pip being burnt shows how much of it is left
+    const part = Math.round((level - Math.floor(level + 1e-6)) * 10);
+    const key = `${charges}|${max}|${secs}|${ready}|${aimKind}|${tones.join()}|${mode}|${part}`;
     if (key !== this.last) {
       // one pip per charge the tank holds (four with the Fourth chamber)
       if (this.pips.length !== max) {
@@ -317,15 +400,33 @@ export class ToolHud {
       this.last = key;
       if (this.name) this.name.textContent = modeName;
       this.el.className = `fluid m-${mode}${ready ? '' : ' wait'}${aimKind === 'target' ? ' lock' : ''}${charges ? '' : ' empty'}`;
-      this.pips.forEach((u, i) => { u.style.background = i < charges ? tones[i % tones.length] ?? '' : ''; u.classList.toggle('on', i < charges); });
+      this.pips.forEach((u, i) => {
+        const tone = tones[i % tones.length] ?? '';
+        u.style.background = i < charges ? tone : i === charges && part > 0 && tone ? `linear-gradient(to top, ${tone} ${part * 10}%, transparent ${part * 10}%)` : '';
+        u.classList.toggle('on', i < charges);
+      });
       this.wait.textContent = secs ? `${secs}s` : '';
     }
-    if (hit === 'target' || hit === 'empty') {
+    if (on && (hit === 'target' || hit === 'empty')) {
       const c = this.cross;
       c.classList.remove('hit', 'empty'); void c.offsetWidth; c.classList.add(hit === 'target' ? 'hit' : 'empty');
     }
   }
+  /**
+   * The tank's gauge, when not aiming: while the jets burn and while the tank is short (after a
+   * shot, a boost or a burn, until it refills), and a moment after (GAUGE_LINGER); an empty tank
+   * that waits for magical water says so for a few seconds, then goes. A full tank shows nothing.
+   */
+  gaugeShown({ owned, level, max, jets, dry, now }) {
+    if (!owned) { this.gaugeUntil = 0; this.wasDry = dry; return false; }
+    if (jets || (!dry && level < max - 1e-3)) this.gaugeUntil = Math.max(this.gaugeUntil ?? 0, now + GAUGE_LINGER);
+    if (dry && !this.wasDry) this.gaugeUntil = now + GAUGE_DRY;
+    this.wasDry = dry;
+    return now < (this.gaugeUntil ?? 0);
+  }
 }
+/** s the tank's gauge stays after the tank is full again (or the jets stop); an empty tank's notice (s). */
+export const GAUGE_LINGER = 1.2, GAUGE_DRY = 3;
 
 // ---------------------------------------------------------------------------
 

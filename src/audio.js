@@ -1040,6 +1040,18 @@ export class Sound {
     this.burst(t + 0.03, { dur: 0.06, type: 'bandpass', freq: 900, q: 2, vol: 0.06 });
   }
 
+  /**
+   * The scout's voice (src/scout.js): 'go' a little rising blip as it hops off the dock;
+   * 'found' two bright chirps as it points at the objective; 'shrug' a falling "uh-uh", nothing to find.
+   */
+  drone(kind = 'go') {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    if (kind === 'found') { this.sweep(t, 1500, 2600, 0.07, 0.045); this.sweep(t + 0.11, 1900, 3200, 0.09, 0.05); this.pluck(this.freq(7, 2), t + 0.11, 0.05, 'sine', this.fx); }
+    else if (kind === 'shrug') { this.sweep(t, 900, 760, 0.12, 0.04, 'triangle'); this.sweep(t + 0.17, 760, 520, 0.16, 0.04, 'triangle'); }
+    else this.sweep(t, 700, 1400, 0.1, 0.035);
+  }
+
   // ------------------------------------------------------------------ water (src/water.js)
   /** Going in, coming out, a big drop: a wet slap and a falling hiss, bigger with k (0..2). */
   splash(k = 1) {

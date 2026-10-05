@@ -30,10 +30,11 @@ import * as THREE from 'three';
 //   bring item, to npc: the marker is on the item (at) until you have it, then on `to`
 //   flag  name (+ value, default true): advances when the flag is set, by anyone
 // `at` overrides where the marker stands for any kind. A stage with
-// `optional: true` is not shown as the tracked objective.
+// `optional: true` is not shown as the tracked objective. A quest with `background: true` (it
+// starts on its own: the makers' boxes) is only tracked when nothing else is, or when chosen.
 //
 // Events (game.emit): 'quest' { id, stage, prev }. Flags: quest.<id> = stage
-// id, 'done' or 'failed'; quest.tracked = the id shown on the HUD and pinged by Q;
+// id, 'done' or 'failed'; quest.tracked = the id the scout finds (Q, Y / △) and the quest log marks;
 // failed.<id> = the title of a quest that failed (the father's charge lists them,
 // src/story/charge.js, whatever world you are in).
 //
@@ -42,6 +43,8 @@ import * as THREE from 'three';
 // `failOutro`; `onFail` runs instead of `onDone`. It can't be retried.
 
 const DONE = 'done';
+/** How long the objective marker stays after the scout has found the objective (s). */
+export const MARKER_SECONDS = 30;
 export const FAILED = 'failed';
 
 export class Quests {
@@ -108,7 +111,10 @@ export class Quests {
     if (prev === stage) return false;
     if (prev === FAILED) return false;   // (a failed quest stays failed)
     this.game.set(`quest.${id}`, stage);
-    if (!end) this.track(id);
+    // the quest that moved is the one you are on: tracked (what the scout finds, Q / Y / △), except
+    // that one that starts on its own (`background`: a makers' box offered on arrival) doesn't take
+    // that from the quest you are on; choosing it in the quest log does
+    if (!end && !(d.background && this.tracked())) this.track(id);
     else if (this.game.flag('quest.tracked') === id) this.game.set('quest.tracked', this.active().find((q) => q.main)?.id ?? this.active()[0]?.id ?? null);
     const st = d.stages.find((x) => x.id === stage);
     if (stage === DONE) { this.toast(`${d.main ? 'Completed' : 'Done'}: ${d.title}`); d.onDone?.(this); }
@@ -222,7 +228,11 @@ export class Quests {
   }
 }
 
-/** The objective marker: a slowly turning diamond over the target, a thin beam below it. Fluid-cyan, unlike the gold story beacon. */
+/**
+ * The objective marker: a slowly turning diamond over the target, a thin beam below it. Fluid-cyan,
+ * unlike the gold story beacon. Not always there: it shows for a while after the scout has found
+ * the objective (reveal(seconds): src/scout.js, main.js), then fades; nothing hangs in the air otherwise.
+ */
 export class QuestMarker {
   constructor(scene, makeMaterial) {
     this.group = new THREE.Group();
@@ -236,9 +246,13 @@ export class QuestMarker {
     this.group.visible = false;
     scene.add(this.group);
     this.k = 0;
+    this.shown = 0;   // s left to show (reveal)
   }
+  /** Show it for `secs` (the scout found the objective). */
+  reveal(secs = MARKER_SECONDS) { this.shown = Math.max(this.shown, secs); }
   update(dt, t, objective, player, camera, hidden = false) {
-    const on = !!objective && !hidden;
+    this.shown = Math.max(0, this.shown - dt);
+    const on = !!objective && !hidden && this.shown > 0;
     this.k += ((on ? 1 : 0) - this.k) * (1 - Math.exp(-4 * dt));
     this.group.visible = this.k > 0.02 && !!objective;
     if (!objective) return;

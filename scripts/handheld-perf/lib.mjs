@@ -102,7 +102,7 @@ export async function prepare(page, quality = 'handheld') {
     }
     for (const k of Object.keys(localStorage)) if (/save\.v1$/.test(k)) localStorage.removeItem(k);
     const s = JSON.parse(localStorage.getItem('moebius.settings.v1') ?? '{}');
-    Object.assign(s, { quality, showFps: true, music: 0, effects: 0, voices: 0 });
+    Object.assign(s, { quality, showFps: true, hudV: 1, music: 0, effects: 0, voices: 0 });
     localStorage.setItem('moebius.settings.v1', JSON.stringify(s));
   }, quality);
 }
