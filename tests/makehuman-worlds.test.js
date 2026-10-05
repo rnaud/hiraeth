@@ -355,3 +355,11 @@ test("Lorn II's people are MakeHuman bodies: Wick a girl of fifteen", async () =
   const wick = onBody('perdide2', PEOPLE.wick);
   assert.ok(wick.height > 1.3 && wick.height < 1.7, `Wick ${wick.height.toFixed(2)} m`);
 });
+
+test("Home's people are MakeHuman bodies: Lou a child, Tove grown up", async () => {
+  assert.ok(MH_WORLDS.has('home'));
+  const { PEOPLE } = await import('../src/story/home-data.js');
+  const lou = onBody('home', PEOPLE.lou);
+  assert.ok(lou.height > 1.0 && lou.height < 1.3, `Lou ${lou.height.toFixed(2)} m`);
+  assert.ok(onBody('home', PEOPLE.tove).height > 1.5);
+});
