@@ -1,0 +1,55 @@
+LORE.md
+  s_1fd8d0e7b02dcf::t_59cffdd7fc6a22 1021-1022,1088,1093-1094,1096-1099,1282-1323,1357-1360
+README.md
+  s_1fd8d0e7b02dcf::t_b323010293fa4b 2874-2875,2886-2889,2899,2919,2924,2931-2934
+src/boxes/effects.js
+  s_1fd8d0e7b02dcf::t_e53520232fbdc4 22,165
+src/boxes/placements.js
+  s_1fd8d0e7b02dcf::t_609feb8727f7bf 113-115,118-121
+src/items.js
+  s_1fd8d0e7b02dcf::t_1fcc2b6939e90b 100-104
+src/levels/perdide.js
+  s_1fd8d0e7b02dcf::t_368924ee739eac 9,453-454,508
+src/swim.js
+  s_1fd8d0e7b02dcf::t_101df2437499c7 93
+src/temples/guardians.js
+  s_1fd8d0e7b02dcf::t_fd7ae05423a344 13-14,351-432
+src/temples/index.js
+  s_1fd8d0e7b02dcf::t_3c855a5afd53af 17-18,46,65
+src/temples/logic.js
+  s_1fd8d0e7b02dcf::t_773c07c6285540 24,101-102
+src/temples/migrate.js
+  s_1fd8d0e7b02dcf::t_129cbb22bf0eae 17
+src/temples/perdide.js
+  s_1fd8d0e7b02dcf::t_600dd3f5af4804 1-369
+tests/temples.test.js
+  s_1fd8d0e7b02dcf::t_762a12f0d73ed6 906-1006
+src/temples/perdide-data.js
+  s_a3f2b476c02199::t_42ba010ae54a17 1-73
+src/temples/pieces.js
+  s_a3f2b476c02199::t_0a1351c2db4588 25-26,351-355,357,364-374,379,381,386,392-393,482-634
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "77d5ca9670e6ee640997afe21889fea1c08989be",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_a3f2b476c02199": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a820fb8b1fec05c31",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
