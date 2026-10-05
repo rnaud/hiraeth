@@ -1,0 +1,18 @@
+The bodies in this folder (*.glb) were generated with MPFB 2.0.17, the MakeHuman add-on for
+Blender (https://static.makehumancommunity.org/mpfb.html), by scripts/makehuman/build.py, from
+MakeHuman / MPFB assets released under CC0 1.0 Universal:
+
+- the base mesh (hm08), its macro targets and the 'game_engine' rig and weights, bundled with
+  MPFB ("C. The license for the bundled assets": "The base mesh and proxies, Targets and modifiers,
+  Textures, Clothes (any MHCLO-based asset), Rigs, poses and expressions, JSON data with mesh
+  information. These assets have been released under CC0 1.0 Universal." MPFB LICENSE.md,
+  https://github.com/makehumancommunity/mpfb2/blob/master/LICENSE.md);
+- the low-poly eyes and the eyebrows of the "makehuman_system_assets" pack (every asset listed CC0,
+  author makehuman_system,
+  https://static.makehumancommunity.org/assets/assetpacks/makehuman_system_assets.html);
+- the ARKit face units of "faceunits01" and the visemes of "visemes01" (Mika Suominen; every
+  target's metadata: "license": "CC0";
+  https://static.makehumancommunity.org/assets/assetpacks/faceunits01.html, visemes01.html).
+
+MPFB's own source code is GPLv3; none of it is in these files. See docs/makehuman.md.
+CC0 1.0 Universal: https://creativecommons.org/publicdomain/zero/1.0/legalcode

@@ -1,0 +1,1348 @@
+{
+ "source": "MakeHuman / MPFB 2.0.17 (CC0 assets), scripts/makehuman/build.py; see docs/makehuman.md",
+ "hipY": 0.9712,
+ "tris": 12000,
+ "eyes": "low-poly",
+ "people": [
+  {
+   "face": [
+    1.7047,
+    0.0349,
+    1.6783,
+    0.1335,
+    1.5733
+   ],
+   "outfit": [
+    0.1182,
+    0.9712,
+    1.4879,
+    0.6419
+   ],
+   "earZ": -0.0152,
+   "head": [
+    0.0,
+    1.6432,
+    -0.0088
+   ],
+   "headFrame": [
+    0.0,
+    0.0615,
+    0.0014
+   ],
+   "skull": {
+    "x": 0.088,
+    "y": 0.1168,
+    "front": 0.1142,
+    "back": 0.1142
+   },
+   "height": 1.8215,
+   "bones": {
+    "pelvis": [
+     0.0,
+     1.0051,
+     -0.0086
+    ],
+    "thigh_l": [
+     0.0987,
+     0.9712,
+     0.0011
+    ],
+    "calf_l": [
+     0.0887,
+     0.4657,
+     0.0186
+    ],
+    "foot_l": [
+     0.0871,
+     0.0732,
+     -0.0316
+    ],
+    "ball_l": [
+     0.0889,
+     0.0041,
+     0.0881
+    ],
+    "spine_03": [
+     0.0,
+     1.2231,
+     -0.0196
+    ],
+    "neck_01": [
+     0.0,
+     1.5379,
+     -0.0238
+    ],
+    "Head": [
+     0.0,
+     1.6432,
+     -0.0088
+    ],
+    "upperarm_l": [
+     0.1593,
+     1.4833,
+     -0.0159
+    ],
+    "lowerarm_l": [
+     0.4475,
+     1.4833,
+     -0.0125
+    ],
+    "hand_l": [
+     0.7069,
+     1.4833,
+     -0.0094
+    ]
+   },
+   "id": "child",
+   "label": "Girl, 7",
+   "kind": "f",
+   "years": 7,
+   "scale": 0.8031,
+   "macro": {
+    "gender": 0.0,
+    "age": 0.125,
+    "muscle": 0.5,
+    "weight": 0.5,
+    "height": 0.92,
+    "proportions": 0.5,
+    "cupsize": 0.5,
+    "firmness": 0.5
+   },
+   "inkFace": {
+    "young": 1,
+    "lines": 0,
+    "freckles": 0.5,
+    "lidWeight": 0.6
+   },
+   "brows": "eyebrow010",
+   "like": {
+    "kind": "m",
+    "build": "average",
+    "height": 0.8,
+    "morph": {
+     "headSize": 1.3,
+     "torsoLength": 0.84,
+     "legLength": 0.76,
+     "armLength": 0.78,
+     "neckLength": 0.42,
+     "shoulders": 0.8,
+     "chest": 0.8,
+     "hips": 0.86,
+     "belly": 1.4,
+     "arms": 0.92,
+     "legs": 1.0,
+     "neck": 0.8,
+     "handSize": 0.8,
+     "footSize": 0.82
+    },
+    "face": {
+     "eyeSize": 1.45,
+     "eyeHeight": -1,
+     "eyeSpacing": 0.35,
+     "noseLength": 0.5,
+     "noseWidth": 0.76,
+     "jaw": 0.8,
+     "chin": -1,
+     "cheeks": 1,
+     "faceLength": 0.82,
+     "headWidth": 1.18,
+     "browRidge": -1,
+     "lines": 0,
+     "freckles": 0.6,
+     "mouthWidth": 0.8,
+     "lidWeight": 0.5
+    }
+   },
+   "triangles": {
+    "body": 12000,
+    "eyes": 172,
+    "brows": 422
+   },
+   "vertices": {
+    "body": 6002,
+    "eyes": 96,
+    "brows": 381
+   },
+   "keys": {
+    "Body": [
+     "smile",
+     "frown",
+     "jawOpen",
+     "browInnerUp",
+     "browDown",
+     "browOuterUp",
+     "blink",
+     "squint",
+     "cheekSquint",
+     "eyeWide",
+     "pucker",
+     "press",
+     "stretch",
+     "v_aa",
+     "v_E",
+     "v_I",
+     "v_O",
+     "v_U",
+     "v_PBM",
+     "v_FV"
+    ],
+    "Eyes": [],
+    "Eyebrows": [
+     "smile",
+     "jawOpen",
+     "browInnerUp",
+     "browDown",
+     "browOuterUp",
+     "blink",
+     "cheekSquint",
+     "eyeWide"
+    ]
+   },
+   "bytes": 830500
+  },
+  {
+   "face": [
+    1.6655,
+    0.0309,
+    1.6251,
+    0.1083,
+    1.5479
+   ],
+   "outfit": [
+    0.1137,
+    0.9712,
+    1.4814,
+    0.6384
+   ],
+   "earZ": -0.0178,
+   "head": [
+    0.0,
+    1.627,
+    -0.0205
+   ],
+   "headFrame": [
+    0.0,
+    0.0385,
+    0.0131
+   ],
+   "skull": {
+    "x": 0.0778,
+    "y": 0.1187,
+    "front": 0.1047,
+    "back": 0.1047
+   },
+   "height": 1.7842,
+   "bones": {
+    "pelvis": [
+     0.0,
+     0.9721,
+     -0.0628
+    ],
+    "thigh_l": [
+     0.1043,
+     0.9712,
+     -0.0717
+    ],
+    "calf_l": [
+     0.0896,
+     0.4923,
+     -0.0283
+    ],
+    "foot_l": [
+     0.0942,
+     0.0687,
+     -0.0666
+    ],
+    "ball_l": [
+     0.0973,
+     0.0031,
+     0.0608
+    ],
+    "spine_03": [
+     0.0,
+     1.1994,
+     -0.0864
+    ],
+    "neck_01": [
+     0.0,
+     1.5314,
+     -0.0569
+    ],
+    "Head": [
+     0.0,
+     1.627,
+     -0.0205
+    ],
+    "upperarm_l": [
+     0.1783,
+     1.4708,
+     -0.0568
+    ],
+    "lowerarm_l": [
+     0.4477,
+     1.4708,
+     -0.0539
+    ],
+    "hand_l": [
+     0.7034,
+     1.4708,
+     -0.051
+    ]
+   },
+   "id": "teen",
+   "label": "Boy, 15",
+   "kind": "m",
+   "years": 15,
+   "scale": 1.0514,
+   "macro": {
+    "gender": 1.0,
+    "age": 0.277,
+    "muscle": 0.45,
+    "weight": 0.4,
+    "height": 0.85,
+    "proportions": 0.5,
+    "cupsize": 0.5,
+    "firmness": 0.5
+   },
+   "inkFace": {
+    "young": 0.6,
+    "lines": 0.2
+   },
+   "brows": "eyebrow007",
+   "like": {
+    "kind": "m",
+    "build": "slim",
+    "height": 0.93,
+    "face": {
+     "lines": 0.2,
+     "cheeks": 0.4,
+     "eyeSize": 1.1
+    }
+   },
+   "triangles": {
+    "body": 11998,
+    "eyes": 172,
+    "brows": 602
+   },
+   "vertices": {
+    "body": 6001,
+    "eyes": 96,
+    "brows": 417
+   },
+   "keys": {
+    "Body": [
+     "smile",
+     "frown",
+     "jawOpen",
+     "browInnerUp",
+     "browDown",
+     "browOuterUp",
+     "blink",
+     "squint",
+     "cheekSquint",
+     "eyeWide",
+     "pucker",
+     "press",
+     "stretch",
+     "v_aa",
+     "v_E",
+     "v_I",
+     "v_O",
+     "v_U",
+     "v_PBM",
+     "v_FV"
+    ],
+    "Eyes": [],
+    "Eyebrows": [
+     "browInnerUp",
+     "browDown",
+     "browOuterUp",
+     "blink",
+     "cheekSquint",
+     "eyeWide"
+    ]
+   },
+   "bytes": 823848
+  },
+  {
+   "face": [
+    1.7479,
+    0.0332,
+    1.7088,
+    0.1129,
+    1.6298
+   ],
+   "outfit": [
+    0.1214,
+    0.9712,
+    1.5391,
+    0.6404
+   ],
+   "earZ": -0.018,
+   "head": [
+    0.0,
+    1.7105,
+    -0.0181
+   ],
+   "headFrame": [
+    0.0,
+    0.0374,
+    0.0108
+   ],
+   "skull": {
+    "x": 0.0805,
+    "y": 0.1258,
+    "front": 0.1058,
+    "back": 0.1058
+   },
+   "height": 1.8737,
+   "bones": {
+    "pelvis": [
+     0.0,
+     0.9853,
+     -0.0431
+    ],
+    "thigh_l": [
+     0.1095,
+     0.9712,
+     -0.0495
+    ],
+    "calf_l": [
+     0.107,
+     0.5266,
+     -0.016
+    ],
+    "foot_l": [
+     0.0948,
+     0.0764,
+     -0.0422
+    ],
+    "ball_l": [
+     0.1005,
+     0.008,
+     0.0844
+    ],
+    "spine_03": [
+     0.0,
+     1.2445,
+     -0.0562
+    ],
+    "neck_01": [
+     0.0,
+     1.5891,
+     -0.0678
+    ],
+    "Head": [
+     0.0,
+     1.7105,
+     -0.0181
+    ],
+    "upperarm_l": [
+     0.1796,
+     1.532,
+     -0.0441
+    ],
+    "lowerarm_l": [
+     0.4555,
+     1.532,
+     -0.0421
+    ],
+    "hand_l": [
+     0.7054,
+     1.532,
+     -0.0403
+    ]
+   },
+   "id": "woman",
+   "label": "Woman, 28, slim",
+   "kind": "f",
+   "years": 28,
+   "scale": 0.8782,
+   "macro": {
+    "gender": 0.0,
+    "age": 0.523,
+    "muscle": 0.5,
+    "weight": 0.38,
+    "height": 0.55,
+    "proportions": 0.6,
+    "cupsize": 0.45,
+    "firmness": 0.5
+   },
+   "inkFace": {
+    "lines": 0.5
+   },
+   "brows": "eyebrow002",
+   "like": {
+    "kind": "f",
+    "build": "slim",
+    "height": 0.97
+   },
+   "triangles": {
+    "body": 12000,
+    "eyes": 172,
+    "brows": 1062
+   },
+   "vertices": {
+    "body": 6002,
+    "eyes": 96,
+    "brows": 703
+   },
+   "keys": {
+    "Body": [
+     "smile",
+     "frown",
+     "jawOpen",
+     "browInnerUp",
+     "browDown",
+     "browOuterUp",
+     "blink",
+     "squint",
+     "cheekSquint",
+     "eyeWide",
+     "pucker",
+     "press",
+     "stretch",
+     "v_aa",
+     "v_E",
+     "v_I",
+     "v_O",
+     "v_U",
+     "v_PBM",
+     "v_FV"
+    ],
+    "Eyes": [],
+    "Eyebrows": [
+     "smile",
+     "jawOpen",
+     "browInnerUp",
+     "browDown",
+     "browOuterUp",
+     "blink",
+     "squint",
+     "cheekSquint",
+     "eyeWide",
+     "v_aa"
+    ]
+   },
+   "bytes": 857608
+  },
+  {
+   "face": [
+    1.6918,
+    0.0303,
+    1.6479,
+    0.1099,
+    1.5689
+   ],
+   "outfit": [
+    0.1153,
+    0.9712,
+    1.5063,
+    0.6686
+   ],
+   "earZ": -0.0159,
+   "head": [
+    0.0,
+    1.6538,
+    -0.0165
+   ],
+   "headFrame": [
+    0.0,
+    0.038,
+    0.0091
+   ],
+   "skull": {
+    "x": 0.0827,
+    "y": 0.1158,
+    "front": 0.1041,
+    "back": 0.1041
+   },
+   "height": 1.8076,
+   "bones": {
+    "pelvis": [
+     0.0,
+     0.9815,
+     -0.0588
+    ],
+    "thigh_l": [
+     0.1128,
+     0.9712,
+     -0.0695
+    ],
+    "calf_l": [
+     0.1054,
+     0.5239,
+     -0.0365
+    ],
+    "foot_l": [
+     0.102,
+     0.0703,
+     -0.056
+    ],
+    "ball_l": [
+     0.1049,
+     0.0037,
+     0.0756
+    ],
+    "spine_03": [
+     0.0,
+     1.2031,
+     -0.0934
+    ],
+    "neck_01": [
+     0.0,
+     1.5563,
+     -0.0517
+    ],
+    "Head": [
+     0.0,
+     1.6538,
+     -0.0165
+    ],
+    "upperarm_l": [
+     0.1963,
+     1.4958,
+     -0.0496
+    ],
+    "lowerarm_l": [
+     0.4618,
+     1.4958,
+     -0.0461
+    ],
+    "hand_l": [
+     0.7336,
+     1.4958,
+     -0.0427
+    ]
+   },
+   "id": "man",
+   "label": "Man, 35, broad",
+   "kind": "m",
+   "years": 35,
+   "scale": 1.0145,
+   "macro": {
+    "gender": 1.0,
+    "age": 0.577,
+    "muscle": 0.68,
+    "weight": 0.55,
+    "height": 0.6,
+    "proportions": 0.6,
+    "cupsize": 0.5,
+    "firmness": 0.5
+   },
+   "inkFace": {
+    "lines": 0.8
+   },
+   "brows": "eyebrow004",
+   "like": {
+    "kind": "m",
+    "build": "broad",
+    "height": 1.02
+   },
+   "triangles": {
+    "body": 12000,
+    "eyes": 172,
+    "brows": 1060
+   },
+   "vertices": {
+    "body": 6002,
+    "eyes": 96,
+    "brows": 712
+   },
+   "keys": {
+    "Body": [
+     "smile",
+     "frown",
+     "jawOpen",
+     "browInnerUp",
+     "browDown",
+     "browOuterUp",
+     "blink",
+     "squint",
+     "cheekSquint",
+     "eyeWide",
+     "pucker",
+     "press",
+     "stretch",
+     "v_aa",
+     "v_E",
+     "v_I",
+     "v_O",
+     "v_U",
+     "v_PBM",
+     "v_FV"
+    ],
+    "Eyes": [],
+    "Eyebrows": [
+     "smile",
+     "jawOpen",
+     "browInnerUp",
+     "browDown",
+     "browOuterUp",
+     "blink",
+     "cheekSquint",
+     "eyeWide"
+    ]
+   },
+   "bytes": 858208
+  },
+  {
+   "face": [
+    1.7391,
+    0.0326,
+    1.7004,
+    0.1119,
+    1.6196
+   ],
+   "outfit": [
+    0.1237,
+    0.9712,
+    1.5328,
+    0.6343
+   ],
+   "earZ": -0.0179,
+   "head": [
+    0.0,
+    1.6971,
+    -0.0177
+   ],
+   "headFrame": [
+    0.0,
+    0.042,
+    0.0103
+   ],
+   "skull": {
+    "x": 0.0788,
+    "y": 0.1222,
+    "front": 0.104,
+    "back": 0.104
+   },
+   "height": 1.8613,
+   "bones": {
+    "pelvis": [
+     0.0,
+     0.9859,
+     -0.0472
+    ],
+    "thigh_l": [
+     0.1103,
+     0.9712,
+     -0.0554
+    ],
+    "calf_l": [
+     0.1023,
+     0.5158,
+     -0.0235
+    ],
+    "foot_l": [
+     0.1023,
+     0.0787,
+     -0.0507
+    ],
+    "ball_l": [
+     0.1037,
+     0.0067,
+     0.0764
+    ],
+    "spine_03": [
+     0.0,
+     1.2484,
+     -0.0614
+    ],
+    "neck_01": [
+     0.0,
+     1.5828,
+     -0.061
+    ],
+    "Head": [
+     0.0,
+     1.6971,
+     -0.0177
+    ],
+    "upperarm_l": [
+     0.1767,
+     1.528,
+     -0.0395
+    ],
+    "lowerarm_l": [
+     0.4503,
+     1.528,
+     -0.036
+    ],
+    "hand_l": [
+     0.6993,
+     1.528,
+     -0.0329
+    ]
+   },
+   "id": "heavyf",
+   "label": "Woman, 45, heavy",
+   "kind": "f",
+   "years": 45,
+   "scale": 0.9149,
+   "macro": {
+    "gender": 0.0,
+    "age": 0.654,
+    "muscle": 0.4,
+    "weight": 0.88,
+    "height": 0.6,
+    "proportions": 0.5,
+    "cupsize": 0.6,
+    "firmness": 0.4
+   },
+   "inkFace": {
+    "lines": 0.9
+   },
+   "brows": "eyebrow003",
+   "like": {
+    "kind": "f",
+    "build": "heavy",
+    "height": 0.94
+   },
+   "triangles": {
+    "body": 11998,
+    "eyes": 172,
+    "brows": 1054
+   },
+   "vertices": {
+    "body": 6001,
+    "eyes": 96,
+    "brows": 682
+   },
+   "keys": {
+    "Body": [
+     "smile",
+     "frown",
+     "jawOpen",
+     "browInnerUp",
+     "browDown",
+     "browOuterUp",
+     "blink",
+     "squint",
+     "cheekSquint",
+     "eyeWide",
+     "pucker",
+     "press",
+     "stretch",
+     "v_aa",
+     "v_E",
+     "v_I",
+     "v_O",
+     "v_U",
+     "v_PBM",
+     "v_FV"
+    ],
+    "Eyes": [],
+    "Eyebrows": [
+     "smile",
+     "jawOpen",
+     "browInnerUp",
+     "browDown",
+     "browOuterUp",
+     "blink",
+     "cheekSquint",
+     "eyeWide",
+     "pucker",
+     "v_aa",
+     "v_I"
+    ]
+   },
+   "bytes": 856724
+  },
+  {
+   "face": [
+    1.7151,
+    0.0314,
+    1.6691,
+    0.1152,
+    1.5862
+   ],
+   "outfit": [
+    0.1161,
+    0.9712,
+    1.5262,
+    0.6628
+   ],
+   "earZ": -0.0156,
+   "head": [
+    0.0,
+    1.674,
+    -0.0158
+   ],
+   "headFrame": [
+    0.0,
+    0.041,
+    0.0084
+   ],
+   "skull": {
+    "x": 0.0856,
+    "y": 0.1195,
+    "front": 0.1083,
+    "back": 0.1083
+   },
+   "height": 1.8345,
+   "bones": {
+    "pelvis": [
+     0.0,
+     0.9874,
+     -0.0573
+    ],
+    "thigh_l": [
+     0.1195,
+     0.9712,
+     -0.0686
+    ],
+    "calf_l": [
+     0.1155,
+     0.5436,
+     -0.0349
+    ],
+    "foot_l": [
+     0.1031,
+     0.0711,
+     -0.0569
+    ],
+    "ball_l": [
+     0.1059,
+     0.0047,
+     0.0771
+    ],
+    "spine_03": [
+     0.0,
+     1.2154,
+     -0.1
+    ],
+    "neck_01": [
+     0.0,
+     1.5762,
+     -0.0507
+    ],
+    "Head": [
+     0.0,
+     1.674,
+     -0.0158
+    ],
+    "upperarm_l": [
+     0.1969,
+     1.5111,
+     -0.0506
+    ],
+    "lowerarm_l": [
+     0.4583,
+     1.5111,
+     -0.0469
+    ],
+    "hand_l": [
+     0.7278,
+     1.5111,
+     -0.0431
+    ]
+   },
+   "id": "heavym",
+   "label": "Man, 50, heavy",
+   "kind": "m",
+   "years": 50,
+   "scale": 0.9361,
+   "macro": {
+    "gender": 1.0,
+    "age": 0.692,
+    "muscle": 0.5,
+    "weight": 0.85,
+    "height": 0.5,
+    "proportions": 0.5,
+    "cupsize": 0.5,
+    "firmness": 0.5
+   },
+   "inkFace": {
+    "lines": 1.2
+   },
+   "brows": "eyebrow005",
+   "like": {
+    "kind": "m",
+    "build": "heavy",
+    "height": 1.0,
+    "face": {
+     "lines": 1.3
+    }
+   },
+   "triangles": {
+    "body": 12000,
+    "eyes": 172,
+    "brows": 1060
+   },
+   "vertices": {
+    "body": 6002,
+    "eyes": 96,
+    "brows": 692
+   },
+   "keys": {
+    "Body": [
+     "smile",
+     "frown",
+     "jawOpen",
+     "browInnerUp",
+     "browDown",
+     "browOuterUp",
+     "blink",
+     "squint",
+     "cheekSquint",
+     "eyeWide",
+     "pucker",
+     "press",
+     "stretch",
+     "v_aa",
+     "v_E",
+     "v_I",
+     "v_O",
+     "v_U",
+     "v_PBM",
+     "v_FV"
+    ],
+    "Eyes": [],
+    "Eyebrows": [
+     "browInnerUp",
+     "browDown",
+     "browOuterUp",
+     "blink",
+     "cheekSquint",
+     "eyeWide"
+    ]
+   },
+   "bytes": 855712
+  },
+  {
+   "face": [
+    1.732,
+    0.0322,
+    1.6836,
+    0.1192,
+    1.5976
+   ],
+   "outfit": [
+    0.1182,
+    0.9712,
+    1.5438,
+    0.6486
+   ],
+   "earZ": -0.0156,
+   "head": [
+    0.0,
+    1.6885,
+    -0.0178
+   ],
+   "headFrame": [
+    0.0,
+    0.0435,
+    0.01
+   ],
+   "skull": {
+    "x": 0.0799,
+    "y": 0.1231,
+    "front": 0.1119,
+    "back": 0.1119
+   },
+   "height": 1.8551,
+   "bones": {
+    "pelvis": [
+     0.0,
+     0.9992,
+     -0.054
+    ],
+    "thigh_l": [
+     0.1282,
+     0.9712,
+     -0.0657
+    ],
+    "calf_l": [
+     0.1238,
+     0.5678,
+     -0.0323
+    ],
+    "foot_l": [
+     0.098,
+     0.0732,
+     -0.0631
+    ],
+    "ball_l": [
+     0.1003,
+     0.007,
+     0.0757
+    ],
+    "spine_03": [
+     0.0,
+     1.2311,
+     -0.1091
+    ],
+    "neck_01": [
+     0.0,
+     1.5938,
+     -0.049
+    ],
+    "Head": [
+     0.0,
+     1.6885,
+     -0.0178
+    ],
+    "upperarm_l": [
+     0.1971,
+     1.5258,
+     -0.0521
+    ],
+    "lowerarm_l": [
+     0.4566,
+     1.5258,
+     -0.0474
+    ],
+    "hand_l": [
+     0.7136,
+     1.5258,
+     -0.0428
+    ]
+   },
+   "id": "elderm",
+   "label": "Man, 76",
+   "kind": "m",
+   "years": 76,
+   "scale": 0.8945,
+   "macro": {
+    "gender": 1.0,
+    "age": 0.892,
+    "muscle": 0.3,
+    "weight": 0.42,
+    "height": 0.42,
+    "proportions": 0.45,
+    "cupsize": 0.5,
+    "firmness": 0.5
+   },
+   "inkFace": {
+    "lines": 1.8
+   },
+   "brows": "eyebrow011",
+   "like": {
+    "kind": "m",
+    "build": "slim",
+    "height": 0.96,
+    "face": {
+     "lines": 1.8,
+     "cheeks": -0.6
+    }
+   },
+   "triangles": {
+    "body": 12000,
+    "eyes": 172,
+    "brows": 282
+   },
+   "vertices": {
+    "body": 6002,
+    "eyes": 96,
+    "brows": 232
+   },
+   "keys": {
+    "Body": [
+     "smile",
+     "frown",
+     "jawOpen",
+     "browInnerUp",
+     "browDown",
+     "browOuterUp",
+     "blink",
+     "squint",
+     "cheekSquint",
+     "eyeWide",
+     "pucker",
+     "press",
+     "stretch",
+     "v_aa",
+     "v_E",
+     "v_I",
+     "v_O",
+     "v_U",
+     "v_PBM",
+     "v_FV"
+    ],
+    "Eyes": [],
+    "Eyebrows": [
+     "smile",
+     "jawOpen",
+     "browInnerUp",
+     "browDown",
+     "browOuterUp",
+     "blink",
+     "squint",
+     "cheekSquint",
+     "eyeWide"
+    ]
+   },
+   "bytes": 811952
+  },
+  {
+   "face": [
+    1.7439,
+    0.0332,
+    1.7034,
+    0.1142,
+    1.6217
+   ],
+   "outfit": [
+    0.1284,
+    0.9712,
+    1.5344,
+    0.6321
+   ],
+   "earZ": -0.0189,
+   "head": [
+    0.0,
+    1.6932,
+    -0.0159
+   ],
+   "headFrame": [
+    0.0,
+    0.0507,
+    0.0085
+   ],
+   "skull": {
+    "x": 0.0803,
+    "y": 0.1234,
+    "front": 0.1058,
+    "back": 0.1058
+   },
+   "height": 1.8673,
+   "bones": {
+    "pelvis": [
+     0.0,
+     0.9885,
+     -0.0584
+    ],
+    "thigh_l": [
+     0.1174,
+     0.9712,
+     -0.0689
+    ],
+    "calf_l": [
+     0.1031,
+     0.525,
+     -0.0374
+    ],
+    "foot_l": [
+     0.1192,
+     0.0834,
+     -0.0661
+    ],
+    "ball_l": [
+     0.1133,
+     0.0053,
+     0.0611
+    ],
+    "spine_03": [
+     0.0,
+     1.2561,
+     -0.075
+    ],
+    "neck_01": [
+     0.0,
+     1.5844,
+     -0.0549
+    ],
+    "Head": [
+     0.0,
+     1.6932,
+     -0.0159
+    ],
+    "upperarm_l": [
+     0.1795,
+     1.5286,
+     -0.0351
+    ],
+    "lowerarm_l": [
+     0.445,
+     1.5286,
+     -0.0298
+    ],
+    "hand_l": [
+     0.6971,
+     1.5286,
+     -0.0248
+    ]
+   },
+   "id": "elderf",
+   "label": "Woman, 72",
+   "kind": "f",
+   "years": 72,
+   "scale": 0.8702,
+   "macro": {
+    "gender": 0.0,
+    "age": 0.862,
+    "muscle": 0.35,
+    "weight": 0.58,
+    "height": 0.55,
+    "proportions": 0.45,
+    "cupsize": 0.55,
+    "firmness": 0.3
+   },
+   "inkFace": {
+    "lines": 1.7
+   },
+   "brows": "eyebrow012",
+   "like": {
+    "kind": "f",
+    "build": "average",
+    "height": 0.92,
+    "face": {
+     "lines": 1.7
+    }
+   },
+   "triangles": {
+    "body": 12000,
+    "eyes": 172,
+    "brows": 422
+   },
+   "vertices": {
+    "body": 6002,
+    "eyes": 96,
+    "brows": 328
+   },
+   "keys": {
+    "Body": [
+     "smile",
+     "frown",
+     "jawOpen",
+     "browInnerUp",
+     "browDown",
+     "browOuterUp",
+     "blink",
+     "squint",
+     "cheekSquint",
+     "eyeWide",
+     "pucker",
+     "press",
+     "stretch",
+     "v_aa",
+     "v_E",
+     "v_I",
+     "v_O",
+     "v_U",
+     "v_PBM",
+     "v_FV"
+    ],
+    "Eyes": [],
+    "Eyebrows": [
+     "smile",
+     "frown",
+     "jawOpen",
+     "browInnerUp",
+     "browDown",
+     "browOuterUp",
+     "blink",
+     "squint",
+     "cheekSquint",
+     "eyeWide",
+     "pucker",
+     "stretch",
+     "v_aa",
+     "v_I"
+    ]
+   },
+   "bytes": 844324
+  }
+ ]
+}
