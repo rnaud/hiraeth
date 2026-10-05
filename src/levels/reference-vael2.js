@@ -56,8 +56,8 @@ function materials(kit) {
     tree: kit.mat({ color: '#4f6a58', flat: true }),
     tower: strata('#f9ecda', '#f2e1cb', '#fcf3e6', { strataSize: 9, side: THREE.FrontSide }),
     // the cloud: a warm white, its shade a pale grey-blue (lifted), no strokes
-    cloud: kit.mat({ color: '#fff4ea', shade: 0.55, hatch: 0 }),
-    pinkCloud: kit.mat({ color: '#fbdccd', shade: 0.55, hatch: 0 }),
+    cloud: kit.mat({ color: '#fff4ea', shade: 0.55, hatch: 0, spot: 0 }),
+    pinkCloud: kit.mat({ color: '#fbdccd', shade: 0.55, hatch: 0, spot: 0 }),
     cloak: kit.mat({ color: PERSON.cloak, flat: true }),
     hidden: new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false }),
   };
@@ -65,7 +65,7 @@ function materials(kit) {
 
 // ---------------------------------------------------------------- builders (the view's own frame)
 /** A smooth surface (the caps): weld, then smooth normals. */
-const smooth = (g) => { const m = mergeVertices(g, 1e-3); m.computeVertexNormals(); return m; };
+export const smooth = (g) => { const m = mergeVertices(g, 1e-3); m.computeVertexNormals(); return m; };
 
 /** A cluster of needles round (x, z) from y: the main one H high, n round it (fused ones lean on it). */
 function spires(kit, M, { x, z, y, H, R, n = 5, seed = 1, rubble = true, mat = 'bone' }) {
@@ -214,7 +214,7 @@ function loneTower(kit, M, x, z, s = 1) {
  * at y, from `near` to `far` metres out, within `spread` degrees either side of the line of sight
  * (local -z turned by `yaw`); `at`: [x, z] the camera; `pink`: the warmer clouds.
  */
-function cloudSea(kit, M, { y, near = 40, far = 1600, spread = 70, at = [0, 0], yaw = 0, n = 260, size = [10, 26], seed = 1, pink = false, deck = true, avoid = [] }) {
+export function cloudSea(kit, M, { y, near = 40, far = 1600, spread = 70, at = [0, 0], yaw = 0, n = 260, size = [10, 26], seed = 1, pink = false, deck = true, avoid = [] }) {
   const r2 = mulberry32(seed * 13 + 5), mat = pink ? M.pinkCloud : M.cloud;
   const geo = (detail) => { const g = new THREE.IcosahedronGeometry(1, detail); lumpy(g, 0.09, 1.8, detail + seed); return smooth(g); };
   const fine = geo(3), hi = geo(2), lo = geo(1);

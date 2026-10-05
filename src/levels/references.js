@@ -7,6 +7,9 @@ import { stepped } from '../load-steps.js';
 import { SandDrifts, driftMaterial } from '../sand-drifts.js';
 import { DESERT_LOOK } from '../desert-sites.js';
 import { SKY_STONES_DAY, SKY_STONES_LOOK, SKY_STONES_FLAT } from './arzach2.js';
+import { BURIED_DAY, BURIED_SPOTS } from './buried.js';
+import { SPHERES_DAY, SPHERES_LOOK } from './spheres.js';
+import { ReferencePicker } from './reference-picker.js';
 
 // ---------------------------------------------------------------------------
 // The references: a developer's level (?level=references, or the worlds list, L)
@@ -158,6 +161,8 @@ export const DESERT_SKY = ['#92b6c5', '#d7dfd9', '#93a6cf', '#fff9ee', '#fff6dc'
 export const WORLD_LOOKS = {
   desert: { sky: DESERT_SKY, look: DESERT_LOOK },
   vael2: { sky: SKY_STONES_DAY, look: { ...SKY_STONES_LOOK, uShadowFlat: SKY_STONES_FLAT } },
+  buried: { sky: BURIED_DAY, look: { ...BURIED_SPOTS } },
+  spheres: { sky: SPHERES_DAY, look: { ...SPHERES_LOOK } },
 };
 
 // (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
@@ -304,7 +309,7 @@ export function* buildReferences(scene) {
     Object.assign(ui.ref.style, cropStyle(def, rw, rh), mode === 'corner' ? { width: `${rw}px`, height: `${rh}px` } : { width: '', height: '' });
     const sheet = REFERENCE_SHEETS[def.sheet];
     ui.label.innerHTML = `<b>REFERENCE ${view.i + 1} / ${views.length} · ${def.title}</b><br>${sheet.name}, panel ${def.panel} (${def.where})`
-      + `<br><span class="kb">[ ] view · \\ compare: ${COMPARE_NAMES[mode]}</span><span class="pad">L3 / R3 view · View compare: ${COMPARE_NAMES[mode]}</span>`
+      + `<br><span class="kb">[ ] view · Tab all views · \\ compare: ${COMPARE_NAMES[mode]}</span><span class="pad">L3 / R3 view · X / □ all views · View compare:${COMPARE_NAMES[mode]}</span>`
       + (held ? '' : '<br><i>walking: [ or ] frames the panel again</i>');
     void camera;
   }
@@ -357,6 +362,8 @@ export function* buildReferences(scene) {
     compare: () => { compare = (compare + 1) % COMPARE.length; if (ui) ui.key = ''; return COMPARE[compare]; },
     get comparing() { return COMPARE[compare]; },
     get held() { return held?.view ?? null; },
+    /** The quick menu of every view, each with its panel's thumbnail (reference-picker.js: Tab, X / □, the views button). */
+    quickMenu: new ReferencePicker({ views: REFERENCE_VIEWS, sheets: REFERENCE_SHEETS, current: () => shown?.i ?? 0, goTo: (i) => level.goTo(i) }),
     sky: { script: { day: asWorld?.sky ?? views[0].def.sky, dusk: asWorld?.sky ?? views[0].def.sky, night: asWorld?.sky ?? views[0].def.sky } },
     atmo: (x, z) => viewAt(x, z)?.atmo ?? views[0].atmo,
     zoneAt: (p) => viewAt(p.x, p.z)?.zone ?? views[0].zone,

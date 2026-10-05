@@ -38,6 +38,7 @@ const W = rt.world;
 let clock = 0;
 const step = (n = 1, dt = 1 / 30) => { for (let i = 0; i < n; i++) { clock += dt; camera.position.copy(player.pos).add(V(0, 2, 4)); rt.update(dt, clock, { camera }); level.update(dt, clock, { player }); } };
 const talk = (person, choices) => {
+  quests.opening(person.id);   // (as Dialogue.start does: the world's opening quest starts with its first talk)
   const r = new DialogueRunner(person, { game, quests });
   for (const c of choices) {
     while (!r.lastPage) r.advance();
@@ -98,7 +99,11 @@ test('the swamp’s people and places stand on walkable or wadeable ground', () 
 });
 
 test('side quest: feed nothing to the plants', () => {
+  // the main quest doesn't just appear: it waits for the first talk with Wendel, the scout finding him till then
+  assert.equal(quests.stage('perdide.crystal'), undefined);
+  assert.equal(quests.objective()?.id, 'opener-perdide.crystal');
   talk(LANDING[0], ['Why keep the plants hungry?', 'What do you mean, the patient?']);
+  assert.equal(quests.stage('perdide.crystal'), 'wendel', 'that talk opened it');
   assert.equal(quests.stage('perdide.patience'), 'bed');
   const bedAt = V(BED.x, terrain.heightAt(BED.x, BED.z), BED.z);
   at(bedAt); step(3);
@@ -128,7 +133,7 @@ test('side quest: feed nothing to the plants', () => {
 });
 
 test('the main quest: the crystal sings the song of the light that struck the ship', async () => {
-  assert.equal(quests.stage('perdide.crystal'), 'wendel');
+  assert.equal(quests.stage('perdide.crystal'), 'wendel', 'opened by the first talk with Wendel (above)');
   talk(LANDING[0], ['I’m looking for something of value']);
   step(2);
   assert.equal(quests.stage('perdide.crystal'), 'cross');

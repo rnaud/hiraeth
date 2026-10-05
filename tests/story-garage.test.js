@@ -39,6 +39,7 @@ const W = rt.world;
 let clock = 0;
 const step = (n = 1, dt = 1 / 30) => { for (let i = 0; i < n; i++) { clock += dt; camera.position.copy(player.pos).add(V(0, 2, 4)); rt.update(dt, clock, { camera }); level.update(dt, clock, {}); } };
 const talk = (person, choices) => {
+  quests.opening(person.id);   // (as Dialogue.start does: the world's opening quest starts with its first talk)
   const r = new DialogueRunner(person, { game, quests });
   for (const c of choices) {
     while (r.advance());
@@ -79,7 +80,9 @@ test('the people stand on floors in their zones, the props are clear of the buil
 });
 
 test('the main quest: the signal goes round A, B and C, and the Major’s note waits at the desk', () => {
-  assert.equal(quests.stage('garage.signal'), 'clerk');
+  // it doesn't just appear: it waits for its first talk, and till then the scout finds who to ask
+  assert.equal(quests.stage('garage.signal'), undefined);
+  assert.equal(quests.openerObjective()?.id, `opener-${'garage.signal'}`);
   talk(PEOPLE.ambroise, ['What does the signal say', 'Can I carry it', 'Through the portal']);
   assert.ok(quests.has('signal'));
   step(2);

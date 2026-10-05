@@ -95,7 +95,7 @@ export function buildParentsHouse(scene, { centre, doorZ, mat }) {
   g.updateMatrixWorld(true);
   const R = 8.4, SY = 0.86, FLOOR = 0.9;
   const add = (geo, m, x = 0, y = 0, z = 0, parent = g) => { const mesh = new THREE.Mesh(geo, m); mesh.position.set(x, y, z); parent.add(mesh); return mesh; };
-  const cream = mat('#f3ead8'), stone = mat('#dccab0', { flat: true }), terracotta = mat('#c8483a', { flat: true }), ink = mat('#2b211f');
+  const cream = mat('#f3ead8', { weathered: 0.6 }), stone = mat('#dccab0', { flat: true, weathered: 0.8 }), terracotta = mat('#c8483a', { flat: true }), ink = mat('#2b211f');
   const DW = 1.9, DH = 2.35;   // the doorway: width, height of its straight sides (the arch adds DW / 2)
   const front = doorZ - centre.z;   // (negative: the door faces -z)
   add(new THREE.CylinderGeometry(10, 10.6, FLOOR, 40), stone, 0, FLOOR / 2, 0);

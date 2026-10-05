@@ -105,6 +105,19 @@ export const LANGUAGES = {
     cons: ['b', 'd', 'z', 'r', 'sh', 'p', 'y', 'n'], vowels: ['a', 'e', 'o', 'i', 'ae'] },
   atelier:  { name: 'pen-and-paper', wave: 'triangle', pitch: 1.0, rate: 0.95, len: 0.9, gain: 0.8, breath: 0.3, clip: 0.2, glide: 0.3, formant: 1.0, density: 0.75,
     cons: ['s', 'f', 'sh', 'l', 't'], vowels: ['e', 'i', 'a'] },
+  // the non-humanoid peoples (src/aliens/): their own tongues, wherever they live
+  // the drifters (the Garden of Spheres): slow, ringing, gliding up, a slow wobble like a bell's
+  drifter:  { name: 'drifter bell-song', wave: 'sine', pitch: 0.95, rate: 0.68, len: 1.55, gain: 0.8, breath: 0.12, clip: 0, glide: 1.6, formant: 1.05, density: 0.6, ring: 0.7, wobble: [3.2, 0.9],
+    cons: ['l', 'm', 'n', 'w', 'y', ''], vowels: ['o', 'u', 'oe', 'a'] },
+  // the stilt-walkers (Vael): a low, breathy drone, few syllables, a little ring
+  stilt:    { name: 'stilt-walker drone', wave: 'triangle', pitch: 0.7, rate: 0.58, len: 1.6, gain: 0.7, breath: 0.35, clip: 0, glide: -0.4, formant: 0.75, density: 0.4, ring: 0.35,
+    cons: ['h', 'm', 'ng', 'th', ''], vowels: ['o', 'u', 'a'] },
+  // the shellbacks (Lorn II): a deep, slow burr, bubbling down
+  shell:    { name: 'shellback burr', wave: 'sawtooth', pitch: 0.72, rate: 0.66, len: 1.35, gain: 0.75, breath: 0.2, clip: 0.1, glide: -2.6, formant: 0.72, density: 0.75, wobble: [5.5, 0.7],
+    cons: ['m', 'b', 'gl', 'r', 'w', 'd'], vowels: ['o', 'u', 'oe'] },
+  // the murmurs (the Signal Market): quick and high, five voices at once (chorus: the others' pitch ×)
+  murmur:   { name: 'murmur chorus', wave: 'triangle', pitch: 1.3, rate: 1.28, len: 0.62, gain: 0.7, breath: 0.08, clip: 0.4, glide: 1.0, formant: 1.2, density: 0.95, chorus: [1.26, 0.84, 1.5],
+    cons: ['p', 'b', 't', 'm', 'n', 'w', 'y', ''], vowels: ['i', 'e', 'a', 'u', 'y'] },
   // the ship's own voice: a small chirping computer
   ship:     { name: 'ship', native: true, wave: 'square', pitch: 1.5, rate: 1.3, len: 0.55, gain: 0.55, breath: 0, clip: 0.9, glide: 0, formant: 1.2, density: 0.7, mech: 1,
     cons: ['t', 'p', 'd', ''], vowels: ['i', 'e'] },
@@ -285,7 +298,15 @@ export function planLine(text, { voice = voiceOf({}), tone = null, lang = 'home'
       wave: L.wave, mech: L.mech ?? 0, ring: L.ring ?? 0, radio: L.radio ?? 0, bright: voice.bright ?? 0.5,
     });
   });
-  const total = out.length ? out[out.length - 1].t + out[out.length - 1].dur : 0;
+  // a chorus (the murmurs speak as one): each syllable said again by the others, a little apart in time and pitch
+  if (L.chorus) {
+    const one = out.splice(0);
+    for (const x of one) {
+      out.push(x);
+      L.chorus.forEach((k, j) => out.push({ ...x, t: +(x.t + 0.012 * (j + 1)).toFixed(4), f0: +(x.f0 * k).toFixed(2), pitch: x.pitch.map(([dt, f]) => [dt, +(f * k).toFixed(2)]), gain: +(x.gain * 0.5).toFixed(4), chorus: j + 1 }));
+    }
+  }
+  const total = out.length ? Math.max(...out.slice(-4).map((x) => x.t + x.dur)) : 0;
   return { syllables: out, total, cps: speed, tone: toneId, lang, text: s };
 }
 
@@ -329,7 +350,7 @@ export function speakBalloon(text, { person = {}, dist = 0, pan = 0, range = 26,
   if (!OUT || !text) return false;
   const k = Math.max(0, 1 - dist / range);
   if (k <= 0.05 || OUT.canSpeak?.('balloon', k * k) === false) return false;   // (checked before planning: cheap to retry next frame)
-  const lang = OUT.language ?? 'desert';
+  const lang = person.lang ?? OUT.language ?? 'desert';   // (the world's tongue, or the speaker's own: an alien's)
   const plan = planLine(text, { voice: voiceOf(person), lang, max });
   // (the plan when it is sung, so the speaker's mouth can follow its syllables: src/talk-face.js)
   return (OUT.speak?.(plan, { channel: 'balloon', gain: k * k, pan }) ?? false) ? plan : false;

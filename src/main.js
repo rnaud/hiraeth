@@ -36,6 +36,7 @@ import { Sound } from './audio.js';
 import { Weather, WEATHER_KINDS } from './weather.js';
 import { Shelter, addIndoors } from './shelter.js';
 import { spawnNPCsSteps, pooledNPC, registerNPCTargets } from './npc.js';
+import { spawnAliens, alienSpots } from './aliens/index.js';
 import { Crowd, CROWD_DIST_CELL, CROWD_BUDGET, buildPeopleSteps } from './crowd.js';
 import { Journal, Relics, Story, Errands } from './quest.js';
 import { CONTENT, ERRANDS } from './levels/content.js';
@@ -426,7 +427,7 @@ const npcs = await runStepsAsync(spawnNPCsSteps(scene, physics, content.npcs, { 
 await slice();
 // city crowds: hundreds of GPU-animated people, the nearest few promoted to full NPCs (crowd.js)
 const crowdSpots = level.crowdSpots ? { lines: level.crowdLines, ...level.crowdSpots() } : null;
-const crowdClear = content.npcs.map((s) => ({ x: s.at[0], y: s.y, z: s.at[1], r: 3 }));
+const crowdClear = [...content.npcs.map((s) => ({ x: s.at[0], y: s.y, z: s.at[1], r: 3 })), ...alienSpots(levelId)];   // (and the aliens' places: src/aliens/)
 const crowdT0 = performance.now();
 const crowdBuilt = crowdSpots ? await runStepsAsync(buildPeopleSteps(physics, crowdSpots, { seed: 11, clear: crowdClear }), slice) : null;
 // (the near tier's bodies one at a time: each is a person built and dressed)
@@ -440,6 +441,7 @@ const crowd = level.crowdSpots ? new Crowd(scene, physics, {
 if (crowd && mhPeople) mhPeople.then((p) => p?.warm());   // (the crowd's MakeHuman bodies made ahead, while idle)
 if (crowd) { npcs.push(...crowd.npcs); console.info(`crowd: ${crowd.people.length} people in ${crowd.groups.length} groups, placed in ${(performance.now() - crowdT0).toFixed(0)} ms`); }
 registerNPCTargets(npcs);   // the fluid tool can splash or shove anyone
+npcs.push(...spawnAliens(scene, physics, levelId));   // the world's non-humanoid people (src/aliens/: their own targets, talkable by their def.talk)
 await slice();
 const journal = new Journal(LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, relicNames: CONTENT[l.id].relics.names, storyTitle: CONTENT[l.id].story.title })));
 const errands = new Errands({ levelId, defs: ERRANDS, npcs, journal, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])), capture: (e, l, w, h) => captureView(e, l, w, h), sound });
@@ -497,7 +499,7 @@ const boxes = createBoxes({ levelId, scene, physics, level, player, sound, quest
   cam: { shot: (s) => ship.shot(s), release: (b) => ship.release(b), hud: (on) => ship.cinema.hud(on), bars: (on) => ship.cinema.bars(on) } });
 const itemFx = createItemEffects({ player, tool, level, sound, camera, toast: showToast, isNight: () => sky.hour < 6.4 || sky.hour > 19.3 });
 await slice();
-journal.sections.unshift(() => gearHtml(items.owned(), { mode: tool.owned && tool.modes.length > 1 ? tool.modeName : null }));   // Select / View opens on your gear
+journal.sections.unshift(() => gearHtml(items.owned(), { mode: tool.owned && tool.modes.length > 1 ? tool.modeName : null, carried: storyRt.quests.carried() }));   // Select / View opens on your gear
 journal.sections.push(() => boxes.journalHtml(Object.fromEntries(LEVELS.map((l) => [l.id, l.title]))));
 // the father's charge (src/story/charge.js): the journey's own quest, pinned above everything
 const charge = () => chargeState({ flag: (f) => game.flag(f), keepsakes: game.keepsakes(), completed: ship.completed().length,
@@ -722,6 +724,7 @@ function applyDetail() {
   sharedUniforms.uCloudShadows.value = preset.cloudShadows && !low ? baseCloudSh : 0;
   sharedUniforms.uShadowTaps.value = preset.taps;
   U.uPostLite.value = preset.postLite ? 1 : 0;
+  sharedUniforms.uWearLite.value = low || preset.postLite ? 1 : 0;   // (lighter weathering: materials.js WEATHER)
   waterShared.uWaterLite.value = low || preset.postLite ? 1 : 0;   // (src/water-shader.js)
   for (const n of npcs) n.lowDetail = low;
   if (crowd) {
@@ -773,8 +776,8 @@ const menu = new SettingsMenu(settings, {
   onBook: () => journal.toggle(true),
   onDebug: () => showPicker(true),
   // the Quests page: where to go now (what the scout would find), the father's charge, the quest log (the sketchbook's own sections)
-  quests: () => { const ob = scout.getTarget(); return questsPageHtml({ objective: ob?.label, distance: ob ? roughDistance(player.pos.distanceTo(ob.position)) : '', charge: chargeJournalHtml(charge()), quests: storyRt.quests.journalHtml(), carrying: errands.hud() }); },
-  onTrack: (id) => storyRt.quests.track(id),
+  quests: () => { const ob = scout.getTarget(); return questsPageHtml({ objective: ob?.label, distance: ob ? roughDistance(player.pos.distanceTo(ob.position)) : '', charge: chargeJournalHtml(charge()), quests: storyRt.quests.journalHtml(), carrying: [storyRt.quests.carried().join(', '), errands.hud()].filter(Boolean).join(' · ') }); },
+  onTrack: (id) => storyRt.quests.choose(id),
   onQuit: () => quitToTitle(),
   // an update restarts the game (at the title, in the new build): the position and the time played first
   onBeforeRestart: () => { if (!player.riding && !ship.playing) writeSave(); flushPlay(); reactiveWorld.flush(); },
@@ -938,7 +941,10 @@ function placeToolGauge() {
 }
 
 
-const busy = () => restartOpen || story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || menu.open || endingOpen || storyRt.busy() || ship.busy() || boxes.busy();
+const busy = () => restartOpen || story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || menu.open || endingOpen || storyRt.busy() || ship.busy() || boxes.busy() || !!level.quickMenu?.open;
+// a level's own quick menu (the References' list of views: src/levels/reference-picker.js): a menu like the others for the pad
+const quickMenu = level.quickMenu ?? null;
+if (quickMenu) quickMenu.blocked = () => busy() || photo.on;
 const noInput = {};
 let controllerActive = false;
 const hintShown = { text: '', at: -1e9, active: false };
@@ -951,11 +957,12 @@ const pageUp = () => pageEl.classList.contains('open');
 // (in the order they stack on the screen: what's new, the Start menu, the sketchbook over a box's card, the
 // worlds, a story page, a conversation; B / ○ closes the one on top, so the sketchbook opened over a
 // conversation or a moment closes first)
-const menuRoot = () => restartOpen ? restartEl : changelog.open ? changelog.el : menu.open ? menu.el : journal.open ? journal.el : boxes.busy() && boxes.card.el ? boxes.card.el : picker.classList.contains('open') ? picker : pageUp() ? pageEl : storyRt.dialogue.open ? storyRt.dialogue.el : pageEl;
+const menuRoot = () => restartOpen ? restartEl : changelog.open ? changelog.el : menu.open ? menu.el : quickMenu?.open ? quickMenu.el : journal.open ? journal.el : boxes.busy() && boxes.card.el ? boxes.card.el : picker.classList.contains('open') ? picker : pageUp() ? pageEl : storyRt.dialogue.open ? storyRt.dialogue.el : pageEl;
 const closeControllerMenu = () => {
   if (restartOpen) return;   // (only confirm restarts: there is nothing to go back to)
   if (changelog.open) changelog.toggle(false);
   else if (menu.open) menu.back();
+  else if (quickMenu?.open) quickMenu.toggle(false);
   else if (journal.open) journal.toggle(false);
   else if (storyRt.moments.playing) storyRt.moments.skip();   // B / ○ skips a moment (src/story/moment.js)
   else if (boxes.busy()) boxes.skip();
@@ -969,7 +976,7 @@ const controller = new Controller({
   faces: () => padFaces(),
   look: (x, y) => { if (x || y) rig.look(x, y); },
   activity: () => { controllerActive = true; screenInput = false; sound.start(); },   // (where a pad press may start sound: the Android app)
-  navigate: (x, y) => menuNavigate(menuRoot(), x, y),
+  navigate: (x, y) => { const root = menuRoot(); if (quickMenu && root === quickMenu.el) quickMenu.navigate(x, y); else menuNavigate(root, x, y); },
   scroll: amount => { const root = menuRoot(); (root.querySelector('.list, .panel:not([hidden]), .sheet') ?? root).scrollTop += amount; },
   action: (name, dt) => {
     if (name === 'zoomOut' || name === 'zoomIn') rig.dist = THREE.MathUtils.clamp(rig.dist * Math.exp((name === 'zoomOut' ? 1 : -1) * dt), 4, 60);
@@ -994,7 +1001,8 @@ const controller = new Controller({
     if (name === 'photo') setPhoto(!photo.on);
     if (name === 'capture') photo.capture = true;
     if (name === 'ping' && !ship.playing) scout.ping();
-    if (name === 'call' && !ship.playing) player.callMount();   // the pad's own button for it (the keyboard's E still falls back to it)
+    if (name === 'call' && quickMenu) quickMenu.toggle(true);   // (the References: X / □ opens the list of views; there is no mount to call)
+    else if (name === 'call' && !ship.playing) player.callMount();   // the pad's own button for it (the keyboard's E still falls back to it)
     if (name === 'bell' && level.jump) level.jump(1);   // in the Lab, R3 / L3 hop to the next / previous world's room
     else if (name === 'bell') itemFx.ring();   // R3: the bell-note whistle (V), and the echo shell plays back
     if (name === 'l3' && level.jump) level.jump(-1);

@@ -649,3 +649,21 @@ All of this is for the web game; the Unity port follows later if we move to Unit
     buildings at 0.85, its people, bird and flowers keep their shade); strata rock hatched down its
     faces; no cross-hatched rings under caps (wood grain). On the world: a clean sky, no bounce, a
     grey-teal shade, the needles with few strokes and no beds.
+- Spot blacks, the third tier of value (the author's ask; docs/systems/references.md): a shaded point
+  enclosed at a pocket's scale (G-buffer depth and normals, 8 fixed taps, 4 on the handheld, hard
+  threshold) filled with the world's darkest tone, cast shadows darkened toward it by a per-world knob
+  (`uSpot`, `uSpotTone`: every preset, a world's `defaults.look`, a view's `look`; `makeMaterial({ spot })`
+  per material; never faces, people, grass, lights or glass). On in Moebius print; IMG_3774's views and
+  the Buried Machine (world and views) print their cast shadows darker.
+- The Buried Machine (IMG_3789–3792: 5 + 6 + 6 + 5 panels) are views 82–103 (`reference-buried.js`):
+  huts, pipes, oval walls and doorways, tanks, machinery, the drum, the hanging city, the ring, derricks,
+  cloud. `?look=buried`.
+- The Garden of Spheres (IMG_3793–3796: 4 + 6 + 6 + 6 panels) are views 104–125 (`reference-spheres.js`):
+  umbrella trees with branches under their canopies (greebles for the spot blacks), pyramids, spheres and
+  arches, the white hill, ruins, olives, cypresses, the plaza, lakes. On the world (`SPHERES_LOOK`): no bounce
+  under the canopies, the white stone's shade the pale blue, green spot blacks. `?look=spheres`.
+- Worn by time (the author's ask, docs/systems/materials.md): grime streaks, chips with the plaster lip's
+  shadow, cracks with a shadow side, dust at the wall's foot (post.js), per building, lighter on the
+  handheld; on in every world's plaster, mud and stone buildings. The "fuzzy dots" on view 2's dish
+  column (and the "dotted texture on grazing lit faces") were faceted normals from imprecise derivatives
+  far from the origin: now from the camera-relative position.

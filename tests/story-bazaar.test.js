@@ -51,6 +51,7 @@ const step = (n = 1, dt = 1 / 30) => {
   }
 };
 const talk = (person, choices) => {
+  quests.opening(person.id);   // (as Dialogue.start does: the world's opening quest starts with its first talk)
   const r = new DialogueRunner(person, { game, quests });
   for (const c of choices) {
     while (!r.lastPage) r.advance();
@@ -98,7 +99,9 @@ test('every conversation’s links lead somewhere', () => {
 });
 
 test('the main quest: Sel, Kip’s recording, the antenna, the broadcast, and where it came from', () => {
-  assert.equal(quests.stage('bazaar.signal'), 'sel');
+  // it doesn't just appear: it waits for its first talk, and till then the scout finds who to ask
+  assert.equal(quests.stage('bazaar.signal'), undefined);
+  assert.equal(quests.openerObjective()?.id, `opener-${'bazaar.signal'}`);
   assert.ok(quests.objective().position.distanceTo(W.people.sel.pos) < 0.01);
   talk(PEOPLE.sel, ['Why did it go quiet', 'I’ll find Kip', 'Then we listen']);
   assert.equal(quests.stage('bazaar.signal'), 'kip');

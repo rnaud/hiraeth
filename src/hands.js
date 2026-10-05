@@ -359,7 +359,7 @@ export function npcHands(n) {
 /** The gesture of someone speaking (their talking face, src/talk-face.js): { tone, k, beat }, or null. */
 export function talkOf(h, faces = gameFaces) {
   const f = faces?.faces?.get(h);
-  if (!f) return null;
+  if (!f || f.quiet) return null;   // (a face worn without a word: the hands stay still)
   const k = Math.max(f.talk ?? 0, f.hold > 0 ? Math.min(1, f.hold / 0.6) * 0.8 : 0);
   return k > 0.01 ? { tone: f.tone, k, beat: Math.min(1, (f.open ?? 0) * 1.6) } : null;
 }

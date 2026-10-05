@@ -39,6 +39,7 @@ const { quests } = rt;
 let clock = 0;
 const step = (n = 1, dt = 1 / 30) => { for (let i = 0; i < n; i++) { clock += dt; camera.position.copy(player.pos).add(V(0, 2, 4)); camera.lookAt(player.pos); camera.updateMatrixWorld(); rt.update(dt, clock, { camera }); } };
 const talk = (person, choices) => {
+  quests.opening(person.id);   // (as Dialogue.start does: the world's opening quest starts with its first talk)
   const r = new DialogueRunner(person, { game, quests });
   for (const c of choices) {
     while (!r.lastPage) r.advance();
@@ -76,7 +77,9 @@ test('the people of the domes, the canyon and the oculus stand on walkable groun
 
 test('the main quest: Tooth Day, the Wick lit, the wheel turns one tooth, Wen counts it', async () => {
   const Q = 'buried.tooth';
-  assert.equal(quests.stage(Q), 'wen');
+  // it doesn't just appear: it waits for its first talk, and till then the scout finds who to ask
+  assert.equal(quests.stage(Q), undefined);
+  assert.equal(quests.openerObjective()?.id, `opener-${Q}`);
   talk(PEOPLE.wen, ['What wheel?', 'And it turns today?']);
   step(2);
   assert.equal(quests.stage(Q), 'hask');

@@ -44,6 +44,7 @@ const W = rt.world;
 let clock = 0;
 const step = (n = 1, dt = 1 / 30) => { for (let i = 0; i < n; i++) { clock += dt; camera.position.copy(player.pos).add(V(0, 2, 4)); rt.update(dt, clock, { camera }); bird.update(dt, player.riding ? {} : null); } };
 const talk = (person, choices) => {
+  quests.opening(person.id);   // (as Dialogue.start does: the world's opening quest starts with its first talk)
   const r = new DialogueRunner(person, { game, quests });
   for (const c of choices) {
     while (r.advance());
@@ -107,7 +108,9 @@ test('the tower’s steps are boost-jumps from the balcony up to the sill', () =
 });
 
 test('the main quest: Oïa, the wind up the tower, the flute on the sill, her call, the promise', () => {
-  assert.equal(quests.stage('arzach.bird'), 'watcher');
+  // it doesn't just appear: it waits for its first talk, and till then the scout finds who to ask
+  assert.equal(quests.stage('arzach.bird'), undefined);
+  assert.equal(quests.openerObjective()?.id, `opener-${'arzach.bird'}`);
   // the bird is nowhere to be seen until her call is played: not drawn, not to be ridden, deaf to a plain whistle
   assert.equal(bird.dormant, true, 'not to be ridden');
   assert.equal(bird.object.visible, false, 'not seen');
@@ -118,7 +121,7 @@ test('the main quest: Oïa, the wind up the tower, the flute on the sill, her ca
   game.set('arzach.rode', undefined);
   game.set('quest.arzach.bird', 'ride');
   assert.equal(quests.stage('arzach.bird'), 'tower');
-  game.set('quest.arzach.bird', 'watcher');
+  game.set('quest.arzach.bird', undefined);   // (back to a new game: the quest waits for Oïa)
   talk(PEOPLE.oia, ['Who lived', 'And the bird', 'I’ve seen that mark', 'I’ll go']);
   assert.equal(game.flag('arzach.glyph.drawn'), true, 'she draws the glyph in the sand');
   step(2);

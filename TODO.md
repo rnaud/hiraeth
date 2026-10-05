@@ -27,13 +27,19 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 ## The desert's story
 
-- [ ] The quest shouldn't just appear: someone I talk to gives me a hint about where to go.
-- [ ] Nour doesn't start talking by herself: she makes a sound so it's clear I should go and talk to her.
-- [ ] The traveller doesn't say "how is it that I can understand you" (it's obvious).
-- [ ] The spark-stone goes into my inventory instead of floating around.
-- [ ] The cave filling cinematic: the bottom half of the pipe still has stuff in it, so it doesn't look
-  unclogged.
-- [ ] Cinematics show, don't tell: the traveller reacts with at most a slight smirk, nothing corny.
+- [x] The quest shouldn't just appear: someone I talk to gives me a hint about where to go. (Marrow waits at the
+  ship and calls you over; the quest starts in his talk, the drone finds him till then; every world's main quest now
+  starts in a talk with its first person: quests.opensWith)
+- [x] Nour doesn't start talking by herself: she makes a sound so it's clear I should go and talk to her. (she comes
+  over and calls "Psst. Child." every few seconds with a psst-and-hum sound, turned to you; the talk is on the prompt)
+- [x] The traveller doesn't say "how is it that I can understand you" (it's obvious). (the choice and Nour's
+  translator answer are gone; no other world had one)
+- [x] The spark-stone goes into my inventory instead of floating around. (hidden while carried, listed under "In your
+  pack" in the gear page and the Quests page, out of your hand into the well)
+- [x] The cave filling cinematic: the bottom half of the pipe still has stuff in it, so it doesn't look
+  unclogged. (it was the dark: one light by the rib left half the gutter unlit, hatched like rubble; four lights now)
+- [x] Cinematics show, don't tell: the traveller reacts with at most a slight smirk, nothing corny. (no lines, no
+  surprised or happy faces, no talking hands in the desert's two; a quiet 'smirk' look at the end)
 
 ## Conversations
 
@@ -102,7 +108,7 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 - [x] Robes still fly through people until I get close. (A cape simulated every 2nd or 3rd frame, further off or on a 30 fps handheld, now lives all the time since its last update and is carried along with its wearer between updates, pinned and pushed by the collar and limbs on their way, so it no longer streams out behind or lets legs and arms through; the robe under a cape is a collider; the crowd's figures wear the full people's wide cape over their arms and robe, and their robes swing as the full ones do; body girths are measured on the full mesh at every level of detail. tests/robes.test.js)
 - [x] Every world on MakeHuman bodies; more variety in headwear: hats, goggles, scarves… (every level in `MH_WORLDS`, one commit a world, the children given their ages; 15 new headwear, 5 face and 3 neck pieces on the skull egg, hair squashed under hats on MakeHuman heads, a fit test on seven heads, each world's set drawn apart so named people keep their looks; the studio's headwear lineups; docs/makehuman.md stage 3)
-- [ ] Alien species on the planets: non-humanoid characters (people, not animals).
+- [x] Alien species on the planets: non-humanoid characters (people, not animals). (Four peoples with procedural bodies, no skeleton: drifters in the Garden of Spheres, stilt-walkers in Vael, shellbacks in Lorn II, murmurs in the Signal Market, three or four each. Each has its own idle and movement, voice and script, tones shown as glow and gesture, a portrait and two-shot, listen-only talk with quest hints, its own reaction to the fluid tool, levels of detail and shadows. docs/systems/aliens.md)
 
 ## The app
 
@@ -116,10 +122,16 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 ## The References level
 
 - [ ] Recreate every reference sheet as views (`?level=references`, `[` / `]`, L3 / R3; docs/systems/references.md, "The
-  References"). Done: the desert (views 1–27), the City-Shaft (28–50) and Vael II (51–81), DONE.md; Vael has
-  no sheets (`references/Vael/` is empty). In progress, one world at a time: the Buried Machine → the Spheres →
-  Lorn II → the Signal Market.
+  References"). Done: the desert (views 1–27), the City-Shaft (28–50), Vael II (51–81) and the Buried Machine
+  (82–103) and the Garden of Spheres (104–125), DONE.md; Vael has no sheets (`references/Vael/` is empty). In
+  progress, one world at a time: Lorn II → the Signal Market.
   - Shader findings left:
+    - Spot blacks (`uSpot`) fill the shaded pockets our scenes have; the sheets' interiors are dense small
+      machinery at every scale, so most of their black masses have no geometry to sit in here yet.
+      Vael II's spawn on High pays +1.7 ms for them (its many shaded overhangs).
+    - The Buried Machine's sheets: clouds as soft cream masses with a few thin lines (ours inked lumps);
+      the hanging city's recesses mostly lit (ours one shaded mass); the canyon floor's dense stippling
+      and the dunes' long shaded slopes as flat sage bands are not drawn.
     - The print preset keeps its cumulus bank and clouds (the worlds' own; the views turn them off).
     - The half-tone can't tell a back wall inside another's cast shadow (it reads as half-tone, the panel's is
       full shadow).
@@ -134,8 +146,9 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
       option is missing).
     - Flat shadow per material (the City-Shaft's trees go grey-blue with `uShadowFlat` on, so the world
       doesn't use it yet); the shaft sheets' faces carry fine vertical cracks and pipes; the deep shaft views
-      fade to a pale blue haze with depth (our fog is by distance); a few lit faces at grazing angles show a
-      dotted texture.
+      fade to a pale blue haze with depth (our fog is by distance).
+    - Worn walls: stains round the doors are not drawn (the doors are separate meshes); the dust band at a
+      wall's foot is hidden where sand banks against it.
   - Vael II, shader-level left: the sheets hatch a cap's underside along its ribs, radiating from the
     stalk, dense and dark; ours are parallel strokes (no radial coordinate in merged geometry: a
     per-vertex axis would do it). The clouds' outlines and shade: the sheets draw them in thin,
@@ -150,9 +163,19 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
     standing pose (buildBird's rest pose lies low), the cloud sea's cauliflower detail.
   - Vael II world, left: its cloud puffs are pre-shaded vertex colours (not the flat print), its
     planets stay (the sheets have none), dusk and night keep the old blue shadow.
+  - Garden of Spheres, shader-level left: the canopies' undersides drawn as dense radiating branch lines and
+    foliage as clusters of small inked leaf masses (ours smooth lumps); the white stone's shade a flat pale
+    blue with almost no strokes; the spheres' printed crescent whatever the sun. Scene-level: the white hill's
+    sculpted rock, the ruins' arcades, the robot, the hedges' fruit, the plaza's paving are sketches.
+  - Buried Machine, scene-level: the trench's pipe mass, the city's clustered hanging towers, the drum's
+    interior machinery and arcades, the oval tunnel's interior, the moon cave and the rock ledge are sketches.
   - Scene-level: the game's City-Shaft is a round cream-and-blue pit with a spire, terraces and a hill-town,
     the sheets' a canyon of pink and cream stacked houses with water below; the views' houses are boxes (no
     pipes, balconies, laundry or plating under the overhangs), the cabs and blimps simple capsules.
+- [x] A quick menu to jump to any reference, with a tiny picture of its panel. (`src/levels/reference-picker.js`:
+  every view grouped by world and sheet, thumbnails cut from the sheets with each view's crop on a canvas,
+  built on the first opening; Tab, X / □ on a pad or the "views" button opens it, B / ○ or Esc closes;
+  mouse, arrows and Enter, d-pad or stick and A / ×; docs/systems/references.md, "The quick menu of views".)
 
 ## MakeHuman bodies
 

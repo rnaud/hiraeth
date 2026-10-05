@@ -58,7 +58,9 @@ tone, a swell of the world's score, then back to you.
   Vector3s or functions of the shot's time (to follow a stream's head, a face); no `to` holds.
   `shotAt(shots, t)` is pure (tested). Beats `{ t, line?, secs?, run? }` say a line (`spoken()`,
   with its tone: the traveller's face and hands take it) or run a cue. `m.face` / `m.eyes` turn
-  him and his eyes; `m.look` holds a tone on his face; `faceOf(humanoid)` gives where his face
+  him and his eyes; `m.look` holds a look on his face **quietly** (src/talk-face.js `look`: the
+  expression only, the mouth shut, the hands still; `'smirk'` is a look of its own,
+  `TONE_EXPRESSIONS.smirk`, not a dialogue tone); `faceOf(humanoid)` gives where his face
   is and looks as posed, for close-ups that never catch an ear. While one plays the idle's
   look-around waits, the game's toasts wait (`cinema.held`), input is cut (`storyRt.busy()`).
 - **Once, skippable, never in the way.** Its flag is set as it starts. B / ○, the Menu button,
@@ -77,14 +79,19 @@ tone, a swell of the world's score, then back to you.
     the gutter from past its end, the crack lighting and the water coming down it (the flow
     waits for this panel, `st.flowDelay`); C, high over the gutter's end across the basin, the
     pool spreading over the dry bed round the roots, its light coming up; D, his face,
-    three-quarter, lit from below: "It's running… like the giants on the mural." The world's
-    motif swells over it; its toast comes after.
+    three-quarter, lit from below: he watches, and the corner of his mouth goes up. The world's
+    motif swells over it; its toast comes after. (The gutter is lit along its whole length by
+    four lights, `desert-city.js` `chLights`: with one, by the rib, its unlit half read in the
+    hatching as full of rubble, even with the water running down it.)
   - *the empty tank's first fill* (`desert.moment.fill`), the first wade with the dry tank: A,
     over the water at him standing in the pool; B, over his shoulder on the glass as the water
     climbs into it slowly in three colours (`tool.fillTo` holds the glass's level), its glow on
     his back; C, beside him: he lifts the bracer, its rings light one by one, and a first glob
-    (`tool.spark(dir)`, spending nothing) splashes out across the pool; D, his face: "Full. So
-    that's what it was waiting for." To the father's theme. The jar fills and the controls are
-    said (RT / R2, RB / R1) at its end.
+    (`tool.spark(dir)`, spending nothing) splashes out across the pool; D, his face: a slight
+    smirk. To the father's theme. The jar fills and the controls are said (RT / R2, RB / R1) at
+    its end.
+  - **Show, don't tell** (players: "the character feels corny"): the traveller says nothing in
+    them and reacts with his face only, a slight smirk at most; no surprised or happy faces, no
+    gestures. `tests/moment.test.js` holds them to it (no line in his voice, no big look).
   - Tests: `tests/moment.test.js` (the shots, a play through, the skip and its grace, a failure,
     the stage's refusals, and both desert moments in the story: once, skipped, without a ship).

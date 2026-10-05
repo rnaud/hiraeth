@@ -53,6 +53,7 @@ const step = (n = 1, dt = 1 / 30, look = null) => {
   }
 };
 const talk = (person, choices) => {
+  quests.opening(person.id);   // (as Dialogue.start does: the world's opening quest starts with its first talk)
   const r = new DialogueRunner(person, { game, quests });
   for (const c of choices) {
     while (!r.lastPage) r.advance();
@@ -125,7 +126,9 @@ test('every conversation’s links lead somewhere', () => {
 });
 
 test('the main quest: from the rim, down to the shrine, up to the palace, and the light burns', () => {
-  assert.equal(quests.stage('incal.light'), 'nima');
+  // it doesn't just appear: it waits for its first talk, and till then the scout finds who to ask
+  assert.equal(quests.stage('incal.light'), undefined);
+  assert.equal(quests.openerObjective()?.id, `opener-${'incal.light'}`);
   assert.match(rt.hud(), /Nima/);
   // the marker is on Nima
   assert.ok(quests.objective().position.distanceTo(W.people.nima.pos) < 0.01);

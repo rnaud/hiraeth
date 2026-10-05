@@ -6,7 +6,11 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
-  { v: '0.67', date: '2026-10-05', items: [
+  { v: '0.69', date: '2026-10-06', items: [
+    'Old buildings look worn by time: dirt streaks run down their walls from the tops and sills, patches of plaster have broken away with a little shadow under the edge, longer cracks have a shadow side, and dust darkens the foot of the walls. Each building wears differently. You see it on the desert’s city and domes, the Signal Market’s shops, the houses at home and of the City-Shaft.',
+    'Faceted shapes far from the middle of a world no longer break into fuzzy dots where the sun grazes them.',
+    'The traveller looks more like his drawings. His hair is a short, tousled mop of soft curls with a fringe over his forehead, instead of long locks. His coral overshirt has a proper collar and hangs open and loose over his undershirt, down to his thighs.',
+    'He wears a little tan neckerchief knotted at his throat instead of the bunched scarf, and slim, low suede ankle boots with thin soles instead of the big rounded ones. His trousers hang looser, and his satchel sits on his right hip, as in the drawings.',
     'People wear many more kinds of headwear: wide and narrow-brimmed hats, flat straw hats, bowlers, peaked and flat caps, knit caps, fur hats with their ear-flaps down, aviators’ caps, kerchiefs and headscarves, small round caps, circlets, miners’ hard hats with a lamp, and hoods thrown back on the shoulders. On their faces and necks: round spectacles, dark glasses, cloths over the mouth, desert face-wraps, now and then a monocle, neckerchiefs, thick mufflers and goggles hung round the neck.',
     'Each world wears its own: wraps, veils, face-wraps and straw hats in the desert; bowlers on the City-Shaft’s rim, caps, knit caps and goggles further down, ear-flaps and kerchiefs at the bottom; aviators’ caps in the Hangar, hard hats under the Buried Machine, circlets in the gardens, flat caps, knit caps and headscarves in the Signal Market. People in the crowds far off wear them too.',
     'On the new bodies, hair shows under a hat, a cap or a headband: pressed flat where the hat sits and falling out below it, instead of a short cap of hair under every hat.',
@@ -24,11 +28,33 @@ export const CHANGELOG = [
     'The Lab’s giants, its gallery of faces, have the new bodies and faces too, so the faces you study there are the ones people wear.',
     'The small robed walkers in the References scenes have the new bodies too.',
     'The artist in the atelier has the new body too: every world’s people now do, except the traveller, who keeps his own.',
+  ] },
+  { v: '0.68', date: '2026-10-05', items: [
+    'In the desert the quest no longer just appears when you land: Marrow the salvager is at your ship, looking over the scar on its hull, and calls you over. Talk to him and he tells you the only fire that could wake your ship is the great tree’s, in Qanat, and to ask old Nour; the quest begins then. Until you have talked to someone, your drone finds the one to ask.',
+    'Every other world opens the same way: its quest begins when you talk to the person who knows where to go (Oïa, Sister Aube, Madame Sel, Wen, Mira, Ambroise, Nima, Wendel, Hollin, Aube), and the drone leads you to them first.',
+    'Nour no longer starts talking by herself when the makers’ chest opens: she comes over and calls you with a soft “psst” every few seconds, turning to you, until you go and talk to her.',
+    'The traveller no longer asks Nour how it is that he understands her.',
+    'The spark-stone goes into your pack instead of floating about you: your gear in the sketchbook (and the menu’s Quests page) lists it with the other things you carry, and it comes out in your hand when you set it in the well.',
+    'In the giant’s chest the gutter is lit along its whole length, so once the rib is off it looks clear all the way down instead of half full of rubble.',
+    'The desert’s two cinematics show instead of tell: the traveller says nothing in them, and at the end only the corner of his mouth goes up.',
+    'Shadows have a third, darkest tone, as in the drawings: deep pockets in shade, between ribs and pipes, inside machines and under overhangs, fill with a near-black mass of the world’s darkest colour, and long shadows thrown by big masses go a little deeper. Lit areas stay clean; faces and people never go black.',
+    'The Buried Machine’s deep machinery and the rust canyon’s shadows are darker and richer, rust-brown and deep teal, as in its drawings.',
+    'The References scenes now include the Buried Machine: twenty-two views from its four sheets, the domes and pipes in the dunes, the rust canyon and its ovals, the teal drum open to the sky, the hanging city and the ring of arches.',
+    'The Garden of Spheres looks more like its drawings: the undersides of the great umbrella trees and the thickets are a deep, dark green, the white stone’s shade is a clean pale blue, and the darkest pockets of shade turn deep green instead of grey.',
+    'The References scenes now include the Garden of Spheres: twenty-two views from its four sheets, the umbrella groves, the pyramids, the giant spheres and their arches, the white hill, the lake and the olive avenue to the round plaza.',
+    'The References scenes have a quick menu: press Tab (X / □ on a controller, or the small “views” button at the top left) to see every view, grouped by world and sheet, each with a tiny picture of its panel, its number and its title. The one you are in is marked; move with the mouse, the arrows or the d-pad and choose one to go straight there. B / ○ or Esc closes it.',
+  ] },
+  { v: '0.67', date: '2026-10-05', items: [
     'The traveller dresses more casually: an everyday canvas rucksack, with a lid, buckled straps, pockets and a rolled bedroll, replaces the old radio box, and nothing of the space suit is left: soft desert boots without seams or buckles, a loose cotton scarf instead of the ringed collar.',
     'The fluid tank is a slim, flat glass flask now, set into the rucksack and held by leather bands. It sticks out far less from your back, and its three coloured bands still show your charges from behind. When the flask goes into a vehicle, the rucksack stays on your back.',
     'The drone perches on top of the flask’s leather upright, beside its neck and clear of your swinging arms; before you have the flask it rides on the rucksack’s lid. The lantern hangs just below it.',
     'His face is leaner, with thinner cheeks and a narrower chin, and his hair is a scruffier, curly mop of broken locks.',
     'Capes and robes stay on people at every distance: they no longer stream out behind walkers or let legs and arms through until you come close, a robe no longer shows through the cape over it, and the people farther off in a crowd wear capes as wide as the ones up close, over their arms, so nothing changes as they come near.',
+    'Not everyone out there is built like you. In the Garden of Spheres, old drifters float over the grass: pale ribbed bells with a glowing heart and long threads.',
+    'In Vael, tall stilt-walkers pace the plain on three long legs, with a lantern for a head. In Lorn II, shellbacks glide along the lit path, carrying their spiral houses. In the Signal Market, murmurs, five small pale bulbs who speak as one, hop through the crowd together.',
+    'You can talk to all of them. Each people has its own voice and its own writing, which the translator turns into your words. They have no faces, so a line’s mood shows in how they glow and move: a brighter heart, a lowered lantern, drooping eye stalks, a huddle.',
+    'Some of them know what you are looking for. They give hints while your quest is at that step, and they have news once a world’s story is done.',
+    'They react to your fluid in their own ways. Push a drifter and it floats away and drifts back; a stilt-walker totters and steps to keep its balance; a shellback pulls into its shell and rolls; the murmurs scatter and hop back together.',
   ] },
   { v: '0.66', date: '2026-10-05', items: [
     'The worlds come in a new order. After the desert, Vael is first: you find the fluid wings in its Aerie and learn to ride the winds. The fluid jets come much later, in the City-Shaft, the seventh world, and no world before it needs them. Saves that already have the jets keep them.',

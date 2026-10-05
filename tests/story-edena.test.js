@@ -40,6 +40,7 @@ const { quests } = rt;
 let clock = 0;
 const step = (n = 1, dt = 1 / 30) => { for (let i = 0; i < n; i++) { clock += dt; camera.position.copy(player.pos).add(V(0, 2, 4)); rt.update(dt, clock, { camera }); } };
 const talk = (person, choices) => {
+  quests.opening(person.id);   // (as Dialogue.start does: the world's opening quest starts with its first talk)
   const r = new DialogueRunner(person, { game, quests });
   while (r.advance());
   for (const c of choices) {
@@ -93,7 +94,9 @@ test('the hatch is in the hull itself, open meadow in front of it, and the cabin
 
 test('the main quest: the fallen ship, the log, the flowers drawn aside, the same mark', async () => {
   const Q = 'edena.garden';
-  assert.equal(quests.stage(Q), 'mira');
+  // it doesn't just appear: it waits for its first talk, and till then the scout finds who to ask
+  assert.equal(quests.stage(Q), undefined);
+  assert.equal(quests.openerObjective()?.id, `opener-${Q}`);
   talk(PEOPLE.mira, ['Twice?', 'Can I see it?']);
   step(2);
   assert.equal(quests.stage(Q), 'ship');
