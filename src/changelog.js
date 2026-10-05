@@ -9,6 +9,12 @@ export const CHANGELOG = [
     'Faces keep their lines a steady width on screen and simplify with distance, so people across the street stay clean instead of turning into scribbles.',
     'The Lab has a gallery of giant faces: twelve towering villagers, each with a different face and expression, and a walkway that brings you eye to eye with them.',
     'Character studio: a close-up view, a lineup of a face from every world, and a faces sheet you can save.',
+    'The traveller’s feet stay planted: no more skating at a jog or a run, and boots no longer sink into slopes or stairs.',
+    'Starting off you lean into the stride, braking you lean back; turning, you bank into the curve and your head leads the way.',
+    'Stopping mid-stride ends with a small settling step; turning on the spot, the feet step round instead of spinning in place; a sharp turn at a run is a plant-and-pivot.',
+    'Stairs: the feet land on the steps, the body rides them smoothly, and standing on a flight one foot rests a step lower.',
+    'People walk their own way: stride, bounce, posture and pace vary with build and age, and nobody marches in step with their neighbour. Near you they turn toward you with steps, their feet planted.',
+    'Far-off people use simpler bodies and less frequent animation, which makes busy streets cheaper to draw.',
   ] },
   { v: '0.51', date: '2026-10-05', items: [
     'Viridel: help Esk water her tea terraces. You’ll do your best, and it won’t be enough. What happens stays happened.',

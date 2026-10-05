@@ -15,6 +15,8 @@ import { cleanExpression } from './expression.js';
 import { Knockdown, toppleVelocities, KNOCKOVER } from './ragdoll.js';
 export { KNOCKOVER };
 import { holdAim } from './crowd.js';
+import { Locomotion, gaitFeet, gaitStyle, poseStyle } from './locomotion.js';
+import { SkinnedLod, skinnedLods } from './skinned-lod.js';
 
 // People of the world: they walk a looping route, pause and look around,
 // turn and wave when you come close, then say a line in a comic speech
@@ -47,6 +49,11 @@ export const SPLASHED = ['~angry~ Hey! I\u2019m soaked!', '~surprised~ Ugh, it\u
 export const SHOVED = ['~surprised~ Whoa! Watch it!', '~angry~ Oof! Hey!', '~angry~ Mind where you push!', '~scared~ Easy, traveller!'];
 export const SINGED = ['~shout~ Hot! Hot!', '~surprised~ Yow! That’s warm!', '~surprised~ My cloak! …oh. It doesn’t burn?', '~angry~ Sparks! Who’s throwing sparks?'];
 const STUN_FOR = 3.5;   // seconds a stilling glob holds them (fluid-kit.js STUN_SECONDS)
+// How much animation a person gets by their distance from the camera: up close every frame, the
+// feet planted on the ground (feet.js) and the body's lean and turn (locomotion.js); further off
+// the pose every 2nd, then 3rd frame (they still move every frame), no foot planting; past 110 m
+// the whole update a quarter of the time (and the body draws a simpler mesh: skinned-lod.js).
+export const NPC_DETAIL = { feet: 22, every2: 30, every3: 60, quarter: 110 };
 let knockedDown = 0;   // bodies down at once (KNOCKOVER.most)
 
 const _face = new THREE.Vector3();
@@ -112,6 +119,13 @@ export class NPC {
     this.facing = facing;   // (stands facing this way, rad, until someone comes near: the Lab's giants)
     if (!dress) this.char.root.traverse((o) => { if (o.isMesh && o.geometry.type === 'TorusGeometry' && o.parent === this.char.capeAnchor) o.visible = false; });
     this.animator = lib ? new Animator(lib, this.char) : null;
+    // their own way of walking (locomotion.js gaitStyle), seeded by who they are; the loops start
+    // at their own point, so people side by side neither breathe nor step in time
+    this.gait = this.styleGait(dress?.build ?? 'average', this.object.scale.x, `${def?.id ?? ''}:${at.x.toFixed(1)},${at.z.toFixed(1)}`);
+    if (this.animator) { this.animator.bindBody(this.humanoid); this.animator.offsetLoops(this.gait.phase); }
+    this.speed *= this.gait.pace;
+    this.loco = new Locomotion({ walk: 1.4, style: { lean: 0.6, bank: 0.8 } });
+    if (this.humanoid) this.humanoid.lod = skinnedLods.add(new SkinnedLod(this.humanoid));
     this.pos = route[0].clone();
     this.heading = facing ?? 0;
     this.wp = 1 % route.length;
@@ -126,6 +140,13 @@ export class NPC {
     this.balloon.className = 'balloon';
     document.body.appendChild(this.balloon);
     if (pooled) this.hide();
+  }
+
+  /** Their gait style (locomotion.js) from their build, size and a seed string. */
+  styleGait(build, size, seed) {
+    let h = 2166136261;
+    for (let i = 0; i < seed.length; i++) h = Math.imul(h ^ seed.charCodeAt(i), 16777619);
+    return gaitStyle(mulberry32(h >>> 0), { build, kind: this.kind, size });
   }
 
   /** Shown bodies are in the scene; hidden ones leave it, so their hundred bones skip every pass's matrix update. */
@@ -154,7 +175,10 @@ export class NPC {
     this.lineIdx = 0;
     this._frozen = false;
     this.endDown();
-    if (this.animator) this.animator.phase = person.phase;
+    this.gait = this.styleGait(person.style?.build ?? 'average', person.size, `crowd:${person.id ?? person.seed}`);
+    if (this.animator) this.animator.offsetLoops(person.phase);
+    this.humanoid?.resetFeet();
+    this.loco.reset(person.heading);
     if (this.cape) this.cape.ready = false;   // the cloth drops into place at the new spot
   }
 
@@ -449,17 +473,29 @@ export class NPC {
     if (face !== null) {
       let dh = face - this.heading;
       dh = Math.atan2(Math.sin(dh), Math.cos(dh));
-      this.heading += dh * (1 - Math.exp(-5 * dt));
+      // standing, a person turns no faster than their feet can step round (feet.js); walking, at the pace of the path
+      const turn = dh * (1 - Math.exp(-5 * dt)), most = (speed < 0.3 && !startled ? 2.6 : 9) * dt;
+      this.heading += THREE.MathUtils.clamp(turn, -most, most);
     }
+    this._face = face;
     // stay on the ground
     const g = this.physics.groundAt(this.pos.x, this.pos.y + 1.5 - (this.seat ?? 0), this.pos.z);
     if (Number.isFinite(g)) this.pos.y += (g + (this.seat ?? 0) - this.pos.y) * (1 - Math.exp(-15 * dt));
 
     const waveT = this.talkTo ? -1 : this.greeted && !this.seat ? this.time - this.greeted : -1;
-    this.pose(dt, speed, waveT, dist, player, this.talkTo ? (this.talkTo.speaking ? 'talk' : 'ground') : null);
+    // the pose: every frame near the camera, every 2nd / 3rd further off (they still move every frame)
+    const D = NPC_DETAIL, near = camD0 < D.feet;
+    const every = camD0 < D.every2 || this.time - this.startleAt < 1 ? 1 : camD0 < D.every3 ? 2 : 3;
+    this._poseDt = (this._poseDt ?? 0) + dt;
+    this._poseN = ((this._poseN ?? 0) + 1) % every;
+    const posing = this._poseN === 0 || !this._posed;
+    if (posing) {
+      this._posed = true;
+      this.pose(this._poseDt, speed, waveT, dist, player, this.talkTo ? (this.talkTo.speaking ? 'talk' : 'ground') : null, near);
+    }
     this.object.position.copy(this.pos);
     this.object.quaternion.setFromAxisAngle(Y, this.heading);
-    this.posture(dt, { startle: this.time - this.startleAt, pose: this.seat ? 4 : 0 });
+    if (posing) this.posture(this._poseDt, { startle: this.time - this.startleAt, pose: this.seat ? 4 : 0 });
     if (this.seat) {
       // the hips down on the cushion, a little behind its front edge
       const s = this.object.scale.y;
@@ -467,15 +503,32 @@ export class NPC {
       this.object.position.z -= Math.cos(this.heading) * 0.12 * s;
       this.object.position.y += (0.05 - 0.95) * s;
     }
-    if (camera.position.distanceTo(this.pos) < 160) this.humanoid?.update();
+    if (posing && camD0 < 160) {
+      this.humanoid?.update();
+      // near: the feet on the real ground, held where they land, stepping round as they turn (feet.js)
+      this.plant(this._poseDt, speed, near && !this.seat);
+    }
+    if (posing) this._poseDt = 0;
     // the eyes: on the player's face when they are near (or talking), else looking around
-    if (this.humanoid && camera.position.distanceTo(this.pos) < 40) this.humanoid.updateEyes(dt, this.talkTo || dist < 10 * Math.max(1, this.object.scale.x) ? faceOf(player) : null);
+    if (this.humanoid && camD0 < 40) this.humanoid.updateEyes(dt, this.talkTo || dist < 10 * Math.max(1, this.object.scale.x) ? faceOf(player) : null);
 
     this.updateCape(dt, player, camera, speed);
 
     // speech balloon: placed by placeBalloon() after the camera has moved this frame
     this.talking = !this.talkTo && !this.hush && this.greeted && this.time - this.greeted > 0.6 && dist < greetR;   // (hush: a scene is on, no balloons)
     if (this.shout && this.time < this.shout.until) this.talking = true;
+  }
+
+  /** Plant the feet (feet.js), or let them follow the clip (far off, seated, leaning, flung about). */
+  plant(dt, speed, on) {
+    const H = this.humanoid;
+    if (!H) return;
+    if (!on || !this.animator || dt <= 0) { if (H._feet && (H._feet.l.locked || H._feet.r.locked || H._feet.l.step || H._feet.r.step)) H.resetFeet(); return; }
+    this.object.updateMatrixWorld(true);
+    const o = gaitFeet(this.animator, speed, this._feetO ??= {});
+    o.pivot = false;   // (people step round as they turn: the feet keep their way until they step)
+    o.scale = this.object.scale.y;
+    H.plantFeet(dt, this.physics, Y, this.object.position, _d.set(Math.sin(this.heading), 0, Math.cos(this.heading)), null, o);
   }
 
   /** The cloak's cloth (speed: how fast they walk, for the airflow). */
@@ -558,8 +611,10 @@ export class NPC {
       this.object.position.y += ((p.pose === 3 ? 0.03 : 0.05) - 0.95) * p.size;
     }
     this.humanoid?.update();
-    this.humanoid?.updateEyes(dt, dist < 8 ? faceOf(player) : null);
+    // the feet on the ground while they stand or walk (not seated, leaning or stumbling)
     const camD = camera.position.distanceTo(p.pos);
+    this.plant(dt, p.speed, camD < NPC_DETAIL.feet && now >= p.stumbleUntil && (moving || p.pose === 0 || p.pose === 1));
+    this.humanoid?.updateEyes(dt, dist < 8 ? faceOf(player) : null);
     if (this.cape) this.cape.mesh.visible = true;
     // the cloth is the costly part: every other frame unless right by the camera
     this._clothDt = (this._clothDt ?? 0) + dt;
@@ -749,20 +804,29 @@ export class NPC {
   }
 
   /** Mocap clips (walk / jog when fleeing / idle / talking), wave layered on top. */
-  pose(dt, speed, waveT, dist, player, mode = null) {
+  pose(dt, speed, waveT, dist, player, mode = null, near = true) {
     const c = this.char;
     if (this.animator) {
-      const N = this.animator.lib.native;
+      const N = this.animator.lib.native, G = this.gait;
       // a gait of their own (def.gait): a child's short legs take shorter, quicker steps, and break into a run sooner
-      const G = this.def?.gait, stride = G?.stride ?? 1, pace = G?.pace ?? 1;
+      const DG = this.def?.gait, stride = DG?.stride ?? 1, pace = DG?.pace ?? 1;
+      // their own stride (and a slow drift in it, so two walking side by side fall out of step)
+      const wobble = 1 + G.wobble * Math.sin(this.time * G.wobbleRate * Math.PI * 2);
       this.animator.update(dt, {
         speed, onGround: true, mode: mode ?? (waveT >= 0 ? 'talk' : 'ground'),
-        walkAt: N.walk * 1.3 * pace, jogAt: N.jog * pace, sprintAt: N.sprint * 1.2 * pace, strideScale: 1.05 * stride,
+        walkAt: N.walk * 1.3 * pace, jogAt: N.jog * pace, sprintAt: N.sprint * 1.2 * pace, strideScale: 1.05 * stride * G.stride * wobble, scale: this.object.scale.y,
       });
       this.object.position.copy(this.pos);
       this.object.quaternion.setFromAxisAngle(Y, this.heading);
-      this.animator.apply(this.object, { legScale: 1.04 });
-      if (G?.fidget) this.fidget(c, speed, G.fidget);
+      this.animator.apply(this.object, { legScale: 1.04 * G.bob });
+      const walking = Math.min(this.animator.gaitW * 1.2, 1);
+      poseStyle(c, G, this.animator.phase, walking);
+      // near: they lean into starting and stopping, bank into a curve, look where they're turning
+      if (near) {
+        this.loco.update(dt, { vf: speed, speed, heading: this.heading, want: this._face ?? null, ground: !this.seat });
+        this.loco.pose(c);
+      } else this.loco.lastHeading = this.heading;
+      if (DG?.fidget) this.fidget(c, speed, DG.fidget);
       if (waveT >= 0 && waveT < 2.2) {
         const k = Math.min(waveT * 4, 1) * Math.min((2.2 - waveT) * 4, 1);
         c.arms[1].rotation.set(-0.2 * k, 0, 0.12 + 2.5 * k);
@@ -811,6 +875,7 @@ export class NPC {
   }
 
   dispose(scene) {
+    if (this.humanoid?.lod) { this.humanoid.lod.reset(); skinnedLods.remove(this.humanoid.lod); }
     scene.remove(this.object);
     this.cape?.dispose(scene);
     this.balloon.remove();
