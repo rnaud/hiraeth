@@ -1,0 +1,23 @@
+LORE.md
+  s_1fd8d0e7b02dcf::t_394ebc6b3f4097 709
+src/levels/home-houses.js
+  s_1fd8d0e7b02dcf::t_5155cd11b37a1e 128
+src/story/home-data.js
+  s_1fd8d0e7b02dcf::t_3bf3c1d222847a 184,217
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "646ff27fb5c9c43e1277182f9f5e876c0837d9cc",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
