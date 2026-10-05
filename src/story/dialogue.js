@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { parseLine, stripTone } from './tone.js';
 import { pickTwoShot, pickLookShot, pullIn } from './shot.js';
 import { planLine, voiceOf, PLAYER_VOICE, LANGUAGES, REVEAL_CPS, isQuote } from './voice.js';
+import { syllableOpen, syllableEnvelope } from '../talk-face.js';
 const _ac = new THREE.Vector3(), _bq = new THREE.Vector3();
 
 // Conversations. People are data:
@@ -171,6 +172,9 @@ export class Dialogue {
     Object.assign(this, { game, quests, sound, portrait, toast, onOpen, onClose });
     this.open = false;
     this.blend = 0;          // the two-shot camera's weight
+    this.clock = 0;          // s, while open (the mouths' syllables are timed on it)
+    this._mouth = [];        // syllables being said: { at, dur, open, who: 'npc' | 'player' }
+    this.answer = null;      // the traveller's spoken answer: { tone, until }
     this.el = typeof document !== 'undefined' ? document.getElementById('dialogue') : null;
     this._eye = new THREE.Vector3(); this._look = new THREE.Vector3(); this._eyeC = new THREE.Vector3(); this._q = new THREE.Quaternion();
     this._m = new THREE.Matrix4();
@@ -221,6 +225,7 @@ export class Dialogue {
     this.open = true;
     this.openedAt = typeof performance !== 'undefined' ? performance.now() : 0;
     this.revealed = 0;
+    this._mouth.length = 0; this.answer = null;
     this.game.set(`met.${person.id}`, true);
     this.game.emit('dialogue:start', { npc, id: person.id });
     this.onOpen(person, npc);
@@ -259,8 +264,14 @@ export class Dialogue {
     const said = this.runner.choices().find((c) => c.index === i);
     this.runner.choose(i);
     this.sound?.toolClick?.(true);
-    // the traveller answers, in their own words (a short mumble; actions in brackets are silent)
-    if (said && this.sound?.speak) this.sound.speak(planLine({ text: said.text, tone: said.tone }, { voice: voiceOf(PLAYER_VOICE), lang: 'home', max: 7 }), { channel: 'choice', gain: 0.8 });
+    // the traveller answers, in their own words (a short mumble; actions in brackets are silent): his
+    // face wears the answer's tone and his mouth says its syllables (answering(), mouth('player'))
+    if (said) {
+      const plan = planLine({ text: said.text, tone: said.tone }, { voice: voiceOf(PLAYER_VOICE), lang: 'home', max: 7 });
+      this.sound?.speak?.(plan, { channel: 'choice', gain: 0.8 });
+      plan.syllables.forEach((syl, k, S) => this._mouth.push({ at: this.clock + syl.t, dur: Math.min(syl.dur, (S[k + 1]?.t ?? Infinity) - syl.t - 0.03), open: syllableOpen(syl), who: 'player' }));
+      this.answer = plan.syllables.length ? { tone: said.tone ?? plan.tone, until: this.clock + plan.total + 0.1 } : null;
+    }
     if (this.runner.ended) { this.close(); return; }
     this.revealed = 0;
     this.render();
@@ -320,6 +331,7 @@ export class Dialogue {
   /** Per frame: reveal text, voice blips, keep the speaker turned to you. */
   update(dt) {
     this._dt = dt;
+    this.clock += dt;   // (on after closing too: the traveller's last answer is still being said)
     const target = this.open ? 1 : 0;
     this.blend += (target - this.blend) * (1 - Math.exp(-(this.open ? 3.2 : 4.5) * dt));
     if (!this.open) return;
@@ -334,9 +346,48 @@ export class Dialogue {
         const syl = S[plan.next++];
         if (this.sound?.syllable) this.sound.syllable(syl, { plan });
         else this.sound?.blip?.(syl.f0 / 170);
+        this.say({ at: this.clock, dur: syl.dur, open: syllableOpen(syl), who: plan.player ? 'player' : 'npc' });
       }
       this.render();
     }
+  }
+
+  /** A syllable starts in `who`'s mouth: the one before it shuts. */
+  say(e) {
+    for (const p of this._mouth) if (p.who === e.who && p.at <= e.at && p.at + p.dur > e.at - 0.03) p.dur = Math.max(0, e.at - p.at - 0.03);
+    this._mouth.push(e);
+  }
+
+  /** How open `who`'s mouth is now ('npc' | 'player'), from the syllables being said (0 between them). */
+  mouth(who) {
+    let m = 0, keep = 0;
+    for (const e of this._mouth) {
+      const dt = this.clock - e.at;
+      if (dt > e.dur + 0.1) continue;
+      this._mouth[keep++] = e;
+      if (e.who === who) m = Math.max(m, syllableEnvelope(dt, e.dur) * e.open);
+    }
+    this._mouth.length = keep;
+    return m;
+  }
+
+  /** The traveller's answer while he says it ({ tone }), else null. */
+  answering() { return this.answer && this.clock < this.answer.until ? this.answer : null; }
+
+  /**
+   * Who says what now, for their faces (src/talk-face.js): the person's line while it is revealed, the
+   * traveller's pages and spoken answers. { npc: { speaking, tone, mouth }, player: { … } }
+   */
+  faces() {
+    const r = this.runner, revealing = this.open && this.revealed < (r?.text.length ?? 0);
+    const voiced = (this._plan?.syllables.length ?? 0) > 0 && !this._plan?.narrator;
+    const ans = this.answering();
+    const side = (who) => {
+      const lines = this.open && r?.speaker === who && revealing;
+      // (a line with no voice to follow, the mouth moves by itself: null)
+      return { speaking: !!(lines || (who === 'player' && ans)), tone: who === 'player' && ans ? ans.tone : r?.tone ?? 'neutral', mouth: lines && !voiced ? null : this.mouth(who) };
+    };
+    return { npc: side('npc'), player: side('player') };
   }
 
   /**

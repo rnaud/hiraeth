@@ -668,7 +668,7 @@ export const HEADS = {
   bald: { cap: false, parts: () => [] },
   // tight curls: a thick lumpy crop, small round knots all over (on the full body)
   curls: { cap: true, base: (q, l) => [P('hair', scalp(q, { kind: kindOf(l), t: 0.012, front: 26, back: -38, crown: 0.008, bump: 0.009 }), true),
-    ...scalpPoints(26, { kind: kindOf(l), t: 0.02 }).map(([x, y, z], i) => P('hair', sphere(0.017 + (i % 3) * 0.003, q, 6, 4).translate(x, y, z)))], parts: () => [] },
+    ...scalpPoints(40, { kind: kindOf(l), t: 0.015 }).map(([x, y, z], i) => P('hair', sphere(0.013 + (i % 3) * 0.002, q, 7, 5).translate(x, y, z)))], parts: () => [] },
   // one braid down the back from the nape, its end tied
   braid: { cap: true, base: (q, l) => [P('hair', scalp(q, { kind: kindOf(l), t: 0.008, back: -30 }), true)], parts: (q, l) => {
     const S = SKULL[kindOf(l)], out = [];

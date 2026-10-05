@@ -33,6 +33,7 @@ import { CONTENT, ERRANDS } from './levels/content.js';
 import { loadAnimationLibrary, Animator } from './animator.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { loadHuman, Humanoid } from './humanoid.js';
+import { talkFaces, TALK_FACE } from './talk-face.js';
 import { Changelog, VERSION } from './changelog.js';
 import { Settings, SettingsMenu, TouchControls, SaveGame, isTouch, isNativeApp, ToolHud } from './ui.js';
 import { FluidTool, bindToolMouse } from './fluid-tool.js';
@@ -1184,6 +1185,9 @@ function frame() {
     for (const n of npcs) if (n.talking) { const d = n.pos.distanceTo(player.pos); if (d < bd) { bd = d; best = n; } }
     const prompted = storyRt.prompt && storyRt.promptEntry?.npc;
     for (const n of npcs) n.placeBalloon(camera, n === best, n === prompted ? 30 : 0);
+    // the one who talks near you says it with their face too (src/talk-face.js; a conversation drives its own)
+    if (best?.humanoid && !best.talkTo && best.object.visible && camera.position.distanceTo(best.pos) < TALK_FACE.near) talkFaces.drive(best.humanoid, best.balloonFace());
+    talkFaces.update(dt);
     if (!busy() && !photo.on) storyRt.placePrompt(camera, controllerActive); else storyRt.placePrompt(camera, false);
   }
   relics.update(dt, t, player);

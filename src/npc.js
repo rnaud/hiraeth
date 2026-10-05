@@ -9,6 +9,8 @@ import { mulberry32 } from './noise.js';
 import { namedLook, costumeWorld, TRIM_IDS, BUILDS } from './costumes.js';
 import { formatText } from './story/dialogue.js';
 import { speakBalloon } from './story/voice.js';
+import { toneOf } from './story/tone.js';
+import { talkFaces, mouthAt } from './talk-face.js';
 import { Knockdown, toppleVelocities, KNOCKOVER } from './ragdoll.js';
 export { KNOCKOVER };
 import { holdAim } from './crowd.js';
@@ -146,6 +148,7 @@ export class NPC {
   }
 
   release() {
+    if (this.humanoid) talkFaces.release(this.humanoid);   // (the body goes to someone else: their own face)
     if (this.down && this.person) this.crowd?.holdShove?.(this.person, this.pos, false, this.heading);
     this.endDown();
     this.person = null;
@@ -623,16 +626,31 @@ export class NPC {
     if (on) {
       const line = this.shout && this.time < this.shout.until ? this.shout.text : this.lines[this.lineIdx];
       // (the same words as the dialogue panel: *highlighted* places and hints, the {glyph})
-      if (this._balloonLine !== line) { this._balloonLine = line; this.balloon.innerHTML = formatText(line); }
+      if (this._balloonLine !== line) { this._balloonLine = line; this.balloon.innerHTML = formatText(line); this._lineAt = this.time; this._said = null; }
       // the mumble: once each time a line comes up (quieter further off, panned to where they stand)
       // (no room yet, someone else has the floor: try again next frame, while the balloon is up)
-      if (line !== this._voiced && speakBalloon(line, { person: this.voicePerson(), dist: camera.position.distanceTo(this.pos), pan: THREE.MathUtils.clamp(_w.x * 0.8, -0.9, 0.9) })) this._voiced = line;
+      if (line !== this._voiced) {
+        const plan = speakBalloon(line, { person: this.voicePerson(), dist: camera.position.distanceTo(this.pos), pan: THREE.MathUtils.clamp(_w.x * 0.8, -0.9, 0.9) });
+        if (plan) { this._voiced = line; this._said = { plan, at: this.time }; }
+      }
       // kept on the screen (on a phone a balloon over someone near the edge ran off it)
       const w = this.balloon.offsetWidth || 200;
       const x = THREE.MathUtils.clamp((_w.x * 0.5 + 0.5) * window.innerWidth - 22, 6, Math.max(6, window.innerWidth - w - 6));
       this.balloon.style.transform = `translate(${x.toFixed(1)}px, ${((-_w.y * 0.5 + 0.5) * window.innerHeight - lift).toFixed(1)}px) translate(0, calc(-100% - 12px))`;
     }
     this.balloon.classList.toggle('show', on);
+  }
+
+  /**
+   * Their face while their balloon is up (src/talk-face.js): the line's tone, the mouth on the syllables of its
+   * mumble (or moving by itself for a moment when it went unvoiced). { speaking, tone, mouth }
+   */
+  balloonFace() {
+    const line = this._balloonLine;
+    if (!this.talking || !line) return { speaking: false };
+    const tone = toneOf(line), S = this._said;
+    if (S) { const t = this.time - S.at; return { speaking: t < S.plan.total + 0.15, tone, mouth: mouthAt(S.plan, t) }; }
+    return { speaking: this.time - (this._lineAt ?? this.time) < Math.min(3, 0.05 * String(line).length), tone, mouth: null };
   }
 
   /** Who is speaking, for the voice (src/story/voice.js voiceOf): their data, a crowd person's seed, or this body. */

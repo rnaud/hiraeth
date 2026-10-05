@@ -507,6 +507,7 @@ export class Humanoid {
       u.uFaceKit2.value.x = f.eyeSize;
     }
     this.poseBrows(true);
+    this._browPosed = null;
   }
 
   /**
@@ -516,12 +517,14 @@ export class Humanoid {
   setExpression(e = null) {
     const x = cleanExpression(e ?? {});
     this.expression = x;
-    this.ownMaterials();
+    if (!this._ownMats) { this.ownMaterials(); this._ownMats = true; }   // (once: a talking face sets this every frame)
     const u = this.body?.material.uniforms;
     if (u?.uMood) { u.uMood.value.set(x.smile, x.open, x.brow, x.squint); u.uMood2.value.x = x.browTilt; }
     this.squint = x.squint;
     this.gaze = x.gaze;
-    this.poseBrows();
+    // the brows' geometry only when they move (the mouth on the syllables doesn't touch them)
+    const b = this._browPosed;
+    if (!b || Math.abs(b[0] - x.brow) > 1e-3 || Math.abs(b[1] - x.browTilt) > 1e-3) { this.poseBrows(); this._browPosed = [x.brow, x.browTilt]; }
   }
 
   /** The brows raised, lowered or tilted by the expression (morph.js browPositions). */

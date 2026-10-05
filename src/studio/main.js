@@ -697,7 +697,7 @@ const sFit = section('Outfit');
   // the head slot: a hairstyle (bare-headed) or headwear (with the short hair under it)
   const sel = document.createElement('select');
   const group = (label, ids) => { const g = document.createElement('optgroup'); g.label = label; g.append(...ids.map((v) => new Option(v, v))); return g; };
-  sel.append(new Option('their own', ''), group('Hair', HAIR_IDS), group('Headwear', HEAD_IDS.filter((h) => !HAIR_IDS.includes(h))));
+  sel.append(new Option('their own', ''), new Option("bare: their people's hair", 'bare'), group('Hair', HAIR_IDS), group('Headwear', HEAD_IDS.filter((h) => !HAIR_IDS.includes(h))));
   const show = () => { sel.value = state.l.head ?? ''; };
   sel.onchange = () => { set('l.head', sel.value); applyLook(); };
   row(sFit, 'Hair / headwear', sel);

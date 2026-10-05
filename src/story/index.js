@@ -5,6 +5,7 @@ import { Dialogue } from './dialogue.js';
 import { sightOf } from './shot.js';
 import { registerInteractable, updateInteract, PRIORITY } from '../interact.js';
 import { NPC, registerNPCTargets } from '../npc.js';
+import { talkFaces } from '../talk-face.js';
 import { makeMaterial } from '../materials.js';
 import { viaPortal } from '../scout.js';
 import { backdropFor } from './portrait-bg.js';
@@ -50,7 +51,7 @@ const WORLDS = {
   bazaar: setupBazaar,
 };
 const UP = new THREE.Vector3(0, 1, 0);
-const _p = new THREE.Vector3(), _d = new THREE.Vector3();
+const _p = new THREE.Vector3(), _d = new THREE.Vector3(), _eyes = new THREE.Vector3();
 
 export function createStory(o) {
   const { levelId, scene, physics, level, player, npcs, crowd, sound, journal, story, capture, lib, humans, toast = () => {} } = o;
@@ -196,6 +197,13 @@ export function createStory(o) {
       }
       if (talking?.npc?.talkTo) talking.npc.talkTo.speaking = dialogue.runner?.speaker === 'npc' && dialogue.revealed < (dialogue.runner?.text.length ?? 0);
       dialogue.update(dt);
+      // their faces (src/talk-face.js): the person you talk to wears the tone of the line they say, their mouth on
+      // its syllables; so does the traveller on his pages and when he answers; each eases back to rest after
+      const F = dialogue.faces();
+      if (dialogue.open && talking?.npc?.humanoid && talking.npc.object.visible) talkFaces.drive(talking.npc.humanoid, F.npc);
+      if (player.humanoid && (dialogue.open || F.player.speaking)) talkFaces.drive(player.humanoid, F.player);
+      // and the traveller's eyes on their face
+      player.eyeTarget = dialogue.open && talking?.npc?.object.visible ? faceOf(talking.npc, player.frame?.up ?? UP, _eyes) : null;
       // the traveller turns to whoever they talk to, or to what they look at
       player.faceToward = talking && dialogue.open ? (talking.npc?.pos ?? (rt._shot?.of === talking ? rt._shot.look : talking.look ?? talking.at)) : null;
       // the press that closed a conversation must not open the next one (or whistle the mount)

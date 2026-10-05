@@ -306,3 +306,31 @@ test('vehicle animation reaches the skin on the first frame and releases foot lo
   assert.equal(p.humanoid._feet.r.locked, false);
   assert.equal(p.gear.device.visible, false);
 });
+
+test('his own hair under the liner, the fringe on the brow inside the helmet; the enamel star pinned inside the glass', async () => {
+  const { TRAVELLER_STAR } = await import('../src/boxes/effects.js');
+  const h = traveller();
+  h.char.root.updateMatrixWorld(true);
+  h.update(true);
+  const hair = piece(h, 'Traveller_hair');
+  assert.ok(hair, 'a hair piece');
+  assert.equal('#' + hair.material.uniforms.uColor.value.getHexString(), TRAVELLER_PALETTE.hair);
+  const glass = boxOf(h, /^Bubble_helmet$/), locks = boxOf(h, /^Traveller_hair$/);
+  const centre = glass.getCenter(V()), r = Math.min(...glass.getSize(V()).toArray()) / 2;
+  // the hair stays inside the bubble, and comes down over the brow (the fringe) but not to the eyes
+  for (const c of [locks.min, locks.max]) assert.ok(c.distanceTo(centre) < r * 1.75, 'the hair inside the helmet');
+  const eyes = h.rest.get(h.b.Head).p.y + 0.1, front = h.rest.get(h.b.Head).p.z + 0.07;   // (the eyes are at the head anchor's height)
+  let fringe = Infinity;
+  const [first, count] = hair.userData.ranges.Traveller_hair;
+  for (let i = first; i < first + count; i++) { const p = hair.localToWorld(hair.getVertexPosition(i, V())); if (Math.abs(p.x) < 0.03 && p.z > front) fringe = Math.min(fringe, p.y); }
+  assert.ok(fringe > eyes + 0.01 && fringe < eyes + 0.06, `the fringe ends over the eyes (${(fringe - eyes).toFixed(3)} m)`);
+  // the star: every corner of it inside the glass (it used to stand out through the top)
+  const star = new THREE.Object3D();
+  h.headAnchor.add(star);
+  star.position.copy(TRAVELLER_STAR.at); star.rotation.set(TRAVELLER_STAR.tilt, 0, 0); star.scale.setScalar(TRAVELLER_STAR.scale);
+  star.updateMatrixWorld(true);
+  for (const [x, y] of [[0.045, 0], [-0.045, 0], [0, 0.045], [0, -0.045]]) {
+    const p = star.localToWorld(new THREE.Vector3(x, y, 0.008));
+    assert.ok(p.distanceTo(centre) < r - 0.005, `a point of the star ${(p.distanceTo(centre) - r).toFixed(3)} m inside the glass`);
+  }
+});
