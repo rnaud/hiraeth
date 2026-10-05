@@ -439,14 +439,26 @@ export function createLab(scene) {
     });
   }
 
-  // what is drawn: the room you are in, or the hub
+  // what is drawn: the room you are in, or the hub. The others are hidden and their matrices
+  // frozen: every frame's scene.updateMatrixWorld() (which three.js forces down the whole tree)
+  // skips them, a dozen rooms and ~600 objects that nothing moves while they're hidden (their
+  // movers wait for group.visible). Each is brought up to date as it hides (show), so the
+  // collision bake and anything else reading them find them where they are.
+  const freeze = (g) => {
+    const base = g.updateMatrixWorld;
+    g.updateMatrixWorld = function (force) { if (this.visible) base.call(this, force); };
+  };
   let shown;
   const show = (room) => {
     if (room === shown) return;
     shown = room;
-    hub.visible = !room;
-    for (const r of rooms) r.group.visible = r === room;
+    for (const [g, on] of [[hub, !room], ...rooms.map((r) => [r.group, r === room])]) {
+      if (!on && g.visible !== false) g.updateMatrixWorld(true);
+      g.visible = on;
+    }
   };
+  freeze(hub);
+  for (const r of rooms) freeze(r.group);
   show(null);
 
   let passing = null, cooldown = 0, hop = 0;

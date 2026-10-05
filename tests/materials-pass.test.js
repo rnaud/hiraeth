@@ -143,6 +143,7 @@ test('grass: placed once, then only the tufts that wrap; none on steep ground, i
   assert.equal(onPath, 0);
   assert.ok(grown > grass.count * 0.5, `${grown} of ${grass.count} grow`);
   // the steep bank past x = 30 grows nothing
+  grass.placeMs = Infinity;   // (a jump: all of it this frame)
   grass.update(cam(36, 0));
   for (let i = 0; i < grass.count; i++) if (A[i * 4] > 31) assert.equal(A[i * 4 + 3], 0);
   // under water: nothing
@@ -153,6 +154,24 @@ test('grass: placed once, then only the tufts that wrap; none on steep ground, i
   const none = new Grass({ scene, fields: [flatField({ inside: () => false })], quality: { radius: 6, density: 2 } });
   none.update(cam(0, 0));
   assert.equal(none.mesh.visible, false);
+});
+
+test('grass: after a jump the patch is placed over a few frames, carrying on where it stopped', () => {
+  const scene = new THREE.Scene();
+  const grass = new Grass({ scene, fields: [flatField({ water: -1 })], quality: { radius: 10, density: 3 } });
+  grass.placeMs = 0;   // (stop at the first check: 64 tufts a frame)
+  assert.equal(grass.update(cam(0, 0)), grass.count, 'the first patch at once (the loading screen)');
+  const where = () => { let n = 0; for (let i = 0; i < grass.count; i++) if (Math.abs(grass.at[i * 4] - 500) < 15) n++; return n; };
+  let frames = 0;
+  while (where() < grass.count && frames < 100) { grass.update(cam(500, 0)); frames++; }
+  assert.equal(where(), grass.count, 'all of it gets there');
+  grass.placeMs = 3;
+  assert.equal(grass.update(cam(500, 0)), 0, 'far from the origin, standing still places nothing again (compared in 32-bit floats)');
+  assert.ok(frames >= Math.ceil(grass.count / 64) - 1 && frames <= Math.ceil(grass.count / 64) + 1, `${frames} frames for ${grass.count} tufts`);
+  // walking: the few that wrap are placed the same frame
+  grass.placeMs = 3;
+  grass.update(cam(501, 0));
+  assert.equal(grass.update(cam(501, 0)), 0, 'nothing left over');
 });
 
 test('grass: something built over a cell (a slab, a path, a roof) keeps the blades off it', () => {

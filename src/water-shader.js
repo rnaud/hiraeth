@@ -164,8 +164,9 @@ export const WATER_GLSL = /* glsl */ `
     // caustics over the shallow bed: a fine wobbling net, close up only, fading with depth
     float causK = (1.0 - smoothstep(0.15, 0.7, dB)) * known * (1.0 - smoothstep(0.012, 0.03, px)) * clarity * (1.0 - uWaterLite);
     if (causK > 0.0) {   // (the cell search only where it shows)
-      float cv = voronoiBorder(p.xz * 1.6 + vec2(sin(t * 0.7 + p.z * 0.9), cos(t * 0.6 + p.x * 0.8)) * 0.3);
-      ink = max(ink, inkLine(cv / max(px * 1.6, 1e-4), 0.7) * causK * 0.3);
+      float cpx = max(px * 1.6, 1e-4);   // cells per px; the 0.7 px line is nothing past 0.35 px * ratio + 0.6 px
+      float cv = voronoiBorder(p.xz * 1.6 + vec2(sin(t * 0.7 + p.z * 0.9), cos(t * 0.6 + p.x * 0.8)) * 0.3, (0.35 * uPixelRatio + 0.6) * cpx * 1.01);
+      ink = max(ink, inkLine(cv / cpx, 0.7) * causK * 0.3);
     }
 
     // ---- the sky at grazing angles: two flat steps toward the horizon's colour

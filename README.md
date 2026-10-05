@@ -3000,6 +3000,37 @@ shimmered, the reactor column filled the middle, the deck felt too big for one p
 - **The Lab** shows them all: the materials row has steel, brushed, chrome, brass, copper, iron,
   painted, the carved inscriptions and a lamp beside the glow, and a meadow past the water pool.
 
+### Faster surfaces, and no compile on first sight
+Found in the Lab, where some materials looked slow; all of it applies to every world.
+- **One surface shader, compiled per material** (`surfaceDefines`, `SURFACE_FEATURES`, `materials.js`):
+  every material used to compile the whole G-buffer shader (the faces' ink and eyes, the desert's
+  ground, façades, cracks, inscriptions, cloth folds) and skip what it didn't use by uniform
+  branches. A branch never taken still costs: the GPU reserves registers for the heaviest path, so
+  a plain wall paid for the faces. Each `S_*` define now guards one feature's code and a material
+  compiles only the ones its options turn on; inside, its uniform still decides, as before. These
+  options are never changed after `makeMaterial` (their uniforms are only read). Without
+  `SURFACE_SPEC` (a shader made some other way) everything is compiled, as it always was.
+  Brushed metal's streaks are their own define (`METAL_BRUSHED`): the other metals multiplied five
+  noise taps a pixel by zero. `tests/surface-spec.test.js` preprocesses the shader per material.
+- **Local lights**: the loop over the eight slots stops at `uLightCount` (main.js packs the lit
+  ones first); the empty slots contributed nothing.
+- **Rock cracks and the water's caustics** (`voronoiBorder(x, reach)`): the first pass also finds the
+  second nearest point, and no border is nearer than half the gap between the two; where even that
+  is past the line's reach, the 25-cell second pass is skipped. Cracks also skip the search in
+  their gaps and once too far to draw. The same lines, exactly.
+- **Warm-up** (main.js `warmShaders`): the loading screen compiled every program for the canvas,
+  but the scene is drawn into the G-buffer, whose programs differ (the output colour space is part
+  of a program's key): none of the warm-up was used, the first frame compiled the view and anything
+  else compiled when first seen, 20–200 ms walking into a Lab room or turning to something new. It
+  now compiles with the G-buffer bound, and the shadow passes' programs (every mesh wearing the
+  depth material for a moment) and the water's sparkle pass too.
+- **Grass blades** (`flora-grass.js`): a tuft's place was compared with the stored one in 64-bit
+  floats, so away from the origin every tuft was placed again every frame (about 2 ms on High
+  standing still in Viridel, the Garden, Lorn, their Lab rooms); compared as stored now. After a
+  jump (a door, a portal) the new patch is placed over the next frames, `PLACE_MS` at a time,
+  behind the fade (it had been a 60 ms frame).
+- **The Lab's hidden rooms** skip the frame's matrix update (each is brought up to date as it hides).
+
 ## The desert in Unity (a proof of concept)
 `unity/Memento` is a Unity 6 (URP) port of the desert, built from this game rather than
 beside it (the details, how to run it and what is missing: `unity/README.md`).
