@@ -1,0 +1,61 @@
+scripts/bench/lib.mjs
+  s_1fd8d0e7b02dcf::t_3d8b11cbcde092 1-92
+scripts/bench/unity-bench.mjs
+  s_1fd8d0e7b02dcf::t_a4213b3741b963 1-58
+scripts/bench/viewpoints.json
+  s_1fd8d0e7b02dcf::t_4ea1a8129c06ed 1-8358
+scripts/bench/viewpoints.mjs
+  s_1fd8d0e7b02dcf::t_930fcdb615b228 1-129
+scripts/bench/web-bench.mjs
+  s_1fd8d0e7b02dcf::t_b7b6681f895549 1-180
+scripts/unity-export/unity-batch.sh
+  s_1fd8d0e7b02dcf::t_aa2b15356009be 6,12,16
+unity/.gitignore
+  s_1fd8d0e7b02dcf::t_419928600adfef 30-33
+unity/Memento/Assets/Memento/Editor/BenchBuild.cs
+  s_1fd8d0e7b02dcf::t_724ad1a02e2355 1-205
+unity/Memento/Assets/Memento/Editor/BenchBuild.cs.meta
+  s_1fd8d0e7b02dcf::t_52b4dbf8b800d1 1-2
+unity/Memento/Assets/Memento/Runtime/Bench.cs
+  s_1fd8d0e7b02dcf::t_c4c10d05b3f2d6 1-386
+unity/Memento/Assets/Memento/Runtime/Bench.cs.meta
+  s_1fd8d0e7b02dcf::t_df044b85849944 1-2
+unity/Memento/Assets/Memento/Runtime/Characters.cs
+  s_1fd8d0e7b02dcf::t_0f253587b428dc 21
+unity/Memento/Assets/Memento/Runtime/DataFiles.cs.meta
+  s_1fd8d0e7b02dcf::t_8357c844dfb131 1-2
+unity/Memento/Assets/Memento/Runtime/Loading.cs
+  s_1fd8d0e7b02dcf::t_680dcfc5b4ebbf 14-16,37
+unity/Memento/Assets/Memento/Runtime/Sounds.cs
+  s_1fd8d0e7b02dcf::t_e5d3282637aacb 40
+unity/Memento/Assets/Memento/Runtime/WorldLoader.cs
+  s_1fd8d0e7b02dcf::t_21465f2647ef59 32
+unity/Memento/Assets/Memento/Runtime/DataFiles.cs
+  s_8bb1474527ed6b::t_7ea417e13d2f95 1-90
+scripts/bench/browser.mjs
+  s_1fd8d0e7b02dcf::t_36a3dfb28a4553 1-84
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f3b0d586b9e7c68f566b3aa991ddf5379d09d8f1",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_8bb1474527ed6b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a0e25bf2423967a6b",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
