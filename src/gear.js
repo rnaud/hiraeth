@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { makeMaterial } from './materials.js';
+import { DRONE_BELLY, DOCK_ON_TOP } from './drone.js';
 
 // The hero's kit, after the reference plate: a glass bubble helmet over a
 // blue headset (ear cups, mic, a gadget cluster and little aerials at the
@@ -76,9 +77,12 @@ export class Gear {
     // ---------------------------------------------------------------- radio pack
     const pack = new THREE.Group();
     chest.add(pack);
+    // the scout drone's dock (src/scout.js): on the pack's top, its foot down, its lens looking back
     this.scoutDock = new THREE.Object3D();
-    this.scoutDock.position.set(0, 0.74, -0.29);
+    this.scoutDock.position.set(0, 0.7 + DRONE_BELLY, -0.29);
+    this.scoutDock.quaternion.copy(DOCK_ON_TOP);
     pack.add(this.scoutDock);
+    this.packDockParent = pack;
     pack.add(box(0.34, 0.4, 0.2, G.cream, 0, 0.5, -0.27));
     pack.add(box(0.36, 0.06, 0.22, G.creamDark, 0, 0.3, -0.27));
     pack.add(box(0.12, 0.14, 0.03, G.steelDark, -0.08, 0.56, -0.385));
@@ -166,7 +170,7 @@ export class Gear {
       // Keep the launch socket, but replace all legacy wearable geometry: the traveller wears its own (traveller.js)
       for (const group of [pack, belt]) group.traverse(o => { if (o.isMesh) o.visible = false; });
       // the scout docks on top of the radio pack (fluid-tool.js moves it to the tank's side once that is worn)
-      if (humanoid.kit?.dock) this.scoutDock.position.copy(humanoid.kit.dock);
+      if (humanoid.kit?.dock) this.scoutDock.position.copy(humanoid.kit.dock).add(new THREE.Vector3(0, DRONE_BELLY + 0.004, 0));
       this.packDock = this.scoutDock.position.clone();
       for (const o of chest.children) if (!originalChest.has(o) && o.isMesh) o.visible = false;
       this.noShadow = [...humanoid.noShadow];

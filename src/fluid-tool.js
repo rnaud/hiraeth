@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, markHero, MODE_RIBBON } from './materials.js';
+import { DRONE_BELLY, DOCK_ON_TOP, DOCK_ON_SIDE } from './drone.js';
 import { raycastTargets, hitTarget, registerTarget, targetsInCone } from './targets.js';
 import { game as sharedGame } from './game-state.js';
 import { items as sharedItems } from './items.js';
@@ -424,14 +425,37 @@ export const TANK = {
   highlight: -1.05,         // streak angle (atan2(z, x) in tank space): on the back, to one side
   inked: true,              // blobs inked at full strength (not the player's softer interior lines)
 };
-/** The docked scout's centre off the tank's axis: the widest glass (0.167 × squash), the scout's half depth docked (0.11), a gap. */
-export const SCOUT_DOCK_X = 0.167 * TANK.squash + 0.11 + 0.03;
 const profileCurve = new THREE.SplineCurve(TANK.profile.map(([r, y]) => new THREE.Vector2(r, y)));
 function radiusAt(y) {
   // the profile is monotonic in y: a few bisection steps are plenty
   let lo = 0, hi = 1;
   for (let i = 0; i < 18; i++) { const m = (lo + hi) / 2; if (profileCurve.getPoint(m).y < y) lo = m; else hi = m; }
   return profileCurve.getPoint((lo + hi) / 2).x;
+}
+/** The glass's radius at height y (tank frame, before the squash). */
+export const tankRadiusAt = radiusAt;
+/**
+ * The scout's dock on the tank, in the tank's frame (it rides with the tank, into a vehicle's
+ * socket too): clamped by its foot to the frame's left side rail (the wearer's left), high up,
+ * just under the rail's top bracket (the lantern hangs from the rail below it), off the glass.
+ */
+export const TANK_RAIL = { x: TANK.profile.reduce((m, [r]) => Math.max(m, r), 0) * TANK.squash + 0.018, r: 0.012, z: 0.02 };
+export const SCOUT_DOCK_Y = TANK.height * 0.83;
+export const SCOUT_DOCK_X = TANK_RAIL.x + TANK_RAIL.r + DRONE_BELLY + 0.002;
+export const SCOUT_DOCK_Z = TANK_RAIL.z;
+/**
+ * While the fluid wings are open (gliding) their roots and lobes fill the tank's sides, so the
+ * scout hops up onto the cap, between them (its foot over the valve's bead), and back down to the
+ * rail when they fold: scoutDockPose(k) is that hop (k 0 on the rail .. 1 on the cap), along an
+ * arc that stays clear of the glass, turning from side-on to upright.
+ */
+export const SCOUT_CAP = { y: TANK.height + 0.12 + DRONE_BELLY, hop: 0.2 };
+const _dockArc = [new THREE.Vector3(SCOUT_DOCK_X, SCOUT_DOCK_Y, SCOUT_DOCK_Z), new THREE.Vector3(SCOUT_DOCK_X + 0.03, TANK.height + 0.26, SCOUT_DOCK_Z), new THREE.Vector3(0, SCOUT_CAP.y, 0)];
+export function scoutDockPose(k, pos, quat) {
+  const t = THREE.MathUtils.smoothstep(k, 0, 1), [a, b, c] = _dockArc;
+  pos.set(0, 0, 0).addScaledVector(a, (1 - t) ** 2).addScaledVector(b, 2 * t * (1 - t)).addScaledVector(c, t * t);
+  quat.copy(DOCK_ON_SIDE).slerp(DOCK_ON_TOP, t);
+  return pos;
 }
 
 function buildTank() {
@@ -455,9 +479,9 @@ function buildTank() {
     add(new THREE.TorusGeometry(radiusAt(y) + 0.006, 0.01, 5, 30).rotateX(Math.PI / 2), flatMat(INK), 0, y, 0);
   }
   // side rails and the back plate on the straps
-  const railX = R * TANK.squash + 0.018;
+  const railX = TANK_RAIL.x;
   for (const sx of [-1, 1]) {
-    add(new THREE.CylinderGeometry(0.012, 0.012, TANK.height + 0.05, 6), flatMat(STEEL_DARK), sx * railX, TANK.height / 2 - 0.01, 0.02, false);
+    add(new THREE.CylinderGeometry(TANK_RAIL.r, TANK_RAIL.r, TANK.height + 0.05, 6), flatMat(STEEL_DARK), sx * railX, TANK.height / 2 - 0.01, TANK_RAIL.z, false);
     for (const y of [0.04, TANK.height - 0.04]) add(new THREE.BoxGeometry(0.03, 0.026, 0.15), flatMat(STEEL_DARK), sx * railX, y, 0.09, false);
   }
   add(new THREE.BoxGeometry(0.36, 0.46, 0.024), flatMat(STEEL_DARK), 0, TANK.height / 2, 0.17, false);
@@ -638,11 +662,10 @@ export class FluidTool {
     const p = this.player, H = p?.humanoid;
     if (!H?.chestAnchor) return;
     // the cream radio pack gives way to the tank once it is found (update(); the traveller's pack: traveller.js)
-    if (!H.outfit) for (const o of p.gear?.scoutDock?.parent?.children ?? []) if (o.isMesh) o.visible = false;   // the procedural pack
+    if (!H.outfit) for (const o of (p.gear?.packDockParent ?? p.gear?.scoutDock?.parent)?.children ?? []) if (o.isMesh) o.visible = false;   // the procedural pack
     const tank = (this.tank = buildTank());
     H.chestAnchor.add(tank.group);
-    // the scout clings to the tank's left side (the cap would hide the helmet), clear of the glass
-    // and the frame: lens out, wings fore and aft (side on, they cut into the tank)
+    // the scout clings to the tank's left side (the cap would hide the helmet), folded, its foot on the glass
     this.placeDock(this.owned);
     const fore = H.forearm?.r ?? H.b.lowerarm_r;
     if (fore) {
@@ -670,13 +693,22 @@ export class FluidTool {
     this.chest = H.chestAnchor;
   }
 
-  /** The scout docks on the tank's side once it is worn, else where the gear put it (on the radio pack). */
+  /**
+   * The scout docks on the tank's side once it is worn (parented to the tank, so it goes along into
+   * a vehicle's socket and back), else where the gear put it (on the radio pack's top).
+   */
   placeDock(owned) {
-    const dock = this.player?.gear?.scoutDock;
+    const gear = this.player?.gear, dock = gear?.scoutDock;
     this._dockOwned = owned;
     if (!dock) return;
-    if (owned || !this.player.gear.packDock) { dock.position.set(SCOUT_DOCK_X, TANK.at[1] + TANK.height * 0.62, TANK.at[2] + 0.02); dock.rotation.set(0, Math.PI / 2, 0); }
-    else { dock.position.copy(this.player.gear.packDock); dock.rotation.set(0, 0, 0); }
+    if (owned || !gear.packDock) {
+      const frame = this.tank?.group;
+      if (frame) { if (dock.parent !== frame) frame.add(dock); scoutDockPose(this.scoutCapK ?? 0, dock.position, dock.quaternion); }
+      else { dock.position.set(SCOUT_DOCK_X, TANK.at[1] + SCOUT_DOCK_Y, TANK.at[2] + SCOUT_DOCK_Z); dock.quaternion.copy(DOCK_ON_SIDE); }
+    } else {
+      if (gear.packDockParent && dock.parent !== gear.packDockParent) gear.packDockParent.add(dock);
+      dock.position.copy(gear.packDock); dock.quaternion.copy(DOCK_ON_TOP);
+    }
   }
 
   dispose() {
@@ -1006,6 +1038,9 @@ export class FluidTool {
     // the traveller's radio pack is on the back until the tank takes its place
     for (const o of p.humanoid?.radioPack ?? []) o.visible = !owned;
     if (this._dockOwned !== owned) this.placeDock(owned);
+    // the scout hops onto the cap while the wings are open, and back onto the rail when they fold
+    const capK = THREE.MathUtils.clamp((this.scoutCapK ?? 0) + (owned && (p?.wingK ?? 0) > 0.02 ? 1 : -1) * dt / SCOUT_CAP.hop, 0, 1);
+    if (capK !== (this.scoutCapK ?? 0)) { this.scoutCapK = capK; this.placeDock(owned); }
     if (this.bracer) this.bracer.group.visible = owned;
     this.hose.mesh.visible = visible && where !== 'flight';
     if (owned && this.appear < 1 && where === 'back') {
