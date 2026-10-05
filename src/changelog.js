@@ -7,6 +7,7 @@ export const CHANGELOG = [
     'Plants no longer get shoved aside as you walk past: they lean a little away from you, as if brushed, and spring back with a small wobble, more the closer and the faster you pass. Grass parts round your feet the same way.',
     'Grass no longer pops in or stops at a line: the blades fade out tuft by tuft with distance, shorter and in the colour of the ground, and sparse low tufts carry the meadow about twice as far before it melts into the ground. Turning the camera no longer makes the grass in front of you jump.',
     'Flowers that open no longer push their petals into walls, rocks or each other: they lean a little away from what is close and open only as far as there is room, and those squeezed into a tight corner grow a step further out.',
+    'Game updates for the Android app and the Steam Deck now come from the game’s own site. Accept the new Android app when it is offered, once, to keep getting them; your saves are kept.',
   ] },
   { v: '0.60', date: '2026-10-05', items: [
     'Every world has music of its own now, with its own instruments, scale and short tune: ney, oud and frame drum in the desert; a muted horn, vibes and a walking bass down the City-Shaft; wind and breath on Vael; the monks and their far bell over Vael II’s clouds; a ticking, unresolved machine in the Sealed Hangar; low brass and struck metal in the Buried Machine.',

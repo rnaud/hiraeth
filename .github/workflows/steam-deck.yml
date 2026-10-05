@@ -18,6 +18,8 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0   # the whole history: the packaged game's build number counts its commits
       - uses: actions/setup-node@v5
         with:
           node-version: 24
@@ -36,7 +38,10 @@ jobs:
           npm ci
           npm --prefix desktop ci --ignore-scripts
           npm run build
+          # the runtime package's number (installed updaters compare it), and the packaged game's,
+          # on the scale of the content updates from the game's site (deck.py, scripts/web-update.mjs)
           export DECK_BUILD=$((GITHUB_RUN_NUMBER * 1000 + GITHUB_RUN_ATTEMPT))
+          export WEB_BUILD=$(node scripts/release-info.mjs build)
           node scripts/package-steam-deck.mjs
 
       - name: Exercise the packaged game
