@@ -52,16 +52,45 @@ all of it is in the game's own materials and post pass (every world uses it), no
   run-to-run spread is ±30 %). The new work is behind defines (weathering, plating) or cheap
   branches (crevices, paper, the strata strokes only lit and near); the handheld's paper is one tap.
 
-## Weathered walls
+## Weathered walls: worn by time
 
 The reference cities look old and lived in. `makeMaterial({ weathered })` (0..1, `S_WEATHER`,
-`weatherInk` in `src/materials.js`; `WEATHER`, `weatheredOf`): on upright faces, in cells of the wall
-anchored in the world (so each building has its own), the odd crack runs down from a storey's top
-or up from its foot, jagged and thinning, with a branch now and then; a crack runs out from the
-corner of the odd window (house fronts, `pattern: 'facade'`); and a few patches where the plaster
-has gone, a shade apart, edged with a broken pen line. They fade out once under a pixel. On by
-default for house fronts and on the desert city's walls and terraces and the references' huts;
-never on metal, glass, lights or the makers' work (their inscriptions).
+`weatherInk` in `src/materials.js`; `WEATHER`, `weatheredOf`), on upright faces, in a frame of the
+wall taken from the world axes (x on walls facing z, z on walls facing x, blended between: stable on
+round walls, where the tangent of the interpolated normal had swept a column's marks into specks):
+
+- **Grime**: a streak in most cells (1.3 × 2.4 m) running down from its top at an uneven height (a
+  storey's top, a sill), flat darker tone, narrowing as it goes, its edge a little ragged.
+- **Chips**: patches where the plaster has broken away, the layer under it darker and warmer, the
+  edge a continuous pen line, and the lip's cast shadow inside the chip on the sun's side (a step the
+  sun's direction on the wall decides, not paint).
+- **Cracks**: from a storey's top down or from its foot up, jagged, thinning, branching now and then,
+  with a shadow sliver on the side away from the sun; a crack from the corner of the odd window
+  (house fronts, `pattern: 'facade'`).
+- **Dust at the foot** (post.js): a weathered pixel is flagged in `gHatch.b` (+16); a probe the band's
+  height below it on screen that lands on the ground (facing up) less than 0.62 m under it in the
+  world puts it in a flat darker band, its top a little ragged. One tap, within 220 m.
+- **Each building its own**: an amount (0.6–1.4 × `weathered`) and a pattern seed from where it stands
+  (9 m cells).
+- **By distance**: the pen marks fade out at 0.03–0.075 m a pixel, the tone marks (grime, the chips'
+  fill) at 0.1–0.28; the handheld (`uWearLite`, low detail or the light ink pass) keeps the grime and
+  the chips' tone and edge, no cracks or lip shadows.
+- **On**: house fronts by default, the desert city's walls and terraces, the desert's adobe domes,
+  the Signal Market's shops and blocks, home's dome house, the references' huts and houses; never on
+  metal, glass, lights or the makers' work (their inscriptions).
+- **Cost** (M4 Pro, 1280 × 720, frames back to back, wear off / on interleaved, 40 pairs): desert
+  High 10.3 / 10.1 and 8.5 / 8.5 ms, Signal Market High 8.3 / 8.6 and 5.0 / 5.0, desert Handheld
+  4.1 / 4.1 and 3.6 / 3.6, Market Handheld 8.6 / 8.4 and 7.1 / 7.2: within the run-to-run spread.
+
+## Faceted normals near the camera
+
+Flat-shaded materials take their normal from the screen derivatives of the position. Taken of
+`vWorldPos`, kilometres from the origin (the References' views, a far city), the derivatives lost
+their low bits: a facet's normal wobbled by a percent from pixel to pixel, and a facet turned edge-on
+to the sun (the light term at the toon threshold) broke into lit and shaded specks, each one inked by
+post.js's shadow edges: the "fuzzy dots" on view 2's dish column and the "dotted texture on grazing
+lit faces". They now come from `vWorldRel`, the world position measured from the camera (small
+numbers, as `vObjRel` already was for the strokes).
 
 ## Ground ink by distance, steady façades, fine lines on distant people
 - **Ground ink** (`src/ground-ink.js`, used by `MODE_TERRAIN` in `src/materials.js`): every

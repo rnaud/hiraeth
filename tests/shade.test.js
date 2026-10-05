@@ -141,3 +141,30 @@ test('spot blacks: a third tier of value, per world (presets) and per material (
   const { BURIED_SPOTS } = await import('../src/levels/buried.js');
   assert.ok(BURIED_SPOTS.uSpot[3] > PRESETS['Moebius print'].uSpot[3], 'the Buried Machine prints its cast shadows darker');
 });
+
+test('worn by time: grime streaks, chips with the lip\'s shadow, cracks with a shadow side, dust at the foot; per building; lighter on the handheld', async () => {
+  const { WEATHER, sharedUniforms: S } = await import('../src/materials.js');
+  assert.ok(WEATHER.grime.share > 0.5 && WEATHER.grime.dark > 0.2, 'grime streaks are common and visible');
+  assert.ok(WEATHER.chip.lip > 0 && WEATHER.chip.dark > 0.2, 'chips cast a shadow from their lip');
+  assert.ok(WEATHER.farTone[0] > WEATHER.far[1], 'the tone marks reach further than the pen marks (no moiré: both fade)');
+  assert.ok('uWearLite' in S, 'the handheld\'s lighter wear is shared');
+  const m = makeMaterial({ color: '#e8d0b0', weathered: 1, key: 't.wear' });
+  const f = m.fragmentShader;
+  assert.ok(f.includes('float weatherInk(vec2 q, vec2 fq, vec2 sun2, float litK, float seed, float k, inout vec3 alb)'), 'the sun on the wall makes the shadow sides');
+  assert.ok(f.includes('vec2 wqA = vec2(vWorldPos.x, vWorldPos.y), wqB = vec2(vWorldPos.z, vWorldPos.y)'), 'the wall\'s frame from world axes: stable on round walls far from the origin');
+  assert.ok(f.includes('floor(vWorldPos.xz / 9.0)'), 'each building its own wear');
+  assert.ok(f.includes('if (uWeather > 0.0) gHatch.b += 16.0'), 'a weathered pixel is flagged for post.js');
+  const { readFile } = await import('node:fs/promises');
+  const post = await readFile(new URL('../src/post.js', import.meta.url), 'utf8');
+  assert.ok(post.includes('float wearW = step(15.5, surface.b)') && post.indexOf('wearW = step') < post.indexOf('float spotQ'), 'post.js unpacks the flag before the spot steps');
+  // on in every world's plaster, mud and stone buildings
+  for (const [file, pat] of [['../src/desert-landmarks.js', /adobe: makeMaterial\(\{[^}]*weathered/], ['../src/levels/bazaar.js', /shop = colors\.map\(c => mat\(c, \{ weathered/], ['../src/levels/home-houses.js', /cream = mat\('#f3ead8', \{ weathered/], ['../src/desert-city.js', /wall: makeMaterial\(\{[^}]*weathered: true/]])
+    assert.match(await readFile(new URL(file, import.meta.url), 'utf8'), pat, file);
+});
+
+test('faceted normals come from the position measured from the camera (no specks on facets edge-on to the sun far out)', () => {
+  const f = makeMaterial({ color: '#e8d0b0', flat: true, key: 't.flatn' }).fragmentShader;
+  assert.ok(f.includes('n = normalize(cross(dFdx(vWorldRel), dFdy(vWorldRel)))'));
+  assert.ok(!f.includes('cross(dFdx(vWorldPos), dFdy(vWorldPos))'));
+  assert.ok(makeMaterial({ color: '#e8d0b0', flat: true, key: 't.flatn' }).vertexShader.includes('vWorldRel = world.xyz - cameraPosition'));
+});

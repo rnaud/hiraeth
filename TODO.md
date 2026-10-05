@@ -146,8 +146,9 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
       option is missing).
     - Flat shadow per material (the City-Shaft's trees go grey-blue with `uShadowFlat` on, so the world
       doesn't use it yet); the shaft sheets' faces carry fine vertical cracks and pipes; the deep shaft views
-      fade to a pale blue haze with depth (our fog is by distance); a few lit faces at grazing angles show a
-      dotted texture.
+      fade to a pale blue haze with depth (our fog is by distance).
+    - Worn walls: stains round the doors are not drawn (the doors are separate meshes); the dust band at a
+      wall's foot is hidden where sand banks against it.
   - Vael II, shader-level left: the sheets hatch a cap's underside along its ribs, radiating from the
     stalk, dense and dark; ours are parallel strokes (no radial coordinate in merged geometry: a
     per-vertex axis would do it). The clouds' outlines and shade: the sheets draw them in thin,

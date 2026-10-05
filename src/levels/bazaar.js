@@ -17,11 +17,11 @@ export function* buildBazaar(scene) {
   const rng = mulberry32(20261004), buckets = new Map(), reactiveScreens = [];
   const colors = ['#f0a083', '#e4bd83', '#8dbbb9', '#94a9bd', '#ebce98'];
   const mat = (color, extra = {}) => makeMaterial({ color, flat: true, ...extra });
-  const coral = mat('#f0a083', { grid: 12 }), teal = mat('#88b4b5', { grid: 9 });
+  const coral = mat('#f0a083', { grid: 12, weathered: 0.7 }), teal = mat('#88b4b5', { grid: 9, weathered: 0.7 });   // (old painted plaster: materials.js WEATHER)
   const ink = mat('#465c65', { metal: 'painted' }), cream = mat('#f5dfab'), brass = mat('#c99758', { metal: 'brass' });
   const paving = mat('#a4c1be', { grid: 10 }), lilac = mat('#b9a9c5');
   const dark = mat('#3a535b', { metal: 'painted' }), glow = mat('#fff0bd', { glow: 0.75 });
-  const shop = colors.map(c => mat(c));
+  const shop = colors.map(c => mat(c, { weathered: 0.7 }));
   function add(geo, material, solid = true) {
     geo.computeBoundingBox(); const z = geo.boundingBox.getCenter(new THREE.Vector3()).z;
     const key = `${Math.floor(z / 75)}:${material.uuid}:${solid}`;
@@ -76,7 +76,7 @@ export function* buildBazaar(scene) {
   // Tower canyon. Setbacks and exposed service stacks break up the slabs.
   for(let row=0;row<9;row++) for(const side of [-1,1]) {
     const z=105-row*60, x=side*(54+(row%3)*3), h=125+rng()*130, w=34+rng()*7;
-    const body = row%3===0 ? coral : row%3===1 ? teal : mat(colors[(row+(side+1))%5],{grid:11});
+    const body = row%3===0 ? coral : row%3===1 ? teal : mat(colors[(row+(side+1))%5],{grid:11,weathered:0.7});
     box(x,h/2,z,w,h,43,body);
     box(x,h+7,z,w*.7,14,31,body);
     box(x+side*5,h+23,z,1.4,32,1.4,ink,false);
@@ -102,7 +102,7 @@ export function* buildBazaar(scene) {
   // A second row creates a skyline above side streets.
   for(let i=0;i<22;i++) {
     const side=i%2?1:-1, x=side*(108+rng()*95),z=140-Math.floor(i/2)*62,h=160+rng()*150;
-    box(x,h/2,z,25+rng()*18,h,34,mat(colors[i%5],{grid:14}));
+    box(x,h/2,z,25+rng()*18,h,34,mat(colors[i%5],{grid:14,weathered:0.7}));
     box(x,h+19,z,2,38,2,cream,false);
   }
   // Distant slender needle behind the square, framed by the foreground towers.

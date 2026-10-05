@@ -662,3 +662,8 @@ All of this is for the web game; the Unity port follows later if we move to Unit
   umbrella trees with branches under their canopies (greebles for the spot blacks), pyramids, spheres and
   arches, the white hill, ruins, olives, cypresses, the plaza, lakes. On the world (`SPHERES_LOOK`): no bounce
   under the canopies, the white stone's shade the pale blue, green spot blacks. `?look=spheres`.
+- Worn by time (the author's ask, docs/systems/materials.md): grime streaks, chips with the plaster lip's
+  shadow, cracks with a shadow side, dust at the wall's foot (post.js), per building, lighter on the
+  handheld; on in every world's plaster, mud and stone buildings. The "fuzzy dots" on view 2's dish
+  column (and the "dotted texture on grazing lit faces") were faceted normals from imprecise derivatives
+  far from the origin: now from the camera-relative position.

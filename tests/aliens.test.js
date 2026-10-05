@@ -125,7 +125,9 @@ test('every one of them loads, walks its round, and changes detail with distance
   }
 });
 
-test('standing about with nobody near, each has a small habit now and then', () => {
+test('standing about with nobody near, each has a small habit now and then', (t) => {
+  // seeded: whether a habit runs its course depends on when the wanderers set off (Math.random)
+  let seed = 7; t.mock.method(Math, 'random', () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646);
   const scene = new THREE.Scene();
   for (const [w, d] of ALL.filter(([, x], i, A) => A.findIndex(([, y]) => y.species === x.species) === i)) {
     const [a] = spawnAliens(scene, flat, w).filter((x) => x.def.id === d.id);

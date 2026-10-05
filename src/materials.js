@@ -92,6 +92,8 @@ export const sharedUniforms = {
   uHalftone: { value: 0 },
   uBounce: { value: 0 },
   uShadeKeep: { value: 0 },
+  // weathering at low detail (the handheld): the grime and the chips' tone only, no cracks or lip shadows
+  uWearLite: { value: 0 },
 };
 
 // ---------------------------------------------------------------------------
@@ -261,11 +263,21 @@ const PATTERNS = { facade: 1, tiles: 2, leaves: 3, cracks: 4 };
 /**
  * Weathering (S_WEATHER, weatherInk): how worn a material's walls are, 0..1. Asked for with
  * o.weathered (true: 1), and on by default for house fronts (pattern 'facade'), never on metal,
- * glass, lights or the makers' work (their inscriptions: glyphs). cell: a crack's cell along and up
- * the wall (m); cracks: the share of cells with one; patches: of the wall; far: m per px over which
- * they fade out.
+ * glass, lights or the makers' work (their inscriptions: glyphs). Worn by time: grime streaks run
+ * down from the tops of the wall's cells (storeys, sills), chips where the plaster has broken away
+ * (the darker layer under it, an inked edge, the lip's cast shadow on the sun's side), cracks with a
+ * shadow side, each building its own amount and pattern; post.js darkens the dust splashed up its
+ * foot (gHatch.b +16 marks a weathered pixel). cell: a crack's cell along and up the wall (m);
+ * cracks: the share of cells with one; patches: of the wall.
  */
-export const WEATHER = { cell: [3.7, 3.1], cracks: 0.3, patches: 0.13, far: [0.035, 0.08] };
+export const WEATHER = {
+  cell: [3.7, 3.1], cracks: 0.5, patches: 0.24,
+  far: [0.03, 0.075],      // m per px over which the pen marks (cracks, the chips' edges) fade out
+  farTone: [0.1, 0.28],    // and the tone marks (grime, the chips' exposed fill): larger shapes, kept further
+  grime: { cell: [1.3, 2.4], share: 0.75, dark: 0.36 },   // streaks running down from the tops of the wall's cells
+  chip: { lip: 0.1, dark: 0.42 },                      // the plaster lip's shadow into a chip (m, how dark)
+  foot: { height: 0.62, dark: 0.22 },                   // the dust splashed up the foot of a wall (post.js)
+};
 export function weatheredOf(o) {
   if (o.metal || o.glass || o.glyphs || o.glow || o.mode === MODE_TERRAIN || o.mode === MODE_WATER) return 0;
   const w = o.weathered ?? (o.pattern === 'facade' ? 1 : 0);
@@ -306,6 +318,7 @@ export function surfaceDefines(o) {
 const vertexShader = /* glsl */ `
   ${SURFACE_ALL}
   out vec3 vWorldPos;
+  out vec3 vWorldRel;   // the world position measured from the camera (small numbers: exact derivatives)
   out vec3 vNormal;
   out vec3 vInstColor;
   out float vViewDepth;
@@ -459,6 +472,7 @@ const vertexShader = /* glsl */ `
 
     vec4 world = modelMatrix * pos;
     vWorldPos = world.xyz;
+    vWorldRel = world.xyz - cameraPosition;
     vNormal = normalize(mat3(modelMatrix) * nrm);
     #ifdef METAL
       vec3 brushAx = uBrushAxis;
@@ -519,7 +533,8 @@ const fragmentShader = /* glsl */ `
   uniform float uGrid;
   uniform float uPlates;   // the grid drawn as plating (plateLines)
   uniform float uWindows;  // façades: the share of cells with a window
-  uniform float uWeather;  // weathering: cracks and patches on old walls (weatherInk), 0..1
+  uniform float uWeather;  // weathering: grime, chips and cracks on old walls (weatherInk), 0..1
+  uniform float uWearLite; // the handheld's lighter weathering (sharedUniforms)
   uniform float uDrift;    // 1: sand banked against something (sand-drifts.js)
   uniform vec3 uSkyTop;
   uniform vec3 uSkyHorizon;
@@ -531,6 +546,7 @@ const fragmentShader = /* glsl */ `
   uniform float uBounce;
 
   in vec3 vWorldPos;
+  in vec3 vWorldRel;
   in vec3 vNormal;
   in vec3 vInstColor;
   in float vViewDepth;
@@ -911,38 +927,70 @@ const fragmentShader = /* glsl */ `
   // fq: metres per px of each (taken in uniform flow). Nothing is looked up once it is too small to
   // draw (most of a far city's walls, and the handheld's coarse pixels): the patches' noise and its
   // pixel gradient (estimated from fq: no derivative needed here) only near.
-  float weatherInk(vec2 q, vec2 fq, inout vec3 alb) {
-    float ink = 0.0;
+  float weatherInk(vec2 q, vec2 fq, vec2 sun2, float litK, float seed, float k, inout vec3 alb) {
+    float ink = 0.0, dark = 0.0;
     const vec2 cellS = vec2(${WEATHER.cell[0]}, ${WEATHER.cell[1]});
-    float resolved = 1.0 - smoothstep(${WEATHER.far[0]}, ${WEATHER.far[1]}, max(fq.x, fq.y));
-    if (resolved <= 0.0) return 0.0;
-    for (int dy = 0; dy < 2; dy++) {
-      vec2 id = floor(q / cellS) - vec2(0.0, float(dy));
-      if (hash(id + 41.0) > ${WEATHER.cracks} * uWeather) continue;            // most cells: none
+    float fm = max(fq.x, fq.y);
+    float rTone = 1.0 - smoothstep(${WEATHER.farTone[0]}, ${WEATHER.farTone[1]}, fm);
+    if (rTone <= 0.0) return 0.0;
+    float resolved = 1.0 - smoothstep(${WEATHER.far[0]}, ${WEATHER.far[1]}, fm);
+    bool lite = uWearLite > 0.5;
+    vec2 sunD = normalize(sun2 + vec2(1e-4, 0.0));
+    // ---- grime: a streak running down from the top of its cell (a storey's top, a sill), flat tone,
+    // narrowing as it goes, its edge a little ragged; one cell in two
+    {
+      const vec2 gc = vec2(${WEATHER.grime.cell[0]}, ${WEATHER.grime.cell[1]});
+      vec2 id = floor(q / gc) + seed;
+      if (hash(id + 0.7) < ${WEATHER.grime.share} * k) {
+        float x0 = (floor(q.x / gc.x) + 0.3 + 0.4 * hash(id + 1.3)) * gc.x;
+        float top = (floor(q.y / gc.y) + 1.0) * gc.y - 0.04 - 0.9 * hash(id + 4.4);   // (sources at uneven heights: no frieze)
+        float len = gc.y * (0.35 + 0.6 * hash(id + 2.7)), t = (top - q.y) / len;
+        if (t > 0.0 && t < 1.0) {
+          float w = (0.1 + 0.34 * hash(id + 3.1) * hash(id + 5.9)) * (1.0 - 0.65 * t) + 0.05 * (vnoise(vec2(q.y * 3.0, id.x * 5.0)) - 0.5);
+          float d = abs(q.x - x0 - 0.1 * (vnoise(vec2(q.y * 1.3, id.x)) - 0.5)) - w;
+          dark = max(dark, (1.0 - smoothstep(-fq.x, fq.x, d)) * ${WEATHER.grime.dark} * (1.0 - 0.55 * t));
+        }
+      }
+    }
+    // ---- chips: patches where the plaster has broken away, the layer under it darker, the edge inked,
+    // the lip's shadow falling into the chip on the sun's side (a step, not paint)
+    float pn = vnoise(q * vec2(0.42, 0.55) + seed * 7.1) * 0.7 + vnoise(q * 1.9 + seed) * 0.3;
+    float fpn = 0.9 * fm;   // (the field's gradient, about 1.05 a metre, times metres per px)
+    float th = 1.0 - ${WEATHER.patches} * k;
+    float inside = step(th, pn);
+    alb = mix(alb, alb * vec3(0.74, 0.68, 0.62), inside * rTone);
+    ink = max(ink, inkLine(abs(pn - th) / max(fpn, 1e-5), 0.9) * 0.85 * resolved);
+    if (!lite && inside > 0.5 && litK > 0.0) {
+      vec2 qs = q + sunD * ${WEATHER.chip.lip};
+      float pl = vnoise(qs * vec2(0.42, 0.55) + seed * 7.1) * 0.7 + vnoise(qs * 1.9 + seed) * 0.3;
+      dark = max(dark, step(pl, th) * ${WEATHER.chip.dark} * litK * resolved);
+    }
+    // ---- cracks: down from a storey's top or up from its foot, jagged, thinning, a branch now and
+    // then; their shadow side a sliver darker (off the side away from the sun)
+    if (!lite && resolved > 0.0) for (int dy = 0; dy < 2; dy++) {
+      vec2 id = floor(q / cellS) - vec2(0.0, float(dy)) + seed;
+      if (hash(id + 41.0) > ${WEATHER.cracks} * k) continue;                  // most cells: none
       bool down = hash(id + 2.2) > 0.45;
-      float x0 = (id.x + 0.12 + 0.76 * hash(id + 3.3)) * cellS.x;
-      float y0 = (id.y + (down ? 1.0 : 0.0)) * cellS.y;                     // from the top down, or the foot up
-      float len = cellS.y * (0.4 + 0.75 * hash(id + 8.8));
+      float x0 = (floor(q.x / cellS.x) + 0.12 + 0.76 * hash(id + 3.3)) * cellS.x;
+      float y0 = (floor(q.y / cellS.y) - float(dy) + (down ? 1.0 : 0.0)) * cellS.y;   // from the top down, or the foot up
+      float len = cellS.y * (0.5 + 0.8 * hash(id + 8.8));
       float sAlong = down ? y0 - q.y : q.y - y0, t = sAlong / len;
       if (t < 0.0 || t > 1.0) continue;
       float lean = (hash(id + 5.1) - 0.5) * 1.1;
       float x = x0 + lean * sAlong + (vnoise(vec2(sAlong * 2.3, id.x * 7.0 + id.y)) - 0.5) * 0.32 + (vnoise(vec2(sAlong * 8.0, id.y * 3.0)) - 0.5) * 0.07;
-      ink = max(ink, inkLine(abs(q.x - x) / max(fq.x, 1e-5), mix(1.05, 0.35, t)) * (1.0 - smoothstep(0.8, 1.0, t)));
-      // a branch from part-way down, off to one side
+      float wPx = mix(1.15, 0.4, t), dPx = (q.x - x) / max(fq.x, 1e-5);
+      float fade = 1.0 - smoothstep(0.8, 1.0, t);
+      ink = max(ink, inkLine(abs(dPx), wPx) * fade);
+      float side = dPx * -sign(sunD.x);   // (the crack's far wall, from the sun)
+      dark = max(dark, step(wPx * 0.5, side) * step(side, wPx * 0.5 + 1.6) * 0.32 * fade * litK);
       float tb = 0.3 + 0.3 * hash(id + 9.4), sb = sAlong - tb * len;
       if (sb > 0.0 && sb < len * 0.35 && hash(id + 1.9) < 0.6) {
         float xb = x0 + lean * tb * len + (vnoise(vec2(tb * len * 2.3, id.x * 7.0 + id.y)) - 0.5) * 0.32 + sign(hash(id + 6.6) - 0.5) * sb * 0.9 + (vnoise(vec2(sb * 6.0, id.x)) - 0.5) * 0.06;
-        ink = max(ink, inkLine(abs(q.x - xb) / max(fq.x, 1e-5), mix(0.7, 0.3, sb / (len * 0.35))) * (1.0 - smoothstep(0.7, 1.0, sb / (len * 0.35))));
+        ink = max(ink, inkLine(abs(q.x - xb) / max(fq.x, 1e-5), mix(0.75, 0.3, sb / (len * 0.35))) * (1.0 - smoothstep(0.7, 1.0, sb / (len * 0.35))));
       }
     }
-    // patches: the plaster gone (a shade darker) or a pale repair, the edge broken
-    float pn = vnoise(q * 0.42 + 17.0) * 0.72 + vnoise(q * 1.6) * 0.28;
-    float fpn = 1.1 * max(fq.x, fq.y);   // (the noise's gradient, about 1.1 a metre, times metres per px)
-    float th = 1.0 - ${WEATHER.patches} * uWeather;
-    float inside = step(th, pn);
-    alb *= 1.0 + inside * resolved * (hash(floor(q / 6.0) + 12.0) > 0.4 ? -0.07 : 0.05);
-    float edge = inkLine(abs(pn - th) / max(fpn, 1e-5), 0.8) * smoothstep(0.35, 0.6, vnoise(q * 1.7 + 3.0));
-    return max(ink, edge * 0.8) * resolved;
+    alb *= 1.0 - dark * rTone;
+    return ink * resolved;
   }
   #endif
 
@@ -1312,10 +1360,16 @@ const fragmentShader = /* glsl */ `
     float faceX = abs(on.x) > abs(on.z) ? vObjPos.z : vObjPos.x;     // horizontal coord on a side face
     float fissFw = fwidth(faceX) / 9.0;
     #ifdef S_WEATHER
-    // the wall's own frame for weathering: along it (from the interpolated normal, as façades) and up
-    vec2 wDir = normalize(vec2(-vNormal.z, vNormal.x) + 1e-5);
-    vec2 wq = vec2(dot(vWorldPos.xz, wDir), vWorldPos.y);
-    vec2 wfq = vec2(length(vec2(dFdx(wq.x), dFdy(wq.x))), length(vec2(dFdx(wq.y), dFdy(wq.y))));
+    // the wall's own frame for weathering: along it and up. Along is world x on walls facing z, world z
+    // on walls facing x, blended between: the tangent of the interpolated normal (dot(p, t)) swept a
+    // round wall far from the origin through hundreds of metres a turn (a thin column's marks became a
+    // field of specks)
+    vec2 wqA = vec2(vWorldPos.x, vWorldPos.y), wqB = vec2(vWorldPos.z, vWorldPos.y);
+    float wfy = length(vec2(dFdx(vWorldPos.y), dFdy(vWorldPos.y)));
+    vec2 wfqA = vec2(length(vec2(dFdx(vWorldPos.x), dFdy(vWorldPos.x))), wfy), wfqB = vec2(length(vec2(dFdx(vWorldPos.z), dFdy(vWorldPos.z))), wfy);
+    // each building its own wear: an amount and a pattern from where it stands
+    vec2 wCell = floor(vWorldPos.xz / 9.0);
+    float wSeed = floor(hash(wCell + 7.0) * 61.0), wK = uWeather * (0.6 + 0.8 * hash(wCell + 3.0));
     #endif
     #ifdef S_STRATA
     // strokes along the beds of rock (the strata's own wavy horizontals), lit or not
@@ -1338,8 +1392,11 @@ const fragmentShader = /* glsl */ `
 
     vec3 n = normalize(vNormal);
     if (uFlat > 0.5) {
-      // Faceted look: derive the normal from screen-space derivatives.
-      n = normalize(cross(dFdx(vWorldPos), dFdy(vWorldPos)));
+      // Faceted look: derive the normal from screen-space derivatives, of the position measured from
+      // the camera: those of vWorldPos lose their low bits kilometres out (the References' views, a
+      // far city), the facet's normal wobbled by a percent from pixel to pixel, and a facet turned
+      // edge-on to the sun broke into a field of lit and shaded specks, each inked by post.js
+      n = normalize(cross(dFdx(vWorldRel), dFdy(vWorldRel)));
     }
     #ifndef GRASS
     else if (!gl_FrontFacing) n = -n;   // (grass blades: both sides lit like the ground)
@@ -1461,7 +1518,23 @@ const fragmentShader = /* glsl */ `
     if (uPattern == 4 && uMode != ${MODE_TERRAIN}) patInk = rockCracks(vObjPos);   // (bare rock ground: rockFissures, below)
     #endif
     #ifdef S_WEATHER
-    if (uWeather > 0.0 && abs(n.y) < 0.55) patInk = max(patInk, weatherInk(wq, wfq, albedo) * (1.0 - smoothstep(0.35, 0.55, abs(n.y))));
+    if (uWeather > 0.0 && abs(n.y) < 0.55) {
+      float wUp = 1.0 - smoothstep(0.35, 0.55, abs(n.y));
+      float ax = abs(n.x), az = abs(n.z), wb = smoothstep(0.36, 0.64, ax / max(ax + az, 1e-4));   // 0: facing z, 1: facing x
+      float litK = smoothstep(0.02, 0.15, dot(n, uSunDir));
+      float wi = 0.0;
+      if (wb < 0.999) {
+        vec3 aA = albedo;
+        wi = weatherInk(wqA, wfqA, vec2(uSunDir.x, uSunDir.y), litK, wSeed, wK, aA) * (1.0 - wb);
+        albedo = mix(albedo, aA, (1.0 - wb) * wUp);
+      }
+      if (wb > 0.001) {
+        vec3 aB = albedo;
+        wi = max(wi, weatherInk(wqB, wfqB, vec2(uSunDir.z, uSunDir.y), litK, wSeed + 13.0, wK, aB) * wb);
+        albedo = mix(albedo, aB, wb * wUp);
+      }
+      patInk = max(patInk, wi * wUp);
+    }
     #endif
     albedo *= instColor;
     #ifdef MAKERS_BOX
@@ -1690,6 +1763,9 @@ const fragmentShader = /* glsl */ `
     #endif
     detail = max(detail, patInk);
     gHatch.b = detail + 4.0 * uSpotStep;
+    #ifdef S_WEATHER
+    if (uWeather > 0.0) gHatch.b += 16.0;   // weathered: post.js darkens the dust splashed up its foot
+    #endif
     gHatch.a = max(max(uGlow, emit), smoothstep(0.15, 0.6, local) * 0.6) + 2.0 * uHero + 4.0 * uFigure;
     // a face (its skin and its eyes, and the neck's skin under it): post.js shades it in a warm tone of
     // its own (FACE_SHADE) and leaves out the line round its shade and the crease shading
