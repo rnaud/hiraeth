@@ -218,6 +218,11 @@ test('the desert’s conversations are well formed: every goto, quest and condit
     if (c.quest) assert.ok(quests.has(c.quest), `${where}: no quest ${c.quest}`);
   };
   for (const p of people) {
+    if (p.talk.listen) {   // listen-only (src/story/dialogue.js pickListen): only its entries' conditions
+      assert.ok(p.talk.listen.length, `${p.name} has something to say`);
+      for (const e of p.talk.listen) if (e?.say) { conds(e.if, p.name); conds(e.after, p.name); }
+      continue;
+    }
     const nodes = p.talk.nodes;
     assert.ok(Object.keys(nodes).length, `${p.name} has something to say`);
     for (const e of p.talk.entry ?? []) { assert.ok(nodes[e.node], `${p.name}: entry to missing ${e.node}`); conds(e.if, p.name); }

@@ -145,23 +145,16 @@ export const PEOPLE = {
     id: 'ivo', name: 'Ivo', title: 'who climbs the white hill', color: '#f2c5b0', voice: 1.25, kind: 'm',
     palette: { cloak: '#f2c5b0', lining: '#2b211f', cloth: '#4f6b3a', legs: '#3a3a3a', hat: '#f6efd0', hair: '#4a3226' }, head: 'hair', cape: 0.5,
     lines: ['~happy~ Climb the white hill. From the middle terrace you can step out onto the great canopy.', '~curious~ Have you looked under a sphere?', '~shout~ The view! The VIEW.'],
-    talk: {
-      nodes: {
-        hello: {
-          say: ['~happy~ *Climb the white hill*! From the middle terrace you can step right out onto the great canopy. Nobody believes me until they do it.', '~curious~ I’m Ivo. I climb things. Have you ever looked under a sphere?'],
-          choices: [
-            { text: '~curious~ Under a sphere?', goto: 'under' },
-            { text: '~neutral~ I’ll climb the hill.', end: true },
-          ],
-        },
-        under: {
-          say: ['~whisper~ Where they touch the ground. I crawled under the pearl by the lake once, flat on my back. There’s a mark there, pressed into it, like where a foot came down. {glyph}', '~playful~ Three dots over an arc. We call it the Footprint. Every sphere has one, underneath, where nobody looks. Except me.', '~playful~ There’s a blue box with a star on the lid, too, *up on the grove’s umbrella tree*, with Footprints all round its sides. A left-behind. Ume says they’re presents. Ume says everything is a present.'],
-          choices: [{ text: '~curious~ Whose footprint?', goto: 'whose' }],
-        },
-        whose: { say: ['~curious~ Something that walked through the sky putting spheres down, I suppose, the way you’d put down cups. Some say the great one on the horizon, and that one day it will come back and collect them.'], choices: [{ text: '~curious~ Seen anything strange lately?', goto: 'strange' }, { text: '~happy~ Thanks, Ivo.', end: true }] },
-        strange: { say: ['~playful~ *Ask Ume, at the plaza*. She says the pole hummed on its own the night the light passed, with the great sphere dark. She doesn’t say things like that. I say things like that.'], choices: [{ text: '~happy~ Thanks, Ivo.', end: true }] },
-      },
-    },
+    talk: { listen: [
+      ['~happy~ *Climb the white hill*! From the middle terrace you can step right out onto the great canopy.', '~playful~ Nobody believes me until they do it.'],
+      ['~whisper~ Ever looked under a sphere? Where it touches the ground there’s a mark pressed in, like where a foot came down. {glyph}', '~playful~ The Footprint. Every sphere has one, underneath, where nobody looks. Except me.'],
+      { if: { not: { flag: 'box.spheres.shell' } }, say: '~playful~ There’s a blue box with a star on the lid *up on the grove’s umbrella tree*. A left-behind. Ume says they’re presents. Ume says everything is a present.' },
+      '~curious~ Something walked through the sky putting spheres down, the way you’d put down cups. Some say it was the great one on the horizon, and that one day it will come back for them.',
+      '~neutral~ Splash a sphere and it rings. The big ones ring low, the little ones high. I played a whole song on the grove once. Badly.',
+      '~tired~ Can’t talk. Climbing. (He is standing on the ground.)',
+      { after: { flag: 'temple.spheres.done' }, say: '~surprised~ The Footprint is full of still water now, and every sphere wears a ring of light. I climbed one to check. It’s warm.' },
+      { after: { flag: 'world.spheres.done' }, say: '~happy~ Ume says the spheres heard what they were waiting to hear. I put my ear on one. It said nothing, very happily.' },
+    ] },
   },
 
   cael: {

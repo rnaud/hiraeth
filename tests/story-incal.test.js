@@ -114,6 +114,7 @@ test('the crowd is talkable by where they live, and the lower levels pray', () =
 test('every conversation’s links lead somewhere', () => {
   const all = [...Object.values(PEOPLE), ...Object.values(THINGS), ...Object.values(RIM), ...Object.values(CROWD_TALK).flat()];
   for (const p of all) {
+    if (p.talk.listen) continue;   // (listen-only: no nodes, no links; tests/listen.test.js)
     const nodes = p.talk.nodes;
     for (const e of p.talk.entry ?? []) assert.ok(nodes[e.node], `${p.name}: entry to a missing node ${e.node}`);
     for (const [id, n] of Object.entries(nodes)) {

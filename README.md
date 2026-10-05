@@ -882,6 +882,36 @@ walks every tree in the game, tries every combination of the conditions on a
 node's answers (flags, items, quest stages, function conditions), and checks the
 cap, the average (at most two) and that no node was stranded by the trimming.
 
+### People outside the quests only talk
+
+Bystanders and the crowd ask you nothing: you listen. Their talk is
+`talk: { listen: [...] }` instead of nodes (`src/story/dialogue.js` `pickListen`):
+each talk says one entry (a line, or two or three lines) with no answers, and the
+next press closes the panel. Talk again for the next entry, round the list, never
+the same one twice running; where they are in it is kept in the save
+(`heard.<id>`, or `heard.<person.heard>` for crowd people, who share a zone's id).
+An entry can wait for a condition (`if`, a hint that goes stale once the box is
+opened or the quest done) or be news (`after`: said first, once, as soon as it
+holds; the temple woken, the world's main quest done), and can carry effects
+(`do`: Bako plays his ney). The lines are hints about real things in the world
+(where a box sits, the trick of a puzzle, the temple's door), the world's own
+wisdom, brush-offs and jokes. Quest people (anyone whose talk gives, starts,
+advances or reads a quest step) keep their conversations. `tests/listen.test.js`
+checks that every bystander and crowd person is listen-only, that their lines
+have tones, fit one to three lines, vary and react to progress.
+
+### Answers: the mark in its own column
+
+An answer is a flex row (`choiceHtml`): a fixed column for its mark, then its
+words, which wrap beside the mark and never under or over it. The column holds
+three marks stacked in one grid cell and the body's input class shows one: the
+keyboard's number, a plain › for touch, and with a controller the confirm
+button's badge (`confirmKey()`, renamed by `native-pad.js`) on the focused
+answer and › on the others. The old mark shrank its `font-size` to 0 to swap the
+number for a `::before` mark, which took its `em` width down to nothing, so on
+the Retroid (touch and controller at once) the mark sat on the answer's first
+letters.
+
 ### The father’s charge
 
 "Bring back something of value", the father's last words on the prologue's

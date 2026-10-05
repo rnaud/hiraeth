@@ -200,15 +200,28 @@
       @keyframes dlg-more { 50% { transform: translateY(3px); } }
       #dialogue .glyph, .balloon .glyph { width: 1.6em; height: 1.05em; vertical-align: -0.12em; fill: #3aa6a8; stroke: #3aa6a8; margin: 0 2px; }
       #dialogue .dlg-choices { display: flex; flex-direction: column; gap: 5px; }
+      /* an answer: its mark in a column of its own, its words beside it (they wrap beside the mark, never under or over it) */
       #dialogue .dlg-choices button {
-        text-align: left; font: inherit; font-size: 0.93em; color: #2b211f; background: #f3e7cc; border: 1.5px solid #2b211f; padding: 5px 10px; cursor: pointer;
+        display: flex; align-items: flex-start; gap: 0.6em; width: 100%; box-sizing: border-box;
+        text-align: left; font: inherit; font-size: 0.93em; line-height: 1.5; color: #2b211f; background: #f3e7cc; border: 1.5px solid #2b211f; padding: 5px 10px; cursor: pointer;
         box-shadow: 2px 2px 0 #2b211f; transition: transform 0.08s;
       }
       #dialogue .dlg-choices button:hover, #dialogue .dlg-choices button:focus { background: #fff6dc; transform: translate(-1px, -1px); box-shadow: 3px 3px 0 #2b211f; outline: none; }
-      #dialogue .dlg-choices button span { display: inline-block; width: 1.4em; font-weight: bold; color: #c8483a; }
-      /* (the numbers are the keyboard's: with a controller or a touch screen, a plain mark) */
-      body.controller #dialogue .dlg-choices button span, body.touch #dialogue .dlg-choices button span { font-size: 0; }
-      body.controller #dialogue .dlg-choices button span::before, body.touch #dialogue .dlg-choices button span::before { content: '›'; font-size: 1rem; }
+      #dialogue .dlg-say { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+      /* the mark's column: one line tall, its marks stacked in one cell (src/story/dialogue.js choiceHtml) */
+      #dialogue .dlg-key { flex: 0 0 auto; display: grid; place-items: center; min-width: 1.1em; height: 1.5em; color: #c8483a; font-weight: bold; }
+      #dialogue .dlg-key > * { grid-area: 1 / 1; }
+      #dialogue .dlg-key .key { font-size: 0.82em; min-width: 1.8em; height: 1.8em; }
+      /* the keyboard: the number to press; a touch screen: a plain mark */
+      #dialogue .dlg-mark, #dialogue .dlg-key .key { display: none; }
+      body.touch #dialogue .dlg-num { display: none; }
+      body.touch #dialogue .dlg-mark { display: block; }
+      /* a controller: the confirm button's badge on the answer it would pick, a mark on the others */
+      body.controller #dialogue .dlg-num { display: none; }
+      body.controller #dialogue .dlg-mark { display: block; }
+      body.controller #dialogue .dlg-key .key { display: inline-flex; visibility: hidden; }
+      body.controller #dialogue button:focus .dlg-key .key { visibility: visible; }
+      body.controller #dialogue button:focus .dlg-mark { visibility: hidden; }
       /* the translator: the last letters at the caret still in the speaker's own script */
       #dialogue .dlg-alien { color: #3aa6a8; letter-spacing: 0.05em; opacity: 0.85; }
       /* a big screen (a 1080p handheld or a monitor): a bigger panel, read from arm's length */

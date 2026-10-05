@@ -380,19 +380,15 @@ export const PEOPLE = {
 export const RIM = {
   corvin: {
     id: 'corvin', name: 'Corvin Sale', title: 'of the rim, third generation', color: '#e88fa6', head: 'hat', cape: 0,
-    talk: {
-      entry: [{ if: LOOKED, node: 'lit' }, { node: 'hello' }],
-      nodes: {
-        hello: {
-          say: ['~playful~ Admiring the view? Everybody does, the first day. Then you stop seeing it. That’s how you know you live here.', '~neutral~ Corvin Sale. Of the rim. Third generation.'],
-          choices: [{ text: '~curious~ What is the light above the palace?', goto: 'incal' }, { text: '~neutral~ Goodbye.', end: true }],
-        },
-        incal: { say: ['~tired~ The Lodestar? A light show. A story for tourists, and for the lower levels, who need stories. The palace pays for it out of the taxi tax.', '~playful~ Dimming, is it? Then the palace is economising. Good.'], choices: [{ text: '~curious~ What’s down there?', goto: 'down' }, { text: '~curious~ What’s that mark on the cabs?', goto: 'glyph' }] },
-        down: { say: ['~angry~ Level minus eighty-six? I’ve never been below the smog. Why would I? Everything I need comes up.'], choices: [{ text: '~neutral~ Goodbye.', end: true }] },
-        glyph: { say: ['~neutral~ {glyph} The palace seal. It’s on every cab licence, every permit, every gate. It means *approved*.'], choices: [{ text: '~neutral~ Goodbye.', end: true }] },
-        lit: { say: ['~surprised~ I looked up. I didn’t mean to. Everybody did; it would have been rude not to.', '~whisper~ Don’t tell anyone I said it was beautiful.'], choices: [{ text: '~playful~ Your secret is safe.', end: true }] },
-      },
-    },
+    talk: { listen: [
+      ['~playful~ Admiring the view? Everybody does, the first day. Then you stop seeing it. That’s how you know you live here.', '~neutral~ Corvin Sale. Of the rim. Third generation.'],
+      { if: { not: LOOKED }, say: ['~tired~ The Lodestar? A light show. A story for tourists, and for the lower levels, who need stories.', '~playful~ Dimming, is it? Then the palace is economising. Good.'] },
+      '~angry~ Level minus eighty-six? I’ve never been below the smog. Why would I? Everything I need comes up.',
+      '~neutral~ {glyph} The palace seal. It’s on every cab licence, every permit, every gate. It means *approved*. You, for instance, are not stamped.',
+      { if: { not: { flag: 'temple.incal.done' } }, say: '~playful~ That tower round the rim from your ship? *The makers’ tower*. A folly. Somebody built a well that goes up. We don’t talk about it.' },
+      { after: LOOKED, say: ['~surprised~ I looked up. I didn’t mean to. Everybody did; it would have been rude not to.', '~whisper~ Don’t tell anyone I said it was beautiful.'] },
+      { after: { flag: 'temple.incal.done' }, say: '~surprised~ The air rises up the shaft now, by the old shrine, and the lower levels ride it all the way to the rim. Uninvited. In their slippers.' },
+    ] },
   },
   lio: {
     id: 'lio', name: 'Lio', title: 'cab dispatcher', color: '#62c3c9', head: 'hat', cape: 0,
@@ -409,15 +405,13 @@ export const RIM = {
   },
   hask: {
     id: 'hask', name: 'Hask', title: 'seller of views', color: '#f2c54b', head: 'hair', cape: 0,
-    talk: {
-      nodes: {
-        hello: {
-          say: ['~shout~ Views of the abyss! Cheap! You stand here, you look down, you pay me.', '~playful~ You looked up. Nobody looks up. Up is free; I can’t sell up.'],
-          choices: [{ text: '~curious~ What can you see from here?', goto: 'see' }, { text: '~neutral~ Goodbye.', end: true }],
-        },
-        see: { say: ['~neutral~ Nine levels. Eleven if you count the smog and the lake. The rich at the top, the poor at the bottom, and a light in the middle of the sky that nobody pays for, so nobody looks at it.'], choices: [{ text: '~neutral~ Goodbye.', end: true }] },
-      },
-    },
+    talk: { listen: [
+      ['~shout~ Views of the abyss! Cheap! You stand here, you look down, you pay me.', '~playful~ You looked up. Nobody looks up. Up is free; I can’t sell up.'],
+      '~neutral~ Nine levels. Eleven if you count the smog and the lake. The rich at the top, the poor at the bottom, and a light in the middle that nobody pays for, so nobody looks at it.',
+      '~angry~ No looking without paying. That was a look. That’s one coin.',
+      { if: { not: { flag: 'box.incal.soles' } }, say: '~whisper~ A free one, since you’re not buying: there’s a box on top of *the lone stone pillar*, round the rim from your ship. A good climb. A terrible view, of a box.' },
+      { after: LOOKED, say: '~playful~ Now they all look up, and for free. I’m ruined. I sell views of the light now. Same price.' },
+    ] },
   },
 };
 
@@ -484,55 +478,81 @@ export const LINES = {
   shout: ['~shout~ Look! Look up!', '~shout~ The light!', '~shout~ Up there!', '~shout~ It’s burning again!'],
 };
 
-const bye = { text: '~neutral~ Goodbye.', end: true };
-/** Short conversations for people in the crowd, by where they live. Picked by their seed. */
+/** What people in the crowd say when you stop and listen (no answers: src/story/dialogue.js pickListen), by where they live. Picked by their seed. */
 export const CROWD_TALK = {
   rim: [
-    { name: 'A rim resident', title: 'taking the air', talk: { nodes: {
-      hello: { say: ['~tired~ The Lodestar? My dear, it’s a light show. The palace switches it on for the tourists.'], choices: [{ text: '~neutral~ It’s dimming.', goto: 'dim' }, bye] },
-      dim: { say: ['~tired~ Is it? I hadn’t looked. One doesn’t, really.'], choices: [bye] },
-    } } },
-    { name: 'A tourist', title: 'from off-world', talk: { nodes: {
-      hello: { say: ['~tired~ I came all this way to see the Lodestar and, honestly? It’s smaller than on the postcards. And sort of grey.'], choices: [bye] },
-    } } },
+    { name: 'A rim resident', title: 'taking the air', talk: { listen: [
+      '~tired~ The Lodestar? My dear, it’s a light show. The palace switches it on for the tourists.',
+      { if: { not: LOOKED }, say: '~tired~ Dimming, is it? I hadn’t looked. One doesn’t, really.' },
+      '~angry~ Please don’t stand so near the edge. It makes the rest of us look reckless.',
+      '~neutral~ The cabs stop for anyone up here. Wave. Not at me.',
+    ] } },
+    { name: 'A tourist', title: 'from off-world', talk: { listen: [
+      { if: { not: LOOKED }, say: '~tired~ I came all this way to see the Lodestar and, honestly? It’s smaller than on the postcards. And sort of grey.' },
+      '~curious~ I asked a cab to take me to the bottom. The driver laughed for a whole level.',
+      ['~playful~ Tip from one stranger to another: up here it’s rude to look up.', '~playful~ Down at the bottom it’s rude not to. I’ve had a stiff neck all week.'],
+      '~tired~ I’m on holiday. Please don’t ask me for directions; I’ve been lost since I landed.',
+    ] } },
   ],
   upper: [
-    { name: 'A roof gardener', title: 'of the high terraces', talk: { nodes: {
-      hello: { say: ['~playful~ We grow lemons on the roofs up here. The trick is never to look down. The lemons get nervous.'], choices: [bye] },
-    } } },
-    { name: 'A flower seller', title: 'of the high terraces', talk: { nodes: {
-      hello: { say: ['~sad~ The light? I remember it brighter. But everybody remembers everything brighter.'], choices: [{ text: '~curious~ The night the sky rang?', goto: 'rang' }, bye] },
-      rang: { say: ['~angry~ Oh, that. Every glass vase on my stall sang at once, and six of them broke. Fireworks, the palace said. Fireworks don’t sing.'], choices: [bye] },
-    } } },
+    { name: 'A roof gardener', title: 'of the high terraces', talk: { listen: [
+      '~playful~ We grow lemons on the roofs up here. The trick is never to look down. The lemons get nervous.',
+      '~neutral~ The rain falls past us on its way to the bottom. We catch what we can. The bottom gets the rest, and the smog.',
+      '~angry~ Mind the lemons! Not that one, it’s having a hard year.',
+      '~whisper~ Don’t look down too long. The shaft looks back, and it has six hundred metres of patience.',
+    ] } },
+    { name: 'A flower seller', title: 'of the high terraces', talk: { listen: [
+      '~sad~ The light? I remember it brighter. But everybody remembers everything brighter.',
+      ['~curious~ The night the sky rang, every glass vase on my stall sang at once, and six of them broke.', '~angry~ Fireworks, the palace said. Fireworks don’t sing.'],
+      '~playful~ Flowers for someone? No? For you, then. No? Then step aside, darling, you’re blocking the tulips.',
+      { after: LOOKED, say: '~happy~ I sold every yellow flower I had this morning. Everyone wants something the colour of the Lodestar.' },
+    ] } },
   ],
   middle: [
-    { name: 'A cable mender', title: 'between the levels', talk: { nodes: {
-      hello: { say: ['~tired~ I mend the cables between the levels. Up a level, down a level. Nobody is from the middle; we’re all just passing through.'], choices: [bye] },
-    } } },
-    { name: 'A commuter', title: 'in a hurry', talk: { nodes: {
-      hello: { say: ['~tired~ The light? I see it every morning on my way up and every night on my way down. I couldn’t tell you what colour it is.'], choices: [bye] },
-    } } },
+    { name: 'A cable mender', title: 'between the levels', talk: { listen: [
+      '~tired~ I mend the cables between the levels. Up a level, down a level. Nobody is from the middle; we’re all just passing through.',
+      { if: { not: { quest: 'incal.ration', done: true } }, say: ['~neutral~ The old goods hoist, down low? There’s a rusted pin in it. *Shoot the pin out* and it swings free.', '~neutral~ Then push the weight round its post. Round, mind. Not toward the edge.'] },
+      '~angry~ I’m on a cable. You’re on my cable. One of us has to move, and I’m working.',
+      '~solemn~ Everything in this city hangs from something. Don’t think about what the top one hangs from.',
+    ] } },
+    { name: 'A commuter', title: 'in a hurry', talk: { listen: [
+      '~tired~ The light? I see it every morning on my way up and every night on my way down. I couldn’t tell you what colour it is.',
+      '~tired~ Up a level, down a level. I have been late on every level of this city.',
+      '~angry~ Excuse me. Excuse me! Some of us have a cab to catch.',
+      { after: LOOKED, say: '~surprised~ I stopped on the stairs this morning to look at it. First time in eleven years. I was late. I didn’t mind.' },
+    ] } },
   ],
   lower: [
-    { name: 'A worshipper', title: 'of the bottom terraces', talk: { nodes: {
-      hello: { say: ['~whisper~ Shh. We’re praying. Eyes shut, face up. The smog stings, but the light can still feel you looking.'], choices: [{ text: '~curious~ Why with your eyes shut?', goto: 'why' }, bye] },
-      why: { say: ['~angry~ You try keeping them open down here.'], choices: [bye] },
-    } } },
-    { name: 'A laundry hanger', title: 'of the bottom terraces', talk: { nodes: {
-      hello: { say: ['~playful~ Behla’s laundry caught the light when it fell. A splinter of god, in her vests. She’s been insufferable ever since.'], choices: [bye] },
-    } } },
-    { name: 'A child', title: 'who wants to go up', talk: { nodes: {
-      hello: { say: ['~curious~ Have you been to the top? Is it true there’s a sun up there every day? Every single day?'], choices: [{ text: '~happy~ Every day.', goto: 'yes' }, bye] },
-      yes: { say: ['~happy~ I’m going to go. When I’m big. I’m going to stand right under it and look.'], choices: [bye] },
-    } } },
+    { name: 'A worshipper', title: 'of the bottom terraces', talk: { listen: [
+      ['~whisper~ Shh. We’re praying. Eyes shut, face up.', '~whisper~ The smog stings, but the light can still feel you looking.'],
+      '~angry~ Why eyes shut? You try keeping them open down here.',
+      '~solemn~ {glyph} Three heads over a hill: the Three Who Look Up. They’re cut into the light itself, underneath, where only we can see them.',
+      '~solemn~ A light nobody looks at goes out. That is the whole of the teaching. The rest is singing.',
+    ] } },
+    { name: 'A laundry hanger', title: 'of the bottom terraces', talk: { listen: [
+      '~playful~ Behla’s laundry caught the light when it fell. A splinter of god, in her vests. She’s been insufferable ever since.',
+      '~playful~ Down here the laundry never dries. We hang it out anyway. It’s a kind of prayer.',
+      { if: { not: { quest: 'incal.wren', done: true } }, say: '~neutral~ No cab stops below the smog. Except Wren, they say, if you *light the old call-lamp* at the edge of the terrace. Give it a shot.' },
+      '~tired~ Mind the sheets. That one is drier than you, and it’s still wet.',
+    ] } },
+    { name: 'A child', title: 'who wants to go up', talk: { listen: [
+      '~curious~ Have you been to the top? Is it true there’s a sun up there every day? Every single day?',
+      '~happy~ When I’m big I’m going to go up and stand right under it and look.',
+      '~playful~ I can hold my breath for a whole level of smog. Watch. (He can’t.)',
+      '~curious~ Is it true the people at the top have never seen the bottom? Not even once? Not even by falling?',
+    ] } },
   ],
   lit: [
-    { name: 'Someone looking up', title: 'with everyone else', talk: { nodes: {
-      hello: { say: ['~surprised~ Look at it. I’d forgotten. I’d actually forgotten it could do that.'], choices: [{ text: '~solemn~ Look up once a day.', goto: 'once' }, bye] },
-      once: { say: ['~happy~ Once a day. Yes. I could manage once a day.'], choices: [bye] },
-    } } },
-    { name: 'Someone from the bottom', title: 'eyes wide open', talk: { nodes: {
-      hello: { say: ['~happy~ You took it up? You did? I opened my eyes. I opened my eyes, and it didn’t sting.'], choices: [bye] },
-    } } },
+    { name: 'Someone looking up', title: 'with everyone else', talk: { listen: [
+      '~surprised~ Look at it. I’d forgotten. I’d actually forgotten it could do that.',
+      '~solemn~ Look up once a day. Yes. I could manage once a day.',
+      '~happy~ My shadow! I haven’t had a shadow since I was a girl. It’s taller than I remembered.',
+      { after: { flag: 'temple.incal.done' }, say: '~surprised~ The air rises by the old shrine now, all the way to the rim. My neighbour rode it up in his slippers.' },
+    ] } },
+    { name: 'Someone from the bottom', title: 'eyes wide open', talk: { listen: [
+      '~happy~ You took it up? You did? I opened my eyes. I opened my eyes, and it didn’t sting.',
+      '~shout~ It reaches all the way down! Look at the lake! The lake has a colour!',
+      '~playful~ The rim says the palace fixed it. Let them. We know who looked.',
+    ] } },
   ],
 };

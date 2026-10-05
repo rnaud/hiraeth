@@ -215,50 +215,36 @@ export const PEOPLE = {
 export const LOCALS = [
   {
     id: 'clemence', name: 'Clemence', title: 'who remembers the Major', color: '#e6875f', voice: 1.05,
-    talk: {
-      entry: [{ if: { flag: 'garage.note.read' }, node: 'note' }, { node: 'hello' }],
-      nodes: {
-        note: {
-          say: ['~sad~ You found his desk. I can tell; you have the look of somebody who has read his handwriting. “That is the point.” Yes. That sounds like him.', '~solemn~ He never did know what he wanted it for. I think that was the only way he could bear to build something so big: not knowing, and doing it anyway, carefully.'],
-          choices: [{ text: '~curious~ And the wheel under the sand?', goto: 'wheel' }, { text: '~happy~ Thank you, Clemence.', end: true }],
-        },
-        wheel: { say: ['~solemn~ Ah. The wheel. A machine somewhere out under a desert that turns one tooth a year; people there time their lives by it, he said. He went to see it once, and came back very quiet. If you go, tell it the Hangar is still turning.'], choices: [{ text: '~solemn~ I will.', end: true }] },
-        hello: {
-          say: ['~playful~ Up is a matter of opinion here. Down is a matter of habit.', '~sad~ I knew the Major. Knew him before he built all this, when he was just a man with a pencil and too many ideas. He built it all, and then he forgot.'],
-          choices: [
-            { text: '~curious~ Forgot what?', goto: 'forgot' },
-            { text: '~curious~ Where did he go?', goto: 'where' },
-          ],
-        },
-        forgot: { say: ['~sad~ Why. He remembered how, every rivet. But why he’d made a world in a garage, with three kinds of down and a ring you can walk round forever, that he lost. It bothered him terribly. Then it stopped bothering him, which bothered me more.'], choices: [{ text: '~curious~ Where did he go?', goto: 'where' }] },
-        where: { say: ['~tired~ For a walk. Round the ring, I expect. Walk far enough and you’re back, they say. He hasn’t been back. Or he has, and none of us noticed. He was like that.'], choices: [{ text: '~curious~ What’s the mark on the great machine?', goto: 'mark' }, { text: '~happy~ Thank you, Clemence.', end: true }] },
-        mark: { say: ['~solemn~ His thumbprint, I called it. {glyph} He said it wasn’t his: he’d found it, scratched on a stone in his first garage, before any of this, and copied it onto everything since. For luck, he said. Or for somebody.'], choices: [{ text: '~happy~ Thank you, Clemence.', end: true }] },
-      },
-    },
+    talk: { listen: [
+      ['~playful~ Up is a matter of opinion here. Down is a matter of habit.', '~sad~ I knew the Major before he built all this, when he was just a man with a pencil and too many ideas. He built it all, and then he forgot.'],
+      '~sad~ He remembered how, every rivet. But why he’d made a world in a garage, with three kinds of down and a ring you can walk round forever, that he lost.',
+      '~tired~ Where did he go? For a walk, round the ring, I expect. He hasn’t been back. Or he has, and none of us noticed. He was like that.',
+      '~solemn~ {glyph} His thumbprint, I called it. He said he’d found it scratched on a stone in his first garage, and copied it onto everything since. For luck. Or for somebody.',
+      { after: { flag: 'garage.note.read' }, say: ['~sad~ You found his desk. You have the look of somebody who has read his handwriting. “That is the point.” Yes. That sounds like him.', '~solemn~ He never knew what he wanted it for. Not knowing, and doing it anyway, carefully: that was how he could bear to build something so big.'] },
+      { if: { flag: 'garage.note.read' }, say: '~solemn~ There’s a wheel under a desert somewhere that turns one tooth a year, he told me once. If you go, tell it the Hangar is still turning.' },
+    ] },
   },
   {
     id: 'nikko', name: 'Nikko', title: 'who greases the gears', color: '#62c3c9', voice: 1.2,
-    talk: {
-      nodes: {
-        hello: {
-          say: ['~shout~ Don’t lean on the gears! They don’t like it. They tell me, after.', '~happy~ I grease the great machine. All of it. By the time I get to the top, the bottom wants greasing again. It’s the best job in the world. It never ends.'],
-          choices: [{ text: '~curious~ What does the great machine do?', goto: 'does' }, { text: '~happy~ Bye, Nikko.', end: true }],
-        },
-        does: { say: ['~happy~ It turns. Isn’t that enough? Ottla says it keeps the portals open. Ambroise says it keeps the signal ticking. I think it keeps us busy, and that’s the most important job of all.'], choices: [{ text: '~happy~ Bye, Nikko.', end: true }] },
-      },
-    },
+    talk: { listen: [
+      '~shout~ Don’t lean on the gears! They don’t like it. They tell me, after.',
+      '~happy~ I grease the great machine. All of it. By the time I get to the top, the bottom wants greasing again. Best job in the world: it never ends.',
+      '~happy~ What does it do? It turns. Isn’t that enough? Ottla says it keeps the portals open, Ambroise says it keeps the signal ticking. I say it keeps us busy.',
+      { if: { not: { quest: 'garage.machines', done: true } }, say: '~neutral~ A machine that’s stopped? *Give it a shot, right in the works*. Wakes them right up. Works on people too, but they complain more.' },
+      '~angry~ Mind your boots. You’re standing in my grease.',
+      { after: { flag: 'temple.garage.done' }, say: '~surprised~ The clock over the First Garage keeps true time now. I set my oil can by it. My oil can has never been so happy.' },
+    ] },
   },
   {
     id: 'ferrol', name: 'Ferrol', title: 'who walked round the ring', color: '#f2c54b', voice: 0.8,
-    talk: {
-      nodes: {
-        hello: {
-          say: ['~tired~ The ring? Walk far enough and you’re back. I did it once. Took a week. When I got back I was standing on my own footprints, and they were older than me.'],
-          choices: [{ text: '~curious~ Did you see the Major?', goto: 'major' }, { text: '~neutral~ Bye.', end: true }],
-        },
-        major: { say: ['~whisper~ I saw a desk at *the edge of the upside-down* once, with a lamp on it, still lit. Nobody sitting there. I didn’t go near. You don’t go near a desk like that. It might be waiting for you.'], choices: [{ text: '~neutral~ Bye, Ferrol.', end: true }] },
-      },
-    },
+    talk: { listen: [
+      '~tired~ The ring? Walk far enough and you’re back. I did it once. Took a week. When I got back I was standing on my own footprints, and they were older than me.',
+      { if: { not: { flag: 'garage.note.read' } }, say: '~whisper~ I saw a desk once, at *the far edge of the upside-down*, with a lamp on it, still lit. Nobody sitting there. You don’t go near a desk like that. It might be waiting for you.' },
+      '~neutral~ On the ring, down is outward. Jump, and the world curls up to meet you. Don’t think about it while you’re doing it.',
+      '~tired~ Leave me be. I’m resting my feet. They walked a whole world.',
+      { if: { not: { flag: 'box.garage.level' } }, say: '~curious~ There’s a box on top of *the keep’s south wall*. I saw it from the ring, upside down. Climb the wall, if you’ve the arms for it.' },
+      { after: { flag: 'world.garage.done' }, say: '~happy~ They say the Major’s signal went out at last. Wherever it’s going, I hope it walks faster than I do.' },
+    ] },
   },
 ];
 
