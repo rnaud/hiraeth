@@ -16,6 +16,7 @@ The same release notes shown in the game (press **N** or open settings).
 - Ilo and Kito are as small as children their age, and the people in the crowd who come close keep their age and build, so an old pilgrim stays old as you walk up.
 - Bako, Nour, Marrow, Sefa and the Speaker dress more like themselves: Bako in a head-wrap, a grey beard and a long teal coat; Nour under a wide straw hat with a veil, in ochre robes; Marrow in a patched hood with goggles and a scarf; Sefa in a long purple cloak; the Speaker in a tall, wide-brimmed hat with a high collar over his mouth.
 - Capes hang round fuller and thinner bodies without passing through them, and someone knocked over lies on their own shape.
+- Capes and robes stay on people at every distance: they no longer stream out behind walkers or let legs and arms through until you come close, a robe no longer shows through the cape over it, and the people farther off in a crowd wear capes as wide as the ones up close, over their arms, so nothing changes as they come near.
 - The traveller has a new look: tousled dark hair, a loose coral overshirt, cream trousers rolled above worn ankle boots, a beige scarf and a round satchel. His sleeves are rolled up and his face is uncovered.
 - The glass backpack is smaller, with green fittings, faded turquoise and lavender cloth ties, and a dark wrist tool. The makers’ star sits on his lapel and the lantern hangs below the scout’s dock.
 - The character studio can show the complete fluid backpack and wrist tool while you inspect an outfit or animation.

@@ -580,9 +580,13 @@ export class NPC {
       this.vel.set(Math.sin(this.heading) * speed, 0, Math.cos(this.heading) * speed);
       const s = this.clothState(player, speed);
       if (!this.cape.drape && !this.cape.ready) this.cape.bake({ ...s, capsules: this.clothCapsules(null) }, { key: this.drapeKey(undefined, s.field) });   // (the shared drape: never with the traveller in it)   // starts settled, no drop
-      this.cape.update(Math.min(this._clothDt, 1 / 20), s);
+      // (not every frame: the cloth carried along with the body between its updates, and all the
+      // time since lived, so it neither streams out behind nor lets the legs through: Cape.update)
+      s.carry = every > 1 ? 1 : 0;
+      this.cape.update(Math.min(this._clothDt, every > 1 ? 0.1 : 1 / 20), s);
       this._clothDt = 0;
-    } else if (!this._clothOn) {
+    } else if (this._clothOn) this.cape.follow();
+    else {
       this._clothDt = 0;
       if (this.cape?.mesh.visible && !this.cape.hung) {
         if (!this.cape.drape) {
@@ -655,12 +659,13 @@ export class NPC {
       this.object.updateMatrixWorld(true);
       this.vel.set(Math.sin(this.heading) * p.speed, 0, Math.cos(this.heading) * p.speed);
       const seated = !moving && (p.pose === 3 || p.pose === 4);
-      const s = { up: Y, vel: this.vel, wind: player.wind, floor: p.pos, field: seated ? this.seatField() : null, capsules: this.clothCapsules(player) };
+      // (every other frame: carried along between, as in updateCape)
+      const s = { up: Y, vel: this.vel, wind: player.wind, floor: p.pos, field: seated ? this.seatField() : null, capsules: this.clothCapsules(player), carry: camD < 5 ? 0 : 1 };
       // a new person: the cloth starts settled on them (it used to drop from a stiff cone as they came near)
       if (!this.cape.ready && !this.cape.drape) this.cape.bake({ ...s, capsules: this.clothCapsules(null) }, { key: this.drapeKey(moving ? 0 : p.pose, s.field), force: true });   // (shared: rarely baked)
-      this.cape.update(Math.min(this._clothDt, 1 / 20), s);
+      this.cape.update(Math.min(this._clothDt, camD < 5 ? 1 / 20 : 0.1), s);
       this._clothDt = 0;
-    }
+    } else this.cape?.follow();
     const line = now < (p.shoutUntil ?? -1) ? p.say : p.lines[p.lineIdx % p.lines.length];
     if (this.lines[0] !== line) { this.lines = [line]; this.lineIdx = 0; }
     this.talking = p.speaking && (dist < 6 || now < (p.shoutUntil ?? -1));
@@ -788,8 +793,10 @@ export class NPC {
 
   /** Capes of one cut on one kind of body, standing or seated (on one shape of seat), share a baked drape. */
   drapeKey(pose = this.seat ? 4 : 0, field = null) {
-    const seated = pose === 3 || pose === 4;
-    return `${this.humanoid ? `${this.humanoid.profile?.id ?? this.kind}/${this.humanoid.build}${this.humanoid.years ? `@${this.humanoid.years}` : ''}` : 'rig'}/${seated ? pose : 0}${seated && field ? `|${field.sig}` : ''}`;
+    const seated = pose === 3 || pose === 4, H = this.humanoid, R = H?._robeLook;
+    // (and what lies under the cloth: a story person's own body shape, a robe)
+    const under = `${H?.morph ? `~${JSON.stringify(H.morph)}` : ''}${R ? `~robe${R.hem.toFixed(2)}/${R.flare.toFixed(2)}` : ''}`;
+    return `${H ? `${H.profile?.id ?? this.kind}/${H.build}${H.years ? `@${H.years}` : ''}` : 'rig'}${under}/${seated ? pose : 0}${seated && field ? `|${field.sig}` : ''}`;
   }
 
   /** What the cape collides with: this body, and the traveller's when they stand close (a cape no longer drapes through them). */
