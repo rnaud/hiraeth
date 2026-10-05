@@ -1,0 +1,51 @@
+README.md
+  s_1fd8d0e7b02dcf::t_281fe346f688fd 1957-2048
+TODO.md
+  s_1fd8d0e7b02dcf::t_a652c4c5c60331 34-36,38-42,44-49,51-52,55-56,59
+changelog.md
+  s_1fd8d0e7b02dcf::t_ee5e9514e95384 12-17
+src/animator.js
+  s_1fd8d0e7b02dcf::t_2981a991e74298 28,32-119,206-232,295-307,309-311,313,316-328,378-381
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_dcef8ce72182ad 12-17
+src/feet.js
+  s_1fd8d0e7b02dcf::t_693924d4c953d0 1-296
+src/humanoid.js
+  s_1fd8d0e7b02dcf::t_419d43654b39af 4,451,687,942-945,947,949
+src/locomotion.js
+  s_1fd8d0e7b02dcf::t_368b9a870bc7df 1-165
+src/lod-core.js
+  s_1fd8d0e7b02dcf::t_984ca3aa0772e1 163-167,343,346-350,357-394
+src/lod.js
+  s_1fd8d0e7b02dcf::t_b73010ea6e4fe0 189-195
+src/main.js
+  s_1fd8d0e7b02dcf::t_794389a2bc2661 23,1002,1390
+src/npc.js
+  s_1fd8d0e7b02dcf::t_394db1364acfdb 18-19,52-56,122-128,145-151,178-181,476-478,480,486-495,498,506-511,513,522-533,614,616-617,807,810,812-814,817,821-829,878
+src/player.js
+  s_1fd8d0e7b02dcf::t_e8fb67d8d49481 10,894,1158-1162,1177-1180,1693-1700
+src/skinned-lod.js
+  s_1fd8d0e7b02dcf::t_b1ae56466160c4 1-129
+tests/gait-sim.js
+  s_1fd8d0e7b02dcf::t_b584dda4f4575a 1-171
+tests/locomotion.test.js
+  s_1fd8d0e7b02dcf::t_9bedb83b262791 1-137
+tests/people-motion.test.js
+  s_1fd8d0e7b02dcf::t_b42de08140a7c6 1-154
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2d5c20149d0660a8c7f12026d3596f3f210e3f5a",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
