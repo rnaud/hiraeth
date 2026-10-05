@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { sharedUniforms, SHADE, SPOT } from './materials.js';
+import { sharedUniforms, SHADE, SPOT, WEATHER } from './materials.js';
 
 // ---------------------------------------------------------------------------
 // Moebius / Sable composite pass.
@@ -500,6 +500,9 @@ const fragmentShader = /* glsl */ `
     // the shade's tone, packed over the strokes (materials.js SHADE): r += 2 (1 + hue step), g += 2 lift step
     vec2 shadeQ = floor(surface.rg * 0.5);
     surface.rg -= 2.0 * shadeQ;
+    // a weathered wall (materials.js WEATHER: b += 16): the dust splashed up its foot, below
+    float wearW = step(15.5, surface.b);
+    surface.b -= 16.0 * wearW;
     // a material's own spot-black amount, packed over its drawn detail (materials.js SPOT): b += 4 × step
     float spotQ = floor(surface.b * 0.25);
     surface.b -= 4.0 * spotQ;
@@ -706,6 +709,24 @@ const fragmentShader = /* glsl */ `
         ink = max(ink, smoothstep(0.6, 0.9, ao) * 0.45 * innerK);
         // the deepest crevices (between ribs, into a hull's machinery) filled solid, as an inker does
         col = mix(col, uInk * 1.15, smoothstep(0.72, 0.97, ao) * uCrevice * (1.0 - L * 0.5) * innerK);
+      }
+
+      // ---- 3b'. weathered walls: a flat band of darker dust splashed up the foot of the wall, its top a
+      // little ragged. Found from the G-buffer: a probe the band's height below this pixel (on screen) that
+      // lands on the ground (facing up) less than the band's height under it (in the world). One tap.
+      if (wearW > 0.5 && depth < 220.0 && abs(N.y) < 0.5) {
+        float bandH = ${WEATHER.foot.height};
+        vec3 wpP = uCamWorld[3].xyz + rd * depth / max(dot(rd, -uCamWorld[2].xyz), 0.2);
+        float dyPx = clamp(bandH * 1.6 * uProj11 * 0.5 * uRes.y / depth, 1.0, 120.0);
+        vec2 puv = uv - vec2(0.0, dyPx / uRes.y);
+        vec4 Np = texture(tNormal, puv);
+        if (Np.w > 0.0 && Np.y > 0.7) {
+          vec3 wpG = uCamWorld[3].xyz + viewRay(puv) * Np.w / max(dot(viewRay(puv), -uCamWorld[2].xyz), 0.2);
+          float hUp = wpP.y - wpG.y;
+          float rag = (vnoise(vec2(wpP.x + wpP.z, 0.0) * 1.7) - 0.5) * 0.22;
+          float band = (1.0 - smoothstep(bandH - 0.02 + rag, bandH + 0.02 + rag, hUp)) * step(-0.3, hUp) * (1.0 - smoothstep(150.0, 220.0, depth));
+          col = mix(col, col * vec3(0.82, 0.78, 0.73), band * ${(WEATHER.foot.dark * 4).toFixed(2)});
+        }
       }
 
       // ---- 3c. spot blacks: the third tier of value. A shaded point enclosed at the scale of a pocket

@@ -724,6 +724,7 @@ function applyDetail() {
   sharedUniforms.uCloudShadows.value = preset.cloudShadows && !low ? baseCloudSh : 0;
   sharedUniforms.uShadowTaps.value = preset.taps;
   U.uPostLite.value = preset.postLite ? 1 : 0;
+  sharedUniforms.uWearLite.value = low || preset.postLite ? 1 : 0;   // (lighter weathering: materials.js WEATHER)
   waterShared.uWaterLite.value = low || preset.postLite ? 1 : 0;   // (src/water-shader.js)
   for (const n of npcs) n.lowDetail = low;
   if (crowd) {
