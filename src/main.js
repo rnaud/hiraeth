@@ -1374,6 +1374,16 @@ async function warmShaders(targetScene, targetCamera, target = null) {
 console.info(`bounds: ${fitBounds(scene)} instanced meshes made cullable`);
 await warmShaders(scene, camera, gbuffer);
 await warmShaders(post.scene, post.camera, composeRT);
+{ const wp = waters.warmPass?.(); if (wp) await warmShaders(wp.scene, wp.camera, composeRT); }   // the water's sparkle pass
+// the shadow passes draw everything with one depth-only material, a program per kind of mesh
+// (instanced, skinned, which attributes): compiled now too, each mesh wearing it for the moment
+// (a person or a plant first seen in a shadow had stalled a frame on its compile)
+{
+  const worn = [];
+  scene.traverse((o) => { if (o.isMesh && o.material) { worn.push([o, o.material]); o.material = shadowOverride; } });
+  const rt = Object.values(cascades).find((c) => c.enabled && c.rt)?.rt ?? null;
+  try { await warmShaders(scene, camera, rt); } finally { for (const [o, m] of worn) o.material = m; }
+}
 stage('ready'); console.info(`load: total ${(performance.now() - tLoad).toFixed(0)} ms (after module load)`);
 requestAnimationFrame((t) => {
   frame(t);

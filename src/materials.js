@@ -689,16 +689,22 @@ const fragmentShader = /* glsl */ `
   }
 
   // Exact distance to Voronoi cell borders (Inigo Quilez), in cell units.
-  float voronoiBorder(vec2 x) {
+  // reach: the caller draws nothing past this distance. The first pass also finds the second
+  // nearest point (F2; any point outside the 3x3 is over a cell away), and no border is nearer
+  // than (F2 - F1) / 2: where even that is past reach, the 25-cell second pass is skipped and
+  // reach comes back (the same nothing drawn: exact, and most pixels of a cell are there).
+  float voronoiBorder(vec2 x, float reach) {
     vec2 n = floor(x), f = fract(x), mg = vec2(0.0), mr = vec2(0.0);
-    float md = 8.0;
+    float md = 8.0, md2 = 8.0;
     for (int j = -1; j <= 1; j++)
       for (int i = -1; i <= 1; i++) {
         vec2 g = vec2(float(i), float(j));
         vec2 r = g + hash2(n + g) - f;
         float d = dot(r, r);
-        if (d < md) { md = d; mr = r; mg = g; }
+        if (d < md) { md2 = md; md = d; mr = r; mg = g; }
+        else if (d < md2) md2 = d;
       }
+    if (0.5 * (min(sqrt(md2), 1.0) - sqrt(md)) > reach) return reach;
     md = 8.0;
     for (int j = -2; j <= 2; j++)
       for (int i = -2; i <= 2; i++) {
@@ -783,9 +789,12 @@ const fragmentShader = /* glsl */ `
   float rockCracks(vec3 op) {
     vec2 q = (op.xy + op.zx * 0.6) * 0.9;
     float fwq = max(max(fwidth(q.x), fwidth(q.y)), 1e-5);
-    float d = voronoiBorder(q) / fwq;
     float gaps = smoothstep(0.35, 0.55, vnoise(q * 2.3 + 11.0));
-    return inkLine(d, 0.9) * gaps * (1.0 - smoothstep(0.08, 0.2, fwq));
+    float fade = 1.0 - smoothstep(0.08, 0.2, fwq);
+    if (gaps * fade <= 0.0) return 0.0;   // (a gap in the cracks, or too far to draw: no cell search)
+    // the line (inkLine, 0.9 px) is nothing past (0.45 px * ratio + 0.6 px) from a border
+    float d = voronoiBorder(q, (0.45 * uPixelRatio + 0.6) * fwq * 1.01) / fwq;
+    return inkLine(d, 0.9) * gaps * fade;
   }
 
   float segDist(vec2 p, vec2 a, vec2 b) {
