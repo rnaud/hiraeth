@@ -1,0 +1,49 @@
+TODO.md
+  s_1fd8d0e7b02dcf::t_c8189d4d795a48 39-42
+changelog.md
+  s_1fd8d0e7b02dcf::t_7c2b5320182a92 22-25
+docs/story-bible.md
+  s_1fd8d0e7b02dcf::t_b61bca29a1d351 50-55
+docs/systems/boxes.md
+  s_1fd8d0e7b02dcf::t_c811bfc7279679 1-52
+src/audio.js
+  s_1fd8d0e7b02dcf::t_2ac52ce9e8f3bd 811-819
+src/boxes/index.js
+  s_1fd8d0e7b02dcf::t_19934432f1ec72 5,11-13,15-21,30,44-52,223,260-261,277,282,301,332,348,358-363
+src/boxes/model.js
+  s_1fd8d0e7b02dcf::t_01dacf0f7ef23c 2,10-14,16-17,19-22,27-29,33-35,53-55,57-62,64-72,74-76,80-86,89-91,93
+src/boxes/placements.js
+  s_1fd8d0e7b02dcf::t_a234a30747b70b 17-18,30-33,35
+src/boxes/scene.js
+  s_1fd8d0e7b02dcf::t_793f31346304a6 4-6,10-13,27-39,44,47,112,121-126,181,187-197,199-210,213,215,217-227
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_4090d611b8cec1 22-25
+src/desert-city.js
+  s_1fd8d0e7b02dcf::t_ed9fc48496cea2 198-200,385-387,447-452,454,458,460,464,467-470,472-473,475,477,491,493-528,530-532,540,543-545
+src/items.js
+  s_1fd8d0e7b02dcf::t_ea2f810581fc9f 173
+src/materials.js
+  s_1fd8d0e7b02dcf::t_99755827c1cec0 1089-1137,1447-1461,1752-1756,1810-1812,1908-1915
+src/story/desert-data.js
+  s_1fd8d0e7b02dcf::t_1092caf74a2dd2 832-833
+tests/boxes.test.js
+  s_1fd8d0e7b02dcf::t_9d165d2584794b 12,14-16,105,112-113,116-117,128,143-144,149-150,152-156,158-160,162,164-168,187,207-210,212-214,217-221,231,274,339,353-456
+tests/clip-audit.test.js
+  s_1fd8d0e7b02dcf::t_455f586c79a066 7,76-78
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2f41251614357d07b80a3e87c8a6675543de00d6",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
