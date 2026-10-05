@@ -1,0 +1,29 @@
+src/main.js
+  s_1fd8d0e7b02dcf::t_587021406a7602 1008
+src/materials.js
+  s_1fd8d0e7b02dcf::t_9376fef89ada46 8,1053-1055
+src/swim.js
+  s_1fd8d0e7b02dcf::t_eb0bb082aae7bd 161-164
+src/water-shader.js
+  s_1fd8d0e7b02dcf::t_f74115b1549dbb 28-34,77,143,151,183-185,190-196,198-199,204-205
+src/water.js
+  s_1fd8d0e7b02dcf::t_b094cefece71e5 3,28-29,339-340,347-351,353-354,358-367,371-374,418,420-424,426,433,436,438,449,451,457-466,468,480,483,493,496-497,500-506
+tests/swim.test.js
+  s_1fd8d0e7b02dcf::t_b994ce4d5a51a1 1-235
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b3912240d9dd24232e829970af988131861537e7",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
