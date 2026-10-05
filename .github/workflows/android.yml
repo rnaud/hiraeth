@@ -1,7 +1,8 @@
 name: Android release
 
-# Every push to main builds a signed APK (the web game wrapped with Capacitor,
-# fully offline) and publishes it to the GitHub release for the newest version
+# Every push to main builds a signed APK (the web game in GeckoView, Mozilla's
+# engine, shipped inside it; Capacitor and the system WebView where GeckoView
+# can't run; fully offline) and publishes it to the GitHub release for the newest version
 # in src/changelog.js, e.g. v0.34. Pushes within one version replace that
 # release's files; a new changelog entry makes a new release. Next to the APK:
 # - latest.json: the APK and its native bridge level. The app offers an APK
@@ -41,11 +42,27 @@ jobs:
           node-version: 24
           cache: npm
 
+      # (cache: gradle keeps ~/.gradle/caches between runs, keyed on the Gradle files: GeckoView's
+      # 90 MB AAR, pinned in android/variables.gradle, is downloaded once per version, not every push)
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
           cache: gradle
+
+      # GeckoView compiles against Android 17 (API 37.0); the runner's SDK may not have it yet
+      - name: Android SDK
+        id: sdk
+        run: echo "home=$ANDROID_HOME" >> "$GITHUB_OUTPUT"
+      - name: Android SDK platform 37 (cached)
+        id: sdk37
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.sdk.outputs.home }}/platforms/android-37.0
+          key: android-platform-37.0-2
+      - name: Install Android SDK platform 37
+        if: steps.sdk37.outputs.cache-hit != 'true'
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" > /dev/null
 
       - name: Build the web game
         run: |

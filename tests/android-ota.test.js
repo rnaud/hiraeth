@@ -146,7 +146,7 @@ test('a build that booted once is trusted: a slow world later doesn\'t drop it',
 
 test('nothing in the update path touches the saves (the page\'s storage)', () => {
   const code = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
-  for (const f of ['WebBundles.java', 'Updater.java', 'AppShellPlugin.java', 'MainActivity.java']) {
+  for (const f of ['WebBundles.java', 'Updater.java', 'AppShellPlugin.java', 'AppShell.java', 'MainActivity.java', 'WebViewActivity.java', 'AssetServer.java']) {
     assert.doesNotMatch(code(java(f)), /WebStorage|clearCache|deleteDatabase|clearFormData|CookieManager|localStorage/, f);
   }
   for (const f of ['../src/update-panel.js', '../src/updates.js']) {

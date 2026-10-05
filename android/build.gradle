@@ -21,6 +21,11 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        // GeckoView (only this group from here)
+        maven {
+            url 'https://maven.mozilla.org/maven2/'
+            content { includeGroup 'org.mozilla.geckoview' }
+        }
     }
 }
 
