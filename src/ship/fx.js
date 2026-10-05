@@ -3,7 +3,8 @@ import { makeMaterial } from '../materials.js';
 
 // Puffs: smoke, dust and flame as inked balls that swell and shrink away
 // (the G-buffer has no transparency, so they fade by size). One instanced
-// mesh per kind, a fixed pool, recycled oldest first.
+// mesh per kind, a fixed pool, recycled oldest first. Hidden while none is alive (an idle pool
+// would still cost its whole count of triangles in every pass).
 
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _c = new THREE.Color();
 
@@ -29,6 +30,7 @@ export class Puffs {
     _m.makeScale(0, 0, 0);
     for (let i = 0; i < this.items.length; i++) { this.mesh.setMatrixAt(i, _m); this.items[i].age = this.items[i].life = 0; }
     this.mesh.instanceMatrix.needsUpdate = true;
+    this.mesh.visible = false;
   }
 
   emit(pos, vel, size, life, color) {
@@ -40,6 +42,7 @@ export class Puffs {
     p.spin = (Math.random() - 0.5) * 1.5;
     this.mesh.setColorAt(i, _c.set(color));
     this.mesh.instanceColor.needsUpdate = true;
+    this.mesh.visible = true;
   }
 
   update(dt) {
@@ -61,6 +64,7 @@ export class Puffs {
     }
     if (any || this._wasAny) this.mesh.instanceMatrix.needsUpdate = true;
     this._wasAny = any;
+    this.mesh.visible = any;
   }
 
   dispose() { this.mesh.removeFromParent(); this.mesh.geometry.dispose(); }

@@ -19,6 +19,7 @@ import { WindStreaks } from './wind.js';
 import { HOLO } from './ship/hologram.js';
 import { Physics, dropBuriedFlora } from './physics.js';
 import { tileScene, cullFar, fitBounds, SmallCuller, RoomCuller, resolveQuality, detectHandheld, GpuTimer, adaptScale } from './perf.js';
+import { LodManager, lodView } from './lod.js';
 import { buildFlora, floraKeep, FLORA_WORLDS } from './flora.js';
 import { buildGrass } from './flora-grass.js';
 import { Cascade, ShadowCuller, shadowDirection } from './shadows.js';
@@ -28,7 +29,7 @@ import { Sound } from './audio.js';
 import { Weather, WEATHER_KINDS } from './weather.js';
 import { Shelter, addIndoors } from './shelter.js';
 import { spawnNPCs, pooledNPC, registerNPCTargets } from './npc.js';
-import { Crowd } from './crowd.js';
+import { Crowd, CROWD_DIST_CELL } from './crowd.js';
 import { Journal, Relics, Story, Errands } from './quest.js';
 import { CONTENT, ERRANDS } from './levels/content.js';
 import { loadAnimationLibrary, Animator } from './animator.js';
@@ -958,6 +959,10 @@ function glowCasters() {
 const shadowCull = new ShadowCuller(scene);
 const smallCull = new SmallCuller(scene);
 let roomCull = null;
+// levels of detail (lod.js): distant static meshes drawn coarser, by no more than the preset's
+// lodPx pixels; never the terrain (dug into at runtime) or anything that moves with a person
+let lod = null;
+const movers = () => [player.object, player.mount?.object, ...player.vehicles.map((v) => v.object ?? v.mesh), ...npcs.map((n) => n.object), ...(crowd?.pool ?? []).map((e) => e.npc?.object)];
 const shadowDir = new THREE.Vector3();
 const frameStats = { calls: 0, tris: 0, n: 0, culled: 0 };
 renderer.info.autoReset = false;   // one frame's draw calls over all its passes (the F readout)
@@ -984,11 +989,15 @@ function renderFrame() {
   // a pixel or two on screen, rooms off the map while the camera is elsewhere
   camera.updateMatrixWorld();
   const frameHidden = [];
-  flora?.update(camera, preset.floraFar ?? 1);   // each species draws the plants in view near enough
+  const pxPerRad = gbuffer.height / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
+  flora?.update(camera, preset.floraFar ?? 1, { pxPerRad, px: preset.lodPx ?? 0 });   // each species draws the plants in view near enough (the far ones coarser)
   blades.grass?.update(camera);
   cullFar(tiled.small, camera, preset.propFar, frameHidden);
-  smallCull.hide(camera, gbuffer.height / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)), preset.propPx, frameHidden);
+  smallCull.hide(camera, pxPerRad, preset.propPx, frameHidden);
   (roomCull ??= new RoomCuller(scene, offMapRooms, { keep: [player.object, player.mount?.object, ...player.vehicles.map((v) => v.object ?? v.mesh), ...npcs.map((n) => n.object)] })).hide(camera, frameHidden);
+  lodView.pxPerRad = pxPerRad; lodView.px = preset.lodPx ?? 0;
+  (lod ??= new LodManager(scene, { keep: [...movers(), terrain?.mesh] })).update(camera, pxPerRad, preset.lodPx ?? 0);
+  if (crowd) crowd.range.dist = preset.lodPx ? (CROWD_DIST_CELL * pxPerRad) / preset.lodPx : Infinity;   // the crowd's distant figure, by the same rule
 
   // 1. shadow maps. The light direction is quantised (a moving sun turns the maps in rare tiny
   // steps); when it turns, every cascade refreshes together so their hand-over stays seamless.
@@ -1007,7 +1016,9 @@ function renderFrame() {
   if (turned || frameNo % preset.farEvery === (preset.nearEvery > 1 ? 1 : 0)) {
     const small = tiled.small.filter((o) => o.visible);
     for (const o of small) o.visible = false;   // pebbles and bushes don't need km-wide shadows
+    if (preset.lodPx) lod.shadowPass(cascades.far.texel);   // nor detail finer than a texel of it
     shadowPass(cascades.far, camera.far);
+    lod.viewPass();
     for (const o of small) o.visible = true;
   }
   frameNo++;
@@ -1372,4 +1383,4 @@ window.clipAudit = async (o = {}) => {
   return r;
 };
 Object.assign(window, { waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife,
-  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, boxes, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame });
+  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, boxes, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame, lod: () => lod });

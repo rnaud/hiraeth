@@ -5,6 +5,7 @@ import { makeMaterial } from './materials.js';
 import { mulberry32, createNoise2D } from './noise.js';
 import { biomeWeights } from './biome.js';
 import { SPECIES } from './flora-species.js';
+import { farLevel, farSide } from './lod.js';
 
 // Flora: every world's own plants, growing in clumps (src/flora-species.js draws them).
 //
@@ -294,6 +295,9 @@ const _fr = new THREE.Frustum(), _pm = new THREE.Matrix4(), _sph = new THREE.Sph
  * whenever the set of cells worth drawing changes (in view and within the species' distance,
  * or close enough behind you that their shadows fall into view), those cells' plants are copied
  * into the mesh. So the flora costs one draw call per species per pass, wherever you are.
+ * Cells far enough that a coarser copy of the plant (lod.js farLevel) differs by under the
+ * preset's lodPx pixels go into a second mesh with that copy (a second draw call, far fewer
+ * triangles).
  */
 export class Flora {
   constructor(scene, species, plants) {
@@ -341,9 +345,25 @@ export class Flora {
       Object.assign(mesh.userData, { noCollide: true, dynamic: true, flora: sp.id });
       mesh.name = sp.id;
       this.root.add(mesh);
-      this.sets.push({ sp, mesh, M, C, cells: [...cells.values()], far: farFor((sp.size[0] + sp.size[1]) / 2, sp.large), behind: sp.large ? 110 : 40, key: '' });
-      if (!sp.large) this.small.push(mesh);
-      if (sp.shadow === false) this.noShadow.push(mesh);
+      const set = { sp, mesh, M, C, cells: [...cells.values()], far: farFor((sp.size[0] + sp.size[1]) / 2, sp.large), behind: sp.large ? 110 : 40, key: '', lod: null };
+      this.sets.push(set);
+      // the far copy: at most 55 % of the triangles, from detail no bigger than a twelfth of the plant
+      const lv = farLevel(sp.geo, { maxCell: Math.max(sp.size[0], sp.size[1]) / 12 });
+      if (lv) {
+        const far = new THREE.InstancedMesh(lv.geometry, sp.mat, n);
+        far.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+        far.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(n * 3), 3).setUsage(THREE.DynamicDrawUsage);
+        Object.assign(far, { count: 0, frustumCulled: true, matrixAutoUpdate: false, name: `${sp.id} far`, boundingSphere: new THREE.Sphere(new THREE.Vector3(0, -1e5, 0), 0) });
+        Object.assign(far.userData, { noCollide: true, dynamic: true, flora: sp.id });
+        this.root.add(far);
+        let k = 0;
+        for (const p of list) k = Math.max(k, p.height / sp.h);
+        set.lod = { mesh: far, cell: lv.cell * k * 1.08 };   // (the widest plant's cell, in metres)
+      }
+      for (const m of set.lod ? [mesh, set.lod.mesh] : [mesh]) {
+        if (!sp.large) this.small.push(m);
+        if (sp.shadow === false) this.noShadow.push(m);
+      }
     }
     // collision: a cylinder round each large plant's trunk (small ones you walk through);
     // spiny ones (sp.hurts) prick you if you brush them or try to climb them (src/hazards.js)
@@ -365,36 +385,43 @@ export class Flora {
 
   get count() { return this.plants.length; }
   get largeCount() { return this.plants.filter((p) => p.sp.large).length; }
-  get meshes() { return this.sets.map((s) => s.mesh); }
+  get meshes() { return this.sets.flatMap((s) => (s.lod ? [s.mesh, s.lod.mesh] : [s.mesh])); }
 
   /**
    * Once a frame before rendering: each species draws its cells in view within its distance
    * (× k, the preset's floraFar) and those just behind you (for their shadows). A mesh is only
-   * rewritten when its set of cells changes.
+   * rewritten when its set of cells changes. lod: { pxPerRad, px } puts the cells far enough
+   * into the far copy (px = 0 or no lod: everything at full detail).
    */
-  update(camera, k = 1) {
+  update(camera, k = 1, lod = null) {
     _pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
     _fr.setFromProjectionMatrix(_pm);
     const cam = camera.position;
     let drawn = 0;
     for (const set of this.sets) {
       const far = set.far * k, behind = Math.min(set.behind, far), live = [];
+      const dLod = set.lod && lod?.px > 0 ? (set.lod.cell * lod.pxPerRad) / lod.px : Infinity;
       for (const cell of set.cells) {
         const d = cam.distanceTo(cell.c) - cell.r;
         if (d > far || (d > behind && !_fr.intersectsSphere(_sph.set(cell.c, cell.r)))) continue;
+        cell.lod = dLod < far && farSide(cell.lod, d, dLod);
         live.push(cell);
       }
       let key = `${live.length}`;
-      for (const cell of live) key += `,${cell.ids[0]}`;
-      if (key !== set.key) this.fill(set, live, key);
-      drawn += set.mesh.count;
+      for (const cell of live) key += cell.lod ? `,f${cell.ids[0]}` : `,${cell.ids[0]}`;
+      if (key !== set.key) {
+        if (set.lod) { this.fill(set.lod.mesh, set, live.filter((c) => c.lod)); live.splice(0, live.length, ...live.filter((c) => !c.lod)); }
+        this.fill(set.mesh, set, live);
+        set.key = key;
+      }
+      drawn += set.mesh.count + (set.lod?.mesh.count ?? 0);
     }
     this.drawn = drawn;
     return drawn;
   }
 
-  fill(set, live, key) {
-    const { mesh, M, C } = set, IM = mesh.instanceMatrix.array, IC = mesh.instanceColor.array;
+  fill(mesh, set, live) {
+    const { M, C } = set, IM = mesh.instanceMatrix.array, IC = mesh.instanceColor.array;
     let n = 0;
     _box.makeEmpty();
     for (const cell of live) {
@@ -409,6 +436,5 @@ export class Flora {
     if (n) _box.getBoundingSphere(mesh.boundingSphere);
     else mesh.boundingSphere.set(_p.set(0, -1e5, 0), 0);
     for (const a of [mesh.instanceMatrix, mesh.instanceColor]) { a.clearUpdateRanges(); a.addUpdateRange(0, n * a.itemSize); a.needsUpdate = true; }
-    set.key = key;
   }
 }

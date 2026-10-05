@@ -14,6 +14,8 @@ The same release notes shown in the game (press **N** or open settings).
 - The hoverbike skims across water everywhere, and getting off over deep water drops you in for a swim.
 - In Lorn and the Garden of Spheres, deep water no longer sends you back to the shore.
 - The Lab has a swimming pool with a beach, a deep end and a diving tower.
+- Distant buildings, rocks, plants and crowds are drawn with simpler shapes wherever the difference is too small to see, so wide views cost less, most of all on the Handheld setting.
+- The ship’s smoke, flame and dust no longer cost anything while there are none.
 
 ## v0.48 — 2026-10-05
 
