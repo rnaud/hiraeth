@@ -39,7 +39,7 @@ import { loadAnimationLibrary, Animator } from './animator.js';
 import { loadMotionLibrary, matchingSetting } from './motion-match.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { loadHuman, Humanoid } from './humanoid.js';
-import { loadPeople } from './makehuman/people.js';
+import { loadPeople, usesMakeHuman } from './makehuman/people.js';
 import { talkFaces, TALK_FACE } from './talk-face.js';
 import { updateHands } from './hands.js';
 import { Changelog, VERSION } from './changelog.js';
@@ -182,6 +182,9 @@ const content = CONTENT[levelId];
 const animLib = loadAnimationLibrary().catch((e) => { console.warn('animation library failed to load', e); return null; });
 const traveller = new GLTFLoader().loadAsync(`${import.meta.env.BASE_URL}anim/traveller.glb`).then(g => g.scene).catch(e => { console.warn('Traveller unavailable; using the original explorer.', e); return null; });
 const humans = Promise.all([loadHuman('m'), loadHuman('f')]).catch((e) => { console.warn('human models failed to load', e); return null; });
+// the people on MakeHuman bodies (src/makehuman/people.js, docs/makehuman.md: the Desert's by default, ?mh=1
+// any world's, ?mh=0 none): the body's one file asked for now, while the rest loads
+const mhPeople = usesMakeHuman(levelId, query.get('mh')) ? loadPeople(import.meta.env.BASE_URL, levelId).catch((e) => { console.warn('MakeHuman bodies unavailable', e); return null; }) : null;
 await stage(`sketching ${meta.title.toLowerCase()}…`);
 const level = meta.create(scene);
 const terrain = level.ground;
@@ -310,11 +313,9 @@ if (lib) {
   loadMotionLibrary(lib, { matching }).then(() => { if (player.animator) player.animator.matching = matching && !!lib.motion?.db; });
 }
 const humanT = await humans;
-// ?mh=1: the people on MakeHuman bodies (src/makehuman/people.js, docs/makehuman.md: each by their age,
-// build and world); the traveller stays on his own body. Without the files (a build without them), as before.
-const peopleT = query.get('mh') === '1' && humanT
-  ? await loadPeople(import.meta.env.BASE_URL, levelId).then((p) => p.humans()).catch((e) => { console.warn('MakeHuman bodies unavailable', e); return humanT; })
-  : humanT;
+// the people on MakeHuman bodies (each by their age, build and world); the traveller stays on his own body
+// (docs/makehuman.md). Without the file, the Quaternius ones.
+const peopleT = humanT && mhPeople ? ((await mhPeople)?.humans() ?? humanT) : humanT;
 const travellerTemplate = await traveller;
 if (humanT && travellerTemplate) {
   // the traveller: the people's own body and skeleton, the suit painted on, the gear of traveller.glb worn on top (src/traveller.js)

@@ -100,14 +100,21 @@ export class NPC {
       // a story person's hair and beard follow their kind only when the story says it (def.kind)
       palette, head, cape, look: look ?? def?.look ?? {}, pos: at, kind: def ? def.body ?? def.kind ?? null : kind });
     this.char = buildCharacter(dress ? { ...palette, cloak: dress.cloak, cloth: dress.cloth, legs: dress.legs } : palette);
-    this.char.pack.visible = !pooled && !dress?.robe && Math.random() < 0.5;
+    this.char.pack.visible = !pooled && (def?.satchel ?? (!dress?.robe && Math.random() < 0.5));   // (a story person's own: def.satchel)
     this.object = this.char.root;
     // their height: the look's (seeded), unless the story sets their size (children, elders: def.scale)
     this.object.scale.setScalar((scale ?? (dress?.height ?? 1)) * (dress?.size ?? 1));
     this.object.userData.noCollide = true;
     scene.add(this.object);
     // (?mh=1: a MakeHuman body by who they are, src/makehuman/people.js)
-    if (human?.userData?.mhPeople) { human = human.userData.mhPeople.templateFor({ kind, def, dress, pooled }); this.object.scale.multiplyScalar(human.userData.profile.heightFix ?? 1); }
+    // (a child or a teenager as tall as MakeHuman makes their age beside the grown-ups: profile.trueScale)
+    if (human?.userData?.mhPeople) {
+      human = human.userData.mhPeople.templateFor({ kind, def, dress, pooled });
+      const P = human.userData.profile;
+      if (P.trueScale) this.object.scale.setScalar(P.trueScale * (dress?.size ?? 1));
+      else this.object.scale.multiplyScalar(P.heightFix ?? 1);
+    }
+    this.baseScale = this.object.scale.x;   // (their size as made: the studio shows them at it)
     this.humanoid = human ? new Humanoid(human, this.char, kind, { skin: dress?.skin ?? '#e8c6a8', build: dress?.build }) : null;
     this.cape = null;
     // a face and a resting expression of their own (the story's, a spawn spot's) win over their look's (restyle)
@@ -250,7 +257,7 @@ export class NPC {
         } else if (m.userData.role === 'brows') u.uColor.value.set(this.def?.brows ?? browColour(s.hair, s.skin));   // (the hair's, softened; def.brows: a child's own)
         else if (m.userData.role === 'eyes' && s.eyes) { u.uColor2.value.set(s.eyes); u.uSkin.value.set(s.skin); }   // their own iris; the lids in their skin
       }
-      h.setBuild(s.build);   // a crowd body takes its person's build
+      h.setBuild(s.build, this.pooled ? h.profile?.yearsOf?.(s) : undefined);   // a crowd body takes its person's build (and a MakeHuman one their age: an elder's body)
       // their look's face (costumes.js faceFor: their people's shapes, their own ink) and the mood it rests in,
       // unless the story gives them their own
       if (!this.ownFace && h.ownFace !== (s.face ?? null)) { h.ownFace = s.face ?? null; h.setFace(h.ownFace); }
@@ -781,7 +788,7 @@ export class NPC {
   /** Capes of one cut on one kind of body, standing or seated (on one shape of seat), share a baked drape. */
   drapeKey(pose = this.seat ? 4 : 0, field = null) {
     const seated = pose === 3 || pose === 4;
-    return `${this.humanoid ? `${this.humanoid.profile?.id ?? this.kind}/${this.humanoid.build}` : 'rig'}/${seated ? pose : 0}${seated && field ? `|${field.sig}` : ''}`;
+    return `${this.humanoid ? `${this.humanoid.profile?.id ?? this.kind}/${this.humanoid.build}${this.humanoid.years ? `@${this.humanoid.years}` : ''}` : 'rig'}/${seated ? pose : 0}${seated && field ? `|${field.sig}` : ''}`;
   }
 
   /** What the cape collides with: this body, and the traveller's when they stand close (a cape no longer drapes through them). */

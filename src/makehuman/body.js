@@ -4,8 +4,8 @@
 // whole), its 'game_engine' skeleton (the game's bone names), the low-poly eyes and two eyebrows,
 // the shape of every corner of MakeHuman's macro space (compressed: their mean and principal
 // components), a few targets as deltas (a belly, hips; the face's), the face's shape keys and the
-// hair (MakeHuman's CC0 styles as shells bound to the body) into public/anim/mh/body.json + .bin,
-// about 1.8 MB for everyone. Here:
+// hair (MakeHuman's CC0 styles as shells bound to the body) into public/anim/mh/body.bin (its header
+// and its arrays), about 1.7 MB (1.06 gzipped) for everyone. Here:
 //
 //   loadBody(base)              the data (cached)
 //   shapeOf(data, params)       a person's points (src/makehuman/shape.js: sliders -> sample weights)
@@ -36,14 +36,27 @@ export function headScale(skull, kind = 'm') {
 
 const TYPES = { float32: Float32Array, int16: Int16Array, int8: Int8Array, uint16: Uint16Array, uint8: Uint8Array };
 
-/** body.json + body.bin as the data makeBody reads: get(name) a typed array, scale(name) its quantisation step. */
-export function parseBody(meta, buffer) {
+/**
+ * body.bin (scripts/makehuman/pack.py: 'MHB1', the header's length, the JSON header, zeros to 8, the
+ * arrays) as { meta, buffer, base }: the header and where its arrays start.
+ */
+export function unpackBody(buffer) {
+  const u8 = new Uint8Array(buffer, 0, 8);
+  if (String.fromCharCode(...u8.subarray(0, 4)) !== 'MHB1') throw new Error('MakeHuman body: not a body.bin');
+  const n = new DataView(buffer).getUint32(4, true);
+  const meta = JSON.parse(new TextDecoder().decode(new Uint8Array(buffer, 8, n)));
+  return { meta, buffer, base: Math.ceil((8 + n) / 8) * 8 };
+}
+
+/** The body's data as makeBody reads it: get(name) a typed array, scale(name) its quantisation step (from body.bin; or a header and its arrays apart). */
+export function parseBody(meta, buffer, base = 0) {
+  if (meta instanceof ArrayBuffer) ({ meta, buffer, base } = unpackBody(meta));
   const arrays = new Map();
   const get = (name) => {
     if (!arrays.has(name)) {
       const b = meta.buffers[name];
       if (!b) throw new Error(`MakeHuman body: no buffer ${name}`);
-      arrays.set(name, new TYPES[b.type](buffer, b.offset, b.length));
+      arrays.set(name, new TYPES[b.type](buffer, base + b.offset, b.length));
     }
     return arrays.get(name);
   };
@@ -64,11 +77,14 @@ export function parseBody(meta, buffer) {
 }
 
 const loads = new Map();
-/** The parametric body's data (public/anim/mh/body.json + body.bin), once. */
+/**
+ * The parametric body's data (public/anim/mh/body.bin: one file, one fetch; the browser's cache keeps it
+ * between worlds, and its gzip is undone off the main thread), once a page. Its parse is a few ms (the
+ * header's JSON and the head's vertices): the arrays are views on the file.
+ */
 export function loadBody(base = '/') {
   if (!loads.has(base)) {
-    const get = (f, how) => fetch(`${base}anim/mh/${f}`).then((r) => (r.ok ? r[how]() : Promise.reject(new Error(`${f}: ${r.status}`))));
-    loads.set(base, Promise.all([get('body.json', 'json'), get('body.bin', 'arrayBuffer')]).then(([m, b]) => parseBody(m, b)));
+    loads.set(base, fetch(`${base}anim/mh/body.bin`).then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(`body.bin: ${r.status}`)))).then((b) => parseBody(b)));
   }
   return loads.get(base);
 }

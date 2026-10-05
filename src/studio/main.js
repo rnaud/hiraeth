@@ -163,9 +163,9 @@ function makeNPC(def, look, world, human = null) {
     scale: def?.scale ?? null, head: def?.head ?? null, cape: def?.cape ?? null, def: def ?? null, world,
   });
   npc.restyle(look);
-  npc.char.pack.visible = !!state.l.pack;
+  npc.char.pack.visible = !!state.l.pack || !!def?.satchel;
   npc.humanoid.ownMaterials();
-  const baseScale = (def?.scale ?? look.height ?? 1) * (look.size ?? 1);
+  const baseScale = npc.baseScale ?? (def?.scale ?? look.height ?? 1) * (look.size ?? 1);   // (a MakeHuman child's true height: NPC)
   return { type: 'npc', name: def?.name ?? (look.blank ? 'A blank body' : `Someone of ${TITLES[world] ?? world}`), root: npc.object, char: npc.char, h: npc.humanoid, animator: npc.animator, npc, look, baseScale, noShadow: [] };
 }
 
@@ -178,7 +178,7 @@ function disposePerson(p) {
 let people = [];      // on stage
 let gpu = null;       // the GPU crowd figures (crowd-shader.js)
 let cast = [];        // the world's story people
-let mhData = null;   // the MakeHuman parametric body (public/anim/mh/body.json + .bin, src/makehuman/body.js), once asked for
+let mhData = null;   // the MakeHuman parametric body (public/anim/mh/body.bin, src/makehuman/body.js), once asked for
 const MH_LINEUPS = ['makehuman', 'mhbuilds', 'mhhair'];
 const lookOf = (p) => p.look;
 
@@ -292,9 +292,9 @@ function applyLook() {
     p.look = look;
     setCostumeWorld(p.world ?? state.world);
     p.npc.restyle(look);
-    p.npc.char.pack.visible = !!state.l.pack;
+    p.npc.char.pack.visible = !!state.l.pack || !!p.npc.def?.satchel;
     p.h.ownMaterials();
-    p.baseScale = (specDef(p.spec)?.scale ?? look.height ?? 1) * (look.size ?? 1);
+    p.baseScale = p.npc.baseScale ?? (specDef(p.spec)?.scale ?? look.height ?? 1) * (look.size ?? 1);
   }
   applyBody();
   applyFace();

@@ -1,6 +1,6 @@
-// The MakeHuman bodies in the game (docs/makehuman.md, stage 1; only with ?mh=1, and in the studio's
-// Body source switch): each world's people get their bodies from the one parametric body
-// (src/makehuman/body.js), by who they are.
+// The MakeHuman bodies in the game (docs/makehuman.md): each world's people get their bodies from the one
+// parametric body (src/makehuman/body.js), by who they are. The Desert's people are MakeHuman bodies by
+// default (MH_WORLDS, stage 2), any world's with ?mh=1, none with ?mh=0; the studio's Body source too.
 //
 //   const people = await loadPeople(base, world)   the world's family of bodies
 //   people.humans()                                [man, woman]: the grown-up templates, where the
@@ -39,12 +39,24 @@ export function filterFace(face, child) {
   return out;
 }
 
-/** The age class of a person (shape.js AGES): the story's (def.age), an elder's face, else grown up. */
+/**
+ * The age class of a person (shape.js AGES): the story's (def.age), an elder's face, else grown up. A
+ * story person the story makes small (def.scale under CHILD_SCALE) without an age is a child too.
+ */
 export function ageClassOf({ def = null, dress = null } = {}) {
   if (def?.age === 'child') return 'child';
   if (def?.age === 'teen') return 'teen';
   if (def?.age === 'elder' || dress?.faceType === 'elder') return 'elder';
+  if (!def?.age && def?.scale && def.scale < CHILD_SCALE) return 'child';
   return 'adult';
+}
+/** Under this story scale (def.scale) someone with no age of their own is a child (the desert's Ilo, 0.7). */
+export const CHILD_SCALE = 0.82;
+
+/** How old a person is (years): the story's own (def.years), else their age class's (shape.js AGES). */
+export function yearsOf(who = {}) {
+  const y = who.def?.years;
+  return Number.isFinite(y) ? y : AGES[ageClassOf(who)];
 }
 
 /** The profile hooks humanoid.js reads on a MakeHuman template (its builds, its hair, its face). */
@@ -52,9 +64,10 @@ export function equip(scene, { kind, years, build = 'average', world = 'default'
   const prof = scene.userData.profile;
   const child = years < 13;
   prof.build = build;
-  prof.buildGeometry = (body, b, morph) => {
+  // (y: another age on this skeleton, a crowd body come close as an elder: Humanoid.setBuild)
+  prof.buildGeometry = (body, b, morph, y = years) => {
     const base = body.userData.baseGeometry ?? body.geometry;
-    const g = b === build || !b ? base : bodyGeometryFor(scene, personParams({ kind, years, build: b, world, over }));
+    const g = (b === build || !b) && y === years ? base : bodyGeometryFor(scene, personParams({ kind, years: y, build: b || build, world, over }));
     if (!morph) return g;
     // the game's body morphs (girths, on the mesh) over the MakeHuman build
     return buildGeometry({ userData: { baseGeometry: g }, geometry: g, skeleton: body.skeleton, bindMatrix: body.bindMatrix }, 'average', morph);
@@ -63,6 +76,7 @@ export function equip(scene, { kind, years, build = 'average', world = 'default'
   prof.lookKey = (look) => `|${mhStyleOf(look) ?? ''}`;
   prof.filterFace = (face) => filterFace(face, child);
   prof.filterMorph = (morph) => (child ? null : morph);
+  prof.yearsOf = (look) => AGES[ageClassOf({ dress: look })];
   return scene;
 }
 
@@ -76,7 +90,13 @@ export function personTemplate(data, { kind = 'm', years = AGES.adult, build = '
   // the game sets everyone's height (the root's scale: a story child's def.scale, a look's height) for a
   // body as tall as a grown-up's in bind space; a MakeHuman child's is taller there (its hips are scaled
   // to the grown-ups', its head is bigger): the root's scale corrected so they stand as tall as the game says
-  prof.heightFix = years < 18 ? personTemplate(data, { kind, years: AGES.adult, world }).userData.profile.measured.height / prof.measured.height : 1;
+  // (heightFix), or, for the young, as tall as MakeHuman makes someone of their age beside the game's
+  // grown-ups (trueScale: the root's scale itself; a story's child scale was set for a man's body)
+  if (years < 18) {
+    const grown = personTemplate(data, { kind, years: AGES.adult, world }).userData.profile;
+    prof.heightFix = grown.measured.height / prof.measured.height;
+    prof.trueScale = prof.size / grown.size;
+  } else prof.heightFix = 1;
   return scene;
 }
 
@@ -86,17 +106,18 @@ export class MakeHumanPeople {
     this.world = world;
   }
 
-  template(kind, ageClass = 'adult', build = 'average') {
-    const t = personTemplate(this.data, { kind, years: AGES[ageClass] ?? AGES.adult, build, world: this.world });
+  template(kind, ageClass = 'adult', build = 'average', years = AGES[ageClass] ?? AGES.adult) {
+    const t = personTemplate(this.data, { kind, years, build, world: this.world });
     t.userData.mhPeople = this;
     return t;
   }
 
   /** The body for a person: a crowd's pooled body is a grown-up of average build (it takes each person's build as it goes). */
   templateFor({ kind = 'm', def = null, dress = null, pooled = false } = {}) {
-    const k = def?.age === 'child' ? def.kind ?? kind : kind;
+    const k = ageClassOf({ def }) === 'child' ? def.kind ?? kind : kind;
     if (pooled) return this.template(k, 'adult', 'average');
-    return this.template(k === 'f' ? 'f' : 'm', ageClassOf({ def, dress }), dress?.build ?? 'average');
+    const age = ageClassOf({ def, dress });
+    return this.template(k === 'f' ? 'f' : 'm', age, dress?.build ?? 'average', yearsOf({ def, dress }));
   }
 
   /** [man, woman] grown-ups, where the game passes its Quaternius pair. */
@@ -105,7 +126,20 @@ export class MakeHumanPeople {
   }
 }
 
-/** The world's MakeHuman people (?mh=1): the data once, the family for this world. */
+/**
+ * The worlds whose people are MakeHuman bodies by default (docs/makehuman.md, stage 2: the Desert first;
+ * the others stay on the Quaternius bodies until their costumes and crowds are checked).
+ */
+export const MH_WORLDS = new Set(['desert']);
+
+/** Whether a world's people are MakeHuman bodies: the page's ?mh=1 / ?mh=0 (to compare), else the world's default (MH_WORLDS). */
+export function usesMakeHuman(world, flag = null) {
+  if (flag === '1') return true;
+  if (flag === '0') return false;
+  return MH_WORLDS.has(world);
+}
+
+/** The world's MakeHuman people: the data once, the family for this world. */
 export async function loadPeople(base = '/', world = 'default') {
   return new MakeHumanPeople(await loadBody(base), world);
 }

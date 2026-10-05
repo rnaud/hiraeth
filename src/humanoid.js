@@ -14,6 +14,9 @@ import { BUILD_SHAPE, radialFactors, boneMorph, warpFace, faceLandmarks, browPos
 import { cleanExpression, NEUTRAL_EXPRESSION, PEOPLE_REST } from './expression.js';
 import { sharedUniforms } from './materials.js';
 import { Hands } from './hands.js';
+import { JOINTS as RAG_JOINTS } from './ragdoll.js';
+
+const RAGDOLL_JOINTS = RAG_JOINTS.map(([n]) => n), RAGDOLL_R = RAG_JOINTS.map(([, , r]) => r);
 
 // A real human body (Quaternius' Universal Base Characters, CC0) dressed in
 // the rider's clothes by our inked material, driven every frame by the
@@ -295,6 +298,70 @@ export function buildGeometry(body, build, morph = null) {
   return g;
 }
 
+/**
+ * The body's colliders for cloth (Humanoid.capsules): [from bone, to bone, radius (m: the Quaternius
+ * man's, the cloth's thickness in), the bones whose skin makes it]. Another body (a MakeHuman one)
+ * measures its own (segmentGirths): the same fit round its own girths.
+ */
+export const CAPSULES = [
+  ['pelvis', 'spine_03', 0.2, /^(pelvis|spine_0[12])$/], ['spine_03', 'neck_01', 0.17, /^spine_03$/], ['clavicle_l', 'clavicle_r', 0.12, /^clavicle_[lr]$/],
+  ['thigh_l', 'calf_l', 0.12, /^thigh_(twist_\d+_)?l$/], ['calf_l', 'foot_l', 0.1, /^calf_(twist_\d+_)?l$/], ['foot_l', 'ball_l', 0.08, /^(foot|ball)_l$/],
+  ['thigh_r', 'calf_r', 0.12, /^thigh_(twist_\d+_)?r$/], ['calf_r', 'foot_r', 0.1, /^calf_(twist_\d+_)?r$/], ['foot_r', 'ball_r', 0.08, /^(foot|ball)_r$/],
+  ['upperarm_l', 'lowerarm_l', 0.08, /^upperarm_(twist_\d+_)?l$/], ['lowerarm_l', 'hand_l', 0.07, /^lowerarm_(twist_\d+_)?l$/],
+  ['upperarm_r', 'lowerarm_r', 0.08, /^upperarm_(twist_\d+_)?r$/], ['lowerarm_r', 'hand_r', 0.07, /^lowerarm_(twist_\d+_)?r$/],
+];
+
+/** What the Quaternius bodies' colliders leave over their own skin (CAPSULES' radius less the man's and woman's measured girth): the cloth's thickness and a margin, the same on any body. */
+export const CAPSULE_MARGIN = [0.072, 0.02, 0, 0.028, 0.032, 0.007, 0.028, 0.032, 0.007, 0.027, 0.024, 0.027, 0.024];
+
+const girths = new WeakMap();
+/**
+ * How thick a skinned body is round each segment of CAPSULES (bind space, m): the `q` quantile of the
+ * distances of its vertices (each counted for the bone with most of its weight) to the segment.
+ * Cached per geometry.
+ */
+export function segmentGirths(body, q = 0.9) {
+  const geo = body.geometry;
+  const per = girths.get(geo) ?? new Map();
+  girths.set(geo, per);
+  if (per.has(q)) return per.get(q);
+  const bones = body.skeleton.bones, idx = new Map(bones.map((b, i) => [b.name, i]));
+  const toGeo = body.bindMatrix.clone().invert();
+  const at = (n) => (idx.has(n) ? new THREE.Vector3().setFromMatrixPosition(body.skeleton.boneInverses[idx.get(n)].clone().invert()).applyMatrix4(toGeo) : null);
+  const segOf = bones.map((b) => CAPSULES.findIndex(([, , , re]) => re.test(b.name)));
+  const ends = CAPSULES.map(([a, b]) => [at(a), at(b)]);
+  const dist = CAPSULES.map(() => []);
+  const P = geo.attributes.position, J = geo.attributes.skinIndex, W = geo.attributes.skinWeight;
+  const v = new THREE.Vector3(), c = new THREE.Vector3(), ab = new THREE.Vector3();
+  for (let i = 0; i < P.count; i++) {
+    let best = -1, bw = 0;
+    for (let k = 0; k < 4; k++) { const w = W.getComponent(i, k); if (w > bw) { bw = w; best = J.getComponent(i, k); } }
+    const s = best >= 0 ? segOf[best] : -1;
+    if (s < 0 || !ends[s][0] || !ends[s][1]) continue;
+    const [A, B] = ends[s];
+    v.fromBufferAttribute(P, i);
+    ab.subVectors(B, A);
+    const t = THREE.MathUtils.clamp(c.subVectors(v, A).dot(ab) / Math.max(ab.lengthSq(), 1e-9), 0, 1);
+    dist[s].push(v.distanceTo(c.copy(A).addScaledVector(ab, t)));
+  }
+  const out = dist.map((a) => { if (!a.length) return 0; a.sort((x, y) => x - y); return a[Math.min(a.length - 1, Math.floor(a.length * q))]; });
+  per.set(q, out);
+  return out;
+}
+
+/**
+ * Dark hair in shade is one dark shape and its strand lines (the ink's creases between its locks) vanish
+ * in it: the locks' borders are drawn lighter (the vertex colour toward colour * gain + add), the
+ * darker the hair the more (none from `light` up: grey, fair or red hair keeps its lines dark on light).
+ */
+export const HAIR_EDGE = { gain: 1.9, add: 0.07, dark: 0.04, light: 0.22 };
+const _edgeTo = new THREE.Color();
+/** How much a hair colour's lock borders lighten (0..1, HAIR_EDGE): by its luminance. */
+export function hairEdge(hex) {
+  const c = new THREE.Color(hex), l = 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+  return 1 - THREE.MathUtils.smoothstep(l, HAIR_EDGE.dark, HAIR_EDGE.light);
+}
+
 // rest-pose regions per model (metres): bootTop, beltY, neckY, wristX
 const OUTFIT = { m: [0.13, 0.97, 1.47, 0.64], f: [0.12, 0.95, 1.44, 0.58] };
 
@@ -484,12 +551,18 @@ export class Humanoid {
     c.capeAnchor = this.chestAnchor;
   }
 
-  /** Slim, average, broad or heavy (costumes.js BUILDS): the body mesh swaps to that shape; the skeleton stays. */
-  setBuild(build = 'average') {
+  /**
+   * Slim, average, broad or heavy (costumes.js BUILDS): the body mesh swaps to that shape; the skeleton
+   * stays. `years`: a body that has them for every age (a MakeHuman crowd body: profile.buildGeometry)
+   * also takes that age's shape (an elder of the crowd come close), on the same skeleton.
+   */
+  setBuild(build = 'average', years = this.years) {
     if (!this.body || this.outfit) return;
     build = BUILDS[build] ? build : 'average';
-    if (build === this.build) return;
+    if (!this.profile?.buildGeometry) years = undefined;
+    if (build === this.build && years === this.years) return;
     this.build = build;
+    this.years = years;
     this.reshapeBody();
   }
 
@@ -500,7 +573,7 @@ export class Humanoid {
     this.lod?.reset();   // (far away the body may be drawing a simpler copy: skinned-lod.js)
     body.userData.baseGeometry ??= body.geometry;
     // (a MakeHuman body's builds are its own shapes: src/makehuman/people.js)
-    let g = this.outfit ? this._suitGeometry ?? body.geometry : this.profile?.buildGeometry ? this.profile.buildGeometry(body, this.build, this.morph) : buildGeometry(body, this.build, this.morph);
+    let g = this.outfit ? this._suitGeometry ?? body.geometry : this.profile?.buildGeometry ? this.profile.buildGeometry(body, this.build, this.morph, this.years) : buildGeometry(body, this.build, this.morph);
     if (this.face) g = this.warped(body, g);
     body.geometry = g;
     this._robeExt = null;   // the robe measures the body again
@@ -762,7 +835,12 @@ export class Humanoid {
       if (!src) return;
       const geo = src.geo.clone();
       const c = new Float32Array(src.roles.length * 3);
-      for (let i = 0; i < src.roles.length; i++) { col.set(roleColor(look, src.roles[i])); c[i * 3] = col.r; c[i * 3 + 1] = col.g; c[i * 3 + 2] = col.b; }
+      const lift = src.edge ? hairEdge(roleColor(look, 'hair')) : 0;
+      for (let i = 0; i < src.roles.length; i++) {
+        col.set(roleColor(look, src.roles[i]));
+        if (lift && src.edge[i]) col.lerp(_edgeTo.copy(col).multiplyScalar(HAIR_EDGE.gain).addScalar(HAIR_EDGE.add), lift * src.edge[i]);
+        c[i * 3] = col.r; c[i * 3 + 1] = col.g; c[i * 3 + 2] = col.b;
+      }
       geo.setAttribute('color', new THREE.BufferAttribute(c, 3));
       const mesh = new THREE.SkinnedMesh(geo, mat);
       const body = this.body;
@@ -780,7 +858,7 @@ export class Humanoid {
   /** The costume's merged geometry in this model's bind space (cached per body kind and look; colours added per person). */
   costumeGeometry(look) {
     const robe = look.robe > 0 ? `${look.robe.toFixed(2)}/${(look.flare ?? 0.3).toFixed(2)}` : '-';
-    const key = `${this.profile?.id ?? this.kind}|${this.build}|${morphKey(this.morph)}|${look.head}|${look.mask}|${look.body}|${look.prop}|${robe}${this.profile?.lookKey?.(look) ?? ''}`;
+    const key = `${this.profile?.id ?? this.kind}|${this.build}${this.years ? `@${this.years}` : ''}|${morphKey(this.morph)}|${look.head}|${look.mask}|${look.body}|${look.prop}|${robe}${this.profile?.lookKey?.(look) ?? ''}`;
     const cache = (this.constructor._costumes ??= new Map());
     if (cache.has(key)) return cache.get(key);
     const B = this.b, bones = this.body.skeleton.bones;
@@ -796,7 +874,7 @@ export class Humanoid {
         new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), handDir).multiply(HAND_GRIP), new THREE.Vector3(1, 1, 1)) },
     };
     const out = { main: [], glow: [] };
-    const push = (geo, role, joints, weights) => {
+    const push = (geo, role, joints, weights, edge = null) => {
       for (const k of Object.keys(geo.attributes)) if (k !== 'position' && k !== 'normal') geo.deleteAttribute(k);
       if (!geo.index) geo.setIndex([...Array(geo.attributes.position.count).keys()]);
       const n = geo.attributes.position.count;
@@ -804,7 +882,7 @@ export class Humanoid {
       for (let i = 0; i < n; i++) { const [j, w] = joints(i, geo); J.set(j, i * 4); W.set(w, i * 4); }
       geo.setAttribute('skinIndex', new THREE.BufferAttribute(J, 4));
       geo.setAttribute('skinWeight', new THREE.BufferAttribute(W, 4));
-      (role === 'lamp' ? out.glow : out.main).push({ geo, role, n });
+      (role === 'lamp' ? out.glow : out.main).push({ geo, role, n, edge });
     };
     // (a MakeHuman body draws its own hair and beard, skinned shells: src/makehuman/hair.js)
     const pieces = this.profile?.lookPieces ? this.profile.lookPieces(look, this) : lookPieces(look, 1);
@@ -813,13 +891,20 @@ export class Humanoid {
       if (!F) continue;   // (the skinned shells: below)
       for (const pc of list) push(pc.geo.applyMatrix4(F.m), pc.role, rigid);
     }
-    for (const part of pieces.skinned ?? []) push(part.geo, part.role, part.joints);
+    for (const part of pieces.skinned ?? []) push(part.geo, part.role, part.joints, null, part.edge ?? null);
     if (look.robe > 0) for (const part of this.robeGeometry(look.robe, look.flare ?? 0.3)) push(part.geo, part.role, part.joints);
     const merged = (list) => {
       if (!list.length) return null;
       const roles = [];
       for (const p of list) for (let i = 0; i < p.n; i++) roles.push(p.role);
-      return { geo: mergeGeometries(list.map((p) => p.geo)), roles };
+      // (a hairstyle's lock borders, 0..1 a vertex: drawn a little lighter, so its strand lines read on dark hair in shade too)
+      let edge = null;
+      if (list.some((p) => p.edge)) {
+        edge = new Float32Array(roles.length);
+        let o = 0;
+        for (const p of list) { if (p.edge) edge.set(p.edge, o); o += p.n; }
+      }
+      return { geo: mergeGeometries(list.map((p) => p.geo)), roles, edge };
     };
     const r = { main: merged(out.main), glow: merged(out.glow) };
     cache.set(key, r);
@@ -1212,20 +1297,36 @@ export class Humanoid {
     }
   }
 
-  /** Body capsules (world space) for cloth collision. */
+  /**
+   * Body capsules (world space) for cloth collision: CAPSULES' radii (the Quaternius bodies', wider
+   * for a fuller build), or on another body (a MakeHuman one: a heavy belly, a child's thin arms) its
+   * own girths plus the same margin (segmentGirths, CAPSULE_MARGIN), at its size.
+   */
   capsules() {
     const B = this.b;
-    // [from bone, to bone (or point offset), radius]; radii include the cloth's thickness
-    const spec = this._spec ??= [
-      ['pelvis', 'spine_03', 0.2], ['spine_03', 'neck_01', 0.17], ['clavicle_l', 'clavicle_r', 0.12],
-      ['thigh_l', 'calf_l', 0.12], ['calf_l', 'foot_l', 0.1], ['foot_l', 'ball_l', 0.08],
-      ['thigh_r', 'calf_r', 0.12], ['calf_r', 'foot_r', 0.1], ['foot_r', 'ball_r', 0.08],
-      ['upperarm_l', 'lowerarm_l', 0.08], ['lowerarm_l', 'hand_l', 0.07],
-      ['upperarm_r', 'lowerarm_r', 0.08], ['lowerarm_r', 'hand_r', 0.07],
-    ].filter(([a, b]) => B[a] && B[b]);
-    const g = BUILDS[this.build]?.girth ?? 1;   // fuller bodies, wider colliders (the trunk and thighs most)
-    if (!this._caps) this._caps = spec.map(([a, , r]) => ({ a: new THREE.Vector3(), b: new THREE.Vector3(), r: r * (/spine|pelvis|clavicle|thigh/.test(a) ? g : Math.sqrt(g)) }));
+    const spec = this._spec ??= CAPSULES.map((c, i) => [...c, i]).filter(([a, b]) => B[a] && B[b]);
+    const s = this.profile ? this.char.root.getWorldScale(_c).x : 1;
+    if (!this._caps || this._capScale !== s) {
+      this._capScale = s;
+      const g = BUILDS[this.build]?.girth ?? 1;   // fuller bodies, wider colliders (the trunk and thighs most)
+      const own = this.profile && this.body ? segmentGirths(this.body) : null;
+      this._caps = spec.map(([a, , r, , i]) => ({ a: new THREE.Vector3(), b: new THREE.Vector3(),
+        r: own ? (own[i] + CAPSULE_MARGIN[i]) * s : r * (/spine|pelvis|clavicle|thigh/.test(a) ? g : Math.sqrt(g)) }));
+    }
     spec.forEach(([a, b], i) => { B[a].getWorldPosition(this._caps[i].a); B[b].getWorldPosition(this._caps[i].b); });
     return this._caps;   // the jetpack sits on top of the cloth, so it isn't a collider
+  }
+
+  /**
+   * The ragdoll's particles' radii (ragdoll.js JOINTS order, m before the body's scale): null on the
+   * Quaternius bodies (JOINTS' own), on another body its own girths (segmentGirths: the trunk of a heavy
+   * body is fuller, so it lies on it and not half sunk into the ground).
+   */
+  ragdollRadii() {
+    if (!this.profile || !this.body) return null;
+    const g = segmentGirths(this.body, 0.75), seg = (n) => g[CAPSULES.findIndex(([a]) => a === n)];
+    const at = { pelvis: seg('pelvis'), chest: seg('spine_03'), hipL: seg('thigh_l'), hipR: seg('thigh_r'), kneeL: seg('calf_l'), kneeR: seg('calf_r'),
+      footL: seg('foot_l'), footR: seg('foot_r'), shL: seg('upperarm_l'), shR: seg('upperarm_r'), elL: seg('lowerarm_l'), elR: seg('lowerarm_r') };
+    return RAGDOLL_JOINTS.map((n, i) => (at[n] > 0 ? THREE.MathUtils.clamp(at[n], RAGDOLL_R[i] * 0.6, RAGDOLL_R[i] * 1.8) : RAGDOLL_R[i]));
   }
 }

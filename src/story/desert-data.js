@@ -262,7 +262,8 @@ export const PEOPLE = {
 
   sefa: {
     id: 'sefa', name: 'Sefa', title: 'oud player', color: '#8a6fb8', voice: 0.95, kind: 'f',
-    palette: { cloak: '#8a6fb8', lining: '#2b211f', cloth: '#e2d3b4', legs: '#2b2f45', hat: '#62c3c9', hair: '#2b211f' }, head: 'hair', cape: 0.55,
+    // (her character sheet: a long purple cloak over a cream tunic, baggy trousers, a long braid)
+    palette: { cloak: '#8a6fb8', lining: '#2b211f', cloth: '#e2d3b4', legs: '#2b2f45', hat: '#62c3c9', hair: '#2b211f' }, head: 'braid', cape: 1.45, look: { robe: 0.5, build: 'slim', trim: 'none', body: 'none' },
     lines: ['~happy~ ♪', "~happy~ Stay for a tune. Leaving halfway makes it self-conscious.", "~curious~ You keep glancing behind you."],
     talk: { listen: [
       ["~playful~ You stopped! I was beginning to think I’d been mistaken for a decorative bush.", "~whisper~ I’m Sefa. I try to play what suits the listener. Yours keeps wandering away from the last note."],
@@ -276,8 +277,9 @@ export const PEOPLE = {
   },
 
   bako: {
-    id: 'bako', name: 'Bako', title: 'ney player', color: '#5fb7ad', voice: 0.75, kind: 'm',
-    palette: { cloak: '#5fb7ad', lining: '#2b211f', cloth: '#5a4a3a', legs: '#3a3a3a', hat: '#f3ead8', hair: '#b0a89a' }, head: 'hat', cape: 0,
+    id: 'bako', name: 'Bako', title: 'ney player', color: '#5fb7ad', voice: 0.75, kind: 'm', age: 'elder', years: 70, satchel: true,
+    // (his character sheet: an old man, a cream head-wrap, a grey beard, a long teal coat over a brown robe, a satchel)
+    palette: { cloak: '#5fb7ad', lining: '#2b211f', cloth: '#7a4a35', legs: '#3a3a3a', hat: '#f3ead8', hair: '#b0a89a' }, head: 'wrap', cape: 1.45, look: { mask: 'beard', body: 'none', prop: 'none', robe: 0.06, build: 'slim', trim: 'none' },
     lines: ['~tired~ Hm.', '~happy~ Hmmm-hm.', '~neutral~ (he hums)'],
     talk: { listen: [
       "~neutral~ You’re from the round ship. I saw the burn on its side.",
@@ -290,7 +292,7 @@ export const PEOPLE = {
   },
 
   ilo: {
-    id: 'ilo', name: 'Ilo', title: 'too curious', color: '#f2c54b', voice: 1.7, kind: 'f', scale: 0.7,
+    id: 'ilo', name: 'Ilo', title: 'too curious', color: '#f2c54b', voice: 1.7, kind: 'f', scale: 0.7, age: 'child', years: 8,
     palette: { cloak: '#f2c54b', lining: '#2b211f', cloth: '#c8483a', legs: '#4a3a2a', hat: '#e6875f', hair: '#6e4a32' }, head: 'hair', cape: 0.55,
     lines: ["~curious~ Were the clouds soft?", "~sad~ They won’t let me past the back gate alone.", "~playful~ Bet I can get there first!"],
     talk: {
@@ -333,7 +335,8 @@ export const PEOPLE = {
 
   speaker: {
     id: 'speaker', name: 'The Speaker', title: 'who leads the procession', color: '#f3ead8', voice: 0.7, kind: 'm', scale: 1.08,
-    palette: { cloak: '#f3ead8', lining: '#c8483a', cloth: '#e2d3b4', legs: '#5a4a40', hat: '#c8483a', hair: '#e8dcc0' }, head: 'hat', cape: 1.45, look: { prop: 'staff', body: 'mantle', robe: 0.08 },
+    // (his character sheet: a tall hat with a wide brim, a high collar over the mouth, a mustard poncho over a rust robe, a staff)
+    palette: { cloak: '#d8a24a', lining: '#b5562f', cloth: '#b5562f', legs: '#5a4a40', hat: '#c9974a', accent: '#b5562f', hair: '#e8dcc0' }, head: 'wizard', cape: 1.45, look: { prop: 'staff', body: 'mantle', robe: 0.05, mask: 'veil', build: 'slim', trim: 'none' },
     lines: ['~solemn~ Round, and round, and round.', '~neutral~ Keep the step.', '~solemn~ The tree is patient. So are we.'],
     talk: {
       entry: [
@@ -439,8 +442,9 @@ export const PEOPLE = {
 
   // the eldest of Qanat, Hessa's grandmother, who has kept the makers' chest company from her bench under its ledge for sixty years
   nour: {
-    id: 'nour', name: 'Nour', title: 'the eldest of Qanat', color: '#3b4f8a', voice: 0.72, kind: 'f', scale: 0.93,
-    palette: { cloak: '#2f437a', lining: '#dcecf2', cloth: '#e2d3b4', legs: '#5a4a40', hat: '#f3ead8', hair: '#ece4d2' }, head: 'wrap', cape: 1.45, look: { mask: 'veil', prop: 'staff', robe: 0.06 },
+    id: 'nour', name: 'Nour', title: 'the eldest of Qanat', color: '#3b4f8a', voice: 0.72, kind: 'f', scale: 0.93, age: 'elder', years: 80,
+    // (her character sheets: frail and upright, a wide straw cone with a veil under it, ochre robes over cream, a staff)
+    palette: { cloak: '#d8a24a', lining: '#e2d3b4', cloth: '#e2d3b4', legs: '#5a4a40', hat: '#e6c48a', hair: '#ece4d2' }, head: 'sunhat', cape: 1.45, look: { mask: 'veil', prop: 'staff', robe: 0.04, build: 'slim', trim: 'none', body: 'none' },
     lines: ['~neutral~ Mind the chest, child.', '~tired~ Sixty years I have sat with it.', '~curious~ It hums more when you are near. Did you notice?'],
     talk: {
       entry: [
@@ -580,8 +584,9 @@ export const PEOPLE = {
   },
 
   marrow: {
-    id: 'marrow', name: 'Marrow', title: 'salvager and liar', color: '#dca273', voice: 1.0, kind: 'm',
-    palette: { cloak: '#dca273', lining: '#2b211f', cloth: '#34405e', legs: '#4a3a2a', hat: '#d8a24a', hair: '#2b211f' }, head: 'hat', cape: 0.9,
+    id: 'marrow', name: 'Marrow', title: 'salvager and liar', color: '#dca273', voice: 1.0, kind: 'm', satchel: true,
+    // (his character sheet: a short, grinning scavenger in a patched cream coat and hood, goggles, a scarf)
+    palette: { cloak: '#e6dcc0', lining: '#2b211f', cloth: '#e6dcc0', legs: '#4a3a2a', hat: '#d8a24a', accent: '#c9974a', hair: '#2b211f' }, head: 'raghood', cape: 0.9, look: { mask: 'browgoggles', body: 'scarf', prop: 'none', robe: 0.3, trim: 'patches', build: 'average', height: 0.92, faceType: 'round', mood: 'amused' },
     lines: ["~shout~ Bones! Glass! Authenticated bits of sky!", "~playful~ Finders keepers. I find that very reasonable.", "~whisper~ Sky-person. Excellent timing. For me."],
     talk: {
       entry: [
@@ -724,7 +729,7 @@ export const LINES = {
 export const VILLAGERS = [
   { id: 'qanat.weaver', name: 'Tamra', title: 'a weaver of Qanat', kind: 'f', palette: { cloak: '#e88fa6', lining: '#2b211f', cloth: '#f3ead8', legs: '#4a3a2a', hat: '#f3ead8', hair: '#4a3226' }, head: 'wrap', cape: 0.9, lines: ['~curious~ Is it humming louder?', '~whisper~ Don’t touch it, they say.'] },
   { id: 'qanat.potter', name: 'Idris', title: 'a potter of Qanat', kind: 'm', palette: { cloak: '#dca273', lining: '#2b211f', cloth: '#5a4a3a', legs: '#2b2f45', hat: '#d8a24a', hair: '#2b211f' }, head: 'hat', cape: 0, lines: ['~solemn~ Sixty years Nour has sat there.', '~neutral~ Hm.'] },
-  { id: 'qanat.boy', name: 'Kito', title: 'who follows Ilo about', kind: 'm', scale: 0.78, palette: { cloak: '#62c3c9', lining: '#2b211f', cloth: '#c8483a', legs: '#4a3a2a', hat: '#e6875f', hair: '#6e4a32' }, head: 'hair', cape: 0.55, lines: ['~curious~ Are you going to open it?', '~playful~ Ilo says you’re from the sky.'] },
+  { id: 'qanat.boy', name: 'Kito', title: 'who follows Ilo about', kind: 'm', scale: 0.78, age: 'child', years: 9, palette: { cloak: '#62c3c9', lining: '#2b211f', cloth: '#c8483a', legs: '#4a3a2a', hat: '#e6875f', hair: '#6e4a32' }, head: 'hair', cape: 0.55, lines: ['~curious~ Are you going to open it?', '~playful~ Ilo says you’re from the sky.'] },
   { id: 'qanat.baker', name: 'Lula', title: 'who bakes for the pilgrims', kind: 'f', palette: { cloak: '#f2c54b', lining: '#2b211f', cloth: '#5a4a3a', legs: '#2b2f45', hat: '#f3ead8', hair: '#b0a89a' }, head: 'hood', cape: 1.25, lines: ['~happy~ Flour on my hands, mind.', '~surprised~ The chest hummed when you came in.'] },
   { id: 'qanat.guard', name: 'Haro', title: 'who guards the steps', kind: 'm', palette: { cloak: '#8a6fb8', lining: '#2b211f', cloth: '#e2d3b4', legs: '#3a3a3a', hat: '#c8483a', hair: '#4a3226' }, head: 'hat', cape: 1.25, look: { mood: 'stern' }, lines: ['~neutral~ Steady, stranger.', '~tired~ I only guard the steps.'] },
   { id: 'qanat.sweeper', name: 'Mim', title: 'who sweeps the terraces', kind: 'f', palette: { cloak: '#5fb7ad', lining: '#2b211f', cloth: '#f3ead8', legs: '#5a4a40', hat: '#f3ead8', hair: '#e8dcc0' }, head: 'wrap', cape: 1.45, lines: ['~tired~ Every day I sweep these steps.', '~surprised~ Look at the tree!'] },

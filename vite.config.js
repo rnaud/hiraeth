@@ -14,16 +14,15 @@ export const BUILD_INPUT = {
 };
 const modules = existsSync('node_modules') ? realpathSync('node_modules') : null;
 /**
- * The MakeHuman parametric body (public/anim/mh/body.json + body.bin, docs/makehuman.md: 1.8 MB,
- * 1.1 gzipped; the studio's Body source and the game's ?mh=1) stays out of the build the APK and the
- * web bundle ship until the bodies are switched on (MAKEHUMAN=1 keeps it: without it ?mh=1 falls back
- * to the Quaternius bodies).
+ * The MakeHuman parametric body (public/anim/mh/body.bin, docs/makehuman.md: 1.7 MB, 1.06 gzipped): the
+ * Desert's people (and ?mh=1 anywhere) are MakeHuman bodies, so it ships with the web bundle and the APK.
+ * MAKEHUMAN=0 leaves it out (a build to measure without it: the people fall back to the Quaternius bodies).
  */
 export const MH_DIR = 'anim/mh';
 const dropMakeHuman = () => ({
   name: 'drop-makehuman',
   apply: 'build',
-  writeBundle(options) { if (process.env.MAKEHUMAN !== '1') rmSync(`${options.dir ?? 'dist'}/${MH_DIR}`, { recursive: true, force: true }); },
+  writeBundle(options) { if (process.env.MAKEHUMAN === '0') rmSync(`${options.dir ?? 'dist'}/${MH_DIR}`, { recursive: true, force: true }); },
 });
 export default defineConfig({
   base: './',
