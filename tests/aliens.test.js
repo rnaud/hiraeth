@@ -15,6 +15,7 @@ import { parseLine, TONES } from '../src/story/tone.js';
 import { LANGUAGES, planLine, voiceOf } from '../src/story/voice.js';
 import { SCRIPTS, scriptOf, writeChunk } from '../src/story/scripts.js';
 import { selfLitSkips } from '../src/shadows.js';
+import { talkSpace, stepBack } from '../src/story/spacing.js';
 
 const flat = { groundAt: () => 0, groundNormal: () => new THREE.Vector3(0, 1, 0), pushCapsule: () => null };
 const LEVELS = [...readFileSync(new URL('../src/levels/index.js', import.meta.url), 'utf8').matchAll(/^\s+id: '(\w+)'/gm)].map((m) => m[1]);
@@ -46,6 +47,7 @@ test('four peoples, each in a few worlds (not all), each with its own tongue and
     assert.ok(LANGUAGES[S.lang] && !LANGUAGES[S.lang].native, `${id} speaks ${S.lang}`);
     assert.equal(scriptOf(S.lang), SCRIPTS[S.lang], `${id} writes its own script`);
     assert.ok(S.lod.near < S.lod.mid && S.lod.mid < S.lod.far && S.lod.far < S.lod.hide, `${id}: levels of detail in order`);
+    assert.ok(S.gap > S.radius + 1 && S.gap < S.range - 0.5, `${id}: a conversation leaves room for its body, within talking range`);
     // and the cast: a few of them in each of their worlds, nowhere else
     for (const w of S.worlds) assert.ok((ALIENS[w] ?? []).filter((d) => d.species === id).length >= 3, `${id}: a few in ${w}`);
   }
@@ -235,6 +237,9 @@ test('a conversation with one: it opens on them, and the tone of each line shows
     const toYou = Math.atan2(player.pos.x - a.pos.x, player.pos.z - a.pos.z);
     for (let i = 0; i < 200; i++) a.update(1 / 60, player, camera);
     assert.ok(Math.abs(Math.atan2(Math.sin(a.heading - toYou), Math.cos(a.heading - toYou))) < 0.3, `${species} faces you`);
+    // room to talk: opened nose to nose, the traveller steps back clear of its body
+    const room = talkSpace(a), to = stepBack({ a: a.pos.clone().add(new THREE.Vector3(0.3, 0, 0)), b: a.pos, ...room });
+    assert.ok(to && Math.hypot(to.x - a.pos.x, to.z - a.pos.z) >= SPECIES[species].gap - 1e-6, `${species}: room to talk`);
     // the portrait: from your side, looking at its face
     const P = a.portraitShot(player.pos), f = a.faceAt();
     assert.ok(P.eye.distanceTo(f) > 0.8 && P.eye.distanceTo(f) < 3.5);

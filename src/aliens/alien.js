@@ -60,6 +60,7 @@ export class Alien {
     this.wp = 1 % this.route.length;
     this.heading = def.heading ?? 0;
     this.speed = S.speed * (def.pace ?? 1);
+    this.talkGap = S.gap;   // (the room a conversation leaves between you and them: src/story/spacing.js)
     this.time = 0;
     this.pause = 1 + Math.random() * 3;
     this.talkTo = null;

@@ -22,7 +22,7 @@ export const SPECIES = {
     id: 'drifter', name: 'drifter', plural: 'drifters', worlds: ['spheres'],
     lang: 'drifter', face: 2.7, talkAt: 3.95, radius: 0.9, speed: 0.55, range: 4.2, hover: 2.7,
     color: '#e6cfe0', glow: '#ffe2a0',
-    lod: { near: 34, mid: 70, far: 140, hide: 240 },
+    gap: 2.5, lod: { near: 34, mid: 70, far: 140, hide: 240 },
   },
   // Vael: tall walkers on three bone-white legs, a draped body and a lantern for a head. They pace
   // the needle plain and look at the sky. Like everyone in Vael, they say very little.
@@ -30,7 +30,7 @@ export const SPECIES = {
     id: 'stilt', name: 'stilt-walker', plural: 'stilt-walkers', worlds: ['arzach'],
     lang: 'stilt', face: 4.25, talkAt: 5.1, radius: 0.7, speed: 0.75, range: 4.8,
     color: '#efe6d3', glow: '#ffc56a',
-    lod: { near: 40, mid: 80, far: 160, hide: 260 },
+    gap: 3.1, lod: { near: 40, mid: 80, far: 160, hide: 260 },
   },
   // Lorn II: slow walkers who carry their houses, a mossy spiral shell on a soft foot, two eyes on
   // stalks, little moss lamps glowing on the whorl. Neighbours of the lamp-keepers.
@@ -38,7 +38,7 @@ export const SPECIES = {
     id: 'shell', name: 'shellback', plural: 'shellbacks', worlds: ['perdide2'],
     lang: 'shell', face: 2.0, talkAt: 3.1, radius: 1.15, speed: 0.32, range: 4.2, scale: 1.45,
     color: '#c9b78a', glow: '#ffd07a',
-    lod: { near: 30, mid: 60, far: 120, hide: 200 },
+    gap: 2.7, lod: { near: 30, mid: 60, far: 120, hide: 200 },
   },
   // The Signal Market: small pale bulbs, knee to hip high, who live five to a cluster and speak as
   // one ("we"), hopping through the crowd together. They repeat what the market says.
@@ -46,7 +46,7 @@ export const SPECIES = {
     id: 'murmur', name: 'murmur', plural: 'murmurs', worlds: ['bazaar'],
     lang: 'murmur', face: 0.72, talkAt: 1.9, radius: 1.2, speed: 1.1, range: 3.4, members: 5,
     color: '#efe9de', glow: '#f6c1cf',
-    lod: { near: 30, mid: 60, far: 110, hide: 180 },
+    gap: 2.3, lod: { near: 30, mid: 60, far: 110, hide: 180 },
   },
 };
 

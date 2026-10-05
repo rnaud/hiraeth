@@ -35,7 +35,10 @@ they are updated, show balloons, are kept by the flora and the room culler,
 and become talkable through their `def.talk` (`src/story/index.js`). The
 story runtime asks an alien for `talkAt` (where the prompt hangs), `faceAt`
 (the two-shot and the traveller's eyes), `portraitShot` (the portrait
-camera) and `express` (the tone of the line it is saying). The two-shot
+camera) and `express` (the tone of the line it is saying). Its `talkGap`
+(`SPECIES[id].gap`) is the room a conversation leaves
+(`src/story/spacing.js`), so you do not stand among a stilt-walker's legs or
+under a drifter's threads. The two-shot
 (`src/story/shot.js`) rises and steps back when one face is much higher than
 the other, so a lantern 4 m up stays in frame. For two people of about the
 same height the shot is unchanged.
