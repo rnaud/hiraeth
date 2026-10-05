@@ -1,0 +1,41 @@
+TODO.md
+  s_1fd8d0e7b02dcf::t_0b3b2a5b634b91 174-177
+changelog.md
+  s_1fd8d0e7b02dcf::t_ffb56bb5b2e972 19
+docs/systems/references.md
+  s_1fd8d0e7b02dcf::t_4053e44752eea0 52-73
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_f26aa664ba64a4 22
+src/levels/reference-picker.js
+  s_1fd8d0e7b02dcf::t_6f686d6970930e 1-315
+src/levels/references.js
+  s_1fd8d0e7b02dcf::t_82a9dfc295b5e6 12,312,365-366
+src/main.js
+  s_1fd8d0e7b02dcf::t_503f7339549358 943-946,959,964,978,1003-1004
+tests/reference-picker.test.js
+  s_0d409e50ee08ba::t_7c7257e2fb277d 1-66
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1d6cf3462b581e103da67aa4c04b8c22663c735e",
+  "prompts": {},
+  "sessions": {
+    "s_0d409e50ee08ba": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ae4ff9f4b04d16887",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
