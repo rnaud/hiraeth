@@ -195,6 +195,9 @@
 #title .main-menu button:hover::after, #title .main-menu button:focus::after { width: 60%; }
 #title .main-menu button:focus::before { opacity: 1; }
 #title .main-menu .primary { border: 0; }
+/* a quieter tool entry under Debug (the character studio): smaller, tucked against it */
+#title .main-menu button.minor { font-size: clamp(12px, 1.8vh, 16px); letter-spacing: 0.32em; text-indent: 0.32em; opacity: 0.68; margin-top: calc(-0.6 * clamp(6px, 1.6vh, 14px)); }
+#title .main-menu button.minor:hover, #title .main-menu button.minor:focus { letter-spacing: 0.36em; opacity: 1; }
 /* the saves and the confirm card: translucent paper, hairlines, no hard shadows */
 #title .saves { background: rgba(251, 246, 234, 0.82); border: 1px solid rgba(43, 33, 31, 0.35); box-shadow: 0 10px 40px rgba(43, 33, 31, 0.18); border-radius: 6px; backdrop-filter: blur(3px); }
 #title .saves h2 { font-weight: 300; letter-spacing: 0.4em; }

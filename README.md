@@ -1333,6 +1333,98 @@ it, so everyone looks the same on every visit:
   both kinds). `tests/people.test.js` covers the mix, the seeding, the pieces and
   the builds.
 
+## The character studio
+
+A page of its own for the people alone, to tune bodies, outfits, faces and
+expressions without loading a world: `studio.html` (open it with `npm run dev`
+at `/studio.html`, on GitHub Pages at `…/moebius/studio.html`, or from the title
+screen: **Character studio**, the small entry under Debug). It is the second
+entry of the build (`BUILD_INPUT` in `vite.config.js`), so it ships in the web
+bundle and the Android app too. It loads only the people's assets (the two
+bodies, the clip library `anim/ual.glb`, `anim/traveller.glb`); a world's story
+data (`src/story/<world>-data.js`) and its sky (the Lab's rooms,
+`src/levels/lab-rooms.js`) come in when picked.
+
+**It draws with the game's own pipeline**, so what you see is what the game
+draws: the same shadow cascades with the game's sizes (`src/shadows.js`), the
+G-buffer materials (`src/materials.js`, with the figure flag that makes
+`post.js` thin a small person's ink), the ink pass (`src/post.js`) and FXAA. The
+render targets and the subject's screen size (`uSubject`) are shared with
+`main.js` through `src/pipeline.js`. The people are the game's own classes: the
+traveller is a `Humanoid` in its outfit with its `Gear` (hero-marked), everyone
+else an `NPC` (`src/npc.js`) restyled to the look, with its cloth cape. A studio
+render of Kip or Nima matches a `captureView` of the same person in the game.
+
+The panel (left; under the picture on a tablet), every setting kept in the URL:
+
+- **Who**: the traveller, a story person of any world (their palette, head, cape
+  and look from the story data, dressed by `costumes.js` as the game does), a
+  crowd person by world and seed (`crowdLook`), or a blank body (m / f). In the
+  City-Shaft, *Where* picks the tribe by depth (`zoneIncal`).
+- **Lineup**: the world's story people side by side, or N crowd people with
+  their GPU crowd figures (`crowd-shader.js`) a row behind; *GPU crowd twin* puts
+  the figure next to one person.
+- **Body**: the build (`BUILDS`) and the morphology sliders of `src/morph.js`
+  (`BODY_MORPHS`): height, shoulder width, chest, belly, hips, arm / leg / neck
+  thickness (radial, on the mesh, like the builds), neck length, arm and leg
+  length, head, hand and foot size (on the bones, uniform scales; longer legs
+  lift the pelvis, `Humanoid.lift`). `Humanoid.setMorph(morph)`.
+- **Outfit**: hair or headwear (`HEAD_IDS`, the hairstyles first), beard, mask,
+  shoulder piece, held prop, cloth pattern, robe hem and flare, cape length and
+  width, satchel; colour pickers for every palette slot, with the world's
+  palette as swatches; the cape's cloth simulation on / off (off: the baked
+  drape) and the wind.
+- **Face**: variants (`FACE_PRESETS`) and the sliders of `FACE_MORPHS`: eye
+  size, spacing and height, nose length and width, jaw, chin, cheeks, brow
+  ridge, face length, head width (bind-space warps of the head, eyes and brows,
+  `morph.js warpFace`; the face ink's landmarks move with them), and the drawing
+  of `faceInk` (age lines, mouth width, freckles, lid line weight: `uFaceKit`).
+  `Humanoid.setFace(face)`.
+- **Expression**: a dialogue tone (`src/story/tone.js`), how much of it, talking
+  (the mouth on the syllables), blinking, what the eyes follow (the camera, the
+  red ball you can drag, glances, or fixed gaze sliders), and the expression's
+  own sliders: smile, mouth open, brow (furrow – raise), brow tilt (anger –
+  worry), squint. See below.
+- **Animation**: the game's blend (standing, walking, jogging, running, talking,
+  seated) or any clip of the library as authored; speed, pause and scrub; walking
+  over the floor; the traveller's feet planting (`plantFeet`, as the player's;
+  the game's NPCs don't plant theirs).
+- **Light and ink**: the hour (default: the world's own), turning the sun round
+  the person, the world's light (`lightAt`: the Signal Market is lit from
+  straight above, the City-Shaft and the Buried Machine's canyon more steeply),
+  the world's sky or a flat colour (the portrait backdrop), the floor, the ink
+  preset (the world's touches, or any of `PRESETS`), the post pass's debug views
+  (`DEBUG_VIEWS`, with *Drawn detail* showing the faces' ink alone), hatching,
+  shadow detail (next to the traveller, further off, the handheld preset) and
+  the render scale.
+- **Views** (over the picture): full body, bust, face, far away (the status line
+  gives the person's height on screen: `post.js` thins a figure's ink between
+  70 and 260 px), turntable. Drag to orbit, wheel or pinch to zoom.
+- **Share**: copy the settings as JSON (paste the `morph`, `face`, `look`,
+  `expression` into the code), copy the link, save the image.
+
+### Expressions and hairstyles
+
+`src/expression.js` gives every dialogue tone an expression (`TONE_EXPRESSIONS`:
+smile, open, brow, browTilt, squint, gaze) and `expressionFor(tone, { talking, t })`
+adds the mouth's movement while speaking. `Humanoid.setExpression(e)` draws it:
+the face ink (`uMood` / `uMood2` in `materials.js faceInk`: the mouth's corners
+bend up or down, it opens into a dark shape, the bags and the nose-mouth folds
+lift with a smile, frown creases, lines across the forehead), the brows'
+geometry (`morph.js browPositions`: raised, lowered and drawn together, inner
+ends up or down), the lids (a squint narrows them, `updateEyes`) and the gaze.
+Neutral values draw the face exactly as before, so the game can wear the tone of
+each spoken line when it wants to. Each person's materials are their own
+(`Humanoid.ownMaterials`, as `NPC.restyle` makes them).
+
+New hairstyles sit on the skull's own shape (`costumes.js scalp`, an egg fitted
+to both bodies' heads, cut along a hairline over the brow, round the temples to
+the nape) instead of the round cap that read as a bowl cut: `crop`, `shaved`,
+`bald`, `curls`, `braid`, `flow` (long hair down past the shoulders). They are
+ordinary head pieces (`HEADS`, `HEAD_IDS`, within the crowd shader's 32 ids), so a
+tribe can adopt them by listing them; none does yet. `tests/studio.test.js`
+covers the URL state, the build entry, the morphs, the expressions and the hair.
+
 ## Capes at a distance, and people up close (v0.39)
 
 - **Capes hang at rest far off** (`src/cape.js`). Cloth is only simulated near the

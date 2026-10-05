@@ -8,7 +8,7 @@ import { installAppShell, markBooted } from './native-app.js';
 import { ObservatoryQuest } from './observatory.js';
 import { Scout, nextObjective } from './scout.js';
 import { Wildlife } from './wildlife.js';
-import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
+import { createGBuffer, createComposeTarget, createBlit, setSubject } from './pipeline.js';
 import GUI from 'lil-gui';
 import { sharedUniforms, markHero } from './materials.js';
 import { createPost, DEBUG_VIEWS, PRESETS } from './post.js';
@@ -85,13 +85,7 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.3, 5000);
 
 // G-buffer: [0] albedo + light, [1] normal + view depth, [2] surface hatching
-const gbuffer = new THREE.WebGLRenderTarget(1, 1, {
-  count: 3,
-  type: THREE.HalfFloatType,
-  minFilter: THREE.NearestFilter,
-  magFilter: THREE.NearestFilter,
-  depthBuffer: true,
-});
+const gbuffer = createGBuffer();   // (src/pipeline.js: shared with the character studio)
 
 // Sun shadow maps: three orthographic cascades that follow the player (src/shadows.js).
 // fine = crisp character shadows, near = the street around you, far = mesas shadowing distant dunes.
@@ -121,21 +115,8 @@ const gpuName = (() => {
 const handheld = detectHandheld({ native: isNativeApp, touch: isTouch, gpu: gpuName });
 let preset = resolveQuality(settings.quality, { handheld, hiDPI: pixelRatio >= 2 });
 const quality = { renderScale: preset.scale };
-const composeRT = new THREE.WebGLRenderTarget(1, 1, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, depthBuffer: false });
-const blit = (() => {
-  const material = new THREE.ShaderMaterial({
-    uniforms: THREE.UniformsUtils.clone(FXAAShader.uniforms),
-    vertexShader: FXAAShader.vertexShader,
-    fragmentShader: FXAAShader.fragmentShader,
-    depthTest: false, depthWrite: false,
-  });
-  material.uniforms.tDiffuse.value = composeRT.texture;
-  const scene = new THREE.Scene();
-  const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
-  quad.frustumCulled = false;
-  scene.add(quad);
-  return { scene, material };
-})();
+const composeRT = createComposeTarget();
+const blit = createBlit(composeRT.texture);
 
 const overlays = { motes: null, trail: null };   // sprite overlays sized with the render targets
 
@@ -958,7 +939,7 @@ function shadowPass(c, reach, hide = []) {
 }
 
 /** The whole pipeline for one view: shadows, G-buffer, composite, overlays. */
-const _subj = new THREE.Vector3(), _subjUp = new THREE.Vector3(0, 1, 0);
+const _subjUp = new THREE.Vector3(0, 1, 0);
 function renderFrame() {
   renderer.info.reset();
   // the scene graph's matrices once per frame, not once per pass: renderer.render() walks the
@@ -1011,12 +992,7 @@ function renderFrame() {
   U.uCamWorld.value.copy(camera.matrixWorld);
   U.uProj11.value = camera.projectionMatrix.elements[5];
   // Projected player size controls how much fine ink detail remains visible.
-  _subj.copy(player.pos).addScaledVector(player.frame?.up ?? _subjUp, 0.95).applyMatrix4(camera.matrixWorldInverse);
-  const sdep = -_subj.z;
-  if (sdep > 0.5 && !player.hidden) {
-    _subj.applyMatrix4(camera.projectionMatrix);
-    U.uSubject.value.set(_subj.x * 0.5 + 0.5, _subj.y * 0.5 + 0.5, sdep, 1.35 * U.uProj11.value / (2 * sdep));
-  } else U.uSubject.value.w = -1;
+  setSubject(U, camera, player.pos, player.frame?.up ?? _subjUp, player.hidden);
   renderer.setRenderTarget(composeRT);
   renderer.clear();
   renderer.render(post.scene, post.camera);

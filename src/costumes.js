@@ -25,7 +25,11 @@ import { irisFor } from './eyes.js';
 
 // ------------------------------------------------------------------ ids (shared with crowd-shader.js)
 export const HEAD_IDS = ['hood', 'hat', 'wrap', 'hair', 'wizard', 'short', 'tail', 'headcloth', 'sunhat', 'tophat', 'spire', 'raghood',
-  'cowl', 'antenna', 'padded', 'flowers', 'orb', 'lamphat', 'reeds', 'turban', 'fez', 'cap', 'band', 'beret', 'long', 'bun'];
+  'cowl', 'antenna', 'padded', 'flowers', 'orb', 'lamphat', 'reeds', 'turban', 'fez', 'cap', 'band', 'beret', 'long', 'bun',
+  // hairstyles on the skull's own shape (scalp(): a hairline, not a bowl), for the studio first; no tribe wears them yet
+  'crop', 'shaved', 'bald', 'curls', 'braid', 'flow'];
+/** The bare-headed styles (no headwear): the studio's hair list. */
+export const HAIR_IDS = ['short', 'hair', 'tail', 'long', 'bun', 'crop', 'shaved', 'bald', 'curls', 'braid', 'flow'];
 export const MASK_IDS = ['none', 'veil', 'beak', 'breather', 'goggles', 'browgoggles', 'beard'];
 export const BODY_IDS = ['none', 'collar', 'scarf', 'pauldrons', 'mantle', 'reedcape', 'garland', 'badge', 'toolbelt', 'ruff', 'tatters'];
 export const PROP_IDS = ['none', 'staff', 'lantern', 'basket', 'wrench', 'parasol', 'lamppole', 'bell', 'flower'];
@@ -457,7 +461,52 @@ function jag(g, amount, below) {
   return g;
 }
 
-/** Headwear (head frame). cap: short hair is drawn under it. */
+// The skull round the head anchor (humanoid.js reshape, measured on both bodies): an egg a
+// little narrower than tall, fuller at the back on the woman's.
+const SKULL = { m: { x: 0.088, y: 0.112, front: 0.11, back: 0.11 }, f: { x: 0.086, y: 0.12, front: 0.108, back: 0.124 } };
+/**
+ * Hair that follows the skull (head frame): a shell `t` (m) off it, down to a hairline that runs
+ * from `front` (degrees of elevation over the brow) round the temples (`side`) to the nape (`back`).
+ * jag: a ragged edge (degrees). kind: whose skull ('m' / 'f').
+ */
+export function scalp(q, { t = 0.008, front = 30, side = -14, back = -42, jag: ragged = 1.5, kind = 'm', cols = 24, rows = 9 } = {}) {
+  const S = SKULL[kind] ?? SKULL.m, D = Math.PI / 180;
+  cols = sg(cols, q); rows = sg(rows, q);
+  const pos = [], idx = [];
+  for (let j = 0; j <= cols; j++) {
+    const az = (j / cols) * Math.PI * 2, back01 = (1 - Math.cos(az)) / 2;
+    const edge = (front + (back - front) * back01 + (side - (front + back) / 2) * Math.sin(az) ** 2 + ragged * Math.sin(az * 11)) * D;
+    for (let i = 0; i <= rows; i++) {
+      const el = edge + (Math.PI / 2 - edge) * (i / rows) ** 0.85;
+      const rz = Math.cos(az) > 0 ? S.front : S.back;
+      pos.push(Math.sin(az) * Math.cos(el) * (S.x + t), Math.sin(el) * (S.y + t), Math.cos(az) * Math.cos(el) * (rz + t));
+    }
+  }
+  for (let j = 0; j < cols; j++) for (let i = 0; i < rows; i++) {
+    const a = j * (rows + 1) + i, b = a + rows + 1;
+    idx.push(a, b, a + 1, a + 1, b, b + 1);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
+}
+/** Points on the skull (head frame) inside a hairline, a golden spiral from the crown: for curls. */
+function scalpPoints(n, { t = 0.01, kind = 'm', minEl = -20 } = {}) {
+  const S = SKULL[kind] ?? SKULL.m, out = [];
+  for (let k = 0; out.length < n && k < n * 4; k++) {
+    const y = 1 - (k + 0.5) / (n * 1.6), el = Math.asin(Math.max(-1, Math.min(1, y))), az = k * 2.39996;
+    const lim = (Math.cos(az) > 0.3 ? 26 : minEl) * Math.PI / 180;
+    if (el < lim) continue;
+    const rz = Math.cos(az) > 0 ? S.front : S.back;
+    out.push([Math.sin(az) * Math.cos(el) * (S.x + t), Math.sin(el) * (S.y + t), Math.cos(az) * Math.cos(el) * (rz + t)]);
+  }
+  return out;
+}
+const kindOf = (s) => (s?.kind === 'f' ? 'f' : 'm');
+
+/** Headwear (head frame). cap: short hair is drawn under it. parts(q, look): the look gives whose skull. */
 export const HEADS = {
   short: { cap: true, parts: () => [] },
   hair: { cap: true, parts: (q) => [P('hair', sphere(0.045, q, 10, 8).translate(0, 0.12, -0.06))] },
@@ -466,6 +515,26 @@ export const HEADS = {
   long: { cap: true, parts: (q) => [P('hair', cyl(0.122, 0.15, 0.27, q, 12, true, 1.15, Math.PI * 2 - 2.3).translate(0, -0.1, -0.022), true)] },
   // hair gathered in a bun at the back
   bun: { cap: true, parts: (q) => [P('hair', sphere(0.052, q, 8, 6).scale(1, 0.9, 0.85).translate(0, 0.06, -0.125), true)] },
+  // close to the skull: a short crop with the forehead clear, a shaved head (just a shadow of hair), bald
+  crop: { cap: false, parts: (q, l) => [P('hair', scalp(q, { kind: kindOf(l), t: 0.007 }), true)] },
+  shaved: { cap: false, parts: (q, l) => [P('hair', scalp(q, { kind: kindOf(l), t: 0.0035, front: 34, side: -8, back: -36, jag: 0.5 }), true)] },
+  bald: { cap: false, parts: () => [] },
+  // tight curls: a full crop under small round knots all over
+  curls: { cap: false, parts: (q, l) => [P('hair', scalp(q, { kind: kindOf(l), t: 0.014, front: 26, back: -38 }), true),
+    ...scalpPoints(q < 1 ? 18 : 46, { kind: kindOf(l), t: 0.018 }).map(([x, y, z], i) => P('hair', new THREE.IcosahedronGeometry(0.019 + (i % 3) * 0.003, q < 1 ? 0 : 1).translate(x, y, z)))] },
+  // one braid down the back from the nape, its end tied
+  braid: { cap: false, parts: (q, l) => {
+    const S = SKULL[kindOf(l)], out = [P('hair', scalp(q, { kind: kindOf(l), t: 0.008, back: -30 }), true)];
+    for (let k = 0; k < 8; k++) {
+      const r = 0.024 - k * 0.0016;
+      out.push(P('hair', sphere(r, q, 8, 6).scale(1, 1.45, 0.85).rotateZ((k % 2 ? 1 : -1) * 0.35).translate((k % 2 ? 1 : -1) * 0.004, -0.045 - k * 0.04, -S.back - 0.006 - k * 0.003), k < 3));
+    }
+    out.push(P('accent', cyl(0.012, 0.012, 0.014, q, 8).translate(0, -0.37, -S.back - 0.03)), P('hair', cone(0.014, 0.05, q, 8).rotateX(Math.PI).translate(0, -0.4, -S.back - 0.031)));
+    return out;
+  } },
+  // long hair down past the shoulders, parted over the brow, open at the face
+  flow: { cap: false, parts: (q, l) => [P('hair', scalp(q, { kind: kindOf(l), t: 0.01, front: 28, side: -18, back: -30 }), true),
+    P('hair', cyl(0.1, 0.132, 0.3, q, 14, true, 1.2, Math.PI * 2 - 2.4).scale(0.98, 1, 1.08).translate(0, -0.16, -0.016), true)] },
   hood: { cap: false, parts: (q) => [
     P('cloak', sphere(0.163, q, 14, 10, Math.PI / 2 + 0.75, Math.PI * 2 - 1.5).scale(1, 1.22, 1.15).translate(0, 0.02, -0.02), true),
     P('cloak', cone(0.07, 0.28, q, 6).translate(0, 0.13, 0).rotateX(-1.15).translate(0, 0.19, -0.1), true),
@@ -706,7 +775,7 @@ export const hairCap = (q) => P('hair', sphere(0.118, q, 16, 10, 0, Math.PI * 2,
 export function lookPieces(s, q = 1) {
   const H = HEADS[s.head] ?? HEADS.hood;
   return {
-    head: [...(H.cap ? [hairCap(q)] : []), ...H.parts(q), ...(MASKS[s.mask] ?? MASKS.none)(q)],
+    head: [...(H.cap ? [hairCap(q)] : []), ...H.parts(q, s), ...(MASKS[s.mask] ?? MASKS.none)(q)],
     chest: (BODIES[s.body] ?? BODIES.none)(q),
     hand: (PROPS[s.prop] ?? PROPS.none)(q),
   };

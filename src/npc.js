@@ -171,8 +171,9 @@ export class NPC {
         h.model.traverse((o) => {
           if (!o.isSkinnedMesh || !o.material?.uniforms || h._costume?.includes(o)) return;   // body, eyes, brows (not the costume)
           if (!this._mats.has(o.material)) {
-            const m = o.material.clone();
+            const m = o.material.userData.own ? o.material : o.material.clone();
             Object.assign(m.uniforms, sharedUniforms);
+            m.userData.own = true;   // (Humanoid.ownMaterials: already this body's own)
             const mode = m.uniforms.uMode.value;
             m.userData.role = mode === MODE_OUTFIT ? 'body' : mode === MODE_EYE || m.uniforms.uColor.value.getHex() === ink ? 'eyes' : 'brows';
             m.userData.wrist = m.uniforms.uOutfit.value.w;

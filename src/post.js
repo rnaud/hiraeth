@@ -34,6 +34,7 @@ export const DEBUG_VIEWS = {
   'Light term': 5,
   'Ink lines only': 6,
   'Hatch strokes': 7,
+  'Drawn detail (faces, glyphs)': 8,
 };
 
 const vertexShader = /* glsl */ `
@@ -470,6 +471,7 @@ const fragmentShader = /* glsl */ `
     if (uDebug == 3) { fragColor = vec4(isSky ? vec3(0.0) : N.rgb * 0.5 + 0.5, 1.0); return; }
     if (uDebug == 4) { fragColor = vec4(vec3(isSky ? 1.0 : pow(depth / 3000.0, 0.4)), 1.0); return; }
     if (uDebug == 5) { fragColor = vec4(vec3(isSky ? 1.0 : A.a), 1.0); return; }
+    if (uDebug == 8) { fragColor = vec4(vec3(isSky ? 1.0 : 1.0 - texture(tHatch, uv).b), 1.0); return; }
     if (uDebug == 7) { vec3 H = texture(tHatch, uv).rgb; fragColor = vec4(vec3(1.0 - max(max(H.r, H.g), H.b)), 1.0); return; }
     if (uDebug == 1) {
       vec3 c = isSky ? skyBase(rd) : A.rgb * (0.35 + 0.75 * A.a);

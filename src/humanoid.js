@@ -8,6 +8,9 @@ import { EyeLook, EYE_WHITE, EYE_TILT, TRAVELLER_IRIS, eyeballOf } from './eyes.
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { lookPieces, roleColor, BUILDS } from './costumes.js';
 import { suitGeometry, travellerKit, TRAVELLER } from './traveller.js';
+import { BUILD_SHAPE, radialFactors, boneMorph, warpFace, faceLandmarks, browPositions, plainGeometry, morphKey, cleanMorph, isNeutral, FACE_MORPHS, NEUTRAL_FACE } from './morph.js';
+import { cleanExpression, NEUTRAL_EXPRESSION } from './expression.js';
+import { sharedUniforms } from './materials.js';
 
 // A real human body (Quaternius' Universal Base Characters, CC0) dressed in
 // the rider's clothes by our inked material, driven every frame by the
@@ -166,34 +169,29 @@ function reshape(scene, kind) {
 }
 
 // ---------------------------------------------------------------------------
-// Builds (costumes.js BUILDS): the same skeleton, the body mesh made slimmer,
-// broader or heavier around its bones, the way reshape() slims it (weighted,
-// so joints stay smooth). Per bone: radial factor sideways, forward and back.
-// The head, hands and feet keep their size, so headwear and masks still fit.
-const BUILD_SHAPE = {
-  slim: [[/^spine_0[123]$|^pelvis$/, 0.88, 0.88, 0.9], [/^clavicle_/, 0.94, 0.94, 0.94], [/^(upper|lower)arm_/, 0.86, 0.86, 0.86], [/^(thigh|calf)_/, 0.87, 0.87, 0.87], [/^neck_01$/, 0.9, 0.9, 0.9]],
-  broad: [[/^spine_03$/, 1.24, 1.14, 1.12], [/^clavicle_/, 1.16, 1.1, 1.1], [/^spine_02$/, 1.14, 1.1, 1.08], [/^spine_01$|^pelvis$/, 1.06, 1.05, 1.05],
-    [/^upperarm_/, 1.22, 1.22, 1.22], [/^lowerarm_/, 1.12, 1.12, 1.12], [/^thigh_/, 1.1, 1.1, 1.1], [/^calf_/, 1.06, 1.06, 1.06], [/^neck_01$/, 1.18, 1.18, 1.18]],
-  heavy: [[/^spine_01$/, 1.42, 1.8, 1.2], [/^spine_02$/, 1.34, 1.62, 1.15], [/^spine_03$/, 1.16, 1.25, 1.08], [/^pelvis$/, 1.3, 1.4, 1.28], [/^clavicle_/, 1.06, 1.08, 1.08],
-    [/^upperarm_/, 1.26, 1.26, 1.26], [/^lowerarm_/, 1.12, 1.12, 1.12], [/^thigh_/, 1.3, 1.3, 1.3], [/^calf_/, 1.12, 1.12, 1.12], [/^neck_01$/, 1.25, 1.25, 1.25]],
-};
+// Builds (costumes.js BUILDS) and body morphs (morph.js): the same skeleton, the body
+// mesh made slimmer, broader or heavier around its bones, the way reshape() slims it
+// (weighted, so joints stay smooth). The radial factors per bone are morph.js
+// BUILD_SHAPE (the builds) times the body morph's (radialFactors).
+export { BUILD_SHAPE };
 const builds = new WeakMap();
-/** The body geometry for a build (cached per source geometry). */
-export function buildGeometry(body, build) {
-  const rules = BUILD_SHAPE[build];
-  if (!rules) return body.userData.baseGeometry ?? body.geometry;
+/** The body geometry for a build and a body morph (morph.js; cached per source geometry). */
+export function buildGeometry(body, build, morph = null) {
   const base = body.userData.baseGeometry ?? body.geometry;
+  const bones = body.skeleton.bones, idx = new Map(bones.map((b, i) => [b.name, i]));
+  const factors = bones.map((b) => radialFactors(b.name, build, morph));
+  if (factors.every((f) => !f)) return base;
+  const key = `${build}|${morphKey(morph)}`;
   const cache = builds.get(base) ?? new Map();
   builds.set(base, cache);
-  if (cache.has(build)) return cache.get(build);
-  const bones = body.skeleton.bones, idx = new Map(bones.map((b, i) => [b.name, i]));
+  if (cache.has(key)) return cache.get(key);
   const toGeo = body.bindMatrix.clone().invert();
   const bindPos = body.skeleton.boneInverses.map((m) => new THREE.Vector3().setFromMatrixPosition(m.clone().invert()).applyMatrix4(toGeo));
   const seg = bones.map((b, i) => {
-    const rule = rules.find(([re]) => re.test(b.name));
+    const f = factors[i];
     const next = NEXT[b.name] !== undefined ? idx.get(NEXT[b.name]) : undefined;
-    if (!rule || next === undefined) return null;
-    return { a: bindPos[i], b: bindPos[next], fx: rule[1], ff: rule[2], fb: rule[3], vertical: /spine|pelvis|neck|clavicle/.test(b.name) };   // (collarbones widen the shoulders outward)
+    if (!f || next === undefined) return null;
+    return { a: bindPos[i], b: bindPos[next], fx: f[0], ff: f[1], fb: f[2], vertical: /spine|pelvis|neck|clavicle/.test(b.name) };   // (collarbones widen the shoulders outward)
   });
   const g = base.clone();
   const P = g.attributes.position, J = g.attributes.skinIndex, W = g.attributes.skinWeight;
@@ -222,7 +220,7 @@ export function buildGeometry(body, build) {
   P.needsUpdate = true;
   g.computeVertexNormals();
   g.computeBoundingSphere();
-  cache.set(build, g);
+  cache.set(key, g);
   return g;
 }
 
@@ -260,6 +258,10 @@ export class Humanoid {
     const model = cloneSkinned(template);
     this.model = model;
     this.build = 'average';
+    this.morph = null;        // body morph (morph.js BODY_MORPHS; setMorph)
+    this.face = null;         // face morph (morph.js FACE_MORPHS; setFace)
+    this.lift = 0;            // m the pelvis rises over the rig's hips (longer legs)
+    this.faceRest = faceAfterReshape(kind);
     const C = char.colors;
     const body = makeMaterial({ color: C.cloth, color2: C.legs, color3: C.boot ?? '#6e3f2c', mode: MODE_OUTFIT, skin, outfit: OUTFIT[kind], face: faceAfterReshape(kind), gloves, suit });
     // the eyes (eyes.js): white, an iris (each person's own colour: NPC.restyle) that follows the gaze, blinking lids
@@ -273,6 +275,7 @@ export class Humanoid {
       const isBrow = /brow/i.test(o.name) || /hair/i.test(o.material?.name ?? '');
       o.material = isBrow ? brows : /eye/i.test(o.name) ? eyes : body;
       if (o.material === eyes) this.eyeMesh = o;
+      if (isBrow) this.browMesh = o;
       // the body itself: costumes (dress()) are skinned onto its skeleton
       if (o.isSkinnedMesh && o.material === body && (!this.body || o.geometry.attributes.position.count > this.body.geometry.attributes.position.count)) this.body = o;
       o.frustumCulled = false;
@@ -399,11 +402,139 @@ export class Humanoid {
     if (!this.body || this.outfit) return;
     build = BUILDS[build] ? build : 'average';
     if (build === this.build) return;
-    this.body.userData.baseGeometry ??= this.body.geometry;
-    this.body.geometry = buildGeometry(this.body, build);
     this.build = build;
+    this.reshapeBody();
+  }
+
+  /** The body mesh for this build, body morph and face morph. */
+  reshapeBody() {
+    const body = this.body;
+    if (!body) return;
+    body.userData.baseGeometry ??= body.geometry;
+    let g = this.outfit ? this._suitGeometry ?? body.geometry : buildGeometry(body, this.build, this.morph);
+    if (this.face) g = this.warped(body, g);
+    body.geometry = g;
     this._robeExt = null;   // the robe measures the body again
     this._caps = null; this._spec = null;
+  }
+
+  /** A mesh's geometry under this face morph (cached per source geometry and morph). */
+  warped(mesh, src, { eyeball = false } = {}) {
+    const key = morphKey(this.face, FACE_MORPHS, (d) => !d.ink);
+    if (!key) return src;
+    const cache = (Humanoid._faces ??= new WeakMap());
+    const per = cache.get(src) ?? new Map();
+    cache.set(src, per);
+    if (!per.has(key)) {
+      const head = mesh.skeleton.bones.indexOf(this.b.Head);
+      const eye = this.eyeMesh?.userData.eyeball?.center ?? [0.032, this.faceRest[0], 0.06];
+      per.set(key, warpFace(src, head, eye, this.faceRest, this.face, { eyeball }));
+    }
+    return per.get(key);
+  }
+
+  /**
+   * Own copies of the body, eye and brow materials (an expression, a face or a recolour then
+   * touches only this person). NPC.restyle makes them too; either way, only once.
+   */
+  ownMaterials() {
+    this.model.traverse((o) => {
+      if (!o.isSkinnedMesh || !o.material?.uniforms || o.material.userData.own || this._costume?.includes(o) || this.outfitMeshes?.includes(o)) return;
+      const m = o.material.clone();
+      Object.assign(m.uniforms, sharedUniforms);
+      m.userData.own = true;
+      o.material = m;
+    });
+  }
+
+  /**
+   * Body morphology (morph.js BODY_MORPHS: null = none): the girth of the trunk and limbs on the
+   * mesh, the proportions (limb length, head, hands and feet, neck, shoulders) on the bones.
+   * The height is the caller's (the root's scale: boneMorph().height).
+   */
+  setMorph(morph = null) {
+    this.morph = morph && !isNeutral(morph) ? cleanMorph(morph) : null;
+    const B = this.b, R = this.rest;
+    const legSpan = R.get(B.thigh_l).p.y - R.get(B.foot_l).p.y, ankle = R.get(B.foot_l).p.y;
+    const bm = boneMorph(this.morph, { legSpan, ankle });
+    this._boneRest ??= new Map();
+    for (const [n, k] of Object.entries(bm.scale)) B[n]?.scale.setScalar(k);
+    for (const [n, k] of Object.entries(bm.position)) {
+      if (!B[n]) continue;
+      if (!this._boneRest.has(n)) this._boneRest.set(n, B[n].position.clone());
+      B[n].position.copy(this._boneRest.get(n)).multiplyScalar(k);
+    }
+    this.lift = bm.lift;
+    this.legLen = undefined;   // (plantFeet measures the leg again)
+    if (this.morph) this.legLen = (R.get(B.thigh_l).p.distanceTo(R.get(B.calf_l).p) + R.get(B.calf_l).p.distanceTo(R.get(B.foot_l).p)) * this.morph.legLength;
+    if (!this.outfit) this.reshapeBody();
+    return bm;
+  }
+
+  /**
+   * The face (morph.js FACE_MORPHS: null = as modelled): the head, eyes and brows warped, the
+   * face ink's landmarks moved with them, and its drawing (age lines, mouth width, freckles, lid weight).
+   */
+  setFace(face = null) {
+    this.face = face && !isNeutral(face, FACE_MORPHS) ? cleanMorph(face, FACE_MORPHS) : null;
+    this.ownMaterials();
+    this.reshapeBody();
+    const f = { ...NEUTRAL_FACE, ...(this.face ?? {}) };
+    const L = faceLandmarks(this.faceRest, f);
+    const eyes = this.eyeMesh;
+    if (eyes) {
+      eyes.userData.baseGeometry ??= eyes.geometry;
+      eyes.geometry = this.face ? this.warped(eyes, eyes.userData.baseGeometry, { eyeball: true }) : eyes.userData.baseGeometry;
+      const ball = this.face ? eyeballOf(eyes.geometry, L[0]) : eyes.userData.eyeball;
+      const u = eyes.material.uniforms;
+      if (ball && u?.uEyeC) { u.uEyeC.value.set(...ball.center, u.uEyeC.value.w); u.uEyeR.value.set(...ball.radii); }
+    }
+    const brows = this.browMesh;
+    if (brows) {
+      brows.userData.baseGeometry ??= brows.geometry;
+      brows.geometry = plainGeometry(this.face ? this.warped(brows, brows.userData.baseGeometry) : brows.userData.baseGeometry);
+      this._browBase = Float32Array.from(brows.geometry.attributes.position.array);
+    }
+    const u = this.body?.material.uniforms;
+    if (u?.uFace) {
+      u.uFace.value.set(L[0], L[1], L[2], L[4]);
+      u.uFaceKit.value.set(f.lines, f.mouthWidth, f.freckles, f.lidWeight);
+      u.uFaceKit2.value.x = f.eyeSize;
+    }
+    this.poseBrows(true);
+  }
+
+  /**
+   * A facial expression (src/expression.js: smile, open, brow, browTilt, squint, gaze): the face
+   * ink (uMood), the brows' shape, the lids (squint) and the gaze (updateEyes). Neutral: none.
+   */
+  setExpression(e = null) {
+    const x = cleanExpression(e ?? {});
+    this.expression = x;
+    this.ownMaterials();
+    const u = this.body?.material.uniforms;
+    if (u?.uMood) { u.uMood.value.set(x.smile, x.open, x.brow, x.squint); u.uMood2.value.x = x.browTilt; }
+    this.squint = x.squint;
+    this.gaze = x.gaze;
+    this.poseBrows();
+  }
+
+  /** The brows raised, lowered or tilted by the expression (morph.js browPositions). */
+  poseBrows(force = false) {
+    const b = this.browMesh, e = this.expression ?? NEUTRAL_EXPRESSION;
+    if (!b) return;
+    if (!this._browBase) {
+      if (!force && !e.brow && !e.browTilt) return;   // (never touched: the shared geometry stays)
+      b.userData.baseGeometry ??= b.geometry;
+      b.geometry = plainGeometry(b.geometry);   // (the model's arrays are interleaved)
+      this._browBase = Float32Array.from(b.geometry.attributes.position.array);
+    }
+    const P = b.geometry.attributes.position, base = this._browBase;
+    let inner = Infinity;
+    for (let i = 0; i < base.length; i += 3) inner = Math.min(inner, Math.abs(base[i]));
+    browPositions(base, P.array, e, inner);
+    P.needsUpdate = true;
+    b.geometry.computeVertexNormals();
   }
 
   /**
@@ -414,7 +545,7 @@ export class Humanoid {
   wearOutfit(scene) {
     const body = this.body;
     body.userData.baseGeometry ??= body.geometry;
-    body.geometry = suitGeometry(body);
+    body.geometry = this._suitGeometry = suitGeometry(body);
     const kit = (this.kit = travellerKit(scene, body));
     const P = TRAVELLER_PALETTE;
     body.material = makeMaterial({ color: P.suit, color2: P.suit, color3: P.boot, mode: MODE_OUTFIT, skin: P.skin, outfit: TRAVELLER.outfit,
@@ -538,7 +669,7 @@ export class Humanoid {
   /** The costume's merged geometry in this model's bind space (cached per body kind and look; colours added per person). */
   costumeGeometry(look) {
     const robe = look.robe > 0 ? `${look.robe.toFixed(2)}/${(look.flare ?? 0.3).toFixed(2)}` : '-';
-    const key = `${this.kind}|${this.build}|${look.head}|${look.mask}|${look.body}|${look.prop}|${robe}`;
+    const key = `${this.kind}|${this.build}|${morphKey(this.morph)}|${look.head}|${look.mask}|${look.body}|${look.prop}|${robe}`;
     const cache = (this.constructor._costumes ??= new Map());
     if (cache.has(key)) return cache.get(key);
     const B = this.b, bones = this.body.skeleton.bones;
@@ -548,7 +679,7 @@ export class Humanoid {
     const frames = {
       head: { bone: bi('Head'), m: new THREE.Matrix4().makeTranslation(0, restHead.y + 0.1, restHead.z + 0.01) },
       // (shoulder and chest pieces widen with the build)
-      chest: { bone: bi('spine_03'), m: new THREE.Matrix4().makeTranslation(0, this.rest.get(B.neck_01).p.y - 0.76, 0).multiply(new THREE.Matrix4().makeScale(BUILDS[this.build].width, 1, Math.sqrt(BUILDS[this.build].girth))) },
+      chest: { bone: bi('spine_03'), m: new THREE.Matrix4().makeTranslation(0, this.rest.get(B.neck_01).p.y - 0.76, 0).multiply(new THREE.Matrix4().makeScale(BUILDS[this.build].width * (this.morph?.shoulders ?? 1), 1, Math.sqrt(BUILDS[this.build].girth) * (this.morph?.chest ?? 1))) },
       // the hand frame: the arm hanging down; turned so a staff stands upright in the idle clip's grip
       hand: { bone: bi('hand_r'), m: new THREE.Matrix4().compose(this.rest.get(B.hand_r).p,
         new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), handDir).multiply(HAND_GRIP), new THREE.Vector3(1, 1, 1)) },
@@ -646,8 +777,9 @@ export class Humanoid {
       dir = _b.subVectors(target, at).transformDirection(_m4.invert());
     }
     this.eyeLook.update(dt, dir);
-    const L = _c.copy(this.eyeLook.look).applyAxisAngle(_xAxis, EYE_TILT);
-    m.material.uniforms.uEyeLook.value.set(L.x, L.y, L.z, this.eyeLook.blink);
+    // an expression's gaze (setExpression) holds the eyes there; a squint narrows the lids
+    const L = (this.gaze ? EyeLook.fromAngles(this.gaze[0], this.gaze[1], _c) : _c.copy(this.eyeLook.look)).applyAxisAngle(_xAxis, EYE_TILT);
+    m.material.uniforms.uEyeLook.value.set(L.x, L.y, L.z, Math.max(this.eyeLook.blink, (this.squint ?? 0) * 0.45));
   }
 
   /** Aim the skeleton along the rig (call after the rig's pose for this frame). */
@@ -670,6 +802,7 @@ export class Humanoid {
     // pelvis position: the rig's hip midpoint, keeping the model's hip→pelvis offset
     const hipMid = charPosOf(c.legs[0], _a).add(charPosOf(c.legs[1], _b)).multiplyScalar(0.5);
     const pelvisChar = hipMid.add(_c.copy(this.restPelvis).sub(this.restHipMid));
+    pelvisChar.y += this.lift;   // (longer legs: setMorph)
 
     for (const bone of this.order) {
       const parentQ = bone.parent?.isBone ? this.charQ.get(bone.parent) : _q.identity();
