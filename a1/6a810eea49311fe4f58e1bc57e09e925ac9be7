@@ -1,0 +1,37 @@
+DONE.md
+  s_1fd8d0e7b02dcf::t_c914d8fa0a4868 669-672
+TODO.md
+  s_1fd8d0e7b02dcf::t_953bd8614c1497 126-128,174-175
+changelog.md
+  s_1fd8d0e7b02dcf::t_d2b570c29221c3 24-25
+docs/systems/references.md
+  s_1fd8d0e7b02dcf::t_6938f8270c8634 230-275
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_5dc23a9e0a4d41 27-28
+src/levels/bazaar.js
+  s_1fd8d0e7b02dcf::t_470080297ba72e 13-18,26-29,31,86,112,291-292
+src/levels/reference-market.js
+  s_1fd8d0e7b02dcf::t_ba616f1388cea7 1-435
+src/levels/reference-views.js
+  s_1fd8d0e7b02dcf::t_66fa9e196e0ed1 14,58-59,488-489
+src/levels/references.js
+  s_1fd8d0e7b02dcf::t_00074131ddc911 13,169
+tests/references.test.js
+  s_1fd8d0e7b02dcf::t_d93af03ea35467 260-283
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a16a810eea49311fe4f58e1bc57e09e925ac9be7",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
