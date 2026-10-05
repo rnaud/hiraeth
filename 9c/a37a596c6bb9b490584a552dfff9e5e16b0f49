@@ -1,0 +1,35 @@
+README.md
+  s_1fd8d0e7b02dcf::t_21f64d24ae4389 314-317,469,1432-1444,1467,1470-1544
+TODO.md
+  s_1fd8d0e7b02dcf::t_d29e30a03f22ce 606-648
+changelog.md
+  s_1fd8d0e7b02dcf::t_4f1b669f1d9860 15-19
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_7926b68fdfdeed 15-19
+src/levels/reference-desert.js
+  s_1fd8d0e7b02dcf::t_71a8dc952a6096 1-535
+src/levels/reference-kit.js
+  s_1fd8d0e7b02dcf::t_1ac5204dbc4459 1-236
+src/levels/reference-views.js
+  s_1fd8d0e7b02dcf::t_ee0b908926f397 3-8,40-41,458-459
+src/levels/references.js
+  s_1fd8d0e7b02dcf::t_83bc388df432b3 33-34
+tests/references.test.js
+  s_1fd8d0e7b02dcf::t_35ad1c487d62a1 117-136
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9ca37a596c6bb9b490584a552dfff9e5e16b0f49",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
