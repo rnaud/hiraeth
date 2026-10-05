@@ -341,3 +341,9 @@ test("The Garden of Spheres' people are MakeHuman bodies", async () => {
   const { PEOPLE } = await import('../src/story/spheres-data.js');
   for (const def of Object.values(PEOPLE).filter((d) => d.palette)) assert.ok(onBody('spheres', def).height > 1.4, def.id);
 });
+
+test("Lorn's people are MakeHuman bodies: Corm under a wide drooping brim", async () => {
+  assert.ok(MH_WORLDS.has('perdide'));
+  const { PEOPLE } = await import('../src/story/perdide-data.js');
+  assert.equal(onBody('perdide', PEOPLE.corm).look.head, 'brim');
+});
