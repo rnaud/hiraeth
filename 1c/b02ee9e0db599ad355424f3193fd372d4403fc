@@ -1,0 +1,23 @@
+src/ship/approach.js
+  s_1fd8d0e7b02dcf::t_e0585f83103ec2 40-41,71,92,101,108,123
+src/ship/holotable.js
+  s_1fd8d0e7b02dcf::t_ec9c305f58ca40 30-32
+src/ship/model.js
+  s_1fd8d0e7b02dcf::t_bb7b9a97183dd0 63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1cb02ee9e0db599ad355424f3193fd372d4403fc",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
