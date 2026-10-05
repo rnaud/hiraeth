@@ -117,6 +117,11 @@ export const ITEMS = {
     text: 'A little tin of amber resin, still soft after who knows how long, the makers’ thumb pressed into the lid. Rub it on your palms.',
     use: 'Climbing tires you half as fast: you hang on twice as long.',
   },
+  echo: {
+    name: 'Echo shell', kind: 'charm',
+    text: 'A spiral shell of pale brass, as long as your hand, its mouth worn smooth. Whatever the makers’ things sing near it, it keeps, the way a shell keeps the sea.',
+    use: 'It catches the last note sung near you (a singing stone, a machine’s one word) and holds it. Press V (or click the right stick, RS / R3) to play it back: whatever listens for that note answers.',
+  },
   level: {
     name: 'Brass level', kind: 'charm',
     text: 'A little spirit level of brass and green glass, the Major’s initials scratched on its side, a bubble that has never once settled.',

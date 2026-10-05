@@ -148,6 +148,13 @@ export const PLACEMENTS = {
     { id: 'perdide2.temple.lantern', item: 'lantern', temple: 'perdide2', site: (level) => level.temple?.gadgetSite,
       note: 'Inside the Lamp-House in the shallows east of the root cave, in the dark chamber over the root stair.' },
   ],
+  bazaar: [
+    // the market has no chest in the open. The Undertower (src/temples/bazaar.js), under the silent tower: in its
+    // round chamber over the cable well. The echo shell (a new tool) is the key to the rest: the doors and the
+    // bridge that listen for a note played back, the First Sign that wants its own word
+    { id: 'bazaar.temple.echo', item: 'echo', temple: 'bazaar', site: (level) => level.temple?.gadgetSite,
+      note: 'Inside the Undertower, through the old doorway in the silent tower’s back, in the round chamber over the cable well.' },
+  ],
 };
 
 /**

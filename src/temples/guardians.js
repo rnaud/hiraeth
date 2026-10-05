@@ -15,6 +15,7 @@ import { glyphGeometry } from '../story/sign-text.js';
 //                    hall; a neck of beads and a great head of jaws that lunges, sweeps and spits seed
 //   foremanModel()   the Sealed Hangar's Clockwork Foreman: a drum of brass with a clock for a chest, wound wrong
 //   gardenerModel()  Viridel's Gardener: a moss giant of the white builders, bare and wild, calmed with flowers
+//   signModel()      the Signal Market's First Sign: a mast with a listening dish, stuck on one word
 //   sentinelModel()  the City-Shaft's sentinel: a tall machine of the makers on three legs, a ring
 //                    of vents and a lamp-eye, broken and still guarding (see incal.js)
 //
@@ -802,4 +803,92 @@ export function gardenerModel({ moss = '#5f9a52', moss2 = '#4f8a5a', moss3 = '#7
     },
   };
   return M;
+}
+
+/**
+ * The Signal Market's First Sign (robot: you may retune it, or stop it): the oldest broadcasting machine of
+ * the makers, here before the market, under its silent tower. A mast on three legs, a great listening dish
+ * on a yoke for a head, a ring of lamps round its rim, a horn at its focus. It was made to say one line;
+ * since the night the sky rang it has been stuck on one word of it. It cries its word (a ring of sound),
+ * beams, and throws static where you stand; after crying it lowers its dish to listen: play its word back
+ * into it (the echo shell) and it moves on to the next word.
+ */
+export function signModel({ hull = '#88b4b5', hull2 = '#6f9a9b', dark = '#3a535b', brass = '#c99758', dish = '#f5dfab', lamp = '#fff0bd' } = {}) {
+  const group = new THREE.Group();
+  const mat = vc();
+  const lampM = makeMaterial({ color: lamp, glow: 0.2, flat: true, key: `sign.lamp.${uid++}` });
+  const hornM = makeMaterial({ color: '#f0a083', glow: 0.3, flat: true, key: `sign.horn.${uid++}` });
+  const body = new THREE.Group();
+  body.position.y = 4.2;
+  group.add(body);
+  // the mast: a drum on the legs, a tall column, cable wound round it, a yoke at its top
+  body.add(new THREE.Mesh(merge(
+    cyl(1.9, 2.3, 1.6, hull2, [0, 0, 0], null, 12),
+    cyl(2.5, 2.5, 0.4, dark, [0, -0.9, 0], null, 12),
+    cyl(0.9, 1.2, 6.2, hull, [0, 3.9, 0], null, 10),
+    ...Array.from({ length: 5 }, (_, i) => torus(1.05 - i * 0.03, 0.12, dark, [0, 1.6 + i * 1.1, 0], [Math.PI / 2, 0, 0], [4, 16])),
+    box([3.6, 0.5, 0.6], brass, [0, 7.2, 0]),
+    box([0.4, 1.8, 0.5], brass, [-1.7, 8.0, 0]), box([0.4, 1.8, 0.5], brass, [1.7, 8.0, 0]),
+  ), mat));
+  // the head: a great dish on the yoke, its rim of lamps, the horn at its focus
+  const head = new THREE.Group();
+  head.position.set(0, 8.4, 0);
+  body.add(head);
+  const prof = [];
+  for (let i = 0; i <= 10; i++) { const r = (i / 10) * 3.2; prof.push(new THREE.Vector2(Math.max(0.01, r), (r * r) / (4 * 2.2))); }
+  const dishGeo = new THREE.LatheGeometry(prof, 28).rotateX(-Math.PI / 2).translate(0, 0, -0.6);
+  head.add(new THREE.Mesh(merge(finishColor(dishGeo, dish), torus(3.2, 0.14, brass, [0, 0, 0.56], null, [5, 36]), cyl(0.5, 0.7, 0.9, dark, [0, 0, -1.0], [Math.PI / 2, 0, 0], 10),
+    ...[0, 1, 2].map((k) => { const a = (k / 3) * Math.PI * 2; return box([0.12, 0.12, 2.6], dark, [Math.sin(a) * 1.4, Math.cos(a) * 1.4, 0.9], [Math.cos(a) * 0.45, -Math.sin(a) * 0.45, 0]); })), mat));
+  head.add(new THREE.Mesh(merge(cone(0.45, 1.1, '#ffffff', [0, 0, 2.0], [-Math.PI / 2, 0, 0], 10)), hornM));
+  head.add(new THREE.Mesh(merge(...Array.from({ length: 10 }, (_, i) => { const a = (i / 10) * Math.PI * 2; return ell([0.2, 0.2, 0.14], '#ffffff', [Math.sin(a) * 3.25, Math.cos(a) * 3.25, 0.62]); })), lampM));
+  // three legs
+  const legs = [];
+  for (let i = 0; i < 3; i++) {
+    const a = (i / 3) * Math.PI * 2 + Math.PI / 3;
+    const hip = new THREE.Group(); hip.position.set(Math.sin(a) * 1.8, -0.9, Math.cos(a) * 1.8); hip.rotation.y = a; body.add(hip);
+    hip.add(new THREE.Mesh(merge(box([0.5, 0.5, 2.6], hull2, [0, 0, 1.1], [-0.7, 0, 0]), cyl(0.32, 0.24, 3.0, dark, [0, -1.6, 2.1], null, 8), cyl(0.8, 0.9, 0.3, dark, [0, -3.2, 2.1], null, 10)), mat));
+    legs.push(hip);
+  }
+  noCollide(group);
+  const mouth = V(), _w = V();
+  const M = {
+    group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, mouth, mouthR: 1.4, radius: 3.4, height: 12, bodyR: 2.4,
+    body, head, legs, lampM, hornM, open: 0, slump: 0, gait: 0, pitch: 0.6,
+    animate(dt, t, { state, attack, k = 0, speed = 0, meter = 0 }) {
+      const ease = (cur, want, rate) => cur + (want - cur) * Math.min(1, dt * rate);
+      const id = attack?.id, struck = !!attack && k >= 1;
+      M.open = ease(M.open, state === 'open' ? 1 : 0, 5);
+      M.slump = ease(M.slump, state === 'sleep' ? 0.6 : 0, 1.5);
+      M.gait += dt * speed * 2;
+      body.position.y = 4.2 - M.slump * 1.2 + Math.sin(M.gait) * 0.08;
+      // the dish: slumped toward the floor asleep; up and searching in the fight; drawn back, then thrust, for its cry;
+      // lowered to you, listening, when it is open; turned up to the sky once it has its whole line again
+      let pitch = -0.1 + Math.sin(t * 0.7) * 0.15, yaw = Math.sin(t * 0.5) * 0.3;
+      if (state === 'sleep') { pitch = 0.9; yaw = 0; }
+      else if (state === 'open') { pitch = 0.45; yaw = 0; }
+      else if (state === 'resolved' || state === 'weary') { pitch = -1.05; yaw = 0; }
+      else if (id === 'cry') { pitch = struck ? 0.1 : -0.5 * k; yaw = 0; }
+      else if (id === 'beam') { pitch = 0.15; yaw = 0; }
+      M.pitch = ease(M.pitch, pitch, struck ? 14 : 3);
+      head.rotation.set(M.pitch, ease(head.rotation.y, yaw, 3), 0);
+      legs.forEach((L, i) => { L.rotation.x = Math.sin(M.gait + i * 2.1) * 0.15 * Math.min(1, speed) + M.slump * 0.3; });
+      const flash = id === 'cry' && !struck ? 0.4 + 0.6 * Math.max(0, Math.sin(t * 18)) : 0;
+      lampM.uniforms.uGlow.value = state === 'resolved' ? 0.9 : state === 'sleep' ? 0.08 : 0.25 + flash + 0.5 * M.open;
+      hornM.uniforms.uGlow.value = state === 'resolved' ? 0.6 : 0.2 + 0.8 * M.open * (0.7 + 0.3 * Math.sin(t * 8));
+      body.rotation.x = meter * 0.05 * Math.sin(t * 0.9);
+      group.updateMatrixWorld(true);
+      mouth.copy(head.localToWorld(_w.set(0, 0, 2.2)));
+    },
+  };
+  return M;
+}
+
+/** Paint a plain geometry one colour (the wildlife kit's way: a vertex colour per piece). */
+function finishColor(g, color) {
+  const out = g.index ? g.toNonIndexed() : g;
+  for (const k of Object.keys(out.attributes)) if (k !== 'position' && k !== 'normal') out.deleteAttribute(k);
+  const c = new THREE.Color(color), n = out.attributes.position.count, col = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) { col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b; }
+  out.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  return out;
 }

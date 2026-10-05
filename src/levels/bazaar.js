@@ -5,6 +5,7 @@ import { mulberry32 } from '../noise.js';
 import { Taxi } from '../taxi.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { LINES as STORY_LINES } from '../story/bazaar-data.js';
+import { attachTemple } from '../temples/index.js';
 
 // A street-level city, separate from the City-Shaft. Repeated details are
 // merged by street block and material so the mobile renderer can cull them.
@@ -269,7 +270,8 @@ export function createBazaar(scene) {
     geos.forEach(g=>g.dispose());
   }
   const vehicles=[];
-  return {
+  // (the makers' Undertower under the silent tower: src/temples/bazaar.js)
+  return attachTemple('bazaar', scene, {
     id:'bazaar', floraAvoid:(x,z,r)=>Math.abs(x)<17+r||z>98-r,   // the flora keeps to the pavements (src/flora.js)
     reactiveScreens, signal, ground:{heightAt:()=>0}, spawn:new THREE.Vector3(0,.1,88), spawnHeading:Math.PI,camYaw:0,camPitch:.02,
     features:{mount:false,wind:false,jetpack:true,climb:true,taxis:true}, vehicles, flammables,
@@ -336,5 +338,5 @@ export function createBazaar(scene) {
     },
     dynamic:()=>vehicles,
     update(dt,t,ctx){Taxi.playerPos=ctx?.player?.pos;},
-  };
+  });
 }

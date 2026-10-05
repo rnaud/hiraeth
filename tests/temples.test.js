@@ -24,6 +24,7 @@ import { viaPortal } from '../src/scout.js';
 import { VOLLEY } from '../src/temples/garage.js';
 import { SITE as SITE_EDENA } from '../src/temples/edena.js';
 import { modeFor } from '../src/targets.js';
+import { createEchoShell } from '../src/echo-shell.js';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const DT = 1 / 60;
@@ -1416,4 +1417,179 @@ test('the Greenhouse stands clear of Esk’s tea terraces, and every bloom targe
   assert.equal(modeFor({ accepts: ['bloom', 'fire'] }, 'bloom'), 'bloom');
   assert.equal(modeFor({}, 'bloom'), 'shoot');
   assert.ok(seed && rt.piece('d3') && rt.piece('bed1'));
+});
+
+test('the echo shell: it keeps the last note sung within earshot (saved), plays it back on V, and does nothing without it', () => {
+  game.reset();
+  own('backpack');
+  const P = { pos: V(0, 0, 0), hidden: false };
+  const toasts = [], echoes = [];
+  const shell = createEchoShell({ player: P, game, items, toast: (s) => toasts.push(s) });
+  const off = game.on('echo', (e) => echoes.push(e));
+  game.emit('note', { pos: V(3, 0, 0), note: 'low', label: 'the low stone’s note' });
+  assert.equal(shell.held, null, 'not without the shell');
+  assert.equal(shell.play(), false);
+  items.grant('echo');
+  game.emit('note', { pos: V(40, 0, 0), note: 'high', label: 'the high stone’s note' });
+  assert.equal(shell.held, null, 'too far to hear');
+  game.emit('note', { pos: V(10, 0, 0), note: 'low', label: 'the low stone’s note' });
+  assert.equal(shell.held?.note, 'low', 'caught');
+  assert.ok(toasts.some((s) => /V \(or RS \/ R3\)/.test(s)), 'it says how to play it back, in pad form too');
+  assert.equal(game.flag('echo.held').note, 'low', 'kept in the save');
+  P.pos.set(5, 0, 5);
+  assert.equal(shell.play(), true);
+  assert.equal(echoes.length, 1);
+  assert.ok(echoes[0].note === 'low' && echoes[0].pos.distanceTo(P.pos) < 1e-6, 'played back where you stand');
+  assert.equal(shell.play(), false, 'a breath between plays');
+  shell.update(1.1);
+  game.emit('note', { pos: V(5, 0, 8), note: 'mid', reach: 4 });
+  assert.equal(shell.held.note, 'mid', 'it holds one note: the last');
+  assert.ok(ITEMS.echo && ITEMS.echo.kind === 'charm');
+  shell.dispose(); off();
+  game.reset();
+  own();
+});
+
+test('the Undertower on foot: the ball and the disc over the cable pit, the riding well, the echo shell, the door that wants the low note played back, the bridge and the far door that want the high and the middle, the First Sign given its words back, the tower speaks once a night', () => {
+  game.reset();
+  own('backpack');
+  const { level, physics, rt } = world('bazaar');
+  const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true, limit: level.limit, killY: level.killY });
+  const notes = [];
+  const toast = (s) => notes.push(s);
+  rt.connect({ player: P, toast, isNight: () => false });
+  const shell = createEchoShell({ player: P, game, items, toast });
+  let t = 0;
+  const L = (x, y, z) => rt.kit.world(x, y, z);
+  const frame = (input = {}, yaw = 0) => { t += DT; rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); shell.update(DT); };
+  const toward = (to) => Math.atan2(-(to.x - P.pos.x), -(to.z - P.pos.z));
+  const flat = (a) => Math.hypot(P.pos.x - a.x, P.pos.z - a.z);
+  const walk = (to, { tol = 0.6, max = 25, run = true, dy = 1.6 } = {}) => {
+    for (let i = 0; i < max / DT; i++) { if (flat(to) < tol && Math.abs(P.pos.y - to.y) < dy) return true; frame({ KeyW: true, ShiftLeft: run }, toward(to)); }
+    return false;
+  };
+  const wait = (s) => { for (let i = 0; i < s / DT; i++) frame(); };
+  const where = () => rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1)).join(', ');
+  const local = () => rt.kit.local(P.pos);
+  const ride = (disc, off, label) => {
+    for (let i = 0; i < 30 / DT && !(disc.s < 0.2 && disc.wait > 0.5); i++) frame();
+    assert.equal(walk(disc.group.position, { tol: 0.5, run: false, max: 4, dy: 0.9 }), true, `onto the ${label} (${where()})`);
+    for (let i = 0; i < 30 / DT && !(disc.s > disc.total - 0.2); i++) frame();
+    assert.equal(walk(off, { tol: 0.8, max: 4 }), true, `off the ${label} (${where()})`);
+  };
+  wait(0.5);
+  assert.ok(P.onGround && rt.inside(P.pos), `in the Threshold (${where()})`);
+  // ---- the Hall of Dishes: the ball onto its plate, and the disc wakes; ride it over the cable pit
+  assert.equal(walk(L(0, 0, 15)), true, `into the hall (${where()})`);
+  const [disc, discA, discB] = rt.pieces.filter((p) => p.path);
+  wait(2);
+  assert.equal(disc.s, 0, 'the disc is still');
+  const ball = rt.piece('ball1');
+  for (let k = 0; k < 10 && !rt.logic.drumOn('ball1', 'p1'); k++) {
+    walk(ball.center.clone().addScaledVector(ball.dir, -2.3).setY(P.pos.y), { tol: 0.5 });
+    ball.hit('push', ball.dir.clone(), { strength: 1 });
+    wait(2.6);
+  }
+  assert.ok(rt.logic.drumOn('ball1', 'p1'), `the ball on its plate (${ball.t.toFixed(2)})`);
+  assert.equal(walk(L(0, 0, 22.5)), true, `to the pit's edge (${where()})`);
+  ride(disc, L(0, 0, 43), 'disc over the cable pit');
+  assert.ok(local().y > -1, 'over the cables, not in them');
+  // ---- the Cable Well: up on two discs, a ledge between
+  assert.equal(walk(L(0, 0, 52)), true, `into the well (${where()})`);
+  ride(discA, L(-4, 6, 64.4), 'first disc');
+  ride(discB, L(1, 12, 69.6), 'second disc');
+  assert.ok(Math.abs(local().y - 12) < 0.6, `up on the landing (${where()})`);
+  // ---- the Shell Chamber: the door listens for the low stone's note, played back right by it
+  assert.equal(walk(L(0, 12, 76)), true, `into the chamber (${where()})`);
+  const stones = rt.pieces.filter((p) => p.note && p.sing);
+  const stone = (note, room) => stones.filter((s) => s.note === note).sort((a, b) => a.center.distanceTo(room) - b.center.distanceTo(room))[0];
+  const low = stone('low', L(0, 12, 83.8)), ear0 = rt.pieces.find((p) => p.id === 'e0' && p.reach);
+  low.sing();
+  assert.equal(shell.held, null, 'the stone sings; nothing keeps it');
+  game.emit('echo', { pos: ear0.at.clone(), note: 'low' });
+  assert.equal(rt.logic.isLit('e0'), false, 'the door wants the shell');
+  assert.equal(rt.logic.next(), 'chest');
+  items.grant('echo'); game.emit('box:opened', { id: 'bazaar.temple.echo' });
+  assert.equal(rt.logic.gadget, true);
+  assert.equal(walk(low.center.clone().setY(P.pos.y), { tol: 3 }), true, `to the low stone (${where()})`);
+  low.hit?.() ?? low.sing();
+  assert.equal(shell.held?.note, 'low', 'the shell catches the low note');
+  assert.equal(walk(ear0.at.clone().setY(P.pos.y), { tol: 2.5 }), true, `to the door's horn (${where()})`);
+  assert.equal(shell.play(), true);
+  assert.equal(rt.logic.isLit('e0'), true, 'it hears its note');
+  wait(2.2);
+  assert.equal(rt.logic.isOpen('d3'), true);
+  // ---- the Gallery of Voices: the bridge wants the high note, the far door the middle one (whose stone is on this side)
+  assert.equal(walk(L(0, 12, 97.5)), true, `to the gallery (${where()})`);
+  const G0 = 94.7;
+  const high = stone('high', L(0, 12, G0)), mid = stone('mid', L(0, 12, G0)), ear1 = rt.pieces.find((p) => p.id === 'e1' && p.reach), ear2 = rt.pieces.find((p) => p.id === 'e2' && p.reach);
+  mid.sing(); wait(1.2);
+  assert.equal(shell.held.note, 'mid');
+  walk(ear1.at.clone().setY(P.pos.y), { tol: 2.5 });
+  shell.play(); wait(1.2);
+  assert.equal(rt.logic.isLit('e1'), false, 'the wrong note: the bridge horn listens for the high one');
+  high.sing(); wait(1.2);
+  assert.equal(shell.held.note, 'high');
+  shell.play(); wait(0.2);
+  assert.equal(rt.logic.isLit('e1'), true, 'the high note: the bridge');
+  wait(3.5);
+  assert.equal(walk(L(0, 12, G0 + 30)), true, `over the bridge (${where()})`);
+  assert.ok(local().y > 11, 'over it, not in the chasm');
+  mid.sing(); wait(1.2);
+  assert.equal(shell.held.note, 'high', 'from across the chasm the shell can’t catch the middle stone');
+  assert.equal(walk(L(0, 12, G0 + 4)), true, `back over (${where()})`);
+  mid.sing(); wait(1.2);
+  assert.equal(shell.held.note, 'mid');
+  assert.equal(walk(L(0, 12, G0 + 30)), true, `over again (${where()})`);
+  walk(ear2.at.clone().setY(P.pos.y), { tol: 2.5 });
+  shell.play(); wait(0.2);
+  assert.equal(rt.logic.isLit('e2'), true, 'the middle note: the far door');
+  wait(2.2);
+  assert.equal(rt.logic.isOpen('d4'), true);
+  // ---- the First Sign: when it lowers its dish to listen, play its word back into it; it moves on to the next
+  assert.equal(walk(L(0, 12, G0 + 44)), true, `into the hall (${where()})`);
+  const G = rt.guardian;
+  wait(0.3);
+  assert.notEqual(G.state, 'sleep', 'it wakes');
+  wait(0.5);
+  assert.equal(rt.logic.isOpen('d4'), false, 'the door shuts behind you');
+  P.opts.health = false;
+  G.hit('mouth', 'shoot');
+  assert.equal(G.meter, 0, 'fluid only rattles off its dish');
+  for (let n = 0; n < 8 && G.state !== 'resolved'; n++) {
+    let open = false;
+    for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open') { open = true; break; } }
+    assert.ok(open, `it lowers its dish to listen (${n})`);
+    // come close (within its listening reach) and give it back the word it just said
+    P.teleport(G.model.mouth.clone().setY(G.model.pos.y).add(V(4, 0.2, 0)), V(0, 1, 0), V(0, 0, 1));
+    G.say();
+    const before = G.meter;
+    if (n === 1) { game.emit('echo', { pos: P.pos.clone(), note: 'sign.0' }); assert.equal(G.meter, before, 'its old word does nothing: it has moved on'); }
+    assert.equal(shell.held?.note, `sign.${n}`, `the shell holds its word (${shell.held?.label})`);
+    shell.update(2);
+    assert.equal(shell.play(), true);
+    assert.ok(G.meter > before || G.state === 'resolved', `its word back: retuned a little (${n}: ${G.meter})`);
+  }
+  assert.equal(G.state, 'resolved', `its whole line (${G.meter})`);
+  assert.equal(game.flag('temple.bazaar.done'), true);
+  wait(2.5);
+  assert.ok(rt.logic.isOpen('d4') && rt.logic.isOpen('d5'), 'the doors open');
+  // ---- the world changed: the tower has a lamp, and at night it speaks the line, once
+  const C = rt.change;
+  P.teleport(V(0, 0.2, -215), V(0, 1, 0), V(0, 0, 1));
+  wait(2);
+  assert.equal(C.root.visible, true, 'a lamp on the silent tower');
+  assert.equal(C.spoken, 0, 'by day it is quiet');
+  rt.isNight = () => true;
+  wait(1);
+  assert.equal(C.spoken, 1, 'at night it speaks');
+  assert.ok(notes.some((s) => s.includes('SOMEBODY OUT THERE IS TALKING TO YOU')), 'the whole line');
+  wait(3);
+  assert.equal(C.spoken, 1, 'once a night');
+  rt.isNight = () => false; wait(0.5);
+  rt.isNight = () => true; wait(0.5);
+  assert.equal(C.spoken, 2, 'and again the next night');
+  shell.dispose();
+  game.reset();
+  own();
 });

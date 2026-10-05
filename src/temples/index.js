@@ -22,6 +22,8 @@ import { GARAGE_TEMPLE } from './garage.js';
 import * as GARAGE_WORDS from './garage-data.js';
 import { EDENA_TEMPLE } from './edena.js';
 import * as EDENA_WORDS from './edena-data.js';
+import { BAZAAR_TEMPLE } from './bazaar.js';
+import * as BAZAAR_WORDS from './bazaar-data.js';
 
 // The makers' temples: one great building in each world, a Zelda-style
 // dungeon of rooms and puzzles in that world's architecture, with a gadget
@@ -53,6 +55,7 @@ export const TEMPLES = {
   arzach: { def: ARZACH_TEMPLE, words: ARZACH_WORDS },
   garage: { def: GARAGE_TEMPLE, words: GARAGE_WORDS },
   edena: { def: EDENA_TEMPLE, words: EDENA_WORDS },
+  bazaar: { def: BAZAAR_TEMPLE, words: BAZAAR_WORDS },
 };
 
 /**
@@ -73,7 +76,7 @@ export const GADGETS = {
   spheres: { temple: 'lens', world: ['shell'], built: true },
   perdide: { temple: 'stun', world: ['reed'], built: true },          // the stilling mode moved inside from the mossy rise; the breathing reed is there now
   perdide2: { temple: 'lantern', world: ['moss'], built: true },      // the lantern moved here from Viridel; the glow-moss pin on the root arch
-  bazaar: { temple: 'echo', world: [], built: false },               // a new tool; the market has no chest of its own
+  bazaar: { temple: 'echo', world: [], built: true },                // a new tool, found in the Undertower; the market has no chest in the open
 };
 
 /** Build the world's temple into its level (if it has one) and join it to the level's hooks. */
