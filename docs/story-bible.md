@@ -87,10 +87,11 @@ fact.
 **The translator.** Nobody out there speaks the traveller's language. The
 traveller wears a small translator at the ear, a thing from home, so they
 *hear* each world's own tongue (a mumble of syllables) and *read* it in their
-own words. In the dialogue panel the last few letters still show in the
-speaker's script as they come in, and a small tag on the panel's edge says
-"translating · Qanati" (or Shaft cant, Lorn burble…). It is diegetic and
-light-touch:
+own words. In the dialogue panel the words come in the speaker's own
+script as they are said (each world writes its own way: Qanati's joined
+abjad, the City-Shaft's runes, Lorn's knots on a cord…), and each turns into
+the traveller's words a moment later, as the translator catches up. It is
+diegetic and light-touch:
 - the father mentions it in the prologue's recording, made the day the traveller
   left ("Keep the translator at your ear. Nobody out there talks like us…");
 - Nour notices it ("I hear you, child: clicks and hums, like a pot coming to

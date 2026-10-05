@@ -1827,8 +1827,39 @@ Pocket. Their built-in controls work through the Gamepad API.
   whisper, shout`. Tags are stripped wherever text is shown, and `tests/tone.test.js`
   checks every line in the game has one.
 - **Tongues** (`LANGUAGES`, by level id): Qanati, Shaft cant, the Vael hush, cloud-monk
-  chant, Hangar clatter and so on, each with its own glyph script. The traveller's
-  translator resolves the glyphs at the caret into your words (no label: the effect says it).
+  chant, Hangar clatter and so on, each written in its own script (*The worlds' scripts*
+  below). The traveller's translator turns the words into yours a moment after they are
+  said (no label: the effect says it).
+
+### The worlds' scripts
+`src/story/scripts.js` writes a line in the speaker's script; the dialogue panel shows
+each word in it as it is said and turns it into English a moment later
+(`revealHtml` in `src/story/dialogue.js`: a word turns `LAG` letters after it is said,
+its English fading in under its glyphs over `FADE` more).
+- **One script a world** (`SCRIPTS`, by tongue): Qanati, a cursive abjad joined along the
+  baseline, right to left (the desert); runes with dots between words (City-Shaft); a
+  bird's track a word, a dot for each word the voice leaves out (Vael); an abugida
+  hanging from a headline (Vael II); stamped stencil letters (Hangar); gear teeth on a
+  rail, right to left (Buried Machine); a vine with leaves and buds (Viridel); round
+  logograms (Spheres); knots on a cord (Lorn); lamps on a cord, right to left (Lorn II);
+  a sign-painter's alphabet that underlines names (Signal Market); a shorthand (the
+  atelier). Home speech and the ship need no translation (`scriptOf` → null).
+- **Like a real script**: 20–40 glyphs each, built from a few base strokes and marks.
+  A word is always written the same way (hashes, no randomness), so words recur. Letter
+  scripts use a cipher giving the commonest letters the simplest glyphs; syllable and
+  word scripts pick with a Zipf weighting. Each script has its own punctuation.
+- **No reflow**: the panel's font is monospaced, so each run of non-blank characters
+  (`lineChunks`) is drawn as an inline `<svg>` exactly as many `ch` wide as its English.
+  Inside that box a script lays out its glyphs its own way: one a letter, consonants
+  stretched along a joining stroke, one logogram a word. Stage directions and narration
+  aren't spoken, so they show in English at once.
+- **Cheap**: a word is one svg with two paths (strokes, fills), ink and stroke inline,
+  cached; only the two or three words near the caret are drawn, and the panel's HTML is
+  only replaced when it changes. Plain SVG and CSS, so it works on old Android WebViews.
+- **The test page**: `tools/tongues.html` on the dev server shows every script with a
+  sample line, the same line half said, and its glyphs (`?still`, `?only=desert`,
+  `?size=30`). `tests/scripts.test.js` checks every world has a script, determinism, the
+  word boxes, the frequency weighting and the translator's timing.
 
 ### Over-the-air updates and the handheld pass (v0.37)
 - **Game updates without an APK** (`android/.../WebBundles.java`, `src/native-app.js`):
@@ -2421,7 +2452,7 @@ The course, the runs and the measures moved from `tests/gait-sim.js` into `src/g
   button name, so `native-pad.js` still renames it in place.
 - **Conversations** (`src/story/dialogue.js`): the speaker's name sits in a caption box
   across the panel's top edge next to the portrait, larger on a 1080p screen; no hint
-  line, no translator tag (the glyphs resolving at the caret remain), and a small pointer
+  line, no translator tag (the words still in their script at the caret remain), and a small pointer
   when a press turns the page. While talking, the status box, floating prompt, button bar
   and gear are hidden.
 - **Portraits** (`src/story/portrait-bg.js`): the sketch is the person alone (`isolate()`

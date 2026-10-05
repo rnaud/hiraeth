@@ -531,8 +531,11 @@ All of this is for the web game; the Unity port follows later if we move to Unit
 - [ ] The gun's blob impact follows the surface it hits, not a flat decal floating in front of it.
 - [ ] Hands are stiff and flat: give them the natural arc of a relaxed hand, and let them move.
 - [ ] The faces in the dialogue box's portrait are badly aliased.
-- [ ] The alien text in the dialogue box lacks variety: it should look like a real written language
-  (each world its own script) before it turns into English.
+- [x] The alien text in the dialogue box lacks variety: it should look like a real written language
+  (each world its own script) before it turns into English. Done: `src/story/scripts.js`, a script
+  a world (an abjad, runes, an abugida, knots, logograms…, some right to left), drawn as inline SVG
+  the English word's width; words turn into English one by one behind the caret; all of them on
+  `tools/tongues.html`.
 - [ ] One stamina bar shared by running and climbing; running a little faster.
 - [ ] Flowers that open shouldn't clip into walls and other things.
 - [ ] Make it clear when you hit an invisible wall (the traveller just stutters as you push on).
