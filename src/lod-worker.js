@@ -1,5 +1,5 @@
 // Builds levels of detail off the main thread (src/lod.js LodManager): packed arrays in, clustered arrays out.
-import { cluster } from './lod.js';
+import { cluster } from './lod-core.js';
 
 self.onmessage = ({ data: { id, packed, cell, minRatio } }) => {
   let r = null;
