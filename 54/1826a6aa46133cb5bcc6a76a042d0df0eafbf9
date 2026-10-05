@@ -1,0 +1,55 @@
+README.md
+  s_1fd8d0e7b02dcf::t_0ba58f70a73c39 1340-1343,2368-2419
+src/eyes.js
+  s_1fd8d0e7b02dcf::t_cc92b3bb407b2a 53-57
+src/face-ink.js
+  s_1fd8d0e7b02dcf::t_1762baf2f966eb 1-279
+src/humanoid.js
+  s_1fd8d0e7b02dcf::t_ccff65f37fa8d3 7,57-91,129,298,539,593,824-839
+src/levels/content.js
+  s_1fd8d0e7b02dcf::t_5b4679c9f4f1fe 54,60-62
+src/levels/lab.js
+  s_1fd8d0e7b02dcf::t_e3f382a5f05ffc 10-12,22-24,69-102,248-254,257-306
+src/materials.js
+  s_1fd8d0e7b02dcf::t_bd365f3bc6f8c4 3,189-191,217-218,405,407,731-733,756-759,1105-1106,1142-1143,1222-1225,1230-1231,1257-1259,1361,1363
+src/morph.js
+  s_1fd8d0e7b02dcf::t_97d54dab4795d8 71-82
+src/npc.js
+  s_1fd8d0e7b02dcf::t_8d80c39f509165 14,68-69,71,105-106,108-112,116,427-430,822,853-854
+src/post.js
+  s_1fd8d0e7b02dcf::t_caaa5e04818914 253,456-458,473,535,550,564,605-607,617,817
+src/studio/main.js
+  s_1fd8d0e7b02dcf::t_c9c3ebd4cabd14 28,190-196,201,204-205,207,235,237,286,444,452-453,463,515-573,579,595-596,755,850,859,878
+src/studio/people.js
+  s_1fd8d0e7b02dcf::t_cfa523d7852490 26-28,96-97
+src/studio/state.js
+  s_1fd8d0e7b02dcf::t_065cbf1142dbf7 26,28
+tests/face-ink.test.js
+  s_1fd8d0e7b02dcf::t_5a866f13040d79 1-164
+tests/lab.test.js
+  s_1fd8d0e7b02dcf::t_42f7c382ea66c5 42
+tests/studio.test.js
+  s_1fd8d0e7b02dcf::t_987d21ed455f62 8,86-93
+TODO.md
+  s_1fd8d0e7b02dcf::t_97d9babf411d8f 169
+changelog.md
+  s_1fd8d0e7b02dcf::t_3d0080649a69be 5-12
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_6f8373a12468a3 6-12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "541826a6aa46133cb5bcc6a76a042d0df0eafbf9",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
