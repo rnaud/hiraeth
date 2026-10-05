@@ -266,8 +266,8 @@ To start after the current work lands. Ordered from easiest to most complex.
 - [ ] The traveller's face inside the helmet is the plain male face the people use, and reads gaunt and
   older: give them their own, younger face. (A white star shape also pokes above the helmet in some
   tank shots.)
-- [ ] Spaceship: the floor is flat, so the traveller doesn't bob up and down walking the deck.
-- [ ] Spaceship: the texture at the entrance shimmers.
+- [x] Spaceship: the floor is flat, so the traveller doesn't bob up and down walking the deck.
+- [x] Spaceship: the texture at the entrance shimmers.
 - [x] The desert's big tree: you can see inside the roots (missing faces / open trunk).
 - [x] Taxis: why are the riders giants? A taxi that comes to pick you up arrives empty.
 - [x] Dialogue choices: 3 at most, usually 1 or 2 (with a test that checks every node).
@@ -283,9 +283,12 @@ To start after the current work lands. Ordered from easiest to most complex.
 
 ## Screens and presentation
 
+- [ ] Hair: everyone's hair is the same rounded cap, so it reads as a bowl cut (very visible on the
+  parents' holograms). Real hairstyles.
+
 - [x] Redesign the screens that say "Hello", "again", etc.: they feel out of place (find
   which cards these are and give them the airy title-screen look).
-- [ ] Holograms (the father's and all others): in colour, not blue; torso and face, not full
+- [x] Holograms (the father's and all others): in colour, not blue; torso and face, not full
   body. The father has a beard.
 
 ## Lore
@@ -296,10 +299,10 @@ To start after the current work lands. Ordered from easiest to most complex.
 
 ## Spaceship
 
-- [ ] Replace the big structure at the centre of the ship with a small holo table that shows
+- [x] Replace the big structure at the centre of the ship with a small holo table that shows
   the planet we're on now.
-- [ ] Make the main deck a bit smaller, so it feels right for one pilot.
-- [ ] Make the inside of the ship nicer and fuller overall.
+- [x] Make the main deck a bit smaller, so it feels right for one pilot.
+- [x] Make the inside of the ship nicer and fuller overall.
 
 ## Performance
 

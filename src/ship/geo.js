@@ -74,13 +74,13 @@ export function shell({ r, holes = [], aSeg = 72, tSeg = 40, inward = false, pat
 }
 
 /** The faces lining a hole through a shell between radii ri and ro (sill, lintel, jambs). */
-export function holeReveal(h, ri, ro, seg = 8) {
+export function holeReveal(h, ri, ro, seg = 8, { sill = true } = {}) {
   const pos = [];
   const P = (r, a, y) => polar(Math.sqrt(Math.max(r * r - y * y, 0)), a, y, new THREE.Vector3());
   const mid = (h.a0 + h.a1) / 2, ym = (h.y0 + h.y1) / 2;
   for (let i = 0; i < seg; i++) {
     const a = h.a0 + ((h.a1 - h.a0) * i) / seg, b = h.a0 + ((h.a1 - h.a0) * (i + 1)) / seg;
-    quad(pos, P(ri, a, h.y0), P(ri, b, h.y0), P(ro, b, h.y0), P(ro, a, h.y0), new THREE.Vector3(0, 1, 0));
+    if (sill) quad(pos, P(ri, a, h.y0), P(ri, b, h.y0), P(ro, b, h.y0), P(ro, a, h.y0), new THREE.Vector3(0, 1, 0));
     quad(pos, P(ri, a, h.y1), P(ri, b, h.y1), P(ro, b, h.y1), P(ro, a, h.y1), new THREE.Vector3(0, -1, 0));
   }
   for (let j = 0; j < seg; j++) {

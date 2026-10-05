@@ -8,7 +8,7 @@ import { LIFT, R } from './hull.js';
 // its ramp face (a player heading: 0 = +z, PI/2 = +x).
 //
 // The desert is special: the forced landing of the prologue. The ship came
-// in low over Qanat and lies half dug into the dune, tilted, at the end of a
+// in low over Qanat and lies half dug into the dune, upright, at the end of a
 // long furrow ploughed from the north (it slid south, -z, and stopped). Sand is
 // heaped against its leading (south) side; the hatch opens back up the furrow,
 // so stepping out you see the city and its burning tree on the horizon.
@@ -21,8 +21,10 @@ export const SITE_OVERRIDES = {
     crash: {
       travel: Math.PI,    // the direction it was moving (heading): -z, sliding on its side away from the city
       length: 118,        // furrow length behind it (m)
-      pitch: 0.05,        // the cockpit side a little up (rad)
-      roll: -0.15,        // tipped back with the slope of the dune (the hatch side lower)
+      // it came to rest upright: a tilted hull tilts the deck, and walking it the traveller went up and down
+      // (players: "the floor on the ship must be flat"). The furrow, the heaped sand and the sink say "crashed"
+      pitch: 0,           // (rad: the cockpit side up)
+      roll: 0,            // (rad: the hatch side down)
       sink: 6,            // how far below its parked height it is dug in (clamped so the deck stays clear of the sand)
     },
   },

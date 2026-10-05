@@ -1036,7 +1036,7 @@ Design: `docs/game-brief.md` (the brief and its working decisions) and
 story state is `src/game-state.js`: persistent flags, keepsakes and an event bus.
 Every system talks through it, and its header lists the flags and events.
 - **The ship** (`src/ship/`): a 26 m round ship with a walkable interior (bunk
-  room, galley, entry hall, cockpit around a reactor column). It has its own
+  corner, galley, entry, cockpit round a holo table; see "The ship's deck" below). It has its own
   collider (`physics.addCollider`) and lands at each world's arrival point
   (`level.shipSite`, `SITE_OVERRIDES` in `sites.js`, or a site search near the
   spawn). In the desert it lies crashed at (58, 48), with a furrow behind it.
@@ -1891,16 +1891,28 @@ picks the device. The tab keeps its own storage (not the app's saves). Afterward
   recording of the mother's labelled "For when he asks" (`calls.ilen.*`, as before). HUD:
   "E play a recording".
 - **The hologram** (`src/ship/hologram.js`): the parents are the game's own people (the
-  human bodies, dressed by `costumes.js`, played by the mocap library: idle, and the
-  talking clip's gestures while they speak) drawn in light: teal, bright at the rims,
-  climbing scanlines, flicker, slices that slide sideways now and then (more when torn up
-  by the prologue's impact), eyes and a mouth that opens with the voice (drawn from the
-  bind-pose face). It stands in a cone of streaked light with motes over a projector in the
-  middle of the dash (`interior.points.projector`); the screen hangs higher now. It is not in
-  the G-buffer: `HOLO.scene` is drawn after the composite (`renderFrame`, like the wind),
-  premultiplied light with a little dimming behind, depth-tested by hand against the
-  G-buffer, so the traveller in front of it still hides it. `callShot` frames it from
-  behind his right shoulder; `faceRecording` keeps him turned to it for the whole recording.
+  human bodies, dressed by `costumes.js`, played by the mocap library) projected as
+  **coloured busts**: head, neck, shoulders and the top of the chest (`BUST`: cut across the
+  chest in the figure's own frame, falling apart into grains below it, the bottom edge just
+  over the lens). Each mesh keeps its own colours: `holoLook` reads its ink material (the
+  body's clothes by region, as `MODE_OUTFIT`; costume vertex colours; the eyes; plain
+  colours) and redraws it in light: two flat tones, a breath of the projector's tint, an
+  edge line of paler light, thin climbing scanlines, flicker, slices that slide sideways
+  now and then (more when torn up by the prologue's impact), the face's ink lines and a
+  mouth that opens with the voice. `PEOPLE`: the father with short brown hair, a full
+  trimmed beard (the `beard` mask) and a moustache (`addMoustache`, on the head bone), a
+  rust-red shirt; the mother with long dark hair, a teal scarf over a lilac top; the child in
+  yellow. The hair's front is lifted off the brow on the hologram's own copy of the costume
+  (`openHairline`). `show({ face })` turns each bust to the traveller's eyes every frame;
+  their heads nod on stressed words, tilt, glance aside or at the other one talking, the
+  shoulders breathe and sway. A faint cone and the lens's rings fit the lens (`lens`).
+  It is not in the G-buffer: `HOLO.render` draws `HOLO.scene` after the composite into a
+  target of its own with a depth buffer (a face hides the back of its head), depth-tested
+  by hand against the G-buffer so the traveller in front still hides it, then lays it over
+  the frame, slightly translucent, with a soft bloom of its own colours. `callShot` frames
+  it from behind his right shoulder and pushes in on the busts' faces (`CALL_FACE`) while
+  the hologram is up (`st.close`); `faceRecording` keeps him turned to it. At the stone the
+  three busts (`REEL_HOLO`) rise over the reel, looking up at him.
 - **The stone** (`src/levels/home.js` `buildTomb`, `src/ship/homecoming.js`,
   `src/story/ending.js`): nobody waits at the door; the window is dark. The cargo check lists
   everything (`tokenList`: the keepsakes, then the makers' small gifts, not the backpack,
@@ -2058,3 +2070,37 @@ sampling of the arm bones against the tank's profile): the arms never reach into
 the right hand, with the bracer, hung into the hip in the idle sway and now hangs a little
 out (`idleLayer`). NPC capes collide with the traveller's body capsules when they stand
 within 2.2 m (`NPC.clothCapsules`), so a seated elder's cape no longer drapes through your legs.
+
+### The ship's deck: flat, smaller, lived in, a holo table in the middle
+Player feedback: the traveller bobbed up and down walking the deck, the hatch's doorway
+shimmered, the reactor column filled the middle, the deck felt too big for one pilot.
+- **One flat plane** (`src/ship/interior.js`): an invisible collider disc at `DECK` lies under
+  the drawn floor; the drawn pieces (the inlay round the table, a teal ring, the boards) meet
+  edge to edge in that plane. The bob came from a skirting ring 18 cm high across every
+  doorway of the old corridor and from furniture under the step height (`STEP`, 0.6 m in
+  `src/player.js`): stools, the bench, the bed, pots, boots. Low furniture now gets an
+  invisible block `BLOCK_H` (1.1 m, the height of the hull's skirting) over its footprint, so
+  the capsule meets a wall and walks round it. The desert crash lies upright (`sites.js`
+  pitch and roll 0; the furrow, the sand and the sink still say "crashed"): a tilted hull
+  tilted the deck. `tests/ship-deck.test.js` checks every point of the deck (any surface under
+  a step must be one the capsule cannot stand at) and walks across it at one height.
+- **The doorway**: the threshold (`hull.js`) starts at the deck's edge (`FLOOR_R`) instead of
+  overlapping it, and the hatch's reveal has no sill of its own (`holeReveal(..., { sill: false })`):
+  three surfaces used to share one plane and flickered as the camera moved. A test casts down
+  across the doorway and finds one drawn surface in each place.
+- **Smaller**: built-in units stand round the hull (`unit()`: a body, a lid to the hull, side
+  panels following its curve), their fronts at `UNIT_R` (7.05 m), so the open floor is about
+  13 m across. Four short ribs (`RIBS`, from `RIB_R`) mark the corners: the bunk corner (the
+  queen bed, a nightstand, a chest of drawers, the desk and its chair with a jacket over it, a
+  bookcase, a wardrobe, drawings and notes pinned up, nothing over the bed), the galley (the
+  counter with stove, sink, kettle, bread, mugs and plates; a pantry with notes on it; crates
+  strapped down; the table and its three stools; herbs drying), the entry (lockers, the bench,
+  coats, crates, a tool board), the cockpit (instrument racks either side of the window).
+  Cables and conduits run under the ceiling. The small things are one vertex-coloured mesh
+  (`Paint` from `src/vehicle-kit.js`, `interior.props`): one draw call.
+- **The holo table** (`src/ship/holotable.js`): in the middle, a small planet turns over the
+  table's glass: the world the ship is at (in the prologue, the desert it falls toward), drawn
+  with the approach's planet shader (`planetMaterial`, now with `uFreq` and `uInkK` for a
+  planet seen small) in the galactic map's colours, a teal rim and two scan rings. It turns its
+  lit face to the camera after a cinematic has placed it (`Ship.update`), flickers on emergency
+  power and goes dark with the ship. The table's glass is the old reactor's `core` material.

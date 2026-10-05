@@ -16,6 +16,8 @@ export const HATCH_A = Math.PI / 2;
 export const HATCH = { a0: HATCH_A - 0.105, a1: HATCH_A + 0.105, y0: DECK, y1: DECK + 2.75 };
 export const WINDOW = { a0: Math.PI - 0.55, a1: Math.PI + 0.55, y0: DECK + 1.05, y1: DECK + 3.45 };
 export const HINGE_R = 10.1;    // the ramp's hinge: the outer edge of the threshold
+/** The deck's outer edge: a little into the hull's thickness (the threshold starts here, so the two never overlap). */
+export const FLOOR_R = Math.sqrt(RI * RI - DECK * DECK) + 0.2;
 export const LEG_A = [Math.PI / 4, (3 * Math.PI) / 4, (5 * Math.PI) / 4, (7 * Math.PI) / 4];
 export const SCAR = { a: 2.25, y: -2.4 };   // where the glyph is scorched (front quarter, below the belt)
 
@@ -42,7 +44,7 @@ export function buildHull(batch, o = {}) {
   // shells: the outside, and the inside only where the rooms are (between floor and ceiling)
   batch.add('hull', shell({ r: R, holes: [HATCH, WINDOW], aSeg: 80, tSeg: 44 }));
   batch.add('wallIn', shell({ r: RI, holes: [HATCH, WINDOW], aSeg: 80, tSeg: 60, inward: true, yMin: DECK - 0.6, yMax: CEIL + 0.6 }));
-  batch.add('trim', holeReveal(HATCH, RI, R));
+  batch.add('trim', holeReveal(HATCH, RI, R, 8, { sill: false }));   // (the threshold is the sill: one surface, no shimmer)
   batch.add('trim', holeReveal(WINDOW, RI, R, 16));
   batch.add('teal', holeFrame(HATCH, R + 0.02, 0.16));
   batch.add('dark', holeFrame(WINDOW, R + 0.02, 0.2, 16));
@@ -146,13 +148,11 @@ export function buildHull(batch, o = {}) {
     }
   }
 
-  // threshold under the hatch: from inside the deck's edge (the inner hull's radius at deck height, not
-  // the hull's own radius) out to the hinge, so there is no gap to fall through between deck and ramp
-  {
-    const deckEdge = Math.sqrt(RI * RI - DECK * DECK);
-    const g = sector({ r0: deckEdge - 0.6, r1: HINGE_R, a0: HATCH.a0 - 0.01, a1: HATCH.a1 + 0.01, y0: DECK - 0.3, y1: DECK, seg: 4 });
-    batch.add('floorDark', g);
-  }
+  // threshold under the hatch: from the deck's edge (FLOOR_R, inside the hull's thickness) out to the
+  // hinge, so there is no gap to fall through between deck and ramp. It starts where the deck stops:
+  // the two used to overlap in the same plane (with the doorway's sill too), and the doorway's floor
+  // flickered between them as the camera moved
+  batch.add('floorDark', sector({ r0: FLOOR_R, r1: HINGE_R, a0: HATCH.a0 - 0.01, a1: HATCH.a1 + 0.01, y0: DECK - 0.3, y1: DECK, seg: 4 }));
   return { feet };
 }
 

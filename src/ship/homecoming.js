@@ -9,6 +9,8 @@ import { padIndex } from '../native-pad.js';
 import { exhaust, footPuffs } from './exhaust.js';
 import { tokenList, leaveTokens, tombLines, credits, creditsHtml, KIND_LABEL } from '../story/ending.js';
 import { HOME_SPOTS, tokenModel, REEL_AT } from '../levels/home.js';
+/** The last recording's busts over the reel (1: life size). */
+const REEL_HOLO = 0.6;
 import { items as ownedItems } from '../items.js';
 import { CONTENT, ORDER } from '../levels/content.js';
 
@@ -499,9 +501,10 @@ export class HomecomingDirector {
           const k = smooth(this.shotT / 6);
           shot = { pos: L(5.5 + k * 1.5, 2.6 + k * 1.4, 7 + k * 2), look: L(0, 1.0, -1.5), fov: 46 };
         } else if (this.reeled) {
-          // the oldest recording: low, over the slab, the three of them in front of the stone
+          // the oldest recording: low, over his shoulder and the slab, the three busts over the reel
+          // in front of the stone, looking up at him (their faces: REEL_HOLO over the reel)
           const push = Math.min(this.shotT * 0.03, 0.25);
-          shot = { pos: L(1.75, 1.1, 3.1 - push), look: L(-0.1, 0.8, 0.3), fov: 40 };
+          shot = { pos: L(0.72, 1.2, 2.55 - push), look: L(-0.12, REEL_AT.y + REEL_HOLO * 0.55, REEL_AT.z - 0.05), fov: 36 };
         } else {
           // setting them down: over his right shoulder, onto the slab
           shot = { pos: L(2.0, 2.2, 3.5), look: L(-0.15, 0.5, 0), fov: 42 };
@@ -529,7 +532,9 @@ export class HomecomingDirector {
     const T = this.tomb;
     if (!T) return;
     T.addReel();
-    this.s.holo?.show({ parent: T.group, at: REEL_AT.clone().setY(REEL_AT.y + 0.03), scale: 0.44, who: 'three' });
+    // the three of them as busts over the reel, turned up to him (he stands over the slab)
+    const head = new THREE.Vector3();
+    this.s.holo?.show({ parent: T.group, at: REEL_AT.clone().setY(REEL_AT.y + 0.03), scale: REEL_HOLO, who: 'three', lens: 0.085, face: () => this.s.player.humanoid?.b?.Head?.getWorldPosition(head) ?? head.copy(this.s.player.pos).setY(this.s.player.pos.y + 1.55) });
   }
 
   finish() {
