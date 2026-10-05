@@ -4,8 +4,9 @@
 //   node scripts/release-info.mjs native                 → the app's native bridge level (WebBundles.NATIVE_API)
 //   node scripts/release-info.mjs latest-json <build> <apk url>        → latest.json, read by Updater.java
 //   node scripts/release-info.mjs web-json <build> <web.zip> <zip url> → web.json, read by WebBundles.java
+//   node scripts/release-info.mjs web-zips <asset names…>              → the web zips a release can delete (staleWebZips)
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { readFileSync, statSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { CHANGELOG } from '../src/changelog.js';
 
@@ -18,17 +19,44 @@ export function nativeApi(source = readFileSync(BUNDLES_JAVA, 'utf8')) {
   return +m[1];
 }
 
-/** The APK manifest. Apps from before v0.37 compare `code`; newer ones only take an APK whose `native` is newer. */
-export const latestJson = ({ build, version, apk, native = nativeApi() }) => ({ code: build, name: version, apk, native });
+/** The release page next to a download URL (…/releases/download/v0.56/x → …/releases/tag/v0.56); mirrors UpdateRules.pageFor. */
+export function releasePage(url) {
+  const m = /^(.*)\/releases\/download\/([^/]+)\//.exec(url ?? '');
+  return m ? `${m[1]}/releases/tag/${m[2]}` : undefined;
+}
 
-/** The web bundle manifest. A bundle needs the native bridge it was built with (or newer). */
-export function webJson({ build, version, zip, file, native = nativeApi() }) {
+/** The APK manifest. Apps from before v0.37 compare `code`; newer ones only take an APK whose `native` is newer. */
+export const latestJson = ({ build, version, apk, native = nativeApi() }) => {
+  const page = releasePage(apk);
+  return { code: build, name: version, apk, native, ...(page ? { page } : {}) };
+};
+
+/** The newest changelog lines, for the settings' "what's new in the update" (plain text, at most `max`). */
+export const releaseNotes = (entry = CHANGELOG[0], max = 12) => entry.items.slice(0, max).map((i) => String(i));
+
+/**
+ * The web bundle manifest. A bundle needs the native bridge it was built with (or newer).
+ * `size`, `notes` and `page` are for the settings (apps from before NATIVE_API 4 ignore them).
+ */
+export function webJson({ build, version, zip, file, native = nativeApi(), notes = releaseNotes() }) {
   const sha256 = createHash('sha256').update(readFileSync(file)).digest('hex');
-  return { version, build, sha256, zip, minNative: native };
+  const page = releasePage(zip);
+  return { version, build, sha256, zip, minNative: native, size: statSync(file).size, notes, ...(page ? { page } : {}) };
 }
 
 /**
- * What the app does with web.json (mirrors WebBundles.decide):
+ * The web bundle assets a release can let go once its new web.json is up: every web-<build>.zip
+ * but the newest two (an app that read the previous web.json may still be downloading its zip),
+ * and the plain web.zip of the workflow from before per-build names (once two named ones exist).
+ */
+export function staleWebZips(names, keep = 2) {
+  const zips = names.map((n) => [n, /^web-(\d+)\.zip$/.exec(n)]).filter(([, m]) => m).map(([n, m]) => [n, +m[1]]);
+  const newest = zips.sort((a, b) => b[1] - a[1]).slice(0, keep).map(([n]) => n);
+  return names.filter((n) => (n === 'web.zip' && zips.length >= keep) || (/^web-\d+\.zip$/.test(n) && !newest.includes(n)));
+}
+
+/**
+ * What the app does with web.json (mirrors UpdateRules.decide in the app):
  * 'apk' when the bundle needs a newer app (the APK update comes first), 'skip' when it is not
  * newer than the newest build on the device (built in, in use or pending) or failed before, else 'stage'.
  */
@@ -44,6 +72,7 @@ function main(what = 'version', ...args) {
   else if (what === 'native') console.log(nativeApi());
   else if (what === 'latest-json') console.log(JSON.stringify(latestJson({ build: +args[0], version: latest.v, apk: args[1] })));
   else if (what === 'web-json') console.log(JSON.stringify(webJson({ build: +args[0], version: latest.v, file: args[1], zip: args[2] })));
+  else if (what === 'web-zips') console.log(staleWebZips(args).join('\n'));
   else if (what === 'notes') {
     console.log(`Memento v${latest.v} (${latest.date}) for Android. Download the APK below and open it on the device to install; new versions install over the old one and keep your progress. Once installed, the app updates the game by itself when online.\n`);
     console.log(latest.items.map((i) => `- ${i}`).join('\n'));

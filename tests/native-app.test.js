@@ -55,7 +55,7 @@ test('in the app: the label, the update toast and restart now', async () => {
   await tick();
   assert.equal(a.label.hidden, false);
   assert.equal(a.label.textContent, 'web build 14 · app 12 · update v0.37 (build 15) ready');
-  assert.deepEqual(a.toasts, ['Update ready (v0.37) — restart to apply']);
+  assert.deepEqual(a.toasts, ['Update ready (v0.37): it starts at the title screen, or choose Restart now in the Menu']);
   a.label.kids[0].click();
   assert.deepEqual(a.calls, ['AppShell.info', 'AppShell.restart']);
   a.win.dispatchEvent(new Event('moebius:webupdate'));   // the app told us about a download

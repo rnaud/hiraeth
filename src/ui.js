@@ -1,6 +1,7 @@
 import { VERSION } from './changelog.js';
 import { confirmKey, backKey } from './native-pad.js';
 import { slotStorage } from './save-slots.js';
+import { UpdatePanel } from './update-panel.js';
 // Player-facing UI: settings (saved), the settings menu, touch controls and
 // the save file for "continue where you left off".
 
@@ -62,9 +63,11 @@ export function padControls(ok = confirmKey(), back = backKey()) {
  * main.js pauses the game and plays the menu music while it is open.
  * The title screen (src/title.js) shows the same settings on its own element: { el, title: true }
  * (no game entries, no keys of its own).
+ * In the Android app the panel starts with the game's updates (src/update-panel.js); onBeforeRestart
+ * saves the game before an update restarts it.
  */
 export class SettingsMenu {
-  constructor(settings, { sound, onResetProgress, isBusy = () => false, onNews, onDev, onQuit, onBook, onDebug, where, el = document.getElementById('settings'), title = false }) {
+  constructor(settings, { sound, onResetProgress, isBusy = () => false, onNews, onDev, onQuit, onBook, onDebug, onBeforeRestart, where, el = document.getElementById('settings'), title = false }) {
     this.s = settings;
     this.el = el;
     this.where = where;
@@ -87,6 +90,7 @@ export class SettingsMenu {
         </aside>
         <section class="panel">
           <h1>SETTINGS <span>v${VERSION}</span></h1>
+          ${isNativeApp ? '<section class="updates" hidden></section>' : ''}
           ${row('Graphics', `<select data-k="quality"><option value="auto">Auto (adapts to keep it smooth)</option><option value="handheld">Handheld (Retroid, phones)</option><option value="low">Low (fast)</option><option value="medium">Medium</option><option value="high">High (smooth lines)</option></select>`)}
           ${row('Camera sensitivity', `<input data-k="sensitivity" type="range" min="0.3" max="3" step="0.05">`)}
           ${row('Invert camera Y', `<input data-k="invertY" type="checkbox">`)}
@@ -105,7 +109,6 @@ export class SettingsMenu {
               <button data-a="reset-yes">Yes, start over</button><button data-a="reset-no">No, keep it</button></div>
           </div>` : ''}
           <p class="keys pad-keys">${padControls()}</p>
-          ${game ? '<p class="keys" id="app-build" hidden></p>' : ''}
           <p class="keys install-tip">Play full screen on iPhone: open in Safari, tap Share → Add to Home Screen, then enable Open as Web App if shown.</p>
           <p class="keys">WASD move · SHIFT run · SPACE jump / glide / jetpack (SPACE again in the air: fluid boost) · E interact · Q ping scout · hold right mouse or R aim the fluid tool · left click or G shoot · C or middle click push · in water: Z or CTRL dive, SPACE rise / climb out · J sketchbook · L worlds · P photo · H help · O settings · N what's new</p>
         </section>
@@ -158,6 +161,7 @@ export class SettingsMenu {
       document.getElementById('gear')?.addEventListener('click', () => this.toggle());
     }
     this.sync = sync;
+    this.updates = new UpdatePanel(el.querySelector('.updates'), { onBeforeRestart });
     settings.on(() => sound?.setVoices?.(this.s.voices, this.s.alienVoices));
   }
   /** Back (B / ○, Esc): first out of the "start over?" question, then out of the menu. */
@@ -172,7 +176,11 @@ export class SettingsMenu {
       const w = this.el.querySelector('.where');
       if (w) w.innerHTML = this.where?.() ?? '';
       this.askReset(false);
-    } else if (this.el.contains(document.activeElement)) document.activeElement.blur();
+      this.updates?.open();
+    } else {
+      this.updates?.close();
+      if (this.el.contains(document.activeElement)) document.activeElement.blur();
+    }
     this.el.classList.toggle('open', on);
     // (focus once it shows: a hidden element can't take it)
     if (on) this.el.querySelector('.primary')?.focus({ preventScroll: true });

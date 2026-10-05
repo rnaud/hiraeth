@@ -4,9 +4,11 @@
 // - The boot heartbeat: markBooted() after the first frame sets
 //   window.__moebiusBooted. A downloaded web build that doesn't get there in
 //   time is dropped by the app, which goes back to the game in the APK.
-// - Which build is running (settings: "web build 14 · app 12"), and a game
-//   toast plus a "restart now" button when a downloaded update is ready (the
-//   app applies it by itself on the next launch).
+// - The settings' update section (src/update-panel.js, src/updates.js) asks the
+//   app through callApp(): info, check, download, restart, openApk.
+// - A game toast when a downloaded update is ready; the app applies it by itself
+//   on the next launch, and applyReadyUpdate() (src/boot.js) applies it the next
+//   time the title screen opens (nothing is running yet there).
 // - Pause and resume: the app sends moebius:pause / moebius:resume (and the
 //   page turns hidden, which stops the frame loop); the sound is suspended
 //   meanwhile and comes back after the screen unlocks. On a handheld nothing
@@ -17,6 +19,32 @@ import { nativePad } from './native-pad.js';
 
 const shell = (win) => (win?.Capacitor?.isNativePlatform?.() && win.Capacitor.nativePromise ? win.Capacitor : null);
 const ask = (win, method) => shell(win)?.nativePromise('AppShell', method).catch(() => null) ?? Promise.resolve(null);
+
+/** Whether the page runs in the Android app (with its AppShell plugin). */
+export const inApp = (win = globalThis.window) => !!shell(win);
+
+/** Ask the app (AppShellPlugin): rejects with the app's message, or when not in the app. */
+export function callApp(method, win = globalThis.window) {
+  const s = shell(win);
+  return s ? s.nativePromise('AppShell', method) : Promise.reject(new Error('not in the app'));
+}
+
+const APPLIED_KEY = 'moebius.appliedUpdate';
+/**
+ * The title screen is the safe point for a downloaded update: nothing is running yet, so
+ * switch to it there (the page reloads into the new build, at the title). Once per build per
+ * session, so a switch that doesn't happen can't loop. @returns whether the page is reloading
+ */
+export async function applyReadyUpdate(win = globalThis.window, { timeout = 1500 } = {}) {
+  if (!shell(win)) return false;
+  const info = await Promise.race([ask(win, 'info'), new Promise((r) => setTimeout(() => r(null), timeout))]);
+  if (!info?.ready) return false;
+  try {
+    if (win.sessionStorage?.getItem(APPLIED_KEY) === String(info.ready)) return false;
+    win.sessionStorage?.setItem(APPLIED_KEY, String(info.ready));
+  } catch { /* ignore */ }
+  try { await callApp('restart', win); return true; } catch { return false; }
+}
 
 /** The heartbeat the app waits for (call it after the first frame). */
 export function markBooted(win = globalThis.window) {
@@ -85,7 +113,7 @@ export function installAppShell({ sound, label = () => null, toast = () => {} } 
     if (!info?.ready || told === info.ready) return;
     told = info.ready;
     try { win.localStorage?.setItem(TOLD_KEY, String(told)); } catch { /* ignore */ }
-    const text = `Update ready${info.readyVersion ? ` (v${info.readyVersion})` : ''} — restart to apply`;
+    const text = `Update ready${info.readyVersion ? ` (v${info.readyVersion})` : ''}: it starts at the title screen, or choose Restart now in the Menu`;
     later(() => toast(text));
   };
   const refresh = () => ask(win, 'info').then((i) => { if (i) { info = i; show(); ready(); } });

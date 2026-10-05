@@ -30,7 +30,8 @@ import java.net.URL;
 // When that APK's native bridge is newer than this one's, it offers to download
 // it and hands it to the system installer. The same signing key lets it install
 // over this one and keep the save. Otherwise the game's own updates come over
-// the air without an APK (WebBundles). Offline or on any error it stays silent.
+// the air without an APK (WebBundles), which also reports a needed APK in the
+// settings (with a link to its release page). Offline or on any error it stays silent.
 final class Updater {
     static final String LATEST = "https://github.com/rnaud/moebius/releases/latest/download/latest.json";
     private final Activity activity;
@@ -39,24 +40,22 @@ final class Updater {
 
     Updater(Activity activity, WebBundles web) { this.activity = activity; this.web = web; }
 
+    /** The launch's APK check (the dialog). The game's own update check runs on every resume (WebBundles.onResume). */
     void check() {
         new Thread(() -> {
-            boolean offered = false;
             try {
-                JSONObject latest = new JSONObject(new String(fetch(LATEST, 64 * 1024), "UTF-8"));
+                JSONObject latest = new JSONObject(new String(fetch(UpdateRules.bust(LATEST, System.currentTimeMillis()), 64 * 1024), "UTF-8"));
                 long code = latest.getLong("code");
                 // (releases from before the over-the-air updates have no "native": they never ask for an APK)
                 if (latest.optInt("native", 0) > WebBundles.NATIVE_API && code > currentCode()) {
                     String name = latest.optString("name", "");
                     String apk = latest.getString("apk");
+                    if (web != null) web.apkOffered(name, apk, latest.optString("page", ""));
                     ui.post(() -> offer(name, apk));
-                    offered = true;
                 }
             } catch (Exception ignored) {
-                // offline, rate-limited or no release yet: play on
+                // offline, rate-limited or no release yet: play on (the settings can look again)
             }
-            // a new APK brings its own game; else look for a newer web build
-            if (!offered && web != null) web.update();
         }, "moebius-update-check").start();
     }
 
@@ -68,7 +67,7 @@ final class Updater {
     private void offer(String name, String apk) {
         if (activity.isFinishing()) return;
         new AlertDialog.Builder(activity)
-            .setTitle("Moebius v" + name + " is available")
+            .setTitle("Memento v" + name + " is available")
             .setMessage("Download and install it now? Your progress is kept.")
             .setPositiveButton("Update", (d, w) -> download(apk))
             .setNegativeButton("Later", null)
@@ -92,8 +91,8 @@ final class Updater {
 
     private void install(File file) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !activity.getPackageManager().canRequestPackageInstalls()) {
-            // first time: let Moebius install updates, then come back and choose Update again
-            Toast.makeText(activity, "Allow Moebius to install updates, then choose Update again.", Toast.LENGTH_LONG).show();
+            // first time: let Memento install updates, then come back and choose Update again
+            Toast.makeText(activity, "Allow Memento to install updates, then choose Update again.", Toast.LENGTH_LONG).show();
             activity.startActivity(new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + activity.getPackageName())));
             return;
         }
@@ -119,18 +118,29 @@ final class Updater {
     }
 
     /** Open a GET, following GitHub's redirects to its download host. @return a connection with status 200 */
-    static HttpURLConnection open(String url) throws Exception {
+    static HttpURLConnection open(String url) throws Exception { return open(url, 0); }
+
+    /**
+     * Open a GET past every cache, following GitHub's redirects to its download host.
+     * @param from resume from this byte (a Range request; the host may answer the whole file with 200 instead)
+     * @return a connection with status 200, or 206 when it resumes
+     */
+    static HttpURLConnection open(String url, long from) throws Exception {
         for (int hop = 0; hop < 6; hop++) {
             HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
             c.setInstanceFollowRedirects(false);
-            c.setConnectTimeout(8000);
+            c.setUseCaches(false);
+            c.setConnectTimeout(10000);
             c.setReadTimeout(30000);
             c.setRequestProperty("User-Agent", "moebius-android");
+            c.setRequestProperty("Cache-Control", "no-cache");
+            c.setRequestProperty("Pragma", "no-cache");
+            if (from > 0) c.setRequestProperty("Range", "bytes=" + from + "-");
             int status = c.getResponseCode();
             if (status >= 300 && status < 400) { url = new URL(new URL(url), c.getHeaderField("Location")).toString(); c.disconnect(); continue; }
-            if (status != 200) { c.disconnect(); throw new Exception("HTTP " + status); }
+            if (status != 200 && !(status == 206 && from > 0)) { c.disconnect(); throw new java.io.IOException("HTTP " + status); }
             return c;
         }
-        throw new Exception("too many redirects");
+        throw new java.io.IOException("too many redirects");
     }
 }

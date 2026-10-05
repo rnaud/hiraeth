@@ -23,7 +23,8 @@ import com.getcapacitor.WebViewListener;
 // extra tap. The handheld's built-in controls are read here and handed to the
 // page as a standard gamepad (GamepadBridge). The game itself updates over the
 // air (WebBundles: a downloaded web build is served instead of the one in the
-// APK); APK updates for native changes come from GitHub releases (Updater).
+// APK; it looks for one at launch and each time the app comes back to the front);
+// APK updates for native changes come from GitHub releases (Updater).
 // Leaving the app pauses the page (rendering, sound); coming back restores it.
 public class MainActivity extends BridgeActivity {
     private GamepadBridge pad;
@@ -63,7 +64,7 @@ public class MainActivity extends BridgeActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) web.setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_IMPORTANT, false);
         hideSystemBars();
         pad = new GamepadBridge(web);
-        new Updater(this, bundles).check();
+        new Updater(this, bundles).check();   // (the APK dialog; the game's update check runs in onResume)
     }
 
     @Override
