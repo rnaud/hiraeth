@@ -1,0 +1,209 @@
+scripts/unity-export/build-world.mjs
+  s_1fd8d0e7b02dcf::t_821bc5c0748f44 1-54
+scripts/unity-export/census.mjs
+  s_1fd8d0e7b02dcf::t_e183314d9a4bdb 1-28
+scripts/unity-export/export-desert.mjs
+  s_1fd8d0e7b02dcf::t_f4c2b66c9c8c14 1-312
+scripts/unity-export/probe.mjs
+  s_1fd8d0e7b02dcf::t_8af19dcbb9f959 1-15
+scripts/unity-export/shim.mjs
+  s_1fd8d0e7b02dcf::t_8251892c4c6ffe 1-15
+scripts/unity-export/unity-batch.sh
+  s_1fd8d0e7b02dcf::t_c314d8bcdef9f1 1-16
+scripts/unity-export/views.mjs
+  s_1fd8d0e7b02dcf::t_c19827e39b84c2 1-23
+unity/.gitignore
+  s_1fd8d0e7b02dcf::t_d9902ca6c81f81 1-25
+unity/Memento/Assets/InputSystem_Actions.inputactions
+  s_1fd8d0e7b02dcf::t_63d0376ecfefb8 1-1057
+unity/Memento/Assets/InputSystem_Actions.inputactions.meta
+  s_1fd8d0e7b02dcf::t_fd068626c433e5 1-14
+unity/Memento/Assets/Memento.meta
+  s_1fd8d0e7b02dcf::t_8b4012f7ccb3da 1-8
+unity/Memento/Assets/Memento/Editor.meta
+  s_1fd8d0e7b02dcf::t_8a98ab3930cd86 1-8
+unity/Memento/Assets/Memento/Editor/Batch.cs
+  s_1fd8d0e7b02dcf::t_330c386bf393d9 1-145
+unity/Memento/Assets/Memento/Editor/Batch.cs.meta
+  s_1fd8d0e7b02dcf::t_66f12bc3562a48 1-2
+unity/Memento/Assets/Memento/Rendering.meta
+  s_1fd8d0e7b02dcf::t_f7ac7ac945468d 1-8
+unity/Memento/Assets/Memento/Rendering/MementoFeature.cs
+  s_1fd8d0e7b02dcf::t_47f18565639efd 1-126
+unity/Memento/Assets/Memento/Rendering/MementoFeature.cs.meta
+  s_1fd8d0e7b02dcf::t_2c52e1c79f4b5d 1-2
+unity/Memento/Assets/Memento/Runtime.meta
+  s_1fd8d0e7b02dcf::t_12791431d73a70 1-8
+unity/Memento/Assets/Memento/Runtime/Game.cs
+  s_1fd8d0e7b02dcf::t_62d4f31a378b0c 1-79
+unity/Memento/Assets/Memento/Runtime/Game.cs.meta
+  s_1fd8d0e7b02dcf::t_03297f43dc377f 1-2
+unity/Memento/Assets/Memento/Runtime/Json.cs
+  s_1fd8d0e7b02dcf::t_d838b48a8a9dcc 1-106
+unity/Memento/Assets/Memento/Runtime/Json.cs.meta
+  s_1fd8d0e7b02dcf::t_2c9941cae528b0 1-2
+unity/Memento/Assets/Memento/Runtime/MementoLook.cs
+  s_1fd8d0e7b02dcf::t_63250d6186612e 1-143
+unity/Memento/Assets/Memento/Runtime/MementoLook.cs.meta
+  s_1fd8d0e7b02dcf::t_415023bc0b8798 1-2
+unity/Memento/Assets/Memento/Runtime/Pad.cs
+  s_1fd8d0e7b02dcf::t_b9c58ea2045bd7 1-71
+unity/Memento/Assets/Memento/Runtime/Pad.cs.meta
+  s_1fd8d0e7b02dcf::t_8601cbeca237a6 1-2
+unity/Memento/Assets/Memento/Runtime/Play.cs
+  s_1fd8d0e7b02dcf::t_6d16dcb993857e 1-14
+unity/Memento/Assets/Memento/Runtime/Play.cs.meta
+  s_1fd8d0e7b02dcf::t_dc261a2b0cfa37 1-2
+unity/Memento/Assets/Memento/Runtime/TitleScreen.cs
+  s_1fd8d0e7b02dcf::t_f306af552b7f04 1-31
+unity/Memento/Assets/Memento/Runtime/TitleScreen.cs.meta
+  s_1fd8d0e7b02dcf::t_3db425236ac87e 1-2
+unity/Memento/Assets/Memento/Runtime/WorldLoader.cs
+  s_1fd8d0e7b02dcf::t_db9df69fd1bd46 1-192
+unity/Memento/Assets/Memento/Runtime/WorldLoader.cs.meta
+  s_1fd8d0e7b02dcf::t_a52cae24ef96bb 1-2
+unity/Memento/Assets/Memento/Scenes.meta
+  s_1fd8d0e7b02dcf::t_28d6db0ec77329 1-8
+unity/Memento/Assets/Memento/Scenes/Desert.unity
+  s_1fd8d0e7b02dcf::t_95b5ff558224ab 1-174
+unity/Memento/Assets/Memento/Scenes/Desert.unity.meta
+  s_1fd8d0e7b02dcf::t_aed80c3d9be0c4 1-7
+unity/Memento/Assets/Memento/Scenes/Title.unity
+  s_1fd8d0e7b02dcf::t_6b3801fdb7e845 1-170
+unity/Memento/Assets/Memento/Scenes/Title.unity.meta
+  s_1fd8d0e7b02dcf::t_700250ee8a4a65 1-7
+unity/Memento/Assets/Memento/Shaders.meta
+  s_1fd8d0e7b02dcf::t_919b470cb1915b 1-8
+unity/Memento/Assets/Memento/Shaders/Composite.shader
+  s_1fd8d0e7b02dcf::t_40082a4baf6639 1-411
+unity/Memento/Assets/Memento/Shaders/Composite.shader.meta
+  s_1fd8d0e7b02dcf::t_16d19fa7c3a41f 1-9
+unity/Memento/Assets/Memento/Shaders/MementoCommon.hlsl
+  s_1fd8d0e7b02dcf::t_73b9f1a39cdc3a 1-340
+unity/Memento/Assets/Memento/Shaders/MementoCommon.hlsl.meta
+  s_1fd8d0e7b02dcf::t_53c9de40aa5c37 1-7
+unity/Memento/Assets/Memento/Shaders/Surface.shader
+  s_1fd8d0e7b02dcf::t_226c6e5f96eb04 1-356
+unity/Memento/Assets/Memento/Shaders/Surface.shader.meta
+  s_1fd8d0e7b02dcf::t_96719f27a60a54 1-9
+unity/Memento/Assets/Scenes.meta
+  s_1fd8d0e7b02dcf::t_9f71548963bddf 1-8
+unity/Memento/Assets/Scenes/SampleScene.unity
+  s_1fd8d0e7b02dcf::t_412b92c756e4f1 1-432
+unity/Memento/Assets/Scenes/SampleScene.unity.meta
+  s_1fd8d0e7b02dcf::t_f5b0c012eada91 1-7
+unity/Memento/Assets/Settings.meta
+  s_1fd8d0e7b02dcf::t_d62094766e519f 1-8
+unity/Memento/Assets/Settings/DefaultVolumeProfile.asset
+  s_1fd8d0e7b02dcf::t_5ed8e3df4e2dbe 1-983
+unity/Memento/Assets/Settings/DefaultVolumeProfile.asset.meta
+  s_1fd8d0e7b02dcf::t_f047299c2212a9 1-8
+unity/Memento/Assets/Settings/Mobile_RPAsset.asset
+  s_1fd8d0e7b02dcf::t_a06e260614bd32 1-144
+unity/Memento/Assets/Settings/Mobile_RPAsset.asset.meta
+  s_1fd8d0e7b02dcf::t_ba8803041538b2 1-8
+unity/Memento/Assets/Settings/Mobile_Renderer.asset
+  s_1fd8d0e7b02dcf::t_d49473fba7a333 1-52
+unity/Memento/Assets/Settings/Mobile_Renderer.asset.meta
+  s_1fd8d0e7b02dcf::t_7440c53c583c44 1-8
+unity/Memento/Assets/Settings/PC_RPAsset.asset
+  s_1fd8d0e7b02dcf::t_423e4ee06441dd 1-148
+unity/Memento/Assets/Settings/PC_RPAsset.asset.meta
+  s_1fd8d0e7b02dcf::t_440f765dcd94ea 1-8
+unity/Memento/Assets/Settings/PC_Renderer.asset
+  s_1fd8d0e7b02dcf::t_e79c4e4351bea7 1-98
+unity/Memento/Assets/Settings/PC_Renderer.asset.meta
+  s_1fd8d0e7b02dcf::t_c45a4c03460698 1-8
+unity/Memento/Assets/Settings/SampleSceneProfile.asset
+  s_1fd8d0e7b02dcf::t_72a1f77208bdea 1-159
+unity/Memento/Assets/Settings/SampleSceneProfile.asset.meta
+  s_1fd8d0e7b02dcf::t_e826da92a650c0 1-8
+unity/Memento/Assets/Settings/UniversalRenderPipelineGlobalSettings.asset
+  s_1fd8d0e7b02dcf::t_f482a3872acca1 1-484
+unity/Memento/Assets/Settings/UniversalRenderPipelineGlobalSettings.asset.meta
+  s_1fd8d0e7b02dcf::t_beaf59488ec637 1-8
+unity/Memento/Assets/StreamingAssets.meta
+  s_1fd8d0e7b02dcf::t_be7e68396d09db 1-8
+unity/Memento/Packages/manifest.json
+  s_1fd8d0e7b02dcf::t_45e8a1dc0c96b5 1-48
+unity/Memento/Packages/packages-lock.json
+  s_1fd8d0e7b02dcf::t_ef4b7376ca5026 1-471
+unity/Memento/ProjectSettings/AudioManager.asset
+  s_1fd8d0e7b02dcf::t_71f1b12f4ae10e 1-19
+unity/Memento/ProjectSettings/ClusterInputManager.asset
+  s_1fd8d0e7b02dcf::t_710a321d7d5c4a 1-6
+unity/Memento/ProjectSettings/DynamicsManager.asset
+  s_1fd8d0e7b02dcf::t_f57b9b913afe4f 1-45
+unity/Memento/ProjectSettings/EditorBuildSettings.asset
+  s_1fd8d0e7b02dcf::t_f2a0fde2a040e3 1-15
+unity/Memento/ProjectSettings/EditorSettings.asset
+  s_1fd8d0e7b02dcf::t_f19fb1feb150bd 1-53
+unity/Memento/ProjectSettings/GraphicsSettings.asset
+  s_1fd8d0e7b02dcf::t_9d8385508275b1 1-82
+unity/Memento/ProjectSettings/InputManager.asset
+  s_1fd8d0e7b02dcf::t_6a129458237c5b 1-487
+unity/Memento/ProjectSettings/MemorySettings.asset
+  s_1fd8d0e7b02dcf::t_5940df88446350 1-35
+unity/Memento/ProjectSettings/MultiplayerManager.asset
+  s_1fd8d0e7b02dcf::t_96dc9910e72261 1-7
+unity/Memento/ProjectSettings/NavMeshAreas.asset
+  s_1fd8d0e7b02dcf::t_d24ab364b7cf41 1-91
+unity/Memento/ProjectSettings/PackageManagerSettings.asset
+  s_1fd8d0e7b02dcf::t_602ec69e06594a 1-44
+unity/Memento/ProjectSettings/Physics2DSettings.asset
+  s_1fd8d0e7b02dcf::t_703cf23c224dc0 1-56
+unity/Memento/ProjectSettings/PhysicsCoreProjectSettings2D.asset
+  s_1fd8d0e7b02dcf::t_6f62232e72d381 1-6
+unity/Memento/ProjectSettings/PresetManager.asset
+  s_1fd8d0e7b02dcf::t_7c844e2b6f0e4e 1-7
+unity/Memento/ProjectSettings/ProjectAuditorSettings.asset
+  s_1fd8d0e7b02dcf::t_c70ab1a0e0db5c 1-36
+unity/Memento/ProjectSettings/ProjectVersion.txt
+  s_1fd8d0e7b02dcf::t_8078b71fee6984 1-2
+unity/Memento/ProjectSettings/QualitySettings.asset
+  s_1fd8d0e7b02dcf::t_4fc851f97c813f 1-137
+unity/Memento/ProjectSettings/SceneTemplateSettings.json
+  s_1fd8d0e7b02dcf::t_1df74df6966284 1-121
+unity/Memento/ProjectSettings/ShaderGraphSettings.asset
+  s_1fd8d0e7b02dcf::t_79d20bc69eb88f 1-19
+unity/Memento/ProjectSettings/TagManager.asset
+  s_1fd8d0e7b02dcf::t_6ce50cba3e3433 1-76
+unity/Memento/ProjectSettings/TimeManager.asset
+  s_1fd8d0e7b02dcf::t_d3921b5f034f7b 1-9
+unity/Memento/ProjectSettings/URPProjectSettings.asset
+  s_1fd8d0e7b02dcf::t_4f7dddd906065a 1-15
+unity/Memento/ProjectSettings/VFXManager.asset
+  s_1fd8d0e7b02dcf::t_0082fe67a9252f 1-12
+unity/Memento/ProjectSettings/VersionControlSettings.asset
+  s_1fd8d0e7b02dcf::t_d7a87dcb0e1b75 1-8
+unity/Memento/ProjectSettings/XRSettings.asset
+  s_1fd8d0e7b02dcf::t_8b29289ce02e8a 1-10
+unity/Memento/ProjectSettings/ProjectSettings.asset
+  s_fa4289abb699dd::t_c4c3a014d28491 1-954
+unity/Memento/ProjectSettings/UnityConnectSettings.asset
+  s_fa4289abb699dd::t_5292b2b47af8f9 1-42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0784d90ff762efa26cb6846a8d9b633c7ca2b0ad",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_fa4289abb699dd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-adab520d5c002f96b",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
