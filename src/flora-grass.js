@@ -61,6 +61,8 @@ const _o = new THREE.Vector3(), _dir = new THREE.Vector3(), DOWN = new THREE.Vec
 const MASK = 1;
 /** The patch's centre lies this many radii ahead of the camera. */
 const AHEAD = 0.45;
+/** At most this long (ms) placing tufts in a frame, once the first patch is down (Grass.update). */
+export const PLACE_MS = 3;
 
 export class Grass {
   /**
@@ -115,6 +117,9 @@ export class Grass {
     this.mask = new Map();
     this.field = null;
     this.placed = 0;
+    this.cursor = 0;          // where the next frame's placement starts (a jump is placed over several)
+    this.placedOnce = false;
+    this.placeMs = PLACE_MS;
   }
 
   /** Something built covers this 1 m cell (a rock, a floor, a roof): no grass. Cached. */
@@ -174,16 +179,28 @@ export class Grass {
     this.mesh.visible = !!field;
     if (!field) return 0;
     this.material.uniforms.uGrassView.value.set(cx, cz, this.R * 0.45, this.R * 0.9);
-    const { off, at, S } = this;
-    let lo = Infinity, hi = -1;
-    for (let i = 0, n = this.count; i < n; i++) {
+    const { off, at, S } = this, n = this.count;
+    // Walking, a few rows wrap a frame. After a jump (a door, a portal, a new field) every tuft
+    // moves: that is placed over the next frames, PLACE_MS at a time, carrying on from where it
+    // stopped (a whole patch at once was a 60 ms frame on High). A tuft not yet placed is either
+    // nothing (NaN, a new field) or where it was, past the patch's faded edge: none shows.
+    // The first placement, at load, is done at once.
+    const t0 = this.placedOnce ? performance.now() : Infinity;
+    let lo = Infinity, hi = -1, done = 0, k = 0;
+    for (; k < n; k++) {
+      const i = (this.cursor + k) % n;
       const x = wrapPatch(off[i * 2], cx, S), z = wrapPatch(off[i * 2 + 1], cz, S);
-      if (x === at[i * 4] && z === at[i * 4 + 2]) continue;
+      // (compared as stored, in 32-bit floats: away from the origin x rarely survives the round trip,
+      // and every tuft was placed again every frame, ~2 ms on High standing still)
+      if (Math.fround(x) === at[i * 4] && Math.fround(z) === at[i * 4 + 2]) continue;
       const [h, y] = this.heightAt(x, z, i);
       at[i * 4] = x; at[i * 4 + 1] = y; at[i * 4 + 2] = z; at[i * 4 + 3] = h;
       if (i < lo) lo = i;
-      hi = i;
+      if (i > hi) hi = i;
+      if ((++done & 63) === 0 && performance.now() - t0 > this.placeMs) { k++; break; }
     }
+    this.cursor = k < n ? (this.cursor + k) % n : 0;
+    this.placedOnce = true;
     if (hi >= 0) {
       const a = this.aGrass;
       a.clearUpdateRanges();

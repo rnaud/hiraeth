@@ -145,23 +145,16 @@ export const PEOPLE = {
     id: 'ivo', name: 'Ivo', title: 'who climbs the white hill', color: '#f2c5b0', voice: 1.25, kind: 'm',
     palette: { cloak: '#f2c5b0', lining: '#2b211f', cloth: '#4f6b3a', legs: '#3a3a3a', hat: '#f6efd0', hair: '#4a3226' }, head: 'hair', cape: 0.5,
     lines: ["~happy~ From the white hill’s middle terrace, you can reach the canopy.", '~curious~ Have you looked under a sphere?', '~shout~ The view! The VIEW.'],
-    talk: {
-      nodes: {
-        hello: {
-          say: ["~happy~ Try *the white hill*. Its middle terrace leads right onto the great canopy. A tree with a side entrance!", "~curious~ I’m Ivo. I climb, crawl, occasionally fall. Ever looked beneath a sphere?"],
-          choices: [
-            { text: '~curious~ Under a sphere?', goto: 'under' },
-            { text: '~neutral~ I’ll climb the hill.', end: true },
-          ],
-        },
-        under: {
-          say: ["~whisper~ I squeezed under the lake pearl. Flat on my back. Found this pressed into its underside: {glyph}", "~playful~ *The Footprint.* Every sphere has one underneath. An excellent place to hide something from people with clean clothes.", "~playful~ There’s a *blue star-chest in the grove’s umbrella tree*, with Footprints round its sides. We call those left-behinds. Ume thinks they’re gifts. I hope so."],
-          choices: [{ text: '~curious~ Whose footprint?', goto: 'whose' }],
-        },
-        whose: { say: ["~curious~ Perhaps something enormous walked through the sky, setting spheres down. Cups on a table. I’d rather not be here when it clears up."], choices: [{ text: '~curious~ Seen anything strange lately?', goto: 'strange' }, { text: '~happy~ Thanks, Ivo.', end: true }] },
-        strange: { say: ["~playful~ Ask *Ume at the plaza*. The pole hummed at night when the singing light passed. She says that’s unusual. Ume is considerably harder to impress than I am."], choices: [{ text: '~happy~ Thanks, Ivo.', end: true }] },
-      },
-    },
+    talk: { listen: [
+      ['~happy~ *Climb the white hill*! From the middle terrace you can step right out onto the great canopy.', '~playful~ Nobody believes me until they do it.'],
+      ['~whisper~ Ever looked under a sphere? Where it touches the ground there’s a mark pressed in, like where a foot came down. {glyph}', '~playful~ The Footprint. Every sphere has one, underneath, where nobody looks. Except me.'],
+      { if: { not: { flag: 'box.spheres.shell' } }, say: '~playful~ There’s a blue box with a star on the lid *up on the grove’s umbrella tree*. A left-behind. Ume says they’re presents. Ume says everything is a present.' },
+      '~curious~ Something walked through the sky putting spheres down, the way you’d put down cups. Some say it was the great one on the horizon, and that one day it will come back for them.',
+      '~neutral~ Splash a sphere and it rings. The big ones ring low, the little ones high. I played a whole song on the grove once. Badly.',
+      '~tired~ Can’t talk. Climbing. (He is standing on the ground.)',
+      { after: { flag: 'temple.spheres.done' }, say: '~surprised~ The Footprint is full of still water now, and every sphere wears a ring of light. I climbed one to check. It’s warm.' },
+      { after: { flag: 'world.spheres.done' }, say: '~happy~ Ume says the spheres heard what they were waiting to hear. I put my ear on one. It said nothing, very happily.' },
+    ] },
   },
 
   cael: {

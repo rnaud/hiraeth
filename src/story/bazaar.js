@@ -329,10 +329,11 @@ export function setupBazaar(ctx) {
     /** E on a crowd person: a short conversation, by where they are (and whether the tower has spoken). */
     crowdTalk(p) {
       const z = p.spot?.id ?? (p.pos.y > 8 ? 'bridge' : p.pos.z < -200 ? 'square' : 'market');
-      const list = onAir() && (z === 'square' || p.seed < 0.5) ? CROWD_TALK.onAir : CROWD_TALK[z];
+      const air = onAir() && (z === 'square' || p.seed < 0.5), list = air ? CROWD_TALK.onAir : CROWD_TALK[z];
       if (!list) return null;
-      const base = list[Math.floor(p.seed * 997) % list.length];
-      return { id: `crowd.bazaar.${z}`, color: p.style?.cloak ?? '#d8a24a', kind: p.kind, seed: `crowd:${p.id}`, scale: p.size, ...base }   // a voice of their own (src/story/voice.js voiceOf hashes the seed);
+      const k = Math.floor(p.seed * 997) % list.length, base = list[k];
+      // a voice of their own (src/story/voice.js voiceOf hashes the seed); `heard`: where the lines they've said are kept (dialogue.js pickListen)
+      return { id: `crowd.bazaar.${z}`, heard: `crowd.bazaar.${air ? 'onAir' : z}.${k}`, color: p.style?.cloak ?? '#d8a24a', kind: p.kind, seed: `crowd:${p.id}`, scale: p.size, ...base };
     },
   };
 }

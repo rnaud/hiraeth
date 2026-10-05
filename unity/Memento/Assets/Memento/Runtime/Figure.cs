@@ -416,5 +416,34 @@ namespace Memento
         }
 
         public void SetVisible(bool on) { foreach (var r in renderers) if (r) r.enabled = on; }
+
+        // ------------------------------------------------------------------ levels of detail (skinned-lod.js)
+        /// <summary>A skinned mesh's simpler copies (people.mjs: cells of 2^j × the body's size, j = -6 … -3).</summary>
+        public class SkinLevels { public SkinnedMeshRenderer smr; public Mesh full; public Mesh[] levels; public int[] js; }
+        public readonly List<SkinLevels> lods = new();
+        public int lodJ = WorldDetail.Full;
+        public static readonly List<Figure> All = new();
+        const int SkinMin = -6, SkinMax = -3, HideFace = -4;   // (SKIN_LOD: from 1/16 m cells, an eye under half a pixel: no eyes or brows)
+        void OnEnable() { if (!All.Contains(this)) All.Add(this); }
+        void OnDisable() { All.Remove(this); }
+
+        /// <summary>This camera's level (WorldDetail, before it culls): the coarsest copy whose cell is under the preset's lodPx at this distance.</summary>
+        public void UpdateDetail(Vector3 cam, float pxPerRad, float px)
+        {
+            if (lods.Count == 0 && !eyes && !brows) return;
+            if (renderers.Count > 0 && renderers[0] && !renderers[0].enabled) return;
+            float d = Vector3.Distance(cam, transform.position);
+            lodJ = px > 0 && pxPerRad > 0 ? WorldDetail.PickLevel(lodJ, d, transform.lossyScale.y, pxPerRad, px, SkinMin, SkinMax) : WorldDetail.Full;
+            foreach (var e in lods)
+            {
+                if (!e.smr) continue;
+                var m = e.full;
+                if (lodJ != WorldDetail.Full) for (int i = e.js.Length - 1; i >= 0; i--) if (e.js[i] <= lodJ) { m = e.levels[i]; break; }
+                if (e.smr.sharedMesh != m) { var lb = e.smr.localBounds; e.smr.sharedMesh = m; e.smr.localBounds = lb; }
+            }
+            bool face = !(lodJ != WorldDetail.Full && lodJ >= HideFace);
+            if (eyes) eyes.forceRenderingOff = !face;
+            if (brows) brows.forceRenderingOff = !face;
+        }
     }
 }

@@ -143,6 +143,9 @@ namespace Memento.EditorTools
             var shipData = game.world.World.O("ship");
             if (Array.IndexOf(Environment.GetCommandLineArgs(), "-noHolo") < 0 && game.world.Objects.TryGetValue("ship", out var parked) && shipData?.O("points")?.Has("table") == true)
                 holo = HoloTable.Build(parked.transform, shipData.O("points").V3("table"), shipData.O("holoTable")?.F("planetR", 0.3f) ?? 0.3f, "desert", null);
+            // (-preset handheld: the web's preset; -detail full: no levels of detail, nothing culled, every plant: the reference for them)
+            Quality.Set(Arg("-preset", "high"));
+            if (Arg("-detail") == "full") Quality.AllDetail();
             var views = Json.Parse(File.ReadAllText(file)) as List<object>;
             int w = int.Parse(Arg("-w", "1280")), h = int.Parse(Arg("-h", "720"));
             foreach (var v in views)

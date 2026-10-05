@@ -80,3 +80,10 @@ and quest completion rules stay the same. Copy-sensitive test assertions are
 updated where wording intentionally changes, keeping their state/flow checks.
 The shared source is also used by the Unity export pipeline; generated Unity
 content has not been rebuilt or playtested in Unity as part of this pass.
+
+## Release integration
+
+v0.58 incorporates the current main branch's bystander conversations: those
+NPCs use its rotating, condition-aware listening lines without player choices.
+The writing pass is applied to that structure; the new hints and reactions
+from main are retained. Relative to main, game-source changes remain text only.

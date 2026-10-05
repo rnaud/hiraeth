@@ -3,6 +3,8 @@ import { parseLine, stripTone } from './tone.js';
 import { pickTwoShot, pickLookShot, pullIn } from './shot.js';
 import { planLine, voiceOf, PLAYER_VOICE, LANGUAGES, REVEAL_CPS, isQuote } from './voice.js';
 import { syllableOpen, syllableEnvelope } from '../talk-face.js';
+import { confirmKey } from '../native-pad.js';
+import { keyBadge } from '../prompt-keys.js';
 const _ac = new THREE.Vector3(), _bq = new THREE.Vector3();
 
 // Conversations. People are data:
@@ -92,6 +94,42 @@ export function apply(effects, ctx) {
   }
 }
 
+// Listen-only talk, for the people who aren't part of a quest (bystanders, the crowd):
+//
+//   talk: { listen: [
+//     '~tired~ One line.',                                     // an entry: a line,
+//     ['~playful~ Two lines,', '~neutral~ or three at most.'], // a few lines,
+//     { if: { not: { flag: 'temple.desert.done' } }, say: '~neutral~ A hint while it is still news.' },
+//     { after: { flag: 'world.desert.done' }, say: '~happy~ News: said first, once it holds.' },
+//     { say: '~neutral~ (He plays.)', do: { emit: ['music:solo', { who: 'bako' }] } },
+//   ] }
+//
+// No answers: they say one entry, and the next press ends the talk. Talk again for the next one,
+// round and round (never the same twice running, remembered in the save: heard.<key>); an entry
+// whose `after` has just come true (a quest done, the temple woken) jumps the queue, once.
+// `person.heard` is the key when several people share an id (a crowd's people).
+
+const isEntry = (e) => e && typeof e === 'object' && !Array.isArray(e) && 'say' in e;
+const hashOf = (s) => { let h = 2166136261; for (const c of String(s)) h = Math.imul(h ^ c.codePointAt(0), 16777619); return h >>> 0; };
+
+/** The entry a listen-only person says now ({ say, do } or null), and remember it. */
+export function pickListen(person, ctx) {
+  const list = person.talk?.listen ?? [], game = ctx.game ?? {}, key = `heard.${person.heard ?? person.id}`;
+  const open = list.map((e, k) => ({ e: isEntry(e) ? e : { say: e }, k })).filter(({ e }) => check(e.if, ctx) && check(e.after, ctx));
+  if (!open.length) return null;
+  let pick = open.find(({ e, k }) => e.after && !game.flag?.(`${key}.n${k}`));
+  if (pick) game.set?.(`${key}.n${pick.k}`, true);
+  else {
+    const last = game.flag?.(key);
+    // the first time, somewhere along the list (people sharing a list don't all start with the same line)
+    const from = typeof last === 'number' ? last : (hashOf(person.seed ?? person.id) % list.length) - 1;
+    pick = open.find(({ k }) => k > from) ?? open[0];
+    if (pick.k === last && open.length > 1) pick = open.find(({ k }) => k !== last);
+  }
+  game.set?.(key, pick.k);
+  return pick.e;
+}
+
 /**
  * The conversation logic without any DOM: which node, which page, which
  * choices are open. The panel (DialogueUI) and the tests both drive this.
@@ -102,11 +140,22 @@ export class DialogueRunner {
     this.ctx = ctx;
     this.ended = false;
     const t = person.talk;
+    if (t.listen) {
+      // listen-only: one entry, said as a single node with no answers
+      const said = pickListen(person, ctx);
+      if (!said) { this.ended = true; this.pages = []; this.tones = []; this.page = 0; this.node = {}; return; }
+      this.talk = { nodes: { listen: { say: said.say, do: said.do, listen: true } } };
+      this.goto('listen');
+      return;
+    }
+    this.talk = t;
     const entry = (t.entry ?? [{ node: Object.keys(t.nodes)[0] }]).find((e) => check(e.if, ctx));
     this.goto(entry?.node ?? Object.keys(t.nodes)[0]);
   }
+  /** Only listening: no answers, and the talk ends after the last line. */
+  get listening() { return !!this.node?.listen; }
   goto(id) {
-    const n = this.person.talk.nodes[id];
+    const n = this.talk.nodes[id];
     if (!n) { this.ended = true; return; }
     this.nodeId = id;
     this.node = n;
@@ -124,7 +173,7 @@ export class DialogueRunner {
   get lastPage() { return this.page >= this.pages.length - 1; }
   /** The choices to show now (only on the last page): [{ text, index }]. Always at least "(leave)" when the node ends. */
   choices() {
-    if (!this.lastPage || this.ended) return [];
+    if (!this.lastPage || this.ended || this.listening) return [];
     const list = (this.node.choices ?? []).map((c, index) => ({ ...c, index, text: stripTone(c.text), tone: parseLine(c.text).tone })).filter((c) => check(c.if, this.ctx) && !(c.once && this.ctx.game.flag(`said.${this.person.id}.${this.nodeId}.${c.index}`)));
     if (list.length) return list;
     if (this.node.next) return [];
@@ -134,6 +183,7 @@ export class DialogueRunner {
   advance() {
     if (this.ended) return false;
     if (!this.lastPage) { this.page++; return true; }
+    if (this.listening) { this.ended = true; return false; }   // (the next press closes the panel)
     if (this.node.next && !(this.node.choices ?? []).some((c) => check(c.if, this.ctx))) { this.goto(this.node.next); return true; }
     return false;
   }
@@ -150,6 +200,19 @@ export class DialogueRunner {
 }
 
 // ---------------------------------------------------------------------------
+
+/**
+ * One answer as a button: its mark in a column of its own, then its words (index.html
+ * #dialogue .dlg-choices). The column holds all three marks, and the body's input class
+ * shows one: the keyboard's number, a plain › for touch, and with a controller the
+ * confirm button's badge on the focused answer (› on the others). Each answer has the
+ * same three, so the column is as wide on every one, and the words, a flex item of their
+ * own, wrap beside it and never under or over it.
+ */
+export function choiceHtml(c, k, key = confirmKey()) {
+  return `<button data-i="${c.index}"><span class="dlg-key" aria-hidden="true"><b class="dlg-num">${k + 1}</b><b class="dlg-mark">›</b>${keyBadge(key)}</span>`
+    + `<span class="dlg-say">${formatText(c.text)}</span></button>`;
+}
 
 const REVEAL = REVEAL_CPS;   // letters per second at an even pace (each line's voice and tone scale it)
 const FRESH = 3;             // letters at the caret still in the alien script (the translator catching up)
@@ -321,7 +384,7 @@ export class Dialogue {
     const done = this.revealed >= full.length;
     const choices = done ? r.choices() : [];
     const box = this.q('.dlg-choices');
-    const html = choices.map((c, k) => `<button data-i="${c.index}"><span>${k + 1}</span>${formatText(c.text)}</button>`).join('');
+    const html = choices.map((c, k) => choiceHtml(c, k)).join('');
     if (box.dataset.html !== html) {
       box.innerHTML = html; box.dataset.html = html;
       if (choices.length && document.body.classList.contains('controller')) box.querySelector('button')?.focus();

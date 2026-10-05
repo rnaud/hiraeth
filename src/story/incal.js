@@ -422,10 +422,11 @@ export function setupIncal(ctx) {
     /** E on a crowd person: a short conversation, by where they live (and whether the light is back). */
     crowdTalk(p) {
       const z = zoneOf(p);
-      const list = lit() && (z === 'lower' || z === 'middle' || p.seed < 0.35) ? CROWD_TALK.lit : CROWD_TALK[z];
+      const shone = lit() && (z === 'lower' || z === 'middle' || p.seed < 0.35), list = shone ? CROWD_TALK.lit : CROWD_TALK[z];
       if (!list) return null;
-      const base = list[Math.floor(p.seed * 997) % list.length];
-      return { id: `crowd.incal.${z}`, color: p.style?.cloak ?? '#d8a24a', kind: p.kind, seed: `crowd:${p.id}`, scale: p.size, ...base }   // a voice of their own (src/story/voice.js voiceOf hashes the seed);
+      const k = Math.floor(p.seed * 997) % list.length, base = list[k];
+      // a voice of their own (src/story/voice.js voiceOf hashes the seed); `heard`: where the lines they've said are kept (dialogue.js pickListen)
+      return { id: `crowd.incal.${z}`, heard: `crowd.incal.${shone ? 'lit' : z}.${k}`, color: p.style?.cloak ?? '#d8a24a', kind: p.kind, seed: `crowd:${p.id}`, scale: p.size, ...base };
     },
   };
 }

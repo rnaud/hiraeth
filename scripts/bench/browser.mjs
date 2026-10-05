@@ -14,7 +14,7 @@ export const PLAYWRIGHT = process.env.PLAYWRIGHT ?? '/private/tmp/claude-501/-Us
 export const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 export const CHROME_ARGS = ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--disable-gpu-vsync', '--disable-frame-rate-limit',
   '--force-device-scale-factor=1', '--enable-precise-memory-info', '--disable-background-timer-throttling', '--disable-renderer-backgrounding',
-  '--disable-backgrounding-occluded-windows', '--enable-unsafe-webgpu', '--no-first-run', '--no-default-browser-check'];
+  '--disable-backgrounding-occluded-windows', '--enable-unsafe-webgpu', '--no-first-run', '--no-default-browser-check', '--mute-audio'];
 
 /** paced: with vsync and the frame-rate limit, as a player's Chrome (for the stutter at 60 Hz) */
 export async function launch({ w, h, profile, extraArgs = [], paced = false }) {

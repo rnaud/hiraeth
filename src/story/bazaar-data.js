@@ -277,14 +277,15 @@ export const PEOPLE = {
 export const STREET = {
   doss: {
     id: 'doss', name: 'Doss', title: 'who welcomes everyone', color: '#dca273',
-    talk: { nodes: {
-      hello: {
-        say: ["~happy~ Signal Market! A thousand voices competing for your attention. One tower has gracefully withdrawn."],
-        choices: [{ text: '~curious~ Which one is quiet?', goto: 'quiet' }, { text: '~neutral~ Goodbye.', end: true }],
-      },
-      quiet: { say: ["~sad~ *The broadcast tower at the avenue’s end.* Find *Madame Sel at its foot*. It went silent when the singing light passed."], choices: [{ text: '~curious~ How do I get up there?', goto: 'up' }, { text: '~neutral~ Thanks.', end: true }] },
-      up: { say: ["~neutral~ Up via *the tower’s blue ledges*, your jetpack, or this parked cab. The bridges connect the roofs. Mind where they don’t."], choices: [{ text: '~happy~ Thanks.', end: true }] },
-    } },
+    talk: { listen: [
+        "~happy~ Signal Market! A thousand voices competing for your attention. One tower has gracefully withdrawn.",
+        { if: { not: ON_AIR }, say: '~sad~ *The broadcast tower*, at the end of the avenue. It went silent the night the sky rang. *Madame Sel* sits at its foot, waiting for somebody to care.' },
+        { if: { not: ON_AIR }, say: '~neutral~ Up the tower? *The blue ledges up its front*, or the parked cab right here, or that pack on your back. The skybridges are for walking; mind the gaps.' },
+        '~playful~ Welcome! Welcome. Oh, you again. Welcome anyway; it’s my job.',
+        '~curious~ The first thing anybody ever sold here was an answer. Then somebody sold the question, and we never looked back.',
+        { after: ON_AIR, say: '~happy~ The tower spoke! I’ve been welcoming people all morning, and they keep welcoming me back.' },
+        { after: { flag: 'temple.bazaar.done' }, say: '~solemn~ They say the tower says the whole line once a night now, from the old stones under it. I stay up for it. Everybody does.' },
+      ] },
   },
   oyo: {
     id: 'oyo', name: 'Oyo', title: 'who sells lanterns', color: '#84bab3',
@@ -304,13 +305,14 @@ export const STREET = {
   },
   teb: {
     id: 'teb', name: 'Teb', title: 'cab tout', color: '#c3a9cc',
-    talk: { nodes: {
-      hello: {
-        say: ["~neutral~ The transmitter’s *on the cream balcony*. Need a cab? *Wave at one circling the tower.*"],
-        choices: [{ text: '~curious~ Who are the quiet ones?', goto: 'quiet' }, { text: '~neutral~ Goodbye.', end: true }],
-      },
-      quiet: { say: ["~whisper~ The lavender listeners? Hardly speak. When all their heads turn together, stop what you’re doing. They heard it before you did."], choices: [{ text: '~neutral~ Goodbye.', end: true }] },
-    } },
+    talk: { listen: [
+        { if: { not: ON_AIR }, say: "~neutral~ The transmitter’s *on the cream balcony*. Need a cab? *Wave at one circling the tower.*" },
+        ['~whisper~ The quiet ones? The lavender folk with the big heads. They came with the market, or the market came with them.', '~whisper~ They don’t talk. They listen. When they all turn their heads at once, something’s about to happen.'],
+        '~shout~ Cab! Cab! Not you, you’re not a cab. Move, you’re in my wave.',
+        { if: { not: { quest: 'bazaar.oldsign', done: true } }, say: '~curious~ The oldest sign in the market hangs *under the second skybridge*. Dark for years. Give it a shot of something; signs like attention.' },
+        '~playful~ Fares are cheap, views are free, and the drop is extra.',
+        { after: ON_AIR, say: '~happy~ Every cab in the sky stopped to listen. First traffic jam in thirty years. Beautiful.' },
+      ] },
   },
 };
 
@@ -417,30 +419,69 @@ export const LINES = {
   shout: ['~shout~ Listen!', '~shout~ The tower!', '~shout~ It’s talking!', '~whisper~ Shh! Listen!'],
 };
 
-const bye = { text: '~neutral~ Goodbye.', end: true };
-/** Short conversations for people in the crowd, by where they are. Picked by their seed. */
+/** What people in the crowd say when you stop and listen (no answers: src/story/dialogue.js pickListen), by where they are. Picked by their seed. */
 export const CROWD_TALK = {
   market: [
-    { name: 'A fruit seller', title: 'of seven moons', talk: { nodes: { hello: { say: ["~happy~ Seven-moon fruit! This one tastes like rain on a hot roof. Yes, I checked the roof."], choices: [bye] } } } },
-    { name: 'A noodle cook', title: 'at the counter', talk: { nodes: { hello: { say: ["~playful~ The sign says my noodles remember your order. The noodles are liars. Tell me again."], choices: [bye] } } } },
-    { name: 'A shopper', title: 'lost', talk: { nodes: { hello: { say: ['~tired~ A thousand signs and I still can’t find the soap.'], choices: [bye] } } } },
+    { name: 'A fruit seller', title: 'of seven moons', talk: { listen: [
+      "~happy~ Seven-moon fruit! This one tastes like rain on a hot roof. Yes, I checked the roof.",
+      '~shout~ Seven moons of fruit! This one bites back. That one’s only shy.',
+      '~angry~ Touch it, you buy it. You touched it. No, you looked at it in a touching way.',
+      { if: { not: { quest: 'bazaar.bowl', done: true } }, say: '~curious~ Ummu’s crates came down in her alley, seven-moon fruit everywhere. She hasn’t found her bowl since. Somebody should *shift those crates*.' },
+    ] } },
+    { name: 'A noodle cook', title: 'at the counter', talk: { listen: [
+      "~playful~ The sign says my noodles remember your order. The noodles are liars. Tell me again.",
+      '~playful~ They say the noodle man is three noodle men in a coat. That’s a lie. It’s two.',
+      '~neutral~ Every sign in this market is a promise. Mine is the only one that keeps it, with broth.',
+    ] } },
+    { name: 'A shopper', title: 'lost', talk: { listen: [
+      '~tired~ A thousand signs and I still can’t find the soap.',
+      '~tired~ I asked a sign for directions. It sold me a hat.',
+      '~sad~ Everything here talks to you and nothing listens. Except the quiet ones, and they don’t sell soap.',
+    ] } },
   ],
   square: [
-    { name: 'A listener', title: 'in Signal Square', talk: { nodes: {
-      hello: { say: ["~sad~ I used to listen to messages here every evening. People I’d never meet. I miss hearing how they got on."], choices: [{ text: '~curious~ For nobody?', goto: 'who' }, bye] },
-      who: { say: ["~sad~ They were meant for someone else. That was enough. A square full of strangers, hoping a ship got home."], choices: [bye] },
-    } } },
-    { name: 'An old trader', title: 'in Signal Square', talk: { nodes: {
-      hello: { say: ["~solemn~ That mark filled every sign when the sky sang. Grandmother says it was here before the market. Before there was anything to advertise."], choices: [bye] },
-    } } },
+    { name: 'A listener', title: 'in Signal Square', talk: { listen: [
+      "~sad~ I used to listen to messages here every evening. People I’d never meet. I miss hearing how they got on.",
+      '~sad~ For somebody, really. Just never for me. That was the nice part: you could listen to love with nobody asking you to give any back.',
+      { if: { not: ON_AIR }, say: '~curious~ The antenna up there is *three bulbs over a dish*. Light all three before the first one fades, the old engineers said. Nobody since has had the reach.' },
+      '~whisper~ Shh. I’m listening to the hum it makes now, and pretending.',
+    ] } },
+    { name: 'An old trader', title: 'in Signal Square', talk: { listen: [
+      "~solemn~ That mark filled every sign when the sky sang. Grandmother says it was here before the market. Before there was anything to advertise.",
+      '~solemn~ Every sign in this market lies a little. The silent tower was the only one that ever told the truth.',
+      { if: { not: { flag: 'temple.bazaar.done' } }, say: '~whisper~ Round the back of the silent tower there’s *an old doorway*, where the paving turns to great old stones. Pell sits by it, listening. Ask him what he hears. He’ll say one word.' },
+      '~angry~ In my day a sign was a sign. Now they sing, they dance, they follow you home.',
+    ] } },
   ],
   bridge: [
-    { name: 'A bridge walker', title: 'high above the market', talk: { nodes: { hello: { say: ["~tired~ Kip ran past carrying a humming bag. I’m sure there’s a delivery surcharge for that."], choices: [bye] } } } },
-    { name: 'A window cleaner', title: 'on a break', talk: { nodes: { hello: { say: ["~playful~ I clean the signs from behind. BUY becomes YUB. I find it more persuasive."], choices: [bye] } } } },
+    { name: 'A bridge walker', title: 'high above the market', talk: { listen: [
+      { if: { not: ON_AIR }, say: "~tired~ Kip ran past carrying a humming bag. I’m sure there’s a delivery surcharge for that." },
+      '~neutral~ Mind the gap. It’s a long way down, and every sign watches you fall.',
+      '~playful~ Don’t look down. Or do; it’s pretty.',
+      '~tired~ I walk this bridge twice a day. It has never once been shorter.',
+    ] } },
+    { name: 'A window cleaner', title: 'on a break', talk: { listen: [
+      "~playful~ I clean the signs from behind. BUY becomes YUB. I find it more persuasive.",
+      '~playful~ From up here you can read every fortune sign at once. They all disagree. I take the nicest.',
+      { if: { not: { quest: 'bazaar.oldsign', done: true } }, say: '~curious~ The oldest sign hangs right under the second bridge. Dark for years. I clean it anyway. Somebody should *wake it up*.' },
+      '~angry~ Mind the bucket. No, the other bucket.',
+    ] } },
   ],
   onAir: [
-    { name: 'Someone in the square', title: 'still listening', talk: { nodes: { hello: { say: ["~sad~ I don’t know Ilen. Still cried. You played that message, didn’t you? Thank you."], choices: [bye] } } } },
-    { name: 'A fruit seller', title: 'giving fruit away', talk: { nodes: { hello: { say: ["~happy~ Gave away a crate afterwards. Everyone was kind. Terrible trading conditions. I hope they last."], choices: [bye] } } } },
-    { name: 'A stranger', title: 'looking up at the tower', talk: { nodes: { hello: { say: ["~happy~ Someone is listening for you. I needed to hear that. Thought I’d just come for fruit."], choices: [bye] } } } },
+    { name: 'Someone in the square', title: 'still listening', talk: { listen: [
+      "~sad~ I don’t know Ilen. Still cried. You played that message, didn’t you? Thank you.",
+      '~solemn~ You are not alone, it said. To all of us at once. I’ve been looking at strangers all morning, wondering which of us it meant.',
+      '~sad~ Thirty years on the way, that message. I hope whoever sent it is still listening.',
+    ] } },
+    { name: 'A fruit seller', title: 'giving fruit away', talk: { listen: [
+      "~happy~ Gave away a crate afterwards. Everyone was kind. Terrible trading conditions. I hope they last.",
+      '~happy~ Take a fruit. Take two. Today nobody pays. Tomorrow, double.',
+      '~playful~ I cried into the noodle man’s broth. He says it’s improved.',
+    ] } },
+    { name: 'A stranger', title: 'looking up at the tower', talk: { listen: [
+      "~happy~ Someone is listening for you. I needed to hear that. Thought I’d just come for fruit.",
+      '~solemn~ I’m going to call my mother. I haven’t in years. I don’t know what I’ll say.',
+      '~curious~ Who was it from, do you think? Does it matter? It doesn’t matter.',
+    ] } },
   ],
 };

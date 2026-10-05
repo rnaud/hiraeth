@@ -8,6 +8,12 @@ The same release notes shown in the game (press **N** or open settings).
 - Family recordings and the homecoming have been rewritten, giving Lou, Tove, and the traveller more room to speak for themselves.
 - Temple guides, journal entries, item descriptions, and errands are easier to follow while keeping the worlds mysterious.
 
+## v0.57 — 2026-10-05
+
+- Smoother frame rate everywhere, most of all close to metal, cracked rock and other detailed surfaces; nothing looks different.
+- No more stutter the first time you walk into a new place or turn to something new: everything is prepared while the world loads, and worlds load faster.
+- Grassy places no longer waste time redrawing every blade of grass each frame; stepping through a door no longer stalls while the grass appears.
+
 ## v0.56 — 2026-10-05
 
 - The settings now have an Updates section in the Android app: see the version you’re playing, check for updates, read what the new one brings, and download it with a progress bar. The game restarts at the title screen with your saves kept.
@@ -23,6 +29,8 @@ The same release notes shown in the game (press **N** or open settings).
 - Getting off something moving or flying is now a jump off. With the wings they open by themselves, and if you jump off the bird high up with nothing to break the fall, she swoops in and catches you.
 - You no longer tumble over after a fall of about 10 m; the ragdoll now starts from about 16 m.
 - A new Motion page (from the character studio or the dev menu): the traveller walking on the blended loops next to motion matching, both driven by the same controls or by scripted runs, in slow motion or frame by frame, with what the matcher plays, its predicted path and the planted feet drawn on the ground, and a row of people on the twelve captured walks.
+- Answers in conversations no longer have their number or mark drawn over their first letters (it happened on Android handhelds); with a controller, the answer you’re on shows the button that picks it.
+- People who aren’t part of a quest don’t ask you anything any more: you just listen. They drop a hint about their world, a piece of its wisdom, a joke, or tell you to move along. They say something new each time you talk to them, and have news once you’ve woken the temple or finished the world’s quest.
 
 ## v0.55 — 2026-10-05
 

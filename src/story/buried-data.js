@@ -242,23 +242,16 @@ export const PEOPLE = {
     id: 'pim', name: 'Pim', title: 'nine teeth old', color: '#e9c9a8', voice: 1.7, kind: 'm', scale: 0.72,
     palette: { cloak: '#e9c9a8', lining: '#2b211f', cloth: '#5f7488', legs: '#3a3a3a', hat: '#c8643f', hair: '#4a3226' }, head: 'hair', cape: 0.4,
     lines: ["~neutral~ The domes are chimneys. Most of the machine is beneath us.", "~neutral~ Follow the sandy ramp. Those canyon walls are pipes.", '~shout~ I’m nine teeth old!'],
-    talk: {
-      entry: [{ if: { quest: Q, done: true }, node: 'ten' }, { node: 'hello' }],
-      nodes: {
-        hello: {
-          say: ["~curious~ Are you a person? You arrived in a ball. I’m Pim. Nine teeth old. For now.", "~scared~ If the wheel turns, I’ll be ten! Wen says it might not. Can they do that? Cancel a birthday?"],
-          choices: [
-            { text: '~playful~ Is nine so bad?', goto: 'nine' },
-            { text: '~curious~ Seen anything strange lately?', goto: 'strange' },
-          ],
-        },
-        nine: { say: ["~whisper~ Ten-year-olds can go down the ramp. You can hear the machine through the pipes. I’ve been waiting a whole tooth to listen."], choices: [{ text: '~curious~ What’s up in the sky?', goto: 'city' }, { text: '~happy~ Bye, Pim.', end: true }] },
-        city: { say: ["~happy~ The floating city rocks when the wheel turns. Last year a tower swung like a bell. Too high to hear it. Very unfair."], choices: [{ text: '~curious~ Seen anything strange?', goto: 'strange' }, { text: '~happy~ Bye, Pim.', end: true }] },
-        strange: { say: ["~whisper~ Hask keeps watching the sky now. And Dun left his key on *the floating derrick*. Everyone knows. Especially the people he tells not to tell."], choices: [{ text: '~happy~ Bye, Pim.', end: true }] },
-        ten: { say: ["~playful~ TEN! I’m ten teeth old! Wen says you’re one. You should listen to your elders. That’s me."], choices: [{ text: '~playful~ What do you say?', goto: 'say' }] },
-        say: { say: ["~playful~ Come next Tooth Day. I want a witness for eleven."], choices: [{ text: '~happy~ Deal.', end: true }] },
-      },
-    },
+    talk: { listen: [
+      { if: { not: { flag: 'world.buried.done' } }, say: ["~curious~ Are you a person? You arrived in a ball. I’m Pim. Nine teeth old. For now.", '~scared~ If the wheel turns today I’ll be ten teeth. Wen says it might not. If it doesn’t, I’ll be nine forever.'] },
+      '~whisper~ Ten-teeth-olds are allowed down the ramp. The canyon walls are pipes, not stone: put your ear on them and you can hear the machine thinking.',
+      '~happy~ That’s the Other Half, up there. When the wheel turns, it rocks. Last year a whole tower swung like a bell, and nobody heard it, because it’s too high to hear.',
+      { if: { not: { quest: 'buried.key', done: true } }, say: '~whisper~ Dun’s key is stuck up on *the floating derrick*, everyone knows, but he says it isn’t. The crane only turns one way. Like me.' },
+      '~angry~ Go away, I’m counting. Now I have to start again. One…',
+      { if: { not: { flag: 'box.buried.resin' } }, say: '~playful~ There’s a box with a star on it up on *the smoking chimney stack*, north-east. On the ring round it. I’m not allowed to climb it. You are, probably.' },
+      { after: { flag: 'world.buried.done' }, say: ["~playful~ TEN! I’m ten teeth old! Wen says you’re one. You should listen to your elders. That’s me.", '~playful~ Come back next year, so I can be eleven in front of you.'] },
+      { after: { flag: 'temple.buried.done' }, say: '~surprised~ The old pipe-cart rides the canyon again! I rode it nine times. Don’t tell Wen. Ten. Ten times.' },
+    ] },
   },
 
   ossa: {

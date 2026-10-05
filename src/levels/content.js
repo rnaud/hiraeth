@@ -36,8 +36,8 @@ export const CONTENT = {
     // first visit and closes when the tower has spoken and Sel has read where it came from
     story: {
       title: 'YOU ARE NOT ALONE',
-      intro: 'A market full of shouting signs, and one silent broadcast tower. Sel waits at its foot with a message nobody has heard.',
-      outro: 'Your father’s voice filled the market, calling for someone named Ilen. The message came from home, thirty years ago.',
+      intro: "A market full of shouting signs, and one silent broadcast tower. Sel waits at its foot with a message nobody has heard.",
+      outro: "Your father’s voice filled the market, calling for someone named Ilen. The message came from home, thirty years ago.",
       label: 'the broadcast balcony', goal: [0, 45, -234], radius: 5, verticalRadius: 5, manual: true,
     },
     relics: {
@@ -83,8 +83,8 @@ export const CONTENT = {
     // opens on the first visit and closes when the ship has power again
     story: {
       title: 'THE TREE THAT DRINKS',
-      intro: 'Your ship needs fuel. Beyond the dunes, Qanat’s great tree stands dark above the walls. Start with the people there.',
-      outro: 'You cleared the water channel, brought back the spark-stone, and relit Qanat’s tree. Its glowing water has powered your ship.',
+      intro: "Your ship needs fuel. Beyond the dunes, Qanat’s great tree stands dark above the walls. Start with the people there.",
+      outro: "You cleared the water channel, brought back the spark-stone, and relit Qanat’s tree. Its glowing water has powered your ship.",
       label: 'the great dark tree', goal: [230, 'ground', 400], radius: 20, manual: true,
     },
     relics: {
@@ -95,12 +95,13 @@ export const CONTENT = {
     // the camps' people are in src/story/desert-data.js
     npcs: [
       { at: [30, 12], palette: pal('#d8a24a', { cloth: '#5a4a3a' }), lines: ["~tired~ Wind’s erased my tracks. Again.", "~solemn~ Old walls under every dune."],
-        id: 'ysa', name: 'Ysa', title: 'dune walker', color: '#d8a24a', talk: { nodes: {
-          hello: { say: ["~tired~ Ysa. Dune walker. The wind erases my tracks every night. I try not to take it as criticism."], choices: [
-            { text: '~curious~ Where is everyone?', goto: 'where' }, { text: '~neutral~ Bye, Ysa.', end: true }] },
-          where: { say: ["~neutral~ *Qanat, north-east past the low dunes.* Look for the great dark tree above its walls. Its fire went out the night before your crash. The pilgrims wait at the gate."], choices: [{ text: '~curious~ What do the dunes remember?', goto: 'city' }, { text: '~happy~ Thanks.', end: true }] },
-          city: { say: ["~solemn~ There are buried cities under these dunes. Qanat stayed above the sand. The old people say its tree’s roots hold it together."], choices: [{ text: '~happy~ Thanks.', end: true }] },
-        } } },
+        id: 'ysa', name: 'Ysa', title: 'dune walker', color: '#d8a24a', talk: { listen: [
+          "~tired~ Ysa. Dune walker. The wind erases my tracks every night. I try not to take it as criticism.",
+          { if: { not: { flag: 'item.backpack' } }, say: '~neutral~ Qanat is *north-east, past the low dunes*. Look for the great dark tree over the walls; the pilgrims are camped at its gate.' },
+          "~solemn~ There are buried cities under these dunes. Qanat stayed above the sand. The old people say its tree’s roots hold it together.",
+          '~playful~ Lost? Good. Walking only works if you get a little lost.',
+          { after: { flag: 'world.desert.done' }, say: '~happy~ The tree burns again. I can walk home by it at night, the way I used to.' },
+        ] } },
       { at: [-140, -80], palette: pal('#5fb7ad'), lines: ['~whisper~ The mask sleeps. Don’t wake it.', '~neutral~ I counted the ribs once. Forty.'],
         id: 'pell', name: 'Pell', title: 'counter of bones', color: '#5fb7ad', talk: { nodes: {
           hello: { say: ["~playful~ Pell. I counted the great ribcage south of here. Forty ribs. The giant beneath Qanat is harder; people object when you count under their kitchens."], choices: [
@@ -120,15 +121,21 @@ export const CONTENT = {
           op: { say: ["~tired~ It thinks I’m slow and talk too much. Probably gone to the procession, where both are encouraged."], choices: [{ text: '~happy~ Good luck.', end: true }] },
         } } },
       { at: [-120, 34], palette: pal('#e6875f'), lines: ['~neutral~ The salt flats are that way. Bring water.', '~solemn~ At night the moon throws shadows too.'],
-        id: 'ennor', name: 'Ennor', title: 'guide to the salt', color: '#e6875f', talk: { nodes: {
-          hello: { say: ["~neutral~ *Salt flats are west.* Carry spare water. At night, some shadows point toward the moon. Don’t use them for directions."], choices: [{ text: '~curious~ Where can I find water?', goto: 'water' }, { text: '~neutral~ Bye.', end: true }] },
-          water: { say: ["~playful~ Try the pilgrims at Qanat. Their sacred well is dry this year. The tree gets the first drink, and everyone’s becoming impatient with its table manners."], choices: [{ text: '~happy~ Thanks, Ennor.', end: true }] },
-        } } },
+        id: 'ennor', name: 'Ennor', title: 'guide to the salt', color: '#e6875f', talk: { listen: [
+          ['~neutral~ The salt flats are west. Bring water. Bring two waters.', '~solemn~ At night the moon throws shadows too, and they don’t always point away from it.'],
+          '~playful~ Water? Ask the pilgrims at Qanat; they’ve waited eleven days for water themselves. The tree gets the first drink. It always has.',
+          '~angry~ I’m a guide, not a well. Go and be thirsty somewhere else.',
+          '~neutral~ Lost in the dunes? Climb the tallest one and look for the tree. Everything here is measured from the tree.',
+          { after: { flag: 'temple.desert.done' }, say: '~surprised~ Green, round Qanat. Twenty years I’ve walked people past those fields, and I never once saw them green.' },
+        ] } },
       { at: [10, -200], palette: pal('#f3ead8', { cloth: '#7a4a35' }), lines: ['~neutral~ The stones hum when a storm comes.'],
-        id: 'tamsin', name: 'Tamsin', title: 'listener to stones', color: '#f3ead8', talk: { nodes: {
-          hello: { say: ["~curious~ The stones hum before a storm. But that night before your crash, they hummed under clear skies. A light passed, singing their note."], choices: [{ text: '~curious~ The same note?', goto: 'note' }, { text: '~neutral~ Bye, Tamsin.', end: true }] },
-          note: { say: ["~scared~ A low note rising. The stones answered. I’ve listened for years and never heard that before. I moved farther away."], choices: [{ text: '~neutral~ Bye.', end: true }] },
-        } } },
+        id: 'tamsin', name: 'Tamsin', title: 'listener to stones', color: '#f3ead8', talk: { listen: [
+          "~curious~ The stones hum before a storm. But that night before your crash, they hummed under clear skies. A light passed, singing their note.",
+          '~scared~ Low, then rising, like a question. The stones answered it. I didn’t like the answer, and I don’t speak stone.',
+          '~whisper~ Shh. A storm is coming. Or that’s my stomach. One of the two.',
+          '~neutral~ When the stones hum, get behind something. The storms come quick off the flats, and the sand gets everywhere. Everywhere.',
+          { after: { flag: 'world.desert.done' }, say: '~solemn~ They hum softer since the tree burned. As if somebody had put a hand on them.' },
+        ] } },
       { at: [-18, 18], radius: 2, palette: pal('#697a98'), lines: ['~neutral~ A sleeping observatory stands east of camp.'],
         id: 'traveller', name: 'The traveller', title: 'sketching', color: '#697a98', talk: { nodes: {
           hello: { say: ["~sad~ East of camp: an observatory with a brass ring on top. I’ve drawn it a hundred times, always asleep. I’d like one picture of it working."], choices: [{ text: '~curious~ How do I wake it?', goto: 'how' }, { text: '~neutral~ Bye.', end: true }] },
@@ -143,7 +150,7 @@ export const CONTENT = {
     story: {
       title: 'THE LIGHT NOBODY LOOKS AT',
       intro: 'Above the palace, the Lodestar turns, dimmer than it should be. Nobody here looks up.',
-      outro: 'The Lodestar shines again. For a moment, the entire city shared a view. Nima asked you to remember: look up once a day.',
+      outro: "The Lodestar shines again. For a moment, the entire city shared a view. Nima asked you to remember: look up once a day.",
       label: 'the Lodestar', goal: [0, 450, 0], radius: 34, manual: true,
     },
     relics: {
@@ -165,7 +172,7 @@ export const CONTENT = {
     story: {
       title: 'THE WAITING BIRD',
       intro: 'Nobody here says much. A bird waits beside you, and keeps turning to look at a lone tower.',
-      outro: 'The rider left a whistle and a map. When you called, the bird came. A new promise, freely given.',
+      outro: "The rider left a whistle and a map. When you called, the bird came. A new promise, freely given.",
       label: 'the lone tower', goal: [260, 'top', -420], drop: 40, radius: 30, manual: true,   // the spike tip is ~40 m above the window room
     },
     relics: {
@@ -184,7 +191,7 @@ export const CONTENT = {
     story: {
       title: 'THE MAJOR FORGOT',
       intro: 'Major Brask built this pocket universe, and forgot why. His people keep the machines turning, and pass round a signal nobody can read.',
-      outro: 'The Major’s note asks what his world might become. On its back: coordinates for a wheel buried in sand. The machines keep working.',
+      outro: "The Major’s note asks what his world might become. On its back: coordinates for a wheel buried in sand. The machines keep working.",
       label: 'the great machine', goal: [90, 86, -60], radius: 12, manual: true,
     },
     relics: {

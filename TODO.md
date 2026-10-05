@@ -428,10 +428,18 @@ reached by ship. See `unity/README.md`.
 - [x] An Android build (`BenchBuild.Android`: `com.rnaud.memento.unity`, IL2CPP ARM64, Vulkan + GLES3, the
   export gzipped inside and copied out on first launch).
 - [ ] Run `scripts/bench/android-run.sh` on the Retroid (the APK has never been run on a device).
-- [ ] The capes cost ~55 ms a frame at the camps (`Cape.Collide` reads `Transform.position` / `lossyScale`
-  in its inner loops): read the capsules once per step, or Burst.
-- [ ] Levels of detail and size culling in the port (5–8 M triangles a frame against the web's ~1 M), and
-  the shadow cascades refreshed on a schedule as on the web, before comparing GPU cost again.
+- [x] The capes cost ~55 ms a frame at the camps (`Cape.Collide` read `Transform.position` / `lossyScale`
+  in its inner loops): now one Burst job a frame (`CapeSystem`: the bodies read once, near and in view only,
+  every other frame past 12 m), ~0.25 ms at the camps.
+- [x] Levels of detail and culling as the web's (the exporter bakes the web's draw units and their levels,
+  `statics.mjs`; `WorldDetail` picks them by screen-space error; props culled by size and distance; the flora
+  by cell, instanced; the bodies' skinned levels; the crowd's mid / far / distant tiers) and the web's three
+  shadow cascades on its schedule (`MementoShadows`, in place of URP's): 0.4–1.5 M triangles a frame.
+- [x] The Mac benchmark player in IL2CPP (`BenchBuild.Mac`; `-mono` for the old one).
+- [ ] The crowd's near tier as the web's (full bodies for the nearest few within 12.5 m, the mid figure
+  beyond): the port still gives full bodies out to 55 m, the most of what the camps draw.
+- [ ] The EditMode story test and the batch play-through still walk the desert's old opening quest; the
+  web's desert rework (the cold tree, the empty tank, the spark-stone) isn't ported yet.
 - [ ] The desert's smaller things: the errands of the people near the start, the reactive flowers, the
   scout drone, hover trails; swimming's strokes, diving and breath.
 - [ ] Connect an MCP client to the editor (the bridge package is installed; an organization policy
@@ -493,6 +501,37 @@ All of this is for the web game; the Unity port follows later if we move to Unit
 
 # Dialogue (2026-10-05)
 
-- [ ] The choice numbers (1, 2, 3) overlap the answers' text (seen on the Retroid).
-- [ ] People who aren't part of a quest offer no answers: you just listen. A small hint, a piece of wisdom
-  about their world, a brush-off ("get lost"), or something funny; then the talk ends.
+- [ ] The speaker's portrait circle shows empty on the Retroid (seen in the device's Chrome: the chip is a blank
+  yellow disc).
+
+- [x] The choice numbers (1, 2, 3) overlap the answers' text (seen on the Retroid). (The mark's span went to
+  font-size 0 for the controller/touch mark, so its em width collapsed and the mark sat on the first letters;
+  now each answer is a flex row with the mark in its own column, and a controller shows the confirm button.)
+- [x] People who aren't part of a quest offer no answers: you just listen. A small hint, a piece of wisdom
+  about their world, a brush-off ("get lost"), or something funny; then the talk ends. (`talk: { listen }`:
+  every bystander and crowd person in seven worlds, a different entry each talk, news after the temple and
+  the main quest.)
+
+---
+
+# Feel and look (2026-10-05, web)
+
+- [ ] Plants move too much when you walk past: a light brush as you pass, not a big shove.
+- [ ] Most structures cast shadows.
+- [ ] Grass pops in: in the distance it should fade into something smaller and cheaper, not appear at a line.
+- [ ] Jump animation by phase: take-off, the top, falling back down (it looks static through the whole jump).
+- [ ] The gun's blob impact follows the surface it hits, not a flat decal floating in front of it.
+- [ ] Hands are stiff and flat: give them the natural arc of a relaxed hand, and let them move.
+- [ ] The faces in the dialogue box's portrait are badly aliased.
+- [ ] The alien text in the dialogue box lacks variety: it should look like a real written language
+  (each world its own script) before it turns into English.
+- [ ] One stamina bar shared by running and climbing; running a little faster.
+- [ ] Flowers that open shouldn't clip into walls and other things.
+- [ ] Make it clear when you hit an invisible wall (the traveller just stutters as you push on).
+- [ ] Each world's music more thematic.
+
+# References level (2026-10-05)
+
+- [ ] A level called "references" that recreates the reference images' scenes exactly, to check the
+  shaders against the intended look; `[` and `]` (L3 / R3 on device) switch between them. First
+  `references/The Desert/environement/IMG_3775.JPG` (six panels), then stop and review.

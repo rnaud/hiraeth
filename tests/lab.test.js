@@ -142,3 +142,28 @@ test('the Lab: jump hops through every room and back to the hub, without walking
   for (let i = 0; i < 40; i++) level.update(1 / 30, i / 30, { player });
   assert.equal(level.zoneAt(player.pos).name, seen.at(-2), 'backwards: the last room');
 });
+
+test('the lab: rooms not shown keep their matrices but cost the frame\'s matrix update nothing', () => {
+  const scene = new THREE.Scene();
+  const level = createLab(scene);
+  const [a, b] = level.rooms;
+  assert.equal(a.group.visible, false);
+  // brought up to date as it hid: its meshes sit out on the ring
+  const mesh = a.group.children.find((o) => o.isMesh);
+  const at = new THREE.Vector3().setFromMatrixPosition(mesh.matrixWorld);
+  assert.ok(at.distanceTo(a.centre) < 400, 'the room\'s matrices were computed');
+  // a hidden room's objects aren't touched by the frame's update (which three.js forces down the tree)
+  mesh.position.x += 5;
+  scene.updateMatrixWorld();
+  scene.updateMatrixWorld(true);
+  assert.ok(new THREE.Vector3().setFromMatrixPosition(mesh.matrixWorld).distanceTo(at) < 1e-6, 'skipped while hidden');
+  // (asked for directly, it is still worked out: getWorldPosition and the like)
+  assert.ok(Math.abs(mesh.getWorldPosition(new THREE.Vector3()).x - at.x - 5) < 1e-6);
+  // walk in: the room is shown and updated, the hub and the other rooms hidden
+  const p = walker(a.arrive);
+  step(level, p, 1);
+  assert.ok(a.group.visible && !b.group.visible && !scene.getObjectByName('Lab hub').visible);
+  mesh.position.x -= 5;
+  scene.updateMatrixWorld();
+  assert.ok(new THREE.Vector3().setFromMatrixPosition(mesh.matrixWorld).distanceTo(at) < 1e-6, 'updated once shown');
+});

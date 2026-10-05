@@ -227,6 +227,14 @@ namespace Memento
                     smr.shadowCastingMode = shadow ? ShadowCastingMode.On : ShadowCastingMode.Off;
                     smr.quality = SkinQuality.Bone4;
                     fig.renderers.Add(smr);
+                    // its levels of detail (people.mjs, skinned-lod.js): the same skeleton, simpler skin
+                    var lods = m.L("lods");
+                    if (lods != null && lods.Count > 0)
+                    {
+                        var lv = new Mesh[lods.Count]; var js = new int[lods.Count];
+                        for (int i = 0; i < lods.Count; i++) { lv[i] = MeshOf(lods[i].I("geo"), m.I("bind"), bl.Count); js[i] = lods[i].I("j"); }
+                        fig.lods.Add(new Figure.SkinLevels { smr = smr, full = smr.sharedMesh, levels = lv, js = js });
+                    }
                 }
                 else
                 {

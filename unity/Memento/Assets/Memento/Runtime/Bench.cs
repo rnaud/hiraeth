@@ -74,6 +74,7 @@ namespace Memento
             Active = true;
             var go = new GameObject("Benchmark");
             DontDestroyOnLoad(go);
+            go.AddComponent<PerfClock>();
             go.AddComponent<Bench>();
             Debug.Log("Memento: bench armed: " + string.Join(" ", Args().SkipWhile(a => a != "-bench")));
         }
@@ -104,6 +105,7 @@ namespace Memento
         };
         readonly List<(string name, ProfilerRecorder rec)> markers = new();
         double[] markerSum = new double[0]; int markerFrames;
+        readonly double[] sysSum = new double[(int)Perf.Slot.Count]; readonly double[] cntSum = new double[8];
         float loadTitle, loadFirst;
 
         IEnumerator Start()
@@ -116,6 +118,9 @@ namespace Memento
             if (!File.Exists(file)) { Fail("no viewpoints at " + file); yield break; }
             vp = Json.Parse(File.ReadAllText(file)) as Dictionary<string, object>;
             preset = Arg("-benchPreset", "high");
+            Quality.Set(preset);   // (the web's preset: levels of detail, culling, shadow maps)
+            if (Arg("-benchDetail") == "full") Quality.AllDetail();   // (a reference: no levels of detail, nothing culled)
+            if (Arg("-benchShadows") == "off") MementoShadows.On = false;   // (a diagnosis: no sun shadows)
             var res = Arg("-benchRes");
             if (res != null && Application.platform != RuntimePlatform.Android)
             {
@@ -190,18 +195,8 @@ namespace Memento
             Settings.mute = true; Settings.Apply();
             // the graphics preset (the web's High and Handheld, mapped: docs/benchmark-web-vs-unity.md)
             urp = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
-            if (urp)
-            {
-                if (preset == "handheld")
-                {
-                    urp.renderScale = 0.75f;
-                    urp.shadowCascadeCount = 2;
-                    urp.mainLightShadowmapResolution = 4096;   // (two 2048 tiles: the web's near and far maps)
-                    urp.cascade2Split = 160f / 700f;
-                    urp.shadowDistance = 700;
-                }
-                else urp.renderScale = 1;
-            }
+            // (the shadow maps, levels of detail and culling follow Quality: the web's own cascades, MementoShadows)
+            if (urp) urp.renderScale = preset == "handheld" ? 0.75f : 1;
             if (game.look) { game.look.hour = vp.F("hour", 10); game.look.hoursPerMinute = 0; }
             if (game.ambient) { game.ambient.forced = vp.S("weather", "clear"); game.ambient.intensity = 0; game.ambient.target = 0; }
             // the backpack on his back, as the web side's save has it (item.backpack)
@@ -278,7 +273,7 @@ namespace Memento
         {
             foreach (var l in new[] { fFrame, fCpu, fMain, fRender, fGpu, fWait }) l.Clear();
             foreach (var l in new[] { fBatches, fDraws, fSetPass, fTris, fVerts }) l.Clear();
-            Array.Clear(markerSum, 0, markerSum.Length); markerFrames = 0;
+            Array.Clear(markerSum, 0, markerSum.Length); markerFrames = 0; Array.Clear(sysSum, 0, sysSum.Length); Array.Clear(cntSum, 0, cntSum.Length);
             recording = true;
             Debug.Log("Memento: bench rec start");   // (a WebGL page's runner slices its own frame times by these)
             float end = Time.realtimeSinceStartup + secs;
@@ -315,6 +310,8 @@ namespace Memento
             if (rTris.Valid) fTris.Add(rTris.LastValue);
             if (rVerts.Valid) fVerts.Add(rVerts.LastValue);
             for (int i = 0; i < markers.Count; i++) if (markers[i].rec.Valid) markerSum[i] += markers[i].rec.LastValue;
+            for (int i = 0; i < sysSum.Length; i++) sysSum[i] += Perf.Ms((Perf.Slot)i);
+            for (int i = 0; i < cntSum.Length; i++) cntSum[i] += Perf.Last((Perf.Counter)i);
             markerFrames++;
         }
 
@@ -350,8 +347,12 @@ namespace Memento
             views.Append($"\"batches\":{Med(fBatches)},\"draws\":{Med(fDraws)},\"setPass\":{Med(fSetPass)},\"tris\":{Med(fTris)},\"verts\":{Med(fVerts)},");
             views.Append($"\"mem\":{{\"totalUsed\":{Rec(rTotalUsed)},\"totalReserved\":{Rec(rTotalReserved)},\"gfxUsed\":{Rec(rGfx)},\"gcUsed\":{Rec(rGcUsed)},\"systemUsed\":{Rec(rSystem)},\"videoMemory\":{Rec(rVideo)},\"renderTextures\":{Rec(rRT)},\"buffers\":{Rec(rBuffers)},\"textures\":{Rec(rTextures)},\"monoHeap\":{GC.GetTotalMemory(false)}}},");
             views.Append("\"markers\":{" + string.Join(",", markers.Select((m, i) => $"{Q(m.name)}:{(m.rec.Valid && markerFrames > 0 ? (markerSum[i] / markerFrames / 1e6).ToString("0.###", CultureInfo.InvariantCulture) : "null")}")) + "},");
+            // the game's own systems, main thread, stopwatch-timed (Perf.cs: release players too), and their counters
+            int nf = Math.Max(markerFrames, 1);
+            views.Append("\"systems\":{" + string.Join(",", Perf.Names.Select((n, i) => $"{Q(n)}:{(sysSum[i] / nf).ToString("0.###", CultureInfo.InvariantCulture)}")) + "},");
+            views.Append("\"counts\":{" + string.Join(",", Perf.CounterNames.Select((n, i) => $"{Q(n)}:{(cntSum[i] / nf).ToString("0.#", CultureInfo.InvariantCulture)}")) + "},");
             views.Append($"\"raw\":{{\"frame\":{Raw(fFrame)},\"gpu\":{Raw(fGpu)},\"cpu\":{Raw(fCpu)}}}}}");
-            Debug.Log($"Memento: bench {name}: {fFrame.Count} frames, median {med:0.00} ms, gpu {Stats(fGpu)}, draws {Med(fDraws)}, tris {Med(fTris)}");
+            Debug.Log($"Memento: bench {name}: {fFrame.Count} frames, median {med:0.00} ms, gpu {Stats(fGpu)}, draws {Med(fDraws)}, tris {Med(fTris)}, cape {sysSum[0] / nf:0.00} ms, lod {sysSum[1] / nf:0.00}, cull {sysSum[2] / nf:0.00}, shadows {sysSum[3] / nf:0.00}, crowd {sysSum[4] / nf:0.00}; capes simulated {cntSum[0] / nf:0.0}");
         }
         static string Rec(ProfilerRecorder r) => r.Valid ? r.LastValue.ToString() : "null";
 
@@ -364,7 +365,10 @@ namespace Memento
             sb.Append($"\"unity\":{Q(Application.unityVersion)},\"platform\":{Q(Application.platform.ToString())},\"device\":{Q(SystemInfo.deviceModel)},\"os\":{Q(SystemInfo.operatingSystem)},");
             sb.Append($"\"cpu\":{Q(SystemInfo.processorType)},\"gpu\":{Q(SystemInfo.graphicsDeviceName)},\"api\":{Q(SystemInfo.graphicsDeviceType.ToString())},\"systemMB\":{SystemInfo.systemMemorySize},\"scripting\":{Q(ScriptingBackend())},\"development\":{(Debug.isDebugBuild ? "true" : "false")},");
             sb.Append($"\"preset\":{Q(preset)},\"screen\":[{Screen.width},{Screen.height}],\"renderScale\":{(urp ? urp.renderScale : 1).ToString(CultureInfo.InvariantCulture)},");
-            sb.Append($"\"shadows\":{{\"cascades\":{(urp ? urp.shadowCascadeCount : 0)},\"atlas\":{(urp ? urp.mainLightShadowmapResolution : 0)},\"distance\":{(urp ? urp.shadowDistance : 0).ToString(CultureInfo.InvariantCulture)}}},");
+            sb.Append(string.Format(CultureInfo.InvariantCulture, "\"shadows\":{{\"on\":{0},\"fine\":{1},\"near\":{2},\"far\":{3},\"nearExtent\":{4},\"nearEvery\":{5},\"farEvery\":{6},\"taps\":{7}}},",
+                MementoShadows.On ? "true" : "false", Quality.fineSize, Quality.nearSize, Quality.farSize, Quality.nearExtent, Quality.nearEvery, Quality.farEvery, Quality.taps));
+            sb.Append(string.Format(CultureInfo.InvariantCulture, "\"detail\":{{\"lodPx\":{0},\"propFar\":{1},\"propPx\":{2},\"floraFar\":{3},\"floraDensity\":{4},\"crowdFar\":{5},\"crowdMid\":{6}}},",
+                Quality.lodPx, Quality.propFar, Quality.propPx, Quality.floraFar, Quality.floraDensity, Quality.crowdFar, Quality.crowdMid));
             sb.Append($"\"vSyncCount\":{QualitySettings.vSyncCount},\"targetFrameRate\":{Application.targetFrameRate},\"frameTiming\":{(FrameTimingManager.IsFeatureEnabled() ? "true" : "false")},");
             sb.Append(string.Format(CultureInfo.InvariantCulture, "\"load\":{{\"desertUnderTitle\":{0:0.###},\"firstFrame\":{1:0.###},\"copyOut\":{2:0.###}}},", loadTitle, loadFirst, DataFiles.CopySeconds));
             sb.Append($"\"label\":{Q(Arg("-benchLabel", ""))},\"time\":{Q(DateTime.UtcNow.ToString("o"))},\n\"views\":[\n{views}\n]}}\n");

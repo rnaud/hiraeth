@@ -376,6 +376,11 @@ export class Waters {
     if (!this.camUnder && !(sun && this.inView)) return;
     (this.pass ??= new WaterPass()).render(renderer, camera, { tNormal, tAlbedo, target, toon, under: this.camUnder });
   }
+
+  /** The over-the-page pass, made now if this world has water (so the loading screen compiles it: main.js). */
+  warmPass() {
+    return this.bodies.length ? (this.pass ??= new WaterPass()) : null;
+  }
 }
 
 const _frustum = new THREE.Frustum(), _pm = new THREE.Matrix4();
