@@ -37,6 +37,8 @@ const fragmentShader = /* glsl */ `
   uniform vec3 uBody, uShade, uMark, uInk, uCream;
   uniform int uKind;
   uniform float uSpin;
+  uniform float uInkK;     // how strongly its own lines are inked (1; less on a planet seen small)
+  uniform float uFreq;     // how fine its stripes, windows and hatching are (1; coarser on a planet seen small)
   uniform vec3 uLight;     // planet-local (its +z faces the camera)
   in vec3 vObj;
   in vec3 vN;
@@ -66,7 +68,7 @@ const fragmentShader = /* glsl */ `
     float ink = 0.0;
     if (uKind == 1) {           // dunes: wavy stripes along the latitudes
       float lon = atan(q.z, q.x);
-      float v = q.y * 5.5 + 0.22 * sin(lon * 5.0 + q.y * 4.0) + 0.1 * sin(lon * 11.0);
+      float v = q.y * 5.5 * uFreq + 0.22 * sin(lon * 5.0 + q.y * 4.0) + 0.1 * sin(lon * 11.0);
       float st = fract(v);
       col = mix(col, uMark, cut(st, 0.62) * (1.0 - cut(st, 0.86)));
       ink = max(ink, line(st, 0.62, 1.2) * 0.6);
@@ -87,7 +89,7 @@ const fragmentShader = /* glsl */ `
       col = mix(col, uMark, cut(f, 0.53));
       ink = max(ink, line(f, 0.53, 1.6));
     } else if (uKind == 5) {    // lit windows: small squares scattered over the surface
-      vec3 g = q * 9.0, cell = floor(g), fr = fract(g) - 0.5;
+      vec3 g = q * 9.0 * uFreq, cell = floor(g), fr = fract(g) - 0.5;
       float on = step(0.72, hash(cell));
       float sq = (1.0 - cut(max(abs(fr.x), max(abs(fr.y), abs(fr.z))), 0.16)) * on;
       col = mix(col, uMark, sq);
@@ -96,14 +98,14 @@ const fragmentShader = /* glsl */ `
     float lit = dot(n, normalize(uLight));
     float shadow = 1.0 - cut(lit, 0.1);
     col = mix(col, uShade * mix(vec3(1.0), col / max(uBody, vec3(0.05)), 0.35), shadow);
-    float hv = (n.x - n.y) * 34.0;
+    float hv = (n.x - n.y) * 34.0 * uFreq;
     float hatch = line(fract(hv), 0.5, 1.1) * cut(-lit, 0.08);
     ink = max(ink, hatch * 0.8);
     // the highlight arc near the lit limb (as the map draws it)
     float rim = length(n.xy), ang = atan(n.y, n.x);
     float hl = cut(rim, 0.78) * (1.0 - cut(rim, 0.84)) * cut(ang, 1.75) * (1.0 - cut(ang, 2.55));
     col = mix(col, uCream, hl * 0.9);
-    col = mix(col, uInk, clamp(ink, 0.0, 1.0));
+    col = mix(col, uInk, clamp(ink * uInkK, 0.0, 1.0));
     gAlbedoLight = vec4(col, 1.0);
     gNormalDepth = vec4(normalize(vN), vDepth);
     gHatch = vec4(0.0, 0.0, 0.0, 1.0);    // self-lit: it keeps its colours whatever the level's sun does
@@ -118,13 +120,14 @@ export function planetMaterial(id) {
     uniforms: {
       uBody: { value: new THREE.Color(p.body) }, uShade: { value: new THREE.Color(p.shade) }, uMark: { value: new THREE.Color(p.ink) },
       uInk: { value: new THREE.Color(INK) }, uCream: { value: new THREE.Color(CREAM) },
-      uKind: { value: MARK_IDS[p.mark] ?? 3 }, uSpin: { value: 0 }, uLight: { value: new THREE.Vector3(-0.55, 0.5, 0.68) },
+      uKind: { value: MARK_IDS[p.mark] ?? 3 }, uSpin: { value: 0 }, uInkK: { value: 1 }, uFreq: { value: 1 }, uLight: { value: new THREE.Vector3(-0.55, 0.5, 0.68) },
       uGlow: { value: 1 },   // (read by the shadow pass: self-lit things cast no shadow)
     },
   });
 }
 
-function flatMaterial(color) {
+/** A flat self-lit colour written to the G-buffer (the approach planet's rim, ring and moon; the holo table's). */
+export function flatMaterial(color) {
   return new THREE.ShaderMaterial({
     glslVersion: THREE.GLSL3, side: THREE.DoubleSide,
     uniforms: { uColor: { value: new THREE.Color(color) }, uGlow: { value: 1 } },

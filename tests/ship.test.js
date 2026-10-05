@@ -150,7 +150,8 @@ test('the desert crash site faces Qanat, and the city shows on the horizon from 
   const { desertHeight } = await import('../src/desert-landmarks.js');
   const s = SITE_OVERRIDES.desert, city = { x: 230, z: 400 };
   assert.ok(Math.hypot(s.x, s.z) < 160, 'near the old camp');
-  assert.ok(s.crash && Math.abs(s.crash.roll) + Math.abs(s.crash.pitch) > 0.05 && s.crash.length > 60, 'dug in and tilted');
+  assert.ok(s.crash && s.crash.sink > 2 && s.crash.length > 60, 'dug in at the end of a long furrow');
+  assert.ok(Math.abs(s.crash.roll) < 0.01 && Math.abs(s.crash.pitch) < 0.01, 'upright: the deck inside is level, walking it never goes up and down');
   const toCity = Math.atan2(city.x - s.x, city.z - s.z);
   assert.ok(Math.abs(Math.atan2(Math.sin(toCity - s.heading), Math.cos(toCity - s.heading))) < 0.2, 'the hatch faces the city');
   // from eye height at the foot of the ramp, nothing in the dunes rises above the line to the city walls
