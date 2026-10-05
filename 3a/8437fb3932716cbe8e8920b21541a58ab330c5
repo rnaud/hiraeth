@@ -1,0 +1,21 @@
+README.md
+  s_1fd8d0e7b02dcf::t_07742e2d9bbea2 2181-2221
+src/motion/main.js
+  s_1fd8d0e7b02dcf::t_034871aa621b49 217,356,527-529,531,564,722-729,809,848
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3a8437fb3932716cbe8e8920b21541a58ab330c5",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
