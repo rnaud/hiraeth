@@ -1,0 +1,23 @@
+.github/workflows/cloudflare.yml
+  s_b098a73ec1a533::t_4193f8a0f94017 40-48
+README.md
+  s_b098a73ec1a533::t_1103bafd73bba5 6
+docs/cloudflare.md
+  s_b098a73ec1a533::t_73fa178b14defa 4-5,26,54-55
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5a2cc137551d6d6afe9926214b9ed91c7d501ca0",
+  "prompts": {},
+  "sessions": {
+    "s_b098a73ec1a533": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a10c82-0ebe-7610-8af1-a76f64fb3b0c",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
