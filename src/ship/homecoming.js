@@ -504,7 +504,7 @@ export class HomecomingDirector {
           // the oldest recording: low, over his shoulder and the slab, the three busts over the reel
           // in front of the stone, looking up at him (their faces: REEL_HOLO over the reel)
           const push = Math.min(this.shotT * 0.03, 0.25);
-          shot = { pos: L(1.0, 1.15, 2.65 - push), look: L(-0.05, REEL_AT.y + REEL_HOLO * 0.55, REEL_AT.z - 0.05), fov: 36 };
+          shot = { pos: L(0.72, 1.2, 2.55 - push), look: L(-0.12, REEL_AT.y + REEL_HOLO * 0.55, REEL_AT.z - 0.05), fov: 36 };
         } else {
           // setting them down: over his right shoulder, onto the slab
           shot = { pos: L(2.0, 2.2, 3.5), look: L(-0.15, 0.5, 0), fov: 42 };
