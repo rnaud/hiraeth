@@ -2441,6 +2441,51 @@ game loaded from `http://localhost:5253/`, no APK updater; Gradle on Unity's JDK
 `com.rnaud.moebius`) and `node scripts/bench/android-engines-summary.mjs <raw dir>`. Afterwards
 `adb uninstall com.rnaud.moebius.perf`.
 
+### Rooms off the map draw only themselves (`InteriorCuller`, `src/perf.js`)
+The desert's cave was the one place the Retroid stuttered in every engine (GPU 96–99 % busy, a small
+room). The cause: the rooms reached through portals are built a kilometre or more over the map, and from
+in there the camera's frustum (5 km deep, looking level or a little down) takes in the desert below.
+Behind the cave's walls the game still drew it: in the passage 344 draws and 0.37 M triangles of terrain,
+city and flora, more than the open dunes draw in all (0.27 M). The 110 terrain tiles came first (their
+material sorts before the cave's), ~2 km away at under a quarter of a pixel a metre: 0.27 M triangles
+smaller than a pixel, each set up and shaded (in 2 × 2 quads) before the cave covered them. An Apple GPU
+hides most of that (hidden-surface removal); the handheld's Adreno doesn't.
+
+- **The fix** (all worlds): while the camera is inside a room off the map (`offMapRooms` in `main.js`:
+  portal destinations 200 m over the ground), `InteriorCuller` hides every mesh, point cloud and line whose
+  bounds don't reach the room, in every pass of that frame, then shows them again. A room's extent is found
+  once: the static meshes within 60 m of its door that stand 150 m clear of the ground, grown by 30 m at a
+  time (a temple's rooms in a row). The traveller, the drone and whoever is in the room stay; people, mounts
+  and anything left outside are hidden. Rooms only open onto the sky (oculi, door veils, windows over a
+  kilometre of air), so the picture is unchanged (screenshots of every room, both ways, with and without).
+- **In the cave**: 425 → 87 draws and 0.47 → 0.09 M triangles (Handheld; High 577 → 118, 0.57 → 0.13 M).
+  The passage's walls now go first into the cave's batches, so they hide the dome's far side instead of
+  being painted over it (fragments shaded in the G-buffer: 1.84 → 1.18 a pixel in the passage, 1.60 → 1.25
+  in the room, against 0.92 on the dunes). The fluid's lava (the pool, the stream, the tank) sums its blobs
+  tone by tone instead of into a local array indexed at run time (slow scratch memory on mobile GPUs; the
+  same picture, bit for bit), and the sun's sparkle pass no longer runs full-screen for the magic pool,
+  which has no glints to draw.
+- **Elsewhere** (`rooms.mjs`, Handheld, draws and triangles a frame, looking in from the door / back out
+  through it): every temple and chamber off the map gains, most where the world below fills the view. The
+  Hearth's hall 91 → 73 / 321 → 59 draws (445 → 63 k triangles looking out); the masked head's chamber
+  99 → 65 / 80 → 63; Edena's room 134 → 76 / 95 → 66; the temples 3–25 % fewer draws and 1–45 % fewer
+  triangles (the Givers' House 212 → 195 / 82 → 65 draws, 202 → 134 / 153 → 86 k triangles; the Aerie
+  252 → 203 / 107 → 63; the Hush-House 226 → 216 / 93 → 66). The ship parked on the dunes and the houses at
+  home stand on the map, with windows and an open hatch: what's outside is really seen there, so they keep
+  drawing it.
+- **On the Mac** (M4 Pro, Metal, 1280 × 720, `web-bench.mjs`): Handheld, the cave 3.0 → 2.1 ms a frame
+  (GPU 1.70 → 1.06 ms) against the dunes' 2.5–2.8 (GPU 1.4–1.5); High, 3.4 → 2.3 ms (GPU 4.6 → 3.2) against
+  3.3–3.6. With the GPU the bottleneck and its hidden-surface removal defeated (`passes.mjs --scale 3
+  --nohsr 1`, culling on and off in turns): the passage 14.9 → 11.6 ms, the room with the pool full
+  14.2 → 11.0, against the dunes' 16–17.
+
+To measure: `node scripts/bench/passes.mjs --url http://localhost:<port>/ --preset handheld --only
+cave,cave-room,cave-pool,dunes [--wet 1] [--scale 3 --nohsr 1] [--toggles base,noInterior,noShadow,…]
+[--eval snippet.js]` (each `renderer.render()` timed with the GPU timer, which on Metal mostly measures its
+own overhead, then the A/B toggles in turns; `--nohsr` adds a never-taken `discard` to every surface shader
+so an Apple GPU shades in draw order like the Adreno); `node scripts/bench/rooms.mjs --url … --shots dir`
+for every world's rooms off the map, culled and not. Tests: `tests/interior-cull.test.js`.
+
 ### Levels of detail far away (`src/lod.js`, `src/lod-core.js`)
 A distant building, rock or plant is drawn with a coarser copy of itself, never coarser than the
 Graphics preset allows on screen (`lodPx` in `QUALITY_PRESETS`: 1 px for Auto, Medium and High,

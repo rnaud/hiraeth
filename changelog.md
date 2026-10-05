@@ -22,6 +22,7 @@ The same release notes shown in the game (press **N** or open settings).
 - Fewer strokes over big shaded areas: walls in half-shade, sand, bone and metal are a flat tone with few hatch lines, and layered rock keeps a few strokes along its layers in the light. The ink is finer and more broken, solid black in the deepest crevices, and soft dune crests are no longer outlined.
 - Calmer sand, with fewer wavy ripple lines and scattered dots; bare rock shows long cracks. Water ripples only in the patches the wind ruffles, and far water lies flat. The printed sky is one grainy tint down to the horizon, the page has more of a paper texture, and hulls are plated in uneven panels.
 - Old walls look lived in: cracks run down from their tops, up from their feet and out from window corners, with patches where the plaster has gone. In the desert, sand banks up against the buildings, tents, skeletons and wrecks, so they sit in the ground, and you can walk up the drifts.
+- The cave under the giant’s skull runs smoothly on handhelds: inside it, and inside every temple and chamber you reach through a doorway, the game no longer draws the whole world outside behind the walls.
 
 ## v0.61 — 2026-10-05
 
