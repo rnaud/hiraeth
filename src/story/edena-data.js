@@ -264,7 +264,7 @@ export const PEOPLE = {
   },
 
   lio: {
-    id: 'lio.edena', name: 'Lio', title: 'who climbs', color: '#b5a7e6', voice: 1.4, kind: 'f', scale: 0.86,
+    id: 'lio.edena', name: 'Lio', title: 'who climbs', color: '#b5a7e6', voice: 1.4, kind: 'f', scale: 0.86, age: 'child', years: 9,
     palette: { cloak: '#b5a7e6', lining: '#2b211f', cloth: '#f2c54b', legs: '#4a3a2a', hat: '#f2a7b5', hair: '#6e4a32' }, head: 'hair', cape: 0.5,
     lines: ['~happy~ Climb the trees. The view is worth it.', '~happy~ I’ve been to the second canopy. Twice!', '~surprised~ The crown floats. It FLOATS.'],
     talk: {
@@ -347,7 +347,7 @@ export const PEOPLE = {
   // the tea terraces (src/story/terraces.js): the quest you try, and fail
   esk: {
     id: 'esk', name: 'Esk', title: 'who keeps the tea terraces', color: '#9a7a4a', voice: 0.9, kind: 'f', scale: 0.98,
-    palette: { cloak: '#c9a46a', lining: '#2b211f', cloth: '#5f8f5a', legs: '#5a4a3a', hat: '#f3ead8', hair: '#8a8a8a' }, head: 'wrap', cape: 0.8, look: { prop: 'basket' },
+    palette: { cloak: '#c9a46a', lining: '#2b211f', cloth: '#5f8f5a', legs: '#5a4a3a', hat: '#f3ead8', hair: '#8a8a8a' }, head: 'wrap', cape: 0.8, look: { prop: 'basket', head: 'straw', under: 'bun' },
     lines: ['~tired~ Mind the bushes. They’re thirsty.', '~neutral~ Top row first. Always top row first.', '~sad~ The tips are going brown.'],
     linesAfter: ['~tired~ …', '~sad~ The sides held. The sides held.', '~solemn~ It belongs to the ground now.'],   // (after the flood: src/story/terraces.js)
     talk: {

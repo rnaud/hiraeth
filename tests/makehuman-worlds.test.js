@@ -326,3 +326,12 @@ test("The Buried Machine's people are MakeHuman bodies: Pim a small boy, Hask un
   assert.ok(pim.height > 1.0 && pim.height < 1.3, `Pim ${pim.height.toFixed(2)} m`);
   assert.equal(onBody('buried', Object.values(PEOPLE).find((d) => d.id === 'hask.buried')).look.head, 'helmet');
 });
+
+test("Viridel's people are MakeHuman bodies: Lio a child of nine, Esk in a straw hat", async () => {
+  assert.ok(MH_WORLDS.has('edena'));
+  const { PEOPLE } = await import('../src/story/edena-data.js');
+  assert.equal(ageClassOf({ def: Object.values(PEOPLE).find((d) => d.id === 'lio.edena') }), 'child');
+  const lio = onBody('edena', Object.values(PEOPLE).find((d) => d.id === 'lio.edena'));
+  assert.ok(lio.height > 1.05 && lio.height < 1.45, `Lio ${lio.height.toFixed(2)} m`);
+  assert.equal(onBody('edena', PEOPLE.esk).look.head, 'straw');
+});
