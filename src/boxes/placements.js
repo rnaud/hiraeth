@@ -79,9 +79,15 @@ export const PLACEMENTS = {
   ],
   garage: [
     // on the keep's south curtain wall, facing the spawn (a 14 m climb)
-    { id: 'garage.coil', item: 'coil', at: [8, 14, 24], toward: [0, 120],
+    // It held the quick coil until the First Garage was built (src/temples/garage.js): the coil is its key now, and
+    // the wall keeps the brass level, a gift in the open (a new box: saves that opened the coil's find it there)
+    { id: 'garage.level', item: 'level', at: [8, 14, 24], toward: [0, 120],
       hint: 'A makers’ box stands on top of the keep’s south curtain wall. Climb the wall',
       note: 'The top of the keep’s south curtain wall.' },
+    // the First Garage (src/temples/garage.js): in its round chamber over the winding well. The coil is the key to the
+    // rest: the banks of six eyes that wake only together (two tanks in one breath), the Foreman's six numerals
+    { id: 'garage.temple.coil', item: 'coil', temple: 'garage', site: (level) => level.temple?.gadgetSite,
+      note: 'Inside the First Garage on the plateau’s rim west of the keep, in the round chamber over the winding well.' },
   ],
   buried: [
     // the ring platform round the smoking chimney stack (jets or a climb up the stack). It held ember mode

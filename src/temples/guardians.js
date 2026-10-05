@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { makeMaterial } from '../materials.js';
-import { ell, dome, cyl, cone, box, tube, merge } from '../wildlife/geo.js';
+import { ell, dome, cyl, cone, box, tube, torus, merge } from '../wildlife/geo.js';
 import { glyphGeometry } from '../story/sign-text.js';
 
 // The bodies of what waits in the temples, built from the wildlife's little
@@ -13,6 +13,7 @@ import { glyphGeometry } from '../story/sign-text.js';
 //   elderModel()     Vael's Elder: the oldest of the great birds, her feathers gone to stone, afraid to fly
 //   snapperModel()   Lorn's Mother Snapper: the swamp's oldest carnivorous plant, rooted in the Hush's
 //                    hall; a neck of beads and a great head of jaws that lunges, sweeps and spits seed
+//   foremanModel()   the Sealed Hangar's Clockwork Foreman: a drum of brass with a clock for a chest, wound wrong
 //   sentinelModel()  the City-Shaft's sentinel: a tall machine of the makers on three legs, a ring
 //                    of vents and a lamp-eye, broken and still guarding (see incal.js)
 //
@@ -601,6 +602,108 @@ export function sentinelModel({ hull = '#9fb2c6', hull2 = '#8aa0b8', dark = '#34
       group.updateMatrixWorld(true);
       // the target: its side vents, then (guarded) the vent on its crown
       if (M.guard > 0.5) mouth.copy(head.localToWorld(_w.set(0, 1.25, 0))); else mouth.copy(body.localToWorld(_w.set(0, 0.4, 2.2)));
+    },
+  };
+  return M;
+}
+
+/**
+ * The Sealed Hangar's Clockwork Foreman (robot: you may stop it, or set it right): the makers' machine that
+ * kept the time of everything that turns in the Major's pocket universe, wound wrong since the night the light
+ * passed. A squat drum of brass on four short legs, a great clock face for a chest with six numeral lamps
+ * round it, two arms with hammers, a little bell on its crown that it strikes the hour on. Its hands race and
+ * stutter; when it has struck, the glass over its face swings up and the numerals glow: hit all six inside one
+ * breath (two tanks' worth: the quick coil). Set right, its hands come round to the true time and stop.
+ */
+export function foremanModel({ brass = '#d8a24a', brass2 = '#b8862f', teal = '#62c3c9', dark = '#34405e', cream = '#f3ead8', glass = '#cfe9e0', lamp = '#f2c54b' } = {}) {
+  const group = new THREE.Group();
+  const mat = vc();
+  const lampM = makeMaterial({ color: lamp, glow: 0.1, flat: true, key: `foreman.lamp.${uid++}` });
+  const eyeM = makeMaterial({ color: '#e0644a', glow: 0.8, flat: true, key: `foreman.eye.${uid++}` });
+  const glassM = makeMaterial({ color: glass, glow: 0.15, flat: true, key: `foreman.glass.${uid++}` });
+  const body = new THREE.Group();
+  body.position.y = 4.4;
+  group.add(body);
+  // the drum, its bands, the face's rim and dial
+  body.add(new THREE.Mesh(merge(
+    cyl(2.5, 2.7, 3.6, brass, [0, 0, 0], null, 16),
+    cyl(2.8, 2.8, 0.35, dark, [0, -1.8, 0], null, 16), cyl(2.62, 2.62, 0.3, dark, [0, 1.75, 0], null, 16),
+    torus(2.05, 0.2, brass2, [0, 0.1, 2.62], null, [6, 28]),
+    cyl(1.95, 1.95, 0.1, cream, [0, 0.1, 2.6], [Math.PI / 2, 0, 0], 28),
+    ...Array.from({ length: 12 }, (_, i) => { const a = (i / 12) * Math.PI * 2; return box([0.09, 0.32, 0.06], dark, [Math.sin(a) * 1.65, 0.1 + Math.cos(a) * 1.65, 2.67], [0, 0, -a]); }),
+    // the crown: a dome, a post, the little bell it strikes the hour on, the winding key behind
+    dome([1.9, 1.0, 1.9], teal, [0, 1.9, 0], null, [14, 5]),
+    cyl(0.18, 0.18, 1.2, dark, [0, 3.2, 0], null, 8),
+    cyl(0.12, 0.5, 0.7, brass, [0, 3.9, 0], null, 12),
+    box([0.25, 1.4, 0.25], dark, [0, 0.4, -2.85], [Math.PI / 2, 0, 0]),
+    torus(0.55, 0.14, brass2, [0, 0.4, -3.6], [0, Math.PI / 2, 0], [5, 14]),
+  ), mat));
+  // the six numeral lamps round the face (src/temples/garage.js makes each a target)
+  const NUM = 6, numAt = (i) => { const a = (i / NUM) * Math.PI * 2; return V(Math.sin(a) * 2.05, 0.1 + Math.cos(a) * 2.05, 2.78); };
+  body.add(new THREE.Mesh(merge(...Array.from({ length: NUM }, (_, i) => { const p = numAt(i); return ell([0.3, 0.3, 0.16], '#ffffff', [p.x, p.y, p.z]); })), lampM));
+  // the eye: a lamp under the crown
+  body.add(new THREE.Mesh(merge(ell([0.32, 0.22, 0.16], '#ffffff', [0, 1.45, 2.55])), eyeM));
+  // the hands, on a pivot at the face's middle
+  const hands = new THREE.Group(); hands.position.set(0, 0.1, 2.72); body.add(hands);
+  const hour = new THREE.Mesh(merge(box([0.2, 1.05, 0.06], dark, [0, 0.45, 0])), mat), minute = new THREE.Mesh(merge(box([0.12, 1.55, 0.06], dark, [0, 0.7, 0.04]), cyl(0.16, 0.16, 0.12, brass2, [0, 0, 0.06], [Math.PI / 2, 0, 0], 10)), mat);
+  hands.add(hour, minute);
+  // the grille over the face, hinged at its top: it swings up when the Foreman is open (a pale gleam on its bars)
+  const lid = new THREE.Group(); lid.position.set(0, 2.25, 2.85); body.add(lid);
+  lid.add(new THREE.Mesh(merge(...Array.from({ length: 6 }, (_, i) => box([0.1, 4.0, 0.08], '#ffffff', [0, -2.15, 0.04], [0, 0, (i / 6) * Math.PI]))), glassM));
+  lid.add(new THREE.Mesh(merge(torus(2.02, 0.12, brass2, [0, -2.15, 0.02], null, [5, 28]), torus(0.9, 0.08, brass2, [0, -2.15, 0.06], null, [4, 20])), mat));
+  // two arms with hammers
+  const arms = [-1, 1].map((s) => {
+    const sh = new THREE.Group(); sh.position.set(s * 2.75, 0.9, 0.3); body.add(sh);
+    sh.add(new THREE.Mesh(merge(ell([0.55, 0.55, 0.55], dark, [0, 0, 0]), box([0.38, 2.6, 0.38], brass2, [s * 0.25, -1.4, 0.4], [0.3, 0, 0]), cyl(0.5, 0.5, 1.5, dark, [s * 0.35, -2.75, 0.9], [0, 0, Math.PI / 2], 10), cyl(0.56, 0.56, 0.3, brass, [s * 1.1, -2.75, 0.9], [0, 0, Math.PI / 2], 10), cyl(0.56, 0.56, 0.3, brass, [s * -0.4, -2.75, 0.9], [0, 0, Math.PI / 2], 10)), mat));
+    return sh;
+  });
+  // four short legs
+  const legs = [];
+  for (let i = 0; i < 4; i++) {
+    const a = (i / 4) * Math.PI * 2 + Math.PI / 4;
+    const hip = new THREE.Group(); hip.position.set(Math.sin(a) * 1.9, -1.9, Math.cos(a) * 1.9); hip.rotation.y = a; body.add(hip);
+    hip.add(new THREE.Mesh(merge(box([0.55, 0.55, 1.6], brass2, [0, -0.3, 0.6], [-0.6, 0, 0]), cyl(0.32, 0.26, 1.9, dark, [0, -1.4, 1.1], null, 8), cyl(0.75, 0.85, 0.3, dark, [0, -2.4, 1.1], null, 10)), mat));
+    legs.push(hip);
+  }
+  noCollide(group);
+  const mouth = V(), _w = V();
+  let race = 0, hourA = 0, minA = 0;
+  const M = {
+    group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, mouth, mouthR: 0.01, radius: 3.0, height: 8.5, bodyR: 2.4,
+    body, hands, hour, minute, lid, arms, legs, lampM, eyeM, open: 0, slump: 0, gait: 0, numbers: NUM,
+    /** Where numeral lamp i is, in the world. */
+    vent(i, out = V()) { const p = numAt(i); return body.localToWorld(out.set(p.x, p.y, p.z + 0.1)); },
+    animate(dt, t, { state, attack, k = 0, speed = 0, meter = 0 }) {
+      const ease = (cur, want, rate) => cur + (want - cur) * Math.min(1, dt * rate);
+      const id = attack?.id, struck = !!attack && k >= 1;
+      M.open = ease(M.open, state === 'open' ? 1 : 0, 6);
+      M.slump = ease(M.slump, state === 'resolved' ? 1 : state === 'sleep' ? 0.5 : 0, 1.5);
+      M.gait += dt * speed * 2.4;
+      body.position.y = 4.4 - M.slump * 1.6 + Math.abs(Math.sin(M.gait)) * 0.12;
+      body.rotation.z = Math.sin(M.gait) * 0.05;
+      // the hands: wound wrong they race and stutter; asleep they twitch; set right they come round to the true time and stop
+      if (state === 'resolved') {
+        const now = new Date(), wantH = -((now.getHours() % 12) + now.getMinutes() / 60) / 12 * Math.PI * 2, wantM = -(now.getMinutes() / 60) * Math.PI * 2;
+        hourA = ease(hourA, wantH, 1.2); minA = ease(minA, wantM, 1.2);
+      } else if (state === 'sleep') { minA = -0.4 + Math.sin(t * 9) * 0.06; hourA = -2.1; }
+      else { race += dt * (state === 'open' ? 0.3 : 4 + 3 * Math.sin(t * 1.7)); minA = -race * 2.2 + Math.sin(t * 11) * 0.3; hourA = -race * 0.4; }
+      minute.rotation.z = minA; hour.rotation.z = hourA;
+      lid.rotation.x = -M.open * 1.6;
+      // the arms: raised for the hammer, one up for the cog, both down asleep; the hammer comes down at the strike
+      let up = 0.15 + Math.sin(t * 2) * 0.08, one = 0;
+      if (id === 'hammer') up = struck ? -0.4 : 0.15 + 2.4 * k;
+      if (id === 'cog') one = struck ? -0.2 : 2.0 * k;
+      if (state === 'sleep' || state === 'resolved') up = -0.25;
+      arms[0].rotation.x = ease(arms[0].rotation.x, -up - one, struck ? 18 : 6);
+      arms[1].rotation.x = ease(arms[1].rotation.x, -up, struck ? 18 : 6);
+      legs.forEach((L, i) => { L.rotation.x = Math.sin(M.gait + i * 1.6) * 0.18 * Math.min(1, speed) + M.slump * 0.25; });
+      lampM.uniforms.uGlow.value = state === 'resolved' ? 0.25 : 0.08 + 0.9 * M.open * (0.75 + 0.25 * Math.sin(t * 10));
+      const off = state === 'sleep' || state === 'resolved';
+      eyeM.uniforms.uGlow.value = off ? (state === 'resolved' ? 0 : 0.12) : id === 'chime' ? 0.6 + 0.4 * Math.sin(t * 30) : 0.85;
+      eyeM.uniforms.uColor.value.set(state === 'resolved' ? '#f6c84e' : '#e0644a');
+      glassM.uniforms.uGlow.value = 0.15 + 0.2 * (1 - meter);
+      group.updateMatrixWorld(true);
+      mouth.copy(body.localToWorld(_w.set(0, 0.1, 2.9)));
     },
   };
   return M;

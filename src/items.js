@@ -112,6 +112,11 @@ export const ITEMS = {
     text: 'A little tin of amber resin, still soft after who knows how long, the makers’ thumb pressed into the lid. Rub it on your palms.',
     use: 'Climbing tires you half as fast: you hang on twice as long.',
   },
+  level: {
+    name: 'Brass level', kind: 'charm',
+    text: 'A little spirit level of brass and green glass, the Major’s initials scratched on its side, a bubble that has never once settled.',
+    use: 'Where down is not where it was (the Hangar’s upside-down quarter and its ring), a small level in the corner of your eye shows how the floor lies.',
+  },
   star: {
     name: 'Pale star', kind: 'cosmetic',
     text: 'A star of pale enamel, the same as the one on every chest lid: the makers’ sign for a traveller, a small light a long way from home.',

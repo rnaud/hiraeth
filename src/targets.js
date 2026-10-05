@@ -13,7 +13,8 @@ import * as THREE from 'three';
 //   'push'   it was inside the push cone (dir: away from the traveller, the way to shove it)
 //   'stun'   a stilling glob (the 'stun' item): cold and still, it freezes creatures and people
 //   'fire'   an ember glob (the 'fire' item): it lights lamps and fuses, burns brambles, never hurts
-// A target only gets 'stun' or 'fire' if it lists them in `accepts` (e.g. accepts: ['fire']);
+//   'bloom'  a bloom glob (the 'bloom' item): it tells the makers' plants to grow (Viridel's Greenhouse)
+// A target only gets 'stun', 'fire' or 'bloom' if it lists them in `accepts` (e.g. accepts: ['fire']);
 // otherwise those globs arrive as plain 'shoot' (they are still fluid: they splash, wake
 // scenery, turn lenses, light the story's pools), so every puzzle works in every mode.
 // info: { colours: ['#52c8cf', …] } the fluid's current tones (the mode's tones for stun / fire);

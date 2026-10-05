@@ -156,7 +156,7 @@ export class ReactiveWorld {
     for(let i=1;i<=5;i++)seeds.push({pos:level.spawn.clone().add(new THREE.Vector3(i%2?12:-12,0,-i*30)),up:UP});
     if(level.id==='bazaar')for(let i=0;i<8;i++)seeds.push({pos:new THREE.Vector3(i%2?18:-18,0,80-i*53),up:UP});
     // Portal endpoints provide a local frame even on the Hangar's ceiling/ring.
-    for(const p of level.navigationPortals??[])seeds.push({pos:p.to.clone(),up:p.toUp.clone()});
+    for(const p of level.navigationPortals??[])if(!p.temple)seeds.push({pos:p.to.clone(),up:p.toUp.clone()});   // (not into a temple's rooms)
     const goal=content.story.goal;
     if(typeof goal[1]==='number')seeds.push({pos:new THREE.Vector3(...goal),up:level.gravityAt?.(new THREE.Vector3(...goal))??UP});
     else if(Number.isFinite(level.ground.heightAt(goal[0],goal[2])))seeds.push({pos:new THREE.Vector3(goal[0],level.ground.heightAt(goal[0],goal[2]),goal[2]),up:UP});

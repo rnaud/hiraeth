@@ -19,6 +19,9 @@ import { resolvePlacement } from '../src/boxes/index.js';
 import { bestInteractable } from '../src/interact.js';
 import { parseLine, TONES } from '../src/story/tone.js';
 import { updateHazards } from '../src/hazards.js';
+import { Reserve } from '../src/fluid-tool.js';
+import { viaPortal } from '../src/scout.js';
+import { VOLLEY } from '../src/temples/garage.js';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const DT = 1 / 60;
@@ -1120,6 +1123,158 @@ test('the Aerie on foot: the gusts waited out behind the screens, the wall and t
   assert.equal(game.flag('temple.arzach.done'), true);
   wait(5);
   assert.equal(rt.change.root.visible, true, 'the birds come back');
+  game.reset();
+  own();
+});
+
+// ------------------------------------------------------------------ a real tank's pace (src/fluid-tool.js Reserve, src/boxes/effects.js)
+/**
+ * Shoot `n` times as fast as a real tank lets you (three charges, four with the fourth chamber; a refill five
+ * seconds after the last shot, three with the quick coil; a shot every 0.28 s), running frames between, and
+ * call hit(i) for each. Returns the seconds from the first shot to the last.
+ */
+function tankShots(frame, n, hit) {
+  const R = new Reserve(3, 5);
+  let shots = 0, cool = 0, t = 0, first = -1;
+  for (let i = 0; i < 20 / DT && shots < n; i++) {
+    R.max = items.has('cell') ? 4 : 3; R.delay = items.has('coil') ? 3 : 5;
+    if (cool <= 0 && R.use()) { if (first < 0) first = t; hit(shots++); cool = 0.28; }
+    cool -= DT; t += DT; R.update(DT); frame();
+  }
+  return t - first;
+}
+
+test('the Hangar’s own portals still work round the temple’s: its list kept, a copy in one shape for the scout and the rest', () => {
+  const { level } = world('garage');
+  const own = level.garage.portals;
+  assert.equal(own.length, 3, 'the three gravity portals, as they were');
+  assert.ok(own.every((p) => p.pos && p.toUp && p.toFwd && !p.temple), 'its own list has no temple doorway in it');
+  const nav = level.navigationPortals;
+  assert.ok(nav.length >= own.length + 3, 'the temple’s doorways join the list the scout reads');
+  for (const p of own) assert.ok(nav.includes(p), 'every gravity portal is still in it');
+  for (const p of nav) assert.ok(p.pos?.isVector3 && p.to?.isVector3 && p.toUp?.isVector3 && p.toFwd?.isVector3, `${p.label}: the same shape (pos, to, toUp, toFwd)`);
+  assert.ok(level.portals.every((p) => p.temple === 'garage' && p.at && p.r), 'the doorways the game walks through are the temple’s');
+  // the scout routes into the temple through its door
+  const rt = level.temple;
+  const route = viaPortal(V(0, 0, 120), { id: 'in', label: 'inside', position: rt.kit.world(0, 9, 90) }, nav);
+  assert.match(route.label, /First Garage/, `the scout goes by the door (${route.label})`);
+  // and a gravity portal still sends you through to its zone
+  const po = own[0];
+  const player = { pos: po.pos.clone(), vel: V(0, 0, 3), frame: { up: V(0, 1, 0) }, riding: false, teleport(pos, up) { this.pos.copy(pos); this.frame.up = up.clone(); } };
+  for (let i = 0; i < 40; i++) level.update(DT, i * DT, { player });
+  assert.ok(player.pos.distanceTo(po.to) < 0.01, 'through the portal to the upside-down');
+});
+
+test('the First Garage on foot: the escapement’s disc, the climb and the counterweight, the quick coil, the banks of six eyes that want two tanks in a breath, the Foreman’s six numerals, the clock keeps time', () => {
+  game.reset();
+  own('backpack');
+  const { level, physics, rt } = world('garage');
+  const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true, gravityAt: level.gravityAt, limit: Infinity });
+  const notes = [];
+  rt.connect({ player: P, toast: (s) => notes.push(s) });
+  let t = 0;
+  const L = (x, y, z) => rt.kit.world(x, y, z);
+  const frame = (input = {}, yaw = 0) => { t += DT; rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };
+  const toward = (to) => Math.atan2(-(to.x - P.pos.x), -(to.z - P.pos.z));
+  const flat = (a) => Math.hypot(P.pos.x - a.x, P.pos.z - a.z);
+  const walk = (to, { tol = 0.6, max = 25, run = true, dy = 1.6 } = {}) => {
+    for (let i = 0; i < max / DT; i++) { if (flat(to) < tol && Math.abs(P.pos.y - to.y) < dy) return true; frame({ KeyW: true, ShiftLeft: run }, toward(to)); }
+    return false;
+  };
+  const wait = (s) => { for (let i = 0; i < s / DT; i++) frame(); };
+  const where = () => rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1)).join(', ');
+  wait(0.5);
+  assert.ok(P.onGround && rt.inside(P.pos), `standing in the Threshold (${where()})`);
+  // ---- the Escapement: the disc is still until the eye over the far door is splashed; then ride it over the pit
+  assert.equal(walk(L(0, 0, 16.6)), true, `to the pit's edge (${where()})`);
+  const disc = rt.pieces.find((p) => p.path);
+  wait(2);
+  assert.equal(disc.s, 0, 'the disc is still');
+  rt.piece('s1').hit('shoot');
+  wait(0.1);
+  assert.equal(rt.logic.isOpen('discs'), true);
+  for (let i = 0; i < 30 / DT && !(disc.s < 0.2 && disc.wait > 0.5); i++) frame();
+  assert.equal(walk(disc.group.position, { tol: 0.5, run: false, max: 4 }), true, `onto the disc (${where()})`);
+  for (let i = 0; i < 30 / DT && !(disc.s > disc.total - 0.2); i++) frame();
+  assert.equal(walk(L(0, 0, 43), { tol: 0.8 }), true, `off onto the far landing (${where()})`);
+  assert.ok(rt.kit.local(P.pos).y > -1, 'over the pit, not in it');
+  // ---- the Winding Well: up the wall, the ball onto its plate (only the ball's weight opens it)
+  assert.equal(walk(L(0, 0, 58)), true, `into the well (${where()})`);
+  let up = false;
+  for (let i = 0; i < 20 / DT; i++) { frame({ KeyW: true }, toward(L(0, 9, 66))); if (P.onGround && rt.kit.local(P.pos).y > 8.5) { up = true; break; } }
+  assert.ok(up, `up the wall (${where()})`);
+  const plate = rt.piece('p1');
+  assert.equal(walk(plate.pos, { tol: 0.5 }), true, 'onto the plate');
+  wait(0.5);
+  assert.equal(rt.logic.isOpen('d2'), false, 'your own weight is not the counterweight');
+  const ball = rt.piece('ball1');
+  for (let k = 0; k < 8 && !rt.logic.drumOn('ball1', 'p1'); k++) {
+    walk(ball.center.clone().addScaledVector(ball.dir, -2.2).setY(P.pos.y), { tol: 0.6 });
+    ball.hit('push', ball.dir.clone(), { strength: 0.8 });
+    wait(2.6);
+  }
+  assert.ok(rt.logic.drumOn('ball1', 'p1'), `the ball on its plate (${ball.t.toFixed(2)})`);
+  wait(2.2);
+  assert.equal(rt.logic.isOpen('d2'), true);
+  // ---- the Coil Chamber: six eyes in one breath. One tank (or four charges) and a five-second refill can't
+  assert.equal(walk(L(0, 9, 79)), true, `into the chamber (${where()})`);
+  const bank = rt.piece('k1');
+  const slow = tankShots(frame, 6, (i) => bank.hit(i));
+  assert.ok(slow > VOLLEY, `without the coil the sixth comes too late (${slow.toFixed(2)} s)`);
+  assert.equal(rt.logic.isLit('k1'), false, 'they went dark again');
+  items.grant('cell');
+  tankShots(frame, 6, (i) => bank.hit(i));
+  assert.equal(rt.logic.isLit('k1'), false, 'nor with the fourth chamber: four, then a long wait');
+  assert.equal(rt.logic.next(), 'chest');
+  items.grant('coil'); game.emit('box:opened', { id: 'garage.temple.coil' });
+  assert.equal(rt.logic.gadget, true);
+  wait(5.5);
+  items.revoke('cell');
+  const quick = tankShots(frame, 6, (i) => bank.hit(i));
+  assert.ok(quick < VOLLEY, `with the quick coil: three, a quick refill, three more (${quick.toFixed(2)} s)`);
+  assert.equal(rt.logic.isLit('k1'), true, 'six in a breath');
+  wait(2.2);
+  assert.equal(rt.logic.isOpen('d3'), true);
+  // ---- the Clock Gallery: the six round the stopped clock raise the bridge
+  assert.equal(walk(L(0, 9, 97.5)), true, `to the gallery (${where()})`);
+  wait(5.5);
+  tankShots(frame, 6, (i) => rt.piece('k2').hit(i));
+  assert.equal(rt.logic.isLit('k2'), true);
+  wait(3.5);
+  assert.equal(walk(L(0, 9, 124)), true, `over the bridge (${where()})`);
+  assert.ok(rt.kit.local(P.pos).y > 8, 'over it, not in the chasm');
+  // ---- the Foreman's Workshop: when its face opens, all six numerals in one breath
+  assert.equal(walk(L(0, 9, 136)), true, `into the workshop (${where()})`);
+  const G = rt.guardian;
+  wait(0.3);
+  assert.notEqual(G.state, 'sleep', 'it wakes');
+  assert.equal(rt.logic.isOpen('d4'), false, 'the door shuts behind you');
+  P.opts.health = false;
+  for (let n = 0; n < 8 && G.state !== 'resolved'; n++) {
+    let open = false;
+    for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open') { open = true; break; } }
+    assert.ok(open, `its face opens (${n}, phase ${G.phaseIndex})`);
+    const before = G.meter;
+    if (n === 0) { for (let i = 0; i < 3; i++) rt.volley(i); assert.equal(G.meter, before, 'three numerals are nothing'); }
+    tankShots(frame, 6, (i) => rt.volley(i));
+    assert.ok(G.meter > before || G.state === 'resolved', `six in a breath set it back a little (${n}: ${G.meter})`);
+  }
+  assert.equal(G.state, 'resolved', `set right (${G.meter})`);
+  assert.equal(game.flag('temple.garage.done'), true);
+  wait(2.5);
+  assert.ok(rt.logic.isOpen('d5'), 'the far door opens');
+  // ---- out, onto the rim: the clock over the door keeps time, the cogs in the cliff turn
+  const out = level.portals.filter((p) => p.temple === 'garage').at(-1);
+  assert.equal(walk(out.at, { tol: out.r }), true, `to the way out (${where()})`);
+  P.teleport(out.to.clone(), V(0, 1, 0), V(0, 0, 1));   // (main.js walks the doorways: through it)
+  wait(1);
+  assert.ok(!rt.inside(P.pos) && P.onGround && Math.abs(P.pos.y - rt.outside.door.at.y) < 1.5, `out on the rim (${P.pos.toArray().map((v) => v.toFixed(1))})`);
+  wait(4);
+  assert.equal(rt.change.root.visible, true, 'the pendulum swings in the porch');
+  const cog = rt.outside.cogs[0], a0 = cog.m.rotation.z;
+  wait(1);
+  assert.notEqual(cog.m.rotation.z, a0, 'the cogs in the cliff turn');
+  assert.ok(notes.some((s) => /keep time/i.test(s)), 'it says so');
   game.reset();
   own();
 });

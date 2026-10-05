@@ -4,6 +4,7 @@ import { items } from '../items.js';
 import { makeMaterial } from '../materials.js';
 import { starShape, BOX_COLORS } from './model.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { createEchoShell } from '../echo-shell.js';
 
 // What the boxes' special items do (src/items.js documents them). Kept cheap
 // and from the outside: nothing here edits the tool or the player.
@@ -22,6 +23,11 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 //   reed     you hold your breath twice as long under water (player.breathK: src/swim.js reads it)
 //   scarf    the fluid wings sink slower (player.sinkK: src/player.js's glide reads it)
 //   shell    every few seconds, unopened boxes within 45 m answer softly, as if to the bell (game event 'bell' { soft })
+//   echo     the echo shell (src/echo-shell.js) keeps the last makers' note sung near you; V (RS / R3) plays it back
+//            with the bell (ring())
+//   level    the brass level: where down has turned (the Hangar's quarter and ring), a little level at the screen's
+//            edge shows how the floor lies under the view
+//   bloom    (the gun mode) where a bloom glob lands on the world, a few flowers come up (the seed pouch's pool)
 //
 //   const fx = createItemEffects({ player, tool, level, sound, isNight: () => bool });
 //   fx.update(dt, t)   per frame
@@ -31,7 +37,7 @@ const LANTERN_AT = new THREE.Vector3(0.28, 0.6, -0.3);   // the lantern on the t
 /** The star on the traveller's helmet liner (head-anchor frame: the skull's centre), facing up and out. */
 export const TRAVELLER_STAR = { at: new THREE.Vector3(0, 0.102, 0.079), tilt: -0.9, scale: 0.7 };
 
-export function createItemEffects({ player, tool = null, level = null, sound = null, isNight = () => false, game: g = sharedGame, keys = typeof window !== 'undefined' ? window : null, toast = () => {} }) {
+export function createItemEffects({ player, tool = null, level = null, sound = null, camera = null, isNight = () => false, game: g = sharedGame, keys = typeof window !== 'undefined' ? window : null, toast = () => {} }) {
   const H = player?.humanoid;
   // ---- the tank upgrades
   const applyTank = () => {
@@ -72,21 +78,66 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
     star.visible = false;
     H.headAnchor.add(star);
   }
-  // ---- the bell (and the listening shell's soft hum)
+  // ---- the bell (and the listening shell's soft hum); the echo shell plays back on the same button
   let bellT = 0, shellT = 3;
+  const echo = createEchoShell({ player, game: g, items, sound, toast });
   const ring = () => {
-    if (!items.has('bell') || bellT > 0 || !player || player.hidden) return false;
-    bellT = 1.2;
-    sound?.bell?.();
-    g.emit('bell', { pos: player.pos.clone() });
-    return true;
+    let rang = false;
+    if (items.has('bell') && bellT <= 0 && player && !player.hidden) {
+      bellT = 1.2;
+      sound?.bell?.();
+      g.emit('bell', { pos: player.pos.clone() });
+      rang = true;
+    }
+    // (the shell answers a breath after the bell, so the two notes can be told apart)
+    if (items.has('echo')) { if (rang) setTimeout(() => echo.play(), 450); else rang = echo.play(); }
+    return rang;
   };
   const onKey = (e) => { if (e.code === 'KeyV' && !e.repeat && !(globalThis.document?.activeElement?.tagName === 'INPUT')) ring(); };
   keys?.addEventListener?.('keydown', onKey);
   const off = items.on((id, owned) => {
     applyTank();
     if (owned && id === 'bell') setTimeout(() => toast('The bell-note whistle: press V (or click the right stick, R3) to sound it.'), 1800);
+    if (owned && id === 'echo') setTimeout(() => toast('The echo shell: let something sing near it, then press V (or click the right stick, RS / R3) to play it back.'), 1800);
   });
+  // ---- a bloom glob on the world: a few flowers come up where it landed (the pouch's pool)
+  const offBloom = g.on?.('tool:bloom', ({ point } = {}) => {
+    const B = point && bloomPool();
+    if (!B) return;
+    const t = clock;
+    for (let k = 0; k < 5; k++) {
+      const i = bloomI++ % BLOOM.n;
+      B.born[i] = t; B.rot[i] = Math.random() * 6.28;
+      B.at[i].copy(point).add(_bp.set((Math.random() - 0.5) * 1.1, 0.01, (Math.random() - 0.5) * 1.1));
+    }
+  });
+  let clock = 0;
+  // ---- the brass level: a little bubble level at the screen's edge where down has turned
+  let levelEl = null, levelBar = null;
+  const _lu = new THREE.Vector3(), _lr = new THREE.Vector3(), _lf = new THREE.Vector3();
+  function updateLevel() {
+    if (typeof document === 'undefined' || !document.body?.appendChild || !player?.frame?.up) return;
+    const up = player.frame.up, on = items.has('level') && up.y < 0.95 && !player.hidden && !!camera;
+    if (!levelEl && !on) return;
+    if (!levelEl) {
+      levelEl = document.createElement('div');
+      levelEl.className = 'brass-level';
+      levelEl.style.cssText = 'position:fixed;right:calc(18px + var(--safe-right, 0px));top:50%;width:54px;height:54px;margin-top:-27px;border-radius:50%;'
+        + 'border:3px solid #b8862f;background:radial-gradient(circle at 40% 35%,#e9f3cf,#a9cf8e);box-shadow:2px 2px 0 #2b211f;z-index:20;pointer-events:none;overflow:hidden;opacity:0;transition:opacity .5s';
+      levelBar = document.createElement('i');
+      levelBar.style.cssText = 'position:absolute;left:-10px;right:-10px;top:50%;height:2px;margin-top:-1px;background:#2b211f;transform-origin:50% 50%';
+      const bubble = document.createElement('b');
+      bubble.style.cssText = 'position:absolute;left:50%;top:50%;width:12px;height:12px;margin:-6px;border-radius:50%;background:#fbf7e8;border:2px solid #2b211f';
+      levelEl.appendChild(levelBar); levelEl.appendChild(bubble);
+      document.body.appendChild(levelEl);
+    }
+    levelEl.style.opacity = on ? '0.9' : '0';
+    if (!on) return;
+    // the floor's line across the view: the camera's right and forward against the way up here
+    camera.matrixWorld.extractBasis(_lr, _lu, _lf);
+    const roll = Math.atan2(-_lr.dot(up), _lu.dot(up)), pitch = THREE.MathUtils.clamp(_lf.dot(up), -1, 1);
+    levelBar.style.transform = `translateY(${(-pitch * 22).toFixed(1)}px) rotate(${(-roll * 180 / Math.PI).toFixed(1)}deg)`;
+  }
   applyTank();
 
   // ---- the seed pouch: flowers in your footsteps (one instanced pool, recycled)
@@ -139,8 +190,12 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
 
   return {
     ring,
+    echo,
     update(dt, t) {
+      clock = t;
       updateBlooms(dt, t);
+      echo.update(dt);
+      updateLevel();
       bellT = Math.max(0, bellT - dt);
       // the listening shell: what the makers hid nearby hums back now and then, softly
       if (items.has('shell') && player && !player.hidden && (shellT -= dt) <= 0) { shellT = 7; g.emit('bell', { pos: player.pos.clone(), reach: 45, soft: true }); }
@@ -165,6 +220,6 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
       if (star) star.visible = items.has('star');
       if (player) { player.climbK = items.has('resin') ? 0.5 : 1; player.fallGuard = items.has('soles') ? 1.3 : 1; player.hush = items.has('hush'); player.breathK = items.has('reed') ? 2 : 1; player.sinkK = items.has('scarf') ? 0.6 : 1; }
     },
-    dispose() { off(); keys?.removeEventListener?.('keydown', onKey); lantern?.grp.removeFromParent(); star?.removeFromParent(); blooms?.mesh.removeFromParent(); },
+    dispose() { off(); offBloom?.(); echo.dispose(); levelEl?.remove?.(); keys?.removeEventListener?.('keydown', onKey); lantern?.grp.removeFromParent(); star?.removeFromParent(); blooms?.mesh.removeFromParent(); },
   };
 }
