@@ -603,3 +603,10 @@ All of this is for the web game; the Unity port follows later if we move to Unit
     - The `grid` pattern on the hull reads as a regular lattice; the panel's plating is irregular.
     - The water draws even ripple strokes and pale ellipses everywhere; the panel's lake is large pale
       shallow shapes, inked round, darker in the cliff's shadow.
+
+# Transitions and moments (2026-10-05, web)
+
+- [ ] Walking into a building, a cave or the ship (where you're moved into another space) is janky:
+  make the hand-over smooth and free of stutter.
+- [ ] A few moments deserve a little cinematic: the first time the magic water flows into the basin in
+  the cave, and the first time you fill the tank and discover what it does.
