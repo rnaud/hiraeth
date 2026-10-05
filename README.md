@@ -1849,8 +1849,29 @@ Pocket. Their built-in controls work through the Gamepad API.
 The handheld itself: Snapdragon QCS8550, Adreno 740 (up to 680 MHz), a 1280×960
 60 Hz screen at 2× (640×480 CSS px). Measured in the device's Chrome 154 (ANGLE on
 OpenGL ES), Handheld preset, with the game served from a Mac over USB. Note: the app
-itself runs in the system WebView, which on this unit is still version 109; it was not
-measured (a release build can't be inspected, and no side-by-side debug build was installed).
+itself runs in the system WebView, which on this unit is stuck at version 109; see below
+for how much slower that is.
+
+**The app's engine: WebView 109 against Chrome 154** (2026-10-05, build `07af71c`; the full
+tables in `docs/benchmark-web-vs-unity.md`, "On the Retroid: WebView 109 vs Chrome 154").
+Measured with a side-by-side debug build of the app (`com.rnaud.moebius.perf`,
+`scripts/bench/webview-apk.sh`) and a Chrome tab, the same build and desert viewpoints, 3 rounds:
+- At the same pixels (0.75) the WebView misses 24–50 % of the 60 Hz refreshes at the spawn, in
+  Qanat, at the camps and riding or walking (30–45 fps); Chrome holds 60 with none missed. Only the
+  cave (GPU-bound on both) stutters in both.
+- The cause is the main thread: the game's frame is 21–32 ms of JS in the WebView, 12–13 ms in
+  Chrome (plain JS 2.1× faster; V8 10.9 against 15.4). The WebView's renderer is also kept off the
+  fastest cores (allowed 0–2, 5–6; Chrome's uses the prime core a third of the time), a smaller part
+  of the gap. The GPU is less busy in the WebView, waiting.
+- So dynamic resolution, as shipped, drops the WebView to 0.5–0.65 and it still misses 39–49 %;
+  Chrome stays at 0.7–0.85, smooth.
+- GC pauses are more frequent in the WebView (4–11 ms a second, full collections of 19–27 ms in the
+  busy places) but not what costs the frames. Shader compiles cost the same in both (the driver:
+  ~0.4 s a program, no `KHR_parallel_shader_compile`); load is 21 s against 14 s, the difference
+  being JS. Memory is about the same; 109 lacks WebGPU and a dozen WebGL extensions the game doesn't use.
+- An up-to-date engine would give a steady 60 at 0.75 nearly everywhere and ~7 s off the load. The
+  firmware won't take a newer WebView, so that means Chrome (a Trusted Web Activity) or a bundled
+  engine; without one, the busy places need their JS per frame roughly halved.
 
 Before this pass (build `1cecfda`), 20 s each, walking forward while the camera sweeps
 left and right; load is navigation to first frame:
@@ -1906,6 +1927,15 @@ To repeat (`scripts/handheld-perf/`): enable USB debugging on the device, then
 place) or `node scripts/handheld-perf/bench.mjs <place> [base,noNear,...]`. `ANDROID_SERIAL`
 picks the device. The tab keeps its own storage (not the app's saves). Afterwards
 `adb reverse --remove-all` and `adb forward --remove-all`.
+
+The WebView-against-Chrome comparison (`scripts/bench/android-engines.mjs`): `scripts/bench/webview-apk.sh`
+builds the perf app from a copy of `android/` (its own package id and name, WebView debugging on, the
+game loaded from `http://localhost:5253/`, no APK updater; Gradle on Unity's JDK 17), `adb install` it,
+`node scripts/bench/serve.mjs --port 5253`, then `ANDROID_SERIAL=… node scripts/bench/android-engines.mjs`
+(3 rounds of both engines, fixed 0.75 and dynamic; it keeps and then removes only its own port rules
+5253 / 9333, opens and closes its own Chrome tab, stops the perf app between runs, and never touches
+`com.rnaud.moebius`) and `node scripts/bench/android-engines-summary.mjs <raw dir>`. Afterwards
+`adb uninstall com.rnaud.moebius.perf`.
 
 ### Levels of detail far away (`src/lod.js`, `src/lod-core.js`)
 A distant building, rock or plant is drawn with a coarser copy of itself, never coarser than the

@@ -11,6 +11,10 @@ const S = existsSync(inFile) ? JSON.parse(readFileSync(inFile, 'utf8')) : null;
 const androidFile = resolve(ROOT, opt.android ?? 'scripts/bench/results/android.json');
 const A = existsSync(androidFile) ? JSON.parse(readFileSync(androidFile, 'utf8')) : null;
 const VP = viewpoints();
+// (the WebView-vs-Chrome section is written by hand from android-engines-summary.mjs: kept as it is)
+const DOC = resolve(ROOT, 'docs/benchmark-web-vs-unity.md');
+const KEEP = '## On the Retroid: WebView 109 vs Chrome 154';
+const kept = (() => { const t = existsSync(DOC) ? readFileSync(DOC, 'utf8') : ''; const i = t.indexOf(KEEP); if (i < 0) return null; const j = t.indexOf('\n## ', i + KEEP.length); return t.slice(i, j < 0 ? undefined : j).trimEnd(); })();
 const SIDE = { web: 'web (three.js)', unity: 'Unity player', 'unity-webgl': 'Unity WebGL' };
 const f1 = (x) => (x == null ? '–' : x >= 100 ? x.toFixed(0) : x >= 10 ? x.toFixed(1) : x.toFixed(2));
 const sp = (s, f = f1) => (!s ? '–' : s.n > 1 && s.max - s.min > 0.005 * Math.abs(s.med) ? `${f(s.med)} (${f(s.min)}–${f(s.max)})` : f(s.med));
@@ -174,8 +178,10 @@ L.push('scripts/bench/mac-run.sh --rounds 1 --configs high@1280x720 --secs 4    
 L.push('node scripts/bench/web-bench.mjs --preset handheld --res 1280x960 --shots /tmp/shots   # one side alone (needs serve.mjs)');
 L.push('node scripts/bench/unity-bench.mjs --preset high --off Cape                         # the Unity player without its capes');
 L.push('scripts/bench/android-run.sh                # on the handheld (USB debugging): the Unity APK and the web game in Chrome');
+L.push('scripts/bench/webview-apk.sh && node scripts/bench/android-engines.mjs   # on the handheld: the web game in the system WebView and in Chrome (below)');
 L.push('```');
 L.push('');
 L.push('The Android build (`BenchBuild.Android`): `com.rnaud.memento.unity` (never the web app\'s `com.rnaud.moebius`), debug-signed, IL2CPP ARM64, Vulkan then GLES3. The desert\'s export is 439 MB as it is read; in the APK `world.bin` and `world.json` travel gzipped (439 → 65 MB) with the characters and sounds, and the first launch copies them out to the app\'s files (`DataFiles.cs`, a few seconds), so the same full desert runs on both sides.');
-writeFileSync(resolve(ROOT, 'docs/benchmark-web-vs-unity.md'), L.join('\n') + '\n');
+if (kept) L.push('', kept);
+writeFileSync(DOC, L.join('\n') + '\n');
 console.log('wrote docs/benchmark-web-vs-unity.md');

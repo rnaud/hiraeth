@@ -17,6 +17,8 @@ const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/ja
 
 createServer((req, res) => {
   const url = decodeURIComponent(new URL(req.url, 'http://x').pathname);
+  // (an empty page of the game's origin, for setting its storage without booting it: android-engines.mjs)
+  if (url === '/bench-blank.html') { res.writeHead(200, { 'Content-Type': 'text/html', 'Cache-Control': 'no-store' }).end('<!doctype html><title>bench</title>'); return; }
   const [prefix, dir] = ROOTS.find(([p]) => url.startsWith(p));
   let f = normalize(join(dir, url.slice(prefix.length)));
   if (!f.startsWith(dir)) { res.writeHead(403).end(); return; }
