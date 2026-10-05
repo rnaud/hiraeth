@@ -55,6 +55,8 @@ import { isolate, restore } from './story/portrait-bg.js';
 import { badgeLine } from './prompt-keys.js';
 import { chargeState, chargeHud, chargeJournalHtml, showChargeCard, GIVEN as CHARGE_GIVEN, CARD as CHARGE_CARD } from './story/charge.js';
 import { slots, formatPlaytime } from './save-slots.js';
+import { Waters, BreathMeter } from './water.js';
+import { waterShared } from './water-shader.js';
 
 // Android: the handheld's controls come from the app (native-pad.js), and prompts use its button names
 installNativePad();
@@ -183,6 +185,8 @@ const t0 = performance.now();
 const physics = await Physics.create(scene, level.ground.heightAt ? level.ground : null);
 console.info(`collision: ${physics.triangles.toLocaleString()} triangles in ${(performance.now() - t0).toFixed(0)} ms (BVH in a worker)`);
 level.init?.(physics);
+// every body of water: its look (bed maps, ripples) and swimming in it (src/water.js, src/swim.js)
+const waters = new Waters(scene, { physics });
 // trees and shrubs that landed inside a house or a rock are left out (src/physics.js; window.clipAudit lists the rest)
 const buriedFlora = dropBuriedFlora(scene, physics);
 if (buriedFlora) console.info(`flora: ${buriedFlora} buried instances left out`);
@@ -205,7 +209,7 @@ if (birdAnswers(levelId, level, (k) => game.flag(k))) { level.mount = (p) => pro
 const player = new Player(physics, {
   mount: level.mount, jetpack: level.features.jetpack, climb: level.features.climb ?? true,
   killY: level.killY, limit: level.limit ?? 1900, spawn: level.spawn, spawnHeading: level.spawnHeading,
-  gravityAt: level.gravityAt, unsafe: level.unsafe, dynamic: level.dynamic,
+  gravityAt: level.gravityAt, unsafe: level.unsafe, dynamic: level.dynamic, water: waters,
   // a hurt: a thud; knocked over (a hard landing: the ragdoll, src/ragdoll.js): a heavier one;
   // knocked out: the screen dims and asks to restart (updateRestart below)
   onHurt: (k) => { shipSfx.rumble(sound, 0.35 + k * 0.4, 0.25 + k * 0.5); hpShown = 3; },
@@ -332,6 +336,11 @@ rig.constrain = level.constrainCamera;
 
 // ------------------------------------------------------------------ sound, weather, people, story
 const sound = new Sound(levelId);
+waters.sound = sound;
+player.onSwim = (kind, info) => waters.event(kind, info);   // splashes, strokes, a gasp
+// hoverbikes and skiffs skim over any water (bike.js groundAt)
+for (const v of player.vehicles) if (v.groundAt && !v.surface) v.surface = (x, y, z) => waters.floorAt(x, y, z);
+const breathMeter = new BreathMeter();
 // the magic-fluid backpack: shoot, boost and push on three shared charges (fluid-tool.js)
 const tool = new FluidTool({ scene, player, physics, camera, rig, sound, level, hud: new ToolHud(), noShadow: (level.noShadow ??= []) });
 tool.powerTrails(trails);   // the hover trails run in the fluid's tones
@@ -466,6 +475,7 @@ window.addEventListener('beforeunload', () => { if (!player.riding && !ship.play
 // footsteps: prints in the sand + a sound
 const onStepPrint = player.onStep;
 player.onStep = (p, heading, up, i) => {
+  if (waters.step(p)) return;   // in the water: a splash, no print
   onStepPrint?.(p, heading, up, i);
   sound.step(Math.hypot(player.vel.x, player.vel.z));
 };
@@ -605,6 +615,7 @@ function applyDetail() {
   sharedUniforms.uCloudShadows.value = preset.cloudShadows && !low ? baseCloudSh : 0;
   sharedUniforms.uShadowTaps.value = preset.taps;
   U.uPostLite.value = preset.postLite ? 1 : 0;
+  waterShared.uWaterLite.value = low || preset.postLite ? 1 : 0;   // (src/water-shader.js)
   for (const n of npcs) n.lowDetail = low;
   if (crowd) {
     const mid = preset.crowdMid ?? crowdRange.midIn;
@@ -1020,6 +1031,7 @@ function renderFrame() {
   renderer.setRenderTarget(composeRT);
   renderer.clear();
   renderer.render(post.scene, post.camera);
+  waters.renderOver(renderer, camera, { tNormal: gbuffer.textures[1], tAlbedo: gbuffer.textures[0], target: composeRT, toon: U.uToon.value });   // the sun's sparkle; under water, the tint and haze
 
   // 4. wind-blown sand and drifting motes, drawn on top (depth-tested against the G-buffer)
   // (not in a portrait shot: just the person against a flat colour)
@@ -1260,6 +1272,10 @@ function frame() {
   sharedUniforms.uTime.value = t;
   U.uTime.value = t;
   U.uDebug.value = params.debug;
+  // the water: its rings and splashes, its bed maps; the camera kept off its surface
+  waters.update(dt, t, { player, vehicles: player.vehicles, things: wildlife.creatures, globs: tool.globs, sky: U });
+  waters.keepCamera(camera, player.swim?.under ? 'under' : 'over');
+  breathMeter.update(player.breath, !!player.swim && (player.swim.under || player.breath < 0.999) && !busy());
 
   gpuTimer.begin();
   renderFrame();
@@ -1355,5 +1371,5 @@ window.clipAudit = async (o = {}) => {
   if (o.print !== false) console.log(formatAudit(r));
   return r;
 };
-Object.assign(window, { flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife,
+Object.assign(window, { waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife,
   storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, boxes, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame });

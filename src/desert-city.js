@@ -771,6 +771,7 @@ export function buildDesertCity(scene, terrain) {
     const pool = magicPool(1, poolMat, { rings: 10, segs: 56 });
     pool.position.copy(cave.world(0, -1.7, 0));
     pool.visible = false;
+    pool.userData.water = true; pool.userData.waterMoves = true;   // you wade in it (water.js: it rises)
     root.add(pool);
     // the mural: giants lying down, the water running out of them to a tree
     cave.add(M.mural, T(new THREE.BoxGeometry(9, 4.6, 0.5), [-17.5, 3.4, 20.5], [0, Math.PI * 0.8, 0]));

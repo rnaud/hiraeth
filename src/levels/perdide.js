@@ -10,12 +10,12 @@ import { LANDING } from '../story/perdide-data.js';
 // ---------------------------------------------------------------------------
 // Lorn:
 // a swamp planet of humming crystal forests, carnivorous plants and glowing
-// eggs, lit at twilight. Cross the deep water on a hover-skiff; wading too
-// deep puts you back on the last dry ground. A crystal cave glows from within.
+// eggs, lit at twilight. Cross the deep water on a hover-skiff, or swim it
+// (src/swim.js). A crystal cave glows from within.
 // ---------------------------------------------------------------------------
 
 const WATER = 0;
-const DEEP = -1.6;              // deeper than this is unsafe on foot
+const DEEP = -1.6;              // deeper than this is unsafe on foot (but swimmable: player.swimmable)
 export const CAVE = { x: -170, z: 140, len: 130, r: 12, rot: 0.6, y: 1.6 };
 // the story's places (src/story/perdide.js): the Great Crystal on its island east over the
 // ford, the snapping bed on the landing's north shore, the fireflies' isle in the channel

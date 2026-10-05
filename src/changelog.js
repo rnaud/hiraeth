@@ -3,6 +3,18 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.49', date: '2026-10-05', items: [
+    'Water has a new hand-drawn look in every world: pale shallows over deeper colour, foam where it meets the shore and the rocks, ripples that drift with the wind, the sky in the far water, and the sun glittering on it.',
+    'Ripples ring out round anything that touches the water, from you, creatures and vehicles to splashes.',
+    'You can swim: wade into any lake, pool or swamp channel and you float once it’s deep. Sprint for a front crawl.',
+    'Dive and swim where you look under water, and come up for air before your breath bubbles run out.',
+    'Climb out by swimming into a low ledge; higher walls can be climbed straight from the water.',
+    'Jumping or falling into deep water no longer hurts, however high you jump from.',
+    'Under water the world turns blue-green and the sound goes muffled; splashes and strokes have their own sounds.',
+    'The hoverbike skims across water everywhere, and getting off over deep water drops you in for a swim.',
+    'In Lorn and the Garden of Spheres, deep water no longer sends you back to the shore.',
+    'The Lab has a swimming pool with a beach, a deep end and a diving tower.',
+  ] },
   { v: '0.48', date: '2026-10-05', items: [
     'The traveller looks their age now: a younger, warmer face with a few freckles, and a tousled fringe under the helmet.',
     'The enamel star from the makers’ boxes sits on the helmet liner, inside the glass, instead of poking out through the top.',

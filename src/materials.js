@@ -7,6 +7,7 @@ import { CROWD_GLSL, TRIM_GLSL } from './crowd-shader.js';
 import { GROUND_GLSL } from './ground-ink.js';
 import { GLYPH_GLSL } from './glyphs.js';
 import { GRASS_VERT_PARS, grassUniforms } from './grass-shader.js';
+import { WATER_GLSL, WATER_MARK, waterMaterial } from './water-shader.js';
 
 // ---------------------------------------------------------------------------
 // G-buffer surface material.
@@ -869,6 +870,9 @@ const fragmentShader = /* glsl */ `
     float broken = smoothstep(0.3, 0.55, vnoise(p * 0.08 + 31.0));
     return inkLine(d, 1.0) * broken * (1.0 - smoothstep(0.25, 0.5, fw));
   }
+  #ifdef WATER
+  ${WATER_GLSL}
+  #endif
 
   // ordered 4x4 dither threshold, for print-like dissolves
   float bayer4(vec2 p) {
@@ -1043,6 +1047,9 @@ const fragmentShader = /* glsl */ `
     else if (!gl_FrontFacing) n = -n;   // (grass blades: both sides lit like the ground)
     #endif
 
+    #ifdef WATER
+      WaterLook wl = waterLook(vWorldPos, gl_FrontFacing);   // (water-shader.js; derivatives here, in uniform flow)
+    #endif
     vec3 albedo = uColor;
     if (uHasMap > 0.5) albedo *= texture(uMap, vTextureUV).rgb;
     vec3 instColor = vInstColor;
@@ -1107,9 +1114,13 @@ const fragmentShader = /* glsl */ `
     } else if (uMode == ${MODE_EYE}) {
       albedo = eyeball(vBind, uColor, uColor2, uSkin);
     } else if (uMode == ${MODE_WATER}) {
+      #ifdef WATER
+        albedo = wl.albedo;
+      #else
       // two flat tones drifting slowly
       float w = vnoise(vWorldPos.xz * 0.012 + uTime * 0.01);
       albedo = w > 0.55 ? uColor2 : uColor;
+      #endif
     }
     #ifdef FLUID
       albedo = fluidAlbedo(albedo);
@@ -1160,6 +1171,9 @@ const fragmentShader = /* glsl */ `
       }
     }
     L = max(L, mix(L, 0.97, smoothstep(0.15, 0.5, local)));
+    #ifdef WATER
+      L = mix(L, max(L, 0.8), wl.lit);
+    #endif
     #ifdef DISSOLVE
     albedo = mix(albedo, uDissolveColor, dEdge);
     L = mix(L, 1.0, dEdge);
@@ -1167,6 +1181,9 @@ const fragmentShader = /* glsl */ `
 
     gAlbedoLight = vec4(albedo, L);
     gNormalDepth = vec4(n, vViewDepth);
+    #ifdef WATER
+      if (gl_FrontFacing && uWaterOpt.y < 0.5) gNormalDepth.xyz *= 1.0 + ${WATER_MARK.base} + ${WATER_MARK.glint} * wl.glint;   // (water.js: the sparkle)
+    #endif
 
     gHatch = vec4(0.0);
     float detail = uPortrait > 0.5 ? portraitInk(vBind, clamp((uToon - L) / uToon, 0.0, 1.0)) : 0.0;
@@ -1204,7 +1221,11 @@ const fragmentShader = /* glsl */ `
         detail = max(detail, max(dots * patchy, pebbles) * uDots * 1.6);
       }
     } else if (uMode == ${MODE_WATER}) {
-      detail = max(detail, waterLines(vWorldPos.xz, uTime) * 0.7);
+      #ifdef WATER
+        detail = max(detail, wl.ink);
+      #else
+        detail = max(detail, waterLines(vWorldPos.xz, uTime) * 0.7);
+      #endif
     } else if (uMode == ${MODE_STRATA} && abs(normalize(on).y) < 0.6) {
       detail = max(detail, fissures(vec2(faceX, vObjPos.y), fissFw) * 0.85);
     }
@@ -1396,6 +1417,7 @@ export function makeMaterial(o) {
     mat.uniforms.uFluidBox = { value: new THREE.Vector4(...(o.fluidBox ?? [-1, 1, 1, 0])) };
     mat.uniforms.uFluidTones = { value: Array.from({ length: 6 }, (_, i) => new THREE.Color(o.fluidTones?.[i] ?? '#ffffff')) };
   }
+  if (o.mode === MODE_WATER) waterMaterial(mat, o);   // the water's own look (water-shader.js)
   if (o.dissolve) {
     mat.defines = { ...mat.defines, DISSOLVE: 1 };
     mat.uniforms.uDissolve = { value: new THREE.Vector4(0, 0.08, 0, 1) };

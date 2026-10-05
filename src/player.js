@@ -6,10 +6,13 @@ import { items as sharedItems } from './items.js';
 import { HANDOFF } from './fluid-kit.js';
 import { inTightRoom } from './interiors.js';
 import { Knockdown, toppleVelocities } from './ragdoll.js';
+import { SWIM, swimFrame, swimPose, leaveSwim } from './swim.js';
 
 const RADIUS = 0.45;
 const STEP = 0.6;    // obstacles lower than this are stepped onto
 const HEIGHT = 2.2;
+/** The body's collision capsule (src/swim.js moves it through water too). */
+export const CAPSULE = { radius: RADIUS, step: STEP, height: HEIGHT };
 // m/s, matched to the mocap clips: the default pace plays the jog loop at
 // ~1x, SHIFT the sprint loop with a slightly lengthened stride
 const WALK = 3.8;
@@ -385,6 +388,14 @@ export class Player {
     this.unboarding = null;                        // { v, t, dur, k } stepped off: taking the pack back
     this.onNotice = null;                          // (text) a short message for the player ("It needs power.")
     this.wingK = 0;                                // the fluid wings: 0 folded .. 1 open (fluid-kit.js draws them)
+    // water (src/swim.js): the world's water (water.js Waters, or opts.water), the swim while
+    // floating, the breath 0..1, and what the water is doing to you this frame
+    this.water = this.opts.water ?? null;
+    this.swim = null;
+    this.breath = 1;
+    this.inWater = null;
+    this.wadeSlow = 1;
+    this.onSwim = null;                            // (event, info): water.js splashes and sounds them
     this._stepSide = 1;
     this._prevPhase = 0;
     this.char.jetpack.visible = false;
@@ -407,6 +418,10 @@ export class Player {
   /** The jets' gauge 0..1: the tank's reserve when the tool is worn, else the old fuel. */
   get jetFuel() { return this.fuelSource ? this.fuelSource.jetLevel() : this.fuel; }
   notice(text) { this.lastNotice = text; this.onNotice?.(text); }
+  /** In the world's water (src/swim.js): a level's "unsafe" deep water isn't, now that you can swim. */
+  get swimmable() { return !!this.swim || (this.inWater?.over ?? 0) > 0.05; }
+  /** Water under you deep enough to break a fall (src/swim.js SWIM.cushion). */
+  get cushioned() { return !!this.swim || (this.inWater?.depth ?? 0) >= SWIM.cushion; }
 
   /** Add the parts that live directly in the scene (the simulated scarf). */
   attach(scene) {
@@ -519,6 +534,8 @@ export class Player {
     this.climbing = false;
     this.fuel = 1;
     this.stamina = 1;
+    this.swim = null;
+    this.breath = 1;
   }
 
   /**
@@ -560,6 +577,7 @@ export class Player {
     this.gliding = this.thrusting = this.climbing = false;
     this.mantle = null; this._hang = null; this.boarding = this.unboarding = null;
     this.wingK = 0;
+    this.swim = null;
     this.vel.set(0, 0, 0);
     this.onGround = false;
     this.humanoid?.resetFeet();
@@ -650,6 +668,7 @@ export class Player {
     this.onGround = false;
     this.climbing = false;
     this.mantle = null;   // (a climb onto a ledge in progress would pull you back to it)
+    this.swim = null;     // (swim.js finds the water again if there is some here)
     this.lastSafe.copy(pos);
   }
 
@@ -670,6 +689,7 @@ export class Player {
   }
 
   mount_(v) {
+    if (this.swim) leaveSwim(this, 'ride');
     this.ride = v;
     this.boarding = this.unboarding = null;
     this.gliding = this.thrusting = this.climbing = false;
@@ -862,6 +882,9 @@ export class Player {
     }
     this._climbCooldown = Math.max(this._climbCooldown - dt, 0);
 
+    // water (src/swim.js): wading slows the walk; deep enough, you float and swim
+    if (swimFrame(this, dt, input, camYaw, { f, s, run, stickScale })) { this.finishFrame(dt, this.swim?.hs ?? 0); return; }
+
     // camera-relative movement in the tangent plane
     const camF = _v1.copy(F.right).multiplyScalar(-Math.sin(camYaw)).addScaledVector(F.fwd, -Math.cos(camYaw));
     const camR = _v2.copy(F.right).multiplyScalar(Math.cos(camYaw)).addScaledVector(F.fwd, -Math.sin(camYaw));
@@ -872,6 +895,7 @@ export class Player {
     if (this.gliding) speed *= 1.25;
     if (this.thrusting) speed *= 1.9;
     if (this.aim) speed = Math.min(speed, WALK) * (1 - 0.35 * this.aim.k);   // aiming: a steady walk
+    speed *= this.wadeSlow;                                                   // wading (src/swim.js)
     const accel = this.onGround ? (move.lengthSq() < .001 ? 16 : 8) : this.thrusting ? 5 : 2.5;
     const a = 1 - Math.exp(-accel * dt);
     let vu = this.vel.dot(U);
@@ -966,7 +990,7 @@ export class Player {
     const stuck = this.unstick() || this.unhang(dt);
 
     // deep water and other unsafe places put you back where you last stood safely
-    if (this.opts.unsafe && this.opts.unsafe(this.pos)) this.respawn(this.lastSafe);
+    if (this.opts.unsafe && this.opts.unsafe(this.pos) && !this.swimmable) this.respawn(this.lastSafe);
     else if (!stuck && this.onGround && (this._safeTimer += dt) > 0.4) { this.lastSafe.copy(this.pos); this._safeTimer = 0; }
 
     // facing
@@ -1044,7 +1068,7 @@ export class Player {
     if (this.pos.y < this.opts.killY) { this.respawn(); this._respawned = true; return null; }
     const vu = this.vel.dot(U);
     if (h <= 0 || (this.onGround && h < 0.8 && vu <= 0)) {
-      if (!this.onGround && !this.ride && vu < -FALL.tumble) this.landHard(-vu);
+      if (!this.onGround && !this.ride && vu < -FALL.tumble && !this.cushioned) this.landHard(-vu);
       this.pos.addScaledVector(U, -h);
       this.vel.addScaledVector(U, -vu);
       this.onGround = true;
@@ -1133,7 +1157,7 @@ export class Player {
     const H = this.humanoid;
     if (H) {
       H.update();
-      if (this.animator && !this.ride && !this.gliding && !this.thrusting) H.poseHands(this.animator);
+      if (this.animator && !this.ride && !this.gliding && !this.thrusting && !this.swim) H.poseHands(this.animator);
       const U = this.frame.up;
       if (this.mantle) { H.resetFeet(); H.reach(this.mantleTargets()); }
       else if (this.climbing) { H.resetFeet(); H.reach(this.animator ? this.climbContacts(dt) : this.climbTargets()); }
@@ -1462,6 +1486,7 @@ export class Player {
    * turn. Airborne / glide / jetpack keep authored poses.
    */
   animate(dt, hs) {
+    if (this.swim) return swimPose(this, dt);
     if (this.animator && !this.thrusting && !this.gliding) return this.animateClips(dt, hs);
     const c = this.char;
     const L = THREE.MathUtils.lerp, sm = THREE.MathUtils.smoothstep;

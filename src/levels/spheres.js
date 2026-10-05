@@ -822,7 +822,7 @@ export function createSpheres(scene) {
       (byKey[r.key + idx] = byKey[r.key + idx] ?? { key: r.key, list: [] }).list.push(rg);
     });
     for (const { key, list } of Object.values(byKey)) {
-      const m = new THREE.Mesh(mergeGeometries(list), makeMaterial({ color: COLS[key][0], color2: COLS[key][1], mode: MODE_WATER }));
+      const m = new THREE.Mesh(mergeGeometries(list), makeMaterial({ color: COLS[key][0], color2: COLS[key][1], mode: MODE_WATER, waterPrint: true }));
       m.userData.noCollide = true;
       scene.add(m);
     }

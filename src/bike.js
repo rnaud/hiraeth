@@ -197,7 +197,8 @@ export class Hoverbike {
   }
 
   groundAt(x, fromY, z) {
-    return Math.max(this.physics.groundAt(x, fromY, z), this.floor);
+    // (surface: the world's water under it, water.js floorAt: it skims over lakes and pools too)
+    return Math.max(this.physics.groundAt(x, fromY, z), this.floor, this.surface ? this.surface(x, fromY, z) : -Infinity);
   }
 
   get forward() {

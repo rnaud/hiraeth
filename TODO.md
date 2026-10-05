@@ -325,7 +325,7 @@ To start after the current work lands. Ordered from easiest to most complex.
 
 ## Water
 
-- [ ] Better water shaders, and swimming.
+- [x] Better water shaders, and swimming.
 
 ## Home level
 
