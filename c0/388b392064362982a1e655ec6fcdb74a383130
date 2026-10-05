@@ -1,0 +1,53 @@
+LORE.md
+  s_1fd8d0e7b02dcf::t_d366eb1d261dbb 1021-1022,1082-1083,1093-1094,1096-1099,1324-1362
+README.md
+  s_1fd8d0e7b02dcf::t_d626f71f1b6087 2875,2889-2892,2922-2923,2928,2938-2939
+src/levels/arzach.js
+  s_1fd8d0e7b02dcf::t_a33967003b1b1d 7,278-279,309
+src/temples/arzach-data.js
+  s_1fd8d0e7b02dcf::t_fb3aa41e5420a3 1-74
+src/temples/arzach.js
+  s_1fd8d0e7b02dcf::t_65d3d25eadfca3 1-340
+src/temples/guardians.js
+  s_1fd8d0e7b02dcf::t_3128b9d4287714 13,352-438
+src/temples/index.js
+  s_1fd8d0e7b02dcf::t_42c997a95df5d3 19-20,49,62-63
+tests/temples.test.js
+  s_1fd8d0e7b02dcf::t_7303f53fb9af81 1007-1125
+src/boxes/effects.js
+  s_a3f2b476c02199::t_76ee141d00dfb4 23,166
+src/boxes/placements.js
+  s_a3f2b476c02199::t_73d1a6d4b73a83 63-66,70-72
+src/items.js
+  s_a3f2b476c02199::t_5723b701d9cbbf 100-104
+src/player.js
+  s_a3f2b476c02199::t_ccf86848697e86 948
+src/temples/migrate.js
+  s_a3f2b476c02199::t_f9a266d25d6544 18
+src/temples/pieces.js
+  s_a3f2b476c02199::t_89f67a95d8ecf6 8,27-28,637-755
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c0388b392064362982a1e655ec6fcdb74a383130",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_a3f2b476c02199": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a820fb8b1fec05c31",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
