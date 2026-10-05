@@ -692,7 +692,7 @@ export class FluidTool {
       if (!v.hail) continue;
       this.offs.push(registerTarget({ kind: 'vehicle', radius: 2.6, position: () => v.pos,
         enabled: () => v.mode === 'lane' || v.mode === 'return',
-        onHit: (mode) => { if (mode === 'shoot') v.hail(player.pos, player.heading); return mode === 'shoot'; } }));
+        onHit: (mode) => { if (mode === 'shoot' && !v.refuses?.(player, 'hail')) v.hail(player.pos, player.heading); return mode === 'shoot'; } }));
     }
     // a parked hoverbike or skiff is a loose thing: the push sends it sliding and turning
     const m = player?.mount;

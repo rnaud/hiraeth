@@ -119,6 +119,13 @@ the settings.
 
 ## World by world
 
+In route order (`src/levels/names.js` ORDER): the desert, then Vael and Vael II
+(the wings and the winds), Lorn and Lorn II, Viridel, then, in the later half,
+the City-Shaft (the jets), the Sealed Hangar and the Buried Machine (which want
+them), the Garden of Spheres and the Signal Market. Vael II waits for Vael.
+The sections below are numbered by that route (they keep the order they were
+written in).
+
 ### 1. The Desert — "The Tree That Drinks"
 - **Local story**: Once a year the old city's burning tree "drinks": water
   rises from beneath the giants and the fire burns cool and many-coloured.
@@ -183,27 +190,42 @@ the settings.
 - **Clue**: the Speaker says the giants "came down from the swamp of lights"
   → Lorn. Someone saw a singing light go over the night the ship was struck (it dipped low, turned, and climbed away).
 
-### 2. The City-Shaft (incal) — "The Light Nobody Looks At"
+### 7. The City-Shaft (incal) — "The Light Nobody Looks At"
 - **Local story**: The Lodestar turns above the palace; the upper city calls it a
   tourist story, the lower levels pray to it. A sweeper on the high terraces
   says it has faded a little every year since she was a girl (nobody looks up),
   and has been going out since "the night the sky rang".
 - **Quests**: deliver a ration from the lower levels to the palace guard (who
   is from the lower levels himself); find the taxi driver who still stops for
-  the poor; carry a message up the shaft.
+  the poor; carry a message up the shaft; earn a cab pass from Lio, the
+  dispatcher on the rim, by collecting the fare Hask owes him (until then no
+  cab answers your whistle or lets you in; Wren, at her lamp, stops for anyone).
+- **Gift**: the fluid jets, in the Warden's Well on the rim. The route brings the
+  City-Shaft in its later half (the seventh world), so the jets come long after
+  the wings; right after the chest, a line, the drone and rings rising through
+  the oculus show the first flight, up into the gallery.
 - **Keepsake**: *word*: the sweeper's "Look up once a day."
 - **Clue**: a Lodestar splinter carries the glyph and hums like Lorn's crystal.
 
-### 3. Vael — "The Waiting Bird"
-- **Local story**: The bird waits for a rider who left the lone tower long ago.
-  Nobody speaks much. The world is silent by choice.
-- **Quests**: find three feathers the bird has shed across the spires; ring
-  the stone hand's knuckles in the right order; reach the tower window.
+### 2. Vael — "The Waiting Bird"
+- **Local story**: The bird has not come down since her rider left the lone
+  tower long ago: she keeps to the sky over the haze, and answers only the
+  rider's call. Nobody speaks much. The world is silent by choice.
+- **Quests**: find the fluid wings in the Aerie and ride the wind that rises up
+  the tower's side to its balcony; climb to the window, where the rider left a
+  little bone flute on the sill; play it (five notes: her call) and the bird
+  comes down for the first time, and bows. Until then she is not seen and
+  cannot be ridden. Then: find three feathers the bird has shed across the
+  spires; ring the stone hand's knuckles in the right order.
+- **Gift**: the fluid wings (the Aerie). Vael is the first world after the
+  desert, so gliding and the winds come first.
 - **Keepsake**: *person*: the bird lets you ride, and will come if called
-  from any world with sky (a promise, not an item).
-- **Clue**: the tower's room has a map of the sky stones → Vael II.
+  from any world with sky (a promise, not an item); calling her plays the
+  rider's tune.
+- **Clue**: through the window, a map of the sky stones on the wall → Vael II
+  (which is charted only once Vael is done: it needs her).
 
-### 4. Vael II — "The Bell Under the Cloud"
+### 3. Vael II — "The Bell Under the Cloud"
 - **Local story**: The monastery bell has not rung since the cloud rose,
   thirty years ago; the monks believe its ringing kept the world down, and
   that when it stopped everything loose fell *up* (the sky stones themselves
@@ -216,7 +238,7 @@ the settings.
 - **Clue**: the tower on the plain holds the same masked face as the desert's
   sleeping head → the giants were here too.
 
-### 5. The Sealed Hangar — "The Major Forgot"
+### 8. The Sealed Hangar — "The Major Forgot"
 - **Local story**: Major Brask built this pocket universe and forgot why.
   His people keep the machines turning out of habit, passing a signal around
   the three zones that nobody can read.
@@ -228,7 +250,7 @@ the settings.
 - **Clue**: the signal decodes to coordinates of a buried wheel → the Buried
   Machine.
 
-### 6. The Buried Machine — "One Tooth a Year"
+### 9. The Buried Machine — "One Tooth a Year"
 - **Local story**: Below the dunes a great wheel turns one tooth a year; the
   dome people time their lives by it. The hanging city above is "its other
   half". The oculus window is warm: something inside is still alive.
@@ -239,7 +261,7 @@ the settings.
 - **Clue**: oil-light in the oculus adds an amber band to the tank; the
   machine's maker's mark is the glyph.
 
-### 7. Viridel — "The Garden Grows Over"
+### 6. Viridel — "The Garden Grows Over"
 - **Local story**: Odile and Talo's ship fell here; the gardeners let the
   garden take it. They believe nothing that falls should be dug up again.
 - **Quests**: find the crashed ship; return a pyramid seed to the gardener;
@@ -253,7 +275,7 @@ the settings.
 - **Clue**: Odile and Talo's ship was struck by the same singing light → the
   traveller's ship wasn't the first.
 
-### 8. The Garden of Spheres — "What the Spheres Remember"
+### 10. The Garden of Spheres — "What the Spheres Remember"
 - **Local story**: The spheres came down long ago; each "remembers" one
   sound. The round plaza's pole hums when the great sphere is on the horizon.
 - **Quests**: listen at three spheres (splash each with the fluid); carry a lake
@@ -261,7 +283,7 @@ the settings.
 - **Keepsake**: *song*: the chord the three spheres make together.
 - **Clue**: one sphere's sound is the desert's procession drum.
 
-### 9. Lorn — "The Great Crystal"
+### 4. Lorn — "The Great Crystal"
 - **Local story**: The crystal sings in the rain and the carnivorous plants
   fall silent. The swamp people say it is a piece of something that fell.
 - **Quests**: feed nothing to the plants (a test of patience); bring a crystal
@@ -270,7 +292,7 @@ the settings.
 - **Clue**: the crystal's song matches the "singing light" → it is a fragment
   of whatever struck the ship.
 
-### 10. Lorn II — "The Lamps Are Kept"
+### 5. Lorn II — "The Lamps Are Kept"
 - **Local story**: In the deep wood people keep the pools lit for travellers
   who never come. You are the first in a long time.
 - **Quests**: relight three dark pools (shoot them); return the moss-dome

@@ -734,6 +734,7 @@ export class Player {
    * skips to the end. Without the fluid tool (tests) or a socket, you just get on.
    */
   board(v) {
+    if (v.refuses?.(this, 'board')) return false;   // a cab without a pass (src/taxi.js)
     if (this.needsPower(v) && !this.has('backpack')) { this.notice('It needs power.'); return false; }
     if (this.needsPower(v) && this.handoff && v.socket && this.onGround && !this.climbing && !this.mantle) {
       this.boarding = { v, t: 0, dur: HANDOFF.board, k: 0, from: this.pos.clone(), heading: this.heading };
@@ -868,7 +869,7 @@ export class Player {
   callMount() {
     if (this.boarding || this.unboarding || this.ride) return;
     if (this.opts.canSummon && !this.opts.canSummon()) return;   // e.g. in a room off the map
-    if (this.mount?.dormant) return;   // nothing to whistle for yet: it hasn't been found
+    if (this.mount?.dormant) return this.mount.onDormantCall?.(this);   // nothing to whistle for yet: it hasn't been found (Vael's bird: not until her call is learnt)
     if (this.mount && this.needsPower(this.mount) && !this.has('backpack')) { this.opts.onWhistle?.('mount'); return this.notice('It needs power.'); }   // the whistle wakes nothing
     if (this.mount) {
       this.opts.onWhistle?.('mount');
@@ -884,7 +885,7 @@ export class Player {
       const d = v.pos.distanceTo(this.pos) * (v.fare ? 1.5 : 1);
       if (d < bd) { best = v; bd = d; }
     }
-    if (best) { this.opts.onWhistle?.('taxi'); best.hail(this.pos, this.heading); }
+    if (best) { this.opts.onWhistle?.('taxi'); if (!best.refuses?.(this, 'hail')) best.hail(this.pos, this.heading); }
   }
 
   update(dt, input, camYaw) {

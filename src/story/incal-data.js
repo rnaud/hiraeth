@@ -15,17 +15,26 @@
 // looks up at once. Nima gives you the only thing she has: "look up once a day".
 //
 // Side errands: Pip's ration tin for his uncle Dov, the palace guard; the dead
-// taxi call-lamp at the bottom (shoot it) and Wren, the driver who still stops.
+// taxi call-lamp at the bottom (shoot it) and Wren, the driver who still stops;
+// a cab pass from Lio, the dispatcher on the rim (the cabs fly past anyone
+// without one: src/taxi.js), for the fare Hask, the seller of views, owes him.
 // Clue: the splinter carries the glyph and hums the same note as the singing
 // crystals of the swamp of lights (Lorn).
 //
 // Flags (game-state.js): incal.rumour.light, incal.splinter.given, incal.dov.allowed,
 // incal.lit (the Lodestar burns bright again), incal.lamp.lit, incal.wren.met,
-// incal.dov.fed, incal.hoist.pin, incal.hoist.in (the goods hoist, swung in); clue.incal.perdide. Items: splinter, ration.
+// incal.dov.fed, incal.hoist.pin, incal.hoist.in (the goods hoist, swung in); clue.incal.perdide. Items: splinter, ration,
+// fare (Hask's coin), cabpass (the cab pass: src/items.js lists it in the gear).
 
 const Q = 'incal.light';
 
-export const ITEMS = { splinter: 'the Lodestar splinter', ration: 'Pip’s ration tin' };
+export const ITEMS = { splinter: 'the Lodestar splinter', ration: 'Pip’s ration tin', fare: 'Hask’s bent coin', cabpass: 'a cab pass' };
+
+/** What a cab says in the City-Shaft when you have no pass yet (src/taxi.js Taxi.refusal). */
+export const PASS_REFUSAL = {
+  hail: 'The cab slides past without slowing. A card in its window: PASS HOLDERS ONLY. Lio, the dispatcher on the rim, writes the passes.',
+  board: 'The driver taps the card on the dash: PASS HOLDERS ONLY. Lio, the dispatcher on the rim, writes the passes.',
+};
 
 // ------------------------------------------------------------------ quests
 export const QUESTS = [
@@ -47,6 +56,16 @@ export const QUESTS = [
       // (src/story/incal.js: the tin hangs in the old goods hoist's basket, out over the void; shoot the pin, push the weight round)
       { id: 'hoist', text: 'Pip’s tin hangs in the old goods hoist’s basket, out over the void. Knock out the rusted pin (shoot: aim with R, right click or LT / L2, then G, a click or RT / R2), push the hoist round (push: C, middle click, or RB / R1) and take the tin', label: 'The goods hoist', bring: 'ration', at: 'hoist', to: 'dov' },
       { id: 'carry', text: 'Carry Pip’s ration tin up to his uncle Dov, the palace guard', label: 'Dov, at the palace gate', bring: 'ration', to: 'dov' },
+    ],
+  },
+  {
+    // the cabs fly past anyone without a pass (src/taxi.js): Lio writes one, for a fare paid in advance
+    id: 'incal.pass', title: 'A Pass for the Cabs', world: 'incal',
+    outro: 'A card with the palace seal and something like your name. The cabs stop for you now.',
+    stages: [
+      { id: 'lio', text: 'The cabs fly past you. Ask Lio, the cab dispatcher on the rim, how to get one to stop', label: 'Lio, the dispatcher', talk: 'lio' },
+      { id: 'fare', text: 'Lio writes a pass for one fare, paid in advance. Hask, who sells views along the rim, owes him one: collect it', label: 'Hask, seller of views', talk: 'hask' },
+      { id: 'back', text: 'Bring Hask’s coin back to Lio for your cab pass', label: 'Lio, the dispatcher', bring: 'fare', to: 'lio' },
     ],
   },
   {
@@ -393,10 +412,34 @@ export const RIM = {
   lio: {
     id: 'lio', name: 'Lio', title: 'cab dispatcher', color: '#62c3c9', head: 'hat', cape: 0,
     talk: {
+      entry: [
+        { if: { all: [{ quest: 'incal.pass', stage: 'back' }, { has: 'fare' }] }, node: 'paid' },
+        { if: { quest: 'incal.pass', stage: ['fare', 'back'] }, node: 'waiting' },
+        { node: 'hello' },
+      ],
       nodes: {
         hello: {
-          say: ["~playful~ Mind the taxis. They stop for people who look like a fare. You’ll do.", "~neutral~ Nine hundred cabs. I dispatch every one. None stop below the smog. At least, that’s what my forms say."],
-          choices: [{ text: '~curious~ Why not?', goto: 'why' }, { text: '~curious~ Seen anything strange lately?', goto: 'strange' }],
+          say: [{ if: { has: 'cabpass' }, text: "~playful~ Pass holder! Wave it about. The cabs adore paperwork." },
+            { if: { not: { has: 'cabpass' } }, text: "~playful~ Mind the taxis. They stop for passes, not people. Palace rule. You haven’t got one; I can tell from here." },
+            "~neutral~ Nine hundred cabs. I dispatch every one. None stop below the smog. At least, that’s what my forms say."],
+          choices: [{ text: '~curious~ How do I get a pass?', if: { not: { has: 'cabpass' } }, goto: 'pass' }, { text: '~curious~ Why not below the smog?', goto: 'why' }, { text: '~curious~ Seen anything strange lately?', goto: 'strange' }],
+        },
+        pass: {
+          say: ["~neutral~ I write them. One fare, paid in advance, and a name. Any name. Most people pick their own.",
+            "~playful~ No coin? Then fetch me one I’m owed. *Hask, who sells views along the rim*, took a cab on Tuesday and paid in compliments. *Collect his fare*, and the pass is yours."],
+          do: [(ctx) => { const q = ctx.quests; if (!q.isStarted('incal.pass')) q.start('incal.pass'); if (q.stage('incal.pass') === 'lio') q.advance('incal.pass', 'lio'); }],
+          choices: [{ text: '~happy~ I’ll collect it.', end: true }, { text: '~curious~ Why don’t the cabs stop below the smog?', goto: 'why' }],
+        },
+        waiting: {
+          say: [{ if: { quest: 'incal.pass', stage: 'fare' }, text: "~neutral~ *Hask, along the rim*, selling views of a hole. One fare. He’ll pretend he’s forgotten. He hasn’t." },
+            { if: { not: { quest: 'incal.pass', stage: 'fare' } }, text: "~curious~ Got Hask’s coin? No? Then the cabs and I will go on ignoring you together." }],
+          choices: [{ text: '~neutral~ On my way.', end: true }],
+        },
+        paid: {
+          say: ["~surprised~ Hask paid? In a coin? I’ll frame it, next to the compliments.",
+            "~neutral~ (Lio stamps a card with the palace seal and punches a name into it, more or less yours.) *Your cab pass.* Whistle when a cab goes by, and it stops. Get in one that waits, and it goes."],
+          do: [{ take: 'fare' }, { give: 'cabpass' }, { advance: ['incal.pass', 'back'] }],
+          choices: [{ text: '~happy~ Thank you, Lio.', end: true }],
         },
         why: { say: ["~neutral~ No profitable fares down there. Wren still goes if someone *lights the old call-lamp*. Please don’t make me calculate whether kindness breaks even."], choices: [{ text: '~neutral~ Goodbye.', end: true }] },
         strange: { say: ["~scared~ When the sky rang, nine hundred compasses failed at once. You try routing nine hundred frightened drivers. I still hear the horns in my sleep."], do: { set: { 'incal.rumour.light': true } }, choices: [{ text: '~neutral~ Goodbye.', end: true }] },
@@ -410,7 +453,10 @@ export const RIM = {
       '~neutral~ Nine levels. Eleven if you count the smog and the lake. The rich at the top, the poor at the bottom, and a light in the middle that nobody pays for, so nobody looks at it.',
       '~angry~ No looking without paying. That was a look. That’s one coin.',
       { if: { not: { flag: 'box.incal.soles' } }, say: '~whisper~ A free one, since you’re not buying: there’s a box on top of *the lone stone pillar*, round the rim from your ship. A good climb. A terrible view, of a box.' },
-      { after: LOOKED, say: '~playful~ Now they all look up, and for free. I’m ruined. I sell views of the light now. Same price.' },
+      { after: LOOKED, if: { not: { quest: 'incal.pass', stage: 'fare' } }, say: '~playful~ Now they all look up, and for free. I’m ruined. I sell views of the light now. Same price.' },
+      // (last: the list's places are the save's memory of what was said)
+      { after: { quest: 'incal.pass', stage: 'fare' }, say: ["~angry~ Lio sent you? For one fare? I was going to pay. Eventually. Possibly in views.", "~tired~ (Hask counts out one bent coin, slowly, as if it were the last view on the rim.) *Take it to Lio.* Tell him I tipped."],
+        do: [{ give: 'fare' }, { advance: ['incal.pass', 'fare'] }] },
     ] },
   },
 };

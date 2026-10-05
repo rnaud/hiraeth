@@ -23,6 +23,7 @@ import { Reserve } from '../src/fluid-tool.js';
 import { viaPortal } from '../src/scout.js';
 import { VOLLEY } from '../src/temples/garage.js';
 import { SITE as SITE_EDENA } from '../src/temples/edena.js';
+import { JETS_NEXT, jetsUsed } from '../src/temples/incal.js';
 import { modeFor } from '../src/targets.js';
 import { createEchoShell } from '../src/echo-shell.js';
 
@@ -506,9 +507,22 @@ test('the Warden’s Well on foot: the eye and the discs, the climb and the ball
   assert.ok(rt.kit.local(P.pos).y < 16, 'without the jets you cannot go up');
   items.grant('jetpack'); game.emit('box:opened', { id: 'incal.temple.jetpack' });
   assert.equal(rt.logic.gadget, true);
+  // what they are for, at once: a line a moment after the chest, the drone sent up, rings rising through the oculus
+  const pings = [], offPing = game.on('scout:ping', (e) => pings.push(e));
+  wait(1.5);
+  assert.ok(notes.includes(JETS_NEXT), `the jets' next step is said (${notes.at(-1)})`);
+  assert.match(JETS_NEXT, /RT \/ R2/);
+  assert.equal(pings.length, 1, 'the drone flies up to show where');
+  offPing?.();
+  const guide = rt.pieces.find((p) => p.constructor.name === 'JetGuide');
+  assert.ok(guide?.root.visible, 'the way up shows');
+  assert.equal(jetsUsed(rt), false);
   assert.equal(walk(L(0, 11, 81), { tol: 1.2 }), true);
   assert.equal(fly(36.5, [0, 81 - 8]), true, `up through the oculus to the gallery floor (${where()})`);
   assert.ok(Math.abs(rt.kit.local(P.pos).y - 34.6) < 0.4, `standing in the gallery (${where()})`);
+  assert.equal(jetsUsed(rt), true, 'up: the jets were the way');
+  wait(1.2);
+  assert.equal(guide.root.visible, false, 'the rings fade once you are up');
   // the eyes are hidden from the floor: no line to them; you fly up level with each to splash it
   for (const id of ['s2', 's3', 's4']) {
     const eye = rt.piece(id);

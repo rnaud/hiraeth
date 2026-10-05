@@ -71,7 +71,8 @@ test('every placement stands on reachable ground, with room to stand and rise', 
 
 test('the jetpack, glider, stun and fire unlocks each have a box; every special item too', () => {
   const where = Object.fromEntries(Object.values(PLACEMENTS).flat().map((p) => [p.item, p.id]));
-  for (const id of Object.keys(ITEMS)) assert.ok(where[id], `${id} is in a box somewhere`);
+  for (const id of Object.keys(ITEMS)) if (!ITEMS[id].quest) assert.ok(where[id], `${id} is in a box somewhere`);
+  assert.ok(!where.cabpass, 'the cab pass is a quest’s, not a box’s');
   assert.match(where.jetpack, /^incal\./);
   assert.match(where.glider, /^arzach2?\./);
   assert.match(where.stun, /^(perdide|spheres)\./);
