@@ -3,6 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { mulberry32 } from '../noise.js';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
 import { jitter, soften } from '../world.js';
+import { attachTemple } from '../temples/index.js';
 
 // ---------------------------------------------------------------------------
 // The Sealed Hangar: Major Brask's pocket universe.
@@ -459,7 +460,8 @@ export function createGarage(scene) {
   let cooldown = 0, passing = null;
   const PASS = { in: 0.16, out: 0.4 };   // s: the fade into the portal's light, and out of it
 
-  return {
+  // (the makers' First Garage on the rim: src/temples/garage.js)
+  return attachTemple('garage', scene, {
     id: 'garage',
     // the plateau's flora (src/flora.js) keeps off the path from the start to the keep
     floraAvoid: (x, z, r) => Math.abs(x) < 18 + r && z > 14 - r && z < 175 + r,
@@ -550,5 +552,5 @@ export function createGarage(scene) {
       if (z === 'C' && Math.hypot(p.y - C_POS.y, p.z - C_POS.z) > RING_R + 40) player.teleport(cSpawn, Y, new THREE.Vector3(1, 0, 0));
       if (z === 'A' && Math.hypot(p.x, p.z) > 900) player.teleport(aSpawn, Y, new THREE.Vector3(0, 0, -1));
     },
-  };
+  });
 }

@@ -31,8 +31,8 @@ import { MODES, STUN_SECONDS, FluidWings, FluidJets, HANDOFF, handoffPose, nextM
 //            refill clock waits until you land after a burn, then the usual
 //            two seconds refill everything.
 //   glider   fluid wings bloom out of the tank while gliding (hold jump while falling)
-//   stun / fire   gun modes (X, the pad's D-pad left / right, the touch ◐ button): the glob
-//            stills (onHit 'stun') or burns ('fire') instead of splashing; all
+//   stun / fire / bloom   gun modes (X, the pad's D-pad left / right, the touch ◐ button): the glob
+//            stills (onHit 'stun'), burns ('fire') or grows ('bloom') instead of splashing; all
 //            modes share the three charges (targets.js: who accepts which mode)
 // Vehicles run on it too: boarding a powered vehicle swings the tank off the back into
 // its socket (the player's boarding / unboarding timers, HANDOFF), and back on when you
@@ -48,11 +48,12 @@ import { MODES, STUN_SECONDS, FluidWings, FluidJets, HANDOFF, handoffPose, nextM
 //   tool.tones            the tones in the blend, hex strings
 //   tool.enabled          false: put away, nothing fires (the ship prologue, cutscenes)
 //   tool.owned            the backpack is found (items.has('backpack'))
-//   tool.mode / tool.modes / tool.setMode(id) / tool.cycleMode(±1)   'shoot' | 'stun' | 'fire'
+//   tool.mode / tool.modes / tool.setMode(id) / tool.cycleMode(±1)   'shoot' | 'stun' | 'fire' | 'bloom'
 //   tool.refill({ addColour, tone })   fill now; addColour adds a band (tone: its colour, optional)
 //   game.emit('tool:refill', { addColour: true }) · game.emit('tool:enable', { on: false })
 //   emits 'tool:fire' { mode, point } (mode: shoot / stun / fire / push / boost / jet start),
-//   'tool:refilled' { charges, colours, added }, 'tool:mode' { mode }, 'tool:dock' { vehicle, on }
+//   'tool:refilled' { charges, colours, added }, 'tool:mode' { mode }, 'tool:dock' { vehicle, on },
+//   'tool:bloom' { point, normal } (a bloom glob landed on the world: src/boxes/effects.js grows a few flowers there)
 
 /** Every tuning value in one place. */
 export const FLUID = {
@@ -1129,7 +1130,7 @@ export class FluidTool {
     glob.mesh = this.globMeshes.find((m) => !m.visible) ?? this.globs.shift()?.mesh ?? this.globMeshes[0];
     glob.mesh.visible = true;
     glob.tone = Math.floor(Math.random() * 6);
-    glob.mode = this.mode;               // 'shoot' | 'stun' | 'fire': what it does where it lands
+    glob.mode = this.mode;               // 'shoot' | 'stun' | 'fire' | 'bloom': what it does where it lands
     this.globs.push(glob);
     this.used('shoot', from, { glob: glob.mode });
     this.sound?.fluidShoot?.(glob.mode);
@@ -1246,6 +1247,16 @@ export class FluidTool {
       this.rings.add({ from: point, dir: normal, reach: 0.05, r0: 0.2 * sc, r1: 1.1 * sc, life: 0.28, color: tones[1], thick: 1 });
       return;
     }
+    if (mode === 'bloom') {
+      // petals: a puff of green and pink that drifts down slowly, a soft ring
+      for (let i = 0; i < 24; i++) {
+        const v = _a.randomDirection().addScaledVector(normal, 1.0).normalize().multiplyScalar((1.5 + Math.random() * 3.5) * sc);
+        this.drops.add({ pos: point, vel: v, drag: 4.5, grav: 1.4, size: (0.04 + Math.random() * 0.04) * sc, stretch: 1.2, life: 0.9 + Math.random() * 0.8, color: tones[i % tones.length] });
+      }
+      for (let i = 0; i < 6; i++) this.glow.add({ pos: point, vel: _a.randomDirection().addScaledVector(normal, 0.6).multiplyScalar(0.8 * sc), drag: 3, size: 0.08 * sc, life: 0.7, color: tones[(i + 1) % tones.length], grow: true });
+      this.rings.add({ from: point, dir: normal, reach: 0.05, r0: 0.15 * sc, r1: 1.2 * sc, life: 0.45, color: tones[0], thick: 0.7 });
+      return;
+    }
     for (let i = 0; i < 28; i++) {
       const v = _a.randomDirection().addScaledVector(normal, 1.2).normalize().multiplyScalar((3 + Math.random() * 6) * sc);
       this.drops.add({ pos: point, vel: v, drag: 2.2, grav: 9, size: (0.045 + Math.random() * 0.05) * sc, stretch: 2.5, life: 0.55 + Math.random() * 0.4, color: tones[i % tones.length] });
@@ -1276,6 +1287,7 @@ export class FluidTool {
             // a splat: fluid; frost (pale, lingering); scorch (dark, with an ember rim, quick)
             if (gm === 'fire') this.splats.add(e.point, e.normal, '#3a2622', gTones[1], 0.6, 2.4);
             else if (gm === 'stun') this.splats.add(e.point, e.normal, gTones[0], '#f2fbff', 0.7, FLUID.shoot.splatLife + 1.5);
+            else if (gm === 'bloom') { this.splats.add(e.point, e.normal, gTones[0], gTones[1], 0.6, FLUID.shoot.splatLife); this.state.emit('tool:bloom', { point: e.point.clone(), normal: e.normal.clone() }); }
             else this.splats.add(e.point, e.normal, gTones[g.tone % gTones.length], gTones[(g.tone + 1) % gTones.length]);
           }
         }

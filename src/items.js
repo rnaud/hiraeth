@@ -46,6 +46,11 @@ export const ITEMS = {
     text: 'A flint ring for the wrist nozzle. The fluid comes out burning, but the makers’ fire does not hurt.',
     use: 'Switch modes with X (on a controller, the D-pad left or right). Ember bursts light lamps, braziers and fuses, and burn away dry brambles.',
   },
+  bloom: {
+    name: 'Bloom mode', kind: 'mode', needs: 'backpack',
+    text: 'A seed of green glass for the wrist nozzle, warm to the touch, a hair of root still curled inside it. The makers grew their houses.',
+    use: 'Switch modes with X (on a controller, the D-pad left or right). A bloom burst tells the makers’ plants to grow: seeds sprout, budded doorways open, vines climb glass and bridge a gap. Anywhere else, a few flowers come up where it lands.',
+  },
   // ---- special items, found in boxes across the worlds (src/boxes/placements.js; effects in src/boxes/effects.js)
   cell: {
     name: 'Fourth chamber', kind: 'upgrade', needs: 'backpack',
@@ -112,6 +117,16 @@ export const ITEMS = {
     text: 'A little tin of amber resin, still soft after who knows how long, the makers’ thumb pressed into the lid. Rub it on your palms.',
     use: 'Climbing tires you half as fast: you hang on twice as long.',
   },
+  echo: {
+    name: 'Echo shell', kind: 'charm',
+    text: 'A spiral shell of pale brass, as long as your hand, its mouth worn smooth. Whatever the makers’ things sing near it, it keeps, the way a shell keeps the sea.',
+    use: 'It catches the last note sung near you (a singing stone, a machine’s one word) and holds it. Press V (or click the right stick, RS / R3) to play it back: whatever listens for that note answers.',
+  },
+  level: {
+    name: 'Brass level', kind: 'charm',
+    text: 'A little spirit level of brass and green glass, the Major’s initials scratched on its side, a bubble that has never once settled.',
+    use: 'Where down is not where it was (the Hangar’s upside-down quarter and its ring), a small level in the corner of your eye shows how the floor lies.',
+  },
   star: {
     name: 'Pale star', kind: 'cosmetic',
     text: 'A star of pale enamel, the same as the one on every chest lid: the makers’ sign for a traveller, a small light a long way from home.',
@@ -120,7 +135,7 @@ export const ITEMS = {
 };
 
 /** Gun modes: shoot is always there with the backpack; the others are unlocked by items. */
-export const MODE_ITEMS = { shoot: 'backpack', stun: 'stun', fire: 'fire' };
+export const MODE_ITEMS = { shoot: 'backpack', stun: 'stun', fire: 'fire', bloom: 'bloom' };
 
 const key = (id) => `item.${id}`;
 const listeners = new Set();

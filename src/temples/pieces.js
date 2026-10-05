@@ -26,6 +26,11 @@ import { T, box, lathe, prep, annulus } from './kit.js';
 //   Swing    a crystal pendulum over a bridge: it knocks you off; a stilling glob stops it a while
 //   Updraft  a column of rising wind: it lifts the fluid wings, round and up, and lets you go at its top
 //   Gust     gusts down a hall that shove you back unless you wait them out behind a screen
+//   Seed     a husk in a stone ring that only a bloom glob wakes: it sprouts (a vine, a planter's flowers)
+//   Bud      a flower-door: a great bud over a doorway that a bloom glob opens, petals folded back
+//   Glass    a greenhouse pane too smooth to climb, until a vine has grown up it
+//   EchoStone a singing stone: splash it and it sings its note (the echo shell catches it)
+//   EchoEar  a horn that listens for its note played back close by (the echo shell)
 //   Platform a disc that rides between points (you ride along on it)
 //   Bridge   stones that rise out of a chasm when their condition holds
 //   Mark     a glyph stone: walk past it and it is where you come back to (a checkpoint)
@@ -400,11 +405,14 @@ export class Switch {
 /**
  * A bank of eyes (o.eyes: [{ at, yaw }]) that wake only together: splash every one inside `window` seconds
  * of the first and the element `id` is lit for good; too slow, and they all go dark again. Four eyes and a
- * window shorter than the tank's refill: it wants the fourth chamber (src/items.js 'cell').
+ * window shorter than the tank's refill: it wants the fourth chamber (src/items.js 'cell'). Six eyes and a
+ * window a little longer than one refill: it wants the quick coil ('coil': two tanks in one breath).
+ * o.full: said when every eye woke but the element's item is missing; o.fade: said once when some woke and
+ * all went dark again before the rest.
  */
 export class Bank {
   constructor(rt, o) {
-    this.rt = rt; this.id = o.id; this.window = o.window ?? 2.6;
+    this.rt = rt; this.id = o.id; this.o = o; this.window = o.window ?? 2.6;
     const K = rt.kit, M = rt.M, s = o.size ?? 0.9;
     this.eyes = o.eyes.map((e, i) => {
       const g = new THREE.Group();
@@ -429,13 +437,19 @@ export class Bank {
     this.rt.sound?.critter?.('blip', 0.8);
     if (this.eyes.every((x) => this.time - x.at <= this.window)) {
       if (this.rt.logic.light(this.id)) { this.done = true; this.rt.sound?.chime?.(); this.rt.onLit?.(this.id); }
-      else this.rt.notice?.('All four woke, and went dark again: the bank wants more than this tank can hold in one breath.', `bank.${this.id}`);
+      else this.rt.notice?.(this.o.full ?? 'All four woke, and went dark again: the bank wants more than this tank can hold in one breath.', `bank.${this.id}`);
     }
     return true;
   }
+  /** How many eyes are awake now (inside the window). */
+  awake() { return this.eyes.filter((x) => this.time - x.at <= this.window).length; }
   update(dt, t) {
     this.time += dt;
     this.done ||= this.rt.logic.isLit(this.id);
+    // some woke, and all went dark again before the rest: say why, once
+    const n = this.done ? 0 : this.awake();
+    if (this.o.fade && this.was >= 2 && n === 0) this.rt.notice?.(this.o.fade, `bank.fade.${this.id}`);
+    this.was = n;
     for (const e of this.eyes) {
       const lit = this.done || this.time - e.at <= this.window;
       e.glow.uniforms.uGlow.value = lit ? (this.done ? 0.85 : 0.55 + 0.4 * Math.max(0, 1 - (this.time - e.at) / this.window)) : 0.06 + 0.04 * Math.sin(t * 1.5);
@@ -753,6 +767,309 @@ export class Gust {
   }
 }
 
+// ---------------------------------------------------------------------------------------- bloom (Viridel)
+const BLOOMS = ['#f2a7b8', '#f6d36a', '#ffffff', '#b7a0cf', '#ef7e62'];
+
+/**
+ * A seed of the makers in a stone ring (Viridel's Greenhouse): a dry husk that only a bloom glob (the 'bloom'
+ * mode) wakes. It sprouts and flowers, and element `id` (a 'switch' that needs the bloom mode) is lit for
+ * good: what it grows (a vine bridge, a vine up a glass wall, a planter's flowers) is the logic's to show.
+ * Plain fluid only soaks it. o: { id, at (its foot), yaw, size, seed, drink, burn }
+ */
+export class Seed {
+  constructor(rt, o) {
+    this.rt = rt; this.id = o.id; this.o = o;
+    const K = rt.kit, M = rt.M, s = this.s = o.size ?? 1;
+    this.group = new THREE.Group();
+    this.group.position.copy(K.world(...o.at));
+    this.group.rotation.y = K.heading(o.yaw ?? 0);
+    rt.root.add(this.group);
+    // the ring of stone, the dark earth in it, the husk
+    this.group.add(mesh([lathe([[1.3 * s, 0], [1.35 * s, 0.5 * s], [1.1 * s, 0.6 * s], [1.0 * s, 0.4 * s], [0.01, 0.4 * s]], 16)], M.trimMat));
+    this.husk = own({ color: '#9a7448', flat: true });
+    this.huskMesh = mesh([T(new THREE.SphereGeometry(0.45 * s, 10, 8).scale(1, 1.3, 1), [0, 0.75 * s, 0]), T(new THREE.ConeGeometry(0.12 * s, 0.6 * s, 6), [0, 1.35 * s, 0])], this.husk);
+    this.group.add(this.huskMesh);
+    // what grows: a stem, leaves, a head of flowers (scaled up from nothing)
+    this.sprout = new THREE.Group();
+    this.sprout.position.y = 0.45 * s;
+    const stem = own({ color: '#4f8a5a', flat: true }), leaf = own({ color: '#7fcf72', flat: true }), petals = own({ color: BLOOMS[(o.seed ?? 0) % BLOOMS.length], glow: 0.2, flat: true });
+    const lv = [];
+    for (let i = 0; i < 4; i++) { const a = (i / 4) * Math.PI * 2 + 0.4; lv.push(T(new THREE.SphereGeometry(1, 8, 5).scale(0.55 * s, 0.1 * s, 0.25 * s).translate(0.55 * s, 0, 0), [0, (0.5 + i * 0.35) * s, 0], [0, a, 0.35])); }
+    this.sprout.add(mesh([T(new THREE.CylinderGeometry(0.07 * s, 0.11 * s, 2.2 * s, 6), [0, 1.1 * s, 0])], stem), mesh(lv, leaf));
+    const ph = [];
+    for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2; ph.push(T(new THREE.SphereGeometry(1, 8, 5).scale(0.35 * s, 0.08 * s, 0.2 * s).translate(0.32 * s, 0, 0), [0, 2.25 * s, 0], [0, a, -0.4])); }
+    ph.push(T(new THREE.SphereGeometry(0.16 * s, 8, 6), [0, 2.28 * s, 0]));
+    this.sprout.add(mesh(ph, petals));
+    this.group.add(this.sprout);
+    noCollide(this.group);
+    this.center = this.group.position.clone().addScaledVector(UP, 0.9 * s);
+    this.on = rt.logic.isLit(o.id);
+    this.k = this.on ? 1 : 0;
+    this.apply();
+    this.off = registerTarget({ kind: 'seed', radius: 1.1 * s, accepts: ['bloom', 'fire'], position: () => this.center, enabled: () => !this.on, onHit: (mode) => this.hit(mode) });
+  }
+  hit(mode) {
+    if (this.on) return false;
+    if (mode === 'bloom') {
+      if (this.rt.logic.light(this.id)) { this.on = true; this.rt.sound?.chime?.(); this.rt.sound?.whoosh?.(); this.rt.onLit?.(this.id); }
+      return true;
+    }
+    if (mode === 'fire') { this.rt.notice?.(this.o.burn ?? 'The husk only blackens at the edges. A seed wants to grow, not to burn.', 'seed.burn'); return true; }
+    this.wobble = 0.5;
+    this.rt.notice?.(this.o.drink ?? 'The husk soaks up the water, and stays a seed. Something in it is waiting to be told to grow.', 'seed.drink');
+    return true;
+  }
+  apply() {
+    const k = ease(this.k);
+    this.sprout.scale.setScalar(Math.max(0.001, k));
+    this.sprout.visible = k > 0.002;
+    this.huskMesh.scale.setScalar(1 - 0.6 * k);
+  }
+  update(dt, t) {
+    this.on ||= this.rt.logic.isLit(this.id);
+    if (this.on && this.k < 1) { this.k = Math.min(1, this.k + dt / 1.4); this.apply(); }
+    if (this.wobble) { this.wobble = Math.max(0, this.wobble - dt); this.huskMesh.rotation.z = Math.sin(this.wobble * 28) * this.wobble * 0.3; }
+    if (this.on) this.sprout.rotation.z = Math.sin(t * 1.3 + (this.o.seed ?? 0)) * 0.04;
+  }
+  dispose() { this.off?.(); }
+}
+
+/**
+ * A flower-door (Viridel's Greenhouse): a doorway shut by a great bud, its petals hinged round the rim and
+ * folded in over the opening. A bloom glob opens it: element `bloom` (a 'switch' that needs the bloom mode)
+ * is lit, and the door `id` (which opens on it) folds its petals back against the wall, for good. Plain fluid
+ * only beads on it, fire makes it curl tighter. Solid while shut. o: { id, bloom, at (the doorway's foot), yaw, w, h, color }
+ */
+export class Bud {
+  constructor(rt, o) {
+    this.rt = rt; this.id = o.id; this.bloom = o.bloom; this.o = o;
+    const K = rt.kit, w = o.w ?? 5, h = o.h ?? 6.4;
+    this.w = w; this.h = h;
+    this.group = new THREE.Group();
+    this.group.position.copy(K.world(...o.at));
+    this.group.rotation.y = K.heading(o.yaw ?? 0);
+    rt.root.add(this.group);
+    this.skin = own({ color: o.color ?? '#f6c7d0', flat: true });
+    const vein = own({ color: '#e58aa0', flat: true }), sepal = own({ color: '#5f9a52', flat: true });
+    // seven petals on an oval rim round the doorway's middle, each pointing in at the middle
+    const cy = h / 2, rx = w / 2 + 0.1, ry = h / 2 + 0.1;
+    this.petals = [];
+    const N = 7;
+    for (let i = 0; i < N; i++) {
+      const a = (i / N) * Math.PI * 2 + Math.PI / 2;
+      const hinge = new THREE.Group();
+      hinge.position.set(Math.cos(a) * rx, cy + Math.sin(a) * ry, 0);
+      hinge.rotation.z = a - Math.PI / 2;   // its local -y points in at the middle
+      const reach = Math.hypot(Math.cos(a) * rx, Math.sin(a) * ry) * 1.08;
+      const p = new THREE.Group();
+      hinge.add(p);
+      p.add(mesh([new THREE.SphereGeometry(1, 12, 8).scale(Math.min(2.4, reach * 0.62), reach / 2, 0.32).translate(0, -reach / 2, (i % 2 ? 0.12 : -0.12))], this.skin));
+      p.add(mesh([box(0.12, reach * 0.8, 0.7, 0, -reach * 0.45, 0)], vein));
+      this.group.add(hinge);
+      this.petals.push({ hinge, p, i });
+    }
+    // green sepals round the rim (they stay)
+    const sp = [];
+    for (let i = 0; i < 14; i++) { const a = (i / 14) * Math.PI * 2; sp.push(T(new THREE.ConeGeometry(0.35, 1.3, 5), [Math.cos(a) * (rx + 0.3), cy + Math.sin(a) * (ry + 0.3), 0], [0, 0, a - Math.PI / 2])); }
+    this.group.add(mesh(sp, sepal));
+    noCollide(this.group);
+    this.block = new THREE.Mesh(box(w, h, 1.6, 0, h / 2, 0), new THREE.MeshBasicMaterial());
+    this.block.position.copy(this.group.position); this.block.rotation.copy(this.group.rotation);
+    this.center = this.group.position.clone().addScaledVector(UP, h * 0.5);
+    this.open = rt.logic.isOpen(o.id);
+    this.k = this.open ? 1 : 0; this.curl = 0;
+    this.off = registerTarget({ kind: 'bud', radius: Math.max(w, h) * 0.45, accepts: ['bloom', 'fire'], position: () => this.center, enabled: () => !this.open, onHit: (mode) => this.hit(mode) });
+    this.apply(0);
+  }
+  init(physics) { this.physics = physics; if (!this.open) this.handle = physics.addCollider?.(this.block) ?? null; }
+  hit(mode) {
+    if (this.open) return false;
+    if (mode === 'bloom') {
+      if (this.rt.logic.light(this.bloom)) { this.rt.sound?.chime?.(); this.rt.onLit?.(this.bloom); this.rt.notice?.(this.o.opened ?? 'The bud swells, and splits, and its petals fold back against the wall like a hand opening.', `bud.${this.id}`); }
+      return true;
+    }
+    if (mode === 'fire') { this.curl = 1.5; this.rt.notice?.(this.o.burnt ?? 'The petals curl away from the ember and close tighter.', 'bud.fire'); return true; }
+    this.curl = 0.4;
+    this.rt.notice?.(this.o.wet ?? 'The water beads on the petals and runs off. The bud stays shut: it is waiting to be told to grow.', 'bud.wet');
+    return true;
+  }
+  setOpen(open, instant = false) {
+    if (open === this.open) return;
+    this.open = open;
+    if (open && this.handle) { this.physics?.removeCollider?.(this.handle); this.handle = null; }
+    if (!open && this.physics && !this.handle) this.handle = this.physics.addCollider?.(this.block) ?? null;
+    if (instant) this.k = open ? 1 : 0;
+    else this.rt.rumble?.(1.0, 0.25);
+  }
+  apply(t) {
+    const k = ease(this.k), c = Math.min(1, this.curl);
+    for (const { p, i } of this.petals) {
+      // shut: folded in over the doorway (a little breathing); open: swung out and back against the wall
+      p.rotation.x = (1 - k) * (0.05 * Math.sin(t * 1.2 + i) - c * 0.12) - k * 1.75 * (i % 2 ? 1 : -1);
+      p.scale.setScalar(1 - 0.08 * c);
+    }
+  }
+  update(dt, t) {
+    this.curl = Math.max(0, this.curl - dt);
+    if (this.open && this.k < 1) this.k = Math.min(1, this.k + dt / 2.2);
+    if (!this.open && this.k > 0) this.k = Math.max(0, this.k - dt / 0.9);   // (held shut behind you: an arena's door)
+    this.apply(t);
+  }
+  dispose() { this.off?.(); }
+}
+
+/**
+ * A pane of greenhouse glass over a wall (Viridel): too smooth to climb (you slip off it) until a vine has
+ * grown up it, which happens when `when` holds (a seed at its foot, bloomed). o: { at (the foot's middle,
+ * local, on the wall's face), yaw (facing out of the wall), w, h, when: condition, slip: text }
+ */
+export class Glass {
+  constructor(rt, o) {
+    this.rt = rt; this.o = o;
+    const K = rt.kit, w = this.w = o.w ?? 8, h = this.h = o.h ?? 10;
+    this.group = new THREE.Group();
+    this.group.position.copy(K.world(...o.at));
+    this.group.rotation.y = K.heading(o.yaw ?? 0);
+    rt.root.add(this.group);
+    const pane = own({ color: o.color ?? '#cfe9e0', glow: 0.12, flat: true });
+    this.group.add(mesh([box(w, h, 0.12, 0, h / 2, 0.08)], pane));
+    // the mullions: a grid of thin white bars
+    const bars = [], nx = Math.max(1, Math.round(w / 1.6)), ny = Math.max(1, Math.round(h / 2));
+    for (let i = 0; i <= nx; i++) bars.push(box(0.12, h, 0.18, -w / 2 + (i / nx) * w, h / 2, 0.16));
+    for (let j = 0; j <= ny; j++) bars.push(box(w, 0.12, 0.18, 0, (j / ny) * h, 0.16));
+    this.group.add(mesh(bars, rt.M.trimMat));
+    // the vine that grows up it: stems in a lazy zigzag, leaves all along, a few flowers
+    this.vine = new THREE.Group();
+    const stems = [], leaves = [], flowers = [];
+    for (const x0 of [-w * 0.22, w * 0.18]) {
+      const pts = [];
+      for (let j = 0; j <= 10; j++) pts.push(V(x0 + Math.sin(j * 1.3 + x0) * 0.9, (j / 10) * (h + 0.6), 0.45));
+      stems.push(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 30, 0.16, 5));
+      for (let j = 0; j < 18; j++) { const p = pts[Math.floor(j / 18 * 10)]; leaves.push(T(new THREE.SphereGeometry(1, 7, 4).scale(0.5, 0.28, 0.1), [p.x + ((j % 2) * 2 - 1) * 0.45, p.y + (j % 3) * 0.3, 0.5], [0, 0, j * 0.9])); }
+      for (let j = 2; j < 10; j += 3) flowers.push(T(new THREE.SphereGeometry(0.22, 8, 6), [pts[j].x + 0.4, pts[j].y, 0.6]));
+    }
+    this.vine.add(mesh(stems, own({ color: '#4f8a5a', flat: true })), mesh(leaves, own({ color: '#7fcf72', flat: true })), mesh(flowers, own({ color: '#f2a7b8', glow: 0.25, flat: true })));
+    this.group.add(this.vine);
+    noCollide(this.group);
+    this.k = this.grown ? 1 : 0;
+    this.apply();
+  }
+  get grown() { return !!this.o.when && this.rt.logic.check(this.o.when); }
+  apply() { const k = ease(this.k); this.vine.scale.set(1, Math.max(0.001, k), 1); this.vine.visible = k > 0.002; }
+  update(dt) {
+    const g = this.grown;
+    if (g && this.k < 1) { this.k = Math.min(1, this.k + dt / 2.4); this.apply(); }
+    if (g) return;
+    // too smooth to hold: you slip off it
+    const P = this.rt.player;
+    if (!P?.climbing) return;
+    const l = this.group.worldToLocal(_dl.copy(P.pos));
+    if (Math.abs(l.x) < this.w / 2 + 0.6 && l.z > -0.5 && l.z < 1.8 && l.y > -1.5 && l.y < this.h + 0.5) {
+      P.climbing = false;
+      P.vel.copy(_dn.set(0, 0, 1).transformDirection(this.group.matrixWorld).multiplyScalar(2.2)).setY(-1);
+      P._climbCooldown = 1.2;
+      this.rt.notice?.(this.o.slip ?? 'The glass is too smooth to hold. Something would have to grow up it first.', 'glass.slip');
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------------------- echoes (the Signal Market)
+/** The notes the makers' stones sing: a scale degree (src/audio.js orbNote) and a colour each. */
+export const NOTES = {
+  low: { degree: 0, color: '#f2b14e', name: 'low' },
+  mid: { degree: 2, color: '#62c3c9', name: 'middle' },
+  high: { degree: 4, color: '#e58aa0', name: 'high' },
+};
+
+/**
+ * A singing stone of the makers (the Signal Market's Undertower): splash it and it sings one note, a ring of
+ * light pulsing out; the echo shell (src/echo-shell.js), carried within earshot, catches it (game event
+ * 'note' { pos, note, degree, color, label }). o: { note: 'low' | 'mid' | 'high', at (its foot), yaw, h }
+ */
+export class EchoStone {
+  constructor(rt, o) {
+    this.rt = rt; this.o = o; this.note = o.note;
+    const N = NOTES[o.note] ?? NOTES.mid;
+    this.N = N;
+    const K = rt.kit, M = rt.M, h = o.h ?? 3.2;
+    this.group = new THREE.Group();
+    this.group.position.copy(K.world(...o.at));
+    this.group.rotation.y = K.heading(o.yaw ?? 0);
+    rt.root.add(this.group);
+    this.group.add(mesh([lathe([[0.9, 0], [0.95, 0.3], [0.7, 0.45], [0.62, h * 0.9], [0.4, h], [0.01, h + 0.1]], 8)], M.stoneMat));
+    this.glow = own({ color: N.color, glow: 0.15, flat: true });
+    const bands = [];
+    for (const y of [0.35, 0.55, 0.75]) bands.push(T(new THREE.TorusGeometry(0.66 - y * 0.12, 0.07, 4, 20), [0, h * y, 0], [Math.PI / 2, 0, 0]));
+    bands.push(T(glyphGeometry(0.8, 0.06), [0, h * 0.62, 0.64]));
+    this.group.add(mesh(bands, this.glow));
+    // the ring of light that pulses out when it sings
+    this.ringM = own({ color: N.color, glow: 0.8, flat: true });
+    this.ring = new THREE.Mesh(new THREE.TorusGeometry(1, 0.06, 4, 40).rotateX(Math.PI / 2), this.ringM);
+    this.ring.position.y = h * 0.6;
+    this.ring.visible = false;
+    this.group.add(this.ring);
+    noCollide(this.group);
+    this.center = this.group.position.clone().addScaledVector(UP, h * 0.6);
+    this.flash = 0;
+    this.off = registerTarget({ kind: 'switch', radius: 1.1, position: () => this.center, onHit: () => this.sing() });
+  }
+  sing() {
+    this.flash = 1.6;
+    this.rt.sound?.orbNote?.(this.N.degree, this.center, { size: 0.8 });
+    this.rt.game?.emit?.('note', { pos: this.center.clone(), note: this.note, degree: this.N.degree, color: this.N.color, label: `the ${this.N.name} stone’s note` });
+    return true;
+  }
+  update(dt, t) {
+    this.flash = Math.max(0, this.flash - dt);
+    const k = this.flash / 1.6;
+    this.glow.uniforms.uGlow.value = 0.15 + 0.05 * Math.sin(t * 1.4) + 0.8 * k;
+    this.ring.visible = k > 0.01;
+    if (this.ring.visible) { this.ring.scale.setScalar(1 + (1 - k) * 9); this.ringM.uniforms.uGlow.value = 0.9 * k; }
+  }
+  dispose() { this.off?.(); }
+}
+
+/**
+ * Something that listens for a note played back close to it (the echo shell's game event 'echo' { pos, note }):
+ * its own note, within `reach`, lights element `id` (a 'switch' that needs the shell); another note it only
+ * shrugs off. A horn of brass on a post (or over a door's lintel: o.lintel), ringed in its note's colour.
+ * o: { id, note, at, yaw, reach, lintel }
+ */
+export class EchoEar {
+  constructor(rt, o) {
+    this.rt = rt; this.id = o.id; this.o = o; this.note = o.note;
+    const N = NOTES[o.note] ?? NOTES.mid;
+    const K = rt.kit, M = rt.M;
+    this.reach = o.reach ?? 7;
+    this.group = new THREE.Group();
+    this.group.position.copy(K.world(...o.at));
+    this.group.rotation.y = K.heading(o.yaw ?? 0);
+    rt.root.add(this.group);
+    const y = o.lintel ? 0 : 2.4;
+    if (!o.lintel) this.group.add(mesh([T(new THREE.CylinderGeometry(0.16, 0.22, 2.4, 8), [0, 1.2, 0]), T(new THREE.CylinderGeometry(0.5, 0.6, 0.25, 12), [0, 0.12, 0])], M.trimMat));
+    // the horn: a flared bell of brass facing out, its mouth ringed in the note's colour
+    this.group.add(mesh([T(lathe([[0.12, 0], [0.18, 0.5], [0.35, 0.9], [0.75, 1.15], [0.8, 1.2]], 14), [0, y, -0.4], [Math.PI / 2, 0, 0])], own({ color: '#d8a24a', flat: true })));
+    this.glow = own({ color: N.color, glow: 0.2, flat: true });
+    this.group.add(mesh([T(new THREE.TorusGeometry(0.78, 0.07, 4, 24), [0, y, 0.82])], this.glow));
+    noCollide(this.group);
+    this.at = this.group.position.clone().addScaledVector(UP, y);
+    this.lit = rt.logic.isLit(o.id);
+    this.off = rt.game?.on?.('echo', ({ pos, note } = {}) => {
+      if (!pos || pos.distanceTo(this.at) > this.reach || this.lit) return;
+      if (note === this.note) {
+        if (rt.logic.light(this.id)) { this.lit = true; rt.sound?.chime?.(); rt.notice?.(o.heard ?? 'It hears its own note, played back close by, and answers.'); rt.onLit?.(this.id); }
+      } else { this.shrug = 0.8; rt.notice?.(o.wrong ?? `It hears the note, and stays still: it listens for the ${N.name} one.`, `ear.wrong.${this.id}`); }
+    });
+    this.shrug = 0;
+  }
+  update(dt, t) {
+    this.lit ||= this.rt.logic.isLit(this.id);
+    this.shrug = Math.max(0, this.shrug - dt);
+    this.glow.uniforms.uGlow.value = this.lit ? 0.9 : 0.2 + 0.08 * Math.sin(t * 2) + this.shrug * 0.4;
+  }
+  dispose() { this.off?.(); }
+}
+
 // ---------------------------------------------------------------------------------------- moving floors
 export class Platform {
   /** o: { id?, path: [[x, y, z]...] (its top's centre), r, speed (m/s), pause (s at each end), when?: condition to move } */
@@ -814,8 +1131,9 @@ export class Platform {
 
 export class Bridge {
   /**
-   * o: { id, a, b: [x, y, z] the walkway's ends (its top), w, n: stones, from: 'below' | 'above' }
+   * o: { id, a, b: [x, y, z] the walkway's ends (its top), w, n: stones, from: 'below' | 'above' | 'grow' }
    * from 'above': the stones hang high over the gap (they fell up), bobbing, and come down into place.
+   * from 'grow' (a vine bridge, Viridel's bloom): woven vine that grows out from `a`, a span at a time.
    */
   constructor(rt, o) {
     this.rt = rt; this.id = o.id;
@@ -826,13 +1144,26 @@ export class Bridge {
     rt.root.add(this.root);
     this.from = o.from ?? 'below';
     const blocks = [];
+    const vine = this.from === 'grow';
+    if (vine) { this.vineM ??= own({ color: '#5f9a52', flat: true }); this.leafM ??= own({ color: '#8fcf72', flat: true }); this.bloomM ??= own({ color: '#f2a7b8', glow: 0.25, flat: true }); }
     for (let i = 0; i < n; i++) {
       const c = a.clone().lerp(b, (i + 0.5) / n);
       const g = new THREE.Group();
       g.position.copy(K.world(c.x, c.y, c.z));
       g.rotation.y = K.heading(yaw);
-      g.add(mesh([box(w, 1.0, L / n - 0.08, 0, -0.5, 0), box(w + 0.3, 0.25, L / n - 0.05, 0, -1.05, 0)], o.hidden ? (this.ghost ??= own({ color: rt.P.glow ?? '#a8e6ee', glow: 0.45, flat: true })) : M.floor));
-      g.add(mesh([T(glyphGeometry(w * 0.5, 0.04).rotateX(-Math.PI / 2), [0, 0.01, 0])], M.glyph));
+      if (vine) {
+        // a span of woven vine: two thick stems along it, a mat between them, leaves and a flower or two
+        const len = L / n + 0.1, parts = [box(w * 0.9, 0.35, len, 0, -0.18, 0)], leaves = [], flowers = [];
+        for (const s of [-1, 1]) parts.push(T(new THREE.CylinderGeometry(0.28, 0.28, len, 8), [s * w * 0.45, -0.05, 0], [Math.PI / 2, 0, 0]));
+        for (let k = 0; k < 4; k++) leaves.push(T(new THREE.SphereGeometry(1, 8, 5).scale(0.5, 0.12, 0.28), [((k % 2) * 2 - 1) * w * 0.5, 0.05, (k / 3 - 0.5) * len], [0, k * 1.3, 0.3]));
+        if (i % 2) flowers.push(T(new THREE.SphereGeometry(0.22, 8, 6), [w * 0.5, 0.2, 0]), T(new THREE.SphereGeometry(0.18, 8, 6), [-w * 0.5, 0.18, len * 0.3]));
+        g.add(mesh(parts, this.vineM));
+        g.add(mesh(leaves, this.leafM));
+        if (flowers.length) g.add(mesh(flowers, this.bloomM));
+      } else {
+        g.add(mesh([box(w, 1.0, L / n - 0.08, 0, -0.5, 0), box(w + 0.3, 0.25, L / n - 0.05, 0, -1.05, 0)], o.hidden ? (this.ghost ??= own({ color: rt.P.glow ?? '#a8e6ee', glow: 0.45, flat: true })) : M.floor));
+        g.add(mesh([T(glyphGeometry(w * 0.5, 0.04).rotateX(-Math.PI / 2), [0, 0.01, 0])], M.glyph));
+      }
       this.root.add(g);
       this.stones.push({ g, y: g.position.y, delay: i * 0.18 });
       const bl = new THREE.Mesh(box(w, 1.0, L / n, 0, -0.5, 0), new THREE.MeshBasicMaterial());
@@ -859,7 +1190,12 @@ export class Bridge {
     const above = this.from === 'above';
     for (const [i, s] of this.stones.entries()) {
       const k = this.open ? ease(THREE.MathUtils.clamp((this.time - s.delay) / (above ? 2.2 : 1.1), 0, 1)) : 0;
-      if (above) {
+      if (this.from === 'grow') {
+        // grown out from the near end, a span at a time
+        const g = ease(THREE.MathUtils.clamp((this.time - s.delay * 1.6) / 0.7, 0, 1));
+        s.g.scale.set(Math.max(0.05, g), Math.max(0.05, g), Math.max(0.001, g));
+        s.g.visible = this.open && g > 0.001;
+      } else if (above) {
         // hanging up there, each at its own height, bobbing; then down into the walkway
         const hang = 9 + (i % 3) * 1.6 + Math.sin(t * 0.6 + i * 1.7) * 0.5;
         s.g.position.y = s.y + (1 - k) * hang;

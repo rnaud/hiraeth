@@ -426,9 +426,9 @@ on the garden bench; the dog follows him. He can walk into both houses. At the
 stone he can **pay his respects**: kneel, lay a flower picked in the garden, or
 set down what he has found since; a quiet line, a word to them, and he rises.
 
-**Planned: the makers' temples.** A temple in every world, with a guardian and a
-gadget at its heart (LORE.md, "Planned additions"); being built. Nothing at home
-depends on them.
+**The makers' temples (built).** A temple in every world, with a guardian and a
+gadget at its heart; half the makers' gifts wait inside them, half in the open
+(LORE.md, section 11, "Temples"). Nothing at home depends on them.
 
 ## Local names (as built)
 | World | The glyph | The singing light | The makers' boxes |

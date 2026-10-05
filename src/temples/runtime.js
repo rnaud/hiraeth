@@ -92,8 +92,9 @@ export class TempleRuntime {
   }
 
   /** The story hook: who plays, what they hear, where the words go. */
-  connect({ player, sound = null, toast = () => {}, quests = null, fade = null }) {
+  connect({ player, sound = null, toast = () => {}, quests = null, fade = null, isNight = null }) {
     this.player = player; this.sound = sound; this.toast = toast; this.quests = quests;
+    this.isNight = isNight ?? (() => false);   // (a world change that keeps the night: the Signal Market's tower)
     this.fadeFn = fade;
     if (typeof window !== 'undefined') (window.temples ??= {})[this.id] = this;
     // no whistling the mount into the temple: it would come to the same x, z on the ground far below

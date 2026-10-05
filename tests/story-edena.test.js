@@ -82,7 +82,7 @@ test('the hatch is in the hull itself, open meadow in front of it, and the cabin
     const g = physics.groundAt(x, S.hatch.y + 30, z, 60);
     assert.ok(Math.abs(g - level.ground.heightAt(x, z)) < 0.3, `open ground ${d} m out from the hatch (${g.toFixed(2)})`);
   }
-  const [inn, outp] = level.portals;
+  const [inn, outp] = level.portals.filter((p) => !p.temple);   // (the ship's hatch: the Greenhouse's doorways come first)
   assert.ok(inn.at.distanceTo(S.hatch) < 1 && inn.to.y > 1400, 'the doorway leads up into the cabin');
   assert.ok(outp.to.distanceTo(S.hatch) < 4, 'and back out');
   stand(S.panel, 'the cabin floor by the cockpit panel', 0.4);
@@ -111,7 +111,7 @@ test('the main quest: the fallen ship, the log, the flowers drawn aside, the sam
   veil.onHit('shoot');
   assert.equal(game.flag('edena.veil.open'), undefined, 'before the log, the flowers only drink');
   // into the cabin, the log
-  at(level.portals[0].to); step(2);
+  at(level.portals.find((p) => !p.temple).to); step(2);
   assert.equal(quests.stage(Q), 'log');
   at(S.panel);
   const e = bestInteractable(player);

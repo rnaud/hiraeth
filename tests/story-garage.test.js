@@ -128,7 +128,7 @@ test('side quests: three machines restart when shot, and Pip’s ball crosses fr
   // Pip's ball: push it up the curve toward the portal on the wall, until it goes through
   talk(PEOPLE.pip, ['I’ll push it', 'Up the curve']);
   assert.equal(quests.stage('garage.ball'), 'push');
-  const ballT = allTargets().find((t) => t.kind === 'ball');
+  const ballT = allTargets().find((t) => t.kind === 'ball' && t.position() === W.ball.pos);   // (Pip's: the First Garage's stone balls are 'ball' targets too)
   const portal = G.portals.find((p) => p.zone === 'A');
   let pushes = 0;
   for (let i = 0; i < 40 && !game.flag('garage.ball.through'); i++) {

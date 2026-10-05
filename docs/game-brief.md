@@ -37,7 +37,7 @@ Restoring the ship opens the wider journey. Each world should offer:
 
 Proposed emotional arc: the traveller begins by seeking their parents’ approval, then gradually develops their own understanding of what is worth bringing home.
 
-Built: eleven worlds on the route; one quest in Viridel fails whatever you do (the tea terraces), and the world stays changed. Planned: a makers’ temple in every world, with a guardian and a gadget at its heart (being built; LORE.md, “Planned additions”).
+Built: eleven worlds on the route; one quest in Viridel fails whatever you do (the tea terraces), and the world stays changed. Built too: a makers’ temple in every world, with a guardian and a gadget at its heart, the makers’ gifts split half inside them and half in the open (LORE.md, “Temples”).
 
 ### Home (built)
 A small round hill under two moons, with two houses on it. The parents’ round house is dark and still: they died two years ago, and their stone stands in the yard. Across the yard, the small lit house where the traveller’s daughter **Lou** (seven and a half) lives with **Aunt Tove**, the mother’s sister, and **Moustache**, the dog; he left her there at two and went back out. At the ending Lou runs to meet him and walks with him to the stone, where he sets down everything he brought (and, if it failed, names the tea terraces he could not mend) and the reel plays its oldest recording. Afterwards he can come home any time, walk into both houses, and pay his respects at the stone. (docs/story-bible.md, “The ending”; LORE.md, sections 2 and 7.)

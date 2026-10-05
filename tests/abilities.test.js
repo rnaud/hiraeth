@@ -10,7 +10,7 @@ import { Physics } from '../src/physics.js';
 import { Hoverbike } from '../src/bike.js';
 import { Flammables, flammableSpots } from '../src/flammable.js';
 import { NPC } from '../src/npc.js';
-import { items, ITEMS } from '../src/items.js';
+import { items, ITEMS, MODE_ITEMS } from '../src/items.js';
 
 // Everything runs on the magic-fluid backpack (src/items.js): the tool, the jets,
 // the wings, the gun modes and the powered vehicles.
@@ -422,5 +422,35 @@ test('calling the mount whistles (also when it has no power to come); a dormant 
   bike.dormant = true;
   p.callMount();
   assert.equal(heard.length, 2);
+  own();
+});
+
+test('bloom mode: a fourth gun mode with its own leaf-and-petal band in the tank; its globs tell the makers’ seeds to grow, and leave flowers where they land', () => {
+  own('backpack', 'fire');
+  const { tool, step, state } = setup();
+  assert.deepEqual(tool.modes, ['shoot', 'fire'], 'not without the item');
+  items.grant('bloom');
+  assert.deepEqual(tool.modes, ['shoot', 'fire', 'bloom']);
+  tool.setMode('fire');
+  step(1, { KeyX: true }); step(1);
+  assert.equal(tool.mode, 'bloom', 'after ember');
+  step(2);
+  assert.equal('#' + tool.tankU.uFluidTones.value[0].getHexString(), MODES.bloom.tones[0], 'leaf green in the tank');
+  assert.ok(MODES.bloom.tones.includes('#f2a7b8'), 'and petal pink');
+  assert.equal(MODE_ITEMS.bloom, 'bloom');
+  // a bloom glob on the ground: an event the item effects plant flowers from
+  const landed = [];
+  state.on('tool:bloom', (e) => landed.push(e));
+  tool.camera.position.set(0.8, 1.6, 3); tool.camera.lookAt(0.8, 0, -6); tool.camera.updateMatrixWorld();
+  step(30, { KeyR: true }); step(1, { KeyR: true, KeyG: true });
+  for (let i = 0; i < 120 && !landed.length; i++) step(1, { KeyR: true });
+  assert.equal(landed.length, 1, 'it landed, in bloom');
+  assert.ok(Math.abs(landed[0].point.y) < 0.2, 'on the ground');
+  // only what accepts it gets 'bloom'; to everything else it is plain fluid
+  const got = [];
+  hitTarget({ target: { onHit: (m) => got.push(m) }, point: v() }, 'bloom', v(), {});
+  hitTarget({ target: { accepts: ['bloom'], onHit: (m) => got.push(m) }, point: v() }, 'bloom', v(), {});
+  assert.deepEqual(got, ['shoot', 'bloom']);
+  tool.dispose();
   own();
 });

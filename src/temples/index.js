@@ -18,6 +18,12 @@ import { PERDIDE_TEMPLE } from './perdide.js';
 import * as PERDIDE_WORDS from './perdide-data.js';
 import { ARZACH_TEMPLE } from './arzach.js';
 import * as ARZACH_WORDS from './arzach-data.js';
+import { GARAGE_TEMPLE } from './garage.js';
+import * as GARAGE_WORDS from './garage-data.js';
+import { EDENA_TEMPLE } from './edena.js';
+import * as EDENA_WORDS from './edena-data.js';
+import { BAZAAR_TEMPLE } from './bazaar.js';
+import * as BAZAAR_WORDS from './bazaar-data.js';
 
 // The makers' temples: one great building in each world, a Zelda-style
 // dungeon of rooms and puzzles in that world's architecture, with a gadget
@@ -47,6 +53,9 @@ export const TEMPLES = {
   perdide2: { def: PERDIDE2_TEMPLE, words: PERDIDE2_WORDS },
   perdide: { def: PERDIDE_TEMPLE, words: PERDIDE_WORDS },
   arzach: { def: ARZACH_TEMPLE, words: ARZACH_WORDS },
+  garage: { def: GARAGE_TEMPLE, words: GARAGE_WORDS },
+  edena: { def: EDENA_TEMPLE, words: EDENA_WORDS },
+  bazaar: { def: BAZAAR_TEMPLE, words: BAZAAR_WORDS },
 };
 
 /**
@@ -61,13 +70,13 @@ export const GADGETS = {
   // planned (LORE.md, "Temples"): until a temple is built its world keeps its box as it was
   arzach: { temple: 'glider', world: ['hush'], built: true },         // the wings moved here from Vael II's stack; the hush-cloth on Vael's spire
   arzach2: { temple: 'bell', world: ['scarf'], built: true },         // the bell moved here from Vael's spire; the wind-silk scarf on the balanced stack (the wings went to the Aerie)
-  garage: { temple: 'coil', world: ['level'], built: false },
+  garage: { temple: 'coil', world: ['level'], built: true },          // the quick coil moved inside from the keep's wall; the brass level is there now
   buried: { temple: 'cell', world: ['resin'], built: true },          // the fourth chamber moved here from Lorn II
-  edena: { temple: 'bloom', world: ['pouch'], built: false },         // a new gun mode (planned); the seed pouch is on the canopy now (the lantern went to Lorn II)
+  edena: { temple: 'bloom', world: ['pouch'], built: true },          // a new gun mode, found in the Greenhouse; the seed pouch is on the canopy (the lantern went to Lorn II)
   spheres: { temple: 'lens', world: ['shell'], built: true },
   perdide: { temple: 'stun', world: ['reed'], built: true },          // the stilling mode moved inside from the mossy rise; the breathing reed is there now
   perdide2: { temple: 'lantern', world: ['moss'], built: true },      // the lantern moved here from Viridel; the glow-moss pin on the root arch
-  bazaar: { temple: 'echo', world: [], built: false },               // a new tool; the market has no chest of its own
+  bazaar: { temple: 'echo', world: [], built: true },                // a new tool, found in the Undertower; the market has no chest in the open
 };
 
 /** Build the world's temple into its level (if it has one) and join it to the level's hooks. */
@@ -79,7 +88,11 @@ export function attachTemple(levelId, scene, level, { game = sharedGame } = {}) 
   // (first in the list: a level's own doorways keep their places at its end, where its story and tests look)
   (level.portals ??= []).unshift(...rt.portals);
   // (the scout and the quest marker route through the temple's door like any doorway)
-  if (level.navigationPortals && level.navigationPortals !== level.portals) level.navigationPortals.unshift(...rt.portals);
+  // A level with a list of its own, in another shape (the Hangar's gravity portals, { pos, to, toUp, toFwd },
+  // which the level's own update walks to send you through): the temple's doorways join a copy of it, in that
+  // shape, so whatever reads the list (the scout, the flora, the reactive world, the wildlife) reads them alike,
+  // and the level's own list (level.garage.portals, its update's) is left as it was.
+  if (level.navigationPortals && level.navigationPortals !== level.portals) level.navigationPortals = [...rt.portals.map(navigationPortal), ...level.navigationPortals];
   // the ground round the building is kept clear: no tree, rock or tuft of the world's own grows through it
   const keep = rt.outside?.clear ?? [];
   if (keep.length) {
@@ -96,6 +109,11 @@ export function attachTemple(levelId, scene, level, { game = sharedGame } = {}) 
     rt.change?.late?.(dt, t);   // (after the level's own movers: a change may move what they move)
   };
   return level;
+}
+
+/** A temple doorway in the shape of a level's own navigation portals (pos, toUp, toFwd: src/levels/garage.js). */
+export function navigationPortal(p) {
+  return { ...p, pos: p.at.clone(), toUp: p.toUp?.clone() ?? new THREE.Vector3(0, 1, 0), toFwd: new THREE.Vector3(Math.sin(p.heading ?? 0), 0, Math.cos(p.heading ?? 0)) };
 }
 
 /**
@@ -128,11 +146,11 @@ export function clearInstances(scene, circles, except = null) {
 
 /** The story side: the temple's quest, its people, the locators; returns { update } or null. */
 export function setupTempleStory(ctx) {
-  const { level, levelId, quests, spawn, player, sound, toast, game = sharedGame, physics } = ctx;
+  const { level, levelId, quests, spawn, player, sound, toast, game = sharedGame, physics, isNight = null } = ctx;
   const rt = level?.temple;
   const T = TEMPLES[levelId];
   if (!rt || !T) return null;
-  rt.connect({ player, sound, toast, quests, fade: rt.fadeFn });
+  rt.connect({ player, sound, toast, quests, fade: rt.fadeFn, isNight });
   const W = T.words, id = rt.id, Q = W.QUEST;
   // the quest: find the house, find what is inside, go down to its heart
   quests?.define?.({

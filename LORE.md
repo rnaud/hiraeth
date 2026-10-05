@@ -250,19 +250,10 @@ come near. They stand where the giants walked: shrines, high places, ledges,
 never in the open by chance. Locals have sat beside them for generations and
 never seen one open.
 
-**Their gifts** (`src/items.js`, one chest per world, `src/boxes/placements.js`):
-- **Magic-fluid backpack** (desert, the tree's ledge in Qanat): a glass tank of living water filled with "what the giants carried"; shoot, push, boost; it powers vehicles.
-- **Pale star** (desert, a roof inside Qanat's gate): worn on the hood; does nothing; looks very good.
-- **Fluid jets** (City-Shaft, the makers' pillar on the rim).
-- **Bell-note whistle** (Vael, the cap of the needle spire north of the landing): a little whistle of blue-glazed clay shaped like a bell (not bone: the rider's whistle in the tower is the bone one); one clear bell note, the same in every world; nearby chests answer. It is found in Vael, not under Vael II's bell, on purpose: the note is the same everywhere, and the chest is where the giants walked.
-- **Fluid wings** (Vael II, the top of the balanced stack).
-- **Quick coil** (Hangar, the keep's south wall): faster refill.
-- **Ember mode** (Buried Machine, the chimney stack's ring): a fire that hurts nobody.
-- **Lantern charm** (Viridel, an umbrella tree's top canopy): never goes out.
-- **Glyph lens** (Spheres, the grove's umbrella canopy): shows unopened chests from afar.
-- **Stilling mode** (Lorn, the mossy rise among the creatures): freezes for a few seconds.
-- **Fourth chamber** (Lorn II, the first root arch): four charges.
-- The Signal Market has no chest.
+**Their gifts** (`src/items.js`, `src/boxes/placements.js`), half in the
+open and half in the temples (§11 has why):
+- *In the open*: the **magic-fluid backpack** (desert, the tree's ledge in Qanat: shoot, push, boost; it powers vehicles), the **pale star** (desert, a roof inside Qanat's gate: worn on the hood, does nothing, looks very good), the **soft-fall soles** (City-Shaft, the makers' pillar on the rim), the **hush-cloth** (Vael, the cap of the needle spire north of the landing), the **wind-silk scarf** (Vael II, the top of the balanced stack), the **brass level** (Hangar, the keep's south wall), the **climber's resin** (Buried Machine, the chimney stack's ring), the **seed pouch** (Viridel, an umbrella tree's top canopy), the **listening shell** (Spheres, the grove's umbrella canopy), the **breathing reed** (Lorn, the mossy rise among the creatures) and the **glow-moss pin** (Lorn II, the first root arch). The Signal Market has no chest in the open.
+- *In the temples* (each one's key): **ember mode** (the Givers' House: a fire that hurts nobody), the **fluid jets** (the Warden's Well), the **fluid wings** (the Aerie), the **bell-note whistle** (the Founders' Belfry: a little whistle of blue-glazed clay shaped like a bell, not bone: the rider's whistle in Vael's tower is the bone one; one clear bell note, the same in every world; nearby chests answer), the **quick coil** (the First Garage: faster refill), the **fourth chamber** (the Engine-House: four charges), **bloom mode** (the Builders' Greenhouse: the makers' plants grow), the **glyph lens** (the Footprint: shows unopened chests from afar, and what is hidden), the **stilling mode** (the Hush-House: freezes for a few seconds), the **lantern charm** (the Lamp-House: never goes out) and the **echo shell** (the Undertower: keeps a note and plays it back).
 
 **The tank's colours.** The fluid starts cyan and violet. Sources add bands:
 the desert pool's water, Buried Machine's oil-light (amber), the Great
@@ -398,7 +389,7 @@ opens on a constellation).
 
 Keepsakes: *knowing* "What the giants left" (the cave's mural: the giants
 carried the water; the tree drinks what they left); *song* "Teo's walking
-rhythm". Chests: the backpack, the pale star.
+rhythm". Chests: the backpack, the pale star (ember mode waits in the Givers' House, §11).
 
 Ties: the giants "came down from the swamp of lights" (Lorn); the light was
 seen the night before the crash; the glyph is "the Givers' mark", "even you,
@@ -433,7 +424,7 @@ round the post); light Wren's
 lamp (her cab comes when you hail in the depths). Errand: a taxi token for Vael.
 
 Keepsakes: *word* "Look up once a day"; *thing* "Dov's lift token". Chest: the
-fluid jets on the makers' pillar.
+soft-fall soles on the makers' pillar (the fluid jets wait in the Warden's Well, §11).
 
 Ties: the Lodestar rang back when the light passed and a piece came away; a
 swamp trader once brought a crystal that sang the same note (Lorn); the light
@@ -460,7 +451,8 @@ stone hand's knuckles small to tall (the third feather falls). Errand: a
 feather for the Major (Hollin gives it with his hands and two words).
 
 Keepsake: *person* "The bird's promise" (wherever there is sky, call, and she
-will come). Chest: the bell-note whistle.
+will come). Chest: the hush-cloth on the needle spire (the fluid wings wait in the
+Aerie, §11; the bell-note whistle went to Vael II).
 
 Ties: the map in the tower points to Vael II; the stones answered the light.
 
@@ -489,7 +481,8 @@ window), and the sleeping face on the tower; the cairn that fell up. The
 clapper lies under tiles that fell up with it (push them off).
 
 Keepsake: *song* "The bell's note" (it sounds from the tank whenever you shoot).
-Chest: the fluid wings.
+Chest: the wind-silk scarf on the balanced stack (the bell-note whistle waits in the
+Founders' Belfry, §11; the wings went to Vael).
 
 Ties: the tower's face is the desert's sleeping head: the giants walked here
 too. The bell recalls the harbour bell at home.
@@ -518,8 +511,9 @@ down. Errand: a brass gear for Viridel.
 
 Keepsake: *knowing* "The Major's note" ("I built it to see what I would do with
 it. I still don't know. That is the point."). On its back: a wheel half under
-sand, "turns one tooth a year, go and see it turn". Chest: the quick coil
-(the Major found it, never opened it: "it's for the next one").
+sand, "turns one tooth a year, go and see it turn". Chest: the brass level
+on the keep's wall; the quick coil waits in the First Garage (§11): the Major found
+it there, never opened it ("it's for the next one").
 
 Ties: the note points to the Buried Machine; the Major copied the glyph from a
 stone in his first garage "for luck, or for somebody".
@@ -548,7 +542,8 @@ collar with a splash, then ratchet the jib in with pushes); read Ossa's three
 gauges; lay a hand on the warm window.
 The Major's scratched numbers on the drum wall: "FOUND IT. NOW WHAT?"
 
-Keepsake: *thing* "A rust gear tooth". Chest: ember mode.
+Keepsake: *thing* "A rust gear tooth". Chest: the climber's resin on the chimney ring
+(the fourth chamber waits in the Engine-House, §11; ember mode went to the desert).
 
 Ties: the Maker's Thumb is on every plate; "someone signs their work, and
 someone else signs their damage, with the same hand"; tell the wheel the Hangar
@@ -581,7 +576,8 @@ to fill its leaking bowl); **water for the tea terraces, the quest that fails**
 (below). Errand: a glass seed for Lorn.
 
 Keepsake: *word* "Mira's words": "We tend the garden. The garden tends us."
-Chest: the lantern charm.
+Chest: the seed pouch on the umbrella tree's canopy (bloom mode waits in the
+Builders' Greenhouse, §11; the lantern charm went to Lorn II).
 
 Ties: the traveller's ship was not the first; Odile and Talo left in the little
 round boat "to go and ask it", toward the deep wood on the far side of the swamp
@@ -663,7 +659,8 @@ great sphere answers; tell Ume.
 Side quests: carry the lake's reflection (a mirrored pebble) to the pole; walk
 the avenue slowly.
 
-Keepsake: *song* "The chord of the spheres". Chest: the glyph lens.
+Keepsake: *song* "The chord of the spheres". Chest: the listening shell on the grove's
+canopy (the glyph lens waits in the Footprint, §11).
 
 Ties: one sphere remembers the desert's procession drum ("Then you've walked
 under where they flew").
@@ -690,8 +687,9 @@ tank).
 Side quests: feed nothing (stand in the snapping bed and wait); follow the
 fireflies to their nest. Errand: a humming crystal for the desert's dune walker.
 
-Keepsakes: *thing* "A singing splinter"; *word* "Wendel's saying". Chest:
-stilling mode (the sky-egg).
+Keepsakes: *thing* "A singing splinter"; *word* "Wendel's saying". Chest: the
+breathing reed, on the mossy rise among the creatures (Wendel's "sky-egg"); the
+stilling mode waits in the Hush-House on the cave island (§11).
 
 Ties: the strongest reading of the signature; Ysse sends you to Lorn II.
 
@@ -718,7 +716,8 @@ owner (Fen asks you to bring it home once: light his berth lamp and nudge the
 empty skiff in).
 
 Keepsake: *person* "Hollin's lamps" (a promise to come back, or not). Chest:
-the fourth chamber.
+the glow-moss pin on the first root arch (the lantern charm waits in the
+Lamp-House, §11; the fourth chamber went to the Buried Machine).
 
 Ties: the saucer is Odile and Talo's ship's little round boat; it carries the
 glyph scorch: the light found them again over the wood and struck them a second
@@ -754,7 +753,8 @@ voice. It was not your name."; Sel again: it came from your home system.
 Side quests: wake the oldest sign (WE HEARD YOU); clear the crates for Ummu's
 bowl.
 
-Keepsakes: *word* "You are not alone"; *song* "The quiet ones' hum". No chest.
+Keepsakes: *word* "You are not alone"; *song* "The quiet ones' hum". No chest in
+the open; the echo shell waits in the Undertower, under the silent tower (§11).
 
 Ties: Ilen (the mother's recording follows); the signs end on COME HOME WHEN
 READY.
@@ -835,7 +835,7 @@ she comes and stands beside him "and doesn't say anything at all, which is a fir
 
 ## 9. Planned additions (from the author's backlog; not built)
 
-- **A Makers' temple in every world**, with a boss and a gadget at its heart (a bigger set piece than the chests; each temple's gadget could be the world's chest item, or a new one).
+- ~~A Makers' temple in every world, with a boss and a gadget at its heart~~: built, all eleven (section 11).
 - ~~A quest you can fail, and failing it harms the locals~~: built, in Viridel (section 6, "The quest that fails"). It fails whatever you do; a quest you *can* fail by choice is still open.
 - ~~Home gains a daughter and a dog~~: built (Lou, Aunt Tove and Moustache; §2, §7).
 - **The holograms become coloured busts** (today the parents stand full length in teal light over the projector).
@@ -1005,23 +1005,31 @@ ATAN" (old names) and now says ODILE and TALO; Talo's lookout note was signed
   has been going out. Nima now says so; the bible and section 6 match.
 
 ### Still open
-- Nothing from the lists above. New ones go here.
+- **Wendel's eggs never hatch: kept open, on purpose** (decided while the author
+  was away; change freely). Thirty years of keeping eggs warm, none ever hatched,
+  "The patient are never eaten": his patience is the point of him, and the
+  keepsake he gives (*word*, "Wendel's saying") is about waiting, not about what
+  comes of it. The Hush-House was to hatch one as its world change; it flowers
+  the swamp instead (Teasel: "Wendel laughed till he sat down"), and the egg is
+  left alone. If one ever hatches it should be the last thing in the game, not a
+  temple's reward (a late recording, or the swamp seen again after the ending).
+  Nothing in the code points at a hatching; Wendel's lines stay as they are.
 
 ### Planned additions that touch the existing story
 - **Coloured busts** replace the full-length teal holograms (`src/ship/hologram.js`); the stone scene's hologram of "the three of them" over the stone would become busts too.
-- **Makers' temples with bosses**: the makers are gentle in every world so far
-  (gifts, water, a fire that hurts nobody); a boss needs a reason that fits (a
-  guardian, a gift gone wrong, something the singing light woke). The builders'
-  gate in Viridel is a small precedent: a makers'-era thing that does harm only
-  because it is opened after a thousand years.
+- ~~Makers' temples with bosses~~: built, in all eleven worlds (section 11). The
+  reason that fits: every keeper was left to keep its house, and the keeping went
+  wrong when the gift stopped, often the night the sky rang; the living ones are
+  calmed, never hurt, and the machines are only stuck.
 
 ## 11. Temples (the makers' houses, their keepers, and the gifts inside)
 
-*Built in this pass (`src/temples/`); decided while the author was away, change
-freely. Eight worlds have theirs (the desert, the City-Shaft, Vael, Vael II,
-the Buried Machine, the Garden of Spheres, Lorn II, Lorn); the rest are designed below
-and wait their turn. Section 9's "A Makers' temple in every
-world" and the "Makers' temples with bosses" note above are what this answers.*
+*Built (`src/temples/`); decided while the author was away, change freely.
+All eleven worlds have theirs: the desert, the City-Shaft, Vael, Vael II, the
+Sealed Hangar, the Buried Machine, Viridel, the Garden of Spheres, Lorn, Lorn
+II and the Signal Market (home has none: the makers never came there). Section
+9's "A Makers' temple in every world" and the "Makers' temples with bosses" note
+above are what this answers.*
 
 ### What a temple is
 Each world has one great building of the makers, in that world's own
@@ -1071,9 +1079,8 @@ ground far below.
 The rule: **the makers kept their tools in their temples and left their small
 gifts in the open.** A temple's chest holds an active tool (a gun mode, a way to
 move, a way to call); the boxes in the open hold the passive gifts (charms,
-upgrades, the star). The whole plan, eleven and eleven (`src/temples/index.js`
-GADGETS; built rows are real, planned rows wait for their temple, and until
-then the world's box stays as it was):
+upgrades, the star). The whole of it, eleven and eleven (`src/temples/index.js`
+GADGETS; every row is built):
 
 | World | In its temple (the key) | In the open | State |
 |---|---|---|---|
@@ -1081,22 +1088,24 @@ then the world's box stays as it was):
 | City-Shaft | Fluid jets (moved from the rim pillar) | Soft-fall soles (new, on the rim pillar) | **built** |
 | Vael | Fluid wings (moved from Vael II's stack) | Hush-cloth (new: steps the wildlife doesn't hear; on the spire now) | **built** |
 | Vael II | Bell-note whistle (moved from Vael's spire: it belongs to the bell world) | Wind-silk scarf (new, on the balanced stack now: the wings sink slower; it was to be an "updraft feather", renamed because Vael's feathers are the story's) | **built** |
-| Hangar | Quick coil | Brass level (new: shows which way down is, in the ring) | planned |
+| Hangar | Quick coil (moved from the keep's wall: the doors that want two tanks in one breath) | Brass level (new, on the keep's wall now: where down has turned, a little level shows how the floor lies) | **built** |
 | Buried Machine | Fourth chamber (moved from Lorn II) | Climber's resin (new, on the chimney ring: climbing tires you half as fast) | **built** |
-| Viridel | Bloom mode (new gun mode: a seed glob grows a climbable vine) | Seed pouch (new, on the umbrella tree's canopy now: flowers come up in your footsteps) | seed pouch built; temple planned |
+| Viridel | Bloom mode (new gun mode, leaf green and petal pink: seeds sprout, buds open, vines bridge and climb) | Seed pouch (new, on the umbrella tree's canopy now: flowers come up in your footsteps) | **built** |
 | Spheres | Glyph lens | Listening shell (new, on the grove's canopy: the makers' unopened boxes near you hum back now and then) | **built** |
 | Lorn | Stilling mode (moved from the mossy rise) | Breathing reed (new, on the mossy rise now: you hold your breath twice as long under water; it replaces the planned bog boots, since swimming came) | **built** |
 | Lorn II | Lantern charm (moved from Viridel's canopy) | Glow-moss pin (new, on the first root arch: a soft light round your feet after dusk) | **built** |
-| Signal Market | Echo shell (new: records a note, plays it back) | (the market has no chest) | planned |
+| Signal Market | Echo shell (new: keeps the last note sung near you, plays it back) | (the market has no chest in the open) | **built** |
 
 What moved for players already on their way: whoever owns ember mode, the jets,
 the bell-note whistle, the fourth chamber, the glyph lens, the lantern charm,
-the stilling mode or the fluid wings finds that temple's chest open and counted as found (`src/temples/migrate.js`);
+the stilling mode, the fluid wings or the quick coil finds that temple's chest open and counted as found (`src/temples/migrate.js`;
+bloom mode and the echo shell are new, so nobody has them yet);
 the Buried Machine's chimney ring, the City-Shaft's pillar, Vael's spire, Lorn
 II's first root arch, the Spheres' grove canopy, Viridel's umbrella canopy,
-Lorn's mossy rise and Vael II's balanced stack now hold the resin, the soles,
+Lorn's mossy rise, Vael II's balanced stack and the Hangar's keep wall now hold the resin, the soles,
 the hush-cloth, the glow-moss pin, the listening shell, the seed pouch, the
-breathing reed and the wind-silk scarf, new boxes for everyone. (This also settles a loose end of section 10: the bell-note
+breathing reed, the wind-silk scarf and the brass level, new boxes for everyone (a save that opened the
+keep wall's box when it held the coil finds a new one there). (This also settles a loose end of section 10: the bell-note
 whistle is found in the bell world now, and Vael has only the rider's bone
 whistle.)
 Ember mode now comes in the first world, which suits it: the desert's camp
@@ -1360,19 +1369,144 @@ over she stopped flying; the others left; she stayed.
   is the birds coming back, not the ruins settling into a chain (that is left
   for later: it would need the ruins reworked).
 
-### The other temples (designed, not built)
-- **Hangar**: the Major's First Garage, under the plateau; key: the quick coil
-  (doors that want three shots inside three seconds). Its keeper: the Clockwork
-  Foreman (robot), wound wrong; break it, or set it to the right time. After:
-  the stopped machines run in rhythm and the signal board reads clearly.
-- **Viridel**: the Builders' Greenhouse in the android wood; key: bloom mode.
-  Its keeper: the Gardener, a vast moss creature gone wild (calm it by blooming
-  flowers round it). After: the white ruins flower. (Clear of the tea terraces
-  south-east of the landing.)
-- **Signal Market**: the foundations of the silent tower, "here before the
-  market"; key: the echo shell. Its keeper: the First Sign (robot), the oldest
-  broadcasting machine, stuck on one word; retune it, or switch it off. After:
-  the silent tower speaks one line, once a night.
+### The First Garage (the Sealed Hangar)
+A round stair-house of the makers on the rim of Brask's plateau, west of the
+keep past the windmill: pale stone banded in brass under a teal cap, a great
+clock over its door, stopped, and under it, set into the island's cliff, the
+makers' clockwork, great cogs half out of the rock. The Major found it when he
+made the place (or the place made itself round it: nobody is sure), kept his
+first car in its porch (his lean-to and bench are still there) and copied the
+glyph off its door stone "for luck, or for somebody". This is also where he
+found the quick coil, and left it: "it's for the next one". Everything that turns
+in his pocket universe took its beat from the clockwork, kept by the makers'
+**Clockwork Foreman**; the night the light passed it jumped its escapement, and
+the three machines Lune saw stop stopped because of it.
+- **The local: Wim**, who winds the Major's clocks every morning, every clock
+  on the plateau, none of them agreeing. Afterwards: every clock agrees with the
+  one over the door ("I went round and checked them all, twice"); Ambroise says
+  the board has never blinked so tidily; Ottla cried and said it was oil.
+- **Inside**: the Threshold (the Major's old bench, the first mark); the
+  Escapement (a pit crossed by a disc that swings over it like a clock's
+  escapement, still until you splash the eye over the far door); the Winding
+  Well (a wall to climb; on top a stone ball in a groove onto its plate: only the
+  ball's weight opens the door, it is the winding's counterweight); the Coil
+  Chamber (**the quick coil**; the door on is ringed by six eyes that wake only
+  together, inside one breath of 4.6 seconds: three shots, a refill, three more,
+  and the tank only refills fast enough with the coil); the Clock Gallery (a
+  chasm whose bridge rises for a second bank of six, round a stopped clock face
+  on the far wall); the Foreman's Workshop.
+- **The Clockwork Foreman** (robot): a squat drum of brass on four short legs, a
+  great clock for a chest with six numeral lamps round it, two arms with
+  hammers, a little bell on its crown that it strikes the hour on; its hands
+  race and stutter. It hammers in front of it, strikes the hour (a ring round
+  itself) and later throws its cogs where you stand. When it has struck, the
+  grille over its face swings up and the numerals glow: hit all six inside one
+  breath (two tanks: the coil). Four times, and its hands come round, slowly,
+  to the true time, and stop there. A machine, set right rather than broken:
+  Wim says "it can rest a little, between ticks".
+- **After**: the clock over the door keeps the true time, the cogs in the cliff
+  turn in step with their hub lamps lit, and a pendulum swings in the porch.
+- *Changed from the first design*: the doors want six shots in one breath, not
+  three in three seconds (three is what any tank holds; six is what the coil
+  makes possible); the Foreman is set right by the same volley, not by a
+  choice; the stopped machines and the signal board are left as they were (the
+  machines are Ottla's side quest, the board the main quest's) and the change is
+  the First Garage's own clockwork; Wim's balloons say the rest.
+
+### The Builders' Greenhouse (Viridel)
+A round house of the white builders' clean gridded stone under a great ribbed
+dome of glass, in the flat meadow hollow north of the white ruins (and well
+away from Esk's tea terraces, south-east of the landing). The builders grew the
+whole garden from in there, Oro says, and left a gardener in it to keep it
+growing: a giant of moss as old as the pyramids, in flower from head to foot.
+The night the light passed, every flower on it closed and fell, and since then
+nothing sown round the Greenhouse comes up, and something walks about inside at
+night, bare as a stick, and breaks the panes.
+- **The local: Sorrel**, who sows the beds round the Greenhouse every year, and
+  nothing comes up. Asked whether going in is digging up what fell (the garden's
+  rule), she decides it isn't: "Nothing fell in there. It just stopped. A garden
+  that stops isn't resting. It's waiting for someone to tell it to go on."
+  Afterwards: every drill came up at once; the ruins are green to the top; Oro
+  sat down in the grass and wouldn't get up. If Esk's hill came down, Sorrel says
+  Esk came up to see the ruins and took a bag of seed down for the mud: "It isn't
+  mended. It'll be something else. That's all right."
+- **Inside**: the Threshold (dead sticks in every pot); the Potting Hall (a
+  white stone seed in a groove onto its plate, and an eye over the potting
+  benches: both); the Glass Stair (a root-wall to climb, a disc that rides up to
+  the landing); the Seed Chamber (**bloom mode**, a new gun mode; the way on is
+  a flower-door, a great bud over the doorway that water only runs off and
+  ember curls tighter: a bloom glob opens it); the Vine Gulf (a chasm: a seed at
+  its edge grows a vine bridge across; on the far side a wall of greenhouse
+  glass too smooth to climb, until a seed at its foot grows a vine up it; at its
+  top a second bud); the Glasshouse.
+- **The Gardener** (organic): a great hunched mound of moss on four root legs,
+  two long arms ending in root-claws, a face of the builders' white stone with
+  two eyes that glow ember while it is wild and leaf-green as it calms, brown
+  bare patches on its back where nothing grows. It sweeps, stamps, and later
+  sends roots up under you. First bloom the four dead beds round the walls (a
+  tenth of its calm each; flowers on its back before that it only shakes off);
+  then each time it kneels, heaving, its bare back to the glass, bloom its back
+  (water it only drinks; ember and a shove frighten it). Calm, it lies down in
+  flower: lay a hand on its brow. The bud you came in by shuts behind you while
+  it fights.
+- **After**: the white ruins all over Viridel flower: vines climb every slab,
+  flowers ring their feet and crown their tops; the Greenhouse's dome goes green
+  with leaves and pink with blossom.
+- *Changed from the first design*: the Greenhouse stands in the meadow hollow
+  north of the ruins, not "in the android wood" (Viridel has no wood that dense:
+  the ruins are scattered, and the flat hollow is clear); bloom mode does more
+  than grow a climbable vine (seeds, buds, a bridge, a vine up glass); it is the
+  fourth gun mode, after ember, with its own leaf-and-petal colours in the tank,
+  and outside the temples a bloom glob leaves a few flowers where it lands.
+
+### The Undertower (the Signal Market)
+The foundations of the silent tower, "here before the market": an old doorway
+of blue-grey makers' stone in the tower's back, where the square's paving gives
+way to great blocks older than any sign, cables running from it into the
+ground. The makers built the first sign of all here, a machine to say one line
+into the dark, over and over, for whoever was listening; the market grew up
+round it and built its towers on top, and forgot it. Sel's tower stands right
+over it, and the market's belief that the silent tower was the only sign that
+ever told the truth may have come up through its floor. The night the sky rang
+it stuck on one word of its line; under the square at night you can hear it,
+if you put your ear to the stones.
+- **The local: Pell**, who lies on the paving with his ear to the old stones and
+  listens ("Nobody else in this market listens to anything; they're all too busy
+  being heard"). The word is *somebody*. Afterwards: the tower said the whole
+  line over the square and everybody stopped selling, even the noodle men; he
+  won't need his ear on the stones any more.
+- **Inside**: the Threshold; the Hall of Dishes (a stone ball in a groove onto
+  its plate, and a disc wakes to carry you over a pit full of the makers' old
+  cable); the Cable Well (two discs that ride up, a ledge between them); the
+  Shell Chamber (**the echo shell**, a new tool; the door on listens for the low
+  stone's note played back close by: the stone sings when splashed, but only
+  the shell carries the note to the door); the Gallery of Voices (a chasm: a horn
+  at its edge raises the bridge for the high stone's note, and the far door
+  wants the middle one, whose stone is on the near side: the shell holds one note
+  at a time, and from across the chasm it can't catch the middle stone, so you
+  carry the notes in the right order; a low stone by the far door is a decoy);
+  the First Sign's Hall.
+- **The First Sign** (robot): a mast of the makers on three legs, a great
+  listening dish on a yoke for a head, a ring of lamps round its rim, a coral
+  horn at its focus. It cries its one word (a ring of sound round itself), beams
+  along a lane, and later throws static where you stand. After it cries it
+  lowers its dish and goes still, listening: play its word back into it (the
+  shell catches the word whenever it says it) and it stops, and says the next
+  words of its line, a new note to catch. Its line, four times: *somebody* /
+  *out there* / *is talking* / *to you*. Given its whole line back, it says it
+  once, quietly, and turns its dish up to the dark. Its meter is damage, as for
+  any machine; here it reads as retuning, and nothing is broken.
+- **After**: a lamp burns on the silent tower's crown, the Undertower's porch
+  lamps are lit, and once a night, when you are about the square, the tower says
+  the line in the First Sign's voice, *SOMEBODY OUT THERE IS TALKING TO YOU*, a ring of
+  light going out from its crown. It is Sel's line ("it only ever said one thing,
+  in a thousand voices: somebody out there is talking to you"), and the
+  father's recording that plays at the console says it too, in other words.
+- *Changed from the first design*: it is "the Undertower" (the market's name for
+  "the foundations"); the First Sign is retuned with its own words, not switched
+  off; the echo shell holds one note at a time (that is the gallery's puzzle);
+  the market keeps no chest in the open, so the 50/50 is eleven and eleven with
+  the desert's two.
 
 ### Loose ends the temples leave
 - The temples do not count toward a world's discovery or the route; they are
@@ -1388,7 +1522,19 @@ over she stopped flying; the others left; she stayed.
   Givers' House; Sabri carries that.
 - The City-Shaft's main quest still reads as if you could reach Nima without
   the jets; the temple quest says where they are.
-- Lorn's section 9 still says its chest holds the stilling mode ("the sky-egg"),
-  and the gift list above still puts it on the mossy rise: it is in the
-  Hush-House now, and the rise has the breathing reed. Wendel's egg that was
-  to hatch is free for a later change (or a keepsake).
+- ~~Lorn's section 9 still says its chest holds the stilling mode ("the sky-egg"),
+  and the gift list above still puts it on the mossy rise~~: fixed. Section 6's
+  "Chest:" lines and the gift list in section 4 now say what is where, temple by
+  temple and in the open (the rise has the breathing reed, Wendel's "sky-egg";
+  the stilling mode is in the Hush-House). ~~Wendel's egg that was to hatch~~:
+  kept unhatched, on purpose (section 10, "Still open").
+- The Hangar's three stopped machines (Ottla's side quest) and its signal board
+  are left as they were by the First Garage: the Foreman's change is its own
+  clockwork. Lune's three machines "stopped that night" because the Foreman
+  jumped, which nobody in the Hangar knows; a later line for Lune or Ottla could
+  say so once the First Garage keeps time.
+- The silent tower's nightly line and the console's broadcast (the main quest)
+  are two voices saying the same thing; nobody in the market remarks on that yet.
+- The echo shell catches any note sung near it, so it could answer other worlds'
+  singing things (the Spheres' spheres, Lorn's crystal); only the Undertower's
+  stones and the First Sign emit notes for it so far.

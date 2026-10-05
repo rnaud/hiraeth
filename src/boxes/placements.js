@@ -79,9 +79,15 @@ export const PLACEMENTS = {
   ],
   garage: [
     // on the keep's south curtain wall, facing the spawn (a 14 m climb)
-    { id: 'garage.coil', item: 'coil', at: [8, 14, 24], toward: [0, 120],
+    // It held the quick coil until the First Garage was built (src/temples/garage.js): the coil is its key now, and
+    // the wall keeps the brass level, a gift in the open (a new box: saves that opened the coil's find it there)
+    { id: 'garage.level', item: 'level', at: [8, 14, 24], toward: [0, 120],
       hint: 'A makers’ box stands on top of the keep’s south curtain wall. Climb the wall',
       note: 'The top of the keep’s south curtain wall.' },
+    // the First Garage (src/temples/garage.js): in its round chamber over the winding well. The coil is the key to the
+    // rest: the banks of six eyes that wake only together (two tanks in one breath), the Foreman's six numerals
+    { id: 'garage.temple.coil', item: 'coil', temple: 'garage', site: (level) => level.temple?.gadgetSite,
+      note: 'Inside the First Garage on the plateau’s rim west of the keep, in the round chamber over the winding well.' },
   ],
   buried: [
     // the ring platform round the smoking chimney stack (jets or a climb up the stack). It held ember mode
@@ -101,6 +107,10 @@ export const PLACEMENTS = {
     { id: 'edena.pouch', item: 'pouch', at: [-52, 85.7, 66], toward: [-60, 70],
       hint: 'A makers’ box waits on the top canopy of the umbrella tree west of the landing. Climb the trunk',
       note: 'Up the umbrella tree west of the spawn, on its top canopy.' },
+    // the Builders' Greenhouse (src/temples/edena.js): in its round chamber over the glass stair. Bloom mode (a new
+    // gun mode) is the key to the rest: the budded doors, the vine bridge, the vine up the glass, the Gardener
+    { id: 'edena.temple.bloom', item: 'bloom', temple: 'edena', site: (level) => level.temple?.gadgetSite,
+      note: 'Inside the Builders’ Greenhouse in the meadow hollow north of the white ruins, in the round chamber over the glass stair.' },
   ],
   spheres: [
     // the grove's umbrella tree, on its flat canopy
@@ -137,6 +147,13 @@ export const PLACEMENTS = {
     // key to the rest: the lamps that wake to it, the moss-stones and the eye only its light shows, the Lampless
     { id: 'perdide2.temple.lantern', item: 'lantern', temple: 'perdide2', site: (level) => level.temple?.gadgetSite,
       note: 'Inside the Lamp-House in the shallows east of the root cave, in the dark chamber over the root stair.' },
+  ],
+  bazaar: [
+    // the market has no chest in the open. The Undertower (src/temples/bazaar.js), under the silent tower: in its
+    // round chamber over the cable well. The echo shell (a new tool) is the key to the rest: the doors and the
+    // bridge that listen for a note played back, the First Sign that wants its own word
+    { id: 'bazaar.temple.echo', item: 'echo', temple: 'bazaar', site: (level) => level.temple?.gadgetSite,
+      note: 'Inside the Undertower, through the old doorway in the silent tower’s back, in the round chamber over the cable well.' },
   ],
 };
 

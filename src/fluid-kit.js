@@ -17,8 +17,10 @@ export const MODES = {
   shoot: { item: 'backpack', name: 'fluid', label: 'Fluid', tones: null, rate: 1, css: '' },
   stun: { item: 'stun', name: 'stilling', label: 'Stilling', tones: ['#d6f0fa', '#86bfe8', '#5a8ed6', '#f2fbff'], rate: 0.12, css: 'stun', glow: '#bfe6f7' },
   fire: { item: 'fire', name: 'ember', label: 'Ember', tones: ['#f9c45a', '#e0644a', '#f39a45', '#fff0b8', '#b8433f'], rate: 2.6, css: 'fire', glow: '#ffb347' },
+  // Viridel's: leaf green and petal pink, slow as sap (src/temples/edena.js: seeds, budded doors, vines)
+  bloom: { item: 'bloom', name: 'bloom', label: 'Bloom', tones: ['#7fcf72', '#f2a7b8', '#4f9a5a', '#f6d36a', '#fff1f4'], rate: 0.55, css: 'bloom', glow: '#c6eba8' },
 };
-export const MODE_ORDER = ['shoot', 'stun', 'fire'];
+export const MODE_ORDER = ['shoot', 'stun', 'fire', 'bloom'];
 export const STUN_SECONDS = 3.5;
 
 /** The owned modes in order (has: id -> bool). Without the backpack: none. */

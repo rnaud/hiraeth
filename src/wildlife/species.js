@@ -881,8 +881,8 @@ export const WILDLIFE = {
   arzach: [{ ...boneKite, count: 6 }, { ...needleWalker, count: 6 }],
   arzach2: [{ ...cairnCrab, count: 7 }, { ...cloudRay, count: 5 }],
   garage: [
-    { ...portalHopper, count: 6, anchors: (L) => [{ p: L.spawn.clone(), r: [9, 45], w: 3 }, ...(L.navigationPortals ?? []).map((p) => ({ p: p.to.clone(), up: p.toUp.clone(), r: [6, 25], w: 1 }))] },
-    { ...cogMouse, count: 6, anchors: (L) => [{ p: L.spawn.clone(), r: [9, 45], w: 3 }, ...(L.navigationPortals ?? []).map((p) => ({ p: p.to.clone(), up: p.toUp.clone(), r: [6, 25], w: 1 }))] },
+    { ...portalHopper, count: 6, anchors: (L) => [{ p: L.spawn.clone(), r: [9, 45], w: 3 }, ...(L.navigationPortals ?? []).filter((p) => !p.temple).map((p) => ({ p: p.to.clone(), up: p.toUp.clone(), r: [6, 25], w: 1 }))] },
+    { ...cogMouse, count: 6, anchors: (L) => [{ p: L.spawn.clone(), r: [9, 45], w: 3 }, ...(L.navigationPortals ?? []).filter((p) => !p.temple).map((p) => ({ p: p.to.clone(), up: p.toUp.clone(), r: [6, 25], w: 1 }))] },
   ],
   buried: [
     { ...pipeBeetle, count: 6, anchors: (L) => [{ p: L.spawn.clone(), r: [10, 45], w: 2 }, ...[-200, -260, -320, -380].map((z) => ({ p: new THREE.Vector3(canyonX(z), -34, z), r: [0, 14], w: 1 }))] },

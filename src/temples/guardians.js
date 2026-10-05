@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { makeMaterial } from '../materials.js';
-import { ell, dome, cyl, cone, box, tube, merge } from '../wildlife/geo.js';
+import { ell, dome, cyl, cone, box, tube, torus, merge } from '../wildlife/geo.js';
 import { glyphGeometry } from '../story/sign-text.js';
 
 // The bodies of what waits in the temples, built from the wildlife's little
@@ -13,6 +13,9 @@ import { glyphGeometry } from '../story/sign-text.js';
 //   elderModel()     Vael's Elder: the oldest of the great birds, her feathers gone to stone, afraid to fly
 //   snapperModel()   Lorn's Mother Snapper: the swamp's oldest carnivorous plant, rooted in the Hush's
 //                    hall; a neck of beads and a great head of jaws that lunges, sweeps and spits seed
+//   foremanModel()   the Sealed Hangar's Clockwork Foreman: a drum of brass with a clock for a chest, wound wrong
+//   gardenerModel()  Viridel's Gardener: a moss giant of the white builders, bare and wild, calmed with flowers
+//   signModel()      the Signal Market's First Sign: a mast with a listening dish, stuck on one word
 //   sentinelModel()  the City-Shaft's sentinel: a tall machine of the makers on three legs, a ring
 //                    of vents and a lamp-eye, broken and still guarding (see incal.js)
 //
@@ -604,4 +607,288 @@ export function sentinelModel({ hull = '#9fb2c6', hull2 = '#8aa0b8', dark = '#34
     },
   };
   return M;
+}
+
+/**
+ * The Sealed Hangar's Clockwork Foreman (robot: you may stop it, or set it right): the makers' machine that
+ * kept the time of everything that turns in the Major's pocket universe, wound wrong since the night the light
+ * passed. A squat drum of brass on four short legs, a great clock face for a chest with six numeral lamps
+ * round it, two arms with hammers, a little bell on its crown that it strikes the hour on. Its hands race and
+ * stutter; when it has struck, the glass over its face swings up and the numerals glow: hit all six inside one
+ * breath (two tanks' worth: the quick coil). Set right, its hands come round to the true time and stop.
+ */
+export function foremanModel({ brass = '#d8a24a', brass2 = '#b8862f', teal = '#62c3c9', dark = '#34405e', cream = '#f3ead8', glass = '#cfe9e0', lamp = '#f2c54b' } = {}) {
+  const group = new THREE.Group();
+  const mat = vc();
+  const lampM = makeMaterial({ color: lamp, glow: 0.1, flat: true, key: `foreman.lamp.${uid++}` });
+  const eyeM = makeMaterial({ color: '#e0644a', glow: 0.8, flat: true, key: `foreman.eye.${uid++}` });
+  const glassM = makeMaterial({ color: glass, glow: 0.15, flat: true, key: `foreman.glass.${uid++}` });
+  const body = new THREE.Group();
+  body.position.y = 4.4;
+  group.add(body);
+  // the drum, its bands, the face's rim and dial
+  body.add(new THREE.Mesh(merge(
+    cyl(2.5, 2.7, 3.6, brass, [0, 0, 0], null, 16),
+    cyl(2.8, 2.8, 0.35, dark, [0, -1.8, 0], null, 16), cyl(2.62, 2.62, 0.3, dark, [0, 1.75, 0], null, 16),
+    torus(2.05, 0.2, brass2, [0, 0.1, 2.62], null, [6, 28]),
+    cyl(1.95, 1.95, 0.1, cream, [0, 0.1, 2.6], [Math.PI / 2, 0, 0], 28),
+    ...Array.from({ length: 12 }, (_, i) => { const a = (i / 12) * Math.PI * 2; return box([0.09, 0.32, 0.06], dark, [Math.sin(a) * 1.65, 0.1 + Math.cos(a) * 1.65, 2.67], [0, 0, -a]); }),
+    // the crown: a dome, a post, the little bell it strikes the hour on, the winding key behind
+    dome([1.9, 1.0, 1.9], teal, [0, 1.9, 0], null, [14, 5]),
+    cyl(0.18, 0.18, 1.2, dark, [0, 3.2, 0], null, 8),
+    cyl(0.12, 0.5, 0.7, brass, [0, 3.9, 0], null, 12),
+    box([0.25, 1.4, 0.25], dark, [0, 0.4, -2.85], [Math.PI / 2, 0, 0]),
+    torus(0.55, 0.14, brass2, [0, 0.4, -3.6], [0, Math.PI / 2, 0], [5, 14]),
+  ), mat));
+  // the six numeral lamps round the face (src/temples/garage.js makes each a target)
+  const NUM = 6, numAt = (i) => { const a = (i / NUM) * Math.PI * 2; return V(Math.sin(a) * 2.05, 0.1 + Math.cos(a) * 2.05, 2.78); };
+  body.add(new THREE.Mesh(merge(...Array.from({ length: NUM }, (_, i) => { const p = numAt(i); return ell([0.3, 0.3, 0.16], '#ffffff', [p.x, p.y, p.z]); })), lampM));
+  // the eye: a lamp under the crown
+  body.add(new THREE.Mesh(merge(ell([0.32, 0.22, 0.16], '#ffffff', [0, 1.45, 2.55])), eyeM));
+  // the hands, on a pivot at the face's middle
+  const hands = new THREE.Group(); hands.position.set(0, 0.1, 2.72); body.add(hands);
+  const hour = new THREE.Mesh(merge(box([0.2, 1.05, 0.06], dark, [0, 0.45, 0])), mat), minute = new THREE.Mesh(merge(box([0.12, 1.55, 0.06], dark, [0, 0.7, 0.04]), cyl(0.16, 0.16, 0.12, brass2, [0, 0, 0.06], [Math.PI / 2, 0, 0], 10)), mat);
+  hands.add(hour, minute);
+  // the grille over the face, hinged at its top: it swings up when the Foreman is open (a pale gleam on its bars)
+  const lid = new THREE.Group(); lid.position.set(0, 2.25, 2.85); body.add(lid);
+  lid.add(new THREE.Mesh(merge(...Array.from({ length: 6 }, (_, i) => box([0.1, 4.0, 0.08], '#ffffff', [0, -2.15, 0.04], [0, 0, (i / 6) * Math.PI]))), glassM));
+  lid.add(new THREE.Mesh(merge(torus(2.02, 0.12, brass2, [0, -2.15, 0.02], null, [5, 28]), torus(0.9, 0.08, brass2, [0, -2.15, 0.06], null, [4, 20])), mat));
+  // two arms with hammers
+  const arms = [-1, 1].map((s) => {
+    const sh = new THREE.Group(); sh.position.set(s * 2.75, 0.9, 0.3); body.add(sh);
+    sh.add(new THREE.Mesh(merge(ell([0.55, 0.55, 0.55], dark, [0, 0, 0]), box([0.38, 2.6, 0.38], brass2, [s * 0.25, -1.4, 0.4], [0.3, 0, 0]), cyl(0.5, 0.5, 1.5, dark, [s * 0.35, -2.75, 0.9], [0, 0, Math.PI / 2], 10), cyl(0.56, 0.56, 0.3, brass, [s * 1.1, -2.75, 0.9], [0, 0, Math.PI / 2], 10), cyl(0.56, 0.56, 0.3, brass, [s * -0.4, -2.75, 0.9], [0, 0, Math.PI / 2], 10)), mat));
+    return sh;
+  });
+  // four short legs
+  const legs = [];
+  for (let i = 0; i < 4; i++) {
+    const a = (i / 4) * Math.PI * 2 + Math.PI / 4;
+    const hip = new THREE.Group(); hip.position.set(Math.sin(a) * 1.9, -1.9, Math.cos(a) * 1.9); hip.rotation.y = a; body.add(hip);
+    hip.add(new THREE.Mesh(merge(box([0.55, 0.55, 1.6], brass2, [0, -0.3, 0.6], [-0.6, 0, 0]), cyl(0.32, 0.26, 1.9, dark, [0, -1.4, 1.1], null, 8), cyl(0.75, 0.85, 0.3, dark, [0, -2.4, 1.1], null, 10)), mat));
+    legs.push(hip);
+  }
+  noCollide(group);
+  const mouth = V(), _w = V();
+  let race = 0, hourA = 0, minA = 0;
+  const M = {
+    group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, mouth, mouthR: 0.01, radius: 3.0, height: 8.5, bodyR: 2.4,
+    body, hands, hour, minute, lid, arms, legs, lampM, eyeM, open: 0, slump: 0, gait: 0, numbers: NUM,
+    /** Where numeral lamp i is, in the world. */
+    vent(i, out = V()) { const p = numAt(i); return body.localToWorld(out.set(p.x, p.y, p.z + 0.1)); },
+    animate(dt, t, { state, attack, k = 0, speed = 0, meter = 0 }) {
+      const ease = (cur, want, rate) => cur + (want - cur) * Math.min(1, dt * rate);
+      const id = attack?.id, struck = !!attack && k >= 1;
+      M.open = ease(M.open, state === 'open' ? 1 : 0, 6);
+      M.slump = ease(M.slump, state === 'resolved' ? 1 : state === 'sleep' ? 0.5 : 0, 1.5);
+      M.gait += dt * speed * 2.4;
+      body.position.y = 4.4 - M.slump * 1.6 + Math.abs(Math.sin(M.gait)) * 0.12;
+      body.rotation.z = Math.sin(M.gait) * 0.05;
+      // the hands: wound wrong they race and stutter; asleep they twitch; set right they come round to the true time and stop
+      if (state === 'resolved') {
+        const now = new Date(), wantH = -((now.getHours() % 12) + now.getMinutes() / 60) / 12 * Math.PI * 2, wantM = -(now.getMinutes() / 60) * Math.PI * 2;
+        hourA = ease(hourA, wantH, 1.2); minA = ease(minA, wantM, 1.2);
+      } else if (state === 'sleep') { minA = -0.4 + Math.sin(t * 9) * 0.06; hourA = -2.1; }
+      else { race += dt * (state === 'open' ? 0.3 : 4 + 3 * Math.sin(t * 1.7)); minA = -race * 2.2 + Math.sin(t * 11) * 0.3; hourA = -race * 0.4; }
+      minute.rotation.z = minA; hour.rotation.z = hourA;
+      lid.rotation.x = -M.open * 1.6;
+      // the arms: raised for the hammer, one up for the cog, both down asleep; the hammer comes down at the strike
+      let up = 0.15 + Math.sin(t * 2) * 0.08, one = 0;
+      if (id === 'hammer') up = struck ? -0.4 : 0.15 + 2.4 * k;
+      if (id === 'cog') one = struck ? -0.2 : 2.0 * k;
+      if (state === 'sleep' || state === 'resolved') up = -0.25;
+      arms[0].rotation.x = ease(arms[0].rotation.x, -up - one, struck ? 18 : 6);
+      arms[1].rotation.x = ease(arms[1].rotation.x, -up, struck ? 18 : 6);
+      legs.forEach((L, i) => { L.rotation.x = Math.sin(M.gait + i * 1.6) * 0.18 * Math.min(1, speed) + M.slump * 0.25; });
+      lampM.uniforms.uGlow.value = state === 'resolved' ? 0.25 : 0.08 + 0.9 * M.open * (0.75 + 0.25 * Math.sin(t * 10));
+      const off = state === 'sleep' || state === 'resolved';
+      eyeM.uniforms.uGlow.value = off ? (state === 'resolved' ? 0 : 0.12) : id === 'chime' ? 0.6 + 0.4 * Math.sin(t * 30) : 0.85;
+      eyeM.uniforms.uColor.value.set(state === 'resolved' ? '#f6c84e' : '#e0644a');
+      glassM.uniforms.uGlow.value = 0.15 + 0.2 * (1 - meter);
+      group.updateMatrixWorld(true);
+      mouth.copy(body.localToWorld(_w.set(0, 0.1, 2.9)));
+    },
+  };
+  return M;
+}
+
+/**
+ * Viridel's Gardener (organic: you calm it): the moss giant the white builders left to keep their
+ * Greenhouse, gone wild and bare since the night the light passed, when every flower on it closed and
+ * fell. A great hunched mound of moss on four root legs, two long arms ending in root-claws, a face of the
+ * builders' white stone. Brown bare patches on its back where nothing grows; as it calms, flowers come up
+ * over them. It sweeps, stamps, and sends roots up under you; spent, it kneels, its bare back to the sky:
+ * a bloom glob there calms it. Calm, it lies down: lay a hand on its brow.
+ */
+export function gardenerModel({ moss = '#5f9a52', moss2 = '#4f8a5a', moss3 = '#7fb86a', bark = '#8a5a3c', bare = '#9a7448', stone = '#f7f4ec', glow = '#7fcfa8' } = {}) {
+  const group = new THREE.Group();
+  const mat = vc();
+  const eyeM = makeMaterial({ color: glow, glow: 0.4, flat: true, key: `gardener.eye.${uid++}` });
+  const bareM = makeMaterial({ color: bare, flat: true, key: `gardener.bare.${uid++}` });
+  const bloomM = vc();
+  const body = new THREE.Group();
+  body.position.y = 3.4;
+  group.add(body);
+  // the mound: moss in three greens, lumpy
+  const lumps = [ell([4.2, 3.0, 3.8], moss, [0, 0, 0], null, [14, 10])];
+  for (let i = 0; i < 14; i++) { const a = i * 2.4, r = 2.6 + (i % 3) * 0.4; lumps.push(ell([1.4, 1.0, 1.3], i % 2 ? moss2 : moss3, [Math.sin(a) * r, 0.6 + Math.cos(i * 1.7) * 1.4, Math.cos(a) * r * 0.9], null, [8, 6])); }
+  body.add(new THREE.Mesh(merge(...lumps), mat));
+  // the bare patches on its back (they shrink as it calms) and the flowers that come up there
+  const bareMesh = new THREE.Mesh(merge(ell([1.6, 0.5, 1.4], '#ffffff', [-1.2, 2.6, -0.6]), ell([1.3, 0.45, 1.2], '#ffffff', [1.5, 2.4, 0.4]), ell([1.1, 0.4, 1.0], '#ffffff', [0.2, 2.8, 1.4])), bareM);
+  body.add(bareMesh);
+  const flowers = [];
+  const COLS = ['#f2a7b8', '#f6d36a', '#ffffff', '#b7a0cf', '#ef7e62'];
+  for (let i = 0; i < 46; i++) {
+    const a = i * 2.39996, r = Math.sqrt(i / 46) * 3.4, x = Math.sin(a) * r, z = Math.cos(a) * r * 0.9;
+    const y = 3.0 * Math.sqrt(Math.max(0, 1 - (x * x) / 17.6 - (z * z) / 14.4)) + 0.05;
+    flowers.push(ell([0.32, 0.12, 0.32], COLS[i % COLS.length], [x, y, z], null, [6, 3]), ell([0.1, 0.1, 0.1], '#f6d36a', [x, y + 0.08, z], null, [4, 3]));
+  }
+  const bloom = new THREE.Mesh(merge(...flowers), bloomM);
+  bloom.scale.setScalar(0.001);
+  body.add(bloom);
+  // the face: a mask of white stone, two eye holes that glow
+  const head = new THREE.Group();
+  head.position.set(0, 1.4, 3.7);
+  body.add(head);
+  head.add(new THREE.Mesh(merge(ell([1.25, 1.45, 0.7], stone, [0, 0, 0], null, [12, 8]), box([0.3, 0.9, 0.3], moss2, [0, 1.5, -0.3]), ell([1.5, 0.5, 1.0], moss, [0, 1.25, -0.4])), mat));
+  head.add(new THREE.Mesh(merge(ell([0.24, 0.32, 0.1], '#ffffff', [-0.45, 0.25, 0.64]), ell([0.24, 0.32, 0.1], '#ffffff', [0.45, 0.25, 0.64])), eyeM));
+  // two long arms, root-claws at their ends
+  const arms = [-1, 1].map((s) => {
+    const sh = new THREE.Group(); sh.position.set(s * 3.6, 1.0, 1.6); body.add(sh);
+    sh.add(new THREE.Mesh(merge(
+      tube([[0, 0, 0], [s * 1.0, -1.4, 0.9], [s * 1.2, -2.8, 1.8]], 0.7, moss2, 10, 6),
+      ...[-0.5, 0, 0.5].map((d) => cone(0.22, 1.4, bark, [s * 1.2 + d * 0.7, -3.6, 2.2], [0.4, 0, d])),
+    ), mat));
+    return sh;
+  });
+  // four root legs
+  const legs = [];
+  for (let i = 0; i < 4; i++) {
+    const a = (i / 4) * Math.PI * 2 + Math.PI / 4;
+    const hip = new THREE.Group(); hip.position.set(Math.sin(a) * 2.6, -1.6, Math.cos(a) * 2.3); body.add(hip);
+    hip.add(new THREE.Mesh(merge(cyl(0.7, 0.9, 2.0, bark, [0, -0.8, 0], null, 8), ell([1.0, 0.35, 1.2], bark, [0, -1.8, 0.2])), mat));
+    legs.push(hip);
+  }
+  noCollide(group);
+  const mouth = V(), _w = V();
+  const M = {
+    group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, mouth, mouthR: 1.6, radius: 4.4, height: 7, bodyR: 3.8, touchR: 1.4,
+    body, head, arms, legs, bloom, bareMesh, eyeM, kneel: 0, rear: 0, gait: 0,
+    animate(dt, t, { state, attack, k = 0, speed = 0, meter = 0 }) {
+      const ease = (cur, want, rate) => cur + (want - cur) * Math.min(1, dt * rate);
+      const id = attack?.id, struck = !!attack && k >= 1;
+      const calm = state === 'resolved' ? 1 : meter;
+      M.kneel = ease(M.kneel, state === 'open' ? 1 : state === 'weary' || state === 'resolved' ? 1.4 : state === 'sleep' ? 0.8 : 0, 3);
+      M.rear = ease(M.rear, id === 'stamp' ? (struck ? -0.4 : k) : 0, struck ? 14 : 4);
+      M.gait += dt * speed * 1.8;
+      body.position.y = 3.4 - M.kneel * 1.3 + M.rear * 1.6 + Math.abs(Math.sin(M.gait)) * 0.15;
+      body.rotation.x = -M.rear * 0.35 + M.kneel * 0.18;
+      body.rotation.z = Math.sin(M.gait) * 0.04;
+      head.rotation.x = M.kneel * 0.45 + Math.sin(t * 0.9) * 0.04;
+      // the arms: one raised then swept across for the sweep; both dug in for the roots
+      let lx = 0, rx = 0, rz = 0;
+      if (id === 'sweep') { rx = struck ? -0.6 : -1.6 * k; rz = struck ? 1.2 : -0.6 * k; }
+      if (id === 'roots') { lx = rx = struck ? 0.9 : -1.2 * k; }
+      if (state === 'open' || state === 'weary' || state === 'resolved') { lx = rx = 0.5; }
+      arms[0].rotation.x = ease(arms[0].rotation.x, lx + Math.sin(t * 1.3) * 0.05, struck ? 12 : 5);
+      arms[1].rotation.x = ease(arms[1].rotation.x, rx + Math.sin(t * 1.1 + 1) * 0.05, struck ? 12 : 5);
+      arms[1].rotation.z = ease(arms[1].rotation.z, rz, struck ? 12 : 5);
+      legs.forEach((L, i) => { L.rotation.x = Math.sin(M.gait + i * 1.6) * 0.2 * Math.min(1, speed); });
+      // calmer: the bare patches close over, the flowers come up, its eyes go from ember to leaf
+      M.bareMesh.scale.setScalar(Math.max(0.05, 1 - calm * 0.95));
+      M.bloom.scale.setScalar(Math.max(0.001, calm));
+      eyeM.uniforms.uColor.value.set(calm > 0.5 || state === 'sleep' ? '#7fcfa8' : '#ef7e62');
+      eyeM.uniforms.uGlow.value = state === 'sleep' ? 0.12 : 0.45 + (calm < 0.5 && state !== 'resolved' ? Math.max(0, Math.sin(t * 6)) * 0.3 : 0.2);
+      group.updateMatrixWorld(true);
+      mouth.copy(head.localToWorld(_w.set(0, 0.2, 0.4)));
+    },
+  };
+  return M;
+}
+
+/**
+ * The Signal Market's First Sign (robot: you may retune it, or stop it): the oldest broadcasting machine of
+ * the makers, here before the market, under its silent tower. A mast on three legs, a great listening dish
+ * on a yoke for a head, a ring of lamps round its rim, a horn at its focus. It was made to say one line;
+ * since the night the sky rang it has been stuck on one word of it. It cries its word (a ring of sound),
+ * beams, and throws static where you stand; after crying it lowers its dish to listen: play its word back
+ * into it (the echo shell) and it moves on to the next word.
+ */
+export function signModel({ hull = '#88b4b5', hull2 = '#6f9a9b', dark = '#3a535b', brass = '#c99758', dish = '#f5dfab', lamp = '#fff0bd' } = {}) {
+  const group = new THREE.Group();
+  const mat = vc();
+  const lampM = makeMaterial({ color: lamp, glow: 0.2, flat: true, key: `sign.lamp.${uid++}` });
+  const hornM = makeMaterial({ color: '#f0a083', glow: 0.3, flat: true, key: `sign.horn.${uid++}` });
+  const body = new THREE.Group();
+  body.position.y = 4.2;
+  group.add(body);
+  // the mast: a drum on the legs, a tall column, cable wound round it, a yoke at its top
+  body.add(new THREE.Mesh(merge(
+    cyl(1.9, 2.3, 1.6, hull2, [0, 0, 0], null, 12),
+    cyl(2.5, 2.5, 0.4, dark, [0, -0.9, 0], null, 12),
+    cyl(0.9, 1.2, 6.2, hull, [0, 3.9, 0], null, 10),
+    ...Array.from({ length: 5 }, (_, i) => torus(1.05 - i * 0.03, 0.12, dark, [0, 1.6 + i * 1.1, 0], [Math.PI / 2, 0, 0], [4, 16])),
+    box([3.6, 0.5, 0.6], brass, [0, 7.2, 0]),
+    box([0.4, 1.8, 0.5], brass, [-1.7, 8.0, 0]), box([0.4, 1.8, 0.5], brass, [1.7, 8.0, 0]),
+  ), mat));
+  // the head: a great dish on the yoke, its rim of lamps, the horn at its focus
+  const head = new THREE.Group();
+  head.position.set(0, 8.4, 0);
+  body.add(head);
+  const prof = [];
+  for (let i = 0; i <= 10; i++) { const r = (i / 10) * 3.2; prof.push(new THREE.Vector2(Math.max(0.01, r), (r * r) / (4 * 2.2))); }
+  const dishGeo = new THREE.LatheGeometry(prof, 28).rotateX(-Math.PI / 2).translate(0, 0, -0.6);
+  head.add(new THREE.Mesh(merge(finishColor(dishGeo, dish), torus(3.2, 0.14, brass, [0, 0, 0.56], null, [5, 36]), cyl(0.5, 0.7, 0.9, dark, [0, 0, -1.0], [Math.PI / 2, 0, 0], 10),
+    ...[0, 1, 2].map((k) => { const a = (k / 3) * Math.PI * 2; return box([0.12, 0.12, 2.6], dark, [Math.sin(a) * 1.4, Math.cos(a) * 1.4, 0.9], [Math.cos(a) * 0.45, -Math.sin(a) * 0.45, 0]); })), mat));
+  head.add(new THREE.Mesh(merge(cone(0.45, 1.1, '#ffffff', [0, 0, 2.0], [-Math.PI / 2, 0, 0], 10)), hornM));
+  head.add(new THREE.Mesh(merge(...Array.from({ length: 10 }, (_, i) => { const a = (i / 10) * Math.PI * 2; return ell([0.2, 0.2, 0.14], '#ffffff', [Math.sin(a) * 3.25, Math.cos(a) * 3.25, 0.62]); })), lampM));
+  // three legs
+  const legs = [];
+  for (let i = 0; i < 3; i++) {
+    const a = (i / 3) * Math.PI * 2 + Math.PI / 3;
+    const hip = new THREE.Group(); hip.position.set(Math.sin(a) * 1.8, -0.9, Math.cos(a) * 1.8); hip.rotation.y = a; body.add(hip);
+    hip.add(new THREE.Mesh(merge(box([0.5, 0.5, 2.6], hull2, [0, 0, 1.1], [-0.7, 0, 0]), cyl(0.32, 0.24, 3.0, dark, [0, -1.6, 2.1], null, 8), cyl(0.8, 0.9, 0.3, dark, [0, -3.2, 2.1], null, 10)), mat));
+    legs.push(hip);
+  }
+  noCollide(group);
+  const mouth = V(), _w = V();
+  const M = {
+    group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, mouth, mouthR: 1.4, radius: 3.4, height: 12, bodyR: 2.4,
+    body, head, legs, lampM, hornM, open: 0, slump: 0, gait: 0, pitch: 0.6,
+    animate(dt, t, { state, attack, k = 0, speed = 0, meter = 0 }) {
+      const ease = (cur, want, rate) => cur + (want - cur) * Math.min(1, dt * rate);
+      const id = attack?.id, struck = !!attack && k >= 1;
+      M.open = ease(M.open, state === 'open' ? 1 : 0, 5);
+      M.slump = ease(M.slump, state === 'sleep' ? 0.6 : 0, 1.5);
+      M.gait += dt * speed * 2;
+      body.position.y = 4.2 - M.slump * 1.2 + Math.sin(M.gait) * 0.08;
+      // the dish: slumped toward the floor asleep; up and searching in the fight; drawn back, then thrust, for its cry;
+      // lowered to you, listening, when it is open; turned up to the sky once it has its whole line again
+      let pitch = -0.1 + Math.sin(t * 0.7) * 0.15, yaw = Math.sin(t * 0.5) * 0.3;
+      if (state === 'sleep') { pitch = 0.9; yaw = 0; }
+      else if (state === 'open') { pitch = 0.45; yaw = 0; }
+      else if (state === 'resolved' || state === 'weary') { pitch = -1.05; yaw = 0; }
+      else if (id === 'cry') { pitch = struck ? 0.1 : -0.5 * k; yaw = 0; }
+      else if (id === 'beam') { pitch = 0.15; yaw = 0; }
+      M.pitch = ease(M.pitch, pitch, struck ? 14 : 3);
+      head.rotation.set(M.pitch, ease(head.rotation.y, yaw, 3), 0);
+      legs.forEach((L, i) => { L.rotation.x = Math.sin(M.gait + i * 2.1) * 0.15 * Math.min(1, speed) + M.slump * 0.3; });
+      const flash = id === 'cry' && !struck ? 0.4 + 0.6 * Math.max(0, Math.sin(t * 18)) : 0;
+      lampM.uniforms.uGlow.value = state === 'resolved' ? 0.9 : state === 'sleep' ? 0.08 : 0.25 + flash + 0.5 * M.open;
+      hornM.uniforms.uGlow.value = state === 'resolved' ? 0.6 : 0.2 + 0.8 * M.open * (0.7 + 0.3 * Math.sin(t * 8));
+      body.rotation.x = meter * 0.05 * Math.sin(t * 0.9);
+      group.updateMatrixWorld(true);
+      mouth.copy(head.localToWorld(_w.set(0, 0, 2.2)));
+    },
+  };
+  return M;
+}
+
+/** Paint a plain geometry one colour (the wildlife kit's way: a vertex colour per piece). */
+function finishColor(g, color) {
+  const out = g.index ? g.toNonIndexed() : g;
+  for (const k of Object.keys(out.attributes)) if (k !== 'position' && k !== 'normal') out.deleteAttribute(k);
+  const c = new THREE.Color(color), n = out.attributes.position.count, col = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) { col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b; }
+  out.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  return out;
 }
