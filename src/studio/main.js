@@ -27,6 +27,8 @@ import { TONES } from '../story/tone.js';
 import { TITLES } from '../levels/names.js';
 import { cleanState, encodeState, decodeState, settingsJSON } from './state.js';
 import { FACE_PRESETS, castOf, lookFor, BLANK, STORY_WORLDS } from './people.js';
+import { loadMakeHumanManifest, loadMakeHuman } from '../makehuman/body.js';
+import { mhEntry, mhDef, likeLook, mhLineup } from './makehuman.js';
 
 // as in the game (main.js): every colour is authored as a display value and output untouched
 THREE.ColorManagement.enabled = false;
@@ -151,11 +153,11 @@ function makeTraveller() {
   return { type: 'traveller', name: 'The traveller', root: char.root, char, h, animator, gear, baseScale: 1, noShadow: gear.noShadow };
 }
 
-function makeNPC(def, look, world) {
+function makeNPC(def, look, world, human = null) {
   setCostumeWorld(world);
   const kind = look.kind ?? def?.kind ?? 'm';
   const npc = new NPC(scene, physics, {
-    route: [new THREE.Vector3()], palette: def?.palette ?? {}, lines: ['…'], lib, human: humans[kind], kind,
+    route: [new THREE.Vector3()], palette: def?.palette ?? {}, lines: ['…'], lib, human: human ?? humans[kind], kind,
     scale: def?.scale ?? null, head: def?.head ?? null, cape: def?.cape ?? null, def: def ?? null, world,
   });
   npc.restyle(look);
@@ -174,7 +176,25 @@ function disposePerson(p) {
 let people = [];      // on stage
 let gpu = null;       // the GPU crowd figures (crowd-shader.js)
 let cast = [];        // the world's story people
+let mhManifest = null;   // the MakeHuman prototype's people (public/anim/mh/people.json), once asked for
 const lookOf = (p) => p.look;
+
+/**
+ * The look of a spec, as lookFor gives it, for the MakeHuman prototype's bodies too (src/studio/makehuman.js):
+ * a MakeHuman body takes its own kind, the Quaternius twin of one its `like`.
+ */
+function specLook(sp, w) {
+  if (sp.twinOf) return likeLook(sp.twinOf, lookFor({ who: 'blank' }, { ...state, kind: sp.kind }, w));
+  const look = lookFor(sp.mh && sp.who === 'blank' ? { who: 'blank' } : sp, sp.mh ? { ...state, kind: sp.mh.kind } : state, w);
+  if (sp.mh) look.kind = sp.mh.kind;
+  return look;
+}
+/** The definition NPC gets for a spec: a MakeHuman body's real size (and no Quaternius morphs on it). */
+function specDef(sp) {
+  if (!sp.mh) return sp.who === 'npc' || sp.twinOf ? sp.def : null;
+  const own = sp.who === 'npc' && sp.def ? { ...sp.def, morph: undefined, face: undefined } : {};
+  return { ...own, ...mhDef(sp.mh), name: sp.who === 'npc' && sp.def ? `${sp.def.name} (MakeHuman ${sp.mh.label})` : mhDef(sp.mh).name };
+}
 
 /** The single person the panel edits (the first on stage). */
 const subject = () => people[0];
@@ -186,7 +206,10 @@ async function rebuild() {
   cast = await castOf(state.world);
   const world = state.world;
   const specs = [];
-  if (state.lineup === 'cast') {
+  if (state.source === 'makehuman' || state.lineup === 'makehuman') mhManifest ??= await loadMakeHumanManifest(BASE).catch((e) => { console.warn('no MakeHuman people', e); return null; });
+  if (state.lineup === 'makehuman' && mhManifest) {
+    specs.push(...mhLineup(mhManifest, state.count, state.mh));
+  } else if (state.lineup === 'cast') {
     for (const def of cast) specs.push({ who: 'npc', def });
     if (!specs.length) specs.push({ who: 'blank' });
   } else if (state.lineup === 'crowd') {
@@ -199,14 +222,19 @@ async function rebuild() {
       specs.push(c.length ? { who: 'npc', def: c[(state.seed - 1) % c.length], world: w } : { who: 'crowd', seed: state.seed, world: w });
     }
   } else specs.push({ who: state.who, def: cast.find((d) => d.id === state.npc) ?? cast[0], seed: state.seed });
+  // the MakeHuman bodies (Body source: makehuman): each person on one of their kind, or the one picked
+  if (state.source === 'makehuman' && mhManifest && state.lineup !== 'makehuman') {
+    specs.forEach((sp, i) => { if (sp.who !== 'traveller') sp.mh = mhEntry(mhManifest, state.mh, lookFor(sp, state, sp.world ?? world).kind, { n: i, child: sp.def?.age === 'child' }); });
+  }
+  const bodies = new Map(await Promise.all([...new Set(specs.map((sp) => sp.mh).filter(Boolean))].map(async (e) => [e, await loadMakeHuman(e, BASE)])));
   const n = specs.length, gap = state.lineup ? 1.05 : 0;
   specs.forEach((sp, i) => {
     let p;
     const w = sp.world ?? world;
     if (sp.who === 'traveller') p = makeTraveller();
     else {
-      const look = lookFor(sp, state, w);
-      p = makeNPC(sp.who === 'npc' ? sp.def : null, look, w);
+      const look = specLook(sp, w);
+      p = makeNPC(specDef(sp), look, w, sp.mh ? bodies.get(sp.mh) : null);
       p.spec = sp;
       p.world = w;
     }
@@ -236,13 +264,13 @@ async function rebuild() {
 function applyLook() {
   for (const p of people) {
     if (!p.npc) continue;
-    const look = lookFor(p.spec, state, p.world ?? state.world);
+    const look = specLook(p.spec, p.world ?? state.world);
     p.look = look;
     setCostumeWorld(p.world ?? state.world);
     p.npc.restyle(look);
     p.npc.char.pack.visible = !!state.l.pack;
     p.h.ownMaterials();
-    p.baseScale = (p.spec.def?.scale ?? look.height ?? 1) * (look.size ?? 1);
+    p.baseScale = (specDef(p.spec)?.scale ?? look.height ?? 1) * (look.size ?? 1);
   }
   applyBody();
   applyFace();
@@ -446,6 +474,8 @@ function applySky() {
 }
 
 // ------------------------------------------------------------------ camera
+/** The face's height over the head bone against the Quaternius bodies' (0.1 m): another body's head bone sits elsewhere (the MakeHuman prototype's: nearer the eyes). */
+const faceOffset = (p) => (p?.h?.profile ? p.h.faceRest[0] - p.h.rest.get(p.h.b.Head).p.y - 0.1 : 0);
 const VIEWS = {
   full: { y: 0.92, dist: 4.6 }, bust: { y: 1.45, dist: 1.3 }, face: { y: 1.67, dist: 0.72 }, close: { y: 1.67, dist: 0.4 }, far: { y: 0.92, dist: 34 },
 };
@@ -466,7 +496,7 @@ function placeCamera(dt) {
   // (the head's real height: a seated person, longer legs, a bigger head)
   let ty = V.y * s;
   const head = p?.h?.b?.Head;
-  if (p && headView && head) ty = head.getWorldPosition(_v).y + (state.view === 'bust' ? -0.13 : state.view === 'close' ? 0.045 : 0.0) * s;
+  if (p && headView && head) ty = head.getWorldPosition(_v).y + ((state.view === 'bust' ? -0.13 : state.view === 'close' ? 0.045 : 0.0) + faceOffset(p)) * s;
   const cx = state.lineup ? 0 : p?.pos.x ?? 0, cz = state.lineup ? 0 : p?.pos.z ?? 0;
   const target = new THREE.Vector3(cx, ty, cz);
   camera.position.set(cx + Math.sin(orbit.yaw) * Math.cos(orbit.pitch) * dist, ty + Math.sin(orbit.pitch) * dist, cz + Math.cos(orbit.yaw) * Math.cos(orbit.pitch) * dist);
@@ -548,7 +578,7 @@ function sheet({ cols = 4, w = 340, h = 400, view = state.view === 'close' || st
       // (twice: the head turns toward the camera, the camera follows the head)
       for (let k = 0; k < 2; k++) {
         const head = p.h.b.Head.getWorldPosition(new THREE.Vector3()), sc = p.root.scale.y;
-        head.y += (view === 'bust' ? -0.13 : view === 'close' ? 0.045 : 0) * sc;
+        head.y += ((view === 'bust' ? -0.13 : view === 'close' ? 0.045 : 0) + faceOffset(p)) * sc;
         // (the cell is cut from the middle of the picture, its full height: the face view's framing)
         const dist = V.dist * sc * orbit.zoom * z;
         camera.position.set(head.x + Math.sin(orbit.yaw) * Math.cos(orbit.pitch) * dist, head.y + Math.sin(orbit.pitch) * dist, head.z + Math.cos(orbit.yaw) * Math.cos(orbit.pitch) * dist);
@@ -756,9 +786,13 @@ select(sWho, 'Story person', 'npc', () => [['', cast.length ? '(the first)' : '(
 slider(sWho, 'Crowd seed', 'seed', 1, 200, 1, 1, () => { if (state.who === 'crowd' || state.lineup === 'crowd') rebuild(); });
 const spotSel = select(sWho, 'Where (City-Shaft)', 'spot', [['', 'as the story places them'], ['rim', 'the rim'], ['upper', 'the upper levels'], ['middle', 'the middle levels'], ['lower', 'the bottom of the shaft']], applyLook);
 select(sWho, 'Body', 'kind', [['m', 'man'], ['f', 'woman']], () => { if (state.who !== 'npc' && state.who !== 'traveller') rebuild(); });
+// the MakeHuman prototype (src/studio/makehuman.js, docs/makehuman.md): another body for whoever is shown
+select(sWho, 'Body source', 'source', [['quaternius', 'Quaternius (the game’s)'], ['makehuman', 'MakeHuman (prototype)']], rebuild);
+const mhSel = select(sWho, 'MakeHuman person', 'mh', () => [['', 'the first of their kind'], ...(mhManifest?.people ?? []).map((e) => [e.id, `${e.label} · ${(e.scale * e.height).toFixed(2)} m`])], () => { if (state.source === 'makehuman') rebuild(); });
+refreshers.push(() => { mhSel.parentElement.hidden = state.source !== 'makehuman'; });
 refreshers.push(() => { spotSel.parentElement.hidden = state.world !== 'incal'; });
 const sLine = section('Lineup');
-select(sLine, 'Lineup', 'lineup', [['', 'one person'], ['cast', "the world's story people"], ['crowd', 'crowd people (+ GPU figures)'], ['faces', "every world's faces (+ the traveller)"]], rebuild);
+select(sLine, 'Lineup', 'lineup', [['', 'one person'], ['cast', "the world's story people"], ['crowd', 'crowd people (+ GPU figures)'], ['faces', "every world's faces (+ the traveller)"], ['makehuman', 'MakeHuman next to Quaternius (pairs)']], rebuild);
 slider(sLine, 'How many', 'count', 2, 14, 1, 6, () => { if (state.lineup === 'crowd') rebuild(); });
 check(sLine, 'GPU crowd twin', 'twin', rebuild);
 
@@ -881,5 +915,5 @@ resize();
 applyLight();
 await rebuild();
 await roomsReady;
-window.studio = { step, sheet, gbuffer, state: () => state, people: () => people, scene, camera, renderer, post, rebuild, applyLook, applyBody, applyFace, applyLight, updatePanel, set: (s) => { state = cleanState({ ...state, ...s }); saveURL(); updatePanel(); }, NEUTRAL_BODY, cleanMorph, orbit };
+window.studio = { step, sheet, mh: () => mhManifest, gbuffer, state: () => state, people: () => people, scene, camera, renderer, post, rebuild, applyLook, applyBody, applyFace, applyLight, updatePanel, set: (s) => { state = cleanState({ ...state, ...s }); saveURL(); updatePanel(); }, NEUTRAL_BODY, cleanMorph, orbit };
 requestAnimationFrame((t) => { last = t; frame(t); });

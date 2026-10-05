@@ -1667,6 +1667,23 @@ covers the URL state, the build entry, the morphs, the expressions and the hair.
   conversation's faces, the brows and the materials on a real body), `tests/traveller.test.js`
   (his face, his hair inside the helmet, the star inside the glass).
 
+### MakeHuman bodies: a prototype in the studio (`scripts/makehuman/`, `src/makehuman/`)
+
+Would MakeHuman people read better than the Quaternius ones? Eight of them (a girl of 7, a boy of
+15, a woman and a man, two heavy people, two old ones) are built headless by MPFB, the MakeHuman
+add-on, in Blender's background mode (`scripts/makehuman/fetch.sh` gets Blender, MPFB and the CC0
+asset packs into `.local-tools/makehuman/`; `build.py` makes `public/anim/mh/<id>.glb` and the
+manifest `people.json`): MPFB's `game_engine` rig, which has the game's own bone names, T-posed and
+scaled to the game's hips, the body decimated to 12 000 triangles with the head whole, and the ARKit
+face units and visemes as 20 shape keys. `src/makehuman/body.js` (`prepareMakeHuman`) makes one a
+Humanoid template with a *profile* (its face landmarks, outfit regions, ears, skull) that
+`humanoid.js` reads instead of its per-kind tables; `face-keys.js` puts a tone's expression on the
+shape keys (the face ink draws its share on the moving skin: `materials.js` draws morph targets for
+meshes that have them). In the studio: *Who → Body source: MakeHuman* and *Lineup → MakeHuman next
+to Quaternius*. Only the studio uses them, and the build leaves `anim/mh/` out (`MAKEHUMAN=1` keeps
+it). The licences, the measurements (triangles, sizes, `skin-audit.mjs`'s skin weights in the
+clips), the screenshots and the recommendation: docs/makehuman.md. `tests/makehuman.test.js`.
+
 ## Capes at a distance, and people up close (v0.39)
 
 - **Capes hang at rest far off** (`src/cape.js`). Cloth is only simulated near the
