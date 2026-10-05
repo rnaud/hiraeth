@@ -38,7 +38,8 @@ export function setupEdena(ctx) {
   for (const q of QUESTS) quests.define(q);
   quests.itemNames = ITEMS;
   const Q = 'edena.garden';
-  if (!quests.isStarted(Q)) quests.start(Q);
+  // the main quest doesn't just appear: it starts when you talk to Mira (the scout finds them till then: src/story/quests.js opensWith)
+  if (!quests.isStarted(Q)) quests.opensWith(Q, 'mira');
   const S = E.crashed, T = E.tall;
   const ground = (x, z) => level.ground.heightAt(x, z);
   const onGround = (x, z) => { const g = physics.groundAt(x, ground(x, z) + 6, z, 30); return V(x, Number.isFinite(g) ? g : ground(x, z), z); };

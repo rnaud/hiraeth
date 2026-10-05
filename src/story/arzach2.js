@@ -72,7 +72,8 @@ export function setupArzach2(ctx) {
   noteSound = sound;
   for (const q of QUESTS) quests.define(q);
   quests.itemNames = { ...(quests.itemNames ?? {}), ...ITEMS };
-  if (!quests.isStarted('arzach2.bell')) quests.start('arzach2.bell');
+  // the main quest doesn't just appear: it starts when you talk to Sister Aube (the scout finds them till then: src/story/quests.js opensWith)
+  if (!quests.isStarted('arzach2.bell')) quests.opensWith('arzach2.bell', 'aube');
   if (game.flag('arzach2.cairn.placed') === undefined) game.set('arzach2.cairn.placed', 0);
   const ground = (x, z, from) => { const g = physics.groundAt(x, from, z, 60); return Number.isFinite(g) ? g : from - 3; };
   const Q = 'arzach2.bell';

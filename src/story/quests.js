@@ -32,11 +32,20 @@ import * as THREE from 'three';
 // `at` overrides where the marker stands for any kind. A stage with
 // `optional: true` is not shown as the tracked objective. A quest with `background: true` (it
 // starts on its own: the makers' boxes) is only tracked when nothing else is, or when chosen.
+// One with `arrival: true` (a temple's, started on arrival) gives the scout to the world's opening
+// conversation while that waits (opensWith, below).
 //
 // Events (game.emit): 'quest' { id, stage, prev }. Flags: quest.<id> = stage
 // id, 'done' or 'failed'; quest.tracked = the id the scout finds (Q, Y / △) and the quest log marks;
 // failed.<id> = the title of a quest that failed (the father's charge lists them,
 // src/story/charge.js, whatever world you are in).
+//
+// A world's opening quest doesn't just appear on arrival (players: "I should talk to someone who
+// gives me a hint"): quests.opensWith(id, ['ama', 'nour']) holds it back until you talk to one of
+// them. Until then the scout finds the first of them (the first stage's label); the conversation
+// starts it just before they speak (Dialogue.start asks quests.opening(person.id)), so what they say
+// is said with the quest under way; its "Quest:" toast waits for the end of that talk (quests.opened())
+// or for the stage the talk moves it on to.
 //
 // A failed quest has ended like a finished one (not active, never tracked), but it
 // went wrong: the journal files it under its own heading with a ✗ stamp and its
@@ -56,6 +65,8 @@ export class Quests {
     this.locators = new Map();
     this.listeners = new Set();
     this._v = new THREE.Vector3();
+    this.opener = null;   // { id, who: [person ids], label, at }: the opening quest, waiting for a conversation
+    this._quiet = null;   // the quest a conversation just started: its toast waits (opened())
   }
 
   define(def) {
@@ -116,12 +127,19 @@ export class Quests {
     // that from the quest you are on; choosing it in the quest log does
     if (!end && !(d.background && this.tracked())) this.track(id);
     else if (this.game.flag('quest.tracked') === id) this.game.set('quest.tracked', this.active().find((q) => q.main)?.id ?? this.active()[0]?.id ?? null);
+    // the conversation that opens a quest starts it quietly (its toast waits for the talk's end, opened());
+    // a stage it moves on to during that talk is said as the quest's first word
+    const opening = this._quiet === id;
+    if (opening) this._quiet = prev === undefined && !end ? id : null;
     const st = d.stages.find((x) => x.id === stage);
-    if (stage === DONE) { this.toast(`${d.main ? 'Completed' : 'Done'}: ${d.title}`); d.onDone?.(this); }
-    else if (stage === FAILED) { this.game.set(`failed.${id}`, d.title); this.toast(`Failed: ${d.title}`); d.onFail?.(this); }
-    else if (prev === undefined) this.toast(`${d.main || d.major ? 'Quest' : 'New errand'}: ${d.title} · ${st.text}`);
-    else this.toast(`${d.title}: ${st.text}`);
-    if (stage === FAILED) this.sound?.fail?.(); else this.sound?.chime?.();
+    if (opening && prev === undefined && !end) { /* (said at the talk's end) */ }
+    else {
+      if (stage === DONE) { this.toast(`${d.main ? 'Completed' : 'Done'}: ${d.title}`); d.onDone?.(this); }
+      else if (stage === FAILED) { this.game.set(`failed.${id}`, d.title); this.toast(`Failed: ${d.title}`); d.onFail?.(this); }
+      else if (prev === undefined || opening) this.toast(`${d.main || d.major ? 'Quest' : 'New errand'}: ${d.title} · ${st.text}`);
+      else this.toast(`${d.title}: ${st.text}`);
+      if (stage === FAILED) this.sound?.fail?.(); else this.sound?.chime?.();
+    }
     st?.onEnter?.(this);
     d.onStage?.(stage, this, prev);
     this.game.emit('quest', { id, stage, prev });
@@ -132,6 +150,8 @@ export class Quests {
 
   tracked() { const t = this.game.flag('quest.tracked'); return t && this.isActive(t) ? t : null; }
   track(id) { if (this.isActive(id)) this.game.set('quest.tracked', id); }
+  /** The player chose it in the quest log (it is what the scout finds, even over a world's opening conversation). */
+  choose(id) { this.track(id); if (this.isActive(id)) this._chosen = id; }
 
   active() { return [...this.defs.values()].filter((d) => this.isActive(d.id)); }
   finished() { return [...this.defs.values()].filter((d) => this.isDone(d.id)); }
@@ -142,6 +162,8 @@ export class Quests {
   has(item) { return (this.game.flag(`item.${item}`) ?? 0) > 0; }
   give(item, n = 1) { this.game.set(`item.${item}`, (this.game.flag(`item.${item}`) ?? 0) + n); this.game.emit('item', { item, n }); return true; }
   take(item) { if (!this.has(item)) return false; this.game.set(`item.${item}`, this.game.flag(`item.${item}`) - 1); this.game.emit('item', { item, n: -1 }); return true; }
+  /** What you carry for the quests (this world's named items you hold): their names, for the gear page. */
+  carried() { return Object.keys(this.itemNames ?? {}).filter((k) => this.has(k)).map((k) => this.itemName(k)); }
 
   // ------------------------------------------------------------ places
   locate(name, fn) { this.locators.set(name, fn); return () => this.locators.delete(name); }
@@ -164,9 +186,57 @@ export class Quests {
     return p ? p.clone() : null;
   }
 
+  // ------------------------------------------------------------ the opening conversation
+  /**
+   * The world's opening quest `id` waits for a conversation with one of `who` (person ids, the
+   * first the one the scout finds): `label` for the scout (default: the first stage's), `at` a
+   * place or locator for it (default: the first of `who`).
+   */
+  opensWith(id, who, { label = null, at = null } = {}) {
+    this.opener = { id, who: [].concat(who), label, at };
+    return this.opener;
+  }
+  /** The opening quest still waiting for its conversation (or null). */
+  pendingOpener() {
+    const o = this.opener;
+    return o && this.def(o.id) && !this.isStarted(o.id) ? o : null;
+  }
+  /** A conversation with `personId` begins (before they speak): it starts the opening quest if they are one who opens it. */
+  opening(personId) {
+    const o = this.pendingOpener();
+    if (!o || !o.who.includes(personId)) return false;
+    this._quiet = o.id;
+    this.start(o.id);
+    return true;
+  }
+  /** The conversation is over: the quest it started says so now (unless a stage it moved to said it already). */
+  opened() {
+    const id = this._quiet;
+    this._quiet = null;
+    if (!id || !this.isActive(id)) return false;
+    const d = this.def(id), st = this.current(id);
+    this.toast(`${d.main || d.major ? 'Quest' : 'New errand'}: ${d.title} · ${st?.text ?? ''}`);
+    this.sound?.chime?.();
+    return true;
+  }
+  /** Who the scout finds while the opening quest waits: { id, quest, label, position } or null. */
+  openerObjective() {
+    const o = this.pendingOpener();
+    if (!o) return null;
+    const p = this.resolve(o.at ?? o.who[0]);
+    if (!p) return null;
+    const st = this.def(o.id).stages[0];
+    return { id: `opener-${o.id}`, quest: o.id, label: o.label ?? st.label ?? st.text, position: p.clone() };
+  }
+
   /** The tracked quest's objective for the scout and the marker: { id, label, position } or null. */
   objective() {
     const id = this.tracked() ?? this.active().find((q) => q.main)?.id ?? this.active()[0]?.id;
+    // the opening quest still waits for its conversation: the one to talk to comes first, before a quest
+    // that started on its own on arrival (a box's, `background`; a temple's, `arrival`), unless you chose
+    // that one in the quest log (an errand someone gave you keeps the scout)
+    const self = this.def(id)?.background || this.def(id)?.arrival;
+    if (this.pendingOpener() && (!id || (self && id !== this._chosen))) { const o = this.openerObjective(); if (o) return o; }
     if (!id) return null;
     const st = this.current(id);
     const position = this.where(st);

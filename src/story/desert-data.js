@@ -62,8 +62,9 @@ export const QUESTS = [
     id: Q, title: 'The Tree That Drinks', world: 'desert', main: true,
     outro: "The tree burns again, the jar glows, and your ship has power. Qanat can celebrate; you can fly.",
     stages: [
-      // the ship is dark and the traveller's back is bare: past the camps and the procession, into the city
-      { id: 'city', text: 'The ship is dark. Walk to the city under the great dark tree', label: 'Qanat, under the dark tree', flag: 'desert.city.entered', at: 'cityGate' },
+      // the ship is dark and the traveller's back is bare: Marrow (or whoever you ask first) points you to the
+      // city; past the camps and the procession, into it (the quest starts in that talk: src/story/desert.js)
+      { id: 'city', text: 'Only the great tree’s fire could wake the ship, and it has gone cold. Walk to Qanat and find Nour', label: 'Qanat, under the dark tree', flag: 'desert.city.entered', at: 'cityGate' },
       // the makers' chest on its ledge up the great tree's trunk, beside the dry well (src/boxes/placements.js): the backpack
       { id: 'box', text: 'Something is humming on a ledge up the great tree’s trunk. Climb up to it', label: 'The ledge on the tree', flag: 'item.backpack', at: 'box.desert.backpack' },
       // Qanat gathers; Nour, the eldest, comes to see who opened it (src/story/desert.js, the reaction); the tank is empty
@@ -497,11 +498,9 @@ export const PEOPLE = {
         star: { say: ["~sad~ A star is what a traveller looks like far away. A little light, a long way from home. A kind choice of label for a gift."], choices: [{ text: '~curious~ Are there other chests?', goto: 'others' }, { text: '~neutral~ My ship has no power.', if: { flag: 'item.backpack' }, goto: 'power' }, { text: '~neutral~ (back)', if: { not: { flag: 'item.backpack' } }, goto: 'givers' }] },
         others: { say: ["~solemn~ Look for *the star on old blue chests* wherever you travel. The Givers went much farther than our desert."], choices: [{ text: '~neutral~ My ship has no power.', if: { flag: 'item.backpack' }, goto: 'power' }, { text: '~neutral~ (back)', if: { not: { flag: 'item.backpack' } }, goto: 'givers' }] },
         struck: { say: ["~neutral~ Marrow saw the burn on your ship. Three dots over an arc. The Givers’ sign, left by the thing that struck you.", "~curious~ Perhaps the Singer is one of their machines. Perhaps it copies them. I don’t know, child. Age is not the same as access to the manual."], choices: [{ text: '~curious~ Who are the Givers?', goto: 'givers' }, { text: '~scared~ My ship has no power. Can you help me?', goto: 'power' }] },
-        // the traveller's translator: she notices it (docs/story-bible.md, "The translator")
-        ear: { say: ["~curious~ Your translator? I hear clicks and hums, then the little thing at your ear answers. Somehow we understand each other. A fine piece of listening.", "~playful~ Keep it safe. Everyone out here has something to say, and none of us says it quite like you."], choices: [{ text: '~angry~ I didn’t fall. Something struck my ship.', goto: 'struck' }, { text: '~scared~ My ship has no power. Can you help me?', goto: 'power' }] },
         pack: { say: [{ if: { flag: 'tool.empty' }, text: "~playful~ An empty tank! Sixty years guarding a jar with nothing in it. Hessa must never hear how I described that." },
           { if: { not: { flag: 'tool.empty' } }, text: "~playful~ Living water in Givers’ glass. Like the water the giants carried. I’d wager a tooth. I’m down to four, so take that seriously." },
-          "~neutral~ *Stand in water to fill the backpack.* Its fluid can push things your arms cannot. First, we need to find the water."], choices: [{ text: '~curious~ How is it I understand you?', goto: 'ear' }, { text: '~scared~ My ship has no power. Can you help me?', goto: 'power' }] },
+          "~neutral~ *Stand in water to fill the backpack.* Its fluid can push things your arms cannot. First, we need to find the water."], choices: [{ text: '~angry~ I didn’t fall. Something struck my ship.', goto: 'struck' }, { text: '~scared~ My ship has no power. Can you help me?', goto: 'power' }] },
         power: {
           say: ["~solemn~ To power your ship, we need the tree’s living water and its fire. Both have failed us this year.", "~curious~ Perhaps that is why the chest opened now. We need someone who can go below and put things right. Conveniently, you need fuel."],
           choices: [
@@ -590,12 +589,27 @@ export const PEOPLE = {
     lines: ["~shout~ Bones! Glass! Authenticated bits of sky!", "~playful~ Finders keepers. I find that very reasonable.", "~whisper~ Sky-person. Excellent timing. For me."],
     talk: {
       entry: [
+        // a new game: he is at your ship when you step out (src/story/desert.js), and his is the first word
+        { if: { all: [{ not: { flag: 'met.marrow' } }, { quest: Q, stage: 'city' }] }, node: 'wreck' },
         { if: { quest: 'desert.bike', stage: 'ask' }, node: 'bike' },
         { if: { quest: 'desert.bike', stage: ['find', 'wake'] }, node: 'bikeWhere' },
         { if: { all: [{ flag: 'desert.bike.found' }, { not: { flag: 'desert.marrow.bike' } }] }, node: 'bikeAfter' },
         { node: 'hello' },
       ],
       nodes: {
+        // at your ship: the scar on the hull, and the only fire that could wake it (the main quest starts in this talk)
+        wreck: {
+          say: ["~playful~ Sky-person! Marrow, salvager. I was just inspecting your ship. Entirely professional curiosity. Please don’t count the loose screws while I’m here.", "~whisper~ There’s a mark burned into the hull. Three dots and an arc. {glyph} That didn’t come from landing in sand."],
+          choices: [
+            { text: '~neutral~ My ship has no power. Where can I find some?', goto: 'fire' },
+            { text: '~curious~ What does the mark mean?', goto: 'mean' },
+          ],
+        },
+        fire: {
+          say: ["~neutral~ Power? Nothing out here burns hot enough to wake a thing like this. Nothing but the great tree in *Qanat*, and that went cold the night the light went over.",
+            "~playful~ *The city is over the dunes that way*, past the pilgrims’ camps. Climb to the tree and ask *old Nour*. She has sat under a humming chest up there for sixty years. If anyone knows, she does."],
+          choices: [{ text: '~neutral~ Qanat, the tree, Nour. Thanks.', end: true }, { text: '~curious~ And the mark?', goto: 'mean' }],
+        },
         hello: {
           say: ["~playful~ Sky-person! Marrow, salvager. I inspected your ship. Entirely professional curiosity. Please don’t count the loose screws while I’m here.", "~whisper~ There’s a mark burned into the hull. Three dots and an arc. {glyph} That didn’t come from landing in sand."],
           choices: [
@@ -743,14 +757,14 @@ export const MURMURS = {
   lit: ['~shout~ It burns! It burns!', '~surprised~ Look at the colours!', '~happy~ It’s cool! The fire’s cool, feel it!', '~shout~ Ring the bells! Somebody ring the bells!', '~solemn~ It came back. It came back.', '~playful~ I said it would. I said so.'],
 };
 /**
- * The traveller's own words in the desert's two first times, filmed (src/story/desert.js, src/story/moment.js):
- * the water running into the giant's basin, and the empty tank filling in it.
+ * Calling you over (src/story/desert.js, "calling you over"): someone with a word for you doesn't start
+ * talking by themselves; every few seconds while you're near, one of these, until you come and talk.
  */
-export const MOMENT_LINES = {
-  flow: '~surprised~ It’s running. Out of the wall, down the gutter, into the basin… like the giants on the mural.',
-  fill: '~whisper~ It’s filling…',
-  full: '~happy~ Full. So that’s what it was waiting for.',
+export const CALLS = {
+  marrow: ['~shout~ Sky-person! Over here!', '~playful~ Over here, by your hull! I don’t bite. I barely even haggle.', '~whisper~ Psst. Sky-person. A word?'],
+  nour: ['~whisper~ Psst. Child.', '~whisper~ Psst! Over here, child.', '~solemn~ Come here, child. A word with an old woman.'],
 };
+// (the desert's two first times, filmed, give the traveller no lines: they show it, src/story/desert-moments.js)
 
 // People outside the quests only talk, and you only listen (src/story/dialogue.js pickListen): one
 // entry a talk, the next one the next time; an `after` is news, said first once it holds.

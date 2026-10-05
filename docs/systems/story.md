@@ -306,9 +306,12 @@ catches**), the ship.
   far overhead (portals, like the giant's chest). `src/story/desert-spark.js` drives it: the
   stone breathes (its light, the floor marks and the chimney slit pulse with it); a push target
   rolls the ball down its groove into the hole, the chain lifts the grille into the rock
-  (`desert.hearth.open`); E on the shelf takes the stone (`desert.stone.taken`, item `stone`),
-  which then rides at your side, lighting the way. E at the well sets it in the water: it
-  sinks, a spark climbs the outside of the trunk, and the fire catches over six seconds in the
+  (`desert.hearth.open`); E on the shelf takes the stone (`desert.stone.taken`, item `stone`)
+  into your pack: nothing floats about you (players: "it should go in my inventory"); the
+  sketchbook's Gear section lists the quest items you carry under "In your pack"
+  (`quests.carried()`, `gearHtml({ carried })`), and so does the menu's Quests page; in the dark
+  hall it glows a little through the pack. E at the well takes it out into your hand and into
+  the water: it sinks, a spark climbs the outside of the trunk, and the fire catches over six seconds in the
   cool colours (`desert.tree.lit`; the procession sings, the bands feast). The ship only takes
   the jar's water once the tree burns.
 - **Old saves** (`migrateDesertQuest`, `desert.quest.v` 3): a save whose water had already
@@ -320,6 +323,33 @@ catches**), the ship.
   the ship); `tests/desert-spark.test.js` covers the migrations, the cold tree (no burn, the
   ember), the Hearth's order and a save restored part-way, the bike on an empty tank;
   `tests/fluid-tool.test.js` the empty tank itself.
+
+## Quests open in a conversation; people call you over
+Players: "the quest shouldn't just appear. I should talk to someone who gives me a hint about
+where it is", and "the conversation with Nour should not auto trigger, but she should make a
+sound to make it clear I should chat with her".
+- **The opening conversation** (`src/story/quests.js` `opensWith(id, who, { label, at })`): a
+  world's main quest is no longer started on arrival. Until it is, `objective()` (the scout's
+  ping, the marker, the Quests page) finds the first of `who` (the first stage's label), ahead
+  of a quest that started on its own (a box's, `background`; a temple's started on arrival,
+  `arrival`) unless the player chose that one in the quest log (`quests.choose`). Talking to
+  any of `who` starts it just before they speak (`Dialogue.start` calls `quests.opening(id)`,
+  so their words are said with the quest under way); its "Quest:" toast waits for the end of
+  the talk (`quests.opened()`), or comes with the stage the talk moves it to. Every world opens
+  on its first stage's person (Oïa, Sister Aube, Madame Sel, Wen, Mira, Ambroise, Nima, Wendel,
+  Hollin, Aube); the desert on **Marrow**, who is at your ship when you step out, looking over
+  the scar on its hull (`wreck` / `fire` nodes: the only fire that could wake a ship is the
+  great tree's, in Qanat; ask Nour), or on Ama, the Speaker, Nour or Hessa if you walk past
+  him. Once the quest is under way and you are 60 m off, he is back by his crates.
+- **Calling you over** (`src/story/desert.js` `caller`, lines `CALLS` in `desert-data.js`):
+  whoever has a word for you never starts the talk: every few seconds while you are near and
+  haven't come over, a balloon in their own voice, Nour a "psst" and a little hum
+  (`sound.psst(pos)`), and they turn to you; the prompt is theirs over the people standing
+  about them (their talk's priority +1 while they call). Marrow at the ship; Nour once the chest
+  has opened (she comes over to you and waits) and when the tree has drunk and stays cold.
+- Tests: `tests/desert-story.test.js` (no quest on landing, Marrow calls and gives the hint, the
+  quest starts in that talk; Nour comes over and calls, never opens the talk herself), each
+  world's `tests/story-*.test.js` (the quest waits for its first talk).
 
 ## A quest that fails, fewer fetch quests, and the lore made one story
 

@@ -145,8 +145,9 @@ export class Moment {
     const H = S.player?.humanoid;
     // (no looking about, shading his eyes, while the panels frame him: the idle's own glance waits; src/animator.js)
     if (S.player?.animator && 'idleT' in S.player.animator) S.player.animator.idleT = 0;
-    const tone = this.line?.tone ?? this.look;
-    if (H && tone) talkFaces.drive(H, { speaking: true, tone, mouth: this.line ? null : 0 });
+    // (a look without a line, m.look: worn quietly, the mouth shut and the hands still: src/talk-face.js `look`)
+    if (H && this.line?.tone) talkFaces.drive(H, { speaking: true, tone: this.line.tone });
+    else if (H && this.look) talkFaces.drive(H, { look: this.look });
     this.onFrame?.(this, T, dt);
     const cam = this.camera();
     if (cam) S.shot?.(cam);

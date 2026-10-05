@@ -2,6 +2,16 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.68 — 2026-10-05
+
+- In the desert the quest no longer just appears when you land: Marrow the salvager is at your ship, looking over the scar on its hull, and calls you over. Talk to him and he tells you the only fire that could wake your ship is the great tree’s, in Qanat, and to ask old Nour; the quest begins then. Until you have talked to someone, your drone finds the one to ask.
+- Every other world opens the same way: its quest begins when you talk to the person who knows where to go (Oïa, Sister Aube, Madame Sel, Wen, Mira, Ambroise, Nima, Wendel, Hollin, Aube), and the drone leads you to them first.
+- Nour no longer starts talking by herself when the makers’ chest opens: she comes over and calls you with a soft “psst” every few seconds, turning to you, until you go and talk to her.
+- The traveller no longer asks Nour how it is that he understands her.
+- The spark-stone goes into your pack instead of floating about you: your gear in the sketchbook (and the menu’s Quests page) lists it with the other things you carry, and it comes out in your hand when you set it in the well.
+- In the giant’s chest the gutter is lit along its whole length, so once the rib is off it looks clear all the way down instead of half full of rubble.
+- The desert’s two cinematics show instead of tell: the traveller says nothing in them, and at the end only the corner of his mouth goes up.
+
 ## v0.67 — 2026-10-05
 
 - The traveller dresses more casually: an everyday canvas rucksack, with a lid, buckled straps, pockets and a rolled bedroll, replaces the old radio box, and nothing of the space suit is left: soft desert boots without seams or buckles, a loose cotton scarf instead of the ringed collar.

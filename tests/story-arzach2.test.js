@@ -39,6 +39,7 @@ const W = rt.world;
 let clock = 0;
 const step = (n = 1, dt = 1 / 30) => { for (let i = 0; i < n; i++) { clock += dt; camera.position.copy(player.pos).add(V(0, 2, 4)); rt.update(dt, clock, { camera }); } };
 const talk = (person, choices) => {
+  quests.opening(person.id);   // (as Dialogue.start does: the world's opening quest starts with its first talk)
   const r = new DialogueRunner(person, { game, quests });
   for (const c of choices) {
     while (r.advance());
@@ -111,7 +112,9 @@ test('the sky stones are boost-jumps: a plain jump falls short, jump and boost l
 });
 
 test('the main quest: Aube, the monastery, Calix, the clapper, the bell, the note; the cloud settles', () => {
-  assert.equal(quests.stage('arzach2.bell'), 'aube');
+  // it doesn't just appear: it waits for its first talk, and till then the scout finds who to ask
+  assert.equal(quests.stage('arzach2.bell'), undefined);
+  assert.equal(quests.openerObjective()?.id, `opener-${'arzach2.bell'}`);
   talk(aube, ['Why is it higher', 'I’ll go up']);
   step(2);
   assert.equal(quests.stage('arzach2.bell'), 'monastery');

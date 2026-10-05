@@ -157,7 +157,7 @@ test('the Hearth: the grille holds until a shove rolls the ball; a save part-way
   assert.equal(game.flag('desert.hearth.open'), true);
   assert.equal(H.ball.userData.gone, true, 'the ball has dropped into its hole');
   assert.equal(w.enabled(), false);
-  // a reload: the grille up, the ball gone; with the stone taken it lights the way at your side
+  // a reload: the grille up, the ball gone; the stone taken is in your pack (not floating about you)
   const R = desert({ 'prologue.done': true, 'item.backpack': true, 'box.desert.backpack': true, 'desert.quest.v': 3, 'desert.bike.v': 1, 'quest.desert.power': 'light', 'desert.channel.open': true,
     'desert.jar.filled': true, 'desert.well.watched': true, 'desert.spark.heard': true, 'desert.bike.found': true, 'desert.hearth.seen': true,
     'desert.hearth.open': true, 'desert.stone.taken': true, 'item.stone': 1 });
@@ -165,8 +165,12 @@ test('the Hearth: the grille holds until a shove rolls the ball; a save part-way
   R.step(3);
   assert.ok(R.H.grille.position.y - R.H.grilleRest.y > 1.5, 'the grille is up');
   assert.equal(R.H.ball.userData.gone, true);
-  assert.ok(R.H.stone.visible && R.H.stone.position.distanceTo(R.player.pos) < 2, 'the stone is with you');
-  assert.ok(R.H.stoneLight.w > 8 && Math.hypot(R.H.stoneLight.x - R.player.pos.x, R.H.stoneLight.z - R.player.pos.z) < 2, 'lighting your way');
+  assert.equal(R.H.stone.visible, false, 'nothing floats about you: the stone is in your pack');
+  assert.ok(R.quests.carried().includes('the spark-stone'), 'your gear lists it');
+  assert.equal(R.H.stoneLight.w, 0, 'out under the sky it gives no light');
+  R.player.pos.copy(R.H.inside); R.step(2);
+  assert.equal(R.H.stone.visible, false);
+  assert.ok(R.H.stoneLight.w > 5 && Math.hypot(R.H.stoneLight.x - R.player.pos.x, R.H.stoneLight.z - R.player.pos.z) < 1.5, 'in the dark hall it glows through your pack');
   assert.equal(R.quests.objective().label, 'The well at the tree');
   void quests;
 });

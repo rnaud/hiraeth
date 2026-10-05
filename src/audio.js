@@ -938,6 +938,41 @@ export class Sound {
   }
 
   /**
+   * Someone calling you over (src/story/desert.js, "calling you over"): a breathy "psst" at their place
+   * (a hiss through the teeth, stopped short), then a little rising hum in the throat, "mm-hm?".
+   */
+  psst(pos = null) {
+    if (!this.ctx || this.muted) return;
+    const ctx = this.ctx, t = ctx.currentTime + 0.02, { gain, pan } = this.placeAt(pos, 45);
+    if (gain < 0.02) return;
+    const out = ctx.createGain(); out.gain.value = gain;
+    const p = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+    if (p) { p.pan.value = pan; out.connect(p).connect(this.fx); } else out.connect(this.fx);
+    // the hiss: high band noise, "p" as a quick onset, "sss" held, "t" a click that stops it
+    const src = ctx.createBufferSource(); src.buffer = this.noiseBuf;
+    const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 5200; f.Q.value = 1.6;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.09, t + 0.03);
+    g.gain.setValueAtTime(0.07, t + 0.24); g.gain.exponentialRampToValueAtTime(0.0005, t + 0.3);
+    src.connect(f).connect(g).connect(out);
+    src.start(t, Math.random() * 1.2); src.stop(t + 0.34);
+    const c = ctx.createBufferSource(); c.buffer = this.noiseBuf;
+    const cf = ctx.createBiquadFilter(); cf.type = 'highpass'; cf.frequency.value = 2400;
+    const cg = ctx.createGain(); cg.gain.setValueAtTime(0.07, t + 0.31); cg.gain.exponentialRampToValueAtTime(0.0005, t + 0.35);
+    c.connect(cf).connect(cg).connect(out); c.start(t + 0.31, Math.random()); c.stop(t + 0.37);
+    // the hum: two soft notes, the second a little higher
+    for (const [at, f0, f1] of [[0.5, 196, 200], [0.74, 220, 262]]) {
+      const o = ctx.createOscillator(), lp = ctx.createBiquadFilter(), og = ctx.createGain();
+      o.type = 'triangle';
+      o.frequency.setValueAtTime(f0, t + at); o.frequency.linearRampToValueAtTime(f1, t + at + 0.2);
+      lp.type = 'lowpass'; lp.frequency.value = 900;
+      og.gain.setValueAtTime(0.0001, t + at); og.gain.exponentialRampToValueAtTime(0.05, t + at + 0.04); og.gain.exponentialRampToValueAtTime(0.0005, t + at + 0.24);
+      o.connect(lp).connect(og).connect(out); o.start(t + at); o.stop(t + at + 0.26);
+    }
+    setTimeout(() => { try { out.disconnect(); p?.disconnect(); } catch { /* gone */ } }, 1500);
+  }
+
+  /**
    * A short tune on an instrument, on the effects bus (something you play, not the score):
    * notes [[Hz, beats]], a beat `beat` s. Vael's rider's call on the flute (src/story/arzach-data.js).
    */

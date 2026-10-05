@@ -37,6 +37,7 @@ const W = rt.world;
 let clock = 0;
 const step = (n = 1, dt = 1 / 30) => { for (let i = 0; i < n; i++) { clock += dt; camera.position.copy(player.pos).add(V(0, 2, 4)); rt.update(dt, clock, { camera }); } };
 const talk = (person, choices) => {
+  quests.opening(person.id);   // (as Dialogue.start does: the world's opening quest starts with its first talk)
   const r = new DialogueRunner(person, { game, quests });
   for (const c of choices) {
     while (!r.lastPage) r.advance();
@@ -138,7 +139,9 @@ test('side quest: Pim’s latch from the big roof', () => {
 });
 
 test('the main quest: three pools relit, the saucer answers, Hollin asks you to come back', async () => {
-  assert.equal(quests.stage('perdide2.lamps'), 'hollin');
+  // it doesn't just appear: it waits for its first talk, and till then the scout finds who to ask
+  assert.equal(quests.stage('perdide2.lamps'), undefined);
+  assert.equal(quests.openerObjective()?.id, `opener-${'perdide2.lamps'}`);
   talk(KEEPERS[0], ['Why light pools', 'The Welcome?', 'I’ve seen that mark', 'And the two travellers?', 'I’ll light them.']);
   step(2);
   assert.equal(quests.stage('perdide2.lamps'), 'pools');

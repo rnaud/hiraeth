@@ -52,7 +52,8 @@ export function setupPerdide(ctx) {
   const sky = () => ctx.weather ?? globalThis.weather ?? null;
   for (const q of QUESTS) quests.define(q);
   quests.itemNames = { ...(quests.itemNames ?? {}), ...ITEMS };
-  if (!quests.isStarted(Q) && !game.flag('world.perdide.done')) quests.start(Q);
+  // the main quest doesn't just appear: it starts when you talk to Wendel (the scout finds them till then: src/story/quests.js opensWith)
+  if (!quests.isStarted(Q) && !game.flag('world.perdide.done')) quests.opensWith(Q, 'wendel');
 
   const C = level.crystal;
   // the walkable surface just above the swamp floor (not the cave's roof, nor a fungus cap)

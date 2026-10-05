@@ -36,7 +36,8 @@ export function setupSpheres(ctx) {
   for (const q of QUESTS) quests.define(q);
   quests.itemNames = ITEMS;
   const Q = 'spheres.listen';
-  if (!quests.isStarted(Q)) quests.start(Q);
+  // the main quest doesn't just appear: it starts when you talk to Aube (the scout finds them till then: src/story/quests.js opensWith)
+  if (!quests.isStarted(Q)) quests.opensWith(Q, 'aube.spheres', { at: 'aube' });
   const H = (x, z) => level.ground.heightAt(x, z);
   const onGround = (x, z, from = 30) => { const g = physics.groundAt(x, from, z, 80); return V(x, Number.isFinite(g) ? g : H(x, z), z); };
   const Pz = G.plaza, pole = V(Pz.x, Pz.ground, Pz.z);

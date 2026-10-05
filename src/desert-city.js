@@ -838,9 +838,11 @@ export function buildDesertCity(scene, terrain) {
 
     const pl = cave.world(0, 2, 0);
     const poolLight = new THREE.Vector4(pl.x, pl.y, pl.z, 26);
-    const chLight = cave.world(boneAt.x, boneAt.y + 1.5, boneAt.z);
+    // the gutter lit along its whole length: one light by the rib left its two ends in the dark, and in the
+    // hatching the unlit half of the pipe read as filled with rubble, even with the water running down it
+    const chLights = [0.06, 0.36, 0.66, 0.96].map((u) => { const p = cave.world(...along(u, 1.2).toArray()); return new THREE.Vector4(p.x, p.y, p.z, 8); });
     const entryLight = cave.world(0, 4, ROOM + 2);
-    lights.push(poolLight, new THREE.Vector4(chLight.x, chLight.y, chLight.z, 10), new THREE.Vector4(entryLight.x, entryLight.y, entryLight.z, 12));
+    lights.push(poolLight, ...chLights, new THREE.Vector4(entryLight.x, entryLight.y, entryLight.z, 12));
     Object.assign(cv, {
       origin: O, poolCenter: cave.world(0, -1.25, 0), local: (x, y, z) => cave.world(x, y, z), poolR: POOL - 1, pool, poolMat, poolLight,
       bone: bonePivot, boneAt: bonePivot.position.clone(), boneRest: { pos: bonePivot.position.clone(), rot: bonePivot.rotation.clone() },

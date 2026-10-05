@@ -6,6 +6,7 @@ import { expressionFor, cleanExpression, EXPRESSION_KEYS } from './expression.js
 // face at rest (Humanoid.restExpression: the traveller's little smile, everyone else neutral).
 //
 //   talkFaces.drive(humanoid, { speaking, tone, mouth })   this frame (mouth 0..1, or null: it moves by itself)
+//   talkFaces.drive(humanoid, { look: 'smirk' })           a face without a word: no mouth, no hands
 //   talkFaces.update(dt)                                    once a frame, after every drive()
 //
 // Who is driven: the person you talk to and the traveller when he answers (src/story/index.js), and
@@ -63,12 +64,17 @@ export class TalkFace {
     this.cur = cleanExpression(h.expression ?? h.restExpression ?? {});   // the face now, eased toward the tone's
   }
 
-  /** Step; returns false once the face is back at rest (and stays). */
-  update(dt, { speaking = false, tone = null, mouth = null } = {}) {
+  /**
+   * Step; returns false once the face is back at rest (and stays). `look`: a face worn without a word
+   * (a cinematic's smirk): the expression only, the mouth shut and the hands still (quiet: hands.js talkOf).
+   */
+  update(dt, { speaking = false, tone = null, mouth = null, look = null } = {}) {
     const T = TALK_FACE;
     this.t += dt;
-    if (speaking) { if (tone) this.tone = tone; this.hold = T.hold; } else if (this.hold > 0) this.hold -= dt;
-    const on = speaking || this.hold > 0;
+    if (speaking) { if (tone) this.tone = tone; this.hold = T.hold; this.quiet = false; }
+    else if (look) { this.tone = look; this.hold = T.hold; this.quiet = true; }
+    else if (this.hold > 0) this.hold -= dt;
+    const on = speaking || !!look || this.hold > 0;
     // toward the line's tone while it is said and a moment after, then back to rest; a new tone blends from the last
     const goal = expressionFor(this.tone, { amount: on ? 1 : 0, rest: this.h.restExpression });
     const k = 1 - Math.exp(-(on ? T.in : T.out) * dt);
