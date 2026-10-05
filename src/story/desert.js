@@ -5,12 +5,13 @@ import { registerTarget } from '../targets.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { Banner } from '../life.js';
 import { STORY } from '../desert-sites.js';
-import { COOL_FIRE, FIRE, SMOKE_COOL } from './flames.js';
+import { COOL_FIRE, SMOKE_COOL, Embers } from './flames.js';
 import { setMagic } from './magic-water.js';
-import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, STAGE_MIGRATION, VILLAGERS, MURMURS, VILLAGER_TALK } from './desert-data.js';
+import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, STAGE_MIGRATION, SPARK_STAGES, VILLAGERS, MURMURS, VILLAGER_TALK } from './desert-data.js';
 import { items } from '../items.js';
 import { setupHoverbike } from './desert-bike.js';
 import { setupDrum, setupMask } from './desert-errands.js';
+import { setupHearth } from './desert-spark.js';
 
 // The desert's story, alive: who stands where, what reacts to you, and the
 // chain of the main quest (desert-data.js has the words).
@@ -18,13 +19,27 @@ import { setupDrum, setupMask } from './desert-errands.js';
 //   the camps    Ama by the main fire; Sefa (oud), Bako (ney) and Teo on the
 //                benches; Ilo running between the tents; Marrow by his crates
 //   the circuit  the Speaker walks ahead of the procession (crowd.js column)
-//   the city     Hessa keeps the dry well at the burning tree's roots; beside
+//   the city     Hessa keeps the dry well at the great tree's roots; beside
 //                it, a few metres up the trunk, the makers' ledge with their
 //                chest on it (src/boxes/: the backpack), Nour the eldest on her
 //                bench below it, and a few people of Qanat about the terraces
 //                and the avenue
 //   the dunes    old Oum sits on a stone where she fell behind
-//   the cave     the dry pool, the fallen rib across the channel, the mural
+//   the cave     the dry pool, the fallen rib across the channel, the mural (the keepers'
+//                pole leaning on it), the carved post beside the channel
+//   far away     the Givers' Hearth and its spark-stone (src/story/desert-spark.js)
+//
+// The tree is cold (src/desert-city.js city.setLit: no flame, no smoke column,
+// no sparks, no burn, a lone bell for music) until the spark-stone is set in
+// its full well; then the fire grows up out of the crown in the cool colours
+// of the drinking, the smoke column climbs from it, and the feast begins
+// (the procession sings, the bands play double time).
+//
+// The backpack comes out of its chest empty (game flag tool.empty, src/fluid-tool.js):
+// no shot, no push, no boost. The rib is heaved off the channel with the old
+// keepers' pole over the carved post (three heaves); the pool rises and the first
+// wade fills the tank (and adds the giant's colour) and Ama's jar. The water climbs
+// the roots into the well while you watch (desert.well.watched).
 //
 // The reaction at the tree: the first time you come near the closed chest, the
 // people on the terrace turn and murmur and the tree flares; when it opens
@@ -34,20 +49,24 @@ import { setupDrum, setupMask } from './desert-errands.js';
 // chest is open, the camps, the gate and the procession wave you on toward
 // the city.
 //
-// The cave is dry until the rib is pushed off the channel: no pool, no stream,
+// The cave is dry until the rib is off the channel: no pool, no stream,
 // only damp stains. Then the stream runs out of the crack and down the gutter,
 // and the pool fills the basin from its lowest point (desert-city.js setWater).
 //
 // Flags (game-state.js): desert.city.entered, desert.shrine.gathered (the
 // reaction played; named for the shrine the chest once stood in), desert.elder.heard (Nour sent you on), desert.quest.v
-// (the stage migration), desert.camps.seen, desert.jar.given,
-// desert.speaker.heard, desert.well.seen, desert.cave.seen,
-// desert.channel.open (the rib is pushed clear: the tree drinks),
-// desert.jar.filled, desert.ship.fed, desert.pool.tinted (the first wade
-// added a colour to the tool), desert.teo.drumming, desert.ilo.following,
-// desert.ilo.atSkull, desert.oum.following, desert.oum.home, desert.drum.freed and
-// desert.mask.eyes (src/story/desert-errands.js), and a few "read" flags for the
-// carvings. Items: jar, water, drum, cord.
+// (the stage migrations), desert.camps.seen, desert.jar.given,
+// desert.speaker.heard, desert.well.seen, desert.cave.seen, desert.pole.tried
+// (the rib wouldn't move for your arms), desert.lever (heaves on the pole so far),
+// desert.channel.open (the rib is clear: the water rises and the tree drinks),
+// desert.jar.filled, desert.well.watched (you saw the well fill), desert.spark.heard
+// (Nour told of the spark-stone), desert.hearth.seen / .open, desert.stone.taken
+// (src/story/desert-spark.js), desert.tree.lit (the stone is in the well: it burns),
+// desert.ship.fed, desert.pool.tinted (the first wade filled the tank and added a
+// colour), desert.teo.drumming, desert.ilo.following, desert.ilo.atSkull,
+// desert.oum.following, desert.oum.home, desert.drum.freed and desert.mask.eyes
+// (src/story/desert-errands.js), and a few "read" flags for the carvings.
+// tool.empty: the tank has never been filled. Items: jar, water, drum, cord, pole, stone.
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const _v = V(0, 0, 0), _w = V(0, 0, 0);
@@ -55,17 +74,27 @@ const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const EARLY = ['city', 'box'];   // the main quest's stages before the chest is open
 
 /**
- * Old saves (desert.quest.v < 2): the stages before the cave moved (the box is
- * in the city now, then Nour). An old stage goes where STAGE_MIGRATION says;
- * the steps already done advance at once on their flags. Returns the new
- * stage, or null if nothing changed.
+ * Old saves. v < 2: the stages before the cave moved (the box is in the city
+ * now, then Nour): an old stage goes where STAGE_MIGRATION says; the steps
+ * already done advance at once on their flags. v < 3: the tree used to burn
+ * from the start, and the water alone made it drink. A save whose water already
+ * rose (the channel open, the ship fed, the desert done) saw it burn and turn
+ * cool: it keeps burning there (desert.tree.lit), and the spark-stone's errand
+ * is skipped (SPARK_STAGES: setupDesert jumps over them to the ship). A save
+ * short of that finds the tree cold and does the new errand; its tank is full
+ * already (it was never empty: tool.empty is only set for a chest opened now).
+ * Returns the new stage, or null if the stage did not change.
  */
 export function migrateDesertQuest(game) {
-  if ((game.flag('desert.quest.v') ?? 0) >= 2) return null;
+  const v = game.flag('desert.quest.v') ?? 0;
+  if (v >= 3) return null;
   const s = game.flag('quest.desert.power');
-  const to = STAGE_MIGRATION[s] ?? null;
-  if (to) game.set('quest.desert.power', to);
-  game.set('desert.quest.v', 2);
+  // (a brand-new save has nothing to carry over)
+  if (s === undefined && !game.flag('ship.powered')) { game.set('desert.quest.v', 3); return null; }
+  let to = null;
+  if (v < 2) { to = STAGE_MIGRATION[s] ?? null; if (to) game.set('quest.desert.power', to); }
+  if (game.flag('desert.channel.open') || game.flag('desert.ship.fed') || game.flag('ship.powered') || s === 'done') game.set('desert.tree.lit', true);
+  game.set('desert.quest.v', 3);
   return to;
 }
 
@@ -79,6 +108,11 @@ export function setupDesert(ctx) {
   quests.itemNames = ITEMS;
   // the main quest: power for the ship (unless the ship already has it)
   if (!quests.isStarted('desert.power') && !game.flag('ship.powered')) quests.start('desert.power');
+  // the tree already burns (a save from before the spark-stone's errand): its stages are passed over
+  const lit = () => !!game.flag('desert.tree.lit');
+  const skipSpark = () => { if (lit() && SPARK_STAGES.includes(quests.stage('desert.power'))) quests.set('desert.power', 'ship'); };
+  skipSpark();
+  quests.onChange(({ id }) => { if (id === 'desert.power') skipSpark(); });
 
   const ground = (p, from = 4) => { const g = physics.groundAt(p.x, p.y + from, p.z); return Number.isFinite(g) ? g : p.y; };
   const onGround = (p) => V(p.x, ground(V(p.x, p.y, p.z), 3), p.z);
@@ -211,6 +245,26 @@ export function setupDesert(ctx) {
   thing(THINGS.brow, browAt, { range: 4, prompt: 'look up at the skull', look: Q.giant.brow });
   thing(THINGS.mural, cave.mural.clone().setY(cave.origin.y), { range: 4, prompt: 'look at the mural', look: cave.local(-17.5, 3.2, 20.5) });
 
+  // the story's running state; the water (open) and the fire (lit) are flags
+  const st = { level: cave.levels.dry, flow: 0, flowT: 0, boneT: 0, flare: 0, drink: 0, approached: false, campsIn: false, clock: 0, fire: lit() ? 1 : 0 };
+  const open = () => !!game.flag('desert.channel.open');
+
+  // ---------------------------------------------------------------- the tank: empty until the giant's pool
+  // (src/fluid-tool.js reads the same flag: no charges, no refill, a press only sputters)
+  const dry = () => (tool ? !!tool.dry : items.has('backpack') && !!game.flag('tool.empty'));
+  // the tool pushes once the backpack is found and filled; before that, hands (and the keepers' pole)
+  const toolHasPush = () => !!tool && (tool.owned ?? items.has('backpack')) && !dry();
+  let dryT = -1e9;
+  game.on('tool:dry', () => {
+    if (st.clock - dryT < 25) return;
+    dryT = st.clock;
+    toast(open() ? 'The tank is empty. Wade into the giant’s pool to fill it.' : 'The tank is empty: dry glass, not a drop. Where the water is, it fills (Nour says).');
+  });
+
+  // the Givers' House (src/temples/desert.js) wants the fluid from its first room (the push, the splash):
+  // walked in with an empty tank, you are told where to fill it
+  game.on('flag:temple.desert.entered', (v) => { if (v && dry()) setTimeout(() => toast('Your tank is empty, and nothing in the Givers’ House will answer an empty tank. Fill it first, at the giant’s pool past Qanat’s back gate.'), 2500); });
+
   // ---------------------------------------------------------------- the drum, and the mask's eyes
   // jammed against a rib by a knuckle of spine; drifted shut with sand (src/story/desert-errands.js)
   const drum = setupDrum(ctx, { toolHasPush: () => toolHasPush() });
@@ -222,15 +276,11 @@ export function setupDesert(ctx) {
 
   // ---------------------------------------------------------------- the channel and the pool
   // the water: dry (cave.levels.dry) until the channel opens; then the stream runs (flow 0..1) and the pool rises
-  const st = { level: cave.levels.dry, flow: 0, flowT: 0, boneT: 0, flare: 0, drink: 0, approached: false, campsIn: false };
-  const open = () => !!game.flag('desert.channel.open');
-  // the tool pushes only once the backpack is found (src/boxes/); before that the rib is heaved by hand
-  const toolHasPush = () => !!tool && (tool.owned ?? items.has('backpack'));
   const clearChannel = (how) => {
     if (open()) return;
     game.set('desert.channel.open', true);
     st.boneT = 0.001;
-    toast(how === 'push' ? 'The fluid shoves the rib: it rolls off the channel. Water runs.' : 'You heave. The rib grinds, tips, and rolls off the channel. Water runs.');
+    toast(how === 'push' ? 'The fluid shoves the rib: it rolls off the channel. Water runs.' : how === 'lever' ? 'You lean on the pole with all your weight. The rib tips up off the channel, rolls, and falls clear. Water runs.' : 'You heave. The rib grinds, tips, and rolls off the channel. Water runs.');
     sound.whoosh?.();
     sound.chime();
   };
@@ -243,31 +293,144 @@ export function setupDesert(ctx) {
       return true;
     } });
   void boneTarget;
-  // E: without the tool's push, heave it by hand; with it, a hint
+  // E: with a full tank, a look (it says push); without, you heave and it won't move: the keepers' pole
   registerInteractable({ id: 'bone', priority: PRIORITY.use, range: 4.2, at: () => cave.bone.position, enabled: () => !open(),
     prompt: () => (toolHasPush() ? 'look at the fallen rib' : 'heave the fallen rib'),
     distance: (p) => (p.pos.distanceTo(cave.origin) < 200 ? flat(p.pos, cave.bone.position) : Infinity),
-    use: () => { if (toolHasPush()) dialogue.start(THINGS.bone, null, cave.bone.position); else clearChannel('heave'); } });
+    use: () => {
+      if (toolHasPush()) { dialogue.start(THINGS.bone, null, cave.bone.position); return; }
+      st.wobble = 0.6;
+      sound.thud?.();
+      game.set('desert.pole.tried', true);
+      toast(quests.has('pole') ? 'Far too heavy for your arms. Set the keepers’ pole over the carved post beside the channel, and lean on it.'
+        : 'You heave. It doesn’t even rock: it is far too heavy for your arms. The old keepers cleaned this channel; they must have had a way. Beside it stands a carved post, a notch worn smooth in its top.');
+    } });
+  const lever = setupLever();
 
-  const applyOpen = (instant) => {
-    // the tree drinks: cool fire, a full well, a bright pool, a feast
-    city.flames.setPalette(COOL_FIRE, instant);
-    city.smoke?.setPalette(SMOKE_COOL, instant, COOL_FIRE[1]);
+  // the water: the pool, the stream and the well (the tree drinks, and stays cold until it is lit)
+  const applyWater = (instant) => {
     city.wellWater.visible = true;
-    if (crowd) for (const p of crowd.people) if (p.spot?.id === 'procession') p.lines = LINES.drinking;
-    sound.setBandMode('camp', 'feast'); sound.setBandMode('procession', 'feast'); sound.setBandMode('tree', 'feast');
-    st.drinking = true;
+    // (the well rises while you watch it: the 'rise' stage; a save that saw it finds it full)
+    if (instant && (game.flag('desert.well.watched') || lit())) city.wellWater.position.y = city.well.y + 0.95;
     if (instant) { st.level = cave.levels.high; st.flow = 1; st.boneT = 1; st.drink = 1; }
     else if (!st.boneT) st.boneT = 0.001;   // (the flag set some other way: the rib still rolls off)
     cave.setWater(st.flow, st.level);
+    lever.settle();
+  };
+  // the fire: the tree burns (cool, every colour: the drinking's own fire), the feast begins
+  const applyLit = (instant) => {
+    city.flames.setPalette(COOL_FIRE, true);
+    city.smoke?.setPalette(SMOKE_COOL, true, COOL_FIRE[1]);
+    if (crowd) for (const p of crowd.people) if (p.spot?.id === 'procession') p.lines = LINES.drinking;
+    sound.setBandMode('camp', 'feast'); sound.setBandMode('procession', 'feast'); sound.setBandMode('tree', 'feast');
+    const tb = sound.band?.('tree');
+    if (tb && !tb.parts.includes('chant')) tb.parts.unshift('chant');
+    st.drinking = true;
+    if (instant) { st.fire = 1; city.setLit(1); city.smoke.grow = Infinity; }
   };
   cave.setWater(st.flow, st.level);
   // the smoke column casts no shadow across the city (the renderer hides level.noShadow in its shadow passes)
   if (city.smoke) (level.noShadow ??= []).push(city.smoke.mesh);
-  if (open()) applyOpen(true);
-  game.on('flag:desert.channel.open', (v) => { if (v) applyOpen(false); });
+  city.setLit?.(st.fire);
+  if (open()) applyWater(true);
+  if (lit()) applyLit(true);
+  game.on('flag:desert.channel.open', (v) => { if (v) applyWater(false); });
 
-  // wading: the fluid refills (and takes a colour, the first time); the jar fills
+  /**
+   * The keepers' pole and the carved post. The pole leans on the mural; with it in your hands, E at the
+   * post sets it under the rib's end and each press is a heave (desert.lever counts them): the rib lifts
+   * a little more each time, and on the third it tips off the channel and rolls clear.
+   */
+  function setupLever() {
+    const perp = V(-cave.chDir.z, 0, cave.chDir.x).normalize(), along = V(cave.chDir.x, 0, cave.chDir.z).normalize();
+    const rib = cave.boneRest.pos, floorY = cave.origin.y;
+    // (the rib lies along the gutter, in it: the post stands just off the gutter's side, chest high, so the
+    // pole goes over the rim and under the rib's flank, and leaning on it tips the rib out over the far rim)
+    const postAt = rib.clone().addScaledVector(perp, -2.45).setY(floorY);
+    const HEAVES = 3;
+    // the post: a carved block with a notch worn in its top
+    const stoneM = makeMaterial({ color: '#c9b8a0', flat: true });
+    const post = new THREE.Mesh(mergeGeometries([new THREE.BoxGeometry(0.5, 1.62, 0.5).translate(0, 0.81, 0), new THREE.BoxGeometry(0.72, 0.14, 0.72).translate(0, 0.07, 0),
+      new THREE.BoxGeometry(0.62, 0.1, 0.62).translate(0, 1.55, 0)].map((g) => g.toNonIndexed())), stoneM);
+    post.position.copy(postAt); post.rotation.y = Math.atan2(perp.x, perp.z);
+    // the pole: bone, two people long, a bronze shoe on its tip (+x)
+    const pole = new THREE.Group();
+    pole.add(new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.09, 4.4, 6).rotateZ(Math.PI / 2), makeMaterial({ color: '#efe4cc', flat: true })));
+    pole.add(new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.05, 0.45, 6).rotateZ(Math.PI / 2).translate(2.35, 0, 0), makeMaterial({ color: '#c9974a', flat: true, metal: 'brass' })));
+    for (const o of [post, pole]) { o.traverse((c) => { c.userData.noCollide = true; c.userData.dynamic = true; }); cave.root.add(o); }
+    // where it leans: against the mural's end (the mural faces n; tm runs along it)
+    const n = V(Math.sin(Math.PI * 0.8), 0, Math.cos(Math.PI * 0.8)), tm = V(-n.z, 0, n.x);
+    const m0 = cave.local(-17.5, 0, 20.5);
+    const leanFoot = m0.clone().addScaledVector(tm, 5.1).addScaledVector(n, 1.1), leanTop = m0.clone().addScaledVector(tm, 4.95).addScaledVector(n, 0.32).add(V(0, 4.25, 0));
+    // under the rib: through the post's notch (the pivot), the shoe under the rib's end, the grip out past the post
+    const pivot = postAt.clone().setY(floorY + 1.72);
+    const _d = V(0, 0, 0), _q = new THREE.Quaternion(), X = V(1, 0, 0);
+    /** Lay the pole from a (its grip) to b (its shoe). */
+    const lay = (a, b) => { pole.position.copy(a).add(b).multiplyScalar(0.5); pole.quaternion.copy(_q.setFromUnitVectors(X, _d.subVectors(b, a).normalize())); };
+    const leverPose = (k) => {
+      // k: 0 resting in the notch, 1 leaned on as far as it goes (the grip down, the shoe up under the rib)
+      const tilt = 0.2 - k * 0.3;
+      const tip = pivot.clone().addScaledVector(perp, 1.4).add(V(0, -1.4 * tilt, 0)), grip = pivot.clone().addScaledVector(perp, -2.9).add(V(0, 2.9 * tilt, 0));
+      lay(grip, tip);
+    };
+    const L = { heave: 0, t: 1 };
+    const placed = () => (game.flag('desert.lever') ?? 0) > 0 || open();
+    const pose = () => {
+      if (open()) {
+        // left lying on the floor by the post once the rib is off
+        lay(postAt.clone().addScaledVector(along, 0.9).addScaledVector(perp, -2.2).setY(floorY + 0.08), postAt.clone().addScaledVector(along, 0.6).addScaledVector(perp, 2.1).setY(floorY + 0.08));
+        pole.visible = true;
+      } else if (placed()) { pole.visible = true; leverPose(0); }
+      else if (quests.has('pole')) pole.visible = false;   // (in your hands)
+      else { pole.visible = true; lay(leanFoot, leanTop); }
+    };
+    pose();
+    const take = () => {
+      quests.give('pole');
+      toast(`You take ${ITEMS.pole}: bone, two people long, shod in bronze, the Givers’ mark burned into its grip.`);
+      sound.chime?.();
+      pose();
+    };
+    const heave = () => {
+      if (open()) return;
+      const n0 = game.flag('desert.lever') ?? 0;
+      if (n0 === 0) { quests.take('pole'); toast('You set the pole in the post’s notch, its bronze shoe under the rib’s end.'); }
+      const k = n0 + 1;
+      game.set('desert.lever', k);
+      L.heave = k; L.t = 0;
+      pose();
+      sound.thud?.();
+      if (k >= HEAVES) setTimeout(() => clearChannel('lever'), 450);
+      else toast(k === 1 ? 'You lean on the pole. The rib’s end lifts a hand’s width, grinds, and settles back. Again.' : 'Again: the rib lifts, rocks on the gutter’s edge… nearly.');
+    };
+    registerInteractable({ id: 'keepers.pole', priority: PRIORITY.use, range: 2.6, at: () => leanFoot, enabled: () => !open() && !quests.has('pole') && !placed(),
+      prompt: 'take the keepers’ pole', distance: (p) => (p.pos.distanceTo(cave.origin) < 200 ? flat(p.pos, leanFoot) : Infinity), use: take });
+    registerInteractable({ id: 'keepers.post', priority: PRIORITY.use, range: 3.4, at: () => pivot, enabled: () => !open(),
+      prompt: () => (placed() ? 'lean on the pole' : quests.has('pole') ? 'lever the rib with the keepers’ pole' : 'look at the carved post'),
+      distance: (p) => (p.pos.distanceTo(cave.origin) < 200 ? flat(p.pos, postAt) : Infinity),
+      use: () => {
+        if (placed() || quests.has('pole')) heave();
+        else { game.set('desert.pole.tried', true); toast('A post of carved stone beside the channel, a notch worn smooth in its top, as if something long had rested in it many times. Something long, to lever with.'); }
+      } });
+    return {
+      postAt, pivot, leanFoot, pole, post, HEAVES, take, heave, placed,
+      /** The rib is off: the pole lies on the floor (and leaves your hands). */
+      settle() { if (quests.has('pole')) quests.take('pole'); pose(); },
+      /** Per frame: a heave tilts the pole and lifts the rib's end, then lets it settle back. */
+      update(dt) {
+        if (L.t >= 1) return;
+        if (open() && st.boneT > 0) { L.t = 1; return; }   // (the last heave: the rib rolls off on its own)
+        L.t = Math.min(1, L.t + dt / 0.9);
+        const k = Math.sin(Math.PI * L.t) * (0.55 + 0.15 * L.heave);
+        leverPose(k);
+        cave.bone.position.copy(cave.boneRest.pos).add(V(0, k * 0.22 * L.heave, 0));
+        cave.bone.rotation.z = cave.boneRest.rot.z + k * 0.06 * L.heave;
+        if (L.t >= 1) { cave.bone.position.copy(cave.boneRest.pos); cave.bone.rotation.z = cave.boneRest.rot.z; leverPose(0); }
+      },
+    };
+  }
+
+  // wading: the empty tank fills (and takes a colour, the first time); the jar fills
   let wasIn = false;
   const wade = () => {
     const c = cave.poolCenter;
@@ -278,10 +441,14 @@ export function setupDesert(ctx) {
     if (inPool && !wasIn) {
       if (!open()) toast('The basin is dry. Damp stains on the stone, a pale line where water stood. Something has stopped it coming.');
       else {
+        const wasDry = dry();
         const addColour = !game.flag('desert.pool.tinted') && items.has('backpack');   // (no tank, nothing to tint yet)
-        // the fluid tool listens for this (fluid-tool.js): a full tank, and for good a new colour band
+        // the fluid tool listens for this (fluid-tool.js): a full tank (an empty one fills for good), and a new colour band
         game.emit('tool:refill', { addColour });
-        if (addColour) { game.set('desert.pool.tinted', true); toast('The water climbs your hose. The tank takes its colours.'); }
+        if (game.flag('tool.empty')) game.set('tool.empty', false);   // (no tool here, e.g. tests: the flag is the tank)
+        if (addColour) game.set('desert.pool.tinted', true);
+        if (wasDry) toast('The water climbs your hose, and the empty tank fills: cyan, violet, and the coral of the giant’s pool. Now it shoots (G, or RT / R2) and pushes (C, or RB / R1).');
+        else if (addColour) toast('The water climbs your hose. The tank takes its colours.');
         if (quests.has('jar') && !game.flag('desert.jar.filled')) {
           quests.take('jar'); quests.give('water');
           game.set('desert.jar.filled', true);
@@ -298,17 +465,25 @@ export function setupDesert(ctx) {
     const s = level.ship?.pos ?? level.shipSite ?? level.spawn;
     return s.isVector3 ? s : V(s.x, s.y ?? level.ground.heightAt(s.x, s.z), s.z);
   };
+  // the jar's water wakes the ship once it has taken the spark (it caught with the tree)
+  let stillT = -1e9;
   const feedShip = () => {
     if (!quests.has('water') || game.flag('desert.ship.fed')) return false;
+    if (!lit()) {
+      if (st.clock - stillT > 30) { stillT = st.clock; toast('You tip the jar to the ship’s intake. The water lies still and dull in it: nothing in it wants to burn. Not yet.'); }
+      return false;
+    }
     quests.take('water');
     game.set('desert.ship.fed', true);
     return true;
   };
   game.on('ship:enter', () => feedShip());
-  // the backpack found: a nudge to try it
-  game.on('box:opened', ({ item } = {}) => {
+  // the backpack found: its tank is empty (a new save; an older one carried a full tank already)
+  game.on('box:opened', ({ item, id } = {}) => {
     if (item !== 'backpack') return;
-    setTimeout(() => toast('Try shooting (G) or pushing (C).'), 3200);
+    const empty = id === 'desert.backpack' && !open() && !game.flag('desert.pool.tinted');
+    if (empty) game.set('tool.empty', true);
+    setTimeout(() => toast(empty ? 'The tank on your back is empty: dry glass, not a drop in it. Nothing to shoot, nothing to push. Not yet.' : 'Try shooting (G) or pushing (C).'), 3200);
   });
   quests.def('desert.power').onDone = () => {
     game.set('ship.powered', true);
@@ -325,6 +500,10 @@ export function setupDesert(ctx) {
   quests.locate('caveIn', () => cave.inside);
   quests.locate('skull', () => Q.giant.door);
   quests.locate('bone', () => cave.bone.position);
+  // the rib, until your arms have failed on it with an empty tank: then the keepers' pole (by the mural), then the post
+  quests.locate('rib', () => (toolHasPush() || !game.flag('desert.pole.tried') ? cave.bone.position : lever.placed() || quests.has('pole') ? lever.pivot : lever.leanFoot));
+  // something faster than walking: Marrow until he has told you, then the hollow
+  quests.locate('bikeWay', () => (['find', 'wake'].includes(quests.stage('desert.bike')) || game.flag('desert.bike.uncovered') ? hollow.site.bike : people.marrow.pos));
   quests.locate('pool', () => cave.poolCenter);
   quests.locate('ship', shipPos);
   quests.locate('mask', () => V(-20, level.ground.heightAt(-20, -372), -372));
@@ -381,10 +560,11 @@ export function setupDesert(ctx) {
   };
 
   // ---------------------------------------------------------------- music
+  // (the cold tree has only a slow bell; once it burns, the chant comes back and everyone feasts)
   sound.setBands([
-    { id: 'camp', pos: V(fire.x, fire.y + 1, fire.z), radius: 85, parts: game.flag('desert.teo.drumming') ? ['oud', 'ney', 'chant', 'drum'] : ['oud', 'ney', 'chant'], mode: open() ? 'feast' : 'play' },
-    { id: 'procession', pos: () => drummer?.pos ?? null, radius: 75, parts: ['drum', 'bell'], mode: open() ? 'feast' : 'play', vol: 0.9, duck: 0.6 },
-    { id: 'tree', pos: city.treeBase, radius: 110, parts: ['chant', 'bell'], mode: open() ? 'feast' : 'play', vol: 0.55, duck: 0.4 },
+    { id: 'camp', pos: V(fire.x, fire.y + 1, fire.z), radius: 85, parts: game.flag('desert.teo.drumming') ? ['oud', 'ney', 'chant', 'drum'] : ['oud', 'ney', 'chant'], mode: lit() ? 'feast' : 'play' },
+    { id: 'procession', pos: () => drummer?.pos ?? null, radius: 75, parts: ['drum', 'bell'], mode: lit() ? 'feast' : 'play', vol: 0.9, duck: 0.6 },
+    { id: 'tree', pos: city.treeBase, radius: 110, parts: lit() ? ['chant', 'bell'] : ['bell'], mode: lit() ? 'feast' : 'play', vol: 0.55, duck: 0.4 },
   ]);
   game.on('flag:desert.teo.drumming', (v) => { const b = sound.band('camp'); if (v && b && !b.parts.includes('drum')) b.parts.push('drum'); });
   // Bako plays his ney for you when you ask: the one song it knows, slow and strange (sound.solo)
@@ -396,7 +576,19 @@ export function setupDesert(ctx) {
   });
 
   // ---------------------------------------------------------------- the tree notices you
-  const treeTarget = registerTarget({ kind: 'tree', radius: 14, position: () => city.crown, onHit: () => { st.flare = Math.max(st.flare, 1); return true; } });
+  // (cold, it takes an ember glob too, only to say why that is not enough: the Givers' House's ember mode
+  // burns what is dry; the tree's wood never burned, only the living water in it, and that wants its spark)
+  let emberT = -1e9;
+  const treeTarget = registerTarget({ kind: 'tree', radius: 14, position: () => city.crown, accepts: ['fire'],
+    onHit: (mode) => {
+      st.flare = Math.max(st.flare, 1);
+      if (mode === 'fire' && !lit() && st.clock - emberT > 8) {
+        emberT = st.clock;
+        toast(open() ? 'The ember hisses on the wet bark and dies. Living water won’t take the tank’s fire: it wants the spark it was first lit with.'
+          : 'The ember spits on the bark and goes out. The tree’s wood never burned: only the water in it ever did, and there is none.');
+      }
+      return true;
+    } });
   void treeTarget;
 
   // ---------------------------------------------------------------- the ledge: Qanat notices, gathers, and Nour comes
@@ -517,10 +709,98 @@ export function setupDesert(ctx) {
   setWaveOn(early());
   quests.onChange(({ id }) => { if (id === 'desert.power') setWaveOn(early()); });
 
+  // ---------------------------------------------------------------- the spark-stone's errand
+  // Nour's word sends you for the stone: the hoverbike's errand starts then (if it hasn't), the Hearth waits
+  const hearth = setupHearth(ctx, { hasPush: () => toolHasPush() || (!!tool && !dry()), lit });
+
+  // the well fills while you watch: the roots drink (pale motes climb the trunk), Hessa calls out, the tree stays cold
+  const drinkAt = [0, 1, 2, 3, 4, 5].map((i) => { const a = i / 6 * Math.PI * 2; return city.treeBase.clone().add(V(Math.sin(a) * 4.2, 0.6, Math.cos(a) * 4.2)); });
+  const motes = new Embers(scene, drinkAt, { count: 46, color: '#9ff0e6', rise: 2.6, life: 5, spread: 1.2, size: 0.22 });
+  motes.mesh.visible = false;
+  const rise = { on: false, t: 0, done: !!game.flag('desert.well.watched') };
+  const startRise = () => {
+    if (rise.on || rise.done) return;
+    rise.on = true; rise.t = 0;
+    city.wellWater.position.y = Math.min(city.wellWater.position.y, city.well.y + 0.12);
+    sound.whoosh?.();
+    later(1.0, () => say(people.hessa, '~shout~ Grandmother! The well! It’s coming up!', 3));
+  };
+
+  // the stone in the well: the spark runs up the roots and the trunk to the crown, and the tree catches
+  const sparkM = makeMaterial({ color: '#fff6dc', glow: 1, flat: true });
+  const spark = new THREE.Mesh(new THREE.OctahedronGeometry(1.1, 1), sparkM);
+  spark.visible = false; spark.userData.noCollide = true; spark.userData.dynamic = true;
+  scene.add(spark);
+  const sparkLight = new THREE.Vector4(0, -1e5, 0, 0);
+  level.lights?.push(sparkLight);
+  const LIGHT = { fly: 0.9, climb: 2.8, catch: 6 };   // s: the stone into the water, the spark up the trunk, the fire growing
+  const lighting = { t: -1, from: V(0, 0, 0) };
+  // (up the outside of the trunk on the well's side, where you see it climb, then into the crown)
+  const toWell = V(city.well.x - city.treeBase.x, 0, city.well.z - city.treeBase.z).normalize();
+  const bark = (r, y) => city.treeBase.clone().addScaledVector(toWell, r).add(V(0, y, 0));
+  const sparkPath = [city.well.clone().add(V(0, 0.9, 0)), bark(6.4, 1.4), bark(5.4, 7), bark(5.1, 15), bark(4.9, 23), bark(4.2, 30), city.crown.clone()];
+  const sparkCurve = new THREE.CatmullRomCurve3(sparkPath);
+  const setStone = () => {
+    if (lit() || !quests.has('stone') || !open()) return;
+    quests.take('stone');
+    lighting.t = 0;
+    lighting.from.copy(level.hearth?.stone.position ?? player.pos);
+    game.set('desert.tree.lit', true);
+    sound.chime?.();
+    toast('You let the spark-stone down into the well. It sinks, glowing, into the living water…');
+  };
+  registerInteractable({ id: 'well.stone', priority: PRIORITY.use + 1, range: 3.6, at: () => city.well, enabled: () => quests.has('stone') && !lit(),
+    prompt: () => (open() ? 'set the spark-stone in the well' : 'look into the dry well'),
+    distance: (p) => (Math.abs(p.pos.y - city.well.y) < 4 ? flat(p.pos, city.well) : Infinity),
+    use: () => { if (open()) setStone(); else toast('The well is dry: the stone would only lie in the dust. The water must come up first.'); } });
+  const updateLighting = (dt) => {
+    if (lighting.t < 0) return;
+    lighting.t += dt;
+    const T = lighting.t, H = level.hearth;
+    if (T < LIGHT.fly) {
+      // the stone drops from your hand into the water
+      const k = T / LIGHT.fly;
+      if (H) { H.stone.visible = true; H.stone.position.lerpVectors(lighting.from, sparkPath[0], k).add(V(0, Math.sin(Math.PI * k) * 0.8, 0)); H.stoneLight.set(H.stone.position.x, H.stone.position.y, H.stone.position.z, 10); }
+    } else if (T < LIGHT.fly + LIGHT.climb) {
+      // a spark climbs out of the water, up the roots and the trunk, to the crown
+      if (H) { H.stone.visible = false; H.stoneLight.w = 0; }
+      const k = (T - LIGHT.fly) / LIGHT.climb;
+      spark.visible = true;
+      sparkCurve.getPointAt(Math.min(1, k * k * (3 - 2 * k)), spark.position);
+      spark.scale.setScalar(0.8 + 0.6 * Math.sin(T * 17) ** 2);
+      sparkLight.set(spark.position.x, spark.position.y, spark.position.z, 16);
+      // a trail of pale sparks behind it, up the bark
+      motes.sources = [spark.position];
+      motes.mesh.visible = true; motes.rate = 1.6; motes.update(dt, T, null);
+      setMagic(city.wellMat, T * 3, { bright: 1, tones: 6 });
+    } else {
+      // it catches: the fire grows up out of the crown, cool and in every colour, and the smoke climbs from it
+      if (spark.visible) {
+        spark.visible = false; sparkLight.set(0, -1e5, 0, 0);
+        motes.sources = drinkAt; motes.mesh.visible = false;
+        applyLit(false);
+        st.flare = Math.max(st.flare, 2.6);
+        sound.whoosh?.(); sound.chime?.();
+        crowd?.lookAt(city.crown.clone(), 12, { near: city.crown, r: 400 });
+        villagers.forEach((n, i) => later(0.4 + i * 0.6, () => say(n, pick(MURMURS.lit, i), 3.2)));
+        later(0.8, () => say(people.hessa, '~shout~ It burns! Grandmother, it burns!', 3));
+        later(2.0, () => say(nour, '~happy~ Every colour. Every colour, like when I was a girl.', 3.5));
+      }
+      const k = Math.min(1, (T - LIGHT.fly - LIGHT.climb) / LIGHT.catch);
+      st.fire = k * k * (3 - 2 * k);
+      city.setLit(st.fire);
+      if (k >= 1) {
+        lighting.t = -1;
+        toast(quests.has('water') ? 'The great tree burns again, cool, in every colour. The water in Ama’s jar glows with it: bring it to the ship.' : 'The great tree burns again, cool, in every colour.');
+      }
+    }
+  };
+
   // ---------------------------------------------------------------- per frame
   const camPos = V(0, 0, 0);
   const update = (dt, t, { camera }) => {
     camPos.copy(camera.position);
+    st.clock += dt;
     const pp = player.pos;
     // the camps: first sight sets the quest moving; people turn to look and wave
     const dCamps = flat(pp, camps.center);
@@ -549,7 +829,8 @@ export function setupDesert(ctx) {
     // the ship: walk up with the living water (or enter it: 'ship:enter')
     if (quests.has('water') && flat(pp, shipPos()) < 10) feedShip();
 
-    // the tree: flares when you first come near, glows warmer the closer you are
+    // the tree: once it burns, it flares when you first come near and glows warmer the closer you are;
+    // cold, it gives no light at all (only the plaza's lamps, a little, at night)
     const dTree = flat(pp, city.treeBase);
     if (dTree < 95 && !st.approached) { st.approached = true; st.flare = 1.4; game.set('desert.tree.flared', true); }
     else if (dTree > 160) st.approached = false;
@@ -557,7 +838,9 @@ export function setupDesert(ctx) {
     const near = THREE.MathUtils.clamp(1 - dTree / 120, 0, 1);
     city.flames.intensity = 1 + 0.25 * near + st.flare * 0.6 + (st.drinking ? 0.15 : 0);
     city.embers.rate = 1 + st.flare * 2.5;
-    city.light.w = 70 + st.flare * 40;
+    city.light.w = (70 + st.flare * 40) * st.fire;
+    city.light2.w = 14 + 44 * st.fire;
+    updateLighting(dt);
 
     // the channel: the rib rolls aside, the stream runs, the pool rises and brightens
     if (st.boneT > 0 && st.boneT < 1) {
@@ -589,8 +872,30 @@ export function setupDesert(ctx) {
       setMagic(cave.poolMat, st.poolT, { bright: 0.25 + 0.75 * st.drink, tones: st.drink > 0.5 ? 6 : 4 });
       if (st.flow > 0) setMagic(cave.streamMat, t * 2.2, { bright: 1, tones: 6 });
     }
+    // the well: once the water is up, you come and watch it rise up the shaft (the 'rise' stage), slowly,
+    // the roots drinking; then it stands brimming
+    if (open() && !rise.done && !rise.on && flat(pp, city.well) < 14 && Math.abs(pp.y - city.well.y) < 5) startRise();
     if (city.wellWater.visible && flat(camPos, city.well) < 250) {
-      city.wellWater.position.y = Math.min(city.well.y + 0.95, city.wellWater.position.y + dt * 0.25);
+      const brim = city.well.y + 0.95;
+      if (rise.on) {
+        rise.t += dt;
+        city.wellWater.position.y = Math.min(brim, city.wellWater.position.y + dt * 0.085);
+        motes.mesh.visible = true;
+        motes.rate = 1;
+        motes.update(dt, t, null);
+        if (city.wellWater.position.y >= brim - 1e-3 && rise.t > 4) {
+          rise.on = false; rise.done = true; rise.endT = st.clock;
+          game.set('desert.well.watched', true);
+          sound.chime?.();
+          say(people.hessa, '~sad~ It’s full. It’s full, and the tree… Grandmother?', 3.5);
+          later(2.2, () => say(nour, '~solemn~ Come here, child. Let an old woman tell you a story.', 3.5));
+          toast('The well brims with living water, and the roots drink it. The great tree stands as cold as before.');
+        }
+      } else {
+        // (not seen yet: the water waits low in the shaft for you)
+        city.wellWater.position.y = rise.done || lit() ? brim : city.well.y + 0.12;
+        if (motes.mesh.visible) { motes.rate = 0.6; motes.update(dt, t, null); if (st.clock - (rise.endT ?? 0) > 6) motes.mesh.visible = false; }
+      }
       setMagic(city.wellMat, t, { bright: 1, tones: 6 });
     }
 
@@ -600,10 +905,12 @@ export function setupDesert(ctx) {
     hollow.update(dt, t, camPos);
     drum.update(dt);
     mask.update(dt);
+    lever.update(dt);
+    hearth?.update(dt, t);
   };
 
   return {
-    people, update, state: st, villagers, ledge: sh, gatherSpots, hollow, drum, mask,
+    people, update, state: st, villagers, ledge: sh, gatherSpots, hollow, drum, mask, lever, hearth, rise, lighting, setStone, applyLit,
     /** E on a crowd person: their short conversation (by where they stand). */
     crowdTalk(p) {
       const id = p.spot?.id;
@@ -618,6 +925,6 @@ export function setupDesert(ctx) {
       if (!on) st.holdProcession = false;
     },
     hold() { if (st.holdProcession) crowd?.hold('procession', 0.4); },
-    toolHasPush,
+    toolHasPush, dry, lit,
   };
 }

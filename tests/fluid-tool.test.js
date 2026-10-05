@@ -120,6 +120,43 @@ test('each ability spends a charge from the one reserve; empty, nothing fires un
   tool.dispose();
 });
 
+test('an empty tank (the desert’s backpack, until the giant’s pool) holds nothing and never refills by itself; the first water fills it for good', () => {
+  clearTargets();
+  const { tool, player, state } = makeTool();
+  state.set('tool.empty', true);
+  const fired = [], dry = [];
+  state.on('tool:fire', (e) => fired.push(e.mode));
+  state.on('tool:dry', () => dry.push(1));
+  frames(tool, 10);
+  assert.equal(tool.dry, true);
+  assert.equal(tool.charges, 0, 'no charges');
+  // shoot, push, boost: nothing comes out, a press only sputters (and says why)
+  frames(tool, 30, { KeyR: true });
+  tool.update(DT, { KeyR: true, KeyG: true }); frames(tool, 20, { KeyR: true });
+  tool.update(DT, { KeyC: true }); frames(tool, 10);
+  player.onGround = false;
+  assert.equal(player.onAirJump(1), false, 'no boost');
+  player.onGround = true;
+  assert.deepEqual(fired, []);
+  assert.ok(dry.length >= 1, 'the story hears the tank is dry');
+  assert.match(tool.hudText(), /empty/);
+  // it does not refill on its own, however long you wait
+  frames(tool, Math.round(5 / DT));
+  assert.equal(tool.charges, 0);
+  assert.ok(tool.fill < 0.05, 'the glass is empty');
+  // magical water: full, a colour band, and the flag cleared for good
+  tool.refill({ addColour: true });
+  assert.equal(state.flag('tool.empty'), false);
+  assert.equal(tool.dry, false);
+  assert.equal(tool.charges, 3);
+  assert.equal(tool.colours, 2, 'cyan, violet and the pool’s band');
+  tool.update(DT, { KeyC: true }); frames(tool, 10);
+  assert.deepEqual(fired, ['push'], 'now it pushes');
+  frames(tool, Math.round(2.2 / DT));
+  assert.equal(tool.charges, 3, 'and refills as ever');
+  tool.dispose();
+});
+
 test('shoot: a glob arcs onto the crosshair, hits the nearest target and the world occludes it', () => {
   clearTargets();
   const near = target(v(0, 0, -10)), far = target(v(0, 0, -20)), aside = target(v(3, 0, -5));

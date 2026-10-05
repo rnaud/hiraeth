@@ -85,7 +85,7 @@ export function setupSpheres(ctx) {
     toast(`The sphere remembers: ${SOUNDS[s.id].text}.`);
     if (s.id === 'drum') {
       game.set('clue.spheres.desert', true);
-      if (game.flag('desert.teo.drumming') || game.flag('world.desert.done')) setTimeout(() => toast('Dum, tek-dum. You know this rhythm: the pilgrims walked to it, round the burning tree in the desert.'), 3800);
+      if (game.flag('desert.teo.drumming') || game.flag('world.desert.done')) setTimeout(() => toast('Dum, tek-dum. You know this rhythm: the pilgrims walked to it, round the great tree in the desert.'), 3800);
     }
     if (count() >= 3) game.set('spheres.heard.three', true);
   };

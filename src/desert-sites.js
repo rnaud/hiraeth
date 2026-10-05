@@ -33,7 +33,26 @@ export const STORY = {
   pilgrim: { x: -60, z: 520 },                                      // the old pilgrim who fell behind
   drum: { x: 156.65, z: -187.6 },                                   // Teo's drum, blown under the old ribcage and jammed against the inside of a rib's foot (src/story/desert-errands.js)
   bike: { x: 132, z: 150, yaw: 2.3 },                               // Marrow's hollow: the hoverbike under its tarp (quest desert.bike)
+  // the Givers' Hearth (src/desert-hearth.js): a butte of red rock far out in the south-east, ~1.7 km from
+  // Qanat (a long ride, more than four minutes' run), the spark-stone in the dark cave under it; its rooms far overhead
+  hearth: { x: 1650, z: -450, r: 46 },
+  hearthCave: { x: 1250, y: 1000, z: -1250 },
 };
+STORY.hearth.yaw = Math.atan2(STORY.city.x - STORY.hearth.x, STORY.city.z - STORY.hearth.z);   // its door looks back toward Qanat
+
+/**
+ * The fire-bearers' marked stones from Qanat to the Givers' Hearth: [x, z] about every 150 m, from just
+ * past the procession's circuit to the butte's door, wandering a little either side of the straight way.
+ */
+export function hearthStones() {
+  const a = STORY.city, b = STORY.hearth, dx = b.x - a.x, dz = b.z - a.z, L = Math.hypot(dx, dz);
+  const out = [];
+  for (let d = 340; d < L - 90; d += 150) {
+    const k = d / L, side = Math.sin(d * 0.011) * 14;
+    out.push([a.x + dx * k - (dz / L) * side, a.z + dz * k + (dx / L) * side]);
+  }
+  return out;
+}
 /** The procession's circuit as a smooth closed curve: [x, z] every `step` metres. */
 export function processionLoop(step = 3) {
   const curve = new CatmullRomCurve3(PROCESSION.map(([x, z]) => new Vector3(x, 0, z)), true, 'centripetal');

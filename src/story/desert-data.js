@@ -1,19 +1,29 @@
-// The desert's story as data: "The Tree That Drinks" (docs/story-bible.md).
+// The desert's story as data: "The Tree That Drinks" (docs/story-bible.md, LORE.md).
 //
-// Once a year the old city's burning tree drinks: water rises from beneath
-// the giants and the fire burns cool and many-coloured. Pilgrims walk the
-// circuit round the city until it does. This year the water has not risen:
-// a rib of the giant whose heart lies under the city has fallen across the
-// channel. Push it clear and the water rises, the tree drinks, and the jar
-// Ama gave you fills with living water: power for the ship.
+// The old city's great tree burns on living water: once a year the water
+// rises from beneath the giants, the tree drinks, and its fire burns cool and
+// many-coloured for the drinking. This year the water has not risen (a rib
+// of the giant whose heart lies under the city has fallen across the
+// channel), and the night the singing light went over, the tree's fire went
+// out. It stands cold over the walls when the traveller comes.
 //
 // It starts in the city. The traveller steps out of a dark ship with nothing
-// on their back and follows the smoke to Qanat. Beside the dry well, a few
-// metres up the burning tree's trunk, a ledge juts out, and on it sits the
-// makers' chest that has not opened in living memory ("it opens for one who fell from the sky"). It opens for the
-// traveller: the backpack. Qanat gathers, the tree flares, and Nour, the
-// eldest, who has kept the chest for sixty years, sends them on: the well,
-// Ama's jar, the Speaker's old words, the way down.
+// on their back and walks to Qanat under its great dark tree. Beside the dry
+// well, a few metres up the trunk, a ledge juts out, and on it sits the
+// makers' chest that has not opened in living memory ("it opens for one who
+// fell from the sky"). It opens for the traveller: the backpack, its tank
+// empty. Qanat gathers and Nour, the eldest, who has kept the chest for sixty
+// years, sends them on: the well, Ama's jar, the Speaker's old words, the way
+// down. In the giant's chest the rib is far too heavy for arms, and the empty
+// tank pushes nothing: the old keepers' pole levers it off (desert.js). The
+// pool rises, the tank and the jar fill, and the water climbs the roots into
+// the city's well. The tree drinks, and stays cold: living water only burns
+// from the Givers' own spark. Nour sends the traveller for the spark-stone,
+// in the Givers' Hearth far out in the red rocks: farther than walking, so
+// first Marrow's hoverbike (desert-bike.js), then the ride from marked stone
+// to marked stone, the Hearth's dark and its grille (desert-hearth.js), the
+// stone carried home and set in the full well. The tree catches, cool and in
+// every colour, and the jar's water with it: power for the ship.
 //
 // How the three connect (said by nobody all at once): the giants carried the
 // water across the desert from the swamp of lights, and lay down where they
@@ -26,7 +36,14 @@
 
 const Q = 'desert.power';
 
-export const ITEMS = { jar: 'Ama’s drinking jar', water: 'a jar of living water', drum: 'Teo’s drum', cord: 'Oum’s knotted cord' };
+export const ITEMS = { jar: 'Ama’s drinking jar', water: 'a jar of living water', drum: 'Teo’s drum', cord: 'Oum’s knotted cord', pole: 'the keepers’ pole', stone: 'the spark-stone' };
+
+/**
+ * The stages of the spark-stone's errand, between the full well and the ship: a save from before it
+ * (desert.quest.v < 3) whose tree was already burning (the channel open, or the ship fed) skips them
+ * (src/story/desert.js migrateDesertQuest, and the skip in setupDesert).
+ */
+export const SPARK_STAGES = ['rise', 'spark', 'bike', 'hearth', 'stone', 'light'];
 
 /**
  * Saves from before the backpack's box moved into the city (the stages were
@@ -40,21 +57,32 @@ export const STAGE_MIGRATION = { pack: 'city', camps: 'city', ama: 'elder', spea
 export const QUESTS = [
   {
     id: Q, title: 'The Tree That Drinks', world: 'desert', main: true,
-    outro: 'The ship hums. The tree drank, and so did you.',
+    outro: 'The ship hums. The tree drank, and burns again, and so do you.',
     stages: [
       // the ship is dark and the traveller's back is bare: past the camps and the procession, into the city
-      { id: 'city', text: 'The ship is dark. Follow the smoke to the city', label: 'Qanat, under the smoke', flag: 'desert.city.entered', at: 'cityGate' },
-      // the makers' chest on its ledge up the burning tree's trunk, beside the dry well (src/boxes/placements.js): the backpack
-      { id: 'box', text: 'Something is humming on a ledge up the burning tree’s trunk. Climb up to it', label: 'The ledge on the tree', flag: 'item.backpack', at: 'box.desert.backpack' },
-      // Qanat gathers; Nour, the eldest, comes to see who opened it (src/story/desert.js, the reaction)
-      { id: 'elder', text: 'The chest opened. Speak with Nour, the eldest of Qanat', label: 'Nour, the eldest', flag: 'desert.elder.heard', at: 'nour' },
+      { id: 'city', text: 'The ship is dark. Walk to the city under the great dark tree', label: 'Qanat, under the dark tree', flag: 'desert.city.entered', at: 'cityGate' },
+      // the makers' chest on its ledge up the great tree's trunk, beside the dry well (src/boxes/placements.js): the backpack
+      { id: 'box', text: 'Something is humming on a ledge up the great tree’s trunk. Climb up to it', label: 'The ledge on the tree', flag: 'item.backpack', at: 'box.desert.backpack' },
+      // Qanat gathers; Nour, the eldest, comes to see who opened it (src/story/desert.js, the reaction); the tank is empty
+      { id: 'elder', text: 'The chest opened, and the tank in it is empty. Speak with Nour, the eldest of Qanat', label: 'Nour, the eldest', flag: 'desert.elder.heard', at: 'nour' },
       { id: 'well', text: 'Listen at the dry well, as Nour asked', label: 'The dry well', flag: 'desert.well.seen', at: 'well' },
       { id: 'ama', text: 'Ask Ama at the camp fires for the drinking jar', label: 'Ama, keeper of the fires', flag: 'desert.jar.given', at: 'ama' },
       { id: 'speaker', text: 'Find the Speaker at the head of the procession: the old words know the way down', label: 'The Speaker', flag: 'desert.speaker.heard', at: 'speaker' },
       { id: 'down', text: 'Find the way beneath the giant, outside the back gate', label: 'The giant’s skull', flag: 'desert.cave.seen', at: 'caveIn' },
-      { id: 'channel', text: 'The pool is dry: something blocks the channel. Push it clear', label: 'The blocked channel', flag: 'desert.channel.open', at: 'bone' },
-      { id: 'fill', text: 'Fill Ama’s jar in the risen pool', label: 'The pool', flag: 'desert.jar.filled', at: 'pool' },
-      { id: 'ship', text: 'Bring the living water to the ship', label: 'Your ship', flag: 'desert.ship.fed', at: 'ship' },
+      // the rib is far too heavy for arms and the tank is empty: the keepers' pole levers it off (src/story/desert.js);
+      // a full tank (an older save) can still push it
+      { id: 'channel', text: 'The pool is dry: a fallen rib blocks the channel, too heavy for your arms. Find a way to shift it', label: 'The blocked channel', flag: 'desert.channel.open', at: 'rib' },
+      { id: 'fill', text: 'The pool is rising. Wade in: fill your empty tank, and Ama’s jar', label: 'The pool', flag: 'desert.jar.filled', at: 'pool' },
+      // back in the city: the water climbs the roots and fills the well while you watch, and the tree stays cold
+      { id: 'rise', text: 'The water is climbing the roots. Go back to the well at the tree’s foot', label: 'The well, filling', flag: 'desert.well.watched', at: 'well' },
+      { id: 'spark', text: 'The tree drank, and stands cold. Ask Nour why it will not burn', label: 'Nour, the eldest', flag: 'desert.spark.heard', at: 'nour' },
+      // the Givers' Hearth is far out in the red rocks: Marrow's hoverbike first (src/story/desert-bike.js)
+      { id: 'bike', text: 'The Givers’ Hearth is farther than walking. Find something faster: Marrow, at the camps, hid a hoverbike', label: 'Something faster than walking', flag: 'desert.bike.found', at: 'bikeWay' },
+      { id: 'hearth', text: 'Ride south-east to the Givers’ Hearth in the red rocks, from marked stone to marked stone', label: 'The Givers’ Hearth', flag: 'desert.hearth.seen', at: 'hearth' },
+      // (src/desert-hearth.js: dark; the stone pulses behind a grille; a shove of fluid rolls the weight that lifts it)
+      { id: 'stone', text: 'In the Hearth’s dark, the spark-stone glows behind a stone grille. Find what lifts it, and take the stone', label: 'The spark-stone', flag: 'desert.stone.taken', at: 'sparkStone' },
+      { id: 'light', text: 'Bring the spark-stone back to Qanat and set it in the full well at the tree’s roots', label: 'The well at the tree', flag: 'desert.tree.lit', at: 'well' },
+      { id: 'ship', text: 'The tree burns, and the water in Ama’s jar burns with it. Bring it to the ship', label: 'Your ship', flag: 'desert.ship.fed', at: 'ship' },
     ],
   },
   {
@@ -63,7 +91,7 @@ export const QUESTS = [
     stages: [
       // (src/story/desert-errands.js: the drum is jammed against a rib's foot by a knuckle of spine; shove the knuckle off sideways)
       { id: 'find', text: 'Find Teo’s drum, blown away under the old ribcage south of the start', label: 'Teo’s drum', goto: 'drum', radius: 9, at: 'drum' },
-      { id: 'free', text: 'The drum is jammed against a rib by a fallen knuckle of bone. Free it (push: C, middle click, or RB / R1) and pick it up', label: 'Teo’s drum', bring: 'drum', at: 'drum', to: 'teo' },
+      { id: 'free', text: 'The drum is jammed against a rib by a fallen knuckle of bone. Shift the knuckle from the side (heave it, or push: C, middle click, or RB / R1) and pick the drum up', label: 'Teo’s drum', bring: 'drum', at: 'drum', to: 'teo' },
       { id: 'return', text: 'Bring the drum back to Teo at the fire', label: 'Teo, at the fire', bring: 'drum', to: 'teo' },
     ],
   },
@@ -85,13 +113,14 @@ export const QUESTS = [
   },
   {
     // the hoverbike isn't yours from the start: Marrow salvaged it and hid it under a tarp in a
-    // hollow (src/story/desert.js, "the hoverbike"); it runs on the backpack's fluid
+    // hollow (src/story/desert.js, "the hoverbike"); it runs on the backpack's fluid, so it wakes only once the
+    // tank has been filled at the giant's pool
     id: 'desert.bike', title: 'Something Faster Than Walking', world: 'desert',
     outro: 'The hoverbike hums under you. Whistle, and it comes.',
     stages: [
       { id: 'ask', text: 'Ask Marrow the salvager, at the camps, for something faster than walking', label: 'Marrow, at the camps', talk: 'marrow', at: 'marrow' },
       { id: 'find', text: 'Find what Marrow hid under a tarp: the hollow with a red rag on a pole, between your ship and the camps', label: 'The tarp in the hollow', flag: 'desert.bike.uncovered', at: 'bike' },
-      { id: 'wake', text: 'It runs on fluid. Wake the hoverbike with the backpack', label: 'The hoverbike', flag: 'desert.bike.found', at: 'bike' },
+      { id: 'wake', text: 'It runs on fluid. Wake the hoverbike with a full tank', label: 'The hoverbike', flag: 'desert.bike.found', at: 'bike' },
     ],
   },
   {
@@ -115,7 +144,8 @@ export const PEOPLE = {
     talk: {
       entry: [
         { if: { quest: Q, done: true }, node: 'after' },
-        { if: { flag: 'desert.channel.open' }, node: 'drinking' },
+        { if: { flag: 'desert.tree.lit' }, node: 'drinking' },
+        { if: { flag: 'desert.channel.open' }, node: 'drank' },
         { if: { flag: 'desert.jar.given' }, node: 'again' },
         { if: { flag: 'desert.elder.heard' }, node: 'sent' },
         { node: 'hello' },
@@ -125,26 +155,26 @@ export const PEOPLE = {
           say: ['~happy~ A stranger, walking in from where the sky-ball fell. Sit. Nobody goes thirsty at my fires.', '~neutral~ I am Ama. I keep the fires for the pilgrims while they walk the circuit.'],
           choices: [
             { text: '~neutral~ My ship has no power. I need to find some.', goto: 'early' },
-            { text: '~surprised~ What is that tree? It’s burning.', goto: 'tree' },
+            { text: '~curious~ What is that great dark tree?', goto: 'tree' },
           ],
         },
         early: {
-          say: ['~playful~ Power? Not at my fires, sky-stranger. I only have fire.', '~neutral~ Go into *the city*, under the smoke, up *the steps to the tree*. *Old Nour* sits there, under a chest nobody can open, up on the trunk. It has been humming since the night the light sang. Whatever a sky-ball needs, she’ll know where to start.'],
+          say: ['~playful~ Power? Not at my fires, sky-stranger. I only have fire, and these days that is more than the tree has.', '~neutral~ Go into *the city*, under the great tree, up *the steps to it*. *Old Nour* sits there, under a chest nobody can open, up on the trunk. It has been humming since the night the light sang. Whatever a sky-ball needs, she’ll know where to start.'],
           choices: [{ text: '~neutral~ I’ll go to the city.', end: true }, { text: '~curious~ Who are all these people?', goto: 'who' }],
         },
         sent: {
-          say: ['~surprised~ Nour sent you? Then it’s serious. She hasn’t sent anyone anywhere since my wedding.', '~playful~ And you’re wearing the chest’s… whatever it is. Well. It suits you.'],
+          say: ['~surprised~ Nour sent you? Then it’s serious. She hasn’t sent anyone anywhere since my wedding.', '~playful~ And you’re wearing the chest’s… whatever it is. An empty jar of glass, on your back. Well. It suits you.'],
           next: 'power',
         },
         who: {
-          say: ['~neutral~ Pilgrims, from every oasis between here and the salt. Once a year we come to Qanat to watch the tree drink.', '~sad~ The water rises from beneath the giants, the fire turns cool, and we all drink from the same jar. This year we have walked eleven days, and the water has not risen.'],
+          say: ['~neutral~ Pilgrims, from every oasis between here and the salt. Once a year we come to Qanat to watch the tree drink.', '~sad~ The water rises from beneath the giants, the tree’s fire turns cool and every colour, and we all drink from the same jar. This year we walked eleven days, and the water has not risen, and the fire is out.'],
           choices: [
             { text: '~curious~ Rises from where?', goto: 'giants' },
             { text: '~neutral~ I need power for my ship.', goto: 'early' },
           ],
         },
         tree: {
-          say: ['~solemn~ It has always burned. My grandmother’s grandmother saw it burn. It eats nothing, it never falls.', '~sad~ Once a year it drinks, and then it burns in every colour. You’ll see. If it drinks this year.'],
+          say: ['~solemn~ The tree of Qanat. It always burned: my grandmother’s grandmother saw it burn. It ate nothing, it never fell. It burned on the water it drank.', '~sad~ The night the light went over singing, it went out. Like a lamp in a draught. Eleven days we walked to watch it drink, and we came to a cold tree.'],
           choices: [
             { text: '~curious~ And if it doesn’t?', goto: 'giants' },
             { text: '~neutral~ I need power for my ship.', goto: 'early' },
@@ -155,7 +185,7 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ I need power for my ship.', goto: 'early' }, { text: '~happy~ Thank you, Ama.', end: true }],
         },
         power: {
-          say: ['~neutral~ Power. Hm. The only power in this desert is the water that makes the tree drink. When it rises, everything wakes: the fire, the people, the old stones.', '~happy~ Here. *The drinking jar*. If the water rises, fill it. We’ll need it for the drinking anyway, and maybe it will wake your ball too.', '~neutral~ *Find the Speaker*. If anyone knows the old way down to the water, it’s him.'],
+          say: ['~neutral~ Power. Hm. The only power in this desert is the water that makes the tree drink, and burn. When it rises, everything wakes: the fire, the people, the old stones.', '~happy~ Here. *The drinking jar*. If the water rises, fill it. We’ll need it for the drinking anyway, and maybe it will wake your ball too.', '~neutral~ *Find the Speaker*. If anyone knows the old way down to the water, it’s him.'],
           do: [{ give: 'jar' }, { set: { 'desert.jar.given': true } }],
           choices: [
             { text: '~curious~ Where is the Speaker?', goto: 'where' },
@@ -173,10 +203,17 @@ export const PEOPLE = {
         rumour: { say: ['~playful~ Strange? A ball fell out of the sky with someone in it. That will do for this year.', '~playful~ Old Oum says she saw a light go over the night before. She saw it sing, she says. Oum sees a lot of things.'], choices: [{ text: '~curious~ Where is Oum?', goto: 'oum' }, { text: '~neutral~ Thanks.', end: true }] },
         oum: { say: ['~tired~ Behind, as always. She fell behind the procession somewhere in *the western dunes*. Someone should fetch her, but nobody wants to lose their place in the circuit.'], do: { start: 'desert.oum' }, choices: [{ text: '~neutral~ I’ll look for her.', end: true }] },
         teo: { say: ['~sad~ Teo, our drummer. The wind took his drum on the way here, and he took his face off with it. Talk to him; it might help.'], choices: [{ text: '~neutral~ I will.', end: true }] },
-        drinking: {
-          say: ['~happy~ It drinks! Look at it, every colour. I knew you were good luck the moment you fell on us.', '~neutral~ *Fill the jar*, if you haven’t. Then go and wake your ball.'],
-          choices: [{ text: '~neutral~ It was a bone in the channel. A giant’s rib.', goto: 'rib' }, { text: '~neutral~ I will.', end: true }],
+        // the water is up, the tree drank, and it is still cold
+        drank: {
+          say: ['~surprised~ The water rose! Hessa says the well is brimming. And the tree is still cold. I took a torch to it myself: the bark only hissed at me.', '~neutral~ *Fill the jar*, if you haven’t. And ask Nour what the tree wants. She always knows. It’s very annoying.'],
+          choices: [{ text: '~neutral~ It was a bone in the channel. A giant’s rib.', goto: 'rib' }, { text: '~neutral~ I’ll ask her.', end: true }],
         },
+        // the spark-stone lit it
+        drinking: {
+          say: ['~happy~ It burns! Look at it, every colour. I knew you were good luck the moment you fell on us.', '~neutral~ Your jar is glowing too. Go and wake your ball.'],
+          choices: [{ text: '~neutral~ It was a stone from the Givers’ Hearth.', goto: 'stone' }, { text: '~neutral~ I will.', end: true }],
+        },
+        stone: { say: ['~surprised~ From the red rocks? On that bike of Marrow’s? Don’t tell him it was useful. He’ll put the price up on everything.'], choices: [{ text: '~happy~ Goodbye, Ama.', end: true }] },
         rib: { say: ['~solemn~ A rib. The giant is still breaking, then, even asleep under us. The Speaker will want a word for that.'], choices: [{ text: '~neutral~ Goodbye, Ama.', end: true }] },
         after: {
           say: ['~playful~ The pilgrims will walk home singing about the stranger who woke the water. They’ll get it all wrong. That’s how songs work.'],
@@ -225,16 +262,17 @@ export const PEOPLE = {
     palette: { cloak: '#8a6fb8', lining: '#2b211f', cloth: '#e2d3b4', legs: '#2b2f45', hat: '#62c3c9', hair: '#2b211f' }, head: 'hair', cape: 0.55,
     lines: ['~happy~ ♪', '~happy~ Stay a while. The song’s better with a listener.', '~curious~ You walk like you’re carrying something.'],
     talk: {
-      entry: [{ if: { flag: 'desert.channel.open' }, node: 'feast' }, { if: { flag: 'met.sefa' }, node: 'again' }, { node: 'hello' }],
+      entry: [{ if: { flag: 'desert.tree.lit' }, node: 'feast' }, { if: { flag: 'desert.channel.open' }, node: 'cold' }, { if: { flag: 'met.sefa' }, node: 'again' }, { node: 'hello' }],
       nodes: {
         hello: {
           say: ['~playful~ You stopped to listen. Most people walk past musicians as if we were weather.', '~whisper~ I play what the listener is missing. Hear that? That’s your tune, not mine. You brought it with you.'],
           choices: [{ text: '~curious~ My tune?', goto: 'tune' }, { text: '~happy~ Keep playing.', end: true }],
         },
         tune: { say: ['~sad~ Everyone has one. Yours is a long way from home, and it keeps looking over its shoulder.'], choices: [{ text: '~curious~ What do you play for the drinking?', goto: 'drinking' }, { text: '~sad~ Maybe it does.', end: true }] },
-        drinking: { say: ['~playful~ When the tree drinks we play all night, every song we know, in every colour. Bako cries every year, and says it’s the smoke.'], choices: [{ text: '~neutral~ I hope it drinks.', end: true }] },
+        drinking: { say: ['~playful~ When the tree drinks we play all night, every song we know, in every colour. Bako cries every year, and says it’s the smoke.', '~sad~ This year there is no smoke. He’ll have to find another excuse.'], choices: [{ text: '~neutral~ I hope it drinks.', end: true }] },
         again: { say: ['~playful~ Back for more? Sit. Bako’s about to get it wrong in a beautiful way.'], choices: [{ text: '~neutral~ (listen)', end: true }] },
-        feast: { say: ['~happy~ Can you hear it? The tree is drinking, and the songs are all coming back at once.'], choices: [{ text: '~neutral~ (listen)', end: true }] },
+        cold: { say: ['~sad~ The water’s up, and the tree is still cold. I’ve been playing it something warm. It doesn’t seem to listen.'], choices: [{ text: '~neutral~ (listen)', end: true }] },
+        feast: { say: ['~happy~ Can you hear it? The tree is burning, and the songs are all coming back at once.'], choices: [{ text: '~neutral~ (listen)', end: true }] },
       },
     },
   },
@@ -305,26 +343,28 @@ export const PEOPLE = {
     talk: {
       entry: [
         { if: { quest: Q, done: true }, node: 'after' },
-        { if: { flag: 'desert.channel.open' }, node: 'drinking' },
+        { if: { flag: 'desert.tree.lit' }, node: 'drinking' },
+        { if: { has: 'stone' }, node: 'carried' },
+        { if: { flag: 'desert.channel.open' }, node: 'cold' },
         { if: { flag: 'desert.speaker.heard' }, node: 'again' },
         { if: { quest: Q, stage: ['city', 'box'] }, node: 'early' },
         { node: 'hello' },
       ],
       nodes: {
         early: {
-          say: ['~solemn~ Walk with me a moment; the circuit doesn’t stop for strangers. Though for you, it seems, it does.', '~neutral~ You came down after the singing light. Go to Qanat, under the smoke, and up *the steps to the tree*. *Nour, our eldest*, keeps a chest there that has hummed every night since. When it is quiet again, come and walk with me.'],
+          say: ['~solemn~ Walk with me a moment; the circuit doesn’t stop for strangers. Though for you, it seems, it does.', '~neutral~ You came down after the singing light. Go to Qanat, under the great tree, and up *the steps to it*. *Nour, our eldest*, keeps a chest there that has hummed every night since. When it is quiet again, come and walk with me.'],
           choices: [{ text: '~neutral~ I’ll go to the city.', end: true }, { text: '~curious~ Why do you walk round and round?', goto: 'hello' }],
         },
         hello: {
-          say: ['~solemn~ Walk with me a moment; the circuit doesn’t stop for strangers. Though for you, it seems, it does.', '~sad~ You want to know why we walk. Everyone asks. We walk because the tree is thirsty, and walking is the only thing we know how to do about it.'],
+          say: ['~solemn~ Walk with me a moment; the circuit doesn’t stop for strangers. Though for you, it seems, it does.', '~sad~ You want to know why we walk. Everyone asks. We walk because the tree is thirsty, and cold, and walking is the only thing we know how to do about it.'],
           choices: [
-            { text: '~curious~ Why is the tree thirsty?', if: { not: { flag: 'desert.elder.heard' } }, goto: 'old' },
+            { text: '~curious~ Why is the tree cold?', if: { not: { flag: 'desert.elder.heard' } }, goto: 'old' },
             { text: '~neutral~ Nour says the old words know the way down to the water.', if: { flag: 'desert.elder.heard' }, goto: 'old' },
             { text: '~neutral~ Walk on, Speaker.', end: true },
           ],
         },
         old: {
-          say: ['~solemn~ The old words say: *the giants came down from the swamp of lights, carrying the water, and walked until they could not.* Where they lay down, the water stayed in them.', '~solemn~ One of them lies beneath Qanat. The tree grows from its heart. Once a year the water rises in it, through the roots, up to the well, and the tree drinks.', '~sad~ This year it hasn’t. Either the tree has stopped wanting, or the giant has stopped giving. The old words don’t say which is worse.'],
+          say: ['~solemn~ The old words say: *the giants came down from the swamp of lights, carrying the water, and walked until they could not.* Where they lay down, the water stayed in them.', '~solemn~ One of them lies beneath Qanat. The tree grows from its heart. Once a year the water rises in it, through the roots, up to the well, and the tree drinks, and its fire burns cool and in every colour.', '~sad~ This year it hasn’t. And the night the light sang over us, the fire went out. Either the tree has stopped wanting, or the giant has stopped giving. The old words don’t say which is worse.'],
           do: { set: { 'desert.speaker.heard': true } },
           choices: [
             { text: '~curious~ Is there a way down to the water?', goto: 'way' },
@@ -349,8 +389,15 @@ export const PEOPLE = {
         },
         oum: { say: ['~playful~ Oum. She walks the circuit at her own pace, which is no pace at all. *West, in the dunes.* Bring her if you can; the drinking needs everyone.'], do: { start: 'desert.oum' }, choices: [{ text: '~curious~ And a masked head in the sand?', if: { quest: 'desert.mask', started: false }, goto: 'mask' }, { text: '~neutral~ I’ll find her.', end: true }] },
         mask: { say: ['~solemn~ *The sleeping face, south, past the bones.* Another giant, they say, who lay down face up so it could watch the sky. It does not wake. Go and look at it, if you like being looked at.'], do: { start: 'desert.mask' }, choices: [{ text: '~neutral~ I will.', end: true }] },
+        // the water is up and the tree is cold: the second old line
+        cold: {
+          say: ['~solemn~ The water rose and the tree drank, and it does not burn. There is an old line for that too, little star: “*The fire was carried, and the fire must be carried.*”',
+            '~neutral~ The fire-bearers walked *south-east, to the red rocks*, and set marked stones along the way so the next ones would not get lost. Some still stand. *Nour* knows the rest; she has always known more than she says.'],
+          choices: [{ text: '~neutral~ A rib had fallen across the water.', goto: 'rib' }, { text: '~neutral~ Walk on, Speaker.', end: true }],
+        },
+        carried: { say: ['~surprised~ That light in your hands. The fire that was carried. Walk on, little star; *the well is waiting*. I will keep the step for you.'], choices: [{ text: '~neutral~ Walk on, Speaker.', end: true }] },
         drinking: {
-          say: ['~happy~ It drinks. It drinks! Listen: every drum in the circuit has found the same step.', '~solemn~ You went beneath the giant. I can see the colours on your hands. Don’t tell me what you saw. I’d rather keep the old words a little longer.'],
+          say: ['~happy~ It burns. It burns! Listen: every drum in the circuit has found the same step.', '~solemn~ You went beneath the giant, and out to the red rocks. I can see the colours on your hands. Don’t tell me what you saw. I’d rather keep the old words a little longer.'],
           choices: [{ text: '~neutral~ A rib had fallen across the water.', goto: 'rib' }, { text: '~whisper~ Your secret is safe.', end: true }],
         },
         rib: { say: ['~solemn~ Then the giant is still dying, slowly, under our feet. And still giving. That’s a word I’ll add to the old ones.'], choices: [{ text: '~neutral~ Walk on, Speaker.', end: true }] },
@@ -378,7 +425,7 @@ export const PEOPLE = {
           ],
         },
         light: {
-          say: ['~solemn~ I did. The night before your ball came down. A light crossed the whole sky, slow, and it sang. Like a bowl you strike with a stone, but long, long.', '~whisper~ Then it turned. Stars don’t turn, child. And then your ball came down after it, burning.'],
+          say: ['~solemn~ I did. The night before your ball came down. A light crossed the whole sky, slow, and it sang. Like a bowl you strike with a stone, but long, long.', '~whisper~ Then it turned. Stars don’t turn, child. Under it, the tree of Qanat went dark, like a lamp somebody blew out. And in the morning your ball came down after it, burning.'],
           do: { set: { 'desert.rumour.light': true } },
           choices: [{ text: '~neutral~ It struck my ship.', goto: 'struck' }, { text: '~neutral~ Walk with me to the camps.', do: [{ start: 'desert.oum' }, { stage: ['desert.oum', 'lead'] }, { set: { 'desert.oum.following': true } }], goto: 'yes' }],
         },
@@ -403,7 +450,10 @@ export const PEOPLE = {
     talk: {
       entry: [
         { if: { quest: Q, done: true }, node: 'after' },
-        { if: { flag: 'desert.channel.open' }, node: 'drinking' },
+        { if: { flag: 'desert.tree.lit' }, node: 'drinking' },
+        { if: { has: 'stone' }, node: 'stone' },
+        { if: { flag: 'desert.spark.heard' }, node: 'sparkAgain' },
+        { if: { flag: 'desert.channel.open' }, node: 'cold' },
         { if: { flag: 'desert.elder.heard' }, node: 'again' },
         { if: { flag: 'item.backpack' }, node: 'opened' },
         { node: 'shut' },
@@ -415,7 +465,13 @@ export const PEOPLE = {
           choices: [
             { text: '~playful~ I fell from the sky. This morning.', goto: 'fell' },
             { text: '~curious~ Who are the Givers?', goto: 'givers' },
+            { text: '~sad~ Why is the tree so dark?', goto: 'dark' },
           ],
+        },
+        dark: {
+          say: ['~sad~ It went out. Its fire is the water it drinks, burning; it had burned since before there was a city round it. The night the light crossed the sky singing, the chest sang back, and the tree went out like a lamp in a draught.',
+            '~solemn~ We have had dry years before. We have never had a cold one.'],
+          choices: [{ text: '~playful~ I fell from the sky that night. Well, the morning after.', goto: 'fell' }, { text: '~curious~ Who are the Givers?', goto: 'givers' }],
         },
         fell: { say: ['~tired~ So you did. The whole desert saw the smoke. And the night before, a light crossed the sky singing, and this chest sang back all night long. I did not sleep. Neither did it.', '~playful~ Well. Go on, then. *Climb up and try it*. If it bites you, I will say I warned you.'], choices: [{ text: '~neutral~ (try the chest)', end: true }] },
         // it opened: the reaction (desert.js brings her over and opens this on her own)
@@ -444,9 +500,11 @@ export const PEOPLE = {
         struck: { say: ['~neutral~ Struck, fell. The sky does not care which. Marrow says there is a mark burned on your ball: three dots over an arch. The Givers’ mark.', '~curious~ Whatever struck you knew their sign. Or it was one of their gifts, too, and lost its way. I am too old to know which, and too curious to stop wondering.'], choices: [{ text: '~curious~ Who are the Givers?', goto: 'givers' }, { text: '~scared~ My ship has no power. Can you help me?', goto: 'power' }] },
         // the traveller's translator: she notices it (docs/story-bible.md, "The translator")
         ear: { say: ['~curious~ Do you? I hear you, child: clicks and hums, like a pot coming to the boil. Then that little thing at your ear hums back at me, and somehow we both know what was meant.', '~playful~ Your people made a thing that listens for you. The Givers would have liked them. Keep it close. Out here everybody talks, and nobody talks like you.'], choices: [{ text: '~angry~ I didn’t fall. Something struck my ship.', goto: 'struck' }, { text: '~scared~ My ship has no power. Can you help me?', goto: 'power' }] },
-        pack: { say: ['~playful~ A tank of living water. Look at it move. The same water the giants carried, I would wager my teeth, and I have four left.', '~neutral~ The Givers made it to be worn. Try it. *It will push what your arms cannot*, and where the water is, it fills.'], choices: [{ text: '~curious~ How is it I understand you?', goto: 'ear' }, { text: '~scared~ My ship has no power. Can you help me?', goto: 'power' }] },
+        pack: { say: [{ if: { flag: 'tool.empty' }, text: '~playful~ A tank, of the Givers’ glass. And empty as my purse. Sixty years I guarded an empty jar. Don’t tell Hessa.' },
+          { if: { not: { flag: 'tool.empty' } }, text: '~playful~ A tank of living water. Look at it move. The same water the giants carried, I would wager my teeth, and I have four left.' },
+          '~neutral~ The Givers made it to be worn, and to be filled. *Where the water is, it fills*, and then it will push what your arms cannot. *Find the water first*, child.'], choices: [{ text: '~curious~ How is it I understand you?', goto: 'ear' }, { text: '~scared~ My ship has no power. Can you help me?', goto: 'power' }] },
         power: {
-          say: ['~solemn~ Power. For your ball. Hm. In this desert there is one power: the water that rises under the tree once a year, and makes it drink. When it rises, everything wakes: the fire, the people, the old stones.', '~curious~ This year it has not risen, and the pilgrims walk round and round the walls, waiting. Perhaps the chest knew. Perhaps it opened now because the water needs someone to fetch it.'],
+          say: ['~solemn~ Power. For your ball. Hm. In this desert there is one power: the water that rises under the tree once a year, and makes it drink, and burn. When it rises, everything wakes: the fire, the people, the old stones.', '~curious~ This year it has not risen, the tree has gone cold, and the pilgrims walk round and round the walls, waiting. Perhaps the chest knew. Perhaps it opened now because the water needs someone to fetch it.'],
           choices: [
             { text: '~solemn~ Then I’ll find out why the water hasn’t risen.', goto: 'quest' },
             { text: '~sad~ Why me? I only want to get home.', goto: 'why' },
@@ -470,7 +528,28 @@ export const PEOPLE = {
             { text: '~neutral~ Goodbye, Nour.', end: true },
           ],
         },
-        drinking: { say: ['~happy~ The tree drinks, and the chest is empty, and an old woman has lived to see both. *Go and wake your ball*, child. Before I start to cry and Hessa sees.'], choices: [{ text: '~happy~ Goodbye, Nour.', end: true }] },
+        // the water is up, the well is full, and the tree is cold: the spark-stone (the second errand)
+        cold: {
+          say: ['~sad~ You did it, child. The water came up the roots, the well is brimming, and the tree drank. And look at it. Cold. Not a spark.',
+            '~solemn~ My grandmother told me this, and I thought it was a story for children: living water does not burn by itself. The Givers lit the tree once, long ago, with a stone they carried from their hearth: *the spark-stone*. Nothing else lights it. Not a torch, not Ama’s fires, not anything you carry.',
+            '~curious~ The keepers put the stone back where the Givers kept it: *the Givers’ Hearth*, a cave in *the red rocks, far to the south-east*. They set *marked stones* along the way.'],
+          do: [{ set: { 'desert.spark.heard': true } }, { track: Q }],
+          choices: [
+            { text: '~curious~ How far is it?', goto: 'far' },
+            { text: '~solemn~ I’ll bring the stone back.', goto: 'bring' },
+          ],
+        },
+        far: { say: ['~playful~ Farther than walking. The old keepers took three days there and three back, and they were younger than me.', '~neutral~ *Marrow, at the camps*, sells everything that falls out of the sky. Ask him for *something faster than feet*.'], choices: [{ text: '~solemn~ I’ll bring the stone back.', goto: 'bring' }] },
+        bring: { say: ['~solemn~ Then *set it in the well*, in the water at the roots. And come back with all your fingers. The Givers’ fire hurts nobody, they say; I have never met a fire that read the saying.'], choices: [{ text: '~happy~ Thank you, Nour.', end: true }] },
+        sparkAgain: {
+          say: ['~neutral~ *South-east, in the red rocks*, from marked stone to marked stone: the Givers’ Hearth. Too far for feet. *Marrow* has a thing that is faster than feet, or says he does.'],
+          choices: [{ text: '~neutral~ Tell me about the Givers again.', goto: 'givers' }, { text: '~neutral~ Goodbye, Nour.', end: true }],
+        },
+        stone: {
+          say: ['~surprised~ That light in your hands… The spark-stone. My grandmother’s story, warm in a stranger’s hands.', '~solemn~ *Set it in the well*, child, in the water at the roots. Go on. Before I lose my nerve and keep it.'],
+          choices: [{ text: '~neutral~ (go to the well)', end: true }],
+        },
+        drinking: { say: ['~happy~ The tree drinks, and burns, and the chest is empty, and an old woman has lived to see all three. *Go and wake your ball*, child. Before I start to cry and Hessa sees.'], choices: [{ text: '~happy~ Goodbye, Nour.', end: true }] },
         after: { say: ['~happy~ When you find the next chest, tell it Qanat says hello. I think they are all one family. Like the giants. Like us.'], choices: [{ text: '~happy~ I will, Nour.', end: true }] },
       },
     },
@@ -481,10 +560,10 @@ export const PEOPLE = {
     palette: { cloak: '#62c3c9', lining: '#2b211f', cloth: '#f3ead8', legs: '#2b2f45', hat: '#f3ead8', hair: '#4a3226' }, head: 'hood', cape: 1.45, look: { prop: 'basket' },
     lines: ['~angry~ The well is dry. Don’t lean on it.', '~tired~ Every year I sweep the well for the water. Every year.', '~neutral~ The stele tells it better than me.'],
     talk: {
-      entry: [{ if: { flag: 'desert.channel.open' }, node: 'full' }, { node: 'hello' }],
+      entry: [{ if: { flag: 'desert.tree.lit' }, node: 'burning' }, { if: { flag: 'desert.channel.open' }, node: 'full' }, { node: 'hello' }],
       nodes: {
         hello: {
-          say: [{ if: { flag: 'desert.elder.heard' }, text: '~neutral~ Grandmother sent you to listen? Then listen. *Put your ear to the rim*, after dark it’s loudest.' }, '~tired~ I keep the well. That means I sweep it, and wait, and sweep it again. The water comes up through the roots, here, every year. This year it’s only dust.', '~solemn~ *Read the stele*, if you can read stone. The giants carry the water to the tree. That’s all it says. That’s all it needs to say.'],
+          say: [{ if: { flag: 'desert.elder.heard' }, text: '~neutral~ Grandmother sent you to listen? Then listen. *Put your ear to the rim*, after dark it’s loudest.' }, '~tired~ I keep the well. That means I sweep it, and wait, and sweep it again. The water comes up through the roots, here, every year, and the tree burns on it. This year it’s only dust, and the tree went out.', '~solemn~ *Read the stele*, if you can read stone. The giants carry the water to the tree. That’s all it says. That’s all it needs to say.'],
           choices: [
             { text: '~curious~ Where does the water come from?', goto: 'from' },
             { text: '~curious~ What’s the mark above the carving?', goto: 'glyph' },
@@ -499,7 +578,8 @@ export const PEOPLE = {
         from: { say: ['~neutral~ From below. From the giant. Its head lies outside the back gate; its heart lies under our feet. The old keepers went down *through its mouth* to clean the channel, so my grandmother Nour says; she saw them go when she was a girl. Nobody has gone down in my lifetime.'], choices: [{ text: '~surprised~ Through its mouth?', goto: 'mouth' }] },
         mouth: { say: ['~whisper~ Propped open with carved stones. Children dare each other to touch the teeth. Don’t tell Ilo I told you.'], choices: [{ text: '~playful~ I won’t.', end: true }] },
         glyph: { say: ['~neutral~ {glyph} The keepers call it the Givers’ mark. The pilgrims from the salt call it the Eye That Fell. The children call it the bird. Nobody knows who put it there first.'], choices: [{ text: '~curious~ And what is up on the tree’s trunk?', goto: 'chest' }, { text: '~curious~ Where does the water come from?', goto: 'from' }] },
-        full: { say: ['~happy~ Look at it. Look! It came up through the roots in every colour, like it used to. I didn’t even have time to finish sweeping.'], choices: [{ text: '~happy~ It was waiting for someone to clear the way.', end: true }] },
+        full: { say: ['~happy~ Look at it. Look! It came up through the roots in every colour, like it used to. I didn’t even have time to finish sweeping.', '~sad~ And the tree drinks it, and stays cold. Ask Grandmother. Grandmother always knows.'], choices: [{ text: '~happy~ It was waiting for someone to clear the way.', end: true }] },
+        burning: { say: ['~happy~ It burns from the roots up, and the well with it, and it doesn’t even singe the broom. I’m putting the broom down. I’m not picking it up all year.'], choices: [{ text: '~happy~ You’ve earned it, Hessa.', end: true }] },
       },
     },
   },
@@ -528,12 +608,12 @@ export const PEOPLE = {
         bike: {
           say: ['~playful~ Faster than walking? Sky-person, you have come to the right liar.',
             '~whisper~ A hoverbike. It fell off a caravan, or out of the sky; it didn’t say which. I dragged it into *the hollow with the red rag*, out between here and your ball, and threw *a tarp* over it.',
-            '~sad~ It won’t start for me. It coughs and sulks. It runs on something I haven’t got. Maybe you have.'],
+            '~sad~ It won’t start for me. It coughs and sulks. It runs on something I haven’t got. Maybe you have, or will.'],
           do: { stage: ['desert.bike', 'find'] },
           choices: [{ text: '~happy~ I’ll go and dig it out.', end: true }, { text: '~curious~ What do you want for it?', goto: 'price' }],
         },
         price: { say: ['~playful~ Nothing. It ate half my tarp. Ride past the camps fast and loud now and then, so people know where it came from.'], choices: [{ text: '~happy~ Deal.', end: true }] },
-        bikeWhere: { say: ['~neutral~ *The hollow with the red rag*, between the camps and your ball. Pull the tarp off. If it won’t wake, it’s hungry, not dead.'], choices: [{ text: '~neutral~ Thanks, Marrow.', end: true }, { text: '~curious~ What do you sell?', goto: 'sell' }] },
+        bikeWhere: { say: ['~neutral~ *The hollow with the red rag*, between the camps and your ball. Pull the tarp off. If it won’t wake, it’s hungry, not dead: feed it from a full tank.'], choices: [{ text: '~neutral~ Thanks, Marrow.', end: true }, { text: '~curious~ What do you sell?', goto: 'sell' }] },
         bikeAfter: { say: ['~happy~ I heard it from here! Like a kettle with ambitions. Look after it; it’s the most honest thing I ever found.'], do: { set: { 'desert.marrow.bike': true } }, choices: [{ text: '~playful~ It has opinions.', end: true }, { text: '~curious~ What do you sell?', goto: 'sell' }] },
         mean: { say: ['~solemn~ It means somebody signs their work. The same mark is on the giants, on the old stones, on the gates. I’ve seen it on things that fell out of the sky before, too. Never on anything that was still warm.'], choices: [{ text: '~curious~ Things that fell before?', goto: 'before' }, { text: '~neutral~ Thanks, Marrow.', end: true }] },
         before: { say: ['~playful~ Bits, mostly. A shard of glass that hums when it rains. A bowl that rings by itself. Things that sing don’t fall by accident, sky-person. That’s my professional opinion, free of charge.',
@@ -549,21 +629,22 @@ export const THINGS = {
   well: {
     id: 'well', name: 'The dry well', title: 'at the tree’s roots', color: '#5a4a40', voice: 0.6,
     talk: {
-      entry: [{ if: { flag: 'desert.channel.open' }, node: 'full' }, { node: 'dry' }],
+      entry: [{ if: { flag: 'desert.tree.lit' }, node: 'burning' }, { if: { flag: 'desert.channel.open' }, node: 'full' }, { node: 'dry' }],
       nodes: {
         dry: {
           say: ['~neutral~ The well is swept clean and bone dry. Far below the stones, you hear something: water, moving slowly, a long way down, as if it can’t find the way up.', '~solemn~ Roots as thick as your arm go down the shaft. The stones round the rim are carved with kneeling figures, *all facing the back gate*.'],
           do: { set: { 'desert.well.seen': true } },
           choices: [{ text: '~neutral~ (look toward the back gate)', end: true }],
         },
-        full: { say: ['~solemn~ The well is brimming. The water turns slowly in every colour, and the roots are drinking it.'], choices: [{ text: '~neutral~ (watch it)', end: true }] },
+        full: { say: ['~solemn~ The well is brimming. The water turns slowly in every colour, and the roots are drinking it.', '~sad~ Above you the great tree stands as cold and dark as before. The water is there; something to light it is not.'], choices: [{ text: '~neutral~ (watch it)', end: true }] },
+        burning: { say: ['~solemn~ The well is brimming, and cool fire runs up out of the water along the roots, into the trunk, up to the crown. Your hand in it feels only water.'], choices: [{ text: '~neutral~ (watch it)', end: true }] },
       },
     },
   },
   stele: {
     id: 'stele', name: 'The stele', title: 'carved stone', color: '#e9dcc0', voice: 0.6,
     talk: { nodes: { read: {
-      say: ['~solemn~ Three tall figures, bent under jars, walk toward a burning tree. Water runs at their feet. Above them, the mark: {glyph}', '~solemn~ Someone has rubbed the giants’ faces smooth with their thumbs, over a very long time.'],
+      say: ['~solemn~ Three tall figures, bent under jars, walk toward a burning tree. Water runs at their feet. Above them, the mark: {glyph}', '~curious~ Behind the third, small, a figure carries something round and bright in both hands, held up high, like a lamp.', '~solemn~ Someone has rubbed the giants’ faces smooth with their thumbs, over a very long time.'],
       do: { set: { 'desert.stele.read': true } }, choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
   },
@@ -606,7 +687,23 @@ export const THINGS = {
   bone: {
     id: 'bone', name: 'The fallen rib', title: 'across the channel', color: '#f2ead6', voice: 0.6,
     talk: { nodes: { look: {
-      say: ['~neutral~ A rib, as long as three people, has broken from the arch above and fallen across the stone channel. The channel runs back from it into a crack in the wall. It is dry, but the stone under the rib is dark and damp.', '~neutral~ It’s far too heavy to lift by hand. But it might roll, with a strong enough shove of the fluid. (*Push*: C, middle click, or RB / R1.)'],
+      say: ['~neutral~ A rib, as long as three people, has broken from the arch above and fallen across the stone channel. The channel runs back from it into a crack in the wall. It is dry, but the stone under the rib is dark and damp.', '~neutral~ It’s far too heavy to lift by hand. But it might roll, with a strong enough shove of the fluid (*push*: C, middle click, or RB / R1), or with something long to lever it.'],
+      choices: [{ text: '~neutral~ (step back)', end: true }],
+    } } },
+  },
+  // the Givers' Hearth (src/desert-hearth.js, src/story/desert.js): the weight that lifts the grille, the grille itself
+  weight: {
+    id: 'weight', name: 'A stone ball', title: 'in a groove on a plinth', color: '#c9b8a0', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ['~neutral~ A ball of grey stone, waist high, resting in a groove that runs along the top of a plinth to a dark hole at its end. A bronze chain runs out of the hole and up the wall, across the roof, to the grille in front of the glow.',
+        '~neutral~ It is far too heavy for your hands. *A shove of the fluid* might roll it (*push*: C, middle click, or RB / R1).'],
+      choices: [{ text: '~neutral~ (step back)', end: true }],
+    } } },
+  },
+  grille: {
+    id: 'grille', name: 'The grille', title: 'in front of the glow', color: '#c9974a', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ['~neutral~ Stone bars, close as fingers, over a hollow in the wall. Behind them something round glows, fades, and glows again, slow as breathing.', '~curious~ A chain runs up from the bars into the dark of the roof. Something, somewhere, holds them down.'],
       choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
   },
@@ -615,14 +712,15 @@ export const THINGS = {
 // What crowd people say when you stop beside them (balloons), and their
 // short conversations (E) by where they are.
 export const LINES = {
-  procession: ['~solemn~ We walk the circuit until the tree drinks.', '~shout~ Keep the step, stranger!', '~tired~ Seven times round, then seven again.', '~happy~ My grandmother walked this circuit. Hers too.', '~neutral~ The water rises from beneath the giants. Every year.', '~happy~ Listen to the drum. It keeps our feet together.', '~curious~ Are you here for the drinking?', '~angry~ Don’t stop in the middle, you’ll get trodden on.'],
-  drinking: ['~shout~ It drinks! It drinks!', '~surprised~ Every colour! Look!', '~happy~ One more circuit, for joy!', '~playful~ I told you it would.', '~shout~ Sing, everyone!'],
-  camp: ['~neutral~ Ama’s fires never go out.', '~scared~ The tree is late this year.', '~curious~ Did you see the light that fell? It sang.', '~tired~ Eleven days we walked.', '~happy~ Sit, sit.', '~curious~ Who are you, then?', '~playful~ Sefa plays better when someone listens.'],
-  gate: ['~neutral~ We wait here for the Speaker’s word.', '~sad~ The well is dry. Imagine.', '~neutral~ Mind the steps, they’re older than the walls.'],
+  procession: ['~solemn~ We walk the circuit until the tree drinks, and burns again.', '~shout~ Keep the step, stranger!', '~tired~ Seven times round, then seven again.', '~happy~ My grandmother walked this circuit. Hers too.', '~neutral~ The water rises from beneath the giants. Every year.', '~happy~ Listen to the drum. It keeps our feet together.', '~curious~ Are you here for the drinking?', '~angry~ Don’t stop in the middle, you’ll get trodden on.'],
+  // the tree lit again (src/story/desert.js: the procession's lines once it burns)
+  drinking: ['~shout~ It burns! It burns!', '~surprised~ Every colour! Look!', '~happy~ One more circuit, for joy!', '~playful~ I told you it would.', '~shout~ Sing, everyone!'],
+  camp: ['~neutral~ Ama’s fires never go out. Not like some.', '~scared~ The tree went out. I never thought I’d see it.', '~curious~ Did you see the light that fell? It sang.', '~tired~ Eleven days we walked.', '~happy~ Sit, sit.', '~curious~ Who are you, then?', '~playful~ Sefa plays better when someone listens.'],
+  gate: ['~neutral~ We wait here for the Speaker’s word.', '~sad~ The well is dry and the tree is cold. Imagine.', '~neutral~ Mind the steps, they’re older than the walls.'],
   // until the chest is open: everyone points the stranger on toward the city and the tree (desert.js mixes these in)
   waveOn: {
-    camp: ['~shout~ The city’s that way, sky-stranger. *Follow the smoke*!', '~happy~ Go on in! Nour will want to see you.', '~neutral~ Through the big gate and *up to the tree*.', '~surprised~ You’re the one from the ball? The tree’s been flaring all morning.'],
-    procession: ['~shout~ Qanat’s ahead, stranger, under the smoke!', '~angry~ Keep the step, or go on to the city. Not both!', '~solemn~ The tree is waiting. Something is.'],
+    camp: ['~shout~ The city’s that way, sky-stranger. *Under the big dark tree*!', '~happy~ Go on in! Nour will want to see you.', '~neutral~ Through the big gate and *up to the tree*.', '~surprised~ You’re the one from the ball? Nour’s chest has been humming all morning.'],
+    procession: ['~shout~ Qanat’s ahead, stranger, under the great tree!', '~angry~ Keep the step, or go on to the city. Not both!', '~solemn~ The tree is waiting. Something is.'],
     gate: ['~neutral~ Go on up to *the tree*. Something there is humming.', '~neutral~ Nour is up *under the tree*. Mind the steps.', '~happy~ Up the stairs, stranger. Everyone’s waiting to see.'],
   },
 };
@@ -632,15 +730,17 @@ export const VILLAGERS = [
   { id: 'qanat.weaver', name: 'Tamra', title: 'a weaver of Qanat', kind: 'f', palette: { cloak: '#e88fa6', lining: '#2b211f', cloth: '#f3ead8', legs: '#4a3a2a', hat: '#f3ead8', hair: '#4a3226' }, head: 'wrap', cape: 0.9, lines: ['~curious~ Is it humming louder?', '~whisper~ Don’t touch it, they say.'] },
   { id: 'qanat.potter', name: 'Idris', title: 'a potter of Qanat', kind: 'm', palette: { cloak: '#dca273', lining: '#2b211f', cloth: '#5a4a3a', legs: '#2b2f45', hat: '#d8a24a', hair: '#2b211f' }, head: 'hat', cape: 0, lines: ['~solemn~ Sixty years Nour has sat there.', '~neutral~ Hm.'] },
   { id: 'qanat.boy', name: 'Kito', title: 'who follows Ilo about', kind: 'm', scale: 0.78, palette: { cloak: '#62c3c9', lining: '#2b211f', cloth: '#c8483a', legs: '#4a3a2a', hat: '#e6875f', hair: '#6e4a32' }, head: 'hair', cape: 0.55, lines: ['~curious~ Are you going to open it?', '~playful~ Ilo says you’re from the sky.'] },
-  { id: 'qanat.baker', name: 'Lula', title: 'who bakes for the pilgrims', kind: 'f', palette: { cloak: '#f2c54b', lining: '#2b211f', cloth: '#5a4a3a', legs: '#2b2f45', hat: '#f3ead8', hair: '#b0a89a' }, head: 'hood', cape: 1.25, lines: ['~happy~ Flour on my hands, mind.', '~surprised~ The tree flared when you came in.'] },
+  { id: 'qanat.baker', name: 'Lula', title: 'who bakes for the pilgrims', kind: 'f', palette: { cloak: '#f2c54b', lining: '#2b211f', cloth: '#5a4a3a', legs: '#2b2f45', hat: '#f3ead8', hair: '#b0a89a' }, head: 'hood', cape: 1.25, lines: ['~happy~ Flour on my hands, mind.', '~surprised~ The chest hummed when you came in.'] },
   { id: 'qanat.guard', name: 'Haro', title: 'who guards the steps', kind: 'm', palette: { cloak: '#8a6fb8', lining: '#2b211f', cloth: '#e2d3b4', legs: '#3a3a3a', hat: '#c8483a', hair: '#4a3226' }, head: 'hat', cape: 1.25, lines: ['~neutral~ Steady, stranger.', '~tired~ I only guard the steps.'] },
   { id: 'qanat.sweeper', name: 'Mim', title: 'who sweeps the terraces', kind: 'f', palette: { cloak: '#5fb7ad', lining: '#2b211f', cloth: '#f3ead8', legs: '#5a4a40', hat: '#f3ead8', hair: '#e8dcc0' }, head: 'wrap', cape: 1.45, lines: ['~tired~ Every day I sweep these steps.', '~surprised~ Look at the tree!'] },
 ];
 /** What they say as they gather (balloons), and when the traveller first comes near the chest. */
 export const MURMURS = {
-  near: ['~whisper~ Look, the one from the sky-ball.', '~whisper~ It’s humming louder. Listen.', '~curious~ Is that the one who fell?', '~surprised~ The tree, look at the tree!'],
+  near: ['~whisper~ Look, the one from the sky-ball.', '~whisper~ It’s humming louder. Listen.', '~curious~ Is that the one who fell?', '~surprised~ The chest, listen to the chest!'],
   gather: ['~shout~ It opened!', '~surprised~ The Givers’ chest… it’s open!', '~shout~ Fetch Nour! Somebody wake Nour!', '~solemn~ For the sky-stranger. It opened for the sky-stranger.', '~playful~ Sixty years and it opens on a Tuesday.', '~curious~ Did you see the light come out?'],
   nour: ['~surprised~ Eh? What—', '~angry~ Let me through. Let an old woman through.', '~surprised~ It opened. It opened!', '~shout~ Come down, child! Come down and let an old woman look at you.'],
+  // the spark-stone in the well: the tree catches (src/story/desert.js)
+  lit: ['~shout~ It burns! It burns!', '~surprised~ Look at the colours!', '~happy~ It’s cool! The fire’s cool, feel it!', '~shout~ Ring the bells! Somebody ring the bells!', '~solemn~ It came back. It came back.', '~playful~ I said it would. I said so.'],
 };
 export const VILLAGER_TALK = {
   name: 'Someone from Qanat', title: 'of Qanat', color: '#e6875f', voice: 1.0,
@@ -654,7 +754,7 @@ export const VILLAGER_TALK = {
 export const CROWD_TALK = {
   procession: [
     { name: 'A pilgrim', title: 'walking the circuit', talk: { nodes: {
-      hello: { say: ['~neutral~ Walk beside me, if you like; just don’t stop. We walk the circuit round Qanat until the tree drinks.'], choices: [{ text: '~curious~ Why walk round and round?', goto: 'why' }, { text: '~neutral~ Walk on.', end: true }] },
+      hello: { say: ['~neutral~ Walk beside me, if you like; just don’t stop. We walk the circuit round Qanat until the tree drinks, and burns again.'], choices: [{ text: '~curious~ Why walk round and round?', goto: 'why' }, { text: '~neutral~ Walk on.', end: true }] },
       why: { say: ['~solemn~ So it knows we’re waiting. A tree can’t see, but it can hear feet. Seven times round for every year it has drunk. We’ve lost count, of course.'], choices: [{ text: '~neutral~ Walk on.', end: true }] },
     } } },
     { name: 'A banner bearer', title: 'in the procession', talk: { nodes: {
@@ -662,17 +762,17 @@ export const CROWD_TALK = {
       what: { say: ['~playful~ The Givers’ mark, three dots and an arc. {glyph} My father said it’s the giants’ eyes, looking up. My mother said it’s rain over a hill. They argued about it every circuit.'], choices: [{ text: '~neutral~ Walk on.', end: true }] },
     } } },
     { name: 'A tired walker', title: 'in the procession', talk: { nodes: {
-      hello: { say: ['~tired~ Eleven days across the dunes and now round and round. My feet have opinions. But it’s the drinking. You don’t miss the drinking.'], choices: [{ text: '~curious~ What happens at the drinking?', goto: 'what' }, { text: '~neutral~ Walk on.', end: true }] },
+      hello: { say: ['~tired~ Eleven days across the dunes, and a cold tree at the end of them, and now round and round. My feet have opinions. But it’s the drinking. You don’t miss the drinking.'], choices: [{ text: '~curious~ What happens at the drinking?', goto: 'what' }, { text: '~neutral~ Walk on.', end: true }] },
       what: { say: ['~happy~ The water comes up through the roots, the fire goes cool and every colour, and everyone drinks a mouthful from the same jar. Then we sing until the jar is empty and the morning comes.'], choices: [{ text: '~neutral~ Walk on.', end: true }] },
     } } },
   ],
   drinking: [
-    { name: 'A pilgrim', title: 'singing', talk: { nodes: { hello: { say: ['~happy~ It drank! Did you see? Every colour, just like my grandmother said. One more circuit, for joy!'], choices: [{ text: '~happy~ Walk on.', end: true }] } } } },
+    { name: 'A pilgrim', title: 'singing', talk: { nodes: { hello: { say: ['~happy~ It burns! Did you see? Every colour, just like my grandmother said. One more circuit, for joy!'], choices: [{ text: '~happy~ Walk on.', end: true }] } } } },
   ],
   camp: [
     { name: 'A pilgrim', title: 'by the fire', talk: { nodes: {
       hello: { say: ['~happy~ Warm yourself. Ama’s fires are the only thing in this desert that’s never late.'], choices: [{ text: '~curious~ Is something late?', goto: 'late' }, { text: '~neutral~ Thanks.', end: true }] },
-      late: { say: ['~angry~ The water. The drinking. Us, getting home. Eleven days walking for a dry well.'], choices: [{ text: '~neutral~ Thanks.', end: true }] },
+      late: { say: ['~angry~ The water. The drinking. The fire. Us, getting home. Eleven days walking for a dry well and a cold tree.'], choices: [{ text: '~neutral~ Thanks.', end: true }] },
     } } },
     { name: 'A trader', title: 'resting', talk: { nodes: {
       hello: { say: ['~surprised~ You came out of the sky-ball? Then you saw the light that went over before it. Everyone’s talking about it. A singing light. I heard it, I swear. Like a bowl rubbed with a wet finger.'], choices: [{ text: '~curious~ Where did it come down?', goto: 'where' }, { text: '~neutral~ Thanks.', end: true }] },

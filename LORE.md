@@ -252,12 +252,13 @@ never seen one open.
 
 **Their gifts** (`src/items.js`, `src/boxes/placements.js`), half in the
 open and half in the temples (§11 has why):
-- *In the open*: the **magic-fluid backpack** (desert, the tree's ledge in Qanat: shoot, push, boost; it powers vehicles), the **pale star** (desert, a roof inside Qanat's gate: worn on the hood, does nothing, looks very good), the **soft-fall soles** (City-Shaft, the makers' pillar on the rim), the **hush-cloth** (Vael, the cap of the needle spire north of the landing), the **wind-silk scarf** (Vael II, the top of the balanced stack), the **brass level** (Hangar, the keep's south wall), the **climber's resin** (Buried Machine, the chimney stack's ring), the **seed pouch** (Viridel, an umbrella tree's top canopy), the **listening shell** (Spheres, the grove's umbrella canopy), the **breathing reed** (Lorn, the mossy rise among the creatures) and the **glow-moss pin** (Lorn II, the first root arch). The Signal Market has no chest in the open.
+- *In the open*: the **magic-fluid backpack** (desert, the tree's ledge in Qanat: shoot, push, boost; it powers vehicles; it comes out of its chest empty and first fills at the giant's pool), the **pale star** (desert, a roof inside Qanat's gate: worn on the hood, does nothing, looks very good), the **soft-fall soles** (City-Shaft, the makers' pillar on the rim), the **hush-cloth** (Vael, the cap of the needle spire north of the landing), the **wind-silk scarf** (Vael II, the top of the balanced stack), the **brass level** (Hangar, the keep's south wall), the **climber's resin** (Buried Machine, the chimney stack's ring), the **seed pouch** (Viridel, an umbrella tree's top canopy), the **listening shell** (Spheres, the grove's umbrella canopy), the **breathing reed** (Lorn, the mossy rise among the creatures) and the **glow-moss pin** (Lorn II, the first root arch). The Signal Market has no chest in the open.
 - *In the temples* (each one's key): **ember mode** (the Givers' House: a fire that hurts nobody), the **fluid jets** (the Warden's Well), the **fluid wings** (the Aerie), the **bell-note whistle** (the Founders' Belfry: a little whistle of blue-glazed clay shaped like a bell, not bone: the rider's whistle in Vael's tower is the bone one; one clear bell note, the same in every world; nearby chests answer), the **quick coil** (the First Garage: faster refill), the **fourth chamber** (the Engine-House: four charges), **bloom mode** (the Builders' Greenhouse: the makers' plants grow), the **glyph lens** (the Footprint: shows unopened chests from afar, and what is hidden), the **stilling mode** (the Hush-House: freezes for a few seconds), the **lantern charm** (the Lamp-House: never goes out) and the **echo shell** (the Undertower: keeps a note and plays it back).
 
-**The tank's colours.** The fluid starts cyan and violet. Sources add bands:
-the desert pool's water, Buried Machine's oil-light (amber), the Great
-Crystal's violet. By the end the tank is a record of the journey.
+**The tank's colours.** The tank comes out of the desert's chest empty; the
+giant's pool fills it with cyan and violet and the pool's own coral at once.
+Later sources add bands: Buried Machine's oil-light (amber), the Great
+Crystal's violet, the market's lantern. By the end the tank is a record of the journey.
 
 ### The glyph
 Three dots over an arc that bows upward (∩), never a smile. Scorched into the
@@ -318,7 +319,7 @@ Where it shows in the game:
 The readings, world by world (editable in `SIGNATURE_WORLDS`):
 | World | Reading from orbit | Strongest |
 |---|---|---|
-| Desert | in the scar itself | under the burning tree |
+| Desert | in the scar itself | under the great tree |
 | City-Shaft | strong, and ringing | at the Lodestar, over the palace |
 | Vael | faint, very steady | among the humming standing stones |
 | Vael II | faint, on one low note | at the bell on the rose cliff |
@@ -354,37 +355,84 @@ quest, its side quests, its chest and keepsakes, and how it ties into the arc.
 
 ### 1. The Desert: "The Tree That Drinks"
 Dunes, mesas, salt flats and the skeletons of giants. The old city of **Qanat**
-is built round a burning tree that grows from a fallen giant's heart; once a
-year the tree "drinks" (water rises from beneath the giants and the fire burns
-cool and many-coloured) and pilgrims process round the walls. This year the
-water has not risen. The giant's skull lies outside the back gate, its mouth a
-door to the cave in its chest.
+is built round a great tree that grows from a fallen giant's heart. Its fire is
+the living water it drinks, burning: once a year the water rises from beneath
+the giants, the tree drinks, and the fire burns cool and many-coloured for the
+drinking while pilgrims process round the walls; the rest of the year it burns
+warm, and it had burned since before there was a city round it. This year the
+water has not risen (a rib of the giant has fallen across the channel under the
+city), and the night the singing light went over, the tree's fire went out
+"like a lamp in a draught". When the traveller comes down the next morning it
+stands over the walls black and cold: no flame, no smoke, no light at night,
+only a slow bell. The giant's skull lies outside the back gate, its mouth a door
+to the cave in its chest. Far out in the red rocks to the south-east, on a
+hilltop, stands **the Givers' Hearth**, where the Givers kept their fire.
+
+Why the tree needs a spark: living water does not burn by itself. The Givers lit
+the tree once, long ago, with a stone carried from their hearth, the
+**spark-stone**, and the keepers put it back in the Hearth afterwards; the tree
+had never gone out since, so nobody living had needed it. Nothing else lights
+living water: Ama's torches, the camp fires and the tank's own fire (ember mode,
+the Givers' House) only hiss on the wet bark (and before the water rises, the
+wood itself never burned: only the water in it ever did).
 
 People:
-- **Nour**, the eldest of Qanat: has kept the makers' chest company for sixty years; tells the old words, the Givers, the star, the tank.
-- **Hessa**, keeper of the dry well, Nour's granddaughter: tired, practical; knows the glyph's local names.
-- **Ama**, keeper of the camp fires: "Nobody goes thirsty at my fires"; gives the jar.
-- **The Speaker**, who leads the procession: keeps the old words; "Where the giant's eyes are marked, its mouth is a door"; calls you "little star".
+- **Nour**, the eldest of Qanat: has kept the makers' chest company for sixty years; tells the old words, the Givers, the star, the empty tank, and her grandmother's story of the spark-stone.
+- **Hessa**, keeper of the dry well, Nour's granddaughter: tired, practical; knows the glyph's local names; calls out when the well fills.
+- **Ama**, keeper of the camp fires: "Nobody goes thirsty at my fires"; gives the jar; took a torch to the cold tree herself.
+- **The Speaker**, who leads the procession: keeps the old words; "Where the giant's eyes are marked, its mouth is a door" and, once the water is up, "The fire was carried, and the fire must be carried"; calls you "little star".
 - **Teo**, a drummer who lost his drum (the wind rolled it away "like a wheel").
 - **Sefa** (oud) and **Bako** (ney), the camp musicians: Sefa plays "what the listener is missing"; Bako saw the burn on the ship.
 - **Ilo**, a child who wants to see the cave: "Do you have a mother?"
-- **Oum**, the pilgrim who fell behind: saw the light sing, and turn; "ask it why it turned".
+- **Oum**, the pilgrim who fell behind: saw the light sing, and turn, and the tree go dark under it; "ask it why it turned".
 - **Marrow**, salvager and liar: hid the hoverbike; has seen the glyph on things that fell before; his compass now points at your ship.
-- Near the start: **Ysa** the dune walker, **Pell** the counter of bones ("Big things lie down and become places"), **Rook** who lost a bike, **Ennor** guide to the salt, **Tamsin** who listens to stones, and a blue-cloaked **traveller** sketching the Sleeping Observatory.
+- Near the start: **Ysa** the dune walker (the tree "burned every day of my life, until the night before your ball came down"), **Pell** the counter of bones ("Big things lie down and become places"), **Rook** who lost a bike, **Ennor** guide to the salt, **Tamsin** who listens to stones, and a blue-cloaked **traveller** sketching the Sleeping Observatory.
 - Qanat's people at the tree: Tamra the weaver, Idris the potter, Kito the boy, Lula the baker, Haro the guard, Mim the sweeper.
 
-Main quest (`desert.power`): follow the smoke to Qanat; climb the buttress
-root to the makers' ledge; the chest opens (the backpack), the city gathers and
-Nour speaks; listen at the dry well; Ama's jar; walk with the Speaker; out of
-the back gate into the giant's mouth; push the fallen rib off the channel so
-the water runs, the pool fills and the tree drinks; fill the jar; bring it to
-the ship. The ship has power: "The ship hums awake. The galaxy is open."
+Main quest (`desert.power`), in order:
+1. Walk to Qanat under its great dark tree (the camps and the procession wave you on).
+2. Climb the buttress root to the makers' ledge; the chest opens: **the backpack, its tank
+   empty** ("dry glass, not a drop"). The city gathers and Nour speaks ("Sixty years I guarded
+   an empty jar"; "where the water is, it fills: find the water first").
+3. Listen at the dry well; Ama's jar; walk with the Speaker ("its mouth is a door").
+4. Out of the back gate into the giant's mouth, down to the dry pool. **The fallen rib** lies in
+   the gutter, far too heavy for arms, and the empty tank pushes nothing. Beside the gutter
+   stands a carved post with a notch worn in its top; **the old keepers' pole** (bone, two people
+   long, shod in bronze, the mark burned into its grip) leans on the mural. Set it in the
+   notch under the rib's flank and lean on it: three heaves, and the rib tips out over the rim
+   and rolls clear. (An older save with a full tank can still push it.)
+5. The water runs and the pool rises. Wading in, **the tank fills for the first time**, with
+   cyan, violet and the coral of the giant's pool, and so does Ama's jar.
+6. Back in Qanat, **the water climbs the roots into the well while you watch**, and the roots
+   drink it. The tree stays cold.
+7. Nour tells her grandmother's story: the spark-stone, the Givers' Hearth in the red rocks
+   far to the south-east, "farther than walking", the keepers' marked stones on the way.
+8. **Marrow's hoverbike** (the errand `desert.bike`): under the tarp in the hollow with the red
+   rag; it runs on fluid, so it wakes only on a filled tank.
+9. **The ride to the Givers' Hearth** (about 1.6 km from Qanat, a minute on the bike, more than
+   four minutes' run), from marked stone to marked stone; the butte's tall chimney shows over
+   the dunes, and at night a slit near its top glows: the stone's light, seeping up.
+10. **The Hearth's puzzle**: a dark round hall. The stone breathes light behind a stone grille in
+    a hollow up on the back wall's shelf; each breath washes the hall and lights old marks in
+    the floor that lead round to a plinth. On it a stone ball sits in a groove, a bronze chain
+    running from the hole at the groove's end up the wall and over to the grille. Hands can't
+    move it; **a shove of fluid** rolls it down the groove into the hole, the chain runs, and the
+    grille grinds up into the rock. Climb the shelf's plain face and take the stone: warm,
+    light, breathing; it lights your way at your side.
+11. **Home to the well**: set the stone in the water. It sinks; a spark climbs out of the well,
+    up the outside of the trunk, into the crown, and the tree catches: the fire grows up out of
+    the crown in the cool colours of the drinking, the smoke column climbs from it, the
+    procession sings ("It burns!"), the bands play the feast. The water in Ama's jar catches
+    the glow with it.
+12. Bring the jar to the ship: "The ship hums awake. The galaxy is open." (Before the tree burns
+    the ship won't take it: the water lies still and dull in the jar, "nothing in it wants to
+    burn".)
 
 Side quests: Teo's drum (in the great ribcage, south: pinned against a rib by a
-knuckle of spine; push the knuckle from the side and the drum rolls out like a
+knuckle of spine; shove the knuckle from the side, by hand or with the fluid, and the drum rolls out like a
 wheel); take Ilo to the skull; walk Oum back to the fires (her knotted cord);
-Marrow's hoverbike; the masked head in the southern dunes (sand drifted over its
-eyes like lids: wash both clear at once and it looks at you); the Sleeping Observatory (three lenses, a roof that
+Marrow's hoverbike (now part of the main way too); the masked head in the southern dunes (sand drifted over its
+eyes like lids: wash both clear at once and it looks at you: it wants a filled tank); the Sleeping Observatory (three lenses, a roof that
 opens on a constellation).
 
 Keepsakes: *knowing* "What the giants left" (the cave's mural: the giants
@@ -392,9 +440,36 @@ carried the water; the tree drinks what they left); *song* "Teo's walking
 rhythm". Chests: the backpack, the pale star (ember mode waits in the Givers' House, §11).
 
 Ties: the giants "came down from the swamp of lights" (Lorn); the light was
-seen the night before the crash; the glyph is "the Givers' mark", "even you,
-now, it seems". Errands start here (a jar of singing sand for the City-Shaft).
+seen the night before the crash, and the tree went out under it; the glyph is "the Givers' mark", "even you,
+now, it seems". The stele by the well shows, behind the giants, a small figure carrying something round and bright: the
+fire-bearer. Errands start here (a jar of singing sand for the City-Shaft).
 
+**Decided in the rework (2026-10-05; change freely):**
+- *What "the rubble" is*: the fallen rib in the gutter, the one obstacle on the way to the
+  pool. Its fluid-free way is a lever (the keepers' pole over the carved post, three heaves),
+  because the keepers "went down to clean the channel" and must have had a tool; a full tank
+  (older saves) can still push it.
+- *Where the tank fills*: the first wade in the risen pool (the same moment the jar fills).
+  Every early step that wanted fluid was rerouted: the drum's knuckle is heaved by hand while
+  the tank is empty; the bike, the masked head's eyes and the Givers' House wait for a filled
+  tank (Sabri and a toast on entering the house say so); a press on an empty tank only
+  sputters, and the HUD reads "empty".
+- *The tank's colours*: it starts with nothing; the giant's pool fills it with cyan, violet and
+  the pool's coral at once (the "starting" two tones and the desert's band arrive together).
+- *The well fills itself, from below*, once the channel runs (the roots carry the water up):
+  you go back and watch it rise. The jar is not poured into it.
+- *Ember mode and the tree*: the Givers' House can be done before the tree is lit, but ember
+  fire is the tank's own water set alight, and living water does not take it: only the spark
+  it was first lit with. So ember mode lights braziers, brambles and lamps, never the tree.
+- *The ship's power*: still the jar of living water, but only once it has caught the spark with
+  the tree (so the desert can't be left with its tree cold).
+- *The Hearth's place*: on a hilltop in the red rocks south-east of Qanat, about 1.6 km off
+  (well past the scattered props' 1.5 km), chosen so its chimney shows over the dunes from the
+  way; nine marked stones every 150 m from just past the procession's circuit.
+- *Saves*: a save whose water had already risen (the channel open, the ship fed, the desert
+  done) saw the tree burning and turning cool: it keeps it lit and skips the new errand. A
+  save short of that finds the tree cold (the story explains it) and does the errand; its tank
+  was never empty.
 ### 2. The City-Shaft: "The Light Nobody Looks At"
 A city stacked down a 600 m pit: the rich on the sunny rim, the poor in the
 depths over an acid lake, flying taxis between. The **Lodestar**, a light and
@@ -847,6 +922,12 @@ ATAN" (old names) and now says ODILE and TALO; Talo's lookout note was signed
 "— A." and is now "— T.".
 
 ### Decided and fixed in this pass
+- **The desert's tree starts cold (2026-10-05)**: the bible (`docs/story-bible.md`, "The Tree
+  That Drinks") still has it burning from the start and the water alone making it drink and turn
+  cool. The build now has it gone out the night the light passed, the backpack's tank empty
+  until the giant's pool, the well filling from below, and a second errand for the
+  spark-stone in the Givers' Hearth, reached on Marrow's hoverbike (section 6, the desert, has
+  the order and the decisions). The bible is design history; this file follows the build.
 - **When the light passed: one night everywhere**, the night the traveller's
   ship was struck. Witnesses say "the night the light passed" (or "the night
   the sky rang"); only the desert, where the ship came down the next morning,
@@ -1124,6 +1205,12 @@ fields went to sand.
   children ride on its shell to the fields", a lamp left lit for it in the
   fields because it hated the dark. Afterwards: the old channel runs, "I am
   going to dig a well that has water in it. Just to see what that's like."
+- **Before the tree is lit**: the house wants the fluid from its first room (the push, the
+  splash), so it waits for a filled tank (Sabri: "Nothing in the Givers' house will answer an
+  empty jar"; walking in empty, a toast sends you to the giant's pool). Its ember mode does not
+  light Qanat's tree: ember fire is the tank's own water set alight, and the tree's living water
+  takes only the spark-stone's fire (section 6, the desert). The house's world change (the
+  cistern, the channel to the city, the green fields) is its own, before or after the tree.
 - **Inside**: the Threshold (a stair hall, the first mark, the way out); the
   Hall of Weights (two plates before a shut door; a stone ball in a groove that
   the fluid's push rolls onto one; you stand on the other); the Dry Channel (a

@@ -17,8 +17,8 @@ import { FACE } from '../humanoid.js';
 // shorter scenes (a recording at the console, arriving, taking off) are Sequences here.
 
 export const OBJECTIVE = 'Find a new source of power.';
-/** A new game steps out without the backpack: it waits in a makers' box in Qanat, under the smoke (src/boxes/, the desert's first stage). */
-export const FIRST_OBJECTIVE = 'Follow the smoke to the city.';
+/** A new game steps out without the backpack: it waits in a makers' box in Qanat, under the great dark tree (src/boxes/, the desert's first stage). */
+export const FIRST_OBJECTIVE = 'Walk to the city under the great dark tree.';
 const stepOutObjective = () => (game.flag('item.backpack') ? OBJECTIVE : FIRST_OBJECTIVE);
 const STEP_OUT_YAW = 0.34;   // rad off straight-behind when the traveller first steps out
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
@@ -397,7 +397,7 @@ export class PrologueDirector {
       sfx.alarm(s.sound, 0); sfx.hum(s.sound, 0);
       const a = s.arrivalSpot();
       s.placePlayer(a.pos, a.heading, true);
-      // over the shoulder, a little low: the city and its burning tree stand on the horizon beside the traveller
+      // over the shoulder, a little low: the city and its great dark tree stand on the horizon beside the traveller
       s.rig.yaw = a.heading + Math.PI + STEP_OUT_YAW; s.rig.pitch = 0.08;
       s.rig.target.copy(a.pos);
       s.cam = null; s.blend = null;

@@ -48,7 +48,8 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ I’ll go and look.', do: { start: 'temple.desert' }, goto: 'go' }, { text: '~neutral~ Goodbye, Sabri.', end: true }],
         },
         go: {
-          say: ['~happy~ Then go *east of the city*, where the dunes are highest: you can see its top from the walls. The door looks toward Qanat.', '~whisper~ Take your fluid. And something that burns, if you find it. Grandmother said the Givers kept their fires in there too.'],
+          say: ['~happy~ Then go *east of the city*, where the dunes are highest: you can see its top from the walls. The door looks toward Qanat.', '~whisper~ Take your fluid. And something that burns, if you find it. Grandmother said the Givers kept their fires in there too.',
+            { if: { flag: 'tool.empty' }, text: '~curious~ That glass on your back is dry, though. Fill it first: the old keepers went down to the water *through the giant’s mouth*, past the back gate. Nothing in the Givers’ house will answer an empty jar.' }],
           choices: [{ text: '~happy~ I’ll tell you what I find.', end: true }],
         },
         again: {

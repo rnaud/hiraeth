@@ -409,8 +409,11 @@ export function buildDesertCity(scene, terrain) {
     // whole low down, torn into tongues only over the crown; a great fire, so it runs slow)
     const flames = new FlameBody(treeGroup, { at: V(TREE.x, top + 13 * S, TREE.z), width: 36 * S, height: 50 * S, seed: 7, belly: 0.5, pace: 0.45, torn: 1.1, cover: 1 });
     // climb into it and it burns (src/hazards.js): its volume, from just over the fork to the tip
+    // (only while it burns: the tree stands cold until it is lit, src/story/desert.js)
     { const lo = city.world(TREE.x, top + 14 * S, TREE.z), hi = city.world(TREE.x, top + 62 * S, TREE.z);
-      registerHazard(flameHazard({ x: lo.x, z: lo.z, y0: lo.y, y1: hi.y, rMax: 15 * S, belly: 0.4, dps: 0.3 })); }
+      const h = flameHazard({ x: lo.x, z: lo.z, y0: lo.y, y1: hi.y, rMax: 15 * S, belly: 0.4, dps: 0.3 }), test = h.test;
+      h.test = (p) => (out.city?.lit ?? 1) > 0.5 && test(p);
+      registerHazard(h); }
     const crown = city.world(TREE.x, top + 30 * S, TREE.z);
     const embers = new Embers(root, [...limbs.map((p) => city.world(p.x, p.y + 5 * S, p.z)), crown], { count: 70, rise: 2.4, life: 6, spread: 3, size: 0.6, color: '#fff3c4' });
     embers.mesh.boundingSphere = new THREE.Sphere(crown.clone(), 45); embers.mesh.frustumCulled = true;
@@ -512,6 +515,18 @@ export function buildDesertCity(scene, terrain) {
       flames, embers, smoke, light: treeLight, light2: treeLight2, wellWater, wellMat, yaw: C.yaw,
       plinthStair: city.world(0, 0, 31), local: (x, y, z) => city.world(x, y, z), top: city.world(0, top, 0).y,
       stairTop: city.world(0, top, 12.6), ledge,
+      // the fire: 0 (the tree stands cold, no flame, no smoke, no sparks) .. 1 (burning). A new game starts
+      // at 0; src/story/desert.js lights it once the spark-stone is set in the full well
+      lit: 1,
+      /** Set how far the fire has caught (0..1). From cold, the smoke column starts climbing from the crown. */
+      setLit(k) {
+        const c = out.city, was = c.lit;
+        c.lit = THREE.MathUtils.clamp(k, 0, 1);
+        c.flames.lit = c.lit;
+        if (was <= 0.001 && c.lit > 0.001) c.smoke.light();
+        c.smoke.mesh.visible = c.lit > 0.001;
+        if (c.lit <= 0.001) c.embers.mesh.visible = false;
+      },
     };
   }
 
@@ -830,14 +845,15 @@ export function buildDesertCity(scene, terrain) {
     // the flame is only a few uniforms to update: every frame, so it runs at one steady pace at any
     // distance (thinning it out far away made it judder, and look faster or slower as you ran)
     treeDt += dt;
+    const lit = out.city.lit > 0.001;
     if (dCity < 1500 && seen(out.city.crown, 80)) { out.city.flames.update(treeDt, t); treeDt = 0; }
-    // sparks are a close-up detail (far away they'd read as specks of ink)
-    out.city.embers.mesh.visible = dCity < 220;
-    if (dCity < 220 && seen(out.city.crown, 40)) out.city.embers.update(dt, t, player?.wind);
+    // sparks are a close-up detail (far away they'd read as specks of ink); none from a cold tree
+    out.city.embers.mesh.visible = lit && dCity < 220;
+    if (lit && dCity < 220 && seen(out.city.crown, 40)) out.city.embers.update(dt, t, player?.wind);
     // the smoke column: always drawn (it is the way to the city), animated while in view, less often far away
     smokeDt += dt;
     const sm = out.city.smoke, sEvery = dCity < 400 ? 1 : 2;
-    if (frameNo % sEvery === 0 && seen(smokeMid.copy(sm.at).addScaledVector(sm.wind, sm.drift * sm.windK * 0.35).setY(sm.at.y + sm.height * 0.6), sm.height * 0.75)) { sm.update(smokeDt, t, player?.wind, camera); smokeDt = 0; }
+    if (lit && frameNo % sEvery === 0 && seen(smokeMid.copy(sm.at).addScaledVector(sm.wind, sm.drift * sm.windK * 0.35).setY(sm.at.y + sm.height * 0.6), sm.height * 0.75)) { sm.update(smokeDt, t, player?.wind, camera); smokeDt = 0; }
     // the cave: drawn only when you're down there
     const inCave = _cam.distanceTo(O) < 300;
     cv.group.visible = inCave; cv.pool.visible = inCave && cv.wet; cv.stream.visible = inCave && cv.flow > 0; cv.bone.visible = inCave;

@@ -12,7 +12,8 @@ const { Crowd } = await import('../src/crowd.js');
 const { createStory } = await import('../src/story/index.js');
 const { game } = await import('../src/game-state.js');
 const { DialogueRunner } = await import('../src/story/dialogue.js');
-const { PEOPLE, THINGS } = await import('../src/story/desert-data.js');
+const { PEOPLE, THINGS, LINES } = await import('../src/story/desert-data.js');
+const { COOL_FIRE } = await import('../src/story/flames.js');
 const { STORY } = await import('../src/desert-sites.js');
 const { clearInteractables, bestInteractable } = await import('../src/interact.js');
 const { allTargets } = await import('../src/targets.js');
@@ -162,7 +163,7 @@ test('you can walk from the camps through the gate, up the stairs to the well, a
     }
   }
   // and down: the skull's mouth leads to the cave, the passage leads back out
-  const [down, up] = level.portals.slice(-2);
+  const down = level.portals.find((p) => p.label === 'giant’s mouth'), up = level.portals.find((p) => p.label === 'passage up');
   assert.ok(down.at.distanceTo(Q.giant.door) < 2 && down.to.distanceTo(Q.cave.inside) < 0.1);
   assert.ok(up.to.distanceTo(Q.giant.door) < 5);
 });
@@ -219,8 +220,9 @@ const smokePuffs = (sm) => {
 };
 const coolness = (sm) => { const ps = smokePuffs(sm); return ps.reduce((a, p) => a + p.cool, 0) / ps.length; };
 
-test('the burning tree sends up a tall column of smoke, a landmark that never gets in the way', () => {
+test('the great tree’s smoke column (once it burns) is a tall landmark that never gets in the way', () => {
   const sm = Q.city.smoke;
+  assert.equal(sm.mesh.visible, false, 'none while the tree is cold');
   assert.ok(sm?.mesh?.isInstancedMesh, 'one instanced mesh of puffs');
   assert.ok(sm.mesh.userData.noCollide, 'the smoke is not solid');
   assert.ok(level.noShadow?.includes(sm.mesh), 'it casts no shadow on the city');
@@ -244,11 +246,23 @@ test('the burning tree sends up a tall column of smoke, a landmark that never ge
   assert.ok(!Number.isFinite(g) || g < base.y + 40, `the ray through a puff at ${mid.pos.y.toFixed(0)} m lands at ${g}`);
 });
 
-test('a new game steps out with a bare back: no early step needs the tool; walk to the city past the camps', async () => {
+test('a new game steps out with a bare back to a cold tree: no flame, no smoke, no sparks, no burn; walk to the city past the camps', async () => {
   const { items } = await import('../src/items.js');
+  const { updateHazards } = await import('../src/hazards.js');
   assert.equal(items.has('backpack'), false, 'the traveller’s back is bare');
   assert.equal(quests.stage('desert.power'), 'city');
-  assert.equal(quests.objective().label, 'Qanat, under the smoke');
+  assert.equal(quests.objective().label, 'Qanat, under the dark tree');
+  // the tree stands cold
+  assert.equal(game.flag('desert.tree.lit'), undefined);
+  assert.equal(Q.city.lit, 0, 'not lit');
+  assert.equal(Q.city.flames.lit, 0, 'no flame');
+  assert.equal(Q.city.smoke.mesh.visible, false, 'no smoke column');
+  assert.equal(Q.city.embers.mesh.visible, false, 'no sparks');
+  step(2);
+  assert.equal(Q.city.light.w, 0, 'it gives no light');
+  const inFlame = { pos: Q.city.crown.clone().add(V(0, -6, 0)), vel: V(), hurt() { this.hurtBy = true; } };
+  assert.equal(updateHazards(0.5, inFlame), null, 'climbing into the crown burns nothing');
+  assert.equal(talk(PEOPLE.ama, ['What is that great dark tree?']).pages.join(' ').includes('went out'), true, 'Ama: it went out the night the light sang');
   assert.ok(quests.objective().position.distanceTo(Q.city.gate) < 0.01, 'the marker stands at the city gate');
   // without the backpack the rib is heaved by hand (nothing breaks without a tool)
   assert.equal(rt.world.toolHasPush(), false);
@@ -266,7 +280,7 @@ test('a new game steps out with a bare back: no early step needs the tool; walk 
   assert.equal(quests.current('desert.power').label, 'The ledge on the tree');
 });
 
-test('the makers’ chest is on its ledge up the tree; opening it gathers Qanat at the foot, flares the tree and brings Nour', async () => {
+test('the makers’ chest is on its ledge up the tree; opening it (its tank empty) gathers Qanat at the foot and brings Nour', async () => {
   const { items } = await import('../src/items.js');
   const { createBoxes } = await import('../src/boxes/index.js');
   const boxes = createBoxes({ levelId: 'desert', scene, physics, level, player, quests });
@@ -276,11 +290,11 @@ test('the makers’ chest is on its ledge up the tree; opening it gathers Qanat 
   assert.ok(quests.objective().position.distanceTo(box.pos) < 0.01, 'the marker stands on the box');
   const W = rt.world, nour = W.people.nour;
   assert.ok(nour.seat !== null && nour.pos.distanceTo(L.bench.at) < 0.5, 'Nour sits on her bench under the ledge');
-  // first sight of it: the people on the terrace turn and murmur, the tree flares
+  // first sight of it: the people on the terrace turn and murmur (the tree's flare: it shows once the tree burns)
   W.state.flare = 0;
   at(Q.city.stairTop); step(40);
   assert.ok(W.ledge.noticed, 'the chest is noticed');
-  assert.ok(W.state.flare > 0.5, 'the tree flares');
+  assert.ok(W.state.flare > 0.5, 'the tree notices');
   assert.ok([...W.villagers, W.people.hessa].some((n) => n.shout && /sky|hum|fell|tree|Grandmother/.test(n.shout.text)), 'a murmur');
   // Nour, before it opens: it has not opened in living memory; it opens for one who fell from the sky
   const before = talk(PEOPLE.nour, []);
@@ -295,7 +309,8 @@ test('the makers’ chest is on its ledge up the tree; opening it gathers Qanat 
   assert.equal(quests.stage('desert.power'), 'elder');
   assert.equal(quests.objective().label, 'Nour, the eldest');
   assert.equal(game.flag('desert.shrine.gathered'), true);
-  assert.ok(W.state.flare > 2, 'the tree flares high');
+  assert.equal(game.flag('tool.empty'), true, 'the tank in it is empty');
+  assert.equal(Q.city.lit, 0, 'the tree stays cold');
   assert.ok(W.gatherSpots.length >= W.villagers.length, `room for everyone to gather (${W.gatherSpots.length} spots)`);
   for (const p of W.gatherSpots) stand(p, 'a gathering spot');
   // they walk over (the ones in the avenue up the main stairs); Nour gets up and waits at the tree's foot
@@ -321,12 +336,23 @@ test('the makers’ chest is on its ledge up the tree; opening it gathers Qanat 
   step(2);
   assert.equal(quests.stage('desert.power'), 'well');
   await new Promise((res) => setTimeout(res, 3400));
-  assert.ok(toasts.some((t) => /Try shooting \(G\) or pushing \(C\)/.test(t)), 'a nudge to try the tool');
+  assert.ok(toasts.some((t) => /tank on your back is empty/.test(t)), 'it says the tank is empty');
+  assert.ok(!toasts.some((t) => /Try shooting/.test(t)), 'no nudge to try an empty tool');
   boxes.dispose();
 });
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 
-test('the main quest runs on from Nour to a powered ship', () => {
+const use = (id) => {
+  const e = bestInteractable(player);
+  assert.equal(e?.entry.id, id, `E is "${id}" here (got ${e?.entry.id})`);
+  e.entry.use(player);
+  return e;
+};
+const promptOf = (e) => (typeof e.entry.prompt === 'function' ? e.entry.prompt() : e.entry.prompt);
+
+test('the main quest, end to end: an empty tank, the rib levered off, the tank filled, the well, the bike, the Hearth, the stone, the tree lit, the ship', async () => {
+  const { items } = await import('../src/items.js');
+  const W = rt.world, H = level.hearth;
   assert.equal(quests.stage('desert.power'), 'well');
   assert.equal(quests.objective().label, 'The dry well');
   talk(THINGS.well, [0]);
@@ -337,7 +363,7 @@ test('the main quest runs on from Nour to a powered ship', () => {
   step(2);
   assert.equal(quests.stage('desert.power'), 'speaker');
   // the marker follows the Speaker round the circuit
-  const sp = rt.world.people.speaker;
+  const sp = W.people.speaker;
   assert.ok(quests.objective().position.distanceTo(sp.pos) < 0.01);
   const said = talk(PEOPLE.speaker, ['Nour says', 'Is there a way down']);
   assert.match(said.pages.join(' '), /mouth is a door/);
@@ -348,24 +374,160 @@ test('the main quest runs on from Nour to a powered ship', () => {
   assert.match(rt.objective().label, /giant’s mouth/);
   at(Q.cave.inside); step(2);
   assert.equal(quests.stage('desert.power'), 'channel');
-  // the fallen rib: the tool's push clears it
+
+  // ---- the rib: the tank is empty, so no push; your arms can't move it; the keepers' pole can
+  assert.equal(items.has('backpack'), true);
+  assert.equal(game.flag('tool.empty'), true, 'the tank is empty');
+  assert.equal(W.dry(), true);
+  assert.equal(W.toolHasPush(), false, 'an empty tank pushes nothing');
   const bone = allTargets().find((t) => t.kind === 'bone');
-  assert.ok(bone?.enabled(), 'the rib is a target while it blocks the channel');
-  bone.onHit('shoot');
-  assert.equal(game.flag('desert.channel.open'), undefined, 'a shot only rocks it');
-  bone.onHit('push');
-  assert.equal(game.flag('desert.channel.open'), true, 'a push rolls it off');
-  // the tree drinks: its smoke takes on the cool colours of the new fire, rising up the column
-  const warm = coolness(Q.city.smoke);
-  for (let i = 0; i < 80; i++) Q.city.smoke.update(1 / 2, i / 2, null);
-  assert.ok(coolness(Q.city.smoke) > warm + 0.03, `the smoke turns cool (${warm.toFixed(3)} → ${coolness(Q.city.smoke).toFixed(3)})`);
+  assert.ok(quests.objective().position.distanceTo(Q.cave.bone.position) < 0.01, 'the marker is on the rib');
+  at(Q.cave.bone.position.clone().setY(Q.cave.origin.y).add(V(-1.5, 0, 1.5)));
+  const heaveIt = bestInteractable(player);
+  assert.equal(heaveIt?.entry.id, 'bone');
+  assert.equal(promptOf(heaveIt), 'heave the fallen rib');
+  heaveIt.entry.use(player);
+  assert.equal(game.flag('desert.channel.open'), undefined, 'far too heavy for your arms');
+  assert.ok(toasts.at(-1).includes('far too heavy'), 'it says so');
+  const L = W.lever;
+  assert.ok(quests.objective().position.distanceTo(L.leanFoot) < 0.01, 'then the marker goes to the keepers’ pole by the mural');
+  at(L.leanFoot.clone().add(V(0.6, 0, 0.6)));
+  use('keepers.pole');
+  assert.ok(quests.has('pole'), 'you carry the pole');
+  assert.ok(quests.objective().position.distanceTo(L.pivot) < 0.01, 'and the marker on the carved post');
+  at(L.postAt.clone().addScaledVector(V(-Q.cave.chDir.z, 0, Q.cave.chDir.x).normalize(), -2.4));
+  for (let i = 0; i < L.HEAVES; i++) {
+    const e = bestInteractable(player);
+    assert.equal(e?.entry.id, 'keepers.post');
+    assert.match(promptOf(e), i === 0 ? /lever the rib/ : /lean on the pole/);
+    e.entry.use(player);
+    step(30);
+    if (i < L.HEAVES - 1) assert.equal(game.flag('desert.channel.open'), undefined, `heave ${i + 1}: it lifts, and settles back`);
+  }
+  await new Promise((r) => setTimeout(r, 500));
+  assert.equal(game.flag('desert.channel.open'), true, 'the third heave tips it off the channel');
+  assert.ok(!quests.has('pole'), 'the pole stays by the post');
+  bone.onHit('push');   // (nothing left to push)
+  // the water runs; the tree drinks, and the tree stays cold
   step(90, 1 / 10);   // the rib rolls, the pool rises
+  assert.ok(flat(Q.cave.bone.position, Q.cave.boneRest.pos) > 2, 'the rib lies where it rolled');
+  assert.equal(Q.city.lit, 0, 'the water alone lights nothing');
   assert.equal(quests.stage('desert.power'), 'fill');
+
+  // ---- the pool: the empty tank fills (and takes the giant's colour), and the jar
   const refills = [];
   game.on('tool:refill', (e) => refills.push(e));
   at(Q.cave.poolCenter.clone().setY(Q.cave.origin.y - 1.5)); step(2);
   assert.ok(quests.has('water') && !quests.has('jar'), 'the jar fills');
-  assert.deepEqual(refills.map((e) => e.addColour), [true], 'wading refills the tool, with a new colour the first time');
+  assert.deepEqual(refills.map((e) => e.addColour), [true], 'wading fills the tool, with a new colour the first time');
+  assert.equal(game.flag('tool.empty'), false, 'the tank is full now, for good');
+  assert.equal(W.dry(), false);
+  assert.ok(toasts.some((t) => /empty tank fills/.test(t)), 'it says so');
+  step(2);
+  assert.equal(quests.stage('desert.power'), 'rise');
+
+  // ---- not yet: the ship won't take still water
+  game.emit('ship:enter');
+  assert.ok(quests.has('water') && !game.flag('desert.ship.fed'), 'the jar’s water is still: it wants the spark too');
+
+  // ---- the well: you watch the water rise up the shaft; the tree stays cold
+  assert.ok(quests.objective().position.distanceTo(Q.city.wellLook) < 0.01, 'the marker is at the well');
+  at(Q.city.wellLook);
+  step(3);
+  assert.ok(W.rise.on, 'the water rises while you watch');
+  assert.ok(Q.city.wellWater.visible && Q.city.wellWater.position.y < Q.city.well.y + 0.4, 'from low in the shaft');
+  for (let i = 0; i < 40 && !game.flag('desert.well.watched'); i++) step(30, 1 / 10);
+  assert.equal(game.flag('desert.well.watched'), true);
+  assert.ok(Math.abs(Q.city.wellWater.position.y - (Q.city.well.y + 0.95)) < 1e-3, 'it brims');
+  assert.equal(Q.city.lit, 0, 'and still the tree is cold');
+  assert.equal(talk(THINGS.well, []).nodeId, 'full');
+  step(2);
+  assert.equal(quests.stage('desert.power'), 'spark');
+  // Nour tells of the spark-stone and the Givers' Hearth
+  const cold = new DialogueRunner(PEOPLE.nour, { game, quests });
+  assert.equal(cold.nodeId, 'cold', 'Nour: the tree drank, and stays cold');
+  assert.match(cold.pages.join(' '), /spark-stone/);
+  assert.match(cold.pages.join(' '), /Givers’ Hearth/);
+  while (!cold.ended && (!cold.lastPage || !cold.choices().length) && cold.advance());
+  assert.deepEqual(cold.choices().map((c) => c.text.replace(/^~\w+~ /, '')), ['How far is it?', 'I’ll bring the stone back.']);
+  assert.equal(game.flag('desert.spark.heard'), true);
+  step(2);
+  assert.equal(quests.stage('desert.power'), 'bike');
+  // the bike's errand starts a moment after her words; the marker goes to Marrow, then the hollow
+  await new Promise((r) => setTimeout(r, 2600));
+  assert.equal(quests.stage('desert.bike'), 'ask');
+  quests.track('desert.power');
+  assert.ok(quests.objective().position.distanceTo(W.people.marrow.pos) < 0.01, 'the marker is on Marrow');
+  talk(PEOPLE.marrow, ['I’ll go and dig it out']);
+  quests.track('desert.power');
+  assert.ok(quests.objective().position.distanceTo(W.hollow.site.bike) < 0.01, 'then on the hollow');
+  at(W.hollow.site.bike.clone().add(V(1.5, 0, 0)).setY(terrain.heightAt(W.hollow.site.bike.x + 1.5, W.hollow.site.bike.z)));
+  use('bike.tarp');           // the tarp
+  step(30);
+  const wake = bestInteractable(player);
+  assert.equal(promptOf(wake), 'wake the hoverbike', 'a full tank wakes it');
+  wake.entry.use(player);
+  step(2);
+  assert.equal(game.flag('desert.bike.found'), true);
+  assert.equal(quests.stage('desert.power'), 'hearth');
+
+  // ---- the Givers' Hearth: far out in the red rocks, the marked stones on the way
+  const d = Math.hypot(H.door.x - Q.city.center.x, H.door.z - Q.city.center.z);
+  assert.ok(d > 1500, `the Hearth is ${d.toFixed(0)} m from Qanat: farther than walking`);
+  assert.ok(quests.objective().position.distanceTo(H.door) < 0.01, 'the marker is at its door');
+  assert.ok(H.stones.length >= 8, `${H.stones.length} marked stones on the way`);
+  for (let i = 1; i < H.stones.length; i++) assert.ok(H.stones[i].distanceTo(H.stones[i - 1]) < 200, 'a stone in sight of the last');
+  at(H.doorFront); step(2);
+  assert.equal(quests.stage('desert.power'), 'stone');
+  const [inPortal] = level.portals.filter((p) => p.label === 'Givers’ Hearth');
+  assert.ok(inPortal && inPortal.to.distanceTo(H.inside) < 0.1, 'its door leads into the hall');
+  at(H.inside); step(2);
+  // the stone breathes light behind its grille: take it? not yet
+  const glowA = H.stoneLight.w;
+  step(45);
+  assert.notEqual(H.stoneLight.w, glowA, 'the stone’s light pulses');
+  at(H.shelfFront.clone().add(V(0, 0, -1.6)));
+  assert.notEqual(bestInteractable(player)?.entry.id, 'hearth.stone', 'the grille is down: no taking it');
+  // a shot rocks the ball; a push rolls it down its groove, it drops, and the grille rises
+  const weight = allTargets().find((t) => t.kind === 'weight');
+  at(H.plinthFront); step(1);
+  assert.ok(weight.enabled());
+  weight.onHit('shoot');
+  assert.equal(game.flag('desert.hearth.open'), undefined, 'a shot only rocks it');
+  weight.onHit('push');
+  step(30 * 5);
+  assert.equal(game.flag('desert.hearth.open'), true, 'the grille is up');
+  assert.ok(H.grille.position.y - H.grilleRest.y > 1.5);
+  // climb up to the shelf and take it
+  at(H.shelfFront.clone().add(V(0, 0, -1.6)));
+  use('hearth.stone');
+  assert.ok(quests.has('stone') && game.flag('desert.stone.taken'));
+  step(2);
+  assert.equal(quests.stage('desert.power'), 'light');
+  assert.ok(H.stone.position.distanceTo(player.pos) < 2, 'you carry it, glowing at your side');
+  assert.equal(talk(PEOPLE.nour, []).nodeId, 'stone');
+
+  // ---- home to the well: set the stone in the water; the spark climbs the trunk and the tree catches
+  at(Q.city.wellLook); step(2);
+  assert.equal(Q.city.lit, 0);
+  const sm = Q.city.smoke, warm = coolness(sm);
+  const setIt = bestInteractable(player);
+  assert.equal(setIt?.entry.id, 'well.stone');
+  assert.equal(promptOf(setIt), 'set the spark-stone in the well');
+  setIt.entry.use(player);
+  assert.equal(game.flag('desert.tree.lit'), true);
+  assert.ok(!quests.has('stone'), 'the stone stays in the well');
+  step(30 * 4);
+  assert.ok(Q.city.lit > 0 && Q.city.lit < 1, `it catches, and the fire grows (${Q.city.lit.toFixed(2)})`);
+  step(30 * 8);
+  assert.equal(Q.city.lit, 1, 'it burns');
+  assert.equal(Q.city.flames.lit, 1, 'a flame over the crown');
+  assert.ok(sm.mesh.visible, 'smoke rises from it');
+  assert.equal('#' + Q.city.flames.palB[1].getHexString(), COOL_FIRE[1], 'cool fire: the drinking’s own colours');
+  for (let i = 0; i < 80; i++) sm.update(1 / 2, i / 2, null);
+  assert.ok(coolness(sm) > warm + 0.03, `the smoke is cool too (${warm.toFixed(3)} → ${coolness(sm).toFixed(3)})`);
+  assert.ok(crowd.people.filter((p) => p.spot?.id === 'procession').every((p) => p.lines === LINES.drinking), 'the procession sings');
+  assert.equal(talk(PEOPLE.ama, []).nodeId, 'drinking');
   step(2);
   assert.equal(quests.stage('desert.power'), 'ship');
   // back to the ship (the ship's own hatch emits ship:enter; walking up works too)

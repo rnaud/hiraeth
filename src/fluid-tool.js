@@ -40,6 +40,10 @@ import { MODES, STUN_SECONDS, FluidWings, FluidJets, HANDOFF, handoffPose, nextM
 // The tank shows the fill as three stacked bands of colour; the bracer has
 // three rings that light for the charges left. Magical water (the desert's
 // cave) refills it and adds a colour band for good: tool.refill({ addColour: true }).
+// An empty tank (game flag tool.empty: the desert's backpack comes out of its box dry,
+// src/story/desert.js) holds nothing and never refills by itself: no charges, nothing
+// fires, a press only sputters (and says so once: 'tool:dry'). The first magical water
+// (any refill()) fills it and clears the flag for good.
 //
 // Story API (main.js builds one FluidTool, window.tool; story code needs no
 // import and can use the game-state bus instead, see game-state.js):
@@ -48,6 +52,7 @@ import { MODES, STUN_SECONDS, FluidWings, FluidJets, HANDOFF, handoffPose, nextM
 //   tool.tones            the tones in the blend, hex strings
 //   tool.enabled          false: put away, nothing fires (the ship prologue, cutscenes)
 //   tool.owned            the backpack is found (items.has('backpack'))
+//   tool.dry              the tank is empty (flag tool.empty): nothing until magical water fills it
 //   tool.mode / tool.modes / tool.setMode(id) / tool.cycleMode(±1)   'shoot' | 'stun' | 'fire' | 'bloom'
 //   tool.refill({ addColour, tone })   fill now; addColour adds a band (tone: its colour, optional)
 //   game.emit('tool:refill', { addColour: true }) · game.emit('tool:enable', { on: false })
@@ -608,7 +613,7 @@ export class FluidTool {
     this.appear = items.has('backpack') ? 1 : 0; this.jetBurnt = false; this.where = 'back'; this.power = new Map();
     this.aimPoint = new THREE.Vector3(); this.aimDir = new THREE.Vector3(0, 0, -1);
     this.globs = [];
-    this.fill = 1; this.flash = 0; this.wave = 0; this.slosh = 0; this.pulse = 2; this.lastHit = null; this.ringLit = [1, 1, 1];
+    this.fill = items.has('backpack') && state.flag('tool.empty') ? 0 : 1; this.flash = 0; this.wave = 0; this.slosh = 0; this.pulse = 2; this.lastHit = null; this.ringLit = [1, 1, 1];
     this._lastVel = new THREE.Vector3(); this._hasVel = false;
 
     const fx = (this.fx = new THREE.Group());
@@ -732,6 +737,8 @@ export class FluidTool {
   get modeTones() { return MODES[this.mode]?.tones ?? this.tones; }
   /** The backpack is found. */
   get owned() { return this.items.has('backpack'); }
+  /** The tank is empty (the desert's backpack, until the giant's pool fills it): no charges, no refill. */
+  get dry() { return this.owned && !!this.state.flag('tool.empty'); }
   /** The tank is on the traveller's back (not in a vehicle's socket, nor swinging between). */
   get worn() { const p = this.player; return this.owned && !p?.ride && !p?.boarding && !p?.unboarding; }
   /** The gun modes the traveller owns ('shoot' first); none without the backpack. */
@@ -769,6 +776,7 @@ export class FluidTool {
    */
   refill({ addColour = false, tone = null } = {}) {
     const added = addColour && this.colours < FLUID.maxColours;
+    if (this.state.flag('tool.empty')) this.state.set('tool.empty', false);   // the first water: an empty tank fills for good
     if (added) {
       const c = this.colours + 1;
       if (tone) { const custom = [...(this.state.flag('tool.tones') ?? [])]; custom[c] = '#' + new THREE.Color(tone).getHexString(); this.state.set('tool.tones', custom); }
@@ -842,7 +850,9 @@ export class FluidTool {
     // the jets' fluid recovers once you land: after a burn the refill clock waits for the ground
     if (p?.onGround || p?.ride || p?.climbing) this.jetBurnt = false;
     if (this.jetBurnt) this.reserve.hold();
-    if (this.reserve.update(dt)) this.onRefilled(false);
+    // an empty tank stays empty (no clock, no refill) until magical water fills it
+    if (this.dry) { this.reserve.level = 0; this.reserve.since = 0; }
+    else if (this.reserve.update(dt)) this.onRefilled(false);
 
     if (this.k > 0 && p) {
       this.updateAimPoint();
@@ -858,8 +868,9 @@ export class FluidTool {
     this.drops.update(dt, up); this.glow.update(dt, up);
     this.splats.update(dt); this.rings.update(dt);
     this.updateWorn(dt);
-    this.hud?.update({ on: this.k > 0.5 && this.camK > 0.3, charges: this.reserve.charges, max: this.reserve.max, refillIn: this.reserve.refillIn, ready: this.cooldown === 0 && this.reserve.charges > 0, aimKind: this.aimKind, hit: this.lastHit, tones: this.modeTones,
-      owned: this.owned, mode: this.mode, modeName: this.modeName, modes: this.modes.length, modeFlash: this.modeFlash });
+    const dry = this.dry;
+    this.hud?.update({ on: this.k > 0.5 && this.camK > 0.3, charges: this.reserve.charges, max: this.reserve.max, refillIn: dry ? 0 : this.reserve.refillIn, ready: this.cooldown === 0 && this.reserve.charges > 0, aimKind: this.aimKind, hit: this.lastHit, tones: this.modeTones,
+      owned: this.owned, mode: this.mode, modeName: dry ? 'empty' : this.modeName, modes: this.modes.length, modeFlash: this.modeFlash });
     this.lastHit = null;
   }
 
@@ -1109,6 +1120,7 @@ export class FluidTool {
   /** A press with the tank empty: a dribble from the nozzle and a dry click. */
   sputter() {
     this.lastHit = 'empty';
+    if (this.dry) this.state.emit('tool:dry', {});   // (the story says why, once: src/story/desert.js)
     this.sound?.fluidEmpty?.();
     const from = this.muzzle(_m), up = this.player.frame.up;
     for (let i = 0; i < 4; i++) this.drops.add({ pos: from, vel: _a.copy(up).multiplyScalar(-0.5 - Math.random()).add(_t1.randomDirection().multiplyScalar(0.4)), grav: 9, size: 0.018, life: 0.45, color: this.modeTones[i % 2] });
@@ -1330,6 +1342,7 @@ export class FluidTool {
   /** One line for the HUD while aiming: the mode and the charges (no button list: the settings carry the controls). */
   hudText() {
     const pips = '◆'.repeat(this.reserve.charges) + '◇'.repeat(this.reserve.max - this.reserve.charges);
+    if (this.dry) return `empty tank ${pips}`;
     const wait = this.reserve.level < this.reserve.max ? ` refill ${Math.ceil(this.reserve.refillIn)}s` : '';
     return `${this.modeName} ${pips}${wait}`;
   }

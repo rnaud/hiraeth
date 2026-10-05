@@ -83,9 +83,9 @@ export const CONTENT = {
     // opens on the first visit and closes when the ship has power again
     story: {
       title: 'THE TREE THAT DRINKS',
-      intro: 'The ship is dark. Beyond the dunes, smoke rises, and a tree is burning.',
-      outro: 'The water rose, the tree drank, and the ship woke. Something of value? Ask the pilgrims.',
-      label: 'the burning tree', goal: [230, 'ground', 400], radius: 20, manual: true,
+      intro: 'The ship is dark. Beyond the dunes, over the walls of a city, stands a great tree, black and cold, as if it had burned out.',
+      outro: 'The water rose, the tree drank, a stone from far away lit it, and the ship woke. Something of value? Ask the pilgrims.',
+      label: 'the great dark tree', goal: [230, 'ground', 400], radius: 20, manual: true,
     },
     relics: {
       spots: [[-260, -330], [150, -210], [-150, -112], [150, 60], [-262, 12]],
@@ -98,7 +98,7 @@ export const CONTENT = {
         id: 'ysa', name: 'Ysa', title: 'dune walker', color: '#d8a24a', talk: { nodes: {
           hello: { say: ['~tired~ The wind took my tracks again. Every morning I walk out, every evening the dunes pretend I never did.'], choices: [
             { text: '~curious~ Where is everyone?', goto: 'where' }, { text: '~neutral~ Bye, Ysa.', end: true }] },
-          where: { say: ['~neutral~ At Qanat, the old city, north-east past the low dunes. You can see the tree burning from here, look. The pilgrims are camped at its gate, waiting for the drinking.'], choices: [{ text: '~curious~ What do the dunes remember?', goto: 'city' }, { text: '~happy~ Thanks.', end: true }] },
+          where: { say: ['~neutral~ At Qanat, the old city, north-east past the low dunes. You can see its tree from here, look: the great dark one over the walls. It burned every day of my life, until the night before your ball came down. The pilgrims are camped at the gate, waiting for the drinking.'], choices: [{ text: '~curious~ What do the dunes remember?', goto: 'city' }, { text: '~happy~ Thanks.', end: true }] },
           city: { say: ['~solemn~ Every dune remembers a city. Walls under the sand, everywhere. Qanat is the one that didn’t sink: the tree holds it up by the roots, the old people say.'], choices: [{ text: '~happy~ Thanks.', end: true }] },
         } } },
       { at: [-140, -80], palette: pal('#5fb7ad'), lines: ['~whisper~ The mask sleeps. Don’t wake it.', '~neutral~ I counted the ribs once. Forty.'],
