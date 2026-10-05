@@ -67,10 +67,35 @@ export async function exportPeople({ W, blob: worldBlob, sblob = worldBlob, mate
     return e.id;
   }
 
+  // ------------------------------------------------------------ the bodies' levels of detail (skinned-lod.js)
+  // each skinned mesh worth it (SKIN_LOD.minTris; not the eyes and brows, not several materials): its
+  // clustered copies at cells of 2^j (j = min..max, the body's own units), the bone weights merged per
+  // cell (lod-core.js mergeSkin), each keeping under SKIN_LOD.keep of the triangles; shared with the body
+  const { SKIN_LOD } = await import('../../src/skinned-lod.js');
+  const { pack, unpack, triCount } = await import('../../src/lod.js');
+  const { cluster } = await import('../../src/lod-core.js');
+  const skinLevels = new Map();
+  function levelsOf(o, h) {
+    if (o === h.eyeMesh || o === h.browMesh || Array.isArray(o.material)) return null;
+    const g = o.geometry;
+    if (triCount(g) < SKIN_LOD.minTris || Object.keys(g.morphAttributes ?? {}).length) return null;
+    const key = `${shared ? 's' : 'w'}:${g.uuid}`;
+    if (skinLevels.has(key)) return skinLevels.get(key);
+    const packed = pack(g), out = [];
+    // (coarse to fine: a coarser level not worth it, nor is a finer one)
+    for (let j = SKIN_LOD.max; j >= SKIN_LOD.min; j--) {
+      const r = cluster(packed, 2 ** j, SKIN_LOD.keep);
+      if (!r) break;
+      out.unshift({ j, geo: geometryOf(unpack(r, g)) });
+    }
+    skinLevels.set(key, out.length ? out : null);
+    return skinLevels.get(key);
+  }
+
   // ------------------------------------------------------------ one person
   const visibleUnder = (o, stop) => { for (let p = o; p && p !== stop; p = p.parent) if (!p.visible) return false; return true; };
   /** A node tree (bones, anchors, rigid pieces) and its visible meshes; `hidden`: subtrees kept but switched off. */
-  function treeOf(root, { noShadow = [], hidden = [] } = {}) {
+  function treeOf(root, { noShadow = [], hidden = [], h = null } = {}) {
     root.updateMatrixWorld(true);
     const nodes = [], index = new Map(), off = new Set(hidden);
     const shown = (o) => { for (let p = o; p && p !== root.parent; p = p.parent) if (!p.visible && !off.has(p)) return false; return true; };
@@ -97,6 +122,8 @@ export async function exportPeople({ W, blob: worldBlob, sblob = worldBlob, mate
         const binds = shared ? bindsS : bindsW;
         if (!binds.has(hk)) binds.set(hk, blob(bind).at);
         m.bones = bones; m.bind = binds.get(hk);
+        const lv = h ? levelsOf(o, h) : null;
+        if (lv) m.lods = lv;
       }
       meshes.push(m);
     });
@@ -105,7 +132,7 @@ export async function exportPeople({ W, blob: worldBlob, sblob = worldBlob, mate
 
   function personOf(h, char, { id, role, hero = false, cape = null, extra = {}, hidden = [], noShadow = [] } = {}) {
     h.update(true);   // the bind pose (T-pose): the clips in Unity start from here
-    const { nodes, meshes, index } = treeOf(h.model, { noShadow: [...(h.noShadow ?? []), ...noShadow], hidden });
+    const { nodes, meshes, index } = treeOf(h.model, { noShadow: [...(h.noShadow ?? []), ...noShadow], hidden, h });
     // the cape: its cut, and the drape it settles into on this body (anchor space)
     let capeOut = null;
     if (cape && index.has(cape.anchor)) {
@@ -233,8 +260,18 @@ export async function exportPeople({ W, blob: worldBlob, sblob = worldBlob, mate
   // flipped for Unity; per person the packed look (aLook0, aLook1, aDress, aBody), seed, pose, scale
   const { figureGeometry } = await import('../../src/crowd.js');
   const crowdFigures = {};
-  for (const d of ['mid', 'far']) {
-    const g = figureGeometry(d, W.levelId ?? 'desert'), P = g.attributes.position, N = g.attributes.normal, R = g.attributes.aRig, n = P.count;
+  // (and the distant one: the far figure simplified to 10 cm, crowd.js CROWD_DIST_CELL, the shader's parameters locked)
+  const { simplify } = await import('../../src/lod.js');
+  const { CROWD_DIST_CELL } = await import('../../src/crowd.js');
+  const figure = (d) => {
+    if (d !== 'dist') return figureGeometry(d, W.levelId ?? 'desert');
+    const far = figureGeometry('far', W.levelId ?? 'desert'), rig = far.attributes.aRig;
+    return simplify(far, CROWD_DIST_CELL, { lock: Uint8Array.from({ length: rig.count }, (_, i) => (rig.getX(i) >= 9.5 ? 1 : 0)) });
+  };
+  for (const d of ['mid', 'far', 'dist']) {
+    const g = figure(d);
+    if (!g) continue;
+    const P = g.attributes.position, N = g.attributes.normal, R = g.attributes.aRig, n = P.count;
     const pos = new Float32Array(n * 3), nrm = new Float32Array(n * 3), rig = new Float32Array(n * 4);
     for (let i = 0; i < n; i++) {
       pos.set([P.getX(i), P.getY(i), P.getZ(i)], i * 3); nrm.set([N.getX(i), N.getY(i), N.getZ(i)], i * 3);

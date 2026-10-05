@@ -164,9 +164,11 @@ the star chart's layout, the planets and the region names against the web's.
   boxes, the hoverbike and the flora, with a small DOM stub (`shim.mjs`).
   Colour management is off, as in the game: colours are display values.
 - `export-desert.mjs` walks the scene and writes:
-  - **static surfaces** merged by material and by 256 m tile (positions,
-    normals, vertex × instance colours, uvs, cloth folds; for plants the
-    wind-sway anchor and bend), every flora instance included;
+  - **static surfaces** in the web game's own draw units, each merged into
+    world space (positions, normals, vertex × instance colours, uvs, cloth
+    folds), with their **levels of detail** baked and what the culling needs
+    (`statics.mjs`, see [Drawing it cheaply](#drawing-it-cheaply-levels-of-detail-culling-the-suns-shadows));
+    the **flora** per species, every plant an instance filed by 32 m cell;
   - **materials**: the `makeMaterial` options read back from each shader's
     uniforms (colours, mode: plain / terrain / strata / water, faceted,
     strata size, grid, glyphs, biomes, ripples, sand ink, ticks, glow, folds,
@@ -232,8 +234,9 @@ the star chart's layout, the planets and the region names against the web's.
   lines, grains, salt-flat cracks), sand scuffs, cloud shadows, local lights,
   the surface-anchored power-of-two hatching (single, cross, form-following
   rings and height contours) and stipple, plant sway in the wind and away from
-  the traveller, the printed outfit zones of the people. Shadows come from URP
-  (4 cascades over 700 m, 4096²).
+  the traveller, the printed outfit zones of the people. The sun's shadows are
+  the web's own three cascades (`MementoShadows`, below), sampled as
+  `materials.js` getShadow does.
 - `Composite.shader` ports `post.js`: ink lines from the Laplacian of 1/z,
   normal creases, albedo and shadow edges, with the wobble, pen pressure,
   broken interior lines anchored in the world, lines thinning with distance and
@@ -267,6 +270,79 @@ the star chart's layout, the planets and the region names against the web's.
   lathe shells of flat bands, licked and torn by a scrolling noise, self-lit;
   it turns to the cool palette when the tree drinks.
 
+### Drawing it cheaply: levels of detail, culling, the sun's shadows
+
+The port draws what the web game draws, as cheaply (`src/perf.js`, `src/lod.js`,
+`src/skinned-lod.js`, `src/shadows.js`, `main.js` renderFrame), the same rules
+ported rather than Unity's own (LODGroup's screen-height thresholds don't give
+lod.js's error-by-distance with its hysteresis):
+
+- **Draw units** (`scripts/unity-export/statics.mjs`): the static world comes cut
+  as `tileScene` leaves the web's scene: each mesh its own unit, a big one (150 k
+  triangles) in 260 m tiles and a wide one (20 k, wider than 66 m) in 110 m tiles
+  by triangle, a big InstancedMesh in 110 m tiles of instances (the "small" tiles).
+  Each unit is merged into world space as the export always was, so the patterns
+  land where they did. The terrain is cut into 260 m tiles at load
+  (`Terrain3.Tiles`); its whole mesh stays for the collision.
+- **Levels of detail**: each unit `LodManager` would take (one material, 400
+  triangles, 48 each) gets its levels baked by `lod-core.js` cluster: cells of
+  2^j × the mesh's scale (× its largest instance), j from the finest worth it (4 cm,
+  r / 4000) to 0.35 r, the seams between tiles of one mesh locked, a level kept if
+  it drops a fifth of the triangles of the one before (and of the full mesh).
+  `WorldDetail` (per camera, before it culls: `RenderPipelineManager.beginCameraRendering`)
+  swaps each unit's mesh for the coarsest level whose cell is under the preset's
+  `lodPx` pixels at its distance (`PickLevel` = `pickLevel`, staying put within
+  ~10 % of a switch). No extra objects or draws.
+- **Culling** (in every pass, shadows included): the small prop tiles past the
+  preset's `propFar` (`cullFar`), the small single meshes (under 3 m, not self-lit)
+  whose size on screen is under `propPx` (`SmallCuller`).
+- **The flora** (`flora.js`): one set per species, every plant an instance
+  (`MEMENTO_FLORA` in `Surface.shader`: placed, swayed and lit as the merged chunks
+  were), filed by 32 m cell. Each frame each species draws its cells in view within
+  its distance × `floraFar`, and those just behind for their shadows; past the
+  distance where the far copy (`farLevel`) is within `lodPx`, in that copy. One draw
+  per species, one for its far copies, from the ink feature's G-buffer pass.
+- **People**: each body's skinned meshes come with clustered copies (j = -6 … -3,
+  the bone weights merged per cell, `mergeSkin`); `Figure.UpdateDetail` picks them
+  by the same rule and hides the eyes and brows from 1/16 m cells. The crowd's
+  instanced figures (`FarCrowd`) in the web's tiers: the mid figure out to
+  `crowdMid` (65 m, leaving at 72), then the far figure (rewritten every 4th
+  frame), past the distance where its 10 cm detail is under `lodPx` the far figure
+  simplified to that, nobody past `crowdFar`; no shadows (the web's crowd figures
+  cast them within 35 m, where the port draws full bodies, which cast).
+- **The sun's shadows** (`MementoShadows`, in place of URP's: the sun light's own
+  shadows are off): `shadows.js`'s three cascades round the traveller, fine (±12 m,
+  2048²), near (±220 m, 4096²) and far (±1150 m, 2048²), each of a fixed size moved
+  in whole texels and depth steps, the light quantised to 0.25°. They are redrawn
+  on the preset's schedule: fine and near every `nearEvery`-th frame, far every
+  `farEvery`-th and never on the near one's frame, all three when the light turns.
+  Each pass skips the casters whose shadow can't reach the view (the sphere swept
+  away from the sun down to the lowest ground, `ShadowCuller`) and those under ¾
+  of its texel; the far pass leaves out the small tiles and plants and draws every
+  unit no finer than its texel. The static units are drawn as meshes, what moves
+  (people, capes, the ship) by their renderers, the flora and the wildlife
+  instanced. `Surface.shader` samples them as `getShadow`: bias and normal offset
+  in texels, the taps spread to the pixel's footprint, 9 taps (4 on the handheld).
+- **The capes** (`CapeSystem`): once a frame after the people are posed, each cape
+  within 30 m (35 m to leave), in view, on its turn (every frame within 12 m,
+  every other frame beyond, as `npc.js`) has its anchor and capsules read once into
+  plain arrays; one Burst job steps them all in parallel (3 substeps, 5 when the
+  wearer hurries; 5 constraint passes, the capsules and the ground), writes the
+  vertices back in the collar's space with their normals. Capes off screen sleep in
+  their drape and start again from it.
+- **The presets** (`Quality.cs`, `perf.js` QUALITY_PRESETS): High / Medium (lodPx 1,
+  propFar 520 m, propPx 1, flora × 1, cascades 2048 / 4096 / 2048, near every frame,
+  far every 3rd, 9 taps), Low (1.5, 420 m, 1.5, × 0.8, 1024 / 2048 / 2048, near
+  every 2nd) and Handheld (2, 320 m, 2, × 0.65, no fine cascade, near 2048 at
+  ±160 m every 2nd, far every 4th, 4 taps, no cloud shadows; crowd to 220 m).
+- **What it costs** (`Perf.cs`): the capes, the levels and culling, the shadows'
+  planning and the crowd are timed with a stopwatch (release players too); the
+  benchmark writes them per view (`systems`, ms a frame) with their counts
+  (`counts`: capes simulated, units drawn coarser, culled, shadow casters,
+  cascades drawn). `Batch.Shots -detail full` (and the player's `-benchDetail
+  full`) draws everything at full detail with nothing culled: the reference the
+  levels are checked against.
+
 ### The play (`Assets/Memento/Runtime`)
 
 - `Game` / `Play`: the desert scene's bootstrap (world, look, sun, camera, the
@@ -286,10 +362,12 @@ the star chart's layout, the planets and the region names against the web's.
   `animator.js` does it (idle, walk, jog, run by speed with the gait's phase,
   jump, fall, climb, glide, ride, talk), with the baked postures laid over
   it. The face's expressions follow each line's tone (`TalkFace`: mood, brows,
-  the mouth opening on the voice), and the eyes look at you. `Cape` simulates
-  the capes (Verlet within 30 m, the baked drape beyond). `FarCrowd` draws the
-  crowd past 55 m as instanced figures. (`Characters` is the old glTFast
-  path, kept as a fallback.)
+  the mouth opening on the voice), and the eyes look at you. `Cape` holds a
+  cape's cut and `CapeSystem` simulates them (Verlet within 30 m, the baked drape
+  beyond; one Burst job a frame, below). Far off a body draws its simpler skinned
+  copies (`skinned-lod.js`). `FarCrowd` draws the crowd past 55 m as instanced
+  figures, in the web's tiers. (`Characters` is the old glTFast path, kept as a
+  fallback.)
 - `FluidTool` (`fluid-tool.js`): three charges, the glob shot on an arc and its
   splat, the push, the boost, the wings with the glider, the gun modes
   (stilling, ember) and the tank's colours (the living water adds one).

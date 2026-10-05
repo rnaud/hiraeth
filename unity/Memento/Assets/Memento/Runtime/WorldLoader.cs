@@ -304,6 +304,13 @@ namespace Memento
             var cells = f.L("cells");
             set.cc = new Vector3[cells.Count]; set.cr = new float[cells.Count]; set.cs = new int[cells.Count]; set.cn = new int[cells.Count]; set.cellFar = new bool[cells.Count];
             for (int i = 0; i < cells.Count; i++) { var cl = cells[i]; set.cc[i] = cl.V3("c"); set.cr[i] = cl.F("r"); set.cs[i] = cl.I("start"); set.cn[i] = cl.I("count"); }
+            // (the small plants of a cell in a fixed shuffled order: a preset's floraDensity keeps the first share of each)
+            if (set.small)
+                for (int c = 0; c < set.cc.Length; c++)
+                {
+                    var rng = new System.Random(set.cs[c] * 7919 + 17);
+                    for (int i = set.cn[c] - 1; i > 0; i--) { int j = rng.Next(i + 1); (set.inst[set.cs[c] + i], set.inst[set.cs[c] + j]) = (set.inst[set.cs[c] + j], set.inst[set.cs[c] + i]); }
+                }
             return set;
         }
         readonly List<Material> extraMaterials = new();

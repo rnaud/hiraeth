@@ -119,6 +119,8 @@ namespace Memento
             vp = Json.Parse(File.ReadAllText(file)) as Dictionary<string, object>;
             preset = Arg("-benchPreset", "high");
             Quality.Set(preset);   // (the web's preset: levels of detail, culling, shadow maps)
+            if (Arg("-benchDetail") == "full") Quality.AllDetail();   // (a reference: no levels of detail, nothing culled)
+            if (Arg("-benchShadows") == "off") MementoShadows.On = false;   // (a diagnosis: no sun shadows)
             var res = Arg("-benchRes");
             if (res != null && Application.platform != RuntimePlatform.Android)
             {
@@ -193,18 +195,8 @@ namespace Memento
             Settings.mute = true; Settings.Apply();
             // the graphics preset (the web's High and Handheld, mapped: docs/benchmark-web-vs-unity.md)
             urp = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
-            if (urp)
-            {
-                if (preset == "handheld")
-                {
-                    urp.renderScale = 0.75f;
-                    urp.shadowCascadeCount = 2;
-                    urp.mainLightShadowmapResolution = 4096;   // (two 2048 tiles: the web's near and far maps)
-                    urp.cascade2Split = 160f / 700f;
-                    urp.shadowDistance = 700;
-                }
-                else urp.renderScale = 1;
-            }
+            // (the shadow maps, levels of detail and culling follow Quality: the web's own cascades, MementoShadows)
+            if (urp) urp.renderScale = preset == "handheld" ? 0.75f : 1;
             if (game.look) { game.look.hour = vp.F("hour", 10); game.look.hoursPerMinute = 0; }
             if (game.ambient) { game.ambient.forced = vp.S("weather", "clear"); game.ambient.intensity = 0; game.ambient.target = 0; }
             // the backpack on his back, as the web side's save has it (item.backpack)
@@ -373,7 +365,10 @@ namespace Memento
             sb.Append($"\"unity\":{Q(Application.unityVersion)},\"platform\":{Q(Application.platform.ToString())},\"device\":{Q(SystemInfo.deviceModel)},\"os\":{Q(SystemInfo.operatingSystem)},");
             sb.Append($"\"cpu\":{Q(SystemInfo.processorType)},\"gpu\":{Q(SystemInfo.graphicsDeviceName)},\"api\":{Q(SystemInfo.graphicsDeviceType.ToString())},\"systemMB\":{SystemInfo.systemMemorySize},\"scripting\":{Q(ScriptingBackend())},\"development\":{(Debug.isDebugBuild ? "true" : "false")},");
             sb.Append($"\"preset\":{Q(preset)},\"screen\":[{Screen.width},{Screen.height}],\"renderScale\":{(urp ? urp.renderScale : 1).ToString(CultureInfo.InvariantCulture)},");
-            sb.Append($"\"shadows\":{{\"cascades\":{(urp ? urp.shadowCascadeCount : 0)},\"atlas\":{(urp ? urp.mainLightShadowmapResolution : 0)},\"distance\":{(urp ? urp.shadowDistance : 0).ToString(CultureInfo.InvariantCulture)}}},");
+            sb.Append(string.Format(CultureInfo.InvariantCulture, "\"shadows\":{{\"on\":{0},\"fine\":{1},\"near\":{2},\"far\":{3},\"nearExtent\":{4},\"nearEvery\":{5},\"farEvery\":{6},\"taps\":{7}}},",
+                MementoShadows.On ? "true" : "false", Quality.fineSize, Quality.nearSize, Quality.farSize, Quality.nearExtent, Quality.nearEvery, Quality.farEvery, Quality.taps));
+            sb.Append(string.Format(CultureInfo.InvariantCulture, "\"detail\":{{\"lodPx\":{0},\"propFar\":{1},\"propPx\":{2},\"floraFar\":{3},\"floraDensity\":{4},\"crowdFar\":{5},\"crowdMid\":{6}}},",
+                Quality.lodPx, Quality.propFar, Quality.propPx, Quality.floraFar, Quality.floraDensity, Quality.crowdFar, Quality.crowdMid));
             sb.Append($"\"vSyncCount\":{QualitySettings.vSyncCount},\"targetFrameRate\":{Application.targetFrameRate},\"frameTiming\":{(FrameTimingManager.IsFeatureEnabled() ? "true" : "false")},");
             sb.Append(string.Format(CultureInfo.InvariantCulture, "\"load\":{{\"desertUnderTitle\":{0:0.###},\"firstFrame\":{1:0.###},\"copyOut\":{2:0.###}}},", loadTitle, loadFirst, DataFiles.CopySeconds));
             sb.Append($"\"label\":{Q(Arg("-benchLabel", ""))},\"time\":{Q(DateTime.UtcNow.ToString("o"))},\n\"views\":[\n{views}\n]}}\n");

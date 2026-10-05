@@ -27,17 +27,32 @@ browser automation or builds); it writes `scripts/bench/results/mac.json` and th
 | | web High | Unity "high" | web Handheld | Unity "handheld" |
 |---|---|---|---|---|
 | render scale | 1.0 (the game's High is 1.5×: fixed at 1.0 here, so both sides draw the same pixels) | URP 1.0 | 0.75, dynamic resolution off | URP 0.75 |
-| sun shadows | 3 cascades: fine 2048² (24 m), near 4096² (±220 m), far 2048² (2.3 km, every 3rd frame); 9-tap PCF | 4 cascades of 2048² (14 / 56 / 210 / 700 m), every frame; URP soft shadows, low | near 2048² (±160 m, every 2nd frame), far 2048² (every 4th); 4 taps | 2 cascades of 2048² (160 / 700 m), every frame |
+| sun shadows | 3 cascades: fine 2048² (24 m), near 4096² (±220 m), far 2048² (2.3 km, every 3rd frame); 9-tap PCF | the same three cascades, sizes and schedule (`MementoShadows`, ported from `shadows.js`; URP's own shadow maps off), 9 taps | near 2048² (±160 m, every 2nd frame), far 2048² (every 4th); 4 taps | the same (no fine cascade, near every 2nd frame, far every 4th, 4 taps) |
 | ink pass | full | full (the same composite, ported) | lighter (one line pass) | full (no lighter variant) |
 | cloud shadows, crease shading | on | on | off | cloud shadows off |
-| distant detail | levels of detail (`lod.js`), flora and props culled by size and distance | none: every static tile and plant drawn at full detail when in view | coarser levels, flora at 55 % density, shorter crowd and prop ranges | as "high" |
+| distant detail | levels of detail (`lod.js`, lodPx 1), flora and props culled by size and distance | the same: the web's draw units with their levels baked by the exporter (`statics.mjs`, `lod-core.js`), picked by the same rule (lodPx 1), props culled past 520 m and under 1 px, the flora by cell and species distance, the bodies' skinned levels, the crowd's tiers | coarser levels (lodPx 2), flora at 55 % density, shorter crowd and prop ranges | the same rules at lodPx 2, propFar 320 m, propPx 2, flora to 65 % of its distance, crowd to 220 m, 55 % of each cell's small plants |
+| scripting | JavaScript (V8) | IL2CPP (the Mac player; the WebGL build and the APK too) | | |
 | antialiasing | FXAA | FXAA | FXAA | FXAA |
 
 What to keep in mind reading them (seen while building the harness, true whatever the run):
 
-- **The port is not tuned, the web game is.** The web side has had passes for this desert (levels of detail, culling by size, shadow caster culling, cascades refreshed every few frames, the handheld preset); the Unity side draws every static tile and plant at full detail (5–8 M triangles a frame where the web draws 0.5–1.1 M) and refreshes every shadow cascade every frame. What the GPU does here is what each codebase asks for, not what each engine could do: the port would need the same passes (LOD groups or the web's own levels exported, size culling, cascade scheduling) before the GPU columns say much about the engines.
-- **The capes.** Where many robed people sit near the camera (the camps, the walk round them) the Unity player spends ~55 ms a frame in `Cape.LateUpdate` (the cloth's collision reads `Transform.position` and `lossyScale` inside its innermost loops): switched off (`node scripts/bench/unity-bench.mjs --off Cape --only camps`), the camps go from ~60 ms to ~6 ms a frame. That is a port bug (read the capsule ends once per step, or move the cloth to Burst jobs), not the engine; the web game has the same capes, and its whole frame there costs a fraction of that (its CPU column).
-- **Mono on the Mac.** The macOS player is Mono (the Mac IL2CPP module isn't installed); the WebGL build and the APK are IL2CPP. In the runs made while building the harness the WebGL build (IL2CPP to WebAssembly) was faster than the Mono player wherever the capes dominate.
+- **The port draws what the web draws.** Since the first smoke runs (5–8 M triangles a frame against the web's
+  0.5–1.1 M, every shadow cascade every frame, ~55 ms of capes at the camps) the port has the web's own passes:
+  its draw units and levels of detail, the size and distance culling, the flora by cell, the bodies' skinned
+  levels and the crowd's tiers, and the web's three shadow cascades on its schedule (`unity/README.md`, "Drawing
+  it cheaply"). The rules are ported, not re-tuned: what differs is the engine. Two things still differ: the port
+  gives full bodies to the crowd out to 55 m (the web: the nearest four within 12.5 m, instanced figures beyond),
+  so the camps draw more triangles in the port; and on the handheld the web plants 55 % of the small plants where
+  it places them at load, the port keeps a fixed 55 % of each cell's (the same count, other plants).
+- **The capes** are one Burst job a frame now (the bodies read once, only the capes near and in view, every other
+  frame past 12 m); the per-system cost is in each view's `systems` (Unity) next to the frame time. `--off Cape`
+  still switches them off for a check.
+- **What the systems cost** (Unity: `systems` per view, ms a frame of main-thread time, stopwatch-timed so release
+  players report it too: the capes, the levels and culling, the shadows' planning, the crowd; `counts`: capes
+  simulated, units drawn coarser, culled, shadow casters, cascades drawn). `--extra "-benchDetail full"` draws
+  everything at full detail with nothing culled, `-benchShadows off` without the sun's shadows: the references.
+- **IL2CPP on the Mac.** The macOS player is IL2CPP (ARM64, release configuration, speed-optimised C++), as the
+  WebGL build and the APK; `BenchBuild.Mac -mono` builds the Mono player for a comparison.
 - **GPU times are spans** on both sides (see above): use the uncapped frame time to compare throughput.
 - **A window, not a display.** The Unity player, uncapped in a window, runs a few frames ahead and is then held back for one (the 15–30 ms frames in its p95 / p99 on the fastest views, where the median is 3–5 ms); Chrome's uncapped frames don't do that. That is pacing, not work: the stutter a player would see is in the 60 Hz table, and on the handheld (vsync-paced) in the share of frames over 20 ms.
 

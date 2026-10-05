@@ -144,6 +144,9 @@ namespace Memento
                 if (hide != u.hidden) { u.hidden = hide; u.mr.enabled = !hide; }
                 if (hide) culledN++;
             }
+            // the people's bodies (skinned-lod.js)
+            int bodies = 0;
+            foreach (var f in Figure.All) if (f) { f.UpdateDetail(cp, ppr, px); if (f.lodJ != Full) bodies++; }
             // the flora
             GeometryUtility.CalculateFrustumPlanes(cam, planes);
             foreach (var f in flora) UpdateFlora(f, cp, ppr, px);
@@ -174,15 +177,18 @@ namespace Memento
                 live.Add(i);
                 key.Append(f.cellFar[i] ? 'f' : ',').Append(i);
             }
+            key.Append('d').Append(Quality.floraDensity);
             var k = key.ToString();
             if (k == f.key) return;
             f.key = k;
             f.tmp ??= new FloraSet.Inst[f.count]; f.tmpFar ??= new FloraSet.Inst[f.count];
             int n = 0, nf = 0;
+            float density = f.small ? Mathf.Clamp01(Quality.floraDensity) : 1;
             foreach (int i in live)
             {
-                if (f.cellFar[i] && f.farMesh) { System.Array.Copy(f.inst, f.cs[i], f.tmpFar, nf, f.cn[i]); nf += f.cn[i]; }
-                else { System.Array.Copy(f.inst, f.cs[i], f.tmp, n, f.cn[i]); n += f.cn[i]; }
+                int cn = density < 1 ? Mathf.RoundToInt(f.cn[i] * density) : f.cn[i];
+                if (f.cellFar[i] && f.farMesh) { System.Array.Copy(f.inst, f.cs[i], f.tmpFar, nf, cn); nf += cn; }
+                else { System.Array.Copy(f.inst, f.cs[i], f.tmp, n, cn); n += cn; }
             }
             int stride = Marshal.SizeOf<FloraSet.Inst>();
             if (f.buf == null) { f.buf = new GraphicsBuffer(GraphicsBuffer.Target.Structured, Mathf.Max(1, f.count), stride); f.mpb.SetBuffer("_Flora", f.buf); }

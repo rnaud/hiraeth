@@ -71,6 +71,9 @@ Shader "Memento/Surface"
       uint iid : SV_InstanceID;  // the crowd's instanced figures (MEMENTO_CROWD)
     };
 
+    // instanced parts with a whole transform each (the wildlife: InstMats in Wildlife.cs): three rows of a 3x4 matrix and a tint
+    struct MatInst { float4 r0, r1, r2, col; };
+    StructuredBuffer<MatInst> _Mats;
     // the flora's plants (WorldDetail.cs, flora.js): each instance three rows of a 3x4 matrix (Unity's frame) and a tint
     struct FloraInst { float4 r0, r1, r2, col; };
     StructuredBuffer<FloraInst> _Flora;
@@ -178,9 +181,6 @@ Shader "Memento/Surface"
       struct PuffInst { float4 at; float4 size; float4 col; };   // at.w yaw, size.w pitch, col.w roll (rad, Unity)
       StructuredBuffer<PuffInst> _Puffs;
       float4 _FarDepth;
-      // instanced parts with a whole transform each (the wildlife: InstMats in Puffs.cs): three rows of a 3x4 matrix and a tint
-      struct MatInst { float4 r0, r1, r2, col; };
-      StructuredBuffer<MatInst> _Mats;   // x: from this view depth on, y: the depth grows this much slower (smoke-column far shading); 0 off
       // the grass tufts round the camera (Grass.cs, flora-grass.js): root xyz (Unity), height; turn, tint, lean, rank
       struct GrassInst { float4 at; float4 b; };
       StructuredBuffer<GrassInst> _GrassInst;
@@ -711,7 +711,7 @@ Shader "Memento/Surface"
       #pragma vertex shadowVert
       #pragma fragment shadowFrag
       #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
-      #pragma multi_compile_local _ MEMENTO_CROWD MEMENTO_FLORA
+      #pragma multi_compile_local _ MEMENTO_CROWD MEMENTO_FLORA MEMENTO_INSTMAT
       #pragma target 4.5
       #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
       #include "Crowd.hlsl"
@@ -733,6 +733,13 @@ Shader "Memento/Surface"
         #endif
         #if defined(MEMENTO_FLORA)
           { float3 fw, fs, fn; floraPlace(_Flora[v.iid], v.positionOS.xyz, v.normalOS, fw, fs, fn); posWS = fs; nWS = fn; }
+        #endif
+        #if defined(MEMENTO_INSTMAT)
+          {
+            MatInst mi = _Mats[v.iid]; float3 q = v.positionOS.xyz;
+            posWS = float3(dot(mi.r0.xyz, q) + mi.r0.w, dot(mi.r1.xyz, q) + mi.r1.w, dot(mi.r2.xyz, q) + mi.r2.w);
+            nWS = normalize(float3(dot(mi.r0.xyz, v.normalOS), dot(mi.r1.xyz, v.normalOS), dot(mi.r2.xyz, v.normalOS)));
+          }
         #endif
         float4 positionCS = TransformWorldToHClip(ApplyShadowBias(posWS, nWS, _LightDirection));
         #if UNITY_REVERSED_Z
