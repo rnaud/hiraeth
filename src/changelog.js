@@ -7,6 +7,11 @@ export const CHANGELOG = [
     'Smoother frame rate everywhere, most of all close to metal, cracked rock and other detailed surfaces; nothing looks different.',
     'No more stutter the first time you walk into a new place or turn to something new: everything is prepared while the world loads, and worlds load faster.',
     'Grassy places no longer waste time redrawing every blade of grass each frame; stepping through a door no longer stalls while the grass appears.',
+    'Every world has music of its own now, with its own instruments, scale and short tune: ney, oud and frame drum in the desert; a muted horn, vibes and a walking bass down the City-Shaft; wind and breath on Vael; the monks and their far bell over Vael II’s clouds; a ticking, unresolved machine in the Sealed Hangar; low brass and struck metal in the Buried Machine.',
+    'More of it: harp, strings and the water clock dripping in Viridel; glass, bells and mallets in the Garden of Spheres; a singing crystal, a low clarinet and wooden knocks in Lorn; woodwinds and woodblocks in the Deep Wood; market drums, claps and a hammered santur in the Signal Market; a felt piano and a music box at home and in the Atelier.',
+    'Your father’s tune, the one you hear when he gives you his charge, comes back now and then in every world, in that world’s own voice. At home it opens the music.',
+    'The music follows what you do: drums and plucked notes join in when you walk, run or ride, and when you stand still a while, go indoors, or night falls, it settles back to a drone, a few chords and the world’s tune. It never plays the same way twice.',
+    'No more sharp clicks in some sounds: the ticking gears, drums, footsteps and gusts.',
   ] },
   { v: '0.56', date: '2026-10-05', items: [
     'The settings now have an Updates section in the Android app: see the version you’re playing, check for updates, read what the new one brings, and download it with a progress bar. The game restarts at the title screen with your saves kept.',

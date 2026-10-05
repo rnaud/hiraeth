@@ -1263,6 +1263,7 @@ function frame() {
     speed: player.riding ? 0 : Math.hypot(player.vel.x, player.vel.z), gust: wind.gust(), storm: Wx.storm, rain: Wx.rainOut, rainRoof: Wx.rainRoof,
     thrusting: player.thrusting, riding: player.riding, rideKind: rideK, rideSpeed: player.ride?.speed ?? 0,
     altitude: player.pos.y - (terrain.heightAt ? terrain.heightAt(player.pos.x, player.pos.z) : player.pos.y),
+    flying: player.gliding || player.thrusting, indoor: shelter.indoor, night: sky.hour < 6.4 || sky.hour > 19.3,
   });
 
   // sand: ambient gusts + dust behind the bike

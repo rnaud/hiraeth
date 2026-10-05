@@ -10,6 +10,8 @@
 // up the world's melody), 'feast' (the holy event: double-time and claps).
 
 import { bindVoice, languageOf } from './story/voice.js';
+import { scoreFor, scoreBeat, chordAt, CALM_ACT } from './score.js';
+import { playVoice, playColour, hit } from './score-voices.js';
 
 // Bako's ney solo (AudioEngine.solo): three breaths in a hijaz mode, [semitones from the tonic, seconds].
 // (0 D, 1 E♭, 4 F♯, 5 G, 7 A, 8 B♭, 10 C) The augmented second (1 -> 4) and the slow falls back to the tonic
@@ -27,49 +29,13 @@ export const SPHERES_SONG = [[0, 1], [2, 1], [4, 2], [5, 2], [4, 1], [2, 1], [1,
 // How loud the ambient wind (its whoosh and the high howl) is against everything else.
 export const AMBIENT_WIND = 0.4;
 
-const PROFILES = {
-  bazaar: { root: 164.81, scale: [0,2,4,6,7,9,11], tempo: 88, pad: 'triangle', arp: 'sine', prog: [0,3,1,4], density: .55, ground: 'stone' },
-  // root (Hz), scale (semitones), tempo, waveforms, chord roots (scale degrees), arpeggio density
-  desert:  { root: 146.83, scale: [0, 2, 3, 5, 7, 9, 10], tempo: 66, pad: 'triangle', arp: 'triangle', prog: [0, 5, 3, 4], density: 0.45, ground: 'sand' },
-  incal:   { root: 174.61, scale: [0, 2, 4, 6, 7, 9, 11], tempo: 84, pad: 'sawtooth', arp: 'square', prog: [0, 1, 4, 0], density: 0.6, ground: 'stone' },
-  arzach:  { root: 110.0, scale: [0, 3, 5, 7, 10], tempo: 50, pad: 'sine', arp: 'sine', prog: [0, 0, 3, 4], density: 0.25, ground: 'sand' },
-  garage:  { root: 130.81, scale: [0, 2, 4, 6, 8, 10], tempo: 92, pad: 'square', arp: 'sawtooth', prog: [0, 2, 4, 1], density: 0.55, ground: 'stone' },
-  edena:   { root: 196.0, scale: [0, 2, 4, 7, 9], tempo: 72, pad: 'triangle', arp: 'sine', prog: [0, 3, 4, 2], density: 0.5, ground: 'grass' },
-  perdide: { root: 164.81, scale: [0, 1, 3, 5, 7, 8, 10], tempo: 56, pad: 'sine', arp: 'triangle', prog: [0, 1, 0, 5], density: 0.35, ground: 'grass' },
-  arzach2: { root: 116.54, scale: [0, 3, 5, 7, 10], tempo: 46, pad: 'sine', arp: 'sine', prog: [0, 3, 0, 4], density: 0.22, ground: 'stone' },
-  buried:  { root: 123.47, scale: [0, 2, 3, 6, 7, 8, 11], tempo: 70, pad: 'triangle', arp: 'square', prog: [0, 4, 1, 3], density: 0.4, ground: 'sand' },
-  spheres: { root: 220.0, scale: [0, 2, 4, 7, 9], tempo: 64, pad: 'triangle', arp: 'sine', prog: [0, 4, 3, 2], density: 0.42, ground: 'grass' },
-  perdide2: { root: 155.56, scale: [0, 1, 3, 5, 7, 8, 10], tempo: 52, pad: 'sine', arp: 'triangle', prog: [0, 5, 1, 0], density: 0.3, ground: 'grass' },
-  atelier: { root: 130.81, scale: [0, 2, 4, 5, 7, 9, 11], tempo: 60, pad: 'sine', arp: 'sine', prog: [0, 3, 5, 4], density: 0.3, ground: 'stone' },
-  home:    { root: 138.59, scale: [0, 2, 4, 5, 7, 9, 11], tempo: 54, pad: 'triangle', arp: 'sine', prog: [0, 3, 4, 0], density: 0.3, ground: 'grass' },
-};
-
-// Each world's own voice: the lead instrument, its recurring melody (a phrase
-// of [scale degree, beats], played every 16 beats, varied each time), the
-// pluck colour, and the ambience bed.
-const VOICES = {
-  bazaar: { lead: 'reed', pluck: 'celesta', ambience: 'city', melody: [[0,1],[4,1],[6,2],[5,1],[2,1],[4,2],[null,1],[1,1],[0,2]] },
-  desert:  { lead: 'duduk', pluck: 'kalimba', ambience: 'wind',
-    melody: [[4, 2], [3, 1], [2, 1], [0, 3], [null, 1], [2, 1], [3, 1], [4, 1], [6, 2], [4, 3]] },
-  incal:   { lead: 'reed', pluck: 'marimba', ambience: 'city',
-    melody: [[0, 1], [2, 1], [4, 1], [6, 2], [5, 1], [4, 1], [2, 2], [null, 1], [4, 1], [3, 1], [1, 3]] },
-  arzach:  { lead: 'flute', pluck: 'kalimba', ambience: 'highwind',
-    melody: [[2, 3], [1, 1], [0, 4], [null, 2], [3, 2], [4, 4]] },
-  garage:  { lead: 'synth', pluck: 'synth', ambience: 'machine',
-    melody: [[0, 0.5], [2, 0.5], [4, 0.5], [6, 0.5], [7, 1], [4, 1], [5, 0.5], [3, 0.5], [1, 2]] },
-  edena:   { lead: 'strings', pluck: 'celesta', ambience: 'birds',
-    melody: [[4, 1], [5, 1], [7, 2], [5, 1], [4, 1], [2, 2], [null, 1], [2, 1], [4, 1], [3, 3]] },
-  perdide: { lead: 'bell', pluck: 'bell', ambience: 'swamp',
-    melody: [[0, 2], [5, 2], [4, 1], [2, 1], [1, 4], [null, 2], [0, 4]] },
-  arzach2: { lead: 'flute', pluck: 'kalimba', ambience: 'highwind', melody: [[4, 3], [2, 1], [3, 4], [null, 2], [1, 2], [0, 4]] },
-  buried:  { lead: 'reed', pluck: 'marimba', ambience: 'machine', melody: [[0, 2], [3, 1], [2, 1], [6, 3], [null, 1], [4, 1], [3, 1], [0, 3]] },
-  spheres: { lead: 'strings', pluck: 'celesta', ambience: 'birds', melody: [[2, 1], [4, 1], [5, 2], [4, 1], [2, 1], [0, 2], [null, 1], [1, 1], [2, 3]] },
-  perdide2: { lead: 'bell', pluck: 'bell', ambience: 'swamp', melody: [[0, 3], [2, 1], [1, 2], [5, 2], [null, 2], [4, 1], [0, 4]] },
-  atelier: { lead: 'flute', pluck: 'celesta', ambience: 'paper',
-    melody: [[0, 2], [2, 1], [4, 1], [7, 3], [6, 1], [4, 4]] },
-  // home: a phrase that climbs and comes back to rest
-  home: { lead: 'strings', pluck: 'kalimba', ambience: 'birds', melody: [[0, 2], [2, 1], [4, 1], [5, 3], [null, 1], [4, 1], [2, 1], [0, 4]] },
-};
+// Each world's score lives in src/score.js (its mode, tempo, instruments, leitmotif, and the
+// father's theme in it); its instruments in src/score-voices.js. Here: the ground under your
+// feet (the footsteps) and each world's ambience bed.
+const GROUND = { bazaar: 'stone', desert: 'sand', incal: 'stone', arzach: 'sand', garage: 'stone', edena: 'grass', perdide: 'grass', arzach2: 'stone', buried: 'sand', spheres: 'grass', perdide2: 'grass', atelier: 'stone', home: 'grass' };
+const AMBIENCE = { bazaar: 'city', desert: 'wind', incal: 'city', arzach: 'highwind', garage: 'machine', edena: 'birds', perdide: 'swamp', arzach2: 'highwind', buried: 'machine', spheres: 'birds', perdide2: 'swamp', atelier: 'paper', home: 'birds' };
+// the instruments audio.js plays itself (the rest are src/score-voices.js's)
+export const OWN_KINDS = new Set(['duduk', 'reed', 'flute', 'strings', 'synth', 'bell', 'marimba', 'oud', 'ney', 'chant', 'celesta', 'kalimba']);
 
 // The menu music (the title screen, and the full-screen Start and Select menus): a calm
 // music box over a slow pad in D lydian, its own tune apart from every world's. It plays on
@@ -169,7 +135,7 @@ export function renderSyllable(ctx, dest, s, t, noise) {
   const click = s.cons === 'stop', hiss = s.cons === 'fric';
   if (noise && (click || hiss || s.breath > 0.03)) {
     const n = ctx.createBufferSource(); n.buffer = noise;
-    const f = ctx.createBiquadFilter(), g = ctx.createGain();
+    const f = ctx.createBiquadFilter(), g = ctx.createGain(); g.gain.value = 0;
     const c = s.consonant ?? '';
     const cf = click ? 2600 + 1400 * (s.bright ?? 0.5) : /^(s|z|ch|ts)$/.test(c) ? 5200 : c === 'sh' ? 2800 : 1600;
     const cdur = click ? 0.012 : hiss ? 0.035 : 0;
@@ -192,9 +158,12 @@ export class Sound {
   constructor(levelId, { score = true } = {}) {
     this.score = score;
     this.menuOn = false;
-    this.profile = PROFILES[levelId] ?? PROFILES.desert;
-    this.voice = VOICES[levelId] ?? VOICES.desert;
-    this.phrase = 0;
+    // the world's score (src/score.js): the unknown (the title, the Lab) play the desert's
+    this.scoreId = scoreFor(levelId) === scoreFor('desert') ? 'desert' : levelId;
+    const S = (this.S = scoreFor(this.scoreId));
+    this.profile = { root: S.root, scale: S.scale, tempo: S.tempo, pad: 'triangle', ground: GROUND[levelId] ?? 'sand' };
+    this.voice = { lead: S.pal.lead, pluck: S.pal.pluck, ambience: AMBIENCE[levelId] ?? 'wind', melody: S.motif };
+    this.act = { ...CALM_ACT };   // what you are doing, eased (update): the score follows it
     this.ctx = null;
     this.muted = localStorage.getItem('moebius.muted') === '1';
     this.musicVol = 0.8;
@@ -440,21 +409,14 @@ export class Sound {
     return this.profile.root * Math.pow(2, (S[d] + 12 * (o + octave)) / 12);
   }
 
+  /** Schedule the score's beats up to a little ahead of now (src/score.js scoreBeat says what plays). */
   schedule() {
-    const ctx = this.ctx, P = this.profile, spb = 60 / P.tempo;
+    const ctx = this.ctx, spb = 60 / this.S.tempo;
+    if (!this.V) this.V = { ctx, noise: this.noiseBuf };
     while (this.nextBeat < ctx.currentTime + 0.4) {
       const t = this.nextBeat;
-      if (this.beat % 8 === 0) {           // new chord every 8 beats: pad + bass
-        const root = P.prog[(this.beat / 8) % P.prog.length];
-        this.chord = root;
-        for (const k of [0, 2, 4]) this.pad(this.freq(root + k), t, spb * 8.5);
-        this.bass(this.freq(root, -1), t, spb * 8);
-      }
-      if (this.beat % 16 === 4) this.playPhrase(t, spb);   // the world's melody, every 16 beats
-      if (Math.random() < P.density * (this.beat % 16 < 4 ? 1 : 0.55)) {      // sparse arpeggio, quieter under the melody
-        const deg = this.chord + [0, 2, 4, 7, 9][Math.floor(Math.random() * 5)];
-        this.instrument(this.voice.pluck, this.freq(deg, 1), t + (Math.random() < 0.3 ? spb / 2 : 0), 0.4, 0.07);
-      }
+      this.chord = chordAt(this.S, this.beat);
+      for (const e of scoreBeat(this.scoreId, this.beat, this.act)) this.playEvent(e, t, spb);
       this.ambienceTick(t, spb);
       if (this.bands) for (const b of this.bands) if (b.level > 0.004) this.bandBeat(b, t, spb);
       this.beat++;
@@ -462,21 +424,27 @@ export class Sound {
     }
   }
 
-  // ------------------------------------------------------------------ voices
-  playPhrase(t, spb) {
-    const M = this.voice.melody, n = this.phrase++;
-    const shift = [0, 0, 2, -1][n % 4];        // a varied answer every few phrases
-    const oct = n % 3 === 2 ? 1 : 0;
-    let tt = t;
-    for (const [deg, beats] of M) {
-      if (deg !== null && !(n % 5 === 4 && Math.random() < 0.3)) this.instrument(this.voice.lead, this.freq(deg + shift, oct), tt, beats * spb, 0.11);
-      tt += beats * spb;
+  /** One of the score's events (src/score.js), at the beat starting t0. */
+  playEvent(e, t0, spb) {
+    const ctx = this.ctx, t = t0 + e.at * spb, dur = e.beats * spb;
+    let out = this.music;
+    if (e.pan && ctx.createStereoPanner) { const p = ctx.createStereoPanner(); p.pan.value = e.pan; p.connect(this.music); out = p; }
+    if (e.layer === 'perc') return hit(this.V, e.kind, t, e.vol, out);
+    const f = this.freq(e.degree, e.octave);
+    if (e.layer === 'color') {
+      if (e.kind === 'voices') { this.instrument('chant', f, t, 5, e.vol, out); this.instrument('chant', this.freq(e.degree + 2, e.octave), t + 1.5, 4, e.vol * 0.7, out); return; }
+      playColour(this.V, e.kind, f, t, e.vol, out, [0, -1, -2].map((k) => this.freq(e.degree + k, e.octave)));
+      return;
     }
+    const held = e.layer === 'drone' || e.layer === 'pad';
+    if (OWN_KINDS.has(e.kind) && !held) this.instrument(e.kind, f, t, dur, e.vol, out);
+    else if (!playVoice(this.V, e.kind, f, t, dur, e.vol, out, held)) this.instrument(e.kind, f, t, dur, e.vol, out);
   }
 
   /** One note of a named instrument. dur in seconds. `dest`: a band's input instead of the score. */
   instrument(kind, f, t, dur, vol, dest = null) {
-    const ctx = this.ctx, out = ctx.createGain();
+    if (!OWN_KINDS.has(kind) && playVoice(this.V ??= { ctx: this.ctx, noise: this.noiseBuf }, kind, f, t, dur, vol, dest ?? this.music)) return;
+    const ctx = this.ctx, out = ctx.createGain(); out.gain.value = 0;
     const pan = !dest && ctx.createStereoPanner ? ctx.createStereoPanner() : null;
     if (dest) out.connect(dest);
     else if (pan) { pan.pan.value = Math.random() * 0.8 - 0.4; out.connect(pan).connect(this.music); } else out.connect(this.music);
@@ -552,8 +520,9 @@ export class Sound {
       if (R < 0.3) this.croak(t + Math.random() * spb);
       if (R > 0.75) this.burst(t, { dur: 0.6, type: "bandpass", freq: 5200, q: 6, vol: 0.006 });   // insects
     } else if (A === 'machine') {
-      for (let i = 0; i < 2; i++) this.burst(t + i * spb / 2, { dur: 0.03, type: 'highpass', freq: 3000, q: 1, vol: 0.06 });   // ticking gears
-      if (R < 0.1) this.burst(t, { dur: 0.5, type: 'lowpass', freq: 140, q: 1, vol: 0.18, rate: 0.4 });                       // a piston thump
+      // ticking gears, far off and not on every beat (the score keeps its own clock), and now and then a piston
+      if (R > 0.35) this.burst(t + (R > 0.7 ? spb / 2 : 0), { dur: 0.03, type: 'highpass', freq: 3000, q: 1, vol: 0.025 });
+      if (R < 0.08) this.burst(t, { dur: 0.5, type: 'lowpass', freq: 140, q: 1, vol: 0.09, rate: 0.4 });
     } else if (A === 'highwind' && R < 0.12) {
       this.burst(t, { dur: 3, type: 'bandpass', freq: 600 + Math.random() * 500, q: 4, vol: 0.06, rate: 0.6 });
     } else if (A === 'paper' && R < 0.15) {
@@ -631,7 +600,9 @@ export class Sound {
     const ctx = this.ctx;
     const src = ctx.createBufferSource(); src.buffer = this.noiseBuf; src.playbackRate.value = rate;
     const f = ctx.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
-    const g = ctx.createGain();
+    // (its level from the start: a gain is 1 until its first event, and a source starting between
+    // two samples sounds one sample early, a click at full level)
+    const g = ctx.createGain(); g.gain.value = vol;
     src.connect(f).connect(g).connect(this.fx);
     g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0005, t + dur);
     src.start(t, Math.random() * 1.5); src.stop(t + dur + 0.05);
@@ -708,7 +679,7 @@ export class Sound {
     const ctx = this.ctx, t = ctx.currentTime;
     const src = ctx.createBufferSource(); src.buffer = this.noiseBuf; src.loop = true; src.playbackRate.value = 0.35;
     const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 260; f.Q.value = 0.6;
-    const g = ctx.createGain();
+    const g = ctx.createGain(); g.gain.value = 0.0005;
     src.connect(f).connect(g).connect(this.fx);
     g.gain.setValueAtTime(0.0005, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.6); g.gain.setValueAtTime(vol, t + dur * 0.45);
     g.gain.exponentialRampToValueAtTime(0.0005, t + dur);
@@ -946,7 +917,7 @@ export class Sound {
     const src = ctx.createBufferSource(); src.buffer = this.noiseBuf;
     const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 1.2;
     f.frequency.setValueAtTime(200, t); f.frequency.exponentialRampToValueAtTime(3000, t + 1.2);
-    const g = ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.4, t + 0.6); g.gain.linearRampToValueAtTime(0, t + 1.4);
+    const g = ctx.createGain(); g.gain.value = 0; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.4, t + 0.6); g.gain.linearRampToValueAtTime(0, t + 1.4);
     src.connect(f).connect(g).connect(this.fx);
     src.start(t); src.stop(t + 1.5);
     [0, 4, 7, 11].forEach((d, i) => this.pluck(this.freq(d, 1), t + 0.2 + i * 0.15, 0.08, 'triangle', this.fx));
@@ -1254,7 +1225,7 @@ export class Sound {
     const nb = ctx.createBiquadFilter(); nb.type = 'bandpass'; nb.Q.value = 2.2;
     const ng = ctx.createGain(); ng.gain.value = 0.32;
     o.connect(g); o2.connect(g2).connect(g); n.connect(nb).connect(ng).connect(g); g.connect(dest);
-    g.gain.setValueAtTime(0, t);
+    g.gain.value = 0; g.gain.setValueAtTime(0, t);
     let at = t;
     notes.forEach(([semi, d], i) => {
       const hz = f(semi);
@@ -1297,7 +1268,7 @@ export class Sound {
   noiseHit(t, dur, type, freq, vol, dest) {
     const ctx = this.ctx, src = ctx.createBufferSource(); src.buffer = this.noiseBuf;
     const f = ctx.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = 1.2;
-    const g = ctx.createGain(); src.connect(f).connect(g).connect(dest);
+    const g = ctx.createGain(); g.gain.value = vol; src.connect(f).connect(g).connect(dest);   // (no click: see burst)
     g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0005, t + dur);
     src.start(t, Math.random() * 1.5); src.stop(t + dur + 0.05);
   }
@@ -1389,10 +1360,29 @@ export class Sound {
     o.connect(f).connect(g).connect(this.fx); o.start(t); o.stop(t + 0.1);
   }
 
+  /**
+   * What you are doing, eased, for the score (src/score.js scoreBeat's `act`): walking comes
+   * in over a couple of seconds and goes over several; riding, gliding or on the jets; how long
+   * you have stood about; indoors (src/shelter.js); night; the storm.
+   */
+  follow(s) {
+    const now = this.ctx?.currentTime ?? 0, dt = Math.min(0.5, Math.max(0, now - (this._actT ?? now)));
+    this._actT = now;
+    const A = this.act, speed = s.speed ?? 0, riding = !!s.riding || !!s.flying;
+    const ease = (v, to, up, down) => v + (to - v) * (1 - Math.exp(-dt / (to > v ? up : down)));
+    A.move = ease(A.move, Math.min(1, speed / 4), 2.5, 7);
+    A.ride = ease(A.ride, riding ? 1 : 0, 2, 5);
+    A.still = speed < 0.6 && !riding ? A.still + dt : 0;
+    A.indoor = s.indoor ?? 0;
+    A.night = ease(A.night, s.night ? 1 : 0, 5, 5);
+    A.storm = s.storm ?? 0;
+  }
+
   /** Per frame: drive the continuous layers from the game state. */
   update(s) {
     if (!this.ctx) return;
     if (this.bandDefs && !this.bands) this.makeBands();
+    this.follow(s);
     const k = Math.min(s.speed / 11, 1.5);
     // the wind's whoosh sits under the music, not over it (storms still rise well above the calm)
     const W = AMBIENT_WIND;

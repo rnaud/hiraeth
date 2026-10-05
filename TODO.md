@@ -528,7 +528,10 @@ All of this is for the web game; the Unity port follows later if we move to Unit
 - [ ] One stamina bar shared by running and climbing; running a little faster.
 - [ ] Flowers that open shouldn't clip into walls and other things.
 - [ ] Make it clear when you hit an invisible wall (the traveller just stutters as you push on).
-- [ ] Each world's music more thematic.
+- [x] Each world's music more thematic. (`src/score.js`, `src/score-voices.js`: each world its own
+  mode, tempo, metre, instruments, leitmotif and colour; the father's theme in every one; sections in
+  seeded arcs, filled by walking and riding, thinned by standing still, roofs and night. Offline
+  renders: `scripts/render-score.mjs`. README, "The score, world by world".)
 
 # References level (2026-10-05)
 

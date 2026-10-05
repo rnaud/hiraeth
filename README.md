@@ -421,19 +421,11 @@ poses update at 12 fps ("stop-motion anim") while movement stays smooth.
   stone gates and the walk off the edge of a world are gone (v0.38).
 - **Sound** (`src/audio.js`): everything is synthesised with Web Audio, with
   no audio files.
-  - Each world has its own lead instrument and a recurring melody, played
-    every 16 beats and varied each time:
-    - desert: duduk and kalimba;
-    - city-shaft: reed and marimba;
-    - Vael: flute;
-    - Hangar: analog synth;
-    - Viridel: strings and celesta;
-    - Lorn: FM bells.
+  - A score per world, with its own mode, instruments and leitmotif, and
+    the father's theme in each (see "The score, world by world" below).
   - Each also has its own ambience bed: city horns and passing taxis,
     birdsong, frogs and insects, ticking gears, high wind, or rustling
     paper.
-  - A generative score per world: its own scale, tempo, pads, bass and
-    sparse arpeggios, with reverb.
   - Wind that follows the gusts and storms, and rain.
   - Footsteps that match the ground (sand, stone, grass) and the cloak
     flutter.
@@ -1441,6 +1433,59 @@ distance and panning, and hushes the other bands and the score while it lasts.
 In the desert, asking Bako to play emits `music:solo { who: 'bako' }` from his
 conversation (`src/story/desert-data.js`), and `src/story/desert.js` starts it
 at his seat.
+
+## The score, world by world (v0.57)
+
+Each world's music is data in `src/score.js` (`SCORES`): a mode on a root, a tempo and a
+metre, a chord progression, an instrument palette, a percussion pattern, a colour of its
+own and a short leitmotif. `scoreBeat(world, beat, act)` says what plays on a beat; it is
+pure (a seeded random per beat), so `tests/score.test.js` checks it, and `Sound.schedule()`
+(`src/audio.js`) plays it. The instruments are in `src/score-voices.js`: two or three
+oscillators a note, detuned twins instead of LFOs where they can, nothing beyond what
+Chrome / WebView 109 has.
+
+| World | Mode | Tempo | Instruments | Leitmotif | Colour |
+|---|---|---|---|---|---|
+| Desert | D hijaz | 60, in 8 | ney, oud, reed drone, frame drum (walking) | "the tree drinks": up through the augmented second, back down like water | the city's slow bell |
+| City-Shaft | F lydian | 80 | muted horn, vibes, walking pizzicato bass, brushes | "look up": through the raised fourth | the Lodestar's shimmer |
+| Vael | A yo pentatonic | 46 | breathy shakuhachi-like flute, wind through stone, the stones' hum; no drums | "the waiting bird" | the bird's far cry |
+| Vael II | B♭ dorian | 44 | the monks' drone, a choir, flute, hand bells; no drums | four notes falling like a bell's change | the great bell tolling |
+| Sealed Hangar | C whole tone | 84, in 7 | soft analog lead, sequenced pulse, clock tick and tock | a question left hanging | the signal's three blips |
+| Buried Machine | B hungarian minor | 54 | low brass drone and pad, horn, anvils, clanks | "one tooth a year": a semitone at a time | the wheel's tooth |
+| Viridel | G mixolydian | 72, in 6 | harp, strings, flute, harmonium, water drops | a vine unfolding to the octave | the water clock's bell |
+| Garden of Spheres | A major pentatonic | 60 | glass harmonica, bells, mallets, the pole's hum, the walking drum | the bell sphere's phrase, mirrored every other time | far voices |
+| Lorn | E phrygian | 54 | wet-glass crystal drone, low clarinet, marimba, log drum and knocks | the crystal's phrase, round the flat second | an egg glowing |
+| Lorn II | E♭ aeolian | 58, in 3 | oboe, clarinet, bassoon drone, marimba, woodblocks | "the lamps are kept": up to the fifth, waiting | a lamp lighting |
+| Signal Market | E lydian dominant | 96 | street shawm, santur, electric piano, darbuka, claps, walking bass | "you are not alone": a call and its answer | radio call signs |
+| Home | D♭ major | 54 | felt piano, strings, harmonium, kalimba | the father's theme, and the line that brings it home | a music box |
+| Atelier | C major | 60 | felt piano, music box, strings | up to the octave, back to the fifth | a pencil on paper |
+
+- **Form.** The music runs in sections of a few bars (`sectionAt`), six to an arc (about a
+  minute and a half): `rest` (the drone and the colour), `open` (pad and motif), `grow`
+  (pad, plucks, drums), `full` (everything), `memory` (the father's theme over the pad),
+  `echo` (the motif's first half on the pluck), `thin`. The first arc is fixed (the motif at
+  once, then the father's theme); later ones are drawn per world from a seeded random, so
+  the order never settles into a loop. The motif shifts a step up or down, or an octave,
+  from one statement to the next.
+- **The father's theme** (`FATHER_THEME`): the charge's shape (`Sound.charge`), up a third,
+  up to the fifth, down a step, back to the fifth. `fatherIn(score)` snaps it into each
+  world's mode (in Vael it climbs to the fourth, in the Hangar's whole tone to the
+  tritone); it plays in the first arc and in every other one after, on the world's own
+  voice for it (the duduk in the desert, the bone whistle on Vael, a singing bowl in the
+  Buried Machine...). At home it is the world's own tune.
+- **Activity** (`Sound.follow`, eased each frame from `sound.update`): `move` (walking
+  speed), `ride` (a mount, a vehicle, the wings or the jets), `still` (seconds standing),
+  `indoor` (`src/shelter.js`), `night`, `storm`. Walking or riding adds the plucks and
+  the drums to any section; after half a minute standing still the drums and bass drop out;
+  indoors there are no drums, bass or colour; night and storms bring it all down. The
+  Hangar and the Market keep a quiet pulse even standing still.
+- **Levels.** `level` evens the worlds out (each renders to about -27 dB RMS).
+- **Offline renders** (`scripts/render-score.mjs`): the game's own `Sound` in headless,
+  muted Chrome, an `OfflineAudioContext` swapped in, along a little walk (standing, walking
+  from 10 s to 36 s, standing): `PLAYWRIGHT=…/playwright-core/index.mjs node
+  scripts/render-score.mjs <outDir> [seconds]` writes `score_<world>.wav` (`MUSIC_ONLY=1`
+  without the ambience and wind, `WORLDS=` to choose). It starts its own dev server (port
+  5847).
 
 ## The traveller: a person in a suit (v0.43)
 
