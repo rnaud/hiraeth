@@ -4323,3 +4323,10 @@ II's **Lamp-House**, Lorn's **Hush-House**, Vael's **Aerie**, the Sealed Hangar'
   you through; the echo shell and bloom mode have tests of their own.
 - In the browser, `temples.<world>` is the runtime (its `logic`, `guardian`,
   `piece(id)`), for poking at from the console.
+
+
+### Traveller reference redesign (v0.63)
+
+The current character follows the [three reference sheets and visual direction](lore/characters/traveller-design.md): coral overshirt, cream cropped trousers, scruffy dark hair and a round satchel. `src/traveller.js` builds the clothing on the unchanged human animation rig; `src/traveller-style.js` owns its palette. `src/fluid-tool.js` fits the compact green tank and preserves its scale through vehicle handoffs. The earned star and lantern mounts live in `src/boxes/effects.js`.
+
+For a complete preview, open `studio.html?backpack=1`; the **Fluid backpack** checkbox uses isolated state and never grants items to the game save. The traveller and drone tests cover skin weights, garment fit, movement, docking clearance, and the resized pack’s handoff.

@@ -24,7 +24,7 @@ export const DEFAULTS = Object.freeze({
   speed: 1, paused: false, time: 0, plant: true, move: false,
   hands: 'auto',         // auto (by the motion, the prop and the tone) | a pose of src/hands.js HAND_POSES
   // cloth
-  cape: true, wind: 0.6,
+  cape: true, wind: 0.6, backpack: false,
   // the view
   view: 'full',          // full | bust | face | close | far | hands
   turntable: false, yaw: 0.35, pitch: 0.05,

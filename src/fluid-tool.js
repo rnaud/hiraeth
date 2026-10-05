@@ -276,7 +276,7 @@ export function boostVelocity(vel, up, fwd, { up: burst = FLUID.boost.up, forwar
 
 // ---------------------------------------------------------------- visuals
 
-const INK = '#2b211f', BRASS = '#e2b552', BRASS_DARK = '#b5862f', STEEL = '#86a9d8', STEEL_DARK = '#5f86bf', RUBBER = '#3c4a78';
+const INK = '#263c37', BRASS = '#acaa78', BRASS_DARK = '#6c806b', STEEL = '#83b9ae', STEEL_DARK = '#3d6b60', RUBBER = '#303f3d';
 // the tank's brass, steel and iron are metal (materials.js METALS); lit parts stay lights
 const METAL_OF = { [BRASS]: 'brass', [BRASS_DARK]: 'brass', [STEEL]: 'steel', [STEEL_DARK]: 'painted', [INK]: 'iron' };
 const flatMat = (color, o = {}) => makeMaterial({ color, flat: true, ...(METAL_OF[color] && !o.glow ? { metal: METAL_OF[color] } : {}), ...o });
@@ -480,7 +480,8 @@ class Rings {
 // wearer's back), placed in the chest anchor's frame (y = 0 at the hips,
 // 0.74 at the collar, +z forward, the character's right at -x).
 export const TANK = {
-  at: [0, 0.4, -0.33],      // glass bottom, behind the shoulder blades
+  at: [0, 0.25, -0.35],      // glass bottom, behind the shoulder blades
+  scale: 0.8,              // a compact shoulder-to-waist pack on the adult body
   height: 0.52,             // glass
   full: 0.5,                // fluid height at three charges (a sliver of air on top)
   squash: 1.2,              // wider than deep
@@ -503,9 +504,9 @@ export const tankRadiusAt = radiusAt;
  * socket too): clamped by its foot to the frame's left side rail (the wearer's left), high up,
  * just under the rail's top bracket (the lantern hangs from the rail below it), off the glass.
  */
-export const TANK_RAIL = { x: TANK.profile.reduce((m, [r]) => Math.max(m, r), 0) * TANK.squash + 0.018, r: 0.012, z: 0.02 };
+export const TANK_RAIL = { x: TANK.profile.reduce((m, [r]) => Math.max(m, r), 0) * TANK.squash + 0.018, r: 0.012, z: -0.12 };
 export const SCOUT_DOCK_Y = TANK.height * 0.83;
-export const SCOUT_DOCK_X = TANK_RAIL.x + TANK_RAIL.r + DRONE_BELLY + 0.002;
+export const SCOUT_DOCK_X = TANK_RAIL.x + TANK_RAIL.r + DRONE_BELLY / TANK.scale + 0.002;
 export const SCOUT_DOCK_Z = TANK_RAIL.z;
 /**
  * While the fluid wings are open (gliding) their roots and lobes fill the tank's sides, so the
@@ -513,8 +514,8 @@ export const SCOUT_DOCK_Z = TANK_RAIL.z;
  * rail when they fold: scoutDockPose(k) is that hop (k 0 on the rail .. 1 on the cap), along an
  * arc that stays clear of the glass, turning from side-on to upright.
  */
-export const SCOUT_CAP = { y: TANK.height + 0.12 + DRONE_BELLY, hop: 0.2 };
-const _dockArc = [new THREE.Vector3(SCOUT_DOCK_X, SCOUT_DOCK_Y, SCOUT_DOCK_Z), new THREE.Vector3(SCOUT_DOCK_X + 0.03, TANK.height + 0.26, SCOUT_DOCK_Z), new THREE.Vector3(0, SCOUT_CAP.y, 0)];
+export const SCOUT_CAP = { y: TANK.height + 0.12 + DRONE_BELLY / TANK.scale, hop: 0.2 };
+const _dockArc = [new THREE.Vector3(SCOUT_DOCK_X, SCOUT_DOCK_Y, SCOUT_DOCK_Z), new THREE.Vector3(SCOUT_DOCK_X + 0.03, TANK.height + 0.5, SCOUT_DOCK_Z), new THREE.Vector3(0, SCOUT_CAP.y, 0)];
 export function scoutDockPose(k, pos, quat) {
   const t = THREE.MathUtils.smoothstep(k, 0, 1), [a, b, c] = _dockArc;
   pos.set(0, 0, 0).addScaledVector(a, (1 - t) ** 2).addScaledVector(b, 2 * t * (1 - t)).addScaledVector(c, t * t);
@@ -546,7 +547,7 @@ function buildTank() {
   const railX = TANK_RAIL.x;
   for (const sx of [-1, 1]) {
     add(new THREE.CylinderGeometry(TANK_RAIL.r, TANK_RAIL.r, TANK.height + 0.05, 6), flatMat(STEEL_DARK), sx * railX, TANK.height / 2 - 0.01, TANK_RAIL.z, false);
-    for (const y of [0.04, TANK.height - 0.04]) add(new THREE.BoxGeometry(0.03, 0.026, 0.15), flatMat(STEEL_DARK), sx * railX, y, 0.09, false);
+    for (const y of [0.04, TANK.height - 0.04]) add(new THREE.BoxGeometry(0.03, 0.026, 0.15), flatMat(STEEL_DARK), sx * railX, y, TANK_RAIL.z + 0.07, false);
   }
   add(new THREE.BoxGeometry(0.36, 0.46, 0.024), flatMat(STEEL_DARK), 0, TANK.height / 2, 0.17, false);
   // the hose's fitting on the cap, leaning toward the right shoulder
@@ -554,8 +555,8 @@ function buildTank() {
   add(new THREE.CylinderGeometry(0.022, 0.026, 0.07, 10), flatMat(BRASS), ox + 0.02, oy - 0.03, oz, false).rotation.z = 0.55;
   add(new THREE.TorusGeometry(0.026, 0.008, 4, 12).rotateX(Math.PI / 2), flatMat(INK), ox + 0.008, oy - 0.012, oz, false).rotation.z = 0.55;
   mergeParts(g, [glass]);
-  g.position.set(...TANK.at);
-  return { group: noCollide(g), glass, outlet: new THREE.Vector3(ox, oy, oz), top: TANK.at[1] + TANK.height + 0.11 };
+  g.position.set(...TANK.at); g.scale.setScalar(TANK.scale);
+  return { group: noCollide(g), glass, outlet: new THREE.Vector3(ox, oy, oz), top: TANK.at[1] + (TANK.height + 0.11) * TANK.scale };
 }
 
 // The bracer, in the right forearm's outfit frame (Humanoid.forearm.r, as the outfit's own rig had it: +y
@@ -997,10 +998,10 @@ export class FluidTool {
     // the back's pose and the socket's, in world space
     const back = this._back ??= { p: new THREE.Vector3(), q: new THREE.Quaternion(), s: new THREE.Vector3() };
     chest.updateWorldMatrix(true, false);
-    chest.localToWorld(back.p.set(...TANK.at)); chest.getWorldQuaternion(back.q); chest.getWorldScale(back.s);
+    chest.localToWorld(back.p.set(...TANK.at)); chest.getWorldQuaternion(back.q); chest.getWorldScale(back.s).multiplyScalar(TANK.scale);
     if (where === 'back') {
       if (g.parent !== chest) chest.add(g);
-      g.position.set(...TANK.at); g.quaternion.identity(); g.scale.setScalar(1);
+      g.position.set(...TANK.at); g.quaternion.identity(); g.scale.setScalar(TANK.scale);
       if (was === 'flight') this.onDocked(null, false);
       return where;
     }
@@ -1118,7 +1119,7 @@ export class FluidTool {
     this.hose.mesh.visible = visible && where !== 'flight';
     if (owned && this.appear < 1 && where === 'back') {
       const e = this.appear, sc = 0.25 + 0.75 * e + Math.sin(Math.PI * e) * 0.18;
-      this.tank.group.scale.setScalar(sc);
+      this.tank.group.scale.setScalar(sc * TANK.scale);
       this.flash = Math.max(this.flash, 1 - e);
       // the scout's dock rides the tank but not its growing in (small, it would sit inside the glass)
       const dock = p.gear?.scoutDock;
