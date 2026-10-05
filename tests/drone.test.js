@@ -273,3 +273,22 @@ test('gliding: the scout hops off the rail onto the cap, out of the fluid wings,
   }
   assert.ok(worst > 0, `on the cap it touches the body (${worst.toFixed(3)})`);
 });
+
+test('when the tank takes the radio pack\'s place, the docked scout glides over from the pack to the rail, folded', () => {
+  const w = wearer(false), scene = new THREE.Scene();
+  const player = { pos: V(), vel: V(), frame: { up: V(0, 1) }, gear: w.gear, humanoid: w.h, char: w.char };
+  const scout = new Scout({ scene, player, physics: { rayDistance: () => Infinity }, getTarget: () => null });
+  scout.update(1 / 60);
+  const onPack = scout.object.position.clone();
+  // the backpack is found: the dock goes onto the tank's rail (the real hook)
+  const tank = new THREE.Group(); tank.position.set(...TANK.at); w.h.chestAnchor.add(tank);
+  FluidTool.prototype.placeDock.call({ player: { gear: w.gear }, tank: { group: tank } }, true);
+  w.h.model.updateMatrixWorld(true);
+  scout.update(1 / 60);
+  assert.equal(scout.phase, 'return', 'on its way over');
+  assert.ok(scout.object.position.distanceTo(onPack) < 0.05, 'from where it was');
+  for (let i = 0; i < 40 && scout.phase !== 'docked'; i++) { scout.update(1 / 60); assert.equal(scout.fold.petals, 0, 'folded all the way'); }
+  assert.equal(scout.phase, 'docked');
+  assert.ok(scout.object.position.distanceTo(scout.anchor()) < 1e-6);
+  scout.update(1 / 60); assert.equal(scout.phase, 'docked', 'and stays');
+});

@@ -1047,7 +1047,10 @@ export class FluidTool {
       const e = this.appear, sc = 0.25 + 0.75 * e + Math.sin(Math.PI * e) * 0.18;
       this.tank.group.scale.setScalar(sc);
       this.flash = Math.max(this.flash, 1 - e);
-    }
+      // the scout's dock rides the tank but not its growing in (small, it would sit inside the glass)
+      const dock = p.gear?.scoutDock;
+      if (dock?.parent === this.tank.group) { scoutDockPose(this.scoutCapK ?? 0, dock.position, dock.quaternion); dock.position.divideScalar(sc); this._dockScaled = true; }
+    } else if (this._dockScaled) { this._dockScaled = false; this.placeDock(owned); }
     this.updateJets(dt);
     this.updateWings(dt);
     this.updatePower(dt);

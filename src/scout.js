@@ -113,7 +113,7 @@ export class Scout {
     const eye = this.drone.eye.at;
     // (on a pivot at the lens: the body keeps near level, the beak turns all the way up or down)
     this.pointerPivot = new THREE.Group(); this.pointerPivot.position.copy(eye); this.object.add(this.pointerPivot);
-    this.pointer = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.26, 8).rotateX(Math.PI / 2).translate(0, 0, 0.22), lamp);
+    this.pointer = new THREE.Mesh(new THREE.ConeGeometry(0.036, 0.24, 8).rotateX(Math.PI / 2).translate(0, 0, 0.2), lamp);
     this.pointer.visible = false; this.pointerPivot.add(this.pointer);
     for (const o of [this.ring, this.pointer]) o.userData.dynamic = true;
     markHero(this.object);
@@ -136,7 +136,7 @@ export class Scout {
   }
   /** dock(): home, folded (snap: at once; false: the fold finishes where it is, after a glide in). */
   dock(snap = true) {
-    this.phase = 'docked'; this.vel.set(0, 0, 0); this.stuck = this.over = 0; this.overUsed = false; this.fade = null; this.settleT = null; this.relaunch = false;
+    this.phase = 'docked'; this.vel.set(0, 0, 0); this.stuck = this.over = 0; this.overUsed = false; this.fade = null; this.settleT = null; this.relaunch = false; this.dockOnBody = null;
     this.object.position.copy(this.anchor()); this.dockQuaternion(this.object.quaternion); this.object.scale.setScalar(1);
     if (snap) this.fold.snap(false);
     this.drone.pose(this.fold);
@@ -280,7 +280,19 @@ export class Scout {
     this.trail.update(dt, flying && this.fade === null && !this.player.hidden ? this.object.position : null);
     if (this.phase === 'docked' && !this.trail.samples.length) this.trail.mesh.visible = false;
     if (this.phase === 'docked') {
-      this.object.position.copy(this.anchor());
+      const home = this.anchor(), body = this.player.humanoid?.chestAnchor;
+      // the dock itself moved on the body (the radio pack gave way to the tank): glide over to it, folded
+      const onBody = body ? body.worldToLocal(_l.copy(home)) : null;
+      const moved = onBody && this.dockOnBody && onBody.distanceTo(this.dockOnBody) > 0.25;   // (more than its own hops and the tank's swing make in a frame)
+      if (onBody) (this.dockOnBody ??= new THREE.Vector3()).copy(onBody);
+      if (moved && !this.player.hidden) {
+        const q = this.dockQuaternion(_q2);
+        this.phase = 'return'; this.age = DOCKING.launch; this.settleT = 0; this.relaunch = false;
+        this.settleFrom = _l.subVectors(this.object.position, home).applyQuaternion(_q3.copy(q).invert()).clone();
+        this.settleQ = this.object.quaternion.clone();
+        return;
+      }
+      this.object.position.copy(home);
       this.dockQuaternion(this.object.quaternion);
       this.drone.pose(this.fold.update(dt, false), dt);   // (a fold still closing finishes here)
       return;
