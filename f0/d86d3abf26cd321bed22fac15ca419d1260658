@@ -1,0 +1,77 @@
+TODO.md
+  s_1fd8d0e7b02dcf::t_afd146fc4737b9 395-400
+scripts/unity-export/export-desert.mjs
+  s_1fd8d0e7b02dcf::t_30358bf4c51a15 103-114,329-349,432-438,441
+unity/Memento/Assets/Memento/Editor/Tests/PlacesTests.cs.meta
+  s_1fd8d0e7b02dcf::t_a8264d314afffc 1-2
+unity/Memento/Assets/Memento/Rendering/MementoFeature.cs
+  s_1fd8d0e7b02dcf::t_c17dc56188dd34 131-134,192,209
+unity/Memento/Assets/Memento/Runtime/BatchDriver.cs
+  s_1fd8d0e7b02dcf::t_91ad4caebc6778 446-547
+unity/Memento/Assets/Memento/Runtime/CameraRig.cs
+  s_1fd8d0e7b02dcf::t_a570736d29ba93 38-41,57-105
+unity/Memento/Assets/Memento/Runtime/DesertErrands.cs
+  s_1fd8d0e7b02dcf::t_a01df6b55a02f6 1-249
+unity/Memento/Assets/Memento/Runtime/DesertErrands.cs.meta
+  s_1fd8d0e7b02dcf::t_94cedbd28de415 1-2
+unity/Memento/Assets/Memento/Runtime/DesertStory.cs
+  s_1fd8d0e7b02dcf::t_440ac019c22501 219
+unity/Memento/Assets/Memento/Runtime/FluidTool.cs
+  s_1fd8d0e7b02dcf::t_09374ab0d02942 185,250
+unity/Memento/Assets/Memento/Runtime/Game.cs
+  s_1fd8d0e7b02dcf::t_4e68b3bfa9459d 33-36,51-52
+unity/Memento/Assets/Memento/Runtime/Hud.cs
+  s_1fd8d0e7b02dcf::t_02321d38b9cc63 37,152,298,381,411,413-414,417-419,437-440,442,683-748
+unity/Memento/Assets/Memento/Runtime/Observatory.cs.meta
+  s_1fd8d0e7b02dcf::t_1ef9cac552839d 1-2
+unity/Memento/Assets/Memento/Runtime/Play.cs
+  s_1fd8d0e7b02dcf::t_0cbbc83af7460f 77-82,136-137
+unity/Memento/Assets/Memento/Runtime/QuestMarker.cs.meta
+  s_1fd8d0e7b02dcf::t_dc0c650eb3667a 1-2
+unity/Memento/Assets/Memento/Runtime/Relics.cs.meta
+  s_1fd8d0e7b02dcf::t_428a043c2e7959 1-2
+unity/Memento/Assets/Memento/Runtime/Targets.cs.meta
+  s_1fd8d0e7b02dcf::t_6f0ef31c0739c0 1-2
+unity/Memento/Assets/Memento/Runtime/UI/Journal.cs
+  s_1fd8d0e7b02dcf::t_b0a4ed6048a8de 45-48,86-94,111,223-260,268-269,271
+unity/README.md
+  s_1fd8d0e7b02dcf::t_fbe25ee5c2e146 42-44,46,50,134-138,341-368,486-492
+scripts/unity-export/build-world.mjs
+  s_bb75d8948267c1::t_b882bc99066a7a 66-73
+unity/Memento/Assets/Memento/Runtime/MementoLook.cs
+  s_bb75d8948267c1::t_4fb7f5feaf886e 49-56
+unity/Memento/Assets/Memento/Runtime/Observatory.cs
+  s_bb75d8948267c1::t_ef69b752067a49 1-171
+unity/Memento/Assets/Memento/Runtime/QuestMarker.cs
+  s_bb75d8948267c1::t_8eae10578a209c 1-75
+unity/Memento/Assets/Memento/Runtime/Relics.cs
+  s_bb75d8948267c1::t_3c2e4d999bc736 1-107
+unity/Memento/Assets/Memento/Runtime/Targets.cs
+  s_bb75d8948267c1::t_5933138c1364ea 1-58
+unity/Memento/Assets/Memento/Editor/Tests/PlacesTests.cs
+  s_1fd8d0e7b02dcf::t_ba338163016025 1-72
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f0d86d3abf26cd321bed22fac15ca419d1260658",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_bb75d8948267c1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ae630ee41ae0117ed",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
