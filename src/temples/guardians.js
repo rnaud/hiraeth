@@ -560,6 +560,16 @@ export function sentinelModel({ hull = '#9fb2c6', hull2 = '#8aa0b8', dark = '#34
   // the crown vent (it opens in the second phase, when its sides are shut)
   const topVent = new THREE.Mesh(merge(cyl(0.7, 0.8, 0.25, '#ffffff', [0, 0.6, 0], null, 12)), makeMaterial({ color: '#e0644a', glow: 0.1, flat: true, key: `sentinel.top.${uid++}` }));
   head.add(topVent);
+  // its hatch, hinged at one side: guarded, it swings up when the crown vent opens, and a column of
+  // the vent's glow rises out of it, tall enough to see from the floor (the only vent that opens then)
+  const hatch = new THREE.Group();
+  hatch.position.set(-0.82, 0.78, 0);
+  hatch.add(new THREE.Mesh(merge(cyl(0.84, 0.84, 0.12, dark, [0.82, 0, 0], null, 12), box([0.18, 0.2, 0.5], brass, [0.05, 0.08, 0])), mat));
+  head.add(hatch);
+  const plumeM = makeMaterial({ color: '#f39a45', glow: 1, side: THREE.DoubleSide, key: `sentinel.plume.${uid++}` });
+  const plume = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 0.55, 1, 12, 1, true).translate(0, 0.5, 0), plumeM);
+  plume.position.y = 0.8; plume.visible = false;
+  head.add(plume);
   head.add(new THREE.Mesh(merge(cyl(0.9, 1.1, 0.9, hull2, [0, 0, 0], null, 12)), mat));
   head.add(new THREE.Mesh(merge(ell([0.45, 0.45, 0.25], '#ffffff', [0, 0, 1.0])), eyeM));
   const legs = [];
@@ -576,7 +586,7 @@ export function sentinelModel({ hull = '#9fb2c6', hull2 = '#8aa0b8', dark = '#34
   const mouth = V(), _w = V();
   const M = {
     group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, mouth, mouthR: 1.5, radius: 3.0, height: 9,
-    head, body, vents, shutters, legs, eyeM, ventM, open: 0, slump: 0, gait: 0,
+    head, body, vents, shutters, legs, eyeM, ventM, hatch, plume, open: 0, slump: 0, gait: 0, crown: 0,
     /** Where vent i is, in the world (a target each, for a guardian that wants them all hit at once). */
     vent(i, out = V()) { const a = (i / nV) * Math.PI * 2; return body.localToWorld(out.set(Math.sin(a) * 2.5, 0.4, Math.cos(a) * 2.5)); },
     animate(dt, t, { state, attack, k = 0, speed = 0, meter = 0, phase = 0 }) {
@@ -594,6 +604,12 @@ export function sentinelModel({ hull = '#9fb2c6', hull2 = '#8aa0b8', dark = '#34
       shutters.forEach((s) => { s.position.y = 0.4 + sideOpen * 1.15; s.rotation.x = -sideOpen * 0.4; });
       topVent.scale.setScalar(0.3 + 0.7 * M.guard);
       topVent.material.uniforms.uGlow.value = 0.15 + 0.85 * M.open * M.guard * (0.7 + 0.3 * Math.sin(t * 12));
+      // the crown open (guarded and open): its hatch up, the glow rising out of it
+      M.crown = M.open * M.guard;
+      hatch.visible = M.guard > 0.05; hatch.scale.setScalar(Math.max(0.3, M.guard));
+      hatch.rotation.z = M.crown * 1.9 + (M.crown > 0.5 ? Math.sin(t * 17) * 0.05 : 0);
+      plume.visible = M.crown > 0.05;
+      if (plume.visible) { plume.scale.set(0.8 + 0.2 * Math.sin(t * 9), 3.6 * M.crown, 0.8 + 0.2 * Math.sin(t * 9 + 1)); plumeM.uniforms.uGlow.value = 0.55 + 0.45 * Math.sin(t * 13); }
       // the damage shows: it leans, and its hull dulls toward soot
       body.rotation.x = meter * 0.12 * Math.sin(t * 0.7);
       legs.forEach((L, i) => { L.rotation.x = Math.sin(M.gait + i * 2.1) * 0.15 * Math.min(1, speed) + M.slump * 0.3; });

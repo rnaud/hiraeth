@@ -64,12 +64,12 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 ## HUD, menus and bosses
 
-- [ ] "J to close" makes no sense on Android with a controller; B closes the menu too.
-- [ ] No three pills for the gun's level: it already shows on the backpack.
-- [ ] The drone's second pointer doesn't make sense (the drone already heads the way to go): remove it.
-- [ ] Bosses show a damage bar: show a health bar.
-- [ ] The vents boss: the vents only open a few times, then not any more.
-- [ ] The drone can give a hint about what to do against a boss.
+- [x] "J to close" makes no sense on Android with a controller; B closes the menu too. (The sketchbook, what's new, the worlds picker and the skip tags name the pad's back button, printed B, or nothing on touch: prompt-keys.js closeHint; B closes the Start menu from any page; the controller's back closes the panel on top first, the sketchbook before a conversation or a moment under it.)
+- [x] No three pills for the gun's level: it already shows on the backpack. (ToolHud: no pips, no refill seconds; nothing beside the traveller while the tank is short or the jets burn; only "empty" for 3 s when it runs dry.)
+- [x] The drone's second pointer doesn't make sense (the drone already heads the way to go): remove it. (No beak, no beam on a find; the flare stays. Also fixed its aim, which the capsule sweep zeroed every frame, so it now really faces what it found.)
+- [x] Bosses show a damage bar: show a health bar. (boss.js guardianBar: full at the start, going down; "health" for a machine, "unrest" for a living guardian; lifted above the cue line.)
+- [x] The vents boss: the vents only open a few times, then not any more. (The Warden's Well: in its second phase its side vents stay shut by design and only the crown opened, unseen from the floor and told once. Now its crown hatch swings up with a column of glow every time, the phase has its own open line, and any side vent counts in the first phase; tests/bosses.test.js. Also fixed: the Gardener could never be calmed, bloom reached it as water.)
+- [x] The drone can give a hint about what to do against a boss. (src/temples/hints.js: a ping in a guardian's fight chirps, turns the lens beam on the weak point or the thing to use, and says a line; three lines a phase, plainer each ping; the weary guardian asks for your hand.)
 
 ## Progression
 

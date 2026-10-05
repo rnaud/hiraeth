@@ -373,6 +373,7 @@
       #journal.open { display: block; }
       #journal header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; }
       #journal h1 { margin: 0; font-size: 26px; letter-spacing: 0.14em; }
+      #journal header .hint, #picker header .hint { font-style: normal; }
       #journal .close { border: 1.5px solid #2b211f; background: none; font: inherit; padding: 4px 10px; cursor: pointer; }
       #journal section { margin-bottom: 22px; }
       #journal h2 { font-size: 15px; letter-spacing: 0.06em; margin: 0 0 8px; }
@@ -435,10 +436,6 @@
       #tool .mode { position: absolute; top: 40px; left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 1px 7px;
         font: 11px/1.5 ui-monospace, Menlo, monospace; color: #2b211f; background: rgba(247, 236, 210, 0.85); border: 1px solid #2b211f; }
       #tool .mode b { font-weight: normal; letter-spacing: 0.08em; text-transform: uppercase; }
-      #tool .pips { margin-left: 7px; display: inline-flex; gap: 3px; vertical-align: -1px; }
-      #tool .pips u { display: inline-block; width: 8px; height: 8px; border: 1.5px solid #2b211f; border-radius: 50%; background: transparent; transition: transform 0.15s; }
-      #tool .pips u.on { transform: scale(1.12); }
-      #tool .wait { margin-left: 6px; opacity: 0.7; }
       #touch .b-aim { right: calc(200px + var(--safe-right)); bottom: calc(150px + var(--safe-bottom)); font-size: 24px; }
       #touch .b-aim.on { background: #9fd6e8; }
       #touch .b-fire { right: calc(200px + var(--safe-right)); bottom: calc(60px + var(--safe-bottom)); width: 74px; height: 74px; font-size: 26px; }
@@ -470,7 +467,7 @@
       <div class="msg">sketching the world…</div>
     </div>
     <div id="journal">
-      <header><h1>SKETCHBOOK</h1><span>J to close <button class="close">close ✕</button></span></header>
+      <header><h1>SKETCHBOOK</h1><span><em class="hint">J or Esc to close</em> <button class="close">close ✕</button></span></header>
       <div class="pages"></div>
     </div>
     <div id="page"></div>
@@ -486,7 +483,7 @@
     <div id="picker">
       <header>
         <h1>MEMENTO — choose a world</h1>
-        <span>press a number · L to toggle this screen <button class="close">close ✕</button></span>
+        <span><em class="hint">press a number · L to toggle this screen</em> <button class="close">close ✕</button></span>
       </header>
       <div class="cards"></div>
     </div>

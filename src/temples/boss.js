@@ -8,9 +8,11 @@ import { registerInteractable, PRIORITY } from '../interact.js';
 //
 //   organic   a guardian the makers left that has grown wild, or afraid. It is never hurt: its meter
 //             is CALM, which rises as you soothe it (light, water, a hand…) and falls a little when you
-//             frighten it (a push). Full, it settles, and the temple is resolved.
+//             frighten it (a push). Full, it settles, and the temple is resolved. On the screen its bar
+//             is its UNREST, full at the start and going down as it calms (guardianBar).
 //   robot     a broken sentinel. Its meter is DAMAGE: you may break it (shots at its open vents, its
-//             core), or switch it off.
+//             core), or switch it off. On the screen its bar is its HEALTH, full at the start and going
+//             down with each blow (guardianBar), as a boss's bar does.
 //
 // Either way it fights the same: it moves about its arena and attacks in a loop, each attack
 // telegraphed on the floor first (a disc, a fan or a lane that fills, inked in warning colours),
@@ -25,7 +27,7 @@ import { registerInteractable, PRIORITY } from '../interact.js';
 //   g.add(k, why)     the meter, within the current phase (def.phases)
 //   g.state           'sleep' | 'wake' | 'fight' | 'open' | 'weary' | 'resolved'
 //
-// def: { kind, name, phases: [{ to: 0.4, attacks: ['stamp', …], hint }],
+// def: { kind, name, phases: [{ to: 0.4, attacks: ['stamp', …], hint, openHint? (this phase's, else def.openHint) }],
 //        attacks: { id: { shape: 'ring' | 'cone' | 'lane', at: 'player' | 'self', radius, range, angle,
 //                          width, telegraph: s, damage: 0..1, knock: m/s, open?: s (vulnerable after),
 //                          recover: s } },
@@ -38,6 +40,17 @@ const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const UP = V(0, 1, 0);
 const _a = V(), _b = V();
 let uid = 0;
+
+/**
+ * The guardian's bar on the screen (src/temples/runtime.js meterHud): what is left of it, full at the
+ * start and going down: a machine's health, a living guardian's unrest (it is calmed, never hurt).
+ * { label, fill 0..1, color }.
+ */
+export function guardianBar(def, meter) {
+  const robot = def?.kind === 'robot';
+  const fill = THREE.MathUtils.clamp(1 - (meter ?? 0), 0, 1);
+  return { label: `${def?.name ?? ''} · ${robot ? 'health' : 'unrest'}`, fill, color: robot ? '#d9503f' : '#f0a04b' };
+}
 
 /** Strikes never empty a healthy bar: what is left after a hit, at least. */
 export const HIT = { floor: 0.08, low: 0.22, airborne: 1.3 };
@@ -297,7 +310,8 @@ export class Guardian {
         this.strike(a, P);
       } else if (this.at > a.telegraph + (a.recover ?? 0.8)) {
         this.tele.hide();
-        if (a.open) { this.enter('open'); this.openFor = a.open; this.rt.notice?.(this.def.openHint, `open.${a.id}`); }
+        // (said once a phase: a later phase's opening may differ, the warden's crown vent: phase.openHint)
+        if (a.open) { this.enter('open'); this.openFor = a.open; this.rt.notice?.(this.phase.openHint ?? this.def.openHint, `open.${this.phaseIndex}`); }
         this.attack = null;
         this.cool = this.phase.pause ?? 1.6;
       } else this.tele.set(1, t);

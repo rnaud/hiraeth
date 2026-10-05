@@ -2,7 +2,20 @@
 // from the settings menu; after an update a note points you to it once.
 // Add an entry at the top for every release.
 
+import { inputKind } from './prompt-keys.js';
+import { backKey } from './native-pad.js';
+
 export const CHANGELOG = [
+  { v: '0.65', date: '2026-10-05', items: [
+    'On a controller the sketchbook, what’s new and the other panels no longer say “J to close”: they name the controller’s own back button (B on a Retroid), and that button closes them. In the menu, B closes it from any page, Quests and Controls too, and the sketchbook opened over a conversation closes before the conversation does.',
+    'The skip tags of the game’s little scenes name the controller’s back button too, the one printed B on your handheld.',
+    'No more row of pills for the tank beside the traveller or under the crosshair: the tank on your backpack shows how full it is. Only an empty tank still says “empty”, for a moment.',
+    'The drone no longer carries a second pointer: no lit beak, no beam on a find. It flies out the way to go, faces what it found and drops its flare there. It also really faces it now (it used to look the way it was flying).',
+    'A guardian’s bar is what is left of it: full when the fight starts, going down as it goes your way. A machine’s is its health; a living guardian’s is its unrest, since it is calmed, never hurt. The bar sits above the line at the bottom of the screen.',
+    'The warden in the Warden’s Well: once it shuts its sides, the hatch on its crown visibly swings up and a column of its glow rises out of it every time it opens, so you can see from the floor that it is still opening, and it says so. In its first phase a shot into any of its side vents counts, not only the one in front.',
+    'In a guardian’s fight, ping the drone (Q, Y / △, or ping on a touch screen) for a hint: it chirps, rises over your shoulder, turns its lens on the weak point or the thing to use with a short beam, and the line at the bottom says what to do. Ping again and it says it more plainly. Every guardian has its own hints, the gentle way first.',
+    'The Gardener in the Builders’ Greenhouse can be calmed again: a bloom shot on its bare back used to count as plain water.',
+  ] },
   { v: '0.64', date: '2026-10-05', items: [
     'Vael II, the Sky Stones, looks more like its drawings: the shade on its rock, its plain and its monasteries is one flat grey-blue whatever their colour, the needles keep a clean light side with few strokes in shade, the undersides of the mushroom caps are the darkest places, and the sky is clear, with no bank of clouds on the horizon. Its flowers and its people keep their own colours in shade.',
     'Cliffs, needles and rock faces everywhere are hatched with strokes running down the face, as an inker draws rock, and the shade under a cap or an overhang no longer curls into wood grain.',
@@ -597,6 +610,9 @@ export class Changelog {
   toggle(on = !this.open) {
     this.open = on;
     if (on) { document.exitPointerLock?.(); this.onOpen?.(); this.markSeen(); }
+    // its button names the way out for the hands on the game: N, a controller's back button, a tap
+    const b = on && this.el.querySelector('[data-a="close"]'), kind = inputKind();
+    if (b) b.textContent = kind === 'keys' ? 'Close (N)' : kind === 'pad' ? `Close (${backKey()})` : 'Close';
     this.el.classList.toggle('open', on);
   }
 }

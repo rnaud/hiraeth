@@ -40,8 +40,8 @@ springs up and sways with the drone's accelerations, and the lens lights.
   sit flush. If the dock itself jumps on the body (the radio pack giving way to
   the tank), it glides over, folded.
 - **Flying**, the body stays near level (pitch at most `PITCH`) and leans into
-  its speed; the lit beak turns on a pivot at the lens to point all the way up
-  or down at the goal.
+  its speed (the lit beak that pointed at the goal is gone, October 2026: the
+  drone's heading is the only pointer).
 - **Docks** (`DOCK_ON_TOP`, `DOCK_ON_SIDE`): on the radio pack's flat top, foot
   down, lens looking back at the camera (`kit.dock` is where the foot rests,
   `gear.js` adds `DRONE_BELLY`); once the tank is found, clamped by its foot to
