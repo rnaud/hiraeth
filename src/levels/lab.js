@@ -312,6 +312,7 @@ export function createLab(scene) {
     heightAt: (x, z) => (Math.abs(x - meadowAt.x) < meadowAt.w / 2 - 0.3 && Math.abs(z - meadowAt.z) < meadowAt.d / 2 - 0.3 ? meadowAt.h : -Infinity),
     color: new THREE.Color(meadowMat.color), color2: new THREE.Color(meadowMat.color2),
     inside: (x, z) => !roomAt(x, z) && Math.abs(x - meadowAt.x) < 70 && Math.abs(z - meadowAt.z) < 70,
+    mask: false,   // (the plot is in the collision: no built-on mask)
   }];
   for (const r of rooms) {
     const u = r.ground?.mesh.material.uniforms;

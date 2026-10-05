@@ -262,7 +262,8 @@ const vertexShader = /* glsl */ `
     vInstColor = vec3(1.0);
     #ifdef GRASS
       // between the ground's two tones, a shade darker at the root
-      vInstColor = mix(vec3(1.0), uColor2 / max(uColor, vec3(0.02)), aGrass2.y) * mix(0.93, 1.05, grassT);
+      // tuft by tuft a shade darker or lighter than the ground, lighter towards the tip
+      vInstColor = mix(vec3(1.0), uColor2 / max(uColor, vec3(0.02)), aGrass2.y) * mix(0.8, 1.06, fract(aGrass2.w * 13.7)) * mix(0.94, 1.08, grassT);
     #endif
     #ifdef USE_INSTANCING_COLOR
       vInstColor = instanceColor;
@@ -387,6 +388,9 @@ const fragmentShader = /* glsl */ `
   uniform vec4 uTrim;     // outfit: the tunic's printed pattern (rgb, costumes.js TRIM_IDS; 0 none)
   #ifdef CROWD
     flat in vec4 vCrowdTrim;
+  #endif
+  #ifdef GRASS
+    flat in float vGrassSoft;
   #endif
   ${TRIM_GLSL}
   uniform vec4 uFace;     // eyeY, eyeX, noseY, chinY (rest pose)
@@ -1265,6 +1269,10 @@ const fragmentShader = /* glsl */ `
       }
       gHatch.rg = vec2(h1, h2);
     }
+    #ifdef GRASS
+      gHatch.rgb = vec3(0.0);            // blades: no hatching, no drawn detail
+      gHatch.a += 8.0 * vGrassSoft;      // soft ink: post.js draws their edges as a darker green, thin
+    #endif
   }
 `;
 

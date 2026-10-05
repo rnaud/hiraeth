@@ -250,7 +250,7 @@ const fragmentShader = /* glsl */ `
       float rr = rpx * sqrt((float(i) + 0.5) / 8.0);
       vec2 suv = uv + vec2(cos(a), sin(a)) * rr / uRes;
       float sd = texture(tNormal, suv).w;
-      if (sd <= 0.0) continue;
+      if (sd <= 0.0 || texture(tHatch, suv).a > 7.5) continue;   // (grass blades close nothing in: no grey speckle round them)
       vec3 v = viewPos(suv, sd) - P;
       float dist = length(v);
       ao += max(dot(nV, v / max(dist, 1e-4)) - 0.2, 0.0) * (1.0 - smoothstep(R * 0.6, R * 1.6, dist));
@@ -452,7 +452,9 @@ const fragmentShader = /* glsl */ `
     vec4 N = texture(tNormal, uv);
     bool isSky = N.w <= 0.0;
     vec4 surface = texture(tHatch, uv);
-    // gHatch.a packs glow (0..1) + 2 hero (the player) + 4 figure (any other person)
+    // gHatch.a packs glow (0..1) + 2 hero (the player) + 4 figure (any other person) + 8 soft ink (grass blades)
+    float soft = step(7.5, surface.a);
+    surface.a -= 8.0 * soft;
     float figure = step(3.5, surface.a);
     surface.a -= 4.0 * figure;
     float hero = step(1.5, surface.a);
@@ -465,6 +467,7 @@ const fragmentShader = /* glsl */ `
     vec4 hm = vec4(texture(tHatch, uv + vec2(hp.x, 0)).a,
       texture(tHatch, uv - vec2(hp.x, 0)).a, texture(tHatch, uv + vec2(0, hp.y)).a,
       texture(tHatch, uv - vec2(0, hp.y)).a);
+    hm -= 8.0 * step(vec4(7.5), hm);
     hm = step(vec4(1.5), hm - 4.0 * step(vec4(3.5), hm));
     float heroNear = max(hero, max(max(hm.x, hm.y), max(hm.z, hm.w)));
     float heroBoundary = heroNear - min(hero, min(min(hm.x, hm.y), min(hm.z, hm.w)));
@@ -535,10 +538,14 @@ const fragmentShader = /* glsl */ `
     // that already have ink pay for the extra taps.
     // how much inner ink (lines, drawn detail, hatching) a person keeps here
     float innerK = figure > 0.5 && hero < 0.5 ? smoothstep(70.0, 260.0, 1.8 * uRes.y * 0.5 * uProj11 / max(depth, 0.1)) : 1.0;
+    float softNear = soft;   // a grass blade under this pixel's ink kernel (soft ink)
     if (ink > 0.02 && hero < 0.5 && !isSky) {
       vec2 fo = max(silW * uPixelRatio, 1.0) / uRes;
       vec4 fa = vec4(texture(tHatch, euv + vec2(fo.x, 0)).a, texture(tHatch, euv - vec2(fo.x, 0)).a,
                      texture(tHatch, euv + vec2(0, fo.y)).a, texture(tHatch, euv - vec2(0, fo.y)).a);
+      vec4 faSoft = step(vec4(7.5), fa);
+      fa -= 8.0 * faSoft;
+      softNear = max(soft, max(max(faSoft.x, faSoft.y), max(faSoft.z, faSoft.w)));
       float figHit = max(figure, max(max(step(3.5, fa.x), step(3.5, fa.y)), max(step(3.5, fa.z), step(3.5, fa.w))));
       if (figHit > 0.5) {
         float figPx = 1.8 * uRes.y * 0.5 * uProj11 / max(nearD, 0.1);   // a person's height, render px
@@ -600,7 +607,7 @@ const fragmentShader = /* glsl */ `
       }
 
       // ---- 3b. crease shading: darker tone + accent strokes where geometry closes in
-      if (uAO > 0.0 && depth < 260.0 && hero < 0.5) {
+      if (uAO > 0.0 && depth < 260.0 && hero < 0.5 && soft < 0.5) {   // (not between grass blades: they'd go grey)
         float ao = creaseAO(uv, N.xyz, depth, fc) * (1.0 - smoothstep(80.0, 260.0, depth)) * uAO * (1.0 - emitHere);
         col = mix(col, col * uShadowTint * 0.85, smoothstep(0.15, 0.7, ao) * 0.55);
         ink = max(ink, smoothstep(0.6, 0.9, ao) * 0.45 * innerK);
@@ -622,7 +629,15 @@ const fragmentShader = /* glsl */ `
     if (uDebug == 6) col = vec3(0.97, 0.94, 0.86);
     // no ink eats a light: its inner lines go, its outline thins
     ink *= 1.0 - emitHere * 0.7;
-    col = mix(col, uInk, ink);
+    // grass: its edges drawn in a darker shade of the green, not black, and only on the blade's
+    // own side (half as wide); a few tufts keep a real pen line
+    vec3 inkC = uInk;
+    if (softNear > 0.5) {
+      inkC = mix(uInk, col * 0.62, 0.85);
+      // (on the blade itself only its outline: no crease, colour-edge or shadow-edge lines)
+      ink = soft > 0.5 ? min(ink, eS.x) * 0.75 : ink * 0.22;
+    }
+    col = mix(col, inkC, ink);
 
     // ---- 4b. light: a halo round glowing things, in flat rings like a printed glow, and a
     // soft wash of their colour over what is near (it washes over the ink lines too)
@@ -793,6 +808,7 @@ const extractFrag = /* glsl */ `
       for (int x = 0; x < 4; x++) {
         ivec2 p = min(base + ivec2(x, y), size - 1);
         float a = texelFetch(tHatch, p, 0).a;
+        a -= 8.0 * step(7.5, a);
         a -= 4.0 * step(3.5, a);
         a -= 2.0 * step(1.5, a);
         float e = smoothstep(0.62, 0.9, a);

@@ -2236,16 +2236,20 @@ shimmered, the reactor column filled the middle, the deck felt too big for one p
   The layout is integer arithmetic, mirrored in JS for `tests/materials-pass.test.js`.
 - **Grass blades** (`src/flora-grass.js`, `src/grass-shader.js`; `makeMaterial({ grass })`): on
   the grounds drawn with grass ticks (Viridel, the Garden of Spheres, home, Lorn's mosses, their
-  Lab rooms, the Lab's meadow), a fixed set of tufts (four tapered blades each, 12 triangles)
+  Lab rooms, the Lab's meadow), a fixed set of tufts (three wide tapered blades each, 9 triangles)
   covers a square patch round the camera. Each tuft has its offset in the patch; as the camera
   moves the ones falling off one side reappear a patch further on (`wrapPatch`), so blades stay
   put in the world and only those that wrapped are placed again (the height, the slope, the
   paths, the water, and a 1 m mask of where something is built: one ray down per cell, cached).
   The vertex shader bends them with the wind (the plants' gust front) and parts them round the
   traveller's feet (`uBrush`), thins them with distance and sinks them into the ground towards
-  the patch's edge, where the ground's own inked ticks take over. Lit like the ground (no crease
-  ink against it); each blade is outlined where it stands against what is behind. One draw call,
-  no shadows. `GRASS_QUALITY`: High 26 m and ~12 k tufts, Medium/Auto 22 m and ~7.7 k, Low 15 m,
-  Handheld 13 m and ~1.6 k tufts (about 20 k triangles).
+  the patch's edge, where the ground's own inked ticks take over. Lit like the ground, each tuft
+  a shade darker or lighter than it. **Soft ink**: the blades write +8 in `gHatch.a`, and post.js
+  draws their outline in a darker shade of the green instead of black, only on the blade's own
+  side (half as wide), with no crease, colour-edge or shadow-edge lines and no hatching on them
+  (and the crease shading ignores them, which had greyed the ground between them); one tuft in
+  eight keeps a real pen line, for the hand-drawn feel. One draw call, no shadows.
+  `GRASS_QUALITY`: High 26 m and ~12 k tufts, Medium/Auto 22 m and ~7.7 k, Low 15 m, Handheld
+  13 m and ~2 k tufts (about 18 k triangles).
 - **The Lab** shows them all: the materials row has steel, brushed, chrome, brass, copper, iron,
   painted, the carved inscriptions and a lamp beside the glow, and a meadow past the water pool.

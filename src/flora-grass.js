@@ -20,15 +20,15 @@ export const GRASS_QUALITY = {
   high: { radius: 26, density: 4.5 },
   medium: { radius: 22, density: 4 },
   auto: { radius: 22, density: 4 },
-  low: { radius: 15, density: 2.8 },
-  handheld: { radius: 13, density: 2.4 },
+  low: { radius: 15, density: 3.4 },
+  handheld: { radius: 13, density: 3 },
 };
 
 /** Where a tuft with patch offset o (0..S) lands, the patch of side S wrapped round the camera at c. */
 export const wrapPatch = (o, c, S) => o + S * Math.round((c - o) / S);
 
 /** One tuft: `blades` tapered strips, y 0 (root) to 1 (tip); x, z in metres round the root. */
-export function tuftGeometry({ blades = 4, width = 0.032, spread = 0.07, seed = 3 } = {}) {
+export function tuftGeometry({ blades = 3, width = 0.055, spread = 0.09, seed = 3 } = {}) {
   const rng = mulberry32(seed);
   const pos = [], idx = [];
   for (let b = 0; b < blades; b++) {
@@ -64,7 +64,8 @@ const AHEAD = 0.45;
 
 export class Grass {
   /**
-   * @param o.fields   [{ heightAt, color, color2, inside(x, z), water?, avoid?(x, z, r) }]
+   * @param o.fields   [{ heightAt, color, color2, inside(x, z), water?, avoid?(x, z, r), mask? }]
+   *                   (mask: false when the ground itself is in the collision, like the Lab's meadow plot)
    * @param o.quality  GRASS_QUALITY entry: radius (m), density (tufts per m²)
    * @param o.physics  ray casts for the built-on mask (optional)
    */
@@ -118,7 +119,7 @@ export class Grass {
 
   /** Something built covers this 1 m cell (a rock, a floor, a roof): no grass. Cached. */
   built(x, z, y) {
-    if (!this.physics) return false;
+    if (!this.physics || this.field.mask === false) return false;
     const ix = Math.floor(x / MASK), iz = Math.floor(z / MASK), key = ix * 100003 + iz;
     let v = this.mask.get(key);
     if (v === undefined) {
