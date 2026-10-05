@@ -2620,6 +2620,9 @@ beside it (the details, how to run it and what is missing: `unity/README.md`).
   oldest recording asks "Was that you? The little one, waving?". Her lines are subtitled LOU and
   voiced as a child, close by (`CALL_VOICES.lou`, no radio). The credits name Lou, Tove and
   Moustache "in the small house". `tests/home.test.js`, `tests/home-family.test.js`.
+  The reel knows her too, never by name ("the little one"): one line from the mother in
+  recording 5 ("She has your hands, love") and one from the father in the last recording
+  (`src/story/calls.js`; `tests/ending.test.js`).
 
 ### A quest that fails, fewer fetch quests, and the lore made one story
 
@@ -2652,7 +2655,9 @@ beside it (the details, how to run it and what is missing: `unity/README.md`).
   Then Esk blames you, you say sorry, she says it belongs to the ground now, and it fails. Mira,
   Sol and Vey each say a word about it once; a recording afterwards has the father on breaking
   things (`calls.js` beat `broke`), and Viridel's own recording gets a different answer
-  (`REEL.edena.youAfter`). `tests/story-terraces.test.js` runs it end to end and reloads it.
+  (`REEL.edena.youAfter`). At the stone the traveller names it, once, after the space for Ilen
+  (`tombLines(tokens, { broke })`, from `edena.terraces.flooded`).
+  `tests/story-terraces.test.js` runs it end to end and reloads it.
 - **Hands-on steps in the fetch quests** (each one solvable with a plain shot and push; ember
   shots work where lighting fits; existing stage ids kept, so old saves carry on):
   - - *Teo's drum* (desert, `src/story/desert-errands.js`): it stands on its rim under the ribcage,

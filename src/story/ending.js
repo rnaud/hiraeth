@@ -157,7 +157,8 @@ export const CLOSING = S('~solemn~ Something of value. You brought it home on yo
  * Everything at the stone, in order. Lines that set a token down carry it (`token`); the
  * line that sets the reel down carries `reel: true`; FINAL_RECORDING follows it.
  * @param tokens tokenList() · ctx { ilenTold: the mother's recording about Ilen was heard, lou: Lou is there with you
- *   (she leaves her drawing: the line carries `drawing: true`; and asks about the recording after it) }
+ *   (she leaves her drawing: the line carries `drawing: true`; and asks about the recording after it),
+ *   broke: the tea terraces in Viridel came down (`edena.terraces.flooded`, the quest that fails) }
  */
 export function tombLines(tokens = [], ctx = {}) {
   const lines = [S('~solemn~ (Two rings carved on the stone, overlapping like the two moons. Their names under them.)')];
@@ -166,6 +167,8 @@ export function tombLines(tokens = [], ctx = {}) {
     for (const t of tokens) lines.push({ ...tokenLine(t), token: t });
   } else lines.push(S('~sad~ (Your hands are empty. You hold them up, so the stone can see.)'));
   if (ctx.ilenTold) lines.push(YOU('~whisper~ And this space is for Ilen, wherever she is.'));
+  // the quest that failed (src/story/terraces.js): the father's own advice, kept (calls.js, beat 'broke')
+  if (ctx.broke) lines.push(YOU('~sad~ And Esk’s hill, in the garden, which I could not mend. I said sorry, and I meant it, and then I went.'));
   lines.push(YOU('~whisper~ It isn’t what you asked for. It’s what I have.'));
   if (ctx.lou) lines.push(LOU(LOU_AT_STONE.bring), S(LOU_AT_STONE.drawing, { drawing: true }));
   lines.push(S('~solemn~ (Last, you set the reel down on the stone. It plays by itself.)', { reel: true }));

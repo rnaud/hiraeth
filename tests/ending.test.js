@@ -126,6 +126,38 @@ test('at the stone: a line for every token as it is set down, the reel last, its
   assert.ok(list.every((t) => tokenLine(t).text.length > 4));
 });
 
+test('at the stone, Esk’s hill: one line if the tea terraces came down, in your voice, before what you have', () => {
+  const list = tokenList([GEAR_TOOTH], ['star']);
+  const esk = (l) => /Esk’s hill/.test(l.text);
+  assert.ok(!tombLines(list).some(esk), 'not if the terraces stand');
+  assert.ok(!tombLines(list, { ilenTold: true, lou: true }).some(esk));
+  for (const tokens of [list, []]) {
+    const lines = tombLines(tokens, { broke: true, ilenTold: true });
+    const i = lines.findIndex(esk);
+    assert.ok(i > 0 && lines.filter(esk).length === 1, 'once');
+    assert.equal(lines[i].who, 'you');
+    assert.equal(lines[i].tone, 'sad');
+    assert.ok(/could not mend/.test(lines[i].text));
+    assert.ok(i > lines.findIndex((l) => /Ilen/.test(l.text)), 'after the space for Ilen');
+    assert.ok(i < lines.findIndex((l) => /what I have/.test(l.text)), 'before “It’s what I have”');
+    assert.ok(i < lines.findIndex((l) => l.reel), 'before the reel');
+    if (tokens.length) assert.ok(i > lines.findIndex((l) => l.token?.id === 'item.star'), 'after the tokens');
+  }
+});
+
+test('the late recordings know Lou, never by name: “She has your hands”, and her drawings in the last one', () => {
+  const ctx = { flag: () => undefined, keepsake: null, keepsakes: [], completed: ORDER.slice(0, 5), lastWorld: ORDER[4] };
+  const lou = (l) => /little one/.test(l.text);
+  for (let n = 1; n <= 4; n++) assert.ok(!callLines(n, ctx).some(lou), `not on recording ${n}: before she came to the hill`);
+  const five = callLines(5, ctx), hands = five.find(lou);
+  assert.ok(hands && hands.who === 'mother' && /She has your hands/.test(hands.text) && hands.tone, 'the mother, four years ago');
+  assert.ok(five.findIndex(lou) > five.findIndex((l) => /old drawings/.test(l.text)), 'after his old drawings');
+  const last = callLines(ENDING_WORLDS, { ...ctx, completed: ORDER.slice(0, ENDING_WORLDS) }), drawn = last.find(lou);
+  assert.ok(drawn && drawn.who === 'father' && /drawings/.test(drawn.text) && drawn.tone, 'the father, in the last recording');
+  assert.ok(last.indexOf(drawn) < last.findIndex((l) => /^Come home\.$/.test(l.text)), 'just before “Come home.”');
+  assert.ok(![...five, ...last].some((l) => /\bLou\b/.test(l.text)), 'never named on the reel');
+});
+
 test('the stone: room on the slab for every token, none on top of another', () => {
   for (const n of [1, 2, 5, 9, 14, 20, 26]) {
     const P = tombSlots(n);

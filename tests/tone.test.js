@@ -112,7 +112,7 @@ test('every recording and every word at the stone has a tone', () => {
   const flagsets = [
     {}, { 'clue.bazaar.home': true }, { 'calls.ilen.asked': true, 'calls.ilen.told': true }, { 'calls.ilen.told': true, 'calls.home': true },
     { 'desert.rumour.light': true, 'incal.rumour.light': true, 'arzach.rumour.light': true, 'arzach2.rumour.light': true, 'clue.edena.struck': true, 'clue.buried.mark': true, 'arzach2.bell.note': true, 'bird.promise': true, 'perdide2.promise': true },
-    { 'ending.done': true }, { 'calls.home': true },
+    { 'ending.done': true }, { 'calls.home': true }, { 'edena.terraces.flooded': true },
   ];
   const keepsakes = [null, ...['thing', 'song', 'word', 'person', 'knowing'].map((kind) => ({ id: `x.${kind}`, level: 'desert', name: `A ${kind}`, kind, text: '“A word.”' })), { id: 'bazaar.word', kind: 'word', name: 'You are not alone', text: '“You are not alone.”' }];
   const lines = [...PROLOGUE_CALL];
@@ -120,7 +120,7 @@ test('every recording and every word at the stone has a tone', () => {
     lines.push(...callLines(n, { flag: (f) => flags[f], keepsake: k, keepsakes: k ? [k, k] : [], completed: ['desert', 'incal'], lastWorld: 'desert', worldTitle: 'The Desert' }));
   }
   const tokens = tokenList([...['thing', 'song', 'word', 'person', 'knowing'].map((kind) => ({ id: `y.${kind}`, name: `A ${kind}`, kind, text: '“A word.”' })), { id: 'bazaar.word', kind: 'word', name: 'Words' }], TOKEN_ITEMS);
-  for (const ctx of [{}, { ilenTold: true }]) { lines.push(...tombLines(tokens, ctx)); lines.push(...tombLines([], ctx)); }
+  for (const ctx of [{}, { ilenTold: true }, { ilenTold: true, lou: true, broke: true }]) { lines.push(...tombLines(tokens, ctx)); lines.push(...tombLines([], ctx)); }
   assert.ok(lines.length > 400);
   assert.deepEqual([...UNTAGGED], [], 'every scripted line came with its tone');
   for (const l of lines) {

@@ -353,7 +353,7 @@ export class HomecomingDirector {
         break;
       }
       case 'tomb': {
-        this.lines = tombLines(this.items, { ilenTold: !!game.flag('calls.ilen.told'), lou: !!this.family?.lou });
+        this.lines = tombLines(this.items, { ilenTold: !!game.flag('calls.ilen.told'), lou: !!this.family?.lou, broke: !!game.flag('edena.terraces.flooded') });
         this.placeLou();
         this.tl = tombTimeline(this.lines);
         s.auto = null;

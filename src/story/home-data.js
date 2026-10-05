@@ -140,7 +140,7 @@ export const PEOPLE = {
           choices: [{ text: '~sad~ I should have come back sooner.', goto: 'sooner' }, { text: '~curious~ How has she been?', goto: 'lou' }],
         },
         sooner: {
-          say: ['~solemn~ Yes. And now you have. Both of those are true, love.', '~sad~ They knew about her, you know. Your mother crossed the yard every morning to do her hair. Your father pretended he didn’t watch from the window.',
+          say: ['~solemn~ Yes. And now you have. Both of those are true, love.', '~sad~ They knew her, you know. Not just about her. Your mother crossed the yard every morning to do her hair. Your father pretended he didn’t watch from the window.',
             '~whisper~ Sit with them a while. Then come in and eat.'],
         },
         lou: {
