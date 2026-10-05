@@ -30,8 +30,8 @@ import { SandDrifts, driftMaterial } from '../sand-drifts.js';
 // and ink presets.
 // ---------------------------------------------------------------------------
 
-/** The views' centres lie on a ring this far from the origin (m): far apart, only one is drawn. */
-export const VIEW_RING = 4500;
+/** The views' centres lie on a ring this far from the origin (m): neighbours over 3 km apart, only one is drawn. */
+export const VIEW_RING = Math.max(4500, Math.ceil(1650 / Math.sin(Math.PI / REFERENCE_VIEWS.length)));
 /** Past this far from a view's centre (m) you are put back at its camera. */
 const VIEW_REACH = 1100;
 const Y = new THREE.Vector3(0, 1, 0), Z = new THREE.Vector3(0, 0, 1);

@@ -12,7 +12,11 @@ The same release notes shown in the game (press **N** or open settings).
 - Faces in the conversation portrait are sharp: clean outlines instead of jagged, broken lines, on small screens too.
 - Boulders, big globes and pillars far away now cast shadows like the buildings beside them, and Perdide’s great crystal throws its shadow across the island.
 - Game updates for the Android app and the Steam Deck now come from the game’s own site. Accept the new Android app when it is offered, once, to keep getting them; your saves are kept.
-- A new place in the worlds list (Debug on the title screen): The References, six desert scenes rebuilt from the drawings the game is made after, each seen the way its drawing frames it. [ and ] (L3 / R3) change scene, \ (View) puts the drawing beside or over the picture.
+- A new place in the worlds list (Debug on the title screen): The References, twenty-seven desert scenes from four sheets of the drawings the game is made after, each seen the way its drawing frames it. [ and ] (L3 / R3) change scene, \ (View) puts the drawing beside or over the picture.
+- Shadows have more than one tone: a form turned from the sun is a lighter half-tone, the underside of an overhang catches the light the ground throws up, and cast shadows stay the deepest. Sand, bone and metal keep their own colour in shade instead of all turning the same blue.
+- Fewer strokes over big shaded areas: walls in half-shade, sand, bone and metal are a flat tone with few hatch lines, and layered rock keeps a few strokes along its layers in the light. The ink is finer and more broken, solid black in the deepest crevices, and soft dune crests are no longer outlined.
+- Calmer sand, with fewer wavy ripple lines and scattered dots; bare rock shows long cracks. Water ripples only in the patches the wind ruffles, and far water lies flat. The printed sky is one grainy tint down to the horizon, the page has more of a paper texture, and hulls are plated in uneven panels.
+- Old walls look lived in: cracks run down from their tops, up from their feet and out from window corners, with patches where the plaster has gone. In the desert, sand banks up against the buildings, tents, skeletons and wrecks, so they sit in the ground, and you can walk up the drifts.
 
 ## v0.60 — 2026-10-05
 
