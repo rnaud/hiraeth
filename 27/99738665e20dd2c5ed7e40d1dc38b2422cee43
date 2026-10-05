@@ -1,0 +1,55 @@
+scripts/mocap/build-library.mjs
+  s_1fd8d0e7b02dcf::t_7960d9cf9b40cb 4-5,30,36,74,216,221-223,225-229
+scripts/mocap/cmu-takes.json
+  s_1fd8d0e7b02dcf::t_8f15c8efc2f438 48,50,52,54
+scripts/mocap/process.js
+  s_1fd8d0e7b02dcf::t_ddf2b6967bc11a 22-26,35-37
+scripts/mocap/retarget.js
+  s_1fd8d0e7b02dcf::t_42d5eb147c6691 47-50,89-96,98-109,146-150
+src/animator.js
+  s_1fd8d0e7b02dcf::t_5679acb3e8fea3 67-78,80-88,90-93,95-138,141,143-150,191,266,271-295,350,373-374,385-386,396,404,406,410,414
+src/dev-menu.js
+  s_1fd8d0e7b02dcf::t_a4286fe148f8d1 6,35-36,48,118-119
+src/locomotion.js
+  s_1fd8d0e7b02dcf::t_6ccbf4b7ddb810 103-105,161-189
+src/main.js
+  s_1fd8d0e7b02dcf::t_b4532e972369be 37,280-283,430-435
+src/motion-match.js
+  s_1fd8d0e7b02dcf::t_cd67b1a3e5f558 27-28,41-51,54-67,70,72-75,77,87-88,90-91,93,96,141,437,442-450
+src/npc.js
+  s_1fd8d0e7b02dcf::t_a35f8ca332c0ef 18,147,153-164,839-840
+src/studio/main.js
+  s_1fd8d0e7b02dcf::t_d5f83906a591d7 14,119-121
+tests/gait-sim.js
+  s_1fd8d0e7b02dcf::t_b4405ace0e0d85 22-24,26
+tests/mocap.test.js
+  s_1fd8d0e7b02dcf::t_1e3a2df9a83d24 1-304
+scripts/mocap/compare-people.mjs
+  s_91565028b7ec34::t_ebf5e08b28e205 1-60
+scripts/mocap/mixamo-clips.json
+  s_1fd8d0e7b02dcf::t_196600cf903c83 1-81
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2799738665e20dd2c5ed7e40d1dc38b2422cee43",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_91565028b7ec34": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a1e4a902be990e14b",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
