@@ -28,8 +28,8 @@ export const DEFAULTS = Object.freeze({
   lineup: '',            // '' | cast | crowd
   count: 6,
   twin: false,           // the GPU crowd figure of this person beside them
-  // light and ink
-  hour: 10, sunTurn: 0, light: '', shadows: 'fine', bg: 'sky', bgColor: '#eee9de', ground: true,
+  // light and ink (hour -1: the world's own hour)
+  hour: -1, sunTurn: 0, light: '', shadows: 'fine', bg: 'sky', bgColor: '#eee9de', ground: true,
   preset: 'world', debug: 0, hatch: true, scale: 1, subject: true,
   // groups
   b: {}, f: {}, l: {}, c: {}, e: {},

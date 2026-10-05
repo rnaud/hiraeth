@@ -382,6 +382,8 @@ function lookTarget() {
 
 // ------------------------------------------------------------------ light and ink
 const room = () => ROOMS.find((r) => r.id === state.world);
+/** The hour shown: the panel's, or the world's own (its default in the game). */
+const worldHour = () => (state.hour >= 0 ? state.hour : room()?.hour ?? { lab: 11, home: 17.6, atelier: 11 }[state.world] ?? 10);
 /** Worlds whose light on the ground isn't the sky's (levels/<world>.js lightAt). */
 const WORLD_LIGHT = { bazaar: 'overhead', incal: 'steep', buried: 'steep' };
 let atmo = null, script;
@@ -412,7 +414,7 @@ function applyLight() {
   applySky();
 }
 function applySky() {
-  applyTimeOfDay(state.hour, SU.uSunDir.value, U, atmo, script);
+  applyTimeOfDay(worldHour(), SU.uSunDir.value, U, atmo, script);
   // the world's own light on the people (levels/*.js lightAt): the Signal Market's streets are lit from straight above
   const light = state.light || WORLD_LIGHT[state.world] || 'hour', d = SU.uSunDir.value;
   if (light === 'overhead' && d.y > 0) d.set(0.12, 1, 0.18).normalize();
@@ -671,11 +673,12 @@ const lookDef = (k) => () => subject()?.look?.[k];
 // who
 const sWho = section('Who', true);
 select(sWho, 'Person', 'who', [['traveller', 'The traveller'], ['npc', 'A story person'], ['crowd', 'Someone in the crowd'], ['blank', 'A blank body']], () => { state.lineup = ''; rebuild(); });
-select(sWho, 'World', 'world', COSTUME_WORLDS.map((w) => [w, TITLES[w] ?? w]), () => { state.npc = ''; rebuild(); applyLight(); });
+select(sWho, 'World', 'world', COSTUME_WORLDS.map((w) => [w, TITLES[w] ?? w]), () => { state.npc = ''; state.spot = ''; rebuild(); applyLight(); });
 select(sWho, 'Story person', 'npc', () => [['', cast.length ? '(the first)' : '(nobody in this world)'], ...cast.map((d) => [d.id, `${d.name}${d.title ? `, ${d.title}` : ''}`])], () => { state.who = 'npc'; rebuild(); });
 slider(sWho, 'Crowd seed', 'seed', 1, 200, 1, 1, () => { if (state.who === 'crowd' || state.lineup === 'crowd') rebuild(); });
-select(sWho, 'Where (City-Shaft)', 'spot', [['', 'as the story places them'], ['rim', 'the rim'], ['upper', 'the upper levels'], ['middle', 'the middle levels'], ['lower', 'the bottom of the shaft']], applyLook);
+const spotSel = select(sWho, 'Where (City-Shaft)', 'spot', [['', 'as the story places them'], ['rim', 'the rim'], ['upper', 'the upper levels'], ['middle', 'the middle levels'], ['lower', 'the bottom of the shaft']], applyLook);
 select(sWho, 'Body', 'kind', [['m', 'man'], ['f', 'woman']], () => { if (state.who !== 'npc' && state.who !== 'traveller') rebuild(); });
+refreshers.push(() => { spotSel.parentElement.hidden = state.world !== 'incal'; });
 const sLine = section('Lineup');
 select(sLine, 'Lineup', 'lineup', [['', 'one person'], ['cast', "the world's story people"], ['crowd', 'crowd people (+ GPU figures)']], rebuild);
 slider(sLine, 'How many', 'count', 2, 14, 1, 6, () => { if (state.lineup === 'crowd') rebuild(); });
@@ -751,7 +754,7 @@ check(sAnim, 'Plant the feet (traveller)', 'plant');
 
 // light and ink
 const sLight = section('Light and ink');
-slider(sLight, 'Hour', 'hour', 0, 24, 0.05, 10, applySky);
+slider(sLight, 'Hour', 'hour', 0, 24, 0.05, () => worldHour(), applySky, { unset: true });
 slider(sLight, 'Turn the sun (°)', 'sunTurn', -180, 180, 1, 0, applySky);
 select(sLight, 'Light', 'light', [['', "the world's"], ['hour', 'the sun of the hour'], ['steep', 'steeper (down the City-Shaft, the canyon)'], ['overhead', 'from straight above (the Signal Market)']], applySky);
 select(sLight, 'Background', 'bg', [['sky', "the world's sky"], ['flat', 'a flat colour']], applySky);
