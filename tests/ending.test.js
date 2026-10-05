@@ -94,13 +94,13 @@ test('one rule for home: six worlds and the last recording, the same on the map,
   assert.equal(homeOpen({ flag: at({ 'calls.home': true }), completed: ORDER.slice(0, ENDING_WORLDS) }), true);
   assert.equal(homeOpen({ flag: at({ [`calls.${ENDING_WORLDS}`]: true }), completed: ENDING_WORLDS }), true, 'an older save that heard it');
   assert.equal(homeOpen({ flag: at({ 'ending.done': true }), completed: 0 }), true, 'after the ending, always');
-  // the console will not open the map while a recording waits: the last recording plays first, then home is there
+  // the voicemail plays the waiting message (the last recording); once heard, home is there
   const { game: g } = memory();
   const done = ORDER.slice(0, ENDING_WORLDS);
   for (const id of done) g.set(`world.${id}.done`, true);
   const flag = (k) => g.flag(k);
   assert.equal(pendingCall({ flag, completed: done.length }), 1);
-  assert.equal(consoleAction({ powered: true, pendingCall: pendingCall({ flag, completed: done.length }) }), 'call');
+  assert.equal(consoleAction({ at: 'dash', powered: true, pendingCall: pendingCall({ flag, completed: done.length }) }), 'call');
   hearAll(g, done);
   assert.equal(homeOpen({ flag, completed: done }), true, 'heard: home is open');
   // past six, the rest of the route plays the reel's oldest side, and says home is waiting
@@ -113,7 +113,7 @@ test('one rule for home: six worlds and the last recording, the same on the map,
   const L = LEVELS.find((l) => l.id === HOME_ID);
   assert.equal(L.blurb, homeEntry({ unlocked: true }).blurb);
   assert.match(L.lock.text, /six worlds/);
-  assert.match(L.lock.text, /last recording/);
+  assert.match(L.lock.text, /message on the ship’s voicemail/);
 });
 
 test('everything goes on the stone: the keepsakes, then the makers’ small gifts (not the backpack, jets or wings)', () => {

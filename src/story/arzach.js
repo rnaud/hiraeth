@@ -4,21 +4,27 @@ import { makeMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { featherGeometry } from '../avian.js';
-import { QUESTS, PEOPLE, LOCALS, THINGS, ITEMS, KNUCKLE_ORDER } from './arzach-data.js';
+import { QUESTS, PEOPLE, LOCALS, THINGS, ITEMS, KNUCKLE_ORDER, RIDER_CALL, RIDER_CALL_BEAT } from './arzach-data.js';
 
 // Vael's story, alive (arzach-data.js has the words): "The Waiting Bird".
 //
-//   the start    Oïa sits on a stone beside the bird, watching the lone tower;
-//                the bird keeps turning to look at it too, until she is called
+//   the start    Oïa sits on a stone on the plain, watching the lone tower
+//   the wind     a column of rising air up the tower's side (WIND): it lifts open
+//                wings (the fluid wings, from the Aerie) to the balcony
 //   the tower    the balcony, three stone steps up round the room, the sill
-//                and the one window: the rider's room, the map, the whistle
+//                and the one window: on the sill, the rider's little bone flute
+//                (a model you pick up); through the window, the room and the map
+//   the call     playing the flute (RIDER_CALL, five notes) brings the bird down
+//                for the first time; until then she is hidden and can't be
+//                ridden (bird.dormant)
 //   the plain    Senn listens to the standing stones (they hum as you pass);
 //                Hollin keeps the stone hand, whose knuckles ring
 //   the spires   two shed feathers on the caps of two spires; the third
 //                drifts down from the stone hand's palm when it has rung
 //
 // The bird is the level's mount (player.mount). Her look and her bow are
-// layered over her own pose (bird.js stays untouched).
+// layered over her own pose. Saves that rode her before she was hidden
+// (arzach.rode) keep her in sight.
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
@@ -35,6 +41,72 @@ function ownMaterial(o) {
 // where the shed feathers lie: the caps of two spires (arzach.js spires, by their place), and the hand's palm
 const FEATHER_SPIRES = [[170, -282], [414, -543]];
 
+/** The wind up the lone tower's side: its foot (on the sand, beside the balcony), radius, top and lift. */
+export function WIND(T, ground) {
+  const a = -0.35, r = 27;   // round from the window's side, toward the landing
+  const foot = V(T.x + Math.sin(a) * r, 0, T.z + Math.cos(a) * r);
+  foot.y = ground(foot.x, foot.z) - 0.5;
+  return { foot, r: 4.6, top: T.floor + 7, lift: 26 };   // (lift: what the column pulls toward; open wings rise at about half of it, some 13 m/s: twenty seconds up the tower)
+}
+/** Is p (feet) in the column? */
+export const windContains = (W, p) => Math.hypot(p.x - W.foot.x, p.z - W.foot.z) < W.r && p.y > W.foot.y - 1 && p.y < W.top + 1;
+/**
+ * Open wings in the column: lifted, slowly, toward its middle; near its top it eases, turns you to the
+ * balcony and lets you glide onto it (the temple's Updraft, src/temples/pieces.js, on a tower's scale).
+ */
+export function windLift(W, P, dt, onto) {
+  const k = THREE.MathUtils.clamp((W.top - P.pos.y) / 4, 0, 1), want = W.lift * k;
+  P.vel.y = Math.max(P.vel.y, want * 0.5) + (want - P.vel.y) * Math.min(1, dt * 3);
+  if (k > 0.5) {
+    P.glideSpeed = Math.min(P.glideSpeed ?? 1.5, 1.5);
+    const c = Math.min(1, dt * 1.5);
+    P.pos.x += (W.foot.x - P.pos.x) * c; P.pos.z += (W.foot.z - P.pos.z) * c;
+  } else if (onto) {
+    // the crest: it turns you toward the balcony and lets you go
+    const h = angleTo(P.pos, onto);
+    P.heading += wrap(h - P.heading) * Math.min(1, dt * 4);
+    P.glideSpeed = Math.max(P.glideSpeed ?? 0, 8);
+  }
+}
+
+/** The rider's flute: bone, finger holes, a cord round its foot and a white feather on it, on a folded cloth. Lying along x. */
+export function fluteModel() {
+  const g = new THREE.Group();
+  g.name = 'The rider’s flute';
+  const cloth = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.025, 0.3), makeMaterial({ color: '#8a6e52', color2: '#b0705a', flat: true }));
+  cloth.position.set(0.02, 0.0, 0.03); cloth.rotation.y = 0.12;
+  g.add(cloth);
+  const bone = makeMaterial({ color: '#efe3c6', color2: '#dccba6', flat: true, glow: 0.12 });
+  const dark = makeMaterial({ color: '#4a3a32', flat: true });
+  const cord = makeMaterial({ color: '#b55d48', flat: true });
+  const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.04, 0.46, 10).rotateZ(Math.PI / 2), bone);
+  tube.position.y = 0.04;
+  g.add(tube);
+  const lip = new THREE.Mesh(new THREE.TorusGeometry(0.036, 0.009, 4, 12).rotateY(Math.PI / 2), bone);
+  lip.position.set(-0.23, 0.04, 0);
+  g.add(lip);
+  const holes = mergeGeometries([-0.1, -0.03, 0.04, 0.11].map((x) => new THREE.CylinderGeometry(0.009, 0.009, 0.012, 6).translate(x, 0.075, 0).toNonIndexed()));
+  g.add(new THREE.Mesh(holes, dark));
+  const mouth = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.012, 0.03), dark);
+  mouth.position.set(-0.17, 0.075, 0);
+  g.add(mouth);
+  const knot = new THREE.Mesh(new THREE.TorusGeometry(0.043, 0.008, 4, 12).rotateY(Math.PI / 2), cord);
+  knot.position.set(0.19, 0.04, 0);
+  g.add(knot);
+  const tie = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.005, 0.16, 4).rotateX(Math.PI / 2 - 0.3), cord);
+  tie.position.set(0.21, 0.02, 0.07);
+  g.add(tie);
+  const feather = new THREE.Mesh(featherGeometry(0.34, 0.08), makeMaterial({ color: '#fbf6ea', glow: 0.25, side: THREE.DoubleSide }));
+  feather.position.set(0.24, 0.012, 0.14);
+  feather.rotation.set(-Math.PI / 2, 0, -0.5);
+  g.add(feather);
+  g.traverse((o) => { o.userData.noCollide = true; });
+  return g;
+}
+
+/** The rider's call on the flute (audio.js tune: on the effects bus, something you play, not the score). */
+export const playCall = (sound) => !!sound?.tune?.(RIDER_CALL, RIDER_CALL_BEAT);
+
 export function setupArzach(ctx) {
   const { level, physics, player, quests, dialogue, game, sound, story, spawn, talkable, scene, toast, npcs } = ctx;
   const A = level.arzach;
@@ -46,6 +118,18 @@ export function setupArzach(ctx) {
   const bird = player.mount?.kind === 'bird' ? player.mount : null;
   const ground = (x, z, from = 1e4) => { const g = physics.groundAt(x, from, z, 2e4); return Number.isFinite(g) ? g : level.ground.heightAt(x, z); };
   const done = () => quests.isDone('arzach.bird');
+  // she is not seen, and cannot be ridden, until you have played her call (or met her before: an older save)
+  const shown = () => done() || !!game.flag('arzach.bird.called') || !!game.flag('arzach.rode') || !!game.flag('bird.promise');
+  const hideBird = (hidden) => { if (!bird) return; bird.dormant = hidden; bird.object.visible = !hidden; };
+  hideBird(!shown());
+  let quietT = -1e9;
+  if (bird) bird.onDormantCall = () => {
+    const now = Date.now();
+    if (now - quietT < 6000) return;
+    quietT = now;
+    sound.whistle?.('mount');
+    toast(quests.has('whistle') ? 'You whistle. Nothing answers. Her call is the rider’s, on the flute.' : 'You whistle into the haze. Nothing answers. Whatever she listens for, it isn’t that.');
+  };
 
   // ---------------------------------------------------------------- the people
   const people = {};
@@ -85,23 +169,74 @@ export function setupArzach(ctx) {
     use: use ?? (() => dialogue.start(def, null, at, look)),
   });
   const windowAt = T.sill.clone().add(V(0, 1.2, 0));
-  thing(THINGS.window, windowAt, { range: 3.6, prompt: () => (game.flag('arzach.window.seen') ? 'look into the room' : 'look through the window'),
-    enabled: () => quests.stage('arzach.bird') !== 'call' });   // with the whistle in hand, E blows it, even on the sill
   thing(THINGS.drawing, drawing.position, { range: 1.8, enabled: () => drawing.visible });
   const palmFoot = H.palm.clone().addScaledVector(V(H.normal.x, 0, H.normal.z).normalize(), 9);
   palmFoot.y = ground(palmFoot.x, palmFoot.z, H.palm.y + 10);
   thing(THINGS.palm, palmFoot, { range: 6, prompt: 'look at the stone hand', look: H.palm });
 
-  // the window lights up warm once you've looked in: you can see it from the plain
-  const winLit = new THREE.Mesh(new THREE.BoxGeometry(4.6, 6.6, 0.4), makeMaterial({ color: '#f6cf8a', glow: 0.85 }));
-  winLit.position.copy(T.window).add(V(0, 0, 0.45));
-  winLit.userData.noCollide = true;
-  winLit.visible = !!game.flag('arzach.window.seen');
-  scene.add(winLit);
-  const winLight = V(0, -1e5, 0);
-  const winLamp = new THREE.Vector4(T.window.x, T.window.y, T.window.z + 3, 0);
-  level.lights?.push(winLamp);
-  game.on('flag:arzach.window.seen', () => { winLit.visible = true; });
+  // ---------------------------------------------------------------- the rider's flute, on the sill
+  // a little bone flute with a white feather tied to it by a worn cord, lying on the sill by the window
+  const flute = fluteModel();
+  const fluteAt = V(T.sill.x + 1.5, T.sill.y + 0.07, T.sill.z - 0.6);
+  flute.position.copy(fluteAt);
+  flute.rotation.y = 0.5;
+  flute.scale.setScalar(1.5);
+  flute.visible = !game.flag('arzach.window.seen') && !quests.has('whistle');
+  scene.add(flute);
+  const fluteLamp = new THREE.Vector4(fluteAt.x, fluteAt.y + 0.5, fluteAt.z, flute.visible ? 1.4 : 0);
+  level.lights?.push(fluteLamp);
+  const takeFlute = () => {
+    if (!flute.visible) return;
+    flute.visible = false; fluteLamp.w = 0;
+    quests.give('whistle');
+    game.set('arzach.window.seen', true);
+    game.set('clue.arzach.arzach2', true);   // the map on the wall: the sky stones, the way to Vael II
+    toast('A little bone flute, a white feather tied to it by a worn cord. Through the window: a narrow bed, an upturned cup, and on the wall a painted map of floating stones, a monastery and a bell.');
+    sound.chime?.();
+  };
+  registerInteractable({ id: 'flute', priority: PRIORITY.use, range: 2.6, prompt: 'take the rider’s flute', at: () => fluteAt,
+    enabled: () => flute.visible, distance: (p) => (Math.abs(p.pos.y - fluteAt.y) < 2.5 ? flat(p.pos, fluteAt) : Infinity), use: takeFlute });
+
+  // ---------------------------------------------------------------- the wind up the tower's side
+  // a column of rising air beside the balcony, from the sand to just over the balcony's floor: open
+  // wings in it are carried up, round and up, and at its top it tips you onto the balcony
+  const wind = WIND(T, ground);
+  const windRoot = new THREE.Group();
+  windRoot.name = 'The wind up the lone tower';
+  const windMat = makeMaterial({ color: '#f4f8f6', flat: true, glow: 0.45, key: 'arzach.wind' });
+  const windRing = new THREE.TorusGeometry(wind.r * 0.8, 0.09, 4, 32).rotateX(Math.PI / 2);
+  const ringCount = Math.round((wind.top - wind.foot.y) / 5);
+  const rings = Array.from({ length: ringCount }, (_, i) => { const m = new THREE.Mesh(windRing, windMat); m.userData.noCollide = true; windRoot.add(m); return { m, s: i / ringCount, w: 0.7 + (i % 3) * 0.15 }; });
+  {
+    const stone = new THREE.Mesh(new THREE.TorusGeometry(wind.r, 0.35, 4, 28).rotateX(Math.PI / 2), makeMaterial({ color: '#efe6d2', color2: '#e0d2b8', flat: true }));
+    stone.position.copy(wind.foot).add(V(0, 0.1, 0)); stone.userData.noCollide = true; windRoot.add(stone);
+  }
+  scene.add(windRoot);
+  const told = new Set();
+  const once = (key, text) => { if (!told.has(key)) { told.add(key); toast(text); } };
+  const updateWind = (dt, t) => {
+    const pp = player.pos;
+    windRoot.visible = flat(pp, wind.foot) < 1400;
+    if (!windRoot.visible) return;
+    const span = wind.top - wind.foot.y;
+    for (const r of rings) {
+      r.s = (r.s + dt * 0.035) % 1;
+      r.m.position.set(wind.foot.x, wind.foot.y + 0.5 + r.s * span, wind.foot.z);
+      const fade = Math.min(1, r.s * 10, (1 - r.s) * 8);
+      r.m.scale.setScalar(Math.max(0.01, fade * (r.w + 0.08 * Math.sin(t * 2 + r.s * 30))));
+      r.m.rotation.y = t * 0.4 + r.s * 3;
+    }
+    if (windMat.uniforms?.uGlow) windMat.uniforms.uGlow.value = 0.35 + 0.1 * Math.sin(t * 1.7);
+    if (player.riding || !windContains(wind, pp)) return;
+    if (!player.gliding) {
+      if (player.canGlide === false) once('nowings', 'The wind rushes up the tower’s side and tugs at your cloak. It would carry wings. The makers’ white house on the plain, west of the landing, keeps a pair.');
+      else if (!player.onGround) once('wings', 'The wind rushes up past you. Open your wings in it: hold A / × as you fall.');
+      else once('jump', 'The wind rushes up the tower’s side. Jump into it, and open your wings as you fall (hold A / ×).');
+      return;
+    }
+    windLift(wind, player, dt, T.balcony);
+    once('ride', 'The wind fills your wings and carries you up the tower’s side.');
+  };
 
   // ---------------------------------------------------------------- the feathers
   const featherMat = makeMaterial({ color: '#fbf6ea', glow: 0.55, side: THREE.DoubleSide });
@@ -175,7 +310,7 @@ export function setupArzach(ctx) {
   };
   if (game.flag('arzach.feathers.given')) dressWing();
   if (bird) registerInteractable({ id: 'feathers.give', priority: PRIORITY.use, range: 6.5, prompt: 'give the bird her feathers', at: () => _v.copy(bird.pos).add(V(0, 2.4, 0)),
-    enabled: () => quests.stage('arzach.feathers') === 'give' && (game.flag('item.feather') ?? 0) >= 3 && !player.riding,
+    enabled: () => quests.stage('arzach.feathers') === 'give' && (game.flag('item.feather') ?? 0) >= 3 && !player.riding && !bird.dormant,
     distance: (p) => bird.pos.distanceTo(p.pos) - 0.5,
     use: () => {
       for (let i = 0; i < 3; i++) quests.take('feather');
@@ -266,20 +401,28 @@ export function setupArzach(ctx) {
     sound.sweep(t, 700 * pitch, 1500 * pitch, 0.35, 0.05, 'triangle');
     sound.sweep(t + 0.32, 1500 * pitch, 650 * pitch, 0.6, 0.04, 'triangle');
   };
-  // the rider's whistle: E anywhere (while you carry it and haven't blown it)
+  // the rider's flute: E anywhere (while you carry it and haven't played it): her call, and she comes down
   const call = { state: game.flag('arzach.bird.called') && !game.flag('arzach.bird.promise') ? 'coming' : null, t: 0 };
-  // (it sits just inside talking range: someone right beside you, or the bird, still comes first)
-  registerInteractable({ id: 'whistle', priority: PRIORITY.use, range: 3, prompt: 'blow the rider’s whistle',
+  // (it sits just inside talking range: someone right beside you still comes first)
+  registerInteractable({ id: 'whistle', priority: PRIORITY.use, range: 3, prompt: 'play the rider’s flute',
     enabled: () => quests.stage('arzach.bird') === 'call' && quests.has('whistle') && !player.riding,
     distance: () => 2.9,
     use: () => {
       game.set('arzach.bird.called', true);
       call.state = 'coming'; call.t = 0;
-      if (sound.ctx && sound.sweep) { const t = sound.ctx.currentTime; sound.sweep(t, 1900, 2600, 0.45, 0.05); sound.sweep(t + 0.5, 2600, 1700, 0.7, 0.04); }
-      toast('One long note, rising. Far off, the bird lifts her head.');
-      if (bird && bird.pos.distanceTo(player.pos) > 12) {
+      playCall(sound);
+      toast('Five notes: low, rising, a turn, and a long high one. Your fingers learn them as they play. High over the haze, something answers.');
+      if (bird) {
+        hideBird(false);
+        // she comes down out of the haze for the first time: from high over the plain, to you
+        // (on the tower's top, to its balcony)
+        const pp = player.pos, top = flat(pp, T) < 40 && pp.y > T.floor - 6;
         const d = player.frame?.dir ? player.frame.dir(player.heading, _v) : _v.set(Math.sin(player.heading), 0, Math.cos(player.heading));
-        bird.summon(player.pos.x + d.z * 3 + d.x * 2.5, player.pos.z - d.x * 3 + d.z * 2.5, player.heading + Math.PI, player.pos);
+        // (on the balcony's open rim, out from under the room's dome and clear of the steps and the sill)
+        const land = top ? V(T.x + Math.sin(-0.6) * 17.5, T.floor, T.z + Math.cos(-0.6) * 17.5) : V(pp.x + d.z * 3 + d.x * 2.5, pp.y, pp.z - d.x * 3 + d.z * 2.5);
+        bird.pos.set(pp.x - 170, Math.max(pp.y, T.floor) + 150, pp.z + 140);
+        bird.landed = false;
+        bird.summon(land.x, land.z, angleTo(land, pp), top ? land : pp);
       }
     } });
   const keepPromise = () => {
@@ -289,7 +432,8 @@ export function setupArzach(ctx) {
   // the story catches up when you take it out of order (rode off before sitting with Oïa, found the window first…)
   const catchUp = () => {
     if (done()) return;
-    const want = game.flag('arzach.bird.called') ? 'promise' : quests.has('whistle') ? 'call' : game.flag('arzach.rode') && !quests.reached('arzach.bird', 'ride') ? 'tower' : null;
+    if (quests.stage('arzach.bird') === 'ride') quests.set('arzach.bird', 'tower');   // (saves from when you rode her to the tower)
+    const want = game.flag('arzach.bird.called') ? 'promise' : quests.has('whistle') ? 'call' : null;
     if (want && !quests.reached('arzach.bird', want)) quests.set('arzach.bird', want);
   };
   game.on('flag', catchUp);
@@ -306,6 +450,7 @@ export function setupArzach(ctx) {
   quests.locate('oia', () => people.oia.pos);
   quests.locate('bird', () => bird?.pos ?? people.oia.pos);
   quests.locate('balcony', () => T.balcony);
+  quests.locate('wind', () => (player.pos.y < T.floor - 20 ? wind.foot : T.balcony));
   quests.locate('window', () => windowAt);
   for (const [id, n] of Object.entries(people)) if (id !== 'oia') quests.locate(id, () => n.pos);
 
@@ -324,7 +469,7 @@ export function setupArzach(ctx) {
     if (call.state === 'coming' && !bird) { call.state = null; keepPromise(); }
     if (call.state === 'coming' && bird) {
       call.t += dt;
-      const near = bird.pos.distanceTo(pp) < 11 && (bird.mode === 'idle' || bird.mode === undefined || bird.landed);
+      const near = bird.pos.distanceTo(pp) < 15 && (bird.mode === 'idle' || bird.mode === undefined || bird.landed);   // (15: on the balcony, below you on the sill)
       if (near || call.t > 25) {
         call.state = 'bowing'; bow.t = 0.001; bow.short = false;
         bird.heading = angleTo(bird.pos, pp);
@@ -378,10 +523,9 @@ export function setupArzach(ctx) {
         }
       }
     }
-    // the lit window throws a little warm light on the sill
-    winLamp.w = winLit.visible ? 14 : 0;
-    void winLight;
+    // the wind up the tower
+    updateWind(dt, t);
   };
 
-  return { people, update, hand, bow, call, feathers, knuckles, ringHand, cry };
+  return { people, update, hand, bow, call, feathers, knuckles, ringHand, cry, flute, takeFlute, wind, shown };
 }

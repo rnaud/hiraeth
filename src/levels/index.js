@@ -26,14 +26,14 @@ export const LEVELS = [
   {
     id: 'incal', create: createIncal, build: buildIncal,
     title: TITLES.incal, source: 'a city stacked down a pit',
-    blurb: 'A city stacked down a 600 m pit to an acid lake. Jetpack between levels, hail a flying taxi. Quiet terminals recognize returning visitors.',
-    moves: 'jetpack · climb · taxis',
+    blurb: 'A city stacked down a 600 m pit to an acid lake. The makers’ jets wait in their tower on the rim; the flying taxis stop only for a pass. Quiet terminals recognize returning visitors.',
+    moves: 'jetpack · climb · glide · taxis (with a pass)',
   },
   {
     id: 'arzach', create: createArzach, build: buildArzach,
     title: TITLES.arzach, source: 'a silent world of needles',
-    blurb: 'A silent bone-white world of needle spires, floating ruins and a lone tower. Ride the bird past pale fronds that turn and blush as you approach.',
-    moves: 'flying mount · climb',
+    blurb: 'A silent bone-white world of needle spires, floating ruins and a lone tower. Find the makers’ wings, ride the wind up the tower, and learn the call that brings the great bird down.',
+    moves: 'glide · winds · climb · flying mount',
   },
   {
     id: 'arzach2', create: createArzach2, build: buildArzach2,
@@ -109,7 +109,7 @@ export const LEVELS = [
     title: TITLES.home, source: 'where the route begins',
     blurb: 'A small round house on a small round hill, and two moons over it. Nobody lives in the round house now; there is a stone in its yard. Across the yard, a smaller house with its lamp lit.',   // (as on the ship's map: src/story/ending.js homeEntry)
     moves: 'walk · the bird, if she promised',
-    lock: { text: 'Come home when you are ready: after any six worlds, the last recording on the reel asks you home, and the ship’s map shows the way.', moves: 'the way home' },
+    lock: { text: 'Come home when you are ready: after any six worlds, a message on the ship’s voicemail asks you home, and the ship’s map shows the way.', moves: 'the way home' },
   },
 ];
 

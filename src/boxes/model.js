@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
 import { TANK, FLUID_TONES } from '../fluid-tool.js';
 
@@ -7,27 +7,32 @@ import { TANK, FLUID_TONES } from '../fluid-tool.js';
 // geometry through makeMaterial (the post pass draws the lines).
 //
 // The boxes are the makers' (docs/story-bible.md, "The boxes"): very old,
-// handled by many, never broken. Dark blue paint crazed with age, worn round
-// corners, a tapering plinth, a frieze of carved glyph rings, and the pale
-// four-point star of the reference drawing on the lid, inside a carved ring.
+// handled by many, never broken. One smooth dark blue shell with no edges
+// (a rounded box: no corner, no seam, no lid), the pale four-point star of the
+// reference drawing painted on its top and a compass (a ring round a small star) on each side,
+// and a thin ray of light forever travelling across its surface (materials.js
+// MAKERS_BOX). The post pass draws its outline only: nothing inside it.
 //
-//   buildBox(key)    → { root, body, lid, hinge, star, carve, seam, glowFloor, rays, mats, size }
-//                      a chest about knee high at BOX's size; index.js sets it down
+//   buildBox(key)    → { root, shell, mats: { body }, size }
+//                      a box about knee high at BOX's size; index.js sets it down
 //                      BOX_SCALE larger (about hip high). Local frame: +z is the front
-//                      (where the traveller stands), the lid hinges on the left edge
-//                      (-x; lid.rotation.z opens it), y = 0 on the ground.
-//   glyphCarving(s)  → the glyph (three dots over an arch) as a small relief
+//                      (where the traveller stands), y = 0 on the ground.
+//                      mats.body.uniforms.uBoxA: x the ray's strength, y the marks' glow, w the ray's clock
+//                      (one pass per unit: index.js and scene.js wind it)
+//   roundedBox(hx, hy, hz, r, n) → the shell's geometry (smooth normals all round), centred
 //   buildItemModel(id) → a small Group (≈ 0.3 m) for the hovering display
-//   buildRays(key)   → the fan of flat bright wedges that bursts out of the box
 //   buildSparkles()  → twinkling specks round the hovering item
 //   buildBeacon(key) → a thin pale column of light over an unopened box (seen from afar)
 
-export const BOX = { w: 0.8, h: 0.4, d: 0.55, lid: 0.085, wall: 0.045 };
-/** The chests are built at BOX's size and set down this much larger: big enough to notice from afar. */
+/** The box's size (unscaled, m): w across, h tall (lid: none, kept for the scene's arithmetic), d deep, r its corners' roundness. */
+export const BOX = { w: 0.66, h: 0.54, d: 0.58, lid: 0, r: 0.15 };
+/** The boxes are built at BOX's size and set down this much larger: big enough to notice from afar. */
 export const BOX_SCALE = 1.9;
 /** The item hovering where its box was. */
 export const ITEM_SCALE = 1.8;
-export const BOX_COLORS = { body: '#25386c', band: '#18254b', inside: '#0e1730', star: '#dcecf2', carve: '#9fbfdc', seam: '#fff4d6', light: '#fffbea' };
+export const BOX_COLORS = { body: '#25386c', star: '#dcecf2', carve: '#9fbfdc', seam: '#fff4d6', light: '#fffbea' };
+/** The ray's rhythm: seconds a pass takes far off, and close up (it quickens as you come near). */
+export const RAY_PASS = { far: 4.2, near: 2.6 };
 
 const one = (list) => mergeGeometries(list.map((g) => (g.index ? g.toNonIndexed() : g)));
 const noCollide = (o) => { o.traverse((c) => { c.userData.noCollide = true; }); return o; };
@@ -45,177 +50,47 @@ export function starShape(R = 1, r = 0.3, points = 4) {
 }
 
 /**
- * The recurring glyph, small, for carving: three dots over an arc that bows
- * upward (∩), facing +z, centred on the origin. s ≈ half its width.
+ * A box with no edges: a cube's subdivided faces pushed out onto a rounded box
+ * (flat in the middle of each face, each corner and edge a quarter round of
+ * radius r), its normals exact, so nothing on it reads as a crease. Centred on the origin.
  */
-export function glyphCarving(s = 0.05, depth = 0.008) {
-  const parts = [];
-  for (const [x, y] of [[-0.6, 0.42], [0, 0.6], [0.6, 0.42]]) parts.push(new THREE.CylinderGeometry(0.19 * s, 0.19 * s, depth, 8).rotateX(Math.PI / 2).translate(x * s, y * s, 0));
-  parts.push(new THREE.TorusGeometry(0.85 * s, 0.13 * s, 3, 12, Math.PI * 0.7).scale(1, 1, depth / (0.26 * s)).rotateZ(Math.PI * 0.15).translate(0, -0.78 * s, 0));
-  return one(parts);
-}
-
-/** A rounded rectangle (the lid's worn outline). */
-function roundRect(w, d, r) {
-  const s = new THREE.Shape(), x = w / 2, y = d / 2;
-  s.moveTo(-x + r, -y); s.lineTo(x - r, -y); s.quadraticCurveTo(x, -y, x, -y + r);
-  s.lineTo(x, y - r); s.quadraticCurveTo(x, y, x - r, y); s.lineTo(-x + r, y);
-  s.quadraticCurveTo(-x, y, -x, y - r); s.lineTo(-x, -y + r); s.quadraticCurveTo(-x, -y, -x + r, -y);
-  return s;
-}
-
-/** Nudge vertices a few millimetres, the same way every time: hand-made, long handled. */
-function worn(g, amount = 0.003, seed = 1) {
-  const p = g.attributes.position;
+export function roundedBox(hx, hy, hz, r, n = 10) {
+  r = Math.min(r, hx, hy, hz);
+  const g = new THREE.BoxGeometry(2, 2, 2, n, n, n);
+  const p = g.attributes.position, nr = g.attributes.normal;
+  const v = new THREE.Vector3(), c = new THREE.Vector3(), d = new THREE.Vector3();
+  const ix = hx - r, iy = hy - r, iz = hz - r;
   for (let i = 0; i < p.count; i++) {
-    const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
-    const n = Math.sin(x * 37 + seed) * Math.cos(z * 41 - seed * 2) + Math.sin(y * 53 + x * 13 + seed);
-    p.setXYZ(i, x + n * amount, y + Math.abs(n) * amount * 0.4, z + Math.cos(x * 29 + z * 31 + seed) * amount);
+    // (a cube grid squeezed toward the corners first, so the rounds get as many rows as the flats)
+    const q = (t) => Math.sign(t) * (1 - Math.pow(1 - Math.abs(t), 1.6));
+    v.set(q(p.getX(i)) * hx, q(p.getY(i)) * hy, q(p.getZ(i)) * hz);
+    c.set(THREE.MathUtils.clamp(v.x, -ix, ix), THREE.MathUtils.clamp(v.y, -iy, iy), THREE.MathUtils.clamp(v.z, -iz, iz));
+    d.subVectors(v, c);
+    if (d.lengthSq() < 1e-12) d.set(0, 1, 0);
+    d.normalize();
+    p.setXYZ(i, c.x + d.x * r, c.y + d.y * r, c.z + d.z * r);
+    nr.setXYZ(i, d.x, d.y, d.z);
   }
-  g.computeVertexNormals();
-  return g;
+  // (the six faces share their border vertices' positions and normals: one closed, smooth shell)
+  g.deleteAttribute('uv');
+  return mergeVertices(g);
 }
 
 export function buildBox(key = 'box') {
-  const { w, h, d, lid: lh, wall } = BOX, C = BOX_COLORS;
-  // per-box materials (the key makes them unique, so each box can glow on its own)
-  // (all of them dissolve when it opens: src/boxes/scene.js sets uDissolve)
-  const mats = {
-    body: makeMaterial({ color: C.body, flat: true, pattern: 'cracks', key: `box.body.${key}`, dissolve: C.seam }),
-    band: makeMaterial({ color: C.band, flat: true, key: `box.band.${key}`, dissolve: C.seam }),
-    inside: makeMaterial({ color: C.inside, flat: true, side: THREE.DoubleSide, key: `box.inside.${key}`, dissolve: C.seam }),
-    star: makeMaterial({ color: C.star, flat: true, glow: 0.35, key: `box.star.${key}`, dissolve: C.seam }),
-    carve: makeMaterial({ color: C.carve, flat: true, glow: 0.12, key: `box.carve.${key}`, dissolve: C.seam }),
-    seam: makeMaterial({ color: C.band, flat: true, glow: 0, key: `box.seam.${key}`, dissolve: C.seam }),
-    light: makeMaterial({ color: C.light, flat: true, glow: 1, key: `box.light.${key}`, dissolve: C.seam }),
-  };
+  const { w, h, d, r } = BOX, C = BOX_COLORS, S = BOX_SCALE;
+  // its own material (the key makes it unique, so each box glows and sweeps on its own); it
+  // dissolves when it opens (src/boxes/scene.js sets uDissolve)
+  const body = makeMaterial({
+    color: C.body, key: `box.body.${key}`, dissolve: C.seam,
+    makersBox: { half: [(w / 2) * S, (h / 2) * S, (d / 2) * S], center: (h / 2) * S, mark: C.star, light: C.light, ray: 0.6, glow: 0.35 },
+  });
   const root = new THREE.Group();
   root.name = `Item box ${key}`;
-  // the body: an open-topped chest with walls (so the opened box shows its inside), its paint crazed with age
-  const walls = [
-    new THREE.BoxGeometry(w, wall, d).translate(0, wall / 2, 0),                         // floor
-    new THREE.BoxGeometry(w, h, wall).translate(0, h / 2, d / 2 - wall / 2),             // front
-    new THREE.BoxGeometry(w, h, wall).translate(0, h / 2, -d / 2 + wall / 2),            // back
-    new THREE.BoxGeometry(wall, h, d - wall * 2).translate(w / 2 - wall / 2, h / 2, 0),  // sides
-    new THREE.BoxGeometry(wall, h, d - wall * 2).translate(-w / 2 + wall / 2, h / 2, 0),
-  ];
-  const body = new THREE.Mesh(one(walls), mats.body);
-  // the inside, darker (a slightly smaller open box, faces turned inward)
-  const inner = new THREE.Mesh(new THREE.BoxGeometry(w - wall * 2 - 0.01, h - wall, d - wall * 2 - 0.01).translate(0, wall + (h - wall) / 2 + 0.001, 0), mats.inside);
-  inner.geometry.groups = inner.geometry.groups.filter((g) => g.materialIndex !== 2);   // no top face: it's open
-  inner.material = [mats.inside, mats.inside, mats.inside, mats.inside, mats.inside, mats.inside];
-  // worn round corner posts, a tapering stone-like plinth, and a frieze: two rails round the body
-  const bands = [];
-  for (const sx of [-1, 1]) for (const sz of [-1, 1]) bands.push(new THREE.CylinderGeometry(0.036, 0.042, h + 0.01, 7).translate(sx * (w / 2 - 0.014), h / 2, sz * (d / 2 - 0.014)));
-  bands.push(new THREE.CylinderGeometry(0.5, 0.56, 0.07, 4).rotateY(Math.PI / 4).scale((w / 2 + 0.04) / 0.354, 1, (d / 2 + 0.04) / 0.354).translate(0, 0.035, 0));
-  const FR = [h * 0.3, h * 0.79];   // the frieze's rails
-  for (const y of FR) {
-    for (const sz of [-1, 1]) bands.push(new THREE.BoxGeometry(w - 0.03, 0.016, 0.012).translate(0, y, sz * (d / 2 + 0.005)));
-    for (const sx of [-1, 1]) bands.push(new THREE.BoxGeometry(0.012, 0.016, d - 0.03).translate(sx * (w / 2 + 0.005), y, 0));
-  }
-  // the clasp on the free side (the lid hinges on the other): a plate and a hanging ring
-  bands.push(new THREE.BoxGeometry(0.02, 0.1, 0.12).translate(w / 2 + 0.012, h - 0.06, 0));
-  bands.push(new THREE.TorusGeometry(0.03, 0.007, 5, 12).rotateY(Math.PI / 2).translate(w / 2 + 0.026, h - 0.1, 0));
-  const band = new THREE.Mesh(one(bands), mats.band);
-  // the carvings: a ring with the glyph in it on every face, smaller glyphs either side on the long ones.
-  // They brighten with the star as you come near (index.js).
-  const carvings = [], cy = (FR[0] + FR[1]) / 2, ringR = Math.min(0.068, (FR[1] - FR[0]) / 2 - 0.018);
-  const medallion = (s = 1) => one([new THREE.TorusGeometry(ringR * s, 0.008, 4, 22).scale(1, 1, 0.6), glyphCarving(ringR * 0.62 * s, 0.008)]);
-  const onFace = (g, face) => {
-    // face: 0 front (+z), 1 back, 2 right (+x), 3 left
-    g.translate(0, 0, face < 2 ? d / 2 + 0.004 : w / 2 + 0.004);
-    g.rotateY([0, Math.PI, Math.PI / 2, -Math.PI / 2][face]);
-    return g.translate(0, cy, 0);
-  };
-  for (const f of [0, 1]) {
-    carvings.push(onFace(medallion(), f));
-    for (const sx of [-1, 1]) carvings.push(onFace(glyphCarving(0.042, 0.008).translate(sx * 0.23, 0, 0), f));
-  }
-  for (const f of [2, 3]) carvings.push(onFace(medallion(0.85), f));
-  // on the lid: a ring round the star (its points cross it, like a compass), a glyph either side
-  const lidCarve = [new THREE.TorusGeometry(0.17, 0.007, 4, 32).rotateX(Math.PI / 2).translate(w / 2, lh + 0.008, 0)];
-  for (const sx of [-1, 1]) lidCarve.push(glyphCarving(0.05, 0.006).rotateX(-Math.PI / 2).rotateY(sx > 0 ? -Math.PI / 2 : Math.PI / 2).translate(w / 2 + sx * 0.29, lh + 0.008, 0));
-  const carve = new THREE.Mesh(one(carvings), mats.carve);
-  // the seam: a thin line of light where the lid meets the body
-  const sw = 0.012, seamGeo = one([
-    new THREE.BoxGeometry(w + 0.012, sw, sw).translate(0, h + sw / 2, d / 2 + 0.002),
-    new THREE.BoxGeometry(w + 0.012, sw, sw).translate(0, h + sw / 2, -d / 2 - 0.002),
-    new THREE.BoxGeometry(sw, sw, d + 0.012).translate(w / 2 + 0.002, h + sw / 2, 0),
-    new THREE.BoxGeometry(sw, sw, d + 0.012).translate(-w / 2 - 0.002, h + sw / 2, 0),
-  ]);
-  const seam = new THREE.Mesh(seamGeo, mats.seam);
-  // the glow inside, a bright floor seen once the lid lifts
-  const glowFloor = new THREE.Mesh(new THREE.BoxGeometry(w - wall * 2.4, 0.02, d - wall * 2.4).translate(0, h * 0.55, 0), mats.light);
-  // the lid, hinged on the left edge (local -x; the kneeling traveller's left): it swings up and
-  // over to the side, so nothing stands between the light and a camera in front of the traveller.
-  // hinge.rotation.z = angle (0 shut .. ~1.95 past upright). Its edges are rounded off with handling.
-  const hinge = new THREE.Group();
-  hinge.position.set(-w / 2, h, 0);
-  const bev = 0.012;
-  const lidGeo = new THREE.ExtrudeGeometry(roundRect(w + 0.03 - bev * 2, d + 0.03 - bev * 2, 0.035), { depth: lh - bev * 2, bevelEnabled: true, bevelThickness: bev, bevelSize: bev, bevelSegments: 2, curveSegments: 3 })
-    .rotateX(-Math.PI / 2).translate(w / 2, 0.006 + bev, 0);
-  const lidMesh = new THREE.Mesh(worn(lidGeo.index ? lidGeo.toNonIndexed() : lidGeo, 0.0025, key.length), mats.body);
-  const lidBand = new THREE.Mesh(one([
-    new THREE.BoxGeometry(w + 0.05, 0.03, 0.05).translate(w / 2, 0.02, d / 2 + 0.01),
-    new THREE.BoxGeometry(w + 0.05, 0.03, 0.05).translate(w / 2, 0.02, -d / 2 - 0.01),
-  ]), mats.band);
-  const lidCarving = new THREE.Mesh(one(lidCarve), mats.carve);
-  const star = new THREE.Mesh(new THREE.ExtrudeGeometry(starShape(0.21, 0.065), { depth: 0.012, bevelEnabled: false }).rotateX(-Math.PI / 2).translate(w / 2, lh + 0.006, 0), mats.star);
-  hinge.add(lidMesh, lidBand, lidCarving, star);
-  root.add(body, inner, band, carve, seam, glowFloor, hinge);
-  const rays = buildRays(key);
-  rays.position.set(0, h * 0.97, 0);
-  // (the wrapper stays visible: it goes in the level's noShadow list, which re-shows its members every frame)
-  const raysWrap = new THREE.Group();
-  raysWrap.add(rays);
-  root.add(raysWrap);
+  const shell = new THREE.Mesh(roundedBox(w / 2, h / 2, d / 2, r).translate(0, h / 2, 0), body);
+  shell.name = 'Makers’ box';
+  root.add(shell);
   noCollide(root);
-  return { root, body, lid: hinge, hinge, star, carve, seam, glowFloor, rays, raysWrap, mats, size: { w, h: h + lh, d } };
-}
-
-/**
- * The burst: flat bright wedges fanning out of the box mouth (the reference
- * drawing's rays). A low fan spreads out all round, close over the ground,
- * so the rays light the kneeling traveller from below without hiding the
- * face; a few tall ones rise either side of the traveller.
- * Few and short toward the scene's two cameras (local yaw about 77 and 165 deg). Each wedge is a thin triangle from the mouth;
- * ray.userData.len is its full length (the scene grows and shimmers it).
- */
-export function buildRays(key = 'rays') {
-  const g = new THREE.Group();
-  g.name = 'Box rays';
-  const mat = makeMaterial({ color: BOX_COLORS.light, flat: true, glow: 1, side: THREE.DoubleSide, key: `box.rays.${key}` });
-  let seed = 7;
-  const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
-  const D = Math.PI / 180;
-  const spec = [];
-  // the low fan (tilt from vertical 64-80 deg), shorter toward the camera's side
-  for (let i = 0; i < 14; i++) {
-    const yaw = (i / 14) * 360 * D + (rnd() - 0.5) * 0.2;
-    const deg = (((yaw / D) % 360) + 360) % 360;
-    const toCam = (deg > 55 && deg < 100) || (deg > 140 && deg < 195);   // toward the two cameras
-    spec.push({ yaw, tilt: (64 + rnd() * 16) * D, len: toCam ? 0.5 + rnd() * 0.35 : 1.3 + rnd() * 1.3, wid: 0.12 + rnd() * 0.16 });
-  }
-  // tall rays leaning out either side of the traveller (yaw 72-108 and 248-290 deg): a V that frames them
-  for (let i = 0; i < 7; i++) {
-    const deg = i < 3 ? 72 + i * 18 : 248 + (i - 3) * 14;
-    spec.push({ yaw: (deg + (rnd() - 0.5) * 8) * D, tilt: (36 + rnd() * 20) * D, len: 1.4 + rnd() * 1.0, wid: 0.1 + rnd() * 0.14 });
-  }
-  for (const { yaw, tilt, len, wid } of spec) {
-    // a triangle in the ray's own frame: apex at the origin, base across x at +y
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.Float32BufferAttribute([-0.02, 0, 0, 0.02, 0, 0, wid / 2, 1, 0, -0.02, 0, 0, wid / 2, 1, 0, -wid / 2, 1, 0], 3));
-    geo.computeVertexNormals();
-    const ray = new THREE.Mesh(geo, mat);
-    ray.rotation.set(0, yaw, 0, 'YXZ');
-    ray.rotateX(tilt);
-    ray.userData = { len, phase: rnd() * 6.28, yaw };
-    ray.scale.set(1, 0.001, 1);
-    g.add(ray);
-  }
-  g.visible = false;
-  noCollide(g);
-  return g;
+  return { root, shell, mats: { body }, size: { w, h, d } };
 }
 
 export function buildSparkles(n = 14) {

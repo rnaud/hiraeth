@@ -8,7 +8,12 @@
 //    there is always a choice of two places to go;
 //  - finishing a world (its `world.<id>.done` flag or its story page) takes it
 //    out of that pair, and the next world in ORDER takes its place;
-//  - a world you have been to (or are standing in) stays known, done or not.
+//  - a world you have been to (or are standing in) stays known, done or not;
+//  - a world that follows another's story (AFTER, src/levels/names.js: Vael II after Vael, whose bird
+//    it needs) waits, uncounted, until that one is done.
+//
+// The order puts the fluid wings first (Vael, the second world: its Aerie, and the wind at its lone
+// tower) and the fluid jets in the later half (the City-Shaft, seventh): no world before it needs them.
 //
 // The ship's galactic map (src/ship/starmap.js) draws the others as faint,
 // nameless dots; the level picker (L, main.js) leaves them out. Home is not on
@@ -16,6 +21,9 @@
 // ?level=<id> and the dev menu still go anywhere.
 //
 // Pure: the tests use it directly.
+
+import { AFTER } from '../levels/names.js';
+export { AFTER };
 
 /** How many unfinished worlds ahead are known at once. */
 export const AHEAD = 2;
@@ -26,14 +34,16 @@ export const AHEAD = 2;
  * @param o.done     (id) => the world is done
  * @param o.visited  (id) => you have been there
  * @param o.current  the world you are in
+ * @param o.after    { id: the world it follows } (AFTER)
  */
-export function knownWorlds({ order = [], done = () => false, visited = () => false, current = null, ahead = AHEAD } = {}) {
+export function knownWorlds({ order = [], done = () => false, visited = () => false, current = null, ahead = AHEAD, after = AFTER } = {}) {
   const known = new Set(order.slice(0, 1));
   for (const id of order) if (id === current || done(id) || visited(id)) known.add(id);
   let open = 0;
   for (const id of order.slice(1)) {
     if (open >= ahead) break;
-    if (!done(id)) { known.add(id); open++; }
+    if (done(id) || (after[id] && order.includes(after[id]) && !done(after[id]))) continue;
+    known.add(id); open++;
   }
   return order.filter((id) => known.has(id));
 }

@@ -49,8 +49,8 @@ export const endingUnlocked = (completed) => (Array.isArray(completed) ? complet
  * Is Home on the galactic map? The one rule the map, the charge card and the ending share:
  * any six worlds done (of the eleven on the route, in any order), and the last recording on
  * the reel heard ("Come home": `calls.home`, or `calls.<ENDING_WORLDS>` on older saves); or
- * the ending already played. The console plays a waiting recording before it opens the map,
- * so in play the two arrive together; the worlds not yet seen stay open, before home or after.
+ * the ending already played. The voicemail button blinks on the dash while that message waits
+ * (the holo table's map opens either way); the worlds not yet seen stay open, before home or after.
  */
 export const homeOpen = ({ flag, completed }) => !!flag?.('ending.done')
   || (endingUnlocked(completed ?? 0) && !!(flag?.('calls.home') || flag?.(`calls.${ENDING_WORLDS}`)));

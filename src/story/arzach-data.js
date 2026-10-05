@@ -1,14 +1,19 @@
 // Vael's story as data: "The Waiting Bird" (docs/story-bible.md).
 //
-// A silent country. The bird waits for a rider who left the lone tower long
-// ago, and nobody here says much: people point, draw in the sand, hum. The
-// bird and the stones speak through what they do. Oïa watches the tower
-// from beside the bird; when you ride to it and climb to its one window you
-// find the rider's room: a map of the sky stones painted on the wall (the
-// rider walked away to Vael II), and, on a nail by the window, the rider's
-// bone whistle with a feather tied to it, left for whoever came next.
-// Blow it, and the bird comes, and bows: wherever there is sky, she will
-// come when you call (a keepsake of the kind *person*: a promise).
+// A silent country. The great bird has not come down since her rider left the
+// lone tower long ago: she keeps to the sky over the haze, and nobody here has
+// seen more of her than a shape. Nobody says much: people point, draw in the
+// sand, hum. Oïa watches the tower from a stone on the plain. The wind rises up
+// the tower's side, and it lifts open wings (the fluid wings: the Aerie, the
+// makers' white house west of the landing, keeps a pair), up to the balcony;
+// three stone steps climb from there to the sill of its one window. On the sill
+// the rider left a little bone flute with a feather tied to it, for whoever came
+// next; through the window, the rider's room and a map of the sky stones on the
+// wall (the rider walked away to Vael II). Play the flute: five notes, her call.
+// Out of the haze the bird comes down to you for the first time, and bows:
+// wherever there is sky, she will come when you call (a keepsake of the kind
+// *person*: a promise). Until then she is not seen and cannot be ridden
+// (src/story/arzach.js: dormant).
 //
 // Side quests: the three feathers the bird shed across the spires the night
 // the light went over (the third is held by the stone hand), and the stone
@@ -16,14 +21,23 @@
 // (smallest to tallest).
 //
 // Flags (game-state.js): arzach.watcher.met, arzach.glyph.drawn, arzach.rode,
-// arzach.window.seen, arzach.bird.called, arzach.bird.promise, arzach.rumour.light,
-// arzach.feather.<i> (picked up), arzach.feathers.given, arzach.hand.rung;
-// clue.arzach.arzach2 (the map of the sky stones); bird.promise (the bird will
-// come in any world with sky). Items: whistle, feather (up to three).
+// arzach.window.seen (the flute taken), arzach.bird.called (the flute played: she is shown),
+// arzach.bird.promise, arzach.rumour.light, arzach.feather.<i> (picked up), arzach.feathers.given,
+// arzach.hand.rung; clue.arzach.arzach2 (the map of the sky stones); bird.promise (the bird will
+// come in any world with sky). Items: whistle (the rider's flute: its id from when it was a
+// whistle), feather (up to three).
 
 const Q = 'arzach.bird';
 
-export const ITEMS = { whistle: 'the rider’s bone whistle', feather: 'a long white feather' };
+export const ITEMS = { whistle: 'the rider’s bone flute', feather: 'a long white feather' };
+
+/**
+ * The rider's call, played on the flute: [Hz, beats] (a beat RIDER_CALL_BEAT s). Low, rising, a turn,
+ * and a long high note. The bird answers it (src/story/arzach.js; audio.js whistle('bird') plays it
+ * whenever you call her after).
+ */
+export const RIDER_CALL = [[587.3, 1], [784, 1], [987.8, 1.5], [880, 0.75], [1174.7, 2.5]];
+export const RIDER_CALL_BEAT = 0.22;
 
 // ------------------------------------------------------------------ quests
 export const QUESTS = [
@@ -31,12 +45,11 @@ export const QUESTS = [
     id: Q, title: 'The Waiting Bird', world: 'arzach', main: true,
     outro: 'She comes when you call. She chose to.',
     stages: [
-      { id: 'watcher', text: 'Someone sits by the bird, watching the lone tower. Sit with her', label: 'Oïa, watching the tower', flag: 'arzach.watcher.met', at: 'oia' },
-      { id: 'ride', text: 'The bird keeps turning toward the lone tower. Ride her (E beside her)', label: 'The bird', flag: 'arzach.rode', at: 'bird' },
-      { id: 'tower', text: 'Fly to the lone tower and land on its balcony (Space flaps, S pulls up)', label: 'The tower’s balcony', goto: 'balcony', radius: 21, vertical: 12, at: 'balcony' },
+      { id: 'watcher', text: 'Someone sits on a stone on the plain, watching the lone tower. Sit with her', label: 'Oïa, watching the tower', flag: 'arzach.watcher.met', at: 'oia' },
+      { id: 'tower', text: 'The wind rises up the lone tower’s side. Jump into it and open your wings (hold A / × as you fall): it lifts you to the balcony', label: 'The wind at the tower', goto: 'balcony', radius: 21, vertical: 12, at: 'wind' },
       { id: 'window', text: 'Climb the stone steps round the tower to its one window', label: 'The window', flag: 'arzach.window.seen', at: 'window' },
-      { id: 'call', text: 'Blow the rider’s whistle (E)', label: 'The bird', flag: 'arzach.bird.called', at: 'bird' },
-      { id: 'promise', text: 'The bird is coming. Wait for her', label: 'The bird', flag: 'arzach.bird.promise', at: 'bird' },
+      { id: 'call', text: 'Play the rider’s flute', label: 'The rider’s flute', flag: 'arzach.bird.called', at: 'window' },
+      { id: 'promise', text: 'Something answers from high over the haze. Wait for her', label: 'The bird', flag: 'arzach.bird.promise', at: 'bird' },
     ],
   },
   {
@@ -71,7 +84,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~solemn~ (Oïa watches *the lone tower* across the plain. You wait for her to look at you. She does not.)", "~solemn~ (She points to the bird, then to the tower. The bird gives you the same look. Apparently this is your invitation.)"],
+          say: ["~solemn~ (Oïa watches *the lone tower* across the plain. You wait for her to look at you. She does not.)", "~solemn~ (She points at the tower, then up at the empty sky over the haze, and waits. Whatever she waits for is up there. Apparently you are invited to wait too.)"],
           do: { set: { 'arzach.watcher.met': true } },
           choices: [
             { text: '~curious~ Who lived in the tower?', goto: 'rider' },
@@ -79,7 +92,7 @@ export const PEOPLE = {
           ],
         },
         silence: {
-          say: ["~whisper~ (You sit beside her. The bird shuffles closer. All three of you watch the tower.)", "~happy~ (Oïa almost smiles. You seem to have said the right thing.)"],
+          say: ["~whisper~ (You sit beside her. High over the haze a long white shape turns once, and is gone. The two of you watch the tower.)", "~happy~ (Oïa almost smiles. You seem to have said the right thing.)"],
           choices: [{ text: '~curious~ Who lived in the tower?', goto: 'rider' }, { text: '~neutral~ (get up)', end: true }],
         },
         rider: {
@@ -91,7 +104,7 @@ export const PEOPLE = {
           choices: [{ text: '~sad~ And the bird is still waiting.', goto: 'track' }],
         },
         track: {
-          say: ["~solemn~ (She nods. In the sand she draws three dots over an arc.) {glyph}", "~neutral~ (She points to the bird’s three toes and curved heel.) Her track.", "~whisper~ (Below it she draws a chest with *a star on its lid*. She points *north, to the needle spire*: look for the chest up there.)"],
+          say: ["~solemn~ (She nods. In the sand she draws three dots over an arc.) {glyph}", "~neutral~ (She taps three toes and a curved heel, and looks up at the sky.) Her track.", "~whisper~ (Below it she draws a chest with *a star on its lid*. She points *north, to the needle spire*: look for the chest up there.)"],
           do: { set: { 'arzach.glyph.drawn': true } },
           choices: [
             { text: '~surprised~ I’ve seen that mark before. On my ship.', goto: 'mark' },
@@ -102,14 +115,16 @@ export const PEOPLE = {
           say: ["~surprised~ (Her hand stops. She taps the drawing, her stone seat, then points to the enormous stone hand.)", "~solemn~ (The same mark, everywhere. She turns her palms up: she cannot tell you who made it.)"],
           choices: [{ text: '~neutral~ I’ll go to the tower.', goto: 'go' }],
         },
-        go: { say: ["~neutral~ (She points to *the bird*, then traces a spiral up an imaginary tower: ride over, then climb.)"], choices: [{ text: '~neutral~ (nod)', end: true }] },
+        go: { say: ["~neutral~ (She points at *the tower’s foot* and sweeps both hands up its side, like rising air. Then she spreads her arms: *wings*.)",
+          { if: { not: { flag: 'item.glider' } }, text: "~neutral~ (She looks at your bare back, then points *west, to the white house with the stone wings* on the plain, and spreads her arms again.)" }], choices: [{ text: '~neutral~ (nod)', end: true }] },
         again: {
           say: [{ if: { flag: 'arzach.window.seen' }, text: "~curious~ (Oïa checks your empty hands. She points back at the tower’s window.)" },
-            { if: { not: { flag: 'arzach.window.seen' } }, text: "~neutral~ (A finger toward *the bird*. Another toward *the tower*. Her directions have not changed.)" }],
+            { if: { not: { flag: 'arzach.window.seen' } }, text: "~neutral~ (A finger toward *the tower’s foot*. Both hands sweeping up: the wind. Arms out: wings. Her directions have not changed.)" },
+            { if: { all: [{ not: { flag: 'arzach.window.seen' } }, { not: { flag: 'item.glider' } }] }, text: "~neutral~ (Then west, to *the white house with the stone wings*. Arms out again, patiently.)" }],
           choices: [{ text: '~curious~ Who lived in the tower?', goto: 'rider', if: { not: { flag: 'arzach.glyph.drawn' } } }, { text: '~neutral~ (nod)', end: true }],
         },
         whistle: {
-          say: ["~solemn~ (She sees the whistle. For the first time, she forgets the tower.)", "~whisper~ (She brushes the feather tied to it, then nods.) *Blow*."],
+          say: ["~solemn~ (She sees the flute. For the first time, she forgets the tower.)", "~whisper~ (She brushes the feather tied to it, then lifts two fingers to her lips, without a sound.) *Play*."],
           choices: [{ text: '~neutral~ (nod)', end: true }],
         },
         after: {
@@ -127,7 +142,7 @@ export const LOCALS = [
     id: 'tam', name: 'Tam', title: 'who copies you', color: '#f4efe2', voice: 1.6,
     talk: { listen: [
       ["~playful~ (The boy tilts his head when you do. You have acquired a reflection with dusty knees.)", "~playful~ (You raise a hand. His goes up exactly as far.)"],
-      "~happy~ (He waves with both arms, then points to the bird and flaps them. A clear improvement on your wave.)",
+      "~happy~ (He waves with both arms, then points up at the sky and flaps them. A clear improvement on your wave.)",
       { if: { not: { quest: 'arzach.hand', done: true } }, say: ['~scared~ (You glance at the tower. He shakes his head hard and hugs himself: too high, too cold.)', '~playful~ (Then he points at the stone hand out on the plain and taps his own knuckles, the smallest first, up to the tallest, and grins.)'] },
       "~playful~ (He opens his mouth wide. An impressive amount of nothing comes out.)",
       '~angry~ (He turns his back on you, folds his arms and becomes a spire. The spire would like you to go away.)',
@@ -200,22 +215,6 @@ export const LOCALS = [
 
 // The scenery you can look at.
 export const THINGS = {
-  window: {
-    id: 'window', name: 'The window', title: 'in the lone tower', color: '#34405e', voice: 0.6,
-    talk: {
-      entry: [{ if: { flag: 'arzach.window.seen' }, node: 'again' }, { node: 'look' }],
-      nodes: {
-        look: {
-          say: ["~whisper~ A round room. A narrow bed. An upturned cup. Someone left it ready to come back to.",
-            "~neutral~ A painted map shows *floating sky stones*, a monastery and a bell. A dotted route follows an aqueduct to a tower on a peach-coloured plain.",
-            "~sad~ A *bone whistle with a white feather* hangs beside the window. Its cord is worn from being tied and untied."],
-          do: [{ set: { 'arzach.window.seen': true, 'clue.arzach.arzach2': true } }, { give: 'whistle' }],
-          choices: [{ text: '~solemn~ (take the whistle)', end: true }],
-        },
-        again: { say: ["~solemn~ The rider’s map still catches the sun: *sky stones, a monastery, a bell*. A route to another world."], choices: [{ text: '~neutral~ (step back)', end: true }] },
-      },
-    },
-  },
   drawing: {
     id: 'drawing', name: 'A drawing in the sand', title: 'by Oïa’s stone', color: '#d9c9a8', voice: 0.6,
     talk: { nodes: { look: { say: ["~neutral~ Oïa’s drawing: three dots over an arc. {glyph} She calls it the bird’s track.", "~sad~ The wind is already rubbing it out."], choices: [{ text: '~neutral~ (step back)', end: true }] } } },

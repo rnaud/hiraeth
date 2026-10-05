@@ -349,7 +349,7 @@ function describe() {
   if (state.lineup === 'faces') return `${people.length} faces, from the left: ${people.map((q) => (q.world ? `${q.name} (${TITLES[q.world] ?? q.world})` : q.name)).join(', ')} · Share → Faces sheet`;
   if (state.lineup) return `${people.length} people · ${TITLES[state.world] ?? state.world}${state.lineup === 'crowd' ? ' · front: full bodies, back: GPU crowd figures' : ''}`;
   const L = p.look;
-  return L ? `${p.name} · ${L.kind === 'f' ? 'woman' : L.kind === 'm' ? 'man' : 'person'} · ${L.build} · ${(p.baseScale * (state.b.height ?? 1) * 1.8).toFixed(2)} m · ${L.tribe ?? ''}` : `${p.name} · coral overshirt, cream trousers, glass pack`;
+  return L ? `${p.name} · ${L.kind === 'f' ? 'woman' : L.kind === 'm' ? 'man' : 'person'} · ${L.build} · ${(p.baseScale * (state.b.height ?? 1) * 1.8).toFixed(2)} m · ${L.tribe ?? ''}` : `${p.name} · coral overshirt, cream trousers, canvas rucksack`;
 }
 
 // ------------------------------------------------------------------ animation, eyes, expression, cloth

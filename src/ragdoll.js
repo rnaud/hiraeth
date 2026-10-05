@@ -25,6 +25,7 @@ export const RAG = {
   bounce: 0.12,      // what a hard landing gives back
   still: 0.55,       // m/s: slower than this everywhere counts as lying still
   stillFor: 0.35,    // s of that before it is settled
+  air: 0.2,          // s without touching anything: it is falling (a landing after that is a landing: Ragdoll.landing)
 };
 
 // [name, bone, radius (m), mass]
@@ -74,6 +75,9 @@ export class Ragdoll {
     this.t = 0;
     this.stillT = 0;
     this.speed = 0;                        // the fastest particle (m/s)
+    this.airT = 0;                         // s since any particle last touched something
+    this.fallPeak = 0;                     // the pelvis's fastest fall (m/s) since then
+    this.landing = 0;                      // a fall's landing speed (m/s), set the frame it lands after RAG.air in the air (takeLanding)
   }
 
   /**
@@ -99,7 +103,7 @@ export class Ragdoll {
     this.legLen = LEGS.map(([a, b, c]) => points[a].distanceTo(points[b]) + points[b].distanceTo(points[c]));
     this.armLen = ARMS.map(([a, b, c]) => points[a].distanceTo(points[b]) + points[b].distanceTo(points[c]));
     this.scale = scale;
-    this.t = 0; this.stillT = 0; this.speed = 0;
+    this.t = 0; this.stillT = 0; this.speed = 0; this.airT = 0; this.fallPeak = 0; this.landing = 0;
     return this;
   }
 
@@ -119,11 +123,18 @@ export class Ragdoll {
   /** Lying still a moment (nothing moving faster than RAG.still for RAG.stillFor s). */
   get settled() { return this.stillT >= RAG.stillFor; }
 
+  /** Touching something (the ground, a wall it rests on) within the last RAG.air s: not falling. */
+  get grounded() { return this.airT < RAG.air; }
+
+  /** The speed (m/s) of a landing after a fall, once (0 if it has not just landed). */
+  takeLanding() { const v = this.landing; this.landing = 0; return v; }
+
   /** One frame of simulation. `physics`: heightAbove(pos, up, step), optional pushCapsule. */
   step(dt, physics, up) {
     if (!(dt > 0)) return;
     const n = Math.min(6, Math.ceil(dt / RAG.sub)), h = dt / n;
     const x = this.x, v = this.v, prev = this.prev, w = this.w;
+    let touched = false;
     for (let s = 0; s < n; s++) {
       const drag = Math.exp(-RAG.drag * h);
       for (let i = 0; i < N; i++) {
@@ -180,11 +191,18 @@ export class Ragdoll {
           vi.copy(vt).addScaledVector(up, Math.max(vn, 0) * (vn > 2 ? RAG.bounce : 1));
         }
         fastest = Math.max(fastest, vi.lengthSq());
+        if (this.contact[i]) touched = true;
       }
       this.speed = Math.sqrt(fastest);
+      if (!touched) this.fallPeak = Math.max(this.fallPeak, -v[J.pelvis].dot(up));
     }
     this.t += dt;
     this.stillT = this.speed < RAG.still ? this.stillT + dt : 0;
+    // falling (nothing touched): how long, and how fast it comes down when it lands
+    if (touched) {
+      if (this.airT >= RAG.air) this.landing = Math.max(this.landing, this.fallPeak);
+      this.airT = 0; this.fallPeak = 0;
+    } else this.airT += dt;
   }
 
   /** The joint limits (position corrections, inside the solver loop). */
@@ -371,7 +389,13 @@ export function toppleVelocities(dir, up, { carry = 0, rise = 0, tip = 2.6, twis
 /** A push knocks someone over (rather than a stumble) from this strength (1 point-blank .. 0 at the cone's reach, src/npc.js, src/crowd.js); at most `most` bodies down at once. */
 export const KNOCKOVER = { strength: 0.3, most: 4 };
 
-export const KNOCK = { blendIn: 0.12, lie: 0.7, rise: 1.25, maxFall: 3.5 };
+/**
+ * blendIn s into the limp pose; lie s lying there; rise s getting up. A fall ends once the body
+ * lies still, or after maxFall s if it is on something (still sliding, rocking); while it is
+ * falling through the air it never ends (it used to after maxFall s, and the traveller stood
+ * up in mid-air: a long fall off a cliff), only after maxAir s (nothing under it at all).
+ */
+export const KNOCK = { blendIn: 0.12, lie: 0.7, rise: 1.25, maxFall: 3.5, maxAir: 30 };
 
 export class Knockdown {
   constructor(H, { dead = false, lie = KNOCK.lie } = {}) {
@@ -402,7 +426,8 @@ export class Knockdown {
         this.rag.apply(this.H);
         if (this.t < KNOCK.blendIn) this.rag.blend(this.H, this.t / KNOCK.blendIn);
       }
-      const done = !this.H || this.rag.settled || this.t > KNOCK.maxFall;
+      const R = this.rag;
+      const done = !this.H || R.settled || (this.t > KNOCK.maxFall && R.grounded) || this.t > KNOCK.maxAir;
       if (done && this.t > 0.5) { this.phase = 'lie'; this.t = 0; }
       return false;
     }

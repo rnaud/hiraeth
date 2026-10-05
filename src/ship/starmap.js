@@ -1,5 +1,5 @@
-// The galactic map: a star chart over the screen when you use the cockpit
-// console. The worlds (ORDER) lie along a dotted route round home; each is a
+// The galactic map: a star chart over the screen when you use the holo table
+// in the middle of the ship's deck. The worlds (ORDER) lie along a dotted route round home; each is a
 // small drawn planet (src/ship/planets.js) with its name and what you have
 // done there. Without power it is locked.
 //
@@ -27,10 +27,14 @@ import { planetSvg } from './planets.js';
 import { hasSignature, signatureReading, SIGNATURE, SIGNATURE_LEGEND, SIGNATURE_LEGEND_SHORT } from '../story/signature.js';
 import { padIndex, confirmKey, backKey } from '../native-pad.js';
 
-/** What the console does when you press E: a pending call first, then the map, which needs power. */
-export function consoleAction({ powered, pendingCall }) {
-  if (pendingCall) return 'call';
-  return powered ? 'map' : 'locked';
+/**
+ * What E does at the ship's two consoles. `at`: 'dash' (the cockpit's voicemail button: the
+ * waiting message, else 'empty') or 'table' (the holo table in the middle of the deck: the
+ * galactic map, which needs power, else 'locked').
+ */
+export function consoleAction({ at = 'dash', powered, pendingCall }) {
+  if (at === 'table') return powered ? 'map' : 'locked';
+  return pendingCall ? 'call' : 'empty';
 }
 
 /** The list of worlds on the chart (`known`: named and choosable); Home is last, once the ending is open (src/story/ending.js). */

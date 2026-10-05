@@ -33,7 +33,7 @@ import { createEchoShell } from '../echo-shell.js';
 //   fx.update(dt, t)   per frame
 
 const BASE = { charges: 3, delay: 5 };
-export const LANTERN_AT = new THREE.Vector3(0.24, 0.36, -0.32);   // the lantern on the tank's left rail, in the chest anchor's frame
+export const LANTERN_AT = new THREE.Vector3(0.225, 0.37, -0.3);   // the lantern off the flask's left stave, beside the rucksack, in the chest anchor's frame
 /** The makers' star pinned to the coral lapel (chest-anchor frame). */
 export const TRAVELLER_STAR = { at: new THREE.Vector3(-0.125, 0.61, 0.18), tilt: -0.12, scale: 0.55 };
 

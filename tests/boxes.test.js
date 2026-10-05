@@ -9,10 +9,11 @@ import { CONTENT } from '../src/levels/content.js';
 import { game, GameState } from '../src/game-state.js';
 import { items, ITEMS } from '../src/items.js';
 import { PLACEMENTS } from '../src/boxes/placements.js';
-import { createBoxes, migrateSave, resolvePlacement, placementsFor, BOX_QUEST_DELAY } from '../src/boxes/index.js';
+import { createBoxes, migrateSave, resolvePlacement, placementsFor, boxesFound, BOX_QUEST_DELAY } from '../src/boxes/index.js';
 import { Quests } from '../src/story/quests.js';
-import { BoxScene, STAND_AT, LIFT } from '../src/boxes/scene.js';
-import { BOX, BOX_SCALE } from '../src/boxes/model.js';
+import { BoxScene, STAND_AT, LIFT, TIMES, WOBBLES, wobbleAngle } from '../src/boxes/scene.js';
+import { BOX, BOX_SCALE, buildBox, roundedBox } from '../src/boxes/model.js';
+import { gearHtml } from '../src/items.js';
 import { DevMenu } from '../src/dev-menu.js';
 import { bestInteractable, clearInteractables } from '../src/interact.js';
 
@@ -71,7 +72,8 @@ test('every placement stands on reachable ground, with room to stand and rise', 
 
 test('the jetpack, glider, stun and fire unlocks each have a box; every special item too', () => {
   const where = Object.fromEntries(Object.values(PLACEMENTS).flat().map((p) => [p.item, p.id]));
-  for (const id of Object.keys(ITEMS)) assert.ok(where[id], `${id} is in a box somewhere`);
+  for (const id of Object.keys(ITEMS)) if (!ITEMS[id].quest) assert.ok(where[id], `${id} is in a box somewhere`);
+  assert.ok(!where.cabpass, 'the cab pass is a quest’s, not a box’s');
   assert.match(where.jetpack, /^incal\./);
   assert.match(where.glider, /^arzach2?\./);
   assert.match(where.stun, /^(perdide|spheres)\./);
@@ -101,18 +103,19 @@ test('jetpack worlds without the jets get a box with them beside the ship', () =
   game.reset();
 });
 
-test('the desert backpack box sits on the makers’ ledge up the burning tree’s trunk: in sight from the stairs, a short climb', () => {
+test('the desert backpack box sits on the makers’ pedestal high up the burning tree’s trunk: in sight from the stairs, a climb in two pitches', () => {
   const { physics, level } = world('desert');
   const C = level.qanat.city, L = C.ledge;
   const p = PLACEMENTS.desert.find((x) => x.item === 'backpack');
   assert.ok(!p.debris && p.beacon, 'no crash trail; a pale column over it');
   const at = resolvePlacement(p, { physics, level });
   assert.ok(at, 'resolves');
-  assert.ok(at.pos.distanceTo(L.box) < 0.05, 'on the ledge');
-  // inside the walls, at the burning tree beside the well, a few metres over the top terrace (a short climb)
+  assert.ok(at.pos.distanceTo(L.box) < 0.05, 'on the pedestal');
+  // inside the walls, at the burning tree beside the well, high over the top terrace (out of reach of a jump or one climb)
   assert.ok(Math.hypot(at.pos.x - C.center.x, at.pos.z - C.center.z) < 20, 'in the middle of the city');
   const rise = at.pos.y - C.top;
-  assert.ok(rise > 2.5 && rise < 4.5, `a few metres up the trunk (${rise.toFixed(2)} m)`);
+  assert.ok(rise > 6.5 && rise < 9, `high up the trunk (${rise.toFixed(2)} m)`);
+  assert.ok(L.shoulder.y - C.top > 2.5 && L.dais.y - L.shoulder.y > 3, 'two pitches: the root, then the pier');
   const dw = Math.hypot(at.pos.x - C.well.x, at.pos.z - C.well.z);
   assert.ok(dw > 3.5 && dw < 12, `beside the well (${dw.toFixed(1)} m)`);
   // in the open (no roof: it shows from afar, and there's room for the opening scene), its back to the bark
@@ -123,7 +126,7 @@ test('the desert backpack box sits on the makers’ ledge up the burning tree’
   const out = at.pos.clone().sub(C.treeBase).setY(0).normalize();
   assert.ok(F.dot(out) > 0.95, 'it faces out from the trunk');
   // in sight from the top of the main stairs, the way you come up from the gate (well clear of the flame)
-  const eye = C.stairTop.clone().add(V(0, 1.6, 0)), lid = at.pos.clone().add(V(0, 0.9, 0)), d = eye.distanceTo(lid);
+  const eye = C.stairTop.clone().add(V(0, 1.6, 0)), lid = at.pos.clone().add(V(0, 0.8, 0)), d = eye.distanceTo(lid);
   assert.ok(physics.rayDistance(eye, lid.clone().sub(eye).normalize(), d) > d - 0.2, 'seen from the top of the stairs');
   // on foot from the gate: up the avenue, the stairs, round the well to the buttress's foot (no step over 0.62 m, no wall)
   const route = [C.gate, C.plinthStair, C.stairTop, C.local(-4, C.top - C.center.y, 9.6), L.foot];
@@ -138,25 +141,32 @@ test('the desert backpack box sits on the makers’ ledge up the burning tree’
       y = g;
     }
   }
-  // the climb: walk into the buttress root's face, climb it, pull up over the edge and stand in front of the chest
+  // the climb: walk into the buttress root's face, climb it, pull up onto its shoulder; walk on into the
+  // pier's face, climb that, pull up over the dais's edge and stand in front of the box
   {
     const P = new Player(physics, { health: false });
     P.pos.copy(L.foot); P.heading = at.yaw + Math.PI; P.onGround = true;
     const camYaw = Math.atan2(F.x, F.z);   // W walks toward -F: into the trunk
-    let climbed = false, onLedge = false;
-    for (let i = 0; i < 60 * 15 && !onLedge; i++) {
+    let climbs = 0, wasClimbing = false, onShoulder = false, onDais = false;
+    for (let i = 0; i < 60 * 30 && !onDais; i++) {
       quiet(() => P.update(1 / 60, { KeyW: true }, camYaw));
-      climbed ||= P.climbing;
-      onLedge = P.onGround && !P.climbing && !P.mantle && Math.abs(P.pos.y - at.pos.y) < 0.15;
+      if (P.climbing && !wasClimbing) climbs++;
+      wasClimbing = P.climbing;
+      const standing = P.onGround && !P.climbing && !P.mantle;
+      onShoulder ||= standing && Math.abs(P.pos.y - L.shoulder.y) < 0.15;
+      onDais = standing && Math.abs(P.pos.y - L.dais.y) < 0.15;
     }
-    assert.ok(climbed, 'it climbs the root');
-    assert.ok(onLedge, `and stands on the ledge (${P.pos.y.toFixed(2)} vs ${at.pos.y.toFixed(2)})`);
+    assert.ok(onShoulder, 'it climbs the root onto its shoulder');
+    assert.ok(climbs >= 2, `two pitches (${climbs} climbs)`);
+    assert.ok(onDais, `and stands on the dais (${P.pos.y.toFixed(2)} vs ${L.dais.y.toFixed(2)})`);
     const fd = Math.hypot(P.pos.x - at.pos.x, P.pos.z - at.pos.z);
-    assert.ok(fd > 1.0 && fd < 2.2, `in front of the chest, within reach (${fd.toFixed(2)} m)`);
+    assert.ok(fd > 1.0 && fd < 2.4, `in front of the box, within reach (${fd.toFixed(2)} m)`);
   }
-  // (the mocap climb hugs the face closer, 0.27 m: its last reach over the edge still clears the chest,
-  // so the climb ends in a pull-up onto the shelf, not against the chest's front)
-  const face = at.pos.clone().addScaledVector(F, L.face + 0.27);
+  // no short cut: from the terrace, no jump or single climb gets onto the dais (the shoulder is between)
+  assert.ok(L.dais.y - C.top > 6, 'out of reach from the terrace');
+  // (the mocap climb hugs the face closer, 0.27 m: its last reach over the edge still clears the box,
+  // so the climb ends in a pull-up onto the dais, not against the box's front)
+  const face = at.pos.clone().addScaledVector(F, L.dais.face + 0.27).setY(L.dais.y);
   for (const h of [0.15, 0.5, 0.85]) assert.equal(physics.rayDistance(face.clone().add(V(0, h, 0)), F.clone().negate(), 1.6), Infinity, `over the edge at ${h} m: clear`);
   // the opening scene up there: every shot sees the traveller and the chest, from the open air
   game.reset();
@@ -175,7 +185,7 @@ test('the desert backpack box sits on the makers’ ledge up the burning tree’
     const d = s.pos.distanceTo(chest);
     assert.ok(physics.rayDistance(chest, s.pos.clone().sub(chest).normalize(), d) >= d - 0.05, 'a clear view of the traveller');
     assert.ok(!physics.embedded(s.pos), 'the lens is in the open');
-    assert.ok(s.pos.y > C.top + 1 && s.pos.y < C.top + 12 * 1.45, 'up by the ledge, under the flame');
+    assert.ok(s.pos.y > C.top + 1 && s.pos.y < C.top + 12 * 1.45, 'up by the pedestal, under the flame');
   }
   boxes.dispose();
   clearInteractables();
@@ -195,15 +205,21 @@ test('a box opens through E and its scene, grants its item and stays open', () =
   const boxes = createBoxes({ levelId: 'desert', scene, physics, level, player: pl, cam, anchor: s.arrivalSpot() });
   const box = boxes.list.find((b) => b.item === 'backpack');
   assert.ok(box && !box.spent(), 'the backpack box, closed');
-  assert.ok(box.parts.carve && box.parts.mats.carve, 'carved with the glyph');
-  // it reacts as you come close: light, seam, star
-  pl.pos.copy(box.pos).add(V(10, 0, 0));
+  const A = box.parts.mats.body.uniforms.uBoxA.value;
+  assert.ok(box.parts.shell && A, 'one shell, marked and lit by its own shader');
+  // it reacts as you come close: light, the marks, the ray
+  pl.pos.copy(box.pos).add(V(30, 0, 0));
   boxes.update(1 / 30, 1);
-  const far = box.light.w;
+  const far = box.light.w, farRay = A.x, c0 = A.w;
+  boxes.update(1 / 30, 1.03);
+  const farStep = A.w - c0;
   pl.pos.copy(box.pos).add(V(2, 0, 0));
   boxes.update(1 / 30, 1.1);
-  assert.ok(box.light.w > far && box.parts.mats.seam.uniforms.uGlow.value > 0, 'it glows as you approach');
-  assert.ok(box.parts.mats.carve.uniforms.uGlow.value > 0.2, 'its carvings wake');
+  const c1 = A.w;
+  boxes.update(1 / 30, 1.13);
+  assert.ok(box.light.w > far && A.x > farRay, 'it glows as you approach, its ray brighter');
+  assert.ok(A.w - c1 > farStep * 1.3, 'the ray crosses it more often close up');
+  assert.ok(A.y > 0.5, 'its star and glyphs wake');
   // E: "open"
   const e = bestInteractable(pl);
   assert.equal(e?.entry.id, `box.${box.id}`);
@@ -213,7 +229,7 @@ test('a box opens through E and its scene, grants its item and stays open', () =
   assert.ok(Math.abs(pl.pos.distanceTo(box.pos) - STAND_AT) < 0.3, 'the traveller is set before the box');
   for (let i = 0; i < 30 * 2.2; i++) boxes.update(1 / 30, 2 + i / 30);
   assert.ok(box.parts.root.position.y > box.pos.y + LIFT * 0.6, 'it lifts off the ground');
-  for (let i = 0; i < 30 * 4; i++) boxes.update(1 / 30, 4.2 + i / 30);
+  for (let i = 0; i < 30 * 6; i++) boxes.update(1 / 30, 4.2 + i / 30);
   assert.equal(boxes.scene.phase, 'card', 'the card waits');
   assert.equal(box.parts.mats.body.uniforms.uDissolve.value.x, 1, 'the box has come apart');
   assert.ok(boxes.scene.model.visible && boxes.scene.model.position.distanceTo(box.pos) > LIFT, 'the item hangs where it was');
@@ -256,7 +272,7 @@ test('a box opens through E and its scene, grants its item and stays open', () =
 
 test('the scene never traps: an error ends it and still grants the item', () => {
   game.reset();
-  const parts = { lid: { rotation: { x: 0 } }, rays: { visible: false, children: [], rotation: {} }, glowFloor: { visible: false } };
+  const parts = { mats: {} };
   let granted = 0, ended = 0;
   const sc = new BoxScene({ box: { pos: V(), yaw: 0, parts, scene: null }, def: ITEMS.lens, item: 'lens', player: null, onGrant: () => granted++, onEnd: () => ended++ });
   sc.start();
@@ -321,6 +337,7 @@ test('every hidden box has a quest that says where to look; it starts on arrival
   const quests = new Quests({ game });
   const toasts = [];
   const pl = player(level.spawn);
+  game.set('box.desert.backpack', true);   // (box quests come once you have found a box: the next test)
   const boxes = createBoxes({ levelId: 'edena', scene, physics, level, player: pl, quests, toast: (t) => toasts.push(t) });
   const [qid] = boxes.quests;
   assert.equal(qid, 'box.edena.pouch');   // (the canopy's box: the lantern moved into Lorn II's temple, src/temples/)
@@ -333,4 +350,108 @@ test('every hidden box has a quest that says where to look; it starts on arrival
   quests.update(pl);   // (the story runtime does this every frame)
   assert.equal(quests.isDone(qid), true, 'opening the box finishes it');
   boxes.dispose(); clearInteractables(); game.reset(); items.revoke('pouch');
+});
+
+test('a makers’ box has no edges: one closed smooth shell, its outline the only ink', () => {
+  const g = roundedBox(0.33, 0.27, 0.29, 0.15);
+  const p = g.attributes.position, n = g.attributes.normal;
+  // every vertex's normal points the way the surface does there: no creases anywhere (the post pass inks creases)
+  g.computeBoundingBox();
+  assert.ok(Math.abs(g.boundingBox.max.x - 0.33) < 1e-3 && Math.abs(g.boundingBox.max.y - 0.27) < 1e-3, 'its size');
+  // closed and smooth: each edge's two faces bend by only a little (no hard edge between any two triangles)
+  const idx = g.index.array, faceN = [], edges = new Map();
+  const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
+  for (let i = 0; i < idx.length; i += 3) {
+    a.fromBufferAttribute(p, idx[i]); b.fromBufferAttribute(p, idx[i + 1]); c.fromBufferAttribute(p, idx[i + 2]);
+    faceN.push(new THREE.Vector3().crossVectors(b.clone().sub(a), c.clone().sub(a)).normalize());
+    for (const [u, v] of [[idx[i], idx[i + 1]], [idx[i + 1], idx[i + 2]], [idx[i + 2], idx[i]]]) {
+      const k = Math.min(u, v) + ',' + Math.max(u, v);
+      (edges.get(k) ?? edges.set(k, []).get(k)).push(i / 3);
+    }
+  }
+  let worst = 1;
+  for (const f of edges.values()) { assert.equal(f.length, 2, 'closed: every edge between two faces'); worst = Math.min(worst, faceN[f[0]].dot(faceN[f[1]])); }
+  assert.ok(worst > 0.9, `no hard edge (the sharpest bend between faces: ${(Math.acos(worst) * 180 / Math.PI).toFixed(1)}°)`);
+  for (let i = 0; i < n.count; i++) assert.ok(Math.abs(new THREE.Vector3().fromBufferAttribute(n, i).length() - 1) < 1e-3);
+  // the box: a single mesh with the makers' shader (the star, the glyph, the ray), dissolving when it opens
+  const box = buildBox('t');
+  const meshes = []; box.root.traverse((o) => { if (o.isMesh) meshes.push(o); });
+  assert.equal(meshes.length, 1, 'one shell: no lid, no seam, no plinth');
+  const m = meshes[0].material;
+  assert.ok(m.defines.MAKERS_BOX && m.defines.DISSOLVE, 'its own shader: the marks and the travelling ray; it can dissolve');
+  assert.ok(m.uniforms.uBoxA && m.uniforms.uBoxB && m.uniforms.uDissolve);
+  assert.notEqual(buildBox('u').mats.body, m, 'each box its own material (each sweeps and glows on its own)');
+});
+
+test('opening: it floats up, wobbles two or three times with rests between, then comes apart', () => {
+  // the wobbles: two or three, each a rock both ways that settles, with still rests between them
+  assert.ok(WOBBLES.length >= 2 && WOBBLES.length <= 3);
+  for (let i = 0; i < WOBBLES.length; i++) {
+    const w = WOBBLES[i];
+    let lo = 0, hi = 0;
+    for (let u = 0; u <= w.dur; u += 0.005) { lo = Math.min(lo, wobbleAngle(w, u)); hi = Math.max(hi, wobbleAngle(w, u)); }
+    assert.ok(lo < -0.05 && hi > 0.05, `wobble ${i} rocks both ways`);
+    assert.ok(Math.max(hi, -lo) < 0.35, `slightly (${Math.max(hi, -lo).toFixed(2)} rad)`);
+    assert.ok(Math.abs(wobbleAngle(w, w.dur * 0.999)) < 0.01, 'and settles');
+    if (i) assert.ok(w.at - (WOBBLES[i - 1].at + WOBBLES[i - 1].dur) > 0.25, 'a rest before it');
+  }
+  const last = WOBBLES.at(-1);
+  assert.ok(TIMES.wobble - (last.at + last.dur) > 0.2, 'a still moment before it opens');
+  // in a scene: floating all through the wobbles, a knock each time, then the dissolve
+  game.reset(); clearInteractables();
+  const { scene, physics, level } = world('desert');
+  const knocks = [];
+  const sound = { boxWobble: (i) => knocks.push(i) };
+  const boxes = createBoxes({ levelId: 'desert', scene, physics, level, player: player(V()), sound });
+  const box = boxes.list.find((b) => b.item === 'star');
+  boxes.open(box.id);
+  const seen = { leanMax: 0, restFrames: 0, minLift: Infinity, phases: [] };
+  for (let i = 0; i < 30 * 12 && boxes.busy(); i++) {
+    boxes.update(1 / 30, i / 30);
+    const sc = boxes.scene;
+    if (!sc) break;
+    if (seen.phases.at(-1) !== sc.phase) seen.phases.push(sc.phase);
+    if (sc.phase === 'wobble') {
+      seen.leanMax = Math.max(seen.leanMax, Math.abs(sc.lean));
+      if (sc.lean === 0) seen.restFrames++;
+      seen.minLift = Math.min(seen.minLift, sc.heart(1).y - (box.pos.y + (BOX.h * BOX_SCALE) / 2));
+    }
+    if (sc.phase === 'card') boxes.dismiss();
+  }
+  assert.deepEqual(seen.phases.slice(0, 6), ['approach', 'wake', 'rise', 'wobble', 'dissolve', 'reveal']);
+  assert.ok(seen.leanMax > 0.1, 'it rocks');
+  assert.ok(seen.restFrames > 10, 'and rests between');
+  assert.ok(seen.minLift > LIFT * 0.95, 'floating all the while');
+  assert.deepEqual(knocks, WOBBLES.map((_, i) => i), 'a knock with each wobble');
+  assert.ok(items.has('star'), 'and the item is yours');
+  boxes.dispose(); clearInteractables(); game.reset(); items.revoke('star');
+});
+
+test('nothing tells of the makers’ boxes before you find your first one', () => {
+  game.reset(); clearInteractables();
+  assert.equal(boxesFound(game), false);
+  const { scene, physics, level } = world('edena');
+  const quests = new Quests({ game });
+  const toasts = [];
+  const pl = player(level.spawn);
+  const boxes = createBoxes({ levelId: 'edena', scene, physics, level, player: pl, quests, toast: (t) => toasts.push(t) });
+  const [qid] = boxes.quests;
+  // a long while in a world with a box hidden in it: no quest, no toast, no page in the sketchbook
+  for (let i = 0; i < 30 * (BOX_QUEST_DELAY * 4); i++) boxes.update(1 / 30, i / 30);
+  assert.equal(quests.isStarted(qid), false, 'no box quest');
+  assert.deepEqual(toasts, [], 'no toast');
+  assert.equal(boxes.journalHtml(), '', 'no "Item boxes" page');
+  assert.ok(!/box|chest|maker/i.test(gearHtml([])), 'the empty gear page doesn’t mention them');
+  assert.ok(!/box/i.test(quests.journalHtml()), 'the sketchbook’s quests don’t either');
+  // the first one found (here the backpack's box by the ship): the others are offered a little later
+  const fb = boxes.list.find((b) => b.fallback && b.item === 'backpack');
+  boxes.open(fb.id, { instant: true });
+  assert.equal(boxesFound(game), true);
+  for (let i = 0; i < 30 * 2; i++) boxes.update(1 / 30, i / 30);
+  assert.equal(quests.isStarted(qid), false, 'not on the heels of the first');
+  for (let i = 0; i < 30 * (BOX_QUEST_DELAY + 1); i++) boxes.update(1 / 30, i / 30);
+  assert.equal(quests.isActive(qid), true, 'then the world’s other box is offered');
+  assert.ok(toasts.length === 1 && /another makers’ box/.test(toasts[0]));
+  assert.match(boxes.journalHtml(), /Item boxes/);
+  boxes.dispose(); clearInteractables(); game.reset(); items.revoke('backpack');
 });

@@ -41,14 +41,14 @@ these foundations and share animation logic where practical.
   pipeline picks up from data/mocap/mixamo/.)*
 - [x] Improve the traveller's transitions, foot contact, turning, and responsive
   body/head movement. Keep optional stop-motion styling disabled when evaluating
-  smoothness. *(src/feet.js, src/locomotion.js; README "Locomotion")*
+  smoothness. *(src/feet.js, src/locomotion.js; docs/systems/animation.md, "Locomotion")*
 - [x] Prototype a walk → run → sharp turn → stop sequence. Verify stable planted
   feet, no abrupt pose changes, and responsive control. *(tests/gait-sim.js,
   tests/locomotion.test.js: slide per contact 1.96 → 0.16 m, sink 10 → 0 cm,
   turn response unchanged at 0.30 s)*
 - [x] Add motion matching for locomotion, with procedural terrain corrections.
   *(Built: src/motion-match.js: features, search, inertialised jumps, speed
-  warping, feet.js on top. Measured against the loops (README "Motion capture"):
+  warping, feet.js on top. Measured against the loops (docs/systems/animation.md, "Motion capture"):
   a tie on runs, 180° turns at a run and turning on the spot, better on stops
   from a slow walk, worse on starts (the controller outpaces every captured
   start), tight walking turns and stairs. So the loops stay the default and
@@ -58,7 +58,7 @@ these foundations and share animation logic where practical.
   gestures to avoid identical-looking motion. *(Gait, timing and posture per
   person; gestures are still the shared wave and talk clips. People near you may
   also walk one of 12 captured CMU walks of their own, picked by pace and build:
-  README "Motion capture".)*
+  docs/systems/animation.md, "Motion capture".)*
 - [x] Scale animation work by distance: detailed motion selection and contact
   solving nearby; shared or baked animation with interpolated playback for
   distant crowds. *(Feet and lean near, poses every 2nd / 3rd frame further,
@@ -272,7 +272,7 @@ Grouped by area.
   in the cave 425 draws and 0.47 M triangles, 0.27 M of them terrain smaller than a pixel. Now a room off
   the map draws only itself (perf.js InteriorCuller, every world's temples and chambers): 87 draws and
   0.09 M triangles; the passage hides the dome behind it; the fluid's shader without a scratch array.
-  README, "Rooms off the map draw only themselves". To confirm on the Retroid: the cave at 60 with the rest.)
+  docs/systems/performance.md, "Rooms off the map draw only themselves". To confirm on the Retroid: the cave at 60 with the rest.)
 
 ---
 
@@ -438,7 +438,7 @@ All of this is for the web game; the Unity port follows later if we move to Unit
 
 - [x] The magic backpack starts empty: no fluid until you reach the skull and fill it there. Clearing
   the rubble on the way must work without it (another way through: climb, lever, push by hand…).
-  (Done: `tool.empty`; the keepers' pole levers the rib off, three heaves; README "The desert reworked".)
+  (Done: `tool.empty`; the keepers' pole levers the rib off, three heaves; docs/systems/story.md, "The desert reworked".)
 - [x] The big tree is not burning at first. It only stands there until the well is filled with the
   magic liquid. (Done: `city.setLit`; the well fills while you watch, the tree stays cold.)
 - [x] Then a second quest: find the special glowing rock, the only thing that can spark the liquid
@@ -455,7 +455,7 @@ All of this is for the web game; the Unity port follows later if we move to Unit
   mouth corner ticks that don't turn down at rest, warmer face shadows (skin, not the world's blue-violet
   shade), gentler face presets; tuned in the character studio and checked in every world. (Each person
   rests in a mood and wears a face shape of their people's; the model's lashes, a second heavy arc over
-  each eye, are folded away and the upper lids lifted; README "Warmer faces".)
+  each eye, are folded away and the upper lids lifted; docs/systems/faces.md, "Warmer faces".)
 - [x] Prototype MakeHuman / MPFB bodies (CC0 exports): a few people of different ages and builds with face
   shape keys for expressions, on the game's skeleton, next to the Quaternius bodies through the same ink
   pass in the character studio. (Eight people, Body source and a comparison lineup in the studio:
@@ -494,15 +494,15 @@ All of this is for the web game; the Unity port follows later if we move to Unit
 - [x] Plants move too much when you walk past: a light brush as you pass, not a big shove.
   *(A small quick lean away that springs back with a light wobble, by how close and how fast you
   pass: each plant a damped spring driven by your last second of steps, summed in the vertex
-  shader; ~10 cm walking instead of ~1 m. src/brush.js, README "Brushing past plants".)*
+  shader; ~10 cm walking instead of ~1 m. src/brush.js, docs/systems/living-world.md, "Brushing past plants".)*
 - [x] Most structures cast shadows. (Audited every world: nearly everything already cast; the far
   map skipped every tile of instanced props, so boulders, globes and pillars past 220 m cast
   nothing: now only tiles of small ones are skipped. Perdide's great crystal casts though it glows.
-  README "Who casts a shadow".)
+  docs/systems/rendering.md, "Who casts a shadow".)
 - [x] Grass pops in: in the distance it should fade into something smaller and cheaper, not appear at a line.
   *(Tuft by tuft: shrinking, thinner, into the ground's colour and without outline; a sparse far
   layer of two-blade tufts carries the meadow ~2.2× as far; the patch no longer jumps when the
-  camera turns. Fewer triangles on every preset (High 109 k → 102 k, reach 35 → 78 m). README
+  camera turns. Fewer triangles on every preset (High 109 k → 102 k, reach 35 → 78 m). docs/systems/materials.md,
   "Grass into the distance".)*
 - [x] Jump animation by phase: take-off, the top, falling back down (it looks static through the whole jump).
   Done: `src/jump.js` blends Jump_Start / Jump_Loop / Jump_Land by the vertical speed and the time to the
@@ -525,7 +525,7 @@ All of this is for the web game; the Unity port follows later if we move to Unit
   traveller while it isn't full; the sprint is 8.2 m/s (+14 %).
 - [x] Flowers that open shouldn't clip into walls and other things.
   *(Rays round each bloom where it's placed: it leans away from what is close and opens only as far
-  as the room left, neighbours included; tight spots move a step or are skipped. README "Flowers
+  as the room left, neighbours included; tight spots move a step or are skipped. docs/systems/living-world.md, "Flowers
   with room to open".)*
 - [x] Make it clear when you hit an invisible wall (the traveller just stutters as you push on).
   Done: the world's edge (`src/edge.js`) takes the outward speed away (a smooth slide, no running on the spot);
@@ -533,7 +533,7 @@ All of this is for the web game; the Unity port follows later if we move to Unit
 - [x] Each world's music more thematic. (`src/score.js`, `src/score-voices.js`: each world its own
   mode, tempo, metre, instruments, leitmotif and colour; the father's theme in every one; sections in
   seeded arcs, filled by walking and riding, thinned by standing still, roofs and night. Offline
-  renders: `scripts/render-score.mjs`. README, "The score, world by world".)
+  renders: `scripts/render-score.mjs`. docs/systems/audio.md, "The score, world by world".)
 
 # References level (2026-10-05)
 
@@ -545,7 +545,7 @@ All of this is for the web game; the Unity port follows later if we move to Unit
   of time, unseen, at load; a sheet of paper sweeps across; behind it the traveller is carried
   through still walking, mid-stride, the camera in its place behind; a few frames held while the
   new place settles. It used to land at a dead stop with the camera snapped in to 2 m. The ship's
-  and the houses' indoor framing eases the camera level instead of jumping. README, "Hand-overs and
+  and the houses' indoor framing eases the camera level instead of jumping. docs/systems/performance.md, "Hand-overs and
   loads without a hitch"; measured with `scripts/transition-perf/transitions.mjs`.)
 - [x] (added) The loading screen between worlds stutters while the level is built. (`src/load-steps.js`:
   every world's build, the collision bake, the people, the flora and the warm-up run in slices of
@@ -559,7 +559,7 @@ All of this is for the web game; the Unity port follows later if we move to Unit
   desert's two (`src/story/desert-moments.js`): the rib rolling off, the crack, the water down the
   gutter and spreading over the basin, his face, to the world's motif; the empty tank filling in
   three colours, the bracer's rings, a first glob, his face, to the father's theme, then the
-  controls. README, "Moments: first times, filmed".*
+  controls. docs/systems/cinematics.md, "Moments: first times, filmed".*
 
 # HUD (2026-10-05, web)
 
@@ -569,7 +569,7 @@ All of this is for the web game; the Unity port follows later if we move to Unit
   each fading after; the FPS readout is off by default (a setting, F, `?fps=1`); the gear only on
   touch, small and faint; the keyboard help is the menu's Controls page. Prompts only near
   something usable (the cue line for the ones with nothing to float over), toasts as before.
-  *Done: `src/hud.js`, README "Nothing on the screen; the scout finds the objective".*
+  *Done: `src/hud.js`, docs/systems/ui.md, "Nothing on the screen; the scout finds the objective".*
 - [x] The drone finds the quest: Q / Y / △ / touch ping (on foot, riding, flying) sends the scout
   a little way towards the objective (or over it when near); it hovers, points its lens beam at
   it, drops a flare there for a few seconds, chirps, names it and the distance on the cue, then
@@ -607,11 +607,11 @@ All of this is for the web game; the Unity port follows later if we move to Unit
 
 - Done so far (for review): `?level=references` (worlds list), the six panels of IMG_3775 as views
   (`src/levels/reference-views.js`) framed like their panels, `\` / View compares (corner, overlay,
-  left-half wipe), `?view=<n>`, `?look=desert` (the desert's own palette and preset). README "The
+  left-half wipe), `?view=<n>`, `?look=desert` (the desert's own palette and preset). docs/systems/references.md, "The
   References". Composition is close; the scenes are sketches (the skull, the tower's cap, the sails'
   membranes, the hull's machinery are simpler than drawn).
-- Shader pass after the review (2026-10-05, for review; README "Shade and hatching by surface",
-  "Weathered walls", "Sand banked against things"):
+- Shader pass after the review (2026-10-05, for review; docs/systems/materials.md, "Shade and hatching by surface",
+  "Weathered walls"; docs/systems/worlds.md, "Sand banked against things"):
   - Fixed: a shade per surface (`makeMaterial({ shade, shadeHue })`, `SHADE`): a lift and an own
     hue packed over the hatch strokes, a half-tone on forms turned from the sun and the ground's
     bounce under overhangs (`uHalftone`, `uBounce`, `uShadeKeep`: Moebius print only). The desert
@@ -644,7 +644,7 @@ All of this is for the web game; the Unity port follows later if we move to Unit
     cumulus.
 - Vael: `references/Vael/` is empty (no sheets); its tower plain and bird are drawn on Vael II's.
 - Vael II, the Sky Stones (IMG_3783–3788: 5 + 5 + 5 + 6 + 6 + 4 panels) are views 51–81
-  (`reference-vael2.js`; README "Vael II's sheets").
+  (`reference-vael2.js`; docs/systems/references.md, "Vael II's sheets").
   - Shader-level, done: a material's own flat print (`shadeFlat`: the world's rock, plain and
     buildings at 0.85, its people, bird and flowers keep their shade); strata rock hatched down its
     faces; no cross-hatched rings under caps (wood grain). On the world: a clean sky, no bounce, a

@@ -135,36 +135,38 @@ function outfitBox(h, re, frame = null) {
   return out;
 }
 
-test('docked on the radio pack: folded flat on its top, foot down, inside the space over it, clear of the antenna and the head', () => {
+test('docked on the rucksack: folded flat on its lid, foot down, inside the space over it, clear of the head', () => {
   const w = wearer(false), pts = inFrame(docked(w), w.h.chestAnchor);
-  const radio = outfitBox(w.h, /^Equipment_ivory_radio$/, w.h.chestAnchor);
+  const lid = outfitBox(w.h, /^Rucksack_lid$/, w.h.chestAnchor);
   const box = new THREE.Box3().setFromPoints(pts);
-  assert.ok(Math.abs(box.min.y - radio.max.y) < 0.012, `its foot on the pack's top (${(box.min.y - radio.max.y).toFixed(3)})`);
-  // the clearance volume: over the pack's top, no wider than the pack, not out past its back by more than a few cm
-  const room = new THREE.Box3(V(radio.min.x, radio.max.y - 0.002, radio.min.z - 0.04), V(radio.max.x, radio.max.y + 0.23, radio.max.z));
-  for (const p of pts) assert.ok(room.containsPoint(p), `outside the space over the pack: ${p.toArray().map((x) => x.toFixed(3))}`);
+  assert.ok(Math.abs(box.min.y - lid.max.y) < 0.012, `its foot on the lid (${(box.min.y - lid.max.y).toFixed(3)})`);
+  // the clearance volume: over the lid, no wider than the rucksack, overhanging its outer face by no more than a hand
+  const room = new THREE.Box3(V(lid.min.x, lid.max.y - 0.002, lid.min.z - 0.1), V(lid.max.x, lid.max.y + 0.23, lid.max.z + 0.01));
+  for (const p of pts) assert.ok(room.containsPoint(p), `outside the space over the lid: ${p.toArray().map((x) => x.toFixed(3))}`);
   // the lens looks back (toward the camera behind you)
   const lens = V(0, 0, 1).applyQuaternion(w.gear.scoutDock.getWorldQuaternion(new THREE.Quaternion()));
   assert.ok(lens.z < -0.99, 'lens looking back');
-  for (const re of [/^Backpack_antenna/, /^Bubble_helmet$/]) {
-    const b = outfitBox(w.h, re);
-    const near = Math.min(...docked(w).map((p) => b.distanceToPoint(p)));
-    assert.ok(near > 0.01, `${re.source}: ${near.toFixed(3)} m away`);
-  }
+  // clear of his hair (its own vertices: the tousled locks make its box much bigger than the hair)
+  const m = w.h.outfitMeshes.find((o) => o.userData.pieces.includes('Traveller_hair')), hair = [];
+  m.skeleton.update();
+  for (let i = 0; i < m.geometry.attributes.position.count; i++) hair.push(m.localToWorld(m.getVertexPosition(i, V())));
+  const near = Math.min(...docked(w).map((p) => Math.min(...hair.map((q) => q.distanceTo(p)))));
+  assert.ok(near > 0.015, `clear of his hair (${near.toFixed(3)} m)`);
 });
 
-test('docked on the tank: clamped to the left rail, off the glass, clear of the lantern and inside the space beside the tank', () => {
+test('docked on the flask: clamped to the top of its left upright, off the glass, clear of the lantern and inside the space beside it', () => {
   const w = wearer(true);
   assert.equal(w.gear.scoutDock.parent, w.tank, 'it rides with the tank (into a vehicle\'s socket too)');
   const pts = inFrame(docked(w), w.tank);
   const rail = Math.min(...pts.map((p) => Math.hypot(p.x - TANK_RAIL.x, p.z - TANK_RAIL.z)));
   assert.ok(rail > TANK_RAIL.r - 0.003 && rail < TANK_RAIL.r + 0.01, `its foot on the rail (${(rail - TANK_RAIL.r).toFixed(3)})`);
-  const room = new THREE.Box3(V(TANK_RAIL.x, 0, TANK_RAIL.z - 0.2 / TANK.scale), V(TANK_RAIL.x + TANK_RAIL.r + 0.23 / TANK.scale, TANK.height + 0.09, TANK_RAIL.z + 0.2 / TANK.scale));
+  const room = new THREE.Box3(V(TANK_RAIL.x, TANK.height * 0.8, TANK_RAIL.z - 0.2 / TANK.scale), V(TANK_RAIL.x + TANK_RAIL.r + 0.23 / TANK.scale, TANK_RAIL.top + 0.16, TANK_RAIL.z + 0.2 / TANK.scale));
   for (const p of pts) {
-    assert.ok(room.containsPoint(p), `outside the space beside the tank: ${p.toArray().map((x) => x.toFixed(3))}`);
-    if (p.y >= 0 && p.y <= TANK.height) { const r = tankRadiusAt(p.y); assert.ok((p.x / (r * TANK.squash)) ** 2 + (p.z / r) ** 2 > 1.05, 'in the glass'); }
-    // the rail's top bracket (fluid-tool.js buildTank: a box 0.03 x 0.026 x 0.15 at the rail, y height - 0.04, z 0.09)
-    assert.ok(!new THREE.Box3(V(TANK_RAIL.x - 0.015, TANK.height - 0.053, TANK_RAIL.z - 0.005), V(TANK_RAIL.x + 0.012, TANK.height - 0.027, TANK_RAIL.z + 0.145)).containsPoint(p), 'in the bracket');
+    assert.ok(room.containsPoint(p), `outside the space beside the flask: ${p.toArray().map((x) => x.toFixed(3))}`);
+    if (p.y >= 0 && p.y <= TANK.height) { const r = tankRadiusAt(p.y); assert.ok((p.x / (r * TANK.squash)) ** 2 + (p.z / (r * TANK.depth)) ** 2 > 1.05, 'in the glass'); }
+    // the upright's brackets (fluid-tool.js buildTank: boxes 0.03 x 0.026 x 0.15 at the rail, z + 0.07) and its knob
+    for (const y of TANK_RAIL.brackets) assert.ok(!new THREE.Box3(V(TANK_RAIL.x - 0.015, y - 0.013, TANK_RAIL.z - 0.005), V(TANK_RAIL.x + 0.015, y + 0.013, TANK_RAIL.z + 0.145)).containsPoint(p), 'in a bracket');
+    assert.ok(Math.hypot(p.x - TANK_RAIL.x, p.y - TANK_RAIL.top, p.z - TANK_RAIL.z) > 0.018, 'in the knob');
   }
   // The lantern hangs below the dock; include the paper globe and its hook.
   const chest = inFrame(docked(w), w.h.chestAnchor);
@@ -172,7 +174,7 @@ test('docked on the tank: clamped to the left rail, off the glass, clear of the 
     const q = p.clone().sub(LANTERN_AT);
     assert.ok(Math.hypot(q.x, q.y / 1.25, q.z) > 0.06 && !(Math.hypot(q.x, q.z) < 0.01 && q.y < 0.15), `in the lantern: ${p.toArray().map((x) => x.toFixed(3))}`);
   }
-  assert.ok(SCOUT_DOCK_Y < TANK.height - 0.06, 'below the bracket');
+  assert.ok(SCOUT_DOCK_Y > TANK_RAIL.brackets[1] + 0.06 && SCOUT_DOCK_Y < TANK_RAIL.top, 'above the top bracket, on the upright');
   // the lens looks back, its top out to the left
   const q = w.gear.scoutDock.getWorldQuaternion(new THREE.Quaternion()), cq = w.h.chestAnchor.getWorldQuaternion(new THREE.Quaternion()).invert();
   q.premultiply(cq);
@@ -260,7 +262,7 @@ test('gliding: the scout hops off the rail onto the cap, out of the fluid wings,
   assert.ok(gap(placed(1)) > 0.02, `on the cap, clear of the wings (${gap(placed(1)).toFixed(3)})`);
   // the hop: never in the glass, the cap or the rail's top
   for (let k = 0; k <= 1.0001; k += 0.1) for (const p of placed(k)) {
-    if (p.y >= 0 && p.y <= TANK.height) { const r = tankRadiusAt(p.y); assert.ok((p.x / (r * TANK.squash)) ** 2 + (p.z / r) ** 2 > 1.02, `in the glass at k ${k.toFixed(1)}`); }
+    if (p.y >= 0 && p.y <= TANK.height) { const r = tankRadiusAt(p.y); assert.ok((p.x / (r * TANK.squash)) ** 2 + (p.z / (r * TANK.depth)) ** 2 > 1.02, `in the glass at k ${k.toFixed(1)}`); }
     assert.ok(!(p.y < TANK.height + 0.118 && p.y > TANK.height - 0.01 && Math.hypot(p.x / TANK.squash, p.z) < 0.105), `in the cap at k ${k.toFixed(1)}`);
   }
   // and on the cap, still clear of the arms and the head in every clip
@@ -275,7 +277,7 @@ test('gliding: the scout hops off the rail onto the cap, out of the fluid wings,
   assert.ok(worst > 0, `on the cap it touches the body (${worst.toFixed(3)})`);
 });
 
-test('when the tank takes the radio pack\'s place, the docked scout glides over from the pack to the rail, folded', () => {
+test('when the flask is found, the docked scout glides over from the rucksack\'s lid to the flask\'s upright, folded', () => {
   const w = wearer(false), scene = new THREE.Scene();
   const player = { pos: V(), vel: V(), frame: { up: V(0, 1) }, gear: w.gear, humanoid: w.h, char: w.char };
   const scout = new Scout({ scene, player, physics: { rayDistance: () => Infinity }, getTarget: () => null });

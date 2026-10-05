@@ -16,7 +16,7 @@ import { stepped } from '../load-steps.js';
 // ink under every overhang.
 // ---------------------------------------------------------------------------
 
-// ---------------------------------------------------------------- the look (the reference sheets, README "Vael II's sheets")
+// ---------------------------------------------------------------- the look (the reference sheets, docs/systems/references.md, "Vael II's sheets")
 /** How flat the rock's, the plain's and the buildings' shade is printed (makeMaterial shadeFlat). */
 export const SKY_STONES_FLAT = 0.85;
 /**

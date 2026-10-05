@@ -8,11 +8,18 @@ import { padRide } from './controller.js';
 // Vael's bird: a long-beaked, feathered soaring mount. Controls when riding:
 // A/D bank and turn, W dive (gain speed), S pull up (trade speed for height),
 // Space flap (climb). Touching down slowly lands it; Space on the ground takes off.
+// On the ground she walks: her legs step in turn, her body bobs and sways, her
+// wings stay folded (GAIT). Taking off she crouches, leaps, and only at the top
+// of the leap opens her wings for the first beat (TAKEOFF).
 // A controller: RT flies on (thrust, analog; squeezed on the ground, she takes off),
 // the stick banks (left / right) and dives (forward) or climbs (back), the left button flaps (the bottom one jumps off: player.js jumpOff).
 
 const MIN_SPEED = 9;
 const MAX_SPEED = 55;
+/** Walking on the ground: speed (m/s), strides (rad of the step cycle a second; turning on the spot: slower), leg swing, lift, bob. */
+export const GAIT = { speed: 5, stride: 9.5, turnStride: 6, swing: 0.55, lift: 0.14, bob: 0.07, sway: 0.05 };
+/** Taking off: the crouch (s), the leap's speed up and forward (m/s), gravity on it, the first wingbeat's speed. */
+export const TAKEOFF = { crouch: 0.22, up: 8.5, forward: 7, gravity: 14, flight: 16 };
 const _v = new THREE.Vector3(), _from = new THREE.Vector3();
 
 export function buildBird() {
@@ -117,6 +124,11 @@ export class Bird {
     this.landed = true;
     this.flap = 0;          // flap animation phase
     this.flapPower = 0;
+    this.walkK = 0;         // 0..1: how much she is walking (the gait's weight)
+    this.walkPhase = 0;     // the step cycle
+    this.groundSpeed = 0;   // m/s along the ground, walking
+    this.takeoff = null;    // { t, vy, speed, leapt }: the crouch and the leap, until the first wingbeat
+    this.crouchK = 0;       // 0..1 down into the crouch; < 0 the legs pushing off
     this.time = 0;
     this.boardDistance = 7;
     this.exitOffset = 2.5;
@@ -148,7 +160,7 @@ export class Bird {
   }
 
   board() { this.mode = 'ridden'; }
-  leave() { this.mode = this.landed ? 'idle' : 'glide-down'; }
+  leave() { this.takeoff = null; this.crouchK = 0; this.mode = this.landed ? 'idle' : 'glide-down'; }
 
   seatTransform(pos, quat) {
     this.seat.getWorldPosition(pos);
@@ -157,6 +169,7 @@ export class Bird {
 
   update(dt, input) {
     this.time += dt;
+    if (this.takeoff && this.mode !== 'ridden') { this.takeoff = null; this.crouchK = 0; }   // (no rider: no leap)
     if (input && this.mode === 'ridden') this.fly(dt, input);
     else if (this.mode === 'summoned') this.flyTo(dt);
     else if (this.mode === 'catching') this.flyCatch(dt);
@@ -167,6 +180,7 @@ export class Bird {
 
   idle(dt) {
     this.speed = 0;
+    this.groundSpeed = 0; this.turning = false;   // (walking sets them again after, while ridden)
     this.vel.set(0, 0, 0);
     this.pitch *= Math.exp(-4 * dt);
     this.bank *= Math.exp(-4 * dt);
@@ -243,16 +257,20 @@ export class Bird {
     const pad = padRide(input), thrust = pad ? pad.throttle : 0;
     if (pad) { if (pad.x) steer = pad.x; if (pad.y) dive = pad.y; }
 
+    if (this.takeoff) return this.leap(dt, steer);
     if (this.landed) {
       this.idle(dt);
-      // walk the bird around slowly, take off with Space
+      // walk the bird around slowly (her gait: pose), take off with Space: a crouch, then a leap
       this.heading -= steer * 1.5 * dt;
-      if (dive > 0 || thrust > 0) {
+      this.groundSpeed = dive > 0 || thrust > 0 ? GAIT.speed : 0;
+      this.turning = Math.abs(steer) > 0.1;
+      if (this.groundSpeed) {
         const [fx, fz] = this.forward;
-        this.pos.x += fx * 5 * dt;
-        this.pos.z += fz * 5 * dt;
+        this.pos.x += fx * this.groundSpeed * dt;
+        this.pos.z += fz * this.groundSpeed * dt;
+        this.vel.set(fx * this.groundSpeed, 0, fz * this.groundSpeed);
       }
-      if (flapping || thrust > 0.5) { this.landed = false; this.speed = 16; this.pos.y += 1; this.vel.set(0, 10, 0); this.flapPower = 1; }
+      if (flapping || thrust > 0.5) { this.takeoff = { t: 0, vy: 0, speed: this.groundSpeed, leapt: false }; this.groundSpeed = 0; this.turning = false; }
       return;
     }
 
@@ -291,11 +309,50 @@ export class Bird {
     if (this.pos.y > 900) this.pos.y = 900;
   }
 
+  /**
+   * Taking off: down into a crouch (TAKEOFF.crouch s), then a leap, up and forward, legs pushing off,
+   * wings folded and half-opening on the way up; at the top of the leap she is flying and the first
+   * wingbeat comes down.
+   */
+  leap(dt, steer = 0) {
+    const T = this.takeoff, K = TAKEOFF, [fx, fz] = this.forward;
+    T.t += dt;
+    this.heading -= steer * 1.2 * dt;
+    this.flapPower = 0;
+    if (T.t < K.crouch) {
+      this.crouchK = Math.sin((T.t / K.crouch) * Math.PI / 2);
+      this.idle(dt); this.flapPower = 0;
+      return;
+    }
+    if (!T.leapt) { T.leapt = true; T.vy = K.up; T.speed = Math.max(T.speed, K.forward); }
+    T.vy -= K.gravity * dt;
+    T.speed += 8 * dt;
+    const from = _from.copy(this.pos);
+    this.pos.x += fx * T.speed * dt; this.pos.z += fz * T.speed * dt; this.pos.y += T.vy * dt;
+    this.vel.set(fx * T.speed, T.vy, fz * T.speed);
+    this.crouchK = -Math.min(1, (T.t - K.crouch) / 0.2);   // the legs push off, and trail
+    if (sweepCapsule(this.physics, this.pos, from, 1.4, -1.0, 1.4, this._push)) T.speed *= 0.7;
+    const g = this.physics.groundAt(this.pos.x, Math.max(from.y, this.pos.y) + 0.5, this.pos.z);
+    if (this.pos.y < g + 1.4) this.pos.y = g + 1.4;
+    // the top of the leap: the wings open and the first beat comes down
+    if (T.vy <= 0.5) {
+      this.takeoff = null; this.crouchK = 0;
+      this.landed = false;
+      this.speed = Math.max(K.flight, T.speed);
+      this.flapPower = 1;
+      this.flap = Math.PI / 2;   // (the wings up: the first stroke is down)
+      this.vel.set(fx * this.speed, 0, fz * this.speed);
+    }
+  }
+
   pose(dt) {
     this.flap += dt * (3 + this.flapPower * 5);
-    this.wingFold += ((this.landed ? 1 : 0) - this.wingFold) * (1 - Math.exp(-5 * dt));
+    // folded on the ground; through a take-off's leap they start to open, but beat only once she's flying
+    const leaping = this.takeoff?.leapt;
+    const foldTo = this.takeoff ? (leaping ? 0.45 : 1) : this.landed ? 1 : 0;
+    this.wingFold += (foldTo - this.wingFold) * (1 - Math.exp(-(leaping ? 7 : 5) * dt));
     const fold = this.wingFold;
-    const amp = (1-fold) * (.12 + this.flapPower * .65);
+    const amp = this.takeoff ? 0 : (1-fold) * (.12 + this.flapPower * .65);
     for (const w of this.wings) {
       // Shoulder powers the stroke; the wrist follows and twists on recovery.
       w.shoulder.rotation.y = w.side * fold * 1.12;
@@ -304,12 +361,25 @@ export class Bird {
       w.elbow.rotation.z = w.side * Math.sin(this.flap-.65) * amp * .48;
       w.elbow.rotation.x = Math.cos(this.flap-.35) * amp * .18;
     }
-    for (const l of this.legs) l.rotation.x = -(1-fold)*1.25;
-    this.tail.rotation.x = -.08 + this.pitch*.18;
+    // the gait: walking on the ground (or stepping round on the spot), legs in turn, body bobbing
+    const walking = this.landed && !this.takeoff && (this.groundSpeed > 0 || this.turning);
+    this.walkK += ((walking ? (this.groundSpeed > 0 ? 1 : 0.6) : 0) - this.walkK) * (1 - Math.exp(-8 * dt));
+    if (this.walkK > 0.01) this.walkPhase += dt * (this.groundSpeed > 0 ? GAIT.stride : GAIT.turnStride);
+    const W = this.walkK, ph = this.walkPhase, C = this.crouchK;
+    this.legs.forEach((l, i) => {
+      l.userData.y0 ??= l.position.y;
+      const s = Math.sin(ph + i * Math.PI), up = Math.max(0, Math.cos(ph + i * Math.PI));
+      // flying: tucked back; walking: forward and back in turn, lifted as it swings forward; the crouch bends, the leap pushes back
+      l.rotation.x = -(1 - fold) * 1.25 + s * GAIT.swing * W + (C > 0 ? 0.45 * C : 0.7 * C);
+      l.position.y = l.userData.y0 + up * GAIT.lift * W + (C > 0 ? 0.12 * C : 0);
+    });
+    this.tail.rotation.x = -.08 + this.pitch*.18 + Math.sin(ph * 2) * 0.05 * W;
     this.tail.rotation.z = -this.bank*.25;
     this.object.position.copy(this.pos);
     this.object.rotation.set(0, this.heading, 0);
-    this.body.rotation.set(this.pitch, 0, this.bank);
+    // the bob (twice a stride: each step), a sway from foot to foot, the head nodding; the crouch: down, nose low
+    this.body.rotation.set(this.pitch + Math.sin(ph * 2) * 0.035 * W + (C > 0 ? 0.14 * C : 0.12 * C), 0, this.bank + Math.sin(ph) * GAIT.sway * W);
+    this.body.position.y = -GAIT.bob * W * (0.5 - 0.5 * Math.cos(ph * 2)) - (C > 0 ? 0.42 * C : 0);
   }
 }
 

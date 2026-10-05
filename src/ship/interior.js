@@ -29,6 +29,11 @@ export const CONSOLE_R = 2.3;
 /** How far out the recordings' projector stands on the dash (ship-local radius, m). */
 export const PROJECTOR_R = 7.95;
 export const ROOM = { bunk: 0, hall: HATCH_A, cockpit: PI, galley: PI * 1.5 };
+/** The voicemail button on the dash (ship-local): at its front edge, right of the pilot's seat (clear of it as you walk up). */
+export const VOICEMAIL_A = PI - 0.18;
+export const VOICEMAIL = polar(7.52, VOICEMAIL_A, DECK + 1.14);
+/** How near the deck's centre counts as "at the holo table" (it opens the galactic map). */
+export const TABLE_R = 1.75;
 /** The front of the built-in units round the room (m from the centre): the open deck is inside it. */
 export const UNIT_R = 7.05;
 /** Where the four ribs of wall between the corners start (they run out to the hull). */
@@ -491,7 +496,7 @@ export function buildInterior(batch, group, o = {}) {
     // buttons, dials and levers on the dash
     const cols = ['btnA', 'btnB', 'btnC'];
     for (let row = 0; row < 3; row++) for (let k = 0; k < 13; k++) {
-      if ((k * 5 + row * 3) % 7 === 0 || (k === 6 && row > 0)) continue;   // (the middle: the projector)
+      if ((k * 5 + row * 3) % 7 === 0 || (k === 6 && row > 0) || (row === 0 && (k === 3 || k === 4))) continue;   // (the middle: the projector; the voicemail)
       const a = cA - 0.42 + (k / 12) * 0.84, p = polar(7.55 + row * 0.32, a, H(1.0));
       batch.add(cols[(k + row) % 3], box(0.09, 0.05, 0.09).rotateY(a).translate(p.x, p.y, p.z));
     }
@@ -514,6 +519,12 @@ export function buildInterior(batch, group, o = {}) {
     batch.add('blanket', box(0.18, 0.02, 0.14).rotateY(cA - 0.44).translate(...polar(7.35, cA - 0.44, H(1.02)).toArray()));
     P(cyl(0.05, 0.055, 0.1, ...polar(7.42, cA + 0.3, H(1.02)).toArray(), 10), C.orange);
   }
+  // the voicemail at the front of the dash: a small dark box with a big round lamp on it in a brass
+  // ring (its own material, 'vmail': it blinks while a message waits, src/ship/ship.js)
+  batch.add('vmailHalo', cyl(0.4, 0.4, 0.006, VOICEMAIL.x, H(1.0), VOICEMAIL.z, 28));   // the pool of light it throws on the dash
+  batch.add('dark', box(0.38, 0.09, 0.32).rotateY(VOICEMAIL_A).translate(VOICEMAIL.x, H(1.0), VOICEMAIL.z));
+  batch.add('band', new THREE.TorusGeometry(0.145, 0.026, 6, 24).rotateX(PI / 2).translate(VOICEMAIL.x, H(1.095), VOICEMAIL.z));
+  batch.add('vmail', new THREE.SphereGeometry(0.13, 18, 9, 0, TAU, 0, PI / 2).scale(1, 0.75, 1).translate(VOICEMAIL.x, H(1.09), VOICEMAIL.z));
   // the recordings' projector in the middle of the dash: a dark drum, a brass rim, a lens
   // (the parents rise over it as a hologram, src/ship/hologram.js)
   const proj = polar(PROJECTOR_R, cA, H(1.0));
@@ -548,8 +559,7 @@ export function buildInterior(batch, group, o = {}) {
     for (const s of [-1, 1]) P(tube([V(s * 0.3, 2.2, -0.05), V(s * 0.32, 2.45, -0.2), V(s * 0.3, CEIL - DECK - 0.05, -0.35)].map((p) => p.applyMatrix4(M)), 0.025, 8), C.ink);
     note(wallFrame(polar(rk.r0 - 0.01, am + (a0 < 3 ? 0.06 : -0.06), H(1.9)), polar(-1, am, 0).normalize(), 0.1), 0.16, 0.2, C.yellow, C.red);
   }
-  // a cable cover across the floor from the holo table to the dash
-  for (let r = 0.7; r < 7.2; r += 0.5) P(box(0.22, 0.012, Math.min(0.5, 7.2 - r)).rotateY(cA).translate(...polar(r + Math.min(0.25, (7.2 - r) / 2), cA, DECK + 0.002).toArray()), r % 1 < 0.5 ? C.dark : C.ink);
+  // (no cable cover across the floor to the dash: it read as a line leading you to the cockpit)
   potPlant(batch, polar(6.45, 2.47, DECK), 0.85);
   // the round screen hanging from the ceiling, up out of the hologram's way: the map, the reel's date stamp
   const scr = { c: polar(7.05, cA, H(2.86)), tilt: 0.24, r: 0.48 };
@@ -581,39 +591,13 @@ export function buildInterior(batch, group, o = {}) {
     lamps.push({ name, p, r: name.startsWith('ring') ? 10 : 15 });
   }
 
-  // the gentle guide for the walk to the cockpit: floor chevrons from the bunk, past the table
-  const guide = new THREE.Group();
-  guide.userData.noCollide = true;
-  const chevMat = makeMaterial({ color: '#f2c54b', glow: 1, tag: `guide-${o.tag ?? ''}` });
-  const route = [];
-  {
-    const A = polar(5.0, 0.32, DECK), Cc = V(2.3, DECK, 0), B = polar(4.3, PI, DECK);
-    for (let k = 0; k <= 9; k++) {
-      const u = k / 9;
-      route.push(V(0, 0, 0).addScaledVector(A, (1 - u) * (1 - u)).addScaledVector(Cc, 2 * u * (1 - u)).addScaledVector(B, u * u));
-    }
-  }
-  const chevrons = [];
-  for (let i = 0; i < route.length - 1; i++) {
-    const p = route[i], q = route[i + 1];
-    const g = new THREE.Group();
-    const arm = new THREE.BoxGeometry(0.06, 0.012, 0.36);
-    g.add(new THREE.Mesh(arm.clone().rotateY(0.6).translate(0.1, 0, 0.12), chevMat), new THREE.Mesh(arm.clone().rotateY(-0.6).translate(-0.1, 0, 0.12), chevMat));
-    g.position.copy(p).lerp(q, 0.5).setY(DECK + 0.02);
-    g.rotation.set(0, Math.atan2(q.x - p.x, q.z - p.z), 0);
-    guide.add(g);
-    chevrons.push(g);
-  }
-  guide.visible = false;
-  group.add(guide);
-
   const props = paint.mesh({ glow: 0.18 });
   props.name = 'ship-props';
   props.userData.noCollide = true;
   group.add(props);
 
   return {
-    deco, guide, chevrons, lamps, props,
+    deco, lamps, props,
     screen: { centre: scr.c, normal: screenNormal, radius: scr.r - 0.03, tilt: scr.tilt, a: cA },
     points: {
       wakeEye: bedPt(-0.62, 0.86, 0.05),
@@ -627,7 +611,7 @@ export function buildInterior(batch, group, o = {}) {
       table: V(0, H(TABLE.planetY), 0),             // the holo table's planet (src/ship/holotable.js)
       hatchIn: polar(8.1, HATCH_A, DECK),
       hatchHeading: HATCH_A,
-      route: [polar(5.6, 0.32, DECK), ...route, polar(5.3, PI, DECK)],
+      voicemail: VOICEMAIL.clone(),                 // the voicemail button on the dash (it blinks while a message waits)
     },
   };
 }

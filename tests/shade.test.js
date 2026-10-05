@@ -4,7 +4,7 @@ import { SHADE, shadeOf, packShade, unpackShade, makeMaterial, sharedUniforms, M
 import { PRESETS } from '../src/post.js';
 import { GROUND } from '../src/ground-ink.js';
 
-// Shade and hatching by surface (README): each material's shade has its own lift and hue, the light's
+// Shade and hatching by surface (docs/systems/materials.md): each material's shade has its own lift and hue, the light's
 // geometry adds a half-tone and the ground's bounce, packed over the hatch strokes for post.js.
 
 test('the shade packs over the strokes and comes back out (lift, hue, strokes)', () => {

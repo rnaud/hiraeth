@@ -9,7 +9,7 @@ import { hasCanvas } from './art.js';
 export class CallScreen {
   constructor(size = 384) {
     this.size = size;
-    this.state = { who: 'off', talk: 0, statik: 0, t: 0, speaker: 'father', crack: 0, power: 1, label: '' };
+    this.state = { who: 'off', talk: 0, statik: 0, t: 0, speaker: 'father', crack: 0, power: 1, label: '', waiting: false };
     if (!hasCanvas()) { this.texture = null; return; }
     this.canvas = document.createElement('canvas');
     this.canvas.width = this.canvas.height = size;
@@ -20,7 +20,7 @@ export class CallScreen {
     this.draw();
   }
 
-  /** who: 'off' | 'idle' (a dim standby glyph) | 'locked' (NO POWER) | 'map' | 'tape' (a recording; also 'father' | 'mother' | 'both'); label: the recording's date stamp */
+  /** who: 'off' | 'idle' (a dim standby glyph) | 'locked' (NO POWER) | 'map' | 'tape' (a recording; also 'father' | 'mother' | 'both'); label: the recording's date stamp; waiting: a new message (idle says so) */
   set(o) { Object.assign(this.state, o); }
 
   update(dt) {
@@ -71,13 +71,27 @@ export class CallScreen {
       g.globalAlpha = 1;
       return;
     }
+    if (s.who !== 'map' && s.waiting) {
+      // a message waits: the whole face glows warm in time with the button, and says so
+      const k = s.pulse ?? pulse;
+      g.textAlign = 'center';
+      g.globalAlpha = 0.25 + 0.6 * k;
+      g.fillStyle = '#ff7a4a'; g.beginPath(); g.arc(c, c, S * 0.5, 0, 7); g.fill();
+      g.globalAlpha = 1;
+      g.fillStyle = k > 0.5 ? '#fff1c4' : '#ffb08a';
+      g.font = `bold ${S * 0.3}px ui-monospace, Menlo, monospace`;
+      g.fillText('1', c, S * 0.56);
+      g.font = `bold ${S * 0.075}px ui-monospace, Menlo, monospace`;
+      g.fillText('NEW MESSAGE', c, S * 0.74);
+      return;
+    }
     // a slowly turning star chart: rings and the route
     for (const r of [0.14, 0.24, 0.34]) { g.beginPath(); g.ellipse(c, c, S * r * 1.15, S * r * 0.7, 0.3 + t * 0.05, 0, Math.PI * 2); g.stroke(); }
     g.fillStyle = '#f2c54b';
     for (let i = 0; i < 6; i++) { const a = i * 1.1 + t * 0.2, r = S * (0.12 + i * 0.04); g.beginPath(); g.arc(c + Math.cos(a) * r * 1.1, c + Math.sin(a) * r * 0.65, 5, 0, 7); g.fill(); }
     g.font = `${S * 0.05}px ui-monospace, Menlo, monospace`;
     g.textAlign = 'center'; g.fillStyle = '#9fe0d6';
-    g.fillText(s.who === 'map' ? 'GALACTIC MAP' : 'E · CONSOLE', c, S * 0.86);
+    g.fillText(s.who === 'map' ? 'GALACTIC MAP' : 'VOICEMAIL', c, S * 0.86);
   }
 
   /** A recording playing: the reel turning, its label (the date stamp), the voice as a trace. */

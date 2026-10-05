@@ -156,13 +156,14 @@ function machinery(kit, M, { x0, z0, x1, z1, y0 = 0, y1 = 20, depth = 4, n = 30,
 }
 
 /** The drum: an open cylinder (inner face drawn) r wide from y0 to y1, ribbed, slit windows, arches at its foot. */
-function drum(kit, M, { x, z, r, y0 = 0, y1, mat = 'teal', slits = 18, lit = 0.3, seed = 3 }) {
+function drum(kit, M, { x, z, r, y0 = 0, y1, mat = 'teal', slits = 18, lit = 0.3, seed = 3, gap = 0 }) {
+  // gap (rad): the side toward +z left open (a drum entered through its wall)
   const rng = mulberry32(seed), h = y1 - y0;
-  kit.add(M[mat], new THREE.CylinderGeometry(r, r, h, 56, 1, true).translate(x, y0 + h / 2, z));
-  kit.add(M[mat], new THREE.CylinderGeometry(r + 4, r + 4, h, 56, 1, true).translate(x, y0 + h / 2, z));
-  kit.add(M.tealDark, new THREE.RingGeometry(r, r + 4, 56).rotateX(-Math.PI / 2).translate(x, y1, z), { solid: false });
+  kit.add(M[mat], new THREE.CylinderGeometry(r, r, h, 56, 1, true, gap / 2, Math.PI * 2 - gap).translate(x, y0 + h / 2, z));
+  kit.add(M[mat], new THREE.CylinderGeometry(r + 4, r + 4, h, 56, 1, true, gap / 2, Math.PI * 2 - gap).translate(x, y0 + h / 2, z));
+  kit.add(M.tealDark, new THREE.RingGeometry(r, r + 4, 56, 1, gap / 2, Math.PI * 2 - gap).rotateX(-Math.PI / 2).translate(x, y1, z), { solid: false });
   for (let i = 0; i < slits; i++) {
-    const a = (i / slits) * Math.PI * 2, sx = x + Math.sin(a) * (r - 0.05), sz = z + Math.cos(a) * (r - 0.05);
+    const a = gap / 2 + (i / slits) * (Math.PI * 2 - gap), sx = x + Math.sin(a) * (r - 0.05), sz = z + Math.cos(a) * (r - 0.05);
     const sh = h * (0.12 + rng() * 0.1), sy = y0 + h * (0.25 + rng() * 0.5);
     kit.add(rng() < lit ? M.window : M.dark, put(new THREE.BoxGeometry(1.6, sh, 0.3), sx, sy, sz, a), { solid: false });
     kit.add(M.tealDark, put(new THREE.BoxGeometry(1.2, h, 0.8), x + Math.sin(a + 0.09) * (r - 0.4), y0 + h / 2, z + Math.cos(a + 0.09) * (r - 0.4), a), { solid: false });
@@ -590,7 +591,7 @@ export const BURIED_VIEWS = [
       machineScene(kit, v, {
         seed: 37923,
         walls: [{ x: 0, z: -12, w: 70, h: 80, t: 8, holes: [[0, 30, 15, 30]], mat: 'green', rim: 'tealDark' }],
-        drums: [{ x: 0, z: -90, r: 34, y1: 70, mat: 'green', lit: 0.6, slits: 30 }],
+        drums: [{ x: 0, z: -50, r: 34, y1: 70, mat: 'green', lit: 0.6, slits: 30, gap: 1.2 }],
         machinery: [{ x0: -24, z0: -70, x1: 24, z1: -70, y0: 0, y1: 16, depth: 6, n: 80, seed: 17, mats: ['teal', 'tealDark', 'green'], lamps: 20 }],
         extra(k, M) { k.add(M.glowAqua, new THREE.CircleGeometry(150, 40).translate(10, 330, -400).lookAt(new THREE.Vector3(0, 1.7, 0)), { solid: false, shadow: false }); },
       });

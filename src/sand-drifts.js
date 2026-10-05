@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { createNoise2D } from './noise.js';
 
 // ---------------------------------------------------------------------------
-// Sand banked against things (README "Sand banked against things"): in a sandy world, what stands on
+// Sand banked against things (docs/systems/worlds.md, "Sand banked against things"): in a sandy world, what stands on
 // the ground sits in it. Round every building, rock, wreck and big prop a skirt of sand rises a
 // little toward its sides: a soft concave fillet at its foot, higher on the windward side, now and
 // then a bigger drift half burying a corner.

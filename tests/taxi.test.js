@@ -5,7 +5,8 @@ import * as THREE from 'three';
 // Taxis: the people aboard are people-sized in a cab of any size, and a cab that comes when
 // you call it comes empty (the bench is yours).
 
-const { Taxi, FIGURE_H } = await import('../src/taxi.js');
+const { Taxi, FIGURE_H, CAB_PASS, PASS_REFUSAL } = await import('../src/taxi.js');
+const { game } = await import('../src/game-state.js');
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const physics = { groundAt: () => 0, pushCapsule: () => false, rayDistance: () => Infinity };
 
@@ -44,6 +45,7 @@ test('drivers and passengers are human-sized whatever the cab’s size', () => {
 });
 
 test('a hailed taxi comes empty: no passenger on the cab coming for you', () => {
+  game.set(`item.${CAB_PASS}`, true);   // (a pass holder: without one no cab answers, below)
   Taxi.playerPos = V(0, 30, 10);
   const t = cabWithFare(2.3);
   t.update(1 / 30, null, 0);
@@ -67,6 +69,32 @@ test('a hailed taxi comes empty: no passenger on the cab coming for you', () => 
   Taxi.playerPos = V(0, 30, 10); t.update(1 / 30, null, 0);
   assert.ok(shown(t.parts.pax), 'back in traffic, far off, a new fare');
   Taxi.playerPos = null;
+  game.set(`item.${CAB_PASS}`, undefined);
+});
+
+test('no pass, no cab: hailing or getting in is refused (and said, now and then); a free cab and a pass holder ride', () => {
+  game.set(`item.${CAB_PASS}`, undefined);
+  const t = new Taxi(physics, '#c8483a', 2, (time, taxi) => { taxi.pos.set(Math.cos(time) * 80, 30, Math.sin(time) * 80); });
+  t.update(1 / 30, null, 0);
+  const notes = [], who = { notice: (s) => notes.push(s) };
+  const refused = [];
+  Taxi.onRefuse = (taxi, how) => refused.push(how);
+  Taxi._refusedAt = -1e9;
+  assert.equal(t.refuses(who, 'hail'), true);
+  assert.deepEqual(notes, [PASS_REFUSAL.hail]);
+  assert.equal(t.refuses(who, 'board'), true, 'again at once: still no');
+  assert.equal(notes.length, 1, '(said once, not every press)');
+  t.hail(V(0, 0, 40), 0);
+  assert.equal(t.mode, 'lane', 'a hail without a pass: it flies on');
+  assert.deepEqual(refused, ['hail']);
+  const free = new Taxi(physics, '#f2c54b', 2, null, { free: true });
+  assert.equal(free.refuses(who), false, 'a free cab (Wren’s) stops for anyone');
+  game.set(`item.${CAB_PASS}`, true);
+  assert.equal(t.refuses(who), false, 'with the pass, it stops');
+  t.hail(V(0, 0, 40), 0);
+  assert.equal(t.mode, 'hail');
+  game.set(`item.${CAB_PASS}`, undefined);
+  Taxi.onRefuse = null;
 });
 
 test('a cab sent for you some other way (Wren’s, to the lamp) comes empty too, and hers never carries anyone', () => {

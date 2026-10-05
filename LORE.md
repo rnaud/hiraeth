@@ -356,7 +356,12 @@ all.
 
 The route (`ORDER`): the desert is always known; then the next two unfinished
 worlds, so there is always a choice of two; finishing one charts the next. Home
-opens after six worlds. Each world: its people (one line each), its main
+opens after six worlds. The order: the desert; Vael and Vael II (the fluid wings
+and the winds come first; Vael II is charted only once Vael is done, for its
+bird); Lorn and Lorn II; Viridel; then, in the later half, the City-Shaft (the
+fluid jets), the Sealed Hangar and the Buried Machine (the worlds that want the
+jets), the Garden of Spheres and the Signal Market. The sections below are
+numbered by that route (they keep the order they were written in). Each world: its people (one line each), its main
 quest, its side quests, its chest and keepsakes, and how it ties into the arc.
 
 ### 1. The Desert: "The Tree That Drinks"
@@ -476,7 +481,7 @@ fire-bearer. Errands start here (a jar of singing sand for the City-Shaft).
   done) saw the tree burning and turning cool: it keeps it lit and skips the new errand. A
   save short of that finds the tree cold (the story explains it) and does the errand; its tank
   was never empty.
-### 2. The City-Shaft: "The Light Nobody Looks At"
+### 7. The City-Shaft: "The Light Nobody Looks At"
 A city stacked down a 600 m pit: the rich on the sunny rim, the poor in the
 depths over an acid lake, flying taxis between. The **Lodestar**, a light and
 its dark twin, turns over the palace; the rim calls it a tourist story, the
@@ -502,7 +507,9 @@ ONCE A DAY, the whole city looks up); tell Nima.
 Side quests: carry Pip's ration up to Dov ("Dov's lift token"; first swing it in
 from the old goods hoist over the void: shoot the rusted pin, push the weight
 round the post); light Wren's
-lamp (her cab comes when you hail in the depths). Errand: a taxi token for Vael.
+lamp (her cab comes when you hail in the depths); a cab pass from Lio (`incal.pass`:
+the cabs stop for passes, not people; he writes one for the fare Hask owes him,
+which Hask pays in one bent coin). Errand: a taxi token for Vael.
 
 Keepsakes: *word* "Look up once a day"; *thing* "Dov's lift token". Chest: the
 soft-fall soles on the makers' pillar (the fluid jets wait in the Warden's Well, §11).
@@ -511,21 +518,25 @@ Ties: the Lodestar rang back when the light passed and a piece came away; a
 swamp trader once brought a crystal that sang the same note (Lorn); the light
 went "toward the deserts".
 
-### 3. Vael: "The Waiting Bird"
+### 2. Vael: "The Waiting Bird"
 A silent, bone-white country of needle spires, arches, floating ruins and a
-lone tower. A great bird waits for a rider who left long ago. Nobody speaks
-much; the world is quiet by choice.
+lone tower. A great bird waits, high over the haze, for a rider who left long
+ago; she has not come down since, and comes only to the rider's call. Nobody
+speaks much; the world is quiet by choice.
 
 People:
-- **Oïa**, who watches the tower: almost wordless ("Gone." "Her track." "Blow."); draws in the sand.
+- **Oïa**, who watches the tower: almost wordless ("Gone." "Her track." "Play."); draws in the sand, mimes the wind and the wings.
 - **Tam**, a boy who copies you.
 - **Senn**, who listens to stones: "They hum. Since the night the light went over."
 - **Hollin**, who keeps the stone hand: "Alive, once. Rang, once." "Small to tall."
 - **The bird**, unnamed; **the rider**, gone (a mural shows a small figure walking away along an aqueduct).
 
-Main quest (`arzach.bird`): sit with Oïa; ride the bird; land on the tower's
-balcony; climb to the window (the rider's room, a map of the sky stones, a bone
-whistle); blow it; the bird bows and promises.
+Main quest (`arzach.bird`): sit with Oïa; ride the wind up the tower's side on
+the fluid wings (from the Aerie) to its balcony; climb to the window: on the
+sill, the rider's little bone flute with a feather tied to it; through the
+window, the rider's room and a map of the sky stones; play the flute (five
+notes, her call) and the bird comes down for the first time, bows and
+promises. Until then she is not seen and cannot be ridden.
 
 Side quests: three feathers she shed the night the light went over; ring the
 stone hand's knuckles small to tall (the third feather falls). Errand: a
@@ -537,7 +548,7 @@ Aerie, §11; the bell-note whistle went to Vael II).
 
 Ties: the map in the tower points to Vael II; the stones answered the light.
 
-### 4. Vael II: "The Bell Under the Cloud" (The Sky Stones)
+### 3. Vael II: "The Bell Under the Cloud" (The Sky Stones)
 Needles and balanced stones rise from a sea of cloud; cliff-top monasteries,
 broken aqueducts, a floating island, a peach plain with a lone tower. The
 monastery bell has not rung in thirty years; the monks believe its ringing kept
@@ -568,7 +579,7 @@ Founders' Belfry, §11; the wings went to Vael).
 Ties: the tower's face is the desert's sleeping head: the giants walked here
 too. The bell recalls the harbour bell at home.
 
-### 5. The Sealed Hangar: "The Major Forgot"
+### 8. The Sealed Hangar: "The Major Forgot"
 Major Brask's pocket universe: a plateau, an upside-down quarter, a ring where
 gravity points outward, joined by portals. He built it, forgot why, and went
 for a walk; his people keep the machines turning out of habit, passing a
@@ -599,7 +610,7 @@ it there, never opened it ("it's for the next one").
 Ties: the note points to the Buried Machine; the Major copied the glyph from a
 stone in his first garage "for luck, or for somebody".
 
-### 6. The Buried Machine: "One Tooth a Year"
+### 9. The Buried Machine: "One Tooth a Year"
 Pale dunes, domed huts, pipe elbows breaking the sand; below, rust canyons that
 are the machine itself, and a great wheel that turns one tooth a year. The dome
 people count their age in teeth. Overhead hangs an upside-down city, "the Other
@@ -630,7 +641,7 @@ Ties: the Maker's Thumb is on every plate; "someone signs their work, and
 someone else signs their damage, with the same hand"; tell the wheel the Hangar
 is still turning.
 
-### 7. Viridel: "The Garden Grows Over"
+### 6. Viridel: "The Garden Grows Over"
 A clean, colourful garden planet: giant umbrella trees, white step pyramids
 grown from seeds, white android ruins, great pale spheres half sunk in the
 meadow (they came down out of the sky; the white builders laid their garden out
@@ -721,7 +732,7 @@ quiet ("The sides held."). The next recording finds the father on breaking
 things (section 3), and Viridel's own recording lands differently. It doesn't
 touch the main quest or the route; at the stone the traveller names it (section 7).
 
-### 8. The Garden of Spheres: "What the Spheres Remember"
+### 10. The Garden of Spheres: "What the Spheres Remember"
 Umbrella trees over white pyramids; giant pale spheres half sunk in the grass
 and a mirror lake; an avenue to a round plaza with a humming pole. Each sphere
 remembers one sound, the last it heard before it came down.
@@ -746,7 +757,7 @@ canopy (the glyph lens waits in the Footprint, §11).
 Ties: one sphere remembers the desert's procession drum ("Then you've walked
 under where they flew").
 
-### 9. Lorn: "The Great Crystal"
+### 4. Lorn: "The Great Crystal"
 A twilight swamp of humming crystal forests, carnivorous plants and glowing eggs,
 crossed by skiff. The Great Crystal sings in the rain and the plants fall
 silent. It fell out of the sky long ago, singing, and stuck point-first in the
@@ -774,7 +785,7 @@ stilling mode waits in the Hush-House on the cave island (§11).
 
 Ties: the strongest reading of the signature; Ysse sends you to Lorn II.
 
-### 10. Lorn II: "The Lamps Are Kept" (The Deep Wood)
+### 5. Lorn II: "The Lamps Are Kept" (The Deep Wood)
 The far side of the swamp: giant pale mushrooms, dark trunks, a lit path of
 pools to a root cave. For forty-one years the people have kept the pools lit
 for travellers who never come. Three went dark the night the sky rang.
