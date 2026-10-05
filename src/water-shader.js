@@ -32,6 +32,12 @@ import * as THREE from 'three';
  */
 export const WATER_MARK = { base: 0.012, glint: 0.05 };
 
+/**
+ * The wave crests' ink: only in the patches the wind ruffles (paws: the edges of a slow drifting
+ * noise), `calm` of it between them, and gone by `far` metres per pixel (a far lake is a flat tone).
+ */
+export const WATER_INK = { paws: [0.48, 0.66], calm: 0.15, far: [0.06, 0.2] };
+
 /** How many ripple rings the shader draws at once (water.js keeps a ring buffer). */
 export const RINGS = 12;
 
@@ -121,7 +127,10 @@ export const WATER_GLSL = /* glsl */ `
     // ---- ink: wave crests (two scales: the coarse one carries further), rings
     float ink = waveInk(p.xz, t, str, wd, 1.0, 0.0);
     if (uWaterLite < 0.5) ink = max(ink, waveInk(p.xz, t, str, wd, 3.2, 17.0) * 0.7);   // (a uniform branch: derivatives are fine)
-    ink *= 0.75;
+    // the crests come in patches the wind ruffles (cat's paws drifting downwind), the rest of the
+    // water left flat; and they thin out with distance, where an inker leaves the water a flat tone
+    float paws = smoothstep(${WATER_INK.paws[0]}, ${WATER_INK.paws[1]}, vnoise(p.xz * 0.018 - wd * t * 0.05) * 0.7 + vnoise(p.xz * 0.05 + 9.0) * 0.3);
+    ink *= 0.75 * mix(${WATER_INK.calm}, 1.0, paws) * (1.0 - smoothstep(${WATER_INK.far[0]}, ${WATER_INK.far[1]}, px));
     float rings = 0.0;
     for (int i = 0; i < ${RINGS}; i++) {
       vec4 r = uWaterRings[i];

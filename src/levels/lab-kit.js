@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
 import { mulberry32 } from '../noise.js';
+import { SandDrifts } from '../sand-drifts.js';
 
 // ---------------------------------------------------------------------------
 // The Lab's room kit: what a biome room (src/levels/lab-rooms.js) builds with.
@@ -68,6 +69,7 @@ export class RoomKit {
     let b = this.buckets.get(key);
     if (!b) this.buckets.set(key, (b = { mat, solid, shadow, list: [] }));
     b.list.push(g);
+    if (solid) SandDrifts.current?.addGeometry(g);   // (a sandy room: sand banks against what stands in it)
     return g;
   }
   /** A mesh of its own in the room (local frame). */

@@ -21,8 +21,12 @@ export const GROUND = {
   minHalfPx: 0.55,          // the thinnest line drawn, half width in render px
   maxHalfPx: 0.85,          // the widest (times the pixel ratio, CSS px)
   resolved: [2.5, 5.0],     // px per period: below the first, only the average tone
-  ripple: { period: 1.6, half: 0.03 },
-  wind: { period: 9.0, half: 0.08 },
+  ripple: { period: 1.6, half: 0.03, patch: [0.66, 0.78] },   // patch: where the ripple patches are (of a 0..1 noise)
+  wind: { period: 9.0, half: 0.08, keep: 0.62 },                // keep: the share of wind lines left out
+  // the print look's coarse pen dots on sand: how many cells hold one, and only in patches
+  dots: { density: 0.1, patch: [0.55, 0.75] },
+  // cracks in bare rock ground (terrain with pattern 'cracks'): long fissures, a finer net near
+  fissures: { big: 7.5, bigHalf: 0.04, small: 2.4, smallHalf: 0.014 },
   grains: { cell: 0.12, r0: 0.005, r1: 0.01 },
   cracks: { big: 5.5, bigHalf: 0.035, small: 1.6, smallHalf: 0.012, edgePerArea: 2.0 },
 };
@@ -75,15 +79,16 @@ export const GROUND_GLSL = /* glsl */ `
     float u = dot(p, across) / ${GROUND.ripple.period.toFixed(1)} + (vnoise(p * 0.11) - 0.5) * 2.4 + (vnoise(p * 0.5) - 0.5) * 0.25;
     float gu = gradLen(u);
     float patchN = vnoise(p * 0.025 + 3.0);
-    float patchMask = smoothstep(0.55, 0.7, patchN);
-    float broken = smoothstep(0.35, 0.55, vnoise(vec2(along * 0.35, floor(u) * 7.1)));
+    // (rare patches, well broken: most sand is flat colour, as an inker leaves it)
+    float patchMask = smoothstep(${GROUND.ripple.patch[0].toFixed(2)}, ${GROUND.ripple.patch[1].toFixed(2)}, patchN);
+    float broken = smoothstep(0.42, 0.62, vnoise(vec2(along * 0.35, floor(u) * 7.1)));
     float rip = lineField(u, gu, ${(GROUND.ripple.half / GROUND.ripple.period).toFixed(5)}, broken, 0.5) * patchMask
               * (1.0 - smoothstep(0.1, 0.25, slope));
     // long wind lines, a few of them, sweeping with the dunes
     float w = dot(p, across) / ${GROUND.wind.period.toFixed(1)} + (vnoise(p * 0.018 + 5.0) - 0.5) * 3.0;
     float gw = gradLen(w);
     float id = floor(w);
-    float keep = step(0.55, hash(vec2(id, 4.7))) * smoothstep(0.3, 0.5, vnoise(vec2(along * 0.025, id * 3.1)));
+    float keep = step(${GROUND.wind.keep.toFixed(2)}, hash(vec2(id, 4.7))) * smoothstep(0.3, 0.5, vnoise(vec2(along * 0.025, id * 3.1)));
     float wind = lineField(w, gw, ${(GROUND.wind.half / GROUND.wind.period).toFixed(5)}, keep, 0.25)
                * (1.0 - smoothstep(0.2, 0.38, slope)) * (1.0 - smoothstep(0.6, 0.8, patchN));   // not over the ripple patches
     return max(rip, wind * 0.85);
@@ -142,6 +147,14 @@ export const GROUND_GLSL = /* glsl */ `
       lines = penLine(d, g, hw) * gaps;
     }
     return mix(${GROUND.cracks.edgePerArea.toFixed(1)} * 2.0 * hw * gapsMean, lines, res);
+  }
+  // Cracks in bare rock: long fissures (most of a big network's edges left out, so they run and
+  // stop), a finer broken net close by. The same pen lines and hand-over to a tone as the mud's.
+  float rockFissures(vec2 p, vec2 q1, vec4 j1, vec2 q2, vec4 j2) {
+    float runs = smoothstep(0.45, 0.6, vnoise(p * 0.09 + 4.0));
+    float big = crackNet(q1, j1, ${(GROUND.fissures.bigHalf / GROUND.fissures.big).toFixed(5)}, runs, 0.35, 6.0);
+    float small = crackNet(q2, j2, ${(GROUND.fissures.smallHalf / GROUND.fissures.small).toFixed(5)}, smoothstep(0.55, 0.7, vnoise(p * 0.5 + 9.0)), 0.3, 12.0);
+    return max(big, small * 0.6);
   }
   // Dried-mud cracks on the salt flats: big polygons, small crust cracks inside them near.
   float mudCracks(vec2 p, vec2 q1, vec4 j1, vec2 q2, vec4 j2) {

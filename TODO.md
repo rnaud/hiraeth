@@ -617,6 +617,49 @@ All of this is for the web game; the Unity port follows later if we move to Unit
     - The `grid` pattern on the hull reads as a regular lattice; the panel's plating is irregular.
     - The water draws even ripple strokes and pale ellipses everywhere; the panel's lake is large pale
       shallow shapes, inked round, darker in the cliff's shadow.
+  - Shader pass after the review (2026-10-05, for review; README "Shade and hatching by surface",
+    "Weathered walls", "Sand banked against things"):
+    - Fixed: a shade per surface (`makeMaterial({ shade, shadeHue })`, `SHADE`): a lift and an own
+      hue packed over the hatch strokes, a half-tone on forms turned from the sun and the ground's
+      bounce under overhangs (`uHalftone`, `uBounce`, `uShadeKeep`: Moebius print only). The desert
+      look no longer turns bone and sand blue; the tower cap's underside is a light half-tone.
+    - Fixed: hatching by surface (`hatch`: metal and sand fewer, the views' bones and sails flat), no
+      cross-hatching on lifted shades, strata rock with runs of strokes along its beds in the light.
+    - Fixed: rarer ripple patches and wind lines, the print's coarse dots only in patches, fissures on
+      bare rock ground (terrain `pattern: 'cracks'`: the lake's pink rock).
+    - Fixed: the print preset's lines thinner and broken (1.0 / 0.55), dune crests only where the slope
+      breaks (`uNormalThresh` 0.3), solid ink in the deepest crevices (`uCrevice`).
+    - Fixed: the flat sky's tint down to a narrow band on the horizon, its dots a grain, the paper's
+      tooth (`uPaper`).
+    - Fixed: plating (`plates: true`) on the views' and the desert's hulls, its station, the ship.
+    - Fixed: the water's crests in wind patches, gone far off (`WATER_INK`); the lake view's broad pale
+      shallows.
+    - Added (the author's two): weathered walls (`weathered`: cracks from storeys' tops and feet and
+      window corners, plaster patches; on for house fronts, Qanat's walls, the views' huts; never
+      metal, glass or the makers' work), and sand banked against things (`src/sand-drifts.js`: the
+      desert's and the views' solids, a fillet higher facing the wind, collided, its meeting line
+      drawn softly).
+    - Left: the print preset keeps its cumulus bank and clouds (the worlds' own; the views turn them
+      off). The half-tone can't tell a back wall inside another's cast shadow (it reads as half-tone,
+      the panel's is full shadow). Paper grain is screen-fixed, kept light (`uPaper` 0.7). Drifts are
+      in the desert, Vael, the Buried Machine and the views (the desert's are only outside Qanat's
+      paved streets); weathering is on the desert city, house fronts and the views, not yet on
+      home's or the Market's walls. The gorge panels' walls are in cast shadow from the
+      rim; ours are form-shaded (lighter now, with the half-tone).
+  - The other desert sheets (IMG_3772: 6 panels, IMG_3773: 8, IMG_3774: 7) are views 7–27
+    (`src/levels/reference-desert.js`, builders in `reference-kit.js`); compositions are sketches
+    (the umbrellas' undersides, the helmets' machinery, the blue heads' plating are simpler than
+    drawn). New shader-level differences they show:
+    - Shaded dune slip faces (IMG_3774 p3, IMG_3773 p1) are a dark flat tone covered in dense
+      directional strokes; our sand now hatches little in shade (`hatch` 0.55), right for the flat
+      dunes of IMG_3775 but too little for a slip face. A slope-dependent sand hatch would cover both.
+    - Canyon and cliff walls (IMG_3774 p5, IMG_3773 p3, IMG_3772 p3) are drawn with many vertical
+      cracks and strokes down the face; our strata draw horizontal beds with sparse fissures
+      (`fissures`: one run per 9 m). A denser, varied vertical crack mark for strata.
+    - IMG_3774's cast shadows are near-black ink masses with a hard edge; ours are the shadow tint
+      (a view could darken its tint; a world-level "ink shadow" option is missing).
+    - Far dunes on the horizon are a pale lilac-cream band (IMG_3774 p1, p7): aerial perspective
+      that turns the far ground toward a light warm tone, not the sky's.
 
 # Transitions and moments (2026-10-05, web)
 

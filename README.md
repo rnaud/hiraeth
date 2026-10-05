@@ -311,7 +311,10 @@ Three passes per frame (`src/main.js`):
      are offset by a noise field for a hand-inked wobble. "Line boil"
      re-rolls that noise at 8 fps.
    - **Two-tone cel shading.** Lit areas show the pure albedo. Shadowed
-     areas show albedo × a lavender shadow tint, a very Moebius choice.
+     areas show albedo × a lavender shadow tint, a very Moebius choice;
+     each surface lifts and warms it its own way (a half-tone on forms
+     turned from the sun, the bounce under overhangs: "Shade and hatching
+     by surface").
    - **Hatching** takes the surface-anchored strokes from `RT2`: pen strokes
      in the shade, and cross-hatching in the darkest areas. Hatching fades
      out with distance. The panel's "hatch anchoring" option switches back
@@ -465,7 +468,7 @@ Modelled on a classic Moebius desert plate:
   cumulus sitting on the horizon;
 - pen-dotted sand with pebbles, ochre scrub bushes, and blue-grey hatched
   shadows;
-- fine, even ink lines, and fold lines drawn down the cape;
+- fine, broken ink lines, solid ink in the deepest crevices, and fold lines drawn down the cape;
 - the wide-brimmed pointed hat;
 - a saucer tower and a pale spired city on the horizon;
 - an open plain around the desert start, with landmarks set back from it;
@@ -1428,7 +1431,19 @@ panel, so the shaders can be checked against the look they are after. It starts 
 panels of `references/The Desert/environement/IMG_3775.JPG` (`REFERENCE_VIEWS` in
 `src/levels/reference-views.js`): the bones in the dunes, the fluted tower and its dishes, the
 rope bridges over the gorge, the sail tents, the turquoise lake under the violet cliffs, the
-buried hull.
+buried hull. Then the desert's three other environment sheets, panel by panel
+(`src/levels/reference-desert.js`, `DESERT_VIEWS`): IMG_3772 (six: the ribs on the dune crest,
+the blue saucers over the spired city, the rope bridge over the ochre gorge, the petal station,
+the salt lake under the violet table, the station of domes and masts), IMG_3773 (eight: the
+ribcage between the dunes, the pink umbrella city, the bridge over the shaded canyon, the poles
+on the pink plain, the fallen pod, the lagoons under the violet mesas, the stream in the red
+canyon, the two buried helmets) and IMG_3774 (seven: the ribcage in the dune's hollow, the pink
+dishes over the blue domes, the bridge over the dunes, the dish station, the slot canyon, the
+turquoise pool in the violet cliffs, the buried blue heads): 27 views, `[ ]` cycling through them
+sheet after sheet. The shapes the sheets draw again and again (ribcages, dishes on stems, gorge
+walls, bridges, domes, petals, machine heads, table cliffs) are builders in
+`src/levels/reference-kit.js`. The views' ring (`VIEW_RING`) grows with their number, so
+neighbours stay over 3 km apart.
 
 - **A view** is a panel: its crop of the sheet, its ground (a height function drawn as rings round
   the camera, fine underfoot and coarse at the horizon), what stands on it (built with the Lab's
@@ -1451,8 +1466,89 @@ buried hull.
   cropped with CSS (`cropStyle`).
 - `?look=desert` draws every view in the desert's own palette and plain Moebius print preset
   (blue-grey shadow tint, cumulus bank, clouds), to see what the shaders do unaided.
-- `tests/references.test.js`: the level registers as a dev level, IMG_3775 has six views whose
+- `tests/references.test.js`: the level registers as a dev level, the four sheets have their 6, 6, 8 and 7 views (in order, not overlapping), whose
   cameras put the horizon where the panel has it, each sun comes from its side, `[ ]` and `\` work.
+
+### Shade and hatching by surface (after the references)
+
+The review of IMG_3775's six panels against their rebuilt views found what the shaders couldn't do;
+all of it is in the game's own materials and post pass (every world uses it), not in the level.
+
+- **Each surface its own shade** (`SHADE`, `shadeOf` in `src/materials.js`): post.js used to shade
+  everything as albedo × the world's one shadow tint, so the desert's blue-grey turned bone and sand
+  blue. Now a shaded pixel carries a *lift* (how far toward its lit colour) and a *hue* (how much
+  of its own colour it keeps: the tint's darkness, a little warm). The material gives its own
+  (`makeMaterial({ shade, shadeHue })`; metal and sand keep more of their hue by default), and the
+  light's geometry adds two: a **half-tone** on a form turned from the sun under no cast shadow
+  (`uHalftone`, less on its far side past `SHADE.band`), and the **ground's bounce** on faces turned
+  down (`uBounce`: a cap's underside is a soft half-tone, the ground under it the full shadow). The
+  presets set them with `uShadeKeep`, the hue where a material doesn't say (only Moebius print has
+  them; every preset lists them, so switching zones never keeps the last one's). They travel packed
+  over the hatch strokes: `gHatch.r += 2 × (1 + hue step)`, `gHatch.g += 2 × lift step` (15 and 8
+  steps; the strokes stay 0..1, the half-float buffer holds it under 32), and a pixel with nothing
+  packed (other shaders, grass) takes the defaults. A face keeps its own warm shade (`FACE_SHADE`).
+- **Hatching by surface**: `hatch` (0..1) scales a material's shadow strokes (metal 0.35 and sand
+  0.55 by default, the references' bones and sails fewer); a lifted shade gets fewer strokes and no
+  cross-hatching (a whole wall in half-tone is no longer a field of crossed lines); strata rock
+  (`strataHatch`, on by default) keeps runs of strokes along its beds in the light.
+- **Calmer ground** (`GROUND` in `src/ground-ink.js`): rarer ripple patches, fewer long wind lines,
+  the print look's coarse dots only in patches (`GROUND.dots`), and bare rock ground (terrain with
+  `pattern: 'cracks'`) draws long fissures and a finer broken net close by (`rockFissures`) instead of
+  dots.
+- **Lines**: the print preset's ink is thinner and more broken (`uLineWidth` 1.0, `uLineVary`
+  0.55), soft dune crests are left uninked unless the slope breaks (`uNormalThresh` 0.3), and the
+  deepest crevices (between ribs, into a hull's machinery) are filled solid (`uCrevice`, from the
+  crease shading).
+- **Sky and paper**: the flat printed sky keeps its tint down to a narrow band on the horizon; its
+  dots are a grain (anywhere in their cell, several sizes and weights, thicker and thinner in
+  drifts) rather than a screen; the paper has a tooth (`uPaper`: a fine mottle and pits, on the light
+  colours).
+- **Plating** (`makeMaterial({ grid, plates: true })`, `S_PLATES`): the grid drawn as rows of plates
+  of uneven widths, staggered joints, the odd joint or seam left out, each plate a shade apart (under
+  the colour-edge threshold). On the desert's hulls, its station domes, the ship's hull, the
+  reference wreck.
+- **Water** (`WATER_INK`, `src/water-shader.js`): the wave crests only in the patches the wind
+  ruffles (drifting downwind), the rest flat, and gone far off; the lake view's bed makes broad pale
+  shallows, which post.js inks round.
+- `tests/shade.test.js`: the packing round trip, the materials' defaults, every preset's tones, the
+  ground marks, weathering's rules; `tests/surface-spec.test.js` the new defines.
+- **Cost** (M4 Pro, ANGLE Metal, 1280 × 720, the camera pinned at spawn and turned, three runs each
+  alternating with the build before; throughput: six frames back to back to a one-pixel read):
+  desert High 6.3 → 6.0 ms and 6.7 → 5.6 ms, City-Shaft High 8.7 → 9.3 and 5.2 → 6.5, desert
+  Handheld 3.2 → 3.3 and 3.1 → 2.9, City-Shaft Handheld 8.6 → 7.8 and 5.9 → 6.8 (the machine's
+  run-to-run spread is ±30 %). The new work is behind defines (weathering, plating) or cheap
+  branches (crevices, paper, the strata strokes only lit and near); the handheld's paper is one tap.
+
+### Weathered walls
+
+The reference cities look old and lived in. `makeMaterial({ weathered })` (0..1, `S_WEATHER`,
+`weatherInk` in `src/materials.js`; `WEATHER`, `weatheredOf`): on upright faces, in cells of the wall
+anchored in the world (so each building has its own), the odd crack runs down from a storey's top
+or up from its foot, jagged and thinning, with a branch now and then; a crack runs out from the
+corner of the odd window (house fronts, `pattern: 'facade'`); and a few patches where the plaster
+has gone, a shade apart, edged with a broken pen line. They fade out once under a pixel. On by
+default for house fronts and on the desert city's walls and terraces and the references' huts;
+never on metal, glass, lights or the makers' work (their inscriptions).
+
+### Sand banked against things
+
+In a sandy world what stands on the ground sits in it (`src/sand-drifts.js`). While a world is
+built, `SandDrifts.open()` collects the solids its builders add (the desert's Kits in
+`desert-city.js` and `desert-landmarks.js`, the Lab kit `RoomKit` in the references): each is cut at
+its foot (the vertices in its bottom band, joined by the triangles they share, so an arch's two feet
+stay apart and no drift runs across its passage), each part's convex hull a footprint (posts,
+crates, slabs and anything off the ground skipped). Round each, a drift: `rise` at the wall (higher
+facing the wind, `SAND_WIND`, wandering along the wall), falling off along (1 − u)² to nothing
+`reach` × rise out, so it meets the ground tangent and never steepens into the terrain's rock colour
+(`maxSlope`); a share of corners carry a bigger drift. The skirts are one mesh per 160 m square
+(culled by the view), drawn in the ground's own material (`driftMaterial`: same marks, same
+patches) with a polygon offset, and collided (you walk up them). Their pixels carry +32 in
+`gHatch.a`; post.js draws the line where they meet a wall in a darker shade of the sand and lighter.
+Where there's no drift (past its reach, or a `mask`: none in Qanat's paved streets) no skirt is
+built. A world that builds its meshes its own way hands the whole scene over after it is built
+(`addScene`: every collided mesh in world space, a merged mesh's parts apart; render copies that a
+hidden collider stands for are skipped): Vael and the Buried Machine. In the desert 206 footprints
+(57 k triangles), Vael 214 (102 k), the Buried Machine 231 (138 k). `tests/sand-drifts.test.js`.
 
 ## Sound from the first frame (v0.39)
 
