@@ -33,9 +33,9 @@ export const STORY = {
   pilgrim: { x: -60, z: 520 },                                      // the old pilgrim who fell behind
   drum: { x: 156.65, z: -187.6 },                                   // Teo's drum, blown under the old ribcage and jammed against the inside of a rib's foot (src/story/desert-errands.js)
   bike: { x: 132, z: 150, yaw: 2.3 },                               // Marrow's hollow: the hoverbike under its tarp (quest desert.bike)
-  // the Givers' Hearth (src/desert-hearth.js): a butte of red rock far out in the south-east, ~1.8 km from
+  // the Givers' Hearth (src/desert-hearth.js): a butte of red rock far out in the south-east, ~1.7 km from
   // Qanat (a long ride, more than four minutes' run), the spark-stone in the dark cave under it; its rooms far overhead
-  hearth: { x: 1720, z: -620, r: 46 },
+  hearth: { x: 1650, z: -450, r: 46 },
   hearthCave: { x: 1250, y: 1000, z: -1250 },
 };
 STORY.hearth.yaw = Math.atan2(STORY.city.x - STORY.hearth.x, STORY.city.z - STORY.hearth.z);   // its door looks back toward Qanat

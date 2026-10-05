@@ -149,7 +149,7 @@ export function buildDesertHearth(scene, terrain) {
   const S = STORY.hearth;
 
   // ================================================================ outside: the butte, its chimney, the porch
-  const R0 = 34, R1 = 25, H = 44;
+  const R0 = 36, R1 = 24, H = 68;   // (tall: it stands in high dunes, and must show over them from the way)
   const base = Math.min(...Array.from({ length: 12 }, (_, i) => { const a = i / 12 * Math.PI * 2; return terrain.heightAt(S.x + Math.sin(a) * R0, S.z + Math.cos(a) * R0); })) - 5;
   const out = new Kit(root, 'Givers’ Hearth butte', V(S.x, base, S.z), S.yaw);
   {
@@ -157,10 +157,10 @@ export function buildDesertHearth(scene, terrain) {
     // a lip of fallen rock round its foot
     out.add(M.rose, rough(new THREE.CylinderGeometry(R0 + 2, R0 + 7, 7, 18, 2).translate(0, 3.5, 0), 1.4, 0.3, 5));
     // the chimney: a finger of rock on the flat top, a dark slit near its tip (it glows at night: the stone below)
-    const CH = { h: 30, r0: 4.2, r1: 2.4 };
+    const CH = { h: 38, r0: 5, r1: 2.8 };
     out.both(M.rose, rough(new THREE.CylinderGeometry(CH.r1, CH.r0, CH.h, 9, 4).translate(-4, H + CH.h / 2 - 0.5, -3), 0.5, 0.4, 7));
-    out.add(M.slit, box(0.7, 4.2, 0.4, -4, H + CH.h - 5, -3 + CH.r1 + 0.05));
-    out.add(M.slit, box(0.4, 4.2, 0.7, -4 + CH.r1 + 0.05, H + CH.h - 5, -3));
+    out.add(M.slit, box(0.8, 5, 0.5, -4, H + CH.h - 5.5, -3 + CH.r1 + 0.75));
+    out.add(M.slit, box(0.5, 5, 0.8, -4 + CH.r1 + 0.75, H + CH.h - 5.5, -3));
   }
   // the porch: a carved block standing out of the butte's foot, its doorway toward the city
   const doorR = R0 + 2.5, doorG = terrain.heightAt(...[S.x + Math.sin(S.yaw) * (doorR + 2), S.z + Math.cos(S.yaw) * (doorR + 2)]);
@@ -180,7 +180,7 @@ export function buildDesertHearth(scene, terrain) {
   out.flush();
   const door = out.world(0, doorY, doorR + 1.2);
   const doorFront = out.world(0, doorY, doorR + 4.5);
-  const chimneyTop = out.world(-4, H + 30, -3);
+  const chimneyTop = out.world(-4, H + 38, -3);
   // the stone's light seeps up the chimney: a warm point at the slit (the story pulses it)
   const slitLight = new THREE.Vector4(chimneyTop.x, chimneyTop.y - 5, chimneyTop.z, 30);
   lights.push(slitLight);
