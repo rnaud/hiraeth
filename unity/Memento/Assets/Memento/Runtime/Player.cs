@@ -22,18 +22,30 @@ namespace Memento
         public float health = 1f, stamina = Stamina;
         float hurtT = 99, downT, mantleT, coyote, climbCooldown;
         Vector3 wallN, mantleFrom, mantleTo, lastSafe;
-        public Transform model;          // the traveller's glb
+        public Transform model;          // the traveller, dressed (Figures.cs)
+        public Figure figure;
         Animation anim;
+        float climbF, climbS;
         public Transform camYaw;         // the camera rig (moves are relative to its yaw)
         public System.Action<string> toast = _ => { };
         public float SpeedXZ => new Vector2(vel.x, vel.z).magnitude;
+        public Transform HeadTransform => figure ? (headT ??= figure.Bone("Head")) : null;
+        Transform headT;
 
         public void Init(Vector3 at, float yawDeg)
         {
             cc = GetComponent<CharacterController>();
             cc.radius = 0.4f; cc.height = 1.8f; cc.center = new Vector3(0, 0.9f, 0); cc.stepOffset = 0.6f; cc.slopeLimit = 50; cc.skinWidth = 0.05f;
             Teleport(at, yawDeg);
-            _ = LoadModel();
+            var rec = FigureLibrary.Instance?.Person("traveller");
+            if (rec != null)
+            {
+                // the people's own body as the traveller: the suit painted on, the kit of traveller.glb worn (people.mjs)
+                figure = FigureLibrary.Instance.Spawn(rec, transform, "traveller");
+                model = figure.transform;
+                foreach (var r in figure.renderers) r.gameObject.layer = gameObject.layer;
+            }
+            else _ = LoadModel();
         }
 
         public void Teleport(Vector3 at, float yawDeg)
@@ -119,6 +131,7 @@ namespace Memento
 
         void UpdateClimb(float dt, Vector2 mv, bool run)
         {
+            climbF = Mathf.Abs(mv.y) > 0.1f ? Mathf.Sign(mv.y) * Mathf.Min(1, Mathf.Abs(mv.y)) : 0; climbS = Mathf.Abs(mv.x) > 0.1f ? Mathf.Sign(mv.x) * Mathf.Min(1, Mathf.Abs(mv.x)) : 0;
             stamina -= dt * (run ? 2f : 1f);
             var right = Vector3.Cross(Vector3.up, -wallN).normalized;
             float sp = ClimbSpeed * (run ? 1.6f : 1f);
@@ -194,6 +207,7 @@ namespace Memento
             downAxis = Quaternion.Euler(0, heading, 0) * Vector3.right;
             downSpin = Random.value < 0.5f ? 1 : -1;
             if (anim) anim.Stop();
+            if (figure) figure.culled = true;
         }
         void UpdateDown(float dt)
         {
@@ -208,20 +222,33 @@ namespace Memento
                 model.localRotation = Quaternion.AngleAxis(-85 * lie, Vector3.right) * Quaternion.AngleAxis(12 * lie * downSpin, Vector3.forward);
                 model.localPosition = new Vector3(0, 0.25f * lie, 0);
             }
-            if (!dead && downT > 2.4f) { down = false; if (model) { model.localRotation = Quaternion.identity; model.localPosition = Vector3.zero; } }
+            if (!dead && downT > 2.4f) { down = false; if (figure) figure.culled = false; if (model) { model.localRotation = Quaternion.identity; model.localPosition = Vector3.zero; } }
             if (dead && downT > 1.2f && Pad.ConfirmDown()) Respawn();
         }
         public void Respawn()
         {
-            dead = false; down = false; health = 1;
+            dead = false; down = false; health = 1; if (figure) figure.culled = false;
             if (model) { model.localRotation = Quaternion.identity; model.localPosition = Vector3.zero; }
             Teleport(lastSafe, heading);
         }
 
-        // ------------------------------------------------------------ animation (the traveller's own Idle / Walk)
+        // ------------------------------------------------------------ animation (animator.js on the baked clips: Figure.cs)
         string playing;
+        public bool talkingNow;
         void Animate(float dt, float speed)
         {
+            if (figure)
+            {
+                var fs = new Figure.State
+                {
+                    speed = climbing || mantling || riding ? 0 : SpeedXZ, onGround = onGround || climbing || mantling || riding,
+                    mode = riding ? Figure.Mode.Drive : mantling ? Figure.Mode.Ledge : climbing ? Figure.Mode.Climb : talkingNow ? Figure.Mode.Talk : Figure.Mode.Ground,
+                    climbF = climbF, climbS = climbS, climbRate = 1, ledgeT = mantleT,
+                    walkAt = Mathf.Min(FigureLibrary.Instance.nativeWalk * 1.2f, Walk * 0.4f), jogAt = Walk, sprintAt = Run, strideScale = 1,
+                };
+                figure.Drive(dt, fs);
+                return;
+            }
             if (!anim) return;
             string want = speed > 0.3f ? "Walk" : "Idle";
             if (!anim.GetClip(want)) return;

@@ -65,6 +65,15 @@ function materialOf(m) {
     vertexColors: m.vertexColors ? 1 : 0,
     plain: u.uMode ? 0 : 1,        // not one of the G-buffer materials (a MeshBasicMaterial): flat colour, self-lit
   };
+  // the people's uniforms (three space, as the shader reads them): outfit zones, skin, gloves, the
+  // tunic's print, the face's landmarks / expression / drawing, the eyeballs, the suit's creases, glass, metal
+  for (const [k, name] of [['outfit', 'uOutfit'], ['skin', 'uSkin'], ['glove', 'uGlove'], ['trim', 'uTrim'], ['face', 'uFace'], ['mood', 'uMood'], ['mood2', 'uMood2'],
+    ['faceKit', 'uFaceKit'], ['faceKit2', 'uFaceKit2'], ['eyeC', 'uEyeC'], ['eyeR', 'uEyeR'], ['eyeLook', 'uEyeLook'], ['creases', 'uCreases'], ['limbs', 'uLimbs'],
+    ['glass', 'uGlass'], ['glassCenter', 'uGlassCenter'], ['metal', 'uMetal'], ['hero', 'uHero']]) {
+    const x = u[name]?.value;
+    if (x === undefined || x === null) continue;
+    e[k] = typeof x === 'number' ? x : Array.isArray(x) ? x.flatMap((q) => q.toArray()).map((v) => +v.toFixed(5)) : x.isColor ? col(x) : x.toArray().map((v) => +v.toFixed(5));
+  }
   materials.push(e); matIds.set(m, e.id);
   return e.id;
 }
@@ -72,7 +81,7 @@ function materialOf(m) {
 // ---------------------------------------------------------------- what is not static
 const skip = new Set();     // roots left out of the static world
 const objects = [];         // moving / toggled things, exported in their own frame
-for (const n of npcs) if (n.object) skip.add(n.object);
+for (const n of npcs) { if (n.object) skip.add(n.object); if (n.cape?.mesh) skip.add(n.cape.mesh); }
 const near = (o, x, z, r = 3) => Math.hypot(o.position.x - x, o.position.z - z) < r;
 const { STORY } = await import('../../src/desert-sites.js');
 const dyn = {
@@ -322,6 +331,13 @@ const world = {
   ship: { site: places.shipSite, ramp: places.shipRamp },
   flora: { count: flora?.count ?? 0 },
 };
+
+// ---------------------------------------------------------------- the people, dressed (people.mjs)
+const { exportPeople } = await import('./people.mjs');
+const tp = Date.now();
+const dressed = await exportPeople({ W, blob, materialOf });
+world.figures = dressed;
+console.log(`people: ${dressed.people.length} dressed, ${dressed.geometries.length} geometries, ${Date.now() - tp} ms`);
 
 // ---------------------------------------------------------------- the words
 const data = await import('../../src/story/desert-data.js');

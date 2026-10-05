@@ -62,6 +62,13 @@ namespace Memento
             reveal += dt * 55f;   // letters per second (voice.js REVEAL_CPS)
             var text = talk.TextNow;
             var choices = talk.Choices();
+            // their face while they say it (talk-face.js): the line's tone, the mouth moving; the traveller looks at them
+            if (talkNpc)
+            {
+                talkNpc.hudSpeaking = reveal < text.Length;
+                if (talkNpc.figure) talkNpc.figure.Talk(talkNpc.hudSpeaking, talk.Tone);
+                if (game.player && game.player.figure) game.player.figure.lookTarget = talkNpc.HeadTransform;
+            }
             int nav = Pad.NavDown();
             if (choices.Count > 0) sel = Mathf.Clamp(sel + nav, 0, choices.Count - 1);
             int pick = Pad.ChoiceDown();

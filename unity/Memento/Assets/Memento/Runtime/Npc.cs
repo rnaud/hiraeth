@@ -26,8 +26,21 @@ namespace Memento
         readonly List<Material> mats = new();
         Transform body;
         static AnimationClip[] ual;
+        public Figure figure;             // dressed as on the web (people.mjs; Figures.cs)
+        public int pose;                  // npc.js posture: 3 sit on an edge, 4 on a kerb / cushion, 2 rail, 6 wall
+        public float scale = 1;
+        public float cull = 160;          // m: no motion further than this (and hidden past `hide`)
+        public float hide = 260;
 
         void Awake() { pos = transform.position; }
+
+        /// <summary>Dress them as the web game does (their people.mjs record).</summary>
+        public void Dress(Dictionary<string, object> rec)
+        {
+            figure = FigureLibrary.Instance.Spawn(rec, transform, "body");
+            body = figure.transform;
+            scale = body.localScale.y;
+        }
 
         public async Task Build(float scale, Color[] outfit, string kind)
         {
@@ -50,6 +63,7 @@ namespace Memento
 
         void Play(string clip, float rate = 1)
         {
+            if (figure) return;
             if (!anim || anim.GetClip(clip) == null) return;
             if (playing != clip) { anim.CrossFade(clip, 0.25f); playing = clip; }
             anim[clip].speed = rate;
@@ -91,13 +105,9 @@ namespace Memento
                 Play(sp > 2.2f ? "Jog_Fwd_Loop" : "Walk_Loop", Mathf.Clamp(sp / (sp > 2.2f ? 3.2f : 1.3f), 0.5f, 1.6f));
             }
             else if (!talking) Play("Idle_Loop");
-            transform.position = pos + (seatHeight >= 0 ? Vector3.down * 0.0f : Vector3.zero);
+            transform.position = pos;
             transform.rotation = Quaternion.Euler(0, heading, 0);
-            if (body)
-            {
-                var feet = new Vector4(pos.x, pos.y, pos.z, 1f / Mathf.Max(body.lossyScale.y, 1e-3f)); var right = transform.right;
-                foreach (var m in mats) { m.SetVector("_OutfitFeet", feet); m.SetVector("_OutfitRight", right); }
-            }
+            if (figure) Animate(dt, sp, player);
 
             // a line as you pass (the web's speech balloons)
             if (player && !talking && lines.Count > 0)
@@ -108,8 +118,41 @@ namespace Memento
             }
         }
 
-        public void Say(string line, float secs) { shout = Text.Parse(line).text; shoutUntil = Time.time + secs; }
+        void Animate(float dt, float sp, Player player)
+        {
+            var cam = Camera.main;
+            float camD = cam ? Vector3.Distance(cam.transform.position, pos) : 0;
+            figure.SetVisible(camD < hide);
+            figure.culled = camD > cull;
+            if (figure.culled) return;
+            int p = sp > 0.05f ? 0 : pose != 0 ? pose : seatHeight >= 0 ? 4 : 0;
+            figure.pose = p;
+            var lib = FigureLibrary.Instance;
+            bool shouting = shout != null && Time.time < shoutUntil;
+            figure.Drive(dt, new Figure.State
+            {
+                speed = sp, onGround = true, mode = talking && hudSpeaking ? Figure.Mode.Talk : Figure.Mode.Ground,
+                walkAt = lib.nativeWalk * 1.3f, jogAt = lib.nativeJog, sprintAt = lib.nativeSprint * 1.2f, strideScale = 1.05f,
+            });
+            if (shouting) figure.Talk(true, shoutTone);
+            // seated: the hips down on the seat, a little behind its front edge (npc.js)
+            if (p == 3 || p == 4)
+            {
+                var back = transform.forward * (p == 3 ? 0.22f : 0.12f) * scale;
+                body.position = pos - back + Vector3.up * ((p == 3 ? 0.03f : 0.05f) - 0.95f) * scale;
+            }
+            else body.localPosition = Vector3.zero;
+            // the eyes on the traveller's face when near (or talking to him)
+            var ph = player ? player.HeadTransform : null;
+            figure.lookTarget = ph && (talking || Vector3.Distance(player.transform.position, pos) < 10 * Mathf.Max(1, scale)) ? ph : null;
+        }
+        public bool hudSpeaking;
+        string shoutTone;
+
+        public void Say(string line, float secs) { var t = Text.Parse(line); shout = t.text; shoutTone = t.tone; shoutUntil = Time.time + secs; }
         public void Face(Vector3 p, float dt) { var d = p - pos; d.y = 0; if (d.sqrMagnitude > 0.01f) heading = Mathf.LerpAngle(heading, Mathf.Atan2(d.x, d.z) * Mathf.Rad2Deg, 1 - Mathf.Exp(-6 * dt)); }
         public Vector3 Head => pos + Vector3.up * 1.9f * (body ? body.localScale.y : 1);
+        public Transform HeadTransform => figure ? (headT ??= figure.Bone("Head")) : null;
+        Transform headT;
     }
 }

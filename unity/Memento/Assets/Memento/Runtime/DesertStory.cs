@@ -105,7 +105,9 @@ namespace Memento
                 n.speed = p.F("speed", 1);
                 n.seatHeight = p.Get("seat") is double ? 0 : -1;
                 n.lines = (p.L("lines") ?? new List<object>()).Select(x => x as string).Where(x => x != null).ToList();
-                _ = n.Build(p.F("scale", 1), Outfit(p.O("palette") ?? new Dictionary<string, object>(), (k++ * 0.37f) % 1f), p.S("kind", "m"));
+                var rec = FigureLibrary.Instance?.Person(id);
+                if (rec != null) n.Dress(rec);
+                else _ = n.Build(p.F("scale", 1), Outfit(p.O("palette") ?? new Dictionary<string, object>(), (k++ * 0.37f) % 1f), p.S("kind", "m"));
                 people[id] = n;
                 game.npcs.Add(n);
                 if (def?.O("talk") != null)

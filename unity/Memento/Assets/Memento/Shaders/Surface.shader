@@ -38,14 +38,13 @@ Shader "Memento/Surface"
     HLSLINCLUDE
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
     #include "MementoCommon.hlsl"
+    #include "Figure.hlsl"
 
     float4 _Color, _Color2, _Color3;
     float _Mode, _Flat, _StrataSize, _Grid, _Glyphs, _Biomes, _Ripples, _SandInk, _Ticks, _Glow, _Folds, _Scrub, _Pattern, _Figure, _Hero, _Sway, _StrataObject, _PaletteSize;
     float4 _Palette[12];
-    float4 _Skin;
-    float4 _OutfitFeet;    // a person's feet in the world (xyz), 1 / their scale (w): Npc.cs sets it every frame
-    float4 _OutfitRight;   // their right, in the world
     float _NoVertexColor;
+    float _Bind;           // people (Figures.cs): the rest pose in uv3 / uv4, so their drawing rides on the body
 
     struct Attributes
     {
@@ -55,7 +54,8 @@ Shader "Memento/Surface"
       float2 uv : TEXCOORD0;
       float2 fold : TEXCOORD1;
       float4 sway : TEXCOORD2;   // plants: anchor x, z (Unity world), bend per metre of wind, brush lean
-      float3 bind : TEXCOORD3;   // people: the rest-pose position (outfit zones, Characters.cs)
+      float3 bind : TEXCOORD3;   // people: the rest-pose position (outfit zones, face, eyes: Figures.cs)
+      float3 bindN : TEXCOORD4;  // and its normal
     };
 
     // the wind bend of an instanced plant (materials.js SWAY), as a world displacement (Unity space)
@@ -124,13 +124,11 @@ Shader "Memento/Surface"
         o.viewDepth = -TransformWorldToView(posWS).z;
         o.objPos = toThree(v.positionOS.xyz * scl);
         o.objNormal = toThree(v.normalOS / scl);
+        if (_Bind > 0.5) { o.objPos = toThree(v.bind * scl); o.objNormal = toThree(v.bindN / scl); }   // (three: the unskinned position)
         float3 camOS = mul(UNITY_MATRIX_I_M, float4(_WorldSpaceCameraPos, 1.0)).xyz;
         o.objRel = o.objPos - toThree(camOS * scl);
         o.fold = v.fold;
-        // (people: the posed body in its own frame, rescaled so the feet are at 0 and the head at 1.8 m)
-        // (people: measured from their feet in the world, across their body and up, in metres of a 1.8 m figure)
-        float3 rel = posWS - _OutfitFeet.xyz;
-        o.bind = _Mode > 3.5 && _Mode < 4.5 ? float3(dot(rel, _OutfitRight.xyz), rel.y, 0) * _OutfitFeet.w : v.bind;
+        o.bind = toThree(v.bind);
         return o;
       }
 
@@ -164,6 +162,16 @@ Shader "Memento/Surface"
       GBufferOut frag(Varyings i, bool frontFace : SV_IsFrontFace)
       {
         int mode = (int)(_Mode + 0.5);
+        // glass (the bubble helmet): see-through except at the grazing rim and a curved highlight
+        if (_Glass > 0.0)
+        {
+          float3 Vg = normalize(toThree(_WorldSpaceCameraPos) - i.worldPos);
+          float fr = 1.0 - abs(dot(normalize(i.normal), Vg));
+          float3 od = normalize(i.objPos - _GlassCenter.xyz);
+          float streak = step(abs(atan2(od.y, od.x) - 2.2), 0.09) * step(0.25, od.z) * step(od.z, 0.75);
+          if (fr < 0.72 && streak < 0.5) discard;
+        }
+        float fwBind = max(fwidth(i.bind.y), fwidth(i.bind.x));
         // stroke coordinates + derivatives first, in uniform control flow
         float3 facetO = cross(ddx(i.objRel), ddy(i.objRel));
         float3 on = _Flat > 0.5 ? facetO : i.objNormal;
@@ -198,7 +206,7 @@ Shader "Memento/Surface"
           float3 rel = i.worldPos - toThree(_WorldSpaceCameraPos);
           n = normalize(cross(ddx(rel), ddy(rel)));
           if (dot(n, viewT) < 0.0) n = -n;
-        } else if (!frontFace && _Figure < 0.5 && _Hero < 0.5) n = -n;   // (people: glTFast's skinned bodies keep their own normals; their winding reads as back faces)
+        } else if (!frontFace && (_Bind > 0.5 || (_Figure < 0.5 && _Hero < 0.5))) n = -n;   // (glTFast's skinned bodies read as back faces; the exported people do not)
 
         float3 albedo = _Color.rgb;
         float3 instColor = i.instColor;
@@ -227,16 +235,11 @@ Shader "Memento/Surface"
         } else if (mode == MODE_WATER) {
           float w = vnoise(i.worldPos.xz * 0.012 + _MTime * 0.01);
           albedo = w > 0.55 ? _Color2.rgb : _Color.rgb;
-        } else if (mode == 4) {
+        } else if (mode == MODE_OUTFIT) {
           // a person's printed outfit (materials.js MODE_OUTFIT): boots, trousers, belt, tunic, skin at the neck and hands
-          float3 b = i.bind; float ax = abs(b.x);
-          const float4 O = float4(0.13, 0.97, 1.47, 0.64);   // boot top, belt, neck, wrist (rest pose, m)
-          if ((b.y > O.z && ax < 0.16) || ax > O.w) albedo = _Skin.rgb;
-          else if (b.y < O.x) albedo = _Color3.rgb;
-          else if (abs(b.y - O.y) < 0.03 && ax < 0.25) albedo = _Color2.rgb * 0.6 + float3(0.33, 0.24, 0.1);
-          else if (b.y < O.y) albedo = _Color2.rgb;
-          else if (ax > O.w - 0.05) albedo = _Color.rgb * 0.75;
-          else albedo = _Color.rgb;
+          albedo = outfitAlbedo(i.bind, _Color.rgb, _Color2.rgb, _Color3.rgb);
+        } else if (mode == MODE_EYE) {
+          albedo = eyeball(i.bind, _Color.rgb, _Color2.rgb, _Skin.rgb);
         }
         float patInk = 0.0;
         int pattern = (int)(_Pattern + 0.5);
@@ -316,6 +319,13 @@ Shader "Memento/Surface"
           float h1 = hash(float2(colI, 3.1)), h2 = hash(float2(colI, 8.7));
           float run = smoothstep(0.08 + h1 * 0.25, 0.14 + h1 * 0.25, i.fold.y) * (1.0 - smoothstep(0.75 + h2 * 0.25, 0.8 + h2 * 0.25, i.fold.y));
           detail = max(detail, inkLine(d, lerp(1.3, 0.7, i.fold.y)) * run * step(0.25, h2 + 0.3));
+        }
+        // the people: the suit's creases (creases.js) and the face (materials.js faceInk)
+        if (_Creases > 0.0) detail = max(detail, outfitCreases(i.bind, normalize(i.objNormal), clamp((_Toon - L) / _Toon, 0.0, 1.0)));
+        if (mode == MODE_OUTFIT && i.bind.y > _Outfit.z && abs(i.bind.x) < 0.16)
+        {
+          float frontal = smoothstep(0.15, 0.45, normalize(i.objNormal).z);
+          detail = max(detail, faceInk(float2(abs(i.bind.x), i.bind.y - _Face.x), fwBind, frontal, i.bind.x));
         }
         detail = max(detail, patInk);
         o.hatch.b = detail;

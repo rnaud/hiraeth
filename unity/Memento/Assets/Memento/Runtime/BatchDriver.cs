@@ -52,6 +52,22 @@ namespace Memento
             Log($"probe {when}: {hits.Length} hits [{string.Join(", ", hits.Select(h => h.collider.name + "@" + h.point.y.ToString("0.0")))}], near [{string.Join(", ", near.Select(c => c.name + " " + c.enabled + " " + c.bounds.center + " " + (c is MeshCollider mc && mc.sharedMesh ? mc.sharedMesh.triangles.Length / 3 : -1)))}]");
         }
 
+        /// <summary>A close look at someone: the camera off the rig a moment, `dist` m in front of their face.</summary>
+        IEnumerator CloseUp(string name, Transform who, float dist = 2.2f, float side = 0.35f, float up = 0.05f)
+        {
+            if (!who) { Log($"no one for {name}"); yield break; }
+            game.rig.enabled = false;
+            yield return null;
+            var head = who.GetComponentsInChildren<Transform>().FirstOrDefault(t => t.name == "Head");
+            var at = head ? head.position + Vector3.down * 0.25f * who.lossyScale.y : who.position + Vector3.up * 1.4f;
+            var fwd = who.forward; fwd.y = 0; fwd.Normalize();
+            var right = Vector3.Cross(Vector3.up, fwd);
+            game.cam.transform.position = at + fwd * dist + right * side * dist + Vector3.up * up * dist;
+            game.cam.transform.LookAt(at);
+            yield return Shoot(name);
+            game.rig.enabled = true;
+        }
+
         IEnumerator Wait(float s) { float t = 0; while (t < s) { t += Time.deltaTime; yield return null; } }
         IEnumerator Pulse(Action<bool> set) { set(true); yield return null; yield return null; set(false); yield return null; }
 
@@ -93,6 +109,7 @@ namespace Memento
             pad = Pad.Script = new Pad.Track();
             float t0 = Time.time;
             while ((game.player.model == null || game.npcs.Count(n => n && n.GetComponentInChildren<SkinnedMeshRenderer>() != null) < 10) && Time.time - t0 < 30) yield return null;
+            Log($"people: {game.npcs.Count(n => n && n.figure)} dressed, traveller {(game.player.figure ? "dressed" : "glb")}");
             yield return Wait(1f);
             Log($"loaded in {Time.time - t0:0.0} s: {game.npcs.Count} people, stage {Stage}");
             Probe("start");
@@ -100,21 +117,26 @@ namespace Memento
             yield return Pulse(v => pad.confirm = v);
             yield return Wait(1.0f);
             yield return Shoot("out_of_the_ship");
+            yield return CloseUp("traveller_front", game.player.transform, 2.6f, 0.3f, 0.02f);
+            yield return CloseUp("traveller_face", game.player.transform, 0.9f, 0.15f, 0.0f);
             // walk and run off the ramp, jump
             pad.move = new Vector2(0, 1); yield return Wait(1.5f);
             pad.run = true; yield return Wait(1.5f);
             yield return Pulse(v => pad.jump = v); yield return Wait(0.25f);
             yield return Shoot("running_jump");
+            yield return CloseUp("traveller_in_the_air", game.player.transform, 3.5f, 1.0f, 0.1f);
             pad.move = Vector2.zero; pad.run = false; yield return Wait(1f);
 
             // the camps: Ama by the fire
             var ama = Person("ama");
             PutNear(ama.pos, 6f); yield return Wait(2.5f);
             yield return Shoot("camps");
+            yield return CloseUp("ama_front", ama.transform, 2.4f, 0.3f, 0.02f);
             PutNear(ama.pos, 2f); yield return Wait(0.6f);
             game.hud.StartTalk(game.story.Def("ama"), ama, ama.displayName, ama.title);
             yield return Wait(2.5f);
             yield return Shoot("talking_to_ama");
+            yield return CloseUp("ama_face_talking", ama.transform, 0.9f, 0.2f, 0.0f);
             game.hud.talk.ended = true; yield return Wait(0.3f);
 
             // the city: through the gate and up to the tree
@@ -129,6 +151,7 @@ namespace Memento
             var y0 = game.player.transform.position.y;
             pad.move = new Vector2(0, 1); yield return Wait(0.6f);
             yield return Shoot("climbing");
+            yield return CloseUp("climbing_close", game.player.transform, -3.0f, 0.6f, 0.2f);
             yield return Wait(3f); pad.move = Vector2.zero;
             Log($"climb: {game.player.transform.position.y - y0:0.0} m up, climbing {game.player.climbing}");
             if (Interact.Best(game.player.transform.position)?.id != "box.desert.backpack") { Put(box + (box - game.world.Places.V3("ledgeFoot")).normalized * -1.2f + Vector3.up * 0.1f, 0); yield return Wait(0.5f); }
@@ -141,6 +164,7 @@ namespace Memento
             // Nour, then the well, Ama's jar, the Speaker
             var nour = Person("nour");
             PutNear(nour.pos, 2f); yield return Wait(0.5f);
+            yield return CloseUp("nour_seated", nour.transform, 2.6f, 0.4f, 0.1f);
             yield return Talk(game.story.Def("nour"), nour, "Who are the Givers?", "Why a star?", "My ship has no power", "Why me?", "All right", "The well");
             Log($"after Nour: stage {Stage}");
             Put(game.world.Places.V3("wellLook"), 0); yield return Wait(0.5f);
@@ -182,6 +206,7 @@ namespace Memento
             game.bike.Mount(); yield return Wait(0.3f);
             pad.move = new Vector2(0.15f, 1); yield return Wait(3f);
             yield return Shoot("riding");
+            yield return CloseUp("riding_close", game.player.transform, 3.2f, 1.1f, 0.15f);
             pad.move = Vector2.zero; yield return Wait(1.5f);
             game.bike.Dismount(); yield return Wait(0.5f);
 

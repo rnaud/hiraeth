@@ -24,6 +24,8 @@ namespace Memento
         public Vector3 SunDirThree { get; private set; }
         public float wind = 0.6f, gust = 0.4f;
         public Vector2 windDir = new Vector2(1, 0);
+        /// <summary>The ambient wind as a velocity (Unity space), for the cloth.</summary>
+        public Vector3 WindVector => new Vector3(-windDir.x, 0, windDir.y) * wind * 4f;
         readonly List<Vector4> localLights = new();
         readonly Vector4[] lightBuf = new Vector4[8];
 

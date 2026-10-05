@@ -23,6 +23,10 @@ namespace Memento
         public readonly List<Material> Materials = new();
         public Terrain3 Ground { get; private set; }
         byte[] bin;
+        /// <summary>world.bin, kept until the people are dressed (Figures.cs), then let go (<see cref="ReleaseBin"/>).</summary>
+        public byte[] Bin => bin;
+        public void ReleaseBin() { bin = null; }
+        public bool keepBin;
         Shader surface;
 
         public static string DataPath(string folder) => Path.Combine(Application.streamingAssetsPath, folder);
@@ -78,7 +82,7 @@ namespace Memento
                 go.SetActive(o.Get("visible") is bool v ? v : true);
                 Objects[name] = go;
             }
-            bin = null;
+            if (!keepBin) bin = null;
             return true;
         }
 
@@ -101,6 +105,24 @@ namespace Memento
                 mat.SetVectorArray("_Palette", arr);
                 mat.SetFloat("_PaletteSize", Mathf.Min(pal.Count, 12));
             }
+            // the people's uniforms (people.mjs, three space): outfit zones, face, eyes, creases, glass
+            foreach (var (k, p) in new[] { ("outfit", "_Outfit"), ("skin", "_Skin"), ("glove", "_Glove"), ("trim", "_Trim"), ("face", "_Face"), ("mood", "_Mood"), ("mood2", "_Mood2"),
+                ("faceKit", "_FaceKit"), ("faceKit2", "_FaceKit2"), ("eyeC", "_EyeC"), ("eyeR", "_EyeR"), ("eyeLook", "_EyeLook"), ("glassCenter", "_GlassCenter") })
+            {
+                var l = m.L(k);
+                if (l == null) continue;
+                var v = new Vector4(0, 0, 0, 0);
+                for (int i = 0; i < l.Count && i < 4; i++) v[i] = Json.Num(l[i]);
+                mat.SetVector(p, v);
+            }
+            foreach (var (k, p) in new[] { ("creases", "_Creases"), ("glass", "_Glass"), ("hero", "_Hero") }) if (m.Has(k)) mat.SetFloat(p, m.F(k));
+            var limbs = m.L("limbs");
+            if (limbs != null && limbs.Count >= 48)
+            {
+                var arr = new Vector4[16];
+                for (int i = 0; i < 16; i++) arr[i] = new Vector4(Json.Num(limbs[i * 3]), Json.Num(limbs[i * 3 + 1]), Json.Num(limbs[i * 3 + 2]), 0);
+                mat.SetVectorArray("_Limbs", arr);
+            }
             int side = m.I("side");
             mat.SetFloat("_Cull", side == 2 ? (float)CullMode.Off : side == 1 ? (float)CullMode.Front : (float)CullMode.Back);
             return mat;
@@ -117,7 +139,7 @@ namespace Memento
             return go;
         }
 
-        NativeArray<T> Slice<T>(int at, int count) where T : struct
+        public NativeArray<T> Slice<T>(int at, int count) where T : struct
         {
             var size = System.Runtime.InteropServices.Marshal.SizeOf<T>();
             var arr = new NativeArray<T>(count, Allocator.Temp, NativeArrayOptions.UninitializedMemory);

@@ -25,6 +25,8 @@ namespace Memento
             game.hud.game = game;
             game.quests.toast = game.hud.Toast;
 
+            // the people, dressed as on the web (people.mjs): the traveller, the story's people, the crowd
+            new FigureLibrary(game.world);
             var pgo = new GameObject("Traveller");
             pgo.layer = 2;   // (Ignore Raycast: the world's rays look past the traveller's own capsule)
             pgo.transform.SetParent(transform, false);
@@ -56,6 +58,7 @@ namespace Memento
                 game.bike.Init(game, drawn, tarp);
             }
             portals = game.world.World.L("portals");
+            game.world.ReleaseBin();
             // the father's charge (src/story/charge.js): the words he left, on a card, before you step out
             game.hud.ShowCard("My son,", "“make us proud. Bring back something of value.”\n\n<size=18>The ship is dark. Its power is gone. Somewhere out there, smoke rises from a city.</size>", 1.0f);
             Cursor.lockState = Application.isEditor ? CursorLockMode.None : CursorLockMode.Locked;

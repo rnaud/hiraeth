@@ -44,6 +44,7 @@ namespace Memento
             QualitySettings.vSyncCount = 1;
             if (!world) world = new GameObject("World").AddComponent<WorldLoader>();
             world.transform.SetParent(transform, false);
+            world.keepBin = true;   // (the people are dressed from it: Play.Begin, then it is let go)
             if (!world.Build()) return false;
             if (!sun)
             {
