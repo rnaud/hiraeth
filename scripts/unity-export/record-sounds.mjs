@@ -77,7 +77,7 @@ const record = (fx, worlds) => page.evaluate(async ({ FX, url, WORLDS }) => {
     const buf = await s.ctx.startRendering();
     out.push({ name, ...wav(buf) });
   }
-  // each world's score (audio.js PROFILES): the scheduler run by hand along a pinned clock, then the whole of it
+  // each world's score (src/score.js SCORES): the scheduler run by hand along a pinned clock, then the whole of it
   // rendered; the desert's 150 s, the others' 90 s (Sounds.cs plays music_<world>, the desert's where there is none)
   for (const world of WORLDS) {
     const secs = world === 'desert' ? 150 : 90;
