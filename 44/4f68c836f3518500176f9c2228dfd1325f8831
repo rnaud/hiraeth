@@ -1,0 +1,59 @@
+README.md
+  s_1fd8d0e7b02dcf::t_fb69eaca853ed2 2636,3702-3766
+TODO.md
+  s_1fd8d0e7b02dcf::t_23c7b49275af50 627-647
+changelog.md
+  s_1fd8d0e7b02dcf::t_de30971c8d0018 5-12
+index.html
+  s_1fd8d0e7b02dcf::t_9042ef8c236848 24-32,34-40,106,108-110,112-113,138-139,281,283-284,289-303,305-309,311,313-324,394,396,414-418,449,451,483,493
+scripts/handheld-perf/lib.mjs
+  s_1fd8d0e7b02dcf::t_7b587722fd2586 105
+src/audio.js
+  s_1fd8d0e7b02dcf::t_054353d331ecd7 1043-1054
+src/boxes/index.js
+  s_1fd8d0e7b02dcf::t_0ca08ff765196e 262
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_fad104c929b719 6-12
+src/controller.js
+  s_1fd8d0e7b02dcf::t_a3e48a4198866a 6,16,136-137,185-186
+src/fluid-tool.js
+  s_1fd8d0e7b02dcf::t_a93d5ed812a5f7 930-931
+src/hud.js
+  s_1fd8d0e7b02dcf::t_1a617d26b5f606 1-112
+src/main.js
+  s_1fd8d0e7b02dcf::t_8edd64b525cb5e 9-10,232,292-294,441-449,463-464,711,728-730,861-864,868-878,880-890,922,1248
+src/menus.css
+  s_1fd8d0e7b02dcf::t_e1f40aa4e597a8 247-266
+src/prompt-keys.js
+  s_1fd8d0e7b02dcf::t_8d34c6378de1ec 2-3
+src/scout.js
+  s_1fd8d0e7b02dcf::t_f209cbb13ed9e0 11-23,42,51-53,55,81-91,93-94,117-124,126-127,131,137,143-147,152-153,174,176-179,182-184,186,188-209,334,336,347,357-368,371,377,386,401-406,408-416,426,433,445,451,458-486,495-540
+src/ship/cinema.js
+  s_1fd8d0e7b02dcf::t_ecabab012dc9c0 188,311,314
+src/story/quests.js
+  s_1fd8d0e7b02dcf::t_440c3475283fda 33-34,37,46-47,114-117,231-235,249,251-252,254-255
+src/ui.js
+  s_1fd8d0e7b02dcf::t_7ec9d465fa41bf 26-27,34,46-52,54-55,57-83,87-92,95-97,99,101,105-106,109,118-122,128,150-151,153-157,180,182,192-194,200,205-206,214-233,236-238,240-241,248,255-256,260-269,272-273,286,378,381-382,386,388,390-392,403-407,410,415-426,428-429
+tests/drone.test.js
+  s_1fd8d0e7b02dcf::t_94b5306779c0dc 230,232
+tests/hud.test.js
+  s_1fd8d0e7b02dcf::t_368fbc343f6728 1-219
+tests/scout.test.js
+  s_1fd8d0e7b02dcf::t_1234e2e9c12cc7 4,8,18-38,49,52-54,56-78,80-102,177,184-185,187,191
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "444f68c836f3518500176f9c2228dfd1325f8831",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
