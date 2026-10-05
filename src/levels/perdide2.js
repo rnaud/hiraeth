@@ -17,6 +17,11 @@ import { stepped } from '../load-steps.js';
 // where a teal hover-skiff waits in the shallows.
 // ---------------------------------------------------------------------------
 
+/** The world's touches on the print preset (its reference sheets, docs/systems/references.md). */
+export const DEEP_WOOD_LOOK = { uClouds: 0, uCumulus: 0, uFogDensity: 0.002 };
+/** The day's colours: violet / indigo / teal shade under a coral horizon. */
+export const DEEP_WOOD_DAY = ['#c48c98', '#f2a088', '#4a4f7a', '#ece2f2', '#fff0e0'];
+
 const WATER = 0;
 const DEEP = -1.6;              // deeper than this is unsafe on foot (the skiff floats; you swim)
 const PATH_Y = 0.45;            // the dry path bank
@@ -119,8 +124,8 @@ function height(x, z) {
   return h;
 }
 
-// a sleek teal speedboat with a dark windscreen (the reference's skiff)
-function buildSkiff() {
+// a sleek teal speedboat with a dark windscreen (the reference's skiff; the References' views build it too)
+export function buildSkiff() {
   const root = new THREE.Group();
   const body = new THREE.Group();
   root.add(body);
@@ -321,7 +326,8 @@ export function* buildPerdide2(scene) {
       for (const [k, l] of Object.entries(shroomGeo[key])) {
         const [c, glow] = k.split('|');
         const g = +glow ? (key === 'top' ? 0.45 : key === 'under' ? 0.3 : 0) : (key === 'top' ? 0.12 : 0);
-        const m = new THREE.Mesh(mergeGeometries(l), makeMaterial({ color: c, flat: true, glow: g }));
+        // (pale even in their own shade, as the reference sheets draw them against the dark wood)
+        const m = new THREE.Mesh(mergeGeometries(l), makeMaterial({ color: c, flat: true, glow: g, shade: key === 'under' ? 0.4 : 0.6, hatch: 0.4 }));
         m.userData.noCollide = true;
         scene.add(m);
       }
@@ -754,11 +760,11 @@ export function* buildPerdide2(scene) {
       return s;
     },
     mountName: 'skiff',
-    defaults: { hour: 17.7, preset: 'Moebius print', cloudShadows: 0, look: { uClouds: 0, uCumulus: 0, uFogDensity: 0.002 } },
+    defaults: { hour: 17.7, preset: 'Moebius print', cloudShadows: 0, look: DEEP_WOOD_LOOK },
     sky: {
       // violet / indigo / teal shade under a coral horizon
       script: {
-        day: ['#c48c98', '#f2a088', '#4a4f7a', '#ece2f2', '#fff0e0'],
+        day: DEEP_WOOD_DAY,
         dusk: ['#b97f93', '#f0927a', '#4a4f7a', '#f2cfc4', '#fff2e2'],
         night: ['#1b1f3e', '#5a3f62', '#2f3560', '#8fb8c8', '#f2e8e0'],
       },

@@ -33,9 +33,9 @@ test('the quick menu: grouped by world, then by sheet, in the views\' order', ()
   }
   // a view added later (another world, another sheet) shows up by itself, with no list kept by hand
   const extra = { id: 'x', title: 'A new one', sheet: 'NEW_1', panel: 1, crop: [10, 20, 300, 200] };
-  const more = pickerGroups([...REFERENCE_VIEWS, extra], { ...REFERENCE_SHEETS, NEW_1: { name: 'Lorn II / NEW_1.JPG', size: [1024, 1024], url: 'x.jpg' } });
+  const more = pickerGroups([...REFERENCE_VIEWS, extra], { ...REFERENCE_SHEETS, NEW_1: { name: 'A New World / NEW_1.JPG', size: [1024, 1024], url: 'x.jpg' } });
   const last = more.at(-1);
-  assert.equal(last.world, 'Lorn II');
+  assert.equal(last.world, 'A New World');
   assert.deepEqual(last.sheets[0].entries[0].crop, extra.crop);
   assert.equal(last.sheets[0].entries[0].number, REFERENCE_VIEWS.length + 1);
 });
@@ -47,7 +47,7 @@ test('the quick menu: each thumbnail is the view\'s own crop of its sheet', () =
     assert.equal(e.url, REFERENCE_SHEETS[v.sheet].url, `${v.id}: cut from its own sheet`);
     const { w, h } = thumbSize(e.crop);
     assert.ok(w <= 132 && h <= 84 && (w === 132 || h === 84), `${v.id}: fits the thumbnail box`);
-    assert.ok(Math.abs(w / h - v.crop[2] / v.crop[3]) < 0.04, `${v.id}: keeps the panel's proportions`);
+    assert.ok(Math.abs((w / h) / (v.crop[2] / v.crop[3]) - 1) < 0.03, `${v.id}: keeps the panel's proportions`);   // (relative: a strip's height rounds to whole pixels)
     const calls = [], img = {};
     drawThumb({ drawImage: (...a) => calls.push(a) }, img, e.crop, w * 2, h * 2);
     assert.deepEqual(calls, [[img, ...v.crop, 0, 0, w * 2, h * 2]], `${v.id}: drawn from the crop`);

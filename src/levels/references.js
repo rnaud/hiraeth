@@ -9,6 +9,7 @@ import { DESERT_LOOK } from '../desert-sites.js';
 import { SKY_STONES_DAY, SKY_STONES_LOOK, SKY_STONES_FLAT } from './arzach2.js';
 import { BURIED_DAY, BURIED_SPOTS } from './buried.js';
 import { SPHERES_DAY, SPHERES_LOOK } from './spheres.js';
+import { DEEP_WOOD_DAY, DEEP_WOOD_LOOK } from './perdide2.js';
 import { ReferencePicker } from './reference-picker.js';
 
 // ---------------------------------------------------------------------------
@@ -163,6 +164,7 @@ export const WORLD_LOOKS = {
   vael2: { sky: SKY_STONES_DAY, look: { ...SKY_STONES_LOOK, uShadowFlat: SKY_STONES_FLAT } },
   buried: { sky: BURIED_DAY, look: { ...BURIED_SPOTS } },
   spheres: { sky: SPHERES_DAY, look: { ...SPHERES_LOOK } },
+  lorn2: { sky: DEEP_WOOD_DAY, look: { ...DEEP_WOOD_LOOK } },
 };
 
 // (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
@@ -191,6 +193,10 @@ export function* buildReferences(scene) {
     const drifts = sand?.close().build(driftMaterial(makeMaterial, { mode: MODE_TERRAIN, ...def.ground.material }));
     if (drifts) group.add(drifts);
     noShadow.push(...kit.noShadow);
+    // the view's local lights (glowing eggs, pools, lamps): kit.light puts them at the centre plus the
+    // view's own frame, which the group turns (sunTurn)
+    { const a = group.rotation.y, c = Math.cos(a), sn = Math.sin(a);
+      for (const l of kit.lights) { const x = l.x - centre.x, z = l.z - centre.z; lights.push(new THREE.Vector4(centre.x + x * c + z * sn, l.y, centre.z - x * sn + z * c, l.w)); } }
     movers.push(...kit.movers.map((fn) => (t) => { if (group.visible) fn(t); }));
     group.updateMatrixWorld(true);
     const cam = viewCamera(def.camera);

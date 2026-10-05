@@ -11,6 +11,8 @@ export const CHANGELOG = [
     'Faceted shapes far from the middle of a world no longer break into fuzzy dots where the sun grazes them.',
     'The traveller looks more like his drawings. His hair is a short, tousled mop of soft curls with a fringe over his forehead, instead of long locks. His coral overshirt has a proper collar and hangs open and loose over his undershirt, down to his thighs.',
     'He wears a little tan neckerchief knotted at his throat instead of the bunched scarf, and slim, low suede ankle boots with thin soles instead of the big rounded ones. His trousers hang looser, and his satchel sits on his right hip, as in the drawings.',
+    'In Lorn II the giant mushrooms stay pale even on their shaded side, as in the drawings, glowing against the dark wood.',
+    'The References scenes now include Lorn II: twenty-three views from its four sheets, the giant mushrooms, the egg heaps and coral pools, the moss domes, the root arches and caves, the saucer and the skiff. The glowing eggs, pools and doors in these scenes now light what is around them.',
   ] },
   { v: '0.68', date: '2026-10-05', items: [
     'In the desert the quest no longer just appears when you land: Marrow the salvager is at your ship, looking over the scar on its hull, and calls you over. Talk to him and he tells you the only fire that could wake your ship is the great tree’s, in Qanat, and to ask old Nour; the quest begins then. Until you have talked to someone, your drone finds the one to ask.',

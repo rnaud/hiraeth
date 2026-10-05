@@ -206,3 +206,24 @@ the narrowest creases.
   ours follow the view's sun. The lakes' reflections (the world has them, the views don't).
 - **Left, scene level**: the white hill's sculpted rock, the ruins' arcades, the robot statue, the
   hedges' fruit, the avenue's grasses, the plaza's paving pattern are sketches.
+
+## Lorn II's sheets (IMG_3797–3800)
+
+- **The views** (`src/levels/reference-lorn.js`, `LORN_VIEWS`): IMG_3797 (6 panels), IMG_3798 (6),
+  IMG_3799 (5), IMG_3800 (6), views 126–148 after the Garden of Spheres'; the sheets are named
+  "Lorn II / IMG_….JPG" for the quick menu. One scene builder (`woodScene`): cathedral trunks, giant
+  pale mushrooms (perdide2.js's profile, gills under the caps), glowing egg heaps and coral pools, violet
+  reeds and crystal spires, moss domes with lit doors, root arches with hanging roots, root caves glowing
+  coral, the saucer, the skiff (perdide2.js `buildSkiff`) and its riders, the swamp's water and banks.
+  The sun is low ahead in the coral gaps (backlit), and the wood's masses cast no shadow (the sheets'
+  dusk light throws none). `?look=lorn2`.
+- **Lights**: the References level now hands each view's local lights (`kit.light`: eggs, pools, doors,
+  cave glows) to the shader, turned with the view; before, a view's lights were never used.
+- **On the world** (`perdide2.js`): the giant mushrooms are pale in their own shade too (`shade` 0.6,
+  the gills 0.4, fewer strokes), as the sheets draw them; `DEEP_WOOD_LOOK`, `DEEP_WOOD_DAY` exported.
+- **Left, shader level**: the sheets' reeds are pale lavender blades in light; ours are thin cones whose
+  outlines dominate (an outline weight per material is missing, as for Vael II's clouds). The sheets'
+  far wood is layers of pale mist between trunks (our fog by distance gives one flat tint). Their roots
+  and bushes are dense hatched masses; ours are smooth tubes and lumps.
+- **Left, scene level**: the nest of eggs in the great cap, the cave mouths' framing, the roots' tangle,
+  the bushes on the banks and the lily pads are sketches.
