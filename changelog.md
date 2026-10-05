@@ -7,6 +7,9 @@ The same release notes shown in the game (press **N** or open settings).
 - Smoother frame rate everywhere, most of all close to metal, cracked rock and other detailed surfaces; nothing looks different.
 - No more stutter the first time you walk into a new place or turn to something new: everything is prepared while the world loads, and worlds load faster.
 - Grassy places no longer waste time redrawing every blade of grass each frame; stepping through a door no longer stalls while the grass appears.
+- The fluid gun’s paint now lands on what it hits and takes its shape: it wraps over steps, rocks, domes and tree trunks and runs round their edges, instead of a flat disc floating in front of them or cut through by them.
+- Faces in the conversation portrait are sharp: clean outlines instead of jagged, broken lines, on small screens too.
+- Boulders, big globes and pillars far away now cast shadows like the buildings beside them, and Perdide’s great crystal throws its shadow across the island.
 
 ## v0.56 — 2026-10-05
 

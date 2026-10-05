@@ -517,12 +517,18 @@ All of this is for the web game; the Unity port follows later if we move to Unit
 # Feel and look (2026-10-05, web)
 
 - [ ] Plants move too much when you walk past: a light brush as you pass, not a big shove.
-- [ ] Most structures cast shadows.
+- [x] Most structures cast shadows. (Audited every world: nearly everything already cast; the far
+  map skipped every tile of instanced props, so boulders, globes and pillars past 220 m cast
+  nothing: now only tiles of small ones are skipped. Perdide's great crystal casts though it glows.
+  README "Who casts a shadow".)
 - [ ] Grass pops in: in the distance it should fade into something smaller and cheaper, not appear at a line.
 - [ ] Jump animation by phase: take-off, the top, falling back down (it looks static through the whole jump).
-- [ ] The gun's blob impact follows the surface it hits, not a flat decal floating in front of it.
+- [x] The gun's blob impact follows the surface it hits, not a flat decal floating in front of it.
+  (Projected onto the drawn triangles round the hit, wrapped over steps, rocks and trunks:
+  `splat-decal.js`.)
 - [ ] Hands are stiff and flat: give them the natural arc of a relaxed hand, and let them move.
-- [ ] The faces in the dialogue box's portrait are badly aliased.
+- [x] The faces in the dialogue box's portrait are badly aliased. (Drawn at the circle's size,
+  supersampled and shrunk by halves, saved as PNG.)
 - [ ] The alien text in the dialogue box lacks variety: it should look like a real written language
   (each world its own script) before it turns into English.
 - [ ] One stamina bar shared by running and climbing; running a little faster.

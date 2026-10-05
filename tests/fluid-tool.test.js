@@ -226,7 +226,8 @@ test('shoot: a glob flies straight onto the crosshair, hits the nearest target a
   frames(wall, 30, { KeyR: true });
   wall.update(DT, { KeyR: true, KeyG: true });
   for (let i = 0; i < 60 && !wall.splats.list.length; i++) wall.update(DT, { KeyR: true });
-  assert.equal(wall.splats.list.length, 2, 'a two-tone splat');
+  assert.equal(wall.splats.list.length, 1, 'a splat');
+  assert.notDeepEqual(wall.splats.list[0].a, wall.splats.list[0].b, 'in two tones');
   frames(wall, Math.ceil(FLUID.shoot.splatLife / DT) + 2);
   assert.equal(wall.splats.list.length, 0, 'short-lived');
   tool.dispose(); wall.dispose();

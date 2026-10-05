@@ -8,7 +8,7 @@ import { NPC, registerNPCTargets } from '../npc.js';
 import { talkFaces } from '../talk-face.js';
 import { makeMaterial } from '../materials.js';
 import { viaPortal } from '../scout.js';
-import { backdropFor } from './portrait-bg.js';
+import { backdropFor, portraitSize } from './portrait-bg.js';
 import { keyBadge, escapeHtml } from '../prompt-keys.js';
 import { setupDesert } from './desert.js';
 import { setupPerdide } from './perdide.js';
@@ -98,7 +98,10 @@ export function createStory(o) {
     const s = npc.object.scale.y;
     const eye = look.clone().addScaledVector(_d, 1.05 * s).add(new THREE.Vector3(-_d.z * 0.3 * s, -0.32 * s, _d.x * 0.3 * s));
     const background = backdropFor(person, levelId);
-    const src = capture(eye, look.clone().addScaledVector(UP, -0.06 * s), 160, 160, { keep: [npc.object, npc.cape?.mesh], backdrop: background, fov: 36 });
+    // as sharp as the circle it is shown in (its size on this screen), drawn at that size and supersampled
+    const css = (typeof document !== 'undefined' && document.querySelector('#dialogue .dlg-chip')?.clientWidth) || 84;
+    const px = portraitSize(css, typeof window !== 'undefined' ? window.devicePixelRatio : 1);
+    const src = capture(eye, look.clone().addScaledVector(UP, -0.06 * s), px, px, { keep: [npc.object, npc.cape?.mesh], backdrop: background, fov: 36, css });
     return src ? { src, background } : null;
   }
 

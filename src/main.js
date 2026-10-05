@@ -23,7 +23,7 @@ import { LodManager, lodView } from './lod.js';
 import { skinnedLods } from './skinned-lod.js';
 import { buildFlora, floraKeep, FLORA_WORLDS } from './flora.js';
 import { buildGrass } from './flora-grass.js';
-import { Cascade, ShadowCuller, shadowDirection } from './shadows.js';
+import { Cascade, ShadowCuller, shadowDirection, farPassSkips, selfLitSkips } from './shadows.js';
 import { Trail } from './trail.js';
 import { Flock, Motes, Footprints } from './life.js';
 import { Sound } from './audio.js';
@@ -54,7 +54,7 @@ import { Flammables, flammableSpots } from './flammable.js';
 import { createBoxes, migrateSave } from './boxes/index.js';
 import { createItemEffects } from './boxes/effects.js';
 import { DevMenu } from './dev-menu.js';
-import { isolate, restore } from './story/portrait-bg.js';
+import { isolate, restore, portraitPixelRatio } from './story/portrait-bg.js';
 import { badgeLine } from './prompt-keys.js';
 import { chargeState, chargeHud, chargeJournalHtml, showChargeCard, GIVEN as CHARGE_GIVEN, CARD as CHARGE_CARD } from './story/charge.js';
 import { slots, formatPlaytime } from './save-slots.js';
@@ -961,12 +961,13 @@ function tinyShadowCasters() {
 
 // Self-lit things (flames, embers, smoke, lamps: glow >= 0.8) give light; they don't block it.
 // Their shadows were the ones crawling over Qanat's walls: the burning tree's smoke column and
-// flames, animated every frame, swept moving shadows across the city.
+// flames, animated every frame, swept moving shadows across the city. (A glowing solid opts back in
+// with userData.castShadow = true, and anything can opt out with false: shadows.js selfLitSkips.)
 let glowCache = null;
 function glowCasters() {
   if (glowCache && glowCache.n === scene.children.length) return glowCache.list;
   const list = [];
-  scene.traverse((o) => { if (o.isMesh && !Array.isArray(o.material) && (o.material?.uniforms?.uGlow?.value ?? 0) >= 0.8) list.push(o); });
+  scene.traverse((o) => { if (o.isMesh && selfLitSkips(o)) list.push(o); });
   glowCache = { n: scene.children.length, list };
   return list;
 }
@@ -1033,8 +1034,9 @@ function renderFrame() {
   if (cascades.fine.enabled) shadowPass(cascades.fine, camToPlayer + cascades.fine.extent * 1.8);
   if (turned || frameNo % preset.nearEvery === 0) shadowPass(cascades.near, camToPlayer + cascades.near.extent * 1.8);
   if (turned || frameNo % preset.farEvery === (preset.nearEvery > 1 ? 1 : 0)) {
-    const small = tiled.small.filter((o) => o.visible);
-    for (const o of small) o.visible = false;   // pebbles and bushes don't need km-wide shadows
+    // pebbles and bushes don't need km-wide shadows (but a tile of boulders, globes or pillars does)
+    const small = farPassSkips(tiled.small, cascades.far.texel);
+    for (const o of small) o.visible = false;
     if (preset.lodPx) lod.shadowPass(cascades.far.texel);   // nor detail finer than a texel of it
     shadowPass(cascades.far, camera.far);
     lod.viewPass();
@@ -1083,8 +1085,30 @@ function renderFrame() {
 const grabCanvas = document.createElement('canvas');
 const _cp = new THREE.Vector3(), _cq = new THREE.Quaternion(), _cu = new THREE.Vector3();
 // o.keep: draw only these objects (a conversation's portrait), with o.backdrop ('#hex') in place of the sky
+// o.css: the size (CSS px) the image is shown at (the portrait's circle). The frame is then drawn as if
+// it were that small (lines, hatching and grain in its pixels: uPixelRatio), at the full render's
+// resolution, and shrunk down by halves: supersampled, so thin ink stays whole instead of breaking
+// into jagged dots, and kept as a PNG (no JPEG ringing round the lines).
 let portraitShot = false;
-function captureView(eye, look, w, h, { keep = null, backdrop = null, fov = null } = {}) {
+const shrinkCanvas = [document.createElement('canvas'), document.createElement('canvas')];
+/** Shrink the source rectangle into `out` (w × h) by halves (each a 2 × 2 average), then the last step. */
+function shrinkInto(src, sx, sy, sw, sh, out, w, h) {
+  let cur = src, cx = sx, cy = sy, cw = sw, ch = sh, k = 0;
+  while (cw >= w * 2 && ch >= h * 2) {
+    const c = shrinkCanvas[k++ % 2], nw = Math.ceil(cw / 2), nh = Math.ceil(ch / 2);
+    if (c.width < nw || c.height < nh) { c.width = Math.max(c.width, nw); c.height = Math.max(c.height, nh); }
+    const g = c.getContext('2d');
+    g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+    g.clearRect(0, 0, nw, nh);
+    g.drawImage(cur, cx, cy, cw, ch, 0, 0, nw, nh);
+    cur = c; cx = 0; cy = 0; cw = nw; ch = nh;
+  }
+  out.width = w; out.height = h;
+  const g = out.getContext('2d');
+  g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+  g.drawImage(cur, cx, cy, cw, ch, 0, 0, w, h);
+}
+function captureView(eye, look, w, h, { keep = null, backdrop = null, fov = null, css = null } = {}) {
   _cp.copy(camera.position); _cq.copy(camera.quaternion); _cu.copy(camera.up);
   camera.position.copy(eye);
   camera.up.copy(player.frame.up);
@@ -1092,16 +1116,19 @@ function captureView(eye, look, w, h, { keep = null, backdrop = null, fov = null
   const fov0 = camera.fov;
   if (fov) { camera.fov = fov; camera.updateProjectionMatrix(); }
   const hidden = keep ? isolate(keep, scene) : [];
-  const weather = [U.uRain.value, U.uStorm.value];
+  const weather = [U.uRain.value, U.uStorm.value], pr = [U.uPixelRatio.value, SU.uPixelRatio.value];
   if (keep) {
     portraitShot = true;
     U.uRain.value = U.uStorm.value = 0;
     if (backdrop) { const c = new THREE.Color(backdrop); U.uBackdrop.value.set(c.r, c.g, c.b, 1); }
   }
+  // drawn at the size it is shown: the crop (the frame's height, a square) is css CSS px across
+  if (css) U.uPixelRatio.value = SU.uPixelRatio.value = portraitPixelRatio(gbuffer.height, css, pr[0]);
   try { renderFrame(); } finally {
     restore(hidden);
     portraitShot = false;
     [U.uRain.value, U.uStorm.value] = weather;
+    [U.uPixelRatio.value, SU.uPixelRatio.value] = pr;
     U.uBackdrop.value.w = 0;
     if (fov) { camera.fov = fov0; camera.updateProjectionMatrix(); }
   }
@@ -1109,11 +1136,14 @@ function captureView(eye, look, w, h, { keep = null, backdrop = null, fov = null
   const aspect = w / h, sw = src.width, sh = src.height;
   let cw = sw, ch = sw / aspect;
   if (ch > sh) { ch = sh; cw = sh * aspect; }
-  grabCanvas.width = w; grabCanvas.height = h;
-  grabCanvas.getContext('2d').drawImage(src, (sw - cw) / 2, (sh - ch) / 2, cw, ch, 0, 0, w, h);
+  if (css) shrinkInto(src, (sw - cw) / 2, (sh - ch) / 2, cw, ch, grabCanvas, w, h);
+  else {
+    grabCanvas.width = w; grabCanvas.height = h;
+    grabCanvas.getContext('2d').drawImage(src, (sw - cw) / 2, (sh - ch) / 2, cw, ch, 0, 0, w, h);
+  }
   camera.position.copy(_cp); camera.quaternion.copy(_cq); camera.up.copy(_cu);
   camera.updateMatrixWorld();
-  return grabCanvas.toDataURL('image/jpeg', 0.82);
+  return css ? grabCanvas.toDataURL('image/png') : grabCanvas.toDataURL('image/jpeg', 0.82);
 }
 
 // F: frame rate, frame time (and the CPU's and, where the browser can time it, the GPU's share),
