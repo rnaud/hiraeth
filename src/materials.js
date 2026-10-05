@@ -72,6 +72,7 @@ export const sharedUniforms = {
   uClouds: { value: 0.6 },       // cloud cover, shared with the sky in post.js
   // local lights (glowing crystals, eggs, portals, the jetpack flame): xyz + radius
   uLights: { value: Array.from({ length: 8 }, () => new THREE.Vector4(0, -1e5, 0, 0)) },
+  uLightCount: { value: 0 },   // how many of uLights are lit (packed first)
   uFormHatch: { value: 1 },      // strokes follow slopes / wrap round objects
   uDots: { value: 0 },           // pen dotting on the ground (print style)
   uCloudShadows: { value: 1 },
@@ -138,7 +139,9 @@ const METAL_GLSL = /* glsl */ `
       vec3 seen = env * lum3(base) / max(lum3(env), 0.05) * m;    // the world's colour at the metal's value
       c = mix(base, mix(tone, seen, warm ? 0.14 : 0.42), refl);
     }
-    // brushed: fine streaks along the axis (object space: they ride with the object)
+    // brushed: fine streaks along the axis (object space: they ride with the object). Compiled
+    // only for brushed metal (METAL_BRUSHED): on the others it multiplied by zero, five noise taps a pixel
+    #ifdef METAL_BRUSHED
     float brushed = uMetal.y;
     vec3 Bo = cross(uBrushAxis, normalize(vObjNormal));
     float u = dot(vObjPos, normalize(Bo + 1e-5)) * 70.0, along = dot(vObjPos, uBrushAxis);
@@ -149,15 +152,22 @@ const METAL_GLSL = /* glsl */ `
     float hair = inkLine(abs(k - id) / max(fu / 9.0, 1e-5), 0.6) * step(0.82, hash(vec2(id, 3.3)))
                * smoothstep(0.35, 0.6, vnoise(vec2(id * 1.7, along * 2.5))) * (1.0 - smoothstep(0.06, 0.16, fu / 9.0));
     ink = hair * 0.3 * brushed;
+    #else
+    const float brushed = 0.0;
+    #endif
     // the sun's highlight: one crisp shape (stretched across the streaks when brushed)
     float s = dot(R, uSunDir), c0 = cos(uMetal.w);
     float fs = max(fwidth(s), 1e-4);
     float spot = smoothstep(c0 - fs, c0 + fs, s);
     float c1 = cos(uMetal.w * 2.3), sheen = smoothstep(c1 - fs, c1 + fs, s) * (1.0 - brushed) * sunLit;   // a paler ring round it
+    #ifdef METAL_BRUSHED
     vec3 H = normalize(uSunDir + V);
     float th = dot(vMetalT, H), fth = max(fwidth(th), 1e-4), wb = uMetal.w * 0.45;
     float streak = (1.0 - smoothstep(wb - fth, wb + fth, abs(th))) * smoothstep(0.25, 0.4, dot(n, H));
     float hl = mix(spot, streak, brushed) * sunLit;
+    #else
+    float hl = spot * sunLit;
+    #endif
     vec3 hc = mix(vec3(1.0, 0.99, 0.95), base, kind > 2.5 && kind < 4.5 ? 0.22 : 0.06);
     c = mix(c, mix(c, hc, 0.38), sheen);
     return mix(c, hc, hl);
@@ -169,7 +179,55 @@ export function setEnvGround(color) {
   if (color) sharedUniforms.uEnvGround.value.set(color);
 }
 
+// ---------------------------------------------------------------------------
+// One surface shader, compiled per material with only the features it uses (surfaceDefines):
+// a uniform branch that is never taken still costs, since the GPU reserves registers for the
+// heaviest path (the faces' ink, the desert's ground) in every program. Each S_* define
+// guards the code of one feature; its uniform still decides inside, as before. Without
+// SURFACE_SPEC (a shader made some other way) everything is compiled, as it always was.
+// The features set this way never change after makeMaterial (their uniforms are only read).
+// ---------------------------------------------------------------------------
+export const SURFACE_FEATURES = ['S_FIGURE', 'S_EYE', 'S_PORTRAIT', 'S_CREASES', 'S_TERRAIN', 'S_BIOMES', 'S_RIPPLES', 'S_TICKS', 'S_SANDINK',
+  'S_STRATA', 'S_RIBBON', 'S_WATERMODE', 'S_FACADE', 'S_TILES', 'S_LEAVES', 'S_CRACKS', 'S_GLYPHS', 'S_GRID', 'S_FOLDS', 'S_SCRUB', 'S_GLASS', 'S_MAP'];
+const SURFACE_ALL = /* glsl */ `
+  #ifndef SURFACE_SPEC
+  ${SURFACE_FEATURES.map((f) => `#define ${f}`).join('\n  ')}
+  #define METAL_BRUSHED
+  #endif
+`;
+const PATTERNS = { facade: 1, tiles: 2, leaves: 3, cracks: 4 };
+const PATTERN_DEFINES = { 1: 'S_FACADE', 2: 'S_TILES', 3: 'S_LEAVES', 4: 'S_CRACKS' };
+
+/** The defines a material made with these options compiles: SURFACE_SPEC and the features it uses. */
+export function surfaceDefines(o) {
+  const mode = o.mode ?? MODE_PLAIN, d = { SURFACE_SPEC: 1 };
+  const on = (k, v) => { if (v) d[k] = 1; };
+  on('S_FIGURE', mode === MODE_OUTFIT);
+  on('S_EYE', mode === MODE_EYE);
+  on('S_PORTRAIT', o.portrait);
+  on('S_CREASES', o.creases);
+  on('S_TERRAIN', mode === MODE_TERRAIN);
+  on('S_BIOMES', o.biomes);
+  on('S_RIPPLES', o.ripples);
+  on('S_TICKS', o.ticks);
+  on('S_SANDINK', o.sandInk);
+  on('S_STRATA', mode === MODE_STRATA);
+  on('S_RIBBON', mode === MODE_RIBBON);
+  on('S_WATERMODE', mode === MODE_WATER);
+  on(PATTERN_DEFINES[PATTERNS[o.pattern]], true);
+  on('S_GLYPHS', o.glyphs);
+  on('S_GRID', o.grid);
+  on('S_FOLDS', o.folds);
+  on('S_SCRUB', o.scrub);
+  on('S_GLASS', o.glass);
+  on('S_MAP', o.map);
+  on('METAL_BRUSHED', o.metal && o.brushed);
+  delete d.undefined;
+  return d;
+}
+
 const vertexShader = /* glsl */ `
+  ${SURFACE_ALL}
   out vec3 vWorldPos;
   out vec3 vNormal;
   out vec3 vInstColor;
@@ -209,13 +267,19 @@ const vertexShader = /* glsl */ `
   void main() {
     vec3 transformed = position;
     // a padded suit: the body swells along its normals (baggier on the legs), not the head or hands
+    #ifdef S_FIGURE
     if (uSuit > 0.0 && position.y < uOutfit.z - 0.02 && abs(position.x) < uOutfit.w - 0.03)
       transformed += normal * (position.y < uOutfit.y ? 0.03 : 0.022) * smoothstep(uOutfit.x - 0.04, uOutfit.x + 0.04, position.y);
+    #endif
     vec3 objectNormal = normal;
+    #ifdef S_PORTRAIT
     // Light the face as one rounded volume, so its shadow is a single clean shape.
     if (uPortrait > 0.5) objectNormal = normalize(mix(normal, normalize(position - uHeadBall.xyz), uHeadBall.w));
+    #endif
+    #ifdef S_FIGURE
     // a person's face lit as one rounded volume too, so its shade is one clean shape (face-ink.js)
     if (uMode == ${MODE_OUTFIT}) objectNormal = faceRound(position, objectNormal);
+    #endif
     #ifdef CROWD
       vec3 crowdColor;
       crowdAnimate(transformed, objectNormal, crowdColor);   // instanced crowd: pose + colour zones per instance
@@ -323,6 +387,7 @@ const vertexShader = /* glsl */ `
 
 const fragmentShader = /* glsl */ `
   precision highp float;
+  ${SURFACE_ALL}
 
   uniform vec3 uColor;
   uniform vec3 uColor2;
@@ -355,6 +420,7 @@ const fragmentShader = /* glsl */ `
   uniform float uClouds;
   uniform float uCloudShadows;
   uniform vec4 uLights[8];
+  uniform int uLightCount;
   uniform float uFormHatch;
   uniform float uTime;
   uniform float uToon;
@@ -930,6 +996,7 @@ const fragmentShader = /* glsl */ `
   void main() {
     // the hover trail dissolves into dots over its last stretch
     // glass (the bubble helmet): see-through except at the grazing rim and a curved highlight
+    #ifdef S_GLASS
     if (uGlass > 0.0) {
       vec3 Vg = normalize(cameraPosition - vWorldPos);
       float fr = 1.0 - abs(dot(normalize(vNormal), Vg));
@@ -937,7 +1004,10 @@ const fragmentShader = /* glsl */ `
       float streak = step(abs(atan(od.y, od.x) - 2.2), 0.09) * step(0.25, od.z) * step(od.z, 0.75);
       if (fr < 0.72 && streak < 0.5) discard;
     }
+    #endif
+    #ifdef S_RIBBON
     if (uMode == ${MODE_RIBBON} && bayer4(gl_FragCoord.xy / max(uPixelRatio, 1.0) * 0.5) < smoothstep(0.45, 0.95, vFold.y)) discard;
+    #endif
     #ifdef DISSOLVE
     float dEdge = 0.0;
     if (uDissolve.x > 0.0) {
@@ -973,7 +1043,9 @@ const fragmentShader = /* glsl */ `
     vec3 gq = vObjPos / max(uGrid, 1e-3);
     vec3 gfw = fwidth(gq);
     vec3 gw = vec3(0.0);
+    #if defined(S_GRID) || defined(S_GLYPHS)
     if (uGrid > 0.0 || uGlyphs > 0.0) { gw = pow(abs(normalize(on)), vec3(6.0)); gw /= (gw.x + gw.y + gw.z); }
+    #endif
     vec2 fwp = fwidth(vWorldPos.xz);
     float foldU = vFold.x * uFolds;
     float foldFw = fwidth(foldU);
@@ -992,7 +1064,9 @@ const fragmentShader = /* glsl */ `
     vec2 glyphUV = gw.x > gw.z ? gg.zy : gg.xy;
     vec2 glyphFw = gw.x > gw.z ? ggfw.zy : ggfw.xy;
     vec3 carve = vec3(0.0);
+    #ifdef S_GLYPHS
     if (uGlyphs > 0.0 && gw.y < 0.5) carve = glyphs(glyphUV, glyphFw);
+    #endif
 
     vec3 n = normalize(vNormal);
     if (uFlat > 0.5) {
@@ -1007,7 +1081,9 @@ const fragmentShader = /* glsl */ `
       WaterLook wl = waterLook(vWorldPos, gl_FrontFacing);   // (water-shader.js; derivatives here, in uniform flow)
     #endif
     vec3 albedo = uColor;
+    #ifdef S_MAP
     if (uHasMap > 0.5) albedo *= texture(uMap, vTextureUV).rgb;
+    #endif
     vec3 instColor = vInstColor;
     if (uPaletteSize > 0) {
       // printed zones: snap blended vertex colours to the nearest ink, so zone edges stay crisp
@@ -1020,14 +1096,19 @@ const fragmentShader = /* glsl */ `
     }
     vec2 bw = vec2(0.0);
     float slope = 1.0 - n.y;
-    if (uMode == ${MODE_TERRAIN}) {
+    if (false) {
+    }
+    #ifdef S_TERRAIN
+    else if (uMode == ${MODE_TERRAIN}) {
       // Sand with flat patches of a second tone, rock on steep slopes; the
       // three tones come from the region (golden dunes / rose canyons / salt flats).
       vec3 c1 = uColor, c2 = uColor2, c3 = uColor3;
+      #ifdef S_BIOMES
       if (uBiomes > 0.5) {
         bw = biomeWeights(vWorldPos.xz);
         biomeGround(bw, c1, c2, c3);
       }
+      #endif
       float patches = vnoise(vWorldPos.xz * 0.011) * 0.65 + vnoise(vWorldPos.xz * 0.045) * 0.35;
       // (hard tone edges on purpose: post.js inks them as one solid line; blended, the
       //  edge test would catch them only here and there, a dotted line that crawls)
@@ -1038,13 +1119,19 @@ const fragmentShader = /* glsl */ `
                 max(blobs(vWorldPos.xz, fwp, 11.0, 1.3, 0.35, 41.0),
                     blobs(vWorldPos.xz, fwp, 34.0, 3.2, 0.22, 97.0)));
       if (uSandInk < 0.5) albedo *= mix(vec3(1.0), vec3(0.945, 0.935, 0.965), b);
-    } else if (uMode == ${MODE_STRATA}) {
+    }
+    #endif
+    #ifdef S_STRATA
+    else if (uMode == ${MODE_STRATA}) {
       #ifdef STRATA_OBJECT
       albedo = strata(vObjPos);     // bands fixed to the object (a planet seen turning past a window)
       #else
       albedo = strata(vWorldPos);
       #endif
-    } else if (uMode == ${MODE_RIBBON}) {
+    }
+    #endif
+    #ifdef S_RIBBON
+    else if (uMode == ${MODE_RIBBON}) {
       // flat print bands of colour, fixed along the path so they don't crawl
       // colours blend smoothly from one band into the next
       vec3 P[5] = vec3[5](vec3(0.949, 0.773, 0.294), vec3(0.902, 0.529, 0.373), vec3(0.910, 0.561, 0.651),
@@ -1056,7 +1143,10 @@ const fragmentShader = /* glsl */ `
         float nf = max(uFluidA.y, 1.0);
         albedo = mix(fluidTone(int(mod(floor(vFold.x), nf))), fluidTone(int(mod(floor(vFold.x) + 1.0, nf))), smoothstep(0.0, 1.0, fract(vFold.x)));
       #endif
-    } else if (uMode == ${MODE_OUTFIT}) {
+    }
+    #endif
+    #ifdef S_FIGURE
+    else if (uMode == ${MODE_OUTFIT}) {
       // boots / trousers / belt / tunic with sleeves / skin at the neck and hands
       vec3 b = vBind;
       float ax = abs(b.x);
@@ -1067,9 +1157,15 @@ const fragmentShader = /* glsl */ `
       else if (b.y < uOutfit.y) albedo = uColor2;
       else if (ax > uOutfit.w - 0.05) albedo = uColor * 0.75;     // cuffs
       else albedo = uTrim.w > 0.5 ? outfitTrim(uColor, uTrim.rgb, uTrim.w, b) : uColor;
-    } else if (uMode == ${MODE_EYE}) {
+    }
+    #endif
+    #ifdef S_EYE
+    else if (uMode == ${MODE_EYE}) {
       albedo = eyeball(vBind, uColor, uColor2, uSkin);
-    } else if (uMode == ${MODE_WATER}) {
+    }
+    #endif
+    #if defined(S_WATERMODE) || defined(WATER)
+    else if (uMode == ${MODE_WATER}) {
       #ifdef WATER
         albedo = wl.albedo;
       #else
@@ -1078,30 +1174,47 @@ const fragmentShader = /* glsl */ `
       albedo = w > 0.55 ? uColor2 : uColor;
       #endif
     }
+    #endif
     #ifdef FLUID
       albedo = fluidAlbedo(albedo);
     #endif
     float patInk = 0.0;
     float emit = 0.0;   // lit windows at night (facade)
+    #ifdef S_FACADE
     if (uPattern == 1) patInk = facade(vWorldPos, n, normalize(vNormal), albedo, emit);
-    else if (uPattern == 2) patInk = roofTiles(vWorldPos);
-    else if (uPattern == 3) patInk = leaves(vObjPos);
-    else if (uPattern == 4) patInk = rockCracks(vObjPos);
+    #endif
+    #ifdef S_TILES
+    if (uPattern == 2) patInk = roofTiles(vWorldPos);
+    #endif
+    #ifdef S_LEAVES
+    if (uPattern == 3) patInk = leaves(vObjPos);
+    #endif
+    #ifdef S_CRACKS
+    if (uPattern == 4) patInk = rockCracks(vObjPos);
+    #endif
     albedo *= instColor;
     #ifdef CROWD
       if (vCrowdTrim.w > 0.5) albedo = outfitTrim(albedo, vCrowdTrim.rgb, vCrowdTrim.w, vBind);
       if (vCrowdEye.w > 0.5) albedo = crowdEye(crowdL, crowdPx, albedo, vCrowdEye.rgb);
     #endif
     // the traveller's drawn eyes: the white and the iris inside the lids (face.js)
+    #ifdef S_PORTRAIT
     if (uPortrait > 0.5) albedo = portraitEyes(vBind, albedo);
+    #endif
     // cloth: the colour runs from the collar (uColor) down to the hem (uColor2)
     // cloth in flat blocks of colour, like a printed plate: the body colour, then a hem band
+    #ifdef S_FOLDS
     if (uFolds > 0.0) albedo = (vFold.y < 0.62 ? uColor : uColor2) * vInstColor;
+    #endif
 
     float ndl = dot(n, uSunDir);
     float lambert = ndl * 0.5 + 0.5;
     // the face takes cast shadows from outside its helmet only, keeping one clean shadow shape
+    #ifdef S_PORTRAIT
     vec3 shadowAt = uPortrait > 0.5 ? vWorldPos + n * 0.22 : vWorldPos;
+    #else
+    vec3 shadowAt = vWorldPos;
+    #endif
     // (a person's face is lit as one rounded volume, faceRound: the ink pass sees the same rounded
     // normals, so the low-poly face's facets draw no creases across it)
     float shadowPx = max(length(dFdx(vWorldPos)), length(dFdy(vWorldPos)));   // (outside the branch: derivatives)
@@ -1118,9 +1231,11 @@ const fragmentShader = /* glsl */ `
     L = mix(L, min(L, uToon - 0.14), carve.y);
     albedo *= 1.0 + 0.05 * (carve.x - carve.y);
 
-    // local lights pool light on nearby surfaces, even inside shadow
+    // local lights pool light on nearby surfaces, even inside shadow (main.js packs the lit
+    // ones first and counts them: the rest are never looked at)
     float local = 0.0;
     for (int i = 0; i < 8; i++) {
+      if (i >= uLightCount) break;
       vec3 dl = uLights[i].xyz - vWorldPos;
       float d = length(dl);
       if (d < uLights[i].w) {
@@ -1144,18 +1259,29 @@ const fragmentShader = /* glsl */ `
     #endif
 
     gHatch = vec4(0.0);
-    float detail = uPortrait > 0.5 ? portraitInk(vBind, clamp((uToon - L) / uToon, 0.0, 1.0)) : 0.0;
+    float detail = 0.0;
+    #ifdef S_PORTRAIT
+    if (uPortrait > 0.5) detail = portraitInk(vBind, clamp((uToon - L) / uToon, 0.0, 1.0));
+    #endif
+    #ifdef S_CREASES
     if (uCreases > 0.0) detail = max(detail, outfitCreases(vBind, normalize(vObjNormal), clamp((uToon - L) / uToon, 0.0, 1.0)));
+    #endif
+    #ifdef S_GRID
     if (uGrid > 0.0) detail = gridLines(gq, gfw, gw);
+    #endif
     detail = max(detail, carve.z * 0.62);
     #ifdef METAL
       detail = max(detail, metalInk);
     #endif
-    if (uMode == ${MODE_TERRAIN}) {
+    if (false) {
+    }
+    #ifdef S_TERRAIN
+    else if (uMode == ${MODE_TERRAIN}) {
       // ground ink by distance (src/ground-ink.js); derivatives first, in uniform control flow
       vec2 gp = vWorldPos.xz;
       float gm = max(length(dFdx(gp)), length(dFdy(gp)));        // metres per px, the longer footprint
       float sandK = 1.0 - bw.y;
+      #ifdef S_RIPPLES
       if (uRipples > 0.5) {
         detail = max(detail, sandRipples(gp, slope) * sandK);
         // grains close up; in the dotted print style, coarser dots that last further out
@@ -1163,14 +1289,21 @@ const fragmentShader = /* glsl */ `
         if (uDots > 0.0) grains = max(grains, sandGrains(gp, gm, 0.4 * uDots, 0.55, 0.03, 0.06, 13.0) * 0.8);
         detail = max(detail, grains * sandK * (1.0 - smoothstep(0.35, 0.6, slope)));
       }
+      #endif
+      #ifdef S_BIOMES
       if (uBiomes > 0.5) {
         vec2 q1 = crackCoord(gp, 5.5), q2 = crackCoord(gp + 31.0, 1.6);
         vec4 j1 = vec4(dFdx(q1), dFdy(q1)), j2 = vec4(dFdx(q2), dFdy(q2));
         float k = smoothstep(0.3, 0.8, bw.y) * (1.0 - smoothstep(0.14, 0.22, slope));
         if (k > 0.0) detail = max(detail, mudCracks(gp, q1, j1, q2, j2) * k);
       }
+      #endif
+      #ifdef S_TICKS
       if (uTicks > 0.5 && slope < 0.35) detail = max(detail, grassTicks(vWorldPos.xz, fwp) * 0.8);
+      #endif
+      #ifdef S_SANDINK
       if (uSandInk > 0.5) detail = max(detail, sandScuffs(vWorldPos.xz) * (1.0 - bw.y));
+      #endif
       if (uDots > 0.0 && uSandInk < 0.5 && uRipples < 0.5) {
         // pen dotting: patchy, denser in hollows, a few bigger pebble dots
         float patchy = 0.45 + 0.55 * smoothstep(0.3, 0.75, vnoise(vWorldPos.xz * 0.06 + 7.0));
@@ -1178,15 +1311,23 @@ const fragmentShader = /* glsl */ `
         float pebbles = stipple(ce2 * 0.37, fwd * 0.37, 20.0, 0.75) * step(0.5, vnoise(vWorldPos.xz * 0.2));
         detail = max(detail, max(dots * patchy, pebbles) * uDots * 1.6);
       }
-    } else if (uMode == ${MODE_WATER}) {
+    }
+    #endif
+    #if defined(S_WATERMODE) || defined(WATER)
+    else if (uMode == ${MODE_WATER}) {
       #ifdef WATER
         detail = max(detail, wl.ink);
       #else
         detail = max(detail, waterLines(vWorldPos.xz, uTime) * 0.7);
       #endif
-    } else if (uMode == ${MODE_STRATA} && abs(normalize(on).y) < 0.6) {
+    }
+    #endif
+    #ifdef S_STRATA
+    else if (uMode == ${MODE_STRATA} && abs(normalize(on).y) < 0.6) {
       detail = max(detail, fissures(vec2(faceX, vObjPos.y), fissFw) * 0.85);
     }
+    #endif
+    #ifdef S_SCRUB
     if (uScrub > 0.0) {
       // brush: short broken pen strokes over the lobes, denser in shade
       float dash = smoothstep(0.42, 0.6, vnoise(vec2(ce1.x * 2.5, ce1.y * 9.0)));
@@ -1194,6 +1335,8 @@ const fragmentShader = /* glsl */ `
       float strokesB = strokes(ce1, fw1, mix(6.0, 3.5, dk), mix(0.8, 1.3, dk));
       detail = max(detail, strokesB * dash * (0.6 + 0.4 * dk));
     }
+    #endif
+    #ifdef S_FOLDS
     if (uFolds > 0.0) {
       // drapery: fold lines down the cloth, each starting and ending at its own height
       float col = floor(foldU + 0.5);
@@ -1202,6 +1345,8 @@ const fragmentShader = /* glsl */ `
       float run = smoothstep(0.08 + h1 * 0.25, 0.14 + h1 * 0.25, vFold.y) * (1.0 - smoothstep(0.75 + h2 * 0.25, 0.8 + h2 * 0.25, vFold.y));
       detail = max(detail, inkLine(d, mix(1.3, 0.7, vFold.y)) * run * step(0.25, h2 + 0.3));
     }
+    #endif
+    #ifdef S_FIGURE
     if (uMode == ${MODE_OUTFIT} && uSuit > 0.0) {
       // a padded suit: short curved creases bunch up at the elbows, knees, waist and shoulders
       vec3 b = vBind;
@@ -1222,11 +1367,18 @@ const fragmentShader = /* glsl */ `
       // (over 1: a pen line, drawn darker than the other drawn detail by post.js)
       detail = max(detail, 2.0 * faceInk(vec2(abs(vBind.x), vBind.y - uFace.x), fwBind * uPixelRatio, frontal, clamp((uToon - L) / uToon, 0.0, 1.0), nb));
     }
+    #endif
     detail = max(detail, patInk);
     gHatch.b = detail;
     gHatch.a = max(max(uGlow, emit), smoothstep(0.15, 0.6, local) * 0.6) + 2.0 * uHero + 4.0 * uFigure;
     // a face (its skin and its eyes): post.js leaves out the line round its shade and the crease shading
-    bool facePart = uMode == ${MODE_EYE} || (uMode == ${MODE_OUTFIT} && faceFlat(vBind) > 0.5);
+    bool facePart = false;
+    #ifdef S_EYE
+    facePart = facePart || uMode == ${MODE_EYE};
+    #endif
+    #ifdef S_FIGURE
+    facePart = facePart || (uMode == ${MODE_OUTFIT} && faceFlat(vBind) > 0.5);
+    #endif
     #ifdef FACE_PART
       facePart = true;
     #endif
@@ -1257,8 +1409,12 @@ const fragmentShader = /* glsl */ `
       gHatch.rg = vec2(h1, h2);
     }
     // a face is flat colour and one shadow tone: its strokes are its own (faceInk)
+    #ifdef S_FIGURE
     if (uMode == ${MODE_OUTFIT}) gHatch.rg *= 1.0 - faceFlat(vBind);
-    else if (uMode == ${MODE_EYE}) gHatch.rg = vec2(0.0);
+    #endif
+    #ifdef S_EYE
+    if (uMode == ${MODE_EYE}) gHatch.rg = vec2(0.0);
+    #endif
     #ifdef FACE_PART
       gHatch.rg = vec2(0.0);
     #endif
@@ -1370,7 +1526,8 @@ export function makeMaterial(o) {
     },
   });
   mat.vertexColors = !!o.vertexColors;
-  if (o.crowd) mat.defines = { CROWD: 1 };
+  mat.defines = surfaceDefines(o);   // only the features this material uses are compiled
+  if (o.crowd) mat.defines = { ...mat.defines, CROWD: 1 };
   if (o.facePart) mat.defines = { ...mat.defines, FACE_PART: 1 };
   // strata bands in the object's own space, so they move with it (a moving or turning thing; mesas keep world bands)
   if (o.strataObject) mat.defines = { ...mat.defines, STRATA_OBJECT: 1 };

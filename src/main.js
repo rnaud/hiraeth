@@ -323,6 +323,7 @@ function updateLights() {
     L[n++].copy(jetLight);
   }
   for (const [l] of ranked) { if (n >= 8) break; L[n++].copy(l); }
+  sharedUniforms.uLightCount.value = n;   // (the shader looks at these only)
   for (; n < 8; n++) L[n].set(0, -1e5, 0, 0);
 }
 wind = new WindStreaks();
@@ -1353,18 +1354,26 @@ setInterval(() => {
 await stage('mixing the inks…');
 // Some WebGL drivers never signal completion of parallel shader warmup.
 // The first render can finish compilation normally, so don't strand the loading screen.
-async function warmShaders(targetScene, targetCamera) {
+// Compiled with the render target each pass really draws into bound: a program's key includes the
+// output colour space, which is linear in a render target and sRGB on the canvas, so a warm-up
+// with no target compiled programs nothing used and every surface compiled again on first sight
+// (a hitch of 20-200 ms walking into a room or turning towards something new). compile() visits
+// hidden objects too (the Lab's rooms, rooms off the map).
+async function warmShaders(targetScene, targetCamera, target = null) {
   let timer;
+  const prev = renderer.getRenderTarget();
+  renderer.setRenderTarget(target);
   await Promise.race([
     renderer.compileAsync(targetScene, targetCamera).catch(() => {}),
     new Promise((resolve) => { timer = setTimeout(resolve, 2000); }),
   ]);
+  renderer.setRenderTarget(prev);
   clearTimeout(timer);
 }
 // instanced props left unculled (rocks, flowers, story props) get real bounds, so every pass can cull them
 console.info(`bounds: ${fitBounds(scene)} instanced meshes made cullable`);
-await warmShaders(scene, camera);
-await warmShaders(post.scene, post.camera);
+await warmShaders(scene, camera, gbuffer);
+await warmShaders(post.scene, post.camera, composeRT);
 stage('ready'); console.info(`load: total ${(performance.now() - tLoad).toFixed(0)} ms (after module load)`);
 requestAnimationFrame((t) => {
   frame(t);
