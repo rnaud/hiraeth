@@ -29,6 +29,9 @@ export const CHANGELOG = [
     'Story fixes: every world now remembers the singing light the same way, the night your ship was struck, climbing away. Ilen’s message is thirty years old. Odile and Talo’s journey is told one way everywhere. People who share a name are no longer mixed up in the credits.',
     'Your parents’ later recordings now remember your daughter, quietly.',
     'At your parents’ stone, if Esk’s tea terraces in Viridel came down, the traveller says so. Aunt Tove’s words about your parents and Lou are a little warmer.',
+    'The Signal Market: Oyo kept one lantern back from the night the sky rang. Ask him for it and its little sun goes into your tank as a new yellow-green band.',
+    'Home is on the ship’s map once the last recording on the reel has played; the sketchbook says when a recording is waiting at the console and keeps counting the worlds you finish after six.',
+    'Small story fixes: in Vael, Hollin hands over the feather with his hands and two words; in Vael II, Sister Aube explains the sky stones floated long before the bell stopped; in the City-Shaft, Nima explains the Lodestar has faded all her life and has been going out since the night the sky rang.',
   ] },
   { v: '0.50', date: '2026-10-05', items: [
     'Home is bigger: walk into your parents’ round house, dark and still with its memories, and into your own small house across the yard, warm and lit.',
