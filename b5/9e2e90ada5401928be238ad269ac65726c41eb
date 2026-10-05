@@ -1,0 +1,203 @@
+.github/workflows/android.yml
+  s_1fd8d0e7b02dcf::t_54e14b6bec4424 3-5,45-46,53-66
+README.md
+  s_1fd8d0e7b02dcf::t_0a7ccc84d29528 314-317,471,1434-1446,1469,1472-1552,2003-2005,2028,2183-2224,2776,3842-3951
+TODO.md
+  s_1fd8d0e7b02dcf::t_068f795db22464 620-662,668,670-696
+android/app/build.gradle
+  s_1fd8d0e7b02dcf::t_549b07e83ed955 20-22,58,65-74
+android/app/src/main/AndroidManifest.xml
+  s_1fd8d0e7b02dcf::t_a981ecfb9cbf6c 2-6,16-17,19-20,39-49
+android/app/src/main/assets/memento-ext/content.js
+  s_1fd8d0e7b02dcf::t_c3766cae7d21e2 1-43
+android/app/src/main/assets/memento-ext/manifest.json
+  s_1fd8d0e7b02dcf::t_5d810c84fa37ce 1-11
+android/app/src/main/java/com/rnaud/moebius/AppShell.java
+  s_1fd8d0e7b02dcf::t_fd86031b3d1d5d 1-80
+android/app/src/main/java/com/rnaud/moebius/AppShellPlugin.java
+  s_1fd8d0e7b02dcf::t_63b494a5948a6d 9-14,19,22-28,32,35,38,41,44
+android/app/src/main/java/com/rnaud/moebius/AssetServer.java
+  s_1fd8d0e7b02dcf::t_46d62143252904 1-195
+android/app/src/main/java/com/rnaud/moebius/GamepadBridge.java
+  s_1fd8d0e7b02dcf::t_e33c1bdd91b5ed 19-21,23-26,35-47,135,141,143-145,148
+android/app/src/main/java/com/rnaud/moebius/MainActivity.java
+  s_1fd8d0e7b02dcf::t_5f12980f02685c 3-9,12-15,20,22,27-79,82-96,100-106,108,110-149,151-154,157-182,186-235,239-322,326,328-329,338,340-341,343-348
+android/app/src/main/java/com/rnaud/moebius/SaveImport.java
+  s_1fd8d0e7b02dcf::t_3411fde90a4135 1-99
+android/app/src/main/java/com/rnaud/moebius/WebBundles.java
+  s_1fd8d0e7b02dcf::t_f0ca092336646b 16,56-62,74-84,87,119,183,232,257,265,271-272,296,299,302,320,507-509
+android/app/src/main/java/com/rnaud/moebius/WebViewActivity.java
+  s_1fd8d0e7b02dcf::t_9bc39980474f93 1-139
+android/app/src/main/res/xml/network_security_config.xml
+  s_1fd8d0e7b02dcf::t_d875461619b706 1-8
+android/build.gradle
+  s_1fd8d0e7b02dcf::t_e6936c7a8726d9 24-28
+android/gradle.properties
+  s_1fd8d0e7b02dcf::t_cdd0265465372d 23-25
+android/variables.gradle
+  s_1fd8d0e7b02dcf::t_f0d7cd0347d818 3,16-17
+changelog.md
+  s_1fd8d0e7b02dcf::t_2a321bbbc09197 5-18,30-32
+docs/benchmark-web-vs-unity.md
+  s_1fd8d0e7b02dcf::t_a0ca69a16ede0a 191-320
+index.html
+  s_1fd8d0e7b02dcf::t_8c5965b68a31a2 24-32,34-40,106,108-110,112-113,138-139,281,283-284,289-303,305-309,311,313-324,394,396,414-418,449,451,483,493
+scripts/bench/android-engines-stats.mjs
+  s_1fd8d0e7b02dcf::t_b048487f80e259 1-63
+scripts/bench/android-engines-summary.mjs
+  s_1fd8d0e7b02dcf::t_2f807e45707a04 11,18-20,22
+scripts/bench/android-engines.mjs
+  s_1fd8d0e7b02dcf::t_c7d69d9fbb5a62 7-13,15-16,25,30,34,40-42,46-47,50-52,60-62,71,100-103,114-116,140,188-198,201-214,247-248,318-328,408,410,416-417,420,448-454,469-471,473-474,483-484,489,503,522,524,542,554,560-575,585-586,597-599
+scripts/bench/android-gecko-summary.mjs
+  s_1fd8d0e7b02dcf::t_d64164f11586bf 1-90
+scripts/bench/gecko-apk.sh
+  s_1fd8d0e7b02dcf::t_f7811c75b24565 1-29
+scripts/bench/gecko-app/app/build.gradle
+  s_1fd8d0e7b02dcf::t_fd2b0a494a9714 1-27
+scripts/bench/gecko-app/app/src/main/AndroidManifest.xml
+  s_1fd8d0e7b02dcf::t_558cf2ace7c8dc 1-26
+scripts/bench/gecko-app/app/src/main/assets/ext/content.js
+  s_1fd8d0e7b02dcf::t_74364522edc61c 1-34
+scripts/bench/gecko-app/app/src/main/assets/ext/manifest.json
+  s_1fd8d0e7b02dcf::t_2ba40b8148603b 1-11
+scripts/bench/gecko-app/app/src/main/java/com/rnaud/memento/gecko/AssetServer.java
+  s_1fd8d0e7b02dcf::t_73b7f0cc09eb26 1-129
+scripts/bench/gecko-app/app/src/main/java/com/rnaud/memento/gecko/MainActivity.java
+  s_1fd8d0e7b02dcf::t_8a347f90ab3150 1-209
+scripts/bench/gecko-app/app/src/main/java/com/rnaud/memento/gecko/PadBridge.java
+  s_1fd8d0e7b02dcf::t_3ac6076d26a7d5 1-125
+scripts/bench/gecko-app/app/src/main/res/values/strings.xml
+  s_1fd8d0e7b02dcf::t_9b139073f6ec46 1-2
+scripts/bench/gecko-app/build.gradle
+  s_1fd8d0e7b02dcf::t_3d1fa230c54b4e 1
+scripts/bench/gecko-app/gradle.properties
+  s_1fd8d0e7b02dcf::t_3b5c30f8ed8e5a 1-2
+scripts/bench/gecko-app/settings.gradle
+  s_1fd8d0e7b02dcf::t_b7dca9dbfe3ebe 1-12
+scripts/bench/gecko-bridge.mjs
+  s_1fd8d0e7b02dcf::t_fdf02a96bb351b 1-145
+scripts/bench/report.mjs
+  s_1fd8d0e7b02dcf::t_83982fb21b9ba3 14-15,17-19
+scripts/bench/results/android-gecko.json
+  s_1fd8d0e7b02dcf::t_4ea5df0ef3c6d9 1-8653
+scripts/bench/serve.mjs
+  s_1fd8d0e7b02dcf::t_0dff7e8f1015d3 6-7,9,11,14,18-49
+scripts/bench/webview-apk.sh
+  s_1fd8d0e7b02dcf::t_43a57456197935 6,36-43
+scripts/handheld-perf/lib.mjs
+  s_1fd8d0e7b02dcf::t_24ef4b79773c29 105
+src/audio.js
+  s_1fd8d0e7b02dcf::t_b9c86105f47922 13,862-896,1078-1089,1184-1186
+src/boxes/index.js
+  s_1fd8d0e7b02dcf::t_4310ef7bd85930 262
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_6bc156686e6993 6-18,29-31
+src/controller.js
+  s_1fd8d0e7b02dcf::t_2ff9975ab03392 6,16,136-137,185-186
+src/desert-city.js
+  s_1fd8d0e7b02dcf::t_aed1b961c8dc02 4,152,174,176,807-809
+src/desert-landmarks.js
+  s_1fd8d0e7b02dcf::t_ee3b5b505fd9b8 4,135,161,181
+src/fluid-tool.js
+  s_1fd8d0e7b02dcf::t_5604d0c695c417 930-931,1070-1071,1073,1211-1231
+src/ground-ink.js
+  s_1fd8d0e7b02dcf::t_7880d675943c96 24-29,82-84,91,151-158
+src/hud.js
+  s_1fd8d0e7b02dcf::t_6e6ba78ad8b718 1-112
+src/levels/arzach.js
+  s_1fd8d0e7b02dcf::t_e57b9fa5ece606 5,280-284
+src/levels/buried.js
+  s_1fd8d0e7b02dcf::t_99766b2db8fb48 5,924-929
+src/levels/desert.js
+  s_1fd8d0e7b02dcf::t_4688d1d9b0e104 15-17,24-27,60-62
+src/levels/lab-kit.js
+  s_1fd8d0e7b02dcf::t_0de21e78f3bc8d 5,72
+src/levels/reference-desert.js
+  s_1fd8d0e7b02dcf::t_d50e72df7b3f53 1-535
+src/levels/reference-kit.js
+  s_1fd8d0e7b02dcf::t_a06b3e47a43c72 1-236
+src/levels/reference-views.js
+  s_1fd8d0e7b02dcf::t_0e4deafbc149d7 3-8,40-41,70-72,132,134,295-298,358-359,363,416,458-459
+src/levels/references.js
+  s_1fd8d0e7b02dcf::t_85504ac411dda4 6,33-34,166-168,171-172
+src/main.js
+  s_1fd8d0e7b02dcf::t_741d913e233f0f 9-10,23,232,292-294,441-449,463-464,711,728-730,861-864,868-878,880-890,907-908,923,928,1184-1185,1188,1254
+src/materials.js
+  s_1fd8d0e7b02dcf::t_21be3024352628 8,88-94,97-133,237,245-257,278-280,504-506,511-513,760-785,867-881,886-929,1243-1258,1390-1393,1396-1403,1485-1490,1509-1511,1529-1539,1541-1543,1545,1621,1647-1657,1668-1677,1699-1708,1760-1763,1800
+src/menus.css
+  s_1fd8d0e7b02dcf::t_a5436a18957c6f 247-266
+src/perf.js
+  s_1fd8d0e7b02dcf::t_e857e3e4f7af2f 390-409
+src/post.js
+  s_1fd8d0e7b02dcf::t_40c943a5c0e6d1 2,123-125,160-161,386-388,392-394,396,470-474,477-479,572,579,625-630,665-666,694-695,747-754,831-836,958,965,970,973-975,982,989,996,1002
+src/prompt-keys.js
+  s_1fd8d0e7b02dcf::t_4702185e752695 2-3
+src/sand-drifts.js
+  s_1fd8d0e7b02dcf::t_e3e29f540f0471 1-348
+src/scout.js
+  s_1fd8d0e7b02dcf::t_33e824db41a2e6 11-23,42,51-53,55,81-91,93-94,117-124,126-127,131,137,143-147,152-153,174,176-179,182-184,186,188-209,334,336,347,357-368,371,377,386,401-406,408-416,426,433,445,451,458-486,495-540
+src/ship/cinema.js
+  s_1fd8d0e7b02dcf::t_1f14a45ac352a7 34,189,294-295,298-300,316,319,340
+src/ship/model.js
+  s_1fd8d0e7b02dcf::t_5f89e612b4b537 16
+src/story/desert-data.js
+  s_1fd8d0e7b02dcf::t_ccfd08934d1e9b 740-748
+src/story/desert-moments.js
+  s_1fd8d0e7b02dcf::t_722122e619a383 1-217
+src/story/desert.js
+  s_1fd8d0e7b02dcf::t_d7f17459803dca 11,103,284,287-288,290-291,439-457,467-468,470-471,473,479-480,880,885,931
+src/story/index.js
+  s_1fd8d0e7b02dcf::t_b68276af479ff3 6,137-139,191-192,202,219-221,223
+src/story/moment.js
+  s_1fd8d0e7b02dcf::t_51f72acaf58c50 1-262
+src/story/quests.js
+  s_1fd8d0e7b02dcf::t_4f7bd08c4da050 33-34,37,46-47,114-117,231-235,249,251-252,254-255
+src/ui.js
+  s_1fd8d0e7b02dcf::t_9c0567f4700dba 26-27,34,46-52,54-55,57-83,87-92,95-97,99,101,105-106,109,118-122,128,150-151,153-157,180,182,192-194,200,205-206,214-233,236-238,240-241,248,255-256,260-269,272-273,286,378,381-382,386,388,390-392,403-407,410,415-426,428-429
+src/water-shader.js
+  s_1fd8d0e7b02dcf::t_327ef47b6fb9a9 35-40,130-133
+src/world.js
+  s_1fd8d0e7b02dcf::t_87b5f81b4be449 142-146
+tests/android-gecko.test.js
+  s_1fd8d0e7b02dcf::t_2e057f54929c5a 1-100
+tests/android-ota.test.js
+  s_1fd8d0e7b02dcf::t_369e92ad0ac1f9 149
+tests/cape.test.js
+  s_1fd8d0e7b02dcf::t_95b74e394e7469 41-43
+tests/drone.test.js
+  s_1fd8d0e7b02dcf::t_c4c17c24762402 230,232
+tests/hud.test.js
+  s_1fd8d0e7b02dcf::t_1c549afbce2ef7 1-219
+tests/moment.test.js
+  s_1fd8d0e7b02dcf::t_bb9948d852c0e2 1-245
+tests/native-app.test.js
+  s_1fd8d0e7b02dcf::t_4d5d9bc50a0c2f 16-22
+tests/quality.test.js
+  s_1fd8d0e7b02dcf::t_db0b3a7d882901 4,103-117
+tests/references.test.js
+  s_1fd8d0e7b02dcf::t_9dac8ea5f7faed 117-136
+tests/sand-drifts.test.js
+  s_1fd8d0e7b02dcf::t_797a49687a9897 1-96
+tests/scout.test.js
+  s_1fd8d0e7b02dcf::t_7f9c40055e5f86 4,8,18-38,49,52-54,56-78,80-102,177,184-185,187,191
+tests/shade.test.js
+  s_1fd8d0e7b02dcf::t_37abfc32b9ab07 1-72
+tests/surface-spec.test.js
+  s_1fd8d0e7b02dcf::t_646c0cdf61c8d0 64-69,89
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b59e2e90ada5401928be238ad269ac65726c41eb",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
