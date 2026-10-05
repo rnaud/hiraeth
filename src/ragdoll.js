@@ -79,14 +79,15 @@ export class Ragdoll {
   /**
    * Start from world points (one per JOINTS entry) moving at `vel` (Vector3 or one per joint).
    * `rest` (optional points, same order) gives the trunk's shape; it defaults to `points`.
-   * `scale` sizes the particles (a child is smaller).
+   * `scale` sizes the particles (a child is smaller); `radii` (m, one per JOINTS entry, before the
+   * scale) a body's own (Humanoid.ragdollRadii: a heavy body lies on a fuller trunk).
    */
-  start(points, vel, { rest = points, scale = 1 } = {}) {
+  start(points, vel, { rest = points, scale = 1, radii = null } = {}) {
     for (let i = 0; i < N; i++) {
       this.x[i].copy(points[i]);
       this.prev[i].copy(points[i]);
       this.v[i].copy(Array.isArray(vel) ? vel[i] : vel);
-      this.r[i] = JOINTS[i][2] * scale;
+      this.r[i] = (radii?.[i] ?? JOINTS[i][2]) * scale;
     }
     this.links.length = 0;
     for (let a = 0; a < TRUNK.length; a++) for (let b = a + 1; b < TRUNK.length; b++) {
@@ -112,7 +113,7 @@ export class Ragdoll {
     const pr = H.rest.get(H.b.pelvis).p;
     const rest = JOINTS.map(([, bone], i) => TRUNK.includes(i)
       ? H.rest.get(H.b[bone]).p.clone().sub(pr).multiplyScalar(s).applyQuaternion(nowQ).add(pts[J.pelvis]) : pts[i]);
-    return this.start(pts, vel, { scale: s, ...opts, rest });
+    return this.start(pts, vel, { scale: s, radii: H.ragdollRadii?.() ?? null, ...opts, rest });
   }
 
   /** Lying still a moment (nothing moving faster than RAG.still for RAG.stillFor s). */

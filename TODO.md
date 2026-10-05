@@ -493,12 +493,19 @@ All of this is for the web game; the Unity port follows later if we move to Unit
     head; eyes opened and a little bigger; the Moebius face as MakeHuman targets (resting smile, finer
     brows, warm shade and a child's bare face kept); the skinned levels of detail for shape-keyed
     bodies. Comparison images in docs/makehuman/.
-  - [ ] Stage 2: costumes re-checked per body (hats, masks, robes on the heavy and the children), the
-    traveller's suit and gear (`suitGeometry`, `traveller.glb`) re-fitted or kept on the Quaternius
-    body, the GPU crowd figure's proportions (`packBody`) matched and a promoted crowd person given
-    their nearest MakeHuman body (age, build), the ragdoll's capsules and the cape colliders against the
-    new girths, the Unity export, the Lab's faces gallery, then the flip world by world (`?mh=1` the
-    default per world).
+  - [x] Stage 2, the Desert (its people are MakeHuman bodies by default, `?mh=0` the Quaternius ones):
+    every desert look checked on children, teenagers, grown-ups, the heavy and the old (the named ones
+    closer to their character sheets: Bako, Nour, Marrow, Sefa, the Speaker); the story's children are
+    children (Ilo, Kito; Lou at home) at MakeHuman's height for their age, a woman as much shorter than a
+    man as before; the traveller kept on his own body; the crowd figure's shoulders and hips matched and a
+    promoted crowd person given their age (an elder) and build; the cloth colliders and the ragdoll from
+    each body's own girths; a scalp under every hairstyle (the crown holes) and lighter strand lines on
+    dark hair; the body in one file, shipped (+1.0 MiB in the over-the-air zip). docs/makehuman.md, docs/makehuman/desert-*.
+  - [ ] The next worlds, one by one (the Signal Market next): its looks on every age and build, its
+    children's ages (`def.age` / `def.years`), its crowd checked, then into `MH_WORLDS`
+    (src/makehuman/people.js). Still to do for all: the face keys' morph textures shared between a
+    template's bodies (three makes one per geometry: ~1 MB each body that comes close), the Unity export
+    on MakeHuman bodies (blend shapes for the face keys), the Lab's faces gallery.
 
 ---
 

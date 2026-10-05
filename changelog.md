@@ -12,6 +12,10 @@ The same release notes shown in the game (press **N** or open settings).
 - The rooms, caves and halls behind every door, and the ship’s cabins, are made ready while the world loads, so the first step inside no longer hitches.
 - Stepping into the ship or a house, the camera comes level gently instead of jumping.
 - A world loads without freezing the page: it is built a piece at a time behind the loading screen, so the pen keeps turning smoothly and the first moments in the world no longer stutter while the rest settles in.
+- The desert’s people have new bodies. Children look like children, and teenagers, heavy people and the old have bodies of their own age and build instead of one stretched man or woman. Their faces move as they talk (a smile lifts the cheeks, worry raises the brows), and their hair is drawn as a few big locks with strand lines, which now show on dark hair in the shade too.
+- Ilo and Kito are as small as children their age, and the people in the crowd who come close keep their age and build, so an old pilgrim stays old as you walk up.
+- Bako, Nour, Marrow, Sefa and the Speaker dress more like themselves: Bako in a head-wrap, a grey beard and a long teal coat; Nour under a wide straw hat with a veil, in ochre robes; Marrow in a patched hood with goggles and a scarf; Sefa in a long purple cloak; the Speaker in a tall, wide-brimmed hat with a high collar over his mouth.
+- Capes hang round fuller and thinner bodies without passing through them, and someone knocked over lies on their own shape.
 
 ## v0.62 — 2026-10-05
 

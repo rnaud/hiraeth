@@ -1,4 +1,4 @@
-The parametric body in this folder (body.json, body.bin) was generated with MPFB 2.0.17, the
+The parametric body in this folder (body.bin) was generated with MPFB 2.0.17, the
 MakeHuman add-on for Blender (https://static.makehumancommunity.org/mpfb.html), by
 scripts/makehuman/build.py, from MakeHuman / MPFB assets released under CC0 1.0 Universal:
 
