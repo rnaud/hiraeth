@@ -1,0 +1,53 @@
+src/audio.js
+  s_1fd8d0e7b02dcf::t_d6a8ef3a3f9a77 658-695
+src/dog.js
+  s_1fd8d0e7b02dcf::t_9387de204381eb 1-243
+src/hanging-cloth.js
+  s_1fd8d0e7b02dcf::t_4b44450aaa9789 1-206
+src/levels/home-drawings.js
+  s_1fd8d0e7b02dcf::t_10b9ab9a65273c 1-176
+src/levels/home-garden.js
+  s_1fd8d0e7b02dcf::t_f521303127c56b 1-210
+src/levels/home-houses.js
+  s_1fd8d0e7b02dcf::t_b08723e3f848b9 1-389
+src/levels/home.js
+  s_1fd8d0e7b02dcf::t_c13f0d5db9b3ff 10-14,24-38,52-54,78,153,158-192,224-227,230-235,237,247-267,286-288,291,306-327,348-357,367-373,375,378-379,382-412,414-431,433-439,441,456-458,473-479,487,493-495,514-529,531
+src/main.js
+  s_1fd8d0e7b02dcf::t_50e791e6bb66fd 376
+src/player.js
+  s_1fd8d0e7b02dcf::t_80f25c88be6924 1133-1136,1140,1144
+src/ship/cinema.js
+  s_1fd8d0e7b02dcf::t_aa890f806a95aa 256
+src/ship/homecoming.js
+  s_1fd8d0e7b02dcf::t_f07e0590274073 10,12-13,28-31,221,309,345-350,354-355,385-398,412,436,452,506-508,516,586
+src/story/ending.js
+  s_1fd8d0e7b02dcf::t_612607b73ee958 11-14,38,54,136,159-160,170,172-174,216
+src/story/home-data.js
+  s_1fd8d0e7b02dcf::t_325e6f26a17b28 1-235
+src/story/home.js
+  s_1fd8d0e7b02dcf::t_2a54a149692f90 1-351
+src/story/index.js
+  s_1fd8d0e7b02dcf::t_a1ed0af6e78fe6 23,52,182
+src/story/voice.js
+  s_1fd8d0e7b02dcf::t_52e877e1981bee 149,318
+tests/ending.test.js
+  s_1fd8d0e7b02dcf::t_0ae40d14b08a4e 70-72
+tests/home.test.js
+  s_1fd8d0e7b02dcf::t_fe578602edd3e2 1-131
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a25ee208efabde313c2a0b06d6cb56c93fd557ae",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
