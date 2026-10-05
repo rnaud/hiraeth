@@ -11,6 +11,7 @@ The same release notes shown in the game (press **N** or open settings).
 - On the recordings, your father has his short brown hair and beard, and your mother her long dark hair down.
 - Faces speak with their words: people look happy, sad, angry or surprised as they say a line, their mouths move with each syllable, and their faces relax when they have finished.
 - The traveller’s face answers too: it follows what they say, and in a conversation they look the other person in the eye. The villager whose speech balloon is up near you says it with their face as well.
+- The night lantern now rides with the tank into the hoverbike’s socket instead of floating beside your back.
 
 ## v0.47 — 2026-10-05
 
