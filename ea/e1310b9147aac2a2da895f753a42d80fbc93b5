@@ -1,0 +1,123 @@
+TODO.md
+  s_1fd8d0e7b02dcf::t_fb13c56cf7afbc 385-388
+unity/Memento/Assets/Memento/Editor/Batch.cs
+  s_1fd8d0e7b02dcf::t_cabdb76909200e 94,141-142,158-180
+unity/Memento/Assets/Memento/Editor/Tests/StoryTests.cs
+  s_1fd8d0e7b02dcf::t_619be6b4cb605a 104-106
+unity/Memento/Assets/Memento/Editor/Tests/UiTests.cs
+  s_1fd8d0e7b02dcf::t_f1d5d57adc8c20 1-93
+unity/Memento/Assets/Memento/Editor/Tests/UiTests.cs.meta
+  s_1fd8d0e7b02dcf::t_262d84fb7587ef 1-2
+unity/Memento/Assets/Memento/Runtime/BoxScene.cs
+  s_1fd8d0e7b02dcf::t_343d50783788c6 81
+unity/Memento/Assets/Memento/Runtime/Cape.cs
+  s_1fd8d0e7b02dcf::t_736046cc2a1ac9 90
+unity/Memento/Assets/Memento/Runtime/Game.cs
+  s_1fd8d0e7b02dcf::t_7e6392603867ed 39-43,48,51-62
+unity/Memento/Assets/Memento/Runtime/Hud.cs
+  s_1fd8d0e7b02dcf::t_f2d2b136bcb532 4-5,10-18,23,26,28,35-70,77-86,94-191,193-284,287-307,333,347-352,354-413,415-418,420-425,427-429,431-433,436,438-448,451-452,454-544,546-559,561-641,643-647,649-654,656-657,659-689,691-697,699,701-704,706,708-716,720,722-732,734-737,739-743,746,748-754
+unity/Memento/Assets/Memento/Runtime/Loading.cs
+  s_1fd8d0e7b02dcf::t_c09bef3f5374f4 1-37
+unity/Memento/Assets/Memento/Runtime/Loading.cs.meta
+  s_1fd8d0e7b02dcf::t_fec053c33b03a6 1-2
+unity/Memento/Assets/Memento/Runtime/Play.cs
+  s_1fd8d0e7b02dcf::t_73e5215acc350e 32-35,94,122,126
+unity/Memento/Assets/Memento/Runtime/ShipScene.cs
+  s_1fd8d0e7b02dcf::t_caeac4cb43f39d 37,48,207,407,436,464,471-472
+unity/Memento/Assets/Memento/Runtime/Sounds.cs
+  s_1fd8d0e7b02dcf::t_69a63d8c41baf3 51-58
+unity/Memento/Assets/Memento/Runtime/Story.cs
+  s_1fd8d0e7b02dcf::t_2e6bb78695465a 29
+unity/Memento/Assets/Memento/Runtime/TitleScreen.cs
+  s_1fd8d0e7b02dcf::t_f99122d536934f 1,4-5,10-16,20-21,23-94,97-116,118-127,130-140,142,144-165,167-179,181-184,187-189
+unity/Memento/Assets/Memento/Runtime/UI.meta
+  s_1fd8d0e7b02dcf::t_9af85ae143bfcd 1-8
+unity/Memento/Assets/Memento/Runtime/UI/Journal.cs
+  s_1fd8d0e7b02dcf::t_de868e1bae7b07 1-235
+unity/Memento/Assets/Memento/Runtime/UI/Journal.cs.meta
+  s_1fd8d0e7b02dcf::t_2c6ecf2f709e9c 1-2
+unity/Memento/Assets/Memento/Runtime/UI/Menus.cs
+  s_1fd8d0e7b02dcf::t_0a1684469ee804 1-288
+unity/Memento/Assets/Memento/Runtime/UI/Menus.cs.meta
+  s_1fd8d0e7b02dcf::t_b91ecc3a6f1438 1-2
+unity/Memento/Assets/Memento/Runtime/UI/PlanetArt.cs
+  s_1fd8d0e7b02dcf::t_7a1c1e4629513c 1-120
+unity/Memento/Assets/Memento/Runtime/UI/PlanetArt.cs.meta
+  s_1fd8d0e7b02dcf::t_9a34e843b68600 1-2
+unity/Memento/Assets/Memento/Runtime/UI/Portrait.cs
+  s_1fd8d0e7b02dcf::t_45c12a5732df8c 1-89
+unity/Memento/Assets/Memento/Runtime/UI/Portrait.cs.meta
+  s_1fd8d0e7b02dcf::t_60cd9d7598f9a9 1-2
+unity/Memento/Assets/Memento/Runtime/UI/Sketch.cs
+  s_1fd8d0e7b02dcf::t_e3ad2e64797af9 1-89
+unity/Memento/Assets/Memento/Runtime/UI/Sketch.cs.meta
+  s_1fd8d0e7b02dcf::t_98c1a83ee9a023 1-2
+unity/Memento/Assets/Memento/Runtime/UI/Spaced.cs
+  s_1fd8d0e7b02dcf::t_61c3ad1d85d9bf 1-60
+unity/Memento/Assets/Memento/Runtime/UI/Spaced.cs.meta
+  s_1fd8d0e7b02dcf::t_e85db1c14e0da1 1-2
+unity/Memento/Assets/Memento/Runtime/UI/StarMap.cs
+  s_1fd8d0e7b02dcf::t_1674e11b823036 1-378
+unity/Memento/Assets/Memento/Runtime/UI/StarMap.cs.meta
+  s_1fd8d0e7b02dcf::t_380b04c29e851f 1-2
+unity/Memento/Assets/Memento/Runtime/UI/StrokeFont.cs.meta
+  s_1fd8d0e7b02dcf::t_93a88122e79333 1-2
+unity/Memento/Assets/Memento/Runtime/UI/Ui.cs.meta
+  s_1fd8d0e7b02dcf::t_9264c4fa00118e 1-2
+unity/Memento/Assets/Memento/Scenes/Desert.unity
+  s_1fd8d0e7b02dcf::t_2a3b2371cf1811 122,130-131,139,145,161-164,166-167,173,186
+unity/Memento/Assets/Memento/Scenes/Title.unity
+  s_1fd8d0e7b02dcf::t_afd74269541153 122,130-131,133,139,145,148,150-151,157,170
+unity/Memento/Assets/Memento/Shaders/Composite.shader
+  s_1fd8d0e7b02dcf::t_65a3d946a3d4cc 46,368-369,441
+unity/Memento/Assets/Memento/Shaders/UIText.shader.meta
+  s_1fd8d0e7b02dcf::t_aed509918d07c2 1-9
+unity/README.md
+  s_1fd8d0e7b02dcf::t_5fae5bdb4e712e 84,86-87,102,112-115,119-120,126-127,305-363,372,376-377
+scripts/unity-export/export-desert.mjs
+  s_bb75d8948267c1::t_663d34423c63c3 399-401
+unity/Memento/Assets/Memento/Runtime/FluidTool.cs
+  s_bb75d8948267c1::t_f01fec9d542bfa 81-86,135
+unity/Memento/Assets/Memento/Runtime/Pad.cs
+  s_baa71c54a91add::t_201e643a94b4cf 15-17,39-40,51-79,106,109-113
+unity/Memento/Assets/Memento/Runtime/UI/StrokeFont.cs
+  s_bb75d8948267c1::t_f7c02d2ed175db 1-84
+unity/Memento/Assets/Memento/Shaders/UIText.shader
+  s_bb75d8948267c1::t_1bbbbf15747e2e 1-75
+unity/Memento/Assets/Memento/Runtime/BatchDriver.cs
+  s_1fd8d0e7b02dcf::t_78b78d9290b72a 30-39,43,45-47,53-54,56-57,71,80,122-135,202,207-215,217-228,254,270-271,382-398
+unity/Memento/Assets/Memento/Runtime/UI/Ui.cs
+  s_1fd8d0e7b02dcf::t_e84dc547073e9b 1-235
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "eae1310b9147aac2a2da895f753a42d80fbc93b5",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_baa71c54a91add": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ad2a258d10d25916d",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_bb75d8948267c1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ae630ee41ae0117ed",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
