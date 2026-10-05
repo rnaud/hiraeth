@@ -1,0 +1,49 @@
+TODO.md
+  s_1fd8d0e7b02dcf::t_b00b98f159e114 420-431
+docs/benchmark-web-vs-unity.md
+  s_1fd8d0e7b02dcf::t_a3023fbb8ed765 30,33-34,39-55
+scripts/unity-export/people.mjs
+  s_1fd8d0e7b02dcf::t_8513824e230d5f 70-94,98,125-126,135,263-274
+unity/Memento/Assets/Memento/Editor/BenchBuild.cs
+  s_1fd8d0e7b02dcf::t_f02899267a47df 18-19,83-92,100-109
+unity/Memento/Assets/Memento/Editor/Tests/DetailTests.cs
+  s_1fd8d0e7b02dcf::t_763620745274a1 1-181
+unity/Memento/Assets/Memento/Editor/Tests/DetailTests.cs.meta
+  s_1fd8d0e7b02dcf::t_43c6d0a74d82e2 1-2
+unity/Memento/Assets/Memento/Runtime/Bench.cs
+  s_1fd8d0e7b02dcf::t_c1af9757cf4968 122-123,198-199,368-371
+unity/Memento/Assets/Memento/Runtime/FarCrowd.cs
+  s_1fd8d0e7b02dcf::t_ba99aaf0d5b1c5 13-17,21-24,27-42,44-45,47-62,67-68,70-72,87-89,93-94,100,102,107-108,111,113,115-156,158-160
+unity/Memento/Assets/Memento/Runtime/Figure.cs
+  s_1fd8d0e7b02dcf::t_563c72b8497961 419-447
+unity/Memento/Assets/Memento/Runtime/Figures.cs
+  s_1fd8d0e7b02dcf::t_a297de63beab56 230-237
+unity/Memento/Assets/Memento/Runtime/Quality.cs
+  s_1fd8d0e7b02dcf::t_ffe96f63ac93c3 6-7,16,30,34,39,49
+unity/Memento/Assets/Memento/Runtime/Wildlife.cs
+  s_1fd8d0e7b02dcf::t_087342b7409467 13-20,27-29,31
+unity/Memento/Assets/Memento/Runtime/WorldDetail.cs
+  s_1fd8d0e7b02dcf::t_f42a96bf5bdf7e 147-149,180,186,189-191
+unity/Memento/Assets/Memento/Runtime/WorldLoader.cs
+  s_1fd8d0e7b02dcf::t_82ab810ef5066c 307-313
+unity/Memento/Assets/Memento/Shaders/Surface.shader
+  s_1fd8d0e7b02dcf::t_a4d3efee1cfeba 74-76,714,737-743
+unity/README.md
+  s_1fd8d0e7b02dcf::t_9839bed824aded 167-171,237-239,273-345,365-370
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b8197e61a6eacaf04966514f529aef7c7fb34bcc",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
