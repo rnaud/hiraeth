@@ -1,0 +1,79 @@
+scripts/unity-export/export-desert.mjs
+  s_1fd8d0e7b02dcf::t_d90abb1e417ad2 34,375-376
+scripts/unity-export/people.mjs
+  s_1fd8d0e7b02dcf::t_de6edd1a768974 255-261,264
+unity/Memento/Assets/Memento/Editor/Batch.cs
+  s_1fd8d0e7b02dcf::t_c5726dfdfc60ee 53-54
+unity/Memento/Assets/Memento/Runtime/Ambient.cs.meta
+  s_1fd8d0e7b02dcf::t_34e8e7220270d4 1-2
+unity/Memento/Assets/Memento/Runtime/BatchDriver.cs
+  s_1fd8d0e7b02dcf::t_bff58043537fc8 311-319
+unity/Memento/Assets/Memento/Runtime/Bike.cs
+  s_1fd8d0e7b02dcf::t_b303fa29dcaa3e 57-64
+unity/Memento/Assets/Memento/Runtime/DesertStory.cs
+  s_1fd8d0e7b02dcf::t_1241c9f924948f 282-298
+unity/Memento/Assets/Memento/Runtime/Figures.cs
+  s_1fd8d0e7b02dcf::t_6e46ef3adfe467 83-84
+unity/Memento/Assets/Memento/Runtime/Game.cs
+  s_1fd8d0e7b02dcf::t_23b27de61a039b 1,31-34
+unity/Memento/Assets/Memento/Runtime/MementoLook.cs
+  s_1fd8d0e7b02dcf::t_ae91036bc65535 28-29,64
+unity/Memento/Assets/Memento/Runtime/Play.cs
+  s_1fd8d0e7b02dcf::t_e58a5f685385e6 26-28,71-72,76-83,92-94,98-100,114-115
+unity/Memento/Assets/Memento/Runtime/Player.cs
+  s_1fd8d0e7b02dcf::t_7a5e77f0732325 285-291
+unity/Memento/Assets/Memento/Runtime/Save.cs.meta
+  s_1fd8d0e7b02dcf::t_d9c471afcca8ed 1-2
+unity/Memento/Assets/Memento/Runtime/Sounds.cs
+  s_1fd8d0e7b02dcf::t_d9f448cee0c2e8 100,104-105
+unity/Memento/Assets/Memento/Shaders/Bloom.shader
+  s_1fd8d0e7b02dcf::t_3e6cec9ef5ed20 1-68
+unity/Memento/Assets/Memento/Shaders/Bloom.shader.meta
+  s_1fd8d0e7b02dcf::t_71313b1768f41e 1-9
+unity/Memento/Assets/Memento/Shaders/Composite.shader
+  s_1fd8d0e7b02dcf::t_379fe051fceed3 27-30,405-433
+unity/Memento/Assets/Memento/Shaders/FXAA.shader
+  s_1fd8d0e7b02dcf::t_5819f5e881ca04 1-51
+unity/Memento/Assets/Memento/Shaders/FXAA.shader.meta
+  s_1fd8d0e7b02dcf::t_7c711b7a260d47 1-9
+unity/Memento/Assets/Memento/Shaders/Print.shader.meta
+  s_1fd8d0e7b02dcf::t_76060f71afa29e 1-9
+unity/Memento/Assets/Memento/Shaders/Wisp.shader.meta
+  s_1fd8d0e7b02dcf::t_db05262f1b201a 1-9
+unity/Memento/Assets/Settings/PC_RPAsset.asset
+  s_1fd8d0e7b02dcf::t_83e7274e9657ba 69
+unity/Memento/Assets/Memento/Rendering/MementoFeature.cs
+  s_e8dbbd96348ca3::t_ea73128e4c7506 12-16,21,24,30-31,42-43,48,50-53,61,101,113-116,118-132,140-173,176,178-179,184,188-198
+unity/Memento/Assets/Memento/Shaders/Print.shader
+  s_e8dbbd96348ca3::t_a764ffa1b176fc 1-47
+unity/Memento/Assets/Memento/Shaders/Wisp.shader
+  s_e8dbbd96348ca3::t_a5873143cc76e2 1-38
+unity/Memento/Assets/Memento/Runtime/Ambient.cs
+  s_1fd8d0e7b02dcf::t_742adbcff479f7 1-215
+unity/Memento/Assets/Memento/Runtime/Save.cs
+  s_1fd8d0e7b02dcf::t_b9703fbd0d034a 1-75
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9b6e38c6c3f7b080d63a11a2f14ba5ead847aab8",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_e8dbbd96348ca3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a29adbe5d4f84ffb4",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
