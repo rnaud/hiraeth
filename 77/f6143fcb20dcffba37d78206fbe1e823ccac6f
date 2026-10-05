@@ -1,0 +1,159 @@
+README.md
+  s_1fd8d0e7b02dcf::t_364961bf12d3f0 1934,1973-2011,4092-4207,4357-4363
+TODO.md
+  s_1fd8d0e7b02dcf::t_4644769ea773ad 496-508,716-728
+changelog.md
+  s_1fd8d0e7b02dcf::t_56c97172f41768 5-10,17-27
+docs/makehuman.md
+  s_1fd8d0e7b02dcf::t_ffa946600d120c 27-31,129-130,260,268-433,438-449
+lore/README.md
+  s_1fd8d0e7b02dcf::t_aaecf19020175b 8
+lore/characters/traveller-design.md
+  s_1fd8d0e7b02dcf::t_169328c28681bd 1-52
+public/anim/mh/LICENSE-MakeHuman-CC0.txt
+  s_1fd8d0e7b02dcf::t_103119d78e9995 1
+scripts/makehuman/build.py
+  s_1fd8d0e7b02dcf::t_72b75c39fc6018 3,31
+scripts/makehuman/build.sh
+  s_1fd8d0e7b02dcf::t_9a37eee9659578 4
+scripts/makehuman/hair.py
+  s_1fd8d0e7b02dcf::t_ecf0ecf32bd444 21-24,385-410,426-428
+scripts/makehuman/pack.py
+  s_1fd8d0e7b02dcf::t_8ab4367a91581d 2-5,132-133,150-153,155-158,160
+scripts/makehuman/skin-audit.mjs
+  s_1fd8d0e7b02dcf::t_7d35e2c3e10b74 38
+scripts/transition-perf/loading.mjs
+  s_1fd8d0e7b02dcf::t_3fc3701d160068 1-147
+scripts/transition-perf/page.js
+  s_1fd8d0e7b02dcf::t_77bae44b94cc2e 1-171
+scripts/transition-perf/transitions.mjs
+  s_1fd8d0e7b02dcf::t_b363d73e5c8225 1-313
+src/boxes/effects.js
+  s_1fd8d0e7b02dcf::t_f1942f7233b48b 36-38,73,77
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_8c54fe69b55dd7 6-10,16-26
+src/crowd-shader.js
+  s_1fd8d0e7b02dcf::t_956d5d10da950b 33-40,180-181,187,215,218
+src/crowd.js
+  s_1fd8d0e7b02dcf::t_306f88cc9e75c1 12,368-370,398,443,469,578-579,581,586,614-615
+src/flora-grass.js
+  s_1fd8d0e7b02dcf::t_8e563ab4873bcf 184,241,253-255
+src/flora.js
+  s_1fd8d0e7b02dcf::t_63b2ee7c89808f 9,220-222,232,234,236,310-319,335,368,388
+src/fluid-tool.js
+  s_1fd8d0e7b02dcf::t_37d65f7a5b468f 279,483-484,507,509,517-518,550,558-559,1001,1004,1122
+src/humanoid.js
+  s_1fd8d0e7b02dcf::t_6adad6db89c8a0 13,17-19,270,301-364,554-559,562-563,565,576,733-734,838-845,863,879,883-889,892,901,907-914,1307-1311,1314-1322,1326-1338
+src/levels/arzach.js
+  s_1fd8d0e7b02dcf::t_b61b89ad69ac3f 9,40-41,44,54,56,79,82,84,101,103,126,128,161,163,232,234,236,247,268,298,336
+src/levels/arzach2.js
+  s_1fd8d0e7b02dcf::t_461d322298ffac 9,151-152,158,190,230,246,292,316,331,342,370,410,424,436,444,446,452,490,493,510,527,561,569,577,579,607,609,641,643,714,768
+src/levels/atelier.js
+  s_1fd8d0e7b02dcf::t_6aed2e9bbaf7f1 5,16-18,30,55,62,69,76,82,90,105,107,118,142
+src/levels/bazaar.js
+  s_1fd8d0e7b02dcf::t_f61c4532407968 9,15-16,42,45,191,279,349
+src/levels/buried.js
+  s_1fd8d0e7b02dcf::t_dfdf51cb510cf8 9,152-153,161,169,196,206,213,315,346,348,501,503,606,615,617,632,634,650,657,738,786,788,864,866,868,903,905,930,932,948,953,1010
+src/levels/content.js
+  s_1fd8d0e7b02dcf::t_0b23ec5548d11f 13,28,62-69
+src/levels/desert.js
+  s_1fd8d0e7b02dcf::t_a0c27a94473b21 5-6,21-24,26,28,34,51,54,59,69,123
+src/levels/edena.js
+  s_1fd8d0e7b02dcf::t_8b373ff9a63436 9,336-337,340,350,362,367,369,376,379,383,389,396,398,455,462,494,496,571,591,628
+src/levels/garage.js
+  s_1fd8d0e7b02dcf::t_b8152267b1fb5c 7,77-78,118,169,229,231,252,301,304,392,442,450,459,477,536-540,556-558,560-563,580
+src/levels/home.js
+  s_1fd8d0e7b02dcf::t_ec8628a80d1c97 15,272-274,289,293,312,336,349,351,358,369,379,383,387,406,422,432,442,451,460,462,469,484,497,501,556,559
+src/levels/incal.js
+  s_1fd8d0e7b02dcf::t_8a015064816d01 6,13,57-58,128,141,200,202-203,268,273,321,323,338,340,342,354,356,358,374,376,432,439,447,449,461,463,465,497,540,565,585,588,738,740,750,752,808,810,823,825,841,854,862,865,881-883,885,1008
+src/levels/index.js
+  s_1fd8d0e7b02dcf::t_97bcb50492fcac 2-16,21,27,33,39,45,51,57,63,69,75,81,87,94,101,108
+src/levels/lab.js
+  s_1fd8d0e7b02dcf::t_0a1f040351cba8 13,123-129,135,142-143,147,158,189,226,229,240,264,266,271,326,360,364-365,371,417,450,452,481,492,531-534,551-554,561-564,580
+src/levels/perdide.js
+  s_1fd8d0e7b02dcf::t_c19fde87ecb42f 10,205-206,209,218,245,249,254,256,286,288,296,298,315,317,323,325,358,360,406,455,459,475,532
+src/levels/perdide2.js
+  s_1fd8d0e7b02dcf::t_96675e77110e7e 9,179-180,184,214,225,257,285,287,297,331,350,389,391,451,479,537,539,552,628,630,675,677,693,695,719,721,728,739,782
+src/levels/references.js
+  s_1fd8d0e7b02dcf::t_cfde6c56783831 6,163-164,230,232,248,410,413
+src/levels/spheres.js
+  s_1fd8d0e7b02dcf::t_87616e8cfc3f0e 9,138-139,143,153,189,336,411,413,457,460,521,530,532,541,548,558,568,584,586,593,595,600,602,608,610,622,688,693,706,708,716,718,725,761,772,791,800,827,870,872,886,926
+src/load-steps.js
+  s_1fd8d0e7b02dcf::t_173859a0e99876 1-75
+src/lod.js
+  s_1fd8d0e7b02dcf::t_3ce831088c3d32 216-218
+src/main.js
+  s_1fd8d0e7b02dcf::t_e1e32b9c7b64c6 22-23,26,35-36,43,66-67,79-81,86,190-192,194,198,202,204-205,208,210,212,220,222,224,226,228,320,331-333,343,348,397,408,419-420,422-428,430-431,434-435,437,442,455,466,488,520-521,528,539,542,1034,1040,1073,1077,1274,1318-1319,1321,1323-1326,1328,1380,1482-1513,1516-1521,1523,1525,1527,1529-1535,1537-1557,1559,1583
+src/makehuman/body.js
+  s_1fd8d0e7b02dcf::t_7d1c4e244f5f9a 7-8,39-53,59,80-84,87,172,174-180
+src/makehuman/hair.js
+  s_1fd8d0e7b02dcf::t_dbbf2ca578d0d5 6-8,78-79,81,93-100,106-111,118-134,139-175,237-240
+src/makehuman/people.js
+  s_1fd8d0e7b02dcf::t_af1cc42092e7f4 1-3,18,22,43-46,51,54-61,68-69,71,80,91-107,111-113,120-121,128,130-153,162-175
+src/morph.js
+  s_1fd8d0e7b02dcf::t_40c7e2c25727fd 233-248,255
+src/npc.js
+  s_1fd8d0e7b02dcf::t_c7b10c0e586e18 20,111-118,197,261,792,937-948,979
+src/passage.js
+  s_1fd8d0e7b02dcf::t_a2dd55a60edce8 1-387
+src/perf.js
+  s_1fd8d0e7b02dcf::t_0ce76c2d43b727 2,25-27,42,44,66,71,81
+src/physics.js
+  s_1fd8d0e7b02dcf::t_a60cb07e7fb805 5,29-48,56-60,76-79,82-85,99-100,422-424,430,459-461,473
+src/player.js
+  s_1fd8d0e7b02dcf::t_4ddb4ae44a70d1 2300-2307
+src/ragdoll.js
+  s_1fd8d0e7b02dcf::t_2722228b597d1e 82-83,85,90,116
+src/reactive-world.js
+  s_1fd8d0e7b02dcf::t_5ca6e0c4057fce 6,198-201,221-222,233-234
+src/story/desert-data.js
+  s_1fd8d0e7b02dcf::t_6078c1e8c7efd0 265-266,280-282,295,338-339,445-447,588-589,732
+src/story/home-data.js
+  s_1fd8d0e7b02dcf::t_01fd5f46a1e481 46
+src/studio/main.js
+  s_1fd8d0e7b02dcf::t_9374ff42a74708 18-19,154-157,161,174,180,188,304,352,459,829
+src/studio/state.js
+  s_1fd8d0e7b02dcf::t_11df0c4b9cecf7 27
+src/temples/index.js
+  s_1fd8d0e7b02dcf::t_a987ee939557a7 27,104-107
+src/traveller-style.js
+  s_1fd8d0e7b02dcf::t_1e3d3296cde2a3 4-6
+src/traveller.js
+  s_1fd8d0e7b02dcf::t_65f09c09ddef1a 6-10,14-15,17-18,69,74,106-108,189-202,231,234,250-257,304-312,329,352-399,431,441,443,452
+src/world.js
+  s_1fd8d0e7b02dcf::t_fd27a16c8dca7d 4,38-40,42,51,57-58,112-121,141,152,158
+tests/abilities.test.js
+  s_1fd8d0e7b02dcf::t_dde6f000f1cff2 4,81,322,339-340
+tests/drone.test.js
+  s_1fd8d0e7b02dcf::t_69c6856fe1a42f 2,110,124,138,162,167,169,172,190-191,196,257,264,266,285
+tests/lab.test.js
+  s_1fd8d0e7b02dcf::t_3e941e695a0661 6,66-67
+tests/load-steps.test.js
+  s_1fd8d0e7b02dcf::t_7a9b1952424218 1-106
+tests/makehuman-desert.test.js
+  s_1fd8d0e7b02dcf::t_5aa935b4c24d25 1-234
+tests/makehuman.test.js
+  s_1fd8d0e7b02dcf::t_e707b03a82acd4 10,37-38,47-48,254,256
+tests/passage.test.js
+  s_1fd8d0e7b02dcf::t_6ecc6ebcda00fa 1-245
+tests/traveller.test.js
+  s_1fd8d0e7b02dcf::t_7c247225fa64dc 109,113-114,123,130-138,140-142,145,187,191,199,206,237,248,258-259,283,301,303-320,323,327-334
+vite.config.js
+  s_1fd8d0e7b02dcf::t_77859aed0859f6 17-19,25
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "77f6143fcb20dcffba37d78206fbe1e823ccac6f",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
