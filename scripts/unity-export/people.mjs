@@ -237,6 +237,15 @@ export async function exportPeople({ W, blob, materialOf }) {
   }
   const crowdLooks = crowd.people.map((p) => ({ crowd: p.id, look: [...p.look[0], ...p.look[1], ...p.look[2], ...(p.look[3] ?? [0, 1, 1, 0])].map((v) => +(+v).toFixed(4)),
     seed: +p.seed.toFixed(4), pose: p.pose ?? 0, scale: +p.scale.toFixed(4) }));
+  // ---- the parents on the recordings (src/ship/hologram.js HoloFigure): dressed bodies cut to a bust, drawn in light
+  const { HoloFigure, BUST, HOLO_COLOR } = await import('../../src/ship/hologram.js');
+  const holo = {};
+  for (const who of ['father', 'mother']) {
+    const f = new HoloFigure(who, { lib, humans });
+    holo[who] = personOf(f.humanoid, f.char, { id: `holo:${who}`, role: 'holo' });
+  }
+  const holoInfo = { bust: BUST, color: HOLO_COLOR };
+
   // ---- what the makers' boxes keep (boxes/model.js buildItemModel), for the box scene
   const { buildItemModel, BOX, BOX_SCALE, ITEM_SCALE } = await import('../../src/boxes/model.js');
   const SC = await import('../../src/boxes/scene.js');
@@ -245,5 +254,5 @@ export async function exportPeople({ W, blob, materialOf }) {
   for (const id of ['backpack', 'star']) { const m = buildItemModel(id); const { nodes, meshes } = treeOf(m); itemModels[id] = { id: `item:${id}`, kind: 'item', nodes, meshes }; }
   const { ITEMS } = await import('../../src/items.js');
   const itemDefs = Object.fromEntries(Object.entries(ITEMS).map(([k, d]) => [k, { name: d.name, kind: d.kind, text: d.text ?? '', use: d.use ?? '' }]));
-  return { people, geometries, poses, anims, crowdFigures, crowdLooks, items: itemModels, itemDefs, boxScene };
+  return { people, geometries, poses, anims, crowdFigures, crowdLooks, items: itemModels, itemDefs, boxScene, holo, holoInfo };
 }

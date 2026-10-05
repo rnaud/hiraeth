@@ -28,7 +28,8 @@ namespace Memento
         float climbF, climbS;
         public Transform camYaw;         // the camera rig (moves are relative to its yaw)
         public System.Action<string> toast = _ => { };
-        public System.Func<bool> onAirJump;   // the fluid tool's boost (FluidTool.cs)
+        public System.Func<bool> onAirJump;
+        public System.Collections.Generic.List<Vector3> auto;   // walked along these points (a cinematic: stepping out of the ship)   // the fluid tool's boost (FluidTool.cs)
         public float glideSpeed, glideTurn;
         public float SpeedXZ => new Vector2(vel.x, vel.z).magnitude;
         public Transform HeadTransform => figure ? (headT ??= figure.Bone("Head")) : null;
@@ -81,6 +82,13 @@ namespace Memento
             var mv = Pad.Move();
             var yawQ = Quaternion.Euler(0, camYaw ? camYaw.eulerAngles.y : heading, 0);
             Vector3 wish = yawQ * new Vector3(mv.x, 0, mv.y);
+            if (auto != null && auto.Count > 0)
+            {
+                var to = auto[0] - transform.position; to.y = 0;
+                if (to.magnitude < 0.45f) auto.RemoveAt(0);
+                wish = to.normalized * 0.55f; mv = new Vector2(0, 0.55f);
+                if (auto.Count == 0) { auto = null; wish = Vector3.zero; mv = Vector2.zero; }
+            }
             bool run = Pad.Run();
 
             if (mantling) { UpdateMantle(dt); return; }

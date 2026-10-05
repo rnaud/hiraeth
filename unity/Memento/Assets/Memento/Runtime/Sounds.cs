@@ -78,6 +78,24 @@ namespace Memento
 
         public void Hush() { voice.Stop(); }
 
+        /// <summary>A line in a given tongue (the ship's chirp, home speech on the reel), not placed.</summary>
+        public Voice.Plan SayIn(string text, string tone, Voice.VoiceParams v, string lang)
+        {
+            var (clip, plan) = Voice.Line(Text.Plain(text), tone, v, lang);
+            voice.PlayOneShot(clip, voiceVol * 1.25f); played++;
+            return plan;
+        }
+
+        readonly Dictionary<string, AudioSource> loops = new();
+        /// <summary>A recorded sound held on a loop (the ship's hum, the alarm), at a volume (0 fades it out).</summary>
+        public void Loop(string name, float vol)
+        {
+            if (!clips.TryGetValue(name, out var c)) return;
+            if (!loops.TryGetValue(name, out var src)) { src = gameObject.AddComponent<AudioSource>(); src.loop = true; src.clip = c; src.spatialBlend = 0; src.time = Mathf.Min(1f, c.length * 0.25f); src.Play(); loops[name] = src; played++; }
+            src.volume = vol * fxVol;
+        }
+        public void StopLoop(string name) { if (loops.TryGetValue(name, out var s)) { s.Stop(); Destroy(s); loops.Remove(name); } }
+
         /// <summary>The layers this frame (main.js sound.update): speed, gust 0..1, riding and the bike's speed, fires near.</summary>
         public void Layers(float speed, float gust, bool riding, float rideSpeed, float fireNear)
         {

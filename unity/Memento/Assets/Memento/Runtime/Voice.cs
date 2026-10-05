@@ -56,10 +56,12 @@ namespace Memento
         {
             ["a"] = new(780, 1220), ["e"] = new(480, 1900), ["i"] = new(300, 2300), ["o"] = new(500, 880), ["u"] = new(330, 780), ["ae"] = new(660, 1720), ["oe"] = new(420, 1500), ["y"] = new(300, 1700),
         };
-        public class Language { public string wave = "triangle"; public float pitch = 1, rate = 1, len = 1, gain = 1, breath, clip, glide, formant = 1, density = 0.85f, ring; public string[] cons, vowels; }
+        public class Language { public string wave = "triangle"; public float pitch = 1, rate = 1, len = 1, gain = 1, breath, clip, glide, formant = 1, density = 0.85f, ring; public bool mech; public string[] cons, vowels; }
         public static readonly Dictionary<string, Language> Languages = new()
         {
             ["home"] = new Language { wave = "triangle", pitch = 1.0f, rate = 1.0f, len = 1.05f, gain = 1.0f, breath = 0.04f, clip = 0.1f, glide = -0.2f, formant = 0.95f, density = 0.85f, cons = new[] { "m", "n", "l", "b", "d", "h", "w", "" }, vowels = new[] { "a", "o", "e", "u", "a" } },
+            // the ship's own voice: a small chirping computer (ring-modulated, its pitch on a whole-tone grid)
+            ["ship"] = new Language { wave = "square", pitch = 1.5f, rate = 1.3f, len = 0.55f, gain = 0.55f, breath = 0, clip = 0.9f, glide = 0, formant = 1.2f, density = 0.7f, mech = true, cons = new[] { "t", "p", "d", "" }, vowels = new[] { "i", "e" } },
             ["desert"] = new Language { wave = "triangle", pitch = 0.86f, rate = 0.9f, len = 1.15f, gain = 0.95f, breath = 0.42f, clip = 0, glide = -0.9f, formant = 0.88f, density = 0.8f, cons = new[] { "h", "kh", "s", "r", "n", "m", "d", "q", "" }, vowels = new[] { "a", "a", "o", "u", "i" } },
         };
 
@@ -92,7 +94,7 @@ namespace Memento
             return new VoiceParams { f0 = f0, rate = Mathf.Clamp(rate, 0.6f, 1.4f), formant = formant, wobble = wobble, bright = h, age = age, kind = kind };
         }
 
-        public class Syllable { public float t, dur, f0, gain, breath, clip, ring, bright; public float[] pt, pf; public Vector2 vowel; public string cons, consonant, wave; }
+        public class Syllable { public bool mech; public float t, dur, f0, gain, breath, clip, ring, bright; public float[] pt, pf; public Vector2 vowel; public string cons, consonant, wave; }
         public class Plan { public List<Syllable> syllables = new(); public float total; public string tone; }
 
         static readonly Regex Word = new(@"[\p{L}\p{N}’']+");
@@ -156,6 +158,7 @@ namespace Memento
                 if (x.end == '!' && x.fromEnd == 0) semi += 2;
                 if (x.end == '…' && x.fromEnd == 0) semi -= 2;
                 if (x.emph) semi += 2.5f;
+                if (L.mech) semi = Mathf.Round(semi / 2) * 2;
                 float f0 = voice.f0 * L.pitch * T.pitch * Mathf.Pow(2, semi / 12);
                 float len = 0.085f * L.len * T.len * (x.emph ? 1.2f : 1) * (x.fromEnd == 0 && x.end != '.' ? 1.35f : 1) / Mathf.Sqrt(rate);
                 float dur = Mathf.Clamp(len, 0.035f, 0.32f);
@@ -176,7 +179,7 @@ namespace Memento
                     t = clock, dur = dur, f0 = f0, pt = pt, pf = pf,
                     gain = 0.11f * L.gain * T.gain * (x.emph ? 1.25f : 1) * (x.end == '!' && x.fromEnd == 0 ? 1.15f : 1) * (0.9f + x.h * 0.2f),
                     vowel = new Vector2(Mathf.Round(F.x * fs), Mathf.Round(F.y * fs)), cons = cc ?? "", consonant = x.cons,
-                    breath = Mathf.Clamp01(Mathf.Max(L.breath, T.breath)), clip = Mathf.Clamp01(Mathf.Max(L.clip, T.clip)), wave = L.wave, ring = L.ring, bright = voice.bright,
+                    breath = Mathf.Clamp01(Mathf.Max(L.breath, T.breath)), clip = Mathf.Clamp01(Mathf.Max(L.clip, T.clip)), wave = L.wave, ring = L.ring, bright = voice.bright, mech = L.mech,
                 });
             }
             if (plan.syllables.Count > 0) { var last = plan.syllables[^1]; plan.total = last.t + last.dur; }
@@ -266,6 +269,8 @@ namespace Memento
                     ph += f / Rate;
                     float o = Osc(s.wave, ph);
                     v = (bp1.Run(o) * 2.6f + bp2.Run(o) * g2 + dry.Run(o)) * vgain;
+                    // a voice-box's clank: ring modulation by a low square, a little dry kept
+                    if (s.mech) { float lfo = Mathf.Repeat(lt * (58 + 30 * s.bright), 1) < 0.5f ? 1 : -1; v = v * lfo + v * 0.35f; }
                 }
                 float e = Env(t, t0, atk, peak, hold, end + rel);
                 float outv = v * e;

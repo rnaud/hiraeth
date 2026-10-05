@@ -61,10 +61,16 @@ namespace Memento
                 game.bike.Init(game, drawn, tarp);
             }
             portals = game.world.World.L("portals");
+            // the ship: the prologue on a new game, then boarding, the console and the map
+            game.ship = new GameObject("Ship").AddComponent<ShipScene>();
+            game.ship.transform.SetParent(transform, false);
+            game.ship.Init(game, storyData);
             game.tool = gameObject.AddComponent<FluidTool>();
             game.tool.Init(game);
             game.world.ReleaseBin();
+            Cursor.lockState = Application.isEditor ? CursorLockMode.None : CursorLockMode.Locked;
             // the father's charge (src/story/charge.js): the words he left, on a card, before you step out
+            if (Game.playPrologue && !game.state.Is("prologue.done")) { game.ship.StartPrologue(); return; }
             Sounds.Instance?.Play("charge");
             game.hud.ShowCard("My son,", "“make us proud. Bring back something of value.”\n\n<size=18>The ship is dark. Its power is gone. Somewhere out there, smoke rises from a city.</size>", 1.0f);
             Cursor.lockState = Application.isEditor ? CursorLockMode.None : CursorLockMode.Locked;
@@ -75,7 +81,7 @@ namespace Memento
             if (game == null || game.player == null) return;
             var pl = game.player;
             bool busy = game.hud.Busy;
-            pl.frozen = busy;
+            pl.frozen = busy && !(game.ship && game.ship.PlayerFree);
             game.rig.external = game.hud.talk != null;
             if (game.hud.talk != null)
             {

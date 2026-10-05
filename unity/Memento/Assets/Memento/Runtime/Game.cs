@@ -26,6 +26,8 @@ namespace Memento
         public DesertStory story;
         public Bike bike;
         public FluidTool tool;
+        public ShipScene ship;
+        public static bool playPrologue = true;   // a new game opens in the ship, out in space (Batch: -noPrologue)
         public readonly System.Collections.Generic.List<Npc> npcs = new();
         public string prompt;
 

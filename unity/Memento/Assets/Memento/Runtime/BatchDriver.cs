@@ -113,6 +113,36 @@ namespace Memento
             yield return Wait(1f);
             Log($"loaded in {Time.time - t0:0.0} s: {game.npcs.Count} people, stage {Stage}");
             Probe("start");
+            // the prologue (src/ship/prologue.js): out in space, the recording, the crash
+            if (game.ship && game.ship.PrologueActive)
+            {
+                IEnumerator Until(string stage, float after = 0, float limit = 60)
+                {
+                    float w = 0; while (game.ship.Stage != stage && game.ship.PrologueActive && w < limit) { w += Time.deltaTime; yield return null; }
+                    yield return Wait(after);
+                }
+                yield return Until("wake", 4.2f); yield return Shoot("prologue_waking_up");
+                yield return Until("walk", 0.8f); yield return Shoot("prologue_the_bunk_room");
+                Log($"prologue: {game.ship.Stage}, the traveller at {game.player.transform.position}");
+                // to the cockpit
+                pad.move = new Vector2(0, 1); yield return Wait(1.2f); pad.move = Vector2.zero;
+                var cockpit = game.world.World.O("ship").O("space").V3("pos") + game.world.World.O("ship").O("spacePoints").V3("cockpit");
+                Put(cockpit + new Vector3(0, 0.1f, 1.2f), 180); yield return Wait(0.5f);
+                yield return Until("call", 7f); yield return Shoot("prologue_the_recording");
+                yield return Wait(9f); yield return Shoot("prologue_the_father");
+                Log($"prologue: {game.ship.Stage}, hologram {game.ship.holo.Live}, subtitle '{game.ship.subtitle}'");
+                yield return Until("impact", 1.4f); yield return Shoot("prologue_impact");
+                yield return Until("fall", 1.6f); yield return Shoot("prologue_falling");
+                yield return Until("streak", 2.6f); yield return Shoot("prologue_the_streak");
+                yield return Until("plough", 1.2f); yield return Shoot("prologue_the_furrow");
+                yield return Until("settle", 1.5f); yield return Shoot("prologue_the_dust_clears");
+                yield return Pulse(v => pad.confirm = v);
+                yield return Until("hatch", 2.0f); yield return Shoot("prologue_the_hatch");
+                yield return Until("stepout", 1.5f); yield return Shoot("prologue_stepping_out");
+                float lim = 0; while (game.ship.PrologueActive && lim < 30) { lim += Time.deltaTime; yield return null; }
+                Log($"prologue done: {game.state.Is("prologue.done")}, at {game.player.transform.position}");
+                yield return Wait(1f);
+            }
             yield return Shoot("charge_card");
             yield return Pulse(v => pad.confirm = v);
             yield return Wait(1.0f);

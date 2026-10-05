@@ -46,7 +46,8 @@ export async function buildDesertWorld() {
   const physics = new Physics(scene, level.ground);
   level.init?.(physics);
   const staticRoots = new Set(scene.children);
-  const ship = quiet(() => new Ship({ scene, physics, level, levelId: 'desert', content: CONTENT.desert }));
+  // (with the prologue's copy of the ship out in space: the Unity port plays the opening too)
+  const ship = quiet(() => new Ship({ scene, physics, level, levelId: 'desert', content: CONTENT.desert, prologue: true }));
   level.ship ??= { pos: ship.rampFoot.clone() };
   const shipRoots = scene.children.filter((c) => !staticRoots.has(c));
   const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -70,5 +71,7 @@ export async function buildDesertWorld() {
   camera.position.copy(player.pos).add(V(0, 2, 4));
   quiet(() => { rt.update(1 / 30, 0, { camera }); crowd.update(1 / 30, 0, player, camera); });
   scene.updateMatrixWorld(true);
-  return { THREE, scene, level, physics, ship, shipRoots, crowd, bike, player, npcs, rt, boxes, flora, storyRoots, staticRoots, game, CONTENT, humans, lib, travellerTemplate, camera };
+  const shipDirector = await import('../../src/ship/cinematics.js');
+  const shipHull = await import('../../src/ship/hull.js');
+  return { shipDirector, shipHull, THREE, scene, level, physics, ship, shipRoots, crowd, bike, player, npcs, rt, boxes, flora, storyRoots, staticRoots, game, CONTENT, humans, lib, travellerTemplate, camera };
 }

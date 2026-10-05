@@ -42,6 +42,8 @@ namespace Memento
         public static bool InteractDown() => Script != null ? Edge(ref last.interact, Script.interact) : (K?.eKey.wasPressedThisFrame ?? false) || (G?.buttonEast.wasPressedThisFrame ?? false);
         public static bool ConfirmDown() => Script != null ? Edge(ref last.confirm, Script.confirm) : (K?.enterKey.wasPressedThisFrame ?? false) || (K?.spaceKey.wasPressedThisFrame ?? false) || (K?.eKey.wasPressedThisFrame ?? false) || (G?.buttonSouth.wasPressedThisFrame ?? false) || (M?.leftButton.wasPressedThisFrame ?? false);
         public static bool BackDown() => Script != null ? Edge(ref last.back, Script.back) : (K?.escapeKey.wasPressedThisFrame ?? false) || (G?.buttonNorth.wasPressedThisFrame ?? false);
+        /// <summary>Back held (hold to skip a cinematic): Esc, Y / △.</summary>
+        public static bool BackHeld() => Script != null ? Script.back : (K?.escapeKey.isPressed ?? false) || (G?.buttonNorth.isPressed ?? false);
         public static bool JournalDown() => Script == null && ((K?.tabKey.wasPressedThisFrame ?? false) || (K?.jKey.wasPressedThisFrame ?? false) || (G?.selectButton.wasPressedThisFrame ?? false));
         public static bool ScoutDown() => Script == null && ((K?.qKey.wasPressedThisFrame ?? false) || (G?.leftShoulder.wasPressedThisFrame ?? false));
         public static bool PushDown() => Script != null ? Edge(ref last.push, Script.push) : ((K?.cKey.wasPressedThisFrame ?? false) || (M?.middleButton.wasPressedThisFrame ?? false) || (G?.rightShoulder.wasPressedThisFrame ?? false));

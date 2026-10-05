@@ -74,11 +74,23 @@ namespace Memento
             // what the boxes keep is shown later, after world.bin is let go: its meshes now
             var items = data.O("items");
             if (items != null) foreach (var (_, it) in items) foreach (var m in it.L("meshes")) MeshOf(m.I("geo"), m.Has("bind") ? m.I("bind") : -1, m.L("bones")?.Count ?? 0);
+            var holo = data.O("holo");
+            if (holo != null) foreach (var (_, it) in holo) foreach (var m in it.L("meshes")) MeshOf(m.I("geo"), m.Has("bind") ? m.I("bind") : -1, m.L("bones")?.Count ?? 0);
         }
 
         float[] Floats(int at, int n) { var a = new float[n]; System.Buffer.BlockCopy(world.Bin, at, a, 0, n * 4); return a; }
 
         public Dictionary<string, object> Person(string id) => id != null && byId.TryGetValue(id, out var p) ? p : null;
+        /// <summary>The parents on the recordings (hologram.js HoloFigure): holo:father, holo:mother.</summary>
+        public Dictionary<string, object> Holo(string id) => data?.O("holo")?.O(id);
+        public Dictionary<string, object> HoloInfo => data?.O("holoInfo");
+        /// <summary>A field of the exported material behind a Unity material (world.json materials).</summary>
+        public float MaterialField(Material m, string key, float fallback = 0)
+        {
+            int i = world.Materials.IndexOf(m);
+            var list = world.World.L("materials");
+            return i >= 0 && i < list.Count && list[i].Has(key) ? list[i].F(key) : fallback;
+        }
         /// <summary>What a makers' box keeps (boxes/model.js buildItemModel), as a figure record.</summary>
         public Dictionary<string, object> Item(string id) => data?.O("items")?.O(id);
         /// <summary>items.js: name, text (what it is), use (what it does).</summary>

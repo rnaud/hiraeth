@@ -38,9 +38,13 @@ const FX = [
   ['fluid_push', 1.0, 's.fluidPush()'], ['fluid_boost', 1.0, 's.fluidBoost()'], ['fluid_refill', 1.6, 's.fluidRefill(false)'], ['fluid_refill_colour', 2.2, 's.fluidRefill(true)'],
   ['fluid_empty', 0.8, 's.fluidEmpty()'], ['fluid_dock', 0.8, 's.fluidDock(true)'],
   ['splash', 1.2, 's.splash(1)'], ['wade', 0.8, 's.wade(0.5)'], ['flap', 0.6, 's.flap()'],
+  // the ship (src/ship/sfx.js): its hum and alarm (loops), the call's ring, the impact, the static, the fall and the furrow, the hatch
+  ['ship_hum', 6, 'X.hum(s, 1)'], ['ship_alarm', 2.5, 'X.alarm(s, 1)'], ['ship_ring', 0.8, 'X.ring(s)'], ['ship_beep', 0.4, 'X.beep(s)'],
+  ['ship_impact', 3, 'X.impact(s)'], ['ship_static', 1.8, 'X.staticBurst(s, 1.6)'], ['ship_roar', 5, 'X.roar(s, 4.8)'], ['ship_rumble', 4, 'X.rumble(s, 3.6, 0.8)'], ['ship_hatch', 1.4, 'X.hatch(s)'],
 ];
 const results = await page.evaluate(async ({ FX, url }) => {
   const { Sound } = await import(`${url}/src/audio.js`);
+  const X = await import(`${url}/src/ship/sfx.js`);
   const SR = 44100;
   const wav = (buf) => {
     const n = buf.length, ch = buf.numberOfChannels, out = new DataView(new ArrayBuffer(44 + n * ch * 2));
@@ -68,7 +72,7 @@ const results = await page.evaluate(async ({ FX, url }) => {
   const out = [];
   for (const [name, secs, code] of FX) {
     const s = offline(secs);
-    try { (new Function('s', code))(s); } catch (e) { out.push({ name, error: String(e) }); continue; }
+    try { (new Function('s', 'X', code))(s, X); } catch (e) { out.push({ name, error: String(e) }); continue; }
     const buf = await s.ctx.startRendering();
     out.push({ name, ...wav(buf) });
   }

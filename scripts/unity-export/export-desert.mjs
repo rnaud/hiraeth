@@ -71,6 +71,8 @@ function materialOf(m) {
     ['faceKit', 'uFaceKit'], ['faceKit2', 'uFaceKit2'], ['eyeC', 'uEyeC'], ['eyeR', 'uEyeR'], ['eyeLook', 'uEyeLook'], ['creases', 'uCreases'], ['limbs', 'uLimbs'],
     ['glass', 'uGlass'], ['glassCenter', 'uGlassCenter'], ['metal', 'uMetal'], ['hero', 'uHero'],
     // the fluid (FLUID: the tank, the hose, a glob, the wings) and a makers' box coming apart (DISSOLVE)
+    // the recordings' hologram (src/ship/hologram.js): how a person is redrawn in light
+    ['holoKind', 'uKind'], ['holoCut', 'uCut'], ['holoTint', 'uTint'],
     ['fluidA', 'uFluidA'], ['fluidB', 'uFluidB'], ['fluidBox', 'uFluidBox'], ['fluidTones', 'uFluidTones'], ['dissolve', 'uDissolve'], ['dissolveColor', 'uDissolveColor']]) {
     const x = u[name]?.value;
     if (x === undefined || x === null) continue;
@@ -98,6 +100,14 @@ const dyn = {
   tarp: W.storyRoots.find((r) => r.isMesh && r.material?.side === THREE.DoubleSide && near(r, bike.pos.x, bike.pos.z, 6)),
 };
 for (const b of boxes.list) dyn[`box:${b.id}`] = b.parts.root;
+// the ship moves in the prologue (it streaks across the sky and ploughs into the dunes); its copy out in
+// space (the bunk room you wake in, the cockpit with the recording) and the starfield round it come and go
+dyn.ship = ship.parked.group;
+if (ship.spaceCopy) { dyn['ship:space'] = ship.spaceCopy.model.group; dyn.space = ship.spaceCopy.space; }
+if (ship.crashSite) dyn['ship:crash'] = ship.crashSite.group;
+// (drawn as moving things, but where they rest they are walls and floors like the rest)
+const solidRoots = new Set([ship.parked.group, ship.spaceCopy?.model.group, ship.crashSite?.group].filter(Boolean));
+const solid = (o) => { for (let p = o; p; p = p.parent) if (solidRoots.has(p)) return true; return false; };
 for (const [k, o] of Object.entries(dyn)) if (o) skip.add(o); else console.warn(`no ${k}`);
 // the procession's banners and lanterns (crowd props, moved every frame) and the story's crowd figures
 for (const r of W.storyRoots) if ((r.position.lengthSq() === 0 && !r.name.startsWith('Item box')) || r.name === 'Box beacons') skip.add(r);
@@ -219,7 +229,7 @@ console.log(`static: ${statics.length} chunks, ${statics.reduce((s, c) => s + c.
 // collision: what physics.js bakes (every mesh not under noCollide), minus the moving things
 const colP = [], colI = [];
 scene.traverse((o) => {
-  if (!o.isMesh || o === terrain.mesh || isSkipped(o) || noCollide(o)) return;
+  if (!o.isMesh || o === terrain.mesh || (isSkipped(o) && !solid(o)) || noCollide(o)) return;
   const geo = o.geometry; if (!geo?.attributes?.position) return;
   const add = (M) => {
     const base = colP.length / 3, pa = geo.attributes.position;
@@ -326,13 +336,28 @@ flameOf(city.flames, 'tree');
 for (const [i, f] of (Q.fires ?? []).entries()) flameOf(f.flames ?? f, `fire${i}`);
 const lights = level.lights.filter((l) => l.y > -1e4).map((l) => [-l.x, l.y, l.z, l.w]);
 
+// the ship's places and the prologue's path (src/ship/cinematics.js PrologueDirector)
+const shipOut = (() => {
+  const { PrologueDirector } = W.shipDirector;
+  const d = new PrologueDirector(ship);
+  const P = (m) => Object.fromEntries(Object.entries(m.interior.points).map(([k, v]) => [k, v?.isVector3 ? V3(v) : Array.isArray(v) ? v.map(V3) : -v]));
+  const frame = (g) => { g.updateMatrixWorld(true); const p = new THREE.Vector3(), q = new THREE.Quaternion(), s = new THREE.Vector3(); g.matrixWorld.decompose(p, q, s); return { pos: V3(p), rot: Q4(q) }; };
+  return {
+    rest: V3(ship.restPos), restRot: Q4(ship.restQuat), parked: frame(ship.parked.group), space: ship.spaceCopy ? frame(ship.spaceCopy.model.group) : null,
+    points: P(ship.parked), spacePoints: ship.spaceCopy ? P(ship.spaceCopy.model) : null,
+    hinge: V3(ship.hinge), rampFoot: V3(ship.rampFoot), outDir: V3(ship.outDir), heading: -ship.site.heading,
+    crash: ship.site.crash ? { travel: -ship.site.crash.travel, length: ship.site.crash.length } : null,
+    T: V3(d.T), N: V3(d.N), touch: V3(d.touch), S0: V3(d.S0), S1: V3(d.S1), R: W.shipHull.R, DECK: W.shipHull.DECK, HATCH_A: -W.shipHull.HATCH_A,
+  };
+})();
+
 const world = {
   version: 1, exported: new Date().toISOString(), tile: TILE,
   frame: 'Unity: x mirrored from three.js (x -> -x), y up, metres; headings are Unity yaw in radians',
   materials, chunks: statics, collision, terrain: terrainOut, objects, look, places, people, crowd: crowdOut, fires, lights,
   // walking into one puts you at its other end (the skull's mouth and the cave passage, doorways into rooms)
   portals: (level.portals ?? []).filter((p) => p.at && p.to).map((p) => ({ at: V3(p.at), r: p.r ?? 1.5, to: V3(p.to), heading: -(p.heading ?? 0), label: p.label ?? '' })),
-  ship: { site: places.shipSite, ramp: places.shipRamp },
+  ship: { site: places.shipSite, ramp: places.shipRamp, ...shipOut },
   flora: { count: flora?.count ?? 0 },
 };
 
@@ -345,7 +370,14 @@ console.log(`people: ${dressed.people.length} dressed, ${dressed.geometries.leng
 
 // ---------------------------------------------------------------- the words
 const data = await import('../../src/story/desert-data.js');
-const story = { quests: data.QUESTS, people: data.PEOPLE, things: data.THINGS, lines: data.LINES, items: data.ITEMS, villagers: data.VILLAGERS, villagerTalk: data.VILLAGER_TALK, murmurs: data.MURMURS, crowdTalk: data.CROWD_TALK };
+const calls = await import('../../src/story/calls.js');
+const { callTimeline } = await import('../../src/ship/prologue.js');
+const sig = await import('../../src/story/signature.js');
+const { LEVELS } = await import('../../src/levels/index.js');
+const { ORDER } = await import('../../src/levels/names.js');
+const story = { prologue: { call: calls.PROLOGUE_CALL, timeline: callTimeline(calls.PROLOGUE_CALL), crash: sig.CRASH_LINE, map: sig.MAP_LINE, stages: (await import('../../src/ship/prologue.js')).PROLOGUE_STAGES.map((s) => ({ ...s, dur: Number.isFinite(s.dur) ? s.dur : -1 })) },
+  worlds: LEVELS.map((l) => ({ id: l.id, title: l.title, blurb: l.blurb ?? '', source: l.source ?? '' })), order: ORDER ?? LEVELS.map((l) => l.id),
+  quests: data.QUESTS, people: data.PEOPLE, things: data.THINGS, lines: data.LINES, items: data.ITEMS, villagers: data.VILLAGERS, villagerTalk: data.VILLAGER_TALK, murmurs: data.MURMURS, crowdTalk: data.CROWD_TALK };
 const fnCount = JSON.stringify(story, (k, v) => (typeof v === 'function' ? '[fn]' : v)).split('[fn]').length - 1;
 if (fnCount) console.warn(`story: ${fnCount} functions left out (only data travels)`);
 
