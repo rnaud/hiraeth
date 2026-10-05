@@ -50,6 +50,8 @@ export function shipMaterials(tag, { space = false } = {}) {
     btnA: { color: '#f2c54b', glow: 1, tag: `${tag}-btnA` },
     btnB: { color: '#5fd0c6', glow: 1, tag: `${tag}-btnB` },
     btnC: { color: '#e6503a', glow: 1, tag: `${tag}-btnC` },
+    vmail: { color: '#ff8a5c', glow: 0.3, tag: `${tag}-vmail` },   // the voicemail button (src/ship/ship.js blinks it)
+    vmailHalo: { color: '#34405e', flat: true, metal: 'painted', glow: 0, tag: `${tag}-vmailHalo` },   // its light on the dash
     pot: { color: '#c8673f', flat: true },
     leaf: { color: '#4f6b34', flat: true },
     lamp: { color: '#fff1c8', glow: 1, tag: `${tag}-lamp` },
@@ -63,7 +65,7 @@ export function shipMaterials(tag, { space = false } = {}) {
 const INTERIOR = ['wallIn', 'floor', 'floorDark', 'ceiling', 'wall', 'wood', 'cream', 'blanket', 'pillow', 'cushion', 'toy', 'crate', 'rug', 'rugInner', 'fruitA', 'fruitB', 'panel', 'locker', 'metal', 'pot', 'leaf'];
 
 // thin, small or decorative: drawn, not collided with
-const NO_COLLIDE = ['seam', 'glowRed', 'glowTeal', 'thrust', 'portGlass', 'portIn', 'scorch', 'soot', 'ink', 'teal', 'rug', 'rugInner', 'fruitA', 'fruitB', 'btnA', 'btnB', 'btnC', 'lamp', 'toy', 'leaf'];
+const NO_COLLIDE = ['seam', 'glowRed', 'glowTeal', 'thrust', 'portGlass', 'portIn', 'scorch', 'soot', 'ink', 'teal', 'rug', 'rugInner', 'fruitA', 'fruitB', 'btnA', 'btnB', 'btnC', 'vmail', 'vmailHalo', 'lamp', 'toy', 'leaf'];
 
 /**
  * @param o { space: in orbit (portholes dark, hatch shut), legs: 'down' | 'up' | 'broken',
@@ -154,7 +156,7 @@ export function buildShipModel(o = {}) {
   group.add(screen);
 
   // what only shows from inside (hidden when the camera is far away: fewer draw calls)
-  const indoor = [interior.deco, interior.props, screen, ...['core', 'lamp', 'btnA', 'btnB', 'btnC', 'portIn', ...INTERIOR].map((k) => meshes[k]).filter(Boolean)];
+  const indoor = [interior.deco, interior.props, screen, ...['core', 'lamp', 'btnA', 'btnB', 'btnC', 'vmail', 'vmailHalo', 'portIn', ...INTERIOR].map((k) => meshes[k]).filter(Boolean)];
   return { tag, group, meshes, mats, door, ramp, interior, hull, screen, callScreen, indoor };
 }
 

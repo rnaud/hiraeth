@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // The traveller's locomotion with motion matching on and off, measured by the gait harness
-// (tests/gait-sim.js) on the runs README's "Locomotion" table uses, plus a few the matcher is
+// (tests/gait-sim.js) on the runs the "Locomotion" table uses (docs/systems/animation.md), plus a few the matcher is
 // for: a walk with turns, a 90° turn at a run, a jog that slows to a walk.
 //   node scripts/mocap/compare.mjs [run name ...]
 import * as THREE from 'three';

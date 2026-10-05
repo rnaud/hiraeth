@@ -7,16 +7,23 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 ## Docs
 
-- [ ] README.md much shorter; the per-system notes, measurements and history into `docs/`.
+- [x] README.md much shorter; the per-system notes, measurements and history into `docs/`. (README.md is ~110 lines: what the game is, running, URL parameters, tests, shipping, the layout; the rest moved unreworded into `docs/systems/<topic>.md` and `docs/archive/`, indexed in `docs/README.md`.)
 
 ## The ship and travel
 
-- [ ] Remove the lines leading to the cockpit: just a glowing light on the console and a button prompt to
-  get started.
-- [ ] The central console opens the galactic map.
-- [ ] Travelling to another planet is not a crash landing.
-- [ ] Don't tell me I'm playing a recording of my dad (it defeats the purpose): I just press the voicemail
-  button.
+- [x] Remove the lines leading to the cockpit: just a glowing light on the console and a button prompt to
+  get started. (The floor chevrons, their hint and the dark cable strip to the dash are gone; the voicemail
+  button on the dash pulses and lights the dash, the round screen above it glows "1 NEW MESSAGE", and at the
+  console the prompt says "E voicemail": pressing it starts the father's message.)
+- [x] The central console opens the galactic map. (E at the holo table in the middle of the deck opens it,
+  locked without power; the cockpit dash is only the voicemail now. No other key opens the map in play.)
+- [x] Travelling to another planet is not a crash landing. (The arrival brakes into the air through the
+  clouds, comes down upright on its jets and settles at rest on its feet: no entry fire or smoke trail, no
+  shaking, no roar, a soft touchdown; the homecoming lands the same way. The prologue's crash is unchanged.)
+- [x] Don't tell me I'm playing a recording of my dad (it defeats the purpose): I just press the voicemail
+  button. (Prompt "E voicemail"; the ship says "Good morning. You have one new message." and "First new
+  message." / "New message." / "End of message."; the reel search starts only from the fourth message, after
+  the third has given their age away; the sketchbook and home's lock text say "message on the ship's voicemail".)
 
 ## The desert's story
 
@@ -30,9 +37,9 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 ## Conversations
 
-- [ ] The camera doesn't spin round when a conversation starts: it cuts straight to the right angle.
-- [ ] Too close to someone when a conversation starts: step me (or them) back to a good distance.
-- [ ] The alien script turns into English faster.
+- [x] The camera doesn't spin round when a conversation starts: it cuts straight to the right angle. (A hard cut in and out, no blend; a new angle mid-talk is a cut too, kept to page turns, a blocked view, or one every 2.5 s; small drifts still eased.)
+- [x] Too close to someone when a conversation starts: step me (or them) back to a good distance. (src/story/spacing.js: about 1.45 m, scaled for children and giants, more for the seated; the traveller is placed back, or round them, as the camera cuts in, never into a wall, off a ledge, up a step or onto a bystander; if he can't, a standing NPC steps back instead; he is turned to face them.)
+- [x] The alien script turns into English faster. (LAG 14 → 5 letters, FADE 12 → 5: the line is all English about 0.2 s after the last word instead of 0.55 s, still word by word.)
 
 ## The makers' boxes
 
@@ -88,9 +95,10 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 ## The References level
 
-- [ ] Recreate every reference sheet as views (`?level=references`, `[` / `]`, L3 / R3; README "The
-  References"). Done: the desert (views 1–27) and the City-Shaft (28–50), DONE.md. In progress, one world at
-  a time: Vael → Vael II → the Buried Machine → the Spheres → Lorn II → the Signal Market.
+- [ ] Recreate every reference sheet as views (`?level=references`, `[` / `]`, L3 / R3; docs/systems/references.md, "The
+  References"). Done: the desert (views 1–27), the City-Shaft (28–50) and Vael II (51–81), DONE.md; Vael has
+  no sheets (`references/Vael/` is empty). In progress, one world at a time: the Buried Machine → the Spheres →
+  Lorn II → the Signal Market.
   - Shader findings left:
     - The print preset keeps its cumulus bank and clouds (the worlds' own; the views turn them off).
     - The half-tone can't tell a back wall inside another's cast shadow (it reads as half-tone, the panel's is
@@ -108,6 +116,20 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
       doesn't use it yet); the shaft sheets' faces carry fine vertical cracks and pipes; the deep shaft views
       fade to a pale blue haze with depth (our fog is by distance); a few lit faces at grazing angles show a
       dotted texture.
+  - Vael II, shader-level left: the sheets hatch a cap's underside along its ribs, radiating from the
+    stalk, dense and dark; ours are parallel strokes (no radial coordinate in merged geometry: a
+    per-vertex axis would do it). The clouds' outlines and shade: the sheets draw them in thin,
+    lighter lines with soft lilac pockets, ours in the same black line as rock, so near puffs read
+    as boulders (an outline weight / colour per material is missing). The needles' and stalks'
+    terminator is a clean band on the sheets; flat facets with flutes break ours into lit islands in
+    the shade. The sheets hardly show cast shadows on the plain (a mushroom throws none); ours are
+    full. The crevasses' walls are lit red-brown and hatched on the sheets, ours dark. The paper's
+    grain and the lines' weight as before (heavier, even).
+  - Vael II, scene-level: the overhangs' drips and stalactites, the cracked eggs, the cave mouth's
+    framing, the monasteries' detail (arcades, cypresses, roofs), the mushrooms' lean, the bird's
+    standing pose (buildBird's rest pose lies low), the cloud sea's cauliflower detail.
+  - Vael II world, left: its cloud puffs are pre-shaded vertex colours (not the flat print), its
+    planets stay (the sheets have none), dusk and night keep the old blue shadow.
   - Scene-level: the game's City-Shaft is a round cream-and-blue pit with a spire, terraces and a hill-town,
     the sheets' a canyon of pink and cream stacked houses with water below; the views' houses are boxes (no
     pipes, balconies, laundry or plating under the overhangs), the cabs and blimps simple capsules.
@@ -121,7 +143,7 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 ## Animation
 
 - [ ] Measure frame times, animation CPU cost, loading time and memory on desktop and the Retroid with
-  representative crowds (desktop headless Chrome done in the Bazaar and the City-Shaft, README).
+  representative crowds (desktop headless Chrome done in the Bazaar and the City-Shaft, docs/systems/animation.md, "Locomotion").
 - [ ] Evaluate learned motion matching only if it measures better than the conventional system (motion
   matching exists, `?mm=1`, but measures behind the loops: the data, not the method, is short; Mixamo's
   starts, stops and turns are pending, docs/mixamo-shopping-list.md).

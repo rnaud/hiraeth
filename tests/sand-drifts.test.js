@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { SandDrifts, DRIFT, hull2, footprintsOf, polyDistance, driftMaterial } from '../src/sand-drifts.js';
 import { makeMaterial, MODE_TERRAIN } from '../src/materials.js';
 
-// Sand banked against things (README): footprints cut at a solid's foot, a fillet of sand round
+// Sand banked against things (docs/systems/worlds.md): footprints cut at a solid's foot, a fillet of sand round
 // each, higher facing the wind, the skirts drawn in the ground's own material and flagged for post.js.
 
 const flat = () => 0;

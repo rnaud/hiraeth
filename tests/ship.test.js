@@ -10,7 +10,7 @@ import { polar } from '../src/ship/geo.js';
 import { CONSOLE_R } from '../src/ship/interior.js';
 import { findShipSite, siteAvoid, probeSite, SITE_OVERRIDES } from '../src/ship/sites.js';
 import { consoleAction, mapEntries, chartLayout, boxRect } from '../src/ship/starmap.js';
-import { pendingCall, callLines, completedWorlds, applyCall, CALL_COUNT, ILEN_CALL, PROLOGUE_CALL, AGE, REEL, recordingLabel, recordingSpan, onHologram } from '../src/story/calls.js';
+import { pendingCall, callLines, completedWorlds, applyCall, CALL_COUNT, ILEN_CALL, PROLOGUE_CALL, AGE, REEL, REEL_FROM, recordingLabel, recordingSpan, onHologram } from '../src/story/calls.js';
 import { holoLayout, mouthOpen, HOLO, BUST, PEOPLE, holoLook } from '../src/ship/hologram.js';
 import { makeMaterial, MODE_OUTFIT, MODE_EYE } from '../src/materials.js';
 import { ENDING_WORLDS } from '../src/story/ending.js';
@@ -97,6 +97,30 @@ test('at the foot of the ramp E goes aboard on foot, but gets you off a vehicle 
   assert.equal(ship.hud(), 'E go aboard');
   const out2 = ship.input({ KeyE: true });
   assert.ok(!out2.KeyE && ship.auto, 'on foot, E walks you aboard');
+});
+
+test('the holo table in the middle of the deck opens the galactic map; the dash is the voicemail', () => {
+  const { physics, ship } = flatWorld();
+  const m = ship.parked;
+  ship.player = new Player(physics);
+  ship.attach({ order: ORDER, levels: LEVELS, journal: { storyDone: () => false, seen: () => false }, titles: {} });
+  ship.inside = true;
+  const said = [];
+  ship.cinema.say = (l) => said.push(l?.text ?? null);
+  // beside the table: the map's prompt; E opens it (locked without power)
+  ship.placePlayer(ship.world(m, polar(1.2, 0.4, DECK)), 0, true);
+  assert.ok(ship.atTable() && !ship.atConsole());
+  assert.match(ship.hud(), /^E galactic map/);
+  ship.use();
+  assert.ok(ship.map.open, 'the table opens the map');
+  ship.map.toggle(false);
+  // at the dash: the voicemail; with no message waiting it says so and opens nothing
+  ship.placePlayer(ship.world(m, m.interior.points.cockpit), 0, true);
+  assert.ok(ship.atConsole() && !ship.atTable());
+  assert.equal(ship.hud(), 'E voicemail');
+  ship.use();
+  assert.ok(!ship.map.open, 'the dash no longer opens the map');
+  assert.ok(said.includes('No new messages.'));
 });
 
 test('the ramp reaches the ground and the hatch is open to walk through', () => {
@@ -189,10 +213,13 @@ test('the floor is continuous from the entry hall over the threshold onto the ra
   assert.ok(lowest > h.y - 0.3, `no fall at the threshold: lowest ${(lowest - h.y).toFixed(2)} m`);
 });
 
-test('the console: a waiting call first; the galactic map is locked without power', () => {
-  assert.equal(consoleAction({ powered: false, pendingCall: null }), 'locked');
-  assert.equal(consoleAction({ powered: true, pendingCall: null }), 'map');
-  assert.equal(consoleAction({ powered: true, pendingCall: 2 }), 'call');
+test('the consoles: the dash plays the waiting message; the holo table opens the galactic map, locked without power', () => {
+  assert.equal(consoleAction({ at: 'table', powered: false, pendingCall: null }), 'locked');
+  assert.equal(consoleAction({ at: 'table', powered: true, pendingCall: null }), 'map');
+  assert.equal(consoleAction({ at: 'table', powered: true, pendingCall: 2 }), 'map', 'a waiting message never keeps the map shut');
+  assert.equal(consoleAction({ at: 'dash', powered: true, pendingCall: 2 }), 'call');
+  assert.equal(consoleAction({ at: 'dash', powered: false, pendingCall: 2 }), 'call', 'the voicemail plays without power');
+  assert.equal(consoleAction({ at: 'dash', powered: true, pendingCall: null }), 'empty');
   const flags = { 'world.incal.done': true };
   const journal = { storyDone: (id) => id === 'desert', seen: (id) => id === 'arzach' };
   const list = mapEntries({ order: ORDER, levels: LEVELS, flag: (k) => flags[k], journal, current: 'incal' });
@@ -272,10 +299,15 @@ test('recordings: one per completed world, each heard once, the mother from the 
 test('the recordings are old, and it shows a little more each time; they never answer him', () => {
   const flag = () => undefined;
   const at = (n) => callLines(n, { flag, completed: ['desert'], lastWorld: 'desert', keepsake: { id: 'x', name: 'A thing', kind: 'thing' } });
-  // each one: he asks the reel for the world's word, it finds one, it plays
+  // the first ones are just a new message: nobody says what they are ("don't tell me I'm playing a
+  // recording of my dad"); once the third has given their age away, he asks the reel for the world's word
   for (let n = 1; n < ENDING_WORLDS; n++) {
     const L = at(n);
-    assert.ok(L.some((l) => l.who === 'you' && l.text.includes(`anything about ${REEL.desert.word}`)), `${n}: he asks the reel for water`);
+    if (n < REEL_FROM) {
+      assert.ok(L.some((l) => l.who === 'ship' && /new message/i.test(l.text)), `${n}: a new message`);
+      // (only the third's last word gives it away: "Recording logged nineteen years ago")
+      assert.ok(!L.slice(0, -1).some((l) => (l.who === 'ship' || l.who === 'you') && /\b(reel|recording|recorded)\b/i.test(l.text)), `${n}: nobody says recording`);
+    } else assert.ok(L.some((l) => l.who === 'you' && l.text.includes(`anything about ${REEL.desert.word}`)), `${n}: he asks the reel for water`);
     assert.ok(L.some((l) => l.who === 'father' && l.text === REEL.desert.find.replace(/^~\w+~ /, '')), `${n}: the line it finds`);
     assert.ok(recordingSpan(L), `${n}: the parents are on it`);
     assert.ok(!L.some((l) => /\bcall\b/i.test(l.text) && l.who === 'ship'), `${n}: nobody calls`);
@@ -298,8 +330,9 @@ test('the recordings are old, and it shows a little more each time; they never a
   assert.equal(onHologram(3), 'both');
   assert.equal(onHologram(ILEN_CALL), 'mother');
   assert.ok(Object.keys(AGE).length === ENDING_WORLDS - 1);
-  // the prologue's is a recording too
-  assert.ok(PROLOGUE_CALL[0].who === 'ship' && /reel/.test(PROLOGUE_CALL[0].text));
+  // the prologue's is a message on the voicemail: nothing says it is a recording
+  assert.ok(PROLOGUE_CALL[0].who === 'ship' && /new message/i.test(PROLOGUE_CALL[0].text));
+  assert.ok(!PROLOGUE_CALL.some((l) => l.who === 'ship' && /reel|record/i.test(l.text)));
 });
 
 test('the hologram: who stands where, and a mouth that only moves while they speak', () => {
@@ -420,7 +453,7 @@ test('the walk to the cockpit waits as long as you like: no time limit', () => {
   assert.ok(p.interactive(), 'and the player has control');
 });
 
-test('the prologue never walks you: you stand in the bunk room for minutes, then the call starts at the console', async () => {
+test('the prologue never walks you: you stand in the bunk room for minutes, then press the voicemail button at the console', async () => {
   const { PrologueDirector } = await import('../src/ship/cinematics.js');
   const scene = new THREE.Scene();
   scene.add(new THREE.Mesh(new THREE.PlaneGeometry(400, 400).rotateX(-Math.PI / 2)));
@@ -436,9 +469,10 @@ test('the prologue never walks you: you stand in the bunk room for minutes, then
   ship.autopilot = (...a) => { autopilots++; auto(...a); };
   const g = new GameState({ getItem: () => null, setItem: () => {} });
   const prologue = new Prologue({ director: new PrologueDirector(ship), game: g });
+  ship.cinematic = prologue;
   prologue.start();
   const dt = 1 / 30, P = ship.player;
-  const tick = () => { const ctl = ship.input({}); P.update(dt, ctl, 0); prologue.update(dt); };
+  const tick = (keys = {}) => { const ctl = ship.input(keys); P.update(dt, ctl, 0); prologue.update(dt); };
   let t = 0;
   while (prologue.stage !== 'walk' && t < 30) { tick(); t += dt; }
   assert.equal(prologue.stage, 'walk');
@@ -449,10 +483,20 @@ test('the prologue never walks you: you stand in the bunk room for minutes, then
   assert.equal(autopilots, 0, 'the ship never took over');
   assert.equal(ship.auto, null);
   assert.ok(P.pos.distanceTo(start) < 0.3, `you stayed where you stood (${P.pos.distanceTo(start).toFixed(2)} m)`);
-  // you get there yourself: the call starts
+  // no lights on the floor lead the way: the voicemail button blinks on the dash
   const m = ship.spaceCopy.model;
+  assert.equal(m.interior.guide, undefined, 'no guide on the floor');
+  assert.equal(ship.messageWaiting(), m, 'the voicemail button blinks');
+  assert.equal(ship.hud(), null, 'no prompt away from the console');
+  ship.blinkVoicemail(m, ship.messageWaiting() === m, 0.4);
+  assert.ok(m.vmailLight && m.vmailLight.w > 0, 'it lights the dash round it');
+  // you get there yourself: the prompt says what E does, and E plays the message
   ship.placePlayer(ship.world(m, m.interior.points.cockpit), 0, true);
   for (let i = 0; i < 5; i++) tick();
-  assert.equal(prologue.stage, 'call', 'at the console the call starts');
+  assert.equal(prologue.stage, 'walk', 'standing at the console is not enough');
+  assert.equal(ship.hud(), 'E voicemail');
+  tick({ KeyE: true }); tick({ KeyE: true }); tick();
+  assert.equal(prologue.stage, 'call', 'the voicemail button starts the message');
+  assert.equal(ship.messageWaiting(), null, 'and it stops blinking');
   assert.equal(autopilots, 0);
 });

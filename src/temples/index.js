@@ -30,8 +30,8 @@ import { runSteps } from '../load-steps.js';
 // dungeon of rooms and puzzles in that world's architecture, with a gadget
 // found half-way that is the key to the rest, and a guardian at the end
 // (calmed if it lives, stopped if it is a machine), whose resolution changes
-// the world outside. LORE.md, "Temples", has the design; README "The
-// makers' temples" the system.
+// the world outside. LORE.md, "Temples", has the design; docs/systems/temples.md
+// the system.
 //
 // Two hooks bring them into the game:
 //   attachTemple(levelId, scene, level)   at level build (src/levels/index.js wraps every create):

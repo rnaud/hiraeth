@@ -3,6 +3,18 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.64', date: '2026-10-05', items: [
+    'Vael II, the Sky Stones, looks more like its drawings: the shade on its rock, its plain and its monasteries is one flat grey-blue whatever their colour, the needles keep a clean light side with few strokes in shade, the undersides of the mushroom caps are the darkest places, and the sky is clear, with no bank of clouds on the horizon. Its flowers and its people keep their own colours in shade.',
+    'Cliffs, needles and rock faces everywhere are hatched with strokes running down the face, as an inker draws rock, and the shade under a cap or an overhang no longer curls into wood grain.',
+    'The References scenes now include Vael II: thirty-one views from its six sheets, the needles on peach and aqua skies, the balanced eggs, the monasteries on their cliffs and floating islands, the mushrooms over the sea of cloud and the plain with its lone tower.',
+    'Starting a conversation, the camera cuts straight to the view of you both instead of swinging round to it, and cuts straight back to you when it ends. If someone steps into the view mid-talk, it cuts to a new angle rather than sweeping across.',
+    'Start talking to someone while standing right on top of them and you are a comfortable step apart when the conversation opens, already turned to face them. It works with children and with people sitting down, and you are never put into a wall, off a ledge or onto someone else.',
+    'Alien speech turns into English more than twice as fast: each word becomes readable a moment after it is said, and the whole line is in English a fraction of a second after the last word.',
+    'Waking up on the ship, no lights or stripes on the floor lead you to the cockpit any more: the voicemail button on the console blinks, the round screen above it glows with “1 new message”, and when you walk up to it a prompt says to press it.',
+    'The holo table in the middle of the deck now opens the galactic map. The cockpit console is the voicemail: its button blinks while a message is waiting, and pressing it plays the message.',
+    'The ship no longer tells you that you are playing a recording: it says you have a new message. What the messages really are, you find out as they go on.',
+    'Flying to another world is a landing now, not a crash: the ship brakes into the air, comes down through the clouds upright on its jets and settles gently onto its feet, dust blowing out from under it, with no fire and no shaking. Coming home lands the same way. Only the first arrival in the desert is a crash.',
+  ] },
   { v: '0.63', date: '2026-10-05', items: [
     'The desert’s sky is clear now, as in its drawings: no bank of clouds on the horizon, and the far dunes fade into a pale warm band.',
     'Steep dune faces in shade are hatched again with dense strokes, while flat sand in shade stays a calm tone.',

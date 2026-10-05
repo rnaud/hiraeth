@@ -3,7 +3,7 @@ import { game } from '../game-state.js';
 import { buildShipModel, buildSpace, poseRamp } from './model.js';
 import { R, RI, DECK, CEIL, LIFT, HATCH_A, HINGE_R, WINDOW, HATCH, LEG_A, SCAR } from './hull.js';
 import { polar } from './geo.js';
-import { CONSOLE_R } from './interior.js';
+import { CONSOLE_R, TABLE_R } from './interior.js';
 import { findShipSite, siteAvoid, decorAvoid } from './sites.js';
 import { buildCrashSite } from './crash.js';
 import { buildApproach } from './approach.js';
@@ -28,10 +28,10 @@ import { PrologueDirector, ArrivalDirector, TakeoffDirector, CallDirector, OBJEC
 //    dug into a dune at the end of its furrow.
 //  - Walk up the ramp and in: bunk room, ring corridor, galley, entry hall,
 //    cockpit. All of it collides (physics.addCollider).
-//  - E at the cockpit console: a waiting recording (the parents on the reel, as a
-//    hologram over the dash: src/story/calls.js, src/ship/hologram.js), else the galactic map
-//    (locked until `ship.powered`). Choosing a world takes off and lands
-//    there (?level=<id>&via=ship).
+//  - E at the cockpit console: the voicemail button (it blinks while a message waits): the
+//    parents' message, as a hologram over the dash (src/story/calls.js, src/ship/hologram.js).
+//  - E at the holo table in the middle of the deck: the galactic map (locked until
+//    `ship.powered`). Choosing a world takes off and lands there (?level=<id>&via=ship).
 //  - E at the foot of the ramp walks you aboard; E in the entry hall walks
 //    you out. Anywhere else inside the ship, E does nothing (no whistling
 //    the hoverbike into the cockpit).
@@ -223,7 +223,7 @@ export class Ship {
     this.physics.removeCollider(s.collider);
     s.model.group.removeFromParent();
     s.space.removeFromParent();
-    for (const v of s.model.lightVecs) { const i = this.lights.indexOf(v); if (i >= 0) this.lights.splice(i, 1); }
+    for (const v of [...s.model.lightVecs, s.model.vmailLight]) { const i = this.lights.indexOf(v); if (i >= 0) this.lights.splice(i, 1); }
     const h = this.noShadow.indexOf(s.model.holoTable?.object);
     if (h >= 0) this.noShadow.splice(h, 1);
     const k = this.noShadow.indexOf(s.space);
@@ -396,6 +396,14 @@ export class Ship {
     return Math.hypot(l.x - c.x, l.z - c.z) < CONSOLE_R;
   }
 
+  /** Beside the holo table in the middle of the deck (it opens the galactic map). */
+  atTable() {
+    const m = this.modelOf(this.player.pos);
+    if (!m) return false;
+    const l = this.local(m, this.player.pos);
+    return Math.hypot(l.x, l.z) < TABLE_R;
+  }
+
   atHatchInside() {
     const m = this.parked;
     if (!this.isInside(m, this.player.pos)) return false;
@@ -451,7 +459,13 @@ export class Ship {
       return { ShiftLeft: a.run, stick: { x: Math.sin(rel), y: -Math.cos(rel) } };
     }
     const c = this.cinematic;
-    if (c && !c.done) return { ...ctl, KeyE: false };   // nothing to use while a scene plays
+    if (c && !c.done) {
+      // nothing to use while a scene plays, unless it hands you the controls and asks for E
+      // (the prologue's walk: the voicemail button on the dash)
+      if (ctl.KeyE && !this._eHeld && c.interactive?.()) c.use?.();
+      this._eHeld = !!ctl.KeyE;
+      return { ...ctl, KeyE: false };
+    }
     // E belongs to the ship inside it and at the hatch
     // (not while riding up to it: then E gets you off, as the HUD says)
     const inShip = this.inside || (this.atRampFoot() && !this.player.ride);
@@ -464,9 +478,10 @@ export class Ship {
     return ctl;
   }
 
-  /** E: the console, the hatch. */
+  /** E: the voicemail button, the holo table (the map), the hatch. */
   use() {
     if (this.atConsole()) return this.useConsole();
+    if (this.atTable()) return this.useTable();
     if (this.atHatchInside()) {
       sfx.hatch(this.sound);
       return this.autopilot([this.world(this.parked, this.parked.interior.points.hatchIn), this.hinge.clone(), this.rampFoot.clone()]);
@@ -481,10 +496,13 @@ export class Ship {
     return completedWorlds(this.order ?? [], { flag: (k) => game.flag(k), storyDone: (id) => this.journal?.storyDone(id) });
   }
 
+  /** The message waiting on the voicemail, or null. */
+  waitingCall() { return pendingCall({ flag: (k) => game.flag(k), completed: this.completed().length }); }
+
+  /** The voicemail button: the waiting message plays; with none, the ship says so. */
   useConsole() {
-    const n = pendingCall({ flag: (k) => game.flag(k), completed: this.completed().length });
-    const action = consoleAction({ powered: !!game.flag('ship.powered'), pendingCall: n });
-    if (action === 'call') {
+    const n = this.waitingCall();
+    if (consoleAction({ at: 'dash', pendingCall: n }) === 'call') {
       const done = this.completed();
       const ctx = callContext(game, { titles: this.titles, completed: done, lastWorld: done.slice(-1)[0] });
       const lines = callLines(n, ctx);
@@ -493,7 +511,13 @@ export class Ship {
       this.cinematic.start();
       return;
     }
-    if (action === 'locked') {
+    sfx.beep(this.sound);
+    this.cinema.say(NO_MESSAGES, { secs: 2.4 });
+  }
+
+  /** The holo table: the galactic map (shown but locked without power). */
+  useTable() {
+    if (consoleAction({ at: 'table', powered: !!game.flag('ship.powered') }) === 'locked') {
       sfx.beep(this.sound);
       this.parked.callScreen?.set({ who: 'locked' });
       this.cinema.say({ who: 'ship', text: 'No power. The engines are cold and the map is dark. Find a new source of power.' }, { secs: 4.2 });
@@ -521,16 +545,47 @@ export class Ship {
   hud() {
     if (this.playing && !this.cinematic.interactive?.()) return null;
     if (this.auto) return null;
+    if (this.playing) return this.cinematic.prompt?.() ?? null;   // (a scene you walk through says what E does in it)
     if (this.inside) {
-      if (this.atConsole()) {
-        const call = pendingCall({ flag: (k) => game.flag(k), completed: this.completed().length });
-        return call ? 'E play a recording' : game.flag('ship.powered') ? 'E galactic map' : 'E console (no power)';
-      }
+      if (this.atConsole()) return 'E voicemail';
+      if (this.atTable()) return game.flag('ship.powered') ? 'E galactic map' : 'E galactic map (no power)';
       if (this.atHatchInside()) return 'E step outside';
       return 'aboard the ship';
     }
     if (this.atRampFoot() && !this.player.ride) return 'E go aboard';
     return null;
+  }
+
+  /** The ship whose voicemail button blinks: the prologue's, until its message plays; else the parked one while a message waits. */
+  messageWaiting() {
+    const c = this.cinematic;
+    if (c && !c.done) { this._waitT = 0; return c.waiting?.() ?? null; }   // (not while a message plays; asked again after)
+    if (!this._waitT || performance.now() - this._waitT > 500) { this._waitT = performance.now(); this._wait = this.order ? this.waitingCall() : null; }
+    return this._wait ? this.parked : null;
+  }
+
+  /**
+   * The voicemail button: while a message waits it pulses (voicemailBlink), lighting the dash
+   * round it; else it glows dimly (dark without power).
+   */
+  blinkVoicemail(m, on, t) {
+    const U = m.mats.vmail?.uniforms;
+    if (!U) return;
+    const k = on ? voicemailBlink(t) : 0;
+    m.callScreen?.set({ waiting: on, pulse: k });   // (the screen above says so, glowing with it)
+    const off = this.powerOf(m) === 'dead' ? 0 : 0.3;
+    U.uGlow.value = on ? 0.6 + 0.4 * k : off;
+    U.uColor.value.set(on ? '#ff7a4a' : '#b8644a').lerp(_warm, 0.75 * k);
+    // the pool of light round it on the dash: the dash's own blue, warming as it pulses
+    const H = m.mats.vmailHalo?.uniforms;
+    if (H) { H.uColor.value.set('#34405e').lerp(_glowC, 0.85 * k); H.uGlow.value = 0.95 * k; }
+    if (!m.vmailLight) {
+      m.vmailLight = new THREE.Vector4();
+      this.lights.push(m.vmailLight);
+    }
+    m.group.updateMatrixWorld();
+    const p = _p.copy(m.interior.points.voicemail).applyMatrix4(m.group.matrixWorld);
+    m.vmailLight.set(p.x, p.y + 0.3, p.z, on ? 1.2 + 2.8 * k : 0);
   }
 
   // ------------------------------------------------------------------ camera
@@ -615,14 +670,17 @@ export class Ship {
         for (const o of m.indoor) o.visible = near;
       }
     }
-    // the screen, the mobile, the guide chevrons
+    // the screen, the mobile, the voicemail button
+    const waiting = this.messageWaiting();
     for (const m of [this.parked, this.spaceCopy?.model]) {
       if (!m) continue;
       m.callScreen?.update(dt);
       const mob = m.group.userData.mobile;
       if (mob) mob.rotation.y += dt * 0.15;
-      if (m.interior.guide.visible) m.interior.chevrons.forEach((g, i) => { g.scale.setScalar(0.8 + 0.35 * Math.max(0, Math.sin(t * 4 - i * 0.7))); });
+      this.blinkVoicemail(m, waiting === m, t);
     }
+    // the map put away: the screen over the dash goes back to standby
+    if (this.parked.callScreen?.state.who === 'map' && !this.map?.open && !this.playing) this.parked.callScreen.set({ who: 'idle' });
     this.holo?.update(dt);
     this.map?.update();
     this.warp.update(dt);
@@ -647,6 +705,11 @@ export class Ship {
 }
 
 const _p = new THREE.Vector3(), _l = new THREE.Vector3(), _l2 = new THREE.Vector3(), _d = new THREE.Vector3();
+const _warm = new THREE.Color('#fff1c4'), _glowC = new THREE.Color('#ff9a66');
+/** The ship's answer to the voicemail button when nothing waits. */
+export const NO_MESSAGES = { who: 'ship', text: 'No new messages.', tone: 'neutral' };
+/** The voicemail button's pulse (0..1) at time t: a slow breath, bright for a moment every 1.6 s. */
+export function voicemailBlink(t) { const u = (t % 1.6) / 1.6; return u < 0.5 ? Math.sin(u * Math.PI * 2) ** 2 : 0; }
 
 function padSkip() {
   if (typeof navigator === 'undefined' || !navigator.getGamepads) return false;

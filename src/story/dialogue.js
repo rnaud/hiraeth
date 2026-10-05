@@ -216,8 +216,12 @@ export function choiceHtml(c, k, key = confirmKey()) {
 }
 
 const REVEAL = REVEAL_CPS;   // letters per second at an even pace (each line's voice and tone scale it)
-/** The translator: a word turns into your words LAG letters after it is said, fading over FADE more. */
-export const LAG = 14, FADE = 12;
+/** The translator: a word turns into your words LAG letters after it is said, fading over FADE more.
+ * (14 and 12 until October 2026: the line stayed alien for half a second or more behind the caret) */
+export const LAG = 5, FADE = 5;
+
+/** The conversation camera: a re-pick this far from the eye (m) is a cut; cuts no closer together than CUT_GAP s (unless the page turns, or the shot is blocked). */
+export const CUT_FAR = 0.8, CUT_GAP = 2.5;
 
 let _chunks = { text: null, list: [] };
 /**
@@ -271,7 +275,7 @@ export class Dialogue {
   constructor({ game, quests, sound = null, portrait = null, toast = () => {}, onOpen = () => {}, onClose = () => {} }) {
     Object.assign(this, { game, quests, sound, portrait, toast, onOpen, onClose });
     this.open = false;
-    this.blend = 0;          // the two-shot camera's weight
+    this.blend = 0;          // the two-shot camera's weight: 1 while talking, 0 after (a cut both ways, never a swing)
     this.clock = 0;          // s, while open (the mouths' syllables are timed on it)
     this._mouth = [];        // syllables being said: { at, dur, open, who: 'npc' | 'player' }
     this.answer = null;      // the traveller's spoken answer: { tone, until }
@@ -328,6 +332,9 @@ export class Dialogue {
     this.openedAt = typeof performance !== 'undefined' ? performance.now() : 0;
     this.revealed = 0; this.translated = -LAG;
     this._mouth.length = 0; this.answer = null;
+    // the camera cuts straight to the two-shot (frameCamera picks it on the next frame, after onOpen
+    // has made room between the two): no swing round from the follow camera
+    this.blend = 1; this._shot = null; this._across = null; this._cutAt = this.clock;
     this.game.set(`met.${person.id}`, true);
     this.game.emit('dialogue:start', { npc, id: person.id });
     this.onOpen(person, npc);
@@ -382,6 +389,7 @@ export class Dialogue {
   close() {
     if (!this.open) return;
     this.open = false;
+    this.blend = 0;   // and cuts back to the follow camera, which has kept its place behind the traveller all along
     this.closedAt = typeof performance !== 'undefined' ? performance.now() : 0;
     this.el?.classList.remove('open');
     if (typeof document !== 'undefined') document.body.classList.remove('talking');
@@ -433,8 +441,7 @@ export class Dialogue {
   update(dt) {
     this._dt = dt;
     this.clock += dt;   // (on after closing too: the traveller's last answer is still being said)
-    const target = this.open ? 1 : 0;
-    this.blend += (target - this.blend) * (1 - Math.exp(-(this.open ? 3.2 : 4.5) * dt));
+    this.blend = this.open ? 1 : 0;   // (eased until October 2026: the camera swung round the pair to get there)
     if (!this.open) return;
     this.sound?.holdFloor?.();   // nobody else mumbles over a conversation
     const len = this.runner.text.length;
@@ -499,7 +506,10 @@ export class Dialogue {
    * shoulder at it. The shot is picked so that nothing stands in the way
    * (src/story/shot.js): walls, trees, rocks, the ground (o.sight) and
    * bystanders (`avoid`: feet positions, or a function returning them). It is
-   * looked at again every so often (people walk into it) and eased over.
+   * looked at again every so often (people walk into it) and on every new page:
+   * a small change is eased over, a new angle is a cut (never a swing round the
+   * pair): at once when the page turns or the shot is blocked, else at most every
+   * CUT_GAP seconds.
    * @param o.sight         sightOf(physics), or null (no level geometry)
    * @param o.faceA/faceB   the faces (default: over the feet)
    * @param o.look          the thing looked at (no two-shot)
@@ -509,6 +519,9 @@ export class Dialogue {
     if (this.blend < 0.002 || !(npcPos || o.look)) { this._side = 0; this._shot = null; this._across = null; return; }
     const dt = Math.min(this._dt ?? 1 / 60, 0.1);
     this._shotT = (this._shotT ?? 0) - dt;
+    const page = this.runner ? `${this.runner.nodeId}:${this.runner.page}` : '';
+    const turned = page !== this._shotPage;
+    if (turned) { this._shotPage = page; this._shotT = 0; }
     if (!this._shot || (this.open && this._shotT <= 0)) {
       // pick (or check again) the shot: the one with nothing in the way, near the one the camera is already on
       const people = typeof avoid === 'function' ? avoid() : avoid;
@@ -524,12 +537,20 @@ export class Dialogue {
       const pick = o.look
         ? pickLookShot({ ...args, head: o.faceA, target: o.look, facing: o.facing })
         : pickTwoShot({ ...args, b, faceA: o.faceA, faceB: o.faceB });
-      if (!this._shot) { this._eye.copy(pick.eye); this._look.copy(pick.look); }
-      this._shot = pick;
-      this._side = pick.side;
+      const old = this._shot;
+      // a new angle (another side, another kind of shot, or the eye somewhere else): a cut, not a swing
+      const jump = !old || pick.kind !== old.kind || pick.side !== old.side || pick.eye.distanceTo(this._eye) > CUT_FAR;
+      // (the old one blocked now: the candidate nearest it, as scored this time round)
+      const stale = jump && old && pick.all?.find((c) => c.kind === old.kind && c.side === old.side && c.eye.distanceTo(old.eye) < 0.6)?.blocked;
+      const cut = !old || (jump && (turned || stale || this.clock - (this._cutAt ?? -1e9) >= CUT_GAP));
+      if (!jump || cut) {
+        if (cut) { this._eye.copy(pick.eye); this._look.copy(pick.look); this._cutAt = this.clock; this.cuts = (this.cuts ?? 0) + 1; }
+        this._shot = pick;
+        this._side = pick.side;
+      }
       this._shotT = 0.6;
     }
-    // eased toward the pick (it moves when people move), and never through a wall on the way
+    // eased toward the pick when it only drifts (people shifting), and never through a wall on the way
     const e = 1 - Math.exp(-3 * dt);
     this._eye.lerp(this._shot.eye, e);
     this._look.lerp(this._shot.look, e);

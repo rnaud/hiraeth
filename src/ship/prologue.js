@@ -6,9 +6,9 @@
 //   black   → the screen is dark, the ship hums
 //   wake    → eyes open in bed, the ceiling overhead
 //   rise    → standing beside the bunk
-//   walk    → you walk to the cockpit, in your own time (gentle lights on the
-//             floor and a hint point the way; nothing walks you there)
-//   call    → the father on the screen
+//   walk    → you walk to the cockpit, in your own time (the voicemail button
+//             blinks on the dash; nothing walks you there) and press it
+//   call    → the father's message, over the dash
 //   impact  → the hit: shake, alarms, red light, the screen breaks into static
 //   fall    → the planet swings up into the window
 //   streak  → outside, over the desert: the ship streaks across the sky
@@ -40,7 +40,7 @@ export const PROLOGUE_STAGES = [
   { id: 'black', dur: 1.6 },
   { id: 'wake', dur: 7.2 },
   { id: 'rise', dur: 1.1 },
-  { id: 'walk', until: true, dur: Infinity, play: true },   // as long as you like: it ends at the console
+  { id: 'walk', until: true, dur: Infinity, play: true },   // as long as you like: it ends with the voicemail button
   { id: 'call', dur: callTimeline(PROLOGUE_CALL).total },
   { id: 'impact', dur: 4.4 },
   { id: 'fall', dur: 2.6 },
@@ -74,6 +74,12 @@ export class Prologue {
   get active() { return this.i >= 0 && !this.done; }
   /** The player has control in this stage (the walk to the cockpit). */
   interactive() { return !!this.stages[this.i]?.play && this.active; }
+  /** E pressed while the player has control (the voicemail button, in the walk). */
+  use() { if (this.interactive()) this.director.use?.(this.stage); }
+  /** What E does right now, for the HUD (or null). */
+  prompt() { return this.interactive() ? this.director.prompt?.(this.stage) ?? null : null; }
+  /** The ship whose voicemail button blinks (or null). */
+  waiting() { return this.active ? this.director.waiting?.(this.stage) ?? null : null; }
 
   start() {
     this.i = -1;

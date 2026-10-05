@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 
 // The hand-over into another space: a doorway into a room built far off the map, a cave mouth,
-// a temple's door, Viridel's hatch, the Lab's doors, the Hangar's portals (README: "Doors, caves and
-// portals: one hand-over, no hitch"). Every one goes the same way:
+// a temple's door, Viridel's hatch, the Lab's doors, the Hangar's portals (docs/systems/performance.md, "Doors,
+// caves and portals"). Every one goes the same way:
 //  1. ahead of time, the destination is drawn once, unseen (WarmDraw): every mesh there into
 //     tiny targets of the real passes' formats, so its geometry and textures are on the GPU and
 //     the driver has built its pipelines (a mobile driver compiles a shader for real only at its

@@ -16,6 +16,17 @@ import { stepped } from '../load-steps.js';
 // ink under every overhang.
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------- the look (the reference sheets, docs/systems/references.md, "Vael II's sheets")
+/** How flat the rock's, the plain's and the buildings' shade is printed (makeMaterial shadeFlat). */
+export const SKY_STONES_FLAT = 0.85;
+/**
+ * The print preset's touches: a clean sky (no cumulus bank, no flat clouds: the sea of cloud is the
+ * world's own), the undersides of caps and overhangs the darkest (no bounce), little half-tone.
+ */
+export const SKY_STONES_LOOK = { uCumulus: 0, uClouds: 0, uBounce: 0, uHalftone: 0.15, uShadeKeep: 0 };
+/** The day's colours: sky top, horizon, the shadow's grey-blue, light, sun. */
+export const SKY_STONES_DAY = ['#a3d0d2', '#f4cdb0', '#93a6ac', '#fff7ec', '#fff2dc'];
+
 // ---------------------------------------------------------------- layout
 const CLOUD_Y = -36;          // the cloud deck; below UNSAFE_Y you are put back
 const UNSAFE_Y = -44;
@@ -141,25 +152,29 @@ function height(x, z) {
 export function* buildArzach2(scene) {
   const rng = mulberry32(2026);
   const R = (a, b) => a + rng() * (b - a);
+  // the sheets print every shade of the rock, the plain and the buildings flat in one grey-blue at the
+  // surface's value (makeMaterial shadeFlat), whatever its colour; the people, the bird and the flowers keep theirs
+  const PRINT = { shadeFlat: SKY_STONES_FLAT };
   const terrain = yield* Terrain.make({
     size: 5200, seg: 320, height,
-    material: { color: '#eda584', color2: '#f2b48f', color3: '#c98f86', mode: MODE_TERRAIN, ripples: true },
+    material: { color: '#eda584', color2: '#f2b48f', color3: '#c98f86', mode: MODE_TERRAIN, ripples: true, ...PRINT },
   });
   scene.add(terrain.mesh);
 
   const DS = THREE.DoubleSide;
   const M = {
-    bone: makeMaterial({ color: '#f3ead8', color2: '#f0e4cf', color3: '#f5ede0', mode: MODE_STRATA, strataSize: 7, flat: true, side: DS }),
-    cap: makeMaterial({ color: '#f5e5d1', color2: '#f3e0cb', color3: '#f6e9d8', mode: MODE_STRATA, strataSize: 5, side: DS }),   // smooth: clean terminator under the caps
-    rose: makeMaterial({ color: '#d9a59a', color2: '#c98f86', color3: '#e3b5a8', mode: MODE_STRATA, strataSize: 9, flat: true, side: DS }),
-    aq: makeMaterial({ color: '#ece3d3', color2: '#e0d5c4', color3: '#f2ebde', mode: MODE_STRATA, strataSize: 2.6, flat: true, side: DS }),
-    wall: makeMaterial({ color: '#f8f3ea', flat: true, pattern: 'facade' }),
-    plainWall: makeMaterial({ color: '#f6efe2', flat: true }),
-    roof: makeMaterial({ color: '#c9765c', flat: true, pattern: 'tiles' }),
-    dome: makeMaterial({ color: '#cf8164', flat: true }),
+    // (the needles' shade a flat tone with few strokes and no beds in the light, as the sheets draw them)
+    bone: makeMaterial({ color: '#f3ead8', color2: '#f0e4cf', color3: '#f5ede0', mode: MODE_STRATA, strataSize: 7, flat: true, side: DS, hatch: 0.4, strataHatch: 0, ...PRINT }),
+    cap: makeMaterial({ color: '#f5e5d1', color2: '#f3e0cb', color3: '#f6e9d8', mode: MODE_STRATA, strataSize: 5, side: DS, ...PRINT }),   // smooth: clean terminator under the caps
+    rose: makeMaterial({ color: '#d9a59a', color2: '#c98f86', color3: '#e3b5a8', mode: MODE_STRATA, strataSize: 9, flat: true, side: DS, ...PRINT }),
+    aq: makeMaterial({ color: '#ece3d3', color2: '#e0d5c4', color3: '#f2ebde', mode: MODE_STRATA, strataSize: 2.6, flat: true, side: DS, ...PRINT }),
+    wall: makeMaterial({ color: '#f8f3ea', flat: true, pattern: 'facade', ...PRINT }),
+    plainWall: makeMaterial({ color: '#f6efe2', flat: true, ...PRINT }),
+    roof: makeMaterial({ color: '#c9765c', flat: true, pattern: 'tiles', ...PRINT }),
+    dome: makeMaterial({ color: '#cf8164', flat: true, ...PRINT }),
     dark: makeMaterial({ color: '#3c4660', flat: true }),
     tree: makeMaterial({ color: '#5d7562', flat: true }),
-    tower: makeMaterial({ color: '#f4ecdc', color2: '#ebdfc8', color3: '#f8f2e6', mode: MODE_STRATA, strataSize: 9, flat: true }),
+    tower: makeMaterial({ color: '#f4ecdc', color2: '#ebdfc8', color3: '#f8f2e6', mode: MODE_STRATA, strataSize: 9, flat: true, ...PRINT }),
   };
   const vis = new Map();
   const col = [];
@@ -710,7 +725,7 @@ export function* buildArzach2(scene) {
       return b;
     },
     mountName: 'bird',
-    defaults: { hour: 9, preset: 'Moebius print' },
+    defaults: { hour: 9, preset: 'Moebius print', look: SKY_STONES_LOOK },
     life: {
       flocks: [{ count: 5, color: '#f4efe2', size: 3.2, radius: 180, height: [70, 150], speed: 0.05, seed: 3 },
                { count: 4, color: '#efe2cc', size: 2.6, radius: 110, height: [50, 100], speed: -0.07, seed: 8 }],
@@ -718,9 +733,9 @@ export function* buildArzach2(scene) {
       footprints: '#d99072',
     },
     sky: {
-      // aqua sky over a peach horizon; shadows go blue-grey, as in the panels
+      // aqua sky over a peach horizon; shadows go one grey-blue, as in the sheets (printed flat: PRINT)
       script: {
-        day: ['#a3d0d2', '#f4cdb0', '#93abcc', '#fff7ec', '#fff2dc'],
+        day: SKY_STONES_DAY,
         dusk: ['#f2ae8c', '#f6c4a0', '#8f88b8', '#ffd9bc', '#ffe2c0'],
         night: ['#262a3c', '#4a4a5e', '#383650', '#a8a8c0', '#f2f0e6'],
       },

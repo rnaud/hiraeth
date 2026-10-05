@@ -1,6 +1,10 @@
 // The recordings, played at the cockpit console (src/ship/ship.js plays them;
 // the parents rise over the dash as a hologram, src/ship/hologram.js).
 //
+// The player is never told what these are: the console has a voicemail button that blinks
+// when a message waits, and pressing it plays it. What they are shows over time (the date
+// stamps, a child's voice), never in a prompt.
+//
 // There are no calls home. The traveller's parents are dead (docs/story-bible.md,
 // "The recordings"): what he has is the reel, every message they ever left him
 // on the old house recorder over twenty-odd years. Most of them are not happy
@@ -58,7 +62,7 @@ const pick = (arr, i) => arr[Math.min(i, arr.length - 1)];
 
 /** The recording in the prologue: the father, the day the traveller left. The impact cuts it off. */
 export const PROLOGUE_CALL = [
-  SHIP('~neutral~ Playing from the reel.'),
+  SHIP('~neutral~ First new message.'),
   F("~neutral~ Little light’s on. Good. Your mother says that means I can start."),
   F("~solemn~ Listen. Be careful out there. Nobody owes you help just because you’ve arrived needing it."),
   F("~neutral~ Keep the translator at your ear. You’ll meet people who speak nothing like us. Try listening before deciding they’re wrong."),
@@ -66,6 +70,13 @@ export const PROLOGUE_CALL = [
   F('~solemn~ My son, make us proud. Bring back something of value.'),
   spoken('father', '~neutral~ We will be waiting for you at the—', { cut: true }),
 ];
+
+/**
+ * The first messages are only that: a new message on the voicemail, nothing said about what
+ * they are. The third gives their age away ("logged nineteen years ago"); from this one on he
+ * asks the reel for the world's word himself.
+ */
+export const REEL_FROM = 4;
 
 /** One recording per world on the route; recording ENDING_WORLDS asks you home. */
 export const CALL_COUNT = 11;
@@ -129,7 +140,7 @@ export const AGE = {
   1: {
     open: [F('~neutral~ It’s me. You didn’t call back, so I am leaving this.')],
     close: () => [F("~tired~ Keep looking, then. You always say there’s time. I hope you’re right.")],
-    log: '~neutral~ End of recording.', label: '',
+    log: '~neutral~ End of message.', label: '',
   },
   2: {
     open: [F('~angry~ Your exams were today. You were not at your exams.')],
@@ -138,7 +149,7 @@ export const AGE = {
       F(f.shifted ? '~sad~ And mend the fence before you go. Please.' : '~angry~ And mend the fence before you go anywhere. Do better.'),
     ],
     you: '~whisper~ (The fence came down years ago.)',
-    log: '~neutral~ End of recording. The date stamp is worn off this one.', label: '·· WORN ··',
+    log: '~neutral~ End of message. The date stamp is worn off this one.', label: '·· WORN ··',
   },
   3: {
     open: [
@@ -464,15 +475,17 @@ export function callLines(n, ctx = {}) {
   const leadBody = lead?.body?.(f, n) ?? null;
   const rest = bs.rest.flatMap((b) => b.lines(f, n));
   const reel = REEL[f.lastWorld] ?? REEL_ANY;
-  const search = leadBody ? [] : [
+  // the first ones are just a new message on the voicemail; once the date has given them away
+  // (REEL_FROM), he asks the reel for the world's word himself
+  const search = leadBody ? [] : n >= REEL_FROM ? [
     YOU(`~neutral~ (You ask the reel for anything about ${reel.word}.)`),
-    SHIP(n === 1 ? '~neutral~ One match. Playing.' : '~neutral~ One match.'),
-  ];
+    SHIP('~neutral~ One match.'),
+  ] : [SHIP('~neutral~ New message.')];
   const find = leadBody ?? [F(reel.find)];
   const you = reel.youAfter && flag(reel.youAfter.flag) ? reel.youAfter.you : reel.you;
   const react = !leadBody && you ? [YOU(you)] : [];
   // the keepsake: he holds it up to the projector; the recording happens to hold what the father once said about such things
-  const shown = k ? [YOU(`~neutral~ (You lift ${nameIn(k)} into the projector’s light. The recording continues.)`), F(pick(FATHER_ON[k.kind] ?? FATHER_ON.thing, f.tier)(k))] : [];
+  const shown = k ? [YOU(`~neutral~ (You lift ${nameIn(k)} into the projector’s light. The message goes on.)`), F(pick(FATHER_ON[k.kind] ?? FATHER_ON.thing, f.tier)(k))] : [];
   // the mother asks who he met; he answers with the names
   const met = f.lastWorld ? metIn(f.lastWorld, flag) : [];
   const ask = M('~curious~ Who did you meet today? Tell me one person. Just one.');
