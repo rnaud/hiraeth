@@ -1,0 +1,189 @@
+DONE.md
+  s_1fd8d0e7b02dcf::t_e4eb4f8fd90e00 652-669
+TODO.md
+  s_1fd8d0e7b02dcf::t_9597d16ff1ebc5 30-42,111,125-127,129-134,149-151,166-171,175-178
+changelog.md
+  s_1fd8d0e7b02dcf::t_d9f4e0ce11cfaa 5,7-10,28-46,52-56
+docs/README.md
+  s_1fd8d0e7b02dcf::t_ccb284cd726d5d 34
+docs/story-bible.md
+  s_1fd8d0e7b02dcf::t_c98180ff7e4f72 98-99,153-159,170-171
+docs/systems/aliens.md
+  s_1fd8d0e7b02dcf::t_b64f6aa68950c7 1-92
+docs/systems/cinematics.md
+  s_1fd8d0e7b02dcf::t_bece953a55db2b 61-63,82-85,90-95
+docs/systems/materials.md
+  s_1fd8d0e7b02dcf::t_7b740493c62dc7 55,58-93
+docs/systems/references.md
+  s_1fd8d0e7b02dcf::t_4cb8f673db5674 52-73,129-208
+docs/systems/story.md
+  s_1fd8d0e7b02dcf::t_cf48c082342b2e 309-314,327-353
+docs/systems/traveller-kit.md
+  s_1fd8d0e7b02dcf::t_c5f7589b6afa31 28-35
+lore/characters/traveller-design.md
+  s_1fd8d0e7b02dcf::t_6de8efcf62019d 13-16,28-33,41-47,72-75
+src/aliens/alien.js
+  s_1fd8d0e7b02dcf::t_a209945dd3cdc7 1-680
+src/aliens/bodies.js
+  s_1fd8d0e7b02dcf::t_d5c057408c9cbf 1-342
+src/aliens/index.js
+  s_1fd8d0e7b02dcf::t_3e599cf13f6e44 1-61
+src/aliens/species.js
+  s_1fd8d0e7b02dcf::t_31887363efff2f 1-71
+src/audio.js
+  s_1fd8d0e7b02dcf::t_1160523848955c 940-974
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_83bffd5953a9ac 9-13,31-47,53-57
+src/desert-city.js
+  s_1fd8d0e7b02dcf::t_8f4f9fe04f455f 841-843,845
+src/desert-landmarks.js
+  s_1fd8d0e7b02dcf::t_b249d5b9d6ef1b 178-179
+src/expression.js
+  s_1fd8d0e7b02dcf::t_c98afaf6a91e1e 41-45
+src/hands.js
+  s_1fd8d0e7b02dcf::t_9571ec34829e93 362
+src/items.js
+  s_1fd8d0e7b02dcf::t_d08275e186b37c 174-175,177,179,183-184
+src/levels/bazaar.js
+  s_1fd8d0e7b02dcf::t_153635976f9e4c 20,24,79,105
+src/levels/buried.js
+  s_1fd8d0e7b02dcf::t_c950ffcddb375b 25-34,979,987
+src/levels/home-houses.js
+  s_1fd8d0e7b02dcf::t_178b6c28f4d941 98
+src/levels/reference-buried.js
+  s_1fd8d0e7b02dcf::t_80636ca9a50631 1-631
+src/levels/reference-desert.js
+  s_1fd8d0e7b02dcf::t_176fe4be4c20e0 21-22,381,401,427,449,469,490,518
+src/levels/reference-picker.js
+  s_1fd8d0e7b02dcf::t_2cf8b88455d6ed 1-315
+src/levels/reference-spheres.js
+  s_1fd8d0e7b02dcf::t_2d14489c301b55 1-645
+src/levels/reference-vael2.js
+  s_1fd8d0e7b02dcf::t_129c1917c71327 59-60,68,217
+src/levels/reference-views.js
+  s_1fd8d0e7b02dcf::t_66ca53c2817cba 11-12,50-53,476-479
+src/levels/references.js
+  s_1fd8d0e7b02dcf::t_ec62ec77a27f45 10-12,164-165,312,365-366
+src/levels/spheres.js
+  s_1fd8d0e7b02dcf::t_e868d2ceb08150 70-78,913,917
+src/main.js
+  s_1fd8d0e7b02dcf::t_6b1d82d3393458 39,430,444,502,727,779-780,944-947,960,965,979,1004-1005
+src/materials.js
+  s_1fd8d0e7b02dcf::t_0f1be5877f037a 95-96,118-125,266-271,273-280,321,489,550-551,557,563,944-945,947-986,988-990,995-999,1003,1006-1007,1377-1386,1409-1413,1535-1551,1779-1782,1893,1993
+src/post.js
+  s_1fd8d0e7b02dcf::t_6777c70b3f329d 2,128-132,279-301,503-509,552,714-747,921-922,1044,1051,1062-1063,1070,1077,1084,1090
+src/story/aliens-data.js
+  s_1fd8d0e7b02dcf::t_9b5748c9bc4347 1-209
+src/story/arzach.js
+  s_1fd8d0e7b02dcf::t_e4b329c20744f7 116-117
+src/story/arzach2.js
+  s_1fd8d0e7b02dcf::t_826cd3a4072f67 75-76
+src/story/bazaar.js
+  s_1fd8d0e7b02dcf::t_f671575e1e69eb 37-38
+src/story/buried.js
+  s_1fd8d0e7b02dcf::t_ef175abe0f33f2 52-53
+src/story/desert-data.js
+  s_1fd8d0e7b02dcf::t_dfaea001c15d32 65-67,503,592-593,600-612,760-761,763-765,767
+src/story/desert-moments.js
+  s_1fd8d0e7b02dcf::t_a71e3d61873885 15-16,22,25,32-34,40-42,129-130,201
+src/story/desert-spark.js
+  s_1fd8d0e7b02dcf::t_1b23635faef9d5 17-19,73,129-132,134-137
+src/story/desert.js
+  s_1fd8d0e7b02dcf::t_837ac069db2cf4 5,10,49-51,112-117,141-156,652-661,720,736,742-776,778,827-831,845,850,910-911,999
+src/story/dialogue.js
+  s_1fd8d0e7b02dcf::t_541c7d861ccbf1 327-328,330,397
+src/story/edena.js
+  s_1fd8d0e7b02dcf::t_45b9ffd78c4efd 41-42
+src/story/garage.js
+  s_1fd8d0e7b02dcf::t_d3e27b7f942011 31-32
+src/story/incal.js
+  s_1fd8d0e7b02dcf::t_52d5f2b5f398c0 43-44
+src/story/index.js
+  s_1fd8d0e7b02dcf::t_a15af2ba60a147 90,97-98,100,104-105,120,179,253
+src/story/moment.js
+  s_1fd8d0e7b02dcf::t_03ca40f489e027 148-150
+src/story/perdide.js
+  s_1fd8d0e7b02dcf::t_1c5604e785a706 55-56
+src/story/perdide2.js
+  s_1fd8d0e7b02dcf::t_54f02593dce1d5 46-47
+src/story/quests.js
+  s_1fd8d0e7b02dcf::t_6f52bcc2b8c718 35-36,43-49,68-69,130-133,135-142,153-154,165-166,189-231,235-239
+src/story/scripts.js
+  s_1fd8d0e7b02dcf::t_6811c5843144a2 677-803
+src/story/shot.js
+  s_1fd8d0e7b02dcf::t_84289fb8f14a90 153-155,161
+src/story/spacing.js
+  s_1fd8d0e7b02dcf::t_abf758b7cb23d3 21
+src/story/spheres.js
+  s_1fd8d0e7b02dcf::t_9c8c56072efb7c 39-40
+src/story/voice.js
+  s_1fd8d0e7b02dcf::t_f205f06a7433a0 108-120,301-309,353
+src/talk-face.js
+  s_1fd8d0e7b02dcf::t_51c770b8f7d44d 9,67-71,74-77
+src/temples/index.js
+  s_1fd8d0e7b02dcf::t_da0a2371c5e952 198-201
+src/traveller-style.js
+  s_1fd8d0e7b02dcf::t_2fa5690d5c8fb5 4-5
+src/traveller.js
+  s_1fd8d0e7b02dcf::t_41923e61be5a45 4-5,11-13,18,20,22,74-75,236-242,244-247,249-276,278-285,289-292,294-297,300-312,314-321,323-327,329-332,412,431-432,434-435,438-439,441-449,452,471,477-478,482,496-505,507-513,519,535-550,554,559,569-572,574-575,577-623,626
+tests/aliens.test.js
+  s_1fd8d0e7b02dcf::t_d586c73259811a 1-264
+tests/desert-spark.test.js
+  s_1fd8d0e7b02dcf::t_0935a023cb9e56 160,168-173
+tests/desert-story.test.js
+  s_1fd8d0e7b02dcf::t_eba586b9c846fe 15,34,45,250-283,312,353-354,361-372,376,554-555,566-567
+tests/hud.test.js
+  s_1fd8d0e7b02dcf::t_107c37d3dcbcd2 204
+tests/moment.test.js
+  s_1fd8d0e7b02dcf::t_fbd5c3b423859d 139-146,192
+tests/obvious-lines.test.js
+  s_1fd8d0e7b02dcf::t_2d7749beba3639 1-25
+tests/reference-picker.test.js
+  s_1fd8d0e7b02dcf::t_44c8ea27ba65eb 1-66
+tests/references.test.js
+  s_1fd8d0e7b02dcf::t_512c2885341814 190-237
+tests/shade.test.js
+  s_1fd8d0e7b02dcf::t_d24dd640bc086f 124-170
+tests/story-arzach.test.js
+  s_1fd8d0e7b02dcf::t_ef4810768eba3d 47,111-113,124
+tests/story-arzach2.test.js
+  s_1fd8d0e7b02dcf::t_1a6d13956c9bfe 42,115-117
+tests/story-bazaar.test.js
+  s_1fd8d0e7b02dcf::t_049def4d299c1b 54,102-104
+tests/story-buried.test.js
+  s_1fd8d0e7b02dcf::t_006bfd906fcc0a 42,80-82
+tests/story-edena.test.js
+  s_1fd8d0e7b02dcf::t_57426689de0945 43,97-99
+tests/story-garage.test.js
+  s_1fd8d0e7b02dcf::t_e1061847ed91cd 42,83-85
+tests/story-incal.test.js
+  s_1fd8d0e7b02dcf::t_2e2db51fdbe570 56,129-131
+tests/story-perdide.test.js
+  s_1fd8d0e7b02dcf::t_1f181a04f681b5 41,102-104,106,136
+tests/story-perdide2.test.js
+  s_1fd8d0e7b02dcf::t_ca528edb94177f 40,142-144
+tests/story-spheres.test.js
+  s_1fd8d0e7b02dcf::t_246be8e1716675 46,98-100
+tests/story-terraces.test.js
+  s_1fd8d0e7b02dcf::t_adef720b3ffabc 162
+tests/talk-face.test.js
+  s_1fd8d0e7b02dcf::t_015bd83ed30bc9 142-155
+tests/traveller.test.js
+  s_1fd8d0e7b02dcf::t_90d7d85faddb30 135,140,152,189,203,285,393,412-446
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "323470117a7d3faf5bccb2c0ce3be1717787b967",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
