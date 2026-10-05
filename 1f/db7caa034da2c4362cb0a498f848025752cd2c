@@ -1,0 +1,39 @@
+src/audio.js
+  s_1fd8d0e7b02dcf::t_88a48e9dd692e6 251-253,1014-1062
+src/bike.js
+  s_1fd8d0e7b02dcf::t_ff4186f7423179 200-201
+src/desert-city.js
+  s_1fd8d0e7b02dcf::t_37041b8f92d08c 774
+src/levels/lab.js
+  s_1fd8d0e7b02dcf::t_c41398e5ebfd4f 18,134-137,139-165,167,169-170
+src/levels/spheres.js
+  s_1fd8d0e7b02dcf::t_e1b40fc4f1611f 825
+src/main.js
+  s_1fd8d0e7b02dcf::t_63c62e5ed5adb8 56,176-177,200,327-331,456,1008,1246-1249,1345
+src/materials.js
+  s_1fd8d0e7b02dcf::t_dc66de8a464ea7 8,755-757,927-929,994-996,1000,1043-1045,1087-1091,1260
+src/player.js
+  s_1fd8d0e7b02dcf::t_ff1b94e3ea19bc 9,14-15,391-398,421-424,537-538,580,691,884-886,897,992,1070,1159,1488
+src/swim.js
+  s_1fd8d0e7b02dcf::t_1ce354c61ab6a0 1-357
+src/water-shader.js
+  s_1fd8d0e7b02dcf::t_332c4b64e1f981 1-193
+src/water.js
+  s_1fd8d0e7b02dcf::t_4e4e83b9929c6b 1-515
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1fdb7caa034da2c4362cb0a498f848025752cd2c",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
