@@ -940,7 +940,10 @@ function placeToolGauge() {
 }
 
 
-const busy = () => restartOpen || story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || menu.open || endingOpen || storyRt.busy() || ship.busy() || boxes.busy();
+const busy = () => restartOpen || story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || menu.open || endingOpen || storyRt.busy() || ship.busy() || boxes.busy() || !!level.quickMenu?.open;
+// a level's own quick menu (the References' list of views: src/levels/reference-picker.js): a menu like the others for the pad
+const quickMenu = level.quickMenu ?? null;
+if (quickMenu) quickMenu.blocked = () => busy() || photo.on;
 const noInput = {};
 let controllerActive = false;
 const hintShown = { text: '', at: -1e9, active: false };
@@ -953,11 +956,12 @@ const pageUp = () => pageEl.classList.contains('open');
 // (in the order they stack on the screen: what's new, the Start menu, the sketchbook over a box's card, the
 // worlds, a story page, a conversation; B / ○ closes the one on top, so the sketchbook opened over a
 // conversation or a moment closes first)
-const menuRoot = () => restartOpen ? restartEl : changelog.open ? changelog.el : menu.open ? menu.el : journal.open ? journal.el : boxes.busy() && boxes.card.el ? boxes.card.el : picker.classList.contains('open') ? picker : pageUp() ? pageEl : storyRt.dialogue.open ? storyRt.dialogue.el : pageEl;
+const menuRoot = () => restartOpen ? restartEl : changelog.open ? changelog.el : menu.open ? menu.el : quickMenu?.open ? quickMenu.el : journal.open ? journal.el : boxes.busy() && boxes.card.el ? boxes.card.el : picker.classList.contains('open') ? picker : pageUp() ? pageEl : storyRt.dialogue.open ? storyRt.dialogue.el : pageEl;
 const closeControllerMenu = () => {
   if (restartOpen) return;   // (only confirm restarts: there is nothing to go back to)
   if (changelog.open) changelog.toggle(false);
   else if (menu.open) menu.back();
+  else if (quickMenu?.open) quickMenu.toggle(false);
   else if (journal.open) journal.toggle(false);
   else if (storyRt.moments.playing) storyRt.moments.skip();   // B / ○ skips a moment (src/story/moment.js)
   else if (boxes.busy()) boxes.skip();
@@ -971,7 +975,7 @@ const controller = new Controller({
   faces: () => padFaces(),
   look: (x, y) => { if (x || y) rig.look(x, y); },
   activity: () => { controllerActive = true; screenInput = false; sound.start(); },   // (where a pad press may start sound: the Android app)
-  navigate: (x, y) => menuNavigate(menuRoot(), x, y),
+  navigate: (x, y) => { const root = menuRoot(); if (quickMenu && root === quickMenu.el) quickMenu.navigate(x, y); else menuNavigate(root, x, y); },
   scroll: amount => { const root = menuRoot(); (root.querySelector('.list, .panel:not([hidden]), .sheet') ?? root).scrollTop += amount; },
   action: (name, dt) => {
     if (name === 'zoomOut' || name === 'zoomIn') rig.dist = THREE.MathUtils.clamp(rig.dist * Math.exp((name === 'zoomOut' ? 1 : -1) * dt), 4, 60);
@@ -996,7 +1000,8 @@ const controller = new Controller({
     if (name === 'photo') setPhoto(!photo.on);
     if (name === 'capture') photo.capture = true;
     if (name === 'ping' && !ship.playing) scout.ping();
-    if (name === 'call' && !ship.playing) player.callMount();   // the pad's own button for it (the keyboard's E still falls back to it)
+    if (name === 'call' && quickMenu) quickMenu.toggle(true);   // (the References: X / □ opens the list of views; there is no mount to call)
+    else if (name === 'call' && !ship.playing) player.callMount();   // the pad's own button for it (the keyboard's E still falls back to it)
     if (name === 'bell' && level.jump) level.jump(1);   // in the Lab, R3 / L3 hop to the next / previous world's room
     else if (name === 'bell') itemFx.ring();   // R3: the bell-note whistle (V), and the echo shell plays back
     if (name === 'l3' && level.jump) level.jump(-1);

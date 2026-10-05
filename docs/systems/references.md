@@ -49,6 +49,28 @@ neighbours stay over 3 km apart.
 - `tests/references.test.js`: the level registers as a dev level, the four sheets have their 6, 6, 8 and 7 views (in order, not overlapping), whose
   cameras put the horizon where the panel has it, each sun comes from its side, `[ ]` and `\` work.
 
+### The quick menu of views (v0.68)
+
+`src/levels/reference-picker.js` (`ReferencePicker`, carried by the level as `level.quickMenu`): every
+view at a glance, grouped by world and then by sheet (`pickerGroups`: the world is a view's `world`, its
+sheet's, or the start of its sheet's name, "The Desert / IMG_3775.JPG"), each entry a tiny picture of its
+panel, its number (as the label and `?view=n` count) and its title; the view you are in is marked
+"here". Choosing one calls `level.goTo`, which fades there.
+
+- **Open / close:** Tab; X / □ on a pad (free in this level: no mount, no taxi); the small "views"
+  button at the top left (touch, mouse; hidden while a pad is in use); B / ○, Esc or a click beside
+  the card closes it.
+- **Moving:** mouse; arrows and Enter; d-pad or left stick and A / ×. Left / right step through the
+  views in order, up / down go to the nearest entry in the row above / below; the focused entry is
+  scrolled into view. `main.js` treats `level.quickMenu` as one of its menus: `busy()`, the pad's
+  menu root, back and navigation (any level could carry one).
+- **Thumbnails:** no image files. The list is built on the first opening, from `REFERENCE_VIEWS` and
+  `REFERENCE_SHEETS` as they are then (new views show up by themselves); each sheet image is loaded
+  once (the current view's first) and its views' crops drawn on their canvases as it arrives
+  (`drawThumb`, `thumbSize`: the crop fitted into 132 × 84).
+- `tests/reference-picker.test.js`: one entry per view, under its world and sheet, numbered as the
+  level counts, its thumbnail drawn from exactly the view's crop of its own sheet.
+
 ### The City-Shaft's sheets, and three desert touches
 
 - **The views** (`src/levels/reference-shaft.js`, `SHAFT_VIEWS`): IMG_3778 (one plate) and IMG_3779
