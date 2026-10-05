@@ -1676,6 +1676,90 @@ place) or `node scripts/handheld-perf/bench.mjs <place> [base,noNear,...]`. `AND
 picks the device. The tab keeps its own storage (not the app's saves). Afterwards
 `adb reverse --remove-all` and `adb forward --remove-all`.
 
+### Levels of detail far away (`src/lod.js`, `src/lod-core.js`)
+A distant building, rock or plant is drawn with a coarser copy of itself, never coarser than the
+Graphics preset allows on screen (`lodPx` in `QUALITY_PRESETS`: 1 px for Auto, Medium and High,
+1.5 for Low, 2 for Handheld; High's 1.5× resolution makes it finer, dynamic resolution coarser).
+- **The copies** (`simplify`; the clustering itself, on plain arrays, in `lod-core.js`): vertex
+  clustering on a grid. Every vertex in a cell moves to one point, where it best fits the planes
+  of the triangles round it (a quadric: corners and edges stay put); a triangle left with two
+  corners in one cell goes. So that nothing shows: nothing merges across separate pieces (a
+  decal stays on the ground, a bench's legs under its seat); normals (26 directions), colours
+  and the shaders' own attributes are never blended; a point where two colours meet keeps its
+  place (colour edges are inked); a face that would turn over keeps its corners; long thin parts
+  (poles, cables, antennas, limbs) only thin out along their length, by cell and by eighths round
+  their own centre, both ends kept; the tiles of one mesh (`tileScene`) keep their shared border.
+  The error stays under a cell, so a level whose cell is under `lodPx` pixels looks the same,
+  outline included.
+- **Choosing** (`LodManager`, `pickLevel`): every static mesh worth it (merged blocks and kits,
+  rocks, instanced props; never the terrain, which is dug into, nor people, vehicles or anything
+  that moves) has levels whose cells double, 2^j of its own units. Each frame, before the passes,
+  its distance (to its bounding sphere) gives the cell that fits and the mesh swaps its geometry
+  for the coarsest ready level under it: no extra objects or draw calls; instances, materials,
+  visibility and bounds untouched. A level holds until the distance is ~10 % past its band either
+  way (no flicker on the edge). It is built the first time it is wanted, in a web worker
+  (`lod-worker.js`, 7 kB), two at a time; until then the finer one draws. A level that would keep
+  more than 80 % of the triangles isn't kept.
+- **Shadows**: in the far cascade's pass each mesh goes at least down to the map's texel (1.1 m):
+  what the map can't resolve it doesn't need (`shadowPass` / `viewPass`).
+- **Sets that sort their own instances**: flora draws its far cells from a second mesh with a
+  coarser copy of the plant (`farLevel`, at most 55 % of the triangles); the crowd's far figures,
+  past the same rule, become a distant figure simplified to 0.1 m (cape and robe, which the
+  shader shapes, as they are); the desert's smoke column swaps its puffs for 80-face ones once
+  their facets are under `lodPx` (`sphereError`). The ship's smoke, flame and dust pools (490
+  balls of 180 triangles, drawn in every world) are hidden while none is alive.
+- **Collision is untouched**: the physics was baked from the full meshes at load, and a level
+  points back at its source (`userData.lodSource`), which `physics.js` bakes instead.
+
+Measured in headless Chrome (Metal, 1600×900 at render scale 1) from four fixed views per world:
+at the spawn, 12 m up looking back, 120 m up over the widest vista, 400 m up looking down on the
+world. Millions of triangles summed over the four views, before (build `4d23384`) and after:
+
+| World | Medium, all passes | Medium, the view | Handheld, all passes | Handheld, the view | Handheld, the view from 400 m up | Draw calls, Handheld |
+|---|---|---|---|---|---|---|
+| Desert | 4.07 → 3.75 (−8 %) | 2.50 → 2.23 (−11 %) | 3.00 → 2.66 (−11 %) | 2.38 → 2.09 (−12 %) | 0.44 → 0.37 (−17 %) | 1780 → 1772 |
+| City-Shaft | 9.61 → 8.66 (−10 %) | 5.03 → 4.39 (−13 %) | 5.69 → 4.73 (−17 %) | 3.99 → 3.31 (−17 %) | 1.83 → 1.51 (−18 %) | 3104 → 3093 |
+| Hangar | 2.43 → 1.92 (−21 %) | 1.18 → 0.78 (−34 %) | 1.60 → 1.10 (−31 %) | 1.15 → 0.73 (−36 %) | 0.35 → 0.21 (−40 %) | 1375 → 1365 |
+| Vael | 2.46 → 2.06 (−16 %) | 1.39 → 1.02 (−26 %) | 1.73 → 1.33 (−23 %) | 1.33 → 0.96 (−28 %) | 0.30 → 0.20 (−34 %) | 1350 → 1338 |
+| Vael II | 3.87 → 3.42 (−12 %) | 2.14 → 1.75 (−18 %) | 2.47 → 1.99 (−19 %) | 1.88 → 1.44 (−23 %) | 0.44 → 0.32 (−28 %) | 1318 → 1306 |
+| Viridel | 3.24 → 2.81 (−13 %) | 1.68 → 1.31 (−22 %) | 2.19 → 1.77 (−19 %) | 1.63 → 1.25 (−23 %) | 0.38 → 0.27 (−29 %) | 1565 → 1553 |
+| Lorn | 2.92 → 2.50 (−15 %) | 1.47 → 1.09 (−26 %) | 1.98 → 1.56 (−21 %) | 1.43 → 1.04 (−27 %) | 0.32 → 0.20 (−36 %) | 1624 → 1613 |
+| Lorn II | 7.38 → 6.93 (−6 %) | 2.39 → 2.02 (−16 %) | 3.57 → 3.13 (−12 %) | 2.04 → 1.66 (−19 %) | 0.48 → 0.37 (−23 %) | 1220 → 1201 |
+| Buried Machine | 3.76 → 3.30 (−12 %) | 2.09 → 1.70 (−18 %) | 2.70 → 2.25 (−17 %) | 2.06 → 1.66 (−19 %) | 0.54 → 0.41 (−23 %) | 1348 → 1336 |
+| Spheres | 5.17 → 4.71 (−9 %) | 2.53 → 2.15 (−15 %) | 2.92 → 2.48 (−15 %) | 2.04 → 1.65 (−19 %) | 0.41 → 0.31 (−25 %) | 1505 → 1488 |
+| Bazaar | 3.83 → 3.13 (−18 %) | 2.35 → 1.81 (−23 %) | 2.28 → 1.63 (−28 %) | 1.78 → 1.24 (−30 %) | 0.49 → 0.32 (−36 %) | 1303 → 1284 |
+| All | 48.72 → 43.18 (−11 %) | 24.75 → 20.27 (−18 %) | 30.11 → 24.64 (−18 %) | 21.72 → 17.04 (−22 %) | | |
+
+Of that, the idle puff pools are about 0.35 M per world (88 k in every view); the levels
+themselves, measured in one page with `lodPx` off and on, take 4 % (Medium) to 6 % (Handheld) of
+all triangles, 7 to 10 % in the widest views, up to 17 % in the Bazaar and 11 % in the Hangar and
+City-Shaft. Most of what's left far away is already as plain as it can be at a pixel or two
+(boxes, long extruded rings, the people's 12.5 k-triangle skinned bodies, which are not touched).
+Draw calls don't change (the puffs: three fewer).
+
+Frame time on this Mac doesn't move (the same-page A/B is within ±0.5 ms): it is bound by draw
+calls and fill, not triangles. Where vertices do cost it shows: in SwiftShader (software
+rendering, so vertex work is CPU time; 480×360, Handheld) the City-Shaft from 400 m up went from
+467–496 to 347–373 ms a frame, the Hangar from 110–129 to 66–72, the Bazaar from 99–132 to 71–81,
+the desert vista from 119–135 to 109–115 (two runs each; nearer views gain 5–20 %). The handheld's
+GPU sits between the two (the near shadow map was 7 of 29 ms on the City-Shaft's bottom terrace,
+1.6 M triangles), so the Retroid should gain on the wide views; not yet measured there.
+Screenshots of every view with the levels off and on differ in at most 0.10 % of the pixels on
+Handheld and 0.07 % on Medium: single pixels of distant people and thin lines; no holes, no
+popping (the tests check bounds, outline rays, closed shapes staying closed, no turned faces,
+rods and seams, hysteresis, and that the collision is the same).
+
+Tried and left out, for not paying:
+- **Merged shadow casters** (every static caster of a 96 m region drawn as one mesh in the near
+  and far passes): the City-Shaft's high view went from 767 to 564 draw calls in the near pass and
+  412 to 222 in the far one, but the frame time didn't move (shadow draws share one material and
+  are cheap), and at ground level the regions drew more triangles than the culled members did.
+- **Cheaper far shading**: switching every material's drawn detail off (glyphs, grids, patterns,
+  creases, folds, scrub, ripples) everywhere saved 0–0.3 ms, within the noise; far objects cover
+  few pixels, so far-only would save less still.
+- **Impostors** for the farthest landmarks: what's left far away is draw calls and the ink pass,
+  which a card wouldn't remove, and a card can't keep the ink outline steady as the view turns.
+
 ### The galactic map and the route (v0.38)
 - **The route** (`src/story/route.js`, `knownWorlds`): the worlds open up in `ORDER`. The
   desert (the crash) is always known, then the next `AHEAD` (2) worlds that are not done,
