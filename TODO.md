@@ -480,3 +480,19 @@ All of this is for the web game; the Unity port follows later if we move to Unit
 
 - [ ] The JS bridges: our JS game code running inside Godot (GodotJS) and inside Unity (Puerts), with the
   engine only rendering.
+
+---
+
+# Android app engine (2026-10-05)
+
+- [ ] Stop depending on the device's system WebView: the Retroid's firmware only allows its built-in
+  `com.android.webview` 109 (`dumpsys webviewupdate`), and Google's WebView (even Beta) can't replace it.
+  Options: launch the game through Chrome (a Trusted Web Activity: Chrome's current engine, updates for free,
+  needs Chrome installed) or ship an engine inside the app (GeckoView: self-contained, +50–80 MB). Carry the
+  saves over from the current app once. Decide after measuring WebView 109 against Chrome on the device.
+
+# Dialogue (2026-10-05)
+
+- [ ] The choice numbers (1, 2, 3) overlap the answers' text (seen on the Retroid).
+- [ ] People who aren't part of a quest offer no answers: you just listen. A small hint, a piece of wisdom
+  about their world, a brush-off ("get lost"), or something funny; then the talk ends.
