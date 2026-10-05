@@ -1,0 +1,12 @@
+// The side-by-side GeckoView test app (scripts/bench/gecko-apk.sh builds it; docs/benchmark-web-vs-unity.md,
+// "On the Retroid: GeckoView").
+pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://maven.mozilla.org/maven2/' }
+    }
+}
+rootProject.name = 'memento-gecko'
+include ':app'

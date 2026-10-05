@@ -74,45 +74,41 @@ test('the portrait is drawn at the circle\'s size and supersampled: enough pixel
   assert.equal(portraitPixelRatio(100, 84, 1.5), 1.5);
 });
 
-// ---- a story page never opens over a conversation (it showed over Nima's last lines and stayed)
+// ---- a world's words never come over a conversation (its page showed over Nima's last lines and stayed);
+// since October 2026 they are a toast, not a comic page
 
-test('a world\'s closing page waits for the conversation to end, then opens, and closes on the next press', async () => {
-  const listeners = {};
-  const page = {
-    innerHTML: '', classes: new Set(),
-    classList: { add(c) { page.classes.add(c); }, remove(c) { page.classes.delete(c); }, contains(c) { return page.classes.has(c); } },
-    addEventListener(type, f) { (listeners[type] ??= []).push(f); },
-  };
-  globalThis.document = { getElementById: (id) => (id === 'page' ? page : { classList: { add() {}, remove() {} }, style: {} }), exitPointerLock() {} };
-  globalThis.window = { addEventListener(type, f) { (listeners['win:' + type] ??= []).push(f); } };
+test('a world\'s closing words wait for the conversation to end, then come as a toast, once', async () => {
+  globalThis.document = { getElementById: () => ({ classList: { add() {}, remove() {} }, style: {} }), exitPointerLock() {} };
+  globalThis.window = { addEventListener() {} };
   try {
-    const { Story } = await import('../src/quest.js');
-    const stories = {};
+    const { Story, toastSeconds } = await import('../src/quest.js');
+    const stories = {}, said = [];
     const journal = { storyDone: () => false, seen: () => true, markSeen() {}, addStory: (l, e) => { stories[l] = e; } };
     const sound = { page() {}, chime() {} };
     const player = { pos: new THREE.Vector3(), frame: { up: new THREE.Vector3(0, 1, 0) } };
     const story = new Story(new THREE.Scene(), {
-      levelId: 'incal', def: { title: 'T', intro: 'i', outro: 'o', goal: [50, 0, 50], manual: true },
+      levelId: 'incal', def: { title: 'T', intro: 'i', outro: 'o', goal: [50, 0, 50], manual: true, next: 'Next: Vael' },
       journal, sound, capture: () => 'data:image/jpeg;base64,', player, physics: { rayDistance: () => Infinity, groundAt: () => 0 },
+      say: (t) => said.push(t),
     });
     let talking = true;
     story.waitFor = () => talking;
     assert.equal(story.complete(), true);
-    assert.equal(story.pageOpen, false, 'not over the conversation');
-    assert.ok(!page.classes.has('open'));
-    assert.ok(stories.incal, 'the story is kept in the sketchbook at once');
+    assert.deepEqual(said, [], 'not over the conversation');
+    assert.ok(stories.incal?.img, 'the moment is drawn into the sketchbook at once');
     story.update(0.016, 1, null);
-    assert.equal(story.pageOpen, false, 'still talking');
+    assert.deepEqual(said, [], 'still talking');
     talking = false;
     story.update(0.016, 1.1, null);
-    assert.equal(story.pageOpen, true, 'the talk is over: the page opens');
-    assert.ok(page.classes.has('open') && /class="sheet"/.test(page.innerHTML));
-    assert.doesNotMatch(page.innerHTML, /click \/ E/, 'no button reminder on the page');
-    for (const f of listeners['win:keydown']) f({ code: 'KeyE' });
-    assert.equal(story.pageOpen, false, 'the next press closes it');
-    assert.ok(!page.classes.has('open'));
+    assert.deepEqual(said, ['o', 'Next: Vael'], 'the talk is over: the closing words, then the next world');
+    assert.equal(story.pageOpen, false, 'nothing holds the screen');
     story.update(0.016, 1.2, null);
-    assert.equal(story.pageOpen, false, 'and it does not come back');
+    assert.equal(said.length, 2, 'and they do not come back');
+    // the opening words: the title and the line in one toast, up longer when long
+    story.showPage('intro');
+    assert.equal(said.at(-1), 'T · i');
+    assert.equal(toastSeconds('short'), 4.5);
+    assert.ok(toastSeconds('x'.repeat(120)) > 7 && toastSeconds('x'.repeat(400)) === 9);
   } finally {
     delete globalThis.document; delete globalThis.window;
   }

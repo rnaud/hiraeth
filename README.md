@@ -410,8 +410,10 @@ poses update at 12 fps ("stop-motion anim") while movement stays smooth.
 - **Story** (`src/quest.js`, `src/levels/content.js`):
   - each world has one quiet goal, marked by a beam of light, with its
     distance in the HUD;
-  - a first visit opens a wordless three-panel comic page, rendered live
-    from the game, and reaching the goal opens the closing page.
+  - a first visit says the world's title and opening words as a toast, and
+    reaching the goal its closing words (the closing moment is drawn into the
+    sketchbook); until October 2026 these were three-panel comic pages that held
+    the screen. A long toast stays up longer (`toastSeconds`, up to 9 s).
 - **Relics:** five per world, often on rooftops, mesas or trees you have to
   climb. Picking one up sketches the moment into your **sketchbook**: press
   **J** to open it. Progress is saved in `localStorage`.
@@ -613,7 +615,7 @@ rest; three carry fragments of the keeper's story. In the open chamber,
 stand beside each lens and press **E** (or tap the touch E button) to turn it.
 Aim all three beams at the central receiver. Each aligned beam lights a ring
 and illuminates the room. The roof unfolds over five seconds, a constellation
-appears, and a comic page records the moment. Glide back to the traveler to
+appears, and the moment goes into the sketchbook. Glide back to the traveler to
 finish the expedition.
 
 The existing masked-head story remains available. The new expedition keeps
@@ -1902,7 +1904,9 @@ vertical folds held the cloth out flat like a board, so the lower half lay sprea
 
 ## Android (offline APK)
 The game is also packaged as an Android app, for handhelds such as the Retroid
-Pocket. Their built-in controls work through the Gamepad API.
+Pocket. Their built-in controls work through the Gamepad API. Since NATIVE_API 6 the app runs
+the game in its own engine, GeckoView, and in the system WebView only where that can't run
+(see "The engine: GeckoView").
 - **Release workflow** (`.github/workflows/android.yml`): every push to `main`
   builds the web game, wraps it with Capacitor (`capacitor.config.json`,
   `android/`) and builds a signed release APK. The APK is published to the
@@ -1925,7 +1929,7 @@ Pocket. Their built-in controls work through the Gamepad API.
   and plays sound without an extra tap. `versionName` is the game version and
   `versionCode` is the build number (`release-info.mjs build`: the commit count; up to 117 it was
   the workflow run number).
-- **Local build** (needs JDK 21 and the Android SDK):
+- **Local build** (needs JDK 21 and the Android SDK with the API 37.0 platform, for GeckoView):
   ```
   npm run build && npx cap sync android && (cd android && ./gradlew assembleDebug)
   ```
@@ -2079,6 +2083,48 @@ updates now come from the Cloudflare site that serves the web game:
   `docs/steam-deck.md`).
 - Tests: `tests/web-update.test.js`, `tests/android-ota.test.js`, `tests/updates.test.js`,
   `UpdateRulesTest.java`, `tests/test_steam_deck.py`. The flip itself: `docs/cloudflare.md`.
+
+### The engine: GeckoView (NATIVE_API 6)
+The app ships its own browser engine now: GeckoView (Mozilla's, `org.mozilla.geckoview`, release
+channel, arm64), instead of the system WebView. On handhelds whose firmware pins an old WebView
+(the Retroid Pocket Nova: Chromium 109) the game missed 23–50 % of the refreshes in busy places
+(30–45 fps); in GeckoView 157 the same build misses 1–15 % (51–60 fps, a third less JS per frame) and
+loads in 12 s instead of 21 (docs/benchmark-web-vs-unity.md, "On the Retroid: GeckoView"). Chrome 154
+does better still, but the app can't use it.
+- **Two activities.** `MainActivity` (the launcher, so home-screen icons keep working) runs the game
+  in GeckoView. Where GeckoView can't run (not arm64, Android before 8, or GeckoView failed to start
+  here once: `MainActivity.usable`) it hands over to `WebViewActivity`, the Capacitor app as before.
+  `--ez webview true` forces the WebView (debug and bench builds).
+- **The page's origin** is `http://127.0.0.1:41730` (`MainActivity.ORIGIN`), served by the app's
+  loopback server (`AssetServer`): GeckoView can't intercept requests the way Capacitor serves
+  `https://localhost`, and pages from `resource://android/` get no content scripts. The port is
+  fixed for good (the saves are stored under the origin); if another app holds it, that launch runs
+  in the WebView. The server serves the APK's `assets/public/` or a downloaded bundle
+  (`WebBundles.Host.serve`), revalidated by ETags made of the build served.
+- **The bridge.** GeckoView has no `addJavascriptInterface` / `evaluateJavascript`: a built-in
+  WebExtension (`assets/memento-ext/`, a content script at `document_start` with a native port)
+  gives the page `window.Capacitor` (`isNativePlatform`, `nativePromise` → `AppShell.java`, shared
+  with `AppShellPlugin`), the controls (`GamepadBridge` → `window.__nativePad`), the app's events
+  (`moebius:pause` / `resume` / `webupdate`) and answers WebBundles' boot heartbeat. The page side
+  (`src/native-app.js`, `src/native-pad.js`) is unchanged.
+- **Saves, once** (`SaveImport`): on the first launch in GeckoView a hidden WebView opens a page of
+  Capacitor's origin that hands its localStorage to the app, and the game's next page starts with a
+  script that writes those keys into GeckoView's storage (keys already there are kept) and marks it
+  done (`moebius.imported.v1`). The WebView's storage is only read: the WebView fallback still has
+  the saves as they were.
+- **Gecko settings** (its config file, `writeConfig`): autoplay allowed (sound without a tap), no
+  slow-script stop (`dom.max_script_run_time` 0, and `onSlowScript` → CONTINUE: GeckoView's default
+  stops a script after ~10 s, which left the page dead), no pinch zoom, full-precision timers. Links
+  elsewhere open in the system browser.
+- **The build:** `geckoviewVersion` in `android/variables.gradle`; GeckoView 157 compiles against
+  API 37 (`compileSdkVersion` 37, `android.suppressUnsupportedCompileSdk=37` for the Android Gradle
+  plugin 8.13) and its androidx.core 1.19 would need the plugin 9.1, so the app forces the 1.17 it
+  had. Gecko's libraries are compressed in the APK (`useLegacyPackaging`): 9.5 → ~100 MB to download.
+  CI keeps the AAR in setup-java's Gradle cache and the API 37 platform in an `actions/cache`.
+- **Testing on a device:** a debug build takes `--es url http://localhost:6253/…` (the bench's
+  server) and has GeckoView's remote debugging on (Firefox's protocol, not DevTools). The bench's
+  harness drives the page itself instead (`scripts/bench/gecko-bridge.mjs`).
+- Tests: `tests/android-gecko.test.js`, `tests/native-app.test.js`, `tests/android-ota.test.js`.
 
 ### Updates that arrive, and the update section in the settings (NATIVE_API 4)
 Why updates used to arrive at random, and what changed:
@@ -2631,7 +2677,7 @@ The course, the runs and the measures moved from `tests/gait-sim.js` into `src/g
   at the Great Crystal). `tests/signature.test.js` checks that every destination carries it.
 
 ### A quieter screen: conversations and prompts
-- **No button reminders.** The status box (`updateHud` in `src/main.js`) shows the place,
+- **No button reminders.** (Since v0.62 there is no status box at all: "Nothing on the screen" below.) The status box (`updateHud` in `src/main.js`) showed the place,
   gauges, the objective and relics, and a prompt only for what is right here (the ship's
   hatch and console, a lens); a ride's controls show for six seconds after you get on.
   The controller's button bar is gone except in photo mode; the full controls live in the
@@ -3696,6 +3742,116 @@ From the author's notes (TODO.md, "Feel and look"). Tests: `tests/feel.test.js`.
   on the edge right in front of you (`EdgeInk`, drawn with the wisps' material, depth-tested
   against the G-buffer), and the first lean of a session shows a line (`EDGE_HINTS`, per world,
   or the level's own `edgeHint`).
+
+### Nothing on the screen; the scout finds the objective (v0.62)
+
+The author's rule: no icon or text stays on the screen while you play. To find the quest you send
+the drone; for the quest log you open the menu. Tests: `tests/hud.test.js`, `tests/scout.test.js`.
+
+- **No status box** (`#hud` / `#status` and `updateHud`'s status line are gone; `src/hud.js`). The
+  world's name, the objective and its distance, relics x/5, the charge line and the gauges no
+  longer sit in the bottom-left corner. What is left comes only when it matters, then fades:
+  - **the cue** (`#cue`, `cueText`, `Cue`): one short line at the bottom (at the top on a phone,
+    where the toasts make room for it: cinema.js `OBSTACLES`) for what the use button does right
+    here when it has nothing to float over (the ship's ramp, hatch and console, a lens, the
+    backpack slotting in), a ride's controls for `RIDE_HINT_MS` after you get on, what the scout
+    just found, and a region's name as you cross into it (`PlaceName`: it must hold 1.5 s, and
+    the name where you arrive is not shown). Prompts with a place still float over it (`#prompt`).
+  - **health** (`#health`): while hurt or healing (`Fader(3)`), then fades; **stamina** as before.
+  - **the tank** (`ToolHud.gaugeShown`, `body.tool-gauge`): the crosshair and the pips while
+    aiming; without aiming, the pips alone beside the traveller (main.js `placeToolGauge`, left of
+    the shoulders as the stamina wheel is right) while the tank is short (a shot, a boost, the
+    jets burning: the pip being burnt shows what is left of it, until the refill), on a mode
+    switch, and an empty tank for `GAUGE_DRY` s; `GAUGE_LINGER` s after, it fades.
+  - **the frame readout** is off by default (`showFps: false`; settings saved before `hudV: 1`
+    lose the old default once, `migrateSettings`); F, the settings or `?fps=1` (this session
+    only) turn it on. `scripts/handheld-perf` sets it.
+  - **the menu's button** (`#gear`): only on a touch screen, small (30 px) and faint at 45 %
+    opacity; the keyboard has O / Esc, a pad Menu. The touch worlds button is gone (the menu's
+    Debug entry has it), and the keyboard help (H) is the menu's Controls page.
+  - The scout's floating label (`#scout-label`) is gone: the cue says what it found.
+- **The scout finds the objective** (`Scout.ping`, `FIND` in `src/scout.js`): Q, Y / △ on a pad
+  (on foot and now riding or flying too: controller.js sends `ping` from the top button in the
+  ride context), the touch "ping". It hops off its dock as before, flies to a lookout (`lookout`:
+  `FIND.out` m towards the objective from over your head, a little more at speed, carried with
+  your velocity; right over it when it is nearer than `FIND.near`), hovers and points its beak and
+  a thin lit **lens beam** at it (`updateBeam`: out to the objective or the first thing in the
+  way, at most `FIND.beam` m), drops a **flare** on the spot (`Flare`: a column of its light
+  shooting up and a ring that rings out, sized by the distance so it reads from far away, gone
+  after `FLARE.life` s), chirps (`sound.drone('found')`) and calls `onFind(target, metres)`:
+  main.js puts "◆ Madame Sel, under the silent tower · 320 m" on the cue for 5 s (`findText`,
+  `roughDistance`) and shows the quest marker for `MARKER_SECONDS`. After `FIND.point` s it comes
+  home and docks as before (`returnT` drives the safe recall now). Phases: docked → launch → seek →
+  point → return. Nothing to find (`getTarget()` null): `shrug()`, the eye opens, it lifts a few
+  centimetres off the dock and shakes itself (`FIND.shrug` s), "Nothing to find here".
+- **What it finds** (`nextObjective`): the tracked quest's objective (or the main quest's, or the
+  first active one: `Quests.objective`), routed through doorways; while the observatory expedition
+  is under way its steps first; then the world's story goal (its beacon); once the story is told,
+  the ship from more than 25 m away; else nothing. It never points at a relic any more: they are
+  yours to find. A quest with `background: true` (the makers' boxes, offered on arrival) is only
+  tracked when nothing else is or when you choose it, so a box doesn't take the scout from the
+  quest you are on.
+- **The quest marker** (`QuestMarker`, the cyan diamond over the tracked objective) no longer hangs
+  in the air all the time: `reveal()` shows it for `MARKER_SECONDS` after a find, then it fades.
+  **The world's beacon** (the gold column over a world's story goal, `Story.beacon`) stays: it is
+  part of the landscape, not the screen (a lighthouse you see across the dunes, drawn in the
+  world's ink and light), it is the one way a world without step-by-step quests shows its goal
+  before you think of asking, and it goes when the story is told.
+- **The menu's pages** (`SettingsMenu.page`): Quests, Settings (where it opens) and Controls, from
+  the side column. **Quests** (`o.quests()`, `questsPageHtml`): "Where to" (what the scout would
+  find, and how far), the father's charge and the quest log (the sketchbook's own sections:
+  `chargeJournalHtml`, `quests.journalHtml()`, steps done struck through, finished ones stamped,
+  failed ones under their own heading), and what you carry. Active quests are focusable
+  (`data-nav`, which `menuNavigate` steps onto): confirm or a click tracks one (`o.onTrack`).
+  **Controls** (`controlsList`, `controlsHtml`): every control for the pad (in Xbox / PlayStation
+  form), the keyboard and touch, the one in your hands first; H opens the menu there. B / ○ or
+  Esc on a page goes back to the settings, then out. The title's settings have Controls too.
+  The sketchbook (View, J) is unchanged.
+
+### Moments: first times, filmed (`src/story/moment.js`)
+A moment is a short cinematic (6–12 s) for a first time that deserves one, composed like a comic
+page: a few panels, the letterbox, a line or two, the traveller's face and hands in the line's
+tone, a swell of the world's score, then back to you.
+- **The helper.** `MomentStage` (one per world, `storyRt.moments`, handed to each world's setup
+  as `ctx.moments`) plays one `Moment` at a time on the ship's cinematic camera and its Cinema
+  (the same `ship.shot` / `ship.release` the box scene uses, the letterbox, the subtitles).
+  `moments.play({ id, flag, shots, beats, onStart, onFrame, onEnd })` returns the moment, or
+  null when it can't play (no ship's camera, a scene, a conversation or a story page up, the
+  traveller riding or down, its flag already set): the caller then does what it always did.
+  A shot is `{ dur, from, to?, ease?, clear? }`; `from` / `to` are frames `{ pos, look, fov }`,
+  Vector3s or functions of the shot's time (to follow a stream's head, a face); no `to` holds.
+  `shotAt(shots, t)` is pure (tested). Beats `{ t, line?, secs?, run? }` say a line (`spoken()`,
+  with its tone: the traveller's face and hands take it) or run a cue. `m.face` / `m.eyes` turn
+  him and his eyes; `m.look` holds a tone on his face; `faceOf(humanoid)` gives where his face
+  is and looks as posed, for close-ups that never catch an ear. While one plays the idle's
+  look-around waits, the game's toasts wait (`cinema.held`), input is cut (`storyRt.busy()`).
+- **Once, skippable, never in the way.** Its flag is set as it starts. B / ○, the Menu button,
+  Esc or a tap on the corner tag skips it, after a 0.6 s grace (the press that started it,
+  mashed, doesn't end it) and on the next frame (the key opens nothing else). An error in a
+  frame ends it at once; `onEnd(m, skipped)` always runs, and the state a moment shows is
+  applied by its caller for sure there (and on its beats), so a skip or a failure lands the
+  same as watching it. Nothing is compiled mid-shot: a moment only moves the camera and what
+  already exists (measured: `renderer.info.programs` unchanged through both, High and Handheld).
+- **Sound**: `sound.swell(kind, pos)` plays a phrase of the world's score over a growing pad
+  while the score and the bands step back: `'motif'` the world's leitmotif on its lead,
+  `'father'` the father's theme in the world's mode on its voice for it.
+- **The desert's two** (`src/story/desert-moments.js`):
+  - *the water's first run* (`desert.moment.flow`), when the rib comes off the channel: A, high
+    beyond the gutter, the rib rolling clear past the post and the traveller; B, a long lens up
+    the gutter from past its end, the crack lighting and the water coming down it (the flow
+    waits for this panel, `st.flowDelay`); C, high over the gutter's end across the basin, the
+    pool spreading over the dry bed round the roots, its light coming up; D, his face,
+    three-quarter, lit from below: "It's running… like the giants on the mural." The world's
+    motif swells over it; its toast comes after.
+  - *the empty tank's first fill* (`desert.moment.fill`), the first wade with the dry tank: A,
+    over the water at him standing in the pool; B, over his shoulder on the glass as the water
+    climbs into it slowly in three colours (`tool.fillTo` holds the glass's level), its glow on
+    his back; C, beside him: he lifts the bracer, its rings light one by one, and a first glob
+    (`tool.spark(dir)`, spending nothing) splashes out across the pool; D, his face: "Full. So
+    that's what it was waiting for." To the father's theme. The jar fills and the controls are
+    said (RT / R2, RB / R1) at its end.
+  - Tests: `tests/moment.test.js` (the shots, a play through, the skip and its grace, a failure,
+    the stage's refusals, and both desert moments in the story: once, skipped, without a ship).
 
 ## The makers' temples
 

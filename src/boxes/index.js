@@ -259,7 +259,7 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
     for (const b of list) {
       if (b.fallback || !b.place.hint) continue;
       const id = `box.${b.id}`;
-      if (!quests.def?.(id)) quests.define({ id, title: b.place.title ?? 'A Makers’ Box', world: levelId, outro: `${b.def.name}: yours.`,
+      if (!quests.def?.(id)) quests.define({ id, title: b.place.title ?? 'A Makers’ Box', world: levelId, outro: `${b.def.name}: yours.`, background: true,   // (offered on arrival: it doesn't take the scout from the quest you are on)
         stages: [{ id: 'find', text: b.place.hint, label: 'The makers’ box', flag: `box.${b.id}`, at: `box.${b.id}` }] });
       boxQuests.push({ b, id });
     }

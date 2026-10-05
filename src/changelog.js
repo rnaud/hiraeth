@@ -3,16 +3,28 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.62', date: '2026-10-05', items: [
+    'Nothing stays on the screen while you play any more: the box in the corner with the place, the objective and the relics is gone. Your health shows while you are hurt or healing, the stamina wheel while you are tired, the tank beside you while it refills or the jets burn, and each fades away after. A short line at the bottom says what the use button does when there is something to use, and a region’s name as you cross into it.',
+    'To find where to go, send your drone: Q, Y / △ on a controller (riding and flying too), or ping on a touch screen. It flies a little way towards your objective, points its lens beam at it, drops a flare there that you can see from far away, chirps, says what it found and how far, and comes back to your pack. With nothing to find, it shrugs.',
+    'The menu has a Quests page: where to go now, your father’s charge, and every quest with the steps you have done struck through, the finished ones and the failed ones. Choose a quest there to track it. Every control, for the controller, the keyboard and touch, is on its new Controls page (H opens it).',
+    'The floating diamond over your objective only shows for a while after the drone has found it. A makers’ box offered when you arrive no longer takes the drone away from the quest you are on, and the drone no longer points at relics: they are yours to find.',
+    'The frame-rate readout is off unless you turn it on (F, or in the settings). On a touch screen the menu button is a small, faint ⚙ in the corner; with a keyboard or a controller there is none (O, Esc or Menu open the menu).',
+    'The Android app now runs the game in an engine of its own (Mozilla’s GeckoView) instead of the system’s web view: on handhelds stuck with an old web view, like the Retroid Pocket Nova, busy places such as Qanat and the camps play close to 60 fps instead of 30 to 45, and the game starts several seconds sooner. Your saves come along by themselves the first time. The app download is bigger, about 100 MB.',
+    'The frame readout (F) now starts with the browser engine and its version, such as GECKO 157, WEBVIEW 109 or CHROME 154, so a screenshot says where it ran.',
+  ] },
   { v: '0.61', date: '2026-10-05', items: [
     'Plants no longer get shoved aside as you walk past: they lean a little away from you, as if brushed, and spring back with a small wobble, more the closer and the faster you pass. Grass parts round your feet the same way.',
     'Grass no longer pops in or stops at a line: the blades fade out tuft by tuft with distance, shorter and in the colour of the ground, and sparse low tufts carry the meadow about twice as far before it melts into the ground. Turning the camera no longer makes the grass in front of you jump.',
     'Flowers that open no longer push their petals into walls, rocks or each other: they lean a little away from what is close and open only as far as there is room, and those squeezed into a tight corner grow a step further out.',
+    'No more comic pages popping up over the game when you arrive in a world or reach its goal: their words now come as a note at the top of the screen, like other messages, and the moment still goes into your sketchbook.',
     'The jets climb again: hold RT / R2 (without aiming) and you rise, straight up, or up and wherever the left stick points. Hold A / × as well to hover in place.',
     'The fluid gun’s paint now lands on what it hits and takes its shape: it wraps over steps, rocks, domes and tree trunks and runs round their edges, instead of a flat disc floating in front of them or cut through by them.',
     'Faces in the conversation portrait are sharp: clean outlines instead of jagged, broken lines, on small screens too.',
     'Boulders, big globes and pillars far away now cast shadows like the buildings beside them, and Perdide’s great crystal throws its shadow across the island.',
     'Game updates for the Android app and the Steam Deck now come from the game’s own site. Accept the new Android app when it is offered, once, to keep getting them; your saves are kept.',
     'A new place in the worlds list (Debug on the title screen): The References, six desert scenes rebuilt from the drawings the game is made after, each seen the way its drawing frames it. [ and ] (L3 / R3) change scene, \\ (View) puts the drawing beside or over the picture.',
+    'The first time the water runs in the giant’s chest you see it happen, like a page of a comic: the rib rolls clear, the crack in the wall lights up, the water comes down the gutter and spreads across the dry basin round the roots, to the desert’s own tune, and the traveller says what he sees. It plays once; B / ○, Menu or Esc skips it.',
+    'The first time your empty tank fills in the giant’s pool, you watch it: the water climbs into the dry glass in three colours to your father’s tune, the rings on your bracer light one by one, and the first shot leaves the nozzle and splashes across the pool. Then you are told how to shoot and push.',
   ] },
   { v: '0.60', date: '2026-10-05', items: [
     'Every world has music of its own now, with its own instruments, scale and short tune: ney, oud and frame drum in the desert; a muted horn, vibes and a walking bass down the City-Shaft; wind and breath on Vael; the monks and their far bell over Vael II’s clouds; a ticking, unresolved machine in the Sealed Hangar; low brass and struck metal in the Buried Machine.',

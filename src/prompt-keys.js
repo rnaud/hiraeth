@@ -1,6 +1,6 @@
 // Buttons in prompts, drawn as small round badges (index.html .key): the
-// floating "use" prompt (src/story/index.js placePrompt) and the context
-// prompts in the status box (src/main.js updateHud).
+// floating "use" prompt (src/story/index.js placePrompt) and the cue's
+// prompts at the bottom of the screen (src/hud.js).
 //
 // The badge holds the button's name as plain text ("E", "X / □"), so
 // native-pad.js, which rewrites text nodes, still turns it into the

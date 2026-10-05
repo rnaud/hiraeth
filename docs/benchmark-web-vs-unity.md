@@ -188,3 +188,133 @@ Raw runs (per-frame lists, every sample) stay in `scripts/bench/results/raw/` (n
 its own `adb reverse tcp:5253` and `adb forward tcp:9333`, opens and closes its own Chrome tab, and stops the
 perf app between runs), then `node scripts/bench/android-engines-summary.mjs <raw dir> --placement <raw dir>`;
 afterwards `adb uninstall com.rnaud.moebius.perf`.
+
+## On the Retroid: GeckoView
+
+Since the system WebView can't be updated on this firmware, the other way out is an engine inside the APK:
+GeckoView, Mozilla's embeddable Gecko (`org.mozilla.geckoview:geckoview-arm64-v8a` 157.0.20260924084938,
+the release channel, arm64 only). Same build (`07af71c`), viewpoints, paths, Handheld preset, modes and
+cooling rule as the WebView/Chrome run above, measured on 2026-10-05
+(`scripts/bench/results/android-gecko.json`).
+
+- **GeckoView side:** a test app of its own (`scripts/bench/gecko-apk.sh` builds `scripts/bench/gecko-app/`:
+  `com.rnaud.moebius.gecko`, "Memento (Gecko)", 108 MB as a debug APK), the page's bridge as the shipped app
+  would have it (a built-in WebExtension with a native port: `window.Capacitor`, the gamepad, pause / resume).
+  It loaded the game from the Mac like the other two (`http://localhost:6253/`, 9.6 MB over USB), and in a
+  fourth run from its own APK (`gecko-apk`: the game in the APK's assets, served by the app on
+  `http://127.0.0.1:6281/`).
+- **The WebView again, alongside:** the WebView 109 perf app (`webview-apk.sh`) was measured in the same
+  session, rounds alternating with GeckoView, so the two columns are directly comparable. Its numbers match
+  the earlier session within a point or two. Chrome 154 is the earlier session's (same build, same day).
+- **Driving it:** GeckoView's remote debugging speaks Firefox's protocol, not DevTools', so the page drives
+  itself: every page the bench server gives a Gecko engine starts with a script (`scripts/bench/gecko-bridge.mjs`)
+  that runs the bench's instrumentation first (as `Page.addScriptToEvaluateOnNewDocument` does) and long-polls
+  the Mac for the expressions to evaluate, posting their values back. The same page logic (`web-page.mjs`,
+  the shader test, the JS loop) runs in all three engines; `android-engines.mjs --engines gecko --serve <dist>`.
+- **Measured the same way:** frame intervals and missed refreshes, the JS time of the animation-frame
+  callbacks, draws and triangles, the load to the first frame, the shader test, the JS loop, the GPU's busy
+  share and clock (kgsl), temperatures, the CPU and PSS of the processes (Gecko: its content process
+  "Isolated Web Content", its GPU process, where WebGL runs remoted, and the app's own parent process),
+  where the page's main thread ran.
+- **Not measured, or not the same:** GC pauses (a V8 trace; nothing comparable in GeckoView without its
+  profiler), the JS heap (`performance.memory` is Chromium's). Gecko rounds `performance.now()` and frame
+  times by default; the test app turns that off (`privacy.reduceTimerPrecision`), so its times are as
+  precise as the other two. Its WebGL renderer string is generalised ("Adreno (TM) 650, or similar"): the
+  GPU is the same Adreno 740. Starts at 36–44 °C, ends at 59–61 °C (GeckoView) and 49–53 °C (WebView), thermal
+  status 0 throughout, the GPU at 615–680 MHz on both.
+
+### Equal pixels (render scale 0.75)
+
+| Where | GeckoView 157: median / p95 / p99 ms | missed | JS ms | WebView 109: median / p95 / p99 ms | missed | JS ms | Chrome 154 (earlier): median / p95 / p99 ms | missed | JS ms | GPU busy G / W / C |
+|---|---|---|---|---|---|---|---|---|---|---|
+| spawn | 16.7 / 16.7 / 33.3 | 1 % | 13.7 | 16.7 / 33.4 / 33.4 | 23 % | 20.9 | 16.7 / 16.8 / 16.8 | 0 % | 12.0 | 86 / 71 / 89 % |
+| qanat-tree | 16.7 / 33.3 / 33.4 | 9 % | 18.2 | 33.3 / 33.4 / 33.4 | 42 % | 28.9 | 16.7 / 16.8 / 16.8 | 0 % | 12.3 | 71 / 44 / 78 % |
+| camps | 16.7 / 16.7 / 33.3 | 2 % | 16.6 | 33.3 / 33.4 / 33.4 | 43 % | 28.2 | 16.7 / 16.8 / 16.8 | 0 % | 12.2 | 80 / 51 / 85 % |
+| dunes | 16.7 / 16.7 / 16.7 | 0 % | 11.4 | 16.7 / 16.7 / 16.7 | 0 % | 12.2 | 16.7 / 16.8 / 16.8 | 0 % | 7.3 | 82 / 80 / 81 % |
+| cave | 16.7 / 33.3 / 33.4 | 14 % | 12.4 | 16.7 / 33.3 / 33.4 | 12 % | 13.6 | 16.7 / 33.2 / 33.4 | 13 % | 7.9 | 96 / 99 / 99 % |
+| ride-city | 16.7 / 33.3 / 33.4 | 8 % | 15.3 | 33.1 / 33.4 / 50.0 | 39 % | 23.9 | 16.7 / 16.8 / 16.8 | 0 % | 12.7 | 78 / 60 / 81 % |
+| walk-camps | 16.7 / 33.3 / 33.4 | 15 % | 19.2 | 33.3 / 49.8 / 50.0 | 50 % | 31.3 | 16.7 / 16.8 / 16.8 | 0 % | 12.2 | 68 / 40 / 77 % |
+
+Medians of 3 rounds; the rounds agreed within 1–4 points of missed refreshes. GeckoView's frame rate there:
+59, 55, 59, 60, 52, 56 and 51 fps. The game bundled in the APK plays the same (1 round: 2, 9, 4, 0, 14, 8,
+15 % missed; 13.8, 18.3, 16.4, 11.2, 12.6, 15.3, 19.0 ms of JS).
+
+### As shipped (dynamic resolution)
+
+| Where | GeckoView: scale | median / p95 ms | missed | WebView: scale | median / p95 ms | missed | Chrome (earlier): scale | median / p95 ms | missed |
+|---|---|---|---|---|---|---|---|---|---|
+| spawn | 0.75 | 16.7 / 16.7 | 1 % | 0.70 | 16.7 / 33.4 | 23 % | 0.75 | 16.7 / 16.8 | 0 % |
+| qanat-tree | 0.75 | 16.7 / 33.3 | 9 % | 0.65 | 33.3 / 33.4 | 42 % | 0.75 | 16.7 / 16.8 | 0 % |
+| camps | 0.75 | 16.7 / 16.7 | 2 % | 0.50 | 33.3 / 33.4 | 42 % | 0.75 | 16.7 / 16.8 | 0 % |
+| dunes | 0.80 (0.75–0.85) | 16.7 / 16.7 | 0 % | 0.55 (0.50–0.55) | 16.7 / 16.7 | 0 % | 0.85 (0.80–0.90) | 16.7 / 16.8 | 0 % |
+| cave | 0.65 (0.60–0.80) | 16.7 / 33.1 | 5 % | 0.55 | 16.7 / 16.7 | 0 % | 0.70 (0.70–0.75) | 16.7 / 33.1 | 7 % |
+| ride-city | 0.60 (0.55–0.60) | 16.7 / 33.3 | 7 % | 0.55 (0.50–0.55) | 33.1 / 33.4 | 39 % | 0.70 | 16.7 / 16.8 | 0 % |
+| walk-camps | 0.55 | 16.7 / 33.3 | 16 % | 0.50 | 33.3 / 33.4 | 48 % | 0.70 | 16.7 / 16.8 | 0 % |
+
+### Load, shaders, JS, memory
+
+| | GeckoView 157 | WebView 109 | Chrome 154 (earlier) |
+|---|---|---|---|
+| load, navigation to the first frame (9.6 MB over USB) | 15.6 s (14.2–16.2) | 21.3 s (19.3–22.4) | 14.0 s (10.4–15.9) |
+| load, the game from the APK (as it would ship) | 12.3 s (1 round) | | |
+| shader test: the game's 75 programs made unique, compiled and linked one by one | 20.8 s (median 367 ms a program, worst 503 ms) | 22.5 s (median 396 ms, worst 545 ms) | 21.5 s (median 378 ms, worst 523 ms) |
+| the same sources again | 19.7 s | 21.3 s | 20.2 s |
+| the game's own sources, as loaded | 13.7 s | 16.1 s | 14.4 s |
+| `KHR_parallel_shader_compile` | no | no | no |
+| plain JS (a three.js matrix loop), k iterations per ms | 14.5 | 17.1 | 35.7 |
+| JS heap used | – | 177 MB | 188 MB |
+| page process (PSS): GeckoView's content process, the renderers | 561 MB | 470 MB | 400 MB |
+| the GPU's host process (PSS): GeckoView's GPU process, the WebView app, Chrome's GPU process | 279 MB | 368 MB | 346 MB |
+| GeckoView's parent process (the app itself) | 188 MB | (in the line above) | |
+| page process CPU, cores busy (median over the views) | 0.97 | 1.48 | 0.91 |
+| cores the page process may run on | 0–7 | 0–2, 5–6 | 0–7 |
+| where the page's main thread ran | cpu7 (the 3.2 GHz prime core) 73–75 %, cpu3–6 the rest | cpu5 and cpu6, half each | cpu3–6 67 %, cpu7 33 % |
+| APK (release, unsigned) | 102 MB (Gecko's libraries compressed in it) | 9.5 MB | |
+
+### What it means
+
+- **GeckoView clearly beats the WebView here, but doesn't reach Chrome.** At equal pixels the game's JS per
+  frame drops by 34–41 % in the busy places (spawn 20.9 → 13.7 ms, Qanat 28.9 → 18.2, the camps 28.2 → 16.6,
+  the ride 23.9 → 15.3, the walk 31.3 → 19.2), and the missed refreshes from 23–50 % to 1–15 %: the median
+  frame is 16.7 ms everywhere (the WebView's is 33 ms in four of the seven places). Chrome still does the
+  same frames in 12–13 ms with nothing missed; GeckoView sits in between, closer to Chrome in the spawn and
+  the camps, further in Qanat and the walk (18–19 ms: about 1 frame in 7 missed). The cave is the GPU's, the
+  same for all three.
+- **As shipped**, the dynamic resolution keeps 0.75 in the spawn, Qanat and the camps (the WebView falls to
+  0.5–0.65 there and still misses 42 %), and drops to 0.55–0.6 on the ride and the walk, where it still misses
+  7–16 %. Smooth almost everywhere, a little softer than Chrome on the move.
+- **Why:** not the raw JS speed. SpiderMonkey runs the plain three.js loop slower than V8 10.9 (14.5 against
+  17.1 k iterations a ms; Chrome 35.7). Two other things count: GeckoView's content process may use every core
+  and its main thread lives on the prime core (cpu7, 3.2 GHz) three quarters of the time, where the
+  WebView's renderer is kept on cpu5–6; and WebGL runs in Gecko's GPU process (the content process only
+  queues the commands), which takes driver time off the page's thread. The WebView's GPU waits for frames
+  (40–71 % busy in the busy places); GeckoView's is busier (68–86 %), like Chrome's.
+- **Load: 5.7 s faster from the Mac, 9 s faster from the APK.** 15.6 s against 21.3 s over USB, and 12.3 s
+  with the game read from the APK, which is how the app ships. Shader compiles cost the same in all three (the
+  Adreno driver), so most of what remains is the 75 programs.
+- **Costs:** about 190 MB more memory than the WebView (1.03 GB over three processes against 0.84 GB), the
+  device running hotter (ends at ~60 °C against ~51 °C: it renders more frames), and the APK growing from
+  9.5 MB to ~100 MB (arm64 only; the libraries unpack at install to about 180 MB more).
+- **What works:** WebGL 2 and every shader of the game (no errors, the frames identical to the eye), the
+  page's bridge (`Capacitor.nativePromise`, `__nativePad`, pause / resume) through the extension port, touch
+  (pointer events), audio (an `AudioContext` starts without a tap once autoplay is allowed; the game's
+  sound was at 0 throughout), localStorage and a secure context on the loopback origin. GeckoView 157 adds
+  `EXT_depth_clamp`, `OES_draw_buffers_indexed`, `OVR_multiview2` and the modern JS the WebView lacks
+  (`scheduler.yield`, `Object.groupBy`, `toSorted`, `Set` methods, iterator helpers, `Promise.withResolvers`,
+  view transitions, popover), and lacks `EXT_color_buffer_half_float`, `EXT_texture_norm16` and
+  `WEBGL_multi_draw` (the game uses none of them). No WebGPU either.
+- **What needs care:** GeckoView stops a script that runs longer than ~10 s by default (`onSlowScript`
+  returning nothing means STOP), which left the page dead in the first test (the bench's 20-s shader loop): the
+  app answers CONTINUE and turns the watchdog off. Gecko's own Gamepad API didn't see injected (virtual) pad
+  events; the app's own bridge (`GamepadBridge`) does, as in the WebView. Pages from `resource://android/`
+  load and run the game but get no content scripts (no bridge), so the shipped app serves the game on a
+  loopback origin instead. The built-in controllers themselves (real buttons) were not pressed in these runs:
+  only injected events.
+
+Raw runs in `scripts/bench/results/raw/android-gecko-main/` and `android-gecko-apk/` (not in git). To repeat:
+`DIST=<dist> scripts/bench/gecko-apk.sh` builds the test app (Gradle 9.3.1 and JDK 17 from Unity's install),
+`webview-apk.sh` the WebView one (`URL=http://localhost:6253/`), `adb install` both, then
+`node scripts/bench/android-engines.mjs --engines gecko,webview --port 6253 --serve <dist> --raw <dir>` (it serves
+the game and the page bridge itself, stops both apps between runs and after a stall, and removes its port rules;
+`--resume` goes on where it stopped), `--engines gecko-apk` for the bundled run, then
+`node scripts/bench/android-gecko-summary.mjs <dir> --apk <apk dir>`; afterwards uninstall both test apps.

@@ -13,9 +13,13 @@ test('the boot heartbeat flag is set after the first frame', () => {
   assert.match(main, /import \{[^}]*\bmarkBooted\b[^}]*\} from '\.\/native-app\.js';/);
   const boot = main.slice(main.lastIndexOf("stage('ready')"));
   assert.match(boot, /requestAnimationFrame\(\(t\) => \{\s*frame\(t\);\s*markBooted\(\);/);
-  // and the app polls exactly that flag
-  const java = readFileSync(new URL('../android/app/src/main/java/com/rnaud/moebius/WebBundles.java', import.meta.url), 'utf8');
-  assert.match(java, /evaluateJavascript\("window\.__moebiusBooted===true"/);
+  // and the app polls exactly that flag, in either engine (WebBundles asks its Host)
+  const java = (f) => readFileSync(new URL(`../android/app/src/main/java/com/rnaud/moebius/${f}`, import.meta.url), 'utf8');
+  assert.match(java('WebBundles.java'), /host\.booted\(\(v\) -> \{/);
+  assert.match(java('WebViewActivity.java'), /evaluateJavascript\("window\.__moebiusBooted===true"/);
+  assert.match(java('MainActivity.java'), /post\(json\("ask", "booted", "id", id\)\)/);
+  assert.match(readFileSync(new URL('../android/app/src/main/assets/memento-ext/content.js', import.meta.url), 'utf8'),
+    /m\.ask === 'booted'\) port\.postMessage\(\{ answer: m\.id, value: window\.wrappedJSObject\.__moebiusBooted === true \}\)/);
 });
 
 test('the build label', () => {

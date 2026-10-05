@@ -227,9 +227,9 @@ test('the scout hops off its dock folded along the dock line, blooms clear of yo
   assert.ok(!bloomedNear, 'the petals only open once clear of the dock');
   assert.ok(scout.fold.eye > 0.99, 'awake on the hop');
   for (let i = 0; i < 60; i++) scout.update(1 / 60);
-  assert.equal(scout.phase, 'guide'); assert.equal(scout.fold.state, 'open');
+  assert.equal(scout.phase, 'seek'); assert.equal(scout.fold.state, 'open');
   // home: folded before the glide in, docked shut and lined up with the dock
-  scout.age = 4.99;
+  scout.home();
   let glideOpen = false;
   for (let i = 0; i < 600 && scout.phase !== 'docked'; i++) { scout.update(1 / 60); if (scout.settleT != null && scout.fold.petals > 0.45) glideOpen = true; }
   assert.equal(scout.phase, 'docked');
