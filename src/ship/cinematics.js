@@ -7,6 +7,8 @@ import { PROLOGUE_CALL, recordingSpan, onHologram, recordingLabel } from '../sto
 import { callTimeline } from './prologue.js';
 import * as sfx from './sfx.js';
 import { exhaust, footPuffs } from './exhaust.js';
+import { BUST } from './hologram.js';
+import { FACE } from '../humanoid.js';
 
 // What the ship's cinematics look like: cameras, the moving ship, dust,
 // sounds, subtitles. The prologue's timing lives in prologue.js; the
@@ -24,23 +26,40 @@ const SAND = ['#e3c58f', '#d8b884', '#efd29b', '#cfa877'];
 const FIRE = ['#ffd27a', '#ff9a4a', '#f2c54b', '#e6503a'];
 const pickOf = (a) => a[Math.floor(Math.random() * a.length)];
 
-/** The hologram's size over the projector (1: life size). */
-export const HOLO_SCALE = 0.6;
+/** The hologram's size over the projector (1: life size): busts a little under life size, their faces near his. */
+export const HOLO_SCALE = 0.9;
+/** The projector's lens on the dash (m, src/ship/interior.js). */
+export const HOLO_LENS = 0.16;
+/** How high the busts' faces are over the lens (m): their eyes (hologram.js BUST, FACE), scaled. */
+export const CALL_FACE = HOLO_SCALE * (BUST.lift + FACE.m[0] - BUST.m.bottom);
+const _up = new THREE.Vector3(), _q = new THREE.Quaternion();
+/** The traveller's eyes (world), for the hologram to face: his head bone, else up from his feet (the ship's up). */
+export function travellerHead(ship, model, out = new THREE.Vector3()) {
+  _up.set(0, 1, 0).applyQuaternion(model.group.getWorldQuaternion(_q));
+  const head = ship.player.humanoid?.b?.Head;
+  if (head) return head.getWorldPosition(out).addScaledVector(_up, 0.08);
+  return out.copy(ship.player.pos).addScaledVector(_up, 1.55);
+}
 
 /**
  * The view while a recording plays, in ship-local space: from behind the traveller's right
  * shoulder, so he stands at the left of the frame facing the recording, the hologram over the
- * dash in front of him and the screen with its date stamp above it.
+ * dash in front of him and the screen with its date stamp above it. `close` (0 .. 1) pushes in
+ * on the busts while the hologram is up: their faces (CALL_FACE over the lens) just over the middle,
+ * clear of the subtitles.
  */
-export function callShot(ship, model, t = 0) {
+export function callShot(ship, model, t = 0, close = 0) {
   const p = model.interior.points.projector ?? polar(7.95, Math.PI, DECK + 1.07);
   const push = Math.min(t * 0.03, 0.3);
+  const k = smooth(close), L = THREE.MathUtils.lerp;
   return {
-    pos: ship.world(model, V(1.3, DECK + 1.95, -4.8 - push)),
-    look: ship.world(model, V(p.x - 0.12, DECK + 1.82, p.z)),
-    fov: 48,
+    pos: ship.world(model, V(L(1.3, 0.95, k), DECK + L(1.95, 1.88, k), L(-4.8, -5.45, k) - push)),
+    look: ship.world(model, V(p.x - L(0.12, 0.2, k), L(DECK + 1.82, p.y + CALL_FACE - 0.12, k), p.z)),
+    fov: L(48, 36, k),
   };
 }
+/** Seconds the shot takes to push in on the busts, and to ease back out. */
+const CLOSE_IN = 2.4, CLOSE_OUT = 1.6;
 
 /** Facing the recording: the traveller turned to the console (ship-local heading PI). */
 export function faceRecording(ship, model) {
@@ -61,7 +80,13 @@ function playLines(ship, model, timeline, t, st = {}) {
   const H = ship.holo, span = st.span;
   if (!H || !span) return;
   const t0 = timeline.lines[span[0]].t0 - 0.9, t1 = timeline.lines[span[1]].t1 + 0.15;
-  if (!st.shown && t >= t0 && t < t1) { st.shown = true; H.show({ parent: model.group, at: model.interior.points.projector, scale: HOLO_SCALE, who: st.who ?? 'father' }); }
+  // the shot pushes in on the busts as they rise, and eases back out once they fold away
+  st.close = seg(t, t0, t0 + CLOSE_IN) * (1 - seg(t, t1, t1 + CLOSE_OUT));
+  if (!st.shown && t >= t0 && t < t1) {
+    st.shown = true;
+    const head = new THREE.Vector3();
+    H.show({ parent: model.group, at: model.interior.points.projector, scale: HOLO_SCALE, who: st.who ?? 'father', lens: HOLO_LENS, face: () => travellerHead(ship, model, head) });
+  }
   if (st.shown && !st.folded && t >= t1 && !timeline.lines[span[1]].line.cut) { st.folded = true; H.hide(); }
   H.speak(talking ? who : null);
 }
@@ -223,7 +248,7 @@ export class PrologueDirector {
         break;
       }
       case 'call':
-        s.shot(callShot(s, sp, t));
+        s.shot(callShot(s, sp, t, this.rec.close ?? 0));
         sp.callScreen?.set({ statik: Math.max(0, 1 - t / 0.8) });
         playLines(s, sp, this.call, t, this.rec);
         faceRecording(s, sp);
@@ -414,7 +439,7 @@ export class CallDirector extends Sequence {
           sfx.beep(ship.sound, true);
         },
         frame: (t) => {
-          ship.shot(callShot(ship, m, t));
+          ship.shot(callShot(ship, m, t, st.close ?? 0));
           m.callScreen?.set({ statik: Math.max(0, 1 - t / 0.8) });
           playLines(ship, m, tl, t, st);
           faceRecording(ship, m);
