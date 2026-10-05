@@ -172,6 +172,7 @@ namespace Memento
             if (ok && world == "incal" && deep) yield return IncalToTheEnd();
             else if (ok && world == "garage") yield return GarageStep(q);
             else if (ok && world == "arzach") yield return ArzachStep(q);
+            else if (ok && game.bike && game.bike.kind == "skiff") { yield return SkiffStep(world); yield return HitStep(world, q); }
             else if (ok) yield return HitStep(world, q);
         }
 
@@ -204,6 +205,24 @@ namespace Memento
                 yield return Shoot("arzach_the_towers_balcony");
                 Log($"arzach: over the balcony (landed {bird.landed}), stage {game.quests.Stage(q)}");
             }
+        }
+
+        /// <summary>Lorn's hover-skiff: aboard (B / ○ beside it), out over the swamp's water for a few seconds.</summary>
+        IEnumerator SkiffStep(string world)
+        {
+            var sk = game.bike;
+            PutNear(sk.transform.position, 2.5f); yield return Wait(0.5f);
+            Log($"{world}: beside the skiff, prompt '{game.prompt}'");
+            Interact.All.FirstOrDefault(i => i.id == "bike.ride")?.use(); yield return Wait(0.3f);
+            var goal = game.quests.Objective();
+            if (goal.HasValue) sk.Face(goal.Value.pos);
+            var p0 = sk.transform.position;
+            pad.move = new Vector2(0.15f, 1); yield return Wait(3.5f);
+            yield return Shoot($"{world}_on_the_skiff");
+            pad.move = Vector2.zero; yield return Wait(1f);
+            var ws = Waters.Instance ? Waters.Instance.SurfaceAt(sk.transform.position + Vector3.up * 0.5f) : null;
+            Log($"{world}: the skiff went {Vector3.Distance(p0, sk.transform.position):0} m, at {sk.Speed:0} m/s, {(ws.HasValue ? $"over the water ({sk.transform.position.y - ws.Value:0.0} m up)" : "over the ground")}");
+            sk.Dismount(); yield return Wait(0.5f);
         }
 
         /// <summary>The Hangar's next stage: through the portal to the upside-down quarter (gravity turned: you walk the slab

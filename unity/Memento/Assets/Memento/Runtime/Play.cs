@@ -130,6 +130,13 @@ namespace Memento
                 game.world.Objects.TryGetValue("tarp", out var tarp);
                 game.bike.Init(game, drawn, tarp);
             }
+            // Lorn's hover-skiff (bike.js as a skiff): over the swamp's water
+            if (!desert && game.world.Level?.S("mountKind") == "skiff" && game.world.Objects.TryGetValue("mount", out var skiffObj))
+            {
+                var sgo2 = new GameObject("Skiff"); sgo2.transform.SetParent(worldRoot, false);
+                game.bike = sgo2.AddComponent<Bike>();
+                game.bike.InitSkiff(game, skiffObj);
+            }
             // Vael's bird (bird.js): the world's mount where it is the bird
             if (!desert && game.world.Level?.S("mountKind") == "bird" && game.world.Objects.TryGetValue("mount", out var birdObj))
             {
@@ -224,7 +231,7 @@ namespace Memento
             if (pl.riding) best = null;
             if (best != null) { game.prompt = best.prompt(); game.promptAt = best.at() + Vector3.up * (best.id != null && best.id.StartsWith("talk.") ? 2.25f : 0.8f); }
             // (not from inside a room off the map: the masked head's chamber, the cave)
-            else if (!pl.riding && game.bike && !game.bike.dormant && pl.transform.position.y < 500 && Vector3.Distance(game.bike.transform.position, pl.transform.position) > 8) game.prompt = "whistle for the hoverbike";
+            else if (!pl.riding && game.bike && !game.bike.dormant && pl.transform.position.y < 500 && Vector3.Distance(game.bike.transform.position, pl.transform.position) > 8) game.prompt = $"whistle for the {game.bike.kind}";
             else if (!pl.riding && game.bird && pl.transform.position.y < 900 && Vector3.Distance(game.bird.transform.position, pl.transform.position) > 10) game.prompt = "whistle for the bird";
             if (Pad.InteractDown() && !pl.riding)
             {

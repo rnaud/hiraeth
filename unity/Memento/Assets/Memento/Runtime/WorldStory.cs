@@ -97,7 +97,7 @@ namespace Memento
                 n.route = (p.L("route") ?? new List<object>()).Select(x => x.V3()).ToList();
                 if (n.route.Count == 0) n.route.Add(p.V3("pos"));
                 n.speed = p.F("speed", 1);
-                n.seatHeight = p.Get("seat") is double ? 0 : -1;
+                n.seatHeight = p.Get("seat") is double seat ? (float)seat : -1;
                 n.lines = (p.L("lines") ?? def?.L("lines") ?? new List<object>()).Select(x => x as string).Where(x => x != null).ToList();
                 var rec = FigureLibrary.Instance?.Person(id);
                 if (rec != null) n.Dress(rec);
