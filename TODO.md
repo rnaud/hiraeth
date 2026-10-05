@@ -502,7 +502,10 @@ All of this is for the web game; the Unity port follows later if we move to Unit
   `com.android.webview` 109 (`dumpsys webviewupdate`), and Google's WebView (even Beta) can't replace it.
   Options: launch the game through Chrome (a Trusted Web Activity: Chrome's current engine, updates for free,
   needs Chrome installed) or ship an engine inside the app (GeckoView: self-contained, +50–80 MB). Carry the
-  saves over from the current app once. Decide after measuring WebView 109 against Chrome on the device.
+  saves over from the current app once. Measured (docs/benchmark-web-vs-unity.md, "On the Retroid"): the
+  game's JS costs 21–32 ms a frame in WebView 109 against 12–13 ms in Chrome 154 (V8 10.9 vs 15.4, and the
+  firmware keeps the WebView off the fast cores), so the WebView runs 30–45 fps wherever there are people,
+  Chrome a steady 60 at the same pixels; the load is 21 s against 14 s. Dynamic resolution can't close it.
 
 # Dialogue (2026-10-05)
 
