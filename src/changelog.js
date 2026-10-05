@@ -24,6 +24,8 @@ export const CHANGELOG = [
     'The Lab’s giants, its gallery of faces, have the new bodies and faces too, so the faces you study there are the ones people wear.',
     'The small robed walkers in the References scenes have the new bodies too.',
     'The artist in the atelier has the new body too: every world’s people now do, except the traveller, who keeps his own.',
+    'In the Signal Market the shaded sides of the pink and cream towers turn the street’s cool teal, as in its drawings, instead of a dark brown.',
+    'The References scenes now include the Signal Market: twenty-one views from its eight sheets, the canyon of towers and billboards, the skybridges, the stalls, the cabs and the crowd. Every reference sheet of every world is now in the References.',
   ] },
   { v: '0.69', date: '2026-10-06', items: [
     'Old buildings look worn by time: dirt streaks run down their walls from the tops and sills, patches of plaster have broken away with a little shadow under the edge, longer cracks have a shadow side, and dust darkens the foot of the walls. Each building wears differently. You see it on the desert’s city and domes, the Signal Market’s shops, the houses at home and of the City-Shaft.',

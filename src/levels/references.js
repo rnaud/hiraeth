@@ -10,6 +10,7 @@ import { SKY_STONES_DAY, SKY_STONES_LOOK, SKY_STONES_FLAT } from './arzach2.js';
 import { BURIED_DAY, BURIED_SPOTS } from './buried.js';
 import { SPHERES_DAY, SPHERES_LOOK } from './spheres.js';
 import { DEEP_WOOD_DAY, DEEP_WOOD_LOOK } from './perdide2.js';
+import { MARKET_DAY, MARKET_LOOK } from './bazaar.js';
 import { ReferencePicker } from './reference-picker.js';
 
 // ---------------------------------------------------------------------------
@@ -165,6 +166,7 @@ export const WORLD_LOOKS = {
   buried: { sky: BURIED_DAY, look: { ...BURIED_SPOTS } },
   spheres: { sky: SPHERES_DAY, look: { ...SPHERES_LOOK } },
   lorn2: { sky: DEEP_WOOD_DAY, look: { ...DEEP_WOOD_LOOK } },
+  bazaar: { sky: MARKET_DAY, look: { ...MARKET_LOOK } },
 };
 
 // (built in steps, src/load-steps.js: the game's load gives the main thread back between them)

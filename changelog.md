@@ -21,6 +21,8 @@ The same release notes shown in the game (press **N** or open settings).
 - The Lab’s giants, its gallery of faces, have the new bodies and faces too, so the faces you study there are the ones people wear.
 - The small robed walkers in the References scenes have the new bodies too.
 - The artist in the atelier has the new body too: every world’s people now do, except the traveller, who keeps his own.
+- In the Signal Market the shaded sides of the pink and cream towers turn the street’s cool teal, as in its drawings, instead of a dark brown.
+- The References scenes now include the Signal Market: twenty-one views from its eight sheets, the canyon of towers and billboards, the skybridges, the stalls, the cabs and the crowd. Every reference sheet of every world is now in the References.
 
 ## v0.69 — 2026-10-06
 
