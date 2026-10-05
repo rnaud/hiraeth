@@ -1,0 +1,25 @@
+README.md
+  s_1fd8d0e7b02dcf::t_3f115281e90f92 1956-2047
+TODO.md
+  s_1fd8d0e7b02dcf::t_40f351b4b969de 34-36,38-42,44-49,51-52,55-56,59
+src/locomotion.js
+  s_1fd8d0e7b02dcf::t_6a778911c76c8d 113-119
+src/player.js
+  s_1fd8d0e7b02dcf::t_3096f7453ea69f 1161
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3c9920ed63ed89c268bf593e6c447f196e70c056",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
