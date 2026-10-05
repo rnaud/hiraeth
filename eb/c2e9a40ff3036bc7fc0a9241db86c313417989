@@ -1,0 +1,25 @@
+src/main.js
+  s_1fd8d0e7b02dcf::t_070417794ad970 57,597,1249
+src/ui.js
+  s_1fd8d0e7b02dcf::t_759da61adf65b0 54,110
+src/water-shader.js
+  s_1fd8d0e7b02dcf::t_c7703554f97f7e 42,76,98,121-123,134,136,164-168,184-188,196
+src/water.js
+  s_1fd8d0e7b02dcf::t_2ff9e9d5f58532 300,303,335-343,375,405
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ebc2e9a40ff3036bc7fc0a9241db86c313417989",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
