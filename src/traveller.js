@@ -40,8 +40,10 @@ export const TRAVELLER = {
   // his own face (morph.js FACE_MORPHS, Humanoid.setFace): about twenty-six, so younger and warmer than the
   // people's modelled face (gaunt, long, hollow-cheeked): fuller cheeks, a shorter lower face and nose, a
   // softer brow and jaw, larger eyes, hardly a line on it, a few freckles
-  face: { cheeks: 1, faceLength: 0.9, noseLength: 0.72, noseWidth: 0.94, jaw: 1.1, chin: -0.5, browRidge: -1, eyeSize: 1.15, eyeHeight: 0.15,
-    lines: 0.1, lidWeight: 0.9, mouthWidth: 0.96, freckles: 0.35 },
+  // (on the people's gentler modelled face, humanoid.js reshape: the same face he had on the gaunt one;
+  // `young` keeps his ink as it was, a little over half a child's: face-ink.js faceYouth)
+  face: { cheeks: 0.45, faceLength: 0.94, noseLength: 0.72, noseWidth: 0.94, jaw: 1.1, chin: -0.5, browRidge: -0.8, eyeSize: 1.15, eyeHeight: 0.15,
+    lines: 0.1, lidWeight: 0.9, mouthWidth: 0.96, freckles: 0.35, young: 0.57 },
   // and at rest the corners of his mouth a little up (src/expression.js; the conversations go from there)
   rest: { smile: 0.2 },
 };

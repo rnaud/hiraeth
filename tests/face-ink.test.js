@@ -115,22 +115,32 @@ test('the brows are one stroke each: thick at the inner end, thin at the outer',
   for (const kind of ['m', 'f']) {
     const h = new Humanoid(humans[kind], buildCharacter(), kind);
     const P = h.browMesh.geometry.attributes.position;
+    // (the brows mesh's upper lashes are folded into the eyeballs, out of sight: humanoid.js LASH)
+    const eye = h.eyeMesh.userData.eyeball.center, brow = (i) => P.getY(i) > h.faceRest[0] + 0.004;
+    let folded = 0;
+    for (let i = 0; i < P.count; i++) if (!brow(i)) { folded++; assert.ok(P.getZ(i) < eye[2] + 0.002, `${kind}: a lash left in front of the eye`); }
+    if (kind === 'f') assert.ok(folded > 100, `f: ${folded} lash vertices folded away`);
     let x0 = Infinity, x1 = 0;
-    for (let i = 0; i < P.count; i++) { x0 = Math.min(x0, Math.abs(P.getX(i))); x1 = Math.max(x1, Math.abs(P.getX(i))); }
+    for (let i = 0; i < P.count; i++) if (brow(i)) { x0 = Math.min(x0, Math.abs(P.getX(i))); x1 = Math.max(x1, Math.abs(P.getX(i))); }
+    // the stroke's thickness over a band of it: the spread of y about the band's own straight line (the arch slopes)
     const span = (lo, hi) => {
-      let a = Infinity, b = -Infinity;
+      const pts = [];
       for (let i = 0; i < P.count; i++) {
+        if (!brow(i)) continue;
         const u = (Math.abs(P.getX(i)) - x0) / (x1 - x0);
-        if (u >= lo && u <= hi) { a = Math.min(a, P.getY(i)); b = Math.max(b, P.getY(i)); }
+        if (u >= lo && u <= hi) pts.push([Math.abs(P.getX(i)), P.getY(i)]);
       }
-      return b - a;
+      const n = pts.length, mx = pts.reduce((s, p) => s + p[0], 0) / n, my = pts.reduce((s, p) => s + p[1], 0) / n;
+      const k = pts.reduce((s, p) => s + (p[0] - mx) * (p[1] - my), 0) / Math.max(pts.reduce((s, p) => s + (p[0] - mx) ** 2, 0), 1e-12);
+      const r = pts.map(([x, y]) => y - my - k * (x - mx));
+      return Math.max(...r) - Math.min(...r);
     };
     assert.ok(span(0.05, 0.15) > span(0.85, 0.95) * 1.3, `${kind}: inner ${span(0.05, 0.15).toFixed(4)} m, outer ${span(0.85, 0.95).toFixed(4)} m`);
   }
   // the taper itself, on a plain bar
   const g = new THREE.BoxGeometry(0.04, 0.01, 0.004, 8, 2, 1).translate(0.04, 1.7, 0.09);
   const [kMin, kMax] = taperBrows(g);
-  assert.ok(kMax > 0.5 && kMin < 0.22 && kMin > 0.1);
+  assert.ok(kMax > 0.4 && kMin < 0.2 && kMin > 0.1);
 });
 
 test('an NPC can wear its own face and expression, and stand turned its way', () => {

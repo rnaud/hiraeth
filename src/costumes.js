@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { mulberry32 } from './noise.js';
 import { irisFor } from './eyes.js';
+import { FACE_TYPES, FACE_ODDS } from './morph.js';
+import { REST_MOODS, REST_ODDS, restMood } from './expression.js';
 
 // What the people of each world wear. One table per world (keyed by level id),
 // each with one or more tribes (the City-Shaft's rim and its depths dress
@@ -51,6 +53,8 @@ const DEFAULT = {
   hair: { m: { short: 2, crop: 2, hair: 1 }, f: { long: 4.5, bun: 3.5, tail: 2 } },
   masks: { none: 1 }, body: { none: 1 }, props: { none: 1 }, trim: { none: 1 },
   capes: [0, 0.5, 0.9, 1.2, 1.4], wide: [1, 1], robe: 0, robes: [0.4], flare: [0.28, 0.32], size: [0.95, 1.05],
+  // their faces (dressFor: s.face, s.rest): the shapes (morph.js FACE_TYPES) and the moods at rest (expression.js REST_MOODS)
+  faces: FACE_ODDS, moods: REST_ODDS,
   palette: {
     cloaks: ['#c8483a', '#5fb7ad', '#d8a24a', '#8a6fb8', '#e6875f', '#f3ead8', '#62c3c9', '#e88fa6', '#697a98', '#dca273', '#84bab3', '#c3a9cc'],
     tunics: ['#343a56', '#5a4a3a', '#3f6f6a', '#6a3a4a', '#e2d3b4', '#4a5a3a'],
@@ -66,6 +70,7 @@ const tribe = (o) => ({ ...DEFAULT, ...o, palette: { ...DEFAULT.palette, ...o.pa
 export const COSTUMES = {
   desert: { tribes: [tribe({
     name: 'pilgrims of the dunes',
+    faces: { plain: 4, round: 2, long: 1.5, elder: 1.5 },
     heads: { headcloth: 4, sunhat: 3, wrap: 2, hair: 1 }, headsF: { headcloth: 4, wrap: 2.5, sunhat: 1.5, hair: 1.8 }, as: { hood: 'headcloth', hat: 'sunhat', wrap: 'wrap' },
     // close crops and tight curls, the women's hair braided or down
     hair: { m: { crop: 3, curls: 2.5, shaved: 1.5 }, f: { braid: 3, flow: 2, bun: 1.5, curls: 1 } },
@@ -84,6 +89,7 @@ export const COSTUMES = {
   incal: { tribes: [
     tribe({
       name: 'the rim', when: (c) => zoneIncal(c) === 'rim' || zoneIncal(c) === 'upper',
+      moods: { amused: 3, curious: 2.5, kind: 2.5, calm: 1, stern: 0.6 },
       heads: { tophat: 4, spire: 3, hair: 1.5 }, headsF: { spire: 3, tophat: 2, hair: 2.5 }, as: { hat: 'tophat', hood: 'spire', wrap: 'spire' },
       // the rim's fashion: swept back, bobbed, pinned up
       hair: { m: { swept: 3, short: 1.5 }, f: { bob: 3, bun: 2.5 } },
@@ -116,6 +122,7 @@ export const COSTUMES = {
     }),
     tribe({
       name: 'the bottom of the shaft',
+      faces: { plain: 4, round: 1, long: 2, elder: 1.5 }, moods: { kind: 3, calm: 3, curious: 1.5, amused: 1, stern: 1 },
       heads: { raghood: 5, hood: 2, hair: 1 }, as: { hood: 'raghood', hat: 'raghood', wrap: 'raghood' },
       // the bottom of the shaft: shaved for the lice, or tied back out of the way
       hair: { m: { shaved: 2.5, crop: 1.5, bald: 1 }, f: { tail: 2, shaved: 1 } },
@@ -134,6 +141,7 @@ export const COSTUMES = {
   ] },
   arzach: { tribes: [tribe({
     name: 'the silent ones',
+    moods: { calm: 4, kind: 3, curious: 1.5, amused: 0.5, stern: 0.6 },
     heads: { cowl: 6, hood: 1 }, as: { hood: 'cowl', hat: 'cowl', wrap: 'cowl', hair: 'cowl' },
     hair: { m: { shaved: 1 }, f: { shaved: 1 } },
     masks: { beak: 4, none: 1 }, body: { scarf: 4, none: 1 }, props: { staff: 2, none: 2 }, trim: { none: 1 },
@@ -150,6 +158,7 @@ export const COSTUMES = {
   })] },
   arzach2: { tribes: [tribe({
     name: 'the bell monastery',
+    faces: { plain: 3, long: 2, round: 1.5, elder: 2 }, moods: { kind: 3, calm: 3, curious: 1, amused: 1, stern: 1 },
     heads: { cowl: 3, short: 1.4, hood: 1 }, as: { hood: 'cowl', hat: 'cowl', wrap: 'cowl', hair: 'short' },
     // the bell monastery: tonsures and shaved heads, the sisters' hair in one braid
     hair: { m: { tonsure: 3, shaved: 1.5, bald: 1 }, f: { braid: 2, shaved: 1 } },
@@ -167,6 +176,7 @@ export const COSTUMES = {
   })] },
   garage: { tribes: [tribe({
     name: 'the Major’s mechanics',
+    moods: { amused: 3.5, kind: 3, curious: 2, calm: 0.5, stern: 0.6 },
     heads: { antenna: 5, hair: 1.3 }, as: { hat: 'antenna', hood: 'antenna', wrap: 'antenna' },
     // the mechanics: crests, swept quiffs, two buns
     hair: { m: { crest: 3, swept: 2 }, f: { twin: 3, crest: 1 } },
@@ -184,6 +194,7 @@ export const COSTUMES = {
   })] },
   buried: { tribes: [tribe({
     name: 'the dome people',
+    moods: { curious: 3.5, kind: 3, amused: 1.5, calm: 1, stern: 0.3 },
     heads: { padded: 5, hood: 1 }, as: { hood: 'padded', hat: 'padded', wrap: 'padded' },
     hair: { m: { crop: 3, curls: 2 }, f: { bun: 3, curls: 1.5 } },
     masks: { breather: 4, goggles: 1, none: 1 }, body: { pauldrons: 3, none: 2 }, props: { none: 4, lantern: 1 }, trim: { stripes: 2, none: 1 },
@@ -200,6 +211,7 @@ export const COSTUMES = {
   })] },
   edena: { tribes: [tribe({
     name: 'the gardeners',
+    faces: { plain: 3, round: 3, long: 1, elder: 1 }, moods: { kind: 4.5, amused: 2.5, curious: 1.5, calm: 1.5, stern: 0 },
     heads: { flowers: 5, hair: 2 }, as: { hood: 'flowers', hat: 'flowers', wrap: 'flowers' },
     // the gardeners wear it long and loose
     hair: { m: { long: 2.5, curls: 2, tail: 1.5 }, f: { flow: 4, curls: 1.5, braid: 1.5 } },
@@ -217,6 +229,7 @@ export const COSTUMES = {
   })] },
   spheres: { tribes: [tribe({
     name: 'the listeners',
+    moods: { calm: 3, curious: 3, kind: 3, amused: 0.5, stern: 0.3 },
     heads: { orb: 6, hair: 1.4 }, as: { hood: 'orb', hat: 'orb', wrap: 'orb' },
     // the listeners: bare heads (their ears clear) and buns
     hair: { m: { bald: 2, swept: 1.5 }, f: { twin: 2.5, bun: 2 } },
@@ -234,6 +247,7 @@ export const COSTUMES = {
   })] },
   perdide: { tribes: [tribe({
     name: 'the swamp people',
+    faces: { plain: 3, round: 2, long: 1, elder: 2 }, moods: { amused: 3, kind: 3, curious: 1.5, calm: 1, stern: 0.5 },
     heads: { reeds: 4, hood: 1, hair: 1.3 }, as: { hat: 'reeds', wrap: 'reeds', hood: 'reeds' },
     // the swamp people: locks and braids
     hair: { m: { locks: 3, shaved: 1 }, f: { locks: 2, braid: 2.5 } },
@@ -251,6 +265,7 @@ export const COSTUMES = {
   })] },
   perdide2: { tribes: [tribe({
     name: 'the lamp-keepers',
+    moods: { kind: 4.5, calm: 2, curious: 1.5, amused: 1, stern: 0.2 },
     heads: { lamphat: 5, hood: 1 }, as: { hat: 'lamphat', wrap: 'lamphat', hood: 'lamphat' },
     hair: { m: { tail: 2, locks: 2 }, f: { long: 3, braid: 2 } },
     masks: { none: 1 }, body: { mantle: 2, none: 2 }, props: { lamppole: 3, lantern: 2, none: 1 }, trim: { none: 1 },
@@ -267,6 +282,7 @@ export const COSTUMES = {
   })] },
   bazaar: { tribes: [tribe({
     name: 'the market',
+    moods: { amused: 3, kind: 3, curious: 2.5, calm: 1, stern: 0.6 },
     heads: { turban: 4, fez: 2, wrap: 1, hair: 1.4 }, headsF: { turban: 3, wrap: 2, fez: 1, hair: 2.4 }, as: { wrap: 'turban', hat: 'fez', hood: 'turban' },
     // the market: curls and close crops, braids and loose hair
     hair: { m: { curls: 3, crop: 2, shaved: 1.5, bald: 0.8 }, f: { braid: 2.5, curls: 2, flow: 2, bun: 1.5 } },
@@ -284,6 +300,7 @@ export const COSTUMES = {
   })] },
   home: { tribes: [tribe({
     name: 'home',
+    moods: { kind: 5, amused: 2, curious: 1, calm: 1, stern: 0 },
     heads: { cap: 1, band: 1 }, as: { wrap: 'band', hat: 'cap', hood: 'cap' },
     hair: { m: { short: 2, crop: 1 }, f: { long: 2, bun: 1 } },
     masks: { none: 1 }, body: { none: 1 }, props: { none: 1 }, trim: { none: 1 },
@@ -401,7 +418,33 @@ export function dressFor(world, rng, { palette = {}, lists = {}, head = null, ca
   // their eyes' colour: seeded by the rest of the look, not drawn from rng, so the looks drawn after
   // this one from the same stream (a crowd's) are what they were
   s.eyes = palette.eyes ?? look.eyes ?? irisFor(mulberry32(hashSeed(`${s.skin}|${s.hair}|${s.cloak}|${s.height}|${s.capeWide}`)));
+  // their face and the mood it rests in (the same way: their own stream, the others' looks untouched)
+  Object.assign(s, faceFor(T, mulberry32(hashSeed(`face|${s.eyes}|${s.skin}|${s.cloak}|${s.height}|${s.flare}`)), look));
   return s;
+}
+
+/**
+ * A person's face (morph.js FACE_MORPHS: one of the tribe's shapes, FACE_TYPES, with their own ink: age
+ * lines, mouth width, now and then freckles) and their expression at rest (one of the tribe's moods,
+ * REST_MOODS: most people kind, amused or curious, a few calm or stern). `look.faceType` / `look.face` /
+ * `look.mood`: the story's own. Returns { faceType, face, mood, rest }.
+ */
+export function faceFor(T, rng, look = {}) {
+  const faceType = look.faceType ?? weighted(rng, T?.faces ?? FACE_ODDS);
+  const shape = FACE_TYPES[faceType] ?? {};
+  const lines = shape.lines ?? +(0.4 + rng() * 0.6).toFixed(2);
+  const mouthWidth = +(0.92 + rng() * 0.16).toFixed(2);
+  const freckles = rng() < 0.12 ? +(0.25 + rng() * 0.4).toFixed(2) : 0;
+  const face = look.face ?? { ...shape, lines, mouthWidth, ...(freckles ? { freckles } : {}) };
+  const mood = look.mood ?? restMood(rng(), T?.moods ?? REST_ODDS);
+  return { faceType, face, mood, rest: { ...REST_MOODS[mood] } };
+}
+
+/** How far the brows' colour goes from the hair toward the skin. */
+export const BROW_SOFT = 0.38;
+/** The brows' colour: the hair's, softened toward the skin (lighter, less of a dark bar over the eyes). */
+export function browColour(hair = '#4a3226', skin = '#d9a98a') {
+  return '#' + new THREE.Color(hair).lerp(new THREE.Color(skin), BROW_SOFT).getHexString();
 }
 
 /** The hairstyle a tribe gives a bare head of this kind, for a draw u (0..1): tribe.hair (costumes.js DEFAULT). */

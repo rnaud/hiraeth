@@ -2,6 +2,15 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.59 — 2026-10-05
+
+- People look kinder: most now rest with a slight smile and easy, open eyes, and each has a mood of their own (kind, amused, curious, calm; a few stern, like the palace and Qanat gate guards).
+- Softer faces: lighter, finer eyebrows, the heavy double line over the eyes gone, fewer hollow cheeks and long jaws, fewer lines on younger faces (elders keep theirs).
+- The corners of the mouth no longer turn down at rest; sad faces still look sad.
+- Shadows on faces and necks are warm skin tones instead of blue-violet, and the whites of the eyes stay warm in shade.
+- Every people now has its own range of faces, rounder, longer or lined, with the odd freckled face in the crowd.
+- Your parents’ holograms look gentler too.
+
 ## v0.58 — 2026-10-05
 
 - The browser game has an additional Cloudflare hosting target, alongside GitHub Pages.

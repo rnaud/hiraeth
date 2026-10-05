@@ -81,7 +81,7 @@ const CLOTHES = [{ cloak: '#d8a24a', cloth: '#f3ead8', legs: '#2b2f45' }, { cloa
   { cloak: '#5fb7ad', cloth: '#5a4a3a', legs: '#3a3a3a' }, { cloak: '#c8483a', cloth: '#f3ead8', legs: '#2b211f' }];
 export const LAB_FACES = [
   { variant: 'As modelled', tone: 'neutral', kind: 'm', head: 'short' },
-  { variant: 'As modelled', tone: 'happy', kind: 'f', head: 'bob' },
+  { variant: 'Kind', tone: 'happy', kind: 'f', head: 'bob' },
   { variant: 'Gaunt elder', tone: 'solemn', kind: 'm', head: 'bald' },
   { variant: 'Round, young', tone: 'playful', kind: 'f', head: 'twin' },
   { variant: 'Sharp', tone: 'angry', kind: 'm', head: 'crop' },

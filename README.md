@@ -2756,7 +2756,7 @@ The Sealed Hangar, The Lodestar, Viridel): flat colour, one shadow tone, very fe
   the lower lid and at the tear duct. The nose: one line down the shadow side of the bridge into a
   hook round the wing (`uMood2.y`, the side turned from the sun: `Humanoid.updateNoseSide`), a
   lighter hook on the lit side, two dark nostrils. The mouth: a single line with a tick at each
-  corner (down at rest, up with a smile), a lower-lip tick, the dark opening; an arc over the chin.
+  corner (level at rest, up with a smile, down when sad: see Warmer faces), a lower-lip tick, the dark opening; an arc over the chin.
   The ears: a curl round the rim and one inside. Sparse hatching that follows the face: the inner
   socket, under the brow's end, the hollow under the cheekbone (more on hollow cheeks: `uFaceKit2.z`),
   under the lip, a few dashes along the shadow's edge. Age lines by `lines`: bags, crow's feet, the
@@ -2802,6 +2802,38 @@ The Sealed Hangar, The Lodestar, Viridel): flat colour, one shadow tone, very fe
 - `tests/face-ink.test.js`: the detail steps, the nose's side, the shaders, the uniforms on a body,
   the brows' taper, an NPC's own face and facing, the gallery (every variant, facing the hub, the
   walk solid in front of each face, the ramp).
+
+### Warmer faces
+
+The people read somber: long hollow-cheeked faces, heavy dark brows, half-shut lids, mouth corners
+ticked down and a blue-violet shade over the skin. They stay ligne claire, but kind by default now.
+
+- **A face at rest is a kind one** (`src/expression.js`): `PEOPLE_REST` (a slight smile, the brows a touch
+  raised) is every body's `restExpression`, and each person rests in a mood of their own (`REST_MOODS`:
+  kind, amused, curious, calm, stern), drawn from their people's odds (`costumes.js` tribe `moods`; most
+  kind, amused or curious; the bell monks and the bottom of the shaft a little sterner; the two gate guards,
+  Haro and Dov, stern by design: `look.mood`). A tone goes from there and back, so sad and angry still read.
+- **Their face comes with their look** (`costumes.js faceFor`, seeded on its own stream so the rest of a
+  look is what it was): a shape of their people's (`morph.js FACE_TYPES`: as modelled, rounder, longer, an
+  elder's lines; few, as each is a warped copy of the body), their own age lines, mouth width and now and
+  then freckles. `NPC.restyle` puts it on, crowd bodies too (the last face's brow copy is let go); a story or
+  spawn face (`def.face`, `def.rest`) still wins. `FACE_PRESETS` are gentler, with a new *Kind* one.
+- **The modelled face is gentler** (`humanoid.js reshape`): the lower face 17% longer, not 22
+  (`LOWER_FACE`), lean cheeks instead of hollow ones, a lighter brow ridge, and the upper lids lifted off the
+  irises (`UPPER_LID`; the eyeball's own lid rests out of sight under the rim, the eyes reach up less,
+  `EYE_REACH`), so the eyes are open, with a clearer catchlight (`eyes.js`).
+- **Brows** are a finer stroke (`taperBrows`), the hair's colour softened toward the skin (`browColour`), and
+  the model's upper lashes, which the brow mesh carried and the taper pulled into a second heavy arc over the
+  eye, are folded away (`LASH`).
+- **The ink** (`face-ink.js`): the mouth's corner ticks are level or up at rest and go down only when sad
+  (`MOUTH_CORNER`); a lighter lid crease; age lines start further up the range (an ordinary face is smooth,
+  an elder's lined); the smile's own marks (crow's feet, bags, folds) only past the resting smile; forehead
+  lines only past the brows' resting lift; less hatching in the sockets and under the cheekbones.
+- **A warm shade** (`post.js FACE_SHADE`): a face's pixels (the skin, the neck under it, the eyes' whites)
+  are shaded in the world's shadow tint's darkness turned to a warm skin tone, not its blue-violet; less so
+  at night. The parents' holograms draw a lighter lid and a mouth a little up.
+- `tests/warm-faces.test.js`; `tests/face-ink.test.js` checks the lashes are folded and measures the brows'
+  taper across the stroke.
 
 ### Qanat's tree ledge, solid terraces, and the dry cave
 - **The makers' ledge** (`src/desert-city.js`, `city.ledge`): the backpack's box no longer

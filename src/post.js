@@ -37,6 +37,13 @@ export const DEBUG_VIEWS = {
   'Drawn detail (faces, glyphs)': 8,
 };
 
+/**
+ * A face's shade (gHatch.a face flag): the world's shadow tint's darkness in a warm skin tone
+ * (`tone`, multiplied: about as dark as the tint, redder), `warm` of the way from the tint to it,
+ * `night` of that given back at night (a face in moonlight is still the night's colour).
+ */
+export const FACE_SHADE = { tone: 'vec3(1.13, 0.93, 0.8)', warm: '0.72', night: '0.6' };
+
 const vertexShader = /* glsl */ `
   out vec2 vUv;
   void main() {
@@ -584,7 +591,11 @@ const fragmentShader = /* glsl */ `
       float L = A.a;
       float lit = smoothstep(uToon - 0.01, uToon + 0.01, L);
       // during the sun -> moon hand-over both tones converge, so shadows fade
-      vec3 shade = mix(albedo * uShadowTint, albedo * uLightTint, uFlatten);
+      // a face's shade (its skin, its eyes' whites) is a warm darker tone of itself, not the world's
+      // blue-violet shadow: the shadow tint's own darkness, turned warm (less so at night)
+      vec3 shadowTint = uShadowTint;
+      if (face > 0.5) shadowTint = mix(shadowTint, dot(shadowTint, vec3(0.3, 0.55, 0.15)) * ${FACE_SHADE.tone}, ${FACE_SHADE.warm} * (1.0 - ${FACE_SHADE.night} * uNight));
+      vec3 shade = mix(albedo * shadowTint, albedo * uLightTint, uFlatten);
       // self-lit surfaces (gHatch.a) keep their colour at night and glow a little
       float glow = surface.a - 2.0 * hero;
       col = mix(shade, albedo * mix(uLightTint, vec3(1.12), glow), lit);

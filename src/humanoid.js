@@ -8,10 +8,10 @@ import { makeMaterial, MODE_OUTFIT, MODE_EYE } from './materials.js';
 import { EAR_Z, noseSide, faceYouth } from './face-ink.js';
 import { EyeLook, EYE_WHITE, EYE_TILT, TRAVELLER_IRIS, eyeballOf } from './eyes.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { lookPieces, roleColor, BUILDS } from './costumes.js';
+import { lookPieces, roleColor, BUILDS, browColour } from './costumes.js';
 import { suitGeometry, travellerKit, TRAVELLER } from './traveller.js';
 import { BUILD_SHAPE, radialFactors, boneMorph, warpFace, faceLandmarks, browPositions, plainGeometry, morphKey, cleanMorph, isNeutral, FACE_MORPHS, NEUTRAL_FACE } from './morph.js';
-import { cleanExpression, NEUTRAL_EXPRESSION } from './expression.js';
+import { cleanExpression, NEUTRAL_EXPRESSION, PEOPLE_REST } from './expression.js';
 import { sharedUniforms } from './materials.js';
 
 // A real human body (Quaternius' Universal Base Characters, CC0) dressed in
@@ -41,8 +41,24 @@ export const FACE = { m: [1.699, 0.032, 1.657, 0.115, 1.577], f: [1.656, 0.032, 
 // Turn the stock "superhero" into a gaunt Moebius figure, in the rest pose:
 //  - slim: every vertex is pulled toward the bones it's skinned to (weighted,
 //    so joints stay smooth); the shoulders come in by moving the arm bones;
-//  - face: narrower and longer, a long straight nose, hollow cheeks, a heavy
-//    brow. The ink lines of the face are drawn by the material (outfit mode).
+//  - face: narrower and longer, a long straight nose, lean (not hollow) cheeks,
+//    a firm brow, the upper lids a little lifted (open, friendly eyes). The ink
+//    lines of the face are drawn by the material (outfit mode).
+
+/** How much longer the reshape makes the face below the eyes (was 1.22: long, somber faces). */
+export const LOWER_FACE = 1.17;
+/** How far (m) the reshape lifts the upper lids' rims off the irises (eyes a touch more open). */
+export const UPPER_LID = 0.0018;
+/**
+ * The brows mesh's upper lashes: its vertices near an eyeball (within `rim` of its radii) and under
+ * `y` m over its centre (both bodies' brows start higher: the man's at 8.3 mm, the woman's at 15).
+ */
+export const LASH = { rim: 1.75, y: 0.0078 };
+/** How far a point is from an eyeball's centre, in its radii (eyes.js eyeballOf; the near eye of the pair). */
+function rimOf(ball, x, y, z) {
+  const [cx, cy, cz] = ball.center, [rx, ry, , rz] = ball.radii;
+  return Math.hypot((x - Math.sign(x) * cx) / rx, (y - cy) / ry, (z - cz) / rz);
+}
 
 // radial factor per bone, and the bone that ends its segment
 const SLIM = [
@@ -57,15 +73,19 @@ const SHOULDER_IN = { m: 0.045, f: 0.02 };
 
 /**
  * Eyebrows drawn as one pen stroke each (the Moebius way): pulled toward their own arched centre
- * line, about half as tall as modelled at the inner end and tapering to a fifth at the outer end.
+ * line, a little under half as tall as modelled at the inner end and tapering to a sixth at the outer
+ * end (a fine stroke: a heavy dark bar over the eyes read as a scowl).
+ * `brow(i)`: whether vertex i is the brow's (the model's brow mesh has the upper lashes in it too:
+ * they are left out of the fit and the taper, reshape() folds them away).
  * (In place, on the shared template's geometry; returns the thickness factor's range for tests.)
  */
-export function taperBrows(g) {
+export function taperBrows(g, brow = () => true) {
   const P = g.attributes.position;
   // the brow's centre line: y = c0 + c1 |x| + c2 |x|^2, least squares over all its vertices
   const S = [0, 0, 0, 0, 0], T = [0, 0, 0];
   let x0 = Infinity, x1 = 0;
   for (let i = 0; i < P.count; i++) {
+    if (!brow(i)) continue;
     const x = Math.abs(P.getX(i)), y = P.getY(i);
     let xp = 1;
     for (let k = 0; k < 5; k++) { S[k] += xp; if (k < 3) T[k] += xp * y; xp *= x; }
@@ -75,8 +95,9 @@ export function taperBrows(g) {
   const span = Math.max(x1 - x0, 1e-6);
   let kMin = Infinity, kMax = 0;
   for (let i = 0; i < P.count; i++) {
+    if (!brow(i)) continue;
     const x = Math.abs(P.getX(i)), cy = c[0] + c[1] * x + c[2] * x * x, u = (x - x0) / span;
-    const k = 0.55 - 0.36 * Math.pow(u, 1.3);
+    const k = 0.44 - 0.31 * Math.pow(u, 1.2);
     kMin = Math.min(kMin, k); kMax = Math.max(kMax, k);
     P.setY(i, cy + (P.getY(i) - cy) * k);
   }
@@ -90,10 +111,10 @@ function solve3(A, b) {
   return [0, 1, 2].map((j) => det(A.map((row, r) => row.map((v, k) => (k === j ? b[r] : v)))) / D);
 }
 
-/** Landmarks after reshape(): the lower face is 22% longer, x narrowed 10%. */
-function faceAfterReshape(kind) {
+/** Landmarks after reshape(): the lower face is longer (LOWER_FACE), x narrowed 10%. */
+export function faceAfterReshape(kind) {
   const [eyeY, eyeX, noseY, noseZ, chinY] = FACE[kind];
-  const longer = (y) => eyeY + (y - eyeY) * 1.22;
+  const longer = (y) => eyeY + (y - eyeY) * LOWER_FACE;
   return [eyeY, eyeX * 0.9, longer(noseY), noseZ, longer(chinY)];
 }
 
@@ -123,11 +144,21 @@ function reshape(scene, kind) {
   const headI = idx.get('Head');
   const shoulderIn = SHOULDER_IN[kind];
   const v = new THREE.Vector3(), out = new THREE.Vector3(), c = new THREE.Vector3(), ab = new THREE.Vector3();
+  // the eyeballs as modelled (for the lids: below)
+  const ball = eyeMesh ? eyeballOf(eyeMesh.geometry, eyeY) : null;
 
   for (const mesh of meshes) {
     const g = mesh.geometry;
     const isBrow = /hair/i.test(mesh.material?.name ?? '');
-    if (isBrow) taperBrows(g);
+    const isEye = mesh === eyeMesh;
+    // the brows mesh: the brows, and the upper lashes hugging the eyeballs (LASH). The lashes go
+    // (folded into the eyeball's centre, out of sight): they were a second heavy arc over each eye,
+    // and the eye's own lash line is the eyeball's (materials.js eyeball)
+    if (isBrow) {
+      const Pb = g.attributes.position, lash = (i) => ball && Pb.getY(i) - ball.center[1] < LASH.y && rimOf(ball, Pb.getX(i), Pb.getY(i), Pb.getZ(i)) < LASH.rim;
+      taperBrows(g, (i) => !lash(i));
+      for (let i = 0; i < Pb.count; i++) if (lash(i)) Pb.setXYZ(i, Math.sign(Pb.getX(i)) * ball.center[0], ball.center[1], ball.center[2]);
+    }
     const P = g.attributes.position, J = g.attributes.skinIndex, W = g.attributes.skinWeight;
     for (let i = 0; i < P.count; i++) {
       v.fromBufferAttribute(P, i);
@@ -158,21 +189,28 @@ function reshape(scene, kind) {
       // the face
       if (headW > 0.3) {
         const k = THREE.MathUtils.smoothstep(headW, 0.3, 0.8);
+        // the upper lids a little lifted (UPPER_LID): the lid's rim off the top of the iris, so the
+        // eyes are open and easy, not hooded; the corners and the crease above move less
+        if (ball && !isEye && !isBrow) {
+          const ex = v.x - Math.sign(v.x) * ball.center[0], ey = v.y - ball.center[1], ez = v.z - ball.center[2];
+          const rim = rimOf(ball, v.x, v.y, v.z);
+          if (ey > 0 && ez > 0) v.y += UPPER_LID * k * THREE.MathUtils.smoothstep(ey, 0, 0.002) * (1 - THREE.MathUtils.smoothstep(rim, 1.1, 1.7)) * (1 - THREE.MathUtils.smoothstep(Math.abs(ex), 0.009, 0.015));
+        }
         let x = v.x * (1 - 0.1 * k), y = v.y, z = v.z;
-        if (y < eyeY) y = eyeY + (y - eyeY) * (1 + 0.22 * k);                       // longer lower face
+        if (y < eyeY) y = eyeY + (y - eyeY) * (1 + (LOWER_FACE - 1) * k);           // longer lower face
         const front = THREE.MathUtils.smoothstep(z, noseZ - 0.045, noseZ - 0.01);
         // long straight nose: a ridge from between the eyes to below the old tip
         const along = THREE.MathUtils.clamp((eyeY - 0.004 - y) / (eyeY - noseY + 0.012), 0, 1);
         const ridge = Math.exp(-((v.x / 0.013) ** 2)) * front * Math.sin(Math.PI * Math.min(along * 1.05, 1)) ** 0.6;
         z += ridge * 0.009 * k;
         y -= ridge * along * 0.004 * k;
-        // hollow cheeks under the cheekbones
+        // lean cheeks under the cheekbones (a little in: hollow cheeks are an elder's, FACE_PRESETS)
         const cheek = Math.exp(-(((Math.abs(v.x) - 0.052) / 0.016) ** 2) - (((y - (noseY - 0.018)) / 0.02) ** 2));
-        z -= cheek * 0.008 * k;
-        x -= Math.sign(v.x) * cheek * 0.005 * k;
-        // heavy brow
+        z -= cheek * 0.0035 * k;
+        x -= Math.sign(v.x) * cheek * 0.002 * k;
+        // a firm brow
         const brow = Math.exp(-(((y - (eyeY + 0.017)) / 0.008) ** 2)) * THREE.MathUtils.smoothstep(z, 0.03, 0.07);
-        z += brow * 0.002 * k;
+        z += brow * 0.0012 * k;
         // a stronger, narrower chin
         const chin = Math.exp(-((v.x / 0.02) ** 2) - (((y - chinY) / 0.02) ** 2));
         z += chin * 0.006 * k;
@@ -306,7 +344,8 @@ export class Humanoid {
     model.traverse((o) => { if (o.isMesh && /eye/i.test(o.name) && !/brow/i.test(o.name) && !eyeball) eyeball = o.userData.eyeball ?? null; });
     const eyes = makeMaterial({ color: EYE_WHITE, color2: outfit ? TRAVELLER_IRIS : '#5e3a24', mode: MODE_EYE, skin, eye: eyeball ? { ...eyeball, iris: 0.4 } : undefined, figure: true });
     this.eyeLook = new EyeLook();
-    const brows = makeMaterial({ color: hair, figure: true, facePart: true });   // (one flat stroke each: no hatching inside)
+    // (one flat stroke each: no hatching inside; the hair's colour softened toward the skin, costumes.js browColour)
+    const brows = makeMaterial({ color: outfit ? hair : browColour(hair, skin), figure: true, facePart: true });
     model.traverse((o) => {
       if (!o.isMesh) return;
       const isBrow = /brow/i.test(o.name) || /hair/i.test(o.material?.name ?? '');
@@ -372,11 +411,12 @@ export class Humanoid {
     this.dressRig();
     // a face with shape keys wears its expressions on them (the MakeHuman prototype: src/makehuman/face-keys.js)
     this.faceKeys = prof?.faceKeys ? prof.faceKeys(this) : null;
-    // the traveller's own face and its rest (traveller.js TRAVELLER.face / rest); everyone else's is as modelled
+    // the traveller's own face and its rest (traveller.js TRAVELLER.face / rest); everyone else's face is
+    // as modelled (or their look's: NPC.restyle) and rests kindly (expression.js PEOPLE_REST: a slight smile)
     this.ownFace = outfit ? TRAVELLER.face : null;
-    this.restExpression = outfit ? TRAVELLER.rest : null;
+    this.restExpression = cleanExpression(outfit ? TRAVELLER.rest : PEOPLE_REST);
     if (this.ownFace) this.setFace(this.ownFace);
-    if (this.restExpression) this.setExpression(this.restExpression);
+    this.setExpression(this.restExpression);
   }
 
   /** Hide the rig's own body; move hood, collar, jetpack and satchel onto the human. */
@@ -539,9 +579,15 @@ export class Humanoid {
     if (brows) {
       brows.userData.baseGeometry ??= brows.geometry;
       const g = this.face ? this.warped(brows, brows.userData.baseGeometry) : brows.userData.baseGeometry;
-      // (brows with shape keys of their own keep them: the expression moves them, not poseBrows)
+      // (brows with shape keys of their own keep them: the expression moves them, not poseBrows; any other
+      // body gets its own copy, re-made for each face: a crowd body takes a new person's face often, so the last copy goes)
+      const old = brows.geometry;
       brows.geometry = this.faceKeys?.brows ? g : plainGeometry(g);
-      if (!this.faceKeys?.brows) this._browBase = Float32Array.from(brows.geometry.attributes.position.array);
+      if (!this.faceKeys?.brows) {
+        brows.geometry.userData.ownBrows = true;
+        this._browBase = Float32Array.from(brows.geometry.attributes.position.array);
+      }
+      if (old !== brows.geometry && old?.userData.ownBrows) old.dispose();
     }
     const u = this.body?.material.uniforms;
     if (u?.uFace) {
@@ -584,6 +630,7 @@ export class Humanoid {
       if (!force && !e.brow && !e.browTilt) return;   // (never touched: the shared geometry stays)
       b.userData.baseGeometry ??= b.geometry;
       b.geometry = plainGeometry(b.geometry);   // (the model's arrays are interleaved)
+      b.geometry.userData.ownBrows = true;
       this._browBase = Float32Array.from(b.geometry.attributes.position.array);
     }
     const P = b.geometry.attributes.position, base = this._browBase;

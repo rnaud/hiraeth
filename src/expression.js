@@ -39,6 +39,39 @@ export const TONE_EXPRESSIONS = {
 };
 for (const t of TONES) TONE_EXPRESSIONS[t] ??= {};
 
+/**
+ * The people's faces at rest (Humanoid.restExpression): a kind face, not a somber one. The corners
+ * of the mouth a little up, the brows a touch raised (never knitted), the lids easy. A tone (the
+ * conversations, expressionFor) goes from there and comes back to it. (The inner ends of the brows a
+ * hair up: a head bowed a little, seen from level, otherwise reads as a frown, its brows' outer ends
+ * wrapping back round the skull.)
+ */
+export const PEOPLE_REST = Object.freeze({ smile: 0.2, open: 0, brow: 0.14, browTilt: 0.1, squint: 0, gaze: null });
+
+/**
+ * Resting moods a person can have (costumes.js: a tribe's `moods`, weights; drawn per person by
+ * restMood): most people kind, curious or amused, a few calm, and some stern ones by design (guards,
+ * the bell monks). Each is a whole expression at rest.
+ */
+export const REST_MOODS = {
+  kind: { smile: 0.22, brow: 0.14, browTilt: 0.12 },
+  amused: { smile: 0.34, brow: 0.1, browTilt: 0.08, squint: 0.12 },
+  curious: { smile: 0.14, brow: 0.3, browTilt: 0.1 },
+  calm: { smile: 0.1, brow: 0.06, browTilt: 0.06, squint: 0.05 },
+  stern: { smile: -0.05, brow: -0.18, squint: 0.1 },
+};
+/** The moods' odds when a tribe doesn't say. */
+export const REST_ODDS = { kind: 4, amused: 2, curious: 2, calm: 1.5, stern: 0.4 };
+
+/** A resting mood for a draw u (0..1) from weights ({ mood: weight }): its name. */
+export function restMood(u, odds = REST_ODDS) {
+  const list = Object.entries(odds ?? REST_ODDS).filter(([k, w]) => REST_MOODS[k] && w > 0);
+  const sum = list.reduce((a, [, w]) => a + w, 0);
+  let t = u * sum;
+  for (const [k, w] of list) if ((t -= w) <= 0) return k;
+  return list.length ? list[list.length - 1][0] : 'kind';
+}
+
 /** A full expression from a partial one (clamped). */
 export function cleanExpression(e = {}) {
   const out = { ...NEUTRAL_EXPRESSION };

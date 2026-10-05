@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { TalkFace, TalkFaces, TALK_FACE, syllableOpen, syllableEnvelope, mouthAt } from '../src/talk-face.js';
 import { planLine, voiceOf, VOWELS } from '../src/story/voice.js';
-import { TONE_EXPRESSIONS } from '../src/expression.js';
+import { TONE_EXPRESSIONS, PEOPLE_REST } from '../src/expression.js';
 import { GameState } from '../src/game-state.js';
 import { Quests } from '../src/story/quests.js';
 import { Dialogue } from '../src/story/dialogue.js';
@@ -132,7 +132,7 @@ test('on a body: the face ink and the brows follow, the brows only when they mov
   for (let i = 0; i < 40; i++) f.update(1 / 60, { speaking: true, tone: 'surprised', mouth: i % 2 });
   assert.ok(a.body.material.uniforms.uMood.value.z > 0.8, 'the brow raised in the ink');
   if (shared) assert.notEqual(a.body.material, b.body.material, 'its own material, the other body untouched');
-  assert.equal(b.body.material.uniforms.uMood.value.z, 0);
+  assert.equal(b.body.material.uniforms.uMood.value.z, PEOPLE_REST.brow, 'the other at rest: a kind face (expression.js PEOPLE_REST)');
   // the mouth on the syllables doesn't re-pose the brows' geometry every frame
   const P = a.browMesh.geometry.attributes.position;
   const v0 = P.version;

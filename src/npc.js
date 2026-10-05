@@ -6,12 +6,12 @@ import { Humanoid } from './humanoid.js';
 import { makeMaterial, sharedUniforms, MODE_OUTFIT, MODE_EYE } from './materials.js';
 import { registerTarget } from './targets.js';
 import { mulberry32 } from './noise.js';
-import { namedLook, costumeWorld, TRIM_IDS, BUILDS } from './costumes.js';
+import { namedLook, costumeWorld, TRIM_IDS, BUILDS, browColour } from './costumes.js';
 import { formatText } from './story/dialogue.js';
 import { speakBalloon } from './story/voice.js';
 import { toneOf } from './story/tone.js';
 import { talkFaces, mouthAt } from './talk-face.js';
-import { cleanExpression } from './expression.js';
+import { cleanExpression, PEOPLE_REST } from './expression.js';
 import { Knockdown, toppleVelocities, KNOCKOVER } from './ragdoll.js';
 export { KNOCKOVER };
 import { holdAim } from './crowd.js';
@@ -108,13 +108,16 @@ export class NPC {
     scene.add(this.object);
     this.humanoid = human ? new Humanoid(human, this.char, kind, { skin: dress?.skin ?? '#e8c6a8', build: dress?.build }) : null;
     this.cape = null;
+    // a face and a resting expression of their own (the story's, a spawn spot's) win over their look's (restyle)
+    this.ownFace = face ?? def?.face ?? null;
+    this.ownRest = expression ?? def?.rest ?? null;
     if (dress) this.restyle(dress);
     // a story person's own body and face (morph.js: def.morph, def.face; a child's proportions, home's Lou),
     // or the face and resting expression a spawn spot gives (the Lab's giants), and the expression worn at rest
     if (this.humanoid && def?.morph) { this.humanoid.ownMorph = def.morph; this.humanoid.setMorph(def.morph); }
-    const ownFace = face ?? def?.face;
+    const ownFace = this.ownFace;
     if (this.humanoid && ownFace) { this.humanoid.ownFace = ownFace; this.humanoid.setFace(ownFace); }
-    const rest = expression ?? def?.rest;
+    const rest = this.ownRest;
     if (this.humanoid && rest) { this.humanoid.restExpression = cleanExpression(rest); this.humanoid.setExpression(this.humanoid.restExpression); }
     this.facing = facing;   // (stands facing this way, rad, until someone comes near: the Lab's giants)
     if (!dress) this.char.root.traverse((o) => { if (o.isMesh && o.geometry.type === 'TorusGeometry' && o.parent === this.char.capeAnchor) o.visible = false; });
@@ -242,10 +245,14 @@ export class NPC {
           u.uTrim.value.set(t.r, t.g, t.b, trim);
           u.uSuit.value = (s.bulk ?? 0) >= 2 ? 1 : 0;                       // the dome people's padded suits
           u.uOutfit.value.w = s.sleeveless ? 0.2 : m.userData.wrist;      // bare arms in the garden
-        } else if (m.userData.role === 'brows') u.uColor.value.set(this.def?.brows ?? s.hair);   // (def.brows: softer brows than hair, a child's)
+        } else if (m.userData.role === 'brows') u.uColor.value.set(this.def?.brows ?? browColour(s.hair, s.skin));   // (the hair's, softened; def.brows: a child's own)
         else if (m.userData.role === 'eyes' && s.eyes) { u.uColor2.value.set(s.eyes); u.uSkin.value.set(s.skin); }   // their own iris; the lids in their skin
       }
       h.setBuild(s.build);   // a crowd body takes its person's build
+      // their look's face (costumes.js faceFor: their people's shapes, their own ink) and the mood it rests in,
+      // unless the story gives them their own
+      if (!this.ownFace && h.ownFace !== (s.face ?? null)) { h.ownFace = s.face ?? null; h.setFace(h.ownFace); }
+      if (!this.ownRest) { h.restExpression = cleanExpression(s.rest ?? PEOPLE_REST); h.setExpression(h.restExpression); }
       h.dress(s);
     }
     // the cape: the same colour, length and width as the crowd figure
