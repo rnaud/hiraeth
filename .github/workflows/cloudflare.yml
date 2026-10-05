@@ -37,3 +37,12 @@ jobs:
             exit 1
           fi
           npm run deploy:cloudflare
+      - name: Verify the public deployment
+        run: |
+          for attempt in 1 2 3; do
+            if npm run check:deployment -- https://memento.alexandria-rnaud.workers.dev/; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 3 ]; then sleep 10; fi
+          done
+          exit 1

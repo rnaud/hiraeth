@@ -1,7 +1,8 @@
 # Cloudflare Workers deployment
 
 The browser game can be served independently of GitHub Pages by an assets-only
-Cloudflare Worker named `memento`. It publishes the same Vite `dist/` build as
+Cloudflare Worker named `memento`, at
+https://memento.alexandria-rnaud.workers.dev/. It publishes the same Vite `dist/` build as
 Pages; no application server, database, or Cloudflare Vite plugin is needed.
 The game, character studio, Motion page, models, and other assets ship together.
 Only `dist/` is uploaded, not the repository or its history.
@@ -22,7 +23,7 @@ Only `dist/` is uploaded, not the repository or its history.
    on another branch is skipped to protect the production deployment.
 
 The workflow installs the lockfile's Wrangler version, runs the test suite,
-builds the game, and deploys. Cloudflare uses its own deployment concurrency
+builds the game, deploys, and checks every published file against the build. Cloudflare uses its own deployment concurrency
 group; Pages and the Android/Steam Deck release workflows continue independently.
 An absent secret causes a clear failure instead of a silently skipped deploy.
 A browser dashboard login alone does not authenticate GitHub Actions.
@@ -50,7 +51,8 @@ file must not return `index.html` with a misleading success status.
 
 `wrangler.jsonc` is the deployment configuration. Change its `name` only when
 intending to deploy a different Worker. A custom domain can be attached later;
-no domain or DNS record is changed by this target. The compatibility date is
+no domain or DNS record is changed by this target. If the Worker name or
+account changes, update the verification URL in the workflow as well. The compatibility date is
 pinned to a date supported by the checked-in Wrangler version.
 
 ## Before making GitHub private

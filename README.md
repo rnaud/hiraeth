@@ -3,7 +3,7 @@
 A three.js exploration game in ligne claire, formerly the Moebius / Sable shader PoC
 (the repository and internal ids keep the old name).
 
-**Play it:** https://rnaud.github.io/moebius/
+**Play it:** https://rnaud.github.io/moebius/ · [Cloudflare](https://memento.alexandria-rnaud.workers.dev/)
 
 An additional [Cloudflare Workers deployment target](docs/cloudflare.md) serves the same build independently of GitHub Pages.
 
