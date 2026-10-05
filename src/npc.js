@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { buildCharacter } from './player.js';
-import { Cape } from './cape.js';
+import { Cape, groundField } from './cape.js';
 import { Animator } from './animator.js';
 import { Humanoid } from './humanoid.js';
 import { makeMaterial, sharedUniforms, MODE_OUTFIT, MODE_EYE } from './materials.js';
@@ -480,7 +480,8 @@ export class NPC {
     this._face = face;
     // stay on the ground
     const g = this.physics.groundAt(this.pos.x, this.pos.y + 1.5 - (this.seat ?? 0), this.pos.z);
-    if (Number.isFinite(g)) this.pos.y += (g + (this.seat ?? 0) - this.pos.y) * (1 - Math.exp(-15 * dt));
+    // (the first frame straight there: a seated person's cape is baked on them as they first sit)
+    if (Number.isFinite(g)) { this.pos.y += (g + (this.seat ?? 0) - this.pos.y) * (this._grounded ? 1 - Math.exp(-15 * dt) : 1); this._grounded = true; }
 
     const waveT = this.talkTo ? -1 : this.greeted && !this.seat ? this.time - this.greeted : -1;
     // the pose: every frame near the camera, every 2nd / 3rd further off (they still move every frame)
@@ -548,7 +549,7 @@ export class NPC {
       this.object.updateMatrixWorld(true);
       this.vel.set(Math.sin(this.heading) * speed, 0, Math.cos(this.heading) * speed);
       const s = this.clothState(player, speed);
-      if (!this.cape.drape && !this.cape.ready) this.cape.bake({ ...s, capsules: this.clothCapsules(null) }, { key: this.drapeKey() });   // (the shared drape: never with the traveller in it)   // starts settled, no drop
+      if (!this.cape.drape && !this.cape.ready) this.cape.bake({ ...s, capsules: this.clothCapsules(null) }, { key: this.drapeKey(undefined, s.field) });   // (the shared drape: never with the traveller in it)   // starts settled, no drop
       this.cape.update(Math.min(this._clothDt, 1 / 20), s);
       this._clothDt = 0;
     } else if (!this._clothOn) {
@@ -558,7 +559,8 @@ export class NPC {
           // (far off the body may not have been posed this frame)
           if (camD >= 160) this.humanoid?.update();
           this.object.updateMatrixWorld(true);
-          this.cape.bake(this.clothState(player, 0), { key: this.drapeKey() });
+          const s = this.clothState(player, 0);
+          this.cape.bake(s, { key: this.drapeKey(undefined, s.field) });
         }
         this.cape.rest(dt);
       }
@@ -622,9 +624,10 @@ export class NPC {
     if (this.cape && (camD < 5 || this._clothTick || !this.cape.ready)) {
       this.object.updateMatrixWorld(true);
       this.vel.set(Math.sin(this.heading) * p.speed, 0, Math.cos(this.heading) * p.speed);
-      const s = { up: Y, vel: this.vel, wind: player.wind, floor: p.pos, capsules: this.clothCapsules(player) };
+      const seated = !moving && (p.pose === 3 || p.pose === 4);
+      const s = { up: Y, vel: this.vel, wind: player.wind, floor: p.pos, field: seated ? this.seatField() : null, capsules: this.clothCapsules(player) };
       // a new person: the cloth starts settled on them (it used to drop from a stiff cone as they came near)
-      if (!this.cape.ready && !this.cape.drape) this.cape.bake({ ...s, capsules: this.clothCapsules(null) }, { key: this.drapeKey(moving ? 0 : p.pose), force: true });   // (shared: rarely baked)
+      if (!this.cape.ready && !this.cape.drape) this.cape.bake({ ...s, capsules: this.clothCapsules(null) }, { key: this.drapeKey(moving ? 0 : p.pose, s.field), force: true });   // (shared: rarely baked)
       this.cape.update(Math.min(this._clothDt, 1 / 20), s);
       this._clothDt = 0;
     }
@@ -738,12 +741,25 @@ export class NPC {
 
   /** What the cloth needs this frame (Cape.update): the body's colliders, the ground, the motion. */
   clothState(player, speed) {
-    return { up: Y, vel: this.vel, wind: player.wind, floor: this.pos, capsules: this.clothCapsules(player), still: speed < 0.05 };
+    return { up: Y, vel: this.vel, wind: player.wind, floor: this.pos, field: this.seat ? this.seatField() : null, capsules: this.clothCapsules(player), still: speed < 0.05 };
   }
 
-  /** Capes of one cut on one kind of body, standing or seated, share a baked drape. */
-  drapeKey(pose = this.seat ? 4 : 0) {
-    return `${this.humanoid ? `${this.kind}/${this.humanoid.build}` : 'rig'}/${pose === 3 || pose === 4 ? pose : 0}`;
+  /**
+   * Seated: what the cape falls onto (cape.js groundField: the seat round the hips, its edges, the
+   * ground beyond), probed once for each seat. The floor at the seat's height spread it like a sheet.
+   */
+  seatField() {
+    const o = this.object.position, F = this._field;
+    if (F && Math.abs(F.ox - o.x) < 0.03 && Math.abs(F.oz - o.z) < 0.03 && Math.abs(F.oy - this.pos.y) < 0.03 && Math.abs(F.heading - this.heading) < 0.03) return F;
+    this._field = groundField((x, y, z, d) => this.physics.groundAt(x, y, z, d), _w.set(o.x, this.pos.y, o.z), this.heading);
+    this._field.heading = this.heading;
+    return this._field;
+  }
+
+  /** Capes of one cut on one kind of body, standing or seated (on one shape of seat), share a baked drape. */
+  drapeKey(pose = this.seat ? 4 : 0, field = null) {
+    const seated = pose === 3 || pose === 4;
+    return `${this.humanoid ? `${this.kind}/${this.humanoid.build}` : 'rig'}/${seated ? pose : 0}${seated && field ? `|${field.sig}` : ''}`;
   }
 
   /** What the cape collides with: this body, and the traveller's when they stand close (a cape no longer drapes through them). */

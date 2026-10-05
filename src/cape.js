@@ -6,7 +6,9 @@ import { makeMaterial } from './materials.js';
 // (structural, shear and bend). Gravity follows the character's "up", air
 // drag against the character's motion makes it stream out behind when
 // running, and it collides with capsules on the body and legs so the legs
-// push it around as they swing, plus the ground under the feet.
+// push it around as they swing, plus the ground under the feet. Seated, the ground is the seat
+// and what lies round it (groundField: the bench top, its edges, the ground beyond), and the cloth
+// gives up its bends so it folds down the back and over the edge instead of standing out.
 //
 // Far from the camera nobody simulates cloth, but a cape mustn't be left
 // hanging in the air where it last was (or mid-swing): it *hangs* instead, its
@@ -29,6 +31,70 @@ const BAKE = { steps: 3, damp: 0.6, iters: 5, n: 7 };
 const now = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
 /** Tests: forget the shared drapes and the bake budget. */
 export function resetDrapes() { DRAPES.clear(); lastBake = -1e9; }
+
+// what a seated cape falls onto: the seat's top under the hips, its edges, the ground beyond
+const FIELD = { half: 0.96, step: 0.12, probe: 0.2, drop: 2.5, edge: 0.1 };
+
+/**
+ * The ground round a seated body: heights on a small grid (±0.96 m, 12 cm) in the body's frame, so
+ * the cloth rests on the bench beside and behind the hips and falls over its edges to the ground
+ * (a flat floor at the seat's height laid the cape out round them like a sheet). Probed once from
+ * just above the seat (`groundAt(x, fromY, z, maxDrop)`, as Physics.groundAt); `at` is the hips
+ * over the seat, `heading` the way they face. World up is +y. `sig` names its shape (to 5 cm), for
+ * sharing a drape between people on the same kind of seat.
+ */
+export function groundField(groundAt, at, heading) {
+  const { half, step, probe, drop } = FIELD, n = Math.round((half * 2) / step) + 1;
+  const fx = Math.sin(heading), fz = Math.cos(heading), rx = fz, rz = -fx;
+  const h = new Float32Array(n * n), top = at.y + probe;
+  let sig = '';
+  for (let j = 0; j < n; j++)
+    for (let i = 0; i < n; i++) {
+      const u = -half + i * step, v = -half + j * step;
+      const g = groundAt(at.x + rx * u + fx * v, top, at.z + rz * u + fz * v, probe + drop);
+      const y = Number.isFinite(g) ? Math.max(g - at.y, -drop) : -drop;
+      h[j * n + i] = y;
+      sig += String.fromCharCode(48 + Math.max(0, Math.min(60, Math.round(-y / 0.05))));
+    }
+  return { ox: at.x, oy: at.y, oz: at.z, fx, fz, rx, rz, n, half, step, h, sig };
+}
+
+/**
+ * A cloth point against a groundField (P: positions, Q: previous positions, i its index). On
+ * smooth ground it rests on the heights between the grid points; at a step (the seat's edge) the
+ * grid is a set of columns, and a point inside one well under its top is beside it, not under it:
+ * it goes out through the nearest side to a lower column (pushed up onto the seat instead, cloth
+ * hanging down the side of a bench climbed up onto it).
+ */
+function onField(F, P, Q, i) {
+  const n = F.n, H = F.h, lift = 0.03;
+  const x = P[i], y = P[i + 1] - F.oy, z = P[i + 2], dx = x - F.ox, dz = z - F.oz;
+  let u = (dx * F.rx + dz * F.rz + F.half) / F.step, v = (dx * F.fx + dz * F.fz + F.half) / F.step;
+  u = u < 0 ? 0 : u > n - 1 ? n - 1 : u; v = v < 0 ? 0 : v > n - 1 ? n - 1 : v;
+  const i0 = Math.min(u | 0, n - 2), j0 = Math.min(v | 0, n - 2), tu = u - i0, tv = v - j0;
+  const a = H[j0 * n + i0], b = H[j0 * n + i0 + 1], c = H[(j0 + 1) * n + i0], d = H[(j0 + 1) * n + i0 + 1];
+  let g;
+  if (Math.max(a, b, c, d) - Math.min(a, b, c, d) < FIELD.edge) g = (a * (1 - tu) + b * tu) * (1 - tv) + (c * (1 - tu) + d * tu) * tv;
+  else {
+    const ci = Math.round(u), cj = Math.round(v);
+    g = H[cj * n + ci];
+    if (g - y > FIELD.edge) {
+      // beside a step: out through the nearest side of this column to a lower one
+      let best = Infinity, du = 0, dv = 0;
+      for (let k = 0; k < 4; k++) {
+        const su = k === 0 ? -1 : k === 1 ? 1 : 0, sv = k === 2 ? -1 : k === 3 ? 1 : 0, ni = ci + su, nj = cj + sv;
+        if (ni < 0 || nj < 0 || ni >= n || nj >= n || H[nj * n + ni] > y) continue;
+        const dist = su ? 0.5 - (u - ci) * su : 0.5 - (v - cj) * sv;
+        if (dist < best) { best = dist; du = su * (dist + 0.02); dv = sv * (dist + 0.02); }
+      }
+      if (best < Infinity) {
+        P[i] += (du * F.rx + dv * F.fx) * F.step; P[i + 2] += (du * F.rz + dv * F.fz) * F.step;
+        return;
+      }
+    }
+  }
+  if (y - g < lift) { P[i + 1] = Q[i + 1] = F.oy + g + lift; }   // (and no bounce)
+}
 
 export class Cape {
   /**
@@ -66,12 +132,13 @@ export class Cape {
       }
     }
     // constraints: [i, j, rest, stiffness]
-    const cons = [];
-    const add = (r0, c0, r1, c1, k) => {
+    const cons = [], seated = [];
+    const add = (r0, c0, r1, c1, k, bend = false) => {
       if (r1 >= rows || c1 >= cols || c1 < 0) return;
       const i = r0 * cols + c0, j = r1 * cols + c1;
       const dx = this.local[i * 3] - this.local[j * 3], dy = this.local[i * 3 + 1] - this.local[j * 3 + 1], dz = this.local[i * 3 + 2] - this.local[j * 3 + 2];
       cons.push(i, j, Math.hypot(dx, dy, dz), k);
+      seated.push(bend ? 0 : k);
     };
     for (let r = 0; r < rows; r++)
       for (let c = 0; c < cols; c++) {
@@ -79,10 +146,13 @@ export class Cape {
         add(r, c, r + 1, c, 1);            // down
         add(r, c, r + 1, c + 1, 0.5);      // shear
         add(r, c, r + 1, c - 1, 0.5);
-        add(r, c, r + 2, c, heavy ? 0.55 : 0.25);   // bend: stiff downward, so folds stay long
-        add(r, c, r, c + 2, 0.15);
+        add(r, c, r + 2, c, heavy ? 0.55 : 0.25, true);   // bend: stiff downward, so folds stay long
+        add(r, c, r, c + 2, 0.15, true);
       }
     this.cons = new Float32Array(cons);
+    // seated, the cloth has to fold where it meets the seat and the ground: no bends (stiff
+    // downward, a seated cape stood out from the body like a plank, or heaped up on the seat)
+    this.seatedK = new Float32Array(seated);
 
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(this.p, 3));
@@ -180,9 +250,9 @@ export class Cape {
       // constraints, then collisions
       const iters = s.quiet ? BAKE.iters : 5;
       for (let it = 0; it < iters; it++) {
-        const C = this.cons;
+        const C = this.cons, SK = s.field ? this.seatedK : null;
         for (let k2 = 0; k2 < C.length; k2 += 4) {
-          const i = C[k2] * 3, j = C[k2 + 1] * 3, rest = C[k2 + 2], st = C[k2 + 3];
+          const i = C[k2] * 3, j = C[k2 + 1] * 3, rest = C[k2 + 2], st = SK ? SK[k2 >> 2] : C[k2 + 3];
           const dx = this.p[j] - this.p[i], dy = this.p[j + 1] - this.p[i + 1], dz = this.p[j + 2] - this.p[i + 2];
           const d = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1e-6;
           const diff = ((d - rest) / d) * 0.5 * st;
@@ -235,7 +305,7 @@ export class Cape {
     const t = now();
     if (!force && t - lastBake < BAKE_GAP_MS) return false;
     lastBake = t;
-    const still = { up: s.up, floor: s.floor, capsules: s.capsules, vel: ZERO, wind: ZERO, quiet: true };
+    const still = { up: s.up, floor: s.floor, field: s.field ?? null, capsules: s.capsules, vel: ZERO, wind: ZERO, quiet: true };
     this.drape = null; this._ownDrape = false;
     this.ready = false;
     for (let i = 0; i < BAKE.n; i++) this.update(1 / 30, still);
@@ -293,7 +363,7 @@ export class Cape {
   }
 
   collide(s) {
-    const { cols, rows } = this, P = this.p;
+    const { cols, rows } = this, P = this.p, F = s.field ?? null;
     // the capsules as plain numbers once per pass (Vector3 calls in the inner loop were most of the cloth's cost)
     const caps = s.capsules, nc = caps.length;
     const K = (this._k && this._k.length >= nc * 8) ? this._k : (this._k = new Float64Array(nc * 8));
@@ -314,6 +384,7 @@ export class Cape {
         const dx = x - cx, dy = y - cy, dz = z - cz, d = Math.sqrt(dx * dx + dy * dy + dz * dz), r = K[o + 7];
         if (d < r && d > 1e-5) { const k = r / d; x = cx + dx * k; y = cy + dy * k; z = cz + dz * k; }
       }
+      if (F) { P[i] = x; P[i + 1] = y; P[i + 2] = z; onField(F, P, this.q, i); continue; }
       // the ground under the feet
       const above = (x - fx) * ux + (y - fy) * uy + (z - fz) * uz;
       if (above < 0.03) { const k = 0.03 - above; x += ux * k; y += uy * k; z += uz * k; }
