@@ -98,7 +98,8 @@ export function setupPerdide2(ctx) {
     stone.rotation.y = Math.atan2(D.x - sx, D.z - sz);
     stone.add(new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.0, 0.35).translate(0, 0.4, 0), stoneMat));
     const ink = [-0.3, 0, 0.3].map((x, k) => new THREE.SphereGeometry(0.08, 6, 4).translate(x, 0.72 + (k === 1 ? 0.05 : 0), 0.19).toNonIndexed());
-    ink.push(new THREE.TorusGeometry(0.36, 0.035, 3, 14, Math.PI).rotateZ(Math.PI).translate(0, 0.62, 0.19).toNonIndexed());
+    // (the arc bows upward, ∩, like the glyph everywhere: a half torus from 0 to π is the top half)
+    ink.push(new THREE.TorusGeometry(0.36, 0.035, 3, 14, Math.PI).translate(0, 0.22, 0.19).toNonIndexed());
     stone.add(new THREE.Mesh(mergeGeometries(ink), inkMat));
     stone.traverse((o) => { o.userData.noCollide = true; });
     const props = new THREE.Group();   // drawn only within 110 m
