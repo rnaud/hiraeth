@@ -772,7 +772,7 @@ export class NPC {
   /** Capes of one cut on one kind of body, standing or seated (on one shape of seat), share a baked drape. */
   drapeKey(pose = this.seat ? 4 : 0, field = null) {
     const seated = pose === 3 || pose === 4;
-    return `${this.humanoid ? `${this.kind}/${this.humanoid.build}` : 'rig'}/${seated ? pose : 0}${seated && field ? `|${field.sig}` : ''}`;
+    return `${this.humanoid ? `${this.humanoid.profile?.id ?? this.kind}/${this.humanoid.build}` : 'rig'}/${seated ? pose : 0}${seated && field ? `|${field.sig}` : ''}`;
   }
 
   /** What the cape collides with: this body, and the traveller's when they stand close (a cape no longer drapes through them). */

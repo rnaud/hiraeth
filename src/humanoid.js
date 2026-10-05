@@ -293,10 +293,14 @@ export class Humanoid {
     this.morph = null;        // body morph (morph.js BODY_MORPHS; setMorph)
     this.face = null;         // face morph (morph.js FACE_MORPHS; setFace)
     this.lift = 0;            // m the pelvis rises over the rig's hips (longer legs)
-    this.faceRest = faceAfterReshape(kind);
+    // another body than the Quaternius ones (the MakeHuman prototype, src/makehuman/body.js) brings its own measurements
+    const prof = (this.profile = template.userData.profile ?? null);
+    this.faceRest = prof?.face ?? faceAfterReshape(kind);
+    this.outfitRest = prof?.outfit ?? OUTFIT[kind];
+    this.earZ = prof?.earZ ?? EAR_Z[kind];
     const C = char.colors;
-    const body = makeMaterial({ color: C.cloth, color2: C.legs, color3: C.boot ?? '#6e3f2c', mode: MODE_OUTFIT, skin, outfit: OUTFIT[kind], face: faceAfterReshape(kind), gloves, suit });
-    body.uniforms.uFaceKit2.value.w = EAR_Z[kind];   // (the face ink's ears: face-ink.js)
+    const body = makeMaterial({ color: C.cloth, color2: C.legs, color3: C.boot ?? '#6e3f2c', mode: MODE_OUTFIT, skin, outfit: this.outfitRest, face: this.faceRest, gloves, suit });
+    body.uniforms.uFaceKit2.value.w = this.earZ;   // (the face ink's ears: face-ink.js)
     // the eyes (eyes.js): white, an iris (each person's own colour: NPC.restyle) that follows the gaze, blinking lids
     let eyeball = null;
     model.traverse((o) => { if (o.isMesh && /eye/i.test(o.name) && !/brow/i.test(o.name) && !eyeball) eyeball = o.userData.eyeball ?? null; });
@@ -366,6 +370,8 @@ export class Humanoid {
     this.followOf = new Map(this.follow.map((f) => [f.B, f]));
 
     this.dressRig();
+    // a face with shape keys wears its expressions on them (the MakeHuman prototype: src/makehuman/face-keys.js)
+    this.faceKeys = prof?.faceKeys ? prof.faceKeys(this) : null;
     // the traveller's own face and its rest (traveller.js TRAVELLER.face / rest); everyone else's is as modelled
     this.ownFace = outfit ? TRAVELLER.face : null;
     this.restExpression = outfit ? TRAVELLER.rest : null;
@@ -390,7 +396,8 @@ export class Humanoid {
     };
     this.update(true);  // make sure the skeleton is at rest before anchoring
     const restHead = this.rest.get(B.Head).p;
-    this.headAnchor = anchor(B.Head, new THREE.Vector3(0, restHead.y + 0.1, restHead.z + 0.01));
+    const hf = this.profile?.headFrame ?? [0, 0.1, 0.01];   // (the skull's centre over the head bone)
+    this.headAnchor = anchor(B.Head, new THREE.Vector3(hf[0], restHead.y + hf[1], restHead.z + hf[2]));
     const kit = this.kit;
     if (kit) {
       // the traveller: the chest frame behind the pack's front (the tank and the scout's dock sit there),
@@ -531,14 +538,16 @@ export class Humanoid {
     const brows = this.browMesh;
     if (brows) {
       brows.userData.baseGeometry ??= brows.geometry;
-      brows.geometry = plainGeometry(this.face ? this.warped(brows, brows.userData.baseGeometry) : brows.userData.baseGeometry);
-      this._browBase = Float32Array.from(brows.geometry.attributes.position.array);
+      const g = this.face ? this.warped(brows, brows.userData.baseGeometry) : brows.userData.baseGeometry;
+      // (brows with shape keys of their own keep them: the expression moves them, not poseBrows)
+      brows.geometry = this.faceKeys?.brows ? g : plainGeometry(g);
+      if (!this.faceKeys?.brows) this._browBase = Float32Array.from(brows.geometry.attributes.position.array);
     }
     const u = this.body?.material.uniforms;
     if (u?.uFace) {
       u.uFace.value.set(L[0], L[1], L[2], L[4]);
       u.uFaceKit.value.set(f.lines, f.mouthWidth, f.freckles, f.lidWeight);
-      u.uFaceKit2.value.set(f.eyeSize, f.noseWidth, f.cheeks, EAR_Z[this.kind]);
+      u.uFaceKit2.value.set(f.eyeSize, f.noseWidth, f.cheeks, this.earZ);
       // how young the face reads (face-ink.js faceYouth: a child's all but bare), on the skin and the eyes
       this.youth = faceYouth({ ...f, young: face?.young }, this.morph?.headSize ?? 1);
       u.uMood2.value.z = this.youth;
@@ -558,7 +567,8 @@ export class Humanoid {
     this.expression = x;
     if (!this._ownMats) { this.ownMaterials(); this._ownMats = true; }   // (once: a talking face sets this every frame)
     const u = this.body?.material.uniforms;
-    if (u?.uMood) { u.uMood.value.set(x.smile, x.open, x.brow, x.squint); u.uMood2.value.x = x.browTilt; }
+    const ink = this.faceKeys ? this.faceKeys.set(x) : x;   // (shape keys take their share of it; the ink draws the rest)
+    if (u?.uMood) { u.uMood.value.set(ink.smile, ink.open, ink.brow, ink.squint); u.uMood2.value.x = ink.browTilt; }
     this.squint = x.squint;
     this.gaze = x.gaze;
     // the brows' geometry only when they move (the mouth on the syllables doesn't touch them)
@@ -569,7 +579,7 @@ export class Humanoid {
   /** The brows raised, lowered or tilted by the expression (morph.js browPositions). */
   poseBrows(force = false) {
     const b = this.browMesh, e = this.expression ?? NEUTRAL_EXPRESSION;
-    if (!b) return;
+    if (!b || this.faceKeys?.brows) return;
     if (!this._browBase) {
       if (!force && !e.brow && !e.browTilt) return;   // (never touched: the shared geometry stays)
       b.userData.baseGeometry ??= b.geometry;
@@ -718,7 +728,7 @@ export class Humanoid {
   /** The costume's merged geometry in this model's bind space (cached per body kind and look; colours added per person). */
   costumeGeometry(look) {
     const robe = look.robe > 0 ? `${look.robe.toFixed(2)}/${(look.flare ?? 0.3).toFixed(2)}` : '-';
-    const key = `${this.kind}|${this.build}|${morphKey(this.morph)}|${look.head}|${look.mask}|${look.body}|${look.prop}|${robe}`;
+    const key = `${this.profile?.id ?? this.kind}|${this.build}|${morphKey(this.morph)}|${look.head}|${look.mask}|${look.body}|${look.prop}|${robe}`;
     const cache = (this.constructor._costumes ??= new Map());
     if (cache.has(key)) return cache.get(key);
     const B = this.b, bones = this.body.skeleton.bones;
@@ -726,7 +736,7 @@ export class Humanoid {
     const restHead = this.rest.get(B.Head).p;
     const handDir = this.restDir('lowerarm_r', 'hand_r');
     const frames = {
-      head: { bone: bi('Head'), m: new THREE.Matrix4().makeTranslation(0, restHead.y + 0.1, restHead.z + 0.01) },
+      head: { bone: bi('Head'), m: this.headFrame(restHead, look) },
       // (shoulder and chest pieces widen with the build)
       chest: { bone: bi('spine_03'), m: new THREE.Matrix4().makeTranslation(0, this.rest.get(B.neck_01).p.y - 0.76, 0).multiply(new THREE.Matrix4().makeScale(BUILDS[this.build].width * (this.morph?.shoulders ?? 1), 1, Math.sqrt(BUILDS[this.build].girth) * (this.morph?.chest ?? 1))) },
       // the hand frame: the arm hanging down; turned so a staff stands upright in the idle clip's grip
@@ -761,13 +771,21 @@ export class Humanoid {
     return r;
   }
 
+  /** The head frame (the skull's centre, +z the face) in bind space; another body's skull scales the pieces to fit it (profile.headScale). */
+  headFrame(restHead, look) {
+    const hf = this.profile?.headFrame ?? [0, 0.1, 0.01];
+    const m = new THREE.Matrix4().makeTranslation(hf[0], restHead.y + hf[1], restHead.z + hf[2]);
+    const s = this.profile?.headScale?.(look?.kind === 'f' ? 'f' : 'm');
+    return s ? m.multiply(new THREE.Matrix4().makeScale(...s)) : m;
+  }
+
   /**
    * A robe from the belt to `hem` (m above the ground), flaring to `flare` (m): kept clear of this
    * body's hips and legs at rest, the lower part following the thighs as they swing.
    */
   robeGeometry(hem, flare) {
     const B = this.b, bones = this.body.skeleton.bones;
-    const belt = OUTFIT[this.kind][1] - 0.005;
+    const belt = this.outfitRest[1] - 0.005;
     // the body's extent at each height (bind pose), so the robe never cuts into the hips
     const ext = (this._robeExt ??= (() => {
       const P = this.body.geometry.attributes.position, rows = [];
@@ -828,7 +846,9 @@ export class Humanoid {
     this.eyeLook.update(dt, dir);
     // an expression's gaze (setExpression) holds the eyes there; a squint narrows the lids
     const L = (this.gaze ? EyeLook.fromAngles(this.gaze[0], this.gaze[1], _c) : _c.copy(this.eyeLook.look)).applyAxisAngle(_xAxis, EYE_TILT);
-    m.material.uniforms.uEyeLook.value.set(L.x, L.y, L.z, Math.max(this.eyeLook.blink, (this.squint ?? 0) * 0.45));
+    const lid = Math.max(this.eyeLook.blink, (this.squint ?? 0) * 0.45);
+    // (lids with shape keys close themselves: the eyeball's painted lid then only does what they don't)
+    m.material.uniforms.uEyeLook.value.set(L.x, L.y, L.z, this.faceKeys ? this.faceKeys.eyes(this.eyeLook.blink, this.squint ?? 0) : lid);
     this.updateNoseSide(dt, m, head);
   }
 

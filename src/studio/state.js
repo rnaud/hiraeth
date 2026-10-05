@@ -14,6 +14,8 @@ export const DEFAULTS = Object.freeze({
   kind: 'm',             // m | f (blank bodies; crowd: '' = as seeded)
   spot: '',              // where they stand, for worlds dressed by it (the City-Shaft: rim | upper | middle | lower)
   build: '',             // '' the person's own, else slim | average | broad | heavy
+  source: 'quaternius',  // the body: quaternius (the game's) | makehuman (the prototype, src/studio/makehuman.js)
+  mh: '',                // a MakeHuman person's id (source=makehuman; '' the first of the person's kind)
   // the expression: a dialogue tone, how much of it, talking (the mouth moves), blinking
   tone: 'neutral', amount: 1, talk: false, blink: true,
   gaze: 'camera',        // camera | target | free | fixed (e.gazeX / e.gazeY)
@@ -25,7 +27,7 @@ export const DEFAULTS = Object.freeze({
   // the view
   view: 'full',          // full | bust | face | close | far
   turntable: false, yaw: 0.35, pitch: 0.05,
-  lineup: '',            // '' | cast | crowd | faces (the traveller and someone of every world)
+  lineup: '',            // '' | cast | crowd | faces (the traveller and someone of every world) | makehuman (MakeHuman beside Quaternius)
   count: 6,
   twin: false,           // the GPU crowd figure of this person beside them
   // light and ink (hour -1: the world's own hour)

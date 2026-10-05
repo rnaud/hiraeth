@@ -240,6 +240,7 @@ const vertexShader = /* glsl */ `
   out vec2 vFold;
   out vec2 vTextureUV;
   #include <skinning_pars_vertex>
+  #include <morphtarget_pars_vertex>
   uniform vec4 uOutfit;
   uniform float uSuit;
   uniform float uPortrait;
@@ -272,6 +273,10 @@ const vertexShader = /* glsl */ `
       transformed += normal * (position.y < uOutfit.y ? 0.03 : 0.022) * smoothstep(uOutfit.x - 0.04, uOutfit.x + 0.04, position.y);
     #endif
     vec3 objectNormal = normal;
+    // shape keys (only meshes that have them: the MakeHuman prototype's faces, src/makehuman/); vBind stays
+    // the rest position, so the face ink rides the skin as it moves
+    #include <morphnormal_vertex>
+    #include <morphtarget_vertex>
     #ifdef S_PORTRAIT
     // Light the face as one rounded volume, so its shadow is a single clean shape.
     if (uPortrait > 0.5) objectNormal = normalize(mix(normal, normalize(position - uHeadBall.xyz), uHeadBall.w));
