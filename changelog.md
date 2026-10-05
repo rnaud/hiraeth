@@ -14,6 +14,8 @@ The same release notes shown in the game (press **N** or open settings).
 - Lorn II: Pim’s door still sticks with moss: wake the moss lamp over it, then push it shut. And Fen asks you to bring his skiff home: light his berth lamp and nudge it in.
 - Viridel: the brass gear from the Hangar goes on Mira’s water clock. Fit it, then fill the leaking bowl fast enough to ring the bell.
 - Story fixes: every world now remembers the singing light the same way, the night your ship was struck, climbing away. Ilen’s message is thirty years old. Odile and Talo’s journey is told one way everywhere. People who share a name are no longer mixed up in the credits.
+- Your parents’ later recordings now remember your daughter, quietly.
+- At your parents’ stone, if Esk’s tea terraces in Viridel came down, the traveller says so. Aunt Tove’s words about your parents and Lou are a little warmer.
 
 ## v0.50 — 2026-10-05
 
