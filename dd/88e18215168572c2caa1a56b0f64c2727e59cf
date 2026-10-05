@@ -1,0 +1,51 @@
+LORE.md
+  s_1fd8d0e7b02dcf::t_b77fd68db2bcf0 410-412,459,469-471,744,769-771,963-1004,1007
+README.md
+  s_1fd8d0e7b02dcf::t_ba957b50a98f15 883,886-894,1098,1102
+docs/story-bible.md
+  s_1fd8d0e7b02dcf::t_ffdfc14da848f5 68-69,183-184,201-205,253,281-282
+src/levels/content.js
+  s_1fd8d0e7b02dcf::t_6d2c8c254a9ec2 218,220-222
+src/levels/index.js
+  s_1fd8d0e7b02dcf::t_898fde72e6dc7b 102,104
+src/ship/ship.js
+  s_1fd8d0e7b02dcf::t_c033690e5949b1 16,326
+src/story/arzach2-data.js
+  s_1fd8d0e7b02dcf::t_e380099a4689de 4-10,130,169,173
+src/story/bazaar-data.js
+  s_1fd8d0e7b02dcf::t_4e6252076aea85 23-24,29-31,296-301
+src/story/bazaar.js
+  s_1fd8d0e7b02dcf::t_41b2b5f17eba14 7,40-46
+src/story/charge.js
+  s_1fd8d0e7b02dcf::t_ab21d5e08f06a2 10,15,24,41-43,48,67-68
+src/story/ending.js
+  s_1fd8d0e7b02dcf::t_b170863b65375b 48-57
+src/story/incal-data.js
+  s_1fd8d0e7b02dcf::t_6c2638b2f9e8de 6-8,92
+src/story/spheres.js
+  s_1fd8d0e7b02dcf::t_78ca39d8721584 74,84,124,248,254-255,258
+tests/charge.test.js
+  s_1fd8d0e7b02dcf::t_2337f436ba0e3a 23-27,53-56
+tests/ending.test.js
+  s_1fd8d0e7b02dcf::t_d436c9e6fef8af 14,83-116
+tests/loose-ends.test.js
+  s_1fd8d0e7b02dcf::t_20db3683c864a8 1-41
+tests/story-bazaar.test.js
+  s_1fd8d0e7b02dcf::t_f289a6a6b3e806 197-217
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dd88e18215168572c2caa1a56b0f64c2727e59cf",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
