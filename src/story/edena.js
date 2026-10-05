@@ -6,6 +6,7 @@ import { registerInteractable, PRIORITY } from '../interact.js';
 import { Puffs, ownMaterial } from './puffs.js';
 import { QUESTS, PEOPLE, THINGS, ITEMS } from './edena-data.js';
 import { setupTerraces } from './terraces.js';
+import { setupWaterClock } from './water-clock.js';
 
 // Viridel's story, alive (edena-data.js has the words).
 //
@@ -153,6 +154,8 @@ export function setupEdena(ctx) {
   // ---------------------------------------------------------------- the tea terraces (the quest that fails)
   const terraces = setupTerraces(ctx);
   people.esk = terraces.esk;
+  // ---------------------------------------------------------------- Mira's water clock (the Hangar's errand ends here)
+  const clock = setupWaterClock(ctx);
 
   // ---------------------------------------------------------------- the end of the main quest
   quests.def(Q).onDone = () => {
@@ -201,7 +204,8 @@ export function setupEdena(ctx) {
     petals.update(dt);
     pollen.update(dt);
     terraces.update(dt, t);
+    clock.update(dt, t);
   };
 
-  return { people, update, state: st, seedAt, sproutAt, veilLook, terraces };
+  return { people, update, state: st, seedAt, sproutAt, veilLook, terraces, clock };
 }

@@ -76,6 +76,15 @@ export const QUESTS = [
     ],
   },
   {
+    // the Hangar's errand ends here: the brass gear, fitted (src/story/water-clock.js)
+    id: 'edena.clock', title: 'Mira’s Water Clock', world: 'edena',
+    outro: 'The bowl fills, tips, and the bell rings: time to water. It always is.',
+    stages: [
+      { id: 'fit', text: 'Fit the brass gear into Mira’s water clock, beside her (E)', label: 'The water clock', flag: 'edena.clock.fitted', at: 'clock' },
+      { id: 'fill', text: 'The bowl leaks: fill it with three quick splashes, so it tips and rings the bell (shoot)', label: 'The water clock’s bowl', flag: 'edena.clock.rung', at: 'clock' },
+    ],
+  },
+  {
     id: 'edena.tree', title: 'The Tallest Tree', world: 'edena',
     outro: 'From the crown you can see the whole garden, and the long green scar the ship ploughed across it.',
     stages: [
@@ -94,6 +103,7 @@ export const PEOPLE = {
     talk: {
       entry: [
         { if: { all: [{ quest: 'edena.terraces', failed: true }, { not: { flag: 'edena.mira.flood' } }, { not: { quest: Q, stage: 'tell' } }] }, node: 'flood' },
+        { if: { all: [{ quest: 'edena.clock', active: true }, { flag: 'edena.mira.heard' }, { not: { quest: Q, stage: 'tell' } }] }, node: 'clockNow' },
         { if: { quest: Q, done: true }, node: 'after' },
         { if: { quest: Q, stage: 'tell' }, node: 'tell' },
         { if: { flag: 'edena.mira.heard' }, node: 'again' },
@@ -105,6 +115,14 @@ export const PEOPLE = {
           say: ['~solemn~ Esk came by. She wasn’t angry any more by the time she got here. She was tired.', '~solemn~ We tend the garden. Some years that means letting a hill go. The clock still rang this morning: time to water. Not there. Not this year.'],
           do: { set: { 'edena.mira.flood': true } },
           choices: [{ text: '~sad~ I’m sorry, Mira.', goto: 'floodSorry' }],
+        },
+        // the Hangar's gear (src/story/water-clock.js)
+        clockNow: {
+          say: [
+            { if: { quest: 'edena.clock', stage: 'fit' }, text: '~happy~ A gear! From the Hangar? Someone there remembered us. *Fit it on the clock’s axle*, would you, just there. My fingers are all thumbs today.' },
+            { if: { quest: 'edena.clock', stage: 'fill' }, text: '~playful~ Now *fill the bowl*. It leaks, it always has, so be quick: *three good splashes*, one after the other, and it tips.' },
+          ],
+          choices: [{ text: '~neutral~ (to the clock)', end: true }],
         },
         floodSorry: { say: ['~neutral~ I know. Esk knows. Go gently; that’s all anyone asks here.'], choices: [{ text: '~sad~ (nod)', end: true }] },
         hello: {

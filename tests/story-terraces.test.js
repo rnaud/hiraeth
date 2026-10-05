@@ -28,7 +28,7 @@ const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const Q = 'edena.terraces';
 
 /** A fresh Viridel on the current save (a visit). */
-function visit() {
+function visit(journal = { sections: [], el: { addEventListener() {} } }) {
   clearInteractables(); clearTargets();
   const scene = new THREE.Scene();
   const level = createEdena(scene);
@@ -37,7 +37,7 @@ function visit() {
   const toasts = [];
   const sound = { setBands() {}, setBandMode() {}, band: () => null, chime() {}, listen() {}, whoosh() {}, rumble() {}, fail() {} };
   const npcs = spawnNPCs(scene, physics, CONTENT.edena.npcs);
-  const rt = createStory({ levelId: 'edena', scene, physics, level, player, npcs, crowd: null, sound, journal: { sections: [], el: { addEventListener() {} } }, story: { complete() {} },
+  const rt = createStory({ levelId: 'edena', scene, physics, level, player, npcs, crowd: null, sound, journal, story: { complete() {} },
     capture: null, lib: null, humans: null, toast: (t) => toasts.push(t), tool: null });
   const camera = new THREE.PerspectiveCamera();
   let clock = 0;
@@ -183,4 +183,33 @@ test('an old save stopped mid-flood comes back flooded', () => {
   assert.equal(game.flag('edena.terraces.flooded'), true);
   assert.equal(W.quests.stage(Q), 'sorry');
   assert.ok(W.T.shown().after);
+});
+
+test('the Hangar’s gear ends at Mira’s water clock: fit it, then three quick splashes', () => {
+  game.reset();
+  let delivered = false;
+  W = visit({ sections: [], el: { addEventListener() {} }, errand: (id) => (id === 'gear' && delivered ? { done: true } : undefined) });
+  const { quests, step, at } = W, C = 'edena.clock';
+  step(2);
+  assert.equal(quests.isStarted(C), false, 'nothing before the gear comes');
+  delivered = true; step(2);
+  assert.equal(quests.stage(C), 'fit');
+  const bowl = targets('clockBowl')[0];
+  at(W.rt.world.clock.at); step(2);
+  bowl.onHit('shoot');
+  assert.equal(quests.stage(C), 'fit', 'no gear, no clock');
+  game.set('edena.clock.fitted', true); step(2);
+  assert.equal(quests.stage(C), 'fill');
+  // one splash at a time only drips away
+  W.rt.world.clock.state.lv = 0;
+  bowl.onHit('shoot'); step(150);
+  bowl.onHit('shoot'); step(150);
+  bowl.onHit('shoot');
+  assert.ok(!game.flag('edena.clock.rung'), 'slow splashes drain away');
+  step(150);
+  W.rt.world.clock.state.lv = 0;
+  bowl.onHit('shoot'); bowl.onHit('shoot'); bowl.onHit('shoot');
+  assert.equal(game.flag('edena.clock.rung'), true);
+  step(2);
+  assert.equal(quests.isDone(C), true);
 });

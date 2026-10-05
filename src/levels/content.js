@@ -223,7 +223,7 @@ export const ERRANDS = [
   { id: 'gear', item: 'a brass gear', from: ['garage', 1], to: ['edena', 0],
     ask: '~playful~ A gardener in Viridel needs a gear for her water clock. Don’t lean on it.',
     wait: '~neutral~ Viridel. The garden with the white pyramids.',
-    thanks: '~happy~ It fits. The garden can keep time again.' },
+    thanks: '~happy~ A gear for my clock! Fit it for me? Just there, on the axle.' },
   { id: 'seed', item: 'a glass seed', from: ['edena', 3], to: ['perdide', 0],
     ask: '~neutral~ Carry this seed to the egg-warden in the swamp. He knows where it grows.',
     wait: '~whisper~ Lorn. Follow the glow.',

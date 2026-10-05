@@ -168,7 +168,7 @@ the settings.
   where they could go no further; the water pooled in their hearts. The tree
   grows from this giant's heart and Qanat was built round it.
 - **Clue**: the Speaker says the giants "came down from the swamp of lights"
-  → Lorn. Someone saw a singing light fall the night the ship crashed.
+  → Lorn. Someone saw a singing light go over the night the ship was struck (it dipped low, turned, and climbed away).
 
 ### 2. The City-Shaft (incal) — "The Light Nobody Looks At"
 - **Local story**: The Lodestar turns above the palace; the upper city calls it a
@@ -227,7 +227,12 @@ the settings.
 - **Local story**: Odile and Talo's ship fell here; the gardeners let the
   garden take it. They believe nothing that falls should be dug up again.
 - **Quests**: find the crashed ship; return a pyramid seed to the gardener;
-  climb the tallest tree.
+  climb the tallest tree; **water for Esk's tea terraces, the quest that fails**:
+  clear her runnels, then, at her asking, open the white builders' cistern gate
+  "a little". It gives way; the flood takes the middle of the terraces into the
+  dry hollow, for good. She blames you, you say sorry, she says it belongs to
+  the ground now. The journal files it as failed; the father's charge keeps it
+  as "what you could not mend"; a recording afterwards lands differently.
 - **Keepsake**: *word*: "We tend the garden. The garden tends us."
 - **Clue**: Odile and Talo's ship was struck by the same singing light → the
   traveller's ship wasn't the first.
@@ -299,20 +304,25 @@ when his mother asks "who did you meet today?"; he holds the keepsake up to
 the light, where they would see it).
 
 **The recordings are old, and it shows a little more each time** (keyed to n,
-the recordings heard, whatever the order of the worlds):
-1. The prologue: "The reel is cued in the cockpit, where you left it." The
-   father's speech the day he left; the player takes it for a call from home.
-   The impact tears the hologram apart.
-2. The first one after a world: no date; the father is short with him.
-3. The father mentions things that cannot be now (exams, the fence, the Orrin
+the recordings heard, whatever the order of the worlds; numbered as
+`src/story/calls.js` numbers them: the prologue's is recording 0, `AGE[1..5]`
+follow, and the last is n = `ENDING_WORLDS`):
+0. The prologue: "The reel is cued in the cockpit, where you left it." The
+   father's speech the day he left (nine years ago); the player takes it for a
+   call from home. The impact tears the hologram apart.
+1. The first one after a world: no date; the father is short with him.
+2. The father mentions things that cannot be now (exams, the fence, the Orrin
    boy). The screen shows a worn date stamp.
-4. The mother joins. A child's voice behind them: "Is that for me?" It is the
-   traveller's. The ship: "Logged nineteen years ago."
-5. The tape is wearing: a word is lost. "When you are older you will
-   understand." The traveller: "I know what it says. I just want to hear it."
-6. The mother alone at the end of one: "Your father says I shouldn't make
-   these. He says you never listen to them. I think one day you will."
-7. (After `ENDING_WORLDS` worlds) the last recording on the reel: both of them,
+3. The mother joins. A child's voice behind them: "Is that for me?" It is the
+   traveller's. The ship: "Logged nineteen years ago." (He was seven.)
+4. An old one made for him at ten, the summer he was at his grandfather's:
+   "Report, then. Like a pilot." The tape is wearing: a word is lost. "When you
+   are older you will understand." The traveller: "I know what it says. I just
+   want to hear it." Logged sixteen years ago.
+5. The mother alone at the end of one: "Your father says I shouldn't make
+   these. He says you never listen to them. I think one day you will." Logged
+   four years ago.
+6. (After `ENDING_WORLDS` worlds) the last recording on the reel: both of them,
    "Come home." The ship: "That was the last recording on the reel. Logged two
    years ago, eleven days before the house went quiet." Home is on the map.
 
@@ -320,7 +330,9 @@ Before that, a few recordings answer what happened in a way the traveller
 cannot explain (each once, flags `calls.beat.<id>`): the father warning him
 off "anything singing out there" (after the singing light); the harbour bell
 behind them (after Vael II's bell); "ships get struck out there, that's all it
-is" (after Odile and Talo's ship); the three dots he drew on the landing ring
+is" (after Odile and Talo's ship); "if you break something out there, you say
+sorry, and you mean it, and then you go" (after the tea terraces in Viridel, the
+quest that fails); the three dots he drew on the landing ring
 as a boy (after the glyph); a bird's promise in a child's story; the lamp the
 mother leaves in the round window. The keepsake kinds still matter: whichever
 he brings, the recording happens to hold what his father once said about such
@@ -368,28 +380,32 @@ keepsake before keep theirs). The stone keeps its tokens when you come back.
 ## Local names (as built)
 | World | The glyph | The singing light | The makers' boxes |
 |---|---|---|---|
-| Desert | the mark between the giant's eyes; the Giver's mark (the keepers) | the singing light that turned (Oum); the chest hummed back to it all night (Nour) | the Givers' chest, the star-chest (Nour, Hessa) |
+| Desert | the mark between the giant's eyes; the Givers' mark (the keepers) | the singing light that turned (Oum); the chest hummed back to it all night (Nour) | the Givers' chest (Nour, Hessa) |
 | Vael | the bird's track (Oïa) | heard in the stones (Senn) | a square with a star, drawn in the sand (Oïa, who doesn't speak) |
 | Vael II | the Three Notes (Calix) | the bell hummed by itself for it | a bell-chest: it hummed back too (Calix) |
 | Hangar | the maker's rivets (Ottla), the Major's thumbprint (Clemence) | seen through the ring's slit (Lune); three machines stopped that night | "for the next one": the Major found it and never opened it (Ottla) |
 | Buried Machine | the Maker's Thumb | the Tuning Star (Hask, Dun) | thumb-boxes (Wen) |
 | Viridel | the Builders' mark (Oro) | the Singer (Talo's word, Sol) | Builders' gifts (Oro) |
 | Garden of Spheres | the Footprint, under every sphere (Ivo) | an Answerer (Ume) | left-behinds (Ivo) |
-| Lorn | the Hush: three drops of rain over a shut mouth | Sedge saw it fall the night before the crash; the crystal's 213th phrase is its song | the sky-egg (Wendel) |
-| Lorn II | the Welcome: three lamps over a hull | Wick saw it put the pools out | the traveller's chest (Hollin) |
+| Lorn | the Hush: three drops of rain over a shut mouth | Sedge saw it pass the night it went over, and climb away; the crystal's 213th phrase is its song | the sky-egg (Wendel) |
+| Lorn II | the Welcome: three lamps over a hull | Wick saw it put the pools out | the traveller's chest (Hollin, the lamp-keeper; Vael's Hollin keeps the stone hand) |
 | City-Shaft | the palace seal (rim), the Three Who Look Up (bottom) | it passed over the shaft and the Lodestar rang back; it left "toward the deserts" | lost property (rim), a promise (bottom; Ossa) |
 | Signal Market | the First Sign (Sel), the tuning mark (Ferro) | the unsent recording "came in singing" (Kip) | (no box of its own) |
 
 Built details beyond the bible: the bird's promise (`bird.promise`) could later
 let her answer a whistle in other worlds; Vael II's clapper "fell up"; the
 Major once visited the wheel and wrote "FOUND IT. NOW WHAT?" on the drum wall;
-Odile and Talo left in the saucer for the deep wood where the lamps are kept;
-each sphere remembers the last sound it heard before falling.
+Odile and Talo left Viridel in the saucer for the deep wood, the way the light
+went; it struck them again over the wood; they waited a season in Lorn II, then
+crossed the swamp in Fen's skiff to ask the Great Crystal, and went on (where,
+nobody knows); each sphere remembers the last sound it heard before it came down
+out of the sky (the white builders found the spheres and the pyramids already
+there and copied both, and the mark).
 
 More built details: the Great Crystal adds a crystal-violet band to the tank,
 and Wendel gives a second keepsake ("The patient are never eaten"). Hollin has
-kept the deep wood's lamps for 41 years; Odile and Talo borrowed Fen's skiff and
-left "the long way" through the root cave. The City-Shaft's rule: a light
+kept the deep wood's lamps for 41 years; the skiff came back to the root cave on
+its own after Odile and Talo crossed the swamp in it. The City-Shaft's rule: a light
 nobody looks at goes out. The Signal Market's rule: the first thing anyone ever
 sold there was an answer.
 
