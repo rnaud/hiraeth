@@ -105,7 +105,8 @@ test('the garden: flowers to pick, one at a time, and back on the next visit', (
   const G = level.home.garden;
   const at = G.spots.border;
   const f = G.pick(at);
-  assert.ok(f && f.picked && !f.mesh.visible, 'picked one');
+  const e = new THREE.Matrix4(); f.im.getMatrixAt(f.index, e);
+  assert.ok(f && f.picked && e.determinant() === 0, 'picked one: gone from the border');
   const n = G.flowers.filter((x) => !x.picked).length;
   assert.equal(n, G.flowers.length - 1);
   assert.equal(G.pick(V(-40, 0, -40)), null, 'nothing to pick far from the border');

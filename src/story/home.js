@@ -171,7 +171,7 @@ export function setupHome(ctx) {
     game.set('home.flower.held', kind ?? null);
     const h = hand();
     if (!kind || !h) return;
-    const m = new THREE.Mesh(garden.flowers.find((f) => f.kind === kind)?.mesh.geometry ?? new THREE.SphereGeometry(0.04), garden.flowers[0].mesh.material);
+    const m = new THREE.Mesh(garden.flowers.find((f) => f.kind === kind)?.geometry ?? new THREE.SphereGeometry(0.04), garden.flowerMaterial);
     m.userData.noCollide = true;
     m.scale.setScalar(1.2 / Math.max(1e-3, player.object.scale.x));
     m.position.set(0, -0.31, 0.05);

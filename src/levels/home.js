@@ -317,7 +317,7 @@ export function createHome(scene) {
       if (shelfShown.has(k.id) || i >= 24) return;
       shelfShown.add(k.id);
       const m = tokenModel({ id: k.id, kind: k.kind ?? 'thing', name: k.name });
-      m.scale.multiplyScalar(1.15);
+      m.scale.multiplyScalar(2.1);   // (Lou's are chunky: clay and paper)
       m.traverse((o) => { o.userData.noCollide = true; });
       small.shelfAdd(m, i);
     });

@@ -58,7 +58,7 @@ const squash = (x, z, s, col) => merge([
 
 /**
  * The garden.
- * @returns { group, flowers: [{ mesh, at, kind, picked }], pick(p): flower | null, regrow(), spots: { bench, can, gateW, gateN, border }, avoid(x, z, r) }
+ * @returns { group, flowers: [{ at, kind, picked, geometry, im, index }], pick(p): flower | null, regrow(), spots: { bench, can, gateW, gateN, border }, avoid(x, z, r) }
  */
 export function buildGarden(scene, { ground = () => 0 } = {}) {
   const G = GARDEN;
@@ -140,13 +140,21 @@ export function buildGarden(scene, { ground = () => 0 } = {}) {
       const kind = FLOWERS[Math.floor(rb() * FLOWERS.length)].id, v = Math.floor(rb() * 3);
       const at = new THREE.Vector3(x + (rb() - 0.5) * 0.18, 0, border.z + dz + (rb() - 0.5) * 0.12);
       at.y = gy(at.x, at.z);
-      const mesh = new THREE.Mesh(geoOf(kind, v), flowerMat);
-      mesh.position.copy(at); mesh.rotation.y = rb() * 6.28; mesh.scale.setScalar(1.25);
-      mesh.userData.noCollide = true;
-      root.add(mesh);
-      flowers.push({ mesh, at, kind, picked: false });
+      const matrix = new THREE.Matrix4().compose(at, new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rb() * 6.28), new THREE.Vector3(1.25, 1.25, 1.25));
+      flowers.push({ at, kind, picked: false, key: `${kind}${v}`, geometry: geoOf(kind, v), matrix });
     }
   }
+  // one instanced draw per kind of flower; a picked one is scaled to nothing
+  const ZERO = new THREE.Matrix4().makeScale(0, 0, 0);
+  for (const [key, geo] of geos) {
+    const mine = flowers.filter((f) => f.key === key);
+    const im = new THREE.InstancedMesh(geo, flowerMat, mine.length);
+    im.userData.noCollide = true;
+    mine.forEach((f, i) => { f.im = im; f.index = i; im.setMatrixAt(i, f.matrix); });
+    im.computeBoundingSphere();
+    root.add(im);
+  }
+  const show = (f, on) => { f.im.setMatrixAt(f.index, on ? f.matrix : ZERO); f.im.instanceMatrix.needsUpdate = true; };
   // a little soil edge under them
   soft.push(paintBox(border.x1 - border.x0 + 0.4, 0.04, 0.9, SOIL, (border.x0 + border.x1) / 2, gy(border.x0, border.z) - 0.01, border.z));
 
@@ -201,10 +209,11 @@ export function buildGarden(scene, { ground = () => 0 } = {}) {
       const f = this.nearest(p, reach);
       if (!f) return null;
       f.picked = true;
-      f.mesh.visible = false;
+      show(f, false);
       return f;
     },
-    regrow() { for (const f of flowers) { f.picked = false; f.mesh.visible = true; } },
+    regrow() { for (const f of flowers) { f.picked = false; show(f, true); } },
+    flowerMaterial: flowerMat,
     /** Inside the garden's fence (for the grass, the flora and the dog's nose). */
     inside: (x, z, r = 0) => x > G.x0 - r && x < G.x1 + r && z > G.z0 - r && z < G.z1 + r,
   };
