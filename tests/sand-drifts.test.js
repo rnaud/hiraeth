@@ -79,3 +79,18 @@ test('the builders feed an open collector, and nothing when none is open', () =>
   assert.equal(SandDrifts.current, null);
   assert.equal(d.sources.length, 1);
 });
+
+test('a world built its own way: every collided mesh in the scene, its hidden collider for its render copy', () => {
+  const scene = new THREE.Scene();
+  const hut = new THREE.Mesh(new THREE.BoxGeometry(4, 3, 4).translate(0, 1.5, 0));
+  hut.position.set(20, 0, 0); scene.add(hut);
+  const drawn = new THREE.Mesh(new THREE.BoxGeometry(4, 3, 4).translate(0, 1.5, 0)); drawn.userData.noCollide = true; scene.add(drawn);
+  // two huts merged into one mesh: two footprints
+  const merged = new THREE.BufferGeometry();
+  const a = new THREE.BoxGeometry(3, 3, 3).translate(-30, 1.5, 0).toNonIndexed(), b = new THREE.BoxGeometry(3, 3, 3).translate(-40, 1.5, 0).toNonIndexed();
+  merged.setAttribute('position', new THREE.Float32BufferAttribute([...a.attributes.position.array, ...b.attributes.position.array], 3));
+  scene.add(new THREE.Mesh(merged));
+  const d = new SandDrifts({ heightAt: flat }).addScene(scene);
+  assert.equal(d.sources.length, 3, 'the hut, and the merged two; not the render copy');
+  assert.ok(d.fieldAt(17.9, 0) > 0 && d.fieldAt(0, 0) === 0, 'at the hut where it stands');
+});

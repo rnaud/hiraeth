@@ -150,6 +150,36 @@ export class SandDrifts {
     for (const poly of footprintsOf(geo, this.ground, this.o)) this.addFootprint(poly, extra);
     return this;
   }
+  /**
+   * Every collided mesh under `root` (a world built its own way: meshes added straight to the scene):
+   * its geometry in world space, footprinted as addGeometry does. What doesn't collide (noCollide, on it
+   * or an ancestor: render copies whose hidden collider stands for them, plants, water) and instanced or
+   * skinned meshes are skipped. skip(mesh) leaves out more.
+   */
+  addScene(root, { skip = null } = {}) {
+    root.updateMatrixWorld(true);
+    const off = (o) => { for (let p = o; p; p = p.parent) if (p.userData?.noCollide) return true; return false; };
+    root.traverse((o) => {
+      if (!o.isMesh || o.isInstancedMesh || o.isSkinnedMesh || !o.geometry?.attributes?.position || off(o) || skip?.(o)) return;
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', o.geometry.attributes.position.clone());
+      if (o.geometry.index) g.setIndex(o.geometry.index.clone());
+      g.applyMatrix4(o.matrixWorld);
+      this.addGeometry(g);
+    });
+    return this;
+  }
+  /**
+   * Make the drifts part of the ground: its heightAt (and baseAt, through it) adds the field, so feet,
+   * the collision's base height, people, plants and footprints stand on the sand banked up. Call once
+   * the world is built (what was placed on the ground was placed before the sand came).
+   */
+  raise(ground) {
+    const base = ground.heightAt.bind(ground);
+    this.ground = base;
+    ground.heightAt = (x, z) => base(x, z) + this.fieldAt(x, z);
+    return this;
+  }
   /** A round footprint (a dome, a rock): centre, radius. */
   addCircle(x, z, r, extra = {}) {
     const n = Math.max(10, Math.ceil((2 * Math.PI * r) / 1.2));
@@ -173,7 +203,7 @@ export class SandDrifts {
     const r = R + s.reach;
     for (let gx = Math.floor((cx - r) / this.cell); gx <= Math.floor((cx + r) / this.cell); gx++)
       for (let gz = Math.floor((cz - r) / this.cell); gz <= Math.floor((cz + r) / this.cell); gz++) {
-        const k = `${gx},${gz}`;
+        const k = gx * 65536 + gz;
         if (!this.grid.has(k)) this.grid.set(k, []);
         this.grid.get(k).push(s);
       }
@@ -200,14 +230,15 @@ export class SandDrifts {
     }
     rise *= boost;
     const reach = rise * this.o.reach;
-    if (d <= 0) return rise;
+    // (inside the footprint only under its wall's foot, where the skirt tucks in: deeper in, nothing)
+    if (d <= 0) return d > -2 * this.o.inside ? rise : 0;
     if (d >= reach) return 0;
     const u = 1 - d / reach;
     return rise * u * u;
   }
   /** The drifts' height over the ground at (x, z): the highest of the drifts that reach it. */
   fieldAt(x, z) {
-    const list = this.grid.get(`${Math.floor(x / this.cell)},${Math.floor(z / this.cell)}`);
+    const list = this.grid.get(Math.floor(x / this.cell) * 65536 + Math.floor(z / this.cell));
     if (!list) return 0;
     let h = 0;
     for (const s of list) { const v = this.driftOf(s, x, z); if (v > h) h = v; }
@@ -295,6 +326,7 @@ export class SandDrifts {
       const mesh = new THREE.Mesh(g, material);
       mesh.name = 'Sand banked (' + k + ': ' + c.n + ')';
       mesh.userData.drifts = this;
+      mesh.userData.noCollide = true;   // (walked on through the ground's height: raise())
       group.add(mesh);
       tris += c.idx.length / 3;
     }

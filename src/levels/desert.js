@@ -59,6 +59,7 @@ export function createDesert(scene) {
   portals.push(...hearth.portals);
   const drifts = sand.close().build(driftMaterial(makeMaterial, terrain.materialOptions));
   if (drifts) scene.add(drifts);
+  sand.raise(terrain);   // (from here on the ground's height is the sand's, drifts and all)
   // the Givers' House in the eastern dunes, and its rooms far overhead (src/temples/desert.js)
   return attachTemple('desert', scene, {
     id: 'desert',

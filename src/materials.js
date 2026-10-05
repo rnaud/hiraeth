@@ -868,7 +868,7 @@ const fragmentShader = /* glsl */ `
     if (uWeather > 0.0) {
       // weathered: a crack running out from a corner of the odd window, jagged, thinning
       float hc = hash(id + 21.7);
-      if (hc < 0.38 * uWeather) {
+      if (hc < 0.38 * uWeather && lodInk > 0.0) {
         vec2 sgn = vec2(hc < 0.19 * uWeather ? 1.0 : -1.0, hash(id + 4.9) > 0.5 ? 1.0 : -1.0);
         vec2 a = hf * sgn, b = a + vec2(0.1 + 0.12 * hash(id + 6.1), 0.16 + 0.14 * hash(id + 7.3)) * sgn;
         vec2 ab = b - a, pa = c - a;
@@ -889,12 +889,15 @@ const fragmentShader = /* glsl */ `
   // storey's top or up from its foot, jagged and thinning, with a branch now and then; and a few
   // patches where the plaster has gone, their edge a broken pen line, a shade apart inside (under the
   // colour-edge threshold: the only line is the drawn one). q: (along the wall, up) in metres,
-  // fq: metres per px of each; pn / fpn: the patches' noise and its px gradient (uniform flow).
-  float weatherInk(vec2 q, vec2 fq, float pn, float fpn, inout vec3 alb) {
+  // fq: metres per px of each (taken in uniform flow). Nothing is looked up once it is too small to
+  // draw (most of a far city's walls, and the handheld's coarse pixels): the patches' noise and its
+  // pixel gradient (estimated from fq: no derivative needed here) only near.
+  float weatherInk(vec2 q, vec2 fq, inout vec3 alb) {
     float ink = 0.0;
     const vec2 cellS = vec2(${WEATHER.cell[0]}, ${WEATHER.cell[1]});
     float resolved = 1.0 - smoothstep(${WEATHER.far[0]}, ${WEATHER.far[1]}, max(fq.x, fq.y));
-    if (resolved > 0.0) for (int dy = 0; dy < 2; dy++) {
+    if (resolved <= 0.0) return 0.0;
+    for (int dy = 0; dy < 2; dy++) {
       vec2 id = floor(q / cellS) - vec2(0.0, float(dy));
       if (hash(id + 41.0) > ${WEATHER.cracks} * uWeather) continue;            // most cells: none
       bool down = hash(id + 2.2) > 0.45;
@@ -914,9 +917,11 @@ const fragmentShader = /* glsl */ `
       }
     }
     // patches: the plaster gone (a shade darker) or a pale repair, the edge broken
+    float pn = vnoise(q * 0.42 + 17.0) * 0.72 + vnoise(q * 1.6) * 0.28;
+    float fpn = 1.1 * max(fq.x, fq.y);   // (the noise's gradient, about 1.1 a metre, times metres per px)
     float th = 1.0 - ${WEATHER.patches} * uWeather;
     float inside = step(th, pn);
-    alb *= 1.0 + inside * (hash(floor(q / 6.0) + 12.0) > 0.4 ? -0.07 : 0.05);
+    alb *= 1.0 + inside * resolved * (hash(floor(q / 6.0) + 12.0) > 0.4 ? -0.07 : 0.05);
     float edge = inkLine(abs(pn - th) / max(fpn, 1e-5), 0.8) * smoothstep(0.35, 0.6, vnoise(q * 1.7 + 3.0));
     return max(ink, edge * 0.8) * resolved;
   }
@@ -1232,8 +1237,6 @@ const fragmentShader = /* glsl */ `
     vec2 wDir = normalize(vec2(-vNormal.z, vNormal.x) + 1e-5);
     vec2 wq = vec2(dot(vWorldPos.xz, wDir), vWorldPos.y);
     vec2 wfq = vec2(length(vec2(dFdx(wq.x), dFdy(wq.x))), length(vec2(dFdx(wq.y), dFdy(wq.y))));
-    float wpn = vnoise(wq * 0.42 + 17.0) * 0.72 + vnoise(wq * 1.6) * 0.28;
-    float wfpn = fwidth(wpn);
     #endif
     #ifdef S_STRATA
     // strokes along the beds of rock (the strata's own wavy horizontals), lit or not
@@ -1379,7 +1382,7 @@ const fragmentShader = /* glsl */ `
     if (uPattern == 4 && uMode != ${MODE_TERRAIN}) patInk = rockCracks(vObjPos);   // (bare rock ground: rockFissures, below)
     #endif
     #ifdef S_WEATHER
-    if (uWeather > 0.0 && abs(n.y) < 0.55) patInk = max(patInk, weatherInk(wq, wfq, wpn, wfpn, albedo) * (1.0 - smoothstep(0.35, 0.55, abs(n.y))));
+    if (uWeather > 0.0 && abs(n.y) < 0.55) patInk = max(patInk, weatherInk(wq, wfq, albedo) * (1.0 - smoothstep(0.35, 0.55, abs(n.y))));
     #endif
     albedo *= instColor;
     #ifdef S_PLATES
@@ -1634,7 +1637,8 @@ const fragmentShader = /* glsl */ `
       gHatch.rg = vec2(h1, h2);
     }
     #ifdef S_STRATA
-    if (uMode == ${MODE_STRATA} && uShade.w > 0.0) {
+    // (lit, upright, and near enough for post.js to draw strokes at all: it fades them out by 700 m)
+    if (uMode == ${MODE_STRATA} && uShade.w > 0.0 && L >= uToon && vViewDepth < 700.0 && abs(normalize(on).y) < 0.7) {
       // rock in light keeps a texture of strokes: runs of them along its beds (the strata's wavy
       // horizontals); in shade the hatching is the shading, as on everything
       float upright = 1.0 - smoothstep(0.45, 0.7, abs(normalize(on).y));

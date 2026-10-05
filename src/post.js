@@ -746,8 +746,9 @@ const fragmentShader = /* glsl */ `
     col *= 1.0 + uGrain * (grain * 0.5 + (fibre - 0.5) * 0.6);
     // the paper's tooth: a fine mottle and its pits, strongest in the light colours (ink sits on it)
     if (uPaper > 0.0) {
-      float tooth = vnoise(fc * 0.9 + 3.1) * 0.55 + vnoise(fc * 0.37 + 11.0) * 0.3 + vnoise(fc * 0.09 + 5.0) * 0.15;
-      float pits = smoothstep(0.78, 0.92, vnoise(fc * 1.7 + 17.0));
+      // (the handheld: one octave and no pits, one noise tap instead of four)
+      float tooth = uPostLite > 0.5 ? vnoise(fc * 0.9 + 3.1) : vnoise(fc * 0.9 + 3.1) * 0.55 + vnoise(fc * 0.37 + 11.0) * 0.3 + vnoise(fc * 0.09 + 5.0) * 0.15;
+      float pits = uPostLite > 0.5 ? 0.0 : smoothstep(0.78, 0.92, vnoise(fc * 1.7 + 17.0));
       float onLight = smoothstep(0.25, 0.75, dot(col, vec3(0.3, 0.55, 0.15)));
       col *= 1.0 + uPaper * onLight * ((tooth - 0.5) * 0.11 - pits * 0.05);
     }
