@@ -283,9 +283,12 @@ To start after the current work lands. Ordered from easiest to most complex.
 
 ## Screens and presentation
 
+- [ ] Hair: everyone's hair is the same rounded cap, so it reads as a bowl cut (very visible on the
+  parents' holograms). Real hairstyles.
+
 - [x] Redesign the screens that say "Hello", "again", etc.: they feel out of place (find
   which cards these are and give them the airy title-screen look).
-- [ ] Holograms (the father's and all others): in colour, not blue; torso and face, not full
+- [x] Holograms (the father's and all others): in colour, not blue; torso and face, not full
   body. The father has a beard.
 
 ## Lore

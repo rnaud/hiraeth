@@ -11,7 +11,8 @@ import { CONSOLE_R } from '../src/ship/interior.js';
 import { findShipSite, siteAvoid, probeSite, SITE_OVERRIDES } from '../src/ship/sites.js';
 import { consoleAction, mapEntries, chartLayout, boxRect } from '../src/ship/starmap.js';
 import { pendingCall, callLines, completedWorlds, applyCall, CALL_COUNT, ILEN_CALL, PROLOGUE_CALL, AGE, REEL, recordingLabel, recordingSpan, onHologram } from '../src/story/calls.js';
-import { holoLayout, mouthOpen, HOLO } from '../src/ship/hologram.js';
+import { holoLayout, mouthOpen, HOLO, BUST, PEOPLE, holoLook } from '../src/ship/hologram.js';
+import { makeMaterial, MODE_OUTFIT, MODE_EYE } from '../src/materials.js';
 import { ENDING_WORLDS } from '../src/story/ending.js';
 import { Prologue, PROLOGUE_STAGES } from '../src/ship/prologue.js';
 import { LEVELS } from '../src/levels/index.js';
@@ -312,6 +313,44 @@ test('the hologram: who stands where, and a mouth that only moves while they spe
   for (let t = 0; t < 3; t += 0.05) { const m = mouthOpen(t, true); assert.ok(m >= 0 && m <= 1); open = Math.max(open, m); }
   assert.ok(open > 0.6, 'it opens');
   assert.equal(HOLO.live(), false, 'nothing drawn until a recording plays');
+});
+
+test('the hologram: coloured busts of who they were, the father bearded', () => {
+  // busts: cut below the chest, the bottom edge just over the lens
+  for (const k of ['m', 'f']) {
+    const B = BUST[k];
+    assert.ok(B.bottom < B.top && B.top < 1.4 && B.bottom > 1.05, 'the cut falls across the chest');
+    assert.ok(B.head - B.bottom < 0.8, 'head, neck, shoulders and the top of the chest only');
+  }
+  for (const who of ['father', 'both', 'three']) for (const L of holoLayout(who)) assert.ok(L.y >= BUST.lift && L.y < 0.2, 'each bust sits just over the lens');
+  // their own colours, not one tint: each mesh's ink material is read as it is
+  assert.equal(PEOPLE.father.look.mask, 'beard', 'the father has a beard');
+  assert.ok(PEOPLE.father.moustache, 'and a moustache over it');
+  assert.notEqual(PEOPLE.father.palette.cloth, PEOPLE.mother.palette.cloth, 'the two dress differently');
+  assert.notEqual(PEOPLE.father.look.head, PEOPLE.mother.look.head, 'and wear their hair differently');
+  const body = holoLook(makeMaterial({ color: '#b5473a', color2: '#2b2f45', mode: MODE_OUTFIT, skin: '#dba985' }));
+  assert.equal(body.uKind.value, 2, 'the body: clothes by region');
+  assert.equal(body.uColor.value.getHexString(), 'b5473a');
+  assert.equal(body.uSkin.value.getHexString(), 'dba985');
+  assert.equal(holoLook(makeMaterial({ color: '#ffffff', mode: MODE_EYE })).uKind.value, 3, 'the eyes');
+  assert.equal(holoLook(makeMaterial({ color: '#ffffff', vertexColors: true }), true).uKind.value, 1, 'costumes: per vertex');
+  assert.equal(holoLook(new THREE.MeshBasicMaterial({ color: '#5f3c27' })).uColor.value.getHexString(), '5f3c27', 'plain pieces: their colour');
+});
+
+test('a recording: the shot pushes in on the bust while it is up', async () => {
+  const { callShot, CALL_FACE, HOLO_SCALE } = await import('../src/ship/cinematics.js');
+  const scene = new THREE.Scene();
+  scene.add(new THREE.Mesh(new THREE.PlaneGeometry(400, 400).rotateX(-Math.PI / 2)));
+  const physics = new Physics(scene);
+  const level = { spawn: v(0, 0, 60), ground: { heightAt: () => 0 }, lights: [], shipSite: { x: 0, z: 0, heading: 1.1 } };
+  const ship = quiet(() => new Ship({ scene, physics, level, levelId: 'test', content: { npcs: [], relics: { spots: [] } } }));
+  const m = ship.parked;
+  const proj = ship.world(m, m.interior.points.projector);
+  const wide = callShot(ship, m, 0, 0), close = callShot(ship, m, 0, 1);
+  assert.ok(close.pos.distanceTo(proj) < wide.pos.distanceTo(proj) - 0.3, 'closer to the hologram');
+  assert.ok(close.fov < wide.fov, 'and tighter');
+  assert.ok(Math.abs(close.look.y - (proj.y + CALL_FACE)) < 0.2, 'looking at the face of a bust, not over a whole body');
+  assert.ok(CALL_FACE > 0.3 && CALL_FACE < 0.7 && HOLO_SCALE > 0.6, 'a bust near life size, its face near his');
 });
 
 test('a recording at the console: the traveller faces the projector, the camera behind him', async () => {

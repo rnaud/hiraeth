@@ -10,6 +10,10 @@ export const CHANGELOG = [
     'The reactor column is gone from the middle of the ship: a small holo table stands there, showing the planet you’re on (in the opening, the one below you).',
     'The ship’s main room is smaller and cosier, sized for one pilot.',
     'The ship feels lived in: lockers, a galley with a stove and sink, a pantry covered in notes, crates strapped down, instrument racks by the window, cables overhead, plants, and a jacket thrown over the desk chair.',
+    'The recordings of your parents now appear as holograms in their own colours, not a blue glow: head and shoulders over the projector’s lens, faint scanlines and a soft flicker, fading out below the chest.',
+    'Your father now has a full, trimmed beard; your mother has her long dark hair down, a teal scarf and a lilac top.',
+    'Your parents turn to face you while the recording plays: they nod as they speak, glance at each other, and look up at you over the stone at home.',
+    'The camera moves in on their faces while the hologram is up and pulls back once it fades.',
   ] },
   { v: '0.45', date: '2026-10-05', items: [
     'The ship now has a reason for its route: whatever struck it left a magnetic signature in the scar on the hull, and the ship flies only to worlds that carry the same signature.',

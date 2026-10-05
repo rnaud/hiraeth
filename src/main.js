@@ -1026,7 +1026,7 @@ function renderFrame() {
   if (!portraitShot) {
     renderer.render(wind.scene, camera);
     if (motes) renderer.render(motes.scene, camera);
-    if (HOLO.live()) renderer.render(HOLO.scene, camera);   // the recordings' hologram: light, not ink
+    if (HOLO.live()) HOLO.render(renderer, camera, composeRT);   // the recordings' hologram: light, not ink
   }
 
   // 5. smooth edges and scale the completed frame to the display

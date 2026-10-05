@@ -10,6 +10,10 @@ The same release notes shown in the game (press **N** or open settings).
 - The reactor column is gone from the middle of the ship: a small holo table stands there, showing the planet you’re on (in the opening, the one below you).
 - The ship’s main room is smaller and cosier, sized for one pilot.
 - The ship feels lived in: lockers, a galley with a stove and sink, a pantry covered in notes, crates strapped down, instrument racks by the window, cables overhead, plants, and a jacket thrown over the desk chair.
+- The recordings of your parents now appear as holograms in their own colours, not a blue glow: head and shoulders over the projector’s lens, faint scanlines and a soft flicker, fading out below the chest.
+- Your father now has a full, trimmed beard; your mother has her long dark hair down, a teal scarf and a lilac top.
+- Your parents turn to face you while the recording plays: they nod as they speak, glance at each other, and look up at you over the stone at home.
+- The camera moves in on their faces while the hologram is up and pulls back once it fades.
 
 ## v0.45 — 2026-10-05
 
