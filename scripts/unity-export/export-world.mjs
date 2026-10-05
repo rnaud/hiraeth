@@ -641,7 +641,8 @@ const atmo = (() => {
   for (let i = 0; i < colP.length; i += 3) for (let k = 0; k < 3; k++) { mn[k] = Math.min(mn[k], colP[i + k]); mx[k] = Math.max(mx[k], colP[i + k]); }
   if (terrainOut) { const h = terrain.size / 2; mn[0] = Math.min(mn[0], -h); mx[0] = Math.max(mx[0], h); mn[2] = Math.min(mn[2], -h); mx[2] = Math.max(mx[2], h); }
   // (no further than the play goes: 1.2 km round the middle)
-  for (const k of [0, 2]) { mn[k] = Math.max(mn[k], -1200); mx[k] = Math.min(mx[k], 1200); }
+  const reach = level.gravityAt ? 3400 : 1200;   // (the Hangar's quarters lie 3 km apart)
+  for (const k of [0, 2]) { mn[k] = Math.max(mn[k], -reach); mx[k] = Math.min(mx[k], reach); }
   mn[1] = Math.max(mn[1], -800); mx[1] = Math.min(mx[1], 2600);
   const nx = 40, ny = 16, nz = 40, names = [], S = [], L = [];
   for (let iy = 0; iy < ny; iy++) for (let iz = 0; iz < nz; iz++) for (let ix = 0; ix < nx; ix++) {

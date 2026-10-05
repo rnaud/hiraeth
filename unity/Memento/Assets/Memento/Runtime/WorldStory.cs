@@ -337,6 +337,7 @@ namespace Memento
                 "incal" => new IncalMechanics(),
                 "arzach" => new ArzachMechanics(),
                 "spheres" => new SpheresMechanics(),
+                "garage" => new GarageMechanics(),
                 _ => null,
             };
             if (m == null) return null;

@@ -103,6 +103,77 @@ namespace Memento
         }
     }
 
+    /// <summary>
+    /// The Sealed Hangar (src/levels/garage.js, story/garage.js): gravity turned in two of its quarters (the
+    /// upside-down slab, where down is up; the inside of the ring, where it points out from the axis); the
+    /// portals between Brask's plateau, the upside-down quarter and the ring, a quick fade into their light and
+    /// out the far side upright; falling out of a quarter sends you back to its entrance.
+    /// </summary>
+    public class GarageMechanics : WorldMechanics
+    {
+        Vector3 C; float ringR, ringL; Vector3 aSpawn, bSpawn, cSpawn;
+        class Portal { public Vector3 pos, to, toUp, toFwd; public string label; }
+        readonly List<Portal> portals = new();
+        float cool, fadeT = -1; Portal passing;
+
+        protected override void Begin()
+        {
+            var g = game.world.World.O("gravity");
+            C = g.V3("C"); ringR = g.F("ringR", 150); ringL = g.F("ringL", 420);
+            var h = game.world.World.O("handles").O("garage");
+            aSpawn = h.V3("aSpawn"); bSpawn = h.V3("bSpawn"); cSpawn = h.V3("cSpawn");
+            foreach (var p in h.L("portals")) portals.Add(new Portal { pos = p.V3("pos"), to = p.V3("to"), toUp = p.V3("toUp"), toFwd = p.V3("toFwd"), label = p.S("label") });
+            game.player.upAt = UpAt;
+        }
+        public bool InRing(Vector3 p) => Mathf.Abs(p.x - C.x) < ringL / 2 + 80 && new Vector2(p.y - C.y, p.z - C.z).magnitude < ringR + 80;
+        public bool InB(Vector3 p) => p.z > 2200;
+        /// <summary>garage.js gravityAt, in Unity's frame (x mirrored: the ring's axis runs along x either way).</summary>
+        public Vector3 UpAt(Vector3 p)
+        {
+            if (InRing(p)) return new Vector3(0, C.y - p.y, C.z - p.z).normalized;
+            if (InB(p)) return Vector3.down;
+            return Vector3.up;
+        }
+        public string Zone(Vector3 p) => InRing(p) ? "C" : InB(p) ? "B" : "A";
+
+        public override void Tick(float dt)
+        {
+            var pl = game.player; var p = pl.transform.position;
+            cool = Mathf.Max(0, cool - dt);
+            if (passing != null)
+            {
+                fadeT += dt;
+                if (fadeT >= 0.16f && passing.to != Vector3.zero)
+                {
+                    var to = passing.to; var toUp = passing.toUp; var toFwd = passing.toFwd;
+                    passing.to = Vector3.zero;
+                    // out the far side, facing on, upright in its frame
+                    var F = Quaternion.FromToRotation(Vector3.up, toUp);
+                    var fwdLocal = Quaternion.Inverse(F) * toFwd;
+                    pl.Teleport(to, Mathf.Atan2(fwdLocal.x, fwdLocal.z) * Mathf.Rad2Deg);
+                    game.rig.frame = pl.Frame; game.rig.yaw = pl.heading; game.rig.pitch = 11;
+                }
+                if (fadeT > 0.56f) passing = null;
+                return;
+            }
+            if (cool == 0 && !pl.riding)
+                foreach (var po in portals)
+                    if (Vector3.Distance(p, po.pos) < 5.5f)
+                    {
+                        passing = new Portal { pos = po.pos, to = po.to, toUp = po.toUp, toFwd = po.toFwd, label = po.label }; fadeT = 0; cool = 1.5f;
+                        Sounds.Instance?.Play("whoosh");
+                        Debug.Log($"Memento: through the {po.label}");
+                        break;
+                    }
+            // falling out of a quarter: back to its entrance
+            var z = Zone(p);
+            if (z == "A" && p.y < -260) pl.Teleport(aSpawn, 180);
+            if (z == "B" && p.y > 900 + 400) pl.Teleport(bSpawn, 0);
+            if (z == "C" && new Vector2(p.y - C.y, p.z - C.z).magnitude > ringR + 40) pl.Teleport(cSpawn, 90);
+            if (z == "A" && new Vector2(p.x, p.z).magnitude > 900) pl.Teleport(aSpawn, 180);
+        }
+    }
+
     /// <summary>Vael's own script (src/story/arzach.js): the bird that waits, the rider's whistle (the bird's flight is not in this port yet).</summary>
     public class ArzachMechanics : WorldMechanics
     {

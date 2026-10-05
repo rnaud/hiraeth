@@ -170,7 +170,44 @@ namespace Memento
             Log($"{world}: opening step {(ok ? "done" : "NOT done")}: {q} '{stage0}' -> '{now}' ({Text.Plain(game.quests.Current(q)?.S("text"))})");
             yield return Shoot($"{world}_next_objective");
             if (ok && world == "incal" && deep) yield return IncalToTheEnd();
+            else if (ok && world == "garage") yield return GarageStep(q);
             else if (ok) yield return HitStep(world, q);
+        }
+
+        /// <summary>The Hangar's next stage: through the portal to the upside-down quarter (gravity turned: you walk the slab
+        /// upside down), a few steps on it, the signal posted in the relay box.</summary>
+        IEnumerator GarageStep(string q)
+        {
+            var h = game.world.World.O("handles").O("garage");
+            var portal = h.L("portals")[0].V3("pos");
+            Put(portal + Vector3.down * 5f + Vector3.back * 3, 0); yield return Wait(0.3f);
+            Put(portal, 0);
+            float w = 0; while (game.player.transform.position.z < 2200 && w < 4) { w += Time.deltaTime; yield return null; }
+            yield return Wait(1.2f);
+            var pl = game.player;
+            Log($"garage: through the portal: at {pl.transform.position}, up {pl.frameUp}, framed {pl.framed}, on the ground {pl.onGround}, zone {(game.worldStory.mechanics as GarageMechanics)?.Zone(pl.transform.position)}");
+            yield return Shoot("garage_the_upside_down_quarter");
+            var p0 = pl.transform.position;
+            pad.move = new Vector2(0, 1); yield return Wait(1.5f); pad.move = Vector2.zero; yield return Wait(0.5f);
+            Log($"garage: walked {Vector3.Distance(p0, pl.transform.position):0.0} m upside down, still on the slab {pl.onGround} (y {pl.transform.position.y:0.0})");
+            yield return Shoot("garage_walking_upside_down");
+            // the relay box: the signal posted
+            var relay = h.O("relay").V3("foot");
+            Put(relay + Vector3.forward * 2f, 180); yield return Wait(0.8f);
+            var thing = game.worldStory.Thing("relay");
+            Log($"garage: by the relay, prompt '{game.prompt}', the thing {(thing != null ? "there" : "missing")}");
+            var def = game.worldStory.ThingDef("relay");
+            if (def != null)
+            {
+                game.hud.StartTalk(def, null, def.S("name"), def.S("title"));
+                var r = game.hud.talk;
+                yield return Wait(0.6f); yield return Shoot("garage_the_relay_box");
+                if (r != null) { while (!r.ended && (!r.LastPage || r.Choices().Count == 0) && r.Advance()) { } var c = r.Choices(); if (c.Count > 0) r.Choose(c[0].index); }
+                if (game.hud.talk != null) game.hud.talk.ended = true;
+            }
+            yield return Wait(0.6f);
+            game.quests.Update(pl.transform.position);
+            Log($"garage: the signal stamped {game.state.Is("garage.signal.stamped")}, stage {game.quests.Stage(q)}");
         }
 
         /// <summary>The next stage, when the fluid's hits raise its flag (the pools relit, the spheres splashed, the gauges): each

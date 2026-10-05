@@ -18,6 +18,8 @@ namespace Memento
         public Vector3 lookOffset = new Vector3(0, 1.8f, 0);
         Vector3 tgt; float cur = 9.5f, lookIdle = 9;
         public bool external;               // a conversation or a scene has the camera
+        /// <summary>The frame gravity turns the world to (the Hangar: upside down, round the ring): the arm's yaw and pitch are in it.</summary>
+        public Quaternion frame = Quaternion.identity;
 
         public void Init(Camera c, Player p) { cam = c; player = p; target = p.transform; tgt = target.position; yaw = p.heading; }
 
@@ -33,8 +35,10 @@ namespace Memento
             float heading = player ? (player.riding && Game.Instance.bike ? Game.Instance.bike.transform.eulerAngles.y : player.heading) : yaw;
             if (lookIdle > 1.2f && spd > 1f) yaw = Mathf.LerpAngle(yaw, heading, (1 - Mathf.Exp(-1.2f * dt * Mathf.Min(spd / 4f, 2f))) * follow);
             tgt = Vector3.Lerp(tgt, target.position, 1 - Mathf.Exp(-14 * dt));
-            var lookAt = tgt + lookOffset + Vector3.up * Mathf.Max(0, -pitch * Mathf.Deg2Rad) * 1.4f;
-            var dir = Quaternion.Euler(pitch, yaw, 0) * Vector3.back;
+            var up = frame * Vector3.up;
+            bool framed = Vector3.Dot(up, Vector3.up) < 0.999f;
+            var lookAt = tgt + frame * lookOffset + up * Mathf.Max(0, -pitch * Mathf.Deg2Rad) * 1.4f;
+            var dir = frame * (Quaternion.Euler(pitch, yaw, 0) * Vector3.back);
             // tight spaces (player.js tightness): a room, a corridor, a low roof bring the arm in close
             UpdateTight(dt);
             float open = player && player.riding ? dist * 0.95f : dist;
@@ -42,7 +46,7 @@ namespace Memento
             float allowed = want;
             if (Physics.SphereCast(lookAt, 0.25f, dir, out var hit, want + 0.5f)) allowed = Mathf.Max(1.2f, Mathf.Min(want, hit.distance - 0.4f));
             // the ground: the arm's end stays 0.4 m above it
-            for (int i = 0; i < 8; i++)
+            for (int i = 0; i < 8 && !framed; i++)
             {
                 var p = lookAt + dir * allowed;
                 if (!Physics.Raycast(p + Vector3.up * 3, Vector3.down, out var g, 3.4f) || p.y > g.point.y + 0.4f) break;
@@ -50,8 +54,8 @@ namespace Memento
             }
             if (allowed < cur - 0.02f) cur = allowed; else cur += (allowed - cur) * (1 - Mathf.Exp(-3 * dt));
             cam.transform.position = lookAt + dir * cur;
-            cam.transform.rotation = Quaternion.LookRotation(lookAt - cam.transform.position, Vector3.up);
-            transform.rotation = Quaternion.Euler(0, yaw, 0);
+            cam.transform.rotation = Quaternion.LookRotation(lookAt - cam.transform.position, up);
+            transform.rotation = frame * Quaternion.Euler(0, yaw, 0);
         }
 
         // ------------------------------------------------------------------ how tight a spot is (player.js CameraRig.probe / tightness)

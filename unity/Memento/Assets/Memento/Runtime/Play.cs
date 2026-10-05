@@ -170,6 +170,8 @@ namespace Memento
             if (worldRoot) { worldRoot.gameObject.SetActive(false); Destroy(worldRoot.gameObject); }
             worldRoot = null;
             Interact.All.Clear(); Targets.All.Clear();
+            if (game.player) game.player.upAt = null;
+            if (game.rig) game.rig.frame = Quaternion.identity;
             game.npcs.Clear();
             game.quests.Clear();
             game.story = null; game.worldStory = null; game.bike = null; game.ship = null; game.crowd = null; game.ambient = null; game.wildlife = null;
@@ -189,6 +191,7 @@ namespace Memento
             var pl = game.player;
             bool busy = game.hud.Busy;
             pl.frozen = busy && !(game.ship && game.ship.PlayerFree);
+            game.rig.frame = Quaternion.Slerp(game.rig.frame, pl.Frame, 1 - Mathf.Exp(-8 * Time.deltaTime));
             game.rig.external = game.hud.talk != null;
             if (game.hud.talk != null)
             {
