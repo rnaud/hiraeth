@@ -7,7 +7,10 @@
 // It is not one of a world's quests (those live and die with their world): its
 // state is read off the save, so it stands the same everywhere.
 //
-//   chargeState({ flag, keepsakes, completed })   → { stage, worlds, kept, names }
+//   chargeState({ flag, keepsakes, completed, failed })   → { stage, worlds, kept, names, lost }
+//     failed: the titles of quests that went wrong (flags failed.<id>, src/story/quests.js); the
+//     card keeps them too, quietly, under what you carry: it isn't a mark against you, it's
+//     what happened
 //     stage: null (not given yet) · 'out' (find it) · 'home' (home is on the map) · 'done'
 //   chargeHud(state)          the HUD's line for it: '✦ …' (main.js shows it in its own colour)
 //   chargeJournalHtml(state)  the card pinned at the top of the sketchbook
@@ -31,11 +34,11 @@ export const GIVEN = 'charge.given';
 export const CARD = 'charge.card';
 
 /** Where the charge stands, from the save: `flag(name)`, the keepsakes, how many worlds are done. */
-export function chargeState({ flag, keepsakes = [], completed = 0 }) {
+export function chargeState({ flag, keepsakes = [], completed = 0, failed = [] }) {
   const worlds = Array.isArray(completed) ? completed.length : completed;
   const given = !!(flag(GIVEN) || flag('prologue.done'));
   const stage = !given ? null : flag('ending.done') ? 'done' : endingUnlocked(worlds) ? 'home' : 'out';
-  return { stage, worlds, of: ENDING_WORLDS, kept: keepsakes.length, names: keepsakes.map((k) => k.name) };
+  return { stage, worlds, of: ENDING_WORLDS, kept: keepsakes.length, names: keepsakes.map((k) => k.name), lost: [...failed] };
 }
 
 /** What to do about it now, in a few words. */
@@ -66,11 +69,12 @@ export function chargeJournalHtml(st) {
   const carry = st.names.length
     ? `<p class="carry"><b>What you carry</b> ${st.names.map((n) => `<span>${escapeHtml(n)}</span>`).join('')}</p>`
     : '<p class="carry empty"><b>What you carry</b> <span>nothing yet</span></p>';
+  const lost = st.lost?.length ? `<p class="carry lost"><b>What you could not mend</b> ${st.lost.map((n) => `<span>${escapeHtml(n)}</span>`).join('')}</p>` : '';
   return `<section class="charge${done ? ' finished' : ''}">
     <p class="k"><i>${CHARGE.mark}</i> ${CHARGE.from}</p>
     <h2>${CHARGE.title}${done ? '<b class="stamp">✓ Brought home</b>' : ''}</h2>
     <blockquote>“${CHARGE.quote}”</blockquote>
-    <ul>${steps}</ul>${carry}</section>`;
+    <ul>${steps}</ul>${carry}${lost}</section>`;
 }
 
 // ---------------------------------------------------------------------------

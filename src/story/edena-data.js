@@ -15,8 +15,20 @@
 // on the traveller's own hull. Their ship was not the first. Nobody explains
 // the light; Mira only says what the gardeners do with things that fall.
 //
+// The terraces (src/story/terraces.js): the quest you try, and fail. Esk keeps
+// the tea terraces on the white builders' old steps above the dry hollow; the
+// spring has sulked since the light passed. You clear her runnels, and then, at
+// her asking ("a little; one turn"), open the builders' gate on the cistern
+// above. It has been shut a thousand years; it gives way all at once, and the
+// water takes the middle of the terraces down into the hollow. She is angry,
+// you are sorry, and she says what the gardeners say about everything that
+// falls. The quest ends failed (quests.fail) and the hill stays as it fell.
+//
 // Flags (game-state.js): edena.* below; clue.edena.struck (the same light
-// struck them), clue.edena.pod (they left in the saucer for the deep wood).
+// struck them), clue.edena.pod (they left in the saucer for the deep wood);
+// the terraces: edena.esk.asked, edena.runnel.<0-2>, edena.runnels (how many),
+// edena.esk.gate, edena.gate.roots, edena.gate.turned, edena.terraces.flooded,
+// and edena.<who>.flood (each gardener's word about it, once).
 
 const Q = 'edena.garden';
 
@@ -50,6 +62,20 @@ export const QUESTS = [
     ],
   },
   {
+    // the quest that fails (src/story/terraces.js): it can't be won, and it doesn't block anything
+    id: 'edena.terraces', title: 'Water for the Tea Terraces', world: 'edena', major: true,
+    failOutro: 'You opened the builders’ gate a little, as Esk asked, and the hill came down with the water. She said it was the garden’s now.',
+    stages: [
+      { id: 'esk', text: 'Esk keeps the tea terraces south-east of the landing, above the dry hollow. Go and see her', label: 'Esk, on the tea terraces', talk: 'esk', at: 'esk' },
+      { id: 'runnels', text: 'Clear the three choked runnels, top terrace first: shove each clod of silt out (push: C, middle click, or RB / R1)', label: 'A choked runnel', when: (q) => (q.game.flag('edena.runnels') ?? 0) >= 3, at: 'clod' },
+      { id: 'ask', text: 'Water runs, but only a trickle. Tell Esk', label: 'Esk, on the tea terraces', talk: 'esk', at: 'esk' },
+      { id: 'roots', text: 'Roots have grown through the wheel of the builders’ gate, on the cistern above the terraces. Water them so they let go (shoot)', label: 'The builders’ gate', flag: 'edena.gate.roots', at: 'gate' },
+      { id: 'gate', text: 'Turn the gate’s wheel a little: one shove (push)', label: 'The builders’ gate', flag: 'edena.gate.turned', at: 'gate' },
+      { id: 'flood', text: 'The gate is giving way', label: 'The terraces', flag: 'edena.terraces.flooded', at: 'esk' },
+      { id: 'sorry', text: 'Go down to Esk', label: 'Esk', talk: 'esk', at: 'esk' },
+    ],
+  },
+  {
     id: 'edena.tree', title: 'The Tallest Tree', world: 'edena',
     outro: 'From the crown you can see the whole garden, and the long green scar the ship ploughed across it.',
     stages: [
@@ -67,12 +93,20 @@ export const PEOPLE = {
     lines: ['~solemn~ We tend the garden. The garden tends us.', '~playful~ The clock says it is time for tea. It always says that.', '~playful~ Mind the flowers. They mind you.'],
     talk: {
       entry: [
+        { if: { all: [{ quest: 'edena.terraces', failed: true }, { not: { flag: 'edena.mira.flood' } }, { not: { quest: Q, stage: 'tell' } }] }, node: 'flood' },
         { if: { quest: Q, done: true }, node: 'after' },
         { if: { quest: Q, stage: 'tell' }, node: 'tell' },
         { if: { flag: 'edena.mira.heard' }, node: 'again' },
         { node: 'hello' },
       ],
       nodes: {
+        // after the terraces (src/story/terraces.js): once
+        flood: {
+          say: ['~solemn~ Esk came by. She wasn’t angry any more by the time she got here. She was tired.', '~solemn~ We tend the garden. Some years that means letting a hill go. The clock still rang this morning: time to water. Not there. Not this year.'],
+          do: { set: { 'edena.mira.flood': true } },
+          choices: [{ text: '~sad~ I’m sorry, Mira.', goto: 'floodSorry' }],
+        },
+        floodSorry: { say: ['~neutral~ I know. Esk knows. Go gently; that’s all anyone asks here.'], choices: [{ text: '~sad~ (nod)', end: true }] },
         hello: {
           say: ['~surprised~ A ball fell into the meadow and a person came out of it. That is twice in my life. I’m Mira. I keep the water clock, which mostly means I keep it company.', '~happy~ You’ll want to know where you are. This is the garden. We tend it. That is all there is to know, and it takes a lifetime.'],
           choices: [
@@ -133,8 +167,22 @@ export const PEOPLE = {
     palette: { cloak: '#9fd6c9', lining: '#2b211f', cloth: '#f7f4ec', legs: '#5a6a6a', hat: '#f2a7b5', hair: '#e8dcc0' }, head: 'hat', cape: 0.9,
     lines: ['~curious~ Odile? Talo? They left in the ship.', '~happy~ They’ll be back for the tea.', '~surprised~ Every flower turned east. Every one.'],
     talk: {
-      entry: [{ if: { quest: Q, done: true }, node: 'after' }, { if: { flag: 'met.sol' }, node: 'again' }, { node: 'hello' }],
+      entry: [
+        { if: { all: [{ quest: 'edena.terraces', failed: true }, { not: { flag: 'edena.sol.flood' } }] }, node: 'flood' },
+        { if: { quest: Q, done: true }, node: 'after' }, { if: { flag: 'met.sol' }, node: 'again' }, { node: 'hello' },
+      ],
       nodes: {
+        tea: {
+          say: ['~happy~ From Esk’s terraces, *south-east of the landing, where the meadow drops into the dry hollow*. Every cup in the garden.', '~sad~ Thin this year, though. Since the light went over, the spring up there has sulked. Esk is beside herself. Go and see her; she likes being worried at.'],
+          do: (ctx) => { if (!ctx.quests?.isStarted('edena.terraces') && ctx.quests?.def('edena.terraces')) ctx.quests.start('edena.terraces'); },
+          choices: [{ text: '~neutral~ I’ll go and see her.', end: true }],
+        },
+        flood: {
+          say: ['~sad~ Esk’s hill, eh. I saw the water from here; it came down like a white sheet hung out to dry.', '~tired~ There’s tea from last year. Tea keeps. I’ve always said so; this is the first year anybody’s glad of it.'],
+          do: { set: { 'edena.sol.flood': true } },
+          choices: [{ text: '~sad~ It was my doing.', goto: 'floodMine' }],
+        },
+        floodMine: { say: ['~solemn~ It was a door, and you opened it, and it was a very old door. Have some tea. Last year’s.'], choices: [{ text: '~sad~ Thank you, Sol.', end: true }] },
         hello: {
           say: ['~curious~ Odile? Talo? They left in the ship. The little one, I mean; the big one stayed. You’re not them, are you? No. They’d have brought cake.', '~playful~ I’m Sol. I knew them, when I was young enough to follow them about. Talo let me hold his tools. Odile let me hold Talo, when he fell off things.'],
           choices: [
@@ -142,7 +190,7 @@ export const PEOPLE = {
             { text: '~curious~ What does the garden believe?', goto: 'believe' },
           ],
         },
-        back: { say: ['~happy~ Of course. They said they’d be back for the tea, and nobody says that about tea unless they mean it. It’s been a long time, I grant you. Tea keeps.'], choices: [{ text: '~curious~ Have you seen anything strange lately?', goto: 'strange' }, { text: '~neutral~ Goodbye, Sol.', end: true }] },
+        back: { say: ['~happy~ Of course. They said they’d be back for the tea, and nobody says that about tea unless they mean it. It’s been a long time, I grant you. Tea keeps.'], choices: [{ text: '~curious~ Have you seen anything strange lately?', goto: 'strange' }, { text: '~curious~ Where does the tea come from?', goto: 'tea', if: { quest: 'edena.terraces', started: false } }, { text: '~neutral~ Goodbye, Sol.', end: true }] },
         believe: { say: ['~playful~ That nothing that falls should be dug up again. Leaves, seeds, ships, old men. You let it lie and the garden makes something of it. Vey believes it hardest. I believe it on Tuesdays.'], choices: [{ text: '~curious~ Have you seen anything strange lately?', goto: 'strange' }] },
         strange: {
           say: ['~whisper~ The night the light passed. It went over very high, singing. A long note, like a finger round a glass. And every flower in the meadow turned to follow it, all at once, in the dark.', '~playful~ Talo had a name for a light like that. The Singer. He said it the way you’d say the name of someone who owes you money.'],
@@ -150,7 +198,7 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ It struck my ship.', goto: 'struck' }, { text: '~neutral~ Goodbye, Sol.', end: true }],
         },
         struck: { say: ['~curious~ Did it. Hm. Then you and Talo have something to talk about, when he’s back for the tea.'], choices: [{ text: '~neutral~ Goodbye, Sol.', end: true }] },
-        again: { say: ['~tired~ Any sign of them? No. Tea keeps.'], choices: [{ text: '~curious~ Tell me about the light again.', goto: 'strange' }, { text: '~neutral~ Goodbye, Sol.', end: true }] },
+        again: { say: ['~tired~ Any sign of them? No. Tea keeps.'], choices: [{ text: '~curious~ Tell me about the light again.', goto: 'strange' }, { text: '~curious~ Where does the tea come from?', goto: 'tea', if: { quest: 'edena.terraces', started: false } }, { text: '~neutral~ Goodbye, Sol.', end: true }] },
         after: { say: ['~sad~ Mira says you saw it, under the flowers. Then you know why they went. I always knew they’d go. I always know they’ll come back. Both can be true.'], choices: [{ text: '~solemn~ Both can be true.', end: true }] },
       },
     },
@@ -240,6 +288,7 @@ export const PEOPLE = {
     lines: ['~angry~ Don’t cut anything.', '~solemn~ It fell. It belongs to the ground now.', '~whisper~ Gently.'],
     talk: {
       entry: [
+        { if: { all: [{ quest: 'edena.terraces', failed: true }, { not: { flag: 'edena.vey.flood' } }] }, node: 'flood' },
         { if: { quest: Q, done: true }, node: 'after' },
         { if: { flag: 'edena.veil.open' }, node: 'opened' },
         { if: { flag: 'edena.veil.pushed' }, node: 'pushed' },
@@ -267,10 +316,100 @@ export const PEOPLE = {
           choices: [{ text: '~solemn~ I’ll look, and let it close.', end: true }],
         },
         after: { say: ['~solemn~ The flowers are closing over it again. They’ll be thicker next spring. That’s how it should be.'], choices: [{ text: '~solemn~ That’s how it should be.', end: true }] },
+        flood: {
+          say: ['~angry~ I heard. You opened something the builders shut. You put it back in the world, and the world had to deal with it all over again.', '~solemn~ …And it is. That’s what the world does. Go and look at the mud in a month: it will be green at the edges.'],
+          do: { set: { 'edena.vey.flood': true } },
+          choices: [{ text: '~sad~ I only meant to help.', goto: 'floodMeant' }],
+        },
+        floodMeant: { say: ['~tired~ Everybody only means to help. Esk meant it too, when she asked you. Gently, next time. Gently is slower, and it is still help.'], choices: [{ text: '~solemn~ Gently.', end: true }] },
+      },
+    },
+  },
+
+  // the tea terraces (src/story/terraces.js): the quest you try, and fail
+  esk: {
+    id: 'esk', name: 'Esk', title: 'who keeps the tea terraces', color: '#9a7a4a', voice: 0.9, kind: 'f', scale: 0.98,
+    palette: { cloak: '#c9a46a', lining: '#2b211f', cloth: '#5f8f5a', legs: '#5a4a3a', hat: '#f3ead8', hair: '#8a8a8a' }, head: 'wrap', cape: 0.8, look: { prop: 'basket' },
+    lines: ['~tired~ Mind the bushes. They’re thirsty.', '~neutral~ Top row first. Always top row first.', '~sad~ The tips are going brown.'],
+    talk: {
+      entry: [
+        { if: { quest: 'edena.terraces', failed: true }, node: 'after' },
+        { if: { quest: 'edena.terraces', stage: 'sorry' }, node: 'sorry' },
+        { if: { quest: 'edena.terraces', stage: 'flood' }, node: 'flood' },
+        { if: { quest: 'edena.terraces', stage: ['roots', 'gate'] }, node: 'go' },
+        { if: { quest: 'edena.terraces', stage: 'ask' }, node: 'ask' },
+        { if: { quest: 'edena.terraces', stage: 'runnels' }, node: 'runnels' },
+        { node: 'hello' },
+      ],
+      nodes: {
+        hello: {
+          say: ['~tired~ Mind the bushes. They’re thirsty, and they’re in a mood about it. So am I.', '~neutral~ I’m Esk. I keep the tea terraces. The steps are the white builders’, straight as rulers; the bushes are ours. My grandmother’s grandmother planted the top row.'],
+          choices: [
+            { text: '~curious~ Why are they thirsty?', goto: 'dry' },
+            { text: '~playful~ All the garden’s tea comes from here?', goto: 'teaAll' },
+          ],
+        },
+        teaAll: { say: ['~happy~ Every cup. Sol drinks most of it. Mira says it’s always time for tea, and she’s right, and this is where it comes from.'], choices: [{ text: '~curious~ And why are they thirsty?', goto: 'dry' }] },
+        dry: {
+          say: ['~sad~ The spring under the top terrace used to run all year. The night the light passed, it dropped to a trickle, and the runnels silted up. Look at the tips: brown.', '~neutral~ I can’t clear them without standing in the beds. You could, with that hand of yours, from the path. *Three clods of silt. Top terrace first*, or the mud only runs down into the next one.'],
+          choices: [
+            { text: '~neutral~ I’ll clear them.', do: (ctx) => { const q = ctx.quests; if (!q.isStarted('edena.terraces')) q.start('edena.terraces', 'runnels'); else q.advance('edena.terraces', 'esk'); ctx.game.set('edena.esk.asked', true); }, goto: 'thanks' },
+            { text: '~neutral~ Maybe later.', end: true },
+          ],
+        },
+        thanks: { say: ['~happy~ Bless you. *Shove them out*: a push, from the path. And *top first*. The water has to have somewhere to go.'], choices: [{ text: '~neutral~ Top first.', end: true }] },
+        runnels: { say: ['~neutral~ *Top terrace first*. Shove the clod out of the runnel, then the one below, then the one below that. The water has to have somewhere to go.'], choices: [{ text: '~neutral~ On it.', end: true }] },
+        ask: {
+          say: ['~happy~ Listen. Hear that? Water in the runnels. First time since the light.', '~sad~ …It’s not enough, though. A trickle. The bottom rows won’t see a drop of it before the summer.', '~solemn~ Up on top there’s *the builders’ cistern*, behind their gate. It’s full; you can hear it if you put your ear to the stone. They shut it before anyone here was born, and nobody has touched it since. We don’t open what isn’t ours.'],
+          choices: [
+            { text: '~curious~ Do you want me to open it?', goto: 'askGate' },
+            { text: '~neutral~ Then we leave it shut.', goto: 'leave' },
+          ],
+        },
+        leave: {
+          say: ['~tired~ …Yes. We leave it. And the bottom rows brown, and next year there’s a little less tea, and the year after.', '~angry~ Oh, I hate being wise. No. It isn’t digging. It isn’t something that fell. It’s a door, and doors are for opening.'],
+          next: 'askGate',
+        },
+        askGate: {
+          say: ['~scared~ …', '~solemn~ Yes. Open it. Gently. *A little*. Roots have grown through its wheel: *water them so they let go*, the way you’d ask, not cut. Then *one turn of the wheel*. One. Just enough to wet the top row.'],
+          do: [{ advance: ['edena.terraces', 'ask'] }, { set: { 'edena.esk.gate': true } }],
+          choices: [{ text: '~neutral~ One turn.', end: true }],
+        },
+        go: { say: ['~neutral~ *The wheel on the builders’ gate*, up on the cistern. Water the roots first. Then one turn. A little, traveller. I mean it.'], choices: [{ text: '~neutral~ A little.', end: true }] },
+        flood: { say: ['~scared~ Shut it! Can you shut it? No. No, it’s gone. Get off the slope!'], choices: [{ text: '~scared~ (get back)', end: true }] },
+        sorry: {
+          say: ['~angry~ (She doesn’t look at you. She is looking at where the middle of the terraces was.)', '~angry~ I said a little. I said one turn.'],
+          choices: [
+            { text: '~sad~ I only turned it once.', goto: 'once' },
+            { text: '~sad~ I’m sorry, Esk.', goto: 'sorry2' },
+          ],
+        },
+        once: {
+          say: ['~angry~ I know. I watched you. I know it was once.', '~angry~ And I asked you to. I know that too. I’m still angry with you. I’m allowed to be both.'],
+          choices: [{ text: '~sad~ I’m sorry, Esk.', goto: 'sorry2' }],
+        },
+        sorry2: {
+          say: ['~tired~ …', '~sad~ My mother planted the second row. The bottom one we put in the spring Sol’s knees went. It took the builders’ wall with it. A thousand years, that wall.', '~solemn~ I know you are. I can see you are.'],
+          next: 'okay',
+        },
+        okay: {
+          say: ['~solemn~ It’s all right. It isn’t, but it will be. It fell; it belongs to the ground now. That’s what we say about everything. I never thought I’d have to say it about my own hill.', '~neutral~ Go on, traveller. There’s nothing here for you to mend. That’s the hard part, I know.'],
+          do: { fail: 'edena.terraces' },
+          choices: [{ text: '~sad~ (go)', end: true }],
+        },
+        after: {
+          say: [
+            { if: { not: { flag: 'edena.esk.after' } }, text: '~tired~ The mud’s already greening at the edges. The bushes at the sides took it. Give it a few years, and a lot of mornings without tea.' },
+            { if: { flag: 'edena.esk.after' }, text: '~neutral~ Sol says tea keeps. For once, Sol is right.' },
+          ],
+          do: { set: { 'edena.esk.after': true } },
+          choices: [{ text: '~sad~ (nod)', end: true }],
+        },
       },
     },
   },
 };
+
 
 // The scenery you can look at: same panel, a different voice.
 export const THINGS = {

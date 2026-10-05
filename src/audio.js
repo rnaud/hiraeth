@@ -655,6 +655,26 @@ export class Sound {
     [0, 2, 4, 7].forEach((d, i) => this.pluck(this.freq(d, 2), t + i * 0.12, 0.12, 'sine', this.fx));
   }
 
+  /** A quest that went wrong (src/story/quests.js fail): three soft notes going down, not up. */
+  fail() {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    [4, 2, -1].forEach((d, i) => this.pluck(this.freq(d, 1), t + i * 0.24, 0.1, 'sine', this.fx));
+  }
+
+  /** Water and earth letting go (Viridel's terraces): a long low roar that swells and dies away. */
+  rumble(dur = 5, vol = 0.45) {
+    if (!this.ctx || !this.noiseBuf) return;
+    const ctx = this.ctx, t = ctx.currentTime;
+    const src = ctx.createBufferSource(); src.buffer = this.noiseBuf; src.loop = true; src.playbackRate.value = 0.35;
+    const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 260; f.Q.value = 0.6;
+    const g = ctx.createGain();
+    src.connect(f).connect(g).connect(this.fx);
+    g.gain.setValueAtTime(0.0005, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.6); g.gain.setValueAtTime(vol, t + dur * 0.45);
+    g.gain.exponentialRampToValueAtTime(0.0005, t + dur);
+    src.start(t); src.stop(t + dur + 0.1);
+  }
+
   // ------------------------------------------------------------------ the singing spheres (Garden of Spheres)
   /** Where a sound at `pos` sits for the listener (the camera, from listen): { gain 0..1 by distance, pan -1..1 }. */
   placeAt(pos, reach = 140) {

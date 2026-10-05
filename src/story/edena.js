@@ -5,6 +5,7 @@ import { registerTarget } from '../targets.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { Puffs, ownMaterial } from './puffs.js';
 import { QUESTS, PEOPLE, THINGS, ITEMS } from './edena-data.js';
+import { setupTerraces } from './terraces.js';
 
 // Viridel's story, alive (edena-data.js has the words).
 //
@@ -12,6 +13,8 @@ import { QUESTS, PEOPLE, THINGS, ITEMS } from './edena-data.js';
 //   the ruins       Oro, who grows pyramids from seeds
 //   the trees       Lio, who climbs; the tallest tree, with Talo's lookout
 //                   on its floating crown (a boost from the upper canopy)
+//   the terraces    Esk's tea terraces and the builders' gate: the quest that
+//                   fails (src/story/terraces.js)
 //   the ship        Vey among the vines; the hatch, the cabin, the log at the
 //                   cockpit panel; the veil of flowers over the scorch on the
 //                   flank, which parts when you water it (shoot), never when
@@ -147,6 +150,10 @@ export function setupEdena(ctx) {
       return true;
     } });
 
+  // ---------------------------------------------------------------- the tea terraces (the quest that fails)
+  const terraces = setupTerraces(ctx);
+  people.esk = terraces.esk;
+
   // ---------------------------------------------------------------- the end of the main quest
   quests.def(Q).onDone = () => {
     game.set('world.edena.done', true);
@@ -193,7 +200,8 @@ export function setupEdena(ctx) {
     st.crown = onCrown;
     petals.update(dt);
     pollen.update(dt);
+    terraces.update(dt, t);
   };
 
-  return { people, update, state: st, seedAt, sproutAt, veilLook };
+  return { people, update, state: st, seedAt, sproutAt, veilLook, terraces };
 }

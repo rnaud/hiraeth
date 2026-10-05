@@ -100,7 +100,9 @@ export const REEL = {
     you: '~surprised~ (One tooth at a time.)' },
   edena: { word: 'garden',
     find: '~tired~ Your mother’s garden has grown over the old cart again. She says leave it. I say it is a cart.',
-    you: '~whisper~ (They let the garden take the ships, there.)' },
+    you: '~whisper~ (They let the garden take the ships, there.)',
+    // after the tea terraces went (src/story/terraces.js): the same words land differently
+    youAfter: { flag: 'edena.terraces.flooded', you: '~sad~ (They let the garden take the ships, there. I didn’t leave things be. I opened their gate.)' } },
   spheres: { word: 'remember',
     find: '~angry~ Stones that remember sounds? Who told you that? The stones?',
     you: '~whisper~ (One of them remembered a drum.)' },
@@ -263,6 +265,7 @@ export function facts(ctx = {}) {
     glyph: !!(flag('clue.buried.mark') || flag('perdide.glyph.ship') || flag('perdide.clue.ship')),
     struck: !!flag('clue.edena.struck'),
     lamps: !!(flag('perdide2.promise') || has('perdide2.person')),
+    broke: !!flag('edena.terraces.flooded'),
     broadcast: !!(flag('clue.bazaar.home') || flag('world.bazaar.done')),
     ilenAsked: !!flag('calls.ilen.asked'),
     ilenTold: !!flag('calls.ilen.told'),
@@ -305,6 +308,16 @@ const BEATS = [
     body: () => [
       F('~sad~ Your mother says I should make one of these. So.'),
       F('~sad~ I said the same words to you at the port that I said to your sister. I heard myself say them. I could not stop.'),
+    ],
+  },
+  {
+    // the tea terraces: the quest that failed (src/story/terraces.js). Not a scolding: what he said once
+    // about breaking things, which is the right thing for once
+    id: 'broke', when: (f) => f.broke,
+    lines: (f, n) => [
+      F('~tired~ And if you break something out there, and you will, you say sorry, and you mean it, and then you go. Standing about in their yard looking at it mends nothing.', { 'calls.beat.broke': true }),
+      ...(n >= 3 ? [M('~sad~ Did they forgive you, love? People mostly do, if you let them.')] : []),
+      YOU('~whisper~ (Esk did. I don’t think I have, yet.)'),
     ],
   },
   {
@@ -451,7 +464,8 @@ export function callLines(n, ctx = {}) {
     SHIP(n === 1 ? '~neutral~ One match. Playing.' : '~neutral~ One match.'),
   ];
   const find = leadBody ?? [F(reel.find)];
-  const react = !leadBody && reel.you ? [YOU(reel.you)] : [];
+  const you = reel.youAfter && flag(reel.youAfter.flag) ? reel.youAfter.you : reel.you;
+  const react = !leadBody && you ? [YOU(you)] : [];
   // the keepsake: he holds it up to the projector; the recording happens to hold what the father once said about such things
   const shown = k ? [YOU(`~neutral~ (You hold ${nameIn(k)} up to the projector, where they would see it.)`), F(pick(FATHER_ON[k.kind] ?? FATHER_ON.thing, f.tier)(k))] : [];
   // the mother asks who he met; he answers with the names

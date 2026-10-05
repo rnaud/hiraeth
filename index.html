@@ -279,6 +279,12 @@
       #journal .quests .stamp { display: inline-block; margin-left: 10px; padding: 1px 7px; font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
         color: #2f7a55; border: 2px solid #2f7a55; border-radius: 4px; transform: rotate(-4deg); vertical-align: 2px; }
       #journal .quests li.outro { list-style: none; margin-left: -18px; font-style: italic; opacity: .75; }
+      /* a quest that failed (src/story/quests.js fail): an earth-brown rule, a crossed stamp */
+      #journal .quests .quest.failed { border-left-color: #9a5a3c; border-left-style: dashed; }
+      #journal .quests .quest.failed h3 { color: #6a4a3c; }
+      #journal .quests .stamp.failed { color: #9a4a32; border-color: #9a4a32; transform: rotate(3deg); }
+      #journal .quests .qgroup.failed { color: #9a4a32; }
+      #journal .charge .carry.lost span { background: none; border-style: dashed; border-color: #9a4a32; color: #6a4a3c; }
       #journal .quests .qgroup { margin: 18px 0 8px; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: #2f7a55; }
       #journal .quests h3 { margin: 0 0 4px; font-size: 14px; letter-spacing: 0.04em; }
       #journal .quests h3 span { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #c8483a; margin-left: 6px; }

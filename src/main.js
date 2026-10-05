@@ -394,7 +394,8 @@ const itemFx = createItemEffects({ player, tool, level, sound, toast: showToast,
 journal.sections.unshift(() => gearHtml(items.owned(), { mode: tool.owned && tool.modes.length > 1 ? tool.modeName : null }));   // Select / View opens on your gear
 journal.sections.push(() => boxes.journalHtml(Object.fromEntries(LEVELS.map((l) => [l.id, l.title]))));
 // the father's charge (src/story/charge.js): the journey's own quest, pinned above everything
-const charge = () => chargeState({ flag: (f) => game.flag(f), keepsakes: game.keepsakes(), completed: ship.completed().length });
+const charge = () => chargeState({ flag: (f) => game.flag(f), keepsakes: game.keepsakes(), completed: ship.completed().length,
+  failed: Object.entries(game.data.flags).filter(([k, v]) => k.startsWith('failed.') && v).map(([, v]) => v) });   // (quests that went wrong: src/story/quests.js)
 journal.sections.unshift(() => chargeJournalHtml(charge()));
 let chargeKept = null;   // a keepsake just earned: the HUD says what the charge gained, for a while
 game.on('keepsake', (k) => { chargeKept = { name: k.name, until: performance.now() + 9000 }; });
