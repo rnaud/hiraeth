@@ -6,6 +6,7 @@ import { makeMaterial, MODE_TERRAIN, MODE_WATER } from '../materials.js';
 import { Terrain, jitter, soften } from '../world.js';
 import { PEOPLE } from '../story/spheres-data.js';
 import { attachTemple } from '../temples/index.js';
+import { stepped } from '../load-steps.js';
 
 // ---------------------------------------------------------------------------
 // The Garden of Spheres: a calm meadow under
@@ -134,11 +135,12 @@ function paintVerts(geo, fn) {
   return geo;
 }
 
-export function createSpheres(scene) {
+// (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
+export function* buildSpheres(scene) {
   const rng = mulberry32(1986);
   const R = (a, b) => a + rng() * (b - a);
   const pick = (a) => a[Math.floor(rng() * a.length)];
-  const terrain = new Terrain({
+  const terrain = yield* Terrain.make({
     size: 4000, seg: 440, height,
     material: { color: '#c8d65a', color2: '#b5c94f', color3: '#8fae55', mode: MODE_TERRAIN, ticks: true },
   });
@@ -148,6 +150,7 @@ export function createSpheres(scene) {
   // ---------------------------------------------------------- batching
   // Render geometry is merged per material; collision uses one invisible
   // low-poly proxy mesh (physics bakes every mesh, visible or not).
+  yield;
   const batches = new Map();
   const add = (mat, geo, collide = false) => {
     const key = mat.uuid + (collide ? ':c' : ':n');
@@ -183,6 +186,7 @@ export function createSpheres(scene) {
   // ---------------------------------------------------------- umbrella trees
   // Pale grey-green trunks under huge flat canopies: lime on top, dark green
   // underneath with radiating gill lines and branches fanning out to the rim.
+  yield;
   const lump = (geo, seed, R0) => {
     const p = geo.attributes.position;
     for (let i = 0; i < p.count; i++) {
@@ -329,6 +333,7 @@ export function createSpheres(scene) {
   // ---------------------------------------------------------- spheres
   // poles along the light: the terminator is then exactly one ring of vertices,
   // so the printed crescent has a clean round edge
+  yield;
   const toLight = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), CRESCENT);
   function crescentSphere(Rs, w, h, lit) {
     const g = new THREE.SphereGeometry(Rs, w, h % 2 ? h + 1 : h).toNonIndexed().applyQuaternion(toLight);
@@ -403,7 +408,9 @@ export function createSpheres(scene) {
   // ==========================================================================
   // the lake
   // ==========================================================================
+  yield;
   const Lk = LAYOUT.lake;
+  yield;
   {
     const water = new THREE.Mesh(new THREE.CircleGeometry(1, 72).rotateX(-Math.PI / 2).scale(Lk.rx * 1.3, 1, Lk.rz * 1.3),
       M.water);
@@ -447,8 +454,10 @@ export function createSpheres(scene) {
   // the white hill: sculpted rock terraces, round shrubs, cave doors, stairs,
   // and the stepped pyramid on top
   // ==========================================================================
+  yield;
   const Hl = LAYOUT.hill;
   const hillBase = terrain.baseAt(Hl.x, Hl.z, Hl.r[0]) - 0.8;
+  yield;
   {
     let prev = 0;
     for (let i = 0; i < 3; i++) {
@@ -509,6 +518,7 @@ export function createSpheres(scene) {
   // ==========================================================================
   // the meadow: umbrella grove at spawn, the smooth pyramid, scattered spheres
   // ==========================================================================
+  yield;
   for (const [x, z, Rc, Ht, dome] of [
     [-36, -30, 30, 32, 0.08], [34, -66, 24, 26, 0.1], [-66, 16, 32, 40, 0.06], [56, 2, 19, 21, 0.12],
     [-22, 58, 22, 25, 0.09], [70, -118, 17, 18, 0.14], [-118, -42, 27, 35, 0.07], [-12, -110, 14, 16, 0.16],
@@ -517,7 +527,9 @@ export function createSpheres(scene) {
   const MP = LAYOUT.meadowPyr;
   smoothPyramid(MP.x, MP.z, MP, [0, 1]);
   // distant umbrella trees all round
+  yield;
   for (let i = 0, n = 0; i < 200 && n < 34; i++) {
+    yield;
     const a = rng() * Math.PI * 2, r = R(260, 1150), x = Math.cos(a) * r, z = Math.sin(a) * r;
     if (lakeE(x, z) < 1.5 || Math.abs(x) < 70 && z < -200 && z > -720 || Math.hypot(x - Hl.x, z - Hl.z) < 120) continue;
     if (Math.hypot(x - 380, z + 330) < 150) continue;
@@ -526,12 +538,14 @@ export function createSpheres(scene) {
   }
 
   // ---------------------------------------------------------- the sphere field: giant spheres among thin white pillars
+  yield;
   sphere(380, -320, 36, 0.5);
   sphere(450, -440, 24, 0.15, { yellow: true });
   sphere(300, -450, 15, 1);
   sphere(-120, -262, 18, 0.25);
   sphere(250, 60, 22, 0.05, { yellow: true });
   sphere(-330, 80, 30, 0.4);
+  yield;
   for (const [x, z, h] of [[330, -260, 70], [345, -385, 88], [415, -350, 62], [470, -300, 75], [280, -360, 55], [400, -500, 80],
     [120, -250, 60], [140, -265, 48], [-95, -230, 66], [250, -180, 40], [520, -400, 90], [-260, 40, 58]]) pillar(x, z, h, R(0.7, 1.1));
   monolith(205, -300, 24, 4.2, 0.3);
@@ -541,6 +555,7 @@ export function createSpheres(scene) {
   // ==========================================================================
   // the sphere-arch, the avenue and the round plaza
   // ==========================================================================
+  yield;
   const A = LAYOUT.arch, Av = LAYOUT.avenue, Pz = LAYOUT.plaza;
   const plaza = { x: Pz.x, z: Pz.z, r: Pz.r };
   sphereArch(A.x, A.z, A.R);
@@ -550,6 +565,7 @@ export function createSpheres(scene) {
   path([[-2, -30], [-60, -60], [-140, -55], [-215, -58], [Hl.x, Hl.z + Hl.r[0] + 12]], 2.8);
   path([[-24, -64], [MP.x, -110], [MP.x, MP.z + MP.half + 12]], 2.4);
   path([[-8, -395], [-60, -405], [-120, -420], [-170, -430]], 2.2);
+  yield;
   {
     // the plaza: concentric stone rings around a thin pole
     const by = H(Pz.x, Pz.z);
@@ -565,25 +581,33 @@ export function createSpheres(scene) {
 
   // olive trees and cypresses along the avenue and round the plaza
   const olives = [], cypresses = [];
+  yield;
   for (let z = Av.z0; z >= Av.z1; z -= 12) {
+    yield;
     for (const s of [-1, 1]) {
       olives.push([s * R(9.5, 10.5), z + R(-1, 1), R(0.9, 1.15)]);
       cypresses.push([s * 17, z - 6, R(0.9, 1.2)]);
       if (rng() < 0.7) cypresses.push([s * R(24, 30), z - R(0, 12), R(1.0, 1.5)]);
     }
   }
+  yield;
   for (let i = 0; i < 70; i++) {
+    yield;
     const a = rng() * Math.PI * 2, r = R(36, 90), x = Pz.x + Math.cos(a) * r, z = Pz.z + Math.sin(a) * r;
     if (Math.abs(x) < 8 && z > Pz.z) continue;
     olives.push([x, z, R(0.9, 1.3)]);
   }
+  yield;
   for (let i = 0; i < 40; i++) {
+    yield;
     const a = rng() * Math.PI * 2, r = R(95, 140), x = Pz.x + Math.cos(a) * r, z = Pz.z + Math.sin(a) * r;
     cypresses.push([x, z, R(1.1, 1.7)]);
   }
   // orange-fruit hedges round the plaza
   const fruit = [];
+  yield;
   for (let i = 0; i < 64; i++) {
+    yield;
     const a = (i / 64) * Math.PI * 2, r = Pz.r + 6;
     if (Math.abs(Math.sin(a)) > 0.97) continue;   // openings north and south (z axis)
     const x = Pz.x + Math.cos(a) * r, z = Pz.z + Math.sin(a) * r;
@@ -595,6 +619,7 @@ export function createSpheres(scene) {
   // ==========================================================================
   // the android wood: white blocky ruins and a robot statue under dark trees
   // ==========================================================================
+  yield;
   {
     const cx = -175, cz = -450;
     const ru = LAYOUT.ruin, rb = terrain.baseAt(ru.x, ru.z, 4) - 0.5;
@@ -660,10 +685,12 @@ export function createSpheres(scene) {
   // ==========================================================================
   // shrubs and trees scattered over the meadow
   // ==========================================================================
+  yield;
   const clear = (x, z, pad = 2) => !avoid.some(([ax, az, ar]) => Math.hypot(x - ax, z - az) < ar + pad)
     && lakeE(x, z) > 1.08 && !(Math.abs(x) < 7 && z < 10 && z > -600) && Math.hypot(x - 24, z - 30) > 9 && Math.hypot(x, z) > 7;
   // clumps round the lake shore and in the meadow
   for (let i = 0; i < 650; i++) {
+    yield;
     let x, z;
     if (i < 300) { const a = rng() * Math.PI * 2, e = R(1.1, 1.5); x = Lk.x + Math.cos(a) * Lk.rx * e; z = Lk.z + Math.sin(a) * Lk.rz * e; if (z > Lk.z + Lk.rz * 0.6 && Math.abs(x - LAYOUT.view.x) < 40) continue; }
     else { const a = rng() * Math.PI * 2, r = R(30, 700); x = Math.cos(a) * r; z = Math.sin(a) * r; }
@@ -676,7 +703,9 @@ export function createSpheres(scene) {
     }
   }
   // shrubs round the trunks of the umbrella trees
+  yield;
   for (const [x, z, r] of avoid.slice()) {
+    yield;
     if (r > 6 || rng() < 0.4) continue;
     for (let k = 0; k < 4; k++) {
       const a = rng() * Math.PI * 2, d = r + R(1, 4), px = x + Math.cos(a) * d, pz = z + Math.sin(a) * d;
@@ -684,13 +713,16 @@ export function createSpheres(scene) {
     }
   }
   // olive groves out in the meadow
+  yield;
   for (let i = 0; i < 90; i++) {
+    yield;
     const a = rng() * Math.PI * 2, r = R(150, 650), x = Math.cos(a) * r, z = Math.sin(a) * r;
     if (!clear(x, z, 6) || Math.hypot(x - Hl.x, z - Hl.z) < 80) continue;
     olives.push([x, z, R(1, 1.6)]);
   }
 
   // ---------------------------------------------------------- instanced flora
+  yield;
   const dummy = new THREE.Object3D(), col = new THREE.Color();
   function instanced(geo, mat, items, { collideGeo = null } = {}) {
     const mesh = new THREE.InstancedMesh(geo, mat, items.length);
@@ -726,6 +758,7 @@ export function createSpheres(scene) {
     return g;
   };
   // round shrubs
+  yield;
   {
     const g = lumpy(2, 0.12, 4).scale(1, 0.82, 1);
     const DARK = ['#3f6b45', '#355f3c', '#2f5a3a', '#4a7346'], MID = ['#5f8a4f', '#6f9a52', '#7f9a4a'];
@@ -736,6 +769,7 @@ export function createSpheres(scene) {
     instanced(new THREE.IcosahedronGeometry(0.22, 0), makeMaterial({ color: '#ffffff', glow: 0.3 }), fruit.map(([x, y, z]) => ({ x, y, z, s: 1, color: pick(['#e8872f', '#f0a040', '#e27428']) })));
   }
   // olive trees: reddish twisting trunks under round lumpy crowns
+  yield;
   {
     const items = olives.map(([x, z, s, dark]) => ({ x, y: H(x, z) - 0.2, z, s, ry: rng() * 6, dark }));
     const trunk = mergeGeometries([
@@ -754,6 +788,7 @@ export function createSpheres(scene) {
     instanced(crown, makeMaterial({ color: '#ffffff', pattern: 'leaves' }), items.map((it) => ({ ...it, color: it.dark ? pick(['#3f6b45', '#345e3c', '#4a7346']) : pick(['#7f9a4a', '#8fa85a', '#6f8a44', '#869e4c']) })));
   }
   // cypresses: tall dark green flames
+  yield;
   {
     const g = new THREE.LatheGeometry([[0.01, 0], [0.9, 0.6], [1.5, 3], [1.55, 6], [1.1, 10], [0.5, 13], [0.01, 14.5]].map(([r, y]) => new THREE.Vector2(r, y)), 10);
     jitter(g, 0.14, 0.4, 7);
@@ -762,6 +797,7 @@ export function createSpheres(scene) {
     })), { collideGeo: new THREE.CylinderGeometry(0.9, 0.9, 6, 6, 1).translate(0, 3, 0) });
   }
   // grass tufts
+  yield;
   {
     const blades = [];
     for (let k = 0; k < 5; k++) {
@@ -788,6 +824,7 @@ export function createSpheres(scene) {
   // along the line of sight from the south shore, so from there the shapes sit
   // exactly where the reflection would be.
   // ==========================================================================
+  yield;
   {
     const V = new THREE.Vector3(LAYOUT.view.x, W + 1.8, LAYOUT.view.z);
     const COLS = { white: ['#e4f0ec', '#d6ebe6'], sphere: ['#eef0d8', '#e2eadb'], tree: ['#5f8a74', '#587f6c'] };
@@ -830,7 +867,9 @@ export function createSpheres(scene) {
   }
 
   // ---------------------------------------------------------- flush batches
+  yield;
   for (const { mat, collide, list } of batches.values()) {
+    yield;
     const m = new THREE.Mesh(mergeGeometries(list), mat);
     if (!collide) m.userData.noCollide = true;
     scene.add(m);
@@ -844,6 +883,7 @@ export function createSpheres(scene) {
 
   const orb = (x, z) => orbs.find((o) => Math.hypot(o.x - x, o.z - z) < 1);
   // the Footprint north of the grove, and its rooms far overhead (src/temples/spheres.js)
+  yield;
   return attachTemple('spheres', scene, {
     id: 'spheres',
     floraAvoid: (x, z, r) => !clear(x, z, r + 1),   // the flora keeps off the lake, the paths and the stones (src/flora.js)
@@ -883,3 +923,4 @@ export function createSpheres(scene) {
     update() {},
   });
 }
+export const createSpheres = stepped(buildSpheres);

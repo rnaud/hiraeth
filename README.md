@@ -311,7 +311,10 @@ Three passes per frame (`src/main.js`):
      are offset by a noise field for a hand-inked wobble. "Line boil"
      re-rolls that noise at 8 fps.
    - **Two-tone cel shading.** Lit areas show the pure albedo. Shadowed
-     areas show albedo × a lavender shadow tint, a very Moebius choice.
+     areas show albedo × a lavender shadow tint, a very Moebius choice;
+     each surface lifts and warms it its own way (a half-tone on forms
+     turned from the sun, the bounce under overhangs: "Shade and hatching
+     by surface").
    - **Hatching** takes the surface-anchored strokes from `RT2`: pen strokes
      in the shade, and cross-hatching in the darkest areas. Hatching fades
      out with distance. The panel's "hatch anchoring" option switches back
@@ -465,7 +468,7 @@ Modelled on a classic Moebius desert plate:
   cumulus sitting on the horizon;
 - pen-dotted sand with pebbles, ochre scrub bushes, and blue-grey hatched
   shadows;
-- fine, even ink lines, and fold lines drawn down the cape;
+- fine, broken ink lines, solid ink in the deepest crevices, and fold lines drawn down the cape;
 - the wide-brimmed pointed hat;
 - a saucer tower and a pale spired city on the horizon;
 - an open plain around the desert start, with landmarks set back from it;
@@ -1428,7 +1431,19 @@ panel, so the shaders can be checked against the look they are after. It starts 
 panels of `references/The Desert/environement/IMG_3775.JPG` (`REFERENCE_VIEWS` in
 `src/levels/reference-views.js`): the bones in the dunes, the fluted tower and its dishes, the
 rope bridges over the gorge, the sail tents, the turquoise lake under the violet cliffs, the
-buried hull.
+buried hull. Then the desert's three other environment sheets, panel by panel
+(`src/levels/reference-desert.js`, `DESERT_VIEWS`): IMG_3772 (six: the ribs on the dune crest,
+the blue saucers over the spired city, the rope bridge over the ochre gorge, the petal station,
+the salt lake under the violet table, the station of domes and masts), IMG_3773 (eight: the
+ribcage between the dunes, the pink umbrella city, the bridge over the shaded canyon, the poles
+on the pink plain, the fallen pod, the lagoons under the violet mesas, the stream in the red
+canyon, the two buried helmets) and IMG_3774 (seven: the ribcage in the dune's hollow, the pink
+dishes over the blue domes, the bridge over the dunes, the dish station, the slot canyon, the
+turquoise pool in the violet cliffs, the buried blue heads): 27 views, `[ ]` cycling through them
+sheet after sheet. The shapes the sheets draw again and again (ribcages, dishes on stems, gorge
+walls, bridges, domes, petals, machine heads, table cliffs) are builders in
+`src/levels/reference-kit.js`. The views lie on a square grid 3.3 km apart (`VIEW_SPACING`), so
+neighbours stay over 3 km apart.
 
 - **A view** is a panel: its crop of the sheet, its ground (a height function drawn as rings round
   the camera, fine underfoot and coarse at the horizon), what stands on it (built with the Lab's
@@ -1440,7 +1455,7 @@ buried hull.
   and high): the view's hour is the morning hour of that elevation (`sunHour`) and its group is
   turned about the vertical so the sun of that hour stands on that side (`sunTurn`). Nothing in the
   renderer is special-cased: the views are scenery, colour scripts, hours and presets.
-- **The views** lie on a ring 4.5 km out (`VIEW_RING`); only the one you are in is drawn.
+- **The views** lie on a square grid, 3.3 km apart (`VIEW_SPACING`); only the one you are in is drawn.
   `[` and `]` (L3 / R3 on a pad) fade to the previous / next view and hold the camera on its
   panel (the traveller hidden where the camera stands); walk or look and the camera is yours
   again. `?view=<n>` opens on view n. The frame keeps the panel's proportions: on a screen
@@ -1451,8 +1466,114 @@ buried hull.
   cropped with CSS (`cropStyle`).
 - `?look=desert` draws every view in the desert's own palette and plain Moebius print preset
   (blue-grey shadow tint, cumulus bank, clouds), to see what the shaders do unaided.
-- `tests/references.test.js`: the level registers as a dev level, IMG_3775 has six views whose
+- `tests/references.test.js`: the level registers as a dev level, the four sheets have their 6, 6, 8 and 7 views (in order, not overlapping), whose
   cameras put the horizon where the panel has it, each sun comes from its side, `[ ]` and `\` work.
+
+### Shade and hatching by surface (after the references)
+
+The review of IMG_3775's six panels against their rebuilt views found what the shaders couldn't do;
+all of it is in the game's own materials and post pass (every world uses it), not in the level.
+
+- **Each surface its own shade** (`SHADE`, `shadeOf` in `src/materials.js`): post.js used to shade
+  everything as albedo × the world's one shadow tint, so the desert's blue-grey turned bone and sand
+  blue. Now a shaded pixel carries a *lift* (how far toward its lit colour) and a *hue* (how much
+  of its own colour it keeps: the tint's darkness, a little warm). The material gives its own
+  (`makeMaterial({ shade, shadeHue })`; metal and sand keep more of their hue by default), and the
+  light's geometry adds two: a **half-tone** on a form turned from the sun under no cast shadow
+  (`uHalftone`, less on its far side past `SHADE.band`), and the **ground's bounce** on faces turned
+  down (`uBounce`: a cap's underside is a soft half-tone, the ground under it the full shadow). The
+  presets set them with `uShadeKeep`, the hue where a material doesn't say (only Moebius print has
+  them; every preset lists them, so switching zones never keeps the last one's). They travel packed
+  over the hatch strokes: `gHatch.r += 2 × (1 + hue step)`, `gHatch.g += 2 × lift step` (15 and 8
+  steps; the strokes stay 0..1, the half-float buffer holds it under 32), and a pixel with nothing
+  packed (other shaders, grass) takes the defaults. A face keeps its own warm shade (`FACE_SHADE`).
+- **Hatching by surface**: `hatch` (0..1) scales a material's shadow strokes (metal 0.35 and sand
+  0.55 by default, the references' bones and sails fewer); a lifted shade gets fewer strokes and no
+  cross-hatching (a whole wall in half-tone is no longer a field of crossed lines); strata rock
+  (`strataHatch`, on by default) keeps runs of strokes along its beds in the light.
+- **Calmer ground** (`GROUND` in `src/ground-ink.js`): rarer ripple patches, fewer long wind lines,
+  the print look's coarse dots only in patches (`GROUND.dots`), and bare rock ground (terrain with
+  `pattern: 'cracks'`) draws long fissures and a finer broken net close by (`rockFissures`) instead of
+  dots.
+- **Lines**: the print preset's ink is thinner and more broken (`uLineWidth` 1.0, `uLineVary`
+  0.55), soft dune crests are left uninked unless the slope breaks (`uNormalThresh` 0.3), and the
+  deepest crevices (between ribs, into a hull's machinery) are filled solid (`uCrevice`, from the
+  crease shading).
+- **Sky and paper**: the flat printed sky keeps its tint down to a narrow band on the horizon; its
+  dots are a grain (anywhere in their cell, several sizes and weights, thicker and thinner in
+  drifts) rather than a screen; the paper has a tooth (`uPaper`: a fine mottle and pits, on the light
+  colours).
+- **Plating** (`makeMaterial({ grid, plates: true })`, `S_PLATES`): the grid drawn as rows of plates
+  of uneven widths, staggered joints, the odd joint or seam left out, each plate a shade apart (under
+  the colour-edge threshold). On the desert's hulls, its station domes, the ship's hull, the
+  reference wreck.
+- **Water** (`WATER_INK`, `src/water-shader.js`): the wave crests only in the patches the wind
+  ruffles (drifting downwind), the rest flat, and gone far off; the lake view's bed makes broad pale
+  shallows, which post.js inks round.
+- `tests/shade.test.js`: the packing round trip, the materials' defaults, every preset's tones, the
+  ground marks, weathering's rules; `tests/surface-spec.test.js` the new defines.
+- **Cost** (M4 Pro, ANGLE Metal, 1280 × 720, the camera pinned at spawn and turned, three runs each
+  alternating with the build before; throughput: six frames back to back to a one-pixel read):
+  desert High 6.3 → 6.0 ms and 6.7 → 5.6 ms, City-Shaft High 8.7 → 9.3 and 5.2 → 6.5, desert
+  Handheld 3.2 → 3.3 and 3.1 → 2.9, City-Shaft Handheld 8.6 → 7.8 and 5.9 → 6.8 (the machine's
+  run-to-run spread is ±30 %). The new work is behind defines (weathering, plating) or cheap
+  branches (crevices, paper, the strata strokes only lit and near); the handheld's paper is one tap.
+
+### The City-Shaft's sheets, and three desert touches
+
+- **The views** (`src/levels/reference-shaft.js`, `SHAFT_VIEWS`): IMG_3778 (one plate) and IMG_3779
+  to 3782 (5, 5, 5 and 7 panels), 23 views after the desert's 27, grouped by world (the label names
+  the world, the sheet and the panel). One scene builder (`shaftScene`) does them all: walls of
+  stacked houses jutting out by their own amounts, free stacks with houses clinging to their faces,
+  overhanging slabs, awnings, walkways, cables, flying cabs, the shaft's water. Many look steeply up
+  or down: a view's camera may give `pitch` and `roll` (deg) instead of a horizon. The blocks cast
+  no shadow and a wall turned from the sun casts none of its slabs, so a street stays in the sun as
+  on the sheets. The views lie on a grid now (`VIEW_SPACING`), and `?view=n` opens on that view's
+  own hour.
+- **Flat printed shadows** (`uShadowFlat`, post.js): 0 is albedo × the shadow tint; 1 is the tint
+  itself at the surface's value, the way the sheets print the shaft's shade in one blue whatever
+  the wall's colour. Off in every preset; the views' `SHAFT_LOOK` uses it. (Tried on the City-Shaft
+  world: its trees turn grey-blue, so it stays off there until it can be set per material.)
+- **Windows** (`makeMaterial({ windows })`): the share of a façade's cells with a window (0.78 as
+  before); the sheets' houses and the City-Shaft's have fewer.
+- **Far haze** (`uHaze`: rgb, amount): the colour distant ground fades to, instead of the sky's
+  horizon. The desert's look (`DESERT_LOOK` in `desert-sites.js`, also `?look=desert`) sets a pale
+  warm band and turns the print preset's cumulus bank and clouds off, as its plates.
+- **Slip faces**: sand's few shadow strokes (`hatch` 0.55) go back to full on steep slopes
+  (`SHADE.slip`), so a shaded slip face is hatched and flat sand isn't.
+- A zone's touches (`zone.look`) now start from the preset each time, so one view's never carry
+  into the next.
+
+### Weathered walls
+
+The reference cities look old and lived in. `makeMaterial({ weathered })` (0..1, `S_WEATHER`,
+`weatherInk` in `src/materials.js`; `WEATHER`, `weatheredOf`): on upright faces, in cells of the wall
+anchored in the world (so each building has its own), the odd crack runs down from a storey's top
+or up from its foot, jagged and thinning, with a branch now and then; a crack runs out from the
+corner of the odd window (house fronts, `pattern: 'facade'`); and a few patches where the plaster
+has gone, a shade apart, edged with a broken pen line. They fade out once under a pixel. On by
+default for house fronts and on the desert city's walls and terraces and the references' huts;
+never on metal, glass, lights or the makers' work (their inscriptions).
+
+### Sand banked against things
+
+In a sandy world what stands on the ground sits in it (`src/sand-drifts.js`). While a world is
+built, `SandDrifts.open()` collects the solids its builders add (the desert's Kits in
+`desert-city.js` and `desert-landmarks.js`, the Lab kit `RoomKit` in the references): each is cut at
+its foot (the vertices in its bottom band, joined by the triangles they share, so an arch's two feet
+stay apart and no drift runs across its passage), each part's convex hull a footprint (posts,
+crates, slabs and anything off the ground skipped). Round each, a drift: `rise` at the wall (higher
+facing the wind, `SAND_WIND`, wandering along the wall), falling off along (1 − u)² to nothing
+`reach` × rise out, so it meets the ground tangent and never steepens into the terrain's rock colour
+(`maxSlope`); a share of corners carry a bigger drift. The skirts are one mesh per 160 m square
+(culled by the view), drawn in the ground's own material (`driftMaterial`: same marks, same
+patches) with a polygon offset, and collided (you walk up them). Their pixels carry +32 in
+`gHatch.a`; post.js draws the line where they meet a wall in a darker shade of the sand and lighter.
+Where there's no drift (past its reach, or a `mask`: none in Qanat's paved streets) no skirt is
+built. A world that builds its meshes its own way hands the whole scene over after it is built
+(`addScene`: every collided mesh in world space, a merged mesh's parts apart; render copies that a
+hidden collider stands for are skipped): Vael and the Buried Machine. In the desert 206 footprints
+(57 k triangles), Vael 214 (102 k), the Buried Machine 231 (138 k). `tests/sand-drifts.test.js`.
 
 ## Sound from the first frame (v0.39)
 
@@ -2358,6 +2479,51 @@ game loaded from `http://localhost:5253/`, no APK updater; Gradle on Unity's JDK
 5253 / 9333, opens and closes its own Chrome tab, stops the perf app between runs, and never touches
 `com.rnaud.moebius`) and `node scripts/bench/android-engines-summary.mjs <raw dir>`. Afterwards
 `adb uninstall com.rnaud.moebius.perf`.
+
+### Rooms off the map draw only themselves (`InteriorCuller`, `src/perf.js`)
+The desert's cave was the one place the Retroid stuttered in every engine (GPU 96–99 % busy, a small
+room). The cause: the rooms reached through portals are built a kilometre or more over the map, and from
+in there the camera's frustum (5 km deep, looking level or a little down) takes in the desert below.
+Behind the cave's walls the game still drew it: in the passage 344 draws and 0.37 M triangles of terrain,
+city and flora, more than the open dunes draw in all (0.27 M). The 110 terrain tiles came first (their
+material sorts before the cave's), ~2 km away at under a quarter of a pixel a metre: 0.27 M triangles
+smaller than a pixel, each set up and shaded (in 2 × 2 quads) before the cave covered them. An Apple GPU
+hides most of that (hidden-surface removal); the handheld's Adreno doesn't.
+
+- **The fix** (all worlds): while the camera is inside a room off the map (`offMapRooms` in `main.js`:
+  portal destinations 200 m over the ground), `InteriorCuller` hides every mesh, point cloud and line whose
+  bounds don't reach the room, in every pass of that frame, then shows them again. A room's extent is found
+  once: the static meshes within 60 m of its door that stand 150 m clear of the ground, grown by 30 m at a
+  time (a temple's rooms in a row). The traveller, the drone and whoever is in the room stay; people, mounts
+  and anything left outside are hidden. Rooms only open onto the sky (oculi, door veils, windows over a
+  kilometre of air), so the picture is unchanged (screenshots of every room, both ways, with and without).
+- **In the cave**: 425 → 87 draws and 0.47 → 0.09 M triangles (Handheld; High 577 → 118, 0.57 → 0.13 M).
+  The passage's walls now go first into the cave's batches, so they hide the dome's far side instead of
+  being painted over it (fragments shaded in the G-buffer: 1.84 → 1.18 a pixel in the passage, 1.60 → 1.25
+  in the room, against 0.92 on the dunes). The fluid's lava (the pool, the stream, the tank) sums its blobs
+  tone by tone instead of into a local array indexed at run time (slow scratch memory on mobile GPUs; the
+  same picture, bit for bit), and the sun's sparkle pass no longer runs full-screen for the magic pool,
+  which has no glints to draw.
+- **Elsewhere** (`rooms.mjs`, Handheld, draws and triangles a frame, looking in from the door / back out
+  through it): every temple and chamber off the map gains, most where the world below fills the view. The
+  Hearth's hall 91 → 73 / 321 → 59 draws (445 → 63 k triangles looking out); the masked head's chamber
+  99 → 65 / 80 → 63; Edena's room 134 → 76 / 95 → 66; the temples 3–25 % fewer draws and 1–45 % fewer
+  triangles (the Givers' House 212 → 195 / 82 → 65 draws, 202 → 134 / 153 → 86 k triangles; the Aerie
+  252 → 203 / 107 → 63; the Hush-House 226 → 216 / 93 → 66). The ship parked on the dunes and the houses at
+  home stand on the map, with windows and an open hatch: what's outside is really seen there, so they keep
+  drawing it.
+- **On the Mac** (M4 Pro, Metal, 1280 × 720, `web-bench.mjs`): Handheld, the cave 3.0 → 2.1 ms a frame
+  (GPU 1.70 → 1.06 ms) against the dunes' 2.5–2.8 (GPU 1.4–1.5); High, 3.4 → 2.3 ms (GPU 4.6 → 3.2) against
+  3.3–3.6. With the GPU the bottleneck and its hidden-surface removal defeated (`passes.mjs --scale 3
+  --nohsr 1`, culling on and off in turns): the passage 14.9 → 11.6 ms, the room with the pool full
+  14.2 → 11.0, against the dunes' 16–17.
+
+To measure: `node scripts/bench/passes.mjs --url http://localhost:<port>/ --preset handheld --only
+cave,cave-room,cave-pool,dunes [--wet 1] [--scale 3 --nohsr 1] [--toggles base,noInterior,noShadow,…]
+[--eval snippet.js]` (each `renderer.render()` timed with the GPU timer, which on Metal mostly measures its
+own overhead, then the A/B toggles in turns; `--nohsr` adds a never-taken `discard` to every surface shader
+so an Apple GPU shades in draw order like the Adreno); `node scripts/bench/rooms.mjs --url … --shots dir`
+for every world's rooms off the map, culled and not. Tests: `tests/interior-cull.test.js`.
 
 ### Levels of detail far away (`src/lod.js`, `src/lod-core.js`)
 A distant building, rock or plant is drawn with a coarser copy of itself, never coarser than the
@@ -3891,6 +4057,122 @@ tone, a swell of the world's score, then back to you.
     said (RT / R2, RB / R1) at its end.
   - Tests: `tests/moment.test.js` (the shots, a play through, the skip and its grace, a failure,
     the stage's refusals, and both desert moments in the story: once, skipped, without a ship).
+
+### Hand-overs and loads without a hitch (October 2026)
+
+From the author's notes (TODO.md, "Transitions and moments"). Measured with `scripts/transition-perf/`
+(headless Chrome on ANGLE Metal, muted, the game's sound at 0; see the scripts' headers).
+Tests: `tests/passage.test.js`, `tests/load-steps.test.js`.
+
+**Doors, caves and portals** (`src/passage.js`). Every way into another space goes through one
+hand-over: the doorways, cave mouths, temple doors and Viridel's hatch (`level.portals`, main.js),
+the Lab's doors and the Hangar's portals (their levels call `ctx.passage.go`). It used to be a hard
+cut: the traveller landed at a dead stop (`teleport` zeroes the velocity), the heading jumped (the
+locomotion layer read it as a turn: a bank and a pivot), the feet let go, and the camera was snapped
+in to 2 m and eased back out over a second (`rig._curDist = 2`). Now:
+- **ahead of time**, the destination is drawn once, unseen (`WarmDraw`): every mesh round each way
+  through (and the ship's cabins, and what the first frame sees) into 4 × 4 targets of the real
+  passes' formats (the G-buffer's, a shadow map's), so its geometry and textures are on the GPU and
+  the driver has built its pipelines (a mobile GLES driver compiles a shader for real only at its
+  first draw). A batch is drawn as the children of a scene of its own (shared, not moved), so a
+  draw costs the batch, not a walk over the world. At load for every destination; as you come
+  within `PASSAGE.near` of a way through, anything new there, a slice a frame. Every program's first
+  use (three's `getUniforms`: a wait on the GPU process, 100-250 ms behind a busy GPU) is done at
+  load too.
+- **the cover** (`PassageCover`): a sheet of paper with a ragged inked edge sweeps across the screen
+  (0.22 s), a CSS transform transition, so the compositor keeps it moving through a long frame;
+  the page sound plays with it.
+- **the move**, behind it (`carryAcross`): one rigid transform from where you stand, facing the way
+  you face, to the arrival, facing its way (`passageTransform`; a portal into another gravity turns
+  up too). The velocity turns with you (or the portal's own speed), the animation's memory of the
+  heading (`_lastHeading`, `loco.lastHeading`), the steering and the gear's last velocity turn too,
+  `onGround` is kept, the planted feet, a step under way and the hands' swing are carried, and the
+  camera keeps its place behind you, its look, its lag and its angle off your back; it finds the new
+  walls on its next frame, still covered.
+- **a few frames held** (at least `PASSAGE.holdMin`, at most `holdMax`) while the new place settles:
+  its grass's new patch placed (`Grass.placing`) and two frames in a row back to pace (`calmDt`: the
+  first frames there, its levels of detail switching, are the slow ones, and stay under the paper);
+  then the sheet sweeps on, off the far side.
+- Stepping into the ship or a house (no move: the rooms are real), the camera's indoor framing used
+  to set the pitch level in one frame; it eases there now (`CameraRig._levelTo`).
+
+| worst frame, ms (frames over 33 ms) | High | after | Handheld, CPU ×4 | after | High, no vsync | after |
+|---|---|---|---|---|---|---|
+| Desert: the carved doorway, in | 17 | 17 | 50 (13 > 33) | 33 (0 > 33) | 8 | 9 |
+| Desert: the doorway, out | 17 | 17 | 83 (17 > 33) | 33 (1 > 33) | 31 | 12 |
+| Desert: the giant's mouth (cave), in | 33 | 33 | 67 (29 > 33) | 34 (10 > 33) | 9 | 12 |
+| Desert: the cave, out | 17 | 17 | 67 (19 > 33) | 33 (1 > 33) | 112 | 17 |
+| Desert: the Givers' Hearth, in | 17 | 17 | 34 (14 > 33) | 33 (9 > 33) | 8 | 12 |
+| Desert: the Hearth, out | 33 | 17 | 50 (29 > 33) | 33 (27 > 33) | 9 | 12 |
+| Desert: the Givers' House (temple), in | 17 | 17 | 33 (7 > 33) | 33 (10 > 33) | 7 | 10 |
+| Desert: the temple, out | 17 | 17 | 50 (9 > 33) | 33 (24 > 33) | 32 | 33 |
+| Desert: boarding the ship | 33 | 83 | 67 (21 > 33) | 83 (44 > 33) | 11 | 14 |
+| Desert: leaving the ship | 33 | 50 | 67 (77 > 33) | 67 (91 > 33) | 10 | 12 |
+| City-Shaft: the makers' tower, in | 17 | 67 | 67 (17 > 33) | 50 (10 > 33) | 10 | 11 |
+| City-Shaft: the tower, out | 34 | 33 | 67 (18 > 33) | 100 (36 > 33) | 153 | 43 |
+| Viridel: the crashed ship's hatch, in | 33 | 17 | 50 (11 > 33) | 50 (2 > 33) | 9 | 10 |
+| Viridel: the hatch, out | 33 | 17 | 50 (6 > 33) | 50 (10 > 33) | 175 | 15 |
+| Lab: a door to a room | 83 | 17 | 250 (11 > 33) | 117 (3 > 33) | 104 | 19 |
+| Lab: back to the hub | 17 | 33 | 83 (14 > 33) | 67 (13 > 33) | 121 | 26 |
+| Lab: another room | 17 | 17 | 150 (16 > 33) | 67 (8 > 33) | 40 | 14 |
+| Home: into the small house | 17 | 17 | 50 (14 > 33) | 50 (6 > 33) | 10 | 28 |
+| Home: out of it | 17 | 33 | 50 (1 > 33) | 83 (19 > 33) | 23 | 28 |
+| Hangar: a portal into the upside-down | 17 | 17 | 17 (0 > 33) | 17 (0 > 33) | 10 | 10 |
+| Lorn: the Hush-House, in | 17 | 33 | 33 (3 > 33) | 33 (2 > 33) | 76 | 13 |
+| Lorn: the Hush-House, out | 17 | 33 | 33 (0 > 33) | 33 (2 > 33) | 90 | 15 |
+
+Paced (vsync on, as in a player's browser), High on this Mac had little to win on frame time: a
+single 33-83 ms frame here and there in either column came from other work on the machine (runs
+repeated quietly give 16.8 ms throughout, before and after). The stalls show with no vsync, where a
+wait on the GPU process waits for every queued frame (the first use of a program: 100-175 ms) and on
+the handheld recipe with the CPU slowed four times; the slowest frame after is the move itself, under
+the paper.
+
+The traveller now lands still walking: 3.8 m/s before the door and 3.8 after it (0 before), the
+camera 3.5-4 m behind (it was snapped to 2.8 m and drawn back out over a second).
+
+**Loading** (`src/load-steps.js`). A world's build was one long task after another: in the desert (on High, the
+shipped bundle) the people 1.0 s, the terrain and city 840 ms, the modules' own start 820 ms; in the
+City-Shaft the check for trees inside houses 5.8 s; the shader warm-up and the first frame a few
+hundred ms more, and two to four times all that on the handheld recipe. The loading screen's pen turns on the compositor (a CSS transform animation: checked
+through a 900 ms task with a screencast, `loading.mjs --pen`), but nothing else could happen. Now
+a build is a generator: `yield` between its parts and in its long loops, `runSteps` straight
+through (tests, the studio), `runStepsAsync(gen, slicer())` a slice at a time in the game: the
+main thread is given back once `LOAD_BUDGET` (24 ms) has run, by a `MessageChannel` message (no
+`setTimeout` clamping, no `scheduler.yield`: the Android WebView 109 lacks it).
+- every level's `create` is `stepped(build)`: the build yields at its sections and once per pass of
+  its top-level loops (`LEVELS[i].build`); `Terrain.make` and the dune relief yield by rows;
+- `Physics.create(scene, base, slice)` bakes the collision a mesh a step and copies the triangles
+  into one buffer by hand (`concatPositions`: what `mergeGeometries` made); the BVH is still built
+  in its worker;
+- `level.initSteps` (the City-Shaft's trees in houses, `dropBuriedInstancesSteps`), the buried
+  flora, the crowd's placement (`buildPeopleSteps`) and its pool, the people (`spawnNPCsSteps`), the
+  flora (`buildFloraSteps`, `Flora.make`: its far copies are simplifications), the responsive world
+  (`ReactiveWorld.make`) and the scene's tiling (`tileSceneSteps`) go a piece at a time;
+- the shader warm-up compiles one object per kind of program (its material and what of the mesh is
+  in a program's key) between yields, against an empty scene for the key (no lights, fog or
+  environment, as the world's own), then polls the driver; the first frame's uploads (`WarmDraw`),
+  the grass's first patch, the room culler and the levels of detail are done behind the loading
+  screen, so the first frame is an ordinary one;
+- the Lab's people (`labPeople()`) are worked out only when the Lab asks for them: every world paid
+  ~70 ms for them as the modules loaded (the desert room's dune relief).
+
+| longest task, ms (tasks over 50 ms), first frame at | High | after | Handheld, CPU ×4 | after |
+|---|---|---|---|---|
+| desert | 1003 (7 > 50), 19.2 s | 112 (9 > 50), 3.2 s | 1978 (8 > 50), 7.3 s | 486 (25 > 50), 10.5 s |
+| incal | 5798 (6 > 50), 11.9 s | 96 (13 > 50), 9.6 s | 16060 (8 > 50), 22.7 s | 334 (43 > 50), 25.5 s |
+| arzach | 305 (6 > 50), 3.0 s | 71 (6 > 50), 1.8 s | 633 (7 > 50), 3.2 s | 307 (12 > 50), 3.9 s |
+| garage | 395 (6 > 50), 2.7 s | 87 (4 > 50), 1.7 s | 751 (9 > 50), 3.5 s | 234 (10 > 50), 3.3 s |
+| edena | 426 (6 > 50), 2.7 s | 87 (7 > 50), 2.3 s | 977 (7 > 50), 4.9 s | 258 (15 > 50), 4.2 s |
+| perdide | 353 (6 > 50), 2.8 s | 100 (7 > 50), 2.2 s | 729 (7 > 50), 3.2 s | 234 (14 > 50), 3.9 s |
+| home | 190 (5 > 50), 1.5 s | 126 (5 > 50), 1.8 s | 644 (7 > 50), 2.8 s | 297 (14 > 50), 3.6 s |
+| spheres | 309 (5 > 50), 1.5 s | 115 (8 > 50), 3.9 s | 1765 (9 > 50), 6.4 s | 311 (19 > 50), 6.2 s |
+| buried | 444 (5 > 50), 1.5 s | 97 (6 > 50), 3.4 s | 1322 (7 > 50), 3.6 s | 306 (16 > 50), 6.7 s |
+| lab | 489 (5 > 50), 2.8 s | 114 (5 > 50), 3.3 s | 1681 (8 > 50), 4.9 s | 319 (17 > 50), 6.6 s |
+
+(The shipped bundle, `vite preview`; the first-frame times move by a second or more from run to run
+with what else the machine is doing: repeated quietly, the Garden of Spheres 1.1-1.7 s before and
+1.2-1.4 s after, the Buried Machine 1.1-1.4 s and 1.0-1.3 s.)
 
 ## The makers' temples
 

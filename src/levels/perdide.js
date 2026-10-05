@@ -7,6 +7,7 @@ import { Hoverbike, buildSocket } from '../bike.js';
 import { Paint, painted, paintMaterial, spindle } from '../vehicle-kit.js';
 import { LANDING } from '../story/perdide-data.js';
 import { attachTemple } from '../temples/index.js';
+import { stepped } from '../load-steps.js';
 
 // ---------------------------------------------------------------------------
 // Lorn:
@@ -201,10 +202,11 @@ export function jawShell({ r, wall, skin, lip, throat } = JAW) {
   return mergeGeometries([paint(outer, skin), paint(inner, throat), paint(rim, lip)]);
 }
 
-export function createPerdide(scene) {
+// (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
+export function* buildPerdide(scene) {
   const rng = mulberry32(1982);
   const pick = (a) => a[Math.floor(rng() * a.length)];
-  const terrain = new Terrain({
+  const terrain = yield* Terrain.make({
     size: 4000, seg: 480, height,
     material: { color: '#6f8a62', color2: '#86a070', color3: '#7a6a86', mode: MODE_TERRAIN, ticks: true },   // olive moss with violet mud
   });
@@ -213,6 +215,7 @@ export function createPerdide(scene) {
   const lights = [];   // crystal groves, egg clutches: they light the swamp around them
 
   // ---------------------------------------------------------- water
+  yield;
   {
     const water = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000, 1, 1).rotateX(-Math.PI / 2),
       makeMaterial({ color: '#3f8f95', color2: '#4fa3a3', mode: MODE_WATER }));
@@ -239,14 +242,18 @@ export function createPerdide(scene) {
       scene.add(new THREE.Mesh(mergeGeometries(list), makeMaterial({ color: c, flat: true, glow: 0.55 })));
   }
   crystals(40, -70, 60, 50);
+  yield;
   for (let i = 0; i < 24; i++) crystals((rng() * 2 - 1) * 1100, (rng() * 2 - 1) * 1100, 30 + Math.floor(rng() * 50), 40 + rng() * 60);
 
   // ---------------------------------------------------------- carnivorous plants (they snap when you come close)
+  yield;
   const plants = [];
   const stalkMat = makeMaterial({ color: '#6f9a5a' }), jawMat = makeMaterial({ color: '#ffffff', vertexColors: true }), teethMat = makeMaterial({ color: '#f3ead8', flat: true });
   // a jaw is its shell and its ring of teeth: two meshes (shared geometry), not eight
   const jawGeo = {}, teethGeo = {}, stalks = [];
+  yield;
   for (const side of [-1, 1]) {
+    yield;
     jawGeo[side] = jawShell().rotateX(side > 0 ? 0 : Math.PI);
     teethGeo[side] = mergeGeometries(Array.from({ length: 7 }, (_, t) => {
       const a = (t / 7) * Math.PI * 2;
@@ -276,7 +283,9 @@ export function createPerdide(scene) {
     scene.add(grp);
     plants.push({ jaws, pos: new THREE.Vector3(x, base + h, z), base: new THREE.Vector3(x, base, z), open: 1, bed, fed: 0 });
   }
+  yield;
   for (let i = 0; i < 40; i++) {
+    yield;
     const x = (rng() * 2 - 1) * 900, z = (rng() * 2 - 1) * 900;
     if (terrain.heightAt(x, z) > 0.3 && Math.hypot(x, z) > 25) plant(x, z);
   }
@@ -284,7 +293,9 @@ export function createPerdide(scene) {
   // the snapping bed by the landing: a ring of low jaws round a patch of bare mud
   // (its own random stream, so the rest of the swamp is laid out as before)
   const bedRng = mulberry32(516);
+  yield;
   for (let k = 0; k < 5; k++) {
+    yield;
     const a = 0.5 + (k / 5) * Math.PI * 2;
     plant(BED.x + Math.sin(a) * BED.r, BED.z + Math.cos(a) * BED.r, { bed: true, h: 3.4 + (k % 3) * 0.5, r: bedRng });
   }
@@ -301,13 +312,17 @@ export function createPerdide(scene) {
     scene.add(new THREE.Mesh(mergeGeometries(list), makeMaterial({ color: pick(['#f6c7a0', '#f2a7b5', '#f2e38f']), glow: 1 })));
   }
   eggs(-14, -22);
+  yield;
   for (let i = 0; i < 30; i++) {
+    yield;
     const x = (rng() * 2 - 1) * 1000, z = (rng() * 2 - 1) * 1000;
     if (terrain.heightAt(x, z) > 0.3) eggs(x, z);
   }
 
   // ---------------------------------------------------------- hero: the Great Crystal
+  yield;
   let crystal = null;
+  yield;
   {
     const gx = GREAT.x, gz = GREAT.z, base = terrain.heightAt(gx, gz);
     const parts = [], spires = [];
@@ -340,7 +355,9 @@ export function createPerdide(scene) {
 
   // ---------------------------------------------------------- the crystal cave
   // A thick rock arch corridor: dark inside, lit by its own crystals.
+  yield;
   let caveMat = null;
+  yield;
   {
     const grp = new THREE.Group();
     grp.position.set(CAVE.x, 1.6, CAVE.z);
@@ -386,6 +403,7 @@ export function createPerdide(scene) {
   // ---------------------------------------------------------- giant fungus trees and reeds
   // The film's swamp flora: swollen violet stalks under broad, softly glowing
   // caps, and dark reeds crowding every waterline.
+  yield;
   {
     const prof = [[0, 0], [2.6, 0], [3.8, 0.07], [3.2, 0.2], [1.5, 0.45], [1.25, 0.7], [1.9, 0.79], [8.5, 0.83], [9.5, 0.88], [7.0, 0.96], [0, 1]];
     const STALK = ['#8a6fb8', '#7a5fa0', '#9a7fc4'], CAP = ['#d6ff9a', '#f2a7b5', '#7fe0d0', '#f2c54b'];
@@ -434,9 +452,11 @@ export function createPerdide(scene) {
 
   // ---------------------------------------------------------- the fireflies' isle
   // a clutch of eggs under one broad cap: where the fireflies go at dusk (and come from)
+  yield;
   const nest = new THREE.Vector3(ISLE.x + 2, 0, ISLE.z - 1);
   nest.y = terrain.heightAt(nest.x, nest.z);
   eggs(nest.x, nest.z);
+  yield;
   {
     const prof = [[0, 0], [2.6, 0], [3.8, 0.07], [3.2, 0.2], [1.5, 0.45], [1.25, 0.7], [1.9, 0.79], [8.5, 0.83], [9.5, 0.88], [7.0, 0.96], [0, 1]];
     const x = ISLE.x - 4, z = ISLE.z + 3, g0 = terrain.heightAt(x, z), s = 1.4, H = 19;
@@ -452,6 +472,7 @@ export function createPerdide(scene) {
   }
 
   // the Hush-House on the cave island, and its rooms far overhead (src/temples/perdide.js)
+  yield;
   return attachTemple('perdide', scene, {
     id: 'perdide',
     // the flora (src/flora.js) leaves the Great Crystal, the snapping bed and the fireflies' isle their own
@@ -508,3 +529,4 @@ export function createPerdide(scene) {
     },
   });
 }
+export const createPerdide = stepped(buildPerdide);

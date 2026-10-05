@@ -63,3 +63,6 @@ export function processionLoop(step = 3) {
 export const PROCESSION = [
   [120, 262], [62, 330], [40, 420], [70, 520], [150, 600], [262, 640], [372, 610], [420, 520], [400, 418], [376, 306], [330, 222], [228, 196],
 ];
+
+/** The desert's touches on the print preset (as its plates): a clean sky, no cloud bank; far dunes a pale warm band. */
+export const DESERT_LOOK = { uCumulus: 0, uClouds: 0, uHaze: [0.95, 0.9, 0.87, 0.55] };

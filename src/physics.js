@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { MeshBVH } from 'three-mesh-bvh';
 import { GenerateMeshBVHWorker } from 'three-mesh-bvh/src/workers/GenerateMeshBVHWorker.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { runSteps, runStepsAsync } from './load-steps.js';
 
 // Collision against the real level geometry. Every static mesh in the scene
 // (minus anything flagged userData.noCollide, e.g. moving vehicles, plants or
@@ -25,6 +26,26 @@ function isExcluded(obj) {
   return false;
 }
 
+/**
+ * Positions only, non-indexed, end to end: what mergeGeometries makes of the baked meshes, copied a
+ * few meshes a step (anything else, say a position that isn't three floats, goes through it as before).
+ */
+function* concatPositions(geos) {
+  if (!geos.every((g) => g.attributes.position?.itemSize === 3 && g.attributes.position.array instanceof Float32Array && !g.index && Object.keys(g.attributes).length === 1)) return mergeGeometries(geos);
+  let n = 0;
+  for (const g of geos) n += g.attributes.position.array.length;
+  const out = new Float32Array(n);
+  let o = 0, k = 0;
+  for (const g of geos) {
+    out.set(g.attributes.position.array, o);
+    o += g.attributes.position.array.length;
+    if ((++k & 31) === 0) yield;
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(out, 3));
+  return geo;
+}
+
 export class Physics {
   /**
    * @param scene  static level geometry is baked from here
@@ -32,8 +53,11 @@ export class Physics {
    *               combined with the mesh collision in groundAt()
    */
   /** Build the BVH in a web worker (keeps the page responsive while loading). */
-  static async create(scene, base = null) {
-    const p = new Physics(scene, base, true);
+  static async create(scene, base = null, slice = null) {
+    // (baked a mesh a step when given a slicer, src/load-steps.js: the copy of every triangle in the
+    // world into one buffer was a single long task; the BVH itself is built in a worker)
+    const p = Object.create(Physics.prototype);
+    if (slice) await runStepsAsync(p.bake(scene, base, true), slice); else runSteps(p.bake(scene, base, true));
     if (p.geometry.attributes.position) {
       try {
         const worker = new GenerateMeshBVHWorker();
@@ -49,12 +73,16 @@ export class Physics {
     return p;
   }
 
-  constructor(scene, base = null, deferBVH = false) {
+  constructor(scene, base = null, deferBVH = false) { runSteps(this.bake(scene, base, deferBVH)); }
+
+  /** Every solid triangle of the scene in one world-space geometry (and its BVH unless deferred), a mesh a step. */
+  *bake(scene, base = null, deferBVH = false) {
     this.base = base;
     scene.updateMatrixWorld(true);
-    const geos = [];
-    scene.traverse((obj) => {
-      if (!obj.isMesh || isExcluded(obj)) return;
+    const geos = [], objs = [];
+    scene.traverse((obj) => { if (obj.isMesh && !isExcluded(obj)) objs.push(obj); });
+    for (const obj of objs) {
+      yield;
       const src = obj.geometry.userData.lodSource ?? obj.geometry;   // a level of detail (lod.js) bakes as its full mesh
       const base = new THREE.BufferGeometry();
       base.setAttribute('position', src.attributes.position);
@@ -68,8 +96,8 @@ export class Physics {
       } else {
         geos.push(base.index ? base.clone().applyMatrix4(obj.matrixWorld).toNonIndexed() : base.clone().applyMatrix4(obj.matrixWorld));
       }
-    });
-    this.geometry = geos.length ? mergeGeometries(geos) : new THREE.BufferGeometry();
+    }
+    this.geometry = geos.length ? yield* concatPositions(geos) : new THREE.BufferGeometry();
     this.bvh = geos.length && !deferBVH ? new MeshBVH(this.geometry) : null;
     this.triangles = this.geometry.attributes.position ? this.geometry.attributes.position.count / 3 : 0;
   }
@@ -391,12 +419,15 @@ function ownCollider(physics, p, box) {
  * on its axis): dropped when any of them (or, with all: true, every one) is
  * inside a solid that is not just its own collider. Returns how many.
  */
-export function dropBuriedInstances(mesh, physics, heights, { all = false, ring = 0 } = {}) {
+export function dropBuriedInstances(mesh, physics, heights, o = {}) { return runSteps(dropBuriedInstancesSteps(mesh, physics, heights, o)); }
+/** dropBuriedInstances a few instances a step (each is a dozen rays through the collision): for a world's load. */
+export function* dropBuriedInstancesSteps(mesh, physics, heights, { all = false, ring = 0 } = {}) {
   let n = 0;
   mesh.updateMatrixWorld();
   const gb = geoBox(mesh.geometry);
   const cx = (gb.min.x + gb.max.x) / 2, cz = (gb.min.z + gb.max.z) / 2;
   for (let i = 0; i < mesh.count; i++) {
+    if ((i & 7) === 7) yield;
     mesh.getMatrixAt(i, _dbM);
     _dbW.multiplyMatrices(mesh.matrixWorld, _dbM);
     if (Math.abs(_dbW.determinant()) < 1e-9) continue;   // (already gone)
@@ -425,7 +456,9 @@ export function dropBuriedInstances(mesh, physics, heights, { all = false, ring 
  * short ones only when wholly inside: a rock half sunk in a slope stays).
  * Returns how many.
  */
-export function dropBuriedFlora(scene, physics, { minHeight = 2, maxCount = 6000 } = {}) {
+export function dropBuriedFlora(scene, physics, o = {}) { return runSteps(dropBuriedFloraSteps(scene, physics, o)); }
+/** dropBuriedFlora a few instances a step (src/load-steps.js). */
+export function* dropBuriedFloraSteps(scene, physics, { minHeight = 2, maxCount = 6000 } = {}) {
   let n = 0;
   const meshes = [];
   scene.traverse((o) => {
@@ -437,7 +470,7 @@ export function dropBuriedFlora(scene, physics, { minHeight = 2, maxCount = 6000
     const b = geoBox(o.geometry), h = b.max.y - b.min.y;
     // (a tree by its trunk and middle; a tuft, a blade or a stone only when buried root to tip)
     const fr = h >= minHeight ? [0.3, 0.55] : [0.35, 0.65, 0.95];
-    n += dropBuriedInstances(o, physics, fr.map((f) => b.min.y + h * f), { all: true });
+    n += yield* dropBuriedInstancesSteps(o, physics, fr.map((f) => b.min.y + h * f), { all: true });
   }
   return n;
 }

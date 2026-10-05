@@ -181,6 +181,7 @@ export class Grass {
   update(camera, now = performance.now()) {
     const placed = this.place(camera, now);
     this.far?.update(camera, now);   // (the far layer after: its share of the frame's placing is smaller)
+    this._placing = false;
     return placed;
   }
 
@@ -237,6 +238,7 @@ export class Grass {
       if ((++done & 63) === 0 && performance.now() - t0 > this.placeMs) { k++; break; }
     }
     this.cursor = k < n ? (this.cursor + k) % n : 0;
+    this._placing = k < n;
     this.placedOnce = true;
     if (hi >= 0) {
       const a = this.aGrass;
@@ -247,6 +249,9 @@ export class Grass {
     } else this.placed = 0;
     return this.placed;
   }
+
+  /** A patch still being placed after a jump, either layer (the hand-over waits for it, src/passage.js; the load too). */
+  get placing() { return !!this._placing || !!this.far?.placing; }
 
   /** The meshes (the near patch and the far layer: both kept out of the shadow passes). */
   get meshes() { return this.far ? [this.mesh, this.far.mesh] : [this.mesh]; }

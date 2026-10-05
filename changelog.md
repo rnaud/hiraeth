@@ -2,6 +2,21 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.63 — 2026-10-05
+
+- The desert’s sky is clear now, as in its drawings: no bank of clouds on the horizon, and the far dunes fade into a pale warm band.
+- Steep dune faces in shade are hatched again with dense strokes, while flat sand in shade stays a calm tone.
+- The City-Shaft is drawn with fewer hatch strokes and a clean sky, and its houses have fewer, smaller windows.
+- The References scenes now include the City-Shaft: twenty-three views from its five sheets, up and down the shaft, after the desert’s.
+- Walking through a door, into a cave, a temple or the crashed ship’s hatch, through the Lab’s doors or the Hangar’s portals is smooth now: a sheet of paper sweeps across and you walk on out of the far side at the pace you had, mid-stride, the camera still where it was behind you, instead of stopping dead with the view snapped in close.
+- The rooms, caves and halls behind every door, and the ship’s cabins, are made ready while the world loads, so the first step inside no longer hitches.
+- Stepping into the ship or a house, the camera comes level gently instead of jumping.
+- A world loads without freezing the page: it is built a piece at a time behind the loading screen, so the pen keeps turning smoothly and the first moments in the world no longer stutter while the rest settles in.
+- The desert’s people have new bodies. Children look like children, and teenagers, heavy people and the old have bodies of their own age and build instead of one stretched man or woman. Their faces move as they talk (a smile lifts the cheeks, worry raises the brows), and their hair is drawn as a few big locks with strand lines, which now show on dark hair in the shade too.
+- Ilo and Kito are as small as children their age, and the people in the crowd who come close keep their age and build, so an old pilgrim stays old as you walk up.
+- Bako, Nour, Marrow, Sefa and the Speaker dress more like themselves: Bako in a head-wrap, a grey beard and a long teal coat; Nour under a wide straw hat with a veil, in ochre robes; Marrow in a patched hood with goggles and a scarf; Sefa in a long purple cloak; the Speaker in a tall, wide-brimmed hat with a high collar over his mouth.
+- Capes hang round fuller and thinner bodies without passing through them, and someone knocked over lies on their own shape.
+
 ## v0.62 — 2026-10-05
 
 - Nothing stays on the screen while you play any more: the box in the corner with the place, the objective and the relics is gone. Your health shows while you are hurt or healing, the stamina wheel while you are tired, the tank beside you while it refills or the jets burn, and each fades away after. A short line at the bottom says what the use button does when there is something to use, and a region’s name as you cross into it.
@@ -11,10 +26,11 @@ The same release notes shown in the game (press **N** or open settings).
 - The frame-rate readout is off unless you turn it on (F, or in the settings). On a touch screen the menu button is a small, faint ⚙ in the corner; with a keyboard or a controller there is none (O, Esc or Menu open the menu).
 - The Android app now runs the game in an engine of its own (Mozilla’s GeckoView) instead of the system’s web view: on handhelds stuck with an old web view, like the Retroid Pocket Nova, busy places such as Qanat and the camps play close to 60 fps instead of 30 to 45, and the game starts several seconds sooner. Your saves come along by themselves the first time. The app download is bigger, about 100 MB.
 - The frame readout (F) now starts with the browser engine and its version, such as GECKO 157, WEBVIEW 109 or CHROME 154, so a screenshot says where it ran.
-- The desert’s people have new bodies. Children look like children, and teenagers, heavy people and the old have bodies of their own age and build instead of one stretched man or woman. Their faces move as they talk (a smile lifts the cheeks, worry raises the brows), and their hair is drawn as a few big locks with strand lines, which now show on dark hair in the shade too.
-- Ilo and Kito are as small as children their age, and the people in the crowd who come close keep their age and build, so an old pilgrim stays old as you walk up.
-- Bako, Nour, Marrow, Sefa and the Speaker dress more like themselves: Bako in a head-wrap, a grey beard and a long teal coat; Nour under a wide straw hat with a veil, in ochre robes; Marrow in a patched hood with goggles and a scarf; Sefa in a long purple cloak; the Speaker in a tall, wide-brimmed hat with a high collar over his mouth.
-- Capes hang round fuller and thinner bodies without passing through them, and someone knocked over lies on their own shape.
+- Shadows have more than one tone: a form turned from the sun is a lighter half-tone, the underside of an overhang catches the light the ground throws up, and cast shadows stay the deepest. Sand, bone and metal keep their own colour in shade instead of all turning the same blue.
+- Fewer strokes over big shaded areas: walls in half-shade, sand, bone and metal are a flat tone with few hatch lines, and layered rock keeps a few strokes along its layers in the light. The ink is finer and more broken, solid black in the deepest crevices, and soft dune crests are no longer outlined.
+- Calmer sand, with fewer wavy ripple lines and scattered dots; bare rock shows long cracks. Water ripples only in the patches the wind ruffles, and far water lies flat. The printed sky is one grainy tint down to the horizon, the page has more of a paper texture, and hulls are plated in uneven panels.
+- Old walls look lived in: cracks run down from their tops, up from their feet and out from window corners, with patches where the plaster has gone. In the desert, sand banks up against the buildings, tents, skeletons and wrecks, so they sit in the ground, and you can walk up the drifts.
+- The cave under the giant’s skull runs smoothly on handhelds: inside it, and inside every temple and chamber you reach through a doorway, the game no longer draws the whole world outside behind the walls.
 
 ## v0.61 — 2026-10-05
 
@@ -27,7 +43,7 @@ The same release notes shown in the game (press **N** or open settings).
 - Faces in the conversation portrait are sharp: clean outlines instead of jagged, broken lines, on small screens too.
 - Boulders, big globes and pillars far away now cast shadows like the buildings beside them, and Perdide’s great crystal throws its shadow across the island.
 - Game updates for the Android app and the Steam Deck now come from the game’s own site. Accept the new Android app when it is offered, once, to keep getting them; your saves are kept.
-- A new place in the worlds list (Debug on the title screen): The References, six desert scenes rebuilt from the drawings the game is made after, each seen the way its drawing frames it. [ and ] (L3 / R3) change scene, \ (View) puts the drawing beside or over the picture.
+- A new place in the worlds list (Debug on the title screen): The References, twenty-seven desert scenes from four sheets of the drawings the game is made after, each seen the way its drawing frames it. [ and ] (L3 / R3) change scene, \ (View) puts the drawing beside or over the picture.
 - The first time the water runs in the giant’s chest you see it happen, like a page of a comic: the rib rolls clear, the crack in the wall lights up, the water comes down the gutter and spreads across the dry basin round the roots, to the desert’s own tune, and the traveller says what he sees. It plays once; B / ○, Menu or Esc skips it.
 - The first time your empty tank fills in the giant’s pool, you watch it: the water climbs into the dry glass in three colours to your father’s tune, the rings on your bracer light one by one, and the first shot leaves the nozzle and splashes across the pool. Then you are told how to shoot and push.
 

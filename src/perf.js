@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { runSteps } from './load-steps.js';
 
 // Split world-spanning meshes into tiles so frustum culling can skip what's
 // off-screen in each pass (main view and each shadow cascade). Without this
@@ -21,7 +22,9 @@ function spread(o) {
   return g.boundingSphere.radius * Math.max(o.scale.x, o.scale.y, o.scale.z);
 }
 
-export function tileScene(scene, { tile = 260, propTile = 110 } = {}) {
+export function tileScene(scene, o = {}) { return runSteps(tileSceneSteps(scene, o)); }
+/** tileScene a mesh a step (src/load-steps.js: the terrain-sized ones are cut a few thousand triangles a step). */
+export function* tileSceneSteps(scene, { tile = 260, propTile = 110 } = {}) {
   const small = [];   // tiles of small props (excluded from the far shadow pass)
   const todo = [];
   scene.traverse((o) => {
@@ -36,8 +39,9 @@ export function tileScene(scene, { tile = 260, propTile = 110 } = {}) {
     }
   });
   for (const o of todo) {
+    yield;
     const size = !o.isInstancedMesh && triangleCount(o.geometry) >= 150000 ? tile : propTile;
-    const tiles = o.isInstancedMesh ? tileInstances(o, size) : tileTriangles(o, size);
+    const tiles = o.isInstancedMesh ? tileInstances(o, size) : yield* tileTriangles(o, size);
     if (tiles.length < 2) continue;
     for (const t of tiles) {
       t.userData = { ...o.userData, tiled: true };
@@ -59,11 +63,12 @@ export function tileScene(scene, { tile = 260, propTile = 110 } = {}) {
   return { small };
 }
 
-function tileTriangles(mesh, size) {
+function* tileTriangles(mesh, size) {
   const g = mesh.geometry, P = g.attributes.position;
   const idx = g.index ? g.index.array : Array.from({ length: P.count }, (_, i) => i);
   const buckets = new Map();
   for (let i = 0; i < idx.length; i += 3) {
+    if (i % 30000 === 0) yield;
     const a = idx[i], b = idx[i + 1], c = idx[i + 2];
     const cx = (P.getX(a) + P.getX(b) + P.getX(c)) / 3, cz = (P.getZ(a) + P.getZ(b) + P.getZ(c)) / 3;
     const k = `${Math.floor(cx / size)},${Math.floor(cz / size)}`;
@@ -73,6 +78,7 @@ function tileTriangles(mesh, size) {
   }
   const out = [];
   for (const arr of buckets.values()) {
+    yield;
     const tg = new THREE.BufferGeometry();
     for (const [name, attr] of Object.entries(g.attributes)) tg.setAttribute(name, attr);
     tg.setIndex(new THREE.BufferAttribute(new Uint32Array(arr), 1));
@@ -223,6 +229,101 @@ export class RoomCuller {
     for (const room of this.rooms) {
       if (camera.position.distanceTo(room.at) < this.near) continue;
       for (const o of room.meshes) if (o.visible) { o.visible = false; out.push(o); }
+    }
+    return out;
+  }
+}
+
+// ------------------------------------------------------------------ inside a room off the map
+const _ib = new THREE.Box3(), _is = new THREE.Sphere(), _ip = new THREE.Vector3();
+/**
+ * The other way round: while the camera is inside a room off the map (the cave in the giant's
+ * chest, the Hearth's hall, a temple's rooms: all built a kilometre or more over the map, walled
+ * in, with only a door veil and oculi to the sky), nothing on the map can be seen, but without
+ * this all of it in the camera's frustum was still drawn and shadowed behind the walls: in the
+ * desert's cave, 340 draws and 0.37 M triangles of dunes, city and flora a kilometre below, more
+ * than the open dunes themselves. Each room's extent is found once, the first time it is wanted:
+ * the static meshes near its door that stand well clear of the ground, grown room by room (a
+ * temple's rooms in a row). While the camera is in that box, every mesh, point cloud or line
+ * whose bounds don't reach the box is hidden in every pass of the frame (and shown again after
+ * it, like the other cullers): the map, people and mounts left outside, other rooms. The traveller
+ * and whoever is in the room with them stay.
+ * @param rooms  [Vector3] the rooms' doors (the portals' destinations)
+ * @param o.ground (x, z) => the map's height there (what "well clear of the ground" is measured from)
+ * @param o.seed   m: meshes this near the door start the room
+ * @param o.grow   m: a mesh this near the room so far is part of it (the next room along)
+ * @param o.lift   m: how far over the ground a room's mesh stands at least
+ * @param o.margin m: the box grows by this much for the camera's test and for what it keeps
+ */
+export class InteriorCuller {
+  constructor(scene, rooms, { ground = () => 0, seed = 60, grow = 30, lift = 150, margin = 4, maxRadius = 400 } = {}) {
+    this.scene = scene;
+    this.rooms = rooms.map((at) => ({ at: at.clone(), box: null }));
+    Object.assign(this, { ground, seed, grow, lift, margin, maxRadius });
+    this.list = null; this.n = -1; this.active = null; this.age = 0;
+  }
+  /** a renderable's bounds in the world (instanced: all its instances; skinned: its bind pose where it stands) */
+  static bounds(o, out) {
+    if (o.isInstancedMesh || o.isBatchedMesh) {
+      if (!o.boundingSphere) o.computeBoundingSphere();
+      return out.copy(o.boundingSphere).applyMatrix4(o.matrixWorld);
+    }
+    const g = o.geometry;
+    if (!g) return null;
+    if (!g.boundingSphere) g.computeBoundingSphere();
+    if (!g.boundingSphere || !Number.isFinite(g.boundingSphere.radius)) return null;
+    return out.copy(g.boundingSphere).applyMatrix4(o.matrixWorld);
+  }
+  /** every mesh, point cloud, line and sprite in the scene (again when the scene changes or every few seconds) */
+  collect() {
+    const list = [];
+    this.scene.traverse((o) => { if ((o.isMesh || o.isPoints || o.isLine || o.isSprite) && o.geometry) list.push(o); });
+    this.list = list; this.n = this.scene.children.length; this.age = 0;
+  }
+  /** The room's box: the static meshes near its door clear of the ground, then those near them, until none is added. */
+  extent(room) {
+    if (room.box) return room.box;
+    this.scene.updateMatrixWorld();
+    if (!this.list) this.collect();
+    const cand = [];
+    for (const o of this.list) {
+      if (o.isSkinnedMesh || o.userData.dynamic) continue;
+      const s = InteriorCuller.bounds(o, new THREE.Sphere());
+      if (!s || s.radius > this.maxRadius) continue;
+      if (s.center.y - s.radius - this.ground(s.center.x, s.center.z) < this.lift) continue;
+      cand.push(s);
+    }
+    const box = new THREE.Box3().setFromCenterAndSize(room.at, new THREE.Vector3(1, 1, 1).multiplyScalar(0.5));
+    const used = new Uint8Array(cand.length);
+    for (let i = 0; i < cand.length; i++) if (cand[i].center.distanceTo(room.at) - cand[i].radius < this.seed) { used[i] = 1; box.union(cand[i].getBoundingBox(_ib)); }
+    for (let added = true; added;) {
+      added = false;
+      const reach = box.clone().expandByScalar(this.grow);
+      for (let i = 0; i < cand.length; i++) if (!used[i] && reach.intersectsSphere(cand[i])) { used[i] = 1; box.union(cand[i].getBoundingBox(_ib)); added = true; }
+    }
+    return (room.box = box);
+  }
+  /** The room the camera is in (its box), or null. */
+  roomAt(p) {
+    for (const room of this.rooms) {
+      if (p.y - this.ground(p.x, p.z) < this.lift) continue;   // (on the map: no room is anywhere near)
+      const box = this.extent(room);
+      if (box.distanceToPoint(p) <= this.margin) return box;
+    }
+    return null;
+  }
+  /** Hide what the room hides (returns what it hid, to be shown again after the frame). */
+  hide(camera, out = []) {
+    if (!this.rooms.length) return out;
+    const box = this.roomAt(camera.position);
+    if (box !== this.active) { this.active = box; if (box) this.collect(); }   // (what's there now, on the way in)
+    if (!box) return out;
+    if (++this.age > 180 || this.n !== this.scene.children.length) this.collect();   // (anything added since, every few seconds)
+    const keep = _ib.copy(box).expandByScalar(this.margin);
+    for (const o of this.list) {
+      if (!o.visible) continue;
+      const s = InteriorCuller.bounds(o, _is);
+      if (s && !keep.intersectsSphere(s)) { o.visible = false; out.push(o); }
     }
     return out;
   }

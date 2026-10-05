@@ -361,7 +361,9 @@ export class Waters {
     }
     camera.updateMatrixWorld();
     _frustum.setFromProjectionMatrix(_pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
-    this.inView = this.bodies.some((b) => shownInScene(b.mesh) && b.box.distanceToPoint(p) < WATER_PASS.reach && _frustum.intersectsBox(b.box));
+    // (only water that sparkles: the desert cave's magic pool is the fluid's own material, with no
+    // glints for the pass to draw, so it never needs the full-screen pass)
+    this.inView = this.bodies.some((b) => b.mat && shownInScene(b.mesh) && b.box.distanceToPoint(p) < WATER_PASS.reach && _frustum.intersectsBox(b.box));
     return this.camUnder;
   }
 

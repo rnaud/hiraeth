@@ -3,6 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from './materials.js';
 import { registerTarget } from './targets.js';
 import { slotStorage } from './save-slots.js';
+import { runSteps } from './load-steps.js';
 
 const UP = new THREE.Vector3(0,1,0);
 const FLUID_DEFAULT=['#52c8cf','#966ede'];   // the fluid's first tones (fluid-tool.js), if a hit brings none
@@ -194,7 +195,10 @@ function objectFor(theme,screen=false){
 }
 
 export class ReactiveWorld {
-  constructor(scene,level,physics,content,{storage=slotStorage}={}){
+  constructor(...a){runSteps(this.steps(...a));}
+  /** Built a seed's flowers (or screens) a step: `yield* ReactiveWorld.make(...)` (src/load-steps.js). */
+  static *make(...a){const w=Object.create(ReactiveWorld.prototype);yield* w.steps(...a);return w;}
+  *steps(scene,level,physics,content,{storage=slotStorage}={}){
     this.theme=WORLD_REACTIONS[level.id];this.storage=storage;this.level=level;this.physics=physics;
     this.root=new THREE.Group();this.root.name='Responsive world';this.root.userData.noCollide=true;scene.add(this.root);
     this.key='moebius.encounters.v1';let saved={};try{saved=JSON.parse(storage?.getItem(this.key)??'{}');}catch{}
@@ -214,7 +218,8 @@ export class ReactiveWorld {
       for(let i=0;i<8;i++)seeds.push({pos:new THREE.Vector3(i%2?23:-23,0,95-i*54),up:UP});
     }
     if(level.reactions===false)seeds.length=0;   // (a world kept as it is drawn: the references)
-    seeds.slice(0,28).forEach((seed,i)=>{
+    for(const [i,seed] of seeds.slice(0,28).entries()){
+      yield;
       const up=seed.up,rotation=new THREE.Quaternion().setFromUnitVectors(UP,up);
       for(let j=0;j<3;j++){
         const local=(level.id==='bazaar'?new THREE.Vector3(Math.sin(j+i)*.6,0,-j*5):new THREE.Vector3((j-1)*3+5+Math.sin(i*7+j)*.9,0,-4-j*3+Math.cos(i+j*3)*.8)).applyQuaternion(rotation);
@@ -225,7 +230,8 @@ export class ReactiveWorld {
         if(!pos||level.unsafe?.(pos))continue;
         this.addNode(pos,up,`${level.id}:${i}`,rotation,j);
       }
-    });
+    }
+    yield;
     this.fitBlooms();
     // Existing illustrated signs in the market also wake; they keep their art.
     for(const [i,sign] of (level.reactiveScreens??[]).entries()){

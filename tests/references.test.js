@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { LEVELS } from '../src/levels/index.js';
 import { ORDER, CONTENT } from '../src/levels/content.js';
-import { createReferences, viewCamera, frameBox, sunHour, sunTurn, cropStyle, VIEW_RING } from '../src/levels/references.js';
+import { createReferences, viewCamera, frameBox, sunHour, sunTurn, cropStyle, VIEW_EXTENT } from '../src/levels/references.js';
 import { REFERENCE_VIEWS, REFERENCE_SHEETS } from '../src/levels/reference-views.js';
 import { COSTUMES } from '../src/costumes.js';
 import { applyTimeOfDay } from '../src/timeofday.js';
@@ -38,11 +38,13 @@ test('IMG_3775 has six views, each with a camera framed like its panel', () => {
   for (const v of level.views) {
     const d = v.def, [x, y, w, h] = d.crop, S = REFERENCE_SHEETS[d.sheet];
     assert.ok(x >= 0 && y >= 0 && x + w <= S.size[0] && y + h <= S.size[1], `${d.id}: the crop lies on its sheet`);
-    assert.ok(d.camera.fov > 15 && d.camera.fov < 90 && d.camera.horizon > 0 && d.camera.horizon < 1, `${d.id}: a field of view and a horizon`);
+    const steep = d.camera.pitch !== undefined;   // (a view up or down a shaft: its pitch given outright)
+    assert.ok(d.camera.fov > 15 && d.camera.fov < 90 && (steep ? Math.abs(d.camera.pitch) < 85 : d.camera.horizon > 0 && d.camera.horizon < 1), `${d.id}: a field of view and a horizon or pitch`);
     assert.equal(d.sky.length, 5, `${d.id}: its sky, shadow and light colours`);
     // the eye stands above its ground, in the world where the view is
     assert.ok(v.eye.y > level.ground.heightAt(v.eye.x, v.eye.z) + 1, `${d.id}: the eye clears the ground`);
-    assert.ok(Math.abs(v.centre.length() - VIEW_RING) < 1e-6);
+    assert.ok(Math.abs(v.centre.x) <= VIEW_EXTENT && Math.abs(v.centre.z) <= VIEW_EXTENT && v.centre.length() > 1500, 'on the grid, clear of the ship at the origin');
+    if (steep) continue;
     // the horizon lands where the panel has it: eye level projects to that height of the frame
     const cam = new THREE.PerspectiveCamera(d.camera.fov, w / h, 0.3, 5000);
     cam.position.copy(v.eye); cam.lookAt(v.target); cam.updateMatrixWorld(); cam.updateProjectionMatrix();
@@ -113,4 +115,46 @@ test('the panels\' figures stand on their view\'s ground, in their own clothes',
     assert.ok(Math.abs(level.ground.heightAt(p.at[0], p.at[1]) - p.y) < 0.05, 'on the ground');
     assert.ok(p.lines.every((l) => /^~\w+~ /.test(l)), 'every line has a tone');
   }
+});
+
+test('the other desert sheets: IMG_3772, 3773 and 3774 panel by panel, after IMG_3775, in order', () => {
+  const counts = { IMG_3775: 6, IMG_3772: 6, IMG_3773: 8, IMG_3774: 7 };
+  for (const [s, n] of Object.entries(counts)) {
+    const views = REFERENCE_VIEWS.filter((v) => v.sheet === s);
+    assert.equal(views.length, n, `${s}: ${n} panels`);
+    assert.deepEqual(views.map((v) => v.panel), Array.from({ length: n }, (_, i) => i + 1), `${s}: its panels in order`);
+    assert.match(REFERENCE_SHEETS[s].url, new RegExp(`${s}\\.JPG$`));
+    // no two panels of a sheet overlap
+    for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+      const [ax, ay, aw, ah] = views[i].crop, [bx, by, bw, bh] = views[j].crop;
+      assert.ok(ax + aw <= bx || bx + bw <= ax || ay + ah <= by || by + bh <= ay, `${s}: panels ${i + 1} and ${j + 1} apart`);
+    }
+  }
+  // [ ] cycles through all of them, sheet after sheet
+  assert.deepEqual([...new Set(REFERENCE_VIEWS.map((v) => v.sheet))].slice(0, 4), ['IMG_3775', 'IMG_3772', 'IMG_3773', 'IMG_3774']);
+  assert.equal(new Set(REFERENCE_VIEWS.map((v) => v.id)).size, REFERENCE_VIEWS.length, 'every view its own id');
+  const { level } = refs();
+  assert.equal(level.views.filter((v) => REFERENCE_SHEETS[v.def.sheet].name.startsWith('The Desert')).length, 27);
+});
+
+test('the City-Shaft\'s sheets after the desert\'s, grouped by world, each panel on its sheet', () => {
+  const counts = { IMG_3778: 1, IMG_3779: 5, IMG_3780: 5, IMG_3781: 5, IMG_3782: 7 };
+  for (const [s, n] of Object.entries(counts)) {
+    const views = REFERENCE_VIEWS.filter((v) => v.sheet === s);
+    assert.equal(views.length, n, `${s}: ${n} panels`);
+    assert.ok(REFERENCE_SHEETS[s].name.startsWith('The City-Shaft / '), 'the label names the world');
+    for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+      const [ax, ay, aw, ah] = views[i].crop, [bx, by, bw, bh] = views[j].crop;
+      assert.ok(ax + aw <= bx || bx + bw <= ax || ay + ah <= by || by + bh <= ay, `${s}: panels ${i + 1} and ${j + 1} apart`);
+    }
+  }
+  // grouped by world: every desert sheet before every City-Shaft one
+  const world = REFERENCE_VIEWS.map((v) => REFERENCE_SHEETS[v.sheet].name.split(' / ')[0]);
+  assert.deepEqual([...new Set(world)], ['The Desert', 'The City-Shaft']);
+  for (let i = 1; i < world.length; i++) assert.ok(world[i] === world[i - 1] || !world.slice(0, i).includes(world[i]), 'a world\'s views together');
+  // the views up or down the shaft frame with a roll and a pitch
+  const steep = REFERENCE_VIEWS.filter((v) => v.camera.pitch !== undefined);
+  assert.ok(steep.length >= 8);
+  const c = viewCamera({ eye: [0, 0, 0], fov: 60, pitch: -60, roll: 10 });
+  assert.ok(Math.abs(c.pitch + Math.PI / 3) < 1e-9 && c.target.y < -40 && Math.abs(c.roll - Math.PI / 18) < 1e-9);
 });
