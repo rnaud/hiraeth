@@ -92,14 +92,5 @@ export function lookFor(spec, state, world) {
   return s;
 }
 
-/** Face variants for the studio's dropdown (morph.js FACE_MORPHS values). */
-export const FACE_PRESETS = {
-  'As modelled': {},
-  'Gaunt elder': { cheeks: -0.8, faceLength: 1.08, noseLength: 1.3, lines: 1.8, browRidge: 0.6, jaw: 0.92, lidWeight: 1.3 },
-  'Round, young': { cheeks: 0.8, faceLength: 0.94, noseLength: 0.8, lines: 0.15, eyeSize: 1.12, jaw: 1.05, chin: -0.3 },
-  'Sharp': { noseLength: 1.4, noseWidth: 0.85, chin: 0.8, jaw: 0.9, cheeks: -0.4, browRidge: 0.5 },
-  'Broad': { jaw: 1.2, headWidth: 1.08, noseWidth: 1.35, chin: 0.2, browRidge: 0.8 },
-  'Wide-eyed': { eyeSize: 1.25, eyeSpacing: 0.6, lines: 0.4 },
-  'Freckled': { freckles: 0.8, lines: 0.5, noseLength: 0.85, noseWidth: 0.9 },
-  'Weathered': { lines: 2, lidWeight: 1.5, cheeks: -0.5, browRidge: 0.7, eyeSize: 0.92 },
-};
+/** Face variants for the studio's dropdown (morph.js FACE_PRESETS; the Lab's giants wear them all). */
+export { FACE_PRESETS } from '../morph.js';
