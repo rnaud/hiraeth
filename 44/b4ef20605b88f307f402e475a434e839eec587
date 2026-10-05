@@ -1,0 +1,47 @@
+README.md
+  s_1fd8d0e7b02dcf::t_d1e3966fdcb28f 1782,1821-1859
+TODO.md
+  s_1fd8d0e7b02dcf::t_8a675f71b4cff8 489-501
+changelog.md
+  s_1fd8d0e7b02dcf::t_aa7c679ce86ba3 14-17
+docs/makehuman.md
+  s_1fd8d0e7b02dcf::t_fdcd5de9999aeb 27-31,129-130,260,268-433,438-449
+public/anim/mh/LICENSE-MakeHuman-CC0.txt
+  s_1fd8d0e7b02dcf::t_e3289002e11132 1
+scripts/makehuman/build.py
+  s_1fd8d0e7b02dcf::t_162396348b2d7c 3,31
+scripts/makehuman/build.sh
+  s_1fd8d0e7b02dcf::t_e88ec5ee18466e 4
+scripts/makehuman/hair.py
+  s_1fd8d0e7b02dcf::t_9b63c173db26da 21-24
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_eff722a12a47e5 14-17
+src/humanoid.js
+  s_1fd8d0e7b02dcf::t_f0d7e5b644d9d1 839-840,842,883-889
+src/main.js
+  s_1fd8d0e7b02dcf::t_341c19907fbf83 409
+src/makehuman/hair.js
+  s_1fd8d0e7b02dcf::t_ceeffd51705419 6-8,237-240
+src/makehuman/people.js
+  s_1fd8d0e7b02dcf::t_909a5dbce537ca 18,134-155
+src/story/desert-data.js
+  s_1fd8d0e7b02dcf::t_e21b6d3f083a9e 281
+tests/makehuman-desert.test.js
+  s_1fd8d0e7b02dcf::t_8eb3cdfc684135 96-106,202-234
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "44b4ef20605b88f307f402e475a434e839eec587",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
