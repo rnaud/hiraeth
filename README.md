@@ -1809,16 +1809,28 @@ picks the device. The tab keeps its own storage (not the app's saves). Afterward
   recording of the mother's labelled "For when he asks" (`calls.ilen.*`, as before). HUD:
   "E play a recording".
 - **The hologram** (`src/ship/hologram.js`): the parents are the game's own people (the
-  human bodies, dressed by `costumes.js`, played by the mocap library: idle, and the
-  talking clip's gestures while they speak) drawn in light: teal, bright at the rims,
-  climbing scanlines, flicker, slices that slide sideways now and then (more when torn up
-  by the prologue's impact), eyes and a mouth that opens with the voice (drawn from the
-  bind-pose face). It stands in a cone of streaked light with motes over a projector in the
-  middle of the dash (`interior.points.projector`); the screen hangs higher now. It is not in
-  the G-buffer: `HOLO.scene` is drawn after the composite (`renderFrame`, like the wind),
-  premultiplied light with a little dimming behind, depth-tested by hand against the
-  G-buffer, so the traveller in front of it still hides it. `callShot` frames it from
-  behind his right shoulder; `faceRecording` keeps him turned to it for the whole recording.
+  human bodies, dressed by `costumes.js`, played by the mocap library) projected as
+  **coloured busts**: head, neck, shoulders and the top of the chest (`BUST`: cut across the
+  chest in the figure's own frame, falling apart into grains below it, the bottom edge just
+  over the lens). Each mesh keeps its own colours: `holoLook` reads its ink material (the
+  body's clothes by region, as `MODE_OUTFIT`; costume vertex colours; the eyes; plain
+  colours) and redraws it in light: two flat tones, a breath of the projector's tint, an
+  edge line of paler light, thin climbing scanlines, flicker, slices that slide sideways
+  now and then (more when torn up by the prologue's impact), the face's ink lines and a
+  mouth that opens with the voice. `PEOPLE`: the father with short brown hair, a full
+  trimmed beard (the `beard` mask) and a moustache (`addMoustache`, on the head bone), a
+  rust-red shirt; the mother with long dark hair, a teal scarf over a lilac top; the child in
+  yellow. The hair's front is lifted off the brow on the hologram's own copy of the costume
+  (`openHairline`). `show({ face })` turns each bust to the traveller's eyes every frame;
+  their heads nod on stressed words, tilt, glance aside or at the other one talking, the
+  shoulders breathe and sway. A faint cone and the lens's rings fit the lens (`lens`).
+  It is not in the G-buffer: `HOLO.render` draws `HOLO.scene` after the composite into a
+  target of its own with a depth buffer (a face hides the back of its head), depth-tested
+  by hand against the G-buffer so the traveller in front still hides it, then lays it over
+  the frame, slightly translucent, with a soft bloom of its own colours. `callShot` frames
+  it from behind his right shoulder and pushes in on the busts' faces (`CALL_FACE`) while
+  the hologram is up (`st.close`); `faceRecording` keeps him turned to it. At the stone the
+  three busts (`REEL_HOLO`) rise over the reel, looking up at him.
 - **The stone** (`src/levels/home.js` `buildTomb`, `src/ship/homecoming.js`,
   `src/story/ending.js`): nobody waits at the door; the window is dark. The cargo check lists
   everything (`tokenList`: the keepsakes, then the makers' small gifts, not the backpack,
