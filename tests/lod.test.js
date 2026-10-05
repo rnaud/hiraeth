@@ -94,6 +94,15 @@ test('simplify keeps closed shapes closed and its attributes (normals, colours) 
     assert.ok(Math.abs(Math.hypot(N.getX(i), N.getY(i), N.getZ(i)) - 1) < 1e-4);
     assert.ok(N.getX(i) * P.getX(i) + N.getY(i) * P.getY(i) + N.getZ(i) * P.getZ(i) > 0, 'outward');
   }
+  // no face turned over (a flipped sliver shows its back, or a hole, and the ink outlines it)
+  for (const cell of [1, 2, 3, 4]) {   // (the levels stop at a third of the radius)
+    const q = simplify(sphere, cell), Q = q.attributes.position, J = q.index.array, a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
+    for (let t = 0; t < J.length; t += 3) {
+      a.fromBufferAttribute(Q, J[t]); b.fromBufferAttribute(Q, J[t + 1]); c.fromBufferAttribute(Q, J[t + 2]);
+      const n = c.clone().sub(b).cross(a.clone().sub(b)), m = a.clone().add(b).add(c);
+      assert.ok(n.dot(m) > 0, `${cell} m: every face still faces out`);
+    }
+  }
   // corners stay sharp: a box simplified coarser than its faces keeps its eight corners
   const b = simplify(new THREE.BoxGeometry(4, 4, 4, 8, 8, 8), 1.5), bb = posBounds(b);
   assert.deepEqual(bb.min.toArray().map((v) => +v.toFixed(5)), [-2, -2, -2]);
@@ -121,6 +130,17 @@ test('thin rods (poles, cables, antennas) thin out along their length but never 
   const c = simplify(cable, 2);
   assert.ok(triCount(c) < triCount(cable) / 2);
   assert.ok(posBounds(c).min.y < 6.3, 'it still sags');
+  // a bent one (a thin ring): no vertex strays from where the ring was (no spikes across it)
+  const ring = new THREE.TorusGeometry(5, 0.05, 8, 128);
+  for (const cell of [0.5, 1, 2]) {
+    const r = simplify(ring, cell), Q = r.attributes.position, P = ring.attributes.position;
+    assert.ok(triCount(r) < triCount(ring));
+    for (let i = 0; i < Q.count; i++) {
+      const rad = Math.hypot(Q.getX(i), Q.getY(i));
+      assert.ok(Math.abs(rad - 5) < cell, `${cell} m: on the ring (${rad.toFixed(2)} m out)`);
+    }
+    assert.ok(P.count > 0);
+  }
 });
 
 test('locked vertices keep their place: the seams between tiles of one mesh, the crowd\'s cape parameters', () => {

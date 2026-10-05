@@ -11,12 +11,22 @@ function dirOf(x, y, z) {
   return (x > k ? 2 : x < -k ? 0 : 1) * 9 + (y > k ? 2 : y < -k ? 0 : 1) * 3 + (z > k ? 2 : z < -k ? 0 : 1);
 }
 
+const _n0 = [0, 0, 0];
+/** A triangle's (unnormalised) face normal, three.js's winding: (c - b) x (a - b). */
+function normalOf(P, v0, v1, v2) {
+  const bx = P[v1 * 3], by = P[v1 * 3 + 1], bz = P[v1 * 3 + 2];
+  const ux = P[v2 * 3] - bx, uy = P[v2 * 3 + 1] - by, uz = P[v2 * 3 + 2] - bz, wx = P[v0 * 3] - bx, wy = P[v0 * 3 + 1] - by, wz = P[v0 * 3 + 2] - bz;
+  _n0[0] = uy * wz - uz * wy; _n0[1] = uz * wx - ux * wz; _n0[2] = ux * wy - uy * wx;
+  return _n0;
+}
+
 /**
  * Line-like parts: connected pieces (vertices joined by triangles or by sharing a position)
  * longer than `cell` but thinner than it across (their vertices' spread round their long axis).
  * Returns null if none, else { rod: Int32Array (each vertex's rod, -1 for the rest),
  * axes: Float64Array (per rod: mean xyz, long axis xyz, two cross axes xyz), end: Uint8Array
- * (the vertices at either end of a rod) }.
+ * (the vertices at either end of a rod) }, with part (each vertex's piece) and weld (each vertex's
+ * first twin at the same position) in any case.
  */
 export function thinParts(P, T, cell) {
   const nV = P.length / 3, nTri = T.length / 3;
@@ -34,6 +44,7 @@ export function thinParts(P, T, cell) {
       h = (h + 1) & mask;
     }
   }
+  const weld = Int32Array.from(parent);   // each vertex's first twin at the same position
   const find = (v) => { while (parent[v] !== v) { parent[v] = parent[parent[v]]; v = parent[v]; } return v; };
   for (let t = 0; t < nTri; t++) {
     const a = find(T[t * 3]), b = find(T[t * 3 + 1]), c = find(T[t * 3 + 2]);
@@ -96,7 +107,7 @@ export function thinParts(P, T, cell) {
     axes.push(mx, my, mz, ax, ay, az, ux, uy, uz, wx, wy, wz);
     any = true;
   }
-  if (!any) return null;
+  if (!any) return { part: root, weld, rod: null };
   const rod = new Int32Array(nV), A = Float64Array.from(axes), nR = A.length / 12;
   for (let v = 0; v < nV; v++) rod[v] = lineLike[root[v]];
   // each rod's two ends along its axis (they keep their place: it keeps its length)
@@ -117,67 +128,85 @@ export function thinParts(P, T, cell) {
     const t = along(v, r * 12), e = (ends[r * 2 + 1] - ends[r * 2]) * 1e-4 + 1e-6;
     if (t <= ends[r * 2] + e || t >= ends[r * 2 + 1] - e) end[v] = 1;
   }
-  return { rod, axes: A, end };
+  return { part: root, weld, rod, axes: A, end };
 }
 
 /**
  * Vertex clustering over packed arrays (pack()); plain arrays out, or null when the result keeps
  * more than `minRatio` of the triangles (or none). Runs in the worker as well as here.
  */
-export function cluster({ pos: P, tri: T, attrs, lock }, cell, minRatio = 1) {
+export function cluster({ pos: P, tri: T, attrs, lock }, cell, minRatio = 1, depth = 0) {
   const nV = P.length / 3, nTri = T.length / 3;
   if (!(cell > 0) || nTri < 1) return null;
   const inv = 1 / cell;
   // 0. poles, cables, antennas, limbs: parts thinner than a cell but longer are only simplified
   //    along their length, never across (clustered on the grid they would fold into a line and
-  //    vanish, and the ink draws them): cells along the rod's axis and eight sectors round it
-  const thin = thinParts(P, T, cell);
+  //    vanish, and the ink draws them): grid cells along them, eight sectors round them
+  // (and nothing merges across parts: each connected piece is simplified on its own, so a decal
+  //  never lifts off the ground it lies on, a bench's legs never poke through its seat, and
+  //  colours never fight where two pieces meet)
+  const pieces = thinParts(P, T, cell), part = pieces?.part ?? new Int32Array(nV), thin = pieces?.rod ? pieces : null;
+  // (where two colours meet at one point, as on a painted surface, the point stays put: colour
+  //  edges are inked like outlines, and sliding them would fold one colour's sliver over the next)
+  const C = attrs.find((a) => a.name === 'color')?.array ?? null;
+  if (C && pieces) {
+    const cs = attrs.find((a) => a.name === 'color').itemSize, wd = pieces.weld;
+    for (let v = 0; v < nV; v++) {
+      const w = wd[v];
+      if (w === v) continue;
+      let same = true;
+      for (let k = 0; k < cs; k++) if (Math.abs(C[v * cs + k] - C[w * cs + k]) > 1 / 512) { same = false; break; }
+      if (!same) { lock ??= new Uint8Array(nV); if (lock.length !== nV) lock = Uint8Array.from(lock); lock[v] = lock[w] = 1; }
+    }
+  }
   const N = attrs.find((a) => a.name === 'normal' && a.itemSize === 3)?.array ?? null;
   const others = attrs.filter((a) => a.name !== 'normal');
 
-  // (a rod's slices along its axis, and each slice's centre: the sectors turn round that, so a
-  // sagging cable keeps its whole cross-section all along)
-  let slice = null, sliceC = null;
+  // (a rod's vertices go by grid cell like the rest, then by sector round the rod's centre within
+  // that cell: a bent or sagging rod keeps its whole cross-section all along, and nothing of it
+  // ever merges with another stretch of it)
+  let gx = null, gy = null, gz = null, local = null;
+  const gkey = (r, x, y, z) => r * 67108864 + ((Math.imul(x, 73856093) ^ Math.imul(y, 19349663) ^ Math.imul(z, 83492791)) & 0x3ffffff);
   if (thin) {
-    slice = new Int32Array(nV); sliceC = new Map();
-    const A = thin.axes;
+    gx = new Int32Array(nV); gy = new Int32Array(nV); gz = new Int32Array(nV); local = new Map();
     for (let v = 0; v < nV; v++) {
       const r = thin.rod[v];
       if (r < 0) continue;
-      const a = r * 12, b = Math.floor(((P[v * 3] - A[a]) * A[a + 3] + (P[v * 3 + 1] - A[a + 1]) * A[a + 4] + (P[v * 3 + 2] - A[a + 2]) * A[a + 5]) * inv + GRID_OFF);
-      slice[v] = b;
-      const k = r * 4194304 + b;
-      let c = sliceC.get(k);
-      if (!c) sliceC.set(k, (c = [0, 0, 0, 0]));
+      const x = (gx[v] = Math.floor(P[v * 3] * inv + GRID_OFF)), y = (gy[v] = Math.floor(P[v * 3 + 1] * inv + GRID_OFF)), z = (gz[v] = Math.floor(P[v * 3 + 2] * inv + GRID_OFF));
+      const k = gkey(r, x, y, z);
+      let c = local.get(k);
+      if (!c) local.set(k, (c = [0, 0, 0, 0]));
       c[0] += P[v * 3]; c[1] += P[v * 3 + 1]; c[2] += P[v * 3 + 2]; c[3]++;
     }
   }
   // 1. each vertex's cell (locked ones: a cell of their own), through an open-addressed hash of (ix, iy, iz)
   const cellOf = new Int32Array(nV);
   let size = 1024; while (size < nV * 2) size *= 2;
-  const mask = size - 1, slot = new Int32Array(size).fill(-1), KX = new Int32Array(nV), KY = new Int32Array(nV), KZ = new Int32Array(nV);
+  const mask = size - 1, slot = new Int32Array(size).fill(-1), KX = new Int32Array(nV), KY = new Int32Array(nV), KZ = new Int32Array(nV), KP = new Int32Array(nV);
   let nCells = 0;
   for (let v = 0; v < nV; v++) {
     if ((lock && lock[v]) || (thin && thin.end[v])) { KX[nCells] = 0x7fffffff; cellOf[v] = nCells++; continue; }
     let ix, iy, iz;
     const r = thin ? thin.rod[v] : -1;
     if (r >= 0) {
-      const A = thin.axes, a = r * 12, c = sliceC.get(r * 4194304 + slice[v]);
+      const A = thin.axes, a = r * 12, c = local.get(gkey(r, gx[v], gy[v], gz[v]));
       const ox = P[v * 3] - c[0] / c[3], oy = P[v * 3 + 1] - c[1] / c[3], oz = P[v * 3 + 2] - c[2] / c[3];
+      const sector = Math.floor((Math.atan2(ox * A[a + 9] + oy * A[a + 10] + oz * A[a + 11], ox * A[a + 6] + oy * A[a + 7] + oz * A[a + 8]) / (Math.PI * 2) + 1) * 8 + GRID_OFF) % 8;
       ix = 0x40000000 + r;
-      iy = slice[v];
-      iz = Math.floor((Math.atan2(ox * A[a + 9] + oy * A[a + 10] + oz * A[a + 11], ox * A[a + 6] + oy * A[a + 7] + oz * A[a + 8]) / (Math.PI * 2) + 1) * 8 + GRID_OFF) % 8;
+      iy = sector + 8 * (gx[v] & 0xffffff);
+      iz = Math.imul(gy[v], 19349663) ^ Math.imul(gz[v], 83492791);
     } else {
       // (the grid is offset by an odd fraction: modelled coordinates (0, whole and half metres) never sit on a cell edge,
       // where float noise would split coincident vertices into two cells and open a seam)
       ix = Math.floor(P[v * 3] * inv + GRID_OFF); iy = Math.floor(P[v * 3 + 1] * inv + GRID_OFF); iz = Math.floor(P[v * 3 + 2] * inv + GRID_OFF);
       if (Math.abs(ix) > 1e9 || Math.abs(iy) > 1e9 || Math.abs(iz) > 1e9 || !Number.isFinite(ix + iy + iz)) return null;
     }
-    let h = (Math.imul(ix, 73856093) ^ Math.imul(iy, 19349663) ^ Math.imul(iz, 83492791)) & mask, c;
+    const pt = part[v];
+    let h = (Math.imul(ix, 73856093) ^ Math.imul(iy, 19349663) ^ Math.imul(iz, 83492791) ^ Math.imul(pt, 0x27d4eb2d)) & mask, c;
     for (;;) {
       c = slot[h];
-      if (c < 0) { slot[h] = c = nCells; KX[c] = ix; KY[c] = iy; KZ[c] = iz; nCells++; break; }
-      if (KX[c] === ix && KY[c] === iy && KZ[c] === iz) break;
+      if (c < 0) { slot[h] = c = nCells; KX[c] = ix; KY[c] = iy; KZ[c] = iz; KP[c] = pt; nCells++; break; }
+      if (KX[c] === ix && KY[c] === iy && KZ[c] === iz && KP[c] === pt) break;
       h = (h + 1) & mask;
     }
     cellOf[v] = c;
@@ -247,6 +276,19 @@ export function cluster({ pos: P, tri: T, attrs, lock }, cell, minRatio = 1) {
     }
     cpos[c * 3] = x; cpos[c * 3 + 1] = y; cpos[c * 3 + 2] = z;
   }
+
+  // a triangle that turned over (its cells' points crossed): a sliver of back face, or a hole
+  // the ink would outline. Its corners keep their places and the clustering runs again.
+  let flips = null;
+  for (let i = 0; i < nKeep; i++) {
+    const t = keep[i], v0 = T[t * 3], v1 = T[t * 3 + 1], v2 = T[t * 3 + 2];
+    const n0 = normalOf(P, v0, v1, v2), a = cellOf[v0] * 3, b = cellOf[v1] * 3, c = cellOf[v2] * 3;
+    const ux = cpos[c] - cpos[b], uy = cpos[c + 1] - cpos[b + 1], uz = cpos[c + 2] - cpos[b + 2];
+    const wx = cpos[a] - cpos[b], wy = cpos[a + 1] - cpos[b + 1], wz = cpos[a + 2] - cpos[b + 2];
+    const dot = n0[0] * (uy * wz - uz * wy) + n0[1] * (uz * wx - ux * wz) + n0[2] * (ux * wy - uy * wx);
+    if (dot <= 0) { flips ??= lock ? Uint8Array.from(lock) : new Uint8Array(nV); flips[v0] = flips[v1] = flips[v2] = 1; }
+  }
+  if (flips && depth < 3) return cluster({ pos: P, tri: T, attrs, lock: flips }, cell, minRatio, depth + 1);
 
   // 4. output vertices: one per cell and look (normal direction and every other attribute's values)
   const sigOf = (v, faceDir) => {
