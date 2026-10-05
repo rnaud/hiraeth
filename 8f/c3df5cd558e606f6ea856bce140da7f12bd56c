@@ -1,0 +1,39 @@
+scripts/unity-export/census.mjs
+  s_1fd8d0e7b02dcf::t_1a85223c95c86e 1-4,6-8,14,17,23-36
+scripts/unity-export/export-desert.mjs
+  s_1fd8d0e7b02dcf::t_68bbf7498ce641 1,3-4
+scripts/unity-export/export-world.mjs
+  s_1fd8d0e7b02dcf::t_84bf4eb9795710 1-680
+scripts/unity-export/people.mjs
+  s_1fd8d0e7b02dcf::t_3905ce80b98e18 24-28,36,38,97,142,160,169,201,230,237,247,252,264-268,280
+unity/.gitignore
+  s_1fd8d0e7b02dcf::t_bb7ddf4e858af5 21-23
+scripts/unity-export/build-world.mjs
+  s_a6982586a2e18f::t_3a22e9a373a38b 1-9,30,32-46,53,55-64,67-69,71,73-75,80-85,87-89,92-94,97,101-107,109-113,116,118-120,124-125,127-129
+scripts/unity-export/export-all.mjs
+  s_a6982586a2e18f::t_46b556a7aedc2e 1-30
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8fc3df5cd558e606f6ea856bce140da7f12bd56c",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_a6982586a2e18f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a5c2f9d8bab5e62b4",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
