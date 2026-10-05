@@ -473,7 +473,10 @@ const fragmentShader = /* glsl */ `
     vec2 shadeQ = floor(surface.rg * 0.5);
     surface.rg -= 2.0 * shadeQ;
     float shadeLift = shadeQ.y / ${SHADE.lifts}.0;
-    float shadeHue = shadeQ.x > 0.5 ? (shadeQ.x - 1.0) / ${SHADE.hues}.0 : uShadeKeep;
+    // (hue steps past the hues: the material's own flat print, materials.js SHADE.flats)
+    bool ownFlat = shadeQ.x > ${SHADE.hues + 1}.5;
+    float shadeHue = shadeQ.x > 0.5 && !ownFlat ? (shadeQ.x - 1.0) / ${SHADE.hues}.0 : uShadeKeep;
+    float shadowFlat = ownFlat ? (shadeQ.x - ${SHADE.hues + 2}.0) / ${SHADE.flats}.0 : uShadowFlat;
     // gHatch.a packs glow (0..1) + 2 hero (the player) + 4 figure (any other person) + 8 soft ink (grass blades)
     // + 16 a face (its skin and eyes: flat colour and one shadow tone, no line round the shade, no crease shading)
     // + 32 sand banked against something (sand-drifts.js: the line where it meets a wall drawn softly)
@@ -632,7 +635,7 @@ const fragmentShader = /* glsl */ `
       vec3 shadeC = albedo * shadowTint;
       // a flat printed shadow (uShadowFlat): the shadow's own colour at the surface's value, not the
       // surface's colour darkened (the City-Shaft's pink walls go blue in shade, not dark pink)
-      if (uShadowFlat > 0.0 && face < 0.5) shadeC = mix(shadeC, shadowTint * (0.45 + 0.7 * dot(albedo, vec3(0.3, 0.55, 0.15))), uShadowFlat);
+      if (shadowFlat > 0.0 && face < 0.5) shadeC = mix(shadeC, shadowTint * (0.45 + 0.7 * dot(albedo, vec3(0.3, 0.55, 0.15))), shadowFlat);
       shadeC = mix(shadeC, albedo * uLightTint, face > 0.5 ? 0.0 : shadeLift);
       vec3 shade = mix(shadeC, albedo * uLightTint, uFlatten);
       // self-lit surfaces (gHatch.a) keep their colour at night and glow a little

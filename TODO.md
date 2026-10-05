@@ -89,8 +89,9 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 ## The References level
 
 - [ ] Recreate every reference sheet as views (`?level=references`, `[` / `]`, L3 / R3; README "The
-  References"). Done: the desert (views 1–27) and the City-Shaft (28–50), DONE.md. In progress, one world at
-  a time: Vael → Vael II → the Buried Machine → the Spheres → Lorn II → the Signal Market.
+  References"). Done: the desert (views 1–27), the City-Shaft (28–50) and Vael II (51–81), DONE.md; Vael has
+  no sheets (`references/Vael/` is empty). In progress, one world at a time: the Buried Machine → the Spheres →
+  Lorn II → the Signal Market.
   - Shader findings left:
     - The print preset keeps its cumulus bank and clouds (the worlds' own; the views turn them off).
     - The half-tone can't tell a back wall inside another's cast shadow (it reads as half-tone, the panel's is
@@ -108,6 +109,20 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
       doesn't use it yet); the shaft sheets' faces carry fine vertical cracks and pipes; the deep shaft views
       fade to a pale blue haze with depth (our fog is by distance); a few lit faces at grazing angles show a
       dotted texture.
+  - Vael II, shader-level left: the sheets hatch a cap's underside along its ribs, radiating from the
+    stalk, dense and dark; ours are parallel strokes (no radial coordinate in merged geometry: a
+    per-vertex axis would do it). The clouds' outlines and shade: the sheets draw them in thin,
+    lighter lines with soft lilac pockets, ours in the same black line as rock, so near puffs read
+    as boulders (an outline weight / colour per material is missing). The needles' and stalks'
+    terminator is a clean band on the sheets; flat facets with flutes break ours into lit islands in
+    the shade. The sheets hardly show cast shadows on the plain (a mushroom throws none); ours are
+    full. The crevasses' walls are lit red-brown and hatched on the sheets, ours dark. The paper's
+    grain and the lines' weight as before (heavier, even).
+  - Vael II, scene-level: the overhangs' drips and stalactites, the cracked eggs, the cave mouth's
+    framing, the monasteries' detail (arcades, cypresses, roofs), the mushrooms' lean, the bird's
+    standing pose (buildBird's rest pose lies low), the cloud sea's cauliflower detail.
+  - Vael II world, left: its cloud puffs are pre-shaded vertex colours (not the flat print), its
+    planets stay (the sheets have none), dusk and night keep the old blue shadow.
   - Scene-level: the game's City-Shaft is a round cream-and-blue pit with a spire, terraces and a hill-town,
     the sheets' a canyon of pink and cream stacked houses with water below; the views' houses are boxes (no
     pipes, balconies, laundry or plating under the overhangs), the cabs and blimps simple capsules.

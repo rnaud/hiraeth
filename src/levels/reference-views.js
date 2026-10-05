@@ -7,6 +7,7 @@ import {
 } from './reference-kit.js';
 import { DESERT_SHEETS, DESERT_VIEWS } from './reference-desert.js';
 import { SHAFT_SHEETS, SHAFT_VIEWS } from './reference-shaft.js';
+import { VAEL2_SHEETS, VAEL2_VIEWS } from './reference-vael2.js';
 
 // ---------------------------------------------------------------------------
 // The references' views (src/levels/references.js): one per panel of a reference
@@ -42,6 +43,8 @@ export const REFERENCE_SHEETS = {
   ...DESERT_SHEETS,
   // the City-Shaft's (reference-shaft.js)
   ...SHAFT_SHEETS,
+  // Vael II's, the Sky Stones (reference-vael2.js)
+  ...VAEL2_SHEETS,
 };
 
 // ===========================================================================
@@ -462,4 +465,6 @@ export const REFERENCE_VIEWS = [
   ...DESERT_VIEWS,
   // the City-Shaft's sheets, IMG_3778 … IMG_3782 (reference-shaft.js)
   ...SHAFT_VIEWS,
+  // Vael II's sheets, IMG_3783 … IMG_3788 (reference-vael2.js)
+  ...VAEL2_VIEWS,
 ];

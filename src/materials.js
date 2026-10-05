@@ -107,8 +107,13 @@ export const sharedUniforms = {
 // They travel to post.js packed in the hatch channels (gHatch.r += 2 × (1 + hue step), gHatch.g
 // += 2 × lift step: the strokes themselves stay in 0..1); a pixel with nothing packed (other
 // shaders, grass) takes the world's defaults. Hatching thins as the shade is lifted.
+//   flat   0..1, a shade printed flat in the world's shadow colour at the surface's value, whatever
+//          its hue (post.js uShadowFlat, the world's; makeMaterial({ shadeFlat }) a material's own:
+//          Vael II's cream, peach and rose rock all go one grey-blue in shade, its flowers don't).
+//          Packed in the hue's steps past the hues (hue steps 1 + hues + 1 … + flats: a material
+//          says its flat print or its hue, not both)
 // ---------------------------------------------------------------------------
-export const SHADE = { lifts: 15, hues: 8, band: 0.42, warm: [1.06, 0.98, 0.9], slip: [0.16, 0.36] };   // slip: the ground's slope (1 - n.y) over which sand hatches fully
+export const SHADE = { lifts: 15, hues: 8, flats: 5, band: 0.42, warm: [1.06, 0.98, 0.9], slip: [0.16, 0.36] };   // slip: the ground's slope (1 - n.y) over which sand hatches fully
 /**
  * A material's shade: [lift, hue (-1: the world's), hatch amount, strata strokes]. Metal keeps its own
  * tones and few strokes; sand (terrain with ripples or wind strokes) is shaded in fewer strokes; rock
@@ -117,18 +122,21 @@ export const SHADE = { lifts: 15, hues: 8, band: 0.42, warm: [1.06, 0.98, 0.9], 
 export function shadeOf(o) {
   const metal = !!o.metal, sand = (o.mode ?? MODE_PLAIN) === MODE_TERRAIN && (o.ripples || o.sandInk);
   const strata = (o.mode ?? MODE_PLAIN) === MODE_STRATA;
-  return [o.shade ?? 0, o.shadeHue ?? (metal ? 0.5 : sand ? 0.55 : -1), o.hatch ?? (metal ? 0.35 : sand ? 0.55 : 1), o.strataHatch ?? (strata ? 0.5 : 0)];
+  // (the second: the hue kept, 0..1, -1 the world's; or 2 + its own flat print, 0..1)
+  const hue = o.shadeFlat !== undefined ? 2 + Math.min(Math.max(o.shadeFlat, 0), 1) : o.shadeHue ?? (metal ? 0.5 : sand ? 0.55 : -1);
+  return [o.shade ?? 0, hue, o.hatch ?? (metal ? 0.35 : sand ? 0.55 : 1), o.strataHatch ?? (strata ? 0.5 : 0)];
 }
-/** The packing (mirrors the GLSL): strokes h1, h2 in 0..1 with a lift and a hue (or -1) → gHatch.r, g. */
+/** The hue step packed (mirrors the GLSL): 0 the world's, 1 … hues + 1 a hue kept, then the flat prints. */
+const hueStep = (hue) => (hue < 0 ? 0 : hue >= 2 ? SHADE.hues + 2 + Math.round(Math.min(hue - 2, 1) * SHADE.flats) : 1 + Math.round(Math.min(hue, 1) * SHADE.hues));
+/** The packing (mirrors the GLSL): strokes h1, h2 in 0..1 with a lift and a hue (-1, or 2 + a flat print) → gHatch.r, g. */
 export function packShade(h1, h2, lift, hue) {
   const lq = Math.round(Math.min(Math.max(lift, 0), 1) * SHADE.lifts);
-  const hq = hue < 0 ? 0 : 1 + Math.round(Math.min(hue, 1) * SHADE.hues);
-  return [h1 + 2 * hq, h2 + 2 * lq];
+  return [h1 + 2 * hueStep(hue), h2 + 2 * lq];
 }
-/** post.js' unpacking: [h1, h2, lift, hue (-1: the world's)]. */
+/** post.js' unpacking: [h1, h2, lift, hue (-1: the world's), flat print (-1: the world's)]. */
 export function unpackShade(r, g) {
-  const hq = Math.floor(r * 0.5), lq = Math.floor(g * 0.5);
-  return [r - 2 * hq, g - 2 * lq, lq / SHADE.lifts, hq > 0 ? (hq - 1) / SHADE.hues : -1];
+  const hq = Math.floor(r * 0.5), lq = Math.floor(g * 0.5), flat = hq > SHADE.hues + 1;
+  return [r - 2 * hq, g - 2 * lq, lq / SHADE.lifts, hq > 0 && !flat ? (hq - 1) / SHADE.hues : -1, flat ? (hq - SHADE.hues - 2) / SHADE.flats : -1];
 }
 
 // ---------------------------------------------------------------------------
@@ -1207,7 +1215,8 @@ const fragmentShader = /* glsl */ `
     #endif
     // stroke coordinates + derivatives first, in uniform control flow
     vec3 on = uFlat > 0.5 ? cross(dFdx(vObjRel), dFdy(vObjRel)) : vObjNormal;
-    vec3 tw = pow(abs(normalize(on)), vec3(3.0));
+    // (rock: sharper hand-overs between the projections, or a smooth underside's strokes curl into wood grain)
+    vec3 tw = pow(abs(normalize(on)), vec3(uMode == ${MODE_STRATA} ? 8.0 : 3.0));
     tw /= (tw.x + tw.y + tw.z);
     if (uFlat > 0.5) {
       // a facet takes one projection, as an inker would do: blending them multiplies any
@@ -1216,7 +1225,9 @@ const fragmentShader = /* glsl */ `
       tw = a.x > a.y && a.x > a.z ? vec3(1.0, 0.0, 0.0) : (a.y > a.z ? vec3(0.0, 1.0, 0.0) : vec3(0.0, 0.0, 1.0));
     }
     if (uMode == ${MODE_TERRAIN}) tw = vec3(0.0, 1.0, 0.0);
-    vec2 ce1 = strokeCoord(tw, vec2(0.766, 0.643));
+    // rock in strata is hatched down its faces (a cliff's, a needle's strokes run with the fall of the
+    // rock, as the reference sheets draw them); everything else on the diagonal
+    vec2 ce1 = strokeCoord(tw, uMode == ${MODE_STRATA} ? vec2(0.99, 0.14) : vec2(0.766, 0.643));
     vec2 ce2 = strokeCoord(tw, vec2(0.83, -0.56));
     float fw1 = fwidth(ce1.x), fw2 = fwidth(ce2.x);
     // form-following strokes: height contours (terrain slopes) / rings round objects
@@ -1639,7 +1650,8 @@ const fragmentShader = /* glsl */ `
       }
       float h2 = 0.0;
       if (dark > 0.5) {
-        bool rings = uFormHatch > 0.0 && uFlat < 0.5 && uMode != ${MODE_TERRAIN};
+        // (on upright faces: under a cap or an overhang the height's contours wander into wood grain)
+        bool rings = uFormHatch > 0.0 && uFlat < 0.5 && uMode != ${MODE_TERRAIN} && abs(n.y) < 0.6;
         // smooth objects: cross-hatch as rings round the form (trunks, ribs, domes)
         h2 = (rings ? strokes(ceY, fwY, hsp * 1.2, mix(0.6, 1.7, dark))
                     : strokes(ce2, fw2, hsp * 1.2, mix(0.6, 1.7, dark))) * smoothstep(0.5, 0.65, dark);
@@ -1676,7 +1688,7 @@ const fragmentShader = /* glsl */ `
       // a sand ground hatches little in shade on its flats, fully on a steep slip face (SHADE.slip)
       float hatchK = uMode == ${MODE_TERRAIN} ? mix(uShade.z, 1.0, smoothstep(${SHADE.slip[0]}, ${SHADE.slip[1]}, slope)) : uShade.z;
       gHatch.rg *= hatchK * vec2(1.0 - 0.8 * lift, max(1.0 - 2.5 * lift, 0.0));
-      float hq = uShade.y < 0.0 ? 0.0 : 1.0 + floor(uShade.y * ${SHADE.hues}.0 + 0.5);
+      float hq = uShade.y < 0.0 ? 0.0 : uShade.y >= 2.0 ? ${SHADE.hues + 2}.0 + floor((uShade.y - 2.0) * ${SHADE.flats}.0 + 0.5) : 1.0 + floor(uShade.y * ${SHADE.hues}.0 + 0.5);
       gHatch.rg = min(gHatch.rg, vec2(1.0)) + 2.0 * vec2(hq, floor(clamp(lift, 0.0, 1.0) * ${SHADE.lifts}.0 + 0.5));
     }
     #ifdef GRASS
@@ -1708,6 +1720,8 @@ const cache = new Map();
  *                              patches gone from the plaster (0..1; on for façades; never metal or the makers')
  * @param {number}  [o.shade]   0..1: this surface's shade lifted toward its lit colour (SHADE)
  * @param {number}  [o.shadeHue] 0..1: how much of its own hue its shade keeps (default: the world's, uShadeKeep)
+ * @param {number}  [o.shadeFlat] 0..1: its shade printed flat in the world's shadow colour at its value (default:
+ *                              the world's, uShadowFlat; a material saying it keeps the world's hue)
  * @param {number}  [o.hatch]   how many hatch strokes its shade gets (1 all, 0 none: a flat tone)
  * @param {number}  [o.strataHatch] strata rock: runs of strokes along its beds in the light (0..1)
  * @param {boolean|number} [o.glyphs] the makers' carved inscriptions (src/glyphs.js) on upright faces, in

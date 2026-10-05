@@ -642,3 +642,10 @@ All of this is for the web game; the Unity port follows later if we move to Unit
   - Shader-level, done: flat printed shadows (`uShadowFlat`, the views use it), the façades' window
     share (`windows`), views at a pitch and roll. On the world: fewer windows, less hatching, no
     cumulus.
+- Vael: `references/Vael/` is empty (no sheets); its tower plain and bird are drawn on Vael II's.
+- Vael II, the Sky Stones (IMG_3783–3788: 5 + 5 + 5 + 6 + 6 + 4 panels) are views 51–81
+  (`reference-vael2.js`; README "Vael II's sheets").
+  - Shader-level, done: a material's own flat print (`shadeFlat`: the world's rock, plain and
+    buildings at 0.85, its people, bird and flowers keep their shade); strata rock hatched down its
+    faces; no cross-hatched rings under caps (wood grain). On the world: a clean sky, no bounce, a
+    grey-teal shade, the needles with few strokes and no beds.
