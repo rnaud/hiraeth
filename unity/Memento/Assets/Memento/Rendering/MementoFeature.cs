@@ -20,6 +20,7 @@ namespace Memento.Rendering
         public Shader compositeShader;
         public bool fxaa = true, bloom = true;
         GBufferPass gbuffer;
+        ShadowPass shadows;
         CompositePass composite;
         Material compositeMaterial, bloomMaterial, fxaaMaterial;
         static bool logged;
@@ -30,6 +31,7 @@ namespace Memento.Rendering
             if (compositeShader != null && compositeMaterial == null) compositeMaterial = CoreUtils.CreateEngineMaterial(compositeShader);
             var bs = Shader.Find("Hidden/Memento/Bloom"); if (bs != null && bloomMaterial == null) bloomMaterial = CoreUtils.CreateEngineMaterial(bs);
             var fs = Shader.Find("Hidden/Memento/FXAA"); if (fs != null && fxaaMaterial == null) fxaaMaterial = CoreUtils.CreateEngineMaterial(fs);
+            shadows = new ShadowPass { renderPassEvent = RenderPassEvent.BeforeRenderingOpaques };
             gbuffer = new GBufferPass { renderPassEvent = RenderPassEvent.BeforeRenderingOpaques };
             composite = new CompositePass { renderPassEvent = RenderPassEvent.BeforeRenderingTransparents };
         }
@@ -46,6 +48,7 @@ namespace Memento.Rendering
             composite.material = compositeMaterial;
             composite.bloom = bloom ? bloomMaterial : null;
             composite.fxaa = fxaa && Settings.fxaa ? fxaaMaterial : null;
+            renderer.EnqueuePass(shadows);
             renderer.EnqueuePass(gbuffer);
             renderer.EnqueuePass(composite);
         }
@@ -62,12 +65,58 @@ namespace Memento.Rendering
             public override void Reset() { albedo = normal = hatch = depth = TextureHandle.nullHandle; }
         }
 
+        /// <summary>The sun's three maps (MementoShadows), imported into this frame's graph once: written by the shadow passes, read by the G-buffer.</summary>
+        public class ShadowMaps : ContextItem
+        {
+            public TextureHandle[] maps = new TextureHandle[3];
+            public override void Reset() { for (int i = 0; i < 3; i++) maps[i] = TextureHandle.nullHandle; }
+            public static ShadowMaps Of(RenderGraph rg, ContextContainer frame)
+            {
+                if (frame.Contains<ShadowMaps>()) return frame.Get<ShadowMaps>();
+                var sm = frame.Create<ShadowMaps>();
+                var cs = MementoShadows.Instance.All;
+                for (int i = 0; i < 3; i++) sm.maps[i] = cs[i].rt != null ? rg.ImportTexture(cs[i].rt) : TextureHandle.nullHandle;
+                return sm;
+            }
+        }
+
+        /// <summary>
+        /// The sun's shadow maps on the web's schedule (MementoShadows decides which cascades are redrawn this
+        /// frame and with what): one pass per cascade drawn, into its own persistent map.
+        /// </summary>
+        class ShadowPass : ScriptableRenderPass
+        {
+            class PassData { public MementoShadows.Plan plan; public Vector3 camPos; }
+            public override void RecordRenderGraph(RenderGraph rg, ContextContainer frame)
+            {
+                var cam = frame.Get<UniversalCameraData>();
+                if (!WorldDetail.DrawsWorld(cam.camera) || WorldDetail.Current == null) return;
+                long t0 = Perf.Now;
+                var plans = MementoShadows.Instance.Prepare(cam.camera, WorldDetail.Current);
+                Perf.Add(Perf.Slot.Shadows, t0);
+                if (plans.Count == 0) return;
+                var sm = ShadowMaps.Of(rg, frame);
+                var cs = MementoShadows.Instance.All;
+                foreach (var plan in plans)
+                {
+                    int i = System.Array.IndexOf(cs, plan.cascade);
+                    if (i < 0 || !sm.maps[i].IsValid()) continue;
+                    using var builder = rg.AddRasterRenderPass<PassData>("Memento shadows " + plan.cascade.name, out var d);
+                    d.plan = plan; d.camPos = cam.camera.transform.position;
+                    builder.SetRenderAttachmentDepth(sm.maps[i], AccessFlags.Write);
+                    builder.AllowPassCulling(false);
+                    builder.AllowGlobalStateModification(true);
+                    builder.SetRenderFunc((PassData x, RasterGraphContext ctx) => MementoShadows.Instance.Render(ctx.cmd, x.plan, x.camPos));
+                }
+            }
+        }
+
         static ShaderTagId Tag => new ShaderTagId("MementoGBuffer");
         static readonly int GNormalTex = Shader.PropertyToID("_GNormalTex");
 
         class GBufferPass : ScriptableRenderPass
         {
-            class PassData { public RendererListHandle list; }
+            class PassData { public RendererListHandle list; public WorldDetail detail; public TextureHandle[] shadowMaps; public Matrix4x4 view, proj; }
 
             public override void RecordRenderGraph(RenderGraph rg, ContextContainer frame)
             {
@@ -96,6 +145,12 @@ namespace Memento.Rendering
                     var draw = RenderingUtils.CreateDrawingSettings(Tag, rend, cam, lights, SortingCriteria.CommonOpaque);
                     var filter = new FilteringSettings(RenderQueueRange.opaque);
                     pass.list = rg.CreateRendererList(new RendererListParams(rend.cullResults, draw, filter));
+                    pass.detail = WorldDetail.DrawsWorld(cam.camera) ? WorldDetail.Current : null;
+                    // the sun's maps (drawn by ShadowPass this frame or an earlier one): read here
+                    var sm = ShadowMaps.Of(rg, frame);
+                    pass.shadowMaps = sm.maps;
+                    foreach (var m in sm.maps) if (m.IsValid()) builder.UseTexture(m, AccessFlags.Read);
+                    pass.view = cam.GetViewMatrix(); pass.proj = cam.GetProjectionMatrix();
                     builder.UseRendererList(pass.list);
                     builder.SetRenderAttachment(data.albedo, 0, AccessFlags.Write);
                     builder.SetRenderAttachment(data.normal, 1, AccessFlags.Write);
@@ -106,8 +161,12 @@ namespace Memento.Rendering
                     builder.SetGlobalTextureAfterPass(data.normal, GNormalTex);
                     builder.SetRenderFunc((PassData d, RasterGraphContext ctx) =>
                     {
+                        // (the shadow passes drew from the sun: the camera's matrices again)
+                        ctx.cmd.SetViewProjectionMatrices(d.view, d.proj);
+                        MementoShadows.Instance.SetGlobals(ctx.cmd, d.shadowMaps);
                         ctx.cmd.ClearRenderTarget(RTClearFlags.All, Color.clear, 1f, 0);
                         ctx.cmd.DrawRendererList(d.list);
+                        d.detail?.DrawGBuffer(ctx.cmd);   // (the flora: instanced, one draw a species)
                     });
                 }
             }

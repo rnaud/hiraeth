@@ -118,6 +118,7 @@ namespace Memento
             if (!File.Exists(file)) { Fail("no viewpoints at " + file); yield break; }
             vp = Json.Parse(File.ReadAllText(file)) as Dictionary<string, object>;
             preset = Arg("-benchPreset", "high");
+            Quality.Set(preset);   // (the web's preset: levels of detail, culling, shadow maps)
             var res = Arg("-benchRes");
             if (res != null && Application.platform != RuntimePlatform.Android)
             {

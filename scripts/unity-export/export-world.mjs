@@ -302,7 +302,10 @@ function collect(root, frame, { tiles = false, filter = () => true } = {}) {
 const terrain = level.ground;
 const hasField = !!(terrain?.heights && terrain.size && terrain.seg && terrain.mesh);
 // the static world: everything but the terrain (its own heightfield) and the moving things
-const statics = collect(scene, null, { tiles: true, filter: (o) => (!hasField || o !== terrain.mesh) && !isSkipped(o) && !hidden(o) && !isDynamicFx(o) });
+// (cut into the web's draw units, with their levels of detail and the flora by cell: statics.mjs)
+const { exportStatics } = await import('./statics.mjs');
+const { chunks: statics, flora: floraSets } = exportStatics({ THREE, scene, materialOf, blob: worldBlob, terrainMesh: hasField ? terrain.mesh : null, flora, noShadow: level.noShadow ?? [],
+  filter: (o) => (!hasField || o !== terrain.mesh) && !isSkipped(o) && !hidden(o) && !isDynamicFx(o) });
 console.log(`static: ${statics.length} chunks, ${statics.reduce((s, c) => s + c.indices / 3, 0)} triangles, ${materials.length} materials`);
 
 // collision: what physics.js bakes (every mesh not under noCollide), minus the moving things
@@ -683,7 +686,7 @@ const world = {
   // walking into one puts you at its other end (the skull's mouth and the cave passage, doorways into rooms)
   portals: (level.portals ?? []).filter((p) => p.at && p.to).map((p) => ({ at: V3(p.at), r: p.r ?? 1.5, to: V3(p.to), heading: -(p.heading ?? 0), label: p.label ?? '' })),
   ship: { site: places.shipSite, ramp: places.shipRamp, ...shipOut },
-  flora: { count: flora?.count ?? 0 },
+  flora: { count: flora?.count ?? 0, sets: floraSets },
   locators, interactables, targets, storyPage, gravity, waters, grass, lanes, handles, atmo,
 };
 
