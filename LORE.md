@@ -955,8 +955,8 @@ ATAN" (old names) and now says ODILE and TALO; Talo's lookout note was signed
 ## 11. Temples (the makers' houses, their keepers, and the gifts inside)
 
 *Built in this pass (`src/temples/`); decided while the author was away, change
-freely. Three worlds have theirs (the desert, the City-Shaft, Vael II); the rest
-are designed below and wait their turn. Section 9's "A Makers' temple in every
+freely. Four worlds have theirs (the desert, the City-Shaft, Vael II, the Garden
+of Spheres); the rest are designed below and wait their turn. Section 9's "A Makers' temple in every
 world" and the "Makers' temples with bosses" note above are what this answers.*
 
 ### What a temple is
@@ -1020,16 +1020,17 @@ then the world's box stays as it was):
 | Hangar | Quick coil | Brass level (new: shows which way down is, in the ring) | planned |
 | Buried Machine | Fourth chamber (from Lorn II) | Climber's resin (new, on the chimney ring: climbing tires you half as fast) | resin built |
 | Viridel | Bloom mode (new gun mode: a seed glob grows a climbable vine) | Seed pouch (new); the lantern moves to Lorn II | planned |
-| Spheres | Glyph lens | Listening shell (new: hidden things hum when near) | planned |
+| Spheres | Glyph lens | Listening shell (new, on the grove's canopy: the makers' unopened boxes near you hum back now and then) | **built** |
 | Lorn | Stilling mode | Bog boots (new: wade at a walk) | planned |
 | Lorn II | Lantern charm (from Viridel) | Glow-moss pin (new) | planned |
 | Signal Market | Echo shell (new: records a note, plays it back) | (the market has no chest) | planned |
 
-What moved for players already on their way: whoever owns ember mode, the jets
-or the bell-note whistle finds that temple's chest open and counted as found
-(`src/temples/migrate.js`); the Buried Machine's chimney ring, the City-Shaft's
-pillar and Vael's spire now hold the resin, the soles and the hush-cloth, new
-boxes for everyone. (This also settles a loose end of section 10: the bell-note
+What moved for players already on their way: whoever owns ember mode, the jets,
+the bell-note whistle or the glyph lens finds that temple's chest open and
+counted as found (`src/temples/migrate.js`); the Buried Machine's chimney ring,
+the City-Shaft's pillar, Vael's spire and the Spheres' grove canopy now hold the
+resin, the soles, the hush-cloth and the listening shell, new boxes for
+everyone. (This also settles a loose end of section 10: the bell-note
 whistle is found in the bell world now, and Vael has only the rider's bone
 whistle.)
 Ember mode now comes in the first world, which suits it: the desert's camp
@@ -1129,6 +1130,32 @@ every evening "like a bell with nothing to ring it".
   stones settling onto what lies under them or into the cloud, and the stones
   round the belfry onto its gallery.
 
+### The Footprint (the Garden of Spheres)
+The one Ivo speaks of, which the garden never had until now (this settles that
+loose end of section 10): north of the umbrella grove the meadow carries an
+enormous three-toed print, its rim of white stone, as if the thing that walked
+through the sky putting the spheres down had stepped here; its heel is a great
+pale sphere, half sunk, with a round-headed door toward the grove.
+- **The local: Tessa**, who walks the Footprint's rim once a day, toes and
+  heel. She has heard the one note under the grass ("as if it had forgotten all
+  the others"). Afterwards: the toes full of still water, "I saw myself in every
+  toe"; the spheres humming together at dusk; "Aube cried".
+- **Inside**: the Threshold; the Hall of Spheres (two white spheres in grooves,
+  both onto their plates); the Still Pool (a sunken pool crossed on a riding
+  disc that wakes when you splash the eye over the far door); the Lens Chamber
+  (**the glyph lens**; the way on is plain wall to anyone without it); the Hall
+  of the Unseen (a chasm crossed by a bridge of pale glass only the lens shows,
+  and an eye only the lens shows, which opens the last door); the Echo's Hall.
+- **The Echo** (organic, after its fashion: a being of sound): what an Answerer
+  left when it turned over the plaza the night the sky rang and went on. A pale
+  heart inside three turning rings of glass, a veil under it; it sings one loud
+  lost note. Each time it sings, one of the three resonant spheres round its hall
+  glows with that note: splash that sphere (the wrong one makes it flinch;
+  fluid on the Echo itself passes through its light). Calm, it sinks to the
+  floor humming: hold out your hand to it.
+- **After**: the Footprint's toes fill with still water, and every sphere in
+  the garden wears a ring of the glyph's light at its foot, breathing in step.
+
 ### The other temples (designed, not built)
 - **Vael**: the House of the First Walkers among the floating ruins, its halls
   joined by glides; key: the fluid wings. Its keeper: an old stone-winged bird,
@@ -1146,10 +1173,6 @@ every evening "like a bell with nothing to ring it".
   Its keeper: the Gardener, a vast moss creature gone wild (calm it by blooming
   flowers round it). After: the white ruins flower. (Clear of the tea terraces
   south-east of the landing.)
-- **Spheres**: the Footprint itself (the one Ivo speaks of, which the level
-  never had); key: the glyph lens (doors and bridges only the lens shows). Its
-  keeper: an echo of an Answerer, a being of sound; calm it by playing back the
-  spheres' remembered sounds. After: the spheres hum together at dusk.
 - **Lorn**: the Hush, under the Great Crystal; key: stilling mode (freeze the
   snapping plants and the crystal pendulums). Its keeper: the Mother Snapper,
   a carnivorous plant as big as a house; calm it by standing still inside its
