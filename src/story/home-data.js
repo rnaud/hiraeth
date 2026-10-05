@@ -181,7 +181,7 @@ export const THINGS = {
   },
   window: {
     id: 'home.window', name: 'The round window', title: 'the lamp in it, out', color: '#4a5a8a',
-    talk: { nodes: { look: { say: ['~solemn~ (The round window. Her lamp is still on the sill, its wick black. From here you can see the ring where the ship stands, and the whole of the sky.)',
+    talk: { nodes: { look: { say: ['~solemn~ (The round window. Her lamp is still on its table under it, the wick black. From here you can see the ring where the ship stands, and the whole of the sky.)',
       '~whisper~ (He stood here at the end, and said he heard something singing.)'] } } },
   },
   shelf: {
@@ -214,7 +214,7 @@ export const HOMAGE = {
     '~whisper~ (The lamp by their door is lit. Tove keeps it.)',
   ],
   say: ['~whisper~ Hello, you two.', '~whisper~ I’m here.', '~whisper~ It’s me again.'],
-  lou: '~whisper~ (Lou comes and kneels beside you, and doesn’t say anything at all, which is a first.)',
+  lou: '~whisper~ (Lou comes and stands beside you, and doesn’t say anything at all, which is a first.)',
 };
 
 /** At the ending, Lou at the stone (src/story/ending.js tombLines, ctx.lou). */

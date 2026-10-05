@@ -125,7 +125,7 @@ export function buildParentsHouse(scene, { centre, doorZ, mat }) {
   win.userData.noCollide = true;
   const ring = add(new THREE.TorusGeometry(1.55, 0.18, 8, 32), mat('#2b211f', { metal: 'iron' }));
   ring.position.copy(win.position); ring.quaternion.copy(win.quaternion);
-  const glass = add(new THREE.CircleGeometry(1.48, 32), mat('#aeb6dc', { glow: 0.55, flat: true }), at.x * 0.985, FLOOR + (at.y - FLOOR) * 0.985, at.z * 0.985);
+  const glass = add(new THREE.CircleGeometry(1.48, 32), mat('#aeb6dc', { glow: 0.55, flat: true }), at.x * 0.968, FLOOR + (at.y - FLOOR) * 0.968, at.z * 0.968);
   glass.quaternion.copy(win.quaternion); glass.rotateY(Math.PI);
   glass.userData.noCollide = true;
 

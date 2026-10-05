@@ -706,7 +706,7 @@ At the stone he can **pay his respects**: he kneels, lays a flower he picked in
 the garden (they stay on the stone), or sets down the keepsakes found since he
 was last there, so the slab always holds everything he has brought home; a
 quiet moment, a word to them ("Hello, you two."), and he rises. If Lou is near
-she kneels beside him "and doesn't say anything at all, which is a first".
+she comes and stands beside him "and doesn't say anything at all, which is a first".
 
 ## 8. Recurring motifs
 
