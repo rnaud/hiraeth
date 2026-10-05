@@ -54,7 +54,7 @@ namespace Memento
                 npc.lines = lineList;
                 var pal = new[] { Json.Hex(Cloaks[n % Cloaks.Length]), Json.Hex(n % 3 == 0 ? "#2b2f45" : n % 3 == 1 ? "#4a3a2a" : "#5a4a40"), Json.Hex("#4a3a2a"), Color.Lerp(new Color(0.91f, 0.78f, 0.66f), new Color(0.55f, 0.38f, 0.27f), (n * 0.41f) % 1f) };
                 var rec = FigureLibrary.Instance?.CrowdPerson(all.IndexOf(p));
-                if (rec != null) { npc.Dress(rec); npc.pose = rec.I("pose"); npc.cull = 90; npc.hide = 420; }
+                if (rec != null) { npc.Dress(rec); npc.pose = rec.I("pose"); npc.cull = 90; npc.hide = 420; npc.crowdIndex = all.IndexOf(p); }
                 else _ = npc.Build(0.88f + 0.2f * ((n * 0.618f) % 1f), pal, n % 2 == 0 ? "f" : "m");
                 game.npcs.Add(npc);
                 var w = p.O("walk");
@@ -82,6 +82,9 @@ namespace Memento
         }
         public Vector3 ColumnHead(float ahead) => Point(clock + lead + ahead);
 
-        void Update() { if (HasProcession) clock += speed * Time.deltaTime; }
+        void Update() { if (HasProcession) clock += speed * Time.deltaTime; far?.Draw(game); }
+        FarCrowd far; Game game;
+        public int FarCount => far?.Count ?? 0;
+        public void BuildFar(Game g) { game = g; far = FarCrowd.Create(g.world); }
     }
 }

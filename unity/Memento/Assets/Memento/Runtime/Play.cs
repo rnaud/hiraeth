@@ -47,6 +47,7 @@ namespace Memento
             var cgo = new GameObject("Crowd"); cgo.transform.SetParent(transform, false);
             game.crowd = cgo.AddComponent<Crowd>();
             game.crowd.Build(game, game.world.World.O("crowd"), storyData.O("lines").L("procession"));
+            game.crowd.BuildFar(game);
             var sgo = new GameObject("Desert story"); sgo.transform.SetParent(transform, false);
             game.story = sgo.AddComponent<DesertStory>();
             game.story.Begin(game, storyData);

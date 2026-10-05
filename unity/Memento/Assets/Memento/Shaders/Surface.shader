@@ -56,6 +56,7 @@ Shader "Memento/Surface"
       float4 sway : TEXCOORD2;   // plants: anchor x, z (Unity world), bend per metre of wind, brush lean
       float3 bind : TEXCOORD3;   // people: the rest-pose position (outfit zones, face, eyes: Figures.cs)
       float3 bindN : TEXCOORD4;  // and its normal
+      uint iid : SV_InstanceID;  // the crowd's instanced figures (MEMENTO_CROWD)
     };
 
     // the wind bend of an instanced plant (materials.js SWAY), as a world displacement (Unity space)
@@ -93,7 +94,9 @@ Shader "Memento/Surface"
       #pragma fragment frag
       #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
       #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
+      #pragma multi_compile_local _ MEMENTO_CROWD
       #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
+      #include "Crowd.hlsl"
 
       struct Varyings
       {
@@ -108,6 +111,7 @@ Shader "Memento/Surface"
         float2 fold : TEXCOORD7;
         float3 posWS : TEXCOORD8;       // Unity space (shadows)
         float3 bind : TEXCOORD9;
+        float4 crowdTrim : TEXCOORD10;  // the crowd figures: the tunic's printed pattern (accent, id)
       };
 
       Varyings vert(Attributes v)
@@ -129,6 +133,26 @@ Shader "Memento/Surface"
         o.objRel = o.objPos - toThree(camOS * scl);
         o.fold = v.fold;
         o.bind = toThree(v.bind);
+        o.crowdTrim = 0;
+        #if defined(MEMENTO_CROWD)
+          // an instanced crowd figure (crowd-shader.js): posed in figure space (three's), then mirrored and placed
+          CrowdInst ci = _CrowdInst[v.iid];
+          float3 cp = v.positionOS.xyz, cn = v.normalOS, ccol; float4 ctrim;
+          crowdAnimate(ci, v.sway, cp, cn, ccol, ctrim);
+          float cs = ci.scale.x, cc = cos(ci.at.w), sn = sin(ci.at.w);
+          float3 pu = toThree(cp) * cs, nu = toThree(cn);
+          posWS = ci.at.xyz + float3(cc * pu.x + sn * pu.z, pu.y, -sn * pu.x + cc * pu.z);
+          nWS = normalize(float3(cc * nu.x + sn * nu.z, nu.y, -sn * nu.x + cc * nu.z));
+          o.positionCS = TransformWorldToHClip(posWS);
+          o.posWS = posWS;
+          o.worldPos = toThree(posWS);
+          o.normal = toThree(nWS);
+          o.instColor = ccol;
+          o.viewDepth = -TransformWorldToView(posWS).z;
+          o.objPos = cp * cs; o.objNormal = cn / cs; o.objRel = o.objPos - toThree(_WorldSpaceCameraPos);
+          o.bind = v.positionOS.xyz;
+          o.crowdTrim = ctrim;
+        #endif
         return o;
       }
 
@@ -249,6 +273,7 @@ Shader "Memento/Surface"
         else if (pattern == 3) patInk = leaves(i.objPos);
         else if (pattern == 4) patInk = rockCracks(i.objPos);
         albedo *= instColor;
+        if (i.crowdTrim.w > 0.5) albedo = outfitTrim(albedo, i.crowdTrim.rgb, i.crowdTrim.w, i.bind);
         if (_Folds > 0.0) albedo = (i.fold.y < 0.62 ? _Color.rgb : _Color2.rgb) * i.instColor;
 
         float ndl = dot(n, _SunDir);

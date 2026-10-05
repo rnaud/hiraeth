@@ -31,6 +31,8 @@ namespace Memento
         public float scale = 1;
         public float cull = 160;          // m: no motion further than this (and hidden past `hide`)
         public float hide = 260;
+        public float speedNow;            // m/s this frame (the crowd's far figures walk at it)
+        public int crowdIndex = -1;       // a crowd person: past FarCrowd.Near the instanced figure draws them
 
         void Awake() { pos = transform.position; }
 
@@ -120,10 +122,12 @@ namespace Memento
 
         void Animate(float dt, float sp, Player player)
         {
+            speedNow = sp;
             var cam = Camera.main;
             float camD = cam ? Vector3.Distance(cam.transform.position, pos) : 0;
-            figure.SetVisible(camD < hide);
-            figure.culled = camD > cull;
+            bool far = crowdIndex >= 0 && camD > FarCrowd.Near && FarCrowd.On;
+            figure.SetVisible(camD < hide && !far);
+            figure.culled = camD > cull || far;
             if (figure.culled) return;
             int p = sp > 0.05f ? 0 : pose != 0 ? pose : seatHeight >= 0 ? 4 : 0;
             figure.pose = p;

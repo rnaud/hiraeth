@@ -132,6 +132,16 @@ namespace Memento
             PutNear(ama.pos, 6f); yield return Wait(2.5f);
             yield return Shoot("camps");
             yield return CloseUp("ama_front", ama.transform, 2.4f, 0.3f, 0.02f);
+            {
+                // the camps from afar: the crowd's instanced figures past FarCrowd.Near
+                game.rig.enabled = false; yield return null;
+                var c = game.world.Places.V3("camps");
+                game.cam.transform.position = c + new Vector3(70, 22, -95); game.cam.transform.LookAt(c + Vector3.up * 2);
+                yield return null;
+                yield return Shoot("far_crowd");
+                Log($"far crowd: {game.crowd.FarCount} instanced figures");
+                game.rig.enabled = true;
+            }
             PutNear(ama.pos, 2f); yield return Wait(0.6f);
             game.hud.StartTalk(game.story.Def("ama"), ama, ama.displayName, ama.title);
             yield return Wait(2.5f);
