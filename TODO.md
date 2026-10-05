@@ -478,6 +478,20 @@ All of this is for the web game; the Unity port follows later if we move to Unit
 - [ ] Switch the base bodies to MakeHuman (docs/makehuman.md, "What a full switch would take"): one
   parametric body with the macro targets, the face ink and hair fitted to it, the crowd figure and the
   levels of detail matched; animations and motion data kept.
+  - [x] Stage 1 (behind the studio's Body source and the game's `?mh=1`; the default people stay
+    Quaternius): one parametric body for everyone (`public/anim/mh/body.json` + `.bin`, 1.7 MB, 1.0
+    gzipped: MakeHuman's macro corners compressed, made into anyone on load, `src/makehuman/`); each
+    world's people by age, build and their world's proportions; MakeHuman's own ten CC0 hairstyles as
+    closed shells of a few locks with strand lines, and a beard from the jaw's skin, fitted to every
+    head; eyes opened and a little bigger; the Moebius face as MakeHuman targets (resting smile, finer
+    brows, warm shade and a child's bare face kept); the skinned levels of detail for shape-keyed
+    bodies. Comparison images in docs/makehuman/.
+  - [ ] Stage 2: costumes re-checked per body (hats, masks, robes on the heavy and the children), the
+    traveller's suit and gear (`suitGeometry`, `traveller.glb`) re-fitted or kept on the Quaternius
+    body, the GPU crowd figure's proportions (`packBody`) matched and a promoted crowd person given
+    their nearest MakeHuman body (age, build), the ragdoll's capsules and the cape colliders against the
+    new girths, the Unity export, the Lab's faces gallery, then the flip world by world (`?mh=1` the
+    default per world).
 
 ---
 

@@ -36,8 +36,9 @@ bpy.ops.wm.save_userpref()"
 D="$T/user/extensions/.user/user_default/mpfb/data"
 mkdir -p "$D" "$T/unpack"
 for z in makehuman_system_assets_cc0 faceunits01 visemes01; do unzip -q -o "dl/$z.zip" -d "$T/unpack/$z"; done
-cp -R "$T/unpack/makehuman_system_assets_cc0/eyes" "$T/unpack/makehuman_system_assets_cc0/eyebrows" "$D/"
+# (the eyes, the eyebrows and the ten CC0 hairstyles: "This asset was explicitly released as CC0 in september 2020")
+cp -R "$T/unpack/makehuman_system_assets_cc0/eyes" "$T/unpack/makehuman_system_assets_cc0/eyebrows" "$T/unpack/makehuman_system_assets_cc0/hair" "$D/"
 mkdir -p "$D/targets" "$D/packs"
 cp -R "$T/unpack/faceunits01/targets/"* "$T/unpack/visemes01/targets/"* "$D/targets/"
 cp "$T/unpack/faceunits01/packs/"*.json "$T/unpack/visemes01/packs/"*.json "$D/packs/"
-echo "ready: $T/blender.sh --python scripts/makehuman/build.py"
+echo "ready: scripts/makehuman/build.sh"

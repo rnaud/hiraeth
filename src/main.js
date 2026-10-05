@@ -39,6 +39,7 @@ import { loadAnimationLibrary, Animator } from './animator.js';
 import { loadMotionLibrary, matchingSetting } from './motion-match.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { loadHuman, Humanoid } from './humanoid.js';
+import { loadPeople } from './makehuman/people.js';
 import { talkFaces, TALK_FACE } from './talk-face.js';
 import { updateHands } from './hands.js';
 import { Changelog, VERSION } from './changelog.js';
@@ -309,6 +310,11 @@ if (lib) {
   loadMotionLibrary(lib, { matching }).then(() => { if (player.animator) player.animator.matching = matching && !!lib.motion?.db; });
 }
 const humanT = await humans;
+// ?mh=1: the people on MakeHuman bodies (src/makehuman/people.js, docs/makehuman.md: each by their age,
+// build and world); the traveller stays on his own body. Without the files (a build without them), as before.
+const peopleT = query.get('mh') === '1' && humanT
+  ? await loadPeople(import.meta.env.BASE_URL, levelId).then((p) => p.humans()).catch((e) => { console.warn('MakeHuman bodies unavailable', e); return humanT; })
+  : humanT;
 const travellerTemplate = await traveller;
 if (humanT && travellerTemplate) {
   // the traveller: the people's own body and skeleton, the suit painted on, the gear of traveller.glb worn on top (src/traveller.js)
@@ -390,12 +396,12 @@ addIndoors((p) => !!ship.modelOf(p));   // the traveller's own ship
   const stormColor = { desert: '#e3c58f', arzach: '#e8dfcb' }[levelId];
   if (stormColor) post.uniforms.uStormColor.value.set(stormColor);
 }
-const npcs = spawnNPCs(scene, physics, content.npcs, { lib, humans: humanT });
+const npcs = spawnNPCs(scene, physics, content.npcs, { lib, humans: peopleT });
 // city crowds: hundreds of GPU-animated people, the nearest few promoted to full NPCs (crowd.js)
 const crowd = level.crowdSpots ? new Crowd(scene, physics, {
   spots: { lines: level.crowdLines, ...level.crowdSpots() },
   clear: content.npcs.map((s) => ({ x: s.at[0], y: s.y, z: s.at[1], r: 3 })),
-  makeNPC: (kind) => pooledNPC(scene, physics, { kind, lib, humans: humanT }),
+  makeNPC: (kind) => pooledNPC(scene, physics, { kind, lib, humans: peopleT }),
 }) : null;
 if (crowd) { npcs.push(...crowd.npcs); console.info(`crowd: ${crowd.people.length} people in ${crowd.groups.length} groups, placed in ${crowd.buildMs.toFixed(0)} ms`); }
 registerNPCTargets(npcs);   // the fluid tool can splash or shove anyone
@@ -419,7 +425,7 @@ const expedition = level.observatory ? new ObservatoryQuest({ model: level.obser
 const showToast = (text) => ship.cinema.toast(text);   // queued, and held while a scene has the screen dark (src/ship/cinema.js)
 player.onNotice = showToast;   // "It needs power." (a vehicle without the backpack)
 const preStory = new Set(scene.children);
-const storyRt = createStory({ levelId, scene, physics, level, player, npcs, crowd, sound, journal, story, lib, humans: humanT, toast: showToast, tool,
+const storyRt = createStory({ levelId, scene, physics, level, player, npcs, crowd, sound, journal, story, lib, humans: peopleT, toast: showToast, tool,
   isNight: () => sky.hour < 6.4 || sky.hour > 19.3,
   ship, drone: (out) => (scout && scout.phase !== 'docked' ? out.copy(scout.object.position) : null),   // (home: the scenes wait for the ship's; the dog barks at the drone)
   capture: (e, l, w, h, o) => captureView(e, l, w, h, o) });
@@ -489,7 +495,7 @@ blades.grow = () => {
 blades.grow();
 // wildlife: two or three small species per world, each with a surprise (src/wildlife.js)
 const wildlife = new Wildlife(scene, level, physics, { content, sound, defs: level.wildlife });   // (a level may bring its own list: the Lab's rooms)
-ship.attach({ player, rig, camera, sound, journal, post, story, wind, npcs, lib, humans: humanT, levels: LEVELS, order: ORDER, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])) });
+ship.attach({ player, rig, camera, sound, journal, post, story, wind, npcs, lib, humans: peopleT, levels: LEVELS, order: ORDER, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])) });
 if (viaShip) {
   const a = ship.arrivalSpot();
   player.respawn(a.pos);
