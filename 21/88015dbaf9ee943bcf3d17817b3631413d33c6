@@ -1,0 +1,51 @@
+src/boxes/effects.js
+  s_1fd8d0e7b02dcf::t_cb07e148948e75 6,21,90-137,141,147,158,166
+src/boxes/placements.js
+  s_1fd8d0e7b02dcf::t_358253b9814ecb 93-95,124-127
+src/items.js
+  s_1fd8d0e7b02dcf::t_b19082cee9385a 95-99
+src/levels/perdide2.js
+  s_1fd8d0e7b02dcf::t_6d62a593460f0b 1,712-713,753
+src/temples/guardians.js
+  s_1fd8d0e7b02dcf::t_3ce0cbe821456e 290-348
+src/temples/index.js
+  s_1fd8d0e7b02dcf::t_5a55d3620b90f4 15-16,43,60,63
+src/temples/migrate.js
+  s_1fd8d0e7b02dcf::t_20eadceb5b186c 16
+src/temples/perdide2.js
+  s_1fd8d0e7b02dcf::t_3a34ae30a47f4b 1-318
+src/temples/pieces.js
+  s_1fd8d0e7b02dcf::t_992dc52b297d50 24,32,42-43,131,364,441-464
+src/temples/runtime.js
+  s_1fd8d0e7b02dcf::t_41015a0b3d5832 171
+tests/boxes.test.js
+  s_1fd8d0e7b02dcf::t_bbcc2cf2a41d60 326,332,335
+src/temples/perdide2-data.js
+  s_a3f2b476c02199::t_068956499176bd 1-73
+tests/temples.test.js
+  s_a3f2b476c02199::t_72aa3c5c99b1dc 823-905
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2188015dbaf9ee943bcf3d17817b3631413d33c6",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_a3f2b476c02199": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a820fb8b1fec05c31",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
