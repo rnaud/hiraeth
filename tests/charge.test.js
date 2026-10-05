@@ -23,7 +23,7 @@ test('its stages come from the save: not given, out in the worlds, home on the m
   const six = chargeState({ flag: flags({ [GIVEN]: true }), completed: ENDING_WORLDS });
   assert.equal(six.stage, 'out', 'six worlds: the last recording waits at the console first');
   assert.ok(six.waiting);
-  assert.match(chargeStep(six), /recording is waiting/);
+  assert.match(chargeStep(six), /new message is waiting on the ship’s voicemail/);
   assert.equal(chargeState({ flag: flags({ [GIVEN]: true, 'calls.home': true }), completed: ENDING_WORLDS }).stage, 'home');
   assert.equal(chargeState({ flag: flags({ [GIVEN]: true, 'ending.done': true }), completed: ENDING_WORLDS }).stage, 'done');
   for (const stage of ['out', 'home', 'done']) assert.ok(chargeStep({ stage, kept: 0 }).length > 5);

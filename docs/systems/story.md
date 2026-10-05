@@ -104,8 +104,8 @@ Every system talks through it, and its header lists the flags and events.
   collider (`physics.addCollider`) and lands at each world's arrival point
   (`level.shipSite`, `SITE_OVERRIDES` in `sites.js`, or a site search near the
   spawn). In the desert it lies crashed at (58, 48), with a furrow behind it.
-  E at the cockpit console plays a waiting call home, or opens the galactic map
-  (`starmap.js`). The map is locked until `ship.powered`. Travel loads
+  E at the holo table in the middle of the deck opens the galactic map (`starmap.js`); the
+  cockpit dash is the voicemail (docs/systems/ship-consoles.md). The map is locked until `ship.powered`. Travel loads
   `?level=<id>&via=ship`.
 - **The prologue** (`prologue.js` state machine, `cinematics.js` director)
   plays on a new game: waking in the bunk, the father's call, the impact, the
@@ -237,7 +237,7 @@ walkthroughs and local names; each data file's header lists its flags.
   "eleven days before the house went quiet"); later ones come from the reel's oldest side
   (`OLDER`). Once-only beats (`calls.beat.<id>`) still follow the journey, and Ilen is a
   recording of the mother's labelled "For when he asks" (`calls.ilen.*`, as before). HUD:
-  "E play a recording".
+  "E voicemail" (no word of a recording before the third message gives it away).
 - **The hologram** (`src/ship/hologram.js`): the parents are the game's own people (the
   human bodies, dressed by `costumes.js`, played by the mocap library) projected as
   **coloured busts**: head, neck, shoulders and the top of the chest (`BUST`: cut across the

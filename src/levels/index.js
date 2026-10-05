@@ -109,7 +109,7 @@ export const LEVELS = [
     title: TITLES.home, source: 'where the route begins',
     blurb: 'A small round house on a small round hill, and two moons over it. Nobody lives in the round house now; there is a stone in its yard. Across the yard, a smaller house with its lamp lit.',   // (as on the ship's map: src/story/ending.js homeEntry)
     moves: 'walk · the bird, if she promised',
-    lock: { text: 'Come home when you are ready: after any six worlds, the last recording on the reel asks you home, and the ship’s map shows the way.', moves: 'the way home' },
+    lock: { text: 'Come home when you are ready: after any six worlds, a message on the ship’s voicemail asks you home, and the ship’s map shows the way.', moves: 'the way home' },
   },
 ];
 

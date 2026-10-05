@@ -324,7 +324,8 @@ the light, where they would see it).
 the recordings heard, whatever the order of the worlds; numbered as
 `src/story/calls.js` numbers them: the prologue's is recording 0, `AGE[1..5]`
 follow, and the last is n = `ENDING_WORLDS`):
-0. The prologue: "The reel is cued in the cockpit, where you left it." The
+0. The prologue: "Good morning. You have one new message." (the voicemail
+   button blinks on the dash). The
    father's speech the day he left (nine years ago); the player takes it for a
    call from home. The impact tears the hologram apart.
 1. The first one after a world: no date; the father is short with him.

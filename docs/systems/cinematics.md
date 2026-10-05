@@ -26,9 +26,10 @@ The ship's cutscenes and the filmed first times.
 - **The approach from space** (`ArrivalDirector`, `src/ship/approach.js`): an arrival opens
   with ~7 s (`APPROACH`) out in space: the destination planet grows ahead in the galactic
   map's colours and mark (a shader writing the G-buffer: flat body, a hatched crescent,
-  bands, dunes, craters, continents, windows, a ring or a moon, a rim of air), the ship dives
-  into the air in a sheet of fire and a white flash, falls through the world's own sky, and
-  then lands as before. Hold to skip, as ever.
+  bands, dunes, craters, continents, windows, a ring or a moon, a rim of air), the ship levels
+  out and brakes into the air with a few pale wisps, passes the clouds in a soft white fade and
+  comes down upright on its jets: a landing, not a crash (only the prologue crashes;
+  docs/systems/ship-consoles.md). Hold to skip, as ever.
 - **The burning tree** (`FlameBody (3D: three nested noise-displaced shells, torn open toward the top; was FlameSheet, a card)` in `src/story/flames.js`): one great flame drawn by a
   fragment shader on a card that turns to the camera: flat bands from a pale core to a red
   rim, inked, tongues scrolled up a noise field. It writes a depth that bulges toward the

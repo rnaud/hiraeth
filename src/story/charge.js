@@ -12,7 +12,7 @@
 //     card keeps them too, quietly, under what you carry: it isn't a mark against you, it's
 //     what happened
 //     stage: null (not given yet) · 'out' (find it) · 'home' (home is on the map) · 'done'
-//     waiting: six worlds done, the last recording not heard yet (the console plays it first)
+//     waiting: six worlds done, the last recording not heard yet (it waits on the ship's voicemail)
 //   chargeHud(state)          the HUD's line for it: '✦ …' (main.js shows it in its own colour)
 //   chargeJournalHtml(state)  the card pinned at the top of the sketchbook
 //   showChargeCard({ sound }) the title card when it is given (after the crash, or once on an
@@ -45,7 +45,7 @@ export function chargeState({ flag, keepsakes = [], completed = 0, failed = [] }
 
 /** What to do about it now, in a few words. */
 export function chargeStep(st) {
-  if (st.stage === 'out' && st.waiting) return 'A recording is waiting at the ship’s console';
+  if (st.stage === 'out' && st.waiting) return 'A new message is waiting on the ship’s voicemail';
   if (st.stage === 'out') return st.kept ? 'Keep looking, out in the worlds' : 'Find it, out in the worlds';
   if (st.stage === 'home') return 'Home is on the map: take it home';
   if (st.stage === 'done') return 'You brought it home on your own two feet.';

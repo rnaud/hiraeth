@@ -17,6 +17,8 @@ import { FACE } from '../humanoid.js';
 // shorter scenes (a recording at the console, arriving, taking off) are Sequences here.
 
 export const OBJECTIVE = 'Find a new source of power.';
+/** The ship's good morning in the prologue: a message is waiting (no word of where from). */
+export const WAKE_LINE = { who: 'ship', text: 'Good morning. You have one new message.', tone: 'neutral' };
 /** A new game steps out without the backpack: it waits in a makers' box in Qanat, under the great dark tree (src/boxes/, the desert's first stage). */
 export const FIRST_OBJECTIVE = 'Walk to the city under the great dark tree.';
 const stepOutObjective = () => (game.flag('item.backpack') ? OBJECTIVE : FIRST_OBJECTIVE);
@@ -60,6 +62,18 @@ export function callShot(ship, model, t = 0, close = 0) {
     fov: L(48, 36, k),
   };
 }
+/**
+ * Course set at the holo table: across the table from the traveller, the planet turning
+ * between you, a slow push in (ship-local, then world).
+ */
+export function tableShot(ship, model, t = 0) {
+  const tp = model.interior.points.table;
+  const me = ship.local(model, ship.player.pos).setY(0);
+  const away = me.lengthSq() > 0.01 ? me.normalize().negate() : V(0, 0, -1);
+  const d = 3.4 - Math.min(t * 0.2, 0.4);
+  return { pos: ship.world(model, V(tp.x + away.x * d, tp.y + 0.55, tp.z + away.z * d)), look: ship.world(model, V(tp.x - away.x * 0.6, tp.y + 0.05, tp.z - away.z * 0.6)), fov: 50 };
+}
+
 /** Seconds the shot takes to push in on the busts, and to ease back out. */
 const CLOSE_IN = 2.4, CLOSE_OUT = 1.6;
 
@@ -140,14 +154,15 @@ export class PrologueDirector {
       case 'wake': C.fade(0, false, 1.4); break;
       case 'rise': C.fade(1, false, 0.25); break;
       case 'walk':
-        sp.interior.guide.visible = true;
-        C.hint('Follow the lights to the cockpit');
-        C.controls(true);   // (on a phone: the stick and buttons, to walk there)
-        this.ringT = 0;
+        // no lights on the floor, no hint: the voicemail button blinks on the dash, and at the
+        // console the prompt says what E does (Ship.hud via prompt())
+        C.bars(false);      // (yours to walk: the letterbox lifts, and the use prompt can show)
+        C.controls(true);   // (on a phone: the stick and buttons, to walk there; the use prompt)
+        this.ringT = 2;
+        this.pressed = false;
         break;
       case 'call': {
-        C.hint(null); C.controls(false);
-        sp.interior.guide.visible = false;
+        C.controls(false); C.bars(true);
         s.auto = null;
         s.placePlayer(this.W(this.pt('cockpit')), s.worldHeading(sp, Math.PI), true);   // facing the recording
         sp.callScreen?.set({ who: 'tape', statik: 1, label: this.rec.label });
@@ -232,7 +247,7 @@ export class PrologueDirector {
           // eyes: half open, a blink, then open
           const k = t < 0.6 ? 0 : t < 1.6 ? 0.35 * smooth(seg(t, 0.6, 1.6)) : t < 2.1 ? 0.35 - 0.3 * smooth(seg(t, 1.6, 2.0)) : 0.05 + 0.95 * smooth(seg(t, 2.3, 3.6));
           C.eyelids(k);
-          if (t > 3.9 && !this.said) { this.said = true; sfx.ring(s.sound); C.say({ who: 'ship', text: 'Good morning. The reel is cued in the cockpit, where you left it.' }); }
+          if (t > 3.9 && !this.said) { this.said = true; sfx.ring(s.sound); C.say(WAKE_LINE); }
         }
         break;
       }
@@ -251,9 +266,9 @@ export class PrologueDirector {
         if (!this.risen) s.shot({ pos: this.W(this.pt('wakeEye')), look: this.W(this.pt('wakeLook')), fov: 62 });
         break;
       case 'walk': {
-        // the console chimes on, the lights on the floor point the way; you go when you like
-        // (the ship never walks you there itself)
-        if ((this.ringT -= dt) <= 0) { this.ringT = 3.2; sfx.ring(s.sound); }
+        // the voicemail chimes now and then and its button blinks; you go when you like
+        // (the ship never walks you there itself) and press it
+        if ((this.ringT -= dt) <= 0) { this.ringT = 7; sfx.ring(s.sound); }
         break;
       }
       case 'call':
@@ -358,12 +373,24 @@ export class PrologueDirector {
     }
   }
 
+  /** At the cockpit console, in the orbiting ship (the prologue's walk). */
+  atConsole() {
+    const s = this.s;
+    if (!this.sp || !s.isInside(this.sp, s.player.pos)) return false;
+    const l = s.local(this.sp, s.player.pos), c = this.pt('cockpit');
+    return Math.hypot(l.x - c.x, l.z - c.z) < CONSOLE_R;
+  }
+
+  /** E in the walk: at the console, the voicemail button plays the message. */
+  use(id) { if (id === 'walk' && this.atConsole()) { this.pressed = true; sfx.beep(this.s.sound, true); } }
+  /** What E does here, for the HUD's prompt. */
+  prompt(id) { return id === 'walk' && this.atConsole() ? 'E voicemail' : null; }
+  /** The ship whose voicemail button blinks: the orbiting one, until its message plays. */
+  waiting(id) { return ['black', 'wake', 'rise', 'walk'].includes(id) ? this.sp : null; }
+
   ready(id) {
     const s = this.s;
-    if (id === 'walk') {
-      const l = s.local(this.sp, s.player.pos), c = this.pt('cockpit');
-      return s.isInside(this.sp, s.player.pos) && Math.hypot(l.x - c.x, l.z - c.z) < CONSOLE_R;
-    }
+    if (id === 'walk') return !!this.pressed && this.atConsole();
     if (id === 'stepout') return !s.auto;
     return true;
   }
@@ -484,11 +511,17 @@ export class CallDirector extends Sequence {
 
 /** Seconds of each part of the approach from space (before the landing). */
 export const APPROACH = { space: 2.8, entry: 2.1, sky: 1.9 };
+/**
+ * The last of the landing, u 0..1 of its time: from 140 m up to on its feet, slowing all the way
+ * and arriving at rest (no speed left at touchdown: a landing, not a crash).
+ */
+export function landingK(u) { u = Math.min(1, Math.max(0, u)); return 1 - Math.pow(1 - u, 3); }
 
 /**
  * Arriving by ship: out of the jump, the destination planet grows ahead (drawn in its own
- * colours, src/ship/approach.js); the ship dives into the air in a sheet of fire; it falls
- * through the world's sky; then it comes down on its jets, opens, and you walk out.
+ * colours, src/ship/approach.js); the ship levels out and brakes into the air, through the
+ * clouds; it comes down upright on its jets over the site and settles onto its feet (no fire,
+ * no shaking: only the prologue's arrival is a crash); then it opens, and you walk out.
  */
 export class ArrivalDirector extends Sequence {
   constructor(ship) {
@@ -539,58 +572,51 @@ export class ArrivalDirector extends Sequence {
         },
       },
       {
-        // into the air: the planet fills the view, fire sheets off the ship's belly, a white flash
+        // into the air, under control: the ship levels out and brakes on its jets as the planet
+        // fills the view, a thin veil of vapour off the hull, then through the clouds (a soft white)
         dur: APPROACH.entry,
-        enter: () => { sfx.reentry(ship.sound, APPROACH.entry); m.mats.thrust.uniforms.uGlow.value = 0; this.flashed = false; },
+        enter: () => { sfx.descent(ship.sound, APPROACH.entry + APPROACH.sky); sfx.engines(ship.sound, 0.45); m.mats.thrust.uniforms.uGlow.value = 0.8; this.clouded = false; },
         frame: (t, dt) => {
           fog0();
           const a = ship.approach, k = t / APPROACH.entry, e = smooth(k);
-          m.group.position.copy(a.centre).addScaledVector(fwd, 14 + 30 * k).addScaledVector(up, -16 * k * k);
-          tilt.setFromAxisAngle(across, -0.35 - 0.45 * e + Math.sin(t * 7) * 0.025).multiply(q.setFromAxisAngle(fwd, Math.sin(t * 3.1) * 0.06));
+          m.group.position.copy(a.centre).addScaledVector(fwd, 14 + 24 * e).addScaledVector(up, -10 * e);
+          tilt.setFromAxisAngle(across, -0.35 * (1 - e));   // (nosed down out of the jump: level again)
           m.group.quaternion.copy(tilt).multiply(ship.restQuat);
           cam.copy(m.group.position).addScaledVector(fwd, -44 + 8 * e).addScaledVector(across, 20 - 5 * e).addScaledVector(up, 13 - 3 * e);
           placePlanet(a, cam, 900 - 200 * e, 0.4 + 0.35 * e, Math.min(1.32, 0.38 + 0.95 * e));
           a.update(dt);
-          // the fire of entry: on the leading face (its belly, toward the planet), streaming back off the hull
-          for (let i = 0, n = 3 + Math.round(5 * Math.min(1, k * 2)); i < n; i++) {
-            const u = Math.random() * Math.PI * 2, w = Math.random() * 0.75;
-            const at = ship.world(m, V(Math.sin(u) * w, -Math.sqrt(1 - w * w), Math.cos(u) * w).multiplyScalar(R + 0.6));
-            ship.flame.emit(at, pl.clone().multiplyScalar(-(18 + Math.random() * 14)).addScaledVector(fwd, -8), 0.6 + Math.random() * 0.8, 0.22 + Math.random() * 0.2, pickOf(FIRE));
+          exhaust(ship, m, dt, { power: 0.6 });   // the braking jets (no ground under them yet)
+          // vapour: a few pale wisps streaming back off the rim, no fire
+          if (Math.random() < dt * 6 * e) {
+            const u = Math.random() * Math.PI * 2;
+            ship.smoke.emit(ship.world(m, V(Math.sin(u) * R, -R * 0.2, Math.cos(u) * R)), pl.clone().multiplyScalar(-6).addScaledVector(fwd, -4), 0.8 + Math.random() * 0.8, 0.9, new THREE.Color('#f7f3ea'));
           }
-          if (Math.random() < dt * 5) ship.smoke.emit(ship.world(m, V(0, R * 0.4, 0)).addScaledVector(fwd, -R), pl.clone().multiplyScalar(-10), 0.9 + Math.random() * 0.9, 1.2, new THREE.Color('#efe6d6'));
-          ship.shake(0.25 + 0.5 * k);
-          ship.shot({ pos: cam.clone(), look: m.group.position.clone().addScaledVector(pl, 18), fov: 50, roll: Math.sin(t * 2.2) * 0.04 });
-          if (t > APPROACH.entry - 0.4 && !this.flashed) { this.flashed = true; C.fade(1, true, 0.3); }
+          ship.shot({ pos: cam.clone(), look: m.group.position.clone().addScaledVector(pl, 18), fov: 50 });
+          if (t > APPROACH.entry - 0.7 && !this.clouded) { this.clouded = true; C.fade(1, true, 0.6); }
         },
       },
       {
-        // through the world's own sky, trailing smoke, down toward the landing site
+        // out of the clouds over the landing site: it comes down upright on its jets, slowing
         dur: APPROACH.sky,
         enter: () => {
           ship.removeApproach();
           m.group.quaternion.copy(ship.restQuat);
-          C.fade(0, true, 0.55);
-          sfx.roar(ship.sound, APPROACH.sky + 1.5);
+          m.mats.thrust.uniforms.uGlow.value = 1;
+          C.fade(0, true, 0.7);
+          sfx.engines(ship.sound, 0.6);
         },
-        frame: (t) => {
-          const k = t / APPROACH.sky, e = 1 - Math.pow(1 - k, 2);
-          const p = ship.restPos.clone().addScaledVector(fwd, -90 * (1 - e)).add(V(0, 160 + 480 * (1 - e), 0));
+        frame: (t, dt) => {
+          const k = Math.min(1, t / APPROACH.sky), e = 1 - Math.pow(1 - k, 1.6);
+          const p = ship.restPos.clone().addScaledVector(fwd, -40 * (1 - e)).add(V(0, 140 + 260 * (1 - e), 0));
           m.group.position.copy(p);
-          tilt.setFromAxisAngle(across, -0.25 * (1 - e) + Math.sin(t * 4) * 0.03);
-          m.group.quaternion.copy(tilt).multiply(ship.restQuat);
-          // fire fading into a trail of smoke as the air slows it
-          if (Math.random() < 1 - k * 0.7) ship.flame.emit(ship.world(m, V((Math.random() - 0.5) * 8, -R - 0.5, (Math.random() - 0.5) * 8)), V(0, 30, 0).addScaledVector(fwd, -10), 1.2 + Math.random() * 1.2, 0.3, pickOf(FIRE));
-          for (let i = 0; i < 2; i++) {
-            const g = 0.86 + Math.random() * 0.1;
-            ship.smoke.emit(ship.world(m, V((Math.random() - 0.5) * 10, R * (Math.random() - 0.2), (Math.random() - 0.5) * 10)), V(0, 22, 0).addScaledVector(fwd, -6), 2.4 + Math.random() * 2.2, 2.2, new THREE.Color(g, g * 0.97, g * 0.93));
-          }
+          m.group.quaternion.copy(ship.restQuat);
+          exhaust(ship, m, dt, { power: 0.8, palette: dust() });
           const c = ship.restPos.clone().addScaledVector(fwd, 70).addScaledVector(side, 85).add(V(0, 230, 0));
           ship.shot({ pos: c, look: p.clone().add(V(0, -6, 0)), fov: 44 });
-          ship.shake(0.2 * (1 - k));
         },
       },
       {
-        // down on its jets, the dust blowing out from under it, onto its feet
+        // down on its jets, the dust blowing out from under it, and gently onto its feet
         dur: 4.2,
         enter: () => {
           m.group.quaternion.copy(ship.restQuat);
@@ -599,7 +625,7 @@ export class ArrivalDirector extends Sequence {
           look.copy(top);
         },
         frame: (t, dt) => {
-          const k = 1 - Math.pow(1 - Math.min(1, t / 4.2), 3);
+          const k = landingK(t / 4.2);
           m.group.position.copy(top).lerp(ship.restPos, k);
           const cam = ship.rampFoot.clone().addScaledVector(ship.outDir, 34).addScaledVector(side, 20);
           cam.y = ship.groundAt(cam.x, cam.z) + 5;
@@ -607,13 +633,13 @@ export class ArrivalDirector extends Sequence {
           ship.shot({ pos: cam, look, fov: 50 });
           const h = m.group.position.y - ship.restPos.y;
           // set every frame, so the engines come in even if the sound starts mid-scene
-          if (!this.thud) sfx.engines(ship.sound, 0.55 + 0.45 * (1 - Math.min(1, h / 140)));
-          if (!this.whoosh && ship.sound?.ctx) { this.whoosh = true; sfx.roar(ship.sound, Math.max(1, 4.2 - t)); }
-          if (h < 40 && !this.dusted && ship.sound?.ctx) { this.dusted = true; sfx.rumble(ship.sound, 2.4, 0.35); }
+          if (!this.down) sfx.engines(ship.sound, 0.55 + 0.45 * (1 - Math.min(1, h / 140)));
+          if (h < 40 && !this.dusted && ship.sound?.ctx) { this.dusted = true; sfx.rumble(ship.sound, 2.4, 0.22); }
           // the jets out of the bells under the hull, and the dust they blow out along the ground (src/ship/exhaust.js)
-          if (!this.thud) exhaust(ship, m, dt, { power: 0.75 + 0.25 * (1 - Math.min(1, h / 60)), palette: dust() });
-          if (t > 3.9 && !this.thud) {
-            this.thud = true; ship.shake(0.8); sfx.rumble(ship.sound, 0.8, 0.5); sfx.engines(ship.sound, 0); m.mats.thrust.uniforms.uGlow.value = 0;
+          if (!this.down) exhaust(ship, m, dt, { power: 0.75 + 0.25 * (1 - Math.min(1, h / 60)), palette: dust() });
+          if (t > 4.0 && !this.down) {
+            // touchdown: the feet settle, a puff of dust from under each, the engines spool down (no jolt)
+            this.down = true; sfx.rumble(ship.sound, 0.5, 0.15); sfx.engines(ship.sound, 0); m.mats.thrust.uniforms.uGlow.value = 0;
             footPuffs(ship, m, { palette: dust() });
           }
         },
@@ -684,7 +710,7 @@ export class TakeoffDirector extends Sequence {
           m.callScreen?.set({ who: 'map' });
         },
         frame: (t) => {
-          ship.shot(callShot(ship, m, t));
+          ship.shot(tableShot(ship, m, t));
           // the ramp folds away first (in, up, back into the doorway), then the door slides down and seals
           ship.setRamp(m, 1 - seg(t, 0, 1.25));
           ship.setDoor(m, 1 - seg(t, 1.2, 1.95));

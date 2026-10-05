@@ -11,12 +11,19 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 ## The ship and travel
 
-- [ ] Remove the lines leading to the cockpit: just a glowing light on the console and a button prompt to
-  get started.
-- [ ] The central console opens the galactic map.
-- [ ] Travelling to another planet is not a crash landing.
-- [ ] Don't tell me I'm playing a recording of my dad (it defeats the purpose): I just press the voicemail
-  button.
+- [x] Remove the lines leading to the cockpit: just a glowing light on the console and a button prompt to
+  get started. (The floor chevrons, their hint and the dark cable strip to the dash are gone; the voicemail
+  button on the dash pulses and lights the dash, the round screen above it glows "1 NEW MESSAGE", and at the
+  console the prompt says "E voicemail": pressing it starts the father's message.)
+- [x] The central console opens the galactic map. (E at the holo table in the middle of the deck opens it,
+  locked without power; the cockpit dash is only the voicemail now. No other key opens the map in play.)
+- [x] Travelling to another planet is not a crash landing. (The arrival brakes into the air through the
+  clouds, comes down upright on its jets and settles at rest on its feet: no entry fire or smoke trail, no
+  shaking, no roar, a soft touchdown; the homecoming lands the same way. The prologue's crash is unchanged.)
+- [x] Don't tell me I'm playing a recording of my dad (it defeats the purpose): I just press the voicemail
+  button. (Prompt "E voicemail"; the ship says "Good morning. You have one new message." and "First new
+  message." / "New message." / "End of message."; the reel search starts only from the fourth message, after
+  the third has given their age away; the sketchbook and home's lock text say "message on the ship's voicemail".)
 
 ## The desert's story
 
