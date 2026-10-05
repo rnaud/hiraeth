@@ -553,7 +553,9 @@ export function scalp(q, { t = 0.008, front = 30, side = -14, back = -42, jag: r
     const az = Math.PI + (j / cols) * Math.PI * 2, edge = hairline(az, front, side, back, ragged, ears), fr = Math.max(0, Math.cos(az)) ** 2;
     for (let i = 0; i <= rows; i++) {
       const u = (i / rows) ** 0.85, el = edge + (top * DEG - edge) * u;
-      const tt = t + crown * Math.sin(u * Math.PI / 2) + quiff * fr * Math.sin(u * Math.PI) + bump * (0.5 + 0.5 * Math.sin(az * 9 + el * 13) * Math.sin(az * 5 - el * 17));
+      // (thinning to the hairline, so its edge lies on the skin rather than standing off it like a cap's rim)
+      const edgeIn = 0.4 + 0.6 * THREE.MathUtils.smoothstep(i / rows, 0, 0.3);
+      const tt = t * edgeIn + crown * Math.sin(u * Math.PI / 2) + quiff * fr * Math.sin(u * Math.PI) + bump * (0.5 + 0.5 * Math.sin(az * 9 + el * 13) * Math.sin(az * 5 - el * 17));
       pos.push(...onSkull(S, az, el, tt));
     }
   }
