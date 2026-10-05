@@ -1158,7 +1158,7 @@ export class Player {
     // a stair or a kerb: the drawn body follows the floor's jump over a moment (src/locomotion.js StepLag)
     {
       const U = this.frame.up, walking = this.onGround && !this.ride && !this.climbing && !this.mantle && !this.swim && !this.boarding;
-      this.object.position.addScaledVector(U, (this._stepLag ??= new StepLag()).update(dt, this.pos.dot(U), walking));
+      this.object.position.addScaledVector(U, (this._stepLag ??= new StepLag()).update(dt, this.pos, U, walking));
     }
     this.frame.quaternion(this.heading, this.object.quaternion);
     const H = this.humanoid;
