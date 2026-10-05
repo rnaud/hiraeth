@@ -1,0 +1,21 @@
+README.md
+  s_1fd8d0e7b02dcf::t_97f9dc9a705944 1293-1295,1423,1425-1427,1430-1486,2055-2058
+src/costumes.js
+  s_1fd8d0e7b02dcf::t_0778ee7a7b80d1 605-606,671
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c4e5a3028db774c1c7f623fc835350b0caf2f653",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
