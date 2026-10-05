@@ -20,6 +20,8 @@ namespace Memento
         public float heading;            // Unity yaw (deg)
         public bool onGround, climbing, mantling, down, dead, riding, frozen, thrusting;
         public float health = 1f, stamina = Stamina;
+        /// <summary>Below this you are put back where you last stood safely (level.killY: the shaft's acid lake; the desert's -200).</summary>
+        public float killY = -200;
         float hurtT = 99, downT, mantleT, coyote, climbCooldown;
         Vector3 wallN, mantleFrom, mantleTo, lastSafe;
         public Transform model;          // the traveller, dressed (Figures.cs)
@@ -53,6 +55,16 @@ namespace Memento
 
         public void Teleport(Vector3 at, float yawDeg)
         {
+            var tu = upAt?.Invoke(at) ?? Vector3.up;
+            if (Vector3.Dot(tu, Vector3.up) < 0.999f)
+            {
+                // into a turned frame (a portal of the Hangar's): upright in it at once
+                cc.enabled = false; framed = true; frameUp = tu;
+                transform.position = at + tu * 0.05f; heading = yawDeg; vel = Vector3.zero; lastSafe = at;
+                transform.rotation = Frame * Quaternion.Euler(0, heading, 0);
+                return;
+            }
+            framed = false; frameUp = Vector3.up;
             cc.enabled = false; transform.position = at + Vector3.up * 0.05f; cc.enabled = true;
             heading = yawDeg; vel = Vector3.zero; lastSafe = at;
             transform.rotation = Quaternion.Euler(0, heading, 0);
@@ -79,6 +91,9 @@ namespace Memento
             hurtT += dt;
             if (hurtT > 5 && !dead) health = Mathf.Min(1, health + dt * 0.25f);
 
+            // gravity turned (the Hangar's upside-down quarter, the inside of its ring: garage.js gravityAt)
+            var gUp = upAt?.Invoke(transform.position) ?? Vector3.up;
+            if (framed || Vector3.Dot(gUp, Vector3.up) < 0.999f) { UpdateFramed(dt, gUp); return; }
             var mv = Pad.Move();
             var yawQ = Quaternion.Euler(0, camYaw ? camYaw.eulerAngles.y : heading, 0);
             Vector3 wish = yawQ * new Vector3(mv.x, 0, mv.y);
@@ -94,7 +109,12 @@ namespace Memento
             if (mantling) { UpdateMantle(dt); return; }
             if (climbing) { UpdateClimb(dt, mv, run); return; }
 
-            float speed = (run ? Run : Walk) * Mathf.Lerp(0.35f, 1, Mathf.Clamp01(mv.magnitude));
+            // in the water (swim.js): wading slows the walk; past chest-deep you float and swim
+            float? surf = waterAt?.Invoke(transform.position);
+            if (surf.HasValue && UpdateSwim(dt, surf.Value, wish, mv, run)) return;
+            swimming = false;
+            float wade = surf.HasValue ? Mathf.Lerp(1, SwimWadeSlow, Mathf.InverseLerp(SwimWade, SwimFloat, surf.Value - transform.position.y)) : 1;
+            float speed = (run ? Run : Walk) * wade * Mathf.Lerp(0.35f, 1, Mathf.Clamp01(mv.magnitude));
             Vector3 targetV = wish.sqrMagnitude > 0.001f ? wish.normalized * speed * Mathf.Clamp01(mv.magnitude / 0.9f + 0.1f) : Vector3.zero;
             float accel = onGround ? 14f : 3f;
             vel.x = Mathf.MoveTowards(vel.x, targetV.x, accel * speed * dt);
@@ -156,11 +176,133 @@ namespace Memento
                 climbing = true; wallN = wn; vel = Vector3.zero; stamina = Stamina;
                 heading = Mathf.Atan2(-wn.x, -wn.z) * Mathf.Rad2Deg;
             }
-            if (transform.position.y < -200) Respawn();
+            if (transform.position.y < killY) Respawn();
             Animate(dt, SpeedXZ);
         }
 
         bool Grounded() => Physics.SphereCast(transform.position + Vector3.up * 0.5f, 0.35f, Vector3.down, out _, 0.25f);
+
+        // ------------------------------------------------------------ turned gravity (player.js frame: up, forward; garage.js gravityAt)
+        /// <summary>Which way is up at a point (Unity space), or null: the world's own. The Hangar's (Play: GarageMechanics).</summary>
+        public System.Func<Vector3, Vector3> upAt;
+        /// <summary>Walking in a turned frame (the CharacterController stays upright: a capsule swept along the frame instead).</summary>
+        public bool framed; public Vector3 frameUp = Vector3.up;
+        /// <summary>The frame's rotation (world up to frame up), for the camera.</summary>
+        public Quaternion Frame => Quaternion.FromToRotation(Vector3.up, frameUp);
+        const float CapR = 0.4f, CapLo = 0.4f, CapHi = 1.4f;
+        static readonly int WorldMask = ~(1 << 2);
+
+        void UpdateFramed(float dt, Vector3 gUp)
+        {
+            if (!framed) { framed = true; cc.enabled = false; frameUp = transform.up; }
+            // turning toward the new up over a moment (the portal's far side is already upright)
+            frameUp = Vector3.Slerp(frameUp, gUp, 1 - Mathf.Exp(-10 * dt)).normalized;
+            if (Vector3.Dot(gUp, Vector3.up) > 0.999f && Vector3.Dot(frameUp, Vector3.up) > 0.995f)
+            {
+                // back on upright ground: the controller takes over again
+                framed = false; frameUp = Vector3.up; transform.rotation = Quaternion.Euler(0, heading, 0);
+                cc.enabled = true; return;
+            }
+            var F = Frame;
+            var mv = Pad.Move();
+            float camYawF = camYaw ? (Quaternion.Inverse(F) * camYaw.rotation).eulerAngles.y : heading;
+            Vector3 wish = F * (Quaternion.Euler(0, camYawF, 0) * new Vector3(mv.x, 0, mv.y));
+            bool run = Pad.Run();
+            float speed = (run ? Run : Walk) * Mathf.Lerp(0.35f, 1, Mathf.Clamp01(mv.magnitude));
+            float vUp = Vector3.Dot(vel, frameUp);
+            var hor = vel - frameUp * vUp;
+            var target = wish.sqrMagnitude > 0.001f ? wish.normalized * speed : Vector3.zero;
+            float accel = onGround ? 14f : 3f;
+            hor = Vector3.MoveTowards(hor, target, accel * speed * dt);
+            if (wish.sqrMagnitude > 0.01f) heading = Mathf.MoveTowardsAngle(heading, Mathf.Atan2(mv.x, mv.y) * Mathf.Rad2Deg + camYawF, 720 * dt);
+            if (Pad.JumpDown() && onGround) { vUp = JumpSpeed; onGround = false; }
+            vUp -= Gravity * dt;
+            var tool = FluidTool.Instance;
+            thrusting = tool && tool.CanJet && !onGround && Pad.Jump() && tool.charges > 0.02f && tool.BurnJet(dt);
+            if (thrusting) vUp = Mathf.Min(vUp + JetThrust * dt, JetMaxUp);
+            vel = hor + frameUp * vUp;
+            float fall = -vUp;
+            MoveCapsule(vel * dt);
+            bool was = onGround;
+            RaycastHit gh = default;
+            onGround = vUp <= 0.1f && Physics.SphereCast(transform.position + frameUp * (CapLo + 0.1f), CapR * 0.9f, -frameUp, out gh, 0.25f, WorldMask, QueryTriggerInteraction.Ignore);
+            if (onGround)
+            {
+                if (!was) Land(fall);
+                if (vUp < 0) vel = hor;
+                // stand on it
+                float gap = gh.distance - (CapLo + 0.1f - CapR * 0.9f); if (gap > 0.01f) transform.position -= frameUp * gap;   // (the feet onto it)
+                lastSafe = transform.position;
+            }
+            transform.rotation = F * Quaternion.Euler(0, heading, 0);
+            Animate(dt, hor.magnitude);
+        }
+
+        /// <summary>The capsule (along the frame's up) swept along `d`: it slides along what it meets, steps up small ledges.</summary>
+        void MoveCapsule(Vector3 d)
+        {
+            for (int it = 0; it < 3 && d.sqrMagnitude > 1e-8f; it++)
+            {
+                var p = transform.position;
+                var a = p + frameUp * CapLo; var b = p + frameUp * CapHi;
+                float len = d.magnitude; var dir = d / len;
+                if (Physics.CapsuleCast(a, b, CapR * 0.95f, dir, out var hit, len + 0.02f, WorldMask, QueryTriggerInteraction.Ignore))
+                {
+                    float go = Mathf.Max(0, hit.distance - 0.02f);
+                    transform.position = p + dir * go;
+                    var rest = d - dir * go;
+                    // a step: lift over what is low (under 0.6 m) when walking into it
+                    float along = Vector3.Dot(hit.normal, frameUp);
+                    if (along < 0.3f && Vector3.Dot(rest, frameUp) <= 0.01f)
+                    {
+                        var up = transform.position + frameUp * 0.6f;
+                        if (!Physics.CapsuleCast(up + frameUp * CapLo, up + frameUp * CapHi, CapR * 0.95f, dir, out _, rest.magnitude + 0.05f, WorldMask, QueryTriggerInteraction.Ignore)
+                            && !Physics.CheckCapsule(up + frameUp * CapLo, up + frameUp * CapHi, CapR * 0.9f, WorldMask, QueryTriggerInteraction.Ignore))
+                        { transform.position = up + rest; d = Vector3.zero; break; }
+                    }
+                    d = rest - hit.normal * Vector3.Dot(rest, hit.normal);
+                }
+                else { transform.position = p + d; break; }
+            }
+        }
+
+        // ------------------------------------------------------------ swimming (swim.js, simplified: on the surface)
+        public const float SwimWade = 0.25f, SwimWadeSlow = 0.5f, SwimFloat = 1.3f, SwimStand = 1.1f, SwimRide = 1.28f, SwimSpeed = 2.5f, SwimSprint = 4.6f, SwimAccel = 2.6f, SwimHop = 7.5f;
+        /// <summary>The water's surface over a point (Waters.cs), or null: dry.</summary>
+        public System.Func<Vector3, float?> waterAt;
+        public bool swimming;
+        public System.Action<string> onSwim;
+        bool UpdateSwim(float dt, float surface, Vector3 wish, Vector2 mv, bool run)
+        {
+            var p = transform.position;
+            float over = surface - p.y;
+            if (!swimming)
+            {
+                // walked in past the chest, or fell in
+                bool deep = over >= SwimFloat && (!onGround || !Physics.Raycast(p + Vector3.up * 0.3f, Vector3.down, 0.6f));
+                if (!(over >= SwimFloat && (deep || onGround)) && !(vel.y < 0 && !onGround && over >= 0.35f && !Physics.Raycast(p, Vector3.down, SwimFloat))) return false;
+                swimming = true; onSwim?.Invoke("enter"); Sounds.Instance?.Play("splash", 0.6f);
+            }
+            // where the bed comes up close under the surface, you stand again
+            if (Physics.Raycast(p + Vector3.up * 0.3f, Vector3.down, out var bed, 3f) && surface - bed.point.y < SwimStand) { swimming = false; onSwim?.Invoke("exit"); return false; }
+            float sp = run ? SwimSprint : SwimSpeed;
+            var target = wish.sqrMagnitude > 0.001f ? wish.normalized * sp * Mathf.Clamp01(mv.magnitude / 0.9f + 0.1f) : Vector3.zero;
+            float k = 1 - Mathf.Exp(-SwimAccel * dt);
+            vel.x += (target.x - vel.x) * k; vel.z += (target.z - vel.z) * k;
+            vel.y = (surface - SwimRide - p.y) * 3.5f + Mathf.Sin(Time.time * 2.1f) * 0.08f;
+            if (wish.sqrMagnitude > 0.01f) heading = Mathf.MoveTowardsAngle(heading, Mathf.Atan2(wish.x, wish.z) * Mathf.Rad2Deg, 300 * dt);
+            // Space at the surface: a kick up (onto a low ledge, out of the water)
+            if (Pad.JumpDown()) { vel.y = SwimHop; swimming = false; onSwim?.Invoke("hop"); cc.Move(vel * dt); return true; }
+            var flags = cc.Move(vel * dt);
+            onGround = false;
+            transform.rotation = Quaternion.Euler(0, heading, 0);
+            // a ledge at the surface: pushing into it pulls you out (the mantle)
+            if (mv.y > 0.5f && WallAhead(out var wn)) { swimming = false; climbing = true; wallN = wn; vel = Vector3.zero; stamina = Stamina; heading = Mathf.Atan2(-wn.x, -wn.z) * Mathf.Rad2Deg; }
+            lastSafeWater = p;
+            Animate(dt, SpeedXZ * 0.6f);
+            return true;
+        }
+        Vector3 lastSafeWater;
 
         bool WallAhead(out Vector3 n)
         {

@@ -63,7 +63,8 @@ namespace Memento
             {
                 G.Set("ship.powered", true);
                 G.AddKeepsake(new Dictionary<string, object> { ["id"] = "desert.knowing", ["name"] = "What the giants left", ["text"] = "The giants carried the water. The tree drinks what they left." });
-                game.hud.ShowCard("The ship hums awake", "The tree drank, and so did you.\n\nThe galaxy is open.\n\n<i>(The Unity port ends here: the ship's map and the other worlds are still the web game's.)</i>", 2.5f);
+                G.Set("world.desert.done", true);
+                game.hud.ShowCard("The ship hums awake", "The tree drank, and so did you.\n\nThe galaxy is open: at the console, the ship's map charts the worlds that carry the strike's signature.", 2.5f);
             };
             Q.onDone["desert.drum"] = () => { G.Set("desert.teo.drumming", true); };
 

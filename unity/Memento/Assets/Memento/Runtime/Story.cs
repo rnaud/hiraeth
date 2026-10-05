@@ -31,7 +31,7 @@ namespace Memento
     }
 
     /// <summary>Quests as data (src/story/quests.js): stages that advance on flags, arrivals or talk.</summary>
-    public class Quests
+    public partial class Quests
     {
         public const string Done = "done";
         readonly GameState game;
@@ -43,6 +43,8 @@ namespace Memento
         public Quests(GameState g) { game = g; }
 
         public void Define(Dictionary<string, object> d) => defs[d.S("id")] = d;
+        /// <summary>A new world: its quests replace the last one's (the flags stay: progress is kept).</summary>
+        public void Clear() { defs.Clear(); locators.Clear(); onDone.Clear(); itemNames = new Dictionary<string, object>(); }
         public string Stage(string id) => game.Flag("quest." + id) as string;
         public bool IsStarted(string id) => Stage(id) != null;
         public bool IsDone(string id) => Stage(id) == Done;
@@ -119,6 +121,11 @@ namespace Memento
                     float r = st.F("radius", 12);
                     if (p.HasValue && Vector2.Distance(new Vector2(player.x, player.z), new Vector2(p.Value.x, p.Value.z)) < r && Mathf.Abs(player.y - p.Value.y) < Mathf.Max(r, 12)) Advance(id, st.S("id"));
                 }
+                else if (st.O("whenData") is { } wd)
+                {
+                    // (the web's `when`, read as data by the exporter: a counter's number, every flag of a few, items held)
+                    if (wd.L("any")?.OfType<Dictionary<string, object>>().Any(When) == true) Advance(id, st.S("id"));
+                }
                 else if (st.Has("flag"))
                 {
                     var want = st.Get("value") ?? true;
@@ -127,6 +134,19 @@ namespace Memento
                     if (met) Advance(id, st.S("id"));
                 }
             }
+        }
+    }
+
+    public partial class Quests
+    {
+        /// <summary>One clause of a stage's when (export-world.mjs whenOf).</summary>
+        public bool When(Dictionary<string, object> c)
+        {
+            if (c.Has("every")) return c.L("every").All(f => game.Is(f as string));
+            if (c.Has("count")) return game.Num(c.S("count")) >= c.F("min");
+            if (c.Has("has")) return c.L("has").Count(x => Has(x as string)) + game.Num(c.S("plus") ?? "") >= c.F("min");
+            if (c.Has("flag")) return game.Is(c.S("flag"));
+            return false;
         }
     }
 
@@ -163,9 +183,11 @@ namespace Memento
         public int page;
         public Action<string> onGive = _ => { };
 
-        public DialogueRunner(Dictionary<string, object> person, GameState game, Quests quests, Action<string> onGive = null)
+        /// <summary>No effects (a look at where a conversation goes, the batch's): conditions only.</summary>
+        public readonly bool dry;
+        public DialogueRunner(Dictionary<string, object> person, GameState game, Quests quests, Action<string> onGive = null, bool dry = false)
         {
-            this.person = person; this.game = game; this.quests = quests;
+            this.person = person; this.game = game; this.quests = quests; this.dry = dry;
             if (onGive != null) this.onGive = onGive;
             var talk = person.O("talk"); var nodes = talk.O("nodes");
             string first = nodes.Keys.First();
@@ -226,7 +248,7 @@ namespace Memento
             pages = lines.Where(s => !(s is Dictionary<string, object> d && d.Has("if")) || Check((s as Dictionary<string, object>).Get("if"))).Select(Text.Parse).ToList();
             if (pages.Count == 0) pages.Add(("", "neutral"));
             page = 0;
-            Apply(node.Get("do"));
+            if (!dry) Apply(node.Get("do"));
         }
         public string TextNow => pages[Mathf.Clamp(page, 0, pages.Count - 1)].text;
         public string Tone => pages[Mathf.Clamp(page, 0, pages.Count - 1)].tone;

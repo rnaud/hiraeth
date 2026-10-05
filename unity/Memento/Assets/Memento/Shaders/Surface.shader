@@ -29,6 +29,11 @@ Shader "Memento/Surface"
     _Sway ("Sway", Float) = 0
     _StrataObject ("Strata in object space", Float) = 0
     _PaletteSize ("Palette size", Float) = 0
+    _Metal ("Metal (kind, brushed, reflectivity, highlight; w 0: not a metal)", Vector) = (0, 0, 0, 0)
+    _BrushAxis ("Brush axis (three, object)", Vector) = (0, 1, 0, 0)
+    _WaterOpt ("Water (fallback depth, printed, clarity, sparkle; x 0: the old water)", Vector) = (0, 0, 1, 1)
+    _WaterBed ("Water's bed colour", Vector) = (0.9, 0.86, 0.7, 1)
+    _Bed ("Bed heights (three-space map, R: height)", 2D) = "black" {}
     _Cull ("Cull", Float) = 2
   }
   SubShader
@@ -44,6 +49,13 @@ Shader "Memento/Surface"
     float _Mode, _Flat, _StrataSize, _Grid, _Glyphs, _Biomes, _Ripples, _SandInk, _Ticks, _Glow, _Folds, _Scrub, _Pattern, _Figure, _Hero, _Sway, _StrataObject, _PaletteSize;
     float4 _Palette[12];
     float _NoVertexColor;
+    float4 _Metal; float4 _BrushAxis;
+    float3 _SkyTop, _SkyHorizon;   // (the composite's: what the metals see)
+    float3 _EnvGround;             // what lies below the horizon here (materials.js uEnvGround: the world's ground)
+    float4 _WaterOpt, _WaterBed;
+    float4 _BedBox;                // x0, z0 (three space), 1 / width, 1 / depth: where the bed map lies (Waters.cs bakes it)
+    float4 _BedRef;                // x: the height the map is measured from, y: 1 once baked
+    TEXTURE2D(_Bed); SAMPLER(sampler_Bed);
     float _Bind;           // people (Figures.cs): the rest pose in uv3 / uv4, so their drawing rides on the body
 
     struct Attributes
@@ -94,7 +106,7 @@ Shader "Memento/Surface"
       #pragma fragment frag
       #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
       #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
-      #pragma multi_compile_local _ MEMENTO_CROWD MEMENTO_PUFFS MEMENTO_INSTMAT
+      #pragma multi_compile_local _ MEMENTO_CROWD MEMENTO_PUFFS MEMENTO_INSTMAT MEMENTO_GRASS
       #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
       #include "Crowd.hlsl"
       // instanced puffs (smoke, embers, dust, footprints: Puffs.cs): where, how big, which way, what colour
@@ -104,6 +116,10 @@ Shader "Memento/Surface"
       // instanced parts with a whole transform each (the wildlife: InstMats in Puffs.cs): three rows of a 3x4 matrix and a tint
       struct MatInst { float4 r0, r1, r2, col; };
       StructuredBuffer<MatInst> _Mats;   // x: from this view depth on, y: the depth grows this much slower (smoke-column far shading); 0 off
+      // the grass tufts round the camera (Grass.cs, flora-grass.js): root xyz (Unity), height; turn, tint, lean, rank
+      struct GrassInst { float4 at; float4 b; };
+      StructuredBuffer<GrassInst> _GrassInst;
+      float4 _GrassView;   // camera x, z (three space), the fade's start and end (m)
       float3 rotXYZ(float3 v, float3 e)
       {
         float cx = cos(e.x), sx = sin(e.x), cy = cos(e.y), sy = sin(e.y), cz = cos(e.z), sz = sin(e.z);
@@ -126,6 +142,7 @@ Shader "Memento/Surface"
         float3 posWS : TEXCOORD8;       // Unity space (shadows)
         float3 bind : TEXCOORD9;
         float4 crowdTrim : TEXCOORD10;  // the crowd figures: the tunic's printed pattern (accent, id)
+        nointerpolation float grassSoft : TEXCOORD11;   // a grass blade's soft ink
       };
 
       Varyings vert(Attributes v)
@@ -166,6 +183,42 @@ Shader "Memento/Surface"
           o.objPos = cp * cs; o.objNormal = cn / cs; o.objRel = o.objPos - toThree(_WorldSpaceCameraPos);
           o.bind = v.positionOS.xyz;
           o.crowdTrim = ctrim;
+        #endif
+        o.grassSoft = 0;
+        #if defined(MEMENTO_GRASS)
+          // a tuft of blades (grass-shader.js grassPlace), all in three space: thinned and sunk with distance, bent by the
+          // wind and parted round the traveller's feet, the tip lowered so the blade keeps its length
+          GrassInst gi = _GrassInst[v.iid];
+          float3 root = toThree(gi.at.xyz);
+          float gd = length(root.xz - _GrassView.xy);
+          float keepG = step(gi.b.w, lerp(1.0, 0.3, smoothstep(_GrassView.z * 0.5, _GrassView.w, gd)));
+          float gfade = (1.0 - smoothstep(_GrassView.z, _GrassView.w, gd)) * keepG;
+          float gh = gi.at.w * gfade;
+          float3 gp = v.positionOS.xyz;
+          float gt = gp.y;
+          float gc = cos(gi.b.x), gs = sin(gi.b.x);
+          float2 gxz = float2(gc * gp.x + gs * gp.z, -gs * gp.x + gc * gp.z);
+          float2 wd = _Wind.xy; float str = _Wind.z;
+          float wave = 0.5 + 0.5 * sin(_MTime * 1.7 - dot(root.xz, wd) * 0.09);
+          float push = str * (0.35 + 0.65 * _Wind.w * wave);
+          float flutter = (0.4 + 0.6 * str) * sin(_MTime * (2.3 + 1.1 * str) + root.x * 0.53 + root.z * 0.31 + gi.b.w * 6.28);
+          float2 bend = wd * (push * 0.32 + flutter * 0.1) + float2(gc, gs) * gi.b.z;
+          float2 away = root.xz - _Brush.xz; float dB = length(away);
+          float brush = (1.0 - smoothstep(0.2, 1.0, dB)) * (0.9 + 0.12 * min(_Brush.w, 5.0));
+          bend += (dB > 1e-3 ? away / dB : float2(0, 0)) * brush * 1.3;
+          float bl = length(bend);
+          float2 off = bend * gt * gt * gh;
+          float rise = gt * gh / sqrt(1.0 + bl * bl * gt * gt);
+          float3 wpT = float3(root.x + gxz.x + off.x, root.y - 0.04 + rise, root.z + gxz.y + off.y);
+          float3 gn = normalize(float3(bend.x * 0.25, 1.0, bend.y * 0.25));
+          posWS = toThree(wpT); nWS = toThree(gn);
+          o.positionCS = TransformWorldToHClip(posWS);
+          o.posWS = posWS; o.worldPos = wpT; o.normal = gn;
+          o.instColor = lerp(float3(1, 1, 1), _Color2.rgb / max(_Color.rgb, 0.02), gi.b.y) * lerp(0.8, 1.06, frac(gi.b.w * 13.7)) * lerp(0.94, 1.08, gt);
+          o.viewDepth = -TransformWorldToView(posWS).z;
+          o.objPos = wpT; o.objNormal = gn; o.objRel = wpT - toThree(_WorldSpaceCameraPos);
+          o.bind = 0;
+          o.grassSoft = step(0.12, frac(gi.b.w * 7.31));
         #endif
         #if defined(MEMENTO_PUFFS)
           PuffInst pi = _Puffs[v.iid];
@@ -214,6 +267,130 @@ Shader "Memento/Surface"
         float2 perp = float2(-dir.y, dir.x);
         float2 a = objPos.zy, b = objPos.xz, c = objPos.xy;
         return w.x * float2(dot(a, dir), dot(a, perp)) + w.y * float2(dot(b, dir), dot(b, perp)) + w.z * float2(dot(c, dir), dot(c, perp));
+      }
+
+      float lum3(float3 c) { return dot(c, float3(0.3, 0.55, 0.15)); }
+      // the metals (materials.js METAL_GLSL): flat tones of what the reflection sees (the sky, the bright horizon,
+      // the ground), chrome's dark band under the horizon, brushed streaks along an axis, one crisp sun highlight
+      float3 metalAlbedo(float3 base, float3 n, float sunLit, float3 wp, float3 objPos, float3 objN, float3 metalT, out float ink)
+      {
+        ink = 0.0;
+        float3 V = normalize(toThree(_WorldSpaceCameraPos) - wp);
+        float3 R = reflect(-V, n);
+        float kind = _Metal.x, refl = _Metal.z;
+        float ry = R.y + (vnoise(R.xz * 2.6 + float2(kind * 3.1, kind * 3.1)) - 0.5) * 0.09;
+        float fy = max(fwidth(ry), 1e-4) * 0.75;
+        float up = smoothstep(0.32 - fy, 0.32 + fy, ry);
+        float down = 1.0 - smoothstep(-0.04 - fy, -0.04 + fy, ry);
+        float3 skyC = lerp(_SkyHorizon, _SkyTop, 0.85);
+        float3 env = lerp(lerp(_SkyHorizon, skyC, up), _EnvGround, down);
+        float3 c;
+        if (kind > 1.5 && kind < 2.5) {
+          float band = down * smoothstep(-0.24 - fy, -0.24 + fy, ry);
+          env = lerp(env, _EnvGround * 0.78, down);
+          env = lerp(env, lerp(_EnvGround, float3(0.16, 0.15, 0.21), 0.72), band);
+          c = lerp(base, env * lerp(float3(1, 1, 1), base / max(lum3(base), 0.05), 0.12), refl);
+        } else {
+          bool warm = kind > 2.5 && kind < 4.5;
+          float m = lerp(lerp(warm ? 1.3 : 1.22, warm ? 1.08 : 1.04, up), warm ? 0.66 : 0.74, down);
+          float3 tone = base * m;
+          float3 seen = env * lum3(base) / max(lum3(env), 0.05) * m;
+          c = lerp(base, lerp(tone, seen, warm ? 0.14 : 0.42), refl);
+        }
+        float brushed = _Metal.y;
+        float3 Bo = cross(_BrushAxis.xyz, normalize(objN));
+        float u = dot(objPos, normalize(Bo + 1e-5)) * 70.0, along = dot(objPos, _BrushAxis.xyz);
+        float fu = max(fwidth(u), 1e-4);
+        float st = vnoise(float2(u, along * 3.0)) * 0.6 + vnoise(float2(u * 0.31 + 5.0, along * 0.8)) * 0.4;
+        c *= 1.0 + (st - 0.5) * 0.16 * brushed * (1.0 - smoothstep(0.3, 0.9, fu));
+        float k = u / 9.0, id = floor(k + 0.5);
+        float hair = inkLine(abs(k - id) / max(fu / 9.0, 1e-5), 0.6) * step(0.82, hash(float2(id, 3.3)))
+                   * smoothstep(0.35, 0.6, vnoise(float2(id * 1.7, along * 2.5))) * (1.0 - smoothstep(0.06, 0.16, fu / 9.0));
+        ink = hair * 0.3 * brushed;
+        float s = dot(R, _SunDir), c0 = cos(_Metal.w);
+        float fs = max(fwidth(s), 1e-4);
+        float spot = smoothstep(c0 - fs, c0 + fs, s);
+        float c1 = cos(_Metal.w * 2.3), sheen = smoothstep(c1 - fs, c1 + fs, s) * (1.0 - brushed) * sunLit;
+        float3 H = normalize(_SunDir + V);
+        float th = dot(metalT, H), fth = max(fwidth(th), 1e-4), wb = _Metal.w * 0.45;
+        float streak = (1.0 - smoothstep(wb - fth, wb + fth, abs(th))) * smoothstep(0.25, 0.4, dot(n, H));
+        float hl = lerp(spot, streak, brushed) * sunLit;
+        float3 hc = lerp(float3(1.0, 0.99, 0.95), base, kind > 2.5 && kind < 4.5 ? 0.22 : 0.06);
+        c = lerp(c, lerp(c, hc, 0.38), sheen);
+        return lerp(c, hc, hl);
+      }
+
+      // the water's look (water-shader.js waterLook): depth bands from the baked bed (pale shallows, the water, deep),
+      // the bed through the shallows with caustics, the sky's colours at grazing angles in two steps, a pale foam band
+      // where it meets the shore and a lapping line off it, inked wave crests drifting downwind
+      float waterDepth(float3 p, out float known)
+      {
+        float2 uv = (p.xz - _BedBox.xy) * _BedBox.zw;
+        float2 e = smoothstep(0.0, 0.03, uv) * (1.0 - smoothstep(0.97, 1.0, uv));
+        known = _BedRef.y * e.x * e.y;
+        float bed = SAMPLE_TEXTURE2D_LOD(_Bed, sampler_Bed, saturate(uv), 0).r + _BedRef.x;
+        return lerp(_WaterOpt.x, p.y - bed, known);
+      }
+      float waveInk(float2 p, float t, float str, float2 wd, float scale, float seed)
+      {
+        float2 q = float2(dot(p, wd), dot(p, float2(-wd.y, wd.x))) / scale;
+        float warp = vnoise(q * float2(0.09, 0.05) + seed + t * 0.02) * 3.0 + vnoise(q * 0.31 - t * 0.05) * 0.6;
+        float v = q.x * 0.5 - t * (0.18 + 0.12 * str) / scale + warp;
+        float fw = max(fwidth(v), 1e-5);
+        float d = abs(frac(v + 0.5) - 0.5) / fw;
+        float lane = floor(v + 0.5);
+        float dash = smoothstep(0.6, 0.66, vnoise(float2(q.y * 1.3, lane * 3.7 + seed) + float2(t * 0.05, 0.0)) + 0.08 * min(str, 2.0));
+        return inkLine(d, 0.95) * dash * (1.0 - smoothstep(0.12, 0.3, fw));
+      }
+      float3 waterLook(float3 p, bool front, out float ink, out float lit)
+      {
+        float t = _MTime;
+        float2 wd = length(_Wind.xy) > 1e-4 ? normalize(_Wind.xy) : float2(1, 0);
+        float str = clamp(_Wind.z, 0.15, 3.0);
+        float known;
+        float depth = waterDepth(p, known);
+        float px = max(length(ddx(p.xz)), length(ddy(p.xz)));
+        float fd = max(fwidth(depth), 1e-4);
+        float wob = (vnoise(p.xz * 0.35 + t * float2(0.21, 0.13) * (0.5 + str * 0.3)) - 0.5) * 0.22;
+        float dB = depth + wob * known;
+        float3 V = normalize(toThree(_WorldSpaceCameraPos) - p);
+        float3 shallow = _Color2.rgb, mid = _Color.rgb;
+        float3 deep = mid * float3(0.78, 0.86, 0.9) + float3(0.0, 0.0, 0.03);
+        float clarity = _WaterOpt.z;
+        ink = waveInk(p.xz, t, str, wd, 1.0, 0.0);
+        ink = max(ink, waveInk(p.xz, t, str, wd, 3.2, 17.0) * 0.7);
+        ink *= 0.75;
+        lit = 0;
+        if (!front) { ink *= 0.75; lit = 1; return lerp(shallow, float3(0.96, 0.98, 0.97), 0.45); }
+        if (_WaterOpt.y > 0.5) { ink *= 0.6; return _Color.rgb; }
+        float3 col = dB < 1.15 ? shallow : (dB < 3.4 ? mid : deep);
+        if (dB < 0.42 * clarity && known > 0.5) col = lerp(shallow, _WaterBed.rgb, 0.5);
+        float causK = (1.0 - smoothstep(0.15, 0.7, dB)) * known * (1.0 - smoothstep(0.012, 0.03, px)) * clarity;
+        UNITY_BRANCH if (causK > 0.0)
+        {
+          float cv = voronoiBorder(p.xz * 1.6 + float2(sin(t * 0.7 + p.z * 0.9), cos(t * 0.6 + p.x * 0.8)) * 0.3);
+          ink = max(ink, inkLine(cv / max(px * 1.6, 1e-4), 0.7) * causK * 0.3);
+        }
+        float fres = pow(1.0 - saturate(V.y), 4.0);
+        float sk = fres + (vnoise(p.xz * 0.05 + t * 0.03) - 0.5) * 0.12;
+        float3 skyC = lerp(_SkyHorizon, _SkyTop, smoothstep(0.0, 0.5, V.y));
+        float steps = sk > 0.62 ? 0.62 : (sk > 0.36 ? 0.3 : 0.0);
+        col = lerp(col, lerp(col, skyC, 0.85), steps);
+        float slopeW = max(fd / max(px, 1e-4), 0.004);
+        float shore = depth / slopeW;
+        float foamM = 0.28 + 0.1 * sin(t * 0.9 + p.x * 0.7 + p.z * 0.4);
+        float foam = (1.0 - smoothstep(foamM, foamM + px * 1.2, shore)) * step(-0.05, depth) * known;
+        foam = max(foam, (1.0 - smoothstep(1.3 * fd, 2.3 * fd, depth)) * known);
+        float lap = 0.0;
+        UNITY_BRANCH if (shore < 1.6 && known > 0.0 && px < 0.2)
+        {
+          float lapAt = 0.95 + 0.35 * sin(t * 1.15 + vnoise(p.xz * 0.25) * 6.2832);
+          lap = inkLine(abs(shore - lapAt) / max(px, 1e-4), 0.9) * step(0.42, vnoise(p.xz * 0.8 + 3.0 + t * 0.1)) * known * (1.0 - smoothstep(0.06, 0.2, px));
+        }
+        ink = max(ink * (1.0 - foam), lap * 0.85);
+        col = lerp(col, lerp(float3(0.97, 0.98, 0.95), shallow, 0.18), foam);
+        lit = foam * 0.6;
+        return col;
       }
 
       struct GBufferOut
@@ -280,7 +457,10 @@ Shader "Memento/Surface"
           float3 rel = i.worldPos - toThree(_WorldSpaceCameraPos);
           n = normalize(cross(ddx(rel), ddy(rel)));
           if (dot(n, viewT) < 0.0) n = -n;
-        } else if (!frontFace && (_Bind > 0.5 || (_Figure < 0.5 && _Hero < 0.5))) n = -n;   // (glTFast's skinned bodies read as back faces; the exported people do not)
+        }
+        #if !defined(MEMENTO_GRASS)
+        else if (!frontFace && (_Bind > 0.5 || (_Figure < 0.5 && _Hero < 0.5))) n = -n;
+        #endif   // (glTFast's skinned bodies read as back faces; the exported people do not)
 
         float3 albedo = _Color.rgb;
         float3 instColor = i.instColor;
@@ -306,10 +486,12 @@ Shader "Memento/Surface"
           if (_SandInk < 0.5) albedo *= lerp(float3(1, 1, 1), float3(0.945, 0.935, 0.965), b);
         } else if (mode == MODE_STRATA) {
           albedo = strataC;
-        } else if (mode == MODE_WATER) {
+        } else if (mode == MODE_WATER && _WaterOpt.x <= 0.0) {
           float w = vnoise(i.worldPos.xz * 0.012 + _MTime * 0.01);
           albedo = w > 0.55 ? _Color2.rgb : _Color.rgb;
-        } else if (mode == MODE_OUTFIT) {
+        }
+        float waterInk = 0.0, waterLit = 0.0;
+        UNITY_BRANCH if (mode == MODE_WATER && _WaterOpt.x > 0.0) albedo = waterLook(i.worldPos, frontFace, waterInk, waterLit); else if (mode == MODE_OUTFIT) {
           // a person's printed outfit (materials.js MODE_OUTFIT): boots, trousers, belt, tunic, skin at the neck and hands
           albedo = outfitAlbedo(i.bind, _Color.rgb, _Color2.rgb, _Color3.rgb);
         } else if (mode == MODE_EYE) {
@@ -348,6 +530,13 @@ Shader "Memento/Surface"
           }
         }
         L = max(L, lerp(L, 0.97, smoothstep(0.15, 0.5, local)));
+        if (mode == MODE_WATER && _WaterOpt.x > 0.0) L = lerp(L, max(L, 0.8), waterLit);
+        float metalInk = 0.0;
+        UNITY_BRANCH if (_Metal.w > 0.0)
+        {
+          float3 metalT = normalize(toThree(TransformObjectToWorldDir(toThree(_BrushAxis.xyz))));
+          albedo = metalAlbedo(albedo, n, ndl > 0.0 ? smoothstep(0.4, 0.6, sh) : 0.0, i.worldPos, i.objPos, i.objNormal, metalT, metalInk);
+        }
 
         albedo = lerp(albedo, _DissolveColor.rgb, dEdge);
         L = lerp(L, 1.0, dEdge);
@@ -382,7 +571,7 @@ Shader "Memento/Surface"
           if (_Ticks > 0.5 && slope < 0.35) detail = max(detail, ticks * 0.8);
           if (_SandInk > 0.5) detail = max(detail, scuffs * (1.0 - bw.y));
         } else if (mode == MODE_WATER) {
-          detail = max(detail, waterLines(gp, _MTime) * 0.7);
+          detail = max(detail, _WaterOpt.x > 0.0 ? waterInk : waterLines(gp, _MTime) * 0.7);
         } else if (mode == MODE_STRATA && abs(normalize(on).y) < 0.6) {
           detail = max(detail, fissures(float2(faceX, i.objPos.y), fissFw) * 0.85);
         }
@@ -406,8 +595,13 @@ Shader "Memento/Surface"
           detail = max(detail, faceInk(float2(abs(i.bind.x), i.bind.y - _Face.x), fwBind, frontal, i.bind.x));
         }
         detail = max(detail, patInk);
+        detail = max(detail, metalInk);
         o.hatch.b = detail;
         o.hatch.a = max(max(_Glow, smoothstep(0.15, 0.6, local) * 0.6), dEdge) + 2.0 * _Hero + 4.0 * _Figure;
+        #if defined(MEMENTO_GRASS)
+          o.hatch.rgb = 0; o.hatch.a += 8.0 * i.grassSoft;   // blades: no hatching, no drawn detail; soft ink
+          return o;
+        #endif
 
         // hatching in the shade (finer close to the camera, coarser far away)
         float dark = clamp((_Toon - L) / _Toon, 0.0, 1.0);

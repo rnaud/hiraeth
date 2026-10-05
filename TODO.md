@@ -367,8 +367,9 @@ To start after the current work lands. Ordered from easiest to most complex.
 
 # Unity port (proof of concept, 2026-10-05)
 
-The desert runs in `unity/Memento` (Unity 6, URP): exported from the web game by
-`scripts/unity-export/`, the ink look ported, the opening quest playable. See `unity/README.md`.
+The game runs in `unity/Memento` (Unity 6, URP): every world exported from the web game by
+`scripts/unity-export/`, the ink look ported, the desert's opening quest playable, the other worlds
+reached by ship. See `unity/README.md`.
 
 - [x] Export, the ink look, the traveller's controller and camera, climbing, people, dialogue, quests,
   the father's charge, the chest, the bike, the burning tree, health and falls, title screen.
@@ -399,8 +400,20 @@ The desert runs in `unity/Memento` (Unity 6, URP): exported from the web game by
   chamber, Teo's drum under its knuckle, the mask's eyes, the relics, the quest marker, the people near the
   start, a close camera in tight rooms.
 - [x] A standalone macOS build that runs (`Batch.BuildMac`, a smoke test); a note on what Android would need.
+- [x] Every world exported (`export-all.mjs`: one export per level id, a content-addressed shared store) and
+  flown to from the galactic map: the web's unlock rules (route.js, ending.js homeOpen), the takeoff, the jump,
+  the loading page, the approach from space, the entry, the fall, the landing at each world's site, the walk out.
+- [x] Each world from its export: its quests and start flags, people and conversations, locators, things to use,
+  targets for the fluid, boxes, story page; city crowds pooled (with their conversations), the cabs on their lanes,
+  swimming and wading, the air and the sun by place, each world's score and tongue.
+- [x] The look of the other worlds: metals, the new water and its bed, grass blades with soft ink, up to three
+  printed planets with rings and craters; batch shots of every world against the web's (`views-worlds.mjs`, `-tour`).
+- [x] The City-Shaft's main quest to its end; the Hangar's turned gravity and portals; Vael's bird; every world's
+  opening step, and the fluid's stages, in the batch play-through.
+- [ ] The worlds' own scripts beyond that (unity/README.md, per world): the hover-skiff, riding the cabs, the
+  temples, the reel's recordings at the console, the homecoming, the Hangar's zone presets, the reactive scenery.
 - [ ] The desert's smaller things: the errands of the people near the start, the reactive flowers, the
-  scout drone, hover trails, swimming, the crowd's own conversations; the other worlds; an Android build.
+  scout drone, hover trails; swimming's strokes, diving and breath; an Android build.
 - [ ] Connect an MCP client to the editor (the bridge package is installed; an organization policy
   blocks registering unknown MCP servers in Claude Code).
 

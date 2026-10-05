@@ -85,7 +85,20 @@ namespace Memento
             chipLetter.enabled = !shot;
             Sounds.Instance?.Play("page");
         }
-        void EndTalk()
+        LoadingPage loading;
+        /// <summary>The page between two worlds ("sketching …"); null takes it away.</summary>
+        public void ShowLoading(string text)
+        {
+            if (!loading) loading = LoadingPage.Make(game.cam, transform);
+            loading.Show(text);
+        }
+        public bool Loading => loading && loading.Shown;
+        void WarpPage()
+        {
+            var w = game && game.ship ? game.ship.warpTitle : null;
+            if (w != null || (loading && loading.warp != null)) { if (!loading) loading = LoadingPage.Make(game.cam, transform); loading.ShowWarp(w); }
+        }
+        public void EndTalk()
         {
             if (talkNpc) talkNpc.talking = false;
             talk = null; talkNpc = null;
@@ -304,6 +317,7 @@ namespace Memento
         }
         void LateUpdate()
         {
+            WarpPage();
             if (!root) return;
             quietLast = !Busy && !map.open && !(game.ship && game.ship.PrologueActive) && game.player && !game.player.dead;
             Refresh();

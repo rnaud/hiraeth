@@ -122,7 +122,9 @@ namespace Memento.Tests
             }
             var dims = F.O("boxScene");
             Assert.AreEqual(5.3f, new[] { "approach", "wake", "rise", "dissolve", "reveal" }.Sum(p => dims.O("times").F(p)), 1e-3f, "the scene's phases (boxes/scene.js TIMES)");
-            Assert.AreEqual(2, world.O("places").L("boxes").Count, "the desert's two makers' boxes");
+            // the desert's two makers' boxes in the open, and the Givers' House's (its temple: ember mode)
+            Assert.AreEqual(3, world.O("places").L("boxes").Count, "the desert's makers' boxes");
+            Assert.AreEqual(1, world.O("places").L("boxes").Count(b => b.S("temple") != null), "one in its temple");
         }
 
         [Test]

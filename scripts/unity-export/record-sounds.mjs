@@ -1,7 +1,7 @@
 // Record the web game's synthesised sounds (src/audio.js, Web Audio) into WAV files for the Unity
 // port: every effect the desert plays (footsteps, the bike's whistle, the box's creak, burst and
 // fanfare, the father's charge, the fluid tool's shots, splashes, pushes and boosts, the chime,
-// the page…) and a few minutes of the desert's score. Each one is rendered by the game's own
+// the page…) and each world's score (WORLDS=desert,incal… to choose). Each one is rendered by the game's own
 // Sound class into an OfflineAudioContext (window.AudioContext swapped for it), so the clips are
 // exactly what the browser plays. The continuous layers (wind, the cloak, the engine) and the
 // voices are synthesised live in Unity (Assets/Memento/Runtime/Sounds.cs, Voice.cs).
@@ -42,7 +42,8 @@ const FX = [
   ['ship_hum', 6, 'X.hum(s, 1)'], ['ship_alarm', 2.5, 'X.alarm(s, 1)'], ['ship_ring', 0.8, 'X.ring(s)'], ['ship_beep', 0.4, 'X.beep(s)'],
   ['ship_impact', 3, 'X.impact(s)'], ['ship_static', 1.8, 'X.staticBurst(s, 1.6)'], ['ship_roar', 5, 'X.roar(s, 4.8)'], ['ship_rumble', 4, 'X.rumble(s, 3.6, 0.8)'], ['ship_hatch', 1.4, 'X.hatch(s)'],
 ];
-const results = await page.evaluate(async ({ FX, url }) => {
+const WORLDS = (process.env.WORLDS ?? 'desert,incal,arzach,arzach2,garage,buried,edena,spheres,perdide,perdide2,bazaar,home').split(',');
+const record = (fx, worlds) => page.evaluate(async ({ FX, url, WORLDS }) => {
   const { Sound } = await import(`${url}/src/audio.js`);
   const X = await import(`${url}/src/ship/sfx.js`);
   const SR = 44100;
@@ -76,21 +77,30 @@ const results = await page.evaluate(async ({ FX, url }) => {
     const buf = await s.ctx.startRendering();
     out.push({ name, ...wav(buf) });
   }
-  // the desert's score: the scheduler run by hand along a pinned clock, then the whole of it rendered
-  {
-    const secs = 150, s = offline(secs + 4, true);
+  // each world's score (audio.js PROFILES): the scheduler run by hand along a pinned clock, then the whole of it
+  // rendered; the desert's 150 s, the others' 90 s (Sounds.cs plays music_<world>, the desert's where there is none)
+  for (const world of WORLDS) {
+    const secs = world === 'desert' ? 150 : 90;
+    let ctx = null;
+    window.AudioContext = function () { ctx = new OfflineAudioContext(2, Math.ceil(SR * (secs + 4)), SR); return ctx; };
+    const s = new Sound(world, { score: false });
+    if (!s.ctx) s.start();
+    s.score = true;
     let now = 0;
     Object.defineProperty(s.ctx, 'currentTime', { get: () => now });
-    for (now = 0; now < secs; now += 0.1) s.schedule();
+    try { for (now = 0; now < secs; now += 0.1) s.schedule(); } catch (e) { out.push({ name: `music_${world}`, error: String(e) }); continue; }
     now = 0;
     const buf = await s.ctx.startRendering();
-    out.push({ name: 'music_desert', ...wav(buf) });
+    out.push({ name: `music_${world}`, ...wav(buf) });
   }
   return out;
-}, { FX, url: URL });
-for (const r of results) {
-  if (r.error) { console.log('failed', r.name, r.error); continue; }
-  writeFileSync(resolve(OUT, `${r.name}.wav`), Buffer.from(r.b64, 'base64'));
-  console.log(`${r.name}.wav peak ${r.peak.toFixed(2)}`);
+}, { FX: fx, url: URL, WORLDS: worlds });
+// (the effects first, then one world's score at a time: a long render in one go is too much to hand back)
+for (const [fx, worlds] of [[FX, []], ...WORLDS.map((w) => [[], [w]])]) {
+  for (const r of await record(fx, worlds)) {
+    if (r.error) { console.log('failed', r.name, r.error); continue; }
+    writeFileSync(resolve(OUT, `${r.name}.wav`), Buffer.from(r.b64, 'base64'));
+    console.log(`${r.name}.wav peak ${r.peak.toFixed(2)}`);
+  }
 }
 await browser.close();

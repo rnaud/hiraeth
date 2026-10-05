@@ -29,7 +29,7 @@ namespace Memento
         List<Entry> entries;
         Layout layout;
 
-        public class Entry { public string id, title, source, blurb; public int i; public bool known, current, visited, done, signature; }
+        public class Entry { public string id, title, source, blurb; public int i; public bool known, current, visited, done, signature, home; }
 
         public StarMap(Hud hud, RectTransform root) { this.hud = hud; this.root = root; Build(); }
 
@@ -37,21 +37,27 @@ namespace Memento
         List<Entry> Entries()
         {
             var story = hud.game.ship ? hud.game.ship.Story : null;
-            var order = story?.L("order"); var levels = story?.L("worlds");
+            var order = story?.L("order")?.ConvertAll(x => x as string); var levels = story?.L("worlds");
             var sigs = story?.O("map")?.O("signature");
             var list = new List<Entry>();
             if (order == null) return list;
-            string current = "desert";
-            int cur = order.FindIndex(o => (o as string) == current);
+            var S = hud.game.state;
+            string current = hud.game.Level;
+            // the route (route.js knownWorlds): the first world, those done or seen, the next two not done
+            var known = new HashSet<string>(Route.Known(order, id => Route.Done(S, id), id => Route.Visited(S, id), current));
             for (int i = 0; i < order.Count; i++)
             {
-                var id = order[i] as string;
+                var id = order[i];
                 var L = levels?.Find(x => x.S("id") == id);
-                bool done = hud.game.state.Is($"world.{id}.done") || (id == "desert" && hud.game.quests.IsDone("desert.power"));
-                bool visited = id == current || done;
-                // the world you are on, the ones done, and the next AHEAD (2) along the route
-                bool known = visited || (i > cur && i <= cur + 2);
-                list.Add(new Entry { id = id, i = i, title = L?.S("title") ?? id, source = L?.S("source") ?? "", blurb = L?.S("blurb") ?? "", known = known, current = id == current, visited = visited, done = done, signature = sigs == null || sigs.Has(id) });
+                bool done = Route.Done(S, id);
+                bool visited = id == current || done || Route.Visited(S, id);
+                list.Add(new Entry { id = id, i = i, title = L?.S("title") ?? id, source = L?.S("source") ?? "", blurb = L?.S("blurb") ?? "", known = known.Contains(id), current = id == current, visited = visited, done = done, signature = sigs == null || sigs.Has(id) });
+            }
+            // home, at the centre, once the ending is open (ending.js homeOpen, homeEntry)
+            if (current == Route.Home || Route.HomeOpen(S, Route.Completed(order, S).Count))
+            {
+                var h = story.O("rules")?.O("homeEntry");
+                list.Add(new Entry { id = Route.Home, i = order.Count, home = true, title = h?.S("title") ?? "Home", source = h?.S("source") ?? "where the route begins", blurb = h?.S("blurb") ?? "", known = true, current = current == Route.Home, visited = true, done = false, signature = false });
             }
             return list;
         }
@@ -205,6 +211,18 @@ namespace Memento
             Sounds.Instance?.Play("page");
         }
         bool Powered => hud.game.state.Is("ship.powered");
+        /// <summary>The last world chosen to fly to (the batch reads it).</summary>
+        public string Travelled;
+        /// <summary>Choose a world and fly (the batch's, as A / × on "Travel to …?" does).</summary>
+        public bool Choose(string id)
+        {
+            entries = Entries();
+            int i = entries.FindIndex(e => e.id == id);
+            if (i < 0 || !entries[i].known || entries[i].current || !Powered) return false;
+            sel = i; asking = i; Answer(true);
+            return true;
+        }
+        public List<Entry> Current => entries ?? (entries = Entries());
         List<int> Choices() => entries.Where(e => e.known).Select(e => entries.IndexOf(e)).ToList();
 
         public void Update(float dt)
@@ -237,7 +255,9 @@ namespace Memento
             var e = entries[asking]; asking = -1;
             if (!y) return;
             open = false;
-            hud.Toast($"{e.title}: that world is not in this port yet. Only the desert travelled to Unity.");
+            if (!Game.CanTravelTo(e.id)) { hud.Toast($"{e.title}: that world has not been exported (scripts/unity-export/export-all.mjs)."); return; }
+            Travelled = e.id;
+            hud.game.Travel(e.id);
         }
 
         // ------------------------------------------------------------------ drawing
@@ -260,7 +280,7 @@ namespace Memento
                 for (float y = 0; y < ch; y += 37) for (float x = 0; x < cw; x += 41) stars.Disc(new Vector2(x - cw / 2, ch / 2 - y), 0.75f, new Color(dot.r, dot.g, dot.b, 0.3f));
             }
             var worldsE = entries;
-            var L = layout = ChartLayout(worldsE.Count, fw, fh);
+            var L = layout = ChartLayout(worldsE.Count(e => !e.home), fw, fh);
             Ui.PlaceC(field.rectTransform, 2, 2, fw, fh);
             field.Clear();
             if (L.centre.HasValue)
@@ -272,13 +292,14 @@ namespace Memento
             }
             for (int i = 1; i < worldsE.Count; i++)
             {
+                if (worldsE[i].home) continue;
                 bool faint = !worldsE[i].known || !worldsE[i - 1].known;
                 var a = S(L.pts[i - 1], fw, fh); var b = S(L.pts[i], fw, fh);
                 // (from disc edge to disc edge, as the svg line runs under the discs)
                 field.Path(new[] { a, b }, faint ? 1.2f : 1.6f, faint ? new Color(Cream.r, Cream.g, Cream.b, 0.22f) : Coral, false, faint ? 2 : 4, faint ? 7 : 5);
             }
-            foreach (var e in worldsE) if (!e.known) field.Disc(S(L.pts[e.i], fw, fh), Mathf.Max(3, L.box.disc * 0.07f), new Color(Cream.r, Cream.g, Cream.b, 0.3f));
-            var known = worldsE.Count(e => e.known); var done = worldsE.Count(e => e.done);
+            foreach (var e in worldsE) if (!e.known && !e.home) field.Disc(S(L.pts[e.i], fw, fh), Mathf.Max(3, L.box.disc * 0.07f), new Color(Cream.r, Cream.g, Cream.b, 0.3f));
+            var known = worldsE.Count(e => e.known && !e.home); var done = worldsE.Count(e => e.done);
             Ui.Place(h1.rectTransform, 2 + 20, 2 + 12, 400, 26);
             sub.text = $"{known} worlds charted · {done} {(done == 1 ? "discovery" : "discoveries")} made";
             Ui.Place(sub.rectTransform, 2 + 20, 2 + 40, 500, 18);
@@ -289,7 +310,7 @@ namespace Memento
                 bool has = i < worldsE.Count && worldsE[i].known;
                 w.disc.gameObject.SetActive(has); w.name.gameObject.SetActive(has); w.tag.gameObject.SetActive(has);
                 if (!has) continue;
-                var e = worldsE[i]; var p = L.pts[e.i]; var bx = L.box;
+                var e = worldsE[i]; var p = e.home ? L.home : L.pts[e.i]; var bx = L.box;
                 bool isSel = i == sel;
                 float d = bx.disc * (isSel ? 1.08f : 1);
                 Ui.PlaceC(w.disc, 2 + p.x - d / 2, 2 + p.y - d / 2, d, d);

@@ -247,6 +247,7 @@ namespace Memento
                 n++;
             }
             game.story?.Push(player.transform.position, dir);
+            if (game.worldStory) game.worldStory.Push(player.transform.position, dir);
             Targets.Push(from, dir, PushRange, PushAngle);
             Wildlife.Instance?.Push(from, dir, PushRange, PushAngle);
             // the fluid shoves out of the nozzle: a burst of splats in front

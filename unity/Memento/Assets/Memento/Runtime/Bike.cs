@@ -9,8 +9,10 @@ namespace Memento
     /// RT / R2 or W go, LT / L2 or S brake, left stick / A D steer, B / ○ or E get off. Once
     /// found, B / ○ or E far from it whistles it over.
     /// </summary>
-    public class Bike : MonoBehaviour
+    public class Bike : MonoBehaviour, IMount
     {
+        public float Yaw => yaw;
+        public bool Ridden => ridden;
         Game game;
         public bool dormant = true, ridden;
         public float Speed => new Vector2(vel.x, vel.z).magnitude;
@@ -19,7 +21,16 @@ namespace Memento
         GameObject tarp; Vector3 tarpFrom, tarpTo; float tarpT = -1;
         const float Hover = 0.95f, Max = 26f, Accel = 16f, TurnRate = 95f;
 
-        public void Init(Game g, GameObject drawn, GameObject tarpObj)
+        /// <summary>What it is called (the hoverbike; Lorn's hover-skiff, which skims the swamp's water as the bike the dunes).</summary>
+        public string kind = "hoverbike";
+        /// <summary>Lorn's skiff: awake from the start, no tarp, the water's surface under it (water.js floorAt).</summary>
+        public void InitSkiff(Game g, GameObject drawn)
+        {
+            kind = "skiff";
+            Init(g, drawn, null, desertTarp: false);
+            dormant = false;
+        }
+        public void Init(Game g, GameObject drawn, GameObject tarpObj, bool desertTarp = true)
         {
             game = g;
             transform.position = drawn.transform.position;
@@ -30,7 +41,7 @@ namespace Memento
             tarp = tarpObj;
             var G = game.state; var Q = game.quests;
             if (tarp) { tarpFrom = tarp.transform.position; tarpTo = tarpFrom + transform.right * 2.6f + Vector3.down * 0.3f; }
-            Interact.Add(new Interactable
+            if (desertTarp) { Interact.Add(new Interactable
             {
                 id = "bike.tarp", at = () => transform.position, range = 3.2f, enabled = () => !G.Is("desert.bike.uncovered"),
                 prompt = () => "pull back the tarp",
@@ -46,11 +57,11 @@ namespace Memento
                     G.Set("desert.bike.found", true); dormant = false;
                     game.hud.Toast("The hose clicks in; the fluid lights its caps. The hoverbike hums.");
                 },
-            });
+            }); }
             Interact.Add(new Interactable
             {
                 id = "bike.ride", at = () => transform.position, range = 3f, priority = 0, enabled = () => !dormant && !ridden,
-                prompt = () => "ride the hoverbike", use = Mount,
+                prompt = () => $"ride the {kind}", use = Mount,
             });
         }
 
@@ -78,6 +89,8 @@ namespace Memento
             p.transform.position = at; p.cc.enabled = true; p.riding = false; p.heading = yaw;
             p.vel = vel * 0.3f;
         }
+        /// <summary>Turn it toward a point (the batch's: off toward where the quest goes).</summary>
+        public void Face(Vector3 at) { var d = at - transform.position; d.y = 0; if (d.sqrMagnitude > 0.01f) { yaw = Mathf.Atan2(d.x, d.z) * Mathf.Rad2Deg; transform.rotation = Quaternion.Euler(0, yaw, 0); } }
         public void Whistle()
         {
             Sounds.Instance?.Play("whistle");
@@ -85,7 +98,7 @@ namespace Memento
             var at = p.position - p.forward * 2 + p.right * 3;
             if (Physics.Raycast(at + Vector3.up * 20, Vector3.down, out var h, 60)) at = h.point;
             transform.position = at + Vector3.up * Hover; yaw = p.eulerAngles.y; vel = Vector3.zero;
-            game.hud.Toast("The hoverbike comes to your whistle.");
+            game.hud.Toast($"The {kind} comes to your whistle.");
         }
 
         void Update()
@@ -115,6 +128,9 @@ namespace Memento
             var pos = transform.position;
             float ground = -1e9f;
             if (Physics.Raycast(pos + Vector3.up * 2, Vector3.down, out var h, 30)) ground = h.point.y;
+            // (and the water's surface: the bike and the skiff skim it, water.js floorAt)
+            var ws = Waters.Instance ? Waters.Instance.SurfaceAt(pos + Vector3.up * 0.5f) : null;
+            if (ws.HasValue && ws.Value > ground) ground = ws.Value;
             float want = ground + Hover;
             vy += ((want - pos.y) * 40f - vy * 9f) * dt;
             if (pos.y > want + 1.5f) vy -= 32f * dt;

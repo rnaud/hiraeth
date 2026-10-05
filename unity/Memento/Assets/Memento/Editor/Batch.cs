@@ -165,6 +165,18 @@ namespace Memento.EditorTools
             var outDir = Path.GetFullPath(Arg("-out", "Shots/play"));
             // the title screen first (its shots, then New game), unless -noTitle
             Game.showTitle = Array.IndexOf(Environment.GetCommandLineArgs(), "-noTitle") < 0;
+            // the worlds to fly to after the desert (-worlds incal,arzach; -worlds none: the desert alone), or a run
+            // that starts in another world (-start incal: the ship powered, the backpack on, no prologue)
+            var ws = Arg("-worlds", "incal,arzach");
+            BatchDriver.worlds = ws == "none" ? new List<string>() : ws.Split(',').Where(x => x.Length > 0).ToList();
+            BatchDriver.startIn = Arg("-start");
+            BatchDriver.tour = Arg("-tour");
+            if (BatchDriver.tour != null && BatchDriver.startIn == null)
+            {
+                var first = (Json.Parse(File.ReadAllText(BatchDriver.tour)) as List<object>)?.FirstOrDefault()?.S("world") ?? "desert";
+                BatchDriver.startIn = first;
+            }
+            if (BatchDriver.startIn != null) { Game.startWorld = BatchDriver.startIn; Game.showTitle = false; Game.playPrologue = false; Game.batchStart = true; }
             EditorSettings.enterPlayModeOptionsEnabled = true;
             EditorSettings.enterPlayModeOptions = EnterPlayModeOptions.DisableDomainReload | EnterPlayModeOptions.DisableSceneReload;
             EditorSceneManager.OpenScene(ScenePath);
@@ -176,7 +188,8 @@ namespace Memento.EditorTools
                 d.outDir = outDir;
                 BatchDriver.Finished += ok => { Debug.Log($"Memento: play-through {(ok ? "complete" : "INCOMPLETE")}"); EditorApplication.Exit(ok ? 0 : 3); };
             };
-            EditorApplication.update += () => { if (EditorApplication.timeSinceStartup - started > 420) { Debug.LogError("Memento: play-through timed out"); EditorApplication.Exit(4); } };
+            int limit = int.Parse(Arg("-limit", "900"));
+            EditorApplication.update += () => { if (EditorApplication.timeSinceStartup - started > limit) { Debug.LogError("Memento: play-through timed out"); EditorApplication.Exit(4); } };
             EditorApplication.EnterPlaymode();
         }
 

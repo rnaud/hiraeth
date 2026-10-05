@@ -151,7 +151,7 @@ namespace Memento
             if (p == 3 || p == 4)
             {
                 var back = transform.forward * (p == 3 ? 0.22f : 0.12f) * scale;
-                body.position = pos - back + Vector3.up * ((p == 3 ? 0.03f : 0.05f) - 0.95f) * scale;
+                body.position = pos - back + Vector3.up * (((p == 3 ? 0.03f : 0.05f) - 0.95f) * scale + Mathf.Max(0, seatHeight - 0.02f));   // (on a seat this high: a stone, not a cushion)
             }
             else body.localPosition = Vector3.zero;
             // the eyes on the traveller's face when near (or talking to him)

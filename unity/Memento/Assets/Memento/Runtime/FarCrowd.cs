@@ -51,6 +51,41 @@ namespace Memento
             return fc;
         }
 
+        /// <summary>A city's crowd (Crowd.BuildPool): everyone further than Near, and those nearer the pool has no body for.</summary>
+        public void Draw(Game game, List<Crowd.Person> persons)
+        {
+            if (!On || mesh == null || game == null) return;
+            var cam = game.cam ? game.cam.transform.position : Vector3.zero;
+            if (insts.Length < persons.Count) insts = new Inst[persons.Count];
+            int k = 0; float t = Time.time;
+            foreach (var n in persons)
+            {
+                if (!looks.TryGetValue(n.index, out var L)) continue;
+                var at = n.npc ? n.npc.pos : n.pos;
+                float d = Vector3.Distance(cam, at);
+                if ((d <= Near && n.npc) || d > Far) continue;
+                float sp = n.npc ? n.npc.speedNow : n.speedNow;
+                float cad = sp / (1.35f * L.scale);
+                int pose = sp > 0.05f ? 1 : n.pose == 1 ? 0 : n.pose;
+                insts[k++] = new Inst
+                {
+                    at = new Vector4(at.x, at.y, at.z, (n.npc ? n.npc.heading : n.heading) * Mathf.Deg2Rad),
+                    anim = new Vector4(((n.index * 0.618f) % 1f + 1) % 1f, cad, L.seed, pose),
+                    react = new Vector4(0, 0, 0, -1e9f),
+                    look0 = L.l0, look1 = L.l1, dress = L.d, body = L.b, scale = new Vector4(L.scale, 0, 0, 0),
+                };
+            }
+            Count = k;
+            if (k == 0) return;
+            if (buf == null || buf.count < insts.Length) { buf?.Release(); buf = new GraphicsBuffer(GraphicsBuffer.Target.Structured, Mathf.Max(insts.Length, 1), Marshal.SizeOf<Inst>()); mat.SetBuffer("_CrowdInst", buf); }
+            buf.SetData(insts, 0, 0, k);
+            mat.SetFloat("_CrowdTime", t);
+            var rp = new RenderParams(mat) { worldBounds = new Bounds(cam, Vector3.one * Far * 2.2f), shadowCastingMode = Shadows ? ShadowCastingMode.On : ShadowCastingMode.Off, receiveShadows = true };
+            Graphics.RenderMeshPrimitives(rp, mesh, 0, k);
+        }
+        /// <summary>Let the GPU buffer go (the world is left).</summary>
+        public void Release() { buf?.Release(); buf = null; }
+
         public void Draw(Game game)
         {
             if (!On || mesh == null || game == null) return;
