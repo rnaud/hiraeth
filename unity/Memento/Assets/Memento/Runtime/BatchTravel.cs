@@ -66,7 +66,15 @@ namespace Memento
                 var dests = Route.Destinations(game.ship.Story.L("order").ConvertAll(x => x as string), game.state, game.Level);
                 Log($"map in {from}: open {game.hud.map.open}, can fly to [{string.Join(", ", dests)}]");
                 yield return Shoot($"map_from_{from}");
-                if (!dests.Contains(to)) { Log($"travel: {to} is not on the route from {from} yet (route.js): charted for the batch"); game.state.Set($"seen.{to}", true); }
+                if (!dests.Contains(to) && to == Route.Home)
+                {
+                    // (ending.js homeOpen: six worlds done and the last recording heard; the batch opens it so)
+                    Log($"travel: home is closed ({Route.Completed(game.ship.Story.L("order").ConvertAll(x => x as string), game.state).Count} worlds done): opened for the batch");
+                    int k = 0; foreach (var ow in game.ship.Story.L("order")) if (k++ < Route.EndingWorlds) game.state.Set($"world.{ow}.done", true);
+                    game.state.Set("calls.home", true);
+                    Log($"travel: home open now: {Route.HomeOpen(game.state, Route.Completed(game.ship.Story.L("order").ConvertAll(x => x as string), game.state).Count)}");
+                }
+                else if (!dests.Contains(to)) { Log($"travel: {to} is not on the route from {from} yet (route.js): charted for the batch"); game.state.Set($"seen.{to}", true); }
                 bool chosen = game.hud.map.Choose(to);
                 Log($"travel: {from} -> {to}, chosen {chosen}");
                 if (!chosen) { opened[to] = false; game.hud.map.Toggle(false); continue; }
@@ -103,13 +111,18 @@ namespace Memento
         {
             var ws = game.worldStory;
             var q = ws ? ws.MainQuest : null;
-            if (q == null) { Log($"{world}: no main quest"); opened[world] = false; yield break; }
+            // (home has no quests: its story is the homecoming, the ship's own; arriving is its opening)
+            if (q == null) { Log($"{world}: no quests here (the homecoming is the ship's: not in this port); arrived {game.Level == world}"); opened[world] = game.Level == world; yield break; }
             var st = game.quests.Current(q);
             string stage0 = game.quests.Stage(q);
             Log($"{world}: quest {q} at '{stage0}': {Text.Plain(st?.S("text"))}");
             yield return Wait(0.5f);
             string who = st?.S("talk") ?? st?.S("at");
             var npc = who != null ? ws.Person(who) : null;
+            // (a quest may name someone by the script's locator, not their id: Aube is aube.spheres in the Garden)
+            if (!npc && who != null && game.quests.locators.TryGetValue(who, out var loc) && loc() is Vector3 lp)
+                npc = ws.people.Values.Where(n => n).OrderBy(n => Vector3.Distance(n.pos, lp)).FirstOrDefault(n => Vector3.Distance(n.pos, lp) < 4);
+            if (npc) who = npc.id;
             if (!npc)
             {
                 // (a stage that points at a place: go there)
@@ -123,6 +136,7 @@ namespace Memento
                 yield return Shoot($"{world}_{who}_near");
                 Log($"{world}: beside {npc.displayName} at {npc.pos}, prompt '{game.prompt}'");
                 var def = ws.Def(who);
+                if (def?.O("talk") == null) { Log($"{world}: {who} has no words"); opened[world] = false; yield break; }
                 for (int round = 0; round < 3 && game.quests.Stage(q) == stage0; round++)
                 {
                     var path = PathTo(def, st);

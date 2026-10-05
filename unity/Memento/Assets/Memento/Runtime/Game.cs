@@ -230,7 +230,7 @@ namespace Memento
     /// </summary>
     public class Atmo
     {
-        Vector3 min, max; int nx, ny, nz; float[] s; List<string> names;
+        Vector3 min, max; int nx, ny, nz; float[] s, light; List<string> names;
         public static Atmo From(Dictionary<string, object> d)
         {
             if (d == null) return null;
@@ -239,6 +239,7 @@ namespace Memento
                 min = new Vector3(Json.Num(mn[0]), Json.Num(mn[1]), Json.Num(mn[2])), max = new Vector3(Json.Num(mx[0]), Json.Num(mx[1]), Json.Num(mx[2])) };
             var S = d.L("samples"); a.s = new float[S.Count]; for (int i = 0; i < S.Count; i++) a.s[i] = Json.Num(S[i]);
             a.names = d.L("names").ConvertAll(x => x as string ?? "");
+            var L = d.L("light"); if (L != null) { a.light = new float[L.Count]; for (int i = 0; i < L.Count; i++) a.light[i] = Json.Num(L[i]); }
             return a;
         }
         Vector3 Cell(Vector3 p)
@@ -249,6 +250,17 @@ namespace Memento
         int Idx(int ix, int iy, int iz) => ((Mathf.Clamp(iy, 0, ny - 1) * nz + Mathf.Clamp(iz, 0, nz - 1)) * nx + Mathf.Clamp(ix, 0, nx - 1)) * 5;
         /// <summary>The region's name (the nearest sample's).</summary>
         public string NameAt(Vector3 p) { var c = Cell(p); int i = Idx(Mathf.RoundToInt(c.x), Mathf.RoundToInt(c.y), Mathf.RoundToInt(c.z)); int k = (int)s[i + 4]; return k >= 0 && k < names.Count ? names[k] : ""; }
+        /// <summary>The sun by place (level.lightAt): the light's direction (three space) as this place turns it.</summary>
+        public Vector3 LightAt(Vector3 p, Vector3 dir)
+        {
+            if (light == null) return dir;
+            var c = Cell(p); int i = Idx(Mathf.RoundToInt(c.x), Mathf.RoundToInt(c.y), Mathf.RoundToInt(c.z)) / 5 * 4;
+            int k = (int)light[i];
+            if (k == 1 && dir.y > 0) return new Vector3(light[i + 1], light[i + 2], light[i + 3]).normalized;
+            if (k == 2 && dir.y > 0.05f) { dir.y += light[i + 1]; return dir.normalized; }
+            if (k == 3) dir.y = -dir.y;
+            return dir;
+        }
         /// <summary>The tint (rgb) and the fog's multiplier (w), blended between the samples round p.</summary>
         public Vector4 At(Vector3 p)
         {

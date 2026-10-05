@@ -474,6 +474,8 @@ const people = npcs.map((n) => ({
   palette: n.def?.palette ?? n.palette, head: n.def?.head, cape: n.def?.cape ?? 0, color: n.def?.color,
   pos: V3(n.pos), heading: -(n.heading ?? 0), route: (n.route ?? []).map(V3), seat: n.seat ?? null, speed: n.speed ?? 1, lines: n.def?.lines ?? n.lines ?? [],
   visible: n.object ? n.object.visible !== false : true, near: n.contentNpc ? 1 : 0,
+  // their words as the story gave them (talkable(npc, def): a world's locals, a temple's keeper, the people near the start)
+  def: n.def?.talk ? JSON.parse(JSON.stringify(n.def, (k, v) => (typeof v === 'function' ? undefined : k === 'route' || k === 'at' ? undefined : v))) : null,
 }));
 const proc = crowd?.route?.('procession');
 // who in the crowd has a word for you (story world.crowdTalk: by where they live), each conversation once
@@ -569,7 +571,7 @@ if (level.gravityAt && level.garage) {
 const waters = W.waters.bodies.map((b) => ({ name: b.mesh.name || '', top: +b.top.toFixed(3), min: V3(b.box.min).map((v, i) => (i === 0 ? -b.box.max.x : v)), max: V3(b.box.max).map((v, i) => (i === 0 ? -b.box.min.x : v)),
   flat: b.flat ? 1 : 0, huge: b.huge ? 1 : 0, material: b.mesh.material ? materialOf(b.mesh.material) : -1 }));
 // the grass blades (flora-grass.js): the fields they grow on, their tones, the water line under which they don't
-const grass = (W.grass ?? []).map((f) => ({ color: col(f.color), color2: col(f.color2), terrain: !f.heightAt || f.heightAt === undefined ? 0 : 1 }));
+const grass = (W.grass ?? []).map((f) => ({ color: col(f.color), color2: col(f.color2), terrain: f.heightAt ? 1 : 0, water: f.water ?? W.floraWorld?.water ?? null }));
 // the taxis' lanes (taxi.js lane): sampled for two minutes, Unity replays them
 const lanes = [];
 (level.vehicles ?? []).forEach((v, i) => {
@@ -616,15 +618,28 @@ const atmo = (() => {
   // (no further than the play goes: 1.2 km round the middle)
   for (const k of [0, 2]) { mn[k] = Math.max(mn[k], -1200); mx[k] = Math.min(mx[k], 1200); }
   mn[1] = Math.max(mn[1], -800); mx[1] = Math.min(mx[1], 2600);
-  const nx = 40, ny = 16, nz = 40, names = [], S = [];
+  const nx = 40, ny = 16, nz = 40, names = [], S = [], L = [];
   for (let iy = 0; iy < ny; iy++) for (let iz = 0; iz < nz; iz++) for (let ix = 0; ix < nx; ix++) {
     const ux = mn[0] + (mx[0] - mn[0]) * ix / (nx - 1), y = mn[1] + (mx[1] - mn[1]) * iy / (ny - 1), z = mn[2] + (mx[2] - mn[2]) * iz / (nz - 1);
     let a = null; try { a = level.atmo(-ux, z, y); } catch { a = null; }
     const t = a?.tint ?? [1, 1, 1];
     let ni = names.indexOf(a?.name ?? ''); if (ni < 0) { names.push(a?.name ?? ''); ni = names.length - 1; }
     S.push(+t[0].toFixed(3), +t[1].toFixed(3), +t[2].toFixed(3), +(a?.fog ?? 1).toFixed(3), ni);
+    // the sun by place (level.lightAt(p, dir): the shaft's and the canyon's steeper light, the market's overhead sun,
+    // the Hangar's mirrored one): 0 as is, 1 set to (a, b, c), 2 lifted by a, 3 mirrored (three space)
+    if (level.lightAt) {
+      const p = new THREE.Vector3(-ux, y, z);
+      const d1 = new THREE.Vector3(0.5, 0.3, 0.4).normalize(), d2 = new THREE.Vector3(-0.3, 0.5, 0.6).normalize();
+      const r1 = d1.clone(), r2 = d2.clone();
+      try { level.lightAt(p, r1); level.lightAt(p, r2); } catch { /* */ }
+      const same = (a, b) => a.distanceTo(b) < 1e-4;
+      if (same(r1, d1)) L.push(0, 0, 0, 0);
+      else if (same(r1, r2)) L.push(1, +r1.x.toFixed(4), +r1.y.toFixed(4), +r1.z.toFixed(4));
+      else if (Math.abs(r1.y + d1.y) < 1e-4) L.push(3, 0, 0, 0);
+      else { const k = r1.y * Math.hypot(d1.x, d1.z) / Math.max(Math.hypot(r1.x, r1.z), 1e-6) - d1.y; L.push(2, +k.toFixed(4), 0, 0); }
+    }
   }
-  return { min: mn, max: mx, n: [nx, ny, nz], names, samples: S };
+  return { min: mn, max: mx, n: [nx, ny, nz], names, samples: S, light: L.length ? L : null };
 })();
 const levelOut = {
   id: levelId, title: W.meta.title, features: level.features ?? {}, killY: level.killY ?? null, limit: level.limit ?? null,

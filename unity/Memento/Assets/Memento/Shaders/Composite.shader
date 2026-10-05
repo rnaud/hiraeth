@@ -333,6 +333,9 @@ Shader "Hidden/Memento/Composite"
         float4 N = tN(uv);
         bool isSky = N.w <= 0.0;
         float4 surface = tH(uv);
+        // (gHatch.a packs glow + 2 hero + 4 figure + 8 soft ink: the grass blades)
+        float soft = step(7.5, surface.a);
+        surface.a -= 8.0 * soft;
         float figure = step(3.5, surface.a);
         surface.a -= 4.0 * figure;
         float hero = step(1.5, surface.a);
@@ -340,6 +343,7 @@ Shader "Hidden/Memento/Composite"
         float heroDetail = smoothstep(70.0, 180.0, heroHeight);
         float2 hp = max(1.0, 0.65 * _PixelRatio) * _Res.zw;
         float4 hm = float4(tH(uv + float2(hp.x, 0)).a, tH(uv - float2(hp.x, 0)).a, tH(uv + float2(0, hp.y)).a, tH(uv - float2(0, hp.y)).a);
+        hm -= 8.0 * step(7.5, hm);
         hm = step(1.5, hm - 4.0 * step(3.5, hm));
         float heroNear = max(hero, max(max(hm.x, hm.y), max(hm.z, hm.w)));
         float heroBoundary = heroNear - min(hero, min(min(hm.x, hm.y), min(hm.z, hm.w)));
@@ -385,9 +389,13 @@ Shader "Hidden/Memento/Composite"
 
         // people far away: lines redrawn by the figure's height on screen
         float innerK = figure > 0.5 && hero < 0.5 ? smoothstep(70.0, 260.0, 1.8 * _Res.y * 0.5 * _Proj11 / max(depth, 0.1)) : 1.0;
+        float softNear = soft;   // a grass blade under this pixel's ink kernel (soft ink)
         if (ink > 0.02 && hero < 0.5 && !isSky) {
           float2 fo = max(silW * _PixelRatio, 1.0) * _Res.zw;
           float4 fa = float4(tH(euv + float2(fo.x, 0)).a, tH(euv - float2(fo.x, 0)).a, tH(euv + float2(0, fo.y)).a, tH(euv - float2(0, fo.y)).a);
+          float4 faSoft = step(7.5, fa);
+          fa -= 8.0 * faSoft;
+          softNear = max(soft, max(max(faSoft.x, faSoft.y), max(faSoft.z, faSoft.w)));
           float figHit = max(figure, max(max(step(3.5, fa.x), step(3.5, fa.y)), max(step(3.5, fa.z), step(3.5, fa.w))));
           if (figHit > 0.5) {
             float figPx = 1.8 * _Res.y * 0.5 * _Proj11 / max(nearD, 0.1);
@@ -448,7 +456,10 @@ Shader "Hidden/Memento/Composite"
           col = lerp(col, skyC, fog);
         }
         if (dbg == 6) col = float3(0.97, 0.94, 0.86);
-        col = lerp(col, _Ink, ink);
+        // grass: its edges in a darker shade of the green, not black, only on the blade's own side (post.js)
+        float3 inkC = _Ink;
+        if (softNear > 0.5 && !isSky) { inkC = lerp(_Ink, col * 0.62, 0.85); ink = soft > 0.5 ? min(ink, eS.x) * 0.75 : ink * 0.22; }
+        col = lerp(col, inkC, ink);
 
         // ---- 4b. light: a halo round glowing things in flat rings, a wash of their colour on what is near
         float emitHere = isSky ? 0.0 : smoothstep(0.62, 0.9, surface.a - 2.0 * hero);

@@ -31,6 +31,8 @@ namespace Memento
         public float rays = -1;          // sun rays 0..1 over the preset's (the web's beauty panel), -1: the preset's
         /// <summary>The air by place (level.atmo, Game.Atmo): the fog's multiplier (-1: the preset's) and the horizon's tint (timeofday.js applyTimeOfDay).</summary>
         public float atmoFog = -1; public Color atmoTint = Color.white;
+        /// <summary>The sun by place (three-space direction in, out): the shaft's steeper light, the market's overhead sun.</summary>
+        public System.Func<Vector3, Vector3> lightAt;
         public float fogScale = 1;       // the weather thickens the haze (main.js: × 1 + storm × 2.2)   // >= 0: the fog's multiplier (0 out in space: post.js uFogMul)
         public Vector3 WindVector => new Vector3(-windDir.x, 0, windDir.y) * wind * 4f;
         readonly List<Vector4> localLights = new();
@@ -40,7 +42,7 @@ namespace Memento
         {
             look = lookData;
             hours.Clear();
-            atmoFog = -1; atmoTint = Color.white;
+            atmoFog = -1; atmoTint = Color.white; lightAt = null;
             foreach (var h in look.L("hours")) hours.Add(h as Dictionary<string, object>);
             hour = look.F("hour", 9.5f);
             localLights.Clear();
@@ -108,6 +110,8 @@ namespace Memento
             Shader.SetGlobalFloat("_Night", Fl("night"));
             Shader.SetGlobalFloat("_MoonVis", Fl("moonVis"));
             Vector3 light = D("light"), sunDisc = D("sunDisc"), moonDisc = D("moonDisc");
+            // (a place may turn the light: level.lightAt, Game.Atmo)
+            if (lightAt != null) light = Three(lightAt(Three(light)));
             SunDirThree = Three(light); SunDisc = sunDisc;
             Shader.SetGlobalVector("_SunDir", SunDirThree);
             Shader.SetGlobalVector("_SunDisc", Three(sunDisc));

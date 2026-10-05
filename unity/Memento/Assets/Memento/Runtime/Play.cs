@@ -159,6 +159,7 @@ namespace Memento
             worldRoot.gameObject.AddComponent<Traffic>().Init(game);
             game.world.ReleaseBin();
             Sounds.Instance?.World(game.Level);
+            if (!desert && game.atmo != null) game.look.lightAt = d => game.player ? game.atmo.LightAt(game.player.transform.position, d) : d;
             Debug.Log($"Memento: play in {game.Level}: {game.npcs.Count} people, {Interact.All.Count} things to use");
         }
 

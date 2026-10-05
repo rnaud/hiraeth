@@ -26,7 +26,8 @@ namespace Memento
         public BoxScene boxScene;
         Dictionary<string, object> page;
 
-        public Dictionary<string, object> Def(string id) => story.O("people").O(id);
+        readonly Dictionary<string, Dictionary<string, object>> defsById = new();
+        public Dictionary<string, object> Def(string id) => defsById.TryGetValue(id, out var d) ? d : story.O("people").O(id) ?? story.O("people").Values.OfType<Dictionary<string, object>>().FirstOrDefault(x => x.S("id") == id);
         public Dictionary<string, object> ThingDef(string id) => story.O("things").O(id);
         public Interactable Thing(string id) => things.TryGetValue(id, out var t) ? t : null;
         public Npc Person(string id) => people.TryGetValue(id, out var n) ? n : null;
@@ -82,7 +83,9 @@ namespace Memento
             {
                 var id = p.S("id");
                 if (id == null) continue;
-                var def = defs.O(id);
+                // (their words: the world's people, or as the story gave them: its locals, a temple's keeper)
+                var def = defs.O(id) ?? defs.Values.OfType<Dictionary<string, object>>().FirstOrDefault(d => d.S("id") == id) ?? p.O("def");
+                if (def != null) defsById[id] = def;
                 var go = new GameObject("npc " + id);
                 go.transform.SetParent(transform, false);
                 go.transform.position = p.V3("pos");
@@ -145,6 +148,10 @@ namespace Memento
                 {
                     if (people.ContainsKey(k)) continue;
                     var at = v.V3();
+                    // a name the script gives someone (the Garden's 'aube' is aube.spheres): it follows them
+                    Npc who = null; float bd = 1.5f;
+                    foreach (var n in people.Values) { float d = Vector3.Distance(n.pos, at); if (d < bd) { bd = d; who = n; } }
+                    if (who) { var w = who; Q.Locate(k, () => w ? w.pos : at); continue; }
                     Q.Locate(k, () => at);
                 }
             Q.Locate("ship", () => game.world.Places.V3("shipRamp"));
@@ -204,12 +211,23 @@ namespace Memento
             foreach (var b in game.world.Places.L("boxes") ?? new List<object>())
             {
                 var id = b.S("id"); var item = b.S("item");
-                if (b.S("temple") != null) continue;   // (inside a temple: not in this port)
                 bool fallback = b.I("fallback") == 1;
                 bool Spent() => fallback ? Q.Has(item) : G.Is("box." + id) || Q.Has(item);
                 game.world.Objects.TryGetValue("box:" + id, out var obj);
-                if (obj) obj.SetActive(!Spent());
                 var at = b.V3("pos"); float yaw = b.F("yaw");
+                // a temple's gadget (the City-Shaft's jets, Vael's glider…): the temples are not in this port, so its
+                // chest waits beside the ship's ramp instead, as a fallback box does (boxes/placements.js FALLBACK_OFFSETS)
+                if (b.S("temple") != null)
+                {
+                    if (Spent()) { if (obj) obj.SetActive(false); continue; }
+                    var P = game.world.Places; var ramp = P.V3("shipRamp"); var site = P.V3("shipSite");
+                    var fwd = ramp - site; fwd.y = 0; fwd.Normalize(); var right = Vector3.Cross(Vector3.up, fwd);
+                    at = ramp - right * 3.6f + fwd * 5.6f;
+                    at.y = game.world.GroundBelow(at + Vector3.up * 3, 2, 12);
+                    yaw = Mathf.Atan2(-fwd.x, -fwd.z);
+                    if (obj) { obj.transform.position = at; obj.transform.rotation = Quaternion.Euler(0, yaw * Mathf.Rad2Deg, 0); }
+                }
+                if (obj) obj.SetActive(!Spent());
                 Q.Locate("box." + id, () => at);
                 things["box." + id] = Interact.Add(new Interactable
                 {

@@ -106,7 +106,7 @@ Shader "Memento/Surface"
       #pragma fragment frag
       #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
       #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
-      #pragma multi_compile_local _ MEMENTO_CROWD MEMENTO_PUFFS MEMENTO_INSTMAT
+      #pragma multi_compile_local _ MEMENTO_CROWD MEMENTO_PUFFS MEMENTO_INSTMAT MEMENTO_GRASS
       #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
       #include "Crowd.hlsl"
       // instanced puffs (smoke, embers, dust, footprints: Puffs.cs): where, how big, which way, what colour
@@ -116,6 +116,10 @@ Shader "Memento/Surface"
       // instanced parts with a whole transform each (the wildlife: InstMats in Puffs.cs): three rows of a 3x4 matrix and a tint
       struct MatInst { float4 r0, r1, r2, col; };
       StructuredBuffer<MatInst> _Mats;   // x: from this view depth on, y: the depth grows this much slower (smoke-column far shading); 0 off
+      // the grass tufts round the camera (Grass.cs, flora-grass.js): root xyz (Unity), height; turn, tint, lean, rank
+      struct GrassInst { float4 at; float4 b; };
+      StructuredBuffer<GrassInst> _GrassInst;
+      float4 _GrassView;   // camera x, z (three space), the fade's start and end (m)
       float3 rotXYZ(float3 v, float3 e)
       {
         float cx = cos(e.x), sx = sin(e.x), cy = cos(e.y), sy = sin(e.y), cz = cos(e.z), sz = sin(e.z);
@@ -138,6 +142,7 @@ Shader "Memento/Surface"
         float3 posWS : TEXCOORD8;       // Unity space (shadows)
         float3 bind : TEXCOORD9;
         float4 crowdTrim : TEXCOORD10;  // the crowd figures: the tunic's printed pattern (accent, id)
+        nointerpolation float grassSoft : TEXCOORD11;   // a grass blade's soft ink
       };
 
       Varyings vert(Attributes v)
@@ -178,6 +183,42 @@ Shader "Memento/Surface"
           o.objPos = cp * cs; o.objNormal = cn / cs; o.objRel = o.objPos - toThree(_WorldSpaceCameraPos);
           o.bind = v.positionOS.xyz;
           o.crowdTrim = ctrim;
+        #endif
+        o.grassSoft = 0;
+        #if defined(MEMENTO_GRASS)
+          // a tuft of blades (grass-shader.js grassPlace), all in three space: thinned and sunk with distance, bent by the
+          // wind and parted round the traveller's feet, the tip lowered so the blade keeps its length
+          GrassInst gi = _GrassInst[v.iid];
+          float3 root = toThree(gi.at.xyz);
+          float gd = length(root.xz - _GrassView.xy);
+          float keepG = step(gi.b.w, lerp(1.0, 0.3, smoothstep(_GrassView.z * 0.5, _GrassView.w, gd)));
+          float gfade = (1.0 - smoothstep(_GrassView.z, _GrassView.w, gd)) * keepG;
+          float gh = gi.at.w * gfade;
+          float3 gp = v.positionOS.xyz;
+          float gt = gp.y;
+          float gc = cos(gi.b.x), gs = sin(gi.b.x);
+          float2 gxz = float2(gc * gp.x + gs * gp.z, -gs * gp.x + gc * gp.z);
+          float2 wd = _Wind.xy; float str = _Wind.z;
+          float wave = 0.5 + 0.5 * sin(_MTime * 1.7 - dot(root.xz, wd) * 0.09);
+          float push = str * (0.35 + 0.65 * _Wind.w * wave);
+          float flutter = (0.4 + 0.6 * str) * sin(_MTime * (2.3 + 1.1 * str) + root.x * 0.53 + root.z * 0.31 + gi.b.w * 6.28);
+          float2 bend = wd * (push * 0.32 + flutter * 0.1) + float2(gc, gs) * gi.b.z;
+          float2 away = root.xz - _Brush.xz; float dB = length(away);
+          float brush = (1.0 - smoothstep(0.2, 1.0, dB)) * (0.9 + 0.12 * min(_Brush.w, 5.0));
+          bend += (dB > 1e-3 ? away / dB : float2(0, 0)) * brush * 1.3;
+          float bl = length(bend);
+          float2 off = bend * gt * gt * gh;
+          float rise = gt * gh / sqrt(1.0 + bl * bl * gt * gt);
+          float3 wpT = float3(root.x + gxz.x + off.x, root.y - 0.04 + rise, root.z + gxz.y + off.y);
+          float3 gn = normalize(float3(bend.x * 0.25, 1.0, bend.y * 0.25));
+          posWS = toThree(wpT); nWS = toThree(gn);
+          o.positionCS = TransformWorldToHClip(posWS);
+          o.posWS = posWS; o.worldPos = wpT; o.normal = gn;
+          o.instColor = lerp(float3(1, 1, 1), _Color2.rgb / max(_Color.rgb, 0.02), gi.b.y) * lerp(0.8, 1.06, frac(gi.b.w * 13.7)) * lerp(0.94, 1.08, gt);
+          o.viewDepth = -TransformWorldToView(posWS).z;
+          o.objPos = wpT; o.objNormal = gn; o.objRel = wpT - toThree(_WorldSpaceCameraPos);
+          o.bind = 0;
+          o.grassSoft = step(0.12, frac(gi.b.w * 7.31));
         #endif
         #if defined(MEMENTO_PUFFS)
           PuffInst pi = _Puffs[v.iid];
@@ -416,7 +457,10 @@ Shader "Memento/Surface"
           float3 rel = i.worldPos - toThree(_WorldSpaceCameraPos);
           n = normalize(cross(ddx(rel), ddy(rel)));
           if (dot(n, viewT) < 0.0) n = -n;
-        } else if (!frontFace && (_Bind > 0.5 || (_Figure < 0.5 && _Hero < 0.5))) n = -n;   // (glTFast's skinned bodies read as back faces; the exported people do not)
+        }
+        #if !defined(MEMENTO_GRASS)
+        else if (!frontFace && (_Bind > 0.5 || (_Figure < 0.5 && _Hero < 0.5))) n = -n;
+        #endif   // (glTFast's skinned bodies read as back faces; the exported people do not)
 
         float3 albedo = _Color.rgb;
         float3 instColor = i.instColor;
@@ -554,6 +598,10 @@ Shader "Memento/Surface"
         detail = max(detail, metalInk);
         o.hatch.b = detail;
         o.hatch.a = max(max(_Glow, smoothstep(0.15, 0.6, local) * 0.6), dEdge) + 2.0 * _Hero + 4.0 * _Figure;
+        #if defined(MEMENTO_GRASS)
+          o.hatch.rgb = 0; o.hatch.a += 8.0 * i.grassSoft;   // blades: no hatching, no drawn detail; soft ink
+          return o;
+        #endif
 
         // hatching in the shade (finer close to the camera, coarser far away)
         float dark = clamp((_Toon - L) / _Toon, 0.0, 1.0);
