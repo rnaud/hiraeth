@@ -19,7 +19,7 @@ import { WindStreaks } from './wind.js';
 import { EDGE_HINTS, EdgeInk } from './edge.js';
 import { HOLO } from './ship/hologram.js';
 import { Physics, dropBuriedFlora } from './physics.js';
-import { tileScene, cullFar, fitBounds, SmallCuller, RoomCuller, resolveQuality, detectHandheld, GpuTimer, adaptScale } from './perf.js';
+import { tileScene, cullFar, fitBounds, SmallCuller, RoomCuller, InteriorCuller, resolveQuality, detectHandheld, GpuTimer, adaptScale } from './perf.js';
 import { LodManager, lodView } from './lod.js';
 import { skinnedLods } from './skinned-lod.js';
 import { buildFlora, floraKeep, FLORA_WORLDS } from './flora.js';
@@ -1013,6 +1013,8 @@ function glowCasters() {
 const shadowCull = new ShadowCuller(scene);
 const smallCull = new SmallCuller(scene);
 let roomCull = null;
+// and the other way round: inside one of those rooms, the whole map outside it (perf.js InteriorCuller)
+const interiorCull = new InteriorCuller(scene, offMapRooms, { ground: (x, z) => terrain.heightAt?.(x, z) ?? 0 });
 // levels of detail (lod.js): distant static meshes drawn coarser, by no more than the preset's
 // lodPx pixels; never the terrain (dug into at runtime) or anything that moves with a person
 let lod = null;
@@ -1049,6 +1051,7 @@ function renderFrame() {
   cullFar(tiled.small, camera, preset.propFar, frameHidden);
   smallCull.hide(camera, pxPerRad, preset.propPx, frameHidden);
   (roomCull ??= new RoomCuller(scene, offMapRooms, { keep: [player.object, player.mount?.object, ...player.vehicles.map((v) => v.object ?? v.mesh), ...npcs.map((n) => n.object)] })).hide(camera, frameHidden);
+  interiorCull.hide(camera, frameHidden);
   lodView.pxPerRad = pxPerRad; lodView.px = preset.lodPx ?? 0;
   skinnedLods.update(camera, pxPerRad, preset.lodPx ?? 0);   // the people far off: simpler bodies (skinned-lod.js)
   (lod ??= new LodManager(scene, { keep: [...movers(), terrain?.mesh] })).update(camera, pxPerRad, preset.lodPx ?? 0);
@@ -1491,4 +1494,4 @@ window.clipAudit = async (o = {}) => {
   return r;
 };
 Object.assign(window, { waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife,
-  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, boxes, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame, lod: () => lod, skinnedLods });
+  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, boxes, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame, lod: () => lod, skinnedLods, interiorCull });
