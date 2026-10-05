@@ -1,0 +1,51 @@
+TODO.md
+  s_1fd8d0e7b02dcf::t_94cbe0c3d95a6b 53-60
+changelog.md
+  s_1fd8d0e7b02dcf::t_a794125b04d1be 5-11
+docs/systems/characters.md
+  s_1fd8d0e7b02dcf::t_2d7965fd744819 41-43
+docs/systems/scout.md
+  s_1fd8d0e7b02dcf::t_c8d7c0514fc61c 45,47-48
+docs/systems/traveller-kit.md
+  s_1fd8d0e7b02dcf::t_384d42c8dd9a53 1-34
+lore/characters/traveller-design.md
+  s_1fd8d0e7b02dcf::t_0cb090dfac85b3 10-14,23-29,38-39,41-51,55-56,64-78,80-84,86-88
+src/boxes/effects.js
+  s_1fd8d0e7b02dcf::t_32863aacbdd726 36
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_8ecc4d5a63f387 9-14
+src/fluid-tool.js
+  s_1fd8d0e7b02dcf::t_dd1455c04dbe7c 481-484,486-487,490-492,494,505,509-512,514-515,533,537-538,550,555-558,561-563,740,774,1124-1125
+src/humanoid.js
+  s_1fd8d0e7b02dcf::t_8ea7c00de79d47 736,744,749,763
+src/scout.js
+  s_1fd8d0e7b02dcf::t_52671262d73c5d 364
+src/studio/main.js
+  s_1fd8d0e7b02dcf::t_78812fca0d6d9d 352
+src/traveller-style.js
+  s_1fd8d0e7b02dcf::t_c2678babdb62c5 4,7-8,12,16
+src/traveller.js
+  s_1fd8d0e7b02dcf::t_f637af92ee634b 3,7-12,19,22-28,232-233,235-262,265-292,294-344,346-362,381,401-403,409-419,421-423,425,427,430-432,434-438,440-441,444,446,450-455,457,462,509-513,516,520-521,556-561
+tests/abilities.test.js
+  s_1fd8d0e7b02dcf::t_2c53c37d243289 62,66,84,314,316-317,328,346
+tests/drone.test.js
+  s_1fd8d0e7b02dcf::t_e7421181c85441 138,140,142-145,149-154,157,163,165-169,177,265,280
+tests/traveller.test.js
+  s_1fd8d0e7b02dcf::t_ddcb0beec463f8 13-14,132-135,146-150,203,264-267,340-411
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "85a6c9e27fa2a6492be8940aad23de81e1a09b1f",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
