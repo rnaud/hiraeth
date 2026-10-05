@@ -196,8 +196,8 @@ test('the studio shows every headwear on MakeHuman heads of every age, and each 
   assert.match(main, /'mhheadwear'/);
 });
 
-test('each world wears its own headwear: the new pieces where they belong', () => {
-  const has = (w, id) => COSTUMES[w].tribes.some((t) => [t.heads, t.headsF, t.headsM, t.masks, t.body].some((x) => x?.[id] > 0));
+test('each world wears its own headwear: the new pieces where they belong', async () => {
+  const has = (w, id) => COSTUMES[w].tribes.some((t) => [t.heads, t.headsF, t.headsM, t.masks, t.body, ...Object.values(t.more ?? {})].some((x) => x?.[id] > 0));
   for (const [w, ids] of Object.entries({
     desert: ['straw', 'kerchief', 'facewrap', 'scarfmask'], incal: ['bowler', 'peak', 'beanie', 'trapper', 'goggles', 'scarfmask'],
     garage: ['aviator', 'peak', 'neckgoggles'], buried: ['helmet', 'trapper'], edena: ['straw', 'circlet'], spheres: ['circlet'],
@@ -205,5 +205,49 @@ test('each world wears its own headwear: the new pieces where they belong', () =
   })) for (const id of ids) assert.ok(has(w, id), `${w}: ${id}`);
   // the desert keeps no caps, the City-Shaft's rim no ear-flaps
   assert.ok(!has('desert', 'peak') && !has('desert', 'beanie'));
-  assert.ok(!COSTUMES.incal.tribes[0].heads.trapper);
+  assert.ok(!COSTUMES.incal.tribes[0].heads.trapper && !COSTUMES.incal.tribes[0].more.heads.trapper);
+  // the crowds wear them (a fair share), the story's people as they were drawn (none of the extras unless the story says so)
+  const { crowdLook, namedLook } = await import('../src/costumes.js');
+  const { mulberry32 } = await import('../src/noise.js');
+  const rng = mulberry32(7), crowd = Array.from({ length: 300 }, (_, i) => crowdLook(rng, { world: 'bazaar', kind: i % 2 ? 'f' : 'm' }));
+  const extra = (s) => ['heads', 'headsF', 'masks', 'body'].some((k) => COSTUMES.bazaar.tribes[0].more[k]?.[k === 'masks' ? s.mask : k === 'body' ? s.body : s.head]);
+  const share = crowd.filter(extra).length / crowd.length;
+  assert.ok(share > 0.25 && share < 0.7, `the market's crowd: ${(share * 100).toFixed(0)} % wear the new pieces`);
+  for (let i = 0; i < 60; i++) {
+    const n = namedLook({ world: 'bazaar', id: `someone${i}`, kind: i % 2 ? 'f' : 'm' });
+    assert.ok(!extra(n), `a named person's look is the one drawn before (${n.head}, ${n.mask}, ${n.body})`);
+  }
+});
+
+// ---------------------------------------------------------------- the worlds, one by one
+const { MH_WORLDS, usesMakeHuman, ageClassOf, yearsOf } = await import('../src/makehuman/people.js');
+const { namedLook: named } = await import('../src/costumes.js');
+/** A story person on their world's MakeHuman body: { look, profile, height (m, as the game stands them) }. */
+function onBody(world, def) {
+  const kind = def.body ?? def.kind ?? 'm';
+  const look = named({ world, id: def.id, palette: def.palette ?? {}, head: def.head ?? null, cape: def.cape ?? null, look: def.look ?? {}, kind: def.body ?? def.kind ?? null });
+  const p = new MakeHumanPeople(data, world).templateFor({ kind, def, dress: look }).userData.profile;
+  const scale = p.trueScale ?? (def.scale ?? look.height) * (p.heightFix ?? 1);
+  return { look, profile: p, height: scale * p.measured.height };
+}
+
+test('the Signal Market\'s people are MakeHuman bodies: Kip a child of eleven, Sel old, the market dressed as itself', async () => {
+  assert.ok(MH_WORLDS.has('bazaar') && usesMakeHuman('bazaar') && !usesMakeHuman('bazaar', '0'));
+  const { PEOPLE, STREET } = await import('../src/story/bazaar-data.js');
+  assert.equal(ageClassOf({ def: PEOPLE.kip }), 'child');
+  assert.equal(yearsOf({ def: PEOPLE.kip }), 11);
+  const kip = onBody('bazaar', PEOPLE.kip);
+  assert.ok(kip.height > 1.25 && kip.height < 1.5, `Kip ${kip.height.toFixed(2)} m`);
+  assert.equal(kip.look.head, 'peak');
+  assert.equal(ageClassOf({ def: PEOPLE.sel }), 'elder');
+  const sel = onBody('bazaar', PEOPLE.sel);
+  assert.equal(sel.look.mask, 'glasses');
+  assert.equal(onBody('bazaar', PEOPLE.ferro).look.head, 'bandana');
+  assert.equal(onBody('bazaar', PEOPLE.brush).look.head, 'beret');
+  assert.equal(onBody('bazaar', { ...STREET.teb, kind: 'm' }).look.head, 'flatcap');
+  assert.equal(onBody('bazaar', { ...STREET.oyo, kind: 'm' }).look.mask, 'glasses');
+  for (const def of [PEOPLE.sel, PEOPLE.ferro, PEOPLE.brush]) {
+    const h = onBody('bazaar', def).height;
+    assert.ok(h > 1.5 && h < 2.05, `${def.id} ${h.toFixed(2)} m`);
+  }
 });

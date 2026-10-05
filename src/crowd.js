@@ -165,7 +165,8 @@ const ids = (w) => Object.entries(w ?? {}).filter(([id, v]) => v > 0 && id !== '
 /** The pieces a world's crowd can wear (every tribe's), for its figure. */
 export function worldPieces(world) {
   const tribes = COSTUMES[world]?.tribes ?? [tribeOf(null)];
-  const keys = (...ks) => [...new Set(tribes.flatMap((t) => ks.flatMap((k) => ids(t[k]))))];
+  // (a tribe's own pieces and stage 3's, drawn apart: costumes.js `more`)
+  const keys = (...ks) => [...new Set(tribes.flatMap((t) => ks.flatMap((k) => [...ids(t[k]), ...ids(t.more?.[k])])))];
   // a bare head ('hair', 'short') is always drawn in the tribe's own hairstyles (costumes.js dressFor), a man's
   // or a woman's: those instead of the generic ones; and any man may have a beard
   const hair = tribes.flatMap((t) => (['heads', 'headsF', 'headsM'].some((k) => GENERIC_HAIR.some((h) => t[k]?.[h] > 0)) ? [...ids(t.hair?.m), ...ids(t.hair?.f)] : []));

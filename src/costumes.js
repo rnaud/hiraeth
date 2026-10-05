@@ -76,10 +76,12 @@ export const COSTUMES = {
   desert: { tribes: [tribe({
     name: 'pilgrims of the dunes',
     faces: { plain: 4, round: 2, long: 1.5, elder: 1.5 },
-    heads: { headcloth: 4, sunhat: 2.5, wrap: 2, straw: 1.6, hair: 1 }, headsF: { headcloth: 4, wrap: 2.5, sunhat: 1.3, kerchief: 1.2, straw: 1, hair: 1.8 }, as: { hood: 'headcloth', hat: 'sunhat', wrap: 'wrap' },
+    heads: { headcloth: 4, sunhat: 3, wrap: 2, hair: 1 }, headsF: { headcloth: 4, wrap: 2.5, sunhat: 1.5, hair: 1.8 }, as: { hood: 'headcloth', hat: 'sunhat', wrap: 'wrap' },
     // close crops and tight curls, the women's hair braided or down
     hair: { m: { crop: 3, curls: 2.5, shaved: 1.5 }, f: { braid: 3, flow: 2, bun: 1.5, curls: 1 } },
-    masks: { none: 5, veil: 2, facewrap: 1.1, scarfmask: 0.5, glasses: 0.25 }, body: { mantle: 2, none: 3, neckerchief: 0.6 }, props: { none: 6, staff: 2, basket: 1 }, trim: { sash: 3, none: 2, stripes: 1 },
+    masks: { none: 5, veil: 2 }, body: { mantle: 2, none: 3 }, props: { none: 6, staff: 2, basket: 1 }, trim: { sash: 3, none: 2, stripes: 1 },
+    // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
+    more: { heads: { straw: 1.68 }, headsF: { kerchief: 1.23, straw: 1.02 }, masks: { facewrap: 1.1, scarfmask: 0.5, glasses: 0.25 }, body: { neckerchief: 0.6 } },
     capes: [0, 0, 0.9, 1.25, 1.45], wide: [1, 1.25], robe: 0.85, robes: [0.1, 0.22, 0.38], flare: [0.3, 0.4], size: [0.95, 1.06],
     palette: {
       cloaks: ['#c8483a', '#b5562f', '#d8a24a', '#e6c48a', '#3b4f8a', '#2f437a', '#e6875f', '#f3ead8', '#a8552e', '#8a6fb8'],
@@ -95,10 +97,12 @@ export const COSTUMES = {
     tribe({
       name: 'the rim', when: (c) => zoneIncal(c) === 'rim' || zoneIncal(c) === 'upper',
       moods: { amused: 3, curious: 2.5, kind: 2.5, calm: 1, stern: 0.6 },
-      heads: { tophat: 4, spire: 3, bowler: 1.5, trilby: 1, hair: 1.5 }, headsF: { spire: 3, tophat: 2, bowler: 0.8, hair: 2.5 }, as: { hat: 'tophat', hood: 'spire', wrap: 'spire' },
+      heads: { tophat: 4, spire: 3, hair: 1.5 }, headsF: { spire: 3, tophat: 2, hair: 2.5 }, as: { hat: 'tophat', hood: 'spire', wrap: 'spire' },
       // the rim's fashion: swept back, bobbed, pinned up
       hair: { m: { swept: 3, short: 1.5 }, f: { bob: 3, bun: 2.5 } },
-      masks: { none: 6, glasses: 0.8, monocle: 0.4 }, body: { collar: 5, none: 1, muffler: 0.5 }, props: { none: 5, parasol: 2 }, trim: { yoke: 1 },
+      masks: { none: 1 }, body: { collar: 5, none: 1 }, props: { none: 5, parasol: 2 }, trim: { yoke: 1 },
+      // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
+      more: { heads: { bowler: 1.5, trilby: 1 }, headsF: { bowler: 0.8 }, masks: { glasses: 0.13, monocle: 0.07 }, body: { muffler: 0.5 } },
       capes: [0, 0, 0.55, 0.9], wide: [0.9, 1], robe: 0.5, robes: [0.45], flare: [0.24, 0.26], size: [1.0, 1.08],
       palette: {
         cloaks: ['#e88fa6', '#a99be0', '#9fd6c9', '#f2c5b0', '#f3ead8', '#b9d4f0'],
@@ -112,9 +116,11 @@ export const COSTUMES = {
     }),
     tribe({
       name: 'the middle levels', when: (c) => zoneIncal(c) === 'middle',
-      heads: { hood: 3, raghood: 1, peak: 1.6, beanie: 1.2, hooddown: 1, hair: 1.2 }, as: { hat: 'hood', wrap: 'hood' },
+      heads: { hood: 3, raghood: 1, hair: 1.2 }, as: { hat: 'hood', wrap: 'hood' },
       hair: { m: { short: 2, crop: 2 }, f: { tail: 2.5, bun: 1.5 } },
-      masks: { none: 3, browgoggles: 2, goggles: 0.8, glasses: 0.6 }, body: { none: 2, tatters: 1, muffler: 0.8, neckgoggles: 0.6 }, props: { none: 5, lantern: 1 }, trim: { none: 1, patches: 1 },
+      masks: { none: 3, browgoggles: 2 }, body: { none: 2, tatters: 1 }, props: { none: 5, lantern: 1 }, trim: { none: 1, patches: 1 },
+      // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
+      more: { heads: { peak: 1.6, beanie: 1.2, hooddown: 1 }, masks: { goggles: 0.8, glasses: 0.6 }, body: { muffler: 0.8, neckgoggles: 0.6 } },
       capes: [0.55, 0.9, 1.25], robe: 0.4, robes: [0.35], flare: [0.27, 0.3], size: [0.93, 1.02],
       palette: {
         cloaks: ['#8a7a66', '#697a98', '#b0705a', '#84bab3', '#a88a6a'],
@@ -128,10 +134,12 @@ export const COSTUMES = {
     tribe({
       name: 'the bottom of the shaft',
       faces: { plain: 4, round: 1, long: 2, elder: 1.5 }, moods: { kind: 3, calm: 3, curious: 1.5, amused: 1, stern: 1 },
-      heads: { raghood: 5, hood: 2, beanie: 1.5, trapper: 1, bandana: 1, hair: 1 }, as: { hood: 'raghood', hat: 'raghood', wrap: 'raghood' },
+      heads: { raghood: 5, hood: 2, hair: 1 }, as: { hood: 'raghood', hat: 'raghood', wrap: 'raghood' },
       // the bottom of the shaft: shaved for the lice, or tied back out of the way
       hair: { m: { shaved: 2.5, crop: 1.5, bald: 1 }, f: { tail: 2, shaved: 1 } },
-      masks: { goggles: 3, browgoggles: 2, none: 2, scarfmask: 1.2 }, body: { tatters: 3, none: 2, muffler: 1, neckgoggles: 0.8 }, props: { none: 5, lantern: 1 }, trim: { patches: 3, none: 1 },
+      masks: { goggles: 3, browgoggles: 2, none: 2 }, body: { tatters: 3, none: 2 }, props: { none: 5, lantern: 1 }, trim: { patches: 3, none: 1 },
+      // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
+      more: { heads: { beanie: 1.5, trapper: 1, bandana: 1 }, masks: { scarfmask: 1.2 }, body: { muffler: 1, neckgoggles: 0.8 } },
       capes: [0.9, 1.25, 1.45], wide: [1, 1.15], robe: 0.5, robes: [0.3, 0.45], flare: [0.28, 0.33], size: [0.88, 0.98],
       palette: {
         cloaks: ['#6e6450', '#5a5248', '#7a6a58', '#4f5a52', '#8a7660'],
@@ -147,9 +155,11 @@ export const COSTUMES = {
   arzach: { tribes: [tribe({
     name: 'the silent ones',
     moods: { calm: 4, kind: 3, curious: 1.5, amused: 0.5, stern: 0.6 },
-    heads: { cowl: 6, hood: 1, hooddown: 0.6 }, as: { hood: 'cowl', hat: 'cowl', wrap: 'cowl', hair: 'cowl' },
+    heads: { cowl: 6, hood: 1 }, as: { hood: 'cowl', hat: 'cowl', wrap: 'cowl', hair: 'cowl' },
     hair: { m: { shaved: 1 }, f: { shaved: 1 } },
-    masks: { beak: 4, none: 1 }, body: { scarf: 4, none: 1, muffler: 1 }, props: { staff: 2, none: 2 }, trim: { none: 1 },
+    masks: { beak: 4, none: 1 }, body: { scarf: 4, none: 1 }, props: { staff: 2, none: 2 }, trim: { none: 1 },
+    // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
+    more: { heads: { hooddown: 0.6 }, body: { muffler: 1 } },
     capes: [1.25, 1.45], wide: [1, 1.15], robe: 1, robes: [0.06, 0.14], flare: [0.32, 0.4], size: [1.04, 1.12],
     palette: {
       cloaks: ['#f4efe2', '#ece4d2', '#e8dfcb', '#d8c7a6'],
@@ -164,10 +174,12 @@ export const COSTUMES = {
   arzach2: { tribes: [tribe({
     name: 'the bell monastery',
     faces: { plain: 3, long: 2, round: 1.5, elder: 2 }, moods: { kind: 3, calm: 3, curious: 1, amused: 1, stern: 1 },
-    heads: { cowl: 3, short: 1.4, hood: 1, skullcap: 1.2 }, headsF: { cowl: 3, kerchief: 1.5, hood: 1, short: 1 }, as: { hood: 'cowl', hat: 'cowl', wrap: 'cowl', hair: 'short' },
+    heads: { cowl: 3, short: 1.4, hood: 1 }, as: { hood: 'cowl', hat: 'cowl', wrap: 'cowl', hair: 'short' },
     // the bell monastery: tonsures and shaved heads, the sisters' hair in one braid
     hair: { m: { tonsure: 3, shaved: 1.5, bald: 1 }, f: { braid: 2, shaved: 1 } },
-    masks: { none: 8, glasses: 1 }, body: { scarf: 3, none: 1 }, props: { bell: 2, staff: 1, none: 2 }, trim: { hem: 2, none: 1 },
+    masks: { none: 1 }, body: { scarf: 3, none: 1 }, props: { bell: 2, staff: 1, none: 2 }, trim: { hem: 2, none: 1 },
+    // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
+    more: { heads: { skullcap: 1.2 }, headsF: { kerchief: 1.62 }, masks: { glasses: 0.12 } },
     capes: [0, 0.55, 1.45], robe: 1, robes: [0.08, 0.16], flare: [0.34, 0.42], size: [0.98, 1.06],
     palette: {
       cloaks: ['#f3ead8', '#e9d7b0', '#d8c7a6', '#b9a7d8'],
@@ -182,10 +194,12 @@ export const COSTUMES = {
   garage: { tribes: [tribe({
     name: 'the Major’s mechanics',
     moods: { amused: 3.5, kind: 3, curious: 2, calm: 0.5, stern: 0.6 },
-    heads: { antenna: 5, aviator: 2, peak: 1.5, bandana: 1, hair: 1.3 }, as: { hat: 'antenna', hood: 'antenna', wrap: 'antenna' },
+    heads: { antenna: 5, hair: 1.3 }, as: { hat: 'antenna', hood: 'antenna', wrap: 'antenna' },
     // the mechanics: crests, swept quiffs, two buns
     hair: { m: { crest: 3, swept: 2 }, f: { twin: 3, crest: 1 } },
-    masks: { goggles: 2, browgoggles: 1, none: 3, glasses: 0.5, monocle: 0.3 }, body: { toolbelt: 4, pauldrons: 2, neckerchief: 1, neckgoggles: 1 }, props: { wrench: 3, none: 3 }, trim: { bib: 1 },
+    masks: { goggles: 2, browgoggles: 1, none: 3 }, body: { toolbelt: 4, pauldrons: 2 }, props: { wrench: 3, none: 3 }, trim: { bib: 1 },
+    // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
+    more: { heads: { aviator: 2, peak: 1.5, bandana: 1 }, masks: { glasses: 0.5, monocle: 0.3 }, body: { neckerchief: 1, neckgoggles: 1 } },
     capes: [0, 0, 0, 0.55], robe: 0, size: [0.86, 0.97], bulk: 1,
     palette: {
       cloaks: ['#e63b2e', '#2f6fd6', '#f2c54b', '#3f8f8a'],
@@ -200,9 +214,11 @@ export const COSTUMES = {
   buried: { tribes: [tribe({
     name: 'the dome people',
     moods: { curious: 3.5, kind: 3, amused: 1.5, calm: 1, stern: 0.3 },
-    heads: { padded: 5, hood: 1, helmet: 2, beanie: 1.2, trapper: 1 }, as: { hood: 'padded', hat: 'padded', wrap: 'padded' },
+    heads: { padded: 5, hood: 1 }, as: { hood: 'padded', hat: 'padded', wrap: 'padded' },
     hair: { m: { crop: 3, curls: 2 }, f: { bun: 3, curls: 1.5 } },
-    masks: { breather: 4, goggles: 1, none: 1, scarfmask: 0.8 }, body: { pauldrons: 3, none: 2, muffler: 1 }, props: { none: 4, lantern: 1 }, trim: { stripes: 2, none: 1 },
+    masks: { breather: 4, goggles: 1, none: 1 }, body: { pauldrons: 3, none: 2 }, props: { none: 4, lantern: 1 }, trim: { stripes: 2, none: 1 },
+    // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
+    more: { heads: { helmet: 2, beanie: 1.2, trapper: 1 }, masks: { scarfmask: 0.8 }, body: { muffler: 1 } },
     capes: [0, 0.6, 0.9, 1.2], robe: 0, size: [0.94, 1.02], bulk: 2,
     palette: {
       cloaks: ['#c8643f', '#a8502a', '#2f5a5e', '#5f7488', '#7f93a3'],
@@ -217,10 +233,12 @@ export const COSTUMES = {
   edena: { tribes: [tribe({
     name: 'the gardeners',
     faces: { plain: 3, round: 3, long: 1, elder: 1 }, moods: { kind: 4.5, amused: 2.5, curious: 1.5, calm: 1.5, stern: 0 },
-    heads: { flowers: 5, straw: 1.5, circlet: 1, brim: 0.6, hair: 2 }, as: { hood: 'flowers', hat: 'flowers', wrap: 'flowers' },
+    heads: { flowers: 5, hair: 2 }, as: { hood: 'flowers', hat: 'flowers', wrap: 'flowers' },
     // the gardeners wear it long and loose
     hair: { m: { long: 2.5, curls: 2, tail: 1.5 }, f: { flow: 4, curls: 1.5, braid: 1.5 } },
-    masks: { none: 1 }, body: { garland: 3, none: 2, neckerchief: 0.6 }, props: { flower: 1, basket: 1, none: 3 }, trim: { hem: 1, none: 2 },
+    masks: { none: 1 }, body: { garland: 3, none: 2 }, props: { flower: 1, basket: 1, none: 3 }, trim: { hem: 1, none: 2 },
+    // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
+    more: { heads: { straw: 1.5, circlet: 1, brim: 0.6 }, body: { neckerchief: 0.6 } },
     capes: [0, 0, 0.5, 0.9], robe: 0.7, robes: [0.36, 0.5], flare: [0.26, 0.32], size: [1.0, 1.06], sleeveless: true,
     palette: {
       cloaks: ['#f7f4ec', '#9fd6c9', '#f2a7b5', '#b5a7e6', '#7fcfa8', '#f6efd0'],
@@ -235,10 +253,12 @@ export const COSTUMES = {
   spheres: { tribes: [tribe({
     name: 'the listeners',
     moods: { calm: 3, curious: 3, kind: 3, amused: 0.5, stern: 0.3 },
-    heads: { orb: 6, circlet: 1.2, skullcap: 0.8, bowler: 0.5, hair: 1.4 }, as: { hood: 'orb', hat: 'orb', wrap: 'orb' },
+    heads: { orb: 6, hair: 1.4 }, as: { hood: 'orb', hat: 'orb', wrap: 'orb' },
     // the listeners: bare heads (their ears clear) and buns
     hair: { m: { bald: 2, swept: 1.5 }, f: { twin: 2.5, bun: 2 } },
-    masks: { none: 6, glasses: 0.6 }, body: { ruff: 2, none: 3 }, props: { parasol: 2, none: 4 }, trim: { dots: 2, none: 1 },
+    masks: { none: 1 }, body: { ruff: 2, none: 3 }, props: { parasol: 2, none: 4 }, trim: { dots: 2, none: 1 },
+    // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
+    more: { heads: { circlet: 1.2, skullcap: 0.8, bowler: 0.5 }, masks: { glasses: 0.1 } },
     capes: [0, 0.9, 1.3], robe: 1, robes: [0.07, 0.14], flare: [0.38, 0.46], size: [0.96, 1.04],
     palette: {
       cloaks: ['#f6efd0', '#f3efe2', '#f3e3a0', '#e8d890', '#f2c5b0', '#b7c46a'],
@@ -253,10 +273,12 @@ export const COSTUMES = {
   perdide: { tribes: [tribe({
     name: 'the swamp people',
     faces: { plain: 3, round: 2, long: 1, elder: 2 }, moods: { amused: 3, kind: 3, curious: 1.5, calm: 1, stern: 0.5 },
-    heads: { reeds: 4, hood: 1, brim: 1.2, hooddown: 1, bandana: 0.8, hair: 1.3 }, as: { hat: 'reeds', wrap: 'reeds', hood: 'reeds' },
+    heads: { reeds: 4, hood: 1, hair: 1.3 }, as: { hat: 'reeds', wrap: 'reeds', hood: 'reeds' },
     // the swamp people: locks and braids
     hair: { m: { locks: 3, shaved: 1 }, f: { locks: 2, braid: 2.5 } },
-    masks: { none: 1 }, body: { reedcape: 5, none: 1, neckerchief: 0.6 }, props: { staff: 1, lantern: 1, none: 3 }, trim: { none: 1 },
+    masks: { none: 1 }, body: { reedcape: 5, none: 1 }, props: { staff: 1, lantern: 1, none: 3 }, trim: { none: 1 },
+    // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
+    more: { heads: { brim: 1.2, hooddown: 1, bandana: 0.8 }, body: { neckerchief: 0.6 } },
     capes: [0, 0.9, 1.45], robe: 0.4, robes: [0.3], flare: [0.28, 0.33], size: [0.95, 1.04],
     palette: {
       cloaks: ['#8a6fb8', '#6f5a9a', '#4a6a4a', '#5a7a4a', '#7a6a9a'],
@@ -271,9 +293,11 @@ export const COSTUMES = {
   perdide2: { tribes: [tribe({
     name: 'the lamp-keepers',
     moods: { kind: 4.5, calm: 2, curious: 1.5, amused: 1, stern: 0.2 },
-    heads: { lamphat: 5, hood: 1, hooddown: 1, beanie: 1, trapper: 0.6 }, as: { hat: 'lamphat', wrap: 'lamphat', hood: 'lamphat' },
+    heads: { lamphat: 5, hood: 1 }, as: { hat: 'lamphat', wrap: 'lamphat', hood: 'lamphat' },
     hair: { m: { tail: 2, locks: 2 }, f: { long: 3, braid: 2 } },
-    masks: { none: 1 }, body: { mantle: 2, none: 2, muffler: 1 }, props: { lamppole: 3, lantern: 2, none: 1 }, trim: { none: 1 },
+    masks: { none: 1 }, body: { mantle: 2, none: 2 }, props: { lamppole: 3, lantern: 2, none: 1 }, trim: { none: 1 },
+    // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
+    more: { heads: { hooddown: 1, beanie: 1, trapper: 0.6 }, body: { muffler: 1 } },
     capes: [0.9, 1.25, 1.45], robe: 0.6, robes: [0.15, 0.3], flare: [0.3, 0.36], size: [0.98, 1.06],
     palette: {
       cloaks: ['#3a6a58', '#4a4f7a', '#3e5a6a', '#6f5a9a'],
@@ -288,11 +312,13 @@ export const COSTUMES = {
   bazaar: { tribes: [tribe({
     name: 'the market',
     moods: { amused: 3, kind: 3, curious: 2.5, calm: 1, stern: 0.6 },
-    heads: { turban: 4, fez: 2, wrap: 1, flatcap: 1.3, beanie: 1, peak: 1, hooddown: 0.8, hair: 1.4 },
-    headsF: { turban: 3, wrap: 2, fez: 1, kerchief: 1.5, beanie: 0.8, hooddown: 0.8, hair: 2.4 }, as: { wrap: 'turban', hat: 'fez', hood: 'turban' },
+    heads: { turban: 4, fez: 2, wrap: 1, hair: 1.4 },
+    headsF: { turban: 3, wrap: 2, fez: 1, hair: 2.4 }, as: { wrap: 'turban', hat: 'fez', hood: 'turban' },
     // the market: curls and close crops, braids and loose hair
     hair: { m: { curls: 3, crop: 2, shaved: 1.5, bald: 0.8 }, f: { braid: 2.5, curls: 2, flow: 2, bun: 1.5 } },
-    masks: { none: 8, glasses: 1, browgoggles: 0.7, scarfmask: 0.5 }, body: { badge: 4, none: 1, muffler: 1, neckerchief: 1 }, props: { basket: 2, none: 4 }, trim: { diamonds: 2, stripes: 2 },
+    masks: { none: 1 }, body: { badge: 4, none: 1 }, props: { basket: 2, none: 4 }, trim: { diamonds: 2, stripes: 2 },
+    // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
+    more: { heads: { flatcap: 1.3, beanie: 1, peak: 1, hooddown: 0.8 }, headsF: { kerchief: 1.5, beanie: 0.8, hooddown: 0.8 }, masks: { glasses: 0.12, browgoggles: 0.09, scarfmask: 0.06 }, body: { muffler: 1, neckerchief: 1 } },
     capes: [0, 0.5, 0.9], robe: 0.6, robes: [0.4, 0.5], flare: [0.26, 0.29], size: [0.95, 1.05],
     palette: {
       cloaks: ['#f0a083', '#88b4b5', '#e4bd83', '#2fa8a0', '#ff7a5c', '#c8483a', '#5fb7ad', '#f2c54b', '#8a6fb8'],
@@ -307,9 +333,11 @@ export const COSTUMES = {
   home: { tribes: [tribe({
     name: 'home',
     moods: { kind: 5, amused: 2, curious: 1, calm: 1, stern: 0 },
-    heads: { cap: 1, band: 1, beanie: 0.5 }, as: { wrap: 'band', hat: 'cap', hood: 'cap' },
+    heads: { cap: 1, band: 1 }, as: { wrap: 'band', hat: 'cap', hood: 'cap' },
     hair: { m: { short: 2, crop: 1 }, f: { long: 2, bun: 1 } },
     masks: { none: 1 }, body: { none: 1 }, props: { none: 1 }, trim: { none: 1 },
+    // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
+    more: { heads: { beanie: 0.5 } },
     capes: [0], robe: 0, size: [1, 1],
     palette: { tunics: ['#b5473a', '#d9503f'], legs: ['#2b2f45', '#34405e'], skins: ['#e9cfb4', '#d9a98a'], accents: ['#f3ead8', '#5fb7ad'] },
   })] },
@@ -389,8 +417,9 @@ export function tribeOf(world, ctx = {}) {
  * @param o.head    a story head ('hood' | 'hat' | 'wrap' | 'hair' | any piece id), in the world's style
  * @param o.cape    their cape length (m), if the story sets it
  * @param o.look    story overrides: { head, mask, body, prop, robe (hem height, 0 none), trim, flare }
+ * @param o.named   a named person (namedLook): their look as it was drawn before stage 3's headwear (T.more)
  */
-export function dressFor(world, rng, { palette = {}, lists = {}, head = null, cape = null, look = {}, spot = null, pos = null, kind = null } = {}) {
+export function dressFor(world, rng, { palette = {}, lists = {}, head = null, cape = null, look = {}, spot = null, pos = null, kind = null, named = false } = {}) {
   const T = tribeOf(world, { spot, pos });
   const L = { ...DEFAULT.palette, ...lists, ...T.palette };
   const accents = L.accents ?? L.cloaks;
@@ -404,11 +433,12 @@ export function dressFor(world, rng, { palette = {}, lists = {}, head = null, ca
     hat: palette.hat ?? pick(rng, L.hats),
     accent: palette.accent ?? pick(rng, accents),
   };
-  let h = look.head ?? (head ? T.as[head] ?? head : weighted(rng, (kind === 'f' && T.headsF) || (kind === 'm' && T.headsM) || T.heads));
+  const pickHead = (w) => (kind === 'f' && w.headsF) || (kind === 'm' && w.headsM) || w.heads;
+  let h = look.head ?? (head ? T.as[head] ?? head : more(T, 'heads', s, weighted(rng, pickHead(T)), pickHead(T), named ? null : T.more && pickHead(T.more)));
   if (!HEAD_IDS.includes(h)) h = 'hood';
   s.head = h;
-  s.mask = look.mask ?? weighted(rng, T.masks);
-  s.body = look.body ?? weighted(rng, T.body);
+  s.mask = look.mask ?? more(T, 'masks', s, weighted(rng, T.masks), T.masks, named ? null : T.more?.masks);
+  s.body = look.body ?? more(T, 'body', s, weighted(rng, T.body), T.body, named ? null : T.more?.body);
   s.prop = look.prop ?? weighted(rng, T.props);
   s.trim = look.trim ?? weighted(rng, T.trim);
   const r1 = rng();
@@ -437,6 +467,22 @@ export function dressFor(world, rng, { palette = {}, lists = {}, head = null, ca
   // their face and the mood it rests in (the same way: their own stream, the others' looks untouched)
   Object.assign(s, faceFor(T, mulberry32(hashSeed(`face|${s.eyes}|${s.skin}|${s.cloak}|${s.height}|${s.flare}`)), look));
   return s;
+}
+
+/**
+ * Stage 3's headwear (a tribe's `more`: hats, caps, masks, neck pieces, docs/makehuman.md) drawn apart from
+ * the tribe's own weights, so everyone drawn before keeps their look (the story's people, a crowd's
+ * stream): with the share of the extras' weight (`extra` against `base`), by a draw of their own (seeded by
+ * the colours already drawn, not from rng), one of the extras instead of `pick`. None for a named person.
+ */
+function more(T, slot, s, pick, base, extra) {
+  if (!extra) return pick;
+  const sum = (w) => Object.values(w ?? {}).reduce((a, v) => a + v, 0), e = sum(extra);
+  if (!e) return pick;
+  const u = (hashSeed(`${slot}|${s.cloak}|${s.cloth}|${s.legs}|${s.skin}|${s.hair}|${s.hat}|${s.accent}`) % 100003) / 100003;
+  if (u >= e / (e + sum(base))) return pick;
+  const v = (hashSeed(`${slot}+${s.accent}|${s.hat}|${s.skin}|${s.cloak}`) % 100003) / 100003;
+  return weighted(() => v, extra);
 }
 
 /**
@@ -498,7 +544,7 @@ export function crowdLook(rng, { world = costumeWorld(), lists = {}, spot = null
 
 /** A named person's look: seeded by who they are, so they look the same every visit. */
 export function namedLook({ world = costumeWorld(), id = '', palette = {}, head = null, cape = null, look = {}, pos = null, kind = null } = {}) {
-  return dressFor(world, mulberry32(hashSeed(`${world}:${id}`)), { palette, head, cape, look, pos, kind });
+  return dressFor(world, mulberry32(hashSeed(`${world}:${id}`)), { palette, head, cape, look, pos, kind, named: true });
 }
 
 /** The ids a look shows, in a comparable form (tests; a promoted NPC must match its crowd figure). */

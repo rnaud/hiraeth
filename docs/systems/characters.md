@@ -243,7 +243,8 @@ docs/makehuman.md has the checks, the numbers and the pictures.
   through the crowns of short02 and short04; the locks' borders are drawn lighter on dark hair
   (`HAIR_EDGE`), so the strand lines read in shade.
 - **Memory and frame time**: a body's reshaped copies (its builds, its faces) share its triangles, skin
-  and face keys' arrays (`reshapeCopy`); the keys' morph textures are still one per geometry (three's).
+  and face keys' arrays (`reshapeCopy`); the keys' morph textures were one per geometry (three's: stage 3
+  shares one texture between every body).
   A costume's colours are parsed once a role and a hair shell's weights set at once (`dress`), so a
   crowd body re-dressing as it comes close costs no more than a Quaternius one. Measured at the camps
   and Qanat on High and Handheld (CPU 4x slower): the same frame time as the Quaternius bodies, +30 to
@@ -252,6 +253,40 @@ docs/makehuman.md has the checks, the numbers and the pictures.
   is the stranger from the sky, and at a conversation's distance the helmet and visor frame his face.
 - The named people follow their character sheets (`references/The Desert/characters/`).
   `tests/makehuman-desert.test.js`.
+
+### MakeHuman bodies, stage 3: every world, one face-key texture, more headwear
+
+docs/makehuman.md (stage 3) has the checks, the numbers and the pictures; `tests/makehuman-worlds.test.js`.
+
+- **The face keys in one texture** (`src/makehuman/body.js` `keyTexture`, `face-keys.js` `bindKeys`,
+  `materials.js` `FACE_KEYS`): each part's keys (body, eyes, brows) are one half-float texture array for
+  every body (a layer a key, a texel a vertex, the reference head's deltas); each body's material reads it
+  in its vertex shader, scaled by its own head (`uKeyScale`), with its own weights, set before each draw
+  from the geometry it draws (a level of detail has none). three.js made a morph texture per geometry
+  (about 1 MB each body that came close, and a CPU copy): at the camps 39 textures and 30 MB of heap fewer.
+- **Headwear** (`src/costumes.js`): hats wide and narrow (`brim`, `straw`, `trilby`, `bowler`), caps
+  (`peak`, `flatcap`, `beanie`, `trapper` with ear-flaps, `aviator`, `skullcap`), cloths (`bandana`,
+  `kerchief`), `circlet`, a miner's `helmet`, a hood thrown back (`hooddown`, its folds in the chest frame:
+  `HEADS[].chest`); masks `glasses`, `shades`, `scarfmask`, `facewrap`, `monocle`; shoulder pieces
+  `neckerchief`, `muffler`, `neckgoggles`. Built on the skull egg (`shell`, `rim`, `visor`, `lathe`,
+  `faceCloth` round the measured faces), so they sit on any skull the head frame is scaled to
+  (`profile.headScale`). The crowd's packing has room for 16 masks and 16 shoulder pieces
+  (`MASK_ID_LIMIT`, `BODY_ID_LIMIT`).
+- **Hair under a hat** (`HEADS[].cover`, `squashUnder`, `hair.js` `squashHair`): on a MakeHuman body a hat,
+  cap or band over part of the head is worn over the person's own hairstyle (`look.under`, `underOf`):
+  the shell pressed in to the hat's inside where it covers (a hairline round the skull, `t` off it, a flat
+  crown's `top`), easing out below its edge, so long hair falls from under a brim. A hood, wrap or
+  headcloth still hides it.
+- **Each world its own** (a tribe's `more`): the new pieces are drawn apart from a tribe's own weights
+  (`more()` in `dressFor`, by a draw of their own), so the crowds wear them and everyone drawn before,
+  every named person, keeps their look; named people wear new pieces only where their story says so.
+- **The worlds on MakeHuman** (`MH_WORLDS`): the Desert (stage 2), the Signal Market (Kip a child of 11,
+  Sel's spectacles, Ferro's kerchief and goggles, Brush's beret, Teb's flat cap, Oyo's cap and spectacles).
+- **The studio**: *Lineup → MakeHuman: every headwear* (*MakeHuman person*: the face pieces, the shoulder
+  pieces, or the world's own set), round a woman, a man, a girl, a boy, a heavy old woman and an old man.
+- **The fit test** (`poking` in the test): rays from the skull's centre to every point of the skin and
+  of the hair under the headwear; a point past a piece (and not inside a closed one) pokes through. The
+  new pieces: none through on children, teenagers, grown-ups, the old and the heavy.
 
 ## Capes at a distance, and people up close (v0.39)
 
