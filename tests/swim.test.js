@@ -233,3 +233,14 @@ test('getting off a hoverbike over deep water drops you in: you swim', () => {
   for (let i = 0; i < 4 * 60 && !p.swim; i++) p.update(1 / 60, {}, 0);
   assert.ok(p.swim, `in the water: ${p.pos.toArray()}`);
 });
+
+test('teleported out of the water while swimming (a portal, a debug jump): you are out of it', () => {
+  const p = make();
+  p.teleport(v(0, -SWIM.ride, 0), v(0, 1, 0), v(0, 0, 1));
+  run(p, 0.5);
+  assert.ok(p.swim);
+  p.swim.k = 1;
+  p.pos.set(-28, 6, 0);   // (as if carried: no teleport() to clear it)
+  run(p, 0.1);
+  assert.ok(!p.swim && p.pos.y > 0.5, `not pulled back down to the water: ${p.pos.toArray()}`);
+});

@@ -668,6 +668,7 @@ export class Player {
     this.onGround = false;
     this.climbing = false;
     this.mantle = null;   // (a climb onto a ledge in progress would pull you back to it)
+    this.swim = null;     // (swim.js finds the water again if there is some here)
     this.lastSafe.copy(pos);
   }
 

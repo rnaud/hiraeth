@@ -135,7 +135,7 @@ export function swimFrame(P, dt, input, camYaw, { f = 0, s = 0, run = false, sti
   if (!P.water || U.y < 0.99) { P.inWater = null; if (P.swim) leaveSwim(P, 'gone'); return false; }   // (water lies flat under ordinary gravity only)
   const w = waterHere(P);
   P.inWater = w;
-  if (!w) { if (P.swim) leaveSwim(P, 'gone'); breathe(P, dt, false); return false; }
+  if (!w || (P.swim && w.over < 0.3)) { if (P.swim) leaveSwim(P, 'gone'); breathe(P, dt, false); return false; }   // (out of it: teleported, carried off)
   if (!P.swim) {
     if (!shouldFloat(w, { onGround: P.onGround, vy: P.vel.y })) { P.wadeSlow = wadeFactor(w); breathe(P, dt, false); return false; }
     enterSwim(P, w);

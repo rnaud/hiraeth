@@ -167,7 +167,7 @@ export function createLab(scene) {
     hub.add(water);
     const label = new THREE.Mesh(textGeometry('water', { width: 3.2, depth: 0.03 }), ink);
     label.position.set(x0 - 1, 4.25, PZ + 4.5);
-    label.rotation.set(-Math.PI / 2, 0, Math.PI / 2);
+    label.rotation.set(-Math.PI / 2, 0, -Math.PI / 2);   // (read from the ramp)
     hub.add(label);
   }
   // ---- a cloud: lobes in flat white, floating over the start of the row
