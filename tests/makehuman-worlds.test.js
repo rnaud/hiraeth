@@ -299,3 +299,12 @@ test('Vael\'s people are MakeHuman bodies: Tam, who copies you, a boy of seven',
   const npc = readFileSync(new URL('../src/npc.js', import.meta.url), 'utf8');
   assert.match(npc, /age: s\.age \?\? null, years: s\.years \?\? null/, 'a spawn spot gives its age');
 });
+
+test('Vael II\'s people are MakeHuman bodies: Tiv a novice of ten, Mother Ysolde old, in her spectacles', async () => {
+  assert.ok(MH_WORLDS.has('arzach2'));
+  const { PEOPLE } = await import('../src/story/arzach2-data.js');
+  assert.equal(ageClassOf({ def: PEOPLE.tiv }), 'child');
+  const tiv = onBody('arzach2', PEOPLE.tiv);
+  assert.ok(tiv.height > 1.2 && tiv.height < 1.5, `Tiv ${tiv.height.toFixed(2)} m`);
+  assert.equal(onBody('arzach2', PEOPLE.ysolde).look.mask, 'glasses');
+});
