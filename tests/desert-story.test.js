@@ -280,7 +280,7 @@ test('a new game steps out with a bare back to a cold tree: no flame, no smoke, 
   assert.equal(quests.current('desert.power').label, 'The ledge on the tree');
 });
 
-test('the makers’ chest is on its ledge up the tree; opening it gathers Qanat at the foot, flares the tree and brings Nour', async () => {
+test('the makers’ chest is on its ledge up the tree; opening it (its tank empty) gathers Qanat at the foot and brings Nour', async () => {
   const { items } = await import('../src/items.js');
   const { createBoxes } = await import('../src/boxes/index.js');
   const boxes = createBoxes({ levelId: 'desert', scene, physics, level, player, quests });
@@ -290,11 +290,11 @@ test('the makers’ chest is on its ledge up the tree; opening it gathers Qanat 
   assert.ok(quests.objective().position.distanceTo(box.pos) < 0.01, 'the marker stands on the box');
   const W = rt.world, nour = W.people.nour;
   assert.ok(nour.seat !== null && nour.pos.distanceTo(L.bench.at) < 0.5, 'Nour sits on her bench under the ledge');
-  // first sight of it: the people on the terrace turn and murmur, the tree flares
+  // first sight of it: the people on the terrace turn and murmur (the tree's flare: it shows once the tree burns)
   W.state.flare = 0;
   at(Q.city.stairTop); step(40);
   assert.ok(W.ledge.noticed, 'the chest is noticed');
-  assert.ok(W.state.flare > 0.5, 'the tree flares');
+  assert.ok(W.state.flare > 0.5, 'the tree notices');
   assert.ok([...W.villagers, W.people.hessa].some((n) => n.shout && /sky|hum|fell|tree|Grandmother/.test(n.shout.text)), 'a murmur');
   // Nour, before it opens: it has not opened in living memory; it opens for one who fell from the sky
   const before = talk(PEOPLE.nour, []);
