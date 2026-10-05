@@ -38,7 +38,7 @@ namespace Memento
         public Dictionary<string, object> Level => World?.O("level");
         public string Id => Level?.S("id") ?? folder;
 
-        public static string DataPath(string folder) => Path.Combine(Application.streamingAssetsPath, folder);
+        public static string DataPath(string folder) => DataFiles.PathOf(folder);   // (StreamingAssets, or the copy out of it: DataFiles.cs)
         public static bool Exported(string id) => File.Exists(Path.Combine(DataPath(id), "world.json"));
 
         /// <summary>Copy `bytes` bytes at `at` (world.bin; a negative offset: the shared store) into `dst`.</summary>

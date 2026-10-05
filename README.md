@@ -2788,6 +2788,27 @@ beside it (the details, how to run it and what is missing: `unity/README.md`).
 - The project carries the Unity side of MCP for Unity (CoplayDev) so an MCP client can drive
   the editor; see `unity/README.md`.
 
+### Web or Unity: the benchmark (`scripts/bench/`)
+The same desert measured on three sides, to decide on numbers: this game in Chrome, the Unity port
+as a macOS player, and the port's WebGL (WebGPU) build. Results and the reading of them:
+`docs/benchmark-web-vs-unity.md`.
+- **Viewpoints, once for all sides** (`viewpoints.mjs` → `viewpoints.json`, built from the desert
+  itself): the spawn, Qanat by the tree, the camps, the dune vista, the cave, and two paths (riding
+  through the gate into Qanat, walking round the camps), each with the traveller's place, the eye,
+  the target and the fov; the hour and the weather fixed.
+- **The web side** (`web-bench.mjs`, `web-page.mjs`, `browser.mjs`): real Chrome on the GPU (ANGLE
+  Metal, checked), no vsync or frame-rate limit; requestAnimationFrame is wrapped to time each
+  frame, its JavaScript and (EXT_disjoint_timer_query) its GPU commands; the camera pinned through
+  `updateMatrixWorld`, the HUD hidden; nothing in `src/` changes. **The Unity side**: the players'
+  benchmark mode (`unity/Memento/Assets/Memento/Runtime/Bench.cs`).
+- **Fair conditions**: the same pixels (device scale 1; High at render scale 1.0, Handheld at 0.75
+  without dynamic resolution, URP the same), the presets mapped (the table in the report), the
+  quiet-machine gate before and during every run (no Unity editor or job, no other automated
+  browser or build, low load, AC power), runs alternating over three rounds, the paths again at
+  60 Hz for the stutter.
+- `mac-run.sh` runs it all and rewrites the report; `android-run.sh` does the handheld (the APK
+  `com.rnaud.memento.unity` and the game in the device's Chrome, never the app `com.rnaud.moebius`).
+
 ### Home: two houses you walk into, a garden, Lou, Tove and the dog
 - **The place** (`src/levels/home.js`, `home-houses.js`, `home-garden.js`, `home-drawings.js`):
   the round house (the parents') now has a doorway cut through its dome (`domeShell` drops the

@@ -9,3 +9,7 @@ output/character-tripo/
 
 handheld-perf.jsonl
 .DS_Store
+
+# the benchmark's full runs (per-frame lists) and browser profiles (scripts/bench/run-all.mjs)
+scripts/bench/results/raw/
+.chrome-*/

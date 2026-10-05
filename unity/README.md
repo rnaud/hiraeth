@@ -584,27 +584,56 @@ writes the player's back buffer itself (`_TargetFlip`).
 |---|---|
 | ![](docs/build-title.jpg) the build's title | ![](docs/build-desert.jpg) out of the ship |
 
-### What an Android build would need
+### The Android build and the WebGL build (`Editor/BenchBuild.cs`)
 
-- The editor's Android Build Support module (SDK, NDK, OpenJDK) from the Hub
-  (only macOS and WebGL support are installed here), IL2CPP for ARM64, Vulkan
-  first (the instanced crowd, puffs and wildlife read structured buffers in the
-  vertex shader, which many GLES drivers do not allow).
-- The export out of `StreamingAssets`: on Android those files sit inside the
-  APK, where `File.ReadAllBytes` and `Directory.GetFiles` cannot reach them
-  (`WorldLoader`, `Sounds`, `FigureLibrary` read them so). Copy them out to
-  `persistentDataPath` on the first run (UnityWebRequest), or ship them as a Play
-  Asset Delivery install-time pack: at about 430 MB the export is far over the
-  base APK's limit. A lighter export (the static world's far tiles merged or
-  dropped, the people's clips at 15 fps) would help the handhelds' memory too.
-- The G-buffer's normal + depth target is RGBA32F: on mobile GPUs a half-float
-  normal with depth in its own R32F target would halve the bandwidth.
-- Fonts: Menlo and Avenir Next are Apple's; `Ui` falls back to Roboto and
-  Droid Sans Mono, or a bundled open font (e.g. JetBrains Mono, Jost) could be
-  shipped in the project for the same look everywhere.
-- The pad's prompts in the handheld's names (the web's `native-pad.js` rewrite)
-  and the Android back button as B / ○.
+```sh
+scripts/unity-export/unity-batch.sh BenchBuild.Android   # Builds/Android/memento-unity.apk (about 135 MB)
+scripts/unity-export/unity-batch.sh BenchBuild.WebGL     # Builds/WebGL (WebGPU), served by scripts/bench/serve.mjs
+scripts/unity-export/unity-batch.sh BenchBuild.Mac       # Builds/macOS-bench/Memento.app, frame timing on (-development for the profiler markers)
+```
+
+- **Android**: package `com.rnaud.memento.unity` ("Memento (Unity)"), never the
+  web app's `com.rnaud.moebius`, so both install side by side; debug-signed,
+  IL2CPP ARM64, Vulkan first with GLES3 behind it (the instanced crowd, puffs and
+  wildlife read structured buffers in the vertex shader, which many GLES drivers
+  do not allow), landscape, engine code not stripped (the game adds components no
+  scene holds: a stripped `SphereCollider` comes back null). Built here, not yet
+  run on a device.
+- **The export in a package** (`DataFiles.cs`): inside an APK (and on a WebGL
+  server) `File.ReadAllBytes` can't reach StreamingAssets, so the first launch
+  copies the export out to the app's files (`persistentDataPath/data`; WebGL: the
+  in-memory `/tmp`), once per build (a manifest with the build's id), and the
+  loaders read from there (`WorldLoader.DataPath`, `Sounds`, `Characters.AnimPath`
+  all go through `DataFiles.Root`; on the desktop it is StreamingAssets itself).
+  The full desert travels, not a reduced one, so the handheld runs what the Mac
+  runs: in the APK `world.bin` and `world.json` are gzipped (439 → 65 MB; named
+  `.gzip`, since the Android Gradle plugin gunzips `.gz` assets as it packs them)
+  and inflated on the way out; the characters and sounds go as they are. The APK
+  is about 135 MB and the copy about 490 MB on the device. (A Play Asset Delivery
+  pack would be the store's way; for a sideloaded APK this is simpler.)
+- **WebGL** uses WebGPU (WebGL 2 has no structured buffers in the vertex
+  shader), no compression (the bench server is local), up to 4 GB of heap; the
+  export is fetched and written to the in-memory file system at start.
+- Still open on Android: the G-buffer's normal + depth target is RGBA32F (on
+  mobile GPUs a half-float normal with depth in its own R32F target would halve
+  the bandwidth); fonts (Menlo and Avenir Next are Apple's, `Ui` falls back to
+  Roboto and Droid Sans Mono, or ship an open font); the pad's prompts in the
+  handheld's names (the web's `native-pad.js` rewrite) and the back button as B / ○.
 - The web game's Capacitor app (`android/`) is a separate thing and stays as it is.
+
+### The benchmark mode (`Runtime/Bench.cs`)
+
+With `-bench` on the command line (the Mac player), in the intent's `unity` extra
+(Android: `am start -n com.rnaud.memento.unity/com.unity3d.player.UnityPlayerGameActivity
+-e unity '-bench -benchPreset handheld'`) or `?bench` in the page's address
+(WebGL), the player starts a new game past the prologue, hides its canvases, fixes
+the hour and the weather, turns vSync off (`-benchVsync`: on) and visits the
+viewpoints and paths of `scripts/bench/viewpoints.json` (the web side visits the
+same), timing every frame with `FrameTimingManager` and the render and memory
+counters (`ProfilerRecorder`), then writes one JSON file and quits. `-benchPreset
+handheld` maps the web's Handheld preset onto URP (render scale 0.75, two
+cascades, no cloud shadows). The comparison itself, its scripts and its results:
+`docs/benchmark-web-vs-unity.md`.
 
 ## What is missing (next steps)
 
@@ -622,8 +651,8 @@ writes the player's back buffer itself (`_TargetFlip`).
 - **The people**: a few seated people stand (their seat); the far figures have no brows.
 - **The desert's smaller things**: the errands of the people near the start (`quest.js` Errands),
   the cactus spines, the sand puffs of the drum and the mask; the story's intro pages.
-- **Not ported**: the dev menu, an Android build (what it would need: above; the exports are now
-  3.6 GB: an install-time asset pack per world, or streamed). The standalone build still packs the
+- **Not ported**: the dev menu; the Android build carries only the desert (built, not yet run on a
+  device: above; with every world the exports are 3.6 GB: an install-time asset pack per world, or streamed). The standalone build still packs the
   desert scene (every world's export travels in its StreamingAssets). Mouse clicks on the menus.
 
 ## Connecting an MCP client to the editor
