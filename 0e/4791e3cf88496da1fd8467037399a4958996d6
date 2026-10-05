@@ -1,0 +1,135 @@
+LORE.md
+  s_1fd8d0e7b02dcf::t_a688b0478bb27e 20,74-76,79-81,174-176,180,205,236-237,253,280-291,294-297,388-392,425-427,479-483,529,532,540-542,553-556,564,572-575,581-639,647,649,673-674,702,709-712,717-726,734,825,830,834-940,945-952
+README.md
+  s_1fd8d0e7b02dcf::t_b699fbd9a316ac 2614-2690
+TODO.md
+  s_1fd8d0e7b02dcf::t_3126df75998f47 234,340
+changelog.md
+  s_1fd8d0e7b02dcf::t_a5555cc55e7ac7 5-17
+docs/story-bible.md
+  s_1fd8d0e7b02dcf::t_f89926a840037f 171,230-235,307-314,316-325,333-335,383,390-391,398-403,407-408
+index.html
+  s_1fd8d0e7b02dcf::t_9d39f6a14dd084 282-287
+src/audio.js
+  s_1fd8d0e7b02dcf::t_6b1606f1c87751 698-717
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_6753aeb9942ae7 6-17
+src/desert-sites.js
+  s_1fd8d0e7b02dcf::t_313df93063924f 34
+src/game-state.js
+  s_1fd8d0e7b02dcf::t_9e93cd1bf7dd82 57,68,96
+src/items.js
+  s_1fd8d0e7b02dcf::t_6f8150bef95aa3 72
+src/levels/arzach2.js
+  s_1fd8d0e7b02dcf::t_07c47d17994310 67
+src/levels/atelier.js
+  s_1fd8d0e7b02dcf::t_6ecd67e6da19db 7-10
+src/levels/buried.js
+  s_1fd8d0e7b02dcf::t_6901ae5940e587 572-573,584-588,598,954-955
+src/levels/content.js
+  s_1fd8d0e7b02dcf::t_42eca50126e251 131,226
+src/levels/edena.js
+  s_1fd8d0e7b02dcf::t_84649810ce0823 66-73,577
+src/levels/incal.js
+  s_1fd8d0e7b02dcf::t_6895d1511bb6be 32-33,644-704,943
+src/levels/index.js
+  s_1fd8d0e7b02dcf::t_c6dc21e4df39d2 89
+src/main.js
+  s_1fd8d0e7b02dcf::t_3c951cafb75721 408-409
+src/save-migrate.js
+  s_1fd8d0e7b02dcf::t_ab3954c0f3c9f4 1-64
+src/story/arzach2-data.js
+  s_1fd8d0e7b02dcf::t_645288f1986f9a 23-25,58-59,84,105-109,204,228,245-247,249-256,274-297
+src/story/arzach2.js
+  s_1fd8d0e7b02dcf::t_c8eb71872dfb8d 4-6,15-16,19-22,33-35,96-245,256,258-304,312,314,454,457-459,464-488,527
+src/story/bazaar-data.js
+  s_1fd8d0e7b02dcf::t_75a8c85757fdb8 135,141,146,221,389,407
+src/story/bazaar.js
+  s_1fd8d0e7b02dcf::t_984ae5729195c7 190
+src/story/buried-data.js
+  s_1fd8d0e7b02dcf::t_858ba23ed34210 49-51,147,167,226-229,265,379-390
+src/story/buried.js
+  s_1fd8d0e7b02dcf::t_3b6a0dc835ee7a 17-19,30-31,41-43,73,81,89-90,267-301,307-308,310,312-345,349,353-354,415-423
+src/story/calls.js
+  s_1fd8d0e7b02dcf::t_63a79fd5a985fc 103-105,150-151,153-156,163,268,313-322,467-468
+src/story/charge.js
+  s_1fd8d0e7b02dcf::t_02f23473b23701 10-13,37,41,72,77
+src/story/desert-data.js
+  s_1fd8d0e7b02dcf::t_b4829c4ce093c9 64-66,80,102-103,173,377,501,585-605,662,678-679
+src/story/desert-errands.js
+  s_1fd8d0e7b02dcf::t_86235c632f27d8 1-287
+src/story/desert.js
+  s_1fd8d0e7b02dcf::t_4b9ec69447bb9a 13,48-50,214-217,601-602,606
+src/story/dialogue.js
+  s_1fd8d0e7b02dcf::t_7554621b4892b0 30,33,68,89
+src/story/edena-data.js
+  s_1fd8d0e7b02dcf::t_34e5c523d2afd9 7-8,18-26,28-31,64-86,105-106,113-127,171,188-191,193-203,211,214,219,250,267,292,296,309,337-426,432,438,440,442
+src/story/edena.js
+  s_1fd8d0e7b02dcf::t_4bc904d876a285 8-9,17-18,48,154-159,206-207,210
+src/story/garage-data.js
+  s_1fd8d0e7b02dcf::t_2e87b907e47d82 96,157,159,178,217,290,302
+src/story/incal-data.js
+  s_1fd8d0e7b02dcf::t_a64f5f756ee085 23,46-47,192,235,252-254,256,259-262,439-453
+src/story/incal.js
+  s_1fd8d0e7b02dcf::t_a8256fb200e7bf 125-227,404-405,421
+src/story/perdide-data.js
+  s_1fd8d0e7b02dcf::t_aaf84d88a0cc16 179,191,298,312-321,364
+src/story/perdide.js
+  s_1fd8d0e7b02dcf::t_2264c7e7a4330d 67
+src/story/perdide2-data.js
+  s_1fd8d0e7b02dcf::t_9acb4b67afe5b8 4-11,17-21,23-25,52,60,73,92,109,125,147,152,173-175,177-186,212,216-217,262,272,280,286-296,298-299,313
+src/story/perdide2.js
+  s_1fd8d0e7b02dcf::t_6b99c4064d0f7d 14-16,18-19,30-32,39,53,107-108,211-434,449-450,514-515,519
+src/story/quests.js
+  s_1fd8d0e7b02dcf::t_215c141ec4f396 23,36-42,45,69-72,77,100,105-106,109,111-112,115-116,118,132,201-202,205-208,212,215,220
+src/story/spheres-data.js
+  s_1fd8d0e7b02dcf::t_b1593782590475 70,158,162,227
+src/story/spheres.js
+  s_1fd8d0e7b02dcf::t_e4a44744b94137 47
+src/story/terraces.js
+  s_1fd8d0e7b02dcf::t_2d312dbe399ead 1-471
+src/story/water-clock.js
+  s_1fd8d0e7b02dcf::t_b4d1058cd00da0 1-98
+tests/desert-errands.test.js
+  s_1fd8d0e7b02dcf::t_19b510655214ef 1-220
+tests/desert-story.test.js
+  s_1fd8d0e7b02dcf::t_92d7ed6a8717fd 432-442,472-475
+tests/fetch-puzzles-perdide2.test.js
+  s_1fd8d0e7b02dcf::t_6049c8a85e06f5 1-81
+tests/incal-hoist-save.test.js
+  s_1fd8d0e7b02dcf::t_301224957fb1e9 1-71
+tests/incal-hoist.test.js
+  s_1fd8d0e7b02dcf::t_bc63a9513e0b50 1-134
+tests/save-migrate.test.js
+  s_1fd8d0e7b02dcf::t_3eb04948daa279 1-57
+tests/story-arzach2.test.js
+  s_1fd8d0e7b02dcf::t_3d5e2c7d67760f 17-18,65,128-138,176-218,220-222,246-270
+tests/story-buried.test.js
+  s_1fd8d0e7b02dcf::t_a668d95a44ce3e 16,18,158-204,207-210,263-277
+tests/story-edena.test.js
+  s_1fd8d0e7b02dcf::t_043465a9949da1 68
+tests/story-incal.test.js
+  s_1fd8d0e7b02dcf::t_706ccad5a2c3de 202-214
+tests/story-perdide.test.js
+  s_1fd8d0e7b02dcf::t_4240d7472dbd28 73
+tests/story-perdide2.test.js
+  s_1fd8d0e7b02dcf::t_38f6ab0b76ed3d 70,102-131,133-134,137,197,199-254
+tests/story-terraces.test.js
+  s_1fd8d0e7b02dcf::t_08e3a69aebb61e 1-215
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0e4791e3cf88496da1fd8467037399a4958996d6",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
