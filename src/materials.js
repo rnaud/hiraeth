@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { PORTRAIT_GLSL } from './face.js';
+import { FACE_INK_GLSL, FACE_FLAT_GLSL } from './face-ink.js';
 import { EYE_TILT } from './eyes.js';
 import { CREASE_GLSL } from './creases.js';
 import { BIOME_GLSL } from './biome.js';
@@ -396,9 +397,9 @@ const fragmentShader = /* glsl */ `
   ${TRIM_GLSL}
   uniform vec4 uFace;     // eyeY, eyeX, noseY, chinY (rest pose)
   uniform vec4 uMood;     // the face's expression (src/expression.js): smile -1..1, mouth open 0..1, brow -1 (furrow)..1 (raise), squint 0..1
-  uniform vec4 uMood2;    // x: brow tilt -1 (inner ends down)..1 (up); yzw spare
+  uniform vec4 uMood2;    // x: brow tilt -1 (inner ends down)..1 (up); y: the nose line's side (+1 the +x side: the shade's); zw spare
   uniform vec4 uFaceKit;  // the face's drawing (src/morph.js FACE_MORPHS): age lines, mouth width, freckles, lid line weight (neutral 1, 1, 0, 1)
-  uniform vec4 uFaceKit2; // x: eye size (the lids' size, with the warped eyes); yzw spare
+  uniform vec4 uFaceKit2; // x: eye size (the lids' size, with the warped eyes), y: nose width, z: cheeks (-1 hollow .. 1 full), w: the ears' bind z
   uniform vec4 uEyeC;     // MODE_EYE: eyeball centre (|x|, y, z, bind space), w = the iris radius on the unit eye
   uniform vec4 uEyeR;     // MODE_EYE: eyeball radii: x, above the centre, below it, z
   uniform vec4 uEyeLook;  // MODE_EYE: where the eyes look (unit, bind space; +z ahead), w = blink (0 open, 1 shut)
@@ -722,62 +723,9 @@ const fragmentShader = /* glsl */ `
     return length(p - a - ab * t);
   }
 
-  // Moebius face ink, in rest-pose face coordinates (q.x = |x|, q.y = y - eyeY):
-  // heavy upper lids, bags under the eyes, a frown crease, the nose bridge,
-  // nose-to-mouth folds, cheekbones and the mouth line. fwq = metres per pixel.
-  float faceInk(vec2 q, float fwq, float frontal) {
-    float e = uFace.y, ny = uFace.z - uFace.x, cy = uFace.w - uFace.x;
-    // the expression (all 0 / the kit at 1, 1, 0, 1: the face as it always was)
-    float smile = uMood.x, gape = uMood.y, brow = uMood.z, squint = uMood.w, tilt = uMood2.x;
-    float lines = uFaceKit.x, es = uFaceKit2.x, fs = max(smile, 0.0);
-    float fine = 1.0 - smoothstep(0.0004, 0.0009, fwq);   // small marks only on a face big on screen
-    // the upper lid: squinting lowers and flattens it, a raised brow lifts it a little
-    vec2 lid = (q - vec2(e, 0.004 * es - 0.0035 * squint + 0.0012 * max(brow, 0.0))) / (vec2(0.017, 0.008 * (1.0 - 0.35 * squint)) * es);
-    float m = 0.0;
-    float dLid = abs(length(lid) - 1.0) * 0.008 * es;
-    m = max(m, inkLine(dLid / fwq, uFaceKit.w) * step(0.0, lid.y + 0.25) * step(abs(lid.x), 1.1));
-    // the bags under the eyes: pushed up by a smile or a squint
-    float lift = 0.0025 * fs + 0.002 * squint;
-    vec2 bag = (q - vec2(e + 0.002, -0.006 * es + lift)) / (vec2(0.014, 0.006) * es);
-    m = max(m, inkLine(abs(length(bag) - 1.0) * 0.006 * es / fwq, 0.7) * step(bag.y, -0.35) * min(0.45 * lines + 0.35 * fs + 0.3 * squint, 1.0));
-    m = max(m, inkLine(segDist(q, vec2(0.02 + 0.002 * fs, ny - 0.002), vec2(0.034 + 0.006 * fs, ny - 0.04 + 0.006 * fs)) / fwq, 0.8) * min(0.7 * lines + 0.4 * fs, 1.0)); // fold
-    m = max(m, inkLine(segDist(q, vec2(0.042, -0.018), vec2(0.064, -0.036)) / fwq, 1.0) * min(0.8 * lines, 1.0));    // cheekbone
-    // the mouth: a line whose corners rise with a smile (drop when sad), opening into a dark shape
-    float my = ny + (cy - ny) * 0.42;
-    float hw = 0.019 * uFaceKit.y * (1.0 + 0.1 * smile);
-    // (a curve y = my + 0.002 u + bend u², u = x / hw: neutral, the straight stroke it always was)
-    float mu = min(q.x / hw, 1.0), bend = smile * 0.0075;
-    float mSlope = (0.002 + 2.0 * bend * mu) / hw;
-    vec2 mEnd = vec2(hw, my + 0.002 + bend);
-    float dMouth = q.x < hw ? abs(q.y - (my + 0.002 * mu + bend * mu * mu)) / sqrt(1.0 + mSlope * mSlope) : length(q - mEnd);
-    m = max(m, inkLine(dMouth / fwq, 1.0 + 0.5 * abs(smile)));           // mouth
-    if (gape > 0.001) {
-      float oh = gape * 0.0085;
-      vec2 o = (q - vec2(0.0, my + smile * 0.0012 - oh * 0.85)) / vec2(hw * (0.78 - 0.18 * gape), oh);
-      m = max(m, 1.0 - smoothstep(1.0 - fwq / oh, 1.0 + fwq / oh, length(o)));
-      m = max(m, inkLine(segDist(q, vec2(0.0, my - oh * 2.2 - 0.002), vec2(hw * 0.4, my - oh * 2.1 - 0.0015)) / fwq, 0.8) * 0.6 * fine);   // the lower lip
-    }
-    m = max(m, inkLine(segDist(q, vec2(0.0, cy + 0.012), vec2(0.008, cy + 0.011)) / fwq, 1.0) * 0.6); // chin cleft
-    // the brow: frown creases between the brows; lines across the forehead when raised or worried
-    float fur = max(-brow, 0.0) + max(-tilt, 0.0) * 0.5;
-    m = max(m, inkLine(segDist(q, vec2(0.0065, 0.013), vec2(0.0045, 0.029)) / fwq, 0.8) * min(fur * 1.2, 1.0) * fine);
-    float up = max(brow, 0.0) + max(tilt, 0.0) * 0.6;
-    for (int i = 0; i < 3; i++) {
-      float w = 0.034 - float(i) * 0.005 - max(tilt, 0.0) * 0.012;
-      float u = q.x / w, y0 = 0.045 + float(i) * 0.0075 - 0.003 * u * u;
-      m = max(m, inkLine(abs(q.y - y0) / fwq, 0.7) * (1.0 - smoothstep(0.6, 1.0, u)) * min(up * (1.2 - float(i) * 0.3), 1.0) * fine * 0.8);
-    }
-    // freckles: a dusting of dots over the cheeks and the bridge of the nose (seeded by the real x: not mirrored)
-    if (uFaceKit.z > 0.0) {
-      vec2 fc = vec2(vBind.x, q.y) / 0.0042, id = floor(fc), f = fract(fc) - 0.5;
-      float h = fract(sin(dot(id, vec2(12.9898, 78.233))) * 43758.5453);
-      vec2 jit = vec2(fract(h * 17.0), fract(h * 31.0)) - 0.5;
-      float region = exp(-pow((q.x - 0.043) / 0.022, 2.0) - pow((q.y + 0.017) / 0.012, 2.0)) + 0.7 * exp(-pow(q.x / 0.01, 2.0) - pow((q.y + 0.014) / 0.01, 2.0));
-      float dotK = 1.0 - smoothstep(0.1, 0.1 + max(fwq / 0.0042, 0.05), length(f - jit * 0.5));
-      m = max(m, dotK * step(1.0 - uFaceKit.z * min(region, 1.0) * 0.8, h) * fine * 0.6);
-    }
-    return m * frontal;
-  }
+  // the people's faces (src/face-ink.js)
+  ${FACE_INK_GLSL}
+  ${FACE_FLAT_GLSL}
 
   ${PORTRAIT_GLSL}
   ${CREASE_GLSL}
@@ -800,7 +748,10 @@ const fragmentShader = /* glsl */ `
     // (the model's lids open on the lower part of the ball: from d.y 0.15 down to -0.55)
     float lid = mix(0.18, -0.62, uEyeLook.w), dy = d.y - lid, fy = max(fwidth(d.y), 1e-4);
     c = mix(c, skin, smoothstep(-fy * 0.5, fy * 0.5, dy));
-    c = mix(c, EYE_INK, (1.0 - smoothstep(fy * 0.7, fy * 1.7, abs(dy))) * step(0.02, uEyeLook.w));
+    // the lash line: a crisp pen line along the lid's edge (Moebius' heavy upper lid), heavier
+    // toward the outer corner, coming down with the lid as they blink
+    float lash = fy * uPixelRatio * (1.3 + 0.6 * smoothstep(-0.6, 0.8, d.x * side));
+    c = mix(c, EYE_INK, (1.0 - smoothstep(lash - fy * 0.6, lash + fy * 0.6, -dy)) * step(dy, fy * 0.5));
     return c;
   }
   #ifdef CROWD
@@ -1259,8 +1210,10 @@ const fragmentShader = /* glsl */ `
       detail = max(detail, creases * max(max(elbow * arm, knee), waist) * 0.85 * (1.0 - smoothstep(0.05, 0.2, fu)));
     }
     if (uMode == ${MODE_OUTFIT} && vBind.y > uOutfit.z && abs(vBind.x) < 0.16) {
-      float frontal = smoothstep(0.15, 0.45, normalize(vObjNormal).z);
-      detail = max(detail, faceInk(vec2(abs(vBind.x), vBind.y - uFace.x), fwBind * uPixelRatio, frontal));
+      vec3 nb = normalize(vObjNormal);
+      float frontal = smoothstep(0.15, 0.45, nb.z);
+      // (over 1: a pen line, drawn darker than the other drawn detail by post.js)
+      detail = max(detail, 2.0 * faceInk(vec2(abs(vBind.x), vBind.y - uFace.x), fwBind * uPixelRatio, frontal, clamp((uToon - L) / uToon, 0.0, 1.0), nb));
     }
     detail = max(detail, patInk);
     gHatch.b = detail;
@@ -1290,6 +1243,9 @@ const fragmentShader = /* glsl */ `
       }
       gHatch.rg = vec2(h1, h2);
     }
+    // a face is flat colour and one shadow tone: its strokes are its own (faceInk)
+    if (uMode == ${MODE_OUTFIT}) gHatch.rg *= 1.0 - faceFlat(vBind);
+    else if (uMode == ${MODE_EYE}) gHatch.rg = vec2(0.0);
     #ifdef GRASS
       gHatch.rgb = vec3(0.0);            // blades: no hatching, no drawn detail
       gHatch.a += 8.0 * vGrassSoft;      // soft ink: post.js draws their edges as a darker green, thin
@@ -1391,9 +1347,9 @@ export function makeMaterial(o) {
       uTrim: { value: new THREE.Vector4(...(o.trim ?? [0, 0, 0, 0])) },
       uFace: { value: new THREE.Vector4(...(o.face ?? [1.7, 0.032, 1.657, 1.577]).filter((_, i) => i !== 3)) },
       uMood: { value: new THREE.Vector4(0, 0, 0, 0) },
-      uMood2: { value: new THREE.Vector4(0, 0, 0, 0) },
+      uMood2: { value: new THREE.Vector4(0, 1, 0, 0) },   // x brow tilt, y the side the nose line goes on (the shade's)
       uFaceKit: { value: new THREE.Vector4(1, 1, 0, 1) },
-      uFaceKit2: { value: new THREE.Vector4(1, 0, 0, 0) },
+      uFaceKit2: { value: new THREE.Vector4(1, 1, 0, -0.03) },   // eye size, nose width, cheeks, the ears' z
     },
   });
   mat.vertexColors = !!o.vertexColors;

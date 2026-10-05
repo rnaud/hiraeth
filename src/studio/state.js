@@ -23,9 +23,9 @@ export const DEFAULTS = Object.freeze({
   // cloth
   cape: true, wind: 0.6,
   // the view
-  view: 'full',          // full | bust | face | far
+  view: 'full',          // full | bust | face | close | far
   turntable: false, yaw: 0.35, pitch: 0.05,
-  lineup: '',            // '' | cast | crowd
+  lineup: '',            // '' | cast | crowd | faces (the traveller and someone of every world)
   count: 6,
   twin: false,           // the GPU crowd figure of this person beside them
   // light and ink (hour -1: the world's own hour)

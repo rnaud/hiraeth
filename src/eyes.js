@@ -50,10 +50,11 @@ export const EYE_GLSL = /* glsl */ `
     float cover = 1.0 - smoothstep(1.0 - aa, 1.0 + aa * 0.5, r);
     // small: one dot, darker than the iris; close: the iris colour, its rim darker
     vec3 c = mix(mix(iris, EYE_INK, 0.6), iris, near);
-    c = mix(c, c * 0.62, smoothstep(0.68, 0.96, r) * near);
-    // the pupil, and the highlight on its upper edge (toward the viewer's left)
-    c = mix(c, EYE_INK, (1.0 - smoothstep(0.44 - aa, 0.44 + aa, r)) * near);
-    float hl = 1.0 - smoothstep(0.16 - aa, 0.16 + aa, length(e - vec2(-0.28, 0.3)));
+    // a flat colour ringed by a crisp darker line (a pen circle), as Moebius draws an iris
+    c = mix(c, mix(iris, EYE_INK, 0.72), smoothstep(0.8 - aa, 0.8 + aa, r) * near);
+    // the pupil, a round dot, and a small highlight on its upper edge (toward the viewer's left)
+    c = mix(c, EYE_INK, (1.0 - smoothstep(0.4 - aa, 0.4 + aa, r)) * near);
+    float hl = 1.0 - smoothstep(0.12 - aa, 0.12 + aa, length(e - vec2(-0.27, 0.3)));
     c = mix(c, white, hl * smoothstep(4.0, 7.0, rpx));
     return vec4(c, cover);
   }

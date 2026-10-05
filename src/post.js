@@ -597,7 +597,9 @@ const fragmentShader = /* glsl */ `
       H.b *= mix(1.0, heroDetail, hero) * innerK;
       hFade *= innerK;
       // drawn detail lines: grids, glyphs, ripples, cracks, fissures (independent of the marks toggle)
-      col = mix(col, uInk, clamp(H.b, 0.0, 1.0) * mix(0.6, 0.88, hero) * (1.0 - smoothstep(120.0, 600.0, depth)));
+      // (a value over 1 is a pen line, the faces' (materials.js faceInk): darker, up to 0.92 at 2)
+      float drawnK = mix(0.6, 0.88, hero);
+      col = mix(col, uInk, (clamp(H.b, 0.0, 1.0) * drawnK + clamp(H.b - 1.0, 0.0, 1.0) * (0.92 - drawnK)) * (1.0 - smoothstep(120.0, 600.0, depth)));
       if (hFade > 0.0 && uHatchScreen < 0.5) {
         col = mix(col, uInk, clamp(max(H.r, H.g), 0.0, 1.0) * hFade * 0.55);
       } else if (hFade > 0.0) {

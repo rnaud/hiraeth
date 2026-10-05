@@ -22,6 +22,9 @@ const DATA = {
   bazaar: () => import('../story/bazaar-data.js'),
 };
 
+/** The worlds with story people, in the order of the faces lineup (studio: Lineup → every world's faces). */
+export const STORY_WORLDS = Object.keys(DATA);
+
 /** People in a story data module: every exported person (an id, a name and a body), not the things. */
 export function peopleIn(mod) {
   const out = [], seen = new Set();
