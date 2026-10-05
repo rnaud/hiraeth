@@ -211,7 +211,7 @@ export class TempleKit {
   }
   /**
    * A round hall centred on (x, z), floor at y, radius r, h high: a polygonal wall
-   * of `seg` stones with gaps [{ a: angle (0 = +z, toward +x), w, h }], and an
+   * of `seg` stones with gaps [{ a: angle (0 = +z, toward +x), w, h, y0 }], and an
    * annular ceiling round an oculus (oculus: its radius as a share of r; 0 shuts it).
    */
   rotunda({ x = 0, z = 0, y = 0, r, h, gaps = [], seg = 28, t = 1.4, oculus = 0.38, floor = true, frieze = true }) {
@@ -221,9 +221,10 @@ export class TempleKit {
       const a = (i + 0.5) * step;
       const px = x + Math.sin(a) * (r + t / 2), pz = z + Math.cos(a) * (r + t / 2);
       // a gap: this stone is cut from the floor to the gap's height
+      // a gap: this stone is cut from the gap's foot (y0, default the floor) to its top
       const gap = gaps.find((g) => Math.abs(Math.atan2(Math.sin(a - g.a), Math.cos(a - g.a))) * (r + t / 2) < g.w / 2);
-      const y0 = gap ? gap.h : 0;
-      if (h - y0 > 0.05) this.both(this.M.wall, T(new THREE.BoxGeometry(chord, h - y0, t), [px, y + y0 + (h - y0) / 2, pz], [0, a, 0]));
+      const spans = gap ? [[0, gap.y0 ?? 0], [(gap.y0 ?? 0) + gap.h, h]] : [[0, h]];
+      for (const [s0, s1] of spans) if (s1 - s0 > 0.05) this.both(this.M.wall, T(new THREE.BoxGeometry(chord, s1 - s0, t), [px, y + s0 + (s1 - s0) / 2, pz], [0, a, 0]));
     }
     // the trim at the top, round the hall
     this.add(this.M.trim, T(annulus(r - 0.1, r + t + 0.4, 0.5, seg * 2), [x, y + h, z]));

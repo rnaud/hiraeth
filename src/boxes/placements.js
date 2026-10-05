@@ -43,9 +43,15 @@ export const PLACEMENTS = {
   incal: [
     // the first jetpack world: the jets wait on the makers' pillar, a lone stone column on the rim 130 m
     // round from the ship (src/levels/incal.js PILLAR): a 14 m climb, no jetpack needed (you need them for the shaft)
-    { id: 'incal.jetpack', item: 'jetpack', at: [Math.cos(0.45) * 286, 216, Math.sin(0.45) * 286], toward: [274, 0], beacon: true,
+    // It held the jets until the makers' tower was built (src/temples/incal.js): the jets are its key now, and
+    // the pillar keeps the soft-fall soles, a gift in the open
+    { id: 'incal.soles', item: 'soles', at: [Math.cos(0.45) * 286, 216, Math.sin(0.45) * 286], toward: [274, 0], beacon: true,
       hint: 'A makers’ box waits on top of the lone stone pillar on the rim, round from the ship. Climb it',
       note: 'On top of the makers’ pillar on the rim, round from the ship: climb the column.' },
+    // the Warden's Well (src/temples/incal.js): in the chamber half-way up. The jets are the key to the rest: the way
+    // up through its ceiling, the eyes over their shelves, the warden's crown
+    { id: 'incal.temple.jetpack', item: 'jetpack', temple: 'incal', site: (level) => level.temple?.gadgetSite,
+      note: 'Inside the makers’ tower on the rim, in the round chamber over the climbing well.' },
   ],
   arzach: [
     // the nearest capped needle spire, 240 m north: a long climb or a landing on the bird

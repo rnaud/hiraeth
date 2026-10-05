@@ -14,6 +14,7 @@ import { starShape, BOX_COLORS } from './model.js';
 //   bell     V sounds a bell note; unopened boxes within 90 m answer (game event 'bell' { pos })
 //   star     a pale enamel star on the hood, over the brow
 //   resin    climbing tires you half as fast (player.climbK)
+//   soles    a hard landing counts as a slower one (player.fallGuard: the drop it takes to tumble grows by a third)
 //
 //   const fx = createItemEffects({ player, tool, level, sound, isNight: () => bool });
 //   fx.update(dt, t)   per frame
@@ -104,7 +105,7 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
       if (night && player && !player.hidden) light.set(player.pos.x, player.pos.y + 1.2, player.pos.z, 7.5 + Math.sin(t * 7) * 0.3);
       else light.set(0, -1e5, 0, 0);
       if (star) star.visible = items.has('star');
-      if (player) player.climbK = items.has('resin') ? 0.5 : 1;
+      if (player) { player.climbK = items.has('resin') ? 0.5 : 1; player.fallGuard = items.has('soles') ? 1.3 : 1; }
     },
     dispose() { off(); keys?.removeEventListener?.('keydown', onKey); lantern?.grp.removeFromParent(); star?.removeFromParent(); },
   };

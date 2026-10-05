@@ -180,6 +180,9 @@ export function sentinelModel({ hull = '#9fb2c6', hull2 = '#8aa0b8', dark = '#34
   const head = new THREE.Group();
   head.position.y = 2.7;
   body.add(head);
+  // the crown vent (it opens in the second phase, when its sides are shut)
+  const topVent = new THREE.Mesh(merge(cyl(0.7, 0.8, 0.25, '#ffffff', [0, 0.6, 0], null, 12)), makeMaterial({ color: '#e0644a', glow: 0.1, flat: true, key: `sentinel.top.${uid++}` }));
+  head.add(topVent);
   head.add(new THREE.Mesh(merge(cyl(0.9, 1.1, 0.9, hull2, [0, 0, 0], null, 12)), mat));
   head.add(new THREE.Mesh(merge(ell([0.45, 0.45, 0.25], '#ffffff', [0, 0, 1.0])), eyeM));
   const legs = [];
@@ -197,9 +200,10 @@ export function sentinelModel({ hull = '#9fb2c6', hull2 = '#8aa0b8', dark = '#34
   const M = {
     group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, mouth, mouthR: 1.5, radius: 3.0, height: 9,
     head, body, vents, shutters, legs, eyeM, ventM, open: 0, slump: 0, gait: 0,
-    animate(dt, t, { state, attack, k = 0, speed = 0, meter = 0 }) {
+    animate(dt, t, { state, attack, k = 0, speed = 0, meter = 0, phase = 0 }) {
       const ease = (cur, want, rate) => cur + (want - cur) * Math.min(1, dt * rate);
       const off = state === 'sleep' || state === 'resolved' || state === 'weary';
+      M.guard = ease(M.guard ?? 0, phase >= 1 && state !== 'resolved' ? 1 : 0, 3);   // the second phase: its sides shut, its top vent open
       M.open = ease(M.open, state === 'open' ? 1 : 0, 5);
       M.slump = ease(M.slump, state === 'resolved' ? 1 : state === 'sleep' ? 0.6 : 0, 1.5);
       M.gait += dt * speed * 2;
@@ -207,15 +211,20 @@ export function sentinelModel({ hull = '#9fb2c6', hull2 = '#8aa0b8', dark = '#34
       body.rotation.z = M.slump * 0.25;
       head.rotation.y = attack ? 0 : Math.sin(t * 0.8) * 0.5;
       head.rotation.x = M.slump * 0.6;
-      shutters.forEach((s, i) => { s.position.y = 0.4 + M.open * 1.15; s.rotation.x = -M.open * 0.4; void i; });
+      const sideOpen = M.open * (1 - M.guard);
+      shutters.forEach((s) => { s.position.y = 0.4 + sideOpen * 1.15; s.rotation.x = -sideOpen * 0.4; });
+      topVent.scale.setScalar(0.3 + 0.7 * M.guard);
+      topVent.material.uniforms.uGlow.value = 0.15 + 0.85 * M.open * M.guard * (0.7 + 0.3 * Math.sin(t * 12));
+      // the damage shows: it leans, and its hull dulls toward soot
+      body.rotation.x = meter * 0.12 * Math.sin(t * 0.7);
       legs.forEach((L, i) => { L.rotation.x = Math.sin(M.gait + i * 2.1) * 0.15 * Math.min(1, speed) + M.slump * 0.3; });
       const blink = attack && attack.shape === 'lane' ? 0.6 + 0.4 * Math.sin(t * 30) : 0.9;
       eyeM.uniforms.uGlow.value = off ? (state === 'resolved' ? 0 : 0.15) : blink;
       eyeM.uniforms.uColor.value.set(attack ? '#e0644a' : '#f6c84e');
-      ventM.uniforms.uGlow.value = 0.2 + 0.8 * M.open * (0.7 + 0.3 * Math.sin(t * 12));
-      void meter;
+      ventM.uniforms.uGlow.value = 0.2 + 0.8 * sideOpen * (0.7 + 0.3 * Math.sin(t * 12));
       group.updateMatrixWorld(true);
-      mouth.copy(body.localToWorld(_w.set(0, 0.4, 0)));
+      // the target: its side vents, then (guarded) the vent on its crown
+      if (M.guard > 0.5) mouth.copy(head.localToWorld(_w.set(0, 1.25, 0))); else mouth.copy(body.localToWorld(_w.set(0, 0.4, 2.2)));
     },
   };
   return M;

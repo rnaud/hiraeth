@@ -323,7 +323,7 @@ export class Guardian {
     this.rt.rumble?.(0.6, 0.5);
     this.def.onStrike?.(this, a);
     if (P.dead || P.down) return false;
-    if (P.pos.y - this.arena.y > HIT.airborne && a.shape !== 'lane') return false;   // jumped clear
+    if (P.pos.y - this.arena.y > (a.shape === 'lane' ? 3.5 : HIT.airborne)) return false;   // jumped clear (a beam reaches a little higher)
     if (!inArea(a, this.attackAt, this.attackH, P.pos)) return false;
     const dmg = strikeDamage(P.health ?? 1, a.damage ?? 0.25);
     _a.subVectors(P.pos, a.shape === 'ring' ? this.attackAt : this.model.pos).setY(0);

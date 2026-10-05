@@ -319,7 +319,8 @@ function exterior(scene, level, rt) {
   K.flush();
   // the door: its threshold (world), looking out toward Qanat
   const at = K.world(0, dy, R + 2.4);
-  return { door: { at, heading: yaw }, kit: K, base, top, doorY, R, front: K.world(0, dy, R + 14) };
+  const front = K.world(0, dy, R + 14);
+  return { door: { at, heading: yaw }, kit: K, base, top, doorY, R, front, clear: [{ x: SITE.x, z: SITE.z, r: R + 6 }, { x: front.x, z: front.z, r: 14 }] };
 }
 
 // ------------------------------------------------------------------ the world change: water runs, fields grow

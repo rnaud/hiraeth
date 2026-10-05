@@ -9,6 +9,7 @@ import { Banner, Puffs } from '../life.js';
 import { buildRoom } from '../interiors.js';
 import { glyphGeometry, textGeometry } from '../story/sign-text.js';
 import { LINES } from '../story/incal-data.js';
+import { attachTemple } from '../temples/index.js';
 
 // ---------------------------------------------------------------------------
 // The City-Shaft: a city stacked down a 600 m pit.
@@ -820,7 +821,8 @@ export function createIncal(scene) {
 
   // ---------------------------------------------------------- level description
   const spawn = new THREE.Vector3(R + 14, TOP, 0);
-  return {
+  // the Warden's Well, the makers' tower on the rim, and its rooms far overhead (src/temples/incal.js)
+  return attachTemple('incal', scene, {
     id: 'incal',
     // the rim's flora (src/flora.js) keeps the view from the spawn, the villas, the pillar and the trees' feet clear
     floraAvoid: (x, z, r) => (Math.abs(z) < 18 + r && x < R + 42) || (x > R + 28 && x < R + 62 && Math.abs(z) < 44)
@@ -957,5 +959,5 @@ export function createIncal(scene) {
       const d = Math.hypot(pos.x, pos.z);
       if (d > R - 3) { pos.x *= (R - 3) / d; pos.z *= (R - 3) / d; }
     },
-  };
+  });
 }

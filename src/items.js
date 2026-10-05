@@ -72,6 +72,11 @@ export const ITEMS = {
     text: 'A little whistle of blue-glazed clay, shaped like a bell with a star on its side, that plays one clear bell note, the same note in every world. The makers’ chests know it.',
     use: 'Press V (on a controller, click the right stick, R3) to sound it. Unopened boxes nearby answer with a chime from where they hide.',
   },
+  soles: {
+    name: 'Soft-fall soles', kind: 'charm',
+    text: 'A pair of thin grey soles, light as felt, that slip inside your boots. Under the heel, very small, the makers’ glyph.',
+    use: 'Hard landings hurt less: you can drop much further before a fall knocks you over.',
+  },
   resin: {
     name: 'Climber’s resin', kind: 'charm',
     text: 'A little tin of amber resin, still soft after who knows how long, the makers’ thumb pressed into the lid. Rub it on your palms.',

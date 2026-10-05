@@ -9,6 +9,7 @@
 /** [box id, item] of every temple chest. */
 export const TEMPLE_BOXES = [
   ['desert.temple.fire', 'fire'],
+  ['incal.temple.jetpack', 'jetpack'],
 ];
 
 export function migrateTemples(g) {

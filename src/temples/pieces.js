@@ -246,6 +246,7 @@ export class Brazier {
   ignite(instant) {
     if (this.flames) return;
     this.flames = new Flames(this.group, [{ at: V(0, this.top, 0), h: 1.6, r: 0.45 }, { at: V(0.25, this.top, 0.1), h: 1.1, r: 0.3, phase: 2 }, { at: V(-0.2, this.top, -0.15), h: 1.25, r: 0.3, phase: 4 }, { at: V(0, this.top, 0), h: 0.8, r: 0.2, core: 1, phase: 1 }], { seed: this.id.length * 3 });
+    this.flames.mesh.userData.dynamic = true;   // (moved every frame: no levels of detail, src/lod.js)
     this.coals.uniforms.uColor.value.set('#e0644a'); this.coals.uniforms.uGlow.value = 0.8;
     this.light = new THREE.Vector4(this.pos.x, this.pos.y + this.top + 0.8, this.pos.z, 14);
     this.rt.lights.push(this.light);
@@ -303,6 +304,7 @@ export class Bramble {
     this.rt.onLit?.(this.id);
     this.burnt = true; this.burning = 0;
     this.flames = new Flames(this.group, [-1, -0.3, 0.4, 1].map((f, i) => ({ at: V(f * this.w * 0.35, 0, 0), h: this.h * 0.8, r: 0.6, phase: i * 1.3 })), { seed: 11 });
+    this.flames.mesh.userData.dynamic = true;
     this.rt.sound?.whoosh?.();
     if (this.handle) { this.physics?.removeCollider?.(this.handle); this.handle = null; }
     return true;
@@ -336,7 +338,12 @@ export class Switch {
     noCollide(this.group);
     this.center = this.group.position.clone();
     this.on = rt.logic.isLit(o.id);
-    this.off = registerTarget({ kind: 'switch', radius: s, position: () => this.center, onHit: () => { if (rt.logic.light(this.id)) { this.on = true; rt.sound?.chime?.(); rt.onLit?.(this.id); } return true; } });
+    this.off = registerTarget({ kind: 'switch', radius: s, position: () => this.center, onHit: (mode) => this.hit(mode) });
+  }
+  /** A splash (any mode: it is fluid) wakes it. */
+  hit() {
+    if (this.rt.logic.light(this.id)) { this.on = true; this.rt.sound?.chime?.(); this.rt.onLit?.(this.id); }
+    return true;
   }
   update(dt, t) { this.on ||= this.rt.logic.isLit(this.id); this.glow.uniforms.uGlow.value = this.on ? 0.8 + 0.2 * Math.sin(t * 2.5) : 0.08 + 0.05 * Math.sin(t * 1.3); }
   dispose() { this.off?.(); }

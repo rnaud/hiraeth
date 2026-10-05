@@ -4,6 +4,8 @@ import { items } from '../items.js';
 import { TempleRuntime } from './runtime.js';
 import { DESERT_TEMPLE } from './desert.js';
 import * as DESERT_WORDS from './desert-data.js';
+import { INCAL_TEMPLE } from './incal.js';
+import * as INCAL_WORDS from './incal-data.js';
 
 // The makers' temples: one great building in each world, a Zelda-style
 // dungeon of rooms and puzzles in that world's architecture, with a gadget
@@ -26,6 +28,7 @@ import * as DESERT_WORDS from './desert-data.js';
 
 export const TEMPLES = {
   desert: { def: DESERT_TEMPLE, words: DESERT_WORDS },
+  incal: { def: INCAL_TEMPLE, words: INCAL_WORDS },
 };
 
 /**
@@ -36,7 +39,7 @@ export const TEMPLES = {
  */
 export const GADGETS = {
   desert: { temple: 'fire', world: ['backpack', 'star'], built: true },
-  incal: { temple: 'jetpack', world: ['soles'], built: false, now: ['jetpack'] },
+  incal: { temple: 'jetpack', world: ['soles'], built: true },
   arzach: { temple: 'glider', world: ['bell'], built: false, plan: 'the wings move here from Vael II; the bell goes to Vael II’s temple' },
   arzach2: { temple: 'bell', world: ['glider'], built: false },
   garage: { temple: 'coil', world: ['coil'], built: false },
@@ -58,6 +61,13 @@ export function attachTemple(levelId, scene, level, { game = sharedGame } = {}) 
   (level.portals ??= []).unshift(...rt.portals);
   // (the scout and the quest marker route through the temple's door like any doorway)
   if (level.navigationPortals && level.navigationPortals !== level.portals) level.navigationPortals.unshift(...rt.portals);
+  // the ground round the building is kept clear: no tree, rock or tuft of the world's own grows through it
+  const keep = rt.outside?.clear ?? [];
+  if (keep.length) {
+    clearInstances(scene, keep, rt.root);
+    const avoid = level.floraAvoid;
+    level.floraAvoid = (x, z, r = 0) => keep.some((c) => Math.hypot(x - c.x, z - c.z) < c.r + r) || !!avoid?.(x, z, r);
+  }
   const init = level.init, dynamic = level.dynamic, update = level.update;
   level.init = (physics) => { init?.call(level, physics); rt.init(physics); };
   level.dynamic = () => { const base = dynamic ? dynamic.call(level) : []; return base.length ? [...base, ...rt.solids()] : rt.solids(); };
@@ -66,6 +76,34 @@ export function attachTemple(levelId, scene, level, { game = sharedGame } = {}) 
     if (o.fade) rt.fadeFn ??= o.fade;
   };
   return level;
+}
+
+/**
+ * Walk-through instanced things a world scatters (trees, rocks, tufts: InstancedMesh, noCollide or not) whose
+ * instances stand inside one of the circles [{ x, z, r }] are scaled to nothing (the temple stands there now).
+ * Returns how many.
+ */
+export function clearInstances(scene, circles, except = null) {
+  const m = new THREE.Matrix4(), p = new THREE.Vector3(), w = new THREE.Matrix4();
+  let n = 0;
+  scene.updateMatrixWorld(true);
+  scene.traverse((o) => {
+    if (!o.isInstancedMesh || o.userData.dynamic) return;
+    for (let q = o; q; q = q.parent) if (q === except) return;
+    let changed = false;
+    for (let i = 0; i < o.count; i++) {
+      o.getMatrixAt(i, m);
+      w.multiplyMatrices(o.matrixWorld, m);
+      p.setFromMatrixPosition(w);
+      if (!circles.some((c) => Math.hypot(p.x - c.x, p.z - c.z) < c.r)) continue;
+      const e = m.elements;   // (scaled to nothing where it stood: its bounds stay where they were)
+      e[0] = e[1] = e[2] = e[4] = e[5] = e[6] = e[8] = e[9] = e[10] = 0;
+      o.setMatrixAt(i, m);
+      changed = true; n++;
+    }
+    if (changed) o.instanceMatrix.needsUpdate = true;
+  });
+  return n;
 }
 
 /** The story side: the temple's quest, its people, the locators; returns { update } or null. */
@@ -100,8 +138,28 @@ export function setupTempleStory(ctx) {
     people.push(n);
     quests?.locate?.('sabri', () => n.pos);
   }
+  if (levelId === 'incal' && P.vell && spawn && rt.outside) {
+    // by the tower's forecourt, a little to the side of its door, looking out toward the ship
+    const D = rt.outside.door, f = new THREE.Vector3(Math.sin(D.heading), 0, Math.cos(D.heading)), side = new THREE.Vector3(f.z, 0, -f.x);
+    const at = D.at.clone().addScaledVector(f, 7).addScaledVector(side, 6);
+    const n = spawn(P.vell, { route: [at, at.clone().addScaledVector(side, 2.5)], speed: 0.4 });
+    people.push(n);
+    quests?.locate?.('vell', () => n.pos);
+  }
+  // a temple whose gadget this world needs to get about (the City-Shaft's jets): its quest starts on arrival
+  if (T.def.startsOnArrival?.() && quests && !quests.isStarted?.(Q.id)) {
+    quests.start(Q.id);
+    // (the world's own story stays the tracked one: the temple waits in the sketchbook, and says so)
+    const main = quests.active?.().find((q) => q.main && q.id !== Q.id);
+    if (main) quests.track(main.id);
+    setTimeout(() => toast?.(T.def.arrivalLine), 9000)?.unref?.();
+  }
+  // after: the locals' balloons say what changed
+  const after = () => { if (W.LINES_AFTER?.length) for (const n of people) { n.lines = [...W.LINES_AFTER]; n.lineIdx = 0; } };
+  if (game.flag(`temple.${id}.done`)) after();
+  const offAfter = game.on(`flag:temple.${id}.done`, (v) => { if (v) after(); });
   return {
-    rt, people,
+    rt, people, dispose: offAfter,
     update(dt, t) {
       if (!quests?.isStarted?.(Q.id) && (near() || game.flag(`temple.${id}.entered`))) quests.start(Q.id);
       rt.update(dt, t);

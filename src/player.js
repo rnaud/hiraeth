@@ -1068,7 +1068,8 @@ export class Player {
     if (this.pos.y < this.opts.killY) { this.respawn(); this._respawned = true; return null; }
     const vu = this.vel.dot(U);
     if (h <= 0 || (this.onGround && h < 0.8 && vu <= 0)) {
-      if (!this.onGround && !this.ride && vu < -FALL.tumble && !this.cushioned) this.landHard(-vu);
+      // (fallGuard: the makers' soft-fall soles make a landing count as a slower one)
+      if (!this.onGround && !this.ride && vu < -FALL.tumble * (this.fallGuard ?? 1) && !this.cushioned) this.landHard(-vu / (this.fallGuard ?? 1));
       this.pos.addScaledVector(U, -h);
       this.vel.addScaledVector(U, -vu);
       this.onGround = true;

@@ -421,3 +421,122 @@ test('the Givers’ House on foot: in, the ball and the plates, the disc and the
   game.reset();
   own();
 });
+
+// ------------------------------------------------------------------ on foot: the City-Shaft's tower, room by room
+test('the Warden’s Well on foot: the eye and the discs, the climb and the ball, the jets, up through the ceiling, the eyes over their shelves, the warden broken, the shaft’s breath', () => {
+  game.reset();
+  own('backpack');
+  const { level, physics, rt } = world('incal');
+  const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true, killY: level.killY });
+  const notes = [];
+  rt.connect({ player: P, toast: (s) => notes.push(s) });
+  let t = 0;
+  const L = (x, y, z) => rt.kit.world(x, y, z);
+  const frame = (input = {}, yaw = 0) => { t += DT; rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };
+  const toward = (to) => Math.atan2(-(to.x - P.pos.x), -(to.z - P.pos.z));
+  const flat = (a) => Math.hypot(P.pos.x - a.x, P.pos.z - a.z);
+  const walk = (to, { tol = 0.6, max = 25, run = true, dy = 1.6 } = {}) => {
+    for (let i = 0; i < max / DT; i++) { if (flat(to) < tol && Math.abs(P.pos.y - to.y) < dy) return true; frame({ KeyW: true, ShiftLeft: run }, toward(to)); }
+    return false;
+  };
+  const wait = (s, input = {}, yaw = 0) => { for (let i = 0; i < s / DT; i++) frame(input, yaw); };
+  const where = () => rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1)).join(', ');
+  /** Fly with the jets: up to height y (local), then across to `to` (local [x, z]), and land. */
+  const fly = (y, to, { max = 14 } = {}) => {
+    const target = L(to[0], y, to[1]);
+    let i = 0;
+    // up, holding the jets; across, hovering; then let go and land
+    for (; i < max / DT && rt.kit.local(P.pos).y < y; i++) frame({ Space: true }, toward(target));
+    for (; i < max / DT && flat(target) > 0.8; i++) frame({ Space: rt.kit.local(P.pos).y < y, KeyW: true }, toward(target));
+    for (; i < max / DT && !P.onGround; i++) frame({}, toward(target));
+    return P.onGround && flat(target) < 2;
+  };
+  wait(0.5);
+  assert.ok(P.onGround && rt.inside(P.pos), 'in the tower');
+  // ---- the Turning Floors: the discs are still until the eye over the far door is splashed
+  assert.equal(walk(L(0, 0, 17)), true, `to the drop (${where()})`);
+  const [discA, discB] = rt.pieces.filter((p) => p.path);
+  wait(3);
+  assert.ok(discA.s === 0 && discB.s === 0, 'the discs are still');
+  rt.piece('s1').hit('shoot');
+  wait(0.1);
+  assert.equal(rt.logic.isOpen('discs'), true);
+  const ride = (disc, off) => {
+    for (let i = 0; i < 30 / DT && !(disc.s < 0.2 && disc.wait > 0.5); i++) frame();
+    assert.equal(walk(disc.group.position, { tol: 0.5, run: false, max: 6 }), true, `onto the disc (${where()})`);
+    for (let i = 0; i < 30 / DT && !(disc.s > disc.total - 0.2); i++) frame();
+    assert.equal(walk(off, { tol: 0.8 }), true, `off the disc (${where()})`);
+  };
+  ride(discA, L(0, 0, 29));
+  ride(discB, L(0, 0, 42.5));
+  assert.ok(P.pos.y > L(0, -1, 0).y, 'across, not in the drop');
+  // ---- the Climb: up the block's face, the ball onto its plate, the door
+  assert.equal(walk(L(0, 0, 57)), true, `into the well (${where()})`);
+  let up = false;
+  for (let i = 0; i < 20 / DT; i++) { frame({ KeyW: true }, toward(L(0, 11, 62))); if (P.onGround && rt.kit.local(P.pos).y > 10.5) { up = true; break; } }
+  assert.ok(up, `up the face (${where()})`);
+  const ball = rt.piece('ball1');
+  for (let k = 0; k < 8 && !rt.logic.drumOn('ball1', 'p1'); k++) {
+    walk(ball.center.clone().addScaledVector(ball.dir, -2.0), { tol: 0.5 });
+    ball.hit('push', ball.dir.clone(), { strength: 0.6 });
+    wait(2.5);
+  }
+  assert.ok(rt.logic.drumOn('ball1', 'p1'), `the ball rests on its plate (${ball.t.toFixed(2)})`);
+  wait(2);
+  assert.equal(rt.logic.isOpen('d1'), true);
+  // ---- the Jets' Chamber: the chest; the only way on is up through the oculus
+  assert.equal(walk(L(0, 11, 75)), true, `into the chamber (${where()})`);
+  for (let i = 0; i < 2 / DT; i++) frame({ Space: true }, 0);
+  assert.ok(rt.kit.local(P.pos).y < 16, 'without the jets you cannot go up');
+  items.grant('jetpack'); game.emit('box:opened', { id: 'incal.temple.jetpack' });
+  assert.equal(rt.logic.gadget, true);
+  assert.equal(walk(L(0, 11, 81), { tol: 1.2 }), true);
+  assert.equal(fly(36.5, [0, 81 - 8]), true, `up through the oculus to the gallery floor (${where()})`);
+  assert.ok(Math.abs(rt.kit.local(P.pos).y - 34.6) < 0.4, `standing in the gallery (${where()})`);
+  // the eyes are hidden from the floor: no line to them; you fly up level with each to splash it
+  for (const id of ['s2', 's3', 's4']) {
+    const eye = rt.piece(id);
+    const from = P.pos.clone().add(V(0, 1.5, 0)), d = eye.center.clone().sub(from), dist = d.length();
+    assert.ok(physics.rayDistance(from, d.normalize(), dist) < dist - 1, `${id}: hidden from the floor`);
+  }
+  for (const id of ['s2', 's3', 's4']) rt.piece(id).hit('shoot');
+  wait(2.2);
+  assert.equal(rt.logic.isOpen('d3'), true, 'the high door opens');
+  // ---- the Warden's Hall
+  assert.equal(fly(63.5, [0, 81 + 14 - 3.2]), true, `up to the high ledge (${where()})`);
+  assert.equal(walk(L(0, 62.6, 104)), true, `into the hall (${where()})`);
+  const K = rt.guardian;
+  wait(0.4);
+  assert.notEqual(K.state, 'sleep', 'it wakes');
+  assert.equal(rt.logic.isOpen('d3'), false, 'the door shuts behind you');
+  P.opts.health = false;
+  for (let n = 0; n < 8 && K.state !== 'resolved'; n++) {
+    let open = false;
+    for (let i = 0; i < 40 / DT; i++) { frame(); if (K.state === 'open') { open = true; break; } }
+    assert.ok(open, `its vents open (${n}, phase ${K.phaseIndex})`);
+    if (K.phaseIndex >= 1) {
+      // guarded: only from above (here: hovering over it)
+      const below = K.meter;
+      P.teleport(L(0, 62.6, 104), V(0, 1, 0), V(0, 0, 1));
+      K.hit('mouth', 'shoot');
+      assert.equal(K.meter, below, 'from the floor its shut sides take nothing');
+      P.teleport(K.model.mouth.clone().add(V(4, 1.5, 0)), V(0, 1, 0), V(0, 0, 1));
+    }
+    K.hit('mouth', 'shoot');
+  }
+  assert.equal(K.state, 'resolved', `broken (${K.meter})`);
+  assert.equal(game.flag('temple.incal.done'), true);
+  wait(2.5);
+  assert.ok(rt.logic.isOpen('d5'));
+  // ---- the world changed: step into the breath at the bottom of the shaft and ride it up to the rim
+  const C = rt.change;
+  wait(4);
+  P.opts.health = true;
+  P.teleport(C.foot.clone().add(V(0, 1, 0)), V(0, 1, 0), V(0, 0, 1));
+  let rim = false;
+  for (let i = 0; i < 70 / DT; i++) { frame(); if (P.onGround && P.pos.y > 199 && Math.hypot(P.pos.x, P.pos.z) > 261) { rim = true; break; } }
+  assert.ok(rim, `carried up the shaft and set down on the rim (${P.pos.toArray().map((v) => v.toFixed(1))})`);
+  assert.ok(P.health > 0.9, 'gently');
+  game.reset();
+  own();
+});
