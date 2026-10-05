@@ -1,0 +1,83 @@
+.gitignore
+  s_1fd8d0e7b02dcf::t_b367c2d8a948e5 16-21
+README.md
+  s_1fd8d0e7b02dcf::t_c52ad8eee82434 789-793,2086-2180
+TODO.md
+  s_1fd8d0e7b02dcf::t_f61584c95188d7 32,34-38,46-53,56-58,69-70
+changelog.md
+  s_1fd8d0e7b02dcf::t_1f711eebe7175d 16
+docs/mixamo-shopping-list.md
+  s_1fd8d0e7b02dcf::t_ab322a74ebf515 1-158
+docs/motion-data.md
+  s_1fd8d0e7b02dcf::t_993ac4fb9443c6 1-87
+scripts/mocap/asf-amc.js
+  s_1fd8d0e7b02dcf::t_2c12b57fa88d91 1-141
+scripts/mocap/build-library.mjs
+  s_1fd8d0e7b02dcf::t_73a5cb839064dd 1-231
+scripts/mocap/bvh.js
+  s_1fd8d0e7b02dcf::t_971a25704b0510 1-21
+scripts/mocap/cmu-takes.json
+  s_1fd8d0e7b02dcf::t_94ceee7506be3d 1-68
+scripts/mocap/compare-people.mjs
+  s_1fd8d0e7b02dcf::t_4590ea8fca9d8d 1-60
+scripts/mocap/compare.mjs
+  s_1fd8d0e7b02dcf::t_99fcb868deacb5 1-65
+scripts/mocap/fbx.js
+  s_1fd8d0e7b02dcf::t_d50442499ba2aa 1-32
+scripts/mocap/fetch-cmu.mjs
+  s_1fd8d0e7b02dcf::t_f78116a56adac8 1-51
+scripts/mocap/glb.js
+  s_1fd8d0e7b02dcf::t_2e890c655051ed 1-88
+scripts/mocap/maps.js
+  s_1fd8d0e7b02dcf::t_cd0a120869a9b4 1-64
+scripts/mocap/mixamo-clips.json
+  s_1fd8d0e7b02dcf::t_50be82c5bef6d5 1-81
+scripts/mocap/process.js
+  s_1fd8d0e7b02dcf::t_4a17e509832da7 1-166
+scripts/mocap/retarget.js
+  s_1fd8d0e7b02dcf::t_d9026109b062f0 1-181
+scripts/mocap/skeleton-take.js
+  s_1fd8d0e7b02dcf::t_570305f2f0a9d7 1-63
+scripts/mocap/take.js
+  s_1fd8d0e7b02dcf::t_effcf96cf8f6b4 1-69
+src/animator.js
+  s_1fd8d0e7b02dcf::t_bb8d1c88e7f2a9 4,67-78,80-88,90-93,95-138,141,143-150,191,254-258,266,271-295,350,373-374,385-386,396,404,406,410,414,421,425-473
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_c1ced3a449bb66 16
+src/dev-menu.js
+  s_1fd8d0e7b02dcf::t_663a8ee82a2ad4 6,35-36,48,118-119
+src/feet.js
+  s_1fd8d0e7b02dcf::t_7232e24c413688 256-265
+src/locomotion.js
+  s_1fd8d0e7b02dcf::t_488ade19e1384e 103-105,161-189
+src/main.js
+  s_1fd8d0e7b02dcf::t_2fb7c5efd9fd3d 37,280-283,430-435
+src/motion-match.js
+  s_1fd8d0e7b02dcf::t_a2b9b3e4e76cd8 1-542
+src/npc.js
+  s_1fd8d0e7b02dcf::t_f7f10d2aae4946 18,147,153-164,839-840
+src/player.js
+  s_1fd8d0e7b02dcf::t_b6761a7db86799 190,903-905,1680-1695,1711
+src/studio/main.js
+  s_1fd8d0e7b02dcf::t_f28f7093ee1f7e 14,119-121
+tests/gait-sim.js
+  s_1fd8d0e7b02dcf::t_c55b16a420ceb0 14,22-29,59-60,65,94-95
+tests/mocap.test.js
+  s_1fd8d0e7b02dcf::t_6231ab380d9dae 1-304
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1f0e8836a6b72fee943d654365613a7a1320cc99",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
