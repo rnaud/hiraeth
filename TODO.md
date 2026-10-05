@@ -454,3 +454,18 @@ All of this is for the web game; the Unity port follows later if we move to Unit
   shape keys for expressions, on the game's skeleton, next to the Quaternius bodies through the same ink
   pass in the character studio. If they read better, switch the base bodies (costumes and hair re-fitted,
   animations and motion data kept).
+
+---
+
+# Controls (2026-10-05, web)
+
+- [ ] The gun shoots in a straight line, not an arc, and shows no trajectory.
+- [ ] The jetpack fires with R2; the gun only works after L2 to aim.
+- [ ] The jetpack steers like the bird: point in any direction with the left stick.
+- [ ] B jumps off the bird or the hover car.
+- [ ] The ragdoll kicks in from a little higher up.
+
+# Later
+
+- [ ] The JS bridges: our JS game code running inside Godot (GodotJS) and inside Unity (Puerts), with the
+  engine only rendering.
