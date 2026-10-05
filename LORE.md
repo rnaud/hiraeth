@@ -53,7 +53,9 @@ people look up). Drawn in flat colours and fine ink lines.
 "sky-person" by the people he meets. About twenty-six (a recording logged
 nineteen years ago is from "that day. I was seven"). He left home at
 seventeen, after one fight too many, with his father's words at the port, and
-did not come back while his parents were alive. He wears a **translator** at
+did not come back while his parents were alive, except once: at night, five
+years ago, to bring his daughter Lou to the small house across the yard, and he
+did not knock on their door. He writes Lou a card from every world. He wears a **translator** at
 his ear (from home): he hears each world's own tongue as a mumble and reads it
 in his own words. His lines are short; in the recordings he answers people who
 cannot hear him.
@@ -76,6 +78,28 @@ ship was not a voice but a sound like singing. The father's nightly message
 to her still travels the old relays; the traveller hears it at the Signal
 Market.
 
+**Lou.** His daughter, seven and a half: lively, loud, curious, draws on
+everything (the walls included). Born when he was nineteen, out at the port
+towns, to **Maren**, a pilot on the long relay ships; they were young; Maren
+went back out to the relays when Lou was one and sends a card at midwinter. At
+two Lou came home to the hill with her father, who left her with Tove in the
+small house and went back out. She knew her grandparents: the mother crossed
+the yard every morning to do her hair; the father pretended he didn't watch
+from the round window, and kept her drawings down the side of his chair. She
+was five when the house went quiet. She does the flowers on their stone every
+Sunday. She draws every world her father writes to her from and makes a copy of
+every keepsake he tells her about, in clay and paper, for her shelf. She wants
+to be a traveller, "the kind that comes back every Sunday".
+
+**Aunt Tove.** The mother's younger sister. Brisk and kind; keeps the lamp by
+the round house's door lit and the soup on. She moved into the small house to
+raise Lou while the traveller travels. "Yes. And now you have. Both of those are
+true, love."
+
+**Moustache.** The dog: scruffy, medium-sized, sandy, with white whiskers under
+his nose (Lou named him). He walked with the father at the end; now he walks
+Lou to the stone and back, and follows whoever came home last.
+
 **The parents' death.** Two years ago, within a season of each other. The
 last recording ("Come home") was logged eleven days before the house went
 quiet. Their stone stands in the front yard at home: a round-topped headstone
@@ -89,9 +113,22 @@ drawings are under the bunk ("the round ship, and the three of us, holding
 hands"). The ship speaks in short, plain status lines.
 
 **Home.** A small round house (a cream dome) on a small round hill, a round
-window, an antenna the old recorder sent through, a tall umbrella tree, a
-washing line, a landing ring, peach grass, lilac mesas, two moons. Nobody lives
-there now.
+window, an antenna the old recorder sent through, a tall umbrella tree (Lou's
+swing hangs from it), a washing line, a landing ring, peach grass, lilac
+mesas, two moons. Nobody lives in the round house now: it is dark, dusty and
+still (the father's chair turned to the window, his cap on the arm; the
+mother's scarf on the stand by the door; the photo of the two of them with him
+at seven, scowling; the recorder with its spindle bare; her lamp under the
+window, its wick black). Across the yard is **the small house**, the
+traveller's own: he and his father started it the summer he was fifteen and
+he left it half done ("You leave everything here half done"); Tove finished it.
+Lou and Tove live there with the dog, the lamp lit, the door open: a kitchen
+table covered in drawings, a hearth, two beds behind a curtain, Lou's shelf,
+a window seat where she watched for a light coming down. Between the path and
+the small house, their garden: three raised beds, a border of flowers (the
+yellow ones are best; the mother liked the yellow ones), a bench, a picket
+fence. Lou's bunting runs from the small house's chimney to the round house's
+mast.
 
 ## 3. The recordings
 
@@ -625,32 +662,51 @@ Lorn), a humming crystal (Lorn to the desert).
 
 After six worlds the last recording asks him home and the map shows **Home**
 at its centre: "A small round house on a small round hill, and two moons over
-it. Nobody lives there now. There is a stone in the yard."
+it. Nobody lives in the round house now; there is a stone in its yard. Across
+the yard, a smaller house with its lamp lit."
 
 Out of the jump, the ship reads out the hold: every keepsake and every one of
 the makers' small gifts goes down with him (not the backpack, jets or wings: he
 wears those). The ship lands on the ring by the house at dusk; the lamp in the
-round window is dark; the door is shut. He walks past the door to the stone and
+round window is dark; the door is shut. Lou runs down the path from the small
+house ("You came! Tove! He came!"), the dog at her heels, waits for him on the
+path and walks with him to the stone, where she stands at his left. He
 sets the tokens on the slab one by one, each with a short line (a song: "You
 can hum it now without thinking"; a word: the words; a person: "Someone out
 there is waiting for you to come back"; the pale star: "a small light, a long
 way from home"). "I brought everything." If he knows about Ilen: "And this
 space is for Ilen, wherever she is." "It isn't what you asked for. It's what I
-have."
+have." Lou: "I brought something too. It's for them." She props her drawing
+against the stone: the round house, the two of them, and the two of you,
+holding hands. (It stays there.)
 
 Last he sets the reel down and it plays by itself the one recording he never
 searched for, the oldest: the parents young, a small child between them waving
 at the recorder. "We are making this so you will have it. For when you are
 big, and far away." "You don't have to bring us anything. Do you hear?
 Nothing." "We are proud of you already. Look at him. Look at his hands."
-"Goodbye, recorder." He: "Goodbye."
+"Goodbye, recorder." He: "Goodbye." Lou: "Was that you? The little one,
+waving?" He: "That was me."
 
 Closing line: "Something of value. You brought it home on your own two feet."
 An end card, then the credits (SOMETHING OF VALUE): every world and its people
 (those he never met drawn in pencil), "At home" (the bird, if she promised;
-your mother and your father, on the hill; Ilen, if told), and what was left on
-the stone. The game goes on: the stone keeps its tokens, the reel plays its
-oldest side.
+your mother and your father, on the hill; Lou, Aunt Tove and Moustache, in the
+small house; Ilen, if told), and what was left on the stone. The game goes on:
+the stone keeps its tokens, the reel plays its oldest side.
+
+**Visiting home** (after the ending, any time). Lou runs to meet him once a
+visit and asks what he brought; her answer follows how much he has brought
+(a few, a good many, lots, "the whole sky") and the newest world he wrote from
+(her drawing of it). Tove is on the garden bench. The dog follows him
+everywhere, barks at the bird and the scout drone, and likes to be petted. He
+can walk into both houses: the small one is warm and lit, the round one dark
+and still (its door sticks: "Push, then lift"), with its memories to look at.
+At the stone he can **pay his respects**: he kneels, lays a flower he picked in
+the garden (they stay on the stone), or sets down the keepsakes found since he
+was last there, so the slab always holds everything he has brought home; a
+quiet moment, a word to them ("Hello, you two."), and he rises. If Lou is near
+she comes and stands beside him "and doesn't say anything at all, which is a first".
 
 ## 8. Recurring motifs
 
@@ -671,7 +727,7 @@ oldest side.
 
 - **A Makers' temple in every world**, with a boss and a gadget at its heart (a bigger set piece than the chests; each temple's gadget could be the world's chest item, or a new one).
 - **A quest you can fail, and failing it harms the locals** (the first consequence that lasts; a natural fit: the Wick in the Buried Machine, the pools of Lorn II, the bell's cloud, the Lodestar).
-- **Home gains a daughter and a dog: the traveller has a daughter.** (See the loose ends: today home is empty and "nobody lives there now".)
+- ~~Home gains a daughter and a dog~~: built (Lou, Aunt Tove and Moustache; §2, §7).
 - **The holograms become coloured busts** (today the parents stand full length in teal light over the projector).
 
 ## 10. Loose ends and contradictions
@@ -717,7 +773,7 @@ Talo's lookout note was signed "— A." and is now "— T." (`src/story/edena-da
 - **The game brief still describes a live call** from the father and a prologue "call"; the build plays recordings. The brief's "decisions still to make" are mostly answered by its own "Working decisions".
 
 ### Planned additions that touch the existing story
-- **A daughter and a dog at home** conflict with what home is now: "Nobody lives there now. There is a stone in the yard", the dark lamp, the shut door, the traveller about twenty-six who left at seventeen and never came back. Questions to settle: who is her mother, where was she during the journey (aboard? waiting at home?), does she change the last recordings and the stone scene, and does "Nobody lives there now" go. (`src/story/ending.js` homeEntry, `src/levels/home.js`.)
+- **A daughter and a dog at home: settled** (decided while the author was away; change freely). The round house stays dark and empty ("Nobody lives in the round house now"); Lou (seven and a half, mother Maren, a relay pilot who went back out) lives in the small house across the yard with Aunt Tove (the mother's sister) and the dog, Moustache, while the traveller travels; he came back once, at night, to leave her there, and did not knock on his parents' door. She was on the hill the whole journey; he writes her a card from every world. She comes to the stone at the ending and leaves a drawing. (`src/story/home-data.js`, `src/story/ending.js` tombLines, `src/levels/home.js`.) Still open: **the recordings never mention Lou**, although the parents knew her for three years (the mother did her hair every morning); one late recording could ("She has your hands"). And the bible's ending text and the game brief still describe an empty house.
 - **Coloured busts** replace the full-length teal holograms (`src/ship/hologram.js`); the stone scene's hologram of "the three of them" over the stone would become busts too.
 - **Makers' temples with bosses**: the makers are gentle in every world so far (gifts, water, a fire that hurts nobody); a boss needs a reason that fits (a guardian, a gift gone wrong, something the singing light woke).
 - **A failable quest that harms locals**: no quest can be failed today, and the recordings' reactions only count keepsakes; a failure would need a line in the reel and maybe at the stone.

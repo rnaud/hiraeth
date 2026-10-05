@@ -657,6 +657,44 @@ export class Sound {
     [0, 2, 4, 7].forEach((d, i) => this.pluck(this.freq(d, 2), t + i * 0.12, 0.12, 'sine', this.fx));
   }
 
+  /** A dog's bark (home's Moustache): a short rough "wuf", falling. */
+  bark() {
+    if (!this.ctx) return;
+    const ctx = this.ctx, t = ctx.currentTime, o = ctx.createOscillator(), g = ctx.createGain(), f = ctx.createBiquadFilter();
+    o.type = 'sawtooth';
+    const f0 = 330 + Math.random() * 60;
+    o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f0 * 0.55, t + 0.16);
+    f.type = 'bandpass'; f.frequency.value = 900; f.Q.value = 1.2;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.22 * this.fxVol, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
+    o.connect(f).connect(g).connect(this.fx);
+    o.start(t); o.stop(t + 0.22);
+    this.burst(t, { dur: 0.12, type: 'bandpass', freq: 1400, q: 1, vol: 0.08 });
+  }
+
+  /**
+   * A quiet tune at the parents' stone (home): the home melody, slow, on a celesta over a soft
+   * pad, from `pos`; the score and the bands step back under it (a solo). Returns its length (s).
+   */
+  homage(pos) {
+    if (!this.ctx) return 0;
+    if (!this.bands) this.makeBands();
+    this.bands = this.bands.filter((b) => !b.solo);
+    const ctx = this.ctx, t0 = ctx.currentTime + 0.3, spb = 0.62;
+    const input = ctx.createGain(), gain = ctx.createGain();
+    gain.gain.value = 0;
+    input.connect(gain).connect(this.world);
+    const send = ctx.createGain(); send.gain.value = 0.8; gain.connect(send).connect(this.reverb);
+    let t = t0;
+    for (const [deg, beats] of this.voice.melody) {
+      if (deg !== null) this.instrument('celesta', this.freq(deg, 1), t, beats * spb * 1.1, 0.12, input);
+      t += beats * spb;
+    }
+    for (const [i, d] of [0, 3, 4, 0].entries()) this.pad(this.freq(d, -1), t0 + i * (t - t0) / 4, (t - t0) / 4 + 0.5);
+    const len = t - t0 + 1.5;
+    this.bands.push({ id: 'solo', solo: true, pos, radius: 60, parts: [], vol: 1, duck: 1, input, gain, pan: null, level: 0, mode: 'play', phrase: 0, until: t0 + len });
+    return len;
+  }
+
   // ------------------------------------------------------------------ the singing spheres (Garden of Spheres)
   /** Where a sound at `pos` sits for the listener (the camera, from listen): { gain 0..1 by distance, pan -1..1 }. */
   placeAt(pos, reach = 140) {

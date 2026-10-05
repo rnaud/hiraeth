@@ -67,8 +67,9 @@ test('Home appears on the galactic map once the ending is open, at the centre of
   const L = LEVELS.find((l) => l.id === HOME_ID);
   assert.ok(L && L.hidden && L.title === 'Home');
   assert.equal(LEVELS.find((l) => l.id === 'atelier')?.hidden, true, 'the Atelier stays as it is');
-  assert.deepEqual(CONTENT.home.npcs, [], 'nobody lives there now');
-  assert.match(homeEntry({ unlocked: true }).blurb, /Nobody lives there now/);
+  assert.deepEqual(CONTENT.home.npcs, [], 'the family comes with the story (src/story/home.js)');
+  assert.match(homeEntry({ unlocked: true }).blurb, /Nobody lives in the round house now/);
+  assert.match(homeEntry({ unlocked: true }).blurb, /lamp lit/, 'and across the yard, the small house');
   // the ship's map asks the ship whether home is open
   const scene = new THREE.Scene();
   scene.add(new THREE.Mesh(new THREE.PlaneGeometry(400, 400).rotateX(-Math.PI / 2)));

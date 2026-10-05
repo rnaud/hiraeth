@@ -2553,3 +2553,61 @@ beside it (the details, how to run it and what is missing: `unity/README.md`).
   `scripts/unity-export/unity-batch.sh Play` plays the opening quest end to end in batch mode.
 - The project carries the Unity side of MCP for Unity (CoplayDev) so an MCP client can drive
   the editor; see `unity/README.md`.
+
+### Home: two houses you walk into, a garden, Lou, Tove and the dog
+- **The place** (`src/levels/home.js`, `home-houses.js`, `home-garden.js`, `home-drawings.js`):
+  the round house (the parents') now has a doorway cut through its dome (`domeShell` drops the
+  shell's triangles in the opening; a terracotta arch tunnel frames it, the painted band breaks
+  for it) and a dark, dusty, still room inside: the father's chair turned to the round window
+  with his cap on the arm, the mother's scarf on the coat stand, the photo on the side table,
+  the recorder under the mast with its spindle bare, her lamp under the window, dust sheets, and
+  dust specks hanging in the light (one instanced draw). Its door is shut until you push it
+  (`doorLeaf`: not solid; a shut door holds you in its tunnel). Across the yard, the small house
+  (the traveller's own, where Lou and Tove live): a drum of wall blocks with open door and
+  windows, a terracotta dome roof, the lamp and the hearth lit; a kitchen table, the hearth and
+  the dog's basket, two beds behind a curtain, Lou's shelf (a copy of every keepsake, from
+  `tokenModel`, as they are collected: `level.home.furnish`), her crayon drawings by the door
+  (one canvas-painted sheet per world you wrote to her from), a window seat. Both rooms are
+  real geometry inside the walls you see, not portals. The garden: three raised beds (cabbages,
+  carrots and a bean teepee, squashes, built with the flora kit and swaying with the wind), a
+  border of flowers you can pick (instanced per kind; a picked one is scaled away, back next
+  visit), a picket fence with two gates, stepping stones, a bench, a watering can. A swing
+  hangs from the umbrella tree; home has its own flora on the hill (`SPECIES.home`, the yard
+  kept clear by `floraAvoid`).
+- **Indoors** (`level.indoorAt`): both houses register with the shelter (`addIndoors`), so no rain
+  or sand is drawn in them, and the level sets `CameraRig.indoor` while you are in one (the
+  ship's over-the-shoulder camera), and lets go when you step out.
+- **Cloth that hangs** (`src/hanging-cloth.js`): the capes' Verlet cloth with its top edge
+  pinned in the world (all of the top row, pegs, or any `(row, col)` rule: the flag on the
+  landing ring's mast is pinned along its pole edge). The wind pushes along each point's normal
+  (face-on billows, edge-on barely stirs) with a flutter running across it and the gusts; it
+  collides with the traveller's capsules (`Humanoid.capsules`) when you are near, and with a
+  floor; `pleats` presses folds into a curtain at rest. `Cloths` simulates only those near the
+  camera and lets the rest sleep. Home has the washing (five pieces on pegs), Lou's bunting
+  between the two houses, the flag, the curtain in front of the beds and the scarf (both
+  indoors: a breath of wind at most, until you brush past).
+- **Lou, Tove and Moustache** (`src/story/home.js`, `home-data.js`, `src/dog.js`): Lou is a full
+  NPC with a child's proportions (`LOU_MORPH`, `LOU_FACE`: morph.js on the people's body, scale
+  0.72, a dotted dress). Once a visit she runs to meet you and asks what you brought; what she
+  says follows how many keepsakes you have (`keepsakeBand`) and the newest world you wrote to
+  her from (`DRAWING_LINES`); she sees a flower in your hand. Then she goes about her day (the
+  border, the swing, the stone, her door). Tove sits on the garden bench. Moustache, a scruffy
+  medium dog built like the wildlife (one painted geometry per moving part), follows you
+  everywhere a couple of metres off your shoulder (trot, gallop to catch up, into the houses),
+  noses about and sits when you stand still, barks at the bird and the scout drone, and E pets
+  him. NPCs have a `hush` flag now: no balloons over a scene.
+- **Paying your respects** (`Moment` in `src/story/home.js`): E at the stone. You are set in front
+  of it and kneel (`kneelPose`, laid over the clip through `player.overlay`, a hook run before
+  the humanoid follows the rig; the feet stay where the pose puts them), the bars come down, a
+  low shot frames you and the slab, a short tune plays (`sound.homage`), and: you lay the flower
+  you picked (kept on the stone: `home.flowers`, the newest nine), or after the ending set down
+  what you have found since (the slab makes room and each goes to its place, the way the ending
+  set everything down: `home.stone`, `laidTokens` / `unlaidTokens` / `layTokens`), or rest your
+  hand on it. A quiet line, a word to them, and you rise. Esc hurries it. The window seat is the
+  same kind of moment, sitting (`sitPose`), looking out at the ring.
+- **The ending, with Lou** (`src/ship/homecoming.js`, `tombLines(tokens, { lou })`): she runs down
+  the path to meet you, waits for you there, walks with you to the stone and stands at your
+  left; she leaves her drawing against the headstone (kept: `home.lou.drawing`), and after the
+  oldest recording asks "Was that you? The little one, waving?". Her lines are subtitled LOU and
+  voiced as a child, close by (`CALL_VOICES.lou`, no radio). The credits name Lou, Tove and
+  Moustache "in the small house". `tests/home.test.js`, `tests/home-family.test.js`.

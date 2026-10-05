@@ -7,8 +7,10 @@ import { callTimeline } from './prologue.js';
 import * as sfx from './sfx.js';
 import { padIndex } from '../native-pad.js';
 import { exhaust, footPuffs } from './exhaust.js';
+import { spoken } from '../story/tone.js';
 import { tokenList, leaveTokens, tombLines, credits, creditsHtml, KIND_LABEL } from '../story/ending.js';
-import { HOME_SPOTS, tokenModel, REEL_AT } from '../levels/home.js';
+import { HOME_SPOTS, tokenModel, REEL_AT, layTokens } from '../levels/home.js';
+import { LOU_AT_STONE } from '../story/home-data.js';
 /** The last recording's busts over the reel (1: life size). */
 const REEL_HOLO = 0.6;
 import { items as ownedItems } from '../items.js';
@@ -23,8 +25,10 @@ import { CONTENT, ORDER } from '../levels/content.js';
 //   dive      into the air, a white flash
 //   descend   the ship comes down over the house; the window is dark
 //   hatch     it opens
-//   walk      you walk down the ramp and across the yard to the stone
-//   tomb      you set the tokens on it one by one (tombLines), last the reel, which
+//   walk      you walk down the ramp and across the yard to the stone; Lou, your
+//             daughter, runs down from the small house to meet you, the dog at her heels
+//             (level.family: src/story/home.js), and comes to the stone with you
+//   tomb      you set the tokens on it one by one (tombLines), Lou her drawing, last the reel, which
 //             plays its oldest recording as a hologram over the stone (src/ship/hologram.js)
 //   card      an end card
 //   credits   a paper page of the worlds, the people met, what was left on the stone
@@ -214,6 +218,7 @@ export class HomecomingDirector {
     this.sp = ship.spaceCopy.model;
     this.pk = ship.parked;
     this.done = false;
+    this.homecoming = true;   // (home's story waits for it: src/story/home.js)
     this.skipT = 0;
     this.i = -1;
     this.t = 0;
@@ -301,6 +306,7 @@ export class HomecomingDirector {
         const planet = s.spaceCopy?.space.userData.planet;
         if (planet) planet.material = makeMaterial({ color: '#eebd8e', color2: '#7f8fc8', color3: '#f2c49a', mode: MODE_STRATA, strataSize: 44, strataObject: true });
         this.tomb?.clear();   // (?ending=1 again: the stone starts bare)
+        for (const c of [...(this.tomb?.extras?.children ?? [])]) c.removeFromParent();
         break;
       }
       case 'cargo':
@@ -336,10 +342,19 @@ export class HomecomingDirector {
         s.placePlayer(s.world(pk, polar(9.0, HATCH_A, DECK)), s.site.heading, true);
         const meet = HOME_SPOTS.meet, st = this.standAt();
         s.autopilot([s.hinge.clone().addScaledVector(s.outDir, 0.6), s.rampFoot.clone(), this.at(meet.x, 0, meet.z - 6), this.at(st.x * 0.5, 0, st.z - 2.2), st]);
+        // Lou runs down to meet you (and the dog with her)
+        const F = this.family;
+        if (F?.lou) {
+          F.directed = true;
+          // (down to the path first, where she waits for you; then at your side)
+          const wait = this.at(HOME_SPOTS.meet.x - 1.6, 0, HOME_SPOTS.meet.z - 2);
+          F.lou.follow = () => (s.player.pos.distanceTo(wait) > 7 ? { pos: wait, speed: 4.2, near: 0.5, max: 4.8, face: Math.PI } : { pos: s.player.pos.clone().add(V(-1.1, 0, 0.6)), speed: 2.4, near: 1.0, max: 4.2 });
+        }
         break;
       }
       case 'tomb': {
-        this.lines = tombLines(this.items, { ilenTold: !!game.flag('calls.ilen.told') });
+        this.lines = tombLines(this.items, { ilenTold: !!game.flag('calls.ilen.told'), lou: !!this.family?.lou });
+        this.placeLou();
         this.tl = tombTimeline(this.lines);
         s.auto = null;
         const st = this.standAt();
@@ -369,6 +384,20 @@ export class HomecomingDirector {
     }
   }
 
+  /** Lou and the dog (src/story/home.js), if they are here. */
+  get family() { return this.s.level?.family ?? null; }
+  /** Where Lou stands at the stone: at your left, a little back, looking at it. */
+  louSpot() { const T = this.tomb; return T ? T.group.localToWorld(V(-0.95, 0, 1.75)) : null; }
+  placeLou(snap = false) {
+    const F = this.family, at = this.louSpot();
+    if (!F?.lou || !at) return;
+    F.directed = true;
+    at.y = this.ground(at.x, at.z);
+    if (snap || F.lou.pos.distanceTo(at) > 6) F.lou.pos.copy(at);
+    const face = Math.atan2(HOME_SPOTS.tomb.x - at.x, HOME_SPOTS.tomb.z - at.z);
+    F.lou.follow = () => ({ pos: at, speed: 1.6, near: 0.35, face });
+  }
+
   /** The stone (src/levels/home.js buildTomb), if this level has it. */
   get tomb() { return this.s.level?.tomb ?? null; }
   /** Where the traveller stands to set things down, and which way he faces. */
@@ -382,6 +411,7 @@ export class HomecomingDirector {
   choose() {
     if (this.chosen) return;
     this.chosen = leaveTokens(game, this.items);
+    layTokens(game, this.items);   // (the slab keeps them: src/levels/home.js laidTokens)
     this.chosenAt = this.t;
     this.panel?.remove();
     this.panel = null;
@@ -405,6 +435,7 @@ export class HomecomingDirector {
   /** Skipping the stone: everything already on it. */
   placeAll() {
     this.tomb?.fill(this.items);
+    if (this.family?.lou) { this.tomb?.addDrawing(); game.set('home.lou.drawing', true); }
     this.flying = [];
     this.placed = this.items.length;
   }
@@ -420,6 +451,7 @@ export class HomecomingDirector {
     sfx.engines(s.sound, 0); sfx.hum(s.sound, 0);
     s.auto = null;
     s.placePlayer(this.standAt(), this.faceTomb(), true);
+    this.placeLou(true);
     C.fade(0, false, 0.3);
     if (!this.chosen) this.choose();
   }
@@ -473,6 +505,9 @@ export class HomecomingDirector {
         const cam = this.at(8.5, 2.1, 5.5);
         this.look.lerp(s.player.pos.clone().add(V(0, 1.3, 0)), t < 0.05 ? 1 : 1 - Math.exp(-4 * dt));
         s.shot({ pos: cam, look: this.look, fov: 48 });
+        // she reaches you: "You came!"
+        const lou = this.family?.lou;
+        if (lou && !this.louSaid && lou.pos.distanceTo(s.player.pos) < 2.2) { this.louSaid = true; C.say(spoken('lou', LOU_AT_STONE.run), { secs: 2.6 }); }
         break;
       }
       case 'tomb': {
@@ -480,6 +515,7 @@ export class HomecomingDirector {
         if (cur !== this._line) {
           this._line = cur; C.say(cur ? cur.line : null); this.shotT = 0;
           if (cur?.line.token) this.setDown(this.placed++);
+          if (cur?.line.drawing) { this.tomb?.addDrawing(); game.set('home.lou.drawing', true); }
           if (cur?.line.reel) this.reel();
         }
         this.shotT = (this.shotT ?? 0) + dt;
@@ -549,6 +585,7 @@ export class HomecomingDirector {
     this.credits?.remove();
     this.card?.remove();
     s.auto = null;
+    if (this.family) { this.family.directed = false; if (this.family.lou) this.family.lou.follow = null; }
     s.removeSpaceCopy();
     this.pk.group.visible = true;
     this.pk.group.position.copy(s.restPos);

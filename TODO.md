@@ -332,7 +332,7 @@ To start after the current work lands. Ordered from easiest to most complex.
 
 ## Home level
 
-- [ ] Make it nicer: pay homage at the tomb, real cloth physics for the hanging cloths, a
+- [x] Make it nicer: pay homage at the tomb, real cloth physics for the hanging cloths, a
   little garden, and a home you can enter. The traveller has a daughter and a dog.
 
 ## Story

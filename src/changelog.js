@@ -3,6 +3,15 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.50', date: '2026-10-05', items: [
+    'Home is bigger: walk into your parents’ round house, dark and still with its memories, and into your own small house across the yard, warm and lit.',
+    'Your daughter Lou lives in the small house with Aunt Tove. She runs to meet you every time you come home and wants to know what you brought, and her drawings of every world you wrote to her from are on the wall.',
+    'Moustache the dog follows you everywhere, barks at the bird and the drone, and loves to be petted.',
+    'A little garden in the front yard: vegetable beds, a bench, and flowers you can pick.',
+    'Pay your respects at your parents’ stone: kneel, lay a flower or what you have found since, and stay a moment.',
+    'At the ending Lou comes to the stone with you and leaves a drawing of her own.',
+    'The washing, the bunting, the flag and the curtains are real cloth now: they blow in the wind and move aside when you walk into them.',
+  ] },
   { v: '0.49', date: '2026-10-05', items: [
     'Water has a new hand-drawn look in every world: pale shallows over deeper colour, foam where it meets the shore and the rocks, ripples that drift with the wind, the sky in the far water, and the sun glittering on it.',
     'Ripples ring out round anything that touches the water, from you, creatures and vehicles to splashes.',

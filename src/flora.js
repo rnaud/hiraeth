@@ -46,6 +46,8 @@ export const FLORA_WORLDS = {
   spheres: { seed: 18, patches: 260, sparse: 0.08, regions: [{ x: 0, z: -60, r0: 0, r: 260, w: 1.4 }, { x: 0, z: -200, r0: 240, r: 700, w: 2.5 }] },
   perdide: { seed: 19, patches: 320, sparse: 0.08, water: 0, regions: [{ x: 0, z: 0, r0: 18, r: 300, w: 1.4 }, { x: 0, z: 0, r0: 300, r: 1100, w: 3 }] },
   perdide2: { seed: 20, patches: 230, sparse: 0.08, water: 0, regions: [{ x: 0, z: -150, r0: 0, r: 760, w: 1 }] },
+  // home: the hill outside the yard wall, and a little along its inside (the yard itself is the family's: home.js floraAvoid)
+  home: { seed: 22, patches: 180, sparse: 0.08, regions: [{ x: 0, z: 34, r0: 21, r: 25.2, w: 0.25 }, { x: 0, z: 20, r0: 34, r: 320, w: 3 }] },
   bazaar: { seed: 21, ray: true, patches: 64, sparse: 0.1, regions: [{ x0: 17.5, x1: 26.5, z0: -330, z1: 100, w: 1, band: [-1, 1.6] }, { x0: -26.5, x1: -17.5, z0: -330, z1: 100, w: 1, band: [-1, 1.6] }] },
 };
 

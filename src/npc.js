@@ -459,7 +459,7 @@ export class NPC {
     this.updateCape(dt, player, camera, speed);
 
     // speech balloon: placed by placeBalloon() after the camera has moved this frame
-    this.talking = !this.talkTo && this.greeted && this.time - this.greeted > 0.6 && dist < greetR;
+    this.talking = !this.talkTo && !this.hush && this.greeted && this.time - this.greeted > 0.6 && dist < greetR;   // (hush: a scene is on, no balloons)
     if (this.shout && this.time < this.shout.until) this.talking = true;
   }
 
