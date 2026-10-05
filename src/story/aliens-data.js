@@ -73,8 +73,8 @@ export const ALIENS = {
       voice: 0.7, kind: 'f', color: '#e2c79a',
       lines: ['~neutral~ (A lantern, high up, turns to look at you.)', '~whisper~ Small.'],
       talk: { listen: [
-        { if: { quest: VAEL, stage: 'watcher' }, say: '~whisper~ (It points its lantern at the woman by the bird, then folds one long leg, slowly, like sitting down.) Sit.' },
-        { if: { quest: VAEL, stage: 'ride' }, say: '~neutral~ (Its lantern swings from the bird to the lone tower, and back to the bird.) Ride.' },
+        { if: { quest: VAEL, stage: 'watcher' }, say: '~whisper~ (It points its lantern at the woman sitting on the stone, then folds one long leg, slowly, like sitting down.) Sit.' },
+        { if: { quest: VAEL, stage: 'tower' }, say: '~neutral~ (Its lantern tips toward the lone tower, then rises up its side, swaying, like a thing carried on the wind.) Up.' },
         '~neutral~ (It lowers its lantern to look at you. Then lifts it again.) Small.',
         '~playful~ (It steps over you carefully, one leg at a time, and looks back.) Low.',
         '~curious~ (It bends its long knees to bring the lantern down to your pack, and looks at the fluid a long time.) Bright.',
