@@ -403,3 +403,19 @@ The desert runs in `unity/Memento` (Unity 6, URP): exported from the web game by
   scout drone, hover trails, swimming, the crowd's own conversations; the other worlds; an Android build.
 - [ ] Connect an MCP client to the editor (the bridge package is installed; an organization policy
   blocks registering unknown MCP servers in Claude Code).
+
+---
+
+# Desert story rework (2026-10-05, web only)
+
+All of this is for the web game; the Unity port follows later if we move to Unity.
+
+- [ ] The magic backpack starts empty: no fluid until you reach the skull and fill it there. Clearing
+  the rubble on the way must work without it (another way through: climb, lever, push by hand…).
+- [ ] The big tree is not burning at first. It only stands there until the well is filled with the
+  magic liquid.
+- [ ] Then a second quest: find the special glowing rock, the only thing that can spark the liquid
+  into flame, and bring it back to light the tree.
+- [ ] The glowing rock is in a cave far away: to reach it you first need to find the hover car
+  (the hoverbike errand), which makes the long trip possible.
+- [ ] A little puzzle in that cave to get the rock.
