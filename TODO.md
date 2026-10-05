@@ -323,7 +323,7 @@ To start after the current work lands. Ordered from easiest to most complex.
 - [x] LOD: distant structures cost as much as near ones. Add levels of detail (simpler meshes
   and no outlines far away, impostors for the farthest) for buildings, rocks and flora.
 
-- [ ] Simpler far versions of people's bodies (about 12.5k triangles each, often 5–10 in view): the
+- [x] Simpler far versions of people's bodies (about 12.5k triangles each, often 5–10 in view): the
   next big triangle saving.
 
 ## Materials
