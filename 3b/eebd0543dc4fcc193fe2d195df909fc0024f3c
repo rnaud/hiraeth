@@ -1,0 +1,23 @@
+README.md
+  s_1fd8d0e7b02dcf::t_88b250efb5d99c 1006,1979-2012
+src/ship/interior.js
+  s_1fd8d0e7b02dcf::t_3ceedd3d488707 441
+tests/ship-deck.test.js
+  s_1fd8d0e7b02dcf::t_a6c37cceaa422d 1-146
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3beebd0543dc4fcc193fe2d195df909fc0024f3c",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
