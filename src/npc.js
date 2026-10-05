@@ -88,7 +88,7 @@ export class NPC {
     const at = route[0];
     const dress = pooled ? null : namedLook({ world: world ?? costumeWorld(), id: def?.id ?? `${kind}:${Math.round(at.x)},${Math.round(at.z)}`,
       // a story person's hair and beard follow their kind only when the story says it (def.kind)
-      palette, head, cape, look: look ?? def?.look ?? {}, pos: at, kind: def ? def.kind ?? null : kind });
+      palette, head, cape, look: look ?? def?.look ?? {}, pos: at, kind: def ? def.body ?? def.kind ?? null : kind });
     this.char = buildCharacter(dress ? { ...palette, cloak: dress.cloak, cloth: dress.cloth, legs: dress.legs } : palette);
     this.char.pack.visible = !pooled && !dress?.robe && Math.random() < 0.5;
     this.object = this.char.root;
@@ -99,7 +99,11 @@ export class NPC {
     this.humanoid = human ? new Humanoid(human, this.char, kind, { skin: dress?.skin ?? '#e8c6a8', build: dress?.build }) : null;
     this.cape = null;
     if (dress) this.restyle(dress);
-    else this.char.root.traverse((o) => { if (o.isMesh && o.geometry.type === 'TorusGeometry' && o.parent === this.char.capeAnchor) o.visible = false; });
+    // a story person's own body and face (morph.js: def.morph, def.face; a child's proportions, home's Lou)
+    if (this.humanoid && def?.morph) { this.humanoid.ownMorph = def.morph; this.humanoid.setMorph(def.morph); }
+    if (this.humanoid && def?.face) { this.humanoid.ownFace = def.face; this.humanoid.setFace(def.face); }
+    if (this.humanoid && def?.rest) { this.humanoid.restExpression = def.rest; this.humanoid.setExpression?.(def.rest); }   // (their face at rest: a child's ready smile)
+    if (!dress) this.char.root.traverse((o) => { if (o.isMesh && o.geometry.type === 'TorusGeometry' && o.parent === this.char.capeAnchor) o.visible = false; });
     this.animator = lib ? new Animator(lib, this.char) : null;
     this.pos = route[0].clone();
     this.heading = 0;
@@ -194,7 +198,7 @@ export class NPC {
           u.uTrim.value.set(t.r, t.g, t.b, trim);
           u.uSuit.value = (s.bulk ?? 0) >= 2 ? 1 : 0;                       // the dome people's padded suits
           u.uOutfit.value.w = s.sleeveless ? 0.2 : m.userData.wrist;      // bare arms in the garden
-        } else if (m.userData.role === 'brows') u.uColor.value.set(s.hair);
+        } else if (m.userData.role === 'brows') u.uColor.value.set(this.def?.brows ?? s.hair);   // (def.brows: softer brows than hair, a child's)
         else if (m.userData.role === 'eyes' && s.eyes) { u.uColor2.value.set(s.eyes); u.uSkin.value.set(s.skin); }   // their own iris; the lids in their skin
       }
       h.setBuild(s.build);   // a crowd body takes its person's build
@@ -703,6 +707,30 @@ export class NPC {
     return K;
   }
 
+  /**
+   * A child never stands still (def.gait.fidget, 0..1): standing, she shifts from foot to foot,
+   * swings her arms, twists, tips her head, and now and then bounces on her toes; walking, her
+   * steps are springier.
+   */
+  fidget(c, speed, k) {
+    const t = this.time, still = THREE.MathUtils.clamp(1 - speed / 0.6, 0, 1), s = this.phase * 37;
+    if (still > 0.01 && !this.seat && !this.talkTo?.speaking) {
+      const w = still * k;
+      c.body.rotation.z += Math.sin(t * 2.1 + s) * 0.05 * w;
+      c.body.position.x += Math.sin(t * 2.1 + s) * 0.025 * w;
+      c.torso.rotation.y += Math.sin(t * 0.8 + s) * 0.28 * w;
+      c.arms[0].rotation.x += Math.sin(t * 1.9 + s) * 0.35 * w;
+      c.arms[1].rotation.x += Math.sin(t * 1.9 + s + 2.4) * 0.35 * w;
+      c.arms[0].rotation.z -= (0.15 + 0.1 * Math.sin(t * 1.1)) * w;
+      c.arms[1].rotation.z += (0.15 + 0.1 * Math.sin(t * 1.3)) * w;
+      c.head.rotateZ(Math.sin(t * 1.3 + s) * 0.14 * w);
+      // a bounce on her toes, every few seconds
+      const b = (t * 0.33 + s) % 1;
+      if (b < 0.12) c.body.position.y += Math.sin((b / 0.12) * Math.PI * 2) ** 2 * 0.045 * w;
+    }
+    if (speed > 0.3) c.body.position.y += Math.abs(Math.sin(this.time * 9)) * 0.018 * k * Math.min(1, speed);
+  }
+
   /** Which way the player is from here (held while they stand inside us: see update()). */
   aimAtPlayer(player, dist) {
     _v.subVectors(player.pos, this.pos);
@@ -714,13 +742,16 @@ export class NPC {
     const c = this.char;
     if (this.animator) {
       const N = this.animator.lib.native;
+      // a gait of their own (def.gait): a child's short legs take shorter, quicker steps, and break into a run sooner
+      const G = this.def?.gait, stride = G?.stride ?? 1, pace = G?.pace ?? 1;
       this.animator.update(dt, {
         speed, onGround: true, mode: mode ?? (waveT >= 0 ? 'talk' : 'ground'),
-        walkAt: N.walk * 1.3, jogAt: N.jog, sprintAt: N.sprint * 1.2, strideScale: 1.05,
+        walkAt: N.walk * 1.3 * pace, jogAt: N.jog * pace, sprintAt: N.sprint * 1.2 * pace, strideScale: 1.05 * stride,
       });
       this.object.position.copy(this.pos);
       this.object.quaternion.setFromAxisAngle(Y, this.heading);
       this.animator.apply(this.object, { legScale: 1.04 });
+      if (G?.fidget) this.fidget(c, speed, G.fidget);
       if (waveT >= 0 && waveT < 2.2) {
         const k = Math.min(waveT * 4, 1) * Math.min((2.2 - waveT) * 4, 1);
         c.arms[1].rotation.set(-0.2 * k, 0, 0.12 + 2.5 * k);

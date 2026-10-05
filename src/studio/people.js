@@ -20,6 +20,7 @@ const DATA = {
   perdide: () => import('../story/perdide-data.js'),
   perdide2: () => import('../story/perdide2-data.js'),
   bazaar: () => import('../story/bazaar-data.js'),
+  home: () => import('../story/home-data.js'),
 };
 
 /** People in a story data module: every exported person (an id, a name and a body), not the things. */
@@ -72,8 +73,8 @@ export function lookFor(spec, state, world) {
   if (spec.who === 'npc' && spec.def) {
     const d = spec.def;
     // as NPC does (src/npc.js): seeded by who they are; hair and beard follow their kind only when the story gives one
-    base = namedLook({ world, id: d.id, palette: d.palette ?? {}, head: d.head ?? null, cape: d.cape ?? null, look: d.look ?? {}, pos, kind: d.kind ?? null });
-    base.kind = d.kind ?? 'm';
+    base = namedLook({ world, id: d.id, palette: d.palette ?? {}, head: d.head ?? null, cape: d.cape ?? null, look: d.look ?? {}, pos, kind: d.body ?? d.kind ?? null });
+    base.kind = d.body ?? d.kind ?? 'm';   // (def.body: the body, if not the voice's kind)
   } else if (spec.who === 'crowd') {
     const seed = spec.seed ?? state.seed;
     const kind = state.kind === 'f' || state.kind === 'm' ? state.kind : mulberry32(seed)() < 0.5 ? 'm' : 'f';
