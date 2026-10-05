@@ -1,0 +1,31 @@
+src/humanoid.js
+  s_1fd8d0e7b02dcf::t_4088925205e3c7 408-409,414,417
+src/makehuman/body.js
+  s_1fd8d0e7b02dcf::t_0e8ef0db50b67f 14,172-184,186,189,191,193-219,230-232,363,375-376
+src/makehuman/face-keys.js
+  s_1fd8d0e7b02dcf::t_de8f3253a80869 52-57,61-69,74-75,80,82-83,89-100
+src/materials.js
+  s_1fd8d0e7b02dcf::t_1c074b3acf2ee7 305-312,352-357,1742,1827-1831
+tests/makehuman-desert.test.js
+  s_1fd8d0e7b02dcf::t_d69adc231a5ab7 186,191
+tests/makehuman-worlds.test.js
+  s_1fd8d0e7b02dcf::t_ae4dcbb5a8d403 1-69
+tests/makehuman.test.js
+  s_1fd8d0e7b02dcf::t_b5f4df9426f877 107,109,112-113,119,131,229,238-240
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c41d3dbc2666a511d442466a8861883b73d4339f",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
