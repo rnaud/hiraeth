@@ -1,0 +1,49 @@
+README.md
+  s_1fd8d0e7b02dcf::t_f9b067b5dc4930 1872-1955
+TODO.md
+  s_1fd8d0e7b02dcf::t_9ad1a28cd1c63f 313,316-318
+changelog.md
+  s_1fd8d0e7b02dcf::t_9fa05038f25bee 17-18
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_5853b68d993e20 17-18
+src/crowd.js
+  s_1fd8d0e7b02dcf::t_c11cc10a830531 11,23-25,42-43,585-589,599,603,730-731,735-737,740,749,1077
+src/desert-city.js
+  s_1fd8d0e7b02dcf::t_ffb6737e1d189b 840
+src/flora.js
+  s_1fd8d0e7b02dcf::t_81130daf16a589 8,298-300,348-366,388,393-394,396,403,407,411-417,423-424
+src/lod-core.js
+  s_1fd8d0e7b02dcf::t_0387c931bcb1f9 1-346
+src/lod-worker.js
+  s_1fd8d0e7b02dcf::t_dec1c9fb254fb8 1-9
+src/lod.js
+  s_1fd8d0e7b02dcf::t_da0de57f2c53af 1-412
+src/main.js
+  s_1fd8d0e7b02dcf::t_df7d77ba7470ab 22,32,962-965,992-993,996,998-1000,1019,1021,1386
+src/perf.js
+  s_1fd8d0e7b02dcf::t_1d4a8794c6fe45 250-251,253,258,260
+src/physics.js
+  s_1fd8d0e7b02dcf::t_b8eb7b12a5a4ed 58,87,89-90
+src/ship/fx.js
+  s_1fd8d0e7b02dcf::t_fc04d534acf497 6-7,33,45,67
+src/story/flames.js
+  s_1fd8d0e7b02dcf::t_c97b85149452e7 2,567-569,644,656-657,674,681-686
+tests/lod.test.js
+  s_1fd8d0e7b02dcf::t_fdc08d2ba7999f 1-309
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7aafb482c5508f46e7f0906e13dabebdd6493f28",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
