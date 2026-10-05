@@ -405,15 +405,16 @@ export class Humanoid {
     this.outfitRest = prof?.outfit ?? OUTFIT[kind];
     this.earZ = prof?.earZ ?? EAR_Z[kind];
     const C = char.colors;
-    const body = makeMaterial({ color: C.cloth, color2: C.legs, color3: C.boot ?? '#6e3f2c', mode: MODE_OUTFIT, skin, outfit: this.outfitRest, face: this.faceRest, gloves, suit });
+    const keys = prof?.keyCounts ?? {};   // (a MakeHuman body's face keys: materials.js FACE_KEYS)
+    const body = makeMaterial({ color: C.cloth, color2: C.legs, color3: C.boot ?? '#6e3f2c', mode: MODE_OUTFIT, skin, outfit: this.outfitRest, face: this.faceRest, gloves, suit, faceKeys: keys.body });
     body.uniforms.uFaceKit2.value.w = this.earZ;   // (the face ink's ears: face-ink.js)
     // the eyes (eyes.js): white, an iris (each person's own colour: NPC.restyle) that follows the gaze, blinking lids
     let eyeball = null;
     model.traverse((o) => { if (o.isMesh && /eye/i.test(o.name) && !/brow/i.test(o.name) && !eyeball) eyeball = o.userData.eyeball ?? null; });
-    const eyes = makeMaterial({ color: EYE_WHITE, color2: outfit ? TRAVELLER_IRIS : '#5e3a24', mode: MODE_EYE, skin, eye: eyeball ? { ...eyeball, iris: 0.4 } : undefined, figure: true });
+    const eyes = makeMaterial({ color: EYE_WHITE, color2: outfit ? TRAVELLER_IRIS : '#5e3a24', mode: MODE_EYE, skin, eye: eyeball ? { ...eyeball, iris: 0.4 } : undefined, figure: true, faceKeys: keys.eyes });
     this.eyeLook = new EyeLook();
     // (one flat stroke each: no hatching inside; the hair's colour softened toward the skin, costumes.js browColour)
-    const brows = makeMaterial({ color: outfit ? hair : browColour(hair, skin), figure: true, facePart: true });
+    const brows = makeMaterial({ color: outfit ? hair : browColour(hair, skin), figure: true, facePart: true, faceKeys: keys.brows });
     model.traverse((o) => {
       if (!o.isMesh) return;
       const isBrow = /brow/i.test(o.name) || /hair/i.test(o.material?.name ?? '');

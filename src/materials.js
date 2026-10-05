@@ -302,6 +302,14 @@ const vertexShader = /* glsl */ `
   out vec2 vTextureUV;
   #include <skinning_pars_vertex>
   #include <morphtarget_pars_vertex>
+  #ifdef FACE_KEYS
+    // the MakeHuman faces' shape keys: one texture for every body (src/makehuman/body.js keyTexture),
+    // each key a layer, each vertex a texel, scaled by this head (uKeyScale.xyz; w 0: a level of detail, no keys)
+    uniform highp sampler2DArray uKeyTex;
+    uniform float uKeyW[FACE_KEYS];
+    uniform vec4 uKeyScale;
+    uniform int uKeyWidth;
+  #endif
   uniform vec4 uOutfit;
   uniform float uSuit;
   uniform float uPortrait;
@@ -341,6 +349,12 @@ const vertexShader = /* glsl */ `
     // the rest position, so the face ink rides the skin as it moves
     #include <morphnormal_vertex>
     #include <morphtarget_vertex>
+    #ifdef FACE_KEYS
+    if (uKeyScale.w > 0.5) {
+      ivec2 keyAt = ivec2(gl_VertexID % uKeyWidth, gl_VertexID / uKeyWidth);
+      for (int i = 0; i < FACE_KEYS; i++) if (uKeyW[i] != 0.0) transformed += texelFetch(uKeyTex, ivec3(keyAt, i), 0).xyz * uKeyScale.xyz * uKeyW[i];
+    }
+    #endif
     #ifdef S_PORTRAIT
     // Light the face as one rounded volume, so its shadow is a single clean shape.
     if (uPortrait > 0.5) objectNormal = normalize(mix(normal, normalize(position - uHeadBall.xyz), uHeadBall.w));
@@ -1725,6 +1739,7 @@ const cache = new Map();
  * @param {number}  [o.glow]    0..1 self-lit
  * @param {THREE.Side} [o.side]
  * @param {boolean} [o.figure]  part of a person: post.js draws its outline and inner ink by its size on screen
+ * @param {number}  [o.faceKeys] how many face keys it reads (a MakeHuman body's shape keys: FACE_KEYS, src/makehuman/face-keys.js)
  * @param {boolean} [o.facePart] part of a face drawn as one stroke (the brows): flat, no surface hatching, the face flag
  * @param {object}  [o.eye]     MODE_EYE: the eyeballs (eyes.js eyeballOf: { center, radii }, iris: its radius on the unit eye)
  * @param {string}  [o.iris]    the traveller's portrait face: its iris colour (face.js)
@@ -1809,6 +1824,11 @@ export function makeMaterial(o) {
   mat.defines = surfaceDefines(o);   // only the features this material uses are compiled
   if (o.crowd) mat.defines = { ...mat.defines, CROWD: 1 };
   if (o.facePart) mat.defines = { ...mat.defines, FACE_PART: 1 };
+  // a MakeHuman body's face keys (src/makehuman/face-keys.js sets them before each draw)
+  if (o.faceKeys > 0) {
+    mat.defines = { ...mat.defines, FACE_KEYS: o.faceKeys };
+    Object.assign(mat.uniforms, { uKeyTex: { value: null }, uKeyW: { value: new Array(o.faceKeys).fill(0) }, uKeyScale: { value: new THREE.Vector4(1, 1, 1, 0) }, uKeyWidth: { value: 1 } });
+  }
   // strata bands in the object's own space, so they move with it (a moving or turning thing; mesas keep world bands)
   if (o.strataObject) mat.defines = { ...mat.defines, STRATA_OBJECT: 1 };
   if (o.sway) {

@@ -183,12 +183,12 @@ test('a body\'s reshaped copies share its skin, triangles and face keys', () => 
   assert.notEqual(c.attributes.position, g.attributes.position);
   assert.equal(c.attributes.skinIndex, g.attributes.skinIndex);
   assert.equal(c.index, g.index);
-  assert.equal(c.morphAttributes.position, g.morphAttributes.position);
+  assert.equal(c.userData.faceKeys, g.userData.faceKeys);
   // a template's other builds: the same keys' arrays
   const H = new Humanoid(t, buildCharacter(), 'f');
   H.setBuild('heavy');
   assert.notEqual(H.body.geometry, g);
-  assert.equal(H.body.geometry.morphAttributes.position[0], g.morphAttributes.position[0]);
+  assert.equal(H.body.geometry.userData.faceKeys.texture, g.userData.faceKeys.texture);
 });
 
 test('the named desert people follow their character sheets', () => {
