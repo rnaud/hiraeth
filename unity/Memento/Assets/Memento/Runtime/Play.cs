@@ -29,6 +29,10 @@ namespace Memento
 
             // the sound (audio.js): the web game's recorded effects and score, the wind and the engine synthesised
             Sounds.Create(game.cam.gameObject);
+            Settings.Load(); Settings.Apply();
+            game.hud.Build();
+            // a new keepsake: the charge's gold tag says so for a while (main.js chargeKept)
+            game.state.On("keepsake", k => game.hud.Kept((k as Dictionary<string, object>)?.S("name")));
             // the people, dressed as on the web (people.mjs): the traveller, the story's people, the crowd
             new FigureLibrary(game.world);
             var pgo = new GameObject("Traveller");
@@ -87,7 +91,7 @@ namespace Memento
             // the father's charge (src/story/charge.js): the words he left, on a card, before you step out
             if (Game.playPrologue && !game.state.Is("prologue.done")) { game.ship.StartPrologue(); return; }
             Sounds.Instance?.Play("charge");
-            game.hud.ShowCard("My son,", "“make us proud. Bring back something of value.”\n\n<size=18>The ship is dark. Its power is gone. Somewhere out there, smoke rises from a city.</size>", 1.0f);
+            game.hud.ShowChargeCard();
             Cursor.lockState = Application.isEditor ? CursorLockMode.None : CursorLockMode.Locked;
         }
 
@@ -115,11 +119,11 @@ namespace Memento
             foreach (var f in game.story ? game.story.FirePlaces : System.Array.Empty<Vector3>()) fireNear = Mathf.Max(fireNear, 1 - Vector3.Distance(f, pl.transform.position) / 9f);
             float gust = game.ambient ? game.ambient.Gust : 0.5f, storm = game.ambient ? game.ambient.Storm : 0;
             Sounds.Instance?.Layers(pl.riding ? 0 : pl.SpeedXZ, gust, pl.riding, game.bike ? game.bike.Speed : 0, Mathf.Clamp01(fireNear), storm);
-            game.prompt = null;
+            game.prompt = null; game.promptAt = null;
             if (busy || pl.down) return;
             var best = Interact.Best(pl.transform.position);
             if (pl.riding) best = null;
-            if (best != null) game.prompt = best.prompt();
+            if (best != null) { game.prompt = best.prompt(); game.promptAt = best.at() + Vector3.up * (best.id != null && best.id.StartsWith("talk.") ? 2.25f : 0.8f); }
             else if (!pl.riding && game.bike && !game.bike.dormant && Vector3.Distance(game.bike.transform.position, pl.transform.position) > 8) game.prompt = "whistle for the hoverbike";
             if (Pad.InteractDown() && !pl.riding)
             {

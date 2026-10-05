@@ -27,22 +27,34 @@ namespace Memento
         void Log(string s) { Debug.Log("Memento: " + s); log.Add(s); }
         string Stage => game.quests.Stage("desert.power");
 
+        RenderTexture frame;
+        /// <summary>The camera draws into a 1280 × 720 target all along (batch mode has no window), so the HUD's
+        /// camera-space canvas is laid out for that size and lands in the frame.</summary>
+        void Frame()
+        {
+            if (frame) return;
+            frame = new RenderTexture(width, height, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB) { name = "Batch frame" };
+            game.cam.targetTexture = frame;
+        }
+
         IEnumerator Shoot(string name)
         {
             yield return null;   // (no end-of-frame in batch mode: render the camera here)
+            Frame();
             var cam = game.cam;
-            var rt = new RenderTexture(width, height, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
-            var prev = cam.targetTexture; cam.targetTexture = rt; cam.Render(); cam.targetTexture = prev;
-            // the HUD (IMGUI) is not in the camera's image: draw a copy of what matters into the file name's log
-            RenderTexture.active = rt;
+            Canvas.ForceUpdateCanvases();
+            cam.Render();
+            RenderTexture.active = frame;
             var tex = new Texture2D(width, height, TextureFormat.RGB24, false);
             tex.ReadPixels(new Rect(0, 0, width, height), 0, 0); tex.Apply();
             RenderTexture.active = null;
             Directory.CreateDirectory(outDir);
             File.WriteAllBytes(Path.Combine(outDir, $"{++shot:00}_{name}.png"), tex.EncodeToPNG());
-            Destroy(rt); Destroy(tex);
-            Log($"shot {name} (stage {Stage}, prompt '{game.prompt}', hp {game.player.health:0.00})");
+            Destroy(tex);
+            Log($"shot {name} (stage {(game.quests != null ? Stage : "-")}, prompt '{game.prompt}', hp {(game.player ? game.player.health : 1):0.00})");
         }
+        /// <summary>Frames of real time (the pause menu holds the game's clock).</summary>
+        IEnumerator Real(float s) { float t = 0; while (t < s) { t += Time.unscaledDeltaTime; yield return null; } }
 
         void Probe(string when)
         {
@@ -56,7 +68,7 @@ namespace Memento
         IEnumerator CloseUp(string name, Transform who, float dist = 2.2f, float side = 0.35f, float up = 0.05f)
         {
             if (!who) { Log($"no one for {name}"); yield break; }
-            game.rig.enabled = false;
+            game.rig.enabled = false; game.hud.hidden = true;
             yield return null;
             var head = who.GetComponentsInChildren<Transform>().FirstOrDefault(t => t.name == "Head");
             var at = head ? head.position + Vector3.down * 0.25f * who.lossyScale.y : who.position + Vector3.up * 1.4f;
@@ -65,7 +77,7 @@ namespace Memento
             game.cam.transform.position = at + fwd * dist + right * side * dist + Vector3.up * up * dist;
             game.cam.transform.LookAt(at);
             yield return Shoot(name);
-            game.rig.enabled = true;
+            game.rig.enabled = true; game.hud.hidden = false;
         }
 
         IEnumerator Wait(float s) { float t = 0; while (t < s) { t += Time.deltaTime; yield return null; } }
@@ -107,6 +119,20 @@ namespace Memento
         {
             game = Game.Instance;
             pad = Pad.Script = new Pad.Track();
+            Frame();
+            // the title screen over the desert at golden hour, its settings, then a new game
+            if (game.title)
+            {
+                yield return Real(2.5f);
+                yield return Shoot("title");
+                game.title.Pick("SETTINGS"); yield return Real(0.5f);
+                pad.nav = 1; yield return Real(0.2f); pad.navX = 1; yield return Real(0.2f); pad.nav = 1; yield return Real(0.3f);
+                yield return Shoot("title_settings");
+                pad.back = true; yield return Real(0.1f); pad.back = false; yield return Real(0.1f); pad.back = true; yield return Real(0.1f); pad.back = false; yield return Real(0.3f);
+                Log($"title: settings closed {!game.title || game.title.Open}");
+                game.title.Pick("NEW GAME");
+                yield return null; yield return null;
+            }
             float t0 = Time.time;
             while ((game.player.model == null || game.npcs.Count(n => n && n.GetComponentInChildren<SkinnedMeshRenderer>() != null) < 10) && Time.time - t0 < 30) yield return null;
             Log($"people: {game.npcs.Count(n => n && n.figure)} dressed, traveller {(game.player.figure ? "dressed" : "glb")}");
@@ -173,11 +199,33 @@ namespace Memento
                 game.rig.enabled = true;
             }
             PutNear(ama.pos, 2f); yield return Wait(0.6f);
+            yield return Shoot("the_prompt_over_ama");
             game.hud.StartTalk(game.story.Def("ama"), ama, ama.displayName, ama.title);
             yield return Wait(2.5f);
             yield return Shoot("talking_to_ama");
             yield return CloseUp("ama_face_talking", ama.transform, 0.9f, 0.2f, 0.0f);
+            {
+                // to her first answers (at most three), the second one chosen with the D-pad
+                var r = game.hud.talk;
+                for (int i = 0; i < 8 && r != null && !r.ended && r.Choices().Count(c => c.c != null) == 0; i++) { if (!r.Advance()) break; }
+                yield return Wait(3f);
+                pad.nav = 1; yield return Wait(0.2f);
+                yield return Shoot("ama_answers");
+                Log($"answers: {string.Join(" | ", r?.Choices().Select(c => c.text) ?? new string[0])}");
+            }
             game.hud.talk.ended = true; yield return Wait(0.3f);
+            // the sketchbook (View), then the pause menu (Menu): the clock stops under it
+            yield return Pulse(v => pad.journal = v); yield return Wait(0.4f);
+            yield return Shoot("sketchbook");
+            Log($"sketchbook: {game.hud.journalOpen}");
+            yield return Pulse(v => pad.journal = v); yield return Wait(0.3f);
+            pad.menu = true; yield return Real(0.1f); pad.menu = false; yield return Real(0.4f);
+            float tm = Time.timeScale;
+            pad.navX = 1; yield return Real(0.2f); pad.nav = 1; yield return Real(0.2f);
+            yield return Shoot("pause_menu");
+            Log($"pause: open {game.hud.pause.open}, time scale {tm}");
+            pad.back = true; yield return Real(0.1f); pad.back = false; yield return Real(0.1f); pad.back = true; yield return Real(0.1f); pad.back = false; yield return Real(0.3f);
+            Log($"pause closed: {!game.hud.pause.open}, time scale {Time.timeScale}");
 
             // the city: through the gate and up to the tree
             Put(game.world.Places.V3("cityGate"), 180 + game.world.Places.F("cityYaw") * Mathf.Rad2Deg);
@@ -203,6 +251,7 @@ namespace Memento
             yield return Wait(1.6f); yield return Shoot("the_chest_comes_apart");
             yield return Wait(1.1f); yield return Shoot("the_backpack_hovers");
             yield return Wait(1.2f);
+            yield return Shoot("the_box_card");
             Log($"box card: '{game.hud.card?.Substring(0, Mathf.Min(40, game.hud.card?.Length ?? 0))}'");
             yield return Pulse(v => pad.confirm = v); yield return Wait(1.8f);
             Log($"backpack: {game.quests.Has("backpack")}, stage {Stage}, tank shown {game.tool && game.player.figure && game.player.figure.Bone("Fluid tank").gameObject.activeInHierarchy}");
@@ -218,7 +267,8 @@ namespace Memento
             yield return Shoot("the_splat");
             Log($"tool: {tool.shots} shot, charges {tool.charges:0.0}");
             game.state.Set("item.stun", true); game.state.Set("item.glider", true);
-            pad.mode = 1; yield return Wait(0.2f);
+            pad.mode = 1; yield return Wait(0.3f);
+            yield return Shoot("the_mode_flash");
             Log($"tool mode: {tool.mode} (of {string.Join(", ", tool.Modes())})");
             yield return CloseUp("the_tank_in_stilling", game.player.transform, -1.2f, 0.6f, 0.1f);
             pad.mode = -1; yield return Wait(0.2f);
@@ -329,6 +379,23 @@ namespace Memento
             Put(game.world.Places.V3("shipRamp"), 0); yield return Wait(1.5f);
             Log($"at the ship: stage {Stage}, done {game.quests.IsDone("desert.power")}, powered {game.state.Is("ship.powered")}");
             yield return Shoot("the_ship_hums");
+            // aboard, the console: the galactic map (starmap.js), a world chosen, "Travel to …?"
+            {
+                var ending = game.hud.card != null;
+                yield return Wait(2.6f);   // (the ending card takes a press only after 2.5 s)
+                yield return Pulse(v => pad.confirm = v); yield return Wait(0.5f);
+                Interact.All.FirstOrDefault(i => i.id == "ship.board")?.use(); yield return Wait(1f);
+                Interact.All.FirstOrDefault(i => i.id == "ship.console")?.use(); yield return Wait(1.2f);
+                yield return Shoot("the_galactic_map");
+                Log($"map: open {game.hud.map.open} (ending card was up: {ending})");
+                pad.navX = 1; yield return Wait(0.3f);
+                yield return Pulse(v => pad.confirm = v); yield return Wait(0.4f);
+                yield return Shoot("travel_to");
+                yield return Pulse(v => pad.back = v); yield return Wait(0.2f);
+                yield return Pulse(v => pad.back = v); yield return Wait(0.2f);
+                Log($"map closed: {!game.hud.map.open}");
+                Interact.All.FirstOrDefault(i => i.id == "ship.leave")?.use(); yield return Wait(0.5f);
+            }
             Log($"sound: {Sounds.Instance?.ClipCount ?? 0} recorded clips, {Sounds.Instance?.played ?? 0} played");
             // Nour: back on her bench since you went away
             {

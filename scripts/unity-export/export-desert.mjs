@@ -396,7 +396,9 @@ const { LEVELS } = await import('../../src/levels/index.js');
 const { ORDER } = await import('../../src/levels/names.js');
 const story = { prologue: { call: calls.PROLOGUE_CALL, timeline: callTimeline(calls.PROLOGUE_CALL), crash: sig.CRASH_LINE, map: sig.MAP_LINE, stages: (await import('../../src/ship/prologue.js')).PROLOGUE_STAGES.map((s) => ({ ...s, dur: Number.isFinite(s.dur) ? s.dur : -1 })) },
   worlds: LEVELS.map((l) => ({ id: l.id, title: l.title, blurb: l.blurb ?? '', source: l.source ?? '' })), order: ORDER ?? LEVELS.map((l) => l.id),
-  quests: data.QUESTS, people: data.PEOPLE, things: data.THINGS, lines: data.LINES, items: data.ITEMS, villagers: data.VILLAGERS, villagerTalk: data.VILLAGER_TALK, murmurs: data.MURMURS, crowdTalk: data.CROWD_TALK };
+  quests: data.QUESTS, people: data.PEOPLE, things: data.THINGS, lines: data.LINES, items: data.ITEMS, villagers: data.VILLAGERS, villagerTalk: data.VILLAGER_TALK, murmurs: data.MURMURS, crowdTalk: data.CROWD_TALK,
+  // the galactic map (starmap.js): the strike's signature per world and its legend, the planets' looks (planets.js)
+  map: { signature: sig.SIGNATURE_WORLDS, legend: sig.SIGNATURE_LEGEND, legendShort: sig.SIGNATURE_LEGEND_SHORT, planets: (await import('../../src/ship/planets.js')).PLANETS } };
 const fnCount = JSON.stringify(story, (k, v) => (typeof v === 'function' ? '[fn]' : v)).split('[fn]').length - 1;
 if (fnCount) console.warn(`story: ${fnCount} functions left out (only data travels)`);
 

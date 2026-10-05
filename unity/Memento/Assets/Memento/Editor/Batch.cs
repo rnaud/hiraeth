@@ -91,7 +91,7 @@ namespace Memento.EditorTools
             EditorSceneManager.SaveScene(scene, ScenePath);
             // the title page
             var title = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-            new GameObject("Title").AddComponent<TitleScreen>();
+            new GameObject("Loading").AddComponent<Loading>();
             EditorSceneManager.SaveScene(title, TitlePath);
             EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(TitlePath, true), new EditorBuildSettingsScene(ScenePath, true) };
             AssetDatabase.SaveAssets();
@@ -138,6 +138,8 @@ namespace Memento.EditorTools
         public static void Play()
         {
             var outDir = Path.GetFullPath(Arg("-out", "Shots/play"));
+            // the title screen first (its shots, then New game), unless -noTitle
+            Game.showTitle = Array.IndexOf(Environment.GetCommandLineArgs(), "-noTitle") < 0;
             EditorSettings.enterPlayModeOptionsEnabled = true;
             EditorSettings.enterPlayModeOptions = EnterPlayModeOptions.DisableDomainReload | EnterPlayModeOptions.DisableSceneReload;
             EditorSceneManager.OpenScene(ScenePath);
@@ -151,6 +153,29 @@ namespace Memento.EditorTools
             };
             EditorApplication.update += () => { if (EditorApplication.timeSinceStartup - started > 420) { Debug.LogError("Memento: play-through timed out"); EditorApplication.Exit(4); } };
             EditorApplication.EnterPlaymode();
+        }
+
+        /// <summary>The UI kit alone on a camera-space canvas, rendered to -out (a quick look at the shapes and the text).</summary>
+        public static void UiKit()
+        {
+            var outDir = Arg("-out", "Shots"); Directory.CreateDirectory(outDir);
+            var cam = new GameObject("cam").AddComponent<Camera>();
+            cam.clearFlags = CameraClearFlags.SolidColor; cam.backgroundColor = Ui.Page;
+            var rt = new RenderTexture(1280, 720, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+            cam.targetTexture = rt;
+            var root = Hud.MakeCanvas(cam, "kit", 0);
+            var s = Ui.Node("sketch", root).gameObject.AddComponent<Sketch>();
+            Ui.PlaceC(s.rectTransform, 100, 100, 400, 300);
+            s.Line(new Vector2(-150, 0), new Vector2(150, 40), 3, Ui.Red);
+            s.Disc(new Vector2(0, -60), 30, Ui.Gold);
+            s.Ring(new Vector2(100, -60), 30, 2, Ui.Ink, 5, 4);
+            var b = Ui.Panel(root, "box", Ui.Paper, Ui.Ink, 2, 4, 4); Ui.Place(b.rt, 600, 100, 300, 120);
+            var t = Ui.Label(b.rt, "t", Ui.Mono, 15, Ui.Ink); Ui.Place(t.rectTransform, 12, 10, 280, 100); t.text = "The quick brown fox · ◆ ✦ × ○ △";
+            var sp = Ui.Label(root, "spaced", Ui.Sans, 23, Ui.Ink, TextAnchor.UpperCenter); Ui.Place(sp.rectTransform, 0, 400, 1280, 40); sp.text = "NEW GAME"; Ui.Space(sp, 0.42f);
+            var o = sp.gameObject.AddComponent<UnityEngine.UI.Outline>(); o.effectColor = new Color(1, 1, 1, 0.5f);
+            Canvas.ForceUpdateCanvases();
+            Render(cam, 1280, 720, Path.Combine(outDir, "uikit.png"));
+            Debug.Log($"Memento: ui kit rendered, sketch verts {s.canvasRenderer.GetMaterial() != null}");
         }
 
         /// <summary>Build the world in edit mode and check the collision at the story's places (rays down at each).</summary>

@@ -101,7 +101,9 @@ namespace Memento.Tests
         {
             Talk(Person("teo"), "I’ll look");
             Assert.AreEqual("find", quests.Stage("desert.drum"));
-            quests.Give("drum"); quests.Advance("desert.drum", "find");
+            quests.Advance("desert.drum", "find");   // (found: jammed under a knuckle of bone)
+            Assert.AreEqual("free", quests.Stage("desert.drum"));
+            quests.Give("drum"); quests.Advance("desert.drum", "free");
             Talk(Person("teo"));
             Assert.IsTrue(quests.IsDone("desert.drum"));
             Assert.IsTrue(game.keepsakes.Any(k => k.S("id") == "desert.song"), "Teo's walking rhythm, a keepsake");

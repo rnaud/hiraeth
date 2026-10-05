@@ -43,6 +43,7 @@ Shader "Hidden/Memento/Composite"
       float4 _Planet0, _PlanetColor0;
       float _Debug;
       float _CineRed, _CineLids, _CineBars, _CineFade; float4 _CineFadeColor;   // the cinema (Cinema.cs)
+      float4 _Backdrop;     // rgb, a = 1: one flat colour instead of the sky (a conversation's portrait, post.js uBackdrop)
 
       struct V2F { float4 pos : SV_POSITION; float2 uv : TEXCOORD0; };
       V2F vert(uint id : SV_VertexID)
@@ -364,7 +365,8 @@ Shader "Hidden/Memento/Composite"
         if (isSky) {
           float skyInk;
           col = renderSky(rd, skyInk);
-          ink = max(ink, skyInk);
+          ink = max(ink, skyInk * (1.0 - _Backdrop.a));
+          col = lerp(col, _Backdrop.rgb, _Backdrop.a);
         } else {
           // ---- 2. two-tone cel shading
           float3 albedo = A.rgb;
@@ -436,7 +438,7 @@ Shader "Hidden/Memento/Composite"
         float fibre = vnoise(fc * 0.55) * 0.5 + vnoise(fc * 0.21 + 7.0) * 0.5;
         col *= 1.0 + _Grain * ((fibre - 0.5) * 0.6);
         float2 q = uv - 0.5;
-        col *= 1.0 - 0.28 * pow(length(q) * 1.25, 3.0);
+        col *= 1.0 - 0.28 * pow(length(q) * 1.25, 3.0) * (1.0 - _Backdrop.a);
         // ---- 7. the cinema (src/ship/cinema.js): the alarm's red, eyelids, the letterbox, a fade
         col = lerp(col, col * float3(1.0, 0.42, 0.38) + float3(0.16, 0.0, 0.0), _CineRed);
         float lid = _CineLids * 0.5;

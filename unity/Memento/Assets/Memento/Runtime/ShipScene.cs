@@ -34,6 +34,7 @@ namespace Memento
         public bool cinematic;
         // the prologue
         List<object> stages; int stage = -1; float st, skipHeld;
+        public float SkipHeld => skipHeld;
         public string Stage => stage >= 0 && stage < stages.Count ? stages[stage].S("id") : null;
         /// <summary>The prologue's stages you play yourself: the walk to the cockpit, stepping out.</summary>
         public bool PlayerFree => PrologueActive && (Stage == "walk" || Stage == "stepout");
@@ -44,7 +45,7 @@ namespace Memento
         List<(float t0, float t1, Dictionary<string, object> line)> call;
         int callLine = -1;
         public System.Action onPrologueDone;
-        public bool mapOpen; public int mapSel;
+        public bool mapOpen => game && game.hud && game.hud.map != null && game.hud.map.open;
         readonly List<GameObject> puffs = new();
         Material smokeMat, flameMat, dustMat;
 
@@ -203,7 +204,7 @@ namespace Memento
                     if (parked) { parked.transform.position = restPos; parked.transform.rotation = restRot; }
                     // as the dust clears: his last words, lettered over the crash (story/charge.js)
                     S?.Play("charge");
-                    game.hud.ShowCard("My son,", "“make us proud. Bring back something of value.”\n\n<size=18>The ship is dark. Its power is gone. Somewhere out there, smoke rises from a city.</size>", 1.0f);
+                    game.hud.ShowChargeCard();
                     break;
                 case "hatch":
                     S?.Play("ship_hatch");
@@ -403,7 +404,7 @@ namespace Memento
             {
                 pl.auto = null;
                 pl.Teleport(rampFoot + outDir * 1.5f, Mathf.Atan2(outDir.x, outDir.z) * Mathf.Rad2Deg);
-                if (!once.Contains("settle")) { Sounds.Instance?.Play("charge"); game.hud.ShowCard("My son,", "“make us proud. Bring back something of value.”\n\n<size=18>The ship is dark. Its power is gone. Somewhere out there, smoke rises from a city.</size>", 1.0f); }
+                if (!once.Contains("settle")) { Sounds.Instance?.Play("charge"); game.hud.ShowChargeCard(); }
             }
             ShowPlayer(true);
             pl.frozen = false;
@@ -432,7 +433,7 @@ namespace Memento
                 if ((until && Ready(s.S("id"))) || (dur >= 0 && st >= dur)) Next();
                 return;
             }
-            UpdateMap();
+
         }
 
         // ------------------------------------------------------------------ aboard: the ramp, the hall, the console, the map
@@ -460,40 +461,14 @@ namespace Memento
                 use = () =>
                 {
                     if (!game.state.Is("ship.powered")) { Say("ship", "~neutral~ No power for the navigation. Find a new source of power."); return; }
-                    mapOpen = true; mapSel = 0;
+                    game.hud.map.Toggle(true);
                     if (!game.state.Is("ship.mapLine")) { game.state.Set("ship.mapLine", true); var ml = story.O("prologue")?.O("map"); if (ml != null) Say("ship", (ml.S("tone") != null ? $"~{ml.S("tone")}~ " : "") + ml.S("text"), 6); }
                 },
             });
         }
         public bool inside;
 
-        /// <summary>The galactic map (starmap.js): the worlds along the dotted route round home, the ones you know named.</summary>
-        public List<(string id, string title, string blurb, bool known, bool here)> MapEntries()
-        {
-            var order = story.L("order"); var worlds = story.L("worlds");
-            var list = new List<(string, string, string, bool, bool)>();
-            for (int i = 0; i < (order?.Count ?? 0); i++)
-            {
-                var id = order[i] as string;
-                var w = worlds.Find(x => x.S("id") == id);
-                // (route.js knownWorlds: the world you are on and the next ones along the route)
-                list.Add((id, w?.S("title") ?? id, w?.S("blurb") ?? "", i <= 2, id == "desert"));
-            }
-            return list;
-        }
-        void UpdateMap()
-        {
-            if (!mapOpen) return;
-            var m = MapEntries();
-            mapSel = Mathf.Clamp(mapSel + Pad.NavDown(), 0, m.Count - 1);
-            if (Pad.BackDown()) { mapOpen = false; return; }
-            if (Pad.ConfirmDown())
-            {
-                var e = m[mapSel];
-                if (e.here) game.hud.Toast("The ship is here already.");
-                else if (!e.known) game.hud.Toast("Too far along the route: the scar's signature is faint there.");
-                else game.hud.Toast($"{e.title}: that world is not in this port yet. Only the desert travelled to Unity.");
-            }
-        }
+        /// <summary>The story data the ship reads (the worlds, their order, the map's signature).</summary>
+        public Dictionary<string, object> Story => story;
     }
 }

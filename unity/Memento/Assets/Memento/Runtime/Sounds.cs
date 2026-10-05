@@ -48,6 +48,14 @@ namespace Memento
 
         public int ClipCount => clips.Count;
 
+        /// <summary>The settings' volumes (music, effects, voices) and mute.</summary>
+        public void SetVolumes(float m, float f, float v, bool mute)
+        {
+            musicVol = m; fxVol = f; voiceVol = v;
+            if (music) music.volume = musicVol;
+            AudioListener.volume = mute ? 0 : 1;
+        }
+
         /// <summary>A recorded effect by name (2D), at a volume; variants named name, name2 alternate.</summary>
         public void Play(string name, float vol = 1)
         {

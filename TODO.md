@@ -382,6 +382,10 @@ The desert runs in `unity/Memento` (Unity 6, URP): exported from the web game by
 - [x] Wildlife, birds, footprints, wind-blown sand, dust motes, the smoke column, embers, camp smoke,
   the sandstorm; saves (Continue / New game).
 - [x] FXAA, the glow, a shadow filter close to the web's; the cave's lighting.
+- [x] The HUD and menus in uGUI on a camera-space canvas (in the batch shots): the status box with the
+  charge's gold tag, the floating prompt, balloons, toasts, the conversation panel with its portrait chip,
+  the charge and box cards, the sketchbook, the pause menu and settings, the airy title over the desert;
+  all reachable with a controller.
 - [ ] The glide's own arm pose; the jets' thrust flame.
 - [ ] The holo table's planet shader; `starmap.js`'s drawn chart (the map is a list).
 - [ ] Shadows for the crowd's mid-distance figures.

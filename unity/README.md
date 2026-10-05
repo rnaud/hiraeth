@@ -81,8 +81,10 @@ play, from the scripted play-through (`Batch.Play`):
 | boost; wings (with the glider) | Space again in the air; hold while falling | A / × again; hold |
 | skip a cinematic | hold Esc | hold Y / △ |
 | choose an answer | 1–3, ↑ ↓ + Enter | D-pad + A / × |
-| journal | Tab, J | View |
+| sketchbook (journal); track a quest in it | Tab, J; ↑ ↓ + Enter | View; D-pad + A / × |
 | close a panel | Esc | Y / △ |
+| pause menu (settings) | Esc, P | Menu |
+| controls in the status box | H | |
 | hoverbike | W / S go and brake, A / D steer, Shift boost | left stick, RT / R2 go |
 
 ### From the command line
@@ -97,6 +99,7 @@ node scripts/unity-export/views.mjs > /tmp/views.json      # fixed viewpoints, w
 scripts/unity-export/unity-batch.sh Shots -shots /tmp/views.json -out /tmp/shots   # PNGs of the world
 scripts/unity-export/unity-batch.sh Play -out /tmp/play    # the scripted play-through (below)
 scripts/unity-export/unity-batch.sh Probe                  # collision checks at the story's places
+scripts/unity-export/unity-batch.sh UiKit -out /tmp/kit    # the UI kit alone (shapes, text, spacing) on a canvas
 ```
 
 Unity's EditMode tests (`Assets/Memento/Editor/Tests`, the story run by the C#
@@ -106,18 +109,22 @@ ports of the quest and dialogue systems):
 Unity -batchmode -projectPath unity/Memento -runTests -testPlatform EditMode -testResults /tmp/results.xml
 ```
 
-`Play` enters play mode and lets `BatchDriver` drive the pad: the prologue
-(waking, the recording, the impact, the crash, stepping out), a run and a jump, the camps and Ama, the city gate, the climb up the burning
+`Play` enters play mode and lets `BatchDriver` drive the pad: the title
+screen (and its settings; `-noTitle` skips it), New game, the prologue
+(waking, the recording, the impact, the crash, stepping out), a run and a jump, the camps and Ama (the prompt over her, her answers chosen with the D-pad),
+the sketchbook and the pause menu, the city gate, the climb up the burning
 tree's buttress to the makers' chest, Nour, the well, Ama's jar, the Speaker at
 the head of the procession, the skull's mouth into the cave, the push that
 clears the rib, the pool that fills the jar, the hoverbike under the tarp, the
-camp fire that burns, a fall that knocks you over, the ship that hums. Along
+camp fire that burns, a fall that knocks you over, the ship that hums, the
+galactic map at its console and its "Travel to …?". Along
 the way it runs the box scenes, the tank, a shot and a splat, the stun mode, a
 boost, the wings, the wildlife, the star box and Nour back on her bench, counts
 the sounds played, and writes a save and reads it back. It saves a frame at
 each step and exits 0 only if the quest is done. The EditMode tests also check
 the voices' syllable plans against `voice.js`, the people's dress against the
-export, the boxes and the recorded sounds.
+export, the boxes and the recorded sounds; `UiTests` the portraits' backdrops,
+the star chart's layout, the planets and the region names against the web's.
 
 ## How it is built
 
@@ -295,11 +302,65 @@ export, the boxes and the recorded sounds.
   heads; the procession walking its loop round the city in rows.
 - `Bike` (`bike.js`, `story/desert-bike.js`): the tarp, waking it with the
   backpack, a hover spring over the ground, banking, braking, whistling it over.
-- `Hud`: the objective line, prompts in Xbox / PlayStation form, toasts, the
-  health bar, speech over heads, the conversation panel, the journal, the
-  father's charge card, the end card (IMGUI on paper colours).
-- `TitleScreen`: the title page (Continue / New game with a save), then the
-  desert.
+- `Hud`, `TitleScreen` and `Runtime/UI`: the screen (below).
+
+### The screen (`Hud.cs`, `TitleScreen.cs`, `Runtime/UI`)
+
+uGUI built in code on a **camera-space canvas** of the game camera (1280 × 720
+reference, scaled by height), so it is drawn by the camera after the ink
+composite and is in every frame the camera renders, the batch shots too. The
+styles are the web game's (`index.html`, `src/menus.css`):
+
+- `Ui` is the kit: the palette, the fonts (the system's Menlo, Avenir Next and
+  Futura, Roboto on Android, Unity's own as the last fallback), boxes with
+  their ink frame and hard offset shadow (`Panel`; frames and rounded pills are
+  generated 9-sliced sprites), text measured for manual layout, `Spaced`
+  (CSS letter-spacing as a mesh effect), `Sketch` (lines, dashes, dots, rings,
+  ellipses, triangles with a feathered pixel), `StrokeFont` (thin capitals
+  drawn as pen strokes, for what the web sets in Avenir Next Ultra Light: the
+  system offers Unity only the regular and bold weights). The text uses
+  `Shaders/UIText.shader`, uGUI's own with the glyph coverage corrected for
+  the linear page (blended in linear, dark ink on paper reads thin).
+- `Hud`: the status box (the region from `biome.js`, gauges, the objective
+  line, or the father's charge in its gold tag), the prompt floating over what
+  B / ○ would use with its round key badge, speech balloons, the toast, the
+  health bar, the knock-out sheet, the conversation panel (the portrait chip,
+  the name tag across the top edge, the words resolving with their caret, at
+  most three answers, the red "more" pointer), the charge's lettered card, the
+  makers' box card, the ship's subtitles, hint and hold-to-skip bar, the
+  tool's mode flash with its charges, the frame time.
+- `Portrait`: the chip's portrait, rendered by a second camera through the same
+  ink pipeline with only the person on its layer, against the flat tone
+  `portrait-bg.js` picks for them (the composite's `_Backdrop`).
+- `Journal`: the sketchbook: the father's charge card, the gear, the quest log
+  (choose one and track it), the makers' boxes.
+- `PauseMenu` and `Settings`: the Start menu (Menu / Esc; the game holds still):
+  the gold side with its stamped brand, Resume / Sketchbook / Quit to title,
+  and the settings on ruled paper (FXAA, camera sensitivity and invert Y, music,
+  effects, voices, mute, the frame time, a fresh start), kept in PlayerPrefs.
+- `StarMap` and `PlanetArt`: the galactic map (below, with the ship).
+- `TitleScreen`: an overlay on the desert scene (the `Title` scene is the
+  "sketching the world…" page, `Loading`, which opens it): the desert at golden
+  hour drifting behind a soft paper veil, MEMENTO in thin capitals with its pen
+  rule and gold dot, the airy menu (Continue with a save, New game, Settings,
+  Quit), then the play starts in the same scene.
+
+Everything is driven by the pad's own navigation (`Pad.NavDown`, `NavXDown`,
+`ConfirmDown`, `BackDown`, `MenuDown`), so a controller reaches every screen
+and the batch play-through can too.
+
+| web (three.js) | Unity (uGUI) |
+|---|---|
+| ![](docs/web-ui-title.jpg) | ![](docs/unity-ui-title.jpg) |
+| ![](docs/web-ui-hud.jpg) | ![](docs/unity-ui-hud.jpg) |
+| ![](docs/web-ui-talk.jpg) | ![](docs/unity-ui-talk.jpg) |
+| ![](docs/web-ui-journal.jpg) | ![](docs/unity-ui-journal.jpg) |
+| ![](docs/web-ui-pause.jpg) | ![](docs/unity-ui-pause.jpg) |
+| ![](docs/web-ui-map.jpg) | ![](docs/unity-ui-map.jpg) |
+
+| | |
+|---|---|
+| ![](docs/play-charge.jpg) the father's charge, lettered over the crash | ![](docs/play-boxcard.jpg) the makers' box card |
 
 ## What is missing (next steps)
 
@@ -308,13 +369,12 @@ export, the boxes and the recorded sounds.
 - **The people**: the crowd's mid-distance figures cast no shadows; the far
   figures have no brows (too small to see on the web too).
 - **The ship**: the holo table's planet is drawn flat (not with the web's
-  planet shader); the galactic map is an IMGUI list of the worlds, not
-  `starmap.js`'s drawn chart.
+  planet shader). The map's other worlds can be chosen but not travelled to.
 - **Not ported**: the rain and fog weather kinds (the desert uses wind and the
   sandstorm), the reactive world (flammables catching), the dev menu, the
   observatory and the masked head's chamber (exported, not playable), the
-  other worlds, Android. The HUD is IMGUI, so it does not show in batch
-  screenshots.
+  other worlds, Android. The web title's own vista scene (the desert stands
+  in for it); mouse clicks on the menus (they take the keyboard and the pad).
 - **The look**: no sun rays. Shadows are URP's, with a filter close to the
   web's hand-rolled cascades but not the same.
 

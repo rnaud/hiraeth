@@ -78,6 +78,12 @@ namespace Memento
             if (player.figure) foreach (var t in player.figure.nodes) if (t.name.StartsWith("Equipment_ivory_radio") || t.name.StartsWith("Equipment_blue_metal")) t.gameObject.SetActive(!on);
         }
 
+        /// <summary>The colour of charge i in the tank (the HUD's pips, ui.js ToolHud).</summary>
+        public Color ToneOf(int i)
+        {
+            var list = mode != "shoot" && ModeTones.TryGetValue(mode, out var mt) ? mt : Tones;
+            return Json.Hex(list[i % list.Length]);
+        }
         void SetTones()
         {
             var list = mode != "shoot" && ModeTones.TryGetValue(mode, out var mt) ? mt : Tones;
@@ -126,7 +132,7 @@ namespace Memento
             if (Pad.ModeDown(out int dir))
             {
                 var ms = Modes();
-                if (ms.Count > 1) { int i = Mathf.Max(0, ms.IndexOf(mode)); mode = ms[((i + dir) % ms.Count + ms.Count) % ms.Count]; SetTones(); game.hud.Toast($"Fluid mode: {(mode == "shoot" ? "fluid" : mode == "stun" ? "stilling" : "ember")}"); Sounds.Instance?.Play(mode == "shoot" ? "fluid_mode" : "fluid_mode_" + mode); }
+                if (ms.Count > 1) { int i = Mathf.Max(0, ms.IndexOf(mode)); mode = ms[((i + dir) % ms.Count + ms.Count) % ms.Count]; SetTones(); game.hud.ModeFlash(mode, mode == "shoot" ? "fluid" : mode == "stun" ? "stilling" : "ember"); Sounds.Instance?.Play(mode == "shoot" ? "fluid_mode" : "fluid_mode_" + mode); }
             }
             if (Pad.ShootDown() && cooldown <= 0) Shoot();
             if (Pad.PushDown() && cooldown <= 0) Push();
