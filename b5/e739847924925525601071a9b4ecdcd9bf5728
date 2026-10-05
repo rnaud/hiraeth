@@ -1,0 +1,29 @@
+scripts/unity-export/build-world.mjs
+  s_1fd8d0e7b02dcf::t_5094682d2d51b6 102,107,126
+scripts/unity-export/export-world.mjs
+  s_1fd8d0e7b02dcf::t_9fddcacf3db936 472-496,686,712-727,735
+unity/Memento/Assets/Memento/Runtime/BatchTravel.cs
+  s_1fd8d0e7b02dcf::t_962fac1a484fe1 173-201
+unity/Memento/Assets/Memento/Runtime/Mechanics.cs
+  s_1fd8d0e7b02dcf::t_428ec92a5aef12 95-105
+unity/Memento/Assets/Memento/Runtime/Story.cs
+  s_1fd8d0e7b02dcf::t_a08dc7e4b30f18 34,124-128,140-152
+unity/Memento/Assets/Memento/Runtime/WorldStory.cs
+  s_1fd8d0e7b02dcf::t_c098a656cf0274 46,205-206,211-251,339
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b5e739847924925525601071a9b4ecdcd9bf5728",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
