@@ -1,0 +1,27 @@
+TODO.md
+  s_1fd8d0e7b02dcf::t_dbdf73bfed72ba 362-379
+scripts/unity-export/record-sounds.mjs
+  s_1fd8d0e7b02dcf::t_105b0bda67e938 7
+unity/Memento/Assets/Memento/Runtime/BatchDriver.cs
+  s_1fd8d0e7b02dcf::t_63fcbcd6a1df83 274,333-339
+unity/Memento/Assets/Memento/Runtime/DesertStory.cs
+  s_1fd8d0e7b02dcf::t_eceb05175b711c 337-339,341-348
+unity/README.md
+  s_1fd8d0e7b02dcf::t_560ad1c7d52505 7-10,21-25,27-29,33-39,54-61,78-82,109-110,114-120,153-173,211-230,249-282,301-302,306-319
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e6853b282f503de9f5e211f1823b8552a1c56bcc",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
