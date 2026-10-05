@@ -169,7 +169,74 @@ namespace Memento
             opened[world] = ok;
             Log($"{world}: opening step {(ok ? "done" : "NOT done")}: {q} '{stage0}' -> '{now}' ({Text.Plain(game.quests.Current(q)?.S("text"))})");
             yield return Shoot($"{world}_next_objective");
+            if (ok && world == "incal" && deep) yield return IncalToTheEnd();
         }
+
+        /// <summary>Talk to someone with the choices that lead the stage on (PathTo), up to three times.</summary>
+        IEnumerator TalkOn(string world, string q, Npc npc, string tag)
+        {
+            var ws = game.worldStory; var st = game.quests.Current(q); var stage0 = game.quests.Stage(q);
+            var def = ws.Def(npc.id);
+            if (def?.O("talk") == null) { Log($"{world}: {npc.id} has no words"); yield break; }
+            PutNear(npc.pos, 2.2f); yield return Wait(1.0f);
+            for (int round = 0; round < 3 && game.quests.Stage(q) == stage0; round++)
+            {
+                var path = PathTo(def, st);
+                Log($"{world}: talking to {npc.id}: [{string.Join(" | ", path)}]");
+                game.hud.StartTalk(def, npc, npc.displayName, npc.title);
+                yield return Wait(0.6f);
+                if (round == 0) yield return Shoot($"{world}_{tag}");
+                var r = game.hud.talk;
+                foreach (var c in path)
+                {
+                    if (r == null || r.ended) break;
+                    while (!r.ended && (!r.LastPage || r.Choices().Count == 0) && r.Advance()) { }
+                    var pick = r.Choices().FirstOrDefault(x => x.text == c);
+                    if (pick.text == null) break;
+                    r.Choose(pick.index);
+                    yield return Wait(0.15f);
+                }
+                if (r != null) { while (!r.ended && r.Advance()) { } }
+                if (game.hud.talk != null) game.hud.talk.ended = true;
+                yield return Wait(0.5f);
+            }
+        }
+
+        /// <summary>The City-Shaft's main quest to its end, as a player would: down to Ossa at the bottom (the splinter), up to
+        /// Dov at the palace gate, on the palace looking up (the splinter climbs home, the Lodestar flares), back to Nima.</summary>
+        IEnumerator IncalToTheEnd()
+        {
+            const string q = "incal.light";
+            var ws = game.worldStory;
+            for (int guard = 0; guard < 8 && game.quests.IsActive(q); guard++)
+            {
+                var st = game.quests.Current(q); var id = st.S("id");
+                if (id == "look")
+                {
+                    var crown = game.world.World.O("handles").O("shaft").O("places").O("palace").V3("landing");
+                    Put(crown, 90); yield return Wait(0.8f);
+                    // looking up: the camera tipped up toward the light
+                    game.rig.pitch = -60; yield return Wait(1.6f);
+                    if (game.quests.Stage(q) == "look" && ws.mechanics is IncalMechanics im) im.GiveBack();
+                    yield return Wait(1.6f); yield return Shoot("incal_the_splinter_climbs");
+                    float w = 0; while (game.quests.Stage(q) == "look" && w < 8) { w += Time.deltaTime; yield return null; }
+                    game.rig.pitch = 11;
+                    yield return Wait(0.5f); yield return Shoot("incal_the_lodestar_burns");
+                    Log($"incal: the Lodestar lit {game.state.Is("incal.lit")}, splinter {game.quests.Has("splinter")}, stage {game.quests.Stage(q)}");
+                    continue;
+                }
+                var who = st.S("talk") ?? st.S("at");
+                var npc = who != null ? ws.Person(who) : null;
+                if (!npc) { Log($"incal: no one for {id}"); break; }
+                yield return TalkOn("incal", q, npc, $"{id}_{who}");
+                Log($"incal: {id} -> {game.quests.Stage(q)} (splinter {game.quests.Has("splinter")})");
+            }
+            yield return Wait(1f);
+            Log($"incal: main quest {(game.quests.IsDone(q) ? "DONE" : "not done")}, world done {game.state.Is("world.incal.done")}, keepsakes {game.state.keepsakes.Count}");
+            yield return Shoot("incal_the_end");
+            if (game.hud.card != null) { yield return Wait(2.6f); yield return Pulse(v => pad.confirm = v); yield return Wait(0.3f); }
+        }
+        public static bool deep = true;
 
         /// <summary>The choices that lead, from the conversation's entry, to the node (or choice) that moves the stage on: its `talk` advanced, its flag set.</summary>
         List<string> PathTo(Dictionary<string, object> person, Dictionary<string, object> stage)
