@@ -37,7 +37,7 @@ namespace Memento
         {
             Instance = this;
             sr = AudioSettings.outputSampleRate;
-            var dir = Path.Combine(Application.streamingAssetsPath, "sound");
+            var dir = DataFiles.PathOf("sound");
             if (Directory.Exists(dir)) foreach (var f in Directory.GetFiles(dir, "*.wav")) { var c = LoadWav(f); if (c) clips[Path.GetFileNameWithoutExtension(f)] = c; }
             else Debug.LogWarning("Memento: no recorded sounds (run scripts/unity-export/record-sounds.mjs)");
             music = gameObject.AddComponent<AudioSource>(); music.loop = true; music.playOnAwake = false; music.spatialBlend = 0;

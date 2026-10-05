@@ -11,6 +11,9 @@ namespace Memento
         void Start()
         {
             SmokeTest.Arm();
+            Bench.Arm();
+            // (Android, WebGL: the export is copied out of the package first, once per build: DataFiles.cs)
+            if (!DataFiles.Ready) StartCoroutine(DataFiles.Prepare());
             var cam = new GameObject("Camera").AddComponent<Camera>();
             cam.clearFlags = CameraClearFlags.SolidColor; cam.backgroundColor = Ui.Page;
             root = Hud.MakeCanvas(cam, "Loading", 0);
@@ -31,6 +34,7 @@ namespace Memento
             pen.Quad(nib[0], nib[1], nib[2], nib[3], Ui.Red);
             pen.Path(nib, 1.6f, Ui.Ink, true);
             Ui.Place(msg.rectTransform, 0, H / 2 + 46, W, 20);
+            if (!DataFiles.Ready) { msg.text = DataFiles.Error ?? DataFiles.Status; return; }
             // (a few frames drawn first, so the page shows while the desert loads)
             if (t > 0.25f && Time.frameCount > 3) { enabled = false; TitleScreen.Boot(); }
         }

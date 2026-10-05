@@ -27,3 +27,7 @@ Memento/Assets/StreamingAssets/anim.meta
 # recorded by scripts/unity-export/record-sounds.mjs (needs a dev server)
 Memento/Assets/StreamingAssets/sound/
 Memento/Assets/StreamingAssets/sound.meta
+
+# the benchmark viewpoints, copied in at build time (Editor/BenchBuild.cs)
+Memento/Assets/StreamingAssets/bench/
+Memento/Assets/StreamingAssets/bench.meta

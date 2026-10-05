@@ -29,7 +29,7 @@ namespace Memento
         public bool keepBin;
         Shader surface;
 
-        public static string DataPath(string folder) => Path.Combine(Application.streamingAssetsPath, folder);
+        public static string DataPath(string folder) => DataFiles.PathOf(folder);   // (StreamingAssets, or the copy out of it: DataFiles.cs)
 
         public bool Build()
         {

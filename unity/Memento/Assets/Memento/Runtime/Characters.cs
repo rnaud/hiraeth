@@ -18,7 +18,7 @@ namespace Memento
     public static class Characters
     {
         static readonly Dictionary<string, Task<GLTFast.GltfImport>> cache = new();
-        public static string AnimPath(string file) => Path.Combine(Application.streamingAssetsPath, "anim", file);
+        public static string AnimPath(string file) => DataFiles.PathOf("anim", file);
 
         static Task<GLTFast.GltfImport> Import(string file)
         {
