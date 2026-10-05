@@ -649,3 +649,12 @@ All of this is for the web game; the Unity port follows later if we move to Unit
     buildings at 0.85, its people, bird and flowers keep their shade); strata rock hatched down its
     faces; no cross-hatched rings under caps (wood grain). On the world: a clean sky, no bounce, a
     grey-teal shade, the needles with few strokes and no beds.
+- Spot blacks, the third tier of value (the author's ask; docs/systems/references.md): a shaded point
+  enclosed at a pocket's scale (G-buffer depth and normals, 8 fixed taps, 4 on the handheld, hard
+  threshold) filled with the world's darkest tone, cast shadows darkened toward it by a per-world knob
+  (`uSpot`, `uSpotTone`: every preset, a world's `defaults.look`, a view's `look`; `makeMaterial({ spot })`
+  per material; never faces, people, grass, lights or glass). On in Moebius print; IMG_3774's views and
+  the Buried Machine (world and views) print their cast shadows darker.
+- The Buried Machine (IMG_3789–3792: 5 + 6 + 6 + 5 panels) are views 82–103 (`reference-buried.js`):
+  huts, pipes, oval walls and doorways, tanks, machinery, the drum, the hanging city, the ring, derricks,
+  cloud. `?look=buried`.

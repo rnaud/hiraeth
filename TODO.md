@@ -122,10 +122,16 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 ## The References level
 
 - [ ] Recreate every reference sheet as views (`?level=references`, `[` / `]`, L3 / R3; docs/systems/references.md, "The
-  References"). Done: the desert (views 1–27), the City-Shaft (28–50) and Vael II (51–81), DONE.md; Vael has
-  no sheets (`references/Vael/` is empty). In progress, one world at a time: the Buried Machine → the Spheres →
-  Lorn II → the Signal Market.
+  References"). Done: the desert (views 1–27), the City-Shaft (28–50), Vael II (51–81) and the Buried Machine
+  (82–103), DONE.md; Vael has no sheets (`references/Vael/` is empty). In progress, one world at a time: the
+  Spheres → Lorn II → the Signal Market.
   - Shader findings left:
+    - Spot blacks (`uSpot`) fill the shaded pockets our scenes have; the sheets' interiors are dense small
+      machinery at every scale, so most of their black masses have no geometry to sit in here yet.
+      Vael II's spawn on High pays +1.7 ms for them (its many shaded overhangs).
+    - The Buried Machine's sheets: clouds as soft cream masses with a few thin lines (ours inked lumps);
+      the hanging city's recesses mostly lit (ours one shaded mass); the canyon floor's dense stippling
+      and the dunes' long shaded slopes as flat sage bands are not drawn.
     - The print preset keeps its cumulus bank and clouds (the worlds' own; the views turn them off).
     - The half-tone can't tell a back wall inside another's cast shadow (it reads as half-tone, the panel's is
       full shadow).
@@ -156,6 +162,8 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
     standing pose (buildBird's rest pose lies low), the cloud sea's cauliflower detail.
   - Vael II world, left: its cloud puffs are pre-shaded vertex colours (not the flat print), its
     planets stay (the sheets have none), dusk and night keep the old blue shadow.
+  - Buried Machine, scene-level: the trench's pipe mass, the city's clustered hanging towers, the drum's
+    interior machinery and arcades, the oval tunnel's interior, the moon cave and the rock ledge are sketches.
   - Scene-level: the game's City-Shaft is a round cream-and-blue pit with a spire, terraces and a hill-town,
     the sheets' a canyon of pink and cream stacked houses with water below; the views' houses are boxes (no
     pipes, balconies, laundry or plating under the overhangs), the cabs and blimps simple capsules.

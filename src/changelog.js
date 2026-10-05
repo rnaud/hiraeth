@@ -14,6 +14,9 @@ export const CHANGELOG = [
     'The spark-stone goes into your pack instead of floating about you: your gear in the sketchbook (and the menu’s Quests page) lists it with the other things you carry, and it comes out in your hand when you set it in the well.',
     'In the giant’s chest the gutter is lit along its whole length, so once the rib is off it looks clear all the way down instead of half full of rubble.',
     'The desert’s two cinematics show instead of tell: the traveller says nothing in them, and at the end only the corner of his mouth goes up.',
+    'Shadows have a third, darkest tone, as in the drawings: deep pockets in shade, between ribs and pipes, inside machines and under overhangs, fill with a near-black mass of the world’s darkest colour, and long shadows thrown by big masses go a little deeper. Lit areas stay clean; faces and people never go black.',
+    'The Buried Machine’s deep machinery and the rust canyon’s shadows are darker and richer, rust-brown and deep teal, as in its drawings.',
+    'The References scenes now include the Buried Machine: twenty-two views from its four sheets, the domes and pipes in the dunes, the rust canyon and its ovals, the teal drum open to the sky, the hanging city and the ring of arches.',
   ] },
   { v: '0.67', date: '2026-10-05', items: [
     'The traveller dresses more casually: an everyday canvas rucksack, with a lid, buckled straps, pockets and a rolled bedroll, replaces the old radio box, and nothing of the space suit is left: soft desert boots without seams or buckles, a loose cotton scarf instead of the ringed collar.',

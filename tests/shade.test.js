@@ -121,3 +121,23 @@ test('the City-Shaft pass: flat printed shadows and far haze per look, fewer win
   assert.equal(makeMaterial({ color: '#eee', pattern: 'facade', windows: 0.2, key: 't.win2' }).uniforms.uWindows.value, 0.2);
   assert.ok(SHADE.slip[0] < SHADE.slip[1] && SHADE.slip[1] < 0.42, 'slip faces hatched fully before the ground turns rock');
 });
+
+test('spot blacks: a third tier of value, per world (presets) and per material (packed over the drawn detail)', async () => {
+  const { SPOT, spotStep } = await import('../src/materials.js');
+  for (const [name, p] of Object.entries(PRESETS)) assert.ok(p.uSpot?.length === 4 && p.uSpotTone?.length === 4, `${name}: its spot blacks set (a zone never keeps the last one's)`);
+  assert.ok(PRESETS['Moebius print'].uSpot[0] > 0, 'the print look has them');
+  assert.equal(spotStep(undefined), 0, "unsaid: the world's");
+  assert.equal(spotStep(0), 1);
+  assert.equal(spotStep(1), 1 + SPOT.steps);
+  assert.equal(makeMaterial({ color: '#fff', glow: 0.5, key: 't.spot.glow' }).uniforms.uSpotStep.value, 1, 'a light never goes black');
+  assert.equal(makeMaterial({ color: '#fff', key: 't.spot.plain' }).uniforms.uSpotStep.value, 0);
+  const m = makeMaterial({ color: '#808080', spot: 0, key: 't.spot.frag' });
+  assert.ok(m.fragmentShader.includes('gHatch.b = detail + 4.0 * uSpotStep'), 'the surface packs its step over the detail');
+  const { readFile } = await import('node:fs/promises');
+  const post = await readFile(new URL('../src/post.js', import.meta.url), 'utf8');
+  assert.ok(post.includes('floor(surface.b * 0.25)'), 'post.js unpacks it before the detail is read');
+  assert.ok(/uSpot\.x > 0\.0 && lit < 0\.5[^\n]*face \+ figure \+ hero \+ soft < 0\.5/.test(post), 'only in shade, never on a face, a person, the traveller or grass');
+  assert.ok(post.includes('uPostLite > 0.5 ? 4 : 8'), 'half the taps on the handheld');
+  const { BURIED_SPOTS } = await import('../src/levels/buried.js');
+  assert.ok(BURIED_SPOTS.uSpot[3] > PRESETS['Moebius print'].uSpot[3], 'the Buried Machine prints its cast shadows darker');
+});
