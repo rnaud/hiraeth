@@ -17,7 +17,7 @@ Contents
 7. Home and the ending
 8. Recurring motifs
 9. Planned additions (from the author's backlog)
-10. Loose ends and contradictions
+10. Loose ends and contradictions (and the decisions that settled the rest)
 
 ---
 
@@ -69,12 +69,14 @@ person."), the one who keeps making recordings although the father says the
 son never listens to them. She leaves the lamp on in the round window. She
 made one recording on her own, "For when he asks", to tell him about Ilen.
 
-**Ilen.** The traveller's elder sister, grown and gone before he was born. She
-went out the same way, sent off at the port with the same words. She never
+**Ilen.** The traveller's elder sister, grown and gone before he was born: she
+left about thirty years ago, some four years before his birth. She went out the
+same way, sent off at the port with the same words. She never
 came home and nobody found out why. The last thing that came back from her
 ship was not a voice but a sound like singing. The father's nightly message
-to her still travels the old relays; the traveller hears it at the Signal
-Market.
+to her still travels the old relays; one of them, thirty years on the way,
+reached the Signal Market the night the light passed, and the traveller hears it
+there.
 
 **The parents' death.** Two years ago, within a season of each other. The
 last recording ("Come home") was logged eleven days before the house went
@@ -132,10 +134,13 @@ off). The player takes it for a call from home.
 
 ### How old they are (it shows a little more each time)
 Keyed to how many recordings he has heard, whatever the order of the worlds.
+Numbered as `calls.js` numbers them (and the story bible now too): the
+prologue's recording is 0, then `AGE[1..5]`, then the last one at
+`ENDING_WORLDS`.
 1. The father alone, no date: "You didn't call back, so I am leaving this." "Keep looking, then. There is time."
 2. The exams he missed; the Orrin boy came home with a reactor core; "mend the fence". He: the fence came down years ago. Screen: WORN.
 3. The mother joins ("Is it recording? Oh. Hello, love."). A child's voice behind them: "Is that for me?" It is his. "I remember that day. I was seven." LOGGED 19 YEARS AGO.
-4. "Report, then." The tape is worn; a few words go under the hiss: "…when you are older, you will understand why I…" He: "I know what it says. I just want to hear it." LOGGED 16 YEARS AGO.
+4. An old one, made for him at ten, the summer he was sent to his grandfather's: "You have been at your grandfather's a week and we have not had one word." "Report, then. Like a pilot." The tape is worn; a few words go under the hiss: "…when you are older, you will understand why I…" "Keep it short. These spools cost." He: "I know what it says. I just want to hear it." LOGGED 16 YEARS AGO ("You were ten, and away for the summer").
 5. The mother found his old drawings. "Your father says I shouldn't make these. He says you never listen to them. I think one day you will." He: "I am." LOGGED 4 YEARS AGO.
 6. (After six worlds) **The last recording on the reel.** Both of them. "I have been thinking about what I asked of you. Something of value. I never said what." "Come home." "Bring whatever you have. Or nothing at all. Just come." Ship: "Logged two years ago, eleven days before the house went quiet." Home appears on the map.
 7. Afterwards: **the oldest side** of the reel, from when he was small and they were happier (a bird as big as the house; asleep in the cockpit chair under the father's cap; "I'm going to bring you back a star"; first day of school; fifth birthday).
@@ -160,6 +165,7 @@ time"; "Someone who wants you back. I understand that better than you think").
 - **The bird** (after Vael): "A bird made you a promise? You and your stories."
 - **The lamps** (after Lorn II): the mother has left the lamp on in the round window.
 - **Things** / **quiet**: two things he can hold ("Now we are getting somewhere"), or a whole year with nothing to show.
+- **Something broken** (after the tea terraces in Viridel, the quest that fails): "And if you break something out there, and you will, you say sorry, and you mean it, and then you go. Standing about in their yard looking at it mends nothing." The mother: "Did they forgive you, love? People mostly do, if you let them." He: "Esk did. I don't think I have, yet." And Viridel's own recording (the garden that grew over the cart: "She says leave it. I say it is a cart") gets a different answer from him: "I didn't leave things be. I opened their gate."
 
 ### Ilen
 After the Signal Market he asks the reel for the name. Nothing in the father's
@@ -190,8 +196,8 @@ bell can be heard". Each world has its own name for them:
 | Vael II | the founders | a bell-chest (Calix) | the Three Notes |
 | Hangar | (the Major found the mark, never its makers) | "for the next one" (the Major) | the maker's rivets; the Major's thumbprint |
 | Buried Machine | the Maker | thumb-boxes (Wen) | the Maker's Thumb |
-| Viridel | the Builders, the white builders (androids?) | Builders' gifts (Oro) | the Builders' mark ("a signature, or an apology") |
-| Spheres | something that walked through the sky putting spheres down | left-behinds, presents (Ivo, Ume) | the Footprint |
+| Viridel | the Builders: the gardeners credit the white builders (androids), who in fact found the pyramids and the spheres already there and copied them, and the mark | Builders' gifts (Oro) | the Builders' mark ("a signature, or an apology"; copied from under the spheres, Oro thinks) |
+| Spheres | something that walked through the sky putting spheres down | left-behinds, presents (Ivo, Ume): the one here is up on the grove's umbrella tree | the Footprint (under every sphere, and round the chest's sides) |
 | Lorn | (not named) | the sky-egg (Wendel) | the Hush: three drops of rain over a shut mouth |
 | Lorn II | (not named) | the traveller's chest (Hollin) | the Welcome: three lamps over a hull |
 | Signal Market | (not named; "here before the market") | no chest | the First Sign; the tuning mark; three listeners and the edge of the world (Brush) |
@@ -207,7 +213,7 @@ never seen one open.
 - **Magic-fluid backpack** (desert, the tree's ledge in Qanat): a glass tank of living water filled with "what the giants carried"; shoot, push, boost; it powers vehicles.
 - **Pale star** (desert, a roof inside Qanat's gate): worn on the hood; does nothing; looks very good.
 - **Fluid jets** (City-Shaft, the makers' pillar on the rim).
-- **Bell-note whistle** (Vael, the cap of the needle spire north of the landing): one clear bell note, the same in every world; nearby chests answer.
+- **Bell-note whistle** (Vael, the cap of the needle spire north of the landing): a little whistle of blue-glazed clay shaped like a bell (not bone: the rider's whistle in the tower is the bone one); one clear bell note, the same in every world; nearby chests answer. It is found in Vael, not under Vael II's bell, on purpose: the note is the same everywhere, and the chest is where the giants walked.
 - **Fluid wings** (Vael II, the top of the balanced stack).
 - **Quick coil** (Hangar, the keep's south wall): faster refill.
 - **Ember mode** (Buried Machine, the chimney stack's ring): a fire that hurts nobody.
@@ -234,11 +240,24 @@ Whatever struck the ship. Every world has a witness (usually several): a light
 that came over low and slow, singing like a wet finger round the rim of a
 glass; something answered it (the chest, the Lodestar, the stones, the bell,
 the wheel, the pole, the crystal, the antenna); then **it turned**, "like it
-was looking for something", and went on. Local names: the singing light
+was looking for something", and **climbed away**, trailing the signature. It
+never fell: it dipped low (behind the desert's dunes, over Lorn II's pools) and
+climbed again.
+
+**One night everywhere.** Every world saw it pass on the same night: the night
+the traveller's ship was struck. In the desert, where the ship came down the
+next morning, people say "the night before your ball came down"; everywhere
+else, "the night the light passed" or the local name ("the night the sky
+rang"), and the traveller says "that was the night my ship was struck". No
+witness dates it from the traveller's arrival (no "three nights ago").
+How one light crossed worlds a journey apart in one night is not explained; it
+is part of what it is. Local names: the singing light
 (desert), the night the sky rang (City-Shaft, Lorn II, market), the Tuning
 Star (Buried Machine), the Singer (Viridel, Talo's word), an Answerer
-(Spheres). It struck Odile and Talo's ship before his. The Great Crystal on
-Lorn is a piece of the same light, fallen long ago. Ilen's ship sent back a
+(Spheres). It struck Odile and Talo's ship before his, forty-odd years ago, and
+then their saucer too, over Lorn II's deep wood, when they went looking for it.
+The Great Crystal on Lorn is a piece of the same light, fallen long ago (that
+piece fell; the light itself never has). Ilen's ship sent back a
 sound like singing. What it is, and why it turns, is never said.
 
 Open questions the game itself asks: was it a makers' thing too ("whatever
@@ -463,10 +482,10 @@ Half".
 
 People:
 - **Wen**, who counts the teeth (forty-one teeth old): gives the keepsake.
-- **Hask**, keeper of the Wick: has lit it for fifty-two Tooth Days and won't this year, afraid the Tuning Star "was looking for the wheel".
+- **Hask**, keeper of the Wick: has lit it for fifty-two Tooth Days and won't this year, afraid the Tuning Star "was looking for the wheel". (Not the City-Shaft's Hask: same name, his own id, `hask.buried`.)
 - **Dun**, who keeps the domes breathing: left his chimney key on the derrick hook the night the sky rang.
 - **Pim**, nine teeth old.
-- **Ossa**, who listens to the walls: "I call it a signature."
+- **Ossa**, who listens to the walls: "I call it a signature." (`ossa.buried`; the City-Shaft has its own Ossa.)
 - **Tull**, who oils the oval doors and talks to the warm window; saw the Major.
 
 Main quest (`buried.tooth`): Wen; Hask; down the sand ramp; through two oval
@@ -485,9 +504,10 @@ is still turning.
 
 ### 7. Viridel: "The Garden Grows Over"
 A clean, colourful garden planet: giant umbrella trees, white step pyramids
-grown from seeds, white android ruins. Odile and Talo's ship fell here forty
-years ago; the gardeners let the garden take it. Nothing that falls should be
-dug up again.
+grown from seeds, white android ruins, great pale spheres half sunk in the
+meadow (they came down out of the sky; the white builders laid their garden out
+round them). Odile and Talo's ship fell here forty years ago; the gardeners let
+the garden take it. Nothing that falls should be dug up again.
 
 People:
 - **Mira**, who keeps the water clock: "A ball fell into the meadow and a person came out of it. That is twice in my life." Gives the keepsake.
@@ -495,6 +515,7 @@ People:
 - **Oro**, who grows pyramids; tells of the Builders.
 - **Lio**, a child who wants the floating crown of the tallest tree.
 - **Vey**, who has tended the ship's vines for forty years: "It fell. It belongs to the ground now."
+- **Esk**, who keeps the tea terraces on the white builders' old steps above the dry hollow: every cup of tea in the garden comes from her hill.
 - **Odile and Talo**, absent: their log and Talo's lookout note.
 
 Main quest (`edena.garden`): Mira; the fallen ship in the south meadow; ask
@@ -502,14 +523,74 @@ Vey first; inside; play Odile's last log ("a light pacing us… singing… it's
 coming about"); water the flowers on the flank; look at the scorch: the same
 mark as yours, "not like it: the same"; tell Mira.
 
-Side quests: Oro's pyramid seed; climb the tallest tree to Talo's lookout.
-Errand: a glass seed for Lorn.
+Side quests: Oro's pyramid seed; climb the tallest tree to Talo's lookout;
+Mira's water clock (the Hangar's brass gear, fitted, then three quick splashes
+to fill its leaking bowl); **water for the tea terraces, the quest that fails**
+(below). Errand: a glass seed for Lorn.
 
 Keepsake: *word* "Mira's words": "We tend the garden. The garden tends us."
 Chest: the lantern charm.
 
 Ties: the traveller's ship was not the first; Odile and Talo left in the little
-round boat "to go and ask it", toward the deep wood where the lamps are kept.
+round boat "to go and ask it", toward the deep wood on the far side of the swamp
+of lights, the way the light went (Talo worked it out from the stars on the
+tall tree). The deep wood's lamps were lit for them afterwards: Mira doesn't know
+about the lamps.
+
+#### The quest that fails: water for the tea terraces (`edena.terraces`)
+*Built in this pass (`src/story/terraces.js`, the words in `edena-data.js`).*
+
+**Why here.** Viridel is the one world whose people have a rule for what to do
+when something goes wrong: nothing that falls should be dug up again; let it
+rest and the garden makes something of it ("You dig it up, you put it back in
+the world, and the world has to deal with it all over again", Vey). A failure
+there is answered from inside the world's own belief, so the locals can blame
+you and still accept it quietly, without melodrama. And the traveller's own
+inheritance is the opposite rule ("So you understand how it works. Then build
+it. Show me."): the one world where trying to fix things is the mistake is the
+right place for the attempt to go wrong. It is mid-game (the seventh world),
+and tea, the garden's small daily ritual (Mira's clock, Sol's "tea keeps", the
+tea given to Odile and Talo), is the thing lost: something the whole garden
+shares, not a life.
+
+**How it plays.** Sol (asked where the tea comes from) or Esk herself starts
+it. The spring under the top terrace dropped to a trickle the night the light
+passed; the runnels silted up; the bushes are browning. (1) Clear three clods of
+silt from the runnels with the fluid's push, top terrace first (a lower one
+shoved early slumps back: the water has to have somewhere to go). Water runs,
+a trickle. (2) Esk tells of the white builders' cistern above, shut behind its
+gate since before anyone was born; "we don't open what isn't ours". Either
+answer, she talks herself into it: "It isn't digging. It's a door." Open it
+gently, *a little*: water the roots grown through its wheel so they let go
+(shoot: asking, not cutting, like the vines on the ship), then *one turn* of
+the wheel (push). (3) One notch, and the gate, shut a thousand years, tears
+loose: the cistern comes out all at once; a white sheet of water takes the
+middle of the terraces (the builders' walls, the rows of tea) down into the dry
+hollow. Ten seconds, scripted; nothing the player does changes it, and it can't
+be retried. (4) What is left, for good (`edena.terraces.flooded`): a raw mud
+slope down the middle with a stream in it, broken white wall blocks, the gate's
+slab and wheel in the mud, uprooted bushes, a muddy pond in the hollow, the
+cistern nearly empty; the sides of the terraces held. (5) Esk, not looking at
+you: "I said a little. I said one turn." If you say you only turned it once: "I
+know. I watched you… And I asked you to. I know that too. I'm still angry with
+you. I'm allowed to be both." You say sorry. "I know you are." Then what the
+gardeners say about everything: "It's all right. It isn't, but it will be. It
+fell; it belongs to the ground now… I never thought I'd have to say it about my
+own hill. Go on, traveller. There's nothing here for you to mend. That's the
+hard part, I know." The quest closes **failed** (`quests.fail`).
+
+**Afterwards.** The sketchbook files it under its own heading, *Failed*, with a
+crossed stamp and an earth-brown rule ("You opened the builders' gate a little,
+as Esk asked, and the hill came down with the water. She said it was the
+garden's now."). The father's charge card keeps it quietly, under what you
+carry: *What you could not mend: Water for the Tea Terraces* (not a mark
+against you; what happened). Each gardener says one word about it, once: Mira
+("Some years that means letting a hill go"), Sol ("There's tea from last year.
+Tea keeps."), Vey ("You put it back in the world, and the world had to deal
+with it… and it is. Go and look at the mud in a month."); Esk's balloons go
+quiet ("The sides held."). The next recording finds the father on breaking
+things (section 3), and Viridel's own recording lands differently. It doesn't
+touch the main quest, the route, the ending or the stone.
 
 ### 8. The Garden of Spheres: "What the Spheres Remember"
 Umbrella trees over white pyramids; giant pale spheres half sunk in the grass
@@ -517,9 +598,9 @@ and a mirror lake; an avenue to a round plaza with a humming pole. Each sphere
 remembers one sound, the last it heard before it came down.
 
 People:
-- **Aube**, the listener: explains the spheres.
+- **Aube**, the listener: explains the spheres. (`aube.spheres`; Vael II's Sister Aube keeps `aube`.)
 - **Nell**, who looks into the lake: "Upside down is just another way up."
-- **Ivo**, who climbs the white hill: has seen the Footprint under every sphere.
+- **Ivo**, who climbs the white hill: has seen the Footprint under every sphere, and the blue box up on the grove's umbrella tree. (`ivo` here; Lorn's Ivo is `ivo.perdide`.)
 - **Cael**, who walks the avenue: "Walk slowly. It is that kind of road."
 - **Ume**, who keeps the pole: saw an Answerer turn over the plaza; gives the keepsake.
 
@@ -543,8 +624,8 @@ mud. It is a piece of the same light that struck the ship.
 
 People:
 - **Wendel**, egg-warden: thirty years keeping eggs warm, none ever hatched; "The patient are never eaten."
-- **Sedge**, reed-cutter, shy: saw the light pass over the reeds the night before the crash, and the crystal sang back.
-- **Saba**, the Listener: forty years at the crystal's foot, knows its 212 phrases; "Whatever struck your ship sang the same song as this."
+- **Sedge**, reed-cutter, shy: saw the light pass over the reeds the night it passed everywhere, and the crystal sang back; then it climbed and was gone.
+- **Saba**, the Listener: forty years at the crystal's foot, knows its 212 phrases; "Whatever struck your ship sang the same song as this." Her first spring there, two strangers came across the swamp in a borrowed skiff and asked the crystal where the light had gone (Odile and Talo); they went on east, and the skiff came home on its own.
 - **Ivo**, who watches the fireflies: "Everything goes home at dusk."
 - **Corm**, who feeds the plants (Margit, Big Ollo): "The sky lost a tooth and it landed here."
 - **Ysse**, keeper of the crystal cave: points to the lamp-keepers of the deep wood.
@@ -572,7 +653,7 @@ People:
 - **Pim**, who lives in a moss dome ("Nobody built them; we found them").
 - **Bram**, who minds the cave mouth.
 - **Wick**, a young lamp-keeper: watched the pools go out under the light, "pop, pop, pop".
-- **Fen**, who lives in the far dome: lent Odile and Talo his skiff.
+- **Fen**, who lives in the far dome: lent Odile and Talo his skiff, which came home without them.
 
 Main quest (`perdide2.lamps`): Hollin; relight the three dark pools (they take
 your colours); the saucer in the deep pool answers, three short, one long; look
@@ -584,8 +665,16 @@ Side quests: Pim's moss-dome latch (a moss lamp); find the skiff's owner.
 Keepsake: *person* "Hollin's lamps" (a promise to come back, or not). Chest:
 the fourth chamber.
 
-Ties: the saucer is Odile and Talo's; it carries the glyph scorch; they walked
-out of the wood toward the garden in the drawing.
+Ties: the saucer is Odile and Talo's ship's little round boat; it carries the
+glyph scorch: the light found them again over the wood and struck them a second
+time. They waited a season for it to come back ("keep a light for us"), then
+crossed the swamp in Fen's skiff toward the Great Crystal, to ask the piece of
+the light that fell there; the skiff came back to the root cave on its own. The
+drawing in the saucer is the garden they came from (Viridel, with the furrow
+across its meadow), drawn so they wouldn't forget the way home. Where they went
+after the crystal, nobody knows; Hollin likes to think they got home; Viridel
+never saw them again. (The keepers' ids: `hollin.perdide2`, `pim.perdide2`;
+Vael's Hollin keeps the stone hand.)
 
 ### 11. The Signal Market: "You Are Not Alone"
 Coral towers, illustrated signs, a busy alien bazaar; a thousand signs speak,
@@ -593,7 +682,7 @@ one tower is silent. The market believes the silent tower was the only one
 that told the truth. The first thing anyone ever sold here was an answer.
 
 People:
-- **Madame Sel**, who kept the silent tower for forty years: reads the recording's header.
+- **Madame Sel**, who kept the silent tower for forty years: reads the recording's header (it came from your home port, the one on your ship's registry plate; thirty years on the way).
 - **Kip**, courier of the skybridges: ran off with the last recording; "It hums against my back when I sleep."
 - **Ferro**, who rigs the antenna: "Nobody has three hands and a long enough ladder."
 - **Brush**, who repaints the signs: "A thousand signs. One brush."
@@ -665,59 +754,139 @@ oldest side.
 - **Come home.** Ondine's letter ("Come home for supper"), the market's signs, the last recording.
 - **Waiting.** The bird for her rider, the lamp-keepers for travellers, the Hangar for the Major, Sol's tea, the chests for the next one.
 - **Habit as love.** Ottla; the father's "that is not hope, that is a habit".
-- **Numbers that recur**: forty years (Nima, Sel, Saba, Vey; the broadcast's age), eleven (Dov's years away, Wren's dark lamp, Pip's seconds, Ambroise's years), forty-one (Wen's teeth, Hollin's years).
+- **Numbers that recur**: forty years (Nima, Sel, Saba, Vey); thirty (the broadcast's age: Ilen left about thirty years ago); eleven (Dov's years away, Wren's dark lamp, Pip's seconds, Ambroise's years), forty-one (Wen's teeth, Hollin's years).
 
 ## 9. Planned additions (from the author's backlog; not built)
 
 - **A Makers' temple in every world**, with a boss and a gadget at its heart (a bigger set piece than the chests; each temple's gadget could be the world's chest item, or a new one).
-- **A quest you can fail, and failing it harms the locals** (the first consequence that lasts; a natural fit: the Wick in the Buried Machine, the pools of Lorn II, the bell's cloud, the Lodestar).
+- ~~A quest you can fail, and failing it harms the locals~~: built, in Viridel (section 6, "The quest that fails"). It fails whatever you do; a quest you *can* fail by choice is still open.
 - **Home gains a daughter and a dog: the traveller has a daughter.** (See the loose ends: today home is empty and "nobody lives there now".)
 - **The holograms become coloured busts** (today the parents stand full length in teal light over the projector).
 
-## 10. Loose ends and contradictions
+## 10. Loose ends and contradictions (and the decisions that settled the rest)
 
-Each with where it is. Fixed in this pass: the saucer's console said "STEL and
-ATAN" (old names) and now says ODILE and TALO (`src/story/perdide2-data.js`);
-Talo's lookout note was signed "— A." and is now "— T." (`src/story/edena-data.js`).
+Each with where it is. Fixed earlier: the saucer's console said "STEL and
+ATAN" (old names) and now says ODILE and TALO; Talo's lookout note was signed
+"— A." and is now "— T.".
 
-### The arc and the timeline
-- **When did the light pass?** Most witnesses say "the night before your ship came down" (Oum, Nour, Sedge, Corm, Hask: "the next night your ship came down"; Lune in the Hangar: "the night before you came", although the Hangar is the fifth world); others say "three nights ago" (Tamsin in the desert, Sol in Viridel, Ume and Ivo in the Spheres). Either way every world saw it on the same night, which is hard to square with separate worlds a journey apart. The signature now gives a reason to follow its trace, but not a timeline. (`desert-data.js`, `content.js` Tamsin, `garage-data.js` Lune, `edena-data.js` Sol, `spheres-data.js` Ume/Ivo.)
-- **Did it fall?** The desert trader says it "didn't fall… went up again"; the desert outro and Ama say "she saw the light fall"; the bible says Sedge "saw it fall", but she says it climbed away. (`desert-data.js`, `perdide-data.js`, story-bible "Local names".)
-- **Ilen's dates.** The broadcast is "forty years on the way" (Sel, Ferro, the crowd) but Ilen was "grown and gone before you were born" and the traveller is about twenty-six; it works only if she left fourteen-plus years before his birth, and "forty" also echoes Sel's own forty years at the tower. (`bazaar-data.js`, `calls.js` motherAlone.)
-- **"The same mark that's stamped on your ship's registry plate"** (Sel, `bazaar-data.js`): reads as if it were the glyph; the glyph is the scar, not a registry mark. Probably meant as a home-system mark; unclear.
-- **The broadcast says "something worth the trip"**, everywhere else it is "something of value". Possibly deliberate. (`bazaar-data.js`.)
-- **Recording 4** ("Report, then… These spools cost.", logged sixteen years ago) is addressed to a ten-year-old; it reads like it was made for the grown son. (`calls.js` AGE[4].)
-- **The prologue recording** is "the day he left" (nine years ago) but the ship cues it as if it were new, and the bible's recording list counts it as number 1 while the code's AGE numbers start after it. Fine, but the two numberings differ (bible "The recordings" vs `calls.js` AGE).
-- **Home after six worlds, eleven worlds on the route**: recordings 7 to 11 come from the oldest side; the arc's "last recording" lands mid-journey. Intended, but worth a look once there are temples.
+### Decided and fixed in this pass
+- **When the light passed: one night everywhere**, the night the traveller's
+  ship was struck. Witnesses say "the night the light passed" (or "the night
+  the sky rang"); only the desert, where the ship came down the next morning,
+  says "the night before your ball came down". Changed: Tamsin (desert), Lune
+  (Hangar: was "the night before you came"), Sol (Viridel), Ume and Ivo
+  (Spheres: were "three nights ago"), Sedge and Corm (Lorn: were "the night
+  before your ball came down / fell"), Hask (Buried Machine: dropped "the next
+  night your ship came down"). The traveller says "that was the night my ship
+  was struck" (Vael II, the Hangar).
+- **It never fell: it climbed away**, trailing the signature. Changed: the
+  desert's outro for Oum ("She saw the light go over, and turn, and climb
+  away"), Ama ("saw a light go over"), the choice to Oum, the desert trader
+  ("It didn't come down… it dipped low behind the dunes, like it was looking for
+  something, and then it climbed away again"), Saba ("The other is still up
+  there, singing, turning, looking"; "the singing light", not "the falling
+  light"), and the story bible (Sedge, the desert's clue). Only the Great
+  Crystal, a piece of it, ever fell.
+- **Ilen's dates**: she left about thirty years ago, some four years before the
+  traveller (about twenty-six) was born; the broadcast is "thirty years on the
+  way" (Sel, Ferro, the crowd, Sel's balloon). Sel's own forty years at the
+  tower stay forty.
+- **The registry plate**: Sel now says the header's origin is "the same home
+  port that's stamped on your ship's registry plate": a home-system mark, not
+  the glyph.
+- **"Something worth the trip"** in the broadcast is now "something of value",
+  the father's words everywhere.
+- **Recording 4** is recast as an old recording made for him at ten, the summer
+  he was at his grandfather's ("Report, then. Like a pilot."; the ship: "You
+  were ten, and away for the summer"). **Numbering**: the story bible now
+  numbers as `calls.js` does (the prologue's is 0, then 1..5, then the last at
+  `ENDING_WORLDS`).
+- **Odile and Talo, one story**: they left Viridel in their ship's saucer to go
+  and ask the light, toward the deep wood the way it went; it found them over
+  the wood and struck the saucer too (two strikes, both real; Viridel never
+  knew of the second); they waited a season in Lorn II for it to come back
+  ("keep a light for us"), then crossed the swamp in Fen's skiff toward the
+  Great Crystal (Saba saw them, her first spring there); the skiff came home on
+  its own to the root cave. The drawing in the saucer is Viridel, the garden
+  they came from. Where they went next is not known. Changed: Mira (no longer
+  "the deep wood where the lamps are kept": the lamps were lit for them
+  afterwards), Hollin, Bram, Fen, the saucer's description, Saba's new lines.
+- **Who made the spheres**: one story. The spheres came down out of the sky
+  (put down by something that walked through the sky, the Spheres' people say:
+  the makers); in Viridel the white builders (androids) found the spheres and
+  the pyramids already there, laid their garden round the spheres and copied the
+  mark from under them (Oro). The androids are not the makers.
+- **The Atelier**: the claim is removed. It is a page off the route, reached
+  only from the worlds list; nothing in the story mentions or unlocks it.
+- **The Spheres' Footprint**: Ivo now points at what exists: the blue box up on
+  the grove's umbrella tree, with Footprints round its sides.
+- **The duplicate bone whistle**: the bell-note whistle is now blue-glazed clay,
+  shaped like a bell; the rider's whistle is the only bone one. It stays in
+  Vael (the note is the same in every world).
+- **The glyph drawn as a smile**: the Hangar's board now lights ∩
+  ([1,1,1, 0,1,0, 1,0,1]) and Ambroise likens it to "a doorway with three lamps
+  lit over it"; Lorn II's Welcome stones bow upward.
+- **Shared ids for people with the same name**: each now has an id of their own
+  (`hask.buried`, `ossa.buried`, `pip.garage`, `lio.edena`, `hollin.perdide2`,
+  `pim.perdide2`, `aube.spheres`, `ivo.perdide`; Clemence is `clemence`, was
+  `malvina`). Names stay as they are. Old saves migrate once
+  (`src/save-migrate.js`): a "met" carries over to the renamed person if the
+  save has been to their world. The internal ids `stel` / `atan` in Viridel's
+  log and Lio's node are now `odile` / `talo` / `bench`.
+- **Directions**: Ossa's chest is "on top of the lone stone pillar" (was
+  "behind the villas"); Hollin sends you to Wick "at the second dark pool, down
+  the path past the glass dome"; Bram's far dome is "back toward the saucer's
+  pool, this side of it".
+- **Giver's / Givers'**: the plural everywhere ("the Givers' mark"); the
+  bible's "star-chest" is gone.
+- **The Major's note**: its back now has, in another pencil, "went. saw. came
+  back." (Clemence says he went to see the wheel.)
+- **A failable quest that harms locals**: built (Viridel's tea terraces,
+  section 6). The recordings and the charge card both know of it.
 
-### The makers
-- **Who made the spheres?** Oro (Viridel) says the white builders (androids) made "the perfect spheres"; in the Garden of Spheres they came down out of the sky, put down by "something that walked through the sky". Androids appear in both worlds (the android wood, the "Android eye" relic) and nothing links them to the makers. (`edena-data.js`, `spheres-data.js`, `src/levels/spheres.js`.)
-- **The Atelier** (a hidden "last page" where every world is sketched and an artist draws) says it unlocks once every world's story and relics are found, but nothing unlocks it; it is only reachable by `?level=atelier`. (`src/levels/atelier.js`, `src/levels/index.js`.)
-- **The Spheres' Footprint**: Ivo says the chests are "near a Footprint", but the level builds no Footprint and its chest is on an umbrella canopy. (`spheres-data.js`, `src/boxes/placements.js`.)
-- **The bell-note whistle is found in Vael**, not in Vael II (the bell world), and Vael also gives the rider's bone whistle: two bone whistles in one world. (`src/boxes/placements.js`, `src/items.js`, `arzach-data.js`.)
-- **The bazaar's lantern colour band** (bible: "the bazaar's lantern sun" adds a band) is not built.
-- **Glyph drawn as a smile**: the Hangar's signal board lights a ∪ ([1,1,1, 1,0,1, 0,1,0]) and Ambroise says "like a face smiling with its eyes shut"; Lorn II's Welcome stone also bows downward. The bible says ∩, never a smile; a ∩ on the board would be [1,1,1, 0,1,0, 1,0,1]. (`garage-data.js` BOARD_GLYPH, `src/story/perdide2.js`.) The words vary too: "arch", "curve", "arc".
-- **"Giver's mark" vs "Givers' mark"** (singular and plural apostrophes both used in the desert); the bible's "star-chest" appears nowhere in the game.
-
-### Odile and Talo
-- **Which way did they go?** Viridel: they left in the saucer for the deep wood "to go and ask it" (the Singer). Lorn II: they waited a season for a ship, gave up, and walked out of the wood toward a garden of umbrella trees and white pyramids ("what they were walking toward"; Hollin: "they're in a garden"), which could be Viridel (a return nobody in Viridel has seen) or the Garden of Spheres. (`edena-data.js`, `perdide2-data.js`.)
-- **Two strikes?** Lorn II says the saucer itself carries the scorch ("whatever ship it fell from was struck"); Viridel never says the saucer was struck. (`perdide2-data.js` header and saucer.)
-- **Internal ids** still say `stel` / `atan` (log nodes, Lio's node) and Clemence's id is `malvina`; not player-facing. (`edena-data.js`, `garage-data.js`.)
-
-### Names and people
-- **Names reused across worlds** (same id, so meeting one marks the other as met for the credits and the mother's "who did you meet"): Hask (City-Shaft, Buried Machine), Ossa (City-Shaft, Buried Machine), Pip (City-Shaft, Hangar), Pim (Buried Machine, Lorn II), Lio (City-Shaft, Viridel), Ivo (Lorn, Spheres), Hollin (Vael, Lorn II), Aube (Sister Aube in Vael II, Aube in the Spheres); Wick is a Lorn II keeper and the Buried Machine's lamp; Ferro (market) and Ferrol (Hangar). The bible's table gives Hollin both the Vael hand and the Lorn II chest.
-- **"One witness per world"** (bible): most worlds have several (the City-Shaft has five, the market four).
-- **Two side quests per world** (bible template): the desert has five or six, the Buried Machine three, the Hangar adds Pip's ball. The bible's world pages list quests that are built differently (Spheres: "stand still" became "shoot the spheres", with an unused stillness timer in `spheres.js`; Lorn's splinter is the main quest's end).
-- **Oum's knotted cord** is a *thing* keepsake in the bible but only an item in the game; she tells her rumour before the walk, not after. (`desert-data.js`.)
-- **Oïa "doesn't speak"** (bible) but says three words; the Vael feather errand's giver talks freely in a silent world. (`arzach-data.js`, `content.js` ERRANDS.)
-- **Vael II**: Calix's fallback line "Nobody goes there" (the plain) although Ondine lives there; the stones "fell up long ago" / "since my mother's day", older than the thirty-year silence the monks blame. (`src/levels/arzach2.js`, `arzach2-data.js`.)
-- **The Hangar**: Clemence says the Major visited the wheel; the note's back says "go and see it turn" as if he had not. (`garage-data.js`.)
-- **Directions**: Ossa's chest "behind the villas" is round the rim from the ship; Hollin sends you to Wick "by the glass dome" (she is further south); Bram's "past the saucer pool". Small.
-- **The City-Shaft's Lodestar** dims "since the night the sky rang", but Nima says it was brighter when she was a girl. Soft.
-- **The game brief still describes a live call** from the father and a prologue "call"; the build plays recordings. The brief's "decisions still to make" are mostly answered by its own "Working decisions".
+### Still open
+- **Home after six worlds, eleven worlds on the route**: recordings 7 to 11
+  come from the oldest side; the arc's "last recording" lands mid-journey.
+  Intended, but worth a look once there are temples.
+- **The bazaar's lantern colour band** (bible: "the bazaar's lantern sun" adds
+  a band) is not built.
+- **The words for the arc** vary ("arc", "curve", "arch"); the shape is always ∩.
+- **Wick** is a Lorn II keeper and the Buried Machine's lamp; **Ferro** (market)
+  and **Ferrol** (Hangar): different names, kept.
+- **"One witness per world"** (bible): most worlds have several. **Two side
+  quests per world** (bible template): most have more now. The Spheres' unused
+  stillness timer is still in `spheres.js`.
+- **Oum's knotted cord** is a *thing* keepsake in the bible but only an item in
+  the game; she tells her rumour before the walk, not after.
+- **Oïa "doesn't speak"** (bible) but says three words; the Vael feather
+  errand's giver talks freely in a silent world.
+- **Vael II**: the stones "fell up long ago" / "since my mother's day", older
+  than the thirty-year silence the monks blame. (Calix's fallback line "Nobody
+  goes there", about the plain where Ondine lives, is now "Only Ondine lives out
+  there, and nobody goes to see her".)
+- **The City-Shaft's Lodestar** dims "since the night the sky rang", but Nima
+  says it was brighter when she was a girl. Soft.
+- **How one light crossed worlds a journey apart in one night** is not
+  explained, on purpose.
+- **The game brief still describes a live call** from the father and a prologue
+  "call"; the build plays recordings.
 
 ### Planned additions that touch the existing story
-- **A daughter and a dog at home** conflict with what home is now: "Nobody lives there now. There is a stone in the yard", the dark lamp, the shut door, the traveller about twenty-six who left at seventeen and never came back. Questions to settle: who is her mother, where was she during the journey (aboard? waiting at home?), does she change the last recordings and the stone scene, and does "Nobody lives there now" go. (`src/story/ending.js` homeEntry, `src/levels/home.js`.)
-- **Coloured busts** replace the full-length teal holograms (`src/ship/hologram.js`); the stone scene's hologram of "the three of them" over the stone would become busts too.
-- **Makers' temples with bosses**: the makers are gentle in every world so far (gifts, water, a fire that hurts nobody); a boss needs a reason that fits (a guardian, a gift gone wrong, something the singing light woke).
-- **A failable quest that harms locals**: no quest can be failed today, and the recordings' reactions only count keepsakes; a failure would need a line in the reel and maybe at the stone.
+- **A daughter and a dog at home** conflict with what home is now: "Nobody
+  lives there now. There is a stone in the yard", the dark lamp, the shut door,
+  the traveller about twenty-six who left at seventeen and never came back.
+  Questions to settle: who is her mother, where was she during the journey
+  (aboard? waiting at home?), does she change the last recordings and the stone
+  scene, and does "Nobody lives there now" go. (`src/story/ending.js`
+  homeEntry, `src/levels/home.js`.)
+- **Coloured busts** replace the full-length teal holograms
+  (`src/ship/hologram.js`); the stone scene's hologram of "the three of them"
+  over the stone would become busts too.
+- **Makers' temples with bosses**: the makers are gentle in every world so far
+  (gifts, water, a fire that hurts nobody); a boss needs a reason that fits (a
+  guardian, a gift gone wrong, something the singing light woke). The builders'
+  gate in Viridel is a small precedent: a makers'-era thing that does harm only
+  because it is opened after a thousand years.
+- **The tea terraces at the stone**: the ending does not mention them; a line
+  at the stone ("and Esk's hill, which I could not mend") would be for the
+  ending's own pass.
