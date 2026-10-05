@@ -10,6 +10,9 @@ export const CHANGELOG = [
     'The makers’ marks are now carved inscriptions: friezes of their signs and framed seals cut into Qanat’s gate, the giant’s door, the standing stones, the observatory and the Builders’ ruins. Ordinary walls are left plain.',
     'Real grass: blades sway in the wind and part around your feet in Viridel, the Garden of Spheres, home and Lorn’s mosses (fewer on the Handheld and Low settings).',
     'The grass is lush and green: wider blades in several shades of the ground’s green, drawn with soft green outlines instead of black ones, with only a few tufts inked by hand.',
+    'The scout drone is redesigned: a little round pod with one big eye that folds shut on your back and blooms open into four spinning vanes when it flies.',
+    'When you ping it, the drone hops off your back, unfolds and spins up; coming home it folds up on the way in and settles back in place, on top of the radio pack or clamped to the tank’s side rail.',
+    'While you glide, the drone hops up onto the tank’s cap, out of the way of the fluid wings. In flight it stays level and leans into its speed; its lit beak still points where you’re going.',
   ] },
   { v: '0.46', date: '2026-10-05', items: [
     'The ship’s floor is flat now: walking the deck no longer lifts you over doorways or up onto stools, the bench or the bed.',

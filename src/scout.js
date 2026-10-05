@@ -2,14 +2,32 @@ import * as THREE from 'three';
 import { makeMaterial, markHero } from './materials.js';
 import { sweepCapsule } from './physics.js';
 import { Trail } from './trail.js';
+import { Drone, DroneFold, DOCK_ON_TOP } from './drone.js';
 
 const RADIUS = 0.25;     // the drone's collision sphere
 const CLEAR = 0.9;       // air it keeps below itself while flying
 const MIN_CLEAR = 0.35;  // never lower than this over the ground
 const STEER = 6;         // velocity response (1/s): smooth, no jitter
 const LEAD = { min: 6, perSpeed: 0.4, max: 15 };   // how far ahead of you it leads (m): further the faster you go
+const PITCH = 0.4;       // the body's most nose-up or nose-down (rad); the pointer aims the rest of the way
+const LEAN = { perSpeed: 0.03, max: 0.3 };   // it leans into its speed (rad per m/s, at most)
+// Launching and docking (the drone folds: src/drone.js). It hops off the dock
+// folded, straight out along OUT, then blooms and flies; coming home it folds
+// on the way in, waits at the end of that line until it is shut, and glides
+// back down it onto the dock.
+export const DOCKING = {
+  out: new THREE.Vector3(0, 0.55, 0.84).normalize(),   // dock frame: away from the surface (+y), the way the lens looks (+z, back from you)
+  hop: 0.42,      // m: how far off the dock the first hop goes, and where it lines up to come home
+  pop: 0.32,      // s: the hop
+  bloomAt: 0.45,  // of the hop: the petals open from here (clear of you)
+  launch: 0.85,   // s: launched, it guides from here
+  foldAt: 1.6,    // m from the line-up point: it folds on the way in
+  settle: 0.4,    // s: the last glide onto the dock
+};
 const _d = new THREE.Vector3(), _w = new THREE.Vector3(), _a = new THREE.Vector3(), _n = new THREE.Vector3(), _f = new THREE.Vector3();
 const _s = new THREE.Vector3(), _p = new THREE.Vector3(), _o = new THREE.Vector3(), _m = new THREE.Matrix4(), _q = new THREE.Quaternion();
+const _h = new THREE.Vector3(), _ax = new THREE.Vector3(), _qt = new THREE.Quaternion(), _z = new THREE.Vector3(0, 0, 1);
+const _q2 = new THREE.Quaternion(), _q3 = new THREE.Quaternion(), _out = new THREE.Vector3(), _l = new THREE.Vector3(), _lv = new THREE.Vector3(), _d2 = new THREE.Vector3(), _f2 = new THREE.Vector3(), _o2 = new THREE.Vector3(), _lean = new THREE.Vector2();
 
 const objective = (id, label, position) => ({ id, label, position: position.clone() });
 
@@ -85,21 +103,19 @@ export class Scout {
     this.phase = 'docked'; this.age = 0; this.elapsed = 0;
     this.vel = new THREE.Vector3(); this.stuck = 0; this.over = 0; this.fade = null;
     this.object = new THREE.Group(); this.object.userData.noCollide = true; scene.add(this.object);
-    const shell = makeMaterial({ color: '#fff1ca', flat: true, glow: 0.35 });
-    const brass = makeMaterial({ color: '#e2b552', flat: true, metal: 'brass' });
+    // the drone (folding: src/drone.js), a glowing ring under it while it guides, and the pointer
+    this.drone = new Drone(); this.fold = new DroneFold();
+    this.object.add(this.drone.object);
     const lamp = makeMaterial({ color: '#70e7df', glow: 1 });
-    this.object.add(new THREE.Mesh(new THREE.SphereGeometry(0.18, 12, 8).scale(1, 0.7, 1.2), shell));
-    const lens = new THREE.Mesh(new THREE.SphereGeometry(0.095, 10, 6), lamp); lens.position.z = 0.18; this.object.add(lens);
-    this.wings = [];
-    for (const side of [-1, 1]) {
-      const wing = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.025, 0.12), brass);
-      wing.position.x = side * 0.22; this.object.add(wing); this.wings.push(wing);
-    }
-    this.ring = new THREE.Mesh(new THREE.TorusGeometry(0.27, 0.018, 5, 24), lamp);
-    this.ring.rotation.x = Math.PI / 2; this.object.add(this.ring);
+    this.ring = new THREE.Mesh(new THREE.TorusGeometry(0.14, 0.01, 5, 28), lamp);
+    this.ring.rotation.x = Math.PI / 2; this.ring.position.y = -0.14; this.object.add(this.ring);
     // the pointer: a lit beak off the lens, aimed at the goal (up and down too) while guiding
-    this.pointer = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.34, 8).rotateX(Math.PI / 2).translate(0, 0, 0.4), lamp);
-    this.pointer.visible = false; this.object.add(this.pointer);
+    const eye = this.drone.eye.at;
+    // (on a pivot at the lens: the body keeps near level, the beak turns all the way up or down)
+    this.pointerPivot = new THREE.Group(); this.pointerPivot.position.copy(eye); this.object.add(this.pointerPivot);
+    this.pointer = new THREE.Mesh(new THREE.ConeGeometry(0.036, 0.24, 8).rotateX(Math.PI / 2).translate(0, 0, 0.2), lamp);
+    this.pointer.visible = false; this.pointerPivot.add(this.pointer);
+    for (const o of [this.ring, this.pointer]) o.userData.dynamic = true;
     markHero(this.object);
     // a thin glowing trail behind it, so it's easy to follow by eye
     this.trail = new Trail(scene, { radius: 0.07, life: 1.5, offset: 1.2 });
@@ -112,8 +128,18 @@ export class Scout {
     if (anchor) { anchor.updateWorldMatrix(true, false); return anchor.getWorldPosition(new THREE.Vector3()); }
     return this.player.char.torso.localToWorld(new THREE.Vector3(0, 0.7, -0.3));
   }
-  dock() {
-    this.phase = 'docked'; this.vel.set(0, 0, 0); this.stuck = this.over = 0; this.overUsed = false; this.fade = null; this.object.position.copy(this.anchor()); this.object.scale.setScalar(0.5);
+  /** The dock's orientation: the drone's up out of the surface it rests on, its lens looking back from you. */
+  dockQuaternion(out = new THREE.Quaternion()) {
+    const anchor = this.player.gear?.scoutDock;
+    if (anchor) return anchor.getWorldQuaternion(out);
+    return this.player.char.torso.getWorldQuaternion(out).multiply(DOCK_ON_TOP);
+  }
+  /** dock(): home, folded (snap: at once; false: the fold finishes where it is, after a glide in). */
+  dock(snap = true) {
+    this.phase = 'docked'; this.vel.set(0, 0, 0); this.stuck = this.over = 0; this.overUsed = false; this.fade = null; this.settleT = null; this.relaunch = false; this.dockOnBody = null;
+    this.object.position.copy(this.anchor()); this.dockQuaternion(this.object.quaternion); this.object.scale.setScalar(1);
+    if (snap) this.fold.snap(false);
+    this.drone.pose(this.fold);
     this.ring.visible = false; if (this.pointer) this.pointer.visible = false; if (this.label) this.label.hidden = true;
   }
   ping() {
@@ -121,7 +147,9 @@ export class Scout {
     if (!target) return false;
     this.target = target; this.age = 0; this.relaunched = false;
     if (this.phase === 'docked') this.launch();
-    else { this.phase = 'guide'; this.object.scale.setScalar(1); }
+    else if (this.phase === 'launch') { /* already on its way out */ }
+    else if (this.settleT == null || this.settleT < DOCKING.settle * 0.5) { this.phase = 'guide'; this.settleT = null; this.object.scale.setScalar(1); }
+    else this.relaunch = true;   // nearly home: it lands, then hops straight back out
     this.sound?.chime?.(); return true;
   }
   /** Height above whatever is below along -up (meshes and the heightfield), Infinity if nothing. */
@@ -205,12 +233,20 @@ export class Scout {
       const vu = vel.dot(up);
       if (vu < 0) vel.addScaledVector(up, -vu);
     }
-    // facing: turn smoothly toward the flight direction (or what it points at: this.aim)
+    // facing: turn smoothly toward the flight direction (or what it points at: this.aim). A
+    // drone keeps near level: it pitches at most PITCH toward it (the pointer takes the rest,
+    // update()) and leans into its own speed, its top tilting the way it goes
     const face = this.aim ?? (vel.lengthSq() > 0.09 ? vel : to);
     if (face.lengthSq() > 1e-6) {
-      _n.copy(face).normalize();
-      _m.lookAt(_o.set(0, 0, 0), _n.negate(), Math.abs(_n.dot(up)) > 0.98 ? _a.set(1, 0, 0) : up);   // (straight up or down: any other up will do)
+      const rise = face.dot(up), level = _h.copy(face).addScaledVector(up, -rise);
+      if (level.lengthSq() < 1e-8) level.set(0, 0, 1).applyQuaternion(this.object.quaternion).addScaledVector(up, -level.dot(up));   // straight up or down: keep its heading
+      if (level.lengthSq() < 1e-8) level.set(up.y, -up.x, up.z).addScaledVector(up, -level.dot(up));
+      const pitch = THREE.MathUtils.clamp(Math.atan2(rise, Math.sqrt(Math.max(face.lengthSq() - rise * rise, 0))), -PITCH, PITCH);
+      _n.copy(level.normalize()).multiplyScalar(Math.cos(pitch)).addScaledVector(up, Math.sin(pitch));
+      _m.lookAt(_o.set(0, 0, 0), _n.negate(), up);
       _q.setFromRotationMatrix(_m);
+      const side = _h.copy(vel).addScaledVector(up, -vel.dot(up)), sp = side.length();
+      if (sp > 0.05) _q.premultiply(_qt.setFromAxisAngle(_ax.crossVectors(up, side).divideScalar(sp), Math.min(LEAN.max, sp * LEAN.perSpeed)));
       this.object.quaternion.slerp(_q, 1 - Math.exp(-8 * dt));
     }
     // Progress watch: not getting closer although still far away. Distance
@@ -226,9 +262,12 @@ export class Scout {
     return this.stuck > 1.6;
   }
   launch() {
-    this.phase = 'launch'; this.origin = this.anchor(); this.object.position.copy(this.origin);
-    this.vel.copy(this.player.ride?.vel ?? this.player.vel ?? _o.set(0, 0, 0)); this.stuck = this.over = 0; this.fade = null;
+    this.phase = 'launch'; this.popT = 0; this.relaunch = false; this.origin = this.anchor(); this.object.position.copy(this.origin);
+    this.vel.copy(this.player.ride?.vel ?? this.player.vel ?? _o.set(0, 0, 0)); this.stuck = this.over = 0; this.fade = null; this.settleT = null;
+    this.object.scale.setScalar(1);
   }
+  /** The line home: from the dock, `hop` metres out along DOCKING.out (world). */
+  outward(q = this.dockQuaternion(_q2)) { return _out.copy(DOCKING.out).applyQuaternion(q); }
   /** Boxed in: blink out (a short shrink) and come back to the dock, relaunching if still guiding. */
   recall() { if (this.fade === null) this.fade = 0.3; }
   update(dt, paused = false) {
@@ -236,18 +275,32 @@ export class Scout {
     if (this.player.pos.distanceTo(this.previousPlayer) > 45) this.dock();
     this.previousPlayer.copy(this.player.pos);
     this.object.visible = !this.player.hidden;
-    // the trail: laid while it flies, left to dissolve once it is home
-    this.trail.update(dt, this.phase !== 'docked' && this.fade === null && !this.player.hidden ? this.object.position : null);
+    // the trail: laid while it flies (not on the hop off the dock nor the glide back in), left to dissolve once it is home
+    const flying = this.phase !== 'docked' && this.settleT == null && !(this.phase === 'launch' && this.popT < DOCKING.pop);
+    this.trail.update(dt, flying && this.fade === null && !this.player.hidden ? this.object.position : null);
     if (this.phase === 'docked' && !this.trail.samples.length) this.trail.mesh.visible = false;
     if (this.phase === 'docked') {
-      this.object.position.copy(this.anchor());
-      this.player.gear?.scoutDock?.getWorldQuaternion(this.object.quaternion);
+      const home = this.anchor(), body = this.player.humanoid?.chestAnchor;
+      // the dock itself moved on the body (the radio pack gave way to the tank): glide over to it, folded
+      const onBody = body ? body.worldToLocal(_l.copy(home)) : null;
+      const moved = onBody && this.dockOnBody && onBody.distanceTo(this.dockOnBody) > 0.25;   // (more than its own hops and the tank's swing make in a frame)
+      if (onBody) (this.dockOnBody ??= new THREE.Vector3()).copy(onBody);
+      if (moved && !this.player.hidden) {
+        const q = this.dockQuaternion(_q2);
+        this.phase = 'return'; this.age = DOCKING.launch; this.settleT = 0; this.relaunch = false;
+        this.settleFrom = _l.subVectors(this.object.position, home).applyQuaternion(_q3.copy(q).invert()).clone();
+        this.settleQ = this.object.quaternion.clone();
+        return;
+      }
+      this.object.position.copy(home);
+      this.dockQuaternion(this.object.quaternion);
+      this.drone.pose(this.fold.update(dt, false), dt);   // (a fold still closing finishes here)
       return;
     }
     if (paused) { if (this.label) this.label.hidden = true; return; }
     this.age += dt; this.elapsed += dt;
     this.target = this.getTarget();
-    if (!this.target || this.age >= 5) this.phase = 'return';
+    if ((!this.target || this.age >= 5) && this.phase !== 'return') { this.phase = 'return'; this.settleT = null; }
     if (this.fade !== null) {
       this.fade -= dt;
       this.object.scale.setScalar(Math.max(0, this.fade / 0.3));
@@ -260,13 +313,24 @@ export class Scout {
       return;
     }
     const pv = this.player.ride?.vel ?? this.player.vel ?? _o.set(0, 0, 0), pSpeed = pv.length();
+    const lastVel = _lv.copy(this.vel);
     this.aim = null;
+    let open = true, awake = true;
     if (this.phase === 'launch') {
-      const k = Math.min(1, this.age / 0.8);
-      this.origin.addScaledVector(pv, dt);   // it lifts off your shoulder as you go, not where you were
-      this.fly(this.origin.clone().addScaledVector(up, 1.4), 2.5 + pSpeed, up, dt, pv);
-      this.object.scale.setScalar(0.5 + k * 0.5);
-      if (k === 1) this.phase = 'guide';
+      if (this.popT < DOCKING.pop) {
+        // the hop: still folded, eye open, straight out from the dock (carried with you), turning upright
+        this.popT = Math.min(DOCKING.pop, this.popT + dt);
+        const e = THREE.MathUtils.smootherstep(this.popT / DOCKING.pop, 0, 1);
+        const q = this.dockQuaternion(_q2), out = this.outward(q);
+        this.object.position.copy(this.anchor()).addScaledVector(out, DOCKING.hop * e);
+        this.object.quaternion.copy(q).slerp(this.uprightAlong(out, up, _q3), e);
+        open = this.popT >= DOCKING.pop * DOCKING.bloomAt;
+        if (this.popT >= DOCKING.pop) { this.origin.copy(this.object.position); this.vel.copy(pv).addScaledVector(out, 1.2); }
+      } else {
+        this.origin.addScaledVector(pv, dt);   // it lifts off your shoulder as you go, not where you were
+        this.fly(_d2.copy(this.origin).addScaledVector(up, 1.4), 2.5 + pSpeed, up, dt, pv);
+      }
+      if (this.age >= DOCKING.launch) this.phase = 'guide';
     } else if (this.phase === 'guide') {
       // it leads a few metres towards the goal from where you are, keeping
       // your pace (walking, driving or flying): ahead of you on the way, never far off
@@ -280,19 +344,53 @@ export class Scout {
       this.aim = _p.subVectors(this.target.position, this.object.position);
       if (this.fly(ahead, Math.max(7, pSpeed + 6), up, dt, pv)) this.recall();
       if (this.object.position.distanceTo(this.player.pos) > LEAD.max + 12) this.phase = 'return';   // (lost you: home)
+    } else if (this.settleT != null) {
+      // the glide in: down the line onto the dock, turning to sit on it (in the dock's frame, so it keeps up as you move)
+      this.settleT = Math.min(DOCKING.settle, this.settleT + dt);
+      const e = THREE.MathUtils.smootherstep(this.settleT / DOCKING.settle, 0, 1);
+      const q = this.dockQuaternion(_q2);
+      this.object.position.copy(this.anchor()).add(_l.copy(this.settleFrom).applyQuaternion(q).multiplyScalar(1 - e));
+      this.object.quaternion.copy(this.settleQ).slerp(q, e);
+      open = false; awake = !!this.relaunch;
+      if (this.settleT >= DOCKING.settle) {
+        const again = this.relaunch && this.target && this.age < 5;
+        this.dock(false);
+        if (again) this.launch();
+        return;
+      }
     } else {
-      const home = this.anchor();
-      const boxed = this.fly(home, 10 + pSpeed, up, dt, pv);
-      const d = this.object.position.distanceTo(home);
-      this.object.scale.setScalar(Math.min(1, 0.5 + d));
-      if (d < 0.4) this.dock();
-      else if (boxed) this.recall();
+      // home: to the end of the dock's line, folding on the way in
+      const home = this.anchor(), q = this.dockQuaternion(_q2), line = _d2.copy(home).addScaledVector(this.outward(q), DOCKING.hop);
+      const boxed = this.fly(line, 10 + pSpeed, up, dt, pv);
+      const d = this.object.position.distanceTo(line);
+      open = d > DOCKING.foldAt;
+      if (d < 0.3 && this.fold.petals < 0.45) {
+        // shut enough: glide in from here
+        this.settleT = 0;
+        this.settleFrom = _l.subVectors(this.object.position, home).applyQuaternion(_q3.copy(q).invert()).clone();
+        this.settleQ = this.object.quaternion.clone();
+      } else if (boxed) this.recall();
       // Recall safely if a closed doorway prevents a physical return.
-      else if (this.age > 6.5) { this.object.scale.setScalar(Math.max(0, (7 - this.age) * 2) * 0.5); if (this.age >= 7) this.dock(); }
+      else if (this.age > 6.5) { this.object.scale.setScalar(Math.max(0, (7 - this.age) * 2)); if (this.age >= 7) { this.dock(); return; } }
     }
+    this.fold.update(dt, open, awake);
+    // the antenna sways with the drone's own accelerations (in its frame)
+    const acc = _a.subVectors(this.vel, lastVel).divideScalar(Math.max(dt, 1e-3)).applyQuaternion(_q3.copy(this.object.quaternion).invert());
+    this.drone.pose(this.fold, dt, _lean.set(acc.x, acc.z));
     this.ring.visible = this.pointer.visible = this.phase === 'guide'; this.ring.rotation.z += dt * 2;
     this.pointer.scale.setScalar(1 + Math.sin(this.elapsed * 6) * 0.12);
-    this.wings.forEach((w, i) => { w.rotation.z = Math.sin(this.elapsed * 12 + i * Math.PI) * 0.25; });
+    if (this.aim && this.aim.lengthSq() > 1e-6) {
+      // the beak at the goal, in the drone's frame
+      const local = _n.copy(this.aim).normalize().applyQuaternion(_q3.copy(this.object.quaternion).invert());
+      this.pointerPivot.quaternion.slerp(_qt.setFromUnitVectors(_z, local), 1 - Math.exp(-10 * dt));
+    }
+  }
+  /** Level, facing along `dir`'s horizontal (any horizontal if it is straight up or down). */
+  uprightAlong(dir, up, out) {
+    const f = _f2.copy(dir).addScaledVector(up, -dir.dot(up));
+    if (f.lengthSq() < 1e-6) f.set(up.y, -up.x, 0).addScaledVector(up, -f.dot(up));
+    _m.lookAt(_o2.set(0, 0, 0), f.normalize().negate(), up);
+    return out.setFromRotationMatrix(_m);
   }
   placeLabel(camera) {
     if (!this.label) return;

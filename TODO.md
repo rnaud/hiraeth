@@ -263,6 +263,8 @@ To start after the current work lands. Ordered from easiest to most complex.
 
 ## Quick fixes
 
+- [ ] The night lantern on the backpack's frame stays floating beside your back when the tank goes
+  into the hoverbike's socket.
 - [ ] The traveller's face inside the helmet is the plain male face the people use, and reads gaunt and
   older: give them their own, younger face. (A white star shape also pokes above the helmet in some
   tank shots.)
@@ -318,7 +320,7 @@ To start after the current work lands. Ordered from easiest to most complex.
 
 ## Drone
 
-- [ ] Remake the drone: a better design that folds, so it tucks neatly onto the outfit when
+- [x] Remake the drone: a better design that folds, so it tucks neatly onto the outfit when
   it's on the traveller.
 
 ## Water

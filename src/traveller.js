@@ -239,7 +239,7 @@ const toneOf = (mesh) => {
 /**
  * Everything the traveller wears on a body (pure data, cached per outfit scene and body geometry):
  * { pieces: [{ name, geometry (skinned to the body's bones, bind space), color, glass?, pack? }],
- *   chestZ (the chest anchor's offset to the pack's front), dock (the scout's place on the pack,
+ *   chestZ (the chest anchor's offset to the pack's front), dock (where the scout's foot rests on the pack,
  *   chest anchor frame), forearm: { r, l } (bracer frames: { position, quaternion, scale } in
  *   bind space), head: { centre, half } }.
  */
@@ -315,9 +315,9 @@ export function travellerKit(scene, body) {
   const wb = whip.geometry.boundingBox, wc = wb.getCenter(new THREE.Vector3());
   add('Backpack_antenna', rigid(glbGeo('Backpack_antenna', packM.clone().multiply(new THREE.Matrix4().makeTranslation(wc.x, wb.min.y, wc.z))
     .multiply(new THREE.Matrix4().makeScale(0.6, F.antenna, 0.6)).multiply(new THREE.Matrix4().makeTranslation(-wc.x, -wb.min.y, -wc.z))), chest), PAL.dark);
-  // the scout's place: on top of the radio, at its back
+  // the scout's place: the point on the radio's flat top its foot rests on, towards the back (clear of the helmet)
   const radioBox = boxOf(points(plain(radioPack, radioM), () => true));
-  const dock = new THREE.Vector3(0, radioBox.max.y + 0.06 - chestY, radioBox.min.z + 0.08 - chestZ);
+  const dock = new THREE.Vector3(0, radioBox.max.y - chestY, radioBox.min.z + 0.085 - chestZ);
 
   // ---- the shoulder straps: from the pack over the shoulders, down the front to the belt
   const torso = points(suit, onBones(suit, body, /^(pelvis|spine|clavicle|neck)/, 0.5));

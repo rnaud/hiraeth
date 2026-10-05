@@ -133,7 +133,11 @@ test('scout keeps your pace: it leads further the faster you go, stays near, and
   scout.getTarget=()=>({id:'up',label:'Up',position:scout.object.position.clone().add(v(3,40,0))});
   player.vel.set(0,0,0);
   for(let i=0;i<60;i++){ scout.age=1; scout.update(1/30); }
-  const nose=new THREE.Vector3(0,0,1).applyQuaternion(scout.object.quaternion);
+  // (the body stays near level, a drone; its lit beak turns the rest of the way)
+  scout.object.updateMatrixWorld(true);
+  const nose=new THREE.Vector3(0,0,1).applyQuaternion(scout.pointer.getWorldQuaternion(new THREE.Quaternion()));
   assert.ok(nose.y>0.8,`points up at it: ${nose.y.toFixed(2)}`);
+  const body=new THREE.Vector3(0,1,0).applyQuaternion(scout.object.quaternion);
+  assert.ok(body.y>Math.cos(0.75),`the body near level: ${body.y.toFixed(2)}`);
   assert.ok(scout.pointer.visible&&scout.trail.samples.length>3,'pointer lit, trail laid');
 });
