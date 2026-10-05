@@ -519,7 +519,11 @@ export function createGarage(scene) {
       const p = player.pos;
       // Through a portal: a quick fade into its light, then out the far side at your own pace,
       // the camera already upright and behind you (no snap of the view, no dead stop).
-      if (passing) {
+      const P = ctx.passage;
+      if (P?.active) {
+        // (the hand-over, src/passage.js: the paper sweeps across, you come out of the far portal still
+        // going, upright in its gravity, the camera behind you as it was)
+      } else if (passing) {
         passing.t += dt;
         if (!passing.done && passing.t >= PASS.in) {
           passing.done = true;
@@ -535,9 +539,14 @@ export function createGarage(scene) {
         if (passing.t >= PASS.in + PASS.out) passing = null;
       } else if (cooldown === 0 && !player.riding) {
         for (const po of portals) {
-          if (p.distanceTo(po.pos) < 5.5) {
+          const d = p.distanceTo(po.pos);
+          if (d < 18) P?.prepare(po.to);
+          if (d < 5.5) {
             const v = player.vel, u = player.frame?.up ?? Y, along = v.dot(u);
-            passing = { po, t: 0, done: false, speed: Math.max(2.5, Math.sqrt(Math.max(0, v.lengthSq() - along * along))) };
+            const speed = Math.max(2.5, Math.sqrt(Math.max(0, v.lengthSq() - along * along)));
+            cooldown = 1.5;
+            if (P) { P.go({ to: po.to, up: po.toUp, fwd: po.toFwd, heading: 0, speed }); break; }
+            passing = { po, t: 0, done: false, speed };
             ctx.fade?.(0.9, PASS.in);
             if (!ctx.fade) passing.t = PASS.in;   // (no screen to fade: straight through)
             cooldown = 1.5;

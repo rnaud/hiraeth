@@ -62,6 +62,7 @@ import { badgeLine } from './prompt-keys.js';
 import { chargeState, chargeHud, chargeJournalHtml, showChargeCard, GIVEN as CHARGE_GIVEN, CARD as CHARGE_CARD } from './story/charge.js';
 import { slots, formatPlaytime } from './save-slots.js';
 import { Waters, BreathMeter } from './water.js';
+import { Passage, PassageCover, WarmDraw, warmPasses, carryAcross, PASSAGE } from './passage.js';
 import { waterShared } from './water-shader.js';
 
 // Android: the handheld's controls come from the app (native-pad.js), and prompts use its button names
@@ -1240,6 +1241,7 @@ function frame() {
   // E goes to the nearest person / thing / vehicle first (src/interact.js); only then to the player's whistle
   const ePressed = !!ctl.KeyE && !eWasDown && !photo.on && !player.down; eWasDown = !!ctl.KeyE;   // (no talking while knocked down)
   const interacted = storyRt.update(dt, t, { camera, ePressed, paused: busy() || photo.on || ship.playing }).handled;
+  passage.update(dt);   // a hand-over under way: the move happens here, before the traveller and the camera do
   if (photo.on) {
     if (!busy()) photoUpdate(dt, mergedInput);
   } else {
@@ -1284,18 +1286,17 @@ function frame() {
     brushTrail.update(dt, player.riding ? null : player.pos, Math.hypot(player.vel.x, player.vel.z));
     sharedUniforms.uWind.value.set(wx, wz, (level.features.wind ? 1 : 0.55) * (1 + Wx.storm * 2 + Wx.rain * 0.4), wind.gust());
   }
-  // doorways into interiors (and back out)
+  // doorways into interiors (and back out): the hand-over (src/passage.js): its destination drawn
+  // ahead as you come near, then the paper sweeps across, you walk on out of the far side
   portalCool = Math.max(portalCool - dt, 0);
-  if (!portalCool && !player.riding && !player.dead && level.portals) {
+  if (!portalCool && !passage.active && !player.riding && !player.dead && level.portals) {
     for (const pt of level.portals) {
-      if (player.pos.distanceTo(pt.at) < pt.r) {
-        player.teleport(pt.to, new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1));
-        player.heading = pt.heading;
-        rig.yaw = pt.heading + Math.PI;
-        rig.target.copy(pt.to);
-        rig._curDist = 2;
+      const d = player.pos.distanceTo(pt.at);
+      if (d < pt.r + PASSAGE.near) passage.prepare(pt.to);
+      if (d < pt.r) {
+        passage.go({ to: pt.to, heading: pt.heading });
         sound.page();
-        portalCool = 1.2;
+        portalCool = 1.2 + PASSAGE.cover + PASSAGE.reveal;
         break;
       }
     }
@@ -1347,7 +1348,7 @@ function frame() {
   updateHud();
   if (!busy() && !ship.playing) updateHazards(dt, player, { notice: showToast });   // fire and spines (src/hazards.js)
   updateHealth(dt);
-  level.update(dt, t, { player, rig, camera, fade: (k, secs) => ship.cinema?.fade(k, true, secs) });
+  level.update(dt, t, { player, rig, camera, passage, fade: (k, secs) => ship.cinema?.fade(k, true, secs) });
   reactiveWorld.update(dt, t, player, camera, busy() || photo.on);
   wildlife.update(dt, t, player, camera, busy() || photo.on);
   // levels with zones (the Hangar) switch ink style as you cross between them
@@ -1462,6 +1463,20 @@ await warmShaders(post.scene, post.camera, composeRT);
   const rt = Object.values(cascades).find((c) => c.enabled && c.rt)?.rt ?? null;
   try { await warmShaders(scene, camera, rt); } finally { for (const [o, m] of worn) o.material = m; }
 }
+// the ways through, drawn once ahead (src/passage.js): every room, cave and hall a door or a portal
+// leads to, and the ship's rooms, with their geometry and textures on the GPU and the driver's
+// pipelines built before the first frame (they used to arrive with the first sight of them)
+const warmDraw = new WarmDraw(renderer, scene, { passes: warmPasses({ makeGBuffer: createGBuffer, shadowOverride }), lodFull: (o) => lod?.fullOf?.(o) });
+{
+  const t0 = performance.now();
+  scene.updateMatrixWorld();
+  const dests = [...(level.portals ?? []), ...(level.navigationPortals ?? [])].map((p) => p.to).filter(Boolean);
+  const n = warmDraw.draw([...warmDraw.near(dests), ...warmDraw.of(...(ship.parked?.indoor ?? []))]);
+  // (a program's first use asks the GPU process for its uniforms and log, a wait on everything queued: done now)
+  for (const p of renderer.info.programs) p.getUniforms?.();
+  console.info(`passage warm-up: ${n} meshes in ${(performance.now() - t0).toFixed(0)} ms`);
+}
+const passage = new Passage({ cover: new PassageCover(), warm: warmDraw, carry: (c) => carryAcross(player, rig, camera, c), busy: () => !!blades.grass?.placing });
 stage('ready'); console.info(`load: total ${(performance.now() - tLoad).toFixed(0)} ms (after module load)`);
 requestAnimationFrame((t) => {
   frame(t);
@@ -1485,4 +1500,4 @@ window.clipAudit = async (o = {}) => {
   return r;
 };
 Object.assign(window, { waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife,
-  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, boxes, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame, lod: () => lod, skinnedLods });
+  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, passage, warmDraw, boxes, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame, lod: () => lod, skinnedLods });

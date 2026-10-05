@@ -506,7 +506,10 @@ export function createLab(scene) {
       const p = player.pos, here = roomAt(p.x, p.z);
       show(here);
       cooldown = Math.max(cooldown - dt, 0);
-      // through a door: a quick fade, then out the other side at your own pace, the camera behind you
+      // through a door: the hand-over (src/passage.js): the paper sweeps across and you walk on out of
+      // the far side, still walking, the camera where it was behind you
+      const P = ctx.passage;
+      if (P?.active) return;
       if (passing) {
         passing.t += dt;
         if (!passing.done && passing.t >= PASS.in) {
@@ -523,15 +526,20 @@ export function createLab(scene) {
         return;
       }
       const go = (to, heading, speed = 0) => {
-        passing = { to, heading, t: 0, done: false, speed };
+        cooldown = 1.4;
+        // (speed null: the one you had, kept through the door)
+        if (P) { P.go({ to, heading, speed, onMove: () => show(roomAt(to.x, to.z)) }); return; }
+        passing = { to, heading, t: 0, done: false, speed: speed ?? Math.min(4, Math.max(2, Math.hypot(player.vel.x, player.vel.z))) };
         ctx.fade?.(0.95, PASS.in);
         if (!ctx.fade) passing.t = PASS.in;   // (no screen to fade: straight through)
         cooldown = 1.4;
       };
       if (cooldown === 0 && !player.riding) {
         for (const po of portals) {
-          if (Math.hypot(p.x - po.at.x, p.z - po.at.z) < 1.3 && Math.abs(p.y - po.at.y) < 2.6) {
-            go(po.to, po.heading, Math.min(4, Math.max(2, Math.hypot(player.vel.x, player.vel.z))));
+          const d = Math.hypot(p.x - po.at.x, p.z - po.at.z);
+          if (d < 12 && Math.abs(p.y - po.at.y) < 6) P?.prepare(po.to);
+          if (d < 1.3 && Math.abs(p.y - po.at.y) < 2.6) {
+            go(po.to, po.heading, null);
             break;
           }
         }

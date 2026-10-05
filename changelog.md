@@ -13,6 +13,9 @@ The same release notes shown in the game (press **N** or open settings).
 - Boulders, big globes and pillars far away now cast shadows like the buildings beside them, and Perdide’s great crystal throws its shadow across the island.
 - Game updates for the Android app and the Steam Deck now come from the game’s own site. Accept the new Android app when it is offered, once, to keep getting them; your saves are kept.
 - A new place in the worlds list (Debug on the title screen): The References, six desert scenes rebuilt from the drawings the game is made after, each seen the way its drawing frames it. [ and ] (L3 / R3) change scene, \ (View) puts the drawing beside or over the picture.
+- Walking through a door, into a cave, a temple or the crashed ship’s hatch, through the Lab’s doors or the Hangar’s portals is smooth now: a sheet of paper sweeps across and you walk on out of the far side at the pace you had, mid-stride, the camera still where it was behind you, instead of stopping dead with the view snapped in close.
+- The rooms, caves and halls behind every door, and the ship’s cabins, are made ready while the world loads, so the first step inside no longer hitches.
+- Stepping into the ship or a house, the camera comes level gently instead of jumping.
 
 ## v0.60 — 2026-10-05
 

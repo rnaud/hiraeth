@@ -213,6 +213,9 @@ export class LodManager {
     this.n = -1;
   }
 
+  /** The full geometry of a mesh a coarser level stands in for now (undefined if none). */
+  fullOf(o) { const e = this.entries.find((x) => x.o === o); return e && e.cur !== e.full ? e.full : undefined; }
+
   kept(o) { for (let p = o; p; p = p.parent) if (this.keep.has(p) || p.userData.noLod) return true; return false; }
 
   /** (Re)collect the meshes worth levels; entries already known keep their state. */

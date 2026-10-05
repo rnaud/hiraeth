@@ -237,6 +237,7 @@ export class Grass {
       if ((++done & 63) === 0 && performance.now() - t0 > this.placeMs) { k++; break; }
     }
     this.cursor = k < n ? (this.cursor + k) % n : 0;
+    this.placing = k < n;   // (a patch still being placed after a jump: the hand-over waits for it, src/passage.js)
     this.placedOnce = true;
     if (hi >= 0) {
       const a = this.aGrass;
