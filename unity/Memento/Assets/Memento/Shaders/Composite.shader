@@ -305,6 +305,7 @@ Shader "Hidden/Memento/Composite"
         if (dbg == 3) return float4(toLinear(isSky ? 0 : N.rgb * 0.5 + 0.5), 1);
         if (dbg == 4) return float4(toLinear((isSky ? 1.0 : pow(depth / 3000.0, 0.4)).xxx), 1);
         if (dbg == 5) return float4(toLinear((isSky ? 1.0 : A.a).xxx), 1);
+        if (dbg == 9) return float4(toLinear(saturate(_GBloom.SampleLevel(sampler_linear_clamp, uv, 0).rgb * 3.0 + _GBloom2.SampleLevel(sampler_linear_clamp, uv, 0).rgb * 3.0)), 1);   // (the glow buffer)
         if (dbg == 7) { float3 H = tH(uv).rgb; return float4(toLinear((1.0 - max(max(H.r, H.g), H.b)).xxx), 1); }
 
         // ---- 1. ink lines with a hand-drawn wobble

@@ -22,6 +22,7 @@ namespace Memento.Rendering
         GBufferPass gbuffer;
         CompositePass composite;
         Material compositeMaterial, bloomMaterial, fxaaMaterial;
+        static bool logged;
 
         public override void Create()
         {
@@ -38,6 +39,10 @@ namespace Memento.Rendering
             var cam = renderingData.cameraData.camera;
             if (cam.cameraType == CameraType.Preview || cam.cameraType == CameraType.Reflection) return;
             if (compositeMaterial == null) return;
+            // (made here if Create ran before the shaders were imported)
+            if (bloomMaterial == null) { var bs = Shader.Find("Hidden/Memento/Bloom"); if (bs != null) bloomMaterial = CoreUtils.CreateEngineMaterial(bs); }
+            if (fxaaMaterial == null) { var fs = Shader.Find("Hidden/Memento/FXAA"); if (fs != null) fxaaMaterial = CoreUtils.CreateEngineMaterial(fs); }
+            if (!logged) { logged = true; Debug.Log($"Memento: ink feature: bloom {(bloom && bloomMaterial != null)}, fxaa {(fxaa && fxaaMaterial != null)}"); }
             composite.material = compositeMaterial;
             composite.bloom = bloom ? bloomMaterial : null;
             composite.fxaa = fxaa && Settings.fxaa ? fxaaMaterial : null;
@@ -112,21 +117,25 @@ namespace Memento.Rendering
         {
             public Material material, bloom, fxaa;
             class PassData { public Material mat; public TextureHandle a, n, h, b1, b2; public bool hasBloom; }
-            class BloomData { public Material mat; public TextureHandle src, a, h; public Vector4 step; public int pass; }
+            // (each pass its own property block: a material's properties are read when the command buffer
+            // runs, so five passes sharing one material would all see the last pass's source)
+            class BloomData { public Material mat; public TextureHandle src, a, h; public Vector4 step; public int pass; public MaterialPropertyBlock mpb; }
+            readonly MaterialPropertyBlock[] mpbs = { new(), new(), new(), new(), new() };
             class FxaaData { public Material mat; public TextureHandle src; public Vector4 texel; }
             static readonly int IdA = Shader.PropertyToID("_GAlbedo"), IdN = Shader.PropertyToID("_GNormal"), IdH = Shader.PropertyToID("_GHatch");
             static readonly int IdB1 = Shader.PropertyToID("_GBloom"), IdB2 = Shader.PropertyToID("_GBloom2"), IdSrc = Shader.PropertyToID("_BloomSrc"), IdStep = Shader.PropertyToID("_BloomStep");
             static readonly int IdFx = Shader.PropertyToID("_FxaaSrc"), IdTexel = Shader.PropertyToID("_FxaaTexel");
 
+            int blurN;
             TextureHandle Blur(RenderGraph rg, string name, TextureHandle src, TextureHandle dst, Vector4 step)
             {
                 using (var b = rg.AddRasterRenderPass<BloomData>(name, out var d))
                 {
-                    d.mat = bloom; d.src = src; d.step = step;
+                    d.mat = bloom; d.src = src; d.step = step; d.mpb = mpbs[1 + (blurN++ % 4)];
                     b.UseTexture(src);
                     b.SetRenderAttachment(dst, 0, AccessFlags.Write);
                     b.AllowGlobalStateModification(true);
-                    b.SetRenderFunc((BloomData x, RasterGraphContext ctx) => { x.mat.SetTexture(IdSrc, x.src); x.mat.SetVector(IdStep, x.step); ctx.cmd.DrawProcedural(Matrix4x4.identity, x.mat, 1, MeshTopology.Triangles, 3, 1); });
+                    b.SetRenderFunc((BloomData x, RasterGraphContext ctx) => { x.mpb.SetTexture(IdSrc, x.src); x.mpb.SetVector(IdStep, x.step); ctx.cmd.DrawProcedural(Matrix4x4.identity, x.mat, 1, MeshTopology.Triangles, 3, 1, x.mpb); });
                 }
                 return dst;
             }
@@ -150,11 +159,11 @@ namespace Memento.Rendering
                     var ea = rg.CreateTexture(ed); ed.name = "_GBloom2B"; var eb = rg.CreateTexture(ed);
                     using (var b = rg.AddRasterRenderPass<BloomData>("Memento glow", out var d))
                     {
-                        d.mat = bloom; d.a = g.albedo; d.h = g.hatch;
+                        d.mat = bloom; d.a = g.albedo; d.h = g.hatch; d.mpb = mpbs[0];
                         b.UseTexture(g.albedo); b.UseTexture(g.hatch);
                         b.SetRenderAttachment(qa, 0, AccessFlags.Write);
                         b.AllowGlobalStateModification(true);
-                        b.SetRenderFunc((BloomData x, RasterGraphContext ctx) => { x.mat.SetTexture(IdA, x.a); x.mat.SetTexture(IdH, x.h); ctx.cmd.DrawProcedural(Matrix4x4.identity, x.mat, 0, MeshTopology.Triangles, 3, 1); });
+                        b.SetRenderFunc((BloomData x, RasterGraphContext ctx) => { x.mpb.SetTexture(IdA, x.a); x.mpb.SetTexture(IdH, x.h); ctx.cmd.DrawProcedural(Matrix4x4.identity, x.mat, 0, MeshTopology.Triangles, 3, 1, x.mpb); });
                     }
                     float qw = bd.width, qh = bd.height, ew = ed.width, eh = ed.height;
                     Blur(rg, "Memento glow blur h", qa, qb, new Vector4(1.3f / qw, 0));
