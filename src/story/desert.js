@@ -913,11 +913,12 @@ export function setupDesert(ctx) {
     people, update, state: st, villagers, ledge: sh, gatherSpots, hollow, drum, mask, lever, hearth, rise, lighting, setStone, applyLit,
     /** E on a crowd person: their short conversation (by where they stand). */
     crowdTalk(p) {
-      const id = p.spot?.id;
-      const list = (id === 'procession' && st.drinking ? CROWD_TALK.drinking : CROWD_TALK[id]) ?? null;
+      const id = p.spot?.id, zone = id === 'procession' && st.drinking ? 'drinking' : id;
+      const list = CROWD_TALK[zone] ?? null;
       if (!list) return null;
-      const base = list[Math.floor(p.seed * list.length) % list.length];
-      return { id: `crowd.${id}`, color: p.style?.cloak ?? '#d8a24a', kind: p.kind, seed: `crowd:${p.id}`, scale: p.size, ...base }   // a voice of their own (src/story/voice.js voiceOf hashes the seed);
+      const k = Math.floor(p.seed * list.length) % list.length, base = list[k];
+      // a voice of their own (src/story/voice.js voiceOf hashes the seed); `heard`: where the lines they've said are kept (dialogue.js pickListen)
+      return { id: `crowd.${id}`, heard: `crowd.${zone}.${k}`, color: p.style?.cloak ?? '#d8a24a', kind: p.kind, seed: `crowd:${p.id}`, scale: p.size, ...base };
     },
     onTalk(person, npc, on) {
       // the procession stops for you while you talk with someone in it (or its Speaker)

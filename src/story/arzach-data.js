@@ -125,20 +125,16 @@ export const PEOPLE = {
 export const LOCALS = [
   {
     id: 'tam', name: 'Tam', title: 'who copies you', color: '#f4efe2', voice: 1.6,
-    talk: {
-      nodes: {
-        hello: {
-          say: ['~playful~ (The boy stares at you. You tilt your head; he tilts his.)', '~playful~ (You lift a hand. He lifts a hand, exactly as high.)'],
-          choices: [
-            { text: '~happy~ (wave)', goto: 'wave' },
-            { text: '~neutral~ (point at the tower)', goto: 'tower' },
-          ],
-        },
-        wave: { say: ['~happy~ (He waves back enormously, with both arms, then points behind you at the bird and flaps.)'], choices: [{ text: '~playful~ (flap back)', end: true }, { text: '~curious~ Can you talk?', goto: 'talk' }] },
-        tower: { say: ['~scared~ (He shakes his head hard, hugs himself and shivers. Too high. Too cold.)', '~playful~ (Then he points at the stone hand out on the plain and taps his own knuckles, quickly, in no order at all, and laughs.)'], choices: [{ text: '~happy~ (laugh)', end: true }] },
-        talk: { say: ['~playful~ (He opens his mouth very wide and says nothing at all, very loudly.)'], choices: [{ text: '~happy~ (clap)', end: true }] },
-      },
-    },
+    talk: { listen: [
+      ['~playful~ (The boy stares at you. You tilt your head; he tilts his.)', '~playful~ (You lift a hand. He lifts a hand, exactly as high.)'],
+      '~happy~ (He waves back enormously, with both arms, then points behind you at the bird and flaps.)',
+      { if: { not: { quest: 'arzach.hand', done: true } }, say: ['~scared~ (You glance at the tower. He shakes his head hard and hugs himself: too high, too cold.)', '~playful~ (Then he points at the stone hand out on the plain and taps his own knuckles, the smallest first, up to the tallest, and grins.)'] },
+      '~playful~ (He opens his mouth very wide and says nothing at all, very loudly.)',
+      '~angry~ (He turns his back on you, folds his arms and becomes a spire. The spire would like you to go away.)',
+      { if: { not: { flag: 'box.arzach.hush' } }, say: '~curious~ (He draws a square in the sand with a star on its lid, points north at the needle spire, and mimes climbing it. He falls off on purpose.)' },
+      { after: { flag: 'world.arzach.done' }, say: '~happy~ (He flaps his arms, points at the sky, then at you, and bows so low his hair sweeps the sand.)' },
+      { after: { flag: 'temple.arzach.done' }, say: '~surprised~ (He points west, at the white house with the stone wings, then up, where the great birds wheel again, and spins until he sits down.)' },
+    ] },
   },
   {
     id: 'senn', name: 'Senn', title: 'who listens to stones', color: '#d8c7a6', voice: 0.9,

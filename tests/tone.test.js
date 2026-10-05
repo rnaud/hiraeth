@@ -28,9 +28,12 @@ function collect(v, where, out, all = false, seen = new Set()) {
   if (Array.isArray(v)) { v.forEach((x, i) => collect(x, `${where}[${i}]`, out, all, seen)); return out; }
   for (const [k, x] of Object.entries(v)) {
     const at = `${where}.${k}`;
-    if (k === 'if' || k === 'do' || k === 'entry' || k === 'palette' || k === 'set') continue;
+    if (k === 'if' || k === 'after' || k === 'do' || k === 'entry' || k === 'palette' || k === 'set') continue;
     if (k === 'say' && (typeof x === 'string' || Array.isArray(x))) {
       for (const [i, p] of [x].flat().entries()) out.push([`${at}[${i}]`, typeof p === 'object' ? p.text : p]);
+    } else if (k === 'listen' && Array.isArray(x)) {
+      // listen-only talk (src/story/dialogue.js pickListen): each entry a line, a few lines, or { say }
+      for (const [i, e] of x.entries()) for (const [j, p] of [e && typeof e === 'object' && 'say' in e ? e.say : e].flat().entries()) out.push([`${at}[${i}][${j}]`, typeof p === 'object' ? p.text : p]);
     } else if (k === 'choices' && Array.isArray(x)) {
       for (const [i, c] of x.entries()) out.push([`${at}[${i}]`, c.text]);
       for (const c of x) collect(c, at, out, false, seen);

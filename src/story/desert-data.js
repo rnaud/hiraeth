@@ -35,6 +35,9 @@
 // src/story/quests.js. Flags (game-state.js): desert.* below.
 
 const Q = 'desert.power';
+// for the listen-only talks of the people outside the quests (src/story/dialogue.js pickListen)
+const LIT = { flag: 'desert.tree.lit' }, RISEN = { flag: 'desert.channel.open' }, DONE = { flag: 'world.desert.done' };
+const TEMPLE = { flag: 'temple.desert.done' }, BACKPACK = { flag: 'item.backpack' };
 
 export const ITEMS = { jar: 'Ama’s drinking jar', water: 'a jar of living water', drum: 'Teo’s drum', cord: 'Oum’s knotted cord', pole: 'the keepers’ pole', stone: 'the spark-stone' };
 
@@ -261,37 +264,29 @@ export const PEOPLE = {
     id: 'sefa', name: 'Sefa', title: 'oud player', color: '#8a6fb8', voice: 0.95, kind: 'f',
     palette: { cloak: '#8a6fb8', lining: '#2b211f', cloth: '#e2d3b4', legs: '#2b2f45', hat: '#62c3c9', hair: '#2b211f' }, head: 'hair', cape: 0.55,
     lines: ['~happy~ ♪', '~happy~ Stay a while. The song’s better with a listener.', '~curious~ You walk like you’re carrying something.'],
-    talk: {
-      entry: [{ if: { flag: 'desert.tree.lit' }, node: 'feast' }, { if: { flag: 'desert.channel.open' }, node: 'cold' }, { if: { flag: 'met.sefa' }, node: 'again' }, { node: 'hello' }],
-      nodes: {
-        hello: {
-          say: ['~playful~ You stopped to listen. Most people walk past musicians as if we were weather.', '~whisper~ I play what the listener is missing. Hear that? That’s your tune, not mine. You brought it with you.'],
-          choices: [{ text: '~curious~ My tune?', goto: 'tune' }, { text: '~happy~ Keep playing.', end: true }],
-        },
-        tune: { say: ['~sad~ Everyone has one. Yours is a long way from home, and it keeps looking over its shoulder.'], choices: [{ text: '~curious~ What do you play for the drinking?', goto: 'drinking' }, { text: '~sad~ Maybe it does.', end: true }] },
-        drinking: { say: ['~playful~ When the tree drinks we play all night, every song we know, in every colour. Bako cries every year, and says it’s the smoke.', '~sad~ This year there is no smoke. He’ll have to find another excuse.'], choices: [{ text: '~neutral~ I hope it drinks.', end: true }] },
-        again: { say: ['~playful~ Back for more? Sit. Bako’s about to get it wrong in a beautiful way.'], choices: [{ text: '~neutral~ (listen)', end: true }] },
-        cold: { say: ['~sad~ The water’s up, and the tree is still cold. I’ve been playing it something warm. It doesn’t seem to listen.'], choices: [{ text: '~neutral~ (listen)', end: true }] },
-        feast: { say: ['~happy~ Can you hear it? The tree is burning, and the songs are all coming back at once.'], choices: [{ text: '~neutral~ (listen)', end: true }] },
-      },
-    },
+    talk: { listen: [
+      ['~playful~ You stopped to listen. Most people walk past musicians as if we were weather.', '~whisper~ I play what the listener is missing. Hear that? That’s your tune, not mine. You brought it with you.'],
+      '~sad~ Everyone has a tune. Yours is a long way from home, and it keeps looking over its shoulder.',
+      '~playful~ When the tree drinks we play all night, every song we know. Bako cries every year, and says it’s the smoke.',
+      '~whisper~ Shh. This is the good bit.',
+      { after: RISEN, if: { not: LIT }, say: '~sad~ The water’s up, and the tree is still cold. I’ve been playing it something warm. It doesn’t seem to listen.' },
+      { after: LIT, say: '~happy~ Can you hear it? The tree is burning, and the songs are all coming back at once.' },
+      { after: DONE, say: '~playful~ I made a song about you. It’s terrible. Everyone is singing it.' },
+    ] },
   },
 
   bako: {
     id: 'bako', name: 'Bako', title: 'ney player', color: '#5fb7ad', voice: 0.75, kind: 'm',
     palette: { cloak: '#5fb7ad', lining: '#2b211f', cloth: '#5a4a3a', legs: '#3a3a3a', hat: '#f3ead8', hair: '#b0a89a' }, head: 'hat', cape: 0,
     lines: ['~tired~ Hm.', '~happy~ Hmmm-hm.', '~neutral~ (he hums)'],
-    talk: {
-      nodes: {
-        hello: {
-          say: ['~neutral~ Hm. You’re the one from the ball. The ball with the burn on it.'],
-          choices: [{ text: '~surprised~ You saw the burn?', goto: 'burn' }, { text: '~curious~ What’s that flute?', goto: 'ney' }],
-        },
-        burn: { say: ['~curious~ Three dots over a curve. {glyph} Like between the giant’s eyes, out past the back gate. Like on the old stones. Hm. Somebody signs their work.'], choices: [{ text: '~curious~ Who?', goto: 'who' }, { text: '~neutral~ Thank you.', end: true }] },
-        who: { say: ['~playful~ If I knew that I wouldn’t need a flute. Hm-hm.'], choices: [{ text: '~curious~ Will you play something?', do: { emit: ['music:solo', { who: 'bako' }] }, end: true }, { text: '~neutral~ (leave him to his music)', end: true }] },
-        ney: { say: ['~neutral~ A ney. Reed from the oasis at the salt. It only knows one song, and every year it plays it differently.'], choices: [{ text: '~happy~ Play it for me.', do: { emit: ['music:solo', { who: 'bako' }] }, end: true }, { text: '~neutral~ (leave him to his music)', end: true }] },
-      },
-    },
+    talk: { listen: [
+      '~neutral~ Hm. You’re the one from the ball. The ball with the burn on it.',
+      ['~curious~ Three dots over a curve, on your ball. {glyph} Like between the giant’s eyes, out past the back gate.', '~playful~ Somebody signs their work. If I knew who, I wouldn’t need a flute. Hm-hm.'],
+      { say: ['~neutral~ A ney. Reed from the oasis at the salt. It only knows one song, and every year it plays it differently.', '~happy~ (He plays it for you.)'], do: { emit: ['music:solo', { who: 'bako' }] } },
+      { if: { not: RISEN }, say: '~whisper~ Old keepers’ saying: where the giant’s eyes are marked, its mouth is a door. Hm.' },
+      '~tired~ Hm. (He shuts his eyes. That is the end of the conversation.)',
+      { after: DONE, say: '~happy~ Hm! (He plays something that sounds very much like a ball falling out of the sky, and laughs.)', do: { emit: ['music:solo', { who: 'bako' }] } },
+    ] },
   },
 
   ilo: {
@@ -742,49 +737,87 @@ export const MURMURS = {
   // the spark-stone in the well: the tree catches (src/story/desert.js)
   lit: ['~shout~ It burns! It burns!', '~surprised~ Look at the colours!', '~happy~ It’s cool! The fire’s cool, feel it!', '~shout~ Ring the bells! Somebody ring the bells!', '~solemn~ It came back. It came back.', '~playful~ I said it would. I said so.'],
 };
+
+// People outside the quests only talk, and you only listen (src/story/dialogue.js pickListen): one
+// entry a talk, the next one the next time; an `after` is news, said first once it holds.
 export const VILLAGER_TALK = {
   name: 'Someone from Qanat', title: 'of Qanat', color: '#e6875f', voice: 1.0,
-  talk: { entry: [{ if: { flag: 'item.backpack' }, node: 'open' }, { node: 'shut' }], nodes: {
-    shut: { say: ['~playful~ That’s *the Givers’ chest, on the tree’s ledge*. It never opens. Nour sits under it, in case. Climb up and look, if you like; it hums at people.'], choices: [{ text: '~neutral~ Thanks.', end: true }] },
-    open: { say: ['~playful~ I was there when it opened! Well. Near. I heard it. Everyone heard it. My grandmother is going to say she saw it, and she was asleep.'], choices: [{ text: '~happy~ (smile)', end: true }] },
-  } },
+  talk: { listen: [
+    { if: { not: BACKPACK }, say: '~playful~ That’s *the Givers’ chest, on the tree’s ledge*. It never opens. Nour sits under it, in case. Climb the root and look, if you like; it hums at people.' },
+    { if: { not: BACKPACK }, say: '~whisper~ The chest hums louder when you’re near. Don’t tell Nour I said so, she’ll make you sit with her all day.' },
+    { after: BACKPACK, say: '~playful~ I was there when it opened! Well. Near. I heard it. My grandmother is going to say she saw it, and she was asleep.' },
+    '~tired~ I’ve work to do, sky-stranger. Qanat doesn’t sweep itself. Well. Mim sweeps it.',
+    '~solemn~ Qanat is the city that didn’t sink. Every dune out there remembers one that did.',
+    { after: LIT, say: '~happy~ It burns from the roots up and doesn’t singe a leaf. My grandmother always said so. I thought she was being poetic.' },
+    { after: DONE, say: '~playful~ Your ball’s awake? Then you’ll go. Everyone goes. Come back for the drinking.' },
+  ] },
 };
 
-/** Short conversations for people in the crowd, by where they stand. Picked by their seed. */
+/** What people in the crowd say when you stop and listen, by where they stand. Picked by their seed. */
 export const CROWD_TALK = {
   procession: [
-    { name: 'A pilgrim', title: 'walking the circuit', talk: { nodes: {
-      hello: { say: ['~neutral~ Walk beside me, if you like; just don’t stop. We walk the circuit round Qanat until the tree drinks, and burns again.'], choices: [{ text: '~curious~ Why walk round and round?', goto: 'why' }, { text: '~neutral~ Walk on.', end: true }] },
-      why: { say: ['~solemn~ So it knows we’re waiting. A tree can’t see, but it can hear feet. Seven times round for every year it has drunk. We’ve lost count, of course.'], choices: [{ text: '~neutral~ Walk on.', end: true }] },
-    } } },
-    { name: 'A banner bearer', title: 'in the procession', talk: { nodes: {
-      hello: { say: ['~happy~ This banner has walked the circuit eighty years. The cloth’s been changed nine times, the pole twice. Same banner.'], choices: [{ text: '~curious~ What’s on it?', goto: 'what' }, { text: '~neutral~ Walk on.', end: true }] },
-      what: { say: ['~playful~ The Givers’ mark, three dots and an arc. {glyph} My father said it’s the giants’ eyes, looking up. My mother said it’s rain over a hill. They argued about it every circuit.'], choices: [{ text: '~neutral~ Walk on.', end: true }] },
-    } } },
-    { name: 'A tired walker', title: 'in the procession', talk: { nodes: {
-      hello: { say: ['~tired~ Eleven days across the dunes, and a cold tree at the end of them, and now round and round. My feet have opinions. But it’s the drinking. You don’t miss the drinking.'], choices: [{ text: '~curious~ What happens at the drinking?', goto: 'what' }, { text: '~neutral~ Walk on.', end: true }] },
-      what: { say: ['~happy~ The water comes up through the roots, the fire goes cool and every colour, and everyone drinks a mouthful from the same jar. Then we sing until the jar is empty and the morning comes.'], choices: [{ text: '~neutral~ Walk on.', end: true }] },
-    } } },
+    { name: 'A pilgrim', title: 'walking the circuit', talk: { listen: [
+      '~neutral~ Walk beside me, if you like; just don’t stop. We walk the circuit round Qanat until the tree drinks, and burns again.',
+      ['~solemn~ A tree can’t see, but it can hear feet.', '~solemn~ Seven times round for every year it has drunk. We lost count long ago.'],
+      '~angry~ You’re in my step. Walk or get out of the way, sky-stranger.',
+      { if: { not: TEMPLE }, say: '~curious~ See the rose stone humped in the dunes *east of the walls*? The Givers’ House, my mother called it. Its door looks at Qanat, as if it’s waiting to be let in.' },
+      { after: RISEN, if: { not: LIT }, say: '~surprised~ The well’s full and we still walk. The tree hasn’t burned. A circuit isn’t over until it’s over.' },
+      { after: DONE, say: '~happy~ The drinking came! Eleven days I walked for it, and I’d walk eleven more.' },
+    ] } },
+    { name: 'A banner bearer', title: 'in the procession', talk: { listen: [
+      '~happy~ This banner has walked the circuit eighty years. The cloth’s been changed nine times, the pole twice. Same banner.',
+      ['~playful~ The Givers’ mark, three dots and an arc. {glyph}', '~playful~ My father said it’s the giants’ eyes, looking up. My mother said it’s rain over a hill. They argued every circuit. Happiest couple in the oasis.'],
+      '~tired~ Carry a banner for forty circuits and you learn which way the wind blows. Today: into my face.',
+      '~neutral~ *Follow the banners* and you’ll find the Speaker. Follow the drum and you’ll find him sooner.',
+      { after: TEMPLE, say: '~surprised~ They say the old fields round Qanat are going green. Green! I’ll need a new banner. This one’s the colour of sand.' },
+    ] } },
+    { name: 'A tired walker', title: 'in the procession', talk: { listen: [
+      '~tired~ Eleven days across the dunes, a cold tree at the end of them, and now round and round. My feet have opinions.',
+      ['~happy~ At the drinking the fire goes cool and every colour, and everyone drinks a mouthful from the same jar.', '~happy~ Then we sing until the jar is empty and the morning comes.'],
+      '~tired~ No, I don’t want to hear about your ship. I want to hear about a chair.',
+      '~whisper~ Mind the cactus by the road, the sand candelabra. It looks friendly. It isn’t.',
+      { after: DONE, say: '~happy~ My feet have stopped complaining. They’re too busy dancing.' },
+    ] } },
   ],
   drinking: [
-    { name: 'A pilgrim', title: 'singing', talk: { nodes: { hello: { say: ['~happy~ It burns! Did you see? Every colour, just like my grandmother said. One more circuit, for joy!'], choices: [{ text: '~happy~ Walk on.', end: true }] } } } },
+    { name: 'A pilgrim', title: 'singing', talk: { listen: [
+      '~happy~ It burns! Did you see? Every colour, just like my grandmother said. One more circuit, for joy!',
+      '~shout~ Drink, sky-stranger! Everyone drinks from the same jar. Even the ones who fell out of the sky.',
+      '~playful~ Thirty years I’ve sung this song, and tonight I found out I’ve had the words wrong. I’m keeping my words.',
+      '~happy~ Look at the colours on the walls. Exactly as my grandmother said. And she exaggerated everything else.',
+    ] } },
   ],
   camp: [
-    { name: 'A pilgrim', title: 'by the fire', talk: { nodes: {
-      hello: { say: ['~happy~ Warm yourself. Ama’s fires are the only thing in this desert that’s never late.'], choices: [{ text: '~curious~ Is something late?', goto: 'late' }, { text: '~neutral~ Thanks.', end: true }] },
-      late: { say: ['~angry~ The water. The drinking. The fire. Us, getting home. Eleven days walking for a dry well and a cold tree.'], choices: [{ text: '~neutral~ Thanks.', end: true }] },
-    } } },
-    { name: 'A trader', title: 'resting', talk: { nodes: {
-      hello: { say: ['~surprised~ You came out of the sky-ball? Then you saw the light that went over before it. Everyone’s talking about it. A singing light. I heard it, I swear. Like a bowl rubbed with a wet finger.'], choices: [{ text: '~curious~ Where did it come down?', goto: 'where' }, { text: '~neutral~ Thanks.', end: true }] },
-      where: { say: ['~whisper~ It didn’t come down. That’s the strange thing. It dipped low behind the dunes, like it was looking for something, and then it climbed away again.'], choices: [{ text: '~neutral~ Thanks.', end: true }] },
-    } } },
-    { name: 'A child', title: 'bored', talk: { nodes: {
-      hello: { say: ['~tired~ Have you seen Ilo? She said she’d show me the giant’s teeth. She’s always saying things.'], choices: [{ text: '~neutral~ I’ll keep an eye out.', end: true }] },
-    } } },
+    { name: 'A pilgrim', title: 'by the fire', talk: { listen: [
+      '~happy~ Warm yourself. Ama’s fires are the only thing in this desert that’s never late.',
+      { if: { not: LIT }, say: '~angry~ Everything else is late. The water, the drinking, the fire, us getting home. Eleven days walking for a dry well and a cold tree.' },
+      '~whisper~ Ama burns too much thornwood. Don’t tell her I said so, or I’ll get the smoky side for a week.',
+      '~playful~ Sit down or move on, stranger. You’re standing in my warm.',
+      { after: LIT, say: '~happy~ The tree burns again, and Ama still feeds her fires. Habit. I’d do the same.' },
+    ] } },
+    { name: 'A trader', title: 'resting', talk: { listen: [
+      ['~surprised~ You came out of the sky-ball? Then you saw the light that went over before it. It sang, like a bowl rubbed with a wet finger.', '~whisper~ It didn’t come down. It dipped low behind the dunes, as if it was looking for something, and climbed away again.'],
+      { if: { not: { flag: 'desert.bike.found' } }, say: '~whisper~ Marrow hides what he finds. There’s a hollow *between your ball and the camps*, with *a red rag on a pole*. Ask him what’s under the tarp. Then don’t pay what he asks.' },
+      '~playful~ I sell salt to people who walk past the salt flats to get here. Business is a kind of faith.',
+      '~curious~ East of the camps there’s a ring of old ledges with glass on top. *The Sleeping Observatory*. People sketch it. Nobody knows what it watched.',
+      { after: DONE, say: '~happy~ Business is good. Happy people buy salt. I don’t know why. I don’t ask.' },
+    ] } },
+    { name: 'A child', title: 'bored', talk: { listen: [
+      '~tired~ Have you seen Ilo? She said she’d show me the giant’s teeth. She’s always saying things.',
+      ['~playful~ Ilo says the sleeping face looks at you if you *wash the sand off its eyes*.', '~whisper~ Both eyes, quick, before the wind fills them again. I’m not allowed.'],
+      '~angry~ Go away, I’m guarding this rock.',
+      '~curious~ Is it true that up in the sky you fall up? I knew it.',
+      { after: TEMPLE, say: '~surprised~ You went in the rose-stone house? Was it dark? Was something thirsty? Ilo said something in there was thirsty.' },
+    ] } },
   ],
   gate: [
-    { name: 'A pilgrim', title: 'at the gate', talk: { nodes: {
-      hello: { say: ['~scared~ We wait at the gate for the Speaker to call us in to the drinking. Every year he calls. This year he just keeps walking.'], choices: [{ text: '~neutral~ Thanks.', end: true }] },
-    } } },
+    { name: 'A pilgrim', title: 'at the gate', talk: { listen: [
+      { if: { not: LIT }, say: '~scared~ We wait at the gate for the Speaker to call us in to the drinking. Every year he calls. This year he just keeps walking.' },
+      '~neutral~ Mind the steps up to the tree. They’re older than the walls, and they know it.',
+      { if: { not: RISEN }, say: '~whisper~ The kneeling figures on the well’s rim all face *the back gate*. Hessa says it means nothing. Hessa sweeps them every day, so she’d know.' },
+      { if: { not: { flag: 'box.desert.star' } }, say: '~playful~ There’s a box on a roof *just inside the gate*, I swear, with a pale star on the lid. Climb the house wall, if your knees are younger than mine.' },
+      '~tired~ Stand there if you like. I’ve been standing here three days. It isn’t interesting.',
+      { after: DONE, say: '~happy~ The Speaker called us in! First time in my life I’ve been glad to stop waiting.' },
+    ] } },
   ],
 };

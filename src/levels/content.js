@@ -95,12 +95,13 @@ export const CONTENT = {
     // the camps' people are in src/story/desert-data.js
     npcs: [
       { at: [30, 12], palette: pal('#d8a24a', { cloth: '#5a4a3a' }), lines: ['~tired~ The wind took my tracks again.', '~solemn~ Every dune remembers a city.'],
-        id: 'ysa', name: 'Ysa', title: 'dune walker', color: '#d8a24a', talk: { nodes: {
-          hello: { say: ['~tired~ The wind took my tracks again. Every morning I walk out, every evening the dunes pretend I never did.'], choices: [
-            { text: '~curious~ Where is everyone?', goto: 'where' }, { text: '~neutral~ Bye, Ysa.', end: true }] },
-          where: { say: ['~neutral~ At Qanat, the old city, north-east past the low dunes. You can see its tree from here, look: the great dark one over the walls. It burned every day of my life, until the night before your ball came down. The pilgrims are camped at the gate, waiting for the drinking.'], choices: [{ text: '~curious~ What do the dunes remember?', goto: 'city' }, { text: '~happy~ Thanks.', end: true }] },
-          city: { say: ['~solemn~ Every dune remembers a city. Walls under the sand, everywhere. Qanat is the one that didn’t sink: the tree holds it up by the roots, the old people say.'], choices: [{ text: '~happy~ Thanks.', end: true }] },
-        } } },
+        id: 'ysa', name: 'Ysa', title: 'dune walker', color: '#d8a24a', talk: { listen: [
+          '~tired~ The wind took my tracks again. Every morning I walk out, every evening the dunes pretend I never did.',
+          { if: { not: { flag: 'item.backpack' } }, say: '~neutral~ Qanat is *north-east, past the low dunes*. Look for the great dark tree over the walls; the pilgrims are camped at its gate.' },
+          '~solemn~ Every dune remembers a city. Walls under the sand, everywhere. Qanat is the one that didn’t sink: the tree holds it up by the roots, the old people say.',
+          '~playful~ Lost? Good. Walking only works if you get a little lost.',
+          { after: { flag: 'world.desert.done' }, say: '~happy~ The tree burns again. I can walk home by it at night, the way I used to.' },
+        ] } },
       { at: [-140, -80], palette: pal('#5fb7ad'), lines: ['~whisper~ The mask sleeps. Don’t wake it.', '~neutral~ I counted the ribs once. Forty.'],
         id: 'pell', name: 'Pell', title: 'counter of bones', color: '#5fb7ad', talk: { nodes: {
           hello: { say: ['~playful~ I counted the ribs once. The big beast south of here: forty. The giant under Qanat must have more, but you can’t count what you’re standing on.'], choices: [
@@ -120,15 +121,21 @@ export const CONTENT = {
           op: { say: ['~tired~ That I walk too slowly and talk too much. It went to see the procession, I bet. Everyone goes to see the procession.'], choices: [{ text: '~happy~ Good luck.', end: true }] },
         } } },
       { at: [-120, 34], palette: pal('#e6875f'), lines: ['~neutral~ The salt flats are that way. Bring water.', '~solemn~ At night the moon throws shadows too.'],
-        id: 'ennor', name: 'Ennor', title: 'guide to the salt', color: '#e6875f', talk: { nodes: {
-          hello: { say: ['~neutral~ The salt flats are west. Bring water. Bring two waters. At night the moon throws shadows too, and they don’t always point away from it.'], choices: [{ text: '~curious~ Where can I find water?', goto: 'water' }, { text: '~neutral~ Bye.', end: true }] },
-          water: { say: ['~playful~ Ha. Ask the pilgrims at Qanat; they’ve been waiting eleven days for water themselves. The tree gets the first drink. Always has.'], choices: [{ text: '~happy~ Thanks, Ennor.', end: true }] },
-        } } },
+        id: 'ennor', name: 'Ennor', title: 'guide to the salt', color: '#e6875f', talk: { listen: [
+          ['~neutral~ The salt flats are west. Bring water. Bring two waters.', '~solemn~ At night the moon throws shadows too, and they don’t always point away from it.'],
+          '~playful~ Water? Ask the pilgrims at Qanat; they’ve waited eleven days for water themselves. The tree gets the first drink. It always has.',
+          '~angry~ I’m a guide, not a well. Go and be thirsty somewhere else.',
+          '~neutral~ Lost in the dunes? Climb the tallest one and look for the tree. Everything here is measured from the tree.',
+          { after: { flag: 'temple.desert.done' }, say: '~surprised~ Green, round Qanat. Twenty years I’ve walked people past those fields, and I never once saw them green.' },
+        ] } },
       { at: [10, -200], palette: pal('#f3ead8', { cloth: '#7a4a35' }), lines: ['~neutral~ The stones hum when a storm comes.'],
-        id: 'tamsin', name: 'Tamsin', title: 'listener to stones', color: '#f3ead8', talk: { nodes: {
-          hello: { say: ['~curious~ The stones hum when a storm comes. The night before your ball came down they hummed with no storm at all, and a light went over, singing the same note.'], choices: [{ text: '~curious~ The same note?', goto: 'note' }, { text: '~neutral~ Bye, Tamsin.', end: true }] },
-          note: { say: ['~scared~ Low, then rising. Like a question. The stones answered it. I didn’t like the answer, and I don’t speak stone.'], choices: [{ text: '~neutral~ Bye.', end: true }] },
-        } } },
+        id: 'tamsin', name: 'Tamsin', title: 'listener to stones', color: '#f3ead8', talk: { listen: [
+          '~curious~ The stones hum when a storm comes. The night before your ball came down they hummed with no storm at all, and a light went over, singing the same note.',
+          '~scared~ Low, then rising, like a question. The stones answered it. I didn’t like the answer, and I don’t speak stone.',
+          '~whisper~ Shh. A storm is coming. Or that’s my stomach. One of the two.',
+          '~neutral~ When the stones hum, get behind something. The storms come quick off the flats, and the sand gets everywhere. Everywhere.',
+          { after: { flag: 'world.desert.done' }, say: '~solemn~ They hum softer since the tree burned. As if somebody had put a hand on them.' },
+        ] } },
       { at: [-18, 18], radius: 2, palette: pal('#697a98'), lines: ['~neutral~ A sleeping observatory stands east of camp.'],
         id: 'traveller', name: 'The traveller', title: 'sketching', color: '#697a98', talk: { nodes: {
           hello: { say: ['~sad~ A sleeping observatory stands east of camp: a tower crowned by a brass ring. I’ve drawn it a hundred times. I’ve never seen it awake.'], choices: [{ text: '~curious~ How do I wake it?', goto: 'how' }, { text: '~neutral~ Bye.', end: true }] },
