@@ -1,0 +1,37 @@
+TODO.md
+  s_1fd8d0e7b02dcf::t_ff0fc4c5953632 79
+changelog.md
+  s_1fd8d0e7b02dcf::t_0f74662c9639d3 19
+docs/systems/capes-at-every-distance.md
+  s_1fd8d0e7b02dcf::t_ac3602407554fb 1-42
+src/cape.js
+  s_1fd8d0e7b02dcf::t_6625d6c7bf9be5 24-32,205-207,213,217-218,227-279,281-282,286-287,289,293-294,299,305-307,332-340,401,421,435,442-469,471-479,481-482,484-489,493,496-497,499
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_70d787f5751e85 19
+src/crowd-shader.js
+  s_1fd8d0e7b02dcf::t_813a51c67d6645 41-55,81-86,204-206,208-211,213,215-216,218,220-248,257
+src/crowd.js
+  s_1fd8d0e7b02dcf::t_9121478e38d85a 45-46,115-120,122,206,229
+src/humanoid.js
+  s_1fd8d0e7b02dcf::t_6ca9c61389f28b 314-319,327,329,588-593,841-842,1332-1333,1338,1342-1371,1379
+src/npc.js
+  s_1fd8d0e7b02dcf::t_a7c9bbeb006deb 583-586,588-589,662-663,666,668,796-799
+tests/robes.test.js
+  s_1fd8d0e7b02dcf::t_1ca22151911490 1-270
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b1ef3f576f8a6b6aba36f171a92cb810b6820487",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
