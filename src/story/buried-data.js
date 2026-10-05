@@ -46,7 +46,9 @@ export const QUESTS = [
     id: 'buried.key', title: 'The Keeper’s Key', world: 'buried',
     outro: 'Every chimney on the dunes is open.',
     stages: [
-      { id: 'find', text: 'Dun hung his key on the crane hook of the floating derrick, east of the domes', label: 'The derrick’s crane hook', bring: 'key', at: 'key', to: 'dun' },
+      // (new: a save already at 'find' with the jib still out is moved back here)
+      { id: 'swing', text: 'Dun’s key hangs on the crane of the floating derrick, east of the domes, out over the drop. Splash the jib’s rusted collar (shoot), then shove the jib round over the platform (push: C, middle click, or RB / R1)', label: 'The derrick’s crane', flag: 'buried.jib.in', at: 'jib' },
+      { id: 'find', text: 'The hook has swung in over the platform: take Dun’s key off it', label: 'The derrick’s crane hook', bring: 'key', at: 'key', to: 'dun' },
       { id: 'return', text: 'Bring the key back to Dun', label: 'Dun, by his chimneys', bring: 'key', to: 'dun' },
     ],
   },
@@ -162,7 +164,7 @@ export const PEOPLE = {
         },
         oculus: { say: ['~neutral~ A drum as big as a hill, at the end of the canyon, with no lid. The sky looks into it. The Wick stands in the middle, and on the balcony there’s a window that’s always warm.'], choices: [{ text: '~curious~ Why haven’t you gone down this year?', goto: 'why' }] },
         why: {
-          say: ['~solemn~ Because of the night the sky rang. A light came over the dunes, low, humming. The same note the wheel hums in its sleep. We call that kind of thing a Tuning Star; my grandmother saw one once, and never said what it wanted.', '~whisper~ It turned over the canyon, slow, like it was looking for something. Then it went on south. The next night your ship came down.', '~scared~ I’m not afraid of a light. I’m afraid it was looking for the wheel. If I light the Wick, maybe it comes back to see what woke.'],
+          say: ['~solemn~ Because of the night the sky rang. A light came over the dunes, low, humming. The same note the wheel hums in its sleep. We call that kind of thing a Tuning Star; my grandmother saw one once, and never said what it wanted.', '~whisper~ It turned over the canyon, slow, like it was looking for something. Then it climbed, and went on, and was gone.', '~scared~ I’m not afraid of a light. I’m afraid it was looking for the wheel. If I light the Wick, maybe it comes back to see what woke.'],
           do: { set: { 'buried.rumour.light': true } },
           choices: [{ text: '~neutral~ It struck my ship.', goto: 'struck' }, { text: '~neutral~ Then let me light it.', goto: 'light' }],
         },
@@ -221,8 +223,10 @@ export const PEOPLE = {
           ],
         },
         light: { say: ['~scared~ Like a note, if you can see a note. Low and humming, the wheel’s note, and it turned over the canyon as if it heard something and went south. I’d rather not see it twice.'], choices: [{ text: '~neutral~ I’ll fetch your key.', do: { start: 'buried.key' }, goto: 'thanks' }] },
-        thanks: { say: ['~playful~ Would you? Thirty metres up and floating. *You have a jet on your back*. I have a fear of heights I didn’t know about until that night.'], choices: [{ text: '~neutral~ Back soon.', end: true }] },
-        waiting: { say: ['~playful~ *The floating derrick, east*. The key’s on *the crane hook*, the end of the long arm. Don’t look down. That’s my advice, and I didn’t take it.'], choices: [{ text: '~neutral~ On my way.', end: true }] },
+        thanks: { say: ['~playful~ Would you? Thirty metres up and floating. *You have a jet on your back*. I have a fear of heights I didn’t know about until that night.',
+          '~neutral~ Mind, the wind has *swung the crane’s arm out over the drop* since. Its collar rusts if you look at it: *splash it, then shove the arm round*. It only turns one way. Click, click, click.'], choices: [{ text: '~neutral~ Back soon.', end: true }] },
+        waiting: { say: [{ if: { flag: 'buried.jib.in' }, text: '~playful~ *The floating derrick, east*. The key’s on *the crane hook*, the end of the long arm. Don’t look down. That’s my advice, and I didn’t take it.' },
+          { if: { not: { flag: 'buried.jib.in' } }, text: '~playful~ *The floating derrick, east*. *Splash the crane’s collar, then shove the arm round* till the hook hangs over the platform. Side-on; it only clicks one way. And don’t look down.' }], choices: [{ text: '~neutral~ On my way.', end: true }] },
         back: {
           say: ['~happy~ My key! Sand in the teeth and all. Stand back.', '~neutral~ (He climbs his dome, turns the key in the chimney, and slides down another, and another. Somewhere, a chimney whistles.)'],
           do: [{ take: 'key' }, { advance: 'buried.key' }, { set: { 'buried.chimneys.open': true } }],
@@ -372,6 +376,18 @@ export const THINGS = {
       ],
       do: [{ set: { 'buried.window.touched': true } }, { set: { 'clue.buried.mark': true } }],
       choices: [{ text: '~neutral~ (take your hand away)', end: true }],
+    } } },
+  },
+  crane: {
+    id: 'crane', name: 'The derrick’s crane', title: 'on the floating derrick', color: '#c0603e', voice: 0.6,
+    talk: { nodes: { look: {
+      say: [
+        { if: { not: { flag: 'buried.jib.in' } }, text: '~neutral~ A rusty jib on a slewing post, swung out over the drop. Dun’s key glints on its hook, far out over nothing, swaying.' },
+        { if: { not: { flag: 'buried.jib.oiled' } }, text: '~neutral~ The collar at the foot of the post is crusted orange with rust. *A splash of fluid might free it*. (*Shoot*: click, G, or RT / R2.)' },
+        { if: { all: [{ flag: 'buried.jib.oiled' }, { not: { flag: 'buried.jib.in' } }] }, text: '~curious~ The collar drips with fluid. Under the jib a ratchet wheel waits, its pawl leaning one way: *shove the arm side-on, round over the platform*. (*Push*: C, middle click, or RB / R1.)' },
+        { if: { flag: 'buried.jib.in' }, text: '~neutral~ The jib hangs in over the platform now, its hook swaying gently at head height.' },
+      ],
+      choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
   },
   numbers: {

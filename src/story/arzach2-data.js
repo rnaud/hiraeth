@@ -20,7 +20,9 @@
 // arzach2.clapper.hung, arzach2.bell.rung, arzach2.bell.note (the tank sings
 // the note when you shoot), arzach2.rumour.light, arzach2.face.seen,
 // arzach2.cairn.placed (0..3), arzach2.cairn.last ('ok' | 'fell'),
-// arzach2.cairn.<stone> (picked up); clue.arzach2.desert.
+// arzach2.cairn.<stone> (picked up); clue.arzach2.desert; arzach2.tiles.cleared
+// (the tiles shoved off the clapper); arzach2.lamp.notch (0..7, 0 = facing the
+// rose cliff), arzach2.lamp.lit, arzach2.lamp.answered (Ysolde saw it).
 // Items: clapper, letter, cairn.wide, cairn.round, cairn.egg.
 
 const Q = 'arzach2.bell';
@@ -53,6 +55,8 @@ export const QUESTS = [
     outro: 'Ondine read it twice. Then she sat down and laughed.',
     stages: [
       { id: 'carry', text: 'Carry Mother Ysolde’s letter across the long aqueduct to her sister Ondine, on the peach plain', label: 'Ondine, on the plain', bring: 'letter', to: 'ondine' },
+      // (new: saves already at 'face' skip it, and can still light the lamp)
+      { id: 'lamp', text: 'Answer for Ondine with the old signal lamp on the tower’s plinth: turn its mirror to the carved bell (push the tiller from the side: C, middle click, or RB / R1), and light it (shoot)', label: 'The signal lamp', flag: 'arzach2.lamp.answered', at: 'lamp' },
       { id: 'face', text: 'Look at the face carved on the lone tower’s plinth', label: 'The face on the tower', flag: 'arzach2.face.seen', at: 'face' },
     ],
   },
@@ -77,6 +81,7 @@ export const PEOPLE = {
       entry: [
         { if: { quest: 'arzach2.letter', done: true }, node: 'after' },
         { if: { quest: 'arzach2.letter', reached: 'face' }, node: 'answered' },
+        { if: { quest: 'arzach2.letter', reached: 'lamp' }, node: 'watching' },
         { if: { has: 'letter' }, node: 'waiting' },
         { node: 'hello' },
       ],
@@ -97,7 +102,11 @@ export const PEOPLE = {
         },
         bell: { say: ['~playful~ *Ask Brother Calix*; it is his bell, he says, though it belongs to the whole cliff. It stopped the night the cloud rose. Or the cloud rose the night it stopped. We argue about that at supper.'], choices: [{ text: '~happy~ I could carry a letter to your sister.', goto: 'carry' }, { text: '~happy~ Thank you.', end: true }] },
         waiting: { say: ['~scared~ You still have it? Good. I mean: go on, then. *The long aqueduct is past the needles*.'], choices: [{ text: '~neutral~ On my way.', end: true }] },
-        answered: { say: ['~happy~ You gave it to her? What did she… no. Don’t tell me. I saw her wave tonight, with both arms. That is enough.'], choices: [{ text: '~happy~ She laughed.', goto: 'laughed' }, { text: '~happy~ (smile)', end: true }] },
+        watching: { say: ['~scared~ You gave it to her? Don’t tell me what she said. I will stand on the wall tonight and *watch the tower*. In case.'], choices: [{ text: '~neutral~ Keep watching.', end: true }] },
+        answered: { say: [
+          { if: { flag: 'arzach2.lamp.answered' }, text: '~happy~ You gave it to her. I know you did: *the old lamp on the tower* was lit tonight, and turned to us. Three long, one short. She still signals like a novice.' },
+          { if: { flag: 'arzach2.lamp.answered' }, text: '~playful~ I answered with mine. And don’t tell me what the letter said. I wrote it.' },
+          { if: { not: { flag: 'arzach2.lamp.answered' } }, text: '~happy~ You gave it to her? What did she… no. Don’t tell me. I saw her wave tonight, with both arms. That is enough.' }], choices: [{ text: '~happy~ She laughed.', goto: 'laughed' }, { text: '~happy~ (smile)', end: true }] },
         laughed: { say: ['~happy~ She always did, at the wrong moments. Thank you, child. Next winter I will send one myself. Perhaps.'], choices: [{ text: '~neutral~ Goodbye, Mother.', end: true }] },
         after: { say: ['~happy~ I have started a new letter. It is very short. It says: *come for supper*.'], choices: [{ text: '~happy~ She’ll come.', end: true }] },
       },
@@ -192,7 +201,7 @@ export const LOCALS = [
         mark: {
           say: ['~solemn~ The Three Notes over the rim. {glyph} The founders cast them into every bell they made: three notes, over the mouth that sings them. Nobody remembers which three.', '~whisper~ Strange: the night the light went over, years after the clapper fell, the bell hummed. By itself. No clapper. One long note, answering something in the sky that sang.', '~solemn~ And the blue chest *on top of the balanced stones* hummed back. A bell-chest, the founders called those: the star on the lid, the Three Notes round it. They say a bell-chest opens only for someone who has come further than the bell can be heard.'],
           do: { set: { 'arzach2.rumour.light': true } },
-          choices: [{ text: '~surprised~ A light that sang? That was the night my ship fell.', goto: 'light' }, { text: '~neutral~ I’ll bring the clapper back.', goto: 'bring' }],
+          choices: [{ text: '~surprised~ A light that sang? That was the night my ship was struck.', goto: 'light' }, { text: '~neutral~ I’ll bring the clapper back.', goto: 'bring' }],
         },
         light: { say: ['~solemn~ Then the bell knew your ship before you did. Bells are like that. *Bring me its tongue*, and we will ask it what it heard.'], choices: [{ text: '~neutral~ I’ll bring it.', goto: 'bring' }] },
         bring: { say: ['~neutral~ The island floats *east of here, high over the cloud*: *the church with two towers*. The clapper is bronze, longer than your arm. Mind the edge; the island tilts when it dreams.'], choices: [{ text: '~neutral~ I’ll be back.', end: true }] },
@@ -216,7 +225,7 @@ export const LOCALS = [
   {
     id: 'ondine', name: 'Ondine', title: 'who walked to the plain', color: '#e9a17f', voice: 1.0,
     talk: {
-      entry: [{ if: { has: 'letter' }, node: 'letter' }, { if: { quest: 'arzach2.letter', started: true }, node: 'after' }, { node: 'hello' }],
+      entry: [{ if: { has: 'letter' }, node: 'letter' }, { if: { quest: 'arzach2.letter', stage: 'lamp' }, node: 'lamp' }, { if: { quest: 'arzach2.letter', started: true }, node: 'after' }, { node: 'hello' }],
       nodes: {
         hello: {
           say: ['~surprised~ Oh! Someone. Walking toward the tower, I hope? It doesn’t get closer for a long time. Then all at once it does.', '~playful~ I came out here thirty years ago to find out how old it is. I still don’t know. I know how old I am, which is worse.'],
@@ -233,10 +242,18 @@ export const LOCALS = [
           next: 'clue',
         },
         clue: {
-          say: ['~happy~ Tell her I’ll come when the bell rings. She’ll know what I mean.', '~solemn~ And go and *look at the face on the tower* before you go. I have seen that face once before, in a book of travellers’ drawings: the same face, asleep, in a desert of red sand, half buried. The giants walked there too, the book said. So they walked here.'],
-          choices: [{ text: '~neutral~ I’ll look at it.', end: true }],
+          say: ['~happy~ Tell her I’ll come when the bell rings. No: I’ll tell her myself, tonight, the way the monks talked across the plain before the cloud.',
+            '~playful~ *The old signal lamp on the plinth*, at the tower’s foot. Its mirror has to look at the rose cliff: *a little bell is cut into the stone* where it should point. *Push the tiller* from the side to turn it, then *give it a light*. My arms are too old for that tiller.'],
+          next: 'giants',
         },
-        after: { say: [{ if: { flag: 'arzach2.bell.rung' }, text: '~happy~ I heard the bell. All the way out here, I heard it. I’ll go home for supper. Not tonight. Soon.' }, { if: { not: { flag: 'arzach2.bell.rung' } }, text: '~playful~ When the bell rings, I’ll go home for supper. That’s what I told her. Well, that’s what I told you to tell her.' }],
+        giants: {
+          say: ['~solemn~ And go and *look at the face on the tower* before you go. I have seen that face once before, in a book of travellers’ drawings: the same face, asleep, in a desert of red sand, half buried. The giants walked there too, the book said. So they walked here.'],
+          choices: [{ text: '~neutral~ I’ll light the lamp.', end: true }],
+        },
+        lamp: { say: [{ if: { flag: 'arzach2.lamp.lit' }, text: '~curious~ It’s lit! Now *turn it to the cliff*: the mirror must look at *the little carved bell*. *Push the tiller* side-on; shoved straight along, it won’t budge.' },
+          { if: { not: { flag: 'arzach2.lamp.lit' } }, text: '~playful~ *The signal lamp, on the plinth*. Turn its mirror to *the little carved bell*, *push the tiller* side-on, then *give it a light*. Go on. She’ll be on the wall by now.' }],
+          choices: [{ text: '~neutral~ All right.', end: true }] },
+        after: { say: [{ if: { flag: 'arzach2.lamp.answered' }, text: '~happy~ Did you see? Her window lit up on the cliff the moment ours did. She was watching. Thirty years, and she was watching.' }, { if: { flag: 'arzach2.bell.rung' }, text: '~happy~ I heard the bell. All the way out here, I heard it. I’ll go home for supper. Not tonight. Soon.' }, { if: { not: { flag: 'arzach2.bell.rung' } }, text: '~playful~ When the bell rings, I’ll go home for supper. That’s what I told her. Well, that’s what I told you to tell her.' }],
           choices: [{ text: '~neutral~ Goodbye, Ondine.', end: true }] },
       },
     },
@@ -252,6 +269,30 @@ export const THINGS = {
         '~curious~ The carving is worn as soft as the dunes. Whoever made it made it from a long way up, as if they were very tall, or kneeling.'],
       do: { set: { 'arzach2.face.seen': true, 'clue.arzach2.desert': true } },
       choices: [{ text: '~solemn~ (remember it)', end: true }],
+    } } },
+  },
+  lamp: {
+    id: 'lamp', name: 'The signal lamp', title: 'on the tower’s plinth', color: '#c99a52', voice: 0.6,
+    talk: {
+      entry: [{ if: { flag: 'arzach2.lamp.answered' }, node: 'answered' }, { node: 'look' }],
+      nodes: {
+        look: {
+          say: ['~neutral~ An old bronze brazier on a stone turntable, with a polished mirror cupped behind it like a hand round a candle. A wooden tiller sticks out at the back. The oil in it still smells sweet.',
+            { if: { flag: 'arzach2.lamp.notch', is: 0 }, text: '~curious~ Eight notches are cut round the turntable, and by one of them *a little bell is carved*. The mirror looks straight at it: north, to the rose cliff.' },
+            { if: { not: { flag: 'arzach2.lamp.notch', is: 0 } }, text: '~curious~ Eight notches are cut round the turntable, and by one of them *a little bell is carved*. The mirror looks away from it, out over the empty plain. *Push the tiller* from the side to turn it.' },
+            { if: { not: { flag: 'arzach2.lamp.lit' } }, text: '~neutral~ The wick is dry, but it would take a light. (*Shoot*: click, G, or RT / R2.)' }],
+          choices: [{ text: '~neutral~ (step back)', end: true }],
+        },
+        answered: { say: ['~solemn~ The lamp burns steady, its mirror turned to the rose cliff. Far off on the cliff, small as a star, a window burns back.'], choices: [{ text: '~neutral~ (step back)', end: true }] },
+      },
+    },
+  },
+  tiles: {
+    id: 'tiles', name: 'Fallen-up tiles', title: 'before the church door', color: '#c9765c', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ['~neutral~ A heap of roof tiles, the ones that fell up with the clapper, has come down on top of it. A bronze end sticks out from under them, bright where it struck.',
+        '~neutral~ They are heavy and wedged tight. *A good shove would scatter them*. (*Push*: C, middle click, or RB / R1.)'],
+      choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
   },
   bell: {

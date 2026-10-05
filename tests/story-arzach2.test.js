@@ -14,7 +14,8 @@ const { game } = await import('../src/game-state.js');
 const { DialogueRunner } = await import('../src/story/dialogue.js');
 const { PEOPLE, LOCALS, THINGS, CAIRN_STONES } = await import('../src/story/arzach2-data.js');
 const { clearInteractables, bestInteractable } = await import('../src/interact.js');
-const { clearTargets } = await import('../src/targets.js');
+const { clearTargets, allTargets, targetsInCone } = await import('../src/targets.js');
+const { LAMP_START } = await import('../src/story/arzach2.js');
 
 game.reset();
 clearInteractables(); clearTargets();
@@ -61,6 +62,7 @@ const use = (id, p) => {
   e.entry.use(player);
 };
 const [aube, calix, ondine] = LOCALS;
+const target = (kind) => allTargets().find((t) => t.kind === kind);
 
 // a real traveller: run at the next stone, jump, and (if asked) jump again in the air for the fluid boost
 const { Player } = await import('../src/player.js');
@@ -123,6 +125,17 @@ test('the main quest: Aube, the monastery, Calix, the clapper, the bell, the not
   use('bellrope', A.ropeFoot.clone().add(V(0.4, -0.9, 0.6)));
   assert.equal(game.flag('arzach2.bell.rung'), undefined);
   W.bell.t = -1;
+  // the clapper lies under the tiles that fell up with it: E only looks at them, a shot rattles them, a shove scatters them
+  use('tiles', A.clapper.clone().add(V(0.6, 0, 0.4)));
+  const tiles = target('tiles');
+  assert.ok(tiles?.enabled(), 'the tiles are a target');
+  tiles.onHit('shoot', null, V(0, 0, -1));
+  assert.equal(game.flag('arzach2.tiles.cleared'), undefined, 'a splash doesn’t shift them');
+  assert.ok(toasts.at(-1).includes('shove them'), 'the splash hints at the push');
+  tiles.onHit('push', null, V(1, 0, 0));
+  assert.equal(game.flag('arzach2.tiles.cleared'), true);
+  assert.ok(!allTargets().some((t) => t.kind === 'tiles'), 'the tiles are gone from the targets');
+  step(30, 1 / 10);
   use('clapper', A.clapper.clone().add(V(0.6, 0, 0.4)));
   assert.ok(quests.has('clapper'));
   talk(calix, ['I’ll ring']);
@@ -160,8 +173,53 @@ test('side quests: Ysolde’s letter across the aqueduct, and Tiv’s cairn from
   talk(PEOPLE.ysolde, ['Where is your sister', 'I could carry']);
   assert.ok(quests.has('letter'));
   assert.equal(quests.stage('arzach2.letter'), 'carry');
-  talk(ondine, ['I’ll look']);
+  talk(PEOPLE.ysolde, []);   // (she doesn't start a second letter while the first is out)
+  assert.ok(quests.has('letter'));
+  talk(ondine, ['I’ll light the lamp']);
+  assert.ok(!quests.has('letter'));
+  assert.equal(quests.stage('arzach2.letter'), 'lamp');
+  let r = talk(PEOPLE.ysolde, []);
+  assert.equal(r.nodeId, 'watching', 'Ysolde watches the tower');
+  // the signal lamp: lit, it throws its beam the wrong way (the carved bell is behind it)
+  const L = W.lamp;
+  at(L.at.clone().add(V(-2, 0, 2)));
+  assert.equal(L.notch(), LAMP_START);
+  const lamp = target('lamp'), tiller = target('tiller');
+  assert.ok(lamp.enabled() && tiller.enabled(), 'the lamp and its tiller are targets');
+  lamp.onHit('push', null, V(1, 0, 0));
+  assert.equal(game.flag('arzach2.lamp.lit'), undefined, 'a shove doesn’t light it');
+  lamp.onHit('shoot', null, V(1, 0, 0));
+  assert.equal(game.flag('arzach2.lamp.lit'), true);
+  assert.equal(game.flag('arzach2.lamp.answered'), undefined, 'lit, but not facing the cliff');
+  // shoved straight along the tiller, it only shudders
+  const tillerDir = () => { const y = L.yaw(); return V(-Math.sin(y), 0, -Math.cos(y)); };
+  const sideways = (k) => { const y = L.yaw(); return V(-Math.cos(y) * k, 0, Math.sin(y) * k); };
+  tiller.onHit('push', null, tillerDir());
+  tiller.onHit('push', null, tillerDir().negate());
+  assert.equal(L.notch(), LAMP_START, 'end-on, the tiller jams');
+  assert.ok(toasts.at(-1).includes('from the side'));
+  tiller.onHit('shoot', null, sideways(1));
+  assert.equal(L.notch(), LAMP_START, 'a splash doesn’t turn it');
+  // side-on, each shove turns it one notch, either way round: once the long way, then back the short way.
+  // (a real push: standing on the plinth beside the tiller, the cone reaches it and nothing is in the way)
+  solid(L.at, 'the signal lamp’s turntable on the plinth', 0.3);
+  const grip = tiller.position().clone(), stand = grip.clone().addScaledVector(sideways(1), -2.2);
+  stand.y = solid(stand.setY(L.at.y), 'the plinth beside the tiller', 0.3);
+  const origin = stand.clone().add(V(0, 1.15, 0)), aim = grip.clone().sub(origin).setY(0).normalize();
+  const hit = targetsInCone(origin, aim, 6, 0.62, physics).find((h) => h.target === tiller);
+  assert.ok(hit, 'a push from beside the tiller reaches it');
+  tiller.onHit('push', hit.point, hit.dir);
+  assert.equal(L.notch(), (LAMP_START + 1) % 8);
+  for (let i = 0; i < LAMP_START + 1; i++) { assert.equal(game.flag('arzach2.lamp.answered'), undefined); tiller.onHit('push', null, sideways(-1)); }
+  assert.equal(L.notch(), 0, 'the mirror looks at the carved bell');
+  assert.equal(game.flag('arzach2.lamp.answered'), true, 'Ysolde’s lamp answers');
+  assert.ok(toasts.some((t) => t.includes('three long, one short')));
+  step(30, 1 / 10);
+  assert.ok(Math.abs(Math.atan2(Math.sin(L.head.rotation.y - L.aim0), Math.cos(L.head.rotation.y - L.aim0))) < 0.01, 'the head turned round to face the cliff');
   assert.equal(quests.stage('arzach2.letter'), 'face');
+  r = talk(ondine, []);
+  assert.equal(r.nodeId, 'after');
+  r = talk(PEOPLE.ysolde, ['She laughed']);
   use('face', A.face.clone().setY(physics.groundAt(A.face.x, A.face.y + 10, A.face.z)).add(V(0, 0, 2)));
   talk(THINGS.face, ['(remember']);
   step(2);
@@ -183,5 +241,30 @@ test('side quests: Ysolde’s letter across the aqueduct, and Tiv’s cairn from
   assert.equal(quests.isDone('arzach2.cairn'), true);
   await new Promise((r) => setTimeout(r, 1600));
   assert.ok(storyDone, 'the main quest closed the story page');
+  clearInteractables(); clearTargets();
+});
+
+test('an old save that had already given the letter can still answer with the lamp', () => {
+  clearInteractables(); clearTargets();
+  game.reset();
+  game.set('quest.arzach2.letter', 'face');
+  game.set('arzach2.lamp.notch', 1);
+  const scene2 = new THREE.Scene();
+  const level2 = createArzach2(scene2);
+  const physics2 = new Physics(scene2, level2.ground);
+  const npcs2 = ARZACH2_CONTENT.npcs.map((s) => new NPC(scene2, physics2, { route: [V(s.at[0], physics2.groundAt(s.at[0], (s.y ?? 1e4) + 2, s.at[1]), s.at[1])], palette: s.palette, lines: s.lines }));
+  const rt2 = createStory({ levelId: 'arzach2', scene: scene2, physics: physics2, level: level2, player, npcs: npcs2, crowd: null, sound, journal: { sections: [], el: { addEventListener() {} } }, story: { complete() {} },
+    capture: null, lib: null, humans: null, toast: () => {}, tool: null });
+  assert.equal(rt2.quests.stage('arzach2.letter'), 'face', 'it stays where it was');
+  const L = rt2.world.lamp;
+  at(L.at.clone().add(V(-2, 0, 2)));
+  target('lamp').onHit('shoot');
+  const y = L.yaw();
+  target('tiller').onHit('push', null, V(Math.cos(y), 0, -Math.sin(y)));   // one notch back, to the bell
+  assert.equal(L.notch(), 0);
+  assert.equal(game.flag('arzach2.lamp.answered'), true, 'Ysolde answers');
+  assert.equal(new DialogueRunner(PEOPLE.ysolde, { game, quests: rt2.quests }).nodeId, 'answered');
+  // and the clapper still lies under its tiles for a save that hadn't fetched it
+  assert.ok(rt2.world.tiles()?.covered);
   clearInteractables(); clearTargets();
 });

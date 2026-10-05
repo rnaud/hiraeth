@@ -14,6 +14,9 @@ import { QUESTS, PEOPLE, THINGS, ITEMS, AMBER } from './buried-data.js';
 //   the canyon   Ossa by the ledge, three gauges on posts (shoot the dials)
 //   the oculus   Tull at the doorway; the Wick in the middle, its oil valve
 //                (push it open, then shoot the wick); the warm window above
+//   the derrick  floating east of the domes: its crane's jib has swung out over
+//                the drop with Dun's key on the hook; splash its rusted collar,
+//                then shove the jib round (it ratchets one way) over the platform
 //   the wheel    east of the domes; once the Wick is lit and you stand
 //                before it, it turns one tooth: the hanging city rocks, every
 //                chimney puffs, and a sliver of the tooth drops at its foot;
@@ -24,7 +27,8 @@ import { QUESTS, PEOPLE, THINGS, ITEMS, AMBER } from './buried-data.js';
 // buried.oculus.lit, buried.wheel.turned, buried.tooth.found,
 // buried.tank.amber (the Wick's light added the amber band),
 // buried.gauge.0..2, buried.gauges.read, buried.chimneys.open,
-// buried.window.touched, buried.rumour.light; clue.buried.mark,
+// buried.window.touched, buried.rumour.light, buried.jib.oiled,
+// buried.jib.notch (0..3), buried.jib.in; clue.buried.mark,
 // clue.buried.garage. Items: tooth, key.
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
@@ -34,6 +38,9 @@ const ease = (t) => t * t * (3 - 2 * t);
 export const TURN_TIME = 7;   // s for the wheel's one tooth
 // once it has turned, the sand slides off it (CLEAR_TIME s, from the lurch on) and it keeps turning at SPIN rad/s
 export const CLEAR_TIME = 9, CLEAR_FROM = 1.0, SPIN = 0.045;
+// the derrick's crane: a post JIB_H tall, a jib JIB_L long rising JIB_RISE, the hook JIB_HOOK under its
+// root's top; it hangs out over the drop at JIB_PHI0 and ratchets JIB_STEP round, JIB_IN times, to the platform
+export const JIB_H = 4.2, JIB_L = 10, JIB_RISE = 3.3, JIB_HOOK = -1.9, JIB_PHI0 = Math.atan2(3, -12), JIB_STEP = Math.PI / 3, JIB_IN = 3;
 
 export function setupBuried(ctx) {
   const { level, physics, player, quests, dialogue, game, sound, story, spawn, scene, toast, npcs } = ctx;
@@ -71,7 +78,7 @@ export function setupBuried(ctx) {
   const oculusAt = V(O.x, O.floor, O.z + O.r - 8);
   const watchAt = W.centre.clone().addScaledVector(W.face, 46); watchAt.y = ground(watchAt.x, watchAt.z);
   const windowAt = V(O.x, O.balcony, O.z - O.r + 3);
-  const hook = B.tower.clone().add(V(-15, 7.4, 6));
+  const C = B.crane;
   quests.locate('canyon', () => canyonAt);
   quests.locate('oculus', () => oculusAt);
   quests.locate('valve', () => K.valve.at);
@@ -79,7 +86,8 @@ export function setupBuried(ctx) {
   quests.locate('watch', () => watchAt);
   quests.locate('wheel', () => watchAt);
   quests.locate('tooth', () => W.drop);
-  quests.locate('key', () => hook);
+  quests.locate('key', () => hookAt());
+  quests.locate('jib', () => C.root);
   quests.locate('window', () => windowAt);
   quests.locate('gauge', () => {
     let best = null, bd = Infinity;
@@ -256,26 +264,94 @@ export function setupBuried(ctx) {
     toast('One tooth. Up above, the hanging city rocks like a cradle, and every chimney on the dunes breathes out.');
   };
 
-  // ---------------------------------------------------------------- the key on the derrick's hook
+  // ---------------------------------------------------------------- the derrick's crane, and the key on its hook
+  // The jib turns on a post at C.root. It hangs out over the drop (notch 0); a splash frees its
+  // rusted collar, then each side-on shove ratchets it one notch round (one way only: the pawl
+  // holds the other), until at JIB_IN the hook hangs over the platform and the key can be taken.
+  const KQ = 'buried.key';
+  const jibNotch = () => Math.min(JIB_IN, Math.max(0, game.flag('buried.jib.notch') ?? 0));
+  const jibIn = () => !!game.flag('buried.jib.in');
+  const oiled = () => !!game.flag('buried.jib.oiled');
+  const phiOf = (n) => JIB_PHI0 - n * JIB_STEP;           // the jib's heading on the dunes' plane: atan2(z, x)
+  const crane = new THREE.Group();
+  crane.position.copy(C.root);
+  crane.userData.noCollide = true;
+  scene.add(crane);
+  const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.95, 0.55, 12).translate(0, 0.27, 0), ownMaterial({ color: '#b0643a', flat: true }));
+  const wetCollar = () => collar.material.uniforms.uColor.value.set('#6a4636');   // (dark and glistening once it has had its splash)
+  crane.add(new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.5, JIB_H, 10).translate(0, JIB_H / 2, 0), C.mats.arm), collar);
+  const slew = new THREE.Group();
+  slew.position.y = JIB_H;
+  crane.add(slew);
+  {
+    const len = Math.hypot(JIB_L, JIB_RISE), e = Math.atan2(JIB_RISE, JIB_L);
+    slew.add(new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.42, len, 6).translate(0, len / 2, 0).rotateZ(-(Math.PI / 2 - e)), C.mats.arm));
+    slew.add(new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.1, 1.2).translate(-1.6, -0.2, 0), C.mats.rust));            // the counterweight
+    slew.add(new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.62, 0.3, 14).translate(0, 0.0, 0), C.mats.arm));     // the ratchet wheel
+    slew.add(new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, JIB_RISE - JIB_HOOK - 0.7, 4).translate(JIB_L, (JIB_RISE + JIB_HOOK + 0.7) / 2, 0), C.mats.cable));
+    slew.add(new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.7, 0.9).translate(JIB_L, JIB_HOOK + 0.35, 0), C.mats.arm));  // the hook block
+    slew.add(new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.07, 5, 10, Math.PI * 1.4).rotateZ(Math.PI * 0.8).translate(JIB_L, JIB_HOOK - 0.3, 0), C.mats.arm));
+  }
+  crane.traverse((o) => { o.userData.noCollide = true; });
+  const jst = { phi: phiOf(jibNotch()), wobble: 0 };
+  if (oiled()) wetCollar();
+  slew.rotation.y = -jst.phi;
+  const along = (d, up = 0, out = V()) => out.set(C.root.x + Math.cos(jst.phi) * d, C.root.y + JIB_H + up, C.root.z + Math.sin(jst.phi) * d);
+  const hookAt = () => along(JIB_L, JIB_HOOK - 0.55);
+  const jibAt = () => along(3.5, 3.5 * JIB_RISE / JIB_L);
   const key = new THREE.Group();
   {
     const brass = makeMaterial({ color: '#e2b552', glow: 0.3, flat: true });
     key.add(new THREE.Mesh(mergeGeometries([new THREE.TorusGeometry(0.22, 0.06, 5, 12).toNonIndexed(), new THREE.BoxGeometry(0.08, 0.7, 0.08).translate(0, -0.55, 0).toNonIndexed(),
       new THREE.BoxGeometry(0.22, 0.08, 0.08).translate(0.1, -0.8, 0).toNonIndexed(), new THREE.BoxGeometry(0.16, 0.08, 0.08).translate(0.07, -0.66, 0).toNonIndexed()]), brass));
-    key.position.copy(hook);
-    key.visible = !quests.isDone('buried.key') && !quests.has('key');
+    key.position.set(JIB_L, JIB_HOOK - 0.5, 0);
+    key.visible = !quests.isDone(KQ) && !quests.has('key');
     key.userData.noCollide = true;
-    scene.add(key);
+    slew.add(key);
   }
-  registerInteractable({ id: 'key', priority: PRIORITY.use, range: 4, prompt: 'take Dun’s key off the hook', at: () => hook, enabled: () => key.visible,
-    distance: (p) => (Math.abs(p.pos.y - hook.y) < 5 ? flat(p.pos, hook) : Infinity),
+  const ratchet = () => {
+    const n = jibNotch() + 1;
+    game.set('buried.jib.notch', n);
+    sound.critter?.('clack', 0.8);
+    if (n >= JIB_IN) {
+      game.set('buried.jib.in', true);
+      toast(key.visible ? 'Clack, clack, clunk. The jib swings in over the platform, and the hook comes swaying after it with Dun’s key on it.' : 'Clack, clack, clunk. The jib swings in over the platform.');
+      sound.chime?.();
+    } else toast(`Clack. The jib ratchets round one notch, out over the drop. (${n} of ${JIB_IN})`);
+  };
+  registerTarget({ kind: 'jib', radius: 2.2, position: jibAt, enabled: () => !jibIn() && flat(player.pos, C.root) < 80,
+    onHit: (mode, point, dir) => {
+      if (mode !== 'push') {
+        if (!oiled()) {
+          game.set('buried.jib.oiled', true);
+          wetCollar();
+          toast('The fluid runs down into the jib’s rusted collar, hissing. Something in there loosens with a tick.');
+          smoke.burst(C.root.clone().add(V(0, 0.6, 0)), { n: 3, rise: 0.8, size: 0.5, spread: 0.3, life: 1.6 });
+        } else jst.wobble = 0.5;
+        return true;
+      }
+      jst.wobble = 1;
+      if (!oiled()) { toast('The jib groans and stays put: its collar is rusted solid. A splash of fluid in it might free it (shoot).'); return true; }
+      // which way the shove turns it: side-on, round the post; end-on, it only shudders
+      const h = Math.hypot(dir?.x ?? 0, dir?.z ?? 0) || 1, px = (dir?.x ?? 0) / h, pz = (dir?.z ?? 0) / h;
+      const turn = Math.cos(jst.phi) * pz - Math.sin(jst.phi) * px;   // > 0 would turn it back (increasing phi)
+      if (Math.abs(turn) < 0.3) { toast('The jib shudders on its post. Shove it side-on, not end-on.'); return true; }
+      if (turn > 0) { sound.critter?.('clack', 0.5); toast('Clack. The ratchet’s pawl holds: the jib only turns the other way.'); return true; }
+      ratchet();
+      return true;
+    } });
+  thing(THINGS.crane, C.root, { range: 3, prompt: 'look at the crane', dy: 4 });
+  registerInteractable({ id: 'key', priority: PRIORITY.use, range: 4, prompt: 'take Dun’s key off the hook', at: hookAt, enabled: () => key.visible && jibIn(),
+    distance: (p) => { const k = hookAt(); return Math.abs(p.pos.y - k.y) < 5 ? flat(p.pos, k) : Infinity; },
     use: () => {
       quests.give('key');
       key.visible = false;
-      if (!quests.isStarted('buried.key')) quests.start('buried.key', 'return'); else quests.advance('buried.key', 'find');
+      if (!quests.isStarted(KQ)) quests.start(KQ, 'return'); else if (!quests.reached(KQ, 'return')) quests.set(KQ, 'return');
       toast(`Took ${ITEMS.key} off the crane hook. Don’t look down.`);
       sound.chime?.();
     } });
+  // a save from before the crane swung: still looking for the key, but it hangs out over the drop
+  if (quests.stage(KQ) === 'find' && !jibIn() && key.visible) quests.set(KQ, 'swing');
 
   // ---------------------------------------------------------------- the end of the main quest
   quests.def(Q).onDone = () => {
@@ -336,6 +412,15 @@ export function setupBuried(ctx) {
     }
     if (valveOpen()) { st.oil = Math.min(1, st.oil + dt / 3); oil.position.y = K.bowlY - 0.3 + 0.3 * st.oil; }
 
+    // the crane's jib swings to its notch (a heavy, eased swing); a shove that didn't take shudders it
+    {
+      const want = phiOf(jibNotch());
+      jst.phi += (want - jst.phi) * Math.min(1, dt * 1.6);
+      if (Math.abs(want - jst.phi) < 1e-4) jst.phi = want;
+      jst.wobble = Math.max(0, jst.wobble - dt * 2.5);
+      slew.rotation.y = -jst.phi + Math.sin(jst.wobble * 28) * 0.03 * jst.wobble;
+      slew.rotation.x = Math.sin(t * 0.7) * 0.004;   // (the wind)
+    }
     // the Wick: flame, embers, the shaft of light rising out of the oculus
     const nearOculus = flat(camera?.position ?? pp, K.centre) < 420;
     if (flames && nearOculus) {
