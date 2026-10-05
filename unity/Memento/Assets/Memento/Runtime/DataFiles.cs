@@ -57,8 +57,8 @@ namespace Memento
             foreach (var f in files)
             {
                 string rel = f.S("path");
-                bool gz = rel.EndsWith(".gz");
-                string dst = Path.Combine(Root, gz ? rel.Substring(0, rel.Length - 3) : rel);
+                bool gz = rel.EndsWith(".gzip");
+                string dst = Path.Combine(Root, gz ? rel.Substring(0, rel.Length - 5) : rel);
                 Directory.CreateDirectory(Path.GetDirectoryName(dst));
                 Status = $"unpacking the desert… {++i}/{files.Count}";
                 string tmp = dst + ".part";

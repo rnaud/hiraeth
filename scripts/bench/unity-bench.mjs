@@ -27,6 +27,7 @@ if (opt.warmup) args.push('-benchWarmup', String(opt.warmup));
 if (opt.only) args.push('-benchOnly', String(opt.only));
 if (opt.off) args.push('-benchOff', String(opt.off));   // (a diagnosis: those behaviours switched off)
 if (opt.paths === '0') args.push('-benchPaths', '0');
+if (opt.paced) args.push('-benchVsync');   // (paced by the display: the stutter at 60 Hz)
 if (typeof opt.shots === 'string') args.push('-benchShots', resolve(opt.shots));
 if (typeof opt.extra === 'string') args.push(...opt.extra.split(' '));   // (more player arguments, e.g. -benchCounters)
 const t0 = Date.now();

@@ -22,7 +22,7 @@ namespace Memento.EditorTools
     ///   Memento.EditorTools.BenchBuild.WebGL     a WebGL (WebGPU) build for the browser (-out, default Builds/WebGL)
     /// Each puts scripts/bench/viewpoints.json in StreamingAssets/bench. On Android and WebGL the export
     /// can't be read in place, so the copy of StreamingAssets in the build is listed in a
-    /// data-manifest.json and world.bin / world.json are shipped gzipped (DataFiles.cs copies them out).
+    /// data-manifest.json and world.bin / world.json are shipped gzipped (as .gzip) (DataFiles.cs copies them out).
     /// Run with scripts/unity-export/unity-batch.sh BenchBuild.Android (etc.).
     /// </summary>
     public static class BenchBuild
@@ -50,6 +50,11 @@ namespace Memento.EditorTools
             PlayerSettings.bundleVersion = Arg("-version", "0.1");
             PlayerSettings.enableFrameTimingStats = true;
             PlayerSettings.runInBackground = true;
+            // (the game adds components no scene holds, a SphereCollider for one: engine code stripping,
+            // on by default for IL2CPP, would take them out and AddComponent would come back empty)
+            PlayerSettings.stripEngineCode = false;
+            foreach (var t in new[] { NamedBuildTarget.Android, NamedBuildTarget.WebGL, NamedBuildTarget.Standalone })
+                PlayerSettings.SetManagedStrippingLevel(t, ManagedStrippingLevel.Minimal);
         }
 
         static int Finish(BuildReport r, string outPath)
@@ -142,19 +147,22 @@ namespace Memento.EditorTools
         /// A build's copy of StreamingAssets (Android: the Gradle project's assets/; WebGL: Build/StreamingAssets):
         /// world.bin and world.json replaced by their gzip, and data-manifest.json listing what DataFiles.Prepare copies out.
         /// </summary>
-        public static void PackData(string assetsDir)
+        public static void PackData(string assetsDir, bool gzip = true)
         {
             var src = Application.streamingAssetsPath;
             var files = new List<(string rel, long size)>();
+            // (what an earlier build left in the Gradle project: a stale .gz would be gunzipped into the APK again)
+            foreach (var f in Directory.EnumerateFiles(assetsDir, "*.gz", SearchOption.AllDirectories).ToList()) File.Delete(f);
             foreach (var f in Directory.EnumerateFiles(src, "*", SearchOption.AllDirectories))
             {
                 if (f.EndsWith(".meta") || Path.GetFileName(f).StartsWith(".")) continue;
                 var rel = Path.GetRelativePath(src, f).Replace('\\', '/');
                 var inBuild = Path.Combine(assetsDir, rel);
                 if (!File.Exists(inBuild)) continue;
-                if (Gzipped.Contains(Path.GetFileName(rel)))
+                if (gzip && Gzipped.Contains(Path.GetFileName(rel)))
                 {
-                    var gz = inBuild + ".gz";
+                    // (.gzip, not .gz: the Android Gradle plugin gunzips .gz assets when it merges them)
+                    var gz = inBuild + ".gzip";
                     var cache = Path.GetFullPath(Path.Combine("Library/BenchCache", rel + ".gz"));
                     var stamp = cache + ".stamp";
                     var fi = new FileInfo(f);
@@ -167,7 +175,7 @@ namespace Memento.EditorTools
                     }
                     File.Copy(cache, gz, true);
                     File.Delete(inBuild);
-                    files.Add((rel + ".gz", new FileInfo(gz).Length));
+                    files.Add((rel + ".gzip", new FileInfo(gz).Length));
                 }
                 else files.Add((rel, new FileInfo(inBuild).Length));
             }
@@ -199,7 +207,8 @@ namespace Memento.EditorTools
         {
             if (report.summary.platform != BuildTarget.WebGL) return;
             var sa = Path.Combine(report.summary.outputPath, "StreamingAssets");
-            if (Directory.Exists(sa)) BenchBuild.PackData(sa);
+            // (not gzipped: the browser's own HTTP compression is the way there, and System.IO.Compression may not be in a WebGL player)
+            if (Directory.Exists(sa)) BenchBuild.PackData(sa, gzip: false);
         }
     }
 }

@@ -183,7 +183,8 @@ namespace Memento
         UniversalRenderPipelineAsset urp;
         void Setup()
         {
-            QualitySettings.vSyncCount = 0;
+            // (-benchVsync: paced by the display instead, for the stutter a player sees at 60 Hz)
+            QualitySettings.vSyncCount = Has("-benchVsync") ? 1 : 0;
             // (no cap; a phone's screen still paces the frames, so Android asks for its fastest refresh)
             Application.targetFrameRate = Application.platform == RuntimePlatform.Android ? 120 : -1;
             Settings.mute = true; Settings.Apply();
@@ -371,7 +372,11 @@ namespace Memento
             Debug.Log($"Memento: bench written to {o}");
 #if UNITY_WEBGL && !UNITY_EDITOR
             // (the page's console is how the runner gets it: one line, picked up by scripts/bench/unity-webgl-bench.mjs)
-            Debug.Log("MEMENTO_BENCH_JSON " + sb.ToString().Replace("\n", ""));
+            // (in pieces: the player cuts long log lines)
+            var all = sb.ToString().Replace("\n", "");
+            const int piece = 3000;
+            int n = (all.Length + piece - 1) / piece;
+            for (int i = 0; i < n; i++) Debug.Log($"MEMENTO_BENCH_JSON {i + 1}/{n} " + all.Substring(i * piece, Math.Min(piece, all.Length - i * piece)));
 #endif
         }
         static string ScriptingBackend()

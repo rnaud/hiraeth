@@ -10,3 +10,7 @@ output/character-tripo/
 # reference images sorted into world folders: kept local for now (slow uploads); add them back later
 references/*/
 handheld-perf.jsonl
+
+# the benchmark's full runs (per-frame lists) and browser profiles (scripts/bench/run-all.mjs)
+scripts/bench/results/raw/
+.chrome-*/

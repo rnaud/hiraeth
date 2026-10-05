@@ -16,13 +16,14 @@ export const CHROME_ARGS = ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-b
   '--force-device-scale-factor=1', '--enable-precise-memory-info', '--disable-background-timer-throttling', '--disable-renderer-backgrounding',
   '--disable-backgrounding-occluded-windows', '--enable-unsafe-webgpu', '--no-first-run', '--no-default-browser-check'];
 
-export async function launch({ w, h, profile, extraArgs = [] }) {
+/** paced: with vsync and the frame-rate limit, as a player's Chrome (for the stutter at 60 Hz) */
+export async function launch({ w, h, profile, extraArgs = [], paced = false }) {
   const { chromium } = await import(PLAYWRIGHT);
   rmSync(profile, { recursive: true, force: true });
   mkdirSync(profile, { recursive: true });
   const ctx = await chromium.launchPersistentContext(profile, {
     executablePath: CHROME, headless: false, viewport: { width: w, height: h }, deviceScaleFactor: 1,
-    args: [...CHROME_ARGS, `--window-size=${w},${h + 120}`, ...extraArgs],
+    args: [...CHROME_ARGS.filter((a) => !paced || !/disable-gpu-vsync|disable-frame-rate-limit/.test(a)), `--window-size=${w},${h + 120}`, ...extraArgs],
   });
   const page = ctx.pages()[0] ?? await ctx.newPage();
   await page.addInitScript(INSTRUMENT);
