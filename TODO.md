@@ -442,3 +442,15 @@ All of this is for the web game; the Unity port follows later if we move to Unit
 - [x] The glowing rock is in a cave far away: to reach it you first need to find the hover car
   (the hoverbike errand), which makes the long trip possible. (Done: the Givers' Hearth, ~1.6 km out.)
 - [x] A little puzzle in that cave to get the rock. (Done: the dark hall, the ball, the grille, the shelf.)
+
+---
+
+# Faces and bodies (2026-10-05, web; after the Lab performance fix)
+
+- [ ] Warmer faces on the current bodies: a slight resting smile by default, lighter and softer brows,
+  mouth corner ticks that don't turn down at rest, warmer face shadows (skin, not the world's blue-violet
+  shade), gentler face presets; tuned in the character studio and checked in every world.
+- [ ] Prototype MakeHuman / MPFB bodies (CC0 exports): a few people of different ages and builds with face
+  shape keys for expressions, on the game's skeleton, next to the Quaternius bodies through the same ink
+  pass in the character studio. If they read better, switch the base bodies (costumes and hair re-fitted,
+  animations and motion data kept).
