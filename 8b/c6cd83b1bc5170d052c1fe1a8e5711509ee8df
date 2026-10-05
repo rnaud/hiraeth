@@ -1,0 +1,47 @@
+README.md
+  s_1fd8d0e7b02dcf::t_c41b6ac7db0bfd 1445,1458,1522-1546
+TODO.md
+  s_1fd8d0e7b02dcf::t_8016a6a3e1c926 663-677
+changelog.md
+  s_1fd8d0e7b02dcf::t_95d8e131a92ced 5-11
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_b660f546e3759d 6-11
+src/desert-sites.js
+  s_1fd8d0e7b02dcf::t_75a7dcd6bd3426 66-68
+src/levels/desert.js
+  s_1fd8d0e7b02dcf::t_fdc4e453693c60 16,79-80
+src/levels/incal.js
+  s_1fd8d0e7b02dcf::t_521d0c4312ce0b 81,850-851
+src/levels/reference-shaft.js
+  s_1fd8d0e7b02dcf::t_17647e42ea54dd 1-542
+src/levels/reference-views.js
+  s_1fd8d0e7b02dcf::t_c86bfcf5bd4e05 9,43-44,463-464
+src/levels/references.js
+  s_1fd8d0e7b02dcf::t_3d0dd5e2a93c39 7,26,34-39,47,72-73,77,195,328-329,331,388
+src/main.js
+  s_1fd8d0e7b02dcf::t_328deec713fdd5 1348-1349
+src/materials.js
+  s_1fd8d0e7b02dcf::t_41bcf353cf95ef 111,505,843,863-864,1668-1670,1757
+src/post.js
+  s_1fd8d0e7b02dcf::t_f0e07794029d6f 125-126,632-637,681-683,846-847,969,976,986,993,1000,1007,1013
+tests/references.test.js
+  s_1fd8d0e7b02dcf::t_d19f471e576fb5 6,41-42,46-47,134,137-159
+tests/shade.test.js
+  s_1fd8d0e7b02dcf::t_c0bb1b798811a8 73-86
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8bc6cd83b1bc5170d052c1fe1a8e5711509ee8df",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
