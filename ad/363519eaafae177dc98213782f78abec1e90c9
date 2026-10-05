@@ -1,0 +1,91 @@
+scripts/unity-export/export-desert.mjs
+  s_1fd8d0e7b02dcf::t_4f612b4c723aa2 25,90-99,220-233,244-248,320-321,336-339
+scripts/unity-export/probe.mjs
+  s_1fd8d0e7b02dcf::t_28debae0145d52 4-5
+scripts/unity-export/unity-batch.sh
+  s_1fd8d0e7b02dcf::t_a98aedb2dce747 13-14
+unity/Memento/Assets/Memento/Editor/Batch.cs
+  s_1fd8d0e7b02dcf::t_0e4c080dcc0669 104,119-137
+unity/Memento/Assets/Memento/Runtime/BatchDriver.cs
+  s_1fd8d0e7b02dcf::t_d0418a4e57f3f0 1-190
+unity/Memento/Assets/Memento/Runtime/BatchDriver.cs.meta
+  s_1fd8d0e7b02dcf::t_2853bc0ea28792 1-2
+unity/Memento/Assets/Memento/Runtime/Bike.cs
+  s_1fd8d0e7b02dcf::t_ae072c3754c9ae 1-133
+unity/Memento/Assets/Memento/Runtime/Bike.cs.meta
+  s_1fd8d0e7b02dcf::t_dc71cb92bbeae9 1-2
+unity/Memento/Assets/Memento/Runtime/CameraRig.cs
+  s_1fd8d0e7b02dcf::t_49569a58a92128 1-65
+unity/Memento/Assets/Memento/Runtime/CameraRig.cs.meta
+  s_1fd8d0e7b02dcf::t_98ee8849a551f2 1-2
+unity/Memento/Assets/Memento/Runtime/Characters.cs
+  s_1fd8d0e7b02dcf::t_4b4d3b03688a63 1-148
+unity/Memento/Assets/Memento/Runtime/Characters.cs.meta
+  s_1fd8d0e7b02dcf::t_b6a06019c7efac 1-2
+unity/Memento/Assets/Memento/Runtime/Crowd.cs
+  s_1fd8d0e7b02dcf::t_0db6588a4fe642 1-84
+unity/Memento/Assets/Memento/Runtime/Crowd.cs.meta
+  s_1fd8d0e7b02dcf::t_202453336fd061 1-2
+unity/Memento/Assets/Memento/Runtime/DesertStory.cs
+  s_1fd8d0e7b02dcf::t_c1737e37e3464f 1-351
+unity/Memento/Assets/Memento/Runtime/DesertStory.cs.meta
+  s_1fd8d0e7b02dcf::t_ae026fdace9abe 1-2
+unity/Memento/Assets/Memento/Runtime/Flame.cs
+  s_1fd8d0e7b02dcf::t_51bcb48e41d20b 1-81
+unity/Memento/Assets/Memento/Runtime/Flame.cs.meta
+  s_1fd8d0e7b02dcf::t_7c3f57990e57b3 1-2
+unity/Memento/Assets/Memento/Runtime/Game.cs
+  s_1fd8d0e7b02dcf::t_8276d842e985ed 19-29
+unity/Memento/Assets/Memento/Runtime/Hud.cs
+  s_1fd8d0e7b02dcf::t_2fb306f4fa49d8 1-224
+unity/Memento/Assets/Memento/Runtime/Hud.cs.meta
+  s_1fd8d0e7b02dcf::t_815cc5f6410bdf 1-2
+unity/Memento/Assets/Memento/Runtime/Interact.cs
+  s_1fd8d0e7b02dcf::t_597aaec5f408b3 1-40
+unity/Memento/Assets/Memento/Runtime/Interact.cs.meta
+  s_1fd8d0e7b02dcf::t_e8606bf60ef960 1-2
+unity/Memento/Assets/Memento/Runtime/Npc.cs
+  s_1fd8d0e7b02dcf::t_81ea3a73c9f71f 1-102
+unity/Memento/Assets/Memento/Runtime/Npc.cs.meta
+  s_1fd8d0e7b02dcf::t_0dca9e3570f356 1-2
+unity/Memento/Assets/Memento/Runtime/Pad.cs
+  s_1fd8d0e7b02dcf::t_0736249067add7 8-10,15,41-44,47
+unity/Memento/Assets/Memento/Runtime/Play.cs
+  s_1fd8d0e7b02dcf::t_bd8d429da44d20 1-2,7-11,15-17,21-105
+unity/Memento/Assets/Memento/Runtime/Player.cs
+  s_1fd8d0e7b02dcf::t_cf30563d686984 1-232
+unity/Memento/Assets/Memento/Runtime/Player.cs.meta
+  s_1fd8d0e7b02dcf::t_be16a9b671b19c 1-2
+unity/Memento/Assets/Memento/Runtime/Story.cs
+  s_1fd8d0e7b02dcf::t_fa243fdd2eacf4 1-276
+unity/Memento/Assets/Memento/Runtime/Story.cs.meta
+  s_1fd8d0e7b02dcf::t_aff78d88f96067 1-2
+unity/Memento/Assets/Memento/Runtime/WorldLoader.cs
+  s_1fd8d0e7b02dcf::t_9631c242d02071 59-63
+unity/Memento/Assets/Memento/Scenes/Desert.unity
+  s_1fd8d0e7b02dcf::t_f4088eb4dc80cc 122,130-131,139,145,155-162,168,181
+unity/Memento/Assets/Memento/Scenes/Title.unity
+  s_1fd8d0e7b02dcf::t_d25a7e36e1efcf 122,130-131,139,145,151,157,170
+unity/Memento/Assets/Memento/Shaders/Flame.shader
+  s_1fd8d0e7b02dcf::t_8aafdca535d4fc 1-68
+unity/Memento/Assets/Memento/Shaders/Flame.shader.meta
+  s_1fd8d0e7b02dcf::t_bc900a85d3f227 1-9
+unity/Memento/Assets/Memento/Shaders/Surface.shader
+  s_1fd8d0e7b02dcf::t_d09bdf5c720574 45,55,107,127,224-233
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ad363519eaafae177dc98213782f78abec1e90c9",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
