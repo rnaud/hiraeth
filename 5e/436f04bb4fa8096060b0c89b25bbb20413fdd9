@@ -1,0 +1,49 @@
+src/game-state.js
+  s_1fd8d0e7b02dcf::t_03e63f69888818 57,68,96
+src/save-migrate.js
+  s_1fd8d0e7b02dcf::t_ca29a0de070ed5 1-64
+src/story/buried-data.js
+  s_1fd8d0e7b02dcf::t_2e158a1b54dd6b 145,261
+src/story/buried.js
+  s_1fd8d0e7b02dcf::t_b55b7bb95f2f24 66
+src/story/edena-data.js
+  s_1fd8d0e7b02dcf::t_791fc1a8e2a863 200
+src/story/edena.js
+  s_1fd8d0e7b02dcf::t_8753c2fb6b259d 44
+src/story/garage-data.js
+  s_1fd8d0e7b02dcf::t_18b17f8076f851 178,217
+src/story/perdide-data.js
+  s_1fd8d0e7b02dcf::t_aa655ff3841515 191
+src/story/perdide.js
+  s_1fd8d0e7b02dcf::t_cd73221a6e7597 67
+src/story/perdide2-data.js
+  s_1fd8d0e7b02dcf::t_f4030faee32d96 65,139
+src/story/perdide2.js
+  s_1fd8d0e7b02dcf::t_515e697ae5dc98 47
+src/story/spheres-data.js
+  s_1fd8d0e7b02dcf::t_111c3f65779109 70
+src/story/spheres.js
+  s_1fd8d0e7b02dcf::t_ba8cd861d64efe 47
+tests/story-edena.test.js
+  s_1fd8d0e7b02dcf::t_96fcc8e3196706 68
+tests/story-perdide.test.js
+  s_1fd8d0e7b02dcf::t_6328aaab98734e 73
+tests/story-perdide2.test.js
+  s_1fd8d0e7b02dcf::t_e6f018f7167e71 70
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5e436f04bb4fa8096060b0c89b25bbb20413fdd9",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
