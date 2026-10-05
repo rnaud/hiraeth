@@ -13,6 +13,8 @@ export const CHANGELOG = [
     'Boulders, big globes and pillars far away now cast shadows like the buildings beside them, and Perdide’s great crystal throws its shadow across the island.',
     'Game updates for the Android app and the Steam Deck now come from the game’s own site. Accept the new Android app when it is offered, once, to keep getting them; your saves are kept.',
     'A new place in the worlds list (Debug on the title screen): The References, six desert scenes rebuilt from the drawings the game is made after, each seen the way its drawing frames it. [ and ] (L3 / R3) change scene, \\ (View) puts the drawing beside or over the picture.',
+    'The first time the water runs in the giant’s chest you see it happen, like a page of a comic: the rib rolls clear, the crack in the wall lights up, the water comes down the gutter and spreads across the dry basin round the roots, to the desert’s own tune, and the traveller says what he sees. It plays once; B / ○, Menu or Esc skips it.',
+    'The first time your empty tank fills in the giant’s pool, you watch it: the water climbs into the dry glass in three colours to your father’s tune, the rings on your bracer light one by one, and the first shot leaves the nozzle and splashes across the pool. Then you are told how to shoot and push.',
   ] },
   { v: '0.60', date: '2026-10-05', items: [
     'Every world has music of its own now, with its own instruments, scale and short tune: ney, oud and frame drum in the desert; a muted horn, vibes and a walking bass down the City-Shaft; wind and breath on Vael; the monks and their far bell over Vael II’s clouds; a ticking, unresolved machine in the Sealed Hangar; low brass and struck metal in the Buried Machine.',
