@@ -1,0 +1,19 @@
+README.md
+  s_42acdebe490c4f::t_eaae17d52fd5c7 1515-1520
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "34b1ae681ad32c3a50eb548ea91d59d7730977af",
+  "prompts": {},
+  "sessions": {
+    "s_42acdebe490c4f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a0e6e25d4c4cd7d5c",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
