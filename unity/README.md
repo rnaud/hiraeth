@@ -37,6 +37,16 @@ play, from the scripted play-through (`Batch.Play`):
 | ![](docs/play-gliding.jpg) the fluid wings | ![](docs/play-wildlife.jpg) a dune crab |
 | ![](docs/play-star.jpg) the star box's keepsake | ![](docs/play-furrow.jpg) the prologue: the crash's furrow |
 | ![](docs/play-procession.jpg) the procession on its loop | ![](docs/play-riding.jpg) the hoverbike |
+| ![](docs/play-glide.jpg) the arms out under the wings | ![](docs/play-jets.jpg) the jets' flames and drops |
+| ![](docs/play-embers.jpg) an ember glob: the camp fire flares, a bramble burns | ![](docs/play-fog.jpg) a fog bank |
+
+The holo table, the rain, the sun rays (web left, Unity right):
+
+| web (three.js) | Unity (URP) |
+|---|---|
+| ![](docs/web-holo.jpg) | ![](docs/unity-holo.jpg) |
+| ![](docs/web-rain.jpg) | ![](docs/unity-rain.jpg) |
+| ![](docs/web-rays.jpg) | ![](docs/unity-rays.jpg) |
 
 ## Run it
 
@@ -265,7 +275,16 @@ the star chart's layout, the planets and the region names against the web's.
 - `FluidTool` (`fluid-tool.js`): three charges, the glob shot on an arc and its
   splat, the push, the boost, the wings with the glider, the gun modes
   (stilling, ember) and the tank's colours (the living water adds one).
-  People shout, freeze or are shoved; the wildlife flees.
+  People shout, freeze or are shoved; the wildlife flees. Gliding, the arms
+  open out under the wings (`Figure.SpreadArms`: player.js spreadArms, a
+  two-bone reach over the clip). The jets (`fluid-kit.js` FluidJets, with the
+  jetpack item another world's box gives on the web): hold A / × in the air to
+  thrust on the tank's fluid, the two nozzles spitting flames banded in its
+  tones, a pale core in each, drops falling off them.
+- `Flammables` (`flammable.js`): what an ember glob sets alight. The camp fires
+  flare up tall for a moment; the dry brambles at the edge of each camp (three a
+  camp, drawn as the web's) burn away and grow back a minute later. The flames
+  are `story/flames.js` Flames: tongues of flat colour bands, moved every frame.
 - `BoxScene` (`box-scene.js`): the makers' chest wakes, rises, comes apart
   (dissolve) and leaves its item hovering, then the card comes up. The star
   box (its keepsake) opens the same way.
@@ -273,6 +292,17 @@ the star chart's layout, the planets and the region names against the web's.
   the father's recording with the parents' coloured hologram, the impact, the
   fall, the streak and the furrow, the dust clearing, the hatch, stepping
   out), then boarding the crashed ship, the console and the galactic map.
+  `StarMap` (`starmap.js`) draws the chart on the HUD's canvas: the worlds on
+  their dotted route round home's sun (`chartLayout`: a ring, or a snake of
+  rows on a small screen), the orbits, each world a drawn planet (`PlanetArt`,
+  `planets.js`: body, shadow, its mark, the highlight, rings and moons) with its
+  name, its tag, the strike's signature badge and the done star; the chosen
+  world's panel, the signature legend, and "Travel to …?" (the other worlds
+  are not in this port). `HoloTable` (`holotable.js`): over the deck's table the
+  desert turns, drawn by `Shaders/Planet.shader` (approach.js planetMaterial:
+  the dune stripes, the hatched crescent, the highlight, self-lit), with its teal
+  rim and two scan rings; it flickers on emergency power, stutters in the
+  alarm, dies in the fall.
 - `Sounds` / `Voice`: the recorded clips (3D where placed) and the score.
   The continuous layers are synthesised in `OnAudioFilterRead` (the wind and
   its howl in the storm, the cloak, the bike's engine, the fires' crackle).
@@ -282,7 +312,9 @@ the star chart's layout, the planets and the region names against the web's.
   with it.
 - `Puffs` / `FireFx`: the burning tree's landmark smoke column, its embers, the
   camp fires' smoke. `Ambient`: the weather (calm, wind, and the sandstorm that
-  tints the page and hides the distance), wind-blown sand, birds in flocks,
+  tints the page and hides the distance; the rain's slanted ink strokes and the
+  fog banks, which the desert does not have itself but another world or the
+  panel can bring: `forced`), wind-blown sand, birds in flocks,
   dust motes, footprints in the sand. `Wildlife` (`wildlife.js`): puff
   lizards, dune crabs and jerboas, with their gaits, wariness and surprises.
 - `Save`: the flags, keepsakes, position and the tank's colours, as JSON in
@@ -362,21 +394,58 @@ and the batch play-through can too.
 |---|---|
 | ![](docs/play-charge.jpg) the father's charge, lettered over the crash | ![](docs/play-boxcard.jpg) the makers' box card |
 
+## A standalone build
+
+```sh
+scripts/unity-export/unity-batch.sh BuildMac -out /tmp/Memento.app     # (default unity/Memento/Builds/macOS/Memento.app, git-ignored)
+/tmp/Memento.app/Contents/MacOS/Memento -smoke /tmp/smoke -logFile /tmp/smoke/player.log
+```
+
+`Batch.BuildMac` puts the shaders the game finds by name into the always-included
+list, sets the player (a 1280 × 720 resizable window) and builds the `Title`
+scene (the loading page) and the desert; the export travels in
+`StreamingAssets` (about 430 MB). With `-smoke folder` the player checks
+itself (`SmokeTest.cs`): it shoots the title once the desert has loaded under
+it, picks New game, shoots the prologue, skips it, shoots the desert and quits.
+
+### What an Android build would need
+
+- The editor's Android Build Support module (SDK, NDK, OpenJDK) from the Hub
+  (only macOS and WebGL support are installed here), IL2CPP for ARM64, Vulkan
+  first (the instanced crowd, puffs and wildlife read structured buffers in the
+  vertex shader, which many GLES drivers do not allow).
+- The export out of `StreamingAssets`: on Android those files sit inside the
+  APK, where `File.ReadAllBytes` and `Directory.GetFiles` cannot reach them
+  (`WorldLoader`, `Sounds`, `FigureLibrary` read them so). Copy them out to
+  `persistentDataPath` on the first run (UnityWebRequest), or ship them as a Play
+  Asset Delivery install-time pack: at about 430 MB the export is far over the
+  base APK's limit. A lighter export (the static world's far tiles merged or
+  dropped, the people's clips at 15 fps) would help the handhelds' memory too.
+- The G-buffer's normal + depth target is RGBA32F: on mobile GPUs a half-float
+  normal with depth in its own R32F target would halve the bandwidth.
+- Fonts: Menlo and Avenir Next are Apple's; `Ui` falls back to Roboto and
+  Droid Sans Mono, or a bundled open font (e.g. JetBrains Mono, Jost) could be
+  shipped in the project for the same look everywhere.
+- The pad's prompts in the handheld's names (the web's `native-pad.js` rewrite)
+  and the Android back button as B / ○.
+- The web game's Capacitor app (`android/`) is a separate thing and stays as it is.
+
 ## What is missing (next steps)
 
-- **The traveller**: the glide uses the fall pose (the web's arms-out glide
-  pose is not baked), and the jets' thrust flame is not drawn.
-- **The people**: the crowd's mid-distance figures cast no shadows; the far
-  figures have no brows (too small to see on the web too).
-- **The ship**: the holo table's planet is drawn flat (not with the web's
-  planet shader). The map's other worlds can be chosen but not travelled to.
-- **Not ported**: the rain and fog weather kinds (the desert uses wind and the
-  sandstorm), the reactive world (flammables catching), the dev menu, the
+- **The traveller**: thrusting on the jets keeps the jump's pose (the web's
+  rig leans into the flight).
+- **The people**: the far figures have no brows (too small to see on the web too).
+- **The ship**: the map's other worlds can be chosen but not travelled to; the
+  ship's interior takes the sun through its hull in places.
+- **Not ported**: the dev menu, the
   observatory and the masked head's chamber (exported, not playable), the
   other worlds, Android. The web title's own vista scene (the desert stands
   in for it); mouse clicks on the menus (they take the keyboard and the pad).
-- **The look**: no sun rays. Shadows are URP's, with a filter close to the
-  web's hand-rolled cascades but not the same.
+- **The look**: shadows are URP's, with a filter close to the web's
+  hand-rolled cascades but not the same. (Sun rays are in the composite,
+  `_Rays`, off in the desert's "Moebius print" preset as on the web;
+  `MementoLook.rays` is the web panel's slider.) The crowd's mid-distance
+  figures cast their shadows (the shadow pass poses them as the G-buffer does).
 
 ## Connecting an MCP client to the editor
 

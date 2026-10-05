@@ -105,8 +105,10 @@ namespace Memento
         public void StopLoop(string name) { if (loops.TryGetValue(name, out var s)) { s.Stop(); Destroy(s); loops.Remove(name); } }
 
         /// <summary>The layers this frame (main.js sound.update): speed, gust 0..1, riding and the bike's speed, fires near.</summary>
-        public void Layers(float speed, float gust, bool riding, float rideSpeed, float fireNear, float storm = 0)
+        public void Layers(float speed, float gust, bool riding, float rideSpeed, float fireNear, float storm = 0, float rain = 0, float rainRoof = 0)
         {
+            // the rain (audio.js: a high hiss outside, a dull drumming on the roof indoors)
+            rainGain = rain * 0.07f; roofGain = rainRoof * 0.11f;
             const float W = 0.4f;   // AMBIENT_WIND
             float k = Mathf.Min(speed / 11, 1.5f), t = Time.time;
             howlGain = (gust * 0.012f + storm * 0.025f) * W; howlFreq = 700 + Mathf.Sin(t * 0.3f) * 250;
@@ -119,13 +121,15 @@ namespace Memento
 
         // ------------------------------------------------------------------ the synthesised layers (audio thread)
         struct BP { public float x1, x2, y1, y2; }
-        BP wind, howl, cloak, eng, crk; float engPh, cg;
+        BP wind, howl, cloak, eng, crk, rainB, roofB; float engPh, cg;
+        volatile float rainGain, roofGain;
         float Rnd() { seed ^= seed << 13; seed ^= seed >> 17; seed ^= seed << 5; return (seed / 4294967295f) * 2 - 1; }
-        float Band(ref BP s, float x, float f, float q, bool lowpass = false)
+        float Band(ref BP s, float x, float f, float q, bool lowpass = false, bool highpass = false)
         {
             float w = 2 * Mathf.PI * Mathf.Clamp(f, 20, sr * 0.45f) / sr, al = Mathf.Sin(w) / (2 * q), c = Mathf.Cos(w), a0 = 1 + al;
             float b0, b1, b2;
             if (lowpass) { b0 = (1 - c) / 2 / a0; b1 = (1 - c) / a0; b2 = b0; } else { b0 = al / a0; b1 = 0; b2 = -al / a0; }
+            if (highpass) { b0 = (1 + c) / 2 / a0; b1 = -(1 + c) / a0; b2 = b0; }
             float a1 = -2 * c / a0, a2 = (1 - al) / a0;
             float y = b0 * x + b1 * s.x1 + b2 * s.x2 - a1 * s.y1 - a2 * s.y2;
             s.x2 = s.x1; s.x1 = x; s.y2 = s.y1; s.y1 = y;
@@ -139,6 +143,7 @@ namespace Memento
             {
                 float n = Rnd();
                 float v = Band(ref wind, n, wf, 0.6f) * wg * 2.2f + Band(ref howl, n, hf, 9) * hg * 6 + Band(ref cloak, n, 240, 1.2f) * cl * 2;
+                if (rainGain > 1e-4f || roofGain > 1e-4f) v += (Band(ref rainB, n, 2600, 0.5f, false, true) * rainGain + Band(ref roofB, n, 420, 0.8f, true) * roofGain) * fxVol * 1.6f;
                 if (eg > 1e-4f) { engPh += ehz / sr; engPh -= Mathf.Floor(engPh); v += Band(ref eng, 2 * engPh - 1, ecut, 0.707f, true) * eg; }
                 if (cr > 1e-3f)
                 {

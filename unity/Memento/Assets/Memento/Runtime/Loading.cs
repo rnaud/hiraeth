@@ -10,6 +10,7 @@ namespace Memento
         float t; Label msg; Sketch pen; RectTransform root;
         void Start()
         {
+            SmokeTest.Arm();
             var cam = new GameObject("Camera").AddComponent<Camera>();
             cam.clearFlags = CameraClearFlags.SolidColor; cam.backgroundColor = Ui.Page;
             root = Hud.MakeCanvas(cam, "Loading", 0);

@@ -272,6 +272,21 @@ namespace Memento
             Log($"tool mode: {tool.mode} (of {string.Join(", ", tool.Modes())})");
             yield return CloseUp("the_tank_in_stilling", game.player.transform, -1.2f, 0.6f, 0.1f);
             pad.mode = -1; yield return Wait(0.2f);
+            // the ember mode's fire (flammable.js): a dry bramble by the camp burns away, the camp fire flares
+            var fl = Flammables.Instance;
+            if (fl && fl.spots.Count > 0)
+            {
+                var br = fl.spots.First(s => s.kind == "bramble"); var fire = fl.spots.First(s => s.kind == "campfire");
+                bool missed = fl.HitAt(br.centre + Vector3.up * 2, br.centre, "shoot") && br.burnt;
+                fl.HitAt(br.centre + Vector3.up * 2, br.centre, "fire"); fl.HitAt(fire.centre + Vector3.up * 3, fire.centre, "fire");
+                yield return Wait(0.7f);
+                game.rig.enabled = false; game.hud.hidden = true; yield return null;
+                var mid = (br.at + fire.at) * 0.5f; var side = Vector3.Cross(Vector3.up, (br.at - fire.at).normalized);
+                game.cam.transform.position = mid + side * 11 + Vector3.up * 3.5f; game.cam.transform.LookAt(mid + Vector3.up * 1.2f);
+                yield return Shoot("embers_set_alight");
+                game.rig.enabled = true; game.hud.hidden = false;
+                Log($"flammables: {fl.spots.Count} spots, {fl.ignited} set alight, a fluid glob lit none: {!missed}, bramble burnt {br.burnt}");
+            }
             yield return Wait(2.2f);   // (the charges come back)
             Put(game.world.Places.V3("camps") + new Vector3(30, 0, 30), 45); yield return Wait(1f);   // (open ground)
             yield return Pulse(v => pad.jump = v); yield return Wait(0.35f);
@@ -281,7 +296,18 @@ namespace Memento
             pad.jump = true; yield return Wait(0.9f);
             Log($"gliding: {tool.gliding}, wings {tool.wingK:0.00}");
             yield return CloseUp("gliding", game.player.transform, -3.5f, 0.8f, 0.25f);
+            Log($"glide arms: spread {game.player.figure?.spread:0.00}");
             pad.jump = false; yield return Wait(2f);
+            // the jets (another world's box on the web): hold A / × in the air, the flames spit fluid
+            game.state.Set("item.glider", false); game.state.Set("item.jetpack", true); tool.Refill(false);
+            Put(game.world.Places.V3("camps") + new Vector3(30, 0, 30), 45); yield return Wait(1f);
+            yield return Pulse(v => pad.jump = v); yield return Wait(0.25f);
+            float yj = game.player.transform.position.y;
+            pad.jump = true; yield return Wait(0.7f);
+            Log($"jets: thrusting {game.player.thrusting}, up {game.player.transform.position.y - yj:0.0} m, charges {tool.charges:0.00}");
+            yield return CloseUp("the_jets", game.player.transform, -2.6f, 0.9f, -0.3f);
+            pad.jump = false; yield return Wait(2.5f);
+            game.state.Set("item.jetpack", false);
             game.state.Set("item.stun", false); game.state.Set("item.glider", false);
 
             // the wildlife: a creature near the camps, then a sprint at it (its surprise)
@@ -394,6 +420,19 @@ namespace Memento
                 yield return Pulse(v => pad.back = v); yield return Wait(0.2f);
                 yield return Pulse(v => pad.back = v); yield return Wait(0.2f);
                 Log($"map closed: {!game.hud.map.open}");
+                // the holo table's planet, turning over its glass (holotable.js)
+                var ht = game.ship.holoParked;
+                if (ht)
+                {
+                    game.rig.enabled = false; game.hud.hidden = true; yield return null;
+                    var c = ht.transform.position;
+                    game.cam.transform.position = c + ht.transform.parent.rotation * new Vector3(0.75f, 0.25f, 0.95f); game.cam.transform.LookAt(c);
+                    game.cam.fieldOfView = 50;
+                    yield return Wait(0.3f);
+                    yield return Shoot("the_holo_table");
+                    Log($"holo table: {ht.state}, at {c}");
+                    game.hud.hidden = false; game.rig.enabled = true; game.cam.fieldOfView = 55;
+                }
                 Interact.All.FirstOrDefault(i => i.id == "ship.leave")?.use(); yield return Wait(0.5f);
             }
             Log($"sound: {Sounds.Instance?.ClipCount ?? 0} recorded clips, {Sounds.Instance?.played ?? 0} played");
@@ -403,6 +442,29 @@ namespace Memento
                 PutNear(nour2.pos, 2.2f); yield return Wait(1f);
                 Log($"Nour home: seated {nour2.seatHeight >= 0}, pose {nour2.figure?.pose}");
                 yield return CloseUp("nour_on_her_bench", nour2.transform, 2.6f, 0.4f, 0.1f);
+            }
+            // the weather the desert does not have itself (weather.js kinds: rain, fog banks), forced as the web's panel does; sun rays at a low sun
+            if (game.ambient)
+            {
+                game.rig.enabled = false; game.hud.hidden = true;
+                var c = game.world.Places.V3("camps");
+                game.cam.transform.position = c + new Vector3(-26, 7, -30); game.cam.transform.LookAt(c + Vector3.up * 3);
+                foreach (var k in new[] { "rain", "fog" })
+                {
+                    game.ambient.forced = k; game.ambient.kind = k; game.ambient.intensity = 1; game.ambient.target = 1;
+                    yield return Wait(0.4f);
+                    yield return Shoot("weather_" + k);
+                    Log($"weather: {k} {game.ambient.intensity:0.00}, fog × {game.look.fogScale:0.00}");
+                }
+                game.ambient.forced = null; game.ambient.intensity = 0; game.ambient.target = 0; game.ambient.kind = "clear";
+                float hour = game.look.hour;
+                game.look.hour = 17.2f; game.look.rays = 1; game.look.Apply(); yield return Wait(0.2f);
+                var sunDir = game.look.SunDisc;
+                game.cam.transform.position = c + new Vector3(0, 6, 0); game.cam.transform.rotation = Quaternion.LookRotation(sunDir + Vector3.down * 0.12f, Vector3.up);
+                yield return Shoot("sun_rays");
+                Log($"sun rays at {game.look.hour:0.0} h, the sun {sunDir.y:0.00} up");
+                game.look.hour = hour; game.look.rays = -1; game.look.Apply();
+                game.rig.enabled = true; game.hud.hidden = false;
             }
             // the save: written, read back into a fresh state, the same flags
             {

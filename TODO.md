@@ -386,10 +386,12 @@ The desert runs in `unity/Memento` (Unity 6, URP): exported from the web game by
   charge's gold tag, the floating prompt, balloons, toasts, the conversation panel with its portrait chip,
   the charge and box cards, the sketchbook, the pause menu and settings, the airy title over the desert;
   all reachable with a controller.
-- [ ] The glide's own arm pose; the jets' thrust flame.
-- [ ] The holo table's planet shader; `starmap.js`'s drawn chart (the map is a list).
-- [ ] Shadows for the crowd's mid-distance figures.
-- [ ] The rain and fog weather kinds, the reactive world (flammables), sun rays, the observatory and
-  the masked head's chamber, the other worlds, Android.
+- [x] The glide's arms-out pose (a two-bone reach over the clip); the jets' thrust flames and drops.
+- [x] The holo table's planet shader; `starmap.js`'s drawn chart (planets, orbits, signature badges, the
+  panel, "Travel to …?").
+- [x] Shadows for the crowd's mid-distance figures.
+- [x] The rain and fog weather kinds, the flammables (camp fires flare, brambles burn and grow back), sun
+  rays in the composite.
+- [ ] The observatory and the masked head's chamber, the other worlds, Android.
 - [ ] Connect an MCP client to the editor (the bridge package is installed; an organization policy
   blocks registering unknown MCP servers in Claude Code).

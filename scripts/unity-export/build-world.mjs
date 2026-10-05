@@ -73,5 +73,6 @@ export async function buildDesertWorld() {
   scene.updateMatrixWorld(true);
   const shipDirector = await import('../../src/ship/cinematics.js');
   const shipHull = await import('../../src/ship/hull.js');
-  return { shipDirector, shipHull, THREE, scene, level, physics, ship, shipRoots, crowd, bike, player, npcs, rt, boxes, flora, storyRoots, staticRoots, game, CONTENT, humans, lib, travellerTemplate, camera };
+  const shipTable = (await import('../../src/ship/interior.js')).TABLE;
+  return { shipDirector, shipHull, shipTable, THREE, scene, level, physics, ship, shipRoots, crowd, bike, player, npcs, rt, boxes, flora, storyRoots, staticRoots, game, CONTENT, humans, lib, travellerTemplate, camera };
 }

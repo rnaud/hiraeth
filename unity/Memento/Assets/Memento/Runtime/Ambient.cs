@@ -21,6 +21,10 @@ namespace Memento
         List<string> kinds = new(); public string kind = "clear"; public float intensity, target; float timer; public string forced;
         Color stormColor = Json.Hex("#e3c58f");
         public float Storm => kind == "storm" ? intensity : 0;
+        /// <summary>Rain and fog banks (weather.js kinds): the desert has only its sandstorm; another world's weather, or the dev panel's, brings these.</summary>
+        public float Rain => kind == "rain" ? intensity : 0;
+        public float Fog => kind == "fog" ? intensity : 0;
+        public bool Indoors { get; private set; }
         // ------------------------------------------------------------------ wisps
         class Wisp { public float x, z, vx, vz, age = 1, life, len, h, amp, phase, strength; }
         const int SEGS = 10;
@@ -110,14 +114,18 @@ namespace Memento
                 }
             }
             intensity += (target - intensity) * (1 - Mathf.Exp(-dt / 6));
-            float storm = indoors ? 0 : Storm;
+            Indoors = indoors;
+            float storm = indoors ? 0 : Storm, rain = indoors ? 0 : Rain;
             Shader.SetGlobalFloat("_Storm", storm);
-            if (game.look) game.look.fogScale = 1 + storm * 2.2f;
+            Shader.SetGlobalFloat("_Rain", rain);
+            Shader.SetGlobalFloat("_RainNear", 0);
+            // the haze thickens (main.js: uFogMul × 1 + fog × 2.6 + storm × 2.2 + rain × 0.6)
+            if (game.look) game.look.fogScale = 1 + Fog * 2.6f + storm * 2.2f + rain * 0.6f;
             // ---- the wisps (wind.js)
             wtime += dt;
             windAngle = 0.6f + Mathf.Sin(wtime * 0.013f) * 0.35f;
             float wx = -Mathf.Cos(windAngle), wz = Mathf.Sin(windAngle);   // (three's wind, mirrored)
-            float gust = Mathf.Max(Mathf.Clamp01(0.35f + 0.45f * Mathf.Sin(wtime * 0.21f) + 0.3f * Mathf.Sin(wtime * 0.53f + 1.7f)), storm);
+            float gust = Mathf.Max(Mathf.Clamp01(0.35f + 0.45f * Mathf.Sin(wtime * 0.21f) + 0.3f * Mathf.Sin(wtime * 0.53f + 1.7f)), storm, rain * 0.6f);
             Gust = gust;
             var cam = game.cam.transform.position;
             float pxScale = 2 * Mathf.Tan(game.cam.fieldOfView * 0.5f * Mathf.Deg2Rad) / Mathf.Max(Screen.height, 1);

@@ -35,6 +35,8 @@ namespace Memento
         // the prologue
         List<object> stages; int stage = -1; float st, skipHeld;
         public float SkipHeld => skipHeld;
+        /// <summary>Skip the prologue now (as holding back does): the smoke test's.</summary>
+        public void SkipNow() { if (PrologueActive) Finish(true); }
         public string Stage => stage >= 0 && stage < stages.Count ? stages[stage].S("id") : null;
         /// <summary>The prologue's stages you play yourself: the walk to the cockpit, stepping out.</summary>
         public bool PlayerFree => PrologueActive && (Stage == "walk" || Stage == "stepout");
@@ -69,9 +71,22 @@ namespace Memento
             call = new();
             if (tl != null) foreach (var l in tl) call.Add((l.F("t0"), l.F("t1"), l.O("line")));
             smokeMat = Puff("#e6dfd0", 0.2f); flameMat = Puff("#ff9a4a", 1f); dustMat = Puff("#e3c58f", 0.1f);
+            // the holo table's planet, in the parked ship and its copy out in space (holotable.js)
+            var ht = data.O("holoTable");
+            if (ht != null)
+            {
+                var id = ht.S("world") ?? "desert";
+                var look = story.O("map")?.O("planets")?.O(id);
+                float r = ht.F("planetR", 0.3f);
+                if (parked && P.Has("table")) holoParked = HoloTable.Build(parked.transform, P.V3("table"), r, id, look);
+                if (spaceShip && SP != null && SP.Has("table")) holoSpace = HoloTable.Build(spaceShip.transform, SP.V3("table"), r, id, look);
+                if (holoParked) holoParked.state = g.state.Is("ship.powered") ? "on" : "emergency";
+                g.state.On("flag:ship.powered", v => { if (holoParked) holoParked.state = v is bool b && b ? "on" : "emergency"; });
+            }
             if (spaceShip) spaceShip.SetActive(false); if (space) space.SetActive(false);
             BoardingAndConsole();
         }
+        public HoloTable holoParked, holoSpace;
 
         static Quaternion Q(List<object> l) => l == null ? Quaternion.identity : new Quaternion(Json.Num(l[0]), Json.Num(l[1]), Json.Num(l[2]), Json.Num(l[3]));
         Material Puff(string hex, float glow)
@@ -159,6 +174,12 @@ namespace Memento
         void Enter(string id)
         {
             var pl = game.player; var S = Sounds.Instance;
+            // the holo table's power (cinematics.js setPower): on out in space, the alarm at the impact,
+            // dead in the fall, on emergency power once the hatch opens
+            if (holoSpace && (id == "black" || id == "wake")) holoSpace.state = "on";
+            if (holoSpace && id == "impact") holoSpace.state = "alarm";
+            if (holoParked && id == "streak") holoParked.state = "dead";
+            if (holoParked && id == "hatch") holoParked.state = "emergency";
             switch (id)
             {
                 case "black":

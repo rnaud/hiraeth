@@ -365,6 +365,8 @@ const shipOut = (() => {
     hinge: V3(ship.hinge), rampFoot: V3(ship.rampFoot), outDir: V3(ship.outDir), heading: -ship.site.heading,
     crash: ship.site.crash ? { travel: -ship.site.crash.travel, length: ship.site.crash.length } : null,
     T: V3(d.T), N: V3(d.N), touch: V3(d.touch), S0: V3(d.S0), S1: V3(d.S1), R: W.shipHull.R, DECK: W.shipHull.DECK, HATCH_A: -W.shipHull.HATCH_A,
+    // the holo table's planet (src/ship/holotable.js: drawn as approach.js draws a world; its size, its look)
+    holoTable: { planetR: W.shipTable.planetR, world: 'desert' },
   };
 })();
 

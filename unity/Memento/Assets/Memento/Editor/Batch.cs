@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Memento.Rendering;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -119,6 +120,11 @@ namespace Memento.EditorTools
             var fx = new GameObject("Fire fx").AddComponent<FireFx>();
             fx.Build(game.world.World.O("fx"));
             for (int k = 0; k < 120; k++) fx.Tick(1f, k);
+            // the holo table's planet in the parked ship (ShipScene builds it in play), unless -noHolo
+            HoloTable holo = null;
+            var shipData = game.world.World.O("ship");
+            if (Array.IndexOf(Environment.GetCommandLineArgs(), "-noHolo") < 0 && game.world.Objects.TryGetValue("ship", out var parked) && shipData?.O("points")?.Has("table") == true)
+                holo = HoloTable.Build(parked.transform, shipData.O("points").V3("table"), shipData.O("holoTable")?.F("planetR", 0.3f) ?? 0.3f, "desert", null);
             var views = Json.Parse(File.ReadAllText(file)) as List<object>;
             int w = int.Parse(Arg("-w", "1280")), h = int.Parse(Arg("-h", "720"));
             foreach (var v in views)
@@ -129,6 +135,7 @@ namespace Memento.EditorTools
                 game.cam.transform.position = eye;   // (the local lights nearest the view)
                 game.look.Apply();
                 fx.Tick(0, 120);
+                if (holo) holo.Face(eye);
                 Capture(game.cam, eye, target, v.F("fov", 55), w, h, Path.Combine(outDir, v.S("name") + ".png"));
             }
             Debug.Log($"Memento: {views.Count} shots in {outDir}");
@@ -153,6 +160,55 @@ namespace Memento.EditorTools
             };
             EditorApplication.update += () => { if (EditorApplication.timeSinceStartup - started > 420) { Debug.LogError("Memento: play-through timed out"); EditorApplication.Exit(4); } };
             EditorApplication.EnterPlaymode();
+        }
+
+        /// <summary>The shaders the game finds by name at run time (Shader.Find): a build keeps only what it is told to.</summary>
+        public static readonly string[] RuntimeShaders = { "Memento/Surface", "Memento/Planet", "Memento/UIText", "Memento/Wisp", "Memento/Mote", "Memento/Print", "Memento/Flame", "Memento/Hologram",
+            "Hidden/Memento/Composite", "Hidden/Memento/Bloom", "Hidden/Memento/FXAA", "UI/Default" };
+
+        static void IncludeShaders()
+        {
+            var gs = GraphicsSettings.GetGraphicsSettings();
+            var so = new SerializedObject(gs);
+            var arr = so.FindProperty("m_AlwaysIncludedShaders");
+            var have = new HashSet<UnityEngine.Object>();
+            for (int i = 0; i < arr.arraySize; i++) have.Add(arr.GetArrayElementAtIndex(i).objectReferenceValue);
+            foreach (var n in RuntimeShaders)
+            {
+                var sh = Shader.Find(n);
+                if (!sh) { Debug.LogWarning($"Memento: no shader {n}"); continue; }
+                if (have.Contains(sh)) continue;
+                arr.InsertArrayElementAtIndex(arr.arraySize);
+                arr.GetArrayElementAtIndex(arr.arraySize - 1).objectReferenceValue = sh;
+            }
+            so.ApplyModifiedPropertiesWithoutUndo();
+            AssetDatabase.SaveAssets();
+        }
+
+        /// <summary>
+        /// A standalone macOS build (-out path/Memento.app, default Builds/macOS/Memento.app): the
+        /// title's loading page, then the desert; the export travels in StreamingAssets. Launch it
+        /// with -smoke folder for its own check (SmokeTest.cs).
+        /// </summary>
+        public static void BuildMac()
+        {
+            var outPath = Path.GetFullPath(Arg("-out", "Builds/macOS/Memento.app"));
+            IncludeShaders();
+            PlayerSettings.productName = "Memento";
+            PlayerSettings.companyName = "rnaud";
+            PlayerSettings.bundleVersion = Arg("-version", "0.1");
+            PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Standalone, "com.rnaud.memento.unity");
+            PlayerSettings.fullScreenMode = FullScreenMode.Windowed;
+            PlayerSettings.defaultScreenWidth = 1280; PlayerSettings.defaultScreenHeight = 720;
+            PlayerSettings.resizableWindow = true;
+            PlayerSettings.runInBackground = true;
+            if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.StandaloneOSX)
+                EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Standalone, BuildTarget.StandaloneOSX);
+            var opts = new BuildPlayerOptions { scenes = new[] { TitlePath, ScenePath }, locationPathName = outPath, target = BuildTarget.StandaloneOSX, options = BuildOptions.None };
+            var r = BuildPipeline.BuildPlayer(opts);
+            var s = r.summary;
+            Debug.Log($"Memento: build {s.result}: {outPath}, {s.totalSize / 1e6:0} MB, {s.totalTime.TotalSeconds:0} s, {s.totalErrors} errors, {s.totalWarnings} warnings");
+            EditorApplication.Exit(s.result == UnityEditor.Build.Reporting.BuildResult.Succeeded ? 0 : 1);
         }
 
         /// <summary>The UI kit alone on a camera-space canvas, rendered to -out (a quick look at the shapes and the text).</summary>

@@ -15,7 +15,7 @@ namespace Memento
     public class FarCrowd
     {
         public static float Near = 55, Far = 420;
-        public static bool On = true;
+        public static bool On = true, Shadows = true;
         [StructLayout(LayoutKind.Sequential)]
         struct Inst { public Vector4 at, anim, react, look0, look1, dress, body, scale; }
         Mesh mesh; Material mat; GraphicsBuffer buf;
@@ -77,7 +77,8 @@ namespace Memento
             if (buf == null || buf.count < insts.Length) { buf?.Release(); buf = new GraphicsBuffer(GraphicsBuffer.Target.Structured, Mathf.Max(insts.Length, 1), Marshal.SizeOf<Inst>()); mat.SetBuffer("_CrowdInst", buf); }
             buf.SetData(insts, 0, 0, k);
             mat.SetFloat("_CrowdTime", t);
-            var rp = new RenderParams(mat) { worldBounds = new Bounds(cam, Vector3.one * Far * 2.2f), shadowCastingMode = ShadowCastingMode.Off, receiveShadows = true };
+            // (their shadows too, out to where the web's cascades still draw them)
+            var rp = new RenderParams(mat) { worldBounds = new Bounds(cam, Vector3.one * Far * 2.2f), shadowCastingMode = Shadows ? ShadowCastingMode.On : ShadowCastingMode.Off, receiveShadows = true };
             Graphics.RenderMeshPrimitives(rp, mesh, 0, k);
         }
     }

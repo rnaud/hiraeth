@@ -72,6 +72,8 @@ namespace Memento
             game.ship.transform.SetParent(transform, false);
             game.ship.Init(game, storyData);
             gameObject.AddComponent<FireFx>().Build(game.world.World.O("fx"));
+            // what an ember glob sets alight: the camp fires flare, the dry brambles by them burn and grow back (flammable.js)
+            gameObject.AddComponent<Flammables>().Init(game);
             game.ambient = gameObject.AddComponent<Ambient>();
             game.ambient.Init(game);
             game.wildlife = gameObject.AddComponent<Wildlife>();
@@ -117,8 +119,9 @@ namespace Memento
             // the wind, the cloak, the engine, the fires (audio.js update)
             float fireNear = 0;
             foreach (var f in game.story ? game.story.FirePlaces : System.Array.Empty<Vector3>()) fireNear = Mathf.Max(fireNear, 1 - Vector3.Distance(f, pl.transform.position) / 9f);
-            float gust = game.ambient ? game.ambient.Gust : 0.5f, storm = game.ambient ? game.ambient.Storm : 0;
-            Sounds.Instance?.Layers(pl.riding ? 0 : pl.SpeedXZ, gust, pl.riding, game.bike ? game.bike.Speed : 0, Mathf.Clamp01(fireNear), storm);
+            float gust = game.ambient ? game.ambient.Gust : 0.5f, storm = game.ambient ? game.ambient.Storm : 0, rain = game.ambient ? game.ambient.Rain : 0;
+            bool indoors = game.ambient && game.ambient.Indoors;
+            Sounds.Instance?.Layers(pl.riding ? 0 : pl.SpeedXZ, gust, pl.riding, game.bike ? game.bike.Speed : 0, Mathf.Clamp01(fireNear), indoors ? 0 : storm, indoors ? 0 : rain, indoors ? rain : 0);
             game.prompt = null; game.promptAt = null;
             if (busy || pl.down) return;
             var best = Interact.Best(pl.transform.position);
