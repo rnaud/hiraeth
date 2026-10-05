@@ -1,7 +1,7 @@
 #!/bin/sh
 # The MakeHuman parametric body (docs/makehuman.md): the reference person (decimation, face keys,
 # the hair), the samples of MakeHuman's macro space in parallel, then the pack:
-# public/anim/mh/body.json + body.bin. Blender headless (scripts/makehuman/fetch.sh sets it up).
+# public/anim/mh/body.bin. Blender headless (scripts/makehuman/fetch.sh sets it up).
 #   scripts/makehuman/build.sh [workers]
 set -e
 cd "$(dirname "$0")/../.."

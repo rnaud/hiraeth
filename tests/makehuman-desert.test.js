@@ -93,9 +93,17 @@ test('a crowd body come close takes its person\'s age and build: an elder\'s bod
   assert.equal(h.years, 72);
   h.setBuild('slim', 32);
   assert.equal(h.body.geometry, adult, 'cached');
-  // a Quaternius body has no ages
-  const q = new Humanoid(personTemplate(data, { kind: 'f' }), buildCharacter(), 'f');
-  assert.equal(q.profile.source, 'makehuman');
+});
+
+test('the crowd\'s bodies are made ahead, while the page is idle: every build of a grown-up and an elder', async () => {
+  const people = new MakeHumanPeople(data, 'bazaar');
+  const n = await people.warm({ gap: 0 });
+  assert.equal(n, 16);
+  const t = people.template('f');
+  const before = data.cache.size;
+  const h = new Humanoid(t, buildCharacter(), 'f');
+  h.setBuild('heavy', 72);
+  assert.equal(data.cache.size, before, 'an elder\'s heavy body was ready');
 });
 
 test('cloth and ragdolls fit the new girths: a heavy belly, a child\'s thin limbs', () => {
@@ -190,4 +198,37 @@ test('the named desert people follow their character sheets', () => {
   assert.equal(at('marrow').mask, 'browgoggles'); assert.equal(at('marrow').head, 'raghood'); assert.notEqual(ageClassOf({ def: PEOPLE.marrow, dress: at('marrow') }), 'elder');
   assert.equal(at('sefa').head, 'braid'); assert.equal(at('sefa').capeLen, 1.45);
   assert.equal(at('speaker').head, 'wizard'); assert.equal(at('speaker').mask, 'veil');
+});
+
+test('a cape on a heavy MakeHuman body hangs round its belly, not through it', async () => {
+  const { loadAssets } = await import('./gait-sim.js');
+  const { NPC } = await import('../src/npc.js');
+  const { Physics } = await import('../src/physics.js');
+  const { resetDrapes } = await import('../src/cape.js');
+  resetDrapes();
+  const { lib } = await loadAssets();
+  const scene = new THREE.Scene();
+  scene.add(new THREE.Mesh(new THREE.PlaneGeometry(200, 200).rotateX(-Math.PI / 2)));
+  scene.updateMatrixWorld(true);
+  const people = new MakeHumanPeople(data, 'desert');
+  const def = { id: 'test.heavy', name: 'Heavy', kind: 'm', cape: 1.25, palette: {}, look: { build: 'heavy', robe: 0, body: 'none' } };
+  const npc = new NPC(scene, new Physics(scene), { route: [new THREE.Vector3()], def, kind: 'm', cape: 1.25, look: def.look, world: 'desert', lines: ['…'], lib, human: people.humans()[0] });
+  assert.equal(npc.humanoid.build, 'heavy');
+  npc.heading = 0;
+  const player = { pos: new THREE.Vector3(0, 0, 6), vel: new THREE.Vector3(), riding: false, ride: null, wind: new THREE.Vector3() };
+  const camera = new THREE.PerspectiveCamera(); camera.position.set(0, 1.6, 5);
+  for (let f = 0; f < 240; f++) npc.update(1 / 60, player, camera);
+  const H = npc.humanoid, g = segmentGirths(H.body)[0] * npc.object.scale.y;
+  const a = H.b.pelvis.getWorldPosition(new THREE.Vector3()), b = H.b.spine_03.getWorldPosition(new THREE.Vector3());
+  const c = npc.cape, m = c.hung ? c.mesh.matrixWorld : new THREE.Matrix4(), p = new THREE.Vector3(), ab = b.clone().sub(a);
+  let inside = 0, near = 0;
+  for (let i = 0; i < c.p.length; i += 3) {
+    p.set(c.p[i], c.p[i + 1], c.p[i + 2]).applyMatrix4(m);
+    const t = THREE.MathUtils.clamp(p.clone().sub(a).dot(ab) / ab.lengthSq(), 0, 1);
+    if (t <= 0 || t >= 1) continue;
+    near++;
+    if (p.distanceTo(a.clone().addScaledVector(ab, t)) < g * 0.95) inside++;
+  }
+  assert.ok(near > 5, `${near} cloth points by the trunk`);
+  assert.equal(inside, 0, `${inside} cloth points inside the belly (${g.toFixed(3)} m)`);
 });

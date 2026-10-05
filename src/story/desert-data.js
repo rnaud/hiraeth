@@ -278,7 +278,7 @@ export const PEOPLE = {
 
   bako: {
     id: 'bako', name: 'Bako', title: 'ney player', color: '#5fb7ad', voice: 0.75, kind: 'm', age: 'elder', years: 70,
-    // (his character sheet: an old man, a cream head-wrap, a grey beard, a long teal coat over a brown robe,)
+    // (his character sheet: an old man, a cream head-wrap, a grey beard, a long teal coat over a brown robe)
     palette: { cloak: '#5fb7ad', lining: '#2b211f', cloth: '#7a4a35', legs: '#3a3a3a', hat: '#f3ead8', hair: '#b0a89a' }, head: 'wrap', cape: 1.45, look: { mask: 'beard', body: 'none', prop: 'none', robe: 0.06, build: 'slim', trim: 'none' },
     lines: ['~tired~ Hm.', '~happy~ Hmmm-hm.', '~neutral~ (he hums)'],
     talk: { listen: [

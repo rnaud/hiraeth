@@ -1779,7 +1779,7 @@ game's `?mh=1` (the game's default people stay Quaternius, the traveller always:
 are fitted to his body). docs/makehuman.md has the numbers, the pictures and what is left.
 
 - **One body for everyone** (`scripts/makehuman/build.sh`: `build.py` in Blender's background mode,
-  MPFB driving MakeHuman; `public/anim/mh/body.json` + `body.bin`, 1.7 MB, 1.0 gzipped, against 6.4 MB
+  MPFB driving MakeHuman; `public/anim/mh/body.bin` (stage 2: its header in it), 1.7 MB, 1.0 gzipped, against 6.4 MB
   for the prototype's eight people). The reference person is decimated once (12 000 triangles, the
   head and now the hands kept finer) and every other shape of the full mesh maps onto that low mesh.
   MakeHuman blends its macro targets multilinearly between corners (gender × age 1/11/25/90 ×
@@ -1817,6 +1817,45 @@ are fitted to his body). docs/makehuman.md has the numbers, the pictures and wha
 - **The studio**: *Lineup → MakeHuman: every age and build* (`&mh=child,elder` for some ages) and
   *every hairstyle* (and the beard), *Outfit* `l.mhHair` forces a style; the pairs lineup is the
   presets of `src/studio/makehuman.js` (`MH_PRESETS`). `tests/makehuman.test.js`.
+
+### MakeHuman bodies, stage 2: the Desert's people (`MH_WORLDS`, `?mh=0`)
+
+The Desert's people (story and crowd) are MakeHuman bodies by default; `?mh=0` brings back the
+Quaternius ones to compare, `?mh=1` puts any world's people on MakeHuman (`usesMakeHuman` in
+`src/makehuman/people.js`; the other worlds wait for their own review, the Signal Market next).
+docs/makehuman.md has the checks, the numbers and the pictures.
+
+- **The file**: `public/anim/mh/body.bin` is one file now (its JSON header in front: `pack.py`,
+  `unpackBody`), asked for as the page starts and parsed in about 1 ms (the arrays are views on it); the
+  build ships it (1.75 MB, 1.06 MiB compressed; `MAKEHUMAN=0` leaves it out).
+- **Heights** (`personTemplate`): every MakeHuman sample has its hips where the Quaternius man's are,
+  which made a MakeHuman woman 5 % taller than a man: a grown-up's root scale is corrected
+  (`heightFix`, `Q_TOP`) so heights mean what they meant. The young stand as tall as MakeHuman makes
+  their age beside the grown-ups (`trueScale`); the story says who is a child (`def.age`, `def.years`:
+  Ilo 8, Kito 9, Lou 7.5) and a small story person without an age is one (`CHILD_SCALE`).
+- **The crowd**: a crowd body come close takes its person's build and age (an elder's shape on the
+  pooled skeleton: `Humanoid.setBuild(build, years)`, `profile.yearsOf`) and stands as tall as its
+  figure; its 16 shapes (4 builds, grown-up and elder, each kind) are made ahead while the page is idle
+  (`MakeHumanPeople.warm`); the GPU figure's women's shoulders and everyone's hips moved to the full
+  bodies' joints (`CROWD_BODY` in `src/crowd-shader.js`).
+- **Cloth and ragdolls** (`src/humanoid.js` `segmentGirths`, `CAPSULES`, `CAPSULE_MARGIN`): on a MakeHuman
+  body the cape's colliders are its own girths (each segment's 90th percentile from its bone) plus
+  the margin the Quaternius colliders leave over their skin, at the body's size (a heavy belly, a
+  child's thin arms); the ragdoll's particles likewise (`ragdollRadii`).
+- **Hair**: a scalp under every style (`hair.py` `scalp_of`: the head's skin the shell lies over;
+  `hair.js` `scalpOf` draws it 1.5 mm off the skin in the hair's colour), so the skin no longer shows
+  through the crowns of short02 and short04; the locks' borders are drawn lighter on dark hair
+  (`HAIR_EDGE`), so the strand lines read in shade.
+- **Memory and frame time**: a body's reshaped copies (its builds, its faces) share its triangles, skin
+  and face keys' arrays (`reshapeCopy`); the keys' morph textures are still one per geometry (three's).
+  A costume's colours are parsed once a role and a hair shell's weights set at once (`dress`), so a
+  crowd body re-dressing as it comes close costs no more than a Quaternius one. Measured at the camps
+  and Qanat on High and Handheld (CPU 4x slower): the same frame time as the Quaternius bodies, +30 to
+  +60 MB of JS heap (docs/makehuman.md has the table).
+- **The traveller** stays on his own Quaternius body: his suit, gear and helmet are fitted to it, he
+  is the stranger from the sky, and at a conversation's distance the helmet and visor frame his face.
+- The named people follow their character sheets (`references/The Desert/characters/`).
+  `tests/makehuman-desert.test.js`.
 
 ### Hands (`src/hands.js`)
 

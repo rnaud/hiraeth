@@ -15,7 +15,7 @@
 // world has at most a few dozen distinct bodies, each shared by everyone of that kind, age and build.
 // The traveller stays on his Quaternius body (his suit and gear are fitted to it: stage 2).
 import { loadBody, makeBody, bodyGeometryFor } from './body.js';
-import { personParams, AGES, paramsKey } from './shape.js';
+import { personParams, AGES, paramsKey, MH_BUILDS } from './shape.js';
 import { mhLookPieces, mhStyleOf } from './hair.js';
 import { buildGeometry } from '../humanoid.js';
 import { FACE_MORPHS } from '../morph.js';
@@ -129,6 +129,28 @@ export class MakeHumanPeople {
     if (pooled) return this.template(k, 'adult', 'average');
     const age = ageClassOf({ def, dress });
     return this.template(k === 'f' ? 'f' : 'm', age, dress?.build ?? 'average', yearsOf({ def, dress }));
+  }
+
+  /**
+   * The crowd's bodies made ahead, one every `gap` ms while the page is idle (each ~15-30 ms): every build
+   * of a grown-up and an elder of each kind on the pooled skeletons, so a crowd person coming close never
+   * waits for theirs. Returns a promise of how many.
+   */
+  warm({ gap = 120 } = {}) {
+    const jobs = [];
+    for (const k of ['m', 'f']) for (const years of [AGES.adult, AGES.elder]) for (const build of Object.keys(MH_BUILDS)) jobs.push([k, years, build]);
+    const idle = (f) => (typeof requestIdleCallback === 'function' ? requestIdleCallback(f, { timeout: 2000 }) : setTimeout(f, 0));
+    return new Promise((done) => {
+      let n = 0;
+      const next = () => {
+        if (n >= jobs.length) return done(n);
+        const [k, years, build] = jobs[n++];
+        const t = this.template(k);
+        if (!(years === AGES.adult && build === 'average')) bodyGeometryFor(t, personParams({ kind: k, years, build, world: this.world }));
+        setTimeout(() => idle(next), gap);
+      };
+      idle(next);
+    });
   }
 
   /** [man, woman] grown-ups, where the game passes its Quaternius pair. */

@@ -3,7 +3,9 @@
 // strand lines), and a beard from the skin of the jaw. Each shell vertex is bound to the low body (a
 // triangle, its barycentric weights, an offset), so here it is fitted to whoever wears it: the point
 // on their own triangle, the offset scaled with their head, and their skin's weights there (the head,
-// the neck, the upper spine; never the arms).
+// the neck, the upper spine; never the arms). Under each style its scalp (stage 2: the head's own skin
+// there, just off it, in the hair's colour: no skin through a thin crown), and the locks' borders marked
+// (`edge`) for a lighter strand line on dark hair (humanoid.js HAIR_EDGE).
 //
 // mhLookPieces(look, h) is the MakeHuman body's costumes.js lookPieces (humanoid.js costumeGeometry
 // asks the profile for it): the game's hairstyles (HAIR_IDS) become the nearest MakeHuman style (and
@@ -232,10 +234,10 @@ export function creaseNormals(geo, from, angle = CREASE) {
 function skinnedPiece(h, shell, role = 'hair') {
   const bones = h.body.skeleton.bones, names = h.profile.data.meta.bones.map((b) => b.name);
   const map = names.map((n) => Math.max(0, bones.indexOf(h.b[n])));
-  return {
-    geo: shell.geo.clone(), role, edge: shell.edge ?? null,
-    joints: (i) => [[0, 1, 2, 3].map((q) => map[shell.joints[i * 4 + q]]), [0, 1, 2, 3].map((q) => shell.weights[i * 4 + q])],
-  };
+  const joints = (i) => [[0, 1, 2, 3].map((q) => map[shell.joints[i * 4 + q]]), [0, 1, 2, 3].map((q) => shell.weights[i * 4 + q])];
+  // (all at once, for humanoid.js costumeGeometry: no arrays a vertex)
+  joints.arrays = () => ({ J: Uint16Array.from(shell.joints, (j) => map[j]), W: Float32Array.from(shell.weights) });
+  return { geo: shell.geo.clone(), role, edge: shell.edge ?? null, joints };
 }
 
 /** Every piece a look shows on a MakeHuman body, as costumes.js lookPieces, and `skinned`: the shells. */

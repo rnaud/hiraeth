@@ -836,8 +836,10 @@ export class Humanoid {
       const geo = src.geo.clone();
       const c = new Float32Array(src.roles.length * 3);
       const lift = src.edge ? hairEdge(roleColor(look, 'hair')) : 0;
+      // (each role's colour parsed once: a MakeHuman costume has thousands of vertices)
+      const of = new Map(), colour = (role) => { let k = of.get(role); if (!k) of.set(role, (k = new THREE.Color(roleColor(look, role)))); return k; };
       for (let i = 0; i < src.roles.length; i++) {
-        col.set(roleColor(look, src.roles[i]));
+        col.copy(colour(src.roles[i]));
         if (lift && src.edge[i]) col.lerp(_edgeTo.copy(col).multiplyScalar(HAIR_EDGE.gain).addScalar(HAIR_EDGE.add), lift * src.edge[i]);
         c[i * 3] = col.r; c[i * 3 + 1] = col.g; c[i * 3 + 2] = col.b;
       }
@@ -878,8 +880,13 @@ export class Humanoid {
       for (const k of Object.keys(geo.attributes)) if (k !== 'position' && k !== 'normal') geo.deleteAttribute(k);
       if (!geo.index) geo.setIndex([...Array(geo.attributes.position.count).keys()]);
       const n = geo.attributes.position.count;
-      const J = new Uint16Array(n * 4), W = new Float32Array(n * 4);
-      for (let i = 0; i < n; i++) { const [j, w] = joints(i, geo); J.set(j, i * 4); W.set(w, i * 4); }
+      let J, W;
+      // (a skinned shell brings its weights as arrays: a MakeHuman hairstyle's thousands of vertices)
+      if (joints.arrays) ({ J, W } = joints.arrays());
+      else {
+        J = new Uint16Array(n * 4); W = new Float32Array(n * 4);
+        for (let i = 0; i < n; i++) { const [j, w] = joints(i, geo); J.set(j, i * 4); W.set(w, i * 4); }
+      }
       geo.setAttribute('skinIndex', new THREE.BufferAttribute(J, 4));
       geo.setAttribute('skinWeight', new THREE.BufferAttribute(W, 4));
       (role === 'lamp' ? out.glow : out.main).push({ geo, role, n, edge });

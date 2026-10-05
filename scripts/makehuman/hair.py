@@ -18,7 +18,10 @@ draws hair, a few big shapes with a few strand lines inside:
   5. every vertex bound to the low body: its nearest point on a triangle of the head, neck or upper
      back (the triangle, its barycentric weights) and its offset from it; src/makehuman/body.js fits
      the shell to any head on load (the offset scaled with the head) and weights it from the same
-     triangle (the head, the neck, the upper spine: never the arms).
+     triangle (the head, the neck, the upper spine: never the arms);
+  6. the scalp under it (scalp_of): the head's triangles the shell lies over, which the game draws in
+     the hair's colour just off the skin, so wherever the smoothed shell sank under the skin (the
+     crowns of short02 and short04, where the cards fan out) no skin shows through.
 
 The beard is made the same way from the skin itself: the jaw, chin, cheeks below the cheekbones,
 the sideburns and the upper lip, the lips left clear.
