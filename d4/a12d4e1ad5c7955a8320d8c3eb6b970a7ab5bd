@@ -1,0 +1,23 @@
+src/face-ink.js
+  s_1fd8d0e7b02dcf::t_c5bd0ef3b3d6b1 55,141,160-162,212,214,218,221,234,239,244-246
+src/materials.js
+  s_1fd8d0e7b02dcf::t_911a0f52e942ae 1240-1241
+src/post.js
+  s_1fd8d0e7b02dcf::t_d376bb988ff44f 253,456-458,473,535,550,564,617,817
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d4a12d4e1ad5c7955a8320d8c3eb6b970a7ab5bd",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
