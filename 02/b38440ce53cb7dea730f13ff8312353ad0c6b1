@@ -1,0 +1,55 @@
+src/boxes/effects.js
+  s_1fd8d0e7b02dcf::t_f18ce082f1e140 16,98
+src/boxes/index.js
+  s_1fd8d0e7b02dcf::t_211703a5a66c44 9,60-61
+src/boxes/placements.js
+  s_1fd8d0e7b02dcf::t_4f3d9e7ec12346 19-23,38-41,69-71
+src/items.js
+  s_1fd8d0e7b02dcf::t_32a4e7811bc0a4 75-79
+src/levels/desert.js
+  s_1fd8d0e7b02dcf::t_63177c804b2b1f 13,47-48,93
+src/player.js
+  s_1fd8d0e7b02dcf::t_81548900c8df27 636,1373
+src/story/index.js
+  s_1fd8d0e7b02dcf::t_2f1b30974ac6b4 24,132-133,183,194
+src/temples/boss.js
+  s_1fd8d0e7b02dcf::t_ba585caab015ee 1-338
+src/temples/desert-data.js
+  s_1fd8d0e7b02dcf::t_c3ff756c5eaf3c 1-82
+src/temples/desert.js
+  s_1fd8d0e7b02dcf::t_5211f4518b6542 1-484
+src/temples/guardians.js
+  s_1fd8d0e7b02dcf::t_f3a445f124e5de 1-222
+src/temples/index.js
+  s_1fd8d0e7b02dcf::t_821a279c1000bf 1-125
+src/temples/kit.js
+  s_1fd8d0e7b02dcf::t_8dafa5413c360b 1-297
+src/temples/logic.js
+  s_1fd8d0e7b02dcf::t_2f90a91ecb6fa8 1-244
+src/temples/migrate.js
+  s_1fd8d0e7b02dcf::t_03fcca714f92fd 1-20
+src/temples/pieces.js
+  s_1fd8d0e7b02dcf::t_be09f8661fc317 1-496
+src/temples/runtime.js
+  s_1fd8d0e7b02dcf::t_93f0b665b0d40a 1-197
+tests/boxes.test.js
+  s_1fd8d0e7b02dcf::t_2b41364822e4a2 316
+tests/temples.test.js
+  s_1fd8d0e7b02dcf::t_cabb264bb961b5 1-423
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "02b38440ce53cb7dea730f13ff8312353ad0c6b1",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
