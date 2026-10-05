@@ -1,0 +1,37 @@
+src/items.js
+  s_1fd8d0e7b02dcf::t_0eb78befdfc019 72
+src/levels/atelier.js
+  s_1fd8d0e7b02dcf::t_03f470c5d9f874 7-10
+src/levels/content.js
+  s_1fd8d0e7b02dcf::t_33a5bec80154d1 131
+src/levels/index.js
+  s_1fd8d0e7b02dcf::t_c5776a724a94bb 89
+src/story/bazaar-data.js
+  s_1fd8d0e7b02dcf::t_1c9f4f5d3346c8 135,141,146,221,389,407
+src/story/bazaar.js
+  s_1fd8d0e7b02dcf::t_52ba317d7dbf4d 190
+src/story/calls.js
+  s_1fd8d0e7b02dcf::t_fba46e63c8cc4b 148-149,151-154,161
+src/story/edena-data.js
+  s_1fd8d0e7b02dcf::t_6ba6868c51f785 7-8,119,148,184,226,230,280,282,284
+src/story/garage-data.js
+  s_1fd8d0e7b02dcf::t_584c85de2ff0f8 96,157,159,290,302
+src/story/spheres-data.js
+  s_1fd8d0e7b02dcf::t_a590816e2b8af8 158,162,227
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a87e46b4df133daa81d08a4d4cc210e9c1f8d114",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
