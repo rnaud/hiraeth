@@ -1,0 +1,109 @@
+scripts/unity-export/export-world.mjs
+  s_1fd8d0e7b02dcf::t_d303fd78c32e2e 380-381,421,479-487,490,492,608-628,646
+unity/Memento/Assets/Memento/Editor/Batch.cs
+  s_1fd8d0e7b02dcf::t_384d49c6387703 168-179,191-192
+unity/Memento/Assets/Memento/Runtime/BatchDriver.cs
+  s_1fd8d0e7b02dcf::t_5450ab5276e33c 16,136-157,602-604,607
+unity/Memento/Assets/Memento/Runtime/BatchTravel.cs
+  s_1fd8d0e7b02dcf::t_8beea3b115f033 1-203
+unity/Memento/Assets/Memento/Runtime/BatchTravel.cs.meta
+  s_1fd8d0e7b02dcf::t_59c7f40c779b37 1-2
+unity/Memento/Assets/Memento/Runtime/Crowd.cs
+  s_1fd8d0e7b02dcf::t_27ed791017186f 85-91,95-237
+unity/Memento/Assets/Memento/Runtime/DesertStory.cs
+  s_1fd8d0e7b02dcf::t_5ee510fcba825f 66-67
+unity/Memento/Assets/Memento/Runtime/FarCrowd.cs
+  s_1fd8d0e7b02dcf::t_d20e45fc759590 54-88
+unity/Memento/Assets/Memento/Runtime/Figures.cs
+  s_1fd8d0e7b02dcf::t_a26f5f86c994f4 21,77,79,82-92,95,133,147,150-151,169,233,248
+unity/Memento/Assets/Memento/Runtime/FluidTool.cs
+  s_1fd8d0e7b02dcf::t_a45f34d6b5d644 250
+unity/Memento/Assets/Memento/Runtime/Game.cs
+  s_1fd8d0e7b02dcf::t_0ad136bf136de4 1,10-15,33,43,49-57,69-70,78,81,91-98,105-106,138,152-262
+unity/Memento/Assets/Memento/Runtime/Grass.cs.meta
+  s_1fd8d0e7b02dcf::t_1d4583d042898c 1-2
+unity/Memento/Assets/Memento/Runtime/Hud.cs
+  s_1fd8d0e7b02dcf::t_807d47dcb9c34e 88-101,320
+unity/Memento/Assets/Memento/Runtime/Mechanics.cs.meta
+  s_1fd8d0e7b02dcf::t_2889906d186e2b 1-2
+unity/Memento/Assets/Memento/Runtime/MementoLook.cs
+  s_1fd8d0e7b02dcf::t_3a7736d5c34d73 32-33,43,79,91-92,103,117,119-120,122-123,126-129,131
+unity/Memento/Assets/Memento/Runtime/Play.cs
+  s_1fd8d0e7b02dcf::t_72045654266e04 8-13,20-23,35-36,51,58,60-109,111-119,121-128,136,138,140,143-151,153,155-159,161-176,184,198-203,223
+unity/Memento/Assets/Memento/Runtime/Player.cs
+  s_1fd8d0e7b02dcf::t_cd2cc7de805264 23-24,99-104,166,172-209
+unity/Memento/Assets/Memento/Runtime/Route.cs.meta
+  s_1fd8d0e7b02dcf::t_eaf7bb7300686d 1-2
+unity/Memento/Assets/Memento/Runtime/Save.cs
+  s_1fd8d0e7b02dcf::t_06c16c7928efd0 28
+unity/Memento/Assets/Memento/Runtime/ShipScene.cs
+  s_1fd8d0e7b02dcf::t_80ebc5b873543f 21,42,444
+unity/Memento/Assets/Memento/Runtime/ShipTravel.cs
+  s_1fd8d0e7b02dcf::t_567ffb44ac84d6 1-388
+unity/Memento/Assets/Memento/Runtime/ShipTravel.cs.meta
+  s_1fd8d0e7b02dcf::t_6332736c04e763 1-2
+unity/Memento/Assets/Memento/Runtime/Sounds.cs
+  s_1fd8d0e7b02dcf::t_9155ac367db0dd 50-58,91
+unity/Memento/Assets/Memento/Runtime/Story.cs
+  s_1fd8d0e7b02dcf::t_469fab644075f5 46-47,168-170,172,233
+unity/Memento/Assets/Memento/Runtime/Traffic.cs.meta
+  s_1fd8d0e7b02dcf::t_f4b41ef7e5af40 1-2
+unity/Memento/Assets/Memento/Runtime/UI/LoadingPage.cs
+  s_1fd8d0e7b02dcf::t_28d7bcb85ac158 1-92
+unity/Memento/Assets/Memento/Runtime/UI/LoadingPage.cs.meta
+  s_1fd8d0e7b02dcf::t_259195fb7386b0 1-2
+unity/Memento/Assets/Memento/Runtime/UI/StarMap.cs
+  s_1fd8d0e7b02dcf::t_dc24318c6171e7 32,40,44-47,50,52-60,214-225,258-260,283,295,301-302,313
+unity/Memento/Assets/Memento/Runtime/Voice.cs
+  s_1fd8d0e7b02dcf::t_3cc029cdc82a52 66-88,91-92
+unity/Memento/Assets/Memento/Runtime/Waters.cs.meta
+  s_1fd8d0e7b02dcf::t_d89961f024db68 1-2
+unity/Memento/Assets/Memento/Runtime/WorldLoader.cs
+  s_1fd8d0e7b02dcf::t_8de6374739941c 10-17,34-39,42-83,88,91,95,103-112,116,197-209,231-232,240,261,283
+unity/Memento/Assets/Memento/Runtime/WorldStory.cs
+  s_1fd8d0e7b02dcf::t_f0dc98e57bc366 1-292
+unity/Memento/Assets/Memento/Runtime/WorldStory.cs.meta
+  s_1fd8d0e7b02dcf::t_f659d0b74b2fb4 1-2
+unity/Memento/Assets/Memento/Shaders/Composite.shader
+  s_1fd8d0e7b02dcf::t_7c64802a5b4c17 43-44,170-172,181-182,184-193,198-203,206-215,251-253
+unity/Memento/Assets/Memento/Shaders/Surface.shader
+  s_1fd8d0e7b02dcf::t_6384989fa5bb6f 32-36,52-58,231-354,445,448-450,489-495,530,554
+scripts/unity-export/views-worlds.mjs
+  s_a6982586a2e18f::t_4b9f75cc6813fa 1-41
+scripts/unity-export/web-shots.mjs
+  s_a6982586a2e18f::t_eab5d3ae059132 1-3,16-41
+unity/Memento/Assets/Memento/Runtime/Grass.cs
+  s_a6982586a2e18f::t_353b524ef3b737 1-10
+unity/Memento/Assets/Memento/Runtime/Mechanics.cs
+  s_a6982586a2e18f::t_87c59afdbd937f 1-17
+unity/Memento/Assets/Memento/Runtime/Route.cs
+  s_a6982586a2e18f::t_85f414d5f09df0 1-50
+unity/Memento/Assets/Memento/Runtime/Traffic.cs
+  s_a6982586a2e18f::t_0d9bca98f52792 1-48
+unity/Memento/Assets/Memento/Runtime/Waters.cs
+  s_a6982586a2e18f::t_bf343eb33395fb 1-122
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "04900b8e62620cdde8efb00a66bb4afaa9ed3d85",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_a6982586a2e18f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a5c2f9d8bab5e62b4",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
