@@ -348,9 +348,11 @@ the back gate into the giant's mouth; push the fallen rib off the channel so
 the water runs, the pool fills and the tree drinks; fill the jar; bring it to
 the ship. The ship has power: "The ship hums awake. The galaxy is open."
 
-Side quests: Teo's drum (in the great ribcage, south); take Ilo to the skull;
-walk Oum back to the fires (her knotted cord); Marrow's hoverbike; the masked
-head in the southern dunes; the Sleeping Observatory (three lenses, a roof that
+Side quests: Teo's drum (in the great ribcage, south: pinned against a rib by a
+knuckle of spine; push the knuckle from the side and the drum rolls out like a
+wheel); take Ilo to the skull; walk Oum back to the fires (her knotted cord);
+Marrow's hoverbike; the masked head in the southern dunes (sand drifted over its
+eyes like lids: wash both clear at once and it looks at you); the Sleeping Observatory (three lenses, a roof that
 opens on a constellation).
 
 Keepsakes: *knowing* "What the giants left" (the cave's mural: the giants
@@ -383,7 +385,9 @@ Lodestar that fell into Behla's laundry; up to Dov at the palace gate; stand on
 the palace and look up (the splinter flies home, the billboards read LOOK UP /
 ONCE A DAY, the whole city looks up); tell Nima.
 
-Side quests: carry Pip's ration up to Dov ("Dov's lift token"); light Wren's
+Side quests: carry Pip's ration up to Dov ("Dov's lift token"; first swing it in
+from the old goods hoist over the void: shoot the rusted pin, push the weight
+round the post); light Wren's
 lamp (her cab comes when you hail in the depths). Errand: a taxi token for Vael.
 
 Keepsakes: *word* "Look up once a day"; *thing* "Dov's lift token". Chest: the
@@ -435,8 +439,11 @@ Main quest (`arzach2.bell`): Aube; ride up to the monastery; Calix; fetch the
 clapper from the floating island's church; ring the bell (the cloud sinks);
 listen.
 
-Side quests: carry Ysolde's letter across the long aqueduct to Ondine (and the
-sleeping face on the tower); the cairn that fell up.
+Side quests: carry Ysolde's letter across the long aqueduct to Ondine, who
+answers with the tower's old signal lamp (light it, turn it notch by notch to
+the carved bell facing the rose cliff, and a light answers from Ysolde's
+window), and the sleeping face on the tower; the cairn that fell up. The
+clapper lies under tiles that fell up with it (push them off).
 
 Keepsake: *song* "The bell's note" (it sounds from the tank whenever you shoot).
 Chest: the fluid wings.
@@ -493,7 +500,9 @@ doors to the oculus; open the oil valve; light the Wick (an amber band for the
 tank); watch the wheel turn; pick up the tooth it sheds; bring it to Wen ("You
 were here the year it turned, so that one is yours").
 
-Side quests: Dun's key; read Ossa's three gauges; lay a hand on the warm window.
+Side quests: Dun's key (on a crane swung out over the drop: free the rusted
+collar with a splash, then ratchet the jib in with pushes); read Ossa's three
+gauges; lay a hand on the warm window.
 The Major's scratched numbers on the drum wall: "FOUND IT. NOW WHAT?"
 
 Keepsake: *thing* "A rust gear tooth". Chest: ember mode.
@@ -660,7 +669,10 @@ your colours); the saucer in the deep pool answers, three short, one long; look
 inside (two couches, two names, a drawing of a garden of umbrella trees and
 white pyramids); tell Hollin at the cave; he asks you to come back.
 
-Side quests: Pim's moss-dome latch (a moss lamp); find the skiff's owner.
+Side quests: Pim's moss-dome latch (back on, the door still sticks with moss:
+wake the moss lamp over it, then push it shut; a moss lamp); find the skiff's
+owner (Fen asks you to bring it home once: light his berth lamp and nudge the
+empty skiff in).
 
 Keepsake: *person* "Hollin's lamps" (a promise to come back, or not). Chest:
 the fourth chamber.

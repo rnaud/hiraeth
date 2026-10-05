@@ -2359,3 +2359,80 @@ shimmered, the reactor column filled the middle, the deck felt too big for one p
   13 m and ~2 k tufts (about 18 k triangles).
 - **The Lab** shows them all: the materials row has steel, brushed, chrome, brass, copper, iron,
   painted, the carved inscriptions and a lamp beside the glow, and a meadow past the water pool.
+
+### A quest that fails, fewer fetch quests, and the lore made one story
+
+- **Quests can fail** (`src/story/quests.js`): `quests.fail(id)` ends a quest as `'failed'`
+  (its flag `quest.<id>`; also `failed.<id>` = its title, for the charge). A failed quest is
+  over like a finished one (not active, never tracked, `isEnded`), can't be restarted or
+  retried, runs `onFail` instead of `onDone`, toasts "Failed: …" with three falling notes
+  (`sound.fail`), and the sketchbook files it under its own **Failed** heading with a dashed
+  earth-brown rule, a crossed **✗ Failed** stamp and its `failOutro`. Dialogue can test it
+  (`{ quest, failed: true }`) and do it (`{ fail: id }`). A quest marked `major` toasts as
+  "Quest" and wears ◆ like a main one. The father's charge card lists failed quests under
+  "What you could not mend" (`chargeState({ failed })`, fed by main.js from the flags).
+- **Viridel's tea terraces** (`src/story/terraces.js`, quest `edena.terraces`, Esk in
+  `edena-data.js`; LORE.md, "The quest that fails", says why Viridel): four terraces on the
+  white builders' steps down into the dry hollow south-east of the landing (`TERRACES` in
+  `src/levels/edena.js`; flora and grass keep off them), Esk's tea bushes in rows (instanced),
+  the builders' cistern on the rise with its gate and wheel. The steps are built from the ground
+  up (`terraceLayout`: each step's top is level along x and at least 1.2 m over the one below),
+  white walls with the makers' inscriptions, earth tops, a stone ramp up each wall at the north
+  end; they collide through `physics.addCollider`, in three parts: the sides, the lane (the
+  middle the flood takes) and the gate. The quest: push three clods out of the runnels, top
+  first (a lower one slumps back); at Esk's asking water the roots on the gate's wheel (shoot),
+  then one shove (push). The flood is scripted, ten seconds: the gate tears loose, a white sheet
+  of water runs down the lane (a strip revealed by `drawRange`), each step of the lane sinks and
+  goes as the front passes (its collider dropped), the lane's bushes are swept down into the
+  hollow, the mud fan grows, the cistern empties (`sound.rumble`). What is left is built from the
+  start and shown after: the mud lane with a stream, the fan and a muddy pond, the gate's slab
+  and wheel and broken wall blocks in the mud (colliding), uprooted bushes. `edena.terraces.flooded`
+  rebuilds it like that on every visit (and a save that stopped mid-flood comes back flooded).
+  Then Esk blames you, you say sorry, she says it belongs to the ground now, and it fails. Mira,
+  Sol and Vey each say a word about it once; a recording afterwards has the father on breaking
+  things (`calls.js` beat `broke`), and Viridel's own recording gets a different answer
+  (`REEL.edena.youAfter`). `tests/story-terraces.test.js` runs it end to end and reloads it.
+- **Hands-on steps in the fetch quests** (each one solvable with a plain shot and push; ember
+  shots work where lighting fits; existing stage ids kept, so old saves carry on):
+  - - *Teo's drum* (desert, `src/story/desert-errands.js`): it stands on its rim under the ribcage,
+    pinned against a rib's foot by a knuckle of spine; shoved toward the rib the knuckle only
+    jams tighter, shoved from the side it rolls off and the drum rolls out like a wheel (by
+    hand before the backpack). Stage `free`; flag `desert.drum.freed`.
+  - *The mask in the sand*: sand has drifted over its eyes like lids; a splash washes one clear
+    but the wind sifts it back in seven seconds: clear both at once and it looks at you. Stage
+    `eyes`; flag `desert.mask.eyes`.
+  - *A ration for the guard* (City-Shaft, `src/story/incal.js`, the prop in `src/levels/incal.js`):
+    the tin hangs in an old goods hoist's basket out over the void; shoot out the rusted pin,
+    then push the weight round the post (along the arm it only rocks). Stage `hoist`; flags
+    `incal.hoist.pin`, `incal.hoist.in`.
+  - *A letter across the aqueduct* (Vael II, `src/story/arzach2.js`): Ondine answers with the
+    tower's old signal lamp: light it (shoot), turn its tiller notch by notch (push from the side)
+    until it faces the carved bell toward the rose cliff, and a light answers from Ysolde's
+    window. Stage `lamp`. *The bell's clapper* lies under tiles that fell up with it: push them off.
+  - *The keeper's key* (Buried Machine, `src/story/buried.js`): the crane's jib hangs out over
+    the drop; free its rusted collar with a splash, then ratchet it round with side-on pushes
+    (the pawl only turns one way) until the hook is over the platform. Stage `swing`.
+  - *The moss-dome latch* (Lorn II, `src/story/perdide2.js`): with the latch back, moss in the
+    frame keeps Pim's door from shutting: wake the moss lamp over it (shoot), then push the door
+    shut. Stage `shut`. *Whose skiff?*: Fen asks you to bring the skiff home once: light the lamp
+    on his berth post, step off on his landing and nudge the empty skiff in. Stage `home`.
+  - *Mira's water clock* (Viridel, `src/story/water-clock.js`): the Hangar's errand of a brass
+    gear now ends on the clock: fit it (E), then fill its leaking bowl with three quick splashes
+    so it tips and rings (quest `edena.clock`).
+  - Left as they were, already hands-on: the bird's feathers and the stone hand, the cairn,
+    the machines and Pip's ball, the gauges, the seed (watered), the pools, the fireflies, the
+    plants, the spheres and the pebble, the crates and the oldest sign. The other between-world
+    errands stay light parcels (a greeting gives, a greeting takes), on purpose.
+- **The lore, one story** (LORE.md, section 10, has every decision): the light passed every
+  world the same night, the night the ship was struck, and climbed away; Ilen's message is
+  thirty years on the way; recording 4 is an old one made for him at ten; Odile and Talo were
+  struck twice and went on across the swamp; the spheres came down out of the sky and the
+  white builders copied them; the Hangar's board and Lorn II's Welcome draw the ∩; the bell
+  whistle is clay, not a second bone whistle; the Atelier no longer claims an unlock; Ivo's
+  Footprint points at the chest that exists; a few wrong directions are put right.
+- **People who share a name have ids of their own** (`hask.buried`, `ossa.buried`,
+  `pip.garage`, `lio.edena`, `hollin.perdide2`, `pim.perdide2`, `aube.spheres`, `ivo.perdide`;
+  Clemence's old id `malvina` is `clemence`), so meeting one no longer marks the other in the
+  credits or the mother's "who did you meet". `src/save-migrate.js` brings old saves up once
+  (flag `save.migrated`): a "met" carries over to the renamed person if the save has been to
+  their world; Clemence's flags move outright. `tests/save-migrate.test.js`.
