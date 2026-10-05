@@ -1,0 +1,33 @@
+scripts/unity-export/people.mjs
+  s_1fd8d0e7b02dcf::t_26832e1c14cb59 262-276,279
+unity/Memento/Assets/Memento/Runtime/BatchDriver.cs
+  s_1fd8d0e7b02dcf::t_2666233b5532a6 237-258
+unity/Memento/Assets/Memento/Runtime/FluidTool.cs
+  s_1fd8d0e7b02dcf::t_57281be3c12d4c 175,239
+unity/Memento/Assets/Memento/Runtime/Game.cs
+  s_1fd8d0e7b02dcf::t_b442f43b23d8ed 32
+unity/Memento/Assets/Memento/Runtime/Play.cs
+  s_1fd8d0e7b02dcf::t_b7b65dfaaf41b5 73-74
+unity/Memento/Assets/Memento/Runtime/Wildlife.cs
+  s_1fd8d0e7b02dcf::t_8325b5b13d3b2a 1-399
+unity/Memento/Assets/Memento/Runtime/Wildlife.cs.meta
+  s_1fd8d0e7b02dcf::t_cbba7b132f9c76 1-2
+unity/Memento/Assets/Memento/Shaders/Surface.shader
+  s_1fd8d0e7b02dcf::t_500468fbece1d1 97,103-106,178,183-195
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "890e51e080f79708b46786aa894fed570f2362f1",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
