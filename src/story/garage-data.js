@@ -62,7 +62,7 @@ export const QUESTS = [
 export const PEOPLE = {
   ambroise: {
     id: 'ambroise', name: 'Ambroise', title: 'clerk of the round', color: '#62c3c9', voice: 1.0, kind: 'm',
-    palette: { cloak: '#62c3c9', lining: '#2b211f', cloth: '#f3ead8', legs: '#34405e', hat: '#34405e', hair: '#2b211f' }, head: 'hat', cape: 0.55,
+    palette: { cloak: '#62c3c9', lining: '#2b211f', cloth: '#f3ead8', legs: '#34405e', hat: '#34405e', hair: '#2b211f' }, head: 'hat', cape: 0.55, look: { mask: 'monocle', body: 'toolbelt', prop: 'none', build: 'slim', height: 0.99 },
     lines: ['~playful~ Tick, tick. Tick.', '~tired~ The round goes at noon. Or whenever.', "~scared~ Don’t drop the signal. We have no form for that."],
     talk: {
       entry: [
@@ -175,7 +175,7 @@ export const PEOPLE = {
     },
   },
   pip: {
-    id: 'pip.garage', name: 'Pip', title: 'who doesn’t trust down', color: '#f2c54b', voice: 1.7, kind: 'f', scale: 0.7,
+    id: 'pip.garage', name: 'Pip', title: 'who doesn’t trust down', color: '#f2c54b', voice: 1.7, kind: 'f', scale: 0.7, age: 'child', years: 9,
     palette: { cloak: '#f2c54b', lining: '#2b211f', cloth: '#e88fa6', legs: '#34405e', hat: '#62c3c9', hair: '#6e4a32' }, head: 'hair', cape: 0.55,
     lines: ['~angry~ Down keeps MOVING.', '~shout~ Push it! Go on!', '~curious~ Is it still a ball upside down?'],
     talk: {
