@@ -16,6 +16,7 @@ The same release notes shown in the game (press **N** or open settings).
 - Walking through a door, into a cave, a temple or the crashed ship’s hatch, through the Lab’s doors or the Hangar’s portals is smooth now: a sheet of paper sweeps across and you walk on out of the far side at the pace you had, mid-stride, the camera still where it was behind you, instead of stopping dead with the view snapped in close.
 - The rooms, caves and halls behind every door, and the ship’s cabins, are made ready while the world loads, so the first step inside no longer hitches.
 - Stepping into the ship or a house, the camera comes level gently instead of jumping.
+- A world loads without freezing the page: it is built a piece at a time behind the loading screen, so the pen keeps turning smoothly and the first moments in the world no longer stutter while the rest settles in.
 
 ## v0.60 — 2026-10-05
 

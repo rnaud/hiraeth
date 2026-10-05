@@ -5,6 +5,7 @@ import { makeMaterial, MODE_TERRAIN, MODE_STRATA } from '../materials.js';
 import { Terrain } from '../world.js';
 import { PEOPLE } from '../story/buried-data.js';
 import { attachTemple } from '../temples/index.js';
+import { stepped } from '../load-steps.js';
 
 // ---------------------------------------------------------------------------
 // The Buried Machine (after Moebius): pale cream dunes under a sage sky, with
@@ -147,7 +148,8 @@ export function elbow(c, R, r, bx, by, seg = 8) {
   return g.translate(c.x, c.y, c.z);
 }
 
-export function createBuried(scene) {
+// (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
+export function* buildBuried(scene) {
   const rng = mulberry32(1983);
   const pick = (a) => a[Math.floor(rng() * a.length)];
   const range = (a, b) => a + rng() * (b - a);
@@ -155,7 +157,7 @@ export function createBuried(scene) {
   const noShadow = [];
   const lights = [];
 
-  const terrain = new Terrain({
+  const terrain = yield* Terrain.make({
     size: 4000, seg: 440, height,
     material: { color: '#f3ead2', color2: '#ece0c2', color3: '#dccba6', mode: MODE_TERRAIN, ripples: true },
   });
@@ -163,6 +165,7 @@ export function createBuried(scene) {
   const H = (x, z) => terrain.heightAt(x, z);
 
   // ---------------------------------------------------------- materials
+  yield;
   const strata = (c1, c2, c3, size, extra = {}) => makeMaterial({ color: c1, color2: c2, color3: c3, mode: MODE_STRATA, strataSize: size, ...extra });
   const M = {
     rust: strata('#c8643f', '#b35a3a', '#d9825a', 4.5, { flat: true }),
@@ -189,6 +192,7 @@ export function createBuried(scene) {
   };
 
   // ---------------------------------------------------------- merged buckets: one mesh per material and role
+  yield;
   const buckets = new Map();
   const put = (mat, geo, { solid = true, tag = '' } = {}) => {
     const k = `${mat.uuid}|${solid}|${tag}`;
@@ -198,12 +202,14 @@ export function createBuried(scene) {
   };
 
   // ======================================================== spawn dunes: domed huts and pods
+  yield;
   const avoid = (x, z, r) => (z < CZ0 + 30 && Math.abs(x - cx(z)) < W + 18 + r) || Math.hypot(x - OX, z - OZ) < OR + 20 + r
     || Math.hypot(x, z - 60) < 14 + r || Math.hypot(x - 22, z - 86) < 10 + r
     || Math.hypot(x - HERO_DOME[0], z - HERO_DOME[1]) < 8 + r || Math.hypot(x - TOWER[0], z - TOWER[1]) < 18 + r
     || (Math.abs(z - HERO_PIPE.z) < 6 + r && x > HERO_PIPE.x0 - 6 - r && x < HERO_PIPE.x1 + 6 + r)
     || (() => { const [a, b] = wheelLocal(x, z); return Math.abs(a) < 26 + r && Math.abs(b) < 58 + r; })();
   const chimneys = [];   // chimney tops of the domes near the start (they puff: src/story/buried.js)
+  yield;
   {
     const body = new THREE.CylinderGeometry(4, 4.15, 5.4, 14, 1).translate(0, 0.5, 0).toNonIndexed();
     const band = new THREE.CylinderGeometry(4.35, 4.35, 0.5, 14, 1).translate(0, 3.25, 0).toNonIndexed();
@@ -305,6 +311,7 @@ export function createBuried(scene) {
     put(M.flange, cylBetween(mouth, mouth.clone().addScaledVector(h, 0.7), r * 1.35, r * 1.35, 12), { solid: false });
     put(M.hatch, cylBetween(mouth.clone().addScaledVector(h, 0.4), mouth.clone().addScaledVector(h, 0.75), r * 0.85, r * 0.85, 12), { solid: false });
   }
+  yield;
   {
     archPipe(HERO_PIPE.x0, HERO_PIPE.z, HERO_PIPE.x1, HERO_PIPE.z, 1.5, 5.5, M.pipe);
     let n = 0;
@@ -335,7 +342,9 @@ export function createBuried(scene) {
   }
 
   // ======================================================== the canyon: floor, leaning walls, machine strata
+  yield;
   const zEnd = OZ + 26;   // where the canyon walls meet the drum
+  yield;
   {
     // rust floor strip (laid over the heightfield where the floor is flat)
     const rows = [], cols = 6;
@@ -488,7 +497,9 @@ export function createBuried(scene) {
   }
 
   // ======================================================== the oculus: a teal drum open to the sky
+  yield;
   const porthole = {};
+  yield;
   {
     const g = Math.asin(10 / OR);                 // half-angle of the doorway (faces +z, back up the canyon)
     const h = OTOP - (FLOOR - 2);
@@ -591,6 +602,7 @@ export function createBuried(scene) {
     add(M.steelFlat, T(new THREE.TorusGeometry(5.6, 0.5, 6, 20).rotateX(Math.PI / 2).translate(0, 4, 0)));
   }
   // the reachable one (static, collidable): hovers low over the dunes by the start
+  yield;
   {
     const [x, z] = TOWER, y = H(x, z) + 30;
     derrick((mat, g) => {
@@ -599,7 +611,9 @@ export function createBuried(scene) {
     }, 1, false);
   }
   // the others drift slowly, far off
+  yield;
   for (const [x, y, z, s, sp] of [[230, 120, -170, 1.6, 0.11], [-280, 160, -400, 2.2, -0.07], [320, 190, -640, 2.6, 0.05], [-210, 95, 170, 1.3, 0.09], [-90, 140, -700, 1.9, -0.06]]) {
+    yield;
     const grp = new THREE.Group();
     const local = new Map();
     derrick((mat, g) => { if (!local.has(mat)) local.set(mat, []); local.get(mat).push(g); }, s);
@@ -614,7 +628,9 @@ export function createBuried(scene) {
   }
   // tall chimney stacks with platforms on the dunes
   const stacks = [];
+  yield;
   for (const [x, z, hh] of [[-150, -90, 64], [140, -260, 80], [-190, -420, 70], [110, 140, 52]]) {
+    yield;
     const b = terrain.baseAt(x, z, 4) - 2;
     stacks.push(new THREE.Vector3(x, b + hh + 3, z));
     put(M.steel, new THREE.CylinderGeometry(2.4, 3.2, hh, 12).translate(x, b + hh / 2, z));
@@ -630,12 +646,14 @@ export function createBuried(scene) {
 
   // ======================================================== overhead: the inverted city
   // hung from a pivot above its top, so the whole city can sway when the wheel turns
+  yield;
   const city = new THREE.Group(), cityInner = new THREE.Group();
   city.position.set(CITY_C.x, CITY_Y + 60, CITY_C.z);
   cityInner.position.set(-CITY_C.x, -(CITY_Y + 60), -CITY_C.z);
   city.add(cityInner);
   city.userData.noCollide = true;
   scene.add(city);
+  yield;
   {
     const tag = 'city';
     const add = (i, g) => put(M.city[i], g, { solid: false, tag });
@@ -716,6 +734,7 @@ export function createBuried(scene) {
   }
 
   // ======================================================== the horizon: a colossal ring of arches with a town on its rim
+  yield;
   {
     const tag = 'ring', N = 22, PHI = 1.2, deckY = 330, deckT = 70;
     const dirAt = (phi) => new THREE.Vector3(Math.sin(phi), 0, -Math.cos(phi));
@@ -763,7 +782,9 @@ export function createBuried(scene) {
   // ======================================================== the great wheel, sunk to its axle in the dunes
   // One extruded gear (rim, teeth, spokes and hub in one shape) that the story
   // turns by one tooth; its collision is a plain static disc, so it can turn.
+  yield;
   const wheel = {};
+  yield;
   {
     const { R, tooth, teeth: N, T, sink } = WHEEL;
     const [ax, az] = WHEEL.axle;
@@ -839,8 +860,11 @@ export function createBuried(scene) {
   }
 
   // ======================================================== the pressure gauges (shoot them: the needles stick)
+  yield;
   const gauges = [];
+  yield;
   for (const [gz, s] of GAUGES) {
+    yield;
     const f = floorAt(gz), x0 = cx(gz) + s * (W + 1.6), y = f + 6;
     const post = new THREE.Vector3(x0, f, gz);
     put(M.rustGrid, new THREE.CylinderGeometry(0.55, 0.75, 6.4, 8).translate(x0, f + 3.0, gz));
@@ -875,7 +899,9 @@ export function createBuried(scene) {
   }
 
   // ======================================================== the oculus lamp ("the Wick") and its oil valve
+  yield;
   const wick = {};
+  yield;
   {
     const f = FLOOR, c = new THREE.Vector3(OX, f, OZ);
     put(M.rustGrid, new THREE.CylinderGeometry(1.3, 1.9, 2.4, 12).translate(c.x, f + 1.2, c.z));
@@ -900,7 +926,9 @@ export function createBuried(scene) {
   }
 
   // ---------------------------------------------------------- merge the buckets
+  yield;
   for (const { mat, solid, tag, geos } of buckets.values()) {
+    yield;
     const list = geos.map((g) => {
       const n = g.index ? g.toNonIndexed() : g;
       if (n.attributes.uv) n.deleteAttribute('uv');
@@ -916,10 +944,12 @@ export function createBuried(scene) {
   }
 
   // ---------------------------------------------------------- level description
+  yield;
   const spawn = new THREE.Vector3(0, H(0, 60), 60);
   const inOculus = (x, z) => Math.hypot(x - OX, z - OZ) < OR + 1;
   const inCanyon = (x, z, y) => y < floorAt(z) + 30 && canyonMask(x, z) > 0.5 && z < CZ0 - 30;
   // the Engine-House on the dunes west of the domes, and its rooms far overhead (src/temples/buried.js)
+  yield;
   return attachTemple('buried', scene, {
     id: 'buried',
     floraAvoid: avoid,   // the flora keeps off the canyon, the oculus, the hollow and the hero props (src/flora.js)
@@ -970,3 +1000,4 @@ export function createBuried(scene) {
     },
   });
 }
+export const createBuried = stepped(buildBuried);

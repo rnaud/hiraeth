@@ -145,7 +145,7 @@ test('Passage.prepare: as you come near, the destination is drawn ahead a slice 
   assert.deepEqual(log.map((e) => e[1]), [PASSAGE.perFrame, PASSAGE.perFrame, 1]);
 });
 
-test('WarmDraw: hidden meshes drawn once through a one-layer camera, everything put back as it was', () => {
+test('WarmDraw: hidden meshes drawn once, as a batch of their own, everything put back as it was', () => {
   const scene = new THREE.Scene();
   const room = new THREE.Group(); room.visible = false; room.position.set(0, 1000, 0); scene.add(room);
   const a = new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshBasicMaterial()); room.add(a);
@@ -158,8 +158,8 @@ test('WarmDraw: hidden meshes drawn once through a one-layer camera, everything 
     getRenderTarget() { return this.target; }, setRenderTarget(t) { this.target = t; },
     render(sc, cam) {
       const seen = [];
-      sc.traverseVisible((o) => { if (o.isMesh && o.layers.test(cam.layers)) seen.push(o); });
-      calls.push({ target: this.target, seen, override: sc.overrideMaterial, culled: seen.map((o) => o.frustumCulled) });
+      sc.traverseVisible((o) => { if (o.isMesh) seen.push(o); });
+      calls.push({ target: this.target, seen, override: sc.overrideMaterial, culled: seen.map((o) => o.frustumCulled), parents: seen.map((o) => o.parent), auto: sc.matrixWorldAutoUpdate, world: sc === scene });
     },
   };
   const override = new THREE.MeshBasicMaterial();
@@ -171,12 +171,14 @@ test('WarmDraw: hidden meshes drawn once through a one-layer camera, everything 
   assert.equal(calls.length, 2, 'one draw per pass');
   assert.deepEqual(calls.map((c) => c.target), ['gbuffer', 'shadow']);
   for (const c of calls) assert.deepEqual(new Set(c.seen), new Set([a, b]), 'only the batch, the hidden shown for it');
+  assert.ok(calls.every((c) => !c.world && c.auto === false), 'a scene of its own (not a walk over the world), its matrices left as they are');
+  assert.ok(calls.every((c) => c.parents.every((p) => p === room)), 'each keeps its parent');
   assert.equal(calls[1].override, override, 'the shadow pass in its depth material');
   assert.ok(calls.every((c) => c.culled.every((x) => x === false)), 'never culled away');
   assert.equal(room.visible, false, 'hidden again');
   assert.equal(b.visible, false);
   assert.ok(a.frustumCulled && b.frustumCulled, 'culled as before');
-  assert.equal(a.layers.test(passes[0].camera.layers), false, 'off the warm layer again');
+  assert.deepEqual(room.children, [a, b], 'still in its room');
   assert.equal(scene.overrideMaterial, null);
   assert.equal(W.draw(list), 0, 'each mesh only once');
   assert.deepEqual(W.near([v(0, 1000, 0)], 50), [], 'and not gathered again');

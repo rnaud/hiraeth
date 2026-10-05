@@ -9,6 +9,7 @@ import { mulberry32 } from './noise.js';
 import { formatText } from './story/dialogue.js';
 import { speakBalloon } from './story/voice.js';
 import { simplify } from './lod.js';
+import { runSteps } from './load-steps.js';
 
 // City crowds, Assassin's Creed style: everybody is simulated by one cheap
 // CPU loop (positions, groups, glances, reactions), and drawn in tiers:
@@ -364,7 +365,9 @@ export function walkablePath(physics, pts, { avoid = null, clear = 1.3, lateral 
 }
 
 /** Turn a level's crowd spots into people: validated against the collision world. */
-export function buildPeople(physics, spots, { seed = 7, clear = [] } = {}) {
+export function buildPeople(physics, spots, o = {}) { return runSteps(buildPeopleSteps(physics, spots, o)); }
+/** buildPeople a spot at a time (each is rays through the collision): for a world's load (src/load-steps.js). */
+export function* buildPeopleSteps(physics, spots, { seed = 7, clear = [] } = {}) {
   const rng = mulberry32(seed);
   const avoid = new ClearMap([...(spots.avoid ?? []), ...(spots.clear ?? []), ...clear]);
   const people = [], groups = [], routes = [];
@@ -392,6 +395,7 @@ export function buildPeople(physics, spots, { seed = 7, clear = [] } = {}) {
   };
   // strollers, alone or in pairs, both ways along each route (keeping right)
   for (const sp of spots.walks ?? []) {
+    yield;
     const runs = walkablePath(physics, sp.path, { avoid, loop: sp.loop, lateral: sp.lateral ?? 1.1 });
     const runLen = runs.reduce((s, r) => s + r.pts.length, 0);
     for (const path of runs) {
@@ -436,6 +440,7 @@ export function buildPeople(physics, spots, { seed = 7, clear = [] } = {}) {
   }
   // conversation circles
   for (const sp of spots.groups ?? []) {
+    yield;
     const n = sp.n ?? 3, r = 0.42 + n * 0.17, a0 = rng() * TAU;
     const cx = sp.at.x, cz = sp.at.z;
     if (avoid.blocked(cx, sp.at.y, cz, r * 0.6)) continue;
@@ -461,6 +466,7 @@ export function buildPeople(physics, spots, { seed = 7, clear = [] } = {}) {
   }
   // perches: railings, walls, kerbs and edges
   for (const sp of spots.edges ?? []) {
+    yield;
     if (avoid.blocked(sp.at.x, sp.at.y, sp.at.z, 0.25)) continue;
     const ok = perch(physics, sp, avoid);
     if (!ok) continue;
@@ -569,13 +575,15 @@ export class Crowd {
    * @param o.spots      level.crowdSpots() result
    * @param o.makeNPC    (kind) => NPC with assign(person) / release(): the near-tier pool (omit for no pool)
    * @param o.clear      [{ x, y, z, r }] keep these clear (quest people, the spawn)
+   * @param o.built      buildPeople's result, if already worked out (in steps, during the load)
+   * @param o.pooled     the near tier's bodies, if already made (alternately 'm' and 'f', as makeNPC would)
    */
-  constructor(scene, physics, { spots, makeNPC = null, pool = CROWD_BUDGET.pool, clear = [], seed = 11, range = {} } = {}) {
+  constructor(scene, physics, { spots, makeNPC = null, pool = CROWD_BUDGET.pool, clear = [], seed = 11, range = {}, built = null, pooled = null } = {}) {
     this.scene = scene;
     this.physics = physics;
     this.range = { ...CROWD_RANGE, far: spots.farMax ?? CROWD_RANGE.far, ...range };
     const t0 = typeof performance !== 'undefined' ? performance.now() : 0;
-    Object.assign(this, buildPeople(physics, spots, { seed, clear }));
+    Object.assign(this, built ?? buildPeople(physics, spots, { seed, clear }));
     this.buildMs = (typeof performance !== 'undefined' ? performance.now() : 0) - t0;
     this.rng = mulberry32(seed + 1);
     const n = this.people.length;
@@ -603,7 +611,8 @@ export class Crowd {
     if (this.dist) scene.add(this.dist.mesh);
 
     this.pool = [];
-    if (makeNPC) for (let i = 0; i < pool; i++) this.pool.push({ npc: makeNPC(i % 2 ? 'f' : 'm'), kind: i % 2 ? 'f' : 'm', person: null });
+    if (pooled) pooled.forEach((npc, i) => this.pool.push({ npc, kind: i % 2 ? 'f' : 'm', person: null }));
+    else if (makeNPC) for (let i = 0; i < pool; i++) this.pool.push({ npc: makeNPC(i % 2 ? 'f' : 'm'), kind: i % 2 ? 'f' : 'm', person: null });
     this.frame = 0;
     this.time = 0;
     this.playerPos = new THREE.Vector3();

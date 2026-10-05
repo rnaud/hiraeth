@@ -24,6 +24,7 @@ import { EDENA_TEMPLE } from './edena.js';
 import * as EDENA_WORDS from './edena-data.js';
 import { BAZAAR_TEMPLE } from './bazaar.js';
 import * as BAZAAR_WORDS from './bazaar-data.js';
+import { runSteps } from '../load-steps.js';
 
 // The makers' temples: one great building in each world, a Zelda-style
 // dungeon of rooms and puzzles in that world's architecture, with a gadget
@@ -100,8 +101,10 @@ export function attachTemple(levelId, scene, level, { game = sharedGame } = {}) 
     const avoid = level.floraAvoid;
     level.floraAvoid = (x, z, r = 0) => keep.some((c) => Math.hypot(x - c.x, z - c.z) < c.r + r) || !!avoid?.(x, z, r);
   }
-  const init = level.init, dynamic = level.dynamic, update = level.update;
-  level.init = (physics) => { init?.call(level, physics); rt.init(physics); };
+  const init = level.init, initSteps = level.initSteps, dynamic = level.dynamic, update = level.update;
+  // (in steps when the level's own are: src/load-steps.js; init runs them straight through)
+  level.initSteps = function* (physics) { if (initSteps) yield* initSteps.call(level, physics); else init?.call(level, physics); rt.init(physics); };
+  level.init = (physics) => runSteps(level.initSteps(physics));
   level.dynamic = () => { const base = dynamic ? dynamic.call(level) : []; return base.length ? [...base, ...rt.solids()] : rt.solids(); };
   level.update = function (dt, t, o = {}) {
     update?.call(level, dt, t, o);

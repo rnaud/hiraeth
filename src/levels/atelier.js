@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, MODE_TERRAIN, MODE_STRATA } from '../materials.js';
 import { Terrain } from '../world.js';
+import { stepped } from '../load-steps.js';
 
 // ---------------------------------------------------------------------------
 // The Atelier: a hidden place off the route (reached only from the worlds
@@ -12,8 +13,9 @@ import { Terrain } from '../world.js';
 
 const PAPER = '#f4ecd8';
 
-export function createAtelier(scene) {
-  const terrain = new Terrain({
+// (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
+export function* buildAtelier(scene) {
+  const terrain = yield* Terrain.make({
     size: 3000, seg: 120,
     height: (x, z) => Math.max(0, Math.hypot(x, z) - 900) * 0.12,   // the page curls up at the edges
     material: { color: PAPER, color2: '#efe5cf', color3: '#e4d8bd', mode: MODE_TERRAIN },
@@ -25,6 +27,7 @@ export function createAtelier(scene) {
   const lights = [];
 
   // the pen nib monument at the centre (the story goal)
+  yield;
   {
     const nib = mergeGeometries([
       new THREE.ConeGeometry(9, 46, 4, 1).rotateY(Math.PI / 4).rotateX(Math.PI).translate(0, 23, 0).toNonIndexed(),   // tip on the page
@@ -49,29 +52,34 @@ export function createAtelier(scene) {
   // the masked head
   place(new THREE.Mesh(new THREE.SphereGeometry(18, 18, 12, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 1.3, 0.9), sketch()), 0);
   // the city-shaft spire with its rings
+  yield;
   {
     const g = mergeGeometries([new THREE.CylinderGeometry(4, 6, 60, 12).translate(0, 30, 0).toNonIndexed(),
       ...[15, 30, 45].map((y) => new THREE.TorusGeometry(10, 0.8, 6, 24).rotateX(Math.PI / 2).translate(0, y, 0).toNonIndexed())]);
     place(new THREE.Mesh(g, sketch('#f0e4cc')), 1);
   }
   // the lone tower
+  yield;
   {
     const g = mergeGeometries([new THREE.CylinderGeometry(2.5, 5, 70, 10).translate(0, 35, 0).toNonIndexed(),
       new THREE.SphereGeometry(7, 12, 8).scale(1, 0.75, 1).translate(0, 74, 0).toNonIndexed()]);
     place(new THREE.Mesh(g, sketch()), 2);
   }
   // the great machine's gears, turning
+  yield;
   {
     const gear = new THREE.Mesh(new THREE.TorusGeometry(14, 1.6, 6, 28), sketch('#ece0c8'));
     place(gear, 3, 18);
     movers.push((t) => { gear.rotation.z = t * 0.2; });
   }
   // the crashed ship
+  yield;
   {
     const g = new THREE.CapsuleGeometry(6, 26, 6, 14).rotateZ(Math.PI / 2 - 0.3);
     place(new THREE.Mesh(g, sketch()), 4, 6);
   }
   // the great crystal
+  yield;
   {
     const parts = [];
     for (let k = 0; k < 6; k++) parts.push(new THREE.ConeGeometry(4, 30 + k * 6, 6).translate(Math.cos(k) * 4, 15 + k * 3, Math.sin(k) * 4).rotateZ((k - 3) * 0.08).toNonIndexed());
@@ -79,6 +87,7 @@ export function createAtelier(scene) {
   }
 
   // the artist's drawing table with a page on it, and loose sheets drifting
+  yield;
   {
     const table = mergeGeometries([
       new THREE.BoxGeometry(7, 0.4, 4.5).rotateX(-0.25).translate(0, 3.1, 0).toNonIndexed(),
@@ -93,7 +102,9 @@ export function createAtelier(scene) {
     sheet.position.set(0, 3.35, 0);
     tm.add(sheet);
   }
+  yield;
   for (let i = 0; i < 40; i++) {
+    yield;
     const s = new THREE.Mesh(new THREE.PlaneGeometry(3, 4), makeMaterial({ color: '#fffaf0', grid: 0.5, side: THREE.DoubleSide }));
     const a = Math.random() * Math.PI * 2, r = 30 + Math.random() * 200, h = 10 + Math.random() * 60, ph = Math.random() * 10;
     s.userData.noCollide = true;
@@ -104,6 +115,7 @@ export function createAtelier(scene) {
     });
   }
 
+  yield;
   return {
     id: 'atelier',
     ground: terrain,
@@ -127,3 +139,4 @@ export function createAtelier(scene) {
     update(dt, t) { for (const m of movers) m(t); },
   };
 }
+export const createAtelier = stepped(buildAtelier);

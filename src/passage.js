@@ -111,15 +111,15 @@ export function carryAcross(player, rig, camera, { to, up = Y, fwd = Z, heading 
 }
 
 // ------------------------------------------------------------------ the destination, drawn ahead
-const WARM_LAYER = 31;
 const _s = new THREE.Vector3();
 
 /**
  * Draws meshes once, unseen, into small render targets of the formats the real passes draw into
  * (the G-buffer's, a shadow map's): what a first sight would do (geometry and textures uploaded,
  * every pipeline the driver builds lazily built), without being seen. Each mesh only once.
- * Hidden ones (rooms off the map, a cave shown only when you are near, the ship's rooms) are shown
- * for the draw; the scene is drawn through a camera that sees one layer, so nothing else is.
+ * A batch is drawn as the children of a scene of its own (shared, not moved: each keeps its parent
+ * and its world matrix), so a draw costs the batch, not a walk over the whole world; hidden ones
+ * (rooms off the map, a cave shown only when you are near, the ship's rooms) are shown for it.
  */
 export class WarmDraw {
   /**
@@ -130,7 +130,8 @@ export class WarmDraw {
     this.renderer = renderer; this.scene = scene; this.passes = passes; this.lodFull = lodFull;
     this.done = new WeakSet();
     this.drawn = 0;
-    for (const p of passes) p.camera.layers.set(WARM_LAYER);
+    this.holder = new THREE.Scene();
+    this.holder.matrixWorldAutoUpdate = false;   // (its children's world matrices are their own, up to date)
     this._list = null; this._n = -1;
   }
 
@@ -172,32 +173,30 @@ export class WarmDraw {
   draw(list) {
     const todo = list.filter((o) => !this.done.has(o));
     if (!todo.length || !this.passes.length) return 0;
-    const R = this.renderer, scene = this.scene;
+    const R = this.renderer, H = this.holder;
     const shown = [], culled = [], swapped = [];
     for (const o of todo) {
-      o.layers.enable(WARM_LAYER);
+      if (!o.visible) { o.visible = true; shown.push(o); }
       if (o.frustumCulled) { o.frustumCulled = false; culled.push(o); }
-      // (it and everything above it shown for the draw: the camera's layer leaves the rest out)
-      for (let p = o; p && p !== scene; p = p.parent) if (!p.visible) { p.visible = true; shown.push(p); }
       const full = this.lodFull?.(o);
       if (full && full !== o.geometry) { swapped.push([o, o.geometry]); o.geometry = full; }
       o.updateWorldMatrix(true, false);
     }
-    const prevTarget = R.getRenderTarget(), prevOverride = scene.overrideMaterial, prevAuto = scene.matrixWorldAutoUpdate;
-    scene.matrixWorldAutoUpdate = false;   // (only the batch matters, and it is up to date)
+    const prevTarget = R.getRenderTarget();
+    H.children = todo;
     try {
       for (const pass of this.passes) {
-        scene.overrideMaterial = pass.override ?? null;
+        H.overrideMaterial = pass.override ?? null;
         R.setRenderTarget(pass.target);
-        R.render(scene, pass.camera);
+        R.render(H, pass.camera);
       }
     } finally {
-      scene.overrideMaterial = prevOverride;
-      scene.matrixWorldAutoUpdate = prevAuto;
+      H.children = [];
+      H.overrideMaterial = null;
       R.setRenderTarget(prevTarget);
-      for (const o of todo) { o.layers.disable(WARM_LAYER); this.done.add(o); }
+      for (const o of todo) this.done.add(o);
       for (const o of culled) o.frustumCulled = true;
-      for (const p of shown) p.visible = false;
+      for (const o of shown) o.visible = false;
       for (const [o, g] of swapped) o.geometry = g;
     }
     this.drawn += todo.length;

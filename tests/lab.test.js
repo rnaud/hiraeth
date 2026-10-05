@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { LEVELS } from '../src/levels/index.js';
 import { ORDER, CONTENT } from '../src/levels/content.js';
-import { createLab, LAB_MATERIALS, LAB_FACES, LAB_DOORS, LAB_PEOPLE, ROOM_RING, roomCentre } from '../src/levels/lab.js';
+import { createLab, LAB_MATERIALS, LAB_FACES, LAB_DOORS, labPeople, ROOM_RING, roomCentre } from '../src/levels/lab.js';
 import { ROOMS } from '../src/levels/lab-rooms.js';
 import { Physics } from '../src/physics.js';
 import { buildFlora, floraKeep } from '../src/flora.js';
@@ -63,8 +63,8 @@ test('the lab has a biome room for every world, a door to each in the hub, far a
 });
 
 test('the rooms\' people are dressed for their own world', () => {
-  assert.equal(LAB_PEOPLE.length, ROOMS.reduce((s, r) => s + r.people.length, 0));
-  for (const p of LAB_PEOPLE) {
+  assert.equal(labPeople().length, ROOMS.reduce((s, r) => s + r.people.length, 0));
+  for (const p of labPeople()) {
     assert.ok(COSTUMES[p.world], `${p.world} has costumes`);
     assert.ok(CONTENT.lab.npcs.includes(p));
     assert.ok(Number.isFinite(p.y));

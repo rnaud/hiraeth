@@ -3,6 +3,7 @@ import { colourScript } from '../timeofday.js';
 import { makeMaterial, MODE_TERRAIN } from '../materials.js';
 import { RoomKit } from './lab-kit.js';
 import { REFERENCE_VIEWS, REFERENCE_SHEETS } from './reference-views.js';
+import { stepped } from '../load-steps.js';
 
 // ---------------------------------------------------------------------------
 // The references: a developer's level (?level=references, or the worlds list, L)
@@ -145,7 +146,8 @@ const COMPARE_NAMES = { off: 'off', corner: 'the panel in a corner', overlay: 't
 /** The desert's own day palette (src/levels/desert.js): ?look=desert draws every view with it and the plain preset. */
 export const DESERT_SKY = ['#92b6c5', '#d7dfd9', '#93a6cf', '#fff9ee', '#fff6dc'];
 
-export function createReferences(scene) {
+// (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
+export function* buildReferences(scene) {
   // ?look=desert: the views in the desert's own colours and ink, not the panels' (to see what the shaders do unaided)
   const asDesert = typeof location !== 'undefined' && new URLSearchParams(location.search).get('look') === 'desert';
   const lights = [], noShadow = [], movers = [];
@@ -206,7 +208,9 @@ export function createReferences(scene) {
   };
 
   // what is drawn: the view you are in. The others are hidden and their matrices frozen (as the Lab's rooms).
+  yield;
   for (const v of views) {
+    yield;
     const g = v.group, base = g.updateMatrixWorld;
     g.updateMatrixWorld = function (force) { if (this.visible) base.call(this, force); };
   }
@@ -222,6 +226,7 @@ export function createReferences(scene) {
   show(views[0]);
 
   // ---- the held camera, the switch between views, the comparison
+  yield;
   let held = null;       // { view, pos, yaw, pitch, mouse }: the camera is the panel's until you move or look
   let pending = 0;       // a switch asked for ([ ], L3 / R3)
   let pendingTo = null;  // or a view by its index (goTo)
@@ -381,5 +386,7 @@ export function createReferences(scene) {
       if (camera && here) updateUi(held?.view ?? here, camera);
     },
   };
+  yield;
   return level;
 }
+export const createReferences = stepped(buildReferences);

@@ -17,6 +17,7 @@ export { KNOCKOVER };
 import { holdAim } from './crowd.js';
 import { Locomotion, gaitFeet, gaitStyle, poseStyle, walkFor } from './locomotion.js';
 import { SkinnedLod, skinnedLods } from './skinned-lod.js';
+import { runSteps } from './load-steps.js';
 
 // People of the world: they walk a looping route, pause and look around,
 // turn and wave when you come close, then say a line in a comic speech
@@ -924,8 +925,18 @@ export class NPC {
  * Scatter a level's people: each walks a small loop around a centre.
  * @param spots [{ at: [x, z] | Vector3, palette, lines, shy, radius, scale, face?, expression?, facing? }]
  */
-export function spawnNPCs(scene, physics, spots, { fromY = 1e4, lib = null, humans = null } = {}) {
-  return spots.map((s, k) => {
+export function spawnNPCs(scene, physics, spots, o = {}) { return runSteps(spawnNPCsSteps(scene, physics, spots, o)); }
+/** spawnNPCs one person a step (each is a body built, dressed and posed): for a world's load (src/load-steps.js). */
+export function* spawnNPCsSteps(scene, physics, spots, { fromY = 1e4, lib = null, humans = null } = {}) {
+  const out = [];
+  for (const [k, s] of spots.entries()) {
+    yield;
+    out.push(spawnOne(scene, physics, s, k, { fromY, lib, humans }));
+  }
+  return out;
+}
+function spawnOne(scene, physics, s, k, { fromY, lib, humans }) {
+  {
     const cx = s.at[0], cz = s.at[1];
     const r = s.radius ?? 14;
     // the same loop on every visit (seeded by where they stand), on gentle ground only:
@@ -956,7 +967,7 @@ export function spawnNPCs(scene, physics, spots, { fromY = 1e4, lib = null, huma
       human: humans ? humans[kind === 'm' ? 0 : 1] : null, kind, def: s.talk ? s : null, head: s.head ?? null, cape: s.cape ?? null, look: s.look ?? null, world: s.world ?? null,
       face: s.face ?? null, expression: s.expression ?? null, facing: s.facing ?? null });
     return npc;
-  });
+  }
 }
 
 /** A hidden NPC body for a crowd's near tier (see crowd.js). */

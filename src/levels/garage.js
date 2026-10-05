@@ -4,6 +4,7 @@ import { mulberry32 } from '../noise.js';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
 import { jitter, soften } from '../world.js';
 import { attachTemple } from '../temples/index.js';
+import { stepped } from '../load-steps.js';
 
 // ---------------------------------------------------------------------------
 // The Sealed Hangar: Major Brask's pocket universe.
@@ -73,7 +74,8 @@ export function hangarMachine(rng, parts = []) {
   return parts;
 }
 
-export function createGarage(scene) {
+// (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
+export function* buildGarage(scene) {
   const rng = mulberry32(1976);
   const pick = (a) => a[Math.floor(rng() * a.length)];
   const movers = [];
@@ -113,6 +115,7 @@ export function createGarage(scene) {
   }
 
   // ======================================================== A: Brask's plateau
+  yield;
   {
     const g = new THREE.CylinderGeometry(210, 120, 70, 30, 6);
     g.translate(0, -35, 0);
@@ -163,6 +166,7 @@ export function createGarage(scene) {
   // Brask's asteroid is a tangle of plumbing: pipes snaking over the ground
   // with valve wheels and pumps, cables slung between the towers, aerials and
   // little cabins everywhere. Kept off the path from the start to the keep.
+  yield;
   {
     const clear = (x, z) => Math.abs(x) < 16 && z > 20 && z < 150;
     const pipeMats = ['#e6875f', '#62c3c9', '#a99be0', '#f2c54b'].map((c) => makeMaterial({ color: c, metal: 'painted' }));
@@ -222,7 +226,9 @@ export function createGarage(scene) {
   }
 
   // ---------------------------------------------------------- the signal board: nine lamps that blink the signal
+  yield;
   const board = { lamps: [], pos: BOARD.clone() };
+  yield;
   {
     const ink = makeMaterial({ color: '#34405e', flat: true, metal: 'painted' });
     const parts = [new THREE.BoxGeometry(0.3, 5.2, 0.3).translate(-1.6, 2.6, 0), new THREE.BoxGeometry(0.3, 5.2, 0.3).translate(1.6, 2.6, 0),
@@ -243,6 +249,7 @@ export function createGarage(scene) {
 
   // ---------------------------------------------------------- hero: the great machine
   // A cathedral of gears turning round a column, pistons pumping at its base.
+  yield;
   {
     const mx = 90, mz = -60;
     const col = new THREE.Mesh(soften(new THREE.CylinderGeometry(6, 9, 80, 14, 8), 0.12).translate(0, 40, 0), stone(5));
@@ -291,8 +298,10 @@ export function createGarage(scene) {
   }
 
   // ======================================================== B: the upside-down quarter
+  yield;
   const relay = {}, deskInfo = {};
   // Built upright in a group, then flipped: its floor faces down, gravity pulls up.
+  yield;
   {
     const grp = new THREE.Group();
     const slab = new THREE.Mesh(new THREE.CylinderGeometry(190, 170, 10, 32).translate(0, -5, 0),
@@ -380,6 +389,7 @@ export function createGarage(scene) {
   }
 
   // ======================================================== C: the ring
+  yield;
   {
     // shell with a slit in the roof (centred on +y) so the sun can shine in
     const shell = facingIn(new THREE.CylinderGeometry(RING_R, RING_R, RING_L, 112, 1, true, Math.PI / 2 + SLIT, Math.PI * 2 - SLIT * 2));
@@ -429,6 +439,7 @@ export function createGarage(scene) {
   }
 
   // ======================================================== portals A -> B -> C -> A
+  yield;
   const aSpawn = new THREE.Vector3(0, 0, 120);
   const bSpawn = B_POS.clone().add(new THREE.Vector3(0, 0, 60));          // on the slab, near the edge
   const cPhi = -Math.PI / 2;                                                // ring bottom: up is +y there
@@ -436,6 +447,7 @@ export function createGarage(scene) {
   const down = new THREE.Vector3(0, -1, 0);
   portal(new THREE.Vector3(0, 0, 170), Y, new THREE.Vector3(0, 0, 1), bSpawn, down, new THREE.Vector3(0, 0, 1), 'B');
   portal(B_POS.clone().add(new THREE.Vector3(0, 0, -150)), down, new THREE.Vector3(0, 0, 1), cSpawn, Y, new THREE.Vector3(1, 0, 0), 'C');
+  yield;
   {
     const phi = Math.PI;                                                   // a quarter-turn round the ring
     const d = ringDir(phi);
@@ -444,6 +456,7 @@ export function createGarage(scene) {
   }
 
   // ======================================================== gravity, zones, falls
+  yield;
   const inRing = (p) => Math.abs(p.x - C_POS.x) < RING_L / 2 + 80 && Math.hypot(p.y - C_POS.y, p.z - C_POS.z) < RING_R + 80;
   const inB = (p) => p.z > 2200;
   const gravityAt = (p) => {
@@ -461,6 +474,7 @@ export function createGarage(scene) {
   const PASS = { in: 0.16, out: 0.4 };   // s: the fade into the portal's light, and out of it
 
   // (the makers' First Garage on the rim: src/temples/garage.js)
+  yield;
   return attachTemple('garage', scene, {
     id: 'garage',
     // the plateau's flora (src/flora.js) keeps off the path from the start to the keep
@@ -563,3 +577,4 @@ export function createGarage(scene) {
     },
   });
 }
+export const createGarage = stepped(buildGarage);
