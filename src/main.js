@@ -904,7 +904,8 @@ const pageUp = () => pageEl.classList.contains('open');
 const menuRoot = () => restartOpen ? restartEl : boxes.busy() && boxes.card.el ? boxes.card.el : menu.open ? menu.el : changelog.open ? changelog.el : pageUp() ? pageEl : storyRt.dialogue.open ? storyRt.dialogue.el : journal.open ? journal.el : picker.classList.contains('open') ? picker : pageEl;
 const closeControllerMenu = () => {
   if (restartOpen) return;   // (only confirm restarts: there is nothing to go back to)
-  if (boxes.busy()) boxes.skip();
+  if (storyRt.moments.playing) storyRt.moments.skip();   // B / ○ skips a moment (src/story/moment.js)
+  else if (boxes.busy()) boxes.skip();
   else if (menu.open) menu.back();
   else if (changelog.open) changelog.toggle(false);
   else if (pageUp()) pageEl.click();
@@ -924,7 +925,7 @@ const controller = new Controller({
     if (name === 'zoomOut' || name === 'zoomIn') rig.dist = THREE.MathUtils.clamp(rig.dist * Math.exp((name === 'zoomOut' ? 1 : -1) * dt), 4, 60);
     if (name === 'back') closeControllerMenu();
     // (in a menu, a conversation or a scene: Start toggles the Start menu, Select the sketchbook)
-    if (name === 'start') menu.toggle(!menu.open);
+    if (name === 'start') { if (storyRt.moments.playing && !menu.open) storyRt.moments.skip(); else menu.toggle(!menu.open); }   // (Menu skips a moment too)
     if (name === 'select') journal.toggle(!journal.open);
     if (name === 'confirm') {
       const root = menuRoot();

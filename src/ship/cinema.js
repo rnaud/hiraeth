@@ -31,6 +31,7 @@ const CSS = `
 #cine .skip { position: absolute; right: calc(22px + var(--safe-right, 0px)); bottom: calc(5.5vh - 10px); font: 12px ui-monospace, Menlo, monospace; color: #f7ecd2; opacity: 0;
   transition: opacity .3s; letter-spacing: .08em; padding: 3px 8px; background: rgba(43, 33, 31, .82); white-space: nowrap; }
 #cine .skip.show { opacity: .9; }
+#cine .skip.press { pointer-events: auto; cursor: pointer; } #cine .skip.press i { display: none; }
 #cine .skip i { display: inline-block; vertical-align: middle; width: 60px; height: 6px; margin-left: 8px; border: 1px solid #f7ecd2; }
 #cine .skip i u { display: block; height: 100%; width: 0; background: #f2c54b; }
 #cine .fade { position: absolute; inset: 0; background: #2b211f; opacity: 0; transition: opacity .6s; }
@@ -290,9 +291,13 @@ export class Cinema {
 
   red(k) { if (this.dom) this.redEl.style.opacity = String(k); }
 
-  skip(k, show) {
+  /** The skip tag: hold-to-skip with its bar (the ship's scenes), or `label` for a press (a moment, src/story/moment.js; tappable). */
+  skip(k, show, label = null) {
     this.skipK = k;
     if (!this.dom) return;
+    const txt = label ?? 'hold ESC to skip', node = this.skipEl.firstChild;
+    if (node && node.nodeType === 3 && node.nodeValue !== txt && (show || !label)) node.nodeValue = txt;
+    this.skipEl.classList.toggle('press', !!label && show);
     const was = this.skipEl.classList.contains('show');
     this.skipEl.classList.toggle('show', show);
     this.skipBar.style.width = `${Math.round(k * 100)}%`;
@@ -332,6 +337,7 @@ export class Cinema {
    */
   dark() {
     if (!this.dom) return false;
+    if (this.held) return true;   // (a moment plays: src/story/moment.js; its toasts come after)
     return this._lidK < 0.9 || this.el.classList.contains('lids') || (parseFloat(this.fadeEl.style.opacity) || 0) > 0.5
       || !!document.querySelector(HOLD_TOASTS);
   }

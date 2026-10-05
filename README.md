@@ -3764,6 +3764,51 @@ the drone; for the quest log you open the menu. Tests: `tests/hud.test.js`, `tes
   Esc on a page goes back to the settings, then out. The title's settings have Controls too.
   The sketchbook (View, J) is unchanged.
 
+### Moments: first times, filmed (`src/story/moment.js`)
+A moment is a short cinematic (6–12 s) for a first time that deserves one, composed like a comic
+page: a few panels, the letterbox, a line or two, the traveller's face and hands in the line's
+tone, a swell of the world's score, then back to you.
+- **The helper.** `MomentStage` (one per world, `storyRt.moments`, handed to each world's setup
+  as `ctx.moments`) plays one `Moment` at a time on the ship's cinematic camera and its Cinema
+  (the same `ship.shot` / `ship.release` the box scene uses, the letterbox, the subtitles).
+  `moments.play({ id, flag, shots, beats, onStart, onFrame, onEnd })` returns the moment, or
+  null when it can't play (no ship's camera, a scene, a conversation or a story page up, the
+  traveller riding or down, its flag already set): the caller then does what it always did.
+  A shot is `{ dur, from, to?, ease?, clear? }`; `from` / `to` are frames `{ pos, look, fov }`,
+  Vector3s or functions of the shot's time (to follow a stream's head, a face); no `to` holds.
+  `shotAt(shots, t)` is pure (tested). Beats `{ t, line?, secs?, run? }` say a line (`spoken()`,
+  with its tone: the traveller's face and hands take it) or run a cue. `m.face` / `m.eyes` turn
+  him and his eyes; `m.look` holds a tone on his face; `faceOf(humanoid)` gives where his face
+  is and looks as posed, for close-ups that never catch an ear. While one plays the idle's
+  look-around waits, the game's toasts wait (`cinema.held`), input is cut (`storyRt.busy()`).
+- **Once, skippable, never in the way.** Its flag is set as it starts. B / ○, the Menu button,
+  Esc or a tap on the corner tag skips it, after a 0.6 s grace (the press that started it,
+  mashed, doesn't end it) and on the next frame (the key opens nothing else). An error in a
+  frame ends it at once; `onEnd(m, skipped)` always runs, and the state a moment shows is
+  applied by its caller for sure there (and on its beats), so a skip or a failure lands the
+  same as watching it. Nothing is compiled mid-shot: a moment only moves the camera and what
+  already exists (measured: `renderer.info.programs` unchanged through both, High and Handheld).
+- **Sound**: `sound.swell(kind, pos)` plays a phrase of the world's score over a growing pad
+  while the score and the bands step back: `'motif'` the world's leitmotif on its lead,
+  `'father'` the father's theme in the world's mode on its voice for it.
+- **The desert's two** (`src/story/desert-moments.js`):
+  - *the water's first run* (`desert.moment.flow`), when the rib comes off the channel: A, high
+    beyond the gutter, the rib rolling clear past the post and the traveller; B, a long lens up
+    the gutter from past its end, the crack lighting and the water coming down it (the flow
+    waits for this panel, `st.flowDelay`); C, high over the gutter's end across the basin, the
+    pool spreading over the dry bed round the roots, its light coming up; D, his face,
+    three-quarter, lit from below: "It's running… like the giants on the mural." The world's
+    motif swells over it; its toast comes after.
+  - *the empty tank's first fill* (`desert.moment.fill`), the first wade with the dry tank: A,
+    over the water at him standing in the pool; B, over his shoulder on the glass as the water
+    climbs into it slowly in three colours (`tool.fillTo` holds the glass's level), its glow on
+    his back; C, beside him: he lifts the bracer, its rings light one by one, and a first glob
+    (`tool.spark(dir)`, spending nothing) splashes out across the pool; D, his face: "Full. So
+    that's what it was waiting for." To the father's theme. The jar fills and the controls are
+    said (RT / R2, RB / R1) at its end.
+  - Tests: `tests/moment.test.js` (the shots, a play through, the skip and its grace, a failure,
+    the stage's refusals, and both desert moments in the story: once, skipped, without a ship).
+
 ## The makers' temples
 
 Each world has one great building of the makers, a Zelda-style dungeon with a

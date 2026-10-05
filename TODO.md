@@ -622,8 +622,14 @@ All of this is for the web game; the Unity port follows later if we move to Unit
 
 - [ ] Walking into a building, a cave or the ship (where you're moved into another space) is janky:
   make the hand-over smooth and free of stutter.
-- [ ] A few moments deserve a little cinematic: the first time the magic water flows into the basin in
+- [x] A few moments deserve a little cinematic: the first time the magic water flows into the basin in
   the cave, and the first time you fill the tank and discover what it does.
+  *Done: a reusable moment helper (`src/story/moment.js`: panels, eases, holds, the letterbox, a
+  skip with B / Menu / Esc / a tap, once per save, falling back to the old behaviour), and the
+  desert's two (`src/story/desert-moments.js`): the rib rolling off, the crack, the water down the
+  gutter and spreading over the basin, his face, to the world's motif; the empty tank filling in
+  three colours, the bracer's rings, a first glob, his face, to the father's theme, then the
+  controls. README, "Moments: first times, filmed".*
 
 # HUD (2026-10-05, web)
 
