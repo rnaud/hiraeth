@@ -71,6 +71,13 @@ Shader "Memento/Surface"
       uint iid : SV_InstanceID;  // the crowd's instanced figures (MEMENTO_CROWD)
     };
 
+    // instanced parts with a whole transform each (the wildlife: InstMats in Wildlife.cs): three rows of a 3x4 matrix and a tint
+    struct MatInst { float4 r0, r1, r2, col; };
+    StructuredBuffer<MatInst> _Mats;
+    // the flora's plants (WorldDetail.cs, flora.js): each instance three rows of a 3x4 matrix (Unity's frame) and a tint
+    struct FloraInst { float4 r0, r1, r2, col; };
+    StructuredBuffer<FloraInst> _Flora;
+
     // the wind bend of an instanced plant (materials.js SWAY), as a world displacement (Unity space)
     float3 swayOffset(float4 sw)
     {
@@ -90,6 +97,19 @@ Shader "Memento/Surface"
       float2 d3 = bend * sw.z + shove * sw.w;
       return float3(-d3.x, 0.0, d3.y);
     }
+    // a plant placed by its instance, as the export merged it before (statics.mjs append): the world position,
+    // the sway anchored at the plant's origin (its bend by height, its lean), the normal by the inverse transpose
+    void floraPlace(FloraInst fi, float3 q, float3 n, out float3 world, out float3 swayed, out float3 nW)
+    {
+      float3 c0 = float3(fi.r0.x, fi.r1.x, fi.r2.x), c1 = float3(fi.r0.y, fi.r1.y, fi.r2.y), c2 = float3(fi.r0.z, fi.r1.z, fi.r2.z);
+      float det = dot(c0, cross(c1, c2));
+      float s = pow(max(abs(det), 1e-12), 1.0 / 3.0);
+      world = float3(dot(fi.r0.xyz, q) + fi.r0.w, dot(fi.r1.xyz, q) + fi.r1.w, dot(fi.r2.xyz, q) + fi.r2.w);
+      float y = max(q.y, 0.0);
+      float4 sw = float4(fi.r0.w, fi.r2.w, _Sway * y * y / s, 0.45 * min(y * s, 1.4) / s);
+      swayed = world + swayOffset(sw);
+      nW = normalize((cross(c1, c2) * n.x + cross(c2, c0) * n.y + cross(c0, c1) * n.z) * sign(det));
+    }
     ENDHLSL
 
     Pass
@@ -104,18 +124,63 @@ Shader "Memento/Surface"
       #pragma target 4.5
       #pragma vertex vert
       #pragma fragment frag
-      #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
-      #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
-      #pragma multi_compile_local _ MEMENTO_CROWD MEMENTO_PUFFS MEMENTO_INSTMAT MEMENTO_GRASS
+      #pragma multi_compile_local _ MEMENTO_CROWD MEMENTO_PUFFS MEMENTO_INSTMAT MEMENTO_GRASS MEMENTO_FLORA
       #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
       #include "Crowd.hlsl"
+      // the sun's shadow maps (MementoShadows.cs, materials.js getShadow): fine, near, far; each its matrix
+      // into [0, 1] texture space, its bias (depth units), normal offset (m), texel (m), on; 4 or 9 taps
+      TEXTURE2D_SHADOW(_MShadowMap0); TEXTURE2D_SHADOW(_MShadowMap1); TEXTURE2D_SHADOW(_MShadowMap2);
+      float4x4 _MShadowMat0, _MShadowMat1, _MShadowMat2;
+      float4 _MShadowParams0, _MShadowParams1, _MShadowParams2, _MShadowSize;
+      float _MShadowTaps, _MShadowOn;
+      // sampleShadow: the point pushed out along the normal (more towards grazing light), faded out at the map's
+      // edges; where a texel is smaller than the pixel the taps spread to the pixel's footprint
+      float mSampleShadow(TEXTURE2D_SHADOW_PARAM(map, smp), float4x4 m, float4 prm, float inv, float3 wp, float3 nU, float sinL, float spread, out float inside)
+      {
+        inside = 0.0;
+        if (prm.w <= 0.0) return 1.0;
+        float3 p = mul(m, float4(wp + nU * (prm.y * (0.35 + 0.65 * sinL)), 1.0)).xyz;
+        float2 e = smoothstep(0.0, 0.06, p.xy) * (1.0 - smoothstep(0.94, 1.0, p.xy));
+        #if UNITY_REVERSED_Z
+          inside = p.z < 0.0 ? 0.0 : e.x * e.y;
+          float z = p.z + prm.x;
+        #else
+          inside = p.z > 1.0 ? 0.0 : e.x * e.y;
+          float z = p.z - prm.x;
+        #endif
+        if (inside <= 0.0) return 1.0;
+        float2 tx = spread * inv;
+        if (_MShadowTaps < 5.0) {
+          float2 o = tx * 0.5;
+          return 0.25 * (SAMPLE_TEXTURE2D_SHADOW(map, smp, float3(p.xy + float2(-o.x, -o.y), z)) + SAMPLE_TEXTURE2D_SHADOW(map, smp, float3(p.xy + float2(o.x, -o.y), z))
+                       + SAMPLE_TEXTURE2D_SHADOW(map, smp, float3(p.xy + float2(-o.x, o.y), z)) + SAMPLE_TEXTURE2D_SHADOW(map, smp, float3(p.xy + float2(o.x, o.y), z)));
+        }
+        float sum = 0.0;
+        UNITY_UNROLL for (int x = -1; x <= 1; x++)
+          UNITY_UNROLL for (int y = -1; y <= 1; y++)
+            sum += SAMPLE_TEXTURE2D_SHADOW(map, smp, float3(p.xy + float2(x, y) * tx, z));
+        return sum / 9.0;
+      }
+      // ndl: light facing (> 0); px: the pixel's footprint in metres; wp, nU in Unity space
+      float getShadow(float3 wp, float3 nU, float ndl, float px)
+      {
+        if (_MShadowOn <= 0.0) return 1.0;
+        float iF, i0, i1;
+        float sinL = sqrt(max(1.0 - ndl * ndl, 0.0));
+        float3 spread = clamp(px / max(float3(_MShadowParams0.z, _MShadowParams1.z, _MShadowParams2.z), 1e-6), 1.0, 2.5);
+        float sF = mSampleShadow(TEXTURE2D_SHADOW_ARGS(_MShadowMap0, sampler_LinearClampCompare), _MShadowMat0, _MShadowParams0, _MShadowSize.x, wp, nU, sinL, spread.x, iF);
+        if (iF >= 1.0) return sF;
+        float s0 = mSampleShadow(TEXTURE2D_SHADOW_ARGS(_MShadowMap1, sampler_LinearClampCompare), _MShadowMat1, _MShadowParams1, _MShadowSize.y, wp, nU, sinL, spread.y, i0);
+        if (i0 < 1.0) {
+          float s1 = mSampleShadow(TEXTURE2D_SHADOW_ARGS(_MShadowMap2, sampler_LinearClampCompare), _MShadowMat2, _MShadowParams2, _MShadowSize.z, wp, nU, sinL, spread.z, i1);
+          s0 = lerp(lerp(1.0, s1, i1), s0, i0);
+        }
+        return lerp(s0, sF, iF);
+      }
       // instanced puffs (smoke, embers, dust, footprints: Puffs.cs): where, how big, which way, what colour
       struct PuffInst { float4 at; float4 size; float4 col; };   // at.w yaw, size.w pitch, col.w roll (rad, Unity)
       StructuredBuffer<PuffInst> _Puffs;
       float4 _FarDepth;
-      // instanced parts with a whole transform each (the wildlife: InstMats in Puffs.cs): three rows of a 3x4 matrix and a tint
-      struct MatInst { float4 r0, r1, r2, col; };
-      StructuredBuffer<MatInst> _Mats;   // x: from this view depth on, y: the depth grows this much slower (smoke-column far shading); 0 off
       // the grass tufts round the camera (Grass.cs, flora-grass.js): root xyz (Unity), height; turn, tint, lean, rank
       struct GrassInst { float4 at; float4 b; };
       StructuredBuffer<GrassInst> _GrassInst;
@@ -245,6 +310,20 @@ Shader "Memento/Surface"
           float ms = length(mi.r0.xyz);
           o.objPos = toThree(q * ms); o.objNormal = toThree(v.normalOS); o.objRel = o.objPos - toThree((_WorldSpaceCameraPos - float3(mi.r0.w, mi.r1.w, mi.r2.w)));
           o.bind = 0;
+        #endif
+        #if defined(MEMENTO_FLORA)
+          {
+            float3 fw, fs, fn;
+            floraPlace(_Flora[v.iid], v.positionOS.xyz, v.normalOS, fw, fs, fn);
+            posWS = fs; nWS = fn;
+            o.positionCS = TransformWorldToHClip(posWS);
+            o.posWS = posWS; o.worldPos = toThree(posWS); o.normal = toThree(nWS);
+            o.instColor = (_NoVertexColor > 0.5 ? float3(1, 1, 1) : v.color.rgb) * _Flora[v.iid].col.rgb;
+            o.viewDepth = -TransformWorldToView(posWS).z;
+            // (patterns anchored in the world, as on the merged chunks the flora was drawn as)
+            o.objPos = toThree(fw); o.objNormal = toThree(fn); o.objRel = o.objPos - toThree(_WorldSpaceCameraPos);
+            o.bind = 0;
+          }
         #endif
         return o;
       }
@@ -512,12 +591,8 @@ Shader "Memento/Surface"
         float ndl = dot(n, _SunDir);
         float lambert = ndl * 0.5 + 0.5;
         float sh = 1.0;
-        if (ndl > 0.0) {
-          float4 sc = TransformWorldToShadowCoord(i.posWS);
-          sh = MainLightRealtimeShadow(sc);
-          sh = lerp(sh, 1.0, GetMainLightShadowFade(i.posWS));
-          sh *= cloudShadow(i.worldPos);
-        }
+        float shadowPx = max(length(ddx(i.posWS)), length(ddy(i.posWS)));   // (outside the branch: derivatives)
+        if (ndl > 0.0) sh = getShadow(i.posWS, toThree(n), ndl, shadowPx) * cloudShadow(i.worldPos);
         float L = lerp(min(lambert, 0.38), lambert, sh);
         L = lerp(L, 1.0, _Glow);
         float local = 0.0;
@@ -636,7 +711,7 @@ Shader "Memento/Surface"
       #pragma vertex shadowVert
       #pragma fragment shadowFrag
       #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
-      #pragma multi_compile_local _ MEMENTO_CROWD
+      #pragma multi_compile_local _ MEMENTO_CROWD MEMENTO_FLORA MEMENTO_INSTMAT
       #pragma target 4.5
       #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
       #include "Crowd.hlsl"
@@ -655,6 +730,16 @@ Shader "Memento/Surface"
           float3 pu = toThree(cp) * cs, nu = toThree(cn);
           posWS = ci.at.xyz + float3(cc * pu.x + sn * pu.z, pu.y, -sn * pu.x + cc * pu.z);
           nWS = normalize(float3(cc * nu.x + sn * nu.z, nu.y, -sn * nu.x + cc * nu.z));
+        #endif
+        #if defined(MEMENTO_FLORA)
+          { float3 fw, fs, fn; floraPlace(_Flora[v.iid], v.positionOS.xyz, v.normalOS, fw, fs, fn); posWS = fs; nWS = fn; }
+        #endif
+        #if defined(MEMENTO_INSTMAT)
+          {
+            MatInst mi = _Mats[v.iid]; float3 q = v.positionOS.xyz;
+            posWS = float3(dot(mi.r0.xyz, q) + mi.r0.w, dot(mi.r1.xyz, q) + mi.r1.w, dot(mi.r2.xyz, q) + mi.r2.w);
+            nWS = normalize(float3(dot(mi.r0.xyz, v.normalOS), dot(mi.r1.xyz, v.normalOS), dot(mi.r2.xyz, v.normalOS)));
+          }
         #endif
         float4 positionCS = TransformWorldToHClip(ApplyShadowBias(posWS, nWS, _LightDirection));
         #if UNITY_REVERSED_Z

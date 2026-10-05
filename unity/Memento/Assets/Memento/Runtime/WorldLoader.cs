@@ -79,6 +79,9 @@ namespace Memento
             built.Clear();
             if (Ground?.mesh) Gone(Ground.mesh);
             foreach (var m in Materials) if (m && (keep == null || !keep.Contains(m))) Gone(m);
+            foreach (var m in extraMaterials) Gone(m);
+            extraMaterials.Clear();
+            Detail?.Release(); Detail = null;
             Objects.Clear(); Materials.Clear();
             World = null; bin = null; Ground = null;
         }
@@ -98,8 +101,12 @@ namespace Memento
             foreach (var m in World.L("materials")) Materials.Add(MakeMaterial(m as Dictionary<string, object>));
 
             var statics = new GameObject("Static world").transform; statics.SetParent(transform, false);
+            Detail?.Release();
+            Detail = new WorldDetail();
             int n = 0;
-            foreach (var c in World.L("chunks")) { var go = Chunk(c as Dictionary<string, object>, statics, $"chunk {n++}"); go.isStatic = true; }
+            foreach (var c in World.L("chunks")) { var go = Chunk(c as Dictionary<string, object>, statics, $"chunk {n++}", Detail); go.isStatic = true; }
+            var floraData = World.O("flora")?.L("sets");
+            if (floraData != null) foreach (var f in floraData) Detail.flora.Add(Flora(f as Dictionary<string, object>));
 
             GameObject tgo = null;
             if (World.O("terrain") != null)
@@ -107,10 +114,23 @@ namespace Memento
                 Ground = new Terrain3(World.O("terrain"), bin);
                 tgo = new GameObject("Terrain");
                 tgo.transform.SetParent(transform, false);
-                tgo.AddComponent<MeshFilter>().sharedMesh = Ground.mesh;
-                tgo.AddComponent<MeshRenderer>().sharedMaterial = Materials[World.O("terrain").I("material")];
                 tgo.isStatic = true;
+                // drawn in 260 m tiles (perf.js tileScene), so each pass draws only the ones it sees; the whole for the collision
+                var tmat = Materials[World.O("terrain").I("material")];
+                int ti = 0;
+                foreach (var (mesh, c, r) in Ground.Tiles(260))
+                {
+                    built.Add(mesh);
+                    var t = new GameObject($"terrain tile {ti++}");
+                    t.transform.SetParent(tgo.transform, false); t.isStatic = true;
+                    var mf = t.AddComponent<MeshFilter>(); mf.sharedMesh = mesh;
+                    var mr = t.AddComponent<MeshRenderer>(); mr.sharedMaterial = tmat;
+                    int tris = (int)(mesh.GetIndexCount(0) / 3);
+                    Detail.Add(new WorldDetail.Unit { mr = mr, mf = mf, full = mesh, cur = mesh, c = c, r = r, sc = 1, shadow = true, mat = tmat, tris = tris, curTris = tris, terrain = true });
+                }
             }
+            WorldDetail.Current = Detail;
+            WorldDetail.Install();
 
             if (colliders)
             {
@@ -213,16 +233,89 @@ namespace Memento
             return mat;
         }
 
-        GameObject Chunk(Dictionary<string, object> c, Transform parent, string name)
+        GameObject Chunk(Dictionary<string, object> c, Transform parent, string name, WorldDetail detail = null)
         {
             var go = new GameObject(name);
             go.transform.SetParent(parent, false);
-            go.AddComponent<MeshFilter>().sharedMesh = BuildMesh(c, true);
+            var mf = go.AddComponent<MeshFilter>();
+            var mesh = mf.sharedMesh = BuildMesh(c, true);
             var mr = go.AddComponent<MeshRenderer>();
-            mr.sharedMaterial = Materials[c.I("material")];
-            mr.shadowCastingMode = Materials[c.I("material")].GetFloat("_Glow") >= 1 ? ShadowCastingMode.Off : ShadowCastingMode.On;
+            var mat = mr.sharedMaterial = Materials[c.I("material")];
+            // (self-lit things give light, they don't block it: main.js glowCasters, uGlow >= 0.8)
+            var u = c.O("unit");
+            bool shadow = mat.GetFloat("_Glow") < 0.8f && (u == null || u.I("shadow", 1) == 1);
+            mr.shadowCastingMode = shadow ? ShadowCastingMode.On : ShadowCastingMode.Off;
+            if (detail != null && u != null)
+            {
+                // its levels of detail and how it is culled (statics.mjs: the web's tileScene, LodManager, SmallCuller)
+                var sp = u.L("sphere");
+                int tris = c.I("indices") / 3;
+                var unit = new WorldDetail.Unit
+                {
+                    mr = mr, mf = mf, full = mesh, cur = mesh, mat = mat, tris = tris, curTris = tris,
+                    c = new Vector3(Json.Num(sp[0]), Json.Num(sp[1]), Json.Num(sp[2])), r = Json.Num(sp[3]), sc = u.F("sc", 1),
+                    small = u.I("small") == 1, prop = u.F("prop"), drawFar = u.F("drawFar"), shadow = shadow,
+                    jmin = u.I("jmin"), jmax = u.I("jmax", -1),
+                };
+                var lods = c.L("lods");
+                if (lods != null && lods.Count > 0)
+                {
+                    unit.levels = new Mesh[lods.Count]; unit.js = new int[lods.Count]; unit.levelTris = new int[lods.Count];
+                    for (int i = 0; i < lods.Count; i++)
+                    {
+                        var l = lods[i] as Dictionary<string, object>;
+                        unit.levels[i] = BuildMesh(l, true); unit.levels[i].name = $"{name} lod {l.I("j")}";
+                        unit.js[i] = l.I("j"); unit.levelTris[i] = l.I("indices") / 3;
+                    }
+                }
+                detail.Add(unit);
+            }
             return go;
         }
+
+        /// <summary>A species of the flora (statics.mjs): its plant and far copy, every plant as an instance, filed by cell.</summary>
+        WorldDetail.FloraSet Flora(Dictionary<string, object> f)
+        {
+            var src = Materials[f.I("material")];
+            var mat = new Material(src) { name = src.name + " (flora)" };
+            mat.EnableKeyword("MEMENTO_FLORA");
+            extraMaterials.Add(mat);
+            var set = new WorldDetail.FloraSet
+            {
+                species = f.S("species"), mat = mat, count = f.I("count"), far = f.F("far"), behind = f.F("behind"), lodCell = f.F("lodCell"),
+                small = f.I("small") == 1, shadow = f.I("shadow", 1) == 1,
+            };
+            set.mesh = BuildMesh(f.O("geo"), true); set.mesh.name = set.species;
+            set.mesh.bounds = new Bounds(Vector3.zero, Vector3.one * 1e5f);
+            if (f.O("farGeo") != null) { set.farMesh = BuildMesh(f.O("farGeo"), true); set.farMesh.name = set.species + " far"; set.farMesh.bounds = set.mesh.bounds; }
+            int n = set.count;
+            var rows = new float[n * 12]; var cols = new float[n * 3];
+            Copy(f.I("rows"), rows, rows.Length * 4); Copy(f.I("cols"), cols, cols.Length * 4);
+            set.inst = new WorldDetail.FloraSet.Inst[n];
+            for (int i = 0; i < n; i++)
+            {
+                int o = i * 12;
+                set.inst[i] = new WorldDetail.FloraSet.Inst
+                {
+                    r0 = new Vector4(rows[o], rows[o + 1], rows[o + 2], rows[o + 3]), r1 = new Vector4(rows[o + 4], rows[o + 5], rows[o + 6], rows[o + 7]),
+                    r2 = new Vector4(rows[o + 8], rows[o + 9], rows[o + 10], rows[o + 11]), col = new Vector4(cols[i * 3], cols[i * 3 + 1], cols[i * 3 + 2], 1),
+                };
+            }
+            var cells = f.L("cells");
+            set.cc = new Vector3[cells.Count]; set.cr = new float[cells.Count]; set.cs = new int[cells.Count]; set.cn = new int[cells.Count]; set.cellFar = new bool[cells.Count];
+            for (int i = 0; i < cells.Count; i++) { var cl = cells[i]; set.cc[i] = cl.V3("c"); set.cr[i] = cl.F("r"); set.cs[i] = cl.I("start"); set.cn[i] = cl.I("count"); }
+            // (the small plants of a cell in a fixed shuffled order: a preset's floraDensity keeps the first share of each)
+            if (set.small)
+                for (int c = 0; c < set.cc.Length; c++)
+                {
+                    var rng = new System.Random(set.cs[c] * 7919 + 17);
+                    for (int i = set.cn[c] - 1; i > 0; i--) { int j = rng.Next(i + 1); (set.inst[set.cs[c] + i], set.inst[set.cs[c] + j]) = (set.inst[set.cs[c] + j], set.inst[set.cs[c] + i]); }
+                }
+            return set;
+        }
+        readonly List<Material> extraMaterials = new();
+        /// <summary>What each camera draws of this world, and how finely (levels of detail, culling, the flora).</summary>
+        public WorldDetail Detail { get; private set; }
 
         public NativeArray<T> Slice<T>(int at, int count) where T : struct
         {
@@ -287,6 +380,38 @@ namespace Memento
             mesh.colors = cols;
             mesh.RecalculateNormals();
             mesh.RecalculateBounds();
+        }
+
+        /// <summary>
+        /// The mesh cut into tiles of `size` metres (perf.js tileScene, by grid cell): its own vertices each
+        /// (with the normals of the whole, so the seams stay smooth), its bounding sphere.
+        /// </summary>
+        public IEnumerable<(Mesh mesh, Vector3 c, float r)> Tiles(float size)
+        {
+            var v = mesh.vertices; var nrm = mesh.normals;
+            int per = Mathf.Max(1, Mathf.RoundToInt(size / step));
+            var map = new int[n * n];
+            for (int tz = 0; tz < seg; tz += per)
+                for (int tx = 0; tx < seg; tx += per)
+                {
+                    int x1 = Mathf.Min(seg, tx + per), z1 = Mathf.Min(seg, tz + per);
+                    var pv = new List<Vector3>(); var pn = new List<Vector3>(); var idx = new List<int>();
+                    System.Array.Fill(map, -1);
+                    int V(int ix, int iz) { int i = iz * n + ix; if (map[i] < 0) { map[i] = pv.Count; pv.Add(v[i]); pn.Add(nrm[i]); } return map[i]; }
+                    for (int iz = tz; iz < z1; iz++) for (int ix = tx; ix < x1; ix++)
+                        {
+                            int a = V(ix, iz), b = V(ix + 1, iz), c = V(ix, iz + 1), d = V(ix + 1, iz + 1);
+                            idx.Add(a); idx.Add(b); idx.Add(c); idx.Add(b); idx.Add(d); idx.Add(c);
+                        }
+                    var m = new Mesh { indexFormat = pv.Count > 65000 ? IndexFormat.UInt32 : IndexFormat.UInt16, name = "terrain tile" };
+                    m.SetVertices(pv); m.SetNormals(pn);
+                    var cols = new Color[pv.Count]; for (int i = 0; i < cols.Length; i++) cols[i] = Color.white;
+                    m.colors = cols;
+                    m.SetTriangles(idx, 0);
+                    m.RecalculateBounds();
+                    var bb = m.bounds;
+                    yield return (m, bb.center, bb.extents.magnitude);
+                }
         }
 
         /// <summary>Height of the rendered triangles at a Unity position (world.js heightAt).</summary>

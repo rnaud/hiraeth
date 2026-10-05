@@ -18,7 +18,7 @@ const OUT = resolve(process.argv[2] ?? resolve(here, '../../unity/Memento/Assets
 const URL = process.env.URL ?? 'http://localhost:5238';
 const { chromium } = await import(process.env.PLAYWRIGHT ?? 'playwright-core');
 mkdirSync(OUT, { recursive: true });
-const browser = await chromium.launch({ executablePath: process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true, args: ['--autoplay-policy=no-user-gesture-required'] });
+const browser = await chromium.launch({ executablePath: process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true, args: ['--autoplay-policy=no-user-gesture-required', '--mute-audio'] });
 const page = await browser.newPage();
 page.on('pageerror', (e) => console.log('pageerror', e.message));
 page.on('console', (m) => { if (m.type() === 'error') console.log('console', m.text()); });

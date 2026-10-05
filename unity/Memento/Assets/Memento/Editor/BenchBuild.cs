@@ -15,14 +15,15 @@ namespace Memento.EditorTools
 {
     /// <summary>
     /// The builds the benchmark runs (docs/benchmark-web-vs-unity.md, scripts/bench/):
-    ///   Memento.EditorTools.BenchBuild.Mac       the macOS player, vSync off by the bench, frame timing on
-    ///                                            (-out, default Builds/macOS-bench/Memento.app)
+    ///   Memento.EditorTools.BenchBuild.Mac       the macOS player, vSync off by the bench, frame timing on, IL2CPP
+    ///                                            ARM64 as the other two (-mono: Mono; -out, default Builds/macOS-bench/Memento.app)
     ///   Memento.EditorTools.BenchBuild.Android   an APK for the handheld: com.rnaud.memento.unity, debug-signed,
     ///                                            IL2CPP ARM64, Vulkan then GLES3 (-out, default Builds/Android/memento-unity.apk)
     ///   Memento.EditorTools.BenchBuild.WebGL     a WebGL (WebGPU) build for the browser (-out, default Builds/WebGL)
     /// Each puts scripts/bench/viewpoints.json in StreamingAssets/bench. On Android and WebGL the export
     /// can't be read in place, so the copy of StreamingAssets in the build is listed in a
-    /// data-manifest.json and world.bin / world.json are shipped gzipped (as .gzip) (DataFiles.cs copies them out).
+    /// data-manifest.json and world.bin / world.json / shared.bin are shipped gzipped (as .gzip) (DataFiles.cs copies
+    /// them out). The APK carries the desert alone (-allWorlds: every world).
     /// Run with scripts/unity-export/unity-batch.sh BenchBuild.Android (etc.).
     /// </summary>
     public static class BenchBuild
@@ -80,11 +81,31 @@ namespace Memento.EditorTools
             PlayerSettings.macRetinaSupport = false;   // (1280 × 720 is 1280 × 720 pixels, as the web side's device scale 1)
             if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.StandaloneOSX)
                 EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Standalone, BuildTarget.StandaloneOSX);
+            // IL2CPP, as the WebGL build and the APK (a fair comparison: compiled ahead of time on every side), Apple
+            // silicon only (a universal binary compiles everything twice); -mono for the Mono player
+            bool mono = Array.IndexOf(Environment.GetCommandLineArgs(), "-mono") >= 0;
+            PlayerSettings.SetScriptingBackend(NamedBuildTarget.Standalone, mono ? ScriptingImplementation.Mono2x : ScriptingImplementation.IL2CPP);
+            if (!mono)
+            {
+                PlayerSettings.SetIl2CppCompilerConfiguration(NamedBuildTarget.Standalone, Il2CppCompilerConfiguration.Release);
+                PlayerSettings.SetIl2CppCodeGeneration(NamedBuildTarget.Standalone, UnityEditor.Build.Il2CppCodeGeneration.OptimizeSpeed);
+            }
+            SetMacArchitecture("ARM64");
             var opts = new BuildPlayerOptions { scenes = new[] { Batch.TitlePath, Batch.ScenePath }, locationPathName = outPath, target = BuildTarget.StandaloneOSX };
             // (-development: the render counters and the profiler markers are only recorded in a development player)
             if (Array.IndexOf(Environment.GetCommandLineArgs(), "-development") >= 0) opts.options |= BuildOptions.Development;
             var r = BuildPipeline.BuildPlayer(opts);
             Finish(r, outPath);
+        }
+
+        /// <summary>UnityEditor.OSXStandalone.UserBuildSettings.architecture (the Mac build module's own settings, by name).</summary>
+        static void SetMacArchitecture(string arch)
+        {
+            var t = Type.GetType("UnityEditor.OSXStandalone.UserBuildSettings, UnityEditor.OSXStandalone.Extensions");
+            var p = t?.GetProperty("architecture", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+            if (p == null) { Debug.LogWarning("Memento: no macOS architecture setting; building the default"); return; }
+            try { p.SetValue(null, Enum.Parse(p.PropertyType, arch)); Debug.Log($"Memento: macOS architecture {p.GetValue(null)}"); }
+            catch (Exception e) { Debug.LogWarning("Memento: macOS architecture: " + e.Message); }
         }
 
         public static void Android()
@@ -141,7 +162,7 @@ namespace Memento.EditorTools
         }
 
         // ------------------------------------------------------------------ the export in a package
-        static readonly string[] Gzipped = { "world.bin", "world.json" };
+        static readonly string[] Gzipped = { "world.bin", "world.json", "shared.bin" };
 
         /// <summary>
         /// A build's copy of StreamingAssets (Android: the Gradle project's assets/; WebGL: Build/StreamingAssets):
@@ -195,7 +216,18 @@ namespace Memento.EditorTools
         public void OnPostGenerateGradleAndroidProject(string path)
         {
             var assets = Path.Combine(path, "src/main/assets");
-            if (Directory.Exists(assets)) BenchBuild.PackData(assets);
+            if (!Directory.Exists(assets)) return;
+            // (the handheld's benchmark is the desert: the other worlds' exports stay out, unless -allWorlds)
+            if (Array.IndexOf(Environment.GetCommandLineArgs(), "-allWorlds") < 0)
+                foreach (var d in Directory.GetDirectories(assets))
+                {
+                    var n = Path.GetFileName(d);
+                    if (!File.Exists(Path.Combine(d, "world.json")) || n == "desert") continue;
+                    Directory.Delete(d, true);
+                    var music = Path.Combine(assets, "sound", $"music_{n}.wav");   // (and that world's score)
+                    if (File.Exists(music)) File.Delete(music);
+                }
+            BenchBuild.PackData(assets);
         }
     }
 

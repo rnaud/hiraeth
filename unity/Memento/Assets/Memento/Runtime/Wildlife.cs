@@ -10,16 +10,25 @@ namespace Memento
     {
         [StructLayout(LayoutKind.Sequential)] public struct Inst { public Vector4 r0, r1, r2, col; }
         public readonly Mesh mesh; public readonly Material mat; public Inst[] data; public int count; GraphicsBuffer buf;
-        public InstMats(Mesh m, Material material, int max) { mesh = m; mat = material; data = new Inst[Mathf.Max(1, max)]; mat.EnableKeyword("MEMENTO_INSTMAT"); }
+        public InstMats(Mesh m, Material material, int max)
+        {
+            mesh = m; mat = material; data = new Inst[Mathf.Max(1, max)]; mat.EnableKeyword("MEMENTO_INSTMAT");
+            shadowPass = mat.FindPass("ShadowCaster");
+            caster = (cmd, c) => { if (casts && drawnAt == Time.frameCount && count > 0 && shadowPass >= 0 && buf != null) cmd.DrawMeshInstancedProcedural(mesh, 0, mat, shadowPass, count, null); };
+            MementoShadows.Instanced.Add(caster);
+        }
+        readonly int shadowPass; readonly System.Action<RasterCommandBuffer, MementoShadows.Cascade> caster; int drawnAt = -1; bool casts;
         public void Set(int i, Matrix4x4 M, Color c) { data[i] = new Inst { r0 = M.GetRow(0), r1 = M.GetRow(1), r2 = M.GetRow(2), col = c }; if (i >= count) count = i + 1; }
         public void Draw(Bounds b, ShadowCastingMode shadows)
         {
             if (count <= 0) return;
             if (buf == null || buf.count < data.Length) { buf?.Release(); buf = new GraphicsBuffer(GraphicsBuffer.Target.Structured, data.Length, Marshal.SizeOf<Inst>()); mat.SetBuffer("_Mats", buf); }
             buf.SetData(data, 0, 0, count);
-            Graphics.RenderMeshPrimitives(new RenderParams(mat) { worldBounds = b, shadowCastingMode = shadows, receiveShadows = true }, mesh, 0, count);
+            Graphics.RenderMeshPrimitives(new RenderParams(mat) { worldBounds = b, shadowCastingMode = ShadowCastingMode.Off, receiveShadows = true }, mesh, 0, count);
+            // (its shadow: drawn in the sun's cascades this frame, MementoShadows)
+            drawnAt = Time.frameCount; casts = shadows != ShadowCastingMode.Off;
         }
-        public void Release() { buf?.Release(); }
+        public void Release() { buf?.Release(); buf = null; MementoShadows.Instanced.Remove(caster); }
     }
 
     /// <summary>
