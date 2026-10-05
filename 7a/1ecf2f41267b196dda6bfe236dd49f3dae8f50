@@ -1,0 +1,51 @@
+scripts/unity-export/export-world.mjs
+  s_1fd8d0e7b02dcf::t_a44f665071b0d1 477-478,574,621,628-640,642
+scripts/unity-export/record-sounds.mjs
+  s_1fd8d0e7b02dcf::t_3555fc1ee58b4b 4,45-46,80-88,91,94,97-104
+unity/Memento/Assets/Memento/Runtime/BatchTravel.cs
+  s_1fd8d0e7b02dcf::t_6972c66b1ad935 69-77,114-115,122-125,139
+unity/Memento/Assets/Memento/Runtime/Game.cs
+  s_1fd8d0e7b02dcf::t_6ccd49c24964ba 233,242,253-263
+unity/Memento/Assets/Memento/Runtime/Grass.cs
+  s_1fd8d0e7b02dcf::t_f08136996e96ee 1-2,4,8-17,20-147
+unity/Memento/Assets/Memento/Runtime/Mechanics.cs
+  s_1fd8d0e7b02dcf::t_38640412a49338 6-12,15-92,95
+unity/Memento/Assets/Memento/Runtime/MementoLook.cs
+  s_1fd8d0e7b02dcf::t_dd8d04d9a0876c 34-35,45,113-114
+unity/Memento/Assets/Memento/Runtime/Play.cs
+  s_1fd8d0e7b02dcf::t_61013030069df0 162
+unity/Memento/Assets/Memento/Runtime/WorldStory.cs
+  s_1fd8d0e7b02dcf::t_112c59cb7549fc 29-30,86-88,151-154,218-230
+unity/Memento/Assets/Memento/Shaders/Composite.shader
+  s_1fd8d0e7b02dcf::t_37aab9bae5e497 336-338,346,392,396-398,459-462
+unity/Memento/Assets/Memento/Shaders/Surface.shader
+  s_1fd8d0e7b02dcf::t_8dbaaf815f561f 109,119-122,145,187-222,460-463,601-604
+unity/Memento/Assets/Memento/Editor/Tests/WorldsTests.cs
+  s_a6982586a2e18f::t_da7c3e3d82069b 1-175
+unity/Memento/Assets/Memento/Editor/Tests/WorldsTests.cs.meta
+  s_a6982586a2e18f::t_b06ed8cd374aed 1-2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7a1ecf2f41267b196dda6bfe236dd49f3dae8f50",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_a6982586a2e18f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a5c2f9d8bab5e62b4",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
