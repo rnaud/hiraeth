@@ -72,6 +72,11 @@ export const ITEMS = {
     text: 'A bone whistle that plays one clear bell note, the same note in every world. The makers’ chests know it.',
     use: 'Press V (on a controller, click the right stick, R3) to sound it. Unopened boxes nearby answer with a chime from where they hide.',
   },
+  resin: {
+    name: 'Climber’s resin', kind: 'charm',
+    text: 'A little tin of amber resin, still soft after who knows how long, the makers’ thumb pressed into the lid. Rub it on your palms.',
+    use: 'Climbing tires you half as fast: you hang on twice as long.',
+  },
   star: {
     name: 'Pale star', kind: 'cosmetic',
     text: 'A star of pale enamel, the same as the one on every chest lid: the makers’ sign for a traveller, a small light a long way from home.',

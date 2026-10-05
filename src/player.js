@@ -633,7 +633,7 @@ export class Player {
   /** The body's extras while down: the face, the gear, the cloth. */
   finishDown(dt) {
     const H = this.humanoid;
-    H?.face?.update(dt, { speed: 0, climbing: false });
+    if (typeof H?.face?.update === 'function') H.face.update(dt, { speed: 0, climbing: false });   // (face is the morph now, a plain object: calling it threw and stopped the game on every knockdown)
     if (this.gear) this.gear.update(dt, _g4.set(0, 0, 0), this.phase ?? 0, 0, this.object.visible);
     this.updateCloth(dt);
   }
@@ -1370,7 +1370,7 @@ export class Player {
     this.phase += dt * (f || s ? 7 : 0);
     this._climbF = f; this._climbS = s;
 
-    this.stamina -= (f || s ? 0.045 : 0.02) * dt;   // ~22 s of climbing
+    this.stamina -= (f || s ? 0.045 : 0.02) * dt * (this.climbK ?? 1);   // ~22 s of climbing (climbK: the makers' resin halves it)
     if (input.Space && !this._jumpHeld) {                       // jump off the wall
       this.stopClimb(false);
       this.vel.copy(n).multiplyScalar(6).addScaledVector(U, 8);

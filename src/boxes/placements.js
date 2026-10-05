@@ -16,6 +16,11 @@
 //   hint     the box's own quest (src/boxes/index.js): where it is, in the player's words; the quest
 //            starts when you arrive and leads the scout there (the desert's first box is the story's)
 //   note     where it is and how you get there (for people, not the code)
+//   temple   the box stands inside that world's temple (src/temples/): the gadget there is the key to
+//            the temple's later rooms; no box quest of its own (the temple's quest leads to it)
+//
+// The makers' gifts are split half and half: the tools that open a temple's later rooms wait inside
+// it, the small gifts in the open (src/temples/index.js GADGETS has the plan, world by world).
 //
 // tests/boxes.test.js checks that every one stands on reachable ground.
 
@@ -30,6 +35,10 @@ export const PLACEMENTS = {
     { id: 'desert.star', item: 'star', at: [246.9, 7.6, 363.6], lift: 0.5, toward: [230, 330],
       hint: 'A makers’ box sits on a flat roof just inside Qanat’s main gate. Climb the house wall',
       note: 'A house roof just inside the main gate of the old city; climb its wall.' },
+    // the Givers' House (src/temples/desert.js): on the dais in its Chest Chamber, half-way through. Ember mode
+    // is the key to the rest: the braziers by the door beyond, the bridge, the thorns, the Keeper's cistern.
+    { id: 'desert.temple.fire', item: 'fire', temple: 'desert', site: (level) => level.temple?.gadgetSite,
+      note: 'Inside the Givers’ House in the eastern dunes, in the round chamber past the sand pit.' },
   ],
   incal: [
     // the first jetpack world: the jets wait on the makers' pillar, a lone stone column on the rim 130 m
@@ -57,8 +66,9 @@ export const PLACEMENTS = {
       note: 'The top of the keep’s south curtain wall.' },
   ],
   buried: [
-    // the oil-light: the ring platform round the smoking chimney stack (jets or a climb up the stack)
-    { id: 'buried.fire', item: 'fire', at: [110, 33.8, 144.5], toward: [110, 160],
+    // the ring platform round the smoking chimney stack (jets or a climb up the stack). It held ember mode
+    // until the Givers' House was built: the ember is the desert temple's key now, the resin a gift in the open
+    { id: 'buried.resin', item: 'resin', at: [110, 33.8, 144.5], toward: [110, 160],
       hint: 'A makers’ box rests on the lower ring platform of the smoking chimney stack, north-east of the landing',
       note: 'The lower ring platform of the chimney stack north-east of the spawn, on its +z side.' },
   ],

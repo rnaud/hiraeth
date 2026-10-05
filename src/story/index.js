@@ -21,6 +21,7 @@ import { setupEdena } from './edena.js';
 import { setupSpheres } from './spheres.js';
 import { setupIncal } from './incal.js';
 import { setupBazaar } from './bazaar.js';
+import { setupTempleStory } from '../temples/index.js';
 
 // The story runtime for a world: quests, conversations, the objective
 // marker, the E prompt, and the world's own story (src/story/<world>.js).
@@ -128,6 +129,8 @@ export function createStory(o) {
   for (const n of npcs) if (n.def?.talk) talkable(n, n.def);
 
   world = WORLDS[levelId]?.({ ...o, quests, dialogue, game, spawn, talkable }) ?? null;
+  // the world's temple (src/temples/): its quest, its local, its rooms and guardian
+  const temple = setupTempleStory({ ...o, quests, dialogue, game, spawn, talkable });
 
   // people in the crowd: whoever is nearest (a pooled full NPC) can be talked to
   if (crowd && world?.crowdTalk) {
@@ -177,7 +180,7 @@ export function createStory(o) {
   let useBtn = null;
   const useButton = () => (useBtn ??= typeof document !== 'undefined' ? document.querySelector('#touch .b-use') : null);
   const rt = {
-    quests, dialogue, marker, world, portrait, prompt: null, promptAt: null,
+    quests, dialogue, marker, world, temple, portrait, prompt: null, promptAt: null,
     busy: () => dialogue.open,
     /** The tracked objective, routed through doorways (the cave) like the scout does. */
     objective() {
@@ -188,6 +191,7 @@ export function createStory(o) {
     update(dt, t, { camera, ePressed = false, paused = false }) {
       quests.update(player);
       world?.update?.(dt, t, { camera });
+      temple?.update(dt, t);
       world?.hold?.();
       // the person you talk to keeps facing you; a crowd person's group pauses
       if (talking?.crowd && crowd) {

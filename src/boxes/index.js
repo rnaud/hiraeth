@@ -6,6 +6,7 @@ import { buildBox, buildBeacon, BOX, BOX_COLORS, BOX_SCALE } from './model.js';
 import { BoxScene } from './scene.js';
 import { BoxCard } from './card.js';
 import { PLACEMENTS, FALLBACKS, FALLBACK_OFFSETS } from './placements.js';
+import { migrateTemples } from '../temples/migrate.js';
 
 // Item boxes: the makers' chests (docs/story-bible.md, "The boxes"). Dark blue,
 // carved with rings of the glyph, a pale star on the lid, each holding one
@@ -56,6 +57,8 @@ export function migrateSave(g = sharedGame) {
     if (g.flag('item.backpack') && !g.flag('box.desert.backpack')) g.set('box.desert.backpack', true);
     g.set('items.v', 2);
   }
+  // the gadgets that moved into the temples: whoever carries one already finds its temple chest open
+  migrateTemples(g);
   return legacy;
 }
 

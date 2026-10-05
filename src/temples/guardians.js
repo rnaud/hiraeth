@@ -1,0 +1,222 @@
+import * as THREE from 'three';
+import { makeMaterial } from '../materials.js';
+import { ell, dome, cyl, cone, box, tube, merge } from '../wildlife/geo.js';
+import { glyphGeometry } from '../story/sign-text.js';
+
+// The bodies of what waits in the temples, built from the wildlife's little
+// modelling kit (flat printed colours per piece, merged per moving part), and
+// posed by hand: no skeleton, a few groups that sway, rear, open their mouths.
+//
+//   keeperModel()    the desert's Cistern-Keeper: a great pale beast of the Givers, a shell of bone
+//                    plates on six long legs, a heron's neck and a long soft muzzle. It kept the
+//                    cistern; the water stopped, the dark came, and it is afraid.
+//   sentinelModel()  the City-Shaft's sentinel: a tall machine of the makers on three legs, a ring
+//                    of vents and a lamp-eye, broken and still guarding (see incal.js)
+//
+// A model: { group, pos (on the floor), heading, home, rest, restHeading, mouth (Vector3, world),
+//            mouthR, radius, height, animate(dt, t, { state, attack, k, speed, meter }) }
+
+const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
+let uid = 0;
+const vc = () => makeMaterial({ color: '#ffffff', vertexColors: true, flat: true, key: `guardian.${uid++}` });
+const noCollide = (o) => { o.traverse((c) => { c.userData.noCollide = true; c.userData.dynamic = true; }); return o; };
+const lerp = THREE.MathUtils.lerp;
+
+const NECK_UP = [0.75, 0.2, -0.15, -0.25, -0.3], NECK_LOW = [1.0, 0.55, 0.3, 0.12, 0.0];
+
+/** The Cistern-Keeper (organic: you calm it). */
+export function keeperModel({ shell = '#efe2c6', plate = '#e2c9a2', belly = '#d9978a', skin = '#d8bf9a', dark = '#4a3a42', glow = '#70e7df' } = {}) {
+  const group = new THREE.Group();
+  const mat = vc();
+  const glowM = makeMaterial({ color: glow, glow: 0.15, flat: true, key: `keeper.glow.${uid++}` });
+  const eyeM = makeMaterial({ color: dark, flat: true, key: `keeper.eye.${uid++}` });
+  // the body: a shell of bone on a rose belly, plates in rows, a short tail
+  const body = new THREE.Group();
+  body.position.y = 3.4;
+  group.add(body);
+  const plates = [];
+  for (let row = 0; row < 4; row++) for (let i = 0; i < 7; i++) {
+    const a = (i / 7) * Math.PI * 2 + row * 0.4, el = 0.35 + row * 0.28;
+    const x = Math.cos(a) * Math.cos(el) * 2.9, z = Math.sin(a) * Math.cos(el) * 3.7, y = Math.sin(el) * 1.85;
+    plates.push(ell([0.9, 0.22, 1.0], row % 2 ? plate : shell, [x, y, z], [Math.atan2(y, Math.hypot(x, z)) * 0.6, a, 0], [7, 4]));
+  }
+  body.add(new THREE.Mesh(merge(
+    dome([3.0, 2.0, 3.8], shell, [0, 0, 0], null, [16, 6]),
+    ell([2.8, 0.9, 3.6], belly, [0, -0.15, 0], null, [14, 6]),
+    plates,
+    tube([[0, 0.1, -3.4], [0, -0.3, -4.6], [0.2, -1.0, -5.6]], 0.45, skin, 10, 6),
+    cone(0.35, 0.8, skin, [0.25, -1.3, -6.0], [-2.2, 0, 0]),
+  ), mat));
+  // glyph spots on the shell: dim while it is afraid, bright as it calms
+  const spots = [];
+  for (let i = 0; i < 9; i++) {
+    const a = (i / 9) * Math.PI * 2, x = Math.cos(a) * 2.2, z = Math.sin(a) * 2.8;
+    spots.push(glyphGeometry(0.9, 0.08).rotateX(-Math.PI / 2 + 0.5).rotateY(-a + Math.PI / 2).translate(x, 1.45, z));
+  }
+  spots.push(glyphGeometry(1.6, 0.08).rotateX(-Math.PI / 2).translate(0, 2.02, 0));
+  body.add(new THREE.Mesh(merge(...spots.map((g) => g.index ? g.toNonIndexed() : g)), glowM));
+  // six long legs, each a thigh and a shin, stepping in two tripods
+  const legs = [];
+  for (const [side, z, ph] of [[-1, 2.2, 0], [1, 2.2, Math.PI], [-1, 0, Math.PI], [1, 0, 0], [-1, -2.2, 0], [1, -2.2, Math.PI]]) {
+    const hip = new THREE.Group();
+    hip.position.set(side * 2.3, -0.2, z);
+    body.add(hip);
+    hip.add(new THREE.Mesh(merge(cyl(0.32, 0.26, 2.2, skin, [0, -1.1, 0], null, 7), ell([0.4, 0.4, 0.4], skin, [0, -2.2, 0])), mat));
+    const knee = new THREE.Group();
+    knee.position.y = -2.2;
+    hip.add(knee);
+    knee.add(new THREE.Mesh(merge(cyl(0.24, 0.16, 2.0, skin, [0, -1.0, 0], null, 7), ell([0.38, 0.16, 0.5], dark, [0, -2.05, 0.1])), mat));
+    legs.push({ hip, knee, side, ph });
+  }
+  // the neck in five rings and the head: a long soft muzzle, a jaw that opens, two dark eyes
+  const neck = [];
+  let parent = body;
+  for (let i = 0; i < 5; i++) {
+    const g = new THREE.Group();
+    g.position.set(0, i === 0 ? 0.6 : 0.78, i === 0 ? 3.3 : 0);
+    parent.add(g);
+    g.add(new THREE.Mesh(merge(cyl(0.55 - i * 0.05, 0.62 - i * 0.05, 0.86, i % 2 ? plate : skin, [0, 0.4, 0], null, 9)), mat));
+    neck.push(g);
+    parent = g;
+  }
+  const head = new THREE.Group();
+  head.position.set(0, 1.0, 0.1);
+  parent.add(head);
+  head.add(new THREE.Mesh(merge(
+    ell([0.75, 0.62, 0.95], skin, [0, 0.1, 0.2]),
+    ell([0.42, 0.3, 1.1], skin, [0, -0.05, 1.15]),          // the muzzle
+    ell([0.5, 0.2, 0.6], shell, [0, 0.62, 0.0]),            // the brow plate (where a hand goes)
+    cone(0.12, 0.7, shell, [-0.35, 0.75, -0.3], [-0.6, 0, 0.3]), cone(0.12, 0.7, shell, [0.35, 0.75, -0.3], [-0.6, 0, -0.3]),
+  ), mat));
+  const eyes = new THREE.Mesh(merge(ell([0.13, 0.15, 0.1], '#ffffff', [-0.48, 0.28, 0.55]), ell([0.13, 0.15, 0.1], '#ffffff', [0.48, 0.28, 0.55])), eyeM);
+  head.add(eyes);
+  const jaw = new THREE.Group();
+  jaw.position.set(0, -0.25, 0.4);
+  head.add(jaw);
+  jaw.add(new THREE.Mesh(merge(ell([0.36, 0.14, 0.95], belly, [0, -0.08, 0.75])), mat));
+  const mouth = V(), _w = V();
+  noCollide(group);
+
+  const M = {
+    group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0,
+    mouth, mouthR: 1.3, radius: 3.4, height: 4.4,
+    head, jaw, body, neck, legs, eyes, glowM, eyeM, gait: 0, rise: 0, open: 0, rear: 0, low: 0, sink: 0,
+    animate(dt, t, { state, attack, k = 0, speed = 0, meter = 0 }) {
+      const ease = (cur, want, rate) => cur + (want - cur) * Math.min(1, dt * rate);
+      const id = attack?.id;
+      // how it holds itself in each state
+      const asleep = state === 'sleep', weary = state === 'weary' || state === 'resolved';
+      M.rise = ease(M.rise, asleep ? 0 : state === 'wake' ? 0.85 : weary ? 0.35 : 1, state === 'wake' ? 0.8 : 2);
+      M.open = ease(M.open, state === 'open' ? 1 : id === 'sweep' && k > 0.6 ? 0.7 : 0, 6);
+      M.rear = ease(M.rear, id === 'stamp' ? (k < 1 ? k : 0) : 0, id === 'stamp' && k >= 1 ? 20 : 4);
+      M.low = ease(M.low, state === 'open' || weary || id === 'sweep' ? 1 : asleep ? 1.3 : 0, 3);
+      M.sink = ease(M.sink, id === 'burrow' && k < 1 ? Math.min(1, k * 1.6) : 0, id === 'burrow' && k >= 1 ? 9 : 2.5);
+      M.gait += dt * speed * 1.4;
+      const breathe = Math.sin(t * (asleep || weary ? 0.9 : 1.6)) * 0.06;
+      body.position.y = lerp(1.55, 3.4, M.rise) + breathe - M.sink * 4.2;
+      body.rotation.x = -M.rear * 0.45;
+      body.rotation.z = Math.sin(M.gait * 0.5) * 0.04 * Math.min(1, speed);
+      for (const L of legs) {
+        const sw = Math.sin(M.gait + L.ph) * Math.min(1, speed * 0.6);
+        const front = L.hip.position.z > 1;
+        L.hip.rotation.x = sw * 0.45 + (front ? -M.rear * 0.9 : 0);
+        L.hip.rotation.z = L.side * lerp(1.15, 0.38, M.rise);
+        L.knee.rotation.z = -L.side * lerp(1.3, 0.22, M.rise) + (front ? 0 : 0);
+        L.knee.rotation.x = Math.max(0, -sw) * 0.5 + (front ? M.rear * 0.6 : 0);
+      }
+      // the neck: up and searching when it fights, down to the floor asleep, low and open when it pants
+      const sway = Math.sin(t * 0.7) * 0.2 + (id === 'sweep' ? Math.sin(Math.min(1, k) * Math.PI * 2.2) * (k >= 1 ? 0.2 : 0.7) : 0);
+      // a swan's neck: forward from the shell, then up, the head level; low, it droops to the ground ahead
+      neck.forEach((g, i) => {
+        g.rotation.x = lerp(NECK_UP[i], NECK_LOW[i], Math.min(1, M.low)) + (M.low > 1 ? (M.low - 1) * 0.3 : 0) + (i === 0 ? M.rear * 0.4 : 0);
+        g.rotation.y = sway * (0.25 + i * 0.06);
+      });
+      head.rotation.x = lerp(-0.1, -0.9, Math.min(1, M.low)) + (asleep ? 0.3 : 0);
+      jaw.rotation.x = M.open * 0.75 + (state === 'open' ? Math.sin(t * 7) * 0.06 : 0);
+      // the glyphs on its shell: dim and flickering afraid, steady and bright as it calms
+      const calm = state === 'resolved' ? 1 : meter;
+      glowM.uniforms.uGlow.value = 0.12 + 0.75 * calm + (calm < 0.5 ? Math.max(0, Math.sin(t * 9)) * 0.08 : 0.08 * Math.sin(t * 1.5));
+      // the mouth (for the fluid) is the muzzle's tip
+      group.updateMatrixWorld(true);
+      mouth.copy(jaw.localToWorld(_w.set(0, 0.1, 1.4)));
+    },
+  };
+  return M;
+}
+
+/** The sentinel (robot: you may break it). parts: a tall body on three legs, a ring of vents, a lamp-eye. */
+export function sentinelModel({ hull = '#9fb2c6', hull2 = '#8aa0b8', dark = '#34405e', brass = '#e2b552', eye = '#f6c84e' } = {}) {
+  const group = new THREE.Group();
+  const mat = vc();
+  const eyeM = makeMaterial({ color: eye, glow: 0.9, flat: true, key: `sentinel.eye.${uid++}` });
+  const ventM = makeMaterial({ color: '#e0644a', glow: 0.1, flat: true, key: `sentinel.vent.${uid++}` });
+  const body = new THREE.Group();
+  body.position.y = 5;
+  group.add(body);
+  body.add(new THREE.Mesh(merge(
+    cyl(1.8, 2.3, 3.2, hull, [0, 0, 0], null, 12),
+    cyl(2.5, 2.5, 0.5, dark, [0, -1.7, 0], null, 12),
+    cyl(1.3, 1.8, 1.4, hull2, [0, 2.3, 0], null, 12),
+    ell([1.3, 0.8, 1.3], hull, [0, 3.1, 0], null, [12, 6]),
+    box([0.3, 2.2, 0.3], brass, [0, 4.4, 0]),
+  ), mat));
+  const vents = new THREE.Group();
+  body.add(vents);
+  const ventGeo = [];
+  for (let i = 0; i < 3; i++) {
+    const a = (i / 3) * Math.PI * 2;
+    ventGeo.push(box([1.0, 0.9, 0.2], '#ffffff', [Math.sin(a) * 2.32, 0.4, Math.cos(a) * 2.32], [0, a, 0]));
+  }
+  vents.add(new THREE.Mesh(merge(...ventGeo), ventM));
+  const shutters = [];
+  for (let i = 0; i < 3; i++) {
+    const a = (i / 3) * Math.PI * 2, s = new THREE.Group();
+    s.position.set(Math.sin(a) * 2.42, 0.4, Math.cos(a) * 2.42);
+    s.rotation.y = a;
+    s.add(new THREE.Mesh(merge(box([1.2, 1.1, 0.16], dark, [0, 0, 0])), mat));
+    body.add(s);
+    shutters.push(s);
+  }
+  const head = new THREE.Group();
+  head.position.y = 2.7;
+  body.add(head);
+  head.add(new THREE.Mesh(merge(cyl(0.9, 1.1, 0.9, hull2, [0, 0, 0], null, 12)), mat));
+  head.add(new THREE.Mesh(merge(ell([0.45, 0.45, 0.25], '#ffffff', [0, 0, 1.0])), eyeM));
+  const legs = [];
+  for (let i = 0; i < 3; i++) {
+    const a = (i / 3) * Math.PI * 2 + Math.PI / 3;
+    const hip = new THREE.Group();
+    hip.position.set(Math.sin(a) * 1.9, -1.7, Math.cos(a) * 1.9);
+    hip.rotation.y = a;
+    body.add(hip);
+    hip.add(new THREE.Mesh(merge(box([0.5, 0.5, 3.2], hull2, [0, 0, 1.4], [-0.9, 0, 0]), cyl(0.35, 0.25, 3.4, dark, [0, -1.6, 2.6], null, 8), cyl(0.7, 0.8, 0.3, dark, [0, -3.3, 2.6], null, 10)), mat));
+    legs.push(hip);
+  }
+  noCollide(group);
+  const mouth = V(), _w = V();
+  const M = {
+    group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, mouth, mouthR: 1.5, radius: 3.0, height: 9,
+    head, body, vents, shutters, legs, eyeM, ventM, open: 0, slump: 0, gait: 0,
+    animate(dt, t, { state, attack, k = 0, speed = 0, meter = 0 }) {
+      const ease = (cur, want, rate) => cur + (want - cur) * Math.min(1, dt * rate);
+      const off = state === 'sleep' || state === 'resolved' || state === 'weary';
+      M.open = ease(M.open, state === 'open' ? 1 : 0, 5);
+      M.slump = ease(M.slump, state === 'resolved' ? 1 : state === 'sleep' ? 0.6 : 0, 1.5);
+      M.gait += dt * speed * 2;
+      body.position.y = 5 - M.slump * 2.2 + Math.sin(M.gait) * 0.08;
+      body.rotation.z = M.slump * 0.25;
+      head.rotation.y = attack ? 0 : Math.sin(t * 0.8) * 0.5;
+      head.rotation.x = M.slump * 0.6;
+      shutters.forEach((s, i) => { s.position.y = 0.4 + M.open * 1.15; s.rotation.x = -M.open * 0.4; void i; });
+      legs.forEach((L, i) => { L.rotation.x = Math.sin(M.gait + i * 2.1) * 0.15 * Math.min(1, speed) + M.slump * 0.3; });
+      const blink = attack && attack.shape === 'lane' ? 0.6 + 0.4 * Math.sin(t * 30) : 0.9;
+      eyeM.uniforms.uGlow.value = off ? (state === 'resolved' ? 0 : 0.15) : blink;
+      eyeM.uniforms.uColor.value.set(attack ? '#e0644a' : '#f6c84e');
+      ventM.uniforms.uGlow.value = 0.2 + 0.8 * M.open * (0.7 + 0.3 * Math.sin(t * 12));
+      void meter;
+      group.updateMatrixWorld(true);
+      mouth.copy(body.localToWorld(_w.set(0, 0.4, 0)));
+    },
+  };
+  return M;
+}

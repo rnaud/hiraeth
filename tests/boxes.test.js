@@ -313,6 +313,7 @@ test('the dev menu grants and revokes items, all and none', () => {
 test('every hidden box has a quest that says where to look; it starts on arrival and ends when the box opens', () => {
   for (const [id, list] of Object.entries(PLACEMENTS)) for (const p of list) {
     if (p.id === 'desert.backpack') continue;   // (the story's own)
+    if (p.temple) { assert.ok(!p.hint, `${p.id}: a temple's chest has no quest of its own (the temple's leads there)`); continue; }
     assert.ok(p.hint && p.hint.length > 20 && !/\*/.test(p.hint), `${p.id}: a plain hint`);
   }
   game.reset(); clearInteractables();
