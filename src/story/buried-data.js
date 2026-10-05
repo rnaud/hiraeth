@@ -142,7 +142,7 @@ export const PEOPLE = {
   },
 
   hask: {
-    id: 'hask', name: 'Hask', title: 'keeper of the Wick', color: '#7f93a3', voice: 0.7, kind: 'm', scale: 0.96,
+    id: 'hask.buried', name: 'Hask', title: 'keeper of the Wick', color: '#7f93a3', voice: 0.7, kind: 'm', scale: 0.96,
     palette: { cloak: '#7f93a3', lining: '#2b211f', cloth: '#c8643f', legs: '#4a3a2a', hat: '#e9dcc0', hair: '#e8dcc0' }, head: 'hat', cape: 1.3, look: { prop: 'lantern' },
     lines: ['~tired~ Mm.', '~tired~ Fifty-two Tooth Days.', '~neutral~ (he watches the sky)'],
     talk: {
@@ -258,7 +258,7 @@ export const PEOPLE = {
   },
 
   ossa: {
-    id: 'ossa', name: 'Ossa', title: 'who listens to the walls', color: '#7f93a3', voice: 0.9, kind: 'f',
+    id: 'ossa.buried', name: 'Ossa', title: 'who listens to the walls', color: '#7f93a3', voice: 0.9, kind: 'f',
     palette: { cloak: '#7f93a3', lining: '#2b211f', cloth: '#c8643f', legs: '#2b2f45', hat: '#d8dcc8', hair: '#2b211f' }, head: 'hood', cape: 1.2,
     lines: ['~whisper~ Listen. The walls are still warm.', '~neutral~ Past the oval doors there is a room with no ceiling.', '~whisper~ Shh.'],
     talk: {

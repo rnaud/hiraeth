@@ -67,7 +67,7 @@ export const QUESTS = [
 // ------------------------------------------------------------------ the people
 export const PEOPLE = {
   aube: {
-    id: 'aube', name: 'Aube', title: 'the listener', color: '#9fd0c8', voice: 1.0, kind: 'f',
+    id: 'aube.spheres', name: 'Aube', title: 'the listener', color: '#9fd0c8', voice: 1.0, kind: 'f',
     palette: { cloak: '#f3efe2', lining: '#2b211f', cloth: '#9fd0c8', legs: '#7f9a90', hat: '#f6efd0', hair: '#3d2a22', face: '#e8dcc8' }, head: 'wrap', cape: 1.2, look: { prop: 'parasol' },
     lines: ['~neutral~ The spheres came down long ago. Nobody minds them now.', '~neutral~ *Follow the pale path*. It goes through the arch.', '~whisper~ Shh. Listen.'],
     talk: {

@@ -67,7 +67,7 @@ const reachable = (() => {
 
 test('the deep wood’s people and places stand on walkable or wadeable ground', () => {
   assert.equal(CONTENT.perdide2, PERDIDE2_CONTENT);
-  assert.deepEqual(CONTENT.perdide2.npcs.map((n) => n.id), ['hollin', 'pim', 'bram']);
+  assert.deepEqual(CONTENT.perdide2.npcs.map((n) => n.id), ['hollin.perdide2', 'pim.perdide2', 'bram']);
   assert.ok(PERDIDE2_CONTENT.story.manual, 'the quest closes the story page, not the beacon');
   for (const n of npcs.slice(0, 3)) for (const p of n.route) stand(p, n.def.name);   // the level's own (the story's are pushed after them)
   for (const p of W.people.wick.route) stand(p, 'Wick');

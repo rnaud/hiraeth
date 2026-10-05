@@ -44,7 +44,7 @@ export function setupPerdide2(ctx) {
 
   // ---------------------------------------------------------------- the people
   const people = {};
-  for (const n of npcs) if (['hollin', 'pim', 'bram'].includes(n.def?.id)) people[n.def.id] = n;
+  for (const n of npcs) { const key = n.def?.id?.split('.')[0]; if (['hollin', 'pim', 'bram'].includes(key)) people[key] = n; }   // (ids: 'hollin.perdide2', 'pim.perdide2': other worlds have a Hollin and a Pim)
   const wickAt = at(DARK_POOLS[1].x - 1.6, DARK_POOLS[1].z + 4.2);
   people.wick = spawn(PEOPLE.wick, { route: [wickAt.clone(), at(wickAt.x + 1.4, wickAt.z + 1.6)], speed: 0.6 });
   const fenDoor = level.domeDoors[FEN.dome];

@@ -41,7 +41,7 @@ export function setupEdena(ctx) {
 
   // ---------------------------------------------------------------- the people
   const people = {};
-  for (const id of ['mira', 'sol', 'oro', 'lio']) { const n = npcs.find((m) => m.def?.id === id); if (n) people[id] = n; }
+  for (const id of ['mira', 'sol', 'oro', 'lio']) { const n = npcs.find((m) => m.def?.id === (PEOPLE[id]?.id ?? id)); if (n) people[id] = n; }
   // Vey walks slowly up and down the flank, by the hatch
   const out = V(Math.sin(S.hatchHeading), 0, Math.cos(S.hatchHeading)), side = V(out.z, 0, -out.x);
   const veyAt = (a, b) => onGround(S.hatch.x + out.x * a + side.x * b, S.hatch.z + out.z * a + side.z * b);

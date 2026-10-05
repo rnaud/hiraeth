@@ -188,7 +188,7 @@ export const LANDING = [
   {
     at: [-112, 108], radius: 2, palette: P('#d6ff9a', '#3a3f5a'),
     lines: ['~curious~ Fireflies, or something else?', '~whisper~ Shh, you’ll scare them.', '~angry~ Ysse won’t let me past the lanterns.'],
-    id: 'ivo', name: 'Ivo', title: 'who watches the fireflies', color: '#d6ff9a', voice: 1.45,
+    id: 'ivo.perdide', name: 'Ivo', title: 'who watches the fireflies', color: '#d6ff9a', voice: 1.45,
     talk: {
       entry: [
         { if: { quest: 'perdide.fireflies', done: true }, node: 'after' },

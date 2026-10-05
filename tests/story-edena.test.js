@@ -65,7 +65,7 @@ test('the gardeners stand on walkable ground; the errands still find Mira and Li
   }
   // errands deliver to the first person and start from the fourth (src/levels/content.js)
   assert.equal(CONTENT.edena.npcs[0].id, 'mira');
-  assert.equal(CONTENT.edena.npcs[3].id, 'lio');
+  assert.equal(CONTENT.edena.npcs[3].id, 'lio.edena');
   assert.ok(ERRANDS.some((e) => e.to[0] === 'edena' && e.to[1] === 0) && ERRANDS.some((e) => e.from[0] === 'edena' && e.from[1] === 3));
 });
 

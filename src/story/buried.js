@@ -63,7 +63,7 @@ export function setupBuried(ctx) {
   }
   people.hask = spawn(PEOPLE.hask, { route: [bench.clone()], seat: 0.45, heading: Math.PI + 0.5 });
   people.dun = spawn(PEOPLE.dun, { route: loop(V(61, 0, 0), 4.5, 4), speed: 1.0 });
-  for (const id of ['pim', 'ossa', 'tull']) { const n = npcs.find((m) => m.def?.id === id); if (n) people[id] = n; }
+  for (const id of ['pim', 'ossa', 'tull']) { const n = npcs.find((m) => m.def?.id === (PEOPLE[id]?.id ?? id)); if (n) people[id] = n; }
 
   // ---------------------------------------------------------------- places for the markers
   for (const [id, n] of Object.entries(people)) quests.locate(id, () => n.pos);

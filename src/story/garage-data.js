@@ -175,7 +175,7 @@ export const PEOPLE = {
     },
   },
   pip: {
-    id: 'pip', name: 'Pip', title: 'who doesn’t trust down', color: '#f2c54b', voice: 1.7, kind: 'f', scale: 0.7,
+    id: 'pip.garage', name: 'Pip', title: 'who doesn’t trust down', color: '#f2c54b', voice: 1.7, kind: 'f', scale: 0.7,
     palette: { cloak: '#f2c54b', lining: '#2b211f', cloth: '#e88fa6', legs: '#34405e', hat: '#62c3c9', hair: '#6e4a32' }, head: 'hair', cape: 0.55,
     lines: ['~angry~ Down keeps MOVING.', '~shout~ Push it! Go on!', '~curious~ Is it still a ball upside down?'],
     talk: {
@@ -214,7 +214,7 @@ export const PEOPLE = {
 /** The level's own people (content.js garage npcs, by index): the errands keep their places. */
 export const LOCALS = [
   {
-    id: 'malvina', name: 'Clemence', title: 'who remembers the Major', color: '#e6875f', voice: 1.05,
+    id: 'clemence', name: 'Clemence', title: 'who remembers the Major', color: '#e6875f', voice: 1.05,
     talk: {
       entry: [{ if: { flag: 'garage.note.read' }, node: 'note' }, { node: 'hello' }],
       nodes: {

@@ -44,7 +44,7 @@ export function setupSpheres(ctx) {
 
   // ---------------------------------------------------------------- the people
   const people = {};
-  for (const id of ['aube', 'nell', 'ivo', 'cael']) { const n = npcs.find((m) => m.def?.id === id); if (n) people[id] = n; }
+  for (const id of ['aube', 'nell', 'ivo', 'cael']) { const n = npcs.find((m) => m.def?.id === (PEOPLE[id]?.id ?? id)); if (n) people[id] = n; }
   // Cael walks the avenue, up and down, slowly
   if (people.cael) {
     people.cael.route = [onGround(6.5, G.avenue.z0 - 6), onGround(6.5, -470), onGround(6.5, G.avenue.z1 + 6), onGround(6.5, -470)];

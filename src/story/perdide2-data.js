@@ -62,7 +62,7 @@ export const KEEPERS = [
   {
     at: [-8, 10], radius: 2, palette: P('#f2a07a', '#3e5a6a'), look: { prop: 'lamppole' },
     lines: ['~neutral~ The lit pools lead to the cave. Keep to them after dark.', '~surprised~ A traveller. A traveller!', '~playful~ The eggs are warm. Don’t ask what’s inside.'],
-    id: 'hollin', name: 'Hollin', title: 'keeper of the lamps', color: '#f2a07a', voice: 0.8,
+    id: 'hollin.perdide2', name: 'Hollin', title: 'keeper of the lamps', color: '#f2a07a', voice: 0.8,
     talk: {
       entry: [
         { if: { quest: Q, done: true }, node: 'after' },
@@ -136,7 +136,7 @@ export const KEEPERS = [
   {
     at: [-24, -126], radius: 2, palette: P('#3f6a6a', '#a49cc8'), shy: true,
     lines: ['~neutral~ We live in the domes. The moss keeps them cool.', '~playful~ Someone left their latch on the big roof again. Me. I did.'],
-    id: 'pim', name: 'Pim', title: 'who lives in a moss dome', color: '#3f6a6a', voice: 1.25,
+    id: 'pim.perdide2', name: 'Pim', title: 'who lives in a moss dome', color: '#3f6a6a', voice: 1.25,
     talk: {
       entry: [
         { if: { quest: 'perdide2.latch', done: true }, node: 'after' },
