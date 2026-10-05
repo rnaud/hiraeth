@@ -1,0 +1,45 @@
+src/desert-city.js
+  s_1fd8d0e7b02dcf::t_8982d18398fdac 4,152,174,176
+src/desert-landmarks.js
+  s_1fd8d0e7b02dcf::t_7999219d0adf6b 4,135
+src/levels/desert.js
+  s_1fd8d0e7b02dcf::t_706bdc0b5a238f 15-17,24-27,60-61
+src/levels/lab-kit.js
+  s_1fd8d0e7b02dcf::t_eec7f1a7fe8950 5,72
+src/levels/reference-views.js
+  s_1fd8d0e7b02dcf::t_0d52fd22b595e5 152-154,214,216,377-380,440-441,445
+src/levels/references.js
+  s_1fd8d0e7b02dcf::t_2694bc0104cf71 6,166-168,171-172
+src/materials.js
+  s_1fd8d0e7b02dcf::t_78ecb28adbcfdd 237,245-257,280,505-506,867-881,886-924,1230-1237,1381-1383,1610,1661-1662,1689-1692,1749-1750
+src/post.js
+  s_1fd8d0e7b02dcf::t_3177fd3c282478 477-479,572,579,694-695
+src/sand-drifts.js
+  s_1fd8d0e7b02dcf::t_6d7d5eedfefa4c 1-316
+src/water-shader.js
+  s_1fd8d0e7b02dcf::t_4189dd37c5fed0 35-40,130-133
+src/world.js
+  s_1fd8d0e7b02dcf::t_dadce4215e7b4f 142-146
+tests/sand-drifts.test.js
+  s_1fd8d0e7b02dcf::t_8e2d920dfc9245 1-81
+tests/shade.test.js
+  s_1fd8d0e7b02dcf::t_e354ae4a70cec7 59-72
+tests/surface-spec.test.js
+  s_1fd8d0e7b02dcf::t_13a28c106714ae 64-69,89
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5307d40b7cb7be440111b749e49dfa6ca052e3cc",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
