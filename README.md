@@ -2871,7 +2871,8 @@ Each world gets one great building of the makers, a Zelda-style dungeon with a
 gadget half-way through and a keeper at its heart (LORE.md, "Temples", has the
 design and the plan for every world). Built so far: the desert's **Givers'
 House**, the City-Shaft's **Warden's Well**, Vael II's **Founders' Belfry**, the
-Buried Machine's **Engine-House** and the Garden of Spheres' **Footprint**. Everything lives in `src/temples/`:
+Buried Machine's **Engine-House**, the Garden of Spheres' **Footprint** and Lorn
+II's **Lamp-House**. Everything lives in `src/temples/`:
 
 - **`kit.js`**: the architecture. `TempleKit` batches render meshes per material
   (noCollide) and hidden collision proxies, in a local frame; pieces: `hall` (walls
@@ -2910,20 +2911,25 @@ Buried Machine's **Engine-House** and the Garden of Spheres' **Footprint**. Ever
   `TEMPLES` and `GADGETS` (the 50/50 plan). **`migrate.js`**: whoever already owns
   a temple's gadget finds its chest open. Per world: `desert.js` + `desert-data.js`,
   `incal.js` + `incal-data.js`, `arzach2.js` + `arzach2-data.js`, `buried.js` +
-  `buried-data.js`, `spheres.js` + `spheres-data.js` (layout, logic,
+  `buried-data.js`, `spheres.js` + `spheres-data.js`, `perdide2.js` +
+  `perdide2-data.js` (layout, logic,
   guardian, outside, change, words; a change may have a `late` step, run after
   the level's own movers).
 - **Items**: `fire` moved into the Givers' House, `jetpack` into the Warden's
   Well, `bell` into the Founders' Belfry, `cell` into the Engine-House, `lens` into
-  the Footprint; new gifts in the open: `resin` (the
+  the Footprint, `lantern` into the Lamp-House; new gifts in the open: `resin` (the
   Buried Machine's chimney ring: climbing tires you half as fast,
   `player.climbK`), `soles` (the City-Shaft's pillar: `player.fallGuard`) and
   `hush` (Vael's spire: creatures don't hear you walk up, `player.hush`, read by
   `src/wildlife.js`) and `shell` (the Spheres' grove canopy: every few seconds
   the unopened boxes within 45 m answer softly, a `'bell'` event with `soft: true`
-  that bell-tuned doors ignore) and `moss` (Lorn II's root arch: a small light
-  round your feet after dusk).
+  that bell-tuned doors ignore), `moss` (Lorn II's root arch: a small light
+  round your feet after dusk) and `pouch` (Viridel's canopy: flowers come up in
+  your footsteps, one recycled instanced pool in `src/boxes/effects.js`).
 - Pieces can be `hidden` (Door, Switch, Bridge): only the glyph lens shows them.
+  (`hidden: 'lantern'`: only the lantern charm's light.) `LightEar`: a lamp that
+  wakes when you stand by it with the lantern; a temple with `dark: true` sets
+  `player.inDark` inside, and the lantern charm glows there day or night.
   A shut door can't be climbed (you slip off it). `Bank`: four eyes that wake only
   together inside a breath (the fourth chamber's key). A `Platform` may start part
   way along its path (`phase`), and keeps a rider on it as it goes down. A world

@@ -1018,9 +1018,9 @@ ATAN" (old names) and now says ODILE and TALO; Talo's lookout note was signed
 ## 11. Temples (the makers' houses, their keepers, and the gifts inside)
 
 *Built in this pass (`src/temples/`); decided while the author was away, change
-freely. Five worlds have theirs (the desert, the City-Shaft, Vael II, the
-Buried Machine, the Garden of Spheres); the rest are designed below and wait
-their turn. Section 9's "A Makers' temple in every
+freely. Six worlds have theirs (the desert, the City-Shaft, Vael II, the
+Buried Machine, the Garden of Spheres, Lorn II); the rest are designed below
+and wait their turn. Section 9's "A Makers' temple in every
 world" and the "Makers' temples with bosses" note above are what this answers.*
 
 ### What a temple is
@@ -1083,18 +1083,19 @@ then the world's box stays as it was):
 | Vael II | Bell-note whistle (moved from Vael's spire: it belongs to the bell world) | Fluid wings for now (on the balanced stack); the Updraft feather (new: the wings sink slower) once the wings move to Vael's temple | **built** |
 | Hangar | Quick coil | Brass level (new: shows which way down is, in the ring) | planned |
 | Buried Machine | Fourth chamber (moved from Lorn II) | Climber's resin (new, on the chimney ring: climbing tires you half as fast) | **built** |
-| Viridel | Bloom mode (new gun mode: a seed glob grows a climbable vine) | Seed pouch (new); the lantern moves to Lorn II | planned |
+| Viridel | Bloom mode (new gun mode: a seed glob grows a climbable vine) | Seed pouch (new, on the umbrella tree's canopy now: flowers come up in your footsteps) | seed pouch built; temple planned |
 | Spheres | Glyph lens | Listening shell (new, on the grove's canopy: the makers' unopened boxes near you hum back now and then) | **built** |
 | Lorn | Stilling mode | Bog boots (new: wade at a walk) | planned |
-| Lorn II | Lantern charm (from Viridel) | Glow-moss pin (new, on the first root arch now: a soft light round your feet after dusk) | glow-moss built; temple planned |
+| Lorn II | Lantern charm (moved from Viridel's canopy) | Glow-moss pin (new, on the first root arch: a soft light round your feet after dusk) | **built** |
 | Signal Market | Echo shell (new: records a note, plays it back) | (the market has no chest) | planned |
 
 What moved for players already on their way: whoever owns ember mode, the jets,
-the bell-note whistle, the fourth chamber or the glyph lens finds that temple's
-chest open and counted as found (`src/temples/migrate.js`); the Buried
-Machine's chimney ring, the City-Shaft's pillar, Vael's spire, Lorn II's first
-root arch and the Spheres' grove canopy now hold the resin, the soles, the
-hush-cloth, the glow-moss pin and the listening shell, new boxes for everyone. (This also settles a loose end of section 10: the bell-note
+the bell-note whistle, the fourth chamber, the glyph lens or the lantern charm
+finds that temple's chest open and counted as found (`src/temples/migrate.js`);
+the Buried Machine's chimney ring, the City-Shaft's pillar, Vael's spire, Lorn
+II's first root arch, the Spheres' grove canopy and Viridel's umbrella canopy
+now hold the resin, the soles, the hush-cloth, the glow-moss pin, the listening
+shell and the seed pouch, new boxes for everyone. (This also settles a loose end of section 10: the bell-note
 whistle is found in the bell world now, and Vael has only the rider's bone
 whistle.)
 Ember mode now comes in the first world, which suits it: the desert's camp
@@ -1247,6 +1248,36 @@ pale sphere, half sunk, with a round-headed door toward the grove.
 - **After**: the Footprint's toes fill with still water, and every sphere in
   the garden wears a ring of the glyph's light at its foot, breathing in step.
 
+### The Lamp-House (Lorn II)
+A dark tower of the makers standing in the shallows east of the root cave,
+banded, tapering, a glass lamp-room and a cap at the top, a causeway of flat
+stones out to it from the end of the lit path. Its lamp lit the whole wood
+once; the night the sky rang it went out, and three of the pools with it.
+Hollin's people kept their pools lit for forty-one years without knowing there
+had been a greater lamp.
+- **The local: Tamsy**, who counts the lamps every night, all forty-one pools,
+  and writes the number down. She saw something pale and winged come down out of
+  the tower and go back up. Afterwards: the beam going round over the wood; the
+  moth asleep on the lamp "like a cat on a warm stove"; Hollin says it is the
+  forty-second lamp: "Forty-two. I wrote it down."
+- **Inside** (dark: the lantern charm glows in it, day or night): the
+  Threshold; the Hall of Dark Pools (three pool-lamps to splash); the Root Stair
+  (a riding disc over a dark pool, a root-wall to climb); the Lantern Chamber
+  (**the lantern charm**; the door on is a lamp that wakes when you stand by it
+  with the lantern); the Dark Gallery (a chasm crossed by moss-stones only the
+  lantern's light shows, an eye only it shows, a second lamp-door); the
+  Lamp-Room, its great lamp dark in a brass cradle overhead.
+- **The Lampless** (organic): a great pale moth, wings wide as sails with glyph
+  eye-spots, that drank the Lamp-House's light and is still hungry, and afraid
+  of how dark it made everything. It swoops and gusts and later throws its dust;
+  when it hangs low over the floor, searching, stand still by it with your
+  lantern and let it drink (moving makes it flinch; fluid only beads on its fur).
+  Fed, it folds its wings: lay a hand on its back, and it climbs to the lamp, and
+  the lamp catches from it.
+- **After**: the Lamp-House's lamp burns again, gold in its glass room, a light
+  on the water round the tower, and a long beam turning slowly over the wood at
+  night; inside, the lamp-room's great lamp glows.
+
 ### The other temples (designed, not built)
 - **Vael**: the House of the First Walkers among the floating ruins, its halls
   joined by glides; key: the fluid wings. Its keeper: an old stone-winged bird,
@@ -1266,10 +1297,6 @@ pale sphere, half sunk, with a round-headed door toward the grove.
   a carnivorous plant as big as a house; calm it by standing still inside its
   reach ("the patient are never eaten") and stilling its jaws. After: one of
   Wendel's eggs hatches.
-- **Lorn II**: the Lampless Hall beneath the root cave; key: the lantern charm
-  (dark galleries where only its light shows the way, doors that wake to it).
-  Its keeper: the Lampless, a great moth that drank the three pools' light; let
-  it drink from your lantern. After: every pool in the wood lights.
 - **Signal Market**: the foundations of the silent tower, "here before the
   market"; key: the echo shell. Its keeper: the First Sign (robot), the oldest
   broadcasting machine, stuck on one word; retune it, or switch it off. After:
