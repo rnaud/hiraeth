@@ -1130,13 +1130,18 @@ export class Player {
     }
     this.object.position.copy(this.pos);
     this.frame.quaternion(this.heading, this.object.quaternion);
+    // a scene's pose laid over the clip (kneeling at the stone, sitting in a window: src/story/home.js):
+    // overlay(player, dt) poses the rig and may lower the body; the feet then stay where it put them
+    const posed = !!this.overlay && !this.climbing && !this.mantle;
+    if (posed) this.overlay(this, dt);
     const H = this.humanoid;
     if (H) {
       H.update();
-      if (this.animator && !this.ride && !this.gliding && !this.thrusting) H.poseHands(this.animator);
+      if (this.animator && !this.ride && !this.gliding && !this.thrusting && !posed) H.poseHands(this.animator);
       const U = this.frame.up;
       if (this.mantle) { H.resetFeet(); H.reach(this.mantleTargets()); }
       else if (this.climbing) { H.resetFeet(); H.reach(this.animator ? this.climbContacts(dt) : this.climbTargets()); }
+      else if (posed) H.resetFeet();
       else if (this.onGround && this.animator && !this.thrusting) {
         H.plantFeet(dt, this.physics, U, this.pos, this.frame.dir(this.heading, _g1).clone(), (p, side, n) => this.stepped(p.clone(), 0, n));
       } else H.resetFeet();

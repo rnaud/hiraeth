@@ -373,6 +373,7 @@ const showToast = (text) => ship.cinema.toast(text);   // queued, and held while
 player.onNotice = showToast;   // "It needs power." (a vehicle without the backpack)
 const preStory = new Set(scene.children);
 const storyRt = createStory({ levelId, scene, physics, level, player, npcs, crowd, sound, journal, story, lib, humans: humanT, toast: showToast, tool,
+  ship, drone: (out) => (scout && scout.phase !== 'docked' ? out.copy(scout.object.position) : null),   // (home: the scenes wait for the ship's; the dog barks at the drone)
   capture: (e, l, w, h, o) => captureView(e, l, w, h, o) });
 for (const c of scene.children) if (!preStory.has(c)) auditRoots.push(c);   // (and what the world's story placed)
 story.waitFor = () => storyRt.dialogue.open;   // a story page never opens over a conversation: it waits for its end
