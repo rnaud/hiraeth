@@ -50,6 +50,8 @@ namespace Memento.EditorTools
             so.FindProperty("m_MainLightShadowmapResolution").intValue = 4096;
             so.FindProperty("m_Cascade4Split").vector3Value = new Vector3(0.02f, 0.08f, 0.3f);
             so.FindProperty("m_SoftShadowsSupported").boolValue = true;
+            // (the web game's own maps: a few taps of PCF, close to hard: URP's low soft quality)
+            var q = so.FindProperty("m_SoftShadowQuality"); if (q != null) q.intValue = 1;
             so.FindProperty("m_RequireDepthTexture").boolValue = false;
             so.FindProperty("m_RequireOpaqueTexture").boolValue = false;
             so.ApplyModifiedPropertiesWithoutUndo();
@@ -113,6 +115,10 @@ namespace Memento.EditorTools
                 fl.Build(f.F("width"), f.F("height"), f.L("palette").Select(c => c.C()).ToArray(), f.F("pace", 0.5f));
                 fl.Tick(0.5f);
             }
+            // the smoke and embers (flames.js), a minute into their rise
+            var fx = new GameObject("Fire fx").AddComponent<FireFx>();
+            fx.Build(game.world.World.O("fx"));
+            for (int k = 0; k < 120; k++) fx.Tick(1f, k);
             var views = Json.Parse(File.ReadAllText(file)) as List<object>;
             int w = int.Parse(Arg("-w", "1280")), h = int.Parse(Arg("-h", "720"));
             foreach (var v in views)
@@ -120,7 +126,9 @@ namespace Memento.EditorTools
                 var eye = MementoLook.Three(v.V3("eye")); var target = MementoLook.Three(v.V3("target"));
                 if (v.Has("hour")) game.look.hour = v.F("hour");
                 game.look.debugView = v.I("debug");
+                game.cam.transform.position = eye;   // (the local lights nearest the view)
                 game.look.Apply();
+                fx.Tick(0, 120);
                 Capture(game.cam, eye, target, v.F("fov", 55), w, h, Path.Combine(outDir, v.S("name") + ".png"));
             }
             Debug.Log($"Memento: {views.Count} shots in {outDir}");

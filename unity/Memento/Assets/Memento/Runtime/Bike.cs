@@ -54,6 +54,14 @@ namespace Memento
             });
         }
 
+        /// <summary>A loaded game: uncovered, awake.</summary>
+        public void Restore()
+        {
+            var G = game.state;
+            if (G.Is("desert.bike.uncovered")) { tarpT = 1; if (tarp) tarp.SetActive(false); }
+            if (G.Is("desert.bike.found")) dormant = false;
+        }
+
         public void Mount()
         {
             ridden = true;
@@ -72,6 +80,7 @@ namespace Memento
         }
         public void Whistle()
         {
+            Sounds.Instance?.Play("whistle");
             var p = game.player.transform;
             var at = p.position - p.forward * 2 + p.right * 3;
             if (Physics.Raycast(at + Vector3.up * 20, Vector3.down, out var h, 60)) at = h.point;

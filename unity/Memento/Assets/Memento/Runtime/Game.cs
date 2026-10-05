@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -25,6 +26,13 @@ namespace Memento
         public Crowd crowd;
         public DesertStory story;
         public Bike bike;
+        public FluidTool tool;
+        public ShipScene ship;
+        public Ambient ambient;
+        public Wildlife wildlife;
+        public static bool playPrologue = true;
+        public static bool useSaves => !Application.isBatchMode;   // (a batch run starts fresh; Batch.Play tests the saves itself)
+        public Dictionary<string, object> loaded;   // a new game opens in the ship, out in space (Batch: -noPrologue)
         public readonly System.Collections.Generic.List<Npc> npcs = new();
         public string prompt;
 
@@ -44,6 +52,7 @@ namespace Memento
             QualitySettings.vSyncCount = 1;
             if (!world) world = new GameObject("World").AddComponent<WorldLoader>();
             world.transform.SetParent(transform, false);
+            world.keepBin = true;   // (the people are dressed from it: Play.Begin, then it is let go)
             if (!world.Build()) return false;
             if (!sun)
             {

@@ -24,7 +24,10 @@ Shader "Hidden/Memento/Composite"
       #pragma fragment frag
       #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
-      Texture2D _GAlbedo, _GNormal, _GHatch;
+      Texture2D _GAlbedo, _GNormal, _GHatch, _GBloom, _GBloom2;
+      SamplerState sampler_linear_clamp;
+      float _Bloom;                    // the glow's strength (post.js uBloom; 0 none)
+      float _Storm; float3 _StormColor; // weather: a sandstorm 0..1 (post.js uStorm)
 
       float4 _Res;          // width, height, 1/width, 1/height
       float4x4 _InvProj;    // inverse GL projection (view space: three's)
@@ -39,6 +42,7 @@ Shader "Hidden/Memento/Composite"
       float4 _Subject;      // the player on screen: uv, view depth, radius
       float4 _Planet0, _PlanetColor0;
       float _Debug;
+      float _CineRed, _CineLids, _CineBars, _CineFade; float4 _CineFadeColor;   // the cinema (Cinema.cs)
 
       struct V2F { float4 pos : SV_POSITION; float2 uv : TEXCOORD0; };
       V2F vert(uint id : SV_VertexID)
@@ -301,6 +305,7 @@ Shader "Hidden/Memento/Composite"
         if (dbg == 3) return float4(toLinear(isSky ? 0 : N.rgb * 0.5 + 0.5), 1);
         if (dbg == 4) return float4(toLinear((isSky ? 1.0 : pow(depth / 3000.0, 0.4)).xxx), 1);
         if (dbg == 5) return float4(toLinear((isSky ? 1.0 : A.a).xxx), 1);
+        if (dbg == 9) return float4(toLinear(saturate(_GBloom.SampleLevel(sampler_linear_clamp, uv, 0).rgb * 3.0 + _GBloom2.SampleLevel(sampler_linear_clamp, uv, 0).rgb * 3.0)), 1);   // (the glow buffer)
         if (dbg == 7) { float3 H = tH(uv).rgb; return float4(toLinear((1.0 - max(max(H.r, H.g), H.b)).xxx), 1); }
 
         // ---- 1. ink lines with a hand-drawn wobble
@@ -398,11 +403,47 @@ Shader "Hidden/Memento/Composite"
         if (dbg == 6) col = float3(0.97, 0.94, 0.86);
         col = lerp(col, _Ink, ink);
 
+        // ---- 4b. light: a halo round glowing things in flat rings, a wash of their colour on what is near
+        float emitHere = isSky ? 0.0 : smoothstep(0.62, 0.9, surface.a - 2.0 * hero);
+        if (_Bloom > 0.0)
+        {
+          float3 b = _GBloom.SampleLevel(sampler_linear_clamp, uv, 0).rgb, w = _GBloom2.SampleLevel(sampler_linear_clamp, uv, 0).rgb;
+          float bl = max(b.r, max(b.g, b.b)), wl = max(w.r, max(w.g, w.b));
+          if (wl > 0.003 || bl > 0.003)
+          {
+            float k = _Bloom * lerp(0.6, 1.0, _Night);
+            float3 light = lerp((b + w) / max(bl + wl, 1e-4), 1.0, 0.45);
+            float r1 = smoothstep(0.14, 0.16, bl), r2 = max(r1, smoothstep(0.05, 0.058, wl));
+            float out1 = 1.0 - emitHere;
+            col = lerp(col, light, (r1 * 0.5 + (r2 - r1) * 0.22) * k * out1);
+            col += w * (0.4 + 0.6 * _Night) * _Bloom * out1;
+          }
+        }
+        // ---- 5. weather, drawn on the page like the rest: a sandstorm's haze and its streaks of blown sand
+        if (_Storm > 0.0)
+        {
+          float nearK = isSky ? 1.0 : smoothstep(4.0, 90.0, depth);
+          col = lerp(col, _StormColor, _Storm * (0.25 + 0.55 * nearK));
+          float2 sp = float2(fc.x * 0.6 - _MTime * 900.0, fc.y);
+          float row = floor(sp.y / 6.0);
+          float hr = hash(float2(row, 3.7));
+          float dash = smoothstep(0.82, 0.86, frac(sp.x / (180.0 + hr * 260.0) + hr * 7.0)) * step(0.55, hr);
+          float thin = 1.0 - smoothstep(0.6, 1.2, abs(frac(sp.y / 6.0) - 0.5) * 6.0);
+          col = lerp(col, _Ink * 0.6 + _StormColor * 0.4, dash * thin * _Storm * 0.45);
+        }
+
         // ---- 6. paper
         float fibre = vnoise(fc * 0.55) * 0.5 + vnoise(fc * 0.21 + 7.0) * 0.5;
         col *= 1.0 + _Grain * ((fibre - 0.5) * 0.6);
         float2 q = uv - 0.5;
         col *= 1.0 - 0.28 * pow(length(q) * 1.25, 3.0);
+        // ---- 7. the cinema (src/ship/cinema.js): the alarm's red, eyelids, the letterbox, a fade
+        col = lerp(col, col * float3(1.0, 0.42, 0.38) + float3(0.16, 0.0, 0.0), _CineRed);
+        float lid = _CineLids * 0.5;
+        float lidY = abs(uv.y - 0.5) - (0.5 - lid) + 0.04 * sin(uv.x * 3.14159) * lid;
+        col = lerp(col, float3(0.03, 0.025, 0.03), smoothstep(-0.004, 0.004, lidY) * step(0.001, _CineLids));
+        col = lerp(col, float3(0.11, 0.09, 0.09), step(abs(uv.y - 0.5), 0.5) * step(0.5 - _CineBars * 0.11, abs(uv.y - 0.5)));
+        col = lerp(col, _CineFadeColor.rgb, _CineFade);
         return float4(toLinear(saturate(col)), 1.0);
       }
       ENDHLSL

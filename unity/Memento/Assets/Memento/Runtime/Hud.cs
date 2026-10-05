@@ -28,12 +28,14 @@ namespace Memento
         static readonly Color Paper = new(0.97f, 0.94f, 0.86f, 0.96f), Ink = new(0.17f, 0.13f, 0.12f), Accent = new(0.72f, 0.26f, 0.25f);
 
         public void Toast(string t) { if (!string.IsNullOrEmpty(t)) toasts.Enqueue((Text.Plain(t), 3.6f)); }
-        public bool Busy => talk != null || journalOpen || card != null;
+        Dictionary<string, object> talkPerson; string spokenText; float spokenAt; Voice.Plan spokenPlan;
+        public bool cinematic;                       // a scene has the camera (a makers' box opening): no prompts
+        public bool Busy => talk != null || journalOpen || card != null || cinematic;
 
         public void StartTalk(Dictionary<string, object> person, Npc npc, string displayName, string title)
         {
             talk = new DialogueRunner(person, game.state, game.quests, item => Toast($"Received {game.quests.ItemName(item)}"));
-            talkNpc = npc; talkName = displayName; talkTitle = title; reveal = 0; sel = 0;
+            talkNpc = npc; talkName = displayName; talkTitle = title; reveal = 0; sel = 0; talkPerson = person; spokenText = null;
             if (npc) npc.talking = true;
             if (talk.ended) EndTalk();
         }
@@ -51,7 +53,7 @@ namespace Memento
             if (toastNow == null && toasts.Count > 0) { var t = toasts.Dequeue(); toastNow = t.text; toastT = t.secs; }
             if (toastNow != null) { toastT -= dt; if (toastT <= 0) toastNow = null; }
             if (card != null) { cardT += dt; if (cardT > 0 && Pad.ConfirmDown()) card = null; return; }
-            if (Pad.JournalDown() && talk == null) journalOpen = !journalOpen;
+            if (Pad.JournalDown() && talk == null) { journalOpen = !journalOpen; Sounds.Instance?.Play("page"); }
             if (journalOpen && Pad.BackDown()) journalOpen = false;
             if (talk != null) UpdateTalk(dt);
         }
@@ -62,6 +64,22 @@ namespace Memento
             reveal += dt * 55f;   // letters per second (voice.js REVEAL_CPS)
             var text = talk.TextNow;
             var choices = talk.Choices();
+            // a new page: said aloud in the speaker's voice (voice.js), the mouth on its syllables
+            if (text != spokenText)
+            {
+                spokenText = text; spokenAt = Time.time;
+                var d = talkPerson;
+                var v = Voice.Of(d?.S("id") ?? talkName, d != null && d.Has("voice") ? d.F("voice") : (float?)null, d?.S("kind"), talkNpc ? talkNpc.scale : 1, talkName ?? "", talkTitle ?? "", d?.S("age"));
+                spokenPlan = talkNpc ? Sounds.Instance?.Say(Text.Plain(text), talk.Tone, v) : null;
+            }
+            float? mouth = spokenPlan != null ? Voice.MouthAt(spokenPlan, Time.time - spokenAt) : (float?)null;
+            // their face while they say it (talk-face.js): the line's tone, the mouth moving; the traveller looks at them
+            if (talkNpc)
+            {
+                talkNpc.hudSpeaking = reveal < text.Length;
+                if (talkNpc.figure) talkNpc.figure.Talk(talkNpc.hudSpeaking, talk.Tone, mouth);
+                if (game.player && game.player.figure) game.player.figure.lookTarget = talkNpc.HeadTransform;
+            }
             int nav = Pad.NavDown();
             if (choices.Count > 0) sel = Mathf.Clamp(sel + nav, 0, choices.Count - 1);
             int pick = Pad.ChoiceDown();
@@ -75,6 +93,41 @@ namespace Memento
                 else reveal = 0;
             }
             if (talk != null && talk.ended) EndTalk();
+        }
+
+        /// <summary>The ship's subtitles and hint (cinema.js), and the galactic map (starmap.js).</summary>
+        void DrawShip(float W, float H, float u)
+        {
+            var sh = game.ship;
+            if (!sh) return;
+            if (sh.subtitle != null)
+            {
+                var who = sh.subtitleWho == "ship" ? "SHIP" : sh.subtitleWho == "father" ? "FATHER" : sh.subtitleWho == "mother" ? "MOTHER" : "";
+                var r = new Rect(W * 0.15f, H * 0.78f, W * 0.7f, u * 3.2f);
+                var c = new GUIStyle(center) { normal = { textColor = new Color(0.97f, 0.94f, 0.86f) } };
+                GUI.Label(r, (who.Length > 0 ? $"<size={(int)(u - 2)}><b>{who}</b></size>\n" : "") + sh.subtitle, c);
+            }
+            if (sh.hint != null) GUI.Label(new Rect(0, H * 0.08f, W, u * 2), sh.hint, new GUIStyle(center) { normal = { textColor = new Color(0.97f, 0.94f, 0.86f) } });
+            if (!sh.mapOpen) return;
+            var m = sh.MapEntries();
+            var pr = new Rect(W * 0.12f, H * 0.1f, W * 0.76f, H * 0.8f);
+            Box(pr);
+            GUI.Label(new Rect(pr.x + 24, pr.y + 14, pr.width, u * 2), "The galactic map", nameStyle);
+            // the route round home: a ring of worlds, the ones you know named
+            var c0 = new Vector2(pr.x + pr.width * 0.36f, pr.y + pr.height * 0.55f); float rr = Mathf.Min(pr.width, pr.height) * 0.32f;
+            GUI.Label(new Rect(c0.x - 40, c0.y - 12, 80, 24), "home", center);
+            for (int i = 0; i < m.Count; i++)
+            {
+                float a = -Mathf.PI / 2 + i * Mathf.PI * 2 / m.Count;
+                var p = c0 + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * rr;
+                var col = m[i].here ? Accent : m[i].known ? Ink : new Color(Ink.r, Ink.g, Ink.b, 0.3f);
+                var prev = GUI.color; GUI.color = col;
+                GUI.DrawTexture(new Rect(p.x - u * 0.8f, p.y - u * 0.8f, u * 1.6f, u * 1.6f), inkTex);
+                GUI.color = prev;
+                if (m[i].known) GUI.Label(new Rect(p.x - 70, p.y + u, 140, u * 1.4f), (i == sh.mapSel ? "▸ " : "") + m[i].title, new GUIStyle(small) { alignment = TextAnchor.UpperCenter });
+            }
+            var e = m[sh.mapSel];
+            GUI.Label(new Rect(pr.x + pr.width * 0.68f, pr.y + u * 3, pr.width * 0.3f, pr.height - u * 5), $"<b>{(e.known ? e.title : "an unknown world")}</b>\n\n{(e.known ? e.blurb : "Too far along the route.")}\n\n<i>{(e.here ? "You are here." : "D-pad / ↑ ↓ to choose · A / × travel · Y / △ close")}</i>", body);
         }
 
         void Styles()
@@ -162,6 +215,7 @@ namespace Memento
                 Box(r); GUI.Label(new Rect(r.x + 12, r.y + 5, sz.x, sz.y), line, body);
             }
             if (talk != null) DrawTalk(W, H, u);
+            DrawShip(W, H, u);
             if (journalOpen) DrawJournal(W, H, u);
             // the controls, small, bottom left
             GUI.Label(new Rect(16, H - u * 1.6f, W, u * 1.4f), Pad.HasPad ? "left stick move · A / × jump · L3 run · B / ○ talk, use · RB / R1 push · View journal" : "WASD move · mouse look (right button) · Space jump · Shift run · E talk, use · C push · Tab journal", small);
