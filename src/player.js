@@ -7,6 +7,7 @@ import { HANDOFF } from './fluid-kit.js';
 import { inTightRoom } from './interiors.js';
 import { Knockdown, toppleVelocities } from './ragdoll.js';
 import { SWIM, swimFrame, swimPose, leaveSwim } from './swim.js';
+import { Locomotion, StepLag, gaitFeet } from './locomotion.js';
 
 const RADIUS = 0.45;
 const STEP = 0.6;    // obstacles lower than this are stepped onto
@@ -890,6 +891,7 @@ export class Player {
     const camR = _v2.copy(F.right).multiplyScalar(Math.cos(camYaw)).addScaledVector(F.fwd, -Math.sin(camYaw));
     const move = new THREE.Vector3().addScaledVector(camF, f).addScaledVector(camR, s);
     if (move.lengthSq() > 0) move.normalize();
+    (this._moveDir ??= new THREE.Vector3()).copy(move);   // where you steer (the head and chest lead the turn: locomotion.js)
 
     let speed = (run ? RUN : WALK) * (stickScale < 1 ? THREE.MathUtils.lerp(0.35, 1, stickScale) : 1);
     if (this.gliding) speed *= 1.25;
@@ -1153,6 +1155,11 @@ export class Player {
       this._animAcc = 0;
     }
     this.object.position.copy(this.pos);
+    // a stair or a kerb: the drawn body follows the floor's jump over a moment (src/locomotion.js StepLag)
+    {
+      const U = this.frame.up, walking = this.onGround && !this.ride && !this.climbing && !this.mantle && !this.swim && !this.boarding;
+      this.object.position.addScaledVector(U, (this._stepLag ??= new StepLag()).update(dt, this.pos.dot(U), walking));
+    }
     this.frame.quaternion(this.heading, this.object.quaternion);
     const H = this.humanoid;
     if (H) {
@@ -1162,7 +1169,10 @@ export class Player {
       if (this.mantle) { H.resetFeet(); H.reach(this.mantleTargets()); }
       else if (this.climbing) { H.resetFeet(); H.reach(this.animator ? this.climbContacts(dt) : this.climbTargets()); }
       else if (this.onGround && this.animator && !this.thrusting) {
-        H.plantFeet(dt, this.physics, U, this.pos, this.frame.dir(this.heading, _g1).clone(), (p, side, n) => this.stepped(p.clone(), 0, n));
+        // the gait says which feet are down and how far to shorten the stride (src/locomotion.js gaitFeet)
+        const o = gaitFeet(this.animator, _g2.copy(this.vel).addScaledVector(U, -this.vel.dot(U)).length(), this._feetO ??= {});
+        o.pivot = !!this.loco?.pivot;
+        H.plantFeet(dt, this.physics, U, this.object.position, this.frame.dir(this.heading, _g1).clone(), (p, side, n) => this.stepped(p.clone(), 0, n), o);
       } else H.resetFeet();
       if (this.aim && !this.climbing && !this.mantle && !this.gliding) H.aimAt?.(this.aim.point, this.aim.k, U);
       if (this.wingK > 0.03) this.spreadArms();
@@ -1673,10 +1683,16 @@ export class Player {
       walkAt: Math.min(N.walk * 1.2, WALK * 0.4), jogAt: WALK, sprintAt: RUN,
       strideScale: 1,
     });
-    const bank = THREE.MathUtils.clamp(-this._turn * 0.05 * Math.min(hs / WALK, 1), -0.25, 0.25);
     this.object.position.copy(this.pos);
     this.frame.quaternion(this.heading, this.object.quaternion);
-    A.apply(this.object, { bank, legScale: 1.04 });
+    A.apply(this.object, { legScale: 1.04 });
+    // starts, stops and turns (src/locomotion.js): the lean into a change of speed, the bank into a
+    // curve, the head and chest turned to where you steer before the hips get there
+    const U = this.frame.up, fwd = this.frame.dir(this.heading, _g1);
+    const vf = this.vel.dot(fwd);
+    const want = this.onGround && this._moveDir && this._moveDir.lengthSq() > 0.01 && !this.aim ? this.frame.headingOf(this._moveDir) : null;
+    (this.loco ??= new Locomotion({ walk: WALK })).update(dt, { vf, speed: hs, heading: this.heading, want, ground: this.onGround && !this.swim });
+    this.loco.pose(c);
     this.idleLayer(dt, hs);
     if (this.onGround && !this.humanoid) this.footIK(dt);
     c.hatTip.rotation.x = -hs * 0.02 + c.body.position.y * 3;
