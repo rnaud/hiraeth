@@ -220,6 +220,11 @@ test('the gadgets: half in the temples, half in the open; the built temples hold
   assert.equal(Object.keys(GADGETS).length, 11, 'every world but home has a temple planned');
   assert.ok(Math.abs(temple.length - open.length) <= 1, `${temple.length} in temples, ${open.length} in the open`);
   assert.equal(new Set(temple).size, temple.length, 'no gadget in two temples');
+  assert.equal(temple.length, 11, 'a temple in every world');
+  assert.equal(open.length, 11, 'and eleven gifts in the open');
+  assert.ok(Object.values(GADGETS).every((g) => g.built), 'every temple is built');
+  assert.equal(BUILT.length, 11);
+  assert.equal(new Set([...temple, ...open]).size, 22, 'no gift twice');
   const placed = Object.values(PLACEMENTS).flat();
   for (const [id, g] of Object.entries(GADGETS)) {
     if (!g.built) continue;
@@ -242,6 +247,11 @@ test('old saves that own a temple’s gadget find its chest open; the temple’s
   assert.equal(migrateTemples(g), 0, 'once');
   const L = new TempleLogic(TEMPLES.desert.def.logic, { store: memoryStore(), has: (i) => !!g.flag(`item.${i}`) });
   assert.equal(L.gadget, true, 'carried in: the gadget counts as found');
+  // the quick coil moved inside the First Garage from the keep's wall: whoever has it finds the chest open
+  g.set('item.coil', true);
+  assert.equal(migrateTemples(g), 1);
+  assert.equal(g.flag('box.garage.temple.coil'), true);
+  for (const id of ['garage', 'edena', 'bazaar']) assert.ok(TEMPLE_BOXES.some(([b]) => b.startsWith(`${id}.temple.`)), `${id}: its chest migrates`);
 });
 
 // ------------------------------------------------------------------ the words

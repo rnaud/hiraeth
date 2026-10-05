@@ -1713,8 +1713,8 @@ Pocket. Their built-in controls work through the Gamepad API.
   - With no backpack there is no tool, and vehicles won't start.
   - The jets drain the same reserve (0.3 charges per second) and work in any
     world. The wings bloom from the tank and are needed to glide.
-  - X cycles through the modes you own: shoot, stilling (freezes) and ember
-    (lights `level.flammables`). A target that doesn't list a mode in
+  - X cycles through the modes you own: shoot, stilling (freezes), ember
+    (lights `level.flammables`) and, since the temples, bloom (grows). A target that doesn't list a mode in
     `accepts` gets `'shoot'`, so every puzzle works in every mode.
   - Riding the hoverbike or skiff moves the tank into the vehicle's socket.
 - **Dev menu** (`src/dev-menu.js`, the backquote key or settings): items,
@@ -2867,12 +2867,14 @@ beside it (the details, how to run it and what is missing: `unity/README.md`).
 
 ## The makers' temples
 
-Each world gets one great building of the makers, a Zelda-style dungeon with a
+Each world has one great building of the makers, a Zelda-style dungeon with a
 gadget half-way through and a keeper at its heart (LORE.md, "Temples", has the
-design and the plan for every world). Built so far: the desert's **Givers'
+design for every world). All eleven are built: the desert's **Givers'
 House**, the City-Shaft's **Warden's Well**, Vael II's **Founders' Belfry**, the
 Buried Machine's **Engine-House**, the Garden of Spheres' **Footprint**, Lorn
-II's **Lamp-House**, Lorn's **Hush-House** and Vael's **Aerie**. Everything lives in `src/temples/`:
+II's **Lamp-House**, Lorn's **Hush-House**, Vael's **Aerie**, the Sealed Hangar's
+**First Garage**, Viridel's **Builders' Greenhouse** and the Signal Market's
+**Undertower**. Everything lives in `src/temples/`:
 
 - **`kit.js`**: the architecture. `TempleKit` batches render meshes per material
   (noCollide) and hidden collision proxies, in a local frame; pieces: `hall` (walls
@@ -2891,7 +2893,18 @@ II's **Lamp-House**, Lorn's **Hush-House** and Vael's **Aerie**. Everything live
   and lets you go at its top), `Gust` (gusts down a hall that shove you back,
   but not behind its screens), `BellEar` (the bell-note
   whistle sounded near it), `Platform` (a riding disc, a dynamic solid you stand
-  on), `Bridge` (stones rise out of a chasm), `Mark` (a checkpoint), `Pit`.
+  on), `Bridge` (stones rise out of a chasm; `from: 'grow'`: a vine bridge that
+  grows out from its near end), `Mark` (a checkpoint), `Pit`; and for the last
+  three temples `Seed` (a husk in a stone ring that only a bloom glob wakes),
+  `Bud` (a flower-door: a great bud over a doorway, petals hinged round its rim,
+  that a bloom glob opens; it can be held shut behind you as an arena's door),
+  `Glass` (a greenhouse pane you slip off when you try to climb it, until a vine
+  has grown up it: `when`), `EchoStone` (a singing stone: splash it and it sings
+  its note, game event `'note'`) and `EchoEar` (a brass horn that lights its
+  element when its own note is played back close by: game event `'echo'`; the
+  `NOTES` low / mid / high each have a degree and a colour). `Bank` takes any
+  number of eyes and a window, with its own words (`full`, `fade`): six in 4.6 s
+  is the First Garage's (two tanks in one breath, the quick coil's refill).
   Moving parts are `userData.dynamic` (no tiling or levels of detail).
 - **`logic.js`**: the puzzle as pure state (`TempleLogic`): plates and what
   stands on them, balls on their rails, latched elements, doors and bridges from
@@ -2920,12 +2933,56 @@ II's **Lamp-House**, Lorn's **Hush-House** and Vael's **Aerie**. Everything live
   `incal.js` + `incal-data.js`, `arzach2.js` + `arzach2-data.js`, `buried.js` +
   `buried-data.js`, `spheres.js` + `spheres-data.js`, `perdide2.js` +
   `perdide2-data.js`, `perdide.js` + `perdide-data.js`, `arzach.js` +
-  `arzach-data.js` (layout, logic,
+  `arzach-data.js`, `garage.js` + `garage-data.js`, `edena.js` +
+  `edena-data.js`, `bazaar.js` + `bazaar-data.js` (layout, logic,
   guardian, outside, change, words; a change may have a `late` step, run after
-  the level's own movers).
+  the level's own movers). `rt.isNight()` (from the story's `isNight`, main.js)
+  is there for a change that keeps the night (the Signal Market's tower).
+- **A level with its own navigation list** (the Hangar's gravity portals, `{ pos,
+  to, toUp, toFwd }`, which `src/levels/garage.js` walks itself to send you
+  through): `attachTemple` leaves that list (`level.garage.portals`) alone and
+  gives `level.navigationPortals` a copy with the temple's doorways in the same
+  shape (`navigationPortal`), so the scout, the flora, the reactive world and
+  the wildlife read them alike (the last two skip `temple` doorways: no seeds
+  or cog mice in the temple's rooms). The doorways the game walks through go in
+  `level.portals`, as everywhere.
+- **The last three**: the **First Garage** (`garage.js`) on the plateau's rim
+  west of the keep, a stair-house of the makers with a stopped clock over its
+  door and the makers' cogs in the cliff below: the escapement's disc, the
+  winding well's counterweight (only the ball's weight: `drumOn`), the **quick
+  coil**, banks of six eyes, the **Clockwork Foreman** (`foremanModel`: hit its
+  six numerals inside one breath when its face opens); after, the clock keeps
+  the true time and the cogs turn. The **Builders' Greenhouse** (`edena.js`) in
+  the meadow hollow north of the white ruins, far from the tea terraces: the
+  stone seed and the eye, the root-wall and the rising disc, **bloom mode**,
+  budded doors, the vine bridge, the glass a vine has to grow up, the
+  **Gardener** (`gardenerModel`: bloom the four dead beds, then its bare back
+  when it kneels; a hand on its brow); after, flowers and vines on every slab of
+  the white ruins (`level.edena.ruins`, two instanced pools whose counts grow)
+  and on the dome. The **Undertower** (`bazaar.js`) through an old doorway in
+  the silent tower's back: the ball and the disc over the cable pit, the riding
+  well, the **echo shell**, the door, the bridge and the far door that want the
+  low, high and middle stones' notes played back (one held at a time, so the
+  order matters), the **First Sign** (`signModel`: it cries one word of its
+  line; when it lowers its dish, play the word back into it and it says the
+  next); after, a lamp on the silent tower, and once a night it speaks the line.
+- **Bloom mode** (`src/fluid-kit.js` MODES.bloom, item `bloom`): a fourth gun
+  mode after ember, leaf green and petal pink in the tank, slow as sap. Targets
+  that `accept` `'bloom'` grow; to everything else it is plain fluid. A bloom
+  glob that lands on the world emits `'tool:bloom'`, and `src/boxes/effects.js`
+  plants a few flowers there from the seed pouch's pool.
+- **The echo shell** (`src/echo-shell.js`, item `echo`): it keeps the last
+  `'note'` sung within 18 m (saved: flag `echo.held`) and V / RS · R3 plays it
+  back (`'echo'` { pos, note }) with the bell (`effects.ring()`).
+- **The brass level** (item `level`, the Hangar's gift in the open, on the keep's
+  wall where the quick coil was): where down has turned (the upside-down quarter
+  and the ring), a little bubble level at the screen's right edge shows how the
+  floor lies under the view (`effects.js`, it needs the camera).
 - **Items**: `fire` moved into the Givers' House, `jetpack` into the Warden's
   Well, `bell` into the Founders' Belfry, `cell` into the Engine-House, `lens` into
-  the Footprint, `lantern` into the Lamp-House, `stun` into the Hush-House, `glider` into the Aerie; new gifts in the open: `resin` (the
+  the Footprint, `lantern` into the Lamp-House, `stun` into the Hush-House, `glider` into the Aerie,
+  `coil` into the First Garage; new tools in the last two: `bloom` (the Greenhouse) and `echo`
+  (the Undertower); new gifts in the open: `level` (the Hangar's keep wall), `resin` (the
   Buried Machine's chimney ring: climbing tires you half as fast,
   `player.climbK`), `soles` (the City-Shaft's pillar: `player.fallGuard`) and
   `hush` (Vael's spire: creatures don't hear you walk up, `player.hush`, read by
@@ -2950,6 +3007,10 @@ II's **Lamp-House**, Lorn's **Hush-House** and Vael's **Aerie**. Everything live
   guardians, the 50/50, the migration, the words' tones, the buildings in their
   worlds, and plays each temple on foot with a real `Player` in the real level
   geometry: pushing the ball, riding the discs, climbing, lighting, flying, the
-  keeper calmed or broken, the way out and the world change.
+  keeper calmed or broken, the way out and the world change. The First Garage's
+  banks are shot at a real tank's pace (`Reserve`: three charges, a refill five
+  seconds after the last shot, three with the coil), so the test proves six
+  eyes in 4.6 s want the coil; the Hangar's portals are checked to still send
+  you through; the echo shell and bloom mode have tests of their own.
 - In the browser, `temples.<world>` is the runtime (its `logic`, `guardian`,
   `piece(id)`), for poking at from the console.
