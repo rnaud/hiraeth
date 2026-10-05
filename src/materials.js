@@ -108,7 +108,7 @@ export const sharedUniforms = {
 // += 2 × lift step: the strokes themselves stay in 0..1); a pixel with nothing packed (other
 // shaders, grass) takes the world's defaults. Hatching thins as the shade is lifted.
 // ---------------------------------------------------------------------------
-export const SHADE = { lifts: 15, hues: 8, band: 0.42, warm: [1.06, 0.98, 0.9] };
+export const SHADE = { lifts: 15, hues: 8, band: 0.42, warm: [1.06, 0.98, 0.9], slip: [0.16, 0.36] };   // slip: the ground's slope (1 - n.y) over which sand hatches fully
 /**
  * A material's shade: [lift, hue (-1: the world's), hatch amount, strata strokes]. Metal keeps its own
  * tones and few strokes; sand (terrain with ripples or wind strokes) is shaded in fewer strokes; rock
@@ -502,6 +502,7 @@ const fragmentShader = /* glsl */ `
   uniform int uShadeStyle;
   uniform float uGrid;
   uniform float uPlates;   // the grid drawn as plating (plateLines)
+  uniform float uWindows;  // façades: the share of cells with a window
   uniform float uWeather;  // weathering: cracks and patches on old walls (weatherInk), 0..1
   uniform float uDrift;    // 1: sand banked against something (sand-drifts.js)
   uniform vec3 uSkyTop;
@@ -839,7 +840,7 @@ const fragmentShader = /* glsl */ `
     float cellPx = 1.0 / max(gq.x, gq.y);
     float lodInk = smoothstep(10.0, 20.0, cellPx), lodFill = smoothstep(5.0, 12.0, cellPx);
     float ink = inkLine(abs(f.y - 0.03) / gq.y, 0.8) * 0.6 * smoothstep(5.0, 10.0, 1.0 / gq.y);   // cornice
-    float win = step(0.22, h);
+    float win = step(1.0 - uWindows, h);   // (the share of cells with a window: makeMaterial windows)
     vec2 c = f - vec2(0.5, 0.48), hf = vec2(0.17, 0.22);
     vec2 d2 = abs(c) - hf;
     float boxPx = max(d2.x / gq.x, d2.y / gq.y);                 // px outside the window (< 0 inside)
@@ -859,7 +860,8 @@ const fragmentShader = /* glsl */ `
     const vec3 lamp = vec3(1.0, 0.84, 0.5);
     vec3 nearC = mix(mix(alb, mix(glass, lamp, on), glassK), shutter, shutK);
     // the average: ~12 % of a façade is glass, ~3 % shutters
-    vec3 farC = alb * 0.85 + glass * 0.12 + vec3(0.365, 0.51, 0.56) * 0.03;
+    float wk = uWindows / 0.78;
+    vec3 farC = alb * (1.0 - 0.15 * wk) + (glass * 0.12 + vec3(0.365, 0.51, 0.56) * 0.03) * wk;
     farC = mix(farC, farC * 0.8 + lamp * 0.2, uNight * 0.6);
     alb = mix(alb, mix(farC, nearC, lodFill), vert);
     emit = glassK * on * lodFill * vert * (1.0 - shutK);
@@ -1671,7 +1673,9 @@ const fragmentShader = /* glsl */ `
       float turned = ndl < 0.0 ? (ndl > -${SHADE.band} ? 1.0 : 0.6) : 0.0;
       float lift = 1.0 - (1.0 - uShade.x) * (1.0 - uHalftone * turned) * (1.0 - uBounce * smoothstep(-0.1, -0.7, n.y));
       // (a lifted shade is a half-tone: few strokes, and no cross-hatching over a whole wall)
-      gHatch.rg *= uShade.z * vec2(1.0 - 0.8 * lift, max(1.0 - 2.5 * lift, 0.0));
+      // a sand ground hatches little in shade on its flats, fully on a steep slip face (SHADE.slip)
+      float hatchK = uMode == ${MODE_TERRAIN} ? mix(uShade.z, 1.0, smoothstep(${SHADE.slip[0]}, ${SHADE.slip[1]}, slope)) : uShade.z;
+      gHatch.rg *= hatchK * vec2(1.0 - 0.8 * lift, max(1.0 - 2.5 * lift, 0.0));
       float hq = uShade.y < 0.0 ? 0.0 : 1.0 + floor(uShade.y * ${SHADE.hues}.0 + 0.5);
       gHatch.rg = min(gHatch.rg, vec2(1.0)) + 2.0 * vec2(hq, floor(clamp(lift, 0.0, 1.0) * ${SHADE.lifts}.0 + 0.5));
     }
@@ -1758,6 +1762,7 @@ export function makeMaterial(o) {
       uFlat: { value: o.flat ? 1 : 0 },
       uStrataSize: { value: o.strataSize ?? 4.0 },
       uPlates: { value: o.plates ? 1 : 0 },
+      uWindows: { value: o.windows ?? 0.78 },
       uWeather: { value: weatheredOf(o) },
       uDrift: { value: o.drift ? 1 : 0 },
       uGrid: { value: o.grid ?? (typeof o.plates === 'number' ? o.plates : o.plates ? 3 : 0) },

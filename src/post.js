@@ -122,6 +122,8 @@ const fragmentShader = /* glsl */ `
   uniform vec4 uBackdrop;         // rgb, a = 1: one flat colour instead of the sky (a conversation's portrait)
   uniform float uCrevice;         // the deepest crevices filled with ink (0..1)
   uniform float uPaper;           // the paper's tooth (0..1)
+  uniform float uShadowFlat;      // shadows printed in their own colour (0: albedo × tint .. 1: the tint at the surface's value)
+  uniform vec4 uHaze;             // the far ground's haze colour, a = how much (0: the sky's horizon)
   uniform float uShadeKeep;       // how much of its own hue a shade keeps where its material doesn't say (materials.js SHADE)
 
   in vec2 vUv;
@@ -626,9 +628,13 @@ const fragmentShader = /* glsl */ `
       // warm, as much as it keeps; then lifted toward the light (a half-tone, the ground's bounce)
       float tintV = dot(uShadowTint, vec3(0.3, 0.55, 0.15));
       shadowTint = mix(shadowTint, tintV * vec3(${SHADE.warm.join(', ')}), shadeHue * (1.0 - 0.6 * uNight));
-      shadowTint = mix(shadowTint, uLightTint, shadeLift);
       if (face > 0.5) shadowTint = mix(uShadowTint, dot(uShadowTint, vec3(0.3, 0.55, 0.15)) * ${FACE_SHADE.tone}, ${FACE_SHADE.warm} * (1.0 - ${FACE_SHADE.night} * uNight));
-      vec3 shade = mix(albedo * shadowTint, albedo * uLightTint, uFlatten);
+      vec3 shadeC = albedo * shadowTint;
+      // a flat printed shadow (uShadowFlat): the shadow's own colour at the surface's value, not the
+      // surface's colour darkened (the City-Shaft's pink walls go blue in shade, not dark pink)
+      if (uShadowFlat > 0.0 && face < 0.5) shadeC = mix(shadeC, shadowTint * (0.45 + 0.7 * dot(albedo, vec3(0.3, 0.55, 0.15))), uShadowFlat);
+      shadeC = mix(shadeC, albedo * uLightTint, face > 0.5 ? 0.0 : shadeLift);
+      vec3 shade = mix(shadeC, albedo * uLightTint, uFlatten);
       // self-lit surfaces (gHatch.a) keep their colour at night and glow a little
       float glow = surface.a - 2.0 * hero;
       col = mix(shade, albedo * mix(uLightTint, vec3(1.12), glow), lit);
@@ -672,6 +678,9 @@ const fragmentShader = /* glsl */ `
       float fogQ = (floor(fb) + smoothstep(0.42, 0.58, fract(fb))) / 4.0;
       fog = mix(fog, fogQ, uHazeBands);
       vec3 skyC = skyBase(rd);
+      // the far ground's own haze (uHaze: rgb, a = how much): a pale band of far land under the sky
+      // (the desert's warm lilac-cream dunes), not the sky's colour
+      if (uHaze.a > 0.0) skyC = mix(skyC, uHaze.rgb, uHaze.a * (1.0 - uNight));
       // aerial perspective: mid-distance layers go greyer and paler before the fog takes them
       float aer = smoothstep(0.0, 0.55, fog) * uAerial;
       float luma = dot(col, vec3(0.3, 0.55, 0.15));
@@ -834,6 +843,8 @@ export function createPost() {
     uShadeKeep: sharedUniforms.uShadeKeep,
     uCrevice: { value: 0 },
     uPaper: { value: 0 },
+    uShadowFlat: { value: 0 },
+    uHaze: { value: [1, 1, 1, 0] },
     uGrain: { value: 0.1 },
     uDebug: { value: 0 },
   };
@@ -955,14 +966,14 @@ export const PRESETS = {
     uLineWidth: 1.5, uLineVary: 1, uDepthThresh: 0.07, uNormalThresh: 0.22, uAlbedoEdges: 1, uShadowEdges: 1,
     uWobble: 1.0, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 5.5, uHighlight: 0, uGrain: 0.1, uClouds: 0.6,
     uFogDensity: 0.0011, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
-    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0,
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0],
   },
   // Sable: a fine, almost uniform pen line, flat colour, sparse dotting
   Sable: {
     uLineWidth: 1.25, uLineVary: 0.25, uDepthThresh: 0.07, uNormalThresh: 0.3, uAlbedoEdges: 0, uShadowEdges: 0,
     uWobble: 0.0, uBoil: 0, uHatch: 0.6, uShadeStyle: 1, uHatchSpacing: 8, uHighlight: 0.05, uGrain: 0.04, uClouds: 0.5,
     uFogDensity: 0.0009, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
-    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0,
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0],
   },
   // a Moebius print: flat stippled sky, cumulus on the horizon, dotted ground,
   // fine even ink, dense fine hatching in blue shadow
@@ -972,33 +983,33 @@ export const PRESETS = {
     uFogDensity: 0.0009, uSkyFlat: 1, uSkyDots: 1, uCumulus: 1, uSkyBands: 0, uHazeBands: 0.5, uRays: 0, uDots: 1,
     // the shade in three tones: a form turned from the sun a half-tone, faces turned down lifted by
     // the ground's light, cast shadows the full tint; shades keep some of their own hue
-    uHalftone: 0.35, uBounce: 0.4, uShadeKeep: 0.3, uCrevice: 0.85, uPaper: 0.7,
+    uHalftone: 0.35, uBounce: 0.4, uShadeKeep: 0.3, uCrevice: 0.85, uPaper: 0.7, uShadowFlat: 0, uHaze: [1, 1, 1, 0],
   },
   // high-key, bone-white, heavy cast shadows, few lines
   Vael: {
     uLineWidth: 1.35, uLineVary: 0.9, uDepthThresh: 0.08, uNormalThresh: 0.35, uAlbedoEdges: 0.4, uShadowEdges: 1,
     uWobble: 1.2, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 4.5, uHighlight: 0, uGrain: 0.12, uClouds: 0.25,
     uFogDensity: 0.0008, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
-    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0,
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0],
   },
   // Moebius at his cleanest: flat colour, thin lines, light dotting only
   Viridel: {
     uLineWidth: 1.05, uLineVary: 0.6, uDepthThresh: 0.07, uNormalThresh: 0.28, uAlbedoEdges: 1, uShadowEdges: 0.4,
     uWobble: 0.4, uBoil: 0, uHatch: 0.5, uShadeStyle: 1, uHatchSpacing: 8, uHighlight: 0.06, uGrain: 0.05, uClouds: 0.7,
     uFogDensity: 0.0008, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
-    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0,
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0],
   },
   // twilight swamp: dense hatching, glowing crystals carry the light
   Lorn: {
     uLineWidth: 1.45, uLineVary: 1, uDepthThresh: 0.07, uNormalThresh: 0.24, uAlbedoEdges: 1, uShadowEdges: 1,
     uWobble: 1.0, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 5, uHighlight: 0, uGrain: 0.1, uClouds: 0.5,
     uFogDensity: 0.0012, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
-    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0,
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0],
   },
   'Animated ink': {
     uLineWidth: 1.7, uLineVary: 1, uDepthThresh: 0.07, uNormalThresh: 0.2, uAlbedoEdges: 1, uShadowEdges: 1,
     uWobble: 1.6, uBoil: 1, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 5, uHighlight: 0, uGrain: 0.14, uClouds: 0.7,
     uFogDensity: 0.0011, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
-    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0,
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0],
   },
 };

@@ -13,7 +13,7 @@ import { LINES } from '../story/desert-data.js';
 import { attachTemple } from '../temples/index.js';
 import { buildDesertHearth } from '../desert-hearth.js';
 import { SandDrifts, driftMaterial } from '../sand-drifts.js';
-import { STORY } from '../desert-sites.js';
+import { STORY, DESERT_LOOK } from '../desert-sites.js';
 import { smoothstep } from '../noise.js';
 
 // The original open desert: dunes, mesas, regions, hoverbike and wind.
@@ -76,7 +76,8 @@ export function createDesert(scene) {
     features: { mount: true, wind: true, jetpack: false, climb: true },
     mount: (physics) => new Hoverbike(physics),
     mountName: 'hoverbike',
-    defaults: { hour: 9.5, preset: 'Moebius print' },
+    // (as the desert's plates: a clean sky, no cloud bank; the far dunes a pale warm band under it)
+    defaults: { hour: 9.5, preset: 'Moebius print', look: DESERT_LOOK },
     lights,
     portals,
     // the procession, the camps and the people waiting at the gate (crowd.js)

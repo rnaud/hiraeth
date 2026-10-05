@@ -6,6 +6,7 @@ import {
   sailGeo, groundRibbon, radioDish, groundPatch,
 } from './reference-kit.js';
 import { DESERT_SHEETS, DESERT_VIEWS } from './reference-desert.js';
+import { SHAFT_SHEETS, SHAFT_VIEWS } from './reference-shaft.js';
 
 // ---------------------------------------------------------------------------
 // The references' views (src/levels/references.js): one per panel of a reference
@@ -39,6 +40,8 @@ export const REFERENCE_SHEETS = {
   },
   // the other desert environment sheets (reference-desert.js)
   ...DESERT_SHEETS,
+  // the City-Shaft's (reference-shaft.js)
+  ...SHAFT_SHEETS,
 };
 
 // ===========================================================================
@@ -457,4 +460,6 @@ export const REFERENCE_VIEWS = [
   },
   // the other desert environment sheets, in order: IMG_3772, IMG_3773, IMG_3774 (reference-desert.js)
   ...DESERT_VIEWS,
+  // the City-Shaft's sheets, IMG_3778 … IMG_3782 (reference-shaft.js)
+  ...SHAFT_VIEWS,
 ];

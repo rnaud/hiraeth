@@ -1348,7 +1348,8 @@ function frame() {
     if (zone.preset !== params.preset) { params.preset = zone.preset; applyPreset(zone.preset); }
     // a zone may also carry its world's own look, planets and hour (the Lab's biome rooms)
     if (zone !== lastZone) {
-      if (zone.look) { for (const [k, v] of Object.entries(zone.look)) if (U[k]) U[k].value = v; gui.controllersRecursive().forEach((c) => c.updateDisplay()); }
+      // (from the preset afresh: a zone's touches never carry over into the next zone's)
+      if (zone.look) { if (lastZone?.look) applyPreset(params.preset); for (const [k, v] of Object.entries(zone.look)) if (U[k]) U[k].value = v; gui.controllersRecursive().forEach((c) => c.updateDisplay()); }
       else if (lastZone?.look) applyPreset(params.preset);
       if (zone.planets || lastZone?.planets) setPlanets(zone.planets ?? level.sky?.planets ?? []);
       if (zone.hour !== undefined && lastZone) sky.hour = zone.hour;

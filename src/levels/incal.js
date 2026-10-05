@@ -78,7 +78,7 @@ export function createIncal(scene) {
     return buckets.get(k).geos;
   };
   const placed = (g, x, y, z, rot = 0) => g.rotateY(rot).translate(x, y, z);
-  const wallMat = (i) => strata(PASTELS[i % PASTELS.length], PASTELS[(i + 2) % PASTELS.length], '#f6efe0', 3.2, { pattern: 'facade', flat: true });
+  const wallMat = (i) => strata(PASTELS[i % PASTELS.length], PASTELS[(i + 2) % PASTELS.length], '#f6efe0', 3.2, { pattern: 'facade', flat: true, windows: 0.5 });   // (fewer windows, as the plates)
   const roofMat = (i) => makeMaterial({ color: ROOFS[i % ROOFS.length], flat: true, pattern: 'tiles' });
   const ironMat = makeMaterial({ color: '#34405e', flat: true, metal: 'iron' });
   const doorMat = makeMaterial({ color: '#5a3a2c', flat: true });
@@ -847,7 +847,8 @@ export function createIncal(scene) {
         vehicles.push(taxi);
       }
     },
-    defaults: { hour: 12.5, preset: 'Moebius print' },
+    // (as its plates: barely hatched, a clean sky)
+    defaults: { hour: 12.5, preset: 'Moebius print', look: { uHatch: 0.45, uCumulus: 0 } },
     sky: {
       script: {
         day: ['#8fb4da', '#eef0ea', '#93a6cf', '#fffaf0', '#fff6dc'],   // print: clear blue over a pale haze

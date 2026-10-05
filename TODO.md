@@ -667,6 +667,21 @@ All of this is for the web game; the Unity port follows later if we move to Unit
       (a view could darken its tint; a world-level "ink shadow" option is missing).
     - Far dunes on the horizon are a pale lilac-cream band (IMG_3774 p1, p7): aerial perspective
       that turns the far ground toward a light warm tone, not the sky's.
+  - Done from that list (for review): slip faces hatched again (`SHADE.slip`), the desert's far haze a
+    pale warm band (`uHaze`, `DESERT_LOOK`), its cumulus bank and clouds off.
+  - The City-Shaft (IMG_3778–3782: 1 + 5 + 5 + 5 + 7 panels) are views 28–50 (`reference-shaft.js`).
+    - Shader-level, done: flat printed shadows (`uShadowFlat`, the views use it), the façades' window
+      share (`windows`), views at a pitch and roll. On the world: fewer windows, less hatching, no
+      cumulus.
+    - Shader-level, left: flat shadow per material (the world's trees go grey-blue with it on, so the
+      world doesn't use it yet); the sheets' faces carry fine vertical cracks and pipes (weathering is
+      sparse beside them); the deep shaft views fade to a pale blue haze with depth (our fog is by
+      distance, not by depth down the shaft); a few lit faces at grazing angles show a dotted
+      texture (to look into).
+    - Scene-level: the game's City-Shaft is a round cream-and-blue pit with a spire, terraces and a
+      hill-town, the sheets' a canyon of pink and cream stacked houses with water below; the views'
+      houses are boxes (no pipes, balconies, laundry or the plating under the overhangs), the
+      cabs and blimps simple capsules.
 
 # Transitions and moments (2026-10-05, web)
 
