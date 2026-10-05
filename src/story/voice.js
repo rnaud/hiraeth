@@ -75,38 +75,39 @@ export const VOWELS = { a: [780, 1220], e: [480, 1900], i: [300, 2300], o: [500,
  * wave: oscillator · pitch / rate / len / gain: × · breath: air (0..1) · clip: 0..1
  * glide: semitones per syllable · formant: × vowel formants · density: syllables per vowel group
  * wobble: [rate Hz, semitones] (watery) · mech: ring-modulated, pitch on a grid (machines)
- * radio: band-limited (a speaker grille) · ring: a glassy overtone · glyphs: the script it is written in
+ * radio: band-limited (a speaker grille) · ring: a glassy overtone
+ * (each tongue's writing, the glyphs the dialogue panel shows before the translation: src/story/scripts.js)
  */
 export const LANGUAGES = {
   home:     { name: 'home speech', native: true, wave: 'triangle', pitch: 1.0, rate: 1.0, len: 1.05, gain: 1.0, breath: 0.04, clip: 0.1, glide: -0.2, formant: 0.95, density: 0.85,
-    cons: ['m', 'n', 'l', 'b', 'd', 'h', 'w', ''], vowels: ['a', 'o', 'e', 'u', 'a'], glyphs: '' },
+    cons: ['m', 'n', 'l', 'b', 'd', 'h', 'w', ''], vowels: ['a', 'o', 'e', 'u', 'a'] },
   desert:   { name: 'Qanati', wave: 'triangle', pitch: 0.86, rate: 0.9, len: 1.15, gain: 0.95, breath: 0.42, clip: 0, glide: -0.9, formant: 0.88, density: 0.8,
-    cons: ['h', 'kh', 's', 'r', 'n', 'm', 'd', 'q', ''], vowels: ['a', 'a', 'o', 'u', 'i'], glyphs: '⟟⋔⌇⟊⏃⋏⟒⌰⋎' },
+    cons: ['h', 'kh', 's', 'r', 'n', 'm', 'd', 'q', ''], vowels: ['a', 'a', 'o', 'u', 'i'] },
   incal:    { name: 'Shaft cant', wave: 'square', pitch: 1.08, rate: 1.38, len: 0.58, gain: 0.85, breath: 0.04, clip: 1, glide: 0.5, formant: 1.08, density: 0.95,
-    cons: ['k', 't', 'p', 'ts', 'ch', 'tk', 'n'], vowels: ['i', 'e', 'a', 'i'], glyphs: '⌁⌂⍀⍜⍙⌗⍚⌖' },
+    cons: ['k', 't', 'p', 'ts', 'ch', 'tk', 'n'], vowels: ['i', 'e', 'a', 'i'] },
   arzach:   { name: 'Vael hush', wave: 'sine', pitch: 0.9, rate: 0.62, len: 1.5, gain: 0.32, breath: 0.85, clip: 0, glide: -0.5, formant: 0.9, density: 0.35,
-    cons: ['h', 'sh', 'f', ''], vowels: ['o', 'u', 'a'], glyphs: '⌒︶⏜⏝◠◡' },
+    cons: ['h', 'sh', 'f', ''], vowels: ['o', 'u', 'a'] },
   arzach2:  { name: 'cloud-monk chant', wave: 'sine', pitch: 0.8, rate: 0.7, len: 1.45, gain: 0.8, breath: 0.25, clip: 0, glide: 0, formant: 0.85, density: 0.6, ring: 0.25,
-    cons: ['m', 'n', 'ng', 'h', 'l', ''], vowels: ['o', 'u', 'a', 'o'], glyphs: '◠◡⌓⌒⊙⊚' },
+    cons: ['m', 'n', 'ng', 'h', 'l', ''], vowels: ['o', 'u', 'a', 'o'] },
   garage:   { name: 'Hangar clatter', wave: 'square', pitch: 1.0, rate: 1.15, len: 0.75, gain: 0.8, breath: 0, clip: 0.7, glide: 0, formant: 1.0, density: 0.9, mech: 1,
-    cons: ['t', 'k', 'd', 'g', 'z', 'tk', 'b'], vowels: ['e', 'i', 'o', 'a'], glyphs: '⊞⊟⊠⊡⌸⌹⌺⍁⍂' },
+    cons: ['t', 'k', 'd', 'g', 'z', 'tk', 'b'], vowels: ['e', 'i', 'o', 'a'] },
   buried:   { name: 'Deep-wheel tongue', wave: 'sawtooth', pitch: 0.82, rate: 0.85, len: 1.0, gain: 0.8, breath: 0.15, clip: 0.4, glide: -0.6, formant: 0.82, density: 0.8,
-    cons: ['g', 'd', 'r', 'b', 'm', 'k'], vowels: ['o', 'u', 'a', 'oe'], glyphs: '⚙⌬⏣⎔⏢⌾' },
+    cons: ['g', 'd', 'r', 'b', 'm', 'k'], vowels: ['o', 'u', 'a', 'oe'] },
   edena:    { name: 'Edenic', wave: 'sine', pitch: 1.1, rate: 1.02, len: 0.95, gain: 0.95, breath: 0.08, clip: 0.1, glide: 2.2, formant: 1.1, density: 0.85,
-    cons: ['l', 'w', 'y', 'f', 'm', 'n', ''], vowels: ['i', 'e', 'a', 'ae', 'u'], glyphs: '❀✿❁✾⚘⁂' },
+    cons: ['l', 'w', 'y', 'f', 'm', 'n', ''], vowels: ['i', 'e', 'a', 'ae', 'u'] },
   spheres:  { name: 'Sphere-song', wave: 'sine', pitch: 1.16, rate: 0.88, len: 1.25, gain: 0.85, breath: 0.05, clip: 0, glide: 0.4, formant: 1.12, density: 0.75, ring: 0.6,
-    cons: ['l', 'n', 'm', 'y', ''], vowels: ['i', 'e', 'y', 'a'], glyphs: '○◎◉◌◍◯⊚' },
+    cons: ['l', 'n', 'm', 'y', ''], vowels: ['i', 'e', 'y', 'a'] },
   perdide:  { name: 'Lorn burble', wave: 'sine', pitch: 0.96, rate: 0.92, len: 1.1, gain: 0.95, breath: 0.1, clip: 0, glide: -3.2, formant: 0.8, density: 0.85, wobble: [9.5, 1.3],
-    cons: ['bl', 'gl', 'w', 'l', 'b', 'm', 'p'], vowels: ['u', 'o', 'oe', 'a'], glyphs: '∿≀≈⌇∾〰' },
+    cons: ['bl', 'gl', 'w', 'l', 'b', 'm', 'p'], vowels: ['u', 'o', 'oe', 'a'] },
   perdide2: { name: 'lamp-keeper burble', wave: 'triangle', pitch: 0.9, rate: 0.82, len: 1.2, gain: 0.9, breath: 0.12, clip: 0, glide: -2.2, formant: 0.82, density: 0.8, wobble: [7, 0.9],
-    cons: ['gl', 'l', 'w', 'm', 'n', 'b'], vowels: ['o', 'u', 'a'], glyphs: '∿≈∾⌇≋' },
+    cons: ['gl', 'l', 'w', 'm', 'n', 'b'], vowels: ['o', 'u', 'a'] },
   bazaar:   { name: 'Market patter', wave: 'sawtooth', pitch: 1.04, rate: 1.22, len: 0.75, gain: 1.1, breath: 0.06, clip: 0.5, glide: 0.8, formant: 1.04, density: 0.9, radio: 0.6,
-    cons: ['b', 'd', 'z', 'r', 'sh', 'p', 'y', 'n'], vowels: ['a', 'e', 'o', 'i', 'ae'], glyphs: '⌘⌥⍟⎈⍣⍤⋇' },
+    cons: ['b', 'd', 'z', 'r', 'sh', 'p', 'y', 'n'], vowels: ['a', 'e', 'o', 'i', 'ae'] },
   atelier:  { name: 'pen-and-paper', wave: 'triangle', pitch: 1.0, rate: 0.95, len: 0.9, gain: 0.8, breath: 0.3, clip: 0.2, glide: 0.3, formant: 1.0, density: 0.75,
-    cons: ['s', 'f', 'sh', 'l', 't'], vowels: ['e', 'i', 'a'], glyphs: '〜∫∮⌇⌒' },
+    cons: ['s', 'f', 'sh', 'l', 't'], vowels: ['e', 'i', 'a'] },
   // the ship's own voice: a small chirping computer
   ship:     { name: 'ship', native: true, wave: 'square', pitch: 1.5, rate: 1.3, len: 0.55, gain: 0.55, breath: 0, clip: 0.9, glide: 0, formant: 1.2, density: 0.7, mech: 1,
-    cons: ['t', 'p', 'd', ''], vowels: ['i', 'e'], glyphs: '' },
+    cons: ['t', 'p', 'd', ''], vowels: ['i', 'e'] },
 };
 /** Each language's place: the City-Shaft is the Lodestar level, the Signal Market the bazaar. */
 export const languageOf = (levelId) => (LANGUAGES[levelId] ? levelId : 'desert');
@@ -175,7 +176,7 @@ export function isQuote(span) {
  * Which characters are spoken: not (stage directions); for a narrator, only the *quoted* words
  * (narrator 'all': every starred span; otherwise the quotations, not the highlights).
  */
-function spokenMask(text, narrator) {
+export function spokenMask(text, narrator) {
   const m = new Uint8Array(text.length);
   let paren = 0, star = false, quote = false;
   for (let i = 0; i < text.length; i++) {

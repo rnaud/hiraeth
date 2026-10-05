@@ -1,0 +1,22 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Tongues: each world's script</title><style>
+body{margin:0;background:#e9dfc9;color:#2b211f;font:14px/1.45 system-ui}
+header{padding:14px 18px 4px}header h1{margin:0;font-size:20px}header p{margin:4px 0;max-width:70em}
+main{display:grid;grid-template-columns:repeat(auto-fill,minmax(640px,1fr));gap:18px;padding:12px 18px 30px}
+.card{background:#f6eedc;border:2px solid #2b211f;box-shadow:4px 4px 0 #2b211f;padding:10px 14px 12px}
+.card h2{margin:0;font-size:16px;letter-spacing:.04em}.card h2 small{font-weight:normal;opacity:.75;margin-left:8px}
+.card .about{margin:2px 0 8px;opacity:.85}
+/* the dialogue panel's text (index.html #dialogue) */
+.panel{font:var(--panel-size,15px)/1.5 ui-monospace,Menlo,monospace;color:#2b211f;background:#fffaf0;border:2.5px solid #2b211f;box-shadow:4px 4px 0 #2b211f;padding:10px 14px;margin:6px 0 10px;min-height:2.9em;
+  background-image:repeating-linear-gradient(0deg,transparent 0 26px,rgba(43,33,31,.05) 26px 27px)}
+.panel em{font-style:normal;font-weight:bold;color:#b23a2c;background:#f2c54b4d;padding:0 2px;border-radius:2px}
+.panel .glyph{width:1.6em;height:1.05em;vertical-align:-.12em;fill:#3aa6a8;stroke:#3aa6a8;margin:0 2px}
+.label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;opacity:.6}
+.inv{display:flex;flex-wrap:wrap;gap:4px 2px;font:22px/1.6 ui-monospace,Menlo,monospace;margin-top:4px}
+.inv span{display:inline-block;padding:0 3px;border-bottom:1px solid #2b211f22}
+</style></head><body>
+<header><h1>Tongues: each world's script</h1>
+<p>What the dialogue panel shows before the translator turns a line into the traveller's words (<code>src/story/scripts.js</code>).
+For each world: the line as it is written, the line half said (the words at the caret in the script, the ones behind it turned into English), and the script's glyphs.
+<code>?still</code> freezes the replay (for screenshots); <code>?only=desert</code> shows one script, <code>?size=30</code> draws the panels bigger.</p></header>
+<main id="cards"></main>
+<script type="module" src="./tongues.js"></script></body></html>

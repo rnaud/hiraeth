@@ -7,6 +7,7 @@ export const CHANGELOG = [
     'Smoother frame rate everywhere, most of all close to metal, cracked rock and other detailed surfaces; nothing looks different.',
     'No more stutter the first time you walk into a new place or turn to something new: everything is prepared while the world loads, and worlds load faster.',
     'Grassy places no longer waste time redrawing every blade of grass each frame; stepping through a door no longer stalls while the grass appears.',
+    'Every world now writes in its own script: the desert’s joined, flowing letters read right to left, the City-Shaft scratches runes, Vael barely writes at all, the Hangar stamps its letters, Lorn ties knots on a cord, the Spheres draw round signs, and so on. In a conversation each word appears in the speaker’s script as it is said and turns into your words a moment later, as the translator catches up, without the line jumping about.',
   ] },
   { v: '0.56', date: '2026-10-05', items: [
     'The settings now have an Updates section in the Android app: see the version you’re playing, check for updates, read what the new one brings, and download it with a progress bar. The game restarts at the title screen with your saves kept.',

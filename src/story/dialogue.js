@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { parseLine, stripTone } from './tone.js';
 import { pickTwoShot, pickLookShot, pullIn } from './shot.js';
-import { planLine, voiceOf, PLAYER_VOICE, LANGUAGES, REVEAL_CPS, isQuote } from './voice.js';
+import { planLine, voiceOf, PLAYER_VOICE, LANGUAGES, REVEAL_CPS, isQuote, spokenMask } from './voice.js';
+import { scriptOf, lineChunks, chunkSvg } from './scripts.js';
 import { syllableOpen, syllableEnvelope } from '../talk-face.js';
 import { confirmKey } from '../native-pad.js';
 import { keyBadge } from '../prompt-keys.js';
@@ -215,14 +216,48 @@ export function choiceHtml(c, k, key = confirmKey()) {
 }
 
 const REVEAL = REVEAL_CPS;   // letters per second at an even pace (each line's voice and tone scale it)
-const FRESH = 3;             // letters at the caret still in the alien script (the translator catching up)
+/** The translator: a word turns into your words LAG letters after it is said, fading over FADE more. */
+export const LAG = 14, FADE = 12;
 
-/** A letter in a world's script (the same letter always the same glyph). */
-function glyphOf(c, glyphs) {
-  if (!glyphs || /\s/.test(c)) return c;
-  if (/[^\p{L}\p{N}]/u.test(c)) return '';
-  const G = [...glyphs];
-  return G[(c.toLowerCase().codePointAt(0) * 7) % G.length];
+let _chunks = { text: null, list: [] };
+/**
+ * A line as the panel shows it while it is said: its first `shown` characters, the words said
+ * but not yet translated in the speaker's own script (src/story/scripts.js: each world's), the
+ * rest in your words. A word turns when `translated` (letters, LAG behind the reveal) passes its
+ * end, its English fading in over its glyphs. The glyphs are drawn exactly as wide as the
+ * English (the font is monospaced), so nothing moves when a word turns.
+ * @param o.lang        the speaker's tongue; null: no translation (home speech, the traveller)
+ * @param o.spoken      spokenMask(text): stage directions and narration aren't in the script
+ */
+export function revealHtml(full, { lang = null, shown = full.length, translated = Infinity, spoken = null } = {}) {
+  const n = Math.min(full.length, Math.floor(shown));
+  const S = lang ? scriptOf(lang) : null;
+  let disp = '', at = 0;
+  const units = [];
+  if (S && translated < full.length + FADE) {
+    if (_chunks.text !== full) _chunks = { text: full, list: lineChunks(full) };
+    for (const ch of _chunks.list) {
+      if (ch.from >= n) break;
+      const age = translated - ch.to;
+      if (age >= FADE) continue;
+      const li = Math.max(0, ch.text.search(/[\p{L}\p{N}]/u));
+      if (spoken && !spoken[ch.from + li]) continue;
+      disp += full.slice(at, ch.from) + '\uE000' + ch.text + '\uE001';
+      units.push({ ch, shown: n - ch.from, a: age > 0 ? Math.ceil((age / FADE) * 6) / 6 : 0 });
+      at = ch.to;
+    }
+  }
+  if (at < n) disp += full.slice(at, n);
+  // hide a motif half typed, and a star still waiting for its pair
+  const shownText = disp.replace(/\{\w*$/, '').replace(/\*([^*]*)$/, (m, w) => ((disp.match(/\*/g)?.length ?? 0) % 2 ? w : m));
+  let u = 0;
+  return formatText(shownText).replace(/\uE000([^\uE001]*)\uE001/g, (m, eng) => {
+    const x = units[u++], o = { shown: x.shown, proper: x.ch.proper, space: x.ch.space };
+    if (!x.a) return chunkSvg(x.ch.text, lang, o);
+    // turning: the English fading in, the glyphs fading out over it
+    const len = [...x.ch.text].length, a = Math.min(1, x.a);
+    return `<span style="white-space:nowrap"><span style="opacity:${a.toFixed(2)}">${eng}</span>${chunkSvg(x.ch.text, lang, { ...o, style: `margin-left:-${len}ch;opacity:${(1 - a).toFixed(2)}` })}</span>`;
+  });
 }
 
 /**
@@ -289,7 +324,7 @@ export class Dialogue {
     if (this.runner.ended) return false;
     this.open = true;
     this.openedAt = typeof performance !== 'undefined' ? performance.now() : 0;
-    this.revealed = 0;
+    this.revealed = 0; this.translated = -LAG;
     this._mouth.length = 0; this.answer = null;
     this.game.set(`met.${person.id}`, true);
     this.game.emit('dialogue:start', { npc, id: person.id });
@@ -317,15 +352,15 @@ export class Dialogue {
 
   next() {
     if (!this.open) return;
-    if (this.revealed < this.runner.text.length) { this.revealed = this.runner.text.length; this.render(); return; }
-    if (this.runner.advance()) { this.revealed = 0; this.render(); return; }
+    if (this.revealed < this.runner.text.length) { this.revealed = this.runner.text.length; this.translated = Infinity; this.render(); return; }
+    if (this.runner.advance()) { this.revealed = 0; this.translated = -LAG; this.render(); return; }
     if (this.runner.ended) this.close();
     else if (this.runner.choices().length === 1 && this.runner.choices()[0].end) this.close();
   }
 
   choose(i) {
     if (!this.open) return;
-    if (this.revealed < this.runner.text.length) { this.revealed = this.runner.text.length; this.render(); return; }
+    if (this.revealed < this.runner.text.length) { this.revealed = this.runner.text.length; this.translated = Infinity; this.render(); return; }
     const said = this.runner.choices().find((c) => c.index === i);
     this.runner.choose(i);
     this.sound?.toolClick?.(true);
@@ -338,7 +373,7 @@ export class Dialogue {
       this.answer = plan.syllables.length ? { tone: said.tone ?? plan.tone, until: this.clock + plan.total + 0.1 } : null;
     }
     if (this.runner.ended) { this.close(); return; }
-    this.revealed = 0;
+    this.revealed = 0; this.translated = -LAG;
     this.render();
   }
 
@@ -363,7 +398,7 @@ export class Dialogue {
     const lang = player ? 'home' : this.person.lang ?? this.sound?.language ?? 'home';
     const voice = voiceOf(player ? PLAYER_VOICE : { ...this.person, scale: this.person.scale ?? this.npc?.person?.size ?? this.npc?.object?.scale?.x });
     const plan = planLine({ text: r.text, tone: r.tone }, { voice, lang, narrator });
-    this._plan = Object.assign(plan, { key, next: 0, narrator, player, foreign: !LANGUAGES[lang]?.native && !(narrator && !plan.syllables.length) });
+    this._plan = Object.assign(plan, { key, next: 0, narrator, player, foreign: !LANGUAGES[lang]?.native && !(narrator && !plan.syllables.length), mask: spokenMask(r.text, narrator) });
     return this._plan;
   }
 
@@ -371,15 +406,13 @@ export class Dialogue {
     if (!this.el) return;
     const r = this.runner, full = r.text;
     const plan = this.voicePlan();
-    // reveal letter by letter, keeping the motifs whole; the last few letters at the caret
-    // are still in the speaker's own script, resolving into the translation as you read
+    // reveal letter by letter, keeping the motifs whole: the words come in the speaker's own
+    // script as they are said, and turn into the translation a moment behind (revealHtml)
     const n = Math.floor(this.revealed), revealing = n < full.length;
-    const glyphs = plan.foreign && revealing ? LANGUAGES[plan.lang]?.glyphs : '';
-    const cut = glyphs ? Math.max(0, n - FRESH) : n;
-    const shown = full.slice(0, cut);
-    const fresh = glyphs ? [...full.slice(cut, n)].map((c) => glyphOf(c, glyphs)).join('') : '';
-    this.q('.dlg-text').innerHTML = formatText(shown.replace(/\{\w*$/, '').replace(/\*([^*]*)$/, (m, w) => ((shown.match(/\*/g)?.length ?? 0) % 2 ? w : m)))   // hide only a star still waiting for its pair
-      + (fresh ? `<span class="dlg-alien">${fresh.replace(/[&<>]/g, '')}</span>` : '') + (revealing ? '<span class="dlg-caret">▍</span>' : '');
+    const text = revealHtml(full, { lang: plan.foreign ? plan.lang : null, shown: n, translated: this.translated, spoken: plan.mask })
+      + (revealing ? '<span class="dlg-caret">▍</span>' : '');
+    const el = this.q('.dlg-text');
+    if (el._html !== text) { el.innerHTML = text; el._html = text; }
     this.q('.dlg-text').classList.toggle('player', r.speaker === 'player');
     const done = this.revealed >= full.length;
     const choices = done ? r.choices() : [];
@@ -402,9 +435,10 @@ export class Dialogue {
     if (!this.open) return;
     this.sound?.holdFloor?.();   // nobody else mumbles over a conversation
     const len = this.runner.text.length;
-    if (this.revealed < len) {
+    if (this.revealed < len || this.translated < len + FADE) {
       // the voice keeps step with the letters: each syllable sounds as the reveal reaches it
       const plan = this.voicePlan();
+      this.translated = plan.foreign ? this.translated + dt * (plan.cps || REVEAL) : Infinity;
       this.revealed = Math.min(len, this.revealed + dt * (plan.cps || REVEAL));
       const S = plan.syllables;
       while (plan.next < S.length && S[plan.next].i < this.revealed) {

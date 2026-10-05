@@ -222,8 +222,8 @@
       body.controller #dialogue .dlg-key .key { display: inline-flex; visibility: hidden; }
       body.controller #dialogue button:focus .dlg-key .key { visibility: visible; }
       body.controller #dialogue button:focus .dlg-mark { visibility: hidden; }
-      /* the translator: the last letters at the caret still in the speaker's own script */
-      #dialogue .dlg-alien { color: #3aa6a8; letter-spacing: 0.05em; opacity: 0.85; }
+      /* the translator: words still in the speaker's own script (src/story/scripts.js: inline svg, its ink inline) */
+      #dialogue svg.tg { pointer-events: none; }
       /* a big screen (a 1080p handheld or a monitor): a bigger panel, read from arm's length */
       @media (min-width: 1700px) and (min-height: 900px) {
         #dialogue { width: min(920px, calc(100vw - 32px)); font-size: 19px; bottom: calc(40px + var(--safe-bottom)); }

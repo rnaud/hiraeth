@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { TONES, parseLine, inferTone, stripTone, UNTAGGED } from '../src/story/tone.js';
 import { planLine, contourOf, voiceOf, LANGUAGES, CALL_VOICES, TONE_SHAPES, REVEAL_CPS } from '../src/story/voice.js';
+import { SCRIPTS } from '../src/story/scripts.js';
 
 const { CONTENT, ERRANDS } = await import('../src/levels/content.js');
 const crowd = await import('../src/crowd.js');
@@ -179,7 +180,7 @@ test('each world has its own tongue', () => {
   assert.equal(new Set(['home', 'desert', 'incal', 'garage', 'perdide', 'edena', 'bazaar'].map(cons)).size, 7);
   // the same word always sounds the same in a tongue (deterministic)
   assert.deepEqual(P('desert'), P('desert'));
-  for (const L of Object.values(LANGUAGES)) assert.ok(L.native || [...L.glyphs].length >= 5, `${L.name} has a script`);
+  for (const [id, L] of Object.entries(LANGUAGES)) assert.ok(L.native || SCRIPTS[id]?.inventory.length >= 20, `${L.name} has a script`);
 });
 
 test('each speaker has their own voice: children higher, elders slower, crowds hashed, the parents distinct', () => {
