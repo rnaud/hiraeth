@@ -142,7 +142,7 @@ test('the traveller: a hard landing goes limp on the ragdoll, the place follows 
   const p = new Player(ground);
   p.humanoid = new Humanoid(human, p.char, 'm');
   p.attach(new THREE.Scene());
-  p.pos.set(0, 15, 0); p.vel.set(0, 0, 6); p.onGround = false;
+  p.pos.set(0, 20, 0); p.vel.set(0, 0, 6); p.onGround = false;
   for (let i = 0; i < 300 && !p.down; i++) p.update(1 / 60, {}, 0);
   assert.ok(p.down?.H, 'down, on the ragdoll');
   const at = p.pos.clone();

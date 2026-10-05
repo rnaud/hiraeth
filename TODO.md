@@ -459,11 +459,11 @@ All of this is for the web game; the Unity port follows later if we move to Unit
 
 # Controls (2026-10-05, web)
 
-- [ ] The gun shoots in a straight line, not an arc, and shows no trajectory.
-- [ ] The jetpack fires with R2; the gun only works after L2 to aim.
-- [ ] The jetpack steers like the bird: point in any direction with the left stick.
-- [ ] B jumps off the bird or the hover car.
-- [ ] The ragdoll kicks in from a little higher up.
+- [x] The gun shoots in a straight line, not an arc, and shows no trajectory.
+- [x] The jetpack fires with R2; the gun only works after L2 to aim.
+- [x] The jetpack steers like the bird: point in any direction with the left stick.
+- [x] B jumps off the bird or the hover car.
+- [x] The ragdoll kicks in from a little higher up.
 
 # Later
 

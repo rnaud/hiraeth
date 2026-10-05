@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { FluidTool, FLUID, FLUID_TONES, Glob, Reserve, boostVelocity, fluidTones, launchDir, predictArc, toolInput, traceShot } from '../src/fluid-tool.js';
+import { FluidTool, FLUID, FLUID_TONES, Glob, Reserve, boostVelocity, clearLine, fluidTones, shotDir, toolInput, traceShot } from '../src/fluid-tool.js';
 import { clearTargets, hitTarget, registerTarget, targetsInCone } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
 import { ReactiveWorld } from '../src/reactive-world.js';
@@ -68,11 +68,14 @@ test('the shared reserve: three uses, then none, then all three back exactly 2 s
   assert.equal(FLUID.charges, 3); assert.equal(FLUID.refillDelay, 2);
 });
 
-test('controls: aim, shoot and push from keyboard, mouse, pad or touch', () => {
-  const none = { aim: false, shoot: false, push: false, mode: false, modeBack: false };
-  assert.deepEqual(toolInput({ KeyR: true, KeyG: true }), { ...none, aim: true, shoot: true });
-  assert.deepEqual(toolInput({ MouseRight: true, MouseLeft: true, MouseMiddle: true }), { ...none, aim: true, shoot: true, push: true });
-  assert.deepEqual(toolInput({ PadAim: true, PadFire: true, PadPush: true }), { ...none, aim: true, shoot: true, push: true });
+test('controls: aim, shoot and push from keyboard, mouse, pad or touch; a shot only while aiming', () => {
+  const none = { aim: false, shoot: false, fire: false, quick: false, push: false, mode: false, modeBack: false };
+  assert.deepEqual(toolInput({ KeyR: true, KeyG: true }), { ...none, aim: true, shoot: true, fire: true });
+  assert.deepEqual(toolInput({ MouseRight: true, MouseLeft: true, MouseMiddle: true }), { ...none, aim: true, shoot: true, fire: true, push: true });
+  assert.deepEqual(toolInput({ PadAim: true, PadFire: true, PadPush: true }), { ...none, aim: true, shoot: true, fire: true, push: true });
+  assert.deepEqual(toolInput({ PadFire: true }), { ...none, fire: true }, 'RT without LT does not shoot (it fires the jets: player.js)');
+  assert.deepEqual(toolInput({ KeyG: true }), { ...none, fire: true }, 'nor G without R');
+  assert.deepEqual(toolInput({ TouchFire: true }), { ...none, quick: true }, 'the touch button: a quick shot');
   assert.deepEqual(toolInput({ KeyC: true }), { ...none, push: true });
   assert.deepEqual(toolInput({ KeyX: true, KeyF: true, KeyE: true }), { ...none, mode: true }, 'X switches the gun mode; F and E do nothing to the tool');
   assert.deepEqual(toolInput({ PadModeNext: true }), { ...none, mode: true }, 'D-pad right');
@@ -157,7 +160,7 @@ test('an empty tank (the desert’s backpack, until the giant’s pool) holds no
   tool.dispose();
 });
 
-test('shoot: a glob arcs onto the crosshair, hits the nearest target and the world occludes it', () => {
+test('shoot: a glob flies straight onto the crosshair, hits the nearest target and the world occludes it', () => {
   clearTargets();
   const near = target(v(0, 0, -10)), far = target(v(0, 0, -20)), aside = target(v(3, 0, -5));
   const fly = (physics, from = v(), vel = v(0, 0, -FLUID.shoot.speed), up = v(0, 1, 0), gravity = 0) => {
@@ -179,26 +182,44 @@ test('shoot: a glob arcs onto the crosshair, hits the nearest target and the wor
   assert.equal(e.type, 'target');
   // the crosshair trace agrees
   assert.equal(traceShot(planePhysics(v(0, 0, -6), v(0, 0, 1)), v(), v(0, 0, -1)).kind, 'world');
-  // the arc: lobbed onto the crosshair point, whichever way gravity points
+  // straight: no gravity on the glob, so it keeps to the line from the nozzle to the crosshair, whichever way gravity points
+  assert.equal(FLUID.shoot.gravity, 0, 'a straight shot');
   for (const up of [v(0, 1, 0), v(1, 0, 0), v(0, -0.6, 0.8)]) {
     clearTargets();
-    const aimAt = v(4, -2, -25), got = target(aimAt, 0.4);
-    const dir = launchDir(v(), aimAt, FLUID.shoot.speed, FLUID.shoot.gravity, up);
-    const { e: hit } = fly(open, v(), dir.multiplyScalar(FLUID.shoot.speed), up, FLUID.shoot.gravity);
+    const aimAt = v(4, -2, -40), got = target(aimAt, 0.4);
+    const dir = shotDir(v(), aimAt, v(0, 0, -1));
+    const g = new Glob(v(), dir.clone().multiplyScalar(FLUID.shoot.speed));
+    let hit = null, off = 0;
+    for (let i = 0; i < 400 && !hit; i++) {
+      hit = g.step(DT, { physics: open, up });
+      off = Math.max(off, g.pos.clone().sub(dir.clone().multiplyScalar(g.pos.dot(dir))).length());
+    }
     assert.equal(hit?.type, 'target', `gravity along ${up.toArray()}`);
+    assert.ok(off < 1e-6, `on the line all the way (${off})`);
     assert.equal(got.length, 0);
-    const { end } = predictArc(v(), launchDir(v(), aimAt, FLUID.shoot.speed, FLUID.shoot.gravity, up).multiplyScalar(FLUID.shoot.speed), { physics: open, up, dt: DT, steps: 200 });
-    assert.equal(end?.type, 'target', 'the preview arc agrees');
   }
+  // a target right beside the nozzle: along the camera's aim instead
+  assert.ok(shotDir(v(), v(0, 0, -1), v(1, 0, 0)).distanceTo(v(1, 0, 0)) < 1e-9);
   // through the tool: aimed at a target, the glob flies there and calls onHit('shoot')
   clearTargets();
   const hits = target(v(0.8, 1.6, -20), 0.8);
   const { tool } = makeTool();
-  frames(tool, 30, { KeyR: true });
+  // not aiming: the fire button does nothing (no quick shot any more)
+  tool.update(DT, { KeyG: true }); frames(tool, 30, { KeyG: true });
+  assert.equal(tool.globs.length, 0, 'no shot without aiming');
+  assert.equal(tool.charges, 3);
+  // aiming with the fire button still held from before: no shot until a fresh press
+  frames(tool, 30, { KeyR: true, KeyG: true });
+  assert.equal(tool.globs.length, 0, 'a press held from before the aim does not shoot');
+  frames(tool, 2, { KeyR: true });
   assert.ok(tool.aimPoint.distanceTo(v(0.8, 1.6, -19.2)) < 0.05, 'the crosshair sits on the target');
   tool.update(DT, { KeyR: true, KeyG: true });
+  assert.equal(tool.globs.length, 1, 'a fresh press while aiming shoots');
+  const g0 = tool.globs[0], line = shotDir(g0.pos, tool.aimPoint, tool.aimDir);
   for (let i = 0; i < 90 && !hits.length; i++) tool.update(DT, { KeyR: true });
   assert.equal(hits.length, 1); assert.equal(hits[0].mode, 'shoot');
+  assert.ok(g0.dir.distanceTo(line) < 1e-6, 'it flew straight, without bending');
+  assert.equal(tool.arc, undefined, 'no trajectory preview');
   // a glob on the world leaves a splat that fades away
   clearTargets();
   const wall = makeTool({ physics: planePhysics(v(0, 0, -12), v(0, 0, 1)) }).tool;
@@ -209,6 +230,35 @@ test('shoot: a glob arcs onto the crosshair, hits the nearest target and the wor
   frames(wall, Math.ceil(FLUID.shoot.splatLife / DT) + 2);
   assert.equal(wall.splats.list.length, 0, 'short-lived');
   tool.dispose(); wall.dispose();
+});
+
+test('a straight shot: a lip in front of the nozzle that the crosshair sees past does not take it; the shot leaves on the crosshair\'s ray', () => {
+  clearTargets();
+  // a shelf's edge (y = 0, from z -1 to -3) just above the nozzle, the target beyond and above it; the camera looks over the shelf
+  const shelf = { rayHit(origin, dir, far) {
+    if (Math.abs(dir.y) < 1e-9) return null;
+    const t = -origin.y / dir.y, p = origin.clone().addScaledVector(dir, t);
+    return t >= 0 && t <= far && p.z <= -1 && p.z >= -3 ? { distance: t, point: p, normal: v(0, 1, 0) } : null;
+  }, rayDistance: () => Infinity };
+  const at = v(0, 0.6, -12), got = target(at, 0.5);
+  const cam = v(0, 0.45, 2), rayDir = at.clone().sub(cam).normalize();
+  assert.equal(traceShot(shelf, cam, rayDir).kind, 'target', 'the crosshair sees it');
+  const muzzle = v(0.3, -0.1, -0.4), dir = shotDir(muzzle, at, rayDir);
+  assert.ok(shelf.rayHit(muzzle, dir, muzzle.distanceTo(at)), 'the straight line from the nozzle clips the shelf');
+  const from = muzzle.clone();
+  assert.equal(clearLine(shelf, from, dir, at, cam, rayDir, 'target'), true);
+  assert.ok(dir.distanceTo(rayDir) < 1e-9 && from.clone().sub(cam).cross(rayDir).length() < 1e-6, 'on the crosshair\'s ray');
+  assert.ok(from.distanceTo(muzzle) < 1, `beside the nozzle (${from.distanceTo(muzzle).toFixed(2)} m)`);
+  const g = new Glob(from, dir.clone().multiplyScalar(FLUID.shoot.speed));
+  let e = null;
+  for (let i = 0; i < 200 && !e; i++) e = g.step(DT, { physics: shelf, up: v(0, 1, 0) });
+  assert.equal(e?.type, 'target');
+  hitTarget(e.hit, 'shoot', e.dir, {});
+  assert.equal(got.length, 1);
+  // an open line: the shot leaves the nozzle as it is
+  const f2 = muzzle.clone(), d2 = shotDir(f2, at, rayDir);
+  assert.equal(clearLine(open, f2, d2, at, cam, rayDir, 'target'), false);
+  assert.ok(f2.equals(muzzle));
 });
 
 test('push: only targets inside the cone (and in view) are pushed, away from the traveller', () => {
@@ -268,7 +318,19 @@ test('boost: a strong burst up and a little forward, in any gravity; with the je
     assert.equal(p.gliding, true);
     tool.dispose();
   }
-  // the jets: one press in the air thrusts (burning the gauge, not a whole charge), a quick double tap boosts
+  // a pad's jump never fires the jets (RT does): there one press in the air boosts, even with them
+  items.grant('jetpack');
+  {
+    const q = new Player(new Physics(new THREE.Scene()), {});
+    q.pos.set(0, 30, 0); q.onGround = false;
+    const { tool: qt } = makeTool({ player: q });
+    q.update(DT, {}, 0); q.update(DT, { Space: true, PadJump: true }, 0);
+    assert.equal(qt.charges, 2, 'one press of the pad\'s jump: a boost');
+    for (let i = 0; i < 20; i++) q.update(DT, { Space: true, PadJump: true }, 0);
+    assert.equal(q.thrusting, false, 'holding the pad\'s jump does not fire the jets');
+    qt.dispose();
+  }
+  // the keyboard's Space: one press in the air thrusts (burning the gauge, not a whole charge), a quick double tap boosts
   items.grant('jetpack');
   const p = new Player(new Physics(new THREE.Scene()), {});
   p.pos.set(0, 30, 0); p.onGround = false;

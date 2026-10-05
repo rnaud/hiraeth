@@ -45,7 +45,7 @@ export const QUESTS = [
     outro: 'Dov ate it at his post, standing up, with his eyes shut.',
     stages: [
       // (src/story/incal.js: the tin hangs in the old goods hoist's basket, out over the void; shoot the pin, push the weight round)
-      { id: 'hoist', text: 'Pip’s tin hangs in the old goods hoist’s basket, out over the void. Knock out the rusted pin (shoot: G, or left click while aiming), push the hoist round (push: C, middle click, or RB / R1) and take the tin', label: 'The goods hoist', bring: 'ration', at: 'hoist', to: 'dov' },
+      { id: 'hoist', text: 'Pip’s tin hangs in the old goods hoist’s basket, out over the void. Knock out the rusted pin (shoot: aim with R, right click or LT / L2, then G, a click or RT / R2), push the hoist round (push: C, middle click, or RB / R1) and take the tin', label: 'The goods hoist', bring: 'ration', at: 'hoist', to: 'dov' },
       { id: 'carry', text: 'Carry Pip’s ration tin up to his uncle Dov, the palace guard', label: 'Dov, at the palace gate', bring: 'ration', to: 'dov' },
     ],
   },
@@ -444,7 +444,7 @@ export const THINGS = {
       nodes: {
         stuck: {
           say: ['~neutral~ An old goods hoist at the edge of the terrace: an iron post, an arm swung out over the void, and a basket hanging off its end with *a tin* in it. A *rusted pin* through the collar holds the arm where it is.',
-            '~neutral~ On the arm’s short end hangs a weight, to walk it round by. (*Shoot*: G, or left click while aiming. *Push*: C, middle click, or RB / R1.)'],
+            '~neutral~ On the arm’s short end hangs a weight, to walk it round by. (*Shoot*: aim with R, right click or LT / L2, then G, a click or RT / R2. *Push*: C, middle click, or RB / R1.)'],
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
         loose: { say: ['~neutral~ The pin is out. The arm would turn now, if something *pushed the weight round the post*. Pushed toward the edge, along the arm, it only rocks.'], choices: [{ text: '~neutral~ (step back)', end: true }] },

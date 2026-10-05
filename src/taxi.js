@@ -10,7 +10,7 @@ import { padRide } from './controller.js';
 //   hail    flies to where the player whistled, then parks
 //   parked  hovers in place, waiting
 //   driven  W/S throttle, A/D steer, Space up, Shift down; a controller: RT throttle,
-//           LT brake, the stick steers and tilts (back: up, forward: down), the bottom button up
+//           LT brake, the stick steers and tilts (back: up, forward: down), the left button up (the bottom one jumps off)
 // Taxis are excluded from the static collision (they move), but collide with
 // the level themselves while driven.
 

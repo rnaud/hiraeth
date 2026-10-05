@@ -24,12 +24,12 @@ export const ITEMS = {
   backpack: {
     name: 'Magic-fluid backpack', kind: 'core',
     text: 'A glass tank of living water, its colours always moving: the makers made it to be worn, and filled it with what the giants carried. A hose runs to a bracer for your wrist.',
-    use: 'Shoot bursts of fluid, push people and things away, and boost-jump. Three charges; they refill five seconds after the last use. It also powers vehicles.',
+    use: 'Aim (LT / L2, right click) and shoot bursts of fluid, push people and things away, and boost-jump. Three charges; they refill five seconds after the last use. It also powers vehicles.',
   },
   jetpack: {
     name: 'Fluid jets', kind: 'movement', needs: 'backpack',
     text: 'Two nozzles, worn smooth by hands older than any city, that clip under the tank and burn its fluid as thrust.',
-    use: 'Hold jump in the air to fly upward. Uses the backpack’s fluid; land to let it recover.',
+    use: 'Fire them with RT / R2 or a left click when not aiming (on a keyboard, also SPACE held in the air): you hover, the stick flies you where it points, and holding jump too climbs. They burn the backpack’s fluid; land to let it recover.',
   },
   glider: {
     name: 'Fluid wings', kind: 'movement', needs: 'backpack',

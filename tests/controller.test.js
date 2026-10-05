@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { Controller, mergeControls, stick, toPositions, padRide } from '../src/controller.js';
+import { Controller, mergeControls, stick, toPositions, padRide, triggers } from '../src/controller.js';
 // positions (Standard Gamepad): 0 bottom, 1 right, 2 left, 3 top
 const BOTTOM = 0, RIGHT = 1, LEFT = 2, TOP = 3, LB = 4, RB = 5, LT = 6, RT = 7, VIEW = 8, MENU = 9, L3 = 10, R3 = 11;
 function setup({ faces = 'xbox', byLabel = false } = {}) {
@@ -75,12 +75,16 @@ test('photo controls capture once and use shoulders for altitude', () => {
   assert.deepEqual(t.actions,['capture']); t.button(1,true); t.c.update(.016);
   assert.deepEqual(t.actions,['capture','photo']);
 });
-test('the fluid tool: LT aims, RT shoots (a quick shot without LT), RB pushes, the D-pad changes the mode', () => {
+test('the fluid tool: LT aims, RT shoots only while aiming (else the jets), RB pushes, the D-pad changes the mode', () => {
   const t=setup(); t.button(RT,true);
   let input=t.c.update(.016);
-  assert.ok(input.PadFire && !input.PadAim && !input.ShiftLeft, 'RT alone shoots (quick shot), it no longer runs');
+  assert.ok(input.PadFire && !input.PadAim && !input.ShiftLeft, 'RT alone: no run');
+  assert.deepEqual(triggers(input), { aim: false, fire: true, shoot: false, jets: true, quick: false }, 'RT alone fires the jets, it does not shoot');
   t.button(LT,true); input=t.c.update(.016);
   assert.ok(input.PadAim && input.PadFire);
+  assert.deepEqual(triggers(input), { aim: true, fire: true, shoot: true, jets: false, quick: false }, 'LT held: RT shoots, the jets are off');
+  t.button(BOTTOM,true); input=t.c.update(.016);
+  assert.ok(input.Space && input.PadJump, 'the jump is marked as the pad\'s (it climbs on the jets, never fires them)');
   t.button(RB,true); assert.ok(t.c.update(.016).PadPush, 'RB pushes');
   const b=setup(); b.button(RIGHT,true); input=b.c.update(.016);
   assert.ok(!input.PadPush && input.KeyE, 'the right button interacts now, it does not push');
@@ -94,6 +98,14 @@ test('the fluid tool: LT aims, RT shoots (a quick shot without LT), RB pushes, t
   const m=setup(); m.context('menu'); [LT,RT,RB].forEach(i=>m.button(i,true)); assert.deepEqual(m.c.update(.016),{});
   assert.ok(mergeControls({KeyR:true},{PadAim:false}).KeyR);
   assert.ok(mergeControls({},{PadFire:true}).PadFire);
+});
+test('the mouse and keys: right aims, left shoots while aiming and fires the jets otherwise; G shoots only while aiming', () => {
+  assert.deepEqual(triggers({ MouseLeft: true }), { aim: false, fire: true, shoot: false, jets: true, quick: false });
+  assert.deepEqual(triggers({ MouseLeft: true, MouseRight: true }), { aim: true, fire: true, shoot: true, jets: false, quick: false });
+  assert.deepEqual(triggers({ KeyG: true }), { aim: false, fire: true, shoot: false, jets: false, quick: false }, 'G alone: nothing (G is not the jets)');
+  assert.deepEqual(triggers({ KeyR: true, KeyG: true }), { aim: true, fire: true, shoot: true, jets: false, quick: false });
+  assert.equal(triggers({ Space: true }).jets, false, 'Space is the jets in player.js itself, as before');
+  assert.equal(triggers({ TouchFire: true }).quick, true, 'the touch button: a quick shot that aims for you');
 });
 test('LB held: the right stick zooms instead of looking', () => {
   const t=setup(); t.button(LB,true); t.pad.axes=[0,0,0,.8];
@@ -112,10 +124,12 @@ test('riding: RT is an analog throttle, LT brakes, the stick steers and tilts bu
   const r=padRide(h); assert.ok(r.throttle > .4 && r.x < -.5 && r.y > .5 && !r.boost);
   t.button(LT,true,1); t.button(RB,true); t.button(BOTTOM,true); t.button(RIGHT,true);
   h=t.c.update(.016);
-  assert.ok(h.Brake > .9 && h.Boost && h.Space && h.KeyE);
+  assert.ok(h.Brake > .9 && h.Boost && h.JumpOff && h.KeyE);
+  assert.ok(!h.Space, 'the bottom button jumps off: the hop / flap / rise is the left button now');
+  t.button(LEFT,true); assert.ok(t.c.update(.016).Space, 'left: hop, flap, rise');
   assert.equal(padRide({ KeyW: true }), null, 'keyboard riding is untouched');
   // stepping off with RT still held: it does not fire as you land
-  t.context('game'); [LT,RB,BOTTOM,RIGHT].forEach(i=>t.button(i,false));
+  t.context('game'); [LT,RB,BOTTOM,RIGHT,LEFT].forEach(i=>t.button(i,false));
   assert.ok(!t.c.update(.016).PadFire, 'the held RT is ignored until released');
   t.button(RT,false); t.c.update(.016); t.button(RT,true); assert.ok(t.c.update(.016).PadFire);
 });

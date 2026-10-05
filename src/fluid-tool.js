@@ -5,21 +5,26 @@ import { DRONE_BELLY, DOCK_ON_TOP, DOCK_ON_SIDE } from './drone.js';
 import { raycastTargets, hitTarget, registerTarget, targetsInCone } from './targets.js';
 import { game as sharedGame } from './game-state.js';
 import { items as sharedItems } from './items.js';
+import { triggers } from './controller.js';
 import { MODES, STUN_SECONDS, FluidWings, FluidJets, HANDOFF, handoffPose, nextMode, ownedModes } from './fluid-kit.js';
 
 // The magic-fluid backpack: the traveller's signature tool. A glass tank of
 // shifting, lava-lamp fluid rides on the back; a ribbed hose runs from its cap
 // over the right shoulder and down the arm to a brass nozzle on a bracer. Three abilities share one reserve
 // of three charges (docs/game-brief.md, working decision 4):
-//   shoot  a glob of fluid on a slight arc: it splashes on whatever it meets
-//          and leaves a short-lived colourful splat on surfaces
-//          (targets: onHit('shoot', point, dir, info))
+//   shoot  a glob of fluid, straight from the nozzle to the crosshair (no arc, no
+//          preview): it splashes on whatever it meets and leaves a short-lived
+//          colourful splat on surfaces (targets: onHit('shoot', point, dir, info)).
+//          Only while aiming (LT / L2, right mouse, R): the trigger that shoots
+//          then fires the jets when you are not aiming (controller.js triggers())
 //   push   a short cone of fluid shock (~6 m) that knocks people, creatures
 //          and loose things away (targets in the cone: onHit('push', point, dir, info))
 //   boost  a powered jump: press jump again in the air for a strong burst up
 //          (and a little forward) on a spray of fluid. Holding jump after it
 //          still opens the wings once you fall (with the glider). With the
-//          jets, holding jump thrusts instead, and a quick double tap boosts.
+//          jets on the keyboard's Space, holding jump thrusts instead, and a quick
+//          double tap boosts (a pad's jump never fires the jets: RT does, so any
+//          second press in the air boosts).
 // Two seconds after the last use, all three charges refill at once.
 //
 // Everything runs on the backpack (src/items.js): without items.has('backpack')
@@ -65,7 +70,7 @@ export const FLUID = {
   charges: 3,             // one reserve shared by shoot, boost and push
   refillDelay: 2,         // s after the last use (after landing, for the jets), all three come back at once
   maxColours: 5,          // colour bands magical water can add (the blend shows colours + 1 tones)
-  shoot: { speed: 30, gravity: 8, range: 42, cooldown: 0.28, splatLife: 5, splatSize: 0.75 },
+  shoot: { speed: 34, gravity: 0, range: 42, cooldown: 0.28, splatLife: 5, splatSize: 0.75 },   // gravity 0: a straight shot
   push: { range: 6, angle: 0.62, cooldown: 0.4, shove: 2.4, recoil: 2.2 },    // angle: cone half-angle (rad, ~35°); shove: metres people are knocked back (info.shove)
   boost: { up: 15, forward: 4, keep: 0.35, doubleTap: 0.35 },              // keep: share of a rising jump's speed kept
   jet: { drain: 0.3, min: 0.02 },  // charges burnt per second of thrust (3 = 10 s); min: the gauge that still lights them
@@ -77,18 +82,25 @@ export const FLUID_TONES = ['#52c8cf', '#966ede', '#ef7e62', '#f6c84e', '#ed80b0
 /** The tones in the blend for a number of colour bands (1 -> cyan and violet); custom[i] overrides tone i. */
 export const fluidTones = (colours = 1, custom = []) => FLUID_TONES.slice(0, THREE.MathUtils.clamp(Math.round(colours), 1, FLUID.maxColours) + 1).map((t, i) => (i >= 2 && custom?.[i]) || t);
 
-/** Map raw input (keyboard, mouse, gamepad and touch all write into the same object) to the tool's controls. Boost is jump in the air (player.js). */
+/**
+ * Map raw input (keyboard, mouse, gamepad and touch all write into the same object) to the tool's controls.
+ * shoot only while aiming (fire: the button itself, so a press held from before the aim does not shoot);
+ * quick: the touch button's shot, which aims for you. Boost is jump in the air (player.js).
+ */
 export function toolInput(c = {}) {
+  const t = triggers(c);
   return {
-    aim: !!(c.KeyR || c.MouseRight || c.PadAim),
-    shoot: !!(c.KeyG || c.MouseLeft || c.PadFire),
+    aim: t.aim,
+    shoot: t.shoot,
+    fire: t.fire,
+    quick: t.quick,
     push: !!(c.KeyC || c.MouseMiddle || c.PadPush),
     mode: !!(c.KeyX || c.PadModeNext),     // the next owned gun mode
     modeBack: !!c.PadModePrev,             // the previous one (D-pad left)
   };
 }
 
-/** Mouse: hold the right button to aim, the left button shoots (while aiming or with the pointer captured), the middle button pushes. */
+/** Mouse: hold the right button to aim, the left button shoots while aiming (with the pointer captured and not aiming: the jets), the middle button pushes. */
 export function bindToolMouse(dom, input) {
   dom.addEventListener('contextmenu', (e) => e.preventDefault());
   dom.addEventListener('mousedown', (e) => {
@@ -180,8 +192,9 @@ export function traceShot(physics, origin, dir, range = FLUID.shoot.range) {
 }
 
 /**
- * A glob of fluid: flies under a light gravity along -up (which can point
- * anywhere) and sweeps each step against the targets and the world. step()
+ * A glob of fluid: flies straight (FLUID.shoot.gravity is 0; a gravity along
+ * -up, which can point anywhere, still bends it if given) and sweeps each step
+ * against the targets and the world. step()
  * returns an event or null:
  *   { type: 'target', hit, dir }       it splashed on a target (call hitTarget)
  *   { type: 'world', point, normal }   it splatted on a surface
@@ -219,33 +232,34 @@ export class Glob {
 }
 
 /**
- * The launch direction that lobs a glob at `speed` onto `to` under gravity g
- * along -up (the flatter of the two arcs), so the crosshair is where it lands.
- * Out of reach: the 45° throw toward it.
+ * The way a shot leaves the nozzle at `from`: straight at the crosshair's point
+ * `to` (the camera ray's first hit, so the glob lands where the crosshair sits),
+ * or along the camera's aim `aimDir` when the point is closer than 2 m (the
+ * nozzle is beside it: the line from it would be meaningless).
  */
-export function launchDir(from, to, speed, g, up, out = new THREE.Vector3()) {
-  const d = out.subVectors(to, from);
-  const y = d.dot(up);
-  const hv = d.addScaledVector(up, -y), h = hv.length();
-  if (h < 1e-4) return out.copy(up).multiplyScalar(Math.sign(y) || 1);
-  hv.divideScalar(h);
-  const v2 = speed * speed, disc = v2 * v2 - g * (g * h * h + 2 * y * v2);
-  const theta = g < 1e-6 ? Math.atan2(y, h) : disc < 0 ? Math.PI / 4 : Math.atan((v2 - Math.sqrt(disc)) / (g * h));
-  return hv.multiplyScalar(Math.cos(theta)).addScaledVector(up, Math.sin(theta)).normalize();
+export function shotDir(from, to, aimDir, out = new THREE.Vector3()) {
+  out.subVectors(to, from);
+  const d = out.length();
+  return d < 2 ? out.copy(aimDir).normalize() : out.divideScalar(d);
 }
 
-/** Where a glob fired now would go: points along the arc and how it ends. */
-export function predictArc(origin, vel, { physics, up, gravity = FLUID.shoot.gravity, dt = 1 / 30, steps = 40 }, out = []) {
-  const g = new Glob(origin, vel);
-  out.length = 0;
-  let end = null;
-  for (let i = 0; i < steps && !end; i++) {
-    const e = g.step(dt, { physics, up, gravity });
-    out.push(g.pos.clone());
-    if (e) end = e;
-  }
-  return { points: out, end: end?.type === 'expire' ? null : end };
+/**
+ * What you see is what you hit: if a ledge or a lip right in front of the nozzle stands
+ * between it and a crosshair point the camera sees, the shot leaves from beside the nozzle
+ * on the crosshair's own ray instead (the point of the ray at the nozzle's depth, never
+ * before `rayFrom`, where that ray is known clear). Mutates from and dir.
+ */
+export function clearLine(physics, from, dir, to, rayFrom, rayDir, kind = 'world') {
+  const dist = from.distanceTo(to);
+  if (kind === 'none' || dist < 2) return false;
+  const w = rayWorld(physics, from, dir, dist - 0.35);
+  if (!w) return false;
+  const t = Math.max(0, _cl.subVectors(from, rayFrom).dot(rayDir));
+  from.copy(rayFrom).addScaledVector(rayDir, Math.min(t, Math.max(0, rayFrom.distanceTo(to) - 0.5)));
+  dir.copy(rayDir);
+  return true;
 }
+const _cl = new THREE.Vector3();
 
 /**
  * A boost: the velocity along up becomes a fresh burst (keeping a share of a
@@ -283,7 +297,7 @@ function mergeParts(group, keep = []) {
   return group;
 }
 
-/** Instanced dots and dashes: droplets, sprays, the glob's wake, the aim arc. */
+/** Instanced dots and dashes: droplets, sprays, the glob's wake. */
 class Dots {
   constructor(parent, max, material, geo = new THREE.SphereGeometry(1, 6, 4)) {
     this.mesh = new THREE.InstancedMesh(geo, material, max);
@@ -608,7 +622,7 @@ export class FluidTool {
     this.reserve = new Reserve();
     this.k = 0; this.camK = 0; this.cooldown = 0; this.quick = 0; this.quickShoot = false;
     this.pending = null; this.time = 0; this._enabled = true;
-    this.held = { shoot: false, push: false, mode: false, modeBack: false };
+    this.held = { fire: false, quick: false, push: false, mode: false, modeBack: false };
     this.mode = 'shoot'; this.modeFlash = 0; this.fluidTime = 0; this.rate = 1;
     this.appear = items.has('backpack') ? 1 : 0; this.jetBurnt = false; this.where = 'back'; this.power = new Map();
     this.aimPoint = new THREE.Vector3(); this.aimDir = new THREE.Vector3(0, 0, -1);
@@ -622,7 +636,6 @@ export class FluidTool {
     noShadow?.push(fx);
     this.drops = new Dots(fx, 360, flatMat('#ffffff', { glow: 0.7 }));
     this.glow = new Dots(fx, 160, makeMaterial({ color: '#ffffff', flat: true, glow: 0.95 }));
-    this.arc = new Dots(fx, 48, flatMat('#ffffff'));
     this.splats = new Splats(fx);
     this.rings = new Rings(fx);
     const globMat = (this.globMat = makeMaterial({ color: '#ffffff', fluid: 'glob', glow: 0.8, fluidBox: [-1, 1, 1, 0], fluidTones: FLUID_TONES }));
@@ -662,7 +675,7 @@ export class FluidTool {
     }));
     // boost: the player asks on a fresh press of jump in the air (player.js); the jets
     // burn the reserve (fuelSource) and boarding a vehicle swings the tank into it (handoff)
-    if (player) { player.onAirJump = (since) => this.boost(since); player.fuelSource = this; player.handoff = this; }
+    if (player) { player.onAirJump = (since, o) => this.boost(since, o); player.fuelSource = this; player.handoff = this; }
   }
 
   /** Put the tank, hose and bracer on the traveller (needs the humanoid's chest anchor and arm bones). */
@@ -813,6 +826,7 @@ export class FluidTool {
     const chest = _t1.copy(p.pos).addScaledVector(p.frame.up, 1.4);
     const skip = Math.max(0, _t2.subVectors(chest, o).dot(this.aimDir) - 0.5);
     o.addScaledVector(this.aimDir, skip);
+    (this.aimFrom ??= new THREE.Vector3()).copy(o);   // where the crosshair's ray starts (clear from here on)
     const shot = traceShot(this.physics, o, this.aimDir, FLUID.shoot.range + 4);
     this.aimPoint.copy(shot.point);
     this.aimKind = shot.kind;
@@ -824,9 +838,11 @@ export class FluidTool {
     this.time += dt;
     const p = this.player, input = toolInput(paused ? {} : ctl);
     const ok = this.allowed(paused);
-    const shootPress = input.shoot && !this.held.shoot, pushPress = input.push && !this.held.push;
+    // a shot: a fresh press of the fire button while aiming (or the touch button's quick shot)
+    const quickPress = input.quick && !this.held.quick;
+    const shootPress = (input.shoot && !this.held.fire) || quickPress, pushPress = input.push && !this.held.push;
     const modePress = input.mode && !this.held.mode, modeBackPress = input.modeBack && !this.held.modeBack;
-    this.held.shoot = input.shoot; this.held.push = input.push; this.held.mode = input.mode; this.held.modeBack = input.modeBack;
+    this.held.fire = input.fire; this.held.quick = input.quick; this.held.push = input.push; this.held.mode = input.mode; this.held.modeBack = input.modeBack;
     // X / D-pad right (left: back) / the touch button: the next owned gun mode (also while not aiming, and riding)
     if (!paused && this._enabled && this.owned && (modePress || modeBackPress)) this.cycleMode(modeBackPress ? -1 : 1);
     if (!this.modes.includes(this.mode)) this.mode = 'shoot';
@@ -857,13 +873,12 @@ export class FluidTool {
     if (this.k > 0 && p) {
       this.updateAimPoint();
       p.aim = Object.assign(this._pose ??= {}, { k: this.k, point: this.aimPoint, dir: this.aimDir });
-      if (this.cooldown === 0 && this.pending === 'shoot' && this.k > 0.8) { this.pending = null; this.shoot(); if (input.shoot) this.quick = Math.max(this.quick, 0.5); }
+      if (this.cooldown === 0 && this.pending === 'shoot' && this.k > 0.8) { this.pending = null; this.shoot(); if (input.quick) this.quick = Math.max(this.quick, 0.5); }
       else if (this.cooldown === 0 && this.pending === 'push' && this.k > 0.45) { this.pending = null; this.push(); }
     } else if (p) p.aim = null;
     if (this.rig) this.rig.aimK = smooth(Math.min(this.k, this.camK));
 
     this.updateGlobs(dt);
-    this.updateArc(ok && this.k > 0.6 && input.aim && this.reserve.charges > 0);
     const up = p?.frame.up ?? _y;
     this.drops.update(dt, up); this.glow.update(dt, up);
     this.splats.update(dt); this.rings.update(dt);
@@ -1129,14 +1144,12 @@ export class FluidTool {
   /** The tones as hex strings, for targets (info.colours). */
   info(strength = 1) { return { colours: this.modeTones, strength, shove: FLUID.push.shove, tool: this }; }
 
-  /** Fire a glob at the crosshair now (the arm is assumed to be up). */
+  /** Fire a glob at the crosshair now (the arm is assumed to be up): straight from the nozzle to the crosshair's point. */
   shoot() {
     if (!this.reserve.use()) { this.sputter(); return { kind: 'empty' }; }
     const from = this.muzzle(_m).clone();
-    const dir = _f.subVectors(this.aimPoint, from);
-    const dist = dir.length();
-    if (dist < 2) dir.copy(this.aimDir); else dir.divideScalar(dist);
-    if (dist >= 2 && this.aimKind !== 'none') launchDir(from, this.aimPoint, FLUID.shoot.speed, FLUID.shoot.gravity, this.player.frame.up, dir);
+    const dir = shotDir(from, this.aimPoint, this.aimDir, _f);
+    if (this.aimFrom) clearLine(this.physics, from, dir, this.aimPoint, this.aimFrom, this.aimDir, this.aimKind);
     this.cooldown = FLUID.shoot.cooldown;
     const glob = new Glob(from, dir.clone().multiplyScalar(FLUID.shoot.speed));
     glob.mesh = this.globMeshes.find((m) => !m.visible) ?? this.globs.shift()?.mesh ?? this.globMeshes[0];
@@ -1183,13 +1196,15 @@ export class FluidTool {
   /**
    * Called by the player on a fresh press of jump in the air (since: seconds
    * since the previous press). Spends a charge on a boost; returns true if it
-   * did (the player then skips its glide for this press). With the jets
-   * only a quick double tap boosts, so holding jump still thrusts.
+   * did (the player then skips its glide for this press). With the jets on
+   * the same key (the keyboard's Space, touch's jump: o.jets) only a quick
+   * double tap boosts, so holding jump still thrusts; a pad's jump never fires
+   * the jets (RT does), so there any press in the air boosts.
    */
-  boost(since = Infinity) {
+  boost(since = Infinity, { jets = true } = {}) {
     const p = this.player;
     if (!p || !this._enabled || !this.worn || p.climbing || p.mantle || p.object?.visible === false) return false;
-    if (this.canJet && since > FLUID.boost.doubleTap) return false;
+    if (this.canJet && jets && since > FLUID.boost.doubleTap) return false;
     if (!this.reserve.use()) { this.sputter(); return false; }
     const U = p.frame.up, fwd = p.frame.dir(p.heading, _f);
     boostVelocity(p.vel, U, fwd);
@@ -1321,22 +1336,6 @@ export class FluidTool {
       m.scale.set(s * (1 + w), s * (1.45 - w), s * (1 + w));
     }
     this.globs = this.globs.filter((g) => !g.dead);
-  }
-
-  /** While aiming: a dotted arc shows where the glob will fly. */
-  updateArc(on) {
-    if (!on) { if (this.arc.list.length || this.arc.mesh.count) { this.arc.list.length = 0; this.arc.update(0, _y); } return; }
-    const from = this.muzzle(_m);
-    const dir = _f.subVectors(this.aimPoint, from);
-    if (dir.length() < 2) dir.copy(this.aimDir);
-    else if (this.aimKind === 'none') dir.normalize();
-    else launchDir(from, this.aimPoint, FLUID.shoot.speed, FLUID.shoot.gravity, this.player.frame.up, dir);
-    const { points, end } = predictArc(from, dir.multiplyScalar(FLUID.shoot.speed), { physics: this.physics, up: this.player.frame.up }, this._arc ??= []);
-    this.arc.list.length = 0;
-    const tones = this.modeTones;
-    for (let i = 2; i < points.length; i++) this.arc.list.push({ pos: points[i], vel: new THREE.Vector3(), drag: 0, grav: 0, stretch: 1, size: 0.03 * this.k, life: 1, age: 0, color: end?.type === 'target' ? tones[0] : INK });
-    if (end) this.arc.list.push({ pos: end.type === 'target' ? end.hit.point : end.point, vel: new THREE.Vector3(), drag: 0, grav: 0, stretch: 1, size: 0.08 * this.k, life: 1, age: 0, color: end.type === 'target' ? tones[1] : INK });
-    this.arc.update(0, _y);
   }
 
   /** One line for the HUD while aiming: the mode and the charges (no button list: the settings carry the controls). */

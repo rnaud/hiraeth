@@ -447,7 +447,7 @@ export function setupDesert(ctx) {
         game.emit('tool:refill', { addColour });
         if (game.flag('tool.empty')) game.set('tool.empty', false);   // (no tool here, e.g. tests: the flag is the tank)
         if (addColour) game.set('desert.pool.tinted', true);
-        if (wasDry) toast('The water climbs your hose, and the empty tank fills: cyan, violet, and the coral of the giant’s pool. Now it shoots (G, or RT / R2) and pushes (C, or RB / R1).');
+        if (wasDry) toast('The water climbs your hose, and the empty tank fills: cyan, violet, and the coral of the giant’s pool. Now it shoots (aim with R or LT / L2, then G or RT / R2) and pushes (C, or RB / R1).');
         else if (addColour) toast('The water climbs your hose. The tank takes its colours.');
         if (quests.has('jar') && !game.flag('desert.jar.filled')) {
           quests.take('jar'); quests.give('water');

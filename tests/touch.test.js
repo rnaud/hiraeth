@@ -21,7 +21,7 @@ test('menu swipes remain native while canvas gestures move and look', async () =
     new TouchControls(input, { look: (...args) => looks.push(args) });
     // the fluid tool's buttons: aim (toggle), shoot and push (held keys); jump boosts in the air
     assert.match(root.innerHTML, /data-toggle="KeyR" class="b-aim"/);
-    assert.match(root.innerHTML, /data-key="KeyG" class="b-fire"/);
+    assert.match(root.innerHTML, /data-key="TouchFire" class="b-fire"/, 'the shoot button: a quick shot that aims for you (controller.js triggers)');
     assert.match(root.innerHTML, /data-key="KeyC" class="b-push"/);
     assert.match(root.innerHTML, /data-key="KeyX" class="b-mode"/, 'a button cycles the owned gun modes (hidden until there are two)');
     const touch = (identifier, clientX, clientY) => ({ identifier, clientX, clientY, target: canvas });
