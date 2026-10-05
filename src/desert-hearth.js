@@ -117,7 +117,7 @@ export const HEARTH = {
   hall: 17,          // the hall's floor radius (m)
   shelf: 5,          // the shelf's height over the floor: the climb to the stone
   stone: V(0, 5.42, -15.45),     // the spark-stone in its hollow (interior local)
-  grille: { at: V(0, 5, -14.92), rise: 1.75 },
+  grille: { at: V(0, 5, -15.12), rise: 1.75 },   // (just inside the hollow's mouth: raised, it slides up into the rock)
   ball: { r: 0.62, rest: V(-9.5, 1.3 + 0.62, -1.7), end: V(-9.5, 1.3 + 0.62, -8.3), drop: 1.5 },
   plinth: { x: -9.5, z0: -0.9, z1: -9.1, h: 1.3, w: 2.2 },
   inside: V(0, 0.05, 23.5),      // where the passage brings you in
@@ -134,9 +134,9 @@ export function buildDesertHearth(scene, terrain) {
     marker: makeMaterial({ color: '#cdb6a6', color2: '#b99f8f', color3: '#ddcbbd', flat: true, mode: MODE_STRATA, strataSize: 0.8 }),
     ink: makeMaterial({ color: '#2b211f', flat: true }),
     // the hall is dark: deep plum rock, a floor a little lighter
-    cave: makeMaterial({ color: '#4c3650', color2: '#3f2c45', color3: '#5a4160', mode: MODE_STRATA, strataSize: 1.4, flat: true }),
-    caveFloor: makeMaterial({ color: '#5c4560', color2: '#4e3a54', color3: '#6a5270', mode: MODE_STRATA, strataSize: 0.7, flat: true, side: THREE.DoubleSide }),
-    carved: makeMaterial({ color: '#6e5470', color2: '#5e4662', color3: '#7c6280', mode: MODE_STRATA, strataSize: 0.9, flat: true, grid: 1.2, glyphs: true }),
+    cave: makeMaterial({ color: '#33263b', color2: '#2b2032', color3: '#3d2e46', mode: MODE_STRATA, strataSize: 1.4, flat: true }),
+    caveFloor: makeMaterial({ color: '#3f3046', color2: '#36293c', color3: '#4a3952', mode: MODE_STRATA, strataSize: 0.7, flat: true, side: THREE.DoubleSide }),
+    carved: makeMaterial({ color: '#5a4460', color2: '#4c3852', color3: '#66506c', mode: MODE_STRATA, strataSize: 0.9, flat: true, grid: 1.2, glyphs: true }),
     stone: makeMaterial({ color: '#b9a896', flat: true }),
     bronze: makeMaterial({ color: '#c9974a', flat: true, metal: 'brass' }),
     glyph: makeMaterial({ color: '#70e7df', glow: 0.85, flat: true }),

@@ -31,10 +31,14 @@
 //   met.<person>          you have talked to them (set by the conversation panel)
 //   said.<person>.<node>.<i>  a once-only answer was given
 //   desert.*              the desert's story (src/story/desert.js): camps.seen, jar.given,
-//                         speaker.heard, well.seen, cave.seen, channel.open (the rib is pushed
-//                         clear and the tree drinks), jar.filled, ship.fed, pool.tinted, teo.drumming,
+//                         speaker.heard, well.seen, cave.seen, pole.tried, lever (heaves), channel.open
+//                         (the rib is off and the water rises: the tree drinks, and stays cold), jar.filled,
+//                         well.watched, spark.heard, hearth.seen / hearth.open, stone.taken, tree.lit (the
+//                         spark-stone is in the well: it burns), ship.fed, pool.tinted, teo.drumming,
 //                         ilo.following / ilo.atSkull / ilo.told, oum.following / oum.home,
-//                         stele.read, mural.read, brow.seen, rumour.light; clue.desert.perdide
+//                         stele.read, mural.read, brow.seen, rumour.light, quest.v; clue.desert.perdide
+//   tool.empty            the backpack's tank has never been filled (src/fluid-tool.js: no charges,
+//                         no refill); the first magical water clears it
 //
 // Well-known events:
 //   'ship:enter' / 'ship:exit' { level }  the player walks into / out of the ship
@@ -50,6 +54,7 @@
 //   'tool:refill' { addColour, tone }  fill the tank now; addColour: true adds a colour band for good
 //                                  (sets tool.colours, up to 5) — the desert's magical water; tone:
 //                                  optional hex colour for that band (default: the next fluid tone)
+//   'tool:dry' {}                  a press on an empty tank (tool.empty) only sputtered
 //   'tool:enable' { on }           on: false puts the tool away (no shoot, push or boost), e.g.
 //                                  inside the ship before the player first steps outside
 

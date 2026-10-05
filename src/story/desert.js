@@ -261,6 +261,10 @@ export function setupDesert(ctx) {
     toast(open() ? 'The tank is empty. Wade into the giant’s pool to fill it.' : 'The tank is empty: dry glass, not a drop. Where the water is, it fills (Nour says).');
   });
 
+  // the Givers' House (src/temples/desert.js) wants the fluid from its first room (the push, the splash):
+  // walked in with an empty tank, you are told where to fill it
+  game.on('flag:temple.desert.entered', (v) => { if (v && dry()) setTimeout(() => toast('Your tank is empty, and nothing in the Givers’ House will answer an empty tank. Fill it first, at the giant’s pool past Qanat’s back gate.'), 2500); });
+
   // ---------------------------------------------------------------- the drum, and the mask's eyes
   // jammed against a rib by a knuckle of spine; drifted shut with sand (src/story/desert-errands.js)
   const drum = setupDrum(ctx, { toolHasPush: () => toolHasPush() });
@@ -340,15 +344,18 @@ export function setupDesert(ctx) {
   function setupLever() {
     const perp = V(-cave.chDir.z, 0, cave.chDir.x).normalize(), along = V(cave.chDir.x, 0, cave.chDir.z).normalize();
     const rib = cave.boneRest.pos, floorY = cave.origin.y;
-    const postAt = rib.clone().addScaledVector(perp, -5.4).setY(floorY);
+    // (the rib lies along the gutter, in it: the post stands just off the gutter's side, chest high, so the
+    // pole goes over the rim and under the rib's flank, and leaning on it tips the rib out over the far rim)
+    const postAt = rib.clone().addScaledVector(perp, -2.45).setY(floorY);
     const HEAVES = 3;
     // the post: a carved block with a notch worn in its top
     const stoneM = makeMaterial({ color: '#c9b8a0', flat: true });
-    const post = new THREE.Mesh(mergeGeometries([new THREE.BoxGeometry(0.55, 1.1, 0.55).translate(0, 0.55, 0), new THREE.BoxGeometry(0.7, 0.12, 0.7).translate(0, 0.06, 0)].map((g) => g.toNonIndexed())), stoneM);
+    const post = new THREE.Mesh(mergeGeometries([new THREE.BoxGeometry(0.5, 1.62, 0.5).translate(0, 0.81, 0), new THREE.BoxGeometry(0.72, 0.14, 0.72).translate(0, 0.07, 0),
+      new THREE.BoxGeometry(0.62, 0.1, 0.62).translate(0, 1.55, 0)].map((g) => g.toNonIndexed())), stoneM);
     post.position.copy(postAt); post.rotation.y = Math.atan2(perp.x, perp.z);
     // the pole: bone, two people long, a bronze shoe on its tip (+x)
     const pole = new THREE.Group();
-    pole.add(new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.075, 4.4, 6).rotateZ(Math.PI / 2), makeMaterial({ color: '#efe4cc', flat: true })));
+    pole.add(new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.09, 4.4, 6).rotateZ(Math.PI / 2), makeMaterial({ color: '#efe4cc', flat: true })));
     pole.add(new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.05, 0.45, 6).rotateZ(Math.PI / 2).translate(2.35, 0, 0), makeMaterial({ color: '#c9974a', flat: true, metal: 'brass' })));
     for (const o of [post, pole]) { o.traverse((c) => { c.userData.noCollide = true; c.userData.dynamic = true; }); cave.root.add(o); }
     // where it leans: against the mural's end (the mural faces n; tm runs along it)
@@ -356,14 +363,14 @@ export function setupDesert(ctx) {
     const m0 = cave.local(-17.5, 0, 20.5);
     const leanFoot = m0.clone().addScaledVector(tm, 5.1).addScaledVector(n, 1.1), leanTop = m0.clone().addScaledVector(tm, 4.95).addScaledVector(n, 0.32).add(V(0, 4.25, 0));
     // under the rib: through the post's notch (the pivot), the shoe under the rib's end, the grip out past the post
-    const pivot = postAt.clone().setY(floorY + 1.15);
+    const pivot = postAt.clone().setY(floorY + 1.72);
     const _d = V(0, 0, 0), _q = new THREE.Quaternion(), X = V(1, 0, 0);
     /** Lay the pole from a (its grip) to b (its shoe). */
     const lay = (a, b) => { pole.position.copy(a).add(b).multiplyScalar(0.5); pole.quaternion.copy(_q.setFromUnitVectors(X, _d.subVectors(b, a).normalize())); };
     const leverPose = (k) => {
       // k: 0 resting in the notch, 1 leaned on as far as it goes (the grip down, the shoe up under the rib)
-      const tilt = 0.24 - k * 0.32;
-      const tip = pivot.clone().addScaledVector(perp, 1.15).add(V(0, -1.15 * tilt, 0)), grip = pivot.clone().addScaledVector(perp, -3.1).add(V(0, 3.1 * tilt, 0));
+      const tilt = 0.2 - k * 0.3;
+      const tip = pivot.clone().addScaledVector(perp, 1.4).add(V(0, -1.4 * tilt, 0)), grip = pivot.clone().addScaledVector(perp, -2.9).add(V(0, 2.9 * tilt, 0));
       lay(grip, tip);
     };
     const L = { heave: 0, t: 1 };
@@ -721,14 +728,17 @@ export function setupDesert(ctx) {
 
   // the stone in the well: the spark runs up the roots and the trunk to the crown, and the tree catches
   const sparkM = makeMaterial({ color: '#fff6dc', glow: 1, flat: true });
-  const spark = new THREE.Mesh(new THREE.OctahedronGeometry(0.55, 1), sparkM);
+  const spark = new THREE.Mesh(new THREE.OctahedronGeometry(1.1, 1), sparkM);
   spark.visible = false; spark.userData.noCollide = true; spark.userData.dynamic = true;
   scene.add(spark);
   const sparkLight = new THREE.Vector4(0, -1e5, 0, 0);
   level.lights?.push(sparkLight);
   const LIGHT = { fly: 0.9, climb: 2.8, catch: 6 };   // s: the stone into the water, the spark up the trunk, the fire growing
   const lighting = { t: -1, from: V(0, 0, 0) };
-  const sparkPath = [city.well.clone().add(V(0, 0.9, 0)), city.treeBase.clone().add(V(0, 2, 0)), city.treeBase.clone().add(V(0, 14, 0)), city.crown.clone()];
+  // (up the outside of the trunk on the well's side, where you see it climb, then into the crown)
+  const toWell = V(city.well.x - city.treeBase.x, 0, city.well.z - city.treeBase.z).normalize();
+  const bark = (r, y) => city.treeBase.clone().addScaledVector(toWell, r).add(V(0, y, 0));
+  const sparkPath = [city.well.clone().add(V(0, 0.9, 0)), bark(6.4, 1.4), bark(5.4, 7), bark(5.1, 15), bark(4.9, 23), bark(4.2, 30), city.crown.clone()];
   const sparkCurve = new THREE.CatmullRomCurve3(sparkPath);
   const setStone = () => {
     if (lit() || !quests.has('stone') || !open()) return;
@@ -759,11 +769,15 @@ export function setupDesert(ctx) {
       sparkCurve.getPointAt(Math.min(1, k * k * (3 - 2 * k)), spark.position);
       spark.scale.setScalar(0.8 + 0.6 * Math.sin(T * 17) ** 2);
       sparkLight.set(spark.position.x, spark.position.y, spark.position.z, 16);
+      // a trail of pale sparks behind it, up the bark
+      motes.sources = [spark.position];
+      motes.mesh.visible = true; motes.rate = 1.6; motes.update(dt, T, null);
       setMagic(city.wellMat, T * 3, { bright: 1, tones: 6 });
     } else {
       // it catches: the fire grows up out of the crown, cool and in every colour, and the smoke climbs from it
       if (spark.visible) {
         spark.visible = false; sparkLight.set(0, -1e5, 0, 0);
+        motes.sources = drinkAt; motes.mesh.visible = false;
         applyLit(false);
         st.flare = Math.max(st.flare, 2.6);
         sound.whoosh?.(); sound.chime?.();

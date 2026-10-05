@@ -71,7 +71,7 @@ export function setupHearth(ctx, { hasPush = () => true, lit = () => false } = {
     sound.chime?.();
     toast(`You lift ${ITEMS.stone} out of its cup. It is warm, and light, and it breathes in your hands. Bring it to Qanat’s well.`);
   };
-  registerInteractable({ id: 'hearth.stone', priority: PRIORITY.use, range: 2.4, at: () => H.stone.position, enabled: () => opened() && !taken() && st.roll === Infinity,
+  registerInteractable({ id: 'hearth.stone', priority: PRIORITY.use, range: 2.9, at: () => H.stone.position, enabled: () => opened() && !taken() && st.roll === Infinity,
     prompt: 'take the spark-stone',
     distance: (p) => (inside() && Math.abs(p.pos.y - (H.stone.position.y - 0.4)) < 1.4 ? flat(p.pos, H.stone.position) : Infinity),
     use: take });
