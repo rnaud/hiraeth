@@ -84,7 +84,7 @@ namespace Memento
         /// <summary>Every mesh this library built (let go with the world: <see cref="Release"/>), but those the keep list still shows.</summary>
         public void Release(System.Collections.Generic.ICollection<Mesh> keep)
         {
-            foreach (var m in meshes.Values) if (m && (keep == null || !keep.Contains(m))) Object.Destroy(m);
+            foreach (var m in meshes.Values) if (m && (keep == null || !keep.Contains(m))) { if (Application.isPlaying) Object.Destroy(m); else Object.DestroyImmediate(m); }
             meshes.Clear();
             if (Instance == this) Instance = null;
         }

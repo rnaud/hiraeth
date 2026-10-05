@@ -45,11 +45,12 @@ namespace Memento.Tests
             var s = new GameState();
             foreach (var id in Order.Take(5)) s.Set($"world.{id}.done", true);
             Assert.IsFalse(Route.HomeOpen(s, Route.Completed(Order, s).Count));
-            s.Set("world.garage.done", true);
+            s.Set("world.buried.done", true);
+            Assert.AreEqual(6, Route.Completed(Order, s).Count);
             Assert.IsFalse(Route.HomeOpen(s, Route.Completed(Order, s).Count), "six worlds, but the recording has not asked you home");
             s.Set("calls.6", true);
             Assert.IsTrue(Route.HomeOpen(s, Route.Completed(Order, s).Count));
-            CollectionAssert.Contains(Route.Destinations(Order, s, "garage"), "home");
+            CollectionAssert.Contains(Route.Destinations(Order, s, "buried"), "home");
             var e = new GameState(); e.Set("ending.done", true);
             Assert.IsTrue(Route.HomeOpen(e, 0), "after the ending, home stays open");
         }
@@ -97,9 +98,13 @@ namespace Memento.Tests
                 // the first stage names someone who is there to talk to
                 var first = main.L("stages")[0];
                 var who = first.S("talk") ?? first.S("at");
-                var people = Read(id, "world.json").L("people").Select(p => p.S("id")).ToList();
-                CollectionAssert.Contains(people, who, $"{id}: {who}");
-                Assert.IsNotNull(st.O("people").O(who)?.O("talk"), $"{id}: {who} has words");
+                // (by their id, or the name the script locates them by: the Garden's 'aube' is aube.spheres)
+                var people = Read(id, "world.json").L("people");
+                var at = Read(id, "world.json").O("locators").V3(who);
+                var person = people.FirstOrDefault(p => p.S("id") == who) ?? people.OrderBy(p => Vector3.Distance(p.V3("pos"), at)).First();
+                Assert.Less(Vector3.Distance(person.V3("pos"), at), 1.5f, $"{id}: {who}");
+                // their words: the world's people, or as its story gave them (its locals: Vael II's Aube)
+                Assert.IsNotNull(person.O("def")?.O("talk") ?? st.O("people").O(person.S("id"))?.O("talk"), $"{id}: {who} has words");
             }
         }
 

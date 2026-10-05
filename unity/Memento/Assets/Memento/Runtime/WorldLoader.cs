@@ -71,13 +71,14 @@ namespace Memento
         }
 
         /// <summary>Let the world go: its objects, meshes and materials (the shared store stays).</summary>
+        static void Gone(Object o) { if (!o) return; if (Application.isPlaying) Destroy(o); else DestroyImmediate(o); }
         public void Unload(ICollection<Material> keep = null)
         {
-            for (int i = transform.childCount - 1; i >= 0; i--) { var c = transform.GetChild(i).gameObject; c.SetActive(false); Destroy(c); }
-            foreach (var m in built) if (m) Destroy(m);
+            for (int i = transform.childCount - 1; i >= 0; i--) { var c = transform.GetChild(i).gameObject; c.SetActive(false); Gone(c); }
+            foreach (var m in built) Gone(m);
             built.Clear();
-            if (Ground?.mesh) Destroy(Ground.mesh);
-            foreach (var m in Materials) if (m && (keep == null || !keep.Contains(m))) Destroy(m);
+            if (Ground?.mesh) Gone(Ground.mesh);
+            foreach (var m in Materials) if (m && (keep == null || !keep.Contains(m))) Gone(m);
             Objects.Clear(); Materials.Clear();
             World = null; bin = null; Ground = null;
         }
