@@ -2,6 +2,18 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.55 — 2026-10-05
+
+- The desert story is reworked. Qanat’s great tree went out the night the singing light passed: it now stands cold over the walls, with no flame, no smoke and no glow.
+- The makers’ backpack comes out of its chest empty. It fills for the first time in the giant’s pool, with cyan, violet and the pool’s coral, and until then it shoots and pushes nothing.
+- The fallen rib in the giant’s chest is too heavy for your arms: find the old keepers’ pole by the mural and lever the rib off over the carved post.
+- Back in Qanat, watch the water climb the roots into the well. The tree drinks, and stays cold.
+- A new errand: Nour sends you for the spark-stone in the Givers’ Hearth, far out in the red rocks. Find Marrow’s hoverbike first, then ride from marked stone to marked stone.
+- In the Hearth’s dark hall the stone breathes light behind a stone grille. Find what lifts it, climb to it, and carry it home glowing at your side.
+- Set the stone in the well and the great tree catches again, in the cool colours of the drinking, while the procession sings. Only then will the ship take the jar of living water.
+- Ember mode can’t light Qanat’s tree. The hoverbike, the masked head and the Givers’ House wait for a filled tank, and Teo’s drum can be freed by hand.
+- Saves where the water had already risen keep their burning tree and go straight on to the ship.
+
 ## v0.54 — 2026-10-05
 
 - Every world now has a makers’ temple.
