@@ -5,6 +5,7 @@ import { makeMaterial, MODE_TERRAIN, MODE_STRATA, MODE_WATER } from '../material
 import { Terrain, jitter, soften } from '../world.js';
 import { buildRoom, portalPair } from '../interiors.js';
 import { PEOPLE } from '../story/edena-data.js';
+import { attachTemple } from '../temples/index.js';
 
 // ---------------------------------------------------------------------------
 // Viridel: a paradise planet with pale meadows,
@@ -312,7 +313,7 @@ export function edenaPyramid({ scene, terrain, rng }, x, z, size) {
 }
 
 /** Android ruins: leaning white slabs and a fallen ring (same kit, and the ruins' two materials). */
-export function edenaRuins({ scene, terrain, rng, ruinMat, accent }, cx, cz) {
+export function edenaRuins({ scene, terrain, rng, ruinMat, accent, ruins = null }, cx, cz) {
   for (let i = 0; i < 8 + Math.floor(rng() * 8); i++) {
     const x = cx + (rng() - 0.5) * 120, z = cz + (rng() - 0.5) * 120;
     const h = 8 + rng() * rng() * 70, w = 4 + rng() * 12;
@@ -322,6 +323,7 @@ export function edenaRuins({ scene, terrain, rng, ruinMat, accent }, cx, cz) {
     m.position.set(x, terrain.baseAt(x, z, w * 0.6) - 2, z);
     m.rotation.set((rng() - 0.5) * 0.15, rng() * Math.PI, (rng() - 0.5) * 0.15);
     scene.add(m);
+    ruins?.push(m);   // (the Greenhouse's world change grows flowers on them: src/temples/edena.js)
   }
   // a fallen ring
   const ring = new THREE.Mesh(new THREE.TorusGeometry(14 + rng() * 10, 2, 8, 32), ruinMat);
@@ -372,7 +374,8 @@ export function createEdena(scene) {
   // ---------------------------------------------------------- android ruins (clean white, gridded)
   const ruinMat = makeMaterial({ color: '#f7f4ec', flat: true, grid: 3, glyphs: true });
   const accent = makeMaterial({ color: '#62c3c9', flat: true, grid: 3 });
-  const ruins = (cx, cz) => edenaRuins({ ...kit, ruinMat, accent }, cx, cz);
+  const ruinSlabs = [];
+  const ruins = (cx, cz) => edenaRuins({ ...kit, ruinMat, accent, ruins: ruinSlabs }, cx, cz);
   ruins(180, 120);
   for (let i = 0; i < 7; i++) ruins((rng() * 2 - 1) * 1200, (rng() * 2 - 1) * 1200);
 
@@ -567,11 +570,12 @@ export function createEdena(scene) {
     scene.add(furrow);
   }
 
-  return {
+  // (the white builders' Greenhouse in the hollow north of the ruins: src/temples/edena.js)
+  return attachTemple('edena', scene, {
     id: 'edena',
     // the story's handles (src/story/edena.js): the crashed ship (hatch, cabin panel, the scorch
     // and the veil over it), the tallest tree and its lookout, the pond
-    edena: { crashed, tall, pond: { ...POND, y: pondY } },
+    edena: { crashed, tall, pond: { ...POND, y: pondY }, ruins: ruinSlabs },
     // no flora in the pond, round the crashed ship or at the foot of the tallest tree (src/flora.js)
     floraAvoid: (x, z, r) => Math.hypot(x - POND.x, z - POND.z) < POND.r + 6 + r || crashed.centre.distanceTo(new THREE.Vector3(x, crashed.centre.y, z)) < 26 + r
       || Math.hypot(x - tall.base.x, z - tall.base.z) < 14 + r || inTerraces(x, z, r),
@@ -601,5 +605,5 @@ export function createEdena(scene) {
       motes: { count: 200, color: '#fffbe8', size: 0.045, rise: 0.15, wind: [0.5, 0.2] },
     },
     update(dt, t, ctx) { for (const m of movers) m(t, ctx?.player?.pos); },
-  };
+  });
 }

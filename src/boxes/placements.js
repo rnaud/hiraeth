@@ -107,6 +107,10 @@ export const PLACEMENTS = {
     { id: 'edena.pouch', item: 'pouch', at: [-52, 85.7, 66], toward: [-60, 70],
       hint: 'A makers’ box waits on the top canopy of the umbrella tree west of the landing. Climb the trunk',
       note: 'Up the umbrella tree west of the spawn, on its top canopy.' },
+    // the Builders' Greenhouse (src/temples/edena.js): in its round chamber over the glass stair. Bloom mode (a new
+    // gun mode) is the key to the rest: the budded doors, the vine bridge, the vine up the glass, the Gardener
+    { id: 'edena.temple.bloom', item: 'bloom', temple: 'edena', site: (level) => level.temple?.gadgetSite,
+      note: 'Inside the Builders’ Greenhouse in the meadow hollow north of the white ruins, in the round chamber over the glass stair.' },
   ],
   spheres: [
     // the grove's umbrella tree, on its flat canopy

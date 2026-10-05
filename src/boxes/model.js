@@ -369,9 +369,40 @@ function starModel() {
   return g;
 }
 
+function bloomModel() {
+  // a seed of green glass with a curl of root in it, on a brass clip for the nozzle
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.SphereGeometry(0.1, 16, 12).scale(1, 1.3, 1), flatM('#7fcf72', { glow: 0.55 })));
+  g.add(new THREE.Mesh(new THREE.TorusGeometry(0.035, 0.008, 4, 14, Math.PI * 1.5).translate(0, -0.02, 0.02), flatM('#9a7448')));
+  for (let i = 0; i < 3; i++) g.add(new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 6).scale(1, 0.35, 0.6).translate(Math.sin(i * 2.1) * 0.05, 0.14, Math.cos(i * 2.1) * 0.05), flatM('#f2a7b8', { glow: 0.4 })));
+  g.add(new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.05, 0.03).translate(0, -0.15, 0), flatM(BRASS_DARK)));
+  return g;
+}
+
+function echoModel() {
+  // a spiral shell of pale brass
+  const pts = [];
+  for (let i = 0; i <= 60; i++) { const a = (i / 60) * Math.PI * 4, r = 0.02 + (i / 60) * 0.1; pts.push(new THREE.Vector3(Math.cos(a) * r, (i / 60) * 0.12 - 0.06, Math.sin(a) * r)); }
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 90, 0.03, 8), flatM(BRASS)));
+  g.add(new THREE.Mesh(new THREE.TorusGeometry(0.11, 0.012, 5, 22).rotateX(Math.PI / 2).translate(0, 0.07, 0), flatM(IVORY, { glow: 0.3 })));
+  g.rotation.x = 0.6;
+  return g;
+}
+
+function levelModel() {
+  // the Major's spirit level: a brass bar, a green glass vial with a bubble
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.05, 0.06), flatM(BRASS)));
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.14, 12).rotateZ(Math.PI / 2).translate(0, 0.04, 0), flatM('#a9cf8e', { glow: 0.45 })));
+  g.add(new THREE.Mesh(new THREE.SphereGeometry(0.012, 8, 6).translate(0.01, 0.055, 0), flatM('#fbf7e8', { glow: 0.6 })));
+  return g;
+}
+
 const MODELS = {
   backpack: tankModel, jetpack: jetsModel, glider: wingsModel, stun: () => lensModel('#bfe8f2', { ice: true }), fire: flintModel,
   cell: cellModel, coil: coilModel, lantern: lanternModel, lens: () => lensModel('#d8d4c8', { glyph: true }), bell: whistleModel, star: starModel,
+  bloom: bloomModel, echo: echoModel, level: levelModel,
 };
 
 /** A small model of an item for the hovering display (a generic gem for anything unknown). */

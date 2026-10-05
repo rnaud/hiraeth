@@ -14,6 +14,7 @@ import { glyphGeometry } from '../story/sign-text.js';
 //   snapperModel()   Lorn's Mother Snapper: the swamp's oldest carnivorous plant, rooted in the Hush's
 //                    hall; a neck of beads and a great head of jaws that lunges, sweeps and spits seed
 //   foremanModel()   the Sealed Hangar's Clockwork Foreman: a drum of brass with a clock for a chest, wound wrong
+//   gardenerModel()  Viridel's Gardener: a moss giant of the white builders, bare and wild, calmed with flowers
 //   sentinelModel()  the City-Shaft's sentinel: a tall machine of the makers on three legs, a ring
 //                    of vents and a lamp-eye, broken and still guarding (see incal.js)
 //
@@ -704,6 +705,100 @@ export function foremanModel({ brass = '#d8a24a', brass2 = '#b8862f', teal = '#6
       glassM.uniforms.uGlow.value = 0.15 + 0.2 * (1 - meter);
       group.updateMatrixWorld(true);
       mouth.copy(body.localToWorld(_w.set(0, 0.1, 2.9)));
+    },
+  };
+  return M;
+}
+
+/**
+ * Viridel's Gardener (organic: you calm it): the moss giant the white builders left to keep their
+ * Greenhouse, gone wild and bare since the night the light passed, when every flower on it closed and
+ * fell. A great hunched mound of moss on four root legs, two long arms ending in root-claws, a face of the
+ * builders' white stone. Brown bare patches on its back where nothing grows; as it calms, flowers come up
+ * over them. It sweeps, stamps, and sends roots up under you; spent, it kneels, its bare back to the sky:
+ * a bloom glob there calms it. Calm, it lies down: lay a hand on its brow.
+ */
+export function gardenerModel({ moss = '#5f9a52', moss2 = '#4f8a5a', moss3 = '#7fb86a', bark = '#8a5a3c', bare = '#9a7448', stone = '#f7f4ec', glow = '#7fcfa8' } = {}) {
+  const group = new THREE.Group();
+  const mat = vc();
+  const eyeM = makeMaterial({ color: glow, glow: 0.4, flat: true, key: `gardener.eye.${uid++}` });
+  const bareM = makeMaterial({ color: bare, flat: true, key: `gardener.bare.${uid++}` });
+  const bloomM = vc();
+  const body = new THREE.Group();
+  body.position.y = 3.4;
+  group.add(body);
+  // the mound: moss in three greens, lumpy
+  const lumps = [ell([4.2, 3.0, 3.8], moss, [0, 0, 0], null, [14, 10])];
+  for (let i = 0; i < 14; i++) { const a = i * 2.4, r = 2.6 + (i % 3) * 0.4; lumps.push(ell([1.4, 1.0, 1.3], i % 2 ? moss2 : moss3, [Math.sin(a) * r, 0.6 + Math.cos(i * 1.7) * 1.4, Math.cos(a) * r * 0.9], null, [8, 6])); }
+  body.add(new THREE.Mesh(merge(...lumps), mat));
+  // the bare patches on its back (they shrink as it calms) and the flowers that come up there
+  const bareMesh = new THREE.Mesh(merge(ell([1.6, 0.5, 1.4], '#ffffff', [-1.2, 2.6, -0.6]), ell([1.3, 0.45, 1.2], '#ffffff', [1.5, 2.4, 0.4]), ell([1.1, 0.4, 1.0], '#ffffff', [0.2, 2.8, 1.4])), bareM);
+  body.add(bareMesh);
+  const flowers = [];
+  const COLS = ['#f2a7b8', '#f6d36a', '#ffffff', '#b7a0cf', '#ef7e62'];
+  for (let i = 0; i < 46; i++) {
+    const a = i * 2.39996, r = Math.sqrt(i / 46) * 3.4, x = Math.sin(a) * r, z = Math.cos(a) * r * 0.9;
+    const y = 3.0 * Math.sqrt(Math.max(0, 1 - (x * x) / 17.6 - (z * z) / 14.4)) + 0.05;
+    flowers.push(ell([0.32, 0.12, 0.32], COLS[i % COLS.length], [x, y, z], null, [6, 3]), ell([0.1, 0.1, 0.1], '#f6d36a', [x, y + 0.08, z], null, [4, 3]));
+  }
+  const bloom = new THREE.Mesh(merge(...flowers), bloomM);
+  bloom.scale.setScalar(0.001);
+  body.add(bloom);
+  // the face: a mask of white stone, two eye holes that glow
+  const head = new THREE.Group();
+  head.position.set(0, 1.4, 3.7);
+  body.add(head);
+  head.add(new THREE.Mesh(merge(ell([1.25, 1.45, 0.7], stone, [0, 0, 0], null, [12, 8]), box([0.3, 0.9, 0.3], moss2, [0, 1.5, -0.3]), ell([1.5, 0.5, 1.0], moss, [0, 1.25, -0.4])), mat));
+  head.add(new THREE.Mesh(merge(ell([0.24, 0.32, 0.1], '#ffffff', [-0.45, 0.25, 0.64]), ell([0.24, 0.32, 0.1], '#ffffff', [0.45, 0.25, 0.64])), eyeM));
+  // two long arms, root-claws at their ends
+  const arms = [-1, 1].map((s) => {
+    const sh = new THREE.Group(); sh.position.set(s * 3.6, 1.0, 1.6); body.add(sh);
+    sh.add(new THREE.Mesh(merge(
+      tube([[0, 0, 0], [s * 1.0, -1.4, 0.9], [s * 1.2, -2.8, 1.8]], 0.7, moss2, 10, 6),
+      ...[-0.5, 0, 0.5].map((d) => cone(0.22, 1.4, bark, [s * 1.2 + d * 0.7, -3.6, 2.2], [0.4, 0, d])),
+    ), mat));
+    return sh;
+  });
+  // four root legs
+  const legs = [];
+  for (let i = 0; i < 4; i++) {
+    const a = (i / 4) * Math.PI * 2 + Math.PI / 4;
+    const hip = new THREE.Group(); hip.position.set(Math.sin(a) * 2.6, -1.6, Math.cos(a) * 2.3); body.add(hip);
+    hip.add(new THREE.Mesh(merge(cyl(0.7, 0.9, 2.0, bark, [0, -0.8, 0], null, 8), ell([1.0, 0.35, 1.2], bark, [0, -1.8, 0.2])), mat));
+    legs.push(hip);
+  }
+  noCollide(group);
+  const mouth = V(), _w = V();
+  const M = {
+    group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, mouth, mouthR: 1.6, radius: 4.4, height: 7, bodyR: 3.8, touchR: 1.4,
+    body, head, arms, legs, bloom, bareMesh, eyeM, kneel: 0, rear: 0, gait: 0,
+    animate(dt, t, { state, attack, k = 0, speed = 0, meter = 0 }) {
+      const ease = (cur, want, rate) => cur + (want - cur) * Math.min(1, dt * rate);
+      const id = attack?.id, struck = !!attack && k >= 1;
+      const calm = state === 'resolved' ? 1 : meter;
+      M.kneel = ease(M.kneel, state === 'open' ? 1 : state === 'weary' || state === 'resolved' ? 1.4 : state === 'sleep' ? 0.8 : 0, 3);
+      M.rear = ease(M.rear, id === 'stamp' ? (struck ? -0.4 : k) : 0, struck ? 14 : 4);
+      M.gait += dt * speed * 1.8;
+      body.position.y = 3.4 - M.kneel * 1.3 + M.rear * 1.6 + Math.abs(Math.sin(M.gait)) * 0.15;
+      body.rotation.x = -M.rear * 0.35 + M.kneel * 0.18;
+      body.rotation.z = Math.sin(M.gait) * 0.04;
+      head.rotation.x = M.kneel * 0.45 + Math.sin(t * 0.9) * 0.04;
+      // the arms: one raised then swept across for the sweep; both dug in for the roots
+      let lx = 0, rx = 0, rz = 0;
+      if (id === 'sweep') { rx = struck ? -0.6 : -1.6 * k; rz = struck ? 1.2 : -0.6 * k; }
+      if (id === 'roots') { lx = rx = struck ? 0.9 : -1.2 * k; }
+      if (state === 'open' || state === 'weary' || state === 'resolved') { lx = rx = 0.5; }
+      arms[0].rotation.x = ease(arms[0].rotation.x, lx + Math.sin(t * 1.3) * 0.05, struck ? 12 : 5);
+      arms[1].rotation.x = ease(arms[1].rotation.x, rx + Math.sin(t * 1.1 + 1) * 0.05, struck ? 12 : 5);
+      arms[1].rotation.z = ease(arms[1].rotation.z, rz, struck ? 12 : 5);
+      legs.forEach((L, i) => { L.rotation.x = Math.sin(M.gait + i * 1.6) * 0.2 * Math.min(1, speed); });
+      // calmer: the bare patches close over, the flowers come up, its eyes go from ember to leaf
+      M.bareMesh.scale.setScalar(Math.max(0.05, 1 - calm * 0.95));
+      M.bloom.scale.setScalar(Math.max(0.001, calm));
+      eyeM.uniforms.uColor.value.set(calm > 0.5 || state === 'sleep' ? '#7fcfa8' : '#ef7e62');
+      eyeM.uniforms.uGlow.value = state === 'sleep' ? 0.12 : 0.45 + (calm < 0.5 && state !== 'resolved' ? Math.max(0, Math.sin(t * 6)) * 0.3 : 0.2);
+      group.updateMatrixWorld(true);
+      mouth.copy(head.localToWorld(_w.set(0, 0.2, 0.4)));
     },
   };
   return M;

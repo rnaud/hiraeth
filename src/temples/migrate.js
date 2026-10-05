@@ -17,6 +17,7 @@ export const TEMPLE_BOXES = [
   ['perdide.temple.stun', 'stun'],
   ['arzach.temple.glider', 'glider'],
   ['garage.temple.coil', 'coil'],
+  ['edena.temple.bloom', 'bloom'],
 ];
 
 export function migrateTemples(g) {

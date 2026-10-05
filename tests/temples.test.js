@@ -22,6 +22,8 @@ import { updateHazards } from '../src/hazards.js';
 import { Reserve } from '../src/fluid-tool.js';
 import { viaPortal } from '../src/scout.js';
 import { VOLLEY } from '../src/temples/garage.js';
+import { SITE as SITE_EDENA } from '../src/temples/edena.js';
+import { modeFor } from '../src/targets.js';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const DT = 1 / 60;
@@ -1277,4 +1279,141 @@ test('the First Garage on foot: the escapement’s disc, the climb and the count
   assert.ok(notes.some((s) => /keep time/i.test(s)), 'it says so');
   game.reset();
   own();
+});
+
+test('the Builders’ Greenhouse on foot: the stone seed and the eye, the root-wall and the rising disc, bloom mode, the budded doors, the vine bridge, the glass you can’t climb until a vine grows up it, the Gardener bloomed, the ruins in flower', () => {
+  game.reset();
+  own('backpack');
+  const { level, physics, rt } = world('edena');
+  const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true });
+  const notes = [];
+  rt.connect({ player: P, toast: (s) => notes.push(s) });
+  let t = 0;
+  const L = (x, y, z) => rt.kit.world(x, y, z);
+  const frame = (input = {}, yaw = 0) => { t += DT; rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };
+  const toward = (to) => Math.atan2(-(to.x - P.pos.x), -(to.z - P.pos.z));
+  const flat = (a) => Math.hypot(P.pos.x - a.x, P.pos.z - a.z);
+  const walk = (to, { tol = 0.6, max = 25, run = true, dy = 1.6 } = {}) => {
+    for (let i = 0; i < max / DT; i++) { if (flat(to) < tol && Math.abs(P.pos.y - to.y) < dy) return true; frame({ KeyW: true, ShiftLeft: run }, toward(to)); }
+    return false;
+  };
+  const wait = (s) => { for (let i = 0; i < s / DT; i++) frame(); };
+  const where = () => rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1)).join(', ');
+  const local = () => rt.kit.local(P.pos);
+  wait(0.5);
+  assert.ok(P.onGround && rt.inside(P.pos), `standing in the Threshold (${where()})`);
+  // ---- the Potting Hall: the stone seed onto its plate, and the eye over the benches; both
+  assert.equal(walk(L(0, 0, 15)), true, `into the potting hall (${where()})`);
+  const ball = rt.piece('ball1');
+  for (let k = 0; k < 12 && !rt.logic.drumOn('ball1', 'p1'); k++) {
+    walk(ball.center.clone().addScaledVector(ball.dir, -2.3).setY(P.pos.y), { tol: 0.5 });
+    ball.hit('push', ball.dir.clone(), { strength: 1 });
+    wait(2.6);
+  }
+  assert.ok(rt.logic.drumOn('ball1', 'p1'), `the seed on its plate (${ball.t.toFixed(2)}) (${where()})`);
+  wait(0.3);
+  assert.equal(rt.logic.isOpen('d1'), false, 'the plate alone is not enough');
+  rt.piece('s1').hit('shoot');
+  wait(2.2);
+  assert.equal(rt.logic.isOpen('d1'), true, 'and the eye: the door opens');
+  // ---- the Glass Stair: up the root-wall, then the rising disc
+  assert.equal(walk(L(0, 0, 42)), true, `to the door (${where()})`);
+  assert.equal(walk(L(0, 0, 53)), true, `into the stair (${where()})`);
+  let up = false;
+  for (let i = 0; i < 20 / DT; i++) { frame({ KeyW: true }, toward(L(0, 9, 63))); if (P.onGround && local().y > 8.5) { up = true; break; } }
+  assert.ok(up, `up the root-wall (${where()})`);
+  const disc = rt.pieces.find((p) => p.path);
+  for (let i = 0; i < 30 / DT && !(disc.s < 0.2 && disc.wait > 0.8); i++) frame();
+  assert.equal(walk(disc.group.position, { tol: 0.5, run: false, max: 4 }), true, `onto the disc (${where()})`);
+  for (let i = 0; i < 30 / DT && !(disc.s > disc.total - 0.2); i++) frame();
+  assert.ok(local().y > 17.5, `carried up (${where()})`);
+  assert.equal(walk(L(0, 18, 66.8), { tol: 0.8 }), true, `onto the landing (${where()})`);
+  assert.equal(walk(L(0, 18, 76)), true, `into the seed chamber (${where()})`);
+  // ---- the flower-door: water runs off it, fire curls it shut; a bloom glob opens it
+  const bud = rt.piece('d3');
+  bud.hit('shoot'); bud.hit('fire');
+  assert.equal(rt.logic.isLit('bud1'), false, 'water and ember do nothing');
+  assert.equal(walk(L(0, 18, 92), { max: 4 }), false, 'the bud keeps the way');
+  bud.hit('bloom');
+  assert.equal(rt.logic.isLit('bud1'), false, 'without bloom mode, a bloom glob is only fluid');
+  items.grant('bloom'); game.emit('box:opened', { id: 'edena.temple.bloom' });
+  assert.equal(rt.logic.gadget, true);
+  bud.hit('bloom');
+  wait(2.6);
+  assert.equal(rt.logic.isOpen('d3'), true, 'bloomed, it opens');
+  // ---- the Vine Gulf: a seed at its edge grows the bridge
+  assert.equal(walk(L(0, 18, 93.7)), true, `to the gulf's edge (${where()})`);
+  rt.piece('seed1').hit('shoot');
+  assert.equal(rt.logic.isOpen('vine1'), false, 'water only soaks it');
+  rt.piece('seed1').hit('bloom');
+  wait(3.5);
+  assert.equal(walk(L(0, 18, 121.5)), true, `over the vine bridge (${where()})`);
+  assert.ok(local().y > 17, 'on it, not in the chasm');
+  // the glass: too smooth to climb; a seed at its foot grows a vine up it
+  let slipped = 0;
+  for (let i = 0; i < 6 / DT; i++) { frame({ KeyW: true }, toward(L(0, 27, 132))); if (P.climbing) slipped = -1; if (slipped === -1 && !P.climbing) { slipped = 1; } }
+  assert.ok(local().y < 22, `you can't get up the glass (${where()})`);
+  assert.ok(notes.some((s) => /too smooth/i.test(s)), 'and you slip off it');
+  rt.piece('seed2').hit('bloom');
+  wait(3);
+  assert.equal(walk(L(0, 18, 126.4), { tol: 0.8 }), true, `back to its foot (${where()})`);
+  up = false;
+  for (let i = 0; i < 25 / DT; i++) { frame({ KeyW: true }, toward(L(0, 27, 132))); if (P.onGround && local().y > 26.5) { up = true; break; } }
+  assert.ok(up, `up the vine (${where()})`);
+  rt.piece('d4').hit('bloom');
+  wait(2.6);
+  assert.equal(rt.logic.isOpen('d4'), true);
+  // ---- the Glasshouse: bloom the four dead beds, then the Gardener's back each time it kneels
+  assert.equal(walk(L(0, 27, 141)), true, `into the glasshouse (${where()})`);
+  const G = rt.guardian;
+  wait(0.3);
+  assert.notEqual(G.state, 'sleep', 'it wakes');
+  wait(0.5);
+  assert.equal(rt.logic.isOpen('d4'), false, 'the bud shuts behind you');
+  P.opts.health = false;
+  G.hit('body', 'bloom');
+  assert.equal(G.meter, 0, 'its back first: it shakes the flowers off');
+  for (const [i, b] of ['bed1', 'bed2', 'bed3', 'bed4'].entries()) { rt.piece(b).hit('bloom'); assert.ok(Math.abs(G.meter - (i + 1) * 0.1) < 1e-6, `a tenth for each bed (${G.meter})`); }
+  for (let n = 0; n < 10 && G.state !== 'weary'; n++) {
+    let open = false;
+    for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open') { open = true; break; } }
+    assert.ok(open, `it kneels (${n})`);
+    const before = G.meter;
+    if (n === 0) { G.hit('body', 'shoot'); assert.equal(G.meter, before, 'water does not calm it'); }
+    G.hit('body', 'bloom');
+    assert.ok(G.meter > before, `bloomed (${n}: ${G.meter.toFixed(2)})`);
+  }
+  assert.equal(G.state, 'weary', `calm (${G.meter.toFixed(2)})`);
+  for (let i = 0; i < 20 / DT && Math.hypot(G.model.pos.x - G.model.rest.x, G.model.pos.z - G.model.rest.z) > 0.6; i++) frame();
+  wait(2);
+  const head = G.model.mouth.clone().setY(L(0, 27, 0).y);
+  const out = head.clone().sub(G.model.pos).setY(0).normalize();
+  P.teleport(head.clone().addScaledVector(out, 1.6).add(V(0, 0.1, 0)), V(0, 1, 0), V(0, 0, 1));
+  wait(0.3);
+  const near = bestInteractable(P);
+  assert.equal(near?.entry.id, 'temple.edena.touch', 'a hand on its brow');
+  near.entry.use(P);
+  assert.equal(game.flag('temple.edena.done'), true);
+  wait(6);
+  assert.ok(rt.logic.isOpen('d4') && rt.logic.isOpen('d5'), 'the bud opens again, and the far door');
+  // ---- the world changed: the white ruins flower
+  const C = rt.change;
+  assert.equal(C.root.visible, true, 'Viridel in flower');
+  assert.ok(C.count.slabs > 20 && C.count.flowers > 200, `flowers on the ruins (${JSON.stringify(C.count)})`);
+  assert.ok(C.root.children[0].count === C.count.flowers, 'all of them up');
+  game.reset();
+  own();
+});
+
+test('the Greenhouse stands clear of Esk’s tea terraces, and every bloom target answers the bloom mode only', () => {
+  const { rt } = world('edena');
+  const D = rt.outside.door.at;
+  // the terraces and their hollow (src/levels/edena.js TERRACES), south-east of the landing
+  for (const [x, z] of [[214, -122], [277, -78], [186, -98]]) assert.ok(Math.hypot(SITE_EDENA.x - x, SITE_EDENA.z - z) > 300, 'far from the terraces');
+  assert.ok(D.z > 250, 'north of the white ruins');
+  // a glob in another mode arrives as plain fluid (targets.js modeFor), bloom only where it is accepted
+  const seed = rt.piece('seed1');
+  assert.equal(modeFor({ accepts: ['bloom', 'fire'] }, 'bloom'), 'bloom');
+  assert.equal(modeFor({}, 'bloom'), 'shoot');
+  assert.ok(seed && rt.piece('d3') && rt.piece('bed1'));
 });

@@ -46,6 +46,11 @@ export const ITEMS = {
     text: 'A flint ring for the wrist nozzle. The fluid comes out burning, but the makers’ fire does not hurt.',
     use: 'Switch modes with X (on a controller, the D-pad left or right). Ember bursts light lamps, braziers and fuses, and burn away dry brambles.',
   },
+  bloom: {
+    name: 'Bloom mode', kind: 'mode', needs: 'backpack',
+    text: 'A seed of green glass for the wrist nozzle, warm to the touch, a hair of root still curled inside it. The makers grew their houses.',
+    use: 'Switch modes with X (on a controller, the D-pad left or right). A bloom burst tells the makers’ plants to grow: seeds sprout, budded doorways open, vines climb glass and bridge a gap. Anywhere else, a few flowers come up where it lands.',
+  },
   // ---- special items, found in boxes across the worlds (src/boxes/placements.js; effects in src/boxes/effects.js)
   cell: {
     name: 'Fourth chamber', kind: 'upgrade', needs: 'backpack',
@@ -125,7 +130,7 @@ export const ITEMS = {
 };
 
 /** Gun modes: shoot is always there with the backpack; the others are unlocked by items. */
-export const MODE_ITEMS = { shoot: 'backpack', stun: 'stun', fire: 'fire' };
+export const MODE_ITEMS = { shoot: 'backpack', stun: 'stun', fire: 'fire', bloom: 'bloom' };
 
 const key = (id) => `item.${id}`;
 const listeners = new Set();

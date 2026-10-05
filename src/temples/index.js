@@ -20,6 +20,8 @@ import { ARZACH_TEMPLE } from './arzach.js';
 import * as ARZACH_WORDS from './arzach-data.js';
 import { GARAGE_TEMPLE } from './garage.js';
 import * as GARAGE_WORDS from './garage-data.js';
+import { EDENA_TEMPLE } from './edena.js';
+import * as EDENA_WORDS from './edena-data.js';
 
 // The makers' temples: one great building in each world, a Zelda-style
 // dungeon of rooms and puzzles in that world's architecture, with a gadget
@@ -50,6 +52,7 @@ export const TEMPLES = {
   perdide: { def: PERDIDE_TEMPLE, words: PERDIDE_WORDS },
   arzach: { def: ARZACH_TEMPLE, words: ARZACH_WORDS },
   garage: { def: GARAGE_TEMPLE, words: GARAGE_WORDS },
+  edena: { def: EDENA_TEMPLE, words: EDENA_WORDS },
 };
 
 /**
@@ -66,7 +69,7 @@ export const GADGETS = {
   arzach2: { temple: 'bell', world: ['scarf'], built: true },         // the bell moved here from Vael's spire; the wind-silk scarf on the balanced stack (the wings went to the Aerie)
   garage: { temple: 'coil', world: ['level'], built: true },          // the quick coil moved inside from the keep's wall; the brass level is there now
   buried: { temple: 'cell', world: ['resin'], built: true },          // the fourth chamber moved here from Lorn II
-  edena: { temple: 'bloom', world: ['pouch'], built: false },         // a new gun mode (planned); the seed pouch is on the canopy now (the lantern went to Lorn II)
+  edena: { temple: 'bloom', world: ['pouch'], built: true },          // a new gun mode, found in the Greenhouse; the seed pouch is on the canopy (the lantern went to Lorn II)
   spheres: { temple: 'lens', world: ['shell'], built: true },
   perdide: { temple: 'stun', world: ['reed'], built: true },          // the stilling mode moved inside from the mossy rise; the breathing reed is there now
   perdide2: { temple: 'lantern', world: ['moss'], built: true },      // the lantern moved here from Viridel; the glow-moss pin on the root arch

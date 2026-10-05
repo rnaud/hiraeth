@@ -859,7 +859,7 @@ export class Bud {
       const a = (i / N) * Math.PI * 2 + Math.PI / 2;
       const hinge = new THREE.Group();
       hinge.position.set(Math.cos(a) * rx, cy + Math.sin(a) * ry, 0);
-      hinge.rotation.z = a + Math.PI / 2;   // its local -y points in at the middle
+      hinge.rotation.z = a - Math.PI / 2;   // its local -y points in at the middle
       const reach = Math.hypot(Math.cos(a) * rx, Math.sin(a) * ry) * 1.08;
       const p = new THREE.Group();
       hinge.add(p);
@@ -912,6 +912,7 @@ export class Bud {
   update(dt, t) {
     this.curl = Math.max(0, this.curl - dt);
     if (this.open && this.k < 1) this.k = Math.min(1, this.k + dt / 2.2);
+    if (!this.open && this.k > 0) this.k = Math.max(0, this.k - dt / 0.9);   // (held shut behind you: an arena's door)
     this.apply(t);
   }
   dispose() { this.off?.(); }
