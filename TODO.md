@@ -349,3 +349,20 @@ To start after the current work lands. Ordered from easiest to most complex.
     fine if it's a robot).
   - Beating it changes something in the world: the temple covered in plants, crops growing
     again, the grove pulsing with light…
+
+---
+
+# Unity port (proof of concept, 2026-10-05)
+
+The desert runs in `unity/Memento` (Unity 6, URP): exported from the web game by
+`scripts/unity-export/`, the ink look ported, the opening quest playable. See `unity/README.md`.
+
+- [x] Export, the ink look, the traveller's controller and camera, climbing, people, dialogue, quests,
+  the father's charge, the chest, the bike, the burning tree, health and falls, title screen.
+- [ ] The traveller's run, jump and climb clips; the helmet, face, creases and tank.
+- [ ] People's costumes, capes, hair and faces; seated people; an instanced far crowd.
+- [ ] The fluid tool's other modes; the box opening scene; the star box.
+- [ ] The ship (prologue, interior, map), wildlife, footprints, smoke, embers, weather, sound, saves.
+- [ ] FXAA, the game's own shadows; the cave's lighting.
+- [ ] Connect an MCP client to the editor (the bridge package is installed; an organization policy
+  blocks registering unknown MCP servers in Claude Code).
