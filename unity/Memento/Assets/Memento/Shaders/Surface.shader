@@ -43,6 +43,9 @@ Shader "Memento/Surface"
     float _Mode, _Flat, _StrataSize, _Grid, _Glyphs, _Biomes, _Ripples, _SandInk, _Ticks, _Glow, _Folds, _Scrub, _Pattern, _Figure, _Hero, _Sway, _StrataObject, _PaletteSize;
     float4 _Palette[12];
     float4 _Skin;
+    float4 _OutfitFeet;    // a person's feet in the world (xyz), 1 / their scale (w): Npc.cs sets it every frame
+    float4 _OutfitRight;   // their right, in the world
+    float _NoVertexColor;
 
     struct Attributes
     {
@@ -117,14 +120,17 @@ Shader "Memento/Surface"
         o.posWS = posWS;
         o.worldPos = toThree(posWS);
         o.normal = toThree(nWS);
-        o.instColor = v.color.rgb;
+        o.instColor = _NoVertexColor > 0.5 ? float3(1, 1, 1) : v.color.rgb;   // (a mesh without colours may read black)
         o.viewDepth = -TransformWorldToView(posWS).z;
         o.objPos = toThree(v.positionOS.xyz * scl);
         o.objNormal = toThree(v.normalOS / scl);
         float3 camOS = mul(UNITY_MATRIX_I_M, float4(_WorldSpaceCameraPos, 1.0)).xyz;
         o.objRel = o.objPos - toThree(camOS * scl);
         o.fold = v.fold;
-        o.bind = v.bind;
+        // (people: the posed body in its own frame, rescaled so the feet are at 0 and the head at 1.8 m)
+        // (people: measured from their feet in the world, across their body and up, in metres of a 1.8 m figure)
+        float3 rel = posWS - _OutfitFeet.xyz;
+        o.bind = _Mode > 3.5 && _Mode < 4.5 ? float3(dot(rel, _OutfitRight.xyz), rel.y, 0) * _OutfitFeet.w : v.bind;
         return o;
       }
 
@@ -192,7 +198,7 @@ Shader "Memento/Surface"
           float3 rel = i.worldPos - toThree(_WorldSpaceCameraPos);
           n = normalize(cross(ddx(rel), ddy(rel)));
           if (dot(n, viewT) < 0.0) n = -n;
-        } else if (!frontFace) n = -n;
+        } else if (!frontFace && _Figure < 0.5 && _Hero < 0.5) n = -n;   // (people: glTFast's skinned bodies keep their own normals; their winding reads as back faces)
 
         float3 albedo = _Color.rgb;
         float3 instColor = i.instColor;

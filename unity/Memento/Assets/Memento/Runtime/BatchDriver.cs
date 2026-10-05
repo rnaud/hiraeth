@@ -113,6 +113,12 @@ namespace Memento
             var ama = Person("ama");
             PutNear(ama.pos, 6f); yield return Wait(2.5f);
             yield return Shoot("camps");
+            game.look.debugView = 2; game.look.Apply(); yield return Shoot("camps_albedo");
+            game.look.debugView = 5; game.look.Apply(); yield return Shoot("camps_light");
+            game.look.debugView = 0; game.look.Apply();
+            foreach (var r in ama.GetComponentsInChildren<Renderer>(true))
+                Log($"  ama renderer {r.name} {r.GetType().Name} enabled {r.enabled} active {r.gameObject.activeInHierarchy} visible {r.isVisible} bounds {r.bounds.center} {r.bounds.size} mat {r.sharedMaterial?.shader?.name} mode {r.sharedMaterial?.GetFloat("_Mode")} verts {(r is SkinnedMeshRenderer sm && sm.sharedMesh ? sm.sharedMesh.vertexCount : -1)} layer {r.gameObject.layer}");
+            Log($"  ama at {ama.pos} / {ama.transform.position}, player at {game.player.transform.position}, scale {ama.transform.lossyScale}");
             PutNear(ama.pos, 2f); yield return Wait(0.6f);
             game.hud.StartTalk(game.story.Def("ama"), ama, ama.displayName, ama.title);
             yield return Wait(2.5f);

@@ -83,7 +83,8 @@ namespace Memento
 
         protected virtual void StartPlay()
         {
-            var setup = GetComponent<Play>() ?? gameObject.AddComponent<Play>();
+            var setup = GetComponent<Play>();
+            if (!setup) setup = gameObject.AddComponent<Play>();
             setup.Begin(this);
         }
     }

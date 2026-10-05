@@ -23,6 +23,7 @@ namespace Memento
         public System.Func<(Vector3 pos, float speed, float near, float? face)?> follow;   // the story leads them (Nour, Oum, the Speaker)
         public string shout; public float shoutUntil;
         Animation anim; string playing;
+        readonly List<Material> mats = new();
         Transform body;
         static AnimationClip[] ual;
 
@@ -30,12 +31,19 @@ namespace Memento
 
         public async Task Build(float scale, Color[] outfit, string kind)
         {
+            try { await BuildBody(scale, outfit, kind); }
+            catch (System.Exception e) { Debug.LogError($"Memento: {id} could not be dressed: {e}"); }
+        }
+
+        async Task BuildBody(float scale, Color[] outfit, string kind)
+        {
             ual ??= await Characters.Clips("ual.glb");
             var go = await Characters.Spawn(kind == "f" ? "human_f.glb" : "human_m.glb", transform, ual);
             if (go == null) return;
             body = go.transform;
             body.localScale = Vector3.one * scale;
             Characters.Restyle(go, false, outfit);
+            foreach (var r in go.GetComponentsInChildren<Renderer>()) mats.AddRange(r.sharedMaterials);
             anim = go.GetComponent<Animation>();
             Play("Idle_Loop");
         }
@@ -85,6 +93,11 @@ namespace Memento
             else if (!talking) Play("Idle_Loop");
             transform.position = pos + (seatHeight >= 0 ? Vector3.down * 0.0f : Vector3.zero);
             transform.rotation = Quaternion.Euler(0, heading, 0);
+            if (body)
+            {
+                var feet = new Vector4(pos.x, pos.y, pos.z, 1f / Mathf.Max(body.lossyScale.y, 1e-3f)); var right = transform.right;
+                foreach (var m in mats) { m.SetVector("_OutfitFeet", feet); m.SetVector("_OutfitRight", right); }
+            }
 
             // a line as you pass (the web's speech balloons)
             if (player && !talking && lines.Count > 0)

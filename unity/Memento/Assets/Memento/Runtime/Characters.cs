@@ -54,7 +54,8 @@ namespace Memento
             if (root == null) return null;
             // one Animation at the root (glTFast may have put its own on the scene object: fold it in)
             var anims = root.GetComponentsInChildren<Animation>(true);
-            var anim = root.GetComponent<Animation>() ?? root.AddComponent<Animation>();
+            var anim = root.GetComponent<Animation>();
+            if (!anim) anim = root.AddComponent<Animation>();   // (not ??: a missing component is Unity's fake null)
             var clips = new List<AnimationClip>(g.GetAnimationClips() ?? Array.Empty<AnimationClip>());
             if (extra != null) clips.AddRange(extra);
             foreach (var a in anims) if (a != anim) UnityEngine.Object.Destroy(a);
@@ -99,6 +100,13 @@ namespace Memento
             return mesh;
         }
 
+        static Transform FindDeep(Transform t, string name)
+        {
+            if (t.name == name) return t;
+            foreach (Transform c in t) { var f = FindDeep(c, name); if (f) return f; }
+            return null;
+        }
+
         static Shader surface;
         /// <summary>
         /// Draw a character through the ink pipeline. Each glTF material keeps its base colour
@@ -128,20 +136,24 @@ namespace Memento
                     m.SetFloat("_Hero", hero ? 1 : 0);
                     m.SetFloat("_Figure", hero ? 0 : 1);
                     m.SetFloat("_Cull", (float)CullMode.Off);
+                    var rm = r is SkinnedMeshRenderer s0 ? s0.sharedMesh : r.GetComponent<MeshFilter>()?.sharedMesh;
+                    m.SetFloat("_NoVertexColor", rm != null && rm.HasVertexAttribute(VertexAttribute.Color) ? 0 : 1);
                     if (outfit != null && r is SkinnedMeshRenderer && (src == null || !src.name.Contains("Eye")))
                     {
                         m.SetFloat("_Mode", 4);
                         m.SetVector("_Color", outfit[0]); m.SetVector("_Color2", outfit[1]); m.SetVector("_Color3", outfit[2]); m.SetVector("_Skin", outfit[3]);
+                        // (the zones are measured from the feet in the world: Npc.cs keeps _OutfitFeet / _OutfitRight up to date)
+                        var t = root.transform;
+                        m.SetVector("_OutfitFeet", new Vector4(t.position.x, t.position.y, t.position.z, 1f / Mathf.Max(t.lossyScale.y, 1e-3f)));
+                        m.SetVector("_OutfitRight", t.right);
                     }
                     mats[i] = m;
                 }
                 r.sharedMaterials = mats;
                 r.shadowCastingMode = ShadowCastingMode.On;
-                // the outfit zones are drawn in the rest pose: keep it in uv3 (skinning moves the vertices)
-                if (outfit != null && r is SkinnedMeshRenderer smr && smr.sharedMesh != null)
-                {
-                    smr.sharedMesh = WithBind(smr.sharedMesh, smr.transform.localToWorldMatrix, root.transform.worldToLocalMatrix);
-                }
+                // (the outfit zones are drawn from the posed body's own frame, feet at 0: the shader's
+                // MODE_OUTFIT reads the skinned position. WithBind below would keep the rest pose in uv3,
+                // but re-laying a glTFast skinned mesh's vertex streams is fragile, so it is left unused.)
             }
         }
     }

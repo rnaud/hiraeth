@@ -45,7 +45,9 @@ namespace Memento
 
         async Task LoadModel()
         {
-            var go = await Characters.Spawn("traveller.glb", transform);
+            GameObject go;
+            try { go = await Characters.Spawn("traveller.glb", transform); }
+            catch (System.Exception e) { Debug.LogError($"Memento: the traveller could not be loaded: {e}"); return; }
             if (go == null) return;
             model = go.transform;
             // the bubble helmet is glass in the web game (only its rim drawn): left out here
