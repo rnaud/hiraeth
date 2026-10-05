@@ -670,6 +670,8 @@ const menu = new SettingsMenu(settings, {
   onBook: () => journal.toggle(true),
   onDebug: () => showPicker(true),
   onQuit: () => quitToTitle(),
+  // an update restarts the game (at the title, in the new build): the position and the time played first
+  onBeforeRestart: () => { if (!player.riding && !ship.playing) writeSave(); flushPlay(); reactiveWorld.flush(); },
   // where you are, at the top of the Start menu
   where: () => `<b>Save ${slots.active}</b>${meta.title} · ${formatPlaytime((slots.meta().playtime ?? 0) + playClock)} played`,
   // (Esc during the ship's scenes is "hold to skip", even in the parts you walk through)
@@ -708,7 +710,7 @@ const paused = () => menu.open || journal.open || changelog.open;
 if (isTouch) new TouchControls(input, rig);
 // where the controller's printed letters are (settings), and the Android app: build label, update toast, pause/resume
 settings.on((k) => { if (!k || k === 'padFaces') { setFaces(settings.padFaces); menu.syncControls?.(); } });
-installAppShell({ sound, label: () => document.getElementById('app-build'), toast: showToast });   // (queued with the rest, src/ship/cinema.js)
+installAppShell({ sound, toast: showToast });   // (queued with the rest, src/ship/cinema.js)
 
 // ------------------------------------------------------------------ level picker
 const picker = document.getElementById('picker');
