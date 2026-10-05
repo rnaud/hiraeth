@@ -335,3 +335,9 @@ test("Viridel's people are MakeHuman bodies: Lio a child of nine, Esk in a straw
   assert.ok(lio.height > 1.05 && lio.height < 1.45, `Lio ${lio.height.toFixed(2)} m`);
   assert.equal(onBody('edena', PEOPLE.esk).look.head, 'straw');
 });
+
+test("The Garden of Spheres' people are MakeHuman bodies", async () => {
+  assert.ok(MH_WORLDS.has('spheres'));
+  const { PEOPLE } = await import('../src/story/spheres-data.js');
+  for (const def of Object.values(PEOPLE).filter((d) => d.palette)) assert.ok(onBody('spheres', def).height > 1.4, def.id);
+});
