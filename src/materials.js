@@ -95,7 +95,7 @@ export const sharedUniforms = {
 };
 
 // ---------------------------------------------------------------------------
-// The shade's tone, per pixel (README "Shade and hatching by surface"). post.js used to shade every
+// The shade's tone, per pixel (docs/systems/materials.md, "Shade and hatching by surface"). post.js used to shade every
 // surface with albedo × the world's one shadow tint. A material now says how its shade differs
 // (makeMaterial({ shade, shadeHue, hatch })) and the surface shader adds the light's geometry:
 //   lift   0..1, how far the shade is lifted toward the lit colour: the material's own (bone, a

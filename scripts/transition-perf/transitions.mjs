@@ -1,5 +1,5 @@
-// The hand-overs into another space, timed (README: "Doors, caves and the ship: hand-overs without a
-// hitch"). Headless Chrome on ANGLE Metal (never SwiftShader), muted, the game's sound at 0, no vsync
+// The hand-overs into another space, timed (docs/systems/performance.md, "Doors, caves
+// and portals"). Headless Chrome on ANGLE Metal (never SwiftShader), muted, the game's sound at 0, no vsync
 // or frame-rate limit, so a frame's interval is its work. Per world: the page is loaded once, then
 // the traveller is set a few metres in front of each way in or out, the camera behind, and W held:
 // the walk carries them through it. Recorded from the first step to 1.5 s after the move.

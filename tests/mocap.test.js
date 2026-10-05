@@ -230,7 +230,7 @@ test('motion matching on the traveller: the feet stay planted, the turn answers 
   const share = r.frames.filter((f) => f.mmW > 0.5).length / r.frames.length;
   assert.ok(share > 0.4, `the matcher leads much of the run (${(share * 100).toFixed(0)} %), the sprint is the loops'`);
   assert.ok(r.frames.some((f) => f.tag === 'run' && f.mmW < 0.1), 'the sprint falls back to the loops');
-  // (the loops measure better on most of these: README "Motion capture"; these bound regressions)
+  // (the loops measure better on most of these: docs/systems/animation.md, "Motion capture"; these bound regressions)
   assert.ok(r.maxSlide < 0.5 && r.meanSlide < 0.12, 'feet slide no more than they did when this was measured');
   assert.ok(r.heldSlide < 0.02, `planted feet stay put (${r.heldSlide.toFixed(4)})`);
   assert.ok(r.sink < 0.03, `no sole in the ground (${r.sink.toFixed(3)})`);

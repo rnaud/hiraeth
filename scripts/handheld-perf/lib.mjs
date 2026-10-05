@@ -1,4 +1,4 @@
-// Measuring the game on an Android handheld over USB (README: "Measured on the Retroid Pocket Nova").
+// Measuring the game on an Android handheld over USB (docs/archive/retroid-measurements.md).
 // A minimal DevTools-protocol client for the device's Chrome, reached through
 //   adb forward tcp:9339 localabstract:chrome_devtools_remote
 // with the game served from this Mac through `adb reverse tcp:5219 tcp:5219`.

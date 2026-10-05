@@ -1,4 +1,4 @@
-// A world's build in steps (README: "Loading without a stall"). A long build is a generator that
+// A world's build in steps (docs/systems/performance.md, "Loading"). A long build is a generator that
 // yields between its pieces (and inside its long loops); it can be run straight through, at once
 // (runSteps: tests, the studio, anything that wants the result now), or a slice at a time
 // (runStepsAsync): the main thread is given back whenever a slice has run its budget, so no task

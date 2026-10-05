@@ -1,8 +1,8 @@
 // A headless traveller (Player + Humanoid + the clip library + Physics) driven through scripted
 // input, with the measures the animation work is judged by: how far a foot slides while it is
 // on the ground, how deep a sole goes under it, how much the pose jitters, and how long the body
-// takes to answer the stick. tests/locomotion.test.js uses it; so can a script (see README,
-// "The traveller's locomotion").
+// takes to answer the stick. tests/locomotion.test.js uses it; so can a script (see
+// docs/systems/animation.md, "Locomotion").
 import * as THREE from 'three';
 import { readFile } from 'node:fs/promises';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';

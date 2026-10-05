@@ -7,7 +7,7 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 ## Docs
 
-- [ ] README.md much shorter; the per-system notes, measurements and history into `docs/`.
+- [x] README.md much shorter; the per-system notes, measurements and history into `docs/`. (README.md is ~110 lines: what the game is, running, URL parameters, tests, shipping, the layout; the rest moved unreworded into `docs/systems/<topic>.md` and `docs/archive/`, indexed in `docs/README.md`.)
 
 ## The ship and travel
 
@@ -88,7 +88,7 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 ## The References level
 
-- [ ] Recreate every reference sheet as views (`?level=references`, `[` / `]`, L3 / R3; README "The
+- [ ] Recreate every reference sheet as views (`?level=references`, `[` / `]`, L3 / R3; docs/systems/references.md, "The
   References"). Done: the desert (views 1–27), the City-Shaft (28–50) and Vael II (51–81), DONE.md; Vael has
   no sheets (`references/Vael/` is empty). In progress, one world at a time: the Buried Machine → the Spheres →
   Lorn II → the Signal Market.
@@ -136,7 +136,7 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 ## Animation
 
 - [ ] Measure frame times, animation CPU cost, loading time and memory on desktop and the Retroid with
-  representative crowds (desktop headless Chrome done in the Bazaar and the City-Shaft, README).
+  representative crowds (desktop headless Chrome done in the Bazaar and the City-Shaft, docs/systems/animation.md, "Locomotion").
 - [ ] Evaluate learned motion matching only if it measures better than the conventional system (motion
   matching exists, `?mm=1`, but measures behind the loops: the data, not the method, is short; Mixamo's
   starts, stops and turns are pending, docs/mixamo-shopping-list.md).
