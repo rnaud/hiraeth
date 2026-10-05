@@ -1,0 +1,61 @@
+public/anim/mh/people.json
+  s_1fd8d0e7b02dcf::t_ce5b609fa2fe6d 1-1348
+scripts/makehuman/build.py
+  s_1fd8d0e7b02dcf::t_c85269b3244bab 1-493
+scripts/makehuman/measure-quaternius.mjs
+  s_1fd8d0e7b02dcf::t_0df3f59019f2c3 1-41
+scripts/makehuman/people.json
+  s_1fd8d0e7b02dcf::t_54b9ed390597e0 1-38
+src/humanoid.js
+  s_1fd8d0e7b02dcf::t_815d986ccf15b1 296-300,302-303,373-374,399-400,541-544,550,570-571,582,731,739,774-781,788,849-851
+src/makehuman/body.js
+  s_1fd8d0e7b02dcf::t_ec81c44904fd8c 1-60
+src/makehuman/face-keys.js
+  s_1fd8d0e7b02dcf::t_14c0dd763c15a0 1-75
+src/materials.js
+  s_1fd8d0e7b02dcf::t_429892f3c29bba 243,276-279
+src/npc.js
+  s_1fd8d0e7b02dcf::t_f9e942fb0f238c 775
+src/studio/main.js
+  s_1fd8d0e7b02dcf::t_916c4b427094e3 30-31,156,160,179,182-198,209-212,225-229,236-237,267,273,477-478,499,581,789-792,795,918
+src/studio/makehuman.js
+  s_1fd8d0e7b02dcf::t_d1ab4b887f2620 1-46
+src/studio/state.js
+  s_1fd8d0e7b02dcf::t_91cff213e46df2 17-18,30
+tests/makehuman.test.js
+  s_1fd8d0e7b02dcf::t_fa476353c3886d 1-130
+vite.config.js
+  s_1fd8d0e7b02dcf::t_feaf2a79a608d6 2,16-25,32
+public/anim/mh/LICENSE-MakeHuman-CC0.txt
+  s_b098a73ec1a533::t_ca8f030f0c60d5 1-18
+scripts/makehuman/skin-audit.mjs
+  s_b098a73ec1a533::t_a654846fcde0b5 1-121
+scripts/makehuman/fetch.sh
+  s_1fd8d0e7b02dcf::t_843c1c73d8f6c4 1-43
+scripts/makehuman/glb-sizes.mjs
+  s_1fd8d0e7b02dcf::t_977be54835653f 1-27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "53e3c635060f5ea42fce703f703b362da504aa0c",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_b098a73ec1a533": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a10c82-0ebe-7610-8af1-a76f64fb3b0c",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
