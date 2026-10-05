@@ -56,7 +56,9 @@ export function grassFields(level) {
   return [{ heightAt: (x, z) => level.ground.heightAt(x, z), color: u.uColor.value, color2: u.uColor2.value, inside: () => true }];
 }
 
-const _o = new THREE.Vector3(), DOWN = new THREE.Vector3(0, -1, 0);
+const _o = new THREE.Vector3(), _dir = new THREE.Vector3(), DOWN = new THREE.Vector3(0, -1, 0);
+/** The patch's centre lies this many radii ahead of the camera. */
+const AHEAD = 0.45;
 
 export class Grass {
   /**
@@ -142,10 +144,19 @@ export class Grass {
     return [this.height * this.base[i] * (0.75 + 0.45 * Math.min(1, Math.max(0, m + 0.5))), y];
   }
 
-  /** Once a frame before rendering: wrap the patch round the camera, place the tufts that moved. */
+  /**
+   * Once a frame before rendering: wrap the patch round the camera (its centre a little ahead,
+   * where you look: nothing grows behind you), place the tufts that moved.
+   */
   update(camera) {
-    const cx = camera.position.x, cz = camera.position.z;
-    const field = this.fields.find((f) => f.inside(cx, cz)) ?? null;
+    const px = camera.position.x, pz = camera.position.z;
+    const field = this.fields.find((f) => f.inside(px, pz)) ?? null;
+    let cx = px, cz = pz;
+    if (camera.getWorldDirection) {
+      camera.getWorldDirection(_dir);
+      const l = Math.hypot(_dir.x, _dir.z);
+      if (l > 1e-3) { cx += (_dir.x / l) * this.R * AHEAD; cz += (_dir.z / l) * this.R * AHEAD; }
+    }
     if (field !== this.field) {
       this.field = field;
       this.mask.clear();
@@ -157,7 +168,7 @@ export class Grass {
     }
     this.mesh.visible = !!field;
     if (!field) return 0;
-    this.material.uniforms.uGrassView.value.set(cx, cz, this.R * 0.4, this.R * 0.86);
+    this.material.uniforms.uGrassView.value.set(cx, cz, this.R * 0.45, this.R * 0.9);
     const { off, at, S } = this;
     let lo = Infinity, hi = -1;
     for (let i = 0, n = this.count; i < n; i++) {
