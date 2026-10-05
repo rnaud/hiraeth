@@ -244,8 +244,9 @@ export const PEOPLE = {
   },
 
   pip: {
-    id: 'pip', name: 'Pip', title: 'who has seen the sky once', color: '#e6875f', voice: 1.65, kind: 'm', scale: 0.7,
-    palette: { cloak: '#e6875f', lining: '#2b211f', cloth: '#5a4a3a', legs: '#3a3a3a', hat: '#d8a24a', hair: '#4a3226' }, head: 'hair', cape: 0.5,
+    // (a child of nine at the bottom of the shaft, in a knit cap: docs/makehuman.md stage 3)
+    id: 'pip', name: 'Pip', title: 'who has seen the sky once', color: '#e6875f', voice: 1.65, kind: 'm', scale: 0.7, age: 'child', years: 9,
+    palette: { cloak: '#e6875f', lining: '#2b211f', cloth: '#5a4a3a', legs: '#3a3a3a', hat: '#d8a24a', hair: '#4a3226' }, head: 'hair', cape: 0.5, look: { head: 'beanie', under: 'crop' },
     lines: ['~curious~ Are you from the top?', '~happy~ I saw the sky once. Eleven seconds.', '~happy~ My uncle is a palace guard!'],
     talk: {
       entry: [
@@ -360,7 +361,7 @@ export const PEOPLE = {
 
   wren: {
     id: 'wren', name: 'Wren', title: 'the driver who still stops', color: '#f2c54b', voice: 1.1, kind: 'f',
-    palette: { cloak: '#f2c54b', lining: '#34405e', cloth: '#34405e', legs: '#2b2f45', hat: '#62c3c9', hair: '#2b211f' }, head: 'hat', cape: 0.5,
+    palette: { cloak: '#f2c54b', lining: '#34405e', cloth: '#34405e', legs: '#2b2f45', hat: '#62c3c9', hair: '#2b211f' }, head: 'hat', cape: 0.5, look: { head: 'aviator', mask: 'browgoggles' },
     lines: ['~curious~ Need a lift?', '~neutral~ Space to climb, Shift to drop.', '~playful~ Mind the laundry.'],
     talk: {
       entry: [{ if: { quest: 'incal.wren', done: true }, node: 'after' }, { node: 'hello' }],
@@ -398,7 +399,7 @@ export const PEOPLE = {
 // The rim's people (content.js npcs 0–2): who they are, what they say.
 export const RIM = {
   corvin: {
-    id: 'corvin', name: 'Corvin Sale', title: 'of the rim, third generation', color: '#e88fa6', head: 'hat', cape: 0,
+    id: 'corvin', name: 'Corvin Sale', title: 'of the rim, third generation', color: '#e88fa6', head: 'hat', cape: 0, look: { head: 'bowler', under: 'swept', mask: 'monocle', body: 'collar' },
     talk: { listen: [
       ["~playful~ Enjoying the view? I stopped noticing it years ago. One of the privileges of an expensive address.", '~neutral~ Corvin Sale. Of the rim. Third generation.'],
       { if: { not: LOOKED }, say: ['~tired~ The Lodestar? A light show. A story for tourists, and for the lower levels, who need stories.', '~playful~ Dimming, is it? Then the palace is economising. Good.'] },
@@ -410,7 +411,7 @@ export const RIM = {
     ] },
   },
   lio: {
-    id: 'lio', name: 'Lio', title: 'cab dispatcher', color: '#62c3c9', head: 'hat', cape: 0,
+    id: 'lio', name: 'Lio', title: 'cab dispatcher', color: '#62c3c9', head: 'hat', cape: 0, look: { head: 'peak', under: 'swept' },
     talk: {
       entry: [
         { if: { all: [{ quest: 'incal.pass', stage: 'back' }, { has: 'fare' }] }, node: 'paid' },

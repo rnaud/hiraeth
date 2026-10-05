@@ -418,8 +418,9 @@ export function tribeOf(world, ctx = {}) {
  * @param o.cape    their cape length (m), if the story sets it
  * @param o.look    story overrides: { head, mask, body, prop, robe (hem height, 0 none), trim, flare }
  * @param o.named   a named person (namedLook): their look as it was drawn before stage 3's headwear (T.more)
+ * @param o.young   a child or a teenager: no beard
  */
-export function dressFor(world, rng, { palette = {}, lists = {}, head = null, cape = null, look = {}, spot = null, pos = null, kind = null, named = false } = {}) {
+export function dressFor(world, rng, { palette = {}, lists = {}, head = null, cape = null, look = {}, spot = null, pos = null, kind = null, named = false, young = false } = {}) {
   const T = tribeOf(world, { spot, pos });
   const L = { ...DEFAULT.palette, ...lists, ...T.palette };
   const accents = L.accents ?? L.cloaks;
@@ -460,7 +461,7 @@ export function dressFor(world, rng, { palette = {}, lists = {}, head = null, ca
   if (!look.head && GENERIC_HAIR.includes(s.head)) s.head = hairstyleOf(T, female ? 'f' : 'm', rh);
   // the hair under their headwear (a MakeHuman body draws it squashed under a hat, falling below it: HEADS[].cover)
   s.under = look.under ?? (HAIR_IDS.includes(s.head) ? s.head : hairstyleOf(T, female ? 'f' : 'm', rh));
-  if (!female && kind && !look.mask && s.mask === 'none' && rb < BEARDS) s.mask = 'beard';
+  if (!female && kind && !young && !look.mask && s.mask === 'none' && rb < BEARDS) s.mask = 'beard';
   // their eyes' colour: seeded by the rest of the look, not drawn from rng, so the looks drawn after
   // this one from the same stream (a crowd's) are what they were
   s.eyes = palette.eyes ?? look.eyes ?? irisFor(mulberry32(hashSeed(`${s.skin}|${s.hair}|${s.cloak}|${s.height}|${s.capeWide}`)));
@@ -543,8 +544,8 @@ export function crowdLook(rng, { world = costumeWorld(), lists = {}, spot = null
 }
 
 /** A named person's look: seeded by who they are, so they look the same every visit. */
-export function namedLook({ world = costumeWorld(), id = '', palette = {}, head = null, cape = null, look = {}, pos = null, kind = null } = {}) {
-  return dressFor(world, mulberry32(hashSeed(`${world}:${id}`)), { palette, head, cape, look, pos, kind, named: true });
+export function namedLook({ world = costumeWorld(), id = '', palette = {}, head = null, cape = null, look = {}, pos = null, kind = null, young = false } = {}) {
+  return dressFor(world, mulberry32(hashSeed(`${world}:${id}`)), { palette, head, cape, look, pos, kind, named: true, young });
 }
 
 /** The ids a look shows, in a comparable form (tests; a promoted NPC must match its crowd figure). */

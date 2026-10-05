@@ -225,7 +225,8 @@ const { namedLook: named } = await import('../src/costumes.js');
 /** A story person on their world's MakeHuman body: { look, profile, height (m, as the game stands them) }. */
 function onBody(world, def) {
   const kind = def.body ?? def.kind ?? 'm';
-  const look = named({ world, id: def.id, palette: def.palette ?? {}, head: def.head ?? null, cape: def.cape ?? null, look: def.look ?? {}, kind: def.body ?? def.kind ?? null });
+  // (as NPC dresses them: src/npc.js, a child or a teenager no beard)
+  const look = named({ world, id: def.id, palette: def.palette ?? {}, head: def.head ?? null, cape: def.cape ?? null, look: def.look ?? {}, kind: def.body ?? def.kind ?? null, young: ['child', 'teen'].includes(ageClassOf({ def })) });
   const p = new MakeHumanPeople(data, world).templateFor({ kind, def, dress: look }).userData.profile;
   const scale = p.trueScale ?? (def.scale ?? look.height) * (p.heightFix ?? 1);
   return { look, profile: p, height: scale * p.measured.height };
@@ -250,4 +251,39 @@ test('the Signal Market\'s people are MakeHuman bodies: Kip a child of eleven, S
     const h = onBody('bazaar', def).height;
     assert.ok(h > 1.5 && h < 2.05, `${def.id} ${h.toFixed(2)} m`);
   }
+});
+
+/** A world's story people (every exported table of its story data with people in it). */
+async function storyPeople(world) {
+  let m;
+  try { m = await import(`../src/story/${world}-data.js`); } catch { return []; }
+  const out = [];
+  for (const [k, v] of Object.entries(m)) {
+    if (['THINGS', 'QUESTS', 'ITEMS'].includes(k)) continue;
+    const list = Array.isArray(v) ? v : v && typeof v === 'object' ? Object.values(v) : [];
+    for (const p of list) if (p?.id && p.name && (p.palette || p.head || p.kind) && !p.narrator) out.push(p);
+  }
+  return out;
+}
+
+test('every world on MakeHuman bodies: its children children (no beards), its grown-ups as tall as before', async () => {
+  for (const world of MH_WORLDS) {
+    for (const def of await storyPeople(world)) {
+      const age = ageClassOf({ def }), { look, height } = onBody(world, def);
+      if (age === 'child' || age === 'teen') {
+        assert.notEqual(look.mask, 'beard', `${world}: ${def.id} is ${age}`);
+        assert.ok(height > 0.95 && height < 1.7, `${world}: ${def.id} (${age}) ${height.toFixed(2)} m`);
+      } else assert.ok(height > 1.4 && height < 2.15, `${world}: ${def.id} ${height.toFixed(2)} m`);
+    }
+  }
+});
+
+test('the City-Shaft\'s people are MakeHuman bodies: Pip a child of nine in a knit cap, the driver in an aviator\'s cap', async () => {
+  assert.ok(MH_WORLDS.has('incal'));
+  const { PEOPLE } = await import('../src/story/incal-data.js');
+  assert.equal(yearsOf({ def: PEOPLE.pip }), 9);
+  const pip = onBody('incal', PEOPLE.pip);
+  assert.equal(pip.look.head, 'beanie');
+  assert.notEqual(pip.look.mask, 'beard', 'a child: no beard (he had one)');
+  assert.equal(onBody('incal', PEOPLE.wren).look.head, 'aviator');
 });
