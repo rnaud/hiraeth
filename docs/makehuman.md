@@ -375,8 +375,8 @@ arrays; `pack.py`, `unpackBody`). One fetch, asked for as the page starts (in pa
 Quaternius bodies, the traveller and the clips, not after them); the browser keeps it in its cache
 between worlds and undoes its transfer gzip off the main thread; the parse (the header's JSON, the
 head's vertices) takes 0.3-1 ms in Chrome, the arrays are views on the file. It ships with the build now
-(`vite.config.js`; `MAKEHUMAN=0` leaves it out): +1.75 MB in the web bundle and the APK, +1.06 MiB
-compressed in the over-the-air zip (deflate, as `web-update.mjs` packs it).
+(`vite.config.js`; `MAKEHUMAN=0` leaves it out): +1.75 MB in the web bundle and the APK, +1.0 MiB
+in the over-the-air zip (deflate, as `web-update.mjs` packs it: 10.0 to 11.0 MiB).
 
 ### Memory and frame time
 

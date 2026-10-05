@@ -500,7 +500,7 @@ All of this is for the web game; the Unity port follows later if we move to Unit
     man as before; the traveller kept on his own body; the crowd figure's shoulders and hips matched and a
     promoted crowd person given their age (an elder) and build; the cloth colliders and the ragdoll from
     each body's own girths; a scalp under every hairstyle (the crown holes) and lighter strand lines on
-    dark hair; the body in one file, shipped (+1.06 MB gzipped). docs/makehuman.md, docs/makehuman/desert-*.
+    dark hair; the body in one file, shipped (+1.0 MiB in the over-the-air zip). docs/makehuman.md, docs/makehuman/desert-*.
   - [ ] The next worlds, one by one (the Signal Market next): its looks on every age and build, its
     children's ages (`def.age` / `def.years`), its crowd checked, then into `MH_WORLDS`
     (src/makehuman/people.js). Still to do for all: the face keys' morph textures shared between a
