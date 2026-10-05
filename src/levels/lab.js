@@ -151,6 +151,18 @@ export function createLab(scene) {
     label.position.set(endX, 0.3, -24 + 6.7);
     hub.add(label);
   }
+  // ---- grass: a meadow beyond the pool, its blades round the camera (src/flora-grass.js)
+  const meadowAt = { x: ((LAB_MATERIALS.length + 1) / 2) * SPACING + 22, z: -24, w: 16, d: 11, h: 0.3 };
+  const meadowMat = { color: '#9cc57a', color2: '#b4d38c', color3: '#8fae55', mode: MODE_TERRAIN, ticks: true, key: 'lab.meadow' };
+  {
+    const M = meadowAt;
+    const plot = new THREE.Mesh(new THREE.BoxGeometry(M.w, M.h, M.d).translate(0, M.h / 2, 0), makeMaterial(meadowMat));
+    plot.position.set(M.x, 0, M.z);
+    hub.add(plot);
+    const label = new THREE.Mesh(textGeometry('grass', { width: 3.2, depth: 0.03 }), ink);
+    label.position.set(M.x, 0.1, M.z + M.d / 2 + 0.2);
+    hub.add(label);
+  }
   // ---- a cloud: lobes in flat white, floating over the start of the row
   {
     const lobes = [];
@@ -295,6 +307,22 @@ export function createLab(scene) {
     return !!r.def.avoid?.(lx, lz, rad);
   };
 
+  // grass blades (flora-grass.js): on the hub's meadow, and in the rooms whose ground is grassy
+  const grassFields = [{
+    heightAt: (x, z) => (Math.abs(x - meadowAt.x) < meadowAt.w / 2 - 0.3 && Math.abs(z - meadowAt.z) < meadowAt.d / 2 - 0.3 ? meadowAt.h : -Infinity),
+    color: new THREE.Color(meadowMat.color), color2: new THREE.Color(meadowMat.color2),
+    inside: (x, z) => !roomAt(x, z) && Math.abs(x - meadowAt.x) < 70 && Math.abs(z - meadowAt.z) < 70,
+  }];
+  for (const r of rooms) {
+    const u = r.ground?.mesh.material.uniforms;
+    if (!u?.uTicks.value) continue;
+    grassFields.push({
+      heightAt: (x, z) => r.centre.y + r.ground.heightAt(x - r.centre.x, z - r.centre.z),
+      color: u.uColor.value, color2: u.uColor2.value, water: r.def.flora?.water,
+      inside: (x, z) => roomAt(x, z) === r,
+    });
+  }
+
   // what is drawn: the room you are in, or the hub
   let shown;
   const show = (room) => {
@@ -331,6 +359,7 @@ export function createLab(scene) {
     flora,
     wildlife,
     floraAvoid,
+    grassFields,
     roomAt,
     unsafe: (p) => { const r = roomAt(p.x, p.z); return !!r?.def.unsafe?.(new THREE.Vector3(p.x - r.centre.x, p.y - r.centre.y, p.z - r.centre.z), (x, z) => r.H(x, z)); },
     sky: {

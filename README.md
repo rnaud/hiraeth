@@ -331,7 +331,7 @@ Three passes per frame (`src/main.js`):
   - wind ripples on sand;
   - dried-mud cracks on the salt flats (Voronoi borders);
   - fissures on mesa faces;
-  - grid lines and alien glyphs on standing stones.
+  - grid lines, and the makers' carved inscriptions on their stones and buildings (`src/glyphs.js`).
 - **Cloud shadows**: each ground point is projected along the light onto a
   drifting cloud layer about 300 m up. Its cover uses the same threshold as
   the sky's clouds, so shadows move with the wind and get the same two-tone
@@ -1201,8 +1201,9 @@ Start menu's **Debug** entry opens the worlds list (`?level=lab&worlds=1` from t
 `src/levels/index.js`): always in the worlds list (L) for testing, never on the route. A
 row of pedestals shows every surface `makeMaterial` can draw (`LAB_MATERIALS`:
 flat, smooth, rock strata, cracked, facade, tiles, leaves, brush, grid, glyphs,
-glow, a placeholder metal, and the box dissolve breathing in and out) on a
-sphere, a cube and a turning knot, with a water pool and a cloud at the ends.
+glow, a lamp, the metals: steel, brushed, chrome, brass, copper, iron, painted, and the box dissolve
+breathing in and out) on a
+sphere, a cube and a turning knot, with a water pool, a meadow of grass blades and a cloud at the ends.
 Behind the spawn, four villagers stand 4× life size on plinths (`LAB_FACES`,
 `content.js`; `spawnNPCs` passes `scale`) and turn to face you, for working on
 faces close up. Add a surface to `LAB_MATERIALS` to see it beside the others.
@@ -2196,3 +2197,55 @@ shimmered, the reactor column filled the middle, the deck felt too big for one p
   planet seen small) in the galactic map's colours, a teal rim and two scan rings. It turns its
   lit face to the camera after a cinematic has placed it (`Ship.update`), flickers on emergency
   power and goes dark with the ship. The table's glass is the old reactor's `core` material.
+
+### Materials: metal, light, the makers' inscriptions and grass blades
+- **Metal** (`makeMaterial({ metal })`, `METALS` in `src/materials.js`; the `METAL` block): `painted`,
+  `steel`, `chrome`, `brass`, `copper` and `iron`, plus `brushed: true` (with `brushAxis`). The
+  view reflected off the surface looks at the sky, the bright horizon or the ground, and each is
+  one flat tone, a little wavy (chrome also gets the dark band just under the horizon); brass and
+  copper tint every tone with their own colour. The sun's highlight is one crisp near-white shape
+  with a paler ring round it; post.js inks its edge like any colour edge. Brushed metal gets fine
+  streaks along its axis (in object space, so they ride with it), a few hairlines in the drawn
+  detail, and its highlight stretched across them. The sky is the post pass's own (`uSkyTop`,
+  `uSkyHorizon` and `uNight` are shared uniforms now); the ground is the level's terrain colour
+  (`setEnvGround`, main.js). Used on the ship, the vehicles (`paintMaterial({ metal })`), the
+  backpack's tank and bracer, the boxes' items, the gear and trinkets, the Hangar's machines,
+  pipes, gears, crown and pistons, the listening stones' brass, the Buried Machine's steel and
+  rusted iron, the City-Shaft's railings and gilded palace, the market's brass and painted steel,
+  the bell, the observatory, the desert's hulls, dishes and masts.
+- **Light** (`createBloom` in `src/post.js`, run between the G-buffer and the composite): the
+  glowing surfaces (glow over 0.62 in `gHatch.a`: crystals, lamps, signal lamps, portals, the
+  makers' mark; the local lights' pools stay under it) are gathered at a quarter of the
+  resolution (4×4 texels each, so a small lamp isn't lost) and blurred, then again at an eighth
+  for a wider halo. The composite draws a light as a bright flat core whose inner ink lines go
+  and whose outline thins, then two flat rings of its colour round it (a printed glow, over the
+  ink) and a soft wash of that colour on what is near; stronger at night. Seven small passes,
+  about 1/16 of the pixels. Façades (`pattern: 'facade'`) light some windows at dusk, one after
+  another, and those glow too.
+- **The makers' inscriptions** (`makeMaterial({ glyphs })`, `src/glyphs.js`): the makers marked
+  everything they made (LORE.md, "The glyph"). On upright faces, each row of the wall's grid
+  (`glyphs`: a cell in metres, or the grid's) carries a frieze between two incised border lines:
+  a row of their signs (the ∩ under three dots opening every sixth, rings, the two moons, the pale
+  star, a staff under an arc, three over a line, a door, a sun on a staff); on the odd rows a
+  cell now and then holds a seal, a framed panel with the mark. They are carved: each stroke is
+  a groove whose part under the rim on the light's side drops into the shadow tone (post.js inks
+  that edge like a cast shadow), with a fine outline round the cut; they fade once a groove is
+  under ~1.5 px. Only the makers' work carries them: Qanat's gate lintel and the giant's door,
+  the masked head's chamber and its doorway, the standing stones, the observatory, the
+  Builders' ruins in Viridel (the City-Shaft's billboards and the artist's page lost theirs).
+  The layout is integer arithmetic, mirrored in JS for `tests/materials-pass.test.js`.
+- **Grass blades** (`src/flora-grass.js`, `src/grass-shader.js`; `makeMaterial({ grass })`): on
+  the grounds drawn with grass ticks (Viridel, the Garden of Spheres, home, Lorn's mosses, their
+  Lab rooms, the Lab's meadow), a fixed set of tufts (four tapered blades each, 12 triangles)
+  covers a square patch round the camera. Each tuft has its offset in the patch; as the camera
+  moves the ones falling off one side reappear a patch further on (`wrapPatch`), so blades stay
+  put in the world and only those that wrapped are placed again (the height, the slope, the
+  paths, the water, and a 2 m mask of where something is built: one ray down per cell, cached).
+  The vertex shader bends them with the wind (the plants' gust front) and parts them round the
+  traveller's feet (`uBrush`), thins them with distance and sinks them into the ground towards
+  the patch's edge, where the ground's own inked ticks take over. Lit like the ground (no crease
+  ink against it); each blade is outlined where it stands against what is behind. One draw call,
+  no shadows. `GRASS_QUALITY`: High 26 m and ~12 k tufts, Medium/Auto 22 m and ~7.7 k, Low 15 m,
+  Handheld 13 m and ~1.6 k tufts (about 20 k triangles).
+- **The Lab** shows them all: the materials row has steel, brushed, chrome, brass, copper, iron,
+  painted, the carved inscriptions and a lamp beside the glow, and a meadow past the water pool.

@@ -633,10 +633,10 @@ const fragmentShader = /* glsl */ `
         float k = uBloom * mix(0.6, 1.0, uNight);
         vec3 light = mix((b + w) / max(bl + wl, 1e-4), vec3(1.0), 0.45);
         // the inner ring hugs the light, the outer one reaches further; both flat
-        float r1 = smoothstep(0.17, 0.19, bl), r2 = max(r1, smoothstep(0.075, 0.085, wl));
+        float r1 = smoothstep(0.14, 0.16, bl), r2 = max(r1, smoothstep(0.05, 0.058, wl));
         float out1 = 1.0 - emitHere;
         col = mix(col, light, (r1 * 0.5 + (r2 - r1) * 0.22) * k * out1);
-        col += w * (0.3 + 0.45 * uNight) * uBloom * out1;   // its colour on what is near
+        col += w * (0.4 + 0.6 * uNight) * uBloom * out1;   // its colour on what is near
       }
     }
 
@@ -821,7 +821,7 @@ const blurFrag = /* glsl */ `
  * The glow buffer: render(renderer) after the G-buffer; post reads `texture` (a quarter of the
  * resolution: the tight glow) as tBloom and `wide` (an eighth, blurred again) as tBloom2.
  */
-export function createBloom(gbuffer, { spread = 1.2, wideSpread = 2.0 } = {}) {
+export function createBloom(gbuffer, { spread = 1.3, wideSpread = 3.0 } = {}) {
   const opts = { type: THREE.HalfFloatType, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, depthBuffer: false };
   const a = new THREE.WebGLRenderTarget(1, 1, opts), b = new THREE.WebGLRenderTarget(1, 1, opts);
   const c = new THREE.WebGLRenderTarget(1, 1, opts), d = new THREE.WebGLRenderTarget(1, 1, opts);
