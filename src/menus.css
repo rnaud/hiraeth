@@ -229,7 +229,8 @@
 .fullmenu .updates[data-state="current"] .up-title::before { content: '✓ '; color: #277e86; }
 .fullmenu .updates .up-bar { position: relative; height: 4px; margin-top: 8px; border-radius: 2px; background: rgba(43, 33, 31, 0.14); overflow: hidden; }
 .fullmenu .updates .up-bar i { position: absolute; inset: 0 auto 0 0; background: #c8483a; border-radius: 2px; transition: width 0.3s; }
-.fullmenu .updates .up-notes { margin: 8px 0 0; padding: 0 0 0 1.1em; font-size: 12px; line-height: 1.45; }
+.fullmenu .updates .up-new { margin-top: 10px; font-size: 11px; letter-spacing: 0.08em; opacity: 0.7; }
+.fullmenu .updates .up-notes { margin: 4px 0 0; padding: 0 0 0 1.1em; font-size: 12px; line-height: 1.45; }
 .fullmenu .updates .up-notes li { margin: 0 0 2px; }
 .fullmenu .updates .up-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
 .fullmenu .updates .up-actions button {
@@ -237,7 +238,7 @@
   border-radius: 4px; box-shadow: none; letter-spacing: 0.06em;
 }
 .fullmenu .updates .up-actions button.primary { background: #2b211f; color: #fff6dc; border-color: #2b211f; }
-.fullmenu .updates .up-actions button.quiet { border-color: transparent; background: none; opacity: 0.7; }
+.fullmenu .updates .up-actions button.quiet { margin-left: auto; padding: 4px 8px; font-size: 11px; border-color: transparent; background: none; opacity: 0.7; }
 .fullmenu .updates .up-actions button:hover, .fullmenu .updates .up-actions button:focus { background: #f2c54b; color: #2b211f; border-color: #2b211f; opacity: 1; }
 .fullmenu .updates .up-log {
   margin: 8px 0 0; max-height: 30vh; overflow: auto; padding: 6px 8px; font-size: 10px; line-height: 1.4;

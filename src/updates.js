@@ -58,7 +58,7 @@ const vb = (version, build) => [version && `v${version}`, build && `build ${buil
  * @param o.armed the player asked for "Download and restart": restart once it is ready
  * @param o.restarting the restart was asked for
  * @param o.failed a button's call failed (its message)
- * @returns {{ state, running, title, detail, notes, more, progress, progressText, actions, busy, legacy }}
+ * @returns {{ state, running, title, detail, notes, notesFor, more, progress, progressText, actions, busy, legacy }}
  *   actions: [{ a: 'check' | 'download' | 'restart' | 'apk', label, primary }]
  */
 export function updateView(info, { version = '', now = Date.now(), armed = false, restarting = false, failed = '', maxNotes = 4 } = {}) {
@@ -69,8 +69,13 @@ export function updateView(info, { version = '', now = Date.now(), armed = false
   const latest = vb(info.latestVersion, info.latest);
   const size = formatBytes(info.size || info.total);
   const notes = Array.isArray(info.notes) ? info.notes.map(String).filter(Boolean) : [];
-  const v = { state, running, title: '', detail: '', notes: [], more: 0, progress: null, progressText: '', actions: [], busy: false, legacy };
-  const showNotes = () => { v.notes = notes.slice(0, maxNotes); v.more = Math.max(0, notes.length - maxNotes); };
+  const v = { state, running, title: '', detail: '', notes: [], notesFor: '', more: 0, progress: null, progressText: '', actions: [], busy: false, legacy };
+  const showNotes = () => {
+    v.notes = notes.slice(0, maxNotes);
+    v.more = Math.max(0, notes.length - maxNotes);
+    const nv = state === 'ready' ? info.readyVersion || info.latestVersion : info.latestVersion;
+    v.notesFor = nv ? `v${nv}` : 'the update';
+  };
   const check = (label = 'Check for updates') => ({ a: 'check', label });
   const checked = info.checkedAt ? `Checked ${formatAgo(info.checkedAt, now)}.` : '';
 

@@ -1688,7 +1688,7 @@ Pocket. Their built-in controls work through the Gamepad API.
   GitHub release for the newest version in `src/changelog.js` (`v0.34` and so
   on, via `scripts/release-info.mjs`). Pushes within one version replace that
   release's APK; adding a changelog entry starts a new release. Next to the APK the release gets `latest.json` (APK URL, versionCode,
-  native level) and `web.zip` + `web.json` (the game itself: version, build = run
+  native level) and `web-<build>.zip` + `web.json` (the game itself: version, build = run
   number, sha256, URL, `minNative`), all from `scripts/release-info.mjs`. Download
   `moebius-v<version>.apk` from the repository's Releases page and open it on
   the device to install. Allow installing from your browser or file manager
@@ -1799,6 +1799,68 @@ Pocket. Their built-in controls work through the Gamepad API.
   and the sound. On a handheld the sound starts with the first controller input.
 - **Testing a debug build:** `adb shell am start -n com.rnaud.moebius/.MainActivity
   --es webManifest <url>`. Debug builds otherwise skip over-the-air updates.
+
+### Updates that arrive, and the update section in the settings (NATIVE_API 4)
+Why updates used to arrive at random, and what changed:
+- **Checked only on a cold start.** The app looked for `web.json` in `onCreate` only; a handheld
+  that sleeps resumes the same activity for days. Now `WebBundles.onResume` checks on the launch
+  and on every return to the front, at most every 15 min (1 min after a failure), and a failed
+  automatic check retries after 30 s, 2 min and 10 min while the app stays in front
+  (`UpdateRules`: `dueOnResume`, `retryDelay`).
+- **One launch behind.** A download found at launch N waited for launch N+1. Now a ready update
+  also starts the next time the title screen opens (`applyReadyUpdate` in `src/boot.js`: nothing
+  is running there yet; once per build per session, so it can't loop), or at once with
+  *Restart now*.
+- **A slow world could undo an update.** The boot watchdog ran on every page (each world is a
+  page) and dropped a build, for good, when one world took over 30 s to load. Now a build is
+  watched only until it has booted once (`good`).
+- **Half-published releases.** `cancel-in-progress` cancelled runs while they published: run 90
+  created v0.52 (marked latest) and was cancelled a second later, before `web.json` went up; and
+  `--clobber` replaced `web.zip` before `web.json`, so a download in between failed its sha256.
+  Now runs are never cancelled, a new release is created with every file in one call (gh keeps it
+  a draft until they are up), each zip has its build in its name (`web-<build>.zip`, so a
+  `web.json` always points at its own zip) and only the newest two zips stay
+  (`release-info.mjs web-zips`).
+- **Smaller things:** the manifests are fetched past every cache (`?t=…`, `no-cache`, no
+  `HttpURLConnection` cache; GitHub's redirects are `no-cache` and replaced assets get new CDN
+  URLs, so this is a guard, not the cause); a broken-off download resumes with a `Range` request
+  and is downloaded once more from scratch on a sha256 mismatch; offline (no DNS, no route,
+  timeouts) and errors (HTTP 404/503, a damaged zip) are told apart; one check or download runs
+  at a time for the whole process (a `recreate()` after the page's process died used to start a
+  second one into the same files); when the APK dialog was offered the settings showed nothing.
+
+The update section (`src/update-panel.js`, its words in `src/updates.js`, the app side in
+`AppShellPlugin`: `info`, `check`, `download`, `restart`, `openApk`):
+- At the top of the settings, on the title screen and in the Start menu, in the app only (a
+  browser always loads the newest game). It shows the version, build and app build running, and
+  the state: *You have the newest game* (checked when), *v0.56 · build 110 is available (4.6 MB)*
+  with its first changelog lines (`web.json`'s `notes`, `size`), *Downloading…* with a progress
+  bar, *downloaded: Restart now*, *You're offline*, *didn't come through* (with the reason), or
+  *needs a new version of the app* with *Get the new app* (opens the release page).
+- *Check for updates* checks now; a check from the settings waits for *Download and restart*,
+  automatic ones download by themselves. *Download and restart* saves the position and time
+  played (`onBeforeRestart`), and restarts at the title in the new build. Saves live in the
+  page's storage at `https://localhost`, which every build shares; nothing in the update path
+  touches it (`tests/android-ota.test.js`).
+- *Details* shows the app's update log (the last 40 steps, also in logcat as `MoebiusOTA`).
+- Apps from before NATIVE_API 4 only get the old line and *Restart now*; new web builds need
+  NATIVE_API 4, so those apps are offered the new APK first.
+- Tests: `tests/updates.test.js` (the states, versions, the title-screen switch),
+  `tests/android-ota.test.js`, and the Java rules in `android/app/src/test/.../UpdateRulesTest.java`
+  (`cd android && ./gradlew testDebugUnitTest`, JDK 21).
+
+**On the device** (after installing the first NATIVE_API 4 APK over the old one):
+1. Settings → the section says *You have the newest game*; *Details* lists `checking: launch`.
+2. Push a change; once the release is up, leave the app with Home and come back after 15 min (or
+   press *Check for updates*): it finds the new build; *Download and restart* shows the progress
+   and lands on the title in the new build, with every save there and Continue where you were.
+3. Let an update download in the background while playing, then *Quit to title*: the title
+   reloads once into the new build.
+4. Airplane mode → *Check for updates*: *You're offline*. Back online, *Check again* works.
+5. Turn Wi-Fi off halfway through a download, then on: *Try the download again* goes on from
+   where it stopped (`Details`).
+6. Load the heaviest world after an update: the build stays (no "didn't start" toast).
+7. An old app (NATIVE_API 3) offered the new APK at launch: install it over; saves stay.
 
 ### Costumes, the close camera and subtitles (v0.37)
 - **Costumes** (`src/costumes.js`, keyed by level id): each world has one or more tribes

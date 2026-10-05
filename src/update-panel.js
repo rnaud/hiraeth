@@ -135,13 +135,13 @@ export class UpdatePanel {
       ${v.progress !== null ? `<div class="up-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(v.progress * 100)}"><i style="width:${(v.progress * 100).toFixed(1)}%"></i></div>
       <p class="up-pct">${esc(v.progressText)}</p>` : ''}
       ${v.detail ? `<p class="up-detail">${esc(v.detail)}</p>` : ''}
-      ${v.notes.length ? `<ul class="up-notes">${v.notes.map((n) => `<li>${esc(n)}</li>`).join('')}</ul>
-      ${v.more ? `<p class="up-more">and ${v.more} more in What's new, after the update</p>` : ''}` : ''}
       <div class="up-actions">
         ${v.actions.map((b) => `<button type="button" data-u="${b.a}"${b.primary ? ' class="primary"' : ''}>${esc(b.label)}</button>`).join('')}
         ${v.legacy ? '' : `<button type="button" data-u="log" class="quiet">${this.showLog ? 'Hide details' : 'Details'}</button>`}
       </div>
-      ${this.showLog ? `<pre class="up-log">${esc(log || 'Nothing logged yet.')}</pre>` : ''}`;
+      ${this.showLog ? `<pre class="up-log">${esc(log || 'Nothing logged yet.')}</pre>` : ''}
+      ${v.notes.length ? `<p class="up-new">New in ${esc(v.notesFor)}:</p><ul class="up-notes">${v.notes.map((n) => `<li>${esc(n)}</li>`).join('')}</ul>
+      ${v.more ? `<p class="up-more">and ${v.more} more in What's new, after the update</p>` : ''}` : ''}`;
     // keep the controller's place: the same button, or the section's first one
     if (focused) {
       const again = el.querySelector(`[data-u="${focused}"]`) ?? el.querySelector('.up-actions button');
