@@ -257,3 +257,20 @@ export const FACE_FLAT_GLSL = /* glsl */ `
     return abs(b.x) < 0.16 && b.y > uOutfit.z ? smoothstep(uFace.w - 0.03, uFace.w - 0.005, b.y) : 0.0;
   }
 `;
+
+/** How far a face's normals round off toward its head's egg (0: as modelled, 1: the egg's). */
+export const FACE_ROUND = 0.72;
+/**
+ * GLSL (vertex): a person's face lit as one rounded volume (MODE_OUTFIT): the head's normals blend
+ * toward an egg round its middle (0.08 x 0.16 x 0.1 m), so the low-poly face's shade is one clean
+ * shape (the nose, the sockets and the cheeks still turn it); the neck below the jaw keeps its own.
+ */
+export const FACE_ROUND_GLSL = /* glsl */ `
+  vec3 faceRound(vec3 p, vec3 n) {
+    if (abs(p.x) > 0.16 || p.y < uOutfit.z) return n;
+    float k = ${FACE_ROUND.toFixed(3)} * smoothstep(uFace.w - 0.025, uFace.w + 0.01, p.y);
+    // (a tall egg round the face's middle, not a ball: the mouth and the brow face forward, not down and up)
+    vec3 d = (p - vec3(0.0, uFace.x - 0.035, -0.005)) / vec3(0.0064, 0.0256, 0.01);
+    return normalize(mix(n, normalize(d), k));
+  }
+`;

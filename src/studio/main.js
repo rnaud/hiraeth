@@ -516,12 +516,15 @@ let focus = null;   // (the contact sheet: the one person drawn)
 /**
  * A contact sheet of everyone on stage: each person alone (the others hidden), their face (view
  * 'face' / 'close', or 'bust') from the orbit's angle, in a grid of `cols`, cell w x h CSS px.
+ * zooms: [k, ...] instead draws the first person once per zoom (k times as far: a face from up close
+ * to across the street, to see what it keeps), each cell giving the face's height on screen.
  * Returns a PNG data URL. (Share → Faces sheet; window.studio.sheet())
  */
-function sheet({ cols = 4, w = 340, h = 400, view = state.view === 'close' || state.view === 'bust' ? state.view : 'face' } = {}) {
+function sheet({ cols = 4, w = 340, h = 400, view = state.view === 'close' || state.view === 'bust' ? state.view : 'face', zooms = null } = {}) {
   const src = renderer.domElement, dpr = renderer.getPixelRatio();
   const out = document.createElement('canvas');
-  const rows = Math.ceil(people.length / cols);
+  const cells = zooms ? zooms.map((z) => ({ p: people[0], z })) : people.map((p) => ({ p, z: 1 }));
+  const rows = Math.ceil(cells.length / cols);
   out.width = Math.round(cols * w * dpr); out.height = Math.round(rows * h * dpr);
   const g = out.getContext('2d');
   g.fillStyle = '#f2ecdf'; g.fillRect(0, 0, out.width, out.height);
@@ -530,7 +533,7 @@ function sheet({ cols = 4, w = 340, h = 400, view = state.view === 'close' || st
   const shown = people.flatMap((q) => parts(q).map((o) => [o, o.visible]));
   const V = VIEWS[view] ?? VIEWS.face, s0 = Math.min(src.width / src.height, w / h);
   try {
-    people.forEach((p, i) => {
+    cells.forEach(({ p, z }, i) => {
       for (const q of people) for (const o of parts(q)) o.visible = q === p;
       focus = p;
       camera.aspect = src.width / src.height;
@@ -540,19 +543,23 @@ function sheet({ cols = 4, w = 340, h = 400, view = state.view === 'close' || st
         const head = p.h.b.Head.getWorldPosition(new THREE.Vector3()), sc = p.root.scale.y;
         head.y += (view === 'bust' ? -0.13 : view === 'close' ? 0.045 : 0) * sc;
         // (the cell is cut from the middle of the picture, its full height: the face view's framing)
-        const dist = V.dist * sc * orbit.zoom;
+        const dist = V.dist * sc * orbit.zoom * z;
         camera.position.set(head.x + Math.sin(orbit.yaw) * Math.cos(orbit.pitch) * dist, head.y + Math.sin(orbit.pitch) * dist, head.z + Math.cos(orbit.yaw) * Math.cos(orbit.pitch) * dist);
         camera.lookAt(head);
         camera.updateMatrixWorld();
         animate(p, 0, simT);
       }
       renderFrame();
-      const ch = src.height, cw = Math.min(src.width, ch * s0);
-      g.drawImage(src, (src.width - cw) / 2, 0, cw, ch, (i % cols) * w * dpr, Math.floor(i / cols) * h * dpr, w * dpr, h * dpr);
+      // the cell: the middle of the picture, its full height (a ladder of zooms: at 1:1, round the head)
+      const ch = zooms ? Math.min(src.height, h * dpr) : src.height, cw = zooms ? Math.min(src.width, w * dpr) : Math.min(src.width, ch * s0);
+      g.drawImage(src, (src.width - cw) / 2, (src.height - ch) / 2, cw, ch, (i % cols) * w * dpr, Math.floor(i / cols) * h * dpr, w * dpr, h * dpr);
       g.fillStyle = 'rgba(242,236,223,0.85)';
       g.fillRect((i % cols) * w * dpr, (Math.floor(i / cols) + 1) * h * dpr - 22 * dpr, w * dpr, 22 * dpr);
       g.fillStyle = '#2b211f'; g.font = `${12 * dpr}px sans-serif`;
-      g.fillText(p.world ? `${p.name} · ${TITLES[p.world] ?? p.world}` : p.name, (i % cols) * w * dpr + 8 * dpr, (Math.floor(i / cols) + 1) * h * dpr - 7 * dpr);
+      // (the face, 0.2 m, on screen: CSS px of the picture, as face-ink.js measures it)
+      const facePx = (0.2 * p.root.scale.y * src.height / dpr) / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * camera.position.distanceTo(p.h.b.Head.getWorldPosition(_w)));
+      const name = p.world ? `${p.name} · ${TITLES[p.world] ?? p.world}` : p.name;
+      g.fillText(zooms ? `${name} · face ${Math.round(facePx)} px` : name, (i % cols) * w * dpr + 8 * dpr, (Math.floor(i / cols) + 1) * h * dpr - 7 * dpr);
     });
   } finally {
     focus = null;
@@ -867,5 +874,5 @@ resize();
 applyLight();
 await rebuild();
 await roomsReady;
-window.studio = { step, sheet, state: () => state, people: () => people, scene, camera, renderer, post, rebuild, applyLook, applyBody, applyFace, applyLight, updatePanel, set: (s) => { state = cleanState({ ...state, ...s }); saveURL(); updatePanel(); }, NEUTRAL_BODY, cleanMorph, orbit };
+window.studio = { step, sheet, gbuffer, state: () => state, people: () => people, scene, camera, renderer, post, rebuild, applyLook, applyBody, applyFace, applyLight, updatePanel, set: (s) => { state = cleanState({ ...state, ...s }); saveURL(); updatePanel(); }, NEUTRAL_BODY, cleanMorph, orbit };
 requestAnimationFrame((t) => { last = t; frame(t); });
