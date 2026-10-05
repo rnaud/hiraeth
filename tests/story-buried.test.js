@@ -13,9 +13,9 @@ const { createStory } = await import('../src/story/index.js');
 const { game } = await import('../src/game-state.js');
 const { DialogueRunner } = await import('../src/story/dialogue.js');
 const { PEOPLE, THINGS, AMBER } = await import('../src/story/buried-data.js');
-const { TURN_TIME, CLEAR_TIME } = await import('../src/story/buried.js');
+const { TURN_TIME, CLEAR_TIME, JIB_PHI0, JIB_STEP, JIB_IN } = await import('../src/story/buried.js');
 const { clearInteractables, bestInteractable } = await import('../src/interact.js');
-const { allTargets, clearTargets } = await import('../src/targets.js');
+const { allTargets, clearTargets, targetsInCone } = await import('../src/targets.js');
 const { CONTENT } = await import('../src/levels/content.js');
 
 game.reset();
@@ -155,9 +155,59 @@ test('the main quest: Tooth Day, the Wick lit, the wheel turns one tooth, Wen co
 test('side quests: Dun’s key off the floating derrick, the three gauges, the warm window', () => {
   // the key
   talk(PEOPLE.dun, ['Up where?', 'I’ll fetch it.']);
+  assert.equal(quests.stage('buried.key'), 'swing');
+  // the hook hangs out over the drop: no reaching it, even hovering beside it
+  const C = B.crane, plat = C.root.y;
+  const out = quests.where({ at: 'key' });
+  assert.ok(Math.hypot(out.x - B.tower.x, out.z - B.tower.z) > 12, 'the hook hangs out past the platform’s rim');
+  at(out.clone().add(V(0.5, -1, 0)));
+  assert.notEqual(bestInteractable(player)?.entry.id, 'key', 'the key is out of reach while the jib is out');
+  // the jib: a shove on the rusted collar does nothing; a splash frees it
+  const jib = target('jib');
+  const phi = () => JIB_PHI0 - (game.flag('buried.jib.notch') ?? 0) * JIB_STEP;
+  const round = (k = 1) => V(Math.sin(phi()) * k, 0, -Math.cos(phi()) * k);   // the way the pawl lets it go
+  at(V(C.root.x - 2, plat, C.root.z + 0.5));
+  stand(player.pos, 'the derrick’s platform by the crane', 0.3);
+  assert.ok(jib.enabled());
+  jib.onHit('push', null, round());
+  assert.equal(game.flag('buried.jib.notch'), undefined, 'rusted solid');
+  assert.ok(toasts.at(-1).includes('rusted solid'));
+  jib.onHit('shoot');
+  assert.equal(game.flag('buried.jib.oiled'), true);
+  // end-on it shudders, the wrong way the pawl holds
+  jib.onHit('push', null, V(Math.cos(phi()), 0, Math.sin(phi())));
+  assert.ok(toasts.at(-1).includes('side-on'));
+  jib.onHit('push', null, round(-1));
+  assert.ok(toasts.at(-1).includes('other way'));
+  assert.equal(game.flag('buried.jib.notch'), undefined);
+  // the right way: a real push from the platform reaches the jib (not hidden behind the cabin), and it clicks round
+  for (let i = 0; i < JIB_IN; i++) {
+    step(60, 1 / 30);   // (it swings round to the notch)
+    const j = jib.position().clone(), side = round();
+    let hit = null;
+    for (const back of [2.5, 2, 3, 1.5]) for (const lean of [0, 1.5, -1.5]) {
+      if (hit) break;
+      const p = j.clone().addScaledVector(side, -back).add(V(Math.cos(phi()) * lean, 0, Math.sin(phi()) * lean));
+      const g = physics.groundAt(p.x, plat + 2, p.z, 4);
+      if (!Number.isFinite(g) || Math.abs(g - plat) > 0.3 || Math.hypot(p.x - B.tower.x, p.z - B.tower.z) > 7.6) continue;
+      const origin = V(p.x, g + 1.15, p.z), aim = j.clone().sub(origin).normalize();
+      aim.y *= 0.25; aim.normalize();   // (a quick push is flattened toward the ground)
+      const h = targetsInCone(origin, aim, 6, 0.62, physics).find((x) => x.target === jib);
+      if (h && Math.cos(phi()) * h.dir.z - Math.sin(phi()) * h.dir.x < -0.3) hit = h;
+    }
+    assert.ok(hit, `notch ${i}: you can stand on the platform and shove the jib round`);
+    jib.onHit('push', hit.point, hit.dir);
+    assert.equal(game.flag('buried.jib.notch'), i + 1);
+  }
+  assert.equal(game.flag('buried.jib.in'), true);
+  assert.ok(!jib.enabled(), 'once in, the jib is done');
+  step(120, 1 / 30);
   assert.equal(quests.stage('buried.key'), 'find');
   const hook = quests.where(quests.current('buried.key'));
-  at(hook.clone().add(V(1, -1.5, 0)));
+  assert.ok(Math.hypot(hook.x - B.tower.x, hook.z - B.tower.z) < 7, 'the hook hangs over the platform now');
+  assert.ok(hook.y - plat > 0.8 && hook.y - plat < 2.5, `at a reachable height (${(hook.y - plat).toFixed(2)} m)`);
+  at(V(hook.x + 1, plat, hook.z));
+  stand(player.pos, 'the platform under the hook', 0.3);
   let e = bestInteractable(player);
   assert.equal(e?.entry.id, 'key');
   e.entry.use(player);
@@ -208,5 +258,20 @@ test('a later visit: the wheel stands in its hollow, bare of sand, and is still 
   at(W.drop.clone().addScaledVector(W.face, 30));
   for (let i = 0; i < 60; i++) rt2.update(0.1, 100 + i * 0.1, { camera });
   assert.ok(a - W.spin.rotation.z > 0.1, 'it keeps turning');
+  clearInteractables(); clearTargets();
+});
+
+test('an old save waiting at the hook (from before the crane swung) is sent to swing the jib first', () => {
+  clearInteractables(); clearTargets();
+  game.reset();
+  game.set('quest.buried.key', 'find');
+  const scene3 = new THREE.Scene();
+  const level3 = createBuried(scene3);
+  const physics3 = new Physics(scene3, level3.ground);
+  const rt3 = createStory({ levelId: 'buried', scene: scene3, physics: physics3, level: level3, player, npcs: spawnNPCs(scene3, physics3, CONTENT.buried.npcs), crowd: null, sound,
+    journal: { sections: [], el: { addEventListener() {} } }, story: { complete() {} }, capture: null, lib: null, humans: null, toast: () => {}, tool: null });
+  assert.equal(rt3.quests.stage('buried.key'), 'swing', 'the key still hangs out over the drop');
+  at(level3.buried.crane.root.clone());
+  assert.ok(target('jib')?.enabled(), 'and the jib is there to swing');
   clearInteractables(); clearTargets();
 });

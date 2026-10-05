@@ -63,6 +63,14 @@ export const TRUNK = ['#c98a76', '#d9a5a0', '#b98aa8'];
 // the tallest tree in the garden (Talo's lookout is on its crown) and the pond
 export const TALL_TREE = { x: -118, z: 150, h: 92 };
 export const POND = { x: -120, z: -160, r: 95 };
+// Esk's tea terraces on the white builders' steps, down the slope into the dry hollow south-east of
+// the landing, and the builders' cistern on the rise above them (src/story/terraces.js builds them:
+// the quest that fails). x0..x1 downhill to uphill (four steps of `step` m), z0..z1 across; the
+// lane is the middle the flood takes; the hollow is where it ends up.
+export const TERRACES = { x0: 214, x1: 262, z0: -122, z1: -78, steps: 4, lane: { z0: -108, z1: -92 },
+  cistern: { x0: 268, x1: 277, z0: -114, z1: -86 }, hollow: { x: 186, z: -98, r: 30 } };
+const inTerraces = (x, z, r = 0) => (x > TERRACES.x0 - 4 - r && x < TERRACES.cistern.x1 + 6 + r && z > TERRACES.z0 - 8 - r && z < TERRACES.z1 + 8 + r)
+  || Math.hypot(x - TERRACES.hollow.x, z - TERRACES.hollow.z) < TERRACES.hollow.r + r;   // (the dry hollow is bare: where the water ends up)
 
 // ---------------------------------------------------------------------------
 // The garden growing over Odile and Talo's ship: vines draped over the hull,
@@ -566,7 +574,7 @@ export function createEdena(scene) {
     edena: { crashed, tall, pond: { ...POND, y: pondY } },
     // no flora in the pond, round the crashed ship or at the foot of the tallest tree (src/flora.js)
     floraAvoid: (x, z, r) => Math.hypot(x - POND.x, z - POND.z) < POND.r + 6 + r || crashed.centre.distanceTo(new THREE.Vector3(x, crashed.centre.y, z)) < 26 + r
-      || Math.hypot(x - tall.base.x, z - tall.base.z) < 14 + r,
+      || Math.hypot(x - tall.base.x, z - tall.base.z) < 14 + r || inTerraces(x, z, r),
     ground: terrain,
     spawn: new THREE.Vector3(0, terrain.heightAt(0, 0), 0),
     spawnHeading: Math.PI,

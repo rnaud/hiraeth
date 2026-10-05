@@ -54,6 +54,7 @@
 //                                  inside the ship before the player first steps outside
 
 import { slotStorage } from './save-slots.js';
+import { migrateFlags, MIGRATED } from './save-migrate.js';
 
 const KEY = 'moebius.game.v1';   // per save slot (src/save-slots.js)
 
@@ -64,6 +65,7 @@ class GameState {
     try { this.data = JSON.parse(storage?.getItem(KEY)) ?? {}; } catch { this.data = {}; }
     this.data.flags ??= {};
     this.data.keepsakes ??= [];
+    if (migrateFlags(this.data.flags)) this.save();   // older saves (src/save-migrate.js)
   }
   save() { try { this.storage?.setItem(KEY, JSON.stringify(this.data)); } catch { /* private mode */ } }
   flag(name) { return this.data.flags[name]; }
@@ -91,7 +93,7 @@ class GameState {
     return true;
   }
   /** Forget everything (new game). */
-  reset() { this.data = { flags: {}, keepsakes: [] }; this.save(); this.emit('reset'); }
+  reset() { this.data = { flags: { 'save.migrated': MIGRATED() }, keepsakes: [] }; this.save(); this.emit('reset'); }
 }
 
 export const game = new GameState();

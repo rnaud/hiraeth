@@ -128,7 +128,7 @@ export const CONTENT = {
         } } },
       { at: [10, -200], palette: pal('#f3ead8', { cloth: '#7a4a35' }), lines: ['~neutral~ The stones hum when a storm comes.'],
         id: 'tamsin', name: 'Tamsin', title: 'listener to stones', color: '#f3ead8', talk: { nodes: {
-          hello: { say: ['~curious~ The stones hum when a storm comes. Three nights ago they hummed with no storm at all, and a light went over, singing the same note.'], choices: [{ text: '~curious~ The same note?', goto: 'note' }, { text: '~neutral~ Bye, Tamsin.', end: true }] },
+          hello: { say: ['~curious~ The stones hum when a storm comes. The night before your ball came down they hummed with no storm at all, and a light went over, singing the same note.'], choices: [{ text: '~curious~ The same note?', goto: 'note' }, { text: '~neutral~ Bye, Tamsin.', end: true }] },
           note: { say: ['~scared~ Low, then rising. Like a question. The stones answered it. I didn’t like the answer, and I don’t speak stone.'], choices: [{ text: '~neutral~ Bye.', end: true }] },
         } } },
       { at: [-18, 18], radius: 2, palette: pal('#697a98'), lines: ['~neutral~ A sleeping observatory stands east of camp.'],
@@ -223,7 +223,7 @@ export const ERRANDS = [
   { id: 'gear', item: 'a brass gear', from: ['garage', 1], to: ['edena', 0],
     ask: '~playful~ A gardener in Viridel needs a gear for her water clock. Don’t lean on it.',
     wait: '~neutral~ Viridel. The garden with the white pyramids.',
-    thanks: '~happy~ It fits. The garden can keep time again.' },
+    thanks: '~happy~ A gear for my clock! Fit it for me? Just there, on the axle.' },
   { id: 'seed', item: 'a glass seed', from: ['edena', 3], to: ['perdide', 0],
     ask: '~neutral~ Carry this seed to the egg-warden in the swamp. He knows where it grows.',
     wait: '~whisper~ Lorn. Follow the glow.',

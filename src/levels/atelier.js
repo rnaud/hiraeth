@@ -4,9 +4,10 @@ import { makeMaterial, MODE_TERRAIN, MODE_STRATA } from '../materials.js';
 import { Terrain } from '../world.js';
 
 // ---------------------------------------------------------------------------
-// The Atelier: the hidden seventh place, unlocked once every world's story
-// and relics are found. A blank paper world; sketches of every landmark you
-// visited stand around a giant pen nib, and the artist sits at his table.
+// The Atelier: a hidden place off the route (reached only from the worlds
+// list, ?level=atelier): nothing on the journey leads here and the story never
+// mentions it. A blank paper world; sketches of every landmark you visited
+// stand around a giant pen nib, and the artist sits at his table.
 // ---------------------------------------------------------------------------
 
 const PAPER = '#f4ecd8';

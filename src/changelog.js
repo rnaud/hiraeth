@@ -3,6 +3,18 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.51', date: '2026-10-05', items: [
+    'Viridel: help Esk water her tea terraces. You’ll do your best, and it won’t be enough. What happens stays happened.',
+    'Quests can now fail: the sketchbook files them under “Failed”, and your father’s charge remembers what you could not mend.',
+    'Teo’s drum is pinned under the ribcage by a knuckle of bone: shove it from the side and the drum rolls out like a wheel.',
+    'The sleeping mask’s eyes are drifted shut with sand: wash both clear before the wind fills them again, and it looks at you.',
+    'City-Shaft: Pip’s ration tin hangs in an old goods hoist over the void. Shoot out its rusted pin and push the weight round to swing it in.',
+    'Vael II: Ondine answers Ysolde’s letter with the tower’s signal lamp. Light it, turn it to the carved bell, and watch the cliff answer. The bell’s clapper lies under roof tiles that fell up with it: shove them off.',
+    'Buried Machine: Dun’s key hangs from a crane swung out over the drop. Free its rusted collar, then push the jib round click by click.',
+    'Lorn II: Pim’s door still sticks with moss: wake the moss lamp over it, then push it shut. And Fen asks you to bring his skiff home: light his berth lamp and nudge it in.',
+    'Viridel: the brass gear from the Hangar goes on Mira’s water clock. Fit it, then fill the leaking bowl fast enough to ring the bell.',
+    'Story fixes: every world now remembers the singing light the same way, the night your ship was struck, climbing away. Ilen’s message is thirty years old. Odile and Talo’s journey is told one way everywhere. People who share a name are no longer mixed up in the credits.',
+  ] },
   { v: '0.50', date: '2026-10-05', items: [
     'Home is bigger: walk into your parents’ round house, dark and still with its memories, and into your own small house across the yard, warm and lit.',
     'Your daughter Lou lives in the small house with Aunt Tove. She runs to meet you every time you come home and wants to know what you brought, and her drawings of every world you wrote to her from are on the wall.',

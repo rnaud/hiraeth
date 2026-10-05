@@ -10,6 +10,7 @@ import { setMagic } from './magic-water.js';
 import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, STAGE_MIGRATION, VILLAGERS, MURMURS, VILLAGER_TALK } from './desert-data.js';
 import { items } from '../items.js';
 import { setupHoverbike } from './desert-bike.js';
+import { setupDrum, setupMask } from './desert-errands.js';
 
 // The desert's story, alive: who stands where, what reacts to you, and the
 // chain of the main quest (desert-data.js has the words).
@@ -44,8 +45,9 @@ import { setupHoverbike } from './desert-bike.js';
 // desert.channel.open (the rib is pushed clear: the tree drinks),
 // desert.jar.filled, desert.ship.fed, desert.pool.tinted (the first wade
 // added a colour to the tool), desert.teo.drumming, desert.ilo.following,
-// desert.ilo.atSkull, desert.oum.following, desert.oum.home, and a few
-// "read" flags for the carvings. Items: jar, water, drum, cord.
+// desert.ilo.atSkull, desert.oum.following, desert.oum.home, desert.drum.freed and
+// desert.mask.eyes (src/story/desert-errands.js), and a few "read" flags for the
+// carvings. Items: jar, water, drum, cord.
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const _v = V(0, 0, 0), _w = V(0, 0, 0);
@@ -209,30 +211,10 @@ export function setupDesert(ctx) {
   thing(THINGS.brow, browAt, { range: 4, prompt: 'look up at the skull', look: Q.giant.brow });
   thing(THINGS.mural, cave.mural.clone().setY(cave.origin.y), { range: 4, prompt: 'look at the mural', look: cave.local(-17.5, 3.2, 20.5) });
 
-  // ---------------------------------------------------------------- the drum
-  let drum = null;
-  if (!quests.isDone('desert.drum') && !quests.has('drum')) {
-    const g = new THREE.Group();
-    const red = makeMaterial({ color: '#c8483a', flat: true }), skin = makeMaterial({ color: '#f3ead8', flat: true });
-    g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.22, 16), red));
-    // the skin and its ring of shells, one mesh
-    const parts = [new THREE.CylinderGeometry(0.4, 0.4, 0.02, 16).translate(0, 0.12, 0)];
-    for (let i = 0; i < 8; i++) parts.push(new THREE.SphereGeometry(0.05, 6, 4).translate(Math.sin(i * 0.785) * 0.43, 0, Math.cos(i * 0.785) * 0.43));
-    g.add(new THREE.Mesh(mergeGeometries(parts.map((p) => p.toNonIndexed())), skin));
-    const p = V(STORY.drum.x, 0, STORY.drum.z); p.y = level.ground.heightAt(p.x, p.z) + 0.3;
-    g.position.copy(p); g.rotation.set(1.2, 0.4, 0.3);
-    g.traverse((o) => { o.userData.noCollide = true; });
-    scene.add(g);
-    drum = { g, at: p };
-    quests.locate('drum', () => p);
-    drum.off = registerInteractable({ id: 'drum', priority: PRIORITY.use, range: 2.6, prompt: 'pick up the drum', at: () => p, distance: (pl) => flat(pl.pos, p),
-      use: () => {
-        quests.give('drum');
-        toast(`Picked up ${ITEMS.drum}`);
-        if (!quests.isStarted('desert.drum')) quests.start('desert.drum', 'return'); else quests.advance('desert.drum', 'find');
-        g.removeFromParent(); drum.off(); drum = null; sound.chime();
-      } });
-  }
+  // ---------------------------------------------------------------- the drum, and the mask's eyes
+  // jammed against a rib by a knuckle of spine; drifted shut with sand (src/story/desert-errands.js)
+  const drum = setupDrum(ctx, { toolHasPush: () => toolHasPush() });
+  const mask = setupMask(ctx);
 
   // ---------------------------------------------------------------- the hoverbike
   // not yours from the start: Marrow hid it under a tarp in a hollow (src/story/desert-bike.js)
@@ -616,10 +598,12 @@ export function setupDesert(ctx) {
     if (!st.drinking) sound.setBandMode('camp', flat(pp, fire) < 9 ? 'near' : 'play');
     updateProps(t, camPos);
     hollow.update(dt, t, camPos);
+    drum.update(dt);
+    mask.update(dt);
   };
 
   return {
-    people, update, state: st, villagers, ledge: sh, gatherSpots, hollow,
+    people, update, state: st, villagers, ledge: sh, gatherSpots, hollow, drum, mask,
     /** E on a crowd person: their short conversation (by where they stand). */
     crowdTalk(p) {
       const id = p.spot?.id;

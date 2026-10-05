@@ -429,7 +429,17 @@ test('side quests: Teo’s drum, Ilo at the skull, Oum home from the dunes, the 
   talk(PEOPLE.teo, ['I’ll look']);
   assert.equal(quests.stage('desert.drum'), 'find');
   const drumAt = V(STORY.drum.x, terrain.heightAt(STORY.drum.x, STORY.drum.z), STORY.drum.z);
-  at(drumAt);
+  at(drumAt); step(1);
+  assert.equal(quests.stage('desert.drum'), 'free', 'found: jammed against a rib');
+  // (src/story/desert-errands.js: heaved by hand from the side, the knuckle rolls off and the drum rolls out)
+  const D = rt.world.drum;
+  at(D.knuckle.position.clone().addScaledVector(D.along, -1.6).setY(drumAt.y));
+  const k = bestInteractable(player);
+  assert.equal(k?.entry.id, 'knuckle');
+  k.entry.use(player);
+  assert.ok(D.freed());
+  step(90);
+  at(D.drum.position.clone().setY(drumAt.y));
   const e = bestInteractable(player);
   assert.equal(e?.entry.id, 'drum');
   e.entry.use(player);
@@ -459,6 +469,10 @@ test('side quests: Teo’s drum, Ilo at the skull, Oum home from the dunes, the 
   // the old story beacon is now a short visit
   talk(CONTENT.desert.npcs[1], ['What sleeps']);
   at(V(-20, terrain.heightAt(-20, -372), -372)); step(2);
+  assert.equal(quests.stage('desert.mask'), 'eyes', 'there: sand over its eyes');
+  // both eyes washed clear at once (src/story/desert-errands.js)
+  for (const t of allTargets().filter((x) => x.kind === 'maskEye')) t.onHit('shoot');
+  step(2);
   assert.equal(quests.isDone('desert.mask'), true);
   await new Promise((r) => setTimeout(r, 1300));
   assert.ok(storyDone, 'the main quest closed the desert’s story page');

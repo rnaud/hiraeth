@@ -569,8 +569,8 @@ export function createBuried(scene) {
   }
 
   // ======================================================== floating machine towers and chimney stacks
-  /** A derrick-like rust machine, local origin at the hull's waist; its platform top is at y = 11 * s. */
-  function derrick(add, s) {
+  /** A derrick-like rust machine, local origin at the hull's waist; its platform top is at y = 11 * s. The reachable one leaves its crane to the story (it swings). */
+  function derrick(add, s, crane = true) {
     const T = (g) => g.scale(s, s, s);
     add(M.rustGrid, T(new THREE.CylinderGeometry(4, 5, 10, 12).translate(0, 5, 0)));
     add(M.rust, T(new THREE.ConeGeometry(5, 12, 12).rotateX(Math.PI).translate(0, -6, 0)));
@@ -581,9 +581,11 @@ export function createBuried(scene) {
     add(M.ink, T(new THREE.CylinderGeometry(0.18, 0.3, 16, 5).translate(4, 19, 3)));
     add(M.ink, T(new THREE.BoxGeometry(4, 0.2, 0.2).translate(4, 24, 3)));
     add(M.ink, T(new THREE.BoxGeometry(2.6, 0.2, 0.2).translate(4, 21, 3)));
-    add(M.rustDark, T(cylBetween(new THREE.Vector3(-3, 12, 3), new THREE.Vector3(-15, 18, 6), 0.45, 0.3, 6)));   // crane arm
-    add(M.ink, T(cylBetween(new THREE.Vector3(-15, 18, 6), new THREE.Vector3(-15, 9, 6), 0.06, 0.06, 4)));
-    add(M.rustDark, T(new THREE.BoxGeometry(1.4, 1, 1.4).translate(-15, 8.6, 6)));
+    if (crane) {
+      add(M.rustDark, T(cylBetween(new THREE.Vector3(-3, 12, 3), new THREE.Vector3(-15, 18, 6), 0.45, 0.3, 6)));   // crane arm
+      add(M.ink, T(cylBetween(new THREE.Vector3(-15, 18, 6), new THREE.Vector3(-15, 9, 6), 0.06, 0.06, 4)));
+      add(M.rustDark, T(new THREE.BoxGeometry(1.4, 1, 1.4).translate(-15, 8.6, 6)));
+    }
     for (const [a, l] of [[0.3, 10], [2.2, 16], [4.1, 7]]) add(M.steelFlat, T(cylBetween(new THREE.Vector3(Math.cos(a) * 2.5, -4, Math.sin(a) * 2.5), new THREE.Vector3(Math.cos(a) * 3, -4 - l, Math.sin(a) * 3), 0.35, 0.35, 6)));
     add(M.steelFlat, T(new THREE.TorusGeometry(5.6, 0.5, 6, 20).rotateX(Math.PI / 2).translate(0, 4, 0)));
   }
@@ -593,7 +595,7 @@ export function createBuried(scene) {
     derrick((mat, g) => {
       const solid = mat === M.rustGrid || mat === M.rustDark || mat === M.rust;
       put(mat, g.translate(x, y, z), { solid });
-    }, 1);
+    }, 1, false);
   }
   // the others drift slowly, far off
   for (const [x, y, z, s, sp] of [[230, 120, -170, 1.6, 0.11], [-280, 160, -400, 2.2, -0.07], [320, 190, -640, 2.6, 0.05], [-210, 95, 170, 1.3, 0.09], [-90, 140, -700, 1.9, -0.06]]) {
@@ -949,6 +951,8 @@ export function createBuried(scene) {
       oculus: { x: OX, z: OZ, r: OR, floor: FLOOR, balcony: BALCONY, top: OTOP },
       walls: WALLS, ledge: new THREE.Vector3(LEDGE_X, LEDGE_Y, LEDGE_Z), heroDome: new THREE.Vector3(HERO_DOME[0], H(HERO_DOME[0], HERO_DOME[1]), HERO_DOME[1]),
       tower: new THREE.Vector3(TOWER[0], H(TOWER[0], TOWER[1]) + 30, TOWER[1]),
+      // the reachable derrick's crane (src/story/buried.js swings it): its post stands at `root` on the platform
+      crane: { root: new THREE.Vector3(TOWER[0] - 3, H(TOWER[0], TOWER[1]) + 30 + 11, TOWER[1] + 3), mats: { arm: M.rustDark, rust: M.rust, cable: M.ink } },
     },
     // down in the canyon and the drum, the sun comes in steeper so the floor is lit
     lightAt(p, dir) {

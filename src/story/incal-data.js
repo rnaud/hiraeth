@@ -20,7 +20,7 @@
 //
 // Flags (game-state.js): incal.rumour.light, incal.splinter.given, incal.dov.allowed,
 // incal.lit (the Lodestar burns bright again), incal.lamp.lit, incal.wren.met,
-// incal.dov.fed; clue.incal.perdide. Items: splinter, ration.
+// incal.dov.fed, incal.hoist.pin, incal.hoist.in (the goods hoist, swung in); clue.incal.perdide. Items: splinter, ration.
 
 const Q = 'incal.light';
 
@@ -43,6 +43,8 @@ export const QUESTS = [
     id: 'incal.ration', title: 'A Ration for the Guard', world: 'incal',
     outro: 'Dov ate it at his post, standing up, with his eyes shut.',
     stages: [
+      // (src/story/incal.js: the tin hangs in the old goods hoist's basket, out over the void; shoot the pin, push the weight round)
+      { id: 'hoist', text: 'Pip’s tin hangs in the old goods hoist’s basket, out over the void. Knock out the rusted pin (shoot: G, or left click while aiming), push the hoist round (push: C, middle click, or RB / R1) and take the tin', label: 'The goods hoist', bring: 'ration', at: 'hoist', to: 'dov' },
       { id: 'carry', text: 'Carry Pip’s ration tin up to his uncle Dov, the palace guard', label: 'Dov, at the palace gate', bring: 'ration', to: 'dov' },
     ],
   },
@@ -187,7 +189,7 @@ export const PEOPLE = {
         },
         glyph: {
           say: ['~solemn~ {glyph} The Three Who Look Up. Three of us, over the hill of the world, looking up.',
-            '~angry~ Somebody at the top stamps it on cab licences and calls it a seal. Let them. It was ours first; it’s on the light’s underside, where only we can see it.', '~solemn~ It’s on *the blue star-box up on the rim*, too, behind the villas. The palace calls it lost property. Down here we call it a promise: somebody is coming for it.'],
+            '~angry~ Somebody at the top stamps it on cab licences and calls it a seal. Let them. It was ours first; it’s on the light’s underside, where only we can see it.', '~solemn~ It’s on *the blue star-box up on the rim*, too, on top of the lone stone pillar. The palace calls it lost property. Down here we call it a promise: somebody is coming for it.'],
           choices: [{ text: '~curious~ What came down?', goto: 'splinter' }],
         },
         splinter: {
@@ -230,6 +232,7 @@ export const PEOPLE = {
         { if: { quest: 'incal.ration', done: true }, node: 'after' },
         { if: LOOKED, node: 'lit' },
         { if: { has: 'ration' }, node: 'waiting' },
+        { if: { quest: 'incal.ration', stage: 'hoist' }, node: 'hoist' },
         { node: 'hello' },
       ],
       nodes: {
@@ -246,10 +249,16 @@ export const PEOPLE = {
           choices: [{ text: '~happy~ I could take him something from you.', goto: 'take' }, { text: '~curious~ What’s it like, down here?', goto: 'here' }],
         },
         take: {
-          say: ['~happy~ You would? Take him this! It’s *a ration tin*; Mum makes them. Smog-cabbage and the good bread. He used to eat three.',
+          say: ['~happy~ You would? Take him today’s! It’s *a ration tin*; Mum makes them. Smog-cabbage and the good bread. He used to eat three.',
+            { if: { not: { flag: 'incal.hoist.in' } }, text: '~neutral~ It’s in *the hoist basket*, out over the edge: Mum hangs the tins out there so the rats can’t get them. Only the hoist’s pin has rusted in, and the arm won’t come back round. Uncle Dov used to *knock the pin out* and walk the weight round.' },
+            { if: { flag: 'incal.hoist.in' }, text: '~surprised~ It’s in *the hoist basket*. Mum hangs the tins out over the edge so the rats can’t get them. You swung it in? Nobody’s done that since Uncle Dov!' },
             '~playful~ Tell him it’s from Pip. Tell him I’m taller.'],
-          do: [{ give: 'ration' }, { start: 'incal.ration' }],
+          do: [{ start: 'incal.ration' }],
           choices: [{ text: '~happy~ I’ll tell him.', end: true }],
+        },
+        hoist: {
+          say: ['~curious~ Did you get it in? *The pin first*, then *push the weight round the post*. Not toward the edge: that just rocks it. That’s how Uncle Dov did it.'],
+          choices: [{ text: '~neutral~ I’ll try.', end: true }],
         },
         here: {
           say: ['~neutral~ Wet. Green. My grandmother never saw the sky. I saw it once, through a hole in the smog, for eleven seconds. I counted.'],
@@ -424,6 +433,21 @@ export const THINGS = {
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
         empty: { say: ['~solemn~ The bowl is empty. Someone has put a candle in it, and it burns straight up.'], choices: [{ text: '~neutral~ (step back)', end: true }] },
+      },
+    },
+  },
+  hoist: {
+    id: 'hoist', name: 'The goods hoist', title: 'at the edge', color: '#34405e', voice: 0.6,
+    talk: {
+      entry: [{ if: { flag: 'incal.hoist.in' }, node: 'in' }, { if: { flag: 'incal.hoist.pin' }, node: 'loose' }, { node: 'stuck' }],
+      nodes: {
+        stuck: {
+          say: ['~neutral~ An old goods hoist at the edge of the terrace: an iron post, an arm swung out over the void, and a basket hanging off its end with *a tin* in it. A *rusted pin* through the collar holds the arm where it is.',
+            '~neutral~ On the arm’s short end hangs a weight, to walk it round by. (*Shoot*: G, or left click while aiming. *Push*: C, middle click, or RB / R1.)'],
+          choices: [{ text: '~neutral~ (step back)', end: true }],
+        },
+        loose: { say: ['~neutral~ The pin is out. The arm would turn now, if something *pushed the weight round the post*. Pushed toward the edge, along the arm, it only rocks.'], choices: [{ text: '~neutral~ (step back)', end: true }] },
+        in: { say: ['~neutral~ The basket hangs over the terrace now, still swaying a little. In it, a ration tin with a name scratched on the lid: DOV.'], choices: [{ text: '~neutral~ (step back)', end: true }] },
       },
     },
   },

@@ -1,22 +1,28 @@
 // Lorn II's story as data: "The Lamps Are Kept" (docs/story-bible.md).
 //
 // In the deep wood the people keep the pools lit for travellers who never
-// come. Two did, once, forty-one years ago: they climbed out of a little
-// sky-boat that came down in a pool, walked the lit path to the root cave,
-// and said "keep a light for us". The keepers have kept one ever since, then
-// a whole path of them. The traveller is the first to come in all that time.
+// come. Two did, once, forty-one years ago: Odile and Talo, who had left
+// Viridel in their ship's little saucer to go and ask the singing light what
+// it wanted. It found them again over the wood and struck the saucer too; it
+// came down in the deep pool. They waited a season for it to come back, then
+// borrowed Fen's skiff and went on across the swamp, toward the Great Crystal
+// (a piece of the same light), saying "keep a light for us". The keepers have
+// kept one ever since, then a whole path of them. The traveller is the first
+// to come in all that time.
 //
 // Three pools went dark the night the sky rang, when a singing light passed
 // low over the wood. Relight them with the fluid (shoot them) and the third
 // is answered from across the water: the saucer half sunk in its pool
 // blinks back. Inside it are two couches, two names (Odile and Talo), a
-// drawing of a garden of white pyramids under umbrella trees (Viridel), and
-// the glyph scorched across its flank: the same light struck it. It was
-// their escape pod. Tell Hollin, the old lamp-keeper, and he asks you to
-// come back one day, so that once the lamps were lit for someone who came.
+// drawing of the garden they came from (Viridel: white pyramids under
+// umbrella trees, a green furrow across the meadow), and the glyph scorched
+// across its flank: the same light struck it. Tell Hollin, the old
+// lamp-keeper, and he asks you to come back one day, so that once the lamps
+// were lit for someone who came.
 //
-// The glyph here is "the Welcome": three lamps over a hull. They paint it
-// beside every pool.
+// The glyph here is "the Welcome": three lamps over a hull (three dots over
+// an arc that bows up, like every other world's). They paint it beside every
+// pool.
 //
 // Conversations: src/story/dialogue.js. Quests: src/story/quests.js.
 // Flags (game-state.js): perdide2.* (see src/story/perdide2.js).
@@ -43,6 +49,7 @@ export const QUESTS = [
     stages: [
       { id: 'find', text: 'Find Pim’s latch: “on the big roof”, the glass dome further down the path', label: 'Pim’s latch', bring: 'latch', at: 'latch', to: 'pim' },
       { id: 'return', text: 'Bring the latch back to Pim by the moss domes', label: 'Pim, by the moss domes', bring: 'latch', to: 'pim' },
+      { id: 'shut', text: 'Pim’s door still won’t shut: moss has crept into the frame. Moss shrinks from light, and the moss lamp over her door is asleep. Then push the door to (push: C, middle click, or RB / R1)', label: 'Pim’s door', flag: 'perdide2.pim.door', at: 'pimDoor' },
     ],
   },
   {
@@ -50,6 +57,7 @@ export const QUESTS = [
     outro: 'The skiff is Fen’s, and Fen says it is yours now, for as long as you need it.',
     stages: [
       { id: 'owner', text: 'Find the skiff’s owner: Bram thinks it’s the hermit in the far dome, out on the deep water', label: 'The far dome', talk: 'fen', at: 'fen' },
+      { id: 'home', text: 'Bring the skiff home to its berth by Fen’s landing. His lamp on the mooring post is dark, and the skiff won’t come in to a dark berth; nor will it be sailed in: step off on the landing and nudge it (push: C, middle click, or RB / R1)', label: 'Fen’s berth', flag: 'perdide2.skiff.home', at: 'fenBerth' },
     ],
   },
 ];
@@ -62,7 +70,7 @@ export const KEEPERS = [
   {
     at: [-8, 10], radius: 2, palette: P('#f2a07a', '#3e5a6a'), look: { prop: 'lamppole' },
     lines: ['~neutral~ The lit pools lead to the cave. Keep to them after dark.', '~surprised~ A traveller. A traveller!', '~playful~ The eggs are warm. Don’t ask what’s inside.'],
-    id: 'hollin', name: 'Hollin', title: 'keeper of the lamps', color: '#f2a07a', voice: 0.8,
+    id: 'hollin.perdide2', name: 'Hollin', title: 'keeper of the lamps', color: '#f2a07a', voice: 0.8,
     talk: {
       entry: [
         { if: { quest: Q, done: true }, node: 'after' },
@@ -81,7 +89,7 @@ export const KEEPERS = [
         },
         passing: { say: ['~happy~ Passing through! Ha. That’s what travellers do. That’s exactly what they do. Oh, I’ve waited a long time to hear somebody say that.'], choices: [{ text: '~curious~ Why do you light the pools?', goto: 'why' }] },
         why: {
-          say: ['~solemn~ Because someone said they would come back. Two of them, long ago, climbed out of a little sky-boat that came down in the deep pool. They walked the path to the root cave, and they said: keep a light for us.', '~solemn~ So we kept one. Then a whole path of them, in case they forgot the way. We call it keeping the Welcome.'],
+          say: ['~solemn~ Because someone said they would come back. Two of them, long ago, climbed out of a little sky-boat that came down burning in the deep pool. They stayed a season, and when they went on they said: keep a light for us.', '~solemn~ So we kept one. Then a whole path of them, in case they forgot the way. We call it keeping the Welcome.'],
           choices: [{ text: '~curious~ The Welcome?', goto: 'glyph' }, { text: '~sad~ And they never came back.', goto: 'dark' }],
         },
         glyph: {
@@ -98,7 +106,7 @@ export const KEEPERS = [
           do: { set: { 'perdide2.hollin.met': true } },
           choices: [{ text: '~neutral~ I’ll light them.', end: true }, { text: '~curious~ What happened the night the sky rang?', goto: 'rang' }],
         },
-        rang: { say: ['~playful~ *Ask Wick, down by the glass dome*. She was out with her bucket. I was asleep, which at my age is the only sensible thing to do at night.'], choices: [{ text: '~neutral~ I’ll light your pools.', end: true }] },
+        rang: { say: ['~playful~ *Ask Wick, at the second dark pool, down the path past the glass dome*. She was out with her bucket. I was asleep, which at my age is the only sensible thing to do at night.'], choices: [{ text: '~neutral~ I’ll light your pools.', end: true }] },
         again: {
           say: [{ if: { flag: 'perdide2.pools.lit', is: 1 }, text: '~surprised~ One’s lit! I saw it from here, a new colour on the path. Two more.' },
             { if: { flag: 'perdide2.pools.lit', is: 2 }, text: '~happy~ Two! Two lit. The last one is *down by the root cave*, where the path ends.' },
@@ -114,7 +122,7 @@ export const KEEPERS = [
           ],
         },
         names: {
-          say: ['~sad~ Odile and Talo. Yes. That’s them; that’s what they called each other.', '~tired~ A garden. Somewhere far, with white pyramids. Forty-one years of lamps, and they’re in a garden.', '~happy~ I should be sad. I’m not. It sounds like a good place to have got to.'],
+          say: ['~sad~ Odile and Talo. Yes. That’s them; that’s what they called each other.', '~tired~ The garden they came from. They drew it so they wouldn’t forget the way home. Forty-one years of lamps, and I never knew what home looked like to them.', '~happy~ I like to think they got there in the end. I should be sad. I’m not, quite.'],
           next: 'promise',
         },
         promise: {
@@ -136,11 +144,12 @@ export const KEEPERS = [
   {
     at: [-24, -126], radius: 2, palette: P('#3f6a6a', '#a49cc8'), shy: true,
     lines: ['~neutral~ We live in the domes. The moss keeps them cool.', '~playful~ Someone left their latch on the big roof again. Me. I did.'],
-    id: 'pim', name: 'Pim', title: 'who lives in a moss dome', color: '#3f6a6a', voice: 1.25,
+    id: 'pim.perdide2', name: 'Pim', title: 'who lives in a moss dome', color: '#3f6a6a', voice: 1.25,
     talk: {
       entry: [
         { if: { quest: 'perdide2.latch', done: true }, node: 'after' },
         { if: { has: 'latch' }, node: 'back' },
+        { if: { quest: 'perdide2.latch', stage: 'shut' }, node: 'stuck' },
         { if: { quest: 'perdide2.latch', active: true }, node: 'waiting' },
         { node: 'hello' },
       ],
@@ -161,11 +170,20 @@ export const KEEPERS = [
         waiting: { say: ['~neutral~ *On top of the glass dome*, down the path. Mind the ribs; they’re slippery.'], choices: [{ text: '~neutral~ Going.', end: true }] },
         strange: { say: ['~playful~ Strange? You. Mostly you. And the night the sky rang, the pools went out. Wick saw it. Wick sees everything; she never sleeps.'], choices: [{ text: '~curious~ And your door?', goto: 'latch', if: { quest: 'perdide2.latch', started: false } }, { text: '~neutral~ Bye, Pim.', end: true }] },
         back: {
-          say: ['~surprised~ My latch! You went all the way up?', '~happy~ There. Shut. Open. Shut. Oh, that’s lovely. Listen to that click.', '~happy~ Here, take this. A moss lamp: it lights itself when it’s dark enough. It’s the only thing I’ve got that isn’t a door.'],
-          do: [{ take: 'latch' }, { advance: 'perdide2.latch' }, { give: 'lamp' }],
-          choices: [{ text: '~happy~ Thank you, Pim.', end: true }],
+          say: ['~surprised~ My latch! You went all the way up?', '~happy~ There, on it goes. Now: shut. Shut… Oh, come on.', '~sad~ It won’t swing to. Look at the frame: the moss has crept right into it, all the time the door hung open.'],
+          do: [{ take: 'latch' }, { advance: 'perdide2.latch' }],
+          choices: [{ text: '~curious~ Can’t we pull the moss out?', goto: 'moss' }, { text: '~neutral~ Let me try the door.', end: true }],
         },
-        after: { say: ['~playful~ Shut. Open. Shut. I’ve been doing it all evening.'], choices: [{ text: '~happy~ (smile)', end: true }] },
+        moss: {
+          say: ['~neutral~ Pull it? It only grows back sulking. Moss creeps toward the dark, and it shrinks from light.', '~sad~ My *moss lamp over the door* used to keep it back. It went out the night the sky rang, with the pools, and it hasn’t woken since.', '~playful~ Hollin says the pools wanted water that remembers light. Maybe my lamp does too. Then the door wants *a good shove*. It’s heavy.'],
+          choices: [{ text: '~neutral~ I’ll wake it.', end: true }],
+        },
+        stuck: {
+          say: [{ if: { not: { flag: 'perdide2.pim.lamp' } }, text: '~sad~ Still stuck. The moss won’t let go of the frame while it’s dark, and my *lamp over the door* is fast asleep.' },
+            { if: { flag: 'perdide2.pim.lamp' }, text: '~happy~ My lamp’s awake! Look, the moss is curling back from it. Now *give the door a shove*, a good one.' }],
+          choices: [{ text: '~curious~ Why won’t it shut?', goto: 'moss', if: { not: { flag: 'perdide2.pim.lamp' } } }, { text: '~neutral~ On it.', end: true }],
+        },
+        after: { say: ['~playful~ Shut. Open. Shut. I’ve been doing it all evening.', '~happy~ Keep the moss lamp somewhere dark. It likes that.'], choices: [{ text: '~happy~ (smile)', end: true }] },
       },
     },
   },
@@ -191,12 +209,12 @@ export const KEEPERS = [
           ],
         },
         skiff: {
-          say: ['~neutral~ Not ours. It’s been moored there longer than I’ve been minding. Whistle and it comes, out on the water, and it goes back when you’re done, like a dog that lives with everybody.', '~neutral~ *Old Fen* might know. He lives in *the far dome*, out on the deep water past the saucer pool. Nobody visits him, on account of the deep water.'],
+          say: ['~neutral~ Not ours. It’s been moored there longer than I’ve been minding. Whistle and it comes, out on the water, and it goes back when you’re done, like a dog that lives with everybody.', '~neutral~ *Old Fen* might know. He lives in *the far dome*, out on the deep water back toward the saucer’s pool, this side of it. Nobody visits him, on account of the deep water.'],
           do: { start: 'perdide2.skiff' },
           choices: [{ text: '~neutral~ I’ll ask him.', end: true }],
         },
-        cave: { say: ['~playful~ Warm light, all the way to the back. It glows on its own. Hollin says the two travellers slept in there before they went on. I say it’s a cave.'], choices: [{ text: '~curious~ Whose skiff is that?', goto: 'skiff' }, { text: '~curious~ Where did the two travellers go?', goto: 'two' }] },
-        two: { say: ['~neutral~ Out of the wood, the long way, through the cave and out the other side. That’s the story. Nobody’s been through since; the roots have grown over the far end.'], choices: [{ text: '~curious~ Whose skiff is that?', goto: 'skiff' }, { text: '~neutral~ Bye, Bram.', end: true }] },
+        cave: { say: ['~playful~ Warm light, all the way to the back. It glows on its own. Hollin says the two travellers slept in there, the night before they went on. I say it’s a cave.'], choices: [{ text: '~curious~ Whose skiff is that?', goto: 'skiff' }, { text: '~curious~ Where did the two travellers go?', goto: 'two' }] },
+        two: { say: ['~neutral~ Out of the wood in old Fen’s skiff, across the swamp, toward the singing crystal. A few days later the skiff came back on its own and moored itself here, the way it does. That’s the story. Nobody’s followed them since.'], choices: [{ text: '~curious~ Whose skiff is that?', goto: 'skiff' }, { text: '~neutral~ Bye, Bram.', end: true }] },
       },
     },
   },
@@ -241,7 +259,7 @@ export const PEOPLE = {
     palette: { cloak: '#9fe0d0', lining: '#2b211f', cloth: '#4a4f7a', legs: '#2f3a4f', hat: '#3a8f8a', hair: '#e8e2f2' }, head: 'wizard', cape: 1.25,
     lines: ['~surprised~ Visitors! On the deep water!', '~surprised~ Is that my skiff?', '~neutral~ Mind the moss.'],
     talk: {
-      entry: [{ if: { quest: 'perdide2.skiff', done: true }, node: 'after' }, { node: 'hello' }],
+      entry: [{ if: { quest: 'perdide2.skiff', done: true }, node: 'after' }, { if: { quest: 'perdide2.skiff', stage: 'home' }, node: 'waiting' }, { node: 'hello' }],
       nodes: {
         hello: {
           say: ['~surprised~ Visitors! Nobody visits. Nobody can, on account of the deep water. How did you…', '~happy~ Is that my skiff? That’s my skiff! Teal, with the white stripe. I’d know it anywhere. I haven’t seen it in forty years.'],
@@ -251,7 +269,7 @@ export const PEOPLE = {
           ],
         },
         mine: {
-          say: ['~tired~ Mine. I lent it, long ago, to two strangers who came out of the sky-boat in the pool there. Odile and Talo. They were waiting for a ship of their own, and the waiting took a season.', '~sad~ They used my skiff to fish, and to go and sit in the saucer of an evening, and look up. Then they gave up waiting, moored it at the cave, and walked out of the wood. Didn’t come and tell me. I don’t blame them. Deep water.'],
+          say: ['~tired~ Mine. I lent it, long ago, to two strangers who came out of the sky-boat in the pool there. Odile and Talo. They were waiting for the light that brought them down to come back, and the waiting took a season.', '~sad~ They used my skiff to fish, and to go and sit in the saucer of an evening, and look up. Then they gave up waiting and took it across the swamp, and it came back without them. Didn’t come and tell me. I don’t blame them. Deep water.'],
           do: [{ set: { 'perdide2.fen.told': true } }, { start: 'perdide2.skiff' }],
           choices: [
             { text: '~curious~ Where did they go?', goto: 'where' },
@@ -259,16 +277,26 @@ export const PEOPLE = {
           ],
         },
         where: {
-          say: ['~solemn~ A garden, they said. A world that was all garden, with white pyramids. They had a drawing of it, in the saucer. Odile drew it, so they wouldn’t forget what they were walking toward.'],
+          say: ['~solemn~ To the singing crystal over the swamp, first. If the light wouldn’t come back to them, they’d go and ask the piece of it that fell there.', '~sad~ And then home, they said. A world that was all garden, with white pyramids. Odile drew it, in the saucer, so they wouldn’t forget the way back.'],
           do: { set: { 'clue.perdide2.edena': true } },
           choices: [{ text: '~curious~ Do you want your skiff back?', goto: 'back' }],
         },
         back: {
           say: ['~playful~ Back? What would I do with it? I’ve got used to the deep water. It keeps the visitors off. Mostly.', '~happy~ No. You keep it, for as long as you’re here. It likes being used. Whistle, and bring it home to me sometimes so I can see it go by.'],
-          do: [{ advance: 'perdide2.skiff' }],
-          choices: [{ text: '~happy~ Thank you, Fen.', end: true }],
+          do: [{ advance: ['perdide2.skiff', 'owner'] }],
+          choices: [{ text: '~happy~ Thank you, Fen.', goto: 'berth' }],
         },
-        after: { say: ['~happy~ There it goes. Look at it skim. Forty years, and it still turns left better than right.'], choices: [{ text: '~happy~ Goodbye, Fen.', end: true }] },
+        berth: {
+          say: ['~solemn~ Do it once now, would you? Its old berth is there, by my landing, between the two posts.', '~sad~ I kept the lamp on the bow post lit for it a year or two. It came back, but only as far as the cave, and waited there for them. So I let the lamp go out.', '~playful~ *Light it* for me. It won’t come in to a dark berth; it never would. And don’t sail it in: *step off on my landing and give it a nudge*. It likes to come the last bit on its own.'],
+          choices: [{ text: '~happy~ I’ll bring it home.', end: true }],
+        },
+        waiting: {
+          say: [{ if: { not: { flag: 'perdide2.fen.lamp' } }, text: '~neutral~ The lamp on the bow post, there, by the berth. Hollin’s pools took your water. My lamp might too.' },
+            { if: { flag: 'perdide2.fen.lamp' }, text: '~happy~ It’s lit! Look at that. Now bring her in: *step off on my landing and nudge her* into the berth, under the lamp.' }],
+          choices: [{ text: '~curious~ Why won’t it just come in?', goto: 'proud' }, { text: '~neutral~ On it.', end: true }],
+        },
+        proud: { say: ['~playful~ Proud. Always was. It won’t come in to the dark, and it won’t be steered the last bit. A nudge from the landing, and it thinks it was its own idea.'], choices: [{ text: '~neutral~ A nudge, then.', end: true }] },
+        after: { say: [{ if: { flag: 'perdide2.skiff.home' }, text: '~happy~ She came home under the lamp. I’m keeping it lit now, in case.' }, '~happy~ There it goes. Look at it skim. Forty years, and it still turns left better than right.'], choices: [{ text: '~happy~ Goodbye, Fen.', end: true }] },
       },
     },
   },
@@ -282,7 +310,7 @@ export const THINGS = {
       entry: [{ if: { flag: 'perdide2.saucer.seen' }, node: 'again' }, { node: 'look' }],
       nodes: {
         look: {
-          say: ['~neutral~ The saucer sits tilted in the deep pool, water lapping at its rim. Its little light blinks: three short, one long. Three short, one long.', '~solemn~ Across its flank, scorched black into the teal: {glyph} Three dots over an arc. The same mark as the scar on your ship.', '~sad~ Through the canopy: two couches side by side, worn shiny. Two names scratched into the console, ODILE and TALO. And taped above them, a drawing, faded almost white: a garden of umbrella trees and white pyramids under a pale sky.', '~solemn~ It isn’t a ship. It’s a lifeboat. Whatever ship it fell from was struck by the same singing light that struck yours.'],
+          say: ['~neutral~ The saucer sits tilted in the deep pool, water lapping at its rim. Its little light blinks: three short, one long. Three short, one long.', '~solemn~ Across its flank, scorched black into the teal: {glyph} Three dots over an arc. The same mark as the scar on your ship.', '~sad~ Through the canopy: two couches side by side, worn shiny. Two names scratched into the console, ODILE and TALO. And taped above them, a drawing, faded almost white: a garden of umbrella trees and white pyramids under a pale sky, a long green furrow across its meadow.', '~solemn~ It isn’t a ship. It’s the little round boat a bigger ship carries. Whoever flew it here went looking for the singing light, and it found them, and struck them, as it struck you.'],
           do: [{ set: { 'perdide2.saucer.seen': true, 'clue.perdide2.edena': true } }],
           choices: [{ text: '~solemn~ (remember the garden)', end: true }],
         },

@@ -122,6 +122,109 @@ export function setupIncal(ctx) {
   if (game.flag('incal.lamp.lit')) wrenSpawn();
   quests.locate('lamp', () => lampAt);
 
+  // ---------------------------------------------------------------- the goods hoist and Pip's tin
+  // Pip's mum hangs the day's ration tin in the old hoist's basket, out over the void where the rats
+  // can't get it (src/levels/incal.js builds it), and the arm's pin has rusted in. Knock the pin out
+  // with a shot, then push the weight on the arm's short end round the post (pushed along the arm,
+  // toward the edge, it only rocks) and the basket swings in over the terrace, where you can take
+  // the tin. Saves already carrying it (or past it) find the hoist swung in, its basket empty.
+  const H = P.hoistRig, RQ = 'incal.ration', SWING = 2.6, PIN_FALL = 0.8;
+  const ho = { pinT: 0, swing: null, sway: 0, wobble: 0, hintT: -1e9, clock: 0 };
+  const settled = () => quests.reached(RQ, 'carry') || quests.has('ration');
+  const pinOut = () => !!game.flag('incal.hoist.pin') || settled();
+  const swungIn = () => !!game.flag('incal.hoist.in') || settled();
+  const hoistNear = () => flat(player.pos, P.hoist) < 90 && Math.abs(player.pos.y - P.hoist.y) < 40;
+  const hoistHint = (text, every = 4) => { if (ho.clock - ho.hintT > every) { ho.hintT = ho.clock; toast(text); } };
+  const pinPose = (u) => {
+    // out along its own length, then down onto the stones, turning over
+    const e = Math.min(1, u);
+    H.pin.position.set(0, THREE.MathUtils.lerp(H.pinRest.y, 0.07, e * e), H.pinRest.z + e * 1.1);
+    H.pin.rotation.set(0, e * 2.2, 0);
+  };
+  const hoistWorld = { post: V(0, 0, 0), weight: V(0, 0, 0), pin: V(0, 0, 0), basket: V(0, 0, 0) };
+  const basketAt = () => H.hang.localToWorld(hoistWorld.basket.set(0, -3.0, 0));
+  if (pinOut()) { ho.pinT = PIN_FALL; pinPose(1); }
+  if (swungIn()) H.arm.rotation.y = Math.PI;
+  H.tin.visible = !settled();
+  const knockPin = () => {
+    if (pinOut()) return false;
+    game.set('incal.hoist.pin', true);
+    ho.pinT = 0.001;
+    toast('The shot knocks the rusted pin out of the collar. It rings on the stones. The hoist’s arm is free to turn.');
+    sound.chime?.();
+    return true;
+  };
+  const turnHoist = (dir) => {
+    if (swungIn() || ho.swing) return false;
+    if (!pinOut()) {
+      ho.wobble = 1;
+      hoistHint('The arm groans against its collar and won’t turn: a rusted pin through the collar is holding it.');
+      return false;
+    }
+    H.weight.getWorldPosition(hoistWorld.weight);
+    const rx = hoistWorld.weight.x - P.hoist.x, rz = hoistWorld.weight.z - P.hoist.z, rl = Math.hypot(rx, rz) || 1;
+    const dl = Math.hypot(dir.x, dir.z);
+    if (dl < 1e-6) return false;
+    const tq = (rz * dir.x - rx * dir.z) / (rl * dl);   // the push's turning part, round the post (+: rotation.y grows)
+    if (Math.abs(tq) < 0.45) {
+      ho.wobble = 1;
+      hoistHint('The weight shoves along the arm, and the arm rocks on its sleeve, but it doesn’t turn. Push the weight round the post, not along the arm.');
+      return false;
+    }
+    game.set('incal.hoist.in', true);
+    ho.swing = { from: H.arm.rotation.y, to: H.arm.rotation.y + Math.sign(tq) * Math.PI, t: 0 };
+    toast('The weight swings round the post, and the arm with it: the basket comes in over the terrace, swaying.');
+    sound.whoosh?.();
+    return true;
+  };
+  registerTarget({ kind: 'hoistPin', radius: 0.5, position: () => H.pin.getWorldPosition(hoistWorld.pin), enabled: () => !pinOut() && hoistNear(),
+    onHit: (mode) => {
+      if (mode === 'shoot') return knockPin();
+      ho.wobble = 1;
+      hoistHint('The pin is rusted fast: a push only rattles it. Something sharper might knock it out.');
+      return true;
+    } });
+  registerTarget({ kind: 'hoistWeight', radius: 0.75, position: () => H.weight.getWorldPosition(hoistWorld.weight), enabled: () => !swungIn() && !ho.swing && hoistNear(),
+    onHit: (mode, point, dir) => {
+      if (mode === 'push') return turnHoist(dir);
+      ho.wobble = 0.6;
+      hoistHint(pinOut() ? 'Clang. The weight sways and settles. It wants a push, round the post.' : 'Clang. The arm doesn’t budge: a rusted pin through the collar holds it.');
+      return true;
+    } });
+  const takeTin = () => {
+    quests.give('ration');
+    toast(`Picked up ${ITEMS.ration}`);
+    H.tin.visible = false;
+    quests.advance(RQ, 'hoist');
+    sound.chime?.();
+  };
+  thing(THINGS.hoist, P.hoist, { range: 3.2, prompt: 'look at the goods hoist', enabled: () => !swungIn() });
+  registerInteractable({ id: 'hoistBasket', priority: PRIORITY.use, range: 2.4, at: () => basketAt().clone().add(UP), enabled: () => swungIn() && !ho.swing && !settled(),
+    prompt: () => (quests.stage(RQ) === 'hoist' ? 'take the ration tin' : 'look in the basket'),
+    distance: (p) => { const b = basketAt(); return Math.abs(p.pos.y - P.hoist.y) < 3 ? flat(p.pos, b) : Infinity; },
+    use: () => { if (quests.stage(RQ) === 'hoist') takeTin(); else dialogue.start(THINGS.hoist, null, basketAt().clone()); } });
+  quests.locate('hoist', () => (swungIn() ? basketAt().clone() : P.hoist));
+  const updateHoist = (dt, pp) => {
+    ho.clock += dt;
+    if (flat(pp, P.hoist) > 300 || Math.abs(pp.y - P.hoist.y) > 170) return;
+    if (ho.pinT > 0 && ho.pinT < PIN_FALL) { ho.pinT = Math.min(PIN_FALL, ho.pinT + dt); pinPose(ho.pinT / PIN_FALL); }
+    if (ho.swing) {
+      const w = ho.swing;
+      w.t = Math.min(SWING, w.t + dt);
+      H.arm.rotation.y = THREE.MathUtils.lerp(w.from, w.to, THREE.MathUtils.smootherstep(w.t, 0, SWING));
+      ho.sway = 0.3 * Math.sin(Math.PI * w.t / SWING) + (w.t >= SWING ? 0.18 : 0);
+      if (w.t >= SWING) ho.swing = null;
+    }
+    ho.sway = Math.max(0, ho.sway - dt * 0.08);
+    H.hang.rotation.x = Math.sin(ho.clock * 2.3) * ho.sway;
+    if (ho.wobble > 0) {
+      ho.wobble = Math.max(0, ho.wobble - dt * 2.2);
+      // (only while it's stuck out over the void: the arm rocks on its sleeve, the pin rattles)
+      if (!swungIn() && !ho.swing) H.arm.rotation.y = Math.sin(ho.wobble * 26) * 0.025 * ho.wobble;
+      if (!pinOut()) H.pin.position.x = Math.sin(ho.wobble * 31) * 0.03 * ho.wobble;
+    }
+  };
+
   // the cabs don't stop in the depths; after Wren, hailing down there brings her
   const refuse = () => {
     const now = performance.now?.() ?? 0;
@@ -298,6 +401,8 @@ export function setupIncal(ctx) {
       if (!st.hinted && quests.stage(Q) === 'look') { st.hinted = true; toast('The splinter tugs upward. Look up at the light (move the camera up).'); }
     }
 
+    updateHoist(dt, pp);
+
     // the call-lamp: lit, it sways a little and throws light; a push only rattles it
     st.lampK += ((game.flag('incal.lamp.lit') ? 1 : 0) - st.lampK) * (1 - Math.exp(-dt * 3));
     if (flat(pp, P.lamp) < 300) {
@@ -313,7 +418,7 @@ export function setupIncal(ctx) {
 
   return {
     people, update, state: st, cab, frameCamera,
-    giveBack, lightLamp,
+    giveBack, lightLamp, hoist: { state: ho, rig: H, knockPin, turnHoist, takeTin, pinOut, swungIn },
     /** E on a crowd person: a short conversation, by where they live (and whether the light is back). */
     crowdTalk(p) {
       const z = zoneOf(p);

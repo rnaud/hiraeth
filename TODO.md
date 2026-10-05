@@ -231,7 +231,7 @@ Grouped by area. Checked items are done; the changelog says when.
 
 ## Quests and story
 
-- [ ] Fewer pure fetch quests: add more to each, like pushing something with the
+- [x] Fewer pure fetch quests: add more to each, like pushing something with the
   gun or lighting something, with a small puzzle.
 - [x] Story: the hero listens to recordings of their parents made before they
   died, and the parents weren't happy with them. The recordings don't always
@@ -337,7 +337,7 @@ To start after the current work lands. Ordered from easiest to most complex.
 
 ## Story
 
-- [ ] A major quest you fail despite trying, and the attempt harms the local people. They
+- [x] A major quest you fail despite trying, and the attempt harms the local people. They
   blame you; you say sorry; they accept it, and you have to move on.
 
 ## Temples

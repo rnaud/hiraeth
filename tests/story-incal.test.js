@@ -199,6 +199,19 @@ test('side quests: the call-lamp and Wren, Pip’s ration for Dov', async () => 
   // Pip's ration tin, carried up to Dov
   at(P.pip.clone());
   talk(PEOPLE.pip, ['I could take something']);
+  assert.equal(quests.stage('incal.ration'), 'hoist', 'the tin hangs in the hoist basket, out over the void');
+  // (src/story/incal.js) knock the pin out, push the weight round the post, take the tin from the basket
+  const pin = allTargets().find((t) => t.kind === 'hoistPin'), weight = allTargets().find((t) => t.kind === 'hoistWeight');
+  at(P.hoist.clone().add(V(0, 0, 0)));
+  pin.onHit('shoot');
+  step(30);
+  const w = weight.position().clone(), round = V(-(w.z - P.hoist.z), 0, w.x - P.hoist.x).normalize();
+  weight.onHit('push', w, round);
+  step(30 * 3);
+  at(P.hoistIn.clone());
+  const b = bestInteractable(player);
+  assert.equal(b?.entry.id, 'hoistBasket');
+  b.entry.use(player);
   assert.ok(quests.has('ration'));
   assert.equal(quests.stage('incal.ration'), 'carry');
   assert.ok(quests.objective() || true);

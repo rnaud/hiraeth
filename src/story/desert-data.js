@@ -61,7 +61,9 @@ export const QUESTS = [
     id: 'desert.drum', title: 'Teo’s Drum', world: 'desert',
     outro: 'Teo plays again. The camp keeps time.',
     stages: [
-      { id: 'find', text: 'Find Teo’s drum, blown away under the old ribcage south of the start', label: 'Teo’s drum', bring: 'drum', at: 'drum', to: 'teo' },
+      // (src/story/desert-errands.js: the drum is jammed against a rib's foot by a knuckle of spine; shove the knuckle off sideways)
+      { id: 'find', text: 'Find Teo’s drum, blown away under the old ribcage south of the start', label: 'Teo’s drum', goto: 'drum', radius: 9, at: 'drum' },
+      { id: 'free', text: 'The drum is jammed against a rib by a fallen knuckle of bone. Free it (push: C, middle click, or RB / R1) and pick it up', label: 'Teo’s drum', bring: 'drum', at: 'drum', to: 'teo' },
       { id: 'return', text: 'Bring the drum back to Teo at the fire', label: 'Teo, at the fire', bring: 'drum', to: 'teo' },
     ],
   },
@@ -75,7 +77,7 @@ export const QUESTS = [
   },
   {
     id: 'desert.oum', title: 'The One Who Fell Behind', world: 'desert',
-    outro: 'Oum sits by the fire. She saw the light fall.',
+    outro: 'Oum sits by the fire. She saw the light go over, and turn, and climb away.',
     stages: [
       { id: 'find', text: 'Find old Oum, who fell behind the procession in the western dunes', label: 'Old Oum', talk: 'oum', at: 'oum' },
       { id: 'lead', text: 'Walk with Oum to the camps (she is slow; stay close)', label: 'The camps, with Oum', flag: 'desert.oum.home', at: 'camps' },
@@ -97,6 +99,8 @@ export const QUESTS = [
     outro: 'It does not wake. But it saw you.',
     stages: [
       { id: 'go', text: 'Visit the masked head that sleeps in the southern dunes', label: 'The masked head', goto: 'mask', radius: 30, at: 'mask' },
+      // (src/story/desert-errands.js: a lid of sand over each eye; the wind sifts it back after a few seconds)
+      { id: 'eyes', text: 'Sand has drifted over the mask’s eyes. Wash both clear before the wind fills them again (shoot: G, or left click while aiming)', label: 'The mask’s eyes', flag: 'desert.mask.eyes', at: 'maskEyes' },
     ],
   },
 ];
@@ -166,7 +170,7 @@ export const PEOPLE = {
             { text: '~happy~ See you, Ama.', end: true },
           ],
         },
-        rumour: { say: ['~playful~ Strange? A ball fell out of the sky with someone in it. That will do for this year.', '~playful~ Old Oum says she saw a light fall the night before. She saw it sing, she says. Oum sees a lot of things.'], choices: [{ text: '~curious~ Where is Oum?', goto: 'oum' }, { text: '~neutral~ Thanks.', end: true }] },
+        rumour: { say: ['~playful~ Strange? A ball fell out of the sky with someone in it. That will do for this year.', '~playful~ Old Oum says she saw a light go over the night before. She saw it sing, she says. Oum sees a lot of things.'], choices: [{ text: '~curious~ Where is Oum?', goto: 'oum' }, { text: '~neutral~ Thanks.', end: true }] },
         oum: { say: ['~tired~ Behind, as always. She fell behind the procession somewhere in *the western dunes*. Someone should fetch her, but nobody wants to lose their place in the circuit.'], do: { start: 'desert.oum' }, choices: [{ text: '~neutral~ I’ll look for her.', end: true }] },
         teo: { say: ['~sad~ Teo, our drummer. The wind took his drum on the way here, and he took his face off with it. Talk to him; it might help.'], choices: [{ text: '~neutral~ I will.', end: true }] },
         drinking: {
@@ -370,7 +374,7 @@ export const PEOPLE = {
           say: ['~playful~ Ah. Someone who walks faster than me. That’s everyone, child; don’t look so pleased.', '~playful~ I fell behind the circuit. Then I fell behind the people who fell behind. Now I’m behind nobody. That’s a kind of first place.'],
           choices: [
             { text: '~happy~ Walk with me to the camps. I’ll go slowly.', do: [{ start: 'desert.oum' }, { stage: ['desert.oum', 'lead'] }, { set: { 'desert.oum.following': true } }], goto: 'yes' },
-            { text: '~curious~ Ama says you saw a light fall.', goto: 'light' },
+            { text: '~curious~ Ama says you saw a light go over.', goto: 'light' },
           ],
         },
         light: {
@@ -494,7 +498,7 @@ export const PEOPLE = {
         },
         from: { say: ['~neutral~ From below. From the giant. Its head lies outside the back gate; its heart lies under our feet. The old keepers went down *through its mouth* to clean the channel, so my grandmother Nour says; she saw them go when she was a girl. Nobody has gone down in my lifetime.'], choices: [{ text: '~surprised~ Through its mouth?', goto: 'mouth' }] },
         mouth: { say: ['~whisper~ Propped open with carved stones. Children dare each other to touch the teeth. Don’t tell Ilo I told you.'], choices: [{ text: '~playful~ I won’t.', end: true }] },
-        glyph: { say: ['~neutral~ {glyph} The keepers call it the Giver’s mark. The pilgrims from the salt call it the Eye That Fell. The children call it the bird. Nobody knows who put it there first.'], choices: [{ text: '~curious~ And what is up on the tree’s trunk?', goto: 'chest' }, { text: '~curious~ Where does the water come from?', goto: 'from' }] },
+        glyph: { say: ['~neutral~ {glyph} The keepers call it the Givers’ mark. The pilgrims from the salt call it the Eye That Fell. The children call it the bird. Nobody knows who put it there first.'], choices: [{ text: '~curious~ And what is up on the tree’s trunk?', goto: 'chest' }, { text: '~curious~ Where does the water come from?', goto: 'from' }] },
         full: { say: ['~happy~ Look at it. Look! It came up through the roots in every colour, like it used to. I didn’t even have time to finish sweeping.'], choices: [{ text: '~happy~ It was waiting for someone to clear the way.', end: true }] },
       },
     },
@@ -578,6 +582,27 @@ export const THINGS = {
       choices: [{ text: '~solemn~ (remember it)', end: true }],
     } } },
   },
+  drumStuck: {
+    id: 'drumStuck', name: 'Teo’s drum', title: 'under the old ribcage', color: '#c8483a', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ['~neutral~ A red drum with a ring of shells round its skin, standing on its rim like a wheel. It rolled in here and wedged itself against the foot of a rib.', '~neutral~ Then a knuckle of the giant’s spine rolled down after it and shut it in. You pull; the drum doesn’t move. *The bone* has to go, and not toward the rib.'],
+      choices: [{ text: '~neutral~ (step back)', end: true }],
+    } } },
+  },
+  knuckle: {
+    id: 'knuckle', name: 'A knuckle of bone', title: 'from the giant’s spine', color: '#f2ead6', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ['~neutral~ A knuckle of the old spine, as big as a sheep, round as a boulder. It pins Teo’s drum against the rib behind it.', '~neutral~ Shoved straight at the rib, it would only crush the drum. Shoved *from the side*, it might roll. (*Push*: C, middle click, or RB / R1.)'],
+      choices: [{ text: '~neutral~ (step back)', end: true }],
+    } } },
+  },
+  maskEyes: {
+    id: 'maskEyes', name: 'The sleeping mask', title: 'in the southern dunes', color: '#f3ead8', voice: 0.55,
+    talk: { nodes: { look: {
+      say: ['~solemn~ The sand slides off its face. Two dark eyes, each as long as a boat, look up past you at the sky, the way they have for longer than the city has stood.', '~whisper~ Far down in each eye, something glints. The glints turn, very slowly, and find you.'],
+      choices: [{ text: '~solemn~ (look back at it)', end: true }],
+    } } },
+  },
   bone: {
     id: 'bone', name: 'The fallen rib', title: 'across the channel', color: '#f2ead6', voice: 0.6,
     talk: { nodes: { look: {
@@ -634,7 +659,7 @@ export const CROWD_TALK = {
     } } },
     { name: 'A banner bearer', title: 'in the procession', talk: { nodes: {
       hello: { say: ['~happy~ This banner has walked the circuit eighty years. The cloth’s been changed nine times, the pole twice. Same banner.'], choices: [{ text: '~curious~ What’s on it?', goto: 'what' }, { text: '~neutral~ Walk on.', end: true }] },
-      what: { say: ['~playful~ The Giver’s mark, three dots and a curve. {glyph} My father said it’s the giants’ eyes, looking up. My mother said it’s rain over a hill. They argued about it every circuit.'], choices: [{ text: '~neutral~ Walk on.', end: true }] },
+      what: { say: ['~playful~ The Givers’ mark, three dots and an arc. {glyph} My father said it’s the giants’ eyes, looking up. My mother said it’s rain over a hill. They argued about it every circuit.'], choices: [{ text: '~neutral~ Walk on.', end: true }] },
     } } },
     { name: 'A tired walker', title: 'in the procession', talk: { nodes: {
       hello: { say: ['~tired~ Eleven days across the dunes and now round and round. My feet have opinions. But it’s the drinking. You don’t miss the drinking.'], choices: [{ text: '~curious~ What happens at the drinking?', goto: 'what' }, { text: '~neutral~ Walk on.', end: true }] },
@@ -650,8 +675,8 @@ export const CROWD_TALK = {
       late: { say: ['~angry~ The water. The drinking. Us, getting home. Eleven days walking for a dry well.'], choices: [{ text: '~neutral~ Thanks.', end: true }] },
     } } },
     { name: 'A trader', title: 'resting', talk: { nodes: {
-      hello: { say: ['~surprised~ You came out of the sky-ball? Then you saw the light that fell before it. Everyone’s talking about it. A singing light. I heard it, I swear. Like a bowl rubbed with a wet finger.'], choices: [{ text: '~curious~ Where did it fall?', goto: 'where' }, { text: '~neutral~ Thanks.', end: true }] },
-      where: { say: ['~whisper~ It didn’t fall. That’s the strange thing. It went down behind the dunes and then it went up again.'], choices: [{ text: '~neutral~ Thanks.', end: true }] },
+      hello: { say: ['~surprised~ You came out of the sky-ball? Then you saw the light that went over before it. Everyone’s talking about it. A singing light. I heard it, I swear. Like a bowl rubbed with a wet finger.'], choices: [{ text: '~curious~ Where did it come down?', goto: 'where' }, { text: '~neutral~ Thanks.', end: true }] },
+      where: { say: ['~whisper~ It didn’t come down. That’s the strange thing. It dipped low behind the dunes, like it was looking for something, and then it climbed away again.'], choices: [{ text: '~neutral~ Thanks.', end: true }] },
     } } },
     { name: 'A child', title: 'bored', talk: { nodes: {
       hello: { say: ['~tired~ Have you seen Ilo? She said she’d show me the giant’s teeth. She’s always saying things.'], choices: [{ text: '~neutral~ I’ll keep an eye out.', end: true }] },

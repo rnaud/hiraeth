@@ -11,9 +11,12 @@ import { QUESTS, PEOPLE, THINGS, ITEMS, LINES } from './perdide2-data.js';
 //
 //   the island   Hollin, the old lamp-keeper, waits where the path begins
 //   the path     three pools gone dark (shoot them alight; they take your colours);
-//                Pim by the moss domes, Wick at the second dark pool
+//                Pim by the moss domes (her door, the latch back on, is held open by
+//                moss: wake the moss lamp over it with a shot, then push it shut),
+//                Wick at the second dark pool
 //   the water    the saucer in the deep pool (Odile and Talo's lifeboat), and old
-//                Fen in the far dome on its mud islet (the skiff is his)
+//                Fen in the far dome on its mud islet (the skiff is his: light the
+//                lamp on his mooring post, then nudge the empty skiff into its berth)
 //   the cave     Bram minds the mouth; Hollin walks down to wait there at the end
 //
 // The world notices you: once Hollin knows you're here, the lamp-keepers
@@ -24,13 +27,16 @@ import { QUESTS, PEOPLE, THINGS, ITEMS, LINES } from './perdide2-data.js';
 // Flags (game-state.js): perdide2.hollin.met, perdide2.pool.<0-2>,
 // perdide2.pools.lit (how many), perdide2.saucer.answered, perdide2.saucer.seen,
 // perdide2.hollin.told, perdide2.promise ('yes' | 'maybe'), perdide2.fen.told,
-// perdide2.rumour.light, perdide2.glyph.heard, clue.perdide2.edena.
+// perdide2.rumour.light, perdide2.glyph.heard, clue.perdide2.edena,
+// perdide2.pim.lamp / perdide2.pim.door (Pim's moss lamp woken, her door pushed shut),
+// perdide2.fen.lamp / perdide2.skiff.home (Fen's landing lamp lit, the skiff in its berth).
 // Items: latch, lamp.
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const Q = 'perdide2.lamps';
 const WARM = new THREE.Color('#fff1dc');
+const UP = new THREE.Vector3(0, 1, 0), _q = new THREE.Quaternion();
 
 export function setupPerdide2(ctx) {
   const { level, physics, player, quests, dialogue, game, sound, story, spawn, scene, toast, npcs } = ctx;
@@ -44,7 +50,7 @@ export function setupPerdide2(ctx) {
 
   // ---------------------------------------------------------------- the people
   const people = {};
-  for (const n of npcs) if (['hollin', 'pim', 'bram'].includes(n.def?.id)) people[n.def.id] = n;
+  for (const n of npcs) { const key = n.def?.id?.split('.')[0]; if (['hollin', 'pim', 'bram'].includes(key)) people[key] = n; }   // (ids: 'hollin.perdide2', 'pim.perdide2': other worlds have a Hollin and a Pim)
   const wickAt = at(DARK_POOLS[1].x - 1.6, DARK_POOLS[1].z + 4.2);
   people.wick = spawn(PEOPLE.wick, { route: [wickAt.clone(), at(wickAt.x + 1.4, wickAt.z + 1.6)], speed: 0.6 });
   const fenDoor = level.domeDoors[FEN.dome];
@@ -98,7 +104,8 @@ export function setupPerdide2(ctx) {
     stone.rotation.y = Math.atan2(D.x - sx, D.z - sz);
     stone.add(new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.0, 0.35).translate(0, 0.4, 0), stoneMat));
     const ink = [-0.3, 0, 0.3].map((x, k) => new THREE.SphereGeometry(0.08, 6, 4).translate(x, 0.72 + (k === 1 ? 0.05 : 0), 0.19).toNonIndexed());
-    ink.push(new THREE.TorusGeometry(0.36, 0.035, 3, 14, Math.PI).rotateZ(Math.PI).translate(0, 0.62, 0.19).toNonIndexed());
+    // (the arc bows upward, ∩, like the glyph everywhere: a half torus from 0 to π is the top half)
+    ink.push(new THREE.TorusGeometry(0.36, 0.035, 3, 14, Math.PI).translate(0, 0.22, 0.19).toNonIndexed());
     stone.add(new THREE.Mesh(mergeGeometries(ink), inkMat));
     stone.traverse((o) => { o.userData.noCollide = true; });
     const props = new THREE.Group();   // drawn only within 110 m
@@ -201,6 +208,230 @@ export function setupPerdide2(ctx) {
   if (quests.isDone('perdide2.latch')) warmDoor();
   quests.def('perdide2.latch').onDone = () => warmDoor();
 
+  // ---------------------------------------------------------------- Pim's door: moss in the frame, her moss lamp asleep
+  // The latch back on, the shell door still won't swing to: it hung open so long that the
+  // moss crept into its frame (moss creeps toward the dark). The moss lamp over the door
+  // went out the night the sky rang. Wake it with your fluid (a shot) and the moss shrinks
+  // back from its light; then push the door shut. A push first only rocks it.
+  const LQ = 'perdide2.latch';
+  const pd = (() => {
+    const q = pimDoor.door.quaternion, dr = pimDoor.R * 0.28;
+    const ax = V(1, 0, 0).applyQuaternion(q), ay = V(0, 1, 0).applyQuaternion(q), az = V(0, 0, 1).applyQuaternion(q);
+    const onDoor = (x, y, z) => pimDoor.pos.clone().addScaledVector(ax, x).addScaledVector(ay, y).addScaledVector(az, z);
+    // the shell door, hinged on its left edge: open, it stands out from the dome like a page
+    const shellMat = makeMaterial({ color: '#e8dcc4', flat: true, glow: 0.05, side: THREE.DoubleSide, pimShell: true });
+    const rimMat = makeMaterial({ color: '#3a8f8a', flat: true });
+    const hinge = new THREE.Group();
+    hinge.position.copy(onDoor(-dr, 0, 0.16));
+    const leaf = new THREE.Group();
+    leaf.add(new THREE.Mesh(new THREE.CircleGeometry(dr * 1.02, 24).translate(dr, 0, 0), shellMat));
+    leaf.add(new THREE.Mesh(new THREE.TorusGeometry(dr * 1.02, 0.07, 4, 24).translate(dr, 0, 0.02), rimMat));
+    for (let k = 1; k < 5; k++) leaf.add(new THREE.Mesh(new THREE.TorusGeometry(dr * 0.2 * k, 0.025, 3, 20, Math.PI * 0.9).rotateZ(-Math.PI * 0.45).translate(dr * 0.15, 0, 0.03), rimMat));   // the shell's growth lines
+    // Pim's latch on it, once it's back (the ring of shell with its teal hook)
+    const latchOn = new THREE.Group();
+    latchOn.add(new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.06, 6, 14), makeMaterial({ color: '#f3ead8', flat: true })));
+    latchOn.add(new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.035, 4, 10, Math.PI).rotateZ(-Math.PI / 2).translate(0.24, 0, 0), rimMat));
+    latchOn.position.set(dr * 1.75, 0, 0.08);
+    leaf.add(latchOn);
+    hinge.add(leaf);
+    hinge.traverse((o) => { o.userData.noCollide = true; });
+    // moss tufts crept into the frame, round the doorway's right side and sill
+    const mossMat = makeMaterial({ color: '#6f9a4e', flat: true });
+    const tufts = [-1.3, -0.75, -0.2, 0.35, 0.9, 1.45, 2.0, 2.55].map((a, k) => {
+      const m = new THREE.Mesh(new THREE.IcosahedronGeometry(0.5 + (k % 3) * 0.12, 0).scale(1, 0.75, 0.7), mossMat);
+      m.position.copy(onDoor(Math.cos(a - Math.PI / 2) * dr * 0.96, Math.sin(a - Math.PI / 2) * dr * 0.96, 0.25));
+      m.rotation.set(k, k * 2, 0); m.userData.noCollide = true;
+      return m;
+    });
+    // the moss lamp over the door: a cushion of moss, grey asleep, glowing awake
+    const lampMat = makeMaterial({ color: '#5d6b66', glow: 0.04, pimLamp: true });
+    const lampAt = onDoor(0, dr + 0.85, 0.35);
+    const lamp = new THREE.Group();
+    lamp.position.copy(lampAt);
+    lamp.add(new THREE.Mesh(new THREE.SphereGeometry(0.62, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.8, 1), lampMat));
+    for (let k = 0; k < 5; k++) lamp.add(new THREE.Mesh(new THREE.SphereGeometry(0.15, 6, 4).translate(Math.cos(k * 1.26) * 0.5, 0.05, Math.sin(k * 1.26) * 0.5), lampMat));
+    lamp.traverse((o) => { o.userData.noCollide = true; });
+    scene.add(hinge, lamp, ...tufts);
+    const glowL = new THREE.Vector4(lampAt.x + pimDoor.out.x * 1.5, lampAt.y, lampAt.z + pimDoor.out.z * 1.5, 0);
+    level.lights.push(glowL);
+    const doorAt = onDoor(0, -0.5, 1.1);
+    return { q, ay, hinge, leaf, latchOn, shellMat, tufts, lamp, lampMat, lampAt, glowL, doorAt, open: 1, shut: 0, lit: 0, rock: 0, closing: false };
+  })();
+  const OPEN = -1.75;   // the leaf's swing (radians about the door's up axis; 0 shut)
+  const lampOn = () => !!game.flag('perdide2.pim.lamp') || quests.isDone(LQ);
+  const doorShut = () => !!game.flag('perdide2.pim.door') || quests.isDone(LQ);
+  if (lampOn()) pd.lit = 1;
+  if (doorShut()) pd.open = 0;
+  const wakeLamp = () => {
+    if (lampOn()) return false;
+    game.set('perdide2.pim.lamp', true);
+    sound.chime();
+    toast('The moss lamp drinks your fluid and wakes, glowing. In the doorway the moss curls back from the light.');
+    if (people.pim) people.pim.shout = { text: '~happy~ My lamp! Look at the moss shrink!', until: people.pim.time + 2.5 };
+    return true;
+  };
+  const shutDoor = () => {
+    if (pd.closing || doorShut()) return false;
+    pd.closing = true;
+    sound.whoosh?.();
+    return true;
+  };
+  const doorShutDone = () => {
+    game.set('perdide2.pim.door', true);
+    quests.give('lamp');
+    toast(`Click. Pim’s door shuts, and opens, and shuts again. She presses ${ITEMS.lamp} into your hands: it lights itself when it’s dark enough.`);
+    if (people.pim) people.pim.shout = { text: '~happy~ Shut! Open! Shut! Listen to that click!', until: people.pim.time + 3 };
+    quests.advance(LQ, 'shut');
+  };
+  registerTarget({ kind: 'mossLamp', radius: 0.9, accepts: ['fire'], position: () => pd.lampAt, enabled: () => quests.stage(LQ) === 'shut' && !lampOn() && flat(player.pos, pd.lampAt) < 80,
+    onHit: (mode) => {
+      if (mode === 'shoot' || mode === 'fire') return wakeLamp();
+      return true;   // a push sways the cushion; the door's own target says what's wrong
+    } });
+  let doorShotTold = false;
+  registerTarget({ kind: 'pimDoor', radius: 1.8, position: () => pd.doorAt, enabled: () => quests.stage(LQ) === 'shut' && !pd.closing && flat(player.pos, pd.doorAt) < 60,
+    onHit: (mode) => {
+      if (mode === 'push') {
+        if (lampOn()) return shutDoor();
+        pd.rock = 1;
+        toast('The door rocks on its hinge and sticks: moss has crept into the frame. Moss shrinks from light, and the moss lamp over the door is asleep.');
+        return true;
+      }
+      if (!doorShotTold) { doorShotTold = true; toast('The splash runs down the shell door. It wants a shove, not a soaking.'); }
+      return true;
+    } });
+  const updatePimDoor = (dt) => {
+    const near = camPos.distanceToSquared(pimDoor.pos) < 140 * 140;
+    pd.hinge.visible = pd.lamp.visible = near;
+    for (const t of pd.tufts) t.visible = near && pd.lit < 0.98;
+    if (!near && !pd.closing) return;
+    // the lamp wakes, and the moss shrinks back from it
+    if (lampOn() && pd.lit < 1) pd.lit = Math.min(1, pd.lit + dt / 1.5);
+    const u = pd.lampMat.uniforms;
+    u.uColor.value.set('#5d6b66').lerp(col.set('#c8f2b0'), pd.lit);
+    u.uGlow.value = 0.04 + 0.96 * pd.lit * (0.9 + 0.1 * Math.sin(st.clock * 1.7));
+    pd.glowL.w = 9 * pd.lit;
+    for (const [k, t] of pd.tufts.entries()) t.scale.setScalar(Math.max(0.01, 1 - pd.lit * (1 + k * 0.1)));
+    // the leaf: open, rocking when it sticks, swinging shut when pushed
+    if (pd.closing) {
+      pd.shut += dt / 0.7;
+      pd.open = 1 - THREE.MathUtils.smoothstep(pd.shut, 0, 1);
+      if (pd.shut >= 1) { pd.closing = false; pd.open = 0; doorShutDone(); }
+    }
+    pd.rock = Math.max(0, pd.rock - dt * 1.6);
+    const ang = OPEN * pd.open + Math.sin(pd.rock * 18) * 0.12 * pd.rock;
+    pd.hinge.quaternion.copy(pd.q).multiply(_q.setFromAxisAngle(UP, ang));
+    pd.latchOn.visible = quests.reached(LQ, 'shut');
+    if (quests.isDone(LQ)) { pd.shellMat.uniforms.uColor.value.set('#ffe6c0'); pd.shellMat.uniforms.uGlow.value = 0.55; }
+  };
+
+  // ---------------------------------------------------------------- Fen's berth: the skiff brought home
+  // Beside his landing, two posts in the deep water mark the skiff's old berth; the bow
+  // post carries the mooring ring and Fen's landing lamp, dark since the skiff stopped
+  // coming home. Light the lamp (a shot), then let the skiff come in on its own: step off
+  // onto the landing and give it a nudge (a push within 10 m of the berth), and it glides
+  // in under the lamp. Sailed in, Fen waves you off; toward a dark berth it shies off.
+  const SK = 'perdide2.skiff';
+  const bt = (() => {
+    const out = fenDoor.out, side = V(-out.z, 0, out.x);
+    const at = V(L0.x, 0, L0.z).addScaledVector(side, 6.2);
+    const heading = Math.atan2(-out.x, -out.z);   // bow toward the dome, at the ring
+    const wood = makeMaterial({ color: '#4a3f3a', flat: true, pattern: 'cracks' });
+    const ringMat = makeMaterial({ color: '#3a8f8a', flat: true });
+    const lampMat = makeMaterial({ color: '#4d5868', glow: 0.04, fenLamp: true });
+    const g = new THREE.Group();
+    const post = (p, h) => g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.26, h + 2.4, 7).translate(p.x, h / 2 - 1.2, p.z), wood));
+    const bow = at.clone().addScaledVector(out, -3.0), stern = at.clone().addScaledVector(out, 3.0);
+    post(bow, 3.2); post(stern, 1.4);
+    // the mooring ring on the bow post, facing the berth
+    g.add(new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.08, 5, 16).rotateY(heading).translate(bow.x + out.x * 0.3, 1.1, bow.z + out.z * 0.3), ringMat));
+    // the lamp on top: a glass float in a little cage
+    const lampAt = V(bow.x, 3.75, bow.z);
+    const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.42, 10, 7), lampMat);
+    lamp.position.copy(lampAt);
+    g.add(lamp);
+    g.add(new THREE.Mesh(new THREE.ConeGeometry(0.34, 0.3, 7).translate(lampAt.x, lampAt.y + 0.5, lampAt.z), wood));
+    // a rope slung between the posts
+    const rope = new THREE.CatmullRomCurve3([V(bow.x, 1.5, bow.z), V(at.x, 1.0, at.z).addScaledVector(side, 0.7), V(stern.x, 1.2, stern.z)]);
+    g.add(new THREE.Mesh(new THREE.TubeGeometry(rope, 12, 0.05, 4), wood));
+    g.traverse((o) => { o.userData.noCollide = true; });
+    scene.add(g);
+    const glowL = new THREE.Vector4(lampAt.x, lampAt.y, lampAt.z, 0);
+    level.lights.push(glowL);
+    return { at, heading, g, lampAt, lampMat, glowL, lit: 0, inside: false, glide: null };
+  })();
+  const fenLampOn = () => !!game.flag('perdide2.fen.lamp') || quests.isDone(SK);
+  if (fenLampOn()) bt.lit = 1;
+  const BERTH_R = 3.2;
+  registerTarget({ kind: 'fenLamp', radius: 0.8, accepts: ['fire'], position: () => bt.lampAt, enabled: () => quests.stage(SK) === 'home' && !fenLampOn() && flat(player.pos, bt.lampAt) < 80,
+    onHit: (mode) => {
+      if (mode === 'push') return true;
+      game.set('perdide2.fen.lamp', true);
+      sound.chime();
+      toast('Fen’s landing lamp takes your fluid and glows over the empty berth.');
+      if (people.fen) people.fen.shout = { text: '~happy~ My lamp! Forty years!', until: people.fen.time + 2.5 };
+      return true;
+    } });
+  const ridingIt = (M) => (player.ride != null ? player.ride === M : !!player.riding);
+  // a nudge near the landing: under a lit lamp it knows the way and glides in on its own
+  // (the push itself, src/fluid-tool.js, only slides it along its keel); a dark berth it shies from
+  const darkTold = { at: -Infinity };
+  const toldDark = () => {
+    if (st.clock - darkTold.at < 4) return;
+    darkTold.at = st.clock;
+    toast('The skiff noses toward the dark berth and shies off. It doesn’t know it’s home: Fen’s lamp is out.');
+  };
+  const NUDGE_R = 10;
+  registerTarget({ kind: 'skiffHome', radius: 1.3, position: () => player.mount.pos,
+    enabled: () => { const M = player.mount; return M?.kind === 'skiff' && quests.stage(SK) === 'home' && !bt.glide && !ridingIt(M) && !M.auto && flat(M.pos, bt.at) < NUDGE_R; },
+    onHit: (mode) => {
+      if (mode !== 'push') return false;
+      if (fenLampOn()) bt.glide = { t: 0 };
+      else toldDark();
+      return true;
+    } });
+  const updateBerth = (dt) => {
+    bt.g.visible = camPos.distanceToSquared(bt.at) < 160 * 160;
+    if (fenLampOn() && bt.lit < 1) bt.lit = Math.min(1, bt.lit + dt / 1.2);
+    if (bt.g.visible) {
+      const u = bt.lampMat.uniforms;
+      u.uColor.value.set('#4d5868').lerp(col.set('#ffd6a0'), bt.lit);
+      u.uGlow.value = 0.04 + 0.96 * bt.lit;
+      bt.glowL.w = 10 * bt.lit;
+    }
+    const M = player.mount;
+    if (!M || M.kind !== 'skiff' || quests.stage(SK) !== 'home') return;
+    if (bt.glide) {
+      // it slides the last bit on its own, under the lamp, and bumps the ring
+      const G = bt.glide, k = 1 - Math.exp(-2 * dt);
+      G.t += dt;
+      M.speed = 0; M.vel.set(0, M.vel.y, 0); M.yawRate = 0;
+      M.pos.x += (bt.at.x - M.pos.x) * k; M.pos.z += (bt.at.z - M.pos.z) * k;
+      let dh = bt.heading - M.heading; dh = Math.atan2(Math.sin(dh), Math.cos(dh));
+      M.heading += dh * k;
+      if (G.t > 2.4) {
+        bt.glide = null;
+        M.pos.x = bt.at.x; M.pos.z = bt.at.z; M.heading = bt.heading;
+        game.set('perdide2.skiff.home', true);
+        toast('The skiff slides into its berth under the lamp, bumps the ring, and stays. Out on his landing, Fen laughs out loud.');
+        if (people.fen) people.fen.shout = { text: '~happy~ Home! Look at her, under the lamp!', until: people.fen.time + 3 };
+        quests.advance(SK, 'home');
+      }
+      return;
+    }
+    const d = flat(M.pos, bt.at), ridden = ridingIt(M);
+    if (d > BERTH_R + 1.5) { bt.inside = false; return; }
+    if (d > BERTH_R) return;
+    if (!ridden && !M.auto && fenLampOn()) { bt.glide = { t: 0 }; return; }
+    if (bt.inside) return;
+    bt.inside = true;
+    if (ridden) toast('Fen waves you off: “Not sailed in! Step off on my landing and let her come the last bit on her own. A nudge does it.”');
+    else if (!M.auto) {
+      toldDark();
+      M.speed = -(Math.sign(M.speed) || 1) * 3;   // it backs out again
+    }
+  };
+
   // ---------------------------------------------------------------- the end
   quests.def(Q).onDone = () => {
     game.set('world.perdide2.done', true);
@@ -215,6 +446,8 @@ export function setupPerdide2(ctx) {
   quests.locate('darkPool', nearestDark);
   quests.locate('saucer', () => saucerAt);
   quests.locate('latch', () => latchAt);
+  quests.locate('pimDoor', () => (lampOn() ? pd.doorAt : pd.lampAt));
+  quests.locate('fenBerth', () => (fenLampOn() ? bt.at.clone().setY(0.6) : bt.lampAt));
   quests.locate('cave', () => V(CAVE.x, CAVE.y, CAVE.mouth));
   for (const [id, n] of Object.entries(people)) quests.locate(id, () => n.pos);
   // the label counts the pools
@@ -278,8 +511,10 @@ export function setupPerdide2(ctx) {
     // Hollin walks down to the cave to see the lights (when you're not watching)
     if (quests.reached(Q, 'answer') && !people.hollin?.atCave && people.hollin && flat(player.pos, people.hollin.pos) > 50) moveHollin();
     if (latch) latch.g.visible = camPos.distanceToSquared(latchAt) < 120 * 120;
+    updatePimDoor(dt);
+    updateBerth(dt);
     updateWave(dt);
   };
 
-  return { people, update, pools, light, places: { saucerAt, latchAt, fenAt, wickAt, hollinEnd } };
+  return { people, update, pools, light, pimDoor: pd, berth: bt, places: { saucerAt, latchAt, fenAt, wickAt, hollinEnd, pimLamp: pd.lampAt, pimDoorAt: pd.doorAt, fenLamp: bt.lampAt, berth: bt.at } };
 }
