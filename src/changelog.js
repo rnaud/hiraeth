@@ -3,6 +3,13 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.56', date: '2026-10-05', items: [
+    'The settings now have an Updates section in the Android app: see the version you’re playing, check for updates, read what the new one brings, and download it with a progress bar. The game restarts at the title screen with your saves kept.',
+    'Updates now arrive reliably: the app checks each time you come back to it, not only when it starts, tries again when the connection drops, and picks up an interrupted download where it stopped.',
+    'A downloaded update now starts the next time you open the title screen, without closing the app.',
+    'A world that loads slowly no longer undoes an update.',
+    'When an update needs a new version of the app, the settings say so and open its download page. This version needs the new app once.',
+  ] },
   { v: '0.55', date: '2026-10-05', items: [
     'The desert story is reworked. Qanat’s great tree went out the night the singing light passed: it now stands cold over the walls, with no flame, no smoke and no glow.',
     'The makers’ backpack comes out of its chest empty. It fills for the first time in the giant’s pool, with cyan, violet and the pool’s coral, and until then it shoots and pushes nothing.',

@@ -2,6 +2,14 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.56 — 2026-10-05
+
+- The settings now have an Updates section in the Android app: see the version you’re playing, check for updates, read what the new one brings, and download it with a progress bar. The game restarts at the title screen with your saves kept.
+- Updates now arrive reliably: the app checks each time you come back to it, not only when it starts, tries again when the connection drops, and picks up an interrupted download where it stopped.
+- A downloaded update now starts the next time you open the title screen, without closing the app.
+- A world that loads slowly no longer undoes an update.
+- When an update needs a new version of the app, the settings say so and open its download page. This version needs the new app once.
+
 ## v0.55 — 2026-10-05
 
 - The desert story is reworked. Qanat’s great tree went out the night the singing light passed: it now stands cold over the walls, with no flame, no smoke and no glow.
