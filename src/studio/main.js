@@ -163,7 +163,7 @@ function makeNPC(def, look, world, human = null) {
     scale: def?.scale ?? null, head: def?.head ?? null, cape: def?.cape ?? null, def: def ?? null, world,
   });
   npc.restyle(look);
-  npc.char.pack.visible = !!state.l.pack || !!def?.satchel;
+  npc.char.pack.visible = !!state.l.pack;
   npc.humanoid.ownMaterials();
   const baseScale = npc.baseScale ?? (def?.scale ?? look.height ?? 1) * (look.size ?? 1);   // (a MakeHuman child's true height: NPC)
   return { type: 'npc', name: def?.name ?? (look.blank ? 'A blank body' : `Someone of ${TITLES[world] ?? world}`), root: npc.object, char: npc.char, h: npc.humanoid, animator: npc.animator, npc, look, baseScale, noShadow: [] };
@@ -292,7 +292,7 @@ function applyLook() {
     p.look = look;
     setCostumeWorld(p.world ?? state.world);
     p.npc.restyle(look);
-    p.npc.char.pack.visible = !!state.l.pack || !!p.npc.def?.satchel;
+    p.npc.char.pack.visible = !!state.l.pack;
     p.h.ownMaterials();
     p.baseScale = p.npc.baseScale ?? (specDef(p.spec)?.scale ?? look.height ?? 1) * (look.size ?? 1);
   }

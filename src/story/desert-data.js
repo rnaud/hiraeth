@@ -277,8 +277,8 @@ export const PEOPLE = {
   },
 
   bako: {
-    id: 'bako', name: 'Bako', title: 'ney player', color: '#5fb7ad', voice: 0.75, kind: 'm', age: 'elder', years: 70, satchel: true,
-    // (his character sheet: an old man, a cream head-wrap, a grey beard, a long teal coat over a brown robe, a satchel)
+    id: 'bako', name: 'Bako', title: 'ney player', color: '#5fb7ad', voice: 0.75, kind: 'm', age: 'elder', years: 70,
+    // (his character sheet: an old man, a cream head-wrap, a grey beard, a long teal coat over a brown robe,)
     palette: { cloak: '#5fb7ad', lining: '#2b211f', cloth: '#7a4a35', legs: '#3a3a3a', hat: '#f3ead8', hair: '#b0a89a' }, head: 'wrap', cape: 1.45, look: { mask: 'beard', body: 'none', prop: 'none', robe: 0.06, build: 'slim', trim: 'none' },
     lines: ['~tired~ Hm.', '~happy~ Hmmm-hm.', '~neutral~ (he hums)'],
     talk: { listen: [
@@ -584,7 +584,7 @@ export const PEOPLE = {
   },
 
   marrow: {
-    id: 'marrow', name: 'Marrow', title: 'salvager and liar', color: '#dca273', voice: 1.0, kind: 'm', satchel: true,
+    id: 'marrow', name: 'Marrow', title: 'salvager and liar', color: '#dca273', voice: 1.0, kind: 'm',
     // (his character sheet: a short, grinning scavenger in a patched cream coat and hood, goggles, a scarf)
     palette: { cloak: '#e6dcc0', lining: '#2b211f', cloth: '#e6dcc0', legs: '#4a3a2a', hat: '#d8a24a', accent: '#c9974a', hair: '#2b211f' }, head: 'raghood', cape: 0.9, look: { mask: 'browgoggles', body: 'scarf', prop: 'none', robe: 0.3, trim: 'patches', build: 'average', height: 0.92, faceType: 'round', mood: 'amused' },
     lines: ["~shout~ Bones! Glass! Authenticated bits of sky!", "~playful~ Finders keepers. I find that very reasonable.", "~whisper~ Sky-person. Excellent timing. For me."],

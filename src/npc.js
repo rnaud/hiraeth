@@ -100,7 +100,7 @@ export class NPC {
       // a story person's hair and beard follow their kind only when the story says it (def.kind)
       palette, head, cape, look: look ?? def?.look ?? {}, pos: at, kind: def ? def.body ?? def.kind ?? null : kind });
     this.char = buildCharacter(dress ? { ...palette, cloak: dress.cloak, cloth: dress.cloth, legs: dress.legs } : palette);
-    this.char.pack.visible = !pooled && (def?.satchel ?? (!dress?.robe && Math.random() < 0.5));   // (a story person's own: def.satchel)
+    this.char.pack.visible = !pooled && !dress?.robe && Math.random() < 0.5;
     this.object = this.char.root;
     // their height: the look's (seeded), unless the story sets their size (children, elders: def.scale)
     this.object.scale.setScalar((scale ?? (dress?.height ?? 1)) * (dress?.size ?? 1));
