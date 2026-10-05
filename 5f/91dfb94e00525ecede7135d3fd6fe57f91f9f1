@@ -1,0 +1,31 @@
+scripts/bench/passes.mjs
+  s_1fd8d0e7b02dcf::t_2fe7f008489d1b 1-197
+scripts/bench/rooms.mjs
+  s_1fd8d0e7b02dcf::t_8941f0b78f68aa 1-75
+src/main.js
+  s_1fd8d0e7b02dcf::t_58cef8cda4752b 22,1016-1017,1054,1497
+src/materials.js
+  s_1fd8d0e7b02dcf::t_aa831c1b4bd5b0 949-961,968,972-977
+src/perf.js
+  s_1fd8d0e7b02dcf::t_7dfa662779164f 231-325
+src/water.js
+  s_1fd8d0e7b02dcf::t_7f2bacc0b9304c 364-366
+tests/interior-cull.test.js
+  s_1fd8d0e7b02dcf::t_c4f4756090a95c 1-121
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5f91dfb94e00525ecede7135d3fd6fe57f91f9f1",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
