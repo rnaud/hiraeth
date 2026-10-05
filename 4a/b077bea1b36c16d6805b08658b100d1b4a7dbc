@@ -1,0 +1,87 @@
+LORE.md
+  s_1fd8d0e7b02dcf::t_1425b23f3008db 359-364,484,510-512,521,523-525,528,534-539,551,582,613,644,735,760,788
+TODO.md
+  s_1fd8d0e7b02dcf::t_ea44a7f25c7bd7 69-81
+changelog.md
+  s_1fd8d0e7b02dcf::t_db3471efee566c 22-28
+docs/game-brief.md
+  s_1fd8d0e7b02dcf::t_a195c9ff62caa8 126,131
+docs/story-bible.md
+  s_1fd8d0e7b02dcf::t_45a4e6b98f16da 122-128,193,200-206,210-221,223-226,228,241,253,264,278,286,295
+docs/systems/progression.md
+  s_1fd8d0e7b02dcf::t_097351fc9aaec6 1-57
+src/audio.js
+  s_1fd8d0e7b02dcf::t_e44f643b4fdfc2 931-941
+src/bird.js
+  s_1fd8d0e7b02dcf::t_056f7f6a598c63 11-13,19-22,127-131,163,172,183,260,263,265-267,269-271,273,312-347,350-353,355,364-376,380-382
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_fb0e0f75f4e46a 22-28
+src/fluid-tool.js
+  s_1fd8d0e7b02dcf::t_90c9d43a46df54 695
+src/items.js
+  s_1fd8d0e7b02dcf::t_bc8ab65571f4cd 18-19,131-136,170
+src/levels/arzach.js
+  s_1fd8d0e7b02dcf::t_9f02d099b2c738 144-146,148-168
+src/levels/content.js
+  s_1fd8d0e7b02dcf::t_cc7663adac6e41 186-187,196
+src/levels/index.js
+  s_1fd8d0e7b02dcf::t_8d1a341c0ec67d 29-30,35-36
+src/levels/names.js
+  s_1fd8d0e7b02dcf::t_dd0b210eef70ff 21-26
+src/main.js
+  s_1fd8d0e7b02dcf::t_24a9bae960342e 56,242,483-484
+src/player.js
+  s_1fd8d0e7b02dcf::t_02b76a2b7035ea 737,872,888
+src/story/arzach-data.js
+  s_1fd8d0e7b02dcf::t_f45125a269959a 3-16,24-28,32-40,48-49,51-52,87,95,107,118-119,122-123,127,145
+src/story/arzach.js
+  s_1fd8d0e7b02dcf::t_5cdaea0bbe8a7d 7,11-13,15-19,26-27,44-109,121-132,177-239,313,404,406-407,413-419,421-425,435-436,453,472,526-527,530
+src/story/incal-data.js
+  s_1fd8d0e7b02dcf::t_0df7f4607749e0 18-20,26-27,31-37,61-70,415-419,422-442,456-459
+src/story/incal.js
+  s_1fd8d0e7b02dcf::t_4dad16521d04e8 8,24-27,90,230-234,245-247
+src/story/route.js
+  s_1fd8d0e7b02dcf::t_0803c9a8dbee13 11-16,25-27,37,39,45-46
+src/taxi.js
+  s_1fd8d0e7b02dcf::t_2e0f066dca4898 7,17-21,159-166,170-175,180,182,185,214-228,230
+src/temples/arzach.js
+  s_1fd8d0e7b02dcf::t_a19ffba0e217bc 8,314-316
+src/temples/incal-data.js
+  s_1fd8d0e7b02dcf::t_f9f12e8cf58d6b 10-11
+src/temples/incal.js
+  s_1fd8d0e7b02dcf::t_c31cbd35c9c13d 104-159,215-216,416
+src/temples/index.js
+  s_1fd8d0e7b02dcf::t_bcb57c5c3e7c9f 164-166
+tests/bazaar.test.js
+  s_1fd8d0e7b02dcf::t_17947632bf22ae 23
+tests/birds.test.js
+  s_1fd8d0e7b02dcf::t_f7e251cd764f7c 5,30-66
+tests/boxes.test.js
+  s_1fd8d0e7b02dcf::t_400505c3987889 74-75
+tests/route.test.js
+  s_1fd8d0e7b02dcf::t_0ad79ac8d1f94b 2,4,15,17-21,23,33-52,56-57,59,61-63,70-71,75-76,114-115,117,130,142
+tests/story-arzach.test.js
+  s_1fd8d0e7b02dcf::t_51b13ad883be0e 16-17,109,111-121,125-129,131,133-140,143-146,149,151-155,160,167-196,229
+tests/story-incal.test.js
+  s_1fd8d0e7b02dcf::t_12df1e46415cfc 233-282
+tests/taxi.test.js
+  s_1fd8d0e7b02dcf::t_3f9f608ba9c554 8-9,48,72-97
+tests/temples.test.js
+  s_1fd8d0e7b02dcf::t_49aeef50a48c30 26,510-519,523-525
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4ab077bea1b36c16d6805b08658b100d1b4a7dbc",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
