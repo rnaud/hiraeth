@@ -1,0 +1,61 @@
+scripts/unity-export/build-world.mjs
+  s_1fd8d0e7b02dcf::t_d6acbb22505af2 7-20,37-42,64,73
+scripts/unity-export/export-desert.mjs
+  s_1fd8d0e7b02dcf::t_e0721d63a43526 68-76,84,335-341
+scripts/unity-export/people.mjs
+  s_1fd8d0e7b02dcf::t_bf82f4a805e8d2 1-205
+unity/Memento/Assets/Memento/Runtime/BatchDriver.cs
+  s_1fd8d0e7b02dcf::t_a85cdf3ba8c99c 55-70,112,120-121,127,134,139,154,167,209
+unity/Memento/Assets/Memento/Runtime/Cape.cs
+  s_1fd8d0e7b02dcf::t_5eac6b328528e2 1-170
+unity/Memento/Assets/Memento/Runtime/Cape.cs.meta
+  s_1fd8d0e7b02dcf::t_7a17a209c5a9df 1-2
+unity/Memento/Assets/Memento/Runtime/Crowd.cs
+  s_1fd8d0e7b02dcf::t_dab201cd5f69db 21,43-44,56-58
+unity/Memento/Assets/Memento/Runtime/DesertStory.cs
+  s_1fd8d0e7b02dcf::t_3b7e20c29a2e58 108-110
+unity/Memento/Assets/Memento/Runtime/Figure.cs
+  s_1fd8d0e7b02dcf::t_01e231795cd59f 1-372
+unity/Memento/Assets/Memento/Runtime/Figure.cs.meta
+  s_1fd8d0e7b02dcf::t_f01d62eec72495 1-2
+unity/Memento/Assets/Memento/Runtime/Figures.cs
+  s_1fd8d0e7b02dcf::t_2fb3cf22700da9 1-229
+unity/Memento/Assets/Memento/Runtime/Figures.cs.meta
+  s_1fd8d0e7b02dcf::t_96e31f9b7c15ff 1-2
+unity/Memento/Assets/Memento/Runtime/Game.cs
+  s_1fd8d0e7b02dcf::t_e06d42eda37b12 47
+unity/Memento/Assets/Memento/Runtime/Hud.cs
+  s_1fd8d0e7b02dcf::t_6e030590c6d89e 65-71
+unity/Memento/Assets/Memento/Runtime/MementoLook.cs
+  s_1fd8d0e7b02dcf::t_72889cddf9d329 27-28
+unity/Memento/Assets/Memento/Runtime/Npc.cs
+  s_1fd8d0e7b02dcf::t_3afdfef6794a2c 29-33,37-44,66,108,110,121-152,155-156
+unity/Memento/Assets/Memento/Runtime/Play.cs
+  s_1fd8d0e7b02dcf::t_459ed829240e1b 28-29,61
+unity/Memento/Assets/Memento/Runtime/Player.cs
+  s_1fd8d0e7b02dcf::t_f1ba873370f81d 25-26,28,32-33,40-48,134,210,225,230,235,237,240-251
+unity/Memento/Assets/Memento/Runtime/WorldLoader.cs
+  s_1fd8d0e7b02dcf::t_1aa1697f7a98b5 26-29,85,108-125,142
+unity/Memento/Assets/Memento/Shaders/Figure.hlsl
+  s_1fd8d0e7b02dcf::t_196dc148b743b8 1-214
+unity/Memento/Assets/Memento/Shaders/Figure.hlsl.meta
+  s_1fd8d0e7b02dcf::t_9055be0b33b65b 1-7
+unity/Memento/Assets/Memento/Shaders/Surface.shader
+  s_1fd8d0e7b02dcf::t_0ac73e6488ce4f 41,47,57-58,127,131,165-174,209,238,240-242,323-329
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8c4143fb60bb27c3bad0b500b73b407d91d0ccd4",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
