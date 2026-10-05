@@ -3,6 +3,15 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.48', date: '2026-10-05', items: [
+    'The traveller looks their age now: a younger, warmer face with a few freckles, and a tousled fringe under the helmet.',
+    'The enamel star from the makers’ boxes sits on the helmet liner, inside the glass, instead of poking out through the top.',
+    'People have real hair instead of a round cap: a hairline at the brow, round the ears and at the nape, even under their hats. Beards follow the jaw, up the cheeks to the sideburns.',
+    'Every world’s people wear their own hairstyles: braids and curls in the desert, swept hair and bobs on the City-Shaft’s rim, tonsures at the bell monastery, crests and twin buns among the mechanics, long loose hair in the garden, locks in the swamp.',
+    'On the recordings, your father has his short brown hair and beard, and your mother her long dark hair down.',
+    'Faces speak with their words: people look happy, sad, angry or surprised as they say a line, their mouths move with each syllable, and their faces relax when they have finished.',
+    'The traveller’s face answers too: it follows what they say, and in a conversation they look the other person in the eye. The villager whose speech balloon is up near you says it with their face as well.',
+  ] },
   { v: '0.47', date: '2026-10-05', items: [
     'Metal now looks like metal: chrome, steel, brass, copper, iron and painted metal reflect the sky and the ground in flat bands and catch the sun in a crisp highlight. You’ll see it on the ship, the hoverbike, the taxi, your backpack, the Hangar’s machines, the listening stones, the bell and the market’s brass.',
     'Lights glow: lamps, crystals, signal lamps, portals and the makers’ mark have a bright core and a printed halo that spills their colour onto what’s nearby, strongest at night.',

@@ -265,7 +265,7 @@ To start after the current work lands. Ordered from easiest to most complex.
 
 - [ ] The night lantern on the backpack's frame stays floating beside your back when the tank goes
   into the hoverbike's socket.
-- [ ] The traveller's face inside the helmet is the plain male face the people use, and reads gaunt and
+- [x] The traveller's face inside the helmet is the plain male face the people use, and reads gaunt and
   older: give them their own, younger face. (A white star shape also pokes above the helmet in some
   tank shots.)
 - [x] Spaceship: the floor is flat, so the traveller doesn't bob up and down walking the deck.
@@ -285,10 +285,10 @@ To start after the current work lands. Ordered from easiest to most complex.
 
 ## Screens and presentation
 
-- [ ] Hair: everyone's hair is the same rounded cap, so it reads as a bowl cut (very visible on the
+- [x] Hair: everyone's hair is the same rounded cap, so it reads as a bowl cut (very visible on the
   parents' holograms). Real hairstyles. (Six real styles exist in the studio: crop, shaved, bald, curls,
   braid, flow. Still to do: give them to the tribes and the parents.)
-- [ ] Use the new face expressions in conversations (each line's tone drives the face).
+- [x] Use the new face expressions in conversations (each line's tone drives the face).
 
 - [x] Redesign the screens that say "Hello", "again", etc.: they feel out of place (find
   which cards these are and give them the airy title-screen look).
