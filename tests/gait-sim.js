@@ -6,7 +6,7 @@
 import * as THREE from 'three';
 import { readFile } from 'node:fs/promises';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { Humanoid } from '../src/humanoid.js';
+import { Humanoid, prepareHuman } from '../src/humanoid.js';
 import { buildCharacter, Player } from '../src/player.js';
 import { Physics } from '../src/physics.js';
 import { libraryFrom } from '../src/animator.js';
@@ -18,7 +18,7 @@ const parse = async (name) => {
 };
 let assets = null;
 export async function loadAssets() {
-  assets ??= Promise.all([parse('ual.glb'), parse('human_m.glb'), parse('human_f.glb')]).then(([ual, m, f]) => ({ lib: libraryFrom(ual), human: { m: m.scene, f: f.scene } }));
+  assets ??= Promise.all([parse('ual.glb'), parse('human_m.glb'), parse('human_f.glb')]).then(([ual, m, f]) => ({ lib: libraryFrom(ual), human: { m: prepareHuman(m.scene, 'm'), f: prepareHuman(f.scene, 'f') } }));
   return assets;
 }
 
