@@ -66,4 +66,4 @@ node scripts/bench/unity-bench.mjs --preset high --off Cape                     
 scripts/bench/android-run.sh                # on the handheld (USB debugging): the Unity APK and the web game in Chrome
 ```
 
-The Android build (`BenchBuild.Android`): `com.rnaud.memento.unity` (never the web app's `com.rnaud.moebius`), debug-signed, IL2CPP ARM64, Vulkan then GLES3. The desert's export is 439 MB as it is read; in the APK `world.bin` and `world.json` travel gzipped (439 → 65 MB) with the characters and sounds, and the first launch copies them out to the app's files (`DataFiles.cs`, a few seconds), so the same full desert runs on both sides.
+The Android build (`BenchBuild.Android`): `com.rnaud.memento.unity` (never the web app's `com.rnaud.moebius`), debug-signed, IL2CPP ARM64, Vulkan then GLES3. The desert's export is 142 MB as it is read (the levels of detail included; the flora as instances) and the shared store 210 MB; in the APK they travel gzipped (23 and 48 MB) with the characters and sounds, and the first launch copies them out to the app's files (`DataFiles.cs`, a few seconds), so the same full desert runs on both sides.

@@ -22,7 +22,8 @@ namespace Memento.EditorTools
     ///   Memento.EditorTools.BenchBuild.WebGL     a WebGL (WebGPU) build for the browser (-out, default Builds/WebGL)
     /// Each puts scripts/bench/viewpoints.json in StreamingAssets/bench. On Android and WebGL the export
     /// can't be read in place, so the copy of StreamingAssets in the build is listed in a
-    /// data-manifest.json and world.bin / world.json are shipped gzipped (as .gzip) (DataFiles.cs copies them out).
+    /// data-manifest.json and world.bin / world.json / shared.bin are shipped gzipped (as .gzip) (DataFiles.cs copies
+    /// them out). The APK carries the desert alone (-allWorlds: every world).
     /// Run with scripts/unity-export/unity-batch.sh BenchBuild.Android (etc.).
     /// </summary>
     public static class BenchBuild
@@ -161,7 +162,7 @@ namespace Memento.EditorTools
         }
 
         // ------------------------------------------------------------------ the export in a package
-        static readonly string[] Gzipped = { "world.bin", "world.json" };
+        static readonly string[] Gzipped = { "world.bin", "world.json", "shared.bin" };
 
         /// <summary>
         /// A build's copy of StreamingAssets (Android: the Gradle project's assets/; WebGL: Build/StreamingAssets):
@@ -215,7 +216,18 @@ namespace Memento.EditorTools
         public void OnPostGenerateGradleAndroidProject(string path)
         {
             var assets = Path.Combine(path, "src/main/assets");
-            if (Directory.Exists(assets)) BenchBuild.PackData(assets);
+            if (!Directory.Exists(assets)) return;
+            // (the handheld's benchmark is the desert: the other worlds' exports stay out, unless -allWorlds)
+            if (Array.IndexOf(Environment.GetCommandLineArgs(), "-allWorlds") < 0)
+                foreach (var d in Directory.GetDirectories(assets))
+                {
+                    var n = Path.GetFileName(d);
+                    if (!File.Exists(Path.Combine(d, "world.json")) || n == "desert") continue;
+                    Directory.Delete(d, true);
+                    var music = Path.Combine(assets, "sound", $"music_{n}.wav");   // (and that world's score)
+                    if (File.Exists(music)) File.Delete(music);
+                }
+            BenchBuild.PackData(assets);
         }
     }
 

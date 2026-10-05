@@ -67,7 +67,7 @@ The holo table, the rain, the sun rays, the observatory awake (web left, Unity r
    This writes `unity/Memento/Assets/StreamingAssets/<world>/` (world.json, world.bin, story.json)
    for each world, the shared store `StreamingAssets/shared/` (what every world shares: the
    traveller, the people's bodies and clips, the ship, the boxes) and copies the characters
-   (`public/anim/*.glb`) to `StreamingAssets/anim/`: about 3.6 GB in all, none of it committed.
+   (`public/anim/*.glb`) to `StreamingAssets/anim/`: about 1.8 GB in all, none of it committed.
    Run it again whenever a world changes on the web side (`--clean` starts the shared store afresh).
    The sounds are recorded from the web game in a second step (headless Chrome against a dev
    server on its own port; writes `StreamingAssets/sound/`, every effect and each world's score,
@@ -665,9 +665,9 @@ writes the player's back buffer itself (`_TargetFlip`).
 ### The Android build and the WebGL build (`Editor/BenchBuild.cs`)
 
 ```sh
-scripts/unity-export/unity-batch.sh BenchBuild.Android   # Builds/Android/memento-unity.apk (about 135 MB)
+scripts/unity-export/unity-batch.sh BenchBuild.Android   # Builds/Android/memento-unity.apk (about 150 MB; the desert alone, -allWorlds for every world)
 scripts/unity-export/unity-batch.sh BenchBuild.WebGL     # Builds/WebGL (WebGPU), served by scripts/bench/serve.mjs
-scripts/unity-export/unity-batch.sh BenchBuild.Mac       # Builds/macOS-bench/Memento.app, frame timing on (-development for the profiler markers)
+scripts/unity-export/unity-batch.sh BenchBuild.Mac       # Builds/macOS-bench/Memento.app: IL2CPP, ARM64, frame timing on (-mono: Mono; -development: the profiler markers)
 ```
 
 - **Android**: package `com.rnaud.memento.unity` ("Memento (Unity)"), never the
@@ -684,10 +684,11 @@ scripts/unity-export/unity-batch.sh BenchBuild.Mac       # Builds/macOS-bench/Me
   loaders read from there (`WorldLoader.DataPath`, `Sounds`, `Characters.AnimPath`
   all go through `DataFiles.Root`; on the desktop it is StreamingAssets itself).
   The full desert travels, not a reduced one, so the handheld runs what the Mac
-  runs: in the APK `world.bin` and `world.json` are gzipped (439 → 65 MB; named
-  `.gzip`, since the Android Gradle plugin gunzips `.gz` assets as it packs them)
-  and inflated on the way out; the characters and sounds go as they are. The APK
-  is about 135 MB and the copy about 490 MB on the device. (A Play Asset Delivery
+  runs: in the APK `world.bin`, `world.json` and the shared store are gzipped
+  (142 → 23 MB, 210 → 48 MB; named `.gzip`, since the Android Gradle plugin gunzips
+  `.gz` assets as it packs them) and inflated on the way out; the characters and
+  sounds go as they are, the other worlds and their scores stay out. The APK is
+  about 150 MB and the copy about 450 MB on the device. (A Play Asset Delivery
   pack would be the store's way; for a sideloaded APK this is simpler.)
 - **WebGL** uses WebGPU (WebGL 2 has no structured buffers in the vertex
   shader), no compression (the bench server is local), up to 4 GB of heap; the
@@ -709,9 +710,13 @@ the hour and the weather, turns vSync off (`-benchVsync`: on) and visits the
 viewpoints and paths of `scripts/bench/viewpoints.json` (the web side visits the
 same), timing every frame with `FrameTimingManager` and the render and memory
 counters (`ProfilerRecorder`), then writes one JSON file and quits. `-benchPreset
-handheld` maps the web's Handheld preset onto URP (render scale 0.75, two
-cascades, no cloud shadows). The comparison itself, its scripts and its results:
-`docs/benchmark-web-vs-unity.md`.
+handheld` takes the web's Handheld preset (`Quality.cs`: render scale 0.75, its
+levels of detail, culling and shadow schedule, no cloud shadows). Each view also
+records what the game's own systems cost and do (`systems`, `counts`: `Perf.cs`);
+`-benchDetail full` draws everything at full detail with nothing culled,
+`-benchShadows off` without the sun's shadows. The player is silent (`-bench`, as
+batch mode and `-mute`: `Sounds.Silent`). The comparison itself, its scripts and
+its results: `docs/benchmark-web-vs-unity.md`.
 
 ## What is missing (next steps)
 
