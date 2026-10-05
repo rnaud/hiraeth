@@ -11,7 +11,8 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 const el = () => ({ classList: { add() {}, remove() {}, toggle() {}, contains: () => false }, style: {}, dataset: {}, remove() {}, addEventListener() {}, querySelector: () => null, appendChild() {}, set textContent(v) {}, set innerHTML(v) {} });
 globalThis.document ??= { createElement: el, body: el(), getElementById: () => null, querySelector: () => null };
 globalThis.ProgressEvent ??= class { constructor(type, init) { Object.assign(this, { type }, init); } };
-const { FACE_LOD, FACE_HATCH_PX, faceDetail, noseSide, EAR_Z, FACE_INK_GLSL, FACE_ROUND } = await import('../src/face-ink.js');
+const { FACE_LOD, FACE_HATCH_PX, faceDetail, noseSide, EAR_Z, FACE_INK_GLSL, FACE_ROUND, faceYouth } = await import('../src/face-ink.js');
+const { PEOPLE: HOME } = await import('../src/story/home-data.js');
 const { makeMaterial, sharedUniforms, MODE_OUTFIT } = await import('../src/materials.js');
 const { Humanoid, prepareHuman, taperBrows } = await import('../src/humanoid.js');
 const { buildCharacter } = await import('../src/player.js');
@@ -85,6 +86,29 @@ test('on a body: the ears where the body\'s are, the nose\'s width and the cheek
     assert.ok(u.uMood2.value.y > 0.9);
     sun.copy(keep);
   }
+});
+
+test('a young face is drawn bare: a child\'s all but no marks, the traveller\'s few, the grown faces as they were', () => {
+  const lou = faceYouth(HOME.lou.face, HOME.lou.morph.headSize);
+  const trav = faceYouth(TRAVELLER.face);
+  assert.equal(lou, 1, 'Lou, seven: a child\'s face');
+  assert.ok(trav > 0.4 && trav < 0.75, `the traveller, about 26: young, not a child (${trav.toFixed(2)})`);
+  for (const k of ['As modelled', 'Gaunt elder', 'Sharp', 'Broad', 'Weathered']) assert.equal(faceYouth(FACE_PRESETS[k]), 0, `${k}: a grown face`);
+  assert.ok(faceYouth(FACE_PRESETS['Round, young']) > 0.2);
+  assert.equal(faceYouth({ young: 0.3, faceLength: 0.8 }), 0.3, 'an explicit face.young wins');
+  assert.ok(faceYouth({ eyeSize: 1.3, faceLength: 0.88, lines: 2 }) < faceYouth({ eyeSize: 1.3, faceLength: 0.88 }), 'age lines take it back');
+  // on a body: the skin and the eyes both know it (the lash line lightens too)
+  const h = new Humanoid(humans.m, buildCharacter(), 'm');
+  h.setMorph(HOME.lou.morph);
+  h.setFace(HOME.lou.face);
+  assert.equal(h.body.material.uniforms.uMood2.value.z, 1);
+  assert.equal(h.eyeMesh.material.uniforms.uMood2.value.z, 1);
+  h.setMorph(null);
+  h.setFace(null);
+  assert.equal(h.body.material.uniforms.uMood2.value.z, 0, 'a grown body, as modelled: a grown face');
+  // the GLSL scales the marks by it, and the brows are one flat stroke (no hatching inside)
+  assert.ok(FACE_INK_GLSL.includes('float young = uMood2.z'));
+  assert.equal(h.browMesh.material.defines.FACE_PART, 1);
 });
 
 test('the brows are one stroke each: thick at the inner end, thin at the outer', () => {

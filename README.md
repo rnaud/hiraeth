@@ -2484,6 +2484,14 @@ The Sealed Hangar, The Lodestar, Viridel): flat colour, one shadow tone, very fe
   socket, under the brow's end, the hollow under the cheekbone (more on hollow cheeks: `uFaceKit2.z`),
   under the lip, a few dashes along the shadow's edge. Age lines by `lines`: bags, crow's feet, the
   folds from the nose, a cheekbone line; frown creases and forehead lines with the brow.
+- **Young faces are drawn bare** (`faceYouth`, `uMood2.z`, on the skin and the eyes): an explicit
+  `face.young`, else read from the face's proportions (a short lower face, big eyes, a small nose,
+  a soft brow and chin, a big head), age lines taking it back. A child's face (home's Lou: 1) keeps
+  light lids, a tiny nose hook, a short soft mouth and a few small freckles: no hatching, no folds,
+  no bridge line, no forehead lines, no dashes at the shadow's edge; the traveller (about 0.57)
+  keeps a little of each; every grown face draws as before. The brows are one flat stroke
+  (`facePart`: no surface hatching inside them), and the shadow-edge dashes keep to a narrow band at
+  the terminator (a face turned from the light is flat, not hatched all over).
 - **Constant on screen, thinner with distance.** Widths are CSS pixels (a 1.3 px pen up close,
   0.7 on a small face); the detail comes in three steps by the face's height on screen
   (`FACE_LOD`): the mouth and the nose hook from 14 px, the small marks from 40 px, hatching and age
@@ -2495,7 +2503,7 @@ The Sealed Hangar, The Lodestar, Viridel): flat colour, one shadow tone, very fe
   keeps its own), none on the eyeballs. The head is lit as one rounded volume (`FACE_ROUND_GLSL`:
   the normals blend 0.72 of the way to a tall egg round the face, so the mouth and brow face
   forward), so its shade is one clean shape split down the nose instead of the low-poly mesh's
-  shards; the ink pass sees the skin's own facets for its creases. A face's pixels carry a flag
+  shards; the ink pass sees the same rounded normals, so the facets draw no creases across it. A face's pixels carry a flag
   (`gHatch.a` + 16): post.js draws no line round its shade and no crease shading over it (the
   sockets are hatched instead).
 - **Eyes** (`eyes.js`, `materials.js eyeball`): a crisp lash line along the lid's edge, heavier

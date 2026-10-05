@@ -755,7 +755,7 @@ const fragmentShader = /* glsl */ `
     c = mix(c, skin, smoothstep(-fy * 0.5, fy * 0.5, dy));
     // the lash line: a crisp pen line along the lid's edge (Moebius' heavy upper lid), heavier
     // toward the outer corner, coming down with the lid as they blink
-    float lash = fy * uPixelRatio * (1.3 + 0.6 * smoothstep(-0.6, 0.8, d.x * side));
+    float lash = fy * uPixelRatio * (1.3 + 0.6 * smoothstep(-0.6, 0.8, d.x * side)) * (1.0 - 0.35 * uMood2.z);   // (lighter on a young face)
     c = mix(c, EYE_INK, (1.0 - smoothstep(lash - fy * 0.6, lash + fy * 0.6, -dy)) * step(dy, fy * 0.5));
     return c;
   }
@@ -1102,8 +1102,8 @@ const fragmentShader = /* glsl */ `
     float lambert = ndl * 0.5 + 0.5;
     // the face takes cast shadows from outside its helmet only, keeping one clean shadow shape
     vec3 shadowAt = uPortrait > 0.5 ? vWorldPos + n * 0.22 : vWorldPos;
-    // (a person's face is lit as one rounded volume: faceRound; its facets for the ink pass, below)
-    vec3 facetN = cross(dFdx(vWorldPos), dFdy(vWorldPos));   // (outside the branch: derivatives)
+    // (a person's face is lit as one rounded volume, faceRound: the ink pass sees the same rounded
+    // normals, so the low-poly face's facets draw no creases across it)
     float shadowPx = max(length(dFdx(vWorldPos)), length(dFdy(vWorldPos)));   // (outside the branch: derivatives)
     float sh = ndl > 0.0 ? getShadow(shadowAt, n, ndl, shadowPx) * cloudShadow(vWorldPos) : 1.0;
     // Cast shadows clamp the light term below the toon threshold (0.5) but keep
@@ -1139,8 +1139,6 @@ const fragmentShader = /* glsl */ `
 
     gAlbedoLight = vec4(albedo, L);
     gNormalDepth = vec4(n, vViewDepth);
-    // (the ink pass's creases and crease shading see the skin's own facets, not the rounded light)
-    if (uMode == ${MODE_OUTFIT} && faceFlat(vBind) > 0.0) gNormalDepth.xyz = normalize(mix(n, normalize(facetN) * (dot(facetN, n) < 0.0 ? -1.0 : 1.0), faceFlat(vBind)));
     #ifdef WATER
       if (gl_FrontFacing && uWaterOpt.y < 0.5) gNormalDepth.xyz *= 1.0 + ${WATER_MARK.base} + ${WATER_MARK.glint} * wl.glint;   // (water.js: the sparkle)
     #endif
@@ -1228,7 +1226,11 @@ const fragmentShader = /* glsl */ `
     gHatch.b = detail;
     gHatch.a = max(max(uGlow, emit), smoothstep(0.15, 0.6, local) * 0.6) + 2.0 * uHero + 4.0 * uFigure;
     // a face (its skin and its eyes): post.js leaves out the line round its shade and the crease shading
-    if (uMode == ${MODE_EYE} || (uMode == ${MODE_OUTFIT} && faceFlat(vBind) > 0.5)) gHatch.a += 16.0;
+    bool facePart = uMode == ${MODE_EYE} || (uMode == ${MODE_OUTFIT} && faceFlat(vBind) > 0.5);
+    #ifdef FACE_PART
+      facePart = true;
+    #endif
+    if (facePart) gHatch.a += 16.0;
     #ifdef DISSOLVE
     gHatch.a = max(gHatch.a, dEdge);
     #endif
@@ -1257,6 +1259,9 @@ const fragmentShader = /* glsl */ `
     // a face is flat colour and one shadow tone: its strokes are its own (faceInk)
     if (uMode == ${MODE_OUTFIT}) gHatch.rg *= 1.0 - faceFlat(vBind);
     else if (uMode == ${MODE_EYE}) gHatch.rg = vec2(0.0);
+    #ifdef FACE_PART
+      gHatch.rg = vec2(0.0);
+    #endif
     #ifdef GRASS
       gHatch.rgb = vec3(0.0);            // blades: no hatching, no drawn detail
       gHatch.a += 8.0 * vGrassSoft;      // soft ink: post.js draws their edges as a darker green, thin
@@ -1291,6 +1296,7 @@ const cache = new Map();
  * @param {number}  [o.glow]    0..1 self-lit
  * @param {THREE.Side} [o.side]
  * @param {boolean} [o.figure]  part of a person: post.js draws its outline and inner ink by its size on screen
+ * @param {boolean} [o.facePart] part of a face drawn as one stroke (the brows): flat, no surface hatching, the face flag
  * @param {object}  [o.eye]     MODE_EYE: the eyeballs (eyes.js eyeballOf: { center, radii }, iris: its radius on the unit eye)
  * @param {string}  [o.iris]    the traveller's portrait face: its iris colour (face.js)
  * @param {number}  [o.sway]    instanced plants: the tip moves this much (m) per metre² of height (the base stays put)
@@ -1365,6 +1371,7 @@ export function makeMaterial(o) {
   });
   mat.vertexColors = !!o.vertexColors;
   if (o.crowd) mat.defines = { CROWD: 1 };
+  if (o.facePart) mat.defines = { ...mat.defines, FACE_PART: 1 };
   // strata bands in the object's own space, so they move with it (a moving or turning thing; mesas keep world bands)
   if (o.strataObject) mat.defines = { ...mat.defines, STRATA_OBJECT: 1 };
   if (o.sway) { mat.defines = { ...mat.defines, SWAY: 1 }; mat.uniforms.uSway = { value: o.sway }; }

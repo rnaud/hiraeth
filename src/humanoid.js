@@ -5,7 +5,7 @@ import { plantFeet, resetFeet } from './feet.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 import { makeMaterial, MODE_OUTFIT, MODE_EYE } from './materials.js';
-import { EAR_Z, noseSide } from './face-ink.js';
+import { EAR_Z, noseSide, faceYouth } from './face-ink.js';
 import { EyeLook, EYE_WHITE, EYE_TILT, TRAVELLER_IRIS, eyeballOf } from './eyes.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { lookPieces, roleColor, BUILDS } from './costumes.js';
@@ -302,7 +302,7 @@ export class Humanoid {
     model.traverse((o) => { if (o.isMesh && /eye/i.test(o.name) && !/brow/i.test(o.name) && !eyeball) eyeball = o.userData.eyeball ?? null; });
     const eyes = makeMaterial({ color: EYE_WHITE, color2: outfit ? TRAVELLER_IRIS : '#5e3a24', mode: MODE_EYE, skin, eye: eyeball ? { ...eyeball, iris: 0.4 } : undefined, figure: true });
     this.eyeLook = new EyeLook();
-    const brows = makeMaterial({ color: hair, figure: true });
+    const brows = makeMaterial({ color: hair, figure: true, facePart: true });   // (one flat stroke each: no hatching inside)
     model.traverse((o) => {
       if (!o.isMesh) return;
       const isBrow = /brow/i.test(o.name) || /hair/i.test(o.material?.name ?? '');
@@ -539,6 +539,11 @@ export class Humanoid {
       u.uFace.value.set(L[0], L[1], L[2], L[4]);
       u.uFaceKit.value.set(f.lines, f.mouthWidth, f.freckles, f.lidWeight);
       u.uFaceKit2.value.set(f.eyeSize, f.noseWidth, f.cheeks, EAR_Z[this.kind]);
+      // how young the face reads (face-ink.js faceYouth: a child's all but bare), on the skin and the eyes
+      this.youth = faceYouth({ ...f, young: face?.young }, this.morph?.headSize ?? 1);
+      u.uMood2.value.z = this.youth;
+      const ue = this.eyeMesh?.material.uniforms;
+      if (ue?.uMood2) ue.uMood2.value.z = this.youth;
     }
     this.poseBrows(true);
     this._browPosed = null;
