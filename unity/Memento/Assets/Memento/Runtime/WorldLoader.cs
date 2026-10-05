@@ -54,11 +54,13 @@ namespace Memento
             if (colliders)
             {
                 tgo.AddComponent<MeshCollider>().sharedMesh = Ground.mesh;
-                var col = World.O("collision");
-                var cm = BuildMesh(col, false);
                 var cgo = new GameObject("Collision"); cgo.transform.SetParent(transform, false);
-                cgo.AddComponent<MeshCollider>().sharedMesh = cm;
                 cgo.isStatic = true;
+                foreach (var col in World.L("collision"))
+                {
+                    var tile = new GameObject("collision tile"); tile.transform.SetParent(cgo.transform, false); tile.isStatic = true;
+                    tile.AddComponent<MeshCollider>().sharedMesh = BuildMesh(col as Dictionary<string, object>, false);
+                }
             }
 
             var dyn = new GameObject("Moving things").transform; dyn.SetParent(transform, false);

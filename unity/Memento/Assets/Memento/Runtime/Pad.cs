@@ -5,14 +5,14 @@ namespace Memento
 {
     /// <summary>
     /// Keyboard + mouse and controller, mapped as in the web game (src/controller.js):
-    /// left stick / WASD move, right stick / mouse look, A / × or Space jump, B / ○ or Shift
-    /// run (hold), X / □ or E interact, LB / L1 or Q the scout, View / Tab the journal,
-    /// Menu / Esc pause. Prompts are written in Xbox / PlayStation form. A scripted track
+    /// left stick / WASD move, right stick / mouse look, A / × or Space jump, L3 or Shift
+    /// run (hold), B / ○ or E interact (and get off the bike), RB / R1 or C push, LB / L1 or Q
+    /// the scout, View / Tab the journal, Y / △ or Esc close a panel. Prompts are written in Xbox / PlayStation form. A scripted track
     /// (<see cref="Script"/>) can drive it for batch tests.
     /// </summary>
     public static class Pad
     {
-        public class Track { public Vector2 move, look; public bool jump, run, interact, confirm, back; public int choice = -1; }
+        public class Track { public Vector2 move, look; public bool jump, run, interact, confirm, back, push; public int choice = -1; }
         public static Track Script;   // non-null: a test is playing (batch mode)
         static Track last = new Track();
 
@@ -38,13 +38,13 @@ namespace Memento
         }
         public static bool Jump() => Script != null ? Script.jump : (K?.spaceKey.isPressed ?? false) || (G?.buttonSouth.isPressed ?? false);
         public static bool JumpDown() => Script != null ? Edge(ref last.jump, Script.jump) : (K?.spaceKey.wasPressedThisFrame ?? false) || (G?.buttonSouth.wasPressedThisFrame ?? false);
-        public static bool Run() => Script != null ? Script.run : (K?.leftShiftKey.isPressed ?? false) || (G?.buttonEast.isPressed ?? false) || (G?.leftStickButton.isPressed ?? false);
-        public static bool InteractDown() => Script != null ? Edge(ref last.interact, Script.interact) : (K?.eKey.wasPressedThisFrame ?? false) || (G?.buttonWest.wasPressedThisFrame ?? false);
-        public static bool ConfirmDown() => Script != null ? Edge(ref last.confirm, Script.confirm) : (K?.enterKey.wasPressedThisFrame ?? false) || (K?.spaceKey.wasPressedThisFrame ?? false) || (K?.eKey.wasPressedThisFrame ?? false) || (G?.buttonSouth.wasPressedThisFrame ?? false);
-        public static bool BackDown() => Script != null ? Edge(ref last.back, Script.back) : (K?.escapeKey.wasPressedThisFrame ?? false) || (G?.buttonEast.wasPressedThisFrame ?? false);
+        public static bool Run() => Script != null ? Script.run : (K?.leftShiftKey.isPressed ?? false) || (G?.leftStickButton.isPressed ?? false);
+        public static bool InteractDown() => Script != null ? Edge(ref last.interact, Script.interact) : (K?.eKey.wasPressedThisFrame ?? false) || (G?.buttonEast.wasPressedThisFrame ?? false);
+        public static bool ConfirmDown() => Script != null ? Edge(ref last.confirm, Script.confirm) : (K?.enterKey.wasPressedThisFrame ?? false) || (K?.spaceKey.wasPressedThisFrame ?? false) || (K?.eKey.wasPressedThisFrame ?? false) || (G?.buttonSouth.wasPressedThisFrame ?? false) || (M?.leftButton.wasPressedThisFrame ?? false);
+        public static bool BackDown() => Script != null ? Edge(ref last.back, Script.back) : (K?.escapeKey.wasPressedThisFrame ?? false) || (G?.buttonNorth.wasPressedThisFrame ?? false);
         public static bool JournalDown() => Script == null && ((K?.tabKey.wasPressedThisFrame ?? false) || (K?.jKey.wasPressedThisFrame ?? false) || (G?.selectButton.wasPressedThisFrame ?? false));
         public static bool ScoutDown() => Script == null && ((K?.qKey.wasPressedThisFrame ?? false) || (G?.leftShoulder.wasPressedThisFrame ?? false));
-        public static bool PushDown() => Script == null && ((K?.cKey.wasPressedThisFrame ?? false) || (M?.middleButton.wasPressedThisFrame ?? false) || (G?.rightShoulder.wasPressedThisFrame ?? false));
+        public static bool PushDown() => Script != null ? Edge(ref last.push, Script.push) : ((K?.cKey.wasPressedThisFrame ?? false) || (M?.middleButton.wasPressedThisFrame ?? false) || (G?.rightShoulder.wasPressedThisFrame ?? false));
         public static bool BikeUpDown() => Script == null && ((K?.spaceKey.isPressed ?? false) || (G?.rightTrigger.ReadValue() ?? 0) > 0.3f);
         /// <summary>A number key / D-pad pick of a conversation choice (0-based), or -1.</summary>
         public static int ChoiceDown()

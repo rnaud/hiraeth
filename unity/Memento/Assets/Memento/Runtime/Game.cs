@@ -16,6 +16,17 @@ namespace Memento
         public Light sun;
         public static Game Instance;
         public bool Built { get; private set; }
+        // the play (Play.cs sets these up)
+        public GameState state;
+        public Quests quests;
+        public Hud hud;
+        public Player player;
+        public CameraRig rig;
+        public Crowd crowd;
+        public DesertStory story;
+        public Bike bike;
+        public readonly System.Collections.Generic.List<Npc> npcs = new();
+        public string prompt;
 
         void Awake()
         {

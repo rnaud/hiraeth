@@ -42,6 +42,7 @@ Shader "Memento/Surface"
     float4 _Color, _Color2, _Color3;
     float _Mode, _Flat, _StrataSize, _Grid, _Glyphs, _Biomes, _Ripples, _SandInk, _Ticks, _Glow, _Folds, _Scrub, _Pattern, _Figure, _Hero, _Sway, _StrataObject, _PaletteSize;
     float4 _Palette[12];
+    float4 _Skin;
 
     struct Attributes
     {
@@ -51,6 +52,7 @@ Shader "Memento/Surface"
       float2 uv : TEXCOORD0;
       float2 fold : TEXCOORD1;
       float4 sway : TEXCOORD2;   // plants: anchor x, z (Unity world), bend per metre of wind, brush lean
+      float3 bind : TEXCOORD3;   // people: the rest-pose position (outfit zones, Characters.cs)
     };
 
     // the wind bend of an instanced plant (materials.js SWAY), as a world displacement (Unity space)
@@ -102,6 +104,7 @@ Shader "Memento/Surface"
         float3 objRel : TEXCOORD6;      // objPos measured from the camera (facet normals stay exact far out)
         float2 fold : TEXCOORD7;
         float3 posWS : TEXCOORD8;       // Unity space (shadows)
+        float3 bind : TEXCOORD9;
       };
 
       Varyings vert(Attributes v)
@@ -121,6 +124,7 @@ Shader "Memento/Surface"
         float3 camOS = mul(UNITY_MATRIX_I_M, float4(_WorldSpaceCameraPos, 1.0)).xyz;
         o.objRel = o.objPos - toThree(camOS * scl);
         o.fold = v.fold;
+        o.bind = v.bind;
         return o;
       }
 
@@ -217,6 +221,16 @@ Shader "Memento/Surface"
         } else if (mode == MODE_WATER) {
           float w = vnoise(i.worldPos.xz * 0.012 + _MTime * 0.01);
           albedo = w > 0.55 ? _Color2.rgb : _Color.rgb;
+        } else if (mode == 4) {
+          // a person's printed outfit (materials.js MODE_OUTFIT): boots, trousers, belt, tunic, skin at the neck and hands
+          float3 b = i.bind; float ax = abs(b.x);
+          const float4 O = float4(0.13, 0.97, 1.47, 0.64);   // boot top, belt, neck, wrist (rest pose, m)
+          if ((b.y > O.z && ax < 0.16) || ax > O.w) albedo = _Skin.rgb;
+          else if (b.y < O.x) albedo = _Color3.rgb;
+          else if (abs(b.y - O.y) < 0.03 && ax < 0.25) albedo = _Color2.rgb * 0.6 + float3(0.33, 0.24, 0.1);
+          else if (b.y < O.y) albedo = _Color2.rgb;
+          else if (ax > O.w - 0.05) albedo = _Color.rgb * 0.75;
+          else albedo = _Color.rgb;
         }
         float patInk = 0.0;
         int pattern = (int)(_Pattern + 0.5);

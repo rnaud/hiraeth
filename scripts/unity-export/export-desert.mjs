@@ -22,7 +22,7 @@
 // Unity yaw -h. The shaders mirror world positions back before every procedural
 // pattern, so the dunes, strata and ripples land exactly where they do on the web.
 import { buildDesertWorld } from './build-world.mjs';
-import { writeFileSync, mkdirSync } from 'node:fs';
+import { writeFileSync, mkdirSync, copyFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -87,7 +87,16 @@ const dyn = {
 for (const b of boxes.list) dyn[`box:${b.id}`] = b.parts.root;
 for (const [k, o] of Object.entries(dyn)) if (o) skip.add(o); else console.warn(`no ${k}`);
 // the procession's banners and lanterns (crowd props, moved every frame) and the story's crowd figures
-for (const r of W.storyRoots) if (r.position.lengthSq() === 0 && !r.name.startsWith('Item box') && r.name !== 'Box beacons') skip.add(r);
+for (const r of W.storyRoots) if ((r.position.lengthSq() === 0 && !r.name.startsWith('Item box')) || r.name === 'Box beacons') skip.add(r);
+// the flora: the game fills its instances by the camera every frame (flora.js); here, every plant at once
+for (const set of flora?.sets ?? []) {
+  const m = set.mesh, n = set.M.length / 16;
+  m.instanceMatrix = new THREE.InstancedBufferAttribute(set.M, 16);
+  m.instanceColor = new THREE.InstancedBufferAttribute(set.C, 3);
+  m.count = n;
+  m.userData.dynamic = false;
+}
+if (flora?.collider) { scene.add(flora.collider); flora.collider.updateMatrixWorld(true); }
 const isSkipped = (o) => { for (let p = o; p; p = p.parent) if (skip.has(p)) return true; return false; };
 const noCollide = (o, stop = null) => { for (let p = o; p && p !== stop; p = p.parent) if (p.userData.noCollide) return true; return false; };
 const hidden = (o, stop = null) => { for (let p = o; p && p !== stop; p = p.parent) if (!p.visible) return true; return false; };
@@ -208,8 +217,20 @@ scene.traverse((o) => {
   if (o.isInstancedMesh) { const M = new THREE.Matrix4(); for (let i = 0; i < o.count; i++) { o.getMatrixAt(i, M); M.premultiply(o.matrixWorld); add(M); } }
   else add(o.matrixWorld);
 });
-const collision = { vertices: colP.length / 3, indices: colI.length, pos: blob(new Float32Array(colP)).at, idx: blob(new Uint32Array(colI)).at };
-console.log(`collision: ${colI.length / 3} triangles`);
+// in 256 m tiles (smaller meshes cook faster and more robustly), each triangle both ways round
+// (physics.js casts against both sides; PhysX meshes are one-sided)
+const colTiles = new Map();
+for (let t = 0; t < colI.length; t += 3) {
+  const a = colI[t], b = colI[t + 1], c = colI[t + 2];
+  const cx = (colP[a * 3] + colP[b * 3] + colP[c * 3]) / 3, cy = (colP[a * 3 + 1] + colP[b * 3 + 1] + colP[c * 3 + 1]) / 3, cz = (colP[a * 3 + 2] + colP[b * 3 + 2] + colP[c * 3 + 2]) / 3;
+  const key = `${Math.floor(cx / TILE)}:${Math.floor(cy / TILE)}:${Math.floor(cz / TILE)}`;
+  let tl = colTiles.get(key); if (!tl) colTiles.set(key, (tl = { P: [], I: [] }));
+  const base = tl.P.length / 3;
+  for (const v of [a, b, c]) tl.P.push(colP[v * 3], colP[v * 3 + 1], colP[v * 3 + 2]);
+  tl.I.push(base, base + 1, base + 2, base, base + 2, base + 1);
+}
+const collision = [...colTiles.values()].map((tl) => ({ vertices: tl.P.length / 3, indices: tl.I.length, pos: blob(new Float32Array(tl.P)).at, idx: blob(new Uint32Array(tl.I)).at }));
+console.log(`collision: ${colI.length / 3} triangles in ${collision.length} tiles`);
 
 // the terrain: heights on the grid (three's index layout; Unity mirrors x when it builds the mesh)
 const terrainOut = { size: terrain.size, seg: terrain.seg, n: terrain.n, heights: blob(terrain.heights).at, material: materialOf(terrain.mesh.material) };
@@ -220,10 +241,11 @@ const Q4 = (q) => [+q.x.toFixed(6), +(-q.y).toFixed(6), +(-q.z).toFixed(6), +q.w
 for (const [name, o] of Object.entries(dyn)) {
   if (!o) continue;
   o.updateMatrixWorld(true);
-  o.matrixWorld.decompose(_pos, _quat, _scl);
-  const frame = new THREE.Matrix4().compose(_pos, _quat, new THREE.Vector3(1, 1, 1));
-  const parts = collect(o, frame);
-  objects.push({ name, position: V3(_pos), rotation: Q4(_quat), scale: [_scl.x, _scl.y, _scl.z].map((v) => +v.toFixed(4)), visible: !hidden(o), parts });
+  const pos = new THREE.Vector3(), quat = new THREE.Quaternion(), scl = new THREE.Vector3();
+  o.matrixWorld.decompose(pos, quat, scl);
+  const frame = new THREE.Matrix4().compose(pos, quat, new THREE.Vector3(1, 1, 1));
+  const parts = collect(o, frame);   // (collect uses the module's scratch vectors: keep our own)
+  objects.push({ name, position: V3(pos), rotation: Q4(quat), scale: [scl.x, scl.y, scl.z].map((v) => +v.toFixed(4)), visible: !hidden(o), parts });
 }
 
 // ---------------------------------------------------------------- the look: time of day and the print preset
@@ -295,6 +317,8 @@ const world = {
   version: 1, exported: new Date().toISOString(), tile: TILE,
   frame: 'Unity: x mirrored from three.js (x -> -x), y up, metres; headings are Unity yaw in radians',
   materials, chunks: statics, collision, terrain: terrainOut, objects, look, places, people, crowd: crowdOut, fires, lights,
+  // walking into one puts you at its other end (the skull's mouth and the cave passage, doorways into rooms)
+  portals: (level.portals ?? []).filter((p) => p.at && p.to).map((p) => ({ at: V3(p.at), r: p.r ?? 1.5, to: V3(p.to), heading: -(p.heading ?? 0), label: p.label ?? '' })),
   ship: { site: places.shipSite, ramp: places.shipRamp },
   flora: { count: flora?.count ?? 0 },
 };
@@ -309,4 +333,8 @@ mkdirSync(OUT, { recursive: true });
 writeFileSync(resolve(OUT, 'world.bin'), Buffer.concat(chunks));
 writeFileSync(resolve(OUT, 'world.json'), JSON.stringify(world));
 writeFileSync(resolve(OUT, 'story.json'), JSON.stringify(story, null, 1));
+// the people: the traveller and the Quaternius bodies with their animation library, as they are (glTFast loads them)
+const ANIM = resolve(OUT, '../anim');
+mkdirSync(ANIM, { recursive: true });
+for (const f of ['traveller.glb', 'human_m.glb', 'human_f.glb', 'ual.glb']) copyFileSync(resolve(here, '../../public/anim', f), resolve(ANIM, f));
 console.log(`wrote ${OUT}: world.bin ${(offset / 1e6).toFixed(1)} MB, ${objects.length} objects, ${people.length} people, ${fires.length} fires, ${Date.now() - t0} ms`);

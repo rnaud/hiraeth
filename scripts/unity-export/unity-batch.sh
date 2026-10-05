@@ -10,7 +10,8 @@ UNITY=${UNITY:-/Applications/Unity/Hub/Editor/6000.6.4f1/Unity.app/Contents/MacO
 METHOD=$1; shift
 mkdir -p "$ROOT/unity/Memento/Logs"
 LOG=${LOG:-$ROOT/unity/Memento/Logs/batch-$METHOD.log}
-"$UNITY" -batchmode -quit -projectPath "$ROOT/unity/Memento" -executeMethod "Memento.EditorTools.Batch.$METHOD" -logFile "$LOG" "$@" > /dev/null 2>&1
+QUIT=-quit; [ "$METHOD" = Play ] && QUIT=
+"$UNITY" -batchmode $QUIT -projectPath "$ROOT/unity/Memento" -executeMethod "Memento.EditorTools.Batch.$METHOD" -logFile "$LOG" "$@" > /dev/null 2>&1
 STATUS=$?
 grep -n "error CS\|Shader error\|Exception\|Memento:" "$LOG" | grep -v Licensing | head -40
 exit $STATUS

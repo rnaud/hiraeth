@@ -101,7 +101,7 @@ namespace Memento.EditorTools
             var file = Arg("-shots"); var outDir = Arg("-out", "Shots");
             Directory.CreateDirectory(outDir);
             EditorSceneManager.OpenScene(ScenePath);
-            var game = UnityEngine.Object.FindFirstObjectByType<Game>();
+            var game = UnityEngine.Object.FindAnyObjectByType<Game>();
             game.BuildForEditor();
             var views = Json.Parse(File.ReadAllText(file)) as List<object>;
             int w = int.Parse(Arg("-w", "1280")), h = int.Parse(Arg("-h", "720"));
@@ -114,6 +114,25 @@ namespace Memento.EditorTools
                 Capture(game.cam, eye, target, v.F("fov", 55), w, h, Path.Combine(outDir, v.S("name") + ".png"));
             }
             Debug.Log($"Memento: {views.Count} shots in {outDir}");
+        }
+
+        /// <summary>Play the desert in play mode with the scripted play-through (BatchDriver), saving frames to -out; exits when done.</summary>
+        public static void Play()
+        {
+            var outDir = Path.GetFullPath(Arg("-out", "Shots/play"));
+            EditorSettings.enterPlayModeOptionsEnabled = true;
+            EditorSettings.enterPlayModeOptions = EnterPlayModeOptions.DisableDomainReload | EnterPlayModeOptions.DisableSceneReload;
+            EditorSceneManager.OpenScene(ScenePath);
+            double started = EditorApplication.timeSinceStartup;
+            EditorApplication.playModeStateChanged += s =>
+            {
+                if (s != PlayModeStateChange.EnteredPlayMode) return;
+                var d = new GameObject("Batch driver").AddComponent<BatchDriver>();
+                d.outDir = outDir;
+                BatchDriver.Finished += ok => { Debug.Log($"Memento: play-through {(ok ? "complete" : "INCOMPLETE")}"); EditorApplication.Exit(ok ? 0 : 3); };
+            };
+            EditorApplication.update += () => { if (EditorApplication.timeSinceStartup - started > 420) { Debug.LogError("Memento: play-through timed out"); EditorApplication.Exit(4); } };
+            EditorApplication.EnterPlaymode();
         }
 
         public static void Capture(Camera cam, Vector3 eye, Vector3 target, float fov, int w, int h, string path)
