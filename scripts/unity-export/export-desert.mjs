@@ -335,6 +335,23 @@ const flameOf = (f, name) => {
 flameOf(city.flames, 'tree');
 for (const [i, f] of (Q.fires ?? []).entries()) flameOf(f.flames ?? f, `fire${i}`);
 const lights = level.lights.filter((l) => l.y > -1e4).map((l) => [-l.x, l.y, l.z, l.w]);
+// smoke and embers (src/story/flames.js): the burning tree's landmark column, its embers, the camp fires' smoke
+const hex = (c) => '#' + c.getHexString();
+const fx = { column: null, embers: [], smokes: [] };
+{
+  const c = city.smoke;
+  if (c) fx.column = { at: V3(c.at), count: c.items.length, height: c.height, drift: c.drift, base: c.base, top: c.top, period: c.period, palette: c.palA.map(hex), tint: hex(c.tint), glow: c.material.uniforms.uGlow?.value ?? 0.92, wind: V3(c.wind) };
+  const e = city.embers;
+  if (e) fx.embers.push({ sources: e.sources.map(V3), count: e.items.length, rise: e.rise, life: e.life, spread: e.spread, size: e.mesh.geometry.parameters?.radius ?? 0.6, color: hex(e.mesh.material.uniforms.uColor.value) });
+  scene.traverse((o) => {
+    if (!o.isInstancedMesh || !o.userData.dynamic || o.name) return;
+    const g = o.geometry?.parameters;
+    // (the camp fires' Smoke: an icosahedron of detail 1, glow 0.8)
+    if (o.geometry.type === 'IcosahedronGeometry' && g?.detail === 1 && Math.abs((o.material.uniforms?.uGlow?.value ?? 0) - 0.8) < 1e-3) fx.smokes.push({ count: o.count, color: hex(o.material.uniforms.uColor.value) });
+  });
+}
+// (made in camp order: the fires' order) at 1 m over each fire, as desert-city.js places them
+fx.smokes.forEach((sm, i) => { const f = camps.fires[i]; if (!f) return; const big = sm.count >= 18; Object.assign(sm, { at: V3(new THREE.Vector3(f.x, f.y + 1, f.z)), height: big ? 26 : 16, size: big ? 1.25 : 0.9 }); });
 
 // the ship's places and the prologue's path (src/ship/cinematics.js PrologueDirector)
 const shipOut = (() => {
@@ -354,7 +371,7 @@ const shipOut = (() => {
 const world = {
   version: 1, exported: new Date().toISOString(), tile: TILE,
   frame: 'Unity: x mirrored from three.js (x -> -x), y up, metres; headings are Unity yaw in radians',
-  materials, chunks: statics, collision, terrain: terrainOut, objects, look, places, people, crowd: crowdOut, fires, lights,
+  materials, chunks: statics, collision, terrain: terrainOut, objects, look, places, people, crowd: crowdOut, fires, lights, fx,
   // walking into one puts you at its other end (the skull's mouth and the cave passage, doorways into rooms)
   portals: (level.portals ?? []).filter((p) => p.at && p.to).map((p) => ({ at: V3(p.at), r: p.r ?? 1.5, to: V3(p.to), heading: -(p.heading ?? 0), label: p.label ?? '' })),
   ship: { site: places.shipSite, ramp: places.shipRamp, ...shipOut },

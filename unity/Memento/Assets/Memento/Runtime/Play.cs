@@ -65,6 +65,7 @@ namespace Memento
             game.ship = new GameObject("Ship").AddComponent<ShipScene>();
             game.ship.transform.SetParent(transform, false);
             game.ship.Init(game, storyData);
+            gameObject.AddComponent<FireFx>().Build(game.world.World.O("fx"));
             game.tool = gameObject.AddComponent<FluidTool>();
             game.tool.Init(game);
             game.world.ReleaseBin();

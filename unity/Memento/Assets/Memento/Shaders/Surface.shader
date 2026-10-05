@@ -94,9 +94,20 @@ Shader "Memento/Surface"
       #pragma fragment frag
       #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
       #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
-      #pragma multi_compile_local _ MEMENTO_CROWD
+      #pragma multi_compile_local _ MEMENTO_CROWD MEMENTO_PUFFS
       #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
       #include "Crowd.hlsl"
+      // instanced puffs (smoke, embers, dust, footprints: Puffs.cs): where, how big, which way, what colour
+      struct PuffInst { float4 at; float4 size; float4 col; };   // at.w yaw, size.w pitch, col.w roll (rad, Unity)
+      StructuredBuffer<PuffInst> _Puffs;
+      float4 _FarDepth;   // x: from this view depth on, y: the depth grows this much slower (smoke-column far shading); 0 off
+      float3 rotXYZ(float3 v, float3 e)
+      {
+        float cx = cos(e.x), sx = sin(e.x), cy = cos(e.y), sy = sin(e.y), cz = cos(e.z), sz = sin(e.z);
+        v = float3(cz * v.x - sz * v.y, sz * v.x + cz * v.y, v.z);       // roll
+        v = float3(v.x, cx * v.y - sx * v.z, sx * v.y + cx * v.z);       // pitch
+        return float3(cy * v.x + sy * v.z, v.y, -sy * v.x + cy * v.z);  // yaw
+      }
 
       struct Varyings
       {
@@ -152,6 +163,19 @@ Shader "Memento/Surface"
           o.objPos = cp * cs; o.objNormal = cn / cs; o.objRel = o.objPos - toThree(_WorldSpaceCameraPos);
           o.bind = v.positionOS.xyz;
           o.crowdTrim = ctrim;
+        #endif
+        #if defined(MEMENTO_PUFFS)
+          PuffInst pi = _Puffs[v.iid];
+          float3 e3 = float3(pi.size.w, pi.at.w, pi.col.w);
+          float3 lp = v.positionOS.xyz * pi.size.xyz;
+          posWS = pi.at.xyz + rotXYZ(lp, e3);
+          nWS = normalize(rotXYZ(v.normalOS / max(pi.size.xyz, 1e-4), e3));
+          o.positionCS = TransformWorldToHClip(posWS);
+          o.posWS = posWS; o.worldPos = toThree(posWS); o.normal = toThree(nWS);
+          o.instColor = pi.col.rgb;
+          o.viewDepth = -TransformWorldToView(posWS).z;
+          o.objPos = toThree(lp); o.objNormal = toThree(v.normalOS); o.objRel = o.objPos - toThree(_WorldSpaceCameraPos - pi.at.xyz);
+          o.bind = 0;
         #endif
         return o;
       }
@@ -313,7 +337,7 @@ Shader "Memento/Surface"
         L = lerp(L, 1.0, dEdge);
         GBufferOut o;
         o.albedoLight = float4(albedo, L);
-        o.normalDepth = float4(n, i.viewDepth);
+        o.normalDepth = float4(n, _FarDepth.x > 0 && i.viewDepth > _FarDepth.x ? _FarDepth.x + (i.viewDepth - _FarDepth.x) * _FarDepth.y : i.viewDepth);
         o.hatch = 0;
 
         // drawn detail (gHatch.b)
