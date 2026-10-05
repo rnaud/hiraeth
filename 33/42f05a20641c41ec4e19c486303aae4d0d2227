@@ -1,0 +1,37 @@
+.github/workflows/cloudflare.yml
+  s_b098a73ec1a533::t_d7b9d1d5fd9316 1-39
+.gitignore
+  s_b098a73ec1a533::t_bfc128affb219d 22-29
+changelog.md
+  s_b098a73ec1a533::t_20544c68ad53c5 7
+docs/cloudflare.md
+  s_b098a73ec1a533::t_6b9c788d977e57 1-77
+package-lock.json
+  s_b098a73ec1a533::t_922ead634c7767 19-20,75-1226,1388-1415,1426-1454,1735-1754,1879-1885,1972-1985,2069-2120,2579-2596,2740-2753,2959-3008,3157-3169,3245-3254,3262-3271,3404-3460,3479-3500,3569-3593
+package.json
+  s_b098a73ec1a533::t_793799611498eb 9-13,24-25
+scripts/check-deployment.mjs
+  s_b098a73ec1a533::t_652ad978d61bc5 1-36
+src/changelog.js
+  s_b098a73ec1a533::t_561c9100ea9245 7
+wrangler.jsonc
+  s_b098a73ec1a533::t_dbc65dc0e72892 1-14
+README.md
+  s_b098a73ec1a533::t_26494c7525add3 8-9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3342f05a20641c41ec4e19c486303aae4d0d2227",
+  "prompts": {},
+  "sessions": {
+    "s_b098a73ec1a533": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a10c82-0ebe-7610-8af1-a76f64fb3b0c",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
