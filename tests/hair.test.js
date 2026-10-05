@@ -79,7 +79,7 @@ test('the crowd packs head ids past 32 with the hair cap, and the figures stay l
   // (the vertex budgets the crowd was built to: tests/costumes.test.js checks every world's)
   for (const world of MAIN) {
     const mid = figureGeometry('mid', world);
-    assert.ok(mid.attributes.position.count < 1700 && mid.index.count / 3 < 1500, world);
+    assert.ok(mid.attributes.position.count < 2500 && mid.index.count / 3 < 2500, world);
   }
 });
 

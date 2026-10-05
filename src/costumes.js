@@ -941,7 +941,7 @@ export const HEADS = {
   straw: { cap: true, cover: { t: 0.03, front: 32, side: 28, back: 24 }, parts: (q) => [
     P('hat', lathe([[0.36, 0.07], [0.33, 0.074], [0.2, 0.08], [0.13, 0.083], [0.128, 0.09], [0.124, 0.14], [0.11, 0.15], [0, 0.152]], q, 22), true),
     P('accent', cyl(0.134, 0.133, 0.026, q, 16, true).translate(0, 0.098, 0)),
-    P('accent', box(0.03, 0.12, 0.004).rotateX(0.35).translate(0.05, 0.04, -0.15)),
+    ...Pq('accent', q < 1 ? null : box(0.03, 0.12, 0.004).rotateX(0.35).translate(0.05, 0.04, -0.15)),
   ] },
   // a narrow-brimmed hat, its crown pinched at the front, a band
   trilby: { cap: true, cover: { t: 0.03, front: 40, side: 32, back: 26 }, parts: (q) => [
@@ -957,7 +957,7 @@ export const HEADS = {
   peak: { cap: true, cover: { t: 0.008, front: 20, side: 18, back: 4 }, parts: (q, l) => [
     P('hat', shell(q, { kind: kindOf(l), t: 0.014, front: 34, side: 22, back: 4, flat: 0.97 })),
     P('hat', visor(q, kindOf(l), 34, 0.075, 0.014, 70)),
-    P('accent', sphere(0.012, q, 6, 4).scale(1, 0.6, 1).translate(0, 0.128, -0.005)),
+    ...Pq('accent', q < 1 ? null : sphere(0.012, q, 6, 4).scale(1, 0.6, 1).translate(0, 0.128, -0.005)),
   ] },
   // a flat cap sloping forward to a short peak
   flatcap: { cap: true, cover: { t: 0.008, front: 18, side: 18, back: 6, top: 0.102 }, parts: (q, l) => [
@@ -968,7 +968,7 @@ export const HEADS = {
   beanie: { cap: true, cover: { t: 0.01, front: 30, side: 12, back: -8 }, parts: (q, l) => [
     P('hat', shell(q, { kind: kindOf(l), t: 0.016, front: 30, side: 12, back: -8, bulge: 0.012, rows: 7 }), true),
     P('accent', rim(q, { kind: kindOf(l), t: 0.016, front: 30, side: 12, back: -8, h: 13, r: 0.01, cols: q < 1 ? 16 : 28 })),
-    ...Pq('accent', hashSeed(`${l?.hat}|${l?.hair}`) % 3 === 0 ? sphere(0.03, q, 8, 6).translate(0, 0.146, -0.01) : null),
+    ...Pq('accent', q >= 1 && hashSeed(`${l?.hat}|${l?.hair}`) % 3 === 0 ? sphere(0.03, q, 8, 6).translate(0, 0.146, -0.01) : null),
   ] },
   // a fur hat with its ear-flaps down and its front flap turned up
   trapper: { cap: true, cover: { t: 0.012, front: 32, side: -52, back: -10 }, parts: (q, l) => {
@@ -1002,7 +1002,7 @@ export const HEADS = {
   kerchief: { cap: false, parts: (q, l) => {
     const k = kindOf(l);
     return [
-      P('hat', shell(q, { kind: k, t: 0.012, front: 36, side: -28, back: -62, rows: q < 1 ? 6 : 9, cols: q < 1 ? 20 : 28, bulge: 0.004 }), true),
+      P('hat', shell(q, { kind: k, t: 0.012, front: 36, side: -28, back: -62, rows: q < 1 ? 6 : 9, cols: q < 1 ? 20 : 28, bulge: 0.004 })),
       ...(q < 1 ? [] : [P('hat', sphere(0.02, q, 8, 6).scale(1.3, 0.8, 0.9).translate(0, -0.15, 0.07)),
         ...[1, -1].map((s) => P('hat', box(0.024, 0.07, 0.005).rotateZ(s * 0.25).translate(s * 0.012, -0.19, 0.072)))]),
     ];
@@ -1014,7 +1014,7 @@ export const HEADS = {
   // a thin band round the brow, a stone at the front
   circlet: { cap: true, cover: { t: 0.002, front: 25, side: 15, back: 3, band: 8 }, parts: (q, l) => [
     P('metal', rim(q, { kind: kindOf(l), t: 0.006, front: 26, side: 16, back: 4, h: 5, r: 0.004, cols: 24 })),
-    P('accent', sphere(0.011, q, 6, 4).translate(...onSkull(SKULL[kindOf(l)], 0, 29 * DEG, 0.012))),
+    ...Pq('accent', q < 1 ? null : sphere(0.011, q, 6, 4).translate(...onSkull(SKULL[kindOf(l)], 0, 29 * DEG, 0.012))),
   ] },
   // a miner's hard hat: a ridge, a short brim, a lamp at the front
   helmet: { cap: false, parts: (q, l) => {
@@ -1165,7 +1165,7 @@ export const MASKS = {
   ],
   scarfmask: (q) => [
     P('accent', faceCloth(q, [[-0.008, 0.08, 0.112], [-0.04, 0.08, 0.124], [-0.075, 0.07, 0.118], [-0.105, 0.06, 0.11], [-0.128, 0.056, 0.104, 0.1, 0.04]], 1.45), true),
-    P('accent', ellipseTube(q, { rx: 0.095, front: 0.1, back: 0.11, y: -0.012, az0: 84, az1: 276, r: 0.005 })),
+    ...Pq('accent', q < 1 ? null : ellipseTube(q, { rx: 0.095, front: 0.1, back: 0.11, y: -0.012, az0: 84, az1: 276, r: 0.005 })),
   ],
   // (wound: every other row stands out, so the turns of the cloth read)
   facewrap: (q) => [P('hat', faceCloth(q, [[-0.014, 0.094, 0.108, 0.104], [-0.03, 0.1, 0.128, 0.108], [-0.05, 0.096, 0.121, 0.102], [-0.075, 0.084, 0.124, 0.097],
@@ -1181,6 +1181,7 @@ export const MASKS = {
  * face within ±open rad (π: all round, the neck too); `drop` (m) lets a row hang lower at the front (a point).
  */
 function faceCloth(q, rows, open = 1.75) {
+  if (q < 1 && rows.length > 4) rows = rows.filter((_, i) => i % 2 === 0 || i === rows.length - 1);
   const cols = sg(open >= Math.PI - 1e-6 ? 22 : 14, q), pos = [];
   for (let j = 0; j <= cols; j++) {
     const az = -open + (2 * open * j) / cols, c = Math.cos(az);
@@ -1240,7 +1241,7 @@ export const BODIES = {
   // (stage 3) a kerchief knotted at the throat, its point down the chest
   neckerchief: (q) => [
     P('accent', torus(0.085, 0.016, q, 14, 5).scale(1, 1, 1.12).rotateX(Math.PI / 2 - 0.18).translate(0, 0.745, 0.012)),
-    P('accent', sphere(0.022, q, 7, 5).scale(1.2, 0.9, 0.8).translate(0, 0.705, 0.1)),
+    ...Pq('accent', q < 1 ? null : sphere(0.022, q, 7, 5).scale(1.2, 0.9, 0.8).translate(0, 0.705, 0.1)),
     P('accent', cone(0.055, 0.12, q, 3).rotateX(Math.PI).scale(1, 1, 0.25).rotateX(-0.25).translate(0, 0.64, 0.11)),
   ],
   // (stage 3) goggles hung round the neck
@@ -1257,7 +1258,7 @@ export const BODIES = {
   // (stage 3) a thick muffler wound round the neck, its two ends hanging in front
   muffler: (q) => [
     P('accent', torus(0.092, 0.038, q, 14, 6).rotateX(Math.PI / 2).translate(0, 0.75, 0.005)),
-    P('accent', torus(0.09, 0.03, q, 12, 5).rotateX(Math.PI / 2 + 0.25).translate(0, 0.705, 0.012)),
+    ...Pq('accent', q < 1 ? null : torus(0.09, 0.03, q, 12, 5).rotateX(Math.PI / 2 + 0.25).translate(0, 0.705, 0.012)),
     P('accent', box(0.06, 0.24, 0.016).rotateZ(0.08).rotateX(-0.2).translate(0.045, 0.6, 0.115)),
     P('accent', box(0.055, 0.17, 0.016).rotateZ(-0.12).rotateX(-0.25).translate(-0.02, 0.63, 0.122)),
   ],

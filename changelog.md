@@ -4,6 +4,9 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v0.67 — 2026-10-05
 
+- People wear many more kinds of headwear: wide and narrow-brimmed hats, flat straw hats, bowlers, peaked and flat caps, knit caps, fur hats with their ear-flaps down, aviators’ caps, kerchiefs and headscarves, small round caps, circlets, miners’ hard hats with a lamp, and hoods thrown back on the shoulders. On their faces and necks: round spectacles, dark glasses, cloths over the mouth, desert face-wraps, now and then a monocle, neckerchiefs, thick mufflers and goggles hung round the neck.
+- Each world wears its own: wraps, veils, face-wraps and straw hats in the desert; bowlers on the City-Shaft’s rim, caps, knit caps and goggles further down, ear-flaps and kerchiefs at the bottom; aviators’ caps in the Hangar, hard hats under the Buried Machine, circlets in the gardens, flat caps, knit caps and headscarves in the Signal Market. People in the crowds far off wear them too.
+- On the new bodies, hair shows under a hat, a cap or a headband: pressed flat where the hat sits and falling out below it, instead of a short cap of hair under every hat.
 - The traveller dresses more casually: an everyday canvas rucksack, with a lid, buckled straps, pockets and a rolled bedroll, replaces the old radio box, and nothing of the space suit is left: soft desert boots without seams or buckles, a loose cotton scarf instead of the ringed collar.
 - The fluid tank is a slim, flat glass flask now, set into the rucksack and held by leather bands. It sticks out far less from your back, and its three coloured bands still show your charges from behind. When the flask goes into a vehicle, the rucksack stays on your back.
 - The drone perches on top of the flask’s leather upright, beside its neck and clear of your swinging arms; before you have the flask it rides on the rucksack’s lid. The lantern hangs just below it.

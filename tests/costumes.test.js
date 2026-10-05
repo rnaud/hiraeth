@@ -28,10 +28,11 @@ test('every world has a costume set, built from pieces that exist', () => {
       for (const p of Object.keys(t.props)) assert.ok(PROPS[p], `${id}: prop ${p}`);
       for (const k of Object.keys(t.trim)) assert.ok(TRIM_IDS.includes(k), `${id}: pattern ${k}`);
     }
-    // the crowd figure bakes in only the world's own pieces, and stays light
+    // the crowd figure bakes in only the world's own pieces, and stays light (stage 3's headwear raised it: from
+    // 1500 / 400 triangles; measured, the busiest crowds draw 8-12 % more triangles, the frame time the same: docs/makehuman.md)
     const mid = figureGeometry('mid', id), far = figureGeometry('far', id);
-    assert.ok(mid.index.count / 3 < 1500 && far.index.count / 3 < 400, `${id}: ${mid.index.count / 3} / ${far.index.count / 3} triangles`);
-    assert.ok(mid.attributes.position.count < 1700, `${id}: ${mid.attributes.position.count} vertices`);
+    assert.ok(mid.index.count / 3 < 2500 && far.index.count / 3 < 600, `${id}: ${mid.index.count / 3} / ${far.index.count / 3} triangles`);
+    assert.ok(mid.attributes.position.count < 2500, `${id}: ${mid.attributes.position.count} vertices`);
   }
 });
 
@@ -60,9 +61,11 @@ test('the worlds dress apart: silhouettes and palettes differ from world to worl
 test('the City-Shaft dresses by depth: tall hats on the rim, rag hoods and goggles at the bottom', () => {
   const rim = people('incal', 40, { pos: new THREE.Vector3(0, 200, 0) }), low = people('incal', 40, { spot: { id: 'lower' } });
   assert.match(tribeOf('incal', { pos: new THREE.Vector3(0, 200, 0) }).name, /rim/);
-  assert.ok(rim.filter((s) => s.head === 'tophat' || s.head === 'spire').length > 25);
+  assert.ok(rim.filter((s) => ['tophat', 'spire', 'bowler', 'trilby'].includes(s.head)).length > 28);
+  assert.ok(rim.filter((s) => s.head === 'tophat' || s.head === 'spire').length > 18, 'mostly the tall ones');
   assert.ok(rim.every((s) => s.head !== 'raghood'));
-  assert.ok(low.filter((s) => s.head === 'raghood' || s.head === 'hood').length > 30);
+  assert.ok(low.filter((s) => ['raghood', 'hood', 'beanie', 'trapper', 'bandana'].includes(s.head)).length > 32);
+  assert.ok(low.filter((s) => s.head === 'raghood' || s.head === 'hood').length > 18, 'mostly the rag hoods');
   assert.ok(low.some((s) => s.mask === 'goggles' || s.mask === 'browgoggles'));
   assert.ok(rim.every((s) => !low.some((l) => l.cloak === s.cloak)));
 });

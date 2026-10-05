@@ -19,7 +19,7 @@ import { FluidTool } from '../fluid-tool.js';
 import { GameState } from '../game-state.js';
 import { NPC } from '../npc.js';
 import { COSTUME_WORLDS, crowdLook, BUILDS, HEAD_IDS, HAIR_IDS, MASK_IDS, BODY_IDS, PROP_IDS, TRIM_IDS, tribeOf, setCostumeWorld } from '../costumes.js';
-import { figureGeometry, packLook } from '../crowd.js';
+import { figureGeometry, packLook, worldPieces } from '../crowd.js';
 import { CROWD_POSES } from '../crowd-shader.js';
 import { IRIS } from '../eyes.js';
 import { mulberry32 } from '../noise.js';
@@ -32,7 +32,7 @@ import { cleanState, encodeState, decodeState, settingsJSON } from './state.js';
 import { FACE_PRESETS, castOf, lookFor, BLANK, STORY_WORLDS } from './people.js';
 import { loadBody as loadMakeHumanBody } from '../makehuman/body.js';
 import { personTemplate, MakeHumanPeople } from '../makehuman/people.js';
-import { mhEntry, mhDef, likeLook, mhLineup, mhBuildsLineup, mhHairLineup, MH_PRESETS } from './makehuman.js';
+import { mhEntry, mhDef, likeLook, mhLineup, mhBuildsLineup, mhHairLineup, mhHeadwearLineup, MH_PRESETS } from './makehuman.js';
 
 // as in the game (main.js): every colour is authored as a display value and output untouched
 THREE.ColorManagement.enabled = false;
@@ -186,7 +186,7 @@ let people = [];      // on stage
 let gpu = null;       // the GPU crowd figures (crowd-shader.js)
 let cast = [];        // the world's story people
 let mhData = null;   // the MakeHuman parametric body (public/anim/mh/body.bin, src/makehuman/body.js), once asked for
-const MH_LINEUPS = ['makehuman', 'mhbuilds', 'mhhair'];
+const MH_LINEUPS = ['makehuman', 'mhbuilds', 'mhhair', 'mhheadwear'];
 const lookOf = (p) => p.look;
 
 /**
@@ -206,6 +206,8 @@ function specLook(sp, w) {
     if (P.colour && !state.c.hair) look.hair = P.colour;   // (an elder's grey)
   }
   if (state.l.mhHair && (P || sp.mhGame)) look.mhHair = state.l.mhHair;
+  // (the headwear lineup: each its piece; under a hat, the head's own hair: mhHair)
+  if (sp.look) Object.assign(look, sp.look);
   return look;
 }
 /** The definition NPC gets for a spec: a MakeHuman person's true size (and no Quaternius morphs on them); a story person on a MakeHuman body their own. */
@@ -234,7 +236,12 @@ async function rebuild() {
   if (MH_LINEUPS.includes(state.lineup) && mhData) {
     if (state.lineup === 'makehuman') specs.push(...mhLineup(state.count, state.mh));
     else if (state.lineup === 'mhbuilds') specs.push(...mhBuildsLineup(state.kind === 'f' ? 'f' : 'm', state.mh));
-    else specs.push(...mhHairLineup(state.kind === 'f' ? 'f' : 'm'));
+    else if (state.lineup === 'mhheadwear') {
+      // every headwear, face piece or shoulder piece (MakeHuman person: heads / masks / neck), or the world's own (world)
+      const set = ['masks', 'neck', 'world'].includes(state.mh) ? state.mh : 'heads';
+      const pieces = set === 'world' ? worldPieces(world) : { heads: HEAD_IDS.filter((h) => !HAIR_IDS.includes(h)), masks: MASK_IDS.filter((m) => m !== 'none'), bodies: BODY_IDS.filter((b) => b !== 'none') };
+      specs.push(...mhHeadwearLineup(set, pieces, state.seed - 1));
+    } else specs.push(...mhHairLineup(state.kind === 'f' ? 'f' : 'm'));
   } else if (state.lineup === 'cast') {
     for (const def of cast) specs.push({ who: 'npc', def });
     if (!specs.length) specs.push({ who: 'blank' });
@@ -835,11 +842,14 @@ const spotSel = select(sWho, 'Where (City-Shaft)', 'spot', [['', 'as the story p
 select(sWho, 'Body', 'kind', [['m', 'man'], ['f', 'woman']], () => { if (state.who !== 'npc' && state.who !== 'traveller') rebuild(); });
 // the MakeHuman prototype (src/studio/makehuman.js, docs/makehuman.md): another body for whoever is shown
 select(sWho, 'Body source', 'source', [['quaternius', 'Quaternius (the game’s)'], ['makehuman', 'MakeHuman (parametric; ?mh=1 in the game)']], rebuild);
-const mhSel = select(sWho, 'MakeHuman person', 'mh', () => [['', 'the first of their kind'], ...MH_PRESETS.map((e) => [e.id, e.label])], () => { if (state.source === 'makehuman') rebuild(); });
-refreshers.push(() => { mhSel.parentElement.hidden = state.source !== 'makehuman'; });
+const mhSel = select(sWho, 'MakeHuman person', 'mh', () => [['', 'the first of their kind'], ...MH_PRESETS.map((e) => [e.id, e.label]),
+  // (the headwear lineup: which pieces; '' the headwear)
+  ['masks', 'headwear lineup: the face pieces'], ['neck', 'headwear lineup: the shoulder pieces'], ['world', 'headwear lineup: the world’s own']],
+() => { if (state.source === 'makehuman' || MH_LINEUPS.includes(state.lineup)) rebuild(); });
+refreshers.push(() => { mhSel.parentElement.hidden = state.source !== 'makehuman' && !MH_LINEUPS.includes(state.lineup); });
 refreshers.push(() => { spotSel.parentElement.hidden = state.world !== 'incal'; });
 const sLine = section('Lineup');
-select(sLine, 'Lineup', 'lineup', [['', 'one person'], ['cast', "the world's story people"], ['crowd', 'crowd people (+ GPU figures)'], ['faces', "every world's faces (+ the traveller)"], ['makehuman', 'MakeHuman next to Quaternius (pairs)'], ['mhbuilds', 'MakeHuman: every age and build'], ['mhhair', 'MakeHuman: every hairstyle']], rebuild);
+select(sLine, 'Lineup', 'lineup', [['', 'one person'], ['cast', "the world's story people"], ['crowd', 'crowd people (+ GPU figures)'], ['faces', "every world's faces (+ the traveller)"], ['makehuman', 'MakeHuman next to Quaternius (pairs)'], ['mhbuilds', 'MakeHuman: every age and build'], ['mhhair', 'MakeHuman: every hairstyle'], ['mhheadwear', 'MakeHuman: every headwear (person: heads / masks / neck / world)']], rebuild);
 slider(sLine, 'How many', 'count', 2, 14, 1, 6, () => { if (state.lineup === 'crowd') rebuild(); });
 check(sLine, 'GPU crowd twin', 'twin', rebuild);
 

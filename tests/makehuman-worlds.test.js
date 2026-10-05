@@ -73,7 +73,7 @@ const THREE = await import('three');
 const { MeshBVH } = await import('three-mesh-bvh');
 const { mergeVertices } = await import('three/addons/utils/BufferGeometryUtils.js');
 const { mhLookPieces } = await import('../src/makehuman/hair.js');
-const { HEADS, HEAD_IDS, MASK_IDS, BODY_IDS } = await import('../src/costumes.js');
+const { HEADS, HEAD_IDS, HAIR_IDS, MASK_IDS, BODY_IDS, COSTUMES } = await import('../src/costumes.js');
 const { BLANK } = await import('../src/studio/people.js');
 
 /** The new headwear and face pieces (stage 3). */
@@ -177,4 +177,33 @@ test('the older hats over hair: the hair squashed under them, none through them'
     }
   }
   assert.deepEqual(bad, []);
+});
+
+test('the studio shows every headwear on MakeHuman heads of every age, and each world\'s own set', async () => {
+  const { mhHeadwearLineup, HEADWEAR_HEADS } = await import('../src/studio/makehuman.js');
+  const { worldPieces } = await import('../src/crowd.js');
+  const heads = HEAD_IDS.filter((h) => !HAIR_IDS.includes(h));
+  const L = mhHeadwearLineup('heads', { heads });
+  assert.equal(L.length, heads.length);
+  assert.ok(L.every((sp) => sp.mh && sp.look.head && sp.who === 'blank'));
+  assert.ok(new Set(L.map((sp) => sp.mh.years)).size >= 4, 'children, teenagers, grown-ups and the old');
+  assert.equal(mhHeadwearLineup('masks', { masks: MASK_IDS.slice(1) }).length, MASK_IDS.length - 1);
+  const W = worldPieces('bazaar'), mine = mhHeadwearLineup('world', W);
+  assert.equal(mine.length, W.heads.length + W.masks.length + W.bodies.length);
+  assert.ok(W.heads.includes('flatcap') && W.heads.includes('kerchief') && W.masks.includes('glasses'));
+  assert.ok(HEADWEAR_HEADS.length >= 6);
+  const main = readFileSync(new URL('../src/studio/main.js', import.meta.url), 'utf8');
+  assert.match(main, /'mhheadwear'/);
+});
+
+test('each world wears its own headwear: the new pieces where they belong', () => {
+  const has = (w, id) => COSTUMES[w].tribes.some((t) => [t.heads, t.headsF, t.headsM, t.masks, t.body].some((x) => x?.[id] > 0));
+  for (const [w, ids] of Object.entries({
+    desert: ['straw', 'kerchief', 'facewrap', 'scarfmask'], incal: ['bowler', 'peak', 'beanie', 'trapper', 'goggles', 'scarfmask'],
+    garage: ['aviator', 'peak', 'neckgoggles'], buried: ['helmet', 'trapper'], edena: ['straw', 'circlet'], spheres: ['circlet'],
+    perdide: ['brim', 'hooddown'], perdide2: ['beanie', 'muffler'], bazaar: ['flatcap', 'beanie', 'kerchief', 'glasses', 'muffler'], arzach2: ['skullcap', 'kerchief'],
+  })) for (const id of ids) assert.ok(has(w, id), `${w}: ${id}`);
+  // the desert keeps no caps, the City-Shaft's rim no ear-flaps
+  assert.ok(!has('desert', 'peak') && !has('desert', 'beanie'));
+  assert.ok(!COSTUMES.incal.tribes[0].heads.trapper);
 });
