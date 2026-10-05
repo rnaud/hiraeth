@@ -114,7 +114,7 @@ namespace Memento
         Vector3 C; float ringR, ringL; Vector3 aSpawn, bSpawn, cSpawn;
         class Portal { public Vector3 pos, to, toUp, toFwd; public string label; }
         readonly List<Portal> portals = new();
-        float cool, fadeT = -1; Portal passing;
+        float cool, fadeT = -1; Portal passing; string zone;
 
         protected override void Begin()
         {
@@ -167,6 +167,8 @@ namespace Memento
                     }
             // falling out of a quarter: back to its entrance
             var z = Zone(p);
+            // each quarter its own print (garage.js ZONES: "Animated ink" upside down, "Moebius" in the ring)
+            if (z != zone) { zone = z; game.look.UsePreset(game.world.World.O("gravity")?.O("zones")?.O(z)?.S("preset")); }
             if (z == "A" && p.y < -260) pl.Teleport(aSpawn, 180);
             if (z == "B" && p.y > 900 + 400) pl.Teleport(bSpawn, 0);
             if (z == "C" && new Vector2(p.y - C.y, p.z - C.z).magnitude > ringR + 40) pl.Teleport(cSpawn, 90);

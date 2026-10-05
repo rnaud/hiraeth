@@ -42,7 +42,7 @@ namespace Memento
         {
             look = lookData;
             hours.Clear();
-            atmoFog = -1; atmoTint = Color.white; lightAt = null;
+            atmoFog = -1; atmoTint = Color.white; lightAt = null; presetOver = null;
             foreach (var h in look.L("hours")) hours.Add(h as Dictionary<string, object>);
             hour = look.F("hour", 9.5f);
             localLights.Clear();
@@ -71,10 +71,25 @@ namespace Memento
             "uAlbedoEdges:_AlbedoEdges", "uShadowEdges:_ShadowEdges", "uWobble:_Wobble", "uBoil:_Boil", "uHighlight:_Highlight", "uGrain:_Grain", "uAO:_AO", "uSkyBands:_SkyBands",
             "uHazeBands:_HazeBands", "uAerial:_Aerial", "uLineVary:_LineVary", "uSkyFlat:_SkyFlat", "uSkyDots:_SkyDots", "uCumulus:_Cumulus", "uFogMul:_FogMul" };
 
+        /// <summary>Another of post.js's presets laid over the world's own (the Hangar's quarters: "Animated ink" upside
+        /// down, "Moebius" in the ring); null: the world's own again.</summary>
+        public void UsePreset(string name)
+        {
+            var all = look?.O("presets");
+            presetOver = name != null && all?.O(name) is { } pr && name != look.S("preset") ? pr : null;
+            Apply();
+        }
+        Dictionary<string, object> presetOver;
+
         public void Apply()
         {
             if (look == null || hours.Count == 0) return;
             var shared = look.O("shared"); var post = look.O("post");
+            if (presetOver != null)
+            {
+                post = new Dictionary<string, object>(post); shared = new Dictionary<string, object>(shared);
+                foreach (var (k, v) in presetOver) { post[k] = v; if (shared.ContainsKey(k)) shared[k] = v; }
+            }
             foreach (var kv in SharedKeys) { var p = kv.Split(':'); Shader.SetGlobalFloat(p[1], shared.F(p[0], post.F(p[0]))); }
             foreach (var kv in PostKeys) { var p = kv.Split(':'); Shader.SetGlobalFloat(p[1], post.F(p[0])); }
             if (fogOverride >= 0) Shader.SetGlobalFloat("_FogMul", fogOverride);

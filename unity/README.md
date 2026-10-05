@@ -516,7 +516,8 @@ is exported and can be flown to from the ship's galactic map, as on the web.
 - `WorldMechanics` (each world's own script, beyond the data): the City-Shaft's splinter and the
   Lodestar (its main quest to its end), the Garden's three spheres, the Hangar's turned gravity
   (`Player.UpdateFramed`: a capsule swept along the traveller's own frame, the camera's arm turned
-  with it) and its portals, Vael's bird (`BirdMount`, `bird.js`) and its first ride.
+  with it), its portals and each quarter's print (post.js presets), Vael's bird (`BirdMount`, `bird.js`)
+  and its first ride; Lorn's hover-skiff (`Bike` as a skiff, over the water).
 
 The flight (`Play`, desert → the City-Shaft → Vael) and the worlds in play:
 
@@ -550,12 +551,12 @@ Per world (what plays in the port; what of the web's own scripts is still missin
 - **The City-Shaft** (`incal`): its main quest "The Light Nobody Looks At" to its end: Nima, Ossa’s splinter at the bottom, Dov at the palace, looking up at the Lodestar (the splinter climbs home), Nima again; the keepsake. 1359 in the crowd (pooled), their conversations; 81 cabs on their lanes; the haze thickening down the shaft, the steeper sun inside it; the call-lamp lit by a shot. Missing: riding the cabs (hailing, Wren’s cab), the goods hoist’s swing, the Lodestar’s own glow and the city’s lamps coming on, the crowd looking up, the Warden’s Well.
 - **Vael** (`arzach`): Oïa (the opening), the bird to ride (take off, bank, dive, flap, land), the lone tower’s balcony; the feathers to pick up. Missing: the bird’s wing strokes, the rider’s whistle and her promise, the stone hand’s knuckles, the paper fronds.
 - **Vael II** (`arzach2`): Sister Aube (the opening), the bird to the monastery, the cairn’s stones as data. Missing: the bell and its rope, the lamp, the tiles, the cairn’s placing, the Founders’ Belfry.
-- **The Sealed Hangar** (`garage`): Ambroise (the opening), the turned gravity of the upside-down quarter and the ring, the portals between them, the signal posted in the relay box; the machines restarted by shots. Missing: each quarter’s own preset, the signal board’s glyph, the machines’ turning, the First Garage.
+- **The Sealed Hangar** (`garage`): Ambroise (the opening), the turned gravity of the upside-down quarter and the ring, the portals between them, the signal posted in the relay box; the machines restarted by shots. Each quarter takes its own print. Missing: the signal board’s glyph, the machines’ turning, the First Garage.
 - **The Buried Machine** (`buried`): Wen (the opening), the gauges cleared and the valve and jib by the fluid. Missing: the wheel turning, the crane, the key, the oculus, the canyon’s lifts.
 - **Viridel** (`edena`): Mira (the opening), grass blades, the new water with its bed, the seed and the sprout. Missing: the terraces’ flood, the water clock, the fallen ship’s log, the flowers answering.
 - **The Garden of Spheres** (`spheres`): Aube (the opening), the three spheres that remember (splashed), on to the plaza. Missing: the spheres’ sounds and the chord, the pebble and its glint, the mirror lake’s print.
-- **Lorn** (`perdide`): Wendel (the opening), the swamp’s water (its bed baked round you), wading and swimming. Missing: the hover-skiff, the crystals’ hum, the hush, the caves.
-- **Lorn II** (`perdide2`): Hollin (the opening), the three dark pools relit by shots, the moss and fen lamps. Missing: the skiff home, Pim’s door, the dome doors, the saucer.
+- **Lorn** (`perdide`): Wendel (the opening), the hover-skiff over the swamp, the swamp’s water (its bed baked round you), wading and swimming. Missing: the crystals’ hum, the hush, the caves, the fungi.
+- **Lorn II** (`perdide2`): Hollin (the opening), the skiff, the three dark pools relit by shots, the moss and fen lamps. Missing: the skiff’s cave home, Pim’s door, the dome doors, the saucer.
 - **The Signal Market** (`bazaar`): Sel (the opening), 574 in the crowd with their conversations, the cabs, the sign and the crates by the fluid, the overhead sun of the street. Missing: the reactive screens, riding the cabs, the broadcast, the lanterns.
 - **Home** (`home`): opens by the web’s rule (six worlds done and the last recording, or the ending played); the round house, Lou and Tove, the things in the yard. Missing: the homecoming (the cockpit’s choice, the landing, the door, the stone); the recordings (the reel’s calls) that open it.
 
@@ -609,13 +610,12 @@ writes the player's back buffer itself (`_TargetFlip`).
 
 - **The worlds' own scripts** beyond their main quests' data: see the list per world above. Most
   worlds' opening steps and the fluid's stages play; the City-Shaft's main quest plays to its end.
-  The mounts other than the bird (Lorn's hover-skiff), riding the cabs, the temples (the gadgets wait
+  Riding the cabs, the temples (the gadgets wait
   by the ship instead), the reel's recordings at the console (`calls.js`: they open home), the
   homecoming, the reactive scenery (`reactive-world.js`), the scout drone.
 - **The ship**: its door and ramp are drawn lowered through the flights (one rigid export); the
   interior reads brighter than the web's.
-- **The look**: the Hangar's quarters keep one preset (the web switches to "Animated ink" upside
-  down); the water's sparkle and its rings; the world's lamps and the Lodestar's glow driven by
+- **The look**: the water's sparkle and its rings; the world's lamps and the Lodestar's glow driven by
   their scripts; shadows are URP's, with a filter close to the web's hand-rolled cascades.
 - **The traveller**: thrusting on the jets keeps the jump's pose; swimming keeps the walk (no
   strokes, no diving or breath).
