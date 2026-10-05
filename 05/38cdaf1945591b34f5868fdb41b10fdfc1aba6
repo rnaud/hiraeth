@@ -1,0 +1,27 @@
+docs/systems/aliens.md
+  s_1fd8d0e7b02dcf::t_a06a19fe27a33d 38-41
+src/aliens/alien.js
+  s_1fd8d0e7b02dcf::t_b3594b6fd60fb3 63
+src/aliens/species.js
+  s_1fd8d0e7b02dcf::t_31369264566c3c 25,33,41,49
+src/story/spacing.js
+  s_1fd8d0e7b02dcf::t_eb3f9897a2ad23 21
+tests/aliens.test.js
+  s_1fd8d0e7b02dcf::t_6f6ee3cc1f8278 18,50,240-242
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0538cdaf1945591b34f5868fdb41b10fdfc1aba6",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
