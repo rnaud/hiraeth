@@ -83,6 +83,10 @@ export const PLACEMENTS = {
     { id: 'buried.resin', item: 'resin', at: [110, 33.8, 144.5], toward: [110, 160],
       hint: 'A makers’ box rests on the lower ring platform of the smoking chimney stack, north-east of the landing',
       note: 'The lower ring platform of the chimney stack north-east of the spawn, on its +z side.' },
+    // the Engine-House (src/temples/buried.js): in the round chamber past the counterweight. The fourth chamber
+    // is the key to the rest: the banks of four eyes that wake only together, the Tooth-Warden's four vents
+    { id: 'buried.temple.cell', item: 'cell', temple: 'buried', site: (level) => level.temple?.gadgetSite,
+      note: 'Inside the Engine-House on the dunes west of the domes, in the round chamber past the counterweight.' },
   ],
   edena: [
     // the upper canopy of an umbrella tree: climb the trunk
@@ -110,7 +114,9 @@ export const PLACEMENTS = {
   ],
   perdide2: [
     // the top of the first root arch over the path
-    { id: 'perdide2.cell', item: 'cell', at: [-18.8, 15.1, -89.5], toward: [0, 0],
+    // It held the fourth chamber until the Engine-House was built (src/temples/buried.js): the chamber is the
+    // Buried Machine's temple key now, and the arch keeps the glow-moss pin, a gift in the open
+    { id: 'perdide2.moss', item: 'moss', at: [-18.8, 15.1, -89.5], toward: [0, 0],
       hint: 'A makers’ box sits on top of the first root arch over the path. Climb its root',
       note: 'On top of the first root arch over the path; climb its root.' },
   ],

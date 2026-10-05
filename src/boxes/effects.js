@@ -16,6 +16,7 @@ import { starShape, BOX_COLORS } from './model.js';
 //   resin    climbing tires you half as fast (player.climbK)
 //   soles    a hard landing counts as a slower one (player.fallGuard: the drop it takes to tumble grows by a third)
 //   hush     creatures don't hear you walk up (player.hush: src/wildlife.js reads it)
+//   moss     after dusk a soft light round your feet (smaller than the lantern's; the lantern wins)
 //   shell    every few seconds, unopened boxes within 45 m answer softly, as if to the bell (game event 'bell' { soft })
 //
 //   const fx = createItemEffects({ player, tool, level, sound, isNight: () => bool });
@@ -91,8 +92,8 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
       // the listening shell: what the makers hid nearby hums back now and then, softly
       if (items.has('shell') && player && !player.hidden && (shellT -= dt) <= 0) { shellT = 7; g.emit('bell', { pos: player.pos.clone(), reach: 45, soft: true }); }
       applyTank();   // (cheap; the tool may rebuild its reserve)
-      const hasLantern = items.has('lantern');
-      const night = hasLantern && isNight();
+      const hasLantern = items.has('lantern'), hasMoss = items.has('moss');
+      const night = (hasLantern || hasMoss) && isNight();
       if (lantern) {
         // hung on the tank itself, so it goes with it into a vehicle's socket (it was left floating by
         // your back); moved over only while the tank is on the back, where the two frames agree
@@ -106,7 +107,7 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
         lantern.paper.uniforms.uGlow.value = night ? 0.9 + 0.1 * Math.sin(t * 7) : 0.2;
         lantern.grp.rotation.z = Math.sin(t * 2.3) * 0.15;
       }
-      if (night && player && !player.hidden) light.set(player.pos.x, player.pos.y + 1.2, player.pos.z, 7.5 + Math.sin(t * 7) * 0.3);
+      if (night && player && !player.hidden) light.set(player.pos.x, player.pos.y + (hasLantern ? 1.2 : 0.6), player.pos.z, hasLantern ? 7.5 + Math.sin(t * 7) * 0.3 : 4.2 + Math.sin(t * 1.3) * 0.2);
       else light.set(0, -1e5, 0, 0);
       if (star) star.visible = items.has('star');
       if (player) { player.climbK = items.has('resin') ? 0.5 : 1; player.fallGuard = items.has('soles') ? 1.3 : 1; player.hush = items.has('hush'); }

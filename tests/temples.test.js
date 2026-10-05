@@ -724,3 +724,99 @@ test('the Footprint on foot: two spheres on two plates, the still pool, the lens
   game.reset();
   own();
 });
+
+// ------------------------------------------------------------------ on foot: the Buried Machine's Engine-House, room by room
+test('the Engine-House on foot: the valve and the pistons, the counterweight, the fourth chamber, the banks of four eyes, the Tooth-Warden’s four vents, the pipe-cart', () => {
+  game.reset();
+  own('backpack');
+  const { level, physics, rt } = world('buried');
+  const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true, limit: level.limit });
+  rt.connect({ player: P, toast: () => {} });
+  let t = 0;
+  const L = (x, y, z) => rt.kit.world(x, y, z);
+  const frame = (input = {}, yaw = 0) => { t += DT; rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };
+  const toward = (to) => Math.atan2(-(to.x - P.pos.x), -(to.z - P.pos.z));
+  const flat = (a) => Math.hypot(P.pos.x - a.x, P.pos.z - a.z);
+  const walk = (to, { tol = 0.6, max = 25, run = true, dy = 1.6 } = {}) => {
+    for (let i = 0; i < max / DT; i++) { if (flat(to) < tol && Math.abs(P.pos.y - to.y) < dy) return true; frame({ KeyW: true, ShiftLeft: run }, toward(to)); }
+    return false;
+  };
+  const wait = (s) => { for (let i = 0; i < s / DT; i++) frame(); };
+  const where = () => rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1)).join(', ');
+  wait(0.5);
+  // ---- the Piston Hall: open the valve, ride the three pistons up to the gantry
+  const pistons = rt.pieces.filter((p) => p.path);
+  wait(2);
+  assert.ok(pistons.every((p) => p.s === p.o.phase * p.total || p.s === 0 || p.s === p.total), 'still until the valve opens');
+  rt.piece('s1').hit('shoot');
+  wait(0.1);
+  assert.equal(rt.logic.isOpen('pumps'), true);
+  assert.equal(walk(L(0, 0, 24.5)), true, `to the pistons (${where()})`);
+  const board = (pis, low) => {
+    // wait for it at its low end (and its neighbour level with you), then step on
+    for (let i = 0; i < 30 / DT && !((low ? pis.s < 0.15 : pis.s > pis.total - 0.15) && pis.wait > 0.3); i++) frame();
+    assert.equal(walk(pis.group.position, { tol: 0.6, run: false, max: 2.5, dy: 0.9 }), true, `onto a piston (${where()})`);
+  };
+  board(pistons[0], true);
+  board(pistons[1], true);
+  board(pistons[2], true);
+  for (let i = 0; i < 20 / DT && pistons[2].s < pistons[2].total - 0.1; i++) frame();
+  assert.equal(walk(L(0, 7, 40.5), { max: 3 }), true, `onto the gantry (${where()})`);
+  // ---- the Counterweight
+  assert.equal(walk(L(-2, 7, 48)), true, `into the counterweight (${where()})`);
+  const ball = rt.piece('ball1');
+  for (let k = 0; k < 8 && !rt.logic.drumOn('ball1', 'p1'); k++) {
+    walk(ball.center.clone().addScaledVector(ball.dir, -2.2).setY(P.pos.y), { tol: 0.6 });
+    ball.hit('push', ball.dir.clone(), { strength: 0.8 });
+    wait(2.6);
+  }
+  assert.ok(rt.logic.drumOn('ball1', 'p1'), 'the ball on its plate');
+  wait(2.2);
+  assert.equal(rt.logic.isOpen('d2'), true);
+  // ---- the Fourth Chamber: the chest; the bank of four eyes wants four shots inside one breath
+  assert.equal(walk(L(0, 7, 70)), true, `into the chamber (${where()})`);
+  const bank = rt.piece('k1');
+  for (let i = 0; i < 3; i++) bank.hit(i);
+  wait(3);
+  bank.hit(3);
+  assert.equal(rt.logic.isLit('k1'), false, 'three, then a breath later the fourth: they went dark again');
+  for (let i = 0; i < 4; i++) bank.hit(i);
+  assert.equal(rt.logic.isLit('k1'), false, 'four at once, but without the fourth chamber the bank does not take it');
+  items.grant('cell'); game.emit('box:opened', { id: 'buried.temple.cell' });
+  for (let i = 0; i < 4; i++) bank.hit(i);
+  assert.equal(rt.logic.isLit('k1'), true, 'four in a breath, with the fourth chamber');
+  wait(2.2);
+  assert.equal(rt.logic.isOpen('d3'), true);
+  // ---- the Furnace: the second bank raises the bridge
+  assert.equal(walk(L(0, 7, 90)), true, `to the furnace (${where()})`);
+  for (let i = 0; i < 4; i++) rt.piece('k2').hit(i);
+  wait(3.5);
+  assert.equal(walk(L(0, 7, 114)), true, `over the bridge (${where()})`);
+  assert.ok(P.pos.y > L(0, 6, 0).y, 'over it, not in the furnace');
+  // ---- the Tooth-Warden: all four vents in a breath, four times
+  assert.equal(walk(L(0, 7, 128)), true, `into the hall (${where()})`);
+  const G = rt.guardian;
+  wait(0.3);
+  assert.notEqual(G.state, 'sleep');
+  P.opts.health = false;
+  for (let n = 0; n < 8 && G.state !== 'resolved'; n++) {
+    let open = false;
+    for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open') { open = true; break; } }
+    assert.ok(open, `its vents open (${n})`);
+    if (n === 0) { rt.volley(0); rt.volley(1); assert.equal(G.meter, 0, 'two vents are nothing'); }
+    for (let i = 0; i < 4; i++) rt.volley(i);
+  }
+  assert.equal(G.state, 'resolved', `stopped (${G.meter})`);
+  assert.equal(game.flag('temple.buried.done'), true);
+  wait(2.5);
+  assert.ok(rt.logic.isOpen('d5'));
+  // ---- outside: the pipe-cart rides the canyon again; stand on it at the hollow and ride it down
+  const cart = rt.change.cart;
+  for (let i = 0; i < 60 / DT && !(cart.s < 0.3 && cart.wait > 2); i++) frame();
+  P.teleport(cart.group.position.clone().add(V(0, 0.2, 0)), V(0, 1, 0), V(0, 0, 1));
+  const z0 = P.pos.z;
+  wait(28);
+  assert.ok(P.pos.z < z0 - 80 && P.onGround, `carried down the canyon (${(z0 - P.pos.z).toFixed(0)} m)`);
+  game.reset();
+  own();
+});

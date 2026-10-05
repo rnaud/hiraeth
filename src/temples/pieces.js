@@ -20,6 +20,7 @@ import { T, box, lathe, prep } from './kit.js';
 //   Brazier  a cold bowl: an ember glob lights it for good (it answers 'fire' only)
 //   Bramble  dry thorns across a doorway: an ember glob burns them away for good
 //   Switch   a carved eye on a wall: a splash of fluid wakes it for good
+//   Bank     four eyes that wake only together, inside a breath: it wants the fourth chamber
 //   Platform a disc that rides between points (you ride along on it)
 //   Bridge   stones that rise out of a chasm when their condition holds
 //   Mark     a glyph stone: walk past it and it is where you come back to (a checkpoint)
@@ -373,6 +374,53 @@ export class Switch {
   dispose() { this.off?.(); }
 }
 
+/**
+ * A bank of eyes (o.eyes: [{ at, yaw }]) that wake only together: splash every one inside `window` seconds
+ * of the first and the element `id` is lit for good; too slow, and they all go dark again. Four eyes and a
+ * window shorter than the tank's refill: it wants the fourth chamber (src/items.js 'cell').
+ */
+export class Bank {
+  constructor(rt, o) {
+    this.rt = rt; this.id = o.id; this.window = o.window ?? 2.6;
+    const K = rt.kit, M = rt.M, s = o.size ?? 0.9;
+    this.eyes = o.eyes.map((e, i) => {
+      const g = new THREE.Group();
+      g.position.copy(K.world(...e.at));
+      g.rotation.y = K.heading(e.yaw ?? 0);
+      rt.root.add(g);
+      g.add(mesh([T(new THREE.CylinderGeometry(s, s, 0.4, 20), [0, 0, 0], [Math.PI / 2, 0, 0])], M.trimMat));
+      const glow = own({ color: rt.P.lamp ?? '#f6c84e', glow: 0.06, flat: true });
+      g.add(mesh([T(new THREE.SphereGeometry(s * 0.55, 14, 8).scale(1, 1, 0.35), [0, 0, 0.2])], glow));
+      noCollide(g);
+      const eye = { g, glow, at: -1e9, center: g.position.clone() };
+      eye.off = registerTarget({ kind: 'switch', radius: s, position: () => eye.center, onHit: () => this.hit(i) });
+      return eye;
+    });
+    this.done = rt.logic.isLit(o.id);
+    this.time = 0;
+  }
+  hit(i) {
+    if (this.done) return true;
+    const e = this.eyes[i];
+    e.at = this.time;
+    this.rt.sound?.critter?.('blip', 0.8);
+    if (this.eyes.every((x) => this.time - x.at <= this.window)) {
+      if (this.rt.logic.light(this.id)) { this.done = true; this.rt.sound?.chime?.(); this.rt.onLit?.(this.id); }
+      else this.rt.notice?.('All four woke, and went dark again: the bank wants more than this tank can hold in one breath.', `bank.${this.id}`);
+    }
+    return true;
+  }
+  update(dt, t) {
+    this.time += dt;
+    this.done ||= this.rt.logic.isLit(this.id);
+    for (const e of this.eyes) {
+      const lit = this.done || this.time - e.at <= this.window;
+      e.glow.uniforms.uGlow.value = lit ? (this.done ? 0.85 : 0.55 + 0.4 * Math.max(0, 1 - (this.time - e.at) / this.window)) : 0.06 + 0.04 * Math.sin(t * 1.5);
+    }
+  }
+  dispose() { for (const e of this.eyes) e.off?.(); }
+}
+
 /** Bell-tuned: the bell-note whistle sounded within reach rings element `id` (a 'bell' element: needs the bell). */
 export class BellEar {
   constructor(rt, o) {
@@ -407,7 +455,7 @@ export class Platform {
     this.legs = [];
     for (let i = 0; i < this.path.length - 1; i++) this.legs.push(this.path[i].distanceTo(this.path[i + 1]));
     this.total = this.legs.reduce((a, b) => a + b, 0);
-    this.s = 0; this.dirn = 1; this.wait = o.pause ?? 1.2;
+    this.s = (o.phase ?? 0) * this.total; this.dirn = 1; this.wait = o.pause ?? 1.2;   // (phase: where along its path it starts, 0..1)
     this.prev = V();
     this.at(0, this.group.position);
     this.thick = th;
@@ -439,6 +487,9 @@ export class Platform {
     if (this.s >= this.total) { this.s = this.total; this.dirn = -1; this.wait = this.o.pause ?? 1.2; }
     if (this.s <= 0) { this.s = 0; this.dirn = 1; this.wait = this.o.pause ?? 1.2; }
     this.place(dt);
+    // going down with someone on it: they go down with it (the player only keeps to a floor that isn't falling away)
+    const P = this.rt.player;
+    if (P && this.solid.vel.y < 0 && !P.climbing && Math.hypot(P.pos.x - this.solid.pos.x, P.pos.z - this.solid.pos.z) < this.r && Math.abs(P.pos.y - this.solid.top) < 0.4 && P.vel.y <= 0.5) P.vel.y = Math.min(P.vel.y, this.solid.vel.y);
   }
 }
 

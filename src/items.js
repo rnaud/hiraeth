@@ -87,6 +87,11 @@ export const ITEMS = {
     text: 'A small white shell, spiralled like the garden’s spheres are smooth. Hold it to your ear and you hear, very faintly, what is hidden nearby.',
     use: 'Every little while, the makers’ unopened boxes near you hum back, softly, from where they hide.',
   },
+  moss: {
+    name: 'Glow-moss pin', kind: 'charm',
+    text: 'A sprig of the deep wood’s moss under a bead of glass, pinned to your collar. It has been glowing, very softly, since before anyone thought to keep it.',
+    use: 'After dusk it lights the ground round your feet, a little.',
+  },
   resin: {
     name: 'Climber’s resin', kind: 'charm',
     text: 'A little tin of amber resin, still soft after who knows how long, the makers’ thumb pressed into the lid. Rub it on your palms.',

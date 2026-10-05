@@ -288,7 +288,7 @@ const T2 = (g, color) => {
 };
 
 /** The sentinel (robot: you may break it). parts: a tall body on three legs, a ring of vents, a lamp-eye. */
-export function sentinelModel({ hull = '#9fb2c6', hull2 = '#8aa0b8', dark = '#34405e', brass = '#e2b552', eye = '#f6c84e' } = {}) {
+export function sentinelModel({ hull = '#9fb2c6', hull2 = '#8aa0b8', dark = '#34405e', brass = '#e2b552', eye = '#f6c84e', vents: nV = 3, legs: nL = 3, guarded = true } = {}) {
   const group = new THREE.Group();
   const mat = vc();
   const eyeM = makeMaterial({ color: eye, glow: 0.9, flat: true, key: `sentinel.eye.${uid++}` });
@@ -306,14 +306,14 @@ export function sentinelModel({ hull = '#9fb2c6', hull2 = '#8aa0b8', dark = '#34
   const vents = new THREE.Group();
   body.add(vents);
   const ventGeo = [];
-  for (let i = 0; i < 3; i++) {
-    const a = (i / 3) * Math.PI * 2;
+  for (let i = 0; i < nV; i++) {
+    const a = (i / nV) * Math.PI * 2;
     ventGeo.push(box([1.0, 0.9, 0.2], '#ffffff', [Math.sin(a) * 2.32, 0.4, Math.cos(a) * 2.32], [0, a, 0]));
   }
   vents.add(new THREE.Mesh(merge(...ventGeo), ventM));
   const shutters = [];
-  for (let i = 0; i < 3; i++) {
-    const a = (i / 3) * Math.PI * 2, s = new THREE.Group();
+  for (let i = 0; i < nV; i++) {
+    const a = (i / nV) * Math.PI * 2, s = new THREE.Group();
     s.position.set(Math.sin(a) * 2.42, 0.4, Math.cos(a) * 2.42);
     s.rotation.y = a;
     s.add(new THREE.Mesh(merge(box([1.2, 1.1, 0.16], dark, [0, 0, 0])), mat));
@@ -329,8 +329,8 @@ export function sentinelModel({ hull = '#9fb2c6', hull2 = '#8aa0b8', dark = '#34
   head.add(new THREE.Mesh(merge(cyl(0.9, 1.1, 0.9, hull2, [0, 0, 0], null, 12)), mat));
   head.add(new THREE.Mesh(merge(ell([0.45, 0.45, 0.25], '#ffffff', [0, 0, 1.0])), eyeM));
   const legs = [];
-  for (let i = 0; i < 3; i++) {
-    const a = (i / 3) * Math.PI * 2 + Math.PI / 3;
+  for (let i = 0; i < nL; i++) {
+    const a = (i / nL) * Math.PI * 2 + Math.PI / nL;
     const hip = new THREE.Group();
     hip.position.set(Math.sin(a) * 1.9, -1.7, Math.cos(a) * 1.9);
     hip.rotation.y = a;
@@ -343,10 +343,12 @@ export function sentinelModel({ hull = '#9fb2c6', hull2 = '#8aa0b8', dark = '#34
   const M = {
     group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, mouth, mouthR: 1.5, radius: 3.0, height: 9,
     head, body, vents, shutters, legs, eyeM, ventM, open: 0, slump: 0, gait: 0,
+    /** Where vent i is, in the world (a target each, for a guardian that wants them all hit at once). */
+    vent(i, out = V()) { const a = (i / nV) * Math.PI * 2; return body.localToWorld(out.set(Math.sin(a) * 2.5, 0.4, Math.cos(a) * 2.5)); },
     animate(dt, t, { state, attack, k = 0, speed = 0, meter = 0, phase = 0 }) {
       const ease = (cur, want, rate) => cur + (want - cur) * Math.min(1, dt * rate);
       const off = state === 'sleep' || state === 'resolved' || state === 'weary';
-      M.guard = ease(M.guard ?? 0, phase >= 1 && state !== 'resolved' ? 1 : 0, 3);   // the second phase: its sides shut, its top vent open
+      M.guard = ease(M.guard ?? 0, guarded && phase >= 1 && state !== 'resolved' ? 1 : 0, 3);   // the second phase: its sides shut, its top vent open
       M.open = ease(M.open, state === 'open' ? 1 : 0, 5);
       M.slump = ease(M.slump, state === 'resolved' ? 1 : state === 'sleep' ? 0.6 : 0, 1.5);
       M.gait += dt * speed * 2;

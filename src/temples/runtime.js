@@ -142,6 +142,7 @@ export class TempleRuntime {
     const out = [];
     for (const p of this.pieces) if (p.solid) out.push(p);
     if (this.guardian) out.push(this.guardian);   // (resolved, it lies where it settled: still in the way)
+    if (this.change?.solids) out.push(...this.change.solids());   // (a world change may bring a moving floor of its own)
     return out;
   }
 
@@ -218,7 +219,7 @@ export class TempleRuntime {
       document.body.appendChild(el);
       this.meterFill = fill;
     }
-    const on = G.awake && !this.player?.dead && !document.body.classList?.contains?.('talking');
+    const on = G.awake && !this.player?.dead && !!this.player && this.inside(this.player.pos) && !document.body.classList?.contains?.('talking');
     el.style.opacity = on ? '1' : '0';
     if (on && this.meterFill?.style) this.meterFill.style.width = `${(G.meter * 100).toFixed(1)}%`;
   }

@@ -4,6 +4,7 @@ import { createNoise2D, fbm, mulberry32, smoothstep } from '../noise.js';
 import { makeMaterial, MODE_TERRAIN, MODE_STRATA } from '../materials.js';
 import { Terrain } from '../world.js';
 import { PEOPLE } from '../story/buried-data.js';
+import { attachTemple } from '../temples/index.js';
 
 // ---------------------------------------------------------------------------
 // The Buried Machine (after Moebius): pale cream dunes under a sage sky, with
@@ -918,7 +919,8 @@ export function createBuried(scene) {
   const spawn = new THREE.Vector3(0, H(0, 60), 60);
   const inOculus = (x, z) => Math.hypot(x - OX, z - OZ) < OR + 1;
   const inCanyon = (x, z, y) => y < floorAt(z) + 30 && canyonMask(x, z) > 0.5 && z < CZ0 - 30;
-  return {
+  // the Engine-House on the dunes west of the domes, and its rooms far overhead (src/temples/buried.js)
+  return attachTemple('buried', scene, {
     id: 'buried',
     floraAvoid: avoid,   // the flora keeps off the canyon, the oculus, the hollow and the hero props (src/flora.js)
     ground: terrain,
@@ -966,5 +968,5 @@ export function createBuried(scene) {
     update(dt, t) {
       for (const m of movers) m(t);
     },
-  };
+  });
 }

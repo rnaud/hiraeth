@@ -10,6 +10,8 @@ import { ARZACH2_TEMPLE } from './arzach2.js';
 import * as ARZACH2_WORDS from './arzach2-data.js';
 import { SPHERES_TEMPLE } from './spheres.js';
 import * as SPHERES_WORDS from './spheres-data.js';
+import { BURIED_TEMPLE } from './buried.js';
+import * as BURIED_WORDS from './buried-data.js';
 
 // The makers' temples: one great building in each world, a Zelda-style
 // dungeon of rooms and puzzles in that world's architecture, with a gadget
@@ -35,6 +37,7 @@ export const TEMPLES = {
   incal: { def: INCAL_TEMPLE, words: INCAL_WORDS },
   arzach2: { def: ARZACH2_TEMPLE, words: ARZACH2_WORDS },
   spheres: { def: SPHERES_TEMPLE, words: SPHERES_WORDS },
+  buried: { def: BURIED_TEMPLE, words: BURIED_WORDS },
 };
 
 /**
@@ -50,11 +53,11 @@ export const GADGETS = {
   arzach: { temple: 'glider', world: ['hush'], built: false },        // the hush-cloth is on Vael's spire now (the bell went to Vael II); the wings move here once it is built
   arzach2: { temple: 'bell', world: ['glider'], built: true },         // the bell moved here from Vael's spire (the wings go to Vael's temple, the feather comes then)
   garage: { temple: 'coil', world: ['level'], built: false },
-  buried: { temple: 'cell', world: ['resin'], built: false },         // the fourth chamber moves here from Lorn II
+  buried: { temple: 'cell', world: ['resin'], built: true },          // the fourth chamber moved here from Lorn II
   edena: { temple: 'bloom', world: ['pouch'], built: false },         // a new gun mode; the lantern moves to Lorn II
   spheres: { temple: 'lens', world: ['shell'], built: true },
   perdide: { temple: 'stun', world: ['boots'], built: false },
-  perdide2: { temple: 'lantern', world: ['moss'], built: false },
+  perdide2: { temple: 'lantern', world: ['moss'], built: false },     // the glow-moss pin is on the root arch now (the cell went to the Engine-House)
   bazaar: { temple: 'echo', world: [], built: false },               // a new tool; the market has no chest of its own
 };
 
