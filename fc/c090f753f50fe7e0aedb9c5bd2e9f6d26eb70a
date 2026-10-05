@@ -1,0 +1,21 @@
+README.md
+  s_7a58b1ba4761f0::t_675808a346b1e7 1812-1833
+tests/ship.test.js
+  s_7a58b1ba4761f0::t_426c6727d08a9f 14-15,317-354
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fcc090f753f50fe7e0aedb9c5bd2e9f6d26eb70a",
+  "prompts": {},
+  "sessions": {
+    "s_7a58b1ba4761f0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a5bd096cd7fffd888",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
