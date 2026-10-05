@@ -516,9 +516,16 @@ All of this is for the web game; the Unity port follows later if we move to Unit
 
 # Feel and look (2026-10-05, web)
 
-- [ ] Plants move too much when you walk past: a light brush as you pass, not a big shove.
+- [x] Plants move too much when you walk past: a light brush as you pass, not a big shove.
+  *(A small quick lean away that springs back with a light wobble, by how close and how fast you
+  pass: each plant a damped spring driven by your last second of steps, summed in the vertex
+  shader; ~10 cm walking instead of ~1 m. src/brush.js, README "Brushing past plants".)*
 - [ ] Most structures cast shadows.
-- [ ] Grass pops in: in the distance it should fade into something smaller and cheaper, not appear at a line.
+- [x] Grass pops in: in the distance it should fade into something smaller and cheaper, not appear at a line.
+  *(Tuft by tuft: shrinking, thinner, into the ground's colour and without outline; a sparse far
+  layer of two-blade tufts carries the meadow ~2.2× as far; the patch no longer jumps when the
+  camera turns. Fewer triangles on every preset (High 109 k → 102 k, reach 35 → 78 m). README
+  "Grass into the distance".)*
 - [ ] Jump animation by phase: take-off, the top, falling back down (it looks static through the whole jump).
 - [ ] The gun's blob impact follows the surface it hits, not a flat decal floating in front of it.
 - [ ] Hands are stiff and flat: give them the natural arc of a relaxed hand, and let them move.
@@ -526,7 +533,10 @@ All of this is for the web game; the Unity port follows later if we move to Unit
 - [ ] The alien text in the dialogue box lacks variety: it should look like a real written language
   (each world its own script) before it turns into English.
 - [ ] One stamina bar shared by running and climbing; running a little faster.
-- [ ] Flowers that open shouldn't clip into walls and other things.
+- [x] Flowers that open shouldn't clip into walls and other things.
+  *(Rays round each bloom where it's placed: it leans away from what is close and opens only as far
+  as the room left, neighbours included; tight spots move a step or are skipped. README "Flowers
+  with room to open".)*
 - [ ] Make it clear when you hit an invisible wall (the traveller just stutters as you push on).
 - [ ] Each world's music more thematic.
 
