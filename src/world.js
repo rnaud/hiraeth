@@ -1,5 +1,5 @@
 import { OBSERVATORY } from './observatory.js';
-import { SITES, POLE_LINE, STORY, processionLoop } from './desert-sites.js';
+import { SITES, POLE_LINE, STORY, processionLoop, hearthStones } from './desert-sites.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createNoise2D, fbm, mulberry32, smoothstep, lerp } from './noise.js';
@@ -422,9 +422,10 @@ export function buildWorld(scene, terrain) {
   const storyClear = [
     { x: STORY.city.x, z: STORY.city.z, r: 150 }, { x: STORY.camps.x, z: STORY.camps.z, r: 70 },
     { x: STORY.giant.x, z: STORY.giant.z, r: 70 }, { x: STORY.pilgrim.x, z: STORY.pilgrim.z, r: 18 },
-    { x: STORY.bike.x, z: STORY.bike.z, r: 16 },
+    { x: STORY.bike.x, z: STORY.bike.z, r: 16 }, { x: STORY.hearth.x, z: STORY.hearth.z, r: 60 },
   ];
   for (const [x, z] of processionLoop(10)) storyClear.push({ x, z, r: 12 });
+  for (const [x, z] of hearthStones()) storyClear.push({ x, z, r: 5 });   // the fire-bearers' marked stones (src/desert-hearth.js)
   const story = (x, z, r = 0) => { for (const c of storyClear) if ((c.x - x) ** 2 + (c.z - z) ** 2 < (c.r + r) ** 2) return true; return false; };
   const addProp = (m, x, z, r) => { if (!story(x, z, r)) scene.add(m); };
   const floaters = [];  // { obj, baseY, phase }

@@ -418,6 +418,9 @@ export class FlameBody {
     this.width = width; this.height = height;
     this.intensity = 1;
     this._k = 1;
+    // lit: 0 (no fire at all: Qanat's tree before it is lit, src/story/desert.js) .. 1 (burning);
+    // in between the flame grows up out of its base
+    this.lit = 1;
     this.time = seed * 3.1;
     this.update(0, 0);
   }
@@ -430,6 +433,7 @@ export class FlameBody {
   }
 
   update(dt) {
+    this.group.visible = this.lit > 0.001;
     if (this.mix < 1) {
       this.mix = this.snap ? 1 : Math.min(1, this.mix + dt / 3);
       for (let i = 0; i < this.pal.length; i++) this.pal[i].copy(this.palA[i]).lerp(this.palB[i], this.mix);
@@ -441,8 +445,8 @@ export class FlameBody {
     this.time += dt * (0.8 + 0.35 * this._k) * this.pace;
     this.uniforms.uTime.value = this.time;
     this.uniforms.uK.value = this._k;
-    const g = 0.9 + 0.1 * this._k;
-    this.group.scale.set(g, 0.82 + 0.18 * this._k, g);
+    const g = 0.9 + 0.1 * this._k, L = Math.max(this.lit, 1e-3), lw = Math.sqrt(L);
+    this.group.scale.set(g * lw, (0.82 + 0.18 * this._k) * L, g * lw);
   }
 }
 
@@ -588,6 +592,9 @@ export class SmokeColumn {
     this.palA = palette.map((c) => new THREE.Color(c));
     this.palB = this.palA;
     this.mixT = Infinity;
+    // how far up the path the column has risen (in periods: puffs further along are not drawn yet).
+    // Infinity: a fire that has always burned; light(): a new fire, its column climbing from it
+    this.grow = Infinity;
     // the fire lights the smoke just above it (and, at night, that is the part that glows)
     this.tint = new THREE.Color(tint);
     for (const it of this.items) it.c = new THREE.Color();
@@ -630,6 +637,9 @@ export class SmokeColumn {
     this.colour();
   }
 
+  /** A fire just lit: the column starts at the fire and climbs (it takes one period to reach the end of the plume). */
+  light() { this.grow = 0; this.mesh.visible = true; }
+
   /** Each puff's own smoke colour (only while the colours change). */
   colour() {
     const A = this.palA, B = this.palB;
@@ -654,6 +664,7 @@ export class SmokeColumn {
     }
     const yaw = Math.atan2(this.wind.x, this.wind.z), cy = Math.cos(yaw), sy = Math.sin(yaw);
     const cam = camera?.position;
+    if (this.grow < 2) this.grow += dt / this.period;
     let near = 0;   // the largest puff's angular radius
     for (let i = 0; i < this.items.length; i++) {
       const it = this.items[i];
@@ -663,7 +674,7 @@ export class SmokeColumn {
       this.pathAt(s, _p, t);
       // the column widens as it rises; the plume flattens and stretches along the wind, then thins away
       const pr = s < RISE ? 0 : (s - RISE) / (1 - RISE), pl = smooth(0, 0.3, pr);
-      const r = it.size * smooth(0, 0.02, s) * (s < RISE ? this.base + (this.top - this.base) * Math.pow(s / RISE, 1.1) : this.top * (1 - 0.6 * pr)) * (1 - smooth(0.72, 1, pr));
+      const r = (it.u > this.grow ? 0 : 1) * it.size * smooth(0, 0.02, s) * (s < RISE ? this.base + (this.top - this.base) * Math.pow(s / RISE, 1.1) : this.top * (1 - 0.6 * pr)) * (1 - smooth(0.72, 1, pr));
       // scatter round the centre line: little near the fire, more aloft (the column frays), widest in the plume
       const sc = r * (0.5 + 0.5 * Math.min(s / RISE, 1) + 0.6 * pl), sw = Math.sin(t * 0.21 + s * 9) * r * 0.12;   // the whole line sways together
       const across = it.oa * sc * it.spread + sw, along = it.ob * sc * it.spread * 0.6;

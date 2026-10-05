@@ -12,12 +12,16 @@ import { Paint, paintMaterial } from '../vehicle-kit.js';
 // sand (Hoverbike.rest: dormant, so no whistle, no "ride" prompt, nothing
 // moves it). The quest desert.bike (desert-data.js) is started by Rook near
 // the ship, by Marrow ("Got anything faster than walking?"), or once Nour has
-// sent you on; it leads to Marrow, then to the hollow:
+// sent you for the spark-stone (desert.spark.heard: the Givers' Hearth is
+// farther than walking, and the main quest waits on the bike); it leads to
+// Marrow, then to the hollow:
 //
 //   E on the tarp      pulls it back (desert.bike.uncovered)
-//   E on the bike      with the backpack: the tank swings into its cradle,
+//   E on the bike      with a full tank: the tank swings into its cradle,
 //                      the bike lifts out of the sand and you're on it
-//                      (desert.bike.found); without: "it runs on fluid"
+//                      (desert.bike.found); without the backpack, or with its
+//                      tank still empty (tool.empty: before the giant's pool),
+//                      "it runs on fluid"
 //
 // Flags: desert.bike.uncovered, desert.bike.found (the bike works as ever,
 // in this save, for good), desert.bike.v (migrateBike ran),
@@ -82,6 +86,8 @@ export function setupHoverbike(ctx) {
   const site = hollowSite(ground);
   const bike = player.mount?.kind === 'bike' ? player.mount : null;
   const found = () => !!game.flag('desert.bike.found');
+  // fluid to run on: the backpack, filled (its tank is empty until the giant's pool, src/story/desert.js)
+  const fuelled = () => items.has('backpack') && !game.flag('tool.empty');
   const uncovered = () => !!game.flag('desert.bike.uncovered') || found();
 
   // ---------------------------------------------------------------- the hollow's props
@@ -133,8 +139,8 @@ export function setupHoverbike(ctx) {
     quests.start('desert.bike');
     if (tracked) quests.track(tracked);
   };
-  if (game.flag('desert.elder.heard')) start();
-  game.on('flag:desert.elder.heard', (v) => { if (v) setTimeout(start, 2500); });   // (after Nour's own toasts)
+  if (game.flag('desert.spark.heard')) start();
+  game.on('flag:desert.spark.heard', (v) => { if (v) setTimeout(start, 2500); });   // (after Nour's own toasts)
 
   const pullTarp = () => {
     game.set('desert.bike.uncovered', true);
@@ -143,11 +149,12 @@ export function setupHoverbike(ctx) {
     // found before anyone told you of it: the errand picks up here
     const s = quests.stage('desert.bike');
     // (not when you could wake it this moment: no errand to hand you and take back at once)
-    if ((s === undefined && !items.has('backpack')) || s === 'ask' || s === 'find') quests.set('desert.bike', 'wake');
-    toast(items.has('backpack') ? 'A hoverbike, half in the sand, smelling of fluid. Its cradle is empty.' : 'A hoverbike, half in the sand. It won’t wake: it runs on fluid, and you have none.');
+    if ((s === undefined && !fuelled()) || s === 'ask' || s === 'find') quests.set('desert.bike', 'wake');
+    toast(fuelled() ? 'A hoverbike, half in the sand, smelling of fluid. Its cradle is empty.' : 'A hoverbike, half in the sand. It won’t wake: it runs on fluid, and you have none.');
   };
   const wakeBike = () => {
     if (!items.has('backpack')) { toast('It runs on fluid, and your back is bare. Something in the city might hold some.'); return; }
+    if (!fuelled()) { toast('It runs on fluid, and your tank is empty. Fill it first, where the water is: the giant’s pool, past Qanat’s back gate.'); return; }
     game.set('desert.bike.found', true);
     sound.chime?.();
     toast('The tank clicks into its cradle. The hoverbike hums awake: call it from anywhere (E, or X / □).');
@@ -156,7 +163,7 @@ export function setupHoverbike(ctx) {
   registerInteractable({
     id: 'bike.tarp', priority: PRIORITY.use, range: 3.4,
     at: () => marker, enabled: () => !found(),
-    prompt: () => (!uncovered() ? 'pull back the tarp' : items.has('backpack') ? 'wake the hoverbike' : 'look at the hoverbike'),
+    prompt: () => (!uncovered() ? 'pull back the tarp' : fuelled() ? 'wake the hoverbike' : 'look at the hoverbike'),
     distance: (p) => (Math.abs(p.pos.y - site.bike.y) < 4 ? flat(p.pos, site.bike) : Infinity),
     use: () => (!uncovered() ? pullTarp() : wakeBike()),
   });

@@ -35,7 +35,7 @@ export const SIGNATURE_LEGEND_SHORT = 'Only worlds that carry the strike’s mag
  * `reading`: how it reads from orbit.
  */
 export const SIGNATURE_WORLDS = {
-  desert: { reading: 'in the scar itself', where: 'under the burning tree' },
+  desert: { reading: 'in the scar itself', where: 'under the great tree' },
   incal: { reading: 'strong, and ringing', where: 'at the Lodestar, over the palace' },
   arzach: { reading: 'faint, very steady', where: 'among the humming standing stones' },
   arzach2: { reading: 'faint, on one low note', where: 'at the bell on the rose cliff' },
