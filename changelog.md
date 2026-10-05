@@ -2,6 +2,12 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.57 — 2026-10-05
+
+- Smoother frame rate everywhere, most of all close to metal, cracked rock and other detailed surfaces; nothing looks different.
+- No more stutter the first time you walk into a new place or turn to something new: everything is prepared while the world loads, and worlds load faster.
+- Grassy places no longer waste time redrawing every blade of grass each frame; stepping through a door no longer stalls while the grass appears.
+
 ## v0.56 — 2026-10-05
 
 - The settings now have an Updates section in the Android app: see the version you’re playing, check for updates, read what the new one brings, and download it with a progress bar. The game restarts at the title screen with your saves kept.
