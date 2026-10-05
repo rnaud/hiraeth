@@ -11,6 +11,7 @@ import { createGBuffer, createComposeTarget, createBlit, setSubject } from '../p
 import { Cascade, shadowDirection } from '../shadows.js';
 import { applyTimeOfDay, colourScript } from '../timeofday.js';
 import { loadAnimationLibrary, Animator } from '../animator.js';
+import { loadMotionLibrary } from '../motion-match.js';
 import { loadHuman, Humanoid } from '../humanoid.js';
 import { buildCharacter } from '../player.js';
 import { Gear } from '../gear.js';
@@ -115,6 +116,9 @@ const [lib, hm, hf, travellerScene] = await Promise.all([
   new GLTFLoader().loadAsync(`${BASE}anim/traveller.glb`).then((g) => g.scene),
 ]);
 const humans = { m: hm, f: hf };
+// the captured motion too (scripts/mocap/: CMU takes through the same retargeting): the matcher's takes (mm:) and the people's walks (walk:) in the clip list
+await loadMotionLibrary(lib, { base: BASE, matching: true });
+lib.all = [...lib.all, ...(lib.motion?.all ?? [])];
 console.info(`studio: people loaded in ${(performance.now() - t0).toFixed(0)} ms`);
 // the worlds' skies come with the Lab's rooms (one sample of every world: its sky, light, ink and ground)
 let ROOMS = [];

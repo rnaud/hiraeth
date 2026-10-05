@@ -44,7 +44,10 @@ export function targetSkeleton(scene) {
   const legLength = B.thigh_l.wp.distanceTo(B.calf_l.wp) + B.calf_l.wp.distanceTo(B.foot_l.wp);
   const hipMid = B.thigh_l.wp.clone().add(B.thigh_r.wp).multiplyScalar(0.5);
   for (const n of BONES) B[n].restDir = CHILD[n] ? B[CHILD[n]].wp.clone().sub(B[n].wp).normalize() : new THREE.Vector3(0, 1, 0);
-  return { bones, legLength, hipMid, ballHeight: (B.ball_l.wp.y + B.ball_r.wp.y) / 2, rootQ: B.root.wq.clone() };
+  // the foot standing flat: the ankle's height over the ground and the pitch of ankle -> ball
+  const ankleHeight = (B.foot_l.wp.y + B.foot_r.wp.y) / 2, ballHeight = (B.ball_l.wp.y + B.ball_r.wp.y) / 2;
+  const footPitch = Math.atan2(B.foot_l.wp.y - B.ball_l.wp.y, Math.hypot(B.ball_l.wp.x - B.foot_l.wp.x, B.ball_l.wp.z - B.foot_l.wp.z));
+  return { bones, legLength, hipMid, ballHeight, ankleHeight, footPitch, rootQ: B.root.wq.clone() };
 }
 
 const gauss = (arr, n, dim, sigma) => {
@@ -83,13 +86,27 @@ export function retarget(take, T, { posSigma = 0.1, yawSigma = 0.2 } = {}) {
   const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3(), d = new THREE.Vector3();
   const srcLeg = P(map.thigh_l.from, 0, a).distanceTo(P(map.thigh_l.to, 0, b)) + P(map.calf_l.from, 0, a).distanceTo(P(map.calf_l.to, 0, b));
   const s = T.legLength / srcLeg;
-  // the floor: the balls' lowest (5th percentile) is where a ball rests on the ground
-  const balls = [];
-  for (let i = 0; i < n; i++) { balls.push(P(L.ballL, i, a).y, P(L.ballR, i, a).y); }
-  balls.sort((x, y) => x - y);
-  const floor = balls[Math.floor(balls.length * 0.05)];
-  const lift = T.ballHeight;   // our ball's height over the ground at rest
+  // The floor. A captured skeleton's ankle sits lower over its sole than ours (CMU's ankle joint is
+  // ~5 cm up, ours ~10) and its foot lies flatter (ankle -> ball pitched ~13°, ours 31°): matched as
+  // they are, our heel would go into the ground. So the floor is set by the ankles (their lowest,
+  // the 5th percentile, is our ankle's height standing), and each foot is pitched down by the
+  // difference between the two flat feet (footPitch below).
+  const low = (k) => { const h = []; for (let i = 0; i < n; i++) h.push(P(k, i, a).y); h.sort((x, y) => x - y); return h[Math.floor(h.length * 0.05)]; };
+  const floor = (low(L.ankleL) + low(L.ankleR)) / 2;
+  const lift = T.ankleHeight;
   const W = (k, i, out) => { P(k, i, out); out.y -= floor; return out.multiplyScalar(s).setY(out.y + lift); };   // target metres
+  // the source's flat foot: the median pitch of ankle -> ball while both are low (standing on it)
+  const pitches = [];
+  for (const [an, bl] of [[L.ankleL, L.ballL], [L.ankleR, L.ballR]]) {
+    const a0 = low(an), b0 = low(bl);
+    for (let i = 0; i < n; i++) {
+      P(an, i, a); P(bl, i, b);
+      if (a.y - a0 < 0.02 / s && b.y - b0 < 0.02 / s) pitches.push(Math.atan2(a.y - b.y, Math.hypot(b.x - a.x, b.z - a.z)));
+    }
+  }
+  pitches.sort((x, y) => x - y);
+  const footPitch = pitches.length > 10 ? T.footPitch - pitches[Math.floor(pitches.length / 2)] : 0;
+  const footAxis = new THREE.Vector3(), footFix = new THREE.Quaternion();
 
   // the root: under the hips, facing the hips' way, smoothed
   const raw = new Float32Array(n * 3);
@@ -126,6 +143,11 @@ export function retarget(take, T, { posSigma = 0.1, yawSigma = 0.2 } = {}) {
       if (m.aim) {
         const now = b.copy(B[k].restDir).applyQuaternion(R);
         const want = W(m.to, i, c).sub(W(m.from, i, d));
+        // (a foot: pitched down by the flat feet's difference, about its own side axis)
+        if (footPitch && k.startsWith('foot_')) {
+          footAxis.crossVectors(up, want);
+          if (footAxis.lengthSq() > 1e-8) want.applyQuaternion(footFix.setFromAxisAngle(footAxis.normalize(), footPitch));
+        }
         if (want.lengthSq() > 1e-10) q.premultiply(fix.setFromUnitVectors(now.normalize(), want.normalize()));
       }
       world[k] = q.clone().premultiply(yqi);              // in the root's frame

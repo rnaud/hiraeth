@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // The motion library: every take listed for the game, from wherever it came (CMU's ASF/AMC in
 // data/mocap/raw/cmu/, BVH files in data/mocap/raw/bvh/, Mixamo's FBX in data/mocap/mixamo/),
-// retargeted onto the UAL skeleton, cleaned, tagged and packed into public/anim/locomotion.glb.
+// retargeted onto the UAL skeleton, cleaned, tagged and packed into public/anim/locomotion.glb (the
+// matching database) and public/anim/walks.glb (the people's walks).
 // Re-runnable: it rebuilds the file from the raw folders each time (same input, same bytes), so
 // dropping Mixamo files in their folder and running it again is all it takes.
 //
@@ -26,13 +27,13 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '../..');
 const RAW = resolve(ROOT, 'data/mocap/raw');
 const MIXAMO = resolve(ROOT, 'data/mocap/mixamo');
-const OUT = resolve(ROOT, 'public/anim/locomotion.glb');
+const OUT = resolve(ROOT, 'public/anim/locomotion.glb'), WALKS = resolve(ROOT, 'public/anim/walks.glb');
 const FPS = 30;
 const args = process.argv.slice(2);
 const STATS = args.includes('--stats');
 
 // how much of the matching database to ship (frames at 30 fps, before the runtime's mirrored copy)
-const DB_BUDGET = 5800;
+const DB_BUDGET = 7500;   // (the CMU takes fill ~5900 of it: the rest is room for the Mixamo list)
 
 const parseGLB = async (file) => {
   const b = await readFile(file);
@@ -70,7 +71,7 @@ async function sources() {
     const key = basename(f, extname(f));
     const info = mix.clips.find((c) => c.file.toLowerCase() === key.toLowerCase());
     if (!info) { console.warn(`  mixamo: ${f} is not in scripts/mocap/mixamo-clips.json; skipped`); continue; }
-    list.push({ id: `mixamo_${info.id}`, use: info.use, desc: info.name, source: `Mixamo "${info.name}"`, inPlace: info.inPlace, loop: info.loop, load: async () => {
+    list.push({ id: `mixamo_${info.id}`, use: info.use, desc: `${info.name}: ${info.desc}`, source: `Mixamo "${info.name}" (${info.desc})`, inPlace: info.inPlace, loop: info.loop, opts: { loop: !!info.loop && info.use === 'mm' }, load: async () => {
       const { fbxTake } = await import('./fbx.js');
       const b = await readFile(resolve(MIXAMO, f));
       return fbxTake(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength), { fps: FPS, name: key });
@@ -212,15 +213,19 @@ for (const { src, clips: cs } of results.filter((r) => r.src.use === 'npc')) {
   loops.push({ c: loop, info: { name: src.id, source: src.source, desc: src.desc, scale: +loop.scale.toFixed(4), speed: +loop.loop.speed.toFixed(3) } });
   report.npc.push(`${src.id} ${(loop.n / FPS).toFixed(2)} s at ${loop.loop.speed.toFixed(2)} m/s (${src.desc})`);
 }
-if (loops.length) sheets.push(packSheet('walk_loops', loops, { use: 'npc' }, { rootMotion: false }));
+const walkSheets = loops.length ? [packSheet('walk_loops', loops, { use: 'npc' }, { rootMotion: false })] : [];
 // anything else that is shipped (Mixamo's gestures, idles, ...: use 'clip'), one animation each
 for (const { src, clips: cs } of results.filter((r) => r.src.use === 'clip')) {
   for (const [k, c] of cs.entries()) sheets.push(packSheet(`${src.id}${cs.length > 1 ? `_${k + 1}` : ''}`, [{ c, info: { name: src.id, source: src.source, desc: src.desc } }], { use: 'clip', loop: !!src.loop }, { rootMotion: !src.inPlace }));
 }
-const glb = writeGLB({ nodes, clips: sheets, extras: { generator: 'scripts/mocap/build-library.mjs', fps: FPS, tracks: TRACKS, credits: 'CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu), created with funding from NSF EIA-0196217; Mixamo (Adobe) where listed. See docs/motion-data.md.' } });
+// two files: the people's walks (small, loaded with the game) and the matching database with any
+// other clips (loaded when motion matching is on, and by the character studio)
+const extras = { generator: 'scripts/mocap/build-library.mjs', fps: FPS, tracks: TRACKS, credits: 'CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu), created with funding from NSF EIA-0196217; Mixamo (Adobe) where listed. See docs/motion-data.md.' };
 await mkdir(dirname(OUT), { recursive: true });
-await writeFile(OUT, glb);
+for (const [file, list] of [[OUT, sheets], [WALKS, walkSheets]]) {
+  const glb = writeGLB({ nodes, clips: list, extras });
+  await writeFile(file, glb);
+  console.log(`${file}: ${(glb.length / 1024).toFixed(0)} KB`);
+}
 console.log(`matching database: ${report.mm.length} clips, ${dbFrames} frames (${(dbFrames / FPS).toFixed(0)} s; mirrored at load)`);
 console.log(`walk loops: ${report.npc.length}\n  ${report.npc.join('\n  ')}`);
-console.log(`${OUT}: ${(glb.length / 1024).toFixed(0)} KB`);
-

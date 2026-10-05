@@ -24,7 +24,8 @@ export const MATCH = {
   weights: { feetPos: 0.75, feetVel: 1, hipVel: 1, trajPos: 1, trajDir: 1.5 },
   endMargin: 6,           // frames at a clip's end never jumped to
   stay: 3,                // a match within this many frames of the one playing: keep playing
-  keep: 0.35, keepAbs: 0.1,    // a jump must beat the frame playing by this much (relative, absolute)
+  back: 15,               // or this many behind it in the same take (never back a step and again, round and round)
+  keep: 0.35, keepAbs: 0.1, keepMax: 0.5,   // a jump must beat the frame playing by this much (relative, at least, at most)
   endBias: 0.5,           // extra cost of a frame in the last second of a clip that ends
   forceTurn: 0.6,         // rad the wanted direction turns (or speed changes by forceSpeed) to search at once
   forceSpeed: 1.5,        // m/s
@@ -37,25 +38,43 @@ const FPS_DEFAULT = 30;
 const otherSide = (n) => (n.endsWith('_l') ? n.slice(0, -1) + 'r' : n.endsWith('_r') ? n.slice(0, -1) + 'l' : n);
 const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 
-let loading = null;
-/** Load public/anim/locomotion.glb once and attach it to the clip library (lib.motion). */
-export function loadMotionLibrary(lib, url = 'anim/locomotion.glb') {
-  loading ??= new GLTFLoader().loadAsync(url).then((g) => attachMotion(lib, g)).catch((e) => { console.warn('motion library failed to load', e); return null; });
-  return loading;
+const loading = {};
+/**
+ * Load the captured motion and attach it to the clip library (lib.motion): the people's walks
+ * (public/anim/walks.glb, small: always) and, with `matching`, the matching database and any
+ * other clips (public/anim/locomotion.glb, ~1 MB: only when motion matching is on, or in the
+ * character studio). Each file is fetched once; resolves to lib.motion.
+ */
+export function loadMotionLibrary(lib, { base = '', matching = false } = {}) {
+  const files = ['anim/walks.glb', ...(matching ? ['anim/locomotion.glb'] : [])];
+  return Promise.all(files.map((f) => (loading[base + f] ??= new GLTFLoader().loadAsync(base + f).then((g) => attachMotion(lib, g)).catch((e) => { console.warn(`${f} failed to load`, e); return null; }))))
+    .then(() => lib.motion ?? null);
 }
 
-/** The motion library from a parsed locomotion.glb, attached to `lib` (lib.motion). */
+/** Motion matching for the traveller: off unless asked for (the dev menu, or ?mm=1 in the address). */
+export const matchingSetting = {
+  key: 'memento.motionMatching',
+  get() {
+    try {
+      const q = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('mm') : null;
+      if (q !== null) return q === '1' || q === 'on';
+      return typeof localStorage !== 'undefined' && localStorage.getItem(this.key) === '1';
+    } catch { return false; }
+  },
+  set(on) { try { localStorage.setItem(this.key, on ? '1' : '0'); } catch { /* (no storage: this session only) */ } },
+};
+
+/** A parsed walks.glb or locomotion.glb, attached to `lib` (lib.motion: what was there before stays). */
 export function attachMotion(lib, gltf) {
   const sheets = Object.fromEntries(gltf.animations.map((a) => [a.name, a]));
-  const motion = { db: null, walks: [], clips: [] };
+  const motion = (lib.motion ??= { db: null, walks: [], clips: [], all: [] });
   if (sheets.mm_database) motion.db = new MotionDB(lib, sheets.mm_database);
-  if (sheets.walk_loops) motion.walks = segmentClips(sheets.walk_loops).map((c) => ({ ...c.userData, clip: c }));
-  for (const a of gltf.animations) {
-    if (a.userData?.use === 'clip') motion.clips.push(stripRoot(a));
-  }
+  const walks = sheets.walk_loops ? segmentClips(sheets.walk_loops).map((c) => ({ ...c.userData, clip: c })) : [];
+  motion.walks.push(...walks);
+  const clips = gltf.animations.filter((a) => a.userData?.use === 'clip').map(stripRoot);
+  motion.clips.push(...clips);
   // the studio lists everything: the database's takes and the walks one by one
-  motion.all = [...(sheets.mm_database ? segmentClips(sheets.mm_database, 'mm') : []), ...motion.walks.map((w) => w.clip), ...motion.clips];
-  lib.motion = motion;
+  motion.all.push(...(sheets.mm_database ? segmentClips(sheets.mm_database, 'mm') : []), ...walks.map((w) => w.clip), ...clips);
   return motion;
 }
 
@@ -65,13 +84,16 @@ const stripRoot = (clip) => { clip.tracks = clip.tracks.filter((t) => !t.name.st
 export function segmentClips(sheet, prefix = 'walk') {
   const ud = sheet.userData ?? {}, fps = ud.fps ?? FPS_DEFAULT;
   return (ud.segments ?? []).map((s) => {
+    // (a loop's last frame flows into its first: the clip ends on the first again, a cycle on)
+    const wrap = s.loop || ud.use === 'npc', n = s.n + (wrap ? 1 : 0);
     const tracks = sheet.tracks.filter((t) => !t.name.startsWith('root_motion.')).map((t) => {
-      const w = t.getValueSize(), times = new Float32Array(s.n), values = new Float32Array(s.n * w);
-      for (let i = 0; i < s.n; i++) times[i] = i / fps;
+      const w = t.getValueSize(), times = new Float32Array(n), values = new Float32Array(n * w);
+      for (let i = 0; i < n; i++) times[i] = i / fps;
       values.set(t.values.subarray(s.start * w, (s.start + s.n) * w));
+      if (wrap) values.set(t.values.subarray(s.start * w, (s.start + 1) * w), s.n * w);
       return new t.constructor(t.name, times, values);
     });
-    const c = new THREE.AnimationClip(`${prefix}:${s.name}`, (s.n - 1) / fps, tracks);
+    const c = new THREE.AnimationClip(`${prefix}:${s.name}`, (n - 1) / fps, tracks);
     c.userData = { ...s, contact: contactsOf(ud, s), fps };
     return c;
   });
@@ -116,7 +138,7 @@ export class MotionDB {
     const mirrorOf = this.bones.map((b) => this.bones.indexOf(otherSide(b)));
     for (let m = 0; m < 2; m++) {
       const off = m * n0;
-      for (const [si, s] of segs.entries()) this.segments.push({ ...s, start: s.start + off, end: s.start + off + s.n, mirrored: !!m, index: this.segments.length });
+      for (const [si, s] of segs.entries()) this.segments.push({ ...s, start: s.start + off, end: s.start + off + s.n, mirrored: !!m, index: this.segments.length, take: si });
       for (let i = 0; i < n0; i++) {
         const j = off + i;
         for (let b = 0; b < B; b++) {
@@ -412,12 +434,20 @@ export class MotionMatcher {
       }
       // (and it keeps playing unless something is clearly better: jumping at every search for a
       // hair's difference would never let a step finish)
-      const bound = Number.isFinite(curCost) ? curCost * (1 - MATCH.keep) - MATCH.keepAbs : Infinity;
+      const bound = Number.isFinite(curCost) ? curCost - THREE.MathUtils.clamp(curCost * MATCH.keep, MATCH.keepAbs, MATCH.keepMax) : Infinity;
       const best = db.search(q, Math.max(bound, 0), cur);
       if (best.frame === cur) best.cost = curCost;
       this.searches++;
       this.cost = best.cost;
-      const same = !fresh && db.segOf[best.frame] === db.segOf[Math.floor(this.cur)] && Math.abs(best.frame - this.cur) <= MATCH.stay;
+      // (the same take, or its mirror image, a few frames on or up to half a second back: keep
+      // playing; flicking between a take and its mirror, or back a step and again, would never let a
+      // step finish)
+      let same = false;
+      if (!fresh && best.frame >= 0) {
+        const a = db.segments[db.segOf[best.frame]], b = db.segments[db.segOf[Math.floor(this.cur)]];
+        const ahead = (best.frame - a.start) - (this.cur - b.start);
+        same = a.take === b.take && ahead <= MATCH.stay * (a === b ? 1 : 2) && ahead >= -MATCH.back;
+      }
       if (best.frame >= 0 && !same) this.jump(best.frame, fresh);
     }
     this.sample(dt);

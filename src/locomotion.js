@@ -100,8 +100,9 @@ export function gaitFeet(animator, speed, out = {}) {
   out.gait = A.gaitW;
   const sweep = A.footSpeed * Math.max(A.gaitW, 0.05);
   out.warp = sweep > 0.05 ? clamp(speed / sweep, 0.4, 1.25) : 1;
-  // (motion-captured feet swing low: lift them clear while the matcher leads: feet.js)
-  out.minClear = A.mmW > 0 ? 0.045 * A.mmW : 0;
+  // (captured feet swing low, a centimetre or two over the floor, as people's do: lifted clear while
+  // the matcher or a captured walk leads, so a swinging foot never reads as dragged: feet.js)
+  out.minClear = 0.045 * Math.min(1, (A.mmW ?? 0) + (A.walkName ? A.w.walk : 0));
   return out;
 }
 
@@ -155,6 +156,35 @@ export function gaitStyle(rand, { build = 'average', kind = 'm', size = 1 } = {}
     wobble: 0.02 + rand() * 0.03,
     wobbleRate: 0.25 + rand() * 0.3,
   };
+}
+
+// The captured walks (lib.motion.walks, scripts/mocap/: CMU subjects' walking cycles) by their
+// capture's description, and who they suit; the rest are plain walks anyone may have
+const WALK_SUITS = [
+  [/old man|elderly/, (p) => p.older],
+  [/heavyset|strong man/, (p) => p.build === 'heavy' || p.build === 'broad'],
+  [/lady|relaxed/, (p) => p.kind === 'f'],
+  [/childish|teen/, (p) => p.child],
+  [/rushed|fast/, () => false],   // (hurried: nobody strolls like that)
+];
+
+/**
+ * A person's own captured walk (an entry of lib.motion.walks), or null to keep the library's:
+ * one whose own pace is near theirs (so its cadence stays a walker's), suited to who they are
+ * when there is one (an older walker, a heavy build, a woman, a child), seeded like the rest of
+ * their gait (`rand`).
+ * @param o.speed their walking speed (m/s); o.size their body's size against the clips' (legs)
+ */
+export function walkFor(walks, rand, { kind = 'm', build = 'average', size = 1, speed = 1.25, older = false } = {}) {
+  if (!walks?.length) return null;
+  const p = { kind, build, older, child: size < 0.8 };
+  const fit = walks.filter((w) => { const r = speed / (w.speed * size); return r > 0.8 && r < 1.25; });
+  const special = fit.filter((w) => WALK_SUITS.some(([re, ok]) => re.test(w.desc) && ok(p)));
+  const plain = fit.filter((w) => !WALK_SUITS.some(([re]) => re.test(w.desc)));
+  const pick = rand(), keep = rand(), which = rand();
+  const pool = special.length && pick < 0.7 ? special : plain;
+  if (!pool.length || keep < 0.12) return null;   // (now and then the library's own walk, too)
+  return pool[Math.floor(which * pool.length) % pool.length];
 }
 
 /** Lay a person's gait style over the rig (after Animator.apply): k = how much they're walking (0..1). */

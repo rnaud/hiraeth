@@ -19,9 +19,11 @@ const parse = async (name) => {
 };
 let assets = null;
 export async function loadAssets() {
-  // (the clip library with its motion-matching database, public/anim/locomotion.glb, attached: lib.motion)
-  assets ??= Promise.all([parse('ual.glb'), parse('human_m.glb'), parse('human_f.glb'), parse('locomotion.glb')]).then(([ual, m, f, loco]) => {
+  // (the clip library with the captured motion attached, lib.motion: the people's walks, public/anim/walks.glb,
+  // and the matching database, public/anim/locomotion.glb)
+  assets ??= Promise.all([parse('ual.glb'), parse('human_m.glb'), parse('human_f.glb'), parse('walks.glb'), parse('locomotion.glb')]).then(([ual, m, f, walks, loco]) => {
     const lib = libraryFrom(ual);
+    attachMotion(lib, walks);
     attachMotion(lib, loco);
     return { lib, human: { m: prepareHuman(m.scene, 'm'), f: prepareHuman(f.scene, 'f') } };
   });

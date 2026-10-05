@@ -34,6 +34,7 @@ import { Crowd, CROWD_DIST_CELL } from './crowd.js';
 import { Journal, Relics, Story, Errands } from './quest.js';
 import { CONTENT, ERRANDS } from './levels/content.js';
 import { loadAnimationLibrary, Animator } from './animator.js';
+import { loadMotionLibrary, matchingSetting } from './motion-match.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { loadHuman, Humanoid } from './humanoid.js';
 import { talkFaces, TALK_FACE } from './talk-face.js';
@@ -276,6 +277,10 @@ const lib = await animLib;
 if (lib) {
   player.animator = player._animator = new Animator(lib, player.char);
   console.info('clip ground speeds (m/s):', Object.fromEntries(Object.entries(lib.native).map(([k, v]) => [k, +v.toFixed(2)])));
+  // captured motion (src/motion-match.js, not waited for): the people's own walks always; the
+  // traveller's motion matching only when it is switched on (the dev menu, ?mm=1)
+  const matching = matchingSetting.get();
+  loadMotionLibrary(lib, { matching }).then(() => { if (player.animator) player.animator.matching = matching && !!lib.motion?.db; });
 }
 const humanT = await humans;
 const travellerTemplate = await traveller;
@@ -422,7 +427,12 @@ if (game.flag('prologue.done') && !game.flag(CHARGE_CARD) && !playPrologue && !p
     showChargeCard({ sound });
   }, 4000);
 }
-const devMenu = new DevMenu({ levelId, levels: LEVELS, boxes, quests: storyRt.quests, story });
+const devMenu = new DevMenu({ levelId, levels: LEVELS, boxes, quests: storyRt.quests, story,
+  // (motion matching for the traveller: src/motion-match.js; its database loads the first time it is switched on)
+  matching: lib && {
+    get: () => !!player.animator?.matching,
+    set: (on) => { matchingSetting.set(on); loadMotionLibrary(lib, { matching: on }).then(() => { if (player.animator) player.animator.matching = on && !!lib.motion?.db; devMenu.render(); }); },
+  } });
 window.addEventListener('keydown', (e) => {
   if (!boxes.busy() || e.repeat) return;
   if (e.code === 'Escape') boxes.skip();

@@ -19,9 +19,11 @@ export function sliceClip(r, a, b) {
 }
 
 /**
- * Foot contacts (0..1 per frame and foot): the ball or the heel within ~3 cm of where it rests on
- * the floor and nearly still over it. The floor of each landmark is its own lowest (5th
- * percentile) over the take, so a marker's height over the sole doesn't matter.
+ * Foot contacts (0 or 1 per frame and foot): the ball of the foot within ~2.5 cm of where it
+ * rests on the floor and nearly still over it, which is what the game plants (feet.js holds the
+ * ball): from the moment it comes down after the heel to the push off the toes. The floor is the
+ * ball's own lowest (5th percentile) over the take, so a marker's height over the sole doesn't
+ * matter.
  */
 export function footContacts(r) {
   const n = r.n, fps = r.fps, out = {};
@@ -30,13 +32,9 @@ export function footContacts(r) {
     const j = Math.min(i + 1, n - 1), k = Math.max(i - 1, 0);
     return Math.hypot(arr[j * 3] - arr[k * 3], arr[j * 3 + 2] - arr[k * 3 + 2]) / Math.max(j - k, 1) * fps;
   };
-  for (const [f, ball, heel] of [['l', r.feet.ballL, r.feet.ankleL], ['r', r.feet.ballR, r.feet.ankleR]]) {
-    const b0 = low(ball), h0 = low(heel), c = new Float32Array(n);
-    for (let i = 0; i < n; i++) {
-      const cb = (1 - sm(ball[i * 3 + 1] - b0, 0.02, 0.045)) * (1 - sm(speed(ball, i), 0.35, 0.8));
-      const ch = (1 - sm(heel[i * 3 + 1] - h0, 0.02, 0.045)) * (1 - sm(speed(heel, i), 0.35, 0.8));
-      c[i] = Math.max(cb, ch);
-    }
+  for (const [f, ball] of [['l', r.feet.ballL], ['r', r.feet.ballR]]) {
+    const b0 = low(ball), c = new Float32Array(n);
+    for (let i = 0; i < n; i++) c[i] = (1 - sm(ball[i * 3 + 1] - b0, 0.015, 0.035)) * (1 - sm(speed(ball, i), 0.3, 0.6));
     // on or off, with hysteresis (on over 0.6, off under 0.35), so a foot resting lightly doesn't flicker
     const on = new Array(n);
     let state = c[0] > 0.5;
