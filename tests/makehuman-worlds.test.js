@@ -287,3 +287,15 @@ test('the City-Shaft\'s people are MakeHuman bodies: Pip a child of nine in a kn
   assert.notEqual(pip.look.mask, 'beard', 'a child: no beard (he had one)');
   assert.equal(onBody('incal', PEOPLE.wren).look.head, 'aviator');
 });
+
+test('Vael\'s people are MakeHuman bodies: Tam, who copies you, a boy of seven', async () => {
+  assert.ok(MH_WORLDS.has('arzach'));
+  const { CONTENT } = await import('../src/levels/content.js');
+  const tam = CONTENT.arzach.npcs[0];
+  assert.equal(ageClassOf({ def: { age: tam.age, years: tam.years } }), 'child');
+  const p = new MakeHumanPeople(data, 'arzach').templateFor({ kind: tam.kind, def: { age: tam.age, years: tam.years, kind: tam.kind } }).userData.profile;
+  const h = p.trueScale * p.measured.height;
+  assert.ok(h > 1.05 && h < 1.35, `Tam ${h.toFixed(2)} m`);
+  const npc = readFileSync(new URL('../src/npc.js', import.meta.url), 'utf8');
+  assert.match(npc, /age: s\.age \?\? null, years: s\.years \?\? null/, 'a spawn spot gives its age');
+});
