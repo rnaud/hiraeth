@@ -1,5 +1,5 @@
 // What a GLB's bytes go to (per mesh: indices, each attribute, the morph targets), for docs/makehuman.md:
-//   node scripts/makehuman/glb-sizes.mjs public/anim/mh/man.glb public/anim/human_m.glb
+//   node scripts/makehuman/glb-sizes.mjs public/anim/human_m.glb public/anim/human_f.glb
 import { readFileSync } from 'node:fs';
 
 for (const file of process.argv.slice(2)) {

@@ -1,8 +1,8 @@
-// The MakeHuman prototype's faces (docs/makehuman.md): their expressions on shape keys.
+// The MakeHuman bodies' faces (docs/makehuman.md): their expressions on shape keys.
 //
-// The bodies of scripts/makehuman/build.py carry MPFB's face units (ARKit) and visemes as morph
+// The parametric body of scripts/makehuman/build.py carries MPFB's face units (ARKit) and visemes as morph
 // targets, the left and right halves merged (smile, frown, jawOpen, browInnerUp, browDown,
-// browOuterUp, blink, squint, cheekSquint, eyeWide, pucker, press, stretch, v_aa … v_FV). A tone's
+// browOuterUp, blink, squint, cheekSquint, eyeWide, v_aa: the ones used here). A tone's
 // expression (src/expression.js: smile, open, brow, browTilt, squint) becomes weights on them
 // (keyWeights), so the skin itself moves: the mouth's corners, the jaw, the brows (their own mesh
 // has the keys too), the lids. The face ink rides the skin (materials.js keeps vBind the rest
@@ -48,9 +48,9 @@ export function inkShare(x) {
 }
 
 /**
- * The shape-key face of a Humanoid (prepareMakeHuman's profile.faceKeys): every mesh of its model
+ * The shape-key face of a Humanoid (the MakeHuman template's profile.faceKeys, src/makehuman/body.js): every mesh of its model
  * with morph targets, set together. set(expression) → the ink's share; eyes(blink, squint) → the
- * eyeball's painted lid (none: the real lids close).
+ * eyeball's painted lid (with the real lids: they rest opened wider than modelled, body.js openEyes).
  */
 export function faceKeysFor(h) {
   const meshes = [];
@@ -70,6 +70,7 @@ export function faceKeysFor(h) {
     brows: !!h.browMesh?.morphTargetDictionary,
     weights: () => keyWeights(expr, blink),
     set(x) { expr = x; write(); return inkShare(x); },
-    eyes(b) { if (Math.abs(b - blink) > 1e-4) { blink = b; write(); } return 0; },
+    // (the eyeball's painted lid comes down with the skin's: the lids, opened wider than modelled, shut over it)
+    eyes(b) { if (Math.abs(b - blink) > 1e-4) { blink = b; write(); } return b; },
   };
 }

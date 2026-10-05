@@ -7,6 +7,7 @@ export const CHANGELOG = [
     'Plants no longer get shoved aside as you walk past: they lean a little away from you, as if brushed, and spring back with a small wobble, more the closer and the faster you pass. Grass parts round your feet the same way.',
     'Grass no longer pops in or stops at a line: the blades fade out tuft by tuft with distance, shorter and in the colour of the ground, and sparse low tufts carry the meadow about twice as far before it melts into the ground. Turning the camera no longer makes the grass in front of you jump.',
     'Flowers that open no longer push their petals into walls, rocks or each other: they lean a little away from what is close and open only as far as there is room, and those squeezed into a tight corner grow a step further out.',
+    'No more comic pages popping up over the game when you arrive in a world or reach its goal: their words now come as a note at the top of the screen, like other messages, and the moment still goes into your sketchbook.',
     'The jets climb again: hold RT / R2 (without aiming) and you rise, straight up, or up and wherever the left stick points. Hold A / × as well to hover in place.',
     'The fluid gun’s paint now lands on what it hits and takes its shape: it wraps over steps, rocks, domes and tree trunks and runs round their edges, instead of a flat disc floating in front of them or cut through by them.',
     'Faces in the conversation portrait are sharp: clean outlines instead of jagged, broken lines, on small screens too.',

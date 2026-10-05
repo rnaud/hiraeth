@@ -109,12 +109,13 @@ export class ObservatoryQuest {
       : ['A sleeping observatory stands east of here: a tower crowned by a brass ring.', 'Take my sketch. Rest on its ledges, then turn the three lenses toward the heart.'];
     this.traveler.lineIdx = 0;
   }
+  /** The moment's words as a toast (once a comic page); its first shot drawn for the sketchbook. */
   page(title, caption, shots) {
-    const imgs = shots.map(([eye, look], i) => this.capture(eye, look, i === 0 ? 900 : 440, i === 0 ? 380 : 300));
-    this.story.page.innerHTML = `<div class="sheet"><div class="p p1"><img src="${imgs[0]}" alt="Observatory sketch"><div class="cap"><b>${title}</b><br>${caption}</div></div>${imgs.slice(1).map((img, i) => `<div class="p p${i + 2}"><img src="${img}" alt="Observatory detail"></div>`).join('')}<div class="hint" aria-label="continue">▸</div></div>`;
-    this.story.page.classList.add('open'); this.story.pageOpen = true;
-    document.exitPointerLock?.(); this.sound.page();
-    return imgs[0];
+    const [eye, look] = shots[0];
+    const img = this.capture(eye, look, 900, 380);
+    this.story.say(`${title[0]}${title.slice(1).toLowerCase()} · ${caption}`);
+    this.sound.page();
+    return img;
   }
   nearby(player) {
     if (!this.state.started || this.state.done || player.riding) return -1;
