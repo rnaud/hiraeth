@@ -74,6 +74,7 @@ namespace Memento
             Active = true;
             var go = new GameObject("Benchmark");
             DontDestroyOnLoad(go);
+            go.AddComponent<PerfClock>();
             go.AddComponent<Bench>();
             Debug.Log("Memento: bench armed: " + string.Join(" ", Args().SkipWhile(a => a != "-bench")));
         }
@@ -104,6 +105,7 @@ namespace Memento
         };
         readonly List<(string name, ProfilerRecorder rec)> markers = new();
         double[] markerSum = new double[0]; int markerFrames;
+        readonly double[] sysSum = new double[(int)Perf.Slot.Count]; readonly double[] cntSum = new double[8];
         float loadTitle, loadFirst;
 
         IEnumerator Start()
@@ -278,7 +280,7 @@ namespace Memento
         {
             foreach (var l in new[] { fFrame, fCpu, fMain, fRender, fGpu, fWait }) l.Clear();
             foreach (var l in new[] { fBatches, fDraws, fSetPass, fTris, fVerts }) l.Clear();
-            Array.Clear(markerSum, 0, markerSum.Length); markerFrames = 0;
+            Array.Clear(markerSum, 0, markerSum.Length); markerFrames = 0; Array.Clear(sysSum, 0, sysSum.Length); Array.Clear(cntSum, 0, cntSum.Length);
             recording = true;
             Debug.Log("Memento: bench rec start");   // (a WebGL page's runner slices its own frame times by these)
             float end = Time.realtimeSinceStartup + secs;
@@ -315,6 +317,8 @@ namespace Memento
             if (rTris.Valid) fTris.Add(rTris.LastValue);
             if (rVerts.Valid) fVerts.Add(rVerts.LastValue);
             for (int i = 0; i < markers.Count; i++) if (markers[i].rec.Valid) markerSum[i] += markers[i].rec.LastValue;
+            for (int i = 0; i < sysSum.Length; i++) sysSum[i] += Perf.Ms((Perf.Slot)i);
+            for (int i = 0; i < cntSum.Length; i++) cntSum[i] += Perf.Last((Perf.Counter)i);
             markerFrames++;
         }
 
@@ -350,8 +354,12 @@ namespace Memento
             views.Append($"\"batches\":{Med(fBatches)},\"draws\":{Med(fDraws)},\"setPass\":{Med(fSetPass)},\"tris\":{Med(fTris)},\"verts\":{Med(fVerts)},");
             views.Append($"\"mem\":{{\"totalUsed\":{Rec(rTotalUsed)},\"totalReserved\":{Rec(rTotalReserved)},\"gfxUsed\":{Rec(rGfx)},\"gcUsed\":{Rec(rGcUsed)},\"systemUsed\":{Rec(rSystem)},\"videoMemory\":{Rec(rVideo)},\"renderTextures\":{Rec(rRT)},\"buffers\":{Rec(rBuffers)},\"textures\":{Rec(rTextures)},\"monoHeap\":{GC.GetTotalMemory(false)}}},");
             views.Append("\"markers\":{" + string.Join(",", markers.Select((m, i) => $"{Q(m.name)}:{(m.rec.Valid && markerFrames > 0 ? (markerSum[i] / markerFrames / 1e6).ToString("0.###", CultureInfo.InvariantCulture) : "null")}")) + "},");
+            // the game's own systems, main thread, stopwatch-timed (Perf.cs: release players too), and their counters
+            int nf = Math.Max(markerFrames, 1);
+            views.Append("\"systems\":{" + string.Join(",", Perf.Names.Select((n, i) => $"{Q(n)}:{(sysSum[i] / nf).ToString("0.###", CultureInfo.InvariantCulture)}")) + "},");
+            views.Append("\"counts\":{" + string.Join(",", Perf.CounterNames.Select((n, i) => $"{Q(n)}:{(cntSum[i] / nf).ToString("0.#", CultureInfo.InvariantCulture)}")) + "},");
             views.Append($"\"raw\":{{\"frame\":{Raw(fFrame)},\"gpu\":{Raw(fGpu)},\"cpu\":{Raw(fCpu)}}}}}");
-            Debug.Log($"Memento: bench {name}: {fFrame.Count} frames, median {med:0.00} ms, gpu {Stats(fGpu)}, draws {Med(fDraws)}, tris {Med(fTris)}");
+            Debug.Log($"Memento: bench {name}: {fFrame.Count} frames, median {med:0.00} ms, gpu {Stats(fGpu)}, draws {Med(fDraws)}, tris {Med(fTris)}, cape {sysSum[0] / nf:0.00} ms, lod {sysSum[1] / nf:0.00}, cull {sysSum[2] / nf:0.00}, shadows {sysSum[3] / nf:0.00}, crowd {sysSum[4] / nf:0.00}; capes simulated {cntSum[0] / nf:0.0}");
         }
         static string Rec(ProfilerRecorder r) => r.Valid ? r.LastValue.ToString() : "null";
 

@@ -149,7 +149,7 @@ export async function exportPeople({ W, blob: worldBlob, sblob = worldBlob, mate
     // and jets folded in it: Unity shows them by name (Fluid tank, Fluid bracer, Fluid wings, Fluid jets)
     const { FluidTool } = await import('../../src/fluid-tool.js');
     const items = { has: (k) => k === 'backpack', on: () => () => {} };
-    const state = { on: () => () => {}, emit() {}, get() {}, set() {}, is: () => false };
+    const state = { on: () => () => {}, emit() {}, get() {}, set() {}, is: () => false, flag: () => false };
     const fp = { humanoid: h, char, gear, vehicles: [], pos: new THREE.Vector3(), vel: new THREE.Vector3(), frame: { up: new THREE.Vector3(0, 1, 0) } };
     const tool = new FluidTool({ scene: new THREE.Scene(), player: fp, physics: null, camera: null, items, state });
     if (tool.bracer) tool.bracer.group.name = 'Fluid bracer';
