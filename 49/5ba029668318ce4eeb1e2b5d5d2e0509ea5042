@@ -1,0 +1,47 @@
+README.md
+  s_1fd8d0e7b02dcf::t_47175e45b80713 3339-3375
+TODO.md
+  s_1fd8d0e7b02dcf::t_a1f7a8793bd943 531-534,543-545,549-550
+changelog.md
+  s_1fd8d0e7b02dcf::t_32326f54e5c9b1 11-13
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_c7f28d251174de 11-13
+src/fluid-tool.js
+  s_1fd8d0e7b02dcf::t_d8ef1cf456dd47 9,338-350,352-360,362,364-389,391-394,396-408,410-423,425-435,437-438,440-441,681,1357-1360
+src/levels/perdide.js
+  s_1fd8d0e7b02dcf::t_96f2aeec463ba1 329
+src/main.js
+  s_1fd8d0e7b02dcf::t_0f586e114c6fa9 28,60,993-994,999,1066-1068,1117-1120,1122-1140,1148,1154-1155,1160,1168-1172,1175
+src/shadows.js
+  s_1fd8d0e7b02dcf::t_a4537605a2b737 260-312
+src/splat-decal.js
+  s_1fd8d0e7b02dcf::t_8bbae7fd953dd2 1-524
+src/story/index.js
+  s_1fd8d0e7b02dcf::t_dfba4eae85b7b2 11,101-104
+src/story/portrait-bg.js
+  s_1fd8d0e7b02dcf::t_a9a0b464075b48 75-98
+tests/fluid-tool.test.js
+  s_1fd8d0e7b02dcf::t_c16678199cd815 229-230
+tests/hud-cleanup.test.js
+  s_1fd8d0e7b02dcf::t_c0db3c3b023b34 6,61-76
+tests/shadows.test.js
+  s_1fd8d0e7b02dcf::t_4fe181719308b1 107-135
+tests/splat-decal.test.js
+  s_1fd8d0e7b02dcf::t_a08a2fc6b598e4 1-234
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "495ba029668318ce4eeb1e2b5d5d2e0509ea5042",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
