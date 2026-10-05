@@ -16,6 +16,7 @@ export const CHANGELOG = [
     'A / × (the bottom button) jumps off the bird, the hoverbike, the skiff or a taxi with a little hop, and you carry their speed. Hop, flap and rise moved to X / □ (the left button).',
     'Getting off something moving or flying is now a jump off. With the wings they open by themselves, and if you jump off the bird high up with nothing to break the fall, she swoops in and catches you.',
     'You no longer tumble over after a fall of about 10 m; the ragdoll now starts from about 16 m.',
+    'A new Motion page (from the character studio or the dev menu): the traveller walking on the blended loops next to motion matching, both driven by the same controls or by scripted runs, in slow motion or frame by frame, with what the matcher plays, its predicted path and the planted feet drawn on the ground, and a row of people on the twelve captured walks.',
   ] },
   { v: '0.55', date: '2026-10-05', items: [
     'The desert story is reworked. Qanat’s great tree went out the night the singing light passed: it now stands cold over the walls, with no flame, no smoke and no glow.',
