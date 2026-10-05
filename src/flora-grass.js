@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { makeMaterial } from './materials.js';
 import { mulberry32, createNoise2D } from './noise.js';
+import { grassLod } from './grass-shader.js';
 
 // Grass blades round the camera, in the grassy worlds (the terrains drawn with grass ticks:
 // Viridel, the Garden of Spheres, home, Lorn's mosses, their Lab rooms).
@@ -12,17 +13,26 @@ import { mulberry32, createNoise2D } from './noise.js';
 // that wrapped this frame are placed again (heightAt, the slope, the paths, the water, and a
 // 1 m mask of where something is built: a single ray down per cell, cached).
 // The vertex shader (grass-shader.js) bends them with the wind and round the traveller's feet,
-// thins them with distance and sinks them into the ground towards the patch's edge, where the
-// ground's own inked ticks take over. They cast no shadow and are one draw call.
+// and fades them out with distance, tuft by tuft (thinner, shorter, in the ground's colour,
+// without their outline), so none pops in. Past the patch a far layer takes over: sparse low
+// tufts of two blades, a patch about 2.5 times as wide, growing in where the near one thins and
+// fading into the ground in turn, where its inked ticks carry on. No shadows; two draw calls.
 // Presets (GRASS_QUALITY): fewer, closer blades on Low and the Handheld.
 
 export const GRASS_QUALITY = {
-  high: { radius: 26, density: 4.5 },
-  medium: { radius: 22, density: 4 },
-  auto: { radius: 22, density: 4 },
-  low: { radius: 15, density: 3.4 },
-  handheld: { radius: 13, density: 3 },
+  high: { radius: 22, density: 4.5, far: { radius: 58, density: 0.3 } },
+  medium: { radius: 19, density: 4, far: { radius: 48, density: 0.26 } },
+  auto: { radius: 19, density: 4, far: { radius: 48, density: 0.26 } },
+  low: { radius: 13.5, density: 3.4, far: { radius: 30, density: 0.2 } },
+  handheld: { radius: 11.5, density: 3, far: { radius: 26, density: 0.16 } },
 };
+
+/** The far layer's tuft: two broader blades. */
+export const FAR_TUFT = { blades: 2, width: 0.075, spread: 0.12, seed: 9 };
+/** The far layer's tufts are this much shorter than the near ones. */
+const FAR_HEIGHT = 0.9;
+/** s: how quickly the patch's centre follows the camera's turn (a quick turn slides the fade, nothing pops). */
+const FOLLOW = 0.35;
 
 /** Where a tuft with patch offset o (0..S) lands, the patch of side S wrapped round the camera at c. */
 export const wrapPatch = (o, c, S) => o + S * Math.round((c - o) / S);
@@ -71,8 +81,9 @@ export class Grass {
    * @param o.quality  GRASS_QUALITY entry: radius (m), density (tufts per m²)
    * @param o.physics  ray casts for the built-on mask (optional)
    */
-  constructor({ scene, fields, quality, physics = null, avoid = null, keep = [], water = -Infinity, height = 0.38, seed = 5 }) {
+  constructor({ scene, fields, quality, physics = null, avoid = null, keep = [], water = -Infinity, height = 0.38, seed = 5, near = null }) {
     this.fields = fields;
+    this.layer = near ? 'far' : 'near';
     this.keep = keep.filter(Boolean);   // [{ x, z, r }]: the ship's footprint and the like
     this.physics = physics;
     this.avoid = avoid;
@@ -98,28 +109,37 @@ export class Grass {
       A[i * 4] = A[i * 4 + 2] = NaN;       // (placed on the first update)
     }
     this.at = A;
-    const geo = tuftGeometry();
+    const geo = tuftGeometry(near ? FAR_TUFT : undefined);
     geo.instanceCount = N;
     this.aGrass = new THREE.InstancedBufferAttribute(A, 4).setUsage(THREE.DynamicDrawUsage);
     geo.setAttribute('aGrass', this.aGrass);
     geo.setAttribute('aGrass2', new THREE.InstancedBufferAttribute(B, 4));
     geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e5);
-    this.material = makeMaterial({ color: '#8cc77e', color2: '#9fd08a', grass: true, side: THREE.DoubleSide, key: 'grass' });
+    this.material = makeMaterial({ color: '#8cc77e', color2: '#9fd08a', grass: true, side: THREE.DoubleSide, key: near ? 'grass-far' : 'grass' });
     this.mesh = new THREE.Mesh(geo, this.material);
-    this.mesh.name = 'grass';
+    this.mesh.name = near ? 'grass (far)' : 'grass';
     this.mesh.frustumCulled = false;
     this.mesh.matrixAutoUpdate = false;
     Object.assign(this.mesh.userData, { noCollide: true, dynamic: true });
     this.mesh.visible = false;
     scene.add(this.mesh);
-    this.height = height;
-    this.noise = createNoise2D(seed + 11);
-    this.mask = new Map();
+    this.height = near ? height * FAR_HEIGHT : height;
+    this.noise = near?.noise ?? createNoise2D(seed + 11);   // (the far layer: the same meadows, bare in the same places)
+    this.mask = near?.mask ?? new Map();
+    // the fade's distances (grass-shader.js grassLod): the near layer's, or the far one's round the near
+    this.lod = near ? grassLod(near.R, this.R, true) : grassLod(this.R, quality.far?.radius ?? null, false, quality.far ? quality.far.density / quality.density : 0);
+    const U = this.material.uniforms;
+    U.uGrassLod.value.set(...this.lod.lod);
+    U.uGrassLook.value.set(...this.lod.look);
+    this.ahead = null;        // the patch's centre's lead on the camera (x, z), following its look a little behind
+    this.lastT = 0;
+    // the far layer: sparse low tufts past this patch (the same fields, the same mask)
+    this.far = !near && quality.far ? new Grass({ scene, fields, quality: quality.far, physics, avoid, keep, water, height, seed: seed + 101, near: this }) : null;
     this.field = null;
     this.placed = 0;
     this.cursor = 0;          // where the next frame's placement starts (a jump is placed over several)
     this.placedOnce = false;
-    this.placeMs = PLACE_MS;
+    this.placeMs = near ? PLACE_MS / 3 : PLACE_MS;   // (the far layer: a third of it, after the near one)
   }
 
   /** Something built covers this 1 m cell (a rock, a floor, a roof): no grass. Cached. */
@@ -158,15 +178,32 @@ export class Grass {
    * Once a frame before rendering: wrap the patch round the camera (its centre a little ahead,
    * where you look: nothing grows behind you), place the tufts that moved.
    */
-  update(camera) {
+  update(camera, now = performance.now()) {
+    const placed = this.place(camera, now);
+    this.far?.update(camera, now);   // (the far layer after: its share of the frame's placing is smaller)
+    return placed;
+  }
+
+  /** This layer's part of update(): the tufts placed this frame. */
+  place(camera, now) {
     const px = camera.position.x, pz = camera.position.z;
     const field = this.fields.find((f) => f.inside(px, pz)) ?? null;
-    let cx = px, cz = pz;
+    let ox = 0, oz = 0;
     if (camera.getWorldDirection) {
       camera.getWorldDirection(_dir);
       const l = Math.hypot(_dir.x, _dir.z);
-      if (l > 1e-3) { cx += (_dir.x / l) * this.R * AHEAD; cz += (_dir.z / l) * this.R * AHEAD; }
+      if (l > 1e-3) { ox = (_dir.x / l) * this.R * AHEAD; oz = (_dir.z / l) * this.R * AHEAD; }
     }
+    // the centre's lead follows the look smoothly (turning round slides the fade across rather than
+    // jumping it); the first frame and a new field take it at once
+    const A = this.ahead, dtS = Math.min(Math.max((now - this.lastT) / 1000, 0), 0.25);
+    this.lastT = now;
+    if (A && field === this.field) {
+      const k = 1 - Math.exp(-dtS / FOLLOW);
+      ox = A[0] + (ox - A[0]) * k; oz = A[1] + (oz - A[1]) * k;
+    }
+    this.ahead = [ox, oz];
+    const cx = px + ox, cz = pz + oz;
     if (field !== this.field) {
       this.field = field;
       this.mask.clear();
@@ -178,7 +215,7 @@ export class Grass {
     }
     this.mesh.visible = !!field;
     if (!field) return 0;
-    this.material.uniforms.uGrassView.value.set(cx, cz, this.R * 0.45, this.R * 0.9);
+    this.material.uniforms.uGrassView.value.set(cx, cz, ...this.lod.view);
     const { off, at, S } = this, n = this.count;
     // Walking, a few rows wrap a frame. After a jump (a door, a portal, a new field) every tuft
     // moves: that is placed over the next frames, PLACE_MS at a time, carrying on from where it
@@ -211,7 +248,14 @@ export class Grass {
     return this.placed;
   }
 
+  /** The meshes (the near patch and the far layer: both kept out of the shadow passes). */
+  get meshes() { return this.far ? [this.mesh, this.far.mesh] : [this.mesh]; }
+
+  /** Triangles drawn a frame (both layers). */
+  get triangles() { return this.meshes.reduce((n, m) => n + m.geometry.instanceCount * m.geometry.index.count / 3, 0); }
+
   dispose() {
+    this.far?.dispose();
     this.mesh.removeFromParent();
     this.mesh.geometry.dispose();
   }

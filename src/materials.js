@@ -8,6 +8,7 @@ import { CROWD_GLSL, TRIM_GLSL } from './crowd-shader.js';
 import { GROUND_GLSL } from './ground-ink.js';
 import { GLYPH_GLSL } from './glyphs.js';
 import { GRASS_VERT_PARS, grassUniforms } from './grass-shader.js';
+import { BRUSH_GLSL, brushUniforms } from './brush.js';
 import { WATER_GLSL, WATER_MARK, waterMaterial } from './water-shader.js';
 
 // ---------------------------------------------------------------------------
@@ -61,8 +62,9 @@ export const sharedUniforms = {
   // the world's wind for the plants (flora.js sway): x, z downwind direction, strength (0 still,
   // 1 a fresh breeze, up to ~3 in a storm), gust 0..1 (main.js sets it from wind.js every frame)
   uWind: { value: new THREE.Vector4(1, 0, 0.6, 0.4) },
-  // the traveller brushing through the plants: x, y, z of the feet, and how fast they move (m/s)
-  uBrush: { value: new THREE.Vector4(0, -1e4, 0, 0) },
+  // the traveller brushing past the plants and through the grass: their recent steps, each weighted
+  // by the plants' spring (brush.js BrushTrail, updated by main.js every frame)
+  ...brushUniforms(),
   // Shared with the post pass (same uniform objects).
   uToon: { value: 0.5 },
   uHatch: { value: 1 },
@@ -255,7 +257,10 @@ const vertexShader = /* glsl */ `
     uniform float uTime;
     uniform float uSway;
     uniform vec4 uWind;
-    uniform vec4 uBrush;
+    uniform vec2 uSwayPlant;   // the plant's geometry height (its top), 1 for a large plant
+  #endif
+  #if defined(SWAY) || defined(GRASS)
+    ${BRUSH_GLSL}
   #endif
   #ifdef METAL
     uniform vec3 uBrushAxis;
@@ -302,21 +307,24 @@ const vertexShader = /* glsl */ `
       float flutter = (0.45 + 0.55 * str) * sin(uTime * (1.3 + 0.9 * str) + swayAt.x * 0.37 + swayAt.z * 0.21);
       vec2 side = vec2(-wd.y, wd.x);
       vec2 bend = wd * (push * 3.0 + flutter * 1.2) + side * sin(uTime * 1.05 + swayAt.z * 0.41 - swayAt.x * 0.13) * 0.6 * (0.5 + 0.5 * str);
-      // the traveller walking through: plants close by bend away from them, more when they hurry
-      vec2 away = swayAt.xz - uBrush.xz;
-      float dB = length(away);
-      float brush = (1.0 - smoothstep(0.4, 1.8, dB)) * step(abs(swayAt.y - uBrush.y), 2.5) * (0.6 + 0.25 * min(uBrush.w, 6.0));
-      vec2 shove = (dB > 1e-3 ? away / dB : vec2(0.0)) * brush;
       // (in object space: turn the world bend by the instance's own rotation)
       mat3 iRot = mat3(instanceMatrix);
-      float iS2 = max(dot(iRot[0], iRot[0]), 1e-4);
+      float iS2 = max(dot(iRot[0], iRot[0]), 1e-4), iS = sqrt(iS2);
       vec3 b = transpose(iRot) * vec3(bend.x, 0.0, bend.y);
       transformed += b * swayK / iS2;   // (transpose / scale²: the inverse of a scaled rotation)
-      // the brush is a lean of the lower part (about knee to chest high), whatever the plant's size,
-      // so a big plant's trunk stays put while its low leaves part round your legs
-      vec3 sh = transpose(iRot) * vec3(shove.x, 0.0, shove.y);
-      float wy = max(position.y, 0.0) * sqrt(iS2);   // (the height in metres)
-      transformed += sh * 0.45 * min(wy, 1.4) / iS2;
+      // the traveller brushing past: a small, quick lean away from them that springs back with a
+      // light wobble, more the closer and the faster they pass (brush.js). A small plant bends from
+      // its foot, the tip most; a large one only parts its low leaves round your legs.
+      float plantH = uSwayPlant.x * iS;   // (m)
+      float reach = clamp(0.3 + 0.35 * plantH, 0.45, 1.1);
+      vec2 lean = brushLean(swayAt, reach * 0.35, reach, 2.5);
+      if (lean.x != 0.0 || lean.y != 0.0) {
+        float wy = max(position.y, 0.0) * iS;   // (the height in metres)
+        float rel = clamp(position.y / max(uSwayPlant.x, 1e-3), 0.0, 1.0);
+        float prof = uSwayPlant.y > 0.5 ? 0.6 * min(wy, 1.3) / 1.3 * (1.0 - smoothstep(1.3, 2.2, wy))
+                                        : rel * rel * clamp(plantH / 1.3, 0.3, 1.2);
+        transformed += transpose(iRot) * vec3(lean.x, 0.0, lean.y) * prof / iS2;
+      }
     #endif
     #ifdef GRASS
       grassPlace(transformed, objectNormal);   // a tuft of blades round the camera (grass-shader.js)
@@ -468,7 +476,7 @@ const fragmentShader = /* glsl */ `
     flat in vec4 vCrowdTrim;
   #endif
   #ifdef GRASS
-    flat in float vGrassSoft;
+    flat in vec3 vGrassLook;   // the pen line, the outline's fade, the blend into the ground (grass-shader.js)
   #endif
   ${TRIM_GLSL}
   uniform vec4 uFace;     // eyeY, eyeX, noseY, chinY (rest pose)
@@ -1208,6 +1216,13 @@ const fragmentShader = /* glsl */ `
     if (uPattern == 4) patInk = rockCracks(vObjPos);
     #endif
     albedo *= instColor;
+    #ifdef GRASS
+    if (vGrassLook.z > 0.0) {
+      // further off, the ground's own tone under the tuft (its patches, as the terrain draws them)
+      float patches = vnoise(vWorldPos.xz * 0.011) * 0.65 + vnoise(vWorldPos.xz * 0.045) * 0.35;
+      albedo = mix(albedo, patches > 0.6 ? uColor2 : uColor, vGrassLook.z);
+    }
+    #endif
     #ifdef CROWD
       if (vCrowdTrim.w > 0.5) albedo = outfitTrim(albedo, vCrowdTrim.rgb, vCrowdTrim.w, vBind);
       if (vCrowdEye.w > 0.5) albedo = crowdEye(crowdL, crowdPx, albedo, vCrowdEye.rgb);
@@ -1435,8 +1450,10 @@ const fragmentShader = /* glsl */ `
       gHatch.rg = vec2(0.0);
     #endif
     #ifdef GRASS
-      gHatch.rgb = vec3(0.0);            // blades: no hatching, no drawn detail
-      gHatch.a += 8.0 * vGrassSoft;      // soft ink: post.js draws their edges as a darker green, thin
+      // blades: no hatching, no drawn detail; soft ink (post.js draws their edges as a darker green,
+      // thin), r a pen line's share (a few tufts near by), g the outline's fade with distance
+      gHatch.rgb = vec3(vGrassLook.x, vGrassLook.y, 0.0);
+      gHatch.a += 8.0;
     #endif
   }
 `;
@@ -1472,6 +1489,8 @@ const cache = new Map();
  * @param {object}  [o.eye]     MODE_EYE: the eyeballs (eyes.js eyeballOf: { center, radii }, iris: its radius on the unit eye)
  * @param {string}  [o.iris]    the traveller's portrait face: its iris colour (face.js)
  * @param {number}  [o.sway]    instanced plants: the tip moves this much (m) per metre² of height (the base stays put)
+ * @param {number}  [o.swayH]   with sway: the geometry's height (its top), for the traveller's brush (brush.js)
+ * @param {boolean} [o.swayLarge] with sway: a large plant (only its low leaves part as you brush past)
  * @param {boolean} [o.crowd]   instanced crowd figures: the vertex shader poses and colours each
  *                              instance from its attributes (crowd-shader.js); no other mode changes
  * @param {string}  [o.fluid]   'tank' | 'hose' | 'glob' | 'wing' | 'trail': the traveller's magical fluid (fluid-tool.js, fluid-kit.js).
@@ -1547,7 +1566,11 @@ export function makeMaterial(o) {
   if (o.facePart) mat.defines = { ...mat.defines, FACE_PART: 1 };
   // strata bands in the object's own space, so they move with it (a moving or turning thing; mesas keep world bands)
   if (o.strataObject) mat.defines = { ...mat.defines, STRATA_OBJECT: 1 };
-  if (o.sway) { mat.defines = { ...mat.defines, SWAY: 1 }; mat.uniforms.uSway = { value: o.sway }; }
+  if (o.sway) {
+    mat.defines = { ...mat.defines, SWAY: 1 };
+    mat.uniforms.uSway = { value: o.sway };
+    mat.uniforms.uSwayPlant = { value: new THREE.Vector2(o.swayH ?? 1, o.swayLarge ? 1 : 0) };   // (the brush's profile)
+  }
   if (metal) {
     mat.defines = { ...mat.defines, METAL: 1 };
     mat.uniforms.uMetal = { value: new THREE.Vector4(metal.kind, o.brushed ? 1 : 0, o.refl ?? metal.refl, o.highlight ?? metal.hl) };

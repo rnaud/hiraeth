@@ -2851,6 +2851,39 @@ The course, the runs and the measures moved from `tests/gait-sim.js` into `src/g
   grows in thickets; both keep their old random draws, so everything placed after them stays
   where it was.
 
+### Brushing past plants (`src/brush.js`)
+Plants used to be shoved aside by the traveller's position and speed this frame: up to a metre
+at chest height when walking, snapping back the moment you were past. Now a plant you pass leans
+a little away from you and springs back with a light wobble, like something brushed.
+- **A damped spring per plant, with no state of its own.** Each plant is a spring
+  (`BRUSH.freq` 2.3 Hz, `damping` ζ 0.4: one small overshoot) driven by the touch of the feet,
+  stronger the closer (`brushTouch`) and the faster (`brushPace`: 3 cm standing in it, about 10 cm
+  walking, 16 cm running, at the tip of a 1.3 m plant). Its lean now is the touch over the last
+  0.9 s convolved with the spring's impulse response. `BrushTrail` keeps the traveller's path (14
+  samples 65 ms apart, the newest following the feet) and gives each sample its pace times the
+  kernel's weight for its age (normalised, so a steady touch is the steady lean and nothing flickers
+  as the samples shift); the vertex shader (`BRUSH_GLSL`, `brushLean`) sums the samples' touch on
+  the plant. Plants further from the path than its circle (`uBrushBound`) skip the loop.
+- **Where it bends:** a small plant from its foot, the tip most (its height from `swayH`, the
+  species' geometry); a large one (`swayLarge`) only parts its low leaves round your legs, the trunk
+  and crown still. Grass blades use the same sum (`GRASS_BRUSH`): they part round the feet and
+  spring back.
+- `tests/brush.test.js` walks past a plant: the peak lean, how quickly it comes, the overshoot,
+  the settling, the steps between frames, closer and faster, standing still, riding.
+
+### Flowers with room to open (`bloomRoom`, `src/reactive-world.js`)
+The waking flowers spread their petals as they wake, and up to about twice as wide again in the
+traveller's fluid; placed near the spawn, the people, the relics and the goal, they opened into
+walls, rocks, the tree in Qanat and each other. Now, where a flower is placed, twelve rays go out
+round its bloom (at the bloom and a little above, for the tips) and one up over it (`bloomRays`).
+`bloomRoom` reads them: the flower leans away from what is close (up to 0.3 rad, `BLOOM.maxTilt`,
+a group under its root), its petals and its stem's growth open only as far as the room left with
+12 cm to spare, and a stirred stem swings less. Once all are placed, each also keeps clear of its
+neighbours (of their petals open awake, or half the way to them: `fitBlooms`). A spot with room
+for less than 60 % of the open flower (`BLOOM.least`; a shy fungus, which rests open, needs all of
+it) is given up after two steps away from the wall. The flora keeps clear of each flower's reach.
+`tests/reactive-world.test.js` puts a wall through a world's flowers and blooms them all.
+
 ### Eyes: a white, an iris, a pupil, and blinking
 
 People's eyes were solid ink: up close, each a black almond. They are now drawn the
@@ -3180,15 +3213,29 @@ shimmered, the reactor column filled the middle, the deck felt too big for one p
   put in the world and only those that wrapped are placed again (the height, the slope, the
   paths, the water, and a 1 m mask of where something is built: one ray down per cell, cached).
   The vertex shader bends them with the wind (the plants' gust front) and parts them round the
-  traveller's feet (`uBrush`), thins them with distance and sinks them into the ground towards
-  the patch's edge, where the ground's own inked ticks take over. Lit like the ground, each tuft
+  traveller's feet (the brush, below), and fades them out with distance (next item). Lit like the ground, each tuft
   a shade darker or lighter than it. **Soft ink**: the blades write +8 in `gHatch.a`, and post.js
   draws their outline in a darker shade of the green instead of black, only on the blade's own
   side (half as wide), with no crease, colour-edge or shadow-edge lines and no hatching on them
   (and the crease shading ignores them, which had greyed the ground between them); one tuft in
-  eight keeps a real pen line, for the hand-drawn feel. One draw call, no shadows.
-  `GRASS_QUALITY`: High 26 m and ~12 k tufts, Medium/Auto 22 m and ~7.7 k, Low 15 m, Handheld
-  13 m and ~2 k tufts (about 18 k triangles).
+  eight keeps a real pen line, for the hand-drawn feel. No shadows.
+- **Grass into the distance, without a line** (`grassLod`, `tuftScale` in `src/grass-shader.js`):
+  the blades used to thin by a step (a whole tuft gone at once) and the patch ended about 35 m out,
+  its centre jumping with every turn of the camera. Now each tuft has a rank; the share kept falls
+  with the distance from the camera and a tuft shrinks to nothing over a metre or more as the share
+  passes its rank. Further out the blades get shorter and thinner, take the ground's own tone under
+  them (its patches, as the terrain draws them) and lose their outline: the blades write their pen
+  line's share in `gHatch.r` and the outline's fade in `gHatch.g` (post.js reads them on soft-ink
+  pixels and on the ground beside them, then clears them before the hatching). Past the near patch
+  a **far layer** takes over (`quality.far`, `FAR_TUFT`): sparse two-blade tufts in a patch about
+  2.5 times as wide, growing in where the near one thins (to the far layer's density, so the field's
+  density only ever falls) and with the same look by distance, so the two meet without a seam; it
+  fades into the ground by its own edge. The patch's lead on the camera follows its look over about
+  a third of a second (`FOLLOW`): turning round slides the fade across. Two draw calls; the far layer
+  shares the near one's built-on mask. `GRASS_QUALITY` (tufts, triangles, reach ahead of the
+  camera), before → now: High 12.1 k tufts, 109 k triangles, 35 m → 8.6 k + 4.1 k far, 102 k, 78 m;
+  Medium 7.7 k, 70 k, 30 m → 5.8 k + 2.4 k, 66 k, 65 m; Low 3.0 k, 27 k, 20 m → 2.5 k + 0.7 k,
+  27 k, 41 m; Handheld 2.0 k, 18 k, 18 m → 1.6 k + 0.4 k, 17 k, 35 m. `tests/grass-fade.test.js`.
 - **The Lab** shows them all: the materials row has steel, brushed, chrome, brass, copper, iron,
   painted, the carved inscriptions and a lamp beside the glow, and a meadow past the water pool.
 

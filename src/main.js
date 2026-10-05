@@ -24,6 +24,7 @@ import { LodManager, lodView } from './lod.js';
 import { skinnedLods } from './skinned-lod.js';
 import { buildFlora, floraKeep, FLORA_WORLDS } from './flora.js';
 import { buildGrass } from './flora-grass.js';
+import { BrushTrail } from './brush.js';
 import { Cascade, ShadowCuller, shadowDirection } from './shadows.js';
 import { Trail } from './trail.js';
 import { Flock, Motes, Footprints } from './life.js';
@@ -101,6 +102,7 @@ const gbuffer = createGBuffer();   // (src/pipeline.js: shared with the characte
 // Sizes come from the graphics preset (applyQuality); bias and normal offset are in texels.
 const shadowOverride = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, colorWrite: false });
 const SU = sharedUniforms;
+const brushTrail = new BrushTrail(sharedUniforms);   // the plants and the grass feel the traveller pass (src/brush.js)
 const cascades = {
   fine: new Cascade({ name: 'fine', size: 2048, extent: 12, depth: 1600, bias: 3.4, offset: 2.6, uniforms: { map: SU.uShadowMap0, matrix: SU.uShadowMatrix0, bias: SU.uShadowBias0, offset: SU.uShadowNormalOffset0 } }),
   near: new Cascade({ name: 'near', size: 4096, extent: 220, depth: 1600, bias: 2.3, offset: 3.2, uniforms: { map: SU.uShadowMap, matrix: SU.uShadowMatrix, bias: SU.uShadowBias, offset: SU.uShadowNormalOffset } }),
@@ -479,10 +481,10 @@ if (flora) {
 blades.grow = () => {
   if (blades.key === preset.key) return;
   blades.key = preset.key;
-  if (blades.grass) { blades.grass.dispose(); level.noShadow = level.noShadow.filter((o) => o !== blades.grass.mesh); }
+  if (blades.grass) { const gone = blades.grass.meshes; blades.grass.dispose(); level.noShadow = level.noShadow.filter((o) => !gone.includes(o)); }
   blades.grass = buildGrass({ scene, level, physics, presetKey: preset.key, water: FLORA_WORLDS[levelId]?.water,
     keep: [ship.site && { x: ship.site.x, z: ship.site.z, r: 9 }, ship.rampFoot && { x: ship.rampFoot.x, z: ship.rampFoot.z, r: 3 }] });   // (not through the ship's floor and ramp)
-  if (blades.grass) (level.noShadow ??= []).push(blades.grass.mesh);
+  if (blades.grass) (level.noShadow ??= []).push(...blades.grass.meshes);
 };
 blades.grow();
 // wildlife: two or three small species per world, each with a surprise (src/wildlife.js)
@@ -1247,7 +1249,8 @@ function frame() {
     const k = (level.features.wind ? 2.5 : 1.2) * (1 + Wx.storm * 3.5 + Wx.rain * 0.6) * (1 - 0.8 * shelter.indoor);
     player.wind.set(wx * k, 0, wz * k);
     // the plants feel the same wind: its direction, its strength (storms bend them hard), its gusts
-    sharedUniforms.uBrush.value.set(player.pos.x, player.riding ? -1e4 : player.pos.y, player.pos.z, Math.hypot(player.vel.x, player.vel.z));
+    // and the traveller brushing past them: their last second of steps (src/brush.js)
+    brushTrail.update(dt, player.riding ? null : player.pos, Math.hypot(player.vel.x, player.vel.z));
     sharedUniforms.uWind.value.set(wx, wz, (level.features.wind ? 1 : 0.55) * (1 + Wx.storm * 2 + Wx.rain * 0.4), wind.gust());
   }
   // doorways into interiors (and back out)

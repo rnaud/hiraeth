@@ -25,6 +25,50 @@ export const WORLD_REACTIONS = {
   home: {kind:'flower',quiet:'#d9a37f',awake:'#5fd0c6',radius:9},
 };
 
+// ------------------------------------------------------------------ room to bloom
+// A flower opening (the petals spread with its waking, and further when the traveller's fluid
+// makes it bloom) must not open into a wall, a rock or the next flower. Where it is placed, rays
+// go out round the bloom (bloomRays); bloomRoom reads them: the flower leans a little away from
+// what is close, and its petals open only as wide as the room left. A spot with too little room
+// (less than BLOOM.least of the open flower) is given up, or the flower moves a step away first.
+export const BLOOM = {
+  rays: 12,          // directions round the bloom (at two heights)
+  margin: 0.12,      // m kept clear between a petal's tip and anything
+  maxTilt: 0.3,      // rad: the furthest a flower leans away from a wall
+  wide: 2.1,         // the widest the petals ever spread (fluid bloom: 1.72, the stem's growth: 1.22), × the awake reach
+  quiet: 0.35,       // the closed bud's spread (a shy fungus rests fully open: 1)
+  least: 0.6,        // a flower needs room to open at least this far (× its reach awake), or it grows elsewhere
+};
+
+/**
+ * How far a flower can open, and which way it leans. hits: [{ dir: [x, z] (unit, in the ground's
+ * plane), d }] the obstacles round the bloom (a ray's free distance, or half the way to the next
+ * flower); reach: the petals' reach awake (m), height: the bloom's height above the foot (m).
+ * Returns { open (× reach, at most BLOOM.wide), lean: [x, z], angle (rad), sway (0..1, how far the
+ * stirred stem may swing), ok (room to open at least BLOOM.least awake, and for the bud at rest) }.
+ */
+export function bloomRoom(hits, { reach, height, quiet = BLOOM.quiet, margin = BLOOM.margin, maxTilt = BLOOM.maxTilt }) {
+  const want = reach + margin;
+  let vx = 0, vz = 0;
+  for (const h of hits) {
+    if (!Number.isFinite(h.d)) continue;
+    const w = Math.max(0, 1 - h.d / (want * 1.25)) ** 2;
+    vx -= h.dir[0] * w; vz -= h.dir[1] * w;
+  }
+  const v = Math.hypot(vx, vz);
+  const angle = v > 1e-3 ? maxTilt * Math.min(1, v) : 0;
+  const lean = v > 1e-3 ? [vx / v, vz / v] : [0, 0];
+  const shift = height * Math.sin(angle);
+  let free = Infinity;
+  for (const h of hits) {
+    if (!Number.isFinite(h.d)) continue;
+    free = Math.min(free, h.d - shift * (h.dir[0] * lean[0] + h.dir[1] * lean[1]));
+  }
+  const open = Math.min(BLOOM.wide, Math.max(0, (free - margin) / reach));
+  const sway = Number.isFinite(free) ? Math.min(1, Math.max(0.2, (free - margin - reach * Math.min(open, 1)) / (height * 0.45))) : 1;
+  return { open, lean, angle, sway, ok: open >= Math.max(quiet, BLOOM.least) };
+}
+
 /** Stateful reactions, independent of rendering. A direct encounter sends one
  * delayed wave through its cluster. Echoes cannot trigger more echoes. */
 export class ReactionField {
@@ -95,7 +139,7 @@ function reactiveMaterial(color){
 function objectFor(theme,screen=false){
   const root=new THREE.Group();root.userData.noCollide=true;
   const m=reactiveMaterial(theme.quiet),metal=makeMaterial({color:'#617371',flat:true,metal:'iron'}),ink=makeMaterial({color:'#34494d',flat:true});
-  const moving=new THREE.Group();root.add(moving);
+  const moving=new THREE.Group(),lean=new THREE.Group();root.add(lean);lean.add(moving);   // (lean: away from a wall, bloomRoom)
   let texts=[],petals=null;
   if(screen||theme.kind==='screen'||theme.kind==='machine'){
     const stone=makeMaterial({color:'#e6dabb',flat:true}),brass=makeMaterial({color:'#c99d48',flat:true,metal:'brass'});
@@ -142,7 +186,10 @@ function objectFor(theme,screen=false){
     }
     for(const [material,parts] of batches){group.add(new THREE.Mesh(mergeGeometries(parts),material));parts.forEach(g=>g.dispose());}
   }
-  return {root,m,moving,petals,texts,base:new THREE.Color(theme.quiet),active:new THREE.Color(theme.awake),lastEnergy:0};
+  // the petals' reach (local, round the stem) and the bloom's top, for the room they need
+  let reach=0,top=0;
+  if(petals){const P=petals.children[0].geometry.attributes.position;for(let i=0;i<P.count;i++)reach=Math.max(reach,Math.hypot(P.getX(i),P.getZ(i)));top=1.65;}
+  return {root,m,moving,lean,petals,texts,reach,top,base:new THREE.Color(theme.quiet),active:new THREE.Color(theme.awake),lastEnergy:0};
 }
 
 export class ReactiveWorld {
@@ -177,6 +224,7 @@ export class ReactiveWorld {
         this.addNode(pos,up,`${level.id}:${i}`,rotation,j);
       }
     });
+    this.fitBlooms();
     // Existing illustrated signs in the market also wake; they keep their art.
     for(const [i,sign] of (level.reactiveScreens??[]).entries()){
       if(i%4!==0||sign.h<4)continue;
@@ -211,9 +259,75 @@ export class ReactiveWorld {
     if(this.level.id==='perdide')obj.root.scale.set(1.3,.8,1.3);
     if(this.level.id==='home')obj.root.scale.setScalar(.45);   // small flowers in the yard at home
     if(this.theme.kind!=='screen'&&this.theme.kind!=='machine')obj.root.scale.multiplyScalar(.8+.25*(1+Math.sin(pos.x*.7+pos.z)));
+    // a flower: room to open round its bloom, or a step away from the wall, or not here at all
+    let rays=null;
+    if(obj.petals){
+      for(let tries=0;;tries++){
+        rays=this.bloomRays(pos,up,obj);
+        const room=rays&&bloomRoom(rays.hits,this.bloomSize(obj));
+        if(room?.ok)break;
+        if(tries>=2||!room||room.angle===0){this.dropped=(this.dropped??0)+1;return false;}
+        // a step away from what is close, then down onto the ground there
+        const away=rays.t1.clone().multiplyScalar(room.lean[0]).addScaledVector(rays.t2,room.lean[1]);
+        const moved=pos.clone().addScaledVector(away,obj.reach*obj.root.scale.x*.8+.4);
+        const hit=this.physics.rayHit(moved.clone().addScaledVector(up,3),up.clone().negate(),8);
+        if(!hit||this.level.unsafe?.(hit.point)){this.dropped=(this.dropped??0)+1;return false;}
+        pos=hit.point;
+      }
+    }
     obj.root.position.copy(pos);obj.root.quaternion.copy(rotation);
     obj.root.rotateY(index*.65);this.root.add(obj.root);
-    this.nodes.push({pos:pos.clone().addScaledVector(up,1.3),radius:this.theme.radius,cluster,obj,up:up.clone(),rotation:rotation.clone()});
+    this.nodes.push({pos:pos.clone().addScaledVector(up,1.3),foot:pos.clone(),radius:this.theme.radius,cluster,obj,up:up.clone(),rotation:rotation.clone(),rays});
+    return true;
+  }
+  /** The petals' reach awake and the bloom's height (m), for bloomRoom. */
+  bloomSize(obj){return {reach:obj.reach*obj.root.scale.x,height:1.2*obj.root.scale.y,quiet:this.theme.shy?1:BLOOM.quiet};}
+  /**
+   * Rays out round a flower's bloom (in the ground's plane, at the bloom and a little above, for
+   * the petals' tips) and up over it. null: something is right over the flower (no room to stand).
+   */
+  bloomRays(pos,up,obj){
+    const s=obj.root.scale,size=this.bloomSize(obj),far=size.reach*BLOOM.wide+BLOOM.margin+.3;
+    const t1=new THREE.Vector3(1,0,0);if(Math.abs(up.x)>.9)t1.set(0,0,1);t1.addScaledVector(up,-t1.dot(up)).normalize();
+    const t2=new THREE.Vector3().crossVectors(up,t1),dir=new THREE.Vector3(),o=new THREE.Vector3();
+    const overhead=this.physics.rayDistance(o.copy(pos).addScaledVector(up,.3),up,obj.top*s.y*1.25+.3)+.3;
+    if(overhead<obj.top*s.y+BLOOM.margin)return null;
+    const hits=[];
+    for(let k=0;k<BLOOM.rays;k++){
+      const a=k*Math.PI*2/BLOOM.rays,c=Math.cos(a),sn=Math.sin(a);dir.copy(t1).multiplyScalar(c).addScaledVector(t2,sn);
+      let d=Infinity;
+      for(const y of [1.2,1.5])d=Math.min(d,this.physics.rayDistance(o.copy(pos).addScaledVector(up,y*s.y),dir,far));
+      hits.push({dir:[c,sn],d});
+    }
+    return {hits,overhead,t1,t2};
+  }
+  /**
+   * Once every flower is placed: each also keeps clear of its neighbours (of the next one's petals
+   * open awake, or half the way to it), leans away from what is close and keeps to the room left.
+   * A flower with no room even for its bud between the others is left out.
+   */
+  fitBlooms(){
+    const flowers=this.nodes.filter(n=>n.obj.petals&&n.rays);
+    const rel=new THREE.Vector3();
+    for(const n of flowers){
+      const size=this.bloomSize(n.obj),hits=[...n.rays.hits];
+      for(const o of flowers){
+        if(o===n||!this.nodes.includes(o))continue;
+        rel.subVectors(o.foot,n.foot);const along=rel.dot(n.up);rel.addScaledVector(n.up,-along);
+        const d=rel.length(),reachO=this.bloomSize(o.obj).reach;
+        if(d<1e-3||Math.abs(along)>2||d>(size.reach+reachO)*BLOOM.wide+.5)continue;
+        hits.push({dir:[rel.dot(n.rays.t1)/d,rel.dot(n.rays.t2)/d],d:Math.max(d/2,d-reachO)});
+      }
+      const room=bloomRoom(hits,size);
+      if(!room.ok){n.obj.root.removeFromParent();this.nodes.splice(this.nodes.indexOf(n),1);this.crowded=(this.crowded??0)+1;continue;}
+      n.room=room;n.reach=size.reach;
+      // the lean, in the flower's own frame (it is turned round its stem and scaled)
+      if(room.angle>0){
+        const w=n.rays.t1.clone().multiplyScalar(room.lean[0]).addScaledVector(n.rays.t2,room.lean[1]).applyQuaternion(n.obj.root.quaternion.clone().invert());
+        const axis=new THREE.Vector3(w.z,0,-w.x).normalize();
+        n.obj.lean.quaternion.setFromAxisAngle(axis,room.angle);
+      }
+    }
   }
   emit(n){for(let i=0;i<8&&this.particles.length<72;i++)this.particles.push({pos:n.pos.clone(),vel:new THREE.Vector3(Math.sin(i*2.4)*.32,.4+i*.035,Math.cos(i*2.4)*.32).applyQuaternion(n.rotation??new THREE.Quaternion()),life:3.2});}
   dispose(){this.offTargets.forEach(off=>off());this.offTargets=[];this.root.removeFromParent();}
@@ -256,10 +370,13 @@ export class ReactiveWorld {
       }
       if(n.sway){n.sway=Math.max(0,n.sway-dt*.7);}
       if(obj.petals){
-        const opening=(this.theme.shy?1-e*.62:.35+e*.65)*(1+.6*bloom*(1+.2*Math.sin(t*5)));
+        let opening=(this.theme.shy?1-e*.62:.35+e*.65)*(1+.6*bloom*(1+.2*Math.sin(t*5)));
+        // only as wide as the room round it (bloomRoom): the stem's growth first, then the petals
+        const room=n.room,grow=Math.min(1+.22*bloom,room?Math.max(1,(n.rays.overhead-BLOOM.margin)/(obj.top*obj.root.scale.y)):Infinity);
+        if(room)opening=Math.min(opening,room.open/grow);
         obj.petals.scale.set(opening,1+.5*bloom,opening);
-        obj.moving.scale.setScalar(1+.22*bloom);
-        obj.moving.rotation.z=Math.sin(t*.9+n.pos.x)*e*.09+Math.sin(t*7)*(n.sway??0)*.35;
+        obj.moving.scale.setScalar(grow);
+        obj.moving.rotation.z=(Math.sin(t*.9+n.pos.x)*e*.09+Math.sin(t*7)*(n.sway??0)*.35)*(room?.sway??1);
         // Turn toward the visitor in the local gravity frame.
         const direction=player.pos.clone().sub(n.pos).applyQuaternion((n.rotation??new THREE.Quaternion()).clone().invert());
         obj.moving.rotation.y=Math.atan2(direction.x,direction.z)*e*.35;
