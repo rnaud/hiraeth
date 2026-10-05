@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { LANTERN_AT } from '../src/boxes/effects.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import * as THREE from 'three';
@@ -106,7 +107,7 @@ function wearer(tank) {
   const gear = new Gear(new THREE.Scene(), h, char);
   let group = null;
   if (tank) {
-    group = new THREE.Group(); group.position.set(...TANK.at); h.chestAnchor.add(group);
+    group = new THREE.Group(); group.position.set(...TANK.at); group.scale.setScalar(TANK.scale); h.chestAnchor.add(group);
     FluidTool.prototype.placeDock.call({ player: { gear }, tank: { group } }, true);
   }
   h.update(true); h.model.updateMatrixWorld(true);
@@ -120,7 +121,7 @@ const pose = (w, name, t) => {
 };
 const folded = (() => { const d = new Drone(); d.pose(new DroneFold()); return d.hull(2); })();
 /** The folded drone on its dock, in world space. */
-const docked = (w) => { w.gear.scoutDock.updateWorldMatrix(true, false); const m = w.gear.scoutDock.matrixWorld; return folded.map((p) => p.clone().applyMatrix4(m)); };
+const docked = (w) => { w.gear.scoutDock.updateWorldMatrix(true, false); const p = w.gear.scoutDock.getWorldPosition(V()), q = w.gear.scoutDock.getWorldQuaternion(new THREE.Quaternion()); return folded.map((v) => v.clone().applyQuaternion(q).add(p)); };
 const inFrame = (pts, frame) => { frame.updateWorldMatrix(true, false); const inv = frame.matrixWorld.clone().invert(); return pts.map((p) => p.clone().applyMatrix4(inv)); };
 function outfitBox(h, re, frame = null) {
   const out = new THREE.Box3(), inv = frame ? frame.matrixWorld.clone().invert() : null, v = V();
@@ -134,7 +135,7 @@ function outfitBox(h, re, frame = null) {
   return out;
 }
 
-test('docked on the radio pack: folded flat on its top, foot down, inside the space over it, clear of the antenna and the helmet', () => {
+test('docked on the radio pack: folded flat on its top, foot down, inside the space over it, clear of the antenna and the head', () => {
   const w = wearer(false), pts = inFrame(docked(w), w.h.chestAnchor);
   const radio = outfitBox(w.h, /^Equipment_ivory_radio$/, w.h.chestAnchor);
   const box = new THREE.Box3().setFromPoints(pts);
@@ -158,17 +159,17 @@ test('docked on the tank: clamped to the left rail, off the glass, clear of the 
   const pts = inFrame(docked(w), w.tank);
   const rail = Math.min(...pts.map((p) => Math.hypot(p.x - TANK_RAIL.x, p.z - TANK_RAIL.z)));
   assert.ok(rail > TANK_RAIL.r - 0.003 && rail < TANK_RAIL.r + 0.01, `its foot on the rail (${(rail - TANK_RAIL.r).toFixed(3)})`);
-  const room = new THREE.Box3(V(TANK_RAIL.x, 0, -0.2), V(TANK_RAIL.x + TANK_RAIL.r + 0.23, TANK.height + 0.06, 0.2));
+  const room = new THREE.Box3(V(TANK_RAIL.x, 0, TANK_RAIL.z - 0.2 / TANK.scale), V(TANK_RAIL.x + TANK_RAIL.r + 0.23 / TANK.scale, TANK.height + 0.09, TANK_RAIL.z + 0.2 / TANK.scale));
   for (const p of pts) {
     assert.ok(room.containsPoint(p), `outside the space beside the tank: ${p.toArray().map((x) => x.toFixed(3))}`);
     if (p.y >= 0 && p.y <= TANK.height) { const r = tankRadiusAt(p.y); assert.ok((p.x / (r * TANK.squash)) ** 2 + (p.z / r) ** 2 > 1.05, 'in the glass'); }
     // the rail's top bracket (fluid-tool.js buildTank: a box 0.03 x 0.026 x 0.15 at the rail, y height - 0.04, z 0.09)
-    assert.ok(!new THREE.Box3(V(TANK_RAIL.x - 0.015, TANK.height - 0.053, 0.015), V(TANK_RAIL.x + 0.012, TANK.height - 0.027, 0.165)).containsPoint(p), 'in the bracket');
+    assert.ok(!new THREE.Box3(V(TANK_RAIL.x - 0.015, TANK.height - 0.053, TANK_RAIL.z - 0.005), V(TANK_RAIL.x + 0.012, TANK.height - 0.027, TANK_RAIL.z + 0.145)).containsPoint(p), 'in the bracket');
   }
-  // the lantern (src/boxes/effects.js: a paper ball 0.055 x 1.25 tall at (0.28, 0.6, -0.3) on the chest frame, its hook to 0.745)
+  // The lantern hangs below the dock; include the paper globe and its hook.
   const chest = inFrame(docked(w), w.h.chestAnchor);
   for (const p of chest) {
-    const q = p.clone().sub(V(0.28, 0.6, -0.3));
+    const q = p.clone().sub(LANTERN_AT);
     assert.ok(Math.hypot(q.x, q.y / 1.25, q.z) > 0.06 && !(Math.hypot(q.x, q.z) < 0.01 && q.y < 0.15), `in the lantern: ${p.toArray().map((x) => x.toFixed(3))}`);
   }
   assert.ok(SCOUT_DOCK_Y < TANK.height - 0.06, 'below the bracket');
@@ -186,13 +187,13 @@ function capsules(h) {
     out.push([at(B[`upperarm_${s}`]), at(B[`lowerarm_${s}`]), 0.07], [at(B[`lowerarm_${s}`]), at(B[`hand_${s}`]), 0.065], [at(B[`hand_${s}`]), at(B[`middle_01_${s}`]), 0.06]);
     out.push([at(B[`middle_01_${s}`]), at(B[`middle_01_${s}`]).add(at(B[`middle_01_${s}`]).sub(at(B[`hand_${s}`])).multiplyScalar(0.8)), 0.045]);
   }
-  const helmet = outfitBox(h, /^Bubble_helmet$/), c = helmet.getCenter(V()), half = helmet.getSize(V()).multiplyScalar(0.5);
-  out.push([c, c, Math.max(half.x, half.y, half.z) * 0.92]);   // the bubble (a sphere a little inside its box's corners)
+  const hair = outfitBox(h, /^Traveller_hair$/), c = hair.getCenter(V()), half = hair.getSize(V()).multiplyScalar(0.5);
+  out.push([c, c, Math.max(half.x, half.y, half.z) * 0.92]);   // head and hair, conservatively enclosed
   return out;
 }
 const segDist = (p, a, b) => { const ab = b.clone().sub(a), t = ab.lengthSq() ? THREE.MathUtils.clamp(p.clone().sub(a).dot(ab) / ab.lengthSq(), 0, 1) : 0; return p.distanceTo(a.clone().addScaledVector(ab, t)); };
 
-for (const where of ['pack', 'tank']) test(`docked on the ${where}: no arm, hand or the helmet passes through it in any clip (idle, walk, run, jump, drive, climb, ledge)`, () => {
+for (const where of ['pack', 'tank']) test(`docked on the ${where}: no arm, hand or the head passes through it in any clip (idle, walk, run, jump, drive, climb, ledge)`, () => {
   const w = wearer(where === 'tank');
   let worst = Infinity, at = '';
   for (const name of Object.keys(CLIPS)) {
@@ -253,16 +254,16 @@ test('gliding: the scout hops off the rail onto the cap, out of the fluid wings,
     }
   }
   const hull = (() => { const d = new Drone(); d.pose(new DroneFold()); return d.hull(5); })();
-  const placed = (k) => { const p = V(), q = new THREE.Quaternion(); scoutDockPose(k, p, q); const m = new THREE.Matrix4().compose(p, q, V(1, 1, 1)); return hull.map((h) => h.clone().applyMatrix4(m)); };
+  const placed = (k) => { const p = V(), q = new THREE.Quaternion(); scoutDockPose(k, p, q); const m = new THREE.Matrix4().compose(p, q, V(1, 1, 1).divideScalar(TANK.scale)); return hull.map((h) => h.clone().applyMatrix4(m)); };
   const gap = (pts) => { let best = Infinity; const c = V(); for (const t of tris) for (const p of pts) best = Math.min(best, t.closestPointToPoint(p, c).distanceTo(p)); return best; };
   assert.ok(gap(placed(0)) < 0.01, 'on the rail, the open wings would pass through it');
   assert.ok(gap(placed(1)) > 0.02, `on the cap, clear of the wings (${gap(placed(1)).toFixed(3)})`);
   // the hop: never in the glass, the cap or the rail's top
   for (let k = 0; k <= 1.0001; k += 0.1) for (const p of placed(k)) {
     if (p.y >= 0 && p.y <= TANK.height) { const r = tankRadiusAt(p.y); assert.ok((p.x / (r * TANK.squash)) ** 2 + (p.z / r) ** 2 > 1.02, `in the glass at k ${k.toFixed(1)}`); }
-    assert.ok(!(p.y < SCOUT_CAP.y - DRONE_BELLY - 0.002 && p.y > TANK.height - 0.01 && Math.hypot(p.x / TANK.squash, p.z) < 0.105), `in the cap at k ${k.toFixed(1)}`);
+    assert.ok(!(p.y < TANK.height + 0.118 && p.y > TANK.height - 0.01 && Math.hypot(p.x / TANK.squash, p.z) < 0.105), `in the cap at k ${k.toFixed(1)}`);
   }
-  // and on the cap, still clear of the arms and the helmet in every clip
+  // and on the cap, still clear of the arms and the head in every clip
   const w = wearer(true), dock = w.gear.scoutDock;
   scoutDockPose(1, dock.position, dock.quaternion);
   let worst = Infinity;
@@ -281,7 +282,7 @@ test('when the tank takes the radio pack\'s place, the docked scout glides over 
   scout.update(1 / 60);
   const onPack = scout.object.position.clone();
   // the backpack is found: the dock goes onto the tank's rail (the real hook)
-  const tank = new THREE.Group(); tank.position.set(...TANK.at); w.h.chestAnchor.add(tank);
+  const tank = new THREE.Group(); tank.position.set(...TANK.at); tank.scale.setScalar(TANK.scale); w.h.chestAnchor.add(tank);
   FluidTool.prototype.placeDock.call({ player: { gear: w.gear }, tank: { group: tank } }, true);
   w.h.model.updateMatrixWorld(true);
   scout.update(1 / 60);

@@ -657,8 +657,8 @@ export class Humanoid {
     body.geometry = this._suitGeometry = suitGeometry(body);
     const kit = (this.kit = travellerKit(scene, body));
     const P = TRAVELLER_PALETTE;
-    body.material = makeMaterial({ color: P.suit, color2: P.suit, color3: P.boot, mode: MODE_OUTFIT, skin: P.skin, outfit: TRAVELLER.outfit,
-      face: faceAfterReshape(this.kind), gloves: P.glove, creases: limbSegments(body) });
+    body.material = makeMaterial({ color: P.suit, color2: P.suit, color3: P.skin, mode: MODE_OUTFIT, skin: P.skin, outfit: TRAVELLER.outfit,
+      face: faceAfterReshape(this.kind), creases: limbSegments(body) });
     body.material.uniforms.uFaceKit2.value.w = EAR_Z[this.kind];
     // one skinned mesh per colour (the radio pack and the glass apart: the tank hides the one, the other is see-through)
     const groups = new Map();

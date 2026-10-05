@@ -3,6 +3,11 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.63', date: '2026-10-05', items: [
+    'The traveller has a new look: tousled dark hair, a loose coral overshirt, cream trousers rolled above worn ankle boots, a beige scarf and a round satchel. His sleeves are rolled up and his face is uncovered.',
+    'The glass backpack is smaller, with green fittings, faded turquoise and lavender cloth ties, and a dark wrist tool. The makers’ star sits on his lapel and the lantern hangs below the scout’s dock.',
+    'The character studio can show the complete fluid backpack and wrist tool while you inspect an outfit or animation.',
+  ] },
   { v: '0.62', date: '2026-10-05', items: [
     'Nothing stays on the screen while you play any more: the box in the corner with the place, the objective and the relics is gone. Your health shows while you are hurt or healing, the stamina wheel while you are tired, the tank beside you while it refills or the jets burn, and each fades away after. A short line at the bottom says what the use button does when there is something to use, and a region’s name as you cross into it.',
     'To find where to go, send your drone: Q, Y / △ on a controller (riding and flying too), or ping on a touch screen. It flies a little way towards your objective, points its lens beam at it, drops a flare there that you can see from far away, chirps, says what it found and how far, and comes back to your pack. With nothing to find, it shrugs.',

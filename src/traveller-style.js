@@ -1,8 +1,9 @@
 // The traveller's printed palette, sampled from the illustrated reference.
 // Values are display colours (the game runs with colour management off).
 export const TRAVELLER_PALETTE = {
-  suit: '#ccb3d4', glove: '#ea835e', boot: '#e09a8a', radio: '#e7d4b4',
-  strap: '#d2b49a', pouch: '#cd884c', scarf: '#aba4b4', blue: '#3b6297', skin: '#eaa996', dark: '#4a4150', brow: '#6b4a3a', hair: '#74503c', liner: '#8e889c',
+  suit: '#e8ddbf', jacket: '#dc826c', jacketShade: '#bd6e59', glove: '#364443', boot: '#c8b796', radio: '#7eaaa0',
+  strap: '#847358', pouch: '#918568', scarf: '#ceb891', blue: '#64a99e', skin: '#d9a17e', dark: '#514b40',
+  brow: '#35362d', hair: '#292f2a', teal: '#69b8ae', lavender: '#b5a8c1',
 };
 
 // Imported material name -> palette entry, so separate equipment parts print in the same inks as the suit.

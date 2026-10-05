@@ -5,6 +5,7 @@ This folder accompanies the text-only dialogue pass of 2026-10-05. Start with
 an inviting adventure through an impossible universe: understandable needs,
 surprising people, immense things that are never entirely explained.
 
+- [Traveller visual direction](characters/traveller-design.md): reference sheets, silhouette, clothing, and equipment.
 - [The family](characters/family.md): the traveller, parents, Ilen, Lou, Tove, Moustache, and the ship.
 - [Qanat and the desert](characters/desert.md): the opening cast and their relationships.
 - [The other worlds](characters/worlds.md): histories, motives, and voice distinctions throughout the route.
