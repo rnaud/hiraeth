@@ -87,7 +87,10 @@ function path(name, note, xz, { speed, secs, back, up }) {
     for (let j = 0; j < n; j++) { const u = j / n; pts.push([ax + (bx - ax) * u, az + (bz - az) * u]); }
   }
   pts.push(xz[xz.length - 1]);
-  const ps = pts.map(([x, z]) => V(x, ground(x, z), z));
+  // (each point's ground looked for a few metres over the last one's, so a path under an arch stays
+  // on the road and doesn't climb onto the arch: the city gate)
+  let last = ground(pts[0][0], pts[0][1]);
+  const ps = pts.map(([x, z]) => { last = ground(x, z, last + 3); return V(x, last, z); });
   // the ground smoothed a little (a ridden bike doesn't follow every step of a stair)
   const ys = ps.map((p, i) => { let s = 0, n = 0; for (let j = Math.max(0, i - 2); j <= Math.min(ps.length - 1, i + 2); j++) { s += ps[j].y; n++; } return s / n; });
   const out = ps.map((p, i) => {

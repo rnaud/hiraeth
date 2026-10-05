@@ -399,8 +399,17 @@ The desert runs in `unity/Memento` (Unity 6, URP): exported from the web game by
   chamber, Teo's drum under its knuckle, the mask's eyes, the relics, the quest marker, the people near the
   start, a close camera in tight rooms.
 - [x] A standalone macOS build that runs (`Batch.BuildMac`, a smoke test); a note on what Android would need.
+- [x] The benchmark against the web game (`scripts/bench/`, `docs/benchmark-web-vs-unity.md`): shared
+  viewpoints, the players' benchmark mode, a quiet-machine gate, `mac-run.sh`; a WebGL (WebGPU) build.
+- [x] An Android build (`BenchBuild.Android`: `com.rnaud.memento.unity`, IL2CPP ARM64, Vulkan + GLES3, the
+  export gzipped inside and copied out on first launch).
+- [ ] Run `scripts/bench/android-run.sh` on the Retroid (the APK has never been run on a device).
+- [ ] The capes cost ~55 ms a frame at the camps (`Cape.Collide` reads `Transform.position` / `lossyScale`
+  in its inner loops): read the capsules once per step, or Burst.
+- [ ] Levels of detail and size culling in the port (5–8 M triangles a frame against the web's ~1 M), and
+  the shadow cascades refreshed on a schedule as on the web, before comparing GPU cost again.
 - [ ] The desert's smaller things: the errands of the people near the start, the reactive flowers, the
-  scout drone, hover trails, swimming, the crowd's own conversations; the other worlds; an Android build.
+  scout drone, hover trails, swimming, the crowd's own conversations; the other worlds.
 - [ ] Connect an MCP client to the editor (the bridge package is installed; an organization policy
   blocks registering unknown MCP servers in Claude Code).
 

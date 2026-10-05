@@ -31,3 +31,7 @@ Memento/Assets/StreamingAssets/sound.meta
 # the benchmark viewpoints, copied in at build time (Editor/BenchBuild.cs)
 Memento/Assets/StreamingAssets/bench/
 Memento/Assets/StreamingAssets/bench.meta
+
+# build leftovers (the Android build's CMake staging, plugin copies)
+Memento/.utmp/
+Memento/Data/
