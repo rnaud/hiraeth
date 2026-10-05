@@ -786,6 +786,11 @@ lookup on the terrain mesh.
 - Human body: [Universal Base Characters](https://quaternius.com/packs/universalbasecharacters.html)
   by Quaternius, CC0, with the Superhero male and female models and
   textures removed (`public/anim/human_*.glb`).
+- Motion capture: the people's walks and the motion-matching database (`public/anim/walks.glb`,
+  `public/anim/locomotion.glb`) are converted from the
+  [CMU Graphics Lab Motion Capture Database](http://mocap.cs.cmu.edu/). The data used in this
+  project was obtained from mocap.cs.cmu.edu. The database was created with funding from NSF
+  EIA-0196217. Takes and terms: docs/motion-data.md.
 - License texts are in `public/anim/`.
 
 Character rendering and scout regression checks: `node --test tests/*.test.js`.
@@ -2077,6 +2082,101 @@ noise of the page); the City-Shaft (two people near, the rest far) 12.9 / 13.4 �
 people's update 0.32 / 0.33 → 0.16 / 0.16 ms, and their bodies 53.9 k → 14.7 k triangles (four of
 eleven on a level). On this Mac the frame is bound by draw calls and fill, so the triangles don't
 show in the frame time; the handheld is still to measure.
+
+### Motion capture: the people's own walks, and motion matching (`scripts/mocap/`, `src/motion-match.js`)
+
+Motion-captured takes from the CMU database (and, once downloaded, Mixamo's: docs/mixamo-shopping-list.md),
+turned into clips of the same skeleton as the library's so the same Animator, retargeting and feet
+play them. Sources, take ids and terms: docs/motion-data.md.
+
+**The pipeline** (Node; re-runnable, same input same bytes):
+
+```
+node scripts/mocap/fetch-cmu.mjs           # the takes in cmu-takes.json -> data/mocap/raw/cmu/ (git-ignored)
+node scripts/mocap/build-library.mjs       # -> public/anim/walks.glb, public/anim/locomotion.glb
+node scripts/mocap/build-library.mjs --stats   # what each take became, nothing written
+node scripts/mocap/compare.mjs             # the traveller, matching off / on (tests/gait-sim.js)
+node scripts/mocap/compare-people.mjs      # a person on each captured walk
+```
+
+- **Reading** (`asf-amc.js`, `bvh.js`, `fbx.js` → a *take*, `take.js`): CMU's own ASF/AMC (forward
+  kinematics: rotations about x, y, z in the bone's axes, lengths × 2.54/100/0.45 m), any BVH
+  (three's BVHLoader; the cgspeed CMU names and Mixamo's are mapped, `maps.js`), Mixamo's FBX
+  (three's FBXLoader in Node, with the world exporter's DOM stub, `scripts/unity-export/shim.mjs`;
+  the `mixamorig:` prefixes dropped). Every bone's world rotation relative to its rest pose and
+  every joint's place, turned upright facing +z.
+- **Retargeting** (`retarget.js`) onto the UAL skeleton: each bone takes its source's rotation
+  relative to rest (the twist), then is swung to point exactly where the source's does (the
+  Animator reads directions); scaled by leg length; the floor set by the ankles and each foot
+  pitched by the difference between the two skeletons' flat feet (a captured ankle sits ~5 cm over
+  its sole, ours ~10: matched as they were, our heels sank 4 cm); the head and shoulders, which
+  the game never reads, stay at rest and aren't stored. The motion splits into a root (under the
+  hips, facing their way, smoothed; standing takes far more, so a weight shift doesn't slide the
+  feet) and an in-place pose.
+- **Cleaning and tags** (`process.js`): resampled to 30 fps; split where the capture glitches;
+  long still ends trimmed; foot contacts labelled (the ball within ~2.5 cm of its floor and still,
+  with hysteresis, short blips removed); a steady walk's best cycle found (touchdown to touchdown
+  of a foot, where pose and speed agree), its end blended into its start; speed, turn per clip.
+  Mirroring (left and right swapped, x flipped) is done when the game loads them.
+- **The files** (`glb.js`, glTF 2.0): rotations as normalised 16-bit integers (three dequantises
+  them), one long animation per kind with `extras.segments` saying where each clip starts (many
+  short animations made the JSON 440 KB), contacts as base64 bytes. `walks.glb` (12 walks, 81 KB)
+  loads with the game; `locomotion.glb` (the matching database, 75 clips, 202 s, 1.05 MB) only when
+  matching is on, and in the character studio, which lists every clip (`mm:` and `walk:`).
+
+**The people's walks** (`Animator.useWalk`, `locomotion.js walkFor`): a nearby person may walk one
+of twelve captured walks instead of the library's: picked (seeded, like the rest of their gait) among
+those whose own pace is within 0.8–1.25 of theirs, an older walker's, a heavy build's, a woman's or a
+child's when one suits them; the cycle's feet are measured as the library's (`gaitOf`) with the
+contacts labelled on the capture, its stride taken as captured, and its phase shifted so its feet
+come down when the library's loops' do (it blends with the jog). Captured feet swing low, a
+centimetre or two over the floor as people's do; while one leads they are lifted to clear 4.5 cm
+(feet.js `minClear`). In the Bazaar 5 of the 12 people walk captured walks. A person walking straight
+at their pace (`compare-people.mjs`; slide = a contact's travel over the ground, as below):
+
+| Walk | slide max / mean (m) | held (m) | sink (m) |
+|---|---|---|---|
+| the library's | 0.005 / 0.001 | 0.004 | 0.001 |
+| CMU normal walks (136_20, 91_29, 82_10, 137_29) | 0.03–0.05 / 0.03–0.04 | 0.004–0.03 | 0.001 |
+| strong man, teen, relaxed, childish, heavyset, confident | 0.06–0.11 / 0.03–0.06 | ≤ 0.006 | ≤ 0.002 |
+| elderly man (only for slow walkers) | 0.15 / 0.07 | 0 | 0.001 |
+
+**Motion matching for the traveller** (`src/motion-match.js`; off by default: the dev menu's
+*Motion matching* switch, or `?mm=1`). Every frame of the database and its mirror image (12 118
+frames) has a feature vector: both ankles' places and velocities and the hips' velocity in the body's
+frame, and the body's place and facing 1/3, 2/3 and 1 s on (normalised per group; weights 0.75,
+1, 1, 1, 1.5). The query takes the pose half from the frame playing and the future from the
+stick, through the same spring the controller moves by; every 0.1 s, or at once when the stick turns
+past 0.6 rad, a scan (16-frame blocks skipped by their bounds; ~0.01–0.03 ms a frame on average)
+finds the closest frame, and the jump there is inertialised (the pose's and velocities' difference
+decays over a 0.09 s half-life). It keeps playing unless a frame is clearly better, never jumps a
+step back in the same take or flicks to its mirror, and frames in a clip's last second cost more.
+Playback is speed-warped (×0.75–1.6) so the clip's feet sweep at the body's speed, and the feet
+plant on the real ground as before (feet.js, with the clip's contacts). It never moves the body, so
+the controls answer as before. Where the database has nothing close (a sprint faster than any
+capture, a start quicker than anyone sets off, the air, climbing, talking) the loops take over.
+
+Measured with the harness above (`compare.mjs`, slide max / mean, held, sink, head jerk km/s³):
+
+| Run | loops (the default) | motion matching |
+|---|---|---|
+| walk → run → 180° turn → stop | 0.16 / 0.051, 0.003, 0, 2.6 | 0.27 / 0.086, 0.012, 0.001, 3.2 |
+| walk, 90° turn, stop | 0.23 / 0.029, 0.002, 0, 1.3 | 0.61 / 0.118, 0.012, 0.001, 2.2 |
+| turn round on the spot | 0.07 / 0.019, 0, 0, 1.6 | 0.05 / 0.020, 0.002, 0, 1.5 |
+| up the ramp, stand | 0.08 / 0.032, 0.008, 0.011, 1.3 | 0.27 / 0.072, 0.012, 0.006, 2.0 |
+| stairs up, stand, down | 0.11 / 0.031, 0.004, 0.005, 2.4 | 0.34 / 0.104, 0.012, 0.18, 3.2 |
+| slow walk, stop | 0.11 / 0.036, 0.019, 0, 1.2 | 0.71 / 0.097, 0.015, 0.002, 1.5 |
+| jog, 45° and back, stop | 0.08 / 0.019, 0.005, 0, 1.3 | 0.27 / 0.106, 0.024, 0.001, 2.2 |
+| stand still 6 s | 0.01 / 0.007, 0, 0, 0.03 | 0.05 / 0.020, 0, 0, 0.6 (a captured idle sways) |
+
+By phase, the matcher ties the loops on a steady run (0.16 / 0.07 against 0.16 / 0.08) and through
+the 180° turn at a run, matches them turning on the spot (fewer bone flicks: 0.46 rad against 0.58
+a frame), and stops from a slow walk with less slide (0.05 / 0.02 against 0.11 / 0.05); it loses at
+every start (the controller reaches 3.5 m/s in 0.3 s, no captured start does: 0.27 against 0.08),
+on 90° turns while walking (no capture turns that tight), and on stairs (a captured stride puts a
+foot under the next step's riser, and a heel kick flips a shin: 2.9 rad in a frame). The turn
+response is the same (0.30 / 0.33 s). So the loops stay the default; the matcher is there to look
+at, and for Mixamo's starts, stops and turns (the shopping list) to fill its gaps.
 
 ### The galactic map and the route (v0.38)
 - **The route** (`src/story/route.js`, `knownWorlds`): the worlds open up in `ORDER`. The

@@ -29,10 +29,13 @@ these foundations and share animation logic where practical.
 
 ### Implementation stages
 
-- [ ] Gather suitable, licensed motion data: starts, stops, turns, pivots,
+- [x] Gather suitable, licensed motion data: starts, stops, turns, pivots,
   sidesteps, landings, and interactions, in addition to locomotion loops.
-  *(Open: the author decides on licensing. Everything below was done with the
-  existing CC0 loops plus procedural layers, so new clips can drop in later.)*
+  *(Done with CMU: 141 takes of 33 subjects, its terms and citation in
+  docs/motion-data.md, converted by scripts/mocap/ (ASF/AMC, BVH, Mixamo FBX onto
+  the library's skeleton) into public/anim/walks.glb and locomotion.glb. Mixamo
+  pending the author's downloads: docs/mixamo-shopping-list.md, which the
+  pipeline picks up from data/mocap/mixamo/.)*
 - [x] Improve the traveller's transitions, foot contact, turning, and responsive
   body/head movement. Keep optional stop-motion styling disabled when evaluating
   smoothness. *(src/feet.js, src/locomotion.js; README "Locomotion")*
@@ -40,12 +43,19 @@ these foundations and share animation logic where practical.
   feet, no abrupt pose changes, and responsive control. *(tests/gait-sim.js,
   tests/locomotion.test.js: slide per contact 1.96 → 0.16 m, sink 10 → 0 cm,
   turn response unchanged at 0.30 s)*
-- [ ] Add motion matching for locomotion, with procedural terrain corrections.
-  *(Open: needs the motion data above; the terrain corrections, contact curves
-  and stride warp it would use are in place.)*
+- [x] Add motion matching for locomotion, with procedural terrain corrections.
+  *(Built: src/motion-match.js: features, search, inertialised jumps, speed
+  warping, feet.js on top. Measured against the loops (README "Motion capture"):
+  a tie on runs, 180° turns at a run and turning on the spot, better on stops
+  from a slow walk, worse on starts (the controller outpaces every captured
+  start), tight walking turns and stairs. So the loops stay the default and
+  matching is a dev-menu switch (?mm=1); Mixamo's starts, stops and turns are
+  what it lacks.)*
 - [x] Extend the system to nearby NPCs, varying gait, timing, posture, and
   gestures to avoid identical-looking motion. *(Gait, timing and posture per
-  person; gestures are still the shared wave and talk clips.)*
+  person; gestures are still the shared wave and talk clips. People near you may
+  also walk one of 12 captured CMU walks of their own, picked by pace and build:
+  README "Motion capture".)*
 - [x] Scale animation work by distance: detailed motion selection and contact
   solving nearby; shared or baked animation with interpolated playback for
   distant crowds. *(Feet and lean near, poses every 2nd / 3rd frame further,
@@ -56,7 +66,8 @@ these foundations and share animation logic where practical.
   the Retroid and loading time / memory still to do.)*
 - [ ] Evaluate ML only if it offers a measured advantage over the conventional
   system. Account for training data, offline tooling, model delivery, and
-  browser runtime compatibility. *(Open: after motion matching.)*
+  browser runtime compatibility. *(Open: motion matching now exists to compare
+  against, but measures behind the loops; the data, not the method, is short.)*
 
 ### Success criteria
 

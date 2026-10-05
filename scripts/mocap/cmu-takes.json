@@ -45,13 +45,13 @@
     ["140_06", "mm", "idle", { "max": 6 }], ["139_02", "mm", "shifting weight"], ["113_21", "mm", "standing still", { "max": 6 }], ["137_28", "mm", "normal wait", { "max": 6 }],
     ["140_07", "ref", "idle"], ["141_20", "ref", "waiting"], ["77_02", "ref", "standing"],
 
-    ["137_29", "npc", "normal walk"], ["137_33", "npc", "old man walk"], ["137_24", "ref", "graceful lady walk"],
+    ["137_29", "npc", "normal walk"], ["137_33", "ref", "old man walk"], ["137_24", "ref", "graceful lady walk"],
     ["137_42", "npc", "strong man walk"], ["137_20", "npc", "gangly teen walk"],
     ["142_13", "npc", "relaxed"], ["142_07", "npc", "elderly man"], ["142_01", "npc", "childish"], ["142_14", "ref", "rushed"],
-    ["17_08", "npc", "muscular, heavyset person's walk"], ["132_45", "npc", "walk slow"], ["132_17", "npc", "walk fast"],
+    ["17_08", "npc", "muscular, heavyset person's walk"], ["132_45", "ref", "walk slow"], ["132_17", "npc", "walk fast"],
     ["82_11", "ref", "normal walk forward"], ["82_10", "npc", "sad walk forward"], ["82_09", "npc", "confident walk forward"],
-    ["136_20", "npc", "normal walk"], ["08_01", "npc", "walk"], ["07_01", "npc", "walk"], ["02_01", "npc", "walk"],
-    ["91_29", "npc", "normal walk"], ["141_19", "ref", "walk"],
+    ["136_20", "npc", "normal walk"], ["08_01", "ref", "walk"], ["07_01", "ref", "walk"], ["02_01", "ref", "walk"],
+    ["91_29", "npc", "normal walk"], ["105_29", "ref", "normal walk (the same capture as 91_29: subject 105 repeats 91)"], ["141_19", "ref", "walk"],
 
     ["83_27", "ref", "walk forward stepping up stairs"], ["83_28", "ref", "walk forward stepping up stairs"],
     ["83_34", "ref", "walk forward and up stairs"], ["113_19", "ref", "walking up and down stairs"],
