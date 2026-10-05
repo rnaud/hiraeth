@@ -60,10 +60,16 @@ export const PLACEMENTS = {
     { id: 'arzach.hush', item: 'hush', at: [17.9, 59.5, 239.9], toward: [0, 0],
       hint: 'A makers’ box sits on the flat cap of the needle spire north of the landing. Climb it, or land the bird on top',
       note: 'The flat cap of the needle spire north of the spawn; climb it or land the bird on it.' },
+    // the Aerie (src/temples/arzach.js): in its round chamber over the feather stair. The wings are the key to the
+    // rest: the gulf, the wind well, the Elder, who will not fly alone
+    { id: 'arzach.temple.glider', item: 'glider', temple: 'arzach', site: (level) => level.temple?.gadgetSite,
+      note: 'Inside the Aerie on the plain west of the landing, in the round chamber at the top of the feather stair.' },
   ],
   arzach2: [
     // the sky stones: the top of the balanced five-stone stack on the start plateau
-    { id: 'arzach2.glider', item: 'glider', at: [35, 65.3, -43.5], toward: [0, 22],
+    // It held the fluid wings until Vael's Aerie was built (src/temples/arzach.js): the wings are the Aerie's key
+    // now, and the stack keeps the wind-silk scarf, a gift in the open
+    { id: 'arzach2.scarf', item: 'scarf', at: [35, 65.3, -43.5], toward: [0, 22],
       hint: 'A makers’ box teeters on the top stone of the balanced stack on the starting plateau. Climb the stones',
       note: 'The top stone of the balanced stack on the starting plateau: a teetering climb.' },
     // the Founders' Belfry (src/temples/arzach2.js): in the bell chamber half-way up. The whistle is the key to the

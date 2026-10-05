@@ -1018,8 +1018,8 @@ ATAN" (old names) and now says ODILE and TALO; Talo's lookout note was signed
 ## 11. Temples (the makers' houses, their keepers, and the gifts inside)
 
 *Built in this pass (`src/temples/`); decided while the author was away, change
-freely. Seven worlds have theirs (the desert, the City-Shaft, Vael II, the
-Buried Machine, the Garden of Spheres, Lorn II, Lorn); the rest are designed below
+freely. Eight worlds have theirs (the desert, the City-Shaft, Vael, Vael II,
+the Buried Machine, the Garden of Spheres, Lorn II, Lorn); the rest are designed below
 and wait their turn. Section 9's "A Makers' temple in every
 world" and the "Makers' temples with bosses" note above are what this answers.*
 
@@ -1079,8 +1079,8 @@ then the world's box stays as it was):
 |---|---|---|---|
 | Desert | Ember mode (moved from the Buried Machine) | the backpack (the story's), the pale star | **built** |
 | City-Shaft | Fluid jets (moved from the rim pillar) | Soft-fall soles (new, on the rim pillar) | **built** |
-| Vael | Fluid wings (from Vael II's stack) | Hush-cloth (new: steps the wildlife doesn't hear; on the spire now) | hush-cloth built; temple planned |
-| Vael II | Bell-note whistle (moved from Vael's spire: it belongs to the bell world) | Fluid wings for now (on the balanced stack); the Updraft feather (new: the wings sink slower) once the wings move to Vael's temple | **built** |
+| Vael | Fluid wings (moved from Vael II's stack) | Hush-cloth (new: steps the wildlife doesn't hear; on the spire now) | **built** |
+| Vael II | Bell-note whistle (moved from Vael's spire: it belongs to the bell world) | Wind-silk scarf (new, on the balanced stack now: the wings sink slower; it was to be an "updraft feather", renamed because Vael's feathers are the story's) | **built** |
 | Hangar | Quick coil | Brass level (new: shows which way down is, in the ring) | planned |
 | Buried Machine | Fourth chamber (moved from Lorn II) | Climber's resin (new, on the chimney ring: climbing tires you half as fast) | **built** |
 | Viridel | Bloom mode (new gun mode: a seed glob grows a climbable vine) | Seed pouch (new, on the umbrella tree's canopy now: flowers come up in your footsteps) | seed pouch built; temple planned |
@@ -1090,13 +1090,13 @@ then the world's box stays as it was):
 | Signal Market | Echo shell (new: records a note, plays it back) | (the market has no chest) | planned |
 
 What moved for players already on their way: whoever owns ember mode, the jets,
-the bell-note whistle, the fourth chamber, the glyph lens, the lantern charm or
-the stilling mode finds that temple's chest open and counted as found (`src/temples/migrate.js`);
+the bell-note whistle, the fourth chamber, the glyph lens, the lantern charm,
+the stilling mode or the fluid wings finds that temple's chest open and counted as found (`src/temples/migrate.js`);
 the Buried Machine's chimney ring, the City-Shaft's pillar, Vael's spire, Lorn
-II's first root arch, the Spheres' grove canopy, Viridel's umbrella canopy and
-Lorn's mossy rise now hold the resin, the soles, the hush-cloth, the glow-moss
-pin, the listening shell, the seed pouch and the breathing reed, new boxes for
-everyone. (This also settles a loose end of section 10: the bell-note
+II's first root arch, the Spheres' grove canopy, Viridel's umbrella canopy,
+Lorn's mossy rise and Vael II's balanced stack now hold the resin, the soles,
+the hush-cloth, the glow-moss pin, the listening shell, the seed pouch, the
+breathing reed and the wind-silk scarf, new boxes for everyone. (This also settles a loose end of section 10: the bell-note
 whistle is found in the bell world now, and Vael has only the rider's bone
 whistle.)
 Ember mode now comes in the first world, which suits it: the desert's camp
@@ -1321,12 +1321,46 @@ everything since; you can hear it through the stone.
   and the world change is the flowers, not one of Wendel's eggs hatching (left
   as a loose end).
 
+### The Aerie (Vael)
+A great white house of the makers on the plain west of the landing: a broad
+plinth, a great drum and a narrower one on it, banded in ochre, glyph lines up
+the drum like the lines on a wing, and on top a crown of tall stone feathers
+leaning out round a perch. It is where the makers gave Vael's great birds their
+wings; the birds were raised in its roost (so the bird who waits for her rider
+was hatched here, though nobody says so). The oldest of them, the **Elder**, so
+old her feathers have gone to stone, kept the house. The night the light went
+over she stopped flying; the others left; she stayed.
+- **The local: Lark**, who sweeps the great steps, slowly, and speaks in single
+  words like everyone in Vael: "The Aerie. Where the birds were given wings."
+  "She stopped." "Wind, inside. Wait for it." Told the Elder is afraid to fly
+  alone, she holds out her arms and tilts, riding the wind: "Together."
+  Afterwards: she leans her broom against the wall ("No more sand. They fan it
+  off.").
+- **Inside**: the Threshold; the Hall of Winds (gusts blow down it from the far
+  end and shove you back: wait them out behind the stone screens, screen to
+  screen; an eye by the far door opens it); the Feather Stair (a wall to climb,
+  a disc that rides straight up to the landing); the Wing Chamber (**the fluid
+  wings**; its far side opens on nothing); the Gulf (thirty-four metres across to
+  a lower ledge: glide it); the Wind Well (a column of rising wind: open your
+  wings in it and it lifts you round and up to an eye and a balcony); the Roost.
+- **The Elder** (organic): a great bird of stone-white feathers on long ochre
+  legs, a long neck and a longer beak, in the roost under the open sky with a
+  column of wind in its middle. She buffets with her wings, stamps, and later,
+  off the floor and beating hard, dives. After a stamp or a dive she spreads her
+  wings and looks up at the sky, trembling, and does not go: ride the wind
+  beside her (open your wings near her) and she lifts a little. Fluid only
+  beads on her feathers; a shove frightens her. Calm, she folds her wings: lay
+  a hand on her neck, and she rides the wind up out of the roost.
+- **After**: the Elder sits on the Aerie's crown with her wings open, the glyph
+  lines on the drum glow, and a flock of the great birds wheels high over it.
+- *Changed from the first design*: the house stands on the plain, not among the
+  floating ruins (they are too high and too scattered to build in), it is "the
+  Aerie" rather than "the House of the First Walkers", the bone whistle is not
+  needed (it is the main quest's, and the waiting bird's), and the world change
+  is the birds coming back, not the ruins settling into a chain (that is left
+  for later: it would need the ruins reworked).
+
 ### The other temples (designed, not built)
-- **Vael**: the House of the First Walkers among the floating ruins, its halls
-  joined by glides; key: the fluid wings. Its keeper: an old stone-winged bird,
-  the bird's elder, afraid to fly since its rider left; calm it by gliding
-  alongside it and blowing the rider's bone whistle. After: the floating ruins
-  settle into a walkable chain toward the lone tower.
 - **Hangar**: the Major's First Garage, under the plateau; key: the quick coil
   (doors that want three shots inside three seconds). Its keeper: the Clockwork
   Foreman (robot), wound wrong; break it, or set it to the right time. After:

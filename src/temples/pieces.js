@@ -5,7 +5,7 @@ import { registerTarget } from '../targets.js';
 import { registerHazard } from '../hazards.js';
 import { Flames } from '../story/flames.js';
 import { glyphGeometry } from '../story/sign-text.js';
-import { T, box, lathe, prep } from './kit.js';
+import { T, box, lathe, prep, annulus } from './kit.js';
 
 // The temple's moving and answering parts. Each piece is built by the
 // runtime (runtime.js) from a temple's layout, in the temple's local frame,
@@ -24,6 +24,8 @@ import { T, box, lathe, prep } from './kit.js';
 //   LightEar a lamp that wakes when you stand by it with the lantern charm
 //   Jaw      a gate of snapping jaws: a stilling glob stills them, and they rest open for good
 //   Swing    a crystal pendulum over a bridge: it knocks you off; a stilling glob stops it a while
+//   Updraft  a column of rising wind: it lifts the fluid wings, round and up, and lets you go at its top
+//   Gust     gusts down a hall that shove you back unless you wait them out behind a screen
 //   Platform a disc that rides between points (you ride along on it)
 //   Bridge   stones that rise out of a chasm when their condition holds
 //   Mark     a glyph stone: walk past it and it is where you come back to (a checkpoint)
@@ -630,6 +632,125 @@ export class Swing {
     }
   }
   dispose() { this.off?.(); }
+}
+
+// ---------------------------------------------------------------------------------------- wind
+/**
+ * A column of rising wind (Vael's Aerie): pale rings drift up it. It catches the fluid wings: gliding in it
+ * you are lifted, held near its middle, slowed, until near its top it lets you go (you fly out the way you
+ * face). Without the wings it only ruffles you. o: { at: its foot (the floor's middle), r, h, lift }
+ */
+export class Updraft {
+  constructor(rt, o) {
+    this.rt = rt; this.o = o;
+    const K = rt.kit;
+    this.r = o.r ?? 4.5; this.h = o.h ?? 22; this.lift = o.lift ?? 7;
+    this.foot = K.world(...o.at);
+    this.root = new THREE.Group();
+    rt.root.add(this.root);
+    this.mat = own({ color: '#f4f8f6', glow: 0.35, flat: true });
+    this.rings = [];
+    const N = Math.max(6, Math.round(this.h / 2.4));
+    const g = new THREE.TorusGeometry(this.r * 0.75, 0.07, 4, 32).rotateX(Math.PI / 2);
+    for (let i = 0; i < N; i++) { const m = new THREE.Mesh(g, this.mat); this.root.add(m); this.rings.push({ m, s: i / N, w: 0.6 + (i % 3) * 0.2 }); }
+    const stone = mesh([T(annulus(this.r - 0.3, this.r + 0.4, 0.25, 36), [0, 0.12, 0])], rt.M.trimMat);
+    stone.position.copy(this.foot);
+    this.root.add(stone);
+    noCollide(this.root);
+    this.rideT = 0;
+  }
+  /** Is p (feet) in the column? */
+  contains(p) { return Math.hypot(p.x - this.foot.x, p.z - this.foot.z) < this.r && p.y > this.foot.y - 1 && p.y < this.foot.y + this.h; }
+  update(dt, t) {
+    for (const r of this.rings) {
+      r.s = (r.s + dt * 0.09) % 1;
+      r.m.position.set(this.foot.x, this.foot.y + 0.5 + r.s * this.h, this.foot.z);
+      const fade = Math.min(1, r.s * 8, (1 - r.s) * 6);
+      r.m.scale.setScalar(Math.max(0.01, fade * (r.w + 0.08 * Math.sin(t * 2 + r.s * 20))));
+      r.m.rotation.y = t * 0.4 + r.s * 3;
+    }
+    this.mat.uniforms.uGlow.value = 0.3 + 0.1 * Math.sin(t * 1.7);
+    const P = this.rt.player;
+    if (!P || P.dead || P.down || !this.contains(P.pos)) { this.rideT = 0; return; }
+    if (!P.gliding) {
+      if (!P.onGround && P.vel.y < 0) this.rt.notice?.(this.o.hint ?? 'The wind rushes up past you. Open your wings in it.', 'updraft.hint');
+      return;
+    }
+    // the wings catch it: up, near its middle, slowly; at its top it eases, and lets you go
+    const top = this.foot.y + this.h, k = THREE.MathUtils.clamp((top - P.pos.y) / 3, 0, 1);
+    const want = this.lift * k;
+    P.vel.y = Math.max(P.vel.y, want * 0.5) + (want - P.vel.y) * Math.min(1, dt * 3);
+    if (k > 0.5) {
+      P.glideSpeed = Math.min(P.glideSpeed ?? 1.5, 1.5);
+      const c = Math.min(1, dt * 1.5);
+      P.pos.x += (this.foot.x - P.pos.x) * c; P.pos.z += (this.foot.z - P.pos.z) * c;
+    }
+    if ((this.rideT += dt) > 0.4) this.rt.notice?.(this.o.ride ?? 'The wind fills your wings and lifts you, round and up.', 'updraft.ride');
+  }
+}
+
+/**
+ * Gusts down a hall (Vael's Aerie): calm a while, then a warning (pale streaks start), then the wind blows
+ * along `dir` (local) and shoves whoever stands in the open back along it. Behind a screen (a `shelter`
+ * box) it can't reach you. o: { min, max: the hall (local), dir: [x, 0, z], shelters: [[min, max]], calm, blow, push }
+ */
+export class Gust {
+  constructor(rt, o) {
+    this.rt = rt; this.o = o;
+    const K = rt.kit;
+    this.box = new THREE.Box3(V(...o.min), V(...o.max));
+    this.shelters = (o.shelters ?? []).map(([a, b]) => new THREE.Box3(V(...a), V(...b)));
+    this.dirL = V(...(o.dir ?? [0, 0, -1])).normalize();
+    this.dirW = this.dirL.clone().applyAxisAngle(UP, K.yaw);
+    this.calm = o.calm ?? 2.6; this.blow = o.blow ?? 2.4; this.warn = o.warn ?? 0.7; this.push = o.push ?? 7.5;
+    this.t = o.phase ?? 0;
+    // the streaks: thin pale bars that race down the hall while it blows
+    this.mat = own({ color: '#fbf7ee', glow: 0.4, flat: true });
+    this.streaks = [];
+    const size = this.box.getSize(V());
+    const g = new THREE.BoxGeometry(0.06, 0.06, 3.2);
+    let s = 77;
+    const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+    this.root = new THREE.Group();
+    this.root.position.copy(K.world(0, 0, 0)); this.root.rotation.y = K.yaw;
+    rt.root.add(this.root);
+    for (let i = 0; i < 36; i++) {
+      const m = new THREE.Mesh(g, this.mat);
+      this.root.add(m);
+      this.streaks.push({ m, x: this.box.min.x + rnd() * size.x, y: this.box.min.y + 0.4 + rnd() * Math.min(size.y, 8), u: rnd(), v: 0.8 + rnd() * 0.6 });
+    }
+    noCollide(this.root);
+    this.size = size;
+  }
+  /** 0 calm, a warning ramp, 1 blowing. */
+  get state() {
+    const c = this.t % (this.calm + this.blow);
+    if (c < this.calm - this.warn) return 0;
+    if (c < this.calm) return 0.5;
+    return 1;
+  }
+  sheltered(l) { return this.shelters.some((b) => b.containsPoint(l)); }
+  update(dt) {
+    this.t += dt;
+    const st = this.state;
+    // the streaks: along the hall, from its far end to its near
+    const len = this.size.z;
+    for (const s of this.streaks) {
+      s.u = (s.u + dt * (st === 1 ? 0.9 : 0.3) * s.v) % 1;
+      const z = this.dirL.z < 0 ? this.box.max.z - s.u * len : this.box.min.z + s.u * len;
+      s.m.position.set(s.x, s.y, z);
+      s.m.visible = st > 0 && !(st === 0.5 && s.v > 1.1);
+    }
+    this.mat.uniforms.uGlow.value = st === 1 ? 0.6 : 0.35;
+    const P = this.rt.player;
+    if (!P || P.dead || st < 1) return;
+    const l = this.rt.kit.local(P.pos);
+    if (!this.box.containsPoint(l) || this.sheltered(l)) return;
+    // shoved back down the hall (your own legs win a little of it back)
+    P.vel.x = this.dirW.x * this.push; P.vel.z = this.dirW.z * this.push;
+    if (P.climbing) P.climbing = false;
+    this.rt.notice?.(this.o.notice ?? 'The gust shoves you back down the hall. Wait it out behind a screen.', 'gust');
+  }
 }
 
 // ---------------------------------------------------------------------------------------- moving floors

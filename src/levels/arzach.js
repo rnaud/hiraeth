@@ -4,6 +4,7 @@ import { createNoise2D, fbm, mulberry32, smoothstep } from '../noise.js';
 import { makeMaterial, MODE_TERRAIN, MODE_STRATA } from '../materials.js';
 import { Terrain, jitter } from '../world.js';
 import { Bird } from '../bird.js';
+import { attachTemple } from '../temples/index.js';
 
 // ---------------------------------------------------------------------------
 // Vael: a silent, bone-white world of needle spires,
@@ -274,7 +275,8 @@ export function createArzach(scene) {
     }
   }
 
-  return {
+  // the Aerie on the plain west of the landing, and its rooms far overhead (src/temples/arzach.js)
+  return attachTemple('arzach', scene, {
     id: 'arzach',
     ground: terrain,
     spawn: new THREE.Vector3(0, terrain.heightAt(0, 0), 0),
@@ -304,5 +306,5 @@ export function createArzach(scene) {
     killY: -Infinity,
     atmo: () => ({ tint: [1.02, 0.99, 0.94], fog: 0.75, name: 'Vael' }),
     update(dt, t) { for (const m of movers) m(t); },
-  };
+  });
 }

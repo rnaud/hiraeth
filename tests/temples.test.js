@@ -1004,3 +1004,122 @@ test('the Hush-House on foot: the crystals sung low to high, the climbing disc a
   game.reset();
   own();
 });
+
+test('the Aerie on foot: the gusts waited out behind the screens, the wall and the rising disc, the wings, the gulf glided, the wind well, the Elder flown with, the birds come back', () => {
+  game.reset();
+  own('backpack');
+  const { level, physics, rt } = world('arzach');
+  const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true, limit: level.limit ?? 1900 });
+  rt.connect({ player: P, toast: () => {} });
+  let t = 0;
+  const L = (x, y, z) => rt.kit.world(x, y, z);
+  const frame = (input = {}, yaw = 0) => { t += DT; rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };
+  const toward = (to) => Math.atan2(-(to.x - P.pos.x), -(to.z - P.pos.z));
+  const flat = (a) => Math.hypot(P.pos.x - a.x, P.pos.z - a.z);
+  const walk = (to, { tol = 0.6, max = 25, run = true, dy = 1.6 } = {}) => {
+    for (let i = 0; i < max / DT; i++) { if (flat(to) < tol && Math.abs(P.pos.y - to.y) < dy) return true; frame({ KeyW: true, ShiftLeft: run }, toward(to)); }
+    return false;
+  };
+  const wait = (s) => { for (let i = 0; i < s / DT; i++) frame(); };
+  const where = () => rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1)).join(', ');
+  const local = () => rt.kit.local(P.pos);
+  wait(0.5);
+  // ---- the Hall of Winds: in the open a gust shoves you back; screen to screen, in the calms, you get through
+  const gust = rt.pieces.find((p) => p.shelters);
+  const calmStart = () => { for (let i = 0; i < 12 / DT; i++) { const before = gust.state; frame(); if (before === 1 && gust.state === 0) return true; } return false; };
+  P.teleport(L(0, 0.05, 26), V(0, 1, 0), V(0, 0, 1));
+  for (let i = 0; i < 6 / DT && gust.state !== 1; i++) frame();
+  const z0 = local().z;
+  for (let i = 0; i < 1.2 / DT; i++) frame({ KeyW: true, ShiftLeft: true }, toward(L(0, 0, 50)));
+  assert.ok(local().z < z0 - 2, `the gust shoves you back (${z0.toFixed(1)} -> ${where()})`);
+  P.teleport(L(0, 0.05, 10), V(0, 1, 0), V(0, 0, 1));
+  for (const legs of [[[4.2, 20.4]], [[0, 23.2], [-4.2, 29.4]], [[0, 32.2], [4.2, 38.4]], [[0, 41.2], [0, 50]]]) {
+    assert.ok(calmStart(), 'a calm');
+    const t0 = t;
+    for (const [x, z] of legs) assert.equal(walk(L(x, 0, z), { tol: 0.7, max: 3 }), true, `to the next screen in the calm (${where()})`);
+    assert.ok(t - t0 < 3.2, `inside one calm (${(t - t0).toFixed(1)} s)`);
+  }
+  rt.piece('s1').hit('shoot');
+  wait(2.2);
+  assert.equal(rt.logic.isOpen('d1'), true);
+  // ---- the Feather Stair: up the wall, then the disc that rides straight up
+  assert.equal(walk(L(0, 0, 61)), true, `into the stair (${where()})`);
+  let up = false;
+  for (let i = 0; i < 20 / DT; i++) { frame({ KeyW: true }, toward(L(0, 9, 71))); if (P.onGround && local().y > 8.5) { up = true; break; } }
+  assert.ok(up, `up the wall (${where()})`);
+  const disc = rt.pieces.find((p) => p.path);
+  for (let i = 0; i < 30 / DT && !(disc.s < 0.2 && disc.wait > 0.8); i++) frame();
+  assert.equal(walk(disc.group.position, { tol: 0.5, run: false, max: 4 }), true, `onto the disc (${where()})`);
+  for (let i = 0; i < 30 / DT && !(disc.s > disc.total - 0.2); i++) frame();
+  assert.ok(local().y > 17.5, `carried up (${where()})`);
+  assert.equal(walk(L(0, 18, 76.4), { tol: 0.8 }), true, `onto the landing (${where()})`);
+  assert.equal(walk(L(0, 18, 84)), true, `into the wing chamber (${where()})`);
+  // ---- the wings; the Gulf: too far to jump, glided
+  items.grant('glider'); game.emit('box:opened', { id: 'arzach.temple.glider' });
+  assert.equal(rt.logic.gadget, true);
+  assert.equal(walk(L(0, 18, 102)), true, `to the gulf's edge (${where()})`);
+  let landed = false;
+  for (let i = 0; i < 12 / DT; i++) {
+    const z = local().z, edge = z > 104;
+    frame(z > 141 ? {} : edge ? { Space: true } : { KeyW: true, ShiftLeft: true }, toward(L(0, 18, 150)));
+    if (P.onGround && local().y > 8.5 && local().y < 10 && local().z > 138) { landed = true; break; }
+    if (local().y < 4) break;
+  }
+  assert.ok(landed, `glided across the gulf (${where()})`);
+  // ---- the Wind Well: open the wings in the column and it lifts you to the balcony
+  assert.equal(walk(L(0, 9, 163.2), { tol: 0.6 }), true, `to the well's middle (${where()})`);
+  rt.piece('s3').hit('shoot');
+  assert.equal(rt.logic.isLit('s3'), true, 'the eye over the balcony');
+  let top = false;
+  P.heading = 0;
+  for (let i = 0; i < 20 / DT; i++) {
+    frame({ Space: true });
+    if (local().y > 33.2) { top = true; break; }
+  }
+  assert.ok(top, `lifted up the well (${where()})`);
+  let onBalcony = false;
+  for (let i = 0; i < 6 / DT; i++) {
+    P.heading = 0;
+    frame(local().z > 169 ? {} : { Space: true });
+    if (P.onGround && Math.abs(local().y - 30) < 0.6) { onBalcony = true; break; }
+  }
+  assert.ok(onBalcony, `onto the balcony (${where()})`);
+  wait(2.2);
+  assert.equal(rt.logic.isOpen('d3'), true);
+  // ---- the Roost: when she looks up, afraid, fly beside her
+  assert.equal(walk(L(0, 30, 182)), true, `into the roost (${where()})`);
+  const G = rt.guardian;
+  wait(0.3);
+  assert.notEqual(G.state, 'sleep');
+  P.opts.health = false;
+  const before0 = G.meter;
+  G.hit('body', 'shoot');
+  assert.equal(G.meter, before0, 'fluid does not calm her');
+  for (let n = 0; n < 12 && G.state !== 'weary'; n++) {
+    let open = false;
+    for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open') { open = true; break; } }
+    assert.ok(open, `she looks up, afraid (${n})`);
+    const before = G.meter;
+    const c = G.model.pos.clone();
+    P.teleport(c.clone().add(V(3, G.model.floats ? 3 : 5, 0)), V(0, 1, 0), V(0, 0, 1));
+    P.heading = 0;
+    for (let i = 0; i < 2.5 / DT && G.meter === before && G.state === 'open'; i++) frame({ Space: true });
+    assert.ok(G.meter > before, `flown with (${n}: ${G.meter.toFixed(2)}, ${G.state})`);
+    for (let i = 0; i < 5 / DT && !P.onGround; i++) frame();
+  }
+  assert.equal(G.state, 'weary', `calm (${G.meter.toFixed(2)})`);
+  for (let i = 0; i < 20 / DT && Math.hypot(G.model.pos.x - G.model.rest.x, G.model.pos.z - G.model.rest.z) > 0.6; i++) frame();
+  wait(2);
+  const head = G.model.mouth.clone().setY(L(0, 30, 0).y);
+  const out = head.clone().sub(G.model.pos).setY(0).normalize();
+  P.teleport(head.clone().addScaledVector(out, 1.6).add(V(0, 0.1, 0)), V(0, 1, 0), V(0, 0, 1));
+  wait(0.3);
+  const near = bestInteractable(P);
+  assert.equal(near?.entry.id, 'temple.arzach.touch', 'a hand on her neck');
+  near.entry.use(P);
+  assert.equal(game.flag('temple.arzach.done'), true);
+  wait(5);
+  assert.equal(rt.change.root.visible, true, 'the birds come back');
+  game.reset();
+  own();
+});

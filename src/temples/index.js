@@ -16,6 +16,8 @@ import { PERDIDE2_TEMPLE } from './perdide2.js';
 import * as PERDIDE2_WORDS from './perdide2-data.js';
 import { PERDIDE_TEMPLE } from './perdide.js';
 import * as PERDIDE_WORDS from './perdide-data.js';
+import { ARZACH_TEMPLE } from './arzach.js';
+import * as ARZACH_WORDS from './arzach-data.js';
 
 // The makers' temples: one great building in each world, a Zelda-style
 // dungeon of rooms and puzzles in that world's architecture, with a gadget
@@ -44,6 +46,7 @@ export const TEMPLES = {
   buried: { def: BURIED_TEMPLE, words: BURIED_WORDS },
   perdide2: { def: PERDIDE2_TEMPLE, words: PERDIDE2_WORDS },
   perdide: { def: PERDIDE_TEMPLE, words: PERDIDE_WORDS },
+  arzach: { def: ARZACH_TEMPLE, words: ARZACH_WORDS },
 };
 
 /**
@@ -56,8 +59,8 @@ export const GADGETS = {
   desert: { temple: 'fire', world: ['backpack', 'star'], built: true },
   incal: { temple: 'jetpack', world: ['soles'], built: true },
   // planned (LORE.md, "Temples"): until a temple is built its world keeps its box as it was
-  arzach: { temple: 'glider', world: ['hush'], built: false },        // the hush-cloth is on Vael's spire now (the bell went to Vael II); the wings move here once it is built
-  arzach2: { temple: 'bell', world: ['glider'], built: true },         // the bell moved here from Vael's spire (the wings go to Vael's temple, the feather comes then)
+  arzach: { temple: 'glider', world: ['hush'], built: true },         // the wings moved here from Vael II's stack; the hush-cloth on Vael's spire
+  arzach2: { temple: 'bell', world: ['scarf'], built: true },         // the bell moved here from Vael's spire; the wind-silk scarf on the balanced stack (the wings went to the Aerie)
   garage: { temple: 'coil', world: ['level'], built: false },
   buried: { temple: 'cell', world: ['resin'], built: true },          // the fourth chamber moved here from Lorn II
   edena: { temple: 'bloom', world: ['pouch'], built: false },         // a new gun mode (planned); the seed pouch is on the canopy now (the lantern went to Lorn II)

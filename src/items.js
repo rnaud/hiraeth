@@ -97,6 +97,11 @@ export const ITEMS = {
     text: 'A little linen pouch on a cord, full of seeds so small they look like dust. It never empties. The makers planted as they walked.',
     use: 'Small flowers come up in your footsteps where you walk, and fade a while after.',
   },
+  scarf: {
+    name: 'Wind-silk scarf', kind: 'charm',
+    text: 'A long scarf of silk so fine the wind goes through it, white, the makers’ glyph woven in at one end. It lifts at the slightest breath of air.',
+    use: 'Your fluid wings sink more slowly when you glide.',
+  },
   reed: {
     name: 'Breathing reed', kind: 'charm',
     text: 'A short hollow reed of the swamp, sealed at one end with a bead of crystal and cut with the makers’ glyph. Hold it in your teeth and the water seems to wait for you.',

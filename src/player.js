@@ -945,7 +945,7 @@ export class Player {
       if (!wasGliding) this.glideSpeed = Math.max(Math.hypot(tv.x, tv.z), 11);
       const target = f > 0 ? 30 : f < 0 ? 7 : 15;
       this.glideSpeed += (target - this.glideSpeed) * (1 - Math.exp(-(f > 0 ? 0.9 : 0.6) * dt));
-      const sink = f > 0 ? 7 : f < 0 ? 1.3 : 2.4;
+      const sink = (f > 0 ? 7 : f < 0 ? 1.3 : 2.4) * (f > 0 ? 1 : this.sinkK ?? 1);   // (the wind-silk scarf: sinkK 0.6)
       this.glideTurn = THREE.MathUtils.lerp(this.glideTurn ?? 0, -s * 1.25, 1 - Math.exp(-4 * dt));
       this.heading += this.glideTurn * dt;
       tv.copy(F.dir(this.heading, _g6)).multiplyScalar(this.glideSpeed);

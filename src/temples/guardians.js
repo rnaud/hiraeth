@@ -10,6 +10,7 @@ import { glyphGeometry } from '../story/sign-text.js';
 //   keeperModel()    the desert's Cistern-Keeper: a great pale beast of the Givers, a shell of bone
 //                    plates on six long legs, a heron's neck and a long soft muzzle. It kept the
 //                    cistern; the water stopped, the dark came, and it is afraid.
+//   elderModel()     Vael's Elder: the oldest of the great birds, her feathers gone to stone, afraid to fly
 //   snapperModel()   Lorn's Mother Snapper: the swamp's oldest carnivorous plant, rooted in the Hush's
 //                    hall; a neck of beads and a great head of jaws that lunges, sweeps and spits seed
 //   sentinelModel()  the City-Shaft's sentinel: a tall machine of the makers on three legs, a ring
@@ -343,6 +344,93 @@ export function mothModel({ fur = '#e9dff2', wing = '#d6c8e6', wing2 = '#b9a6d4'
       glowM.uniforms.uGlow.value = 0.12 + 0.75 * calm + (state === 'open' ? 0.15 * Math.sin(t * 8) : 0);
       group.updateMatrixWorld(true);
       mouth.copy(body.localToWorld(_w.set(0, 0, 2.6)));
+    },
+  };
+  return M;
+}
+
+/**
+ * Vael's Elder (organic: you calm her): the oldest of the great birds, so old her feathers have gone to
+ * stone, who kept the makers' Aerie and stopped flying the night the light went over. A heavy body on two
+ * long legs, a long neck and a longer beak, wings of stone feathers that fold, spread and beat; glyph lines
+ * along her wings glow as she calms. In her second phase she leaves the floor and hangs in the air
+ * (`floats`), afraid, beating hard.
+ */
+export function elderModel({ stone = '#efe6d2', feather = '#e2d6bf', tip = '#b98f9a', beak = '#d8a24a', dark = '#4a4a5e', glow = '#7cc1c4' } = {}) {
+  const group = new THREE.Group();
+  const mat = vc();
+  const glowM = makeMaterial({ color: glow, glow: 0.15, flat: true, key: `elder.glow.${uid++}` });
+  const rig = new THREE.Group();
+  group.add(rig);
+  // the body, the tail fan, the legs
+  const tail = [];
+  for (let i = 0; i < 5; i++) { const a = -0.5 + i * 0.25; tail.push(ell([0.55, 0.12, 2.2], i % 2 ? feather : tip, [Math.sin(a) * 1.4, 3.9 + Math.abs(a) * 0.3, -3.6 - Math.cos(a) * 1.2], [0.25, a, 0])); }
+  const legs = [];
+  for (const s of [-1, 1]) {
+    legs.push(cyl(0.22, 0.3, 3.4, beak, [s * 1.0, 1.7, 0.4], [0, 0, s * 0.08]));
+    for (const a of [-0.5, 0, 0.5]) legs.push(cyl(0.08, 0.12, 1.1, beak, [s * 1.0 + Math.sin(a) * 0.5, 0.08, 0.4 + Math.cos(a) * 0.5], [Math.PI / 2, a, 0]));
+  }
+  rig.add(new THREE.Mesh(merge(ell([2.3, 1.9, 3.4], stone, [0, 4.4, 0], null, [14, 9]), ell([1.7, 1.5, 1.6], feather, [0, 4.2, 2.2]), tail, legs), mat));
+  // the neck and the head: a long beak, dark eyes, a crest of three plumes
+  const neck = new THREE.Group();
+  neck.position.set(0, 5.4, 2.6);
+  rig.add(neck);
+  neck.add(new THREE.Mesh(merge(tube([[0, 0, 0], [0, 1.4, 0.5], [0, 2.8, 0.6]], 0.55, stone, 10, 7)), mat));
+  const head = new THREE.Group();
+  head.position.set(0, 3.0, 0.7);
+  neck.add(head);
+  head.add(new THREE.Mesh(merge(ell([0.75, 0.7, 0.95], stone, [0, 0, 0]), cone(0.32, 3.4, beak, [0, -0.15, 2.3], [Math.PI / 2, 0, 0]),
+    ell([0.13, 0.17, 0.13], dark, [0.55, 0.15, 0.35]), ell([0.13, 0.17, 0.13], dark, [-0.55, 0.15, 0.35]),
+    [-0.3, 0, 0.3].map((x, i) => ell([0.1, 0.12, 1.1], i === 1 ? tip : feather, [x, 0.75, -0.6], [0.7, x, 0]))), mat));
+  // the wings: three long stone feathers each, hinged at the shoulder; glyph lines along them
+  const wings = [-1, 1].map((s) => {
+    const w = new THREE.Group();
+    w.position.set(s * 1.9, 5.1, 0.9);
+    rig.add(w);
+    const parts = [], lines = [];
+    for (let i = 0; i < 4; i++) {
+      const x = s * (1.4 + i * 1.5), z = -0.35 * i;
+      parts.push(ell([1.6, 0.16, 1.1 - i * 0.12], i === 3 ? tip : i % 2 ? feather : stone, [x, 0, z], [0, s * (0.15 + i * 0.12), 0]));
+      lines.push(box([1.8, 0.05, 0.08], '#ffffff', [x, 0.17, z], [0, s * (0.15 + i * 0.12), 0]));
+    }
+    w.add(new THREE.Mesh(merge(parts), mat));
+    w.add(new THREE.Mesh(merge(lines), glowM));
+    return { w, s };
+  });
+  noCollide(group);
+  const mouth = V(), _w = V();
+  const M = {
+    group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, floats: false, hover: 3.5,
+    mouth, mouthR: 1.4, radius: 3.0, height: 7, bodyR: 2.6, touchR: 1.0,
+    rig, neck, head, wings, glowM, spread: 0, raise: 0, lift: 0, pitch: 0, beat: 0,
+    animate(dt, t, { state, attack, k = 0, meter = 0, phase = 0 }) {
+      const id = attack?.id, struck = !!attack && k >= 1;
+      const ease = (cur, want, rate) => cur + (want - cur) * Math.min(1, dt * rate);
+      // in the air from her second phase (she has left the floor, but can't bring herself to fly)
+      M.floats = phase >= 1 && (state === 'fight' || state === 'open');
+      let spread = 0.35, raise = 0.1, lift = 0, pitch = 0, neckK = 0.2, beat = M.floats ? 1 : 0;
+      if (state === 'sleep') { spread = 0; raise = -0.2; neckK = 0.9; pitch = 0.15; }
+      else if (state === 'weary') { spread = 0.15; raise = -0.3; lift = -1.6; neckK = 1; pitch = 0.1; beat = 0; }
+      else if (state === 'resolved') { spread = 0.7; raise = 0.2; neckK = 0; beat = 0; }
+      else if (state === 'open') { spread = 1; raise = 0.35 + 0.08 * Math.sin(t * 14); neckK = -0.6; pitch = -0.15; beat = M.floats ? 0.6 : 0; }
+      else if (id === 'buffet') { spread = 1; raise = struck ? -0.45 : 0.75 * k; pitch = struck ? 0.1 : -0.2 * k; beat = 0; }
+      else if (id === 'stamp') { spread = 0.8; raise = 0.5; lift = struck ? 0 : 1.6 * k; pitch = struck ? 0.2 : -0.45 * k; }
+      else if (id === 'dive') { spread = 1; raise = struck ? -0.2 : 0.6; lift = struck ? -M.hover + 0.4 : 2.8 * k; pitch = struck ? 0.3 : -0.2; beat = struck ? 0 : 1; }
+      M.spread = ease(M.spread, spread, 5); M.raise = ease(M.raise, raise, struck ? 14 : 5);
+      M.lift = ease(M.lift, lift, struck ? 12 : 3); M.pitch = ease(M.pitch, pitch, 5); M.beat = ease(M.beat, beat, 3);
+      rig.position.y = M.lift + (M.floats ? Math.sin(t * 3.2) * 0.35 : 0);
+      rig.rotation.x = M.pitch;
+      const flap = M.beat * Math.sin(t * 6.5) * 0.55;
+      for (const { w, s } of wings) {
+        // folded: swept back along the body and down; spread: out and level; raise lifts them
+        w.rotation.set(0, s * (1 - M.spread) * 1.25, s * (M.raise + flap) - s * (1 - M.spread) * 0.9, 'YXZ');
+      }
+      neck.rotation.x = neckK * 0.7;
+      head.rotation.x = -neckK * 0.5 + Math.sin(t * 0.9) * 0.05;
+      const calm = state === 'resolved' ? 1 : meter;
+      glowM.uniforms.uGlow.value = 0.12 + 0.8 * calm + (state === 'open' ? 0.1 * Math.max(0, Math.sin(t * 5)) : 0);
+      group.updateMatrixWorld(true);
+      mouth.copy(head.localToWorld(_w.set(0, 0, 0.6)));
     },
   };
   return M;
