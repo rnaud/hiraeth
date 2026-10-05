@@ -836,7 +836,7 @@ export function buildDesertCity(scene, terrain) {
     // the smoke column: always drawn (it is the way to the city), animated while in view, less often far away
     smokeDt += dt;
     const sm = out.city.smoke, sEvery = dCity < 400 ? 1 : 2;
-    if (frameNo % sEvery === 0 && seen(smokeMid.copy(sm.at).addScaledVector(sm.wind, sm.drift * sm.windK * 0.35).setY(sm.at.y + sm.height * 0.6), sm.height * 0.75)) { sm.update(smokeDt, t, player?.wind); smokeDt = 0; }
+    if (frameNo % sEvery === 0 && seen(smokeMid.copy(sm.at).addScaledVector(sm.wind, sm.drift * sm.windK * 0.35).setY(sm.at.y + sm.height * 0.6), sm.height * 0.75)) { sm.update(smokeDt, t, player?.wind, camera); smokeDt = 0; }
     // the cave: drawn only when you're down there
     const inCave = _cam.distanceTo(O) < 300;
     cv.group.visible = inCave; cv.pool.visible = inCave && cv.wet; cv.stream.visible = inCave && cv.flow > 0; cv.bone.visible = inCave;

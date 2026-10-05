@@ -8,6 +8,7 @@ import { registerTarget } from './targets.js';
 import { mulberry32 } from './noise.js';
 import { formatText } from './story/dialogue.js';
 import { speakBalloon } from './story/voice.js';
+import { simplify } from './lod.js';
 
 // City crowds, Assassin's Creed style: everybody is simulated by one cheap
 // CPU loop (positions, groups, glances, reactions), and drawn in tiers:
@@ -19,7 +20,9 @@ import { speakBalloon } from './story/voice.js';
 //         in the vertex shader (crowd-shader.js) from per-instance attributes;
 //         rebuilt every frame with only the people in view; the closest ones
 //         also cast shadows through a matching depth-only mesh
-//   far   beyond: an even simpler figure, no shadows, rewritten every 4th frame
+//   far   beyond: an even simpler figure, no shadows, rewritten every 4th frame;
+//         past range.dist (set from the graphics preset's lodPx) the same figure
+//         simplified to ~0.1 m (lod.js), where a person is a few pixels tall
 //
 // People stand in conversation circles (one talks, the others listen, nod and
 // glance), stroll alone or in pairs along routes, lean on railings and walls,
@@ -36,7 +39,8 @@ import { speakBalloon } from './story/voice.js';
 
 const TIER = { off: 0, far: 1, mid: 2, near: 3 };
 export const CROWD_TIER = TIER;
-export const CROWD_RANGE = { nearIn: 9, nearOut: 12.5, midIn: 65, midOut: 72, shadow: 35, target: 60, far: 420 };
+export const CROWD_RANGE = { nearIn: 9, nearOut: 12.5, midIn: 65, midOut: 72, shadow: 35, target: 60, far: 420, dist: Infinity };
+export const CROWD_DIST_CELL = 0.1;   // m: the distant figure's detail (lod.js simplify)
 export const CROWD_BUDGET = { pool: 4, swapsPerFrame: 2 };   // full NPCs cost ~0.3 ms of CPU each
 
 const TAU = Math.PI * 2;
@@ -577,7 +581,11 @@ export class Crowd {
     const material = makeMaterial({ color: '#ffffff', crowd: true, side: THREE.DoubleSide });
     this.world = spots.costume ?? costumeWorld();
     this.mid = new Tier(figureGeometry('mid', this.world), material, Math.max(n, 1));
-    this.far = new Tier(figureGeometry('far', this.world), material, Math.max(n, 1));
+    // (the cape and robe are parameters the shader turns into shapes, not positions: they stay as they are)
+    const farGeo = figureGeometry('far', this.world), rig = farGeo.attributes.aRig;
+    const distGeo = simplify(farGeo, CROWD_DIST_CELL, { lock: Uint8Array.from({ length: rig.count }, (_, i) => (rig.getX(i) >= 9.5 ? 1 : 0)) });
+    this.far = new Tier(farGeo, material, Math.max(n, 1));
+    this.dist = distGeo ? new Tier(distGeo, material, Math.max(n, 1)) : null;
     // the shadow caster shares the mid tier's buffers, but draws only the closest, only in shadow passes
     this.shadow = new THREE.InstancedMesh(this.mid.geometry, crowdDepthMaterial(), Math.max(n, 1));
     this.shadow.instanceMatrix = this.mid.mesh.instanceMatrix;
@@ -587,9 +595,11 @@ export class Crowd {
     const shadowPass = (scene) => !!scene.overrideMaterial;
     this.mid.mesh.onBeforeRender = (r, scene) => { this.mid.mesh.count = shadowPass(scene) ? 0 : this.mid.n; };
     this.far.mesh.onBeforeRender = (r, scene) => { this.far.mesh.count = shadowPass(scene) ? 0 : this.far.n; };
+    if (this.dist) this.dist.mesh.onBeforeRender = (r, scene) => { this.dist.mesh.count = shadowPass(scene) ? 0 : this.dist.n; };
     // only the fine and near cascades: in the km-wide one a person is less than a texel
     this.shadow.onBeforeRender = (r, scene, cam) => { this.shadow.count = shadowPass(scene) && cam.isOrthographicCamera && cam.right - cam.left < 1000 ? this.nShadow : 0; };
     scene.add(this.mid.mesh, this.far.mesh, this.shadow);
+    if (this.dist) scene.add(this.dist.mesh);
 
     this.pool = [];
     if (makeNPC) for (let i = 0; i < pool; i++) this.pool.push({ npc: makeNPC(i % 2 ? 'f' : 'm'), kind: i % 2 ? 'f' : 'm', person: null });
@@ -716,13 +726,17 @@ export class Crowd {
     const fwd = camera.getWorldDirection(_w);
     const turned = !this._farFwd || fwd.dot(this._farFwd) < 0.99;
     if (anyTierChange || this.farDirty || turned || this.frame % 4 === 0) {
-      let m = 0;
+      let m = 0, md = 0;
+      const D = this.dist ? this.range.dist : Infinity;
       for (const p of this.people) {
         if (p.tier !== TIER.far) continue;
         _sphere.center.set(p.pos.x, p.pos.y + 0.9, p.pos.z); _sphere.radius = 2 + p._dCam * 0.15;   // ~8 deg of margin
-        if (_frustum.intersectsSphere(_sphere)) this.far.write(m++, p, t);
+        if (!_frustum.intersectsSphere(_sphere)) continue;
+        p._dist = p._dCam > (p._dist ? D / 1.1 : D * 1.1);   // (a margin each way: nobody flickers between the two)
+        if (p._dist) this.dist.write(md++, p, t); else this.far.write(m++, p, t);
       }
       this.far.commit(m);
+      this.dist?.commit(md);
       this.farDirty = false;
       (this._farFwd ??= new THREE.Vector3()).copy(fwd);
     }
@@ -731,7 +745,7 @@ export class Crowd {
     if (this.frame % 10 === 1) this.updateTargets();
 
     const S = this.stats;
-    S.mid = n; S.shadow = this.nShadow; S.far = this.far.n; S.near = this.pool.filter((e) => e.person).length;
+    S.mid = n; S.shadow = this.nShadow; S.far = this.far.n + (this.dist?.n ?? 0); S.dist = this.dist?.n ?? 0; S.near = this.pool.filter((e) => e.person).length;
     this.placeBalloon(camera);
   }
 
@@ -1059,6 +1073,7 @@ export class Crowd {
   dispose() {
     for (const p of this.people) p.unreg?.();
     this.scene.remove(this.mid.mesh, this.far.mesh, this.shadow);
+    if (this.dist) this.scene.remove(this.dist.mesh);
     this.balloon?.remove();
   }
 }
