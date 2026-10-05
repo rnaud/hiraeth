@@ -63,7 +63,22 @@ test('the traveller is the NPC body: the same skeleton, bind pose, weights and f
   assert.equal(names(h).length, 65);
   // the body is visible, skinned exactly like an NPC's, only its vertices stand off for the baggy suit
   assert.ok(h.body.visible);
+  // his own face (TRAVELLER.face) is the NPC's head warped (morph.js warpFace): younger, fuller; without it, the NPC's own
+  const own = h.body.geometry;
+  assert.deepEqual(h.ownFace, TRAVELLER.face);
+  h.setFace(null);
   const A = h.body.geometry, B = n.body.geometry;
+  {
+    const head = h.body.skeleton.bones.findIndex((b) => b.name === 'Head');
+    let warped = 0, most = 0;
+    for (let i = 0; i < A.attributes.position.count; i++) {
+      if (!(A.attributes.skinIndex.getX(i) === head && A.attributes.skinWeight.getX(i) > 0.99)) continue;
+      const d = new THREE.Vector3().fromBufferAttribute(own.attributes.position, i).distanceTo(new THREE.Vector3().fromBufferAttribute(A.attributes.position, i));
+      if (d > 0.001) warped++;
+      most = Math.max(most, d);
+    }
+    assert.ok(warped > 100 && most < 0.02, `his own face: ${warped} head vertices moved, at most ${most.toFixed(4)} m`);
+  }
   assert.equal(A.attributes.position.count, B.attributes.position.count);
   const same = (k) => { const a = A.attributes[k], b = B.attributes[k]; for (let i = 0; i < a.count; i++) for (let c = 0; c < 4; c++) if (a.getComponent(i, c) !== b.getComponent(i, c)) return false; return true; };
   assert.ok(same('skinIndex') && same('skinWeight'), 'the NPC\'s own weights');
@@ -85,6 +100,10 @@ test('the traveller is the NPC body: the same skeleton, bind pose, weights and f
   assert.equal('#' + h.eyeMesh.material.uniforms.uColor2.value.getHexString(), TRAVELLER_IRIS);
   h.update(); h.updateEyes(1 / 60, new THREE.Vector3(2, 1.7, 2));
   assert.ok(h.eyeMesh.material.uniforms.uEyeLook.value.toArray().every(Number.isFinite));
+  // and at rest a little smile; his face's drawing: hardly a line, a few freckles
+  h.setFace(h.ownFace);
+  assert.ok(h.expression.smile > 0.1 && h.body.material.uniforms.uMood.value.x > 0.1);
+  assert.ok(h.body.material.uniforms.uFaceKit.value.x < 0.5 && h.body.material.uniforms.uFaceKit.value.z > 0);
 });
 
 test('the suit is painted by the outfit shader: lavender, salmon gloves and boots, folds at the human\'s joints', () => {
@@ -286,4 +305,32 @@ test('vehicle animation reaches the skin on the first frame and releases foot lo
   assert.ok(before.angleTo(p.humanoid.b.thigh_r.quaternion) > 0.5);
   assert.equal(p.humanoid._feet.r.locked, false);
   assert.equal(p.gear.device.visible, false);
+});
+
+test('his own hair under the liner, the fringe on the brow inside the helmet; the enamel star pinned inside the glass', async () => {
+  const { TRAVELLER_STAR } = await import('../src/boxes/effects.js');
+  const h = traveller();
+  h.char.root.updateMatrixWorld(true);
+  h.update(true);
+  const hair = piece(h, 'Traveller_hair');
+  assert.ok(hair, 'a hair piece');
+  assert.equal('#' + hair.material.uniforms.uColor.value.getHexString(), TRAVELLER_PALETTE.hair);
+  const glass = boxOf(h, /^Bubble_helmet$/), locks = boxOf(h, /^Traveller_hair$/);
+  const centre = glass.getCenter(V()), r = Math.min(...glass.getSize(V()).toArray()) / 2;
+  // the hair stays inside the bubble, and comes down over the brow (the fringe) but not to the eyes
+  for (const c of [locks.min, locks.max]) assert.ok(c.distanceTo(centre) < r * 1.75, 'the hair inside the helmet');
+  const eyes = h.rest.get(h.b.Head).p.y + 0.1, front = h.rest.get(h.b.Head).p.z + 0.07;   // (the eyes are at the head anchor's height)
+  let fringe = Infinity;
+  const [first, count] = hair.userData.ranges.Traveller_hair;
+  for (let i = first; i < first + count; i++) { const p = hair.localToWorld(hair.getVertexPosition(i, V())); if (Math.abs(p.x) < 0.03 && p.z > front) fringe = Math.min(fringe, p.y); }
+  assert.ok(fringe > eyes + 0.01 && fringe < eyes + 0.06, `the fringe ends over the eyes (${(fringe - eyes).toFixed(3)} m)`);
+  // the star: every corner of it inside the glass (it used to stand out through the top)
+  const star = new THREE.Object3D();
+  h.headAnchor.add(star);
+  star.position.copy(TRAVELLER_STAR.at); star.rotation.set(TRAVELLER_STAR.tilt, 0, 0); star.scale.setScalar(TRAVELLER_STAR.scale);
+  star.updateMatrixWorld(true);
+  for (const [x, y] of [[0.045, 0], [-0.045, 0], [0, 0.045], [0, -0.045]]) {
+    const p = star.localToWorld(new THREE.Vector3(x, y, 0.008));
+    assert.ok(p.distanceTo(centre) < r - 0.005, `a point of the star ${(p.distanceTo(centre) - r).toFixed(3)} m inside the glass`);
+  }
 });

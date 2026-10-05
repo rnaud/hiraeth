@@ -1145,8 +1145,8 @@ export class Player {
       // the hand-off: both hands on the tank while it swings between the back and the socket
       const hk = this.handoffGrip();
       if (hk > 0.01 && this.handoff?.handPoint) H.handOff?.(this.handoff.handPoint(_g1), hk, U);
-      // the eyes glance about and blink, as everyone's do (eyes.js)
-      H.updateEyes?.(dt);
+      // the eyes glance about and blink, as everyone's do (eyes.js); talking, on the other's face (eyeTarget: src/story/index.js)
+      H.updateEyes?.(dt, this.eyeTarget ?? null);
     }
     // climbing on: over the last part of the hand-off, a hop from where you stand onto the seat
     if (this.boarding && this.boarding.k > 0.66 && this.boarding.v.seatTransform) {

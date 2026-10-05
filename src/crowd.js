@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, sharedUniforms } from './materials.js';
 import { CROWD_GLSL, CROWD_POSES as POSE, CROWD_ZONES as Z, CROWD_PARTS as P, CROWD_SLOTS as SLOT } from './crowd-shader.js';
-import { COSTUMES, HEADS as HEADWEAR, MASKS, BODIES, PROPS, HEAD_IDS, MASK_IDS, BODY_IDS, PROP_IDS, CROWD_FRAMES, hairCap, crowdLook, packDress, packBody, costumeWorld } from './costumes.js';
+import { COSTUMES, HEADS as HEADWEAR, MASKS, BODIES, PROPS, HEAD_IDS, MASK_IDS, BODY_IDS, PROP_IDS, CROWD_FRAMES, GENERIC_HAIR, tribeOf, hairCap, crowdLook, packDress, packBody, costumeWorld } from './costumes.js';
 import { KNOCKOVER } from './ragdoll.js';
 import { registerTarget } from './targets.js';
 import { mulberry32 } from './noise.js';
@@ -151,15 +151,16 @@ function robeGeometry(cols, rows) {
 const at = (g, x, y, z) => g.translate(x, y, z);
 const ROLE_ZONE = { skin: Z.skin, cloak: Z.cloak, cloth: Z.cloth, legs: Z.legs, hat: Z.hat, accent: Z.accent, hair: Z.hair, lining: Z.lining,
   dark: Z.dark, metal: Z.metal, wood: Z.wood, lamp: Z.lamp };
-const KIND_HEADS = ['long', 'bun', 'tail'];
-const LEGACY = { heads: ['hood', 'hat', 'wrap', 'hair', ...KIND_HEADS], masks: ['beard'], bodies: [], props: [], robe: false };
+const ids = (w) => Object.entries(w ?? {}).filter(([id, v]) => v > 0 && id !== 'none').map(([id]) => id);
 /** The pieces a world's crowd can wear (every tribe's), for its figure. */
 export function worldPieces(world) {
-  const set = COSTUMES[world];
-  if (!set) return LEGACY;
-  const keys = (...ks) => [...new Set(set.tribes.flatMap((t) => ks.flatMap((k) => Object.entries(t[k] ?? {}).filter(([id, w]) => w > 0 && id !== 'none').map(([id]) => id))))];
-  // and what anyone may wear by being a man or a woman (costumes.js dressFor): long hair, a bun, a tail, a beard
-  return { heads: [...new Set([...keys('heads', 'headsF', 'headsM'), ...KIND_HEADS])], masks: [...new Set([...keys('masks'), 'beard'])], bodies: keys('body'), props: keys('props'), robe: set.tribes.some((t) => t.robe > 0) };
+  const tribes = COSTUMES[world]?.tribes ?? [tribeOf(null)];
+  const keys = (...ks) => [...new Set(tribes.flatMap((t) => ks.flatMap((k) => ids(t[k]))))];
+  // a bare head ('hair', 'short') is always drawn in the tribe's own hairstyles (costumes.js dressFor), a man's
+  // or a woman's: those instead of the generic ones; and any man may have a beard
+  const hair = tribes.flatMap((t) => (['heads', 'headsF', 'headsM'].some((k) => GENERIC_HAIR.some((h) => t[k]?.[h] > 0)) ? [...ids(t.hair?.m), ...ids(t.hair?.f)] : []));
+  const heads = [...new Set([...keys('heads', 'headsF', 'headsM').filter((h) => !GENERIC_HAIR.includes(h)), ...hair])];
+  return { heads, masks: [...new Set([...keys('masks'), 'beard'])], bodies: keys('body'), props: keys('props'), robe: tribes.some((t) => t.robe > 0) };
 }
 
 /**

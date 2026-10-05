@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { TRAVELLER_PALETTE as PAL, TRAVELLER_TONES } from './traveller-style.js';
-import { hairCap } from './costumes.js';
+import { scalp, skullPoint } from './costumes.js';
 
 // The traveller: the people's own body (humanoid.js, Quaternius' human, the
 // one every NPC uses) in its own proportions and stance, dressed on top.
@@ -37,6 +37,13 @@ export const TRAVELLER = {
   backGap: 0.008,
   antenna: 2.6,          // the pack's antenna, drawn out from the glb's        // between the suit's back and the pack's front
   boot: { margin: 0.014, sole: -0.012 },   // room round the foot; the sole's bottom (the foot's own pokes 1 cm under 0)
+  // his own face (morph.js FACE_MORPHS, Humanoid.setFace): about twenty-six, so younger and warmer than the
+  // people's modelled face (gaunt, long, hollow-cheeked): fuller cheeks, a shorter lower face and nose, a
+  // softer brow and jaw, larger eyes, hardly a line on it, a few freckles
+  face: { cheeks: 1, faceLength: 0.9, noseLength: 0.72, noseWidth: 0.94, jaw: 1.1, chin: -0.5, browRidge: -1, eyeSize: 1.15, eyeHeight: 0.15,
+    lines: 0.1, lidWeight: 0.9, mouthWidth: 0.96, freckles: 0.35 },
+  // and at rest the corners of his mouth a little up (src/expression.js; the conversations go from there)
+  rest: { smile: 0.2 },
 };
 
 const BONE = (bones, name) => { const i = bones.findIndex((b) => b.name === name); if (i < 0) throw new Error(`no bone ${name}`); return i; };
@@ -223,6 +230,31 @@ function reach(pts, from, dir, r = 0.03) {
   return best;
 }
 
+// ------------------------------------------------------------------ his hair
+/**
+ * The traveller's hair (head frame): a short cut on the skull (costumes.js scalp) and a fringe of
+ * flat locks falling over the brow from under the helmet's liner, each a little longer or shorter.
+ */
+export function travellerHair() {
+  const parts = [scalp(1, { kind: 'm', t: 0.007, front: 24, side: -18, back: -40, crown: 0.004, quiff: 0.004, jag: 2.5 })];
+  const X = new THREE.Vector3(), Y = new THREE.Vector3(), Z = new THREE.Vector3(), m = new THREE.Matrix4();
+  for (let k = 0; k < 7; k++) {
+    const az = -45 + k * 15, sway = (k % 2 ? 1 : -1) * 4 + (k - 3) * 2.5;
+    const p0 = new THREE.Vector3(...skullPoint('m', az, 46, 0.011)), p1 = new THREE.Vector3(...skullPoint('m', az + sway, 15 + ((k * 5) % 7) * 1.6 + Math.abs(k - 3) * 2.5, 0.012));
+    Y.subVectors(p1, p0);
+    const len = Y.length();
+    Y.normalize();
+    Z.copy(p0).add(p1).normalize();                    // out from the skull
+    Z.addScaledVector(Y, -Z.dot(Y)).normalize();
+    X.crossVectors(Y, Z);
+    const g = new THREE.ConeGeometry(0.022 - Math.abs(k - 3) * 0.0015, len, 5).rotateX(Math.PI).scale(1, 1, 0.3);
+    g.applyMatrix4(m.makeBasis(X, Y, Z).setPosition(p0.clone().add(p1).multiplyScalar(0.5)));
+    g.deleteAttribute('uv');
+    parts.push(g);
+  }
+  return mergeGeometries(parts);
+}
+
 // ------------------------------------------------------------------ the kit
 /** The traveller.glb meshes by name (the gear's art), with their bind-pose geometry. */
 function glbParts(scene) {
@@ -278,8 +310,12 @@ export function travellerKit(scene, body) {
   for (const n of ['Headphone_1', 'Headphone_-1', 'Blue_headphone_band']) add(n, rigid(glbGeo(n, phonesM), Head), toneOf(glb.get(n)));
   // a grey liner over the back of the skull, as under the glb's helmet (the head anchor's frame), the brow bare
   const anchorHead = new THREE.Vector3(0, bindPos(body, 'Head').y + 0.1, bindPos(body, 'Head').z + 0.01);
-  const liner = hairCap(1).geo.rotateX(-0.75).translate(0, -0.01, 0.004);
-  add('Helmet_liner', rigid(plain(liner, new THREE.Matrix4().makeTranslation(anchorHead.x, anchorHead.y, anchorHead.z)), Head), PAL.liner);
+  const anchorM = new THREE.Matrix4().makeTranslation(anchorHead.x, anchorHead.y, anchorHead.z);
+  const liner = new THREE.SphereGeometry(0.118, 16, 10, 0, Math.PI * 2, 0, Math.PI * 0.58).scale(1, 1.08, 1.12).rotateX(-0.32).translate(0, 0.012, -0.012)
+    .rotateX(-0.75).translate(0, -0.01, 0.004);
+  add('Helmet_liner', rigid(plain(liner, anchorM), Head), PAL.liner);
+  // his own hair under it: short, a tousled fringe over the brow, the sideburns in front of the headphones
+  add('Traveller_hair', rigid(plain(travellerHair(), anchorM), Head), PAL.hair);
 
   // ---- the scarf round the neck, on the chest (the head turns inside it)
   const neck = bindPos(body, 'neck_01'), chest = bi('spine_03');

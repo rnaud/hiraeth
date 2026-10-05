@@ -60,11 +60,12 @@ export function mixExpression(a, b, t) {
 }
 
 /**
- * The expression for a tone, `amount` of it (0..1), and while talking (time t, s) the
- * mouth opening and closing on the syllables on top of the tone's own opening.
+ * The expression for a tone, `amount` of it (0..1), from a person's `rest` (their face at ease,
+ * Humanoid.restExpression; neutral by default), and while talking (time t, s) the mouth opening and
+ * closing on the syllables on top of the tone's own opening.
  */
-export function expressionFor(tone, { amount = 1, talking = false, t = 0 } = {}) {
-  const e = mixExpression(NEUTRAL_EXPRESSION, TONE_EXPRESSIONS[tone] ?? {}, amount);
+export function expressionFor(tone, { amount = 1, talking = false, t = 0, rest = null } = {}) {
+  const e = mixExpression(rest ?? NEUTRAL_EXPRESSION, { ...(rest ?? {}), ...(TONE_EXPRESSIONS[tone] ?? {}) }, amount);
   if (talking) {
     const syll = Math.max(0, Math.sin(t * 13) * 0.6 + Math.sin(t * 7.3 + 1) * 0.4);
     const loud = tone === 'shout' ? 0.45 : tone === 'whisper' ? 0.12 : 0.28;

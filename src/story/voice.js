@@ -329,5 +329,6 @@ export function speakBalloon(text, { person = {}, dist = 0, pan = 0, range = 26,
   if (k <= 0.05 || OUT.canSpeak?.('balloon', k * k) === false) return false;   // (checked before planning: cheap to retry next frame)
   const lang = OUT.language ?? 'desert';
   const plan = planLine(text, { voice: voiceOf(person), lang, max });
-  return OUT.speak?.(plan, { channel: 'balloon', gain: k * k, pan }) ?? false;
+  // (the plan when it is sung, so the speaker's mouth can follow its syllables: src/talk-face.js)
+  return (OUT.speak?.(plan, { channel: 'balloon', gain: k * k, pan }) ?? false) ? plan : false;
 }

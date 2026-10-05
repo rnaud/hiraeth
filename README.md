@@ -1337,6 +1337,9 @@ ragdoll) poses it exactly as it poses an NPC.
   the belt with its pouches on the hips, the trouser cuffs gathered over the
   boots. Pieces of one colour share one skinned mesh (`userData.ranges` says
   which vertices are which piece).
+- **His face** is the people's head warped by his own face morph (`TRAVELLER.face`,
+  `Humanoid.setFace`: younger and fuller than the modelled face, see *Hair, faces that
+  talk*), with his own hair under the helmet's liner (`travellerHair`).
 - **Hooks:** `Humanoid.headAnchor` is the skull's centre, `chestAnchor` sits
   0.74 below the collar and as far back as the pack moved (the fluid tank and
   the scout's dock go there), `Humanoid.forearm.r` is the bracer's frame on the
@@ -1464,13 +1467,69 @@ Neutral values draw the face exactly as before, so the game can wear the tone of
 each spoken line when it wants to. Each person's materials are their own
 (`Humanoid.ownMaterials`, as `NPC.restyle` makes them).
 
-New hairstyles sit on the skull's own shape (`costumes.js scalp`, an egg fitted
+Hairstyles sit on the skull's own shape (`costumes.js scalp`, an egg fitted
 to both bodies' heads, cut along a hairline over the brow, round the temples to
-the nape) instead of the round cap that read as a bowl cut: `crop`, `shaved`,
-`bald`, `curls`, `braid`, `flow` (long hair down past the shoulders). They are
-ordinary head pieces (`HEADS`, `HEAD_IDS`, within the crowd shader's 32 ids), so a
-tribe can adopt them by listing them; none does yet. `tests/studio.test.js`
+the nape) instead of the round cap that read as a bowl cut; the tribes wear them
+(see below). *Hair* in the outfit list has **bare: their people's hair**, the
+style the person's tribe would give their bare head. `tests/studio.test.js`
 covers the URL state, the build entry, the morphs, the expressions and the hair.
+
+### Hair, faces that talk, the traveller's face
+
+- **Hair on the skull** (`src/costumes.js`). `scalp()` is a shell over the skull egg
+  from a hairline: high over the brow, the temples' corners, lifted round the ears with a
+  sideburn in front of them, down to the nape (`hairline`); thicker toward the crown
+  (`crown`), lifted at the brow (`quiff`), lumpy (`bump`), or open at the crown (`top`, a
+  tonsure). `curtain()` is hair falling from it round the back and sides, open at the face.
+  The **hair cap** under every hat and most styles (`hairCap`) is a scalp now, so even the
+  hats have a hairline under them. Seventeen styles (`HAIR_IDS`): `short`, `hair` (a
+  topknot), `tail`, `long`, `bun`, `crop`, `shaved`, `bald`, `curls`, `braid`, `flow`,
+  `locks`, `crest`, `bob` (with a fringe), `twin` (two buns), `swept`, `tonsure`. A style
+  draws the shared cap and its own pieces (`parts`); a full body draws its own shape of the
+  hair instead of the cap (`base`: the curls' knots, the quiff), the crowd figure keeps the
+  cap, so its vertex count stays where it was (each world's figure: within a few vertices
+  of before, `tests/costumes.test.js` keeps the budget).
+- **Each people its own hair** (`tribe.hair: { m, f }`, weights). A bare head (`'hair'` or
+  `'short'` in a tribe's `heads`, or a story person's) is drawn in the tribe's styles, a man's
+  or a woman's (`hairstyleOf`, from the draw the look already made, so every other part of a
+  look is what it was): close crops, curls and braids in the desert; swept hair, bobs and
+  pinned buns on the City-Shaft's rim, ponytails in the middle levels, shaved heads at the
+  bottom; tonsures in the bell monastery; crests and twin buns among the mechanics; long
+  loose hair in the garden; bald heads and buns among the listeners; locks and braids in the
+  swamp; curls, crops and braids in the market. The beard (`MASKS.beard`) is a shell round
+  the jaw now, up the cheeks to the sideburns, the mouth clear.
+- **The crowd shader** packs the head id as `id + 64 × hair cap` (`HEAD_ID_LIMIT`, was 32),
+  so there is room for more styles; a world's figure bakes only the styles its tribes can
+  give (`crowd.js worldPieces`), not the generic ones.
+- **Faces that talk** (`src/talk-face.js`). While someone says a line they wear its tone
+  (`expressionFor`), their mouth opening and shutting on the syllables the voice sings (the
+  vowel sets how wide: `syllableOpen`; each syllable shuts as the next begins); after the
+  line they keep the look a moment (`TALK_FACE.hold`), then ease back to their face at rest
+  (`Humanoid.restExpression`); one tone blends into the next. `talkFaces.drive(h, { speaking,
+  tone, mouth })` each frame, `talkFaces.update(dt)` once (main.js). Driven: the person you
+  talk to (a story person or a crowd person's pooled body) and the traveller on his pages
+  and when he answers (`Dialogue.faces()`: the conversation's syllables are timed on its
+  own clock, `mouth(who)`, `answering()`), and the one villager within 12 m whose balloon is
+  up (`NPC.balloonFace`, from the plan its mumble was sung with: `speakBalloon` returns it).
+  During a conversation the traveller's eyes are on the other's face (`player.eyeTarget`).
+  Everyone's materials are already their own (`NPC.restyle`; the traveller's by `markHero`),
+  so a moving face costs a few uniforms a frame; `setExpression` re-poses the brows' geometry
+  only when the brows move, and a face at rest is let go.
+- **The traveller's own face** (`TRAVELLER.face`, `Humanoid.ownFace`): he is about
+  twenty-six, so not the people's modelled face (long, hollow-cheeked, lined): fuller
+  cheeks, a shorter lower face, a smaller nose, a softer brow, a wider jaw, larger eyes,
+  hardly a line, a few freckles; at rest the corners of his mouth a little up
+  (`TRAVELLER.rest`). His hair is his own (`travellerHair`: a short cut and a tousled fringe
+  falling over the brow from under the helmet's liner). The studio shows him with it (its
+  face sliders go on top of it).
+- **The enamel star** (the box item `star`, `src/boxes/effects.js`) sat where the old hood
+  was and poked out through the top of the bubble helmet; on the traveller it is pinned on
+  the liner over his fringe, inside the glass (`TRAVELLER_STAR`).
+- `tests/hair.test.js` (every style on both skulls and in the crowd, the hairline, each
+  people's own set, story people, the 64-id packing, the parents),
+  `tests/talk-face.test.js` (syllables, the tone on and off, the set of faces, a
+  conversation's faces, the brows and the materials on a real body), `tests/traveller.test.js`
+  (his face, his hair inside the helmet, the star inside the glass).
 
 ## Capes at a distance, and people up close (v0.39)
 
@@ -2040,9 +2099,10 @@ picks the device. The tab keeps its own storage (not the app's saves). Afterward
   now and then (more when torn up by the prologue's impact), the face's ink lines and a
   mouth that opens with the voice. `PEOPLE`: the father with short brown hair, a full
   trimmed beard (the `beard` mask) and a moustache (`addMoustache`, on the head bone), a
-  rust-red shirt; the mother with long dark hair, a teal scarf over a lilac top; the child in
-  yellow. The hair's front is lifted off the brow on the hologram's own copy of the costume
-  (`openHairline`). `show({ face })` turns each bust to the traveller's eyes every frame;
+  rust-red shirt; the mother with her long dark hair down (`flow`), a teal scarf over a lilac
+  top; the child in yellow. Their hair sits on their own skulls, with a hairline (`costumes.js
+  scalp`, see *Hair, faces that talk*), and the beard follows the jaw.
+  `show({ face })` turns each bust to the traveller's eyes every frame;
   their heads nod on stressed words, tilt, glance aside or at the other one talking, the
   shoulders breathe and sway. A faint cone and the lens's rings fit the lens (`lens`).
   It is not in the G-buffer: `HOLO.render` draws `HOLO.scene` after the composite into a

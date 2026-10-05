@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { namedLook, crowdLook } from '../costumes.js';
+import { namedLook, crowdLook, tribeOf, hairstyleOf, hashSeed } from '../costumes.js';
 import { mulberry32 } from '../noise.js';
 import { irisFor } from '../eyes.js';
 
@@ -81,6 +81,8 @@ export function lookFor(spec, state, world) {
   } else base = BLANK(state.kind === 'f' ? 'f' : 'm');
   const s = { ...base };
   for (const k of PIECES) if (state.l?.[k] !== undefined && state.l[k] !== '') s[k] = typeof base[k] === 'number' ? +state.l[k] : state.l[k];
+  // bare-headed in their own people's hairstyle (costumes.js tribe.hair), whatever they wear on it
+  if (s.head === 'bare') { const r = mulberry32(hashSeed(`bare:${spec.who === 'npc' ? spec.def?.id : spec.seed ?? state.seed}:${s.kind}`)); r(); s.head = hairstyleOf(tribeOf(world, { pos }), s.kind, r()); }
   if (state.l?.beard !== undefined && state.l.mask === undefined) s.mask = state.l.beard ? 'beard' : s.mask === 'beard' ? 'none' : s.mask;
   for (const k of COLOURS) if (state.c?.[k]) s[k] = state.c[k];
   if (state.build) s.build = state.build;
