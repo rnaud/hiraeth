@@ -15,7 +15,7 @@ import { cleanExpression } from './expression.js';
 import { Knockdown, toppleVelocities, KNOCKOVER } from './ragdoll.js';
 export { KNOCKOVER };
 import { holdAim } from './crowd.js';
-import { Locomotion, gaitFeet, gaitStyle, poseStyle } from './locomotion.js';
+import { Locomotion, gaitFeet, gaitStyle, poseStyle, walkFor } from './locomotion.js';
 import { SkinnedLod, skinnedLods } from './skinned-lod.js';
 
 // People of the world: they walk a looping route, pause and look around,
@@ -144,9 +144,22 @@ export class NPC {
 
   /** Their gait style (locomotion.js) from their build, size and a seed string. */
   styleGait(build, size, seed) {
+    this._build = build;
     let h = 2166136261;
     for (let i = 0; i < seed.length; i++) h = Math.imul(h ^ seed.charCodeAt(i), 16777619);
     return gaitStyle(mulberry32(h >>> 0), { build, kind: this.kind, size });
+  }
+
+  /**
+   * A captured walk of their own (locomotion.js walkFor: one of lib.motion.walks, CMU subjects'
+   * walking cycles), seeded like the rest of their gait; picked again whenever they become someone
+   * else (a crowd person: assign()).
+   */
+  ownWalk() {
+    const G = this.gait, A = this.animator;
+    this._walkFor = G;
+    const rand = mulberry32((Math.floor(G.phase * 4294967296) ^ 0x9e3779b9) >>> 0);
+    A.useWalk(walkFor(A.lib.motion.walks, rand, { kind: this.kind, build: this._build, size: this.object.scale.y * A.legRatio, speed: this.speed, older: G.stoop > 0.05 }));
   }
 
   /** Shown bodies are in the scene; hidden ones leave it, so their hundred bones skip every pass's matrix update. */
@@ -823,6 +836,8 @@ export class NPC {
   pose(dt, speed, waveT, dist, player, mode = null, near = true) {
     const c = this.char;
     if (this.animator) {
+      // (their own captured walk, once the motion library is in: it loads after the people)
+      if (this._walkFor !== this.gait && this.animator.lib.motion) this.ownWalk();
       const N = this.animator.lib.native, G = this.gait;
       // a gait of their own (def.gait): a child's short legs take shorter, quicker steps, and break into a run sooner
       const DG = this.def?.gait, stride = DG?.stride ?? 1, pace = DG?.pace ?? 1;

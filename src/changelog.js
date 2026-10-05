@@ -13,6 +13,7 @@ export const CHANGELOG = [
     'Set the stone in the well and the great tree catches again, in the cool colours of the drinking, while the procession sings. Only then will the ship take the jar of living water.',
     'Ember mode can’t light Qanat’s tree. The hoverbike, the masked head and the Givers’ House wait for a filled tank, and Teo’s drum can be freed by hand.',
     'Saves where the water had already risen keep their burning tree and go straight on to the ship.',
+    'People in the towns walk their own way: a dozen walks captured from real people (an old man’s short steps, a heavyset roll, a relaxed stroll, a sad, head-down walk), chosen to suit who they are and how fast they go.',
   ] },
   { v: '0.54', date: '2026-10-05', items: [
     'Every world now has a makers’ temple.',

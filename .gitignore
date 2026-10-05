@@ -13,3 +13,9 @@ handheld-perf.jsonl
 # the benchmark's full runs (per-frame lists) and browser profiles (scripts/bench/run-all.mjs)
 scripts/bench/results/raw/
 .chrome-*/
+# motion capture (scripts/mocap): raw downloads and Mixamo FBX stay out of git
+/data/mocap/raw/
+/data/mocap/mixamo/*.fbx
+/data/mocap/mixamo/*.FBX
+/data/mocap/cache/
+/data/mocap/tmp/

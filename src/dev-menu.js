@@ -3,7 +3,7 @@ import { items, ITEMS } from './items.js';
 
 // The developer's menu: ` (backquote) or the button in the settings panel.
 // Items on and off, every box closed or opened, a jump to any world, the
-// story's big switches. Paper-and-ink like the rest of the UI, big targets
+// story's big switches, motion matching for the traveller (src/motion-match.js). Paper-and-ink like the rest of the UI, big targets
 // for touch. Works without a page too (the tests drive its methods).
 //
 //   const dev = new DevMenu({ levelId, levels, boxes, quests, story, onTravel });
@@ -32,8 +32,8 @@ const CSS = `
 `;
 
 export class DevMenu {
-  constructor({ levelId, levels = [], boxes = null, quests = null, story = null, onTravel = null, game: g = sharedGame } = {}) {
-    Object.assign(this, { levelId, levels, boxes, quests, story, onTravel, g });
+  constructor({ levelId, levels = [], boxes = null, quests = null, story = null, onTravel = null, matching = null, game: g = sharedGame } = {}) {
+    Object.assign(this, { levelId, levels, boxes, quests, story, onTravel, matching, g });
     this.open = false;
     this.dom = typeof document !== 'undefined' && !!document.head && typeof document.createElement === 'function';
     if (!this.dom) return;
@@ -45,6 +45,7 @@ export class DevMenu {
       const c = e.target;
       if (c.dataset.item) this.setItem(c.dataset.item, c.checked);
       if (c.dataset.flag) this.setFlag(c.dataset.flag, c.checked);
+      if (c.dataset.opt === 'matching') this.matching?.set(c.checked);
     });
     el.addEventListener('click', (e) => {
       const b = e.target.closest?.('button');
@@ -114,6 +115,8 @@ export class DevMenu {
       <p class="hint">reset also takes the items back, so every box can be opened again</p>
       <h2>Story</h2>${flag('prologue.done', 'Prologue done')}${flag('ship.powered', 'Ship powered')}${flag('desert.bike.found', 'Hoverbike found')}${flag('desert.tree.lit', 'Qanat’s tree lit')}${flag('tool.empty', 'Tank empty')}
       <div class="btns" style="margin-top:8px"><button data-a="complete" type="button">complete current world</button></div>
+      ${this.matching ? `<h2>Motion</h2><label class="item"><input type="checkbox" data-opt="matching"${this.matching.get() ? ' checked' : ''}>Motion matching (CMU capture)<small>traveller</small></label>
+      <p class="hint">the traveller's walk, run, stops and turns picked from motion capture; off: the blended loops</p>` : ''}
       <h2>Teleport</h2><div class="worlds">${worlds}</div>
     </div>`;
   }

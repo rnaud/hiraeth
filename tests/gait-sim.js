@@ -11,6 +11,7 @@ import { buildCharacter, Player } from '../src/player.js';
 import { Physics } from '../src/physics.js';
 import { libraryFrom } from '../src/animator.js';
 import { Animator } from '../src/animator.js';
+import { attachMotion } from '../src/motion-match.js';
 
 const parse = async (name) => {
   const b = await readFile(new URL(`../public/anim/${name}`, import.meta.url));
@@ -18,7 +19,14 @@ const parse = async (name) => {
 };
 let assets = null;
 export async function loadAssets() {
-  assets ??= Promise.all([parse('ual.glb'), parse('human_m.glb'), parse('human_f.glb')]).then(([ual, m, f]) => ({ lib: libraryFrom(ual), human: { m: prepareHuman(m.scene, 'm'), f: prepareHuman(f.scene, 'f') } }));
+  // (the clip library with the captured motion attached, lib.motion: the people's walks, public/anim/walks.glb,
+  // and the matching database, public/anim/locomotion.glb)
+  assets ??= Promise.all([parse('ual.glb'), parse('human_m.glb'), parse('human_f.glb'), parse('walks.glb'), parse('locomotion.glb')]).then(([ual, m, f, walks, loco]) => {
+    const lib = libraryFrom(ual);
+    attachMotion(lib, walks);
+    attachMotion(lib, loco);
+    return { lib, human: { m: prepareHuman(m.scene, 'm'), f: prepareHuman(f.scene, 'f') } };
+  });
   return assets;
 }
 
@@ -48,12 +56,13 @@ export function course({ ramp = true, stairs = true } = {}) {
   return scene;
 }
 
-/** A traveller on the course, standing at `at` facing +z (heading 0). */
-export async function traveller(scene, at = new THREE.Vector3(0, 0, 0)) {
+/** A traveller on the course, standing at `at` facing +z (heading 0); o.matching: motion matching on, or off (the loops alone, the game's default). */
+export async function traveller(scene, at = new THREE.Vector3(0, 0, 0), { matching = false } = {}) {
   const { lib, human } = await loadAssets();
   const physics = new Physics(scene);
   const p = new Player(physics, { climb: false, health: false });
   p.animator = new Animator(lib, p.char);
+  p.animator.matching = matching;
   p.humanoid = new Humanoid(human.m, p.char, 'm');
   p.gear = { update() {}, device: { visible: true } };   // (no cloth or gear: they don't move the body)
   p._lastVel = new THREE.Vector3();
@@ -82,7 +91,8 @@ export function drive(p, script, { fps = 60, camYaw = CAM_PLUS_Z } = {}) {
     for (let i = 0; i < n; i++) {
       p.update(dt, input, camYaw);
       p.object.updateMatrixWorld(true);
-      const f = { t, tag, pos: p.pos.clone(), vel: p.vel.clone(), heading: p.heading, feet: {} };
+      const M = p.animator?.mm, db = M?.db;
+      const f = { t, tag, pos: p.pos.clone(), vel: p.vel.clone(), heading: p.heading, feet: {}, mmW: p.animator?.mmW ?? 0, clip: M && M.cur >= 0 ? db.segments[db.segOf[Math.floor(M.cur)]].name : null, dbSpeed: M?.speed ?? 0, cost: M?.cost ?? 0 };
       for (const s of ['l', 'r']) {
         const ball = B[`ball_${s}`].getWorldPosition(new THREE.Vector3());
         const ankle = B[`foot_${s}`].getWorldPosition(new THREE.Vector3());

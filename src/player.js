@@ -187,6 +187,7 @@ export function buildCharacter(palette = {}) {
 const _v1 = new THREE.Vector3();
 const _tq = new THREE.Quaternion(), _te = new THREE.Euler();
 const _g1 = new THREE.Vector3(), _g2 = new THREE.Vector3(), _g3 = new THREE.Vector3(), _g4 = new THREE.Vector3(), _g5 = new THREE.Vector3(), _g6 = new THREE.Vector3();
+const _mf = new THREE.Vector3(), _ml = new THREE.Vector3();   // (the matcher's frame: matchInput)
 const LEG_A = 0.49, LEG_B = 0.47;   // thigh, shin+foot
 // climbing key poses (rig angles in radians; arm x < 0 raises the arm forward/up)
 const CLIMB_KEYS = {
@@ -899,6 +900,9 @@ export class Player {
     if (this.aim) speed = Math.min(speed, WALK) * (1 - 0.35 * this.aim.k);   // aiming: a steady walk
     speed *= this.wadeSlow;                                                   // wading (src/swim.js)
     const accel = this.onGround ? (move.lengthSq() < .001 ? 16 : 8) : this.thrusting ? 5 : 2.5;
+    // (the motion matcher predicts the body's path with this same spring: animateClips)
+    this._wantSpeed = move.lengthSq() > 0 ? speed : 0;
+    this._accel = accel;
     const a = 1 - Math.exp(-accel * dt);
     let vu = this.vel.dot(U);
     const tv = _v3.copy(this.vel).addScaledVector(U, -vu);
@@ -1673,6 +1677,22 @@ export class Player {
     c.hatTip.rotation.z = Math.sin(ph) * 0.1 * moving;
   }
 
+  /**
+   * The stick, for the motion matcher (src/motion-match.js): the velocity now and the one steered
+   * to, in the body's frame (x left, z ahead), and the spring's rate between them (update()).
+   * Aiming, the body keeps facing the target as it walks (sidesteps, steps back).
+   */
+  matchInput() {
+    const U = this.frame.up, fwd = this.frame.dir(this.heading, _mf), left = _ml.crossVectors(U, fwd);
+    const o = (this._mmIn ??= { vel: { x: 0, z: 0 }, want: { x: 0, z: 0 }, k: 8, face: null });
+    o.vel.x = this.vel.dot(left); o.vel.z = this.vel.dot(fwd);
+    const m = this._moveDir, sp = this._wantSpeed ?? 0;
+    o.want.x = m ? m.dot(left) * sp : 0; o.want.z = m ? m.dot(fwd) * sp : 0;
+    o.k = this._accel ?? 8;
+    o.face = this.aim ? 0 : null;
+    return o;
+  }
+
   /** Motion-captured clips (Quaternius, CC0) retargeted onto the rig. */
   animateClips(dt, hs) {
     const c = this.char, A = this.animator;
@@ -1688,6 +1708,7 @@ export class Player {
       speed: hs, onGround: this.onGround, mode: 'ground',
       walkAt: Math.min(N.walk * 1.2, WALK * 0.4), jogAt: WALK, sprintAt: RUN,
       strideScale: 1,
+      mm: A.matching ? this.matchInput() : null,
     });
     this.object.position.copy(this.pos);
     this.frame.quaternion(this.heading, this.object.quaternion);

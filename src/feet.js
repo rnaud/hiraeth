@@ -253,6 +253,16 @@ export function plantFeet(H, dt, physics, up, rootPos, fwd, onStep, o = {}) {
       const gap = _d.subVectors(F.pos, d.place).addScaledVector(up, -_d.dot(up)).length();
       swing.addScaledVector(up, Math.min(0.1 * sc, gap * 0.5) * 4 * F.w * (1 - F.w));
     }
+    // a swinging foot clears the ground by `minClear` (motion-captured feet skim in low, a couple of
+    // centimetres over the floor, which reads as a foot dragged along at the body's speed): eased
+    // in once it has left the ground and out again before it comes down
+    if (o.minClear > 0) {
+      const ttc = o.toContact?.[s] ?? Infinity;
+      const swingK = (contact?.[s] ?? 1) < 0.3 && ttc > FEET.landTime * 0.6 && !held ? 1 : 0;
+      F.liftK = (F.liftK ?? 0) + (swingK - (F.liftK ?? 0)) * (1 - Math.exp(-(swingK ? 25 : 60) * dt));
+      const lack = o.minClear * sc - d.clear;
+      if (lack > 0 && F.liftK > 0.01) swing.addScaledVector(up, lack * F.liftK * (1 - F.w));
+    }
     // a free foot never goes into the ground: over a stair or a kerb, the ball and the heel of where
     // it is going clear what is under them (two short rays, only near the ground)
     if (F.w < 0.99 && d.clear < 0.25 * sc) {
