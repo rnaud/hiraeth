@@ -223,7 +223,7 @@ export const KEEPERS = [
 // ------------------------------------------------------------------ the story's own people
 export const PEOPLE = {
   wick: {
-    id: 'wick', name: 'Wick', title: 'a young lamp-keeper', color: '#ffd6a0', voice: 1.35, kind: 'f',
+    id: 'wick', name: 'Wick', title: 'a young lamp-keeper', color: '#ffd6a0', voice: 1.35, kind: 'f', age: 'teen', years: 15,
     palette: { cloak: '#ffd6a0', lining: '#2b211f', cloth: '#3a6a58', legs: '#2f3a4f', hat: '#f2a07a', hair: '#2b211f' }, head: 'hair', cape: 0.55, look: { prop: 'lantern' },
     lines: ['~angry~ It won’t take my light.', '~shout~ Splash it! Go on!', '~neutral~ Mind the eggs.'],
     talk: {

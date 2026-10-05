@@ -347,3 +347,11 @@ test("Lorn's people are MakeHuman bodies: Corm under a wide drooping brim", asyn
   const { PEOPLE } = await import('../src/story/perdide-data.js');
   assert.equal(onBody('perdide', PEOPLE.corm).look.head, 'brim');
 });
+
+test("Lorn II's people are MakeHuman bodies: Wick a girl of fifteen", async () => {
+  assert.ok(MH_WORLDS.has('perdide2'));
+  const { PEOPLE } = await import('../src/story/perdide2-data.js');
+  assert.equal(ageClassOf({ def: PEOPLE.wick }), 'teen');
+  const wick = onBody('perdide2', PEOPLE.wick);
+  assert.ok(wick.height > 1.3 && wick.height < 1.7, `Wick ${wick.height.toFixed(2)} m`);
+});
