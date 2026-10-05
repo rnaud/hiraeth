@@ -29,6 +29,10 @@ people (and their manifest) are gone: they are points of the parametric body now
 children made children, the crowd and the colliders matched, the crown holes and the dark hair fixed,
 the body shipped in one file. The other worlds follow one by one.
 
+**Stage 3 (below)**: the face keys in one texture for every body; many more hats, caps, cloths and face and
+shoulder pieces, fitted to every head, the hair squashed under a hat and falling below it; each world's own
+set; the worlds switched one by one (the Signal Market first).
+
 ## Licences (what the sources say)
 
 All the data in `public/anim/mh/` comes from assets their authors publish under **CC0 1.0
@@ -423,27 +427,181 @@ the hair shells and the scalp are ordinary skinned costume meshes and need nothi
 
 ### Left before the next world (the Signal Market)
 
-1. Its looks on every age and build (the market's hats, turbans, aprons, the skybridge couriers), its
-   children by `def.age` / `def.years` (Kip, 0.78), its crowd; then add it to `MH_WORLDS`.
-2. The face keys' morph textures: three makes one per geometry (about 1 MB each body that comes close:
-   7 by Qanat's tree, 11 at the camps). Sharing them between the bodies of one template needs a renderer hook (or a head-only
-   morph mesh); the arrays behind them are shared already.
-3. The Unity export (above) and the Lab's faces gallery, which still show the Quaternius bodies.
+1. ~~Its looks on every age and build, its children, its crowd; then `MH_WORLDS`~~: done (stage 3).
+2. ~~The face keys' morph textures~~: one texture for every body (stage 3).
+3. The Unity export (above), which still shows the Quaternius bodies (~~the Lab's faces gallery~~: stage 3).
 4. The props the sheets show that the kit lacks (above).
+
+## Stage 3: every world, one face-key texture, more headwear (2026-10-06)
+
+### The face keys in one texture
+
+three.js keeps a morph texture per geometry (`WebGLMorphtargets`: a float texture of every vertex for
+every key, and its CPU copy), and every MakeHuman body that comes close has its own geometry (its build,
+its face): about 1 MB each, twice. But the keys' deltas are the same for everyone, only scaled by the
+head (`addSparse` scales them per axis by `kHead`). So the keys are now one texture a part
+(`body.js` `keyTexture`: body, eyes, each brow; a layer a key, a texel a vertex, half floats, 2048 texels
+a row: 0.6 MB for the body's 11), and no geometry has three's morph targets: its `userData.faceKeys`
+names the texture and its head's scale. The material (`materials.js`, `makeMaterial({ faceKeys: n })`:
+the `FACE_KEYS` define) reads it in the vertex shader where three's morph chunk was (`texelFetch` by
+`gl_VertexID`, times `uKeyScale`, times each `uKeyW`); `face-keys.js` keeps each mesh's weights and its
+`onBeforeRender` (`bindKeys`) hands them, the texture and the scale of the geometry it draws to the
+material, or none on a level of detail (`skinned-lod.js` levels have no keys). The half floats are within
+0.02 mm of the file's deltas (`tests/makehuman-worlds.test.js`); the faces move as before (side by side
+in the studio: the same smile, the same open mouth).
+
+At the camps (High, the bench's viewpoint, two runs each, before / after): **textures 155 → 116, JS heap
+325-329 → 294-299 MB**, the face keys' data 5.3 MB (17 geometries' morph data) → 0.6 MB (3 textures), draws
+and frame time the same.
+
+### More headwear
+
+The kit had hoods, a few hats, wraps and turbans; now (`src/costumes.js`, all appended to the ids, so the
+crowd's numbers for the old ones hold):
+
+- **Hats**: `brim` (a wide soft hat, its brim drooping front and back, the crown dented), `straw` (flat and
+  wide, a ribbon), `trilby` (narrow, pinched), `bowler` (round, the brim curled at the sides); caps: `peak`
+  (a peaked cap), `flatcap`, `beanie` (a knit cap with a folded rim, now and then a bobble), `trapper`
+  (fur, the ear-flaps down, the front flap up), `aviator` (leather over the ears, a seam over the crown),
+  `skullcap`; cloths: `bandana` (knotted behind, two tails), `kerchief` (a headscarf knotted under the
+  chin); `circlet`; `helmet` (a miner's hard hat with its lamp); `hooddown` (a hood thrown back, its folds
+  round the neck and on the shoulders: `HEADS[].chest`, pieces in the chest frame, so it doesn't turn with
+  the head).
+- **Face pieces** (`MASKS`): `glasses` (round spectacles), `shades` (a dark band), `scarfmask` (a cloth over
+  the nose and mouth, tied behind), `facewrap` (the desert's: wound over the mouth and round the neck),
+  `monocle`; the goggles on the eyes and pushed up were there.
+- **Shoulder pieces** (`BODIES`): `neckerchief`, `muffler`, `neckgoggles` (goggles hung round the neck).
+
+They are built on the skull egg the hair is (`shell`: a cap from a hairline to the crown, `rim`: a rolled
+band round a hairline, `visor`, `lathe` for the hats, `seam`, `ellipseTube`) and the face cloths on the
+faces as measured (MakeHuman's and the game's, in the head frame: `faceCloth`'s rows), so on a MakeHuman
+body they take its skull's size per axis like every head piece (`profile.headScale`).
+
+![Every headwear on MakeHuman heads](makehuman/headwear.jpg)
+![The face and shoulder pieces](makehuman/headwear-faces.jpg)
+*The studio's new lineup (`lineup=mhheadwear`, `&mh=masks`, `&mh=neck`, `&mh=world`: the world's own set),
+going round a woman of 30, a man of 35, a girl of 8, a boy of 15, a heavy woman of 72 and a man of 70,
+each in a hairstyle of their own (Share → Faces sheet).*
+
+### Hair under a hat
+
+On the Quaternius bodies a hat had a short cap of hair under it; on a MakeHuman body, a hat, a cap or a
+band over part of the head (`HEADS[].cover`) is now worn over the person's own hairstyle (`look.under`:
+the hairstyle their world gives them, drawn with the rest of the look; `underOf` for a look without one),
+squashed under it: every point of the shell inside what the headwear covers (a hairline round the skull,
+front / side / back degrees; `t`, how far off the skull its inside is; `band`, a headband's width; `top`,
+a flat crown's) is pressed in to its inside, easing back out over 14° under its edge (`COVER_EASE`), in
+the head frame (`squashUnder`, `hair.js` `squashHair`). Long hair falls from under a brim, a braid from
+under a straw hat, curls stay round a skullcap. A hood, a cowl, a wrap or a headcloth still hides the hair.
+
+**The fit test** (`tests/makehuman-worlds.test.js`, `poking`): from the skull's centre, a ray to every point
+of the head's skin and of the squashed hair; a point past a piece pokes through it, unless it is inside a
+closed one (an odd number of crossings: inside a hat's solid crown, hidden). Run on seven heads (a man and a
+slim woman grown up, a girl of 8, a boy of 15, a heavy man and woman of 72, a broad man), every new piece
+over three hairstyles (long and loose, big curls, short): none through, skin or hair (0.3 % of the skin,
+1 % of the hair allowed). The older hats over hair too (their covers set so; the wizard's hat over a woman's
+big curls leaves a few strands at its brim, 3 %).
+
+### Each world its own, and the named people as they were
+
+Each tribe has a `more` table: the new pieces it wears, by weight (the desert: straw hats, headscarves,
+face-wraps, cloths over the mouth, a few spectacles, neckerchiefs; the City-Shaft's rim: bowlers, narrow
+brims, spectacles and a monocle, mufflers; its middle: peaked and knit caps, hoods thrown back, goggles up
+and down, mufflers, goggles round the neck; its bottom: knit caps, ear-flaps, kerchiefs, cloths over the
+mouth; Vael: a hood down, mufflers; the bell monastery: skullcaps, the sisters' headscarves, spectacles; the
+Hangar: aviators' and peaked caps, kerchiefs, spectacles, a monocle, neckerchiefs and neck goggles; the
+Buried Machine: hard hats, knit caps, ear-flaps, cloths over the mouth, mufflers; Viridel: straw hats,
+circlets, a wide brim; the Spheres: circlets, skullcaps, a bowler; Lorn: drooping brims, hoods down,
+kerchiefs; the lamp-keepers: hoods down, knit caps, ear-flaps, mufflers; the market: flat caps, knit caps,
+peaked caps, hoods down, headscarves, spectacles, goggles, mufflers and neckerchiefs; home: a knit cap).
+`dressFor` draws them apart (`more`): its own weights first, as before, then by a draw of its own (seeded
+by the colours already drawn, not from the stream) one of the extras by their share of the weight. So a
+crowd's stream gives everyone else the look it gave before, and a named person (`namedLook`) none of the
+extras: the desert's story people, reviewed in stage 2, are exactly as they were; a named person wears a
+new piece where the story says so.
+
+### The crowd figure
+
+Every world bakes its pieces into its GPU figure (`figureGeometry`), each kind of piece in every
+instance (collapsed when not worn). The new pieces are lighter there: a hat's lathe half its profile,
+knots, tails, ribbons, bobbles, a seam, spectacles and a monocle only on the full bodies, a face cloth half
+its rows, and in the far figure only the pieces that change a silhouette (the wide brims, the narrow ones'
+crowns, a hard hat, a hood down, a knit cap). The mid figure (vertices / triangles, before → after): the
+desert 1296 / 1390 → 1558 / 1734, the market 1302 / 1358 → 1973 / 2113, the City-Shaft (three tribes) 1586 /
+1472 → 2348 / 2419; the far figure 434-538 → 413-576 triangles. The figure's budget in the tests went from
+1500 / 400 triangles to 2500 / 600. Measured in the market's crowd (its spawn, High and Handheld, two runs
+each, before / after): the triangles drawn 896 → 1010 k on High (+12 %), 459 → 498 k on Handheld (+9 %),
+the frame time the same within the runs' spread (High 6.2-8.4 → 5.8-8.1 ms, Handheld 20-26 → 17-21 ms).
+The masks and shoulder pieces packed in `aDress.y` have room for 16 each now (`MASK_ID_LIMIT`,
+`BODY_ID_LIMIT`: mask + 16 × piece + 256 × prop).
+
+### The Signal Market
+
+- **Its people**: Kip is a child (`age: 'child'`, 11: 1.36 m, the courier of the bridges, in a peaked cap
+  and a neckerchief); Madame Sel, forty years at the tower, old, in her turban and now round spectacles;
+  Ferro the rigger in a kerchief with her goggles pushed up and a tool belt; Brush the sign-painter in a
+  beret, a neckerchief, patched with paint; on the street Doss in a turban with his badge, Oyo in a small
+  cap and spectacles with a lantern, Teb the cab tout in a flat cap and a muffler. The market has no
+  character sheets; its environment sheets' crowds wear hoods, knit caps, headscarves, caps and coats, so
+  its crowd's new pieces are those.
+- **Its crowd**: 30-60 % of a crowd wear one of the new pieces; the full bodies and the figures behind them
+  match (the studio's crowd lineup).
+- **Checked**: the cast and crowds in the studio on both bodies (every age and build of the market's
+  looks: its turbans, fezzes and wraps fit the MakeHuman skulls as the desert's did), and in the game near
+  and far. Measured at its spawn (its crowd), three runs each alternating `?mh=0` and the default: High
+  4.6 / 5.2 ms (the MakeHuman bodies a little slower, within the spread), Handheld 19.2 / 14.4 ms (the same
+  within the spread), JS heap +20 MB, 3 textures more (the face keys'), triangles 3 k fewer.
+
+![The Signal Market](makehuman/market.jpg)
+
+### Every other world
+
+One commit a world, each checked the same way (its cast on both bodies and its crowd close in the studio,
+its story people's ages and heights, `tests/makehuman-worlds.test.js`, a run in the game for errors), then
+into `MH_WORLDS`; now every level is (`COSTUME_WORLDS`), and the traveller alone keeps his body.
+
+- **The children the story has**: the City-Shaft's Pip (9, at the bottom, in a knit cap: he had a beard,
+  as any small man could; now a child or teenager never grows one: NPC passes `young` to the look), Vael's
+  Tam (7: a spawn spot can give an age, `age` / `years` in content.js), Vael II's novice Tiv (10), the
+  Hangar's Pip (9), the Buried Machine's Pim (6: "nine teeth old"; his face's type had made him an elder,
+  1.33 m), Viridel's Lio (9), Lorn II's Wick (a girl of 15). Lou at home was one already (7.5).
+- **A few named people in the new pieces**: the City-Shaft's cab driver Wren (an aviator's cap, goggles up),
+  the dispatcher Lio (a peaked cap), Corvin of the rim (a bowler and a monocle); Vael II's Mother Ysolde
+  (spectacles); the Hangar's clerk Ambroise (a monocle); Hask, keeper of the Wick (a hard hat with its lamp);
+  Esk of the tea terraces (a straw hat); Corm of Lorn (a wide drooping brim). Setting a piece a person's
+  look didn't set skips one of its draws and shifts the rest: where that changed more than meant (Ambroise's
+  build, prop and height) those are set too.
+- **The Lab**: its giants (the faces gallery) are MakeHuman bodies and faces now; the References' walkers
+  and the atelier's artist too.
+- **The City-Shaft, measured** (its spawn, the crowd; High; alternating `?mh=0` and the default): first
+  8.2 / 9.5 → 9.6 / 10.3 ms, later (the Mac busier) 13.6 / 15.0 / 8.6 → 18.5 / 12.8 / 13.8 ms (the medians
+  13.6 and 13.8); Handheld 35-44 ms either way; JS heap within ±30 MB, 3 textures more (the keys), triangles
+  the same. A CPU profile of each (6 s at High) has the same functions at the same shares (three's draw
+  and projection, the crowd, the shadows): nothing MakeHuman's stands out. The Mac was shared with other
+  work, so single runs swing by a half; the bodies cost about what the Quaternius ones do.
+- **The over-the-air zip**: the same size (14.85 MiB from main, 14.83 with this; the files +20 KB): the body
+  file shipped already, and the pieces are code.
+
+![The other worlds on MakeHuman bodies](makehuman/worlds.jpg)
+*Each world's story people on MakeHuman bodies in the studio, and the City-Shaft's crowds close, by depth.*
+
+What is left: the Unity export (above), the props the desert's sheets show (above); the wizard's hat over
+a woman's big curls leaves a few strands at its brim; the crowd's full bodies and figures differ in their hair
+under a hat (the figures keep a short cap); the older pieces' own fit (a wrap's tori, a hat's brim disc,
+the sphere hats floating over the Spheres' heads) is as it was.
 
 ## What a full switch would take
 
 1. ~~One parametric body~~: done (stage 1). ~~Levels of detail~~: done. ~~Hair fitted to the skull~~ and
    ~~the beard~~: done. ~~Eyes bigger, the Moebius stylisation as targets~~: done.
-2. ~~Costumes, re-checked per body~~: done for the Desert (stage 2); each next world's own looks.
+2. ~~Costumes, re-checked per body~~: done for the Desert (stage 2), the Signal Market (stage 3); each next
+   world's own looks. ~~More headwear~~, fitted to every head, the hair under it (stage 3).
 3. ~~The traveller's suit and gear~~: he stays on his own body (stage 2: why).
 4. ~~The GPU crowd figure~~ matched, ~~a promoted crowd person their age and build~~: done (stage 2).
 5. ~~Ragdoll capsules and cape colliders~~: each MakeHuman body's own girths (stage 2).
-6. **The Unity export** (`scripts/unity-export`) and the Lab's faces gallery still read the Quaternius
+6. **The Unity export** (`scripts/unity-export`) still reads the Quaternius
    bodies (stage 2 says what the export needs); the tests that load `human_m.glb` / `human_f.glb` for the
    per-kind tables stay as they are until those tables go.
-7. **Memory**: the arrays are shared between a template's bodies (stage 2); the morph textures are still
-   one per geometry (about 1 MB each body that comes close): share them with a renderer hook, or keep
-   only the head's vertices in a separate morph mesh.
-8. **The flip, world by world**: the Desert is flipped and the file ships (stage 2); the Signal Market
-   next, then the others (`MH_WORLDS`).
+7. ~~**Memory**~~: the arrays are shared between a template's bodies (stage 2), the face keys are one
+   texture for every body (stage 3).
+8. ~~**The flip, world by world**~~: the Desert (stage 2), then every other level (stage 3: `MH_WORLDS`).

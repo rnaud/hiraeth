@@ -39,7 +39,9 @@ test('the Desert\'s people are MakeHuman bodies by default; ?mh=0 the Quaternius
   assert.ok(MH_WORLDS.has('desert'));
   assert.equal(usesMakeHuman('desert'), true);
   assert.equal(usesMakeHuman('desert', '0'), false, '?mh=0: to compare');
-  assert.equal(usesMakeHuman('bazaar'), false, 'the other worlds wait for their review');
+  // (each other world follows once reviewed: tests/makehuman-worlds.test.js; one still waiting stays on the Quaternius bodies)
+  const waiting = ['garage', 'incal', 'arzach', 'arzach2', 'buried', 'edena', 'spheres', 'perdide', 'perdide2', 'home', 'lab', 'references', 'atelier'].find((w) => !MH_WORLDS.has(w));
+  if (waiting) assert.equal(usesMakeHuman(waiting), false, `${waiting} waits for its review`);
   assert.equal(usesMakeHuman('bazaar', '1'), true);
   const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
   assert.match(main, /usesMakeHuman\(levelId, query\.get\('mh'\)\)/);
@@ -183,12 +185,12 @@ test('a body\'s reshaped copies share its skin, triangles and face keys', () => 
   assert.notEqual(c.attributes.position, g.attributes.position);
   assert.equal(c.attributes.skinIndex, g.attributes.skinIndex);
   assert.equal(c.index, g.index);
-  assert.equal(c.morphAttributes.position, g.morphAttributes.position);
+  assert.equal(c.userData.faceKeys, g.userData.faceKeys);
   // a template's other builds: the same keys' arrays
   const H = new Humanoid(t, buildCharacter(), 'f');
   H.setBuild('heavy');
   assert.notEqual(H.body.geometry, g);
-  assert.equal(H.body.geometry.morphAttributes.position[0], g.morphAttributes.position[0]);
+  assert.equal(H.body.geometry.userData.faceKeys.texture, g.userData.faceKeys.texture);
 });
 
 test('the named desert people follow their character sheets', () => {

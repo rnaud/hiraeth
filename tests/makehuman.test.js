@@ -104,19 +104,19 @@ test('a MakeHuman person is a Humanoid template: the game bones, its own landmar
   assert.ok(eyeY > noseY && noseY > chinY && eyeX > 0.02 && eyeX < 0.05 && noseZ > 0.05, `${prof.face}`);
   assert.ok(Math.abs(prof.outfit[1] - meta.hipY) < 0.01, 'the hips where the Quaternius man\'s are');
   assert.ok(h.eyeMesh?.userData.eyeball && h.faceKeys?.brows, 'the eyeballs measured, the brows on keys');
-  const body = h.body, smile = body.morphTargetDictionary.smile;
+  const body = h.body, w = (m, k) => h.faceKeys.weightOf(m, k);
   h.setExpression(TONE_EXPRESSIONS.happy);
-  assert.ok(body.morphTargetInfluences[smile] > 0.5, 'a happy face smiles on its shape key');
+  assert.ok(w(body, 'smile') > 0.5, 'a happy face smiles on its shape key');
   assert.ok(Math.abs(body.material.uniforms.uMood.value.x - TONE_EXPRESSIONS.happy.smile * INK_SHARE.smile) < 1e-6, 'the ink draws its share');
   h.setExpression(TONE_EXPRESSIONS.surprised);
-  assert.equal(body.morphTargetInfluences[smile], 0);
-  assert.ok(h.browMesh.morphTargetInfluences[h.browMesh.morphTargetDictionary.browOuterUp] > 0.5, 'the brows go up with the skin');
+  assert.equal(w(body, 'smile'), 0);
+  assert.ok(w(h.browMesh, 'browOuterUp') > 0.5, 'the brows go up with the skin');
   // the lids close on their key, the eyeball's painted lid with them
   h.char.root.updateMatrixWorld(true);
   h.eyeLook.blink = 1;
   h.updateEyes(0);
   assert.equal(h.eyeMesh.material.uniforms.uEyeLook.value.w, 1);
-  assert.equal(body.morphTargetInfluences[body.morphTargetDictionary.blink], 1);
+  assert.equal(w(body, 'blink'), 1);
   // the eyes opened: no skin of the upper lid over the iris's top at rest
   const pos = Float32Array.from(part(data, shapeOf(data, prof.params).pos, 'body')), eyes = Float32Array.from(part(data, shapeOf(data, prof.params).pos, 'eyes'));
   const { center: C, radii: R } = openEyes(pos, eyes);
@@ -128,7 +128,7 @@ test('a MakeHuman person is a Humanoid template: the game bones, its own landmar
   h.setBuild('heavy');
   assert.notEqual(h.body.geometry, g0);
   assert.equal(h.body.geometry.attributes.position.count, g0.attributes.position.count);
-  assert.ok(h.body.geometry.morphAttributes.position?.length, 'the face keys kept');
+  assert.ok(h.body.geometry.userData.faceKeys?.names.length, 'the face keys kept');
   h.setBuild('broad');
   assert.equal(h.body.geometry, g0, 'its own build: the template\'s body');
   // the skull for the hats
@@ -182,9 +182,13 @@ test('the game\'s hairstyles on a MakeHuman head: MakeHuman\'s nearest style, th
   const pieces = mhLookPieces(look({ head: 'bun', mask: 'beard' }), h);
   assert.equal(pieces.skinned.length, 2, 'the hair and the beard: skinned shells');
   assert.ok(pieces.head.length > 0, 'the bun\'s knot, the game\'s');
-  const hat = mhLookPieces(look({ head: 'sunhat' }), h);
-  assert.equal(hat.skinned.length, 0);
-  assert.ok(hat.head.length > 1, 'the hat and the short hair under it');
+  // (stage 3) a hat over their own hair, squashed under it (makehuman-worlds.test.js); a hood over the game's cap or nothing
+  const hat = mhLookPieces(look({ head: 'sunhat', under: 'braid' }), h);
+  assert.equal(hat.skinned.length, 1, 'their braid under the hat');
+  assert.ok(hat.head.length > 1, 'the hat');
+  const bald = mhLookPieces(look({ head: 'sunhat', under: 'bald' }), h);
+  assert.equal(bald.skinned.length, 0);
+  assert.equal(mhLookPieces(look({ head: 'headcloth' }), h).skinned.length, 0, 'a headcloth hides the hair');
   h.dress(look({ head: 'braid', mask: 'beard' }));
   const n = h._costume[0].geometry.attributes.position.count;
   assert.ok(n > hairFor(h.profile, 'braid01').geo.attributes.position.count, 'dressed in it');
@@ -226,7 +230,7 @@ test('a far MakeHuman body draws a simpler mesh too: its levels without the shap
   H.update();
   const lod = (H.lod = new SkinnedLod(H, { sync: true }));
   const full = H.body.geometry;
-  assert.ok(full.morphAttributes.position?.length);
+  assert.ok(full.userData.faceKeys?.names.length);
   assert.equal(lod.update(3, 1, 1000, 1), -Infinity);
   assert.equal(H.body.geometry, full);
   const j = lod.update(70, 1, 1000, 1);
@@ -235,6 +239,9 @@ test('a far MakeHuman body draws a simpler mesh too: its levels without the shap
   assert.notEqual(g, full);
   assert.ok(triCount(g) < triCount(full) * 0.6, `${triCount(full)} -> ${triCount(g)}`);
   assert.equal(Object.keys(g.morphAttributes).length, 0, 'no shape keys on the level');
+  assert.equal(g.userData.faceKeys, undefined);
+  H.body.onBeforeRender.call(H.body);
+  assert.equal(H.body.material.uniforms.uKeyScale.value.w, 0, 'the shader skips the keys on a level');
   assert.ok(!H.eyeMesh.visible && !H.browMesh.visible, 'the eyes and brows hidden');
   H.setExpression(TONE_EXPRESSIONS.happy);   // (an expression far off: the keys' weights are set, nothing breaks)
   lod.update(3, 1, 1000, 1);

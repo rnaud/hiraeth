@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { namedLook, crowdLook, tribeOf, hairstyleOf, hashSeed } from '../costumes.js';
 import { mulberry32 } from '../noise.js';
 import { irisFor } from '../eyes.js';
+import { ageClassOf } from '../makehuman/people.js';
 
 // Who the character studio can show: a world's story people (src/story/<world>-data.js),
 // someone of its crowd (costumes.js crowdLook, by seed) or a blank body, each as the
@@ -76,7 +77,7 @@ export function lookFor(spec, state, world) {
   if (spec.who === 'npc' && spec.def) {
     const d = spec.def;
     // as NPC does (src/npc.js): seeded by who they are; hair and beard follow their kind only when the story gives one
-    base = namedLook({ world, id: d.id, palette: d.palette ?? {}, head: d.head ?? null, cape: d.cape ?? null, look: d.look ?? {}, pos, kind: d.body ?? d.kind ?? null });
+    base = namedLook({ world, id: d.id, palette: d.palette ?? {}, head: d.head ?? null, cape: d.cape ?? null, look: d.look ?? {}, pos, kind: d.body ?? d.kind ?? null, young: ['child', 'teen'].includes(ageClassOf({ def: d })) });
     base.kind = d.body ?? d.kind ?? 'm';   // (def.body: the body, if not the voice's kind)
   } else if (spec.who === 'crowd') {
     const seed = spec.seed ?? state.seed;

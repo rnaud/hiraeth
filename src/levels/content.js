@@ -192,7 +192,8 @@ export const CONTENT = {
       names: ['Bird feather', 'Bone needle', 'Tower brick', 'Pale stone eye', 'Wind charm'],
     },
     npcs: [
-      { at: [40, 44], palette: pal('#f4efe2', { cloth: '#8a7a66' }), lines: ['~tired~ …'], shy: true },
+      // (Tam, who copies you: a boy of seven, src/story/arzach-data.js LOCALS)
+      { at: [40, 44], palette: pal('#f4efe2', { cloth: '#8a7a66' }), lines: ['~tired~ …'], shy: true, kind: 'm', age: 'child', years: 7, scale: 0.72 },
       { at: [-60, -40], palette: pal('#d8c7a6'), lines: ["~solemn~ The wind climbs the tower. Wings climb with it.", "~sad~ Her rider left. She keeps to the sky now."] },
       { at: [120, -100], palette: pal('#b0705a'), lines: ["~sad~ That stone hand once moved. They say."] },
     ],

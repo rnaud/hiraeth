@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { mulberry32 } from '../src/noise.js';
-import { dressFor, namedLook, crowdLook, packBody, BUILDS, HEIGHT, HEAD_IDS, HEAD_ID_LIMIT, MASK_IDS, HEADS, MASKS, COSTUMES, GENERIC_HAIR } from '../src/costumes.js';
+import { dressFor, namedLook, crowdLook, packBody, BUILDS, HEIGHT, HEAD_IDS, HEAD_ID_LIMIT, MASK_IDS, HEADS, MASKS, COSTUMES, GENERIC_HAIR, MASK_ID_LIMIT, BODY_ID_LIMIT, BODY_IDS, packDress, unpackDress } from '../src/costumes.js';
 import { CROWD_GLSL } from '../src/crowd-shader.js';
 import { figureGeometry, worldPieces, packLook } from '../src/crowd.js';
 import { Humanoid, prepareHuman, buildGeometry } from '../src/humanoid.js';
@@ -58,7 +58,14 @@ test('women wear their hair long or up and have no beards; some men have a beard
 });
 
 test('the new hair and beard pieces are in every world\'s crowd figure, within the ids the shader packs', () => {
-  assert.ok(HEAD_IDS.length <= HEAD_ID_LIMIT && MASK_IDS.length <= 8);
+  assert.ok(HEAD_IDS.length <= HEAD_ID_LIMIT && MASK_IDS.length <= MASK_ID_LIMIT && BODY_IDS.length <= BODY_ID_LIMIT);
+  // (the shader unpacks the mask, the shoulder piece and the prop as packDress packs them: 16 masks, 16 pieces)
+  assert.ok(CROWD_GLSL.includes(`mod(aDress.y, ${MASK_ID_LIMIT}.0)`) && CROWD_GLSL.includes(`aDress.y / ${MASK_ID_LIMIT * BODY_ID_LIMIT}.0`));
+  for (const mask of MASK_IDS) for (const body of BODY_IDS) for (const prop of ['none', 'staff', 'flower']) {
+    const d = packDress({ head: 'brim', mask, body, prop, robe: 0, capeLen: 0.9, capeWide: 1.1, trim: 'none' });
+    const u = unpackDress(d.dress, d.w);
+    assert.deepEqual([u.mask, u.body, u.prop], [mask, body, prop]);
+  }
   assert.ok(CROWD_GLSL.includes(`mod(aDress.x, ${HEAD_ID_LIMIT}.0)`) && CROWD_GLSL.includes(`aDress.x > ${HEAD_ID_LIMIT - 0.5}`), 'the shader unpacks the head id as costumes.js packs it');
   for (const id of ['long', 'bun']) assert.ok(HEADS[id] && HEAD_IDS.includes(id));
   assert.ok(MASKS.beard && MASK_IDS.includes('beard'));

@@ -7,6 +7,7 @@ import { makeMaterial, sharedUniforms, MODE_OUTFIT, MODE_EYE } from './materials
 import { registerTarget } from './targets.js';
 import { mulberry32 } from './noise.js';
 import { namedLook, costumeWorld, TRIM_IDS, BUILDS, browColour } from './costumes.js';
+import { ageClassOf } from './makehuman/people.js';
 import { formatText } from './story/dialogue.js';
 import { speakBalloon } from './story/voice.js';
 import { toneOf } from './story/tone.js';
@@ -75,8 +76,9 @@ export class NPC {
    * @param o.world   the world they are dressed for (default: the current level's)
    * @param o.face / o.expression  their own face (morph.js FACE_MORPHS) and the expression they wear at rest (expression.js)
    * @param o.facing  stand on the spot turned this way (rad) instead of walking the route
+   * @param o.age / o.years  a person without a story of their own who is a child (a spawn spot's: Vael's Tam)
    */
-  constructor(scene, physics, { route, palette = {}, lines, speed = 1.25, shy = false, scale = null, lib = null, human = null, kind = 'm', pooled = false, follow = null, seat = null, head = null, cape = null, def = null, look = null, world = null, face = null, expression = null, facing = null }) {
+  constructor(scene, physics, { route, palette = {}, lines, speed = 1.25, shy = false, scale = null, lib = null, human = null, kind = 'm', pooled = false, follow = null, seat = null, head = null, cape = null, def = null, look = null, world = null, face = null, expression = null, facing = null, age = null, years = null }) {
     this.physics = physics;
     this.follow = follow;   // () => { pos, speed, near } | null: walk there instead of the route
     this.seat = seat;       // sit on something this high (m) instead of walking
@@ -97,9 +99,11 @@ export class NPC {
     this.shy = shy;
     // their costume: seeded by who they are, so they look the same every visit
     const at = route[0];
+    // (who they are for their body: the story's, or a spawn spot's age; a child or a teenager grows no beard)
+    const who = def ?? (age ? { age, years, kind } : scale ? { scale } : null), young = ['child', 'teen'].includes(ageClassOf({ def: who }));
     const dress = pooled ? null : namedLook({ world: world ?? costumeWorld(), id: def?.id ?? `${kind}:${Math.round(at.x)},${Math.round(at.z)}`,
       // a story person's hair and beard follow their kind only when the story says it (def.kind)
-      palette, head, cape, look: look ?? def?.look ?? {}, pos: at, kind: def ? def.body ?? def.kind ?? null : kind });
+      palette, head, cape, look: look ?? def?.look ?? {}, pos: at, kind: def ? def.body ?? def.kind ?? null : kind, young });
     this.char = buildCharacter(dress ? { ...palette, cloak: dress.cloak, cloth: dress.cloth, legs: dress.legs } : palette);
     this.char.pack.visible = !pooled && !dress?.robe && Math.random() < 0.5;
     this.object = this.char.root;
@@ -110,7 +114,7 @@ export class NPC {
     // (?mh=1: a MakeHuman body by who they are, src/makehuman/people.js)
     // (a child or a teenager as tall as MakeHuman makes their age beside the grown-ups: profile.trueScale)
     if (human?.userData?.mhPeople) {
-      human = human.userData.mhPeople.templateFor({ kind, def, dress, pooled });
+      human = human.userData.mhPeople.templateFor({ kind, def: def ?? (age ? who : null), dress, pooled });
       const P = human.userData.profile;
       if (P.trueScale) this.object.scale.setScalar(P.trueScale * (dress?.size ?? 1));
       else this.object.scale.multiplyScalar(P.heightFix ?? 1);
@@ -981,7 +985,7 @@ function spawnOne(scene, physics, s, k, { fromY, lib, humans }) {
     const kind = s.kind ?? (k % 2 ? 'f' : 'm');
     const npc = new NPC(scene, physics, { route, palette: s.palette, lines: s.lines, shy: s.shy, speed: s.speed, scale: s.scale, lib,
       human: humans ? humans[kind === 'm' ? 0 : 1] : null, kind, def: s.talk ? s : null, head: s.head ?? null, cape: s.cape ?? null, look: s.look ?? null, world: s.world ?? null,
-      face: s.face ?? null, expression: s.expression ?? null, facing: s.facing ?? null });
+      face: s.face ?? null, expression: s.expression ?? null, facing: s.facing ?? null, age: s.age ?? null, years: s.years ?? null });
     return npc;
   }
 }

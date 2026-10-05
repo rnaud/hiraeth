@@ -90,5 +90,30 @@ export function mhHairLineup(kind = 'm') {
   return out;
 }
 
+/** The heads the headwear lineup goes round (a woman and a man, a child, a teenager, the old, the heavy), each in a hairstyle of their own. */
+export const HEADWEAR_HEADS = [
+  { id: 'hw-f', label: 'woman 30', kind: 'f', years: 30, build: 'slim', hair: 'long01' },
+  { id: 'hw-m', label: 'man 35', kind: 'm', years: 35, build: 'average', hair: 'short02' },
+  { id: 'hw-c', label: 'girl 8', kind: 'f', years: 8, build: 'average', hair: 'braid01' },
+  { id: 'hw-t', label: 'boy 15', kind: 'm', years: 15, build: 'slim', hair: 'afro01' },
+  { id: 'hw-e', label: 'woman 72, heavy', kind: 'f', years: 72, build: 'heavy', hair: 'bob02', colour: '#c9c2b4' },
+  { id: 'hw-o', label: 'man 70', kind: 'm', years: 70, build: 'broad', hair: 'short04', colour: '#b0a89a' },
+];
+
+/**
+ * Every headwear (docs/makehuman.md, stage 3) on MakeHuman heads, going round HEADWEAR_HEADS: `set` 'heads'
+ * (hats, caps, hoods, bands...), 'masks' (the face's: goggles, glasses, cloths), 'neck' (the shoulder pieces),
+ * or a world's own (`pieces`: { heads, masks, bodies }, crowd.js worldPieces). Each spec carries its piece (`look`).
+ */
+export function mhHeadwearLineup(set = 'heads', { heads = [], masks = [], bodies = [] } = {}, offset = 0) {
+  const items = set === 'masks' ? masks.map((m) => ({ mask: m })) : set === 'neck' ? bodies.map((b) => ({ body: b }))
+    : set === 'world' ? [...heads.map((h) => ({ head: h })), ...masks.map((m) => ({ mask: m })), ...bodies.map((b) => ({ body: b }))]
+      : heads.map((h) => ({ head: h }));
+  return items.map((look, i) => {
+    const P = HEADWEAR_HEADS[(i + offset) % HEADWEAR_HEADS.length];
+    return { who: 'blank', mh: { ...P, id: `${P.id}-${i}`, label: `${Object.values(look)[0]} · ${P.label}` }, kind: P.kind, look };
+  });
+}
+
 /** A blank look for a body of `kind` (as BLANK), for the specs above. */
 export const blankFor = (kind) => BLANK(kind === 'f' ? 'f' : 'm');

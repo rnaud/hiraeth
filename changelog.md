@@ -2,6 +2,26 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.70 — 2026-10-06
+
+- People wear many more kinds of headwear: wide and narrow-brimmed hats, flat straw hats, bowlers, peaked and flat caps, knit caps, fur hats with their ear-flaps down, aviators’ caps, kerchiefs and headscarves, small round caps, circlets, miners’ hard hats with a lamp, and hoods thrown back on the shoulders. On their faces and necks: round spectacles, dark glasses, cloths over the mouth, desert face-wraps, now and then a monocle, neckerchiefs, thick mufflers and goggles hung round the neck.
+- Each world wears its own: wraps, veils, face-wraps and straw hats in the desert; bowlers on the City-Shaft’s rim, caps, knit caps and goggles further down, ear-flaps and kerchiefs at the bottom; aviators’ caps in the Hangar, hard hats under the Buried Machine, circlets in the gardens, flat caps, knit caps and headscarves in the Signal Market. People in the crowds far off wear them too.
+- On the new bodies, hair shows under a hat, a cap or a headband: pressed flat where the hat sits and falling out below it, instead of a short cap of hair under every hat.
+- The Signal Market’s people have the new bodies too, children, the old and the heavy in their own shapes. Kip is a child of eleven in a courier’s cap and neckerchief; Madame Sel wears round spectacles under her turban; Ferro a kerchief with her goggles pushed up and a tool belt; Brush a painter’s beret; and on the street Oyo a small cap and spectacles, Teb a flat cap and a muffler.
+- The City-Shaft’s people have the new bodies too: Pip is a child of nine in a knit cap (and no longer has a beard), Wren the cab driver wears an aviator’s cap with her goggles pushed up, Lio the dispatcher a peaked cap, and Corvin of the rim a bowler and a monocle. No child anywhere grows a beard.
+- Vael’s silent people have the new bodies too, and Tam, the boy who copies you, is the size of a seven-year-old.
+- In the bell monastery of Vael II, Tiv the novice is a boy of ten, Mother Ysolde reads her letters through round spectacles, and the monks and sisters wear skullcaps and headscarves.
+- The Sealed Hangar’s mechanics have the new bodies too: Pip is a child of nine, Ambroise the clerk wears a monocle, and the crowd adds aviators’ caps, peaked caps and goggles hung round the neck.
+- Under the Buried Machine the dome people have the new bodies too: Pim, nine teeth old, is a small boy (he was an old man’s size), Hask keeps the Wick under a miner’s hard hat with its lamp, and the crowd wears hard hats, knit caps and fur hats.
+- In Viridel’s gardens the people have the new bodies too: Lio, who climbs, is a child of nine, Esk tends the tea terraces under a straw hat, and the gardeners wear straw hats, wide brims and circlets among the flower crowns.
+- In the Garden of Spheres the listeners have the new bodies too, and some wear circlets, small round caps or a bowler instead of their sphere hats.
+- In Lorn the swamp people have the new bodies too: Corm feeds the plants under a wide drooping hat, and the crowd wears drooping brims, kerchiefs and hoods thrown back among the reed hats.
+- In the deep wood of Lorn II the lamp-keepers have the new bodies too: Wick, the young lamp-keeper, is a girl of fifteen, and the crowd wears knit caps, fur hats, mufflers and hoods thrown back.
+- At home, Lou, your aunt Tove and the neighbours have the new bodies too.
+- The Lab’s giants, its gallery of faces, have the new bodies and faces too, so the faces you study there are the ones people wear.
+- The small robed walkers in the References scenes have the new bodies too.
+- The artist in the atelier has the new body too: every world’s people now do, except the traveller, who keeps his own.
+
 ## v0.69 — 2026-10-06
 
 - Old buildings look worn by time: dirt streaks run down their walls from the tops and sills, patches of plaster have broken away with a little shadow under the edge, longer cracks have a shadow side, and dust darkens the foot of the walls. Each building wears differently. You see it on the desert’s city and domes, the Signal Market’s shops, the houses at home and of the City-Shaft.
