@@ -94,13 +94,15 @@ export function createStory(o) {
   // colour of this world's (src/story/portrait-bg.js); returns { src, background }
   function portrait(npc, person = npc.def) {
     // the head (the bone if there is one), seen from a little below: heads tilt down in the idle and seated poses
+    // (someone without a head says where its face is and how to frame it: an alien, src/aliens/alien.js portraitShot)
+    const own = npc.portraitShot?.(player.pos);
     const head = npc.humanoid?.b?.Head;
-    const look = head ? head.getWorldPosition(_p).addScaledVector(UP, 0.1 * npc.object.scale.y) : _p.copy(npc.pos).addScaledVector(UP, (npc.seat ? 1.0 : 1.62) * npc.object.scale.y);
+    const look = own ? _p.copy(own.look) : head ? head.getWorldPosition(_p).addScaledVector(UP, 0.1 * npc.object.scale.y) : _p.copy(npc.pos).addScaledVector(UP, (npc.seat ? 1.0 : 1.62) * npc.object.scale.y);
     _d.subVectors(player.pos, npc.pos).setY(0);
     if (_d.lengthSq() < 1e-4) _d.set(Math.sin(npc.heading), 0, Math.cos(npc.heading));
     _d.normalize();
-    const s = npc.object.scale.y;
-    const eye = look.clone().addScaledVector(_d, 1.05 * s).add(new THREE.Vector3(-_d.z * 0.3 * s, -0.32 * s, _d.x * 0.3 * s));
+    const s = own ? 1 : npc.object.scale.y;
+    const eye = own ? own.eye : look.clone().addScaledVector(_d, 1.05 * s).add(new THREE.Vector3(-_d.z * 0.3 * s, -0.32 * s, _d.x * 0.3 * s));
     const background = backdropFor(person, levelId);
     // as sharp as the circle it is shown in (its size on this screen), drawn at that size and supersampled
     const css = (typeof document !== 'undefined' && document.querySelector('#dialogue .dlg-chip')?.clientWidth) || 84;
@@ -115,7 +117,7 @@ export function createStory(o) {
     return registerInteractable({
       id: `talk.${def.id}`, priority: PRIORITY.talk, range: def.range ?? 3.4, npc,
       prompt: `talk to ${def.name.replace(/^The /, 'the ')}`,
-      at: () => _p.copy(npc.pos).addScaledVector(UP, (npc.seat ? 1.4 : 2.15) * npc.object.scale.y),
+      at: () => (npc.talkAt ? npc.talkAt(_p) : _p.copy(npc.pos).addScaledVector(UP, (npc.seat ? 1.4 : 2.15) * npc.object.scale.y)),
       enabled: () => npc.object.visible && !npc.stunned?.(),
       distance: (p) => (Math.abs(p.pos.y - npc.pos.y) < 2.5 ? Math.hypot(p.pos.x - npc.pos.x, p.pos.z - npc.pos.z) : Infinity),
       use: () => dialogue.start(def, npc),
@@ -174,6 +176,7 @@ export function createStory(o) {
     return { at: t.at, look };
   }
   function faceOf(npc, up, out) {
+    if (npc.faceAt && npc.object.visible) return npc.faceAt(out);   // (an alien: its lantern, its eyes, its heart)
     const head = npc.humanoid?.b?.Head;
     if (head && npc.object.visible) return head.getWorldPosition(out).addScaledVector(up, 0.08 * npc.object.scale.y);
     return out.copy(npc.pos).addScaledVector(up, (npc.seat ? 1.0 : 1.55) * npc.object.scale.y);
@@ -247,6 +250,7 @@ export function createStory(o) {
       // its syllables; so does the traveller on his pages and when he answers; each eases back to rest after
       const F = dialogue.faces();
       if (dialogue.open && talking?.npc?.humanoid && talking.npc.object.visible) talkFaces.drive(talking.npc.humanoid, F.npc);
+      else if (dialogue.open && talking?.npc?.express) talking.npc.express(F.npc);   // (no face: the tone as a glow and a gesture, src/aliens/)
       if (player.humanoid && (dialogue.open || F.player.speaking)) talkFaces.drive(player.humanoid, F.player);
       // and the traveller's eyes on their face
       // (a moment says where he looks and turns: src/story/moment.js m.eyes, m.face)

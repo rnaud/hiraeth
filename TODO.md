@@ -102,7 +102,7 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 - [x] Robes still fly through people until I get close. (A cape simulated every 2nd or 3rd frame, further off or on a 30 fps handheld, now lives all the time since its last update and is carried along with its wearer between updates, pinned and pushed by the collar and limbs on their way, so it no longer streams out behind or lets legs and arms through; the robe under a cape is a collider; the crowd's figures wear the full people's wide cape over their arms and robe, and their robes swing as the full ones do; body girths are measured on the full mesh at every level of detail. tests/robes.test.js)
 - [ ] Every world on MakeHuman bodies; more variety in headwear: hats, goggles, scarves…
-- [ ] Alien species on the planets: non-humanoid characters (people, not animals).
+- [x] Alien species on the planets: non-humanoid characters (people, not animals). (Four peoples with procedural bodies, no skeleton: drifters in the Garden of Spheres, stilt-walkers in Vael, shellbacks in Lorn II, murmurs in the Signal Market, three or four each. Each has its own idle and movement, voice and script, tones shown as glow and gesture, a portrait and two-shot, listen-only talk with quest hints, its own reaction to the fluid tool, levels of detail and shadows. docs/systems/aliens.md)
 
 ## The app
 

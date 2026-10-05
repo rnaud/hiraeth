@@ -674,7 +674,133 @@ function shortEnd(form, y) {
   return y2 < 3.8 || y2 > 11.4 ? y - d : y2;
 }
 
-export const SCRIPTS = Object.fromEntries([desert, incal, arzach, arzach2, garage, buried, edena, spheres, perdide, perdide2, bazaar, atelier].map((S) => {
+// ------------------------------------------------------------------ the non-humanoid peoples' writing (src/aliens/)
+/** Drifter threads (the Garden of Spheres' drifters): a line along the top of each word, a thread
+ *  hanging from it for each syllable, curled, waved, zigzagged or forked, ending in a bead or a ring. */
+const THREADS = ['straight', 'wave', 'curlL', 'curlR', 'zig', 'fork'];
+const drifter = {
+  id: 'drifter', name: 'drifter threads', world: 'the drifters of the Garden of Spheres', ink: '#8a4f86', dir: 'ltr', kind: 'threads', width: 0.85,
+  about: 'threads hanging from a line along the top of each word, one a syllable: straight, waved, curled, zigzagged or forked, ending bare, in a bead or in a ring',
+  inventory: THREADS.flatMap((form) => [[0, ''], [0, 'bead'], [1, ''], [0, 'ring'], [1, 'bead'], [1, 'ring']].map(([len, end]) => ({ form, len, end }))).slice(0, 36),
+  tokens: syllables,
+  hashed: true,
+  draw(p, g, { x0, x1, k }) {
+    const xm = (x0 + x1) / 2, y0 = 2.6, yE = y0 + (g.len ? 7.8 : 5.4), h = yE - y0;
+    p.m(x0, y0).l(x1, y0);   // the line they hang from
+    if (k === 0) p.m(x0, y0).q(x0 - 0.7, y0 - 1.2, x0 + 0.3, y0 - 1.6);
+    if (g.form === 'straight') p.m(xm, y0).l(xm, yE);
+    else if (g.form === 'wave') p.m(xm, y0).q(xm + 1.6, y0 + h * 0.3, xm, y0 + h * 0.55).q(xm - 1.6, y0 + h * 0.8, xm, yE);
+    else if (g.form === 'curlL') p.m(xm, y0).l(xm, yE - 1.8).q(xm, yE, xm - 1.4, yE - 0.4).q(xm - 2, yE - 1.9, xm - 0.6, yE - 1.7);
+    else if (g.form === 'curlR') p.m(xm, y0).l(xm, yE - 1.8).q(xm, yE, xm + 1.4, yE - 0.4).q(xm + 2, yE - 1.9, xm + 0.6, yE - 1.7);
+    else if (g.form === 'zig') p.m(xm, y0).l(xm + 1.1, y0 + h * 0.33).l(xm - 1.1, y0 + h * 0.66).l(xm, yE);
+    else p.m(xm, y0).l(xm, yE - 2.4).l(xm - 1.3, yE).m(xm, yE - 2.4).l(xm + 1.3, yE);
+    if (g.end === 'bead') p.dot(xm, yE + 0.7, 0.65);
+    else if (g.end === 'ring') p.ring(xm, yE + 1.0, 0.85);
+  },
+  punct(p, kind, x0, x1) {
+    const c = (x0 + x1) / 2;
+    if (kind === 'stop') p.ring(c, 8.4, 1.0);
+    else if (kind === 'pause') p.m(c, 2.6).l(c, 6.4);
+    else if (kind === 'ask') { p.m(c, 2.6).l(c, 5.4); p.ring(c, 7.0, 1.3); }
+    else if (kind === 'exclaim') { p.m(c, 1.6).l(c, 8.0); p.dot(c, 10, 0.7); }
+    else if (kind === 'trail') for (const dx of [-1.6, 0, 1.6]) p.m(c + dx, 2.6).l(c + dx, 5);
+    else if (kind === 'dash') p.m(x0, 2.6).l(x1, 2.6);
+    else if (kind === 'quote') p.m(c - 1, 1.6).q(c, 0.6, c + 1, 1.6);
+  },
+};
+
+/** Lantern marks (Vael's stilt-walkers): one mark a word, drawn like the walkers themselves, one to
+ *  three long legs under a lantern, ringed, dark, lit, shining or capped; a little word is a dot. */
+const LAMP_FORMS = ['ring', 'dot', 'lit', 'rays', 'cap'];
+const stilt = {
+  id: 'stilt', name: 'lantern marks', world: 'the stilt-walkers of Vael', ink: '#9a622a', dir: 'ltr', kind: 'logograms', width: 0.8, spread: true,
+  about: 'a mark a word, drawn like the walkers: one to three long legs under a lantern, ringed, dark, lit, shining or capped; a little word is a dot',
+  inventory: [1, 2, 3].flatMap((legs) => LAMP_FORMS.flatMap((lamp) => [0, 1].map((tall) => ({ legs, lamp, tall })))),
+  tokens: (w) => (w.length < 10 ? [{ t: w, from: 0, to: w.length }] : [{ t: w, from: 0, to: w.length >> 1 }, { t: `${w}#2`, from: w.length >> 1, to: w.length }]),
+  hashed: true,
+  draw(p, g, { x0, x1, word }) {
+    const c = (x0 + x1) / 2;
+    if (word.length <= 2) { p.dot(c, 9.2, 0.75); return; }
+    const ly = g.tall ? 3.0 : 5.0, hub = ly + 1.5;
+    const feet = g.legs === 1 ? [0] : g.legs === 2 ? [-1.7, 1.7] : [-2.1, 0, 2.1];
+    for (const dx of feet) p.m(c, hub).q(c + dx * 0.9, hub + (10 - hub) * 0.2, c + dx, 10);
+    if (g.lamp === 'dot') p.dot(c, ly, 1.05);
+    else p.ring(c, ly, 1.3);
+    if (g.lamp === 'lit') p.dot(c, ly, 0.5);
+    if (g.lamp === 'rays') for (const a of [-0.9, 0, 0.9]) p.m(c + Math.sin(a) * 1.7, ly - Math.cos(a) * 1.7).l(c + Math.sin(a) * 2.6, ly - Math.cos(a) * 2.6);
+    if (g.lamp === 'cap') p.m(c - 1.7, ly - 1.7).l(c, ly - 2.6).l(c + 1.7, ly - 1.7);
+  },
+  punct(p, kind, x0, x1) {
+    const c = (x0 + x1) / 2;
+    if (kind === 'stop') p.m(c - 1.2, 10).l(c + 1.2, 10);
+    else if (kind === 'pause') p.dot(c, 9.6, 0.5);
+    else if (kind === 'ask') { p.ring(c, 6.4, 1.1); p.m(c, 7.5).l(c, 10); }
+    else if (kind === 'exclaim') { p.m(c, 3).l(c, 10); p.m(c - 1, 3).l(c + 1, 3); }
+    else if (kind === 'trail') { p.dot(c - 1.5, 9.6, 0.45); p.dot(c, 9.6, 0.45); p.dot(c + 1.5, 9.6, 0.45); }
+    else if (kind === 'dash') p.m(x0 + 0.4, 8).l(x1 - 0.4, 8);
+    else if (kind === 'quote') p.m(c, 2).l(c, 4.2);
+  },
+};
+
+/** Shellback coils (Lorn II's shellbacks): a coil a syllable, wound one, one and a half or two
+ *  times, either way, sometimes with a dot in it, a tail or two eyes on stalks; a trail runs under them. */
+const shell = {
+  id: 'shell', name: 'shellback coils', world: 'the shellbacks of Lorn II', ink: '#4f6a46', dir: 'ltr', kind: 'coils', width: 0.85,
+  about: 'a coil a syllable, wound one, one and a half or two times, either way, with a dot, a tail or two eyes on stalks; a slow trail runs under each word',
+  inventory: [1, 1.5, 2].flatMap((turns) => ['', 'dot', 'tail', 'eyes'].flatMap((mark) => [1, -1].map((dir) => ({ turns, mark, dir })))),
+  tokens: syllables,
+  hashed: true,
+  draw(p, g, { x0, x1, k, n }) {
+    const xm = (x0 + x1) / 2, cy = 6.9, R = Math.max(1.4, Math.min(2.6, (x1 - x0) / 2 - 0.4));
+    p.m(x0 - (k ? 0 : 0.4), 10.4).q((x0 + x1) / 2, 10.9, x1 + (k === n - 1 ? 0.8 : 0), 10.4);   // the trail
+    const T = g.turns * Math.PI * 2, steps = Math.ceil(g.turns * 14);
+    for (let i = 0; i <= steps; i++) {
+      const t = (i / steps) * T, r = R * (0.18 + 0.82 * (i / steps));
+      const x = xm + g.dir * Math.sin(t) * r, y = cy - Math.cos(t) * r;
+      if (i === 0) p.m(x, y); else p.l(x, y);
+    }
+    if (g.mark === 'dot') p.dot(xm, cy, 0.45);
+    else if (g.mark === 'tail') p.m(xm + g.dir * R * Math.sin(T), cy - R * Math.cos(T)).q(xm + g.dir * (R + 1.2), cy + R * 0.6, xm + g.dir * (R + 0.4), 10.4);
+    else if (g.mark === 'eyes') for (const s of [-0.7, 0.7]) { p.m(xm + s * 0.6, cy - R).l(xm + s * 1.3, cy - R - 2); p.dot(xm + s * 1.3, cy - R - 2.3, 0.5); }
+  },
+  punct(p, kind, x0, x1) {
+    const c = (x0 + x1) / 2;
+    if (kind === 'stop') p.ring(c, 9.2, 0.9);
+    else if (kind === 'pause') p.m(x0, 10.4).q(c, 9.2, x1, 10.4);
+    else if (kind === 'ask') { p.m(c - 1, 5.4).q(c, 3.6, c + 1, 5.4).q(c + 1.2, 7, c, 7.8); p.dot(c, 9.8, 0.5); }
+    else if (kind === 'exclaim') { p.m(c, 3.6).l(c, 8); p.ring(c, 9.6, 0.6); }
+    else if (kind === 'trail') { p.dot(c - 1.4, 10.4, 0.45); p.dot(c, 10.4, 0.45); p.dot(c + 1.4, 10.4, 0.45); }
+    else if (kind === 'dash') p.m(x0, 10.4).l(x1, 10.4);
+    else if (kind === 'quote') p.m(c - 0.5, 2.4).q(c + 0.9, 2.8, c + 0.2, 4.4);
+  },
+};
+
+/** Murmur dots (the Signal Market's murmurs): a letter is one to five dots in the places of five
+ *  murmurs standing together, the commonest letters a single dot; the dots of a word stand on one line. */
+const MURMUR_AT = [[-1.4, 4.4], [1.4, 4.4], [0, 6.7], [-1.4, 9.0], [1.4, 9.0]];
+const bits = (m) => [0, 1, 2, 3, 4].filter((k) => m & (1 << k));
+const murmur = {
+  id: 'murmur', name: 'murmur dots', world: 'the murmurs of the Signal Market', ink: '#9a5f78', dir: 'ltr', kind: 'alphabet', width: 0.8,
+  about: 'a letter is one to five dots in the places of five murmurs standing together, the commonest letters a single dot; each word stands on a line',
+  inventory: Array.from({ length: 31 }, (_, k) => k + 1).sort((a, b) => bits(a).length - bits(b).length || a - b).slice(0, 30).map((mask) => ({ mask })),
+  tokens: (w) => letterTokens(w),
+  draw(p, g, { x0, x1, c }) {
+    for (const k of bits(g.mask)) p.dot(c + MURMUR_AT[k][0], MURMUR_AT[k][1], 0.72);
+    p.m(x0 + 0.3, 11.4).l(x1 - 0.3, 11.4);
+  },
+  punct(p, kind, x0, x1) {
+    const c = (x0 + x1) / 2;
+    if (kind === 'stop') p.ring(c, 9.0, 1.0);
+    else if (kind === 'pause') p.m(c - 0.6, 11.4).l(c + 0.6, 11.4);
+    else if (kind === 'ask') { p.ring(c, 5.8, 1.3); p.dot(c, 9.6, 0.6); }
+    else if (kind === 'exclaim') { p.m(c, 3.4).l(c, 8); p.dot(c, 10, 0.7); }
+    else if (kind === 'trail') for (const dx of [-1.6, 0, 1.6]) p.ring(c + dx, 10.2, 0.45);
+    else if (kind === 'dash') p.m(x0 + 0.3, 6.7).l(x1 - 0.3, 6.7);
+    else if (kind === 'quote') p.m(c - 0.8, 2.4).l(c - 0.8, 4.4).m(c + 0.8, 2.4).l(c + 0.8, 4.4);
+  },
+};
+
+export const SCRIPTS = Object.fromEntries([desert, incal, arzach, arzach2, garage, buried, edena, spheres, perdide, perdide2, bazaar, atelier, drifter, stilt, shell, murmur].map((S) => {
   S.cipher = makeCipher(S, S.order);
   S.pick = makePick(S);
   return [S.id, S];

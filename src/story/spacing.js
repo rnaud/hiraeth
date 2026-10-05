@@ -18,6 +18,7 @@ const _d = new THREE.Vector3(), _r = new THREE.Vector3(), _p = new THREE.Vector3
 
 /** The gap the two-shot wants: about 1.45 m; a little less for a child, more for a giant, more for someone seated (their knees). */
 export function talkSpace(npc) {
+  if (npc?.talkGap) return { want: npc.talkGap, min: npc.talkGap - 0.3 };   // (someone who says how much room they need: an alien's threads or legs, src/aliens/)
   const s = THREE.MathUtils.clamp(npc?.object?.scale?.y ?? 1, 0.8, 1.6);
   const want = 1.45 * (0.55 + 0.45 * s) + (npc?.seat ? 0.3 : 0);
   return { want, min: want - 0.25 };

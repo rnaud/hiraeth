@@ -9,6 +9,11 @@ The same release notes shown in the game (press **N** or open settings).
 - The drone perches on top of the flask’s leather upright, beside its neck and clear of your swinging arms; before you have the flask it rides on the rucksack’s lid. The lantern hangs just below it.
 - His face is leaner, with thinner cheeks and a narrower chin, and his hair is a scruffier, curly mop of broken locks.
 - Capes and robes stay on people at every distance: they no longer stream out behind walkers or let legs and arms through until you come close, a robe no longer shows through the cape over it, and the people farther off in a crowd wear capes as wide as the ones up close, over their arms, so nothing changes as they come near.
+- Not everyone out there is built like you. In the Garden of Spheres, old drifters float over the grass: pale ribbed bells with a glowing heart and long threads.
+- In Vael, tall stilt-walkers pace the plain on three long legs, with a lantern for a head. In Lorn II, shellbacks glide along the lit path, carrying their spiral houses. In the Signal Market, murmurs, five small pale bulbs who speak as one, hop through the crowd together.
+- You can talk to all of them. Each people has its own voice and its own writing, which the translator turns into your words. They have no faces, so a line’s mood shows in how they glow and move: a brighter heart, a lowered lantern, drooping eye stalks, a huddle.
+- Some of them know what you are looking for. They give hints while your quest is at that step, and they have news once a world’s story is done.
+- They react to your fluid in their own ways. Push a drifter and it floats away and drifts back; a stilt-walker totters and steps to keep its balance; a shellback pulls into its shell and rolls; the murmurs scatter and hop back together.
 
 ## v0.66 — 2026-10-05
 
