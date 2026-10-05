@@ -1,0 +1,125 @@
+DONE.md
+  s_1fd8d0e7b02dcf::t_38de7df9c0b89e 44,51,61,275,441,458,497,501,505,528,536,548,562,572,610,613-614,647
+README.md
+  s_1fd8d0e7b02dcf::t_686156e5ac3fc4 3-8,10-11,13,20-23,25,27-38,40-41,43,45-47,50-110
+TODO.md
+  s_1fd8d0e7b02dcf::t_1513ed736a62bb 10,91,139
+android/variables.gradle
+  s_1fd8d0e7b02dcf::t_8bbdfdb654bfd6 16
+docs/README.md
+  s_1fd8d0e7b02dcf::t_735286025907ae 1-72
+docs/archive/retroid-measurements.md
+  s_1fd8d0e7b02dcf::t_66f56d6e2c1aa2 1-94
+docs/archive/traveller-looks.md
+  s_1fd8d0e7b02dcf::t_9caf1d261ee188 1-37
+docs/credits.md
+  s_1fd8d0e7b02dcf::t_c55f8362ad2523 1-29
+docs/mixamo-shopping-list.md
+  s_1fd8d0e7b02dcf::t_d6b342af8cb641 6,32
+docs/motion-data.md
+  s_1fd8d0e7b02dcf::t_e0259491c0141a 4-5,38
+docs/systems/android.md
+  s_1fd8d0e7b02dcf::t_81eac872b03c28 1-191
+docs/systems/animation.md
+  s_1fd8d0e7b02dcf::t_0b295f0a4f2653 1-333
+docs/systems/audio.md
+  s_1fd8d0e7b02dcf::t_d0f37141071781 1-78
+docs/systems/characters.md
+  s_1fd8d0e7b02dcf::t_f60856c811dacf 1-331
+docs/systems/cinematics.md
+  s_1fd8d0e7b02dcf::t_31efc665410628 1-89
+docs/systems/controls.md
+  s_1fd8d0e7b02dcf::t_c5a040a1ec2273 1-120
+docs/systems/dev-tools.md
+  s_1fd8d0e7b02dcf::t_ad75f7eff48d48 1-91
+docs/systems/dialogue.md
+  s_1fd8d0e7b02dcf::t_573506d5c6ae3e 1-120
+docs/systems/faces.md
+  s_1fd8d0e7b02dcf::t_21a903a1d9305b 1-244
+docs/systems/items.md
+  s_1fd8d0e7b02dcf::t_3ee2db7496aebb 1-56
+docs/systems/living-world.md
+  s_1fd8d0e7b02dcf::t_2e4dd467b7ad96 1-163
+docs/systems/materials.md
+  s_1fd8d0e7b02dcf::t_794d64ced33ba7 1-196
+docs/systems/movement.md
+  s_1fd8d0e7b02dcf::t_7c28ad29dfdc8f 1-154
+docs/systems/performance.md
+  s_1fd8d0e7b02dcf::t_d28928a9c9ce26 1-302
+docs/systems/platforms.md
+  s_1fd8d0e7b02dcf::t_1dffd42412ceba 1-24
+docs/systems/references.md
+  s_1fd8d0e7b02dcf::t_3cace6190b8728 1-106
+docs/systems/rendering.md
+  s_1fd8d0e7b02dcf::t_babad1fe086bf6 1-274
+docs/systems/scout.md
+  s_1fd8d0e7b02dcf::t_c24619a952c7c1 1-59
+docs/systems/story.md
+  s_1fd8d0e7b02dcf::t_a4290c75d772a9 1-401
+docs/systems/temples.md
+  s_1fd8d0e7b02dcf::t_81a470870298b3 1-151
+docs/systems/ui.md
+  s_1fd8d0e7b02dcf::t_d7f940b32d0df5 1-184
+docs/systems/unity.md
+  s_1fd8d0e7b02dcf::t_346a0ebe9e83dc 1-47
+docs/systems/water.md
+  s_1fd8d0e7b02dcf::t_3d9c032fdb6f28 1-88
+docs/systems/worlds.md
+  s_1fd8d0e7b02dcf::t_8912cc896068d0 1-412
+docs/world-principles.md
+  s_1fd8d0e7b02dcf::t_0fe837e55ef9bd 1-54
+scripts/handheld-perf/lib.mjs
+  s_1fd8d0e7b02dcf::t_175da1d29c1e1e 1
+scripts/lab-perf/lab-perf.mjs
+  s_1fd8d0e7b02dcf::t_47b882a36f7244 1
+scripts/mocap/compare.mjs
+  s_1fd8d0e7b02dcf::t_ef5d3f13ff7a2d 3
+scripts/transition-perf/loading.mjs
+  s_1fd8d0e7b02dcf::t_31b7dd02b96e3a 1
+scripts/transition-perf/transitions.mjs
+  s_1fd8d0e7b02dcf::t_15a15ed2926307 1-2
+src/brush.js
+  s_1fd8d0e7b02dcf::t_aec2a508c5efa2 3
+src/controller.js
+  s_1fd8d0e7b02dcf::t_4717cb7ccda30e 3
+src/hud.js
+  s_1fd8d0e7b02dcf::t_63a65b8cc80971 1
+src/levels/arzach2.js
+  s_1fd8d0e7b02dcf::t_303384d3cc3016 19
+src/load-steps.js
+  s_1fd8d0e7b02dcf::t_a82efe6e129048 1
+src/materials.js
+  s_1fd8d0e7b02dcf::t_181f9c7fe8bfb7 98
+src/motion/main.js
+  s_1fd8d0e7b02dcf::t_0cd22f5ace5cba 703
+src/passage.js
+  s_1fd8d0e7b02dcf::t_69a4cee70eb865 4-5
+src/sand-drifts.js
+  s_1fd8d0e7b02dcf::t_44dd241f1b3ff7 5
+src/temples/index.js
+  s_1fd8d0e7b02dcf::t_f6c260cf613589 33-34
+tests/gait-sim.js
+  s_1fd8d0e7b02dcf::t_de0fdcf08f107f 4-5
+tests/mocap.test.js
+  s_1fd8d0e7b02dcf::t_fc7bfe7b1d512d 233
+tests/sand-drifts.test.js
+  s_1fd8d0e7b02dcf::t_f93c2d30e5dd9c 7
+tests/shade.test.js
+  s_1fd8d0e7b02dcf::t_6f8d2b7a3fd7f9 7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fe747014a480fc10c037ca7707ee71f4f069f5ff",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
