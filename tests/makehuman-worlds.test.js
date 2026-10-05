@@ -363,3 +363,11 @@ test("Home's people are MakeHuman bodies: Lou a child, Tove grown up", async () 
   assert.ok(lou.height > 1.0 && lou.height < 1.3, `Lou ${lou.height.toFixed(2)} m`);
   assert.ok(onBody('home', PEOPLE.tove).height > 1.5);
 });
+
+test("The Lab's giants are MakeHuman bodies: its faces gallery the people's faces now", async () => {
+  assert.ok(MH_WORLDS.has('lab'));
+  const { CONTENT } = await import('../src/levels/content.js');
+  const giants = CONTENT.lab.npcs.filter((n) => n.scale === 4);
+  assert.ok(giants.length >= 10);
+  assert.ok(usesMakeHuman('lab'));
+});
