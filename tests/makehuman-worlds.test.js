@@ -371,3 +371,8 @@ test("The Lab's giants are MakeHuman bodies: its faces gallery the people's face
   assert.ok(giants.length >= 10);
   assert.ok(usesMakeHuman('lab'));
 });
+
+test("The References' walkers are MakeHuman bodies", async () => {
+  assert.ok(MH_WORLDS.has('references'));
+  assert.ok(usesMakeHuman('references') && !usesMakeHuman('references', '0'));
+});
