@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkeleton } from 'three/addons/utils/SkeletonUtils.js';
+import { MotionMatcher, MATCH } from './motion-match.js';
 
 // Motion from Quaternius' Universal Animation Library (CC0, public/anim/),
 // retargeted onto our hand-built rider rig.
@@ -211,6 +212,11 @@ export class Animator {
     this.toContact = { l: 0, r: 0 };   // s until each foot's next touchdown in the gait (Infinity off the ground)
     this.footSpeed = 0;
     this.gaitW = 0;
+    // motion matching (src/motion-match.js): on when `matching` is set and the library has its
+    // database (lib.motion, public/anim/locomotion.glb); mmW is its share of the pose
+    this.matching = false;
+    this.mm = null;
+    this.mmW = 0;
   }
 
   /** Start the gait and the standing loops at `k` (0..1) of their cycle: people side by side don't breathe or step in time. */
@@ -347,7 +353,57 @@ export class Animator {
       a.setEffectiveWeight(this.w[key] ?? 0);
     }
     this.mixer.update(0);
+    this.match(dt, s, landing, size);
     this.src.updateMatrixWorld(true);
+  }
+
+  /**
+   * Motion matching (src/motion-match.js) over the loops' pose: on the ground, walking, running,
+   * starting, stopping, turning, standing; s.mm is the stick ({ vel, want, k, face }: the body's
+   * frame, x left, z ahead). Where the database has nothing close (a sprint faster than it runs,
+   * the air, climbing, talking, driving), the loops' pose stays, with a short blend either way.
+   * The feet take their contacts and stride from whichever pose leads.
+   */
+  match(dt, s, landing, size) {
+    const db = this.lib.motion?.db;
+    if (!this.matching || !db || !s.mm) { this.mmW = 0; return; }
+    const ground = s.onGround && (s.mode === 'ground' || s.mode === undefined) && !landing;
+    // (past the database's fastest run, the sprint loop: MATCH.fallback x its 95th percentile)
+    const fast = THREE.MathUtils.smoothstep(s.speed / (db.maxSpeed * size), 1.2, 1.45);
+    let target = ground ? 1 - fast : 0;
+    if (target > 0 || this.mmW > 0.001) {
+      this.mm ??= new MotionMatcher(db);
+      if (this.mmW <= 0.001) this.mm.reset();   // (coming in from the loops: a fresh match, faded in)
+      // speed warping: the clip plays faster or slower so its feet sweep back at the body's own
+      // speed (the game starts and stops quicker than anyone captured); within reason, the stride
+      // warp (feet.js) does the rest
+      const clip = this.mm.speed * size;
+      const want = s.speed > 0.4 && clip > 0.25 ? THREE.MathUtils.clamp(s.speed / clip, MATCH.rate[0], MATCH.rate[1]) : 1;
+      this.mmRate = (this.mmRate ?? 1) + (want - (this.mmRate ?? 1)) * (1 - Math.exp(-10 * dt));
+      this.mm.update(dt, s.mm, size, { rate: this.mmRate });
+      // nothing close in the database (or the body is far faster than any clip that fits, as when
+      // it sets off at full tilt): the loops, until a match is good again (with some margin)
+      const lag = s.speed > 1 && s.speed > clip * MATCH.rate[1] * MATCH.lag;
+      this._mmLag = lag;
+      this._mmMiss = this.mm.cost > MATCH.maxCost || lag || (this._mmMiss && (this.mm.cost > MATCH.maxCost * 0.5 || s.speed > clip * MATCH.rate[1]));
+      if (this._mmMiss) target = 0;
+    }
+    // (in quickly; out quickly when the body outruns the clips, which the feet would show at once)
+    this.mmW += (target - this.mmW) * (1 - Math.exp(-(target > this.mmW ? 10 : this._mmLag ? 25 : 7) * dt));
+    if (this.mmW < 0.001) { this.mmW = 0; return; }
+    const k = this.mmW, M = this.mm;
+    this._mmBones ??= db.bones.map((n) => this.bone(n));
+    this._mmBones.forEach((b, i) => b.quaternion.slerp(_q.fromArray(M.outQ, i * 4), k));
+    this.hips.position.lerp(_a.fromArray(M.outP), k);
+    // the feet: contacts, the time to the next touchdowns, the stride's sweep, how much it walks
+    for (const f of ['l', 'r']) {
+      this.contact[f] += (M.contact[f] - this.contact[f]) * k;
+      const t = M.lead[f];
+      this.toContact[f] = k > 0.5 ? t : this.toContact[f];
+    }
+    const mmGait = THREE.MathUtils.smoothstep(M.speed, 0.15, 0.55);
+    this.footSpeed += (M.speed * size * M.rate - this.footSpeed) * k;
+    this.gaitW += (mmGait - this.gaitW) * k;
   }
 
   /** Copy the sampled pose onto our rig. root = the character's root Object3D. */

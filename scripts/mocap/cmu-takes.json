@@ -1,0 +1,68 @@
+{
+  "source": "CMU Graphics Lab Motion Capture Database, http://mocap.cs.cmu.edu/ (ASF/AMC: http://mocap.cs.cmu.edu/subjects/<subject>/<take>.amc and <subject>.asf)",
+  "uses": {
+    "mm": "the traveller's motion-matching database (public/anim/locomotion.glb); left/right turns come once, the runtime mirrors every clip",
+    "npc": "a person's own walk loop (public/anim/locomotion.glb)",
+    "ref": "downloaded and converted (build-library.mjs --stats) for later work; not shipped"
+  },
+  "options": "the 4th element: { max: seconds kept (from the start, after trimming), from: seconds skipped first, loop: also one seamless cycle of it, which the matcher may play round and round }",
+  "takes": [
+    ["16_15", "mm", "walk", { "loop": true }], ["16_21", "mm", "walk", { "loop": true }], ["16_31", "mm", "walk"], ["16_47", "mm", "walk"],
+    ["35_01", "mm", "walk", { "loop": true }], ["69_01", "mm", "walk forward", { "loop": true }], ["104_02", "mm", "neutral male walk, exact footfalls", { "max": 5 }],
+    ["143_32", "mm", "walk"],
+    ["16_16", "ref", "walk"], ["16_22", "ref", "walk"], ["16_32", "ref", "walk"], ["16_58", "ref", "walk"], ["35_02", "ref", "walk"], ["69_02", "ref", "walk forward"],
+    ["104_35", "mm", "slow walk", { "loop": true, "max": 3 }],
+
+    ["16_11", "mm", "walk, veer left"], ["16_17", "mm", "walk, 90-degree left turn"], ["16_27", "mm", "walk, 90-degree left turn"],
+    ["69_20", "mm", "walk forward 90 degree right turn"], ["69_28", "mm", "walk forward 90 degree smooth right turn"],
+    ["104_27", "mm", "regular walk, right-angle turns", { "max": 6 }], ["143_38", "mm", "walk digital 8", { "max": 5.2 }],
+    ["16_13", "ref", "walk, veer right"], ["16_19", "ref", "walk, 90-degree right turn"], ["16_29", "ref", "walk, 90-degree right turn"],
+    ["69_24", "ref", "walk forward 90 degree left turn"], ["69_31", "ref", "walk forward 90 degree smooth left turn"],
+    ["69_06", "ref", "walk and turn (repeated)"], ["69_12", "ref", "walk and turn both directions (repeated)"],
+
+    ["69_13", "mm", "walk, turn in place (repeated)", { "max": 10 }], ["69_16", "mm", "turn in place"], ["69_18", "mm", "turn in place (opposite direction)"],
+    ["69_14", "ref", "walk, turn in place (repeated)"],
+
+    ["16_33", "mm", "slow walk, stop"], ["16_08", "mm", "run/jog, sudden stop"], ["16_57", "mm", "run/jog, sudden stop"],
+    ["104_06", "mm", "start jog"], ["104_09", "mm", "jog stop"], ["104_53", "mm", "start run"], ["104_56", "mm", "run stop"],
+    ["127_04", "mm", "walk to run"], ["127_05", "mm", "run to quick stop"], ["127_17", "mm", "run stop run"],
+    ["143_02", "mm", "run to stop"], ["143_03", "mm", "start to run"],
+    ["16_34", "ref", "slow walk, stop"], ["104_08", "ref", "start jog"], ["104_10", "ref", "jog stop"], ["104_54", "ref", "start run"], ["104_57", "ref", "run stop"],
+    ["127_19", "ref", "run quick stop run"],
+
+    ["16_35", "mm", "run/jog", { "loop": true }], ["16_45", "mm", "run/jog", { "loop": true }], ["16_46", "mm", "run/jog", { "loop": true }], ["16_56", "mm", "run/jog"], ["16_55", "mm", "run"],
+    ["16_37", "mm", "run/jog, veer left"], ["16_41", "mm", "run/jog, 90-degree left turn"], ["16_48", "mm", "run, veer left"], ["16_51", "mm", "run, 90-degree left turn"],
+    ["127_03", "mm", "run", { "loop": true }], ["127_09", "mm", "run right"], ["127_13", "mm", "run side step left"], ["127_15", "mm", "run turn left"], ["127_16", "mm", "run turn right"],
+    ["35_17", "mm", "run/jog", { "loop": true }], ["09_01", "mm", "run", { "loop": true }], ["143_04", "mm", "run figure 8", { "max": 6 }],
+    ["16_36", "mm", "run/jog"], ["16_39", "mm", "run/jog, veer right"], ["16_43", "ref", "run/jog, 90-degree right turn"],
+    ["16_49", "mm", "run, veer right"], ["16_53", "mm", "run, 90-degree right turn"],
+    ["127_11", "mm", "run left"], ["127_14", "mm", "run side step right"], ["35_18", "mm", "run/jog"], ["09_02", "mm", "run"], ["143_01", "mm", "run"],
+
+    ["143_39", "mm", "walk backwards", { "max": 4 }], ["143_40", "mm", "walk sideways", { "max": 4 }],
+    ["69_34", "mm", "walk backwards and turn", { "max": 4 }], ["69_42", "mm", "walk sideways and turn (repeated)", { "max": 4 }],
+    ["143_29", "ref", "pacing"],
+
+    ["140_06", "mm", "idle", { "max": 6 }], ["139_02", "mm", "shifting weight"], ["113_21", "mm", "standing still", { "max": 6 }], ["137_28", "mm", "normal wait", { "max": 6 }],
+    ["140_07", "ref", "idle"], ["141_20", "ref", "waiting"], ["77_02", "ref", "standing"],
+
+    ["137_29", "npc", "normal walk"], ["137_33", "npc", "old man walk"], ["137_24", "npc", "graceful lady walk"],
+    ["137_42", "npc", "strong man walk"], ["137_20", "npc", "gangly teen walk"],
+    ["142_13", "npc", "relaxed"], ["142_07", "npc", "elderly man"], ["142_01", "npc", "childish"], ["142_14", "npc", "rushed"],
+    ["17_08", "npc", "muscular, heavyset person's walk"], ["132_45", "npc", "walk slow"], ["132_17", "npc", "walk fast"],
+    ["82_11", "npc", "normal walk forward"], ["82_10", "npc", "sad walk forward"], ["82_09", "npc", "confident walk forward"],
+    ["136_20", "npc", "normal walk"], ["08_01", "npc", "walk"], ["07_01", "npc", "walk"], ["02_01", "npc", "walk"],
+    ["91_29", "npc", "normal walk"], ["141_19", "npc", "walk"],
+
+    ["83_27", "ref", "walk forward stepping up stairs"], ["83_28", "ref", "walk forward stepping up stairs"],
+    ["83_34", "ref", "walk forward and up stairs"], ["113_19", "ref", "walking up and down stairs"],
+    ["114_07", "ref", "walking up and down stairs"], ["111_27", "ref", "walking up stairs"],
+    ["36_01", "ref", "walk on uneven terrain"], ["36_02", "ref", "walk forward, turn around, walk back (uneven terrain)"], ["03_01", "ref", "walk on uneven terrain"],
+    ["83_01", "ref", "large sidestep to right"], ["83_19", "ref", "medium sidestep to left"], ["83_33", "ref", "sidestep to right then back to left"],
+    ["136_25", "ref", "normal walk backwards"],
+    ["16_05", "ref", "forward jump"], ["16_06", "ref", "forward jump"], ["13_11", "ref", "forward jump"], ["91_39", "ref", "jump forward"],
+    ["118_01", "ref", "jump"], ["82_02", "ref", "jump off ledge"], ["82_03", "ref", "jump off ledge"], ["83_42", "ref", "long jump forward"], ["143_05", "ref", "jumping distances"],
+    ["83_02", "ref", "sidestep to the right and up a ledge"], ["83_03", "ref", "large step to a short ledge"], ["141_07", "ref", "walk up and over"], ["40_06", "ref", "climb, step over, sit on, jump over stepstool"],
+    ["125_01", "ref", "breast stroke"], ["125_06", "ref", "free style"], ["126_10", "ref", "free style"]
+  ],
+  "fps": { "77": 60 }
+}

@@ -1,0 +1,226 @@
+#!/usr/bin/env node
+// The motion library: every take listed for the game, from wherever it came (CMU's ASF/AMC in
+// data/mocap/raw/cmu/, BVH files in data/mocap/raw/bvh/, Mixamo's FBX in data/mocap/mixamo/),
+// retargeted onto the UAL skeleton, cleaned, tagged and packed into public/anim/locomotion.glb.
+// Re-runnable: it rebuilds the file from the raw folders each time (same input, same bytes), so
+// dropping Mixamo files in their folder and running it again is all it takes.
+//
+//   node scripts/mocap/fetch-cmu.mjs          # once: the CMU takes (git-ignored)
+//   node scripts/mocap/build-library.mjs      # -> public/anim/locomotion.glb
+//   node scripts/mocap/build-library.mjs --stats   # what each take became, nothing written
+import { readFile, writeFile, readdir, mkdir } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import { resolve, dirname, basename, extname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { asfAmcTake, CMU_MAP, CMU_POINTS } from './asf-amc.js';
+import { bvhTake } from './bvh.js';
+import { resampleTake, mirrorTake } from './take.js';
+import { otherSide } from './maps.js';
+import { targetSkeleton, retarget, BONES, TRACKS } from './retarget.js';
+import { footContacts, cleanClip, findLoop, rootMotion, sliceClip } from './process.js';
+import { writeGLB, toBase64 } from './glb.js';
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+const ROOT = resolve(HERE, '../..');
+const RAW = resolve(ROOT, 'data/mocap/raw');
+const MIXAMO = resolve(ROOT, 'data/mocap/mixamo');
+const OUT = resolve(ROOT, 'public/anim/locomotion.glb');
+const FPS = 30;
+const args = process.argv.slice(2);
+const STATS = args.includes('--stats');
+
+// how much of the matching database to ship (frames at 30 fps, before the runtime's mirrored copy)
+const DB_BUDGET = 5800;
+
+const parseGLB = async (file) => {
+  const b = await readFile(file);
+  return new GLTFLoader().parseAsync(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength), '');
+};
+
+const ual = await parseGLB(resolve(ROOT, 'public/anim/ual.glb'));
+const T = targetSkeleton(ual.scene);
+
+/** Every take to convert: { id, use, desc, load() -> take }. */
+async function sources() {
+  const list = [];
+  const cmu = JSON.parse(await readFile(resolve(HERE, 'cmu-takes.json'), 'utf8'));
+  for (const [id, use, desc, opts = {}] of cmu.takes) {
+    const s = id.split('_')[0];
+    const asf = resolve(RAW, 'cmu', `${s}.asf`), amc = resolve(RAW, 'cmu', `${id}.amc`);
+    if (!existsSync(asf) || !existsSync(amc)) continue;
+    const fps = cmu.fps[String(+s)] ?? 120;
+    list.push({ id: `cmu_${id}`, use, desc, opts, source: `CMU ${id}`, load: async () => {
+      const t = asfAmcTake(await readFile(asf, 'utf8'), await readFile(amc, 'utf8'), { fps, name: id });
+      t.map = CMU_MAP; t.landmarks = CMU_POINTS;
+      return t;
+    } });
+  }
+  // BVH: data/mocap/raw/bvh/*.bvh (role from bvh-clips.json if listed there, else for reference)
+  const bvhDir = resolve(RAW, 'bvh');
+  const bvhList = existsSync(resolve(HERE, 'bvh-clips.json')) ? JSON.parse(await readFile(resolve(HERE, 'bvh-clips.json'), 'utf8')) : {};
+  if (existsSync(bvhDir)) for (const f of (await readdir(bvhDir)).filter((x) => /\.bvh$/i.test(x)).sort()) {
+    const key = basename(f, extname(f)), info = bvhList[key] ?? { use: 'ref', desc: key };
+    list.push({ id: `bvh_${key.replace(/\W+/g, '_')}`, use: info.use, desc: info.desc, source: `BVH ${f}`, load: async () => bvhTake(await readFile(resolve(bvhDir, f), 'utf8'), { fps: FPS, name: key }) });
+  }
+  // Mixamo: data/mocap/mixamo/*.fbx, as listed in mixamo-clips.json (docs/mixamo-shopping-list.md)
+  const mix = JSON.parse(await readFile(resolve(HERE, 'mixamo-clips.json'), 'utf8'));
+  if (existsSync(MIXAMO)) for (const f of (await readdir(MIXAMO)).filter((x) => /\.fbx$/i.test(x)).sort()) {
+    const key = basename(f, extname(f));
+    const info = mix.clips.find((c) => c.file.toLowerCase() === key.toLowerCase());
+    if (!info) { console.warn(`  mixamo: ${f} is not in scripts/mocap/mixamo-clips.json; skipped`); continue; }
+    list.push({ id: `mixamo_${info.id}`, use: info.use, desc: info.name, source: `Mixamo "${info.name}"`, inPlace: info.inPlace, loop: info.loop, load: async () => {
+      const { fbxTake } = await import('./fbx.js');
+      const b = await readFile(resolve(MIXAMO, f));
+      return fbxTake(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength), { fps: FPS, name: key });
+    } });
+  }
+  return list;
+}
+
+const idleLike = (desc) => /idle|stand|wait|shift|look/i.test(desc);
+
+/** One source -> its cleaned clips (each with contacts and per-frame motion). */
+async function convert(src) {
+  let take = await src.load();
+  take = resampleTake(take, FPS);
+  // (standing still, the ground track is smoothed much more: the hips sway as the weight shifts,
+  // the feet don't move, and a root that followed the hips would seem to slide them about)
+  const r = retarget(take, T, idleLike(src.desc) ? { posSigma: 0.8, yawSigma: 0.8 } : {});
+  r.contact = footContacts(r);
+  let clips = cleanClip(r, { idle: idleLike(src.desc) || src.use !== 'mm' }).map((c) => ({ ...c, contact: footContacts(c) }));
+  // the take's options: skip `from` seconds, keep at most `max` (over its pieces, in order)
+  const o = src.opts ?? {};
+  if (o.from || o.max) {
+    let skip = Math.round((o.from ?? 0) * FPS), left = o.max ? Math.round(o.max * FPS) : Infinity;
+    const kept = [];
+    for (const c of clips) {
+      if (skip >= c.n) { skip -= c.n; continue; }
+      const a = skip, b = Math.min(c.n, a + left);
+      skip = 0;
+      if (b - a >= FPS) { const s = sliceClip(c, a, b); kept.push(s); left -= s.n; }
+      if (left <= 0) break;
+    }
+    clips = kept;
+  }
+  return { take, clips };
+}
+
+const quantile = (arr, q) => { const s = [...arr].sort((a, b) => a - b); return s[Math.floor((s.length - 1) * q)] ?? 0; };
+
+const list = await sources();
+const results = [];
+for (const src of list) {
+  try {
+    const { take, clips } = await convert(src);
+    results.push({ src, take, clips });
+    if (STATS) {
+      for (const c of clips) {
+        const m = rootMotion(c);
+        const turn = c.root[(c.n - 1) * 3 + 2] - c.root[2];
+        const on = (f) => Array.from(c.contact[f]).filter((x) => x > 0.5).length / c.n;
+        console.log(`${src.id.padEnd(12)} ${src.use.padEnd(4)} ${(c.n / FPS).toFixed(1).padStart(5)} s  speed med ${quantile(m.speed, 0.5).toFixed(2)} p90 ${quantile(m.speed, 0.9).toFixed(2)} m/s  turn ${(turn * 180 / Math.PI).toFixed(0).padStart(5)}°  contact l ${on('l').toFixed(2)} r ${on('r').toFixed(2)}  scale ${c.scale.toFixed(3)}  ${src.desc}`);
+      }
+    }
+  } catch (e) {
+    console.warn(`  ${src.id}: ${e.message}`);
+  }
+}
+if (STATS) {
+  for (const use of ['mm', 'npc', 'ref']) {
+    const frames = results.filter((r) => r.src.use === use).reduce((a, r) => a + r.clips.reduce((b, c) => b + c.n, 0), 0);
+    console.log(`${use}: ${frames} frames (${(frames / FPS).toFixed(0)} s)`);
+  }
+  process.exit(0);
+}
+
+// ------------------------------------------------------------------ the library file
+// nodes: root_motion (a clip's ground track) > root (the UAL rest) > pelvis > ... (BONES)
+// animations: 'mm_database' (every matching clip end to end, `extras.segments` says where each one
+// starts), 'walk_loops' (the people's walk cycles, likewise) and any other clip on its own. One
+// long animation instead of many short ones keeps the file's JSON small.
+const B = T.bones;
+const order = ['root', ...BONES];
+const nodes = [{ name: 'root_motion', parent: -1 }];
+for (const n of order) nodes.push({ name: n, parent: n === 'root' ? 0 : 1 + order.indexOf(B[n].parent), translation: B[n].lp.toArray(), rotation: B[n].lq.toArray() });
+const nodeOf = (n) => 1 + order.indexOf(n);
+const u8 = (arr) => toBase64(Uint8Array.from(arr, (x) => Math.round(Math.max(0, Math.min(1, x)) * 255)));
+
+/** Clips end to end as one animation; each segment's ground track starts at the origin facing +z. */
+function packSheet(name, segs, extras, { rootMotion: withRoot = true } = {}) {
+  const n = segs.reduce((a, s) => a + s.c.n, 0);
+  const rot = Object.fromEntries(TRACKS.map((k) => [k, new Float32Array(n * 4)]));
+  const pel = new Float32Array(n * 3), t = new Float32Array(n * 3), q = new Float32Array(n * 4);
+  const cl = new Float32Array(n), cr = new Float32Array(n);
+  let at = 0;
+  const segments = [];
+  for (const { c, info } of segs) {
+    for (const k of TRACKS) rot[k].set(c.local[k], at * 4);
+    pel.set(c.pelvisPos, at * 3);
+    cl.set(c.contact.l, at); cr.set(c.contact.r, at);
+    const x0 = c.root[0], z0 = c.root[1], y0 = c.root[2], cy = Math.cos(y0), sy = Math.sin(y0);
+    for (let i = 0; i < c.n; i++) {
+      const dx = c.root[i * 3] - x0, dz = c.root[i * 3 + 1] - z0, yaw = c.root[i * 3 + 2] - y0;
+      // (into the first frame's frame: turned by -yaw0 about +y)
+      t[(at + i) * 3] = dx * cy - dz * sy; t[(at + i) * 3 + 2] = dx * sy + dz * cy;
+      q[(at + i) * 4 + 1] = Math.sin(yaw / 2); q[(at + i) * 4 + 3] = Math.cos(yaw / 2);
+    }
+    segments.push({ ...info, start: at, n: c.n });
+    at += c.n;
+  }
+  const channels = TRACKS.map((k) => ({ node: nodeOf(k), path: 'rotation', data: rot[k] }));
+  channels.push({ node: nodeOf('pelvis'), path: 'translation', data: pel });
+  if (withRoot) channels.push({ node: 0, path: 'translation', data: t }, { node: 0, path: 'rotation', data: q });
+  return { name, fps: FPS, n, channels, extras: { ...extras, fps: FPS, segments, contact: { l: u8(cl), r: u8(cr) } } };
+}
+
+const sheets = [], report = { mm: [], npc: [] };
+let dbFrames = 0;
+const mm = [];
+for (const { src, clips: cs } of results.filter((r) => r.src.use === 'mm')) {
+  cs.forEach((c, k) => {
+    if (dbFrames + c.n > DB_BUDGET) { console.warn(`  ${src.id}: over the database's budget, left out`); return; }
+    dbFrames += c.n;
+    const m = rootMotion(c);
+    const name = `${src.id}${cs.length > 1 ? `_${k + 1}` : ''}`;
+    mm.push({ c, info: { name, source: src.source, desc: src.desc, scale: +c.scale.toFixed(4), speed: +quantile(m.speed, 0.5).toFixed(3), turn: +(c.root[(c.n - 1) * 3 + 2] - c.root[2]).toFixed(3) } });
+    report.mm.push(`${name} ${(c.n / FPS).toFixed(1)} s`);
+  });
+  // a steady walk or run: also one seamless cycle of it, which the matcher plays round and round
+  // (the capture volume ends every take after a few strides)
+  if (src.opts?.loop && cs.length) {
+    const c = cs.reduce((a, b) => (b.n > a.n ? b : a), cs[0]);
+    const loop = findLoop(c);
+    if (!loop) console.warn(`  ${src.id}: no clean cycle for a loop`);
+    else if (dbFrames + loop.n <= DB_BUDGET) {
+      dbFrames += loop.n;
+      // (its contacts: the take's own, as sliced)
+      mm.push({ c: loop, info: { name: `${src.id}_loop`, source: src.source, desc: `${src.desc} (one cycle, looping)`, loop: true, scale: +loop.scale.toFixed(4), speed: +loop.loop.speed.toFixed(3), turn: 0 } });
+      report.mm.push(`${src.id}_loop ${(loop.n / FPS).toFixed(2)} s (loop)`);
+    }
+  }
+}
+if (mm.length) sheets.push(packSheet('mm_database', mm, { use: 'mm' }));
+const loops = [];
+for (const { src, clips: cs } of results.filter((r) => r.src.use === 'npc')) {
+  // the longest piece's best single cycle
+  const c = cs.reduce((a, b) => (b.n > a.n ? b : a), cs[0]);
+  const loop = c && findLoop(c);
+  if (!loop) { console.warn(`  ${src.id}: no clean walking cycle found, left out`); continue; }
+  loop.contact ??= footContacts(loop);
+  loops.push({ c: loop, info: { name: src.id, source: src.source, desc: src.desc, scale: +loop.scale.toFixed(4), speed: +loop.loop.speed.toFixed(3) } });
+  report.npc.push(`${src.id} ${(loop.n / FPS).toFixed(2)} s at ${loop.loop.speed.toFixed(2)} m/s (${src.desc})`);
+}
+if (loops.length) sheets.push(packSheet('walk_loops', loops, { use: 'npc' }, { rootMotion: false }));
+// anything else that is shipped (Mixamo's gestures, idles, ...: use 'clip'), one animation each
+for (const { src, clips: cs } of results.filter((r) => r.src.use === 'clip')) {
+  for (const [k, c] of cs.entries()) sheets.push(packSheet(`${src.id}${cs.length > 1 ? `_${k + 1}` : ''}`, [{ c, info: { name: src.id, source: src.source, desc: src.desc } }], { use: 'clip', loop: !!src.loop }, { rootMotion: !src.inPlace }));
+}
+const glb = writeGLB({ nodes, clips: sheets, extras: { generator: 'scripts/mocap/build-library.mjs', fps: FPS, tracks: TRACKS, credits: 'CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu), created with funding from NSF EIA-0196217; Mixamo (Adobe) where listed. See docs/motion-data.md.' } });
+await mkdir(dirname(OUT), { recursive: true });
+await writeFile(OUT, glb);
+console.log(`matching database: ${report.mm.length} clips, ${dbFrames} frames (${(dbFrames / FPS).toFixed(0)} s; mirrored at load)`);
+console.log(`walk loops: ${report.npc.length}\n  ${report.npc.join('\n  ')}`);
+console.log(`${OUT}: ${(glb.length / 1024).toFixed(0)} KB`);
+

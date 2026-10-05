@@ -9,3 +9,10 @@ output/character-tripo/
 
 handheld-perf.jsonl
 .DS_Store
+
+# motion capture (scripts/mocap): raw downloads and Mixamo FBX stay out of git
+/data/mocap/raw/
+/data/mocap/mixamo/*.fbx
+/data/mocap/mixamo/*.FBX
+/data/mocap/cache/
+/data/mocap/tmp/

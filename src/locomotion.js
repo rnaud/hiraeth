@@ -100,6 +100,8 @@ export function gaitFeet(animator, speed, out = {}) {
   out.gait = A.gaitW;
   const sweep = A.footSpeed * Math.max(A.gaitW, 0.05);
   out.warp = sweep > 0.05 ? clamp(speed / sweep, 0.4, 1.25) : 1;
+  // (motion-captured feet swing low: lift them clear while the matcher leads: feet.js)
+  out.minClear = A.mmW > 0 ? 0.045 * A.mmW : 0;
   return out;
 }
 
