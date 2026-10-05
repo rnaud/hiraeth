@@ -7,6 +7,9 @@ The same release notes shown in the game (press **N** or open settings).
 - Vael II, the Sky Stones, looks more like its drawings: the shade on its rock, its plain and its monasteries is one flat grey-blue whatever their colour, the needles keep a clean light side with few strokes in shade, the undersides of the mushroom caps are the darkest places, and the sky is clear, with no bank of clouds on the horizon. Its flowers and its people keep their own colours in shade.
 - Cliffs, needles and rock faces everywhere are hatched with strokes running down the face, as an inker draws rock, and the shade under a cap or an overhang no longer curls into wood grain.
 - The References scenes now include Vael II: thirty-one views from its six sheets, the needles on peach and aqua skies, the balanced eggs, the monasteries on their cliffs and floating islands, the mushrooms over the sea of cloud and the plain with its lone tower.
+- Shadows have a third, darkest tone, as in the drawings: deep pockets in shade, between ribs and pipes, inside machines and under overhangs, fill with a near-black mass of the world’s darkest colour, and long shadows thrown by big masses go a little deeper. Lit areas stay clean; faces and people never go black.
+- The Buried Machine’s deep machinery and the rust canyon’s shadows are darker and richer, rust-brown and deep teal, as in its drawings.
+- The References scenes now include the Buried Machine: twenty-two views from its four sheets, the domes and pipes in the dunes, the rust canyon and its ovals, the teal drum open to the sky, the hanging city and the ring of arches.
 
 ## v0.63 — 2026-10-05
 

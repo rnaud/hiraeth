@@ -22,6 +22,16 @@ const TAU = Math.PI * 2;
 const nA = createNoise2D(1983);
 const nB = createNoise2D(4417);
 
+// ---------------------------------------------------------- the look (its reference sheets)
+/**
+ * The sheets fill the machine's deep interiors with near-black masses and print its cast shadows dark:
+ * the spot-black tier a little wider than the print's (post.js uSpot), cast shadows most of the way to
+ * its tone, a dark rust-brown keeping some of each surface's colour (rust stays rust, teal teal).
+ */
+/** The day's colours: sage over cream, blue-grey shadows. */
+export const BURIED_DAY = ['#b3c4ab', '#f1e8cf', '#8e9fb2', '#fffaf0', '#fff6dc'];
+export const BURIED_SPOTS = { uSpot: [1, 3.5, 0.27, 0.45], uSpotTone: [0.19, 0.13, 0.12, 0.55] };
+
 // ---------------------------------------------------------- layout
 const FLOOR = -34;                   // canyon floor
 const W = 22;                        // half-width of the walkable canyon floor
@@ -966,7 +976,7 @@ export function* buildBuried(scene) {
     camYaw: 0,
     limit: 1000,
     features: { mount: false, wind: false, jetpack: true, climb: true },
-    defaults: { hour: 10.5, preset: 'Moebius print', cloudShadows: 0.35 },
+    defaults: { hour: 10.5, preset: 'Moebius print', cloudShadows: 0.35, look: { ...BURIED_SPOTS } },
     life: {
       flocks: [{ count: 6, color: '#f3ead2', size: 2.2, radius: 120, height: [40, 90], speed: 0.05, seed: 11 }],
       motes: { count: 140, color: '#e9dcc0', size: 0.05, rise: 0.05, wind: [0.6, 0.2] },
@@ -974,7 +984,7 @@ export function* buildBuried(scene) {
     },
     sky: {
       script: {
-        day: ['#b3c4ab', '#f1e8cf', '#8e9fb2', '#fffaf0', '#fff6dc'],     // sage over cream, blue-grey shadows
+        day: BURIED_DAY,     // sage over cream, blue-grey shadows
         dusk: ['#a8ab92', '#f3c39a', '#8a7c9e', '#ffe0c0', '#ffe2b8'],
         night: ['#1e2c34', '#3f5660', '#33485a', '#93aab2', '#f2f0e6'],
       },

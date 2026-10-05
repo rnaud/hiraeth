@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { sharedUniforms, SHADE } from './materials.js';
+import { sharedUniforms, SHADE, SPOT } from './materials.js';
 
 // ---------------------------------------------------------------------------
 // Moebius / Sable composite pass.
@@ -125,6 +125,11 @@ const fragmentShader = /* glsl */ `
   uniform float uShadowFlat;      // shadows printed in their own colour (0: albedo × tint .. 1: the tint at the surface's value)
   uniform vec4 uHaze;             // the far ground's haze colour, a = how much (0: the sky's horizon)
   uniform float uShadeKeep;       // how much of its own hue a shade keeps where its material doesn't say (materials.js SHADE)
+  // spot blacks (SPOT): x how much (0 off), y the pocket's size (m), z how enclosed a shaded point must be
+  // to go black (0..1), w how far cast shadows darken toward the spot tone (0..1); the tone: rgb, a how much
+  // of the surface's own colour it keeps
+  uniform vec4 uSpot;
+  uniform vec4 uSpotTone;
 
   in vec2 vUv;
   out highp vec4 fragColor;
@@ -269,6 +274,29 @@ const fragmentShader = /* glsl */ `
       ao += max(dot(nV, v / max(dist, 1e-4)) - 0.2, 0.0) * (1.0 - smoothstep(R * 0.6, R * 1.6, dist));
     }
     return clamp(ao / 8.0 * 2.2, 0.0, 1.0);
+  }
+
+  // ---------------------------------------------------------------- spot blacks
+  // How enclosed a point is, at the scale of a pocket (R metres): from fixed directions round it in
+  // screen space (no jitter: the estimate is smooth from pixel to pixel, so a hard threshold of it is a
+  // clean-edged mass), the share of the neighbours standing in front of its face. taps: 8, or 4 (handheld).
+  float enclosure(vec2 uv, vec3 nW, float d, float R, int taps) {
+    vec3 P = viewPos(uv, d);
+    vec3 nV = normalize(transpose(mat3(uCamWorld)) * nW);
+    float rpx = clamp(R * uProj11 * 0.5 * uRes.y / d, 4.0, 96.0);
+    float occ = 0.0;
+    for (int i = 0; i < 8; i++) {
+      if (i >= taps) break;
+      float a = 0.39 + float(i) * 6.2832 / float(taps);
+      float rr = rpx * ((i / 2) * 2 == i ? 1.0 : 0.55);
+      vec2 suv = uv + vec2(cos(a), sin(a)) * rr / uRes;
+      float sd = texture(tNormal, suv).w;
+      if (sd <= 0.0) continue;   // the sky: open
+      vec3 v = viewPos(suv, sd) - P;
+      float dist = length(v);
+      occ += smoothstep(0.12, 0.5, dot(nV, v / max(dist, 1e-4))) * (1.0 - smoothstep(R * 1.5, R * 3.0, dist));
+    }
+    return occ / float(taps);
   }
 
   // ---------------------------------------------------------------- planets
@@ -472,6 +500,10 @@ const fragmentShader = /* glsl */ `
     // the shade's tone, packed over the strokes (materials.js SHADE): r += 2 (1 + hue step), g += 2 lift step
     vec2 shadeQ = floor(surface.rg * 0.5);
     surface.rg -= 2.0 * shadeQ;
+    // a material's own spot-black amount, packed over its drawn detail (materials.js SPOT): b += 4 × step
+    float spotQ = floor(surface.b * 0.25);
+    surface.b -= 4.0 * spotQ;
+    float spotMat = spotQ > 0.5 ? (spotQ - 1.0) / ${SPOT.steps}.0 : 1.0;
     float shadeLift = shadeQ.y / ${SHADE.lifts}.0;
     // (hue steps past the hues: the material's own flat print, materials.js SHADE.flats)
     bool ownFlat = shadeQ.x > ${SHADE.hues + 1}.5;
@@ -514,6 +546,7 @@ const fragmentShader = /* glsl */ `
     if (uDebug == 3) { fragColor = vec4(isSky ? vec3(0.0) : N.rgb * 0.5 + 0.5, 1.0); return; }
     if (uDebug == 4) { fragColor = vec4(vec3(isSky ? 1.0 : pow(depth / 3000.0, 0.4)), 1.0); return; }
     if (uDebug == 5) { fragColor = vec4(vec3(isSky ? 1.0 : A.a), 1.0); return; }
+    if (uDebug == 9) { fragColor = vec4(vec3(isSky ? 1.0 : 1.0 - enclosure(uv, N.xyz, depth, uSpot.y, 8)), 1.0); return; }   // spot blacks: how enclosed
     if (uDebug == 8) { fragColor = vec4(vec3(isSky ? 1.0 : 1.0 - texture(tHatch, uv).b), 1.0); return; }
     if (uDebug == 7) { vec3 H = texture(tHatch, uv).rgb; fragColor = vec4(vec3(1.0 - max(max(H.r, H.g), H.b)), 1.0); return; }
     if (uDebug == 1) {
@@ -673,6 +706,22 @@ const fragmentShader = /* glsl */ `
         ink = max(ink, smoothstep(0.6, 0.9, ao) * 0.45 * innerK);
         // the deepest crevices (between ribs, into a hull's machinery) filled solid, as an inker does
         col = mix(col, uInk * 1.15, smoothstep(0.72, 0.97, ao) * uCrevice * (1.0 - L * 0.5) * innerK);
+      }
+
+      // ---- 3c. spot blacks: the third tier of value. A shaded point enclosed at the scale of a pocket
+      // (between ribs or pipes, into a hull, a city's recesses) is filled with a near-black mass of the
+      // world's darkest tone, hard-edged; cast shadows darken toward it (uSpot.w). Never on a face, a
+      // person, grass or a light; never in the light (the sheets keep their lit areas clean).
+      if (uSpot.x > 0.0 && lit < 0.5 && spotMat > 0.0 && depth < 600.0 && face + figure + hero + soft < 0.5 && emitHere < 0.5) {
+        vec3 spotC = uSpotTone.rgb * mix(vec3(1.0), clamp(albedo * 2.2, 0.0, 1.6), uSpotTone.a);
+        float k = uSpot.x * spotMat * (1.0 - uNight * 0.5) * (1.0 - smoothstep(350.0, 600.0, depth)) * (1.0 - uFlatten);
+        float encl = enclosure(uv, N.xyz, depth, uSpot.y, uPostLite > 0.5 ? 4 : 8);
+        float spot = smoothstep(uSpot.z - 0.03, uSpot.z + 0.03, encl) * (1.0 - shadeLift);
+        // in cast shadow (facing the sun, yet dark): toward the spot tone, keeping its strokes
+        float castK = smoothstep(0.05, 0.2, dot(N.xyz, uSunDir)) * (1.0 - shadeLift) * uSpot.w;
+        col = mix(col, spotC, castK * k);
+        col = mix(col, spotC, spot * k);
+        if (uDebug == 10) { fragColor = vec4(castK * k, spot * k, 0.2, 1.0); return; }   // spot blacks: the cast (red) and spot (green) masks
       }
 
       // ---- 4. atmospheric perspective, in flat layers like a printed background
@@ -848,6 +897,8 @@ export function createPost() {
     uPaper: { value: 0 },
     uShadowFlat: { value: 0 },
     uHaze: { value: [1, 1, 1, 0] },
+    uSpot: { value: [0, 2.5, 0.5, 0] },
+    uSpotTone: { value: [0.17, 0.15, 0.19, 0.4] },
     uGrain: { value: 0.1 },
     uDebug: { value: 0 },
   };
@@ -969,14 +1020,14 @@ export const PRESETS = {
     uLineWidth: 1.5, uLineVary: 1, uDepthThresh: 0.07, uNormalThresh: 0.22, uAlbedoEdges: 1, uShadowEdges: 1,
     uWobble: 1.0, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 5.5, uHighlight: 0, uGrain: 0.1, uClouds: 0.6,
     uFogDensity: 0.0011, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
-    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0],
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
   },
   // Sable: a fine, almost uniform pen line, flat colour, sparse dotting
   Sable: {
     uLineWidth: 1.25, uLineVary: 0.25, uDepthThresh: 0.07, uNormalThresh: 0.3, uAlbedoEdges: 0, uShadowEdges: 0,
     uWobble: 0.0, uBoil: 0, uHatch: 0.6, uShadeStyle: 1, uHatchSpacing: 8, uHighlight: 0.05, uGrain: 0.04, uClouds: 0.5,
     uFogDensity: 0.0009, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
-    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0],
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
   },
   // a Moebius print: flat stippled sky, cumulus on the horizon, dotted ground,
   // fine even ink, dense fine hatching in blue shadow
@@ -987,32 +1038,34 @@ export const PRESETS = {
     // the shade in three tones: a form turned from the sun a half-tone, faces turned down lifted by
     // the ground's light, cast shadows the full tint; shades keep some of their own hue
     uHalftone: 0.35, uBounce: 0.4, uShadeKeep: 0.3, uCrevice: 0.85, uPaper: 0.7, uShadowFlat: 0, uHaze: [1, 1, 1, 0],
+    // a third tier of value: spot blacks in the shaded pockets, cast shadows a little deeper
+    uSpot: [1, 3, 0.3, 0.2], uSpotTone: [0.17, 0.15, 0.19, 0.4],
   },
   // high-key, bone-white, heavy cast shadows, few lines
   Vael: {
     uLineWidth: 1.35, uLineVary: 0.9, uDepthThresh: 0.08, uNormalThresh: 0.35, uAlbedoEdges: 0.4, uShadowEdges: 1,
     uWobble: 1.2, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 4.5, uHighlight: 0, uGrain: 0.12, uClouds: 0.25,
     uFogDensity: 0.0008, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
-    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0],
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
   },
   // Moebius at his cleanest: flat colour, thin lines, light dotting only
   Viridel: {
     uLineWidth: 1.05, uLineVary: 0.6, uDepthThresh: 0.07, uNormalThresh: 0.28, uAlbedoEdges: 1, uShadowEdges: 0.4,
     uWobble: 0.4, uBoil: 0, uHatch: 0.5, uShadeStyle: 1, uHatchSpacing: 8, uHighlight: 0.06, uGrain: 0.05, uClouds: 0.7,
     uFogDensity: 0.0008, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
-    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0],
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
   },
   // twilight swamp: dense hatching, glowing crystals carry the light
   Lorn: {
     uLineWidth: 1.45, uLineVary: 1, uDepthThresh: 0.07, uNormalThresh: 0.24, uAlbedoEdges: 1, uShadowEdges: 1,
     uWobble: 1.0, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 5, uHighlight: 0, uGrain: 0.1, uClouds: 0.5,
     uFogDensity: 0.0012, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
-    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0],
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
   },
   'Animated ink': {
     uLineWidth: 1.7, uLineVary: 1, uDepthThresh: 0.07, uNormalThresh: 0.2, uAlbedoEdges: 1, uShadowEdges: 1,
     uWobble: 1.6, uBoil: 1, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 5, uHighlight: 0, uGrain: 0.14, uClouds: 0.7,
     uFogDensity: 0.0011, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
-    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0],
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
   },
 };

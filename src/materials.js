@@ -113,6 +113,14 @@ export const sharedUniforms = {
 //          Packed in the hue's steps past the hues (hue steps 1 + hues + 1 … + flats: a material
 //          says its flat print or its hue, not both)
 // ---------------------------------------------------------------------------
+/**
+ * Spot blacks (post.js uSpot, uSpotTone): a material may say how much of the world's spot-black tier
+ * it takes (makeMaterial({ spot }), 0..1 in `steps` steps; unsaid: the world's). Packed over its drawn
+ * detail: gHatch.b += 4 × (1 + step) (the detail stays under 2, the half-float holds it). A cloud says 0.
+ */
+export const SPOT = { steps: 2 };
+/** The step packed for a material's spot amount (0: the world's). */
+export const spotStep = (spot) => (spot === undefined || spot === null || spot < 0 ? 0 : 1 + Math.round(Math.min(spot, 1) * SPOT.steps));
 export const SHADE = { lifts: 15, hues: 8, flats: 5, band: 0.42, warm: [1.06, 0.98, 0.9], slip: [0.16, 0.36] };   // slip: the ground's slope (1 - n.y) over which sand hatches fully
 /**
  * A material's shade: [lift, hue (-1: the world's), hatch amount, strata strokes]. Metal keeps its own
@@ -517,6 +525,7 @@ const fragmentShader = /* glsl */ `
   uniform vec3 uSkyHorizon;
   uniform vec3 uEnvGround;
   uniform float uNight;
+  uniform float uSpotStep;  // its spot-black amount's step (SPOT: 0 the world's)
   uniform vec4 uShade;      // the material's shade: lift, hue (-1: the world's), hatch amount, strata strokes (SHADE, shadeOf)
   uniform float uHalftone;
   uniform float uBounce;
@@ -1616,7 +1625,7 @@ const fragmentShader = /* glsl */ `
     }
     #endif
     detail = max(detail, patInk);
-    gHatch.b = detail;
+    gHatch.b = detail + 4.0 * uSpotStep;
     gHatch.a = max(max(uGlow, emit), smoothstep(0.15, 0.6, local) * 0.6) + 2.0 * uHero + 4.0 * uFigure;
     // a face (its skin and its eyes, and the neck's skin under it): post.js shades it in a warm tone of
     // its own (FACE_SHADE) and leaves out the line round its shade and the crease shading
@@ -1722,6 +1731,7 @@ const cache = new Map();
  * @param {number}  [o.shadeHue] 0..1: how much of its own hue its shade keeps (default: the world's, uShadeKeep)
  * @param {number}  [o.shadeFlat] 0..1: its shade printed flat in the world's shadow colour at its value (default:
  *                              the world's, uShadowFlat; a material saying it keeps the world's hue)
+ * @param {number}  [o.spot]    0..1: how much of the world's spot blacks it takes (SPOT; default the world's)
  * @param {number}  [o.hatch]   how many hatch strokes its shade gets (1 all, 0 none: a flat tone)
  * @param {number}  [o.strataHatch] strata rock: runs of strokes along its beds in the light (0..1)
  * @param {boolean|number} [o.glyphs] the makers' carved inscriptions (src/glyphs.js) on upright faces, in
@@ -1817,6 +1827,7 @@ export function makeMaterial(o) {
       uFaceKit: { value: new THREE.Vector4(1, 1, 0, 1) },
       uFaceKit2: { value: new THREE.Vector4(1, 1, 0, -0.03) },   // eye size, nose width, cheeks, the ears' z
       uShade: { value: new THREE.Vector4(...shadeOf(o)) },
+      uSpotStep: { value: spotStep(o.spot ?? (o.glow > 0 || o.glass ? 0 : undefined)) },   // (a self-lit or glass surface never goes black)
     },
   });
   mat.vertexColors = !!o.vertexColors;
