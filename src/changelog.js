@@ -3,6 +3,14 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.46', date: '2026-10-05', items: [
+    'The ship’s floor is flat now: walking the deck no longer lifts you over doorways or up onto stools, the bench or the bed.',
+    'The ship’s doorway no longer flickers as the camera moves.',
+    'The crashed ship in the desert now sits upright in the sand, so its floor is level.',
+    'The reactor column is gone from the middle of the ship: a small holo table stands there, showing the planet you’re on (in the opening, the one below you).',
+    'The ship’s main room is smaller and cosier, sized for one pilot.',
+    'The ship feels lived in: lockers, a galley with a stove and sink, a pantry covered in notes, crates strapped down, instrument racks by the window, cables overhead, plants, and a jacket thrown over the desk chair.',
+  ] },
   { v: '0.45', date: '2026-10-05', items: [
     'The ship now has a reason for its route: whatever struck it left a magnetic signature in the scar on the hull, and the ship flies only to worlds that carry the same signature.',
     'The galactic map marks every signature world with the glyph, shows its reading, and explains the signature beside the chart.',
