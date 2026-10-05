@@ -1,0 +1,273 @@
+.github/workflows/android.yml
+  s_1fd8d0e7b02dcf::t_abc29d46df1190 3-5,45-46,53-66
+README.md
+  s_1fd8d0e7b02dcf::t_efb14c9de79839 314-317,416-419,471,621,1434-1446,1458,1469,1472-1577,1894-1940,2028-2030,2053,2208-2249,2444-2488,2846,3912-4137
+TODO.md
+  s_1fd8d0e7b02dcf::t_062936c4034356 279-285,488-501,627-684,701,703-729
+android/app/build.gradle
+  s_1fd8d0e7b02dcf::t_f01b88180552d3 20-22,58,65-74
+android/app/src/main/AndroidManifest.xml
+  s_1fd8d0e7b02dcf::t_2fa00446dc5360 2-6,16-17,19-20,39-49
+android/app/src/main/assets/memento-ext/content.js
+  s_1fd8d0e7b02dcf::t_bdf5f7622c0f9e 1-43
+android/app/src/main/assets/memento-ext/manifest.json
+  s_1fd8d0e7b02dcf::t_9d36a84c2c4d78 1-11
+android/app/src/main/java/com/rnaud/moebius/AppShell.java
+  s_1fd8d0e7b02dcf::t_9c8f02de01614f 1-80
+android/app/src/main/java/com/rnaud/moebius/AppShellPlugin.java
+  s_1fd8d0e7b02dcf::t_c8c618c4cfd19e 9-14,19,22-28,32,35,38,41,44
+android/app/src/main/java/com/rnaud/moebius/AssetServer.java
+  s_1fd8d0e7b02dcf::t_83ee949919d73b 1-195
+android/app/src/main/java/com/rnaud/moebius/GamepadBridge.java
+  s_1fd8d0e7b02dcf::t_d55b6431c26a77 19-21,23-26,35-47,135,141,143-145,148
+android/app/src/main/java/com/rnaud/moebius/MainActivity.java
+  s_1fd8d0e7b02dcf::t_864c9d6a089a38 3-9,12-15,20,22,27-79,82-96,100-106,108,110-149,151-154,157-182,186-235,239-322,326,328-329,338,340-341,343-348
+android/app/src/main/java/com/rnaud/moebius/SaveImport.java
+  s_1fd8d0e7b02dcf::t_e0689cecfd7b4f 1-99
+android/app/src/main/java/com/rnaud/moebius/WebBundles.java
+  s_1fd8d0e7b02dcf::t_b035066b7cbb0d 16,56-62,74-84,87,119,183,232,257,265,271-272,296,299,302,320,507-509
+android/app/src/main/java/com/rnaud/moebius/WebViewActivity.java
+  s_1fd8d0e7b02dcf::t_80cd4fc59732c7 1-139
+android/app/src/main/res/xml/network_security_config.xml
+  s_1fd8d0e7b02dcf::t_02c381fc003bb2 1-8
+android/build.gradle
+  s_1fd8d0e7b02dcf::t_6e546fb0c5f922 24-28
+android/gradle.properties
+  s_1fd8d0e7b02dcf::t_3ba72b3146d534 23-25
+android/variables.gradle
+  s_1fd8d0e7b02dcf::t_d382cbf198a423 3,16-17
+changelog.md
+  s_1fd8d0e7b02dcf::t_ef0b6fc6d8dadc 5-30,36,42-44
+docs/benchmark-web-vs-unity.md
+  s_1fd8d0e7b02dcf::t_d349757399d8df 191-320
+docs/makehuman.md
+  s_1fd8d0e7b02dcf::t_439b3edefe7da3 1,19,22-26,71-72,83-88,93-94,97-207,211-226,229,231-232,234,236-239,241-246,251-260,264-285
+index.html
+  s_1fd8d0e7b02dcf::t_a52ab2234bebe3 24-32,34-40,106,108-110,112-113,138-139,281,283-284,289-303,305-309,311,313-324,394,396,414-418,449,451,483,493
+public/anim/mh/LICENSE-MakeHuman-CC0.txt
+  s_1fd8d0e7b02dcf::t_631cd2827ac1d8 1-3,5-9,11-15,20
+public/anim/mh/body.json
+  s_1fd8d0e7b02dcf::t_3a83df6b919849 1
+scripts/bench/android-engines-stats.mjs
+  s_1fd8d0e7b02dcf::t_2a51bd66232925 1-63
+scripts/bench/android-engines-summary.mjs
+  s_1fd8d0e7b02dcf::t_e244c1372e15cc 11,18-20,22
+scripts/bench/android-engines.mjs
+  s_1fd8d0e7b02dcf::t_d7b6c483711727 7-13,15-16,25,30,34,40-42,46-47,50-52,60-62,71,100-103,114-116,140,188-198,201-214,247-248,318-328,408,410,416-417,420,448-454,469-471,473-474,483-484,489,503,522,524,542,554,560-575,585-586,597-599
+scripts/bench/android-gecko-summary.mjs
+  s_1fd8d0e7b02dcf::t_f03c98cd726992 1-90
+scripts/bench/gecko-apk.sh
+  s_1fd8d0e7b02dcf::t_8e11d8ccfc6a8d 1-29
+scripts/bench/gecko-app/app/build.gradle
+  s_1fd8d0e7b02dcf::t_b6a0d30bca93dd 1-27
+scripts/bench/gecko-app/app/src/main/AndroidManifest.xml
+  s_1fd8d0e7b02dcf::t_77ea1c3c3e6c2c 1-26
+scripts/bench/gecko-app/app/src/main/assets/ext/content.js
+  s_1fd8d0e7b02dcf::t_775f695aa93932 1-34
+scripts/bench/gecko-app/app/src/main/assets/ext/manifest.json
+  s_1fd8d0e7b02dcf::t_9999d733025a44 1-11
+scripts/bench/gecko-app/app/src/main/java/com/rnaud/memento/gecko/AssetServer.java
+  s_1fd8d0e7b02dcf::t_6a4299961260c7 1-129
+scripts/bench/gecko-app/app/src/main/java/com/rnaud/memento/gecko/MainActivity.java
+  s_1fd8d0e7b02dcf::t_bdc19ead401f14 1-209
+scripts/bench/gecko-app/app/src/main/java/com/rnaud/memento/gecko/PadBridge.java
+  s_1fd8d0e7b02dcf::t_dccca01d4dda4b 1-125
+scripts/bench/gecko-app/app/src/main/res/values/strings.xml
+  s_1fd8d0e7b02dcf::t_8781dbbcf9c680 1-2
+scripts/bench/gecko-app/build.gradle
+  s_1fd8d0e7b02dcf::t_e8da3a5e2d8421 1
+scripts/bench/gecko-app/gradle.properties
+  s_1fd8d0e7b02dcf::t_15c1cb5c1ffa4a 1-2
+scripts/bench/gecko-app/settings.gradle
+  s_1fd8d0e7b02dcf::t_5db40e80c85c4b 1-12
+scripts/bench/gecko-bridge.mjs
+  s_1fd8d0e7b02dcf::t_697c28d79fd910 1-145
+scripts/bench/passes.mjs
+  s_1fd8d0e7b02dcf::t_5b73bb8149b5bb 1-197
+scripts/bench/report.mjs
+  s_1fd8d0e7b02dcf::t_29dc99d975064c 14-15,17-19
+scripts/bench/results/android-gecko.json
+  s_1fd8d0e7b02dcf::t_fb90b5c0170664 1-8653
+scripts/bench/rooms.mjs
+  s_1fd8d0e7b02dcf::t_af3d4e30546231 1-70,72-75
+scripts/bench/serve.mjs
+  s_1fd8d0e7b02dcf::t_7a03e306e9b9a9 6-7,9,11,14,18-49
+scripts/bench/webview-apk.sh
+  s_1fd8d0e7b02dcf::t_e3ef95056f0d77 6,36-43
+scripts/handheld-perf/lib.mjs
+  s_1fd8d0e7b02dcf::t_7a1d4ed3c78dde 105
+scripts/makehuman/build.py
+  s_1fd8d0e7b02dcf::t_18b1f39d67d471 2-32,45,51,53-55,59,61-62,74,77-125,129-132,144-148,156,163,165-177,179-186,188,221,225-226,238-239,246-252,255-259,261-262,277-295,297-299,301-365,368-370,374,377,379-380,385-392,394,398-483,492-511,513-539
+scripts/makehuman/build.sh
+  s_1fd8d0e7b02dcf::t_38a05ee6e7a66f 1-15
+scripts/makehuman/fetch.sh
+  s_1fd8d0e7b02dcf::t_745d9731bcae3b 39-40,44
+scripts/makehuman/glb-sizes.mjs
+  s_1fd8d0e7b02dcf::t_3e3275cd0951a7 2
+scripts/makehuman/hair.py
+  s_1fd8d0e7b02dcf::t_0fb6d4e65d338a 1-398
+scripts/makehuman/pack.py
+  s_1fd8d0e7b02dcf::t_38b635fb51e6c6 1-157
+scripts/makehuman/skin-audit.mjs
+  s_1fd8d0e7b02dcf::t_c03a0739c99792 22-24,37-38,43-44
+scripts/transition-perf/loading.mjs
+  s_1fd8d0e7b02dcf::t_627e24cdb57dea 136
+src/audio.js
+  s_1fd8d0e7b02dcf::t_cf70c1b1c11126 13,862-896,1078-1089,1184-1186
+src/boxes/index.js
+  s_1fd8d0e7b02dcf::t_945ddfc5ffe777 262
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_636166100e6b53 6-29,34,40-42
+src/controller.js
+  s_1fd8d0e7b02dcf::t_7e32b63f9ab1c3 6,16,136-137,185-186
+src/desert-city.js
+  s_1fd8d0e7b02dcf::t_96134b581cd68b 4,152,174,176,665-673,809-811
+src/desert-landmarks.js
+  s_1fd8d0e7b02dcf::t_4ff4084a6f8ede 4,135,161,181
+src/desert-sites.js
+  s_1fd8d0e7b02dcf::t_3b2f3979bbc269 66-68
+src/fluid-tool.js
+  s_1fd8d0e7b02dcf::t_6f767e514d46b1 930-931,1070-1071,1073,1211-1231
+src/ground-ink.js
+  s_1fd8d0e7b02dcf::t_f65b86ede95ab6 24-29,82-84,91,151-158
+src/hud.js
+  s_1fd8d0e7b02dcf::t_7b24476a2b76c0 1-112
+src/humanoid.js
+  s_1fd8d0e7b02dcf::t_e5b15a696b9ecc 502-503,545,569,603,783,809-810,813,816
+src/levels/arzach.js
+  s_1fd8d0e7b02dcf::t_64dc86c47e4c5b 5,299-303
+src/levels/buried.js
+  s_1fd8d0e7b02dcf::t_39d8557fb3866e 5,954-959
+src/levels/desert.js
+  s_1fd8d0e7b02dcf::t_1946c9fe5b0ec3 16-18,29-32,70-72,89-90
+src/levels/incal.js
+  s_1fd8d0e7b02dcf::t_2ebbb5150378cc 83,893-894
+src/levels/lab-kit.js
+  s_1fd8d0e7b02dcf::t_f397011f0f7c18 5,72
+src/levels/reference-desert.js
+  s_1fd8d0e7b02dcf::t_346c825fde74a3 1-535
+src/levels/reference-kit.js
+  s_1fd8d0e7b02dcf::t_055e5ec98ae7b1 1-236
+src/levels/reference-shaft.js
+  s_1fd8d0e7b02dcf::t_c14dde9b4f34fe 1-542
+src/levels/reference-views.js
+  s_1fd8d0e7b02dcf::t_e0089577e5b320 3-9,41-44,73-75,135,137,298-301,361-362,366,419,461-464
+src/levels/references.js
+  s_1fd8d0e7b02dcf::t_2fd6ff24374839 7-8,27,35-40,48,73-74,78,171-173,176-177,197,333-334,336,393
+src/main.js
+  s_1fd8d0e7b02dcf::t_71e9995e871054 9-10,23,43,244,304-306,328-332,418,427,431,451,458,470-478,493-494,541,745,762-764,895-898,902-912,914-924,941-942,957,962,1033-1034,1072,1220-1221,1224,1291,1387-1388,1581
+src/makehuman/body.js
+  s_1fd8d0e7b02dcf::t_caa1de00b7bc57 1,3-18,21,23,25,37-278,280-316,318-320,322-324,326,330-340
+src/makehuman/face-keys.js
+  s_1fd8d0e7b02dcf::t_3af34b14ed7c58 1,3,5,51,53,73-74
+src/makehuman/hair.js
+  s_1fd8d0e7b02dcf::t_2b93ac1b0c5e06 1-199
+src/makehuman/people.js
+  s_1fd8d0e7b02dcf::t_0b578beafe4b87 1-111
+src/makehuman/shape.js
+  s_1fd8d0e7b02dcf::t_d5f06378762c86 1-163
+src/materials.js
+  s_1fd8d0e7b02dcf::t_672180737c08c2 8,88-94,97-133,237,245-257,278-280,504-507,512-514,761-786,843,863-864,869-883,888-931,1101-1113,1120,1124-1129,1245-1260,1392-1395,1398-1405,1487-1492,1511-1513,1531-1541,1543-1545,1547,1623,1649-1659,1670-1681,1703-1712,1764-1768,1805
+src/menus.css
+  s_1fd8d0e7b02dcf::t_6eeba190c0004f 247-266
+src/npc.js
+  s_1fd8d0e7b02dcf::t_66965538dddb1b 110-111
+src/observatory.js
+  s_1fd8d0e7b02dcf::t_f9e9d16055b216 112,114-118
+src/passage.js
+  s_1fd8d0e7b02dcf::t_2af21fcc66673f 24,360-363
+src/perf.js
+  s_1fd8d0e7b02dcf::t_4d5da20aea264e 237-331,396-415
+src/post.js
+  s_1fd8d0e7b02dcf::t_0001f9203b0ff2 2,123-127,162-163,388-390,394-396,398,472-476,479-481,574,581,627-637,671-672,681-683,703-704,756-763,840-847,969,976,981,984-986,993,1000,1007,1013
+src/prompt-keys.js
+  s_1fd8d0e7b02dcf::t_59f7ca52d47320 2-3
+src/quest.js
+  s_1fd8d0e7b02dcf::t_29cc834725b001 6-8,85-87,91,170,172,183-184,225-227,277-280,284,286,288-289,291-292,295,297-299,302,304-305
+src/sand-drifts.js
+  s_1fd8d0e7b02dcf::t_f9a56c2a37474c 1-348
+src/scout.js
+  s_1fd8d0e7b02dcf::t_2e349e493fa80a 11-23,42,51-53,55,81-91,93-94,117-124,126-127,131,137,143-147,152-153,174,176-179,182-184,186,188-209,334,336,347,357-368,371,377,386,401-406,408-416,426,433,445,451,458-486,495-540
+src/ship/cinema.js
+  s_1fd8d0e7b02dcf::t_952b53a7ad6caf 13-14,34,189,294-295,298-300,316,319,340,347-349,351
+src/ship/model.js
+  s_1fd8d0e7b02dcf::t_79a7aadf5eefd2 16
+src/skinned-lod.js
+  s_1fd8d0e7b02dcf::t_321f771859eb73 60-62
+src/story/desert-data.js
+  s_1fd8d0e7b02dcf::t_195eb0e8ab4431 740-748
+src/story/desert-moments.js
+  s_1fd8d0e7b02dcf::t_5f8a902838695b 1-217
+src/story/desert.js
+  s_1fd8d0e7b02dcf::t_ffbaf6b74965f8 11,103,284,287-288,290-291,439-457,467-468,470-471,473,479-480,880,885,931
+src/story/index.js
+  s_1fd8d0e7b02dcf::t_213b18d9595af8 6,137-139,191-192,202,219-221,223
+src/story/moment.js
+  s_1fd8d0e7b02dcf::t_76c344aa985d47 1-262
+src/story/quests.js
+  s_1fd8d0e7b02dcf::t_b3abeadb247fe6 33-34,37,46-47,114-117,231-235,249,251-252,254-255
+src/studio/main.js
+  s_1fd8d0e7b02dcf::t_7aa93ead507665 31-33,181-182,191-201,204,206-213,226-230,245-251,260-261,828-829,833,957
+src/studio/makehuman.js
+  s_1fd8d0e7b02dcf::t_487c1972147f99 1-2,4-11,13-14,17-18,20-37,39-41,44-46,49-52,55-58,61-62,64-81,86-92
+src/ui.js
+  s_1fd8d0e7b02dcf::t_6c549de5e9704b 26-27,34,46-52,54-55,57-83,87-92,95-97,99,101,105-106,109,118-122,128,150-151,153-157,180,182,192-194,200,205-206,214-233,236-238,240-241,248,255-256,260-269,272-273,286,378,381-382,386,388,390-392,403-407,410,415-426,428-429
+src/water-shader.js
+  s_1fd8d0e7b02dcf::t_069174cde13a88 35-40,130-133
+src/water.js
+  s_1fd8d0e7b02dcf::t_086daba315edda 364-366
+src/world.js
+  s_1fd8d0e7b02dcf::t_1ea7c5790c0459 160-164
+tests/android-gecko.test.js
+  s_1fd8d0e7b02dcf::t_d7ac338dccc31e 1-100
+tests/android-ota.test.js
+  s_1fd8d0e7b02dcf::t_631bfb3085b84e 149
+tests/cape.test.js
+  s_1fd8d0e7b02dcf::t_6a0c0165161995 41-43
+tests/drone.test.js
+  s_1fd8d0e7b02dcf::t_21f06624712045 230,232
+tests/hud-cleanup.test.js
+  s_1fd8d0e7b02dcf::t_1c6f4f4272ec61 77-78,80-82,84-85,90,92,97-98,100,103-104,106-111
+tests/hud.test.js
+  s_1fd8d0e7b02dcf::t_5ea6ce1e2cb338 1-219
+tests/interior-cull.test.js
+  s_1fd8d0e7b02dcf::t_bd03412c03b173 1-121
+tests/makehuman.test.js
+  s_1fd8d0e7b02dcf::t_47492ddc4f67ab 5,9-13,18-21,27,29,31-33,36-38,44,46-73,75-90,93-95,97,99-105,113,117-126,128-240,253-256,272,275-287,289
+tests/moment.test.js
+  s_1fd8d0e7b02dcf::t_02be8d988c23c1 1-245
+tests/native-app.test.js
+  s_1fd8d0e7b02dcf::t_d9bdf967804df2 16-22
+tests/passage.test.js
+  s_1fd8d0e7b02dcf::t_5cf4a05a42211a 122-131
+tests/quality.test.js
+  s_1fd8d0e7b02dcf::t_8ffa89fbaed2db 4,103-117
+tests/references.test.js
+  s_1fd8d0e7b02dcf::t_c814d01f687364 6,41-42,46-47,119-160
+tests/sand-drifts.test.js
+  s_1fd8d0e7b02dcf::t_9c9603d55a5dd4 1-96
+tests/scout.test.js
+  s_1fd8d0e7b02dcf::t_2782c711b538a6 4,8,18-38,49,52-54,56-78,80-102,177,184-185,187,191
+tests/shade.test.js
+  s_1fd8d0e7b02dcf::t_0ace207fdaf849 1-86
+tests/surface-spec.test.js
+  s_1fd8d0e7b02dcf::t_b758d97d7d859c 64-69,89
+vite.config.js
+  s_1fd8d0e7b02dcf::t_5987c05f91dd53 17-20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6fb24014ac43eee64c293a2a8fe0cf83f80517bd",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
