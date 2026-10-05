@@ -1,0 +1,53 @@
+scripts/unity-export/export-desert.mjs
+  s_1fd8d0e7b02dcf::t_fe2d73e9564f3e 72-74,79-80
+scripts/unity-export/people.mjs
+  s_1fd8d0e7b02dcf::t_d64ffa8f99362b 68-69,71-72,74,76-77,84-86,98-103,140,142-152,222-248
+unity/Memento/Assets/Memento/Runtime/BatchDriver.cs
+  s_1fd8d0e7b02dcf::t_2be12023c16576 170-217
+unity/Memento/Assets/Memento/Runtime/BoxScene.cs
+  s_1fd8d0e7b02dcf::t_839267a451d7b7 1-191
+unity/Memento/Assets/Memento/Runtime/BoxScene.cs.meta
+  s_1fd8d0e7b02dcf::t_55683c48e5739b 1-2
+unity/Memento/Assets/Memento/Runtime/DesertStory.cs
+  s_1fd8d0e7b02dcf::t_10186c85399f5e 23-26,57,184-193,196-217,360-361
+unity/Memento/Assets/Memento/Runtime/Figures.cs
+  s_1fd8d0e7b02dcf::t_f3b22f0d5ca5fe 74-76,82-87,179
+unity/Memento/Assets/Memento/Runtime/FluidTool.cs
+  s_1fd8d0e7b02dcf::t_dda5818755a5e0 1-292
+unity/Memento/Assets/Memento/Runtime/FluidTool.cs.meta
+  s_1fd8d0e7b02dcf::t_51d463fe0a2f1c 1-2
+unity/Memento/Assets/Memento/Runtime/Game.cs
+  s_1fd8d0e7b02dcf::t_0f3301b81be1d5 28
+unity/Memento/Assets/Memento/Runtime/Hud.cs
+  s_1fd8d0e7b02dcf::t_0d108227ea3af2 31-32
+unity/Memento/Assets/Memento/Runtime/Npc.cs
+  s_1fd8d0e7b02dcf::t_f8c066dd3e9696 110-115,117-118,162-169
+unity/Memento/Assets/Memento/Runtime/Pad.cs
+  s_1fd8d0e7b02dcf::t_4592b751a4daff 15,48-58
+unity/Memento/Assets/Memento/Runtime/Play.cs
+  s_1fd8d0e7b02dcf::t_393fac0e131fc1 62-63,94
+unity/Memento/Assets/Memento/Runtime/Player.cs
+  s_1fd8d0e7b02dcf::t_683b93b2ff187e 31-32,97-100,102-120
+unity/Memento/Assets/Memento/Runtime/WorldLoader.cs
+  s_1fd8d0e7b02dcf::t_3fc84e72ca6dcc 118-133
+unity/Memento/Assets/Memento/Shaders/Figure.hlsl
+  s_1fd8d0e7b02dcf::t_4058f6c39ba33c 214-295
+unity/Memento/Assets/Memento/Shaders/Surface.shader
+  s_1fd8d0e7b02dcf::t_605e344ce41e06 199-208,285,312-313,370
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "cdf1a0d9b17a1adec97870bda59824111f545786",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
