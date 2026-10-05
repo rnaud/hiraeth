@@ -1,0 +1,43 @@
+README.md
+  s_1fd8d0e7b02dcf::t_ba42cd5a1fb321 1422-1456
+TODO.md
+  s_1fd8d0e7b02dcf::t_437a617060bc33 538-567
+changelog.md
+  s_1fd8d0e7b02dcf::t_69dca71b54fb54 10
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_44c0dfb79185aa 10
+src/costumes.js
+  s_1fd8d0e7b02dcf::t_81605e3661513d 301-308
+src/levels/content.js
+  s_1fd8d0e7b02dcf::t_2648fe2b4e871d 14,67-73
+src/levels/index.js
+  s_1fd8d0e7b02dcf::t_2b35a6b5e1cc90 16,99-105
+src/levels/reference-views.js
+  s_1fd8d0e7b02dcf::t_dd13403662a299 1-537
+src/levels/references.js
+  s_1fd8d0e7b02dcf::t_0c9b204affdb8b 1-385
+src/main.js
+  s_1fd8d0e7b02dcf::t_3cf23412753d1c 925-926
+src/native-pad.js
+  s_1fd8d0e7b02dcf::t_e5448ca6a66ad6 116
+src/reactive-world.js
+  s_1fd8d0e7b02dcf::t_ecf09952698faa 24,169
+tests/references.test.js
+  s_1fd8d0e7b02dcf::t_62bb7ae21ca0f3 1-116
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6f4d18d41743a11320b4a6b2e9147f6502d6804f",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
