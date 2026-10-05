@@ -10,6 +10,12 @@ import { stepped } from '../load-steps.js';
 
 // A street-level city, separate from the City-Shaft. Repeated details are
 // merged by street block and material so the mobile renderer can cull them.
+/** The world's touches on the print preset: few strokes, fine even lines (its reference sheets). */
+export const MARKET_LOOK = { uHatch: 0.18, uLineWidth: 0.85, uWobble: 0.1, uGrain: 0.025 };
+/** The day's colours: aqua sky, a pale horizon, teal shade, warm light. */
+export const MARKET_DAY = ['#a4d7d1', '#e1e6c6', '#70969e', '#fff1cf', '#ffe1ae'];
+/** How flat the walls' shade is printed in the street's teal (makeMaterial shadeFlat: a pink wall's turned side goes blue, as the sheets print it, not brown). */
+export const MARKET_FLAT = 0.85;
 export const SIGNAL = { x: 0, z: -255, deckY: 44, approachZ: -234 };
 export const BRIDGES = [{ z: 25, y: 19 }, { z: -90, y: 25 }, { z: -190, y: 72 }, { z: -330, y: 64 }];
 // (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
@@ -17,11 +23,12 @@ export function* buildBazaar(scene) {
   const rng = mulberry32(20261004), buckets = new Map(), reactiveScreens = [];
   const colors = ['#f0a083', '#e4bd83', '#8dbbb9', '#94a9bd', '#ebce98'];
   const mat = (color, extra = {}) => makeMaterial({ color, flat: true, ...extra });
-  const coral = mat('#f0a083', { grid: 12, weathered: 0.7 }), teal = mat('#88b4b5', { grid: 9, weathered: 0.7 });   // (old painted plaster: materials.js WEATHER)
-  const ink = mat('#465c65', { metal: 'painted' }), cream = mat('#f5dfab'), brass = mat('#c99758', { metal: 'brass' });
-  const paving = mat('#a4c1be', { grid: 10 }), lilac = mat('#b9a9c5');
+  const PRINT = { shadeFlat: MARKET_FLAT };
+  const coral = mat('#f0a083', { grid: 12, weathered: 0.7, ...PRINT }), teal = mat('#88b4b5', { grid: 9, weathered: 0.7, ...PRINT });   // (old painted plaster: materials.js WEATHER)
+  const ink = mat('#465c65', { metal: 'painted' }), cream = mat('#f5dfab', PRINT), brass = mat('#c99758', { metal: 'brass' });
+  const paving = mat('#a4c1be', { grid: 10 }), lilac = mat('#b9a9c5', PRINT);
   const dark = mat('#3a535b', { metal: 'painted' }), glow = mat('#fff0bd', { glow: 0.75 });
-  const shop = colors.map(c => mat(c, { weathered: 0.7 }));
+  const shop = colors.map(c => mat(c, { weathered: 0.7, ...PRINT }));
   function add(geo, material, solid = true) {
     geo.computeBoundingBox(); const z = geo.boundingBox.getCenter(new THREE.Vector3()).z;
     const key = `${Math.floor(z / 75)}:${material.uuid}:${solid}`;
@@ -76,7 +83,7 @@ export function* buildBazaar(scene) {
   // Tower canyon. Setbacks and exposed service stacks break up the slabs.
   for(let row=0;row<9;row++) for(const side of [-1,1]) {
     const z=105-row*60, x=side*(54+(row%3)*3), h=125+rng()*130, w=34+rng()*7;
-    const body = row%3===0 ? coral : row%3===1 ? teal : mat(colors[(row+(side+1))%5],{grid:11,weathered:0.7});
+    const body = row%3===0 ? coral : row%3===1 ? teal : mat(colors[(row+(side+1))%5],{grid:11,weathered:0.7,...PRINT});
     box(x,h/2,z,w,h,43,body);
     box(x,h+7,z,w*.7,14,31,body);
     box(x+side*5,h+23,z,1.4,32,1.4,ink,false);
@@ -102,7 +109,7 @@ export function* buildBazaar(scene) {
   // A second row creates a skyline above side streets.
   for(let i=0;i<22;i++) {
     const side=i%2?1:-1, x=side*(108+rng()*95),z=140-Math.floor(i/2)*62,h=160+rng()*150;
-    box(x,h/2,z,25+rng()*18,h,34,mat(colors[i%5],{grid:14,weathered:0.7}));
+    box(x,h/2,z,25+rng()*18,h,34,mat(colors[i%5],{grid:14,weathered:0.7,...PRINT}));
     box(x,h+19,z,2,38,2,cream,false);
   }
   // Distant slender needle behind the square, framed by the foreground towers.
@@ -281,8 +288,8 @@ export function* buildBazaar(scene) {
     id:'bazaar', floraAvoid:(x,z,r)=>Math.abs(x)<17+r||z>98-r,   // the flora keeps to the pavements (src/flora.js)
     reactiveScreens, signal, ground:{heightAt:()=>0}, spawn:new THREE.Vector3(0,.1,88), spawnHeading:Math.PI,camYaw:0,camPitch:.02,
     features:{mount:false,wind:false,jetpack:true,climb:true,taxis:true}, vehicles, flammables,
-    limit:700,killY:-20, defaults:{hour:11.5,preset:'Moebius print',cloudShadows:0,look:{uHatch:.18,uLineWidth:.85,uWobble:.1,uGrain:.025}},
-    sky:{script:{day:['#a4d7d1','#e1e6c6','#70969e','#fff1cf','#ffe1ae'],dusk:['#9dabc3','#ffc5a2','#887b9e','#ffd6aa','#ffe5c2'],night:['#243e59','#587581','#55547c','#8daec0','#f9e3ac']}},
+    limit:700,killY:-20, defaults:{hour:11.5,preset:'Moebius print',cloudShadows:0,look:MARKET_LOOK},
+    sky:{script:{day:MARKET_DAY,dusk:['#9dabc3','#ffc5a2','#887b9e','#ffd6aa','#ffe5c2'],night:['#243e59','#587581','#55547c','#8daec0','#f9e3ac']}},
     lightAt(p,dir){ if(dir.y>0){dir.set(.12,1,.18).normalize();} },
     atmo:(x,z,y)=>({tint:[1,1,1],fog:.65,name:y>35?'Above the market':z<-190?'Signal Square':'The lantern market'}),
     life:{motes:{count:70,color:'#ffe3aa',size:.035,rise:.1,wind:[.2,0]}},

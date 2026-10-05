@@ -227,3 +227,49 @@ the narrowest creases.
   and bushes are dense hatched masses; ours are smooth tubes and lumps.
 - **Left, scene level**: the nest of eggs in the great cap, the cave mouths' framing, the roots' tangle,
   the bushes on the banks and the lily pads are sketches.
+
+## The Signal Market's sheets (IMG_3801–3808)
+
+- **The views** (`src/levels/reference-market.js`, `MARKET_VIEWS`): IMG_3801–3804 (one plate each),
+  IMG_3805 (6 panels), IMG_3806 (3), IMG_3807 (4), IMG_3808 (4), views 149–169 after Lorn II's. One
+  scene builder (`marketScene`): a street between two rows of towers (boxes and drums of pink, teal,
+  cream and lilac, set-back bands and crowns, pipes running up their faces and machinery boxes clinging
+  to them: greebles for the spot blacks), painted billboards, skybridges with their trusses, railings,
+  pipes and walkers, market stalls with awnings and goods, flying cabs, cables, a crowd, the traveller
+  seen from behind, a far spire on the axis. The views draw in `MARKET_VIEW_LOOK` (the world's look,
+  a clean sky, the shade printed flat). `?look=bazaar`.
+- **On the world** (`bazaar.js`): the walls, shops and blocks print their shade flat in the street's
+  teal (`shadeFlat`, `MARKET_FLAT` 0.85): a pink wall's turned side goes blue-grey, as on the sheets,
+  instead of dark brown; people, metal and lamps keep theirs. `MARKET_LOOK` and `MARKET_DAY` exported.
+- **Left, shader level**: the sheets' walls are dense with fine line detail (panel seams, vents, signs
+  in a hand's lettering) at every scale; ours are plain faces with a grid. The billboards are painted
+  illustrations; ours are a few flat shapes. Far towers fade to a pale warm haze on the sheets.
+- **Left, scene level**: the crowd (the sheets' hundreds of drawn people; ours are cylinders), the
+  stalls' heaps of goods and signs, the aliens in the foreground, the cabs' shapes.
+
+## Across the worlds: the shader gaps that recur
+
+Ranked by how much they would close the gap to the sheets, across every world rebuilt:
+
+1. **Detail lines at every scale** (all eight worlds): the sheets carry fine pen detail inside every
+   surface (panel seams, vents, cracks, bark, rock grain, leaf clusters), denser near and thinning with
+   distance, so a plain face never reads as plain. Ours draw outlines, creases and a few patterns.
+   A per-material "detail density" of procedural pen marks (seams and small rectangles on built
+   surfaces, grain strokes on organic ones), faded by screen size as the weathering is.
+2. **Outline weight and colour per material** (Vael II's clouds, Lorn II's reeds, the Spheres' foliage,
+   the Market's billboards): the sheets draw soft things (cloud, reeds, foliage, glass) in thin,
+   lighter, coloured lines and solid things in black. Ours use one ink for everything, so soft shapes
+   read as hard. A per-material line weight and tint packed into the G-buffer (as the shade is).
+3. **Aerial layers by depth** (Lorn II's mist, the City-Shaft's shaft, the desert's far dunes, the
+   Market's far towers): the sheets separate planes by stepped pale bands of a warm or cool haze; our
+   fog is one exponential tint (`uHaze` helps the desert). Stepped haze layers with their own colour per
+   world, and a fog by height for shafts and woods.
+4. **Hatching that follows the form** (Vael II's and the Spheres' caps radiate, the Buried Machine's
+   tanks wrap, rock runs down the face): strata now run down faces; radial and wrapping strokes need a
+   per-vertex axis (a cap's centre, a cylinder's axis) in merged geometry.
+5. **Cast shadows by world** (the desert's ink masses, Vael II's and Lorn II's near-absent ones): the
+   spot tier's `uSpot.w` darkens them; a world knob to lighten or drop them (the sheets often omit a
+   cast shadow on open ground) would let the plains read as the sheets do.
+6. **Per-face colour variation** (the Market's and the City-Shaft's towers, the desert's domes): the
+   sheets vary a wall's colour in big flat patches (a repaint, a sunlit plane); ours are one albedo per
+   material (`color2`, `color3` only in strata).

@@ -257,3 +257,27 @@ test('Lorn II\'s sheets after the Garden of Spheres\', panel by panel, named for
   const { WORLD_LOOKS } = await import('../src/levels/references.js');
   assert.ok(WORLD_LOOKS.lorn2, '?look=lorn2');
 });
+
+test('the Signal Market\'s sheets after Lorn II\'s, every panel, and the world\'s walls printed flat in its teal', async () => {
+  const counts = { IMG_3801: 1, IMG_3802: 1, IMG_3803: 1, IMG_3804: 1, IMG_3805: 6, IMG_3806: 3, IMG_3807: 4, IMG_3808: 4 };
+  for (const [s, n] of Object.entries(counts)) {
+    const views = REFERENCE_VIEWS.filter((v) => v.sheet === s);
+    assert.equal(views.length, n, `${s}: ${n} panels`);
+    assert.deepEqual(views.map((v) => v.panel), Array.from({ length: n }, (_, i) => i + 1));
+    assert.equal(REFERENCE_SHEETS[s].name, `The Signal Market / ${s}.JPG`);
+    for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+      const [ax, ay, aw, ah] = views[i].crop, [bx, by, bw, bh] = views[j].crop;
+      assert.ok(ax + aw <= bx || bx + bw <= ax || ay + ah <= by || by + bh <= ay, `${s}: panels ${i + 1} and ${j + 1} apart`);
+    }
+  }
+  const world = REFERENCE_VIEWS.map((v) => REFERENCE_SHEETS[v.sheet].name.split(' / ')[0]);
+  assert.equal([...new Set(world)].at(-1), 'The Signal Market');
+  assert.equal(world.filter((w) => w === 'The Signal Market').length, 21);
+  const { MARKET_FLAT } = await import('../src/levels/bazaar.js');
+  assert.ok(MARKET_FLAT > 0.5);
+  const { readFile } = await import('node:fs/promises');
+  const src = await readFile(new URL('../src/levels/bazaar.js', import.meta.url), 'utf8');
+  assert.ok((src.match(/\.\.\.PRINT/g) ?? []).length >= 5, 'the walls and shops print their shade flat');
+  const { WORLD_LOOKS } = await import('../src/levels/references.js');
+  assert.ok(WORLD_LOOKS.bazaar, '?look=bazaar');
+});

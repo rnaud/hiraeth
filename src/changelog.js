@@ -6,6 +6,10 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '0.71', date: '2026-10-06', items: [
+    'In the Signal Market the shaded sides of the pink and cream towers turn the street’s cool teal, as in its drawings, instead of a dark brown.',
+    'The References scenes now include the Signal Market: twenty-one views from its eight sheets, the canyon of towers and billboards, the skybridges, the stalls, the cabs and the crowd. Every reference sheet of every world is now in the References.',
+  ] },
   { v: '0.70', date: '2026-10-06', items: [
     'People wear many more kinds of headwear: wide and narrow-brimmed hats, flat straw hats, bowlers, peaked and flat caps, knit caps, fur hats with their ear-flaps down, aviators’ caps, kerchiefs and headscarves, small round caps, circlets, miners’ hard hats with a lamp, and hoods thrown back on the shoulders. On their faces and necks: round spectacles, dark glasses, cloths over the mouth, desert face-wraps, now and then a monocle, neckerchiefs, thick mufflers and goggles hung round the neck.',
     'Each world wears its own: wraps, veils, face-wraps and straw hats in the desert; bowlers on the City-Shaft’s rim, caps, knit caps and goggles further down, ear-flaps and kerchiefs at the bottom; aviators’ caps in the Hangar, hard hats under the Buried Machine, circlets in the gardens, flat caps, knit caps and headscarves in the Signal Market. People in the crowds far off wear them too.',
