@@ -144,6 +144,80 @@ export function keeperModel({ shell = '#efe2c6', plate = '#e2c9a2', belly = '#d9
   return M;
 }
 
+/**
+ * Vael II's Cloud-Mother (organic: you calm it): a great pale sky-whale that rose with the stones when the
+ * bell stopped and has not come down since. She swims in the air of her hall, fins like sails, a fringe of
+ * cloud along her back; when she cries she sinks low, her mouth open. Floating: `floats` (the guardian keeps
+ * her at the arena's height plus `hover`).
+ */
+export function whaleModel({ skin = '#d8d4e6', belly = '#f3ead8', fin = '#c4bedb', dark = '#4a4a5e', puff = '#fbf7ee', glow = '#70e7df' } = {}) {
+  const group = new THREE.Group();
+  const mat = vc();
+  const glowM = makeMaterial({ color: glow, glow: 0.15, flat: true, key: `whale.glow.${uid++}` });
+  const eyeM = makeMaterial({ color: dark, flat: true, key: `whale.eye.${uid++}` });
+  const body = new THREE.Group();
+  group.add(body);
+  const puffs = [];
+  for (let i = 0; i < 9; i++) puffs.push(ell([0.9 + (i % 3) * 0.25, 0.7, 0.9], puff, [Math.sin(i * 2.1) * 0.6, 2.35 + (i % 2) * 0.2, -3.5 + i * 0.95], null, [8, 5]));
+  body.add(new THREE.Mesh(merge(
+    ell([3.0, 2.5, 6.2], skin, [0, 0, 0], null, [18, 10]),
+    ell([2.6, 1.6, 5.4], belly, [0, -0.95, 0.4], null, [16, 8]),
+    puffs,
+    cone(0.5, 2.2, fin, [-0.6, 2.6, -0.5], [-0.5, 0, 0.4]), cone(0.5, 2.2, fin, [0.6, 2.6, -0.5], [-0.5, 0, -0.4]),
+  ), mat));
+  // glyph spots along her flanks: dim while she is afraid
+  const spots = [];
+  for (let i = 0; i < 6; i++) for (const s of [-1, 1]) spots.push(glyphGeometry(0.85, 0.08).rotateY(s * Math.PI / 2).translate(s * 2.95, 0.4 - (i % 2) * 0.5, -3.2 + i * 1.3));
+  body.add(new THREE.Mesh(merge(...spots.map((g) => (g.index ? g.toNonIndexed() : g))), glowM));
+  // the fins: long soft sails that row the air
+  const fins = [];
+  for (const s of [-1, 1]) {
+    const f = new THREE.Group();
+    f.position.set(s * 2.6, -0.4, 1.2);
+    body.add(f);
+    f.add(new THREE.Mesh(merge(ell([2.8, 0.18, 1.5], fin, [s * 2.4, 0, -0.4], [0, s * 0.3, 0])), mat));
+    fins.push({ f, s });
+  }
+  const tail = new THREE.Group();
+  tail.position.set(0, 0.2, -6.0);
+  body.add(tail);
+  tail.add(new THREE.Mesh(merge(ell([0.9, 0.7, 1.6], skin, [0, 0, -1.2]), ell([2.6, 0.16, 1.0], fin, [0, 0.1, -2.6])), mat));
+  // the head end: small dark eyes, a long mouth that opens
+  const eyes = new THREE.Mesh(merge(ell([0.2, 0.24, 0.12], '#ffffff', [-1.9, 0.5, 4.6]), ell([0.2, 0.24, 0.12], '#ffffff', [1.9, 0.5, 4.6])), eyeM);
+  body.add(eyes);
+  const jaw = new THREE.Group();
+  jaw.position.set(0, -0.9, 3.4);
+  body.add(jaw);
+  jaw.add(new THREE.Mesh(merge(ell([2.0, 0.45, 2.6], belly, [0, -0.2, 1.4])), mat));
+  noCollide(group);
+  const mouth = V(), _w = V();
+  const M = {
+    group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, floats: true, hover: 6,
+    mouth, mouthR: 1.8, radius: 4.2, height: 5.2, bodyR: 3.4,
+    body, fins, tail, jaw, glowM, eyeM, open: 0, low: 0, swim: 0,
+    animate(dt, t, { state, attack, k = 0, speed = 0, meter = 0 }) {
+      const ease = (cur, want, rate) => cur + (want - cur) * Math.min(1, dt * rate);
+      const id = attack?.id;
+      const asleep = state === 'sleep', weary = state === 'weary', resolved = state === 'resolved';
+      // how high she swims: high and wary; low when she cries; on the floor, worn out; up again, calm
+      M.low = ease(M.low, asleep ? 0.4 : weary ? 1 : state === 'open' ? 0.75 : id === 'dive' ? Math.min(1, k * 1.3) * (k >= 1 ? 1 : 0.6) : resolved ? 0.1 : 0, 2.5);
+      M.hover = THREE.MathUtils.lerp(7.5, 2.3, M.low) + Math.sin(t * 0.8) * 0.4;
+      M.open = ease(M.open, state === 'open' ? 1 : id === 'gust' && k > 0.5 ? 0.6 : 0, 5);
+      M.swim += dt * (0.8 + speed * 0.6);
+      body.rotation.z = Math.sin(M.swim * 0.7) * 0.08;
+      body.rotation.x = Math.sin(M.swim * 0.5) * 0.05 + (state === 'open' ? -0.15 : 0);
+      for (const F of fins) F.f.rotation.z = F.s * (Math.sin(M.swim * 1.6) * 0.35 * (weary ? 0.3 : 1) - 0.1);
+      tail.rotation.x = Math.sin(M.swim * 1.6 + 1) * 0.3;
+      jaw.rotation.x = M.open * 0.5 + (state === 'open' ? Math.sin(t * 6) * 0.05 : 0);
+      const calm = resolved ? 1 : meter;
+      glowM.uniforms.uGlow.value = 0.12 + 0.75 * calm + (calm < 0.5 ? Math.max(0, Math.sin(t * 7)) * 0.08 : 0.06 * Math.sin(t * 1.3));
+      group.updateMatrixWorld(true);
+      mouth.copy(jaw.localToWorld(_w.set(0, 0, 2.6)));
+    },
+  };
+  return M;
+}
+
 /** The sentinel (robot: you may break it). parts: a tall body on three legs, a ring of vents, a lamp-eye. */
 export function sentinelModel({ hull = '#9fb2c6', hull2 = '#8aa0b8', dark = '#34405e', brass = '#e2b552', eye = '#f6c84e' } = {}) {
   const group = new THREE.Group();

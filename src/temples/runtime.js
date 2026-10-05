@@ -87,6 +87,7 @@ export class TempleRuntime {
   init(physics) {
     this.physics = physics;
     for (const p of this.pieces) p.init?.(physics);
+    this.change?.init?.(physics);
   }
 
   /** The story hook: who plays, what they hear, where the words go. */
@@ -100,6 +101,7 @@ export class TempleRuntime {
     this.offs.push(this.game.on('box:opened', ({ id } = {}) => { if (id === this.def.gadgetBox) { this.logic.takeGadget(); this.game.emit('temple:gadget', { id: this.id }); } }));
     const cp = this.game.flag(`temple.${this.id}.checkpoint`);
     if (cp) this.checkpoint = this.marks.find((m) => m.room === cp) ?? null;
+    this.def.onConnect?.(this);
   }
 
   /** A short line on the screen (once per key, when a key is given). */
@@ -200,7 +202,7 @@ export class TempleRuntime {
     if (!el) {
       el = this.meterEl = document.createElement('div');
       el.className = 'temple-meter';
-      el.style.cssText = 'position:fixed;left:50%;top:calc(14px + var(--safe-top, 0px));transform:translateX(-50%);z-index:30;pointer-events:none;'
+      el.style.cssText = 'position:fixed;left:50%;bottom:calc(26px + var(--safe-bottom, 0px));transform:translateX(-50%);z-index:30;pointer-events:none;'
         + 'font:700 11px/1.2 ui-monospace,Menlo,monospace;letter-spacing:.14em;color:#2b211f;text-transform:uppercase;text-align:center;opacity:0;transition:opacity .6s;';
       const robot = G.def.kind === 'robot';
       const label = document.createElement('div');

@@ -10,6 +10,7 @@
 export const TEMPLE_BOXES = [
   ['desert.temple.fire', 'fire'],
   ['incal.temple.jetpack', 'jetpack'],
+  ['arzach2.temple.bell', 'bell'],
 ];
 
 export function migrateTemples(g) {

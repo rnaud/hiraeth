@@ -419,7 +419,10 @@ export class Platform {
 }
 
 export class Bridge {
-  /** o: { id, a, b: [x, y, z] the walkway's ends (its top), w, n: stones } */
+  /**
+   * o: { id, a, b: [x, y, z] the walkway's ends (its top), w, n: stones, from: 'below' | 'above' }
+   * from 'above': the stones hang high over the gap (they fell up), bobbing, and come down into place.
+   */
   constructor(rt, o) {
     this.rt = rt; this.id = o.id;
     const K = rt.kit, M = rt.M, w = o.w ?? 3.6, n = o.n ?? 7;
@@ -427,6 +430,7 @@ export class Bridge {
     this.stones = [];
     this.root = new THREE.Group();
     rt.root.add(this.root);
+    this.from = o.from ?? 'below';
     const blocks = [];
     for (let i = 0; i < n; i++) {
       const c = a.clone().lerp(b, (i + 0.5) / n);
@@ -457,14 +461,26 @@ export class Bridge {
     if (!open && this.handle) { this.physics.removeCollider?.(this.handle); this.handle = null; }
     if (!instant) this.rt.rumble?.(2.2, 0.4);
   }
-  apply() {
-    for (const s of this.stones) {
-      const k = this.open ? ease(THREE.MathUtils.clamp((this.time - s.delay) / 1.1, 0, 1)) : 0;
-      s.g.position.y = s.y - (1 - k) * 14;
-      s.g.visible = k > 0.001;
+  apply(t = 0) {
+    const above = this.from === 'above';
+    for (const [i, s] of this.stones.entries()) {
+      const k = this.open ? ease(THREE.MathUtils.clamp((this.time - s.delay) / (above ? 2.2 : 1.1), 0, 1)) : 0;
+      if (above) {
+        // hanging up there, each at its own height, bobbing; then down into the walkway
+        const hang = 9 + (i % 3) * 1.6 + Math.sin(t * 0.6 + i * 1.7) * 0.5;
+        s.g.position.y = s.y + (1 - k) * hang;
+        s.g.rotation.z = (1 - k) * Math.sin(i * 2.3) * 0.25;
+        s.g.visible = true;
+      } else {
+        s.g.position.y = s.y - (1 - k) * 14;
+        s.g.visible = k > 0.001;
+      }
     }
   }
-  update(dt) { if (this.open && this.time < 4) { this.time += dt; this.apply(); } }
+  update(dt, t) {
+    if (this.open && this.time < 6) { this.time += dt; this.apply(t); }
+    else if (!this.open && this.from === 'above') this.apply(t);
+  }
 }
 
 // ---------------------------------------------------------------------------------------- marks and pits

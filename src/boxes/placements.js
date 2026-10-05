@@ -55,7 +55,9 @@ export const PLACEMENTS = {
   ],
   arzach: [
     // the nearest capped needle spire, 240 m north: a long climb or a landing on the bird
-    { id: 'arzach.bell', item: 'bell', at: [17.9, 59.5, 239.9], toward: [0, 0],
+    // It held the bell-note whistle until the Founders' Belfry was built (src/temples/arzach2.js): the bell belongs
+    // to the bell world, and is the belfry's key now. The spire keeps the hush-cloth, a gift in the open
+    { id: 'arzach.hush', item: 'hush', at: [17.9, 59.5, 239.9], toward: [0, 0],
       hint: 'A makers’ box sits on the flat cap of the needle spire north of the landing. Climb it, or land the bird on top',
       note: 'The flat cap of the needle spire north of the spawn; climb it or land the bird on it.' },
   ],
@@ -64,6 +66,10 @@ export const PLACEMENTS = {
     { id: 'arzach2.glider', item: 'glider', at: [35, 65.3, -43.5], toward: [0, 22],
       hint: 'A makers’ box teeters on the top stone of the balanced stack on the starting plateau. Climb the stones',
       note: 'The top stone of the balanced stack on the starting plateau: a teetering climb.' },
+    // the Founders' Belfry (src/temples/arzach2.js): in the bell chamber half-way up. The whistle is the key to the
+    // rest: the bell-tuned doors, the stones that come down into a bridge, the Cloud-Mother's calm
+    { id: 'arzach2.temple.bell', item: 'bell', temple: 'arzach2', site: (level) => level.temple?.gadgetSite,
+      note: 'Inside the Founders’ Belfry, out of the cloud west of the starting plateau, in the round chamber over the stone stair.' },
   ],
   garage: [
     // on the keep's south curtain wall, facing the spawn (a 14 m climb)

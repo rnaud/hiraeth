@@ -134,7 +134,7 @@ export class Guardian {
       position: () => model.mouth, enabled: () => fighting() || this.state === 'weary',
       onHit: (mode, point, dir, info) => this.hit('mouth', mode, dir, info) }));
     this.offs.push(registerTarget({ kind: def.kind === 'robot' ? 'sentinel' : 'guardian', radius: model.bodyR ?? (model.radius ?? 2.6) * 0.75, accepts: ['fire', 'stun'],
-      position: () => (this._body ??= V()).copy(model.pos).addScaledVector(UP, (model.height ?? 3) * 0.5), enabled: () => fighting(),
+      position: () => (this._body ??= V()).copy(model.pos).addScaledVector(UP, model.floats ? 0 : (model.height ?? 3) * 0.5), enabled: () => fighting(),
       // (a glob that lands on the body close to the mouth counts as the mouth: the two overlap at the neck)
       onHit: (mode, point, dir, info) => this.hit(point && point.distanceTo(model.mouth) < (model.mouthR ?? 1.2) * 1.8 ? 'mouth' : 'body', mode, dir, info) }));
     if (def.final === 'touch') {
@@ -218,9 +218,16 @@ export class Guardian {
     const m = this.model;
     // on the floor under it (the cistern's basin is a little lower than its rim)
     const ph = this.rt.physics;
-    if (ph) { const g = ph.groundAt(m.pos.x, this.arena.y + 2.5, m.pos.z, 6); if (Number.isFinite(g)) m.pos.y = Math.max(this.arena.y - 2, g); }
-    this.solid.pos = m.pos;
-    this.solid.bottom = m.pos.y; this.solid.top = m.pos.y + (m.height ?? 3);
+    if (m.floats) {
+      // it swims in the air of its hall: its body (centred on pos) at the arena's height plus its hover
+      m.pos.y = this.arena.y + (m.hover ?? 5);
+      this.solid.pos = m.pos;
+      this.solid.bottom = m.pos.y - (m.height ?? 3) / 2; this.solid.top = m.pos.y + (m.height ?? 3) / 2;
+    } else {
+      if (ph) { const g = ph.groundAt(m.pos.x, this.arena.y + 2.5, m.pos.z, 6); if (Number.isFinite(g)) m.pos.y = Math.max(this.arena.y - 2, g); }
+      this.solid.pos = m.pos;
+      this.solid.bottom = m.pos.y; this.solid.top = m.pos.y + (m.height ?? 3);
+    }
     m.group.position.copy(m.pos);
     m.group.rotation.y = m.heading;
   }

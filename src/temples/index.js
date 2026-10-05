@@ -6,6 +6,8 @@ import { DESERT_TEMPLE } from './desert.js';
 import * as DESERT_WORDS from './desert-data.js';
 import { INCAL_TEMPLE } from './incal.js';
 import * as INCAL_WORDS from './incal-data.js';
+import { ARZACH2_TEMPLE } from './arzach2.js';
+import * as ARZACH2_WORDS from './arzach2-data.js';
 
 // The makers' temples: one great building in each world, a Zelda-style
 // dungeon of rooms and puzzles in that world's architecture, with a gadget
@@ -29,6 +31,7 @@ import * as INCAL_WORDS from './incal-data.js';
 export const TEMPLES = {
   desert: { def: DESERT_TEMPLE, words: DESERT_WORDS },
   incal: { def: INCAL_TEMPLE, words: INCAL_WORDS },
+  arzach2: { def: ARZACH2_TEMPLE, words: ARZACH2_WORDS },
 };
 
 /**
@@ -41,8 +44,8 @@ export const GADGETS = {
   desert: { temple: 'fire', world: ['backpack', 'star'], built: true },
   incal: { temple: 'jetpack', world: ['soles'], built: true },
   // planned (LORE.md, "Temples"): until a temple is built its world keeps its box as it was
-  arzach: { temple: 'glider', world: ['hush'], built: false },        // the wings move here from Vael II's stack
-  arzach2: { temple: 'bell', world: ['feather'], built: false },      // the bell moves here from Vael's spire
+  arzach: { temple: 'glider', world: ['hush'], built: false },        // the hush-cloth is on Vael's spire now (the bell went to Vael II); the wings move here once it is built
+  arzach2: { temple: 'bell', world: ['glider'], built: true },         // the bell moved here from Vael's spire (the wings go to Vael's temple, the feather comes then)
   garage: { temple: 'coil', world: ['level'], built: false },
   buried: { temple: 'cell', world: ['resin'], built: false },         // the fourth chamber moves here from Lorn II
   edena: { temple: 'bloom', world: ['pouch'], built: false },         // a new gun mode; the lantern moves to Lorn II
@@ -75,6 +78,7 @@ export function attachTemple(levelId, scene, level, { game = sharedGame } = {}) 
   level.update = function (dt, t, o = {}) {
     update?.call(level, dt, t, o);
     if (o.fade) rt.fadeFn ??= o.fade;
+    rt.change?.late?.(dt, t);   // (after the level's own movers: a change may move what they move)
   };
   return level;
 }

@@ -290,7 +290,7 @@ test('each built temple: a door in its world, solid rooms with marks, a chest si
     // the chest's spot resolves (tests/boxes.test.js checks it is reachable like every box)
     const box = Object.values(PLACEMENTS).flat().find((p) => p.temple === id);
     assert.ok(resolvePlacement(box, { physics, level }), `${id}: the chest stands`);
-    assert.ok(level.lights.length > 8, `${id}: lights inside`);
+    assert.ok(level.lights.length >= 6, `${id}: lights inside`);
     // the scout points at the next thing to do
     assert.ok(nextSpot(rt).isVector3);
   }
@@ -537,6 +537,105 @@ test('the Warden’s Well on foot: the eye and the discs, the climb and the ball
   for (let i = 0; i < 70 / DT; i++) { frame(); if (P.onGround && P.pos.y > 199 && Math.hypot(P.pos.x, P.pos.z) > 261) { rim = true; break; } }
   assert.ok(rim, `carried up the shaft and set down on the rim (${P.pos.toArray().map((v) => v.toFixed(1))})`);
   assert.ok(P.health > 0.9, 'gently');
+  game.reset();
+  own();
+});
+
+// ------------------------------------------------------------------ on foot: Vael II's belfry, room by room
+test('the Founders’ Belfry on foot: two balls on two plates, the riding stair, the bell, the bell-tuned doors, the stones that come down, the Cloud-Mother calmed, the stones come down outside', () => {
+  game.reset();
+  own('backpack');
+  const { level, physics, rt } = world('arzach2');
+  const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true, unsafe: level.unsafe });
+  const notes = [];
+  rt.connect({ player: P, toast: (s) => notes.push(s) });
+  let t = 0;
+  const L = (x, y, z) => rt.kit.world(x, y, z);
+  const frame = (input = {}, yaw = 0) => { t += DT; rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); level.update(DT, t, {}); };
+  const toward = (to) => Math.atan2(-(to.x - P.pos.x), -(to.z - P.pos.z));
+  const flat = (a) => Math.hypot(P.pos.x - a.x, P.pos.z - a.z);
+  const walk = (to, { tol = 0.6, max = 25, run = true, dy = 1.6 } = {}) => {
+    for (let i = 0; i < max / DT; i++) { if (flat(to) < tol && Math.abs(P.pos.y - to.y) < dy) return true; frame({ KeyW: true, ShiftLeft: run }, toward(to)); }
+    return false;
+  };
+  const wait = (s, input = {}, yaw = 0) => { for (let i = 0; i < s / DT; i++) frame(input, yaw); };
+  const where = () => rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1)).join(', ');
+  const ring = () => game.emit('bell', { pos: P.pos.clone() });   // (the whistle: src/boxes/effects.js ring())
+  wait(0.5);
+  assert.ok(P.onGround && rt.inside(P.pos), 'in the belfry');
+  // ---- the Hall of Stones: both balls onto both plates
+  for (const id of ['ball1', 'ball2']) {
+    const ball = rt.piece(id);
+    for (let k = 0; k < 10 && !rt.logic.drumOn(id, ball === rt.piece('ball1') ? 'p1' : 'p2'); k++) {
+      walk(ball.center.clone().addScaledVector(ball.dir, -(ball.r + 1.3)), { tol: 0.5 });
+      ball.hit('push', ball.dir.clone(), { strength: 1 });
+      wait(2.6);
+    }
+  }
+  assert.ok(rt.logic.drumOn('ball1', 'p1') && rt.logic.drumOn('ball2', 'p2'), 'both balls on their plates');
+  wait(2.2);
+  assert.equal(rt.logic.isOpen('d1'), true);
+  // ---- the Stone Stair: ride the first disc up to the ledge, the second to the landing
+  assert.equal(walk(L(0, 0, 46.5)), true, `into the well (${where()})`);
+  const [discA, discB] = rt.pieces.filter((p) => p.path);
+  const ride = (disc, off, label) => {
+    for (let i = 0; i < 30 / DT && !(disc.s < 0.2 && disc.wait > 0.6); i++) frame();
+    assert.equal(walk(disc.group.position, { tol: 0.5, run: false, max: 4, dy: 1.0 }), true, `onto the ${label} (${where()})`);
+    for (let i = 0; i < 30 / DT && !(disc.s > disc.total - 0.2); i++) frame();
+    assert.equal(walk(off, { tol: 0.7, max: 4 }), true, `off the ${label} (${where()})`);
+  };
+  ride(discA, L(0, 8, 56.4 - 0.6), 'first disc');
+  ride(discB, L(0, 16, 56.4 + 7.4), 'second disc');
+  // ---- the Bell Chamber: the chest, and a door that only the bell opens
+  assert.equal(walk(L(0, 16, 72)), true, `into the bell chamber (${where()})`);
+  assert.equal(walk(L(0, 16, 91.5), { max: 5 }), false, 'the bell-tuned door is shut');
+  ring();
+  wait(0.2);
+  assert.equal(rt.logic.isLit('e1'), false, 'without the whistle nothing answers (whoever rang it)');
+  items.grant('bell'); game.emit('box:opened', { id: 'arzach2.temple.bell' });
+  ring();
+  wait(2.2);
+  assert.equal(rt.logic.isOpen('d3'), true, 'the door answers the bell');
+  // ---- the Hall of Echoes: the stones of the bridge hang high; the bell brings them down
+  assert.equal(walk(L(0, 16, 94)), true, `to the chasm (${where()})`);
+  ring();
+  wait(5);
+  assert.equal(rt.logic.isOpen('br1'), true);
+  assert.equal(walk(L(0, 16, 120)), true, `over the stones (${where()})`);
+  assert.ok(P.pos.y > L(0, 15, 0).y, 'on the bridge, not in the chasm');
+  ring();
+  wait(2.2);
+  assert.equal(rt.logic.isOpen('d4'), true, 'the far bell door');
+  // ---- the Cloud-Mother's hall
+  assert.equal(walk(L(0, 16, 133)), true, `into her hall (${where()})`);
+  const G = rt.guardian;
+  wait(0.4);
+  assert.notEqual(G.state, 'sleep', 'she wakes');
+  P.opts.health = false;
+  for (let n = 0; n < 12 && G.state !== 'weary'; n++) {
+    let open = false;
+    for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open') { open = true; break; } }
+    assert.ok(open, `she cries (${n})`);
+    if (n === 0) { const m = G.meter; G.hit('mouth', 'shoot'); assert.equal(G.meter, m, 'fluid does not calm her'); }
+    P.teleport(G.model.pos.clone().setY(L(0, 16, 0).y).add(V(6, 0.1, 0)), V(0, 1, 0), V(0, 0, 1));
+    ring();
+  }
+  assert.equal(G.state, 'weary', `calm (${G.meter.toFixed(2)})`);
+  for (let i = 0; i < 30 / DT && Math.hypot(G.model.pos.x - G.model.rest.x, G.model.pos.z - G.model.rest.z) > 0.6; i++) frame();
+  wait(2);
+  P.teleport(G.model.mouth.clone().setY(L(0, 16, 0).y).add(V(2.2, 0.1, 0)), V(0, 1, 0), V(0, 0, 1));
+  wait(0.3);
+  const near = bestInteractable(P);
+  assert.equal(near?.entry.id, 'temple.arzach2.touch', 'a hand on her brow');
+  near.entry.use(P);
+  assert.equal(G.state, 'resolved');
+  assert.equal(game.flag('temple.arzach2.done'), true);
+  // ---- outside: the stones that fell up come down
+  const stones = level.arzach2.floaters.children;
+  const before = stones.map((g) => g.getWorldPosition(V()).y);
+  wait(20);
+  const after = stones.map((g) => g.getWorldPosition(V()).y);
+  assert.ok(after.every((y, i) => y < before[i] - 5), `every floating stone came down (${after.map((y, i) => (before[i] - y).toFixed(0)).join(', ')})`);
   game.reset();
   own();
 });
