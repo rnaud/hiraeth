@@ -410,12 +410,13 @@ The desert runs in `unity/Memento` (Unity 6, URP): exported from the web game by
 
 All of this is for the web game; the Unity port follows later if we move to Unity.
 
-- [ ] The magic backpack starts empty: no fluid until you reach the skull and fill it there. Clearing
+- [x] The magic backpack starts empty: no fluid until you reach the skull and fill it there. Clearing
   the rubble on the way must work without it (another way through: climb, lever, push by hand…).
-- [ ] The big tree is not burning at first. It only stands there until the well is filled with the
-  magic liquid.
-- [ ] Then a second quest: find the special glowing rock, the only thing that can spark the liquid
-  into flame, and bring it back to light the tree.
-- [ ] The glowing rock is in a cave far away: to reach it you first need to find the hover car
-  (the hoverbike errand), which makes the long trip possible.
-- [ ] A little puzzle in that cave to get the rock.
+  (Done: `tool.empty`; the keepers' pole levers the rib off, three heaves; README "The desert reworked".)
+- [x] The big tree is not burning at first. It only stands there until the well is filled with the
+  magic liquid. (Done: `city.setLit`; the well fills while you watch, the tree stays cold.)
+- [x] Then a second quest: find the special glowing rock, the only thing that can spark the liquid
+  into flame, and bring it back to light the tree. (Done: the spark-stone, set in the well.)
+- [x] The glowing rock is in a cave far away: to reach it you first need to find the hover car
+  (the hoverbike errand), which makes the long trip possible. (Done: the Givers' Hearth, ~1.6 km out.)
+- [x] A little puzzle in that cave to get the rock. (Done: the dark hall, the ball, the grille, the shelf.)
