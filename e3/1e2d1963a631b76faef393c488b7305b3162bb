@@ -1,0 +1,25 @@
+TODO.md
+  s_1fd8d0e7b02dcf::t_9e7dd603f82703 266
+changelog.md
+  s_1fd8d0e7b02dcf::t_5a5c5986187f81 14
+src/boxes/effects.js
+  s_1fd8d0e7b02dcf::t_8d2400e528ea69 21,45,91-98
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_7e1d426b9de9d1 14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e31e2d1963a631b76faef393c488b7305b3162bb",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
