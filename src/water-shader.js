@@ -42,6 +42,7 @@ export const waterShared = {
   uWaterLite: { value: 0 },   // 1: the handheld's low detail (one scale of waves, no caustics, no sparkle; main.js applyDetail)
 };
 
+const SAND = new THREE.Color('#e9dcb4');
 /** A bed map that says "unknown": the shader falls back to uWaterOpt.x of depth everywhere. */
 const NO_BED = new THREE.DataTexture(new Uint16Array([0]), 1, 1, THREE.RedFormat, THREE.HalfFloatType);
 NO_BED.needsUpdate = true;
@@ -49,7 +50,7 @@ NO_BED.needsUpdate = true;
 /**
  * Turn a fresh makeMaterial() water material into the new water: the WATER
  * define and its uniforms. o.bed: the bed's colour seen through the shallows
- * (default: pale sand); o.waterDepth: how deep it looks until its bed is baked;
+ * (default: the shallows' own tone, sandier); o.waterDepth: how deep it looks until its bed is baked;
  * o.waterPrint: a flat printed shape lying on the water (the Garden's mirrored
  * shore), its own colour with the ripples, no depth.
  */
@@ -59,7 +60,7 @@ export function waterMaterial(mat, o = {}) {
     uBed: { value: NO_BED },
     uBedBox: { value: new THREE.Vector4(0, 0, 0, 0) },        // x0, z0, 1 / width, 1 / depth (world)
     uBedRef: { value: new THREE.Vector2(0, 0) },              // the height the map is measured from, 1 once baked
-    uWaterBed: { value: new THREE.Color(o.bed ?? '#e9dcb4') },
+    uWaterBed: { value: o.bed ? new THREE.Color(o.bed) : new THREE.Color(o.color2 ?? o.color).lerp(SAND, 0.55) },   // (by default: the shallows' tone, sandier)
     uWaterOpt: { value: new THREE.Vector4(o.waterDepth ?? 2.4, o.waterPrint ? 1 : 0, o.clarity ?? 1, o.sparkle ?? 1) },
   });
   return mat;

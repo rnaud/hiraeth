@@ -16,7 +16,7 @@ import { KEEPERS } from '../story/perdide2-data.js';
 // ---------------------------------------------------------------------------
 
 const WATER = 0;
-const DEEP = -1.6;              // deeper than this is unsafe on foot (the skiff floats)
+const DEEP = -1.6;              // deeper than this is unsafe on foot (the skiff floats; you swim)
 const PATH_Y = 0.45;            // the dry path bank
 const noise = createNoise2D(3797);
 const noiseB = createNoise2D(3800);

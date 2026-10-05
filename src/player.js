@@ -418,8 +418,8 @@ export class Player {
   /** The jets' gauge 0..1: the tank's reserve when the tool is worn, else the old fuel. */
   get jetFuel() { return this.fuelSource ? this.fuelSource.jetLevel() : this.fuel; }
   notice(text) { this.lastNotice = text; this.onNotice?.(text); }
-  /** Deep enough water here to swim in (src/swim.js): the level's "unsafe" deep water isn't, then. */
-  get swimmable() { return !!this.swim || (this.inWater?.depth ?? 0) >= SWIM.float; }
+  /** In the world's water (src/swim.js): a level's "unsafe" deep water isn't, now that you can swim. */
+  get swimmable() { return !!this.swim || (this.inWater?.over ?? 0) > 0.05; }
   /** Water under you deep enough to break a fall (src/swim.js SWIM.cushion). */
   get cushioned() { return !!this.swim || (this.inWater?.depth ?? 0) >= SWIM.cushion; }
 
