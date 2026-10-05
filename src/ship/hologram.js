@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { buildCharacter } from '../player.js';
-import { Humanoid, FACE } from '../humanoid.js';
+import { Humanoid, FACE, LOWER_FACE } from '../humanoid.js';
 import { Animator } from '../animator.js';
 import { namedLook } from '../costumes.js';
 import { MODE_OUTFIT, MODE_EYE } from '../materials.js';
@@ -240,9 +240,10 @@ const fragmentShader = /* glsl */ `
       float e = uFace.y, ny = uFace.z - uFace.x, cy = uFace.w - uFace.x;
       vec2 lid = (q - vec2(e, 0.004)) / vec2(0.017, 0.008);
       ink = max(ink, inkLine(abs(length(lid) - 1.0) * 0.008 / fw, 1.0) * step(0.0, lid.y + 0.25) * step(abs(lid.x), 1.1));
-      ink = max(ink, inkLine(segDist(q, vec2(0.02, ny - 0.002), vec2(0.034, ny - 0.04)) / fw, 0.8) * 0.6);
+      ink = max(ink, inkLine(segDist(q, vec2(0.021, ny - 0.003), vec2(0.03, ny - 0.03)) / fw, 0.7) * 0.35);
+      // the mouth, its corners a little up (a kind face, as the people's rest: expression.js PEOPLE_REST)
       float my = ny + (cy - ny) * 0.42;
-      vec2 m = vec2(q.x / 0.02, (q.y - my) / (0.0025 + 0.011 * uTalk));
+      vec2 m = vec2(q.x / 0.02, (q.y - my - 0.003 * min(q.x * q.x / 0.0004, 1.0)) / (0.0025 + 0.011 * uTalk));
       ink = max(ink, 1.0 - smoothstep(0.7, 1.0, length(m)));
     }
 
@@ -506,7 +507,7 @@ export class HoloFigure {
     mesh.userData.holo = true;
     // placed in the bind pose (the body's metres, under the nose: humanoid.js FACE), then carried by the head
     const [eyeY, , noseY, noseZ] = FACE[this.kind];
-    const y = eyeY + (noseY - eyeY) * 1.22 - 0.016;
+    const y = eyeY + (noseY - eyeY) * LOWER_FACE - 0.016;
     this.char.root.updateMatrixWorld(true);
     _m.copy(head.matrixWorld).invert().multiply(this.char.root.matrixWorld)
       .multiply(new THREE.Matrix4().makeTranslation(0, y, noseZ - 0.018));

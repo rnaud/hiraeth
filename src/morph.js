@@ -68,17 +68,36 @@ export const FACE_MORPHS = [
   { key: 'lidWeight', label: 'Lid line weight', min: 0.4, max: 2, def: 1, ink: true },
 ];
 
-/** Face variants (FACE_MORPHS values): the studio's dropdown, the Lab's gallery of giant faces (levels/lab.js LAB_FACES). */
+/**
+ * Face variants (FACE_MORPHS values): the studio's dropdown, the Lab's gallery of giant faces (levels/lab.js LAB_FACES).
+ * (Gentle on the whole: the hollow cheeks and the heavy brows are an elder's or a weathered face's, not everyone's.)
+ */
 export const FACE_PRESETS = {
   'As modelled': {},
-  'Gaunt elder': { cheeks: -0.8, faceLength: 1.08, noseLength: 1.3, lines: 1.8, browRidge: 0.6, jaw: 0.92, lidWeight: 1.3 },
+  'Kind': { cheeks: 0.45, faceLength: 0.96, eyeSize: 1.06, jaw: 1.03, browRidge: -0.3, lines: 0.6 },
+  'Gaunt elder': { cheeks: -0.5, faceLength: 1.06, noseLength: 1.25, lines: 1.7, browRidge: 0.4, jaw: 0.94, lidWeight: 1.15 },
   'Round, young': { cheeks: 0.8, faceLength: 0.94, noseLength: 0.8, lines: 0.15, eyeSize: 1.12, jaw: 1.05, chin: -0.3 },
-  'Sharp': { noseLength: 1.4, noseWidth: 0.85, chin: 0.8, jaw: 0.9, cheeks: -0.4, browRidge: 0.5 },
-  'Broad': { jaw: 1.2, headWidth: 1.08, noseWidth: 1.35, chin: 0.2, browRidge: 0.8 },
+  'Sharp': { noseLength: 1.35, noseWidth: 0.88, chin: 0.7, jaw: 0.92, cheeks: -0.15, browRidge: 0.3 },
+  'Broad': { jaw: 1.18, headWidth: 1.07, noseWidth: 1.3, chin: 0.2, cheeks: 0.3, browRidge: 0.4 },
   'Wide-eyed': { eyeSize: 1.25, eyeSpacing: 0.6, lines: 0.4 },
   'Freckled': { freckles: 0.8, lines: 0.5, noseLength: 0.85, noseWidth: 0.9 },
-  'Weathered': { lines: 2, lidWeight: 1.5, cheeks: -0.5, browRidge: 0.7, eyeSize: 0.92 },
+  'Weathered': { lines: 1.8, lidWeight: 1.25, cheeks: -0.2, browRidge: 0.4, eyeSize: 0.96 },
 };
+
+/**
+ * The people's face shapes (costumes.js: a tribe's `faces`, weights; dressFor draws one per person):
+ * the modelled face, a rounder one, a longer one, an elder's (lines only: the same head). Few on
+ * purpose: each shape is a warped copy of the body (Humanoid.warped, shared by everyone wearing it).
+ * On top of the shape every person gets their own ink (dressFor: age lines, mouth width, freckles).
+ */
+export const FACE_TYPES = {
+  plain: {},
+  round: { cheeks: 0.5, faceLength: 0.96, jaw: 1.04, noseLength: 0.92, eyeSize: 1.04 },
+  long: { faceLength: 1.03, noseLength: 1.1, cheeks: 0.1, chin: 0.3 },
+  elder: { lines: 1.7, lidWeight: 1.15 },
+};
+/** The face shapes' odds when a tribe doesn't say. */
+export const FACE_ODDS = { plain: 4, round: 2.5, long: 1.5, elder: 1 };
 
 const neutralOf = (list) => Object.fromEntries(list.map((m) => [m.key, m.def]));
 export const NEUTRAL_BODY = Object.freeze(neutralOf(BODY_MORPHS));

@@ -52,10 +52,11 @@ export const EYE_GLSL = /* glsl */ `
     vec3 c = mix(mix(iris, EYE_INK, 0.6), iris, near);
     // a flat colour ringed by a crisp darker line (a pen circle), as Moebius draws an iris
     c = mix(c, mix(iris, EYE_INK, 0.72), smoothstep(0.8 - aa, 0.8 + aa, r) * near);
-    // the pupil, a round dot, and a small highlight on its upper edge (toward the viewer's left)
+    // the pupil, a round dot, and a catchlight on its upper edge (toward the viewer's left): a clear
+    // white dot that keeps the eye alive, from a few pixels across
     c = mix(c, EYE_INK, (1.0 - smoothstep(0.4 - aa, 0.4 + aa, r)) * near);
-    float hl = 1.0 - smoothstep(0.12 - aa, 0.12 + aa, length(e - vec2(-0.27, 0.3)));
-    c = mix(c, white, hl * smoothstep(4.0, 7.0, rpx));
+    float hl = 1.0 - smoothstep(0.17 - aa, 0.17 + aa, length(e - vec2(-0.26, 0.3)));
+    c = mix(c, mix(white, vec3(1.0), 0.6), hl * smoothstep(3.0, 5.5, rpx));
     return vec4(c, cover);
   }
 `;

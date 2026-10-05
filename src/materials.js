@@ -825,12 +825,13 @@ const fragmentShader = /* glsl */ `
     // a pixel or so across: the whole eye one dark mark
     c = mix(mix(iris, EYE_INK, 0.7), c, smoothstep(0.8, 1.8, 1.0 / max(px, 1e-4)));
     // blinking: the lid (skin) closes from the top, its edge inked
-    // (the model's lids open on the lower part of the ball: from d.y 0.15 down to -0.55)
-    float lid = mix(0.18, -0.62, uEyeLook.w), dy = d.y - lid, fy = max(fwidth(d.y), 1e-4);
+    // (the model's lids open on the lower part of the ball: from d.y 0.15 down to -0.55; the upper
+    // rim lifted by humanoid.js UPPER_LID to about 0.27, so the lid at rest sits just under it)
+    float lid = mix(0.29, -0.62, uEyeLook.w), dy = d.y - lid, fy = max(fwidth(d.y), 1e-4);
     c = mix(c, skin, smoothstep(-fy * 0.5, fy * 0.5, dy));
     // the lash line: a crisp pen line along the lid's edge (Moebius' heavy upper lid), heavier
     // toward the outer corner, coming down with the lid as they blink
-    float lash = fy * uPixelRatio * (1.3 + 0.6 * smoothstep(-0.6, 0.8, d.x * side)) * (1.0 - 0.35 * uMood2.z);   // (lighter on a young face)
+    float lash = fy * uPixelRatio * (1.15 + 0.5 * smoothstep(-0.6, 0.8, d.x * side)) * (1.0 - 0.35 * uMood2.z);   // (lighter on a young face)
     c = mix(c, EYE_INK, (1.0 - smoothstep(lash - fy * 0.6, lash + fy * 0.6, -dy)) * step(dy, fy * 0.5));
     return c;
   }
@@ -1380,13 +1381,14 @@ const fragmentShader = /* glsl */ `
     detail = max(detail, patInk);
     gHatch.b = detail;
     gHatch.a = max(max(uGlow, emit), smoothstep(0.15, 0.6, local) * 0.6) + 2.0 * uHero + 4.0 * uFigure;
-    // a face (its skin and its eyes): post.js leaves out the line round its shade and the crease shading
+    // a face (its skin and its eyes, and the neck's skin under it): post.js shades it in a warm tone of
+    // its own (FACE_SHADE) and leaves out the line round its shade and the crease shading
     bool facePart = false;
     #ifdef S_EYE
     facePart = facePart || uMode == ${MODE_EYE};
     #endif
     #ifdef S_FIGURE
-    facePart = facePart || (uMode == ${MODE_OUTFIT} && faceFlat(vBind) > 0.5);
+    facePart = facePart || (uMode == ${MODE_OUTFIT} && vBind.y > uOutfit.z && abs(vBind.x) < 0.16);
     #endif
     #ifdef FACE_PART
       facePart = true;
