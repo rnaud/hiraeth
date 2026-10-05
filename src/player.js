@@ -9,6 +9,9 @@ import { Knockdown, toppleVelocities } from './ragdoll.js';
 import { SWIM, swimFrame, swimPose, leaveSwim } from './swim.js';
 import { Locomotion, StepLag, gaitFeet } from './locomotion.js';
 import { triggers } from './controller.js';
+import { JumpLayer } from './jump.js';
+import { keepInside, EdgePush } from './edge.js';
+import { STAMINA, spendStamina, restStamina, canSprint, fillStamina } from './stamina.js';
 
 const RADIUS = 0.45;
 const STEP = 0.6;    // obstacles lower than this are stepped onto
@@ -18,7 +21,7 @@ export const CAPSULE = { radius: RADIUS, step: STEP, height: HEIGHT };
 // m/s, matched to the mocap clips: the default pace plays the jog loop at
 // ~1x, SHIFT the sprint loop with a slightly lengthened stride
 const WALK = 3.8;
-const RUN = 7.2;
+const RUN = 8.2;   // (7.2 until October 2026: a little faster now that it costs stamina, src/stamina.js)
 const GRAVITY = 32;
 const JUMP = 13;
 const LIMIT = 1900;
@@ -204,6 +207,7 @@ export function buildCharacter(palette = {}) {
 }
 
 const _v1 = new THREE.Vector3();
+const _edgeN = new THREE.Vector3();
 const _tq = new THREE.Quaternion(), _te = new THREE.Euler();
 const _g1 = new THREE.Vector3(), _g2 = new THREE.Vector3(), _g3 = new THREE.Vector3(), _g4 = new THREE.Vector3(), _g5 = new THREE.Vector3(), _g6 = new THREE.Vector3();
 const _mf = new THREE.Vector3(), _ml = new THREE.Vector3();   // (the matcher's frame: matchInput)
@@ -390,6 +394,7 @@ export class Player {
     this.fuel = 1;
     this.thrusting = false;
     this.stamina = 1;
+    this.winded = false;   // (run dry: no sprint until it's back: src/stamina.js)
     this.health = 1;          // 0..1 (hurt / heal; falls: FALL)
     this.climbing = false;
     this.wallN = new THREE.Vector3();
@@ -554,7 +559,7 @@ export class Player {
     this.onGround = false;
     this.climbing = false;
     this.fuel = 1;
-    this.stamina = 1;
+    fillStamina(this);
     this.swim = null;
     this.breath = 1;
   }
@@ -980,7 +985,10 @@ export class Player {
     const jetBtn = triggers(input).jets, spaceJets = !!input.Space && !input.PadJump;
     const jetOn = canJet && fuel > 0.004;
 
-    let speed = (run ? RUN : WALK) * (stickScale < 1 ? THREE.MathUtils.lerp(0.35, 1, stickScale) : 1);
+    // sprinting spends the stamina climbing does (src/stamina.js); winded, you jog
+    const sprint = run && canSprint(this) && !this.aim;
+    this.sprinting = sprint && this.onGround && !this.thrusting && !this.gliding && move.lengthSq() > 0.01;
+    let speed = (sprint ? RUN : WALK) * (stickScale < 1 ? THREE.MathUtils.lerp(0.35, 1, stickScale) : 1);
     if (this.gliding) speed *= 1.25;
     if (this.thrusting) speed = (run ? JET.run : JET.speed) * (stickScale < 1 ? THREE.MathUtils.lerp(0.3, 1, stickScale) : 1);
     if (this.aim) speed = Math.min(speed, WALK) * (1 - 0.35 * this.aim.k);   // aiming: a steady walk
@@ -1002,6 +1010,7 @@ export class Player {
       vu = JUMP;
       this.onGround = false;
       jumped = true;
+      this._jumped = true;   // (the pose's take-off: src/jump.js)
     }
     const jumpedNow = input.Space && !this._jumpHeld;
     this._jumpHeld = !!input.Space;
@@ -1062,6 +1071,7 @@ export class Player {
     const steps = Math.min(Math.ceil((this.vel.length() * dt) / (RADIUS * 0.5)), 48) || 1;
     const sdt = dt / steps;
     let carrier = null, pushed = false;
+    this._edgeStep = false; this._edgeN ??= new THREE.Vector3();
     for (let k = 0; k < steps; k++) {
       carrier = this.moveStep(sdt, U, move);
       if (this._pushedStep) pushed = true;
@@ -1081,8 +1091,14 @@ export class Player {
       return;
     }
     if (!pushed) this._press = 0;
+    // leaning into the world's edge (src/edge.js): how hard, where; the first time, what holds you back
+    const E = (this.edge ??= new EdgePush());
+    E.update(dt, this._edgeStep, this._edgeN, this.pos, steering ? move : null);
+    if (E.wantsHint() && this.opts.edgeHint) this.notice(this.opts.edgeHint);
     if (this.climbing) { this.finishFrame(dt, 0); return; }
-    if (this.onGround) this.stamina = Math.min(this.stamina + 0.5 * dt, 1);
+    // stamina: the sprint spends it, the ground gives it back (faster standing than walking)
+    if (this.sprinting && this.onGround) spendStamina(this, STAMINA.sprint * dt);
+    else if (this.onGround) restStamina(this, dt, Math.hypot(this.vel.x, this.vel.z) < 0.5 ? STAMINA.stand : STAMINA.walk);
     // ride along on whatever you're standing on
     if (carrier && this.onGround) this.pos.addScaledVector(carrier.vel, dt);
 
@@ -1103,6 +1119,11 @@ export class Player {
       let d = F.headingOf(tvel) - this.heading;
       d = Math.atan2(Math.sin(d), Math.cos(d));
       this.heading += d * (1 - Math.exp(-12 * dt));
+    } else if (this.edge.k > 0.15 && !this.gliding) {
+      // leaning into the world's edge: turned to face it
+      let d = F.headingOf(_v1.copy(this.edge.n).negate()) - this.heading;
+      d = Math.atan2(Math.sin(d), Math.cos(d));
+      this.heading += d * (1 - Math.exp(-6 * this.edge.k * dt));
     } else if (this.faceToward && !this.gliding) {
       // standing still in a conversation, or looking at something: turned toward it
       const to = _v1.subVectors(this.faceToward, this.pos);
@@ -1124,9 +1145,8 @@ export class Player {
   moveStep(dt, U, move) {
     this._pushedStep = false;
     this.pos.addScaledVector(this.vel, dt);
-    const L = this.opts.limit;
-    this.pos.x = THREE.MathUtils.clamp(this.pos.x, -L, L);
-    this.pos.z = THREE.MathUtils.clamp(this.pos.z, -L, L);
+    // the world's edge: held there, the outward speed taken away (sliding along it, not running on the spot: src/edge.js)
+    if (keepInside(this.pos, this.vel, this.opts.limit, _edgeN)) { this._edgeStep = true; this._edgeN.copy(_edgeN); }
 
     // Walls and ceilings: a capsule from just above step height to the head.
     // Anything lower than STEP is stepped onto by the ground ray below.
@@ -1138,7 +1158,7 @@ export class Player {
       if (vn < 0) this.vel.addScaledVector(n, -vn); // slide along the wall
       // pushing into a steep wall: start climbing (immediately in the air)
       const wall = Math.abs(n.dot(U)) < 0.35 && move.dot(n) < -0.6;
-      if (this.opts.climb && wall && this._climbCooldown === 0 && this.stamina > 0.1) {
+      if (this.opts.climb && wall && this._climbCooldown === 0 && this.stamina > 0.1 && !this.winded) {
         this._press += dt;
         if (!this.onGround || this._press > 0.25) this.startClimb(n);
       } else this._press = 0;
@@ -1169,9 +1189,11 @@ export class Player {
     if (carrier && roofH < h) h = roofH;
     if (this.pos.y < this.opts.killY) { this.respawn(); this._respawned = true; return null; }
     const vu = this.vel.dot(U);
+    this._groundH = h;   // (the jump's pose looks ahead to the landing: src/jump.js)
     if (h <= 0 || (this.onGround && h < 0.8 && vu <= 0)) {
       // (fallGuard: the makers' soft-fall soles make a landing count as a slower one)
       if (!this.onGround && !this.ride && vu < -FALL.tumble * (this.fallGuard ?? 1) && !this.cushioned) this.landHard(-vu / (this.fallGuard ?? 1));
+      if (!this.onGround) { this._impact = -vu; this._jumped = false; }
       this.pos.addScaledVector(U, -h);
       this.vel.addScaledVector(U, -vu);
       this.onGround = true;
@@ -1503,21 +1525,23 @@ export class Player {
     if (f > 0 && !this.physics.rayHit(head, into, 1.6) && this.tryMantle(U, into)) return;
 
     const right = _v3.crossVectors(into, U).normalize();   // screen-right while facing the wall
-    const sp = (input.ShiftLeft || input.ShiftRight ? 2.1 : 1.4);
+    const fast = (input.ShiftLeft || input.ShiftRight) && canSprint(this);
+    const sp = fast ? 2.1 : 1.4;
     this._climbRate = sp / 1.4;
     this.pos.addScaledVector(U, f * sp * dt).addScaledVector(right, s * sp * 0.8 * dt);
     this.heading = this.frame.headingOf(into);
     this.phase += dt * (f || s ? 7 : 0);
     this._climbF = f; this._climbS = s;
 
-    this.stamina -= (f || s ? 0.045 : 0.02) * dt * (this.climbK ?? 1);   // ~22 s of climbing (climbK: the makers' resin halves it)
+    // ~22 s of climbing (climbK: the makers' resin halves it), less climbing fast: the sprint's stamina (src/stamina.js)
+    spendStamina(this, (f || s ? 0.045 * (fast ? STAMINA.climbFast : 1) : 0.02) * dt * (this.climbK ?? 1));
     if (input.Space && !this._jumpHeld) {                       // jump off the wall
       this.stopClimb(false);
       this.vel.copy(n).multiplyScalar(6).addScaledVector(U, 8);
       this._climbCooldown = 0.5;
     }
     this._jumpHeld = !!input.Space;
-    if (this.stamina <= 0) { this.stamina = 0; this.stopClimb(false); this._climbCooldown = 1; }
+    if (this.stamina <= 0) { this.stamina = 0; this.winded = true; this.stopClimb(false); this._climbCooldown = 1; }
     // climbing down onto the ground, or coming out on top of something
     // (e.g. through a tree canopy): stand on it
     this._climbTime += dt;
@@ -1800,9 +1824,15 @@ export class Player {
     this._lastHeading = this.heading;
     this._turn = THREE.MathUtils.lerp(this._turn ?? 0, dt > 0 ? dh / dt : 0, 1 - Math.exp(-8 * dt));
     const N = A.lib.native;
+    // the jump by its phase (src/jump.js): take-off, the top, the fall, reaching for the ground, the squash
+    const U0 = this.frame.up, vy = this.vel.dot(U0);
+    const J = (this._jumpLayer ??= new JumpLayer()).update(dt, {
+      onGround: this.onGround, vy, airT: this._clipAirT = this.onGround ? 0 : (this._clipAirT ?? 0) + dt,
+      h: this._groundH ?? Infinity, jumped: !!this._jumped, impact: this._impact ?? 0, speed: hs,
+    });
     // our walk / run speeds land on the walk and sprint clips; jog in between
     A.update(dt, {
-      speed: hs, onGround: this.onGround, mode: 'ground',
+      speed: hs, onGround: this.onGround, mode: 'ground', vy, jump: this.onGround ? null : J.phase,
       walkAt: Math.min(N.walk * 1.2, WALK * 0.4), jogAt: WALK, sprintAt: RUN,
       strideScale: 1,
       mm: A.matching ? this.matchInput() : null,
@@ -1817,6 +1847,8 @@ export class Player {
     const want = this.onGround && this._moveDir && this._moveDir.lengthSq() > 0.01 && !this.aim ? this.frame.headingOf(this._moveDir) : null;
     (this.loco ??= new Locomotion({ walk: WALK })).update(dt, { vf, speed: hs, heading: this.heading, want, ground: this.onGround && !this.swim });
     this.loco.pose(c);
+    J.pose(c);
+    if (this.edge?.k > 0.01 && this.onGround) this.edge.pose(c, 1 - THREE.MathUtils.smoothstep(hs, 0.6, 2.6));
     this.idleLayer(dt, hs);
     if (this.onGround && !this.humanoid) this.footIK(dt);
     c.hatTip.rotation.x = -hs * 0.02 + c.body.position.y * 3;

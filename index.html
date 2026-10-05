@@ -38,6 +38,15 @@
       #health.low i { animation: hpulse .8s ease-in-out infinite; }
       @keyframes hpulse { 50% { background: #f2c54b; } }
       body.talking #health { opacity: 0; }
+      /* stamina: a small inked wheel beside the traveller, only while it isn't full (src/main.js updateStamina, src/stamina.js) */
+      #stamina { position: fixed; left: 0; top: 0; width: 34px; height: 34px; z-index: 29; pointer-events: none; opacity: 0; transition: opacity .35s;
+        will-change: transform; }
+      #stamina.on { opacity: 1; }
+      #stamina svg { display: block; width: 100%; height: 100%; overflow: visible; transform: rotate(-4deg); }
+      #stamina .arc { fill: none; stroke: #3f8f6a; stroke-width: 7.5; transition: stroke .3s; }
+      #stamina.winded .arc { stroke: #c8483a; animation: stpulse .7s ease-in-out infinite; }
+      @keyframes stpulse { 50% { stroke: #f2c54b; } }
+      body.talking #stamina { opacity: 0; }
       /* knocked out (a fatal fall): the screen dims and asks to restart (src/main.js) */
       #restart { position: fixed; inset: 0; z-index: 85; display: grid; place-items: start center; padding-top: 16vh; background: rgba(43, 33, 31, 0.6);
         opacity: 0; visibility: hidden; transition: opacity .9s, visibility 0s .9s; }
@@ -490,6 +499,13 @@
       </span><span id="status"></span>
     </div>
     <div id="health"><i></i></div>
+    <div id="stamina" aria-hidden="true"><svg viewBox="-20 -20 40 40">
+      <circle r="16" cx="1.8" cy="1.8" fill="#2b211f" />
+      <circle r="16" fill="#f7ecd2" stroke="#2b211f" stroke-width="2.2" />
+      <circle class="arc" r="11" pathLength="100" stroke-dasharray="100 100" transform="rotate(-90)" />
+      <circle r="15" fill="none" stroke="#2b211f" stroke-width="0.8" stroke-dasharray="1.6 2.4" opacity="0.5" />
+      <circle r="6.6" fill="#f7ecd2" stroke="#2b211f" stroke-width="1.6" />
+    </svg></div>
     <div id="restart" role="dialog" aria-label="Knocked out"><div class="sheet"><p>That was too far a fall.</p><button type="button">Restart</button><small></small></div></div>
     <script type="module" src="/src/boot.js"></script>
   </body>

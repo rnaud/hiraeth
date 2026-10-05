@@ -241,7 +241,7 @@ The reference pages for the four v0.30 worlds are in `references/`
 - push into a steep wall to grab it;
 - W/S climb, A/D shuffle sideways, Shift climbs faster, Space jumps off;
 - reaching the top pulls you up over the edge;
-- stamina runs out after about 20 s on the wall.
+- stamina runs out after about 20 s on the wall (the same stamina sprinting spends: see "Feel" below).
 
 **Gravity:**
 - the player moves in a local frame (up, forward, right);
@@ -3268,6 +3268,45 @@ From the author's handheld sessions (TODO.md, "Controls").
   without wings, the refused taxi jump, the bike's momentum, the new tumble height),
   `tests/controller.test.js` (`triggers`, the ride buttons), `tests/fluid-tool.test.js`
   (the straight shot, aim-first, the lip).
+
+### Feel: the jump by its phase, one stamina, the world's edge (October 2026)
+
+From the author's notes (TODO.md, "Feel and look"). Tests: `tests/feel.test.js`.
+
+- **The jump by its phase** (`src/jump.js`, `Animator.update`'s air branch, `Player.animateClips`).
+  `jumpPhase({ airT, vy, h, jumped })` weighs five phases from the time in the air, the vertical
+  speed and the height above the ground (`_groundH`, the ground ray of the last collision step):
+  the **push** (a real jump, `_jumped`, for its first third of a second: the late part of
+  `Jump_Start`, from just past the crouch into the tuck), **rising** and **the top** (|vy| under
+  1.5 m/s: the tucked `Jump_Loop`), **falling** (arms rising and opening, the legs parting) and
+  **reaching** (the time to the ground, `timeToGround(h, vy)`, under a third of a second: the
+  first frame of `Jump_Land`, legs long and forward, so the landing clip carries on from it). The
+  clips blend by those weights; `JumpLayer` eases them (no snaps) and lays a light procedural pose
+  over them (arms, thighs, knees, chest, head: never the hands). On landing, a squash
+  (`landSquash(speed)`: the body dips up to 17 cm, the planted feet bend the knees), shorter for a
+  hop, longer after a drop, lighter at a run or when the landing clip already crouches. Nothing
+  changes where you go: jump height, timing and air control are as before.
+- **One stamina** (`src/stamina.js`, `player.stamina` 0..1). Sprinting on foot (L3 / Shift)
+  spends `STAMINA.sprint` a second (about 12 s from full), climbing what it always did (fast
+  climbing `STAMINA.climbFast` times more), the front crawl `SWIM.sprintCost`. It comes back on
+  the ground once nothing has spent it for `STAMINA.delay` s, faster standing than walking, and
+  afloat; never in the air or on the wall. Run dry, you are **winded** (`player.winded`): no
+  sprint (a jog), no fast climb, no new hold on a wall until it is back to `STAMINA.recover`; on
+  the wall it lets go, as before. The sprint is 8.2 m/s (7.2 before: +14 %).
+- **The stamina wheel** (`#stamina` in index.html, `updateStamina` in main.js): a small inked ring
+  beside the traveller's shoulders (projected each frame), paper and ink with an offset shadow,
+  the arc green while it fills and red, pulsing, while winded. It shows only while the stamina
+  isn't full (and a moment after), never while riding, talking or in a scene. The HUD's text
+  gauges for climbing and stamina are gone.
+- **The world's edge** (`src/edge.js`). Each world is held within ±`limit` m (`Player` opts, the
+  level's `limit`); the old clamp left the velocity alone, so the traveller ran on the spot and
+  stuttered. `keepInside` now takes the outward velocity away, so you stop or slide along the edge
+  at your speed along it. `EdgePush` eases how hard the stick pushes into it (`player.edge.k`),
+  the traveller turns to face it and leans into it with a forearm up (`EdgePush.pose`), the wind's
+  ink wisps stream in from it (`WindStreaks.edgeGust`), a patch of slanted hatch strokes shimmers
+  on the edge right in front of you (`EdgeInk`, drawn with the wisps' material, depth-tested
+  against the G-buffer), and the first lean of a session shows a line (`EDGE_HINTS`, per world,
+  or the level's own `edgeHint`).
 
 ## The makers' temples
 

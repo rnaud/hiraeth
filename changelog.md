@@ -7,6 +7,10 @@ The same release notes shown in the game (press **N** or open settings).
 - Smoother frame rate everywhere, most of all close to metal, cracked rock and other detailed surfaces; nothing looks different.
 - No more stutter the first time you walk into a new place or turn to something new: everything is prepared while the world loads, and worlds load faster.
 - Grassy places no longer waste time redrawing every blade of grass each frame; stepping through a door no longer stalls while the grass appears.
+- Jumps move now: you push off, tuck your legs as you rise, open up at the top, reach for the ground as it comes up and land in a short crouch, deeper after a long drop. A long fall throws the arms out.
+- Running, climbing and swimming fast share one stamina. Sprinting tires you now, and a small inked wheel beside the traveller shows what is left while it isn’t full. Run it dry and you are winded: no sprint and no new hold on a wall until it has come back. Standing still brings it back fastest.
+- Sprinting is about 14 % faster.
+- At the edge of each world the traveller no longer runs on the spot and stutters: you stop, turn into it and lean against the wind, ink shimmers where you touch it, and the first time a line says what holds you back. Walking along the edge slides smoothly.
 
 ## v0.56 — 2026-10-05
 

@@ -99,6 +99,8 @@ export class WindStreaks {
 
   spawn(w, x, z, vx, vz, opts = {}) {
     w.x = x; w.z = z; w.vx = vx; w.vz = vz;
+    w.y0 = null;   // (a height of its own instead of the ground's: edgeGust)
+    w.thick = opts.thick ?? 1;
     w.age = 0;
     w.life = opts.life ?? 1.6 + Math.random() * 2.2;
     w.len = opts.len ?? 2.5 + Math.random() * 5;
@@ -114,6 +116,28 @@ export class WindStreaks {
     if (!w) return;
     this.spawn(w, x + (Math.random() - 0.5) * 1.5, z + (Math.random() - 0.5) * 1.5, vx, vz,
       { life: 0.7 + Math.random() * 0.6, len: 2 + Math.random() * 3, h: 0.1 + Math.random() * 0.5, strength: 0.6 });
+  }
+
+  /**
+   * At the world's edge (src/edge.js): wisps stream in from it round the traveller, inward along
+   * `n`, at `at`'s height, more the harder you lean into it (k 0..1): the wind that holds you back.
+   */
+  edgeGust(dt, at, n, k) {
+    let want = k * 34 * dt;
+    while (want > 0) {
+      if (want < 1 && Math.random() > want) break;
+      want -= 1;
+      const w = this.wisps.find((q) => q.age >= q.life);
+      if (!w) return;
+      const along = (Math.random() - 0.5) * 9, out = 0.4 + Math.random() * 1.4, speed = 5 + Math.random() * 5;
+      // in from the edge and a little across it (seen from behind, wisps blowing straight at the
+      // camera would be dots), the slant turning now and then; the tangent is n turned a quarter round
+      const a = (Math.sin(this.time * 0.37) >= 0 ? 1 : -1) * (0.45 + Math.random() * 0.35), c = Math.cos(a), sn = Math.sin(a);
+      const dx = n.x * c - n.z * sn, dz = n.z * c + n.x * sn;
+      this.spawn(w, at.x - n.x * out - n.z * along - dx * 1.5, at.z - n.z * out + n.x * along - dz * 1.5, dx * speed, dz * speed,
+        { life: 0.5 + Math.random() * 0.6, len: 1.2 + Math.random() * 2.4, h: 0.15 + Math.random() * 2.1, strength: 0.5 + Math.random() * 0.35 * k, thick: 1.2 + Math.random() * 0.6 });
+      w.y0 = at.y;
+    }
   }
 
   update(dt, center, camera, terrain, pxScale, enabled = true) {
@@ -147,12 +171,12 @@ export class WindStreaks {
         const s = (k / SEGS) * w.len;
         const wig = Math.sin(w.phase + s * 0.9 - w.age * 4) * w.amp;
         p.set(w.x - dx * s - dz * wig, 0, w.z - dz * s + dx * wig);
-        p.y = terrain.heightAt(p.x, p.z) + w.h + Math.sin(w.phase * 2 + s * 0.6) * 0.08;
+        p.y = (w.y0 ?? terrain.heightAt(p.x, p.z)) + w.h + Math.sin(w.phase * 2 + s * 0.6) * 0.08;
         // tangent and camera-facing side vector
         T.set(-dx, 0, -dz);
         V.subVectors(cam, p);
         const dist = V.length();
-        S.crossVectors(T, V).normalize().multiplyScalar(0.5 * Math.max(1.7 * dist * pxScale, 0.015));
+        S.crossVectors(T, V).normalize().multiplyScalar(0.5 * w.thick * Math.max(1.7 * dist * pxScale, 0.015));
         const j = (base + k * 2) * 3;
         this.positions[j] = p.x - S.x; this.positions[j + 1] = p.y - S.y; this.positions[j + 2] = p.z - S.z;
         this.positions[j + 3] = p.x + S.x; this.positions[j + 4] = p.y + S.y; this.positions[j + 5] = p.z + S.z;

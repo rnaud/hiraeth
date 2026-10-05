@@ -519,15 +519,21 @@ All of this is for the web game; the Unity port follows later if we move to Unit
 - [ ] Plants move too much when you walk past: a light brush as you pass, not a big shove.
 - [ ] Most structures cast shadows.
 - [ ] Grass pops in: in the distance it should fade into something smaller and cheaper, not appear at a line.
-- [ ] Jump animation by phase: take-off, the top, falling back down (it looks static through the whole jump).
+- [x] Jump animation by phase: take-off, the top, falling back down (it looks static through the whole jump).
+  Done: `src/jump.js` blends Jump_Start / Jump_Loop / Jump_Land by the vertical speed and the time to the
+  ground (push, tuck, the top, the fall with the arms out, reaching for the ground), plus a landing squash.
 - [ ] The gun's blob impact follows the surface it hits, not a flat decal floating in front of it.
 - [ ] Hands are stiff and flat: give them the natural arc of a relaxed hand, and let them move.
 - [ ] The faces in the dialogue box's portrait are badly aliased.
 - [ ] The alien text in the dialogue box lacks variety: it should look like a real written language
   (each world its own script) before it turns into English.
-- [ ] One stamina bar shared by running and climbing; running a little faster.
+- [x] One stamina bar shared by running and climbing; running a little faster.
+  Done: `src/stamina.js` (sprint, climbing and the crawl share it; winded when dry), an inked wheel beside the
+  traveller while it isn't full; the sprint is 8.2 m/s (+14 %).
 - [ ] Flowers that open shouldn't clip into walls and other things.
-- [ ] Make it clear when you hit an invisible wall (the traveller just stutters as you push on).
+- [x] Make it clear when you hit an invisible wall (the traveller just stutters as you push on).
+  Done: the world's edge (`src/edge.js`) takes the outward speed away (a smooth slide, no running on the spot);
+  the traveller faces it and leans into the wind, wisps and ink hatching where you touch it, a line the first time.
 - [ ] Each world's music more thematic.
 
 # References level (2026-10-05)
