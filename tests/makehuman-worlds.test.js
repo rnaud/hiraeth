@@ -67,3 +67,114 @@ test('the face keys reach the material before each draw; a level of detail draws
   assert.match(src, /#ifdef FACE_KEYS[\s\S]*texelFetch\(uKeyTex/);
   void MakeHumanPeople;
 });
+
+// ---------------------------------------------------------------- headwear on every head
+const THREE = await import('three');
+const { MeshBVH } = await import('three-mesh-bvh');
+const { mergeVertices } = await import('three/addons/utils/BufferGeometryUtils.js');
+const { mhLookPieces } = await import('../src/makehuman/hair.js');
+const { HEADS, HEAD_IDS, MASK_IDS, BODY_IDS } = await import('../src/costumes.js');
+const { BLANK } = await import('../src/studio/people.js');
+
+/** The new headwear and face pieces (stage 3). */
+const NEW_HEADS = ['brim', 'straw', 'trilby', 'bowler', 'peak', 'flatcap', 'beanie', 'trapper', 'aviator', 'bandana', 'kerchief', 'skullcap', 'circlet', 'helmet', 'hooddown'];
+const NEW_MASKS = ['glasses', 'shades', 'scarfmask', 'facewrap', 'monocle'];
+/** Heads to fit: a man and a woman grown up, a child, a teenager, the old and the heavy. */
+const HEADS_TO_FIT = [['m', 32, 'average'], ['f', 32, 'slim'], ['f', 8, 'average'], ['m', 15, 'average'], ['m', 72, 'heavy'], ['f', 72, 'heavy'], ['m', 32, 'broad']];
+const fitted = new Map();
+const humanoid = (kind, years, build) => {
+  const k = `${kind}|${years}|${build}`;
+  if (!fitted.has(k)) fitted.set(k, new Humanoid(personTemplate(data, { kind, years, build, world: 'bazaar' }), buildCharacter(), kind));
+  return fitted.get(k);
+};
+
+/** Whether a piece is a closed solid (every edge of its welded triangles shared by two). */
+function closed(geo) {
+  const g = geo.clone();
+  for (const a of Object.keys(g.attributes)) if (a !== 'position') g.deleteAttribute(a);
+  const w = mergeVertices(g, 1e-5), I = w.index.array, edges = new Map();
+  for (let f = 0; f < I.length; f += 3) for (let k = 0; k < 3; k++) {
+    const a = I[f + k], b = I[f + (k + 1) % 3];
+    if (a === b) continue;
+    const key = a < b ? a * 1e6 + b : b * 1e6 + a;
+    edges.set(key, (edges.get(key) ?? 0) + 1);
+  }
+  for (const n of edges.values()) if (n !== 2) return false;
+  return edges.size > 0;
+}
+
+/**
+ * What of a head (its skin, and its hair) pokes through what a look wears on it: rays from the skull's
+ * centre to every point of the head's skin (and of the hair under the headwear) that cross a piece
+ * nearer than the point (by more than `slack`, m) and come out of it again: a point inside a closed piece
+ * (an odd number of crossings) is hidden in it, one past an open shell (a hat's crown, a cloth) shows
+ * through it. Returns { skin, hair } as fractions, and the worst (m).
+ */
+export function poking(h, look, slack = 0.002) {
+  const pieces = mhLookPieces(look, h), F = h.headFrame(h.rest.get(h.b.Head).p, look);
+  const solids = pieces.head.map((p) => {
+    const g = (p.geo.index ? p.geo.toNonIndexed() : p.geo.clone()).applyMatrix4(F);
+    for (const a of Object.keys(g.attributes)) if (a !== 'position') g.deleteAttribute(a);
+    return { bvh: new MeshBVH(g), closed: closed(p.geo.clone().applyMatrix4(F)) };
+  });
+  if (!solids.length) return { skin: 0, hair: 0, worst: 0 };
+  const c = new THREE.Vector3().setFromMatrixPosition(F);
+  const ray = new THREE.Ray(), v = new THREE.Vector3(), dir = new THREE.Vector3();
+  let worst = 0;
+  const count = (P, idx) => {
+    let n = 0, bad = 0;
+    const each = (i) => {
+      v.fromBufferAttribute(P, i);
+      const d = v.distanceTo(c);
+      ray.set(c, dir.copy(v).sub(c).divideScalar(d));
+      n++;
+      let through = 0, hidden = false;
+      for (const s of solids) {
+        const hits = s.bvh.raycast(ray, THREE.DoubleSide).filter((x) => x.distance < d - slack);
+        if (!hits.length) continue;
+        if (s.closed && hits.length % 2 === 1) { hidden = true; break; }
+        through = Math.max(through, d - Math.min(...hits.map((x) => x.distance)));
+      }
+      if (!hidden && through > 0) { bad++; worst = Math.max(worst, through); }
+    };
+    if (idx) for (const i of idx) each(i); else for (let i = 0; i < P.count; i++) each(i);
+    return n ? bad / n : 0;
+  };
+  const skin = count(h.body.geometry.attributes.position, data.head);
+  const hair = pieces.skinned.length ? count(pieces.skinned[0].geo.attributes.position) : 0;
+  return { skin, hair, worst };
+}
+
+test('the new headwear: on every kind of head, no skin and no hair through it', () => {
+  for (const id of [...NEW_HEADS, ...NEW_MASKS]) assert.ok(HEAD_IDS.includes(id) || MASK_IDS.includes(id), id);
+  assert.ok(BODY_IDS.includes('neckerchief') && BODY_IDS.includes('muffler') && BODY_IDS.includes('neckgoggles'));
+  const bad = [];
+  for (const [kind, years, build] of HEADS_TO_FIT) {
+    const h = humanoid(kind, years, build);
+    for (const head of NEW_HEADS) for (const under of ['flow', 'curls', 'short']) {
+      if (!HEADS[head].cover && under !== 'short') continue;
+      const r = poking(h, { ...BLANK(kind), kind, head, under, mask: 'none' });
+      if (r.skin > 0.003 || r.hair > 0.01) bad.push(`${head}/${under} on ${kind} ${years} ${build}: skin ${(r.skin * 100).toFixed(1)}%, hair ${(r.hair * 100).toFixed(1)}%, ${(r.worst * 1000).toFixed(0)} mm`);
+    }
+    for (const mask of NEW_MASKS) {
+      const r = poking(h, { ...BLANK(kind), kind, head: 'bald', mask });
+      if (r.skin > 0.003) bad.push(`${mask} on ${kind} ${years} ${build}: skin ${(r.skin * 100).toFixed(1)}%, ${(r.worst * 1000).toFixed(0)} mm`);
+    }
+  }
+  assert.deepEqual(bad, []);
+});
+
+test('the older hats over hair: the hair squashed under them, none through them', () => {
+  const old = HEAD_IDS.filter((id) => HEADS[id].cover && !NEW_HEADS.includes(id));
+  assert.ok(old.length >= 10, old.join());
+  const bad = [];
+  for (const [kind, years, build] of HEADS_TO_FIT) {
+    const h = humanoid(kind, years, build);
+    for (const head of old) for (const under of ['flow', 'curls', 'bob']) {
+      const r = poking(h, { ...BLANK(kind), kind, head, under, mask: 'none' });
+      // (the wizard's hat, the Speaker's, over a woman's big curls: a few strands at its brim, 3 % at most)
+      if (r.hair > (head === 'wizard' && under === 'curls' ? 0.035 : 0.012)) bad.push(`${head}/${under} on ${kind} ${years} ${build}: hair ${(r.hair * 100).toFixed(1)}%, ${(r.worst * 1000).toFixed(0)} mm`);
+    }
+  }
+  assert.deepEqual(bad, []);
+});

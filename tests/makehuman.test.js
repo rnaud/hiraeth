@@ -182,9 +182,13 @@ test('the game\'s hairstyles on a MakeHuman head: MakeHuman\'s nearest style, th
   const pieces = mhLookPieces(look({ head: 'bun', mask: 'beard' }), h);
   assert.equal(pieces.skinned.length, 2, 'the hair and the beard: skinned shells');
   assert.ok(pieces.head.length > 0, 'the bun\'s knot, the game\'s');
-  const hat = mhLookPieces(look({ head: 'sunhat' }), h);
-  assert.equal(hat.skinned.length, 0);
-  assert.ok(hat.head.length > 1, 'the hat and the short hair under it');
+  // (stage 3) a hat over their own hair, squashed under it (makehuman-worlds.test.js); a hood over the game's cap or nothing
+  const hat = mhLookPieces(look({ head: 'sunhat', under: 'braid' }), h);
+  assert.equal(hat.skinned.length, 1, 'their braid under the hat');
+  assert.ok(hat.head.length > 1, 'the hat');
+  const bald = mhLookPieces(look({ head: 'sunhat', under: 'bald' }), h);
+  assert.equal(bald.skinned.length, 0);
+  assert.equal(mhLookPieces(look({ head: 'headcloth' }), h).skinned.length, 0, 'a headcloth hides the hair');
   h.dress(look({ head: 'braid', mask: 'beard' }));
   const n = h._costume[0].geometry.attributes.position.count;
   assert.ok(n > hairFor(h.profile, 'braid01').geo.attributes.position.count, 'dressed in it');

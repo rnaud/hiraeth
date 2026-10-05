@@ -184,7 +184,10 @@ export function figureGeometry(detail = 'mid', world = null) {
   const partOf = { head: P.head, chest: P.torso, hand: P.foreR };
   const costume = (list, f, slot, id) => { for (const pc of list) if (!far || pc.far) add(frame(pc.geo, f), partOf[f], ROLE_ZONE[pc.role] ?? Z.cloak, slot * 64 + id); };
   // the world's headwear, masks, shoulder pieces and props (the shader keeps the ones each person wears)
-  for (const id of W.heads) costume(HEADWEAR[id].parts(q), 'head', SLOT.head, HEAD_IDS.indexOf(id));
+  for (const id of W.heads) {
+    costume(HEADWEAR[id].parts(q), 'head', SLOT.head, HEAD_IDS.indexOf(id));
+    if (HEADWEAR[id].chest) costume(HEADWEAR[id].chest(q), 'chest', SLOT.head, HEAD_IDS.indexOf(id));   // (a hood thrown back: on the shoulders)
+  }
   if (W.heads.some((id) => HEADWEAR[id].cap)) costume([hairCap(q)], 'head', SLOT.hairCap, 0);
   if (!far) for (const id of W.masks) costume(MASKS[id](q), 'head', SLOT.mask, MASK_IDS.indexOf(id));
   for (const id of W.bodies) costume(BODIES[id](q), 'chest', SLOT.body, BODY_IDS.indexOf(id));
