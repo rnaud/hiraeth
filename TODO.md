@@ -313,7 +313,7 @@ To start after the current work lands. Ordered from easiest to most complex.
 
 ## Materials
 
-- [ ] A pass on materials: metal looks terrible, glow doesn't glow, glyphs are unclear (decide
+- [x] A pass on materials: metal looks terrible, glow doesn't glow, glyphs are unclear (decide
   what they're for), grass is still a flat texture (small shader-driven blades instead).
 
 ## Drone

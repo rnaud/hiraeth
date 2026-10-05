@@ -3,6 +3,13 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.47', date: '2026-10-05', items: [
+    'Metal now looks like metal: chrome, steel, brass, copper, iron and painted metal reflect the sky and the ground in flat bands and catch the sun in a crisp highlight. You’ll see it on the ship, the hoverbike, the taxi, your backpack, the Hangar’s machines, the listening stones, the bell and the market’s brass.',
+    'Lights glow: lamps, crystals, signal lamps, portals and the makers’ mark have a bright core and a printed halo that spills their colour onto what’s nearby, strongest at night.',
+    'At dusk, windows in the towns light up one by one.',
+    'The makers’ marks are now carved inscriptions: friezes of their signs and framed seals cut into Qanat’s gate, the giant’s door, the standing stones, the observatory and the Builders’ ruins. Ordinary walls are left plain.',
+    'Real grass: blades sway in the wind and part around your feet in Viridel, the Garden of Spheres, home and Lorn’s mosses (fewer on the Handheld and Low settings).',
+  ] },
   { v: '0.46', date: '2026-10-05', items: [
     'The ship’s floor is flat now: walking the deck no longer lifts you over doorways or up onto stools, the bench or the bed.',
     'The ship’s doorway no longer flickers as the camera moves.',
