@@ -171,7 +171,39 @@ namespace Memento
             yield return Shoot($"{world}_next_objective");
             if (ok && world == "incal" && deep) yield return IncalToTheEnd();
             else if (ok && world == "garage") yield return GarageStep(q);
+            else if (ok && world == "arzach") yield return ArzachStep(q);
             else if (ok) yield return HitStep(world, q);
+        }
+
+        /// <summary>Vael's next stages: on the bird's back (B / ○ beside her), off the ground with A / ×, a climb and a banking turn
+        /// in the air, then over the lone tower's balcony and down onto it.</summary>
+        IEnumerator ArzachStep(string q)
+        {
+            var bird = game.bird;
+            if (!bird) { Log("arzach: no bird"); yield break; }
+            PutNear(bird.transform.position, 3.5f); yield return Wait(0.6f);
+            Log($"arzach: beside the bird, prompt '{game.prompt}'");
+            yield return Pulse(v => pad.interact = v); yield return Wait(0.5f);
+            if (!bird.ridden) Interact.All.FirstOrDefault(i => i.id == "bird.ride")?.use();
+            yield return Wait(0.5f);
+            Log($"arzach: riding {bird.ridden}, stage {game.quests.Stage(q)}");
+            float y0 = bird.transform.position.y;
+            pad.jump = true; yield return Wait(2.5f); pad.jump = false;
+            pad.move = new Vector2(0.6f, -0.2f); yield return Wait(2.0f); pad.move = Vector2.zero; yield return Wait(0.5f);
+            Log($"arzach: in the air {!bird.landed}, {bird.transform.position.y - y0:0} m up, {bird.speed:0} m/s");
+            yield return Shoot("arzach_on_the_birds_back");
+            // over the lone tower's balcony, and down
+            var balcony = game.quests.locators.TryGetValue("balcony", out var bl) ? bl() : null;
+            if (balcony is Vector3 b)
+            {
+                bird.ridden = true;
+                var at = b + Vector3.up * 1.5f;
+                typeof(BirdMount).GetField("pos", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(bird, at + Vector3.up * 6);
+                bird.speed = 12; pad.move = new Vector2(0, -1); yield return Wait(1.5f); pad.move = Vector2.zero; yield return Wait(0.5f);
+                game.quests.Update(game.player.transform.position);
+                yield return Shoot("arzach_the_towers_balcony");
+                Log($"arzach: over the balcony (landed {bird.landed}), stage {game.quests.Stage(q)}");
+            }
         }
 
         /// <summary>The Hangar's next stage: through the portal to the upside-down quarter (gravity turned: you walk the slab

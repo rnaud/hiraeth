@@ -174,9 +174,14 @@ namespace Memento
         }
     }
 
-    /// <summary>Vael's own script (src/story/arzach.js): the bird that waits, the rider's whistle (the bird's flight is not in this port yet).</summary>
+    /// <summary>Vael's own script (src/story/arzach.js): the bird that waits beside Oïa; riding her the first time (arzach.rode)
+    /// sends you to the lone tower; the bird is located for the quest's marker.</summary>
     public class ArzachMechanics : WorldMechanics
     {
-        protected override void Begin() { }
+        protected override void Begin() { Q.Locate("bird", () => game.bird ? game.bird.transform.position : (Vector3?)null); }
+        public override void Tick(float dt)
+        {
+            if (game.bird && game.bird.ridden && !G.Is("arzach.rode")) { G.Set("arzach.rode", true); game.hud.Toast("She lifts her head toward the lone tower."); }
+        }
     }
 }

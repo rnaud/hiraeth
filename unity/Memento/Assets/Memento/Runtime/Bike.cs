@@ -9,8 +9,10 @@ namespace Memento
     /// RT / R2 or W go, LT / L2 or S brake, left stick / A D steer, B / ○ or E get off. Once
     /// found, B / ○ or E far from it whistles it over.
     /// </summary>
-    public class Bike : MonoBehaviour
+    public class Bike : MonoBehaviour, IMount
     {
+        public float Yaw => yaw;
+        public bool Ridden => ridden;
         Game game;
         public bool dormant = true, ridden;
         public float Speed => new Vector2(vel.x, vel.z).magnitude;

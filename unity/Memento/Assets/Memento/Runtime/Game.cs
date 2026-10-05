@@ -32,6 +32,10 @@ namespace Memento
         public DesertStory story;
         public WorldStory worldStory;
         public Bike bike;
+        /// <summary>Vael's bird (BirdMount), where the world's mount is the bird.</summary>
+        public BirdMount bird;
+        /// <summary>Whatever you can ride here (the hoverbike, the bird), for the camera and the sound.</summary>
+        public IMount Mount => bike ? bike : bird ? bird : null;
         public FluidTool tool;
         public ShipScene ship;
         public Ambient ambient;

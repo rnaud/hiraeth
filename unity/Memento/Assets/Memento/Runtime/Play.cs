@@ -130,6 +130,13 @@ namespace Memento
                 game.world.Objects.TryGetValue("tarp", out var tarp);
                 game.bike.Init(game, drawn, tarp);
             }
+            // Vael's bird (bird.js): the world's mount where it is the bird
+            if (!desert && game.world.Level?.S("mountKind") == "bird" && game.world.Objects.TryGetValue("mount", out var birdObj))
+            {
+                var bgo = new GameObject("Bird"); bgo.transform.SetParent(worldRoot, false);
+                game.bird = bgo.AddComponent<BirdMount>();
+                game.bird.Init(game, birdObj);
+            }
             portals = game.world.World.L("portals");
             // the ship: the prologue on a new game, then boarding, the console and the map
             game.ship = new GameObject("Ship").AddComponent<ShipScene>();
@@ -174,7 +181,7 @@ namespace Memento
             if (game.rig) game.rig.frame = Quaternion.identity;
             game.npcs.Clear();
             game.quests.Clear();
-            game.story = null; game.worldStory = null; game.bike = null; game.ship = null; game.crowd = null; game.ambient = null; game.wildlife = null;
+            game.story = null; game.worldStory = null; game.bike = null; game.bird = null; game.ship = null; game.crowd = null; game.ambient = null; game.wildlife = null;
             game.observatory = null; game.errands = null; game.relics = null; game.marker = null;
             portals = null;
         }
@@ -218,10 +225,12 @@ namespace Memento
             if (best != null) { game.prompt = best.prompt(); game.promptAt = best.at() + Vector3.up * (best.id != null && best.id.StartsWith("talk.") ? 2.25f : 0.8f); }
             // (not from inside a room off the map: the masked head's chamber, the cave)
             else if (!pl.riding && game.bike && !game.bike.dormant && pl.transform.position.y < 500 && Vector3.Distance(game.bike.transform.position, pl.transform.position) > 8) game.prompt = "whistle for the hoverbike";
+            else if (!pl.riding && game.bird && pl.transform.position.y < 900 && Vector3.Distance(game.bird.transform.position, pl.transform.position) > 10) game.prompt = "whistle for the bird";
             if (Pad.InteractDown() && !pl.riding)
             {
                 if (best != null) best.use();
                 else if (game.prompt != null && game.bike) game.bike.Whistle();
+                else if (game.prompt != null && game.bird) game.bird.Whistle();
             }
             // (the backpack's shoot, push and boost: FluidTool.cs)
             // portals: the skull's mouth and the passage, the masked head's doorway, the temples' doors

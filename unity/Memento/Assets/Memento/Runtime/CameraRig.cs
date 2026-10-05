@@ -31,8 +31,9 @@ namespace Memento
             if (look.sqrMagnitude > 0.0001f) lookIdle = 0; else lookIdle += dt;
             yaw += look.x; pitch = Mathf.Clamp(pitch - look.y, -40, 74);
             // swing behind the traveller while moving, unless you're steering the view
-            float spd = player ? (player.riding && Game.Instance && Game.Instance.bike ? Game.Instance.bike.Speed : player.SpeedXZ) : 0;
-            float heading = player ? (player.riding && Game.Instance.bike ? Game.Instance.bike.transform.eulerAngles.y : player.heading) : yaw;
+            var mount = Game.Instance ? Game.Instance.Mount : null;
+            float spd = player ? (player.riding && mount != null ? mount.Speed : player.SpeedXZ) : 0;
+            float heading = player ? (player.riding && mount != null ? mount.Yaw : player.heading) : yaw;
             if (lookIdle > 1.2f && spd > 1f) yaw = Mathf.LerpAngle(yaw, heading, (1 - Mathf.Exp(-1.2f * dt * Mathf.Min(spd / 4f, 2f))) * follow);
             tgt = Vector3.Lerp(tgt, target.position, 1 - Mathf.Exp(-14 * dt));
             var up = frame * Vector3.up;
