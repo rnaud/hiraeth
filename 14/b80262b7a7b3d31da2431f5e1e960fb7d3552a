@@ -1,0 +1,59 @@
+scripts/unity-export/build-world.mjs
+  s_1fd8d0e7b02dcf::t_dd6a0766da0394 49-50,74-76
+scripts/unity-export/export-desert.mjs
+  s_1fd8d0e7b02dcf::t_a2e4da0d12b360 74-75,103-110,232,339-353,360,373-380
+scripts/unity-export/people.mjs
+  s_1fd8d0e7b02dcf::t_e9f12ff7ff3dc5 240-248,257
+scripts/unity-export/record-sounds.mjs
+  s_1fd8d0e7b02dcf::t_5780641584b0d0 41-43,47,75
+unity/Memento/Assets/Memento/Runtime/BatchDriver.cs
+  s_1fd8d0e7b02dcf::t_f88ec9655d6418 116-145
+unity/Memento/Assets/Memento/Runtime/Figures.cs
+  s_1fd8d0e7b02dcf::t_efd3dc9f5e6a48 77-78,84-93
+unity/Memento/Assets/Memento/Runtime/Game.cs
+  s_1fd8d0e7b02dcf::t_50667a259c386b 29-30
+unity/Memento/Assets/Memento/Runtime/Hologram.cs
+  s_1fd8d0e7b02dcf::t_e3e6be08b49a53 1-99
+unity/Memento/Assets/Memento/Runtime/Hologram.cs.meta
+  s_1fd8d0e7b02dcf::t_0d24eb0acc3192 1-2
+unity/Memento/Assets/Memento/Runtime/Hud.cs
+  s_1fd8d0e7b02dcf::t_50badfd0bb0473 98-132,218
+unity/Memento/Assets/Memento/Runtime/MementoLook.cs
+  s_1fd8d0e7b02dcf::t_d72999e0fcce4f 28,62
+unity/Memento/Assets/Memento/Runtime/Pad.cs
+  s_1fd8d0e7b02dcf::t_2377341d25a478 45-46
+unity/Memento/Assets/Memento/Runtime/Play.cs
+  s_1fd8d0e7b02dcf::t_e67c9dd69a53cc 64-67,71,73,84
+unity/Memento/Assets/Memento/Runtime/Player.cs
+  s_1fd8d0e7b02dcf::t_f46f3df0662364 31-32,85-91
+unity/Memento/Assets/Memento/Runtime/ShipScene.cs
+  s_1fd8d0e7b02dcf::t_f50e0fb7ec3b9d 1-499
+unity/Memento/Assets/Memento/Runtime/ShipScene.cs.meta
+  s_1fd8d0e7b02dcf::t_59046305dcf7e0 1-2
+unity/Memento/Assets/Memento/Runtime/Sounds.cs
+  s_1fd8d0e7b02dcf::t_4fc33bbb81e75d 81-98
+unity/Memento/Assets/Memento/Runtime/Voice.cs
+  s_1fd8d0e7b02dcf::t_0286ba33fedfd5 59,63-64,97,161,182,272-273
+unity/Memento/Assets/Memento/Shaders/Composite.shader
+  s_1fd8d0e7b02dcf::t_c322fbbd400dea 42,407-413
+unity/Memento/Assets/Memento/Shaders/Hologram.shader
+  s_1fd8d0e7b02dcf::t_5a101dde910ac4 1-123
+unity/Memento/Assets/Memento/Shaders/Hologram.shader.meta
+  s_1fd8d0e7b02dcf::t_db0b53f645f349 1-9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "14b80262b7a7b3d31da2431f5e1e960fb7d3552a",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
