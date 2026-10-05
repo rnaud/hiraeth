@@ -150,7 +150,8 @@ export function setupHome(ctx) {
   lou.humanoid?.setMorph?.(LOU_MORPH);
   try { lou.humanoid?.setFace?.(LOU_FACE); } catch { /* the face kit may be mid-change */ }
   lou.heading = Math.PI;
-  const tove = spawn(PEOPLE.tove, { route: [onGround(garden.spots.bench)], seat: 0.47, heading: garden.spots.benchHeading });
+  // (on the bench itself: the ground the NPC finds there is its seat, so `seat` is only a hair)
+  const tove = spawn(PEOPLE.tove, { route: [onGround(garden.spots.bench)], seat: 0.01, heading: garden.spots.benchHeading });
   tove.heading = garden.spots.benchHeading;
   const dog = new Dog(scene, { physics, at: onGround(V(louHome.x + 1.2, 0, louHome.z - 0.6)), heading: Math.PI, onBark: () => sound.bark?.() });
   level.family = { lou, tove, dog };
@@ -162,7 +163,8 @@ export function setupHome(ctx) {
   game.on('dialogue:start', ({ id } = {}) => { if (id === 'lou') { st.greeted = true; lou.greetedThisVisit = true; lou.follow = null; } });
 
   // ---------------------------------------------------------------- the flower in your hand
-  const hand = () => player.humanoid?.b?.hand_r ?? player.char?.elbows?.[0] ?? null;
+  // (held in the rig's right hand: its forearm points down its -y, the character's front is +z)
+  const hand = () => player.char?.elbows?.[0] ?? null;
   const showHeld = (kind) => {
     if (st.heldMesh) { st.heldMesh.removeFromParent(); st.heldMesh = null; }
     st.held = kind;
@@ -171,9 +173,9 @@ export function setupHome(ctx) {
     if (!kind || !h) return;
     const m = new THREE.Mesh(garden.flowers.find((f) => f.kind === kind)?.mesh.geometry ?? new THREE.SphereGeometry(0.04), garden.flowers[0].mesh.material);
     m.userData.noCollide = true;
-    m.scale.setScalar(1 / Math.max(1e-3, player.object.scale.x));
-    m.position.set(0, -0.02, 0.04);
-    m.rotation.set(-1.9, 0, 0);
+    m.scale.setScalar(1.2 / Math.max(1e-3, player.object.scale.x));
+    m.position.set(0, -0.31, 0.05);
+    m.rotation.set(Math.PI - 1.0, 0, 0);
     h.add(m);
     st.heldMesh = m;
   };
@@ -195,13 +197,15 @@ export function setupHome(ctx) {
   registerInteractable({ id: 'home.flower', priority: PRIORITY.use, range: 1.5, prompt: () => (st.held ? 'pick another flower' : 'pick a flower'),
     at: () => garden.nearest(player.pos, 1.6)?.at.clone().add(V(0, 1.0, 0)) ?? garden.spots.border, enabled: () => !st.moment && !!garden.nearest(player.pos, 1.6),
     distance: (p) => { const f = garden.nearest(p.pos, 1.6); return f ? flat(p.pos, f.at) : Infinity; },
-    use: () => {
-      const f = garden.pick(player.pos, 1.6);
-      if (!f) return;
-      showHeld(f.kind);
-      sound.chime?.();
-      toast(`You pick ${FLOWERS.find((x) => x.id === f.kind)?.name ?? 'a flower'}.`);
-    } });
+    use: () => pickFlower() });
+  function pickFlower(from = player.pos) {
+    const f = garden.pick(from, 1.6);
+    if (!f) return null;
+    showHeld(f.kind);
+    sound.chime?.();
+    toast(`You pick ${FLOWERS.find((x) => x.id === f.kind)?.name ?? 'a flower'}.`);
+    return f;
+  }
   // Moustache
   registerInteractable({ id: 'home.dog', priority: PRIORITY.talk + 1, range: 1.9, prompt: 'pet Moustache', at: () => dog.pos.clone().add(V(0, 1.1, 0)),
     enabled: () => !st.moment && dog.state !== 'bark', distance: (p) => (Math.abs(p.pos.y - dog.pos.y) < 1.5 ? flat(p.pos, dog.pos) : Infinity),
@@ -319,6 +323,7 @@ export function setupHome(ctx) {
       if (d < 2.4) greet();
     }
     if (ending()) st.greeted = true;   // (the ending is her greeting)
+    lou.hush = tove.hush = ending() || !!st.moment;   // (no balloons over a scene)
     // at the stone with you, during a moment there: she stands beside you
     if (st.louKneel) lou.follow = () => ({ pos: stand.clone().add(V(-0.9, 0, 0.5)), speed: 1.4, near: 0.4, face: Math.atan2(HOME_SPOTS.tomb.x - stand.x, HOME_SPOTS.tomb.z - stand.z) });
     else if (st.greeted && lou.follow && !level.family.directed) lou.follow = null;
@@ -342,7 +347,7 @@ export function setupHome(ctx) {
   if (typeof window !== 'undefined') window.addEventListener('keydown', (e) => { if (st.moment && e.code === 'Escape' && !e.repeat) st.moment.hurry(); });
 
   return {
-    people: { lou, tove }, dog, update, state: st, homage, windowSeat,
+    people: { lou, tove }, dog, update, state: st, homage, windowSeat, pickFlower,
     /** A scene is playing (the stone, the window seat): the player's input stays out of it. */
     busy: () => !!st.moment,
     /** Esc during a moment hurries it on. */

@@ -72,13 +72,14 @@ export function buildGarden(scene, { ground = () => 0 } = {}) {
   // ---------------------------------------------------------------- the fence: pickets and two rails, two gates
   const GATE_W = [20.0, 21.4], GATE_N = [11.2, 12.6];   // the west gate (along z), the north gate (along x)
   const pickets = (ax, az, bx, bz, gap) => {
-    const len = Math.hypot(bx - ax, bz - az), n = Math.round(len / 0.32), ry = Math.atan2(bx - ax, bz - az);
+    const len = Math.hypot(bx - ax, bz - az), n = Math.round(len / 0.36), ry = Math.atan2(bx - ax, bz - az);
     for (let i = 0; i <= n; i++) {
       const t = i / n, x = ax + (bx - ax) * t, z = az + (bz - az) * t, along = az === bz ? x : z;
       if (gap && along > gap[0] && along < gap[1]) continue;
       const y = gy(x, z);
-      solid.push(paintBox(0.07, 0.78, 0.035, i % 2 ? '#f3ead8' : '#e9dcc0', x, y, z, ry));
-      solid.push(put(paint(new THREE.ConeGeometry(0.05, 0.1, 4).translate(0, 0.05, 0).scale(1, 1, 0.5), '#f3ead8'), [x, y + 0.78, z], [0, ry + Math.PI / 4, 0]));
+      // (flat side to the path: wide along the fence, thin across it)
+      solid.push(paintBox(0.035, 0.74, 0.1, i % 2 ? '#f6efe0' : '#efe4cc', x, y, z, ry));
+      solid.push(put(paint(new THREE.ConeGeometry(0.07, 0.09, 4).translate(0, 0.045, 0).scale(0.35, 1, 1), '#f6efe0'), [x, y + 0.74, z], [0, ry, 0]));
     }
     // the rails, broken at the gate
     const spans = gap ? [[0, (gap[0] - (az === bz ? ax : az)) / ((az === bz ? bx - ax : bz - az) || 1)], [(gap[1] - (az === bz ? ax : az)) / ((az === bz ? bx - ax : bz - az) || 1), 1]] : [[0, 1]];

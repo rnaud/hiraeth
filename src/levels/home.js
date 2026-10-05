@@ -248,7 +248,7 @@ function buildTomb(scene, mat) {
     addFlower(kind, i = flowers.children.length) {
       const m = flowerModel(kind, i);
       const { p, ry } = flowerAt(i % STONE_FLOWERS);
-      m.position.copy(p); m.rotation.set(0, ry, Math.PI / 2 - 0.08);
+      m.position.copy(p); m.rotation.set(0, ry, Math.PI / 2 - 0.08); m.scale.setScalar(1.5);
       if (flowers.children.length >= STONE_FLOWERS) flowers.remove(flowers.children[0]);
       flowers.add(m);
       return m;
@@ -286,6 +286,7 @@ export function createHome(scene) {
   // ---------------------------------------------------------- the round house (the parents'): walked into, dark and still
   const parents = buildParentsHouse(scene, { centre: HOME_SPOTS.house.clone().setY(H(HOME_SPOTS.house.x, HOME_SPOTS.house.z)), doorZ: HOME_SPOTS.door.z, mat });
   lights.push(...parents.lights);
+  movers.push((t) => parents.dust(t));
   {
     const { x, z } = HOME_SPOTS.house;
     // the lamp by the door (Tove keeps it lit)
@@ -409,7 +410,7 @@ export function createHome(scene) {
     add(new THREE.CylinderGeometry(0.06, 0.09, 6.2, 6), mat('#f3ead8', { metal: 'painted' }), m.x, 3.1, m.z);
     add(new THREE.SphereGeometry(0.12, 8, 6), mat('#d6a94a', { metal: 'brass' }), m.x, 6.25, m.z);
     const a = new THREE.Vector3(m.x, 6.05, m.z), b = a.clone().add(new THREE.Vector3(1.9, 0, 0.4));
-    cloths.add(new HangingCloth(scene, { a, b, length: 1.05, cols: 9, rows: 5, color: '#c8483a', color2: '#5fb7ad', pins: (r, c) => c === 0, wind: 1.4, damp: 0.98, name: 'flag' }));
+    cloths.add(new HangingCloth(scene, { a, b, length: 1.05, cols: 9, rows: 5, color: '#c8483a', color2: '#5fb7ad', pins: (r, c) => c === 0, wind: 3.2, gravity: 4.5, damp: 0.98, name: 'flag' }));
   }
   // the curtain in the small house, in front of the beds: two panels on the rod
   const indoorCloths = new Set();
@@ -417,7 +418,7 @@ export function createHome(scene) {
     const { a, b, floor } = small.curtain;
     const mid = a.clone().lerp(b, 0.5), d = b.clone().sub(a).normalize();
     for (const [p, q] of [[a, mid.clone().addScaledVector(d, -0.45)], [mid.clone().addScaledVector(d, 0.45), b]]) {
-      const c = cloths.add(new HangingCloth(scene, { a: p, b: q, length: 2.2, cols: 10, rows: 10, color: '#e6875f', color2: '#c8673f', floor, wind: 1, name: 'curtain', droop: 0 }));
+      const c = cloths.add(new HangingCloth(scene, { a: p, b: q, length: 2.2, cols: 13, rows: 10, color: '#e6875f', color2: '#c8673f', floor, wind: 1, name: 'curtain', pleats: 0.07 }));
       indoorCloths.add(c);
     }
   }

@@ -165,7 +165,7 @@ export class Dog {
         if (busy) { this.state = dist < 6 ? 'sit' : this.state; }
         if (d > 1.0 && !(busy && dist < 6)) {
           this.state = 'follow';
-          want = THREE.MathUtils.clamp((d - 0.6) * 1.9, 1.1, d > 9 ? 7.5 : 5.2);
+          want = THREE.MathUtils.clamp((d - 0.6) * 2.6, 1.1, d > 5 ? 9.5 : 5.2);   // (a gallop: he keeps up with your run)
           face = Math.atan2(tx - this.pos.x, tz - this.pos.z);
           this.sniffAt = null;
           if (d > 45) { this.pos.set(tx, L.pos.y, tz); this.ground(1); }   // (left far behind: a portal, a jump)

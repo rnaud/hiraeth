@@ -22,6 +22,7 @@ import { drawingMaterial } from './home-drawings.js';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const nonIdx = (g) => (g.index ? g.toNonIndexed() : g);
+const lerpN = (a, b, k) => a + (b - a) * k;
 
 /**
  * A dome shell (a half sphere, squashed to `sy`) with the triangles whose centre `cut(x, y, z)`
@@ -103,9 +104,11 @@ export function buildParentsHouse(scene, { centre, doorZ, mat }) {
   const shell = domeShell(R, SY, { w: 128, h: 36, cut: inDoor });
   add(shell, cream, 0, FLOOR, 0).name = 'dome';
   // inside: the same shell, seen from within, in the dusty dark (not solid: the outside is)
-  const inner = add(domeShell(R - 0.06, SY, { w: 128, h: 36, cut: inDoor }), mat('#b9ab95', { side: THREE.BackSide, flat: true }), 0, FLOOR, 0);
+  const inner = add(domeShell(R - 0.06, SY, { w: 128, h: 36, cut: inDoor }), mat('#a3937e', { side: THREE.BackSide, flat: true }), 0, FLOOR, 0);
   inner.userData.noCollide = true;
-  add(new THREE.TorusGeometry(R + 0.02, 0.28, 8, 64).rotateX(Math.PI / 2), mat('#5fb7ad', { flat: true }), 0, FLOOR + 0.7, 0).userData.noCollide = true;   // the painted band
+  // the painted band, broken at the doorway
+  const GAP = 0.2;
+  add(new THREE.TorusGeometry(R + 0.02, 0.28, 8, 64, Math.PI * 2 - GAP * 2).rotateX(Math.PI / 2).rotateY(Math.PI / 2 - GAP), mat('#5fb7ad', { flat: true }), 0, FLOOR + 0.7, 0).userData.noCollide = true;
   // the doorway: a short arched tunnel of terracotta through the shell, and the leaf in it
   const tunnel = new THREE.ExtrudeGeometry(archShape(DW + 1.0, DH, { w: DW, h: DH }), { depth: 1.9, bevelEnabled: false, curveSegments: 18 });
   add(tunnel, terracotta, 0, FLOOR, front - 0.45);
@@ -196,6 +199,42 @@ export function buildParentsHouse(scene, { centre, doorZ, mat }) {
   r(new THREE.BoxGeometry(0.5, 0.5, 0.5), dust, 3.0, 0.25, 4.6, 0.3);   // a box, never unpacked
   // a ring of dust round where something stood on the floor
   r(new THREE.RingGeometry(0.2, 0.32, 16).rotateX(-Math.PI / 2), dust, 0.9, 0.035, -2.4).userData.noCollide = true;
+  // under the round window, her lamp on its little table: the glass dark, the wick black
+  const lampAt = V(dir.x * 6.6, 0, dir.z * 6.6);
+  r(new THREE.CylinderGeometry(0.45, 0.45, 0.05, 16), wood, lampAt.x, 0.82, lampAt.z);
+  r(new THREE.CylinderGeometry(0.07, 0.16, 0.82, 8), wood, lampAt.x, 0.41, lampAt.z);
+  r(new THREE.CylinderGeometry(0.1, 0.13, 0.12, 12), mat('#c9a35a', { metal: 'brass' }), lampAt.x, 0.91, lampAt.z).userData.noCollide = true;
+  r(new THREE.SphereGeometry(0.15, 14, 10).scale(1, 1.3, 1), mat('#5a5f6e', { metal: 'chrome' }), lampAt.x, 1.13, lampAt.z).userData.noCollide = true;
+  // the dresser at the back: plates and jars, dust on everything
+  {
+    const at = V(-5.6, 0, 3.4), ry = Math.atan2(-at.x, -at.z);
+    r(new THREE.BoxGeometry(1.8, 0.95, 0.55), dark, at.x, 0.475, at.z, ry);
+    r(new THREE.BoxGeometry(1.8, 1.0, 0.18), dark, at.x - Math.sin(ry) * 0.2, 1.45, at.z - Math.cos(ry) * 0.2, ry);
+    const side = V(Math.cos(ry), 0, -Math.sin(ry));
+    for (let k = 0; k < 5; k++) {
+      const p = at.clone().addScaledVector(side, -0.68 + k * 0.34);
+      if (k % 2) r(new THREE.CylinderGeometry(0.09, 0.1, 0.24, 10), mat(['#5fb7ad', '#c8673f', '#efe2c4'][k % 3], { flat: true }), p.x, 1.07, p.z).userData.noCollide = true;
+      else r(new THREE.CylinderGeometry(0.17, 0.17, 0.025, 16).rotateX(Math.PI / 2 - 0.25), mat('#efe2c4', { flat: true }), p.x - Math.sin(ry) * 0.18, 1.6, p.z - Math.cos(ry) * 0.18, ry).userData.noCollide = true;
+    }
+  }
+  // dust in the light: slow specks hanging in the air (they drift: dust.update)
+  const SPECKS = 46;
+  const specks = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(0.012, 0), mat('#fff3d0', { glow: 0.9 }), SPECKS);
+  specks.userData.noCollide = true;
+  specks.frustumCulled = false;
+  room.add(specks);
+  const seeds = Array.from({ length: SPECKS }, (_, i) => [((i * 0.618) % 1) * 2 - 1, ((i * 0.381) % 1), ((i * 0.737) % 1) * 2 - 1, i * 1.7]);
+  const _sm = new THREE.Matrix4();
+  const dustUpdate = (t) => {
+    for (let i = 0; i < SPECKS; i++) {
+      const [a, b, c, s] = seeds[i];
+      // in the shaft from the round window down to the chair
+      const k = b, x = lerpN(dir.x * 6.2, chairAt.x, k) + a * 0.9 + Math.sin(t * 0.13 + s) * 0.25, y = lerpN(3.4, 1.0, k) + Math.sin(t * 0.09 + s * 2) * 0.3, z = lerpN(dir.z * 6.2, chairAt.z, k) + c * 0.9 + Math.cos(t * 0.11 + s) * 0.25;
+      specks.setMatrixAt(i, _sm.makeTranslation(x, y, z));
+    }
+    specks.instanceMatrix.needsUpdate = true;
+  };
+  dustUpdate(0);
   // light: only the dusk through the round window and the doorway
   const L = (x, y, z, w) => { const p = g.localToWorld(V(x, y, z)); return new THREE.Vector4(p.x, p.y, p.z, w); };
   const lights = [L(dir.x * 6.5, FLOOR + 2.6, dir.z * 6.5, 7), L(0, FLOOR + 1.8, front + 2.5, 5)];
@@ -209,7 +248,7 @@ export function buildParentsHouse(scene, { centre, doorZ, mat }) {
     return Math.hypot(dx, dz) < rr - 0.25 + margin;
   };
   return {
-    group: g, door, floor: centre.y + FLOOR, lights, R, front,
+    group: g, door, floor: centre.y + FLOOR, lights, R, front, dust: dustUpdate,
     indoor: inside,
     /** Standing in the doorway's tunnel, from outside (a shut door holds you here). */
     inDoorway: (p) => { const dx = p.x - centre.x, dz = p.z - centre.z; return Math.abs(dx) < DW / 2 + 0.2 && dz > front - 0.6 && dz < front + 1.5 && p.y < centre.y + FLOOR + 3; },

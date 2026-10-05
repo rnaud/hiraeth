@@ -43,7 +43,7 @@ export const DRAWING_LINES = {
 export const PEOPLE = {
   lou: {
     id: 'lou', name: 'Lou', title: 'your daughter, seven and a half', color: '#f2c54b', voice: 1.6, kind: 'f', age: 'child', scale: 0.72,
-    palette: { cloak: '#f2c54b', lining: '#2b211f', cloth: '#f2c54b', legs: '#c8483a', hat: '#e6875f', hair: '#8a5638' }, head: 'curls', cape: 0, look: { trim: 'dots', body: 'none', prop: 'none', mask: 'none' },
+    palette: { cloak: '#f2c54b', lining: '#2b211f', cloth: '#f2c54b', legs: '#c8483a', hat: '#e6875f', hair: '#8a5638' }, head: 'curls', cape: 0, look: { trim: 'dots', body: 'none', prop: 'none', mask: 'none', robe: 0.48 },
     lines: ['~happy~ Moustache! Come here! No, the other way!', '~playful~ Stand still. I’m drawing you.', '~curious~ Is the ship hot? Can I touch it?', '~happy~ I picked the yellow ones. Don’t tell Tove.'],
     talk: {
       entry: [

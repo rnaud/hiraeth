@@ -26,9 +26,10 @@ export class HangingCloth {
    *                     (row, col) => pinned (a flag on its pole: col === 0)
    * @param o.floor      the height of the ground under it (world y), o.wind (how much it feels the wind)
    * @param o.taper      0..1: the bottom edge this much narrower (a pennant), o.droop: sag between pins (m)
+   * @param o.pleats     m: folds pressed into it at rest (a curtain gathered on its rod), alternately in and out
    */
   constructor(scene, { a, b, length = 1.6, cols = 9, rows = 10, color = '#5fd0c6', color2 = null, pins = 'all', floor = -Infinity,
-    wind = 1, damp = 0.985, gravity = 9.8, taper = 0, droop = 0, name = 'cloth' } = {}) {
+    wind = 1, damp = 0.985, gravity = 9.8, taper = 0, droop = 0, pleats = 0, name = 'cloth' } = {}) {
     this.cols = cols; this.rows = rows;
     this.floor = floor; this.windK = wind; this.damp = damp; this.gravity = gravity;
     const n = cols * rows;
@@ -39,6 +40,7 @@ export class HangingCloth {
     const pinCols = pins === 'all' || typeof pins === 'function' ? null : new Set(pins);
     const pinAt = typeof pins === 'function' ? pins : (r, c) => r === 0 && (!pinCols || pinCols.has(c));
     const mid = (cols - 1) / 2;
+    const across = new THREE.Vector3().subVectors(b, a).cross(THREE.Object3D.DEFAULT_UP).normalize();
     for (let r = 0; r < rows; r++) {
       const t = r / (rows - 1);
       for (let c = 0; c < cols; c++) {
@@ -47,6 +49,7 @@ export class HangingCloth {
         _a.lerpVectors(a, b, cols > 1 ? u / (cols - 1) : 0.5);
         const pinnedHere = !!pinAt(r, c);
         if (r === 0 && !pinnedHere && droop) _a.y -= droop * Math.sin(Math.PI * (c / (cols - 1)));
+        if (pleats) _a.addScaledVector(across, (c % 2 ? 1 : -1) * pleats * (1 - 0.35 * t));
         const i = (r * cols + c) * 3;
         this.rest[i] = _a.x; this.rest[i + 1] = _a.y - t * length; this.rest[i + 2] = _a.z;
         if (pinnedHere) this.pinned[r * cols + c] = 1;

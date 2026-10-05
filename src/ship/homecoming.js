@@ -346,7 +346,9 @@ export class HomecomingDirector {
         const F = this.family;
         if (F?.lou) {
           F.directed = true;
-          F.lou.follow = () => ({ pos: s.player.pos.clone().add(V(-1.1, 0, 0.6)), speed: 3.8, near: 1.0, max: 4.8 });
+          // (down to the path first, where she waits for you; then at your side)
+          const wait = this.at(HOME_SPOTS.meet.x - 1.6, 0, HOME_SPOTS.meet.z - 2);
+          F.lou.follow = () => (s.player.pos.distanceTo(wait) > 7 ? { pos: wait, speed: 4.2, near: 0.5, max: 4.8, face: Math.PI } : { pos: s.player.pos.clone().add(V(-1.1, 0, 0.6)), speed: 2.4, near: 1.0, max: 4.2 });
         }
         break;
       }

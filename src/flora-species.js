@@ -510,4 +510,37 @@ function paintBands(g) { return paint(g, (x, y, z) => (Math.cos(Math.atan2(z, x)
 function paintCapsule(r, len, col) { return paint(new THREE.CapsuleGeometry(r, len, 3, 7), col); }
 function paintHalfDisc(r, h, col) { return paint(new THREE.CylinderGeometry(r, r * 0.9, h, 10, 1, false, -Math.PI / 2, Math.PI), col); }
 
-export const SPECIES = { desert: DESERT, incal: INCAL, arzach: ARZACH, arzach2: ARZACH2, garage: GARAGE, buried: BURIED, edena: EDENA, spheres: SPHERES, perdide: PERDIDE, perdide2: PERDIDE2, bazaar: BAZAAR };
+// ======================================================================= home: peach grass, lilac and teal, round as the house
+const HOME = [
+  { id: 'home.umbrella', name: 'Little umbrella tree', h: 5.6, size: [4, 7], large: true, collide: [0.25, 3.8], patch: [1, 3], spread: 10, spacing: 5, weight: 0.5, with: ['home.puff', 'home.peach'], sway: 0.08,
+    build: () => merge([
+      tube([[0, 0, 0], [0.2, 2.2, 0.05], [-0.15, 4.2, -0.05], [0.25, 5.3, 0]], 0.2, 0.12, '#8a5a3c', 6, 10),
+      disc(2.3, 0.35, '#3f9f98', 18, [0.25, 5.2, 0], [0, 0, 0], (a) => 1 + 0.05 * Math.sin(a * 5)),
+      disc(2.35, 0.08, '#f2c49a', 18, [0.25, 5.14, 0]),
+      disc(1.3, 0.28, '#5fb7ad', 14, [-0.1, 3.9, 0.1]),
+      disc(1.33, 0.06, '#f2c49a', 14, [-0.1, 3.86, 0.1]),
+    ]) },
+  { id: 'home.cypress', name: 'Round cypress', h: 4.4, size: [3, 5.6], large: true, collide: [0.4, 3], patch: [2, 4], spread: 6, spacing: 2.6, weight: 0.5, with: ['home.daisy'], sway: 0.05,
+    build: () => merge([
+      cyl(0.16, 0.12, 0.8, '#8a5a3c', 6),
+      ell(0.9, 1.9, 0.9, '#3f8f8a', [0, 2.4, 0], [0, 0, 0], 10, 8),
+      ell(0.6, 0.9, 0.6, '#5fb7ad', [0.1, 3.9, 0.05], [0, 0, 0], 8, 6),
+    ]) },
+  { id: 'home.puff', name: 'Puffball bush', h: 1.1, size: [0.7, 1.5], patch: [3, 7], spread: 4, spacing: 1.1, weight: 1, with: ['home.daisy'], sway: 0.03,
+    build: () => merge([ball(0.55, '#5fb7ad', [0, 0.5, 0], 1, [1, 0.9, 1]), ball(0.32, '#3f8f8a', [0.35, 0.3, 0.2], 1), ball(0.28, '#b9a3c9', [-0.3, 0.75, -0.1], 1)]) },
+  { id: 'home.peach', name: 'Peach grass', h: 0.9, size: [0.6, 1.2], patch: [8, 18], spread: 4, spacing: 0.45, weight: 1.6, shadow: false, sway: 0.12,
+    build: () => merge(around(7, (i, a) => blade(0.6 + (i % 3) * 0.15, 0.08, i % 2 ? '#e3a97c' : '#f2c49a', { lean: 0.25 + (i % 2) * 0.15, yaw: a }))) },
+  { id: 'home.daisy', name: 'Hill daisies', h: 0.35, size: [0.25, 0.45], patch: [8, 16], spread: 3, spacing: 0.35, weight: 1.2, shadow: false, sway: 0.04,
+    build: () => merge(around(5, (i, a) => {
+      const at = [Math.cos(a) * 0.1, 0.25 + (i % 2) * 0.08, Math.sin(a) * 0.1];
+      return [tube([[0, 0, 0], at], 0.012, 0.01, '#5f9a4a', 3, 2), disc(0.055, 0.01, i % 3 ? '#f7f4ec' : '#f2c54b', 8, at), ball(0.02, '#e8a33a', [at[0], at[1] + 0.012, at[2]])];
+    })) },
+  { id: 'home.bells', name: 'Lilac bell stalks', h: 1.4, size: [0.9, 1.7], patch: [4, 9], spread: 3, spacing: 0.6, weight: 0.8, sway: 0.08,
+    build: () => merge([
+      tube([[0, 0, 0], [0.05, 0.7, 0], [0.12, 1.3, 0]], 0.025, 0.015, '#5f9a6a', 4, 5),
+      ...[0.6, 0.8, 1.0, 1.15, 1.3].map((y, i) => lathe([[0.001, 0], [0.05, 0.02], [0.065, 0.08], [0.04, 0.11]], i % 2 ? '#b9a3c9' : '#a99be0', 7, [0.06 + y * 0.05 + (i % 2 ? 0.06 : -0.06), y - 0.12, 0], [Math.PI, 0, 0])),
+      leaf(0.35, 0.09, 0.02, '#7fb069', { up: 0.4, yaw: 0.5, droop: 0.4 }), leaf(0.3, 0.08, 0.02, '#7fb069', { up: 0.5, yaw: 3.6, droop: 0.4 }),
+    ]) },
+];
+
+export const SPECIES = { home: HOME, desert: DESERT, incal: INCAL, arzach: ARZACH, arzach2: ARZACH2, garage: GARAGE, buried: BURIED, edena: EDENA, spheres: SPHERES, perdide: PERDIDE, perdide2: PERDIDE2, bazaar: BAZAAR };
