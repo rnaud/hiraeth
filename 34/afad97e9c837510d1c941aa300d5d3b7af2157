@@ -1,0 +1,71 @@
+LORE.md
+  s_1fd8d0e7b02dcf::t_0e741659e6a860 56-58,81-102,116-131,665-666,671-673,679-681,688-689,694-709,730,776
+README.md
+  s_1fd8d0e7b02dcf::t_70ef42176f5ea8 2556-2613
+src/audio.js
+  s_1fd8d0e7b02dcf::t_ef43d682b8576c 660-697
+src/dog.js
+  s_1fd8d0e7b02dcf::t_492321f6a62df3 1-243
+src/flora-species.js
+  s_1fd8d0e7b02dcf::t_7166c074c73769 513-546
+src/flora.js
+  s_1fd8d0e7b02dcf::t_f45b42982754d4 49-50
+src/hanging-cloth.js
+  s_1fd8d0e7b02dcf::t_da8cb02d3a2249 1-209
+src/levels/home-drawings.js
+  s_1fd8d0e7b02dcf::t_77bbc153165315 1-176
+src/levels/home-garden.js
+  s_1fd8d0e7b02dcf::t_eae710127a4ebb 1-220
+src/levels/home-houses.js
+  s_1fd8d0e7b02dcf::t_358d53bb45b3c1 1-428
+src/levels/home.js
+  s_1fd8d0e7b02dcf::t_430d67e3e54209 10-14,24-38,52-54,78,153,158-192,224-227,230-235,237,247-267,286-289,292,307-328,349-358,368-374,376,379-380,383-413,415-432,434-440,442,457-459,474-480,488,494-496,515-530,532
+src/main.js
+  s_1fd8d0e7b02dcf::t_541094c2d04592 387
+src/npc.js
+  s_1fd8d0e7b02dcf::t_924f57a88bc4c4 462
+src/player.js
+  s_1fd8d0e7b02dcf::t_e10b99b6a1ad13 1157-1160,1164,1168
+src/ship/cinema.js
+  s_1fd8d0e7b02dcf::t_68a3c9ff050b5f 256
+src/ship/homecoming.js
+  s_1fd8d0e7b02dcf::t_aab9eeb088cc4c 10,12-13,28-31,221,309,345-352,356-357,387-400,414,438,454,508-510,518,588
+src/story/ending.js
+  s_1fd8d0e7b02dcf::t_eeef461e6c8e86 11-14,38,54,136,159-160,170,172-174,216
+src/story/home-data.js
+  s_1fd8d0e7b02dcf::t_33757f238db798 1-235
+src/story/home.js
+  s_1fd8d0e7b02dcf::t_fd3ba5a69e94c9 1-356
+src/story/index.js
+  s_1fd8d0e7b02dcf::t_c3dd4968b68091 24,53,183
+src/story/voice.js
+  s_1fd8d0e7b02dcf::t_06b050aa152f4e 149,318
+tests/ending.test.js
+  s_1fd8d0e7b02dcf::t_dd600cd77b9855 70-72
+tests/home-family.test.js
+  s_1fd8d0e7b02dcf::t_372933823c4367 1-200
+tests/home.test.js
+  s_1fd8d0e7b02dcf::t_1f1c7080b9f40f 1-132
+TODO.md
+  s_1fd8d0e7b02dcf::t_856a321469be26 335
+changelog.md
+  s_1fd8d0e7b02dcf::t_266702ab71309f 5-14
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_57ee83db2c7120 6-14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "34afad97e9c837510d1c941aa300d5d3b7af2157",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
