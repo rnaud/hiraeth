@@ -602,8 +602,8 @@ function beardShell(q, { t = 0.009, mouth = -0.104, cols = 14, rows = 4 } = {}) 
       // the jaw: an ellipse round the face, narrowing to the chin; the last row tucks under it
       // (wider up the cheeks to the temples, as the face is: measured on both bodies)
       const chin = THREE.MathUtils.smoothstep(y, -0.115, -0.165), cheek = THREE.MathUtils.smoothstep(y, -0.075, 0.0), tuck = i === rows ? 0.45 : 0;
-      const tt = t * (1 - 0.35 * cheek);
-      const rx = (0.067 + 0.017 * cheek - 0.022 * chin + tt) * (1 - tuck * 0.5), rz = (0.1 - 0.012 * chin + tt) * (1 - tuck);
+      const tt = t * (1 - 0.2 * cheek);
+      const rx = (0.069 + 0.017 * cheek - 0.022 * chin + tt) * (1 - tuck * 0.5), rz = (0.107 - 0.018 * chin + tt) * (1 - tuck);
       pos.push(Math.sin(az) * rx, y, Math.cos(az) * rz - 0.004);
     }
   }
@@ -668,7 +668,7 @@ export const HEADS = {
   bald: { cap: false, parts: () => [] },
   // tight curls: a thick lumpy crop, small round knots all over (on the full body)
   curls: { cap: true, base: (q, l) => [P('hair', scalp(q, { kind: kindOf(l), t: 0.012, front: 26, back: -38, crown: 0.008, bump: 0.009 }), true),
-    ...scalpPoints(40, { kind: kindOf(l), t: 0.015 }).map(([x, y, z], i) => P('hair', sphere(0.013 + (i % 3) * 0.002, q, 7, 5).translate(x, y, z)))], parts: () => [] },
+    ...scalpPoints(52, { kind: kindOf(l), t: 0.013 }).map(([x, y, z], i) => P('hair', sphere(0.012 + (i % 3) * 0.002, q, 7, 5).translate(x, y, z)))], parts: () => [] },
   // one braid down the back from the nape, its end tied
   braid: { cap: true, base: (q, l) => [P('hair', scalp(q, { kind: kindOf(l), t: 0.008, back: -30 }), true)], parts: (q, l) => {
     const S = SKULL[kindOf(l)], out = [];
