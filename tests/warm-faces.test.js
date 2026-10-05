@@ -137,3 +137,23 @@ test('on a body: everyone rests kindly, wears their look\'s face, and the story 
   const brows = npc.humanoid.browMesh.material.uniforms.uColor.value.getHexString();
   assert.equal('#' + brows, browColour(npc.look.hair, npc.look.skin));
 });
+
+test("a crowd body takes each person's face and mood, and lets the last face's brows go", async () => {
+  const { pooledNPC } = await import('../src/npc.js');
+  const scene = new THREE.Scene();
+  const physics = new Physics(scene);
+  const n = pooledNPC(scene, physics, { kind: 'f', humans: [humans.m, humans.f] });
+  const person = (seed) => ({ style: crowdLook(mulberry32(seed), { world: 'bazaar', kind: 'f' }), size: 1, pos: new THREE.Vector3(seed, 0, 0), heading: 0, lines: ['…'], lineIdx: 0, phase: 0, id: seed });
+  const a = person(11), b = person(12);
+  n.assign(a, null);
+  assert.deepEqual(n.humanoid.ownFace, a.style.face);
+  assert.ok(Math.abs(n.humanoid.body.material.uniforms.uFaceKit.value.x - a.style.face.lines) < 1e-6, 'their age lines in the ink');
+  const browsA = n.humanoid.browMesh.geometry;
+  let gone = false;
+  browsA.addEventListener('dispose', () => { gone = true; });
+  n.release();
+  n.assign(b, null);
+  assert.deepEqual(n.humanoid.ownFace, b.style.face);
+  assert.deepEqual(n.humanoid.restExpression, { ...n.humanoid.restExpression, ...REST_MOODS[b.style.mood] });
+  assert.ok(gone, "the last person's brows disposed");
+});

@@ -826,8 +826,8 @@ const fragmentShader = /* glsl */ `
     c = mix(mix(iris, EYE_INK, 0.7), c, smoothstep(0.8, 1.8, 1.0 / max(px, 1e-4)));
     // blinking: the lid (skin) closes from the top, its edge inked
     // (the model's lids open on the lower part of the ball: from d.y 0.15 down to -0.55; the upper
-    // rim lifted by humanoid.js UPPER_LID to about 0.27, so the lid at rest sits just under it)
-    float lid = mix(0.29, -0.62, uEyeLook.w), dy = d.y - lid, fy = max(fwidth(d.y), 1e-4);
+    // rim lifted by humanoid.js UPPER_LID to about 0.27, more on big eyes: the lid at rest stays out of sight under it)
+    float lid = mix(0.42, -0.62, uEyeLook.w), dy = d.y - lid, fy = max(fwidth(d.y), 1e-4);
     c = mix(c, skin, smoothstep(-fy * 0.5, fy * 0.5, dy));
     // the lash line: a crisp pen line along the lid's edge (Moebius' heavy upper lid), heavier
     // toward the outer corner, coming down with the lid as they blink

@@ -42,9 +42,11 @@ for (const t of TONES) TONE_EXPRESSIONS[t] ??= {};
 /**
  * The people's faces at rest (Humanoid.restExpression): a kind face, not a somber one. The corners
  * of the mouth a little up, the brows a touch raised (never knitted), the lids easy. A tone (the
- * conversations, expressionFor) goes from there and comes back to it.
+ * conversations, expressionFor) goes from there and comes back to it. (The inner ends of the brows a
+ * hair up: a head bowed a little, seen from level, otherwise reads as a frown, its brows' outer ends
+ * wrapping back round the skull.)
  */
-export const PEOPLE_REST = Object.freeze({ smile: 0.2, open: 0, brow: 0.14, browTilt: 0.05, squint: 0, gaze: null });
+export const PEOPLE_REST = Object.freeze({ smile: 0.2, open: 0, brow: 0.14, browTilt: 0.1, squint: 0, gaze: null });
 
 /**
  * Resting moods a person can have (costumes.js: a tribe's `moods`, weights; drawn per person by
@@ -52,10 +54,10 @@ export const PEOPLE_REST = Object.freeze({ smile: 0.2, open: 0, brow: 0.14, brow
  * the bell monks). Each is a whole expression at rest.
  */
 export const REST_MOODS = {
-  kind: { smile: 0.22, brow: 0.14, browTilt: 0.05 },
-  amused: { smile: 0.34, brow: 0.1, squint: 0.12 },
-  curious: { smile: 0.14, brow: 0.3, browTilt: 0.04 },
-  calm: { smile: 0.1, brow: 0.06, squint: 0.05 },
+  kind: { smile: 0.22, brow: 0.14, browTilt: 0.12 },
+  amused: { smile: 0.34, brow: 0.1, browTilt: 0.08, squint: 0.12 },
+  curious: { smile: 0.14, brow: 0.3, browTilt: 0.1 },
+  calm: { smile: 0.1, brow: 0.06, browTilt: 0.06, squint: 0.05 },
   stern: { smile: -0.05, brow: -0.18, squint: 0.1 },
 };
 /** The moods' odds when a tribe doesn't say. */

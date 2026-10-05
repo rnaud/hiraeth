@@ -67,7 +67,7 @@ export const EYE_GLSL = /* glsl */ `
  */
 export const EYE_TILT = 0.2;
 /** How far the eyes turn from straight ahead (rad): sideways, up, down. */
-export const EYE_REACH = { yaw: 0.42, up: 0.2, down: 0.26 };
+export const EYE_REACH = { yaw: 0.42, up: 0.12, down: 0.26 };   // (not far up: the iris would go under the upper lid, a heavy-lidded look)
 /** Seconds between blinks, and a blink's close / open time. */
 export const BLINK = { min: 2.2, max: 6, close: 0.06, open: 0.1 };
 

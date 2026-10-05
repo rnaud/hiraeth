@@ -571,7 +571,11 @@ export class Humanoid {
     const brows = this.browMesh;
     if (brows) {
       brows.userData.baseGeometry ??= brows.geometry;
+      // (this body's own copy, re-made for each face: a crowd body takes a new person's face often, so the last copy goes)
+      const old = brows.geometry;
       brows.geometry = plainGeometry(this.face ? this.warped(brows, brows.userData.baseGeometry) : brows.userData.baseGeometry);
+      brows.geometry.userData.ownBrows = true;
+      if (old?.userData.ownBrows) old.dispose();
       this._browBase = Float32Array.from(brows.geometry.attributes.position.array);
     }
     const u = this.body?.material.uniforms;
@@ -614,6 +618,7 @@ export class Humanoid {
       if (!force && !e.brow && !e.browTilt) return;   // (never touched: the shared geometry stays)
       b.userData.baseGeometry ??= b.geometry;
       b.geometry = plainGeometry(b.geometry);   // (the model's arrays are interleaved)
+      b.geometry.userData.ownBrows = true;
       this._browBase = Float32Array.from(b.geometry.attributes.position.array);
     }
     const P = b.geometry.attributes.position, base = this._browBase;

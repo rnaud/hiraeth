@@ -466,9 +466,11 @@ All of this is for the web game; the Unity port follows later if we move to Unit
 
 # Faces and bodies (2026-10-05, web; after the Lab performance fix)
 
-- [ ] Warmer faces on the current bodies: a slight resting smile by default, lighter and softer brows,
+- [x] Warmer faces on the current bodies: a slight resting smile by default, lighter and softer brows,
   mouth corner ticks that don't turn down at rest, warmer face shadows (skin, not the world's blue-violet
-  shade), gentler face presets; tuned in the character studio and checked in every world.
+  shade), gentler face presets; tuned in the character studio and checked in every world. (Each person
+  rests in a mood and wears a face shape of their people's; the model's lashes, a second heavy arc over
+  each eye, are folded away and the upper lids lifted; README "Warmer faces".)
 - [ ] Prototype MakeHuman / MPFB bodies (CC0 exports): a few people of different ages and builds with face
   shape keys for expressions, on the game's skeleton, next to the Quaternius bodies through the same ink
   pass in the character studio. If they read better, switch the base bodies (costumes and hair re-fitted,

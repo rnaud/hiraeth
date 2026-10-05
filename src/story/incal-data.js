@@ -278,7 +278,7 @@ export const PEOPLE = {
 
   dov: {
     id: 'dov', name: 'Dov', title: 'guard at the palace gate', color: '#f2c54b', voice: 0.85, kind: 'm', scale: 1.06,
-    palette: { cloak: '#34405e', lining: '#f2c54b', cloth: '#f3ead8', legs: '#2b2f45', hat: '#f2c54b', hair: '#2b211f' }, head: 'hat', cape: 1.3, look: { body: 'collar', prop: 'staff' },
+    palette: { cloak: '#34405e', lining: '#f2c54b', cloth: '#f3ead8', legs: '#2b2f45', hat: '#f2c54b', hair: '#2b211f' }, head: 'hat', cape: 1.3, look: { body: 'collar', prop: 'staff', mood: 'stern' },
     lines: ['~angry~ Keep to the ring.', '~neutral~ Eyes on the visitors.', '~tired~ Palace rules.'],
     talk: {
       entry: [

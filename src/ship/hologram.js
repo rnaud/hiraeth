@@ -239,7 +239,8 @@ const fragmentShader = /* glsl */ `
       float fw = max(fwidth(q.y), 1e-4) * 1.3;
       float e = uFace.y, ny = uFace.z - uFace.x, cy = uFace.w - uFace.x;
       vec2 lid = (q - vec2(e, 0.004)) / vec2(0.017, 0.008);
-      ink = max(ink, inkLine(abs(length(lid) - 1.0) * 0.008 / fw, 1.0) * step(0.0, lid.y + 0.25) * step(abs(lid.x), 1.1));
+      // (the lid: a fine arc, not a heavy one: the eyes easy, as the people's)
+      ink = max(ink, inkLine(abs(length(lid) - 1.0) * 0.008 / fw, 0.7) * step(0.0, lid.y + 0.25) * step(abs(lid.x), 1.1) * 0.7);
       ink = max(ink, inkLine(segDist(q, vec2(0.021, ny - 0.003), vec2(0.03, ny - 0.03)) / fw, 0.7) * 0.35);
       // the mouth, its corners a little up (a kind face, as the people's rest: expression.js PEOPLE_REST)
       float my = ny + (cy - ny) * 0.42;
