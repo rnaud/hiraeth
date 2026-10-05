@@ -233,7 +233,13 @@ export class Alien {
     for (const k of MOOD_KEYS) M[k] = damp(M[k], T[k] ?? (k === 'glow' || k === 'tempo' ? 1 : 0), r, dt);
     this.object.position.copy(this.pos);
     this.object.rotation.y = this.heading;
-    if (!stunned) this.motor.update(dt, { speed, dist, toPlayer, player, near: tier === 'near', far: tier === 'far' || tier === 'distant', looking: this.talkTo || dist < greetR || startled });
+    // now and then, standing about with nobody near, a small habit of their own (fidget: 0 → 1 → 0 over ~2.5 s)
+    const idle = !stunned && !this.talkTo && speed < 0.05 && dist > greetR && !startled;
+    this._fidgetIn = (this._fidgetIn ?? 4 + this.rand() * 8) - (idle ? dt : 0);
+    if (this._fidgetIn <= 0) { this._fidgetT = 0; this._fidgetIn = 7 + this.rand() * 9; }
+    if (this._fidgetT !== undefined) { this._fidgetT += dt; if (this._fidgetT > 2.5 || !idle) this._fidgetT = undefined; }
+    const fidget = this.fidgetK = this._fidgetT === undefined ? 0 : Math.sin(Math.PI * Math.min(1, this._fidgetT / 2.5));
+    if (!stunned) this.motor.update(dt, { speed, dist, toPlayer, player, fidget, near: tier === 'near', far: tier === 'far' || tier === 'distant', looking: this.talkTo || dist < greetR || startled });
     this.colour(dt);
     // the balloon: placed by placeBalloon() after the camera has moved
     this.talking = !this.talkTo && !this.hush && !!this.greeted && this.time - this.greeted > 0.6 && dist < greetR;
@@ -359,9 +365,9 @@ class DrifterMotor {
     this.tiltV.x += ((tx - this.tilt.x) * 9 - this.tiltV.x * 2.4) * dt; this.tiltV.y += ((ty - this.tilt.y) * 9 - this.tiltV.y * 2.4) * dt;
     this.tilt.addScaledVector(this.tiltV, dt);
     this.spinV = damp(this.spinV ?? 0, 0, 1.2, dt);
-    this.spin += dt * (0.12 * M.tempo + (M.spin ?? 0) * 0.9 + this.spinV);
+    this.spin += dt * (0.12 * M.tempo + (M.spin ?? 0) * 0.9 + this.spinV + c.fidget * 0.8);   // (its habit: a slow turn, rising)
     const body = P.body, shake = M.shake * 0.04 * Math.sin(a.time * 31);
-    body.position.set(shake, a.S.hover + this.rise_ + M.lift + 0.1 * Math.sin(this.phase * 0.5) + pulse * 0.05, 0);
+    body.position.set(shake, a.S.hover + this.rise_ + M.lift + 0.1 * Math.sin(this.phase * 0.5) + pulse * 0.05 + c.fidget * 0.35, 0);
     body.rotation.set(this.tilt.x, this.spin, this.tilt.y, 'XYZ');
     // the bell breathes: it narrows and lengthens on each pulse; a happy or loud one breathes wider
     const open = 1 + 0.06 * M.pose;
@@ -440,7 +446,7 @@ class StiltMotor {
     toLocal(_w, _p.copy(a.pos).add(c.toPlayer), a.pos, a.heading);
     const lookTo = c.looking ? clamp(Math.atan2(_w.x, _w.z), -1.1, 1.1) : Math.sin(a.time * 0.23) * 0.5;
     this.look = damp(this.look, lookTo, 2.5, dt);
-    const nodTo = -M.pose * 0.35 + (M.lean ?? 0) * 0.35 + (c.looking ? 0.12 : 0) + a.voice * 0.12;
+    const nodTo = -M.pose * 0.35 + (M.lean ?? 0) * 0.35 + (c.looking ? 0.12 : 0) + a.voice * 0.12 + c.fidget * 0.9;   // (its habit: the lantern lowered to the ground)
     this.nod = damp(this.nod, nodTo, 4, dt);
     P.neck.rotation.set(this.nod + this.swing.x * 0.6, this.look, this.swing.y * 0.6 + M.shake * 0.08 * Math.sin(a.time * 27), 'YXZ');
     P.head.rotation.set(this.swing.x * 0.5, 0, this.swing.y * 0.5);
@@ -560,7 +566,7 @@ class ShellMotor {
     this.wiggle = damp(this.wiggle, 0, 1.5, dt);
     toLocal(_w, _p.copy(a.pos).add(c.toPlayer).addScaledVector(Y, 1.5), a.pos, a.heading);
     const look = c.looking ? clamp(Math.atan2(_w.x, _w.z - 0.9), -1.2, 1.2) : Math.sin(a.time * 0.4) * 0.4;
-    const len = Math.max(0.02, (0.62 + 0.16 * M.pose + 0.06 * a.voice) * out);
+    const len = Math.max(0.02, (0.62 + 0.16 * M.pose + 0.06 * a.voice) * out * (1 - 0.75 * c.fidget));   // (its habit: the eyes down their stalks and up again)
     for (const E of P.eyes) {
       const sway = Math.sin(a.time * 1.3 * M.tempo + E.s) * 0.12 + this.wiggle * 0.4 * Math.sin(a.time * 17 + E.s * 2) + (M.spin ?? 0) * 0.2 * Math.sin(a.time * 6 + E.s);
       const droop = M.pose < 0 ? -M.pose * 0.9 : 0;
@@ -647,7 +653,7 @@ class MurmurMotor {
           if (m.vy < -1.5) m.squash = 0.7;
           m.vy = 0;
           // hop: walking, going back to their place, happy, playful, panicking, or now and then
-          m.hop += dt * (moving || far > 0.3 || this.panic > 0 ? 2.4 : 0.35 + 0.5 * Math.max(0, M.pose)) * M.tempo;
+          m.hop += dt * (moving || far > 0.3 || this.panic > 0 ? 2.4 : 0.35 + 0.5 * Math.max(0, M.pose) + 2.2 * c.fidget * (Math.sin(a.time * 5 - k * 1.3) > 0.4 ? 1 : 0)) * M.tempo;   // (their habit: a wave of hops round the cluster)
           if (m.hop >= 1) { m.hop -= 1; m.vy = (moving || far > 0.3 ? 2.1 : 1.3) * (1 + 0.3 * Math.max(0, M.pose)) * (0.8 + m.size * 0.3); }
         }
       }

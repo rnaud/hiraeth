@@ -123,6 +123,21 @@ test('every one of them loads, walks its round, and changes detail with distance
   }
 });
 
+test('standing about with nobody near, each has a small habit now and then', () => {
+  const scene = new THREE.Scene();
+  for (const [w, d] of ALL.filter(([, x], i, A) => A.findIndex(([, y]) => y.species === x.species) === i)) {
+    const [a] = spawnAliens(scene, flat, w).filter((x) => x.def.id === d.id);
+    const far = { pos: a.pos.clone().add(new THREE.Vector3(80, 0, 0)), vel: new THREE.Vector3() };
+    const camera = { position: a.pos.clone().add(new THREE.Vector3(0, 3, 8)) };
+    let most = 0;
+    for (let i = 0; i < 30 * 60; i++) { a.update(1 / 30, far, camera); most = Math.max(most, a.fidgetK); }
+    assert.ok(most > 0.9, `${d.species}: a habit (${most.toFixed(2)})`);
+    // and never with you beside them
+    const near = { pos: a.pos.clone().add(new THREE.Vector3(2, 0, 0)), vel: new THREE.Vector3() };
+    for (let i = 0; i < 30 * 20; i++) { a.update(1 / 30, near, camera); assert.equal(a.fidgetK, 0); }
+  }
+});
+
 test('the fluid tool: each people has its own reaction, and they all come back', () => {
   const scene = new THREE.Scene();
   const one = (w, species) => spawnAliens(scene, flat, w).find((a) => a.species === species);
