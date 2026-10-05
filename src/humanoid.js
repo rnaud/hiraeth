@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 import { makeMaterial, MODE_OUTFIT, MODE_EYE } from './materials.js';
+import { EAR_Z, noseSide } from './face-ink.js';
 import { EyeLook, EYE_WHITE, EYE_TILT, TRAVELLER_IRIS, eyeballOf } from './eyes.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { lookPieces, roleColor, BUILDS } from './costumes.js';
@@ -53,6 +54,41 @@ const NEXT = { pelvis: 'spine_01', spine_01: 'spine_02', spine_02: 'spine_03', s
   clavicle_r: 'upperarm_r', upperarm_r: 'lowerarm_r', lowerarm_r: 'hand_r' };
 const SHOULDER_IN = { m: 0.045, f: 0.02 };
 
+/**
+ * Eyebrows drawn as one pen stroke each (the Moebius way): pulled toward their own arched centre
+ * line, about half as tall as modelled at the inner end and tapering to a fifth at the outer end.
+ * (In place, on the shared template's geometry; returns the thickness factor's range for tests.)
+ */
+export function taperBrows(g) {
+  const P = g.attributes.position;
+  // the brow's centre line: y = c0 + c1 |x| + c2 |x|^2, least squares over all its vertices
+  const S = [0, 0, 0, 0, 0], T = [0, 0, 0];
+  let x0 = Infinity, x1 = 0;
+  for (let i = 0; i < P.count; i++) {
+    const x = Math.abs(P.getX(i)), y = P.getY(i);
+    let xp = 1;
+    for (let k = 0; k < 5; k++) { S[k] += xp; if (k < 3) T[k] += xp * y; xp *= x; }
+    x0 = Math.min(x0, x); x1 = Math.max(x1, x);
+  }
+  const c = solve3([[S[0], S[1], S[2]], [S[1], S[2], S[3]], [S[2], S[3], S[4]]], T);
+  const span = Math.max(x1 - x0, 1e-6);
+  let kMin = Infinity, kMax = 0;
+  for (let i = 0; i < P.count; i++) {
+    const x = Math.abs(P.getX(i)), cy = c[0] + c[1] * x + c[2] * x * x, u = (x - x0) / span;
+    const k = 0.55 - 0.36 * Math.pow(u, 1.3);
+    kMin = Math.min(kMin, k); kMax = Math.max(kMax, k);
+    P.setY(i, cy + (P.getY(i) - cy) * k);
+  }
+  P.needsUpdate = true;
+  return [kMin, kMax];
+}
+/** Solve a 3x3 linear system (Cramer). */
+function solve3(A, b) {
+  const det = (M) => M[0][0] * (M[1][1] * M[2][2] - M[1][2] * M[2][1]) - M[0][1] * (M[1][0] * M[2][2] - M[1][2] * M[2][0]) + M[0][2] * (M[1][0] * M[2][1] - M[1][1] * M[2][0]);
+  const D = det(A) || 1e-12;
+  return [0, 1, 2].map((j) => det(A.map((row, r) => row.map((v, k) => (k === j ? b[r] : v)))) / D);
+}
+
 /** Landmarks after reshape(): the lower face is 22% longer, x narrowed 10%. */
 function faceAfterReshape(kind) {
   const [eyeY, eyeX, noseY, noseZ, chinY] = FACE[kind];
@@ -90,12 +126,7 @@ function reshape(scene, kind) {
   for (const mesh of meshes) {
     const g = mesh.geometry;
     const isBrow = /hair/i.test(mesh.material?.name ?? '');
-    if (isBrow) {   // eyebrows: half as tall, pulled toward their own centre line
-      g.computeBoundingBox();
-      const cy = (g.boundingBox.min.y + g.boundingBox.max.y) / 2;
-      const Pb = g.attributes.position;
-      for (let i = 0; i < Pb.count; i++) Pb.setY(i, cy + (Pb.getY(i) - cy) * 0.5);
-    }
+    if (isBrow) taperBrows(g);
     const P = g.attributes.position, J = g.attributes.skinIndex, W = g.attributes.skinWeight;
     for (let i = 0; i < P.count; i++) {
       v.fromBufferAttribute(P, i);
@@ -264,6 +295,7 @@ export class Humanoid {
     this.faceRest = faceAfterReshape(kind);
     const C = char.colors;
     const body = makeMaterial({ color: C.cloth, color2: C.legs, color3: C.boot ?? '#6e3f2c', mode: MODE_OUTFIT, skin, outfit: OUTFIT[kind], face: faceAfterReshape(kind), gloves, suit });
+    body.uniforms.uFaceKit2.value.w = EAR_Z[kind];   // (the face ink's ears: face-ink.js)
     // the eyes (eyes.js): white, an iris (each person's own colour: NPC.restyle) that follows the gaze, blinking lids
     let eyeball = null;
     model.traverse((o) => { if (o.isMesh && /eye/i.test(o.name) && !/brow/i.test(o.name) && !eyeball) eyeball = o.userData.eyeball ?? null; });
@@ -504,7 +536,7 @@ export class Humanoid {
     if (u?.uFace) {
       u.uFace.value.set(L[0], L[1], L[2], L[4]);
       u.uFaceKit.value.set(f.lines, f.mouthWidth, f.freckles, f.lidWeight);
-      u.uFaceKit2.value.x = f.eyeSize;
+      u.uFaceKit2.value.set(f.eyeSize, f.noseWidth, f.cheeks, EAR_Z[this.kind]);
     }
     this.poseBrows(true);
     this._browPosed = null;
@@ -558,6 +590,7 @@ export class Humanoid {
     const P = TRAVELLER_PALETTE;
     body.material = makeMaterial({ color: P.suit, color2: P.suit, color3: P.boot, mode: MODE_OUTFIT, skin: P.skin, outfit: TRAVELLER.outfit,
       face: faceAfterReshape(this.kind), gloves: P.glove, creases: limbSegments(body) });
+    body.material.uniforms.uFaceKit2.value.w = EAR_Z[this.kind];
     // one skinned mesh per colour (the radio pack and the glass apart: the tank hides the one, the other is see-through)
     const groups = new Map();
     for (const p of kit.pieces) {
@@ -788,6 +821,22 @@ export class Humanoid {
     // an expression's gaze (setExpression) holds the eyes there; a squint narrows the lids
     const L = (this.gaze ? EyeLook.fromAngles(this.gaze[0], this.gaze[1], _c) : _c.copy(this.eyeLook.look)).applyAxisAngle(_xAxis, EYE_TILT);
     m.material.uniforms.uEyeLook.value.set(L.x, L.y, L.z, Math.max(this.eyeLook.blink, (this.squint ?? 0) * 0.45));
+    this.updateNoseSide(dt, m, head);
+  }
+
+  /**
+   * The face ink's nose line goes down the shadow side of the nose (face-ink.js, uMood2.y): the
+   * side of the head turned away from the sun. Held while the light is nearly frontal, eased over.
+   */
+  updateNoseSide(dt, m = this.eyeMesh, head = this.b.Head) {
+    const u = this.body?.material.uniforms;
+    if (!u?.uMood2 || !m || !head) return;
+    const i = m.skeleton.bones.indexOf(head);
+    _m4.multiplyMatrices(head.matrixWorld, m.skeleton.boneInverses[i]).multiply(m.bindMatrix).premultiply(m.bindMatrixInverse).premultiply(m.matrixWorld);
+    const toward = _a.set(1, 0, 0).transformDirection(_m4).dot(sharedUniforms.uSunDir.value);   // the +x side's lighting
+    const s = u.uMood2.value;
+    const want = noseSide(toward, s.y);
+    s.y += (want - s.y) * (1 - Math.exp(-5 * Math.max(dt, 0)));
   }
 
   /** Aim the skeleton along the rig (call after the rig's pose for this frame). */

@@ -2,6 +2,14 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.52 — 2026-10-05
+
+- People’s faces are drawn the way Moebius draws them: flat colour with one clean shadow, a crisp eyelid line, a nose drawn as one line ending in a hook at the nostril, a mouth with small ticks at its corners, curled ears, and only a few fine strokes of hatching in the eye sockets and under the cheekbones.
+- Eyebrows are single tapered strokes, and eyes have a ringed iris with a small pupil.
+- Faces keep their lines a steady width on screen and simplify with distance, so people across the street stay clean instead of turning into scribbles.
+- The Lab has a gallery of giant faces: twelve towering villagers, each with a different face and expression, and a walkway that brings you eye to eye with them.
+- Character studio: a close-up view, a lineup of a face from every world, and a faces sheet you can save.
+
 ## v0.51 — 2026-10-05
 
 - Viridel: help Esk water her tea terraces. You’ll do your best, and it won’t be enough. What happens stays happened.

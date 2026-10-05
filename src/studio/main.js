@@ -25,7 +25,7 @@ import { EXPRESSION_KEYS, TONE_EXPRESSIONS, expressionFor } from '../expression.
 import { TONES } from '../story/tone.js';
 import { TITLES } from '../levels/names.js';
 import { cleanState, encodeState, decodeState, settingsJSON } from './state.js';
-import { FACE_PRESETS, castOf, lookFor, BLANK } from './people.js';
+import { FACE_PRESETS, castOf, lookFor, BLANK, STORY_WORLDS } from './people.js';
 
 // as in the game (main.js): every colour is authored as a display value and output untouched
 THREE.ColorManagement.enabled = false;
@@ -187,15 +187,24 @@ async function rebuild() {
     if (!specs.length) specs.push({ who: 'blank' });
   } else if (state.lineup === 'crowd') {
     for (let i = 0; i < state.count; i++) specs.push({ who: 'crowd', seed: state.seed + i });
+  } else if (state.lineup === 'faces') {
+    // the traveller and a story person of every world (the n-th of each cast: the crowd seed picks), dressed for their world
+    specs.push({ who: 'traveller' });
+    for (const w of STORY_WORLDS) {
+      const c = await castOf(w);
+      specs.push(c.length ? { who: 'npc', def: c[(state.seed - 1) % c.length], world: w } : { who: 'crowd', seed: state.seed, world: w });
+    }
   } else specs.push({ who: state.who, def: cast.find((d) => d.id === state.npc) ?? cast[0], seed: state.seed });
   const n = specs.length, gap = state.lineup ? 1.05 : 0;
   specs.forEach((sp, i) => {
     let p;
+    const w = sp.world ?? world;
     if (sp.who === 'traveller') p = makeTraveller();
     else {
-      const look = lookFor(sp, state, world);
-      p = makeNPC(sp.who === 'npc' ? sp.def : null, look, world);
+      const look = lookFor(sp, state, w);
+      p = makeNPC(sp.who === 'npc' ? sp.def : null, look, w);
       p.spec = sp;
+      p.world = w;
     }
     p.pos = new THREE.Vector3((i - (n - 1) / 2) * gap, 0, 0);
     p.home = p.pos.clone();
@@ -223,9 +232,9 @@ async function rebuild() {
 function applyLook() {
   for (const p of people) {
     if (!p.npc) continue;
-    const look = lookFor(p.spec, state, state.world);
+    const look = lookFor(p.spec, state, p.world ?? state.world);
     p.look = look;
-    setCostumeWorld(state.world);
+    setCostumeWorld(p.world ?? state.world);
     p.npc.restyle(look);
     p.npc.char.pack.visible = !!state.l.pack;
     p.h.ownMaterials();
@@ -274,6 +283,7 @@ function writeGPU(t) {
 function describe() {
   const p = subject();
   if (!p) return '';
+  if (state.lineup === 'faces') return `${people.length} faces, from the left: ${people.map((q) => (q.world ? `${q.name} (${TITLES[q.world] ?? q.world})` : q.name)).join(', ')} · Share → Faces sheet`;
   if (state.lineup) return `${people.length} people · ${TITLES[state.world] ?? state.world}${state.lineup === 'crowd' ? ' · front: full bodies, back: GPU crowd figures' : ''}`;
   const L = p.look;
   return L ? `${p.name} · ${L.kind === 'f' ? 'woman' : L.kind === 'm' ? 'man' : 'person'} · ${L.build} · ${(p.baseScale * (state.b.height ?? 1) * 1.8).toFixed(2)} m · ${L.tribe ?? ''}` : `${p.name} · the suit, the gear of traveller.glb`;
@@ -431,7 +441,7 @@ function applySky() {
 
 // ------------------------------------------------------------------ camera
 const VIEWS = {
-  full: { y: 0.92, dist: 4.6 }, bust: { y: 1.45, dist: 1.3 }, face: { y: 1.67, dist: 0.72 }, far: { y: 0.92, dist: 34 },
+  full: { y: 0.92, dist: 4.6 }, bust: { y: 1.45, dist: 1.3 }, face: { y: 1.67, dist: 0.72 }, close: { y: 1.67, dist: 0.4 }, far: { y: 0.92, dist: 34 },
 };
 const orbit = { yaw: state.yaw, pitch: state.pitch, zoom: 1 };
 function placeCamera(dt) {
@@ -439,7 +449,8 @@ function placeCamera(dt) {
   const V = VIEWS[state.view] ?? VIEWS.full;
   const p = subject();
   const s = state.lineup ? 1 : (p?.baseScale ?? 1) * (state.b.height ?? 1);
-  let dist = V.dist * orbit.zoom * (state.view === 'face' || state.view === 'bust' ? s : Math.max(s, 1));
+  const headView = state.view === 'face' || state.view === 'close' || state.view === 'bust';
+  let dist = V.dist * orbit.zoom * (headView ? s : Math.max(s, 1));
   if (camera.aspect < 0.85) dist *= 0.85 / camera.aspect;   // (a tall, narrow view: keep the shoulders in)
   if (state.lineup && state.view === 'full') {
     // the whole row in the frame
@@ -449,7 +460,7 @@ function placeCamera(dt) {
   // (the head's real height: a seated person, longer legs, a bigger head)
   let ty = V.y * s;
   const head = p?.h?.b?.Head;
-  if (p && (state.view === 'face' || state.view === 'bust') && head) ty = head.getWorldPosition(_v).y + (state.view === 'face' ? 0.0 : -0.13) * s;
+  if (p && headView && head) ty = head.getWorldPosition(_v).y + (state.view === 'bust' ? -0.13 : state.view === 'close' ? 0.045 : 0.0) * s;
   const cx = state.lineup ? 0 : p?.pos.x ?? 0, cz = state.lineup ? 0 : p?.pos.z ?? 0;
   const target = new THREE.Vector3(cx, ty, cz);
   camera.position.set(cx + Math.sin(orbit.yaw) * Math.cos(orbit.pitch) * dist, ty + Math.sin(orbit.pitch) * dist, cz + Math.cos(orbit.yaw) * Math.cos(orbit.pitch) * dist);
@@ -501,12 +512,71 @@ renderer.domElement.addEventListener('pointercancel', endPointer);
 renderer.domElement.addEventListener('wheel', (e) => { e.preventDefault(); orbit.zoom = THREE.MathUtils.clamp(orbit.zoom * Math.exp(e.deltaY * 0.0012), 0.15, 6); }, { passive: false });
 
 // ------------------------------------------------------------------ frame
+let focus = null;   // (the contact sheet: the one person drawn)
+
+/**
+ * A contact sheet of everyone on stage: each person alone (the others hidden), their face (view
+ * 'face' / 'close', or 'bust') from the orbit's angle, in a grid of `cols`, cell w x h CSS px.
+ * zooms: [k, ...] instead draws the first person once per zoom (k times as far: a face from up close
+ * to across the street, to see what it keeps), each cell giving the face's height on screen.
+ * Returns a PNG data URL. (Share → Faces sheet; window.studio.sheet())
+ */
+function sheet({ cols = 4, w = 340, h = 400, view = state.view === 'close' || state.view === 'bust' ? state.view : 'face', zooms = null } = {}) {
+  const src = renderer.domElement, dpr = renderer.getPixelRatio();
+  const out = document.createElement('canvas');
+  const cells = zooms ? zooms.map((z) => ({ p: people[0], z })) : people.map((p) => ({ p, z: 1 }));
+  const rows = Math.ceil(cells.length / cols);
+  out.width = Math.round(cols * w * dpr); out.height = Math.round(rows * h * dpr);
+  const g = out.getContext('2d');
+  g.fillStyle = '#f2ecdf'; g.fillRect(0, 0, out.width, out.height);
+  const aspect0 = camera.aspect;
+  const parts = (q) => [q.root, q.npc?.cape?.mesh, q.gear?.device].filter(Boolean);
+  const shown = people.flatMap((q) => parts(q).map((o) => [o, o.visible]));
+  const V = VIEWS[view] ?? VIEWS.face, s0 = Math.min(src.width / src.height, w / h);
+  try {
+    cells.forEach(({ p, z }, i) => {
+      for (const q of people) for (const o of parts(q)) o.visible = q === p;
+      focus = p;
+      camera.aspect = src.width / src.height;
+      camera.updateProjectionMatrix();
+      // (twice: the head turns toward the camera, the camera follows the head)
+      for (let k = 0; k < 2; k++) {
+        const head = p.h.b.Head.getWorldPosition(new THREE.Vector3()), sc = p.root.scale.y;
+        head.y += (view === 'bust' ? -0.13 : view === 'close' ? 0.045 : 0) * sc;
+        // (the cell is cut from the middle of the picture, its full height: the face view's framing)
+        const dist = V.dist * sc * orbit.zoom * z;
+        camera.position.set(head.x + Math.sin(orbit.yaw) * Math.cos(orbit.pitch) * dist, head.y + Math.sin(orbit.pitch) * dist, head.z + Math.cos(orbit.yaw) * Math.cos(orbit.pitch) * dist);
+        camera.lookAt(head);
+        camera.updateMatrixWorld();
+        animate(p, 0, simT);
+      }
+      renderFrame();
+      // the cell: the middle of the picture, its full height (a ladder of zooms: at 1:1, round the head)
+      const ch = zooms ? Math.min(src.height, h * dpr) : src.height, cw = zooms ? Math.min(src.width, w * dpr) : Math.min(src.width, ch * s0);
+      g.drawImage(src, (src.width - cw) / 2, (src.height - ch) / 2, cw, ch, (i % cols) * w * dpr, Math.floor(i / cols) * h * dpr, w * dpr, h * dpr);
+      g.fillStyle = 'rgba(242,236,223,0.85)';
+      g.fillRect((i % cols) * w * dpr, (Math.floor(i / cols) + 1) * h * dpr - 22 * dpr, w * dpr, 22 * dpr);
+      g.fillStyle = '#2b211f'; g.font = `${12 * dpr}px sans-serif`;
+      // (the face, 0.2 m, on screen: CSS px of the picture, as face-ink.js measures it)
+      const facePx = (0.2 * p.root.scale.y * src.height / dpr) / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * camera.position.distanceTo(p.h.b.Head.getWorldPosition(_w)));
+      const name = p.world ? `${p.name} · ${TITLES[p.world] ?? p.world}` : p.name;
+      g.fillText(zooms ? `${name} · face ${Math.round(facePx)} px` : name, (i % cols) * w * dpr + 8 * dpr, (Math.floor(i / cols) + 1) * h * dpr - 7 * dpr);
+    });
+  } finally {
+    focus = null;
+    for (const [o, v] of shown) o.visible = v;
+    camera.aspect = aspect0;
+    camera.updateProjectionMatrix();
+  }
+  return out.toDataURL('image/png');
+}
+
 function renderFrame() {
   scene.updateMatrixWorld();
   camera.updateMatrixWorld();
   // 1. shadows round the person
   const dir = shadowDirection(SU.uSunDir.value, new THREE.Vector3());
-  const centre = subject() && !state.lineup ? _v.copy(subject().pos).setY(1) : _v.set(0, 1, 0);
+  const centre = focus ? _v.copy(focus.pos).setY(1) : subject() && !state.lineup ? _v.copy(subject().pos).setY(1) : _v.set(0, 1, 0);
   const hidden = [marker, ...(gpu ? [gpu] : []), ...people.flatMap((p) => p.noShadow ?? [])].filter((o) => o.visible);
   for (const o of hidden) o.visible = false;
   scene.overrideMaterial = shadowOverride;
@@ -522,8 +592,8 @@ function renderFrame() {
   U.uInvProj.value.copy(camera.projectionMatrixInverse);
   U.uCamWorld.value.copy(camera.matrixWorld);
   U.uProj11.value = camera.projectionMatrix.elements[5];
-  const p = subject();
-  setSubject(U, camera, p && !state.lineup ? p.pos : _w.set(0, 0, 0), UP, !state.subject || !p);
+  const p = focus ?? subject();
+  setSubject(U, camera, p && (focus || !state.lineup) ? p.pos : _w.set(0, 0, 0), UP, !state.subject || !p);
   renderer.setRenderTarget(composeRT);
   renderer.clear();
   renderer.render(post.scene, post.camera);
@@ -682,7 +752,7 @@ const spotSel = select(sWho, 'Where (City-Shaft)', 'spot', [['', 'as the story p
 select(sWho, 'Body', 'kind', [['m', 'man'], ['f', 'woman']], () => { if (state.who !== 'npc' && state.who !== 'traveller') rebuild(); });
 refreshers.push(() => { spotSel.parentElement.hidden = state.world !== 'incal'; });
 const sLine = section('Lineup');
-select(sLine, 'Lineup', 'lineup', [['', 'one person'], ['cast', "the world's story people"], ['crowd', 'crowd people (+ GPU figures)']], rebuild);
+select(sLine, 'Lineup', 'lineup', [['', 'one person'], ['cast', "the world's story people"], ['crowd', 'crowd people (+ GPU figures)'], ['faces', "every world's faces (+ the traveller)"]], rebuild);
 slider(sLine, 'How many', 'count', 2, 14, 1, 6, () => { if (state.lineup === 'crowd') rebuild(); });
 check(sLine, 'GPU crowd twin', 'twin', rebuild);
 
@@ -777,6 +847,7 @@ buttons(sShare, [
   ['Copy settings as JSON', () => { json.value = settingsJSON(state, { yaw: +orbit.yaw.toFixed(3) }); navigator.clipboard?.writeText(json.value).catch(() => {}); }],
   ['Copy link', () => { navigator.clipboard?.writeText(`${location.origin}${location.pathname}?${encodeState(state)}`).catch(() => {}); }],
   ['Save image', () => { const a = document.createElement('a'); a.download = `memento-${state.who}-${state.world}.png`; a.href = renderer.domElement.toDataURL('image/png'); a.click(); }],
+  ['Faces sheet', () => { const a = document.createElement('a'); a.download = `memento-faces-${state.lineup || state.who}.png`; a.href = sheet(); a.click(); }],
   ['Reset all', () => { location.search = ''; }],
 ]);
 sShare.append(json);
@@ -785,7 +856,7 @@ sShare.append(json);
 function viewButtons() {
   const v = $('views');
   v.replaceChildren();
-  for (const [k, t] of [['full', 'Full body'], ['bust', 'Bust'], ['face', 'Face'], ['far', 'Far away']]) {
+  for (const [k, t] of [['full', 'Full body'], ['bust', 'Bust'], ['face', 'Face'], ['close', 'Close-up'], ['far', 'Far away']]) {
     const b = document.createElement('button');
     b.textContent = t;
     b.className = state.view === k ? 'on' : '';
@@ -804,5 +875,5 @@ resize();
 applyLight();
 await rebuild();
 await roomsReady;
-window.studio = { step, state: () => state, people: () => people, scene, camera, renderer, post, rebuild, applyLook, applyBody, applyFace, applyLight, updatePanel, set: (s) => { state = cleanState({ ...state, ...s }); saveURL(); updatePanel(); }, NEUTRAL_BODY, cleanMorph, orbit };
+window.studio = { step, sheet, gbuffer, state: () => state, people: () => people, scene, camera, renderer, post, rebuild, applyLook, applyBody, applyFace, applyLight, updatePanel, set: (s) => { state = cleanState({ ...state, ...s }); saveURL(); updatePanel(); }, NEUTRAL_BODY, cleanMorph, orbit };
 requestAnimationFrame((t) => { last = t; frame(t); });

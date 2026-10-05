@@ -68,6 +68,18 @@ export const FACE_MORPHS = [
   { key: 'lidWeight', label: 'Lid line weight', min: 0.4, max: 2, def: 1, ink: true },
 ];
 
+/** Face variants (FACE_MORPHS values): the studio's dropdown, the Lab's gallery of giant faces (levels/lab.js LAB_FACES). */
+export const FACE_PRESETS = {
+  'As modelled': {},
+  'Gaunt elder': { cheeks: -0.8, faceLength: 1.08, noseLength: 1.3, lines: 1.8, browRidge: 0.6, jaw: 0.92, lidWeight: 1.3 },
+  'Round, young': { cheeks: 0.8, faceLength: 0.94, noseLength: 0.8, lines: 0.15, eyeSize: 1.12, jaw: 1.05, chin: -0.3 },
+  'Sharp': { noseLength: 1.4, noseWidth: 0.85, chin: 0.8, jaw: 0.9, cheeks: -0.4, browRidge: 0.5 },
+  'Broad': { jaw: 1.2, headWidth: 1.08, noseWidth: 1.35, chin: 0.2, browRidge: 0.8 },
+  'Wide-eyed': { eyeSize: 1.25, eyeSpacing: 0.6, lines: 0.4 },
+  'Freckled': { freckles: 0.8, lines: 0.5, noseLength: 0.85, noseWidth: 0.9 },
+  'Weathered': { lines: 2, lidWeight: 1.5, cheeks: -0.5, browRidge: 0.7, eyeSize: 0.92 },
+};
+
 const neutralOf = (list) => Object.fromEntries(list.map((m) => [m.key, m.def]));
 export const NEUTRAL_BODY = Object.freeze(neutralOf(BODY_MORPHS));
 export const NEUTRAL_FACE = Object.freeze(neutralOf(FACE_MORPHS));

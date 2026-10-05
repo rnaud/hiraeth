@@ -11,6 +11,7 @@ import { formatText } from './story/dialogue.js';
 import { speakBalloon } from './story/voice.js';
 import { toneOf } from './story/tone.js';
 import { talkFaces, mouthAt } from './talk-face.js';
+import { cleanExpression } from './expression.js';
 import { Knockdown, toppleVelocities, KNOCKOVER } from './ragdoll.js';
 export { KNOCKOVER };
 import { holdAim } from './crowd.js';
@@ -64,8 +65,10 @@ export class NPC {
    * @param o.pooled  a crowd's near-tier body (hidden until assign())
    * @param o.head / o.cape / o.look  the story's headwear, cape length and costume overrides (costumes.js dressFor)
    * @param o.world   the world they are dressed for (default: the current level's)
+   * @param o.face / o.expression  their own face (morph.js FACE_MORPHS) and the expression they wear at rest (expression.js)
+   * @param o.facing  stand on the spot turned this way (rad) instead of walking the route
    */
-  constructor(scene, physics, { route, palette = {}, lines, speed = 1.25, shy = false, scale = null, lib = null, human = null, kind = 'm', pooled = false, follow = null, seat = null, head = null, cape = null, def = null, look = null, world = null }) {
+  constructor(scene, physics, { route, palette = {}, lines, speed = 1.25, shy = false, scale = null, lib = null, human = null, kind = 'm', pooled = false, follow = null, seat = null, head = null, cape = null, def = null, look = null, world = null, face = null, expression = null, facing = null }) {
     this.physics = physics;
     this.follow = follow;   // () => { pos, speed, near } | null: walk there instead of the route
     this.seat = seat;       // sit on something this high (m) instead of walking
@@ -99,14 +102,18 @@ export class NPC {
     this.humanoid = human ? new Humanoid(human, this.char, kind, { skin: dress?.skin ?? '#e8c6a8', build: dress?.build }) : null;
     this.cape = null;
     if (dress) this.restyle(dress);
-    // a story person's own body and face (morph.js: def.morph, def.face; a child's proportions, home's Lou)
+    // a story person's own body and face (morph.js: def.morph, def.face; a child's proportions, home's Lou),
+    // or the face and resting expression a spawn spot gives (the Lab's giants), and the expression worn at rest
     if (this.humanoid && def?.morph) { this.humanoid.ownMorph = def.morph; this.humanoid.setMorph(def.morph); }
-    if (this.humanoid && def?.face) { this.humanoid.ownFace = def.face; this.humanoid.setFace(def.face); }
-    if (this.humanoid && def?.rest) { this.humanoid.restExpression = def.rest; this.humanoid.setExpression?.(def.rest); }   // (their face at rest: a child's ready smile)
+    const ownFace = face ?? def?.face;
+    if (this.humanoid && ownFace) { this.humanoid.ownFace = ownFace; this.humanoid.setFace(ownFace); }
+    const rest = expression ?? def?.rest;
+    if (this.humanoid && rest) { this.humanoid.restExpression = cleanExpression(rest); this.humanoid.setExpression(this.humanoid.restExpression); }
+    this.facing = facing;   // (stands facing this way, rad, until someone comes near: the Lab's giants)
     if (!dress) this.char.root.traverse((o) => { if (o.isMesh && o.geometry.type === 'TorusGeometry' && o.parent === this.char.capeAnchor) o.visible = false; });
     this.animator = lib ? new Animator(lib, this.char) : null;
     this.pos = route[0].clone();
-    this.heading = 0;
+    this.heading = facing ?? 0;
     this.wp = 1 % route.length;
     this.pause = Math.random() * 3;
     this.phase = Math.random();
@@ -417,6 +424,10 @@ export class NPC {
       // arrived where they were going: waiting, facing their way
       this.greeted = 0;
       if (fol.face !== undefined) face = fol.face;
+    } else if (this.facing !== null) {
+      // standing on their spot, turned their way
+      this.greeted = 0;
+      face = this.facing;
     } else {
       this.greeted = 0;
       if (this.pause > 0) this.pause -= dt;
@@ -808,7 +819,7 @@ export class NPC {
 
 /**
  * Scatter a level's people: each walks a small loop around a centre.
- * @param spots [{ at: [x, z] | Vector3, palette, lines, shy, radius, scale }]
+ * @param spots [{ at: [x, z] | Vector3, palette, lines, shy, radius, scale, face?, expression?, facing? }]
  */
 export function spawnNPCs(scene, physics, spots, { fromY = 1e4, lib = null, humans = null } = {}) {
   return spots.map((s, k) => {
@@ -839,7 +850,8 @@ export function spawnNPCs(scene, physics, spots, { fromY = 1e4, lib = null, huma
     }
     const kind = s.kind ?? (k % 2 ? 'f' : 'm');
     const npc = new NPC(scene, physics, { route, palette: s.palette, lines: s.lines, shy: s.shy, speed: s.speed, scale: s.scale, lib,
-      human: humans ? humans[kind === 'm' ? 0 : 1] : null, kind, def: s.talk ? s : null, head: s.head ?? null, cape: s.cape ?? null, look: s.look ?? null, world: s.world ?? null });
+      human: humans ? humans[kind === 'm' ? 0 : 1] : null, kind, def: s.talk ? s : null, head: s.head ?? null, cape: s.cape ?? null, look: s.look ?? null, world: s.world ?? null,
+      face: s.face ?? null, expression: s.expression ?? null, facing: s.facing ?? null });
     return npc;
   });
 }

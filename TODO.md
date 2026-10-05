@@ -166,7 +166,7 @@ Grouped by area. Checked items are done; the changelog says when.
   animations don't break; put the outfit on top.
 - [x] People of different heights, body types and genders.
 - [x] Faces: proper eyes with a white, an iris and a pupil (not solid black).
-- [ ] Then the Moebius-style face shader. Redo the face shaders to look more like Moebius; add a level with very
+- [x] Then the Moebius-style face shader. Redo the face shaders to look more like Moebius; add a level with very
   large faces to test and refine them. (The giant faces are in `?level=lab`; the shader
   is still to do.)
 - [x] Ragdoll when falling, or when pushing people with the gun. Falls: ragdoll first,

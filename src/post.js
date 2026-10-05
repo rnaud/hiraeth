@@ -250,7 +250,7 @@ const fragmentShader = /* glsl */ `
       float rr = rpx * sqrt((float(i) + 0.5) / 8.0);
       vec2 suv = uv + vec2(cos(a), sin(a)) * rr / uRes;
       float sd = texture(tNormal, suv).w;
-      if (sd <= 0.0 || texture(tHatch, suv).a > 7.5) continue;   // (grass blades close nothing in: no grey speckle round them)
+      if (sd <= 0.0 || mod(texture(tHatch, suv).a, 16.0) > 7.5) continue;   // (grass blades close nothing in: no grey speckle round them)
       vec3 v = viewPos(suv, sd) - P;
       float dist = length(v);
       ao += max(dot(nV, v / max(dist, 1e-4)) - 0.2, 0.0) * (1.0 - smoothstep(R * 0.6, R * 1.6, dist));
@@ -453,6 +453,9 @@ const fragmentShader = /* glsl */ `
     bool isSky = N.w <= 0.0;
     vec4 surface = texture(tHatch, uv);
     // gHatch.a packs glow (0..1) + 2 hero (the player) + 4 figure (any other person) + 8 soft ink (grass blades)
+    // + 16 a face (its skin and eyes: flat colour and one shadow tone, no line round the shade, no crease shading)
+    float face = step(15.5, surface.a);
+    surface.a -= 16.0 * face;
     float soft = step(7.5, surface.a);
     surface.a -= 8.0 * soft;
     float figure = step(3.5, surface.a);
@@ -467,6 +470,7 @@ const fragmentShader = /* glsl */ `
     vec4 hm = vec4(texture(tHatch, uv + vec2(hp.x, 0)).a,
       texture(tHatch, uv - vec2(hp.x, 0)).a, texture(tHatch, uv + vec2(0, hp.y)).a,
       texture(tHatch, uv - vec2(0, hp.y)).a);
+    hm = mod(hm, 16.0);
     hm -= 8.0 * step(vec4(7.5), hm);
     hm = step(vec4(1.5), hm - 4.0 * step(vec4(3.5), hm));
     float heroNear = max(hero, max(max(hm.x, hm.y), max(hm.z, hm.w)));
@@ -528,7 +532,7 @@ const fragmentShader = /* glsl */ `
     vec3 wpL = uCamWorld[3].xyz + rd * min(probeD, 5000.0) / max(dot(rd, -uCamWorld[2].xyz), 0.2);
     float gapN = vnoise(vec2(wpL.x + wpL.y * 0.7, wpL.z - wpL.y * 0.4) * 0.9);
     float broken = mix(1.0, smoothstep(0.22, 0.34, gapN), uLineVary * (1.0 - subj) * smoothstep(3.0, 12.0, probeD));
-    float ink = clamp(max(max(eS.x, eI.y * broken), max(eI.z * 0.85 * broken, eI.w * 0.8)), 0.0, 1.0);
+    float ink = clamp(max(max(eS.x, eI.y * broken), max(eI.z * 0.85 * broken, eI.w * 0.8 * (1.0 - face))), 0.0, 1.0);
 
     // People far away: a pen line of fixed width turned small figures into black shapes
     // (more so at the handheld's render scale). Where this pixel's kernel touches a person
@@ -543,6 +547,7 @@ const fragmentShader = /* glsl */ `
       vec2 fo = max(silW * uPixelRatio, 1.0) / uRes;
       vec4 fa = vec4(texture(tHatch, euv + vec2(fo.x, 0)).a, texture(tHatch, euv - vec2(fo.x, 0)).a,
                      texture(tHatch, euv + vec2(0, fo.y)).a, texture(tHatch, euv - vec2(0, fo.y)).a);
+      fa = mod(fa, 16.0);
       vec4 faSoft = step(vec4(7.5), fa);
       fa -= 8.0 * faSoft;
       softNear = max(soft, max(max(faSoft.x, faSoft.y), max(faSoft.z, faSoft.w)));
@@ -556,7 +561,7 @@ const fragmentShader = /* glsl */ `
         vec4 fS = inkLines(euv, mix(1.0, silW * uPixelRatio, k), false, nd);
         vec4 fI = uPostLite > 0.5 ? fS : inkLines(euv, mix(1.0, inW * uPixelRatio, k), true, nd);
         float outline = fS.x * alpha * mix(1.0 - figure, 1.0, k);
-        ink = clamp(max(outline, max(max(fI.y, fI.z * 0.85) * broken, fI.w * 0.8) * mix(innerF, 1.0, 1.0 - figure)), 0.0, 1.0);
+        ink = clamp(max(outline, max(max(fI.y, fI.z * 0.85) * broken, fI.w * 0.8 * (1.0 - face)) * mix(innerF, 1.0, 1.0 - figure)), 0.0, 1.0);
       }
     }
 
@@ -597,7 +602,9 @@ const fragmentShader = /* glsl */ `
       H.b *= mix(1.0, heroDetail, hero) * innerK;
       hFade *= innerK;
       // drawn detail lines: grids, glyphs, ripples, cracks, fissures (independent of the marks toggle)
-      col = mix(col, uInk, clamp(H.b, 0.0, 1.0) * mix(0.6, 0.88, hero) * (1.0 - smoothstep(120.0, 600.0, depth)));
+      // (a value over 1 is a pen line, the faces' (materials.js faceInk): darker, up to 0.92 at 2)
+      float drawnK = mix(0.6, 0.88, hero);
+      col = mix(col, uInk, (clamp(H.b, 0.0, 1.0) * drawnK + clamp(H.b - 1.0, 0.0, 1.0) * (0.92 - drawnK)) * (1.0 - smoothstep(120.0, 600.0, depth)));
       if (hFade > 0.0 && uHatchScreen < 0.5) {
         col = mix(col, uInk, clamp(max(H.r, H.g), 0.0, 1.0) * hFade * 0.55);
       } else if (hFade > 0.0) {
@@ -607,7 +614,7 @@ const fragmentShader = /* glsl */ `
       }
 
       // ---- 3b. crease shading: darker tone + accent strokes where geometry closes in
-      if (uAO > 0.0 && depth < 260.0 && hero < 0.5 && soft < 0.5) {   // (not between grass blades: they'd go grey)
+      if (uAO > 0.0 && depth < 260.0 && hero < 0.5 && soft < 0.5 && face < 0.5) {   // (not between grass blades: they'd go grey; a face's sockets are hatched instead)
         float ao = creaseAO(uv, N.xyz, depth, fc) * (1.0 - smoothstep(80.0, 260.0, depth)) * uAO * (1.0 - emitHere);
         col = mix(col, col * uShadowTint * 0.85, smoothstep(0.15, 0.7, ao) * 0.55);
         ink = max(ink, smoothstep(0.6, 0.9, ao) * 0.45 * innerK);
@@ -807,7 +814,7 @@ const extractFrag = /* glsl */ `
     for (int y = 0; y < 4; y++)
       for (int x = 0; x < 4; x++) {
         ivec2 p = min(base + ivec2(x, y), size - 1);
-        float a = texelFetch(tHatch, p, 0).a;
+        float a = mod(texelFetch(tHatch, p, 0).a, 16.0);   // (+16: a face)
         a -= 8.0 * step(7.5, a);
         a -= 4.0 * step(3.5, a);
         a -= 2.0 * step(1.5, a);

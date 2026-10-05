@@ -1337,9 +1337,10 @@ flat, smooth, rock strata, cracked, facade, tiles, leaves, brush, grid, glyphs,
 glow, a lamp, the metals: steel, brushed, chrome, brass, copper, iron, painted, and the box dissolve
 breathing in and out) on a
 sphere, a cube and a turning knot, with a water pool, a meadow of grass blades and a cloud at the ends.
-Behind the spawn, four villagers stand 4× life size on plinths (`LAB_FACES`,
-`content.js`; `spawnNPCs` passes `scale`) and turn to face you, for working on
-faces close up. Add a surface to `LAB_MATERIALS` to see it beside the others.
+Behind the spawn, the faces gallery: twelve villagers 4× life size on plinths
+(`LAB_FACES`, `content.js`; `spawnNPCs` passes `scale`, `face`, `expression`, `facing`),
+every face variant with an expression, facing the hub, and a walkway at the height of
+their faces up a ramp, for working on faces close up (see *Faces drawn the Moebius way*). Add a surface to `LAB_MATERIALS` to see it beside the others.
 
 **Biome rooms.** Behind the faces an arc of little doorways (`LAB_DOORS`), one per
 world with its name on a board over the lintel and a veil in that world's sky
@@ -2363,6 +2364,58 @@ a distance (or in the 160 px dialogue portrait) still has eyes.
   `uGaze`, ringed by a fine line once the face is large enough.
 - `tests/eyes.test.js` covers the colours, the gaze clamping, the blink timing, the eyeballs
   and the aim through the skeleton, and the crowd's eye triangles.
+
+### Faces drawn the Moebius way
+
+The people's faces were a modelled head with a few faint marks and the same dense surface hatching
+as everything else. They are drawn now the way Moebius draws a face in his ligne-claire work (Vael,
+The Sealed Hangar, The Lodestar, Viridel): flat colour, one shadow tone, very few precise lines.
+
+- **The ink** (`src/face-ink.js`, `FACE_INK_GLSL`, in `materials.js` for the people's skin,
+  `MODE_OUTFIT`): pen strokes in the head's rest coordinates, placed by the face's landmarks
+  (`uFace`, moved by the face morphs) and bent by the expression (`uMood`, `uMood2`), so they ride
+  the skinned head. The eyes: a fine crease over the lid, a flick at the outer corner, a tick under
+  the lower lid and at the tear duct. The nose: one line down the shadow side of the bridge into a
+  hook round the wing (`uMood2.y`, the side turned from the sun: `Humanoid.updateNoseSide`), a
+  lighter hook on the lit side, two dark nostrils. The mouth: a single line with a tick at each
+  corner (down at rest, up with a smile), a lower-lip tick, the dark opening; an arc over the chin.
+  The ears: a curl round the rim and one inside. Sparse hatching that follows the face: the inner
+  socket, under the brow's end, the hollow under the cheekbone (more on hollow cheeks: `uFaceKit2.z`),
+  under the lip, a few dashes along the shadow's edge. Age lines by `lines`: bags, crow's feet, the
+  folds from the nose, a cheekbone line; frown creases and forehead lines with the brow.
+- **Constant on screen, thinner with distance.** Widths are CSS pixels (a 1.3 px pen up close,
+  0.7 on a small face); the detail comes in three steps by the face's height on screen
+  (`FACE_LOD`): the mouth and the nose hook from 14 px, the small marks from 40 px, hatching and age
+  lines from 90 px, and hatching only while its strokes are 3.5 px apart or more. On top of that
+  post.js still thins a distant person's inner ink, so a far face is two eye marks, never noise.
+  The face ink is written over 1 in `gHatch.b`: post.js draws it as a pen line (up to 0.92 ink),
+  darker than the rest of the drawn detail.
+- **Flat colour, one shadow tone.** No surface hatching above the chin (`FACE_FLAT_GLSL`; the neck
+  keeps its own), none on the eyeballs. The head is lit as one rounded volume (`FACE_ROUND_GLSL`:
+  the normals blend 0.72 of the way to a tall egg round the face, so the mouth and brow face
+  forward), so its shade is one clean shape split down the nose instead of the low-poly mesh's
+  shards; the ink pass sees the skin's own facets for its creases. A face's pixels carry a flag
+  (`gHatch.a` + 16): post.js draws no line round its shade and no crease shading over it (the
+  sockets are hatched instead).
+- **Eyes** (`eyes.js`, `materials.js eyeball`): a crisp lash line along the lid's edge, heavier
+  toward the outer corner, coming down with the blink; the iris a flat colour ringed by a pen
+  circle, a round pupil, a small highlight.
+- **Brows** (`humanoid.js taperBrows`): pulled to their own arched centre line, half as tall as
+  modelled at the inner end, a fifth at the outer: one tapered stroke each.
+- **Anyone can wear a face** (`NPC` options and spawn spots): `face` (morph.js `FACE_MORPHS`),
+  `expression` (worn at rest: `Humanoid.restExpression`), `facing` (stand turned that way).
+- **The studio**: a **Close-up** view (eyes to chin), **Lineup → every world's faces** (the
+  traveller and a story person of each world; the crowd seed picks which), and **Share → Faces
+  sheet**: each person alone, framed on the face, in a grid (`studio.sheet({ cols, w, h, view })`;
+  `zooms: [1, 2, 4, ...]` draws the first person from further and further, at 1:1, each cell
+  giving the face's height on screen: the distance ladder).
+- **The Lab's faces gallery** (`?level=lab`, `LAB_FACES`): twelve giants (4x) in an arc facing
+  the hub, every face variant (`FACE_PRESETS`, now in morph.js, and the traveller's) with an
+  expression, men and women, and a walkway at the height of their faces (`FACE_WALK`), up a ramp,
+  each one's face and expression written on it in front of them.
+- `tests/face-ink.test.js`: the detail steps, the nose's side, the shaders, the uniforms on a body,
+  the brows' taper, an NPC's own face and facing, the gallery (every variant, facing the hub, the
+  walk solid in front of each face, the ramp).
 
 ### Qanat's tree ledge, solid terraces, and the dry cave
 - **The makers' ledge** (`src/desert-city.js`, `city.ledge`): the backpack's box no longer

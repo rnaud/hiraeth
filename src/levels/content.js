@@ -51,17 +51,15 @@ export const CONTENT = {
       {at:[14,-203],radius:1,palette:pal('#c3a9cc'),lines:['~neutral~ The cream balcony has the old transmitter.','~neutral~ The taxis can take you above the bridges.'],...BAZAAR_STREET.teb},
     ],
   },
-  // src/levels/lab.js: no story, no relics; four giant villagers to study faces by, and the
+  // src/levels/lab.js: no story, no relics; a gallery of giant villagers to study faces by (every face variant), and the
   // people of every biome room in their own world's clothes
   lab: {
     weather: [],
     story: { title: 'THE LAB', intro: 'Surfaces in a row, faces as big as houses, and a door to every world.', outro: 'Done looking.', label: 'the row', goal: [0, 'ground', -24], radius: 6, manual: true },
     relics: { spots: [], names: [] },
-    npcs: [...LAB_FACES.map(([x, z], i) => ({
-      at: [x, z], radius: 0, scale: 4, shy: false,
-      palette: [{ cloak: '#d8a24a', cloth: '#f3ead8', legs: '#2b2f45' }, { cloak: '#8a6fb8', cloth: '#e2d3b4', legs: '#2b2f45', hat: '#62c3c9' },
-        { cloak: '#5fb7ad', cloth: '#5a4a3a', legs: '#3a3a3a', hat: '#f3ead8' }, { cloak: '#c8483a', cloth: '#f3ead8', legs: '#2b211f' }][i],
-      head: ['hair', 'hair', 'hat', 'hair'][i],
+    npcs: [...LAB_FACES.map((g) => ({
+      at: g.at, radius: 0, scale: 4, shy: false, kind: g.kind, palette: g.palette, head: g.head,
+      face: g.face, expression: g.expression, facing: g.facing,
       lines: ['~happy~ Look closely.', '~curious~ Is it the eyes, or the ink?', '~neutral~ Hold still.', '~playful~ My good side is this one.'],
     })), ...LAB_PEOPLE],
   },
