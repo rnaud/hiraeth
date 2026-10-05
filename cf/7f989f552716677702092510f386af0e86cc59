@@ -1,0 +1,45 @@
+README.md
+  s_1fd8d0e7b02dcf::t_0446a9ab445753 246,3464-3502
+TODO.md
+  s_1fd8d0e7b02dcf::t_d10a86e0122964 530-532,543-545,547-549
+changelog.md
+  s_1fd8d0e7b02dcf::t_043cd51adabd99 16-19
+index.html
+  s_1fd8d0e7b02dcf::t_a78e698fe7f75d 41-49,502-508
+src/animator.js
+  s_1fd8d0e7b02dcf::t_5cc1ed179817ea 243,311,319,337-347,425-431
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_e1de8b4ce3a8b4 16-19
+src/edge.js
+  s_1fd8d0e7b02dcf::t_02091cc4cdece4 1-153
+src/jump.js
+  s_1fd8d0e7b02dcf::t_2ad65f0cdae91f 1-137
+src/main.js
+  s_1fd8d0e7b02dcf::t_3d516d7b68380c 19,216,262-282,285,362-364,876,1304-1306
+src/player.js
+  s_1fd8d0e7b02dcf::t_4fd686eda06935 12-14,24,210,397,562,988-991,1013,1074,1094-1097,1099-1101,1122-1126,1148-1149,1161,1192,1196,1528-1529,1536-1537,1544,1827-1832,1835,1850-1851
+src/stamina.js
+  s_1fd8d0e7b02dcf::t_db07d5438ec553 1-42
+src/swim.js
+  s_1fd8d0e7b02dcf::t_3cfcba5e204311 3,153-154,213
+src/wind.js
+  s_1fd8d0e7b02dcf::t_219c0eb1b33688 102-103,121-142,174,179
+tests/feel.test.js
+  s_1fd8d0e7b02dcf::t_4869db0a2b42c1 1-213
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "cf7f989f552716677702092510f386af0e86cc59",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
