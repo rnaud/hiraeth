@@ -70,3 +70,17 @@ test('weathered walls: house fronts and old masonry, never metal, glass, lights 
   // the water's crests: in patches, gone far off
   assert.ok(WATER_INK.calm < 0.5 && WATER_INK.far[1] < 0.5);
 });
+
+test('the City-Shaft pass: flat printed shadows and far haze per look, fewer windows, sand hatched on slip faces, the desert\'s clean sky', async () => {
+  const { DESERT_LOOK } = await import('../src/desert-sites.js');
+  const { SHAFT_LOOK } = await import('../src/levels/reference-shaft.js');
+  for (const [name, p] of Object.entries(PRESETS)) {
+    assert.equal(p.uShadowFlat, 0, `${name}: shadows as before unless a look asks`);
+    assert.equal(p.uHaze[3], 0, `${name}: the sky's haze unless a look asks`);
+  }
+  assert.ok(SHAFT_LOOK.uShadowFlat > 0.5 && SHAFT_LOOK.uCumulus === 0, 'the shaft sheets: shade in its own blue, a clean sky');
+  assert.ok(DESERT_LOOK.uCumulus === 0 && DESERT_LOOK.uClouds === 0 && DESERT_LOOK.uHaze[3] > 0, 'the desert: no cloud bank, a warm far band');
+  assert.equal(makeMaterial({ color: '#eee', pattern: 'facade', key: 't.win' }).uniforms.uWindows.value, 0.78, 'façades keep their windows');
+  assert.equal(makeMaterial({ color: '#eee', pattern: 'facade', windows: 0.2, key: 't.win2' }).uniforms.uWindows.value, 0.2);
+  assert.ok(SHADE.slip[0] < SHADE.slip[1] && SHADE.slip[1] < 0.42, 'slip faces hatched fully before the ground turns rock');
+});

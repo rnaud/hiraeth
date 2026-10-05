@@ -1442,7 +1442,7 @@ dishes over the blue domes, the bridge over the dunes, the dish station, the slo
 turquoise pool in the violet cliffs, the buried blue heads): 27 views, `[ ]` cycling through them
 sheet after sheet. The shapes the sheets draw again and again (ribcages, dishes on stems, gorge
 walls, bridges, domes, petals, machine heads, table cliffs) are builders in
-`src/levels/reference-kit.js`. The views' ring (`VIEW_RING`) grows with their number, so
+`src/levels/reference-kit.js`. The views lie on a square grid 3.3 km apart (`VIEW_SPACING`), so
 neighbours stay over 3 km apart.
 
 - **A view** is a panel: its crop of the sheet, its ground (a height function drawn as rings round
@@ -1455,7 +1455,7 @@ neighbours stay over 3 km apart.
   and high): the view's hour is the morning hour of that elevation (`sunHour`) and its group is
   turned about the vertical so the sun of that hour stands on that side (`sunTurn`). Nothing in the
   renderer is special-cased: the views are scenery, colour scripts, hours and presets.
-- **The views** lie on a ring 4.5 km out (`VIEW_RING`); only the one you are in is drawn.
+- **The views** lie on a square grid, 3.3 km apart (`VIEW_SPACING`); only the one you are in is drawn.
   `[` and `]` (L3 / R3 on a pad) fade to the previous / next view and hold the camera on its
   panel (the traveller hidden where the camera stands); walk or look and the camera is yours
   again. `?view=<n>` opens on view n. The frame keeps the panel's proportions: on a screen
@@ -1518,6 +1518,31 @@ all of it is in the game's own materials and post pass (every world uses it), no
   Handheld 3.2 → 3.3 and 3.1 → 2.9, City-Shaft Handheld 8.6 → 7.8 and 5.9 → 6.8 (the machine's
   run-to-run spread is ±30 %). The new work is behind defines (weathering, plating) or cheap
   branches (crevices, paper, the strata strokes only lit and near); the handheld's paper is one tap.
+
+### The City-Shaft's sheets, and three desert touches
+
+- **The views** (`src/levels/reference-shaft.js`, `SHAFT_VIEWS`): IMG_3778 (one plate) and IMG_3779
+  to 3782 (5, 5, 5 and 7 panels), 23 views after the desert's 27, grouped by world (the label names
+  the world, the sheet and the panel). One scene builder (`shaftScene`) does them all: walls of
+  stacked houses jutting out by their own amounts, free stacks with houses clinging to their faces,
+  overhanging slabs, awnings, walkways, cables, flying cabs, the shaft's water. Many look steeply up
+  or down: a view's camera may give `pitch` and `roll` (deg) instead of a horizon. The blocks cast
+  no shadow and a wall turned from the sun casts none of its slabs, so a street stays in the sun as
+  on the sheets. The views lie on a grid now (`VIEW_SPACING`), and `?view=n` opens on that view's
+  own hour.
+- **Flat printed shadows** (`uShadowFlat`, post.js): 0 is albedo × the shadow tint; 1 is the tint
+  itself at the surface's value, the way the sheets print the shaft's shade in one blue whatever
+  the wall's colour. Off in every preset; the views' `SHAFT_LOOK` uses it. (Tried on the City-Shaft
+  world: its trees turn grey-blue, so it stays off there until it can be set per material.)
+- **Windows** (`makeMaterial({ windows })`): the share of a façade's cells with a window (0.78 as
+  before); the sheets' houses and the City-Shaft's have fewer.
+- **Far haze** (`uHaze`: rgb, amount): the colour distant ground fades to, instead of the sky's
+  horizon. The desert's look (`DESERT_LOOK` in `desert-sites.js`, also `?look=desert`) sets a pale
+  warm band and turns the print preset's cumulus bank and clouds off, as its plates.
+- **Slip faces**: sand's few shadow strokes (`hatch` 0.55) go back to full on steep slopes
+  (`SHADE.slip`), so a shaded slip face is hatched and flat sand isn't.
+- A zone's touches (`zone.look`) now start from the preset each time, so one view's never carry
+  into the next.
 
 ### Weathered walls
 

@@ -2,6 +2,13 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.63 — 2026-10-05
+
+- The desert’s sky is clear now, as in its drawings: no bank of clouds on the horizon, and the far dunes fade into a pale warm band.
+- Steep dune faces in shade are hatched again with dense strokes, while flat sand in shade stays a calm tone.
+- The City-Shaft is drawn with fewer hatch strokes and a clean sky, and its houses have fewer, smaller windows.
+- The References scenes now include the City-Shaft: twenty-three views from its five sheets, up and down the shaft, after the desert’s.
+
 ## v0.62 — 2026-10-05
 
 - Nothing stays on the screen while you play any more: the box in the corner with the place, the objective and the relics is gone. Your health shows while you are hurt or healing, the stamina wheel while you are tired, the tank beside you while it refills or the jets burn, and each fades away after. A short line at the bottom says what the use button does when there is something to use, and a region’s name as you cross into it.
