@@ -59,10 +59,10 @@ const pick = (arr, i) => arr[Math.min(i, arr.length - 1)];
 /** The recording in the prologue: the father, the day the traveller left. The impact cuts it off. */
 export const PROLOGUE_CALL = [
   SHIP('~neutral~ Playing from the reel.'),
-  F('~neutral~ Is it on? The little light is on. Right. There you are.'),
-  F('~solemn~ Listen to me. Out there, nobody owes you anything. Not the people, not the worlds.'),
-  F('~neutral~ Keep the translator at your ear. Nobody out there talks like us, and you will want to know what they are saying about you.'),
-  F('~angry~ You leave everything here half done. The boat. The school. Your mother.'),
+  F("~neutral~ Little light’s on. Good. Your mother says that means I can start."),
+  F("~solemn~ Listen. Be careful out there. Nobody owes you help just because you’ve arrived needing it."),
+  F("~neutral~ Keep the translator at your ear. You’ll meet people who speak nothing like us. Try listening before deciding they’re wrong."),
+  F("~angry~ You left the boat half built. Walked out of school. Now your mother waits by the window. Finish something, son."),
   F('~solemn~ My son, make us proud. Bring back something of value.'),
   spoken('father', '~neutral~ We will be waiting for you at the—', { cut: true }),
 ];
@@ -84,39 +84,39 @@ const nameIn = (k) => name(k).replace(/^(A|An|The) /, (m) => m.toLowerCase());
  */
 export const REEL = {
   desert: { word: 'water',
-    find: '~tired~ …and turn the tap off when you are done. Water doesn’t come from nowhere, son. Somebody carries it.',
+    find: "~tired~ …and turn the tap off. Water has to get here somehow. Somebody carries it. Don’t waste their work.",
     you: '~whisper~ (Somebody carried it. The giants did.)' },
   incal: { word: 'looking up',
-    find: '~solemn~ Stop staring up at the lamps and look where you are going. And mind the people at the top. They decide what the bottom eats.',
+    find: "~solemn~ Stop looking up at the lamps and watch the steps. And mind who you argue with at the top. They decide what reaches the bottom.",
     you: '~whisper~ (I looked up anyway.)' },
   arzach: { word: 'quiet',
-    find: '~playful~ Quiet again. You never said much at the table either. Your mother says you are thinking. I say you are sulking.',
+    find: "~playful~ Quiet at dinner again. Your mother says you’re thinking. I’d be grateful for a noise when you’ve finished.",
     you: '~whisper~ (Nobody says much there. I liked it.)' },
   arzach2: { word: 'bell',
-    find: '~tired~ Ring it once if you must. Once. Then put it back on the shelf.',
+    find: "~tired~ Ring the bell once. Once is plenty. Some of us heard the first six demonstrations.",
     you: '~whisper~ (I rang it. The cloud came down.)' },
   garage: { word: 'why',
-    find: '~tired~ You start things and you forget why. The boat. The radio. Half of them are still in the shed.',
+    find: "~tired~ Why did you start it? The boat, the radio. There’s no room in the shed for another thing you’ve given up on.",
     you: '~whisper~ (So did the Major. He kept going anyway.)' },
   buried: { word: 'patience',
-    find: '~neutral~ Patience. Everything worth having turns slowly. One tooth at a time, your grandfather used to say. I never knew what he meant.',
+    find: "~neutral~ Patience. One tooth at a time, your grandfather said. Never explained the teeth. I suppose that was part of the lesson.",
     you: '~surprised~ (One tooth at a time.)' },
   edena: { word: 'garden',
-    find: '~tired~ Your mother’s garden has grown over the old cart again. She says leave it. I say it is a cart.',
+    find: "~tired~ The garden has swallowed my cart again. Your mother says it’s a flowerbed now. It still has wheels.",
     you: '~whisper~ (They let the garden take the ships, there.)',
     // after the tea terraces went (src/story/terraces.js): the same words land differently
-    youAfter: { flag: 'edena.terraces.flooded', you: '~sad~ (They let the garden take the ships, there. I didn’t leave things be. I opened their gate.)' } },
+    youAfter: { flag: 'edena.terraces.flooded', you: "~sad~ (They left the wreck for the garden. I opened their gate, and Esk lost her hill.)" } },
   spheres: { word: 'remember',
-    find: '~angry~ Stones that remember sounds? Who told you that? The stones?',
+    find: "~angry~ Stones that remember? Where did you hear that? And why are there six in your pockets?",
     you: '~whisper~ (One of them remembered a drum.)' },
   perdide: { word: 'rain',
-    find: '~playful~ Did you keep your boots dry, at least? No. Of course not.',
+    find: "~playful~ Out in the rain again. Were your boots dry for any part of the trip?",
     you: '~playful~ (No.)' },
   perdide2: { word: 'lamp',
-    find: '~angry~ People who keep a light on for someone who never comes. That is not hope, son. That is a habit.',
-    you: '~whisper~ (They keep the lamps lit there anyway. For whoever comes.)' },
+    find: "~angry~ Your mother keeps that lamp burning. Every night. I tell her it’s only a habit. She doesn’t answer.",
+    you: "~whisper~ (Hollin keeps his lamps lit too. He asked me to come back.)" },
   bazaar: { word: 'listening',
-    find: '~tired~ You never listen. I say a thing and it goes past you like weather.',
+    find: "~tired~ Are you listening? I can never tell. Say something when I’ve finished, at least.",
     you: '~whisper~ (I’m listening now.)' },
 };
 const REEL_ANY = { word: 'home', find: '~neutral~ The house is quiet without you. I don’t mind. I don’t.', you: null };
@@ -128,13 +128,13 @@ const REEL_ANY = { word: 'home', find: '~neutral~ The house is quiet without you
 export const AGE = {
   1: {
     open: [F('~neutral~ It’s me. You didn’t call back, so I am leaving this.')],
-    close: () => [F('~tired~ Keep looking, then. There is time. There is always time, you say.')],
+    close: () => [F("~tired~ Keep looking, then. You always say there’s time. I hope you’re right.")],
     log: '~neutral~ End of recording.', label: '',
   },
   2: {
     open: [F('~angry~ Your exams were today. You were not at your exams.')],
     close: (f) => [
-      F('~angry~ The Orrin boy came home with a reactor core, top of his year. Just so you know.'),
+      F("~angry~ The Orrin boy brought home a reactor core. Top of his year. I thought you should know."),
       F(f.shifted ? '~sad~ And mend the fence before you go. Please.' : '~angry~ And mend the fence before you go anywhere. Do better.'),
     ],
     you: '~whisper~ (The fence came down years ago.)',
@@ -143,7 +143,7 @@ export const AGE = {
   3: {
     open: [
       M('~happy~ Is it recording? Oh. Hello, love. It’s us.'),
-      S('~solemn~ (A child’s voice, somewhere behind them: “Is that for me?” It is your voice.)'),
+      S("~solemn~ (A child’s voice behind them asks, “Is that for me?” It is your voice.)"),
       F('~tired~ Not now. Go and wash your hands.'),
     ],
     close: (f) => [F(f.shifted ? '~happy~ Go on, then. Carefully.' : f.tier >= 1 ? '~angry~ We will talk when there is more to talk about.' : '~solemn~ Go on, then. We are counting on you.')],
@@ -154,27 +154,27 @@ export const AGE = {
   // are numbered from the first after the prologue: 1..5 here, then the last one at ENDING_WORLDS)
   4: {
     open: [
-      F('~tired~ You have been at your grandfather’s a week and we have not had one word. Your mother says I should say something nice first.'),
-      F('~tired~ …Report, then. Like a pilot. Where you went, what you saw. Then come back to the recorder and tell us.'),
+      F("~tired~ A week at your grandfather’s and no message. Your mother says I should begin with something nice. I’m glad you arrived safely."),
+      F("~tired~ Now report. Like a pilot. Where you went. What you saw. Tell us when you come back to the recorder."),
     ],
     close: (f) => [
-      S('~neutral~ (The tape is worn here. A few words go under the hiss.)'),
+      S("~neutral~ (The tape is worn here. His next words disappear beneath the hiss.)"),
       F('~solemn~ …when you are older, you will understand why I…'),
       F(f.shifted ? '~happy~ Call your mother. Never mind what it costs.' : '~angry~ Keep it short. These spools cost.'),
     ],
     you: '~whisper~ I know what it says. I just want to hear it.',
-    log: '~neutral~ Logged sixteen years ago. You were ten, and away for the summer. The tape is wearing thin on this side.', label: 'LOGGED 16 YEARS AGO',
+    log: "~neutral~ Logged sixteen years ago. You were ten, staying with your grandfather for the summer. Tape damage detected.", label: 'LOGGED 16 YEARS AGO',
   },
   5: {
     open: [
       M('~playful~ He is here. He just does not want to start.'),
-      M('~happy~ I found your old drawings in the hall cupboard. The round ship, and the three of us, holding hands.'),
+      M("~happy~ Found your drawings in the hall cupboard. The round ship, the three of us holding hands. You gave everyone enormous fingers."),
       // Lou, three and a half, a year and a half on the hill (LORE.md §2): never named on the reel
-      M('~whisper~ The little one sat with me and looked at every one. She has your hands, love.'),
+      M("~whisper~ The little one looked through them with me. She has your hands, love. Same grip on a pencil."),
     ],
     close: (f) => [
       F(f.shifted ? '~sad~ Come back to us.' : '~angry~ Think about it.'),
-      M('~sad~ Your father says I shouldn’t make these. He says you never listen to them.'),
+      M("~sad~ Your father thinks I should stop recording. Says you don’t listen."),
       M('~solemn~ I think one day you will.'),
     ],
     you: '~whisper~ (I am.)',
@@ -190,7 +190,7 @@ export const OLDER = [
     F('~playful~ As big as the house. Well.'),
   ] },
   { label: 'LOGGED 22 YEARS AGO', lines: [
-    F('~happy~ He fell asleep in the cockpit chair again. I have put my old cap on him.'),
+    F("~happy~ Asleep in the cockpit chair again. My cap covers his whole head. Don’t move it; he insists he’s flying."),
     M('~happy~ Don’t wake him. Look at him.'),
   ] },
   { label: 'LOGGED 20 YEARS AGO', lines: [
@@ -212,13 +212,13 @@ export const OLDER = [
 // (0 .. 2 more and more curt; 3: what he said later, once something had shifted).
 const FATHER_ON = {
   thing: [
-    () => '~neutral~ Another stone from the river. Your mother keeps them on the sill. I don’t know what for.',
-    () => '~happy~ Now that is the kind of thing I mean. Something you can hold.',
+    () => "~neutral~ Another river stone. Your mother puts them on the sill. We’ll soon have an indoor riverbank.",
+    () => "~happy~ There. Something solid. Something to show for the work.",
     () => '~tired~ Keep it safe, then. Whatever it is.',
-    () => '~sad~ Keep it, if you like it. It was never the thing I was waiting for.',
+    () => "~sad~ Keep it if it matters to you. I wasn’t really waiting for a present.",
   ],
   song: [
-    () => '~angry~ And stop drumming on the table. Nobody ever fuelled a ship with a song.',
+    () => "~angry~ Stop drumming at dinner. Nobody ever fuelled a ship with a song.",
     () => '~tired~ Humming again. All day, humming.',
     () => '~tired~ A song.',
     () => '~sad~ Hum it for me some time. Not now. Some time.',
@@ -230,16 +230,16 @@ const FATHER_ON = {
     () => '~solemn~ Say it again. Slower.',
   ],
   person: [
-    () => '~angry~ You and your friends. Friends make promises. They are easy to make.',
+    () => "~angry~ Promises from friends. Easy words, son. See who actually comes back.",
     () => '~angry~ Out with your friends again. You collect them.',
     () => '~tired~ Another friend.',
-    () => '~sad~ Someone who wants you back. I understand that better than you think.',
+    () => "~sad~ Someone wants you to come back. Keep that promise if you can.",
   ],
   knowing: [
-    () => '~curious~ So you understand how it works. Then build it. Show me.',
+    () => "~curious~ You understand it? Good. Now show me how it works.",
     () => '~angry~ An idea. I asked for something I could see.',
     () => '~tired~ Ideas.',
-    () => '~solemn~ You understand something I don’t. Tell me, when you are home.',
+    () => "~solemn~ You’ve worked out something I haven’t. Tell me when you come home.",
   ],
 };
 
@@ -249,7 +249,7 @@ const MOTHER_ON = {
   song: () => '~happy~ Sing it for me again tonight. Just once, slowly.',
   word: () => '~happy~ Say it again. I want to remember it the way you said it.',
   person: () => '~happy~ Someone who wants you to come back. That is not nothing.',
-  knowing: () => '~solemn~ You sound different today. You understand something you didn’t. I can hear it.',
+  knowing: () => "~solemn~ You sound pleased with yourself. What did you figure out?",
 };
 
 /** Everything the recordings know about the journey, from the context. */
@@ -298,8 +298,8 @@ const BEATS = [
     // the broadcast: he asks the reel for the name, and is not ready for what it has
     id: 'ilen', when: (f) => f.broadcast && !f.ilenAsked,
     intro: (f) => [
-      YOU('~solemn~ (You ask the reel for a name you heard at the market: Ilen.)', { 'calls.ilen.asked': true, 'calls.ilen.at': f.here ?? true }),
-      SHIP('~neutral~ Nothing in your father’s voice. One recording in your mother’s, labelled “For when he asks.”'),
+      YOU("~solemn~ (You ask the reel to search for Ilen, the name from the market.)", { 'calls.ilen.asked': true, 'calls.ilen.at': f.here ?? true }),
+      SHIP("~neutral~ One recording in your mother’s voice. Label: “For when he asks.” No match in your father’s voice."),
       YOU('~whisper~ Not here. Not yet.'),
     ],
   },
@@ -312,7 +312,7 @@ const BEATS = [
     ],
     body: () => [
       F('~sad~ Your mother says I should make one of these. So.'),
-      F('~sad~ I said the same words to you at the port that I said to your sister. I heard myself say them. I could not stop.'),
+      F("~sad~ I said the same words to you at the port that I said to your sister. Heard them leaving my mouth. I knew what they’d done before, and I said them again."),
     ],
   },
   {
@@ -320,16 +320,16 @@ const BEATS = [
     // about breaking things, which is the right thing for once
     id: 'broke', when: (f) => f.broke,
     lines: (f, n) => [
-      F('~tired~ And if you break something out there, and you will, you say sorry, and you mean it, and then you go. Standing about in their yard looking at it mends nothing.', { 'calls.beat.broke': true }),
-      ...(n >= 3 ? [M('~sad~ Did they forgive you, love? People mostly do, if you let them.')] : []),
-      YOU('~whisper~ (Esk did. I don’t think I have, yet.)'),
+      F("~tired~ If you break something, you say sorry, and you mean it. Help if they ask. If they ask you to go, go. Don’t make them look after how sorry you feel.", { 'calls.beat.broke': true }),
+      ...(n >= 3 ? [M("~sad~ They may need time, love. You can’t ask them to feel better because you’re sorry.")] : []),
+      YOU("~whisper~ (Esk asked me to go. I still wish I could put it back.)"),
     ],
   },
   {
     // the singing light: a warning he could not have known to give
     id: 'light', when: (f) => f.lights >= 2,
     lines: (f, n) => [
-      F('~scared~ And if you ever hear something singing out there, you turn the ship around. Do you hear me? You turn around.', { 'calls.beat.light': true }),
+      F("~scared~ If you hear something singing out there, turn the ship around. I mean it. Don’t go closer to find out.", { 'calls.beat.light': true }),
       ...(n >= 3 ? [S('~solemn~ (Your mother has stopped smiling.)')] : []),
       YOU('~surprised~ (How could he know?)'),
     ],
@@ -338,14 +338,14 @@ const BEATS = [
     // Odile and Talo's ship: struck by the same light
     id: 'struck', when: (f) => f.struck,
     lines: () => [
-      F('~angry~ Ships get struck out there. That is all it is. That is what I told your mother.', { 'calls.beat.struck': true }),
+      F("~angry~ Ships get struck. It happens. That’s what I told your mother. I don’t know what else to tell her.", { 'calls.beat.struck': true }),
       YOU('~whisper~ (Like Odile and Talo’s. Like mine.)'),
     ],
   },
   {
     id: 'glyph', when: (f) => f.glyph,
     lines: () => [
-      F('~tired~ And you have drawn those three dots on the landing ring again. Over an arc. Scrub them off before your mother sees.', { 'calls.beat.glyph': true }),
+      F("~tired~ You’ve drawn those three dots and an arc on the landing ring again. Scrub them off before your mother sees.", { 'calls.beat.glyph': true }),
       YOU('~whisper~ (I drew that before I knew what it was.)'),
     ],
   },
@@ -355,8 +355,8 @@ const BEATS = [
     lines: (f, n) => [
       ...(n >= 3 ? [
         M('~curious~ Hear that? Behind us. That low note.', { 'calls.beat.bell': true }),
-        F('~sad~ The harbour bell. They ring it when a ship comes in. I always look.'),
-      ] : [F('~sad~ Hear that? The harbour bell. They ring it when a ship comes in. I always look.', { 'calls.beat.bell': true })]),
+        F("~sad~ The harbour bell. Another ship home. I always check which one."),
+      ] : [F("~sad~ Hear the harbour bell? A ship’s come in. I always go to the window.", { 'calls.beat.bell': true })]),
       YOU('~whisper~ (It sounds like the bell under the cloud.)'),
     ],
   },
@@ -364,21 +364,21 @@ const BEATS = [
     id: 'bird', when: (f) => f.bird,
     lines: (f, n) => [
       F('~playful~ A bird made you a promise? You and your stories.', { 'calls.beat.bird': true }),
-      ...(n >= 3 ? [M('~curious~ Is she very big, your bird? Will she come if you call her?')] : []),
+      ...(n >= 3 ? [M("~curious~ How big is this bird? Big enough to come when you call?")] : []),
       YOU('~whisper~ (She would. She does.)'),
     ],
   },
   {
     id: 'lamps', when: (f) => f.lamps,
     lines: (f, n) => n >= 3 ? [
-      M('~happy~ I have left the lamp on in the round window. Come in whenever you like. Wake me.', { 'calls.beat.lamps': true }),
+      M("~happy~ The lamp’s on in the round window. Let yourself in. And wake me, however late. I mean that.", { 'calls.beat.lamps': true }),
       F('~tired~ …'),
-    ] : [F('~tired~ Your mother has left the lamp on in the window again. For you.', { 'calls.beat.lamps': true })],
+    ] : [F("~tired~ Your mother left the window lamp on again. For you.", { 'calls.beat.lamps': true })],
   },
   {
     id: 'things', when: (f) => f.things >= 2,
     lines: () => [
-      F('~happy~ Two good marks this term. Two things you can hold up. Now we are getting somewhere.', { 'calls.beat.things': true }),
+      F("~happy~ Two good marks. There we are. Proof you can do it when you try.", { 'calls.beat.things': true }),
       YOU('~whisper~ (Two things I can hold. Does that count?)'),
     ],
   },
@@ -392,7 +392,7 @@ const BEATS = [
   {
     // the mother, later: he heard it too
     id: 'light.late', when: (f, n) => n >= 3 && f.heard('light') && (f.struck || f.lights >= 4),
-    lines: () => [M('~whisper~ Your father stood at the window last night a long time. He said he heard something singing. There was nothing there.', { 'calls.beat.light.late': true })],
+    lines: () => [M("~whisper~ Your father stood at the window last night. Said he could hear singing. I couldn’t hear anything.", { 'calls.beat.light.late': true })],
   },
 ];
 
@@ -412,16 +412,16 @@ function beats(f, n, max = 2) {
 /** The mother's own recording: Ilen. */
 function motherAlone(f) {
   return [
-    SHIP('~neutral~ The recording labelled “For when he asks.” Your mother’s voice.'),
-    M('~whisper~ It’s me. Your father is asleep. I wanted to make this one on my own.', { 'calls.ilen.told': true }),
-    M('~neutral~ If you are hearing this, you heard him on some old relay, and you asked about Ilen. He won’t have told you. He never could.'),
-    M('~solemn~ Ilen was your sister. She was grown and gone before you were born.'),
-    M('~sad~ She went out, the way you did. He stood at the port and told her to make us proud. To bring back something of value.'),
+    SHIP("~neutral~ Playing “For when he asks.” Your mother’s recording."),
+    M("~whisper~ Hello, love. Your father’s asleep. I need to tell you something without him interrupting.", { 'calls.ilen.told': true }),
+    M("~neutral~ If you’re asking about Ilen, perhaps you heard his message on an old relay. I should have told you myself, years ago."),
+    M("~solemn~ Ilen was your sister. Your elder sister. She had grown up and left before you were born."),
+    M("~sad~ He sent her off with the same words. Make us proud. Bring back something of value."),
     M('~sad~ She never came home. We never found out why.'),
-    M('~sad~ He sent that message after her every night for a year. Then I asked him to stop, and he stopped.'),
-    ...(f.lights >= 1 ? [M('~whisper~ The last thing that came back from her ship wasn’t a voice. It was a sound. Like something singing.')] : []),
-    M('~solemn~ He isn’t asking you for something of value. He never was. He just doesn’t know how to ask for the other thing.'),
-    M('~playful~ I’ll tell him I made this. Or I won’t. I think he would be glad.'),
+    M("~sad~ Every night for a year he sent that message after her. Then I asked him to stop. We couldn’t keep living at the receiver."),
+    ...(f.lights >= 1 ? [M("~whisper~ The last sound from her ship was singing. No words. We never learned what it meant.")] : []),
+    M("~solemn~ He wanted her home. He wants you home too. That doesn’t excuse what he said. I wish he’d learned to say what he meant."),
+    M("~playful~ I’ll tell him I made this. We’ve kept enough quiet."),
     YOU('~whisper~ (She knew I would ask.)'),
     SHIP('~neutral~ Logged six years ago.'),
   ];
@@ -472,7 +472,7 @@ export function callLines(n, ctx = {}) {
   const you = reel.youAfter && flag(reel.youAfter.flag) ? reel.youAfter.you : reel.you;
   const react = !leadBody && you ? [YOU(you)] : [];
   // the keepsake: he holds it up to the projector; the recording happens to hold what the father once said about such things
-  const shown = k ? [YOU(`~neutral~ (You hold ${nameIn(k)} up to the projector, where they would see it.)`), F(pick(FATHER_ON[k.kind] ?? FATHER_ON.thing, f.tier)(k))] : [];
+  const shown = k ? [YOU(`~neutral~ (You lift ${nameIn(k)} into the projector’s light. The recording continues.)`), F(pick(FATHER_ON[k.kind] ?? FATHER_ON.thing, f.tier)(k))] : [];
   // the mother asks who he met; he answers with the names
   const met = f.lastWorld ? metIn(f.lastWorld, flag) : [];
   const ask = M('~curious~ Who did you meet today? Tell me one person. Just one.');
@@ -486,13 +486,13 @@ export function callLines(n, ctx = {}) {
     return [
       ...leadIntro,
       ...(leadBody ?? []),
-      SHIP(f.ended ? '~neutral~ The oldest side of the reel. Playing.' : '~neutral~ Nothing left on this side. Turning the reel over: the oldest side.'),
+      SHIP(f.ended ? '~neutral~ The oldest side of the reel. Playing.' : "~neutral~ No recordings remain on this side. Turning to the oldest side of the reel."),
       ...old.lines,
       ...(k ? [YOU(`~neutral~ (You hold ${nameIn(k)} up to the projector anyway.)`)] : []),
       ...rest.slice(0, 1),
       ask, ...answer,
       ...(f.ended
-        ? [YOU(c && c.id !== 'all' && c.id !== 'nothing' ? `~whisper~ (${name(c)} is on the stone on the hill.)` : '~whisper~ (Everything you brought is on the stone on the hill, under the two moons.)')]
+        ? [YOU(c && c.id !== 'all' && c.id !== 'nothing' ? `~whisper~ (${name(c)} is on the stone on the hill.)` : "~whisper~ (Your keepsakes rest on the stone at home, beneath the two moons.)")]
         : [SHIP('~neutral~ Home is on the map, whenever you are ready.')]),
     ];
   }
@@ -504,15 +504,15 @@ export function callLines(n, ctx = {}) {
     SHIP('~neutral~ The last recording on the reel. Playing.'),
     M('~solemn~ We are both here. He wants to say something.', { 'calls.home': true }),
     F('~solemn~ Son.'),
-    F('~solemn~ I have been thinking about what I asked of you. Something of value. I never said what.'),
+    F("~solemn~ I keep thinking about what I asked you to bring back. Something of value. I made it sound like you had to earn your way through the door."),
     ...(k ? [YOU(`~whisper~ (You hold ${nameIn(k)} up to them.)`)] : []),
-    ...(f.ilenTold ? [F('~sad~ I asked your sister for the same thing. I would have taken her back with empty hands.')] : []),
+    ...(f.ilenTold ? [F("~sad~ I told your sister the same thing. I would have welcomed her back with empty hands.")] : []),
     // Lou, five, across the yard: the drawings he keeps in his chair (src/story/home-data.js), not said
-    F('~sad~ The little one puts you in all her drawings. Somewhere at the edge, waving.'),
+    F("~sad~ The little one puts you in all her drawings. At the edge, waving. She leaves a place for you."),
     F('~solemn~ Come home.'),
     M('~happy~ Bring whatever you have. Or nothing at all. Just come.'),
-    S('~solemn~ (The picture holds on the two of them a moment, then folds away.)'),
-    SHIP('~neutral~ That was the last recording on the reel. Logged two years ago, eleven days before the house went quiet.'),
+    S("~solemn~ (The picture holds on their faces, then folds into the projector.)"),
+    SHIP("~neutral~ That was the last recording on the reel. Logged two years ago, eleven days before the house went quiet."),
     YOU('~whisper~ I’m coming home.'),
     SHIP('~neutral~ Course for home available on the galactic map.'),
   ];

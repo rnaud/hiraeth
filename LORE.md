@@ -1,5 +1,11 @@
 # Memento: the story and the lore
 
+> **Dialogue revision, 2026-10-05:** The current script and character voices
+> are documented in [lore/README.md](lore/README.md). Quoted dialogue below
+> generally predates that pass. See [continuity notes](lore/continuity.md) for
+> the current desert opening and [plot review](lore/plot-review.md) for proposed
+> future changes. The live story data governs current wording and quest flow.
+
 A summary of everything the game says about its story, gathered from the
 design docs (`docs/game-brief.md`, `docs/story-bible.md`) and from what is
 actually built (`src/story/`, `src/levels/`, `src/ship/`, `src/boxes/`,
@@ -747,7 +753,7 @@ silent. It fell out of the sky long ago, singing, and stuck point-first in the
 mud. It is a piece of the same light that struck the ship.
 
 People:
-- **Wendel**, egg-warden: thirty years keeping eggs warm, none ever hatched; "The patient are never eaten."
+- **Wendel**, egg-warden: thirty years keeping eggs warm, never having seen them hatch until the firefly quest; "The patient are never eaten."
 - **Sedge**, reed-cutter, shy: saw the light pass over the reeds the night it passed everywhere, and the crystal sang back; then it climbed and was gone.
 - **Saba**, the Listener: forty years at the crystal's foot, knows its 212 phrases; "Whatever struck your ship sang the same song as this." Her first spring there, two strangers came across the swamp in a borrowed skiff and asked the crystal where the light had gone (Odile and Talo); they went on east, and the skiff came home on its own.
 - **Ivo**, who watches the fireflies: "Everything goes home at dusk."
@@ -1086,15 +1092,13 @@ ATAN" (old names) and now says ODILE and TALO; Talo's lookout note was signed
   has been going out. Nima now says so; the bible and section 6 match.
 
 ### Still open
-- **Wendel's eggs never hatch: kept open, on purpose** (decided while the author
-  was away; change freely). Thirty years of keeping eggs warm, none ever hatched,
-  "The patient are never eaten": his patience is the point of him, and the
-  keepsake he gives (*word*, "Wendel's saying") is about waiting, not about what
-  comes of it. The Hush-House was to hatch one as its world change; it flowers
-  the swamp instead (Teasel: "Wendel laughed till he sat down"), and the egg is
-  left alone. If one ever hatches it should be the last thing in the game, not a
-  temple's reward (a late recording, or the swamp seen again after the ending).
-  Nothing in the code points at a hatching; Wendel's lines stay as they are.
+- **Wendel's eggs: the firefly quest resolves this.** The older design note
+  proposed keeping them unhatched. The existing `perdide.fireflies` quest in
+  `src/story/perdide-data.js` instead shows fireflies hatching at the nest;
+  afterwards Wendel learns what he has been missing. His thirty years without
+  seeing a hatch describe his experience, not an unchanging fact about the eggs.
+  The Hush-House still flowers the swamp as its own, separate world change.
+  The dialogue pass preserves both existing events.
 
 ### Planned additions that touch the existing story
 - **Coloured busts** replace the full-length teal holograms (`src/ship/hologram.js`); the stone scene's hologram of "the three of them" over the stone would become busts too.
@@ -1414,8 +1418,8 @@ everything since; you can hear it through the stone.
 - *Changed from the first design*: the house is on the cave island, not under
   the Great Crystal (the crystal's island is the main quest's); she is calmed by
   stilling, not by standing still (that became the Lampless's way, next door);
-  and the world change is the flowers, not one of Wendel's eggs hatching (left
-  as a loose end).
+  and the temple's world change is the flowers. Wendel's eggs hatch in the
+  separate firefly quest (see section 10).
 
 ### The Aerie (Vael)
 A great white house of the makers on the plain west of the landing: a broad
@@ -1613,8 +1617,8 @@ if you put your ear to the stones.
   and the gift list above still puts it on the mossy rise~~: fixed. Section 6's
   "Chest:" lines and the gift list in section 4 now say what is where, temple by
   temple and in the open (the rise has the breathing reed, Wendel's "sky-egg";
-  the stilling mode is in the Hush-House). ~~Wendel's egg that was to hatch~~:
-  kept unhatched, on purpose (section 10, "Still open").
+  the stilling mode is in the Hush-House). Wendel's eggs hatch in the separate firefly quest
+  (section 10), not as the Hush-House reward.
 - The Hangar's three stopped machines (Ottla's side quest) and its signal board
   are left as they were by the First Garage: the Foreman's change is its own
   clockwork. Lune's three machines "stopped that night" because the Foreman

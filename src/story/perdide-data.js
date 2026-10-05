@@ -76,31 +76,31 @@ export const LANDING = [
       ],
       nodes: {
         hello: {
-          say: ['~playful~ You came down out of the sky in a ball and you didn’t land in the deep water. That’s more sense than most visitors show.', '~happy~ I’m Wendel. I keep the eggs warm and the plants hungry.'],
+          say: ["~playful~ Dry landing. Sensible. Most sky visitors introduce themselves to the deep water first.", '~happy~ I’m Wendel. I keep the eggs warm and the plants hungry.'],
           choices: [
             { text: '~neutral~ I’m looking for something of value.', goto: 'value' },
             { text: '~curious~ Why keep the plants hungry?', goto: 'plants' },
           ],
         },
         eggs: {
-          say: [{ if: { not: { quest: 'perdide.fireflies', done: true } }, text: '~tired~ Every clutch in the swamp glows. I’ve kept them warm thirty years, and not one has ever hatched. I don’t mind. Somebody has to keep the warm things warm.' },
-            { if: { quest: 'perdide.fireflies', done: true }, text: '~surprised~ Ivo says they hatch. Into fireflies. Thirty years I’ve kept them warm, and they were hatching under my nose every dusk. I’ve had to sit down twice today.' }],
+          say: [{ if: { not: { quest: 'perdide.fireflies', done: true } }, text: "~tired~ Thirty years warming these glowing eggs. Never seen one hatch. Still, something inside needs warmth. I can provide that." },
+            { if: { quest: 'perdide.fireflies', done: true }, text: "~surprised~ Fireflies! They hatch into fireflies every dusk! Thirty years, and I kept missing it. I’ve had a very educational sit-down." }],
           choices: [{ text: '~curious~ And the plants?', goto: 'plants' }, { text: '~curious~ What hums in the east?', goto: 'hum' }],
         },
         plants: {
-          say: ['~neutral~ The jaws. They snap at anything that moves and anything that’s thrown at them. Corm feeds them; he says a fed plant guards the eggs.', '~solemn~ I say the patient are never eaten.'],
+          say: ["~neutral~ The jaw-plants snap at movement and anything thrown at them. Corm feeds them. He says that makes them guard the eggs.", '~solemn~ I say the patient are never eaten.'],
           choices: [
             { text: '~curious~ What do you mean, the patient?', goto: 'patience', if: { quest: 'perdide.patience', started: false } },
             { text: '~curious~ What hums in the east?', goto: 'hum' },
           ],
         },
         patience: {
-          say: ['~neutral~ There’s a bed of them *by the north shore*, past the water’s edge. Go and stand in it. Don’t run, don’t splash them with that coloured water of yours. *Feed them nothing*.', '~neutral~ Let them snap at the air until they’re bored of you. Then they’ll know you, and they won’t snap again.'],
+          say: ["~neutral~ Try *the jaw-bed by the north shore*. Stand still among them. *Don’t run, shoot, or feed them.* Let them get used to you.", "~neutral~ Wait through the snapping. Once they settle, they’ll recognise you and leave you alone."],
           do: { start: 'perdide.patience' },
           choices: [{ text: '~neutral~ I’ll try it.', end: true }, { text: '~curious~ And what hums in the east?', goto: 'hum' }],
         },
         hum: {
-          say: ['~neutral~ The Great Crystal. *East, over the hill and through the ford*; you can walk it if you don’t mind wet knees. It hums all day.', '~solemn~ When it rains, it sings, and every jaw in the swamp shuts while it does. *Old Saba* sits at its foot and listens. She says it fell.'],
+          say: ["~neutral~ The Great Crystal is east, over the hill and through the ford. You can walk there. The water will reach your knees. It considers that polite.", "~solemn~ Rain makes it sing. Every jaw-plant shuts while it does. *Saba sits at its foot*. She thinks it fell from the sky."],
           do: { set: { 'perdide.wendel.heard': true } },
           choices: [
             { text: '~curious~ Fell from where?', goto: 'fell' },
@@ -108,34 +108,34 @@ export const LANDING = [
           ],
         },
         value: {
-          say: ['~curious~ Of value. Hm. The eggs, to me. The plants, to Corm. To anyone with eyes, the Great Crystal: *east, over the hill, through the ford*. It hums all day and sings when it rains.', '~playful~ *Saba sits at its foot* and listens. She’ll tell you what it’s worth. She’ll tell you whether you asked or not.'],
+          say: ["~curious~ Value depends who you ask. I keep eggs. Corm loves teeth. Try *the Great Crystal, east through the ford*. Hard to overlook that one.", "~playful~ *Ask Saba beside it.* She’s spent forty years listening. Allow a little time for her reply."],
           do: { set: { 'perdide.wendel.heard': true } },
           choices: [{ text: '~curious~ What’s that mark on your staff?', goto: 'glyph' }, { text: '~neutral~ I’ll go and see.', end: true }],
         },
-        fell: { say: ['~neutral~ *Ask Saba*. I only know that nothing grows that big by itself. Not even out here.'], choices: [{ text: '~curious~ What’s that mark on your staff?', goto: 'glyph' }, { text: '~neutral~ I’ll go and see.', end: true }] },
+        fell: { say: ["~neutral~ Ask *Saba at the crystal*. I’m qualified in eggs, not enormous singing rocks."], choices: [{ text: '~curious~ What’s that mark on your staff?', goto: 'glyph' }, { text: '~neutral~ I’ll go and see.', end: true }] },
         glyph: {
-          say: ['~neutral~ The Hush. {glyph} Three drops of rain over a shut mouth. You paint it on anything you don’t want eaten: eggs, boots, children.', '~solemn~ It’s carved under the Great Crystal too, older than anyone. Maybe that’s why the plants leave it alone.', '~sad~ And round *the sky-egg on the mossy rise*: a blue chest with a pale star, hushed all over. The plants never touch it. Nothing hatches from it, either. Not for us.'],
+          say: ["~neutral~ {glyph} *The Hush.* Three raindrops over a closed mouth. We put it on things we’d prefer the plants not to eat. Boots, eggs, small relatives.", "~solemn~ It’s carved beneath the Great Crystal too. The plants leave that alone. Mind you, it would be an ambitious meal.", "~sad~ Look for *the sky-egg on the mossy rise*: a blue star-chest covered in that mark. Plants won’t touch it. It won’t open for us."],
           do: { set: { 'perdide.glyph.heard': true } },
           choices: [{ text: '~happy~ Thank you, Wendel.', end: true }],
         },
         again: {
-          say: [{ if: { quest: Q, stage: ['cross', 'saba'] }, text: '~neutral~ *East, over the hill and through the ford*. Follow the hum; you can’t miss a thing that size.' },
-            { if: { quest: Q, stage: 'sing' }, text: '~playful~ Saba wants rain? Then she’ll wait. *Unless you’ve got some on your back*.' },
-            { if: { quest: Q, reached: 'listen' }, text: '~surprised~ It sang? I saw the jaws shut from here, all at once, like a door closing. The whole swamp held its breath.' }],
+          say: [{ if: { quest: Q, stage: ['cross', 'saba'] }, text: "~neutral~ *East over the hill, through the ford.* Follow the hum to the crystal." },
+            { if: { quest: Q, stage: 'sing' }, text: "~playful~ Waiting for rain? Your backpack seems to be carrying a useful imitation." },
+            { if: { quest: Q, reached: 'listen' }, text: "~surprised~ The crystal sang! Every jaw shut at once. I could hear myself thinking. Novel experience." }],
           choices: [
             { text: '~curious~ Tell me about the eggs.', goto: 'eggs' },
             { text: '~happy~ See you, Wendel.', end: true },
           ],
         },
         patient: {
-          say: ['~happy~ They opened for you, didn’t they. I saw them from here: every jaw in the bed, wide and lazy, like old dogs in the sun.', '~solemn~ The patient are never eaten. Take that with you; it works on more than plants.'],
+          say: ["~happy~ You waited, and the jaws opened peacefully. Look at them. All those teeth, no argument.", "~solemn~ *The patient are never eaten.* Around this particular bed, at least. Use judgment elsewhere."],
           do: [{ advance: ['perdide.patience', 'tell'] },
             { keepsake: { id: 'perdide.word', level: 'perdide', name: 'Wendel’s saying', kind: 'word', text: '“The patient are never eaten.” Wendel says it works on more than plants.' } }],
           choices: [{ text: '~solemn~ I’ll remember it.', end: true }, { text: '~playful~ Corm won’t be pleased.', goto: 'corm' }],
         },
-        corm: { say: ['~playful~ Corm will sulk for a week and feed them twice as much. That’s his patience.'], choices: [{ text: '~neutral~ Goodbye, Wendel.', end: true }] },
+        corm: { say: ["~playful~ Corm will feed them extra now. He hates losing a debate to someone standing still."], choices: [{ text: '~neutral~ Goodbye, Wendel.', end: true }] },
         after: {
-          say: ['~solemn~ You stood under it while it sang, and walked off with a piece of it. You’ll carry that sound for the rest of your life, I expect.', '~playful~ It’s not a bad thing to carry. Lighter than eggs.'],
+          say: ["~solemn~ You have a piece of the crystal. Listen: it’s still singing. A good deal lighter than taking the whole thing.", '~playful~ It’s not a bad thing to carry. Lighter than eggs.'],
           choices: [
             { text: '~curious~ Tell me about the eggs.', goto: 'eggs' },
             { text: '~happy~ Keep them warm, Wendel.', end: true },
@@ -152,7 +152,7 @@ export const LANDING = [
       entry: [{ if: { flag: 'met.sedge' }, node: 'again' }, { node: 'hello' }],
       nodes: {
         hello: {
-          say: ['~neutral~ Mm. Hello. Mind the reeds, they cut.', '~playful~ I’m Sedge. I cut them, they cut me. It’s a fair arrangement.'],
+          say: ['~neutral~ Mm. Hello. Mind the reeds, they cut.', "~playful~ Sedge. I cut reeds. They cut back. We keep the arrangement civil."],
           choices: [
             { text: '~curious~ What’s out in the water?', goto: 'water' },
             { text: '~curious~ You look like you’ve seen something.', goto: 'light' },
@@ -168,19 +168,19 @@ export const LANDING = [
           ],
         },
         water: {
-          say: ['~playful~ Deep water, mostly. Don’t wade past your chest. The swamp doesn’t keep what it doesn’t want: it’ll put you back on the last dry ground you stood on, wet and embarrassed.', '~neutral~ *The cave island’s west*, past the deep channel. The Great Crystal’s east; you can walk that one, through the ford.'],
+          say: ["~playful~ Deep water beyond the shallows. Go past your chest and the swamp puts you back on dry ground. Wet, but with an improved opinion of boats.", "~neutral~ *The cave island is west, across deep water.* The Great Crystal is east, reachable on foot through the ford."],
           choices: [{ text: '~curious~ How do I get to the cave island?', goto: 'skiff' }, { text: '~happy~ Thanks.', end: true }],
         },
         skiff: {
-          say: ['~neutral~ There’s a skiff that lives on the water. Nobody owns it; it belongs to the swamp. *Whistle for it* (E, out in the open) and it comes skimming.', '~whisper~ It knows the channels better than I do. Don’t tell it I said so.'],
+          say: ["~neutral~ Whistle for the skiff with E in the open. It comes to you. Nobody owns it, though several people give it advice.", "~whisper~ Let it find the channels. It knows more than I do and boasts considerably less."],
           choices: [{ text: '~happy~ Thanks, Sedge.', end: true }],
         },
         light: {
-          say: ['~whisper~ …Nobody believes me. The night the light passed, I was out cutting late. A light came over the reeds, low, singing. Like a wet finger round the rim of a bowl.', '~solemn~ It went over the Great Crystal, and the crystal sang back to it, out of a dry sky. Then it climbed and was gone. And every jaw in the swamp stayed shut till morning.'],
+          say: ["~whisper~ I was cutting late when the light passed. Low over the reeds, singing like wet glass. I know what I saw.", "~solemn~ The Great Crystal answered without any rain. Then the light climbed away. The jaws stayed shut till morning."],
           do: { set: { 'perdide.rumour.light': true } },
           choices: [{ text: '~solemn~ I think something like it hit my ship.', goto: 'ship' }, { text: '~happy~ I believe you.', goto: 'believe' }],
         },
-        ship: { say: ['~solemn~ Then it didn’t climb far enough.', '~neutral~ *Ask Saba, at the crystal*. If anyone knows what it was singing, she does.'], choices: [{ text: '~neutral~ I will.', end: true }] },
+        ship: { say: ['~solemn~ Then it didn’t climb far enough.', "~neutral~ Ask *Saba at the Great Crystal*. She knows its songs better than anyone."], choices: [{ text: '~neutral~ I will.', end: true }] },
         believe: { say: ['~playful~ Mm. Well. That makes one of you.'], choices: [{ text: '~neutral~ Bye, Sedge.', end: true }] },
       },
     },
@@ -198,19 +198,19 @@ export const LANDING = [
       ],
       nodes: {
         hello: {
-          say: ['~whisper~ Shh! You’ll scare them. Look, there, over the reeds.', '~sad~ Every dusk they come out all together and go off across the water. Nobody knows where. I can’t follow; I’m not allowed in the deep water.'],
+          say: ['~whisper~ Shh! You’ll scare them. Look, there, over the reeds.', "~sad~ Every dusk the fireflies cross the water. I want to know where they go, but I’m not allowed into the deep channel."],
           choices: [
             { text: '~neutral~ I’ll follow them.', goto: 'go' },
             { text: '~curious~ What are they?', goto: 'what' },
           ],
         },
         what: {
-          say: ['~playful~ Wendel says they’re sparks off the Great Crystal. Corm says they’re plant breath. Ysse says they’re none of my business.', '~curious~ I think they’re going home. Everything goes home at dusk.'],
+          say: ["~playful~ Wendel calls them crystal sparks. Corm says plant breath. Ysse says stop asking. That’s the least useful theory.", '~curious~ I think they’re going home. Everything goes home at dusk.'],
           choices: [{ text: '~happy~ Let’s find out. I’ll follow them.', goto: 'go' }, { text: '~curious~ How did you get over here?', goto: 'here' }],
         },
-        here: { say: ['~tired~ Ysse rows me over. She keeps the crystal cave and I help. Mostly I’m not allowed to touch anything.'], choices: [{ text: '~neutral~ I’ll follow your fireflies.', goto: 'go' }, { text: '~neutral~ Bye, Ivo.', end: true }] },
+        here: { say: ["~tired~ Ysse brings me in her boat. I help in the cave by not touching things. I’m extremely experienced now."], choices: [{ text: '~neutral~ I’ll follow your fireflies.', goto: 'go' }, { text: '~neutral~ Bye, Ivo.', end: true }] },
         go: {
-          say: ['~happy~ Really? *Stay close to them*; they wait if you fall behind. They go over the water, so *you’ll need the skiff*. Whistle!'],
+          say: ["~happy~ Follow them *at dusk*. *Whistle for the skiff* to cross the water and stay close. They wait if you fall behind."],
           do: { start: 'perdide.fireflies' },
           choices: [{ text: '~neutral~ I’ll tell you where they go.', end: true }],
         },
@@ -218,17 +218,17 @@ export const LANDING = [
         back: {
           say: ['~curious~ Where? Where do they go?'],
           choices: [
-            { text: '~happy~ Home. To a clutch of glowing eggs on the little isle. They hatch out of them.', goto: 'eggs' },
+            { text: "~happy~ Home. To the glowing eggs on the little island. I saw new fireflies hatch there.", goto: 'eggs' },
             { text: '~playful~ Guess.', goto: 'guess' },
           ],
         },
-        guess: { say: ['~playful~ To the moon. To the Great Crystal. To the end of the world. Into a jar. Tell me!'], choices: [{ text: '~neutral~ They hatch from the glowing eggs, on the little isle.', goto: 'eggs' }] },
+        guess: { say: ["~playful~ Where? The moon? A jar? Please say it’s better than a jar!"], choices: [{ text: '~neutral~ They hatch from the glowing eggs, on the little isle.', goto: 'eggs' }] },
         eggs: {
-          say: ['~surprised~ From the EGGS? Wendel’s kept eggs warm for thirty years and never seen one hatch!', '~curious~ …Fireflies. Of course. Something has to be inside a thing that glows.', '~happy~ Here. I caught some, before. You should have them; you know where they live now.'],
+          say: ["~surprised~ The EGGS? Wendel has watched those for thirty years! Wait till I tell him!", "~curious~ Fireflies inside glowing eggs. It seems obvious once someone else has done the finding out.", "~happy~ Here, take the fireflies I caught. You’ll know where to bring them back."],
           do: [{ advance: ['perdide.fireflies', 'ivo'] }, { give: 'jar' }],
           choices: [{ text: '~happy~ Thank you, Ivo.', end: true }],
         },
-        after: { say: ['~playful~ I told Wendel about the eggs. He sat down. In the mud. On purpose, he says.'], choices: [{ text: '~neutral~ Bye, Ivo.', end: true }] },
+        after: { say: ["~playful~ Wendel sat in the mud when I told him. Says he meant to. Learning must be very slippery."], choices: [{ text: '~neutral~ Bye, Ivo.', end: true }] },
       },
     },
   },
@@ -250,74 +250,74 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~whisper~ Sit, if you’re going to stand there. Quietly. I’m listening.', '~solemn~ Forty years I’ve sat at its foot. I know every phrase it sings: two hundred and twelve of them. And you’re the first thing that has ever made it hum louder.'],
+          say: ["~whisper~ Sit down. The crystal’s speaking, and your boots are interrupting.", "~solemn~ Saba. Forty years listening. Two hundred and twelve phrases. Now you arrive, and it hums louder. Explain yourself, if you can."],
           choices: [
             { text: '~surprised~ It hums louder because of me?', goto: 'you' },
             { text: '~curious~ Why does it sing?', goto: 'why' },
           ],
         },
         you: {
-          say: ['~neutral~ That pack on your back. The water in it, all those colours. The crystal hums at it the way a dog hums at its own name.'],
+          say: ["~neutral~ It’s your tank. The crystal reacts to the fluid. Hear the pitch change when you turn?"],
           choices: [{ text: '~curious~ Why does it sing?', goto: 'why' }, { text: '~curious~ Where did it come from?', goto: 'fell' }],
         },
         why: {
-          say: ['~neutral~ In the rain. Only in the rain. The rain strikes it and it rings, and all the jaws in the swamp shut while it sings.', '~solemn~ Wendel thinks it’s sacred. Corm thinks it’s weather. I think it’s calling.'],
+          say: ["~neutral~ Rain makes it sing. Water strikes the crystal, and every jaw in the swamp closes to listen. Or out of fright. Hard to ask a closed mouth.", "~solemn~ Wendel calls it sacred. Corm calls it weather. I think it’s trying to reach something."],
           choices: [{ text: '~curious~ Calling what?', goto: 'fell' }],
         },
         fell: {
-          say: ['~sad~ The rest of itself. It fell, you know, when my grandmother’s grandmother was small: out of the sky, singing, and stuck point-first in the mud. It has been calling ever since. Nothing ever answers.', '~tired~ And it hasn’t rained in days. The sky out here keeps its own counsel.'],
+          say: ["~sad~ Our oldest story says this is a broken piece of something in the sky. It fell into the mud long ago. I think it calls to the rest of itself.", "~tired~ No rain for days. Even a good listener runs out of things to do with humming."],
           choices: [
             { text: '~neutral~ Then I’ll wait for the rain.', goto: 'rain' },
             { text: '~neutral~ I carry water. I could make it rain on it.', goto: 'rain' },
           ],
         },
         rain: {
-          say: ['~curious~ Could you? That water you carry remembers more colours than the sky does.', '~neutral~ *Throw it high, at the spires*. *Three good splashes, close together*. Or wait for the sky, if you’re patient. Either way, I want to hear what it does.'],
+          say: ["~curious~ You could make rain with that tank. Let’s see whether it minds the substitute.", "~neutral~ *Shoot the spires three times in quick succession.* Or wait for natural rain. I’d prefer to hear the answer before my legs go numb."],
           do: { set: { 'perdide.saba.heard': true } },
           choices: [{ text: '~curious~ What’s carved on the stone at its foot?', goto: 'glyph' }, { text: '~neutral~ (step back and look up)', end: true }],
         },
         glyph: {
-          say: ['~solemn~ The Hush. {glyph} Three drops over a shut mouth. Somebody carved it under the crystal before any of us came here. We paint it on our eggs to keep the plants off them.'],
+          say: ["~solemn~ {glyph} *The Hush.* The carving predates us. We copied it onto eggs to protect them from the plants."],
           do: { set: { 'perdide.glyph.heard': true } },
           choices: [{ text: '~solemn~ My ship has that mark on it. Burned into the hull.', goto: 'ship' }, { text: '~neutral~ (step back)', end: true }],
         },
-        ship: { say: ['~solemn~ Does it. Then it isn’t our mark at all, is it? We only borrowed it.'], do: { set: { 'perdide.glyph.ship': true } }, choices: [{ text: '~neutral~ (step back and look up)', end: true }] },
+        ship: { say: ["~solemn~ The same mark on your ship? Then it belongs to more than this swamp. I’ll have to revise my notes."], do: { set: { 'perdide.glyph.ship': true } }, choices: [{ text: '~neutral~ (step back and look up)', end: true }] },
         waiting: {
-          say: ['~playful~ *Three good splashes on the spires, close together*. Or wait for the sky to do it. I’ve waited forty years; I can wait while you aim.'],
+          say: ["~playful~ *Three quick splashes on the crystal spires.* Take your time aiming; don’t take it between shots."],
           choices: [{ text: '~curious~ What’s carved on the stone at its foot?', goto: 'glyph', if: { not: { flag: 'perdide.glyph.heard' } } }, { text: '~neutral~ (look up at the spires)', end: true }],
         },
         new: {
-          say: ['~surprised~ Did you hear that? The last phrase. Two hundred and thirteen. Forty years, and I have never heard it.'],
+          say: ["~surprised~ Two hundred and thirteen. That last phrase is new. Forty years, and it’s said something new."],
           choices: [
             { text: '~solemn~ I’ve heard it before. Just before something hit my ship.', goto: 'heard' },
             { text: '~curious~ What does it mean?', goto: 'mean' },
           ],
         },
-        mean: { say: ['~curious~ A new phrase is an answer. Something has sung to it, and it remembers. Have you heard it before, traveller? Your face says you have.'], choices: [{ text: '~solemn~ Yes. Just before something hit my ship.', goto: 'heard' }] },
+        mean: { say: ["~curious~ It learned an answer. Have you heard that phrase before? You stopped breathing for a moment."], choices: [{ text: '~solemn~ Yes. Just before something hit my ship.', goto: 'heard' }] },
         heard: {
-          say: ['~solemn~ Then that’s what it was answering. Whatever struck your ship sang the same song as this. They’re the same stuff, child: pieces of the same light.', '~solemn~ One of them fell here long ago, and stuck in the mud. The other is still up there, singing, turning, looking. You met it on your way.', '~solemn~ It left its pull in your hull, and the crystal pulls the same way. Iron that has been sung at leans toward the rest of the song. That is how your ship found us, I think.', '~neutral~ Look: the song shook a splinter loose. It’s lying *at the foot of the spires*. Take it. It came off for you.'],
+          say: ["~solemn~ The thing that struck you sang this? Then I think the crystal is a piece of it. Same song, same material.", "~solemn~ This piece fell long ago. The rest is still flying out there. Singing, turning. Perhaps searching.", "~solemn~ The crystal pulls at iron like your ship’s scar does. That may be how your ship found this place. A trace of the same thing in both.", "~neutral~ The song loosened a splinter. Look *at the foot of the spires*. Take it with you."],
           do: { set: { 'perdide.clue.ship': true } },
           choices: [{ text: '~curious~ What should I do with it?', goto: 'cave' }],
         },
         cave: {
-          say: ['~neutral~ *The crystal cave, on the western island*, past the deep channel. Its walls are full of this one’s kin; Ysse keeps them clean. Hold the splinter up *at the heart of the cave* and hear what they make of it.'],
+          say: ["~neutral~ Carry it *to the crystal cave on the western island*. Ysse tends it. *Raise the splinter in the central ring* and listen for an answer."],
           choices: [{ text: '~neutral~ I will.', end: true }],
         },
         go: {
-          say: [{ if: { not: { has: 'splinter' } }, text: '~playful~ The splinter. *At the foot of the spires*. Take it, it won’t bite.' },
-            { if: { has: 'splinter' }, text: '~neutral~ Take it to *the cave, on the western island*. *Hold it up at the heart*. The skiff will carry you; whistle for it.' }],
+          say: [{ if: { not: { has: 'splinter' } }, text: "~playful~ *The splinter is below the spires.* Safe enough to pick up. I’m fairly sure it has no teeth." },
+            { if: { has: 'splinter' }, text: "~neutral~ Whistle for the skiff, cross west to the cave island, and raise the splinter at the cave’s heart." }],
           choices: [{ text: '~neutral~ (go)', end: true }],
         },
         after: {
-          say: ['~happy~ Two hundred and thirteen. I wrote it down. Now I’ll be listening for two hundred and fourteen.', '~solemn~ If you meet the rest of it out there, the singing light, sing it this. It might like to know where its other piece is.'],
+          say: ["~happy~ I wrote down the new phrase. Two hundred and thirteen. Tomorrow I listen for another.", "~solemn~ If you meet the Singer again, let it hear this piece. It may not know where it fell."],
           choices: [
             { text: '~solemn~ I will, Saba.', end: true },
-            { text: '~curious~ Did anyone else ever come to ask it? Two travellers, Odile and Talo?', if: { any: [{ flag: 'clue.edena.pod' }, { flag: 'clue.perdide2.edena' }] }, goto: 'two', once: true },
+            { text: "~curious~ Did Odile and Talo ever come here? Two travellers looking for the light?", if: { any: [{ flag: 'clue.edena.pod' }, { flag: 'clue.perdide2.edena' }] }, goto: 'two', once: true },
           ],
         },
         // Odile and Talo came this way, from the deep wood in Fen's skiff (src/story/perdide2-data.js), and went on
         two: {
-          say: ['~solemn~ My first spring here. A man and a woman, in a borrowed skiff, out of the deep wood. They sat where you are sitting, and asked it where the light had gone.', '~sad~ It sang them the same two hundred and twelve phrases it sings everyone. In the morning the skiff had gone back on its own, and they had gone on east, over the reeds. Nobody followed them.'],
+          say: ["~solemn~ My first spring here. They arrived from the deep wood in a borrowed skiff, asking where the singing light had gone.", "~sad~ It gave them the usual two hundred and twelve phrases. They went east over the reeds. The skiff returned alone. I never learned where they went next."],
           choices: [{ text: '~sad~ Nobody ever does.', end: true }],
         },
       },
@@ -337,7 +337,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~scared~ Careful! Don’t step on Margit. Or Big Ollo. Or the little one, she hasn’t got a name yet; she bites.', '~angry~ My plants. I feed them. Nobody else does.'],
+          say: ["~scared~ Watch Margit! And Big Ollo! The small one has no name yet. We’re waiting to see who survives suggesting one.", '~angry~ My plants. I feed them. Nobody else does.'],
           choices: [
             { text: '~curious~ What do you feed them?', goto: 'feed' },
             { text: '~curious~ What do you think the Great Crystal is?', goto: 'crystal' },
@@ -352,22 +352,22 @@ export const PEOPLE = {
           ],
         },
         wendel: {
-          say: ['~angry~ Wendel says a lot of things to eggs. A fed plant guards its eggs; a hungry plant eats whatever walks by. That’s just sense.', '~happy~ Try it! Give one a splash of that coloured water you carry. They love it. Watch them snap!'],
+          say: ["~angry~ Wendel lectures eggs. I feed plants. A fed plant guards its eggs; a hungry one considers visitors. Perfectly sound reasoning.", "~happy~ *Shoot one a splash of fluid!* Watch how eagerly it snaps. That’s appreciation."],
           choices: [{ text: '~neutral~ Maybe later.', end: true }, { text: '~neutral~ I think I’ll try Wendel’s way.', goto: 'try' }],
         },
-        try: { say: ['~playful~ Standing there, being boring at them? Go on, then. They’ll snap at you till the moon comes up.'], choices: [{ text: '~playful~ We’ll see.', end: true }] },
-        feed: { say: ['~playful~ Fish heads. Reed pith. Moths, when they’re slow. Once, a boot. Not mine.'], choices: [{ text: '~neutral~ Wendel says not to feed them.', goto: 'wendel' }, { text: '~neutral~ Bye, Corm.', end: true }] },
+        try: { say: ["~playful~ You’ll stand still until they like you? Fine. I’ll be over here, being interesting."], choices: [{ text: '~playful~ We’ll see.', end: true }] },
+        feed: { say: ["~playful~ Fish heads, reed pith, slow moths. Once a boot. It wasn’t occupied. I checked."], choices: [{ text: '~neutral~ Wendel says not to feed them.', goto: 'wendel' }, { text: '~neutral~ Bye, Corm.', end: true }] },
         crystal: {
-          say: ['~curious~ A tooth. The sky lost a tooth and it landed here. Why else do my plants shut up when it sings?', '~playful~ Professional respect. One set of teeth to another.'],
+          say: ["~curious~ The crystal? A sky-tooth. My plants close their mouths when it sings. Professional respect.", '~playful~ Professional respect. One set of teeth to another.'],
           choices: [{ text: '~curious~ Have you ever seen it sing?', goto: 'seen' }, { text: '~neutral~ Bye, Corm.', end: true }],
         },
-        seen: { say: ['~playful~ Every rain. And once without rain, the night the light passed. Sedge says she saw a light. Sedge sees a lot in the dark, for someone who’s always cutting her thumbs.'], choices: [{ text: '~neutral~ Bye, Corm.', end: true }] },
+        seen: { say: ["~playful~ They shut every rain. And once that dry night when Sedge saw the singing light. Even I found that peculiar."], choices: [{ text: '~neutral~ Bye, Corm.', end: true }] },
         during: {
-          say: ['~angry~ You’re doing the Wendel thing, aren’t you. Standing there. Being boring at them.', '~playful~ Won’t work. One little splash and they’d love you forever. Go on.'],
+          say: ["~angry~ Ah. Wendel’s method. Being terribly dull in front of a plant.", "~playful~ One splash and they’d be delighted. You could at least wave."],
           choices: [{ text: '~neutral~ (say nothing, and stand still)', end: true }],
         },
         beaten: {
-          say: ['~surprised~ …They opened for you. Without a scrap. Look at Margit, yawning like a cat.', '~whisper~ Don’t tell Wendel I said so. I’ll feed them anyway. Somebody has to love them properly.'],
+          say: ["~surprised~ They’ve opened. Peacefully. Margit looks almost… fond of you.", "~whisper~ Don’t tell Wendel I said that. I’m still feeding them. Margit expects supper."],
           choices: [{ text: '~playful~ Your secret’s safe.', end: true }],
         },
       },
@@ -387,14 +387,14 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~angry~ Mind your head. And your feet. And your elbows.', '~neutral~ I keep the cave. I clean the crystals so they can hear. Dust makes them deaf.'],
+          say: ['~angry~ Mind your head. And your feet. And your elbows.', "~neutral~ I’m Ysse. I clean the cave crystals. Dust muffles their sound. Visitors generally add dust."],
           choices: [
             { text: '~curious~ Hear what?', goto: 'hear' },
             { text: '~curious~ Is there anywhere else like this?', goto: 'far' },
           ],
         },
         again: {
-          say: ['~angry~ Still here? Then make yourself useful and don’t breathe on anything.'],
+          say: ["~angry~ Still here? Then keep your boots off the crystals. That counts as helping."],
           choices: [
             { text: '~curious~ What’s the hollow in the middle?', goto: 'hollow' },
             { text: '~curious~ Is there anywhere else like this?', goto: 'far' },
@@ -402,31 +402,31 @@ export const PEOPLE = {
           ],
         },
         hear: {
-          say: ['~solemn~ The Great Crystal, when it sings. The walls hum along with it, from across the whole swamp. They’re its kin, I think: grown out of its song, the way frost grows out of cold.'],
+          say: ["~solemn~ They answer the Great Crystal across the swamp. I think they grew from it somehow. Related things recognise a voice."],
           choices: [{ text: '~curious~ What’s the hollow in the middle?', goto: 'hollow' }, { text: '~curious~ Is there anywhere else like this?', goto: 'far' }],
         },
         hollow: {
-          say: ['~sad~ The heart. A ring of them round an empty place, as if something stood there once and walked off. My mother said it’s waiting. My mother said a lot of things to crystals.'],
+          say: ["~sad~ The heart is the empty ring in the middle. My mother said it was waiting for something. I keep it clean in case she was right."],
           choices: [{ text: '~curious~ Is there anywhere else like this?', goto: 'far' }, { text: '~neutral~ Bye, Ysse.', end: true }],
         },
         far: {
-          say: ['~sad~ Not on this side of the world. On the far side, in the deep wood, there are lamp-keepers. They keep pools lit for travellers who never come.', '~solemn~ Something fell there too, they say. Not a crystal. A little boat out of the sky, half sunk in a pool.'],
+          say: ["~sad~ Across the swamp, in *the deep wood*, people keep pools lit for missing travellers.", "~solemn~ A small sky-boat fell there, half into a pool. No crystal that time."],
           do: { set: { 'clue.perdide.perdide2': true } },
           choices: [{ text: '~curious~ A boat from the sky…', goto: 'boat' }, { text: '~happy~ Thanks, Ysse.', end: true }],
         },
-        boat: { say: ['~sad~ Two people came out of it, the story goes, and walked away. Nobody’s seen them since. The lamp-keepers are still waiting.'], choices: [{ text: '~happy~ Thanks, Ysse.', end: true }] },
+        boat: { say: ["~sad~ Two travellers survived, then left on foot. The lamp-keepers still hope they’ll return. That’s the story I heard."], choices: [{ text: '~happy~ Thanks, Ysse.', end: true }] },
         splinter: {
-          say: ['~surprised~ That’s a piece of it! Of the Great Crystal. It shook loose? Then it wants to be carried.', '~whisper~ *Take it to the heart*, there, in the ring. Hold it up. Gently.'],
+          say: ["~surprised~ A splinter of the Great Crystal! It finally let something go.", "~whisper~ Take it *to the ring at the cave’s heart*. Raise it there. Gently."],
           choices: [{ text: '~neutral~ (go to the heart)', end: true }, { text: '~curious~ Is there anywhere else like this?', goto: 'far', if: { not: { flag: 'clue.perdide.perdide2' } } }],
         },
         after: {
-          say: ['~happy~ They’re all still humming. So is your pack. I can hear it from here.', '~curious~ Is that what you came all this way for? A splinter that sings?'],
+          say: ["~happy~ The whole cave is humming. Your tank too. Quite a choir you’ve started.", "~curious~ Is a singing splinter what you wanted to find out here?"],
           choices: [
             { text: '~neutral~ I came for something of value.', goto: 'value' },
             { text: '~curious~ Is there anywhere else like this?', goto: 'far', if: { not: { flag: 'clue.perdide.perdide2' } } },
           ],
         },
-        value: { say: ['~tired~ Hm. Then I hope you know it when it’s in your hand. Most people don’t. Most people dust it off and sell it.'], choices: [{ text: '~neutral~ Goodbye, Ysse.', end: true }] },
+        value: { say: ["~tired~ Something of value. Well, listen before you decide what it’s worth."], choices: [{ text: '~neutral~ Goodbye, Ysse.', end: true }] },
       },
     },
   },
@@ -437,7 +437,7 @@ export const THINGS = {
   hush: {
     id: 'hush', name: 'The root stone', title: 'under the Great Crystal', color: '#a99bb0', voice: 0.6,
     talk: { nodes: { look: {
-      say: ['~neutral~ A flat stone, half swallowed by the crystal’s roots, worn smooth by forty years of Saba’s hand. Carved into it, deep and old: {glyph}', '~solemn~ Three drops over a shut mouth, the swamp people say. To you it looks exactly like the scar on your ship’s hull.'],
+      say: ["~neutral~ Saba’s hand has polished this stone beside the crystal. An ancient carving remains: {glyph}", "~solemn~ The Hush, they call it. The same three dots and arc burned into your ship."],
       do: { set: { 'perdide.hush.seen': true } }, choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
   },
@@ -447,10 +447,10 @@ export const THINGS = {
       entry: [{ if: { flag: 'perdide.crystal.sung' }, node: 'after' }, { node: 'look' }],
       nodes: {
         look: {
-          say: ['~solemn~ Spires of violet crystal, taller than anything in the swamp, leaning out of the mud as if they were thrown there. Up close the hum gets into your teeth.', '~neutral~ Your tank hums back. You can feel it through the straps.'],
+          say: ["~solemn~ Violet spires rise crookedly from the mud. You feel their hum in your teeth.", '~neutral~ Your tank hums back. You can feel it through the straps.'],
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
-        after: { say: ['~whisper~ It hums again, quietly. Every so often, under the hum, you hear it try the new phrase, as if it were practising.'], choices: [{ text: '~neutral~ (listen)', end: true }] },
+        after: { say: ["~whisper~ Under its quiet hum, the crystal repeats the new phrase. Practising, perhaps."], choices: [{ text: '~neutral~ (listen)', end: true }] },
       },
     },
   },
@@ -460,11 +460,11 @@ export const THINGS = {
       entry: [{ if: { flag: 'perdide.heart.rung' }, node: 'after' }, { if: { has: 'splinter' }, node: 'ring' }, { node: 'look' }],
       nodes: {
         look: {
-          say: ['~neutral~ A ring of crystals stands round an empty place in the middle of the cave, as if something stood there once and walked off.', '~whisper~ The crystals are cold and quiet. They seem to be waiting for something.'],
+          say: ["~neutral~ Crystals encircle an empty space at the cave’s centre.", "~whisper~ They are cold and silent. This looks like the place to raise Saba’s splinter."],
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
         ring: {
-          say: ['~neutral~ You hold up the splinter in the middle of the ring.', '~solemn~ For a moment nothing. Then the ring answers, one crystal after another, then the walls, the whole length of the cave, singing the two hundred and thirteenth phrase back to the splinter in your hand.', '~happy~ Your tank answers the walls. A new colour climbs the hose, crystal-violet, and the splinter grows warm. It hums the same note as your tank now. They know each other.'],
+          say: ['~neutral~ You hold up the splinter in the middle of the ring.', "~solemn~ One crystal answers, then another. Soon the whole cave sings the new phrase back to the splinter.", "~happy~ Your tank joins in. Crystal-violet climbs the hose as a new colour band. The splinter warms in your hand."],
           do: [{ set: { 'perdide.heart.rung': true } },
             { keepsake: { id: 'perdide.thing', level: 'perdide', name: 'A singing splinter', kind: 'thing', text: 'A splinter of the Great Crystal that harmonises with your tank. It sings the phrase of the light that struck your ship.' } }],
           choices: [{ text: '~neutral~ (keep it)', end: true }],
@@ -476,7 +476,7 @@ export const THINGS = {
   nest: {
     id: 'nest', name: 'The fireflies’ nest', title: 'on the little isle', color: '#f2e38f', voice: 0.6,
     talk: { nodes: { look: {
-      say: ['~neutral~ The fireflies settle on a clutch of glowing eggs under the broad cap, and go in. Into the eggs: through the shell, like sparks into paper.', '~surprised~ And as you watch, an egg splits along a seam of light, and out of it climbs a firefly, then another, then a dozen, blinking, shaking off the yolk-light, and off over the water.', '~happy~ They hatch here. Every dusk they come home, and every dusk some of them are new.'],
+      say: ["~neutral~ The fireflies settle onto glowing eggs beneath the broad cap. Their lights slip through the shells.", "~surprised~ An egg splits along a bright seam. One firefly climbs out, then a dozen. They shake themselves and lift over the water.", "~happy~ A nursery. Each dusk the fireflies return, and new ones join them."],
       do: { set: { 'perdide.nest.seen': true } }, choices: [{ text: '~neutral~ (watch them)', end: true }],
     } } },
   },

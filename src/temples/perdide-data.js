@@ -14,7 +14,7 @@ export const PEOPLE = {
   teasel: {
     id: 'teasel', name: 'Teasel', title: 'who cuts the reeds', color: '#a99be0', voice: 0.92, kind: 'm',
     palette: { cloak: '#4f6a5e', lining: '#a99be0', cloth: '#d8c8e8', legs: '#3a4a46', hat: '#c9b8d8', hair: '#3a2a30' }, head: 'hood', cape: 0.9,
-    lines: ['~neutral~ Reeds for roofs, reeds for mats. Never from the dome’s shore.', '~whisper~ Do you hear it snapping, in there?', '~curious~ You came by skiff? Or did you swim it?'],
+    lines: ["~neutral~ Reeds for roofs. Reeds for mats. None from that shore.", '~whisper~ Do you hear it snapping, in there?', '~curious~ You came by skiff? Or did you swim it?'],
     talk: {
       entry: [
         { if: { flag: 'temple.perdide.done' }, node: 'after' },
@@ -24,9 +24,9 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~curious~ Someone from off the swamp! I’m Teasel. I cut reeds round the cave island, all but here.',
-            '~solemn~ That is *the Hush-House*. Wendel says the makers taught the plants of Lorn not to eat in there: the Hush is their sign, three drops over a shut mouth. We paint it on our doors.',
-            '~whisper~ But the night the sky rang, something in there woke and started snapping, and it has not stopped. You can hear it through the stone. Snap. Snap.'],
+          say: ["~curious~ Teasel. Reed-cutter. I work round the cave island, except beside that dome. Prefer my reeds without screaming in the background.",
+            "~solemn~ *The Hush-House.* The makers taught jaw-plants to settle there, Wendel says. Their mark is the Hush, the one we paint on our doors.",
+            "~whisper~ Something inside woke when the sky rang. It’s been snapping ever since. You can hear the jaws through stone."],
           do: { set: { 'met.teasel': true } },
           choices: [
             { text: '~neutral~ I’ll go in.', do: { start: 'temple.perdide' }, goto: 'go' },
@@ -35,35 +35,35 @@ export const PEOPLE = {
           ],
         },
         what: {
-          say: ['~solemn~ Grandmother called her the Mother: the first snapper, the one all of ours are seeded from. The makers grew her in there to keep their house.', '~sad~ If she is snapping, she is frightened. Snappers only snap at what they fear, or what they want to eat.'],
+          say: ["~solemn~ Grandmother called her *the Mother*, the first snapper. The makers raised her to guard their house. Our plants came from her seeds.", "~sad~ She may be frightened. Or hungry. I’d prefer not to settle that question with a leg."],
           choices: [{ text: '~neutral~ I’ll go in.', do: { start: 'temple.perdide' }, goto: 'go' }, { text: '~neutral~ Goodbye.', end: true }],
         },
         go: {
-          say: ['~neutral~ *The door* is on the east side, facing the channel. The crystals inside hum, each its own note.', '~whisper~ Wendel says the patient are never eaten. I would be very patient.'],
+          say: ["~neutral~ Use *the east door facing the channel*. Listen to the crystals inside; each has a different note.", "~whisper~ Wendel recommends patience. I recommend patience at a sensible distance."],
           choices: [{ text: '~happy~ I will.', end: true }],
         },
         again: {
-          say: ['~neutral~ The door on the east side. Listen to the crystals.'],
+          say: ["~neutral~ *East door, channel side.* Listen as you go."],
           choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.perdide', started: false }, do: { start: 'temple.perdide' }, end: true }, { text: '~neutral~ Goodbye.', end: true }],
         },
         inside: {
-          say: ['~surprised~ You went in! Is she there? Did she snap at you?'],
+          say: ["~surprised~ You went in? Is the Mother still snapping?"],
           choices: [
-            { text: '~solemn~ She is frightened. Everything moves too fast for her.', goto: 'still' },
+            { text: "~solemn~ She’s frightened. Everything around her moves too fast.", goto: 'still' },
             { text: '~neutral~ I’m going back.', end: true },
           ],
         },
-        still: { say: ['~solemn~ Then be still with her. Or make her still. The makers had a way, Wendel says: something cold.'], choices: [{ text: '~neutral~ I’ll find it.', end: true }] },
+        still: { say: ["~solemn~ Find the makers’ cold tool inside. Something to slow her while you calm her. Wendel said they had a way."], choices: [{ text: '~neutral~ I’ll find it.', end: true }] },
         after: {
-          say: ['~surprised~ It’s quiet in there! And look at the dome: flowers all over it, opening at dusk, white and blue.',
-            '~happy~ And every snapper on the swamp has a ring of the same flowers round its foot now. Wendel came out to look at the one by the landing and laughed till he sat down.',
-            '~solemn~ The Mother is sleeping. You can hear her breathe through the stone, very slow.'],
+          say: ["~surprised~ No snapping! And the dome’s flowering. White and blue, all opening at dusk.",
+            "~happy~ Every jaw-plant has flowers around its roots now. Wendel laughed until he sat down. Fortunately, somewhere clear of teeth.",
+            "~solemn~ The Mother’s sleeping. You can hear slow breathing through the stone."],
           choices: [
             { text: '~solemn~ She only wanted it quiet.', goto: 'quiet' },
             { text: '~happy~ Good reeds this year, Teasel.', end: true },
           ],
         },
-        quiet: { say: ['~happy~ The Hush. Three drops over a shut mouth. I always thought it was a warning. It was a lullaby.'], choices: [{ text: '~neutral~ Goodbye, Teasel.', end: true }] },
+        quiet: { say: ["~happy~ I thought the Hush was a warning. Perhaps it was meant to soothe. I like it better on my door now."], choices: [{ text: '~neutral~ Goodbye, Teasel.', end: true }] },
       },
     },
   },

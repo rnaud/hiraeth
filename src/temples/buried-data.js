@@ -14,7 +14,7 @@ export const PEOPLE = {
   brann: {
     id: 'brann', name: 'Brann', title: 'who greases the Engine-House door', color: '#5fa6a0', voice: 0.92, kind: 'm',
     palette: { cloak: '#5fa6a0', lining: '#33485a', cloth: '#c9b896', legs: '#8e3a2b', hat: '#e9dcc0', hair: '#3a2a22' }, head: 'hair', cape: 0.6,
-    lines: ['~neutral~ Grease the hinge, every Tooth Day. Nobody opens it.', '~tired~ Hear that? Grinding. Forty-one years of grinding.', '~curious~ You count your age in teeth too?'],
+    lines: ["~neutral~ One yearly greasing. Door’s ready if anyone is.", "~tired~ Forty-one years of grinding. You learn to sleep badly.", '~curious~ You count your age in teeth too?'],
     talk: {
       entry: [
         { if: { flag: 'temple.buried.done' }, node: 'after' },
@@ -24,9 +24,9 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~neutral~ Mind the grease. I’m Brann. I grease the Engine-House door, every Tooth Day, the way my father did. Nobody opens it. A door wants grease anyway.',
-            '~solemn~ The wheel’s engine is in there, the old people say. *The Engine-House*. It used to turn the wheel a tooth a day, not a tooth a year, and the pipe-cart ran down the canyon to the oculus and back.',
-            '~sad~ Then something in there got stuck. The Tooth-Warden, Hask calls it: the makers’ machine that minds the engine. It grinds at night. You can feel it in your teeth.'],
+          say: ["~neutral~ Brann. Mind the grease. I oil this door each Tooth Day, like my father did. Nobody opens it. That doesn’t excuse a squeak.",
+            "~solemn~ *The Engine-House.* The wheel once turned a tooth a day, they say. Its engine also powered a cart through the canyon to the oculus.",
+            "~sad~ Something jammed inside. *The Tooth-Warden*, the machine tending the engine. At night its grinding gets right into your teeth."],
           do: { set: { 'met.brann': true } },
           choices: [
             { text: '~neutral~ I’ll go in.', do: { start: 'temple.buried' }, goto: 'go' },
@@ -35,11 +35,11 @@ export const PEOPLE = {
           ],
         },
         cart: {
-          say: ['~happy~ A round iron floor with a rail round it. It rode the canyon from the start hollow down to the oculus and back, my grandmother said, and the children rode it all day.', '~tired~ It hasn’t moved since the engine stuck. It sits in the sand by the hollow like a lid.'],
+          say: ["~happy~ The pipe-cart was a round iron platform with a safety rail. Rode from the starting hollow to the oculus and back. Children spent whole days on it.", "~tired~ Now it sits in the sand near the hollow. Looks like a lid. A disappointing retirement."],
           choices: [{ text: '~neutral~ I’ll go in.', do: { start: 'temple.buried' }, goto: 'go' }, { text: '~neutral~ Goodbye.', end: true }],
         },
         go: {
-          say: ['~neutral~ *The oval door*, on the side toward the hollow. It opens. I made sure.', '~whisper~ If you meet the warden, don’t argue with it. Machines don’t listen. Find where it opens, and hit it there, quick, all at once.'],
+          say: ["~neutral~ Enter *the oval door facing the hollow*. It opens smoothly. I am confident about exactly that much.", "~whisper~ Watch the Warden for openings. When it exposes its weak points, hit them quickly. Its armour won’t be much use to argue with."],
           choices: [{ text: '~happy~ All at once. Got it.', end: true }],
         },
         again: {
@@ -53,17 +53,17 @@ export const PEOPLE = {
             { text: '~neutral~ I’m going back.', end: true },
           ],
         },
-        four: { say: ['~curious~ Four? And your tank holds three, I saw. You’ll want a fourth. The makers usually leave you what you need, if you look.'], choices: [{ text: '~neutral~ I’ll look.', end: true }] },
+        four: { say: ["~curious~ Four targets? Your tank holds three shots. Look for *an extra chamber inside*. The makers tended to leave tools near their problems."], choices: [{ text: '~neutral~ I’ll look.', end: true }] },
         after: {
-          say: ['~surprised~ It stopped! The grinding stopped, and then the whole dune hummed, and the pipe-cart lifted out of the sand like it had been asleep and went down the ramp on its own.',
-            '~happy~ The children have been riding it all morning, down to the oculus and back. Pim rode it nine times. He says he is ten teeth old now, from the excitement.',
+          say: ["~surprised~ The grinding stopped! Then the dune hummed and the cart rose out of the sand. Went down the ramp as if it hadn’t missed a day.",
+            "~happy~ Children are riding it to the oculus and back. Pim’s done nine trips. I suspect a tenth is already underway.",
             '~solemn~ I greased the door anyway. Habit.'],
           choices: [
             { text: '~solemn~ The warden was stuck. I stopped it.', goto: 'stopped' },
             { text: '~happy~ Ride the cart, Brann.', end: true },
           ],
         },
-        stopped: { say: ['~solemn~ Then it can rest. It minded the engine longer than any of us have counted teeth.', '~happy~ I’ll put a dab of grease on it too.'], choices: [{ text: '~neutral~ Goodbye, Brann.', end: true }] },
+        stopped: { say: ["~solemn~ It can finally stop straining. Whatever happened to it, it tended this engine for a very long time.", '~happy~ I’ll put a dab of grease on it too.'], choices: [{ text: '~neutral~ Goodbye, Brann.', end: true }] },
       },
     },
   },

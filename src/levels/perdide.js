@@ -162,7 +162,7 @@ export const PERDIDE_CONTENT = {
   weather: ['rain', 'fog'],
   story: {
     title: 'THE GREAT CRYSTAL',
-    intro: 'Somewhere east of the landing, something hums. The swamp people will know what.',
+    intro: 'A huge crystal hums east of the landing. Saba has spent forty years listening. Ask her about the light that struck your ship.',
     outro: 'The crystal sang the song of the light that struck your ship. A splinter of it hums with your tank.',
     label: 'the Great Crystal', goal: [GREAT.x, 'ground', GREAT.z], radius: 30, manual: true,
   },

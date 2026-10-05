@@ -14,7 +14,7 @@ export const PEOPLE = {
   ysel: {
     id: 'ysel', name: 'Ysel', title: 'who keeps the founders’ bridge', color: '#d99072', voice: 1.08, kind: 'f',
     palette: { cloak: '#efe2cc', lining: '#d99072', cloth: '#f4efe2', legs: '#93abcc', hat: '#f4efe2', hair: '#4a3a2a' }, head: 'wrap', cape: 1.1,
-    lines: ['~whisper~ Hush. Listen. There: she is crying again.', '~neutral~ Mind the bridge. It has no rail on the cloud side.', '~solemn~ The founders built it before the monastery.'],
+    lines: ['~whisper~ Hush. Listen. There: she is crying again.', "~neutral~ No rail on the cloud side. Please admire it from this side.", '~solemn~ The founders built it before the monastery.'],
     talk: {
       entry: [
         { if: { flag: 'temple.arzach2.done' }, node: 'after' },
@@ -24,9 +24,9 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~whisper~ You came down out of the sky. Sister Aube will have said something rude about it. I keep this bridge. Nobody crosses it, so it is a quiet job.',
-            '~solemn~ That is *the founders’ belfry*. They built it before the monastery, to keep the stones down: a bell in every room, they say, and the stones stayed where they were put.',
-            '~sad~ The bells stopped, and the stones fell up. And since then something lives in the top of it that cries. Every evening. Like a bell with nothing to ring it.'],
+          say: ["~whisper~ I keep this bridge. Very few crossings. Aube may already have complained about your arrival. Don’t worry; it’s how she welcomes things.",
+            "~solemn~ Across it is *the founders’ belfry*, older than the monastery. Its room bells helped keep loose stones down.",
+            "~sad~ The bells stopped and the stones rose. Now something cries upstairs every evening. I hear it from the bridge."],
           do: { set: { 'met.ysel': true } },
           choices: [
             { text: '~neutral~ I’ll go in.', do: { start: 'temple.arzach2' }, goto: 'go' },
@@ -35,16 +35,16 @@ export const PEOPLE = {
           ],
         },
         cries: {
-          say: ['~solemn~ The Cloud-Mother, Brother Calix calls her. A whale of the air. The founders kept her, to carry the cloud away in the mornings.', '~sad~ When the stones fell up she went up with them, and she has never come down. I think she is lost in there.'],
+          say: ["~solemn~ Calix calls her *the Cloud-Mother*. An air-whale. She once carried the morning cloud away for the founders.", "~sad~ She rose with the stones and never came down. I think she’s trapped, or frightened. Perhaps both."],
           choices: [{ text: '~neutral~ I’ll go in.', do: { start: 'temple.arzach2' }, goto: 'go' }, { text: '~neutral~ Maybe she needs a bell.', goto: 'bell' }],
         },
-        bell: { say: ['~curious~ A bell? There are bells in every room in there. All silent. Bring her one that rings, then.', '~whisper~ Nobody here has one small enough to carry.'], choices: [{ text: '~neutral~ I’ll go in.', do: { start: 'temple.arzach2' }, goto: 'go' }] },
+        bell: { say: ["~curious~ There are silent bells in every room. If you find a way to ring one, try letting her hear it.", '~whisper~ Nobody here has one small enough to carry.'], choices: [{ text: '~neutral~ I’ll go in.', do: { start: 'temple.arzach2' }, goto: 'go' }] },
         go: {
-          say: ['~neutral~ Across the bridge, *the door on the gallery*. The cloud is a long way down. Mind it.', '~whisper~ If you hear her, don’t shout at her. Nothing that cries likes to be shouted at.'],
+          say: ["~neutral~ Cross *the bridge to the gallery door*. Mind the edge. The cloud is much farther down than it looks.", "~whisper~ If you hear her cry, approach quietly. Shouting won’t help her understand you."],
           choices: [{ text: '~happy~ I’ll be gentle.', end: true }],
         },
         again: {
-          say: ['~neutral~ The belfry door is across the bridge, on the gallery.'],
+          say: ["~neutral~ *Across this bridge, through the gallery door.*"],
           choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.arzach2', started: false }, do: { start: 'temple.arzach2' }, end: true }, { text: '~neutral~ Goodbye.', end: true }],
         },
         inside: {
@@ -56,15 +56,15 @@ export const PEOPLE = {
         },
         stuck: { say: ['~sad~ Thirty years stuck. The same as the bell.', '~solemn~ Ring for her, sky-child. Somebody should.'], choices: [{ text: '~neutral~ I will.', end: true }] },
         after: {
-          say: ['~surprised~ The stones! Did you see? All over the sky, the stones that fell up are coming down. One landed on the monastery’s kitchen roof. Brother Calix laughed. I have never heard him laugh.',
-            '~happy~ And she came out of the belfry this morning and swam away over the cloud, slow, like she had somewhere to be. The cloud followed her a little way.',
+          say: ["~surprised~ The loose stones are settling! One landed on the kitchen roof. Calix laughed. I expect the cook’s response will be different.",
+            "~happy~ The Cloud-Mother came out this morning. Swam away across the sky. Some cloud followed her, just as the old stories said.",
             '~solemn~ I think the founders would have liked you.'],
           choices: [
             { text: '~solemn~ She only needed a note to answer.', goto: 'note' },
             { text: '~happy~ Keep the bridge, Ysel.', end: true },
           ],
         },
-        note: { say: ['~solemn~ We all do, I think. Thirty years the monastery rang for nobody, and nobody answered.', '~happy~ Now somebody has.'], choices: [{ text: '~neutral~ Goodbye, Ysel.', end: true }] },
+        note: { say: ["~solemn~ A familiar sound helped her find her way. I understand that. I’ve missed the bells too.", '~happy~ Now somebody has.'], choices: [{ text: '~neutral~ Goodbye, Ysel.', end: true }] },
       },
     },
   },

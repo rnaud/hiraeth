@@ -46,9 +46,9 @@ test('Lou runs to meet you, asks what you brought, and what she says follows how
   assert.ok(first.pages.some((p) => /What did you bring/.test(p)));
   const pages = [3, 8, 13, 20].map((n) => brought(n).r.pages.join(' '));
   assert.equal(new Set(pages).size, 4, 'a different answer for each band');
-  assert.match(pages[0], /That’s all\?/);
-  assert.match(pages[1], /shelf/);
-  assert.match(pages[3], /whole sky/);
+  assert.match(pages[0], /bag would be bigger/);
+  assert.match(pages[1], /copies from your cards/);
+  assert.match(pages[3], /brought everything/);
   // coming back: "You're back again!", once a visit; after that, her everyday lines
   const g = memory(); g.set('home.lou.met', true);
   assert.equal(new DialogueRunner(PEOPLE.lou, { game: g, quests: null, npc: { greetedThisVisit: false } }).nodeId, 'back');

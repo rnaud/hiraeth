@@ -15,7 +15,7 @@ export const PEOPLE = {
   sabri: {
     id: 'sabri', name: 'Sabri', title: 'who digs wells', color: '#5fb7ad', voice: 1.12, kind: 'f',
     palette: { cloak: '#5fb7ad', lining: '#2b211f', cloth: '#e6b86f', legs: '#5a4a3a', hat: '#f3ead8', hair: '#3a2a22' }, head: 'wrap', cape: 0.9,
-    lines: ['~tired~ Dry again. Every well I dig is dry.', '~curious~ East, the Givers’ house. Have you seen it?', '~neutral~ Dig, and listen, and dig.'],
+    lines: ["~tired~ Another dry well. Excellent hole, though.", "~curious~ Seen the Givers’ House east of here?", "~neutral~ Dig. Listen. Mostly hear myself digging."],
     talk: {
       entry: [
         { if: { flag: 'temple.desert.done' }, node: 'after' },
@@ -25,9 +25,9 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~curious~ You’re the one out of the sky-ball. I’m Sabri. I dig wells. Every well I dig is dry.',
-            '~solemn~ My grandmother said the water didn’t always come up under the tree. It came from *the Givers’ house*, out in *the eastern dunes*: a drum of rose stone as big as a hill. Channels ran from its door to the fields round the walls.',
-            '~sad~ Then one year it stopped. The channels filled with sand, and so did the fields. Nobody goes in now. They say something lives in the dark in there, and cries.'],
+          say: ["~curious~ Sabri. Well-digger. Currently specialising in holes that disappoint people.",
+            "~solemn~ Our fields once took water from *the Givers’ House in the eastern dunes*. That great round rose-stone building. You can still trace the channels back to its door.",
+            "~sad~ Then the flow stopped. Sand buried the fields. Nobody enters the house now. You can hear something crying inside."],
           do: { set: { 'met.sabri': true } },
           choices: [
             { text: '~neutral~ I’ll go and look.', do: { start: 'temple.desert' }, goto: 'go' },
@@ -36,44 +36,44 @@ export const PEOPLE = {
           ],
         },
         keeper: {
-          say: ['~solemn~ Grandmother called it *the Keeper*. The Givers left it to keep their water. She said it was gentle: it let the children ride on its shell to the fields.',
-            '~scared~ That was before the water stopped. Now it cries in the dark. I put my ear to the sand out there, once. I didn’t do it twice.'],
+          say: ["~solemn~ Grandmother called it *the Keeper*. The Givers left it to tend the water. Children used to ride its shell out to the fields.",
+            "~scared~ Now it cries down in the dark. I heard it through the sand once. I wasn’t brave enough to go closer."],
           choices: [
             { text: '~neutral~ I’ll go and look.', do: { start: 'temple.desert' }, goto: 'go' },
             { text: '~neutral~ Maybe it is only frightened.', goto: 'frightened' },
           ],
         },
         frightened: {
-          say: ['~curious~ Frightened? Of what? It is bigger than a house.', '~tired~ …Although. Grandmother said it hated the dark. She left a lamp lit for it in the fields at night.'],
+          say: ["~curious~ Something that big can be frightened?", "~tired~ Yes. Of course it can. Grandmother left a lamp for it at night. Said it hated the dark."],
           choices: [{ text: '~neutral~ I’ll go and look.', do: { start: 'temple.desert' }, goto: 'go' }, { text: '~neutral~ Goodbye, Sabri.', end: true }],
         },
         go: {
-          say: ['~happy~ Then go *east of the city*, where the dunes are highest: you can see its top from the walls. The door looks toward Qanat.', '~whisper~ Take your fluid. And something that burns, if you find it. Grandmother said the Givers kept their fires in there too.',
-            { if: { flag: 'tool.empty' }, text: '~curious~ That glass on your back is dry, though. Fill it first: the old keepers went down to the water *through the giant’s mouth*, past the back gate. Nothing in the Givers’ house will answer an empty jar.' }],
+          say: ["~happy~ Go *east of Qanat into the high dunes*. Look for the rose-stone drum. *Its door faces the city.*", "~whisper~ Bring fluid. Look for the Givers’ fire inside; the Keeper may need light as well as water.",
+            { if: { flag: 'tool.empty' }, text: "~curious~ Your tank’s empty. Find the water through the giant’s mouth beyond Qanat’s back gate first. You’ll need fluid inside the house." }],
           choices: [{ text: '~happy~ I’ll tell you what I find.', end: true }],
         },
         again: {
-          say: ['~curious~ The Givers’ house is *east of the city*, in the high dunes. Its door looks toward us.'],
+          say: ["~curious~ *East of the city, among the high dunes.* Enter on the side facing Qanat."],
           choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.desert', started: false }, do: { start: 'temple.desert' }, end: true }, { text: '~neutral~ Goodbye.', end: true }],
         },
         inside: {
-          say: ['~surprised~ You went in? Into the Givers’ house? What is it like?', '~curious~ Did you hear it? The Keeper?'],
+          say: ["~surprised~ You went inside? What’s down there?", "~curious~ Did you find the Keeper?"],
           choices: [
-            { text: '~solemn~ It’s dark, and very large. Something breathes down there.', goto: 'breathes' },
+            { text: "~solemn~ Something very large is breathing in the dark.", goto: 'breathes' },
             { text: '~neutral~ I’m going back.', end: true },
           ],
         },
-        breathes: { say: ['~whisper~ Then it is still alive. Grandmother would have cried. Be kind to it, sky-child. It has been alone a long time.'], choices: [{ text: '~neutral~ I will.', end: true }] },
+        breathes: { say: ["~whisper~ Still alive. All that time. Be gentle with it, please. It used to carry children."], choices: [{ text: '~neutral~ I will.', end: true }] },
         after: {
-          say: ['~happy~ Look! Look at the fields! The old channel runs, all the way from the Givers’ house, and the sand is green with shoots.',
-            '~solemn~ Somebody said they saw the Keeper lying round its spout, asleep, with water up to its knees. Asleep. Not crying.',
-            '~playful~ I am going to dig a well that has water in it. Just to see what that’s like.'],
+          say: ["~happy~ The channel’s running! Look at the shoots. I thought that field was only sand now.",
+            "~solemn~ They say the Keeper’s asleep beside its spout, legs in the water. No more crying.",
+            "~playful~ Tomorrow I dig a well with water in it. May need to learn the second half of my job."],
           choices: [
             { text: '~solemn~ It was afraid of the dark. And thirsty.', goto: 'thirsty' },
             { text: '~happy~ Dig a good one, Sabri.', end: true },
           ],
         },
-        thirsty: { say: ['~sad~ So were we. All of us, for years, and nobody went to ask it.', '~happy~ You went. Thank you.'], choices: [{ text: '~happy~ Goodbye, Sabri.', end: true }] },
+        thirsty: { say: ["~sad~ Thirsty and frightened. Just like us. We could have helped each other years ago.", "~happy~ You went in. Thank you for that."], choices: [{ text: '~happy~ Goodbye, Sabri.', end: true }] },
       },
     },
   },

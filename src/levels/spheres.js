@@ -76,8 +76,8 @@ export const SPHERES_CONTENT = {
   // and closes when the pole has sung the spheres' three sounds back together
   story: {
     title: 'WHAT THE SPHERES REMEMBER',
-    intro: 'The spheres came down long ago, and each one remembers one sound. Beyond the sphere-arch, the pole on the round plaza hums while the great sphere is on the horizon.',
-    outro: 'A glass bell, far voices and a walking drum, sounding together at the pole. On the horizon the great sphere answered, and the whole garden held still.',
+    intro: 'Three fallen spheres hold three old sounds. Aube knows how to hear them; Ume’s pole at the plaza can play them together.',
+    outro: 'Bell, voices, procession drum: three old sounds, brought together. The great sphere answered from the horizon.',
     label: 'the round plaza', goal: [LAYOUT.plaza.x, 'ground', LAYOUT.plaza.z], radius: 14, manual: true,
   },
   relics: {

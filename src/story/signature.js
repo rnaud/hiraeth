@@ -26,7 +26,7 @@ import { spoken } from './tone.js';
 export const SIGNATURE = 'STRIKE SIGNATURE';
 
 /** The line of explanation beside the chart (and its short form, for small screens). */
-export const SIGNATURE_LEGEND = 'Whatever struck the ship left a magnetic signature in the scar on its hull: a slow pulse in threes. The ship charts only the worlds whose field beats the same way, and reads the trace further on from each one you finish.';
+export const SIGNATURE_LEGEND = 'The impact left a magnetic signature in the hull: three repeating pulses. These worlds carry the same signal. Explore them to trace what struck the ship and reveal more destinations.';
 export const SIGNATURE_LEGEND_SHORT = 'Only worlds that carry the strike’s magnetic signature are charted.';
 
 /**
@@ -66,14 +66,14 @@ export function revealNote(titles = []) {
 }
 
 /** The ship's line after the crash, as the emergency power comes on. */
-export const CRASH_LINE = spoken('ship', '~neutral~ Emergency power. The scar on the hull is magnetised: whatever hit us left a signature. Logging it.');
+export const CRASH_LINE = spoken('ship', "~neutral~ Emergency power online. The impact left a magnetic signature in our hull. I can track its pulse.");
 
 /** The ship's line the first time the galactic map opens with power. */
-export const MAP_LINE = spoken('ship', '~neutral~ Charting by the scar’s signature. These worlds carry the same pulse as whatever struck us. No others do.');
+export const MAP_LINE = spoken('ship', "~neutral~ These worlds carry the same magnetic signature as our scar. Following them may tell us what hit us.");
 
 /** Out of the jump, the first time the ship comes to a world: null if it has said it before (or the world has none). */
 export function arrivalLine(id, flag = () => undefined) {
   const s = SIGNATURE_WORLDS[id];
   if (!s || flag(`signature.${id}`)) return null;
-  return spoken('ship', `~neutral~ Signature confirmed: the same pulse as the scar. Strongest ${s.where}.`, { set: { [`signature.${id}`]: true } });
+  return spoken('ship', `~neutral~ Matching impact signature detected. Strongest ${s.where}.`, { set: { [`signature.${id}`]: true } });
 }

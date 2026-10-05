@@ -25,9 +25,9 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~neutral~ (A woman sweeps sand off the great steps, slowly. She stops, and looks at you, and at your tank.)',
-            '~solemn~ The Aerie. (She points up, at the crown of stone wings.) Where the birds were given wings.',
-            '~sad~ (She puts down her broom and spreads her arms, and lets them fall.) The old one. Up there. She stopped.'],
+          say: ["~neutral~ (Lark stops sweeping the steps. She looks from you to your tank, then up at the stone wings.)",
+            "~solemn~ *The Aerie.* Birds learned here.",
+            "~sad~ (She spreads her arms, then lets them drop.) The old bird. Won’t fly."],
           do: { set: { 'met.lark': true } },
           choices: [
             { text: '~neutral~ I’ll go up to her.', do: { start: 'temple.arzach' }, goto: 'go' },
@@ -36,11 +36,11 @@ export const PEOPLE = {
           ],
         },
         stopped: {
-          say: ['~solemn~ The night the light went over. (She looks at the sky a long time.) Afraid.', '~whisper~ The others left. She stayed. She does not come down.'],
+          say: ["~solemn~ Since the singing light. (She looks up.) Frightened.", "~whisper~ Others left. She stayed inside."],
           choices: [{ text: '~neutral~ I’ll go up to her.', do: { start: 'temple.arzach' }, goto: 'go' }, { text: '~neutral~ Goodbye.', end: true }],
         },
         go: {
-          say: ['~neutral~ (She sweeps a path to the door with three strokes, and nods at it.)', '~whisper~ Wind, inside. Wait for it.'],
+          say: ["~neutral~ (Three strokes of the broom clear a path to the entrance. Lark gestures: *go in*.)", '~whisper~ Wind, inside. Wait for it.'],
           choices: [{ text: '~happy~ Thank you, Lark.', end: true }],
         },
         again: {
@@ -54,11 +54,11 @@ export const PEOPLE = {
             { text: '~neutral~ I’m going back.', end: true },
           ],
         },
-        alone: { say: ['~solemn~ (Lark spreads her arms again, and this time holds them out, and tilts, like something riding the wind.) Together.'], choices: [{ text: '~neutral~ Together.', end: true }] },
+        alone: { say: ["~solemn~ (Lark spreads her arms and banks from side to side.) Fly with her."], choices: [{ text: '~neutral~ Together.', end: true }] },
         after: {
-          say: ['~surprised~ (Lark has dropped her broom. She is looking up.)',
-            '~happy~ (Over the Aerie the great birds are wheeling, white against the sky, and on the crown of stone wings the old one sits with her wings open.) Back.',
-            '~solemn~ (She picks up the broom, looks at it, and leans it against the wall.) No more sand. They fan it off.'],
+          say: ["~surprised~ (Her broom falls. Lark watches the sky.)",
+            "~happy~ (White birds circle the Aerie. The old bird opens her wings on its crown.) Home.",
+            "~solemn~ (Lark leans the broom against the wall.) Wings sweep better."],
           choices: [
             { text: '~happy~ She flew with me.', goto: 'flew' },
             { text: '~neutral~ Goodbye, Lark.', end: true },

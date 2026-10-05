@@ -77,14 +77,14 @@ export const TOKEN_ITEMS = ['stun', 'fire', 'cell', 'coil', 'lantern', 'lens', '
 
 /** What each gift means now, set on the stone. */
 const ITEM_LINES = {
-  stun: '~solemn~ (The stilling lens. You learned to wait.)',
-  fire: '~solemn~ (The ember ring. A fire that hurts nobody.)',
-  cell: '~solemn~ (The fourth chamber. You carry more than you used to.)',
-  coil: '~solemn~ (The quick coil. You get up faster now.)',
-  lantern: '~solemn~ (The lantern charm. It has never gone out.)',
-  lens: '~solemn~ (The glyph lens. You learned to see what nobody looks at.)',
-  bell: '~solemn~ (The bell-note whistle. One clear note, the same in every world.)',
-  star: '~solemn~ (The pale star, off your hood: a small light, a long way from home.)',
+  stun: "~solemn~ (The stilling lens. So many things changed when you stopped rushing.)",
+  fire: "~solemn~ (The ember ring. You learned to carry fire.)",
+  cell: "~solemn~ (The fourth chamber. Room for a little more.)",
+  coil: "~solemn~ (The quick coil. Something to help you get up again.)",
+  lantern: "~solemn~ (The lantern charm. A light you could take with you.)",
+  lens: "~solemn~ (The glyph lens. Marks you would once have walked past.)",
+  bell: "~solemn~ (The bell-note whistle. One clear note, wherever you play it.)",
+  star: "~solemn~ (The pale star from your hood. A traveller’s sign.)",
 };
 
 /**
@@ -107,9 +107,9 @@ export function tokenLine(t) {
     case 'item': return spoken('scene', ITEM_LINES[t.item] ?? `~solemn~ (${name}.)`);
     case 'song': return spoken('scene', `~solemn~ (${name}. You can hum it now without thinking.)`);
     case 'word': return spoken('scene', `~solemn~ (“${quoteOf(t.keepsake ?? t)}”)`);
-    case 'person': return spoken('scene', `~solemn~ (${name}. Someone out there is waiting for you to come back.)`);
-    case 'knowing': return spoken('scene', `~solemn~ (${name}. You understand it now. You could explain it to them.)`);
-    default: return spoken('scene', `~solemn~ (${name}. You carried it the whole way.)`);
+    case 'person': return spoken('scene', `~solemn~ (${name}. Someone you promised to visit again.)`);
+    case 'knowing': return spoken('scene', `~solemn~ (${name}. Something you wish you could explain to them.)`);
+    default: return spoken('scene', `~solemn~ (${name}. All this way, in your keeping.)`);
   }
 }
 
@@ -151,17 +151,17 @@ const LOU = (text, extra) => spoken('lou', text, extra);
  * child between them).
  */
 export const FINAL_RECORDING = [
-  S('~solemn~ (The oldest recording on the reel. You never searched for it.)'),
-  M('~happy~ Is it on? It’s on. Say hello, love. Wave.'),
-  S('~happy~ (A small child waves at the recorder with both hands. It is you.)'),
-  F('~happy~ We are making this so you will have it. For when you are big, and far away.'),
+  S("~solemn~ (The reel finds its oldest recording. One you never thought to search for.)"),
+  M("~happy~ The light’s on. Say hello. Both hands? All right, both hands."),
+  S("~happy~ (A small child waves at the recorder. You.)"),
+  F("~happy~ We’re recording this for you. In case you’re grown up and far away when you need to hear it."),
   F('~solemn~ You don’t have to bring us anything. Do you hear? Nothing.'),
-  M('~happy~ We are proud of you already. Look at him. Look at his hands.'),
-  F('~playful~ All right. Say goodbye to the recorder. Goodbye, recorder.'),
+  M("~happy~ We’re proud of you already. Look at those hands. He’s trying to wave to everyone."),
+  F("~playful~ Say goodbye to the recorder, love. Goodbye, recorder."),
   YOU('~whisper~ Goodbye.'),
 ];
 
-export const CLOSING = S('~solemn~ Something of value. You brought it home on your own two feet.');
+export const CLOSING = S("~solemn~ Something of value. Home, on your own two feet.");
 
 /**
  * Everything at the stone, in order. Lines that set a token down carry it (`token`); the
@@ -171,17 +171,17 @@ export const CLOSING = S('~solemn~ Something of value. You brought it home on yo
  *   broke: the tea terraces in Viridel came down (`edena.terraces.flooded`, the quest that fails) }
  */
 export function tombLines(tokens = [], ctx = {}) {
-  const lines = [S('~solemn~ (Two rings carved on the stone, overlapping like the two moons. Their names under them.)')];
+  const lines = [S("~solemn~ (Their names beneath two overlapping rings. The same shape as the moons above the house.)")];
   if (tokens.length) {
     lines.push(YOU('~whisper~ I brought everything.'));
     for (const t of tokens) lines.push({ ...tokenLine(t), token: t });
-  } else lines.push(S('~sad~ (Your hands are empty. You hold them up, so the stone can see.)'));
+  } else lines.push(S("~sad~ (You have nothing to set down. You rest your empty hands on the stone.)"));
   if (ctx.ilenTold) lines.push(YOU('~whisper~ And this space is for Ilen, wherever she is.'));
   // the quest that failed (src/story/terraces.js): the father's own advice, kept (calls.js, beat 'broke')
-  if (ctx.broke) lines.push(YOU('~sad~ And Esk’s hill, in the garden, which I could not mend. I said sorry, and I meant it, and then I went.'));
+  if (ctx.broke) lines.push(YOU("~sad~ And Esk’s hill, which I could not mend. I helped open the gate that broke. I’m still sorry."));
   lines.push(YOU('~whisper~ It isn’t what you asked for. It’s what I have.'));
   if (ctx.lou) lines.push(LOU(LOU_AT_STONE.bring), S(LOU_AT_STONE.drawing, { drawing: true }));
-  lines.push(S('~solemn~ (Last, you set the reel down on the stone. It plays by itself.)', { reel: true }));
+  lines.push(S("~solemn~ (You set the reel beside the keepsakes. It starts to play.)", { reel: true }));
   lines.push(...FINAL_RECORDING);
   if (ctx.lou) lines.push(LOU(LOU_AT_STONE.after), YOU(LOU_AT_STONE.you));
   lines.push(CLOSING);

@@ -15,7 +15,7 @@ export const PEOPLE = {
   wim: {
     id: 'wim', name: 'Wim', title: 'who winds the clocks', color: '#d8a24a', voice: 1.08, kind: 'f',
     palette: { cloak: '#62c3c9', lining: '#d8a24a', cloth: '#f3ead8', legs: '#34405e', hat: '#e88fa6', hair: '#8a5638' }, head: 'hair', cape: 0.5,
-    lines: ['~neutral~ Tick. Tock. Tick… no, that one’s wrong too.', '~tired~ Every clock on the plateau, every morning. None of them agree.', '~curious~ Do you know what time it is? Nobody here does.'],
+    lines: ['~neutral~ Tick. Tock. Tick… no, that one’s wrong too.', "~tired~ Every clock wound. Eleven different times. Excellent variety.", "~curious~ Know the time? Neither do the clocks."],
     talk: {
       entry: [
         { if: { flag: 'temple.garage.done' }, node: 'after' },
@@ -25,9 +25,9 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~neutral~ Hold still, I’m counting. (She listens to the stopped clock over the door, and sighs.) No. Still wrong. I’m Wim. I wind the Major’s clocks, every one on the plateau, every morning.',
-            '~solemn~ That’s the *First Garage*. The Major found it here when he made the place, or it found him. He kept his first car in its porch. He copied the mark off its door, for luck.',
-            '~sad~ Everything here takes its beat from the works under it: the mill, the pumps, the ring. The night the light went over, it jumped. Three machines stopped. And something down there has been winding itself up ever since.'],
+          say: ["~neutral~ Wim. Clock-winder. Hold still while I count… No. That one’s wrong too. I wind every clock on this plateau each morning.",
+            "~solemn~ That’s *the First Garage*. The Major found it here before building the rest. Kept his first car in the porch and copied the mark from its door.",
+            "~sad~ The works below set the pace for this whole world. They jolted when the Singer passed. Three machines stopped. Something underneath has been winding tighter ever since."],
           do: { set: { 'met.wim': true } },
           choices: [
             { text: '~neutral~ I’ll go down and look.', do: { start: 'temple.garage' }, goto: 'go' },
@@ -36,38 +36,38 @@ export const PEOPLE = {
           ],
         },
         winding: {
-          say: ['~whisper~ You can hear it at night, if you put your ear to the rim. Springs. Like a clock that’s wound too tight and won’t strike.', '~solemn~ The Foreman, Clemence calls it. The Major’s notes say: *don’t argue with it, it’s always right*. It isn’t, any more.'],
+          say: ["~whisper~ Listen against the rim at night. Springs straining. A clock wound past its patience.", "~solemn~ Clemence calls it *the Foreman*. Brask’s notes say it’s always right. He wrote that before it began doing this."],
           choices: [{ text: '~neutral~ I’ll go down and look.', do: { start: 'temple.garage' }, goto: 'go' }, { text: '~neutral~ Goodbye.', end: true }],
         },
         go: {
-          say: ['~neutral~ The door under the clock. It isn’t locked. Nothing here is locked; the Major said locks are for people who know what they want to keep.',
-            '~curious~ If the clocks in there want something all at once, they’ll want it faster than you can give it. Clocks are like that. Find whatever makes you quicker.'],
+          say: ["~neutral~ *The door under the clock.* Unlocked. The Major said locks require knowing what you mean to keep. He rarely got that far.",
+            "~curious~ Look for a tool that makes you faster. The clocks inside demand several things before the first one fades. Ordinary speed won’t do."],
           choices: [{ text: '~happy~ Quicker. Got it.', end: true }],
         },
         again: {
-          say: ['~neutral~ Under the clock. (She points with her winding key.)'],
+          say: ["~neutral~ *Through the door under the clock.* Follow the ticking."],
           choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.garage', started: false }, do: { start: 'temple.garage' }, end: true }, { text: '~neutral~ Goodbye.', end: true }],
         },
         inside: {
           say: ['~surprised~ You went in! Is it all clocks, inside?', '~curious~ And the Foreman? Is it as tall as they say?'],
           choices: [
-            { text: '~solemn~ Six numbers on its face. All at once, it wants.', goto: 'six' },
+            { text: "~solemn~ It needs six numbers lit together.", goto: 'six' },
             { text: '~neutral~ I’m going back.', end: true },
           ],
         },
-        six: { say: ['~curious~ Six at once. And your tank fills in its own sweet time, I’ve watched it.', '~neutral~ The makers leave things lying about for people in a hurry. Look for something warm.'], choices: [{ text: '~neutral~ I’ll look.', end: true }] },
+        six: { say: ["~curious~ Six targets before they reset. Your tank takes too long to refill normally.", "~neutral~ Find the makers’ warm little device inside. It should speed up the work."], choices: [{ text: '~neutral~ I’ll look.', end: true }] },
         after: {
-          say: ['~surprised~ Listen. (She holds up a hand. Over the door the clock is ticking, and its hands are moving, and down in the cliff the great wheels are turning.) Listen to that.',
-            '~happy~ Every clock on the plateau agrees with it. I went round and checked them all, twice. Ambroise says the board has never blinked so tidily. Ottla cried, and said it was oil in her eye.',
-            '~solemn~ I’ll still wind them. In the mornings. Just to hear them all say the same thing.'],
+          say: ["~surprised~ Listen. A steady tick. (The hands above the door move. Great wheels turn inside the cliff.)",
+            "~happy~ Every clock agrees! I checked twice. Ottla cried and blamed oil in her eye. Ambroise says even the board blinks tidily.",
+            "~solemn~ I’ll still wind them each morning. Now I’ll know when morning is."],
           choices: [
             { text: '~solemn~ It was wound wrong. I set it right.', goto: 'right' },
             { text: '~happy~ What time is it, Wim?', goto: 'time' },
             { text: '~neutral~ Goodbye, Wim.', end: true },
           ],
         },
-        right: { say: ['~solemn~ Then it can rest a little, between ticks. It kept the time here longer than anyone has been keeping anything.'], choices: [{ text: '~neutral~ Goodbye, Wim.', end: true }] },
-        time: { say: ['~happy~ (She looks at the clock over the door, and laughs.) The right one. For the first time since I was born, the right one.'], choices: [{ text: '~neutral~ Goodbye.', end: true }] },
+        right: { say: ["~solemn~ The strain is gone. It kept our time for longer than anyone here remembers. Let it have a moment between ticks."], choices: [{ text: '~neutral~ Goodbye, Wim.', end: true }] },
+        time: { say: ["~happy~ (Wim laughs at the clock.) The correct time. I’d forgotten that was an option."], choices: [{ text: '~neutral~ Goodbye.', end: true }] },
       },
     },
   },

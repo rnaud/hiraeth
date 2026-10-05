@@ -144,10 +144,10 @@ test('the quest: the runnels top first, the gate at Esk’s asking, the flood; i
   assert.equal(quests.isFailed(Q), true);
   // afterwards she is quiet about it, and the gardeners each say a word
   assert.match(talk(quests, PEOPLE.esk, []).pages.join(' '), /greening at the edges/);
-  assert.match(talk(quests, PEOPLE.sol, []).pages.join(' '), /Tea keeps/);
-  assert.match(talk(quests, PEOPLE.vey, []).pages.join(' '), /world had to deal with it/);
-  assert.match(talk(quests, PEOPLE.mira, []).pages.join(' '), /letting a hill go/);
-  assert.ok(!/letting a hill go/.test(talk(quests, PEOPLE.mira, []).pages.join(' ')), 'once');
+  assert.match(talk(quests, PEOPLE.sol, []).pages.join(' '), /last year’s tea/);
+  assert.match(talk(quests, PEOPLE.vey, []).pages.join(' '), /won’t make it Esk’s old hill again/);
+  assert.match(talk(quests, PEOPLE.mira, []).pages.join(' '), /We’ll still tend what’s left/);
+  assert.ok(!/We’ll still tend what’s left/.test(talk(quests, PEOPLE.mira, []).pages.join(' ')), 'once');
 });
 
 test('the main quest is untouched by it, and the next visit finds the hill as it fell', () => {

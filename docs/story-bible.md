@@ -1,5 +1,10 @@
 # Story bible — "Something of value"
 
+> **Current writing reference (2026-10-05):** See [the writing room](../lore/README.md)
+> for revised voices and [continuity](../lore/continuity.md) for the current
+> opening. The quotations and some quest summaries below describe earlier
+> revisions; live story data is authoritative for current wording and flow.
+
 Companion to `game-brief.md`. One page per world: the local story, the people,
 the quests, the discovery (a **keepsake**), and the **clue** that links it to
 another world. Written to be built: each world gets one main quest, two or more

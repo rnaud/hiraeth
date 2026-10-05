@@ -103,8 +103,8 @@ export const BURIED_CONTENT = {
   // visit and closes when the wheel has turned and Wen has counted the tooth
   story: {
     title: 'ONE TOOTH A YEAR',
-    intro: 'Under the dunes a great wheel turns one tooth a year, and the dome people count their lives by it. Today is Tooth Day. The lamp in the oculus is dark.',
-    outro: 'The Wick burned, the wheel turned one tooth, and the hanging city rocked like a cradle. Wen says you are one tooth old.',
+    intro: 'Today is Tooth Day: the great wheel’s yearly turn. But Hask has not lit the lamp that starts it. Find him by the domes.',
+    outro: 'You lit the Wick and saw the wheel turn. It has kept moving ever since. Wen gave you a sliver of this year’s tooth.',
     label: 'the great wheel', goal: [WHEEL.x, 'ground', WHEEL.z], radius: 20, manual: true,
   },
   relics: {

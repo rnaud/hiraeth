@@ -15,7 +15,7 @@ export const PEOPLE = {
   sorrel: {
     id: 'sorrel', name: 'Sorrel', title: 'who sows the Greenhouse beds', color: '#7fcfa8', voice: 1.0, kind: 'f',
     palette: { cloak: '#7fcfa8', lining: '#f2a7b5', cloth: '#f7f4ec', legs: '#8a5a3c', hat: '#f6c7a0', hair: '#4a3a42' }, head: 'hood', cape: 0.9,
-    lines: ['~neutral~ Sown again. We’ll see.', '~sad~ Not a shoot. Not one.', '~curious~ You’ve got green on your hands. Have you been in?'],
+    lines: ["~neutral~ Another row sown. Come on, little seeds.", "~sad~ Nothing growing. Not even weeds. I miss weeds.", "~curious~ Green on your hands. What did you find inside?"],
     talk: {
       entry: [
         { if: { flag: 'temple.edena.done' }, node: 'after' },
@@ -25,9 +25,9 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~neutral~ Mind the drills, I’ve just sown them. (A woman kneels by a bare bed at the foot of the white steps, pressing seeds into it with her thumb.) I’m Sorrel. I sow the beds round the Greenhouse.',
-            '~solemn~ The *Builders’ Greenhouse*. The white builders grew the whole garden from in there, Oro says, and left a gardener in it to keep it growing: a great thing all of moss, older than the pyramids. My grandmother saw it once through the glass, in flower from head to foot.',
-            '~sad~ The night the light passed, everything in there closed up and dropped. Since then nothing I sow round it comes up. Not a shoot. And something in there walks about at night, bare as a stick, and breaks the panes.'],
+          say: ["~neutral~ Sorrel. Mind these seed rows. I sow the beds around the Greenhouse. Lately it feels like burying tiny disappointments.",
+            "~solemn~ The *Builders’ Greenhouse*. They left a great moss-covered gardener inside to tend the garden. Grandmother once saw it through the glass, flowering from head to foot.",
+            "~sad~ When the light passed, every plant inside closed up. My seeds stopped sprouting too. Now the bare gardener paces at night and breaks the glass."],
           do: { set: { 'met.sorrel': true } },
           choices: [
             { text: '~neutral~ I’ll go in.', do: { start: 'temple.edena' }, goto: 'go' },
@@ -36,11 +36,11 @@ export const PEOPLE = {
           ],
         },
         digging: {
-          say: ['~solemn~ (She thinks about it, a long time, her thumb in the earth.) No. Nothing fell in there. It just stopped. A garden that stops isn’t resting. It’s waiting for someone to tell it to go on.', '~neutral~ Vey would say the same. Probably. Don’t ask him.'],
+          say: ["~solemn~ (Sorrel keeps one thumb in the soil while she thinks.) Going in isn’t digging. Nothing fell there. Something living needs help.", "~neutral~ Vey might agree. She might take longer to agree. I’d rather not wait for that discussion."],
           choices: [{ text: '~neutral~ I’ll go in.', do: { start: 'temple.edena' }, goto: 'go' }, { text: '~neutral~ Goodbye.', end: true }],
         },
         go: {
-          say: ['~neutral~ The door at the top of the steps. It isn’t locked; nothing the builders made is.', '~whisper~ If the gardener comes at you, don’t hurt it. It’s only bare. Nobody’s at their best bare.'],
+          say: ["~neutral~ *Up the white steps, through the door.* The builders left it unlocked.", "~whisper~ If the gardener attacks, try to calm it. It’s lost everything that grew on it. That would frighten me too."],
           choices: [{ text: '~happy~ Not at their best. I’ll remember.', end: true }],
         },
         again: {
@@ -50,23 +50,23 @@ export const PEOPLE = {
         inside: {
           say: ['~curious~ You went in! Is it all dead sticks, inside?', '~sad~ And the gardener?'],
           choices: [
-            { text: '~solemn~ Doors of flowers that won’t open. Water only runs off them.', goto: 'buds' },
+            { text: "~solemn~ Flower doors. Water runs off, and they stay closed.", goto: 'buds' },
             { text: '~neutral~ I’m going back.', end: true },
           ],
         },
-        buds: { say: ['~curious~ Water’s for drinking. A bud wants telling. The builders could tell a seed to grow, Oro says, and it would.', '~neutral~ They’d have kept something for telling with. They kept everything.'], choices: [{ text: '~neutral~ I’ll look.', end: true }] },
+        buds: { say: ["~curious~ Then they need more than water. The builders had a way to wake closed buds. A tool for telling them to grow.", "~neutral~ Look inside for that tool. They wouldn’t tend a whole garden without leaving something to work with."], choices: [{ text: '~neutral~ I’ll look.', end: true }] },
         after: {
-          say: ['~surprised~ (Sorrel is standing up in the beds, her hands full of earth. Every drill she sowed is green.) They came up. All at once, this morning, every one.',
-            '~happy~ And look at the ruins. (Over the meadow the white slabs of the builders are green to the top, vines all up them, flowers round their feet.) Oro sat down in the grass and wouldn’t get up. He says they were always meant to look like that.',
-            '~solemn~ The gardener’s asleep up there under the glass. I saw it. In flower from head to foot, like my grandmother said.'],
+          say: ["~surprised~ (Green fills the seed rows. Sorrel stands with soil in both hands.) Every one. This morning. I didn’t have to beg a single seed.",
+            "~happy~ Look at the ruins: vines to the top, flowers below. Oro sat down to stare. Says they were always meant to look like that.",
+            "~solemn~ The gardener’s asleep beneath the glass. Covered in flowers, like Grandmother remembered."],
           choices: [
             { text: '~solemn~ It was only bare. I bloomed it.', goto: 'bare' },
             { text: '~sad~ And Esk’s hill?', if: { flag: 'edena.terraces.flooded' }, goto: 'esk' },
             { text: '~neutral~ Goodbye, Sorrel.', end: true },
           ],
         },
-        bare: { say: ['~happy~ (She laughs.) Then we’re even. You brought it flowers; it brought the garden back. That’s how it goes, here.'], choices: [{ text: '~neutral~ Goodbye, Sorrel.', end: true }] },
-        esk: { say: ['~solemn~ She came up to see the ruins. She stood a long time. Then she asked me for seed, for the mud, and took a whole bag down with her.', '~neutral~ It isn’t mended. It’ll be something else. That’s all right.'], choices: [{ text: '~neutral~ Goodbye.', end: true }] },
+        bare: { say: ["~happy~ You helped it bloom, and it helped us grow. A practical exchange. I approve."], choices: [{ text: '~neutral~ Goodbye, Sorrel.', end: true }] },
+        esk: { say: ["~solemn~ Esk came to look. Stayed a while, then asked for seeds for the mud. Took a whole bag back down.", "~neutral~ Her terraces aren’t restored. She’s deciding what can grow there now."], choices: [{ text: '~neutral~ Goodbye.', end: true }] },
       },
     },
   },

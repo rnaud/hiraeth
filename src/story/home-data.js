@@ -27,17 +27,17 @@ const ended = (ctx) => !!ctx.game.flag('ending.done');
 
 /** What Lou says about her drawing of each world (her newest one first). */
 export const DRAWING_LINES = {
-  desert: '~happy~ That’s the giants in the desert. They’re lying down because they’re tired from carrying all the water. I gave them a sun.',
-  incal: '~curious~ That’s the city that goes down and down. I did all the lamps. Do people really live at the bottom? Do they get any sky?',
-  arzach: '~surprised~ That’s the bird as big as a house! And that’s you on her back. You’re small because she’s big.',
-  arzach2: '~curious~ Stones in the sky, and a bell. I didn’t know what a bell sounds like in the sky, so I drew it loud.',
-  garage: '~playful~ That’s the Major’s machine. I gave it a big wheel. Tove says machines don’t need faces, so I didn’t give it one. It’s sad.',
-  buried: '~curious~ The machine under the ground, with its teeth. And a lamp, so nobody is scared down there.',
-  edena: '~happy~ The garden that ate the ships. I like it best. Can we make ours eat something? Not the house.',
-  spheres: '~curious~ Round things on a round place. That’s all I knew from your card, so I drew them round.',
-  perdide: '~sad~ The wood where it always rains. I did a lot of rain. Then I felt sorry for it and added the crystal.',
-  perdide2: '~whisper~ The three lamps in the deep wood. You have to whisper about that one. I don’t know why. I just do.',
-  bazaar: '~happy~ The tower that listens! I put people round it, listening too. Everybody’s ears are big.',
+  desert: "~happy~ The desert giants! I drew them lying down because of all that carrying. That yellow bit is their day off.",
+  incal: "~curious~ That’s the city with people at the bottom. I gave them a bit of sky. I know your card didn’t say they had one.",
+  arzach: "~surprised~ The giant bird! That tiny red bit is you. I ran out of paper before I ran out of bird.",
+  arzach2: "~curious~ Floating stones and a bell. Those lines mean LOUD. You have to imagine them in your ears.",
+  garage: "~playful~ The Major’s machine. Tove said machines don’t need faces. I put one on the back where she won’t check.",
+  buried: "~curious~ The underground wheel. All those teeth! I drew a lamp so it doesn’t bite anyone by mistake.",
+  edena: "~happy~ The garden eating a ship. Can ours eat something? We could start with Tove’s bad chair.",
+  spheres: "~curious~ The spheres. You said round, so I did round. Your next card needs more details.",
+  perdide: "~sad~ The rainy wood. I got the paper wet on purpose. Then by accident. Then I put the crystal over the hole.",
+  perdide2: "~whisper~ The lamps in the wood. I used my last yellow. They needed it more than the sun in the other drawing.",
+  bazaar: "~happy~ The listening tower. I gave everyone big ears so the people at the back could hear too.",
 };
 
 export const PEOPLE = {
@@ -52,7 +52,7 @@ export const PEOPLE = {
     // short quick steps, a run that starts early, and never quite still
     gait: { stride: 0.6, pace: 0.62, fidget: 1 },
     rest: { smile: 0.35, brow: 0.5, browTilt: 0.25 },
-    lines: ['~happy~ Moustache! Come here! No, the other way!', '~playful~ Stand still. I’m drawing you.', '~curious~ Is the ship hot? Can I touch it?', '~happy~ I picked the yellow ones. Don’t tell Tove.'],
+    lines: ["~happy~ Moustache! That’s not where I’m pointing!", "~playful~ Hold still. Your other arm is already drawn.", "~curious~ Can I touch the ship? The cool bit?", "~happy~ I picked the best flowers. They’re for Grandma."],
     talk: {
       entry: [
         { if: (ctx) => !ctx.game.flag('home.lou.met'), node: 'hello' },
@@ -62,62 +62,62 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~shout~ You came! You came, you came!', '~playful~ Tove said you would and I said you wouldn’t and I was wrong. That’s allowed.', '~curious~ What did you bring? Did you bring anything? Show me.'],
+          say: ["~shout~ You came! Tove! You really came!", "~playful~ Tove said you would. I said maybe. I’m glad she won this time.", "~curious~ What did you bring? Can I see? After a hug. No, before. Both."],
           do: { set: { 'home.lou.met': true } },
           choices: [{ text: '~happy~ I brought a lot. Look.', goto: 'brought' }, { text: '~whisper~ Come here first.', goto: 'hug' }],
         },
         back: {
-          say: ['~happy~ You’re back again! Moustache knew. He sat by the ring all morning.', '~curious~ What did you bring this time?'],
+          say: ["~happy~ Back again! Moustache knew. He waited by the ring all morning. I waited a normal amount.", "~curious~ Anything new? Show me!"],
           choices: [{ text: '~happy~ Look.', goto: 'brought' }, { text: '~whisper~ Come here first.', goto: 'hug' }],
         },
         hug: {
-          say: ['~happy~ (She runs into your knees so hard you nearly sit down in the grass, and holds on.)', '~curious~ Now what did you bring?'],
+          say: ["~happy~ (She hits your knees at a run and holds on. You nearly sit down.)", "~curious~ All right. Now show me everything."],
           next: 'brought',
         },
         brought: {
           say: [
-            { text: '~sad~ That’s all? You were gone for ever.', if: band(0) },
-            { text: '~playful~ It’s all right. Things are heavy. I’d have brought a stone.', if: band(0) },
-            { text: '~surprised~ A song AND words AND a thing? Tove! He brought a thing!', if: band(1) },
-            { text: '~happy~ I made one of each for my shelf, from your cards. You can check if I got them right.', if: band(1) },
-            { text: '~surprised~ That many? You’ll need a bigger ship.', if: band(2) },
-            { text: '~happy~ My shelf is nearly full. I had to put the Major’s one next to my socks.', if: band(2) },
-            { text: '~surprised~ That’s everything there is! You brought the whole sky home.', if: band(3) },
-            { text: '~playful~ My shelf is full. Tove says it’s a museum now. I charge one button to come in.', if: band(3) },
+            { text: "~sad~ You were gone ages. I thought your bag would be bigger.", if: band(0) },
+            { text: "~playful~ Never mind. You fit back in the ship. That was the important bit.", if: band(0) },
+            { text: "~surprised~ A song AND words AND a thing! How did you pack the song?", if: band(1) },
+            { text: "~happy~ I made copies from your cards. Come check mine. Be nice about the glue.", if: band(1) },
+            { text: "~surprised~ So many! Did you leave anything out there?", if: band(2) },
+            { text: "~happy~ My shelf’s nearly full. The Major has to live by my socks. He doesn’t mind. I asked.", if: band(2) },
+            { text: "~surprised~ You brought everything! How did you still fit?", if: band(3) },
+            { text: "~playful~ Tove calls my shelf a museum. Admission is one button. Family too. Rules are rules.", if: band(3) },
           ],
           choices: [{ text: '~happy~ Show me your drawings.', goto: 'drawings' }, { text: '~solemn~ Have you been to see them? The stone.', goto: 'stone' }],
         },
         drawings: {
           say: [
-            '~happy~ They’re on the wall, by the door. One for every card you sent.',
+            "~happy~ By the door! One drawing for every card. I kept the cards as well.",
             { text: DRAWING_LINES.bazaar, if: done('bazaar') },
             { text: DRAWING_LINES.perdide2, if: (ctx) => done('perdide2')(ctx) && !done('bazaar')(ctx) },
             { text: DRAWING_LINES.arzach, if: (ctx) => done('arzach')(ctx) && !done('perdide2')(ctx) && !done('bazaar')(ctx) },
             { text: DRAWING_LINES.desert, if: (ctx) => !done('arzach')(ctx) && !done('perdide2')(ctx) && !done('bazaar')(ctx) },
-            '~whisper~ There’s one I’m doing now. That one’s secret. It’s for them.',
+            "~whisper~ There’s another I haven’t finished. For Grandma and Grandpa. You can see it when it’s ready.",
           ],
           choices: [{ text: '~solemn~ Have you been to see them?', goto: 'stone' }, { text: '~happy~ I’ll go and look.', end: true }],
         },
         stone: {
-          say: ['~solemn~ Every Sunday. Tove does the weeds and I do the flowers.', '~curious~ You can pick some from the garden. The yellow ones are best. Grandma liked the yellow ones.',
-            '~sad~ Grandpa didn’t like anything. But he kept my drawings in his chair. I saw.'],
+          say: ["~solemn~ We visit their stone every Sunday. Tove weeds. I choose the flowers.", "~curious~ Pick some yellow ones from the garden. Grandma liked those best.",
+            "~sad~ Grandpa said he didn’t like pictures on things. But he kept mine in his chair. So he liked them on chairs."],
           choices: [{ text: '~solemn~ I’ll take them some flowers.', end: true }],
         },
         flower: {
-          say: ['~happy~ You picked one! Is it for them? Put it at the front, where they can see.'],
+          say: ["~happy~ A flower for them? Put it at the front. That’s where I put mine."],
         },
         again: {
           say: [
-            { text: '~playful~ Moustache ate a sock today. A whole one. It came out again, don’t worry.', if: (ctx) => count(ctx) % 3 === 0 && !ended(ctx) },
-            { text: '~curious~ Is it true there are worlds where it rains all the time? Where do they keep the dry?', if: (ctx) => count(ctx) % 3 === 1 && !ended(ctx) },
-            { text: '~happy~ I’m going to be a traveller. But the kind that comes back every Sunday.', if: (ctx) => count(ctx) % 3 === 2 && !ended(ctx) },
-            { text: '~whisper~ The reel is still on the stone. Sometimes I go and look at it. I don’t touch it. Can we listen to the bit where you’re small again?', if: ended },
-            { text: '~curious~ When you go again, will you write? You always write.', if: ended },
+            { text: "~playful~ Moustache stole a sock. He’s pretending he’s always had it. Don’t believe him.", if: (ctx) => count(ctx) % 3 === 0 && !ended(ctx) },
+            { text: "~curious~ When a whole world is rainy, where do they dry their socks?", if: (ctx) => count(ctx) % 3 === 1 && !ended(ctx) },
+            { text: "~happy~ I’ll be a traveller too. One who comes home on Sundays. Every Sunday.", if: (ctx) => count(ctx) % 3 === 2 && !ended(ctx) },
+            { text: "~whisper~ Can we listen to the reel again? The bit where you’re little. You wave like me.", if: ended },
+            { text: "~curious~ Will you write when you go? I need things to draw.", if: ended },
           ],
           choices: [{ text: '~happy~ Show me your drawings.', goto: 'drawings' }, { text: '~playful~ What do you want to be when you’re big?', goto: 'big', once: true }],
         },
         big: {
-          say: ['~solemn~ Big.', '~playful~ And a traveller. With a dog. And I’ll write every single day, even when nothing happens. Especially then.'],
+          say: ['~solemn~ Big.', "~playful~ And a traveller. With a dog. I’ll write even if nothing happens. The dog can do his bit with a paw."],
         },
       },
     },
@@ -125,7 +125,7 @@ export const PEOPLE = {
   tove: {
     id: 'tove', name: 'Aunt Tove', title: 'your mother’s sister', color: '#8a6fb8', voice: 1.08, kind: 'f', scale: 0.96,
     palette: { cloak: '#8a6fb8', lining: '#2b211f', cloth: '#5f8fb8', legs: '#34405e', hat: '#e6875f', hair: '#b9b0a8' }, head: 'bun', cape: 0.85, look: { body: 'scarf', trim: 'hem', prop: 'none', mask: 'none' },
-    lines: ['~neutral~ Mind the beans. They bite.', '~happy~ There’s soup. There’s always soup.', '~tired~ That dog will be the end of me.'],
+    lines: ["~neutral~ Mind the beans. They’ve taken over the path again.", "~happy~ Soup’s ready. So are the bowls. Sit down.", "~tired~ That dog has very selective hearing."],
     talk: {
       entry: [
         { if: (ctx) => !ctx.game.flag('home.tove.met'), node: 'hello' },
@@ -134,27 +134,27 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~happy~ There he is. Thinner. They don’t feed you out there.', '~solemn~ She’s talked of nothing else since your last card. She drew your ship forty times. The dog is in most of them.',
-            '~neutral~ Go and see your mother and father when you’re ready. The flowers are Lou’s doing. She won’t let me near them.'],
+          say: ["~happy~ There you are. Come closer. Yes, you need feeding.", "~solemn~ Since your last card, she’s drawn your ship forty times. The dog travels in most versions. You’ll have to negotiate.",
+            "~neutral~ Go to your parents’ stone when you’re ready. Lou does the flowers. A fiercely guarded appointment."],
           do: { set: { 'home.tove.met': true } },
           choices: [{ text: '~sad~ I should have come back sooner.', goto: 'sooner' }, { text: '~curious~ How has she been?', goto: 'lou' }],
         },
         sooner: {
-          say: ['~solemn~ Yes. And now you have. Both of those are true, love.', '~sad~ They knew her, you know. Not just about her. Your mother crossed the yard every morning to do her hair. Your father pretended he didn’t watch from the window.',
-            '~whisper~ Sit with them a while. Then come in and eat.'],
+          say: ["~solemn~ Yes. You should have. And you’re here now. We can work with now.", "~sad~ They knew Lou. Your mother crossed the yard every morning to do her hair. Your father watched from the window and pretended not to.",
+            "~whisper~ Take your time with them. Then come inside. There’s a place for you at the table."],
         },
         lou: {
-          say: ['~playful~ Loud. Clever. Draws on everything, the walls included. She’s you, mostly.', '~happy~ The dog walks her to the stone and back. I think he misses your father too. Your father used to walk him, at the end.'],
+          say: ["~playful~ Loud. Curious. Draws on anything that holds still. Mostly you, though she finishes her pictures.", "~happy~ Moustache walks her to the stone. Your father used to walk him. I think the dog still expects that sometimes."],
         },
         flower: {
-          say: ['~happy~ One of Lou’s yellow ones. She’ll pretend to be cross. She won’t be.'],
+          say: ["~happy~ A yellow one. Lou chose those for your mother. She’ll be glad you’re taking it."],
         },
         again: {
           say: [
-            { text: '~neutral~ The soup’s on. It’s always on. It doesn’t get better, only hotter.', if: (ctx) => !ended(ctx) },
-            { text: '~solemn~ Their door sticks. It always did. Push, then lift.', if: (ctx) => !ended(ctx) },
-            { text: '~happy~ You look lighter. Not thinner. Lighter.', if: ended },
-            { text: '~neutral~ Go when you have to. We’ll be here. The lamp’s easy to keep.', if: ended },
+            { text: "~neutral~ Soup’s on. The longer you leave it, the more determined it gets.", if: (ctx) => !ended(ctx) },
+            { text: "~solemn~ The old house door sticks. Push, then lift. Your father always meant to fix it.", if: (ctx) => !ended(ctx) },
+            { text: "~happy~ You look as though you’ve put something heavy down.", if: ended },
+            { text: "~neutral~ Tell Lou before you go again. Keep writing. And come back when you say you will.", if: ended },
           ],
           choices: [{ text: '~curious~ How has she been?', goto: 'lou' }],
         },
@@ -167,69 +167,69 @@ export const PEOPLE = {
 export const THINGS = {
   photo: {
     id: 'home.photo', name: 'A photo', title: 'on the side table', color: '#c9a35a',
-    talk: { nodes: { look: { say: ['~solemn~ (The two of them in front of the house, young, squinting into the sun. Between them, you at seven, scowling at whoever held the camera.)',
-      '~whisper~ (Someone has dusted the glass. Lou, probably. Only the glass.)'] } } },
+    talk: { nodes: { look: { say: ["~solemn~ (Your parents stand outside the house, young and squinting. Between them, you at seven, scowling magnificently.)",
+      "~whisper~ (The glass is dusted. The frame is not. About as high as Lou can reach.)"] } } },
   },
   chair: {
     id: 'home.chair', name: 'Your father’s chair', title: 'turned to the window', color: '#8a3f36',
-    talk: { nodes: { look: { say: ['~solemn~ (His chair, turned to the round window. The cushion still holds the shape of him. His cap on the arm.)',
-      '~sad~ (Down the side of the cushion, folded small: a child’s drawings. A round ship. A dog with a moustache. A man in a hood, waving.)',
-      '~whisper~ (He kept them where he sat.)'] } } },
+    talk: { nodes: { look: { say: ["~solemn~ (Your father’s chair faces the round window. His cap rests on its arm.)",
+      "~sad~ (Folded beside the cushion: Lou’s drawings. A ship, a dog, a hooded man waving from the edge.)",
+      "~whisper~ (He kept them within reach.)"] } } },
   },
   scarf: {
     id: 'home.scarf', name: 'Your mother’s scarf', title: 'on the stand by the door', color: '#5fb7ad',
-    talk: { nodes: { look: { say: ['~solemn~ (Her scarf, on the stand by the door, where she left it for the next time she went out. Teal on one side, orange on the other.)',
-      '~whisper~ (It still smells of the garden.)'] } } },
+    talk: { nodes: { look: { say: ["~solemn~ (Your mother’s scarf hangs by the door. Teal outside, orange in the fold.)",
+      "~whisper~ (A faint smell of the garden remains.)"] } } },
   },
   recorder: {
     id: 'home.recorder', name: 'The recorder', title: 'under the mast', color: '#6e7d8c',
-    talk: { nodes: { look: { say: ['~solemn~ (The old house recorder, the cable from the mast still in its back. One spindle bare. Its spool is the reel: you have carried it all this way.)',
-      { text: '~whisper~ (The little light is out. Nobody will leave a message on it again.)', if: (ctx) => !ended(ctx) },
-      { text: '~whisper~ (The little light is out. The reel is on the stone now, where it can hear them.)', if: ended }] } } },
+    talk: { nodes: { look: { say: ["~solemn~ (The house recorder has one empty spindle. This is where you took the reel.)",
+      { text: "~whisper~ (Its recording light is dark. There will be no new messages.)", if: (ctx) => !ended(ctx) },
+      { text: "~whisper~ (The recorder is empty. The reel is outside on their stone.)", if: ended }] } } },
   },
   window: {
     id: 'home.window', name: 'The round window', title: 'the lamp in it, out', color: '#4a5a8a',
-    talk: { nodes: { look: { say: ['~solemn~ (The round window. Her lamp is still on its table under it, the wick black. From here you can see the ring where the ship stands, and the whole of the sky.)',
-      '~whisper~ (He stood here at the end, and said he heard something singing.)'] } } },
+    talk: { nodes: { look: { say: ["~solemn~ (Her lamp stands below the round window, wick black. From here, the landing ring is in full view.)",
+      "~whisper~ (Near the end, your father stood here and said he could hear singing.)"] } } },
   },
   shelf: {
     id: 'home.shelf', name: 'Lou’s shelf', title: 'a copy of every keepsake', color: '#f2c54b',
-    talk: { nodes: { look: { say: ['~happy~ (Lou’s shelf: a copy of every keepsake you wrote to her about, in clay and paper and string, each with a label in crayon.)',
-      { text: '~playful~ (The labels say what they are, mostly. One says THE SAD WOOD ONE.)', if: (ctx) => count(ctx) >= 6 },
-      { text: '~happy~ (There is room left on it. She has dusted the empty places too.)', if: (ctx) => count(ctx) < 17 }] } } },
+    talk: { nodes: { look: { say: ["~happy~ (Clay, paper, string. Lou has made the keepsakes from your cards. Each has a crayon label.)",
+      { text: "~playful~ (One label reads THE SAD WOOD ONE. It is attached very firmly.)", if: (ctx) => count(ctx) >= 6 },
+      { text: "~happy~ (She has left room. The empty places are dusted too.)", if: (ctx) => count(ctx) < 17 }] } } },
   },
   wall: {
     id: 'home.drawings', name: 'Lou’s drawings', title: 'one for every card', color: '#c8483a',
-    talk: { nodes: { look: { say: ['~happy~ (Lou’s drawings, pinned by the door: one for every world you wrote to her from. Crayon, pressed hard. The sky is always very blue.)',
-      '~playful~ (In every one of them there is a small figure in a red hood, somewhere, waving.)'] } } },
+    talk: { nodes: { look: { say: ["~happy~ (A drawing for every world you wrote about. Hard crayon lines. Fiercely blue skies.)",
+      "~playful~ (Each includes a small red hood. You are always there, somewhere.)"] } } },
   },
   seat: {
     id: 'home.seat', name: 'The window seat', title: 'Lou’s lookout', color: '#c8483a',
-    talk: { nodes: { look: { say: ['~solemn~ (The window seat. From here you can see the ring, and the path, and the whole of the sky over it.)',
-      '~whisper~ (Tove says Lou sat here every evening, watching for a light coming down.)'] } } },
+    talk: { nodes: { look: { say: ["~solemn~ (From Lou’s window seat you can see the ring and the path up to the house.)",
+      "~whisper~ (Tove says she watched here each evening for your ship.)"] } } },
   },
 };
 
 /** The stone: what comes to you when you kneel there (by what you bring). */
 export const HOMAGE = {
-  arrive: '~solemn~ (You kneel by the stone. The grass is cool. The two rings, overlapping like the moons, and their names under them.)',
+  arrive: "~solemn~ (You kneel. Two carved rings overlap above their names. The grass is cool.)",
   flower: (name) => `~solemn~ (You lay ${name} at the front, where they can see it.)`,
-  tokens: '~solemn~ (You set down what you have found since. There is still room on the slab.)',
-  empty: '~solemn~ (Your hands are empty. You rest one on the stone. It is warm from the day.)',
+  tokens: "~solemn~ (You set your new keepsakes beside the others. There is still room.)",
+  empty: "~solemn~ (Nothing to lay down today. You rest your hand on the sun-warmed stone.)",
   quiet: [
-    '~whisper~ (The wind in the grass. Somewhere behind you, Lou is telling the dog a long story.)',
-    '~whisper~ (Two moons over the hill. The washing moves on the line.)',
+    "~whisper~ (Behind you, Lou tells Moustache a story. He is a patient audience.)",
+    "~whisper~ (Two moons above the hill. Washing stirs on the line.)",
     '~whisper~ (The lamp by their door is lit. Tove keeps it.)',
   ],
   say: ['~whisper~ Hello, you two.', '~whisper~ I’m here.', '~whisper~ It’s me again.'],
-  lou: '~whisper~ (Lou comes and stands beside you, and doesn’t say anything at all, which is a first.)',
+  lou: "~whisper~ (Lou stands beside you. For once, she lets the quiet stay.)",
 };
 
 /** At the ending, Lou at the stone (src/story/ending.js tombLines, ctx.lou). */
 export const LOU_AT_STONE = {
   run: '~shout~ You came! Tove! He came!',
   bring: '~whisper~ I brought something too. It’s for them.',
-  drawing: '~solemn~ (Lou props her drawing against the stone: the round house, the two of them, and the two of you, holding hands.)',
+  drawing: "~solemn~ (Lou props up her drawing: the round house, your parents, and you holding her hand.)",
   after: '~whisper~ Was that you? The little one, waving?',
   you: '~whisper~ That was me.',
 };
@@ -239,5 +239,5 @@ export const PETTED = [
   '~happy~ Moustache leans his whole weight into your hand.',
   '~happy~ Moustache sits on your foot, so you can’t leave.',
   '~playful~ Moustache sneezes, delighted with himself.',
-  '~happy~ Moustache thumps his tail on the ground, twice, three times.',
+  "~happy~ Moustache thumps his tail against the ground. Then once more, to be sure.",
 ];

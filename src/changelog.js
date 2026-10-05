@@ -3,6 +3,11 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.58', date: '2026-10-05', items: [
+    'Conversations across every world now have clearer directions, distinct personalities, and a little more unexpected humour.',
+    'Family recordings and the homecoming have been rewritten, giving Lou, Tove, and the traveller more room to speak for themselves.',
+    'Temple guides, journal entries, item descriptions, and errands are easier to follow while keeping the worlds mysterious.',
+  ] },
   { v: '0.56', date: '2026-10-05', items: [
     'The settings now have an Updates section in the Android app: see the version you’re playing, check for updates, read what the new one brings, and download it with a progress bar. The game restarts at the title screen with your saves kept.',
     'Updates now arrive reliably: the app checks each time you come back to it, not only when it starts, tries again when the connection drops, and picks up an interrupted download where it stopped.',

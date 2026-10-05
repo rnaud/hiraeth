@@ -25,9 +25,9 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~whisper~ (A man is lying on the paving with his ear to an old stone at the foot of the silent tower. He holds up one finger.) Shh. Wait for it.',
-            '~solemn~ There. *Somebody*. That’s all it ever says. I’m Pell. I come and listen to it. Nobody else in this market listens to anything; they’re all too busy being heard.',
-            '~curious~ Under the tower is the *Undertower*, the old people say: the foundations, here before the market. The first sign there ever was. It used to say a whole line. The night the sky rang it got stuck on one word of it.'],
+          say: ["~whisper~ (A man has his ear against the paving at the tower’s foot. One raised finger asks you to wait.) Nearly. Listen.",
+            "~solemn~ *Somebody.* There it is again. I’m Pell. I listen to this stone. Everyone else here is trying to be louder than the next stall.",
+            "~curious~ Below us is *the Undertower*, older than the market. They say it once spoke a whole sentence. Since the sky rang, it can only repeat that first word."],
           do: { set: { 'met.pell': true } },
           choices: [
             { text: '~neutral~ I’ll go down to it.', do: { start: 'temple.bazaar' }, goto: 'go' },
@@ -36,38 +36,38 @@ export const PEOPLE = {
           ],
         },
         line: {
-          say: ['~sad~ Nobody remembers. Sel says the tower above it only ever said one thing, in a thousand voices, *somebody out there is talking to you*. Maybe it learned that from the one underneath.', '~whisper~ Maybe the one underneath is still trying to say it, and can’t get past the first word.'],
+          say: ["~sad~ Sel’s tower tells people *somebody out there is talking to you*. Perhaps it learned that message from whatever is underneath.", "~whisper~ Perhaps it’s been trying to finish the sentence all this time."],
           choices: [{ text: '~neutral~ I’ll go down to it.', do: { start: 'temple.bazaar' }, goto: 'go' }, { text: '~neutral~ Goodbye.', end: true }],
         },
         go: {
-          say: ['~neutral~ The doorway in the old stones, round the back. It isn’t locked. Nobody here would think of going down: there’s nothing to sell.',
-            '~whisper~ Down there, I think, things want to be listened to, and then answered in their own voice. Don’t shout at it. Give it back what it says.'],
+          say: ["~neutral~ Go round the back to the doorway in the old stones. Unlocked. Few people here explore where there’s nothing for sale.",
+            "~whisper~ Listen to what you hear below, then play it back. I think it needs an answer in its own voice."],
           choices: [{ text: '~happy~ In its own voice. I’ll try.', end: true }],
         },
         again: {
-          say: ['~whisper~ (He points at the doorway without lifting his ear from the stone.)'],
+          say: ["~whisper~ (Pell points to the rear doorway, keeping his ear on the stone.)"],
           choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.bazaar', started: false }, do: { start: 'temple.bazaar' }, end: true }, { text: '~neutral~ Goodbye.', end: true }],
         },
         inside: {
           say: ['~surprised~ You went down! Is it loud, down there?', '~curious~ And the doors? Do they open for anybody?'],
           choices: [
-            { text: '~solemn~ They listen for a note. Only a note played back to them.', goto: 'note' },
+            { text: "~solemn~ The doors need their own notes played back to them.", goto: 'note' },
             { text: '~neutral~ I’m going back.', end: true },
           ],
         },
-        note: { say: ['~curious~ Played back… like an echo. The old people used to hold shells to their ears and say they could hear the first sign in them.', '~neutral~ The makers kept everything. They’d have kept a shell.'], choices: [{ text: '~neutral~ I’ll look.', end: true }] },
+        note: { say: ["~curious~ An echo. People used to hear the first sign in shells held to their ears. Look for something that can catch a sound.", "~neutral~ A makers’ shell, perhaps. They seemed reluctant to let anything be forgotten."], choices: [{ text: '~neutral~ I’ll look.', end: true }] },
         after: {
-          say: ['~surprised~ (Pell is sitting up, for once, looking up at the silent tower. There is a lamp burning on its crown.) It stopped. It stopped saying *somebody*.',
-            '~happy~ And last night, all at once, the tower said it. The whole line, in that old voice, over the whole square. *Somebody out there is talking to you.* Everybody stopped selling. Even the noodle men.',
-            '~solemn~ It’ll say it again tonight, the doorway says. Once a night. I’ll be here. I won’t need my ear on the stones any more.'],
+          say: ["~surprised~ (Pell sits upright beneath a newly lit tower lamp.) It stopped repeating. I thought it had gone silent for good.",
+            "~happy~ Then the whole sentence came out: *Somebody out there is talking to you.* The market stopped to hear it. Even the noodle men.",
+            "~solemn~ It will speak once each night now. I can listen standing up. My ear will appreciate the promotion."],
           choices: [
             { text: '~solemn~ It was stuck. I gave it its words back.', goto: 'words' },
             { text: '~happy~ Somebody out there is talking to you, Pell.', goto: 'you' },
             { text: '~neutral~ Goodbye, Pell.', end: true },
           ],
         },
-        words: { say: ['~solemn~ Then it’s said what it was made to say. That’s more than most of us get to do.'], choices: [{ text: '~neutral~ Goodbye, Pell.', end: true }] },
-        you: { say: ['~happy~ (He laughs, a little embarrassed.) I know. You are.'], choices: [{ text: '~neutral~ Goodbye.', end: true }] },
+        words: { say: ["~solemn~ At last it finished what it meant to say. I’m glad someone helped it."], choices: [{ text: '~neutral~ Goodbye, Pell.', end: true }] },
+        you: { say: ["~happy~ (Pell laughs.) Yes. You’re talking to me. I’m listening."], choices: [{ text: '~neutral~ Goodbye.', end: true }] },
       },
     },
   },

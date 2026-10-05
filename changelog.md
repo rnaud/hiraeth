@@ -2,6 +2,12 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.58 — 2026-10-05
+
+- Conversations across every world now have clearer directions, distinct personalities, and a little more unexpected humour.
+- Family recordings and the homecoming have been rewritten, giving Lou, Tove, and the traveller more room to speak for themselves.
+- Temple guides, journal entries, item descriptions, and errands are easier to follow while keeping the worlds mysterious.
+
 ## v0.56 — 2026-10-05
 
 - The settings now have an Updates section in the Android app: see the version you’re playing, check for updates, read what the new one brings, and download it with a progress bar. The game restarts at the title screen with your saves kept.
