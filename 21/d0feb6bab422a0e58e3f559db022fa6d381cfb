@@ -1,0 +1,41 @@
+DONE.md
+  s_1fd8d0e7b02dcf::t_8fa6f71122ab8b 665-669
+TODO.md
+  s_1fd8d0e7b02dcf::t_84b70346473900 149-151
+changelog.md
+  s_1fd8d0e7b02dcf::t_d6629699e33f7c 5-9
+docs/systems/materials.md
+  s_1fd8d0e7b02dcf::t_295d49e99fc1ae 55,58-93
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_5ee78472a9201f 9-12
+src/desert-landmarks.js
+  s_1fd8d0e7b02dcf::t_155077796b27e9 178-179
+src/levels/bazaar.js
+  s_1fd8d0e7b02dcf::t_c6d01e4b45176a 20,24,79,105
+src/levels/home-houses.js
+  s_1fd8d0e7b02dcf::t_5ca68a8c0eea59 98
+src/main.js
+  s_1fd8d0e7b02dcf::t_a8a14e73ca628d 727
+src/materials.js
+  s_1fd8d0e7b02dcf::t_d2dfc4f72cd4ac 95-96,266-271,273-280,321,475,536-537,549,930-931,933-972,974-976,981-985,989,992-993,1363-1372,1395-1399,1521-1537,1766-1768
+src/post.js
+  s_1fd8d0e7b02dcf::t_7f228eb20dbd59 2,503-505,714-731
+tests/shade.test.js
+  s_1fd8d0e7b02dcf::t_6554c9ace54e9d 144-170
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "21d0feb6bab422a0e58e3f559db022fa6d381cfb",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
