@@ -86,7 +86,7 @@ export const GRASS_VERT_PARS = /* glsl */ `
 export function grassLod(R, Rf = null, far = false, keep = 0) {
   const look = [0.55 * R, 1.25 * (Rf ?? R * 0.8), 0.55, far ? 0 : 0.12];
   if (far) return { view: [0.6 * Rf, 0.9 * Rf], lod: [0.35 * R, 1.1 * R, 1, 1], look };
-  return { view: [0.62 * R, 0.9 * R], lod: [0.3 * R, 1.15 * R, keep, 0], look };
+  return { view: [0.62 * R, 0.9 * R], lod: [0.4 * R, 1.2 * R, keep, 0], look };
 }
 
 const smooth = (x, a, b) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
