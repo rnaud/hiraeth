@@ -24,6 +24,7 @@ import { mulberry32 } from '../noise.js';
 import { BODY_MORPHS, FACE_MORPHS, NEUTRAL_BODY, cleanMorph } from '../morph.js';
 import { EXPRESSION_KEYS, TONE_EXPRESSIONS, expressionFor } from '../expression.js';
 import { TONES } from '../story/tone.js';
+import { POSE_IDS } from '../hands.js';
 import { TITLES } from '../levels/names.js';
 import { cleanState, encodeState, decodeState, settingsJSON } from './state.js';
 import { FACE_PRESETS, castOf, lookFor, BLANK, STORY_WORLDS } from './people.js';
@@ -401,6 +402,13 @@ function animate(p, dt, t) {
   H.setExpression(e);
   if (!state.blink) { H.eyeLook.blink = 0; H.eyeLook.blinkAt = -1; H.eyeLook.nextBlink = H.eyeLook.t + 1; }
   H.updateEyes(dt, state.gaze === 'camera' || state.gaze === 'target' ? target : null);
+  // the hands (src/hands.js): a pose picked in the panel, or what the motion, the prop and the tone make them do
+  const cn = clip?.name ?? '';
+  H.hands?.update(state.paused ? dt : dtA, state.hands !== 'auto' ? { pose: state.hands } : {
+    mode: seated ? 'seated' : /^Climb/.test(cn) ? 'climb' : /^Driving/.test(cn) ? 'ride' : /^Jump_(Loop|Start)/.test(cn) ? 'air' : 'ground',
+    ride: 'bike', air: 1, speed, prop: p.npc?.look?.prop,
+    talk: state.talk || state.anim === 'game:talk' ? { tone: state.tone, k: state.amount, beat: Math.min(1, (e.open ?? 0) * 1.6) } : null,
+  });
   // cloth
   if (p.npc?.cape) {
     const cape = p.npc.cape;
@@ -478,6 +486,7 @@ function applySky() {
 const faceOffset = (p) => (p?.h?.profile ? p.h.faceRest[0] - p.h.rest.get(p.h.b.Head).p.y - 0.1 : 0);
 const VIEWS = {
   full: { y: 0.92, dist: 4.6 }, bust: { y: 1.45, dist: 1.3 }, face: { y: 1.67, dist: 0.72 }, close: { y: 1.67, dist: 0.4 }, far: { y: 0.92, dist: 34 },
+  hands: { y: 0.85, dist: 0.62 },   // (on the right hand)
 };
 const orbit = { yaw: state.yaw, pitch: state.pitch, zoom: 1 };
 function placeCamera(dt) {
@@ -499,7 +508,13 @@ function placeCamera(dt) {
   if (p && headView && head) ty = head.getWorldPosition(_v).y + ((state.view === 'bust' ? -0.13 : state.view === 'close' ? 0.045 : 0.0) + faceOffset(p)) * s;
   const cx = state.lineup ? 0 : p?.pos.x ?? 0, cz = state.lineup ? 0 : p?.pos.z ?? 0;
   const target = new THREE.Vector3(cx, ty, cz);
-  camera.position.set(cx + Math.sin(orbit.yaw) * Math.cos(orbit.pitch) * dist, ty + Math.sin(orbit.pitch) * dist, cz + Math.cos(orbit.yaw) * Math.cos(orbit.pitch) * dist);
+  if (state.view === 'hands' && p?.h?.b?.hand_r && !state.lineup) {
+    // the right hand, from the middle of the palm out to the fingers
+    const hb = p.h.b, mid = hb.middle_02_r ?? hb.hand_r;
+    target.copy(hb.hand_r.getWorldPosition(_v)).lerp(mid.getWorldPosition(new THREE.Vector3()), 0.6);
+    dist = V.dist * orbit.zoom * s;
+  }
+  camera.position.set(target.x + Math.sin(orbit.yaw) * Math.cos(orbit.pitch) * dist, target.y + Math.sin(orbit.pitch) * dist, target.z + Math.cos(orbit.yaw) * Math.cos(orbit.pitch) * dist);
   camera.position.y = Math.max(camera.position.y, 0.05);
   camera.lookAt(target);
   camera.updateMatrixWorld();
@@ -863,6 +878,7 @@ check(sAnim, 'Paused', 'paused');
 slider(sAnim, 'Scrub (clips)', 'time', 0, 1, 0.001, 0, () => { state.paused = true; updatePanel(); });
 check(sAnim, 'Walk over the floor', 'move');
 check(sAnim, 'Plant the feet (traveller)', 'plant');
+select(sAnim, 'Hands', 'hands', [['auto', 'by what they do (the motion, a prop, the tone talking)'], ...POSE_IDS.map((k) => [k, `pose: ${k}`])]);
 
 // light and ink
 const sLight = section('Light and ink');
@@ -896,7 +912,7 @@ sShare.append(json);
 function viewButtons() {
   const v = $('views');
   v.replaceChildren();
-  for (const [k, t] of [['full', 'Full body'], ['bust', 'Bust'], ['face', 'Face'], ['close', 'Close-up'], ['far', 'Far away']]) {
+  for (const [k, t] of [['full', 'Full body'], ['bust', 'Bust'], ['face', 'Face'], ['close', 'Close-up'], ['hands', 'Hands'], ['far', 'Far away']]) {
     const b = document.createElement('button');
     b.textContent = t;
     b.className = state.view === k ? 'on' : '';

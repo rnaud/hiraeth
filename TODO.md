@@ -529,7 +529,9 @@ All of this is for the web game; the Unity port follows later if we move to Unit
 - [ ] Grass pops in: in the distance it should fade into something smaller and cheaper, not appear at a line.
 - [ ] Jump animation by phase: take-off, the top, falling back down (it looks static through the whole jump).
 - [ ] The gun's blob impact follows the surface it hits, not a flat decal floating in front of it.
-- [ ] Hands are stiff and flat: give them the natural arc of a relaxed hand, and let them move.
+- [x] Hands are stiff and flat: give them the natural arc of a relaxed hand, and let them move.
+  (`src/hands.js`: the fingers were never posed; a relaxed arc at rest, poses by context (running,
+  climbing, riding, the gun, props), gestures in the line's tone, blended, with a little drift and lag.)
 - [ ] The faces in the dialogue box's portrait are badly aliased.
 - [x] The alien text in the dialogue box lacks variety: it should look like a real written language
   (each world its own script) before it turns into English. Done: `src/story/scripts.js`, a script

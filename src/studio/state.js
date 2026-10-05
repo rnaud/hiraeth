@@ -22,10 +22,11 @@ export const DEFAULTS = Object.freeze({
   // animation
   anim: 'game:idle',     // game:idle | game:walk | game:jog | game:run | game:talk | game:sit | clip:<name>
   speed: 1, paused: false, time: 0, plant: true, move: false,
+  hands: 'auto',         // auto (by the motion, the prop and the tone) | a pose of src/hands.js HAND_POSES
   // cloth
   cape: true, wind: 0.6,
   // the view
-  view: 'full',          // full | bust | face | close | far
+  view: 'full',          // full | bust | face | close | far | hands
   turntable: false, yaw: 0.35, pitch: 0.05,
   lineup: '',            // '' | cast | crowd | faces (the traveller and someone of every world) | makehuman (MakeHuman beside Quaternius)
   count: 6,

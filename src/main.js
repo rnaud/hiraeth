@@ -38,6 +38,7 @@ import { loadMotionLibrary, matchingSetting } from './motion-match.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { loadHuman, Humanoid } from './humanoid.js';
 import { talkFaces, TALK_FACE } from './talk-face.js';
+import { updateHands } from './hands.js';
 import { Changelog, VERSION } from './changelog.js';
 import { Settings, SettingsMenu, TouchControls, SaveGame, isTouch, isNativeApp, ToolHud } from './ui.js';
 import { FluidTool, bindToolMouse } from './fluid-tool.js';
@@ -1253,6 +1254,7 @@ function frame() {
     // the one who talks near you says it with their face too (src/talk-face.js; a conversation drives its own)
     if (best?.humanoid && !best.talkTo && best.object.visible && camera.position.distanceTo(best.pos) < TALK_FACE.near) talkFaces.drive(best.humanoid, best.balloonFace());
     talkFaces.update(dt);
+    updateHands(dt, { player, npcs, camera });   // the fingers: relaxed, gripping, gesturing with the line (src/hands.js)
     if (!busy() && !photo.on) storyRt.placePrompt(camera, controllerActive); else storyRt.placePrompt(camera, false);
   }
   relics.update(dt, t, player);
