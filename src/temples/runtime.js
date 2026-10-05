@@ -168,6 +168,7 @@ export class TempleRuntime {
     this.time += dt;
     const P = this.player;
     const inside = P && this.inside(P.pos);
+    if (P && this.def.dark) P.inDark = !!inside;   // (a dark temple: the lantern charm glows in it, day or night)
     if (inside && !this.game.flag(`temple.${this.id}.entered`)) { this.game.set(`temple.${this.id}.entered`, true); this.notice(this.def.enterLine); }
     if (inside || this.time < 0.5) for (const p of this.pieces) p.update(dt, t);
     else for (const p of this.pieces) if (p.solid || p.flames) p.update?.(dt, t);

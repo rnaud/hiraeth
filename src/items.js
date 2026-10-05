@@ -92,6 +92,11 @@ export const ITEMS = {
     text: 'A sprig of the deep wood’s moss under a bead of glass, pinned to your collar. It has been glowing, very softly, since before anyone thought to keep it.',
     use: 'After dusk it lights the ground round your feet, a little.',
   },
+  pouch: {
+    name: 'Seed pouch', kind: 'charm',
+    text: 'A little linen pouch on a cord, full of seeds so small they look like dust. It never empties. The makers planted as they walked.',
+    use: 'Small flowers come up in your footsteps where you walk, and fade a while after.',
+  },
   resin: {
     name: 'Climber’s resin', kind: 'charm',
     text: 'A little tin of amber resin, still soft after who knows how long, the makers’ thumb pressed into the lid. Rub it on your palms.',

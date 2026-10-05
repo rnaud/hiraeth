@@ -90,7 +90,9 @@ export const PLACEMENTS = {
   ],
   edena: [
     // the upper canopy of an umbrella tree: climb the trunk
-    { id: 'edena.lantern', item: 'lantern', at: [-52, 85.7, 66], toward: [-60, 70],
+    // It held the lantern charm until the Lamp-House was built (src/temples/perdide2.js): the lantern is that
+    // temple's key now, and the canopy keeps the seed pouch, a gift in the open
+    { id: 'edena.pouch', item: 'pouch', at: [-52, 85.7, 66], toward: [-60, 70],
       hint: 'A makers’ box waits on the top canopy of the umbrella tree west of the landing. Climb the trunk',
       note: 'Up the umbrella tree west of the spawn, on its top canopy.' },
   ],
@@ -119,6 +121,10 @@ export const PLACEMENTS = {
     { id: 'perdide2.moss', item: 'moss', at: [-18.8, 15.1, -89.5], toward: [0, 0],
       hint: 'A makers’ box sits on top of the first root arch over the path. Climb its root',
       note: 'On top of the first root arch over the path; climb its root.' },
+    // the Lamp-House (src/temples/perdide2.js): in its dark round chamber over the root stair. The lantern is the
+    // key to the rest: the lamps that wake to it, the moss-stones and the eye only its light shows, the Lampless
+    { id: 'perdide2.temple.lantern', item: 'lantern', temple: 'perdide2', site: (level) => level.temple?.gadgetSite,
+      note: 'Inside the Lamp-House in the shallows east of the root cave, in the dark chamber over the root stair.' },
   ],
 };
 

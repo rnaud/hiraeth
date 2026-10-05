@@ -323,14 +323,14 @@ test('every hidden box has a quest that says where to look; it starts on arrival
   const pl = player(level.spawn);
   const boxes = createBoxes({ levelId: 'edena', scene, physics, level, player: pl, quests, toast: (t) => toasts.push(t) });
   const [qid] = boxes.quests;
-  assert.equal(qid, 'box.edena.lantern');
+  assert.equal(qid, 'box.edena.pouch');   // (the canopy's box: the lantern moved into Lorn II's temple, src/temples/)
   assert.equal(quests.isStarted(qid), false, 'not straight away');
   for (let i = 0; i < 30 * (BOX_QUEST_DELAY + 1); i++) boxes.update(1 / 30, i / 30);
   assert.equal(quests.isActive(qid), true, 'started after the landing');
   assert.ok(toasts.length === 1 && /sketchbook/.test(toasts[0]));
   assert.ok(quests.journalHtml().includes('umbrella tree'), 'the sketchbook says where');
-  boxes.open('edena.lantern', { instant: true });
+  boxes.open('edena.pouch', { instant: true });
   quests.update(pl);   // (the story runtime does this every frame)
   assert.equal(quests.isDone(qid), true, 'opening the box finishes it');
-  boxes.dispose(); clearInteractables(); game.reset(); items.revoke('lantern');
+  boxes.dispose(); clearInteractables(); game.reset(); items.revoke('pouch');
 });

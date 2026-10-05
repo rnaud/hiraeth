@@ -820,3 +820,86 @@ test('the Engine-House on foot: the valve and the pistons, the counterweight, th
   game.reset();
   own();
 });
+
+// ------------------------------------------------------------------ on foot: Lorn II's Lamp-House, room by room
+test('the Lamp-House on foot: three dark pools, the disc and the root-wall, the lantern, the lamps that wake to it, the stones only its light shows, the Lampless fed, the lamp lit', () => {
+  game.reset();
+  own('backpack');
+  const { level, physics, rt } = world('perdide2');
+  const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true, limit: level.limit });
+  rt.connect({ player: P, toast: () => {} });
+  let t = 0;
+  const L = (x, y, z) => rt.kit.world(x, y, z);
+  const frame = (input = {}, yaw = 0) => { t += DT; rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };
+  const toward = (to) => Math.atan2(-(to.x - P.pos.x), -(to.z - P.pos.z));
+  const flat = (a) => Math.hypot(P.pos.x - a.x, P.pos.z - a.z);
+  const walk = (to, { tol = 0.6, max = 25, run = true, dy = 1.6 } = {}) => {
+    for (let i = 0; i < max / DT; i++) { if (flat(to) < tol && Math.abs(P.pos.y - to.y) < dy) return true; frame({ KeyW: true, ShiftLeft: run }, toward(to)); }
+    return false;
+  };
+  const wait = (s) => { for (let i = 0; i < s / DT; i++) frame(); };
+  const where = () => rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1)).join(', ');
+  wait(0.5);
+  assert.equal(P.inDark, true, 'a dark house: the lantern charm glows in it');
+  // ---- the Hall of Dark Pools
+  for (const id of ['s1', 's2', 's3']) rt.piece(id).hit('shoot');
+  wait(2.2);
+  assert.equal(rt.logic.isOpen('d1'), true);
+  // ---- the Root Stair: the disc over the dark pool, then up the root-wall
+  assert.equal(walk(L(0, 0, 49)), true, `to the stair (${where()})`);
+  const disc = rt.pieces.find((p) => p.path);
+  for (let i = 0; i < 30 / DT && !(disc.s < 0.2 && disc.wait > 0.6); i++) frame();
+  assert.equal(walk(disc.group.position, { tol: 0.5, run: false, max: 4 }), true, `onto the disc (${where()})`);
+  for (let i = 0; i < 30 / DT && !(disc.s > disc.total - 0.2); i++) frame();
+  let up = false;
+  for (let i = 0; i < 20 / DT; i++) { frame({ KeyW: true }, toward(L(0, 9, 66))); if (P.onGround && rt.kit.local(P.pos).y > 8.5) { up = true; break; } }
+  assert.ok(up, `up the root-wall (${where()})`);
+  // ---- the Lantern Chamber: the chest; the lamp-door wakes only to the lantern
+  assert.equal(walk(L(0, 9, 75)), true, `into the chamber (${where()})`);
+  assert.equal(walk(L(2.6, 9, 87.6), { tol: 0.8 }), true, 'by the lamp');
+  wait(2.5);
+  assert.equal(rt.logic.isLit('l1'), false, 'nothing without the lantern');
+  items.grant('lantern'); game.emit('box:opened', { id: 'perdide2.temple.lantern' });
+  wait(2.5);
+  assert.equal(rt.logic.isLit('l1'), true, 'it wakes to the lantern');
+  wait(2.2);
+  assert.equal(rt.logic.isOpen('d2'), true);
+  // ---- the Dark Gallery: the moss-stones the lantern shows; the eye; the second lamp
+  assert.equal(walk(L(0, 9, 93)), true, `to the chasm (${where()})`);
+  wait(2);
+  assert.equal(walk(L(0, 9, 118)), true, `over the moss-stones (${where()})`);
+  assert.ok(P.pos.y > L(0, 8, 0).y, 'on them, not in the chasm');
+  rt.piece('s4').hit('shoot');
+  assert.equal(walk(L(-2.6, 9, 123.5), { tol: 0.8 }), true);
+  wait(2.5);
+  wait(2.2);
+  assert.equal(rt.logic.isOpen('d4'), true);
+  // ---- the Lamp-Room: stand still by the Lampless while it searches
+  assert.equal(walk(L(0, 9, 132)), true, `into the lamp-room (${where()})`);
+  const G = rt.guardian;
+  wait(0.3);
+  assert.notEqual(G.state, 'sleep');
+  P.opts.health = false;
+  for (let n = 0; n < 12 && G.state !== 'weary'; n++) {
+    let open = false;
+    for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open') { open = true; break; } }
+    assert.ok(open, `it hangs low, searching (${n})`);
+    const before = G.meter;
+    P.teleport(G.model.pos.clone().setY(L(0, 9, 0).y).add(V(4, 0.1, 0)), V(0, 1, 0), V(0, 0, 1));
+    for (let i = 0; i < 3 / DT && G.meter === before && G.state === 'open'; i++) frame();
+    assert.ok(G.meter > before || G.state !== 'open', `it drank (${n}: ${G.meter.toFixed(2)})`);
+  }
+  assert.equal(G.state, 'weary', `calm (${G.meter.toFixed(2)})`);
+  for (let i = 0; i < 20 / DT && Math.hypot(G.model.pos.x - G.model.rest.x, G.model.pos.z - G.model.rest.z) > 0.6; i++) frame();
+  wait(2);
+  P.teleport(G.model.pos.clone().setY(L(0, 9, 0).y).add(V(0, 0.1, -2.4)), V(0, 1, 0), V(0, 0, 1));
+  wait(0.3);
+  const near = bestInteractable(P);
+  assert.equal(near?.entry.id, 'temple.perdide2.touch', 'a hand on its back');
+  near.entry.use(P);
+  assert.equal(game.flag('temple.perdide2.done'), true);
+  wait(6);
+  assert.ok(rt.outside.lampM.uniforms.uGlow.value > 0.6, 'the Lamp-House burns again');
+  game.reset();
+  own();
+});

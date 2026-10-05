@@ -287,6 +287,65 @@ const T2 = (g, color) => {
   return out;
 };
 
+/**
+ * Lorn II's Lampless (organic: you calm it): a great pale moth that drank the Lamp-House's light the night
+ * the sky rang, and the three pools' with it, and is still hungry, and frightened of how dark it made
+ * everything. A furred body, four broad wings with glyph eye-spots, feathered antennae. Floating.
+ */
+export function mothModel({ fur = '#e9dff2', wing = '#d6c8e6', wing2 = '#b9a6d4', dark = '#2f3560', glow = '#f6c84e' } = {}) {
+  const group = new THREE.Group();
+  const mat = vc();
+  const glowM = makeMaterial({ color: glow, glow: 0.12, flat: true, key: `moth.glow.${uid++}` });
+  const eyeM = makeMaterial({ color: dark, flat: true, key: `moth.eye.${uid++}` });
+  const body = new THREE.Group();
+  group.add(body);
+  const tufts = [];
+  for (let i = 0; i < 8; i++) tufts.push(ell([0.75, 0.55, 0.6], fur, [Math.sin(i * 2.4) * 0.3, 0.45 + (i % 2) * 0.1, -2.2 + i * 0.6], null, [7, 5]));
+  body.add(new THREE.Mesh(merge(
+    ell([0.95, 0.9, 2.6], fur, [0, 0, -0.6], null, [14, 10]),
+    ell([0.85, 0.8, 0.9], fur, [0, 0.1, 1.7], null, [12, 8]),
+    tufts,
+  ), mat));
+  body.add(new THREE.Mesh(merge(ell([0.24, 0.26, 0.2], '#ffffff', [-0.5, 0.3, 2.45]), ell([0.24, 0.26, 0.2], '#ffffff', [0.5, 0.3, 2.45])), eyeM));
+  // antennae: feathered fronds
+  for (const s of [-1, 1]) {
+    const pts = [[s * 0.3, 0.7, 2.3], [s * 0.9, 1.6, 3.0], [s * 1.6, 2.2, 3.3]];
+    body.add(new THREE.Mesh(merge(tube(pts, 0.05, fur, 8, 4), ell([0.5, 0.06, 0.25], fur, [s * 1.4, 2.0, 3.25], [0, s * 0.4, 0])), mat));
+  }
+  // four wings, each a broad flat oval with a glyph eye-spot, hinged at the shoulder
+  const wings = [];
+  for (const [s, z, len, back] of [[-1, 0.6, 4.6, 0], [1, 0.6, 4.6, 0], [-1, -0.9, 3.6, 1], [1, -0.9, 3.6, 1]]) {
+    const w = new THREE.Group();
+    w.position.set(s * 0.7, 0.35, z);
+    body.add(w);
+    w.add(new THREE.Mesh(merge(ell([len, 0.08, back ? 1.6 : 2.2], back ? wing2 : wing, [s * len * 0.95, 0, back ? -0.6 : 0.2], [0, s * (back ? -0.35 : 0.25), 0])), mat));
+    w.add(new THREE.Mesh(merge(glyphGeometry(back ? 1.0 : 1.4, 0.05).rotateX(-Math.PI / 2).translate(s * len * 1.1, 0.07, back ? -0.6 : 0.2)), glowM));
+    wings.push({ w, s, back });
+  }
+  noCollide(group);
+  const mouth = V(), _w = V();
+  const M = {
+    group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, floats: true, hover: 6,
+    mouth, mouthR: 1.6, radius: 3.4, height: 3.4, bodyR: 2.2, touchR: 1.6,
+    body, wings, glowM, low: 0, flap: 0,
+    animate(dt, t, { state, attack, k = 0, speed = 0, meter = 0 }) {
+      const ease = (cur, want, rate) => cur + (want - cur) * Math.min(1, dt * rate);
+      const asleep = state === 'sleep', weary = state === 'weary', resolved = state === 'resolved';
+      M.low = ease(M.low, weary ? 1 : state === 'open' ? 0.65 : asleep ? 0.8 : attack?.id === 'swoop' ? Math.min(1, k * 1.2) : 0, 2.4);
+      M.hover = THREE.MathUtils.lerp(7, 1.6, M.low) + Math.sin(t * 2.2) * 0.3;
+      M.flap += dt * (asleep || weary ? 1.2 : state === 'open' ? 3 : 7 + speed);
+      const amp = asleep || weary ? 0.12 : state === 'open' ? 0.35 : 0.65;
+      for (const W of wings) W.w.rotation.z = W.s * (Math.sin(M.flap + (W.back ? 0.5 : 0)) * amp + (weary ? -0.25 : 0.15));
+      body.rotation.x = state === 'open' ? -0.25 : 0;
+      const calm = resolved ? 1 : meter;
+      glowM.uniforms.uGlow.value = 0.12 + 0.75 * calm + (state === 'open' ? 0.15 * Math.sin(t * 8) : 0);
+      group.updateMatrixWorld(true);
+      mouth.copy(body.localToWorld(_w.set(0, 0, 2.6)));
+    },
+  };
+  return M;
+}
+
 /** The sentinel (robot: you may break it). parts: a tall body on three legs, a ring of vents, a lamp-eye. */
 export function sentinelModel({ hull = '#9fb2c6', hull2 = '#8aa0b8', dark = '#34405e', brass = '#e2b552', eye = '#f6c84e', vents: nV = 3, legs: nL = 3, guarded = true } = {}) {
   const group = new THREE.Group();

@@ -21,6 +21,7 @@ import { T, box, lathe, prep } from './kit.js';
 //   Bramble  dry thorns across a doorway: an ember glob burns them away for good
 //   Switch   a carved eye on a wall: a splash of fluid wakes it for good
 //   Bank     four eyes that wake only together, inside a breath: it wants the fourth chamber
+//   LightEar a lamp that wakes when you stand by it with the lantern charm
 //   Platform a disc that rides between points (you ride along on it)
 //   Bridge   stones that rise out of a chasm when their condition holds
 //   Mark     a glyph stone: walk past it and it is where you come back to (a checkpoint)
@@ -28,6 +29,7 @@ import { T, box, lathe, prep } from './kit.js';
 //
 // Any of Door, Switch and Bridge can be `hidden`: only the glyph lens shows it (src/items.js 'lens'): a hidden
 // door is plain wall until you carry the lens, a hidden eye and a hidden bridge are not there at all.
+// (`hidden: 'lantern'`: only the lantern charm's light shows it.)
 //
 // A piece: { id?, update(dt, t), init(physics)?, setOpen(open, instant)?, solid?, dispose() }.
 
@@ -37,6 +39,8 @@ const UP = V(0, 1, 0);
 const noCollide = (o) => { o.traverse((c) => { c.userData.noCollide = true; c.userData.dynamic = true; }); return o; };
 const ease = (k) => k * k * (3 - 2 * k);
 const _dl = new THREE.Vector3(), _dn = new THREE.Vector3();
+/** What shows a hidden piece: the glyph lens (hidden: true), or the item named. */
+const shownBy = (h) => (h === true ? 'lens' : h);
 let uid = 0;
 /** A material of its own (uniforms it can change without touching other pieces). */
 const own = (o) => makeMaterial({ ...o, key: `temple.${uid++}` });
@@ -124,7 +128,7 @@ export class Door {
       }
     }
     // hidden: plain wall, no glyph, until the lens shows it
-    if (this.o.hidden) { const seen = this.rt.logic.has('lens'); this.glowMesh.visible = seen; for (const l of this.lamps) l.mesh.visible = seen; if (!seen) return; }
+    if (this.o.hidden) { const seen = this.rt.logic.has(shownBy(this.o.hidden)); this.glowMesh.visible = seen; for (const l of this.lamps) l.mesh.visible = seen; if (!seen) return; }
     let met = 0;
     for (const l of this.lamps) {
       const on = this.open || !!this.rt.logic?.check(l.cond);
@@ -357,7 +361,7 @@ export class Switch {
     this.center = this.group.position.clone();
     this.on = rt.logic.isLit(o.id);
     this.hidden = !!o.hidden;
-    const seen = () => !this.hidden || rt.logic.has('lens');
+    const seen = () => !this.hidden || rt.logic.has(shownBy(o.hidden));
     this.off = registerTarget({ kind: 'switch', radius: s, position: () => this.center, enabled: seen, onHit: (mode) => this.hit(mode) });
     this.seen = seen;
   }
@@ -432,6 +436,30 @@ export class BellEar {
   }
   update() {}
   dispose() { this.off?.(); }
+}
+
+/**
+ * Wakes to the lantern charm's light: stand by it (within `reach`) with the lantern a moment (`hold` s), and
+ * element `id` (a 'switch' that needs the lantern) is lit for good. o: { id, at, reach, hold }
+ */
+export class LightEar {
+  constructor(rt, o) {
+    this.rt = rt; this.id = o.id; this.at = rt.kit.world(...o.at); this.reach = o.reach ?? 3.5; this.hold = o.hold ?? 1.5;
+    this.t = 0;
+    this.glow = own({ color: rt.P.lamp ?? '#f6c84e', glow: 0.05, flat: true });
+    const m = mesh([T(new THREE.SphereGeometry(0.5, 14, 10), [0, 0, 0])], this.glow);
+    m.position.copy(this.at).add(V(0, 2.8, 0));
+    noCollide(m);
+    rt.root.add(m);
+    this.lit = rt.logic.isLit(o.id);
+  }
+  update(dt, t) {
+    const P = this.rt.player, has = this.rt.logic.has('lantern');
+    const near = P && has && P.pos.distanceTo(this.at) < this.reach;
+    this.t = near ? this.t + dt : 0;
+    if (!this.lit && this.t > this.hold && this.rt.logic.light(this.id)) { this.lit = true; this.rt.sound?.chime?.(); this.rt.onLit?.(this.id); }
+    this.glow.uniforms.uGlow.value = this.lit ? 0.9 : near ? 0.2 + 0.7 * Math.min(1, this.t / this.hold) : 0.05 + 0.03 * Math.sin(t * 1.2);
+  }
 }
 
 // ---------------------------------------------------------------------------------------- moving floors

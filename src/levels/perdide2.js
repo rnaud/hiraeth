@@ -1,3 +1,4 @@
+import { attachTemple } from '../temples/index.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createNoise2D, fbm, mulberry32, smoothstep } from '../noise.js';
@@ -708,7 +709,8 @@ export function createPerdide2(scene) {
   const unsafe = (p) => terrain.heightAt(p.x, p.z) < DEEP && p.y < WATER + 0.5;
   const spawnY = H(0, 0);
 
-  return {
+  // the Lamp-House in the shallows east of the root cave, and its rooms far overhead (src/temples/perdide2.js)
+  return attachTemple('perdide2', scene, {
     id: 'perdide2',
     floraAvoid: (x, z, r) => !clear(x, z, r + 2) || pathDist(x, z) < 3.6 + r,   // off the lit path and the keep-outs (src/flora.js)
     ground: terrain,
@@ -748,5 +750,5 @@ export function createPerdide2(scene) {
     },
     atmo: () => ({ tint: [1.0, 0.97, 0.98], fog: 1.7, name: 'The Deep Wood' }),
     update() {},
-  };
+  });
 }

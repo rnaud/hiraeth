@@ -13,6 +13,7 @@ export const TEMPLE_BOXES = [
   ['arzach2.temple.bell', 'bell'],
   ['spheres.temple.lens', 'lens'],
   ['buried.temple.cell', 'cell'],
+  ['perdide2.temple.lantern', 'lantern'],
 ];
 
 export function migrateTemples(g) {

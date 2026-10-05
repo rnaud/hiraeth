@@ -12,6 +12,8 @@ import { SPHERES_TEMPLE } from './spheres.js';
 import * as SPHERES_WORDS from './spheres-data.js';
 import { BURIED_TEMPLE } from './buried.js';
 import * as BURIED_WORDS from './buried-data.js';
+import { PERDIDE2_TEMPLE } from './perdide2.js';
+import * as PERDIDE2_WORDS from './perdide2-data.js';
 
 // The makers' temples: one great building in each world, a Zelda-style
 // dungeon of rooms and puzzles in that world's architecture, with a gadget
@@ -38,6 +40,7 @@ export const TEMPLES = {
   arzach2: { def: ARZACH2_TEMPLE, words: ARZACH2_WORDS },
   spheres: { def: SPHERES_TEMPLE, words: SPHERES_WORDS },
   buried: { def: BURIED_TEMPLE, words: BURIED_WORDS },
+  perdide2: { def: PERDIDE2_TEMPLE, words: PERDIDE2_WORDS },
 };
 
 /**
@@ -54,10 +57,10 @@ export const GADGETS = {
   arzach2: { temple: 'bell', world: ['glider'], built: true },         // the bell moved here from Vael's spire (the wings go to Vael's temple, the feather comes then)
   garage: { temple: 'coil', world: ['level'], built: false },
   buried: { temple: 'cell', world: ['resin'], built: true },          // the fourth chamber moved here from Lorn II
-  edena: { temple: 'bloom', world: ['pouch'], built: false },         // a new gun mode; the lantern moves to Lorn II
+  edena: { temple: 'bloom', world: ['pouch'], built: false },         // a new gun mode (planned); the seed pouch is on the canopy now (the lantern went to Lorn II)
   spheres: { temple: 'lens', world: ['shell'], built: true },
   perdide: { temple: 'stun', world: ['boots'], built: false },
-  perdide2: { temple: 'lantern', world: ['moss'], built: false },     // the glow-moss pin is on the root arch now (the cell went to the Engine-House)
+  perdide2: { temple: 'lantern', world: ['moss'], built: true },      // the lantern moved here from Viridel; the glow-moss pin on the root arch
   bazaar: { temple: 'echo', world: [], built: false },               // a new tool; the market has no chest of its own
 };
 
