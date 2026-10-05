@@ -2,6 +2,19 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.53 — 2026-10-05
+
+- The makers’ temples: great buildings in eight worlds, each with rooms of puzzles, a gift found halfway that opens the rest, and a guardian at the end. Living guardians are calmed, never killed; broken machines can be stopped.
+- The desert’s Givers’ House: the ember mode is found inside; calm the Keeper and the fields round Qanat turn green.
+- The City-Shaft’s Warden’s Well: the fluid jets are found inside; stop the robot warden and the shaft’s breath becomes an updraft.
+- Vael’s Aerie: wait out the gusts, glide the gulf, ride the wind well, and fly beside the Elder until she flies again. The fluid wings are found inside now; afterwards great birds circle overhead.
+- Vael II’s Founders’ Belfry: the bell-note whistle is found inside; calm the Cloud-Mother and the fallen-up stones come down.
+- The Buried Machine’s Engine-House: a fourth tank chamber inside; stop the Tooth-Warden and the pipe-cart runs again.
+- The Garden of Spheres’ Footprint: the glyph lens inside; calm the Echo and the Footprint fills with water, the spheres ringed with light.
+- Lorn’s Hush-House on the cave island: sing its crystals low to high, still the jaws and the pendulums, and calm the Mother Snapper. The stilling mode is found inside now; afterwards every snapping plant wears a ring of flowers.
+- Lorn II’s Lamp-House: the lantern charm inside; calm the Lampless and the lamp’s beam turns over the wood again.
+- Half the gifts are in the temples now, half out in the worlds; new gifts in the open include the breathing reed (twice the breath under water) and the wind-silk scarf (the wings sink slower). Gifts you already own leave their temple chests open.
+
 ## v0.52 — 2026-10-05
 
 - People’s faces are drawn the way Moebius draws them: flat colour with one clean shadow, a crisp eyelid line, a nose drawn as one line ending in a hook at the nostril, a mouth with small ticks at its corners, curled ears, and only a few fine strokes of hatching in the eye sockets and under the cheekbones.

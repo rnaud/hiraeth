@@ -352,13 +352,16 @@ To start after the current work lands. Ordered from easiest to most complex.
 
 ## Temples
 
-- [ ] Each world has a massive Makers' building that works as a temple (as in Zelda).
+- [x] Each world has a massive Makers' building that works as a temple (as in Zelda).
   - Half the gadgets are found in the world and half in temples. A temple's gadget is the key
     to finishing that temple.
   - A boss at the end, with a non-lethal way to deal with it if it's organic (destroying it is
     fine if it's a robot).
   - Beating it changes something in the world: the temple covered in plants, crops growing
     again, the grove pulsing with light…
+  - Built in 8 worlds (desert, City-Shaft, Vael, Vael II, Buried Machine, Spheres, Lorn, Lorn II).
+- [ ] Temples still to build: the Sealed Hangar (coil, a Clockwork Foreman; its portal list needs
+  adapting), Viridel (needs the bloom mode), the Signal Market (needs the echo shell).
 
 ---
 
