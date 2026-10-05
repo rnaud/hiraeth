@@ -1,0 +1,59 @@
+README.md
+  s_1fd8d0e7b02dcf::t_96210aa4e2d1c4 2759,2806-2837
+TODO.md
+  s_1fd8d0e7b02dcf::t_9469be9c0c6955 469,471-473
+changelog.md
+  s_1fd8d0e7b02dcf::t_5a40c6c1ef7dde 5-13
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_cc917c63251fc0 6-13
+src/costumes.js
+  s_1fd8d0e7b02dcf::t_b9fa0555a0ba6b 4-5,56-57,73,92,125,144,161,179,197,214,232,250,268,285,303,421-422,426-449
+src/expression.js
+  s_1fd8d0e7b02dcf::t_ee385067efd65e 42-74
+src/eyes.js
+  s_1fd8d0e7b02dcf::t_0b4768ec46c468 55-56,58-59,70
+src/face-ink.js
+  s_1fd8d0e7b02dcf::t_28734f48c72f73 70-77,156-157,178,186-189,218-219,230,237,248,250,252
+src/humanoid.js
+  s_1fd8d0e7b02dcf::t_a9081ffeccdda4 11,14,44-61,76-79,82,88,98,100,114-115,117,147-148,153-161,192-198,200,207,209-211,213,347-348,414-415,417,419,582-584,586-590,633
+src/levels/lab.js
+  s_1fd8d0e7b02dcf::t_075b7306b00979 84
+src/materials.js
+  s_1fd8d0e7b02dcf::t_9438315187b88b 833-835,839,1389-1390,1396
+src/morph.js
+  s_1fd8d0e7b02dcf::t_8e4085f6dfc44c 71-74,77-78,80-81,84,87-101
+src/npc.js
+  s_1fd8d0e7b02dcf::t_fa8f2306893e59 9,14,111-113,118,120,248,252-255
+src/post.js
+  s_1fd8d0e7b02dcf::t_4f9ff569a2ea0b 40-46,594-598
+src/ship/hologram.js
+  s_1fd8d0e7b02dcf::t_af5eaa9f00cb6d 3,242-245,247,511
+src/story/desert-data.js
+  s_1fd8d0e7b02dcf::t_12c571880c91f7 729
+src/story/incal-data.js
+  s_1fd8d0e7b02dcf::t_95e665e5ae427e 281
+src/traveller.js
+  s_1fd8d0e7b02dcf::t_6555307d4f14c5 43-46
+tests/face-ink.test.js
+  s_1fd8d0e7b02dcf::t_43a33952cef019 118-122,124-125,127,129,131,133-136,143
+tests/talk-face.test.js
+  s_1fd8d0e7b02dcf::t_48fe685b212c98 8,135
+tests/warm-faces.test.js
+  s_1fd8d0e7b02dcf::t_f651d7bf2317a6 1-159
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3090db1f846d972afbaa938f2fabd7c59fb152c9",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
