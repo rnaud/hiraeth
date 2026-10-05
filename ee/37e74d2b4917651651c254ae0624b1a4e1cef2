@@ -1,0 +1,21 @@
+README.md
+  s_1fd8d0e7b02dcf::t_bd7e4bae73cdcb 2768-2798
+scripts/lab-perf/lab-perf.mjs
+  s_1fd8d0e7b02dcf::t_05e71b7a16ec61 1-163
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ee37e74d2b4917651651c254ae0624b1a4e1cef2",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
