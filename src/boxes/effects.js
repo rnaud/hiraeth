@@ -18,6 +18,8 @@ import { starShape, BOX_COLORS } from './model.js';
 //   fx.update(dt, t)   per frame
 
 const BASE = { charges: 3, delay: 5 };
+/** The star on the traveller's helmet liner (head-anchor frame: the skull's centre), facing up and out. */
+export const TRAVELLER_STAR = { at: new THREE.Vector3(0, 0.102, 0.079), tilt: -0.9, scale: 0.7 };
 
 export function createItemEffects({ player, tool = null, level = null, sound = null, isNight = () => false, game: g = sharedGame, keys = typeof window !== 'undefined' ? window : null, toast = () => {} }) {
   const H = player?.humanoid;
@@ -52,6 +54,10 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
       makeMaterial({ color: BOX_COLORS.star, flat: true, glow: 0.3 }));
     star.position.set(0, 0.17, 0.112);   // on the brow (the imported head: eyes at y 0.09, the crown at 0.23)
     star.rotation.set(-0.5, 0, 0);
+    // the traveller in his suit (humanoid.js outfit): the head anchor is the skull's centre and the bubble
+    // helmet closes round it, so the star is pinned on the liner over his fringe, inside the glass (at the old
+    // place it stood out through the top of the helmet)
+    if (H.outfit) { star.position.copy(TRAVELLER_STAR.at); star.rotation.set(TRAVELLER_STAR.tilt, 0, 0); star.scale.setScalar(TRAVELLER_STAR.scale); }
     star.userData.noCollide = true;
     star.visible = false;
     H.headAnchor.add(star);

@@ -333,6 +333,11 @@ export class Humanoid {
     this.followOf = new Map(this.follow.map((f) => [f.B, f]));
 
     this.dressRig();
+    // the traveller's own face and its rest (traveller.js TRAVELLER.face / rest); everyone else's is as modelled
+    this.ownFace = outfit ? TRAVELLER.face : null;
+    this.restExpression = outfit ? TRAVELLER.rest : null;
+    if (this.ownFace) this.setFace(this.ownFace);
+    if (this.restExpression) this.setExpression(this.restExpression);
   }
 
   /** Hide the rig's own body; move hood, collar, jetpack and satchel onto the human. */

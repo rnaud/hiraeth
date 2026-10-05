@@ -245,7 +245,8 @@ function applyBody() {
 function applyFace() {
   const one = !state.lineup;
   for (const p of people) {
-    p.h.setFace(one ? state.f : null);
+    // (the person's own face, the traveller's: Humanoid.ownFace, under the sliders)
+    p.h.setFace(one ? { ...(p.h.ownFace ?? {}), ...state.f } : p.h.ownFace);
     // the traveller's skin, if picked (the rest is their suit)
     if (p.type === 'traveller' && state.c.skin) for (const m of [p.h.body.material, p.h.eyeMesh?.material]) m?.uniforms.uSkin.value.set(state.c.skin);
   }
@@ -348,7 +349,7 @@ function animate(p, dt, t) {
     else H.resetFeet();
   }
   // the expression: the tone's, then the sliders' own values on top; talking moves the mouth
-  const e = expressionFor(state.tone, { amount: state.amount, talking: state.talk, t });
+  const e = expressionFor(state.tone, { amount: state.amount, talking: state.talk, t, rest: H.restExpression });
   for (const d of EXPRESSION_KEYS) if (state.e[d.key] !== undefined) e[d.key] = +state.e[d.key];
   if (state.gaze === 'fixed') e.gaze = [+(state.e.gazeX ?? 0), +(state.e.gazeY ?? 0)];
   else if (state.gaze !== 'free') e.gaze = null;

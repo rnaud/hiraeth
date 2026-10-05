@@ -4,7 +4,8 @@ import { readFile } from 'node:fs/promises';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { mulberry32 } from '../src/noise.js';
-import { dressFor, namedLook, crowdLook, packBody, BUILDS, HEIGHT, HEAD_IDS, MASK_IDS, HEADS, MASKS } from '../src/costumes.js';
+import { dressFor, namedLook, crowdLook, packBody, BUILDS, HEIGHT, HEAD_IDS, HEAD_ID_LIMIT, MASK_IDS, HEADS, MASKS, COSTUMES, GENERIC_HAIR } from '../src/costumes.js';
+import { CROWD_GLSL } from '../src/crowd-shader.js';
 import { figureGeometry, worldPieces, packLook } from '../src/crowd.js';
 import { Humanoid, prepareHuman, buildGeometry } from '../src/humanoid.js';
 import { buildCharacter } from '../src/player.js';
@@ -57,12 +58,18 @@ test('women wear their hair long or up and have no beards; some men have a beard
 });
 
 test('the new hair and beard pieces are in every world\'s crowd figure, within the ids the shader packs', () => {
-  assert.ok(HEAD_IDS.length <= 32 && MASK_IDS.length <= 8);
+  assert.ok(HEAD_IDS.length <= HEAD_ID_LIMIT && MASK_IDS.length <= 8);
+  assert.ok(CROWD_GLSL.includes(`mod(aDress.x, ${HEAD_ID_LIMIT}.0)`) && CROWD_GLSL.includes(`aDress.x > ${HEAD_ID_LIMIT - 0.5}`), 'the shader unpacks the head id as costumes.js packs it');
   for (const id of ['long', 'bun']) assert.ok(HEADS[id] && HEAD_IDS.includes(id));
   assert.ok(MASKS.beard && MASK_IDS.includes('beard'));
   for (const world of WORLDS) {
     const W = worldPieces(world);
-    for (const h of ['long', 'bun', 'tail']) assert.ok(W.heads.includes(h), `${world}: ${h}`);
+    // a tribe that goes bare-headed has its own hairstyles in the figure (and not the generic 'hair' / 'short')
+    for (const t of COSTUMES[world].tribes) {
+      if (!['heads', 'headsF', 'headsM'].some((k) => GENERIC_HAIR.some((h) => t[k]?.[h] > 0))) continue;
+      for (const h of [...Object.keys(t.hair.m), ...Object.keys(t.hair.f)]) assert.ok(W.heads.includes(h), `${world}: ${h}`);
+    }
+    for (const h of GENERIC_HAIR) assert.ok(!W.heads.includes(h) || Object.values(COSTUMES[world].tribes).some((t) => t.hair.m[h] || t.hair.f[h]), `${world}: no generic ${h}`);
     assert.ok(W.masks.includes('beard'));
   }
   // the crowd's per-instance body

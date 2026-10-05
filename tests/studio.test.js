@@ -9,7 +9,7 @@ import { peopleIn, lookFor, BLANK, FACE_PRESETS } from '../src/studio/people.js'
 import { BODY_MORPHS, FACE_MORPHS, NEUTRAL_BODY, BUILD_SHAPE, radialFactors, boneMorph, cleanMorph, morphKey, isNeutral, faceLandmarks, browPositions, plainGeometry } from '../src/morph.js';
 import { EXPRESSION_KEYS, TONE_EXPRESSIONS, expressionFor, cleanExpression, mixExpression } from '../src/expression.js';
 import { TONES } from '../src/story/tone.js';
-import { HEAD_IDS, HAIR_IDS, HEADS, lookPieces, scalp, dressFor } from '../src/costumes.js';
+import { HEAD_IDS, HEAD_ID_LIMIT, HAIR_IDS, HEADS, lookPieces, scalp, dressFor } from '../src/costumes.js';
 import { mulberry32 } from '../src/noise.js';
 import { Humanoid, prepareHuman, buildGeometry, FACE } from '../src/humanoid.js';
 import { buildCharacter } from '../src/player.js';
@@ -129,7 +129,7 @@ test('expressions: every tone has one, in range; talking moves the mouth', () =>
 });
 
 test('hairstyles follow the skull: a hairline, not a bowl, inside the crowd shader ids', () => {
-  assert.ok(HEAD_IDS.length <= 32, 'the crowd packs the head id in 5 bits');
+  assert.ok(HEAD_IDS.length <= HEAD_ID_LIMIT, 'the crowd packs the head id in 6 bits');
   for (const id of HAIR_IDS) assert.ok(HEADS[id] && HEAD_IDS.includes(id), id);
   for (const kind of ['m', 'f']) for (const id of ['crop', 'shaved', 'curls', 'braid', 'flow']) {
     const s = dressFor('desert', mulberry32(1), { kind, look: { head: id, mask: 'none' } });

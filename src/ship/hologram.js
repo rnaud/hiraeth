@@ -444,7 +444,7 @@ export const PEOPLE = {
     look: { head: 'short', mask: 'beard', body: 'none', prop: 'none', trim: 'none', robe: 0 } },
   mother: { kind: 'f', scale: 1, skin: '#c99272', hair: '#2e1f1b',
     palette: { cloak: '#277e86', cloth: '#9a6aa8', legs: '#34405e', hat: '#5fb7ad', accent: '#2f9a92', hair: '#2e1f1b', skin: '#c99272' },
-    look: { head: 'long', mask: 'none', body: 'scarf', prop: 'none', trim: 'none', robe: 0 } },
+    look: { head: 'flow', mask: 'none', body: 'scarf', prop: 'none', trim: 'none', robe: 0 } },
   child: { kind: 'm', scale: 0.56, skin: '#e6bf9e', hair: '#8a5638',
     palette: { cloak: '#4f8fa8', cloth: '#f2c54b', legs: '#34405e', hair: '#8a5638', skin: '#e6bf9e', accent: '#4f8fa8' },
     look: { head: 'short', mask: 'none', body: 'none', prop: 'none', trim: 'none', robe: 0 } },
@@ -464,9 +464,9 @@ export class HoloFigure {
     this.object = this.char.root;
     this.object.scale.setScalar(P.scale);
     this.humanoid = new Humanoid(humans[P.kind === 'm' ? 0 : 1], this.char, P.kind, { skin: P.skin, hair: P.hair });
-    this.humanoid.dress(namedLook({ world: 'home', id: `holo-${id}`, palette: P.palette, look: P.look }));
+    // (their hair on their own skull: costumes.js scalp)
+    this.humanoid.dress(namedLook({ world: 'home', id: `holo-${id}`, palette: P.palette, look: P.look, kind: P.kind }));
     if (P.moustache) this.addMoustache(P.hair);
-    this.openHairline(P.hair);
     this.animator = lib ? new Animator(lib, this.char) : null;
     if (this.animator) this.animator.phase = Math.random();
     const B = BUST[P.kind];
@@ -492,28 +492,6 @@ export class HoloFigure {
     this.seed = Math.random() * 10;
     this.look = { yaw: 0, pitch: 0 };
     this.glance = { t: 2 + Math.random() * 3, until: 0, yaw: 0, pitch: 0 };
-  }
-
-  /**
-   * Lift the front of the hair off the brow (the costume's cap sits low, like a cap: in light, without
-   * the ink's outline, it reads as one): its own copy of the costume geometry, the hair's vertices only.
-   */
-  openHairline(hair) {
-    const col = new THREE.Color(hair), eyeY = FACE[this.kind][0] * 1;
-    for (const m of this.humanoid._costume ?? []) {
-      const P = m.geometry.attributes.position, C = m.geometry.attributes.color;
-      if (!C) continue;
-      for (let i = 0; i < P.count; i++) {
-        if (Math.abs(C.getX(i) - col.r) + Math.abs(C.getY(i) - col.g) + Math.abs(C.getZ(i) - col.b) > 0.02) continue;
-        const y = P.getY(i), z = P.getZ(i), x = Math.abs(P.getX(i));
-        if (y < eyeY - 0.005 || z < 0 || x > 0.1) continue;   // (the beard and long hair stay)
-        const f = THREE.MathUtils.smoothstep(z, 0.02, 0.1) * (1 - THREE.MathUtils.smoothstep(x, 0.06, 0.1));
-        const d = y - eyeY;
-        if (d < 0.085) P.setY(i, y + (0.085 - d) * 0.55 * f);
-      }
-      P.needsUpdate = true;
-      m.geometry.computeVertexNormals();
-    }
   }
 
   /** The father's moustache, over the beard (costumes.js draws the beard round the jaw): on the head bone. */

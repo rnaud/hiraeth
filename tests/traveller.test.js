@@ -63,7 +63,22 @@ test('the traveller is the NPC body: the same skeleton, bind pose, weights and f
   assert.equal(names(h).length, 65);
   // the body is visible, skinned exactly like an NPC's, only its vertices stand off for the baggy suit
   assert.ok(h.body.visible);
+  // his own face (TRAVELLER.face) is the NPC's head warped (morph.js warpFace): younger, fuller; without it, the NPC's own
+  const own = h.body.geometry;
+  assert.deepEqual(h.ownFace, TRAVELLER.face);
+  h.setFace(null);
   const A = h.body.geometry, B = n.body.geometry;
+  {
+    const head = h.body.skeleton.bones.findIndex((b) => b.name === 'Head');
+    let warped = 0, most = 0;
+    for (let i = 0; i < A.attributes.position.count; i++) {
+      if (!(A.attributes.skinIndex.getX(i) === head && A.attributes.skinWeight.getX(i) > 0.99)) continue;
+      const d = new THREE.Vector3().fromBufferAttribute(own.attributes.position, i).distanceTo(new THREE.Vector3().fromBufferAttribute(A.attributes.position, i));
+      if (d > 0.001) warped++;
+      most = Math.max(most, d);
+    }
+    assert.ok(warped > 100 && most < 0.02, `his own face: ${warped} head vertices moved, at most ${most.toFixed(4)} m`);
+  }
   assert.equal(A.attributes.position.count, B.attributes.position.count);
   const same = (k) => { const a = A.attributes[k], b = B.attributes[k]; for (let i = 0; i < a.count; i++) for (let c = 0; c < 4; c++) if (a.getComponent(i, c) !== b.getComponent(i, c)) return false; return true; };
   assert.ok(same('skinIndex') && same('skinWeight'), 'the NPC\'s own weights');
@@ -85,6 +100,10 @@ test('the traveller is the NPC body: the same skeleton, bind pose, weights and f
   assert.equal('#' + h.eyeMesh.material.uniforms.uColor2.value.getHexString(), TRAVELLER_IRIS);
   h.update(); h.updateEyes(1 / 60, new THREE.Vector3(2, 1.7, 2));
   assert.ok(h.eyeMesh.material.uniforms.uEyeLook.value.toArray().every(Number.isFinite));
+  // and at rest a little smile; his face's drawing: hardly a line, a few freckles
+  h.setFace(h.ownFace);
+  assert.ok(h.expression.smile > 0.1 && h.body.material.uniforms.uMood.value.x > 0.1);
+  assert.ok(h.body.material.uniforms.uFaceKit.value.x < 0.5 && h.body.material.uniforms.uFaceKit.value.z > 0);
 });
 
 test('the suit is painted by the outfit shader: lavender, salmon gloves and boots, folds at the human\'s joints', () => {
