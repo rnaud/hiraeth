@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { Physics } from '../src/physics.js';
-import { CameraRig, tightness, OPEN_DIST, TIGHT_DIST, PITCH_UP_OPEN, PITCH_UP_TIGHT } from '../src/player.js';
+import { CameraRig, tightness, OPEN_DIST, TIGHT_DIST, PITCH_UP_OPEN, PITCH_UP_TIGHT, PITCH_UP_AIM } from '../src/player.js';
 import { buildRoom, inTightRoom } from '../src/interiors.js';
 
 // the rig listens to the mouse and the wheel: inert stand-ins in node
@@ -113,6 +113,30 @@ test('looking up: past the zenith in the open, the camera above the grass; as be
   }
   assert.ok(rig.tightK > 0.95);
   assert.ok(Math.abs(rig.pitch - PITCH_UP_TIGHT) < 0.02, `close in, as far up as before (${rig.pitch.toFixed(2)})`);
+});
+
+test('aiming in a tight room (a temple\'s): straight up, the camera kept inside under the shoulder; let go, it eases back to what fits', () => {
+  const { physics } = world();
+  const rig = rigIn(physics);
+  const p = v(50, 0, 0), dt = 1 / 60;
+  for (let i = 0; i < 120; i++) rig.update(p, dt);
+  assert.ok(rig.tightK > 0.95, 'tight in the tunnel');
+  rig.look(0, -1e5);
+  assert.equal(rig.pitch, PITCH_UP_TIGHT, 'not aiming: as far up as fits close in');
+  // aiming (the fluid tool sets aimK): it used to stop at the tight limit, ~36° up
+  rig.aimK = 1;
+  for (let i = 0; i < 60; i++) { rig.look(0, -200); rig.update(p, dt); }
+  assert.equal(rig.pitch, PITCH_UP_AIM);
+  const fwd = rig.camera.getWorldDirection(v());
+  const elev = THREE.MathUtils.radToDeg(Math.asin(fwd.y));
+  assert.ok(elev > 84, `aiming ${elev.toFixed(0)}° up`);
+  const c = rig.camera.position;
+  assert.ok(Math.abs(c.z) < 1.4 - 0.2 && c.y > 0.3 && c.y < 3 - 0.2, `the camera inside the tunnel: ${c.toArray().map((n) => n.toFixed(2))}`);
+  // let go of the aim: the look comes back down with it, no snap
+  let last = rig.pitch, jump = 0;
+  for (let i = 0; i < 60; i++) { rig.aimK = Math.max(0, rig.aimK - dt / 0.25); rig.update(p, dt); jump = Math.max(jump, rig.pitch - last); last = rig.pitch; }
+  assert.ok(Math.abs(rig.pitch - PITCH_UP_TIGHT) < 0.02, `back to the tight limit (${rig.pitch.toFixed(2)})`);
+  assert.ok(jump < 0.15, `eased, not snapped (${jump.toFixed(2)} rad in a frame at most)`);
 });
 
 test('the ship flag and the interiors make it tight at once; a short gap between walls does not let go', () => {

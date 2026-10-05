@@ -92,15 +92,13 @@ From the author's handheld sessions (TODO.md, "Controls").
   does not fire). Without aiming, RT / R2 and the left mouse button (pointer captured)
   fire the jets. G alone does nothing. The touch ✺ button writes `TouchFire`, a quick
   shot that raises the arm for you, since touch has no trigger to hold.
-- **The jets steer like the bird** (`player.update`, `JET`): with them firing, the left
-  stick flies you where it points, relative to the camera (forward, back, left, right),
-  at `JET.speed` (`JET.run` while running). The body turns into the way you go and leans
-  and banks into it. With the stick neutral they **hover**: the fall is braked to a
-  standstill and you drift to a stop. Hold jump as well to climb, at up to 15 m/s. From
-  the ground, RT lifts you off. The pad's jump never fires the jets (`PadJump`), so held
-  in the air it opens the wings, and a second press boosts at once (no double tap). The
-  keyboard's and touch's Space still thrusts and climbs as it always did, double tap to
-  boost. Fuel, its refill on landing and the landings themselves are unchanged.
+- **The jets fly like Superman** (`player.update`, `JET`; October 2026, replacing "steer like
+  the bird"): with RT / R2 held (not aiming), the left stick flies you where the camera looks:
+  look up to climb, down to dive (straight down, head first, at the steepest), sideways to
+  strafe; stick at rest hovers; A / × held with RT rises straight up; L3 is faster and dives
+  speed up with their steepness. From the ground RT lifts you off unless you point into a dive.
+  The keyboard's and touch's Space still thrusts and climbs. Fuel, its refill on landing and
+  the landings are unchanged. docs/systems/movement-and-camera.md.
 - **Jump off** (`player.jumpOff`, `JUMP_OFF`): riding, the bottom button (Retroid B)
   jumps off the bird, the hoverbike, the skiff or a taxi with a 7 m/s hop. You keep
   85 % of its speed, and in the air it fades slowly until you land. The left button
