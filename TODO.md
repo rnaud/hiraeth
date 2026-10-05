@@ -30,9 +30,9 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 ## Conversations
 
-- [ ] The camera doesn't spin round when a conversation starts: it cuts straight to the right angle.
-- [ ] Too close to someone when a conversation starts: step me (or them) back to a good distance.
-- [ ] The alien script turns into English faster.
+- [x] The camera doesn't spin round when a conversation starts: it cuts straight to the right angle. (A hard cut in and out, no blend; a new angle mid-talk is a cut too, kept to page turns, a blocked view, or one every 2.5 s; small drifts still eased.)
+- [x] Too close to someone when a conversation starts: step me (or them) back to a good distance. (src/story/spacing.js: about 1.45 m, scaled for children and giants, more for the seated; the traveller is placed back, or round them, as the camera cuts in, never into a wall, off a ledge, up a step or onto a bystander; if he can't, a standing NPC steps back instead; he is turned to face them.)
+- [x] The alien script turns into English faster. (LAG 14 → 5 letters, FADE 12 → 5: the line is all English about 0.2 s after the last word instead of 0.55 s, still word by word.)
 
 ## The makers' boxes
 

@@ -19,6 +19,9 @@ export const CHANGELOG = [
     'The traveller has a new look: tousled dark hair, a loose coral overshirt, cream trousers rolled above worn ankle boots, a beige scarf and a round satchel. His sleeves are rolled up and his face is uncovered.',
     'The glass backpack is smaller, with green fittings, faded turquoise and lavender cloth ties, and a dark wrist tool. The makers’ star sits on his lapel and the lantern hangs below the scout’s dock.',
     'The character studio can show the complete fluid backpack and wrist tool while you inspect an outfit or animation.',
+    'Starting a conversation, the camera cuts straight to the view of you both instead of swinging round to it, and cuts straight back to you when it ends. If someone steps into the view mid-talk, it cuts to a new angle rather than sweeping across.',
+    'Start talking to someone while standing right on top of them and you are a comfortable step apart when the conversation opens, already turned to face them. It works with children and with people sitting down, and you are never put into a wall, off a ledge or onto someone else.',
+    'Alien speech turns into English more than twice as fast: each word becomes readable a moment after it is said, and the whole line is in English a fraction of a second after the last word.',
   ] },
   { v: '0.62', date: '2026-10-05', items: [
     'Nothing stays on the screen while you play any more: the box in the corner with the place, the objective and the relics is gone. Your health shows while you are hurt or healing, the stamina wheel while you are tired, the tank beside you while it refills or the jets burn, and each fades away after. A short line at the bottom says what the use button does when there is something to use, and a region’s name as you cross into it.',
