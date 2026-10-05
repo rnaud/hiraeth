@@ -19,6 +19,8 @@ export const CHANGELOG = [
     'The References scenes now include the Buried Machine: twenty-two views from its four sheets, the domes and pipes in the dunes, the rust canyon and its ovals, the teal drum open to the sky, the hanging city and the ring of arches.',
     'The Garden of Spheres looks more like its drawings: the undersides of the great umbrella trees and the thickets are a deep, dark green, the white stone’s shade is a clean pale blue, and the darkest pockets of shade turn deep green instead of grey.',
     'The References scenes now include the Garden of Spheres: twenty-two views from its four sheets, the umbrella groves, the pyramids, the giant spheres and their arches, the white hill, the lake and the olive avenue to the round plaza.',
+    'The traveller looks more like his drawings. His hair is a short, tousled mop of soft curls with a fringe over his forehead, instead of long locks. His coral overshirt has a proper collar and hangs open and loose over his undershirt, down to his thighs.',
+    'He wears a little tan neckerchief knotted at his throat instead of the bunched scarf, and slim, low suede ankle boots with thin soles instead of the big rounded ones. His trousers hang looser, and his satchel sits on his right hip, as in the drawings.',
   ] },
   { v: '0.67', date: '2026-10-05', items: [
     'The traveller dresses more casually: an everyday canvas rucksack, with a lid, buckled straps, pockets and a rolled bedroll, replaces the old radio box, and nothing of the space suit is left: soft desert boots without seams or buckles, a loose cotton scarf instead of the ringed collar.',

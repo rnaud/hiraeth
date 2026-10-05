@@ -25,9 +25,14 @@ the rucksack's outer face. The look and its reasons:
   (`TANK_RAIL`, `SCOUT_DOCK_*`), high enough that the arms don't swing into
   it in any clip. While the wings are open it hops onto the cap
   (`scoutDockPose`). The dock rides the flask into a vehicle's socket.
-- **Hair** (`travellerHair`): a scalp plus deterministic tousled locks
-  (`lock`), each with a vertex colour that lightens its edges, which the outfit
-  material multiplies into the hair colour.
+- **Hair** (`travellerHair`): a scalp shell plus deterministic clumps
+  (`clump`): broad, flat, leaf-shaped sheets laid along the skull egg, tapering
+  to a point, with a wave and a lift at the end. Each has vertex colours for its
+  lighter strand lines, which the outfit material multiplies into the hair colour.
+- **Boots** (`F.boot`): lofted round the body's own foot points (sections heel to
+  toe, a rounded box each), a shaft fitted to the ankle, a thin sole; the toes
+  are skinned to the ball bone, the shaft to the shin. Nothing of traveller.glb
+  is drawn any more (it only keys `travellerKit`'s cache).
 
 Tests: `tests/traveller.test.js` (fit, rucksack, flask size and visibility, hair,
 face), `tests/drone.test.js` (docks and clearance in every clip),
