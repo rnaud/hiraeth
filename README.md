@@ -3,9 +3,10 @@
 A three.js exploration game in ligne claire, formerly the Moebius / Sable shader PoC
 (the repository and internal ids keep the old name).
 
-**Play it:** https://rnaud.github.io/moebius/ · [Cloudflare](https://memento.alexandria-rnaud.workers.dev/)
+**Play it:** https://memento.alexandria-rnaud.workers.dev/ (Cloudflare Workers; also at https://rnaud.github.io/moebius/ until the repository goes private)
 
-An additional [Cloudflare Workers deployment target](docs/cloudflare.md) serves the same build independently of GitHub Pages.
+The [Cloudflare deployment](docs/cloudflare.md) serves the game and, next to it, the game's content
+updates for the Android app and the Steam Deck (`/updates/web.json`, see "Game updates from the site").
 
 A third-person exploration world with a "ligne claire" look inspired by Moebius
 and the game *Sable*. Its foundation is a world that feels organic, responsive,
@@ -588,7 +589,9 @@ A world can tweak its default preset with `defaults.look` (post uniforms).
 
 A Linux package with automatic updates and Steam library integration is built by
 [the Steam Deck workflow](.github/workflows/steam-deck.yml). See the
-[installation and release guide](docs/steam-deck.md).
+[installation and release guide](docs/steam-deck.md). The game inside it updates from the
+game's site, like the Android app's (`deck.py` downloads the web bundle, `desktop/main.mjs`
+serves it); the runtime package itself stays on the `steam-deck` GitHub release.
 
 ## Changelog
 
@@ -1744,8 +1747,9 @@ Pocket. Their built-in controls work through the Gamepad API.
   GitHub release for the newest version in `src/changelog.js` (`v0.34` and so
   on, via `scripts/release-info.mjs`). Pushes within one version replace that
   release's APK; adding a changelog entry starts a new release. Next to the APK the release gets `latest.json` (APK URL, versionCode,
-  native level) and `web-<build>.zip` + `web.json` (the game itself: version, build = run
-  number, sha256, URL, `minNative`), all from `scripts/release-info.mjs`. Download
+  native level) and, for apps up to NATIVE_API 4 only, `web-<build>.zip` + `web.json`, all from
+  `scripts/release-info.mjs`. Newer apps take the game's updates from the site (see "Game updates
+  from the site"). Download
   `moebius-v<version>.apk` from the repository's Releases page and open it on
   the device to install. Allow installing from your browser or file manager
   the first time.
@@ -1757,7 +1761,8 @@ Pocket. Their built-in controls work through the Gamepad API.
   replace the app with an uninstall, which deletes your saves.
 - **The app** runs fullscreen and immersive in landscape, keeps the screen on,
   and plays sound without an extra tap. `versionName` is the game version and
-  `versionCode` is the workflow run number.
+  `versionCode` is the build number (`release-info.mjs build`: the commit count; up to 117 it was
+  the workflow run number).
 - **Local build** (needs JDK 21 and the Android SDK):
   ```
   npm run build && npx cap sync android && (cd android && ./gradlew assembleDebug)
@@ -1855,6 +1860,32 @@ Pocket. Their built-in controls work through the Gamepad API.
   and the sound. On a handheld the sound starts with the first controller input.
 - **Testing a debug build:** `adb shell am start -n com.rnaud.moebius/.MainActivity
   --es webManifest <url>`. Debug builds otherwise skip over-the-air updates.
+
+### Game updates from the site (NATIVE_API 5)
+The repository is going private, and GitHub's release files go with it, so the game's own
+updates now come from the Cloudflare site that serves the web game:
+- **The feed:** `cloudflare.yml` builds the game, then `scripts/web-update.mjs` adds
+  `dist/updates/web-<build>.zip` (the same `dist/` the APK carries, zipped deterministically) and
+  `dist/updates/web.json` (`release-info.mjs webJson`: version, build, sha256, URL, size, notes,
+  `minNative`, `minDesktop`), and one `wrangler deploy` publishes the site and the update
+  together. It owns the Worker: no other workflow deploys it, since a deploy replaces every asset.
+  The previous build's zip is fetched from the live site (checked against the live `web.json`)
+  and deployed again, so a device that read the old manifest can finish its download.
+- **One build number everywhere:** `release-info.mjs build` is the commit count up to HEAD
+  (workflows check out with `fetch-depth: 0`). The APK's versionCode (the build the app carries),
+  the site's web bundle and the Deck package's game all get it from their commit, so an app
+  compares a downloaded bundle with its own. It started above the last run-numbered APK (117).
+- **The app** (`WebBundles.MANIFEST`) reads `https://memento.alexandria-rnaud.workers.dev/updates/web.json`.
+  `NATIVE_API` is 5; the web game still needs only 4 (`WEB_MIN_NATIVE`, the bundle's
+  `minNative`), so apps from before keep their updates from GitHub until the repository is
+  private, while `latest.json`'s `native` 5 offers them the new APK at launch.
+- **APKs stay on GitHub releases**, for the author to install by hand once the repository is
+  private. The launch's APK check then fails, quietly: the settings add *Couldn't check for a new
+  app* (`apkCheck` in `AppShell.info`), and *Check for updates* goes on working for the game.
+- **The Steam Deck** takes the same `web.json` (`deck.py`'s `CONTENT_MANIFEST_URL`, see
+  `docs/steam-deck.md`).
+- Tests: `tests/web-update.test.js`, `tests/android-ota.test.js`, `tests/updates.test.js`,
+  `UpdateRulesTest.java`, `tests/test_steam_deck.py`. The flip itself: `docs/cloudflare.md`.
 
 ### Updates that arrive, and the update section in the settings (NATIVE_API 4)
 Why updates used to arrive at random, and what changed:

@@ -36,10 +36,12 @@ import java.util.zip.ZipInputStream;
 
 // Over-the-air updates of the game itself (the web build) without a new APK.
 //
-// The Android workflow uploads web-<build>.zip (dist/) and web.json to the newest
-// release: { "version": "0.37", "build": <run number>, "sha256": "…",
-// "zip": "<url>", "minNative": <NATIVE_API the bundle needs>, "size": <bytes>,
-// "notes": [<the newest changelog lines>], "page": "<release page>" }.
+// The Cloudflare deploy publishes web-<build>.zip (dist/) and web.json next to the
+// game's site, under /updates/ (scripts/web-update.mjs): { "version": "0.60",
+// "build": <the commit's build number, as the APK's versionCode>, "sha256": "…",
+// "zip": "<url>", "minNative": <WEB_MIN_NATIVE>, "size": <bytes>,
+// "notes": [<the newest changelog lines>] }. (Apps up to NATIVE_API 4 read it from
+// the newest GitHub release instead, until the repository goes private.)
 //
 // When it checks (UpdateRules has the rules):
 // - every time the app comes to the front (launch, and back from the home screen or
@@ -73,9 +75,15 @@ import java.util.zip.ZipInputStream;
 final class WebBundles extends WebViewListener {
     /** The native bridge's level. Bump it whenever the Java side changes in a way the web side relies on
      *  (GamepadBridge, AppShellPlugin, the events below): web bundles built after that need this APK. */
-    static final int NATIVE_API = 4;   // 4: AppShell check / download / openApk, progress and the update log; 3: info reports the update check
+    static final int NATIVE_API = 5;   // 5: updates from the game's site, a quiet APK check (info's apkCheck); 4: AppShell check / download / openApk, progress and the update log; 3: info reports the update check
+    /** The oldest bridge the web game needs (web.json's minNative, scripts/release-info.mjs). Raise it to NATIVE_API
+     *  when the web side starts relying on a bridge change; a Java-only change (like 5) leaves it, so older apps keep
+     *  taking the game's updates while the APK offer (latest.json's native) brings them the new app. */
+    static final int WEB_MIN_NATIVE = 4;
 
-    static final String MANIFEST = "https://github.com/rnaud/moebius/releases/latest/download/web.json";
+    /** The game's updates: next to the web game on Cloudflare (cloudflare.yml, scripts/web-update.mjs). */
+    static final String MANIFEST = "https://memento.alexandria-rnaud.workers.dev/updates/web.json";
+    /** Where a new APK is (GitHub releases; the author's, by hand, once the repository is private). */
     static final String RELEASES = "https://github.com/rnaud/moebius/releases/latest";
     static final long BOOT_TIMEOUT_MS = 30000;   // (the full game boots in ~7-18 s on a software-GL emulator)
     private static final int MAX_TRIES = 2;
@@ -90,6 +98,7 @@ final class WebBundles extends WebViewListener {
     private static volatile String state = "idle";
     private static volatile int latest, latestMin, failures;
     private static volatile String latestVersion = "", notes = "[]", error = "", page = "", apkUrl = "", apkVersion = "", apkPage = "";
+    private static volatile String apkCheck = "";   // the APK feed (latest.json): "", "ok" or "failed" (the settings say so, quietly)
     private static volatile long size, got, total, checkedAt, checkedAtWall, notifiedAt;
     private static volatile JSONObject manifest;    // the last web.json read
 
@@ -97,7 +106,7 @@ final class WebBundles extends WebViewListener {
     private final SharedPreferences prefs;
     private final File root;
     private final Handler ui = new Handler(Looper.getMainLooper());
-    private final int builtin;          // the APK's own web build: the same workflow run as its versionCode
+    private final int builtin;          // the APK's own web build: its versionCode, the commit's build number (release-info.mjs build)
     private Bridge bridge;
     private String manifestUrl = MANIFEST;
     private boolean launched;
@@ -228,6 +237,7 @@ final class WebBundles extends WebViewListener {
         ret.put("checkedAt", checkedAtWall);
         ret.put("apkVersion", apkVersion);
         ret.put("apkPage", apkPage());
+        ret.put("apkCheck", apkCheck);
         ret.put("log", prefs.getString("log", ""));
         try { ret.put("notes", new JSONArray(notes)); } catch (Exception ignored) { ret.put("notes", new JSONArray()); }
     }
@@ -398,8 +408,9 @@ final class WebBundles extends WebViewListener {
             apkUrl = a.optString("apk", "");
             apkVersion = a.optString("name", "");
             apkPage = a.optString("page", "");
+            apkCheck = "ok";
         } catch (Exception e) {
-            log("couldn't read latest.json: " + describe(e));
+            apkChecked(e);
         }
     }
 
@@ -408,6 +419,13 @@ final class WebBundles extends WebViewListener {
         apkVersion = name == null ? "" : name;
         apkUrl = apk == null ? "" : apk;
         apkPage = releasePage == null ? "" : releasePage;
+    }
+
+    /** The APK feed was read (null) or couldn't be (offline, or GitHub's releases out of reach): never an update error. */
+    void apkChecked(Exception failure) {
+        if (failure == null) { apkCheck = "ok"; return; }
+        if (!"failed".equals(apkCheck)) log("couldn't check for a new app: " + describe(failure));
+        apkCheck = "failed";
     }
 
     private void runDownload(JSONObject m, boolean auto, String why) {

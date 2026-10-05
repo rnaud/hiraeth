@@ -75,6 +75,19 @@ public class UpdateRulesTest {
     }
 
     @Test
+    public void updatesFromTheGamesSite() {
+        // the site's web.json needs WEB_MIN_NATIVE, below this app's NATIVE_API: taken here and by older apps alike
+        assertTrue(WebBundles.WEB_MIN_NATIVE <= WebBundles.NATIVE_API);
+        assertEquals("stage", UpdateRules.decide(545, WebBundles.WEB_MIN_NATIVE, WebBundles.NATIVE_API, 541, false));
+        assertEquals("stage", UpdateRules.decide(545, WebBundles.WEB_MIN_NATIVE, 4, 117, false));   // an app from before, over its run-numbered build
+        // the same commit's build as the APK's versionCode: nothing to take
+        assertEquals("skip", UpdateRules.decide(541, WebBundles.WEB_MIN_NATIVE, WebBundles.NATIVE_API, 541, false));
+        assertTrue(WebBundles.MANIFEST.startsWith("https://memento.alexandria-rnaud.workers.dev/updates/"));
+        // no release page on the site: the APK's page falls back to the releases (the author's)
+        assertEquals(WebBundles.RELEASES, UpdateRules.pageFor("https://memento.alexandria-rnaud.workers.dev/updates/web-545.zip", WebBundles.RELEASES));
+    }
+
+    @Test
     public void busyStates() {
         assertTrue(UpdateRules.busy("checking"));
         assertTrue(UpdateRules.busy("downloading"));

@@ -1,6 +1,15 @@
 #!/usr/bin/env python3
 """Memento Steam Deck installer, background updater, and Steam integration.
 
+Two kinds of update, both checked in the background at each launch:
+- the game itself (content): the same web bundle the Android app takes, from the
+  game's site (CONTENT_MANIFEST_URL, published by the Cloudflare deploy). It is
+  verified, unpacked to web/<build>/ and served by the runtime from the next launch
+  (desktop/main.mjs, MOEBIUS_GAME), unless it needs a newer runtime (minDesktop).
+- the runtime (Electron, main.mjs, this updater, a packaged copy of the game): the
+  package on the steam-deck GitHub release. Once the repository is private that
+  feed is out of reach: install a new package by hand with --from (docs/steam-deck.md).
+
 Standard-library only; no root, FUSE, Proton, or SteamOS system changes.
 """
 import argparse
@@ -20,12 +29,18 @@ import tarfile
 import tempfile
 import time
 import urllib.request
+import zipfile
 import zlib
 
+# The runtime package (GitHub; by hand with --from once the repository is private)
 BASE_URL = 'https://github.com/rnaud/moebius/releases/download/steam-deck/'
 MANIFEST_URL = BASE_URL + 'steam-deck.json'
+# The game's content updates, next to the web game (scripts/web-update.mjs)
+CONTENT_URL = 'https://memento.alexandria-rnaud.workers.dev/updates/'
+CONTENT_MANIFEST_URL = CONTENT_URL + 'web.json'
 ROOT = Path.home() / '.local/share/moebius-deck'
 MAX_ARCHIVE = 1024 * 1024 * 1024
+MAX_CONTENT = 300 * 1024 * 1024
 
 
 def atomic_write(path, data, mode=0o644):
@@ -286,6 +301,205 @@ def install_update(root, manifest, downloader=download):
         return True
 
 
+# ---------------------------------------------------------------- content updates (the game itself)
+
+def get_content_manifest():
+    url = f'{CONTENT_MANIFEST_URL}?t={time.time_ns()}'   # past every cache
+    request = urllib.request.Request(url, headers={'User-Agent': 'Moebius-Updater', 'Cache-Control': 'no-cache'})
+    with urllib.request.urlopen(request, timeout=8) as response:
+        data = response.read(65537)
+    if len(data) > 65536:
+        raise ValueError('Content manifest is too large')
+    manifest = json.loads(data)
+    validate_content_manifest(manifest)
+    return manifest
+
+
+def validate_content_manifest(manifest):
+    build = manifest.get('build')
+    if type(build) is not int or build < 1:
+        raise ValueError('Invalid content build number')
+    if not re.fullmatch(r'[0-9a-f]{64}', manifest.get('sha256', '')):
+        raise ValueError('Invalid content checksum')
+    if manifest.get('zip') != CONTENT_URL + f'web-{build}.zip':
+        raise ValueError('Unexpected content URL')
+    if not isinstance(manifest.get('version'), str):
+        raise ValueError('Missing content version')
+    if type(manifest.get('minDesktop')) is not int or manifest['minDesktop'] < 1:
+        raise ValueError('Missing the runtime level the content needs')
+    size = manifest.get('size')
+    if type(size) is not int or not 0 < size <= MAX_CONTENT:
+        raise ValueError('Invalid content size')
+
+
+def download_content(manifest, destination):
+    request = urllib.request.Request(manifest['zip'], headers={'User-Agent': 'Moebius-Updater'})
+    digest, size = hashlib.sha256(), 0
+    deadline = time.monotonic() + 600
+    with urllib.request.urlopen(request, timeout=30) as response, destination.open('wb') as output:
+        while chunk := response.read(1024 * 1024):
+            size += len(chunk)
+            if size > MAX_CONTENT or time.monotonic() > deadline:
+                raise ValueError('Content download exceeded its size or time limit')
+            digest.update(chunk)
+            output.write(chunk)
+    if digest.hexdigest() != manifest['sha256']:
+        raise ValueError('Content checksum mismatch; installed game unchanged')
+
+
+def extract_zip(archive, destination):
+    with zipfile.ZipFile(archive) as bundle:
+        members = bundle.infolist()
+        if sum(member.file_size for member in members) > 3 * MAX_CONTENT:
+            raise ValueError('Content is too large')
+        base = destination.resolve()
+        for member in members:
+            kind = (member.external_attr >> 16) & 0o170000
+            target = (base / member.filename).resolve()
+            if (member.filename.startswith('/') or '\\' in member.filename or not target.is_relative_to(base)
+                    or kind not in (0, 0o100000, 0o040000)):
+                raise ValueError('Unsafe content entry')
+        # Only regular files/directories; no symlinks, devices, or modes from the archive.
+        for member in members:
+            target = base / member.filename
+            if member.is_dir():
+                target.mkdir(parents=True, exist_ok=True)
+                continue
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with bundle.open(member) as source, target.open('wb') as output:
+                shutil.copyfileobj(source, output)
+            target.chmod(0o644)
+
+
+def runtime_content(current):
+    """What a runtime carries: {'web': its game's build, 'desktop': its DESKTOP_API}. Runtimes from
+    before content updates have no content.json, and take none."""
+    try:
+        data = json.loads((current / 'resources/app/content.json').read_text())
+        if type(data.get('web')) is int and type(data.get('desktop')) is int:
+            return data
+    except (OSError, ValueError, AttributeError):
+        pass
+    return {'web': 0, 'desktop': 0}
+
+
+def content_builds(root):
+    """The unpacked games: {build: path} (bundle.json is written before a folder is renamed in)."""
+    builds = {}
+    for path in (root / 'web').glob('[0-9]*'):
+        if path.name.isdigit() and (path / 'bundle.json').is_file() and (path / 'index.html').is_file():
+            builds[int(path.name)] = path
+    return builds
+
+
+def choose_content(root, current):
+    """The newest downloaded game this runtime can run and that never failed to start, when it is
+    newer than the runtime's own copy; else None (the runtime serves its packaged game)."""
+    carried = runtime_content(current)
+    for build, path in sorted(content_builds(root).items(), reverse=True):
+        if build <= carried['web']:
+            break
+        try:
+            need = json.loads((path / 'bundle.json').read_text()).get('minDesktop')
+        except (OSError, ValueError, AttributeError):
+            continue
+        if (path / '.failed').exists() or type(need) is not int or need > carried['desktop']:
+            continue
+        return path
+    return None
+
+
+def game_env(game):
+    """Electron's environment: MOEBIUS_GAME names the downloaded game to serve (desktop/main.mjs)."""
+    env = {key: value for key, value in os.environ.items() if key != 'MOEBIUS_GAME'}
+    if game:
+        env['MOEBIUS_GAME'] = str(game)
+    return env
+
+
+def prune_content(root, keep=2):
+    """Keep the newest two games and any one in use."""
+    for _, path in sorted(content_builds(root).items(), reverse=True)[keep:]:
+        with (path / '.in-use').open('a') as lock:
+            try:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                continue
+            shutil.rmtree(path)
+
+
+def install_content(root, manifest, downloader=download_content):
+    """Download, verify and unpack a newer game for the next launch. @return whether one was added"""
+    validate_content_manifest(manifest)
+    current = (root / 'current').resolve(strict=True)
+    carried = runtime_content(current)
+    if manifest['minDesktop'] > carried['desktop']:
+        print(f"Game build {manifest['build']} needs a newer Memento runtime: install the new package.", flush=True)
+        return False
+    web = root / 'web'
+    web.mkdir(parents=True, exist_ok=True)
+    with (web / 'update.lock').open('a') as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            return False
+        if manifest['build'] <= max([carried['web'], *content_builds(root)]) or (web / str(manifest['build'])).exists():
+            return False   # (not newer, or already here: one that failed to start is not taken again)
+        with tempfile.TemporaryDirectory(dir=web, prefix='.download-') as temporary:
+            staging = Path(temporary)
+            archive = staging / 'web.zip'
+            downloader(manifest, archive)
+            # Check here too, so every path verifies the download.
+            digest = hashlib.sha256()
+            with archive.open('rb') as stream:
+                while chunk := stream.read(1024 * 1024):
+                    digest.update(chunk)
+            if digest.hexdigest() != manifest['sha256']:
+                raise ValueError('Content checksum mismatch')
+            content = staging / 'game'
+            content.mkdir()
+            extract_zip(archive, content)
+            if not (content / 'index.html').is_file():
+                raise ValueError('Incomplete game content')
+            fields = ('build', 'version', 'minDesktop', 'sha256')
+            atomic_write(content / 'bundle.json', json.dumps({key: manifest[key] for key in fields}).encode())
+            with (root / 'state.lock').open('a') as state:
+                fcntl.flock(state, fcntl.LOCK_EX)
+                content.rename(web / str(manifest['build']))
+                try:
+                    prune_content(root)
+                except OSError as error:
+                    print(f'Game update added, but old-build cleanup failed: {error}', file=sys.stderr)
+        return True
+
+
+def update_all(root, runtime=None, content=None):
+    """The background update: the runtime and the game separately, so one failing (the runtime's
+    feed once GitHub is out of reach, or offline) never holds back the other. @return what failed"""
+    failures = []
+    steps = (('runtime', runtime or (lambda: install_update(root, get_manifest()))),
+             ('game', content or (lambda: install_content(root, get_content_manifest()))))
+    for name, step in steps:
+        try:
+            changed = step()
+            print(f'{name}: ' + ('update installed for the next launch.' if changed else 'up to date.'), flush=True)
+        except Exception as error:
+            print(f'{name}: no update ({error})', file=sys.stderr, flush=True)
+            failures.append(name)
+    return failures
+
+
+def local_package(directory):
+    """A package downloaded by hand (gh release download steam-deck): its steam-deck.json and archive."""
+    directory = Path(directory).expanduser()
+    manifest = json.loads((directory / 'steam-deck.json').read_text())
+    validate_manifest(manifest)
+    archive = directory / f"moebius-steam-deck-{manifest['build']}.tar.gz"
+    if not archive.is_file():
+        raise ValueError(f'{archive.name} is not next to steam-deck.json in {directory}')
+    return manifest, lambda _manifest, target: shutil.copyfile(archive, target)
+
+
 def write_launchers(root):
     script = '#!/bin/sh\nexec python3 ' + shlex.quote(str(root / 'current/resources/app/deck.py')) + ' --launch "$@"\n'
     atomic_write(root / 'launch', script.encode(), 0o755)
@@ -305,12 +519,16 @@ def launch(root, arguments):
         current = (root / 'current').resolve(strict=True)
         pin = (current / '.in-use').open('a')
         fcntl.flock(pin, fcntl.LOCK_SH)
-    with pin:
+        game = choose_content(root, current)
+        game_pin = (game / '.in-use').open('a') if game else open(os.devnull)
+        if game:
+            fcntl.flock(game_pin, fcntl.LOCK_SH)
+    with pin, game_pin:
         with (root / 'update.log').open('w') as log:
             subprocess.Popen([sys.executable, str(current / 'resources/app/deck.py'), '--update'],
                              stdin=subprocess.DEVNULL, stdout=log, stderr=log, start_new_session=True)
-        # Keep the pin until Electron exits, so updates cannot remove its assets.
-        result = subprocess.run([str(current / 'moebius'), *arguments], check=False)
+        # Keep the pins until Electron exits, so updates cannot remove its assets.
+        result = subprocess.run([str(current / 'moebius'), *arguments], check=False, env=game_env(game))
         sys.exit(result.returncode)
 
 
@@ -319,6 +537,8 @@ def main():
     parser.add_argument('--launch', action='store_true')
     parser.add_argument('--update', action='store_true')
     parser.add_argument('--register-steam', action='store_true')
+    parser.add_argument('--from', dest='source', metavar='DIR',
+                        help='install the package downloaded by hand into DIR (steam-deck.json and its .tar.gz)')
     args, extra = parser.parse_known_args()
     if platform.system() != 'Linux' or platform.machine() not in ('x86_64', 'AMD64'):
         parser.error('This package requires Linux x86-64 (Steam Deck).')
@@ -327,12 +547,23 @@ def main():
         return
     if extra:
         parser.error('Unknown arguments: ' + ' '.join(extra))
-    if not args.register_steam:
-        print('Checking for a Memento update…', flush=True)
-        changed = install_update(ROOT, get_manifest())
-        print('Update installed. It will be used on the next launch.' if changed else 'Already up to date.', flush=True)
     if args.update:
+        update_all(ROOT)
         return
+    if not args.register_steam:
+        if args.source:
+            manifest, copy = local_package(args.source)
+            print(f"Installing Memento build {manifest['build']} from {args.source}…", flush=True)
+            changed = install_update(ROOT, manifest, copy)
+        else:
+            print('Checking for a Memento update…', flush=True)
+            changed = install_update(ROOT, get_manifest())
+        print('Update installed. It will be used on the next launch.' if changed else 'Already up to date.', flush=True)
+        try:
+            if install_content(ROOT, get_content_manifest()):
+                print('The newest game was downloaded too.', flush=True)
+        except Exception as error:
+            print(f'The game looks for its newest version again at the next launch ({error}).', flush=True)
     write_launchers(ROOT)
     configs = steam_configs(Path.home())
     if not configs:

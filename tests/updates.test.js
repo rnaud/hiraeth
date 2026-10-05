@@ -39,7 +39,8 @@ test('the states are the app\'s (UpdateRules.java)', () => {
   const rules = java('UpdateRules.java');
   const listed = /States: ([\w, ]+)\./.exec(rules)?.[1].split(', ');
   assert.deepEqual(listed, STATES);
-  assert.equal(SETTINGS_NATIVE, nativeApi(), 'the settings\' buttons need this app level (bump both together)');
+  assert.equal(SETTINGS_NATIVE, 4, 'the settings\' buttons (check, download, openApk) came with NATIVE_API 4');
+  assert.ok(SETTINGS_NATIVE <= nativeApi(), 'this app has them');
   for (const m of ['check', 'download', 'restart', 'openApk', 'info']) assert.match(java('AppShellPlugin.java'), new RegExp(`public void ${m}\\(PluginCall call\\)`), m);
 });
 
@@ -88,6 +89,15 @@ test('each state: what the settings say and offer', () => {
   assert.deepEqual(actions(v), ['apk', 'check']);
   assert.equal(v.actions[0].label, 'Get the new app');
   assert.match(v.detail, /saves are kept/);
+
+  // the APK feed (GitHub) out of reach: a quiet note, the game's own updates go on
+  v = updateView(at({ check: 'current', checkedAt: NOW - 120e3, native: 5, apkCheck: 'failed' }), o);
+  assert.equal(v.title, 'You have the newest game');
+  assert.equal(v.detail, 'Checked 2 min ago. Couldn\'t check for a new app.');
+  assert.deepEqual(actions(v), ['check']);
+  assert.equal(updateView(at({ check: 'current', checkedAt: NOW - 120e3, apkCheck: 'ok' }), o).detail, 'Checked 2 min ago.');
+  assert.match(updateView(at({ check: 'apk', latest: 120, latestMin: 6, apkCheck: 'failed' }), o).detail, /saves are kept\. Couldn't check for a new app\.$/);
+  assert.equal(updateView(at({ check: 'available', latest: 110, apkCheck: 'failed' }), o).detail.includes('new app'), false, 'never in the way of an update');
 
   v = updateView(at({ check: 'offline' }), o);
   assert.equal(v.title, 'You\'re offline');

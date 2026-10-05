@@ -10,6 +10,7 @@ export const CHANGELOG = [
     'Shadows on faces and necks are warm skin tones instead of blue-violet, and the whites of the eyes stay warm in shade.',
     'Every people now has its own range of faces, rounder, longer or lined, with the odd freckled face in the crowd.',
     'Your parents’ holograms look gentler too.',
+    'Game updates for the Android app and the Steam Deck now come from the game’s own site. Accept the new Android app when it is offered, once, to keep getting them; your saves are kept.',
   ] },
   { v: '0.58', date: '2026-10-05', items: [
     'The browser game has an additional Cloudflare hosting target, alongside GitHub Pages.',

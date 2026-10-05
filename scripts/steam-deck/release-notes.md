@@ -11,6 +11,8 @@ Steam accounts on the Deck, then you can reopen Steam or return to Gaming Mode.
 No root password, Proton, or changes to SteamOS are needed.
 
 Updates download in the background while you play and apply on the next launch.
+The game itself updates from its own site (https://memento.alexandria-rnaud.workers.dev/);
+the runtime package from this release, or by hand with `--from` (see the guide).
 The installed game remains playable offline. Downloads are checked against the
 release's SHA-256 checksum before activation; interrupted or failed downloads
 leave the installed version intact. Progress stays in `~/.config/moebius`.

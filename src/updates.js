@@ -28,7 +28,7 @@ export function compareVersions(a, b) {
   return 0;
 }
 
-/** Whether `build` (a workflow run number) is newer than every build on the device. */
+/** Whether `build` (release-info.mjs gameBuild: the commit's number) is newer than every build on the device. */
 export const isNewerBuild = (build, info) => (build || 0) > Math.max(info?.web || 0, info?.app || 0, info?.ready || 0);
 
 /** 4.6 MB, 820 KB. */
@@ -78,6 +78,8 @@ export function updateView(info, { version = '', now = Date.now(), armed = false
   };
   const check = (label = 'Check for updates') => ({ a: 'check', label });
   const checked = info.checkedAt ? `Checked ${formatAgo(info.checkedAt, now)}.` : '';
+  // the APK feed (GitHub) out of reach: a quiet note, never an update error (apps from NATIVE_API 5 report it)
+  const noApkCheck = info.apkCheck === 'failed' ? 'Couldn\'t check for a new app.' : '';
 
   if (restarting) {
     return { ...v, state: 'restarting', title: 'Restarting with the update…', detail: 'Your saves are kept.', busy: true };
@@ -95,7 +97,7 @@ export function updateView(info, { version = '', now = Date.now(), armed = false
       break;
     case 'current':
       v.title = 'You have the newest game';
-      v.detail = [checked, info.error].filter(Boolean).join(' ');
+      v.detail = [checked, info.error, noApkCheck].filter(Boolean).join(' ');
       v.actions.push(check());
       break;
     case 'available':
@@ -122,7 +124,7 @@ export function updateView(info, { version = '', now = Date.now(), armed = false
       break;
     case 'apk':
       v.title = `${vb(info.apkVersion || info.latestVersion, info.latest) || 'The newest game'} needs a new version of the app`;
-      v.detail = 'Its native part changed, so it can\'t come over the air. Install the new app over this one: your saves are kept.';
+      v.detail = ['Its native part changed, so it can\'t come over the air. Install the new app over this one: your saves are kept.', noApkCheck].filter(Boolean).join(' ');
       showNotes();
       v.actions.push({ a: 'apk', label: 'Get the new app', primary: true }, check('Check again'));
       break;

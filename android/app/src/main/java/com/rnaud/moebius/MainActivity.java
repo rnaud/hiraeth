@@ -24,7 +24,8 @@ import com.getcapacitor.WebViewListener;
 // page as a standard gamepad (GamepadBridge). The game itself updates over the
 // air (WebBundles: a downloaded web build is served instead of the one in the
 // APK; it looks for one at launch and each time the app comes back to the front);
-// APK updates for native changes come from GitHub releases (Updater).
+// APK updates for native changes come from GitHub releases (Updater); the game's
+// own updates from its site (WebBundles.MANIFEST).
 // Leaving the app pauses the page (rendering, sound); coming back restores it.
 public class MainActivity extends BridgeActivity {
     private GamepadBridge pad;
