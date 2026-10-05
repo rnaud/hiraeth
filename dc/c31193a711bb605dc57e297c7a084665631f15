@@ -1,0 +1,39 @@
+README.md
+  s_1fd8d0e7b02dcf::t_7fdcf01c0c2b86 424-425,1437-1489
+TODO.md
+  s_1fd8d0e7b02dcf::t_11990ecf680fbb 531-534
+changelog.md
+  s_1fd8d0e7b02dcf::t_13a42ac240ecfd 10-14
+scripts/render-score.mjs
+  s_1fd8d0e7b02dcf::t_03ae7f196e0e65 1-83
+scripts/unity-export/record-sounds.mjs
+  s_1fd8d0e7b02dcf::t_4803f980b9c9a4 80
+src/audio.js
+  s_1fd8d0e7b02dcf::t_0e80ccde1d401d 13-14,32-38,138,161-166,412,414-415,418-419,427-437,439-441,446-447,523-525,603-605,682,920,1228,1271,1363-1380,1385
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_40fe6d26a6792b 10-14
+src/main.js
+  s_1fd8d0e7b02dcf::t_35d1bc1e1b8114 1266
+src/score-voices.js
+  s_1fd8d0e7b02dcf::t_f2b46ae884f880 1-357
+src/score.js
+  s_1fd8d0e7b02dcf::t_1a6874786937b8 1-401
+tests/score.test.js
+  s_1fd8d0e7b02dcf::t_28136051761471 1-131
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dcc31193a711bb605dc57e297c7a084665631f15",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
