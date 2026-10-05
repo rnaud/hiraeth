@@ -29,7 +29,7 @@ export const ITEMS = {
   jetpack: {
     name: 'Fluid jets', kind: 'movement', needs: 'backpack',
     text: "Ancient nozzles that turn the tank’s fluid into thrust. Worn smooth, still reliable. The makers expected a long journey.",
-    use: 'Fire them with RT / R2 or a left click when not aiming (on a keyboard, also SPACE held in the air): you hover, the stick flies you where it points, and holding jump too climbs. They burn the backpack’s fluid; land to let it recover.',
+    use: 'Hold RT / R2 or the left mouse button when not aiming (on a keyboard, also SPACE held in the air) and fly where you look: the stick forward takes you that way, up if you look up, diving if you look down; leave the stick and you hover, hold jump too and you climb straight up. They burn the backpack’s fluid; land to let it recover.',
   },
   glider: {
     name: 'Fluid wings', kind: 'movement', needs: 'backpack',

@@ -49,11 +49,17 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 ## Movement and camera
 
-- [ ] The jetpack flies like Superman: I can orient up, or down (I can't point down now).
-- [ ] Inside a temple I sometimes can't aim all the way up: the camera gets stuck pointing up.
-- [ ] Ragdolling down a long fall, the fall sometimes stops, the traveller stands up in mid-air, then keeps
-  falling.
-- [ ] Always a slight shadow under the traveller while jumping, for precise platforming.
+- [x] The jetpack flies like Superman: I can orient up, or down (I can't point down now). (RT / R2 with the
+  stick flies where the camera looks: look up to climb, down to dive, straight down head first; the stick
+  at rest hovers, A / × held rises; the body lies flat along the flight, arms ahead; low flight skims
+  rising ground; diving into the ground lands.)
+- [x] Inside a temple I sometimes can't aim all the way up: the camera gets stuck pointing up. (The tight
+  rooms' look-up limit, ~36°, held the aim too; aiming now goes to ~86° anywhere and eases back after.)
+- [x] Ragdolling down a long fall, the fall sometimes stops, the traveller stands up in mid-air, then keeps
+  falling. (The ragdoll ended after 3.5 s wherever it was; now only on the ground. The landing hurts like
+  any fall, and the camera keeps up.)
+- [x] Always a slight shadow under the traveller while jumping, for precise platforming. (A patch of shade
+  straight under you whenever you are off the ground, inked like a shadow, shrinking with the height.)
 
 ## HUD, menus and bosses
 

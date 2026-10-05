@@ -155,3 +155,52 @@ test('the traveller: a hard landing goes limp on the ragdoll, the place follows 
   p.object.updateMatrixWorld(true);
   assert.ok(p.humanoid.b.Head.getWorldPosition(new THREE.Vector3()).y > 1.4, 'standing');
 });
+
+test('knockdown: a long fall through the air never ends in the air (it used to stop after a few seconds and get up there)', () => {
+  // the ground 400 m down: ~5 s of falling, past KNOCK.maxFall
+  const cliff = { heightAbove: (p) => p.y + 400, pushCapsule: () => null };
+  const kd = new Knockdown(body()).start(new THREE.Vector3(2, 0, 0));
+  let t = 0, rose = false;
+  for (; t < KNOCK.maxFall + 1; t += 1 / 60) rose ||= kd.update(1 / 60, cliff, Y);
+  assert.equal(kd.phase, 'fall', `still falling after ${t.toFixed(1)} s`);
+  assert.equal(rose, false, 'no getting up in mid-air');
+  assert.ok(!kd.rag.grounded && kd.rag.pelvis.y < -100, `and still coming down (${kd.rag.pelvis.y.toFixed(0)} m)`);
+  // on the ground at last: a landing at speed (the owner hurts for it), then it lies, then up
+  let landing = 0;
+  for (; t < 20 && kd.phase === 'fall'; t += 1 / 60) { kd.update(1 / 60, cliff, Y); landing = Math.max(landing, kd.rag.takeLanding()); }
+  assert.ok(kd.phase === 'lie' && kd.rag.pelvis.y < -399, `lying on the ground below (${kd.rag.pelvis.y.toFixed(1)} m)`);
+  assert.ok(landing > 60, `the landing's speed is known (${landing.toFixed(0)} m/s)`);
+  for (; t < 30 && !rose; t += 1 / 60) rose = kd.update(1 / 60, cliff, Y);
+  assert.ok(rose, 'and then gets up, on the ground');
+});
+
+test('the traveller: tumbling off a ledge down a long drop stays limp all the way down, gets up only on the ground, and the landing hurts', async () => {
+  const { Player, FALL } = await import('../src/player.js');
+  // a ledge at 0 for x < 1, the ground 300 m below beyond it
+  const h = (p) => p.x < 1 ? p.y : p.y + 300;
+  const ledge = { heightAbove: h, groundAt: (x, y, z) => -h({ x, y: 0, z }), rayDistance: () => Infinity, pushCapsule: () => null, groundNormal: () => new THREE.Vector3(0, 1, 0) };
+  const p = new Player(ledge);
+  p.humanoid = new Humanoid(human, p.char, 'm');
+  p.attach(new THREE.Scene());
+  p.pos.set(0.6, 0, 0); p.onGround = true;
+  for (let i = 0; i < 10; i++) p.update(1 / 60, {}, 0);
+  p.knockDown(new THREE.Vector3(12, -2, 0));
+  let t = 0, worst = 0;
+  for (; t < 20 && p.down && !p.dead; t += 1 / 60) {
+    p.update(1 / 60, {}, 0);
+    if (p.down?.phase === 'rise' || p.down?.phase === 'lie') worst = Math.max(worst, p.down.rag.pelvis.y - (-300));
+  }
+  assert.ok(p.pos.y < -295, `down at the bottom (${p.pos.y.toFixed(1)} m)`);
+  assert.ok(worst < 1.5, `it only lies and gets up on the ground (pelvis ${worst.toFixed(1)} m over it at most)`);
+  assert.ok(p.dead && p.health === 0, 'a 300 m fall is fatal, ragdoll or not');
+  // a shorter drop (~25 m) hurts a little, and you get up at the bottom
+  const q = new Player({ ...ledge, heightAbove: (pt) => pt.x < 1 ? pt.y : pt.y + 25, groundAt: (x) => x < 1 ? 0 : -25 });
+  q.humanoid = new Humanoid(human, q.char, 'm');
+  q.attach(new THREE.Scene());
+  q.pos.set(0.6, 0, 0); q.onGround = true;
+  for (let i = 0; i < 10; i++) q.update(1 / 60, {}, 0);
+  q.knockDown(new THREE.Vector3(12, -2, 0));
+  for (t = 0; t < 12 && q.down; t += 1 / 60) q.update(1 / 60, {}, 0);
+  assert.ok(!q.down && q.pos.y < -24, `up at the bottom (${q.pos.y.toFixed(1)} m)`);
+  assert.ok(q.health < 1 && q.health > 1 - FALL.worst - 0.01, `a little hurt (${q.health.toFixed(2)})`);
+});

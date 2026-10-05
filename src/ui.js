@@ -58,7 +58,7 @@ export function controlsList(ok = confirmKey(), back = backKey()) {
   return {
     keyboard: [
       ['Move · run', 'WASD · SHIFT'], ['Look', 'mouse (click the game to capture it) · wheel zooms'],
-      ['Jump · fluid boost', 'SPACE · SPACE again in the air'], ['Jets / wings (once found)', 'hold SPACE in the air, or left click without aiming (WASD flies)'],
+      ['Jump · fluid boost', 'SPACE · SPACE again in the air'], ['Jets / wings (once found)', 'hold SPACE in the air · or hold left click without aiming: WASD flies where you look (look down to dive), no keys hovers, SPACE climbs'],
       ['Climb', 'push into a wall'], ['Use, talk, get on / off', 'E (moving: jump off)'],
       ['The scout finds your objective', 'Q'], ['Aim the fluid tool · shoot', 'hold right mouse or R · left click or G'],
       ['Push · gun mode', 'C or middle click · X'], ['Dive · rise (in water)', 'Z or CTRL · SPACE'],
@@ -68,7 +68,7 @@ export function controlsList(ok = confirmKey(), back = backKey()) {
       ['Move · run', 'left stick · click it (L3)'], ['Look · zoom', 'right stick · hold LB / L1'],
       ['Jump · boost · wings', 'A / × · again in the air · hold'], ['Use, talk, get on', 'B / ○'],
       ['Call your mount or a taxi', 'X / □'], ['The scout finds your objective', 'Y / △ (riding too)'],
-      ['Aim · shoot', 'LT / L2 · RT / R2 while aiming'], ['Jets', 'RT / R2 without aiming (A / × held hovers)'],
+      ['Aim · shoot', 'LT / L2 · RT / R2 while aiming'], ['Jets', 'hold RT / R2 without aiming: the left stick flies where you look (look down to dive, up to climb), the stick at rest hovers · A / × held climbs'],
       ['Push · gun mode', 'RB / R1 · D-pad left / right'], ['Photo mode · worlds', 'D-pad down · D-pad up'],
       ['Gear and sketchbook · menu', 'View · Menu'],
       ['Riding', 'RT / R2 go · LT / L2 brake · left stick steer (flying: forward dives, back climbs) · X / □ hop, flap, rise · RB / R1 boost · A / × jump off · B / ○ get off'],

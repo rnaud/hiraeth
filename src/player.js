@@ -26,15 +26,46 @@ const GRAVITY = 32;
 const JUMP = 13;
 const LIMIT = 1900;
 /**
- * The jets (player.update): RT / R2 or the left mouse button (not aiming) fire them, and they
- * fly you where the left stick points (camera-relative, like steering the bird: the body
- * turns and leans into it), at up to JET.speed (JET.run with L3 / Shift), easing in at
- * JET.accel and to a stop at JET.drift, while they climb at JET.rise (straight up with the stick
- * neutral, up and that way with it). Holding a pad's jump as well holds the height instead (a
- * hover: the fall braked to JET.hover m/s). The keyboard's / touch's Space, the jets on its own,
- * climbs to JET_MAX_UP. They only push up, at most JET_THRUST.
+ * The jets (player.update) fly like Superman: RT / R2 or the left mouse button (not aiming)
+ * fire them, and the left stick flies you where the camera looks, in 3D: look down and push
+ * forward to dive, look up to climb, sideways to strafe (jetFlight: the camera's pitch,
+ * JET.level of it flies level, JET.gain steeper either way), at up to JET.speed (JET.run with
+ * L3 / Shift; a dive gains up to JET.dive more), easing in at JET.accel and to a stop at
+ * JET.drift. The stick neutral hovers in place (the fall braked to a standstill); a pad's jump
+ * held as well climbs straight up at JET.rise (and the stick steers you across meanwhile).
+ * The body leans into the flight, flat out like Superman going fast, head first into a dive.
+ * Let go and you fall (or glide) as before. The keyboard's / touch's Space, the jets on its
+ * own, climbs to JET_MAX_UP. They push at most JET_THRUST; a dive is gravity's.
  */
-export const JET = { speed: 8, run: 14, accel: 3, drift: 2.2, hover: 0.3, hold: 4, takeoff: 4, rise: 9 };
+export const JET = { speed: 8, run: 14, accel: 3, drift: 2.2, hover: 0, hold: 4, takeoff: 4, rise: 9, level: 0.22, gain: 1.4, dive: 0.6 };
+
+/**
+ * The jets' flight direction (unit, into `out`) for the stick (f forward, s right) and the
+ * camera (camF its level forward, camR its right, U up, pitch the rig's: + looks down): the
+ * stick's forward goes where the camera looks, tipped JET.gain as steep as the camera from
+ * JET.level (the follow camera's usual look down flies level); its side strafes. Zero with
+ * the stick neutral.
+ */
+export function jetFlight(f, s, camF, camR, U, pitch = JET.level, out = new THREE.Vector3()) {
+  const e = THREE.MathUtils.clamp(-(pitch - JET.level) * JET.gain, -Math.PI / 2, Math.PI / 2);   // elevation: + climbs
+  out.copy(camF).multiplyScalar(f * Math.cos(e)).addScaledVector(U, f * Math.sin(e)).addScaledVector(camR, s);
+  const L = out.length();
+  return L > 1e-6 ? out.divideScalar(L) : out.set(0, 0, 0);
+}
+
+/** m: the jets' lean turns the body about its hips, this high over the feet. */
+const JET_PIVOT = 1.0;
+/**
+ * The jets' pose for a flight at `hs` m/s across and `vu` m/s up: the body's lean (rad, about
+ * the hips: 0 upright, π/2 flat out, more head first into a dive) and how far the arms reach
+ * ahead and the legs trail (0 hovering .. 1 flying fast). Upright while it hovers.
+ */
+export function jetPose(hs, vu) {
+  const speed = Math.hypot(hs, vu);
+  const k = THREE.MathUtils.smoothstep(speed / JET.speed, 0.2, 0.95);
+  const along = Math.atan2(hs, vu);                     // 0 straight up .. π/2 level .. π straight down
+  return { lean: THREE.MathUtils.lerp(0.1, THREE.MathUtils.clamp(along * 0.92, 0.1, 2.75), k), reach: k };
+}
 const JET_THRUST = 54;     // m/s² upward while thrusting (gravity is 32)
 const JET_MAX_UP = 15;
 const JET_DRAIN = 0.1;     // fuel per second (~10 s of thrust), when no backpack tool burns its fluid (tests)
@@ -224,6 +255,7 @@ const _cu = new THREE.Vector3(), _cs = new THREE.Vector3(), _cb = new THREE.Vect
 const _ca = new THREE.Vector3(), _cbb = new THREE.Vector3(), _cA = new THREE.Vector3(), _cv = new THREE.Vector3();
 const _v2 = new THREE.Vector3();
 const _v3 = new THREE.Vector3();
+const _fly = new THREE.Vector3(), _flyH = new THREE.Vector3();   // (the jets' flight: jetFlight)
 const _mat = new THREE.Matrix4();
 const _q1 = new THREE.Quaternion();
 const Y = new THREE.Vector3(0, 1, 0);
@@ -643,6 +675,9 @@ export class Player {
     if (D.phase !== 'rise') {
       const up = D.update(dt, this.physics, U);
       if (H) D.rag.groundSpot(this.physics, U, this.pos);
+      // tumbling on down a long fall (off a ledge, a cliff): its landing hurts like any (landHard), the dead stay down
+      const landed = H ? D.rag.takeLanding() : 0;
+      if (landed > FALL.tumble * (this.fallGuard ?? 1) && !this.cushioned) this.fallHurt(landed / (this.fallGuard ?? 1));
       if (this.pos.dot(U) < this.opts.killY || (this.opts.unsafe && this.opts.unsafe(this.pos))) {
         // (into deep water, off the world): back where you last stood safely, as anywhere
         this.down = null;
@@ -887,7 +922,7 @@ export class Player {
     if (best) { this.opts.onWhistle?.('taxi'); best.hail(this.pos, this.heading); }
   }
 
-  update(dt, input, camYaw) {
+  update(dt, input, camYaw, camPitch = JET.level) {
     this.time += dt;
     if (this._knockout) { const why = this._knockout; this._knockout = null; if (!this.down) this.knockDown(this.vel, { dead: true, why }); else this.down.dead = true; }
     this.heal(dt);
@@ -979,31 +1014,45 @@ export class Player {
     const move = new THREE.Vector3().addScaledVector(camF, f).addScaledVector(camR, s);
     if (move.lengthSq() > 0) move.normalize();
     (this._moveDir ??= new THREE.Vector3()).copy(move);   // where you steer (the head and chest lead the turn: locomotion.js)
+    // the jets fly where the camera looks (Superman: jetFlight), the stick neutral hovers
+    const flyDir = jetFlight(f, s, camF, camR, U, camPitch, _fly);
 
     // the jets' buttons (controller.js triggers): RT / left mouse while not aiming; Space is the
     // keyboard's and touch's own jets key too, but a pad's jump (PadJump) only climbs on them
     const canJet = this.canJet, canGlide = this.canGlide, fuel = this.jetFuel;
     const jetBtn = triggers(input).jets, spaceJets = !!input.Space && !input.PadJump;
     const jetOn = canJet && fuel > 0.004;
+    // the jets' button on the ground lifts you off (not while flying into it: a dive lands you; a
+    // fresh jump jumps). Before the pace is chosen, so flying low over rising ground skims it at
+    // the jets' speed rather than dropping to a walk at every touch
+    const intoGround = !input.Space && flyDir.dot(U) < -0.3;
+    const liftOff = jetBtn && jetOn && this.onGround && !this.climbing && !intoGround && !(input.Space && !this._jumpHeld);
+    if (liftOff) this.onGround = false;
+    const jetting = this.thrusting || liftOff;
 
     // sprinting spends the stamina climbing does (src/stamina.js); winded, you jog
     const sprint = run && canSprint(this) && !this.aim;
     this.sprinting = sprint && this.onGround && !this.thrusting && !this.gliding && move.lengthSq() > 0.01;
     let speed = (sprint ? RUN : WALK) * (stickScale < 1 ? THREE.MathUtils.lerp(0.35, 1, stickScale) : 1);
     if (this.gliding) speed *= 1.25;
-    if (this.thrusting) speed = (run ? JET.run : JET.speed) * (stickScale < 1 ? THREE.MathUtils.lerp(0.3, 1, stickScale) : 1);
+    const jetSpeed = (run ? JET.run : JET.speed) * (stickScale < 1 ? THREE.MathUtils.lerp(0.3, 1, stickScale) : 1);
+    if (jetting) speed = jetSpeed;
+    // flying on RT / the mouse (not climbing on them with the jump held): the stick goes where the camera looks
+    const superman = jetting && jetBtn && !input.Space;
     if (this.aim) speed = Math.min(speed, WALK) * (1 - 0.35 * this.aim.k);   // aiming: a steady walk
     speed *= this.wadeSlow;                                                   // wading (src/swim.js)
     const steering = move.lengthSq() > .001;
-    if (this.onGround || this.thrusting || this.gliding) this._carry = false;   // (jumped off something fast: its speed carries you until you land)
-    const accel = this.onGround ? (steering ? 8 : 16) : this.thrusting ? (steering ? JET.accel : JET.drift) : this._carry ? 0.5 : 2.5;
+    if (this.onGround || jetting || this.gliding) this._carry = false;   // (jumped off something fast: its speed carries you until you land)
+    const accel = this.onGround ? (steering ? 8 : 16) : jetting ? (steering ? JET.accel : JET.drift) : this._carry ? 0.5 : 2.5;
     // (the motion matcher predicts the body's path with this same spring: animateClips)
     this._wantSpeed = move.lengthSq() > 0 ? speed : 0;
     this._accel = accel;
     const a = 1 - Math.exp(-accel * dt);
     let vu = this.vel.dot(U);
     const tv = _v3.copy(this.vel).addScaledVector(U, -vu);
-    tv.addScaledVector(_v1.copy(move).multiplyScalar(speed).sub(tv), a);
+    if (liftOff) vu = Math.max(vu, JET.takeoff);
+    const want = superman ? _flyH.copy(flyDir).addScaledVector(U, -flyDir.dot(U)).multiplyScalar(speed) : _flyH.copy(move).multiplyScalar(speed);
+    tv.addScaledVector(want.sub(tv), a);
 
     // jump / glide
     let jumped = false;
@@ -1015,8 +1064,6 @@ export class Player {
     }
     const jumpedNow = input.Space && !this._jumpHeld;
     this._jumpHeld = !!input.Space;
-    // the jets' button on the ground lifts you off
-    if (jetBtn && jetOn && this.onGround && !jumped && !this.climbing) { vu = Math.max(vu, JET.takeoff); this.onGround = false; }
     // a fresh press in the air may be a fluid boost (fluid-tool.js decides; since = time since the last press)
     const airPress = jumpedNow && !jumped && !this.onGround;
     const sincePress = this.time - (this._pressAt ?? -Infinity);
@@ -1036,9 +1083,12 @@ export class Player {
     // the tank's fluid burns as thrust (fuelSource); without the tool, the old gauge
     if (this.thrusting && this.fuelSource && !this.fuelSource.burnJet(dt)) this.thrusting = false;
     if (this.thrusting) {
-      // RT / the mouse climb (JET.rise), a pad's jump held with them hovers (the fall braked to
-      // JET.hover); Space alone climbs to JET_MAX_UP. The jets only push up, at most JET_THRUST
-      const target = jetBtn ? (input.PadJump ? JET.hover : JET.rise) : input.Space ? JET_MAX_UP : JET.hover;
+      // RT / the mouse fly where the camera looks (up or down; the stick neutral hovers: the fall
+      // braked to JET.hover), a jump held with them climbs straight up (JET.rise); Space alone
+      // climbs to JET_MAX_UP. The jets only push up, at most JET_THRUST: a dive is gravity's,
+      // faster the steeper (JET.dive), and they brake it at its speed
+      const climb = flyDir.dot(U) * jetSpeed;
+      const target = jetBtn ? (input.Space ? JET.rise : climb < 0 ? climb * (1 + JET.dive * -flyDir.dot(U)) : climb) : input.Space ? JET_MAX_UP : JET.hover;
       vu += THREE.MathUtils.clamp((target - vu) * (1 - Math.exp(-JET.hold * dt)) + GRAVITY * dt, 0, JET_THRUST * dt);
       if (!this.fuelSource) this.fuel = Math.max(this.fuel - JET_DRAIN * dt, 0);
       this._autoGlide = false;
@@ -1212,10 +1262,15 @@ export class Player {
    */
   landHard(speed) {
     if (this.opts.health === false || this._landing) return;
-    const fatal = speed >= FALL.lethal;
-    const dmg = fatal ? 1 : Math.min(fallDamage(speed), Math.max(0, (this.health ?? 1) - 0.1));
     this._landing = { vel: this.vel.clone(), speed };
-    this.hurt(dmg, 'fall');
+    this.fallHurt(speed);
+  }
+
+  /** A landing's hurt at `speed` m/s (fallDamage): never the last of the bar unless it was fatal. */
+  fallHurt(speed) {
+    if (this.opts.health === false) return;
+    const fatal = speed >= FALL.lethal;
+    this.hurt(fatal ? 1 : Math.min(fallDamage(speed), Math.max(0, (this.health ?? 1) - 0.1)), 'fall');
   }
 
   /**
@@ -1605,7 +1660,7 @@ export class Player {
     c.legs[0].rotation.set(-1.35, 0, 0.12);
     c.legs[1].rotation.set(-1.35, 0, -0.12);
     c.knees[0].rotation.x = c.knees[1].rotation.x = 1.45;
-    c.body.position.y = 0;
+    c.body.position.set(0, 0, 0);
     c.body.rotation.set(0.12 + flow * 0.12, 0, 0);
     c.torso.rotation.set(0.12, 0, 0);
     c.arms[0].rotation.set(-1.0, 0, -0.2);
@@ -1652,20 +1707,26 @@ export class Player {
 
     if (!this.onGround || this.thrusting || this.gliding) {
       this._gait = null;
-      c.body.position.y = 0;
+      c.body.position.set(0, 0, 0);
       c.torso.rotation.set(0, 0, 0);
       if (this.thrusting) {
         c.legs[0].rotation.set(0.2, 0, 0); c.legs[1].rotation.set(-0.15, 0, 0);
         c.knees[0].rotation.x = 0.5; c.knees[1].rotation.x = 0.3;
         c.arms[0].rotation.set(0.25, 0, -0.5); c.arms[1].rotation.set(0.25, 0, 0.5);
         c.elbows[0].rotation.x = c.elbows[1].rotation.x = -0.3;
-        // lean into the flight, more the faster you go, and bank into the turns like the bird
-        const fly = THREE.MathUtils.clamp(hs / JET.speed, 0, 1);
+        // lean into the flight like Superman: along it, the faster the more (a hover stands, flat
+        // out flying level, head first into a dive, upright climbing), turned about the hips; arms
+        // reach ahead, legs trail together; bank into the turns like the bird
+        const P = jetPose(hs, this.vel.dot(this.frame.up));
         const jetBank = THREE.MathUtils.clamp(-this._turn * 0.16, -0.6, 0.6);
-        c.body.rotation.set(0.1 + fly * 0.75, 0, jetBank);
-        c.head.rotation.set(-0.25 - fly * 0.45, 0, 0);
-        c.legs[0].rotation.set(0.2 + fly * 0.3, 0, 0); c.legs[1].rotation.set(-0.1 + fly * 0.35, 0, 0);
-        c.arms[0].rotation.set(0.25 + fly * 0.5, 0, -0.35); c.arms[1].rotation.set(0.25 + fly * 0.5, 0, 0.35);
+        c.body.rotation.set(P.lean, 0, jetBank);
+        c.body.position.set(0, JET_PIVOT * (1 - Math.cos(P.lean)), -JET_PIVOT * Math.sin(P.lean));
+        const k = P.reach, flut = Math.sin(t * 9) * 0.05 * k;
+        c.head.rotation.set(L(-0.25, -0.3 - Math.min(P.lean, 1.5) * 0.4, k), 0, 0);
+        c.legs[0].rotation.set(L(0.2, -0.04 + flut, k), 0, 0); c.legs[1].rotation.set(L(-0.1, 0.06 - flut, k), 0, 0);
+        c.knees[0].rotation.x = L(0.5, 0.12, k); c.knees[1].rotation.x = L(0.3, 0.2, k);
+        c.arms[0].rotation.set(L(0.25, -2.85, k), 0, L(-0.35, -0.16, k)); c.arms[1].rotation.set(L(0.25, -2.85, k), 0, L(0.35, 0.16, k));
+        c.elbows[0].rotation.x = c.elbows[1].rotation.x = L(-0.3, -0.06, k);
         c.hatTip.rotation.x = -0.5 + Math.sin(t * 25) * 0.08;
       } else if (this.gliding) {
         c.legs[0].rotation.set(0.3, 0, 0); c.legs[1].rotation.set(0.1, 0, 0);
@@ -1755,7 +1816,7 @@ export class Player {
     this.object.position.copy(this.pos);
     this.frame.quaternion(this.heading, this.object.quaternion);
     c.body.rotation.set(lean + squash * 0.15, 0, bank);
-    c.body.position.y = 0;
+    c.body.position.set(0, 0, 0);   // (x, z too: the jets' lean turns the body about the hips)
     this.object.updateMatrixWorld(true);
     let reachDrop = 0;
     for (let i = 0; i < 2; i++) {
@@ -2006,8 +2067,12 @@ const ENCLOSED = { ceil: 26, ring: 36, up: 42 };   // m: a shut space (a cave, a
 // In the open nearly straight up: the camera drops to the grass behind the traveller and the
 // top of the frame passes the zenith. Close in (tight spaces, rooms) as before: the arm is short
 // there, and a steep look up would only fill the view with the ceiling or the traveller.
+// Aiming (the fluid tool), anywhere, all the way up: the shot follows the reticle, so in a temple's
+// tight rooms too you can aim straight up at a ceiling's switch or a guardian overhead (the tight
+// limit stopped it at ~36°); the arm drops under the shoulder there, held off the floor.
 export const PITCH_UP_OPEN = -1.36;
 export const PITCH_UP_TIGHT = -0.62;
+export const PITCH_UP_AIM = -1.5;
 export const PITCH_DOWN = 1.3;
 
 const smoothstep = (a, b, x) => { const t = THREE.MathUtils.clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
@@ -2102,9 +2167,10 @@ export class CameraRig {
     this.pitch = THREE.MathUtils.clamp(this.pitch + dy * k * (this.invertY ? -1 : 1), this.pitchUpLimit(), PITCH_DOWN);
   }
 
-  /** The lowest pitch (the steepest look up) right now: nearly straight up in the open, less close in. */
-  pitchUpLimit(k = Math.max(this.tightK, this.indoorK)) {
-    return THREE.MathUtils.lerp(PITCH_UP_OPEN, PITCH_UP_TIGHT, THREE.MathUtils.clamp(k, 0, 1));
+  /** The lowest pitch (the steepest look up) right now: nearly straight up in the open, less close in, straight up aiming. */
+  pitchUpLimit(k = Math.max(this.tightK, this.indoorK), ak = this.aimK ?? 0) {
+    const free = THREE.MathUtils.lerp(PITCH_UP_OPEN, PITCH_UP_TIGHT, THREE.MathUtils.clamp(k, 0, 1));
+    return THREE.MathUtils.lerp(free, PITCH_UP_AIM, THREE.MathUtils.clamp(ak, 0, 1));
   }
 
   /**
@@ -2283,11 +2349,14 @@ export class CameraRig {
     const ik = this.indoorK;
     const tk = this.updateTight(playerPos, dt, U, Fw, Rt);
     const k = Math.max(ik, tk);   // how close-quarters the framing is
-    // closing in (a doorway, an alley): a steep look up eases back down to what fits
-    this.pitch = Math.max(this.pitch, this.pitchUpLimit(k));
+    // closing in (a doorway, an alley), or done aiming: a steep look up eases back down to what fits
+    // (with the aim's own easing: aimK)
+    this.pitch = Math.max(this.pitch, this.pitchUpLimit(k, ak));
     const dist = this.armLength(tk, ak);
     this.downK += ((this.down ? 1 : 0) - this.downK) * (1 - Math.exp(-3 * dt));
-    this.target.lerp(playerPos, 1 - Math.exp(-THREE.MathUtils.lerp(14, 5, this.downK) * dt));
+    // (knocked down, softer; but not while the body is falling away from it: a long tumble left the frame)
+    const lag = this.target.distanceTo(playerPos);
+    this.target.lerp(playerPos, 1 - Math.exp(-THREE.MathUtils.lerp(14, 5, this.downK * (1 - smoothstep(1.5, 4, lag))) * dt));
     if (this.target.lengthSq() === 0) this.target.copy(playerPos);
     // in the ship the view tips down a little from under the ceiling; more when a wall has
     // pulled the camera right in, so the head never fills the screen

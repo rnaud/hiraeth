@@ -29,6 +29,7 @@ import { BrushTrail } from './brush.js';
 import { Cascade, ShadowCuller, shadowDirection, farPassSkips, selfLitSkips } from './shadows.js';
 import { Trail } from './trail.js';
 import { Flock, Motes, Footprints } from './life.js';
+import { JumpShadow } from './jump-shadow.js';
 import { Sound } from './audio.js';
 import { Weather, WEATHER_KINDS } from './weather.js';
 import { Shelter, addIndoors } from './shelter.js';
@@ -359,6 +360,8 @@ const trailGround = (x, y, z) => (player.mount.groundAt ? player.mount.groundAt(
 const trails = player.mount && player.mount.kind !== 'bird' ? [new Trail(scene, { offset: 0, physics, ground: trailGround }), new Trail(scene, { offset: 2.5, physics, ground: trailGround })] : null;
 const JETS = player.mount?.jets ?? [new THREE.Vector3(0.66, -0.08, -1.18), new THREE.Vector3(-0.66, -0.08, -1.18)];   // the jets' rear caps (the vehicle's own, if it says)
 const footprints = new Footprints(scene);   // prints take the colour of whatever they land on
+const jumpShadow = new JumpShadow(scene);    // off the ground: a patch of shade straight under you (src/jump-shadow.js)
+(level.noShadow ??= []).push(jumpShadow.mesh);
 resize();
 if (footprints) player.onStep = (p, heading, up) => footprints.add(p, heading, up);
 
@@ -1279,7 +1282,7 @@ function frame() {
     const usingLens = expedition?.update(dt, player, ctl, busy());
     if (usingLens && ctl.KeyE) player._eHeld = true; // the same press must not whistle after the last turn
     if (interacted) player._eHeld = true;
-    player.update(dt, busy() ? noInput : ctl, rig.yaw);
+    player.update(dt, busy() ? noInput : ctl, rig.yaw, rig.pitch);   // (the pitch: the jets fly where the camera looks)
     rig.follow(player.ride?.heading ?? player.heading, dt, player.riding || player.gliding);
     rig.down = !!player.down;   // knocked down: the camera follows the body on the ground, lower and softer
     rig.update(player.pos, dt, player.frame);
@@ -1296,6 +1299,7 @@ function frame() {
   for (const f of flocks) f.update(dt, t, player.pos, camera.position);
   motes?.update(dt, t, camera.position);
   footprints?.update(dt);
+  jumpShadow.update(player, physics);
   updateLights();
   // weather: wind, haze, rain and storm feed the shader, the cloth and the sound
   // (none of it indoors, and no rain drawn under a roof with you: src/shelter.js)

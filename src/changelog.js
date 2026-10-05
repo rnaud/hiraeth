@@ -19,6 +19,11 @@ export const CHANGELOG = [
     'The traveller has a new look: tousled dark hair, a loose coral overshirt, cream trousers rolled above worn ankle boots, a beige scarf and a round satchel. His sleeves are rolled up and his face is uncovered.',
     'The glass backpack is smaller, with green fittings, faded turquoise and lavender cloth ties, and a dark wrist tool. The makers’ star sits on his lapel and the lantern hangs below the scout’s dock.',
     'The character studio can show the complete fluid backpack and wrist tool while you inspect an outfit or animation.',
+    'The jets fly like Superman: hold RT / R2 (or the left mouse button) and push the stick to fly where you look. Look up to climb, look down to dive, straight down to drop head first. Let go of the stick to hover in place, and hold A / × as well to rise straight up. The traveller stretches out flat along the flight, arms ahead.',
+    'Flying low on the jets over rising ground skims along it at full speed instead of stumbling into a walk, and diving into the ground lands you.',
+    'Aiming the fluid tool, you can now look straight up anywhere, including the tight rooms of the temples, where the view used to stop partway up. The shot goes where the reticle points.',
+    'Knocked limp off a ledge into a long drop, the traveller now stays limp all the way down and gets up only on the ground. Before, the fall could stop and the traveller would stand up in mid-air. The landing at the bottom hurts like any hard fall, and the camera keeps up with the body.',
+    'While you jump, fall, glide or fly, a small patch of shadow sits on the ground right under you, so you can judge a landing even when the sun’s shadow falls to one side. It shrinks the higher you are.',
   ] },
   { v: '0.62', date: '2026-10-05', items: [
     'Nothing stays on the screen while you play any more: the box in the corner with the place, the objective and the relics is gone. Your health shows while you are hurt or healing, the stamina wheel while you are tired, the tank beside you while it refills or the jets burn, and each fades away after. A short line at the bottom says what the use button does when there is something to use, and a region’s name as you cross into it.',
