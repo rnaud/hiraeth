@@ -1,0 +1,37 @@
+motion.html
+  s_1fd8d0e7b02dcf::t_b6ceefdd751e10 1-79
+scripts/mocap/compare.mjs
+  s_1fd8d0e7b02dcf::t_d984fb285c52e7 8,10-11
+src/dev-menu.js
+  s_1fd8d0e7b02dcf::t_7213963f524182 60,120-122
+src/gait-course.js
+  s_1fd8d0e7b02dcf::t_0767a5008c6752 1-192
+src/motion/main.js
+  s_1fd8d0e7b02dcf::t_8b0ecab7eb46de 1-884
+src/motion/state.js
+  s_1fd8d0e7b02dcf::t_90b76ed8053d2c 1-89
+studio.html
+  s_1fd8d0e7b02dcf::t_f9cba2cb2f9903 52
+tests/gait-sim.js
+  s_1fd8d0e7b02dcf::t_83a44bb661bcb1 15,34-35,60,66
+tests/motion-page.test.js
+  s_1fd8d0e7b02dcf::t_c8a4a73b13a9cd 1-88
+vite.config.js
+  s_1fd8d0e7b02dcf::t_cebca08e7f79b6 9-14,19-20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4bfa8ecc075a3ad508e5a332c8b9065338b99e55",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
