@@ -49,8 +49,6 @@ namespace Memento
             var inside = game.world.Places.V3("caveInside");
             var hits = Physics.RaycastAll(inside + Vector3.up * 2, Vector3.down, 10, ~0, QueryTriggerInteraction.Collide);
             var near = Physics.OverlapSphere(inside, 6, ~0);
-            var all = FindObjectsByType<MeshCollider>(FindObjectsInactive.Include);
-            Log($"colliders {all.Length}, enabled {all.Count(c => c.enabled && c.gameObject.activeInHierarchy)}, high {string.Join(" ", all.Where(c => c.bounds.center.y > 500).Select(c => c.name + c.bounds.center + c.gameObject.activeInHierarchy))}");
             Log($"probe {when}: {hits.Length} hits [{string.Join(", ", hits.Select(h => h.collider.name + "@" + h.point.y.ToString("0.0")))}], near [{string.Join(", ", near.Select(c => c.name + " " + c.enabled + " " + c.bounds.center + " " + (c is MeshCollider mc && mc.sharedMesh ? mc.sharedMesh.triangles.Length / 3 : -1)))}]");
         }
 
@@ -113,12 +111,6 @@ namespace Memento
             var ama = Person("ama");
             PutNear(ama.pos, 6f); yield return Wait(2.5f);
             yield return Shoot("camps");
-            game.look.debugView = 2; game.look.Apply(); yield return Shoot("camps_albedo");
-            game.look.debugView = 5; game.look.Apply(); yield return Shoot("camps_light");
-            game.look.debugView = 0; game.look.Apply();
-            foreach (var r in ama.GetComponentsInChildren<Renderer>(true))
-                Log($"  ama renderer {r.name} {r.GetType().Name} enabled {r.enabled} active {r.gameObject.activeInHierarchy} visible {r.isVisible} bounds {r.bounds.center} {r.bounds.size} mat {r.sharedMaterial?.shader?.name} mode {r.sharedMaterial?.GetFloat("_Mode")} verts {(r is SkinnedMeshRenderer sm && sm.sharedMesh ? sm.sharedMesh.vertexCount : -1)} layer {r.gameObject.layer}");
-            Log($"  ama at {ama.pos} / {ama.transform.position}, player at {game.player.transform.position}, scale {ama.transform.lossyScale}");
             PutNear(ama.pos, 2f); yield return Wait(0.6f);
             game.hud.StartTalk(game.story.Def("ama"), ama, ama.displayName, ama.title);
             yield return Wait(2.5f);

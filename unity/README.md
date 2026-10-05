@@ -127,9 +127,11 @@ a frame at each step and exits 0 only if the quest is done.
   headings become Unity yaw `-h`. The shaders mirror positions back before every
   procedural pattern, so the dunes, strata, ripples, cracks and sky land exactly
   where they do on the web.
-- `views.mjs` writes fixed viewpoints (web coordinates) for side-by-side shots.
-  The web side was shot with headless Chrome (`?level=desert`, the camera
-  pinned to the same eye and target); see `docs/` here.
+- `views.mjs` writes fixed viewpoints (web coordinates) for side-by-side shots;
+  `web-shots.mjs` shoots the web game from them with headless Chrome
+  (`?level=desert`, the camera pinned to the same eye and target; needs
+  playwright-core and a dev server), `unity-batch.sh Shots` the Unity side.
+  The pairs are in `docs/` here.
 
 ### The look (`Assets/Memento/Shaders`, `Assets/Memento/Rendering`)
 
