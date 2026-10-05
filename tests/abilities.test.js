@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { FluidTool, FLUID } from '../src/fluid-tool.js';
+import { FluidTool, TANK, FLUID } from '../src/fluid-tool.js';
 import { MODES, HANDOFF, nextMode, ownedModes, STUN_SECONDS } from '../src/fluid-kit.js';
 import { clearTargets, hitTarget, registerTarget, modeFor, raycastTargets } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
@@ -78,7 +78,7 @@ test('no backpack: no tank, hose or bracer, nothing fires, nothing throws; found
   assert.ok(tool.tank.group.scale.x < 0.9, 'it grows in');
   assert.ok(tool.glow.list.length > 10, 'a shimmer of fluid');
   step(70);
-  assert.ok(Math.abs(tool.tank.group.scale.x - 1) < 1e-6 && tool.appear === 1);
+  assert.ok(Math.abs(tool.tank.group.scale.x - TANK.scale) < 1e-6 && tool.appear === 1);
   assert.equal(tool.bracer.group.visible, true); assert.equal(tool.hose.mesh.visible, true);
   p.pos.set(0, 0, 0); p.onGround = true; step(5);
   step(1, { KeyC: true }); step(12);
@@ -319,6 +319,7 @@ test('vehicles run on the backpack: refused without it; boarding swings the tank
   frames(Math.round(HANDOFF.board * 0.4 / DT));
   assert.equal(tool.where, 'socket');
   assert.equal(tool.tank.group.parent, bike.socket, 'slotted into the socket');
+  assert.ok(tool.tank.group.getWorldScale(v()).distanceTo(chest.getWorldScale(v()).multiplyScalar(TANK.scale)) < 1e-6, 'compact pack keeps its size in the vehicle socket');
   frames(Math.round(HANDOFF.board * 0.3 / DT) + 2);
   assert.equal(p.riding, true, 'and on');
   assert.equal(p.ride, bike);
@@ -335,7 +336,8 @@ test('vehicles run on the backpack: refused without it; boarding swings the tank
   assert.equal(p.unboarding, null);
   assert.equal(tool.where, 'back');
   assert.equal(tool.tank.group.parent, chest, 'on the back again');
-  assert.ok(tool.tank.group.position.distanceTo(v(0, 0.4, -0.33)) < 1e-6);
+  assert.ok(tool.tank.group.position.distanceTo(v(...TANK.at)) < 1e-6);
+  assert.ok(tool.tank.group.scale.distanceTo(v(TANK.scale, TANK.scale, TANK.scale)) < 1e-6, 'compact pack keeps its size back on the shoulders');
   assert.equal(tool.allowed(false), true);
   frames(120);
   assert.ok(bike.powerK < 0.1 && Math.abs(bike.speed) < 1, 'unpowered, it settles and stops');

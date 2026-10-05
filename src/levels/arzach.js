@@ -6,6 +6,7 @@ import { SandDrifts, driftMaterial } from '../sand-drifts.js';
 import { Terrain, jitter } from '../world.js';
 import { Bird } from '../bird.js';
 import { attachTemple } from '../temples/index.js';
+import { stepped } from '../load-steps.js';
 
 // ---------------------------------------------------------------------------
 // Vael: a silent, bone-white world of needle spires,
@@ -36,10 +37,11 @@ export const BONE = [
   ['#ece6da', '#d9cfc0', '#c9b8a0'],
 ];
 
-export function createArzach(scene) {
+// (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
+export function* buildArzach(scene) {
   const rng = mulberry32(1975);
   const pick = (a) => a[Math.floor(rng() * a.length)];
-  const terrain = new Terrain({
+  const terrain = yield* Terrain.make({
     size: 4000, seg: 420, height,
     material: { color: '#f0dcc0', color2: '#f7ead4', color3: '#e3bf9c', mode: MODE_TERRAIN, ripples: true },   // warm peach sand
   });
@@ -49,7 +51,9 @@ export function createArzach(scene) {
   const spires = [];
 
   // ---------------------------------------------------------- needle spires
+  yield;
   for (let i = 0; i < 90; i++) {
+    yield;
     const x = (rng() * 2 - 1) * 1300, z = (rng() * 2 - 1) * 1300;
     if (Math.hypot(x, z) < 140) continue; // keep the start clear
     const r = 6 + rng() * 16, h = 60 + rng() * rng() * 260;
@@ -72,9 +76,12 @@ export function createArzach(scene) {
   }
 
   // ---------------------------------------------------------- stone arches between neighbouring spires
+  yield;
   const archMat = bone(2.5);
   let arches = 0;
+  yield;
   for (let i = 0; i < spires.length && arches < 16; i++) {
+    yield;
     for (let j = i + 1; j < spires.length; j++) {
       const a = spires[i], b = spires[j];
       const d = Math.hypot(a.x - b.x, a.z - b.z);
@@ -91,7 +98,9 @@ export function createArzach(scene) {
   }
 
   // ---------------------------------------------------------- floating ruins
+  yield;
   for (let i = 0; i < 22; i++) {
+    yield;
     const x = (rng() * 2 - 1) * 1200, z = (rng() * 2 - 1) * 1200;
     const r = 10 + rng() * 22;
     const g = new THREE.ConeGeometry(r, r * (1.5 + rng()), 9, 4);
@@ -114,7 +123,9 @@ export function createArzach(scene) {
   }
 
   // ---------------------------------------------------------- the lone tower
+  yield;
   const towerInfo = {};
+  yield;
   {
     const x = 260, z = -420, base = terrain.baseAt(x, z, 14);
     const H = 240;
@@ -147,7 +158,9 @@ export function createArzach(scene) {
   }
 
   // ---------------------------------------------------------- hero: the fallen colossus and the hand
+  yield;
   const handInfo = {}, colossus = {};
+  yield;
   {
     const stoneMat = makeMaterial({ color: '#efe6d2', color2: '#e0d2b8', color3: '#cdbb9c', mode: MODE_STRATA, strataSize: 4, flat: true });
     const grp = new THREE.Group();
@@ -216,8 +229,11 @@ export function createArzach(scene) {
   }
 
   // ---------------------------------------------------------- menhirs and pebbles
+  yield;
   const menhirs = [];
+  yield;
   for (let i = 0; i < 60; i++) {
+    yield;
     const x = (rng() * 2 - 1) * 1300, z = (rng() * 2 - 1) * 1300;
     const h = 6 + rng() * 14;
     const g = new THREE.BoxGeometry(2 + rng() * 2, h, 1.5 + rng());
@@ -228,6 +244,7 @@ export function createArzach(scene) {
     scene.add(m);
     menhirs.push({ x, z, y: m.position.y, h });
   }
+  yield;
   {
     const N = 2500, dummy = new THREE.Object3D(), color = new THREE.Color();
     const rocks = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 0), makeMaterial({ color: '#ffffff', flat: true, pattern: 'cracks' }), N);
@@ -248,6 +265,7 @@ export function createArzach(scene) {
   // ---------------------------------------------------------- mushroom rocks and balanced stones
   // The book's eroded hoodoos: a thin weathered stalk under a wide flat cap,
   // in warm ochre and rose against the pale sand. Their caps are landing spots.
+  yield;
   {
     const WARM = [['#e9b8a0', '#f2d2b8', '#d99a86'], ['#e6c08a', '#f0d6a8', '#d0a070'], ['#f0d8c0', '#e2bfa0', '#c98f7a']];
     const prof = [[0, 0], [5.5, 0], [4.2, 0.08], [3.0, 0.25], [2.1, 0.5], [2.0, 0.68], [2.8, 0.78], [7.5, 0.82], [8.2, 0.88], [7.0, 0.96], [0, 1]];
@@ -277,6 +295,7 @@ export function createArzach(scene) {
   }
 
   // the Aerie on the plain west of the landing, and its rooms far overhead (src/temples/arzach.js)
+  yield;
   // sand banked against what stands on the sand: every collided mesh built so far (sand-drifts.js)
   const sand = new SandDrifts({ heightAt: (x, z) => terrain.heightAt(x, z), seed: 5 }).addScene(scene);
   const drifts = sand.build(driftMaterial(makeMaterial, terrain.materialOptions));
@@ -314,3 +333,4 @@ export function createArzach(scene) {
     update(dt, t) { for (const m of movers) m(t); },
   });
 }
+export const createArzach = stepped(buildArzach);

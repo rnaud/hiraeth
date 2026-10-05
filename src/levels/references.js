@@ -3,6 +3,7 @@ import { colourScript } from '../timeofday.js';
 import { makeMaterial, MODE_TERRAIN } from '../materials.js';
 import { RoomKit } from './lab-kit.js';
 import { REFERENCE_VIEWS, REFERENCE_SHEETS } from './reference-views.js';
+import { stepped } from '../load-steps.js';
 import { SandDrifts, driftMaterial } from '../sand-drifts.js';
 import { DESERT_LOOK } from '../desert-sites.js';
 import { SKY_STONES_DAY, SKY_STONES_LOOK, SKY_STONES_FLAT } from './arzach2.js';
@@ -159,7 +160,8 @@ export const WORLD_LOOKS = {
   vael2: { sky: SKY_STONES_DAY, look: { ...SKY_STONES_LOOK, uShadowFlat: SKY_STONES_FLAT } },
 };
 
-export function createReferences(scene) {
+// (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
+export function* buildReferences(scene) {
   // ?look=<world> (WORLD_LOOKS): the views in that world's own colours and ink, not the panels'
   const asWorld = typeof location !== 'undefined' ? WORLD_LOOKS[new URLSearchParams(location.search).get('look')] ?? null : null;
   const lights = [], noShadow = [], movers = [];
@@ -225,7 +227,9 @@ export function createReferences(scene) {
   };
 
   // what is drawn: the view you are in. The others are hidden and their matrices frozen (as the Lab's rooms).
+  yield;
   for (const v of views) {
+    yield;
     const g = v.group, base = g.updateMatrixWorld;
     g.updateMatrixWorld = function (force) { if (this.visible) base.call(this, force); };
   }
@@ -241,6 +245,7 @@ export function createReferences(scene) {
   show(views[0]);
 
   // ---- the held camera, the switch between views, the comparison
+  yield;
   let held = null;       // { view, pos, yaw, pitch, mouse }: the camera is the panel's until you move or look
   let pending = 0;       // a switch asked for ([ ], L3 / R3)
   let pendingTo = null;  // or a view by its index (goTo)
@@ -402,5 +407,7 @@ export function createReferences(scene) {
       if (camera && here) updateUi(held?.view ?? here, camera);
     },
   };
+  yield;
   return level;
 }
+export const createReferences = stepped(buildReferences);

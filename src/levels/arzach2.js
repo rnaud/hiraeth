@@ -6,6 +6,7 @@ import { makeMaterial, MODE_TERRAIN, MODE_STRATA } from '../materials.js';
 import { Terrain } from '../world.js';
 import { Bird } from '../bird.js';
 import { attachTemple } from '../temples/index.js';
+import { stepped } from '../load-steps.js';
 
 // ---------------------------------------------------------------------------
 // Vael II: The Sky Stones. Bone-white needle clusters, balanced stones and
@@ -147,13 +148,14 @@ function height(x, z) {
 }
 
 // ---------------------------------------------------------------- the level
-export function createArzach2(scene) {
+// (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
+export function* buildArzach2(scene) {
   const rng = mulberry32(2026);
   const R = (a, b) => a + rng() * (b - a);
   // the sheets print every shade of the rock, the plain and the buildings flat in one grey-blue at the
   // surface's value (makeMaterial shadeFlat), whatever its colour; the people, the bird and the flowers keep theirs
   const PRINT = { shadeFlat: SKY_STONES_FLAT };
-  const terrain = new Terrain({
+  const terrain = yield* Terrain.make({
     size: 5200, seg: 320, height,
     material: { color: '#eda584', color2: '#f2b48f', color3: '#c98f86', mode: MODE_TERRAIN, ripples: true, ...PRINT },
   });
@@ -185,6 +187,7 @@ export function createArzach2(scene) {
   const noShadow = [];
 
   // ---------------------------------------------------------- plateaus and mushroom tables
+  yield;
   const shadowGeos = [];
   const addTable = (mat, o) => { const t = table(o); add(mat, t.vis, t.col); if (mat === M.cap) shadowGeos.push(clean(t.shadow)); return t; };
   // the start plateau: a wide table with an overhanging lip
@@ -224,6 +227,7 @@ export function createArzach2(scene) {
   });
 
   // ---------------------------------------------------------- the floating island
+  yield;
   {
     const { x, z, R: r, top } = ISLAND;
     const rs = [[-50, 0.06], [-47, 0.2], [-41, 0.38], [-32, 0.57], [-22, 0.74], [-12, 0.88], [-5, 0.97], [-1.6, 1.02], [-0.3, 0.975]].map(([y, s]) => ({ y: top + y, r: r * s, ox: 0, oz: 0 }));
@@ -239,6 +243,7 @@ export function createArzach2(scene) {
   }
 
   // ---------------------------------------------------------- needle clusters
+  yield;
   const cluster = (cx, cy, cz, H, Rr, n, seed, rubble = true, mat = M.bone) => {
     const r2 = mulberry32(seed * 97 + 3);
     const nd = needle({ x: cx, y: cy, z: cz, H, R: Rr, seed: seed + 0.1, seg: 18, rings: 28, lean: (r2() - 0.5) * 0.08 });
@@ -284,6 +289,7 @@ export function createArzach2(scene) {
   });
 
   // ---------------------------------------------------------- balanced stones
+  yield;
   const stack = (x, y, z, stones, seed, mat = M.bone) => {
     const r2 = mulberry32(seed * 31 + 1);
     let yy = y;
@@ -307,6 +313,7 @@ export function createArzach2(scene) {
   stack(30, terrain.heightAt(30, -1140) - 0.5, -1140, [[6, 0.55, 0], [5, 0.8, 0.1], [4.2, 0.7, 0], [3.4, 0.9, 0.2], [2.2, 1, 0.25]], 4);
   stack(-200, terrain.heightAt(-200, -1190) - 0.5, -1190, [[4, 0.6, 0], [3.4, 0.8, 0.1], [2.4, 1.1, 0.25]], 5);
   // a tall stone column out of the cloud, with mushroom discs and stacked stones (page 2)
+  yield;
   {
     const x = 128, z = -92;
     const col0 = needle({ x, y: -80, z, H: 120, R: 7, seed: 41, seg: 14, rings: 18, flute: 0.1, lean: 0 });
@@ -321,6 +328,7 @@ export function createArzach2(scene) {
     stack(x + 0.5, y1 + 3.5, z + 0.3, [[2.8, 0.8, 0.2], [2, 0.9, 0.2]], 7);
   }
   // the disc column with an egg resting above it (page 1)
+  yield;
   {
     const { x, z, top, R: r } = DISC;
     const shaft = table({ x, z, R: r, stalk: 3.6, top, base: -95, capT: 1.8, under: 2.4, dome: 0.35, seed: 61, rib: 0.35, ribK: 22, seg: 96, colSeg: 16,
@@ -331,6 +339,7 @@ export function createArzach2(scene) {
   }
 
   // ---------------------------------------------------------- aqueducts and arches
+  yield;
   const aqueduct = (o, mat = M.aq, parapets = true) => {
     const br = bridge(o);
     add(mat, br.g, bridge({ ...o, step: 2.5 }).g);
@@ -358,6 +367,7 @@ export function createArzach2(scene) {
   aqueduct({ a: [-486, -296], b: [-516, -162], y0: 90, y1: 76, W: 14, bays: 1, pier: 0.04, rise: 0.6, thick: 10, rough: 2.4, seed: 6, ends: 0, flare: 0.6, bulge: 0.35, bottom: 20 }, M.rose, false);
 
   // ---------------------------------------------------------- monasteries
+  yield;
   const building = { walls: [], plain: [], roofs: [], domes: [], dark: [], trees: [] };
   const box = (list, x, y, z, w, h, d, ry = 0) => list.push(place(new THREE.BoxGeometry(w, h, d), x, y + h / 2, z, ry));
   const gable = (x, y, z, w, d, ry = 0) => {
@@ -397,6 +407,7 @@ export function createArzach2(scene) {
     return b;
   };
   const cypress = (x, y, z, h) => building.trees.push(place(new THREE.ConeGeometry(h * 0.16, h, 7), x, y + h / 2, z));
+  yield;
   {
     // the white monastery on the rose cliff, facing the start
     const y = MONASTERY.top + 0.3, x = MONASTERY.x - 10, z = MONASTERY.z - 6;
@@ -410,6 +421,7 @@ export function createArzach2(scene) {
     box(building.walls, x - 5, y - 1, z - 30, 28, 3.2, 1.2, 0.35);   // a low courtyard wall
     cypress(x - 32, y, z + 6, 11); cypress(x - 35, y, z + 2, 9); cypress(x + 30, y, z - 4, 10);
   }
+  yield;
   {
     // the floating island's church: a domed church between two towers (page 6)
     const y = ISLAND.top + 0.4, x = ISLAND.x + 2, z = ISLAND.z - 4;
@@ -421,6 +433,7 @@ export function createArzach2(scene) {
     building.walls.push(place(new THREE.BoxGeometry(0.5, 3, 0.5), x, y + 10 + 4.5 + 6.6, z));      // a cross
     building.walls.push(place(new THREE.BoxGeometry(2, 0.5, 0.5), x, y + 10 + 4.5 + 7.2, z));
   }
+  yield;
   {
     // a little hermitage on the start plateau's edge, like the panel with the domed chapel
     const x = -40, y = START.top + 0.2, z = 44;
@@ -428,12 +441,15 @@ export function createArzach2(scene) {
     domed(x, y + 6, z, 3.3, 2.5);
     house(x + 7, y, z + 1, 5, 4, 7, Math.PI / 2);
   }
+  yield;
   for (const [k, list] of Object.entries(building)) {
+    yield;
     const mat = { walls: M.wall, plain: M.plainWall, roofs: M.roof, domes: M.dome, dark: M.dark, trees: M.tree }[k];
     for (const g of list) add(mat, g);
   }
 
   // ---------------------------------------------------------- the lone tower
+  yield;
   {
     const x = TOWER.x, z = TOWER.z, base = terrain.baseAt(x, z, 12), H = 150;
     const parts = [
@@ -471,8 +487,10 @@ export function createArzach2(scene) {
   }
 
   // ---------------------------------------------------------- the bell in its open belfry, and its rope
+  yield;
   const bell = new THREE.Group();
   bell.userData.noCollide = true;
+  yield;
   {
     const prof = [[0.12, 0], [0.5, 0.04], [0.62, 0.3], [0.7, 0.62], [0.86, 0.86], [1.0, 0.98], [0.96, 1.02], [0, 1.02]].map(([r, y]) => new THREE.Vector2(r * 2.1, -y * 3.0));
     const body = new THREE.Mesh(new THREE.LatheGeometry(prof, 18), makeMaterial({ color: '#c99a52', metal: 'brass', side: DS }));   // bronze
@@ -489,6 +507,7 @@ export function createArzach2(scene) {
   // (src/story/arzach2.js), so it never passes through the tower
   const ropeTop = new THREE.Vector3(BELL.x, BELL.floor + 0.3, BELL.z + BELL.w * 0.56 + 0.22);
   const ropeFoot = new THREE.Vector3(BELL.x, BELL.y + 0.9, ropeTop.z);
+  yield;
   {
     const arm = new THREE.Mesh(mergeGeometries([
       new THREE.BoxGeometry(0.12, 0.12, 0.5).translate(0, 0.06, -0.18),                              // the arm, out over the ledge's lip
@@ -505,6 +524,7 @@ export function createArzach2(scene) {
   scene.add(rope);
 
   // ---------------------------------------------------------- floating stones (gently bobbing, not collidable)
+  yield;
   const floaters = new THREE.Group();
   floaters.userData.noCollide = true;
   floaters.userData.floats = true;   // (the clipping audit: meant to hang in the air)
@@ -538,6 +558,7 @@ export function createArzach2(scene) {
 
   // ---------------------------------------------------------- the sky stones by the great table (they fell up)
   // little flat-topped stones hanging over the cloud, each with a pebble or two below it
+  yield;
   SKY.forEach(([x, z, top, r], i) => {
     const t = table({ x, z, R: r, stalk: r * 0.3, top, base: top - r * 1.5, capT: r * 0.32, under: r * 0.3, dome: r * 0.06, seed: 80 + i * 1.3,
       rib: r * 0.05, ribK: 16, seg: 40, colSeg: 10, flute: 0.1, fluteK: 7, foot: 0.8, neckR: 1.1, waist: 0.1 });
@@ -545,6 +566,7 @@ export function createArzach2(scene) {
     add(M.bone, place(boulder(r * 0.22, 1, 1.3, 1, 0.1, 90 + i), 0.3, top - r * 1.5 - r * 0.5, 0.2).translate(x, 0, z), null);
   });
   // the cairn's footing stone on the great table
+  yield;
   {
     const y = tableTop(TABLE, Math.hypot(CAIRN.x - TABLE.x, CAIRN.z - TABLE.z));
     add(M.bone, place(boulder(1.5, 1.2, 0.5, 1.1, 0, 95), CAIRN.x, y + 0.35, CAIRN.z), place(boulder(1.5, 1.2, 0.5, 1.1, 0, 95, false), CAIRN.x, y + 0.35, CAIRN.z));
@@ -552,7 +574,9 @@ export function createArzach2(scene) {
   }
 
   // ---------------------------------------------------------- merge everything per material
+  yield;
   for (const [mat, geos] of vis) {
+    yield;
     let g = mergeGeometries(geos);
     if (mat === M.cap) g = mergeVertices(g, 1e-3);
     g.computeVertexNormals();
@@ -580,7 +604,9 @@ export function createArzach2(scene) {
   };
 
   // ---------------------------------------------------------- scattered pebbles (instanced, not collidable)
+  yield;
   const smallProps = [];
+  yield;
   {
     const spots = [];
     const onTable = (t, n) => {
@@ -612,7 +638,9 @@ export function createArzach2(scene) {
   }
 
   // ---------------------------------------------------------- the sea of cloud
+  yield;
   const cloud = [];
+  yield;
   {
     const PAL = ['#fffbf4', '#f8e4d6', '#d8dbee'];
     const puffGeo = (detail) => {
@@ -683,6 +711,7 @@ export function createArzach2(scene) {
   spawn.y = topAt(spawn.x, spawn.z);
 
   // the Founders' Belfry out of the cloud west of the plateau, and its rooms far overhead (src/temples/arzach2.js)
+  yield;
   return attachTemple('arzach2', scene, {
     id: 'arzach2',
     ground: terrain,
@@ -736,3 +765,4 @@ export function createArzach2(scene) {
     update(dt, t) { for (const m of movers) m(t); },
   });
 }
+export const createArzach2 = stepped(buildArzach2);

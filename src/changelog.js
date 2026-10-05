@@ -3,14 +3,27 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.64', date: '2026-10-05', items: [
+    'Vael II, the Sky Stones, looks more like its drawings: the shade on its rock, its plain and its monasteries is one flat grey-blue whatever their colour, the needles keep a clean light side with few strokes in shade, the undersides of the mushroom caps are the darkest places, and the sky is clear, with no bank of clouds on the horizon. Its flowers and its people keep their own colours in shade.',
+    'Cliffs, needles and rock faces everywhere are hatched with strokes running down the face, as an inker draws rock, and the shade under a cap or an overhang no longer curls into wood grain.',
+    'The References scenes now include Vael II: thirty-one views from its six sheets, the needles on peach and aqua skies, the balanced eggs, the monasteries on their cliffs and floating islands, the mushrooms over the sea of cloud and the plain with its lone tower.',
+  ] },
   { v: '0.63', date: '2026-10-05', items: [
     'The desert’s sky is clear now, as in its drawings: no bank of clouds on the horizon, and the far dunes fade into a pale warm band.',
     'Steep dune faces in shade are hatched again with dense strokes, while flat sand in shade stays a calm tone.',
     'The City-Shaft is drawn with fewer hatch strokes and a clean sky, and its houses have fewer, smaller windows.',
     'The References scenes now include the City-Shaft: twenty-three views from its five sheets, up and down the shaft, after the desert’s.',
-    'Vael II, the Sky Stones, looks more like its drawings: the shade on its rock, its plain and its monasteries is one flat grey-blue whatever their colour, the needles keep a clean light side with few strokes in shade, the undersides of the mushroom caps are the darkest places, and the sky is clear, with no bank of clouds on the horizon. Its flowers and its people keep their own colours in shade.',
-    'Cliffs, needles and rock faces everywhere are hatched with strokes running down the face, as an inker draws rock, and the shade under a cap or an overhang no longer curls into wood grain.',
-    'The References scenes now include Vael II: thirty-one views from its six sheets, the needles on peach and aqua skies, the balanced eggs, the monasteries on their cliffs and floating islands, the mushrooms over the sea of cloud and the plain with its lone tower.',
+    'Walking through a door, into a cave, a temple or the crashed ship’s hatch, through the Lab’s doors or the Hangar’s portals is smooth now: a sheet of paper sweeps across and you walk on out of the far side at the pace you had, mid-stride, the camera still where it was behind you, instead of stopping dead with the view snapped in close.',
+    'The rooms, caves and halls behind every door, and the ship’s cabins, are made ready while the world loads, so the first step inside no longer hitches.',
+    'Stepping into the ship or a house, the camera comes level gently instead of jumping.',
+    'A world loads without freezing the page: it is built a piece at a time behind the loading screen, so the pen keeps turning smoothly and the first moments in the world no longer stutter while the rest settles in.',
+    'The desert’s people have new bodies. Children look like children, and teenagers, heavy people and the old have bodies of their own age and build instead of one stretched man or woman. Their faces move as they talk (a smile lifts the cheeks, worry raises the brows), and their hair is drawn as a few big locks with strand lines, which now show on dark hair in the shade too.',
+    'Ilo and Kito are as small as children their age, and the people in the crowd who come close keep their age and build, so an old pilgrim stays old as you walk up.',
+    'Bako, Nour, Marrow, Sefa and the Speaker dress more like themselves: Bako in a head-wrap, a grey beard and a long teal coat; Nour under a wide straw hat with a veil, in ochre robes; Marrow in a patched hood with goggles and a scarf; Sefa in a long purple cloak; the Speaker in a tall, wide-brimmed hat with a high collar over his mouth.',
+    'Capes hang round fuller and thinner bodies without passing through them, and someone knocked over lies on their own shape.',
+    'The traveller has a new look: tousled dark hair, a loose coral overshirt, cream trousers rolled above worn ankle boots, a beige scarf and a round satchel. His sleeves are rolled up and his face is uncovered.',
+    'The glass backpack is smaller, with green fittings, faded turquoise and lavender cloth ties, and a dark wrist tool. The makers’ star sits on his lapel and the lantern hangs below the scout’s dock.',
+    'The character studio can show the complete fluid backpack and wrist tool while you inspect an outfit or animation.',
   ] },
   { v: '0.62', date: '2026-10-05', items: [
     'Nothing stays on the screen while you play any more: the box in the corner with the place, the objective and the relics is gone. Your health shows while you are hurt or healing, the stamina wheel while you are tired, the tank beside you while it refills or the jets burn, and each fades away after. A short line at the bottom says what the use button does when there is something to use, and a region’s name as you cross into it.',

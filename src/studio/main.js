@@ -15,6 +15,8 @@ import { loadMotionLibrary } from '../motion-match.js';
 import { loadHuman, Humanoid } from '../humanoid.js';
 import { buildCharacter } from '../player.js';
 import { Gear } from '../gear.js';
+import { FluidTool } from '../fluid-tool.js';
+import { GameState } from '../game-state.js';
 import { NPC } from '../npc.js';
 import { COSTUME_WORLDS, crowdLook, BUILDS, HEAD_IDS, HAIR_IDS, MASK_IDS, BODY_IDS, PROP_IDS, TRIM_IDS, tribeOf, setCostumeWorld } from '../costumes.js';
 import { figureGeometry, packLook } from '../crowd.js';
@@ -149,10 +151,14 @@ function makeTraveller() {
   scene.add(char.root);
   const gear = new Gear(scene, h, char);
   if (char.pack) char.pack.visible = false;
+  const noShadow = [...gear.noShadow];
+  // An isolated equipment preview: no grants or writes to the player's save.
+  const tool = state.backpack ? new FluidTool({ scene, player: { char, humanoid: h, gear, object: char.root, pos: char.root.position, frame: { up: UP }, vel: new THREE.Vector3() }, camera,
+    noShadow, state: new GameState(), items: { has: (id) => id === 'backpack', on: () => () => {} } }) : null;
   h.ownMaterials();
   const copies = markHero(char.root);
   markHero(gear.device, copies);
-  return { type: 'traveller', name: 'The traveller', root: char.root, char, h, animator, gear, baseScale: 1, noShadow: gear.noShadow };
+  return { type: 'traveller', name: 'The traveller', root: char.root, char, h, animator, gear, tool, baseScale: 1, noShadow };
 }
 
 function makeNPC(def, look, world, human = null) {
@@ -165,12 +171,13 @@ function makeNPC(def, look, world, human = null) {
   npc.restyle(look);
   npc.char.pack.visible = !!state.l.pack;
   npc.humanoid.ownMaterials();
-  const baseScale = (def?.scale ?? look.height ?? 1) * (look.size ?? 1);
+  const baseScale = npc.baseScale ?? (def?.scale ?? look.height ?? 1) * (look.size ?? 1);   // (a MakeHuman child's true height: NPC)
   return { type: 'npc', name: def?.name ?? (look.blank ? 'A blank body' : `Someone of ${TITLES[world] ?? world}`), root: npc.object, char: npc.char, h: npc.humanoid, animator: npc.animator, npc, look, baseScale, noShadow: [] };
 }
 
 function disposePerson(p) {
   if (!p) return;
+  p.tool?.dispose();
   if (p.npc) p.npc.dispose(scene);
   else { scene.remove(p.root); p.gear?.device?.removeFromParent(); }
 }
@@ -178,7 +185,7 @@ function disposePerson(p) {
 let people = [];      // on stage
 let gpu = null;       // the GPU crowd figures (crowd-shader.js)
 let cast = [];        // the world's story people
-let mhData = null;   // the MakeHuman parametric body (public/anim/mh/body.json + .bin, src/makehuman/body.js), once asked for
+let mhData = null;   // the MakeHuman parametric body (public/anim/mh/body.bin, src/makehuman/body.js), once asked for
 const MH_LINEUPS = ['makehuman', 'mhbuilds', 'mhhair'];
 const lookOf = (p) => p.look;
 
@@ -294,7 +301,7 @@ function applyLook() {
     p.npc.restyle(look);
     p.npc.char.pack.visible = !!state.l.pack;
     p.h.ownMaterials();
-    p.baseScale = (specDef(p.spec)?.scale ?? look.height ?? 1) * (look.size ?? 1);
+    p.baseScale = p.npc.baseScale ?? (specDef(p.spec)?.scale ?? look.height ?? 1) * (look.size ?? 1);
   }
   applyBody();
   applyFace();
@@ -342,7 +349,7 @@ function describe() {
   if (state.lineup === 'faces') return `${people.length} faces, from the left: ${people.map((q) => (q.world ? `${q.name} (${TITLES[q.world] ?? q.world})` : q.name)).join(', ')} · Share → Faces sheet`;
   if (state.lineup) return `${people.length} people · ${TITLES[state.world] ?? state.world}${state.lineup === 'crowd' ? ' · front: full bodies, back: GPU crowd figures' : ''}`;
   const L = p.look;
-  return L ? `${p.name} · ${L.kind === 'f' ? 'woman' : L.kind === 'm' ? 'man' : 'person'} · ${L.build} · ${(p.baseScale * (state.b.height ?? 1) * 1.8).toFixed(2)} m · ${L.tribe ?? ''}` : `${p.name} · the suit, the gear of traveller.glb`;
+  return L ? `${p.name} · ${L.kind === 'f' ? 'woman' : L.kind === 'm' ? 'man' : 'person'} · ${L.build} · ${(p.baseScale * (state.b.height ?? 1) * 1.8).toFixed(2)} m · ${L.tribe ?? ''}` : `${p.name} · coral overshirt, cream trousers, glass pack`;
 }
 
 // ------------------------------------------------------------------ animation, eyes, expression, cloth
@@ -449,6 +456,7 @@ function animate(p, dt, t) {
     }
   }
   if (p.gear) p.gear.update(dt, _w.set(0, 0, 0), a.phase ?? 0, speed / 6, true);
+  p.tool?.updateWorn(state.paused ? 0 : dt);
 }
 
 function lookTarget() {
@@ -818,6 +826,7 @@ const lookDef = (k) => () => subject()?.look?.[k];
 
 // who
 const sWho = section('Who', true);
+check(sWho, 'Fluid backpack', 'backpack', rebuild);
 select(sWho, 'Person', 'who', [['traveller', 'The traveller'], ['npc', 'A story person'], ['crowd', 'Someone in the crowd'], ['blank', 'A blank body']], () => { state.lineup = ''; rebuild(); });
 select(sWho, 'World', 'world', COSTUME_WORLDS.map((w) => [w, TITLES[w] ?? w]), () => { state.npc = ''; state.spot = ''; rebuild(); applyLight(); });
 select(sWho, 'Story person', 'npc', () => [['', cast.length ? '(the first)' : '(nobody in this world)'], ...cast.map((d) => [d.id, `${d.name}${d.title ? `, ${d.title}` : ''}`])], () => { state.who = 'npc'; rebuild(); });

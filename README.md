@@ -1931,7 +1931,7 @@ game's `?mh=1` (the game's default people stay Quaternius, the traveller always:
 are fitted to his body). docs/makehuman.md has the numbers, the pictures and what is left.
 
 - **One body for everyone** (`scripts/makehuman/build.sh`: `build.py` in Blender's background mode,
-  MPFB driving MakeHuman; `public/anim/mh/body.json` + `body.bin`, 1.7 MB, 1.0 gzipped, against 6.4 MB
+  MPFB driving MakeHuman; `public/anim/mh/body.bin` (stage 2: its header in it), 1.7 MB, 1.0 gzipped, against 6.4 MB
   for the prototype's eight people). The reference person is decimated once (12 000 triangles, the
   head and now the hands kept finer) and every other shape of the full mesh maps onto that low mesh.
   MakeHuman blends its macro targets multilinearly between corners (gender × age 1/11/25/90 ×
@@ -1969,6 +1969,45 @@ are fitted to his body). docs/makehuman.md has the numbers, the pictures and wha
 - **The studio**: *Lineup → MakeHuman: every age and build* (`&mh=child,elder` for some ages) and
   *every hairstyle* (and the beard), *Outfit* `l.mhHair` forces a style; the pairs lineup is the
   presets of `src/studio/makehuman.js` (`MH_PRESETS`). `tests/makehuman.test.js`.
+
+### MakeHuman bodies, stage 2: the Desert's people (`MH_WORLDS`, `?mh=0`)
+
+The Desert's people (story and crowd) are MakeHuman bodies by default; `?mh=0` brings back the
+Quaternius ones to compare, `?mh=1` puts any world's people on MakeHuman (`usesMakeHuman` in
+`src/makehuman/people.js`; the other worlds wait for their own review, the Signal Market next).
+docs/makehuman.md has the checks, the numbers and the pictures.
+
+- **The file**: `public/anim/mh/body.bin` is one file now (its JSON header in front: `pack.py`,
+  `unpackBody`), asked for as the page starts and parsed in about 1 ms (the arrays are views on it); the
+  build ships it (1.75 MB, 1.06 MiB compressed; `MAKEHUMAN=0` leaves it out).
+- **Heights** (`personTemplate`): every MakeHuman sample has its hips where the Quaternius man's are,
+  which made a MakeHuman woman 5 % taller than a man: a grown-up's root scale is corrected
+  (`heightFix`, `Q_TOP`) so heights mean what they meant. The young stand as tall as MakeHuman makes
+  their age beside the grown-ups (`trueScale`); the story says who is a child (`def.age`, `def.years`:
+  Ilo 8, Kito 9, Lou 7.5) and a small story person without an age is one (`CHILD_SCALE`).
+- **The crowd**: a crowd body come close takes its person's build and age (an elder's shape on the
+  pooled skeleton: `Humanoid.setBuild(build, years)`, `profile.yearsOf`) and stands as tall as its
+  figure; its 16 shapes (4 builds, grown-up and elder, each kind) are made ahead while the page is idle
+  (`MakeHumanPeople.warm`); the GPU figure's women's shoulders and everyone's hips moved to the full
+  bodies' joints (`CROWD_BODY` in `src/crowd-shader.js`).
+- **Cloth and ragdolls** (`src/humanoid.js` `segmentGirths`, `CAPSULES`, `CAPSULE_MARGIN`): on a MakeHuman
+  body the cape's colliders are its own girths (each segment's 90th percentile from its bone) plus
+  the margin the Quaternius colliders leave over their skin, at the body's size (a heavy belly, a
+  child's thin arms); the ragdoll's particles likewise (`ragdollRadii`).
+- **Hair**: a scalp under every style (`hair.py` `scalp_of`: the head's skin the shell lies over;
+  `hair.js` `scalpOf` draws it 1.5 mm off the skin in the hair's colour), so the skin no longer shows
+  through the crowns of short02 and short04; the locks' borders are drawn lighter on dark hair
+  (`HAIR_EDGE`), so the strand lines read in shade.
+- **Memory and frame time**: a body's reshaped copies (its builds, its faces) share its triangles, skin
+  and face keys' arrays (`reshapeCopy`); the keys' morph textures are still one per geometry (three's).
+  A costume's colours are parsed once a role and a hair shell's weights set at once (`dress`), so a
+  crowd body re-dressing as it comes close costs no more than a Quaternius one. Measured at the camps
+  and Qanat on High and Handheld (CPU 4x slower): the same frame time as the Quaternius bodies, +30 to
+  +60 MB of JS heap (docs/makehuman.md has the table).
+- **The traveller** stays on his own Quaternius body: his suit, gear and helmet are fitted to it, he
+  is the stranger from the sky, and at a conversation's distance the helmet and visor frame his face.
+- The named people follow their character sheets (`references/The Desert/characters/`).
+  `tests/makehuman-desert.test.js`.
 
 ### Hands (`src/hands.js`)
 
@@ -4050,6 +4089,122 @@ tone, a swell of the world's score, then back to you.
   - Tests: `tests/moment.test.js` (the shots, a play through, the skip and its grace, a failure,
     the stage's refusals, and both desert moments in the story: once, skipped, without a ship).
 
+### Hand-overs and loads without a hitch (October 2026)
+
+From the author's notes (TODO.md, "Transitions and moments"). Measured with `scripts/transition-perf/`
+(headless Chrome on ANGLE Metal, muted, the game's sound at 0; see the scripts' headers).
+Tests: `tests/passage.test.js`, `tests/load-steps.test.js`.
+
+**Doors, caves and portals** (`src/passage.js`). Every way into another space goes through one
+hand-over: the doorways, cave mouths, temple doors and Viridel's hatch (`level.portals`, main.js),
+the Lab's doors and the Hangar's portals (their levels call `ctx.passage.go`). It used to be a hard
+cut: the traveller landed at a dead stop (`teleport` zeroes the velocity), the heading jumped (the
+locomotion layer read it as a turn: a bank and a pivot), the feet let go, and the camera was snapped
+in to 2 m and eased back out over a second (`rig._curDist = 2`). Now:
+- **ahead of time**, the destination is drawn once, unseen (`WarmDraw`): every mesh round each way
+  through (and the ship's cabins, and what the first frame sees) into 4 × 4 targets of the real
+  passes' formats (the G-buffer's, a shadow map's), so its geometry and textures are on the GPU and
+  the driver has built its pipelines (a mobile GLES driver compiles a shader for real only at its
+  first draw). A batch is drawn as the children of a scene of its own (shared, not moved), so a
+  draw costs the batch, not a walk over the world. At load for every destination; as you come
+  within `PASSAGE.near` of a way through, anything new there, a slice a frame. Every program's first
+  use (three's `getUniforms`: a wait on the GPU process, 100-250 ms behind a busy GPU) is done at
+  load too.
+- **the cover** (`PassageCover`): a sheet of paper with a ragged inked edge sweeps across the screen
+  (0.22 s), a CSS transform transition, so the compositor keeps it moving through a long frame;
+  the page sound plays with it.
+- **the move**, behind it (`carryAcross`): one rigid transform from where you stand, facing the way
+  you face, to the arrival, facing its way (`passageTransform`; a portal into another gravity turns
+  up too). The velocity turns with you (or the portal's own speed), the animation's memory of the
+  heading (`_lastHeading`, `loco.lastHeading`), the steering and the gear's last velocity turn too,
+  `onGround` is kept, the planted feet, a step under way and the hands' swing are carried, and the
+  camera keeps its place behind you, its look, its lag and its angle off your back; it finds the new
+  walls on its next frame, still covered.
+- **a few frames held** (at least `PASSAGE.holdMin`, at most `holdMax`) while the new place settles:
+  its grass's new patch placed (`Grass.placing`) and two frames in a row back to pace (`calmDt`: the
+  first frames there, its levels of detail switching, are the slow ones, and stay under the paper);
+  then the sheet sweeps on, off the far side.
+- Stepping into the ship or a house (no move: the rooms are real), the camera's indoor framing used
+  to set the pitch level in one frame; it eases there now (`CameraRig._levelTo`).
+
+| worst frame, ms (frames over 33 ms) | High | after | Handheld, CPU ×4 | after | High, no vsync | after |
+|---|---|---|---|---|---|---|
+| Desert: the carved doorway, in | 17 | 17 | 50 (13 > 33) | 33 (0 > 33) | 8 | 9 |
+| Desert: the doorway, out | 17 | 17 | 83 (17 > 33) | 33 (1 > 33) | 31 | 12 |
+| Desert: the giant's mouth (cave), in | 33 | 33 | 67 (29 > 33) | 34 (10 > 33) | 9 | 12 |
+| Desert: the cave, out | 17 | 17 | 67 (19 > 33) | 33 (1 > 33) | 112 | 17 |
+| Desert: the Givers' Hearth, in | 17 | 17 | 34 (14 > 33) | 33 (9 > 33) | 8 | 12 |
+| Desert: the Hearth, out | 33 | 17 | 50 (29 > 33) | 33 (27 > 33) | 9 | 12 |
+| Desert: the Givers' House (temple), in | 17 | 17 | 33 (7 > 33) | 33 (10 > 33) | 7 | 10 |
+| Desert: the temple, out | 17 | 17 | 50 (9 > 33) | 33 (24 > 33) | 32 | 33 |
+| Desert: boarding the ship | 33 | 83 | 67 (21 > 33) | 83 (44 > 33) | 11 | 14 |
+| Desert: leaving the ship | 33 | 50 | 67 (77 > 33) | 67 (91 > 33) | 10 | 12 |
+| City-Shaft: the makers' tower, in | 17 | 67 | 67 (17 > 33) | 50 (10 > 33) | 10 | 11 |
+| City-Shaft: the tower, out | 34 | 33 | 67 (18 > 33) | 100 (36 > 33) | 153 | 43 |
+| Viridel: the crashed ship's hatch, in | 33 | 17 | 50 (11 > 33) | 50 (2 > 33) | 9 | 10 |
+| Viridel: the hatch, out | 33 | 17 | 50 (6 > 33) | 50 (10 > 33) | 175 | 15 |
+| Lab: a door to a room | 83 | 17 | 250 (11 > 33) | 117 (3 > 33) | 104 | 19 |
+| Lab: back to the hub | 17 | 33 | 83 (14 > 33) | 67 (13 > 33) | 121 | 26 |
+| Lab: another room | 17 | 17 | 150 (16 > 33) | 67 (8 > 33) | 40 | 14 |
+| Home: into the small house | 17 | 17 | 50 (14 > 33) | 50 (6 > 33) | 10 | 28 |
+| Home: out of it | 17 | 33 | 50 (1 > 33) | 83 (19 > 33) | 23 | 28 |
+| Hangar: a portal into the upside-down | 17 | 17 | 17 (0 > 33) | 17 (0 > 33) | 10 | 10 |
+| Lorn: the Hush-House, in | 17 | 33 | 33 (3 > 33) | 33 (2 > 33) | 76 | 13 |
+| Lorn: the Hush-House, out | 17 | 33 | 33 (0 > 33) | 33 (2 > 33) | 90 | 15 |
+
+Paced (vsync on, as in a player's browser), High on this Mac had little to win on frame time: a
+single 33-83 ms frame here and there in either column came from other work on the machine (runs
+repeated quietly give 16.8 ms throughout, before and after). The stalls show with no vsync, where a
+wait on the GPU process waits for every queued frame (the first use of a program: 100-175 ms) and on
+the handheld recipe with the CPU slowed four times; the slowest frame after is the move itself, under
+the paper.
+
+The traveller now lands still walking: 3.8 m/s before the door and 3.8 after it (0 before), the
+camera 3.5-4 m behind (it was snapped to 2.8 m and drawn back out over a second).
+
+**Loading** (`src/load-steps.js`). A world's build was one long task after another: in the desert (on High, the
+shipped bundle) the people 1.0 s, the terrain and city 840 ms, the modules' own start 820 ms; in the
+City-Shaft the check for trees inside houses 5.8 s; the shader warm-up and the first frame a few
+hundred ms more, and two to four times all that on the handheld recipe. The loading screen's pen turns on the compositor (a CSS transform animation: checked
+through a 900 ms task with a screencast, `loading.mjs --pen`), but nothing else could happen. Now
+a build is a generator: `yield` between its parts and in its long loops, `runSteps` straight
+through (tests, the studio), `runStepsAsync(gen, slicer())` a slice at a time in the game: the
+main thread is given back once `LOAD_BUDGET` (24 ms) has run, by a `MessageChannel` message (no
+`setTimeout` clamping, no `scheduler.yield`: the Android WebView 109 lacks it).
+- every level's `create` is `stepped(build)`: the build yields at its sections and once per pass of
+  its top-level loops (`LEVELS[i].build`); `Terrain.make` and the dune relief yield by rows;
+- `Physics.create(scene, base, slice)` bakes the collision a mesh a step and copies the triangles
+  into one buffer by hand (`concatPositions`: what `mergeGeometries` made); the BVH is still built
+  in its worker;
+- `level.initSteps` (the City-Shaft's trees in houses, `dropBuriedInstancesSteps`), the buried
+  flora, the crowd's placement (`buildPeopleSteps`) and its pool, the people (`spawnNPCsSteps`), the
+  flora (`buildFloraSteps`, `Flora.make`: its far copies are simplifications), the responsive world
+  (`ReactiveWorld.make`) and the scene's tiling (`tileSceneSteps`) go a piece at a time;
+- the shader warm-up compiles one object per kind of program (its material and what of the mesh is
+  in a program's key) between yields, against an empty scene for the key (no lights, fog or
+  environment, as the world's own), then polls the driver; the first frame's uploads (`WarmDraw`),
+  the grass's first patch, the room culler and the levels of detail are done behind the loading
+  screen, so the first frame is an ordinary one;
+- the Lab's people (`labPeople()`) are worked out only when the Lab asks for them: every world paid
+  ~70 ms for them as the modules loaded (the desert room's dune relief).
+
+| longest task, ms (tasks over 50 ms), first frame at | High | after | Handheld, CPU ×4 | after |
+|---|---|---|---|---|
+| desert | 1003 (7 > 50), 19.2 s | 112 (9 > 50), 3.2 s | 1978 (8 > 50), 7.3 s | 486 (25 > 50), 10.5 s |
+| incal | 5798 (6 > 50), 11.9 s | 96 (13 > 50), 9.6 s | 16060 (8 > 50), 22.7 s | 334 (43 > 50), 25.5 s |
+| arzach | 305 (6 > 50), 3.0 s | 71 (6 > 50), 1.8 s | 633 (7 > 50), 3.2 s | 307 (12 > 50), 3.9 s |
+| garage | 395 (6 > 50), 2.7 s | 87 (4 > 50), 1.7 s | 751 (9 > 50), 3.5 s | 234 (10 > 50), 3.3 s |
+| edena | 426 (6 > 50), 2.7 s | 87 (7 > 50), 2.3 s | 977 (7 > 50), 4.9 s | 258 (15 > 50), 4.2 s |
+| perdide | 353 (6 > 50), 2.8 s | 100 (7 > 50), 2.2 s | 729 (7 > 50), 3.2 s | 234 (14 > 50), 3.9 s |
+| home | 190 (5 > 50), 1.5 s | 126 (5 > 50), 1.8 s | 644 (7 > 50), 2.8 s | 297 (14 > 50), 3.6 s |
+| spheres | 309 (5 > 50), 1.5 s | 115 (8 > 50), 3.9 s | 1765 (9 > 50), 6.4 s | 311 (19 > 50), 6.2 s |
+| buried | 444 (5 > 50), 1.5 s | 97 (6 > 50), 3.4 s | 1322 (7 > 50), 3.6 s | 306 (16 > 50), 6.7 s |
+| lab | 489 (5 > 50), 2.8 s | 114 (5 > 50), 3.3 s | 1681 (8 > 50), 4.9 s | 319 (17 > 50), 6.6 s |
+
+(The shipped bundle, `vite preview`; the first-frame times move by a second or more from run to run
+with what else the machine is doing: repeated quietly, the Garden of Spheres 1.1-1.7 s before and
+1.2-1.4 s after, the Buried Machine 1.1-1.4 s and 1.0-1.3 s.)
+
 ## The makers' temples
 
 Each world has one great building of the makers, a Zelda-style dungeon with a
@@ -4199,3 +4354,10 @@ II's **Lamp-House**, Lorn's **Hush-House**, Vael's **Aerie**, the Sealed Hangar'
   you through; the echo shell and bloom mode have tests of their own.
 - In the browser, `temples.<world>` is the runtime (its `logic`, `guardian`,
   `piece(id)`), for poking at from the console.
+
+
+### Traveller reference redesign (v0.63)
+
+The current character follows the [three reference sheets and visual direction](lore/characters/traveller-design.md): coral overshirt, cream cropped trousers, scruffy dark hair and a round satchel. `src/traveller.js` builds the clothing on the unchanged human animation rig; `src/traveller-style.js` owns its palette. `src/fluid-tool.js` fits the compact green tank and preserves its scale through vehicle handoffs. The earned star and lantern mounts live in `src/boxes/effects.js`.
+
+For a complete preview, open `studio.html?backpack=1`; the **Fluid backpack** checkbox uses isolated state and never grants items to the game save. The traveller and drone tests cover skin weights, garment fit, movement, docking clearance, and the resized pack’s handoff.

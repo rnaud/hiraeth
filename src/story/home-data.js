@@ -43,7 +43,7 @@ export const DRAWING_LINES = {
 export const PEOPLE = {
   lou: {
     // (her body is the people's slighter, flatter one under a child's morph; her voice is a girl's: body vs kind)
-    id: 'lou', name: 'Lou', title: 'your daughter, seven and a half', color: '#f2c54b', voice: 1.6, kind: 'f', body: 'm', age: 'child', scale: 0.8, brows: '#c9a07e',
+    id: 'lou', name: 'Lou', title: 'your daughter, seven and a half', color: '#f2c54b', voice: 1.6, kind: 'f', body: 'm', age: 'child', years: 7.5, scale: 0.8, brows: '#c9a07e',
     palette: { cloak: '#f2c54b', lining: '#2b211f', cloth: '#f2c54b', legs: '#c8483a', hat: '#e6875f', hair: '#8a5638' }, head: 'twin', cape: 0, look: { trim: 'dots', body: 'none', prop: 'none', mask: 'none', robe: 0.48, build: 'average' },
     // a child's body on the people's skeleton (morph.js): a big head on short limbs, a round soft middle, no waist
     morph: { headSize: 1.3, torsoLength: 0.84, legLength: 0.76, armLength: 0.78, neckLength: 0.42, shoulders: 0.8, chest: 0.8, hips: 0.86, belly: 1.4, arms: 0.92, legs: 1.0, neck: 0.8, handSize: 0.8, footSize: 0.82 },

@@ -18,7 +18,10 @@ draws hair, a few big shapes with a few strand lines inside:
   5. every vertex bound to the low body: its nearest point on a triangle of the head, neck or upper
      back (the triangle, its barycentric weights) and its offset from it; src/makehuman/body.js fits
      the shell to any head on load (the offset scaled with the head) and weights it from the same
-     triangle (the head, the neck, the upper spine: never the arms).
+     triangle (the head, the neck, the upper spine: never the arms);
+  6. the scalp under it (scalp_of): the head's triangles the shell lies over, which the game draws in
+     the hair's colour just off the skin, so wherever the smoothed shell sank under the skin (the
+     crowns of short02 and short04, where the cards fan out) no skin shows through.
 
 The beard is made the same way from the skin itself: the jaw, chin, cheeks below the cheekbones,
 the sideburns and the upper lip, the lips left clear.
@@ -379,6 +382,32 @@ def build_beard(body, face, log):
     return out
 
 
+# the scalp under a style: the head's skin its shell lies over (a ray from SCALP['out'] outside the skin
+# back down to SCALP['in'] under it meets the shell), drawn in the hair's colour just off the skin
+# (src/makehuman/hair.js): where the cards left a gap and the smoothed shell sank under the skin
+# (the crown of short02 and short04), the skin no longer shows through
+SCALP = {'out': 0.03, 'in': 0.008}
+
+
+def scalp_of(co, tris, body, face):
+    """
+    The low body's triangles (indices) under a shell (co, tris): those whose three corners a ray down
+    the skin's normal meets the shell over, on the skull (above the brows; behind the ears, down to the
+    nape): never the face, whatever hangs in front of it.
+    """
+    eyeY, earZ = face[0], face[5]
+    bvh = BVHTree.FromPolygons([Vector(p) for p in co], [tuple(map(int, t)) for t in tris])
+    nrm = vertex_normals(body.co, body.tris)
+    y, z = body.co[:, 1], body.co[:, 2]
+    head = (body.headw > 0.5) & ((y > eyeY + 0.02) | ((z < earZ - 0.01) & (y > eyeY - 0.06)))
+    under = np.zeros(len(body.co), bool)
+    for i in np.nonzero(head)[0]:
+        n = Vector(nrm[i]); p = Vector(body.co[i])
+        hit = bvh.ray_cast(p + n * SCALP['out'], -n, SCALP['out'] + SCALP['in'])
+        under[i] = hit[0] is not None
+    return np.nonzero(under[body.tris].all(1))[0]
+
+
 def build_all(body_obj, P, s, dz, low_game, low_tris, headw, to_frame, log, J, W, bone_names, face):
     """Every style's shell (game frame) and its binding to the low body: (meta, arrays)."""
     body = Body(low_game, low_tris, J, W, bone_names)
@@ -394,5 +423,8 @@ def build_all(body_obj, P, s, dz, low_game, low_tris, headw, to_frame, log, J, W
         arrays[f'{st}_off'] = O
         arrays[f'{st}_co'] = co
         arrays[f'{st}_lock'] = lab
+        if st != 'beard':
+            arrays[f"{st}_scalp"] = scalp_of(co, tris, body, face)
+            log(f'{st}: the scalp under it, {len(arrays[st + "_scalp"])} triangles')
         meta[st] = {'vertices': int(len(co)), 'triangles': int(len(tris)), 'maxOffset': float(np.abs(O).max())}
     return meta, arrays

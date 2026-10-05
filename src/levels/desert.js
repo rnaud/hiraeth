@@ -2,7 +2,8 @@ import { buildDesertVistas } from '../desert-vistas.js';
 import { buildDesertLandmarks, desertHeight } from '../desert-landmarks.js';
 import * as THREE from 'three';
 import { buildObservatory } from '../observatory.js';
-import { Terrain, buildWorld } from '../world.js';
+import { Terrain, buildWorld, prepareRelief } from '../world.js';
+import { stepped } from '../load-steps.js';
 import { biomeAtmosphere } from '../biome.js';
 import { Hoverbike } from '../bike.js';
 import { makeMaterial } from '../materials.js';
@@ -17,15 +18,20 @@ import { STORY, DESERT_LOOK } from '../desert-sites.js';
 import { smoothstep } from '../noise.js';
 
 // The original open desert: dunes, mesas, regions, hoverbike and wind.
-export function createDesert(scene) {
-  const terrain = new Terrain({ height: desertHeight });
+// (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
+export function* buildDesert(scene) {
+  yield* prepareRelief();
+  const terrain = yield* Terrain.make({ height: desertHeight });
   const { floaters, banners, lights, doors, floraAvoid } = buildWorld(scene, terrain);
+  yield;
   const vistas = buildDesertVistas(scene, terrain);
+  yield;
   // sand banked against what stands on it: the landmarks', the city's and the camps' solids feed it
   // (none inside Qanat's walls: its streets and plaza are paved)
   const inQanat = (x, z) => Math.hypot(x - STORY.city.x, z - STORY.city.z);
   const sand = SandDrifts.open({ heightAt: (x, z) => terrain.heightAt(x, z), seed: 3, mask: (x, z) => smoothstep(57, 61, inQanat(x, z)) });
   const landmarks = buildDesertLandmarks(scene, terrain);
+  yield;
   // inside the masked head: a glyph-carved chamber under an oculus, built high above the map
   const portals = [];
   for (const d of doors) {
@@ -42,12 +48,15 @@ export function createDesert(scene) {
     lights.push(...room.lights, new THREE.Vector4(mask.position.x, mask.position.y, mask.position.z, 9));
     portals.push(...doorwayPortals(scene, { at: d.at, heading: d.heading, room }));
   }
+  yield;
   const observatory = buildObservatory(scene, terrain);
   lights.push(...observatory.lights);
+  yield;
   // the story: the old city of Qanat round its burning tree, the pilgrims'
   // camps, the fallen giant and the cave in its chest (src/desert-city.js,
   // src/story/desert.js)
   const qanat = buildDesertCity(scene, terrain);
+  yield;
   lights.push(...qanat.lights);
   portals.push(...qanat.portals);
   // the main fire's first benches belong to the musicians and Teo (and Oum, once she's home)
@@ -57,6 +66,7 @@ export function createDesert(scene) {
   const hearth = buildDesertHearth(scene, terrain);
   lights.push(...hearth.lights);
   portals.push(...hearth.portals);
+  yield;
   const drifts = sand.close().build(driftMaterial(makeMaterial, terrain.materialOptions));
   if (drifts) scene.add(drifts);
   sand.raise(terrain);   // (from here on the ground's height is the sand's, drifts and all)
@@ -110,3 +120,4 @@ export function createDesert(scene) {
     },
   });
 }
+export const createDesert = stepped(buildDesert);

@@ -3,13 +3,14 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { mulberry32 } from '../noise.js';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
 import { Taxi } from '../taxi.js';
-import { dropBuriedInstances } from '../physics.js';
+import { dropBuriedInstances, dropBuriedInstancesSteps } from '../physics.js';
 import { soften } from '../world.js';
 import { Banner, Puffs } from '../life.js';
 import { buildRoom } from '../interiors.js';
 import { glyphGeometry, textGeometry } from '../story/sign-text.js';
 import { LINES } from '../story/incal-data.js';
 import { attachTemple } from '../temples/index.js';
+import { stepped, runSteps } from '../load-steps.js';
 
 // ---------------------------------------------------------------------------
 // The City-Shaft: a city stacked down a 600 m pit.
@@ -53,7 +54,8 @@ export const RUST = ['#d9c3a0', '#cdb38e', '#e2cfb0', '#c9b596', '#d6bfa0'];    
 export const ROOFS = ['#d9784f', '#c8673f', '#e08a5c', '#b9603e'];                         // terracotta
 export const STEEL = { color: '#9fb2c6', color2: '#8aa0b8', color3: '#b3c3d3' };            // blue-grey structure
 
-export function createIncal(scene) {
+// (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
+export function* buildIncal(scene) {
   const rng = mulberry32(1977);
   const pick = (a) => a[Math.floor(rng() * a.length)];
   const movers = [];
@@ -123,6 +125,7 @@ export function createIncal(scene) {
   trees.push = (t) => _push([...t, curGroup, curY]);
 
   // ---------------------------------------------------------- the shaft wall
+  yield;
   {
     const h = TOP - BOTTOM + 5;   // ends exactly at the rim so you can walk off the edge
     const g = new THREE.CylinderGeometry(R, R, h, 128, 1, true);
@@ -135,6 +138,7 @@ export function createIncal(scene) {
   }
 
   // ---------------------------------------------------------- the surface around the rim
+  yield;
   {
     const g = new THREE.RingGeometry(R, 2600, 160, 1);
     g.rotateX(-Math.PI / 2);
@@ -193,8 +197,10 @@ export function createIncal(scene) {
   }
 
   // ---------------------------------------------------------- terraces
+  yield;
   const terraces = [];
-  LEVELS.forEach((y, li) => {
+  for (const [li, y] of LEVELS.entries()) {
+    yield;
     const depth = li / (LEVELS.length - 1);              // 0 = top, 1 = bottom
     const width = 46 + rng() * 20;
     const r0 = R - width;
@@ -259,11 +265,12 @@ export function createIncal(scene) {
       }
     }
     a += TAU / nSectors;
-  });
+  }
 
   curGroup = 'misc'; curY = TOP;
   const bridges = [];   // spire ring → terrace: { y, phi, r0 } (for the story's routes)
   // ---------------------------------------------------------- central spire
+  yield;
   {
     const height = TOP + 120 - BOTTOM;
     const g = new THREE.CylinderGeometry(SPIRE_R * 0.8, SPIRE_R, height, 16);
@@ -311,7 +318,9 @@ export function createIncal(scene) {
   }
 
   // ---------------------------------------------------------- floating landing pads
+  yield;
   for (let i = 0; i < 34; i++) {
+    yield;
     const a = rng() * TAU, rad = 70 + rng() * 115;
     const y = BOTTOM + 60 + rng() * (TOP - BOTTOM - 50);
     const r = 5 + rng() * 5;
@@ -326,8 +335,11 @@ export function createIncal(scene) {
   }
 
   // ---------------------------------------------------------- cables across the shaft
+  yield;
   const cableMat = makeMaterial({ color: '#8aa0b8' });
+  yield;
   for (let i = 0; i < 26; i++) {
+    yield;
     const a = rng() * TAU, b = a + Math.PI * (0.5 + rng());
     const y = BOTTOM + 40 + rng() * (TOP - BOTTOM - 40);
     const p0 = new THREE.Vector3(Math.cos(a) * R, y, Math.sin(a) * R);
@@ -339,8 +351,11 @@ export function createIncal(scene) {
   }
 
   // ---------------------------------------------------------- billboards on the wall
+  yield;
   const billboards = [];   // { pos, quat, w, h }: the story writes on them once the light burns again
+  yield;
   for (let i = 0; i < 40; i++) {
+    yield;
     const a = rng() * TAU, y = BOTTOM + 30 + rng() * (TOP - BOTTOM - 30);
     const m = new THREE.Mesh(new THREE.BoxGeometry(14 + rng() * 10, 8 + rng() * 6, 0.8),
       makeMaterial({ color: pick(['#d9784f', '#9fb2c6', '#f2c54b']), flat: true, grid: 2.2 }));   // (bills, not the makers' carving: no inscriptions)
@@ -356,7 +371,9 @@ export function createIncal(scene) {
   // (it has been dimming since "the night the sky rang"), 1 burning bright;
   // `flare` is a passing flash. The glyph is cut into its four lower facets,
   // the ones the city sees from below.
+  yield;
   const incalRig = { k: 0, flare: 0, pos: new THREE.Vector3(0, TOP + 250, 0) };
+  yield;
   {
     const grp = new THREE.Group();
     grp.position.copy(incalRig.pos);
@@ -412,12 +429,14 @@ export function createIncal(scene) {
   }
 
   // ---------------------------------------------------------- acid steam
+  yield;
   const steam = new Puffs(scene, {
     count: 70, color: '#cfe08a', glow: 0.35, rise: 4, life: 12, size: 10,
     area: (r) => { const a = r() * TAU, d = Math.sqrt(r()) * (R - 20); return new THREE.Vector3(Math.cos(a) * d, BOTTOM + 1, Math.sin(a) * d); },
   });
 
   // ---------------------------------------------------------- the acid lake
+  yield;
   {
     const lake = new THREE.Mesh(new THREE.CylinderGeometry(R, R, 2, 96), makeMaterial({ color: '#b8d65a' }));
     lake.position.y = BOTTOM - 1;
@@ -425,7 +444,9 @@ export function createIncal(scene) {
   }
 
   // ---------------------------------------------------------- skyline around the rim
+  yield;
   for (let i = 0; i < 90; i++) {
+    yield;
     const a = rng() * TAU, rad = R + 40 + Math.pow(rng(), 0.7) * 900;
     const h = 30 + rng() * rng() * 260;
     if (rng() < 0.5) {   // tall white slab towers with ribbed faces
@@ -437,8 +458,11 @@ export function createIncal(scene) {
 
   // ---------------------------------------------------------- flying traffic
   // Taxis need the physics (built after the level), so they're created in init().
+  yield;
   const taxiSpecs = [];
+  yield;
   for (let i = 0; i < 80; i++) {
+    yield;
     const color = rng() < 0.45 ? '#f2c54b' : pick(PASTELS);
     const scale = 2.0 + rng() * 0.6;
     let lane;
@@ -470,6 +494,7 @@ export function createIncal(scene) {
   const stallSpots = [], viaducts = [];   // kept for the crowd
 
   // ---------------------------------------------------------- street life: market stalls and laundry lines
+  yield;
   {
     const AWN = ['#c8483a', '#f2c54b', '#5fb7ad', '#e6875f'];
     const wood = makeMaterial({ color: '#8a5a3c', flat: true });
@@ -512,6 +537,7 @@ export function createIncal(scene) {
   }
 
   // ---------------------------------------------------------- arched viaducts across the void
+  yield;
   {
     const steel = strata(STEEL.color, STEEL.color2, STEEL.color3, 2, { grid: 4 });
     for (let i = 0; i < 4; i++) {
@@ -536,6 +562,7 @@ export function createIncal(scene) {
 
   // ---------------------------------------------------------- the megastructure overhead
   // a vast blue grid saucer hanging over the shaft, its underside ribbed and glazed
+  yield;
   {
     const steel = strata('#7f97b4', '#6f88a8', '#9fb2c6', 5, { grid: 6 });
     const parts = [
@@ -555,8 +582,10 @@ export function createIncal(scene) {
   // (a ring round the dome, a gate facing the rim, a crown round the needle);
   // the Upward Shrine on the bottom terrace, where the splinter fell, and the
   // dead taxi call-lamp at the edge beside it.
+  yield;
   const P3 = (a, rad, y) => new THREE.Vector3(Math.cos(a) * rad, y, Math.sin(a) * rad);
   const places = {};
+  yield;
   {
     const top = terraces.find((t) => t.y === LEVELS[0]), low = terraces.find((t) => t.y === LEVELS[LEVELS.length - 1]);
     const PY = TOP + 120;
@@ -706,7 +735,9 @@ export function createIncal(scene) {
   }
 
   // trees on the rim around the spawn
+  yield;
   for (let k = 0; k < 160; k++) {
+    yield;
     const a = (rng() - 0.5) * 0.9, rad = R + 6 + rng() * 60;
     if (k % 4 === 3) { rng(); rng(); continue; }   // a lighter grove: a quarter fewer, so the rim's people can be seen
     const x = Math.cos(a) * rad, z = Math.sin(a) * rad + (rng() - 0.5) * 20;
@@ -716,7 +747,9 @@ export function createIncal(scene) {
     trees.push([x, TOP, z, 0.8 + rng() * 0.8]);
   }
   // ---------------------------------------------------------- trees: cypresses and round olives
+  yield;
   const treeMeshes = [];   // (init drops the ones a clump put inside a house)
+  yield;
   {
     const dummy = new THREE.Object3D(), color = new THREE.Color();
     // cypress: a tall flame, widest a third of the way up, tip pointed
@@ -772,7 +805,9 @@ export function createIncal(scene) {
   }
 
   // merge the town buckets (one mesh per material per terrace sector)
+  yield;
   for (const [key, { mat, geos, y }] of buckets) {
+    yield;
     if (!geos.length) continue;
     const g = mergeGeometries(geos.map((x) => (x.index ? x : x.toNonIndexed())).map((x) => { x.deleteAttribute('uv'); return x; }));
     g.computeBoundingSphere();
@@ -785,7 +820,9 @@ export function createIncal(scene) {
 
   // three villas behind the spawn you can walk into (doors face the pit)
   const roomLights = [];
+  yield;
   for (const [vz, wcol] of [[-26, '#f1e6cf'], [2, '#ead7b5'], [30, '#efe2c8']]) {
+    yield;
     const room = buildRoom(scene, {
       pos: new THREE.Vector3(R + 44, TOP, vz), rot: -Math.PI / 2, w: 10, d: 9, h: 4.6,
       wall: { color: wcol, color2: '#e6cfae' }, floor: '#c8673f', ceiling: '#e9dcc2',
@@ -801,6 +838,7 @@ export function createIncal(scene) {
   }
   // the makers' pillar: a lone stone column on the rim, 130 m round from the ship, its dark blue
   // capital carved with the glyph ring. The jets' box waits on top (src/boxes/placements.js): a climb.
+  yield;
   {
     const a = PILLAR.a, px = Math.cos(a) * PILLAR.r, pz = Math.sin(a) * PILLAR.r, H = PILLAR.h;
     const stone = makeMaterial({ color: '#ddd3bf', color2: '#cbbfa6', flat: true, pattern: 'cracks', key: 'incal.pillar' });
@@ -813,6 +851,7 @@ export function createIncal(scene) {
     for (const m of [plinth, shaft, cap, ring]) { m.position.set(px, TOP, pz); m.rotation.y = Math.PI / 8; scene.add(m); }
   }
   // a railing and cypresses at the spawn, looking out over the town (as in the plate)
+  yield;
   {
     const rail = new THREE.TubeGeometry(new THREE.LineCurve3(new THREE.Vector3(R + 0.6, TOP + 1.1, -30), new THREE.Vector3(R + 0.6, TOP + 1.1, 30)), 8, 0.12, 8);
     scene.add(new THREE.Mesh(rail, makeMaterial({ color: '#c9d2dc', metal: 'chrome' })));
@@ -820,8 +859,10 @@ export function createIncal(scene) {
   }
 
   // ---------------------------------------------------------- level description
+  yield;
   const spawn = new THREE.Vector3(R + 14, TOP, 0);
   // the Warden's Well, the makers' tower on the rim, and its rooms far overhead (src/temples/incal.js)
+  yield;
   return attachTemple('incal', scene, {
     id: 'incal',
     // the rim's flora (src/flora.js) keeps the view from the spawn, the villas, the pillar and the trees' feet clear
@@ -837,9 +878,11 @@ export function createIncal(scene) {
     // the city's shape, for its story (src/story/incal.js): terraces, bridges, the palace and the Lodestar
     shaft: { R, TOP, BOTTOM, LEVELS, SPIRE_R, SPIRE_RING, terraces, bridges, stallSpots, viaducts, billboards, incal: incalRig, places },
     // called once the physics exists: spawn the taxis (they collide when driven)
-    init(physics) {
+    init(physics) { runSteps(this.initSteps(physics)); },
+    // (in steps for the game's load: the trees' check is a few thousand rays)
+    *initSteps(physics) {
       // trees a clump put inside a house (or a crown through a wall) are left out
-      for (const m of treeMeshes) dropBuriedInstances(m, physics, [1, 3.5, 6], { ring: 0.9 });
+      for (const m of treeMeshes) yield* dropBuriedInstancesSteps(m, physics, [1, 3.5, 6], { ring: 0.9 });
       for (const spec of taxiSpecs) {
         const taxi = new Taxi(physics, spec.color, spec.scale, spec.lane);
         taxi.update(0, null, 0);
@@ -962,3 +1005,4 @@ export function createIncal(scene) {
     },
   });
 }
+export const createIncal = stepped(buildIncal);

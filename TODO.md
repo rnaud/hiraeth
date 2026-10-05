@@ -493,12 +493,19 @@ All of this is for the web game; the Unity port follows later if we move to Unit
     head; eyes opened and a little bigger; the Moebius face as MakeHuman targets (resting smile, finer
     brows, warm shade and a child's bare face kept); the skinned levels of detail for shape-keyed
     bodies. Comparison images in docs/makehuman/.
-  - [ ] Stage 2: costumes re-checked per body (hats, masks, robes on the heavy and the children), the
-    traveller's suit and gear (`suitGeometry`, `traveller.glb`) re-fitted or kept on the Quaternius
-    body, the GPU crowd figure's proportions (`packBody`) matched and a promoted crowd person given
-    their nearest MakeHuman body (age, build), the ragdoll's capsules and the cape colliders against the
-    new girths, the Unity export, the Lab's faces gallery, then the flip world by world (`?mh=1` the
-    default per world).
+  - [x] Stage 2, the Desert (its people are MakeHuman bodies by default, `?mh=0` the Quaternius ones):
+    every desert look checked on children, teenagers, grown-ups, the heavy and the old (the named ones
+    closer to their character sheets: Bako, Nour, Marrow, Sefa, the Speaker); the story's children are
+    children (Ilo, Kito; Lou at home) at MakeHuman's height for their age, a woman as much shorter than a
+    man as before; the traveller kept on his own body; the crowd figure's shoulders and hips matched and a
+    promoted crowd person given their age (an elder) and build; the cloth colliders and the ragdoll from
+    each body's own girths; a scalp under every hairstyle (the crown holes) and lighter strand lines on
+    dark hair; the body in one file, shipped (+1.0 MiB in the over-the-air zip). docs/makehuman.md, docs/makehuman/desert-*.
+  - [ ] The next worlds, one by one (the Signal Market next): its looks on every age and build, its
+    children's ages (`def.age` / `def.years`), its crowd checked, then into `MH_WORLDS`
+    (src/makehuman/people.js). Still to do for all: the face keys' morph textures shared between a
+    template's bodies (three makes one per geometry: ~1 MB each body that comes close), the Unity export
+    on MakeHuman bodies (blend shapes for the face keys), the Lab's faces gallery.
 
 ---
 
@@ -706,8 +713,19 @@ All of this is for the web game; the Unity port follows later if we move to Unit
 
 # Transitions and moments (2026-10-05, web)
 
-- [ ] Walking into a building, a cave or the ship (where you're moved into another space) is janky:
-  make the hand-over smooth and free of stutter.
+- [x] Walking into a building, a cave or the ship (where you're moved into another space) is janky:
+  make the hand-over smooth and free of stutter. (`src/passage.js`: every door, cave mouth, temple
+  door, hatch, Lab door and Hangar portal goes through one hand-over: its destination drawn ahead
+  of time, unseen, at load; a sheet of paper sweeps across; behind it the traveller is carried
+  through still walking, mid-stride, the camera in its place behind; a few frames held while the
+  new place settles. It used to land at a dead stop with the camera snapped in to 2 m. The ship's
+  and the houses' indoor framing eases the camera level instead of jumping. README, "Hand-overs and
+  loads without a hitch"; measured with `scripts/transition-perf/transitions.mjs`.)
+- [x] (added) The loading screen between worlds stutters while the level is built. (`src/load-steps.js`:
+  every world's build, the collision bake, the people, the flora and the warm-up run in slices of
+  24 ms with the main thread given back between them; the first frame's uploads are done behind the
+  loading screen. The pen already turned on the compositor: checked through a 900 ms task.
+  `scripts/transition-perf/loading.mjs`.)
 - [x] A few moments deserve a little cinematic: the first time the magic water flows into the basin in
   the cave, and the first time you fill the tank and discover what it does.
   *Done: a reusable moment helper (`src/story/moment.js`: panels, eases, holds, the letterbox, a

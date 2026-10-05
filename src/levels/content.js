@@ -10,7 +10,7 @@
 const pal = (cloak, extra = {}) => ({ cloak, lining: extra.lining ?? '#2b211f', ...extra });
 
 import { ARZACH2_CONTENT } from './arzach2.js';
-import { LAB_FACES, LAB_PEOPLE } from './lab.js';
+import { LAB_FACES, labPeople } from './lab.js';
 import { REFERENCE_PEOPLE } from './references.js';
 import { BURIED_CONTENT } from './buried.js';
 import { EDENA_CONTENT } from './edena.js';
@@ -25,6 +25,7 @@ import { ORDER } from './names.js';
 export { ORDER };
 export const nextLevel = (id) => ORDER[(ORDER.indexOf(id) + 1) % ORDER.length];
 
+let labNpcs = null;
 export const CONTENT = {
   arzach2: ARZACH2_CONTENT,
   buried: BURIED_CONTENT,
@@ -58,11 +59,14 @@ export const CONTENT = {
     weather: [],
     story: { title: 'THE LAB', intro: 'Surfaces in a row, faces as big as houses, and a door to every world.', outro: 'Done looking.', label: 'the row', goal: [0, 'ground', -24], radius: 6, manual: true },
     relics: { spots: [], names: [] },
-    npcs: [...LAB_FACES.map((g) => ({
-      at: g.at, radius: 0, scale: 4, shy: false, kind: g.kind, palette: g.palette, head: g.head,
-      face: g.face, expression: g.expression, facing: g.facing,
-      lines: ['~happy~ Look closely.', '~curious~ Is it the eyes, or the ink?', '~neutral~ Hold still.', '~playful~ My good side is this one.'],
-    })), ...LAB_PEOPLE],
+    // (a getter: the rooms' people are worked out only when the Lab, or a test, asks for them)
+    get npcs() {
+      return (labNpcs ??= [...LAB_FACES.map((g) => ({
+        at: g.at, radius: 0, scale: 4, shy: false, kind: g.kind, palette: g.palette, head: g.head,
+        face: g.face, expression: g.expression, facing: g.facing,
+        lines: ['~happy~ Look closely.', '~curious~ Is it the eyes, or the ink?', '~neutral~ Hold still.', '~playful~ My good side is this one.'],
+      })), ...labPeople()]);
+    },
   },
   // src/levels/references.js: no story, no relics; the reference panels' small figures, standing where the panels have them
   references: {

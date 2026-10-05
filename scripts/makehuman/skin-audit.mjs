@@ -35,7 +35,7 @@ const CLIPS = ['Walk_Loop', 'Sprint_Loop', 'Climb_Up_Loop', 'ClimbLedge', 'Jump_
 
 const lib = libraryFrom(await parse('anim/ual.glb'));
 const bin = await readFile(new URL('../../public/anim/mh/body.bin', import.meta.url));
-const data = parseBody(JSON.parse(await readFile(new URL('../../public/anim/mh/body.json', import.meta.url), 'utf8')), bin.buffer.slice(bin.byteOffset, bin.byteOffset + bin.byteLength));
+const data = parseBody(bin.buffer.slice(bin.byteOffset, bin.byteOffset + bin.byteLength));
 const bodies = [
   { name: 'Quaternius m', kind: 'm', template: prepareHuman((await parse('anim/human_m.glb')).scene, 'm') },
   { name: 'Quaternius f', kind: 'f', template: prepareHuman((await parse('anim/human_f.glb')).scene, 'f') },

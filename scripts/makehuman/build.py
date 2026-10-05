@@ -1,6 +1,6 @@
 """
 The MakeHuman bodies (docs/makehuman.md), stage 1: ONE parametric body for everyone, built headless
-by MPFB (the MakeHuman add-on for Blender) and packed for the game (public/anim/mh/body.json + .bin).
+by MPFB (the MakeHuman add-on for Blender) and packed for the game (public/anim/mh/body.bin: its JSON header and its arrays).
 
   .local-tools/makehuman/blender.sh --python scripts/makehuman/build.py -- --reference
   .local-tools/makehuman/blender.sh --python scripts/makehuman/build.py -- --samples 0/4   (and 1/4, 2/4, 3/4: in parallel)
@@ -28,7 +28,7 @@ eyes, eyebrows, the ten CC0 hairstyles; faceunits01, visemes01): scripts/makehum
    and age, and the reference with a few targets of its own (a belly, wider hips, the face targets
    that make the Moebius face and bigger eyes): each built the same way, mapped onto the low mesh.
 3. --pack: the shapes compressed (principal components of the corners; the targets as sparse deltas),
-   the topology, the skin weights, the bones, the face keys and the hair: body.json and body.bin.
+   the topology, the skin weights, the bones, the face keys and the hair (and its scalp): body.bin.
    src/makehuman/body.js makes a body of any age, sex and build from them on load.
 """
 import bpy, bmesh, json, os, sys, math, time

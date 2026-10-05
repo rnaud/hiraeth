@@ -1,6 +1,7 @@
 import { OBSERVATORY } from './observatory.js';
 import { SITES, POLE_LINE, STORY, processionLoop, hearthStones } from './desert-sites.js';
 import * as THREE from 'three';
+import { runSteps } from './load-steps.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createNoise2D, fbm, mulberry32, smoothstep, lerp } from './noise.js';
 import { makeMaterial, MODE_TERRAIN, MODE_STRATA } from './materials.js';
@@ -34,9 +35,11 @@ function rawRelief(x, z) {
 export const DUNE_BLUR = 40;
 const RELIEF_STEP = 8, RELIEF_HALF = WORLD_SIZE / 2, RELIEF_N = RELIEF_HALF * 2 / RELIEF_STEP + 1;
 let reliefGrid = null;
-function buildRelief() {
+function buildRelief() { return runSteps(reliefSteps()); }
+/** The relief, built a few rows a step (prepareRelief: during a world's load, before anything asks for it). */
+function* reliefSteps() {
   const N = RELIEF_N, g = new Float32Array(N * N), tmp = new Float32Array(N * N);
-  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) g[j * N + i] = rawRelief(-RELIEF_HALF + i * RELIEF_STEP, -RELIEF_HALF + j * RELIEF_STEP);
+  for (let j = 0; j < N; j++) { for (let i = 0; i < N; i++) g[j * N + i] = rawRelief(-RELIEF_HALF + i * RELIEF_STEP, -RELIEF_HALF + j * RELIEF_STEP); if ((j & 15) === 15) yield; }
   const s = DUNE_BLUR / RELIEF_STEP, R = Math.ceil(s * 3), w = new Float32Array(2 * R + 1);
   let sum = 0;
   for (let k = -R; k <= R; k++) sum += (w[k + R] = Math.exp(-k * k / (2 * s * s)));
@@ -45,11 +48,14 @@ function buildRelief() {
   for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
     let v = 0; for (let k = -R; k <= R; k++) v += w[k + R] * g[j * N + clampI(i + k)]; tmp[j * N + i] = v;
   }
+  yield;
   for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
     let v = 0; for (let k = -R; k <= R; k++) v += w[k + R] * tmp[clampI(j + k) * N + i]; g[j * N + i] = v;
   }
   return g;
 }
+/** Build the dune relief now, a step at a time (yield* it in a world's build): later lookups find it ready. */
+export function* prepareRelief() { if (!reliefGrid) reliefGrid = yield* reliefSteps(); }
 // Catmull-Rom, so the sampled relief stays smooth between grid points
 const cubic = (p0, p1, p2, p3, t) => p1 + 0.5 * t * (p2 - p0 + t * (2 * p0 - 5 * p1 + 4 * p2 - p3 + t * (3 * (p1 - p2) + p3 - p0)));
 export function duneRelief(x, z) {
@@ -103,7 +109,16 @@ export class Terrain {
    * @param {(x: number, z: number) => number} [o.height] height function
    * @param {object} [o.material] makeMaterial options (terrain mode)
    */
-  constructor({ size = WORLD_SIZE, seg = 560, height = heightFn, material } = {}) {
+  constructor(o = {}) { runSteps(this.steps(o)); }
+
+  /** The terrain built a few rows a step: `const t = yield* Terrain.make(o)` in a world's build. */
+  static *make(o = {}) {
+    const t = Object.create(Terrain.prototype);
+    yield* t.steps(o);
+    return t;
+  }
+
+  *steps({ size = WORLD_SIZE, seg = 560, height = heightFn, material } = {}) {
     this.size = size;
     this.seg = seg;
     this.step = size / seg;
@@ -123,6 +138,7 @@ export class Terrain {
         pos[i * 3 + 1] = h;
         pos[i * 3 + 2] = z;
       }
+      yield;
     }
     const idx = new Uint32Array(seg * seg * 6);
     let k = 0;
@@ -133,11 +149,13 @@ export class Terrain {
         idx[k++] = b; idx[k++] = c; idx[k++] = d;
       }
     }
+    yield;
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
     geo.setIndex(new THREE.BufferAttribute(idx, 1));
     geo.computeVertexNormals();
     geo.computeBoundingSphere();
+    yield;
 
     // (kept: the sand banked against things is drawn in the ground's own material, sand-drifts.js)
     this.materialOptions = material ?? {

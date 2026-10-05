@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 // The MakeHuman bodies, stage 1 (docs/makehuman.md): one parametric body (scripts/makehuman/build.py
-// -> public/anim/mh/body.json + .bin), made into anyone on load (src/makehuman/body.js, shape.js),
+// -> public/anim/mh/body.bin: its header and its arrays), made into anyone on load (src/makehuman/body.js, shape.js),
 // MakeHuman's own CC0 hair as shells with strand lines (hair.js), the people of a world by age and
 // build (people.js), behind the studio's Body source and the game's ?mh=1; the Quaternius bodies
 // left exactly as they were.
@@ -33,9 +33,9 @@ const { triCount } = await import('../src/lod.js');
 const { Hands, HAND_POSES } = await import('../src/hands.js');
 
 const url = (p) => new URL(`../public/anim/${p}`, import.meta.url);
-const meta = JSON.parse(readFileSync(url('mh/body.json'), 'utf8'));
 const bin = readFileSync(url('mh/body.bin'));
-const data = parseBody(meta, bin.buffer.slice(bin.byteOffset, bin.byteOffset + bin.byteLength));
+const data = parseBody(bin.buffer.slice(bin.byteOffset, bin.byteOffset + bin.byteLength));
+const meta = data.meta;
 const parse = async (p) => {
   const b = await readFile(url(p));
   return (await new GLTFLoader().parseAsync(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength), '')).scene;
@@ -44,7 +44,8 @@ const KEYS = ['smile', 'frown', 'jawOpen', 'browInnerUp', 'browDown', 'browOuter
 const look = (o = {}) => ({ ...BLANK(o.kind ?? 'm'), ...o });
 
 test('one parametric body for everyone: about 2 MB, MakeHuman\'s macro corners, the game\'s bones, face keys, the hair', () => {
-  const bytes = statSync(url('mh/body.bin')).size + statSync(url('mh/body.json')).size;
+  const bytes = statSync(url('mh/body.bin')).size;
+  assert.ok(!existsSync(url('mh/body.json')), 'one file, one fetch: the header is in body.bin');
   assert.ok(bytes < 2.2e6, `${(bytes / 1e6).toFixed(2)} MB`);
   assert.ok(gzipSync(bin).length < 1.4e6, 'compresses well');
   assert.ok(!existsSync(url('mh/man.glb')) && !existsSync(url('mh/people.json')), 'no baked people any more');
@@ -250,9 +251,9 @@ test('the game\'s own bodies are as they were: no profile, the per-kind tables, 
   assert.equal(h.body.material.uniforms.uMood.value.x, TONE_EXPRESSIONS.happy.smile, 'the ink draws the whole expression');
   h.setExpression({ brow: 1 });
   assert.ok(h._browBase, 'the brows posed on the CPU as before');
-  // ?mh=1 only: the game's default people stay Quaternius
+  // the game's people: MakeHuman where the world says so (usesMakeHuman), the traveller on his own body
   const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
-  assert.match(main, /query\.get\('mh'\) === '1'/);
+  assert.match(main, /usesMakeHuman\(levelId, query\.get\('mh'\)\)/);
   assert.match(main, /player\.humanoid = new Humanoid\(humanT\[0\]/, 'the traveller on his own body');
 });
 

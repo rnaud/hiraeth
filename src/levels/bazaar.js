@@ -6,12 +6,14 @@ import { Taxi } from '../taxi.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { LINES as STORY_LINES } from '../story/bazaar-data.js';
 import { attachTemple } from '../temples/index.js';
+import { stepped } from '../load-steps.js';
 
 // A street-level city, separate from the City-Shaft. Repeated details are
 // merged by street block and material so the mobile renderer can cull them.
 export const SIGNAL = { x: 0, z: -255, deckY: 44, approachZ: -234 };
 export const BRIDGES = [{ z: 25, y: 19 }, { z: -90, y: 25 }, { z: -190, y: 72 }, { z: -330, y: 64 }];
-export function createBazaar(scene) {
+// (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
+export function* buildBazaar(scene) {
   const rng = mulberry32(20261004), buckets = new Map(), reactiveScreens = [];
   const colors = ['#f0a083', '#e4bd83', '#8dbbb9', '#94a9bd', '#ebce98'];
   const mat = (color, extra = {}) => makeMaterial({ color, flat: true, ...extra });
@@ -37,8 +39,10 @@ export function createBazaar(scene) {
 
   box(0,-1, -130,1500,2,1500,paving);
   // Broad sidewalks leave a continuous 32 m central walking route.
+  yield;
   for (const side of [-1,1]) box(side*27,.15,-130,16,.3,600,mat('#d5c7a8',{grid:3}));
   // Inlaid tram lines lead the eye from the entrance to the relay.
+  yield;
   for (const x of [-12,12]) box(x,.012,-100,.12,.02,480,brass,false);
 
   // Billboards are relief illustrations, not noisy microtexture. All faces
@@ -184,6 +188,7 @@ export function createBazaar(scene) {
   // in the market, hanging dark under the second skybridge; a heap of crates fallen in an alley
   // mouth, over something brass; the quiet one Ummu and its little screen; Sel's crate and radio
   // at the tower's foot; Brush's ladder.
+  yield;
   const signal = (() => {
     const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
     const story = (o) => { o.userData.noCollide = true; o.traverse?.((c) => { c.userData.noCollide = true; }); scene.add(o); return o; };
@@ -271,6 +276,7 @@ export function createBazaar(scene) {
   }
   const vehicles=[];
   // (the makers' Undertower under the silent tower: src/temples/bazaar.js)
+  yield;
   return attachTemple('bazaar', scene, {
     id:'bazaar', floraAvoid:(x,z,r)=>Math.abs(x)<17+r||z>98-r,   // the flora keeps to the pavements (src/flora.js)
     reactiveScreens, signal, ground:{heightAt:()=>0}, spawn:new THREE.Vector3(0,.1,88), spawnHeading:Math.PI,camYaw:0,camPitch:.02,
@@ -340,3 +346,4 @@ export function createBazaar(scene) {
     update(dt,t,ctx){Taxi.playerPos=ctx?.player?.pos;},
   });
 }
+export const createBazaar = stepped(buildBazaar);

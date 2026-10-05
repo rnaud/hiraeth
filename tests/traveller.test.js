@@ -106,13 +106,12 @@ test('the traveller is the NPC body: the same skeleton, bind pose, weights and f
   assert.ok(h.body.material.uniforms.uFaceKit.value.x < 0.5 && h.body.material.uniforms.uFaceKit.value.z > 0);
 });
 
-test('the suit is painted by the outfit shader: lavender, salmon gloves and boots, folds at the human\'s joints', () => {
+test('cream clothes and bare forearms/ankles retain folds at the human\'s joints', () => {
   const h = traveller(), u = h.body.material.uniforms;
   assert.equal(u.uMode.value, MODE_OUTFIT);
   assert.equal('#' + u.uColor.value.getHexString(), TRAVELLER_PALETTE.suit);
-  assert.equal('#' + u.uColor3.value.getHexString(), TRAVELLER_PALETTE.boot);
-  assert.equal(u.uGlove.value.w, 1, 'gloved hands');
-  assert.equal('#' + new THREE.Color(u.uGlove.value.x, u.uGlove.value.y, u.uGlove.value.z).getHexString(), TRAVELLER_PALETTE.glove);
+  assert.equal('#' + u.uColor3.value.getHexString(), TRAVELLER_PALETTE.skin);
+  assert.equal(u.uGlove.value.w, 0, 'bare hands; the owned tool supplies the right bracer');
   assert.equal(u.uCreases.value, 1);
   const limbs = u.uLimbs.value, B = h.b;
   // the folds sit on the human's own shoulders, elbows, hips and knees
@@ -121,34 +120,29 @@ test('the suit is painted by the outfit shader: lavender, salmon gloves and boot
   assert.ok(limbs.some((p) => p.distanceTo(h.rest.get(B.calf_l).p) < 1e-4), 'left knee');
 });
 
-test('the fit at rest: helmet centred on the head, headphones on the ears, gloves on the hands, pack on the back, soles on the ground', () => {
+test('the fit at rest: bare head, rolled sleeves, open jacket, satchel, cropped trousers and grounded boots', () => {
   const h = traveller();
   h.update(true); h.model.updateMatrixWorld(true);
   // the head inside the bubble, centred, the face clear of the glass
   const headBox = new THREE.Box3(), P = h.body.geometry.attributes.position, J = h.body.geometry.attributes.skinIndex, W = h.body.geometry.attributes.skinWeight;
   const head = h.body.skeleton.bones.indexOf(h.b.Head);
   for (let i = 0; i < P.count; i++) if (J.getX(i) === head && W.getX(i) > 0.6) headBox.expandByPoint(h.body.localToWorld(h.body.getVertexPosition(i, V())));
-  const helmet = boxOf(h, /^Bubble_helmet$/), hc = headBox.getCenter(V()), bc = helmet.getCenter(V());
-  assert.ok(Math.abs(bc.x - hc.x) < 0.005 && Math.abs(bc.z - hc.z) < 0.03 && Math.abs(bc.y - hc.y) < 0.04, `the bubble centred on the head (${bc.toArray().map((x) => x.toFixed(3))} / ${hc.toArray().map((x) => x.toFixed(3))})`);
-  assert.ok(helmet.min.x < headBox.min.x - 0.06 && helmet.max.x > headBox.max.x + 0.06, 'room each side');
-  assert.ok(helmet.max.z > headBox.max.z + 0.04 && helmet.max.y > headBox.max.y + 0.05, 'room before the face and over the head');
-  assert.ok(helmet.min.y < headBox.min.y, 'the chin inside');
-  assert.ok(helmet.max.x - helmet.min.x < 0.4, 'a head-sized helmet');
-  // the cups just off each side of the head, at ear height
-  for (const [name, sign] of [['Headphone_1', 1], ['Headphone_-1', -1]]) {
-    const cup = boxOf(h, new RegExp(`^${name}$`));
-    const inner = sign > 0 ? cup.min.x : -cup.max.x, side = sign > 0 ? headBox.max.x : -headBox.min.x;
-    assert.ok(inner > side - 0.01 && inner < side + 0.02, `${name} on the ear (${inner.toFixed(3)} / ${side.toFixed(3)})`);
-    assert.ok(cup.min.y < hc.y + 0.02 && cup.max.y > hc.y, 'at ear height');
+  const hair = boxOf(h, /^Traveller_hair$/);
+  assert.ok(hair.max.y > headBox.max.y && hair.max.y < headBox.max.y + 0.1, 'loose hair above the crown');
+  for (const n of ['Bubble_helmet', 'Helmet_liner', 'Headphone_1', 'Backpack_antenna']) assert.equal(piece(h, n), undefined, n + ' removed');
+  for (const side of ['l', 'r']) {
+    const cuff = boxOf(h, new RegExp(`^Rolled_sleeve_${side}$`));
+    const elbow = at(h.b[`lowerarm_${side}`]), wrist = at(h.b[`hand_${side}`]);
+    assert.ok(cuff.distanceToPoint(elbow) < 0.13 && cuff.distanceToPoint(wrist) > 0.07, 'rolled sleeve leaves the forearm bare');
+    const hem = boxOf(h, new RegExp(`^Trouser_cuff_${side}$`)), boot = boxOf(h, new RegExp(`^Equipment_dusty_pink_boots_${side}$`));
+    assert.ok(hem.min.y > boot.max.y + 0.025, 'bare ankle between cropped trouser and boot');
   }
-  // gloves: the hands are painted (above), the cuffs end at the wrists
-  for (const s of ['l', 'r']) {
-    const cuff = boxOf(h, new RegExp(`^Glove_cuff_${s}$`)), wrist = at(h.b[`hand_${s}`]);
-    assert.ok(cuff.distanceToPoint(wrist) < 0.03, `the cuff at wrist ${s}`);
-  }
+  const jacket = boxOf(h, /^Coral_overshirt$/), bag = boxOf(h, /^Round_satchel$/);
+  assert.ok(jacket.min.y < 0.8 && jacket.max.y > 1.4, 'overshirt reaches the thighs');
+  assert.ok(bag.max.z > jacket.max.z && bag.getCenter(V()).y < 1.05, 'satchel outside the jacket at the hip');
   // the pack on the back: behind the suit, touching it, centred
   const pack = boxOf(h, /^Equipment_(ivory_radio|blue_metal)$/), back = h.kit.backZ;
-  assert.ok(pack.max.z <= back + 0.012 && pack.max.z > back - 0.03, `the pack against the back (${pack.max.z.toFixed(3)} / ${back.toFixed(3)})`);
+  assert.ok(pack.max.z <= back + 0.012 && pack.max.z > back - 0.045, `the pack against the back (${pack.max.z.toFixed(3)} / ${back.toFixed(3)})`);
   assert.ok(Math.abs(pack.getCenter(V()).x) < 0.03 && pack.min.y > 0.9 && pack.max.y < 1.75);
   // boots round the feet, soles just under the ground; no part of the body below them
   const soles = boxOf(h, /^Equipment_rubber_soles/), boots = boxOf(h, /^Equipment_dusty_pink_boots/);
@@ -190,12 +184,11 @@ test('idle: the natural stance of the people, feet flat on the ground', () => {
   h.model.updateMatrixWorld(true);
   const soles = boxOf(h, /^Equipment_rubber_soles/);
   assert.ok(soles.min.y > -0.04 && soles.min.y < 0.02, `soles on the ground in idle (${soles.min.y.toFixed(3)})`);
-  const helmet = boxOf(h, /^Bubble_helmet$/);
-  assert.ok(helmet.containsPoint(at(h.b.Head).add(new THREE.Vector3(0, 0.08, 0))), 'the helmet round the head');
+  assert.ok(boxOf(h, /^Traveller_hair$/).distanceToPoint(at(h.b.Head)) < 0.13, 'hair follows the head');
   assert.ok(at(h.b.pelvis).y > 0.85, 'standing upright');
 });
 
-test('rigid pieces stay rigid in any pose: the helmet, the pack, the boots', () => {
+test('rigid pieces stay rigid in any pose: hair, pack and boots', () => {
   const char = buildCharacter(), h = traveller(char);
   const spans = (name) => {
     const m = piece(h, name);
@@ -203,16 +196,14 @@ test('rigid pieces stay rigid in any pose: the helmet, the pack, the boots', () 
     const n = m.geometry.attributes.position.count;
     return [0, 1, 2, 3].map((k) => m.getVertexPosition(Math.floor(k * n / 4), V()).distanceTo(m.getVertexPosition(Math.floor(k * n / 4 + n / 8), V())));
   };
-  const names = ['Bubble_helmet', 'Equipment_blue_metal', 'Equipment_rubber_soles_l'];
+  const names = ['Traveller_hair', 'Equipment_blue_metal', 'Equipment_rubber_soles_l'];
   h.update();
   const before = names.map(spans);
   char.head.rotation.set(0.5, 0.8, 0.2); char.arms[0].rotation.set(-1.2, 0.3, 0); char.elbows[0].rotation.x = -1.4; char.torso.rotation.set(0.3, 0.4, 0);
   char.legs[0].rotation.x = 0.9; char.knees[0].rotation.x = -1.2;
   h.update();
   names.map(spans).forEach((after, k) => after.forEach((d, i) => assert.ok(Math.abs(d - before[k][i]) < 1e-4, `${names[k]} keeps its shape`)));
-  // the helmet goes with the head
-  const head = at(h.b.Head);
-  assert.ok(boxOf(h, /^Bubble_helmet$/).containsPoint(head.add(new THREE.Vector3(0, 0.1, 0).applyQuaternion(h.b.Head.getWorldQuaternion(new THREE.Quaternion())))));
+  assert.ok(boxOf(h, /^Traveller_hair$/).distanceToPoint(at(h.b.Head)) < 0.13, 'hair goes with the tilted head');
 });
 
 for (const gait of ['walk', 'jog', 'sprint']) test(`${gait}: arms, legs and hands match all 120 phases of the source motion, as on the NPCs`, () => {
@@ -243,7 +234,7 @@ for (const gait of ['walk', 'jog', 'sprint']) test(`${gait}: arms, legs and hand
   }
 });
 
-test('climbing under rotated gravity: fingers up the wall, toes into it, the gauntlets on the wrists', () => {
+test('climbing under rotated gravity: fingers up the wall, toes into it, rolled sleeves follow the forearms', () => {
   for (const angle of [0, Math.PI / 2]) {
     const char = buildCharacter(), h = traveller(char);
     char.root.rotation.z = angle;
@@ -254,7 +245,7 @@ test('climbing under rotated gravity: fingers up the wall, toes into it, the gau
     for (const s of ['r', 'l']) {
       assert.ok(at(B[`ball_${s}`]).sub(at(B[`foot_${s}`])).normalize().dot(wallN) < -0.9, 'toes into the wall');
       assert.ok(at(B[`middle_01_${s}`]).sub(at(B[`hand_${s}`])).normalize().dot(up) > 0.99, 'fingers up the wall');
-      assert.ok(boxOf(h, new RegExp(`^Glove_cuff_${s}$`)).distanceToPoint(at(B[`hand_${s}`])) < 0.03, 'the gauntlet stays on the wrist');
+      assert.ok(boxOf(h, new RegExp(`^Rolled_sleeve_${s}$`)).distanceToPoint(at(B[`lowerarm_${s}`])) < 0.13, 'the sleeve stays at the elbow');
     }
   }
 });
@@ -264,8 +255,8 @@ test('the gear hooks: the head and chest anchors, the scout on the pack, the bra
   const g = new Gear(new THREE.Scene(), h, char);
   h.update(true); h.model.updateMatrixWorld(true); g.update(1 / 60, V(), 0, 0, true);
   assert.equal(g.springs.length, 0);
-  assert.deepEqual(g.noShadow, [piece(h, 'Bubble_helmet')]);
-  assert.ok(at(h.headAnchor).distanceTo(boxOf(h, /^Bubble_helmet$/).getCenter(V())) < 0.05, 'the head anchor in the bubble');
+  assert.deepEqual(g.noShadow, []);
+  assert.ok(at(h.headAnchor).distanceTo(boxOf(h, /^Traveller_hair$/).getCenter(V())) < 0.1, 'head anchor remains in the skull');
   // the scout docks on top of the radio pack
   const pack = boxOf(h, /^Equipment_ivory_radio$/), dock = at(g.scoutDock);
   assert.ok(dock.y > pack.max.y && dock.y < pack.max.y + 0.15 && dock.z > pack.min.z && dock.z < pack.max.z, 'the scout on the pack');
@@ -289,7 +280,7 @@ test('kneeling (a box, getting up): the knee down to the ground, every piece who
   assert.ok(at(h.b.pelvis).y < 0.6 && at(h.b.calf_l).y < 0.3, `down on one knee (${at(h.b.calf_l).y.toFixed(3)})`);
   const boots = boxOf(h, /^Equipment_dusty_pink_boots_r$/);
   assert.ok(boots.min.y > -0.05 && boots.distanceToPoint(at(h.b.foot_r)) < 0.01, 'the right boot on its foot, on the ground');
-  assert.ok(boxOf(h, /^Bubble_helmet$/).containsPoint(at(h.b.Head).add(new THREE.Vector3(0, 0.08, 0).applyQuaternion(h.b.Head.getWorldQuaternion(new THREE.Quaternion())))), 'the helmet on the bowed head');
+  assert.ok(boxOf(h, /^Traveller_hair$/).distanceToPoint(at(h.b.Head)) < 0.13, 'hair on the bowed head');
   for (const m of h.outfitMeshes) for (let i = 0; i < m.geometry.attributes.position.count; i += 13) assert.ok(m.getVertexPosition(i, V()).toArray().every(Number.isFinite));
 });
 
@@ -307,30 +298,38 @@ test('vehicle animation reaches the skin on the first frame and releases foot lo
   assert.equal(p.gear.device.visible, false);
 });
 
-test('his own hair under the liner, the fringe on the brow inside the helmet; the enamel star pinned inside the glass', async () => {
-  const { TRAVELLER_STAR } = await import('../src/boxes/effects.js');
+test('every clothing piece has valid normalized weights, including the interleaved body-derived sleeves', () => {
   const h = traveller();
-  h.char.root.updateMatrixWorld(true);
-  h.update(true);
+  for (const m of h.outfitMeshes) {
+    const { position: P, normal: N, skinIndex: J, skinWeight: W } = m.geometry.attributes;
+    for (let i = 0; i < P.count; i++) {
+      assert.ok([P.getX(i), P.getY(i), P.getZ(i), N.getX(i), N.getY(i), N.getZ(i)].every(Number.isFinite), m.name);
+      let sum = 0;
+      for (let k = 0; k < 4; k++) {
+        const j = J.getComponent(i, k), w = W.getComponent(i, k);
+        assert.ok(Number.isInteger(j) && j >= 0 && j < h.body.skeleton.bones.length, 'valid bone index');
+        assert.ok(Number.isFinite(w) && w >= 0 && w <= 1, 'valid bone weight'); sum += w;
+      }
+      assert.ok(Math.abs(sum - 1) < 1e-5, 'normalized skin weights');
+    }
+  }
+});
+
+test('dark scruffy hair leaves the eyes clear; the earned star attaches to the coral lapel', async () => {
+  const { TRAVELLER_STAR, createItemEffects } = await import('../src/boxes/effects.js');
+  const h = traveller(); h.char.root.updateMatrixWorld(true); h.update(true);
   const hair = piece(h, 'Traveller_hair');
-  assert.ok(hair, 'a hair piece');
   assert.equal('#' + hair.material.uniforms.uColor.value.getHexString(), TRAVELLER_PALETTE.hair);
-  const glass = boxOf(h, /^Bubble_helmet$/), locks = boxOf(h, /^Traveller_hair$/);
-  const centre = glass.getCenter(V()), r = Math.min(...glass.getSize(V()).toArray()) / 2;
-  // the hair stays inside the bubble, and comes down over the brow (the fringe) but not to the eyes
-  for (const c of [locks.min, locks.max]) assert.ok(c.distanceTo(centre) < r * 1.75, 'the hair inside the helmet');
-  const eyes = h.rest.get(h.b.Head).p.y + 0.1, front = h.rest.get(h.b.Head).p.z + 0.07;   // (the eyes are at the head anchor's height)
+  const eyes = h.rest.get(h.b.Head).p.y + 0.1, front = h.rest.get(h.b.Head).p.z + 0.07;
   let fringe = Infinity;
   const [first, count] = hair.userData.ranges.Traveller_hair;
   for (let i = first; i < first + count; i++) { const p = hair.localToWorld(hair.getVertexPosition(i, V())); if (Math.abs(p.x) < 0.03 && p.z > front) fringe = Math.min(fringe, p.y); }
-  assert.ok(fringe > eyes + 0.01 && fringe < eyes + 0.06, `the fringe ends over the eyes (${(fringe - eyes).toFixed(3)} m)`);
-  // the star: every corner of it inside the glass (it used to stand out through the top)
-  const star = new THREE.Object3D();
-  h.headAnchor.add(star);
-  star.position.copy(TRAVELLER_STAR.at); star.rotation.set(TRAVELLER_STAR.tilt, 0, 0); star.scale.setScalar(TRAVELLER_STAR.scale);
-  star.updateMatrixWorld(true);
-  for (const [x, y] of [[0.045, 0], [-0.045, 0], [0, 0.045], [0, -0.045]]) {
-    const p = star.localToWorld(new THREE.Vector3(x, y, 0.008));
-    assert.ok(p.distanceTo(centre) < r - 0.005, `a point of the star ${(p.distanceTo(centre) - r).toFixed(3)} m inside the glass`);
-  }
+  assert.ok(fringe > eyes + 0.005 && fringe < eyes + 0.08, 'fringe above the eyes');
+  const before = new Set(h.chestAnchor.children);
+  const effects = createItemEffects({ player: { humanoid: h }, keys: null });
+  const star = h.chestAnchor.children.find((o) => !before.has(o) && o.geometry?.type === 'ExtrudeGeometry');
+  assert.ok(star, 'star is attached to the chest, not floating over bare hair');
+  assert.ok(star.position.equals(TRAVELLER_STAR.at));
+  assert.ok(boxOf(h, /^Lapel/).distanceToPoint(star.getWorldPosition(V())) < 0.08, 'star sits on the lapel');
+  effects.dispose();
 });

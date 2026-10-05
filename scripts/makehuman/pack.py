@@ -1,6 +1,8 @@
 """
-The MakeHuman parametric body packed for the game (scripts/makehuman/build.py --pack): body.json
-(what is where, the bones, the corners of the macro space) and body.bin (little-endian arrays).
+The MakeHuman parametric body packed for the game (scripts/makehuman/build.py --pack): one file,
+body.bin, one fetch: 'MHB1', the length of the JSON header (uint32), the header (what is where, the
+bones, the corners of the macro space), zeros to a multiple of 8, then the little-endian arrays (the
+header's offsets count from there; src/makehuman/body.js unpackBody).
 
 The shape space: every vertex of the body, the eyes and both eyebrows, and every bone's head, of
 each macro sample (MakeHuman's corners of gender x age x muscle x weight, height and proportions at
@@ -127,6 +129,8 @@ def main(WORK, OUT, SAMPLES, TARGETS, FACE_TARGETS, AGES, LEVELS, HIP_Y, log):
         B.add(f'h_{st}_bary', np.round(H[f'{st}_bary'][:, :2] * 65535).clip(0, 65535), np.uint16)
         B.q16(f'h_{st}_off', H[f'{st}_off'])
         B.add(f'h_{st}_lock', H[f'{st}_lock'], np.uint8)
+        if f'{st}_scalp' in H.files:
+            B.add(f'h_{st}_scalp', H[f'{st}_scalp'], np.uint16)
         hair[st] = m
     bones = [{'name': 'Head' if n == 'head' else n, 'parent': ('Head' if R['bones'][n]['parent'] == 'head' else R['bones'][n]['parent']), 'rotation': [round(x, 7) for x in R['bones'][n]['rotation']]}
              for n in R['bone_names'] if n in R['bones']]
@@ -143,13 +147,17 @@ def main(WORK, OUT, SAMPLES, TARGETS, FACE_TARGETS, AGES, LEVELS, HIP_Y, log):
         'buffers': B.meta,
     }
     os.makedirs(OUT, exist_ok=True)
+    head = json.dumps(meta, separators=(',', ':')).encode('utf-8')
+    pre = b'MHB1' + len(head).to_bytes(4, 'little') + head
+    pre += b'\0' * ((-len(pre)) % 8)
+    raw = pre + b''.join(B.parts)
     with open(os.path.join(OUT, 'body.bin'), 'wb') as f:
-        f.write(b''.join(B.parts))
-    with open(os.path.join(OUT, 'body.json'), 'w') as f:
-        json.dump(meta, f, separators=(',', ':'))
+        f.write(raw)
+    old_json = os.path.join(OUT, 'body.json')
+    if os.path.exists(old_json):
+        os.remove(old_json)   # (the header is in body.bin now)
     import gzip
-    raw = b''.join(B.parts)
-    log(f'body.bin {len(raw) / 1024:.0f} KB ({len(gzip.compress(raw, 9)) / 1024:.0f} KB gzip), body.json {os.path.getsize(os.path.join(OUT, "body.json")) / 1024:.0f} KB')
+    log(f'body.bin {len(raw) / 1024:.0f} KB ({len(gzip.compress(raw, 9)) / 1024:.0f} KB gzip), its header {len(head) / 1024:.0f} KB')
     sizes_by = {}
     for k, v in B.meta.items():
         g = k.split('_')[0] if not k.startswith('pc') else 'pc'
