@@ -1,0 +1,69 @@
+TODO.md
+  s_1fd8d0e7b02dcf::t_2257a8a9ceb71b 14-26
+changelog.md
+  s_1fd8d0e7b02dcf::t_8a557c1caaa6ac 13-16
+docs/story-bible.md
+  s_1fd8d0e7b02dcf::t_2986430fa53e80 327-328
+docs/systems/cinematics.md
+  s_1fd8d0e7b02dcf::t_f0c1975d29d07b 29-32
+docs/systems/ship-consoles.md
+  s_1fd8d0e7b02dcf::t_98ec31c36e0338 1-29
+docs/systems/story.md
+  s_1fd8d0e7b02dcf::t_b679966cfd83ad 107-108,240
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_eecc299892a624 13-16
+src/levels/index.js
+  s_1fd8d0e7b02dcf::t_455706a09aa50d 112
+src/ship/cinema.js
+  s_1fd8d0e7b02dcf::t_ece1488c0eb1f0 277,280-283
+src/ship/cinematics.js
+  s_1fd8d0e7b02dcf::t_6eb47ede36d95e 20-21,65-76,157-162,165,250,269-271,376-390,393,514-518,522-524,575-576,578,582-583,588-592,594-595,599,604-606,608-610,612-613,619,628,636-637,639-642,713
+src/ship/homecoming.js
+  s_1fd8d0e7b02dcf::t_b3181a2c9d2d81 320,471,493
+src/ship/interior.js
+  s_1fd8d0e7b02dcf::t_af41c7d73987a6 32-36,499,522-527,562,600,614
+src/ship/model.js
+  s_1fd8d0e7b02dcf::t_5c69e7a92f26df 53-54,68,159
+src/ship/portrait.js
+  s_1fd8d0e7b02dcf::t_58618787a7552f 12,23,74-87,94
+src/ship/prologue.js
+  s_1fd8d0e7b02dcf::t_5d08e74954faf7 9-11,43,77-82
+src/ship/sfx.js
+  s_1fd8d0e7b02dcf::t_84934576d581cc 139-149
+src/ship/ship.js
+  s_1fd8d0e7b02dcf::t_a38ad3ed710f4b 6,31-34,226,399-406,462-468,481,484,499-502,504-505,514-520,548,550-551,559-590,673-674,680,682-683,708-712
+src/ship/starmap.js
+  s_1fd8d0e7b02dcf::t_715b305ab68545 1-2,30-37
+src/story/calls.js
+  s_1fd8d0e7b02dcf::t_59c8875c7901d1 4-7,65,74-80,143,152,478-480,482-483,488
+src/story/charge.js
+  s_1fd8d0e7b02dcf::t_4b93bb8a931a79 15,48
+src/story/ending.js
+  s_1fd8d0e7b02dcf::t_4a91b2a158f141 52-53
+src/story/signature.js
+  s_1fd8d0e7b02dcf::t_0764544d4219fb 14
+tests/charge.test.js
+  s_1fd8d0e7b02dcf::t_c4ff7b2a520a67 26
+tests/cutscenes.test.js
+  s_1fd8d0e7b02dcf::t_a4a8408cf3542c 13,174-202
+tests/ending.test.js
+  s_1fd8d0e7b02dcf::t_d1cb32ac82698d 97,103,116
+tests/ship.test.js
+  s_1fd8d0e7b02dcf::t_69eab3d26ba928 13,102-125,216-222,302-303,306-310,333-335,456,472,475,486,488-493,496-500
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "aacef493b6ad4a528982ed9d594ef5aa20361b6b",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
