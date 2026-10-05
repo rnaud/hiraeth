@@ -13,7 +13,7 @@ export const SKIRT = BLOCK_H;
 
 export function shipMaterials(tag, { space = false } = {}) {
   const o = {
-    hull: { color: '#f1e8d4', grid: 2.6, metal: 'painted' },
+    hull: { color: '#f1e8d4', grid: 2.6, plates: true, metal: 'painted' },
     wallIn: { color: '#efe2c4', grid: 1.25 },
     trim: { color: '#d9c7a6', flat: true, metal: 'painted' },
     teal: { color: '#5fb7ad', flat: true, metal: 'painted' },

@@ -492,7 +492,7 @@ export const REFERENCE_VIEWS = [
     people: [{ at: [7, -43], facing: -0.3, palette: PERSON, head: 'hood' }],
     build(kit) {
       const H = (x, z) => kit.H(x, z);
-      const hull = kit.mat({ color: '#ddd5c3', grid: 4.5 });
+      const hull = kit.mat({ color: '#ddd5c3', grid: 4.5, plates: true });
       const hullDark = kit.mat({ color: '#b2ab9c', flat: true });
       const dark = kit.mat({ color: '#4c4440', flat: true });
       const mast = kit.mat({ color: '#8a8278', flat: true });

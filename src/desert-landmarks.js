@@ -157,7 +157,7 @@ export function buildDesertLandmarks(scene, terrain) {
     bone: makeMaterial({ color: '#f2ead6' }),
     boneDark: makeMaterial({ color: '#d9c9a8' }),
     ink: makeMaterial({ color: '#34405e', flat: true }),
-    hull: makeMaterial({ color: '#a7b6c6', grid: 3.5, metal: 'painted' }),
+    hull: makeMaterial({ color: '#a7b6c6', grid: 3.5, plates: true, metal: 'painted' }),
     hullDark: makeMaterial({ color: '#7d8da2', flat: true, metal: 'steel' }),
     cream: makeMaterial({ color: '#efe3cc', flat: true, grid: 2 }),
     creamSmooth: makeMaterial({ color: '#f1e8d6', grid: 3 }),
@@ -177,7 +177,7 @@ export function buildDesertLandmarks(scene, terrain) {
     adobe: makeMaterial({ color: '#efc7ae', flat: true }),
     adobe2: makeMaterial({ color: '#e3ad94', flat: true }),
     dish: makeMaterial({ color: '#f1ece2', grid: 5, side: THREE.DoubleSide, metal: 'painted' }),
-    station: makeMaterial({ color: '#9fb3c8', grid: 3, metal: 'painted' }),
+    station: makeMaterial({ color: '#9fb3c8', grid: 3, plates: true, metal: 'painted' }),
     sail: makeMaterial({ color: '#e0965c', side: THREE.DoubleSide }),
     sail2: makeMaterial({ color: '#ebb27c', side: THREE.DoubleSide }),
   };
