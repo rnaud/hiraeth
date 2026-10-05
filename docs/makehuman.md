@@ -226,8 +226,10 @@ full-body size, nothing tears or twists visibly on either.
    no export, but its proportions (`packBody`: shoulders, hips, girth) should be re-tuned to the new
    silhouettes, and a crowd person promoted to a full NPC should get the nearest body (kind, build,
    age, height) so nothing changes as they come close.
-5. **Levels of detail** (`skinned-lod.js`): the levels must drop the morph targets (far away a face
-   has no expression to show) and the eyes and brows as now.
+5. **Levels of detail** (`skinned-lod.js`) skip every mesh with morph targets today, so a MakeHuman
+   body would draw all 12 000 triangles at any distance: its levels must be built without the morph
+   targets (far away a face has no expression to show; the full mesh comes back up close) and hide
+   the eyes and brows as now.
 6. **Animation**: unchanged (the same bone names; the legs scaled to the rig's hips; `bindBody`
    measures the legs for the stride). Check the ragdoll's capsules and the cape colliders against the
    new girths.
