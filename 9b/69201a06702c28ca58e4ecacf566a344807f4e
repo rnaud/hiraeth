@@ -1,0 +1,27 @@
+unity/Memento/Assets/Memento/Runtime/BatchTravel.cs
+  s_1fd8d0e7b02dcf::t_1f5d8301071f72 175,210-227
+unity/Memento/Assets/Memento/Runtime/Bike.cs
+  s_1fd8d0e7b02dcf::t_c340b2ad6b761c 24-33,44,60,64,92-93,101,131-133
+unity/Memento/Assets/Memento/Runtime/Npc.cs
+  s_1fd8d0e7b02dcf::t_4373c711645adf 154
+unity/Memento/Assets/Memento/Runtime/Play.cs
+  s_1fd8d0e7b02dcf::t_934b1b1e81db11 133-139,234
+unity/Memento/Assets/Memento/Runtime/WorldStory.cs
+  s_1fd8d0e7b02dcf::t_d4e17df40a51f0 100
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9b69201a06702c28ca58e4ecacf566a344807f4e",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
