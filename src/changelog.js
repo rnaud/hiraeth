@@ -19,6 +19,10 @@ export const CHANGELOG = [
     'The traveller has a new look: tousled dark hair, a loose coral overshirt, cream trousers rolled above worn ankle boots, a beige scarf and a round satchel. His sleeves are rolled up and his face is uncovered.',
     'The glass backpack is smaller, with green fittings, faded turquoise and lavender cloth ties, and a dark wrist tool. The makers’ star sits on his lapel and the lantern hangs below the scout’s dock.',
     'The character studio can show the complete fluid backpack and wrist tool while you inspect an outfit or animation.',
+    'Waking up on the ship, no lights or stripes on the floor lead you to the cockpit any more: the voicemail button on the console blinks, the round screen above it glows with “1 new message”, and when you walk up to it a prompt says to press it.',
+    'The holo table in the middle of the deck now opens the galactic map. The cockpit console is the voicemail: its button blinks while a message is waiting, and pressing it plays the message.',
+    'The ship no longer tells you that you are playing a recording: it says you have a new message. What the messages really are, you find out as they go on.',
+    'Flying to another world is a landing now, not a crash: the ship brakes into the air, comes down through the clouds upright on its jets and settles gently onto its feet, dust blowing out from under it, with no fire and no shaking. Coming home lands the same way. Only the first arrival in the desert is a crash.',
   ] },
   { v: '0.62', date: '2026-10-05', items: [
     'Nothing stays on the screen while you play any more: the box in the corner with the place, the objective and the relics is gone. Your health shows while you are hurt or healing, the stamina wheel while you are tired, the tank beside you while it refills or the jets burn, and each fades away after. A short line at the bottom says what the use button does when there is something to use, and a region’s name as you cross into it.',

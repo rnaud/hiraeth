@@ -10,7 +10,7 @@ import { makeMaterial, MODE_STRATA } from '../src/materials.js';
 import { THRUSTERS, exhaust, blast, BLAST_H } from '../src/ship/exhaust.js';
 import { buildApproach, planetMaterial, MARK_IDS } from '../src/ship/approach.js';
 import { PLANETS } from '../src/ship/planets.js';
-import { ArrivalDirector, APPROACH } from '../src/ship/cinematics.js';
+import { ArrivalDirector, APPROACH, landingK } from '../src/ship/cinematics.js';
 import { FlameBody, FIRE, COOL_FIRE } from '../src/story/flames.js';
 
 // The ship's cutscenes and the desert's burning tree, from player feedback:
@@ -169,6 +169,35 @@ test('arriving by ship opens with a short approach from space, and holding skip 
   assert.ok(d.done && ready);
   assert.ok(ship.parked.group.position.distanceTo(ship.restPos) < 1e-6, 'parked');
   assert.equal(ship.parked.doorK, 1);
+});
+
+test('arriving at another world is a landing, not a crash: no shaking, nothing burning, at rest on its feet', () => {
+  const { ship } = flatWorld('incal');
+  ship.player = new Player(ship.physics);
+  ship.rig = { yaw: 0, pitch: 0.2, target: v(), indoor: false };
+  ship.camera = new THREE.PerspectiveCamera();
+  ship.sound = {};
+  const said = [];
+  const say = ship.cinema.say.bind(ship.cinema);
+  ship.cinema.say = (l, o) => { if (l) said.push(l.text); return say(l, o); };
+  const d = new ArrivalDirector(ship);
+  ship.onReady = () => {};
+  d.start();
+  let shake = 0, last = null, speed = 0;
+  for (let t = 0; t < 30 && !d.done; t += 1 / 30) {
+    d.update(1 / 30, false);
+    shake = Math.max(shake, ship.shakeK);
+    const y = ship.parked.group.position.y;
+    assert.ok(Number.isFinite(y), `the ship is somewhere at step ${d.i}`);
+    if (d.down && last !== null && speed === 0) speed = (last - y) * 30;   // the speed it touched down at
+    last = y;
+    if (d.down && ship.auto) ship.auto = null;   // (the walk out: let it end)
+  }
+  assert.ok(d.down, 'it touched down');
+  assert.equal(shake, 0, 'no shaking anywhere in the arrival');
+  assert.ok(speed < 1, `it settles onto its feet (${speed.toFixed(2)} m/s at touchdown)`);
+  assert.ok(!said.some((t) => /crash|hull breach|emergency/i.test(t)), `nothing about a crash: ${said.join(' | ')}`);
+  assert.ok(landingK(0) === 0 && landingK(1) === 1 && landingK(0.99) > 0.9999, 'the last of the descent arrives at rest');
 });
 
 test('the burning tree is one great 3D flame with a living fire shader, and still flares and turns cool for the feast', () => {

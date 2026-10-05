@@ -274,11 +274,13 @@ export class Cinema {
     this.hintEl.classList.toggle('show', !!text);
   }
 
-  /** Show only the touch controls (the HUD stays hidden): a scene you walk through. */
+  /** Show only the touch controls and the use prompt (the rest of the HUD stays hidden): a scene you walk through. */
   controls(show) {
     if (!this.dom) return;
-    const e = document.getElementById('touch');
-    if (e) e.style.visibility = show ? '' : 'hidden';
+    const t = document.getElementById('touch');
+    if (t) t.style.visibility = show ? '' : 'hidden';
+    const c = document.getElementById('cue');   // (over the letterbox's rule that hides it, index.html)
+    if (c) c.style.visibility = show ? 'visible' : 'hidden';
     this.layout();
   }
 
