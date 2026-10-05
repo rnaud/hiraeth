@@ -18,7 +18,7 @@ import java.util.Map;
 // The game bundled in the APK (assets/public/), served on http://127.0.0.1:<port>/ so the page has a
 // plain http origin (localStorage, module scripts, a secure context: loopback) the way Capacitor's
 // https://localhost is in the WebView app. GeckoView can't intercept requests (no
-// shouldInterceptRequest), and resource://android/ pages don't get web storage, hence a loopback
+// shouldInterceptRequest), and resource://android/ pages get no content scripts (the bridge), hence a loopback
 // server. Loopback only; GET and HEAD; keep-alive. For the bench, `inject` puts a script tag first in
 // every HTML page's head.
 final class AssetServer {
