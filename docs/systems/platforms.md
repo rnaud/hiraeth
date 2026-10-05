@@ -12,8 +12,8 @@ in portrait and landscape. An internet connection is needed to load the game.
 
 `public/manifest.webmanifest` uses relative URLs so installation works under
 GitHub Pages' `/moebius/` path and at a site root. iOS metadata and a 180 px
-Apple touch icon are included. Regenerate the icons with
-`python3 scripts/generate-icons.py`.
+Apple touch icon are included. The icons are made from a capture of the game
+(docs/systems/app-icon.md): `node scripts/icons.mjs all`.
 
 ## Steam Deck
 
