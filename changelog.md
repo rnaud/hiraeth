@@ -19,6 +19,10 @@ The same release notes shown in the game (press **N** or open settings).
 - The traveller has a new look: tousled dark hair, a loose coral overshirt, cream trousers rolled above worn ankle boots, a beige scarf and a round satchel. His sleeves are rolled up and his face is uncovered.
 - The glass backpack is smaller, with green fittings, faded turquoise and lavender cloth ties, and a dark wrist tool. The makers’ star sits on his lapel and the lantern hangs below the scout’s dock.
 - The character studio can show the complete fluid backpack and wrist tool while you inspect an outfit or animation.
+- The makers’ boxes have a new look: one smooth dark blue box with no edges, a pale star on top and a ring on each side, and a thin ray of light that keeps travelling across its surface. Come close and the ray crosses it more often and the star brightens.
+- Opening a box: it floats up off the ground, wobbles two or three times with little pauses in between, as if deciding, then comes apart into light.
+- In Qanat, the box on the great tree now waits much higher up, on a carved stone pedestal of the makers with lamps and a ring of light: climb the big root, then the stone pier above it.
+- Nobody tells you about the makers’ boxes before you have found one yourself: the hints for a world’s other boxes only start once you have opened your first.
 
 ## v0.62 — 2026-10-05
 

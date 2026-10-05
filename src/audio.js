@@ -808,6 +808,15 @@ export class Sound {
     this.burst(t + 0.1, { dur: 0.7, type: 'bandpass', freq: 1800, q: 0.5, vol: 0.06, rate: 0.6 });
   }
 
+  /** A floating box rocks (the i-th wobble): a hollow knock and a little rising chime, a step higher each time. */
+  boxWobble(i = 0) {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    this.burst(t, { dur: 0.09, type: 'lowpass', freq: 320, q: 1.2, vol: 0.12, rate: 1 });
+    this.sweep(t, 140 + i * 18, 90 + i * 12, 0.18, 0.03, 'triangle');
+    this.pluck(587 * Math.pow(2, (i * 4) / 12), t + 0.03, 0.035, 'sine', this.fx);
+  }
+
   /** The light pours out: a bright rising shimmer. */
   boxBurst() {
     if (!this.ctx) return;

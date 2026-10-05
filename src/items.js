@@ -170,6 +170,6 @@ const KIND_ORDER = ['core', 'movement', 'mode', 'upgrade', 'charm', 'cosmetic'];
 export function gearHtml(owned = [], { mode = null } = {}) {
   const list = owned.filter((id) => ITEMS[id]).sort((a, b) => KIND_ORDER.indexOf(ITEMS[a].kind) - KIND_ORDER.indexOf(ITEMS[b].kind));
   const rows = list.map((id) => `<li><b>${esc(ITEMS[id].name)}</b> · ${esc(ITEMS[id].use)}</li>`).join('');
-  const body = rows ? `<ul>${rows}</ul>${mode ? `<p class="qhint">gun mode: ${esc(mode)}</p>` : ''}` : '<p class="qhint">Nothing yet: the makers’ boxes hold what a traveller needs.</p>';
+  const body = rows ? `<ul>${rows}</ul>${mode ? `<p class="qhint">gun mode: ${esc(mode)}</p>` : ''}` : '<p class="qhint">Nothing yet.</p>';
   return `<section class="quests gear"><h2>Gear <span>${list.length}</span></h2>${body}</section>`;
 }
