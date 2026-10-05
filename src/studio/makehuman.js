@@ -8,10 +8,17 @@
 //                            the Quaternius one on the left
 import { BLANK } from './people.js';
 
-/** The MakeHuman person for a spec: the one picked, else the first of that kind. */
-export function mhEntry(manifest, id, kind) {
+/**
+ * The MakeHuman person for a spec: the one picked, else one of that kind (a child for a story child,
+ * else a grown-up, `n` choosing among them: a crowd lineup's people differ).
+ */
+export function mhEntry(manifest, id, kind, { n = 0, child = false } = {}) {
   const people = manifest?.people ?? [];
-  return people.find((p) => p.id === id) ?? people.find((p) => p.kind === kind) ?? people[0] ?? null;
+  const picked = people.find((p) => p.id === id);
+  if (picked) return picked;
+  const own = people.filter((p) => p.kind === kind && (child ? p.years < 13 : p.years >= 18));
+  const list = own.length ? own : people.filter((p) => p.kind === kind);
+  return list[((n % list.length) + list.length) % list.length] ?? people[0] ?? null;
 }
 
 /** A stand-in story definition for a MakeHuman person (NPC options: their size, their name). */

@@ -73,6 +73,12 @@ test('a MakeHuman body is a Humanoid template: the game bones, its own landmarks
   assert.equal(body.morphTargetInfluences[smile], 0);
   assert.ok(body.morphTargetInfluences[body.morphTargetDictionary.browOuterUp] > 0.5);
   assert.ok(h.browMesh.morphTargetInfluences[h.browMesh.morphTargetDictionary.browOuterUp] > 0.5, 'the brows go up with the skin');
+  // the lids close on their own key; the eyeball paints none
+  h.char.root.updateMatrixWorld(true);
+  h.eyeLook.blink = 1;
+  h.updateEyes(0);
+  assert.equal(h.eyeMesh.material.uniforms.uEyeLook.value.w, 0);
+  assert.equal(body.morphTargetInfluences[body.morphTargetDictionary.blink], Math.max(0, h.eyeLook.blink));
   // a face morph keeps the brows' keys; a build keeps the body's
   h.setFace({ lines: 0.5, eyeSize: 1.1 });
   assert.ok(h.browMesh.geometry.morphAttributes.position?.length);
@@ -124,6 +130,9 @@ test('the studio: MakeHuman a body source of its own, the comparison lineup in p
   assert.ok(pairs[0].twinOf && pairs[1].mh && pairs[0].twinOf === pairs[1].mh, 'the Quaternius twin first, then the MakeHuman person');
   assert.equal(mhLineup(manifest, 8, 'child,man').length, 4);
   assert.equal(mhEntry(manifest, '', 'f').kind, 'f');
+  assert.ok(mhEntry(manifest, '', 'f').years >= 18, 'a grown-up unless the story says a child');
+  assert.equal(mhEntry(manifest, '', 'f', { child: true }).id, 'child');
+  assert.notEqual(mhEntry(manifest, '', 'm', { n: 0 }).id, mhEntry(manifest, '', 'm', { n: 1 }).id, 'a crowd of several bodies');
   const child = manifest.people.find((p) => p.id === 'child');
   assert.equal(mhDef(child).scale, child.scale);
   assert.equal(likeDef(child).morph.headSize, child.like.morph.headSize);

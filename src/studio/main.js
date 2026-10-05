@@ -224,7 +224,7 @@ async function rebuild() {
   } else specs.push({ who: state.who, def: cast.find((d) => d.id === state.npc) ?? cast[0], seed: state.seed });
   // the MakeHuman bodies (Body source: makehuman): each person on one of their kind, or the one picked
   if (state.source === 'makehuman' && mhManifest && state.lineup !== 'makehuman') {
-    for (const sp of specs) if (sp.who !== 'traveller') sp.mh = mhEntry(mhManifest, state.mh, lookFor(sp, state, sp.world ?? world).kind);
+    specs.forEach((sp, i) => { if (sp.who !== 'traveller') sp.mh = mhEntry(mhManifest, state.mh, lookFor(sp, state, sp.world ?? world).kind, { n: i, child: sp.def?.age === 'child' }); });
   }
   const bodies = new Map(await Promise.all([...new Set(specs.map((sp) => sp.mh).filter(Boolean))].map(async (e) => [e, await loadMakeHuman(e, BASE)])));
   const n = specs.length, gap = state.lineup ? 1.05 : 0;

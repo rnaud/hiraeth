@@ -371,6 +371,13 @@ def measure(rig, body, eyes):
     zf, zb = float(up[:, 2].max()), float(up[:, 2].min())
     zc = (zf + zb) / 2
     skull = {'x': float(np.abs(up[:, 0]).max()), 'y': top - eyeY, 'front': zf - zc, 'back': zc - zb}
+    # grown until it holds the whole crown (the hair's shells sit on it: MakeHuman's skull is no egg,
+    # flatter on top and fuller over the temples), the ears and the brow left out
+    crown = H[(H[:, 1] > eyeY + 0.03) & (np.abs(H[:, 0]) < skull['x'] - 0.008)]
+    rz = np.where(crown[:, 2] > zc, skull['front'], skull['back'])
+    r = np.sqrt((crown[:, 0] / skull['x']) ** 2 + ((crown[:, 1] - eyeY) / skull['y']) ** 2 + ((crown[:, 2] - zc) / rz) ** 2)
+    k = max(1.0, float(np.percentile(r, 99)))
+    skull = {key: v * k for key, v in skull.items()}
     hb = bone['Head']
     hand = bone['hand_l']
     return {
@@ -392,6 +399,9 @@ def build(person):
     if 'race' in person['macro']:
         macro['race'] = person['macro']['race']
     body = HumanService.create_human(macro_detail_dict=macro)
+    # the person's own targets on top of the macros (MakeHuman's sliders: a belly, wider hips)
+    for name, w in person.get('targets', {}).items():
+        TargetService.load_target(body, TargetService.target_full_path(name), weight=w, name=name)
     rig = HumanService.add_builtin_rig(body, 'game_engine', import_weights=True)
     data = LocationService.get_user_data('')
     eyes = HumanService.add_mhclo_asset(os.path.join(data, 'eyes', EYES, f'{EYES}.mhclo'), body, asset_type='Eyes', subdiv_levels=0, material_type='NONE')
@@ -451,7 +461,7 @@ def build(person):
     info = measure(rig, body, eyes)
     info.update({
         'id': person['id'], 'label': person['label'], 'kind': person['kind'], 'years': person['years'],
-        'scale': round(hip / HIP_Y, 4), 'macro': person['macro'], 'inkFace': person.get('face', {}), 'brows': person.get('brows'), 'like': person.get('like', {}),
+        'scale': round(hip / HIP_Y, 4), 'macro': person['macro'], 'targets': person.get('targets', {}), 'inkFace': person.get('face', {}), 'brows': person.get('brows'), 'like': person.get('like', {}),
         'triangles': {'body': triangles(body), 'eyes': triangles(eyes), 'brows': triangles(brows)},
         'vertices': {'body': len(body.data.vertices), 'eyes': len(eyes.data.vertices), 'brows': len(brows.data.vertices)},
         'keys': {o.name: [k.name for k in o.data.shape_keys.key_blocks][1:] if o.data.shape_keys else [] for o in (body, eyes, brows)},

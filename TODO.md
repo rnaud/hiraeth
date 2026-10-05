@@ -469,10 +469,13 @@ All of this is for the web game; the Unity port follows later if we move to Unit
 - [ ] Warmer faces on the current bodies: a slight resting smile by default, lighter and softer brows,
   mouth corner ticks that don't turn down at rest, warmer face shadows (skin, not the world's blue-violet
   shade), gentler face presets; tuned in the character studio and checked in every world.
-- [ ] Prototype MakeHuman / MPFB bodies (CC0 exports): a few people of different ages and builds with face
+- [x] Prototype MakeHuman / MPFB bodies (CC0 exports): a few people of different ages and builds with face
   shape keys for expressions, on the game's skeleton, next to the Quaternius bodies through the same ink
-  pass in the character studio. If they read better, switch the base bodies (costumes and hair re-fitted,
-  animations and motion data kept).
+  pass in the character studio. (Eight people, Body source and a comparison lineup in the studio:
+  docs/makehuman.md, which recommends switching in stages.)
+- [ ] Switch the base bodies to MakeHuman (docs/makehuman.md, "What a full switch would take"): one
+  parametric body with the macro targets, the face ink and hair fitted to it, the crowd figure and the
+  levels of detail matched; animations and motion data kept.
 
 ---
 
