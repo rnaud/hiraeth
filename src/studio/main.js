@@ -15,7 +15,7 @@ import { loadHuman, Humanoid } from '../humanoid.js';
 import { buildCharacter } from '../player.js';
 import { Gear } from '../gear.js';
 import { NPC } from '../npc.js';
-import { COSTUME_WORLDS, crowdLook, BUILDS, HEAD_IDS, MASK_IDS, BODY_IDS, PROP_IDS, TRIM_IDS, tribeOf, setCostumeWorld } from '../costumes.js';
+import { COSTUME_WORLDS, crowdLook, BUILDS, HEAD_IDS, HAIR_IDS, MASK_IDS, BODY_IDS, PROP_IDS, TRIM_IDS, tribeOf, setCostumeWorld } from '../costumes.js';
 import { figureGeometry, packLook } from '../crowd.js';
 import { CROWD_POSES } from '../crowd-shader.js';
 import { IRIS } from '../eyes.js';
@@ -53,12 +53,28 @@ const blit = createBlit(composeRT.texture);
 // the shadow cascades with the game's sizes (main.js): fine (character shadows) and near; far off
 const cascades = {
   fine: new Cascade({ name: 'fine', size: 2048, extent: 12, depth: 1600, bias: 3.4, offset: 2.6, uniforms: { map: SU.uShadowMap0, matrix: SU.uShadowMatrix0, bias: SU.uShadowBias0, offset: SU.uShadowNormalOffset0 } }),
-  near: new Cascade({ name: 'near', size: 2048, extent: 60, depth: 1600, bias: 2.3, offset: 3.2, uniforms: { map: SU.uShadowMap, matrix: SU.uShadowMatrix, bias: SU.uShadowBias, offset: SU.uShadowNormalOffset } }),
+  near: new Cascade({ name: 'near', size: 4096, extent: 220, depth: 1600, bias: 2.3, offset: 3.2, uniforms: { map: SU.uShadowMap, matrix: SU.uShadowMatrix, bias: SU.uShadowBias, offset: SU.uShadowNormalOffset } }),
   far: new Cascade({ name: 'far', size: 256, extent: 1150, depth: 3200, bias: 2.2, offset: 2.4, uniforms: { map: SU.uShadowMap2, matrix: SU.uShadowMatrix2, bias: SU.uShadowBias2, offset: SU.uShadowNormalOffset2 } }),
 };
 for (const c of Object.values(cascades)) c.prime(renderer);
 cascades.far.disable();
-SU.uShadowTexel.value.set(cascades.fine.texel, cascades.near.texel, cascades.far.texel);
+/**
+ * The shadows as the game draws them on this person: 'fine' within ~12 m of the traveller (the
+ * fine cascade), 'near' further off (the street's map, 9 cm texels), 'handheld' (the handheld
+ * preset: no fine map, a smaller near one, 4 taps), 'off'.
+ */
+function configureShadows() {
+  const m = state.shadows;
+  if (m === 'handheld') { cascades.fine.disable(); cascades.near.configure(2048, 160); SU.uShadowTaps.value = 4; }
+  else {
+    cascades.near.configure(4096, 220);
+    if (m === 'fine') cascades.fine.configure(2048, 12); else cascades.fine.disable();
+    SU.uShadowTaps.value = 9;
+  }
+  if (m === 'off') cascades.near.disable();
+  for (const c of [cascades.fine, cascades.near]) if (c.enabled) c.prime(renderer);
+  SU.uShadowTexel.value.set(cascades.fine.texel, cascades.near.texel, cascades.far.texel);
+}
 SU.uCloudShadows.value = 0;
 const shadowOverride = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, colorWrite: false });
 
@@ -348,7 +364,7 @@ function animate(p, dt, t) {
       root.updateMatrixWorld(true);
       const s = p.npc.clothState(fakePlayer, state.move ? speed : 0);
       if (!cape.drape && !cape.ready) cape.bake({ ...s, capsules: p.npc.clothCapsules(null) }, { key: p.npc.drapeKey(seated ? 4 : 0) });
-      cape.update(Math.min(dt, 1 / 20), s);
+      if (dt > 1e-4) cape.update(Math.min(dt, 1 / 20), s);   // (a cloth step of 0 s divides by it)
     } else {
       root.updateMatrixWorld(true);
       if (!cape.drape) cape.bake(p.npc.clothState(fakePlayer, 0), { key: p.npc.drapeKey(seated ? 4 : 0), force: true });
@@ -366,6 +382,8 @@ function lookTarget() {
 
 // ------------------------------------------------------------------ light and ink
 const room = () => ROOMS.find((r) => r.id === state.world);
+/** Worlds whose light on the ground isn't the sky's (levels/<world>.js lightAt). */
+const WORLD_LIGHT = { bazaar: 'overhead', incal: 'steep', buried: 'steep' };
 let atmo = null, script;
 function applyLight() {
   const R = room();
@@ -390,10 +408,16 @@ function applyLight() {
   }
   ground.material.uniforms.uColor.value.set(R?.ground?.material?.color ?? '#e3cf9f');
   ground.visible = state.ground;
+  configureShadows();
   applySky();
 }
 function applySky() {
   applyTimeOfDay(state.hour, SU.uSunDir.value, U, atmo, script);
+  // the world's own light on the people (levels/*.js lightAt): the Signal Market's streets are lit from straight above
+  const light = state.light || WORLD_LIGHT[state.world] || 'hour', d = SU.uSunDir.value;
+  if (light === 'overhead' && d.y > 0) d.set(0.12, 1, 0.18).normalize();
+  // (the City-Shaft's terraces, the Buried Machine's canyon: the sun comes in steeper)
+  else if (light === 'steep' && d.y > 0.05) { d.y += state.world === 'buried' ? 0.8 : 0.9; d.normalize(); }
   // turn the light round the person (the sun's azimuth, the moon's with it)
   const turn = THREE.MathUtils.degToRad(state.sunTurn);
   if (turn) for (const v of [SU.uSunDir.value, U.uSunDisc.value, U.uMoonDisc.value, U.uSunDir.value]) v.applyAxisAngle(UP, turn);
@@ -403,7 +427,7 @@ function applySky() {
 
 // ------------------------------------------------------------------ camera
 const VIEWS = {
-  full: { y: 0.92, dist: 4.6 }, bust: { y: 1.45, dist: 1.55 }, face: { y: 1.67, dist: 0.62 }, far: { y: 0.92, dist: 34 },
+  full: { y: 0.92, dist: 4.6 }, bust: { y: 1.45, dist: 1.3 }, face: { y: 1.67, dist: 0.72 }, far: { y: 0.92, dist: 34 },
 };
 const orbit = { yaw: state.yaw, pitch: state.pitch, zoom: 1 };
 function placeCamera(dt) {
@@ -412,11 +436,16 @@ function placeCamera(dt) {
   const p = subject();
   const s = state.lineup ? 1 : (p?.baseScale ?? 1) * (state.b.height ?? 1);
   let dist = V.dist * orbit.zoom * (state.view === 'face' || state.view === 'bust' ? s : Math.max(s, 1));
-  if (state.lineup && state.view !== 'face' && state.view !== 'bust') dist *= Math.max(1, people.length * 0.32);
+  if (camera.aspect < 0.85) dist *= 0.85 / camera.aspect;   // (a tall, narrow view: keep the shoulders in)
+  if (state.lineup && state.view === 'full') {
+    // the whole row in the frame
+    const half = (people.length * 1.05) / 2 + 0.7, hfov = 2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * camera.aspect);
+    dist = Math.max(dist, (half / Math.tan(hfov / 2)) * orbit.zoom);
+  }
   // (the head's real height: a seated person, longer legs, a bigger head)
   let ty = V.y * s;
   const head = p?.h?.b?.Head;
-  if (p && (state.view === 'face' || state.view === 'bust') && head) ty = head.getWorldPosition(_v).y + (state.view === 'face' ? 0.07 : -0.2) * s;
+  if (p && (state.view === 'face' || state.view === 'bust') && head) ty = head.getWorldPosition(_v).y + (state.view === 'face' ? 0.0 : -0.13) * s;
   const cx = state.lineup ? 0 : p?.pos.x ?? 0, cz = state.lineup ? 0 : p?.pos.z ?? 0;
   const target = new THREE.Vector3(cx, ty, cz);
   camera.position.set(cx + Math.sin(orbit.yaw) * Math.cos(orbit.pitch) * dist, ty + Math.sin(orbit.pitch) * dist, cz + Math.cos(orbit.yaw) * Math.cos(orbit.pitch) * dist);
@@ -477,7 +506,7 @@ function renderFrame() {
   const hidden = [marker, ...(gpu ? [gpu] : []), ...people.flatMap((p) => p.noShadow ?? [])].filter((o) => o.visible);
   for (const o of hidden) o.visible = false;
   scene.overrideMaterial = shadowOverride;
-  for (const c of [cascades.fine, cascades.near]) { c.aim(dir); c.place(centre); c.render(renderer, scene); }
+  for (const c of [cascades.fine, cascades.near]) if (c.enabled) { c.aim(dir); c.place(centre); c.render(renderer, scene); }
   scene.overrideMaterial = null;
   for (const o of hidden) o.visible = true;
   // 2. the G-buffer
@@ -500,7 +529,12 @@ function renderFrame() {
 }
 
 let last = performance.now(), simT = 0, fps = 60, statusT = 0;
+let failed = false;
 function frame(now) {
+  requestAnimationFrame(frame);
+  try { step(now); } catch (e) { if (!failed) console.error('studio frame:', e); failed = true; }
+}
+function step(now) {
   const dt = Math.min((now - last) / 1000, 0.05);
   last = now;
   simT += dt;
@@ -523,7 +557,6 @@ function frame(now) {
     const px = 1.8 * s.root.scale.y * (renderer.domElement.clientHeight * 0.5) * camera.projectionMatrix.elements[5] / depth;
     setStatus(`${describe()} · ${px.toFixed(0)} px tall · ${fps.toFixed(0)} fps`);
   }
-  requestAnimationFrame(frame);
 }
 
 // ------------------------------------------------------------------ the panel
@@ -641,6 +674,7 @@ select(sWho, 'Person', 'who', [['traveller', 'The traveller'], ['npc', 'A story 
 select(sWho, 'World', 'world', COSTUME_WORLDS.map((w) => [w, TITLES[w] ?? w]), () => { state.npc = ''; rebuild(); applyLight(); });
 select(sWho, 'Story person', 'npc', () => [['', cast.length ? '(the first)' : '(nobody in this world)'], ...cast.map((d) => [d.id, `${d.name}${d.title ? `, ${d.title}` : ''}`])], () => { state.who = 'npc'; rebuild(); });
 slider(sWho, 'Crowd seed', 'seed', 1, 200, 1, 1, () => { if (state.who === 'crowd' || state.lineup === 'crowd') rebuild(); });
+select(sWho, 'Where (City-Shaft)', 'spot', [['', 'as the story places them'], ['rim', 'the rim'], ['upper', 'the upper levels'], ['middle', 'the middle levels'], ['lower', 'the bottom of the shaft']], applyLook);
 select(sWho, 'Body', 'kind', [['m', 'man'], ['f', 'woman']], () => { if (state.who !== 'npc' && state.who !== 'traveller') rebuild(); });
 const sLine = section('Lineup');
 select(sLine, 'Lineup', 'lineup', [['', 'one person'], ['cast', "the world's story people"], ['crowd', 'crowd people (+ GPU figures)']], rebuild);
@@ -655,7 +689,17 @@ buttons(sBody, [['Reset body', () => { state.b = {}; state.build = ''; saveURL()
 
 // outfit
 const sFit = section('Outfit');
-select(sFit, 'Head / hair', 'l.head', opt(HEAD_IDS), applyLook);
+{
+  // the head slot: a hairstyle (bare-headed) or headwear (with the short hair under it)
+  const sel = document.createElement('select');
+  const group = (label, ids) => { const g = document.createElement('optgroup'); g.label = label; g.append(...ids.map((v) => new Option(v, v))); return g; };
+  sel.append(new Option('their own', ''), group('Hair', HAIR_IDS), group('Headwear', HEAD_IDS.filter((h) => !HAIR_IDS.includes(h))));
+  const show = () => { sel.value = state.l.head ?? ''; };
+  sel.onchange = () => { set('l.head', sel.value); applyLook(); };
+  row(sFit, 'Hair / headwear', sel);
+  refreshers.push(show);
+  show();
+}
 check(sFit, 'Beard', 'l.beard', applyLook);
 select(sFit, 'Mask', 'l.mask', opt(MASK_IDS), applyLook);
 select(sFit, 'Shoulders', 'l.body', opt(BODY_IDS), applyLook);
@@ -709,11 +753,13 @@ check(sAnim, 'Plant the feet (traveller)', 'plant');
 const sLight = section('Light and ink');
 slider(sLight, 'Hour', 'hour', 0, 24, 0.05, 10, applySky);
 slider(sLight, 'Turn the sun (°)', 'sunTurn', -180, 180, 1, 0, applySky);
+select(sLight, 'Light', 'light', [['', "the world's"], ['hour', 'the sun of the hour'], ['steep', 'steeper (down the City-Shaft, the canyon)'], ['overhead', 'from straight above (the Signal Market)']], applySky);
 select(sLight, 'Background', 'bg', [['sky', "the world's sky"], ['flat', 'a flat colour']], applySky);
 color(sLight, 'Flat colour', 'bgColor', ['#eee9de', '#f3ead8', '#e1e6c6', '#d7dfd9', '#2b211f', '#a4d7d1', '#f2c49a'], '#eee9de', applySky);
 check(sLight, 'Floor', 'ground', applyLight);
 select(sLight, 'Ink preset', 'preset', [['world', "the world's"], ...Object.keys(PRESETS).map((k) => [k, k])], applyLight);
 select(sLight, 'Debug view', 'debug', Object.entries(DEBUG_VIEWS).map(([k, v]) => [String(v), k]), applyLight);
+select(sLight, 'Shadows', 'shadows', [['fine', 'next to the traveller (fine map)'], ['near', 'further off (street map)'], ['handheld', 'the handheld preset'], ['off', 'none']], applyLight);
 check(sLight, 'Hatching', 'hatch', applyLight);
 check(sLight, 'Subject detail', 'subject');
 select(sLight, 'Resolution', 'scale', [['1', '1× (the game’s Auto)'], ['1.5', '1.5× (High)'], ['2', '2× (print)']], () => { state.scale = +state.scale; resize(); });
@@ -753,6 +799,5 @@ resize();
 applyLight();
 await rebuild();
 await roomsReady;
-window.studio = { frame, state: () => state, people: () => people, scene, camera, renderer, post, rebuild, applyLook, applyBody, applyFace, applyLight, updatePanel, set: (s) => { state = cleanState({ ...state, ...s }); saveURL(); updatePanel(); }, NEUTRAL_BODY, cleanMorph, orbit };
-console.log('studio: start');
-requestAnimationFrame((t) => { console.log('studio: first frame'); last = t; try { frame(t); } catch (e) { console.error('frame', e.message, e.stack); } });
+window.studio = { step, state: () => state, people: () => people, scene, camera, renderer, post, rebuild, applyLook, applyBody, applyFace, applyLight, updatePanel, set: (s) => { state = cleanState({ ...state, ...s }); saveURL(); updatePanel(); }, NEUTRAL_BODY, cleanMorph, orbit };
+requestAnimationFrame((t) => { last = t; frame(t); });

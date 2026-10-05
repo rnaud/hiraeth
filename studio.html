@@ -37,7 +37,7 @@
   #views button.on { border-color: var(--ink); font-weight: 600; }
   #toggle { display: none; }
   .balloon { display: none !important; }
-  @media (max-width: 760px) {
+  @media (max-width: 760px), (max-width: 1000px) and (orientation: portrait) {
     body { flex-direction: column; }
     #panel { width: 100%; height: 45%; border-right: 0; border-bottom: 1px solid var(--line); order: 2; }
     #view { height: 55%; flex: none; order: 1; }

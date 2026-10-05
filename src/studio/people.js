@@ -49,7 +49,7 @@ export function BLANK(kind = 'm') {
     world: null, tribe: 'a blank body', blank: true,
     cloak: '#c8483a', cloth: '#e2d3b4', legs: '#5a4a40', skin: '#d9a98a', hair: '#4a3226', hat: '#d8a24a', accent: '#3b4f8a',
     head: kind === 'f' ? 'long' : 'short', mask: 'none', body: 'none', prop: 'none', trim: 'none', robe: 0, flare: 0.3,
-    capeLen: 0, capeWide: 1, bulk: 0, sleeveless: false, size: 1, kind, build: 'average', height: 1, eyes: irisFor(mulberry32(kind === 'f' ? 2 : 1)),
+    capeLen: 0, capeWide: 1, bulk: 0, sleeveless: false, size: 1, kind, build: 'average', height: kind === 'f' ? 0.95 : 1, eyes: irisFor(mulberry32(kind === 'f' ? 2 : 1)),
   };
 }
 
@@ -60,17 +60,24 @@ const COLOURS = ['cloak', 'cloth', 'legs', 'skin', 'hair', 'hat', 'accent', 'eye
  * The look of a person on stage: spec { who: 'npc' | 'crowd' | 'blank', def?, seed? } as the game
  * dresses them in `world`, then the studio's costume pieces (state.l), colours (state.c) and build.
  */
+/** A place for a person of the City-Shaft (costumes.js zoneIncal: dressed by how deep they live). */
+const SPOT_Y = { rim: 200, upper: 150, middle: 36, lower: -100 };
+// (where the story puts its City-Shaft people: src/story/incal.js)
+const STORY_Y = { incal: { nima: 150, ossa: -290, pip: -290, dov: 320, wren: 150, corvin: 200, lio: 200, hask: 200 } };
+
 export function lookFor(spec, state, world) {
   let base;
+  const y = SPOT_Y[state.spot] ?? STORY_Y[world]?.[spec.def?.id] ?? 0;
+  const pos = new THREE.Vector3(0, y, 0);
   if (spec.who === 'npc' && spec.def) {
     const d = spec.def;
     // as NPC does (src/npc.js): seeded by who they are; hair and beard follow their kind only when the story gives one
-    base = namedLook({ world, id: d.id, palette: d.palette ?? {}, head: d.head ?? null, cape: d.cape ?? null, look: d.look ?? {}, pos: new THREE.Vector3(), kind: d.kind ?? null });
+    base = namedLook({ world, id: d.id, palette: d.palette ?? {}, head: d.head ?? null, cape: d.cape ?? null, look: d.look ?? {}, pos, kind: d.kind ?? null });
     base.kind = d.kind ?? 'm';
   } else if (spec.who === 'crowd') {
     const seed = spec.seed ?? state.seed;
     const kind = state.kind === 'f' || state.kind === 'm' ? state.kind : mulberry32(seed)() < 0.5 ? 'm' : 'f';
-    base = crowdLook(mulberry32(seed * 7919 + 13), { world, kind });
+    base = crowdLook(mulberry32(seed * 7919 + 13), { world, kind, pos });
   } else base = BLANK(state.kind === 'f' ? 'f' : 'm');
   const s = { ...base };
   for (const k of PIECES) if (state.l?.[k] !== undefined && state.l[k] !== '') s[k] = typeof base[k] === 'number' ? +state.l[k] : state.l[k];

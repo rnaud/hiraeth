@@ -612,10 +612,14 @@ const fragmentShader = /* glsl */ `
     // the mouth: a line whose corners rise with a smile (drop when sad), opening into a dark shape
     float my = ny + (cy - ny) * 0.42;
     float hw = 0.019 * uFaceKit.y * (1.0 + 0.1 * smile);
-    vec2 c1 = vec2(hw * 0.55, my + 0.0011 + smile * 0.0012), c2 = vec2(hw, my + 0.002 + smile * 0.005);
-    m = max(m, inkLine(min(segDist(q, vec2(0.0, my), c1), segDist(q, c1, c2)) / fwq, 1.0));           // mouth
+    // (a curve y = my + 0.002 u + bend u², u = x / hw: neutral, the straight stroke it always was)
+    float mu = min(q.x / hw, 1.0), bend = smile * 0.0075;
+    float mSlope = (0.002 + 2.0 * bend * mu) / hw;
+    vec2 mEnd = vec2(hw, my + 0.002 + bend);
+    float dMouth = q.x < hw ? abs(q.y - (my + 0.002 * mu + bend * mu * mu)) / sqrt(1.0 + mSlope * mSlope) : length(q - mEnd);
+    m = max(m, inkLine(dMouth / fwq, 1.0 + 0.5 * abs(smile)));           // mouth
     if (gape > 0.001) {
-      float oh = gape * 0.0055;
+      float oh = gape * 0.0085;
       vec2 o = (q - vec2(0.0, my + smile * 0.0012 - oh * 0.85)) / vec2(hw * (0.78 - 0.18 * gape), oh);
       m = max(m, 1.0 - smoothstep(1.0 - fwq / oh, 1.0 + fwq / oh, length(o)));
       m = max(m, inkLine(segDist(q, vec2(0.0, my - oh * 2.2 - 0.002), vec2(hw * 0.4, my - oh * 2.1 - 0.0015)) / fwq, 0.8) * 0.6 * fine);   // the lower lip

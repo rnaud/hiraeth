@@ -12,6 +12,7 @@ export const DEFAULTS = Object.freeze({
   npc: '',               // a story person's id (who=npc; '' the world's first)
   seed: 1,               // a crowd person's seed (who=crowd)
   kind: 'm',             // m | f (blank bodies; crowd: '' = as seeded)
+  spot: '',              // where they stand, for worlds dressed by it (the City-Shaft: rim | upper | middle | lower)
   build: '',             // '' the person's own, else slim | average | broad | heavy
   // the expression: a dialogue tone, how much of it, talking (the mouth moves), blinking
   tone: 'neutral', amount: 1, talk: false, blink: true,
@@ -28,7 +29,7 @@ export const DEFAULTS = Object.freeze({
   count: 6,
   twin: false,           // the GPU crowd figure of this person beside them
   // light and ink
-  hour: 10, sunTurn: 0, bg: 'sky', bgColor: '#eee9de', ground: true,
+  hour: 10, sunTurn: 0, light: '', shadows: 'fine', bg: 'sky', bgColor: '#eee9de', ground: true,
   preset: 'world', debug: 0, hatch: true, scale: 1, subject: true,
   // groups
   b: {}, f: {}, l: {}, c: {}, e: {},
