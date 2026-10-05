@@ -928,6 +928,17 @@ export class Sound {
     }
   }
 
+  /**
+   * A short tune on an instrument, on the effects bus (something you play, not the score):
+   * notes [[Hz, beats]], a beat `beat` s. Vael's rider's call on the flute (src/story/arzach-data.js).
+   */
+  tune(notes, beat = 0.22, kind = 'flute', vol = 0.16) {
+    if (!this.ctx) return false;
+    let t = this.ctx.currentTime + 0.05;
+    for (const [f, beats] of notes) { const d = beats * beat; this.instrument(kind, f, t, d, vol, this.fx); t += d; }
+    return true;
+  }
+
   /** The bell-note whistle: one clear note with a bell's inharmonic partials. */
   bell() {
     if (!this.ctx) return;

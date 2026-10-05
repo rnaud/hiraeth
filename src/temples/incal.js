@@ -103,6 +103,62 @@ function wardenHit(g, part, mode) {
   return true;
 }
 
+/** What the jets are for, said a moment after the box's card closes in the Jets' Chamber. */
+export const JETS_NEXT = 'The jets hum on your back. Straight overhead the chamber’s ceiling is open: hold RT / R2 (or the left mouse button), without aiming, and fly up through it.';
+
+/** Are you past the oculus? (in the gallery or beyond: its mark, an eye lit, the warden met, or simply up there) */
+export function jetsUsed(rt) {
+  const cp = rt.game.flag(`temple.${rt.id}.checkpoint`);
+  if (cp === 'gallery' || cp === 'hall' || rt.logic.resolved || ['s2', 's3', 's4'].some((id) => rt.logic.isLit(id))) return true;
+  const P = rt.player;
+  return !!P?.pos && rt.inside(P.pos) && rt.kit.local(P.pos).y > 34;
+}
+
+/**
+ * After the jets: the way on, shown. A column of pale rings rises from the chest's plinth up through
+ * the oculus into the gallery, where the jets take you; a moment after the box's card a line says what
+ * to do with them, and the drone flies up and points (main.js 'scout:ping'). It fades once you're up.
+ */
+class JetGuide {
+  constructor(rt, { from, to, r }) {
+    this.rt = rt;
+    this.foot = rt.kit.world(...from);
+    this.h = to - from[1];
+    this.root = new THREE.Group();
+    this.root.name = 'The way up (after the jets)';
+    rt.root.add(this.root);
+    this.mat = makeMaterial({ color: '#bfe6f2', flat: true, glow: 0.7, key: 'incal.temple.guide' });
+    const g = new THREE.TorusGeometry(r, 0.07, 4, 36).rotateX(Math.PI / 2);
+    this.rings = Array.from({ length: 10 }, (_, i) => { const m = new THREE.Mesh(g, this.mat); m.userData.noCollide = true; this.root.add(m); return { m, s: i / 10 }; });
+    this.root.visible = false;
+    this.k = 0; this.since = 0; this.told = false;
+  }
+  get wanted() { return this.rt.logic.gadget && !jetsUsed(this.rt); }
+  update(dt, t) {
+    const rt = this.rt, want = this.wanted;
+    this.k = THREE.MathUtils.clamp(this.k + (want ? dt / 1.2 : -dt / 0.8), 0, 1);
+    this.root.visible = this.k > 0.01;
+    // a moment after the chest (its card closes first): what the jets are for, and the drone shows where
+    if (want && !this.told && rt.player?.pos && rt.inside(rt.player.pos)) {
+      if ((this.since += dt) > 1.2) {
+        this.told = true;
+        rt.notice(JETS_NEXT, 'jets.next');
+        rt.quests?.track?.(`temple.${rt.id}`);
+        rt.game.emit('scout:ping', { why: 'jets' });
+      }
+    }
+    if (!this.root.visible) return;
+    for (const r of this.rings) {
+      r.s = (r.s + dt * 0.22) % 1;
+      r.m.position.set(this.foot.x, this.foot.y + r.s * this.h, this.foot.z);
+      const fade = Math.min(1, r.s * 6, (1 - r.s) * 5) * this.k;
+      r.m.scale.setScalar(Math.max(0.01, fade * (0.85 + 0.15 * Math.sin(t * 2.4 + r.s * 12))));
+    }
+    if (this.mat.uniforms?.uGlow) this.mat.uniforms.uGlow.value = (0.45 + 0.25 * Math.sin(t * 3)) * this.k;
+  }
+  dispose() { this.root.removeFromParent(); }
+}
+
 // ------------------------------------------------------------------ inside
 function layout(rt) {
   const K = rt.kit, M = rt.M;
@@ -158,6 +214,8 @@ function layout(rt) {
   // the light falls down the oculus: a ring of glyphs round it on the floor
   for (let i = 0; i < 8; i++) { const a = (i / 8) * TAU; K.add(M.glyph, T(glyphGeometry(0.9, 0.04).rotateX(-Math.PI / 2), [Math.sin(a) * 5.2, 11.03, C3 + Math.cos(a) * 5.2], [0, a + Math.PI, 0])); }
   add(Mark, { room: 'jets', at: [6.2, 11, C3 - 5], yaw: -Math.PI * 0.75 });
+  // once the jets are yours: the way on, shown (a column of rising rings up through the oculus, a line, the drone)
+  add(JetGuide, { from: [0, 11.7, C3], to: 34.6 + 2.5, r: 2.5 });
 
   // ---- the Lamp Gallery: a tall drum over the chamber (floor 34.6, round the oculus below)
   const G0 = 34.6, GR = 14;
@@ -357,6 +415,7 @@ export const INCAL_TEMPLE = {
   // you can't get about the City-Shaft without the jets, and they are in here: the quest starts when you land
   startsOnArrival: () => !items.has('jetpack'),
   arrivalLine: 'The jets the makers left for this city are in their tower on the rim, round from the ship.',
+  used: jetsUsed,   // (the temple quest's 'use' stage: src/temples/index.js)
   pitLine: 'You climb back up to the last glyph stone.',
   onResolved(rt) { rt.notice('Far below the rim, by the Upward Shrine, the shaft has begun to breathe again.', 'resolved.out'); },
   // its side vents: each a target while they are open in the first phase (the guardian's own weak point is

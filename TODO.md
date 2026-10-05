@@ -79,13 +79,19 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 ## Progression
 
-- [ ] The jetpack comes in the later half of the game, not the second world unlocked; the winds and gliding
-  come first.
-- [ ] After picking up the jetpack it isn't clear what to do next.
-- [ ] Taxis don't answer until I get a taxi pass in a quest.
-- [ ] Vael: the big bird can't be seen or ridden until the quest where I learn the whistle. The top of the
-  tower is not a screen but a little flute for the special whistle.
-- [ ] The bird walks with a walking animation on the ground; taking off it leaps before it flaps.
+- [x] The jetpack comes in the later half of the game, not the second world unlocked; the winds and gliding
+  come first. (New route: desert, Vael (wings, and the wind up its tower), Vael II (after Vael), Lorn, Lorn II,
+  Viridel, then the City-Shaft (jets) as the seventh, and after it the worlds that want jets; tests check it.)
+- [x] After picking up the jetpack it isn't clear what to do next. (A line says what they're for, the drone
+  flies up to point, rings rise through the oculus, and the temple quest says "fly up through the ceiling".)
+- [x] Taxis don't answer until I get a taxi pass in a quest. (Cabs refuse hails and boarding without a cab
+  pass; Lio on the rim writes one for the fare Hask owes him; the pass is in the gear; Wren still stops.)
+- [x] Vael: the big bird can't be seen or ridden until the quest where I learn the whistle. The top of the
+  tower is not a screen but a little flute for the special whistle. (She's hidden until her call is played;
+  the window is a stone arch; a modelled flute on the sill plays a five-note call that brings her down.)
+- [x] The bird walks with a walking animation on the ground; taking off it leaps before it flaps.
+  (A procedural gait: legs stepping, a bob and sway, wings folded; take-off is a crouch, a leap, and the
+  first wingbeat at its top.)
 
 ## People
 

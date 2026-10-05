@@ -15,7 +15,8 @@ import { game } from './game-state.js';
 // frame (cheap), so a grant takes effect at once.
 //
 // Kinds: core (the backpack), movement, mode (gun modes, MODE_ITEMS), and the
-// boxes' special items: upgrade (the tank), charm, cosmetic. Most items come
+// boxes' special items: upgrade (the tank), charm, cosmetic; and pass (`quest: true`: someone
+// gives it at the end of a quest, not a box: the City-Shaft's cab pass). Most items come
 // out of item boxes (src/boxes/), the makers' chests, left for a traveller who
 // comes a long way (docs/story-bible.md, "The boxes"): the box-opening card
 // shows name, text ("what it is") and use ("what it does").
@@ -127,6 +128,12 @@ export const ITEMS = {
     text: "A brass spirit level bearing the Major’s initials. In the Hangar, even the bubble needs help finding down.",
     use: 'Where down is not where it was (the Hangar’s upside-down quarter and its ring), a small level in the corner of your eye shows how the floor lies.',
   },
+  // ---- given by people, through a quest (quests.give: the same item.<id> flag), not found in a box
+  cabpass: {
+    name: 'Cab pass', kind: 'pass', quest: true,
+    text: "A stiff card stamped with the palace seal, a name punched into it more or less like yours. Lio, the City-Shaft’s dispatcher, wrote it.",
+    use: 'Cabs stop for you now: whistle when one passes (X / □, or E with nothing near), or get in one that waits.',
+  },
   star: {
     name: 'Pale star', kind: 'cosmetic',
     text: "A pale enamel star, like those on the chest lids. The makers’ sign for a traveller: a small light, a long way from home.",
@@ -160,7 +167,7 @@ export const items = {
 };
 
 const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const KIND_ORDER = ['core', 'movement', 'mode', 'upgrade', 'charm', 'cosmetic'];
+const KIND_ORDER = ['core', 'movement', 'mode', 'upgrade', 'charm', 'pass', 'cosmetic'];
 
 /**
  * The gear you carry, for the top of the sketchbook (J, or View / Select on a

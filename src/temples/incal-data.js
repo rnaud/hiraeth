@@ -7,6 +7,8 @@ export const QUEST = {
   outro: 'The warden is still. The shaft breathes again, and the bottom rides its breath up to the rim.',
   find: 'The makers’ tower stands on the rim, round from the ship. Its door is open',
   gadget: 'Find what the makers left inside their tower',
+  // the jets found: what they are for, at once (src/temples/index.js: a stage of its own, done in the gallery above)
+  use: { text: 'Fly up through the round opening in the chamber’s ceiling with the jets', label: 'Up through the ceiling' },
   keeper: 'Something walks round and round at the top of the tower. Go up to it',
 };
 

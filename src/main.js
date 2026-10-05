@@ -56,6 +56,7 @@ import { revealNote } from './story/signature.js';
 import { registerInteractable, PRIORITY } from './interact.js';
 import { Ship } from './ship/ship.js';
 import { birdAnswers, promisedBird } from './bird.js';
+import { RIDER_CALL, RIDER_CALL_BEAT } from './story/arzach-data.js';
 import { game } from './game-state.js';
 import { items, ITEMS, gearHtml } from './items.js';
 import { Flammables, flammableSpots } from './flammable.js';
@@ -241,7 +242,7 @@ const player = new Player(physics, {
   onHurt: (k) => { shipSfx.rumble(sound, 0.35 + k * 0.4, 0.25 + k * 0.5); hpShown = 3; },
   onKnockdown: (dead) => { shipSfx.rumble(sound, dead ? 0.95 : 0.6, dead ? 0.9 : 0.45); hpShown = 3; },
   onKnockout: (why) => { knockedOut = why; },
-  onWhistle: (kind) => sound.whistle(kind),   // calling the bike, the bird or a taxi
+  onWhistle: (kind) => (kind === 'mount' && level.mountName === 'bird' ? sound.tune(RIDER_CALL, RIDER_CALL_BEAT) : sound.whistle(kind)),   // calling the bike, the bird (the rider's call, on the flute) or a taxi
   onRestart: () => { ship.cinema?.fade(1, true, 0.05); setTimeout(() => ship.cinema?.fade(0, true, 0.9), 120); },
 });
 // the health bar (index.html #health): only while you're hurt, and a moment after
@@ -487,6 +488,8 @@ const scout = new Scout({ scene, player, physics, sound,
   getHint: () => guardianHint(level.temple),
   onHint: (line) => scoutSays(`◇ ${line}`, HINT.say),
 });
+// a world that wants to show you the way at once (the City-Shaft's jets, just found: up through the ceiling)
+game.on('scout:ping', () => { if (!ship.playing && !storyRt.dialogue.open) scout.ping(); });
 // ---- item boxes (src/boxes/): they notice you; E opens one (a Zelda-style scene on the ship's cinematic camera)
 const boxes = createBoxes({ levelId, scene, physics, level, player, sound, quests: storyRt.quests, toast: showToast,
   anchor: () => ship.arrivalSpot(),

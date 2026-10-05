@@ -6,6 +6,15 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '0.66', date: '2026-10-05', items: [
+    'The worlds come in a new order. After the desert, Vael is first: you find the fluid wings in its Aerie and learn to ride the winds. The fluid jets come much later, in the City-Shaft, the seventh world, and no world before it needs them. Saves that already have the jets keep them.',
+    'Vael II is charted once you have finished Vael, since it needs the bird you meet there.',
+    'In Vael the great bird stays hidden in the sky, and can’t be ridden, until you learn her call. A column of rising wind climbs the lone tower’s side: open your wings in it and it carries you up to the balcony.',
+    'The lone tower’s window is a deep stone arch now. On its sill lies a little bone flute with a feather tied to it. Pick it up and play it: five notes, and the bird comes down to you for the first time. From then on, calling her plays that tune.',
+    'The bird walks on the ground: her legs step in turn, her body bobs and her wings stay folded. Taking off, she crouches, leaps, and only starts to beat her wings at the top of the leap.',
+    'Right after you find the jets in the Warden’s Well, a line tells you what to do with them, the drone flies up to show the way, and pale rings rise through the round opening in the ceiling you fly up through.',
+    'The City-Shaft’s cabs ignore you until you have a cab pass. Lio, the dispatcher on the rim, writes one if you collect the fare Hask owes him. The pass is listed with your gear. Wren still stops for anyone at her lamp.',
+  ] },
   { v: '0.65', date: '2026-10-05', items: [
     'On a controller the sketchbook, what’s new and the other panels no longer say “J to close”: they name the controller’s own back button (B on a Retroid), and that button closes them. In the menu, B closes it from any page, Quests and Controls too, and the sketchbook opened over a conversation closes before the conversation does.',
     'The skip tags of the game’s little scenes name the controller’s back button too, the one printed B on your handheld.',
