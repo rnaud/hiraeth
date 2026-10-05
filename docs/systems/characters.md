@@ -38,8 +38,9 @@ ragdoll) poses it exactly as it poses an NPC.
   0.74 below the collar and as far back as the pack moved (the fluid tank and
   the scout's dock go there), `Humanoid.forearm.r` is the bracer's frame on the
   forearm (+y to the hand, -x the thumb's side, scaled out round the sleeve).
-  `Humanoid.radioPack` is shown until the fluid tank is found (`fluid-tool.js`);
-  the scout docks on the pack's top, then on the tank's side.
+  `Humanoid.packPocket` (the rucksack's outer pocket; the radio pack until October 2026) shows
+  until the flask is found and while it sits in a vehicle (`fluid-tool.js`); the scout docks on
+  the rucksack's lid, then on top of the flask's left upright (docs/systems/traveller-kit.md).
 - `tests/traveller.test.js` checks the body is the NPCs' (skeleton, weights,
   bind pose, face), the fit (helmet centred, headphones on the ears, cuffs at
   the wrists, pack on the back, feet in the boots, soles on the ground), the

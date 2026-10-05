@@ -2,6 +2,13 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.67 — 2026-10-05
+
+- The traveller dresses more casually: an everyday canvas rucksack, with a lid, buckled straps, pockets and a rolled bedroll, replaces the old radio box, and nothing of the space suit is left: soft desert boots without seams or buckles, a loose cotton scarf instead of the ringed collar.
+- The fluid tank is a slim, flat glass flask now, set into the rucksack and held by leather bands. It sticks out far less from your back, and its three coloured bands still show your charges from behind. When the flask goes into a vehicle, the rucksack stays on your back.
+- The drone perches on top of the flask’s leather upright, beside its neck and clear of your swinging arms; before you have the flask it rides on the rucksack’s lid. The lantern hangs just below it.
+- His face is leaner, with thinner cheeks and a narrower chin, and his hair is a scruffier, curly mop of broken locks.
+
 ## v0.66 — 2026-10-05
 
 - The worlds come in a new order. After the desert, Vael is first: you find the fluid wings in its Aerie and learn to ride the winds. The fluid jets come much later, in the City-Shaft, the seventh world, and no world before it needs them. Saves that already have the jets keep them.
