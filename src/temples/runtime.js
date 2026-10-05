@@ -171,6 +171,7 @@ export class TempleRuntime {
     // the guardian
     if (this.guardian) {
       this.guardian.update(dt, t);
+      this.meterHud();
       // knocked out in the arena: you wake at the mark outside it, and it is back where this phase began
       if (P?.dead && this.guardian.awake) { this.wasDown = true; }
       if (this.wasDown && P && !P.dead) {
@@ -188,7 +189,39 @@ export class TempleRuntime {
     this.change?.update?.(dt, t);
   }
 
+  /**
+   * The guardian's meter on the screen while it is awake: a printed bar at the top, its name and
+   * what the meter is (calm for a living guardian, damage for a machine), in the health bar's style.
+   */
+  meterHud() {
+    const G = this.guardian;
+    if (!G || typeof document === 'undefined' || !document.body?.appendChild) return;
+    let el = this.meterEl;
+    if (!el) {
+      el = this.meterEl = document.createElement('div');
+      el.className = 'temple-meter';
+      el.style.cssText = 'position:fixed;left:50%;top:calc(14px + var(--safe-top, 0px));transform:translateX(-50%);z-index:30;pointer-events:none;'
+        + 'font:700 11px/1.2 ui-monospace,Menlo,monospace;letter-spacing:.14em;color:#2b211f;text-transform:uppercase;text-align:center;opacity:0;transition:opacity .6s;';
+      const robot = G.def.kind === 'robot';
+      const label = document.createElement('div');
+      label.style.cssText = 'margin-bottom:4px;text-shadow:0 0 3px #f7ecd2';
+      label.textContent = `${G.def.name} · ${robot ? 'damage' : 'calm'}`;
+      const bar = document.createElement('div');
+      bar.style.cssText = 'width:260px;height:11px;border:2px solid #2b211f;background:#f7ecd2;box-shadow:2px 2px 0 #2b211f;border-radius:6px;overflow:hidden';
+      const fill = document.createElement('i');
+      fill.style.cssText = `display:block;height:100%;width:0%;background:${robot ? '#d9503f' : '#62c3c9'};border-right:2px solid #2b211f;transition:width .35s`;
+      bar.appendChild(fill);
+      el.appendChild(label); el.appendChild(bar);
+      document.body.appendChild(el);
+      this.meterFill = fill;
+    }
+    const on = G.awake && !this.player?.dead && !document.body.classList?.contains?.('talking');
+    el.style.opacity = on ? '1' : '0';
+    if (on && this.meterFill?.style) this.meterFill.style.width = `${(G.meter * 100).toFixed(1)}%`;
+  }
+
   dispose() {
+    this.meterEl?.remove?.();
     for (const f of this.offs) f?.();
     for (const p of this.pieces) p.dispose?.();
     this.guardian?.dispose();

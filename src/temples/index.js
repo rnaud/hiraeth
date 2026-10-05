@@ -40,15 +40,16 @@ export const TEMPLES = {
 export const GADGETS = {
   desert: { temple: 'fire', world: ['backpack', 'star'], built: true },
   incal: { temple: 'jetpack', world: ['soles'], built: true },
-  arzach: { temple: 'glider', world: ['bell'], built: false, plan: 'the wings move here from Vael II; the bell goes to Vael II’s temple' },
-  arzach2: { temple: 'bell', world: ['glider'], built: false },
-  garage: { temple: 'coil', world: ['coil'], built: false },
-  buried: { temple: 'cell', world: ['resin'], built: false },
-  edena: { temple: 'bloom', world: ['lantern'], built: false },
-  spheres: { temple: 'lens', world: ['lens'], built: false },
-  perdide: { temple: 'stun', world: ['stun'], built: false },
-  perdide2: { temple: 'lantern', world: ['cell'], built: false },
-  bazaar: { temple: 'echo', world: [], built: false },
+  // planned (LORE.md, "Temples"): until a temple is built its world keeps its box as it was
+  arzach: { temple: 'glider', world: ['hush'], built: false },        // the wings move here from Vael II's stack
+  arzach2: { temple: 'bell', world: ['feather'], built: false },      // the bell moves here from Vael's spire
+  garage: { temple: 'coil', world: ['level'], built: false },
+  buried: { temple: 'cell', world: ['resin'], built: false },         // the fourth chamber moves here from Lorn II
+  edena: { temple: 'bloom', world: ['pouch'], built: false },         // a new gun mode; the lantern moves to Lorn II
+  spheres: { temple: 'lens', world: ['shell'], built: false },
+  perdide: { temple: 'stun', world: ['boots'], built: false },
+  perdide2: { temple: 'lantern', world: ['moss'], built: false },
+  bazaar: { temple: 'echo', world: [], built: false },               // a new tool; the market has no chest of its own
 };
 
 /** Build the world's temple into its level (if it has one) and join it to the level's hooks. */
