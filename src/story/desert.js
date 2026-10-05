@@ -651,7 +651,14 @@ export function setupDesert(ctx) {
   const nourWait = ledge.at(-1.0, 0, ledge.face + 1.1).setY(terraceY);
   // (waiting there, she turns to you when you're about: a call is no use with her back to you)
   const nourToFoot = () => ({ pos: nourWait, speed: 0.95, near: 0.4, max: 1.4, face: flat(player.pos, nourWait) < 22 ? Math.atan2(player.pos.x - nourWait.x, player.pos.z - nourWait.z) : faceBox(nourWait) });
-  const nourToYou = () => ({ pos: player.pos, speed: 0.95, near: 1.8, max: 1.5 });
+  // (to a step short of you, on her side: never onto you, even where a far follower just keeps up, npc.js)
+  const nourBy = V(0, 0, 0), _nb = V(0, 0, 0);
+  const nourToYou = () => {
+    _nb.set(nour.pos.x - player.pos.x, 0, nour.pos.z - player.pos.z);
+    if (_nb.lengthSq() < 1e-4) _nb.set(0, 0, 1);
+    nourBy.copy(player.pos).addScaledVector(_nb.normalize(), 1.6);
+    return { pos: nourBy, speed: 0.95, near: 0.3, max: 1.5 };
+  };
   const notice = () => {
     // the first time you come near the closed chest: heads turn, a murmur, the tree flares a little
     sh.noticed = true;

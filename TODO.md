@@ -27,13 +27,19 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 ## The desert's story
 
-- [ ] The quest shouldn't just appear: someone I talk to gives me a hint about where to go.
-- [ ] Nour doesn't start talking by herself: she makes a sound so it's clear I should go and talk to her.
-- [ ] The traveller doesn't say "how is it that I can understand you" (it's obvious).
-- [ ] The spark-stone goes into my inventory instead of floating around.
-- [ ] The cave filling cinematic: the bottom half of the pipe still has stuff in it, so it doesn't look
-  unclogged.
-- [ ] Cinematics show, don't tell: the traveller reacts with at most a slight smirk, nothing corny.
+- [x] The quest shouldn't just appear: someone I talk to gives me a hint about where to go. (Marrow waits at the
+  ship and calls you over; the quest starts in his talk, the drone finds him till then; every world's main quest now
+  starts in a talk with its first person: quests.opensWith)
+- [x] Nour doesn't start talking by herself: she makes a sound so it's clear I should go and talk to her. (she comes
+  over and calls "Psst. Child." every few seconds with a psst-and-hum sound, turned to you; the talk is on the prompt)
+- [x] The traveller doesn't say "how is it that I can understand you" (it's obvious). (the choice and Nour's
+  translator answer are gone; no other world had one)
+- [x] The spark-stone goes into my inventory instead of floating around. (hidden while carried, listed under "In your
+  pack" in the gear page and the Quests page, out of your hand into the well)
+- [x] The cave filling cinematic: the bottom half of the pipe still has stuff in it, so it doesn't look
+  unclogged. (it was the dark: one light by the rib left half the gutter unlit, hatched like rubble; four lights now)
+- [x] Cinematics show, don't tell: the traveller reacts with at most a slight smirk, nothing corny. (no lines, no
+  surprised or happy faces, no talking hands in the desert's two; a quiet 'smirk' look at the end)
 
 ## Conversations
 

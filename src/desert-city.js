@@ -801,7 +801,7 @@ export function buildDesertCity(scene, terrain) {
     const poolLight = new THREE.Vector4(pl.x, pl.y, pl.z, 26);
     // the gutter lit along its whole length: one light by the rib left its two ends in the dark, and in the
     // hatching the unlit half of the pipe read as filled with rubble, even with the water running down it
-    const chLights = [0.14, 0.45, 0.8].map((u) => { const p = cave.world(...along(u, 1.2).toArray()); return new THREE.Vector4(p.x, p.y, p.z, 8.5); });
+    const chLights = [0.06, 0.36, 0.66, 0.96].map((u) => { const p = cave.world(...along(u, 1.2).toArray()); return new THREE.Vector4(p.x, p.y, p.z, 8); });
     const entryLight = cave.world(0, 4, ROOM + 2);
     lights.push(poolLight, ...chLights, new THREE.Vector4(entryLight.x, entryLight.y, entryLight.z, 12));
     Object.assign(cv, {

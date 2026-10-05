@@ -14,6 +14,13 @@ export const CHANGELOG = [
     'The holo table in the middle of the deck now opens the galactic map. The cockpit console is the voicemail: its button blinks while a message is waiting, and pressing it plays the message.',
     'The ship no longer tells you that you are playing a recording: it says you have a new message. What the messages really are, you find out as they go on.',
     'Flying to another world is a landing now, not a crash: the ship brakes into the air, comes down through the clouds upright on its jets and settles gently onto its feet, dust blowing out from under it, with no fire and no shaking. Coming home lands the same way. Only the first arrival in the desert is a crash.',
+    'In the desert the quest no longer just appears when you land: Marrow the salvager is at your ship, looking over the scar on its hull, and calls you over. Talk to him and he tells you the only fire that could wake your ship is the great tree’s, in Qanat, and to ask old Nour; the quest begins then. Until you have talked to someone, your drone finds the one to ask.',
+    'Every other world opens the same way: its quest begins when you talk to the person who knows where to go (Oïa, Sister Aube, Madame Sel, Wen, Mira, Ambroise, Nima, Wendel, Hollin, Aube), and the drone leads you to them first.',
+    'Nour no longer starts talking by herself when the makers’ chest opens: she comes over and calls you with a soft “psst” every few seconds, turning to you, until you go and talk to her.',
+    'The traveller no longer asks Nour how it is that he understands her.',
+    'The spark-stone goes into your pack instead of floating about you: your gear in the sketchbook (and the menu’s Quests page) lists it with the other things you carry, and it comes out in your hand when you set it in the well.',
+    'In the giant’s chest the gutter is lit along its whole length, so once the rib is off it looks clear all the way down instead of half full of rubble.',
+    'The desert’s two cinematics show instead of tell: the traveller says nothing in them, and at the end only the corner of his mouth goes up.',
   ] },
   { v: '0.63', date: '2026-10-05', items: [
     'The desert’s sky is clear now, as in its drawings: no bank of clouds on the horizon, and the far dunes fade into a pale warm band.',

@@ -139,3 +139,17 @@ test('on a body: the face ink and the brows follow, the brows only when they mov
   for (let i = 0; i < 10; i++) a.setExpression({ ...a.expression, open: i % 2 ? 0.5 : 0 });
   assert.equal(P.version, v0);
 });
+
+test('a look without a word (a cinematic’s smirk): the face only, the mouth shut and the hands still', async () => {
+  const { talkOf } = await import('../src/hands.js');
+  const h = face({ smile: 0.2 }), faces = new TalkFaces();
+  for (let t = 0; t < 1; t += 1 / 60) { faces.drive(h, { look: 'smirk' }); faces.update(1 / 60); }
+  assert.ok(h.expression.smile > 0.35 && h.expression.smile < 0.5, `a slight smile (${h.expression.smile.toFixed(2)})`);
+  assert.ok(h.expression.open < 0.01, 'the mouth stays shut');
+  assert.equal(talkOf(h, faces), null, 'no talking hands');
+  // after it, back to rest; a line said later talks with the hands again
+  for (let t = 0; t < 4; t += 1 / 60) faces.update(1 / 60);
+  assert.ok(!h.expression || Math.abs(h.expression.smile - 0.2) < 0.02, 'back to rest');
+  faces.drive(h, { speaking: true, tone: 'neutral' }); faces.update(1 / 60);
+  assert.ok(talkOf(h, faces), 'a line has the hands');
+});

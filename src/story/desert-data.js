@@ -64,7 +64,7 @@ export const QUESTS = [
     stages: [
       // the ship is dark and the traveller's back is bare: Marrow (or whoever you ask first) points you to the
       // city; past the camps and the procession, into it (the quest starts in that talk: src/story/desert.js)
-      { id: 'city', text: 'Nothing here could wake the ship but the great tree’s fire, they say, and it has gone cold. Walk to the city under the dark tree and find Nour', label: 'Qanat, under the dark tree', flag: 'desert.city.entered', at: 'cityGate' },
+      { id: 'city', text: 'Only the great tree’s fire could wake the ship, and it has gone cold. Walk to Qanat and find Nour', label: 'Qanat, under the dark tree', flag: 'desert.city.entered', at: 'cityGate' },
       // the makers' chest on its ledge up the great tree's trunk, beside the dry well (src/boxes/placements.js): the backpack
       { id: 'box', text: 'Something is humming on a ledge up the great tree’s trunk. Climb up to it', label: 'The ledge on the tree', flag: 'item.backpack', at: 'box.desert.backpack' },
       // Qanat gathers; Nour, the eldest, comes to see who opened it (src/story/desert.js, the reaction); the tank is empty

@@ -142,8 +142,13 @@ the settings.
   weaver, a potter, a boy, a baker, a guard, a sweeper) about the terraces and
   the avenue.
 - **Main quest** (`desert.power`, stages in src/story/desert-data.js):
-  1. `city`: the ship is dark and the traveller's back is bare. "Follow the
-     smoke to the city." On the way the camps and the procession wave them on
+  1. `city`: the ship is dark and the traveller's back is bare. The quest
+     doesn't just appear: Marrow the salvager is at the ship, looking over the
+     scar on its hull, and calls the traveller over ("Sky-person! Over here!");
+     he says the only fire out here that could wake a ship is the great tree's,
+     in Qanat, gone cold, and to ask old Nour under the humming chest. The quest
+     starts in that talk (or with Ama, the Speaker, Nour or Hessa, whoever the
+     traveller talks to first). On the way the camps and the procession wave them on
      (Ama: "To the city, sky-stranger! Up to the tree!"; the Speaker: "Qanat is
      ahead, little star"). Nothing on the way needs the tool.
   2. `box`: "Something is humming on a ledge up the burning tree's trunk." Up
@@ -154,7 +159,8 @@ the settings.
   3. `elder`: it opens for the traveller (the backpack). Qanat gathers at the
      tree's foot under the ledge (the ones in the avenue come up the stairs),
      everyone looks up, the tree flares high, and Nour gets off her bench, waits
-     for you to climb down ("Come down, child!"), comes to you and speaks: the old words, the singing light the chest hummed back to, the
+     for you to climb down ("Come down, child!"), comes to you and calls you
+     over ("Psst. Child."), but leaves the talk to you: the old words, the singing light the chest hummed back to, the
      Givers, the star, the tank ("the same water the giants carried"), and the
      one power in the desert, the water that has not risen. She sends you on.
   4. `well`: listen at the dry well (Hessa). 5. `ama`: ask Ama at the fires for
