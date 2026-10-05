@@ -46,6 +46,14 @@ namespace Memento
             Apply();
         }
 
+        /// <summary>A local light's reach (w, m) at a place (the nearest within a metre), or a new one there: a lens lit, a relic, a lamp.</summary>
+        public void SetLight(Vector3 at, float w)
+        {
+            for (int i = 0; i < localLights.Count; i++)
+                if (((Vector3)localLights[i] - at).sqrMagnitude < 1) { var l = localLights[i]; if (l.w != w) { l.w = w; localLights[i] = l; } return; }
+            if (w > 0) localLights.Add(new Vector4(at.x, at.y, at.z, w));
+        }
+
         void OnEnable() { Instance = this; }
         void Update()
         {

@@ -74,6 +74,12 @@ namespace Memento
             gameObject.AddComponent<FireFx>().Build(game.world.World.O("fx"));
             // what an ember glob sets alight: the camp fires flare, the dry brambles by them burn and grow back (flammable.js)
             gameObject.AddComponent<Flammables>().Init(game);
+            // the sleeping observatory and its traveller (observatory.js), the drum and the mask's eyes
+            // (desert-errands.js), the relics (quest.js), the objective's marker (story/quests.js)
+            game.observatory = Observatory.Create(game);
+            game.errands = gameObject.AddComponent<DesertErrands>(); game.errands.Init(game, storyData);
+            game.relics = gameObject.AddComponent<Relics>(); game.relics.Init(game);
+            game.marker = new GameObject("Quest marker").AddComponent<QuestMarker>(); game.marker.transform.SetParent(transform, false); game.marker.Init(game);
             game.ambient = gameObject.AddComponent<Ambient>();
             game.ambient.Init(game);
             game.wildlife = gameObject.AddComponent<Wildlife>();
@@ -127,7 +133,8 @@ namespace Memento
             var best = Interact.Best(pl.transform.position);
             if (pl.riding) best = null;
             if (best != null) { game.prompt = best.prompt(); game.promptAt = best.at() + Vector3.up * (best.id != null && best.id.StartsWith("talk.") ? 2.25f : 0.8f); }
-            else if (!pl.riding && game.bike && !game.bike.dormant && Vector3.Distance(game.bike.transform.position, pl.transform.position) > 8) game.prompt = "whistle for the hoverbike";
+            // (not from inside a room off the map: the masked head's chamber, the cave)
+            else if (!pl.riding && game.bike && !game.bike.dormant && pl.transform.position.y < 500 && Vector3.Distance(game.bike.transform.position, pl.transform.position) > 8) game.prompt = "whistle for the hoverbike";
             if (Pad.InteractDown() && !pl.riding)
             {
                 if (best != null) best.use();

@@ -443,6 +443,108 @@ namespace Memento
                 Log($"Nour home: seated {nour2.seatHeight >= 0}, pose {nour2.figure?.pose}");
                 yield return CloseUp("nour_on_her_bench", nour2.transform, 2.6f, 0.4f, 0.1f);
             }
+            // ---- the desert's other places and errands (observatory.js, desert-errands.js, quest.js relics)
+            var ob = game.observatory;
+            var sk = Person("sketcher");
+            if (ob && sk)
+            {
+                // the traveller sketching near the start: greeting them starts the expedition, a page of the sketchbook
+                PutNear(sk.pos, 4f); yield return Wait(1.0f);
+                yield return Shoot("the_sleeping_observatory_page");
+                Log($"observatory: started {ob.Started}, page {game.hud.pageOpen}");
+                yield return Wait(0.6f); yield return Pulse(v => pad.confirm = v); yield return Wait(0.4f);
+                // up on the second ledge: a fragment of the keeper's story in the status box
+                var led = game.world.Places.O("observatory").L("ledges")[0].V3();
+                Put(led + Vector3.up * 0.2f, 90); yield return Wait(1.2f);
+                yield return Shoot("an_observatory_ledge");
+                Log($"observatory: fragment '{ob.fragment}'");
+                // the lenses, turned toward the heart (B / ○ beside each)
+                var dl = game.world.Places.O("observatory").L("dials");
+                for (int i = 0; i < 3; i++)
+                {
+                    var dp = dl[i].V3();
+                    PutNear(dp, 2.5f); yield return Wait(0.4f);
+                    if (i == 0) yield return Shoot("a_lens_of_the_observatory");
+                    int guard = 0;
+                    while (ob.Turn(i) != new[] { 2, 0, 3 }[i] && guard++ < 4) { Interact.All.First(x => x.id == "lens" + i).use(); yield return Wait(0.2f); }
+                }
+                Log($"observatory: {ob.Aligned}/3 aligned, done {ob.Done}");
+                yield return Wait(5.6f);   // (the roof unfolds over five seconds, then the page)
+                yield return Shoot("the_stars_remember_page");
+                yield return Wait(0.6f); yield return Pulse(v => pad.confirm = v); yield return Wait(0.4f);
+                game.rig.enabled = false; game.hud.hidden = true; yield return null;
+                game.cam.transform.position = ob.Center + new Vector3(-70, 25, 80); game.cam.transform.LookAt(ob.Center + Vector3.up * 2);
+                yield return Shoot("the_observatory_awake");
+                game.rig.enabled = true; game.hud.hidden = false;
+                PutNear(sk.pos, 4f); yield return Wait(0.8f);
+                Log($"observatory: returned {ob.Returned}");
+            }
+            var er = game.errands;
+            if (er)
+            {
+                // Teo's drum: the knuckle shoved from the side, the drum rolls free, picked up
+                var kp = er.KnucklePos;
+                Put(kp - er.AlongUnity * 2.5f, Mathf.Atan2(er.AlongUnity.x, er.AlongUnity.z) * Mathf.Rad2Deg); yield return Wait(0.6f);
+                game.rig.enabled = false; game.hud.hidden = true; yield return null;
+                var side = Vector3.Cross(Vector3.up, er.AlongUnity);
+                game.cam.transform.position = kp + side * 4 - er.IntoUnity * 2 + Vector3.up * 1.8f; game.cam.transform.LookAt(kp);
+                yield return Shoot("the_drum_pinned");
+                game.rig.enabled = true; game.hud.hidden = false;
+                int pushed = Targets.Push(kp - er.AlongUnity * 2.5f + Vector3.up * 0.4f, er.AlongUnity, 6, 0.62f);
+                yield return Wait(1.2f);
+                game.rig.enabled = false; game.hud.hidden = true; yield return null;
+                game.cam.transform.position = kp + side * 5 - er.IntoUnity * 3 + Vector3.up * 2.2f; game.cam.transform.LookAt(er.DrumPos);
+                yield return Shoot("the_drum_rolls_free");
+                game.rig.enabled = true; game.hud.hidden = false;
+                yield return Wait(1.5f);
+                PutNear(er.DrumPos, 1.5f); yield return Wait(0.3f);
+                Interact.All.FirstOrDefault(x => x.id == "drum" && x.enabled())?.use(); yield return Wait(0.3f);
+                Log($"drum: pushed {pushed}, loose {er.DrumLoose}, have it {game.quests.Has("drum")}, stage {game.quests.Stage("desert.drum")}");
+                // the mask's eyes: both washed clear at once, the glints, and it looks at you
+                var eyes = game.world.Places.O("maskEyes");
+                if (eyes != null)
+                {
+                    var mid = eyes.V3("mid");
+                    game.quests.Start("desert.mask");
+                    PutNear(new Vector3(mid.x, game.world.Ground.HeightAt(mid.x, mid.z), mid.z) + new Vector3(30, 0, 25), 1); yield return Wait(0.5f);
+                    int opened = er.OpenEyesForTest(); yield return Wait(1.0f);
+                    game.rig.enabled = false; game.hud.hidden = true; yield return null;
+                    var root = eyes.V3("root");
+                    var face = (mid - root); face.y = 0; face.Normalize();
+                    game.cam.transform.position = mid + face * 34 + Vector3.up * 6; game.cam.transform.LookAt(mid);
+                    yield return Shoot("the_mask_opens_its_eyes");
+                    game.rig.enabled = true; game.hud.hidden = false;
+                    yield return Wait(1.0f);
+                    yield return Shoot("the_mask_looks_at_you");
+                    Log($"mask: {opened} eyes cleared, solved {game.state.Is("desert.mask.eyes")}, talking {game.hud.talk != null}, stage {game.quests.Stage("desert.mask")}");
+                    if (game.hud.talk != null) game.hud.talk.ended = true;
+                    yield return Wait(0.3f);
+                }
+            }
+            // the masked head's chamber, through its doorway
+            {
+                var door = game.world.World.L("portals").FirstOrDefault(p => p.V3("to").y > 1400);
+                if (door != null)
+                {
+                    Put(door.V3("to"), door.F("heading") * Mathf.Rad2Deg); yield return Wait(1.2f);
+                    yield return Shoot("the_masked_heads_chamber");
+                    Log($"chamber: at {game.player.transform.position}, whistle offered {game.prompt == "whistle for the hoverbike"}");
+                    Put(game.world.Places.V3("camps") + new Vector3(30, 0, 30), 45); yield return Wait(0.5f);
+                }
+            }
+            if (game.relics)
+            {
+                var r0 = game.world.Places.L("relics")[3].V3("pos");
+                PutNear(r0, 6f); yield return Wait(0.5f);
+                yield return Shoot("a_relic");
+                Put(r0 + Vector3.down * 1.05f, 0); yield return Wait(0.3f);
+                Log($"relic: player at {game.player.transform.position}, the relic at {r0}");
+                Log($"relics: {game.relics.Found}/{game.relics.Total}");
+                yield return Pulse(v => pad.journal = v); yield return Wait(0.4f);
+                for (int i = 0; i < 6; i++) { pad.nav = 1; yield return Wait(0.1f); }
+                yield return Shoot("the_sketchbook_later");
+                yield return Pulse(v => pad.journal = v); yield return Wait(0.3f);
+            }
             // the weather the desert does not have itself (weather.js kinds: rain, fog banks), forced as the web's panel does; sun rays at a low sun
             if (game.ambient)
             {

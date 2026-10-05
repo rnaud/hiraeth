@@ -34,7 +34,7 @@ namespace Memento
         public bool cinematic;                       // a scene has the camera (a makers' box opening): no prompts
         public bool hidden;                          // (a batch close-up: the page alone)
         public bool helpOn;                          // H: the controls in the status box
-        public bool Busy => talk != null || journalOpen || card != null || cinematic || (pause != null && pause.open);
+        public bool Busy => talk != null || journalOpen || card != null || pageOpen || cinematic || (pause != null && pause.open);
         float chargeT = -1;                          // the charge's lettered card (charge.js showChargeCard), its age
         string keptName; float keptUntil;            // a new keepsake: "✦ Something of value: …" for a while
         float modeFlash; string modeName = "fluid", modeKind = "shoot";
@@ -149,6 +149,7 @@ namespace Memento
 
             BuildDialogue(mono);
             BuildCards(mono);
+            BuildPage(mono);
 
             // the ship's cinema: subtitle, hint, hold to skip
             sub = Ui.Panel(root, "subtitle", Ui.Hex("#f7ecd2", 0.95f), Ui.Ink, 2, 3, 3);
@@ -294,6 +295,7 @@ namespace Memento
             // the pause menu over everything; then the open panel takes the press
             if (pause.open) { pause.Update(dt); return; }
             if (card != null) { cardT += dt; if (cardT > 0 && Pad.ConfirmDown()) { card = null; Sounds.Instance?.Play("page"); } return; }
+            if (pageOpen) { pageT += dt; if (pageT > 0.5f && Pad.ConfirmDown()) { pageOpen = false; Sounds.Instance?.Play("page"); } return; }
             if (map.open) { map.Update(dt); return; }
             if (journalOpen) { journal.Update(dt); if (Pad.BackDown() || Pad.JournalDown()) { journalOpen = false; Sounds.Instance?.Play("page"); } return; }
             if (talk != null) { UpdateTalk(dt); return; }
@@ -376,6 +378,7 @@ namespace Memento
             DrawChargeCard(!off && chargeT >= 0 && !menus);
             DrawBoxCard(!off && card != null && boxCard && !pause.open);
             DrawSheet(!off && card != null && !boxCard && !pause.open);
+            DrawPage(!off && pageOpen && card == null && !pause.open);
             DrawShip(!off && !menus);
             DrawMode(!off && modeFlash > 0 && !menus && !talking);
             DrawFps(!off && Settings.showFps);
@@ -405,9 +408,15 @@ namespace Memento
             string goal = null, charge = null;
             var obj = game.quests.Objective();
             bool kept = keptName != null && Time.unscaledTime < keptUntil;
+            var ob = game.observatory;
             if (kept) charge = $"✦ Something of value: {keptName}";
+            // the expedition's own line while it is under way (main.js: it stands in for the quest's)
+            else if (ob && ob.Started && !ob.Returned) goal = ob.Hud(pl.transform.position);
             else if (obj.HasValue) goal = $"◆ {Text.Plain(obj.Value.label)} · {Dist(Vector3.Distance(pl.transform.position, obj.Value.pos))}";
             else if (game.state.Is("prologue.done")) charge = "✦ Bring back something of value";
+            // and the relics found here (main.js: … · relics n/5)
+            string relics = game.relics && game.relics.Total > 0 ? $"relics {game.relics.Found}/{game.relics.Total}" : null;
+            if (relics != null) goal = goal != null ? goal + " · " + relics : charge != null ? " · " + relics : relics;
             float x = 12, y = 8, maxW = Mathf.Min(560, W * 0.6f);
             float w = 0;
             if (helpOn)
@@ -421,13 +430,16 @@ namespace Memento
             if (inBox != null) a += $" · {(Pad.HasPad ? "B / ○" : "E")} {inBox}";
             var sa = Ui.Set(statusA, a, maxW); Ui.Place(statusA.rectTransform, x, y, sa.x, sa.y); y += sa.y; w = Mathf.Max(w, sa.x);
             Show(statusB, goal != null); Show(chargeTag, charge != null);
-            if (goal != null) { var sb = Ui.Set(statusB, goal, maxW); Ui.Place(statusB.rectTransform, x, y, sb.x, sb.y); y += sb.y; w = Mathf.Max(w, sb.x); }
             if (charge != null)
             {
                 var st = Ui.Set(chargeTagText, charge, maxW - 16);
                 Ui.Place(chargeTagText.rectTransform, 7, 0, st.x, st.y);
-                Ui.Place(chargeTag.rt, x, y + 1, st.x + 14, st.y + 1); y += st.y + 3; w = Mathf.Max(w, st.x + 14);
+                Ui.Place(chargeTag.rt, x, y + 1, st.x + 14, st.y + 1);
+                float tx = x + st.x + 14;
+                if (goal != null) { var sb = Ui.Set(statusB, goal, maxW - st.x); Ui.Place(statusB.rectTransform, tx, y + 1, sb.x, sb.y); tx += sb.x; }
+                y += st.y + 3; w = Mathf.Max(w, tx - x);
             }
+            else if (goal != null) { var sb = Ui.Set(statusB, goal, maxW); Ui.Place(statusB.rectTransform, x, y, sb.x, sb.y); y += sb.y; w = Mathf.Max(w, sb.x); }
             // bottom left, 16 px in (and over the controller hint's bar when it shows)
             float bh = y + 8, bw = w + 24;
             Ui.Place(status.rt, 16, H - 16 - bh, bw, bh);
@@ -666,6 +678,72 @@ namespace Memento
             float rise = Mathf.Clamp01((cardT + 0.6f) / 0.45f);
             Ui.Place(boxCardPanel.rt, left, H - bottom - y + 16 * (1 - rise), w, y);
             SetAlpha(boxCardPanel.rt, Mathf.Clamp01((cardT + 0.6f) / 0.35f));
+        }
+
+        // ------------------------------------------------------------------ a story page (index.html #page): a comic sheet of three panels drawn from the world
+        public bool pageOpen; float pageT;
+        RectTransform pageDim; Ui.Box pageSheet; readonly Ui.Box[] pagePanels = new Ui.Box[3]; readonly RawImage[] pageImgs = new RawImage[3]; Ui.Box pageCap; Label pageCapText, pageHint;
+        readonly RenderTexture[] pageShots = new RenderTexture[3];
+        static Camera pageCam;
+        void BuildPage(Font mono)
+        {
+            pageDim = Ui.Stretch(Ui.Node("page", root));
+            Ui.Fill(pageDim, Ui.Hex("#2b211f", 0.55f), 0, "dim");
+            pageSheet = Ui.Panel(pageDim, "sheet", Ui.Page, Ui.Ink, 2, 8, 8);
+            for (int i = 0; i < 3; i++)
+            {
+                pagePanels[i] = Ui.Panel(pageSheet.rt, "panel " + i, Ui.Hex("#efe3c6"), Ui.Ink, 3);
+                pageImgs[i] = Ui.Stretch(Ui.Node("shot", pagePanels[i].fill.rectTransform)).gameObject.AddComponent<RawImage>(); pageImgs[i].raycastTarget = false;
+                pagePanels[i].border.transform.SetAsLastSibling();
+            }
+            pageCap = Ui.Panel(pageSheet.rt, "caption", Ui.Cream, Ui.Ink, 2);
+            pageCapText = Ui.Label(pageCap.rt, "t", mono, 13, Ui.Ink, lineSpacing: 1.25f);
+            pageHint = Ui.Label(pageSheet.rt, "hint", mono, 20, Ui.Red, TextAnchor.UpperRight); pageHint.text = "▸";
+        }
+        /// <summary>A page of the sketchbook over the game (observatory.js page): its title and caption over three views of the world (eye, look).</summary>
+        public void ShowPage(string title, string caption, (Vector3 eye, Vector3 look)[] shots)
+        {
+            if (!pageCam)
+            {
+                pageCam = new GameObject("Page camera").AddComponent<Camera>();
+                pageCam.enabled = false; pageCam.clearFlags = CameraClearFlags.SolidColor; pageCam.backgroundColor = Color.black;
+                pageCam.allowHDR = false; pageCam.allowMSAA = false;
+                var extra = pageCam.gameObject.AddComponent<UnityEngine.Rendering.Universal.UniversalAdditionalCameraData>();
+                extra.renderPostProcessing = false; extra.renderShadows = true;
+            }
+            pageCam.cullingMask = game.cam.cullingMask & ~(1 << 5);
+            pageCam.nearClipPlane = 0.1f; pageCam.farClipPlane = game.cam.farClipPlane; pageCam.fieldOfView = 50;
+            for (int i = 0; i < 3 && i < shots.Length; i++)
+            {
+                int w = i == 0 ? 900 : 440, h = i == 0 ? 380 : 300;
+                if (!pageShots[i]) pageShots[i] = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB) { name = "page shot " + i };
+                pageCam.transform.position = shots[i].eye;
+                pageCam.transform.rotation = Quaternion.LookRotation(shots[i].look - shots[i].eye, Vector3.up);
+                pageCam.targetTexture = pageShots[i];
+                try { pageCam.Render(); } catch (System.Exception e) { Debug.LogWarning("Memento: page shot: " + e.Message); }
+                pageCam.targetTexture = null;
+                pageImgs[i].texture = pageShots[i];
+            }
+            pageCapText.text = $"<b>{title}</b>\n{caption}";
+            Ui.Space(pageCapText, 0);
+            pageOpen = true; pageT = 0;
+            Sounds.Instance?.Play("page");
+        }
+        void DrawPage(bool on)
+        {
+            Show(pageDim, on);
+            if (!on) return;
+            float sw = Mathf.Min(960, W * 0.92f, (H - 110) / 0.8f), pad = 22, gap = 14, inner = sw - pad * 2;
+            float h1 = inner * 380f / 900f, half = (inner - gap) / 2, h2 = half * 300f / 440f;
+            Ui.Place(pagePanels[0].rt, pad, pad, inner, h1);
+            Ui.Place(pagePanels[1].rt, pad, pad + h1 + gap, half, h2);
+            Ui.Place(pagePanels[2].rt, pad + half + gap, pad + h1 + gap, half, h2);
+            var cs = Ui.Set(pageCapText, pageCapText.text, inner * 0.46f - 20);
+            Ui.Place(pageCapText.rectTransform, 10, 7, cs.x, cs.y);
+            Ui.Place(pageCap.rt, pad + 12, pad + 12, cs.x + 20, cs.y + 14);
+            float sh = pad + h1 + gap + h2 + 6 + 20 + pad - 14;
+            Ui.Place(pageHint.rectTransform, pad, pad + h1 + gap + h2 + 2, inner - 2, 22);
+            Ui.Place(pageSheet.rt, W / 2 - sw / 2, H / 2 - sh / 2, sw, sh);
         }
 
         void DrawSheet(bool on)

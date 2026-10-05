@@ -100,6 +100,18 @@ const dyn = {
   tarp: W.storyRoots.find((r) => r.isMesh && r.material?.side === THREE.DoubleSide && near(r, bike.pos.x, bike.pos.z, 6)),
 };
 for (const b of boxes.list) dyn[`box:${b.id}`] = b.parts.root;
+// the sleeping observatory's moving parts (observatory.js): the roof's four leaves, the three lenses, their
+// beams and receivers, the constellation it draws once awake (the tower, its ledges and chamber stay static)
+const obs = level.observatory;
+if (obs) {
+  obs.roof.forEach((r, i) => { dyn[`obs:roof${i}`] = r; });
+  obs.dials.forEach((d, i) => { dyn[`obs:dial${i}`] = d; dyn[`obs:beam${i}`] = obs.beams[i]; dyn[`obs:receiver${i}`] = obs.receivers[i]; });
+  dyn['obs:stars'] = obs.constellation;
+}
+// the drum's knuckle of bone, and the mask's eyes drifted shut (story/desert-errands.js)
+const errDrum = rt.world?.drum, errMask = rt.world?.mask;
+if (errDrum) { dyn.drum = errDrum.drum; dyn.knuckle = errDrum.knuckle; }
+if (errMask) errMask.eyes.forEach((e, i) => { dyn[`mask:lid${i}`] = e.lid; dyn[`mask:drift${i}`] = e.drift; dyn[`mask:glint${i}`] = e.glint; });
 // the ship moves in the prologue (it streaks across the sky and ploughs into the dunes); its copy out in
 // space (the bunk room you wake in, the cockpit with the recording) and the starfield round it come and go
 dyn.ship = ship.parked.group;
@@ -314,6 +326,27 @@ const places = {
   bike: V3(bike.pos), bikeHeading: -bike.heading,
   boxes: boxes.list.map((b) => ({ id: b.id, item: b.item, pos: V3(b.pos), yaw: -b.yaw, name: b.def?.name ?? b.item })),
 };
+// the observatory (observatory.js): its heart, the six ledges, the lenses where they stand, their lights, the puzzle
+if (obs) {
+  const wp = (o) => o.getWorldPosition(new THREE.Vector3());
+  places.observatory = { center: V3(obs.center), root: V3(obs.root.position), ledges: obs.ledges.map(V3), dials: obs.dials.map((d) => V3(wp(d))),
+    lights: obs.lights.map((l) => V3(new THREE.Vector3(l.x, l.y, l.z))), targets: [2, 0, 3], turns: [0, 1, 1], heart: V3(obs.root.localToWorld(new THREE.Vector3(0, 54, 0))) };
+}
+if (errDrum) {
+  const u = (v) => [+(-v.x).toFixed(5), +v.y.toFixed(5), +v.z.toFixed(5)];
+  places.drumRig = { pinnedAt: V3(errDrum.pinnedAt), knuckleAt: V3(errDrum.knuckleAt), into: u(errDrum.into), along: u(errDrum.along) };
+}
+if (errMask) {
+  places.maskEyes = { mid: V3(errMask.mid), aims: errMask.eyes.map((e) => V3(e.aim)), root: V3(errMask.root.position) };
+}
+// the relics (levels/content.js, quest.js Relics): on the highest surface over each spot
+{
+  const R = CONTENT.desert.relics;
+  places.relics = R.spots.map(([x, z], i) => {
+    const y = physics.groundAt(x, 1e4, z, 2e4);
+    return { name: R.names[i], pos: V3(new THREE.Vector3(x, (Number.isFinite(y) ? y : terrain.heightAt(x, z)) + 1.1, z)) };
+  });
+}
 const people = npcs.map((n) => ({
   id: n.def?.id ?? n.id, name: n.def?.name, title: n.def?.title, kind: n.def?.kind ?? n.kind ?? 'm', scale: n.object?.scale?.y ?? 1,
   palette: n.def?.palette ?? n.palette, head: n.def?.head, cape: n.def?.cape ?? 0, color: n.def?.color,
@@ -396,9 +429,16 @@ const { callTimeline } = await import('../../src/ship/prologue.js');
 const sig = await import('../../src/story/signature.js');
 const { LEVELS } = await import('../../src/levels/index.js');
 const { ORDER } = await import('../../src/levels/names.js');
+// the people near the start (content.js): their words as data (Rook's walk node starts the bike errand in code on the web)
+const nearPeople = Object.fromEntries(CONTENT.desert.npcs.map((s) => {
+  const id = s.id === 'traveller' ? 'sketcher' : s.id;
+  const def = JSON.parse(JSON.stringify(s, (k, v) => (typeof v === 'function' ? undefined : v)));
+  if (id === 'rook' && def.talk?.nodes?.walk) def.talk.nodes.walk.do = { start: 'desert.bike' };
+  return [id, { ...def, id }];
+}));
 const story = { prologue: { call: calls.PROLOGUE_CALL, timeline: callTimeline(calls.PROLOGUE_CALL), crash: sig.CRASH_LINE, map: sig.MAP_LINE, stages: (await import('../../src/ship/prologue.js')).PROLOGUE_STAGES.map((s) => ({ ...s, dur: Number.isFinite(s.dur) ? s.dur : -1 })) },
   worlds: LEVELS.map((l) => ({ id: l.id, title: l.title, blurb: l.blurb ?? '', source: l.source ?? '' })), order: ORDER ?? LEVELS.map((l) => l.id),
-  quests: data.QUESTS, people: data.PEOPLE, things: data.THINGS, lines: data.LINES, items: data.ITEMS, villagers: data.VILLAGERS, villagerTalk: data.VILLAGER_TALK, murmurs: data.MURMURS, crowdTalk: data.CROWD_TALK,
+  quests: data.QUESTS, people: { ...data.PEOPLE, ...nearPeople }, things: data.THINGS, lines: data.LINES, items: data.ITEMS, villagers: data.VILLAGERS, villagerTalk: data.VILLAGER_TALK, murmurs: data.MURMURS, crowdTalk: data.CROWD_TALK,
   // the galactic map (starmap.js): the strike's signature per world and its legend, the planets' looks (planets.js)
   map: { signature: sig.SIGNATURE_WORLDS, legend: sig.SIGNATURE_LEGEND, legendShort: sig.SIGNATURE_LEGEND_SHORT, planets: (await import('../../src/ship/planets.js')).PLANETS } };
 const fnCount = JSON.stringify(story, (k, v) => (typeof v === 'function' ? '[fn]' : v)).split('[fn]').length - 1;

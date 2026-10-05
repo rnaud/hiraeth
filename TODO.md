@@ -392,6 +392,11 @@ The desert runs in `unity/Memento` (Unity 6, URP): exported from the web game by
 - [x] Shadows for the crowd's mid-distance figures.
 - [x] The rain and fog weather kinds, the flammables (camp fires flare, brambles burn and grow back), sun
   rays in the composite.
-- [ ] The observatory and the masked head's chamber, the other worlds, Android.
+- [x] The observatory (the traveller's expedition: ledges, lenses, the roof, the pages), the masked head's
+  chamber, Teo's drum under its knuckle, the mask's eyes, the relics, the quest marker, the people near the
+  start, a close camera in tight rooms.
+- [x] A standalone macOS build that runs (`Batch.BuildMac`, a smoke test); a note on what Android would need.
+- [ ] The desert's smaller things: the errands of the people near the start, the reactive flowers, the
+  scout drone, hover trails, swimming, the crowd's own conversations; the other worlds; an Android build.
 - [ ] Connect an MCP client to the editor (the bridge package is installed; an organization policy
   blocks registering unknown MCP servers in Claude Code).

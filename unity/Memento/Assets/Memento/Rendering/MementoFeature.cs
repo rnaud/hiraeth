@@ -128,6 +128,10 @@ namespace Memento.Rendering
             static readonly int IdB1 = Shader.PropertyToID("_GBloom"), IdB2 = Shader.PropertyToID("_GBloom2"), IdSrc = Shader.PropertyToID("_BloomSrc"), IdStep = Shader.PropertyToID("_BloomStep");
             static readonly int IdFx = Shader.PropertyToID("_FxaaSrc"), IdTexel = Shader.PropertyToID("_FxaaTexel");
 
+            /// <summary>Writing a player's own back buffer (the window): the page the other way up. Not into a texture (the
+            /// batch shots, the portraits), not in the editor (its game view is a texture too).</summary>
+            static bool ToScreen(UniversalResourceData res, UniversalCameraData cam) => !Application.isEditor && cam.camera.targetTexture == null && res.isActiveTargetBackBuffer;
+
             int blurN;
             TextureHandle Blur(RenderGraph rg, string name, TextureHandle src, TextureHandle dst, Vector4 step)
             {
@@ -185,7 +189,7 @@ namespace Memento.Rendering
                 using (var builder = rg.AddRasterRenderPass<PassData>("Memento ink composite", out var pass))
                 {
                     pass.mat = material; pass.a = g.albedo; pass.n = g.normal; pass.h = g.hatch; pass.b1 = b1; pass.b2 = b2; pass.hasBloom = b1.IsValid();
-                    pass.flip = fxaa == null && res.isActiveTargetBackBuffer ? 1 : 0;
+                    pass.flip = fxaa == null && ToScreen(res, cam) ? 1 : 0;
                     builder.UseTexture(g.albedo); builder.UseTexture(g.normal); builder.UseTexture(g.hatch);
                     if (pass.hasBloom) { builder.UseTexture(b1); builder.UseTexture(b2); }
                     builder.SetRenderAttachment(target, 0, AccessFlags.Write);
@@ -202,7 +206,7 @@ namespace Memento.Rendering
                 {
                     using (var builder = rg.AddRasterRenderPass<FxaaData>("Memento FXAA", out var pass))
                     {
-                        pass.mat = fxaa; pass.src = target; pass.texel = new Vector4(1f / W, 1f / H, 0, 0); pass.flip = res.isActiveTargetBackBuffer ? 1 : 0; pass.mpb = fxaaMpb;
+                        pass.mat = fxaa; pass.src = target; pass.texel = new Vector4(1f / W, 1f / H, 0, 0); pass.flip = ToScreen(res, cam) ? 1 : 0; pass.mpb = fxaaMpb;
                         builder.UseTexture(target);
                         builder.SetRenderAttachment(res.activeColorTexture, 0, AccessFlags.Write);
                         builder.AllowGlobalStateModification(true);

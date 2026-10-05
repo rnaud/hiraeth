@@ -30,6 +30,10 @@ namespace Memento
         public ShipScene ship;
         public Ambient ambient;
         public Wildlife wildlife;
+        public Observatory observatory;
+        public DesertErrands errands;
+        public Relics relics;
+        public QuestMarker marker;
         public static bool playPrologue = true;
         public static bool useSaves => !Application.isBatchMode;   // (a batch run starts fresh; Batch.Play tests the saves itself)
         public Dictionary<string, object> loaded;   // a new game opens in the ship, out in space (Batch: -noPrologue)
@@ -44,6 +48,8 @@ namespace Memento
         void Awake()
         {
             Instance = this;
+            // (a fresh desert, after a quit to the title: what the last one registered goes)
+            Interact.All.Clear(); Targets.All.Clear();
             if (!BuildWorld()) { enabled = false; return; }
             if (showTitle) { title = gameObject.AddComponent<TitleScreen>(); title.Begin(this); return; }
             StartPlay();

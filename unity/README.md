@@ -39,11 +39,15 @@ play, from the scripted play-through (`Batch.Play`):
 | ![](docs/play-procession.jpg) the procession on its loop | ![](docs/play-riding.jpg) the hoverbike |
 | ![](docs/play-glide.jpg) the arms out under the wings | ![](docs/play-jets.jpg) the jets' flames and drops |
 | ![](docs/play-embers.jpg) an ember glob: the camp fire flares, a bramble burns | ![](docs/play-fog.jpg) a fog bank |
+| ![](docs/play-obs-page.jpg) the traveller's sketch: the expedition begins | ![](docs/play-lens.jpg) a lens of the observatory |
+| ![](docs/play-drum.jpg) Teo's drum, shoved free of the knuckle | ![](docs/play-mask.jpg) the mask's eyes washed open |
+| ![](docs/play-chamber.jpg) the masked head's chamber (the close arm of a tight room) | ![](docs/play-sketchbook.jpg) the sketchbook: quests, the observatory, the relics |
 
-The holo table, the rain, the sun rays (web left, Unity right):
+The holo table, the rain, the sun rays, the observatory awake (web left, Unity right):
 
 | web (three.js) | Unity (URP) |
 |---|---|
+| ![](docs/web-observatory.jpg) | ![](docs/unity-observatory.jpg) |
 | ![](docs/web-holo.jpg) | ![](docs/unity-holo.jpg) |
 | ![](docs/web-rain.jpg) | ![](docs/unity-rain.jpg) |
 | ![](docs/web-rays.jpg) | ![](docs/unity-rays.jpg) |
@@ -127,7 +131,11 @@ tree's buttress to the makers' chest, Nour, the well, Ama's jar, the Speaker at
 the head of the procession, the skull's mouth into the cave, the push that
 clears the rib, the pool that fills the jar, the hoverbike under the tarp, the
 camp fire that burns, a fall that knocks you over, the ship that hums, the
-galactic map at its console and its "Travel to …?". Along
+galactic map at its console and its "Travel to …?", the holo table, then the
+traveller's observatory (the page, a ledge, the three lenses, the roof
+unfolding, the second page), Teo's drum shoved free, the mask's eyes, the
+masked head's chamber, a relic and the sketchbook with them, and the rain, the
+fog and the sun rays. Along
 the way it runs the box scenes, the tank, a shot and a splat, the stun mode, a
 boost, the wings, the wildlife, the star box and Nour back on her bench, counts
 the sounds played, and writes a save and reads it back. It saves a frame at
@@ -330,6 +338,34 @@ the star chart's layout, the planets and the region names against the web's.
   makers' chest on the ledge (the backpack), Qanat gathering, Teo's drum, Oum
   and Ilo following you, the rib (heaved, or pushed with the backpack), the
   stream and the rising pool, the jar, the ship; fire hurts.
+- The people near the start (`levels/content.js`, exported with the story's):
+  Ysa, Pell (who sends you to the mask), Rook (who sends you to Marrow), Ennor,
+  Tamsin and the traveller who sketches the observatory (`sketcher`: the
+  player's figure is `traveller`).
+- `Observatory` (`observatory.js`): the sleeping observatory east of camp.
+  Greeting the traveller starts it with a sketchbook page (three views of the
+  world drawn by a page camera, `Hud.ShowPage`); fragments of the keeper's
+  story on the even ledges; three lenses turned a quarter each (B / ○ beside
+  one, or a glob from up there) until they face the heart: the beams reach the
+  centre, the receivers and the lights come on, the roof's four leaves unfold,
+  the constellation is drawn, a second page; back at the traveller, done. Its
+  line stands in for the quest's in the status box while it is under way.
+- `DesertErrands` (`story/desert-errands.js`): Teo's drum pinned under the
+  ribcage by a knuckle of bone (shoved toward the rib it jams; from the side,
+  by the push or by hand, the drum tips out, rolls away like a wheel and falls
+  flat), and the mask's sand-lidded eyes (a glob or a push washes one clear for
+  seven seconds; both at once and they open, a glint in each, and it looks at
+  you).
+- `Targets` (`targets.js`): what the fluid can hit besides people and creatures
+  (the lenses, the knuckle, the drum, the eyes), for the globs and the push.
+- `Relics` (`quest.js` Relics): the five relics on the highest surface over
+  their spots, bobbing and lighting what is near; found, a sketch of the moment
+  goes into the sketchbook ("relics n/5" in the status box).
+- `QuestMarker` (`story/quests.js`): the cyan diamond, ring and beam over the
+  objective, sized by the distance, gone when you are on it.
+- `CameraRig` also probes how tight a spot is (`player.js` tightness: a ring of
+  rays, the ceiling, rays slanting up): in a room or a corridor the arm comes in
+  to 2.6 m. The masked head's chamber, the ship's rooms, the cave's narrows.
 - `Npc`, `Crowd`: people walking their routes or standing, lines over their
   heads; the procession walking its loop round the city in rows.
 - `Bike` (`bike.js`, `story/desert-bike.js`): the tarp, waking it with the
@@ -447,9 +483,13 @@ writes the player's back buffer itself (`_TargetFlip`).
 - **The people**: the far figures have no brows (too small to see on the web too).
 - **The ship**: the map's other worlds can be chosen but not travelled to; the
   ship's interior reads brighter than the web's (washed white round the table).
-- **Not ported**: the dev menu, the
-  observatory and the masked head's chamber (exported, not playable), the
-  other worlds, Android. The web title's own vista scene (the desert stands
+- **The desert's smaller things**: the errands of the people near the start
+  (Ysa's crystal, Pell's sand: `quest.js` Errands), the reactive flowers
+  (`reactive-world.js`), the scout drone, the hover trails, swimming, the crowd's
+  own short conversations, the cactus spines, the sand puffs of the drum and the
+  mask. The story's intro and outro pages (the ending is a card).
+- **Not ported**: the dev menu, the other worlds, an Android build (what it
+  would need: above). The web title's own vista scene (the desert stands
   in for it); mouse clicks on the menus (they take the keyboard and the pad).
 - **The look**: shadows are URP's, with a filter close to the web's
   hand-rolled cascades but not the same. (Sun rays are in the composite,

@@ -42,7 +42,10 @@ namespace Memento
         public void Update(float dt)
         {
             int n = Pad.NavDown();
-            if (n != 0 && questIds.Count > 0) { sel = Mathf.Clamp(sel + n, 0, questIds.Count - 1); Sounds.Instance?.Play("tick"); }
+            // past the last quest the page scrolls on (the observatory, the relics); back up past the first it scrolls back
+            if (n > 0 && sel >= questIds.Count - 1) scroll = Mathf.Min(scroll + 90, maxScrollNow);
+            else if (n < 0 && scroll > 0 && sel == 0) scroll = Mathf.Max(0, scroll - 90);
+            else if (n != 0 && questIds.Count > 0) { sel = Mathf.Clamp(sel + n, 0, questIds.Count - 1); Sounds.Instance?.Play("tick"); }
             if (Pad.ConfirmDown() && sel < questIds.Count && hud.game.quests.IsActive(questIds[sel]))
             {
                 hud.game.state.Set("quest.tracked", questIds[sel]);
@@ -80,6 +83,15 @@ namespace Memento
             b.rt.SetAsLastSibling(); b.rt.localRotation = Quaternion.identity;
             return b;
         }
+        readonly List<RawImage> imgs = new(); int usedImgs;
+        RawImage Img()
+        {
+            RawImage r;
+            if (usedImgs < imgs.Count) { r = imgs[usedImgs]; r.gameObject.SetActive(true); }
+            else { r = Ui.Node("tile", page).gameObject.AddComponent<RawImage>(); r.raycastTarget = false; imgs.Add(r); }
+            usedImgs++; r.transform.SetAsLastSibling();
+            return r;
+        }
         Sketch K()
         {
             Sketch s;
@@ -96,15 +108,9 @@ namespace Memento
             float W = root.rect.width, H = root.rect.height;
             rules.Clear();
             for (float ry = 27; ry < H; ry += 28) rules.Box(new Rect(-W / 2, H / 2 - ry - 1, W, 1), Ui.Hex("#2b211f", 0.07f));
-            used = 0; usedBoxes = 0; usedSketches = 0;
+            used = 0; usedBoxes = 0; usedSketches = 0; usedImgs = 0;
             var ink = Ui.Ink; var faint = new Color(ink.r, ink.g, ink.b, 0.55f);
             float x = 20, y = 24, w = Mathf.Min(640, W - 40);
-            // the header: SKETCHBOOK, how to close it
-            Line("SKETCHBOOK", x, y, 400, 26, ink, FontStyle.Bold, 0.14f);
-            var close = Pad.HasPad ? "View or B / ○ to close" : "J to close";
-            var ct = T(close, 13, ink); var cm = Ui.Measure(ct, close); Ui.Place(ct.rectTransform, W - 20 - 84 - 8 - cm.x, y + 8, cm.x, cm.y);
-            var cb = B(new Color(0, 0, 0, 0), ink, 1.5f, 0, 0); Ui.Place(cb.rt, W - 20 - 78, y + 4, 78, 26);
-            var cbt = T("close ✕", 13, ink); Ui.Place(cbt.rectTransform, W - 20 - 78 + 10, y + 9, 70, 18);
             y += 50;
             float top = y;
             y -= scroll;
@@ -214,6 +220,44 @@ namespace Memento
             y += Line($"Item boxes <color=#2b211f8c>{found}/{boxesIn.Count}</color>", x, y, w, 15, ink, FontStyle.Bold, 0.06f) + 8;
             y += Line($"•  The Desert · boxes found {found}/{boxesIn.Count}", x + 18, y, w, 13, ink) + 3;
             y += Line("<color=#2b211f8c>(the other worlds are still the web game’s)</color>", x + 18, y, w, 11, ink) + 14;
+            // ---- the sleeping observatory (quest.js Journal: its sketch and the keeper's fragments)
+            var ob = hud.game.observatory;
+            if (ob && ob.Started)
+            {
+                y += Line($"The Sleeping Observatory <color=#2b211f8c>{(ob.Done ? (ob.Returned ? "complete" : "awake") : ob.Aligned + "/3 lenses")}</color>", x, y, w, 15, ink, FontStyle.Bold, 0.06f) + 8;
+                var frs = ob.FragmentsFound.ToList();
+                if (frs.Count == 0) y += Line("Six ledges lead up the tower east of camp; rest on them on the way.", x, y, w, 11, faint) + 12;
+                foreach (var f in frs) y += Line($"•  <i>{f}</i>", x + 18, y, w - 18, 13, ink) + 3;
+                y += 14;
+            }
+            // ---- the relics found here (quest.js: the world's own tiles, a sketch of each find)
+            var rel = hud.game.relics;
+            if (rel && rel.Total > 0)
+            {
+                y += Line($"The Desert <color=#2b211f8c>{rel.Found}/{rel.Total}</color>", x, y, w, 15, ink, FontStyle.Bold, 0.06f) + 8;
+                float tx = x;
+                foreach (var (name, got, sketch) in rel.List)
+                {
+                    if (tx + 170 > W - 20) { tx = x; y += 120 + 30; }
+                    var img = Img(); Ui.Place(img.rectTransform, tx + 2, y + 2, 166, 116); img.texture = got ? sketch : null; img.color = got && sketch ? Color.white : new Color(0, 0, 0, 0);
+                    var frame = K(); Ui.PlaceC(frame.rectTransform, tx, y, 170, 120);
+                    frame.Path(new[] { new Vector2(-85, 60), new Vector2(85, 60), new Vector2(85, -60), new Vector2(-85, -60) }, 2, got ? ink : new Color(ink.r, ink.g, ink.b, 0.45f), true, got ? 0 : 6, got ? 0 : 4);
+                    if (!got) { var q = T("?", 28, new Color(ink.r, ink.g, ink.b, 0.45f)); q.alignment = TextAnchor.MiddleCenter; Ui.Place(q.rectTransform, tx, y, 170, 120); }
+                    Line(got ? name : "not found yet", tx, y + 124, 170, 11, got ? ink : faint);
+                    tx += 170 + 12;
+                }
+                y += 120 + 34;
+            }
+            // the header last, on its own band of paper: the page scrolls under it
+            {
+                float hy = 24;
+                var band = B(Ui.Sketchbook, ink, 0, 0, 0); Ui.Place(band.rt, 0, 0, W, hy + 46);
+                Line("SKETCHBOOK", x, hy, 400, 26, ink, FontStyle.Bold, 0.14f);
+                var close = Pad.HasPad ? "View or B / ○ to close" : "J to close";
+                var ct = T(close, 13, ink); var cm = Ui.Measure(ct, close); Ui.Place(ct.rectTransform, W - 20 - 84 - 8 - cm.x, hy + 8, cm.x, cm.y);
+                var cb = B(new Color(0, 0, 0, 0), ink, 1.5f, 0, 0); Ui.Place(cb.rt, W - 20 - 78, hy + 4, 78, 26);
+                var cbt = T("close ✕", 13, ink); Ui.Place(cbt.rectTransform, W - 20 - 78 + 10, hy + 9, 70, 18);
+            }
             float contentH = y + scroll - top;
             // keep the chosen quest in view
             float maxScroll = Mathf.Max(0, contentH - (H - top - 20));
@@ -221,7 +265,10 @@ namespace Memento
             for (int i = used; i < pool.Count; i++) if (pool[i].gameObject.activeSelf) pool[i].gameObject.SetActive(false);
             for (int i = usedBoxes; i < boxes.Count; i++) { boxes[i].rt.SetParent(page, false); boxes[i].Show(false); }
             for (int i = usedSketches; i < sketches.Count; i++) if (sketches[i].gameObject.activeSelf) sketches[i].gameObject.SetActive(false);
+            for (int i = usedImgs; i < imgs.Count; i++) if (imgs[i].gameObject.activeSelf) imgs[i].gameObject.SetActive(false);
+            maxScrollNow = maxScroll;
         }
+        float maxScrollNow;
 
         static void Pill(Sketch s, float w, float h, Color ink, bool dashed)
         {

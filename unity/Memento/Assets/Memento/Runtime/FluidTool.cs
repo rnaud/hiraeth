@@ -182,6 +182,7 @@ namespace Memento
                 }
                 if (hitNpc) { HitNpc(hitNpc, b.mode, seg.normalized); SplatAt(hitNpc.pos + Vector3.up * 1.1f * hitNpc.scale, -seg.normalized, b.mode, 0.35f); done = true; }
                 else if (Wildlife.Instance && Wildlife.Instance.HitAt(next, 0.3f, b.mode)) { SplatAt(next, -seg.normalized, b.mode, 0.35f); done = true; }
+                else if (Targets.Hit(b.p, next, b.mode) != null) { SplatAt(next, -seg.normalized, b.mode, 0.35f); done = true; }
                 else if (Flammables.Instance && Flammables.Instance.HitAt(b.p, next, b.mode)) { SplatAt(next, -seg.normalized, b.mode, 0.35f); done = true; }
                 else if (len > 1e-5f && Physics.Raycast(b.p, seg / len, out var h, len, ~(1 << 2))) { SplatAt(h.point, h.normal, b.mode, 0.75f); done = true; }
                 b.p = next; b.t.position = b.p;
@@ -246,6 +247,7 @@ namespace Memento
                 n++;
             }
             game.story?.Push(player.transform.position, dir);
+            Targets.Push(from, dir, PushRange, PushAngle);
             Wildlife.Instance?.Push(from, dir, PushRange, PushAngle);
             // the fluid shoves out of the nozzle: a burst of splats in front
             if (Physics.Raycast(from, dir, out var h, PushRange, ~(1 << 2))) SplatAt(h.point, h.normal, mode, 0.9f);
