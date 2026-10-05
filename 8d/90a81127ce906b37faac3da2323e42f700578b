@@ -1,0 +1,25 @@
+src/npc.js
+  s_1fd8d0e7b02dcf::t_0fa7f46bba678e 103
+src/story/desert-data.js
+  s_1fd8d0e7b02dcf::t_1752c15e731feb 280-281,587
+src/studio/main.js
+  s_1fd8d0e7b02dcf::t_4de96bc105ab44 166,295
+tests/makehuman-desert.test.js
+  s_1fd8d0e7b02dcf::t_9f1eacaac35bfd 1-193
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8d90a81127ce906b37faac3da2323e42f700578b",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
