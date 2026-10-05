@@ -170,6 +170,35 @@ namespace Memento
             Log($"{world}: opening step {(ok ? "done" : "NOT done")}: {q} '{stage0}' -> '{now}' ({Text.Plain(game.quests.Current(q)?.S("text"))})");
             yield return Shoot($"{world}_next_objective");
             if (ok && world == "incal" && deep) yield return IncalToTheEnd();
+            else if (ok) yield return HitStep(world, q);
+        }
+
+        /// <summary>The next stage, when the fluid's hits raise its flag (the pools relit, the spheres splashed, the gauges): each
+        /// of those targets struck as a glob landing on it does, and the quest checked to have moved on.</summary>
+        IEnumerator HitStep(string world, string q)
+        {
+            var st = game.quests.Current(q);
+            var flag = st?.S("flag");
+            var stage = game.quests.Stage(q);
+            var list = (game.world.World.L("targets") ?? new List<object>()).OfType<Dictionary<string, object>>().ToList();
+            // the flags that move the stage on: its own, its when's (a counter, every one of a few), and their kin (spheres.heard.*)
+            var want = new List<string>();
+            if (flag != null) want.Add(flag);
+            foreach (var c in st?.O("whenData")?.L("any")?.OfType<Dictionary<string, object>>() ?? Enumerable.Empty<Dictionary<string, object>>())
+            { if (c.S("count") is { } cn) want.Add(cn); foreach (var e in c.L("every") ?? new List<object>()) want.Add(e as string); }
+            bool Moves(Dictionary<string, object> t) => t.O("modes")?.O("shoot")?.O("sets")?.Keys.Any(k => want.Any(f => k == f || (f.Contains('.') && k.StartsWith(f.Substring(0, f.LastIndexOf('.') + 1)) && !k.StartsWith("quest.")))) ?? false;
+            var kinds = list.Where(Moves).Select(t => t.S("kind")).Distinct().ToList();
+            if (kinds.Count == 0) { Log($"{world}: the next stage '{stage}' is not the fluid's to move on"); yield break; }
+            foreach (var t in Targets.All.Where(t => kinds.Contains(t.kind)).ToList())
+            {
+                PutNear(t.position(), 6f); yield return Wait(0.4f);
+                t.onHit("shoot", Vector3.forward);
+                yield return Wait(0.3f);
+            }
+            game.quests.Update(game.player.transform.position);
+            yield return Wait(0.5f);
+            Log($"{world}: struck the {string.Join(", ", kinds)} with the fluid: '{stage}' -> '{game.quests.Stage(q)}'");
+            yield return Shoot($"{world}_after_the_fluid");
         }
 
         /// <summary>Talk to someone with the choices that lead the stage on (PathTo), up to three times.</summary>

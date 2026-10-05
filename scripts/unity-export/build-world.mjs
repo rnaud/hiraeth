@@ -99,11 +99,12 @@ export async function buildWorld(levelId = 'desert') {
     near.forEach((n, i) => { n.def ??= spots[i]; n.contentNpc = true; npcs.push(n); });
   }
   const beforeStory = new Set(scene.children);
+  const toasts = [];   // (what the story says on the screen: the exporter reads them back when it tries a thing)
   const flagsBefore = { ...game.data.flags };
   const journal = { sections: [], el: { addEventListener() {} }, seen: () => false, storyDone: () => false, markSeen() {}, relicCount: () => 0, render() {} };
   const story = { complete() {}, start() {}, done: false, waitFor: null };
   const rt = quiet(() => createStory({ levelId, scene, physics, level, player, npcs, crowd, sound,
-    journal, story, capture: null, lib, humans, toast() {}, tool: null, isNight: () => false, ship, drone: () => null }));
+    journal, story, capture: null, lib, humans, toast: (t) => toasts.push(t), tool: null, isNight: () => false, ship, drone: () => null }));
   const boxes = quiet(() => createBoxes({ levelId, scene, physics, level, player, sound, quests: rt.quests, toast() {}, anchor: () => ship.arrivalSpot() }));
   const storyRoots = scene.children.filter((c) => !beforeStory.has(c));
   const flora = quiet(() => buildFlora({ scene, level, levelId, physics, keep: floraKeep({ level, content, ship, npcs, crowd, boxes }) }));
@@ -122,7 +123,7 @@ export async function buildWorld(levelId = 'desert') {
   const shipHull = await import('../../src/ship/hull.js');
   const shipTable = (await import('../../src/ship/interior.js')).TABLE;
   return { levelId, meta, shipDirector, shipHull, shipTable, THREE, scene, level, physics, waters, ship, shipRoots, crowd, bike, player, npcs, rt, boxes, flora, grass, storyRoots, staticRoots,
-    game, CONTENT, content, humans, lib, travellerTemplate, camera, startFlags, interactables: allInteractables(), targets: allTargets(), floraWorld: FLORA_WORLDS[levelId] ?? null, mounts };
+    game, CONTENT, content, humans, lib, travellerTemplate, camera, startFlags, toasts, interactables: allInteractables(), targets: allTargets(), floraWorld: FLORA_WORLDS[levelId] ?? null, mounts };
 }
 
 /** The desert, as the first pass exported it. */

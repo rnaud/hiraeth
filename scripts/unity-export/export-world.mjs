@@ -469,6 +469,31 @@ const interactables = [];
     interactables.push(out);
   }
 }
+// what the fluid can hit besides people (targets.js): each tried with a shot and a push on a scratch copy of the
+// state, what it raises and what it says (the call-lamp lit, a pool relit, a sphere splashed)
+const targets = [];
+{
+  const { game } = W;
+  W.targets.forEach((t, i) => {
+    if (t.kind === 'npc' || t.kind === 'flammable') return;
+    let at = null;
+    try { const p = t.position?.(); if (p?.isVector3 && Number.isFinite(p.x)) at = V3(p); } catch { /* */ }
+    if (!at) return;
+    const out = { i, kind: t.kind, at, radius: t.radius ?? 0.5, accepts: t.accepts ?? null, modes: {} };
+    try { out.enabled = !!t.enabled(); } catch { out.enabled = true; }
+    for (const mode of ['shoot', 'push']) {
+      const flags = JSON.stringify(game.data.flags), keeps = JSON.stringify(game.data.keepsakes), n0 = W.toasts.length;
+      let took = false;
+      try { took = !!quiet(() => t.onHit(mode, t.position().clone(), new THREE.Vector3(0, 0, 1), {})); } catch { took = false; }
+      const after = JSON.parse(JSON.stringify(game.data.flags)), before = JSON.parse(flags);
+      const sets = Object.fromEntries(Object.entries(after).filter(([k, v]) => JSON.stringify(before[k]) !== JSON.stringify(v)));
+      game.data.flags = before; game.data.keepsakes = JSON.parse(keeps);
+      const said = W.toasts.slice(n0);
+      if (Object.keys(sets).length || said.length) out.modes[mode] = { took, sets, toast: said[said.length - 1] ?? null };
+    }
+    if (Object.keys(out.modes).length) targets.push(out);
+  });
+}
 const people = npcs.map((n) => ({
   id: n.def?.id ?? n.id, name: n.def?.name, title: n.def?.title, kind: n.def?.kind ?? n.kind ?? 'm', scale: n.object?.scale?.y ?? 1,
   palette: n.def?.palette ?? n.palette, head: n.def?.head, cape: n.def?.cape ?? 0, color: n.def?.color,
@@ -658,7 +683,7 @@ const world = {
   portals: (level.portals ?? []).filter((p) => p.at && p.to).map((p) => ({ at: V3(p.at), r: p.r ?? 1.5, to: V3(p.to), heading: -(p.heading ?? 0), label: p.label ?? '' })),
   ship: { site: places.shipSite, ramp: places.shipRamp, ...shipOut },
   flora: { count: flora?.count ?? 0 },
-  locators, interactables, storyPage, gravity, waters, grass, lanes, handles, atmo,
+  locators, interactables, targets, storyPage, gravity, waters, grass, lanes, handles, atmo,
 };
 
 // ---------------------------------------------------------------- the people, dressed (people.mjs)
@@ -684,6 +709,22 @@ const nearPeople = Object.fromEntries(content.npcs.filter((s) => s.id).map((s) =
   if (id === 'rook' && def.talk?.nodes?.walk) def.talk.nodes.walk.do = { start: 'desert.bike' };
   return [id, { ...def, id }];
 }));
+// a stage's `when` (a function on the web) as data the port's Quests can test: a counter reaching a number, every one
+// of a few flags, items held plus a counter; or any of those (read from the function's own source)
+function whenOf(fn) {
+  const src = String(fn), any = [];
+  let m;
+  const re1 = /\(q\.game\.flag\('([^']+)'\) \?\? 0\) >= (\d+)/g;
+  if ((m = /\[([^\]]+)\]\.filter\(\(s\) => q\.has\(s\)\)\.length \+ \(q\.game\.flag\('([^']+)'\) \?\? 0\) >= (\d+)/.exec(src)))
+    return { any: [{ has: m[1].split(',').map((x) => x.trim().replace(/['"]/g, '')), plus: m[2], min: +m[3] }] };
+  if ((m = /\[([^\]]+)\]\.every\(\((\w)\) => q\.game\.flag\(`([^$]*)\$\{\2\}([^`]*)`\)\)/.exec(src)))
+    any.push({ every: m[1].split(',').map((x) => m[3] + x.trim().replace(/['"]/g, '') + m[4]) });
+  while ((m = re1.exec(src))) any.push({ count: m[1], min: +m[2] });
+  const re2 = /\|\| q\.game\.flag\('([^']+)'\)/g;
+  while ((m = re2.exec(src))) any.push({ flag: m[1] });
+  if (!any.length) console.warn(`a stage's when not read: ${src}`);
+  return { any };
+}
 const story = {
   world: levelId, startFlags: W.startFlags, page: storyPage,
   prologue: { call: calls.PROLOGUE_CALL, timeline: callTimeline(calls.PROLOGUE_CALL), crash: sig.CRASH_LINE, map: sig.MAP_LINE, stages: (await import('../../src/ship/prologue.js')).PROLOGUE_STAGES.map((s) => ({ ...s, dur: Number.isFinite(s.dur) ? s.dur : -1 })) },
@@ -691,7 +732,7 @@ const story = {
   // the route's rules (src/story/route.js knownWorlds: AHEAD), home's (src/story/ending.js homeOpen: ENDING_WORLDS), the arrival's signature line
   rules: { ahead: route.AHEAD, endingWorlds: ending.ENDING_WORLDS, home: ending.HOME_ID, homeEntry: ending.homeEntry({ unlocked: true, current: null }) },
   arrival: Object.fromEntries(Object.keys(sig.SIGNATURE_WORLDS).map((id) => [id, sig.arrivalLine(id)])),
-  quests: data.QUESTS ?? [], people: { ...(data.PEOPLE ?? {}), ...nearPeople }, things: data.THINGS ?? {}, lines: data.LINES ?? {}, items: data.ITEMS ?? {},
+  quests: (data.QUESTS ?? []).map((q) => ({ ...q, stages: q.stages.map((st) => (st.when ? { ...st, whenData: whenOf(st.when) } : st)) })), people: { ...(data.PEOPLE ?? {}), ...nearPeople }, things: data.THINGS ?? {}, lines: data.LINES ?? {}, items: data.ITEMS ?? {},
   villagers: data.VILLAGERS, villagerTalk: data.VILLAGER_TALK, murmurs: data.MURMURS, crowdTalk: data.CROWD_TALK, locals: data.LOCALS,
   extra: Object.fromEntries(Object.entries(data).filter(([k]) => !['QUESTS', 'PEOPLE', 'THINGS', 'LINES', 'ITEMS', 'VILLAGERS', 'VILLAGER_TALK', 'MURMURS', 'CROWD_TALK', 'LOCALS', 'STAGE_MIGRATION'].includes(k))),
   // the galactic map (starmap.js): the strike's signature per world and its legend, the planets' looks (planets.js)

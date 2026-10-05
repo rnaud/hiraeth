@@ -92,6 +92,17 @@ namespace Memento
         }
     }
 
+    /// <summary>The Garden of Spheres' own script (src/story/spheres.js): the three spheres that remember (the bell, the drum,
+    /// the chant), each heard once a glob lands on it; all three heard, the sounds are yours to carry to the plaza.</summary>
+    public class SpheresMechanics : WorldMechanics
+    {
+        protected override void Begin() { }
+        public override void Tick(float dt)
+        {
+            if (!G.Is("spheres.heard.three") && G.Is("spheres.heard.bell") && G.Is("spheres.heard.drum") && G.Is("spheres.heard.chant")) G.Set("spheres.heard.three", true);
+        }
+    }
+
     /// <summary>Vael's own script (src/story/arzach.js): the bird that waits, the rider's whistle (the bird's flight is not in this port yet).</summary>
     public class ArzachMechanics : WorldMechanics
     {

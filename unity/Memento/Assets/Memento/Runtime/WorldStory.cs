@@ -43,6 +43,7 @@ namespace Memento
             SpawnPeople();
             Places();
             Things();
+            Hits();
             Boxes();
             page = story.O("page");
             if (MainQuest != null) Q.onDone[MainQuest] = WorldDone;
@@ -201,7 +202,50 @@ namespace Memento
                     continue;
                 }
                 if (k.StartsWith("item.")) { Q.Give(k.Substring(5)); game.hud.Toast($"Picked up {Q.ItemName(k.Substring(5))}"); continue; }
+                // (a number the script counts up: three pools relit, three runnels cleared)
+                if (v is double dv && dv == 1 && G.Flag(k) is double have) { G.Set(k, have + 1); continue; }
                 G.Set(k, v);
+            }
+        }
+
+        // ---------------------------------------------------------------- what the fluid can hit (targets.js)
+        /// <summary>
+        /// The world's targets as the exporter tried them (a shot, a push): what each raises and says (the call-lamp lit, a
+        /// pool relit, a sphere splashed, a gauge cleared). A flag every target of a kind raises (the pools all lit) waits
+        /// until every one of them is hit. The temples' switches are left out (the temples are not in this port).
+        /// </summary>
+        void Hits()
+        {
+            var list = (game.world.World.L("targets") ?? new List<object>()).OfType<Dictionary<string, object>>().Where(t => t.S("kind") != "switch" && t.S("kind") != "sentinel" && t.S("kind") != "guardian").ToList();
+            foreach (var t in list)
+            {
+                var kind = t.S("kind"); var at = t.V3("at"); float r = t.F("radius", 0.5f);
+                var siblings = list.Where(x => x.S("kind") == kind).ToList();
+                string once = $"hit.{world}.{kind}.{t.I("i")}";
+                Targets.Add(new Target
+                {
+                    kind = kind, radius = Mathf.Max(r, 0.6f), position = () => at,
+                    enabled = () => !G.Is(once) && Vector3.Distance(game.player.transform.position, at) < 120,
+                    onHit = (mode, dir) =>
+                    {
+                        var m = t.O("modes")?.O(mode == "push" ? "push" : "shoot");
+                        if (m == null || (m.O("sets")?.Count ?? 0) == 0) { if (m?.S("toast") is { } said) game.hud.Toast(said); return m != null && m.Get("took") is bool tk && tk; }
+                        G.Set(once, true);
+                        var sets = new Dictionary<string, object>();
+                        foreach (var (k, v) in m.O("sets"))
+                        {
+                            if (k.StartsWith("temple.")) continue;
+                            // (shared by every one of its kind: only once they all are hit)
+                            bool shared = siblings.Count > 1 && !k.StartsWith("quest.") && !(v is double) && siblings.All(x => x.O("modes")?.O(mode == "push" ? "push" : "shoot")?.O("sets")?.Has(k) == true);
+                            if (shared && !siblings.All(x => G.Is($"hit.{world}.{kind}.{x.I("i")}"))) continue;
+                            sets[k] = v;
+                        }
+                        Apply(sets);
+                        if (m.S("toast") is { } toast) game.hud.Toast(toast);
+                        Sounds.Instance?.Play("chime");
+                        return true;
+                    },
+                });
             }
         }
 
@@ -292,6 +336,7 @@ namespace Memento
             {
                 "incal" => new IncalMechanics(),
                 "arzach" => new ArzachMechanics(),
+                "spheres" => new SpheresMechanics(),
                 _ => null,
             };
             if (m == null) return null;

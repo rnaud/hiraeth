@@ -31,7 +31,7 @@ namespace Memento
     }
 
     /// <summary>Quests as data (src/story/quests.js): stages that advance on flags, arrivals or talk.</summary>
-    public class Quests
+    public partial class Quests
     {
         public const string Done = "done";
         readonly GameState game;
@@ -121,6 +121,11 @@ namespace Memento
                     float r = st.F("radius", 12);
                     if (p.HasValue && Vector2.Distance(new Vector2(player.x, player.z), new Vector2(p.Value.x, p.Value.z)) < r && Mathf.Abs(player.y - p.Value.y) < Mathf.Max(r, 12)) Advance(id, st.S("id"));
                 }
+                else if (st.O("whenData") is { } wd)
+                {
+                    // (the web's `when`, read as data by the exporter: a counter's number, every flag of a few, items held)
+                    if (wd.L("any")?.OfType<Dictionary<string, object>>().Any(When) == true) Advance(id, st.S("id"));
+                }
                 else if (st.Has("flag"))
                 {
                     var want = st.Get("value") ?? true;
@@ -129,6 +134,19 @@ namespace Memento
                     if (met) Advance(id, st.S("id"));
                 }
             }
+        }
+    }
+
+    public partial class Quests
+    {
+        /// <summary>One clause of a stage's when (export-world.mjs whenOf).</summary>
+        public bool When(Dictionary<string, object> c)
+        {
+            if (c.Has("every")) return c.L("every").All(f => game.Is(f as string));
+            if (c.Has("count")) return game.Num(c.S("count")) >= c.F("min");
+            if (c.Has("has")) return c.L("has").Count(x => Has(x as string)) + game.Num(c.S("plus") ?? "") >= c.F("min");
+            if (c.Has("flag")) return game.Is(c.S("flag"));
+            return false;
         }
     }
 
