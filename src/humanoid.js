@@ -499,7 +499,8 @@ export class Humanoid {
     if (!body) return;
     this.lod?.reset();   // (far away the body may be drawing a simpler copy: skinned-lod.js)
     body.userData.baseGeometry ??= body.geometry;
-    let g = this.outfit ? this._suitGeometry ?? body.geometry : buildGeometry(body, this.build, this.morph);
+    // (a MakeHuman body's builds are its own shapes: src/makehuman/people.js)
+    let g = this.outfit ? this._suitGeometry ?? body.geometry : this.profile?.buildGeometry ? this.profile.buildGeometry(body, this.build, this.morph) : buildGeometry(body, this.build, this.morph);
     if (this.face) g = this.warped(body, g);
     body.geometry = g;
     this._robeExt = null;   // the robe measures the body again
@@ -541,6 +542,7 @@ export class Humanoid {
    * The height is the caller's (the root's scale: boneMorph().height).
    */
   setMorph(morph = null) {
+    morph = this.profile?.filterMorph ? this.profile.filterMorph(morph) : morph;   // (a MakeHuman child has a child's own body)
     this.morph = morph && !isNeutral(morph) ? cleanMorph(morph) : null;
     const B = this.b, R = this.rest;
     const legSpan = R.get(B.thigh_l).p.y - R.get(B.foot_l).p.y, ankle = R.get(B.foot_l).p.y;
@@ -564,6 +566,7 @@ export class Humanoid {
    * face ink's landmarks moved with them, and its drawing (age lines, mouth width, freckles, lid weight).
    */
   setFace(face = null) {
+    face = this.profile?.filterFace ? this.profile.filterFace(face) : face;   // (a MakeHuman face has its own shape: src/makehuman/people.js)
     this.face = face && !isNeutral(face, FACE_MORPHS) ? cleanMorph(face, FACE_MORPHS) : null;
     this.ownMaterials();
     this.reshapeBody();
@@ -597,7 +600,7 @@ export class Humanoid {
       u.uFaceKit.value.set(f.lines, f.mouthWidth, f.freckles, f.lidWeight);
       u.uFaceKit2.value.set(f.eyeSize, f.noseWidth, f.cheeks, this.earZ);
       // how young the face reads (face-ink.js faceYouth: a child's all but bare), on the skin and the eyes
-      this.youth = faceYouth({ ...f, young: face?.young }, this.morph?.headSize ?? 1);
+      this.youth = faceYouth({ ...f, young: face?.young ?? this.profile?.young }, this.morph?.headSize ?? 1);
       u.uMood2.value.z = this.youth;
       const ue = this.eyeMesh?.material.uniforms;
       if (ue?.uMood2) ue.uMood2.value.z = this.youth;
@@ -777,7 +780,7 @@ export class Humanoid {
   /** The costume's merged geometry in this model's bind space (cached per body kind and look; colours added per person). */
   costumeGeometry(look) {
     const robe = look.robe > 0 ? `${look.robe.toFixed(2)}/${(look.flare ?? 0.3).toFixed(2)}` : '-';
-    const key = `${this.profile?.id ?? this.kind}|${this.build}|${morphKey(this.morph)}|${look.head}|${look.mask}|${look.body}|${look.prop}|${robe}`;
+    const key = `${this.profile?.id ?? this.kind}|${this.build}|${morphKey(this.morph)}|${look.head}|${look.mask}|${look.body}|${look.prop}|${robe}${this.profile?.lookKey?.(look) ?? ''}`;
     const cache = (this.constructor._costumes ??= new Map());
     if (cache.has(key)) return cache.get(key);
     const B = this.b, bones = this.body.skeleton.bones;
@@ -803,11 +806,14 @@ export class Humanoid {
       geo.setAttribute('skinWeight', new THREE.BufferAttribute(W, 4));
       (role === 'lamp' ? out.glow : out.main).push({ geo, role, n });
     };
-    const pieces = lookPieces(look, 1);
+    // (a MakeHuman body draws its own hair and beard, skinned shells: src/makehuman/hair.js)
+    const pieces = this.profile?.lookPieces ? this.profile.lookPieces(look, this) : lookPieces(look, 1);
     for (const [f, list] of Object.entries(pieces)) {
       const F = frames[f], rigid = () => [[F.bone, 0, 0, 0], [1, 0, 0, 0]];
+      if (!F) continue;   // (the skinned shells: below)
       for (const pc of list) push(pc.geo.applyMatrix4(F.m), pc.role, rigid);
     }
+    for (const part of pieces.skinned ?? []) push(part.geo, part.role, part.joints);
     if (look.robe > 0) for (const part of this.robeGeometry(look.robe, look.flare ?? 0.3)) push(part.geo, part.role, part.joints);
     const merged = (list) => {
       if (!list.length) return null;

@@ -14,8 +14,10 @@ export const BUILD_INPUT = {
 };
 const modules = existsSync('node_modules') ? realpathSync('node_modules') : null;
 /**
- * The MakeHuman prototype's bodies (public/anim/mh/, docs/makehuman.md: 6.4 MB, the character
- * studio's alone) stay out of the build the APK and the web bundle ship, unless MAKEHUMAN=1.
+ * The MakeHuman parametric body (public/anim/mh/body.json + body.bin, docs/makehuman.md: 1.8 MB,
+ * 1.1 gzipped; the studio's Body source and the game's ?mh=1) stays out of the build the APK and the
+ * web bundle ship until the bodies are switched on (MAKEHUMAN=1 keeps it: without it ?mh=1 falls back
+ * to the Quaternius bodies).
  */
 export const MH_DIR = 'anim/mh';
 const dropMakeHuman = () => ({

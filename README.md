@@ -413,8 +413,10 @@ poses update at 12 fps ("stop-motion anim") while movement stays smooth.
 - **Story** (`src/quest.js`, `src/levels/content.js`):
   - each world has one quiet goal, marked by a beam of light, with its
     distance in the HUD;
-  - a first visit opens a wordless three-panel comic page, rendered live
-    from the game, and reaching the goal opens the closing page.
+  - a first visit says the world's title and opening words as a toast, and
+    reaching the goal its closing words (the closing moment is drawn into the
+    sketchbook); until October 2026 these were three-panel comic pages that held
+    the screen. A long toast stays up longer (`toastSeconds`, up to 9 s).
 - **Relics:** five per world, often on rooftops, mesas or trees you have to
   climb. Picking one up sketches the moment into your **sketchbook**: press
   **J** to open it. Progress is saved in `localStorage`.
@@ -616,7 +618,7 @@ rest; three carry fragments of the keeper's story. In the open chamber,
 stand beside each lens and press **E** (or tap the touch E button) to turn it.
 Aim all three beams at the central receiver. Each aligned beam lights a ring
 and illuminates the room. The roof unfolds over five seconds, a constellation
-appears, and a comic page records the moment. Glide back to the traveler to
+appears, and the moment goes into the sketchbook. Glide back to the traveler to
 finish the expedition.
 
 The existing masked-head story remains available. The new expedition keeps
@@ -1858,6 +1860,53 @@ meshes that have them). In the studio: *Who → Body source: MakeHuman* and *Lin
 to Quaternius*. Only the studio uses them, and the build leaves `anim/mh/` out (`MAKEHUMAN=1` keeps
 it). The licences, the measurements (triangles, sizes, `skin-audit.mjs`'s skin weights in the
 clips), the screenshots and the recommendation: docs/makehuman.md. `tests/makehuman.test.js`.
+(The eight baked people are gone: stage 1 below makes them, and anyone else, from one body.)
+
+### MakeHuman bodies, stage 1: one parametric body, MakeHuman's own hair (`?mh=1`)
+
+The switch to MakeHuman goes in stages; stage 1 is in, behind the studio's *Body source* and the
+game's `?mh=1` (the game's default people stay Quaternius, the traveller always: his suit and gear
+are fitted to his body). docs/makehuman.md has the numbers, the pictures and what is left.
+
+- **One body for everyone** (`scripts/makehuman/build.sh`: `build.py` in Blender's background mode,
+  MPFB driving MakeHuman; `public/anim/mh/body.json` + `body.bin`, 1.7 MB, 1.0 gzipped, against 6.4 MB
+  for the prototype's eight people). The reference person is decimated once (12 000 triangles, the
+  head and now the hands kept finer) and every other shape of the full mesh maps onto that low mesh.
+  MakeHuman blends its macro targets multilinearly between corners (gender × age 1/11/25/90 ×
+  muscle × weight, height and proportions leaning each gender and age), so the build samples exactly
+  those 100 corners and packs their principal components (27, int16 then int8: no head point off by
+  more than 4 mm at any corner); a few targets of the reference go as sparse deltas (a belly, hips and
+  waist for the heavy, the face's targets). `src/makehuman/shape.js` turns who someone is into
+  MakeHuman's sliders (`personParams`: kind, years, build `MH_BUILDS`, their world's proportions
+  `WORLD_BODIES`) and those into the corners' weights (`nodeWeights`); `src/makehuman/body.js`
+  (`makeBody`, ~10 ms) makes the points, the skeleton (each bone at this person's joints, turned as
+  the reference's), the skinned body, eyes and brows with the face keys as morph targets, measures
+  the landmarks the face ink, the outfit and the hats need (`measure`), and hands Humanoid a profile.
+- **The game's people** (`src/makehuman/people.js`): `main.js` passes `[man, woman]` templates where it
+  passed the Quaternius pair; `NPC` asks the family for the person's own (`templateFor`: a story
+  child or elder by `def.age`, an elder's face, their build; their world). A pooled crowd body is a
+  grown-up of average build that takes each person's build as it goes (`profile.buildGeometry`, the
+  MakeHuman shape on the same skeleton). A child stands as tall as the story says (`heightFix`), keeps
+  only the ink of a Quaternius face morph (`filterFace`), and its face is drawn bare (`profile.young`).
+- **Hair** (`scripts/makehuman/hair.py`, `src/makehuman/hair.js`): MakeHuman's ten CC0 hairstyles,
+  fitted by MPFB, their alpha cards cut to the strands, thickened and voxel-remeshed into closed
+  shells with the style's cut, smoothed, decimated (2 000–3 300 triangles); the cards grouped into a
+  few big locks, a shallow groove along each border and, in the game, each lock its own normals there,
+  turned into the groove (`creaseNormals`): the ink pass draws the borders as a few strand lines. The
+  beard is the same kind of shell made from the jaw's own skin (the lips clear). Each shell vertex is
+  bound to the low body (triangle, barycentric weights, offset), fitted on load to any head, weighted
+  to the head, neck and upper spine only. The game's hairstyles map to the nearest one (`MH_HAIR`; the
+  topknots, buns and crest keep the game's own pieces on top; hats keep the game's cap under them).
+- **Faces**: MakeHuman's eyes opened (the upper lids lifted, the eyeballs 5% bigger, its eye-scale
+  target) so they read at a distance; the Moebius face as MakeHuman targets on grown-ups
+  (`MOEBIUS_FACE`: a longer chin, lean cheeks under clear cheekbones, a long straight narrow nose, a
+  firmer brow); the warmer faces kept (the resting smile on the shape keys, the brows tapered, the warm
+  shade, a child's bare face).
+- **Levels of detail** (`src/skinned-lod.js`): shape-keyed bodies get levels too, built without the
+  keys (far off a face has no expression to show); up close the full mesh, keys and all.
+- **The studio**: *Lineup → MakeHuman: every age and build* (`&mh=child,elder` for some ages) and
+  *every hairstyle* (and the beard), *Outfit* `l.mhHair` forces a style; the pairs lineup is the
+  presets of `src/studio/makehuman.js` (`MH_PRESETS`). `tests/makehuman.test.js`.
 
 ### Hands (`src/hands.js`)
 
@@ -3739,6 +3788,51 @@ From the author's notes (TODO.md, "Feel and look"). Tests: `tests/feel.test.js`.
   on the edge right in front of you (`EdgeInk`, drawn with the wisps' material, depth-tested
   against the G-buffer), and the first lean of a session shows a line (`EDGE_HINTS`, per world,
   or the level's own `edgeHint`).
+
+### Moments: first times, filmed (`src/story/moment.js`)
+A moment is a short cinematic (6–12 s) for a first time that deserves one, composed like a comic
+page: a few panels, the letterbox, a line or two, the traveller's face and hands in the line's
+tone, a swell of the world's score, then back to you.
+- **The helper.** `MomentStage` (one per world, `storyRt.moments`, handed to each world's setup
+  as `ctx.moments`) plays one `Moment` at a time on the ship's cinematic camera and its Cinema
+  (the same `ship.shot` / `ship.release` the box scene uses, the letterbox, the subtitles).
+  `moments.play({ id, flag, shots, beats, onStart, onFrame, onEnd })` returns the moment, or
+  null when it can't play (no ship's camera, a scene, a conversation or a story page up, the
+  traveller riding or down, its flag already set): the caller then does what it always did.
+  A shot is `{ dur, from, to?, ease?, clear? }`; `from` / `to` are frames `{ pos, look, fov }`,
+  Vector3s or functions of the shot's time (to follow a stream's head, a face); no `to` holds.
+  `shotAt(shots, t)` is pure (tested). Beats `{ t, line?, secs?, run? }` say a line (`spoken()`,
+  with its tone: the traveller's face and hands take it) or run a cue. `m.face` / `m.eyes` turn
+  him and his eyes; `m.look` holds a tone on his face; `faceOf(humanoid)` gives where his face
+  is and looks as posed, for close-ups that never catch an ear. While one plays the idle's
+  look-around waits, the game's toasts wait (`cinema.held`), input is cut (`storyRt.busy()`).
+- **Once, skippable, never in the way.** Its flag is set as it starts. B / ○, the Menu button,
+  Esc or a tap on the corner tag skips it, after a 0.6 s grace (the press that started it,
+  mashed, doesn't end it) and on the next frame (the key opens nothing else). An error in a
+  frame ends it at once; `onEnd(m, skipped)` always runs, and the state a moment shows is
+  applied by its caller for sure there (and on its beats), so a skip or a failure lands the
+  same as watching it. Nothing is compiled mid-shot: a moment only moves the camera and what
+  already exists (measured: `renderer.info.programs` unchanged through both, High and Handheld).
+- **Sound**: `sound.swell(kind, pos)` plays a phrase of the world's score over a growing pad
+  while the score and the bands step back: `'motif'` the world's leitmotif on its lead,
+  `'father'` the father's theme in the world's mode on its voice for it.
+- **The desert's two** (`src/story/desert-moments.js`):
+  - *the water's first run* (`desert.moment.flow`), when the rib comes off the channel: A, high
+    beyond the gutter, the rib rolling clear past the post and the traveller; B, a long lens up
+    the gutter from past its end, the crack lighting and the water coming down it (the flow
+    waits for this panel, `st.flowDelay`); C, high over the gutter's end across the basin, the
+    pool spreading over the dry bed round the roots, its light coming up; D, his face,
+    three-quarter, lit from below: "It's running… like the giants on the mural." The world's
+    motif swells over it; its toast comes after.
+  - *the empty tank's first fill* (`desert.moment.fill`), the first wade with the dry tank: A,
+    over the water at him standing in the pool; B, over his shoulder on the glass as the water
+    climbs into it slowly in three colours (`tool.fillTo` holds the glass's level), its glow on
+    his back; C, beside him: he lifts the bracer, its rings light one by one, and a first glob
+    (`tool.spark(dir)`, spending nothing) splashes out across the pool; D, his face: "Full. So
+    that's what it was waiting for." To the father's theme. The jar fills and the controls are
+    said (RT / R2, RB / R1) at its end.
+  - Tests: `tests/moment.test.js` (the shots, a play through, the skip and its grace, a failure,
+    the stage's refusals, and both desert moments in the story: once, skipped, without a ship).
 
 ## The makers' temples
 

@@ -3,6 +3,7 @@ import { game } from '../game-state.js';
 import { Quests, QuestMarker } from './quests.js';
 import { Dialogue } from './dialogue.js';
 import { sightOf } from './shot.js';
+import { MomentStage } from './moment.js';
 import { registerInteractable, updateInteract, PRIORITY } from '../interact.js';
 import { NPC, registerNPCTargets } from '../npc.js';
 import { talkFaces } from '../talk-face.js';
@@ -133,7 +134,9 @@ export function createStory(o) {
   // the level's own people who have something to say
   for (const n of npcs) if (n.def?.talk) talkable(n, n.def);
 
-  world = WORLDS[levelId]?.({ ...o, quests, dialogue, game, spawn, talkable }) ?? null;
+  // a world's first times, filmed (src/story/moment.js): on the ship's camera, never over a conversation
+  const moments = new MomentStage({ ship: o.ship ?? null, game, player, physics, quiet: () => dialogue.open || !!story?.pageOpen });
+  world = WORLDS[levelId]?.({ ...o, quests, dialogue, game, spawn, talkable, moments }) ?? null;
   // the world's temple (src/temples/): its quest, its local, its rooms and guardian
   const temple = setupTempleStory({ ...o, quests, dialogue, game, spawn, talkable });
 
@@ -185,8 +188,8 @@ export function createStory(o) {
   let useBtn = null;
   const useButton = () => (useBtn ??= typeof document !== 'undefined' ? document.querySelector('#touch .b-use') : null);
   const rt = {
-    quests, dialogue, marker, world, temple, portrait, prompt: null, promptAt: null,
-    busy: () => dialogue.open || !!world?.busy?.(),   // (a world's own scene: home's quiet moments)
+    quests, dialogue, marker, world, temple, portrait, moments, prompt: null, promptAt: null,
+    busy: () => dialogue.open || moments.playing || !!world?.busy?.(),   // (a world's own scene: home's quiet moments, a first time filmed)
     /** The tracked objective, routed through doorways (the cave) like the scout does. */
     objective() {
       const ob = quests.objective();
@@ -196,6 +199,7 @@ export function createStory(o) {
     update(dt, t, { camera, ePressed = false, paused = false }) {
       quests.update(player);
       world?.update?.(dt, t, { camera });
+      moments.update(dt);
       temple?.update(dt, t);
       world?.hold?.();
       // the person you talk to keeps facing you; a crowd person's group pauses
@@ -212,9 +216,11 @@ export function createStory(o) {
       if (dialogue.open && talking?.npc?.humanoid && talking.npc.object.visible) talkFaces.drive(talking.npc.humanoid, F.npc);
       if (player.humanoid && (dialogue.open || F.player.speaking)) talkFaces.drive(player.humanoid, F.player);
       // and the traveller's eyes on their face
-      player.eyeTarget = dialogue.open && talking?.npc?.object.visible ? faceOf(talking.npc, player.frame?.up ?? UP, _eyes) : null;
+      // (a moment says where he looks and turns: src/story/moment.js m.eyes, m.face)
+      const M = moments.playing ? moments.current : null;
+      player.eyeTarget = dialogue.open && talking?.npc?.object.visible ? faceOf(talking.npc, player.frame?.up ?? UP, _eyes) : M?.eyes ?? null;
       // the traveller turns to whoever they talk to, or to what they look at
-      player.faceToward = talking && dialogue.open ? (talking.npc?.pos ?? (rt._shot?.of === talking ? rt._shot.look : talking.look ?? talking.at)) : null;
+      player.faceToward = talking && dialogue.open ? (talking.npc?.pos ?? (rt._shot?.of === talking ? rt._shot.look : talking.look ?? talking.at)) : M?.face ?? null;
       // the press that closed a conversation must not open the next one (or whistle the mount)
       const now = typeof performance !== 'undefined' ? performance.now() : 0;
       const fresh = ePressed && now - (dialogue.closedAt ?? -1e9) > 400;

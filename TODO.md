@@ -478,6 +478,20 @@ All of this is for the web game; the Unity port follows later if we move to Unit
 - [ ] Switch the base bodies to MakeHuman (docs/makehuman.md, "What a full switch would take"): one
   parametric body with the macro targets, the face ink and hair fitted to it, the crowd figure and the
   levels of detail matched; animations and motion data kept.
+  - [x] Stage 1 (behind the studio's Body source and the game's `?mh=1`; the default people stay
+    Quaternius): one parametric body for everyone (`public/anim/mh/body.json` + `.bin`, 1.7 MB, 1.0
+    gzipped: MakeHuman's macro corners compressed, made into anyone on load, `src/makehuman/`); each
+    world's people by age, build and their world's proportions; MakeHuman's own ten CC0 hairstyles as
+    closed shells of a few locks with strand lines, and a beard from the jaw's skin, fitted to every
+    head; eyes opened and a little bigger; the Moebius face as MakeHuman targets (resting smile, finer
+    brows, warm shade and a child's bare face kept); the skinned levels of detail for shape-keyed
+    bodies. Comparison images in docs/makehuman/.
+  - [ ] Stage 2: costumes re-checked per body (hats, masks, robes on the heavy and the children), the
+    traveller's suit and gear (`suitGeometry`, `traveller.glb`) re-fitted or kept on the Quaternius
+    body, the GPU crowd figure's proportions (`packBody`) matched and a promoted crowd person given
+    their nearest MakeHuman body (age, build), the ragdoll's capsules and the cape colliders against the
+    new girths, the Unity export, the Lab's faces gallery, then the flip world by world (`?mh=1` the
+    default per world).
 
 ---
 
@@ -646,3 +660,16 @@ All of this is for the web game; the Unity port follows later if we move to Unit
       (a view could darken its tint; a world-level "ink shadow" option is missing).
     - Far dunes on the horizon are a pale lilac-cream band (IMG_3774 p1, p7): aerial perspective
       that turns the far ground toward a light warm tone, not the sky's.
+
+# Transitions and moments (2026-10-05, web)
+
+- [ ] Walking into a building, a cave or the ship (where you're moved into another space) is janky:
+  make the hand-over smooth and free of stutter.
+- [x] A few moments deserve a little cinematic: the first time the magic water flows into the basin in
+  the cave, and the first time you fill the tank and discover what it does.
+  *Done: a reusable moment helper (`src/story/moment.js`: panels, eases, holds, the letterbox, a
+  skip with B / Menu / Esc / a tap, once per save, falling back to the old behaviour), and the
+  desert's two (`src/story/desert-moments.js`): the rib rolling off, the crack, the water down the
+  gutter and spreading over the basin, his face, to the world's motif; the empty tank filling in
+  three colours, the bracer's rings, a first glob, his face, to the father's theme, then the
+  controls. README, "Moments: first times, filmed".*

@@ -57,7 +57,9 @@ export class SkinnedLod {
     const h = this.h, list = [];
     h.model.traverse((o) => {
       if (!o.isSkinnedMesh || o === h.eyeMesh || o === h.browMesh || Array.isArray(o.material)) return;
-      if (triCount(o.geometry) < SKIN_LOD.minTris || Object.keys(o.geometry.morphAttributes).length) return;
+      // (a mesh with shape keys too, the MakeHuman bodies' faces: its levels are built without them,
+      // far off a face has no expression to show; the full mesh, keys and all, comes back up close)
+      if (triCount(o.geometry) < SKIN_LOD.minTris) return;
       list.push({ mesh: o, full: o.geometry, cur: o.geometry });
     });
     this.entries = list;

@@ -1,18 +1,22 @@
-The bodies in this folder (*.glb) were generated with MPFB 2.0.17, the MakeHuman add-on for
-Blender (https://static.makehumancommunity.org/mpfb.html), by scripts/makehuman/build.py, from
-MakeHuman / MPFB assets released under CC0 1.0 Universal:
+The parametric body in this folder (body.json, body.bin) was generated with MPFB 2.0.17, the
+MakeHuman add-on for Blender (https://static.makehumancommunity.org/mpfb.html), by
+scripts/makehuman/build.py, from MakeHuman / MPFB assets released under CC0 1.0 Universal:
 
-- the base mesh (hm08), its macro targets and the 'game_engine' rig and weights, bundled with
-  MPFB ("C. The license for the bundled assets": "The base mesh and proxies, Targets and modifiers,
-  Textures, Clothes (any MHCLO-based asset), Rigs, poses and expressions, JSON data with mesh
-  information. These assets have been released under CC0 1.0 Universal." MPFB LICENSE.md,
+- the base mesh (hm08), its macro targets and the other targets used (the belly, hips, waist, the
+  face's), the 'game_engine' rig and weights, bundled with MPFB ("C. The license for the bundled
+  assets": "The base mesh and proxies, Targets and modifiers, Textures, Clothes (any MHCLO-based
+  asset), Rigs, poses and expressions, JSON data with mesh information. These assets have been
+  released under CC0 1.0 Universal." MPFB LICENSE.md,
   https://github.com/makehumancommunity/mpfb2/blob/master/LICENSE.md);
-- the low-poly eyes and the eyebrows of the "makehuman_system_assets" pack (every asset listed CC0,
-  author makehuman_system,
-  https://static.makehumancommunity.org/assets/assetpacks/makehuman_system_assets.html);
+- the low-poly eyes, the eyebrows and the ten hairstyles (afro01, bob01, bob02, braid01, long01,
+  ponytail01, short01-04) of the "makehuman_system_assets" pack (every asset listed CC0, author
+  makehuman_system, https://static.makehumancommunity.org/assets/assetpacks/makehuman_system_assets.html;
+  each hairstyle's file header: "This asset was explicitly released as CC0 in september 2020");
+  the hair is reshaped here into closed shells, the beard made from the base mesh's own skin;
 - the ARKit face units of "faceunits01" and the visemes of "visemes01" (Mika Suominen; every
   target's metadata: "license": "CC0";
   https://static.makehumancommunity.org/assets/assetpacks/faceunits01.html, visemes01.html).
 
+No asset of the community packs published under CC-BY (for example the "hair02" pack) is used.
 MPFB's own source code is GPLv3; none of it is in these files. See docs/makehuman.md.
 CC0 1.0 Universal: https://creativecommons.org/publicdomain/zero/1.0/legalcode
