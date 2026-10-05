@@ -89,7 +89,7 @@ namespace Memento
 
         bool Use()
         {
-            if (charges < 1 - 1e-3f) return false;
+            if (charges < 1 - 1e-3f) { Sounds.Instance?.Play("fluid_empty"); return false; }
             charges -= 1; sinceUse = 0; flash = 1;
             return true;
         }
@@ -99,6 +99,7 @@ namespace Memento
         {
             charges = Max; sinceUse = 99;
             if (addColour) { colours = Mathf.Min(colours + 1, 5); SetTones(); }
+            Sounds.Instance?.Play(addColour ? "fluid_refill_colour" : "fluid_refill");
         }
 
         Vector3 Muzzle() => bracer ? bracer.position + bracer.up * 0.12f : player.transform.position + Vector3.up * 1.2f + player.transform.forward * 0.4f;
@@ -125,7 +126,7 @@ namespace Memento
             if (Pad.ModeDown(out int dir))
             {
                 var ms = Modes();
-                if (ms.Count > 1) { int i = Mathf.Max(0, ms.IndexOf(mode)); mode = ms[((i + dir) % ms.Count + ms.Count) % ms.Count]; SetTones(); game.hud.Toast($"Fluid mode: {(mode == "shoot" ? "fluid" : mode == "stun" ? "stilling" : "ember")}"); }
+                if (ms.Count > 1) { int i = Mathf.Max(0, ms.IndexOf(mode)); mode = ms[((i + dir) % ms.Count + ms.Count) % ms.Count]; SetTones(); game.hud.Toast($"Fluid mode: {(mode == "shoot" ? "fluid" : mode == "stun" ? "stilling" : "ember")}"); Sounds.Instance?.Play(mode == "shoot" ? "fluid_mode" : "fluid_mode_" + mode); }
             }
             if (Pad.ShootDown() && cooldown <= 0) Shoot();
             if (Pad.PushDown() && cooldown <= 0) Push();
@@ -136,6 +137,7 @@ namespace Memento
         {
             if (!Use()) return;
             cooldown = 0.28f; shots++;
+            Sounds.Instance?.Play(mode == "shoot" ? "fluid_shoot" : "fluid_shoot_" + mode);
             var cam = game.cam.transform;
             var from = Muzzle();
             Vector3 to = Physics.Raycast(cam.position, cam.forward, out var h, ShootRange + 10, ~(1 << 2)) && Vector3.Dot(h.point - from, cam.forward) > 1 ? h.point : cam.position + cam.forward * ShootRange;
@@ -187,6 +189,7 @@ namespace Memento
 
         void SplatAt(Vector3 p, Vector3 normal, string m, float size)
         {
+            if (size >= 0.3f) Sounds.Instance?.PlayAt(m == "fire" ? "fluid_splash_fire" : size < 0.5f ? "fluid_splash_target" : "fluid_splash", p);
             var go = new GameObject("splat");
             go.transform.position = p + normal * 0.02f;
             go.transform.rotation = Quaternion.LookRotation(normal) * Quaternion.Euler(0, 0, Random.value * 360);
@@ -217,6 +220,7 @@ namespace Memento
         {
             if (!Use()) return;
             cooldown = 0.4f; pushes++;
+            Sounds.Instance?.Play("fluid_push");
             var from = player.transform.position + Vector3.up * 1.1f;
             var dir = player.transform.forward;
             int n = 0;
@@ -241,6 +245,7 @@ namespace Memento
         {
             if (!Owned || player.riding || !Use()) return false;
             boosts++;
+            Sounds.Instance?.Play("fluid_boost");
             var v = player.vel;
             float up = Mathf.Max(v.y, 0) * BoostKeep + BoostUp;
             player.vel = new Vector3(v.x, up, v.z) + player.transform.forward * BoostForward;

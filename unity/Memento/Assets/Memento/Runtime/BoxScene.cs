@@ -67,6 +67,12 @@ namespace Memento
         void Enter(string p)
         {
             phase = p; t = 0;
+            var S = Sounds.Instance;
+            if (p == "wake") S?.Play("box_creak");
+            if (p == "rise") S?.Play("box_hum");
+            if (p == "dissolve") S?.Play("box_burst");
+            if (p == "reveal") S?.Play("fanfare");
+            if (p == "out") S?.Play("chime");
             if (p == "dissolve" && model) model.gameObject.SetActive(true);
             if (p == "reveal") SetDissolve(1);
             if (p == "card")

@@ -43,6 +43,7 @@ namespace Memento
         static readonly string[] Keys = { "idle", "walk", "jog", "sprint", "air", "drive", "talk", "jumpLand", "look", "ledge", "climbIdle", "climbUp", "climbDown", "climbLeft", "climbRight" };
         readonly Dictionary<string, float> w = new(), tw = new(), time = new();
         float phase, idleT, airT = 0, landT = 99; bool wasAir;
+        public float Phase => phase;
         public int pose;              // npc.js posture: 0 none, 2 rail, 3 edge, 4 kerb / seat, 6 wall
         public bool culled;           // far away: no motion this frame
         int skip;

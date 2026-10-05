@@ -259,6 +259,7 @@ namespace Memento
         // ------------------------------------------------------------ animation (animator.js on the baked clips: Figure.cs)
         string playing;
         public bool talkingNow;
+        float lastPhase;
         void Animate(float dt, float speed)
         {
             if (figure)
@@ -271,6 +272,10 @@ namespace Memento
                     walkAt = Mathf.Min(FigureLibrary.Instance.nativeWalk * 1.2f, Walk * 0.4f), jogAt = Walk, sprintAt = Run, strideScale = 1,
                 };
                 figure.Drive(dt, fs);
+                // footsteps: a foot comes down twice a gait cycle (audio.js step, in the sand)
+                float ph = figure.Phase;
+                if (onGround && !riding && !climbing && SpeedXZ > 0.8f && (Mathf.Floor(ph * 2) != Mathf.Floor(lastPhase * 2))) Sounds.Instance?.Play(SpeedXZ > 6 ? "step_sand_run" : "step_sand_walk");
+                lastPhase = ph;
                 return;
             }
             if (!anim) return;

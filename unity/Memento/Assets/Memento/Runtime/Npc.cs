@@ -146,7 +146,7 @@ namespace Memento
                 speed = sp, onGround = true, mode = talking && hudSpeaking ? Figure.Mode.Talk : Figure.Mode.Ground,
                 walkAt = lib.nativeWalk * 1.3f, jogAt = lib.nativeJog, sprintAt = lib.nativeSprint * 1.2f, strideScale = 1.05f,
             });
-            if (shouting) figure.Talk(true, shoutTone);
+            if (shouting) figure.Talk(true, shoutTone, sayPlan != null ? Voice.MouthAt(sayPlan, Time.time - sayAt) : (float?)null);
             // seated: the hips down on the seat, a little behind its front edge (npc.js)
             if (p == 3 || p == 4)
             {
@@ -169,7 +169,14 @@ namespace Memento
         public void Shove(Vector3 v) { knock = v * 4f; startleAt = Time.time; }
         string shoutTone;
 
-        public void Say(string line, float secs) { var t = Text.Parse(line); shout = t.text; shoutTone = t.tone; shoutUntil = Time.time + secs; }
+        public void Say(string line, float secs)
+        {
+            var t = Text.Parse(line); shout = t.text; shoutTone = t.tone; shoutUntil = Time.time + secs;
+            // heard where they stand (voice.js speakBalloon: a short version, quieter with distance)
+            var v = Voice.Of(def?.S("id") ?? (crowdIndex >= 0 ? $"crowd:{crowdIndex}" : id), def != null && def.Has("voice") ? def.F("voice") : (float?)null, def?.S("kind") ?? figure?.kind, scale, displayName ?? "", title ?? "");
+            sayPlan = Sounds.Instance?.Say(Text.Plain(t.text), t.tone, v, pos + Vector3.up * 1.6f, 9); sayAt = Time.time;
+        }
+        Voice.Plan sayPlan; float sayAt;
         public void Face(Vector3 p, float dt) { var d = p - pos; d.y = 0; if (d.sqrMagnitude > 0.01f) heading = Mathf.LerpAngle(heading, Mathf.Atan2(d.x, d.z) * Mathf.Rad2Deg, 1 - Mathf.Exp(-6 * dt)); }
         public Vector3 Head => pos + Vector3.up * 1.9f * (body ? body.localScale.y : 1);
         public Transform HeadTransform => figure ? (headT ??= figure.Bone("Head")) : null;

@@ -28,13 +28,14 @@ namespace Memento
         static readonly Color Paper = new(0.97f, 0.94f, 0.86f, 0.96f), Ink = new(0.17f, 0.13f, 0.12f), Accent = new(0.72f, 0.26f, 0.25f);
 
         public void Toast(string t) { if (!string.IsNullOrEmpty(t)) toasts.Enqueue((Text.Plain(t), 3.6f)); }
+        Dictionary<string, object> talkPerson; string spokenText; float spokenAt; Voice.Plan spokenPlan;
         public bool cinematic;                       // a scene has the camera (a makers' box opening): no prompts
         public bool Busy => talk != null || journalOpen || card != null || cinematic;
 
         public void StartTalk(Dictionary<string, object> person, Npc npc, string displayName, string title)
         {
             talk = new DialogueRunner(person, game.state, game.quests, item => Toast($"Received {game.quests.ItemName(item)}"));
-            talkNpc = npc; talkName = displayName; talkTitle = title; reveal = 0; sel = 0;
+            talkNpc = npc; talkName = displayName; talkTitle = title; reveal = 0; sel = 0; talkPerson = person; spokenText = null;
             if (npc) npc.talking = true;
             if (talk.ended) EndTalk();
         }
@@ -52,7 +53,7 @@ namespace Memento
             if (toastNow == null && toasts.Count > 0) { var t = toasts.Dequeue(); toastNow = t.text; toastT = t.secs; }
             if (toastNow != null) { toastT -= dt; if (toastT <= 0) toastNow = null; }
             if (card != null) { cardT += dt; if (cardT > 0 && Pad.ConfirmDown()) card = null; return; }
-            if (Pad.JournalDown() && talk == null) journalOpen = !journalOpen;
+            if (Pad.JournalDown() && talk == null) { journalOpen = !journalOpen; Sounds.Instance?.Play("page"); }
             if (journalOpen && Pad.BackDown()) journalOpen = false;
             if (talk != null) UpdateTalk(dt);
         }
@@ -63,11 +64,20 @@ namespace Memento
             reveal += dt * 55f;   // letters per second (voice.js REVEAL_CPS)
             var text = talk.TextNow;
             var choices = talk.Choices();
+            // a new page: said aloud in the speaker's voice (voice.js), the mouth on its syllables
+            if (text != spokenText)
+            {
+                spokenText = text; spokenAt = Time.time;
+                var d = talkPerson;
+                var v = Voice.Of(d?.S("id") ?? talkName, d != null && d.Has("voice") ? d.F("voice") : (float?)null, d?.S("kind"), talkNpc ? talkNpc.scale : 1, talkName ?? "", talkTitle ?? "", d?.S("age"));
+                spokenPlan = talkNpc ? Sounds.Instance?.Say(Text.Plain(text), talk.Tone, v) : null;
+            }
+            float? mouth = spokenPlan != null ? Voice.MouthAt(spokenPlan, Time.time - spokenAt) : (float?)null;
             // their face while they say it (talk-face.js): the line's tone, the mouth moving; the traveller looks at them
             if (talkNpc)
             {
                 talkNpc.hudSpeaking = reveal < text.Length;
-                if (talkNpc.figure) talkNpc.figure.Talk(talkNpc.hudSpeaking, talk.Tone);
+                if (talkNpc.figure) talkNpc.figure.Talk(talkNpc.hudSpeaking, talk.Tone, mouth);
                 if (game.player && game.player.figure) game.player.figure.lookTarget = talkNpc.HeadTransform;
             }
             int nav = Pad.NavDown();

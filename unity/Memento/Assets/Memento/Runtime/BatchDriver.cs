@@ -180,7 +180,7 @@ namespace Memento
 
             // the fluid tool: a shot, a boost in the air, the stilling mode, the wings
             var tool = game.tool;
-            Put(game.world.Places.V3("camps") + new Vector3(24, 0, 18), 200); yield return Wait(1.2f);
+            Put(game.world.Places.V3("camps") + new Vector3(24, 0, 18), 20); yield return Wait(1.2f);
             game.rig.pitch = 12;
             yield return Pulse(v => pad.shoot = v); yield return Wait(0.12f);
             yield return Shoot("a_glob_in_flight");
@@ -277,6 +277,7 @@ namespace Memento
             Put(game.world.Places.V3("shipRamp"), 0); yield return Wait(1.5f);
             Log($"at the ship: stage {Stage}, done {game.quests.IsDone("desert.power")}, powered {game.state.Is("ship.powered")}");
             yield return Shoot("the_ship_hums");
+            Log($"sound: {Sounds.Instance?.ClipCount ?? 0} recorded clips, {Sounds.Instance?.played ?? 0} played");
             File.WriteAllLines(Path.Combine(outDir, "play.log"), log);
             Pad.Script = null;
             Finished?.Invoke(game.quests.IsDone("desert.power"));

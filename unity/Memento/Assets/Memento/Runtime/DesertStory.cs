@@ -29,6 +29,8 @@ namespace Memento
         public Flame treeFlame;
         bool wasInPool;
         readonly List<(Vector3 at, float r, float y0, float y1, float dps)> hazards = new();
+        /// <summary>Where the fires burn (the camp fires, the tree): the crackle is heard near them.</summary>
+        public IEnumerable<Vector3> FirePlaces { get { foreach (var h in hazards) yield return h.at; } }
         float hazardSaidT = -99;
 
         public Dictionary<string, object> Def(string id) => story.O("people").O(id);
