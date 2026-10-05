@@ -1102,20 +1102,10 @@ const fragmentShader = /* glsl */ `
     float lambert = ndl * 0.5 + 0.5;
     // the face takes cast shadows from outside its helmet only, keeping one clean shadow shape
     vec3 shadowAt = uPortrait > 0.5 ? vWorldPos + n * 0.22 : vWorldPos;
-    // a person's face is lit as one rounded volume (faceRound): where that says lit but the skin
-    // itself turns from the sun, the head's own shadow (jagged, the map's texels) is not looked up,
-    // so the shade is the rounded one, a single clean shape; a hat's brim or a hand still cast theirs
-    // (the map's bias goes by the skin's own facet, not the rounded normal: else it shadows itself)
+    // (a person's face is lit as one rounded volume: faceRound; its facets for the ink pass, below)
     vec3 facetN = cross(dFdx(vWorldPos), dFdy(vWorldPos));   // (outside the branch: derivatives)
-    float selfLit = 1.0;
-    vec3 shadowN = n;
-    if (uMode == ${MODE_OUTFIT} && faceFlat(vBind) > 0.0) {
-      facetN = normalize(facetN) * (dot(facetN, n) < 0.0 ? -1.0 : 1.0);
-      selfLit = smoothstep(0.0, 0.12, dot(facetN, uSunDir));
-      shadowN = facetN;
-    }
     float shadowPx = max(length(dFdx(vWorldPos)), length(dFdy(vWorldPos)));   // (outside the branch: derivatives)
-    float sh = ndl > 0.0 ? mix(1.0, getShadow(shadowAt, shadowN, max(dot(shadowN, uSunDir), 0.02), shadowPx), selfLit) * cloudShadow(vWorldPos) : 1.0;
+    float sh = ndl > 0.0 ? getShadow(shadowAt, n, ndl, shadowPx) * cloudShadow(vWorldPos) : 1.0;
     // Cast shadows clamp the light term below the toon threshold (0.5) but keep
     // some gradation so the post-process can choose single vs cross hatching.
     float L = mix(min(lambert, 0.38), lambert, sh);
@@ -1150,7 +1140,7 @@ const fragmentShader = /* glsl */ `
     gAlbedoLight = vec4(albedo, L);
     gNormalDepth = vec4(n, vViewDepth);
     // (the ink pass's creases and crease shading see the skin's own facets, not the rounded light)
-    if (uMode == ${MODE_OUTFIT} && selfLit < 2.0 && faceFlat(vBind) > 0.0) gNormalDepth.xyz = normalize(mix(n, facetN, faceFlat(vBind)));
+    if (uMode == ${MODE_OUTFIT} && faceFlat(vBind) > 0.0) gNormalDepth.xyz = normalize(mix(n, normalize(facetN) * (dot(facetN, n) < 0.0 ? -1.0 : 1.0), faceFlat(vBind)));
     #ifdef WATER
       if (gl_FrontFacing && uWaterOpt.y < 0.5) gNormalDepth.xyz *= 1.0 + ${WATER_MARK.base} + ${WATER_MARK.glint} * wl.glint;   // (water.js: the sparkle)
     #endif
