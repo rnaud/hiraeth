@@ -922,7 +922,8 @@ const controller = new Controller({
       else menuNavigate(root, 0, 1);
     }
     if (name === 'settings') menu.toggle(true);
-    if (name === 'journal') journal.toggle(true);
+    if (name === 'journal' && level.compare) level.compare();   // (the references: View compares the render with its panel)
+    else if (name === 'journal') journal.toggle(true);
     if (name === 'worlds') showPicker(true);
     if (name === 'photo') setPhoto(!photo.on);
     if (name === 'capture') photo.capture = true;

@@ -21,6 +21,7 @@ export const WORLD_REACTIONS = {
   spheres: {kind:'flower',quiet:'#a8c48a',awake:'#f6e2a0',radius:11},
   perdide2: {kind:'fungus',quiet:'#6f6a94',awake:'#ffb38a',radius:10,spores:true,shy:true},
   lab: {kind:'flower',quiet:'#b9b5ad',awake:'#71d7cf',radius:9},
+  references: {kind:'flower',quiet:'#d9b88c',awake:'#71d7cf',radius:9},   // (none grow there: level.reactions false)
   atelier: {kind:'fan',quiet:'#c4beb0',awake:'#8cbdb7',radius:10},
   home: {kind:'flower',quiet:'#d9a37f',awake:'#5fd0c6',radius:9},
 };
@@ -165,6 +166,7 @@ export class ReactiveWorld {
       seeds.length=0;
       for(let i=0;i<8;i++)seeds.push({pos:new THREE.Vector3(i%2?23:-23,0,95-i*54),up:UP});
     }
+    if(level.reactions===false)seeds.length=0;   // (a world kept as it is drawn: the references)
     seeds.slice(0,28).forEach((seed,i)=>{
       const up=seed.up,rotation=new THREE.Quaternion().setFromUnitVectors(UP,up);
       for(let j=0;j<3;j++){

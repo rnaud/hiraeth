@@ -11,6 +11,7 @@ const pal = (cloak, extra = {}) => ({ cloak, lining: extra.lining ?? '#2b211f', 
 
 import { ARZACH2_CONTENT } from './arzach2.js';
 import { LAB_FACES, LAB_PEOPLE } from './lab.js';
+import { REFERENCE_PEOPLE } from './references.js';
 import { BURIED_CONTENT } from './buried.js';
 import { EDENA_CONTENT } from './edena.js';
 import { SPHERES_CONTENT } from './spheres.js';
@@ -62,6 +63,13 @@ export const CONTENT = {
       face: g.face, expression: g.expression, facing: g.facing,
       lines: ['~happy~ Look closely.', '~curious~ Is it the eyes, or the ink?', '~neutral~ Hold still.', '~playful~ My good side is this one.'],
     })), ...LAB_PEOPLE],
+  },
+  // src/levels/references.js: no story, no relics; the reference panels' small figures, standing where the panels have them
+  references: {
+    weather: [],
+    story: { title: 'THE REFERENCES', intro: 'The pages this world is drawn after, rebuilt in its own ink. Hold them side by side.', outro: 'Done comparing.', label: 'the first panel', goal: [0, 'ground', 0], radius: 6, manual: true },
+    relics: { spots: [], names: [] },
+    npcs: REFERENCE_PEOPLE,
   },
   atelier: {
     weather: [],
