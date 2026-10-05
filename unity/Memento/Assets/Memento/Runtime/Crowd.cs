@@ -18,7 +18,7 @@ namespace Memento
         bool loop;
         public bool HasProcession => pts != null && pts.Count > 1;
         public float ColumnSpeed => speed;
-        public int max = 90;
+        public int max = 200;
         static readonly string[] Cloaks = { "#c8483a", "#5fb7ad", "#f2c54b", "#8a6fb8", "#f3ead8", "#e6875f", "#62c3c9", "#e88fa6", "#dca273" };
 
         public void Build(Game game, Dictionary<string, object> crowd, List<object> lines)
@@ -40,7 +40,8 @@ namespace Memento
             int n = 0;
             var spawnAt = game.world.Places.V3("spawn");
             // the procession first, then the people nearest the camps
-            var people = crowd.L("people").OrderBy(p => p.Get("walk") is Dictionary<string, object> w && w.I("route", -1) == pi ? 0 : 1).ThenBy(p => Vector3.Distance(p.V3("pos"), game.world.Places.V3("camps")));
+            var all = crowd.L("people");
+            var people = all.OrderBy(p => p.Get("walk") is Dictionary<string, object> w && w.I("route", -1) == pi ? 0 : 1).ThenBy(p => Vector3.Distance(p.V3("pos"), game.world.Places.V3("camps")));
             foreach (var p in people)
             {
                 if (n++ >= max) break;
@@ -52,7 +53,9 @@ namespace Memento
                 npc.route = new List<Vector3> { p.V3("pos") };
                 npc.lines = lineList;
                 var pal = new[] { Json.Hex(Cloaks[n % Cloaks.Length]), Json.Hex(n % 3 == 0 ? "#2b2f45" : n % 3 == 1 ? "#4a3a2a" : "#5a4a40"), Json.Hex("#4a3a2a"), Color.Lerp(new Color(0.91f, 0.78f, 0.66f), new Color(0.55f, 0.38f, 0.27f), (n * 0.41f) % 1f) };
-                _ = npc.Build(0.88f + 0.2f * ((n * 0.618f) % 1f), pal, n % 2 == 0 ? "f" : "m");
+                var rec = FigureLibrary.Instance?.CrowdPerson(all.IndexOf(p));
+                if (rec != null) { npc.Dress(rec); npc.pose = rec.I("pose"); npc.cull = 90; npc.hide = 420; npc.crowdIndex = all.IndexOf(p); }
+                else _ = npc.Build(0.88f + 0.2f * ((n * 0.618f) % 1f), pal, n % 2 == 0 ? "f" : "m");
                 game.npcs.Add(npc);
                 var w = p.O("walk");
                 if (w != null && w.I("route", -1) == pi && HasProcession)
@@ -79,6 +82,9 @@ namespace Memento
         }
         public Vector3 ColumnHead(float ahead) => Point(clock + lead + ahead);
 
-        void Update() { if (HasProcession) clock += speed * Time.deltaTime; }
+        void Update() { if (HasProcession) clock += speed * Time.deltaTime; far?.Draw(game); }
+        FarCrowd far; Game game;
+        public int FarCount => far?.Count ?? 0;
+        public void BuildFar(Game g) { game = g; far = FarCrowd.Create(g.world); }
     }
 }

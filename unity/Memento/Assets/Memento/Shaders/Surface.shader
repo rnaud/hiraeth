@@ -38,14 +38,13 @@ Shader "Memento/Surface"
     HLSLINCLUDE
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
     #include "MementoCommon.hlsl"
+    #include "Figure.hlsl"
 
     float4 _Color, _Color2, _Color3;
     float _Mode, _Flat, _StrataSize, _Grid, _Glyphs, _Biomes, _Ripples, _SandInk, _Ticks, _Glow, _Folds, _Scrub, _Pattern, _Figure, _Hero, _Sway, _StrataObject, _PaletteSize;
     float4 _Palette[12];
-    float4 _Skin;
-    float4 _OutfitFeet;    // a person's feet in the world (xyz), 1 / their scale (w): Npc.cs sets it every frame
-    float4 _OutfitRight;   // their right, in the world
     float _NoVertexColor;
+    float _Bind;           // people (Figures.cs): the rest pose in uv3 / uv4, so their drawing rides on the body
 
     struct Attributes
     {
@@ -55,7 +54,9 @@ Shader "Memento/Surface"
       float2 uv : TEXCOORD0;
       float2 fold : TEXCOORD1;
       float4 sway : TEXCOORD2;   // plants: anchor x, z (Unity world), bend per metre of wind, brush lean
-      float3 bind : TEXCOORD3;   // people: the rest-pose position (outfit zones, Characters.cs)
+      float3 bind : TEXCOORD3;   // people: the rest-pose position (outfit zones, face, eyes: Figures.cs)
+      float3 bindN : TEXCOORD4;  // and its normal
+      uint iid : SV_InstanceID;  // the crowd's instanced figures (MEMENTO_CROWD)
     };
 
     // the wind bend of an instanced plant (materials.js SWAY), as a world displacement (Unity space)
@@ -93,7 +94,23 @@ Shader "Memento/Surface"
       #pragma fragment frag
       #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
       #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
+      #pragma multi_compile_local _ MEMENTO_CROWD MEMENTO_PUFFS MEMENTO_INSTMAT
       #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
+      #include "Crowd.hlsl"
+      // instanced puffs (smoke, embers, dust, footprints: Puffs.cs): where, how big, which way, what colour
+      struct PuffInst { float4 at; float4 size; float4 col; };   // at.w yaw, size.w pitch, col.w roll (rad, Unity)
+      StructuredBuffer<PuffInst> _Puffs;
+      float4 _FarDepth;
+      // instanced parts with a whole transform each (the wildlife: InstMats in Puffs.cs): three rows of a 3x4 matrix and a tint
+      struct MatInst { float4 r0, r1, r2, col; };
+      StructuredBuffer<MatInst> _Mats;   // x: from this view depth on, y: the depth grows this much slower (smoke-column far shading); 0 off
+      float3 rotXYZ(float3 v, float3 e)
+      {
+        float cx = cos(e.x), sx = sin(e.x), cy = cos(e.y), sy = sin(e.y), cz = cos(e.z), sz = sin(e.z);
+        v = float3(cz * v.x - sz * v.y, sz * v.x + cz * v.y, v.z);       // roll
+        v = float3(v.x, cx * v.y - sx * v.z, sx * v.y + cx * v.z);       // pitch
+        return float3(cy * v.x + sy * v.z, v.y, -sy * v.x + cy * v.z);  // yaw
+      }
 
       struct Varyings
       {
@@ -108,6 +125,7 @@ Shader "Memento/Surface"
         float2 fold : TEXCOORD7;
         float3 posWS : TEXCOORD8;       // Unity space (shadows)
         float3 bind : TEXCOORD9;
+        float4 crowdTrim : TEXCOORD10;  // the crowd figures: the tunic's printed pattern (accent, id)
       };
 
       Varyings vert(Attributes v)
@@ -124,13 +142,57 @@ Shader "Memento/Surface"
         o.viewDepth = -TransformWorldToView(posWS).z;
         o.objPos = toThree(v.positionOS.xyz * scl);
         o.objNormal = toThree(v.normalOS / scl);
+        if (_Bind > 0.5) { o.objPos = toThree(v.bind * scl); o.objNormal = toThree(v.bindN / scl); }   // (three: the unskinned position)
         float3 camOS = mul(UNITY_MATRIX_I_M, float4(_WorldSpaceCameraPos, 1.0)).xyz;
         o.objRel = o.objPos - toThree(camOS * scl);
         o.fold = v.fold;
-        // (people: the posed body in its own frame, rescaled so the feet are at 0 and the head at 1.8 m)
-        // (people: measured from their feet in the world, across their body and up, in metres of a 1.8 m figure)
-        float3 rel = posWS - _OutfitFeet.xyz;
-        o.bind = _Mode > 3.5 && _Mode < 4.5 ? float3(dot(rel, _OutfitRight.xyz), rel.y, 0) * _OutfitFeet.w : v.bind;
+        o.bind = toThree(v.bind);
+        o.crowdTrim = 0;
+        #if defined(MEMENTO_CROWD)
+          // an instanced crowd figure (crowd-shader.js): posed in figure space (three's), then mirrored and placed
+          CrowdInst ci = _CrowdInst[v.iid];
+          float3 cp = v.positionOS.xyz, cn = v.normalOS, ccol; float4 ctrim;
+          crowdAnimate(ci, v.sway, cp, cn, ccol, ctrim);
+          float cs = ci.scale.x, cc = cos(ci.at.w), sn = sin(ci.at.w);
+          float3 pu = toThree(cp) * cs, nu = toThree(cn);
+          posWS = ci.at.xyz + float3(cc * pu.x + sn * pu.z, pu.y, -sn * pu.x + cc * pu.z);
+          nWS = normalize(float3(cc * nu.x + sn * nu.z, nu.y, -sn * nu.x + cc * nu.z));
+          o.positionCS = TransformWorldToHClip(posWS);
+          o.posWS = posWS;
+          o.worldPos = toThree(posWS);
+          o.normal = toThree(nWS);
+          o.instColor = ccol;
+          o.viewDepth = -TransformWorldToView(posWS).z;
+          o.objPos = cp * cs; o.objNormal = cn / cs; o.objRel = o.objPos - toThree(_WorldSpaceCameraPos);
+          o.bind = v.positionOS.xyz;
+          o.crowdTrim = ctrim;
+        #endif
+        #if defined(MEMENTO_PUFFS)
+          PuffInst pi = _Puffs[v.iid];
+          float3 e3 = float3(pi.size.w, pi.at.w, pi.col.w);
+          float3 lp = v.positionOS.xyz * pi.size.xyz;
+          posWS = pi.at.xyz + rotXYZ(lp, e3);
+          nWS = normalize(rotXYZ(v.normalOS / max(pi.size.xyz, 1e-4), e3));
+          o.positionCS = TransformWorldToHClip(posWS);
+          o.posWS = posWS; o.worldPos = toThree(posWS); o.normal = toThree(nWS);
+          o.instColor = pi.col.rgb * v.color.rgb;
+          o.viewDepth = -TransformWorldToView(posWS).z;
+          o.objPos = toThree(lp); o.objNormal = toThree(v.normalOS); o.objRel = o.objPos - toThree(_WorldSpaceCameraPos - pi.at.xyz);
+          o.bind = 0;
+        #endif
+        #if defined(MEMENTO_INSTMAT)
+          MatInst mi = _Mats[v.iid];
+          float3 q = v.positionOS.xyz;
+          posWS = float3(dot(mi.r0.xyz, q) + mi.r0.w, dot(mi.r1.xyz, q) + mi.r1.w, dot(mi.r2.xyz, q) + mi.r2.w);
+          nWS = normalize(float3(dot(mi.r0.xyz, v.normalOS), dot(mi.r1.xyz, v.normalOS), dot(mi.r2.xyz, v.normalOS)));
+          o.positionCS = TransformWorldToHClip(posWS);
+          o.posWS = posWS; o.worldPos = toThree(posWS); o.normal = toThree(nWS);
+          o.instColor = mi.col.rgb * v.color.rgb;
+          o.viewDepth = -TransformWorldToView(posWS).z;
+          float ms = length(mi.r0.xyz);
+          o.objPos = toThree(q * ms); o.objNormal = toThree(v.normalOS); o.objRel = o.objPos - toThree((_WorldSpaceCameraPos - float3(mi.r0.w, mi.r1.w, mi.r2.w)));
+          o.bind = 0;
+        #endif
         return o;
       }
 
@@ -164,6 +226,26 @@ Shader "Memento/Surface"
       GBufferOut frag(Varyings i, bool frontFace : SV_IsFrontFace)
       {
         int mode = (int)(_Mode + 0.5);
+        // glass (the bubble helmet): see-through except at the grazing rim and a curved highlight
+        if (_Glass > 0.0)
+        {
+          float3 Vg = normalize(toThree(_WorldSpaceCameraPos) - i.worldPos);
+          float fr = 1.0 - abs(dot(normalize(i.normal), Vg));
+          float3 od = normalize(i.objPos - _GlassCenter.xyz);
+          float streak = step(abs(atan2(od.y, od.x) - 2.2), 0.09) * step(0.25, od.z) * step(od.z, 0.75);
+          if (fr < 0.72 && streak < 0.5) discard;
+        }
+        float fwBind = max(fwidth(i.bind.y), fwidth(i.bind.x));
+        // a makers' box coming apart (boxes/scene.js): eaten from the top down, the edge burning bright
+        float dEdge = 0.0;
+        if (_Dissolve.x > 0.0)
+        {
+          float dh = saturate((i.worldPos.y - _Dissolve.z) / max(_Dissolve.w - _Dissolve.z, 1e-3));
+          float dn = vnoise(i.worldPos.xz * 6.0 + i.worldPos.y * 2.3) * 0.42 + vnoise(i.worldPos.zy * 15.0 + 3.1) * 0.18 + (1.0 - dh) * 0.4;
+          float dth = _Dissolve.x * 1.15 - 0.08;
+          if (dn < dth) discard;
+          dEdge = 1.0 - smoothstep(0.0, _Dissolve.y, dn - dth);
+        }
         // stroke coordinates + derivatives first, in uniform control flow
         float3 facetO = cross(ddx(i.objRel), ddy(i.objRel));
         float3 on = _Flat > 0.5 ? facetO : i.objNormal;
@@ -198,7 +280,7 @@ Shader "Memento/Surface"
           float3 rel = i.worldPos - toThree(_WorldSpaceCameraPos);
           n = normalize(cross(ddx(rel), ddy(rel)));
           if (dot(n, viewT) < 0.0) n = -n;
-        } else if (!frontFace && _Figure < 0.5 && _Hero < 0.5) n = -n;   // (people: glTFast's skinned bodies keep their own normals; their winding reads as back faces)
+        } else if (!frontFace && (_Bind > 0.5 || (_Figure < 0.5 && _Hero < 0.5))) n = -n;   // (glTFast's skinned bodies read as back faces; the exported people do not)
 
         float3 albedo = _Color.rgb;
         float3 instColor = i.instColor;
@@ -227,16 +309,11 @@ Shader "Memento/Surface"
         } else if (mode == MODE_WATER) {
           float w = vnoise(i.worldPos.xz * 0.012 + _MTime * 0.01);
           albedo = w > 0.55 ? _Color2.rgb : _Color.rgb;
-        } else if (mode == 4) {
+        } else if (mode == MODE_OUTFIT) {
           // a person's printed outfit (materials.js MODE_OUTFIT): boots, trousers, belt, tunic, skin at the neck and hands
-          float3 b = i.bind; float ax = abs(b.x);
-          const float4 O = float4(0.13, 0.97, 1.47, 0.64);   // boot top, belt, neck, wrist (rest pose, m)
-          if ((b.y > O.z && ax < 0.16) || ax > O.w) albedo = _Skin.rgb;
-          else if (b.y < O.x) albedo = _Color3.rgb;
-          else if (abs(b.y - O.y) < 0.03 && ax < 0.25) albedo = _Color2.rgb * 0.6 + float3(0.33, 0.24, 0.1);
-          else if (b.y < O.y) albedo = _Color2.rgb;
-          else if (ax > O.w - 0.05) albedo = _Color.rgb * 0.75;
-          else albedo = _Color.rgb;
+          albedo = outfitAlbedo(i.bind, _Color.rgb, _Color2.rgb, _Color3.rgb);
+        } else if (mode == MODE_EYE) {
+          albedo = eyeball(i.bind, _Color.rgb, _Color2.rgb, _Skin.rgb);
         }
         float patInk = 0.0;
         int pattern = (int)(_Pattern + 0.5);
@@ -245,7 +322,9 @@ Shader "Memento/Surface"
         else if (pattern == 2) patInk = roofTiles(i.worldPos);
         else if (pattern == 3) patInk = leaves(i.objPos);
         else if (pattern == 4) patInk = rockCracks(i.objPos);
+        if (_Fluid > 0.5) albedo = fluidAlbedo(albedo, i.bind, i.fold);
         albedo *= instColor;
+        if (i.crowdTrim.w > 0.5) albedo = outfitTrim(albedo, i.crowdTrim.rgb, i.crowdTrim.w, i.bind);
         if (_Folds > 0.0) albedo = (i.fold.y < 0.62 ? _Color.rgb : _Color2.rgb) * i.instColor;
 
         float ndl = dot(n, _SunDir);
@@ -270,9 +349,11 @@ Shader "Memento/Surface"
         }
         L = max(L, lerp(L, 0.97, smoothstep(0.15, 0.5, local)));
 
+        albedo = lerp(albedo, _DissolveColor.rgb, dEdge);
+        L = lerp(L, 1.0, dEdge);
         GBufferOut o;
         o.albedoLight = float4(albedo, L);
-        o.normalDepth = float4(n, i.viewDepth);
+        o.normalDepth = float4(n, _FarDepth.x > 0 && i.viewDepth > _FarDepth.x ? _FarDepth.x + (i.viewDepth - _FarDepth.x) * _FarDepth.y : i.viewDepth);
         o.hatch = 0;
 
         // drawn detail (gHatch.b)
@@ -317,9 +398,16 @@ Shader "Memento/Surface"
           float run = smoothstep(0.08 + h1 * 0.25, 0.14 + h1 * 0.25, i.fold.y) * (1.0 - smoothstep(0.75 + h2 * 0.25, 0.8 + h2 * 0.25, i.fold.y));
           detail = max(detail, inkLine(d, lerp(1.3, 0.7, i.fold.y)) * run * step(0.25, h2 + 0.3));
         }
+        // the people: the suit's creases (creases.js) and the face (materials.js faceInk)
+        if (_Creases > 0.0) detail = max(detail, outfitCreases(i.bind, normalize(i.objNormal), clamp((_Toon - L) / _Toon, 0.0, 1.0)));
+        if (mode == MODE_OUTFIT && i.bind.y > _Outfit.z && abs(i.bind.x) < 0.16)
+        {
+          float frontal = smoothstep(0.15, 0.45, normalize(i.objNormal).z);
+          detail = max(detail, faceInk(float2(abs(i.bind.x), i.bind.y - _Face.x), fwBind, frontal, i.bind.x));
+        }
         detail = max(detail, patInk);
         o.hatch.b = detail;
-        o.hatch.a = max(_Glow, smoothstep(0.15, 0.6, local) * 0.6) + 2.0 * _Hero + 4.0 * _Figure;
+        o.hatch.a = max(max(_Glow, smoothstep(0.15, 0.6, local) * 0.6), dEdge) + 2.0 * _Hero + 4.0 * _Figure;
 
         // hatching in the shade (finer close to the camera, coarser far away)
         float dark = clamp((_Toon - L) / _Toon, 0.0, 1.0);

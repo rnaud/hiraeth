@@ -24,6 +24,10 @@ namespace Memento
         public Vector3 SunDirThree { get; private set; }
         public float wind = 0.6f, gust = 0.4f;
         public Vector2 windDir = new Vector2(1, 0);
+        /// <summary>The ambient wind as a velocity (Unity space), for the cloth.</summary>
+        public float fogOverride = -1;
+        public float fogScale = 1;       // the weather thickens the haze (main.js: × 1 + storm × 2.2)   // >= 0: the fog's multiplier (0 out in space: post.js uFogMul)
+        public Vector3 WindVector => new Vector3(-windDir.x, 0, windDir.y) * wind * 4f;
         readonly List<Vector4> localLights = new();
         readonly Vector4[] lightBuf = new Vector4[8];
 
@@ -34,7 +38,8 @@ namespace Memento
             foreach (var h in look.L("hours")) hours.Add(h as Dictionary<string, object>);
             hour = look.F("hour", 9.5f);
             localLights.Clear();
-            if (lights != null) foreach (var l in lights) { var a = l as List<object>; localLights.Add(new Vector4(-Json.Num(a[0]), Json.Num(a[1]), Json.Num(a[2]), Json.Num(a[3]))); }
+            // (exported in Unity space; sorted by distance there, handed to the shaders in three space below)
+            if (lights != null) foreach (var l in lights) { var a = l as List<object>; localLights.Add(new Vector4(Json.Num(a[0]), Json.Num(a[1]), Json.Num(a[2]), Json.Num(a[3]))); }
             Apply();
         }
 
@@ -56,6 +61,8 @@ namespace Memento
             var shared = look.O("shared"); var post = look.O("post");
             foreach (var kv in SharedKeys) { var p = kv.Split(':'); Shader.SetGlobalFloat(p[1], shared.F(p[0], post.F(p[0]))); }
             foreach (var kv in PostKeys) { var p = kv.Split(':'); Shader.SetGlobalFloat(p[1], post.F(p[0])); }
+            if (fogOverride >= 0) Shader.SetGlobalFloat("_FogMul", fogOverride);
+            else if (fogScale != 1) Shader.SetGlobalFloat("_FogMul", post.F("uFogMul", 1) * fogScale);
             Shader.SetGlobalFloat("_HatchOn", post.F("uHatch", 1));
             Shader.SetGlobalFloat("_HatchSpacing", post.F("uHatchSpacing", 3.6f));
             Shader.SetGlobalFloat("_Clouds", post.F("uClouds", 0.45f));
@@ -103,7 +110,7 @@ namespace Memento
             Shader.SetGlobalVector("_Wind", new Vector4(windDir.x, windDir.y, wind, gust));
 
             // the local lights nearest the subject
-            Vector3 at = subject ? subject.position : Vector3.zero;
+            Vector3 at = subject ? subject.position : Camera.main ? Camera.main.transform.position : Vector3.zero;
             localLights.Sort((x, y) => ((Vector3)x - at).sqrMagnitude.CompareTo(((Vector3)y - at).sqrMagnitude));
             for (int k = 0; k < 8; k++)
             {

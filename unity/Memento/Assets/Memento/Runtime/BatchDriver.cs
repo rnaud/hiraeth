@@ -52,6 +52,22 @@ namespace Memento
             Log($"probe {when}: {hits.Length} hits [{string.Join(", ", hits.Select(h => h.collider.name + "@" + h.point.y.ToString("0.0")))}], near [{string.Join(", ", near.Select(c => c.name + " " + c.enabled + " " + c.bounds.center + " " + (c is MeshCollider mc && mc.sharedMesh ? mc.sharedMesh.triangles.Length / 3 : -1)))}]");
         }
 
+        /// <summary>A close look at someone: the camera off the rig a moment, `dist` m in front of their face.</summary>
+        IEnumerator CloseUp(string name, Transform who, float dist = 2.2f, float side = 0.35f, float up = 0.05f)
+        {
+            if (!who) { Log($"no one for {name}"); yield break; }
+            game.rig.enabled = false;
+            yield return null;
+            var head = who.GetComponentsInChildren<Transform>().FirstOrDefault(t => t.name == "Head");
+            var at = head ? head.position + Vector3.down * 0.25f * who.lossyScale.y : who.position + Vector3.up * 1.4f;
+            var fwd = who.forward; fwd.y = 0; fwd.Normalize();
+            var right = Vector3.Cross(Vector3.up, fwd);
+            game.cam.transform.position = at + fwd * dist + right * side * dist + Vector3.up * up * dist;
+            game.cam.transform.LookAt(at);
+            yield return Shoot(name);
+            game.rig.enabled = true;
+        }
+
         IEnumerator Wait(float s) { float t = 0; while (t < s) { t += Time.deltaTime; yield return null; } }
         IEnumerator Pulse(Action<bool> set) { set(true); yield return null; yield return null; set(false); yield return null; }
 
@@ -93,28 +109,74 @@ namespace Memento
             pad = Pad.Script = new Pad.Track();
             float t0 = Time.time;
             while ((game.player.model == null || game.npcs.Count(n => n && n.GetComponentInChildren<SkinnedMeshRenderer>() != null) < 10) && Time.time - t0 < 30) yield return null;
+            Log($"people: {game.npcs.Count(n => n && n.figure)} dressed, traveller {(game.player.figure ? "dressed" : "glb")}");
             yield return Wait(1f);
             Log($"loaded in {Time.time - t0:0.0} s: {game.npcs.Count} people, stage {Stage}");
             Probe("start");
+            // the prologue (src/ship/prologue.js): out in space, the recording, the crash
+            if (game.ship && game.ship.PrologueActive)
+            {
+                IEnumerator Until(string stage, float after = 0, float limit = 60)
+                {
+                    float w = 0; while (game.ship.Stage != stage && game.ship.PrologueActive && w < limit) { w += Time.deltaTime; yield return null; }
+                    yield return Wait(after);
+                }
+                yield return Until("wake", 4.2f); yield return Shoot("prologue_waking_up");
+                yield return Until("walk", 0.8f); yield return Shoot("prologue_the_bunk_room");
+                Log($"prologue: {game.ship.Stage}, the traveller at {game.player.transform.position}");
+                // to the cockpit
+                pad.move = new Vector2(0, 1); yield return Wait(1.2f); pad.move = Vector2.zero;
+                var cockpit = game.world.World.O("ship").O("space").V3("pos") + game.world.World.O("ship").O("spacePoints").V3("cockpit");
+                Put(cockpit + new Vector3(0, 0.1f, 1.2f), 180); yield return Wait(0.5f);
+                yield return Until("call", 7f); yield return Shoot("prologue_the_recording");
+                yield return Wait(9f); yield return Shoot("prologue_the_father");
+                Log($"prologue: {game.ship.Stage}, hologram {game.ship.holo.Live}, subtitle '{game.ship.subtitle}'");
+                yield return Until("impact", 1.4f); yield return Shoot("prologue_impact");
+                yield return Until("fall", 1.6f); yield return Shoot("prologue_falling");
+                yield return Until("streak", 2.6f); yield return Shoot("prologue_the_streak");
+                yield return Until("plough", 1.2f); yield return Shoot("prologue_the_furrow");
+                yield return Until("settle", 1.5f); yield return Shoot("prologue_the_dust_clears");
+                yield return Pulse(v => pad.confirm = v);
+                yield return Until("hatch", 2.0f); yield return Shoot("prologue_the_hatch");
+                yield return Until("stepout", 1.5f); yield return Shoot("prologue_stepping_out");
+                float lim = 0; while (game.ship.PrologueActive && lim < 30) { lim += Time.deltaTime; yield return null; }
+                Log($"prologue done: {game.state.Is("prologue.done")}, at {game.player.transform.position}");
+                yield return Wait(1f);
+            }
             yield return Shoot("charge_card");
             yield return Pulse(v => pad.confirm = v);
             yield return Wait(1.0f);
             yield return Shoot("out_of_the_ship");
+            yield return CloseUp("traveller_front", game.player.transform, 2.6f, 0.3f, 0.02f);
+            yield return CloseUp("traveller_face", game.player.transform, 0.9f, 0.15f, 0.0f);
             // walk and run off the ramp, jump
             pad.move = new Vector2(0, 1); yield return Wait(1.5f);
             pad.run = true; yield return Wait(1.5f);
             yield return Pulse(v => pad.jump = v); yield return Wait(0.25f);
             yield return Shoot("running_jump");
+            yield return CloseUp("traveller_in_the_air", game.player.transform, 3.5f, 1.0f, 0.1f);
             pad.move = Vector2.zero; pad.run = false; yield return Wait(1f);
 
             // the camps: Ama by the fire
             var ama = Person("ama");
             PutNear(ama.pos, 6f); yield return Wait(2.5f);
             yield return Shoot("camps");
+            yield return CloseUp("ama_front", ama.transform, 2.4f, 0.3f, 0.02f);
+            {
+                // the camps from afar: the crowd's instanced figures past FarCrowd.Near
+                game.rig.enabled = false; yield return null;
+                var c = game.world.Places.V3("camps");
+                game.cam.transform.position = c + new Vector3(70, 22, -95); game.cam.transform.LookAt(c + Vector3.up * 2);
+                yield return null;
+                yield return Shoot("far_crowd");
+                Log($"far crowd: {game.crowd.FarCount} instanced figures");
+                game.rig.enabled = true;
+            }
             PutNear(ama.pos, 2f); yield return Wait(0.6f);
             game.hud.StartTalk(game.story.Def("ama"), ama, ama.displayName, ama.title);
             yield return Wait(2.5f);
             yield return Shoot("talking_to_ama");
+            yield return CloseUp("ama_face_talking", ama.transform, 0.9f, 0.2f, 0.0f);
             game.hud.talk.ended = true; yield return Wait(0.3f);
 
             // the city: through the gate and up to the tree
@@ -129,18 +191,87 @@ namespace Memento
             var y0 = game.player.transform.position.y;
             pad.move = new Vector2(0, 1); yield return Wait(0.6f);
             yield return Shoot("climbing");
+            yield return CloseUp("climbing_close", game.player.transform, -3.0f, 0.6f, 0.2f);
             yield return Wait(3f); pad.move = Vector2.zero;
             Log($"climb: {game.player.transform.position.y - y0:0.0} m up, climbing {game.player.climbing}");
             if (Interact.Best(game.player.transform.position)?.id != "box.desert.backpack") { Put(box + (box - game.world.Places.V3("ledgeFoot")).normalized * -1.2f + Vector3.up * 0.1f, 0); yield return Wait(0.5f); }
             yield return Shoot("the_chest_on_the_ledge");
             var chest = Interact.All.First(i => i.id == "box.desert.backpack"); chest.use();
-            yield return Wait(1.5f); yield return Shoot("the_chest_opens");
-            yield return Pulse(v => pad.confirm = v); yield return Wait(0.5f);
-            Log($"backpack: {game.quests.Has("backpack")}, stage {Stage}");
+            // the box scene (boxes/scene.js): it wakes, rises, comes apart into light, the backpack hovers, the card
+            yield return Wait(0.9f); yield return Shoot("the_chest_wakes");
+            yield return Wait(1.3f); yield return Shoot("the_chest_rises");
+            yield return Wait(1.6f); yield return Shoot("the_chest_comes_apart");
+            yield return Wait(1.1f); yield return Shoot("the_backpack_hovers");
+            yield return Wait(1.2f);
+            Log($"box card: '{game.hud.card?.Substring(0, Mathf.Min(40, game.hud.card?.Length ?? 0))}'");
+            yield return Pulse(v => pad.confirm = v); yield return Wait(1.8f);
+            Log($"backpack: {game.quests.Has("backpack")}, stage {Stage}, tank shown {game.tool && game.player.figure && game.player.figure.Bone("Fluid tank").gameObject.activeInHierarchy}");
+            yield return CloseUp("the_tank_on_his_back", game.player.transform, -1.6f, 0.5f, 0.15f);
+
+            // the fluid tool: a shot, a boost in the air, the stilling mode, the wings
+            var tool = game.tool;
+            Put(game.world.Places.V3("camps") + new Vector3(24, 0, 18), 20); yield return Wait(1.2f);
+            game.rig.pitch = 12;
+            yield return Pulse(v => pad.shoot = v); yield return Wait(0.12f);
+            yield return Shoot("a_glob_in_flight");
+            yield return Wait(1.2f);
+            yield return Shoot("the_splat");
+            Log($"tool: {tool.shots} shot, charges {tool.charges:0.0}");
+            game.state.Set("item.stun", true); game.state.Set("item.glider", true);
+            pad.mode = 1; yield return Wait(0.2f);
+            Log($"tool mode: {tool.mode} (of {string.Join(", ", tool.Modes())})");
+            yield return CloseUp("the_tank_in_stilling", game.player.transform, -1.2f, 0.6f, 0.1f);
+            pad.mode = -1; yield return Wait(0.2f);
+            yield return Wait(2.2f);   // (the charges come back)
+            Put(game.world.Places.V3("camps") + new Vector3(30, 0, 30), 45); yield return Wait(1f);   // (open ground)
+            yield return Pulse(v => pad.jump = v); yield return Wait(0.35f);
+            float yb = game.player.transform.position.y;
+            yield return Pulse(v => pad.jump = v); yield return Wait(0.3f);
+            Log($"boost: {tool.boosts}, up {game.player.transform.position.y - yb:0.0} m");
+            pad.jump = true; yield return Wait(0.9f);
+            Log($"gliding: {tool.gliding}, wings {tool.wingK:0.00}");
+            yield return CloseUp("gliding", game.player.transform, -3.5f, 0.8f, 0.25f);
+            pad.jump = false; yield return Wait(2f);
+            game.state.Set("item.stun", false); game.state.Set("item.glider", false);
+
+            // the wildlife: a creature near the camps, then a sprint at it (its surprise)
+            if (game.wildlife && game.wildlife.Count > 0)
+            {
+                var cr = game.wildlife.Nearest(game.world.Places.V3("shipRamp"));
+                PutNear(cr, 7f); yield return Wait(0.6f);
+                game.rig.yaw = game.player.heading; yield return Wait(0.4f);
+                cr = game.wildlife.Nearest(cr);
+                game.rig.enabled = false; yield return null;
+                var side = Vector3.Cross(Vector3.up, (cr - game.player.transform.position).normalized);
+                game.cam.transform.position = cr + side * 2.6f + Vector3.up * 1.3f - (cr - game.player.transform.position).normalized * 1.5f; game.cam.transform.LookAt(cr + Vector3.up * 0.3f);
+                yield return Shoot("wildlife");
+                game.rig.enabled = true;
+                Log($"wildlife: {game.wildlife.Count} creatures, {game.wildlife.Visible} awake near, nearest at {cr}");
+                pad.run = true; pad.move = new Vector2(0, 1); yield return Wait(0.9f); pad.run = false; pad.move = Vector2.zero;
+                yield return Wait(0.5f);
+                game.rig.enabled = false; yield return null;
+                game.cam.transform.position = cr + side * 5f + Vector3.up * 2.5f; game.cam.transform.LookAt(cr + Vector3.up * 2.5f);
+                yield return Shoot("wildlife_surprise");
+                game.rig.enabled = true;
+                Log($"wildlife: {game.wildlife.Surprised} surprised");
+                yield return Wait(1f);
+            }
+            // the other makers' box: the pale star
+            var starAt = game.world.Places.L("boxes").First(b => b.S("id") == "desert.star").V3("pos");
+            PutNear(starAt, 2f); yield return Wait(0.5f);
+            var starBox = Interact.All.FirstOrDefault(i => i.id == "box.desert.star");
+            if (starBox != null)
+            {
+                starBox.use(); yield return Wait(4.6f); yield return Shoot("the_star_hovers");
+                float tw = 0; while (game.hud.card == null && tw < 6) { tw += Time.deltaTime; yield return null; }
+                yield return Wait(0.9f); yield return Pulse(v => pad.confirm = v); yield return Wait(1.8f);
+            }
+            Log($"star: {game.quests.Has("star")}");
 
             // Nour, then the well, Ama's jar, the Speaker
             var nour = Person("nour");
             PutNear(nour.pos, 2f); yield return Wait(0.5f);
+            yield return CloseUp("nour_at_the_ledge_foot", nour.transform, 2.6f, 0.4f, 0.1f);
             yield return Talk(game.story.Def("nour"), nour, "Who are the Givers?", "Why a star?", "My ship has no power", "Why me?", "All right", "The well");
             Log($"after Nour: stage {Stage}");
             Put(game.world.Places.V3("wellLook"), 0); yield return Wait(0.5f);
@@ -182,6 +313,7 @@ namespace Memento
             game.bike.Mount(); yield return Wait(0.3f);
             pad.move = new Vector2(0.15f, 1); yield return Wait(3f);
             yield return Shoot("riding");
+            yield return CloseUp("riding_close", game.player.transform, 3.2f, 1.1f, 0.15f);
             pad.move = Vector2.zero; yield return Wait(1.5f);
             game.bike.Dismount(); yield return Wait(0.5f);
 
@@ -197,6 +329,23 @@ namespace Memento
             Put(game.world.Places.V3("shipRamp"), 0); yield return Wait(1.5f);
             Log($"at the ship: stage {Stage}, done {game.quests.IsDone("desert.power")}, powered {game.state.Is("ship.powered")}");
             yield return Shoot("the_ship_hums");
+            Log($"sound: {Sounds.Instance?.ClipCount ?? 0} recorded clips, {Sounds.Instance?.played ?? 0} played");
+            // Nour: back on her bench since you went away
+            {
+                var nour2 = Person("nour");
+                PutNear(nour2.pos, 2.2f); yield return Wait(1f);
+                Log($"Nour home: seated {nour2.seatHeight >= 0}, pose {nour2.figure?.pose}");
+                yield return CloseUp("nour_on_her_bench", nour2.transform, 2.6f, 0.4f, 0.1f);
+            }
+            // the save: written, read back into a fresh state, the same flags
+            {
+                var path = Save.Write(game, "batch");
+                var d = Save.Read("batch"); var fresh = new GameState(); Save.Apply(d, fresh);
+                int a = game.state.Keys.Count(), b = fresh.Keys.Count(), same = game.state.Keys.Count(k => Equals(game.state.Flag(k), fresh.Flag(k)));
+                Log($"save: {a} flags written to {Path.GetFileName(path)}, {b} read back, {same} the same, quest {fresh.Flag("quest.desert.power")}, {fresh.keepsakes.Count} keepsakes");
+                Save.Erase("batch");
+            }
+            Log($"ambient: weather {game.ambient?.kind} {game.ambient?.intensity:0.00}, gust {game.ambient?.Gust:0.00}");
             File.WriteAllLines(Path.Combine(outDir, "play.log"), log);
             Pad.Script = null;
             Finished?.Invoke(game.quests.IsDone("desert.power"));

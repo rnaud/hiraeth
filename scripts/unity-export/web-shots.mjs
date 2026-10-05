@@ -20,6 +20,8 @@ for (const v of views) {
   await page.evaluate((v) => {
     const { THREE, camera, player, setPhoto } = window;
     setPhoto(true);   // (hides the HUD and the panel)
+    // and whatever else is over the canvas (the opening page, menus, the stats line)
+    document.querySelectorAll('body > *').forEach((e) => { if (e.tagName !== 'CANVAS' && !e.querySelector('canvas')) e.style.visibility = 'hidden'; });
     const eye = new THREE.Vector3(...v.eye), target = new THREE.Vector3(...v.target);
     player.pos.set(eye.x, eye.y - 1, eye.z);   // the shadow cascades and culling follow the player
     if (player.object) player.object.visible = false;

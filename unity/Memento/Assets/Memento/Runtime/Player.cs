@@ -22,18 +22,33 @@ namespace Memento
         public float health = 1f, stamina = Stamina;
         float hurtT = 99, downT, mantleT, coyote, climbCooldown;
         Vector3 wallN, mantleFrom, mantleTo, lastSafe;
-        public Transform model;          // the traveller's glb
+        public Transform model;          // the traveller, dressed (Figures.cs)
+        public Figure figure;
         Animation anim;
+        float climbF, climbS;
         public Transform camYaw;         // the camera rig (moves are relative to its yaw)
         public System.Action<string> toast = _ => { };
+        public System.Func<bool> onAirJump;
+        public System.Collections.Generic.List<Vector3> auto;   // walked along these points (a cinematic: stepping out of the ship)   // the fluid tool's boost (FluidTool.cs)
+        public float glideSpeed, glideTurn;
         public float SpeedXZ => new Vector2(vel.x, vel.z).magnitude;
+        public Transform HeadTransform => figure ? (headT ??= figure.Bone("Head")) : null;
+        Transform headT;
 
         public void Init(Vector3 at, float yawDeg)
         {
             cc = GetComponent<CharacterController>();
             cc.radius = 0.4f; cc.height = 1.8f; cc.center = new Vector3(0, 0.9f, 0); cc.stepOffset = 0.6f; cc.slopeLimit = 50; cc.skinWidth = 0.05f;
             Teleport(at, yawDeg);
-            _ = LoadModel();
+            var rec = FigureLibrary.Instance?.Person("traveller");
+            if (rec != null)
+            {
+                // the people's own body as the traveller: the suit painted on, the kit of traveller.glb worn (people.mjs)
+                figure = FigureLibrary.Instance.Spawn(rec, transform, "traveller");
+                model = figure.transform;
+                foreach (var r in figure.renderers) r.gameObject.layer = gameObject.layer;
+            }
+            else _ = LoadModel();
         }
 
         public void Teleport(Vector3 at, float yawDeg)
@@ -67,6 +82,13 @@ namespace Memento
             var mv = Pad.Move();
             var yawQ = Quaternion.Euler(0, camYaw ? camYaw.eulerAngles.y : heading, 0);
             Vector3 wish = yawQ * new Vector3(mv.x, 0, mv.y);
+            if (auto != null && auto.Count > 0)
+            {
+                var to = auto[0] - transform.position; to.y = 0;
+                if (to.magnitude < 0.45f) auto.RemoveAt(0);
+                wish = to.normalized * 0.55f; mv = new Vector2(0, 0.55f);
+                if (auto.Count == 0) { auto = null; wish = Vector3.zero; mv = Vector2.zero; }
+            }
             bool run = Pad.Run();
 
             if (mantling) { UpdateMantle(dt); return; }
@@ -80,8 +102,30 @@ namespace Memento
             if (wish.sqrMagnitude > 0.01f) heading = Mathf.MoveTowardsAngle(heading, Mathf.Atan2(wish.x, wish.z) * Mathf.Rad2Deg, 720 * dt);
 
             coyote = onGround ? 0.12f : coyote - dt;
-            if (Pad.JumpDown() && coyote > 0) { vel.y = JumpSpeed; coyote = 0; onGround = false; }
+            bool jumpDown = Pad.JumpDown();
+            if (jumpDown && coyote > 0) { vel.y = JumpSpeed; coyote = 0; onGround = false; jumpDown = false; }
+            // a fresh press in the air: the fluid's boost (fluid-tool.js)
+            if (jumpDown && !onGround && onAirJump != null && onAirJump()) { }
             vel.y -= Gravity * dt;
+            // the fluid wings (with the glider): hold jump while falling (player.js): forward along the heading,
+            // A / D bank and turn, W dives, S flares
+            var tool = FluidTool.Instance;
+            bool wantGlide = tool && tool.CanGlide && !onGround && Pad.Jump();
+            bool wasGliding = tool && tool.gliding;
+            if (tool) tool.gliding = wantGlide && (vel.y < 0 || wasGliding);
+            if (tool && tool.gliding)
+            {
+                if (!wasGliding) glideSpeed = Mathf.Max(new Vector2(vel.x, vel.z).magnitude, 11);
+                float target = mv.y > 0.3f ? 30 : mv.y < -0.3f ? 7 : 15;
+                glideSpeed += (target - glideSpeed) * (1 - Mathf.Exp(-(mv.y > 0.3f ? 0.9f : 0.6f) * dt));
+                float sink = mv.y > 0.3f ? 7 : mv.y < -0.3f ? 1.3f : 2.4f;
+                glideTurn = Mathf.Lerp(glideTurn, mv.x * 1.25f, 1 - Mathf.Exp(-4 * dt));
+                heading += glideTurn * Mathf.Rad2Deg * dt;
+                var fw = Quaternion.Euler(0, heading, 0) * Vector3.forward * glideSpeed;
+                vel.x = fw.x; vel.z = fw.z;
+                vel.y += Gravity * dt;
+                vel.y += (-sink - vel.y) * (1 - Mathf.Exp(-3 * dt));
+            }
             float fallSpeed = -vel.y;
             var flags = cc.Move(vel * dt);
             bool wasGround = onGround;
@@ -119,6 +163,7 @@ namespace Memento
 
         void UpdateClimb(float dt, Vector2 mv, bool run)
         {
+            climbF = Mathf.Abs(mv.y) > 0.1f ? Mathf.Sign(mv.y) * Mathf.Min(1, Mathf.Abs(mv.y)) : 0; climbS = Mathf.Abs(mv.x) > 0.1f ? Mathf.Sign(mv.x) * Mathf.Min(1, Mathf.Abs(mv.x)) : 0;
             stamina -= dt * (run ? 2f : 1f);
             var right = Vector3.Cross(Vector3.up, -wallN).normalized;
             float sp = ClimbSpeed * (run ? 1.6f : 1f);
@@ -194,6 +239,7 @@ namespace Memento
             downAxis = Quaternion.Euler(0, heading, 0) * Vector3.right;
             downSpin = Random.value < 0.5f ? 1 : -1;
             if (anim) anim.Stop();
+            if (figure) figure.culled = true;
         }
         void UpdateDown(float dt)
         {
@@ -208,20 +254,44 @@ namespace Memento
                 model.localRotation = Quaternion.AngleAxis(-85 * lie, Vector3.right) * Quaternion.AngleAxis(12 * lie * downSpin, Vector3.forward);
                 model.localPosition = new Vector3(0, 0.25f * lie, 0);
             }
-            if (!dead && downT > 2.4f) { down = false; if (model) { model.localRotation = Quaternion.identity; model.localPosition = Vector3.zero; } }
+            if (!dead && downT > 2.4f) { down = false; if (figure) figure.culled = false; if (model) { model.localRotation = Quaternion.identity; model.localPosition = Vector3.zero; } }
             if (dead && downT > 1.2f && Pad.ConfirmDown()) Respawn();
         }
         public void Respawn()
         {
-            dead = false; down = false; health = 1;
+            dead = false; down = false; health = 1; if (figure) figure.culled = false;
             if (model) { model.localRotation = Quaternion.identity; model.localPosition = Vector3.zero; }
             Teleport(lastSafe, heading);
         }
 
-        // ------------------------------------------------------------ animation (the traveller's own Idle / Walk)
+        // ------------------------------------------------------------ animation (animator.js on the baked clips: Figure.cs)
         string playing;
+        public bool talkingNow;
+        float lastPhase;
         void Animate(float dt, float speed)
         {
+            if (figure)
+            {
+                var fs = new Figure.State
+                {
+                    speed = climbing || mantling || riding ? 0 : SpeedXZ, onGround = onGround || climbing || mantling || riding,
+                    mode = riding ? Figure.Mode.Drive : mantling ? Figure.Mode.Ledge : climbing ? Figure.Mode.Climb : talkingNow ? Figure.Mode.Talk : Figure.Mode.Ground,
+                    climbF = climbF, climbS = climbS, climbRate = 1, ledgeT = mantleT,
+                    walkAt = Mathf.Min(FigureLibrary.Instance.nativeWalk * 1.2f, Walk * 0.4f), jogAt = Walk, sprintAt = Run, strideScale = 1,
+                };
+                figure.Drive(dt, fs);
+                // footsteps: a foot comes down twice a gait cycle (audio.js step, in the sand)
+                float ph = figure.Phase;
+                if (onGround && !riding && !climbing && SpeedXZ > 0.8f && (Mathf.Floor(ph * 2) != Mathf.Floor(lastPhase * 2)))
+                {
+                    Sounds.Instance?.Play(SpeedXZ > 6 ? "step_sand_run" : "step_sand_walk");
+                    // and a print where the foot came down (life.js Footprints), left and right in turn
+                    float side = Mathf.Floor(ph * 2) % 2 == 0 ? 1 : -1;
+                    Game.Instance?.ambient?.Step(transform.position + transform.right * 0.11f * side, heading);
+                }
+                lastPhase = ph;
+                return;
+            }
             if (!anim) return;
             string want = speed > 0.3f ? "Walk" : "Idle";
             if (!anim.GetClip(want)) return;

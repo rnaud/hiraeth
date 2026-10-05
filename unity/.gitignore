@@ -23,3 +23,7 @@ Memento/Assets/StreamingAssets/desert/
 Memento/Assets/StreamingAssets/desert.meta
 Memento/Assets/StreamingAssets/anim/
 Memento/Assets/StreamingAssets/anim.meta
+
+# recorded by scripts/unity-export/record-sounds.mjs (needs a dev server)
+Memento/Assets/StreamingAssets/sound/
+Memento/Assets/StreamingAssets/sound.meta
