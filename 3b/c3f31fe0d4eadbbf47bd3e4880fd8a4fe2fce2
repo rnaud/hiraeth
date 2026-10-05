@@ -1,0 +1,25 @@
+src/levels/lab.js
+  s_1fd8d0e7b02dcf::t_bb86a1517053b4 170
+src/player.js
+  s_1fd8d0e7b02dcf::t_0fbae6d9a6b545 671
+src/swim.js
+  s_1fd8d0e7b02dcf::t_51fd95ed518e48 138
+tests/swim.test.js
+  s_1fd8d0e7b02dcf::t_e2461fe04de628 236-246
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3bc3f31fe0d4eadbbf47bd3e4880fd8a4fe2fce2",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
