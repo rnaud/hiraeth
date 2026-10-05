@@ -1,0 +1,43 @@
+changelog.md
+  s_1fd8d0e7b02dcf::t_fa4c3c248c2bab 7-9
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_98d2fe855481d6 10-12
+src/costumes.js
+  s_1fd8d0e7b02dcf::t_7ebde7b15a8ea9 944,960,971,1005,1017,1168,1184,1244,1261
+src/studio/main.js
+  s_1fd8d0e7b02dcf::t_1946818f27e8d6 22,35,189,209-210,239-244,845-849,852
+tests/costumes.test.js
+  s_1fd8d0e7b02dcf::t_09d5341c1b358d 31-32,34-35,64-65,67-68
+tests/hair.test.js
+  s_1fd8d0e7b02dcf::t_f4a1451464fa0a 82
+tests/makehuman-worlds.test.js
+  s_1fd8d0e7b02dcf::t_fdfd70ac1b523a 76,181-209
+tests/people.test.js
+  s_1fd8d0e7b02dcf::t_254c65dc484b94 7,61-68
+src/studio/makehuman.js
+  s_3fc3023887397b::t_47e8fb42d33f5f 93-117
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "844733c4bae82f9bb0f7237819eee065d52c43cd",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_3fc3023887397b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a5c8d92b7a4fe67d8",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
