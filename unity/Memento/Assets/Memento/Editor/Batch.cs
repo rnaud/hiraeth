@@ -75,6 +75,24 @@ namespace Memento.EditorTools
                 dso.ApplyModifiedPropertiesWithoutUndo();
                 EditorUtility.SetDirty(data);
             }
+            // the template's other features out (its SSAO, even switched off, fails in a player: its shaders are stripped)
+            {
+                var dso = new SerializedObject(data);
+                var list = dso.FindProperty("m_RendererFeatures");
+                var map = dso.FindProperty("m_RendererFeatureMap");
+                for (int i = list.arraySize - 1; i >= 0; i--)
+                {
+                    var f = list.GetArrayElementAtIndex(i).objectReferenceValue;
+                    if (f is MementoFeature) continue;
+                    list.GetArrayElementAtIndex(i).objectReferenceValue = null;
+                    list.DeleteArrayElementAtIndex(i);
+                    if (i < map.arraySize) map.DeleteArrayElementAtIndex(i);
+                    if (f) { AssetDatabase.RemoveObjectFromAsset(f); UnityEngine.Object.DestroyImmediate(f, true); }
+                    Debug.Log("Memento: renderer feature removed");
+                }
+                dso.ApplyModifiedPropertiesWithoutUndo();
+                EditorUtility.SetDirty(data);
+            }
             // (the template's post-processing would only blur the page)
             AssetDatabase.SaveAssets();
             BuildScenes();

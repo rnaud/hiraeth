@@ -44,6 +44,7 @@ Shader "Hidden/Memento/Composite"
       float _Debug;
       float _CineRed, _CineLids, _CineBars, _CineFade; float4 _CineFadeColor;   // the cinema (Cinema.cs)
       float4 _Backdrop;     // rgb, a = 1: one flat colour instead of the sky (a conversation's portrait, post.js uBackdrop)
+      float _TargetFlip;   // 1: writing the back buffer itself (MementoFeature)
       float _Rain, _RainNear, _Rays;   // weather: ink rain 0..1 and the dry radius under a roof; sun rays at a low sun (post.js uRain, uRainNear, uRays)
 
       struct V2F { float4 pos : SV_POSITION; float2 uv : TEXCOORD0; };
@@ -55,6 +56,7 @@ Shader "Hidden/Memento/Composite"
         #if UNITY_UV_STARTS_AT_TOP
           o.pos.y = -o.pos.y;
         #endif
+        if (_TargetFlip > 0.5) o.pos.y = -o.pos.y;   // (straight into a player's back buffer: the other way up)
         o.uv = uv;
         return o;
       }

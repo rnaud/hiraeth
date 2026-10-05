@@ -407,6 +407,16 @@ scene (the loading page) and the desert; the export travels in
 `StreamingAssets` (about 430 MB). With `-smoke folder` the player checks
 itself (`SmokeTest.cs`): it shoots the title once the desert has loaded under
 it, picks New game, shoots the prologue, skips it, shoots the desert and quits.
+On an M4 Pro the build is 554 MB, the desert loads in about a second under the
+title and runs at about 57 fps in a 1280 × 720 window (the frames below are
+the player's own window, `ScreenCapture`). The setup takes the template's SSAO
+feature out of the renderer (switched off, it still failed in a player, its
+shaders stripped), and the last pass turns the page the right way up when it
+writes the player's back buffer itself (`_TargetFlip`).
+
+| | |
+|---|---|
+| ![](docs/build-title.jpg) the build's title | ![](docs/build-desert.jpg) out of the ship |
 
 ### What an Android build would need
 
@@ -436,7 +446,7 @@ it, picks New game, shoots the prologue, skips it, shoots the desert and quits.
   rig leans into the flight).
 - **The people**: the far figures have no brows (too small to see on the web too).
 - **The ship**: the map's other worlds can be chosen but not travelled to; the
-  ship's interior takes the sun through its hull in places.
+  ship's interior reads brighter than the web's (washed white round the table).
 - **Not ported**: the dev menu, the
   observatory and the masked head's chamber (exported, not playable), the
   other worlds, Android. The web title's own vista scene (the desert stands
