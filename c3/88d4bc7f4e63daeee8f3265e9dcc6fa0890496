@@ -1,0 +1,21 @@
+src/story/perdide2-data.js
+  s_1fd8d0e7b02dcf::t_287ec7831f91ad 4-11,17-21,23-25,90,107,123,200,204-205,260,268,291
+src/story/perdide2.js
+  s_1fd8d0e7b02dcf::t_dfc0bb79c54c8d 101-102
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c388d4bc7f4e63daeee8f3265e9dcc6fa0890496",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
