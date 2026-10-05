@@ -1,0 +1,67 @@
+README.md
+  s_1fd8d0e7b02dcf::t_061975622e3108 1733-1779
+TODO.md
+  s_1fd8d0e7b02dcf::t_58b9d91fab9ff5 481-494
+docs/makehuman.md
+  s_1fd8d0e7b02dcf::t_679398f30cdb6e 1,19,22-26,71-72,83-88,93-94,97-207,211-226,229,231-232,234,236-239,241-246,251-260,264-285
+public/anim/mh/LICENSE-MakeHuman-CC0.txt
+  s_1fd8d0e7b02dcf::t_d2635e1573782f 1-3,5-9,11-15,20
+public/anim/mh/body.json
+  s_1fd8d0e7b02dcf::t_6ccf065b41e786 1
+scripts/makehuman/build.py
+  s_1fd8d0e7b02dcf::t_726e06db257440 2-32,45,51,53-55,59,61-62,74,77-125,129-132,144-148,156,163,165-177,179-186,188,221,225-226,238-239,246-252,255-259,261-262,277-295,297-299,301-365,368-370,374,377,379-380,385-392,394,398-483,492-511,513-539
+scripts/makehuman/build.sh
+  s_1fd8d0e7b02dcf::t_98af41815bf43b 1-15
+scripts/makehuman/fetch.sh
+  s_1fd8d0e7b02dcf::t_7ac2092b7de708 39-40,44
+scripts/makehuman/glb-sizes.mjs
+  s_1fd8d0e7b02dcf::t_ea2acc45bb7032 2
+scripts/makehuman/hair.py
+  s_1fd8d0e7b02dcf::t_867dbd6f7153f6 1-398
+scripts/makehuman/pack.py
+  s_1fd8d0e7b02dcf::t_a8a883519cab38 1-157
+scripts/makehuman/skin-audit.mjs
+  s_1fd8d0e7b02dcf::t_be9a51e7e49522 22-24,37-38,43-44
+src/humanoid.js
+  s_1fd8d0e7b02dcf::t_3193aeb56bdec3 502-503,545,569,603,783,809-810,813,816
+src/main.js
+  s_1fd8d0e7b02dcf::t_24134d390e1af6 40,288-292,371,376,400,470
+src/makehuman/body.js
+  s_1fd8d0e7b02dcf::t_4500821897f0e4 1,3-18,21,23,25,37-278,280-316,318-320,322-324,326,330-340
+src/makehuman/face-keys.js
+  s_1fd8d0e7b02dcf::t_519bcb0214e962 1,3,5,51,53,73-74
+src/makehuman/hair.js
+  s_1fd8d0e7b02dcf::t_94f0fe1a276f80 1-199
+src/makehuman/people.js
+  s_1fd8d0e7b02dcf::t_3b7b169bb7916c 1-111
+src/makehuman/shape.js
+  s_1fd8d0e7b02dcf::t_a3b2e7d5f5109f 1-163
+src/npc.js
+  s_1fd8d0e7b02dcf::t_9886e1379a9da6 109-110
+src/skinned-lod.js
+  s_1fd8d0e7b02dcf::t_e89ed894a9b868 60-62
+src/studio/main.js
+  s_1fd8d0e7b02dcf::t_fb84ab73fbdcc2 31-33,181-182,191-201,204,206-213,226-230,245-251,260-261,828-829,833,957
+src/studio/makehuman.js
+  s_1fd8d0e7b02dcf::t_a121e298b7e29e 1-2,4-11,13-14,17-18,20-37,39-41,44-46,49-52,55-58,61-62,64-81,86-92
+tests/makehuman.test.js
+  s_1fd8d0e7b02dcf::t_441810f4ae7cc1 5,9-13,18-21,27,29,31-33,36-38,44,46-73,75-90,93-95,97,99-105,113,117-126,128-240,253-256,272,275-287,289
+vite.config.js
+  s_1fd8d0e7b02dcf::t_ea42d10727dc3d 17-20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8bd1bab075d442bf958746a8de9a84593808ace5",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
