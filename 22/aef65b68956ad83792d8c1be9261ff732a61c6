@@ -1,0 +1,27 @@
+README.md
+  s_1fd8d0e7b02dcf::t_8f6a9c01293920 1336-1427
+src/studio/main.js
+  s_1fd8d0e7b02dcf::t_01bedc009a52fc 385-386,417,676,679,681,757
+src/studio/state.js
+  s_1fd8d0e7b02dcf::t_10ec3491f4b057 31-32
+studio.html
+  s_1fd8d0e7b02dcf::t_b4fba591d46aaa 22
+tests/studio.test.js
+  s_1fd8d0e7b02dcf::t_6af84be2641c0e 1-200
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "22aef65b68956ad83792d8c1be9261ff732a61c6",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
