@@ -493,6 +493,10 @@ All of this is for the web game; the Unity port follows later if we move to Unit
 
 # Dialogue (2026-10-05)
 
-- [ ] The choice numbers (1, 2, 3) overlap the answers' text (seen on the Retroid).
-- [ ] People who aren't part of a quest offer no answers: you just listen. A small hint, a piece of wisdom
-  about their world, a brush-off ("get lost"), or something funny; then the talk ends.
+- [x] The choice numbers (1, 2, 3) overlap the answers' text (seen on the Retroid). (The mark's span went to
+  font-size 0 for the controller/touch mark, so its em width collapsed and the mark sat on the first letters;
+  now each answer is a flex row with the mark in its own column, and a controller shows the confirm button.)
+- [x] People who aren't part of a quest offer no answers: you just listen. A small hint, a piece of wisdom
+  about their world, a brush-off ("get lost"), or something funny; then the talk ends. (`talk: { listen }`:
+  every bystander and crowd person in seven worlds, a different entry each talk, news after the temple and
+  the main quest.)
