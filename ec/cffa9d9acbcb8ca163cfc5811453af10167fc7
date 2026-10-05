@@ -1,0 +1,23 @@
+src/animator.js
+  s_1fd8d0e7b02dcf::t_1502b3d24f9c3b 368-371
+src/feet.js
+  s_1fd8d0e7b02dcf::t_db423229d0f0cf 32,53-88,111-114,116,133,135,151-157,164,181,194-199,201,236,241,248-258,279
+tests/gait-sim.js
+  s_1fd8d0e7b02dcf::t_da75e3fce21e6f 25,38-45,112-114,116,123,144,146,152
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "eccffa9d9acbcb8ca163cfc5811453af10167fc7",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
