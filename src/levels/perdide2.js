@@ -122,7 +122,7 @@ function buildSkiff() {
   const root = new THREE.Group();
   const body = new THREE.Group();
   root.add(body);
-  const teal = makeMaterial({ color: '#5fd6c4', flat: true }), deep = makeMaterial({ color: '#3a9f94', flat: true });
+  const teal = makeMaterial({ color: '#5fd6c4', flat: true, metal: 'painted' }), deep = makeMaterial({ color: '#3a9f94', flat: true, metal: 'painted' });
   // a long low hull, rounded at the stern, drawn out to a point at the bow
   const hullG = new THREE.CylinderGeometry(0.95, 0.95, 4.2, 14, 1).rotateX(Math.PI / 2).scale(1, 0.38, 1);
   const bowG = new THREE.SphereGeometry(0.95, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2).rotateX(Math.PI / 2).scale(1, 0.38, 2.1).translate(0, 0, 2.1);
@@ -673,8 +673,8 @@ export function createPerdide2(scene) {
     const grp = new THREE.Group();
     grp.position.set(SAUCER.x, SAUCER.y, SAUCER.z);
     grp.rotation.set(SAUCER.tilt, 0.6, -0.1);
-    const hull = new THREE.Mesh(new THREE.SphereGeometry(SAUCER.r, 28, 12).scale(1, 0.34, 1), makeMaterial({ color: '#4fbcb0', flat: true }));
-    const rim = new THREE.Mesh(new THREE.TorusGeometry(SAUCER.r * 0.98, 0.45, 6, 32).rotateX(Math.PI / 2), makeMaterial({ color: '#3a8f8a', flat: true }));
+    const hull = new THREE.Mesh(new THREE.SphereGeometry(SAUCER.r, 28, 12).scale(1, 0.34, 1), makeMaterial({ color: '#4fbcb0', flat: true, metal: 'painted' }));
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(SAUCER.r * 0.98, 0.45, 6, 32).rotateX(Math.PI / 2), makeMaterial({ color: '#3a8f8a', flat: true, metal: 'painted' }));
     const slot = new THREE.Mesh(new THREE.SphereGeometry(2.6, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2).scale(1.3, 0.45, 0.8), makeMaterial({ color: '#1d2a3a', flat: true }));
     slot.position.set(0, SAUCER.r * 0.25, SAUCER.r * 0.3);
     slot.userData.noCollide = true;

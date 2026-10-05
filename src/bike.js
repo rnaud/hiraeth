@@ -73,7 +73,7 @@ function buildBike() {
   smooth.add(new THREE.CylinderGeometry(0.13, 0.15, 0.1, 10), C.brass, { at: [0, 0.3, 1.32], rot: [Math.PI / 2 - 0.25, 0, 0] });
   // the aerial for the pennant
   flat.add(new THREE.CylinderGeometry(0.012, 0.018, 1.05, 4), C.navy, { at: [-0.3, 0.72, -1.38] });
-  const sm = smooth.mesh({ smooth: true, side: THREE.DoubleSide }), fl = flat.mesh();
+  const sm = smooth.mesh({ smooth: true, side: THREE.DoubleSide, metal: 'painted' }), fl = flat.mesh({ metal: 'painted' });
   body.add(sm, fl);
 
   // the rudder: it turns with the steering (animate)
@@ -82,7 +82,7 @@ function buildBike() {
   const fin = new Paint();
   fin.add(plate([[0, 0], [-0.32, 0], [-0.55, 0.62], [-0.38, 0.66]], 0.05), C.cream, { rot: [0, Math.PI / 2, 0] });
   fin.add(plate([[-0.45, 0.42], [-0.55, 0.62], [-0.38, 0.66], [-0.31, 0.46]], 0.07), C.red, { rot: [0, Math.PI / 2, 0] });
-  rudder.add(fin.mesh());
+  rudder.add(fin.mesh({ metal: 'painted' }));
   body.add(rudder);
   // the pennant at the aerial's tip: it flutters, harder the faster you go
   const flagGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, -0.15, 0), new THREE.Vector3(0, -0.07, -0.34)]);
@@ -129,14 +129,14 @@ export function buildSocket(body, { at = [0, 0.25, -1.4], port = [0.22, 0.05, -1
   const ring = part(mergeGeometries([
     new THREE.TorusGeometry(0.2, 0.025, 5, 20).rotateX(Math.PI / 2).scale(1.2, 1, 1).translate(0, -0.02, 0),
     ...[-1, 1].map((sx) => new THREE.BoxGeometry(0.04, 0.16, 0.06).translate(sx * 0.26, 0.06, 0)),
-  ].map((g) => g.toNonIndexed())), brass);
-  const base = part(new THREE.CylinderGeometry(0.21, 0.23, 0.05, 16).scale(1.2, 1, 1), dark, { flat: true });
+  ].map((g) => g.toNonIndexed())), brass, { metal: 'brass' });
+  const base = part(new THREE.CylinderGeometry(0.21, 0.23, 0.05, 16).scale(1.2, 1, 1), dark, { flat: true, metal: 'painted' });
   base.position.y = -0.045;
   socket.add(ring, base);
   const p = new THREE.Group();
   p.position.set(...port);
   body.add(p);
-  const nub = part(new THREE.CylinderGeometry(0.03, 0.04, 0.06, 8), brass);
+  const nub = part(new THREE.CylinderGeometry(0.03, 0.04, 0.06, 8), brass, { metal: 'brass' });
   p.add(nub);
   for (const o of [socket, p]) o.traverse((m) => { m.userData.noCollide = true; });
   return { socket, port: p };

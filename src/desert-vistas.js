@@ -13,9 +13,9 @@ export function basinHeight(x, z, height) {
 export function buildDesertVistas(scene, terrain) {
   const root = new THREE.Group(); root.name = 'Desert reference landmarks'; scene.add(root);
   const cream = makeMaterial({ color: '#efdfc7', flat: true });
-  const blue = makeMaterial({ color: '#a9c4d1', flat: true });
+  const blue = makeMaterial({ color: '#a9c4d1', flat: true, metal: 'painted' });
   const violet = makeMaterial({ color: '#b7a0bb', color2: '#a995b0', color3: '#d3bfd4', flat: true, mode: MODE_STRATA, strataSize: 7 });
-  const rope = makeMaterial({ color: '#716c70', flat: true });
+  const rope = makeMaterial({ color: '#716c70', flat: true, metal: 'iron' });
   function mesh(geometry, material, position, parent = root) {
     const m = new THREE.Mesh(geometry, material);m.position.copy(position);parent.add(m);return m;
   }
@@ -29,7 +29,7 @@ export function buildDesertVistas(scene, terrain) {
     mesh(new THREE.CylinderGeometry(7, 11, height, 14), cream, new THREE.Vector3(x, base + height / 2, z));
     const dish = new THREE.Group();dish.position.set(x, top, z);dish.rotation.z = tilt;root.add(dish);
     const profile = Array.from({length: 13}, (_, i) => {const r=i/12*radius;return new THREE.Vector2(r, 10*(r/radius)**2);});
-    mesh(new THREE.LatheGeometry(profile, 48), makeMaterial({color:'#d5e1dd',flat:true,side:THREE.DoubleSide}), new THREE.Vector3(), dish);
+    mesh(new THREE.LatheGeometry(profile, 48), makeMaterial({color:'#d5e1dd',flat:true,side:THREE.DoubleSide,metal:'painted'}), new THREE.Vector3(), dish);
     for(let i=0;i<12;i++){
       const a=i*Math.PI/6;
       cable(profile.map(p=>new THREE.Vector3(Math.sin(a)*p.x,p.y+.04,Math.cos(a)*p.x)),.075,dish);

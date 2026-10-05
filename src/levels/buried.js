@@ -166,16 +166,16 @@ export function createBuried(scene) {
   const M = {
     rust: strata('#c8643f', '#b35a3a', '#d9825a', 4.5, { flat: true }),
     rustGrid: strata('#c8643f', '#d9825a', '#b35a3a', 3, { grid: 3.5 }),
-    rustDark: makeMaterial({ color: '#9a4a30', flat: true }),
+    rustDark: makeMaterial({ color: '#9a4a30', flat: true, metal: 'iron', refl: 0.15 }),
     rustWall: strata('#c0603e', '#b35a3a', '#cf7450', 6, { pattern: 'cracks' }),
     rustFloor: makeMaterial({ color: '#d9825a', color2: '#cf7650', color3: '#b35a3a', mode: MODE_TERRAIN }),
-    steel: strata('#7f93a3', '#5f7488', '#94a6b3', 2.2),
-    steelFlat: makeMaterial({ color: '#7f93a3', flat: true }),
-    pipe: makeMaterial({ color: '#d8dcc8' }),
-    pipe2: makeMaterial({ color: '#bfcabd' }),
-    flange: makeMaterial({ color: '#a9b4a8', flat: true }),
+    steel: strata('#7f93a3', '#5f7488', '#94a6b3', 2.2, { metal: 'steel', refl: 0.4 }),
+    steelFlat: makeMaterial({ color: '#7f93a3', flat: true, metal: 'steel' }),
+    pipe: makeMaterial({ color: '#d8dcc8', metal: 'painted' }),
+    pipe2: makeMaterial({ color: '#bfcabd', metal: 'painted' }),
+    flange: makeMaterial({ color: '#a9b4a8', flat: true, metal: 'steel' }),
     ink: makeMaterial({ color: '#34405e', flat: true }),
-    hatch: makeMaterial({ color: '#3d4a52', flat: true }),
+    hatch: makeMaterial({ color: '#3d4a52', flat: true, metal: 'iron' }),
     teal: strata('#5e9094', '#4f8086', '#6fa0a2', 3.5, { grid: 4 }),
     tealFlat: makeMaterial({ color: '#2f5a5e', flat: true }),
     tealMid: makeMaterial({ color: '#3d6a6c', flat: true }),
@@ -783,8 +783,8 @@ export function createBuried(scene) {
       gear.holes.push(hole);
     }
     const body = new THREE.ExtrudeGeometry(gear, { depth: T, bevelEnabled: false, curveSegments: 6 }).translate(0, 0, -T / 2);
-    const bodyMat = makeMaterial({ color: '#c0603e', color2: '#b35a3a', flat: true });
-    const darkMat = makeMaterial({ color: '#8a4430', flat: true });
+    const bodyMat = makeMaterial({ color: '#c0603e', color2: '#b35a3a', flat: true, metal: 'iron', refl: 0.14 });   // rusted iron
+    const darkMat = makeMaterial({ color: '#8a4430', flat: true, metal: 'iron', refl: 0.16 });
     const spin = new THREE.Group();
     spin.add(new THREE.Mesh(body, bodyMat));
     // a heavy lip round the rim on both faces, rivets, and the boss with the maker's mark
@@ -797,7 +797,7 @@ export function createBuried(scene) {
     trim.push(new THREE.CylinderGeometry(rHub, rHub, T + 2.4, 24).rotateX(Math.PI / 2));
     spin.add(new THREE.Mesh(mergeGeometries(trim.map((g) => { const n = g.toNonIndexed(); n.deleteAttribute('uv'); return n; })), darkMat));
     // the maker's mark on the boss, facing the domes (it is underground: only the story's lore sees it)
-    const steel = makeMaterial({ color: '#7f93a3', flat: true });
+    const steel = makeMaterial({ color: '#7f93a3', flat: true, metal: 'steel' });
     spin.add(new THREE.Mesh(new THREE.CylinderGeometry(4, 4, T + 3.2, 20).rotateX(Math.PI / 2), steel));
     const holder = new THREE.Group();
     holder.position.copy(centre);

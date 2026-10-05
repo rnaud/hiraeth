@@ -4,9 +4,10 @@
 // bows upward (∩), and their other carved signs, the rings, the two moons, the pale four-point
 // star. On their buildings (Qanat's gate and the giant's brow, the Builders' ruins in Viridel,
 // the standing stones, the observatory, the shrines) they are cut into the stone:
-//  - laid out like an inscription: the even rows of the wall's grid carry a frieze between two
-//    incised border lines, a row of signs with the makers' mark opening every sixth; the odd rows
-//    are plain wall, with now and then a seal (a framed panel holding the mark, big)
+//  - laid out like an inscription: each row of the wall's grid carries a frieze between two
+//    incised border lines, a row of signs with the makers' mark opening every sixth, and plain
+//    wall above and below it; on the odd rows a cell now and then holds a seal instead (a framed
+//    panel with the mark, big)
 //  - carved, not drawn: each stroke is a groove, and the rim on the light's side casts a shadow
 //    into it (the groove's upper part drops into the shadow tone, which post.js inks like any
 //    shadow edge), with a fine outline round the cut
@@ -31,11 +32,8 @@ export function glyphSign(r, j) {
   return 1 + Math.floor(glyphHash(j + r * 31) * 7);
 }
 
-/** What a row of the wall carries: a frieze (even rows) or plain wall with seals. */
-export const glyphRow = (r) => (((r % 2) + 2) % 2 === 0 ? 'frieze' : 'plain');
-
-/** Whether cell c of a plain row r holds a seal. */
-export const glyphSeal = (r, c) => glyphHash(c * 3 + r * 11 + 5) <= GLYPH.seal;
+/** Whether cell c of row r holds a seal (only on odd rows) instead of its stretch of frieze. */
+export const glyphSeal = (r, c) => ((r % 2) + 2) % 2 === 1 && glyphHash(c * 3 + r * 11 + 5) <= GLYPH.seal;
 
 const f = (v) => v.toFixed(4);
 
@@ -66,9 +64,9 @@ export const GLYPH_GLSL = /* glsl */ `
   // The inscription over a wall, g in grid cells (x along the face, y up): the distance to the
   // nearest carved stroke, in glyph units (unit: a glyph unit, in cells).
   float inscriptionD(vec2 g, out float unit) {
-    float r = floor(g.y), fy = fract(g.y);
+    float r = floor(g.y), fy = fract(g.y), c = floor(g.x);
     unit = ${f(GLYPH.band)};
-    if (mod(r, 2.0) < 0.5) {
+    if (mod(r, 2.0) < 0.5 || glyphHash(c * 3.0 + r * 11.0 + 5.0) > ${f(GLYPH.seal)}) {
       float by = (fy - 0.5) / unit;
       float border = min(abs(by - ${f(GLYPH.border)}), abs(by + ${f(GLYPH.border)}));
       float bx = g.x / (unit * ${f(GLYPH.pitch)}), j = floor(bx);
@@ -76,8 +74,6 @@ export const GLYPH_GLSL = /* glsl */ `
       float k = mod(j, ${GLYPH.every.toFixed(1)}) < 0.5 ? 0.0 : 1.0 + floor(glyphHash(j + r * 31.0) * 7.0);
       return min(abs(by) < 0.5 ? glyphSignD(q, k) : 1e3, border);
     }
-    float c = floor(g.x);
-    if (glyphHash(c * 3.0 + r * 11.0 + 5.0) > ${f(GLYPH.seal)}) return 1e3;
     unit = ${f(GLYPH.sealUnit)};
     vec2 q = (fract(g) - 0.5) / unit;
     return min(glyphSignD(q, 0.0), abs(max(abs(q.x), abs(q.y)) - 0.6));

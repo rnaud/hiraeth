@@ -375,15 +375,15 @@ export function createEdena(scene) {
   const crashed = {};
   {
     const grp = new THREE.Group();
-    const hullMat = makeMaterial({ color: '#f3ead8', color2: '#e6875f', color3: '#f3ead8', mode: MODE_STRATA, strataSize: 3.5, grid: 3 });
+    const hullMat = makeMaterial({ color: '#f3ead8', color2: '#e6875f', color3: '#f3ead8', mode: MODE_STRATA, strataSize: 3.5, grid: 3, metal: 'painted' });
     const hull = new THREE.Mesh(soften(new THREE.CapsuleGeometry(9, 54, 8, 20), 0.08), hullMat);
     hull.rotation.z = Math.PI / 2;
     grp.add(hull);
-    const nose = new THREE.Mesh(new THREE.ConeGeometry(8.6, 22, 20).rotateZ(-Math.PI / 2), makeMaterial({ color: '#d9643a', flat: true }));
+    const nose = new THREE.Mesh(new THREE.ConeGeometry(8.6, 22, 20).rotateZ(-Math.PI / 2), makeMaterial({ color: '#d9643a', flat: true, metal: 'painted' }));
     nose.position.x = 44;
     grp.add(nose);
     for (let k = 0; k < 3; k++) {
-      const fin = new THREE.Mesh(new THREE.BoxGeometry(16, 1.2, 12).translate(0, 0, 9), makeMaterial({ color: '#62c3c9', flat: true }));
+      const fin = new THREE.Mesh(new THREE.BoxGeometry(16, 1.2, 12).translate(0, 0, 9), makeMaterial({ color: '#62c3c9', flat: true, metal: 'painted' }));
       fin.position.x = -30;
       fin.rotation.x = (k / 3) * Math.PI * 2;
       grp.add(fin);

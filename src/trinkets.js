@@ -8,7 +8,8 @@ import { makeMaterial } from './materials.js';
 // swing as you move.
 
 const mats = new Map();
-const mat = (c) => { if (!mats.has(c)) mats.set(c, makeMaterial({ color: c, flat: true })); return mats.get(c); };
+const METAL_OF = { '#d8a24a': 'brass' };   // the brass buckles, charms and studs (materials.js METALS)
+const mat = (c) => { if (!mats.has(c)) mats.set(c, makeMaterial({ color: c, flat: true, ...(METAL_OF[c] ? { metal: METAL_OF[c] } : {}) })); return mats.get(c); };
 
 const C = {
   leather: '#8a5a3c', dark: '#5a3a2c', brass: '#d8a24a', cream: '#efe2c8', red: '#c8483a',

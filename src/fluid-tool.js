@@ -255,7 +255,9 @@ export function boostVelocity(vel, up, fwd, { up: burst = FLUID.boost.up, forwar
 // ---------------------------------------------------------------- visuals
 
 const INK = '#2b211f', BRASS = '#e2b552', BRASS_DARK = '#b5862f', STEEL = '#86a9d8', STEEL_DARK = '#5f86bf', RUBBER = '#3c4a78';
-const flatMat = (color, o = {}) => makeMaterial({ color, flat: true, ...o });
+// the tank's brass, steel and iron are metal (materials.js METALS); lit parts stay lights
+const METAL_OF = { [BRASS]: 'brass', [BRASS_DARK]: 'brass', [STEEL]: 'steel', [STEEL_DARK]: 'painted', [INK]: 'iron' };
+const flatMat = (color, o = {}) => makeMaterial({ color, flat: true, ...(METAL_OF[color] && !o.glow ? { metal: METAL_OF[color] } : {}), ...o });
 const noCollide = (root) => { root.traverse((o) => { o.userData.noCollide = true; }); return root; };
 /** Bake a group's static parts into one mesh per material (fewer draws in every pass); `keep` stay as they are. */
 function mergeParts(group, keep = []) {

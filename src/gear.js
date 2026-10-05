@@ -10,7 +10,13 @@ import { makeMaterial } from './materials.js';
 // anchor (centre of the skull, +z = face).
 
 const mats = new Map();
-const mat = (c, o = {}) => { const k = c + JSON.stringify(o); if (!mats.has(k)) mats.set(k, makeMaterial({ color: c, flat: true, ...o })); return mats.get(k); };
+// the brass and steel bits are metal (materials.js METALS): brass, chrome, the blue painted steel
+const METAL_OF = { '#e2b552': 'brass', '#b8d0ec': 'chrome', '#86a9d8': 'painted', '#5f86bf': 'painted' };
+const mat = (c, o = {}) => {
+  const k = c + JSON.stringify(o);
+  if (!mats.has(k)) mats.set(k, makeMaterial({ color: c, flat: true, ...(METAL_OF[c] && !o.glow && !o.glass ? { metal: METAL_OF[c] } : {}), ...o }));
+  return mats.get(k);
+};
 
 export const GEAR_COLORS = {
   steel: '#86a9d8', steelDark: '#5f86bf', steelLight: '#b8d0ec', tan: '#c9a577', tanDark: '#a8794f',

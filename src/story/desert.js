@@ -351,7 +351,7 @@ export function setupDesert(ctx) {
   // ---------------------------------------------------------------- the procession's banners, lanterns and drum
   const props = [];
   if (crowd) {
-    const pole = makeMaterial({ color: '#4a3a2a', flat: true }), lamp = makeMaterial({ color: '#fff3c4', glow: 1, flat: true }), brass = makeMaterial({ color: '#e2b552', flat: true });
+    const pole = makeMaterial({ color: '#4a3a2a', flat: true }), lamp = makeMaterial({ color: '#fff3c4', glow: 1, flat: true }), brass = makeMaterial({ color: '#e2b552', flat: true, metal: 'brass' });
     const drumM = makeMaterial({ color: '#c8483a', flat: true });
     const colours = ['#c8483a', '#5fb7ad', '#f2c54b', '#8a6fb8', '#f3ead8', '#e6875f'];
     let ci = 0;

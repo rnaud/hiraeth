@@ -459,7 +459,7 @@ export function createArzach2(scene) {
   bell.userData.noCollide = true;
   {
     const prof = [[0.12, 0], [0.5, 0.04], [0.62, 0.3], [0.7, 0.62], [0.86, 0.86], [1.0, 0.98], [0.96, 1.02], [0, 1.02]].map(([r, y]) => new THREE.Vector2(r * 2.1, -y * 3.0));
-    const body = new THREE.Mesh(new THREE.LatheGeometry(prof, 18), makeMaterial({ color: '#c99a52', color2: '#b3843f', color3: '#e0b66a', mode: MODE_STRATA, strataSize: 0.8, side: DS }));
+    const body = new THREE.Mesh(new THREE.LatheGeometry(prof, 18), makeMaterial({ color: '#c99a52', metal: 'brass', side: DS }));   // bronze
     const yoke = new THREE.Mesh(new THREE.BoxGeometry(BELL.w * 0.86, 0.5, 0.6), M.dark);
     yoke.position.y = 0.35;
     // the three notes over the bell's rim: the glyph, in bronze relief

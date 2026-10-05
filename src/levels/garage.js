@@ -85,8 +85,10 @@ export function createGarage(scene) {
   const kit = [house, house, tower, machine];
   /** Place a random building at `pos`, with its up along `up`. */
   function build(pos, up, group = scene) {
-    const g = mergeGeometries(pick(kit)());
-    const m = new THREE.Mesh(g, stone(2 + rng() * 3));
+    const fn = pick(kit), g = mergeGeometries(fn());
+    const st = stone(2 + rng() * 3);
+    // the machines are painted metal, the houses and towers stone
+    const m = new THREE.Mesh(g, fn === machine ? makeMaterial({ color: `#${st.uniforms.uColor.value.getHexString()}`, flat: true, metal: 'painted' }) : st);
     m.quaternion.setFromUnitVectors(Y, up).multiply(new THREE.Quaternion().setFromAxisAngle(Y, rng() * 6));
     m.position.copy(pos);
     group.add(m);
@@ -162,8 +164,8 @@ export function createGarage(scene) {
   // little cabins everywhere. Kept off the path from the start to the keep.
   {
     const clear = (x, z) => Math.abs(x) < 16 && z > 20 && z < 150;
-    const pipeMats = ['#e6875f', '#62c3c9', '#a99be0', '#f2c54b'].map((c) => makeMaterial({ color: c }));
-    const brass = makeMaterial({ color: '#d8a24a', flat: true }), ink = makeMaterial({ color: '#34405e' });
+    const pipeMats = ['#e6875f', '#62c3c9', '#a99be0', '#f2c54b'].map((c) => makeMaterial({ color: c, metal: 'painted' }));
+    const brass = makeMaterial({ color: '#d8a24a', flat: true, metal: 'brass' }), ink = makeMaterial({ color: '#34405e', metal: 'iron' });
     const pipes = new Map(), bits = [];
     for (let i = 0; i < 26; i++) {
       const pts = [];
@@ -221,7 +223,7 @@ export function createGarage(scene) {
   // ---------------------------------------------------------- the signal board: nine lamps that blink the signal
   const board = { lamps: [], pos: BOARD.clone() };
   {
-    const ink = makeMaterial({ color: '#34405e', flat: true });
+    const ink = makeMaterial({ color: '#34405e', flat: true, metal: 'painted' });
     const parts = [new THREE.BoxGeometry(0.3, 5.2, 0.3).translate(-1.6, 2.6, 0), new THREE.BoxGeometry(0.3, 5.2, 0.3).translate(1.6, 2.6, 0),
       new THREE.BoxGeometry(3.8, 3.2, 0.4).translate(0, 4.6, 0), new THREE.CylinderGeometry(0.1, 0.1, 2.2, 5).translate(1.2, 7.3, 0)];
     const g = new THREE.Mesh(mergeGeometries(parts.map((q) => q.toNonIndexed())), ink);
@@ -245,10 +247,10 @@ export function createGarage(scene) {
     const col = new THREE.Mesh(soften(new THREE.CylinderGeometry(6, 9, 80, 14, 8), 0.12).translate(0, 40, 0), stone(5));
     col.position.set(mx, 0, mz);
     scene.add(col);
-    const crown = new THREE.Mesh(new THREE.SphereGeometry(11, 16, 10).scale(1, 0.7, 1), makeMaterial({ color: '#f2c54b', grid: 3 }));
+    const crown = new THREE.Mesh(new THREE.SphereGeometry(11, 16, 10).scale(1, 0.7, 1), makeMaterial({ color: '#f2c54b', grid: 3, metal: 'brass' }));
     crown.position.set(mx, 82, mz);
     scene.add(crown);
-    const gearMat = makeMaterial({ color: '#d9643a', flat: true, grid: 2 });
+    const gearMat = makeMaterial({ color: '#d9643a', flat: true, grid: 2, metal: 'copper' });
     for (let i = 0; i < 5; i++) {
       const r = 12 + i * 3 + rng() * 4;
       const gear = new THREE.Group();
@@ -259,7 +261,7 @@ export function createGarage(scene) {
         gear.add(new THREE.Mesh(new THREE.BoxGeometry(2.4, 2, 2.4).translate(Math.cos(a) * (r + 1.8), 0, Math.sin(a) * (r + 1.8)), gearMat));
       }
       for (let k = 0; k < 3; k++) // spokes
-        gear.add(new THREE.Mesh(new THREE.BoxGeometry(r * 2, 0.8, 0.8).rotateY((k / 3) * Math.PI), makeMaterial({ color: '#34405e', flat: true })));
+        gear.add(new THREE.Mesh(new THREE.BoxGeometry(r * 2, 0.8, 0.8).rotateY((k / 3) * Math.PI), makeMaterial({ color: '#34405e', flat: true, metal: 'iron' })));
       gear.userData.noCollide = true;
       scene.add(gear);
       const sp = (i % 2 ? -1 : 1) * (0.15 + rng() * 0.15);
@@ -270,7 +272,7 @@ export function createGarage(scene) {
       const plate = [new THREE.CylinderGeometry(2.6, 2.6, 0.4, 20).rotateX(Math.PI / 2)];
       for (const dx of [-1.1, 0, 1.1]) plate.push(new THREE.SphereGeometry(0.34, 8, 6).translate(dx, 0.7 + (dx ? 0 : 0.25), 0.3));
       plate.push(new THREE.TorusGeometry(1.35, 0.16, 5, 14, Math.PI).translate(0, -1.1, 0.25));
-      const pm = new THREE.Mesh(mergeGeometries(plate.map((g) => g.toNonIndexed())), makeMaterial({ color: '#34405e', flat: true }));
+      const pm = new THREE.Mesh(mergeGeometries(plate.map((g) => g.toNonIndexed())), makeMaterial({ color: '#d8a24a', flat: true, metal: 'brass' }));
       pm.position.set(mx, 22, mz + 8.4);
       scene.add(pm);
       glyphAt = pm.position.clone().add(new THREE.Vector3(0, -22, 4));
@@ -280,7 +282,7 @@ export function createGarage(scene) {
       const housing = new THREE.Mesh(new THREE.CylinderGeometry(2.5, 3, 8, 8).translate(0, 4, 0), stone(2));
       housing.position.set(px, 0, pz);
       scene.add(housing);
-      const rod = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 10, 8), makeMaterial({ color: '#f3ead8', flat: true }));
+      const rod = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 10, 8), makeMaterial({ color: '#f3ead8', metal: 'chrome' }));
       rod.userData.noCollide = true;
       scene.add(rod);
       movers.push((t) => rod.position.set(px, 9 + Math.max(0, Math.sin(t * 1.6 + k)) * 6, pz));
@@ -305,7 +307,7 @@ export function createGarage(scene) {
     }
     // the relay box, hanging (to us: standing) by the path to the next portal: a slot, a stamp, a lamp
     {
-      const ink = makeMaterial({ color: '#34405e', flat: true }), brass = makeMaterial({ color: '#d8a24a', flat: true });
+      const ink = makeMaterial({ color: '#34405e', flat: true }), brass = makeMaterial({ color: '#d8a24a', flat: true, metal: 'brass' });
       const box = new THREE.Mesh(mergeGeometries([new THREE.BoxGeometry(2.2, 2.6, 1.6).translate(0, 1.3, 0), new THREE.CylinderGeometry(0.5, 0.7, 0.5, 10).translate(0, 2.85, 0)].map((q) => q.toNonIndexed())), stone(2));
       box.position.copy(B_RELAY);
       grp.add(box);
@@ -343,12 +345,12 @@ export function createGarage(scene) {
       grp.add(housing);
       const wheel = new THREE.Group();
       wheel.position.set(B_PUMP.x + 2.9, 3.4, B_PUMP.z);
-      const wm = makeMaterial({ color: '#d9643a', flat: true, grid: 2 });
+      const wm = makeMaterial({ color: '#d9643a', flat: true, grid: 2, metal: 'copper' });
       wheel.add(new THREE.Mesh(new THREE.TorusGeometry(2.4, 0.3, 6, 20).rotateY(Math.PI / 2), wm));
-      wheel.add(new THREE.Mesh(mergeGeometries([0, 1, 2].map((k) => new THREE.BoxGeometry(0.2, 4.8, 0.3).rotateX(k * Math.PI / 3).toNonIndexed())), makeMaterial({ color: '#34405e', flat: true })));
+      wheel.add(new THREE.Mesh(mergeGeometries([0, 1, 2].map((k) => new THREE.BoxGeometry(0.2, 4.8, 0.3).rotateX(k * Math.PI / 3).toNonIndexed())), makeMaterial({ color: '#34405e', flat: true, metal: 'iron' })));
       wheel.userData.noCollide = true;
       grp.add(wheel);
-      const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 3, 8), makeMaterial({ color: '#f3ead8', flat: true }));
+      const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 3, 8), makeMaterial({ color: '#f3ead8', metal: 'chrome' }));
       rod.position.set(B_PUMP.x, 5, B_PUMP.z); rod.userData.noCollide = true;
       grp.add(rod);
       machines.pump = { group: housing, local: B_PUMP.clone().add(new THREE.Vector3(1.4, 3, 0)), radius: 4.5, speed: 0, target: 0, spin: (a) => { wheel.rotation.x = a * 1.4; rod.position.y = 5 + Math.max(0, Math.sin(a * 1.4)) * 1.6; } };
@@ -386,7 +388,7 @@ export function createGarage(scene) {
     scene.add(sm);
     // end rims
     for (const sx of [-1, 1]) {
-      const rim = new THREE.Mesh(new THREE.TorusGeometry(RING_R, 4, 8, 96).rotateY(Math.PI / 2), makeMaterial({ color: '#34405e' }));
+      const rim = new THREE.Mesh(new THREE.TorusGeometry(RING_R, 4, 8, 96).rotateY(Math.PI / 2), makeMaterial({ color: '#34405e', metal: 'painted' }));
       rim.position.set(C_POS.x + sx * RING_L / 2, C_POS.y, C_POS.z);
       scene.add(rim);
     }
@@ -413,7 +415,7 @@ export function createGarage(scene) {
       scene.add(frame);
       const wheel = new THREE.Group();
       wheel.position.set(C_TURBINE.x, fy + 8, C_TURBINE.z);
-      const pm = makeMaterial({ color: '#62c3c9', flat: true, grid: 2 });
+      const pm = makeMaterial({ color: '#62c3c9', flat: true, grid: 2, metal: 'painted' });
       const paddles = [];
       for (let k = 0; k < 8; k++) paddles.push(new THREE.BoxGeometry(2.6, 0.3, 2.4).translate(0, 5.6, 0).rotateX(k * Math.PI / 4).toNonIndexed());
       paddles.push(new THREE.CylinderGeometry(0.6, 0.6, 3.4, 10).rotateZ(Math.PI / 2).toNonIndexed());
