@@ -429,7 +429,7 @@ the hair shells and the scalp are ordinary skinned costume meshes and need nothi
 
 1. ~~Its looks on every age and build, its children, its crowd; then `MH_WORLDS`~~: done (stage 3).
 2. ~~The face keys' morph textures~~: one texture for every body (stage 3).
-3. The Unity export (above) and the Lab's faces gallery, which still show the Quaternius bodies.
+3. The Unity export (above), which still shows the Quaternius bodies (~~the Lab's faces gallery~~: stage 3).
 4. The props the sheets show that the kit lacks (above).
 
 ## Stage 3: every world, one face-key texture, more headwear (2026-10-06)
@@ -554,6 +554,42 @@ The masks and shoulder pieces packed in `aDress.y` have room for 16 each now (`M
 
 ![The Signal Market](makehuman/market.jpg)
 
+### Every other world
+
+One commit a world, each checked the same way (its cast on both bodies and its crowd close in the studio,
+its story people's ages and heights, `tests/makehuman-worlds.test.js`, a run in the game for errors), then
+into `MH_WORLDS`; now every level is (`COSTUME_WORLDS`), and the traveller alone keeps his body.
+
+- **The children the story has**: the City-Shaft's Pip (9, at the bottom, in a knit cap: he had a beard,
+  as any small man could; now a child or teenager never grows one: NPC passes `young` to the look), Vael's
+  Tam (7: a spawn spot can give an age, `age` / `years` in content.js), Vael II's novice Tiv (10), the
+  Hangar's Pip (9), the Buried Machine's Pim (6: "nine teeth old"; his face's type had made him an elder,
+  1.33 m), Viridel's Lio (9), Lorn II's Wick (a girl of 15). Lou at home was one already (7.5).
+- **A few named people in the new pieces**: the City-Shaft's cab driver Wren (an aviator's cap, goggles up),
+  the dispatcher Lio (a peaked cap), Corvin of the rim (a bowler and a monocle); Vael II's Mother Ysolde
+  (spectacles); the Hangar's clerk Ambroise (a monocle); Hask, keeper of the Wick (a hard hat with its lamp);
+  Esk of the tea terraces (a straw hat); Corm of Lorn (a wide drooping brim). Setting a piece a person's
+  look didn't set skips one of its draws and shifts the rest: where that changed more than meant (Ambroise's
+  build, prop and height) those are set too.
+- **The Lab**: its giants (the faces gallery) are MakeHuman bodies and faces now; the References' walkers
+  and the atelier's artist too.
+- **The City-Shaft, measured** (its spawn, the crowd; High; alternating `?mh=0` and the default): first
+  8.2 / 9.5 → 9.6 / 10.3 ms, later (the Mac busier) 13.6 / 15.0 / 8.6 → 18.5 / 12.8 / 13.8 ms (the medians
+  13.6 and 13.8); Handheld 35-44 ms either way; JS heap within ±30 MB, 3 textures more (the keys), triangles
+  the same. A CPU profile of each (6 s at High) has the same functions at the same shares (three's draw
+  and projection, the crowd, the shadows): nothing MakeHuman's stands out. The Mac was shared with other
+  work, so single runs swing by a half; the bodies cost about what the Quaternius ones do.
+- **The over-the-air zip**: the same size (14.85 MiB from main, 14.83 with this; the files +20 KB): the body
+  file shipped already, and the pieces are code.
+
+![The other worlds on MakeHuman bodies](makehuman/worlds.jpg)
+*Each world's story people on MakeHuman bodies in the studio, and the City-Shaft's crowds close, by depth.*
+
+What is left: the Unity export (above), the props the desert's sheets show (above); the wizard's hat over
+a woman's big curls leaves a few strands at its brim; the crowd's full bodies and figures differ in their hair
+under a hat (the figures keep a short cap); the older pieces' own fit (a wrap's tori, a hat's brim disc,
+the sphere hats floating over the Spheres' heads) is as it was.
+
 ## What a full switch would take
 
 1. ~~One parametric body~~: done (stage 1). ~~Levels of detail~~: done. ~~Hair fitted to the skull~~ and
@@ -563,10 +599,9 @@ The masks and shoulder pieces packed in `aDress.y` have room for 16 each now (`M
 3. ~~The traveller's suit and gear~~: he stays on his own body (stage 2: why).
 4. ~~The GPU crowd figure~~ matched, ~~a promoted crowd person their age and build~~: done (stage 2).
 5. ~~Ragdoll capsules and cape colliders~~: each MakeHuman body's own girths (stage 2).
-6. **The Unity export** (`scripts/unity-export`) and the Lab's faces gallery still read the Quaternius
+6. **The Unity export** (`scripts/unity-export`) still reads the Quaternius
    bodies (stage 2 says what the export needs); the tests that load `human_m.glb` / `human_f.glb` for the
    per-kind tables stay as they are until those tables go.
 7. ~~**Memory**~~: the arrays are shared between a template's bodies (stage 2), the face keys are one
    texture for every body (stage 3).
-8. **The flip, world by world**: the Desert is flipped and the file ships (stage 2); the Signal Market
-   (stage 3), then the others (`MH_WORLDS`).
+8. ~~**The flip, world by world**~~: the Desert (stage 2), then every other level (stage 3: `MH_WORLDS`).

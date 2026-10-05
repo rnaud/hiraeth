@@ -218,7 +218,7 @@ are fitted to his body). docs/makehuman.md has the numbers, the pictures and wha
 
 The Desert's people (story and crowd) are MakeHuman bodies by default; `?mh=0` brings back the
 Quaternius ones to compare, `?mh=1` puts any world's people on MakeHuman (`usesMakeHuman` in
-`src/makehuman/people.js`; the other worlds wait for their own review, the Signal Market next).
+`src/makehuman/people.js`; the other worlds followed in stage 3, below).
 docs/makehuman.md has the checks, the numbers and the pictures.
 
 - **The file**: `public/anim/mh/body.bin` is one file now (its JSON header in front: `pack.py`,
@@ -280,8 +280,10 @@ docs/makehuman.md (stage 3) has the checks, the numbers and the pictures; `tests
 - **Each world its own** (a tribe's `more`): the new pieces are drawn apart from a tribe's own weights
   (`more()` in `dressFor`, by a draw of their own), so the crowds wear them and everyone drawn before,
   every named person, keeps their look; named people wear new pieces only where their story says so.
-- **The worlds on MakeHuman** (`MH_WORLDS`): the Desert (stage 2), the Signal Market (Kip a child of 11,
-  Sel's spectacles, Ferro's kerchief and goggles, Brush's beret, Teb's flat cap, Oyo's cap and spectacles).
+- **The worlds on MakeHuman** (`MH_WORLDS`): every level now (the Desert in stage 2; the Signal Market first in
+  stage 3, then the others one by one); `?mh=0` brings back the Quaternius bodies anywhere. The story's
+  children are given their ages (`def.age`, `def.years`; a spawn spot's `age` / `years`), and a child or a
+  teenager grows no beard (NPC passes `young` to `namedLook`).
 - **The studio**: *Lineup → MakeHuman: every headwear* (*MakeHuman person*: the face pieces, the shoulder
   pieces, or the world's own set), round a woman, a man, a girl, a boy, a heavy old woman and an old man.
 - **The fit test** (`poking` in the test): rays from the skull's centre to every point of the skin and

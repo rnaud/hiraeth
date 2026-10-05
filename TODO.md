@@ -101,7 +101,7 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 ## People
 
 - [x] Robes still fly through people until I get close. (A cape simulated every 2nd or 3rd frame, further off or on a 30 fps handheld, now lives all the time since its last update and is carried along with its wearer between updates, pinned and pushed by the collar and limbs on their way, so it no longer streams out behind or lets legs and arms through; the robe under a cape is a collider; the crowd's figures wear the full people's wide cape over their arms and robe, and their robes swing as the full ones do; body girths are measured on the full mesh at every level of detail. tests/robes.test.js)
-- [ ] Every world on MakeHuman bodies; more variety in headwear: hats, goggles, scarves…
+- [x] Every world on MakeHuman bodies; more variety in headwear: hats, goggles, scarves… (every level in `MH_WORLDS`, one commit a world, the children given their ages; 15 new headwear, 5 face and 3 neck pieces on the skull egg, hair squashed under hats on MakeHuman heads, a fit test on seven heads, each world's set drawn apart so named people keep their looks; the studio's headwear lineups; docs/makehuman.md stage 3)
 - [ ] Alien species on the planets: non-humanoid characters (people, not animals).
 
 ## The app
@@ -156,9 +156,9 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 ## MakeHuman bodies
 
-- [ ] Stages 1 and 2 (the Desert) done (DONE.md). The other worlds; the face keys' morph textures shared
-  between a template's bodies (three makes one per geometry: ~1 MB each body that comes close); the Unity
-  export on MakeHuman bodies (blend shapes for the face keys); the Lab's faces gallery.
+- [ ] Stages 1 and 2 (the Desert) done (DONE.md); stage 3 done: every world, the Lab's faces gallery, the face
+  keys in one texture for every body (docs/makehuman.md). Left: the Unity export on MakeHuman bodies (blend
+  shapes for the face keys); the props the desert's sheets show that the kit lacks.
 
 ## Animation
 
