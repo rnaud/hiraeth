@@ -297,9 +297,10 @@ export class Waters {
    * @param o.player   rings round the traveller wading and swimming
    * @param o.vehicles rings behind vehicles skimming over water
    * @param o.things   anything else with pos (creatures, people): rings where they stand in water
+   * @param o.globs    the fluid tool's globs in flight: a splash where one goes in
    * @param o.sky      post.js uniforms (uSkyTop, uSkyHorizon): the sky the water mirrors
    */
-  update(dt, t, { player = null, vehicles = [], things = [], sky = null, bake = true } = {}) {
+  update(dt, t, { player = null, vehicles = [], things = [], globs = [], sky = null, bake = true } = {}) {
     this.t = t;
     for (const b of this.bodies) if (b.mesh.userData.waterMoves && shownInScene(b.mesh)) this.refresh(b);
     if (sky) { waterShared.uWaterSky.value[0].copy(sky.uSkyTop.value); waterShared.uWaterSky.value[1].copy(sky.uSkyHorizon.value); }
@@ -330,6 +331,15 @@ export class Waters {
       const s = this.surfaceAt(p.x, p.z, p.y, 1);
       if (s && Math.abs(s.y - p.y) < 0.9) { this.ring(p.x, p.z, 0.5); this._emit.set(key, 1.2 + Math.random() * 1.5); }
       else this._emit.set(key, 0.8 + Math.random());
+    }
+    // the fluid tool's globs: a splash where one goes into the water
+    for (const g of globs) {
+      if (g.state !== 'fly' && g._wy === undefined) continue;
+      const prev = g._wy;
+      g._wy = g.pos.y;
+      if (prev === undefined || prev <= g.pos.y) continue;
+      const s = this.surfaceAt(g.pos.x, g.pos.z, prev, 0.5);
+      if (s && prev > s.y && g.pos.y <= s.y + 0.05) this.splash(_o.set(g.pos.x, s.y, g.pos.z), s.y, 0.5, { sound: true });
     }
     this.drops?.update(dt);
   }
@@ -362,7 +372,7 @@ export class Waters {
    */
   renderOver(renderer, camera, { tNormal, tAlbedo, target, toon = 0.5 } = {}) {
     this.sound?.underwater?.(this.camUnder ? 1 : 0);
-    const sun = sharedUniforms.uSunDir.value.y > 0.02;
+    const sun = sharedUniforms.uSunDir.value.y > 0.02 && waterShared.uWaterLite.value < 0.5;   // (no sparkle on the handheld's low detail)
     if (!this.camUnder && !(sun && this.inView)) return;
     (this.pass ??= new WaterPass()).render(renderer, camera, { tNormal, tAlbedo, target, toon, under: this.camUnder });
   }
@@ -392,7 +402,7 @@ class Drops {
       if (this.list.length >= this.max) this.list.shift();
       const a = Math.random() * Math.PI * 2, out = (0.6 + Math.random() * 1.6) * (0.6 + 0.6 * k) * spread, up = (1.6 + Math.random() * 3.2) * (0.5 + 0.55 * k);
       this.list.push({ pos: new THREE.Vector3(p.x + Math.cos(a) * 0.25, p.y, p.z + Math.sin(a) * 0.25), vel: new THREE.Vector3(Math.cos(a) * out, up, Math.sin(a) * out),
-        size: (0.035 + Math.random() * 0.05) * (0.7 + 0.4 * k), age: 0, life: 0.5 + Math.random() * 0.5, floor: p.y - 0.05 });
+        size: (0.018 + Math.random() * 0.03) * (0.7 + 0.4 * k), age: 0, life: 0.5 + Math.random() * 0.5, floor: p.y - 0.05 });
     }
   }
   update(dt) {

@@ -51,6 +51,7 @@ export function padControls(ok = confirmKey(), back = backKey()) {
     + 'LT / L2 aim the fluid tool · RT / R2 shoot · RB / R1 push · D-pad left / right gun mode, up worlds, down photo · '
     + 'View gear and sketchbook · Menu settings. '
     + 'Riding: RT / R2 go · LT / L2 brake · left stick steer (flying: forward dives, back climbs) · A / × hop, flap, rise · RB / R1 boost · B / ○ get off. '
+    + 'Swimming: left stick swim (L3 sprints) · look down and swim forward to dive, under water you swim where you look · A / × rise, at the surface kick up or climb out. '
     + `In menus: D-pad select, left / right adjust, ${ok} confirm, ${back} back, right stick scroll.`;
 }
 
@@ -106,7 +107,7 @@ export class SettingsMenu {
           <p class="keys pad-keys">${padControls()}</p>
           ${game ? '<p class="keys" id="app-build" hidden></p>' : ''}
           <p class="keys install-tip">Play full screen on iPhone: open in Safari, tap Share → Add to Home Screen, then enable Open as Web App if shown.</p>
-          <p class="keys">WASD move · SHIFT run · SPACE jump / glide / jetpack (SPACE again in the air: fluid boost) · E interact · Q ping scout · hold right mouse or R aim the fluid tool · left click or G shoot · C or middle click push · J sketchbook · L worlds · P photo · H help · O settings · N what's new</p>
+          <p class="keys">WASD move · SHIFT run · SPACE jump / glide / jetpack (SPACE again in the air: fluid boost) · E interact · Q ping scout · hold right mouse or R aim the fluid tool · left click or G shoot · C or middle click push · in water: Z or CTRL dive, SPACE rise / climb out · J sketchbook · L worlds · P photo · H help · O settings · N what's new</p>
         </section>
       </div>`;
     // the controls list names the menu's confirm / back buttons, which follow the "Controller buttons" setting

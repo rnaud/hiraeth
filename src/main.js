@@ -54,6 +54,7 @@ import { badgeLine } from './prompt-keys.js';
 import { chargeState, chargeHud, chargeJournalHtml, showChargeCard, GIVEN as CHARGE_GIVEN, CARD as CHARGE_CARD } from './story/charge.js';
 import { slots, formatPlaytime } from './save-slots.js';
 import { Waters, BreathMeter } from './water.js';
+import { waterShared } from './water-shader.js';
 
 // Android: the handheld's controls come from the app (native-pad.js), and prompts use its button names
 installNativePad();
@@ -593,6 +594,7 @@ function applyDetail() {
   sharedUniforms.uCloudShadows.value = preset.cloudShadows && !low ? baseCloudSh : 0;
   sharedUniforms.uShadowTaps.value = preset.taps;
   U.uPostLite.value = preset.postLite ? 1 : 0;
+  waterShared.uWaterLite.value = low || preset.postLite ? 1 : 0;   // (src/water-shader.js)
   for (const n of npcs) n.lowDetail = low;
   if (crowd) {
     const mid = preset.crowdMid ?? crowdRange.midIn;
@@ -1244,7 +1246,7 @@ function frame() {
   U.uTime.value = t;
   U.uDebug.value = params.debug;
   // the water: its rings and splashes, its bed maps; the camera kept off its surface
-  waters.update(dt, t, { player, vehicles: player.vehicles, things: wildlife.creatures, sky: U });
+  waters.update(dt, t, { player, vehicles: player.vehicles, things: wildlife.creatures, globs: tool.globs, sky: U });
   waters.keepCamera(camera, player.swim?.under ? 'under' : 'over');
   breathMeter.update(player.breath, !!player.swim && (player.swim.under || player.breath < 0.999) && !busy());
 

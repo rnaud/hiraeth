@@ -39,6 +39,7 @@ export const RINGS = 12;
 export const waterShared = {
   uWaterRings: { value: Array.from({ length: RINGS }, () => new THREE.Vector4(0, 0, -100, 0)) },
   uWaterSky: { value: [new THREE.Color('#8ccfd2'), new THREE.Color('#f7ecd2')] },   // zenith, horizon (post.js's sky)
+  uWaterLite: { value: 0 },   // 1: the handheld's low detail (one scale of waves, no caustics, no sparkle; main.js applyDetail)
 };
 
 /** A bed map that says "unknown": the shader falls back to uWaterOpt.x of depth everywhere. */
@@ -72,6 +73,7 @@ export const WATER_GLSL = /* glsl */ `
   uniform vec4 uWaterOpt;        // fallback depth · printed shape · clarity · sparkle
   uniform vec4 uWaterRings[${RINGS}];   // x, z, start time, strength
   uniform vec3 uWaterSky[2];
+  uniform float uWaterLite;
   uniform vec4 uWind;
 
   struct WaterLook { vec3 albedo; float ink; float lit; float glint; };
@@ -93,7 +95,7 @@ export const WATER_GLSL = /* glsl */ `
     float fw = max(fwidth(v), 1e-5);
     float d = abs(fract(v + 0.5) - 0.5) / fw;                       // device px from the crest
     float lane = floor(v + 0.5);
-    float dash = smoothstep(0.6, 0.66, vnoise(vec2(q.y * 1.3, lane * 3.7 + seed) + vec2(t * 0.05, 0.0)) * (0.85 + 0.15 * vnoise(q * 0.05 + seed)) + 0.08 * min(str, 2.0));
+    float dash = smoothstep(0.6, 0.66, vnoise(vec2(q.y * 1.3, lane * 3.7 + seed) + vec2(t * 0.05, 0.0)) + 0.08 * min(str, 2.0));
     return inkLine(d, 0.95) * dash * (1.0 - smoothstep(0.12, 0.3, fw));
   }
 
@@ -116,7 +118,9 @@ export const WATER_GLSL = /* glsl */ `
     float clarity = uWaterOpt.z;
 
     // ---- ink: wave crests (two scales: the coarse one carries further), rings
-    float ink = max(waveInk(p.xz, t, str, wd, 1.0, 0.0), waveInk(p.xz, t, str, wd, 3.2, 17.0) * 0.7) * 0.75;
+    float ink = waveInk(p.xz, t, str, wd, 1.0, 0.0);
+    if (uWaterLite < 0.5) ink = max(ink, waveInk(p.xz, t, str, wd, 3.2, 17.0) * 0.7);   // (a uniform branch: derivatives are fine)
+    ink *= 0.75;
     float rings = 0.0;
     for (int i = 0; i < ${RINGS}; i++) {
       vec4 r = uWaterRings[i];
@@ -127,8 +131,9 @@ export const WATER_GLSL = /* glsl */ `
       float dist = length(o);
       float R = 0.18 + age * (1.1 + 0.5 * min(r.w, 2.0));
       float w = max(px * 1.6, 0.03);
+      if (dist > R + w || dist < R * 0.62 - w) continue;   // (only pixels on or between the two rings pay for the rest)
       float fade = (1.0 - age / life) * min(r.w, 1.0);
-      float brk = step(0.32, vnoise(vec2(atan(o.y, o.x) * 2.5 + r.z * 7.0, R * 0.7)));
+      float brk = uWaterLite > 0.5 ? 1.0 : step(0.32, vnoise(vec2(atan(o.y, o.x) * 2.5 + r.z * 7.0, R * 0.7)));
       rings = max(rings, (1.0 - smoothstep(w * 0.4, w, abs(dist - R))) * fade * brk);
       float R2 = R * 0.62;
       rings = max(rings, (1.0 - smoothstep(w * 0.4, w, abs(dist - R2))) * fade * 0.7 * step(0.25, age) * brk);
@@ -156,10 +161,11 @@ export const WATER_GLSL = /* glsl */ `
     vec3 col = dB < 1.15 ? shallow : (dB < 3.4 ? mid : deep);
     if (dB < 0.42 * clarity && known > 0.5) col = mix(shallow, uWaterBed, 0.5);
     // caustics over the shallow bed: a fine wobbling net, close up only, fading with depth
-    float cv = voronoiBorder(p.xz * 1.6 + vec2(sin(t * 0.7 + p.z * 0.9), cos(t * 0.6 + p.x * 0.8)) * 0.3);
-    float cpx = cv / max(px * 1.6, 1e-4);
-    float caust = inkLine(cpx, 0.7) * (1.0 - smoothstep(0.15, 0.7, dB)) * known * (1.0 - smoothstep(0.012, 0.03, px)) * clarity;
-    ink = max(ink, caust * 0.3);
+    float causK = (1.0 - smoothstep(0.15, 0.7, dB)) * known * (1.0 - smoothstep(0.012, 0.03, px)) * clarity * (1.0 - uWaterLite);
+    if (causK > 0.0) {   // (the cell search only where it shows)
+      float cv = voronoiBorder(p.xz * 1.6 + vec2(sin(t * 0.7 + p.z * 0.9), cos(t * 0.6 + p.x * 0.8)) * 0.3);
+      ink = max(ink, inkLine(cv / max(px * 1.6, 1e-4), 0.7) * causK * 0.3);
+    }
 
     // ---- the sky at grazing angles: two flat steps toward the horizon's colour
     float fres = pow(1.0 - clamp(V.y, 0.0, 1.0), 4.0);
@@ -175,8 +181,11 @@ export const WATER_GLSL = /* glsl */ `
     float foamM = 0.28 + 0.1 * sin(t * 0.9 + p.x * 0.7 + p.z * 0.4);
     float foam = (1.0 - smoothstep(foamM, foamM + px * 1.2, shore)) * step(-0.05, depth) * known;
     foam = max(foam, (1.0 - smoothstep(1.3 * fd, 2.3 * fd, depth)) * known);           // at least a line, however steep
-    float lapAt = 0.95 + 0.35 * sin(t * 1.15 + vnoise(p.xz * 0.25) * 6.2832);
-    float lap = inkLine(abs(shore - lapAt) / max(px, 1e-4), 0.9) * step(0.42, vnoise(p.xz * 0.8 + 3.0 + t * 0.1)) * known * (1.0 - smoothstep(0.06, 0.2, px));
+    float lap = 0.0;
+    if (shore < 1.6 && known > 0.0 && px < 0.2) {   // (only near the shore)
+      float lapAt = 0.95 + 0.35 * sin(t * 1.15 + vnoise(p.xz * 0.25) * 6.2832);
+      lap = inkLine(abs(shore - lapAt) / max(px, 1e-4), 0.9) * step(0.42, vnoise(p.xz * 0.8 + 3.0 + t * 0.1)) * known * (1.0 - smoothstep(0.06, 0.2, px));
+    }
     ink = max(ink * (1.0 - foam), lap * 0.85);
     col = mix(col, mix(vec3(0.97, 0.98, 0.95), shallow, 0.18), foam);
 
@@ -184,7 +193,7 @@ export const WATER_GLSL = /* glsl */ `
     // not drawn here (post.js would ink round them, black specks): the glint goes out in the
     // normal's length (WATER_MARK) and water.js paints it white over the finished page
     float glint = 0.0;
-    if (uSunDir.y > 0.02 && uWaterOpt.w > 0.0) {
+    if (uSunDir.y > 0.02 && uWaterOpt.w > 0.0 && uWaterLite < 0.5) {
       vec3 R = vec3(-V.x, V.y, -V.z);
       float path = smoothstep(0.88, 0.995, dot(R, uSunDir));
       // world-fixed cells (a power of two metres, ~16 px along the view), a dash in each lying
