@@ -1,0 +1,33 @@
+README.md
+  s_1fd8d0e7b02dcf::t_61e4ce9f24c812 1852-1874,1931-1939
+docs/benchmark-web-vs-unity.md
+  s_1fd8d0e7b02dcf::t_abd04569ac07e2 52,56-175
+scripts/bench/android-engines-summary.mjs
+  s_1fd8d0e7b02dcf::t_6d70f9f5acb03b 1-132
+scripts/bench/android-engines.mjs
+  s_1fd8d0e7b02dcf::t_0f1575f45822f9 1-511
+scripts/bench/report.mjs
+  s_1fd8d0e7b02dcf::t_ab81124e53a188 14-17,181,185-186
+scripts/bench/results/android-webview-vs-chrome.json
+  s_1fd8d0e7b02dcf::t_626564e98c03a2 1-4853
+scripts/bench/serve.mjs
+  s_1fd8d0e7b02dcf::t_dcb37dc2bcecdc 20-21
+scripts/bench/webview-apk.sh
+  s_1fd8d0e7b02dcf::t_2bee5a9d75ddc2 1-56
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6bcd6661c2c1488bb7520dcb4db39804a129ec2c",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
