@@ -126,6 +126,7 @@ namespace Memento.EditorTools
                 var eye = MementoLook.Three(v.V3("eye")); var target = MementoLook.Three(v.V3("target"));
                 if (v.Has("hour")) game.look.hour = v.F("hour");
                 game.look.debugView = v.I("debug");
+                game.cam.transform.position = eye;   // (the local lights nearest the view)
                 game.look.Apply();
                 fx.Tick(0, 120);
                 Capture(game.cam, eye, target, v.F("fov", 55), w, h, Path.Combine(outDir, v.S("name") + ".png"));

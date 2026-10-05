@@ -38,7 +38,8 @@ namespace Memento
             foreach (var h in look.L("hours")) hours.Add(h as Dictionary<string, object>);
             hour = look.F("hour", 9.5f);
             localLights.Clear();
-            if (lights != null) foreach (var l in lights) { var a = l as List<object>; localLights.Add(new Vector4(-Json.Num(a[0]), Json.Num(a[1]), Json.Num(a[2]), Json.Num(a[3]))); }
+            // (exported in Unity space; sorted by distance there, handed to the shaders in three space below)
+            if (lights != null) foreach (var l in lights) { var a = l as List<object>; localLights.Add(new Vector4(Json.Num(a[0]), Json.Num(a[1]), Json.Num(a[2]), Json.Num(a[3]))); }
             Apply();
         }
 
@@ -109,7 +110,7 @@ namespace Memento
             Shader.SetGlobalVector("_Wind", new Vector4(windDir.x, windDir.y, wind, gust));
 
             // the local lights nearest the subject
-            Vector3 at = subject ? subject.position : Vector3.zero;
+            Vector3 at = subject ? subject.position : Camera.main ? Camera.main.transform.position : Vector3.zero;
             localLights.Sort((x, y) => ((Vector3)x - at).sqrMagnitude.CompareTo(((Vector3)y - at).sqrMagnitude));
             for (int k = 0; k < 8; k++)
             {

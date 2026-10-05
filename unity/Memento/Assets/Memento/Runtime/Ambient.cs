@@ -29,6 +29,8 @@ namespace Memento
         // ------------------------------------------------------------------ birds
         class Flock { public Puffs body, wingL, wingR; public float size, radius, speed, phase; public Vector2 height; public int count; public List<(Vector3 off, float flap, float rate, float glide)> birds = new(); }
         readonly List<Flock> flocks = new();
+        // ------------------------------------------------------------------ motes (life.js Motes)
+        Mesh moteMesh; Vector3[] mv; Material moteMat; Vector3[] moteSeeds; float moteSize = 0.05f; Vector2 moteWind = new(1.6f, 0.6f); const float MoteBox = 36;
         // ------------------------------------------------------------------ prints
         Puffs prints; readonly List<(Vector3 at, float yaw, float t)> printList = new(); int printNext; const float PrintLife = 30;
 
@@ -65,6 +67,17 @@ namespace Memento
                     for (int i = 0; i < F.count; i++) F.birds.Add((new Vector3((Random.value - 0.5f) * 16, (Random.value - 0.5f) * 6, (Random.value - 0.5f) * 16), Random.value * 6, 7 + Random.value * 4, Random.value * 10));
                     flocks.Add(F);
                 }
+            // the motes: dust in the air round the camera
+            var life = g.world.World.O("life")?.O("motes");
+            int nm = life?.I("count", 160) ?? 160;
+            moteSize = life?.F("size", 0.05f) ?? 0.05f;
+            var mw = life?.L("wind"); if (mw != null) moteWind = new Vector2(-Json.Num(mw[0]), Json.Num(mw[1]));
+            moteSeeds = new Vector3[nm]; for (int i = 0; i < nm; i++) moteSeeds[i] = new Vector3(Random.value, Random.value, Random.value);
+            moteMesh = new Mesh { name = "motes" }; moteMesh.MarkDynamic();
+            mv = new Vector3[nm * 4]; var muv = new Vector2[nm * 4]; var mi = new int[nm * 6];
+            for (int i = 0; i < nm; i++) { muv[i * 4] = new(0, 0); muv[i * 4 + 1] = new(1, 0); muv[i * 4 + 2] = new(0, 1); muv[i * 4 + 3] = new(1, 1); int b = i * 4, k = i * 6; mi[k] = b; mi[k + 1] = b + 2; mi[k + 2] = b + 1; mi[k + 3] = b + 1; mi[k + 4] = b + 2; mi[k + 5] = b + 3; }
+            moteMesh.vertices = mv; moteMesh.uv = muv; moteMesh.triangles = mi; moteMesh.bounds = new Bounds(Vector3.zero, Vector3.one * 1e5f);
+            moteMat = new Material(Shader.Find("Memento/Mote")); moteMat.SetVector("_MoteColor", (Vector4)Json.Hex(life?.S("color") ?? "#e6cf9f"));
             // the prints: heel and ball, toe forward
             var pm = new Material(Shader.Find("Memento/Print")); pm.SetFloat("_PrintDepth", 0.87f);
             prints = new Puffs(SoleMesh(), pm, 160);
@@ -165,6 +178,25 @@ namespace Memento
                     }
                     F.body.Draw(centre, 60); F.wingL.Draw(centre, 60); F.wingR.Draw(centre, 60);
                 }
+            // ---- the motes, each drifting freely, wrapped into a box round the camera
+            if (moteMesh != null)
+            {
+                var camT = game.cam.transform; var right = camT.right; var up = camT.up;
+                float H2 = MoteBox * 0.5f, pxW = 2 * Mathf.Tan(game.cam.fieldOfView * 0.5f * Mathf.Deg2Rad) / Mathf.Max(Screen.height, 1);
+                float Wrap(float v, float c, float size) => c - size / 2 + (((v - c + size / 2) % size) + size) % size;
+                for (int i = 0; i < moteSeeds.Length; i++)
+                {
+                    var s = moteSeeds[i];
+                    float x = s.x * 1000 + t * moteWind.x + Mathf.Sin(t * 0.5f + i) * 1.5f, y = s.y * 1000 + Mathf.Sin(t * 0.8f + i * 0.7f) * 0.8f, z = s.z * 1000 + t * moteWind.y + Mathf.Cos(t * 0.4f + i) * 1.5f;
+                    var p = new Vector3(Wrap(x, cam.x, MoteBox), Wrap(y, cam.y + H2 * 0.3f, H2), Wrap(z, cam.z, MoteBox));
+                    float d = Mathf.Max(Vector3.Distance(p, cam), 0.1f);
+                    // (point size as the web: clamp(size * 900 / depth, 1.5, 14) px)
+                    float px = Mathf.Clamp(moteSize * 900 / d, 1.5f, 14f), half = 0.5f * px * d * pxW;
+                    mv[i * 4] = p - right * half - up * half; mv[i * 4 + 1] = p + right * half - up * half; mv[i * 4 + 2] = p - right * half + up * half; mv[i * 4 + 3] = p + right * half + up * half;
+                }
+                moteMesh.vertices = mv;
+                if (!indoors || pl.y > 500) Graphics.RenderMesh(new RenderParams(moteMat) { worldBounds = new Bounds(cam, Vector3.one * 100), shadowCastingMode = ShadowCastingMode.Off }, moteMesh, 0, Matrix4x4.identity);
+            }
             // ---- the prints, fading over half a minute
             if (printList.Count > 0)
             {
