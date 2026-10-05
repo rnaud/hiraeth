@@ -106,8 +106,9 @@ export function drive(p, script, { fps = 60, camYaw = CAM_PLUS_Z } = {}) {
 
 /**
  * The measures over a run:
- *  slide: for each contact (the ball within 3 cm of the ground below it and moving down or level),
- *         how far it moved over the ground while in contact (m): max and mean
+ *  slide: for each contact (the ball within 3 cm of the ground below it), how far it moved over
+ *         the ground meanwhile (m): max and mean; touching down and lifting off included
+ *  heldSlide: the most a planted foot (held, fully blended in) moved over one hold (m)
  *  sink:  the deepest the ball or the heel went under the ground (m)
  *  jitter: the pelvis and head's jerk (3rd difference of their world position) RMS, km/s^3
  *  maxTurn: the most any bone turned (its local rotation) from one frame to the next (rad)
@@ -150,7 +151,17 @@ export function measure(frames, H, dt, warm = 0.3) {
     return Math.sqrt(s / Math.max(n, 1)) / dt ** 3 / 1000;
   };
   const maxTurn = Math.max(...frames.filter((f) => f.t >= warm).map((f) => f.maxTurn));
-  return { maxSlide, meanSlide: contacts ? sumSlide / contacts : 0, contacts, slides, sink, jitterPelvis: jerk('pelvis'), jitterHead: jerk('head'), maxTurn };
+  // the planted feet themselves: how far a held foot (planted, fully blended in) moves over its hold
+  let heldSlide = 0;
+  for (const s of ['l', 'r']) {
+    let run = 0;
+    for (let i = 1; i < frames.length; i++) {
+      const f = frames[i].feet[s], g = frames[i - 1].feet[s];
+      if (frames[i].t >= warm && f.locked && g.locked && f.w > 0.95 && g.w > 0.95) { run += Math.hypot(f.ball.x - g.ball.x, f.ball.z - g.ball.z); heldSlide = Math.max(heldSlide, run); }
+      else run = 0;
+    }
+  }
+  return { maxSlide, meanSlide: contacts ? sumSlide / contacts : 0, contacts, slides, heldSlide, sink, jitterPelvis: jerk('pelvis'), jitterHead: jerk('head'), maxTurn };
 }
 
 /** The seconds from `from` until the heading is within `tol` of `target` (rad), or Infinity. */

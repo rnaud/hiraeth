@@ -121,3 +121,43 @@ export class StepLag {
     return this.lag;
   }
 }
+
+/**
+ * A person's own way of walking, from their body and a seed (0..1 random draws): so a crowd
+ * doesn't march in step, and a heavy man doesn't walk like a slim girl.
+ *  stride: x the loop's stride (longer: a slower cadence for the same speed)
+ *  bob:    x the hips' rise and fall;  sway: the hips' roll from side to side (rad at a walk)
+ *  lean:   the chest's pitch forward walking (rad);  stoop: standing too;  chin: the head's pitch
+ *  pace:   x their walking speed;  phase: where in the cycle they start;  wobble: the cadence's
+ *          slow drift (a fraction), so two people side by side drift out of step
+ * @param rand  () => 0..1 (seeded)
+ * @param o.build costumes.js BUILDS key; o.kind 'm' | 'f'; o.size the body's scale (children ~0.6)
+ */
+export function gaitStyle(rand, { build = 'average', kind = 'm', size = 1 } = {}) {
+  const r = () => rand() * 2 - 1;
+  const B = { slim: { stride: 1.04, bob: 1.1, sway: 0.02 }, average: { stride: 1, bob: 1, sway: 0.03 }, broad: { stride: 0.97, bob: 0.95, sway: 0.04 }, heavy: { stride: 0.9, bob: 0.82, sway: 0.065 } }[build] ?? { stride: 1, bob: 1, sway: 0.03 };
+  const child = size < 0.8, f = kind === 'f';
+  // an older or more tired walker now and then: a shorter stride, bent forward, eyes lower
+  const age = Math.max(0, rand() * 1.6 - 0.6);
+  return {
+    stride: B.stride * (f ? 0.97 : 1) * (child ? 0.92 : 1) * (1 + r() * 0.05) * (1 - age * 0.08),
+    bob: B.bob * (child ? 1.25 : 1) * (1 + r() * 0.12),
+    sway: B.sway * (f ? 1.3 : 1) * (1 + r() * 0.3),
+    lean: 0.03 + r() * 0.03 + age * 0.09,
+    stoop: Math.max(0, age * 0.12 + r() * 0.02),
+    chin: r() * 0.06 + age * 0.08,
+    pace: (1 + r() * 0.06) * (1 - age * 0.12),
+    phase: rand(),
+    wobble: 0.02 + rand() * 0.03,
+    wobbleRate: 0.25 + rand() * 0.3,
+  };
+}
+
+/** Lay a person's gait style over the rig (after Animator.apply): k = how much they're walking (0..1). */
+export function poseStyle(char, G, phase, k, still = 1 - k) {
+  const { body, torso, head } = char;
+  if (G.sway) body.quaternion.multiply(_q.setFromAxisAngle(_z, Math.sin(phase * Math.PI * 2) * G.sway * k));
+  const pitch = G.lean * k + G.stoop * still;
+  if (pitch) torso.quaternion.premultiply(_q.setFromAxisAngle(_x, pitch));
+  if (G.chin) head.quaternion.multiply(_q.setFromAxisAngle(_x, G.chin - pitch * 0.5));
+}

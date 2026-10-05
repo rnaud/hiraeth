@@ -33,6 +33,7 @@ export const FEET = {
   stepRest: 0.06,                // s between two steps
   maxDrop: 0.26,                 // m (x size): how far the hips may come down to reach a low foot
   landTime: 0.07, landHeight: 0.15,   // s, m (x size): a landing foot slows over the ground in its last moments before touchdown
+  landBack: 0.14,                // m (x size): by at most this much
 };
 
 const newFoot = () => ({ locked: false, w: 0, pos: new THREE.Vector3(), yaw: new THREE.Vector3(0, 0, 1), n: null, released: false, lastHeight: undefined, step: null });
@@ -138,14 +139,15 @@ export function plantFeet(H, dt, physics, up, rootPos, fwd, onStep, o = {}) {
     let planted;
     // (a foot coming down onto the real ground plants as it touches it, a frame or two before the clip's contact would)
     let clear = -groundH - ballRest;   // the ball's sole over the ground under it
-    // the end of a swing: the clip's foot still travels with the body as it comes down; a real foot
-    // slows over the ground as it meets it. Within the last few centimetres it is held back toward
-    // where it first came that low (it plants there; feet.js lets the stance catch up)
+    // the end of a swing: the loops' foot still travels with the body as it comes down (it skims
+    // in to land); a real foot slows over the ground as it meets it. In its last moments it is held
+    // back toward where it was then, by at most FEET.landBack (more and the stance would end with
+    // the foot out of the leg's reach)
     const ttc = o.toContact?.[s] ?? Infinity;
     if (contact && !F.locked && !F.step && F.aloft && ttc < FEET.landTime && clear < FEET.landHeight * sc) {
       F.land ??= place.clone();
       const back = _b.subVectors(F.land, place);
-      back.addScaledVector(up, -back.dot(up)).clampLength(0, 0.3 * sc).multiplyScalar(0.9 * (1 - ttc / FEET.landTime));
+      back.addScaledVector(up, -back.dot(up)).clampLength(0, FEET.landBack * sc).multiplyScalar(1 - ttc / FEET.landTime);
       place.add(back); ankle.add(back); ball.add(back);
     } else if (F.locked || F.step || ttc > FEET.landTime * 1.5) F.land = null;
     // (held: let go once the gait's contact falls away, not while it is still rising at a touchdown)
@@ -216,7 +218,7 @@ export function plantFeet(H, dt, physics, up, rootPos, fwd, onStep, o = {}) {
       if (!d.planted || still) F.released = false;
       if (d.planted && !F.locked && !F.released && d.finite) {
         F.locked = true; F.aloft = false;
-        F.w = Math.max(F.w, 0.65);   // (it stops where it meets the ground)
+        F.w = Math.max(F.w, d.clear < 0.03 * sc ? 1 : 0.65);   // (it stops where it meets the ground)
         F.pos.copy(d.place);
         F.yaw.copy(d.way);
         // the slope under the foot: the sole and the footprint lie along it
@@ -226,6 +228,12 @@ export function plantFeet(H, dt, physics, up, rootPos, fwd, onStep, o = {}) {
       } else if (!d.planted) F.locked = false;
       // too far from the clip's foot (a stride that ran away, a teleport): let go (standing: set down again at once)
       if (F.locked && F.pos.distanceTo(d.place) > FEET.release * sc) { F.locked = false; F.released = !standing; }
+      // the body has left a held foot behind, out of the leg's reach (the hips can't come down that
+      // fast): it goes with the stride now rather than being dragged along the ground
+      if (F.locked && !standing) {
+        const reach = H.legLen * sc + Math.min(S.drop + 0.03 * sc, FEET.maxDrop * sc);
+        if (B[`thigh_${s}`].getWorldPosition(_d).distanceTo(_c.copy(F.pos).add(_e.subVectors(d.ankle, d.ball))) > reach) { F.locked = false; F.released = true; }
+      }
     }
     const held = F.locked || !!F.step;
     // (planting is quick: the foot stops as it meets the ground; letting go is softer)

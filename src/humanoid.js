@@ -416,6 +416,7 @@ export class Humanoid {
   reshapeBody() {
     const body = this.body;
     if (!body) return;
+    this.lod?.reset();   // (far away the body may be drawing a simpler copy: skinned-lod.js)
     body.userData.baseGeometry ??= body.geometry;
     let g = this.outfit ? this._suitGeometry ?? body.geometry : buildGeometry(body, this.build, this.morph);
     if (this.face) g = this.warped(body, g);
@@ -650,6 +651,7 @@ export class Humanoid {
    * for glowing lanterns), coloured per vertex from the look. Replaces the rig's hood.
    */
   dress(look) {
+    this.lod?.reset();
     for (const m of this._costume ?? []) { m.removeFromParent(); m.geometry.dispose(); }
     this._costume = [];
     for (const h of this.hood) h.visible = false;

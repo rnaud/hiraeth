@@ -186,6 +186,13 @@ class Builder {
   dispose() { this.worker?.terminate(); this.worker = null; this.jobs.clear(); }
 }
 
+let sharedBuilder = null, syncBuilder = null;
+/** The levels' worker, shared (skinned-lod.js builds the people's levels there too); sync: build here, now. */
+export function levelBuilder(sync = false) {
+  if (sync) return (syncBuilder ??= new Builder(false));
+  return (sharedBuilder ??= new Builder(true));
+}
+
 export class LodManager {
   /**
    * @param o.keep     roots whose meshes are left alone (the player, people, vehicles)

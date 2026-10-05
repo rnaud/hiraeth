@@ -213,6 +213,16 @@ export class Animator {
     this.gaitW = 0;
   }
 
+  /** Start the gait and the standing loops at `k` (0..1) of their cycle: people side by side don't breathe or step in time. */
+  offsetLoops(k) {
+    this.phase = k % 1;
+    for (const key of ['idle', 'talk', 'look', 'drive']) {
+      const a = this.actions[key];
+      if (a) a.time = ((k * 7.31) % 1) * this.lib.clips[key].duration;
+    }
+    return this;
+  }
+
   /** The body these clips pose (a Humanoid): its legs' length sets the stride and the cadence. */
   bindBody(humanoid) {
     const R = humanoid?.rest, B = humanoid?.b;
