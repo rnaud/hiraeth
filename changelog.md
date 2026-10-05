@@ -7,6 +7,10 @@ The same release notes shown in the game (press **N** or open settings).
 - Smoother frame rate everywhere, most of all close to metal, cracked rock and other detailed surfaces; nothing looks different.
 - No more stutter the first time you walk into a new place or turn to something new: everything is prepared while the world loads, and worlds load faster.
 - Grassy places no longer waste time redrawing every blade of grass each frame; stepping through a door no longer stalls while the grass appears.
+- Hands are no longer stiff and flat. At rest the fingers fall into the natural curve of a relaxed hand, each a little more curled than the last, the thumb in by the first finger.
+- Hands follow what you do: looser and more open when you run or glide, gripping the holds when you climb, the hoverbike’s handlebars and the bird’s reins, a fist round the fluid gun with the other hand cupped under it. People hold their staffs, lanterns and baskets for real.
+- People talk with their hands, in the tone of what they say: a fist when angry, a pointing finger when curious, open hands when happy, fingers flung wide when surprised, limp hands when sad, beating with the words. Fingers also drift a little on their own and swing as the hand moves.
+- The character studio has a Hands view up close, and every hand pose to pick from.
 
 ## v0.56 — 2026-10-05
 

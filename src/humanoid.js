@@ -13,6 +13,7 @@ import { suitGeometry, travellerKit, TRAVELLER } from './traveller.js';
 import { BUILD_SHAPE, radialFactors, boneMorph, warpFace, faceLandmarks, browPositions, plainGeometry, morphKey, cleanMorph, isNeutral, FACE_MORPHS, NEUTRAL_FACE } from './morph.js';
 import { cleanExpression, NEUTRAL_EXPRESSION } from './expression.js';
 import { sharedUniforms } from './materials.js';
+import { Hands } from './hands.js';
 
 // A real human body (Quaternius' Universal Base Characters, CC0) dressed in
 // the rider's clothes by our inked material, driven every frame by the
@@ -366,6 +367,7 @@ export class Humanoid {
     this.followOf = new Map(this.follow.map((f) => [f.B, f]));
 
     this.dressRig();
+    this.hands = new Hands(this);   // the fingers: a relaxed hand at rest, posed by context (src/hands.js)
     // the traveller's own face and its rest (traveller.js TRAVELLER.face / rest); everyone else's is as modelled
     this.ownFace = outfit ? TRAVELLER.face : null;
     this.restExpression = outfit ? TRAVELLER.rest : null;

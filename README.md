@@ -1572,7 +1572,8 @@ The panel (left; under the picture on a tablet), every setting kept in the URL:
 - **Animation**: the game's blend (standing, walking, jogging, running, talking,
   seated) or any clip of the library as authored; speed, pause and scrub; walking
   over the floor; the traveller's feet planting (`plantFeet`, as the player's;
-  the game's NPCs don't plant theirs).
+  the game's NPCs don't plant theirs); the hands (by what they do, or any pose
+  of `HAND_POSES`, see *Hands* below).
 - **Light and ink**: the hour (default: the world's own), turning the sun round
   the person, the world's light (`lightAt`: the Signal Market is lit from
   straight above, the City-Shaft and the Buried Machine's canyon more steeply),
@@ -1581,7 +1582,8 @@ The panel (left; under the picture on a tablet), every setting kept in the URL:
   (`DEBUG_VIEWS`, with *Drawn detail* showing the faces' ink alone), hatching,
   shadow detail (next to the traveller, further off, the handheld preset) and
   the render scale.
-- **Views** (over the picture): full body, bust, face, far away (the status line
+- **Views** (over the picture): full body, bust, face, close-up, hands (the right hand up
+  close), far away (the status line
   gives the person's height on screen: `post.js` thins a figure's ink between
   70 and 260 px), turntable. Drag to orbit, wheel or pinch to zoom.
 - **Share**: copy the settings as JSON (paste the `morph`, `face`, `look`,
@@ -1664,6 +1666,39 @@ covers the URL state, the build entry, the morphs, the expressions and the hair.
   `tests/talk-face.test.js` (syllables, the tone on and off, the set of faces, a
   conversation's faces, the brows and the materials on a real body), `tests/traveller.test.js`
   (his face, his hair inside the helmet, the star inside the glass).
+
+### Hands (`src/hands.js`)
+
+The bodies have three bones a finger and a thumb (Quaternius' human, all skinned), but the clips
+carry no finger tracks, so every hand used to hang in the T-pose's flat, straight shape. Now:
+
+- **A pose** is 16 angles: each finger's three joints (knuckle, middle, tip), the fan of the fingers
+  at the knuckles, and the thumb's roll (about the hand's long axis), in (toward the fingers) and bend
+  (across the palm). `HAND_POSES`: `relaxed` (the arc at rest, each finger more curled than the last
+  from the index to the little finger, the thumb in by the index), `open`, `splay`, `grip`, `fist`,
+  `reins`, `hook`, `cup`, `flat`, `limp`, and the gestures `talk`, `point`, `pinch`, `claw`,
+  `together`, `hold`. The axes come from each bone's rest frame (the palm's facing, the line of the
+  knuckles), so both hands and both bodies take the same numbers.
+- **The context picks them** (`handTargets(ctx)`, pure): walking relaxed, opening as you run
+  (`HANDS.runFrom`–`runTo`), gliding and the jets open, falling (after `airAfter` s off the ground)
+  splayed, climbing a grip, the mantle flat, the hoverbike / skiff / taxi a grip, the bird the reins,
+  swimming cupped, down limp, seated limp; on top, aiming the bracer (the right fist, the left cupped
+  under it), the hand-off (a grip), a held prop in the right hand (`PROP_GRIPS`: a staff gripped, a
+  lantern or basket hung from the fingers, a flower held), a fright (splayed), and while someone speaks
+  a gesture in the line's tone (`TONE_GESTURES`, the right hand leading, beating with the syllables;
+  pointing and pinching are one-handed).
+- **Blended**: each hand eases toward its mix (`easePose`, frame-rate independent; grabbing is quicker
+  than letting go). **Secondary motion**: the fingers drift a little (less in a grip), and lag behind
+  the wrist: a light damped spring driven by the wrist's acceleration across the palm.
+- **Hooks**: `Humanoid` makes `this.hands = new Hands(this)` (the relaxed pose at once, so nobody's
+  hands are flat even when not driven); `updateHands(dt, { player, npcs, camera })` once a frame in
+  `main.js`, after the talking faces: the traveller (`playerHands`, his state read only), and the
+  people within `HANDS.near` m of the camera (`nearLow` on the Handheld preset; `npcHands`), their tone
+  from their talking face (`talkOf`). Further off the hands keep their last pose. The studio drives
+  them from its own state.
+- `tests/hands.test.js`: the bones and the relaxed arc on a real body, the fist and the thumb, every
+  pose / tone / prop covered, the pose per context, the blend, the easing, the drift and the lag, the
+  game's contexts and who is driven.
 
 ## Capes at a distance, and people up close (v0.39)
 
