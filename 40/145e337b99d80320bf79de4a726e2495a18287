@@ -1,0 +1,27 @@
+README.md
+  s_1fd8d0e7b02dcf::t_69dff45c815fa0 235-236,1193-1279
+src/levels/perdide.js
+  s_1fd8d0e7b02dcf::t_ffe6985cb417bc 13-14,18
+src/levels/perdide2.js
+  s_1fd8d0e7b02dcf::t_68e45ec73aeba9 19
+src/player.js
+  s_1fd8d0e7b02dcf::t_526f7a3209d1e0 421-422
+src/water-shader.js
+  s_1fd8d0e7b02dcf::t_7ed7f9312785a1 45,53,63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "40145e337b99d80320bf79de4a726e2495a18287",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
