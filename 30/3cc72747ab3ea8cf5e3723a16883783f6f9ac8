@@ -1,0 +1,29 @@
+docs/story-bible.md
+  s_1fd8d0e7b02dcf::t_5520d3ebe4252a 171,230-235,307-314,316-325,333-335,383,390-391,398-403,407-408
+src/levels/content.js
+  s_1fd8d0e7b02dcf::t_dd49813d43cad9 226
+src/story/edena-data.js
+  s_1fd8d0e7b02dcf::t_b384ce470432f1 78-86,106,119-126
+src/story/edena.js
+  s_1fd8d0e7b02dcf::t_b2801ebd8ea7cc 9,157-158,207,210
+src/story/water-clock.js
+  s_1fd8d0e7b02dcf::t_74eaaec32489df 1-98
+tests/story-terraces.test.js
+  s_1fd8d0e7b02dcf::t_8d06157b836ad6 31,40,187-215
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "303cc72747ab3ea8cf5e3723a16883783f6f9ac8",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
