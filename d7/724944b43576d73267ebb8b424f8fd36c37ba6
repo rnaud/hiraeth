@@ -1,0 +1,61 @@
+scripts/bench/android-engines-stats.mjs
+  s_1fd8d0e7b02dcf::t_3b316acaf32ce5 1-63
+scripts/bench/android-engines-summary.mjs
+  s_1fd8d0e7b02dcf::t_2178c66cabb894 11,18-20,22
+scripts/bench/android-engines.mjs
+  s_1fd8d0e7b02dcf::t_72c310143b5ef3 7-13,15-16,25,30,40-42,46-47,50-52,60-62,71,100-103,114-116,140,188-198,201-214,247-248,397,399,405-406,409,437-443,458-460,462-463,472,477,491,510,512,530,542,548-563,583-585
+scripts/bench/android-gecko-summary.mjs
+  s_1fd8d0e7b02dcf::t_f6c81597e42108 1-90
+scripts/bench/gecko-apk.sh
+  s_1fd8d0e7b02dcf::t_8db86d4760cdf8 1-29
+scripts/bench/gecko-app/app/build.gradle
+  s_1fd8d0e7b02dcf::t_cec7fae7b19859 1-27
+scripts/bench/gecko-app/app/src/main/AndroidManifest.xml
+  s_1fd8d0e7b02dcf::t_0a6cc8d14d130a 1-26
+scripts/bench/gecko-app/app/src/main/assets/ext/content.js
+  s_1fd8d0e7b02dcf::t_e5f94895105ffa 1-34
+scripts/bench/gecko-app/app/src/main/assets/ext/manifest.json
+  s_1fd8d0e7b02dcf::t_98db6a81fc2bb9 1-11
+scripts/bench/gecko-app/app/src/main/java/com/rnaud/memento/gecko/AssetServer.java
+  s_1fd8d0e7b02dcf::t_8739be349b7be0 1-129
+scripts/bench/gecko-app/app/src/main/java/com/rnaud/memento/gecko/MainActivity.java
+  s_1fd8d0e7b02dcf::t_729959c57dd855 1-209
+scripts/bench/gecko-app/app/src/main/java/com/rnaud/memento/gecko/PadBridge.java
+  s_1fd8d0e7b02dcf::t_75ce3db0dd9481 1-125
+scripts/bench/gecko-app/app/src/main/res/values/strings.xml
+  s_1fd8d0e7b02dcf::t_be81bb98ab0132 1-2
+scripts/bench/gecko-app/build.gradle
+  s_1fd8d0e7b02dcf::t_a9f77d36cc3f2c 1
+scripts/bench/gecko-app/gradle.properties
+  s_1fd8d0e7b02dcf::t_5e96ee5eedb9db 1-2
+scripts/bench/gecko-app/settings.gradle
+  s_1fd8d0e7b02dcf::t_5a198e6250cbba 1-12
+scripts/bench/gecko-bridge.mjs
+  s_1fd8d0e7b02dcf::t_1fb067d44abeab 1-145
+scripts/bench/serve.mjs
+  s_e53b0abbcc2250::t_5520206b03b3d7 6-7,9,11,14,18-49
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d7724944b43576d73267ebb8b424f8fd36c37ba6",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_e53b0abbcc2250": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a65a15e7ff88ddebf",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
