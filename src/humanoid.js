@@ -311,6 +311,12 @@ export const CAPSULES = [
   ['upperarm_r', 'lowerarm_r', 0.08, /^upperarm_(twist_\d+_)?r$/], ['lowerarm_r', 'hand_r', 0.07, /^lowerarm_(twist_\d+_)?r$/],
 ];
 
+/**
+ * A robe's colliders (Humanoid.robeCones): each leg's cone, from the belt (this radius round the hip's
+ * line) to the hem (the robe's flare less this, the cone's axis being the leg's, off the middle);
+ * none round a thigh raised further than `upright` (the cosine of its angle from straight down: seated).
+ */
+export const ROBE_CONE = { belt: 0.1, inset: 0.06, upright: 0.6 };
 /** What the Quaternius bodies' colliders leave over their own skin (CAPSULES' radius less the man's and woman's measured girth): the cloth's thickness and a margin, the same on any body. */
 export const CAPSULE_MARGIN = [0.072, 0.02, 0, 0.028, 0.032, 0.007, 0.028, 0.032, 0.007, 0.027, 0.024, 0.027, 0.024];
 
@@ -318,10 +324,9 @@ const girths = new WeakMap();
 /**
  * How thick a skinned body is round each segment of CAPSULES (bind space, m): the `q` quantile of the
  * distances of its vertices (each counted for the bone with most of its weight) to the segment.
- * Cached per geometry.
+ * Cached per geometry (`geo`: the body's full mesh, when a simpler level of it is drawn: skinned-lod.js).
  */
-export function segmentGirths(body, q = 0.9) {
-  const geo = body.geometry;
+export function segmentGirths(body, q = 0.9, geo = body.geometry) {
   const per = girths.get(geo) ?? new Map();
   girths.set(geo, per);
   if (per.has(q)) return per.get(q);
@@ -580,6 +585,12 @@ export class Humanoid {
     this._caps = null; this._spec = null;
   }
 
+  /** The body's full geometry (what reshapeBody made), whichever level of detail it draws now. */
+  fullBody() {
+    const e = this.lod?.entries?.find((x) => x.mesh === this.body);
+    return e && this.body.geometry === e.cur ? e.full : this.body.geometry;
+  }
+
   /** A mesh's geometry under this face morph (cached per source geometry and morph). */
   warped(mesh, src, { eyeball = false } = {}) {
     const key = morphKey(this.face, FACE_MORPHS, (d) => !d.ink);
@@ -827,6 +838,8 @@ export class Humanoid {
     this.lod?.reset();
     for (const m of this._costume ?? []) { m.removeFromParent(); m.geometry.dispose(); }
     this._costume = [];
+    // (the robe's shape, for the cloth's colliders: robeCones)
+    this._robeLook = look?.robe > 0 && !this.outfit && this.body ? { hem: look.robe, flare: look.flare ?? 0.3, belt: this.outfitRest[1] } : null;
     for (const h of this.hood) h.visible = false;
     if (!look || this.outfit || !this.body) return;
     const base = this.costumeGeometry(look);
@@ -1316,12 +1329,44 @@ export class Humanoid {
     if (!this._caps || this._capScale !== s) {
       this._capScale = s;
       const g = BUILDS[this.build]?.girth ?? 1;   // fuller bodies, wider colliders (the trunk and thighs most)
-      const own = this.profile && this.body ? segmentGirths(this.body) : null;
+      // (measured on the full mesh: far off the body may be drawing a simpler level of it, skinned-lod.js)
+      const own = this.profile && this.body ? segmentGirths(this.body, 0.9, this.fullBody()) : null;
       this._caps = spec.map(([a, , r, , i]) => ({ a: new THREE.Vector3(), b: new THREE.Vector3(),
         r: own ? (own[i] + CAPSULE_MARGIN[i]) * s : r * (/spine|pelvis|clavicle|thigh/.test(a) ? g : Math.sqrt(g)) }));
     }
     spec.forEach(([a, b], i) => { B[a].getWorldPosition(this._caps[i].a); B[b].getWorldPosition(this._caps[i].b); });
+    if (this._robeLook && B.thigh_l && B.thigh_r && B.calf_l && B.calf_r) return this.robeCones();
     return this._caps;   // the jetpack sits on top of the cloth, so it isn't a collider
+  }
+
+  /**
+   * Dressed in a robe (dress: look.robe), the body's colliders and the robe's: a cone round each
+   * leg from the belt to the hem, following the thigh as the robe does (robeGeometry), so a cape
+   * lies over the robe instead of the robe showing through it.
+   */
+  robeCones() {
+    const B = this.b, R = this._robeLook, caps = this._caps;
+    const out = (this._capsRobe ??= []);
+    if (out.length !== caps.length + 2) {
+      out.length = 0;
+      for (const k of caps) out.push(k);
+      out.push({ a: new THREE.Vector3(), b: new THREE.Vector3(), r: 0, rb: 0 }, { a: new THREE.Vector3(), b: new THREE.Vector3(), r: 0, rb: 0 });
+    }
+    for (let i = 0; i < caps.length; i++) out[i] = caps[i];
+    const down = _w3.set(0, -1, 0).applyQuaternion(this.char.root.getWorldQuaternion(_q));
+    ['l', 'r'].forEach((sd, j) => {
+      const hip = B[`thigh_${sd}`].getWorldPosition(_w1), knee = B[`calf_${sd}`].getWorldPosition(_w2);
+      const restHip = this.rest.get(B[`thigh_${sd}`]).p, restLen = restHip.distanceTo(this.rest.get(B[`calf_${sd}`]).p);
+      const sc = hip.distanceTo(knee) / Math.max(restLen, 1e-4);   // (bind space to world: the body's size)
+      const thighDir = knee.sub(hip).normalize();
+      const c = out[caps.length + j];
+      c.a.copy(hip).addScaledVector(down, -(R.belt - restHip.y) * sc);
+      c.b.copy(down).multiplyScalar(0.25).addScaledVector(thighDir, 0.75).normalize().multiplyScalar((restHip.y - R.hem) * sc).add(hip);
+      c.r = ROBE_CONE.belt * sc; c.rb = Math.max(c.r, (R.flare - ROBE_CONE.inset) * sc);
+      // (seated, the thigh forward: the robe lies over the lap, under the cloth that falls behind, not round it)
+      if (thighDir.dot(down) < ROBE_CONE.upright) { c.b.copy(c.a); c.r = c.rb = 0; }
+    });
+    return out;
   }
 
   /**
@@ -1331,7 +1376,7 @@ export class Humanoid {
    */
   ragdollRadii() {
     if (!this.profile || !this.body) return null;
-    const g = segmentGirths(this.body, 0.75), seg = (n) => g[CAPSULES.findIndex(([a]) => a === n)];
+    const g = segmentGirths(this.body, 0.75, this.fullBody()), seg = (n) => g[CAPSULES.findIndex(([a]) => a === n)];
     const at = { pelvis: seg('pelvis'), chest: seg('spine_03'), hipL: seg('thigh_l'), hipR: seg('thigh_r'), kneeL: seg('calf_l'), kneeR: seg('calf_r'),
       footL: seg('foot_l'), footR: seg('foot_r'), shL: seg('upperarm_l'), shR: seg('upperarm_r'), elL: seg('lowerarm_l'), elR: seg('lowerarm_r') };
     return RAGDOLL_JOINTS.map((n, i) => (at[n] > 0 ? THREE.MathUtils.clamp(at[n], RAGDOLL_R[i] * 0.6, RAGDOLL_R[i] * 1.8) : RAGDOLL_R[i]));

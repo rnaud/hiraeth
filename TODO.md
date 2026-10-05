@@ -100,7 +100,7 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 ## People
 
-- [ ] Robes still fly through people until I get close.
+- [x] Robes still fly through people until I get close. (A cape simulated every 2nd or 3rd frame, further off or on a 30 fps handheld, now lives all the time since its last update and is carried along with its wearer between updates, pinned and pushed by the collar and limbs on their way, so it no longer streams out behind or lets legs and arms through; the robe under a cape is a collider; the crowd's figures wear the full people's wide cape over their arms and robe, and their robes swing as the full ones do; body girths are measured on the full mesh at every level of detail. tests/robes.test.js)
 - [ ] Every world on MakeHuman bodies; more variety in headwear: hats, goggles, scarves…
 - [ ] Alien species on the planets: non-humanoid characters (people, not animals).
 

@@ -21,7 +21,15 @@ import { makeMaterial } from './materials.js';
 // so the cloth doesn't drop into place in front of you.
 
 const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _c = new THREE.Vector3(), _d = new THREE.Vector3(), _r = new THREE.Vector3();
-const _mi = new THREE.Matrix4(), ZERO = new THREE.Vector3();
+const _mi = new THREE.Matrix4(), _mc = new THREE.Matrix4(), _lag = new THREE.Vector3(), ZERO = new THREE.Vector3();
+const KS = 10;   // numbers per collider (Cape.capsulesAt)
+/**
+ * The simulation's time steps for a carried cape (Cape.update s.carry: one updated every 2nd or 3rd
+ * frame): steps at most hMax long, at most maxSteps of them, over at most maxDt (a longer hitch is
+ * lived as maxDt). Uncarried (near, every frame), an update is three steps of at most 1/30 s.
+ * lag (1/s): carried, how much the cloth is held back by its wearer's walk, as the near cloth is.
+ */
+export const CLOTH = { hMax: 1 / 30, maxSteps: 6, maxDt: 1 / 10, lag: 1 };
 const DRAPES = new Map();          // drape key → Float32Array (anchor space), shared
 const BAKE_GAP_MS = 12;            // at most one bake every ~frame
 let lastBake = -1e9;
@@ -194,52 +202,109 @@ export class Cape {
    * @param s.vel    character velocity (world), for air drag
    * @param s.wind   ambient wind (world)
    * @param s.floor  world point on the ground under the character
-   * @param s.capsules [{a, b, r}] body capsules in world space
+   * @param s.capsules [{a, b, r}] body capsules in world space ({a, b, r, rb}: a cone, r at a to rb at b, open-ended)
+   * @param s.carry  0..1: the cloth carried along with the anchor since the last update (an update
+   *                 every 2nd or 3rd frame: follow() between), its own sway simulated on top
    * @param s.spread 0..1 open like wings (gliding), s.lift 0..1 updraft (jetpack)
    */
   update(dt, s) {
     if (this.hung) this.unhang();   // (and starts again from the drape: reset())
     this._ease = 0;
+    this.unfollow();
     this.anchor.updateWorldMatrix(true, false);
     const m = this.anchor.matrixWorld;
     _a.set(this.local[0], this.local[1], this.local[2]).applyMatrix4(m);
-    if (!this.ready || Math.hypot(_a.x - this.p[0], _a.y - this.p[1], _a.z - this.p[2]) > 3) this.reset();
+    const fresh = !this.ready || Math.hypot(_a.x - this.p[0], _a.y - this.p[1], _a.z - this.p[2]) > 3;
+    if (fresh) this.reset();
     this.time += dt;
     // more substeps when the body moves fast, so limbs can't tunnel through the cloth
     const fast = Math.hypot(s.vel.x, s.vel.y, s.vel.z);
-    // (a bake only needs where the cloth comes to rest: see BAKE)
-    const steps = s.quiet ? BAKE.steps : fast > 6 ? 5 : 3, h = Math.min(dt, 1 / 30) / steps;
-    const damp = s.quiet ? BAKE.damp : this.damp;
     const { cols, rows } = this;
     const up = s.up;
     // relative air: ambient wind minus our own motion, plus an updraft for the jetpack
     const air = _d.copy(s.wind).multiplyScalar(this.windScale).sub(s.vel).addScaledVector(up, (s.lift ?? 0) * 9);
     const right = _r.set(1, 0, 0).transformDirection(m);
+    // where the collar and the colliders were at the last update: each step pins and collides
+    // with them on their way from there to here (all at the end of the update, they jumped a
+    // frame or three at once, and a leg swinging 20 cm went through the cloth instead of pushing it)
+    const carry = !fresh && !s.quiet && this._mPrev ? (s.carry ?? 0) : 0;
+    // (a bake only needs where the cloth comes to rest: see BAKE). Carried, a cape simulated every
+    // 2nd or 3rd frame (further off, or on a 30 fps handheld) lives all the time since its last
+    // update (steps of at most CLOTH.hMax), not 1/30 s of it: in slow motion while the body walked
+    // on at full speed, the cloth flew out behind and the legs passed through it
+    const span = Math.min(dt, carry > 0 ? CLOTH.maxDt : 1 / 30);
+    const steps = s.quiet ? BAKE.steps : Math.max(fast > 6 ? 5 : 3, Math.min(CLOTH.maxSteps, Math.ceil(span / CLOTH.hMax - 1e-6))), h = span / steps;
+    // damping per step; carried, the same per second whatever the step (as tuned, at 1/180 s steps:
+    // the near cloth's damping slows it against the world, which held a cloth of longer steps back)
+    const damp = s.quiet ? BAKE.damp : carry > 0 ? Math.pow(this.damp, h * 180) : this.damp;
+    const caps = s.capsules, nc = caps.length;
+    if (!this._mPrev) this._mPrev = new THREE.Matrix4().copy(m);
+    if (fresh || s.quiet) this._mPrev.copy(m);
+    if (carry > 0) {
+      // the cloth carried along with the body since the last update (s.carry: further off, the
+      // body's own motion isn't simulated through the cloth, only the cloth's sway on it)
+      _mc.multiplyMatrices(m, _mi.copy(this._mPrev).invert());
+      const P = this.p, Q = this.q;
+      for (let i = 0; i < P.length; i += 3) {
+        _a.set(P[i], P[i + 1], P[i + 2]).applyMatrix4(_mc); _b.set(Q[i], Q[i + 1], Q[i + 2]).applyMatrix4(_mc);
+        P[i] += (_a.x - P[i]) * carry; P[i + 1] += (_a.y - P[i + 1]) * carry; P[i + 2] += (_a.z - P[i + 2]) * carry;
+        Q[i] += (_b.x - Q[i]) * carry; Q[i + 1] += (_b.y - Q[i + 1]) * carry; Q[i + 2] += (_b.z - Q[i + 2]) * carry;
+      }
+      // (the air: as the tuned near cloth felt it, whose particles move with the body too)
+      air.addScaledVector(s.vel, -carry);
+    }
+    // carried, the pull back the near cloth's damping gives it (that damping slows it against the
+    // world, so it lags a little behind a walking body: CLOTH.lag); carried, it damps against the body
+    const lag = _lag.copy(s.vel).multiplyScalar(carry * CLOTH.lag);
+    // the pins from (the last update's, carried) to (this one's)
+    const pin = this._pin && this._pin.length === cols * 12 ? this._pin : (this._pin = new Float32Array(cols * 12));
+    for (let c = 0; c < cols; c++)
+      for (let r = 0; r < 2; r++) {
+        const i = (r * cols + c) * 3, o = (r * cols + c) * 6;
+        _a.set(this.local[i], this.local[i + 1], this.local[i + 2]);
+        _b.copy(_a).applyMatrix4(this._mPrev);
+        if (carry > 0) _b.lerp(_c.copy(_a).applyMatrix4(m), carry);
+        _a.applyMatrix4(m);
+        pin[o] = _b.x; pin[o + 1] = _b.y; pin[o + 2] = _b.z; pin[o + 3] = _a.x - _b.x; pin[o + 4] = _a.y - _b.y; pin[o + 5] = _a.z - _b.z;
+      }
+    // the colliders likewise (only when they are the same ones as last time)
+    const KP = this._kp, lerpCaps = !fresh && !s.quiet && KP && this._kpN === nc;
+    if (lerpCaps && carry > 0) {
+      for (let j = 0; j < nc; j++) {
+        const o = j * 6;
+        _a.set(KP[o], KP[o + 1], KP[o + 2]).applyMatrix4(_mc); _b.set(KP[o + 3], KP[o + 4], KP[o + 5]).applyMatrix4(_mc);
+        KP[o] += (_a.x - KP[o]) * carry; KP[o + 1] += (_a.y - KP[o + 1]) * carry; KP[o + 2] += (_a.z - KP[o + 2]) * carry;
+        KP[o + 3] += (_b.x - KP[o + 3]) * carry; KP[o + 4] += (_b.y - KP[o + 4]) * carry; KP[o + 5] += (_b.z - KP[o + 5]) * carry;
+      }
+    }
     for (let k = 0; k < steps; k++) {
+      const f = (k + 1) / steps;
+      this.capsulesAt(caps, lerpCaps ? KP : null, f);
       // pin the collar row to the anchor, the second row softly (shoulder shape)
       for (let c = 0; c < cols; c++) {
         for (let r = 0; r < 2; r++) {
-          const i = (r * cols + c) * 3;
-          _a.set(this.local[i], this.local[i + 1], this.local[i + 2]).applyMatrix4(m);
+          const i = (r * cols + c) * 3, o = (r * cols + c) * 6;
+          const x = pin[o] + pin[o + 3] * f, y = pin[o + 1] + pin[o + 4] * f, z = pin[o + 2] + pin[o + 5] * f;
           const w = r === 0 ? 1 : 0.35;
-          this.p[i] += (_a.x - this.p[i]) * w; this.p[i + 1] += (_a.y - this.p[i + 1]) * w; this.p[i + 2] += (_a.z - this.p[i + 2]) * w;
+          this.p[i] += (x - this.p[i]) * w; this.p[i + 1] += (y - this.p[i + 1]) * w; this.p[i + 2] += (z - this.p[i + 2]) * w;
           if (r === 0) { this.q[i] = this.p[i]; this.q[i + 1] = this.p[i + 1]; this.q[i + 2] = this.p[i + 2]; }
         }
       }
-      // integrate
+      // integrate (the first step after a longer or shorter one: its velocity as a step of this length)
+      const kv = damp * (k === 0 && this._h && !fresh && !s.quiet ? Math.min(4, Math.max(0.25, h / this._h)) : 1);
       for (let r = 1; r < rows; r++) {
         const tr = r / (rows - 1);
         for (let c = 0; c < cols; c++) {
           const i = (r * cols + c) * 3;
-          const vx = (this.p[i] - this.q[i]) * damp, vy = (this.p[i + 1] - this.q[i + 1]) * damp, vz = (this.p[i + 2] - this.q[i + 2]) * damp;
+          const vx = (this.p[i] - this.q[i]) * kv, vy = (this.p[i + 1] - this.q[i + 1]) * kv, vz = (this.p[i + 2] - this.q[i + 2]) * kv;
           this.q[i] = this.p[i]; this.q[i + 1] = this.p[i + 1]; this.q[i + 2] = this.p[i + 2];
           // drag towards the relative air velocity (per-particle velocity matters)
           const pv = 1 / h;
           const flutter = 1 + this.flutter * Math.sin(this.time * 6 + c * 1.7 + r * 0.9);
           const kd = this.drag * tr * flutter;
-          let ax = -up.x * this.gravity + (air.x - vx * pv) * kd;
-          let ay = -up.y * this.gravity + (air.y - vy * pv) * kd;
-          let az = -up.z * this.gravity + (air.z - vz * pv) * kd;
+          let ax = -up.x * this.gravity + (air.x - vx * pv) * kd - lag.x;
+          let ay = -up.y * this.gravity + (air.y - vy * pv) * kd - lag.y;
+          let az = -up.z * this.gravity + (air.z - vz * pv) * kd - lag.z;
           if (s.spread) {   // gliding: push the sides out like wings
             const side = Math.sign(this.local[i]) || 0;
             ax += right.x * side * 14 * s.spread * tr; ay += right.y * side * 14 * s.spread * tr; az += right.z * side * 14 * s.spread * tr;
@@ -264,6 +329,15 @@ export class Cape {
         if (!s.quiet || it === iters - 1) this.collide(s);   // (a bake: the colliders once a step)
       }
     }
+    // this update's collar and colliders, for the next one to start from
+    this._mPrev.copy(m);
+    const kp = this._kp && this._kp.length >= nc * 6 ? this._kp : (this._kp = new Float64Array(Math.max(nc, 16) * 6));
+    for (let j = 0; j < nc; j++) {
+      const c = caps[j], o = j * 6;
+      kp[o] = c.a.x; kp[o + 1] = c.a.y; kp[o + 2] = c.a.z; kp[o + 3] = c.b.x; kp[o + 4] = c.b.y; kp[o + 5] = c.b.z;
+    }
+    this._kpN = nc;
+    this._h = h;
     // the wearer standing still and the cloth at rest: that is its drape now (seated, leaning…)
     if (s.still) {
       this._still = (this._still ?? 0) + dt;
@@ -324,6 +398,7 @@ export class Cape {
   rest(dt) {
     if (this.hung) return true;
     if (!this.drape) return false;
+    this.unfollow();
     if (!this.ready) return this.hang();
     this._ease = (this._ease ?? 0) + dt;
     if (this._ease >= 0.5) return this.hang();
@@ -343,6 +418,7 @@ export class Cape {
   hang() {
     if (!this.drape) return false;
     if (this.hung) return true;
+    this.unfollow();
     this.hung = true;
     this._ease = 0;
     this.p.set(this.drape);
@@ -356,32 +432,71 @@ export class Cape {
   /** Back to world space for the simulation (it starts again from the drape: reset()). */
   unhang() {
     this._ease = 0;
+    this.unfollow();
     if (!this.hung) return;
     this.hung = false;
     this.ready = false;
     this.scene.add(this.mesh);
   }
 
+  /**
+   * A frame between two updates (a cape simulated every 2nd or 3rd frame): the cloth as it was
+   * simulated, carried along with the body since (by the mesh's own matrix, nothing recomputed),
+   * so the body doesn't walk into its own cape for a frame or two before the cloth catches up.
+   */
+  follow() {
+    if (this.hung || !this.ready || !this._mPrev) return;
+    this.anchor.updateWorldMatrix(true, false);
+    _mc.multiplyMatrices(this.anchor.matrixWorld, _mi.copy(this._mPrev).invert());
+    _mc.decompose(this.mesh.position, this.mesh.quaternion, this.mesh.scale);
+    this._followed = true;
+  }
+
+  /** The mesh back where its points say (world space while simulated, the anchor's while hung). */
+  unfollow() {
+    if (!this._followed) return;
+    this._followed = false;
+    this.mesh.position.set(0, 0, 0); this.mesh.quaternion.identity(); this.mesh.scale.set(1, 1, 1);
+  }
+
+  /**
+   * The colliders for a step, as plain numbers (Vector3 calls in the inner loop were most of the
+   * cloth's cost): `f` of the way from where they were at the last update (`from`: a, b of each,
+   * 6 numbers) to where they are now; from null: where they are now.
+   */
+  capsulesAt(caps, from, f) {
+    const nc = caps.length;
+    const K = (this._k && this._k.length >= nc * KS) ? this._k : (this._k = new Float64Array(Math.max(nc, 16) * KS));
+    for (let j = 0; j < nc; j++) {
+      const c = caps[j], o = j * KS;
+      let ax = c.a.x, ay = c.a.y, az = c.a.z, ex = c.b.x, ey = c.b.y, ez = c.b.z;
+      if (from) {
+        const q = j * 6;
+        ax = from[q] + (ax - from[q]) * f; ay = from[q + 1] + (ay - from[q + 1]) * f; az = from[q + 2] + (az - from[q + 2]) * f;
+        ex = from[q + 3] + (ex - from[q + 3]) * f; ey = from[q + 4] + (ey - from[q + 4]) * f; ez = from[q + 5] + (ez - from[q + 5]) * f;
+      }
+      const bx = ex - ax, by = ey - ay, bz = ez - az;
+      K[o] = ax; K[o + 1] = ay; K[o + 2] = az; K[o + 3] = bx; K[o + 4] = by; K[o + 5] = bz;
+      K[o + 6] = 1 / Math.max(bx * bx + by * by + bz * bz, 1e-8); K[o + 7] = c.r;
+      // (a cone: its radius from r at a to rb at b, open at both ends: a robe's bell round the legs)
+      K[o + 8] = c.rb === undefined ? 0 : c.rb - c.r; K[o + 9] = c.rb === undefined ? 0 : 1;
+    }
+    this._nc = nc;
+  }
+
   collide(s) {
     const { cols, rows } = this, P = this.p, F = s.field ?? null;
-    // the capsules as plain numbers once per pass (Vector3 calls in the inner loop were most of the cloth's cost)
-    const caps = s.capsules, nc = caps.length;
-    const K = (this._k && this._k.length >= nc * 8) ? this._k : (this._k = new Float64Array(nc * 8));
-    for (let j = 0; j < nc; j++) {
-      const c = caps[j], o = j * 8;
-      const bx = c.b.x - c.a.x, by = c.b.y - c.a.y, bz = c.b.z - c.a.z;
-      K[o] = c.a.x; K[o + 1] = c.a.y; K[o + 2] = c.a.z; K[o + 3] = bx; K[o + 4] = by; K[o + 5] = bz;
-      K[o + 6] = 1 / Math.max(bx * bx + by * by + bz * bz, 1e-8); K[o + 7] = c.r;
-    }
+    const K = this._k, nc = this._nc;
     const ux = s.up.x, uy = s.up.y, uz = s.up.z, fx = s.floor.x, fy = s.floor.y, fz = s.floor.z;
     for (let i = cols * 3, n = rows * cols * 3; i < n; i += 3) {
       let x = P[i], y = P[i + 1], z = P[i + 2];
-      for (let o = 0; o < nc * 8; o += 8) {
+      for (let o = 0; o < nc * KS; o += KS) {
         const bx = K[o + 3], by = K[o + 4], bz = K[o + 5];
         let t = ((x - K[o]) * bx + (y - K[o + 1]) * by + (z - K[o + 2]) * bz) * K[o + 6];
-        t = t < 0 ? 0 : t > 1 ? 1 : t;
+        if (K[o + 9]) { if (t < 0 || t > 1) continue; }   // (past a cone's open ends: nothing)
+        else t = t < 0 ? 0 : t > 1 ? 1 : t;
         const cx = K[o] + bx * t, cy = K[o + 1] + by * t, cz = K[o + 2] + bz * t;
-        const dx = x - cx, dy = y - cy, dz = z - cz, d = Math.sqrt(dx * dx + dy * dy + dz * dz), r = K[o + 7];
+        const dx = x - cx, dy = y - cy, dz = z - cz, d = Math.sqrt(dx * dx + dy * dy + dz * dz), r = K[o + 7] + K[o + 8] * t;
         if (d < r && d > 1e-5) { const k = r / d; x = cx + dx * k; y = cy + dy * k; z = cz + dz * k; }
       }
       if (F) { P[i] = x; P[i + 1] = y; P[i + 2] = z; onField(F, P, this.q, i); continue; }
