@@ -103,6 +103,16 @@ namespace Memento.EditorTools
             EditorSceneManager.OpenScene(ScenePath);
             var game = UnityEngine.Object.FindAnyObjectByType<Game>();
             game.BuildForEditor();
+            // the burning tree's fire (the story lights it in play; here, a still frame of it)
+            foreach (var f in game.world.World.L("fires"))
+            {
+                if (f.S("kind") != "body") continue;
+                var go = new GameObject("Flame " + f.S("name"));
+                go.transform.position = f.V3("at");
+                var fl = go.AddComponent<Flame>();
+                fl.Build(f.F("width"), f.F("height"), f.L("palette").Select(c => c.C()).ToArray(), f.F("pace", 0.5f));
+                fl.Tick(0.5f);
+            }
             var views = Json.Parse(File.ReadAllText(file)) as List<object>;
             int w = int.Parse(Arg("-w", "1280")), h = int.Parse(Arg("-h", "720"));
             foreach (var v in views)

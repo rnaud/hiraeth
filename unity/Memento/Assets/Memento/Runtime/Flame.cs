@@ -64,9 +64,11 @@ namespace Memento
 
         public void SetPalette(Color[] p) { palA = (Color[])pal.Clone(); palB = p; mix = 0; }
 
-        void Update()
+        void Update() => Tick(Time.deltaTime);
+
+        /// <summary>One step of the fire (also called by the editor's batch shots, where Update doesn't run).</summary>
+        public void Tick(float dt)
         {
-            float dt = Time.deltaTime;
             if (mix < 1) { mix = Mathf.Min(1, mix + dt / 3); for (int i = 0; i < pal.Length; i++) pal[i] = Color.Lerp(palA[i], palB[Mathf.Min(i, palB.Length - 1)], mix); }
             k += (intensity - k) * (1 - Mathf.Exp(-(intensity > k ? 4 : 1.5f) * dt));
             time += dt * (0.8f + 0.35f * k) * pace;

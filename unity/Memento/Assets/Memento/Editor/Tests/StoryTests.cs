@@ -85,7 +85,8 @@ namespace Memento.Tests
                 {
                     var node = kv.Value as Dictionary<string, object>;
                     var choices = node.L("choices");
-                    Assert.LessOrEqual(choices?.Count ?? 0, 3, $"{p.S("id")}.{kv.Key}: at most three answers");
+                    // (answers behind a condition take turns: at most three are ever open at once)
+                    Assert.LessOrEqual(choices?.Count(c => !c.Has("if")) ?? 0, 3, $"{p.S("id")}.{kv.Key}: at most three answers");
                     var say = node.Get("say") as List<object> ?? new List<object> { node.Get("say") };
                     foreach (var line in say.Where(x => x != null))
                     {

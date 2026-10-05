@@ -7,10 +7,24 @@ the export and draws it through the same G-buffer and ink composite as
 `src/materials.js` and `src/post.js`, ported to HLSL. The opening quest, "The
 Tree That Drinks", plays end to end.
 
+The same viewpoints, web game (left) and Unity (right), rendered headlessly
+(`views.mjs`, `Batch.Shots`):
+
 | web (three.js) | Unity (URP) |
 |---|---|
-| ![](docs/web-city.png) | ![](docs/unity-city.png) |
-| ![](docs/web-start.png) | ![](docs/unity-start.png) |
+| ![](docs/web-city.jpg) | ![](docs/unity-city.jpg) |
+| ![](docs/web-start.jpg) | ![](docs/unity-start.jpg) |
+| ![](docs/web-camps.jpg) | ![](docs/unity-camps.jpg) |
+| ![](docs/web-tree.jpg) | ![](docs/unity-tree.jpg) |
+
+(The Unity shots are of the world alone, outside play: no people, no smoke.)
+In play, from the scripted play-through (`Batch.Play`):
+
+| | |
+|---|---|
+| ![](docs/play-camps.jpg) the camps, people in their palettes | ![](docs/play-procession.jpg) the procession on its loop |
+| ![](docs/play-climbing.jpg) climbing the burning tree's buttress | ![](docs/play-the_chest_on_the_ledge.jpg) the makers' chest on the ledge |
+| ![](docs/play-riding.jpg) the hoverbike | |
 
 ## Run it
 
