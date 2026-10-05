@@ -8,6 +8,9 @@ export const CHANGELOG = [
     'Steep dune faces in shade are hatched again with dense strokes, while flat sand in shade stays a calm tone.',
     'The City-Shaft is drawn with fewer hatch strokes and a clean sky, and its houses have fewer, smaller windows.',
     'The References scenes now include the City-Shaft: twenty-three views from its five sheets, up and down the shaft, after the desert’s.',
+    'Vael II, the Sky Stones, looks more like its drawings: the shade on its rock, its plain and its monasteries is one flat grey-blue whatever their colour, the needles keep a clean light side with few strokes in shade, the undersides of the mushroom caps are the darkest places, and the sky is clear, with no bank of clouds on the horizon. Its flowers and its people keep their own colours in shade.',
+    'Cliffs, needles and rock faces everywhere are hatched with strokes running down the face, as an inker draws rock, and the shade under a cap or an overhang no longer curls into wood grain.',
+    'The References scenes now include Vael II: thirty-one views from its six sheets, the needles on peach and aqua skies, the balanced eggs, the monasteries on their cliffs and floating islands, the mushrooms over the sea of cloud and the plain with its lone tower.',
   ] },
   { v: '0.62', date: '2026-10-05', items: [
     'Nothing stays on the screen while you play any more: the box in the corner with the place, the objective and the relics is gone. Your health shows while you are hurt or healing, the stamina wheel while you are tired, the tank beside you while it refills or the jets burn, and each fades away after. A short line at the bottom says what the use button does when there is something to use, and a region’s name as you cross into it.',

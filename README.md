@@ -1544,6 +1544,37 @@ all of it is in the game's own materials and post pass (every world uses it), no
 - A zone's touches (`zone.look`) now start from the preset each time, so one view's never carry
   into the next.
 
+### Vael II's sheets (the Sky Stones)
+
+`references/Vael/` is empty; Vael II's six sheets are the Sky Stones' (and draw Vael's lone tower
+and bird too).
+
+- **The views** (`src/levels/reference-vael2.js`, `VAEL2_VIEWS`): IMG_3783 to 3788 (5, 5, 5, 6, 6
+  and 4 panels), views 51–81 after the City-Shaft's. One scene builder (`vaelScene`) with
+  Sky-Stones-kit pieces (`table`, `needle`, `boulder` from `sky-stones-kit.js`, the aqueduct
+  `bridge` from `arzach2.js`): needle clusters, mushroom tables (a cap `squash`ed into an overhang
+  wider than deep), balanced and floating eggs, discs, floating islands, monasteries (`tower`,
+  `chapel`, `palace`, `church`), aqueducts and natural arches, a sea of cloud in front of the camera
+  (cauliflower puffs on a deck), the lone tower, the bird (`buildBird`, folded or spread, a rider).
+  The framing was measured with a projector (sheet u, v at a distance → the view's local point).
+  The views draw in `VAEL2_LOOK` (flat printed shade, no bounce, a clean sky).
+- **A material's own flat print** (`makeMaterial({ shadeFlat })`, `SHADE.flats`): `uShadowFlat` was
+  the world's, so the City-Shaft's trees went grey-blue with its walls. A material may now say its
+  own: packed in the hue's steps past the hues (`gHatch.r`: 0 the world's, 1 … 9 a hue kept, 10 … 15
+  the print in fifths; under 32), post.js reads it before the world's. Vael II prints its terrain,
+  rock and buildings at 0.85 (`SKY_STONES_FLAT`); its people, bird and flowers keep their shade.
+- **Rock hatched down its faces**: strata rock's strokes run down an upright face (8° off), not on
+  the diagonal, as the sheets (and the desert's canyons) draw cliffs and needles; its projections
+  blend more sharply (`pow` 8), and the cross-hatched rings round smooth forms are only drawn on
+  upright faces, so a cap's or an overhang's underside no longer curls into wood grain.
+- **On the world** (`arzach2.js`): `SKY_STONES_LOOK` (no cumulus bank or flat clouds, no bounce,
+  little half-tone), a grey-teal shadow (`#93a6ac`, `SKY_STONES_DAY`), the needles with few shade
+  strokes and no beds (`hatch` 0.4, `strataHatch` 0). `?look=vael2` draws the views in it
+  (`WORLD_LOOKS`, with `?look=desert`).
+- **Cost** (M4 Pro, 1280 × 720, Vael II at spawn and turned, GPU median): High 11.4 → 8.6 and 9.5 →
+  6.8 ms (the flat clouds gone), Handheld 2.1 → 2.0 and 1.6 → 1.5; the shader changes are a few
+  selects, no new taps.
+
 ### Weathered walls
 
 The reference cities look old and lived in. `makeMaterial({ weathered })` (0..1, `S_WEATHER`,

@@ -5,6 +5,7 @@ import { RoomKit } from './lab-kit.js';
 import { REFERENCE_VIEWS, REFERENCE_SHEETS } from './reference-views.js';
 import { SandDrifts, driftMaterial } from '../sand-drifts.js';
 import { DESERT_LOOK } from '../desert-sites.js';
+import { SKY_STONES_DAY, SKY_STONES_LOOK, SKY_STONES_FLAT } from './arzach2.js';
 
 // ---------------------------------------------------------------------------
 // The references: a developer's level (?level=references, or the worlds list, L)
@@ -148,10 +149,19 @@ const COMPARE_NAMES = { off: 'off', corner: 'the panel in a corner', overlay: 't
 
 /** The desert's own day palette (src/levels/desert.js): ?look=desert draws every view with it and the plain preset. */
 export const DESERT_SKY = ['#92b6c5', '#d7dfd9', '#93a6cf', '#fff9ee', '#fff6dc'];
+/**
+ * ?look=<world>: every view drawn in that world's own day palette and its touches on the print preset
+ * (to see what the shaders and the world's look do unaided). Vael II prints its rock's shade flat per
+ * material (SKY_STONES_FLAT); the views' materials don't say, so the look carries it.
+ */
+export const WORLD_LOOKS = {
+  desert: { sky: DESERT_SKY, look: DESERT_LOOK },
+  vael2: { sky: SKY_STONES_DAY, look: { ...SKY_STONES_LOOK, uShadowFlat: SKY_STONES_FLAT } },
+};
 
 export function createReferences(scene) {
-  // ?look=desert: the views in the desert's own colours and ink, not the panels' (to see what the shaders do unaided)
-  const asDesert = typeof location !== 'undefined' && new URLSearchParams(location.search).get('look') === 'desert';
+  // ?look=<world> (WORLD_LOOKS): the views in that world's own colours and ink, not the panels'
+  const asWorld = typeof location !== 'undefined' ? WORLD_LOOKS[new URLSearchParams(location.search).get('look')] ?? null : null;
   const lights = [], noShadow = [], movers = [];
   const views = REFERENCE_VIEWS.map((def, i) => {
     const centre = viewCentre(i);
@@ -179,7 +189,7 @@ export function createReferences(scene) {
     const cam = viewCamera(def.camera);
     const toWorld = (v) => v.clone().applyMatrix4(group.matrixWorld);
     const { hour } = sunHour(def.sun.el);
-    const sky = asDesert ? DESERT_SKY : def.sky;
+    const sky = asWorld ? asWorld.sky : def.sky;
     const script = colourScript({ day: sky, dusk: sky, night: sky });   // (the same colours whatever the hour)
     const eye = toWorld(cam.eye), target = toWorld(cam.target);
     // where the traveller stands while the camera is held: on the ground under the eye, facing the view
@@ -192,7 +202,7 @@ export function createReferences(scene) {
         const dx = x - centre.x, dz = z - centre.z, a = group.rotation.y, c = Math.cos(a), s = Math.sin(a);
         return [dx * c - dz * s, dx * s + dz * c];
       },
-      zone: { name: `References · ${def.title}`, preset: def.preset ?? 'Moebius print', look: asDesert ? DESERT_LOOK : def.look ?? {}, planets: [], hour },
+      zone: { name: `References · ${def.title}`, preset: def.preset ?? 'Moebius print', look: asWorld ? asWorld.look : def.look ?? {}, planets: [], hour },
       atmo: { tint: [1, 1, 1], fog: def.fog ?? 0.35, name: `References · ${def.title}`, script },
     };
   });
@@ -342,7 +352,7 @@ export function createReferences(scene) {
     compare: () => { compare = (compare + 1) % COMPARE.length; if (ui) ui.key = ''; return COMPARE[compare]; },
     get comparing() { return COMPARE[compare]; },
     get held() { return held?.view ?? null; },
-    sky: { script: { day: asDesert ? DESERT_SKY : views[0].def.sky, dusk: asDesert ? DESERT_SKY : views[0].def.sky, night: asDesert ? DESERT_SKY : views[0].def.sky } },
+    sky: { script: { day: asWorld?.sky ?? views[0].def.sky, dusk: asWorld?.sky ?? views[0].def.sky, night: asWorld?.sky ?? views[0].def.sky } },
     atmo: (x, z) => viewAt(x, z)?.atmo ?? views[0].atmo,
     zoneAt: (p) => viewAt(p.x, p.z)?.zone ?? views[0].zone,
     update(dt, t, ctx = {}) {

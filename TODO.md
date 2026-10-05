@@ -682,6 +682,27 @@ All of this is for the web game; the Unity port follows later if we move to Unit
       hill-town, the sheets' a canyon of pink and cream stacked houses with water below; the views'
       houses are boxes (no pipes, balconies, laundry or the plating under the overhangs), the
       cabs and blimps simple capsules.
+  - Vael: `references/Vael/` is empty (no sheets); its tower plain and bird are drawn on Vael II's.
+  - Vael II, the Sky Stones (IMG_3783–3788: 5 + 5 + 5 + 6 + 6 + 4 panels) are views 51–81
+    (`reference-vael2.js`; README "Vael II's sheets").
+    - Shader-level, done: a material's own flat print (`shadeFlat`: the world's rock, plain and
+      buildings at 0.85, its people, bird and flowers keep their shade); strata rock hatched down its
+      faces; no cross-hatched rings under caps (wood grain). On the world: a clean sky, no bounce, a
+      grey-teal shade, the needles with few strokes and no beds.
+    - Shader-level, left: the sheets hatch a cap's underside along its ribs, radiating from the
+      stalk, dense and dark; ours are parallel strokes (no radial coordinate in merged geometry: a
+      per-vertex axis would do it). The clouds' outlines and shade: the sheets draw them in thin,
+      lighter lines with soft lilac pockets, ours in the same black line as rock, so near puffs read
+      as boulders (an outline weight / colour per material is missing). The needles' and stalks'
+      terminator is a clean band on the sheets; flat facets with flutes break ours into lit islands in
+      the shade. The sheets hardly show cast shadows on the plain (a mushroom throws none); ours are
+      full. The crevasses' walls are lit red-brown and hatched on the sheets, ours dark. The paper's
+      grain and the lines' weight as before (heavier, even).
+    - Scene-level: the overhangs' drips and stalactites, the cracked eggs, the cave mouth's
+      framing, the monasteries' detail (arcades, cypresses, roofs), the mushrooms' lean, the bird's
+      standing pose (buildBird's rest pose lies low), the cloud sea's cauliflower detail.
+    - Vael II world, left: its cloud puffs are pre-shaded vertex colours (not the flat print), its
+      planets stay (the sheets have none), dusk and night keep the old blue shadow.
 
 # Transitions and moments (2026-10-05, web)
 
