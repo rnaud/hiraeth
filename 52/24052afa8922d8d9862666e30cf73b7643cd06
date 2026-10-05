@@ -1,0 +1,47 @@
+DONE.md
+  s_1fd8d0e7b02dcf::t_0581c020e94e71 652-660
+TODO.md
+  s_1fd8d0e7b02dcf::t_2cb6cd72176c23 92-94,96-101,132-133
+changelog.md
+  s_1fd8d0e7b02dcf::t_b4ca20fabf4491 10-12
+docs/systems/references.md
+  s_1fd8d0e7b02dcf::t_a3fecb16e4c420 1-63
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_023008d79924b3 10-12
+src/levels/buried.js
+  s_1fd8d0e7b02dcf::t_4e5395432ae734 25-34,979,987
+src/levels/reference-buried.js
+  s_1fd8d0e7b02dcf::t_6fc8cb289090d1 1-630
+src/levels/reference-desert.js
+  s_1fd8d0e7b02dcf::t_0792b0f9e10d95 21-22,381,401,427,449,469,490,518
+src/levels/reference-vael2.js
+  s_1fd8d0e7b02dcf::t_95ca0ba567f52f 59-60,68,217
+src/levels/reference-views.js
+  s_1fd8d0e7b02dcf::t_cf4cc04af414f6 11,49-50,473-474
+src/levels/references.js
+  s_1fd8d0e7b02dcf::t_e169901694f645 10,162
+src/materials.js
+  s_1fd8d0e7b02dcf::t_99097aa9b902b2 116-123,528,1628,1734,1830
+src/post.js
+  s_1fd8d0e7b02dcf::t_fb390332d718b7 2,128-132,279-301,503-506,549,711-726,900-901,1023,1030,1041-1042,1049,1056,1063,1069
+tests/references.test.js
+  s_1fd8d0e7b02dcf::t_8a59692d973a2a 190-212
+tests/shade.test.js
+  s_1fd8d0e7b02dcf::t_817384c61880f5 124-143
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5224052afa8922d8d9862666e30cf73b7643cd06",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
