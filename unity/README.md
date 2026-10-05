@@ -4,8 +4,10 @@
 world, the desert, built from the web game itself: a Node script builds the
 desert headlessly exactly as the game does at load and exports it; Unity reads
 the export and draws it through the same G-buffer and ink composite as
-`src/materials.js` and `src/post.js`, ported to HLSL. The opening quest, "The
-Tree That Drinks", plays end to end.
+`src/materials.js` and `src/post.js`, ported to HLSL. It plays from the ship's
+prologue through the opening quest, "The Tree That Drinks", to the ship that
+hums, with the people dressed and animated as on the web, the fluid backpack,
+the makers' boxes, sound and voices, wildlife, weather and saves.
 
 The same viewpoints, web game (left) and Unity (right), rendered headlessly
 (`views.mjs`, `Batch.Shots`):
@@ -16,15 +18,25 @@ The same viewpoints, web game (left) and Unity (right), rendered headlessly
 | ![](docs/web-start.jpg) | ![](docs/unity-start.jpg) |
 | ![](docs/web-camps.jpg) | ![](docs/unity-camps.jpg) |
 | ![](docs/web-tree.jpg) | ![](docs/unity-tree.jpg) |
+| ![](docs/web-plume.jpg) | ![](docs/unity-plume.jpg) |
+| ![](docs/web-cave.jpg) | ![](docs/unity-cave.jpg) |
+| ![](docs/web-traveller.jpg) | ![](docs/unity-traveller.jpg) |
+| ![](docs/web-ama.jpg) | ![](docs/unity-ama.jpg) |
+| ![](docs/web-nour.jpg) | ![](docs/unity-nour.jpg) |
 
-(The Unity shots are of the world alone, outside play: no people, no smoke.)
-In play, from the scripted play-through (`Batch.Play`):
+(The Unity world shots show the world alone, outside play, so there are no
+people. The three portraits on the Unity side come from the play-through.) In
+play, from the scripted play-through (`Batch.Play`):
 
 | | |
 |---|---|
-| ![](docs/play-camps.jpg) the camps, people in their palettes | ![](docs/play-procession.jpg) the procession on its loop |
-| ![](docs/play-climbing.jpg) climbing the burning tree's buttress | ![](docs/play-the_chest_on_the_ledge.jpg) the makers' chest on the ledge |
-| ![](docs/play-riding.jpg) the hoverbike | |
+| ![](docs/play-recording.jpg) the prologue: the father's recording, the parents' hologram | ![](docs/play-impact.jpg) the impact |
+| ![](docs/play-camps.jpg) the camps, the seated people round the fire | ![](docs/play-far_crowd.jpg) the city from afar, the far crowd instanced |
+| ![](docs/play-climbing.jpg) climbing the burning tree's buttress | ![](docs/play-chest_apart.jpg) the makers' chest comes apart |
+| ![](docs/play-tank.jpg) the tank on his back | ![](docs/play-splat.jpg) a glob of fluid splashed |
+| ![](docs/play-gliding.jpg) the fluid wings | ![](docs/play-wildlife.jpg) a dune crab |
+| ![](docs/play-star.jpg) the star box's keepsake | ![](docs/play-furrow.jpg) the prologue: the crash's furrow |
+| ![](docs/play-procession.jpg) the procession on its loop | ![](docs/play-riding.jpg) the hoverbike |
 
 ## Run it
 
@@ -39,6 +51,14 @@ In play, from the scripted play-through (`Batch.Play`):
    world.bin, story.json, about 400 MB, not committed) and copies the
    characters (`public/anim/*.glb`) to `StreamingAssets/anim/`. Run it again
    whenever the desert changes on the web side.
+   The sounds are recorded from the web game in a second step (headless Chrome
+   against a dev server on its own port; writes `StreamingAssets/sound/`, also
+   not committed):
+
+   ```sh
+   npx vite --port 5238 --strictPort &
+   PLAYWRIGHT=/path/to/playwright-core/index.mjs node scripts/unity-export/record-sounds.mjs
+   ```
 2. Open `unity/Memento` in Unity 6000.6 (Hub: Add project from disk). The first
    import resolves the packages (URP, Input System, glTFast, MCP for Unity).
 3. Once, or after pulling: menu **Memento → Set up project** (URP settings, the
@@ -55,7 +75,11 @@ In play, from the scripted play-through (`Batch.Play`):
 | run | Shift | L3 |
 | jump, climb off | Space | A / × |
 | talk, use, get on / off the bike, whistle for it | E | B / ○ |
-| push (the backpack's fluid) | C, middle click | RB / R1 |
+| shoot (the backpack's fluid) | G, left click (cursor locked) | RT / R2 |
+| push | C, middle click | RB / R1 |
+| gun mode | X | D-pad ← → |
+| boost; wings (with the glider) | Space again in the air; hold while falling | A / × again; hold |
+| skip a cinematic | hold Esc | hold Y / △ |
 | choose an answer | 1–3, ↑ ↓ + Enter | D-pad + A / × |
 | journal | Tab, J | View |
 | close a panel | Esc | Y / △ |
@@ -82,13 +106,18 @@ ports of the quest and dialogue systems):
 Unity -batchmode -projectPath unity/Memento -runTests -testPlatform EditMode -testResults /tmp/results.xml
 ```
 
-`Play` enters play mode and lets `BatchDriver` drive the pad: out of the ship,
-a run and a jump, the camps and Ama, the city gate, the climb up the burning
+`Play` enters play mode and lets `BatchDriver` drive the pad: the prologue
+(waking, the recording, the impact, the crash, stepping out), a run and a jump, the camps and Ama, the city gate, the climb up the burning
 tree's buttress to the makers' chest, Nour, the well, Ama's jar, the Speaker at
 the head of the procession, the skull's mouth into the cave, the push that
 clears the rib, the pool that fills the jar, the hoverbike under the tarp, the
-camp fire that burns, a fall that knocks you over, the ship that hums. It saves
-a frame at each step and exits 0 only if the quest is done.
+camp fire that burns, a fall that knocks you over, the ship that hums. Along
+the way it runs the box scenes, the tank, a shot and a splat, the stun mode, a
+boost, the wings, the wildlife, the star box and Nour back on her bench, counts
+the sounds played, and writes a save and reads it back. It saves a frame at
+each step and exits 0 only if the quest is done. The EditMode tests also check
+the voices' syllable plans against `voice.js`, the people's dress against the
+export, the boxes and the recorded sounds.
 
 ## How it is built
 
@@ -121,7 +150,27 @@ a frame at each step and exits 0 only if the quest is done.
     seats), the crowd and the procession's route, the tree's flame, the local
     lights;
   - `story.json`: `src/story/desert-data.js` as data (people and their
-    conversations, quests, things, crowd lines, items).
+    conversations, quests, things, crowd lines, items), and the ship's
+    prologue (`cinematics.js`: the call's pages, the timeline, the crash
+    path, the map's worlds and order);
+  - **the people** (`people.mjs`): every figure exactly as the web game dresses
+    it (the traveller with the fluid kit, the story's people, the 132 of the
+    crowd through `pooledNPC`). That means node trees, skinned meshes with
+    their bind poses (deduplicated), and each material's figure uniforms
+    (outfit zones, trims, skin, face kit, eyes, creases, glass, the hero flag,
+    the tank's fluid, dissolve). Capes come with their drape. The postures the
+    clips lack (seated on an edge, on a kerb, leaning on a rail or a wall) are
+    baked on each rig. The animation clips are exported as the web game plays
+    them, sampled at 30 fps from its own retargeting (`Animator` +
+    `Humanoid.update` + `poseHands`) for each body kind;
+  - the crowd's far figures (`crowd.js` figureGeometry) and their packed looks,
+    the items (the backpack, the star), the box scene's timings, the parents'
+    hologram busts, the birds, the wildlife species, the smoke column, embers
+    and camp smokes, the weather kinds and the ship in its frames (space,
+    parked, the crash path, hatch and ramp).
+- `record-sounds.mjs` renders every effect the desert plays (and 150 s of the
+  desert's score) through the game's own `Sound` class into an
+  `OfflineAudioContext`, so the WAVs are what the browser plays.
 - Coordinates: three.js is right-handed, Unity left-handed. Everything is
   mirrored across x (as glTFast does for the characters), windings flipped,
   headings become Unity yaw `-h`. The shaders mirror positions back before every
@@ -159,6 +208,26 @@ a frame at each step and exits 0 only if the quest is done.
   (flat colour, dome dots, the cumulus bank, the sun and moon discs, a planet,
   flat inked clouds with hatched undersides); paper fibre and the vignette.
   Colours stay the game's display values and are converted to linear at the end.
+- **Figures** (`Figure.hlsl`, in `Surface.shader`): the printed outfit zones and
+  trims drawn from the bind pose (uv3 / uv4), the drawn face (ink lines, lips,
+  brows following the mood), eyeballs with their gaze, cloth creases, the
+  bubble helmet's glass (discarded where it would hide the face), the tank's
+  lava lamp (bands of fluid, a charge each) and the box scene's dissolve.
+  `Crowd.hlsl` (keyword `MEMENTO_CROWD`) ports `crowd-shader.js`: the far
+  figures posed and dressed in the vertex shader from their packed look.
+  `Hologram.shader` is the parents' bust in the ship (scanlines, flicker,
+  colour).
+- **The glow** (`Bloom.shader`): the glowing surfaces are gathered at a
+  quarter of the resolution, blurred, and blurred again at an eighth. The
+  composite lays them on as flat-ringed halos (`post.js` createBloom). Each
+  pass has its own property block. Then comes **FXAA** (`FXAA.shader`).
+  Shadows use URP's low soft-shadow filter, the closest to the web's.
+- **Instanced draws** (`Graphics.RenderMeshPrimitives`, drawn in the G-buffer
+  pass): smoke puffs (`MEMENTO_PUFFS`: the column, the camp fires' smoke,
+  dust), the far crowd, the wildlife's parts (`MEMENTO_INSTMAT`); `Wisp`,
+  `Mote` and `Print` draw the blown sand, dust motes and footprints.
+- The composite also has the cinema globals (fade, eyelids, letterbox, the
+  alarm red), the sandstorm's tint and a glow debug view (`debug 9`).
 - `Flame.shader` is the burning tree's fire (`flames.js` FlameBody): three
   lathe shells of flat bands, licked and torn by a scrolling noise, self-lit;
   it turns to the cool palette when the tree drinks.
@@ -177,11 +246,40 @@ a frame at each step and exits 0 only if the quest is done.
 - `CameraRig` (`player.js` CameraRig): the 9.5 m arm over a look point 1.8 m
   up, swinging behind the heading, pulled in front of walls and kept off the
   ground; a two-shot while talking.
-- `Characters`: glTFast loads `traveller.glb` (his own Idle / Walk clips) and
-  the Quaternius `human_m` / `human_f` bodies with the UAL clips (Idle, Walk,
-  Jog, Talking) at runtime, as legacy animation; every material becomes
-  `Memento/Surface` (the people in their printed outfit zones, drawn from the
-  rest pose kept in uv3).
+- `Figures` / `Figure`: `FigureLibrary` builds the people from the export
+  (shared meshes, bind poses, materials). Each figure's motion is blended as
+  `animator.js` does it (idle, walk, jog, run by speed with the gait's phase,
+  jump, fall, climb, glide, ride, talk), with the baked postures laid over
+  it. The face's expressions follow each line's tone (`TalkFace`: mood, brows,
+  the mouth opening on the voice), and the eyes look at you. `Cape` simulates
+  the capes (Verlet within 30 m, the baked drape beyond). `FarCrowd` draws the
+  crowd past 55 m as instanced figures. (`Characters` is the old glTFast
+  path, kept as a fallback.)
+- `FluidTool` (`fluid-tool.js`): three charges, the glob shot on an arc and its
+  splat, the push, the boost, the wings with the glider, the gun modes
+  (stilling, ember) and the tank's colours (the living water adds one).
+  People shout, freeze or are shoved; the wildlife flees.
+- `BoxScene` (`box-scene.js`): the makers' chest wakes, rises, comes apart
+  (dissolve) and leaves its item hovering, then the card comes up. The star
+  box (its keepsake) opens the same way.
+- `ShipScene` (`ship/`, `cinematics.js`): the prologue (waking in the bunk,
+  the father's recording with the parents' coloured hologram, the impact, the
+  fall, the streak and the furrow, the dust clearing, the hatch, stepping
+  out), then boarding the crashed ship, the console and the galactic map.
+- `Sounds` / `Voice`: the recorded clips (3D where placed) and the score.
+  The continuous layers are synthesised in `OnAudioFilterRead` (the wind and
+  its howl in the storm, the cloak, the bike's engine, the fires' crackle).
+  Voices work as in `voice.js`: each line is planned into syllables (per
+  language: the desert's, home's, the ship's mechanical one) and sung by a
+  small synth, its pitch and pace set by the line's tone, the mouth moving
+  with it.
+- `Puffs` / `FireFx`: the burning tree's landmark smoke column, its embers, the
+  camp fires' smoke. `Ambient`: the weather (calm, wind, and the sandstorm that
+  tints the page and hides the distance), wind-blown sand, birds in flocks,
+  dust motes, footprints in the sand. `Wildlife` (`wildlife.js`): puff
+  lizards, dune crabs and jerboas, with their gaits, wariness and surprises.
+- `Save`: the flags, keepsakes, position and the tank's colours, as JSON in
+  `persistentDataPath` (autosaved). The title offers Continue / New game.
 - `Story.cs`: `GameState` (flags, events, keepsakes), `Quests` (`quests.js`:
   stages advancing on flags and arrivals, the objective and its marker),
   `DialogueRunner` (`dialogue.js`: entries, conditions, effects, pages, at
@@ -200,31 +298,25 @@ a frame at each step and exits 0 only if the quest is done.
 - `Hud`: the objective line, prompts in Xbox / PlayStation form, toasts, the
   health bar, speech over heads, the conversation panel, the journal, the
   father's charge card, the end card (IMGUI on paper colours).
-- `TitleScreen`: the title page, then the desert.
+- `TitleScreen`: the title page (Continue / New game with a save), then the
+  desert.
 
 ## What is missing (next steps)
 
-- **The traveller's moves** use his own Idle and Walk clips only (the web game
-  retargets the UAL library onto his rig: run, jump, climb, ledge-climb poses).
-  A humanoid avatar and `HumanPoseHandler` retargeting would bring them over.
-  He is drawn without the bubble helmet, the cape cloth, the drawn face (the
-  portrait shader), the creases and the fluid tank's lava lamp.
-- **The people** wear their palette as flat zones on the Quaternius bodies;
-  the web game's costumes, capes, hats, hair, faces and eyes, expressions and
-  the voice / translator are not ported. The crowd is full bodies (90 of the
-  132), not the instanced far figures; seated people stand.
-- **The fluid tool**: only the push (for the rib); no shots, charges, boost,
-  wings or jets. The other makers' box (the star) is hidden. The chest opens
-  with a card, not the box scene.
-- **Not ported**: the ship's prologue and interior, the recordings, the
-  galactic map; wildlife, birds, footprints, wind-blown sand, the camp fires'
-  animated tongues (they are exported as a still frame), smoke and embers, the
-  reactive world, flammables, weather, the dev menu, saves, sound and music,
-  the observatory and the masked head's chamber (exported, not playable),
-  Android. The HUD is IMGUI (not in batch screenshots).
-- **The look**: no FXAA, no sun rays, no rain or sandstorm, no hero-only line
-  weights tuning, shadows are URP's (softer, a different filter than the web's
-  hand-rolled cascades).
+- **The traveller**: the glide uses the fall pose (the web's arms-out glide
+  pose is not baked), and the jets' thrust flame is not drawn.
+- **The people**: the crowd's mid-distance figures cast no shadows; the far
+  figures have no brows (too small to see on the web too).
+- **The ship**: the holo table's planet is drawn flat (not with the web's
+  planet shader); the galactic map is an IMGUI list of the worlds, not
+  `starmap.js`'s drawn chart.
+- **Not ported**: the rain and fog weather kinds (the desert uses wind and the
+  sandstorm), the reactive world (flammables catching), the dev menu, the
+  observatory and the masked head's chamber (exported, not playable), the
+  other worlds, Android. The HUD is IMGUI, so it does not show in batch
+  screenshots.
+- **The look**: no sun rays. Shadows are URP's, with a filter close to the
+  web's hand-rolled cascades but not the same.
 
 ## Connecting an MCP client to the editor
 

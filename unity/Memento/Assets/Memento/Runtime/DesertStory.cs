@@ -334,8 +334,18 @@ namespace Memento
             if (people.TryGetValue("nour", out var nour))
             {
                 var wait = P.V3("ledgeFoot");
+                // up off her bench, to the foot of the ledge; once heard and you're away (30 m), back
+                // to the bench and down onto it (desert.js nourHome)
+                var bench = nour.route[0]; float benchHeading = nour.heading; bool homeward = false;
                 nour.seatHeight = -1;
-                nour.follow = () => G.Is("desert.elder.heard") ? null : (wait, 0.95f, 0.5f, (float?)null);
+                nour.follow = () =>
+                {
+                    if (!G.Is("desert.elder.heard")) return (wait, 0.95f, 0.5f, (float?)null);
+                    if (!homeward && game.player && Flat(game.player.transform.position, ledgeBox) > 30) homeward = true;
+                    if (!homeward) return null;
+                    if (Flat(nour.pos, bench) < 0.45f) { nour.follow = null; nour.seatHeight = 0; nour.heading = benchHeading; nour.pos = bench; return null; }
+                    return (bench, 0.8f, 0.3f, (float?)null);
+                };
                 nour.Say("~solemn~ Come down, child. Let me look at you.", 5f);
             }
         }

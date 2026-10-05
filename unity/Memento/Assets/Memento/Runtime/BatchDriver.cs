@@ -271,7 +271,7 @@ namespace Memento
             // Nour, then the well, Ama's jar, the Speaker
             var nour = Person("nour");
             PutNear(nour.pos, 2f); yield return Wait(0.5f);
-            yield return CloseUp("nour_seated", nour.transform, 2.6f, 0.4f, 0.1f);
+            yield return CloseUp("nour_at_the_ledge_foot", nour.transform, 2.6f, 0.4f, 0.1f);
             yield return Talk(game.story.Def("nour"), nour, "Who are the Givers?", "Why a star?", "My ship has no power", "Why me?", "All right", "The well");
             Log($"after Nour: stage {Stage}");
             Put(game.world.Places.V3("wellLook"), 0); yield return Wait(0.5f);
@@ -330,6 +330,13 @@ namespace Memento
             Log($"at the ship: stage {Stage}, done {game.quests.IsDone("desert.power")}, powered {game.state.Is("ship.powered")}");
             yield return Shoot("the_ship_hums");
             Log($"sound: {Sounds.Instance?.ClipCount ?? 0} recorded clips, {Sounds.Instance?.played ?? 0} played");
+            // Nour: back on her bench since you went away
+            {
+                var nour2 = Person("nour");
+                PutNear(nour2.pos, 2.2f); yield return Wait(1f);
+                Log($"Nour home: seated {nour2.seatHeight >= 0}, pose {nour2.figure?.pose}");
+                yield return CloseUp("nour_on_her_bench", nour2.transform, 2.6f, 0.4f, 0.1f);
+            }
             // the save: written, read back into a fresh state, the same flags
             {
                 var path = Save.Write(game, "batch");

@@ -359,10 +359,23 @@ The desert runs in `unity/Memento` (Unity 6, URP): exported from the web game by
 
 - [x] Export, the ink look, the traveller's controller and camera, climbing, people, dialogue, quests,
   the father's charge, the chest, the bike, the burning tree, health and falls, title screen.
-- [ ] The traveller's run, jump and climb clips; the helmet, face, creases and tank.
-- [ ] People's costumes, capes, hair and faces; seated people; an instanced far crowd.
-- [ ] The fluid tool's other modes; the box opening scene; the star box.
-- [ ] The ship (prologue, interior, map), wildlife, footprints, smoke, embers, weather, sound, saves.
-- [ ] FXAA, the game's own shadows; the cave's lighting.
+- [x] The traveller's run, jump, climb, glide and ride clips (the web's retargeting, baked); the suit,
+  helmet, headphones, scarf, tank, drawn face and eyes, expressions from the lines' tones.
+- [x] People's costumes, capes (simulated near, draped far), hats, hair and faces; seated people; the
+  instanced far crowd.
+- [x] The fluid tool (shoot, push, boost, wings, the stilling and ember modes); the box opening scene;
+  the star box.
+- [x] Sound: the web's effects and score recorded from Web Audio, wind / engine / crackle synthesised,
+  the voices planned and sung as `voice.js`.
+- [x] The ship: the prologue (the recording and hologram, the impact, the crash), boarding, the
+  console and the map.
+- [x] Wildlife, birds, footprints, wind-blown sand, dust motes, the smoke column, embers, camp smoke,
+  the sandstorm; saves (Continue / New game).
+- [x] FXAA, the glow, a shadow filter close to the web's; the cave's lighting.
+- [ ] The glide's own arm pose; the jets' thrust flame.
+- [ ] The holo table's planet shader; `starmap.js`'s drawn chart (the map is a list).
+- [ ] Shadows for the crowd's mid-distance figures.
+- [ ] The rain and fog weather kinds, the reactive world (flammables), sun rays, the observatory and
+  the masked head's chamber, the other worlds, Android.
 - [ ] Connect an MCP client to the editor (the bridge package is installed; an organization policy
   blocks registering unknown MCP servers in Claude Code).

@@ -4,7 +4,7 @@
 // the page…) and a few minutes of the desert's score. Each one is rendered by the game's own
 // Sound class into an OfflineAudioContext (window.AudioContext swapped for it), so the clips are
 // exactly what the browser plays. The continuous layers (wind, the cloak, the engine) and the
-// voices are synthesised live in Unity (Assets/Memento/Runtime/Audio).
+// voices are synthesised live in Unity (Assets/Memento/Runtime/Sounds.cs, Voice.cs).
 //
 //   npx vite --port 5238 --strictPort &
 //   PLAYWRIGHT=/path/to/playwright-core/index.mjs node scripts/unity-export/record-sounds.mjs [outDir]
